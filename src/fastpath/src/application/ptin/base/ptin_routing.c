@@ -550,7 +550,7 @@ L7_RC_t ptin_routing_intf_create(ptin_intf_t* routingIntf, L7_uint16 internalVla
 #if (PTIN_BOARD_IS_MATRIX  || PTIN_BOARD_IS_STANDALONE) //Required because of 'ptin_ipdtl0_control'
   /* Allow IP/ARP packets through dtl0 for this vlan */
   LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Allowing IP/ARP packets through dtl0 for vlans %u/%u on intfIfNum %u", routingVlanId, internalVlanId, routingIntfNum);
-  if(L7_SUCCESS != ptin_ipdtl0_control(routingVlanId, routingVlanId, internalVlanId, routingIntfNum, L7_TRUE))
+  if(L7_SUCCESS != ptin_ipdtl0_control(routingVlanId, routingVlanId, internalVlanId, routingIntfNum, PTIN_IPDTL0_ETH_IPv4, L7_TRUE))
   {
     LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to allow IP/ARP packets through dtl0 for this vlan");
     return L7_FAILURE;
@@ -743,7 +743,7 @@ L7_RC_t ptin_routing_intf_remove(ptin_intf_t* routingIntf)
 
 #if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_STANDALONE)
   /* Disable IP/ARP packets through dtl0 for this vlan */
-  if(L7_SUCCESS != ptin_ipdtl0_control(routingVlanId, routingVlanId, (L7_uint16)-1, intfNum, L7_FALSE))
+  if(L7_SUCCESS != ptin_ipdtl0_control(routingVlanId, routingVlanId, (L7_uint16)-1, intfNum, PTIN_IPDTL0_ETH_IPv4, L7_FALSE))
   {
     LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to allow IP/ARP packets through dtl0 for this vlan [routingVlanId:%u intfNum:%u]", routingVlanId, intfNum);
     return L7_FAILURE;

@@ -71,7 +71,7 @@ typedef struct sysnet_pdu_info_s
   L7_uint32 destIntIfNum;      /* Destination intIfNum */
   L7_uint32 destVlanId;        /* Destination VLAN */
 
-  L7_uint64 ts;                //PTIN added: SDK's timestamp
+  L7_ulong32 timestamp;        /* PTIN added: RX timestamp */
 }sysnet_pdu_info_t;
 
 typedef struct
@@ -82,7 +82,7 @@ typedef struct
   {
     L7_uchar8   macAddr[L7_MAC_ADDR_LEN]; 
     L7_ushort16 protocol_type;
-    L7_uchar8  subType;
+    L7_uchar8   subType;
     L7_uchar8   dsap;
     L7_uint32   rxReason;
   } u;

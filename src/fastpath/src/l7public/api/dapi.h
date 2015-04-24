@@ -2528,7 +2528,7 @@ typedef struct
       DAPI_FRAME_TYPE_t           type;
       L7_ushort16                 vlanID;
       L7_uint32                   priority;
-      L7_uint32                   flags;      /* PTIN added: PTP Timestamp BCM_PKT_F_xxx flags. */
+      L7_uint32                   flags;              /* PTIN added: PTP Timestamp BCM_PKT_F_xxx flags. */
     } send;
 
     struct
@@ -2540,7 +2540,7 @@ typedef struct
       L7_uint32                   priority;
       L7_ushort16                 innerVlanId;
       L7_uint32                   innerVlanPriority;
-      unsigned long long          ts;       //PTIN added: timestamp
+      L7_ulong32                  timestamp;          /* PTIN added: PTP Timestamp */
     } receive;
 
   } cmdData;

@@ -78,6 +78,8 @@ extern L7_uint64 hapiBroadReceive_packets_count;
 extern ptin_debug_pktTimer_t debug_pktTimer;
 #endif
 
+#include "ipc.h"
+
 extern DAPI_t *dapi_g;
 extern L7_ushort16 hapiBroadDvlanEthertype;
 
@@ -184,9 +186,16 @@ void cpu_tx_debug_enable(int enable)
 int cpu_intercepted_packets_dump = 0;
 int cpu_transmited_packets_dump = 0;
 
-void ptin_debug_trap_packets_dump(int enable)
+void ptin_debug_trap_packets_dump(int dumpNbytes)
 {
-  cpu_intercepted_packets_dump = enable;
+  if (dumpNbytes)
+  {
+    cpu_intercepted_packets_dump = (dumpNbytes < 64) ? 64 : dumpNbytes; 
+  }
+  else
+  {
+    cpu_intercepted_packets_dump = 0;
+  }
 }
 void ptin_debug_tx_packets_dump(int enable)
 {
@@ -1714,6 +1723,41 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
 #else
       rv = bcmx_tx_uc (&bcm_pkt, hapiPortPtr->bcmx_lport, 0); 
 #endif
+
+      if (bcm_pkt.flags & BCM_PKT_F_TIMESYNC) /* Packet is for Time Sync protocol. */
+      {       
+        #if (PTIN_BOARD == PTIN_BOARD_TG16G)
+        {
+          L7_uint32 counter = 1000;
+          L7_uint32 regvalue;
+
+          /* Poll Status Register */
+          while (counter > 0)
+          {
+            counter--;  /* put a limit on this loop */
+
+            soc_reg32_get(hapiPortPtr->bcm_unit, TS_STATUS_CNTRLr, hapiPortPtr->bcm_port, 0, &regvalue);
+
+            if ((regvalue & 0x02) == 0) /* TS_STATUS_CNTRL.TX_TS_FIFO_EMPTY bit indicator */
+            {
+              // getreg TX_TS_DATA.TX_TS_DATA;
+              soc_reg32_get(hapiPortPtr->bcm_unit, TX_TS_DATAr, hapiPortPtr->bcm_port, 0, &regvalue);
+
+              cmdInfo->cmdData.receive.timestamp = regvalue;
+              break;
+            }
+
+          }
+        }
+        #else
+        {
+          LOG_ERR(LOG_CTX_PTIN_HAPI,"This HW Variant (%d) is not currently supported for Time Sync protocol", hapiBroadRoboVariantCheck());
+
+          cmdInfo->cmdData.receive.timestamp = 0;
+        }
+        #endif
+      }
+
       if ( (hapiBroadRoboVariantCheck() == __BROADCOM_53115_ID) &&
            (dapi_g->system->dvlanEnable == L7_FALSE)
          )
@@ -2304,18 +2348,18 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
   // PTin
   if (cpu_intercept_debug & CPU_INTERCEPT_DEBUG_STDOUT)
   {
-    printf("%s(%d) Lowest level reception: (reason=%u [%u,%u,%u]) %u rxport:%u, srcport=%u, vid=%u\n", __FUNCTION__, __LINE__,
+    printf("%s(%d) Lowest level reception: (reason=%u [%u,%u,%u]) %u rxport:%u, srcport=%u, vid=%u, length=%d\n", __FUNCTION__, __LINE__,
            bcm_pkt->rx_reason,bcm_pkt->rx_reasons.pbits[0],bcm_pkt->rx_reasons.pbits[1],bcm_pkt->rx_reasons.pbits[2],bcm_pkt->cos,
-           bcm_pkt->rx_port,bcm_pkt->src_port,bcm_pkt->vlan);
+           bcm_pkt->rx_port,bcm_pkt->src_port,bcm_pkt->vlan, bcm_pkt->pkt_len);
 
     printf("rx_timestamp %d, rx_timestamp_upper %d, timestamp_flags %d\n\r", bcm_pkt->rx_timestamp, bcm_pkt->rx_timestamp_upper, bcm_pkt->timestamp_flags);
     fflush(stdout);
   }
   else if (cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL1)
   {
-    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Lowest level reception: (reason=%u [%u,%u,%u]) %u rxport:%u, srcport=%u, vid=%u\n",
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Lowest level reception: (reason=%u [%u,%u,%u]) %u rxport:%u, srcport=%u, vid=%d, length=%d\n",
               bcm_pkt->rx_reason,bcm_pkt->rx_reasons.pbits[0],bcm_pkt->rx_reasons.pbits[1],bcm_pkt->rx_reasons.pbits[2],bcm_pkt->cos,
-              bcm_pkt->rx_port,bcm_pkt->src_port,bcm_pkt->vlan);
+              bcm_pkt->rx_port,bcm_pkt->src_port,bcm_pkt->vlan, bcm_pkt->pkt_len);
 
     LOG_TRACE(LOG_CTX_PTIN_HAPI, "rx_timestamp %d, rx_timestamp_upper %d, timestamp_flags %d\n\r", bcm_pkt->rx_timestamp, bcm_pkt->rx_timestamp_upper, bcm_pkt->timestamp_flags);
   }
@@ -2328,23 +2372,23 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
   // PTin
   ptin_ReplaceVid(bcm_pkt->vlan, bcm_pkt->pkt_data->data);
 
-  /* Dump first 64 bytes */
+  /* Dump the number of bytes defined by cpu_intercepted_packets_dump */
   if (cpu_intercepted_packets_dump)
   {
     int i;
 
-    printf("Packet received on rxport %u, srcport %u:\r\n",bcm_pkt->rx_port,bcm_pkt->src_port);
-    for (i=0; i<bcm_pkt->pkt_data->len && i<64; i++)
+    printf("Packet received on rxport %u, srcport %u, length=%d:\n\r",bcm_pkt->rx_port, bcm_pkt->src_port, bcm_pkt->pkt_len);
+    for (i=0; i<bcm_pkt->pkt_len && i<cpu_intercepted_packets_dump; i++)
     {
       if (i%16==0)
       {
         if (i!=0)
-          printf("\r\n");
+          printf("\n\r");
         printf(" 0x%02x:",i);
       }
       printf(" %02x",bcm_pkt->pkt_data->data[i]);
     }
-    printf("\r\n");
+    printf("\n\r");
     fflush(stdout);
   }
 
@@ -3098,7 +3142,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
   pktRxMsg.usp = usp;
   pktRxMsg.reasons = bcm_pkt->rx_reasons;
   pktRxMsg.rx_untagged = bcm_pkt->rx_untagged;
-  cmdInfo.cmdData.receive.ts = bcm_pkt->rx_timestamp;       //PTIN added
+  cmdInfo.cmdData.receive.timestamp = bcm_pkt->rx_timestamp;       //PTIN added
   pktRxMsg.cmdInfo = cmdInfo;
   pktRxMsg.cos = bcm_pkt->cos;
 

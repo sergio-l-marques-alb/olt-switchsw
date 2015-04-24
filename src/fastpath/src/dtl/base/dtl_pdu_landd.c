@@ -222,7 +222,7 @@ L7_RC_t dtlPduReceive(DAPI_USP_t *ddusp,
   pduInfo.intIfNum = intIfNum;
   pduInfo.vlanId = dei->cmdData.receive.vlanID;
   pduInfo.innerVlanId = dei->cmdData.receive.innerVlanId;
-  pduInfo.ts = dei->cmdData.receive.ts;                     //PTIN added
+  pduInfo.timestamp = dei->cmdData.receive.timestamp;   /* PTIN added */
 
   if (pdu_receive_debug)
     LOG_TRACE(LOG_CTX_PTIN_DTL,"...");
@@ -359,6 +359,8 @@ L7_RC_t dtlPduTransmit( L7_netBufHandle bufHandle,
   SYSAPI_NET_MBUF_SET_LOC(bufHandle, MBUF_LOC_PDU_TX);
 
   dr = dapiCtl(&ddUsp, DAPI_CMD_FRAME_SEND, &sendData);
+
+  dtlCmdInfo->cmdResponse.L2.timestamp = sendData.cmdData.receive.timestamp;    /* PTIN added: PTP Timestamp */
 
   if (dr == L7_SUCCESS)
   {   

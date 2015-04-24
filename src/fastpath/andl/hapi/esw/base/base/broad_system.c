@@ -3318,7 +3318,7 @@ L7_RC_t hapiBroadConfigTrap(DAPI_USP_t *usp, cmdData_snoopConfig_t *snoopConfig,
                                       &ptin_trap_policy[index].policyId);
       break;
     case PTIN_PACKET_IPDTL0:
-      result = hapiBroadConfigIpDtl0Trap(ptin_trap_policy[index].vlan, ptin_trap_policy[index].vlan_mask, ptin_trap_policy[search_index].macAddr.addr, dapi_g,
+      result = hapiBroadConfigIpDtl0Trap(ptin_trap_policy[index].vlan, ptin_trap_policy[index].vlan_mask, ptin_trap_policy[index].macAddr.addr, dapi_g,
                                          &ptin_trap_policy[index].policyId);
       break;
     default:
@@ -4054,7 +4054,7 @@ L7_RC_t hapiBroadConfigIpDtl0Trap(L7_uint16 vlanId, L7_uint16 vlan_match, L7_uch
 {
   BROAD_POLICY_t          policyId = BROAD_POLICY_INVALID;
   BROAD_POLICY_RULE_t     ruleId = BROAD_POLICY_RULE_INVALID;
-  L7_ushort16             ipdtl0_ethtype  = L7_ETYPE_ARP;
+//L7_ushort16             ipdtl0_ethtype  = L7_ETYPE_ARP;
   L7_uchar8               exact_match[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
                                           FIELD_MASK_ALL, FIELD_MASK_ALL, FIELD_MASK_ALL};
   BROAD_METER_ENTRY_t     meterInfo;
@@ -4069,7 +4069,7 @@ L7_RC_t hapiBroadConfigIpDtl0Trap(L7_uint16 vlanId, L7_uint16 vlan_match, L7_uch
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid VLAN (%u) or policyId pointer", vlanId);
   }
 
-  /* IP packets on any port must go to the CPU and be rate limited to 64 kbps */
+  /* IP packets on any port must go to the CPU and be rate limited to 128 kbps */
   meterInfo.cir       = RATE_LIMIT_IPDTL0;
   meterInfo.cbs       = 128;
   meterInfo.pir       = RATE_LIMIT_IPDTL0;
@@ -4099,14 +4099,14 @@ L7_RC_t hapiBroadConfigIpDtl0Trap(L7_uint16 vlanId, L7_uint16 vlan_match, L7_uch
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *) &vlan_match);
     if (result != L7_SUCCESS)  break;
 
-    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ipdtl0_ethtype, exact_match);
-    if (result != L7_SUCCESS)  break;
+//  result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ipdtl0_ethtype, exact_match);
+//  if (result != L7_SUCCESS)  break;
 
     result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_MED_PRIORITY_COS, 0, 0);
     if (result != L7_SUCCESS)  break;
 
     /* Trap the frames to CPU, so that they are not switched */
-    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
+    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TS_TO_CPU /*BROAD_ACTION_TRAP_TO_CPU*/, 0, 0, 0);
     if (result != L7_SUCCESS)  break;
 
     result = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);

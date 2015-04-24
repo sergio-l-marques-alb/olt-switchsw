@@ -24,7 +24,7 @@
 
 #include "sysnet_api_ipv4.h"
 
-//#define _PAYLOAD_DEBUG_
+#define _PAYLOAD_DEBUG_
 
 /***************************************
  * GLOBAL VARIABLES
@@ -36,15 +36,23 @@ void *ptin_ipdtl0_packetRx_queue = {L7_NULLPTR};
 /* Task used to proc packets and send them to dtl0 */
 L7_uint32 ptin_ipdtl0_TaskId = L7_ERROR;
 
+typedef struct
+{
+    L7_uint16 dtl0Vid;
+} ptin_ipdtl0_intVidInfo_t;
+
+typedef struct
+{
+    L7_uint16 intVid;
+    L7_uint16 outerVid;
+    ptin_ipdtl0_type_t type;
+} ptin_ipdtl0_dtl0Info_t;
 
 /* Reference of used internal VLAN IDs */
-L7_ushort16 ptin_ipdtl0_intVid2dtl0Vid[4096] = {PTIN_IPDTL0_UNUSED_VLAN_ENTRY};
+ptin_ipdtl0_intVidInfo_t ptin_ipdtl0_intVid_info[4096];
 
 /* Reference of used dtl0 VLAN IDs */
-L7_ushort16 ptin_ipdtl0_dtl0Vid2intVid[4096] = {PTIN_IPDTL0_UNUSED_VLAN_ENTRY};
-
-/* Reference of used outer VLAN IDs */
-L7_ushort16 ptin_ipdtl0_dtl0Vid2outerVid[4096] = {PTIN_IPDTL0_UNUSED_VLAN_ENTRY};
+ptin_ipdtl0_dtl0Info_t ptin_ipdtl0_dtl0Vid_info[4096];
 
 
 /***************************************
@@ -103,22 +111,24 @@ static void ptin_ipdtl0_task(void)
             {
                 if (ptin_ipdtl0_debug_enable)
                 {
-                    LOG_TRACE(LOG_CTX_PTIN_API, "Packet received: intIfNum %d, vlanId %d, innerVlanId %d, payloadLen %d\n", 
-                           msg.intIfNum, msg.vlanId, msg.innerVlanId, msg.payloadLen);
+                    LOG_TRACE(LOG_CTX_PTIN_API, "Packet received: intIfNum %d, vlanId %d, innerVlanId %d, payloadLen %d, Rx TS %ld\n", 
+                           msg.intIfNum, msg.vlanId, msg.innerVlanId, msg.payloadLen, msg.timestamp);
                 
                     #ifdef _PAYLOAD_DEBUG_
                     int i;
+                    printf("Packet received: intIfNum %d, vlanId %d, innerVlanId %d, payloadLen %d, Rx TS %ld\n", 
+                           msg.intIfNum, msg.vlanId, msg.innerVlanId, msg.payloadLen, msg.timestamp);
                     for (i=0; i<msg.payloadLen; i++)
                     {
                         if (i%16==0)
                         {
                             if (i!=0)
                                 printf("\r\n");
-                            printf(" 0x%02x:",i);
+                            printf(" 0x%02X:",i);
                         }
-                        printf(" %02x", msg.payload[i]);
+                        printf(" %02X", msg.payload[i]);
                     }
-                    printf("\r\n");
+                    printf("\n\n\r");
                     #endif
                 }
 
@@ -128,12 +138,16 @@ static void ptin_ipdtl0_task(void)
                 pduInfo.intIfNum = msg.intIfNum;
                 pduInfo.rxPort = msg.intIfNum;
                 pduInfo.vlanId = msg.vlanId;
+                pduInfo.timestamp = msg.timestamp;
 
                 /* Convert Internal VLAN ID to dtl0 VLAN ID */
-                msg.payload[14] = (ptin_ipdtl0_intVid2dtl0Vid[msg.vlanId] >> 8) & 0xFF;
-                msg.payload[15] = (ptin_ipdtl0_intVid2dtl0Vid[msg.vlanId])      & 0xFF;
+                msg.payload[14] = (ptin_ipdtl0_intVid_info[msg.vlanId].dtl0Vid >> 8) & 0xFF;
+                msg.payload[15] = (ptin_ipdtl0_intVid_info[msg.vlanId].dtl0Vid)      & 0xFF;
 
-                LOG_TRACE(LOG_CTX_PTIN_API, "Converting Internal VLAN ID (%d) to dtl0 VLAN ID (%d)\n\r", msg.vlanId, ptin_ipdtl0_intVid2dtl0Vid[msg.vlanId]);
+                if (ptin_ipdtl0_debug_enable)
+                {
+                    LOG_TRACE(LOG_CTX_PTIN_API, "Converting Internal VLAN ID (%d) to dtl0 VLAN ID (%d)\n\r", msg.vlanId, ptin_ipdtl0_intVid_info[msg.vlanId].dtl0Vid);
+                }
 
                 dtlIPProtoRecvAny(msg.bufHandle, msg.payload, msg.payloadLen, &pduInfo);
             }
@@ -146,7 +160,6 @@ static void ptin_ipdtl0_task(void)
         usleep(10);
     }
 }
-
 
 /**
  * Handles packets coming from callback
@@ -167,19 +180,22 @@ static  L7_RC_t ptin_ipdtl0_packetHandle(L7_netBufHandle netBufHandle, sysnet_pd
     L7_RC_t                   rc = L7_SUCCESS;
     L7_ushort16               etype = 0;
 
+    /* Get start and length of incoming frame */
+    SYSAPI_NET_MBUF_GET_DATASTART(netBufHandle, data);
+    SYSAPI_NET_MBUF_GET_DATALENGTH(netBufHandle, dataLength);
 
     if (ptin_ipdtl0_debug_enable)
     {
         LOG_TRACE(LOG_CTX_PTIN_API,
-                  "Packet intercepted vlan %d, innerVlan=%u, intIfNum %d, rx_port=%d",
-                  pduInfo->vlanId, pduInfo->innerVlanId, pduInfo->intIfNum, pduInfo->rxPort);
+                  "Packet intercepted vlan %d, innerVlan=%u, intIfNum %d, rx_port=%d, dataLength=%d",
+                  pduInfo->vlanId, pduInfo->innerVlanId, pduInfo->intIfNum, pduInfo->rxPort, dataLength);
 
         LOG_TRACE(LOG_CTX_PTIN_API,
-                  "ptin_ipdtl0_intVid2dtl0Vid[pduInfo->vlanId] %d", ptin_ipdtl0_intVid2dtl0Vid[pduInfo->vlanId]);
+                  "ptin_ipdtl0_intVid2dtl0Vid[pduInfo->vlanId] %d", ptin_ipdtl0_intVid_info[pduInfo->vlanId].dtl0Vid);
     }
 
     /* Check if this is for me */
-    if (ptin_ipdtl0_intVid2dtl0Vid[pduInfo->vlanId] == PTIN_IPDTL0_UNUSED_VLAN_ENTRY)
+    if (ptin_ipdtl0_intVid_info[pduInfo->vlanId].dtl0Vid == PTIN_IPDTL0_UNUSED_VLAN_ENTRY)
     {
         if (ptin_ipdtl0_debug_enable)
         {
@@ -189,20 +205,9 @@ static  L7_RC_t ptin_ipdtl0_packetHandle(L7_netBufHandle netBufHandle, sysnet_pd
         return rc;
     }
 
-    /* Get start and length of incoming frame */
-    SYSAPI_NET_MBUF_GET_DATASTART(netBufHandle, data);
-    SYSAPI_NET_MBUF_GET_DATALENGTH(netBufHandle, dataLength);
-
     /* At this point, Packet is always tagged */
     memcpy(&etype, &data[16], sizeof(etype));
     etype = osapiNtohs(etype);
-
-//  if(etype != L7_ETYPE_ARP)
-//  {
-//      LOG_TRACE(LOG_CTX_PTIN_API, "This is NOT an ARP Packet");
-//      rc = L7_FAILURE;
-//      return rc;
-//  }
 
     if (ptin_ipdtl0_debug_enable)
     {
@@ -215,6 +220,7 @@ static  L7_RC_t ptin_ipdtl0_packetHandle(L7_netBufHandle netBufHandle, sysnet_pd
     msg.intIfNum    = pduInfo->intIfNum;
     msg.vlanId      = pduInfo->vlanId;
     msg.innerVlanId = pduInfo->innerVlanId;
+    msg.timestamp   = pduInfo->timestamp;
     msg.bufHandle   = netBufHandle;
     msg.payloadLen  = dataLength;
     msg.payload     = data;
@@ -230,7 +236,6 @@ static  L7_RC_t ptin_ipdtl0_packetHandle(L7_netBufHandle netBufHandle, sysnet_pd
 
     return rc;
 }
-
 
 /**
  * sysnetPduIntercept.interceptFunc
@@ -258,7 +263,6 @@ static SYSNET_PDU_RC_t ptin_ipdtl0_packetProc(L7_uint32 hookId,
     return SYSNET_PDU_RC_IGNORED;
 }
 
-
 /**
  * Creates HW Trap rule and SW Callback
  * 
@@ -269,11 +273,11 @@ static SYSNET_PDU_RC_t ptin_ipdtl0_packetProc(L7_uint32 hookId,
  * 
  * @return L7_RC_t 
  */
-static L7_RC_t ptin_ipdtl0_trapRuleCreate(L7_uint16 vlanId, L7_BOOL enable)
+static L7_RC_t ptin_ipdtl0_trapRuleCreate(L7_uint16 vlanId, ptin_ipdtl0_type_t type, L7_BOOL enable)
 {
-//  DAPI_SYSTEM_CMD_t dapiCmd;
+    DAPI_SYSTEM_CMD_t dapiCmd;
     L7_uchar8 mac[L7_MAC_ADDR_LEN];
-//  L7_RC_t rc;
+    L7_RC_t rc;
 
     /* Get base MAC address */
     if (bspapiMacAddrGet(mac) != L7_SUCCESS)
@@ -281,10 +285,39 @@ static L7_RC_t ptin_ipdtl0_trapRuleCreate(L7_uint16 vlanId, L7_BOOL enable)
         PTIN_CRASH();
     }    
 
-    /* HW Rule Creation: Note that only ARP packets (etype) are beeing trapped */
-    /* HW Rule Creation replaced by L3 Table entry with IP/MAC/Port */
-    #if 0
+    /* HW Rule Creation: All packet for this (reserved) VLAN will be trapped */
+    if ((type == PTIN_IPDTL0_ETH) || (type == PTIN_IPDTL0_ETH_IPv4_UDP_PTP))
     {
+        dapiCmd.cmdData.snoopConfig.getOrSet              = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
+        dapiCmd.cmdData.snoopConfig.family                = L7_AF_INET;
+        dapiCmd.cmdData.snoopConfig.vlanId                = vlanId;
+        dapiCmd.cmdData.snoopConfig.enable                = enable & 1;
+        memcpy(dapiCmd.cmdData.snoopConfig.macAddr.addr,  mac, L7_MAC_ADDR_LEN);
+        dapiCmd.cmdData.snoopConfig.packet_type           = PTIN_PACKET_IPDTL0;
+
+        rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
+        if (rc!=L7_SUCCESS)
+        {
+            LOG_ERR(LOG_CTX_PTIN_API,"Error setting rule to %u",enable);
+            return rc;
+        }
+
+        /* Tell driver to enable IGMP Snooping */
+        dapiCmd.cmdData.snoopConfig.vlanId = L7_NULL;
+        rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
+        if (rc!=L7_SUCCESS)
+        {
+            LOG_ERR(LOG_CTX_PTIN_API,"Error setting rule to %u",enable);
+            return rc;
+        }
+
+        LOG_TRACE(LOG_CTX_PTIN_API,"Success applying rule to %u",enable);
+    }
+
+    /* HW Rule Creation replaced by L3 Table entry with IP/MAC/Port */
+    else if (type == PTIN_IPDTL0_ETH_IPv4)
+    {
+        #if 0
         dapiCmd.cmdData.ipDtl0Config.getOrSet              = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
         dapiCmd.cmdData.ipDtl0Config.family                = L7_AF_INET;
         dapiCmd.cmdData.ipDtl0Config.vlanId                = vlanId;
@@ -298,10 +331,12 @@ static L7_RC_t ptin_ipdtl0_trapRuleCreate(L7_uint16 vlanId, L7_BOOL enable)
             return rc;
         }
         LOG_TRACE(LOG_CTX_PTIN_API,"Success applying rule to %u",enable);
+        #endif
     }
-    #endif
+
 
     /* Register IP dtl0 packets */
+    if ((type == PTIN_IPDTL0_ETH) || (type == PTIN_IPDTL0_ETH_IPv4) || (type == PTIN_IPDTL0_ETH_IPv4_UDP_PTP))
     {
         sysnetPduIntercept_t sysnetPduIntercept;
 
@@ -326,7 +361,7 @@ static L7_RC_t ptin_ipdtl0_trapRuleCreate(L7_uint16 vlanId, L7_BOOL enable)
     }
 
     /* Register ARP dtl0 packets */
-    #if 0
+    if ((type == PTIN_IPDTL0_ETH) || (type == PTIN_IPDTL0_ETH_IPv4_UDP_PTP))
     {
         sysnetPduIntercept_t sysnetPduIntercept;
 
@@ -349,7 +384,6 @@ static L7_RC_t ptin_ipdtl0_trapRuleCreate(L7_uint16 vlanId, L7_BOOL enable)
             LOG_TRACE(LOG_CTX_PTIN_API,"sysNetPduInterceptDeregister executed");
         }
     }
-    #endif
 
     return L7_SUCCESS;
 }
@@ -370,6 +404,10 @@ static L7_RC_t ptin_ipdtl0_trapRuleCreate(L7_uint16 vlanId, L7_BOOL enable)
 L7_RC_t ptin_ipdtl0_init(void)
 {
     L7_uint8 queue_str[24];
+
+    /* Init Global variables */
+    memset(ptin_ipdtl0_intVid_info, PTIN_IPDTL0_UNUSED_VLAN_ENTRY, sizeof(ptin_ipdtl0_intVid_info));
+    memset(ptin_ipdtl0_dtl0Vid_info, PTIN_IPDTL0_UNUSED_VLAN_ENTRY, sizeof(ptin_ipdtl0_dtl0Vid_info));
 
     /* Queue that will process packets */
     sprintf(queue_str, "PTin_IPDTL0_PacketRx_Queue");
@@ -405,7 +443,6 @@ L7_RC_t ptin_ipdtl0_init(void)
     return L7_SUCCESS;
 }
 
-
 /**
  * IP dtl0 module deinitialization. 
  * Destroys IP/ARP Packets queue and task.
@@ -432,8 +469,6 @@ L7_RC_t ptin_ipdtl0_deinit(void)
     return L7_SUCCESS;
 }
 
-
-
 /**
  * Enables/Disables IP/ARP packets through dtl0
  * 
@@ -443,11 +478,12 @@ L7_RC_t ptin_ipdtl0_deinit(void)
  * @param outerVid 
  * @param internalVid 
  * @param intfNum 
+ * @param type 
  * @param enable 
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_ipdtl0_control(L7_uint16 dtl0Vid, L7_uint16 outerVid, L7_uint16 internalVid, L7_uint32 intfNum, L7_BOOL enable)
+L7_RC_t ptin_ipdtl0_control(L7_uint16 dtl0Vid, L7_uint16 outerVid, L7_uint16 internalVid, L7_uint32 intfNum, ptin_ipdtl0_type_t type, L7_BOOL enable)
 {
     L7_RC_t rc = L7_SUCCESS;
 
@@ -465,6 +501,12 @@ L7_RC_t ptin_ipdtl0_control(L7_uint16 dtl0Vid, L7_uint16 outerVid, L7_uint16 int
         return L7_FAILURE;
     }
 
+    if (type <= PTIN_IPDTL0_NONE || type >= PTIN_IPDTL0_LAST)
+    {
+        LOG_ERR(LOG_CTX_PTIN_API,"dtl0 Invalid type");
+        return L7_FAILURE;
+    }
+
     /* Convert to internal VLAN ID(if not previously provided) */
     if(enable && (internalVid == (L7_uint16)-1))
     {
@@ -479,14 +521,15 @@ L7_RC_t ptin_ipdtl0_control(L7_uint16 dtl0Vid, L7_uint16 outerVid, L7_uint16 int
     /* Disable */
     if (!enable)
     {
-        internalVid = ptin_ipdtl0_dtl0Vid2intVid[dtl0Vid];
-        ptin_ipdtl0_intVid2dtl0Vid[internalVid] =   PTIN_IPDTL0_UNUSED_VLAN_ENTRY;
-        ptin_ipdtl0_dtl0Vid2intVid[dtl0Vid] =       PTIN_IPDTL0_UNUSED_VLAN_ENTRY;
-        ptin_ipdtl0_dtl0Vid2outerVid[dtl0Vid] =     PTIN_IPDTL0_UNUSED_VLAN_ENTRY;
+        internalVid = ptin_ipdtl0_dtl0Vid_info[dtl0Vid].intVid;
+        ptin_ipdtl0_intVid_info[internalVid].dtl0Vid = PTIN_IPDTL0_UNUSED_VLAN_ENTRY;
+        ptin_ipdtl0_dtl0Vid_info[dtl0Vid].intVid = PTIN_IPDTL0_UNUSED_VLAN_ENTRY;
+        ptin_ipdtl0_dtl0Vid_info[dtl0Vid].outerVid = PTIN_IPDTL0_UNUSED_VLAN_ENTRY;
+        ptin_ipdtl0_dtl0Vid_info[dtl0Vid].type = PTIN_IPDTL0_UNUSED_VLAN_ENTRY;
     }
 
     /* HW & FW Rule Creation */
-    rc = ptin_ipdtl0_trapRuleCreate(internalVid, enable);
+    rc = ptin_ipdtl0_trapRuleCreate(internalVid, type, enable);
     if (rc != L7_SUCCESS)
     {
         LOG_ERR(LOG_CTX_PTIN_API,"Error Enabling IP dtl0");
@@ -496,11 +539,12 @@ L7_RC_t ptin_ipdtl0_control(L7_uint16 dtl0Vid, L7_uint16 outerVid, L7_uint16 int
     /* Enable */
     if (enable)
     {
-        ptin_ipdtl0_intVid2dtl0Vid[internalVid] =   dtl0Vid;
-        ptin_ipdtl0_dtl0Vid2intVid[dtl0Vid] =       internalVid;
-        ptin_ipdtl0_dtl0Vid2outerVid[dtl0Vid] =     outerVid;
+        ptin_ipdtl0_intVid_info[internalVid].dtl0Vid = dtl0Vid;
+        ptin_ipdtl0_dtl0Vid_info[dtl0Vid].intVid = internalVid;
+        ptin_ipdtl0_dtl0Vid_info[dtl0Vid].outerVid = outerVid;
+        ptin_ipdtl0_dtl0Vid_info[dtl0Vid].type = type;
 
-        LOG_TRACE(LOG_CTX_PTIN_API,"(dtl0Vid=%d, outerVid=%d, intfNum=%d, enable=%d) internalVid %d\n", dtl0Vid, outerVid, intfNum, enable, internalVid);
+        LOG_TRACE(LOG_CTX_PTIN_API,"(dtl0Vid=%d, outerVid=%d, intfNum=%d, type=%d, enable=%d) internalVid %d\n", dtl0Vid, outerVid, intfNum, type, enable, internalVid);
     }
 
     return rc;
@@ -514,11 +558,12 @@ L7_RC_t ptin_ipdtl0_control(L7_uint16 dtl0Vid, L7_uint16 outerVid, L7_uint16 int
  * @param dtl0Vid 
  * @param outerVid 
  * @param lag_idx 
+ * @param type 
  * @param enable 
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_ipdtl0_control_b(L7_uint16 dtl0Vid, L7_uint16 outerVid, L7_uint32 lag_idx, L7_BOOL enable)
+L7_RC_t ptin_ipdtl0_control_b(L7_uint16 dtl0Vid, L7_uint16 outerVid, L7_uint32 lag_idx, ptin_ipdtl0_type_t type, L7_BOOL enable)
 {
     L7_uint32   intfNum;
     L7_RC_t     rc = L7_SUCCESS;
@@ -530,13 +575,13 @@ L7_RC_t ptin_ipdtl0_control_b(L7_uint16 dtl0Vid, L7_uint16 outerVid, L7_uint32 l
         return rc;
     }
 
-    ptin_ipdtl0_control(dtl0Vid, outerVid, (L7_uint16)-1, intfNum, enable);
+    ptin_ipdtl0_control(dtl0Vid, outerVid, (L7_uint16)-1, intfNum, type, enable);
 
     return rc;
 }
 
 /**
- * Get dtl9 VLAN ID from internal VLAN ID
+ * Get dtl0 VLAN ID from internal VLAN ID
  * 
  * @author daniel (15/4/2013)
  * 
@@ -544,9 +589,9 @@ L7_RC_t ptin_ipdtl0_control_b(L7_uint16 dtl0Vid, L7_uint16 outerVid, L7_uint32 l
  * 
  * @return L7_uint16 dtl0Vid
  */
-L7_uint16 ptin_ipdtl0_getdtl0Vid(L7_uint16 intVid)
+L7_uint16 ptin_ipdtl0_dtl0Vid_get(L7_uint16 intVid)
 {
-    return (ptin_ipdtl0_intVid2dtl0Vid[intVid]);
+    return (ptin_ipdtl0_intVid_info[intVid].dtl0Vid);
 }
 
 /**
@@ -558,10 +603,10 @@ L7_uint16 ptin_ipdtl0_getdtl0Vid(L7_uint16 intVid)
  * 
  * @return L7_uint16 internalVid
  */
-L7_uint16 ptin_ipdtl0_getInternalVid(L7_uint16 dtl0Vid)
+L7_uint16 ptin_ipdtl0_internalVid_get(L7_uint16 dtl0Vid)
 {
-    /* Reference of used outer VLAN IDs */
-    return (ptin_ipdtl0_dtl0Vid2intVid[dtl0Vid]);
+    /* Reference of used internal VLAN IDs */
+    return (ptin_ipdtl0_dtl0Vid_info[dtl0Vid].intVid);
 }
 
 /**
@@ -573,10 +618,24 @@ L7_uint16 ptin_ipdtl0_getInternalVid(L7_uint16 dtl0Vid)
  * 
  * @return L7_uint16 internalVid
  */
-L7_uint16 ptin_ipdtl0_getOuterVid(L7_uint16 dtl0Vid)
+L7_uint16 ptin_ipdtl0_outerVid_get(L7_uint16 dtl0Vid)
 {
     /* Reference of used outer VLAN IDs */
-    return (ptin_ipdtl0_dtl0Vid2outerVid[dtl0Vid]);
+    return (ptin_ipdtl0_dtl0Vid_info[dtl0Vid].outerVid);
+}
+
+/**
+ * Get dtl0 type from dtl0 VLAN ID
+ * 
+ * @author joaom (1/10/2015)
+ * 
+ * @param vlanId 
+ * 
+ * @return L7_RC_t 
+ */
+L7_uint16 ptin_ipdtl0_dtl0Type_get(L7_uint16 dtl0Vid)
+{
+    return (ptin_ipdtl0_dtl0Vid_info[dtl0Vid].type);
 }
 
 #else
@@ -585,17 +644,22 @@ L7_uint16 ptin_ipdtl0_getOuterVid(L7_uint16 dtl0Vid)
  * DUMMY ROUTINES
  ***************************************/
 
-L7_uint16 ptin_ipdtl0_getdtl0Vid(L7_uint16 intVid)
+L7_uint16 ptin_ipdtl0_dtl0Vid_get(L7_uint16 intVid)
 {
     return 0 /* PTIN_IPDTL0_UNUSED_VLAN_ENTRY*/ ;
 }
 
-L7_uint16 ptin_ipdtl0_getInternalVid(L7_uint16 dtl0Vid)
+L7_uint16 ptin_ipdtl0_internalVid_get(L7_uint16 dtl0Vid)
 {
     return 0 /* PTIN_IPDTL0_UNUSED_VLAN_ENTRY*/ ;
 }
 
-L7_uint16 ptin_ipdtl0_getOuterVid(L7_uint16 dtl0Vid)
+L7_uint16 ptin_ipdtl0_outerVid_get(L7_uint16 dtl0Vid)
+{
+    return 0 /* PTIN_IPDTL0_UNUSED_VLAN_ENTRY*/ ;
+}
+
+L7_uint16 ptin_ipdtl0_dtl0Type_get(L7_uint16 dtl0Vid)
 {
     return 0 /* PTIN_IPDTL0_UNUSED_VLAN_ENTRY*/ ;
 }

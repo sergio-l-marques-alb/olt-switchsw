@@ -16,6 +16,7 @@ Historico:  VM 2006.06.22 - Criacao do modulo V1.0.0.0
 #include "datatypes.h"
 #include "globaldefs.h"
 #include "ptin_globaldefs.h"
+#include "ptin_structs.h"
 #include "ipc_lib.h"
 
 #define TRAP_ARRANQUE       0x3001
@@ -25,6 +26,8 @@ Historico:  VM 2006.06.22 - Criacao do modulo V1.0.0.0
 
 #define TRAP_ALARME_ETH_OAM 0x5024
 #define CHTRAP_ETHERNET_CFM_UNEXPECTEDMEP   TRAP_ALARME_ETH_OAM
+
+#define TRAP_PTP_TS_RECORD  0x9511
 
 #define TRAP_ALARM_LINK_DOWN_END                0x9001
 #define TRAP_ALARM_LINK_DOWN_START              0x9002
@@ -48,6 +51,8 @@ Historico:  VM 2006.06.22 - Criacao do modulo V1.0.0.0
 
 #define IPC_CHMSG_TRAP_PORT   5001
 #define IPC_TRAP_LC_PORT      6102
+
+#define IPC_TRAP_TO_PTP       6402
 
    #define IPC_MAINTENANCE_PORT  5200
    #define IPC_AGENT_PORT        5100
@@ -100,6 +105,7 @@ extern uint8 ptin_board_slotId;
    EXTERN_C int send_trap_gen_alarm(unsigned char intfType, int porto, int code, int status, int param1, int param2);
    EXTERN_C int send_trap_switch_event(unsigned char intfType, int interface, int code, int status, int param);
    EXTERN_C int send_trap_to_linecard(unsigned char intfType, int porto, int code, int status, int param);
+   EXTERN_C int send_TxTsRecord(ptin_PptTsRecord_t *ptpTs);
    EXTERN_C int send_trap_ETH_OAM(void *param, int param_size);
    EXTERN_C int send_ipc_message(int porto, uint32 ipaddr, int msg_id, char *request, char *answer, uint32 infoDimRequest, uint32 *infoDimAnswer);
 

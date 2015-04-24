@@ -465,6 +465,8 @@ typedef struct L7_ipHeader_s
 #define UDP_PORT_NTP           123
 #define UDP_PORT_NETBIOS_NS    137
 #define UDP_PORT_NETBIOS_DGM   138
+#define UDP_PORT_EVENT_PTP     319
+#define UDP_PORT_GENERAL_PTP   320
 #define UDP_PORT_MOBILE_IP     434
 #define UDP_PORT_PIM_AUTO_RP   496
 #define UDP_PORT_ISAKMP        500
@@ -1006,5 +1008,99 @@ typedef enum
   L7_TLV_TAGTYPE_COMMON_ERR       = 0x0203
 }L7_tlv_tagtype;
 
+/***********************************************************************/
+/* PTP V2 Message Header Structure (Standard).                         */
+/***********************************************************************/
+
+/** An IEEE-1588 defined octet array used to uniquely represent the identity
+ *  of a PTP clock. The most significant octet is assigned to byte 0. */
+typedef L7_uint8 L7_PtpV2_ClockIdentity[8];
+
+/** The IEEE-1588 defined representation of a PTP-V2 port identity. */
+typedef struct L7_PtpV2_PortIdentity_s
+{
+   /** Identity of the PTP clock this port is attached to. */
+   L7_PtpV2_ClockIdentity clockIdentity;
+
+   /** A number that uniquely identifies this PTP port on the clock. This value is
+    *  always 1 or greater. In general, for a PTP clock that supports N ports, this
+    *  value is:
+    *   1 <= portNumber <= N  */
+   L7_uint16 portNumber;
+} L7_PtpV2_PortIdentity_t;
+
+/** The IEEE-1588 defined Message Type definitions. */
+typedef enum L7_PtpV2_MessageTypeE
+{
+   /* Event Messages */
+   /** SYNC */
+   L7_PtpV2_MSG_ID_SYNC                = 0x0,
+   /** DELAY REQUEST */
+   L7_PtpV2_MSG_ID_DELAY_REQ           = 0x1,
+   /** PEER-DELAY REQUEST */
+   L7_PtpV2_MSG_ID_PEER_DELAY_REQ      = 0x2,
+   /** PEER-DELAY RESPONSE */
+   L7_PtpV2_MSG_ID_PEER_DELAY_RESP     = 0x3,
+
+   /* Values 4-7 are reserved */
+
+   /* General Messages */
+   /** FOLLOW-UP */
+   L7_PtpV2_MSG_ID_FOLLOWUP            = 0x8,
+   /** DELAY RESPONSE */
+   L7_PtpV2_MSG_ID_DELAY_RESP          = 0x9,
+   /** PEER-DELAY FOLLOW-UP */
+   L7_PtpV2_MSG_ID_PEER_DELAY_FOLLOWUP = 0xA,
+   /** ANNOUNCE */
+   L7_PtpV2_MSG_ID_ANNOUNCE            = 0xB,
+   /** SIGNALING */
+   L7_PtpV2_MSG_ID_SIGNALING           = 0xC,
+   /** MANAGEMENT */
+   L7_PtpV2_MSG_ID_MANAGEMENT          = 0xD
+} L7_PtpV2_MessageTypeE;
+
+typedef struct L7_PtpV2_header_s
+{
+   /* Transport Specific data [4-bit nibble] | Message Type (SYNC/ANNC. etc. ) [4-bit nibble] */
+   L7_uint8   transportSpecific_messageType;
+
+   /* V1 & V2: PTP Version of the message.
+    * For both protocols, this field is located 1 byte from the beginning of
+    * the packet & is 4-bits long (lower 4-bits of the byte). */
+   L7_uint8   reserved1_versionPTP;
+
+   /* Length (in bytes) of the entire PTP message. */
+   L7_uint16  messageLength;
+
+   /* Clock Domain. */
+   L7_uint8   domainNumber;
+
+   /* Reserved */
+   L7_uint8   reserved2;
+
+   /* The 2-octets of packet header flags. Stored as a Uint16T type but packed
+    * and unpacked in network order in the packets.   */
+   L7_uint16   flags;
+
+   /* Transparent Clock Only. */
+   L7_uint64  correctionField;
+
+   /* Reserved */
+   L7_uint32   reserved3; /* @RX, used to pass Rx TS to PTP API */
+
+   /* Source Port Identity. */
+   L7_PtpV2_PortIdentity_t sourcePortIdentity;
+
+   /* Message sequence number. */
+   L7_uint16  sequenceId;
+
+   /* Control Value for V1 backwards-compatibility.
+    * For both protocols, this field is located 32 bytes from the beginning of
+    * the packet & is 1 byte long. */
+   L7_uint8   controlField;
+
+   /* The Message interval is determined by the messageType. */
+   L7_int8   logMessageInterval;
+} L7_PtpV2_header_t;
 
 #endif

@@ -1201,6 +1201,11 @@ typedef enum
 
 #define HW_ERPS_MASK_FULL 0x7FFF
 
+
+/***************************************************************************** 
+ * L3 Management
+ *****************************************************************************/
+
 typedef enum
 {
   PTIN_L3_MANAGE_NONE=0,
@@ -1242,13 +1247,48 @@ typedef struct
 } st_ptin_l3;
 
 
-
-
+/***************************************************************************** 
+ * MEP Configuration
+ *****************************************************************************/
 
 typedef struct {
     unsigned short  imep;
     T_MEP_HDR       *m;
     T_MEP_LM        *lm;
 } hapi_mep_t;
+
+
+/***************************************************************************** 
+ * IP DTL0 Configuration
+ *****************************************************************************/
+
+typedef enum
+{
+  PTIN_IPDTL0_NONE = 0,
+  PTIN_IPDTL0_ETH,
+  PTIN_IPDTL0_ETH_IPv4_UDP_PTP,
+  PTIN_IPDTL0_ETH_IPv4,
+  PTIN_IPDTL0_ETH_IPv6,
+  PTIN_IPDTL0_LAST
+} ptin_ipdtl0_type_t;
+
+typedef struct {
+  L7_BOOL validTsRecord;
+                                                                    
+  union {                                                           
+      L7_uint8 mac[6];            /* MAC Address                    */
+      L7_uint32 ipv4Addr;         /* IPv4 Address                   */
+      L7_uint32 ipv6Addr[4];      /* IPv6 Address                   */
+  } inetAddr;                                                       
+                                                                    
+  L7_uint64 seconds;              /* Seconds field of timestamp     */
+  L7_ulong32 nanosecond;          /* nanoseconds field of timestamp */ 
+                                                                    
+  L7_uint8 encap;                 /* Type of encapsulation          */
+  L7_uint8 messageType;           /* message type                   */
+  L7_uint16 sequenceId;           /* sequence ID                    */
+  L7_uint8 domainNumber;          /* Domain Number                  */
+} ptin_PptTsRecord_t;                                               
+
 #endif /* _PTIN_STRUCTS_H */
 

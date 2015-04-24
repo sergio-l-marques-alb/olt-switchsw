@@ -6069,7 +6069,7 @@ L7_RC_t ptin_debug_trap_packets_show( L7_int bcm_port, bcm_pkt_t *bcm_pkt )
          bcm_pkt->inner_vlan, bcm_pkt->inner_vlan_pri,
          bcm_pkt->prio_int, bcm_pkt->cos);
 
-  for (i=0; i<bcm_pkt->pkt_data->len && i < 128; i++)
+  for (i=0; i<bcm_pkt->pkt_len && i < 128; i++)
   {
     if (i%16==0)
     {

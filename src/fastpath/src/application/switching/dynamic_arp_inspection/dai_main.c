@@ -80,7 +80,7 @@ extern daiVlanInfo_t *daiVlanInfo;
 extern arpAclCfg_t* _arpAclEntryGet(L7_uchar8 *aclName);
 
 /* PTin Added - Routing support */
-extern L7_uint16 ptin_ipdtl0_getdtl0Vid(L7_uint16 dtl0Vid);
+extern L7_uint16 ptin_ipdtl0_dtl0Vid_get(L7_uint16 dtl0Vid);
 
 #if 0
 /* Not used as vlan events are now a mask and it is not appropriate to have a array */

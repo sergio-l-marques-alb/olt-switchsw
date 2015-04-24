@@ -158,7 +158,7 @@ extern void ipMapAddrConflictNotify(L7_uint32 intIfNum,
                                     L7_uchar8 *macAddr);
 
 /* PTin Added - Routing support */
-extern L7_uint16 ptin_ipdtl0_getdtl0Vid(L7_uint16 dtl0Vid);
+extern L7_uint16 ptin_ipdtl0_dtl0Vid_get(L7_uint16 dtl0Vid);
 
 /*********************************************************************
  * @purpose             Create ARP object.
@@ -2746,7 +2746,7 @@ static void  _sendARPReq(t_ADR *p_Adr, L7_BOOL rxmt)
      len = F_AddToEnd(p_Frame, (byte *)&temp, (word)sizeof(L7_uint16));
      ASSERT(len);
      ipMapVlanRtrIntIfNumToVlanId(routingIntfNum, &internalVid);
-     dtl0Vid = ptin_ipdtl0_getdtl0Vid(internalVid);
+     dtl0Vid = ptin_ipdtl0_dtl0Vid_get(internalVid);
      L7_HTONS(&dtl0Vid, &temp);
      len = F_AddToEnd(p_Frame, (byte *)&temp, (word)sizeof(L7_uint16));
      ASSERT(len);

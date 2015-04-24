@@ -52,7 +52,7 @@ extern L7_uint32 ip6ForwardRxIfDown;      /* packets received on down interface 
 extern L7_uint32 ip6ForwardPktsToStack;   /* packets to IP stack */
 
 extern L7_RC_t ptin_routing_intf_physicalport_get(L7_uint16 routingIntfNum, L7_uint16 *physicalIntfNum); /* I am unable to include ptin_routing here */
-extern L7_uint16 ptin_ipdtl0_getdtl0Vid(L7_uint16 dtl0Vid);
+extern L7_uint16 ptin_ipdtl0_dtl0Vid_get(L7_uint16 dtl0Vid);
 
 
 /*********************************************************************
@@ -191,7 +191,7 @@ L7_RC_t ipmRouterIfBufSend(L7_uint32 intIfNum, L7_netBufHandle  bufHandle) {
    if (protocolType != L7_ETYPE_8021Q)
    {
       L7_uint32 messageLen;
-      L7_uint16 dtl0Vid = ptin_ipdtl0_getdtl0Vid(vlanId);
+      L7_uint16 dtl0Vid = ptin_ipdtl0_dtl0Vid_get(vlanId);
 
       SYSAPI_NET_MBUF_GET_DATALENGTH(bufHandle, messageLen);
 

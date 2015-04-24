@@ -54,6 +54,24 @@ typedef struct
 } __attribute__((packed)) st_EthSwitchEvent;
 
 
+typedef struct{
+      union {
+          unsigned char mac[6];             // MAC Address
+          unsigned long ipv4Addr;           // IPv4 Address
+          unsigned long ipv6Addr[4];        // IPv6 Address
+      } __attribute__((packed)) inetAddr;
+
+      unsigned long long seconds;           // Seconds field of timestamp
+      unsigned long nanosecond;             // nanoseconds field of timestamp
+
+      unsigned char encap;                  // Type of encapsulation
+      unsigned char messageType;            // message type
+      unsigned short sequenceId;            // sequence ID
+      unsigned char domainNumber;           // Domain Number
+} __attribute__((packed)) st_PtpTsInfo;     // struct used to pass Tx Timestamps info to API
+
+
+
 /* Initialize server ip */
 static void ipc_server_ipaddr_init(void);
 
@@ -369,6 +387,44 @@ int send_trap_to_linecard(unsigned char intfType, int porto, int code, int statu
   return(ret);
 }
 
+
+/* Trap related to TS Events */
+int send_TxTsRecord(ptin_PptTsRecord_t *ptpTs)
+{
+  ipc_msg	    comando;
+  st_PtpTsInfo  *tsInfo;
+  int ret = 0;
+  
+  if(g_iInterfaceSW==-1) 
+      return(-1);
+
+  comando.protocolId= SIR_IPCPROTOCOL_ID;
+  comando.flags		= IPCLIB_FLAGS_CMD;
+  comando.counter   = GetMsgCounter ();
+  comando.msgId		= TRAP_PTP_TS_RECORD;
+  comando.infoDim   = sizeof(st_PtpTsInfo);
+  tsInfo            = (st_PtpTsInfo *) &comando.info[0];
+
+  memset(tsInfo,0x00,sizeof(st_PtpTsInfo));
+
+  memcpy(&tsInfo->inetAddr, &ptpTs->inetAddr, sizeof(ptpTs->inetAddr));
+
+  tsInfo->seconds = ptpTs->seconds;
+  tsInfo->nanosecond = ptpTs->nanosecond;
+  tsInfo->encap = ptpTs->encap;
+  tsInfo->messageType = ptpTs->messageType;
+  tsInfo->sequenceId = ptpTs->sequenceId;
+  tsInfo->domainNumber = ptpTs->domainNumber;
+
+  LOG_TRACE(LOG_CTX_IPC,"send_message (Canal=%d) 0x%04X. PTP info: ToD %lld.%d, Encap %ld, messageType %d, sequenceId %d, domainNumber %d\n", 
+            g_iInterfaceSW, comando.msgId, tsInfo->seconds, tsInfo->nanosecond, tsInfo->encap, tsInfo->messageType, tsInfo->sequenceId, tsInfo->domainNumber);
+
+  ret=send_data(g_iInterfaceSW, IPC_TRAP_TO_PTP, IPC_LOCALHOST_IPADDR, (ipc_msg *)&comando, (ipc_msg *)NULL);
+  if(ret<0)
+      LOG_ERR(LOG_CTX_IPC,"SENDTRAP ERROR = %d", ret);
+
+  return(ret);
+}
 
 
 

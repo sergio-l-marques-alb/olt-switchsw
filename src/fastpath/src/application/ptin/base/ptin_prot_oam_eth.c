@@ -555,7 +555,7 @@ void ptin_oam_eth_task(void)
                    {
                     int r;
 
-                    if ((r=rx_oam_pckt(ptin_port, &msg.payload[i], msg.payloadLen-i, /*msg.vlanId*/ newOuterVlanId, &msg.payload[L7_MAC_ADDR_LEN], &oam, msg.ts)))
+                    if ((r=rx_oam_pckt(ptin_port, &msg.payload[i], msg.payloadLen-i, /*msg.vlanId*/ newOuterVlanId, &msg.payload[L7_MAC_ADDR_LEN], &oam, msg.timestamp)))
                         LOG_INFO(LOG_CTX_OAM,"rx_oam_pckt()==%d", r);
                    }
                    goto _ptin_oam_eth_task1;

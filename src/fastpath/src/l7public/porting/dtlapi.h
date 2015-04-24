@@ -305,6 +305,15 @@ typedef struct
 
   }cmdType;
 
+  /* PTIN added */
+  union
+  {
+    struct
+    {
+      L7_ulong32 timestamp;
+    }L2;
+  }cmdResponse;
+
 
 }DTL_CMD_TX_INFO_t;
 
