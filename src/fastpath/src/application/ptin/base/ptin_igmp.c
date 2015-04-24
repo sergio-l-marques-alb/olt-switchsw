@@ -101,8 +101,8 @@ void ptin_debug_igmp_packet_trace_enable(L7_BOOL enable)
 
 #if PTIN_IGMP_CLIENTS_ISOLATED_PER_INTF
   #define PTIN_IGMP_CLIENTIDX_MAX      (PTIN_SYSTEM_IGMP_MAXCLIENTS_PER_INTF)
-  #define PTIN_IGMP_INTFPORT_MAX       (PTIN_SYSTEM_N_UPLINK_INTERF)
-  #define PTIN_IGMP_CLIENT_PORT(port)  ((port < PTIN_SYSTEM_N_UPLINK_INTERF) ? (port) : 0)
+  #define PTIN_IGMP_INTFPORT_MAX       (PTIN_SYSTEM_N_INTERF)
+  #define PTIN_IGMP_CLIENT_PORT(port)  ((port < PTIN_SYSTEM_N_INTERF) ? (port) : 0)
 #else
   #define PTIN_IGMP_CLIENTIDX_MAX      (PTIN_SYSTEM_IGMP_MAXCLIENTS)
   #define PTIN_IGMP_INTFPORT_MAX       (1)
