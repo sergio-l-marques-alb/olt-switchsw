@@ -190,6 +190,10 @@ L7_RC_t ptin_hapi_maclimit_inc(bcmx_l2_addr_t *bcmx_l2_addr)
 
       macLearn_info_flow[vport_id].mac_total++;
 
+      /* Enable the use of Pending Mechanism but disable FWD */
+      LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Disabling FWD (GPORT=0x%x)", bcmx_l2_addr->lport);
+      bcm_port_learn_set(0, bcmx_l2_addr->lport, /*BCM_PORT_LEARN_CPU |*/ BCM_PORT_LEARN_PENDING | BCM_PORT_LEARN_ARL );
+
       if (macLearn_info_flow[vport_id].trap_sent == L7_FALSE)
       {
         send_trap_switch_event(macLearn_info_flow[vport_id].ptin_intf.intf_type, macLearn_info_flow[vport_id].ptin_intf.intf_id, TRAP_ALARM_MAC_LIMIT, TRAP_ALARM_STATUS_START, macLearn_info_flow[vport_id].uni_ovid);
@@ -206,22 +210,18 @@ L7_RC_t ptin_hapi_maclimit_inc(bcmx_l2_addr_t *bcmx_l2_addr)
     macLearn_info_flow[vport_id].mac_counter++;
     macLearn_info_flow[vport_id].mac_total++;
 
-    /* Check if maximum was reached */
-    if (macLearn_info_flow[vport_id].mac_counter >= macLearn_info_flow[vport_id].mac_limit)
+    if (macLearn_info_flow[vport_id].mac_counter == macLearn_info_flow[vport_id].mac_limit)
     {
-      /* Enable the use of Pending Mechanism but disable FWD */
-      LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Disabling FWD (GPORT=0x%x)", bcmx_l2_addr->lport);
-      bcm_port_learn_set(0, bcmx_l2_addr->lport, /*BCM_PORT_LEARN_CPU |*/ BCM_PORT_LEARN_PENDING | BCM_PORT_LEARN_ARL );
-
-       if (macLearn_info_flow[vport_id].trap_sent == L7_FALSE)
+      if (macLearn_info_flow[vport_id].trap_sent == L7_FALSE)
       {
         send_trap_switch_event(macLearn_info_flow[vport_id].ptin_intf.intf_type, macLearn_info_flow[vport_id].ptin_intf.intf_id, TRAP_ALARM_MAC_LIMIT, TRAP_ALARM_STATUS_START, macLearn_info_flow[vport_id].uni_ovid);
         macLearn_info_flow[vport_id].trap_sent = L7_TRUE;
       }
     }
+    return L7_SUCCESS;
   }
   /* Check if is a LAG port level */
-  else if((bcmx_l2_addr->tgid >= 0) && ((bcmx_l2_addr->tgid < PTIN_SYSTEM_N_LAGS)))
+  else if((bcmx_l2_addr->tgid > 0) && ((bcmx_l2_addr->tgid < PTIN_SYSTEM_N_LAGS)))
   {
     L7_int tgid = bcmx_l2_addr->tgid;
      
@@ -470,6 +470,7 @@ L7_RC_t ptin_hapi_maclimit_dec(bcmx_l2_addr_t *bcmx_l2_addr)
       bcm_port_learn_set(0, bcmx_l2_addr->lport, BCM_PORT_LEARN_FWD | /*BCM_PORT_LEARN_CPU |*/ BCM_PORT_LEARN_PENDING | BCM_PORT_LEARN_ARL );
     }
     #endif
+    return L7_SUCCESS;
   }
 
   /* Check if is a LAG port level */
@@ -604,7 +605,7 @@ L7_RC_t ptin_hapi_maclimit_dec(bcmx_l2_addr_t *bcmx_l2_addr)
    }
   
    /* Feature enabled? */
-   if (macLearn_info_flow[vport_id].enable == L7_FALSE)
+   if (macLearn_info_vlan[vlan_id].enable == L7_FALSE)
    {
      return L7_FAILURE;
    }

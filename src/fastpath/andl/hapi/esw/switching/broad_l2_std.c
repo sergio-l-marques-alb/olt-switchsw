@@ -3629,7 +3629,6 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
       {
         LOG_TRACE(LOG_CTX_PTIN_HAPI, " Warning ");
         macAddressInfo.virtual_port = _SHR_GPORT_VLAN_PORT_ID_GET(bcmx_l2_addr->lport);
-        ptin_hapi_maclimit_inc(bcmx_l2_addr);
       }
       else
       {
@@ -3640,11 +3639,13 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
       /* PTin added: physical ports */
       if (BCMX_LPORT_VALID(bcmx_l2_addr->lport))
       {
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, " Physical");
         ptin_hapi_maclimit_inc(bcmx_l2_addr);
       } 
       /* PTin added: LAGS ports */
-      else if((bcmx_l2_addr->tgid >= 0) && ((bcmx_l2_addr->tgid < PTIN_SYSTEM_N_LAGS)))
+      else if((bcmx_l2_addr->tgid > 0) && ((bcmx_l2_addr->tgid < PTIN_SYSTEM_N_LAGS)))
       {
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, " LAG ");
         ptin_hapi_maclimit_inc(bcmx_l2_addr);
       }
       
