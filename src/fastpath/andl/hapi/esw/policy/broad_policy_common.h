@@ -21,6 +21,10 @@
 
 #include "broad_common.h"
 
+/* PTin added: FP */
+#define EFP_STD_CLASS_ID_MAX  8
+
+
 int hapiBroadPolicyFieldSize(BROAD_POLICY_FIELD_t field);
 
 char *hapiBroadPolicyFieldName(BROAD_POLICY_FIELD_t field);

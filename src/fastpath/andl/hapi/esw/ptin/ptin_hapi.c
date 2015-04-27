@@ -1152,7 +1152,7 @@ L7_RC_t ptin_hapi_portDescriptor_get(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, ptin_hap
   bcmx_lport_t  lport=-1;
   bcm_trunk_t   trunk_id=-1;
   bcm_port_t    bcm_port=-1;
-  L7_uint32     class_port=0;
+  L7_uint32     efp_class_port=0, xlate_class_port=0;
 
   /* Validate interface */
   if (ddUsp==L7_NULLPTR || (ddUsp->unit<0 && ddUsp->slot<0 && ddUsp->port<0))
@@ -1193,9 +1193,11 @@ L7_RC_t ptin_hapi_portDescriptor_get(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, ptin_hap
   }
 
   /* Class port */
-  class_port = (ddUsp->slot*L7_MAX_PORTS_PER_SLOT) + ddUsp->port + 1;
+  efp_class_port   = (ddUsp->slot*L7_MAX_PORTS_PER_SLOT) + ddUsp->port + 1 + EFP_STD_CLASS_ID_MAX;
+  xlate_class_port = (ddUsp->slot*L7_MAX_PORTS_PER_SLOT) + ddUsp->port + 1;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"Classport of interface {%d,%d,%d} is %d",ddUsp->unit,ddUsp->slot,ddUsp->port,class_port);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"Interface {%d,%d,%d}: efp_class_port=%d xlate_class_port=%d",
+            ddUsp->unit,ddUsp->slot,ddUsp->port,efp_class_port,xlate_class_port);
 
   /* Add physical interface to port bitmap */
   if (pbmp!=L7_NULLPTR && bcm_port>=0)
@@ -1206,10 +1208,11 @@ L7_RC_t ptin_hapi_portDescriptor_get(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, ptin_hap
   /* Update interface descriptor */
   if (intf_desc!=L7_NULLPTR)
   {
-    intf_desc->lport      = lport;
-    intf_desc->trunk_id   = trunk_id;
-    intf_desc->bcm_port   = bcm_port;
-    intf_desc->class_port = class_port;
+    intf_desc->lport            = lport;
+    intf_desc->trunk_id         = trunk_id;
+    intf_desc->bcm_port         = bcm_port;
+    intf_desc->efp_class_port   = efp_class_port;
+    intf_desc->xlate_class_port = xlate_class_port;
   }
 
   return L7_SUCCESS;

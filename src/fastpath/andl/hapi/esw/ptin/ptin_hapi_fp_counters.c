@@ -320,13 +320,14 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
   hapi_ptin_allportsbmp_get(&pbm_mask);
 
   BCM_PBMP_CLEAR(pbm);
-  portDescriptor.lport      = -1;
-  portDescriptor.bcm_port   = -1;
-  portDescriptor.trunk_id   = -1;
-  portDescriptor.class_port =  0;
+  portDescriptor.lport            = -1;
+  portDescriptor.bcm_port         = -1;
+  portDescriptor.trunk_id         = -1;
+  portDescriptor.efp_class_port   =  0;
+  portDescriptor.xlate_class_port =  0;
 
   if (ptin_hapi_portDescriptor_get(usp, dapi_g, &portDescriptor,&pbm)!=L7_SUCCESS ||
-      (portDescriptor.bcm_port<0 && portDescriptor.trunk_id<0 && portDescriptor.class_port==0))
+      (portDescriptor.bcm_port<0 && portDescriptor.trunk_id<0 && portDescriptor.efp_class_port==0))
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI,"Error acquiring interface descriptor!");
     return L7_FAILURE;
@@ -459,18 +460,8 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
       }
       else if (stage==BROAD_POLICY_STAGE_EGRESS)
       {
-        /* Class port */
-        if (portDescriptor.class_port>0)
-        {
-          if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PORTCLASS, (L7_uint8 *)&(portDescriptor.class_port), (L7_uint8 *) mask))!=L7_SUCCESS)
-          {
-            LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(PORTCLASS)");
-            break;
-          }
-          LOG_TRACE(LOG_CTX_PTIN_HAPI,"Port class qualifier added");
-        }
         /* Physical port */
-        else if (portDescriptor.bcm_port>=0)
+        if (portDescriptor.bcm_port>=0)
         {
           if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OUTPORT, (L7_uint8 *)&portDescriptor.bcm_port, (L7_uint8 *) mask))!=L7_SUCCESS)
           {
@@ -478,6 +469,16 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
             break;
           }
           LOG_TRACE(LOG_CTX_PTIN_HAPI,"OutPort qualifier added");
+        }
+        /* Class port */
+        else if (portDescriptor.efp_class_port>0)
+        {
+          if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PORTCLASS, (L7_uint8 *)&(portDescriptor.efp_class_port), (L7_uint8 *) mask))!=L7_SUCCESS)
+          {
+            LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(PORTCLASS)");
+            break;
+          }
+          LOG_TRACE(LOG_CTX_PTIN_HAPI,"Port class qualifier added");
         }
       }
 

@@ -21,7 +21,8 @@ typedef struct {
   bcmx_lport_t  lport;
   bcm_trunk_t   trunk_id;
   bcm_port_t    bcm_port;
-  L7_uint32     class_port;
+  L7_uint32     efp_class_port;
+  L7_uint32     xlate_class_port;
 } ptin_hapi_intf_t;
 
 /********************************************************************

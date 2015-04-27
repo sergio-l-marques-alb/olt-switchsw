@@ -488,7 +488,8 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
         LOG_ERR(LOG_CTX_PTIN_HAPI,"Error acquiring interface descriptor!");
         return L7_FAILURE;
       }
-      LOG_TRACE(LOG_CTX_PTIN_HAPI,"trunk_id=%d bcm_port=%d class_port=%d", portDescriptor.trunk_id, portDescriptor.bcm_port, portDescriptor.class_port);
+      LOG_TRACE(LOG_CTX_PTIN_HAPI,"trunk_id=%d bcm_port=%d efp_class_port=%d xlate_class_port=%d",
+                portDescriptor.trunk_id, portDescriptor.bcm_port, portDescriptor.efp_class_port, portDescriptor.xlate_class_port);
     }
     /* All uplink ports */
     else
@@ -558,7 +559,8 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
         LOG_ERR(LOG_CTX_PTIN_HAPI,"Error acquiring interface descriptor!");
         return L7_FAILURE;
       }
-      LOG_TRACE(LOG_CTX_PTIN_HAPI,"trunk_id=%d bcm_port=%d class_port=%d", portDescriptor.trunk_id, portDescriptor.bcm_port, portDescriptor.class_port);
+      LOG_TRACE(LOG_CTX_PTIN_HAPI,"trunk_id=%d bcm_port=%d efp_class_port=%d xlate_class_port=%d",
+                portDescriptor.trunk_id, portDescriptor.bcm_port, portDescriptor.efp_class_port, portDescriptor.xlate_class_port);
 
       /* Physical port */
       if (portDescriptor.bcm_port >= 0)
@@ -572,9 +574,9 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
         LOG_TRACE(LOG_CTX_PTIN_HAPI,"OutPort qualifier added");
       }
       /* Class port */
-      else if (portDescriptor.class_port > 0)
+      else if (portDescriptor.efp_class_port > 0)
       {
-        if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PORTCLASS, (L7_uint8 *)&(portDescriptor.class_port), (L7_uint8 *) mask))!=L7_SUCCESS)
+        if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PORTCLASS, (L7_uint8 *)&(portDescriptor.efp_class_port), (L7_uint8 *) mask))!=L7_SUCCESS)
         {
           hapiBroadPolicyCreateCancel();
           LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(PORTCLASS)");

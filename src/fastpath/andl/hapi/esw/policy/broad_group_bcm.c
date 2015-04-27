@@ -80,7 +80,7 @@ static port_class_t *port_class_table[SOC_MAX_NUM_DEVICES][BROAD_POLICY_STAGE_CO
 
 static L7_uint32 _policy_max_port_classes(L7_uint32 unit)
 {
-  L7_uint32 max_port_classes = 8;
+  L7_uint32 max_port_classes = EFP_STD_CLASS_ID_MAX;
 
   /* Return the maximum number of port classes supported for this unit. 
      The max number is the number of bits in the port class field in HW. 
