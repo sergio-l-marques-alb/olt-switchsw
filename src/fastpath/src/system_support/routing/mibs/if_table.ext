@@ -1,0 +1,114 @@
+/********************************************************************
+ *
+ * (C) Copyright Broadcom Corporation 2002-2007
+ *
+ * *********************************************************************
+ *
+ * @filename            if_table.ext
+ *
+ * @purpose             Provides external API for the interface and interface
+ *                      stack tables
+ *
+ * @component           Routing MIB Component
+ *
+ * @comments
+ *
+ * @create
+ *
+ * @author
+ *
+ * @end
+ *
+ * ********************************************************************/
+#ifndef if_table_ext
+#define if_table_ext
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
+#include "rfc1213.h"
+
+/* macros for accessing individual fields of the interface table */
+
+#define ifINDEX(if)             ((t_ifTable *)(if))->ifIndex
+#define ifDESCR(if)             ((t_ifTable *)(if))->ifDescr
+#define ifTYPE(if)              ((t_ifTable *)(if))->ifType
+#define ifMTU(if)               ((t_ifTable *)(if))->ifMtu
+#define ifSPEED(if)             ((t_ifTable *)(if))->ifSpeed
+
+#define SET_ifPHYSADDRESS(if,a) memncpy(((t_ifTable *)(if))->ifPhysAddress,(a),MAX_PHYSADDRESS)
+#define ifPHYSADDRESSLEN(if)    ((t_ifTable *)(if))->ifPhysAddrLen
+#define GET_ifPHYSADDRESS(if)   ((t_ifTable *)(if))->ifPhysAddress
+
+#define ifADMINSTATUS(if)       ((t_ifTable *)(if))->ifAdminStatus
+#define ifOPERSTATUS(if)        ((t_ifTable *)(if))->ifOperStatus
+#define ifLASTCHANGE(if)        ((t_ifTable *)(if))->ifLastChange
+#define ifINOCTETS(if)          ((t_ifTable *)(if))->ifInOctets
+#define ifINUCASTPKTS(if)       ((t_ifTable *)(if))->ifInUcastPkts
+#define ifINNUCASTPKTS(if)      ((t_ifTable *)(if))->ifInNUcastPkts
+#define ifINDISCARDS(if)        ((t_ifTable *)(if))->ifInDiscards
+#define ifINERRORS(if)          ((t_ifTable *)(if))->ifInErrors
+#define ifINUNKNOWNPROTOS(if)   ((t_ifTable *)(if))->ifInUnknownProtos
+#define ifOUTOCTETS(if)         ((t_ifTable *)(if))->ifOutOctets
+#define ifOUTUCASTPKTS(if)      ((t_ifTable *)(if))->ifOutUcastPkts
+#define ifOUTDISCARDS(if)       ((t_ifTable *)(if))->ifOutDiscards
+#define ifOUTERRORS(if)         ((t_ifTable *)(if))->ifOutErrors
+#define ifOUTQLEN(if)           ((t_ifTable *)(if))->ifOutQLen
+#define ifSPECIFIC(if)          ((t_ifTable *)(if))->ifSpecific
+
+#define GET_ifNAME(x)           ((t_ifExt *)(x))->ifName
+#define SET_ifNAME(x)           memncpy( GET_ifName(x),s,IFEXT_NAME_LENGTH)
+#define ifINMULTICAST(x)        ((t_ifExt *)(x))->ifInMulticastPkts
+#define ifINBROADCAST(x)        ((t_ifExt *)(x))->ifInBroadcastPkts
+#define ifOUTMULTICAST(x)       ((t_ifExt *)(x))->ifOutMulticastPkts
+#define ifOUTBROADCAST(x)       ((t_ifExt *)(x))->ifOutBroadcastPkts
+#define ifHCINOCTETS(x)         ((t_ifExt *)(x))->ifHCInOctets
+#define ifHCINUCASTPKTS(x)      ((t_ifExt *)(x))->ifHCInUcastPkts
+#define ifHCINMULTICAST(x)      ((t_ifExt *)(x))->ifHCInMulticastPkts
+#define ifHCINBROADCAST(x)      ((t_ifExt *)(x))->ifHCInBroadcastPkts
+#define ifHCOUTOCTETS(x)        ((t_ifExt *)(x))->ifHCOutOctets
+#define ifHCOUTUCASTPKTS(x)     ((t_ifExt *)(x))->ifHCOutUcastPkts
+#define ifHCOUTMULTICAST(x)     ((t_ifExt *)(x))->ifHCOutMulticastPkts
+#define ifHCOUTBROADCAST(x)     ((t_ifExt *)(x))->ifHCOutBroadcastPkts
+#define ifLINKTRAP(x)           ((t_ifExt *)(x))->ifLinkUpDownTrapEnable
+#define ifHIGHSPEED(x)          ((t_ifExt *)(x))->ifHighSpeed
+#define ifPROMISCUOUS(x)        ((t_ifExt *)(x))->ifPromiscuousMode
+#define ifCONNECTORPRESENT(x)   ((t_ifExt *)(x))->ifConnectorPresent
+
+
+/* macros for accessing individual fields of the interface stack table */
+
+#define ifSTACK_HIGHERLAYER(if)  ((t_ifStackTable *)(if))->ifStackHigherLayer
+#define ifSTACK_LOWERLAYER(if)   ((t_ifStackTable *)(if))->ifStackLowerLayer
+#define ifSTACK_STATUS(if)       ((t_ifStackTable *)(if))->ifStackStatus
+
+
+
+
+/******** Functions prototypes ********/
+
+e_Err    ifTable_New( ulng ifIndex );
+e_Err    ifTable_Delete( ulng Index );
+t_Handle ifTable_Lookup( ulng Index );
+t_Handle ifTable_GetOwner( ulng Index );
+e_Err    ifTable_SetOwner( ulng Index, t_Handle Owner );
+t_Handle ifTable_GetNext( ulng prev );
+e_Err    ifTable_Active( ulng Index, void *extra );
+
+e_Err    ifStackTable_New( ulng Upper, ulng Lower, e_RowStatus Status );
+e_Err    ifStackTable_Delete( ulng Upper, ulng Lower );
+t_Handle ifStackTable_GetNextUpper( ulng Lower, t_Handle Prev );
+t_Handle ifStackTable_GetNext( ulng prev );
+
+
+#ifdef __cplusplus
+}
+#endif
+
+
+#endif
+
+/* --- end of file if_table.ext --- */

@@ -1,0 +1,188 @@
+<HTML>
+<HEAD>
+<TITLE>EmWeb WIN32 Installation notes</TITLE>
+<BODY>
+<h1>EmWeb WIN32 Installation notes</h1>
+<p> The following information is contained in this file:</p>
+<UL>
+ <LI><A HREF=#install_emweb>Installing EmWeb</A> describes how to install EmWeb
+
+ <LI><A HREF=#emweb_env>EmWeb Environment variables</A> describes the variables used by EmWeb
+
+ <LI><A HREF=#emweb_dir>EmWeb Directory Tree</A> describes the directory structure of the installed source
+
+ <LI><A HREF=#emweb_req>Requirements to Build/Use the EmWeb Product</A> describes what is needed to build and use EmWeb
+ <LI><A HREF=#emweb_lic>EmWeb License Requirements</A> describes the licensing information
+ <LI><A HREF=#emweb_build>Building EmWeb Server</A> describes how to to build EmWeb Server on win32 platform
+ <LI><A HREF=#emweb_uninstall>Uninstalling EmWeb Server</A> describes how to to uninstall this software
+</UL>
+<P ID="install_emweb"><FONT SIZE=+1><Strong>Installing EmWeb</strong></FONT><P><P>
+To install EmWeb, run "emweb_win32_win32.exe" which will install the 
+EmWeb/Compiler executable and the sources needed to build the EmWeb/Server.
+
+During installation you will be prompted to choose a directory to install in. 
+By default, this directory is C:\Agranat\EmWeb. From
+here on we will refer to it as EMWEB_HOME.<P>
+
+Once it has been installed, the autoexec.bat file will be modified to include
+the EMWEB_HOME environment variable. The PATH environment variable will be 
+modified to include EMWEB_HOME and EMWEB_HOME\win32_win32\bin.win32. A back up
+copy of autoexec.bat is saved automatically during the installation process.<P>
+
+Note: in order for the new environment variables to take effect, you must 
+run autoexec.bat - i.e. reboot the machine so that all windows will know 
+about these new values.<P>
+
+Should you choose to "reinstall" the product, the install script
+will check if the location chosen already has EmWeb code in it.  If there
+is, it will ask if you want to choose another directory to install into,
+save the current directory as a .bak directory and then install over it,
+or simply write over the current directory.<P>
+
+
+<P ID="emweb_env"><FONT SIZE=+1><strong>EmWeb Environment Variables</strong></FONT><P>
+
+EMWEB_HOME is the environment variable used by the EmWeb/Compiler to determine
+the location of the default mime.types file.  
+The default mime.types file used for this build is located in EMWEB_HOME\{host_target}\websrc\compiler\mime.types. (Note that {host_target} denotes the host where this software is installed and the target platform. i.e. EMWEB_HOME\win32_win32\websrc\compiler\mime.types, or EMWEB_HOME\win32_vxworks\compiler\mime.types etc.).  If you wish to change the mime.types file, you should copy it from this location, edit it and put it in the EMWEB_HOME directory.<P>
+
+By default, for NT or Win95/98 environments, it is set to 
+C:\Agranat\EmWeb.  If you choose to install EmWeb in a 
+different location, the EMWEB_HOME environment variable is modified 
+appropriately in the autoexec.bat file.  You need to run autoexec.bat for 
+this environment variable to take effect.<P>
+
+
+<P id="emweb_dir"><FONT SIZE=+1><Strong>EmWeb Directory Tree - Important directories and files in the win32_win32\ directory</strong>: 
+</FONT><P>
+<DL>
+ <DT>Uinst.isu
+  <DD>Uninstall script.
+ <DT>ReleaseNotes
+  <DD>Notes for this release.  Please check this file for any issues that may be of interest.
+
+ <DT>SUPPORT
+  <DD>Instructions on how to get technical support from Agranat Systems.
+
+ <DT>emweb.dsw
+  <DD>This is the Visual C++ workspace which you will open up to build the server library and the EmWeb Server.
+
+ <DT>websrc\compiler\mime.types 
+  <DD>The default mime.types file.  This is used by the EmWeb/Compiler to
+   identify the various types of input files compiled (html, java classes,
+   GIF images, etc).  The EmWeb/Compiler's -m switch can be used to change
+   the location of the mime.types file.  See the EmWeb Users Guide for
+   more information.
+
+ <DT>bin.win32\
+  <DD>This directory contains the following executables:
+    <OL>
+     <LI>ewc.exe: the EmWeb compiler, which is used to create archives.
+     <LI>readarchive.exe: a tool used to read the archives created.
+     <LI>ewsdist.exe: a prebuilt version of the EmWeb/Server to run on Windows.
+    </OL>
+
+ <DT>config\
+  <DD>This directory contains various configuration files.
+
+ <DT>lib\
+  <DD>This directory contains the buffer and compression directories.
+  These files should not be modified.   Sample implementations of EmWeb's buffer primitives  can be found in the lib\buffer subdirectory.
+
+ <DT>obj.x86-pc-win-vcc\
+  <DD>This directory contains object and library files from the build process.
+
+ <DT>websrc\
+  <DD>This contains the sources needed to build the server library.
+ <DT>websrc\compiler
+  <DD>This directory contains 2 files
+  <ol>
+  <li>magic - the magic numbers used by various files produced by the EmWeb compiler.  This can be used with the UNIX "file" command.
+ <li>mime.types - the default mime.types file that will be used by the
+          EmWeb compiler (ewc).  See the EmWeb Functional Specification
+          for more information about the mime.types file.
+</ol>
+<dt>websrc\include\
+<dd>  The include directory contains EmWeb server header files.  These
+  header files provide interfaces for your application code.  See the
+  EmWeb Functional Specification for more information.  These files
+  should not be modified.
+
+<dt>websrc\server\
+<dd>This directory contains the sources for the EmWeb Server.  Do not
+  modify any of these sources.
+
+<dt>content\
+<dd>This directory contains the index.html file used as the content for the sample server.  You may change this directory to include your content.
+
+<dt>posix\
+<dd>This directory contains a port of the EmWeb Server to various
+  POSIX sockets-like operating systems.  Such systems include vxworks,
+  PSOS, and Windows.
+
+<dd>This directory contains the ewsdist.dsp (vc++ project file) to build
+  a sample EmWeb Server executable (ewsdist.exe).
+  By modifying the <EMWEB_HOME>win32_win32\content\ directory, you can change rebuild
+  EmWeb Server.
+
+
+<p>(NOTE: To build on a WIN32 platform under Visual C++,
+   you ONLY need to open up the ewsdist.dsp project file which is
+   available by opening up the ews_dist.dsw file in Visual C++).
+  
+<p>Feel free to use these files as a basis for porting EmWeb to your
+  embedded target system.
+</DL>
+<P id="emweb_req"><FONT SIZE=+1><strong>Requirements to Build/Use the EmWeb Product</strong></FONT><P>
+<OL>
+ <LI>
+  You must have a valid FLEXLM license from Agranat Systems in order to 
+  use the EmWeb/Compiler (ewc.exe). (See "EmWeb License Requirements" below).
+<LI>
+To build the product, you must have Visual C++ installed, and it is 
+assumed you are familiar with Visual C++.  The Visual C++ files are based on 
+Visual C++ version 5.0.  No other version of Visual C++ is supported
+at this time.
+
+</OL><P>
+
+<P id="emweb_lic"><FONT SIZE=+1><strong>EmWeb License Requirements</strong></FONT><P>
+
+Note that to run the EmWeb compiler, ewc.exe, you must first install the 
+EmWeb Licensing Software and obtain a license from Agranat Systems, Inc. <P>
+
+Please contact Agranat Systems for more information about our licensing
+software (<A HREF="mailto:support@agranat.com">support@agranat.com</A>).<P>
+
+The documentation in the EmWeb Licensing software explains how and where 
+to set up the license manager, the Agranat vendor daemon used for licensing, 
+and the license file.<P>
+
+<P id="emweb_build"><FONT SIZE=+1><strong>Building a Sample WIN32 EmWeb/Server</strong></FONT><P>
+<p>You can use this Win32 port to start development of your target's
+Web content prior to porting EmWeb/Server to your target.  See
+<A HREF=readme_w32_w32.html>Building EmWeb on Win32</A> for details about how to build and run an EmWeb/Server on win32 platform and target, as well as other platform specific notes.
+
+<P id="emweb_uninstall"><FONT SIZE=+1><strong>Uinstalling EmWeb/Server</strong></FONT><P>
+<UL>
+ <LI>Select the Control Panel
+ <LI>Select Add/Remove Programs icon
+ <LI>Select to uninstall(remove) the EmWeb Server for Vxworks Product<BR>
+    This will cause the directory and its contents to be removed.
+    Note that the autoexec.bat file cannot be modified back to
+    its original state, (but it is saved as a backup file).
+</UL>
+
+NOTE that in the current release, if you have anything in the target directory
+where you installed EmWeb product, which was not originally there, (such
+as the object files), you will get a message from Remove/Install program 
+indicating that it could not delete certain directories and that
+they should be removed by hand.  That is because the current uninstall program
+just deletes files which were originally installed, and not files or 
+directories which were added after the installation.
+
+<HR>
+<CENTER>Copyright &copy; 1999 Agranat Systems, Inc.  All Rights Reserved.</CENTER>
+
+</BODY>
+</HTML>

@@ -1,0 +1,63 @@
+# Identify source files belonging to this package.
+#
+# These files are used for normal builds.  They are also used to generate
+# a linkable object if being distributed in object-only form.
+#
+# Note: This file is normally deleted when a buildable view is converted to a
+#       linkable object build.  An exception is when ANDL (and any related
+#       vendor SDK) is being distributed in source form, in which case 
+#       this file is retained for the build.
+#
+
+# Local source path abbreviations (for convenience).
+#
+src_dapi := andl/dapi
+src_hapi := andl/hapi
+
+
+# These files are normally distributed in object form and are therefore
+# built when creating the linkable objects.
+#
+# If ANDL is being distributed as source instead, these files are *not*
+# built when creating the linkable objects.
+#
+ifeq (0,$(LINKABLE_OBJECT_ANDLSRC))
+  
+  # DAPI has its own config make file for building in trace support.
+  include $(FP_ROOT)/$(src_dapi)/dapi_debug.cfg
+  
+  # Master list of source paths to be built into this package library.
+  #  - All entries must be specified relative to top-of-view $(FP_ROOT).
+  #  - Defines all source locations to be referenced by the package-level makefile.
+  #
+  MASTERSRC += \
+	$(src_dapi)
+  
+  
+  # List here individual source files to be selectively EXCLUDED from the build.
+  #
+  MASTERSRC_FILE_EXCLUDE +=
+  
+  
+  # List here individual source include directories owned by this package (without the -I).
+  #
+  MASTERINC +=
+  
+  
+  # Additional source header file search paths (without the -I).
+  #
+  SRCINCPATHS +=
+  
+  
+  # Additional compiler flags.
+  #
+  CFLAGSEXTRA += \
+	$(DAPI_DEBUG_FLAGS)
+  
+  
+  # Chip-specific source inclusion.
+  #
+  include $(FP_ROOT)/$(src_hapi)/$(L7_CHIP)/make/make.pkg.device.objdist
+  
+endif  # not LINKABLE_OBJECT_ANDLSRC
+

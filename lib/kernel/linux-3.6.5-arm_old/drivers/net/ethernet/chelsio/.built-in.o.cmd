@@ -1,0 +1,1 @@
+cmd_drivers/net/ethernet/chelsio/built-in.o :=  rm -f drivers/net/ethernet/chelsio/built-in.o; /home/devtools/dev-bcm-ldk/3.4.7-RC4/iproc/buildroot/output/host/usr/bin/arm-linux-ar rcsD drivers/net/ethernet/chelsio/built-in.o

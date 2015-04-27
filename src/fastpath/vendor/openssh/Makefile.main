@@ -1,0 +1,79 @@
+####
+#### NOTICE: THIS FILE IS NO LONGER USED BY THE MAKE SYSTEM AND IS NOW OBSOLETE.
+####
+
+FP_BASE=../..
+
+FPLIB=fp_openssh.a
+
+# OpenSSH Make file.
+#
+#
+
+# Do not change this line.
+#
+include $(FP_BASE)/src/l7tools/build/make.cfg
+
+# Specify compile flags.
+#
+
+#WARNINGS = -Wreturn-type \
+			-Wcast-qual -Wswitch
+#WARNINGS = -Wstrict-prototypes -Wmissing-prototypes \
+#           -Wpointer-arithmetic -Wreturn-type -Wwrite-strings \
+#	   -Wcast-qual -Wswitch -Werror # -Wshadow
+WARNINGS = -Wall -Werror
+
+# DEFINES += -DUNSAFE_DEBUG
+# DEFINES += -DFORCE_VALID_LOOPBACK_HOST_KEYS
+# DEFINES += -DNO_CRC_AT_ALL
+
+#DEFINES += -DSMALL_CRC_TABLE
+#DEFINES += -DSESSION_KEY_TIMING
+#DEFINES += -DZ_PREFIX
+DEFINES += -DL7_SSHD
+#DEFINES += -DL7_SSH_EMWEB
+#DEFINES += -DL7_SSH_NO_V2
+
+OPENSSL_INC= $(FP_BASE)/vendor/openssl/include
+MAPPING_INC= $(FP_BASE)/src/mgmt/mgmt_support/security/mapping/ssh
+SSHDSID_INC= $(FP_BASE)/src/mgmt/mgmt_support/security/mapping/ssh/ssh_sid
+
+CFLAGSLOCAL= -I. -I$(OPENSSL_INC) -I$(MAPPING_INC) -I$(SSHDSID_INC) $(GFLAG) $(WARNINGS) $(DEFINES)
+#CFLAGSLOCAL= -I. -I$(MAPPING_INC) $(GFLAG) $(WARNINGS) $(DEFINES)
+
+# Specify modules that need to be compiled.
+#
+
+LIBSSH_OBJS=acss.o authfd.o authfile.o bufaux.o buffer.o \
+	canohost.o channels.o cipher.o cipher-acss.o cipher-aes.o \
+	cipher-bf1.o cipher-ctr.o cipher-3des1.o cleanup.o \
+	compat.o compress.o crc32.o deattack.o fatal.o hostfile.o \
+	log.o match.o moduli.o nchan.o packet.o \
+	readpass.o rsa.o ttymodes.o xmalloc.o \
+	atomicio.o key.o dispatch.o kex.o mac.o uidswap.o uuencode.o misc.o \
+	rijndael.o ssh-dss.o ssh-rsa.o dh.o kexdh.o \
+	kexgex.o kexdhc.o kexgexc.o scard.o msg.o progressmeter.o dns.o \
+	entropy.o scard-opensc.o
+
+SSHOBJS= ssh.o readconf.o clientloop.o sshtty.o \
+	sshconnect.o sshconnect1.o sshconnect2.o \
+        sftp.o sftp-client.o sftp-common.o sftp-glob.o \
+        scp.o
+
+SSHDOBJS=sshd.o auth-rhosts.o auth-passwd.o auth-rsa.o auth-rh-rsa.o \
+	sshpty.o sshlogin.o servconf.o serverloop.o \
+	auth.o auth1.o auth2.o auth-options.o session.o \
+	auth-chall.o auth2-chall.o \
+	auth2-hostbased.o auth2-kbdint.o \
+	auth2-none.o auth2-passwd.o auth2-pubkey.o \
+	kexdhs.o kexgexs.o \
+	auth-krb5.o \
+	loginrec.o md5crypt.o
+
+LIBOBJS= $(LIBSSH_OBJS) $(SSHOBJS) $(SSHDOBJS)
+
+# Do not change this line.
+#
+include $(FP_BASE)/src/l7tools/build/make.footer
+

@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="EventLog" title="Event Log">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <repeat present="plain" edit="no" heading=" " id="1">
+                <element control="label" properties="filter,iterate,hidden" obj-name="baseLogEventLogEntry_logIndex" id="1"/>
+                <element control="label" obj-name="baseLogEventLogEntry_LogEventIndex" id="2" name="Entry"/>
+                <element control="label" obj-name="baseLogEventLogEntry_EventType" id="3" name="Type"/>
+                <element control="label" obj-name="baseLogEventLogEntry_logFileName" id="4" name="Filename"/>
+                <element control="label" obj-name="baseLogEventLogEntry_logLineNumber" id="5" name="Line"/>
+                <element control="label" obj-name="baseLogEventLogEntry_logTaskId" id="6" name="TaskID"/>
+                <element control="label" obj-name="baseLogEventLogEntry_logCode" id="7" name="Code"/>
+                <element control="label" obj-name="baseLogEventLogEntry_logTime" id="8" name="Time(d h m s)"/>
+            </repeat>
+            <node id="2">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

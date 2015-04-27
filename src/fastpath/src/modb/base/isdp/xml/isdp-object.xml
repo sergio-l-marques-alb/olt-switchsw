@@ -1,0 +1,200 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="base" version="1.0" >
+
+<module name="IsdpInterfaceTable"  >
+<object name="IsdpInterfaceIfIndex" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="The ifIndex value of the local interface."/>
+<ui  name="Unit/Slot/Port" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.39.1.3.1.1.1"/> 
+</ui></object>
+<object name="IsdpInterfaceIfIndex" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="The ifIndex value of the local interface."/>
+<ui  name="Slot/Port" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.39.1.3.1.1.1"/> 
+</ui></object>
+<object name="IsdpInterfaceEnable" depends="IsdpInterfaceIfIndex" >
+<core  type="enum" xtype="enable_t" default="FD_ISDP_DEFAULT_MODE" access="read-write" descr="An indication of whether the Industry Standard Discovery Protocol is currently running on this interface."/>
+<ui  name="ISDP Interface Mode" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.39.1.3.1.1.2"/> 
+</ui></object>
+</module>
+
+<module name="IsdpCacheTable"  >
+<key-combo list="IsdpCacheIfIndex,IsdpCacheDeviceId"/>
+<object name="IsdpCacheIfIndex" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+<core   type="user" xtype="usp_t" key="yes" access="read-write" descr="The ifIndex value of the local interface."/>
+<ui  name="Unit/Slot/Port" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.39.1.2.1.1.1"/> 
+</ui></object>
+<object name="IsdpCacheIfIndex" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+<core   type="user" xtype="usp_t" key="yes" access="read-write" descr="The ifIndex value of the local interface."/>
+<ui  name="Slot/Port" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.39.1.2.1.1.1"/> 
+</ui></object>
+<object name="IsdpCacheDeviceId" depends="IsdpCacheIfIndex" >
+<core  type="string" key="yes" access="read-only" descr="The Device-ID string as reported in the most recent ISDP message."/>
+<ui  name="ISDP Cache DeviceId" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.39.1.2.1.1.6"/> 
+</ui></object>
+<object name="IsdpCacheAddress" depends="IsdpCacheIfIndex,IsdpCacheDeviceId" >
+<core  type="string" access="read-only" descr="The (first) network-layer address of the device's SNMP-agent as reported in the Address TLV of the most recently received ISDP message."/>
+<ui  name="ISDP Cache Address" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.39.1.2.1.1.3"/> 
+</ui></object>
+<object name="IsdpCacheLocalIntf" depends="IsdpCacheIfIndex,IsdpCacheDeviceId" >
+<core  type="string" access="read-only" descr="The device Interface which had this neighbor."/>
+<ui  name="ISDP Cache Local Interface" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.39.1.2.1.1.4"/> 
+</ui></object>
+<object name="IsdpCacheVersion" depends="IsdpCacheIfIndex,IsdpCacheDeviceId" >
+<core  type="string" access="read-only" descr="The Version string as reported in the most recent ISDP message."/>
+<ui  name="ISDP Cache Version" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.39.1.2.1.1.5"/> 
+</ui></object>
+<object name="IsdpCacheDevicePort" depends="IsdpCacheIfIndex,IsdpCacheDeviceId" >
+<core  type="string" access="read-only" descr="The Port-ID string as reported in the most recent ISDP message."/>
+<ui  name="ISDP Cache DevicePort" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.39.1.2.1.1.7"/> 
+</ui></object>
+<object name="IsdpCachePlatform" depends="IsdpCacheIfIndex,IsdpCacheDeviceId" >
+<core  type="string" access="read-only" descr="The Device's Hardware Platform as reported in the most recent ISDP message."/>
+<ui  name="ISDP Cache Platform" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.39.1.2.1.1.8"/> 
+</ui></object>
+<object name="IsdpCacheCapabilities" depends="IsdpCacheIfIndex,IsdpCacheDeviceId" >
+<core  type="string" access="read-only" descr="The Device's Functional Capabilities as reported in the most recent ISDP message."/>
+<ui  name="ISDP Cache Capabilities" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.39.1.2.1.1.9"/> 
+</ui></object>
+<object name="IsdpCacheLastChange" depends="IsdpCacheIfIndex,IsdpCacheDeviceId" >
+<core  type="user" xtype="timeStampDHHMMSS_t" access="read-only" descr="The indication of the time when this cache entry was last changed."/>
+<ui  name="ISDP Cache LastChange" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.39.1.2.1.1.10"/> 
+</ui></object>
+<object name="IsdpCacheProtocolVersion" depends="IsdpCacheIfIndex,IsdpCacheDeviceId" >
+<core  type="uint" access="read-only" descr="The Device's version of ISDP protcol as reported in the most recent ISDP message."/>
+<ui  name="ISDP Cache Protocol Version" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.39.1.2.1.1.11"/> 
+</ui></object>
+<object name="IsdpCacheHoldtime" depends="IsdpCacheIfIndex,IsdpCacheDeviceId" >
+<core  type="uint" min="L7_ISDP_HOLDTIME_MIN" max="L7_ISDP_HOLDTIME_MAX" default="FD_ISDP_DEFAULT_HOLDTIME" access="read-only" descr="The Device's ISDP Holdtime as reported in the most recent ISDP message."/>
+<ui  name="ISDP Cache Holdtime" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.39.1.2.1.1.12"/> 
+</ui></object>
+</module>
+
+<module name="IsdpGlobal"  >
+<object name="IsdpClearStats" >
+<core  type="uint" access="write-only" descr="Clear ISDP stats."/>
+<ui  name="ISDP Clear Stats" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.39.1.1.1.1"/> 
+</ui></object>
+<object name="IsdpClearEntries" >
+<core  type="uint" access="write-only" descr="Clear ISDP entries table."/>
+<ui  name="ISDP Clear Entries" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.39.1.1.1.2"/> 
+</ui></object>
+<object name="IsdpGlobalRun" >
+<core type="enum" xtype="enable_t" access="read-write" descr="An indication of whether the Industry Standard Discovery Protocol is currently running."/>
+<ui  name="ISDP GlobalRun" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.39.1.1.4"/> 
+</ui></object>
+<object name="IsdpGlobalMessageInterval" >
+<core type="uint" min="L7_ISDP_TIMER_MIN" max="L7_ISDP_TIMER_MAX" default="FD_ISDP_DEFAULT_TIMER" access="read-write" descr="The interval at which ISDP messages are to be generated."/>
+<ui  name="ISDP Global Message Interval" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.39.1.1.5"/> 
+</ui></object>
+<object name="IsdpGlobalHoldTime" >
+<core type="uint" min="L7_ISDP_HOLDTIME_MIN" max="L7_ISDP_HOLDTIME_MAX" default="FD_ISDP_DEFAULT_HOLDTIME" access="read-write" descr="The time for the receiving device holds ISDP message."/>
+<ui  name="ISDP Global HoldTime" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.39.1.1.6"/> 
+</ui></object>
+<object name="IsdpGlobalDeviceId" >
+<core type="string" access="read-only" descr="The device ID advertised by this device."/>
+<ui  name="ISDP Global DeviceId" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.39.1.1.7"/> 
+</ui></object>
+<object name="IsdpGlobalAdvertiseV2" >
+<core type="enum" xtype="enable_t" default="FD_ISDP_DEFAULT_V2MODE" access="read-write" descr="An indication of whether the Industry Standard Discovery Protocol V2 is currently enabled."/>
+<ui  name="ISDP Global AdvertiseV2" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.39.1.1.8"/> 
+</ui></object>
+<object name="IsdpGlobalDeviceIdFormatCpb" >
+<core type="string" access="read-only" descr="An indication of the Device ID format capability of the device."/>
+<ui  name="ISDP Global DeviceId FormatCpb" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.39.1.1.9"/> 
+</ui></object>
+<object name="IsdpGlobalDeviceIdFormat" >
+<core type="string" access="read-only" descr="An indication of the format of Device ID contained in the corresponding instance of ISDP Global DeviceId."/>
+<ui  name="ISDP Global DeviceId Format" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.39.1.1.10"/> 
+</ui></object>
+</module>
+
+<module name="IsdpStatistics"  >
+<object name="IsdpStatisticsPduReceived" >
+<core  type="uint" access="read-only" descr="The number of all ISDP PDUs received."/>
+<ui  name="ISDP Statistics Pdu Received" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.39.1.1.2.1"/> 
+</ui></object>
+<object name="IsdpStatisticsPduTransmit" >
+<core  type="uint" access="read-only" descr="The number of all ISDP PDUs transmitted."/>
+<ui  name="ISDP Statistics Pdu Transmit" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.39.1.1.2.2"/> 
+</ui></object>
+<object name="IsdpStatisticsV1PduReceived" >
+<core  type="uint" access="read-only" descr="The number of version 1 ISDP PDUs transmitted."/>
+<ui  name="ISDP Statistics V1Pdu Received" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.39.1.1.2.3"/> 
+</ui></object>
+<object name="IsdpStatisticsV1PduTransmit" >
+<core  type="uint" access="read-only" descr="The number of version1 ISDP PDUs transmitted."/>
+<ui  name="ISDP Statistics V1Pdu Transmit" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.39.1.1.2.4"/> 
+</ui></object>
+<object name="IsdpStatisticsV2PduReceived" >
+<core  type="uint" access="read-only" descr="The number of version 2 ISDP PDUs received."/>
+<ui  name="ISDP Statistics V2Pdu Received" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.39.1.1.2.5"/> 
+</ui></object>
+<object name="IsdpStatisticsV2PduTransmit" >
+<core  type="uint" access="read-only" descr="The number of version 2 ISDP PDUs transmitted."/>
+<ui  name="ISDP Statistics V2Pdu Transmit" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.39.1.1.2.6"/> 
+</ui></object>
+<object name="IsdpStatisticsBadHeaderPduReceived" >
+<core  type="uint" access="read-only" descr="The number of ISDP PDUs with bad header received."/>
+<ui  name="ISDP Statistics BadHeaderPdu Received" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.39.1.1.2.7"/> 
+</ui></object>
+<object name="IsdpStatisticsChkSumErrorPduReceived" >
+<core  type="uint" access="read-only" descr="The number of ISDP PDUs with checksum error received."/>
+<ui  name="ISDP Statistics ChkSumErrorPdu Received" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.39.1.1.2.8"/> 
+</ui></object>
+<object name="IsdpStatisticsFailurePduTransmit" >
+<core  type="uint" access="read-only" descr="The number of ISDP PDUs transmition failures."/>
+<ui  name="ISDP Statistics FailurePdu Transmit" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.39.1.1.2.9"/> 
+</ui></object>
+<object name="IsdpStatisticsInvalidFormatPduReceived" >
+<core  type="uint" access="read-only" descr="The number of ISDP PDUs with invalid format received."/>
+<ui  name="ISDP Statistics InvalidFormatPdu Received" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.39.1.1.2.10"/> 
+</ui></object>
+<object name="IsdpStatisticsTableFull" >
+<core  type="uint" access="read-only" descr="The number of times ISDP entry table was full."/>
+<ui  name="ISDP Statistics Table Full" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.39.1.1.2.11"/> 
+</ui></object>
+<object name="IsdpStatisticsIpAddressTableFull" >
+<core  type="uint" access="read-only" descr="The number of times ISDP entry address table was full."/>
+<ui  name="ISDP Statistics IpAddressTable Full" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.39.1.1.2.12"/> 
+</ui></object>
+</module>
+
+</objectxml>
+</FastPathXML>

@@ -1,0 +1,61 @@
+<HTML>
+<EMWEB_HEAD C='
+    #include "web.h"
+  '>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>VLAN Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+<hr size=4 width="100%" align=center>
+<h2><a name=qnpsumm></a>Help for VLAN Port Summary</h2>
+<h3>Non-Configurable Data</h3>
+<B>List of all Ports on the Switch.</B>
+<BR>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Interface</b> - The interface. </li>
+  <li><b>Port VLAN ID Configured</b> -
+      The VLAN ID that this port will assign to untagged frames or priority
+      tagged frames received on this port. </li>
+  <li><b>Acceptable Frame
+      Types</b> - Specifies the types of frames that may be received on this
+      port. The options are 'VLAN only' and 'Admit All'. When set to 'VLAN
+      only', untagged frames or priority tagged frames received on this port
+      are discarded. When set to 'Admit All', untagged frames or priority
+      tagged frames received on this port are accepted and assigned the value
+      of the Port VLAN ID for this port. With either option, VLAN tagged frames
+      are forwarded in accordance to the 802.1Q VLAN specification. </li>
+  <li><b>Ingress Filtering Configured</b>
+      - When enabled, the frame is discarded if this port
+      is not a member of the VLAN with which this frame is associated. In a
+      tagged frame, the VLAN is identified by the VLAN ID in the tag. In an
+      untagged frame, the VLAN is the Port VLAN ID specified for the port that
+      received this frame. When disabled, all frames are forwarded in
+      accordance with the 802.1Q VLAN bridge specification. The factory default
+      is disabled. </li>
+
+      <EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="DOT1P_FEATURE">
+  <li><b>Port Priority</b>
+      - Specifies the default 802.1p priority assigned to untagged packets arriving at the port.
+       </li>
+      </EMWEB_IF>
+ </ul>
+</ul>
+<h3>Command Buttons</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Refresh</b> - Refresh the data on the screen with the present state of the data in the switch.
+  </li>
+ </ul>
+</ul>
+
+</body>
+
+</html>
+
+

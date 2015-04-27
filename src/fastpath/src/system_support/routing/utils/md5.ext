@@ -1,0 +1,77 @@
+/********************************************************************
+ *
+ * (C) Copyright Broadcom Corporation 2003-2007
+ *
+ * *********************************************************************
+ *
+ * @filename     md5.ext
+ *
+ * @purpose      MD5 algorithm definitions
+ *
+ * @component    Routing Utils Component
+ *
+ * @comments
+ *
+ * @create
+ *
+ * @author
+ *
+ * @end
+ *
+ * ********************************************************************/
+#ifndef md5_ext
+#define md5_ext
+
+#include "std.h"
+
+
+/*
+** **************************************************************************
+** md5.h -- Header file for implementation of MD5 Message Digest Algorithm **
+** Updated: 2/13/90 by Ronald L. Rivest                                    **
+** (C) 1990 RSA Data Security, Inc.                                        **
+** **************************************************************************
+*/
+
+/**********************************************************************
+Copyright (C) 1991-2, RSA Data Security, Inc. Created 1991. All
+rights reserved.
+
+License to copy and use this software is granted provided that it
+is identified as the "RSA Data Security, Inc. MD5 Message-Digest
+Algorithm" in all material mentioning or referencing this software
+or this function.
+
+License is also granted to make and use derivative works provided
+that such works are identified as "derived from the RSA Data
+Security, Inc. MD5 Message-Digest Algorithm" in all material
+mentioning or referencing the derived work.
+
+RSA Data Security, Inc. makes no representations concerning either
+the merchantability of this software or the suitability of this
+software for any particular purpose. It is provided "as is"
+without express or implied warranty of any kind.
+
+These notices must be retained in any copies of any part of this
+documentation and/or software.
+**********************************************************************/
+
+/* data structure for a message digest computation. */
+typedef struct t_Md
+{
+    ulng   buffer[4];  /* Holds 4-word result of MD computation */
+    byte   count[8];   /* Number of bits processed so far */
+    Bool   done;       /* Nonzero means MD computation finished */
+}   t_Md;
+
+/* Initialize message digest buffer.  */
+void MdInit(t_Md *p_Md);
+/* Update p_Md using the number of bits of X given by count */
+void MdUpdate(t_Md *p_Md, byte *X, word count);
+/* Generates a digest for data. */
+void MdGetDigest(byte *data, int length, byte *digest);
+
+
+#endif
+
+/* --- end of file md5.ext --- */

@@ -1,0 +1,411 @@
+--
+--
+-- Copyright (C) 1996-2006 by SNMP Research, Incorporated.
+--
+-- This software is furnished under a license and may be used and copied
+-- only in accordance with the terms of such license and with the
+-- inclusion of the above copyright notice. This software or any other
+-- copies thereof may not be provided or otherwise made available to any
+-- other person. No title to and ownership of the software is hereby
+-- transferred.
+--
+-- The information in this software is subject to change without notice
+-- and should not be construed as a commitment by SNMP Research, Incorporated.
+--
+-- Restricted Rights Legend:
+--  Use, duplication, or disclosure by the Government is subject to
+--  restrictions as set forth in subparagraph (c)(1)(ii) of the Rights
+--  in Technical Data and Computer Software clause at DFARS 252.227-7013;
+--  subparagraphs (c)(4) and (d) of the Commercial Computer
+--  Software-Restricted Rights Clause, FAR 52.227-19; and in similar
+--  clauses in the NASA FAR Supplement and other corresponding
+--  governmental regulations.
+--
+--
+
+--
+--                PROPRIETARY NOTICE
+--
+-- This software is an unpublished work subject to a confidentiality agreement
+-- and is protected by copyright and trade secret law.  Unauthorized copying,
+-- redistribution or other use of this work is prohibited.
+--
+-- The above notice of copyright on this source code product does not indicate
+-- any actual or intended publication of such source code.
+--
+
+   SNMP-RESEARCH-DISMAN-SCRIPT-EXTENSION-MIB DEFINITIONS ::= BEGIN
+
+   IMPORTS
+       MODULE-IDENTITY, OBJECT-TYPE,
+       Integer32, Unsigned32, Counter32, Gauge32, 
+       Counter64, IpAddress, TimeTicks, enterprises
+           FROM SNMPv2-SMI
+
+       DisplayString
+           FROM SNMPv2-TC
+
+       MODULE-COMPLIANCE, OBJECT-GROUP
+           FROM SNMPv2-CONF
+
+       smScriptEntry, smLaunchOwner, smLaunchName, smRunIndex
+             FROM DISMAN-SCRIPT-MIB;
+
+   smExtensionMIB MODULE-IDENTITY
+       LAST-UPDATED "9909231645Z"
+       ORGANIZATION "SNMP Research, Incorporated"
+       CONTACT-INFO "SNMP Research, Incorporated
+                     3001 Kimberlin Heights Road
+                     Knoxville, TN 37920-9716
+                     U.S.A.
+                     Voice:   +1 865 573 1434
+                     E-mail:  support@snmp.com"
+       DESCRIPTION
+           "This MIB module defines a set of SNMP Research proprietary
+            objects that extend the IETF DISMAN-SCRIPT-MIB."
+       ::= { enterprises 99 12 41 }
+
+   --
+   -- The groups defined within this MIB module:
+   --
+
+   smeObjects       OBJECT IDENTIFIER ::= { smExtensionMIB 1 }
+   smeNotifications OBJECT IDENTIFIER ::= { smExtensionMIB 2 }
+   smeConformance   OBJECT IDENTIFIER ::= { smExtensionMIB 3 }
+
+
+   --
+   --  Scalar objects.
+   --
+
+   smeScalars OBJECT IDENTIFIER ::= { smeObjects 1 }
+
+   smeExecutionTimer OBJECT-TYPE
+       SYNTAX      Unsigned32
+       MAX-ACCESS  read-write
+       STATUS      current
+       DESCRIPTION
+               "This MIB object controls how fast scripts run.
+
+                When the finished executing a specified number of
+                statements from all active, unblocked scripts, the
+                script execution is suspended for the time period
+                specified by this MIB object.
+
+                Setting this object to a low value will run scripts
+                faster, but the execution engine will not respond to
+                SNMP requests as quickly.  Setting this object to a
+                lower value will run scripts more slowly, but the
+                execution engine will respond to SNMP requests more
+                quickly.
+
+                Also note that setting this object to a lower value
+                will cause the script execution engine to consume 
+                more processor time on your system.
+
+                This value is measured in 100ths of seconds."
+       DEFVAL { 10 }
+       ::= { smeScalars 1 }
+
+   smeExecutionSteps OBJECT-TYPE
+       SYNTAX      Integer32
+       MAX-ACCESS  read-write
+       STATUS      current
+       DESCRIPTION
+               "After a timeout, each active, unblocked, script is
+                advanced by the number of statements specified by
+                this MIB object.  If this object is set to a negative 
+                value, then each script is advanced to completion."
+       DEFVAL { 10 }
+       ::= { smeScalars 2 }
+
+   smeExecutionInterleave OBJECT-TYPE
+       SYNTAX      Integer32
+       MAX-ACCESS  read-write
+       STATUS      current
+       DESCRIPTION
+               "It MIB object specifies the number of statements to
+                to execute in each script before switching to the next 
+                active, unblocked, script.  If this object is set to 
+                a negative value, then each script is advanced to 
+                completion before switching to the next script."
+       DEFVAL { 10 }
+       ::= { smeScalars 3 }
+
+
+   --
+   --  Tables.
+   --
+
+   smeTables OBJECT IDENTIFIER ::= { smeObjects 2 }
+
+
+   --
+   --   The smeCompileErrorTable provides a list of
+   --   script compilation errors.
+   --
+
+   smeCompileErrorTable OBJECT-TYPE
+       SYNTAX      SEQUENCE OF SmeCompileErrorEntry
+       MAX-ACCESS  not-accessible
+       STATUS      current
+       DESCRIPTION
+               "Table containing error messages from script compilation."
+       ::= { smeTables  1 }
+
+   smeCompileErrorEntry OBJECT-TYPE
+       SYNTAX      SmeCompileErrorEntry
+       MAX-ACCESS  not-accessible
+       STATUS      current
+       DESCRIPTION
+               "Contains a single error message resulting
+                from compilation of a single script."
+       AUGMENTS { smScriptEntry }
+       ::= { smeCompileErrorTable 1 }
+
+
+   SmeCompileErrorEntry ::= SEQUENCE {
+       smeCompileErrorMessage        DisplayString
+   }
+
+   smeCompileErrorMessage OBJECT-TYPE
+       SYNTAX      DisplayString
+       MAX-ACCESS  read-only
+       STATUS      current
+       DESCRIPTION
+               "Contains the compile error message text."
+       DEFVAL { ''H }
+       ::= { smeCompileErrorEntry 1 }
+
+
+   --
+   --   The smeResultTable contains multiple results from the
+   --   execution of a single script.
+   --
+
+   smeResultTable OBJECT-TYPE
+       SYNTAX      SEQUENCE OF SmeResultEntry
+       MAX-ACCESS  not-accessible
+       STATUS      current
+       DESCRIPTION
+               "Table containing results of script execution."
+       ::= { smeTables  2 }
+
+   smeResultEntry OBJECT-TYPE
+       SYNTAX      SmeResultEntry
+       MAX-ACCESS  not-accessible
+       STATUS      current
+       DESCRIPTION
+               "Note that rows in this table are only visible 
+                after a script has been run."
+       INDEX { smLaunchOwner, smLaunchName, smRunIndex, smeResultIndex }
+       ::= { smeResultTable 1 }
+
+   SmeResultEntry ::=
+       SEQUENCE {
+           smeResultIndex
+               Unsigned32,
+           smeResultOID
+               OBJECT IDENTIFIER,
+           smeResultType
+               INTEGER,
+           smeResultInteger32Value
+               Integer32,
+           smeResultCounter32Value
+               Counter32,
+           smeResultGauge32Value
+               Gauge32,
+           smeResultTimeTicksValue
+               TimeTicks,
+           smeResultIpAddressValue
+               IpAddress,
+           smeResultOctetStringValue
+               OCTET STRING,
+           smeResultObjectIDValue
+               OBJECT IDENTIFIER,
+           smeResultCounter64Value
+               Counter64
+       }
+
+   smeResultIndex  OBJECT-TYPE
+       SYNTAX      Unsigned32
+       MAX-ACCESS  not-accessible
+       STATUS      current
+       DESCRIPTION
+               "Index into the list of VarBinds returned by a script."
+       ::= { smeResultEntry 1 }
+
+   smeResultOID OBJECT-TYPE
+       SYNTAX      OBJECT IDENTIFIER
+       MAX-ACCESS  read-only
+       STATUS      current
+       DESCRIPTION
+               "Contains the OID of a VarBind returned from a script.
+                These may not necessarily have any meaning, depending
+                on the particular script."
+       ::= { smeResultEntry 2 }
+
+   smeResultType OBJECT-TYPE
+       SYNTAX      INTEGER {
+                  error(1),
+                  null(2),
+                  integer32(3),
+                  counter32(4),
+                  gauge32(5),
+                  timeticks(6),
+                  ipaddress(7),
+                  octetstring(8),
+                  objectid(9),
+                  counter64(10)
+        }
+       MAX-ACCESS  read-only
+       STATUS      current
+       DESCRIPTION
+               "Contains a code representing the type of the varbind
+                returned by the script, or a 1 if an error occurred
+                during execution."
+       ::= { smeResultEntry 3 }
+
+   smeResultInteger32Value OBJECT-TYPE
+       SYNTAX      Integer32
+       MAX-ACCESS  read-only
+       STATUS      current
+       DESCRIPTION
+               "Contains a signed, 32-bit integer result value."
+       ::= { smeResultEntry 4 }
+
+   smeResultCounter32Value OBJECT-TYPE
+       SYNTAX      Counter32
+       MAX-ACCESS  read-only
+       STATUS      current
+       DESCRIPTION
+               "Contains a 32-bit counter result value."
+       ::= { smeResultEntry 5 }
+
+   smeResultGauge32Value OBJECT-TYPE
+       SYNTAX      Gauge32
+       MAX-ACCESS  read-only
+       STATUS      current
+       DESCRIPTION
+               "Contains a 32-bit gauge result value."
+       ::= { smeResultEntry 6 }
+
+   smeResultTimeTicksValue OBJECT-TYPE
+       SYNTAX      TimeTicks
+       MAX-ACCESS  read-only
+       STATUS      current
+       DESCRIPTION
+               "Contains a time ticks result value."
+       ::= { smeResultEntry 7 }
+
+   smeResultIpAddressValue OBJECT-TYPE
+       SYNTAX      IpAddress
+       MAX-ACCESS  read-only
+       STATUS      current
+       DESCRIPTION
+               "Contains an IP address result value."
+       ::= { smeResultEntry 8 }
+
+   smeResultOctetStringValue OBJECT-TYPE
+       SYNTAX      OCTET STRING (SIZE(0..2048))
+       MAX-ACCESS  read-only
+       STATUS      current
+       DESCRIPTION
+               "Contains an octet string result value."
+       ::= { smeResultEntry 9 }
+
+   smeResultObjectIDValue OBJECT-TYPE
+       SYNTAX      OBJECT IDENTIFIER
+       MAX-ACCESS  read-only
+       STATUS      current
+       DESCRIPTION
+               "Contains an object id result value."
+       ::= { smeResultEntry 10 }
+
+   smeResultCounter64Value OBJECT-TYPE
+       SYNTAX      Counter64
+       MAX-ACCESS  read-only
+       STATUS      current
+       DESCRIPTION
+               "Contains a 64-bit counter result value."
+       ::= { smeResultEntry 13 }
+
+
+   --
+   -- Conformance information
+   --
+
+   --
+   -- Compliance statements
+   --
+
+   smeCompliances OBJECT IDENTIFIER ::= { smeConformance 1 }
+   smeGroups      OBJECT IDENTIFIER ::= { smeConformance 2 }
+
+   -- Compliance statements
+
+   smeCompliance MODULE-COMPLIANCE
+      STATUS  current
+      DESCRIPTION
+              "The compliance statement for the 
+               SNMP-RESEARCH-DISMAN-SCRIPT-EXTENSION-MIB."
+      MODULE  -- this module
+      MANDATORY-GROUPS {
+            smeScalarGroup
+      }
+      ::= { smeCompliances 1 }
+
+   --
+   -- MIB groupings
+   --
+
+   smeScalarGroup OBJECT-GROUP
+     OBJECTS {
+               smeExecutionTimer,
+               smeExecutionSteps,
+               smeExecutionInterleave
+             }
+     STATUS  current
+     DESCRIPTION
+         "The SNMP-RESEARCH-DISMAN-SCRIPT-EXTENSION-MIB scalars."
+      ::= { smeGroups 1 }
+
+   smeCompileGroup OBJECT-GROUP
+     OBJECTS {
+               smeCompileErrorMessage
+             }
+     STATUS  current
+     DESCRIPTION
+         "The group of compile-related objects."
+      ::= { smeGroups 2 }
+
+   smeResultGroup OBJECT-GROUP
+     OBJECTS {
+               smeResultOID,
+               smeResultType,
+               smeResultInteger32Value,
+               smeResultCounter32Value,
+               smeResultGauge32Value,
+               smeResultTimeTicksValue,
+               smeResultIpAddressValue,
+               smeResultOctetStringValue,
+               smeResultObjectIDValue,
+               smeResultCounter64Value
+             }
+     STATUS  current
+     DESCRIPTION
+         "The group of script execution result objects"
+      ::= { smeGroups 3 }
+
+
+
+
+
+
+
+
+
+
+
+
+   END

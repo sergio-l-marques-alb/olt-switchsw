@@ -1,0 +1,132 @@
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Port Channel Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=trunkcfg></a>Help for Port Channel Configuration</h2>
+
+
+<h3>Selection Criteria</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Port Channel Interface</b> &#8211; You can use this screen to reconfigure an existing Port Channel,
+  or to create a new one.
+  Use this pull down menu to select one of the existing Port Channels, or select 'Create' to add a new one.
+      There can be a maximum of
+      <EMWEB_STRING C='
+      return usmWebIntegerToString(L7_MAX_NUM_LAG_INTF);
+      '>
+      Port Channels.</li>
+ </ul>
+</ul>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Port Channel Name</b> - Enter the
+      name you want assigned to the Port Channel. You may enter any string of up to 15 alphanumeric
+      characters. A valid name has to be specified in order to create the Port Channel.</li>
+  <li><b>Link Trap</b> -
+      Specify whether you want to have a trap sent when link status
+      changes. The factory default is enable, which will cause the trap to be sent. </li>
+  <li><b>Administrative Mode</b>
+      - Select enable or disable from the pull down menu.
+      When the Port Channel is disabled no traffic will flow and LACPDUs will be dropped, but the links
+      that form the Port Channel will not be released.
+      The factory default is enable.</li>
+  <li><b>STP Mode</b> - The
+      Spanning Tree Protocol Administrative Mode associated with the Port Channel.
+      The possible values are: </li>
+  <ul type=square>
+   <li>Disable - spanning tree
+       is disabled for this Port Channel.</li>
+   <li>Enable - spanning tree is enabled for this Port Channel. The factory default is enable.</li>
+  </ul>
+  <li><b>Static Mode</b>
+      - Select enable or disable from the pull down menu.
+      When the Port Channel is enabled it does not transmit or process received LAGPDUs i.e. the member ports
+      do not transmit LAGPDUs and all the LAGPDUs it may receive are dropped.
+      The factory default is disable.</li>
+ <li><b>Load Balance</b>
+      - Select the hashing algorithm used to distribute the traffic load among available physical ports in the LAG. The range of possible values may vary with the type of switch. The possible values are:</li>
+  <ul type=square>
+      <li>1 Source MAC, VLAN, Ethertype, and incoming port</li>
+      <li>2 Destination MAC, VLAN, EtherType and incoming port</li>
+      <li>3 Source/Destination MAC, VLAN, Ethertype, and incoming port. This is the factory default.</li>
+      <li>4 Source IP and Source TCP/UDP Port</li>
+      <li>5 Destination IP and Destination TCP/UDP Port</li>
+      <li>6 Source/Destination IP and source/destination TCP/UDP Port</li>
+      <li>7 Enhanced hashing mode</li>
+  </ul>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b><EMWEB_IF ID=XUI_IF_STACKING_PRESENT>
+	Unit/Slot/Port
+<EMWEB_ELSE>
+	Slot/Port
+</EMWEB_IF></b> -
+     <EMWEB_IF ID=XUI_IF_STACKING_PRESENT>
+	 Unit/Slot/Port
+<EMWEB_ELSE>
+	 Slot/Port
+</EMWEB_IF> identification of the Port Channel being configured.
+      This field will not appear when a new Port Channel is being created. </li>
+ <li><b>Participation</b> -
+      For each port specify whether it is to be included as a
+      member of this Port Channel or not. The default is exclude.
+      There can be a maximum of
+      8
+      ports assigned to a Port Channel.</li>
+
+  <li><b>Link Status</b> - Indicates
+      whether the Link is up or down.</li>
+  <li><b>Port Channel Members</b> - List of members of the Port Channel in<EMWEB_IF ID=XUI_IF_STACKING_PRESENT>
+	 Unit/Slot/Port
+<EMWEB_ELSE>
+	 Slot/Port
+</EMWEB_IF> form. </li>
+  <li><b>Membership Conflicts</b> - Shows ports that are already members of other Port Channels.
+         A port may only be a member of one Port Channel at a time.
+         If the entry is blank, it is not currently a member of any Port Channel.</li>
+ </ul>
+</ul>
+
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Update the switch with the values on the screen.
+  If you want the switch to retain the new values across a power cycle you must perform a save.
+</li>
+  <li><b>Delete</b> - Removes the currently selected
+      configured Port Channel. All ports that were members of this
+      Port Channel are removed from the Port Channel and included in the default VLAN.
+       This field will not appear when a new Port Channel is being created. </li>
+  <li><b>Refresh</b> - Refresh the data on the screen with the present
+      state of the data in the switch.</li>
+ </ul>
+</ul>
+
+<hr size=4 width="100%" align=center>
+
+
+</body>
+
+</html>
+
+

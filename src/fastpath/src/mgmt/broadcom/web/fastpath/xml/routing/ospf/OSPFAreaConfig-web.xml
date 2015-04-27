@@ -1,0 +1,197 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="OSPFAreaConfig" title="OSPF Area Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+		    <element control="combo" properties="filter,iterate" obj-name="routingospfArea_Id" id="1" name="Area">
+                            <action type="value" value="Default_OspfArea" hide="1_4_1|1_9|1_11_1|1_12_1|1_13_1|1_14_1|1_15_1|1_16_1|1_17_1|1_18_1|1_19_1|1_20_1|1_21_1|1_22_1|1_22_2|1_22_3|1_22_4|1_22_5|1_22_6|1_23" />
+			    <action type="value" value="valMapEmptyString" disable="1_2_1" hide="1_1_1|1_2_1|1_3_1|1_4_1|1_5_1|1_6_1|1_7_1|1_8_1|1_9|1_11_1|1_12_1|1_13_1|1_14_1|1_15_1|1_16_1|1_17_1|1_18_1|1_19_1|1_20_1|1_21_1|1_22_1|1_22_2|1_22_3|1_22_4|1_22_5|1_22_6" show="1_23"/> 
+			    <action type="default" disable="1_2_1" hide="1_4_1|1_23"/>
+		    </element>
+            </node>
+            <node id="2">
+                <element control="label" properties="filter,iterate" obj-name="routingospfArea_Id" id="1" name="Area ID"/>
+	    </node>
+	    <node id="3">
+		<element control="label" properties="read-only" obj-name="routingospfArea_ImportAsExtern" id="1" name="External Routing"/>    
+	    </node>
+	    <node id="4">
+		<element control="combo" properties="read-only" obj-name="routingospfArea_ImportAsExtern" id="1" name="External Routing"> 
+         <action type="enum" hide="1_9|1_11_1|1_12_1|1_13_1|1_14_1|1_15_1|1_16_1|1_17_1|1_18_1|1_19_1|1_20_1|1_21_1|1_22_3|1_22_4|1_24_1|1_22_5" disable="1_11_1|1_13_1|1_14_1|1_15_1|1_16_1|1_17_1|1_18_1|1_19_1|1_20_1|1_21_1|1_22_3|1_22_4|1_24_1|1_22_5"/>
+		     <action type="enum" show="1_9|1_11_1|1_13_1|1_14_1|1_22_3|1_22_5|1_22_6" enable="1_11_1|1_12_1|1_13_1|1_14_1|1_22_3|1_22_5|1_22_6" hide="1_15_1|1_16_1|1_17_1|1_18_1|1_19_1|1_20_1|1_21_1|1_22_1|1_22_2|1_22_4|1_24_1" disable="1_15_1|1_16_1|1_17_1|1_18_1|1_19_1|1_20_1|1_21_1|1_22_1|1_22_2|1_22_4|1_24_1"/>
+		     <action type="enum" show="1_9|1_15_1|1_16_1|1_17_1|1_18_1|1_19_1|1_20_1|1_21_1|1_22_4|1_22_5|1_22_6|1_24_1" enable="1_15_1|1_16_1|1_17_1|1_18_1|1_19_1|1_20_1|1_21_1|1_22_4|1_22_5|1_22_6|1_24_1" hide="1_11_1|1_12_1|1_13_1|1_14_1|1_22_2|1_22_3|1_22_1" disable="1_11_1|1_13_1|1_14_1|1_22_1|1_22_2|1_22_3"/>
+		</element>
+	    </node>
+            <node id="5">
+                <element obj-name="routingospfArea_SpfRuns" id="1" name="SPF Runs"/>
+            </node>
+            <node id="6">
+                <element obj-name="routingospfArea_BdrRtrCount" id="1" name="Area Border Router Count"/>
+            </node>
+            <node id="7">
+                <element obj-name="routingospfArea_LsaCount" id="1" name="Area LSA Count"/>
+            </node>
+            <node id="8">
+                <element obj-name="routingospfArea_LsaCksumSum" id="1" name="Area LSA Checksum"/>
+            </node>
+            <node id="9" clazz="unavailableattributes">
+                <message>Stub/NSSA Area Information</message>
+            </node>
+      	    <node id="11">
+	              <element control="combo" obj-name="routingospfArea_ImportSummaryLSA" id="1" name="Import Summary LSAs"/>
+            </node>
+      	    <node id="24">
+	              <element control="combo" obj-name="routingospfArea_NSSAimportSummaries" id="1" name="Import Summary LSAs"/>
+            </node>
+            <node id="12">
+                <element properties="filter,hidden" cpval="routingospfArea_Id" obj-name="routingospfStub_AreaId" id="1" name="AreaId"/>
+            </node>
+            <node id="13">
+                <element control="label"  properties="filter,iterate" obj-name="routingospfStub_TOS" id="1" name="Type of Service"/>
+            </node>
+            <node id="14">
+                <element arghelp="HELP_FORMAT_FP" maxLength="10" obj-name="routingospfStub_Metric" id="1" name="Metric Value"/>
+            </node>
+            <node id="15">
+                <element control="combo" obj-name="routingospfArea_NSSAdefInfoOrig" id="1" name="Originate Default Route">
+		    <action type="enum" web_name="Enable" enable="1_16_1|1_17_1"/>
+		    <action type="enum" web_name="Disable" disable="1_16_1|1_17_1"/>
+                </element>
+            </node>
+            <node id="16">
+                <element control="textbox" arghelp="HELP_FORMAT_FP" maxLength="10" obj-name="routingospfArea_NSSAdefMetric" id="1" name="Metric Value"/>
+            </node>
+            <node id="17">
+                <element control="combo" obj-name="routingospfArea_NSSAdefMetricType" id="1" name="Metric Type">
+		    <action type="enum" discard="yes"/>
+		    <action type="enum" discard="no"/>
+		    <action type="enum" discard="no"/>
+                </element>
+            </node>
+            <node id="18">
+                <element control="combo" obj-name="routingospfArea_NSSAtranslatorRole" id="1" name="Translator Role"/>
+            </node>
+            <node id="19">
+                <element arghelp="HELP_FORMAT_FP" maxLength="10" obj-name="routingospfArea_NSSAtranslatorStabilityInterval" id="1" name="Translator Stability Interval"/>
+            </node>
+            <node id="20">
+                <element control="combo" obj-name="routingospfArea_NSSAredistribute" id="1" name="Redistribute Mode"/>
+            </node>
+            <node id="21">
+                <element obj-name="routingospfArea_NSSATranslatorState" id="1" name="Translator State"/>
+            </node>
+            <node id="25">
+                <element control="combo" properties="read-only" obj-name="routingospfArea_ImportAsExtern" id="1" name="External Routing">
+                    <action type="enum" hide="1_25_1" disable="1_16_1|1_17_1"/>
+                    <action type="enum" hide="1_25_1" disable="1_16_1|1_17_1"/>
+                    <action type="enum" hide="1_25_1"/>
+                </element>
+            </node>
+
+            <node id="22">
+		    <button scope="page" type="buttonSubmit" value="Add" obj-name="routingospfStub_Status" help="Submits the form on this page to the Switch" id="1" name="Create Stub Area">
+			    <action type="button" enable="1_12_1" setval_ids="1_4_1" setval_args="OspfArea_Stub" disable="1_22_2|1_22_3|1_22_4|1_22_5|1_22_6|1_16_1|1_17_1"/>
+		    </button>
+		    <button scope="page" type="buttonSubmit" value="Add" obj-name="routingospfArea_NSSAStatus" help="Submits the form on this page to the Switch" id="2" name="Create NSSA Area">
+			    <action type="button" enable="1_12_1" setval_ids="1_4_1" setval_args="OspfArea_NSSA" disable="1_22_1|1_22_3|1_22_4|1_22_5|1_22_6|1_16_1|1_17_1"/>
+		    </button>
+		    <button scope="page" type="buttonSubmit" value="Delete" obj-name="routingospfStub_Status" help="Submits the form on this page to the Switch" id="3" name="Delete Stub Area">
+			    <action type="button" enable="1_12_1" disable="1_22_1|1_22_2|1_22_4|1_22_5|1_22_6|1_16_1|1_17_1"/>
+		    </button>
+		    <button scope="page" type="buttonSubmit" value="Delete" obj-name="routingospfArea_NSSAStatus" help="Submits the form on this page to the Switch" id="4" name="Delete NSSA">
+			    <action type="button" enable="1_12_1" disable="1_22_1|1_22_2|1_22_3|1_22_5|1_22_6|1_16_1|1_17_1"/>
+		    </button>
+		<button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="5" name="Submit">
+			<action type="button" disable="1_22_1|1_22_2|1_22_3|1_22_4|1_22_6" />
+		</button>
+		<button scope="page" type="buttonSubmit" value="Delete" obj-name="routingospfArea_Status" help="Submits the form on this page to the Switch" id="6" name="Delete Area">
+			<action type="button" enable="1_12_1" disable="1_22_1|1_22_2|1_22_3|1_22_4|1_22_5|1_16_1|1_17_1"/>
+		</button>
+            </node>
+            <node id="23" clazz="unavailableattributes">
+                <message>No Valid Areas Available</message>
+            </node>
+        </group>
+	<group level="ReadOnlyUser" id="2" heading=" "> 
+            <node id="1">
+		    <element control="combo" properties="filter,iterate" obj-name="routingospfArea_Id" id="1" name="Area">
+                            <action type="value" value="Default_OspfArea" hide="2_4_1|2_9|2_11_1|2_12_1|2_13_1|2_14_1|2_15_1|2_16_1|2_17_1|2_18_1|2_19_1|2_20_1|2_21_1|2_23" />
+		    <action type="value" value="valMapEmptyString" hide="2_1_1|2_3_1|2_4_1|2_5_1|2_6_1|2_7_1|2_8_1|2_9|2_11_1|2_12_1|2_13_1|2_14_1|2_15_1|2_16_1|2_17_1|2_18_1|2_19_1|2_20_1|2_21_1" show="2_23"/>
+
+    <action type="default" hide="2_4_1|2_23"/>
+		    </element>
+            </node>
+	    <node id="3">
+		<element control="label" properties="read-only" obj-name="routingospfArea_ImportAsExtern" id="1" name="External Routing"/>    
+	    </node>
+	    <node id="4">
+		<element control="combo" properties="read-only" obj-name="routingospfArea_ImportAsExtern" id="1" name="External Routing"> 
+         <action type="enum" hide="2_9|2_11_1|2_12_1|2_13_1|2_14_1|2_15_1|2_16_1|2_17_1|2_18_1|2_19_1|2_20_1|2_21_1|2_24_1" disable="2_11_1|2_13_1|2_14_1|2_15_1|2_16_1|2_17_1|2_18_1|2_19_1|2_20_1|2_21_1|2_24_1"/>
+		     <action type="enum" show="2_9|2_11_1|2_13_1|2_14_1" enable="2_11_1|2_12_1|2_13_1|2_14_1" hide="2_15_1|2_16_1|2_17_1|2_18_1|2_19_1|2_20_1|2_21_1|2_24_1" disable="2_15_1|2_16_1|2_17_1|2_18_1|2_19_1|2_20_1|2_21_1|2_24_1"/>
+		     <action type="enum" show="2_9|2_15_1|2_16_1|2_17_1|2_18_1|2_19_1|2_20_1|2_21_1|2_24_1" enable="2_15_1|2_16_1|2_17_1|2_18_1|2_19_1|2_20_1|2_21_1|2_24_1" hide="2_11_1|2_12_1|2_13_1|2_14_1" disable="2_11_1|2_13_1|2_14_1"/>
+		</element>
+	    </node>
+            <node id="5">
+                <element obj-name="routingospfArea_SpfRuns" id="1" name="SPF Runs"/>
+            </node>
+            <node id="6">
+                <element obj-name="routingospfArea_BdrRtrCount" id="1" name="Area Border Router Count"/>
+            </node>
+            <node id="7">
+                <element obj-name="routingospfArea_LsaCount" id="1" name="Area LSA Count"/>
+            </node>
+            <node id="8">
+                <element obj-name="routingospfArea_LsaCksumSum" id="1" name="Area LSA Checksum"/>
+            </node>
+            <node id="9" clazz="unavailableattributes">
+                <message>Stub/NSSA Area Information</message>
+            </node>
+	    <node id="11">
+	              <element control="label" properties="read-only" obj-name="routingospfArea_ImportSummaryLSA" id="1" name="Import Summary LSAs"/>
+            </node>
+      	    <node id="24">
+	              <element control="label" properties="read-only" obj-name="routingospfArea_NSSAimportSummaries" id="1" name="Import Summary LSAs"/>
+            </node>
+            <node id="12">
+                <element properties="filter,hidden" cpval="routingospfArea_Id" obj-name="routingospfStub_AreaId" id="1" name="AreaId"/>
+            </node>
+            <node id="13">
+                <element control="label"  properties="read-only" obj-name="routingospfStub_TOS" id="1" name="Type of Service"/>
+            </node>
+            <node id="14">
+                <element control="label" properties="read-only" obj-name="routingospfStub_Metric" id="1" name="Metric Value"/>
+            </node>
+            <node id="15">
+                <element control="label" properties="read-only" obj-name="routingospfArea_NSSAdefInfoOrig" id="1" name="Originate Default Route"/>
+            </node>
+            <node id="16">
+                <element control="label" properties="read-only" obj-name="routingospfArea_NSSAdefMetric" id="1" name="Metric Value"/>
+            </node>
+            <node id="17">
+                <element control="label" properties="read-only" obj-name="routingospfArea_NSSAdefMetricType" id="1" name="Metric Type"/>
+            </node>
+            <node id="18">
+                <element control="label" properties="read-only" obj-name="routingospfArea_NSSAtranslatorRole" id="1" name="Translator Role"/>
+            </node>
+            <node id="19">
+                <element control="label" properties="read-only" obj-name="routingospfArea_NSSAtranslatorStabilityInterval" id="1" name="Translator Stability Interval"/>
+            </node>
+            <node id="20">
+                <element control="label" properties="read-only" obj-name="routingospfArea_NSSAredistribute" id="1" name="Redistribute Mode"/>
+            </node>
+            <node id="21">
+                <element control="label" properties="read-only" obj-name="routingospfArea_NSSATranslatorState" id="1" name="Translator State"/>
+            </node>
+            <node id="22">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+            <node id="23" clazz="unavailableattributes">
+                <message>No Valid Areas Available</message>
+            </node>
+        </group>	
+    </webxml>
+</FastPathXML>

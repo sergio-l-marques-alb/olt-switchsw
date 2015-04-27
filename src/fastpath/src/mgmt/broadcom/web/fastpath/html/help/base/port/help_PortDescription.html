@@ -1,0 +1,73 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Port Configuration Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=portdes></a>Help for Port Description</h2>
+
+<P>This screen configures and displays the description for all ports in the box.
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<h3>Selection Criteria</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Interface</b> -
+      Selects the interface for which data is to be displayed or
+      configured.</li>
+ </ul>
+</ul>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Port Description</b>
+      Enter the Description string to be attached to a  port. It can be up to 64 characters in length.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+
+  <li><b><EMWEB_IF ID=XUI_IF_STACKING_PRESENT>
+	Unit/Slot/Port
+<EMWEB_ELSE>
+	Slot/Port
+</EMWEB_IF></b> - Identifies the port</li>
+  <li><b>Physical Address</b> - Displays the physical address of the specified interface. </li>
+  <li><b>PortList Bit Offset</b> - Displays the bit offset value which corresponds to the port when the MIB object type PortList is used to manage in SNMP.</li>
+  <li><b>Interface Index</b> - Displays the interface index associated with the port.</li>
+  <li><b>Port Description</b> - Description string attached to a port. It can be of up to 64 characters in length.</li>
+ </ul>
+</ul>
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+  <li><b>Submit </b>
+ - <EMWEB_STRING C='return usmWebSubmitDescriptionHelp();' ></li>
+</EMWEB_IF>
+  <li><b>Refresh</b> - <EMWEB_STRING C='return usmWebRefreshDescriptionHelp();' >.
+  </li>
+ </ul>
+</ul>
+
+<hr size=4 width="100%" align=center>
+
+</body>
+
+</html>

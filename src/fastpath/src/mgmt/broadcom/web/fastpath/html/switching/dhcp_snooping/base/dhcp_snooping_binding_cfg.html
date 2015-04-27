@@ -1,0 +1,261 @@
+<EMWEB_IF ID=USMWEB_IF_LVL_HDR_NOT_REQ>
+
+<!--
+/*********************************************************************
+*
+* (C) Copyright Broadcom Corporation 2001-2007
+*
+**********************************************************************
+*
+* @filename dhcp_snooping_binding_cfg.html
+*
+* @purpose html content
+*
+* @comments
+*
+* @create 17-Oct-2007
+*
+* @author msudhir
+* @end
+*
+**********************************************************************/
+
+**********************************************************************/
+-->
+</EMWEB_IF>
+emweb:/USMWEB_PAGE_DTD_HEADER_GET;
+<HTML>
+<HEAD>
+   emweb:/USMWEB_PAGE_META_DATA_GET; <!-- Style Sheet link and Meta data     -->
+   <TITLE>emweb:/USMWEB_SWITCHING_OEM_STRING_GET?1112;</TITLE>
+
+<script type='text/javascript' language='JavaScript' src='/base/js/browser.js'></script>
+<script type='text/javascript' language='JavaScript'>
+
+function DisplayErrorMsg()
+//******************************************************************************
+//* Purpose: Display an input error message.
+//* Return:  none
+//******************************************************************************
+{
+    alert(document.forms[0].err_msg.value);
+}
+function check_error()
+{
+  if (document.forms[0].err_flag.value == 1)
+  {
+     DisplayErrorMsg();
+  }
+}
+function screen_refresh()
+{
+  document.forms[0].submit();
+}
+
+</script>
+</HEAD>
+
+<BODY class = "bodyframeattributes" onLoad='check_error()'>
+
+<form method="post" EMWEB_NAME="ds_binding_cfg">
+
+<!-- ----------------------------------------------------------------------- -->
+<!--         Web page header                                                 -->
+<!-- ----------------------------------------------------------------------- -->
+ emweb:/USMWEB_SWITCHING_PAGE_HEADER_1ST_GET?1300;   <!-- Includes page title          -->
+ emweb:/USMWEB_SWITCHING_PAGE_HEADER_2ND_GET?2379;   <!-- Includes help page link      -->
+
+<table CLASS="tablecontent" emweb:/USMWEB_TABLE_CONTENT_ALIGN;>
+<EMWEB_IF ID=USMWEB_IF_READWRITE>  
+  <TR>
+  <td class = "rowidentifierattributes">Interface</TD>  <!-- unit/slot/port -->
+  <TD>
+  <SELECT class="selectfield" name="dhcp_snoop_port_intf" size="1" EMWEB_ITERATE EMWEB_TYPE=DECIMAL_UINT >
+  <option value="0.1">1</option>
+  </select>
+  </TD>
+  </TR>
+
+   <tr>
+  <td class = "rowidentifierattributes">emweb:/USMWEB_SWITCHING_GET_NLS_STRING?1004;</TD> <!--  MAC Address -->
+  <TD> <input class="inputfield" type="TEXT" name="senderMac" size="18" maxlength="17" EMWEB_TYPE=IEEE_MAC>
+  </TD>
+  </TR>
+
+
+  <TR>
+  <td class = "rowidentifierattributes">emweb:/USMWEB_SWITCHING_GET_NLS_STRING?6014;</TD>  <!-- Vlan Id -->
+  <TD>
+  <SELECT class="selectfield" name="dhcp_snoop_vlan" size="1" EMWEB_ITERATE EMWEB_TYPE=DECIMAL_UINT >
+  <option value="0.1">1</option>
+  </select>
+  </TD>
+  </TR>
+
+  <tr>
+  <td class = "rowidentifierattributes">emweb:/USMWEB_SWITCHING_GET_NLS_STRING?1005;</TD> <!-- IP Address -->
+  <TD> <input class="inputfield" type="TEXT" name="senderIP" size="16" maxlength="15" EMWEB_TYPE=DOTTED_IP>
+  </TD>
+  </TR>
+
+  <TR>
+      <TD colspan="2" emweb:/USMWEB_BUTTON_ALIGN;><BR>
+        <INPUT class="buttonattributes" type="SUBMIT" name="Add" VALUE ="Add">
+      </TD>
+   </TR>
+</EMWEB_IF>    
+  <TR>
+  <TD align = left class = "pageheaderattributes" COLSPAN=2>Static Binding List</TD>
+  </TR>
+
+<TR><td colspan=2>
+
+<TABLE class="datatableattributes"  emweb:/USMWEB_DATA_TABLE_ALIGN;>
+
+<THEAD>
+
+<tr>
+<TH class = "datatableheading" height="19">Interface</TH> <!-- slot/port -->
+<TH class = "datatableheading" height="19">emweb:/USMWEB_SWITCHING_GET_NLS_STRING?1004;</TH> <!-- Mac Address -->
+<TH class = "datatableheading" height="19">emweb:/USMWEB_SWITCHING_GET_NLS_STRING?6014;</TH> <!-- vlan id --> 
+<TH class = "datatableheading" height="19">emweb:/USMWEB_SWITCHING_GET_NLS_STRING?1005;</TH> <!-- IP Address -->
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<TH class = "datatableheading" height="19">Remove</TH>
+</EMWEB_IF>
+</THEAD>
+</TR>
+<EMWEB_REPEAT name=dhcpSnoopStaticList EMWEB_MAX=1024 C='
+  static L7_uint32 numStaticEntries = 0;
+  usmWeb_AppInfo_t appInfo;
+  EwaNetHandle net;
+  L7_uint32 spage = 1;
+  memset (&appInfo, 0, sizeof(usmWeb_AppInfo_t));
+  net = ewsContextNetHandle(ewsContext);
+  if (net->app_pointer != NULL)
+  {
+    memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+    spage = appInfo.data[2];
+  }
+  numStaticEntries = 0;
+  (void)usmWebStaticEntriesCountGet(&numStaticEntries, spage);
+  return &numStaticEntries;
+' >
+<TR>
+<TD><input type="TEXT" class = "rowvalue" name="interface" READONLY size="9" maxlength="8"></TD>
+<TD><input type="TEXT" class = "rowvalue" name="macaddr" READONLY size="18" maxlength="17" EMWEB_TYPE=IEEE_MAC> </TD>
+<TD><input type="TEXT" class = "rowvalue" name="vlan" READONLY size="5"  maxlength="4" EMWEB_TYPE=DECIMAL_UINT></TD>
+<TD><input type="TEXT" class = "rowvalue" name="ipaddress" READONLY size="16" maxlength="15" EMWEB_TYPE=DOTTED_IP></TD>
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<TD><input type="CHECKBOX" class = "rowvalue" name="Remove" >
+</TD>
+</EMWEB_IF>
+</TR>
+
+</EMWEB_REPEAT>
+<tr></tr>
+<tr></tr>
+  <TR> 
+  <td class = "rowidentifierattributes">Page</TD> 
+  <TD>
+  <SELECT class="selectfield" name="spage" size="1" EMWEB_ITERATE EMWEB_TYPE=DECIMAL_UINT onChange='screen_refresh()'>
+  <option value="0.1">1</option>
+  </select>
+  </TD>
+  </TR>
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+  <TR>
+      <TD colspan="2" emweb:/USMWEB_BUTTON_ALIGN;><BR>
+        <INPUT class="buttonattributes" type="SUBMIT" name="Submit" VALUE ="Submit">
+      </TD>
+   </TR>
+</EMWEB_IF>
+</TABLE>    
+</TR>
+
+<TR>
+<TD align = left class = "pageheaderattributes" COLSPAN=2>Dynamic Binding List</TD>
+</TR>
+
+<TR><td colspan=2>
+
+<TABLE class="datatableattributes"  emweb:/USMWEB_DATA_TABLE_ALIGN;>
+
+<THEAD>
+
+<tr>
+<TH class = "datatableheading" height="19">Interface</TH> <!-- slot/port -->
+<TH class = "datatableheading" height="19">emweb:/USMWEB_SWITCHING_GET_NLS_STRING?1004;</TH> <!-- Mac Address -->
+<TH class = "datatableheading" height="19">emweb:/USMWEB_SWITCHING_GET_NLS_STRING?6014;</TH> <!-- vlan id -->
+<TH class = "datatableheading" height="19">emweb:/USMWEB_SWITCHING_GET_NLS_STRING?1005;</TH> <!-- IP Address -->
+<TH class = "datatableheading" height="19">emweb:/USMWEB_SWITCHING_GET_NLS_STRING?24011;</TH> <!--Lease Time -->
+</THEAD>
+</TR>
+<EMWEB_REPEAT name=dhcpSnoopDynamicList EMWEB_MAX=1024 C='
+  static L7_uint32 numDynamicEntries = 0;
+  usmWeb_AppInfo_t appInfo;
+  EwaNetHandle net;
+  L7_uint32 dpage = 1;
+
+  memset (&appInfo, 0, sizeof(usmWeb_AppInfo_t));
+  net = ewsContextNetHandle(ewsContext);
+  if (net->app_pointer != NULL)
+  {
+    memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+    dpage = appInfo.data[3];
+  }
+
+  numDynamicEntries = 0;
+  (void)usmWebDynamicEntriesCountGet(&numDynamicEntries, dpage);
+  return &numDynamicEntries;
+' >
+<TR>
+<TD><input type="TEXT" class = "rowvalue" name="dinterface" READONLY size="9" maxlength="8"></TD>
+<TD><input type="TEXT" class = "rowvalue" name="dmacaddr" READONLY size="18" maxlength="17" EMWEB_TYPE=IEEE_MAC> </TD>
+<TD><input type="TEXT" class = "rowvalue" name="dvlan" READONLY size="5" maxlength="4" EMWEB_TYPE=DECIMAL_UINT></TD>
+<TD><input type="TEXT" class = "rowvalue" name="dipaddress" READONLY size="16" maxlength="15" EMWEB_TYPE=DOTTED_IP></TD>
+<TD><input type="TEXT" class = "rowvalue" name="dleasetime" READONLY size="10" maxlength="9" EMWEB_TYPE=DECIMAL_UINT></TD>
+</TR>
+
+</EMWEB_REPEAT>
+<TR></TR>
+<TR></TR>
+  <TR>
+  <td class = "rowidentifierattributes">Page</TD>
+  <TD>
+  <SELECT class="selectfield" name="dpage" size="1" EMWEB_ITERATE EMWEB_TYPE=DECIMAL_UINT onChange='screen_refresh()'>
+  <option value="0.1">1</option>
+  </select>
+  </TD>
+  </TR>
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+  <TR>
+      <TD colspan="2" emweb:/USMWEB_BUTTON_ALIGN;><BR>
+        <INPUT class="buttonattributes" type="SUBMIT" name="Clear" VALUE ="ClearAllEntries">
+      </TD>
+   </TR>
+</EMWEB_IF>
+</TABLE>
+</TR>
+
+<INPUT TYPE="hidden" NAME="err_flag" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT>
+<INPUT TYPE="hidden" NAME="err_msg" SIZE="81" MAXLENGTH="80" >
+<tr></TR>
+<TR>
+      <TD colspan="2" emweb:/USMWEB_BUTTON_ALIGN;><BR>
+        <INPUT class="buttonattributes" type="SUBMIT" name="Refresh" VALUE ="Refresh">
+      </TD>
+ </TR>
+</TABLE>
+
+
+<!-- ----------------------------------- -->
+<!--         Web page footer             -->
+<!-- ----------------------------------- -->
+ emweb:/USMWEB_PAGE_FOOTER_GET;
+</form>
+</BODY>
+</HTML>
+
+
+
+   

@@ -1,0 +1,21 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="SupportedCards" title="Slot Supported Cards">
+        <group id="1" heading=" ">
+           <repeat present="vtable" edit="no" heading=" " id="1">
+             <element properties="filter,iterate" obj-name="baseCardTypeDetails_CardIndex" id="1" name="Card Index"/>
+             <element properties="filter" obj-name="baseCardTypeDetails_SupportedCard" id="2" name="Supported Card"/>
+             <element obj-name="baseCardTypeDetails_CardType" id="3" name="Card Type"/>
+             <element obj-name="baseCardTypeDetails_CardModelIdentifier" id="4" name="Card Model "/>
+             <element obj-name="baseCardTypeDetails_CardDescription" id="5" name="Card Description"/>
+           </repeat>
+           <node id="2">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+           </node>
+        </group>
+    </webxml>
+</FastPathXML>

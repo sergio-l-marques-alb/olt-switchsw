@@ -1,0 +1,124 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="AuthenticationListSummary" title="Authentication List Summary">
+	    <group id="1" heading=" " level="ReadWriteUser">
+	        <repeat present="vtable" edit="inline" heading="" id="1">
+			    <element properties="filter,iterate" obj-name="baseUsrMgrLoginAuthList_LoginAPLName" id="1" name="Login Authentication List&amp;nbsp;&amp;nbsp; "/>
+				<element obj-name="baseUsrMgrLoginAuthList_MethodList" id="2" name="Login  Method List&amp;nbsp;&amp;nbsp; "/>
+				<element level="ReadWriteUser" control="checkbox" uienum="enable_t" properties="write-only" value="Disable" obj-name="xLibObjects_dummy" id="3" name="Remove">
+                    <action type="enum" enable="1_1_4"/>
+                    <action type="enum" disable="1_1_4"/>
+                </element>
+                <element level="ReadWriteUser"  properties="write-only,hidden" value="Delete" obj-name="baseUsrMgrLoginAuthList_LoginAuthListRowStatus" id="4" name="Remove"/>		
+			</repeat>
+		</group> 
+		<group id="2" heading=" " level="ReadWriteUser">
+	        <repeat present="vtable" edit="inline" heading="" id="1">
+			    <element properties="filter,iterate" obj-name="baseUsrMgrEnableAuthList_EnableAPLName" id="1" name="Enable Authentication List"/>
+				<element obj-name="baseUsrMgrEnableAuthList_MethodList" id="2" name="Enable Method List"/>
+				<element level="ReadWriteUser" control="checkbox" uienum="enable_t" properties="write-only" value="Disable" obj-name="xLibObjects_dummy" id="3" name="Remove">
+                    <action type="enum" enable="2_1_4"/>
+                    <action type="enum" disable="2_1_4"/>
+                </element>
+                <element level="ReadWriteUser" properties="write-only,hidden" value="Delete" obj-name="baseUsrMgrEnableAuthList_EnableAuthListRowStatus" id="4" name="Remove"/>		
+			</repeat>
+		</group>
+		<group id="3" heading="Console " level="ReadWriteUser">
+	        <node id="1">
+			    <element control="label" properties="read-only" obj-name="baseUsrMgrLoginAuthList_DefaultLoginConsoleAuthList" id="1" name="Login Method List"/>
+			</node>
+            <node id="2">			
+				<element control="label" properties="read-only" obj-name="baseUsrMgrEnableAuthList_DefaultEnableConsoleAuthList" id="1" name="Enable Method List"/>	
+			</node>
+		</group>
+		<group id="4" heading="Telnet " level="ReadWriteUser">
+		    <node id="1">
+			    <element control="label" properties="read-only" obj-name="baseUsrMgrLoginAuthList_DefaultLoginTelnetAuthList" id="1" name="Login Method List"/>
+			</node>
+            <node id="2">			
+				<element control="label" properties="read-only" obj-name="baseUsrMgrEnableAuthList_DefaultEnableTelnetAuthList" id="1" name="Enable Method List"/>	
+			</node>	        
+		</group>
+		<group id="5" heading="SSH " level="ReadWriteUser">
+		    <node id="1">
+			    <element control="label" properties="read-only" obj-name="baseUsrMgrLoginAuthList_DefaultLoginSSHAuthList" id="1" name="Login Method List"/>
+			</node>
+            <node id="2">			
+				<element control="label" properties="read-only" obj-name="baseUsrMgrEnableAuthList_DefaultEnableSSHAuthList" id="1" name="Enable Method List"/>	
+			</node>
+		</group>
+		<group id="6" heading=" " level="ReadWriteUser">
+	        <node id="1">
+                <element control="label" properties="read-only" obj-name="baseUsrMgrHTTPSAuthListNew_MethodList" id="1" name="HTTPS"/>
+            </node>
+            <node id="2">
+                <element control="label" properties="read-only" obj-name="baseUsrMgrHTTPAuthListNew_MethodList" id="1" name="HTTP"/>
+            </node>
+            <node id="3">
+                <element control="label" properties="read-only" obj-name="baseUsrMgrDot1xAuthListNew_MethodList" id="1" name="DOT1X"/>
+            </node>
+		</group>
+		<group id="7" heading=" " div-name="NoStyle" level="ReadWriteUser">
+		    <node id="1">
+			    <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="2" name="Refresh"/>
+            </node>
+        </group>
+		<group id="8" heading=" " level="ReadOnlyUser">
+	        <repeat present="vtable" edit="no" heading="" id="1">
+			    <element properties="filter,iterate" obj-name="baseUsrMgrLoginAuthList_LoginAPLName" id="1" name="Login Authentication List&amp;nbsp;&amp;nbsp;"/>
+				<element obj-name="baseUsrMgrLoginAuthList_MethodList" id="2" name="Login  Method List&amp;nbsp;&amp;nbsp;"/>		
+			</repeat>
+		</group> 
+		<group id="9" heading=" " level="ReadOnlyUser">
+	        <repeat present="vtable" edit="inline" heading="" id="1">
+			    <element properties="filter,iterate" obj-name="baseUsrMgrEnableAuthList_EnableAPLName" id="1" name="Enable Authentication List"/>
+				<element obj-name="baseUsrMgrEnableAuthList_MethodList" id="2" name="Enable Method List"/>
+			</repeat>
+		</group>
+		<group id="10" heading="Console " level="ReadOnlyUser">
+	        <node id="1">
+			    <element control="label" properties="read-only" obj-name="baseUsrMgrLoginAuthList_DefaultLoginConsoleAuthList" id="1" name="Login Method List"/>
+			</node>
+            <node id="2">			
+				<element control="label" properties="read-only" obj-name="baseUsrMgrEnableAuthList_DefaultEnableConsoleAuthList" id="1" name="Enable Method List"/>	
+			</node>
+		</group>
+		<group id="11" heading="Telnet " level="ReadOnlyUser">
+		    <node id="1">
+			    <element control="label" properties="read-only" obj-name="baseUsrMgrLoginAuthList_DefaultLoginTelnetAuthList" id="1" name="Login Method List"/>
+			</node>
+            <node id="2">			
+				<element control="label" properties="read-only" obj-name="baseUsrMgrEnableAuthList_DefaultEnableTelnetAuthList" id="1" name="Enable Method List"/>	
+			</node>	        
+		</group>
+		<group id="12" heading="SSH " level="ReadOnlyUser">
+		    <node id="1">
+			    <element control="label" properties="read-only" obj-name="baseUsrMgrLoginAuthList_DefaultLoginSSHAuthList" id="1" name="Login Method List"/>
+			</node>
+            <node id="2">			
+				<element control="label" properties="read-only" obj-name="baseUsrMgrEnableAuthList_DefaultEnableSSHAuthList" id="1" name="Enable Method List"/>	
+			</node>
+		</group>
+		<group id="13" heading=" " level="ReadOnlyUser">
+	        <node id="1">
+                <element control="label" properties="read-only" obj-name="baseUsrMgrHTTPSAuthListNew_MethodList" id="1" name="HTTPS"/>
+            </node>
+            <node id="2">
+                <element control="label" properties="read-only" obj-name="baseUsrMgrHTTPAuthListNew_MethodList" id="1" name="HTTP"/>
+            </node>
+            <node id="3">
+                <element control="label" properties="read-only" obj-name="baseUsrMgrDot1xAuthListNew_MethodList" id="1" name="DOT1X"/>
+            </node>
+		</group>
+		<group id="14" heading=" " div-name="NoStyle" level="ReadOnlyUser">
+		    <node id="1">
+			    <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

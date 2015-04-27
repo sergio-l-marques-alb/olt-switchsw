@@ -1,0 +1,56 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="DAIVlanCfg" title="Dynamic ARP Inspection VLAN Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="SwitchingDAI_VlanIndex" id="1" name="VLAN ID"/>
+            </node>
+            <node id="2">
+		    <element control="combo" obj-name="SwitchingDAI_VLANEnable" id="1" name="Dynamic ARP Inspection">
+			    <action type="enum" web_name="Disable" />
+			    <action type="enum" web_name="Enable" />
+		    </element>
+            </node>
+            <node id="3">
+                <element control="combo" obj-name="SwitchingDAI_VlanLoggingEnable" id="1" name="Logging Invalid Packets"/>
+            </node>
+            <node id="4">
+                <element arghelp="NAME_FORMAT_ONE" maxLength="31" obj-name="SwitchingDAI_VlanArpAcl" id="1" name="ARP ACL Name"/>
+            </node>
+            <node id="5">
+                <element control="combo" obj-name="SwitchingDAI_VlanArpAclStaticFlag" id="1" name="Static Flag"/>
+            </node>
+            <node id="6">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="2" name="Refresh"/>
+            </node>
+        </group>
+        <group level="ReadOnlyUser" id="2" heading="  ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="SwitchingDAI_VlanIndex" id="1" name="VLAN ID"/>
+            </node>
+            <node id="2">
+		    <element control="label" properties="read-only" obj-name="SwitchingDAI_VLANEnable" id="1" name="Dynamic ARP Inspection">
+			    <action type="enum" web_name="Disable" />
+			    <action type="enum" web_name="Enable" />
+		    </element>
+            </node>
+            <node id="3">
+                <element control="label" properties="read-only" obj-name="SwitchingDAI_VlanLoggingEnable" id="1" name="Logging Invalid Packets"/>
+            </node>
+            <node id="4">
+                <element control="label" properties="read-only" obj-name="SwitchingDAI_VlanArpAcl" id="1" name="ARP ACL Name"/>
+            </node>
+            <node id="5">
+                <element control="label" properties="read-only" obj-name="SwitchingDAI_VlanArpAclStaticFlag" id="1" name="Static Flag"/>
+            </node>
+            <node id="6">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

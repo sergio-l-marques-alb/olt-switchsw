@@ -1,0 +1,79 @@
+ALS-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY, OBJECT-TYPE, NOTIFICATION-TYPE,
+    ObjectName, Integer32, Counter32
+        FROM SNMPv2-SMI;
+
+
+alias MODULE-IDENTITY
+    LAST-UPDATED "9609091533"
+    ORGANIZATION " "
+    CONTACT-INFO " "
+    DESCRIPTION  " "
+::= { enterprises 99 12 27 }
+
+
+
+-- The alias Group
+
+aliasTable OBJECT-TYPE
+    SYNTAX     SEQUENCE OF AliasEntry
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION " "
+::= { alias 1 }
+
+aliasEntry OBJECT-TYPE
+    SYNTAX     AliasEntry
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION " "
+    INDEX { IMPLIED aliasOID }
+::= { aliasTable 1 }
+
+AliasEntry ::= SEQUENCE {
+    aliasOID             OID,
+    aliasScript          OctetString,
+    aliasExpr            DisplayString,
+    aliasType            INTEGER,
+    aliasRowStatus       RowStatus
+}
+
+aliasOID OBJECT-TYPE
+    SYNTAX     OBJECT IDENTIFIER
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION " "
+::= { aliasEntry 1 }
+
+aliasScript OBJECT-TYPE
+    SYNTAX     OCTET STRING
+    MAX-ACCESS read-create
+    STATUS     current
+    DESCRIPTION " "
+::= { aliasEntry 2 }
+
+aliasExpr OBJECT-TYPE
+    SYNTAX     DisplayString 
+    MAX-ACCESS read-create
+    STATUS     current
+    DESCRIPTION " "
+::= { aliasEntry 3 }
+
+aliasType OBJECT-TYPE
+    SYNTAX     INTEGER{noMap(1),integer(2),octetString(3),oid(4),counter(5)} 
+    MAX-ACCESS read-create
+    STATUS     current
+    DESCRIPTION " "
+::= { aliasEntry 4 }
+
+aliasRowStatus OBJECT-TYPE
+    SYNTAX     RowStatus 
+    MAX-ACCESS read-create
+    STATUS     current
+    DESCRIPTION " "
+::= { aliasEntry 5 }
+
+
+END

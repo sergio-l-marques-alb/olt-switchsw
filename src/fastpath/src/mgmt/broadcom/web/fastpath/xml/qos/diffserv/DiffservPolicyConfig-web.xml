@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="DiffservPolicyConfig" title="DiffServ Policy Configuration">
+        <group id="1" heading="  ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="qosDiffServPolicy_PolicyIndex" id="1" name="Policy Selector"/>
+            </node>
+			<!--
+            &lt;node id=&quot;2&quot;&gt;
+                &lt;element control=&quot;textbox&quot; properties=&quot;hidden&quot; obj-name=&quot;qosDiffServPolicy_PolicyIndex&quot; id=&quot;1&quot; name=&quot;PolicyIndex&quot;/&gt;
+            &lt;/node&gt;-->
+            <node id="11">
+                <element control="combo" properties="filter,iterate" obj-name="qosDiffServPolicy_PolicyName" id="1" name="Policy Selector">
+                    <action type="extn" position="0" discard="no" value="Create" setval_args="valMapEmptyString|valMapEmptyString|TRUTH_VALUE_TRUE" setval_ids="1_3_1|1_2_1|1_222_1" enable="1_3_1|1_4|1_9" disable="1_3_2|1_3_3|1_5|1_6|1_8|1_7" hide="1_5|1_6|1_7|1_8|1_3_2|1_3_3|1_1|1_2_1" show="1_3_1|1_4|1_9"/>
+                    <action type="default" discard="no" disable="1_9_1|1_5_2|1_6_2|1_3_2|1_3_3" hide="1_2_1|1_5_2|1_6_2|1_3_2|1_3_3|1_7|1_8|1_9|1_1" copy_from="1_11_1" setval_args="TRUTH_VALUE_FALSE" setval_ids="1_222_1" enable="1_3_1|1_4|1_5_1|1_6_1|1_7_1|1_8_1" copy_to="1_2_1" invoke="onChange"/>
+                </element>
+            </node>
+            <node id="2">
+                <element control="combo" properties="filter,iterate" obj-name="qosDiffServPolicy_PolicyName" id="1" name="Policy Selector">
+                  <action type="value" discard="no" value="valMapEmptyString"/>
+                  <action type="default" setval_args="TRUTH_VALUE_FALSE" setval_ids="1_222_1" enable="1_3_1|1_4|1_5_1|1_6_1|1_7_1|1_8_1" hide="1_7|1_8|1_9|1_1|1_2_1" show="1_3|1_4" discard="no" invoke="onLoad"/>
+                </element> 
+            </node>
+            <node id="3">
+                <element maxLength="31" control="textbox" obj-name="qosDiffServPolicy_PolicyName" arghelp="ClassName" id="1" name="Policy Name" validation="validate_alphanum_underscore32"/>
+                <button scope="node" type="buttonSubmit" help="Submits the form on this page to the Switch" id="2" name="Rename">
+                    <action type="button" disable="1_3_3|1_4|1_5|1_6|1_7|1_8|1_9|1_11"/>
+                </button>
+                <button scope="node" type="buttonSubmit" value="Delete" obj-name="qosDiffServPolicy_PolicyRowStatus" help="Submits the form on this page to the Switch" id="3" name="Delete">
+                    <action type="button" disable="1_3_2|1_4|1_5|1_6|1_9|1_3_1|1_7|1_8|1_11"/>
+                </button>
+            </node>
+<!--
+            &lt;node id=&quot;4&quot;&gt;
+                &lt;element control=&quot;combo&quot; obj-name=&quot;qosDiffServPolicy_PolicyType&quot; id=&quot;1&quot; name=&quot;Policy Type&quot; run_if=&quot;DIFFSERV_OUT_POLICY&quot;&gt;
+				&lt;action type=&quot;enum&quot; discard=&quot;no&quot; /&gt;
+				&lt;action type=&quot;enum&quot; discard=&quot;no&quot; /&gt;
+				&lt;/element&gt;
+                &lt;element control=&quot;combo&quot; obj-name=&quot;qosDiffServPolicy_PolicyType&quot; id=&quot;2&quot; name=&quot;Policy Type&quot; run_if=&quot;DIFFSERV_NOOUT_POLICY&quot;&gt;
+				&lt;action type=&quot;enum&quot; discard=&quot;no&quot; /&gt;
+				&lt;action type=&quot;enum&quot; discard=&quot;yes&quot; /&gt;
+				&lt;/element&gt;
+            &lt;/node&gt;
+-->
+            <node id="4">
+            <element control="combo" obj-name="qosDiffServPolicy_PolicyType" id="1" name="Policy Type" run_if="QOS_DIFFSERV_SERVICE_OUT_SLOTPORT_FEATURE">
+				      <action type="enum" discard="no"/>
+				      <action type="enum" discard="no"/>
+      			</element>
+            <element control="combo" obj-name="qosDiffServPolicy_PolicyType" id="2" name="Policy Type" run_if="QOS_DIFFSERV_SERVICE_OUT_SLOTPORT_FEATURE_NOT_PRESENT">
+				      <action type="enum" discard="no"/>
+				      <action type="enum" discard="yes"/>
+      			</element>
+            </node>
+			
+            <node id="5">
+                <element properties="list" obj-name="qosDiffServPolicy_AddToMemberClassList" id="1" name="Available Class List"/>
+				 <element control="label" properties="write-only" value="No Classes to Add" obj-name="xLibObjects_dummy" id="3" name="Available Class List"/>
+                <button scope="node" type="buttonSubmit" help="Submits the form on this page to the Switch" id="2" name="Add Selected Class">
+                    <action type="button" disable="1_3_1|1_3_2|1_3_3|1_4|1_6_1|1_6_2|1_9_1|1_11"/>
+                </button>
+            </node>
+            <node id="6">
+                <element properties="list" obj-name="qosDiffServPolicy_RemoveFromMemberClassList" id="1" name="Member Class List"/>
+                <button scope="node" type="buttonSubmit" help="Submits the form on this page to the Switch" id="2" name="Remove Selected Class">
+                    <action type="button" discard="no" disable="1_3_1|1_3_2|1_3_3|1_4|1_5_1|1_5_2|1_9_1|1_11"/>
+                </button>
+				<element control="label" properties="write-only" value="No Member Classes" obj-name="xLibObjects_dummy" id="3" name="Member Class List"/>
+            </node>
+            <node id="7">
+                <element control="combo" properties="hidden" obj-name="qosDiffServPolicy_isClassPresent" id="1" name="isClassPresent">
+                    <action type="enum" discard="no" enable="1_5_1|1_5_2" show="1_5_1|1_5_2" hide="1_5_3"/>
+                    <action type="enum" discard="no" disable="1_5_1|1_5_2" hide="1_5_1|1_5_2" show="1_5_3"/>
+                </element>
+            </node>
+            <node id="8">
+                <element control="combo" properties="hidden" obj-name="qosDiffServPolicy_isMemberPresent" id="1" name="isMemberPresent">
+                    <action type="enum" discard="no" enable="1_6_1|1_6_2" show="1_6_1|1_6_2" hide="1_6_3"/>
+                    <action type="enum" discard="no" disable="1_6_1|1_6_2" hide="1_6_1|1_6_2" show="1_6_3"/>
+                </element>
+            </node>
+            <node id="222">
+                <element control="combo" properties="hidden" uienum="diffServTruthVal_t" obj-name="xLibObjects_dummy" id="1">
+                    <action type="enum" discard="no" disable="1_5|1_6|1_7|1_8" hide="1_5|1_6|1_7|1_8|"/>
+                    <action type="enum" discard="no"/>
+                </element>
+            </node>
+            <node id="9">
+                <button scope="page" type="buttonSubmit" value="Add" obj-name="qosDiffServPolicy_PolicyRowStatus" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

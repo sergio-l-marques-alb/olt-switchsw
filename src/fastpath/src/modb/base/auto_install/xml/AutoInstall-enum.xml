@@ -1,0 +1,12 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "types.dtd" >
+
+
+<FastPathXML>
+    <data-types version="1.0">
+        <enum name="StartStop_t">
+            <option macro="L7_XUI_STOP" name="Stop"/>
+            <option macro="L7_XUI_START" name="Start"/>
+        </enum>
+    </data-types>
+</FastPathXML>

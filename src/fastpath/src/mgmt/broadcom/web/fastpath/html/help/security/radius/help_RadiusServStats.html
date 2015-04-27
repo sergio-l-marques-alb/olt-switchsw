@@ -1,0 +1,76 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<EMWEB_HEAD C='
+    #include "web.h"
+  '>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Help for Radius Server Statistics</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+<hr size=4 width="100%" align=center>
+<h2><a name=macaddr></a>Help for Radius Server Statistics</h2>
+
+<p><br>
+Use the RADIUS Server Statistics page to view statistical information for each RADIUS server configured on the system.
+</p>
+
+
+
+<h3>Selection Criteria</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>RADIUS Server Host Address</b> - Use the drop-down menu to select the IP address of the RADIUS server for which 
+         statistics are to be displayed.</li>
+ </ul>
+</ul>
+
+<h2>Non-Configurable Data</h2>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Round Trip Time (secs)</b> -
+       The time interval, in hundredths of a second, between the most recent Access-Reply/Access-Challenge 
+	   and the Access-Request that matched it from this RADIUS authentication server.</li>
+  <li><b>Access Requests</b> - 
+       The number of RADIUS Access-Request packets sent to this server. This number does not include retransmissions. </li>
+  <li><b>Access Retransmissions</b> - The number of RADIUS Access-Request packets retransmitted to this server. </li>
+  <li><b>Access Accepts</b> - 
+       The number of RADIUS Access-Accept packets, including both valid and invalid packets, that were received from this server. </li>
+  <li><b>Access Rejects</b> - 
+       The number of RADIUS Access-Reject packets, including both valid and invalid packets, that were received from this server. </li>
+  <li><b>Access Challenges</b> - 
+       The number of RADIUS Access-Challenge packets, including both valid and invalid packets, that were received from this server. </li>
+  <li><b>Malformed Access Responses</b> - 
+       The number of malformed RADIUS Access-Response packets received from this server. Malformed packets include packets 
+	   with an invalid length. Bad authenticators or signature attributes or unknown types are not included as malformed
+	   access-responses. </li>	   
+  <li><b>Bad Authenticators</b> - 
+       The number of RADIUS Access-Response packets containing invalid authenticators or signature attributes received from this server. </li>
+  <li><b>Pending Requests</b> - 
+       The number of RADIUS Access-Request packets destined for this server that have not yet timed out or received a response. </li>	
+  <li><b>Timeouts</b> - 
+       The number of authentication timeouts to this server. </li>	
+  <li><b>Unknown Types</b> - 
+       The number of RADIUS packets of unknown type which were received from this server on the authentication port. </li>	 
+  <li><b>Packets Dropped</b> - 
+       The number of RADIUS packets received from this server on the authentication port and dropped for some other reason. </li>		   
+ </ul>
+</ul>
+
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+    <li><b>Refresh</b> - <EMWEB_STRING C='return usmWebRefreshDescriptionHelp();' >. </li>
+ </ul>
+</ul>
+
+<hr size=4 width="100%" align=center>
+  </body>
+</html>

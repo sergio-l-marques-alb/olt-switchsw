@@ -1,0 +1,2 @@
+ctrl_regs.c:1415:1:check_fsl_memctl_config_regs	16	static
+ctrl_regs.c:1434:1:compute_fsl_memctl_config_regs	136	static

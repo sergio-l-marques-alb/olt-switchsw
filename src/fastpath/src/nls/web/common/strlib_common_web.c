@@ -1,0 +1,256 @@
+/*********************************************************************
+*
+* (C) Copyright Broadcom Corporation 2006-2007
+*
+**********************************************************************
+*
+* @filename   src/nls/web/common/strlib_common_web.c
+*
+* @purpose    Strings Library
+*
+* @component  Common Strings Library
+*
+* @comments   none
+*
+* @create     01/10/2007
+*
+* @author     Rama Sasthri, Kristipati
+*
+* @end
+*
+*********************************************************************/
+
+#include "strlib_common_web.h"
+
+L7_char8 *pStrErr_common_FieldInvalidFmt = "%s format is invalid.";
+L7_char8 *pStrErr_common_FieldIeeeMac = "%s requires a MAC address in form 01:23:45:67:89:AB.";
+L7_char8 *pStrErr_common_FieldOUI= "%s requires a OUIi Value in form xx:xx:xx.";
+L7_char8 *pStrErr_common_FieldIeeeMac_Unicast = "%s requires a MAC address in form 00:23:45:67:89:AB.";
+L7_char8 *pStrErr_common_FieldIeeeMac_Nonzero = "%s requires a Non-Zero MAC address.";
+L7_char8 *pStrErr_common_FieldDottedNetmask = "%s requires a subnet mask in x.x.x.x form.";
+L7_char8 *pStrErr_common_FieldDottedIp = "%s requires an IP address in x.x.x.x form with each octet(x) in the range 0-255.";
+L7_char8 *pStrInfo_common_Br = "%s%s<br>";
+L7_char8 *pStrErr_common_FailedToSet_1 = "%s.";
+L7_char8 *pStrErr_common_FailedToSetReason = "%s. %s";
+L7_char8 *pStrErr_common_FailedToSetInt = "%s. You entered %d.";
+L7_char8 *pStrErr_common_FailedToSetStr = "%s. You entered %s.";
+L7_char8 *pStrInfo_common_Nbsp = "&nbsp";
+L7_char8 *pStrInfo_common_NlsError = "++ NLS ERROR ++";
+L7_char8 *pStrInfo_common_HtmlFileBaseSysFileDownload = "/base/system/file_download.html";
+L7_char8 *pStrInfo_common_HtmlFileRoutingLoopbackLoopback = "/routing/loopback/loopback.html";
+L7_char8 *pStrInfo_common_0_1 = "0";
+L7_char8 *pStrInfo_common_00_1 = "0.0";
+L7_char8 *pStrInfo_common_Dot1d = "802.1D";
+L7_char8 *pStrInfo_common_Dot1pPri = "802.1p Priority";
+L7_char8 *pStrInfo_common_Br_2 = "<BR>";
+L7_char8 *pStrInfo_common_Br_4 = "<br>";
+L7_char8 *pStrInfo_common_Add = "Add";
+L7_char8 *pStrInfo_common_AdminModeForIpv4 = "Admin Mode";
+L7_char8 *pStrInfo_common_Advertisement = "Advertisement";
+L7_char8 *pStrInfo_common_Apply = "Apply";
+L7_char8 *pStrInfo_common_DefInfoOriginNotSet = "Always, Metric Value and Metric Type in Default Route Advertise is configurable only when Default Information Originate is set to Enable and assume Default values when Default Information Originate is set to Disable.";
+L7_char8 *pStrInfo_common_AvailableSrc = "Available Source";
+L7_char8 *pStrInfo_common_AvailableSrcNotSelected = "Available Source not selected";
+L7_char8 *pStrInfo_common_Back = "Back";
+L7_char8 *pStrInfo_common_Bgp = "BGP";
+L7_char8 *pStrInfo_common_BackupDesignatedRtr_1 = "Backup-Designated-Router";
+L7_char8 *pStrInfo_common_Cancel = "Cancel";
+L7_char8 *pStrInfo_common_Checksum = "Checksum";
+L7_char8 *pStrInfo_common_ClientQos = "Client QoS";
+L7_char8 *pStrInfo_common_Clr = "Clear";
+L7_char8 *pStrInfo_common_ClrAll = "Clear All";
+L7_char8 *pStrInfo_common_ClrStats = "Clear Statistics";
+L7_char8 *pStrInfo_common_ComparableCost = "Comparable Cost";
+L7_char8 *pStrInfo_common_Comp_1 = "Component";
+L7_char8 *pStrInfo_common_Cfgure = "Configure";
+L7_char8 *pStrInfo_common_CfguredSrc = "Configured Source";
+L7_char8 *pStrInfo_common_ConfirmPasswd = "Confirm Password";
+L7_char8 *pStrInfo_common_Copy = "Copy";
+L7_char8 *pStrInfo_common_Create = "Create";
+L7_char8 *pStrInfo_common_CreateNssa = "Create NSSA";
+L7_char8 *pStrInfo_common_CreateNewVirtualLink = "Create New Virtual Link";
+L7_char8 *pStrInfo_common_CreateStubArea = "Create Stub Area";
+L7_char8 *pStrErr_common_CantDelAreaNotCfgured_1 = "Specified area is not configured.";
+L7_char8 *pStrErr_common_CantDelAreaActiveIntf_1 = "Area cannot be deleted before its interfaces are removed.";
+L7_char8 *pStrInfo_common_Dhcpv6AdminMode = "DHCPv6 Admin Mode";
+L7_char8 *pStrInfo_common_DeadIntvlSecs = "Dead Interval (secs)";
+L7_char8 *pStrInfo_common_DeflMetricVal = "Default Metric Value";
+L7_char8 *pStrInfo_common_DeflRoute = "Default Route";
+L7_char8 *pStrInfo_common_DelAll = "Delete All";
+L7_char8 *pStrInfo_common_DelNssa = "Delete NSSA";
+L7_char8 *pStrInfo_common_DelStubArea = "Delete Stub Area";
+L7_char8 *pStrInfo_common_DesignatedRtr_1 = "Designated-Router";
+L7_char8 *pStrInfo_common_DistributeListValForSelectedSrc = "Distribute List Value for Selected Source";
+L7_char8 *pStrInfo_common_DownloadFileToSwitch = "Download File To Switch";
+L7_char8 *pStrInfo_common_Encrypt_1 = "Encrypt";
+L7_char8 *pStrInfo_common_Error_3 = "Error";
+L7_char8 *pStrInfo_common_ExitOverflowIntvlSecs = "Exit Overflow Interval (secs)";
+L7_char8 *pStrInfo_common_ExpiryTime = "Expiry Time";
+L7_char8 *pStrInfo_common_ExternalType1Routes = "External Type 1 Routes";
+L7_char8 *pStrInfo_common_ExternalType2Routes = "External Type 2 Routes";
+L7_char8 *pStrErr_common_FailedToClrDeflMetricVal = "Failed to Clear Default Metric Value";
+L7_char8 *pStrErr_common_FailedToClrDistributeListValForSelectedSrc = "Failed to Clear Distribute List Value for Selected Source";
+L7_char8 *pStrErr_common_FailedToClrMetricValForSelectedSrc = "Failed to Clear Metric Value for Selected Source";
+L7_char8 *pStrErr_common_FailedToDelBgpRouteRedistributionForSelectedSrc = "Failed to Delete BGP Route Redistribution for Selected Source";
+L7_char8 *pStrErr_common_FailedToAdd = "Failed to add %s";
+L7_char8 *pStrErr_common_FailedToClr = "Failed to clear %s.";
+L7_char8 *pStrErr_common_FailedToCreate = "Failed to create %s.";
+L7_char8 *pStrErr_common_FailedToCreateReason = "Failed to create %s. %s";
+L7_char8 *pStrErr_common_FailedToDel = "Failed to delete %s.";
+L7_char8 *pStrErr_common_FailedToDelReason = "Failed to delete %s. %s";
+L7_char8 *pStrErr_common_FailedToGet = "Failed to get %s.";
+L7_char8 *pStrErr_common_FailedToReset = "Failed to reset %s.";
+L7_char8 *pStrInfo_common_Fast = "Fast";
+L7_char8 *pStrInfo_common_FormSubmissionFailedNoActionTaken = "Form Submission Failed. No Action Taken.";
+L7_char8 *pStrInfo_common_HexadecimalValue = "Hexadecimal Value";
+L7_char8 *pStrInfo_common_HoldTimeSecs = "Hold Time (secs)";
+L7_char8 *pStrInfo_common_Id = "ID";
+L7_char8 *pStrInfo_common_Ipv4_2 = "IPv4";
+L7_char8 *pStrInfo_common_Ipv6Prefix_1 = "IPv6 Prefix";
+L7_char8 *pStrInfo_common_IftransitDelayIntvlSecs = "Transmit Delay(secs)";
+L7_char8 *pStrErr_common_Alnum = "Input for %s must be alpha-numeric.";
+L7_char8 *pStrErr_common_AlnumSpaceUnderscoreHyphen = "Input for %s must be alpha-numeric.It can contain hyphen,space, and underscore characters.";
+L7_char8 *pStrInfo_common_IntfEvents = "Interface Events";
+L7_char8 *pStrInfo_common_IntfParams = "Interface Parameters";
+L7_char8 *pStrInfo_common_IntfStats = "Interface Statistics";
+L7_char8 *pStrInfo_common_IntfTrustMode = "Interface Trust Mode";
+L7_char8 *pStrInfo_common_IntfType_1 = "Interface Type";
+L7_char8 *pStrInfo_common_Internal_1 = "Internal";
+L7_char8 *pStrInfo_common_InternalRoutes = "Internal Routes";
+L7_char8 *pStrErr_common_AclIdValidRange1199 = "Invalid ACL Id:  Valid Range 1 - 199";
+L7_char8 *pStrErr_common_Ipv6PrefixAndPrefixLen = "Invalid IPv6 prefix and prefix length";
+L7_char8 *pStrErr_common_FieldInvalidInput2 = "Invalid Input : %s.";
+L7_char8 *pStrErr_common_MetricValValidRange016777214 = "Invalid Metric Value:  Valid Range 0 - 16777214";
+L7_char8 *pStrErr_common_TagValValidRange04294967295 = "Invalid Tag Value:  Valid Range 0 - 4294967295";
+L7_char8 *pStrErr_common_Val_1 = "Invalid value";
+L7_char8 *pStrErr_common_ValFieldNoActionTaken = "Invalid value field.  No action taken.";
+L7_char8 *pStrInfo_common_LsId = "LS ID";
+L7_char8 *pStrInfo_common_LsaAckIntvlSecs = "LSA Ack Interval (secs)";
+L7_char8 *pStrInfo_common_LsaType = "LSA Type";
+L7_char8 *pStrInfo_common_LsdbType = "LSDB Type";
+L7_char8 *pStrInfo_common_Lvl7SyssFastpathSwitchApplet = "Broadcom FASTPATH Switch Applet";
+L7_char8 *pStrInfo_common_LinkStatus = "Link Status";
+L7_char8 *pStrInfo_common_LinkTrap = "Link Trap";
+L7_char8 *pStrInfo_common_Logging_1 = "Logging";
+L7_char8 *pStrInfo_common_Login = "Login";
+L7_char8 *pStrInfo_common_Loopback = "Loopback";
+L7_char8 *pStrInfo_common_MstId = "MST ID";
+L7_char8 *pStrInfo_common_MtuIgnore = "MTU Ignore";
+L7_char8 *pStrInfo_common_MacAddrIsRestricted = "MAC address is restricted.";
+L7_char8 *pStrInfo_common_MgmtUnit_1 = "Management Unit";
+L7_char8 *pStrInfo_common_Match = "Match";
+L7_char8 *pStrInfo_common_MatchValForSelectedSrc = "Match Value for Selected Source";
+L7_char8 *pStrInfo_common_MetricTypeForSelectedSrc = "Metric Type for Selected Source";
+L7_char8 *pStrInfo_common_MetricVal = "Metric Value";
+L7_char8 *pStrInfo_common_MetricValForSelectedSrc = "Metric Value for Selected Source";
+L7_char8 *pStrInfo_common_NA = "N.A.";
+L7_char8 *pStrInfo_common_Nssa = "NSSA";
+L7_char8 *pStrInfo_common_NssaExternal = "NSSA External";
+L7_char8 *pStrInfo_common_NssaExternalType1 = "NSSA External Type 1";
+L7_char8 *pStrInfo_common_NssaExternalType1Routes = "NSSA External Type 1 Routes";
+L7_char8 *pStrInfo_common_NssaExternalType2 = "NSSA External Type 2";
+L7_char8 *pStrInfo_common_NssaExternalType2Routes = "NSSA External Type 2 Routes";
+L7_char8 *pStrInfo_common_NeighborRtrIdCantBeSameAsLocalRtrId = "Neighbor Router ID cannot be the same as Local Router ID";
+L7_char8 *pStrInfo_common_NwLinks_1 = "Network Links";
+L7_char8 *pStrInfo_common_NextHopIpAddr = "Next Hop IP Address";
+L7_char8 *pStrInfo_common_NoNeighborsCfgured = "No Neighbors Configured";
+L7_char8 *pStrInfo_common_NoRtrIntfsAvailable = "No Router Interfaces Available";
+L7_char8 *pStrInfo_common_NoValidAreasAvailable = "No Valid Areas Available";
+L7_char8 *pStrInfo_common_NoValidOspfIntfsAvailable = "No Valid OSPF Interfaces Available";
+L7_char8 *pStrInfo_common_NoRedistributeMode = "No-Redistribute Mode";
+L7_char8 *pStrInfo_common_NoSummaryMode = "No-Summary Mode";
+L7_char8 *pStrInfo_common_NonComparableCost = "Non-comparable Cost";
+L7_char8 *pStrInfo_common_NonCfguredUsr = "Non-configured user";
+L7_char8 *pStrInfo_common_Ospf = "OSPF";
+L7_char8 *pStrInfo_common_Rlim = "RLIM";
+L7_char8 *pStrInfo_common_OspfVirtualLinkAuthCfg = "OSPF Virtual Link Authentication Configuration";
+L7_char8 *pStrInfo_common_OspfHasNotBeenInitialized = "OSPF has not been initialized.";
+L7_char8 *pStrInfo_common_OneOfCheckboxesInMatchMustBeSelected = "One of the checkboxes in Match must be selected.";
+L7_char8 *pStrInfo_common_OperationFailed = "Operation Failed";
+L7_char8 *pStrInfo_common_OtherDesignatedRtr = "Other-Designated-Router";
+L7_char8 *pStrInfo_common_PassiveMode = "Passive Mode";
+L7_char8 *pStrInfo_common_Passwd_1 = "Password";
+L7_char8 *pStrInfo_common_PasswdAndConfirmPasswdFieldsDoNotMatch = "Password and Confirm Password fields do not match.";
+L7_char8 *pStrErr_common_ImageReqDenied = "Permission Denied.";
+L7_char8 *pStrInfo_common_PointToPoint = "Point-to-Point";
+L7_char8 *pStrInfo_common_Lag = "Port Channel";
+L7_char8 *pStrInfo_common_PortDesc = "Port Description";
+L7_char8 *pStrInfo_common_Pref = "Preference";
+L7_char8 *pStrInfo_common_PrefixPrefixlength_2 = "Prefix / PrefixLength";
+L7_char8 *pStrInfo_common_RejectRoute = "Null0";
+L7_char8 *pStrInfo_common_Reachable = "Reachable";
+L7_char8 *pStrInfo_common_Refresh = "Refresh";
+L7_char8 *pStrInfo_common_Remove = "Remove";
+L7_char8 *pStrInfo_common_Reset = "Reset";
+L7_char8 *pStrInfo_common_RespTimeSecs = "Response Time (secs)";
+L7_char8 *pStrInfo_common_ReTxIntvlSecs = "Retransmit Interval (secs)";
+L7_char8 *pStrInfo_common_RtrLinks_1 = "Router Links";
+L7_char8 *pStrInfo_common_SpfRuns = "SPF Runs";
+L7_char8 *pStrInfo_common_StpMode = "STP Mode";
+L7_char8 *pStrInfo_common_Search = "Search";
+L7_char8 *pStrInfo_common_Seq_1 = "Sequence";
+L7_char8 *pStrInfo_common_Start_1 = "Start";
+L7_char8 *pStrInfo_common_StartFileTransfer = "Start File Transfer";
+L7_char8 *pStrInfo_common_StubArea = "Stub Area";
+L7_char8 *pStrInfo_common_StubAreaInfo = "Stub Area Information";
+L7_char8 *pStrInfo_common_SubmissionFailure = "Submission failure";
+L7_char8 *pStrInfo_common_Submit = "Submit";
+L7_char8 *pStrInfo_common_SubnetMaskMustHaveContiguousOnes = "Subnet mask must have contiguous ones.";
+L7_char8 *pStrInfo_common_TftpSrvrAddr = "Server Address";
+L7_char8 *pStrInfo_common_TagValForSelectedSrc = "Tag Value for Selected Source";
+L7_char8 *pStrInfo_common_TagToDeflVal = "Tag to Default Value";
+L7_char8 *pStrInfo_common_AuthPasswdIsOutOfRangeValidRangeIsToAlnumChars = "The authentication password is out of range. The valid range is %u to %u alphanumeric characters.";
+L7_char8 *pStrInfo_common_MostSignificantByteOfMacAddrShldHaveMaskXxxxXx10 = "The most significant byte of the MAC address should have the mask xxxx xx10";
+L7_char8 *pStrInfo_common_TrafficClass = "Traffic Class";
+L7_char8 *pStrInfo_common_TransitAreaCantBeAStubNssa = "Transit area cannot be a Stub/NSSA";
+L7_char8 *pStrErr_common_FieldOutOfRange = "Value (%d) is out of range for %s. The valid range is %d to %d.";
+L7_char8 *pStrErr_common_FieldOutOfRangeUint = "Value (%u) is out of range for %s. The valid range is %u to %u.";
+L7_char8 *pStrErr_common_PortAlreadyInUse = "%s\r\nPort %d is already in use.";
+L7_char8 *pStrInfo_common_VirtualLink = "Virtual Link";
+L7_char8 *pStrInfo_common_Waiting_1 = "Waiting";
+L7_char8 *pStrInfo_common_Addnew = "addNew";
+L7_char8 *pStrInfo_common_ClrStats_1 = "clear the statistics";
+L7_char8 *pStrInfo_common_Hours_2 = "hours";
+L7_char8 *pStrInfo_common_HtmlFileBaseSysHelpIdx = "href=\"/base/system/help_index.html\"";
+L7_char8 *pStrInfo_common_Iso88591 = "iso-8859-1";
+L7_char8 *pStrInfo_common_LoopbackX = "loopback x";
+L7_char8 *pStrInfo_common_HtmlFileOspfVlinkSumm = "ospf_vlink_summ.html";
+L7_char8 *pStrInfo_common_HtmlFileStatsRtrOspfLsdb = "stats_router_ospf_lsdb.html";
+L7_char8 *pStrInfo_common_To_5 = "to";
+L7_char8 *pStrInfo_common_TunnelX = "tunnel x";
+L7_char8 *pStrInfo_common_RuleIpMac = "Rule Contains IP %s and MAC as %s";
+L7_char8 *pStrInfo_common_web_None_4 = "&lt;none&gt;";
+L7_char8 *pStrInfo_common_Block = "Block";
+L7_char8 *pStrInfo_common_Unblock = "Unblock";
+L7_char8 *pStrErr_common_FaildsFlowOwner = " should be less than 128 characters.";
+L7_char8 *pStrErr_common_InvalidsFlowOwner = " Enter a non blank owner string.";
+L7_char8 *pStrErr_common_InvalidsFlowRcvrTimeout = " Enter a non zero timeout value.";
+L7_char8 *pStrErr_common_UnclaimsFlowOwner = "should be unclaimed first.";
+L7_char8 *pStrinfo_common_sFlowUnclaimRcvr = "First un claim receiver by setting owner string to blank.";
+L7_char8 *pStrinfo_common_sFlowUnclaimRcvr_1 ="First un claim receiver by setting Receiver Index to 0.";
+L7_char8 *pStrinfo_common_sFlowRcvrRcvrTimeout = "sFlowRcvrTimeout";
+L7_char8 *pStrinfo_common_sFlowRcvrMaxSize = "sFlowRcvrMaxSize";
+L7_char8 *pStrinfo_common_sFlowRcvrAddrType = "sFlowRcvrAddrType";
+L7_char8 *pStrinfo_common_sFlowRcvrPort = "sFlowRcvrPort";
+L7_char8 *pStrinfo_common_sFlowRcvrDVersion = "sFlowRcvrDVersion";
+L7_char8 *pStrinfo_common_sFlowPollerInterval = "sFlowPollerInterval";
+L7_char8 *pStrinfo_common_sFlowMaxSize = "maxSize";
+L7_char8 *pStrinfo_common_sFlowRcvrIndex = "sFlow_Receiver_Index";
+L7_char8 *pStrinfo_common_sFlowSamplingRate = "samplingRate";
+L7_char8 *pStrinfo_common_sFlowRcvrAddress_1 = "Receiver Address";
+L7_char8 *pStrinfo_common_sFlowRcvrDataVersion_1 = "Receiver Datagram Version";
+L7_char8 *pStrinfo_common_sFlowRcvrOwner_1 = "Receiver Owner String";
+L7_char8 *pStrinfo_common_sFlowRcvrTimeout_1 = "Receiver Timeout";
+L7_char8 *pStrinfo_common_sFlowRcvrDataSize_1 = "Receiver Maximum Datagram Size";
+L7_char8 *pStrinfo_common_sFlowRcvrPort_1 = "Receiver Port";
+L7_char8 *pStrinfo_common_InactivesFlowRcvr = "Inactive Receiver.";
+L7_char8 *pStrinfo_common_sFlowRcvr_1 = "Receiver Index";
+L7_char8 *pStrinfo_common_sFlowCpInterval = "Poller Interval";
+L7_char8 *pStrinfo_common_sFlowFsMaxHeaderSize = "Maximum Header Size";
+ L7_char8 *pStrinfo_common_sFlowFsSamplingRate = "Sampling Rate";
+L7_char8 *pStrErr_common_ValForValidRange = "Invalid Value for %s..Valid Range %d - %d";
+L7_char8 *pStrInfo_common_InvalidMacAddr = "Invalid MAC address.";
+L7_char8 *pStrInfo_common_Ucode = "&#%d;";
+L7_char8 *pStrInfo_submit_description_help = "Update the switch with the values on the screen. If you want the switch to retain the new values across a power cycle you must perform a save.";
+L7_char8 *pStrInfo_refresh_description_help = "Refresh the data on the screen with the present state of the data in the switch";
+L7_char8 *pStrInfo_cancel_description_help = "Discards the changes made on the page";

@@ -1,0 +1,333 @@
+# SNMP-specific make variables and flags.
+#
+
+ifeq (1,$(BLD_L7_HOSTOS_LINUX))
+    HOST_OS      := linux
+    MGRTOOL_NAME := mgrtool
+endif
+ifeq (1,$(BLD_L7_HOSTOS_SOLARIS))
+    HOST_OS      := solaris
+    MGRTOOL_NAME := mgrtool
+endif
+ifeq (1,$(BLD_L7_HOSTOS_MSWIN32))
+    HOST_OS      := w32
+    MGRTOOL_NAME := mgrtool.exe
+endif
+
+# Extensions to certain kinds of files are set here.
+LIBEXT := a
+BINEXT :=
+OBJEXT := o
+
+LIBPRF := lib
+
+EXTEND_BASE := private
+
+OS := -DSR_$(CONFIG_UPPER)
+os := $(CONFIG)
+
+# Exclude one or the other I/O type for the build (only one may be built):
+#   k_fileio.c vs. k_hardio.c
+#
+SR_IO_FILE_EXCL := k_hardio.c
+
+# Define the MIB layout type:
+#   mibtable vs. mibtree
+#
+SR_MIB_LAYOUT := mibtable
+
+# Some of the SNMP agent source files contain compiler warnings, so build
+# them with the -Werror flag turned off (we'll override this setting for
+# FASTPATH source files).
+#
+EXTRA_DEFS := $(CRC_WARN1_OFF)
+
+#
+# Subordinate makefile name.
+#
+BASEMAKEFILENAME := Makefile
+SUBMAKEFILE      := $(BASEMAKEFILENAME).$(os)
+
+
+#
+# Input directories.
+#
+
+TOPDIR      = $(FP_BASE)/$(src_snmp_src)
+
+SECUR_DIR   = $(FP_BASE)/$(src_snmp_os)/basic
+
+MIBS_DIR    = $(TOPDIR)/mibs
+COMMON_DIR  = $(TOPDIR)/mibs/common
+IANA_DIR    = $(TOPDIR)/mibs/iana
+RFCS_DIR    = $(TOPDIR)/mibs/rfcs
+MIBCOMP_DIR = $(SECUR_DIR)/$(HOST_OS).bin
+
+SNMPINCDIR  = $(TOPDIR)/include
+CFGDIR      = $(SECUR_DIR)/config
+MGRDIR      = $(CFGDIR)/mgr
+MOSY        = $(MIBCOMP_DIR)/mosy
+MIBCOMP     = $(MIBCOMP_DIR)/mibgc
+POSTMOSY    = $(MIBCOMP_DIR)/postmosy
+PREMOSY     = $(MIBCOMP_DIR)/premosy
+MGRTOOL     = $(SECUR_DIR)/$(HOST_OS).bin/$(MGRTOOL_NAME)
+SMILINTTOOL = smilint
+
+SMILINT_LEVEL = 2
+
+# Specify location of snmpinfo.dat file.
+#
+SR_MGR_CONF_DIR = $(FP_BASE)/$(OUT_$(PKGID))
+
+
+# Linux-specific variables.
+#
+ifeq (1,$(BLD_L7_TARGETOS_LINUX))
+  SR_OSTYPE      :=
+  OSFLAGS        :=
+  DEBUGFLAGS     := -g
+  DAEMONIZE      := 
+
+  DYNCFLAGS      := -fPIC
+  DYNLDFLAGS     := -shared
+  DYN_LINK_FLAGS := -rdynamic
+  DYNLDLIBS      :=
+  DYNLD          := ld 
+  DYN_LIB_LIBS   := -ldl
+  SHLIBPRF       := lib
+  SHLIBEXT       := so
+
+  NODYNCFLAGS    := -fno-PIC
+endif
+
+
+# VxWorks-specific variables.
+#
+ifeq (1,$(BLD_L7_TARGETOS_VXWORKS))
+  SR_OSTYPE      := -DCPU=$(CPU)
+  OSFLAGS        :=
+  DEBUGFLAGS     := -gstabs
+  DAEMONIZE      :=
+endif
+
+
+# SNMP Build Options.
+#
+
+CUSTOMER_DEFINES := -DSR_NO_COMMENTS_IN_CONFIG -DSR_TERMINATE_CODE
+
+
+EXPORT :=
+
+
+SYS_OR_TABLE :=
+
+
+TRANSPORT_TABLE := -DSR_TRANSPORT_TABLE
+
+
+SNMP_V1_PACKET     := -DSR_SNMPv1_PACKET -DSR_SNMPv1_WRAPPER
+SNMP_V2C_PACKET    := -DSR_SNMPv2c_PACKET -DSR_SNMPv1_WRAPPER -DSR_SNMPv2_PDU
+SNMP_V3_PACKET     := -DSR_SNMPv3_PACKET -DSR_SNMPv2_PDU
+
+SUPPORTED_PACKET_VERSIONS := \
+	$(SNMP_V1_PACKET) \
+	$(SNMP_V2C_PACKET) \
+	$(SNMP_V3_PACKET)
+
+
+SNMP_V1_PACKET_MIB := -DSR_SNMPv1_PACKET_MIB
+SNMP_V3_PACKET_MIB := -DSR_SNMPv3_PACKET_MIB
+
+SUPPORTED_PACKET_MIBS := \
+	$(SNMP_V1_PACKET_MIB) \
+	$(SNMP_V3_PACKET_MIB)
+
+
+SUPPORTED_APO_LEVEL :=
+
+
+USER_SEC_MODEL := -DSR_USER_SEC_MODEL
+
+SUPPORTED_SECURITY_MODELS := \
+	$(USER_SEC_MODEL)
+
+
+3DES_PRIVACY_PROTOCOL :=
+AES_PRIVACY_PROTOCOL  :=
+
+SUPPORTED_PRIVACY_PROTOCOLS := \
+	$(3DES_PRIVACY_PROTOCOL) \
+	$(AES_PRIVACY_PROTOCOL)
+
+
+MD5_HASH_ALGORITHM := -DSR_MD5_HASH_ALGORITHM
+SHA_HASH_ALGORITHM := -DSR_SHA_HASH_ALGORITHM
+
+SUPPORTED_HASHING_ALGORITHMS := \
+	$(SHA_HASH_ALGORITHM) \
+	$(MD5_HASH_ALGORITHM)
+
+
+NOTIFY_COMPLIANCE_LEVEL := -DSR_NOTIFY_FULL_COMPLIANCE
+PROXY_COMPLIANCE_LEVEL  :=
+
+SNMPV3_COMPLIANCE_OPTIONS := \
+	$(NOTIFY_COMPLIANCE_LEVEL) \
+	$(PROXY_COMPLIANCE_LEVEL)
+
+
+SNMP_ADMINISTRATIVE_FRAMEWORK_VERSION := -DSR_SNMPv3_ADMIN
+
+
+SNMP_ADMINISTRATIVE_MIB_SUPPORT := -DSR_SNMP_ADMIN_MIB
+
+
+GENERATE_CONFIGURATION := \
+	-DSR_GENERATE_CONFIGURATION \
+	-DSR_GENERATE_SNMPV3_CONFIGURATION
+#	-DSR_GENERATE_OLD_STYLE_CONFIGURATION
+
+
+SNMP_OPTIONS := \
+	$(CUSTOMER_DEFINES)  \
+	$(EXPORT) \
+	$(SYS_OR_TABLE) \
+	$(TRANSPORT_TABLE) \
+	$(SUPPORTED_PACKET_VERSIONS) \
+	$(SUPPORTED_PACKET_MIBS) \
+	$(SUPPORTED_APO_LEVEL) \
+	$(SUPPORTED_SECURITY_MODELS) \
+	$(SUPPORTED_PRIVACY_PROTOCOLS) \
+	$(SUPPORTED_HASHING_ALGORITHMS) \
+	$(SNMPV3_COMPLIANCE_OPTIONS) \
+	$(SNMP_ADMINISTRATIVE_FRAMEWORK_VERSION) \
+	$(SNMP_ADMINISTRATIVE_MIB_SUPPORT) \
+	$(GENERATE_CONFIGURATION)
+
+
+#
+# Compile Options.
+#
+LIGHT                := -DNOTICE
+DEBUG                := -DSR_DEBUG
+SR_MIB_TABLE_HASHING := -DSR_MIB_TABLE_HASHING
+SR_CONFIG_FP         := -DSR_CONFIG_FP
+PROXY                :=
+SETS                 := -DSETS
+ELINES               :=
+WEB_AGT              :=
+WEB_MGR              :=
+
+
+#
+# Transports
+#
+
+IP_TRANSPORT  := -DSR_IP
+IPX_TRANSPORT :=
+
+TRANSPORTS := \
+	$(IP_TRANSPORT) \
+	$(IPX_TRANSPORT)
+
+
+DEFS := \
+	$(OS) \
+	$(SR_OSTYPE) \
+	$(NETTYPE) \
+	$(DEBUG) \
+	$(LIGHT) \
+	$(SR_MIB_TABLE_HASHING) \
+	$(SNMP_OPTIONS) \
+	$(PROXY) \
+	$(SYSOPTS) \
+	$(ELINES) \
+	$(TRANSPORTS) \
+	$(WEB_AGT) \
+	$(WEB_MGR) \
+	$(SR_CONFIG_FP) \
+	$(EXTRA_DEFS)
+
+# Note: $(SETS) is not used for building devkit, devkit/mibtable, or engine,
+#       but since none of their source files reference it, it can be defined
+#       in common without any ill effect.
+#
+DEFS += \
+	$(SETS)
+
+
+# Build flags.
+#
+COPTIONS    := $(DEFS) $(INCLUDES) 
+SNMP_CFLAGS := $(DYNCFLAGS)
+LDFLAGS     :=
+
+
+# More flags for snmpd/unix.
+#
+
+WEB_EXCL :=
+MIB_EXCL :=
+
+PASS_1_MIBCOMP_FLAGS = \
+	-snmpmibh \
+	-row_status \
+	-userpart \
+	-snmpoid_only \
+	-c "snmp 1 $(WEB_EXCL) $(MIB_EXCL)"
+
+PASS_2_MIBCOMP_FLAGS = \
+	-c "private $(PKG_PASS_2_MIB_COMP_FLAGS)" \
+	-per_file_init \
+	-agent \
+	-traps \
+	-classic_v
+                
+
+# Customized include file specifiers.
+#
+MIBOUTDEFS = \
+        -DMIBDEFS=$(INCOPEN)__MIB__defs.h$(INCCLOSE) \
+        -DMIBPART=$(INCOPEN)__MIB__part.h$(INCCLOSE) \
+        -DMIBSUPP=$(INCOPEN)__MIB__supp.h$(INCCLOSE) \
+        -DMIBTYPE=$(INCOPEN)__MIB__type.h$(INCCLOSE) \
+        -DMIBPROT=$(INCOPEN)__MIB__prot.h$(INCCLOSE)
+
+
+# Customized definitions for building snmpd/unix.
+#
+EXTEND_DEFS = \
+	-DPER_FILE_INIT \
+	-DEXTEND_INIT=k_$(EXTEND_BASE)_initialize \
+	-DEXTEND_TERM=k_$(EXTEND_BASE)_terminate \
+	-DEXTEND_BASE_DEFS=$(INCOPEN)$(EXTEND_BASE)defs.h$(INCCLOSE) \
+	-DEXTEND_BASE_PART=$(INCOPEN)$(EXTEND_BASE)part.h$(INCCLOSE) \
+	-DEXTEND_BASE_SUPP=$(INCOPEN)$(EXTEND_BASE)supp.h$(INCCLOSE) \
+	-DEXTEND_BASE_TYPE=$(INCOPEN)$(EXTEND_BASE)type.h$(INCCLOSE) \
+	-DSUPPORT_IP_FORWARDING
+
+
+# Additional DEFS for snmpd/mibs/coex.
+#
+SNMPD_MIBS_COEX_DEFS = \
+	$(subst __MIB__,coex,$(MIBOUTDEFS)) \
+	-DSUBSYSTEM
+
+# Additional DEFS for snmpd/mibs/snmpv3.
+#
+SNMPD_MIBS_SNMPV3_DEFS = \
+	$(subst __MIB__,v3,$(MIBOUTDEFS)) \
+	-DSUBSYSTEM
+
+# Additional DEFS for snmpd/unix.
+#
+SNMPD_UNIX_DEFS = \
+	$(subst __MIB__,snmp,$(MIBOUTDEFS)) \
+        -DMIBOID=$(INCOPEN)snmpoid.c$(INCCLOSE) \
+	-DSR_SYS_OR_TABLE \
+	$(DAEMONIZE) \
+	$(EXTEND_DEFS) \
+	$(PKG_DEFS) \
+	$(NODYNCFLAGS)
+

@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "types.dtd">
+<FastPathXML>
+  <data-types version="1.0">
+    <enum name="L7_SNOOP_QUERIER_STATE_t">
+      <option macro="L7_SNOOP_QUERIER_DISABLED" name="DISABLE"/>
+      <option macro=" L7_SNOOP_QUERIER_QUERIER" name="QUERIER"/>
+      <option macro=" L7_SNOOP_QUERIER_NON_QUERIER" name="NON-QUERIER"/>
+    </enum>
+    <enum name="snoopingProtocol_t">
+      <option macro="L7_AF_INET" name="IGMPSnooping"/>
+      <option macro="L7_AF_INET6" name="MLDSnooping"/>
+    </enum>
+  </data-types>
+</FastPathXML>

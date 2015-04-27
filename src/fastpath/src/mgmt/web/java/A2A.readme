@@ -1,0 +1,6 @@
+Please note that the A2A files are used for communication between
+the WEB UI browser and the NV browser.
+
+1) The MapApplet.html file will condiitionally include the class file for
+   a "wireless" package build.
+2) The class files can simply be compiled in this base directory.

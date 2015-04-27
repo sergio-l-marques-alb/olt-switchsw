@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml version="1.0" name="security">
+  <module name="mgmtacal">
+    <object name="macalListName">
+      <core properties="key" descr="&lt;HTML&gt;To create or manage a new management ACAL" key="yes" access="read-write" type="string"/>
+        <ui style="inputLine" name="macalListName">
+        <snmp asn-id=""/>
+        </ui>
+      </object>
+      <object depends="macalListName," name="macalListPrioriry">
+                <core properties="key" descr="&lt;HTML&gt;Get the  ACAL rule" key="yes" access="read-write" type="uint"/>
+                <ui style="inputLine" name="macalListPrioriry">
+                    <snmp asn-id=""/>
+                </ui>
+            </object>
+            <object depends="macalListName" name="macalListRowStatus">
+                <core descr="&lt;HTML&gt;To add or Delete an ACAL rule" xtype="L7_ROW_STATUS_t" access="read-write" type="row-status"/>
+                <ui style="inputLine" name="macalListRowStatus">
+                    <snmp asn-id=""/>
+                </ui>
+            </object>
+            <object depends="macalListName,macalListPrioriry," name="macalRuleRowStatus">
+                <core descr="&lt;HTML&gt;To add or Delete an ACAL rule" xtype="L7_ROW_STATUS_t" access="read-write" type="row-status"/>
+                <ui style="inputLine" name="macalRuleRowStatus">
+                    <snmp asn-id=""/>
+                </ui>
+            </object>
+            <object depends="macalListName," name="macalActiveDeActive">
+                <core descr="&lt;HTML&gt;Activate or Deactivate an ACAL" xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="choice2select1" name="macalActiveDeActive">
+                    <snmp asn-id=""/>
+                </ui>
+            </object>
+            <object depends="macalListName,macalListPrioriry," name="macalRuleAction">
+                <core descr="&lt;HTML&gt;To Add an Action to the Created Macal Rule" xtype="macalActionType_t" access="read-write" type="enum"/>
+                <ui style="choice2select1" name="macalRuleAction">
+                    <snmp asn-id=""/>
+                </ui>
+            </object>
+            <object depends="macalListName,macalListPrioriry," name="macalRuleSrcIp">
+                <core descr="&lt;HTML&gt;To Set or Get the source ip address  to an ACAL rule" access="read-write" type="ipv4"/>
+                <ui style="inputLine" name="macalRuleSrcIp">
+                    <snmp asn-id=""/>
+                </ui>
+            </object>
+            <object depends="macalListName,macalListPrioriry," name="macalRuleSrcMask">
+                <core descr="&lt;HTML&gt;To Set or Get the Src IP Mask to an ACAL rule" access="read-write" type="ipv4"/>
+                <ui style="inputLine" name="macalRuleSrcMask">
+                    <snmp asn-id=""/>
+                </ui>
+            </object>
+            <object depends="macalListName,macalListPrioriry," name="macalRuleInterface">
+                <core descr="&lt;HTML&gt;To Add the Specified Interface for a given Rule" xtype="usp_t" access="read-write" type="user"/>
+                <ui style="inputLine" name="macalRuleInterface">
+                    <snmp asn-id=""/>
+                </ui>
+            </object>
+            <object depends="macalListName,macalListPrioriry," name="macalRuleVlan">
+                <core descr="&lt;HTML&gt;To add or show a VLAN to a rule" access="read-write" type="uint"/>
+                <ui style="inputLine" name="macalRuleVlan">
+                    <snmp asn-id=""/>
+                </ui>
+            </object>
+            <object depends="macalListName,macalListPrioriry," name="macalRuleService">
+                <core descr="&lt;HTML&gt;To Add or show the configured Service for a given macal" xtype="macalServiceType_t" access="read-write" type="enum"/>
+                <ui style="choice2select1" name="macalRuleService">
+                    <snmp asn-id=""/>
+                </ui>
+            </object>
+            <object name="macalActiveProfileGet">
+                <core validation="validate_uint" descr="&lt;HTML&gt;To Get the  Current Active Profile" access="read-only" type="string"/>
+                <ui style="inputLine" name="macalActiveProfileGet">
+                    <cli validation="validate_uint"/>
+                    <web validation="validate_uint"/>
+                    <snmp asn-id=""/>
+                </ui>
+            </object>
+</module>
+</objectxml>
+</FastPathXML>
+
+

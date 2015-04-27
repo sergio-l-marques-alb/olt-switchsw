@@ -1,0 +1,168 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="security" version="1.0" >
+<module name="SSHConfig"  >
+<object name="AdminMode"  >
+<core  type="enum" xtype="enable_t" default="L7_DISABLE" access="read-write" descr="Configures whether the SSH service is enabled on this switch. The default value is disable(2)"/>
+<ui  name="AdminMode" style="inputLine" />
+</object>
+<object name="ProtocolLevel"  >
+<core  type="enum" xtype="L7_SSH_PROTO_LEVEL_t" access="read-write" descr="Configures which protocol versions of SSH are enabled on this switch. The default value is both(3)."/>
+<ui  name="ProtocolLevel" style="inputLine" />
+</object>
+<object name="SessionsCount"  >
+<core  type="uint" access="read-only" descr="Current number of active SSH sessions on this switch."/>
+<ui  name="SessionsCount" style="plainText" />
+</object>
+<object name="MaxSessionsCount"  >
+<core  type="uint" min="0" max="L7_SSHD_DEFAULT_MAX_CONNECTIONS" default="FD_SSHD_MAX_SESSIONS" access="read-write" descr="Max number of SSH sessions permitted on this switch."/>
+<ui  name="MaxSessionsCount" style="inputLine" />
+</object>
+<object name="SessionTimeout"  >
+<core  type="uint" min="1" max="160" default="FD_SSHD_TIMEOUT" access="read-write" descr="ssh idle timeout value for this switch im minutes."/>
+<ui  name="SessionTimeout" style="inputLine" />
+</object>
+<object name="KeysPresent"  >
+<core  type="enum" xtype="L7_SSH_KEY_TYPE_t" access="read-only" descr="Indicates what key files are present on the device, if any."/>
+<ui  name="KeysPresent" style="plainText" />
+</object>
+<object name="GenerationStatus"  >
+<core  type="enum" xtype="L7_SSH_KEY_TYPE_t" access="read-only" descr="Indicates what key files are currently being generated, if any."/>
+<ui  name="GenerationStatus" style="plainText" />
+</object>
+<object name="RSAKeyControl"  >
+<core  type="enum" xtype="L7_SSH_KEY_STATUS_t"  access="read-write" descr="Controls RSA key generation and deletion. Always returns noop(1)."/>
+<ui  name="RSAKeyControl" style="inputLine" />
+</object>
+<object name="DSAKeyControl"  >
+<core  type="enum" xtype="L7_SSH_KEY_STATUS_t" access="read-write" descr="Controls DSA key generation and deletion. Always returns noop(1)."/>
+<ui  name="DSAKeyControl" style="inputLine" />
+</object>
+<object name="SSHv1Mode"  >
+<core  type="enum" xtype="enable_t" default="L7_DISABLE" access="read-write" descr="Configures whether the SSH service is enabled on this switch. The default value is disable(2)"/>
+<ui  name="SSHv1Mode" style="inputLine" />
+</object>
+<object name="SSHv2Mode"  >
+<core  type="enum" xtype="enable_t" default="L7_DISABLE" access="read-write" descr="Configures whether the SSH service is enabled on this switch. The default value is disable(2)"/>
+<ui  name="SSHv2Mode" style="inputLine" />
+</object>
+<object name="DSAKeyPresent">
+<core validation="validate_uint" descr="&lt;HTML&gt;To check the availability of DSA Key" access="read-only" type="enum" xtype="L7_SSH_KEY_TYPE_t"/>
+<ui style="plainText" name="DSAKeyPresent">
+<cli validation="validate_uint"/>
+<web validation="validate_uint"/>
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="RSAKeyPresent">
+<core validation="validate_uint" descr="&lt;HTML&gt;To verify availability of RSA Key" access="read-only" type="enum" xtype="L7_SSH_KEY_TYPE_t"/>
+<ui style="plainText" name="RSAKeyPresent">
+<cli validation="validate_uint"/>
+<web validation="validate_uint"/>
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="sshSecurePort">
+<core descr="&lt;HTML&gt;The Port Number for the ssh server" access="read-write" type="uint"/>
+<ui style="inputLine" name="sshSecurePort">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="sshdPubKeyAuthMode">
+<core descr="&lt;HTML&gt;Public-Key Authentication Mode of the SSHD server" xtype="enable_t" access="read-write" type="enum"/>
+<ui style="choice2select1" name="sshdPubKeyAuthMode">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="DSAsshdFingerPrintHexGet">
+<core validation="validate_uint" descr="&lt;HTML&gt;To get key fingerprint in hex format for a specific key type." access="read-only" type="string"/>
+<ui style="inputLine" name="DSAsshdFingerPrintHexGet">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="RSASshdFingerPrintHexGet">
+<core validation="validate_uint" descr="&lt;HTML&gt;To get key fingerprint in hex format for a specific key type for RSA" access="read-only" type="string"/>
+<ui style="inputLine" name="RSASshdFingerPrintHexGet">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="DSASshdFingerPrintBBGet">
+<core validation="validate_uint" descr="&lt;HTML&gt;get key fingerprint in bubble babble format for a specific key type" access="read-only" type="string"/>
+<ui style="inputLine" name="DSASshdFingerPrintBBGet">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="RSASshdFingerPrintBBGet">
+<core validation="validate_uint" descr="&lt;HTML&gt;get key fingerprint in bubble babble format for a specific key type" access="read-only" type="string"/>
+<ui style="inputLine" name="RSASshdFingerPrintBBGet">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="DSASshdPubKeyChainUserKeyAdd">
+<core descr="&lt;HTML&gt;Add public key configuration for remote user/device" type="string" access="write-only"/>
+<ui style="inputLine" name="DSASshdPubKeyChainUserKeyAdd">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="DSASshdPubKeyChainUserKeyRemove">
+<core descr="&lt;HTML&gt;Add public key configuration for remote user/device" type="string" access="write-only"/>
+<ui style="inputLine" name="DSASshdPubKeyChainUserKeyRemove">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="RSASshdPubKeyChainUserKeyAdd">
+<core descr="&lt;HTML&gt;Add public key configuration for remote user/device" type="string" access="write-only"/>
+<ui style="inputLine" name="RSASshdPubKeyChainUserKeyAdd">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="RSASshdPubKeyChainUserKeyRemove">
+<core descr="&lt;HTML&gt;Add public key configuration for remote user/device" type="string" access="write-only"/>
+<ui style="inputLine" name="RSASshdPubKeyChainUserKeyRemove">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="SshdChainUserGet">
+<core properties="key" descr="&lt;HTML&gt;Get next public key User name configured for remote user/device" key="yes" access="read-write" type="string"/>
+<ui style="inputLine" name="SshdChainUserGet">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object depends="SshdChainUserGet," name="sshdChainUserKeyTypeGet">
+<core properties="key" validation="validate_uint" descr="&lt;HTML&gt;Get next public key configured for remote user/device" xtype="L7_SSH_KEY_STATUS_t" key="yes" access="read-write" type="enum"/>
+<ui style="inputLine" name="sshdChainUserKeyTypeGet">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object depends="SshdChainUserGet,sshdChainUserKeyTypeGet," name="sshdChainUserKeyDataGet">
+<core descr="&lt;HTML&gt;Get public key string for remote user/device" access="read-only" type="string"/>
+<ui style="inputLine" name="sshdChainUserKeyDataGet">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object depends="SshdChainUserGet,sshdChainUserKeyTypeGet," name="sshdPubFingerPrintBBGet">
+<core validation="validate_uint" descr="&lt;HTML&gt;Get public key string for remote user/device" access="read-only" type="string"/>
+<ui style="inputLine" name="sshdPubFingerPrintBBGet">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object depends="SshdChainUserGet,sshdChainUserKeyTypeGet," name="sshdPubFingerPrintHexGet">
+<core validation="validate_uint" descr="&lt;HTML&gt;Get public key string for remote user/device" access="read-only" type="string"/>
+<ui style="inputLine" name="sshdPubFingerPrintHexGet">
+<snmp asn-id=""/>
+</ui>
+</object>
+</module>
+<module name="SSHClient"  >
+<object name="TransferRemoteUsername"  >
+<core  type="string" access="read-write" descr="username of remote host"/>
+<ui  name="TransferRemoteUsername" style="inputLine" />
+</object>
+<object name="TransferRemotePassword"  >
+<core  type="string" access="read-write" descr="password of remote host"/>
+<ui  name="TransferRemotePassword" style="inputLine" />
+</object>
+</module>
+</objectxml>
+</FastPathXML>

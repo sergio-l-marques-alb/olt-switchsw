@@ -1,0 +1,17 @@
+#!/bin/sh
+
+IP_ADDR=10.112.15.243
+USER=bcmfastpath
+
+DST_DIR=/home/olt/fastpath_builds/builds_olt360
+
+INSTALL_DIR1=$DST_DIR/apps/CXP360G
+INSTALL_DIR2=$DST_DIR/apps/TOLT8G
+
+BIN_PATH=./bin
+BIN_FILE=fastpath.cli
+
+echo "Copying $BIN_FILE binary to $DST_DIR"
+scp $BIN_PATH/$BIN_FILE $USER@$IP_ADDR:$INSTALL_DIR1
+scp $BIN_PATH/$BIN_FILE $USER@$IP_ADDR:$INSTALL_DIR2
+echo "Done!"

@@ -1,0 +1,273 @@
+#ifndef FLEX_H
+#define FLEX_H
+
+#include "feature.h"
+
+
+/* ACL definitions */
+#ifndef _INCLUDE_ACL_COMPONENT_API_
+#define _INCLUDE_ACL_COMPONENT_API_
+#define L7_ACL_PACKAGE 1
+#define L7_QOS_FLEX_PACKAGE_ACL      1
+#endif
+
+/* AUTO_INSTALL definitions */
+#ifndef _INCLUDE_AUTO_INSTALL_COMPONENT_API_
+#define _INCLUDE_AUTO_INSTALL_COMPONENT_API_
+#define L7_AUTO_INSTALL_PACKAGE 1
+#endif
+
+/* COS definitions */
+#ifndef _INCLUDE_COS_COMPONENT_API_
+#define _INCLUDE_COS_COMPONENT_API_
+#define L7_COS_PACKAGE 1
+#define L7_QOS_FLEX_PACKAGE_COS      1
+#endif
+
+/* DAI definitions */
+#ifndef _INCLUDE_DAI_COMPONENT_API_
+#define _INCLUDE_DAI_COMPONENT_API_
+#define L7_DAI_PACKAGE 1
+#endif
+
+/* DHCPS definitions */
+#ifndef _INCLUDE_DHCPS_COMPONENT_API_
+#define _INCLUDE_DHCPS_COMPONENT_API_
+#define L7_DHCPS_PACKAGE 1
+#endif
+
+/* DHCP_L2_RELAY definitions */
+#ifndef _INCLUDE_DHCP_L2_RELAY_COMPONENT_API_
+#define _INCLUDE_DHCP_L2_RELAY_COMPONENT_API_
+#define L7_DHCP_L2_RELAY_PACKAGE 1
+#endif
+
+/* DHCP_SNOOPING definitions */
+#ifndef _INCLUDE_DHCP_SNOOPING_COMPONENT_API_
+#define _INCLUDE_DHCP_SNOOPING_COMPONENT_API_
+#define L7_DHCP_SNOOPING_PACKAGE 1
+#endif
+
+/* PPPoE definitions */
+#ifndef _INCLUDE_PPPOE_COMPONENT_API_
+#define _INCLUDE_PPPOE_COMPONENT_API_
+#define PTIN_PPPOE_PACKAGE 1
+#endif
+
+/* DVLAN definitions */
+#ifndef _INCLUDE_DVLAN_COMPONENT_API_
+#define _INCLUDE_DVLAN_COMPONENT_API_
+#define L7_DVLAN_PACKAGE 1
+#endif
+
+/* DiffServ definitions */
+#ifndef _INCLUDE_DIFFSERV_COMPONENT_API_
+#define _INCLUDE_DIFFSERV_COMPONENT_API_
+#define L7_DIFFSERV_PACKAGE 1
+#define L7_QOS_FLEX_PACKAGE_DIFFSERV 1
+#endif
+
+/* GARP definitions */
+#ifndef _INCLUDE_GARP_COMPONENT_API_
+#define _INCLUDE_GARP_COMPONENT_API_
+#define L7_GARP_PACKAGE 1
+#endif
+
+/* IPSG definitions */
+#ifndef _INCLUDE_IPSG_COMPONENT_API_
+#define _INCLUDE_IPSG_COMPONENT_API_
+#define L7_IPSG_PACKAGE 1
+#endif
+
+/* IPVLAN definitions */
+#ifndef _INCLUDE_IPVLAN_COMPONENT_API_
+#define _INCLUDE_IPVLAN_COMPONENT_API_
+#define L7_IPVLAN_PACKAGE 1
+#endif
+
+/* ISDP definitions */
+#ifndef _INCLUDE_ISDP_COMPONENT_API_
+#define _INCLUDE_ISDP_COMPONENT_API_
+#define L7_ISDP_PACKAGE 1
+#endif
+
+/* LLPF definitions */
+#ifndef _INCLUDE_LLPF_COMPONENT_API_
+#define _INCLUDE_LLPF_COMPONENT_API_
+#define L7_LLPF_PACKAGE 1
+#endif
+
+/* MACLOCK definitions */
+#ifndef _INCLUDE_MACLOCK_COMPONENT_API_
+#define _INCLUDE_MACLOCK_COMPONENT_API_
+#define L7_MACLOCK_PACKAGE 1
+#endif
+
+/* MACVLAN definitions */
+#ifndef _INCLUDE_MACVLAN_COMPONENT_API_
+#define _INCLUDE_MACVLAN_COMPONENT_API_
+#define L7_MACVLAN_PACKAGE 1
+#endif
+
+/* NETWORKPORT definitions */
+#ifndef _INCLUDE_NETWORKPORT_COMPONENT_API_
+#define _INCLUDE_NETWORKPORT_COMPONENT_API_
+#define L7_NETWORKPORT_PACKAGE 1
+#endif
+
+/* OSPF definitions */
+#ifndef _INCLUDE_OSPF_COMPONENT_API_
+#define _INCLUDE_OSPF_COMPONENT_API_
+#define L7_OSPF_PACKAGE 1
+#endif
+
+/* OUTBOUND_TELNET definitions */
+#ifndef _INCLUDE_OUTBOUND_TELNET_COMPONENT_API_
+#define _INCLUDE_OUTBOUND_TELNET_COMPONENT_API_
+#define L7_OUTBOUND_TELNET_PACKAGE 1
+#endif
+
+/* PBVLAN definitions */
+#ifndef _INCLUDE_PBVLAN_COMPONENT_API_
+#define _INCLUDE_PBVLAN_COMPONENT_API_
+#define L7_PBVLAN_PACKAGE 1
+#endif
+
+/* PROT_PORTS definitions */
+#ifndef _INCLUDE_PROT_PORTS_COMPONENT_API_
+#define _INCLUDE_PROT_PORTS_COMPONENT_API_
+#define L7_PROT_PORTS_PACKAGE 1
+#endif
+
+/* RIP definitions */
+#ifndef _INCLUDE_RIP_COMPONENT_API_
+#define _INCLUDE_RIP_COMPONENT_API_
+#define L7_RIP_PACKAGE 1
+#endif
+
+/* RLIM definitions */
+#ifndef _INCLUDE_RLIM_COMPONENT_API_
+#define _INCLUDE_RLIM_COMPONENT_API_
+#define L7_RLIM_PACKAGE 1
+#endif
+
+/* RMON definitions */
+#ifndef _INCLUDE_RMON_COMPONENT_API_
+#define _INCLUDE_RMON_COMPONENT_API_
+#define L7_RMON_PACKAGE 1
+#endif
+
+/* SFLOW definitions */
+#ifndef _INCLUDE_SFLOW_COMPONENT_API_
+#define _INCLUDE_SFLOW_COMPONENT_API_
+#define L7_SFLOW_PACKAGE 1
+#endif
+
+/* STATIC_FILTERING definitions */
+#ifndef _INCLUDE_STATIC_FILTERING_COMPONENT_API_
+#define _INCLUDE_STATIC_FILTERING_COMPONENT_API_
+#define L7_STATIC_FILTERING_PACKAGE 1
+#endif
+
+/* TACACS definitions */
+#ifndef _INCLUDE_TACACS_COMPONENT_API_
+#define _INCLUDE_TACACS_COMPONENT_API_
+#define L7_TACACS_PACKAGE 1
+#endif
+
+/* TIMERANGES definitions */
+#ifndef _INCLUDE_TIMERANGES_COMPONENT_API_
+#define _INCLUDE_TIMERANGES_COMPONENT_API_
+#define L7_TIMERANGES_PACKAGE 1
+#endif
+
+/* VOIP definitions */
+#ifndef _INCLUDE_VOIP_COMPONENT_API_
+#define _INCLUDE_VOIP_COMPONENT_API_
+#define L7_VOIP_PACKAGE 1
+#define L7_QOS_FLEX_PACKAGE_VOIP 1
+#endif
+
+/* VRRP definitions */
+#ifndef _INCLUDE_VRRP_COMPONENT_API_
+#define _INCLUDE_VRRP_COMPONENT_API_
+#define L7_VRRP_PACKAGE 1
+#endif
+
+/* iSCSI definitions */
+#ifndef _INCLUDE_ISCSI_COMPONENT_API_
+#define _INCLUDE_ISCSI_COMPONENT_API_
+#define L7_ISCSI_PACKAGE 1
+#define L7_QOS_FLEX_PACKAGE_ISCSI 1
+#endif
+
+/* oldcliweb definitions */
+#ifndef _INCLUDE_OLDCLIWEB_COMPONENT_API_
+#define _INCLUDE_OLDCLIWEB_COMPONENT_API_
+#define L7_OLDCLIWEB_PACKAGE 1
+#endif
+
+/* xuibase definitions */
+#ifndef _INCLUDE_XUIBASE_COMPONENT_API_
+#define _INCLUDE_XUIBASE_COMPONENT_API_
+#define L7_XUIBASE_PACKAGE 1
+#endif
+
+/* IP_MCAST definitions */
+#ifndef _INCLUDE_IP_MCAST_COMPONENT_API_
+#define _INCLUDE_IP_MCAST_COMPONENT_API_
+#define L7_IP_MCAST_PACKAGE 1
+#define L7_MCAST_PACKAGE 1
+#endif
+
+/* QOS definitions */
+#ifndef _INCLUDE_QOS_COMPONENT_API_
+#define _INCLUDE_QOS_COMPONENT_API_
+#define L7_QOS_PACKAGE 1
+#endif
+
+/* Secure_Mgmt definitions */
+/* PTin to be excluded */
+#ifndef _INCLUDE_SECURE_MGMT_COMPONENT_API_
+#define _INCLUDE_SECURE_MGMT_COMPONENT_API_
+#define L7_SECURE_MGMT_PACKAGE 1
+#define L7_MGMT_SECURITY_PACKAGE 1
+#endif
+
+/* SSL_LIB definitions */
+/* PTin to be excluded */
+#ifndef _INCLUDE_SSL_LIB_COMPONENT_API_
+#define _INCLUDE_SSL_LIB_COMPONENT_API_
+#define L7_SSL_LIB_PACKAGE 1
+#define L7_OPENSSL_PACKAGE 1
+#endif
+
+/* CLI definitions */
+#ifndef _INCLUDE_CLI_COMPONENT_API_
+#define _INCLUDE_CLI_COMPONENT_API_
+#define L7_CLI_PACKAGE 1
+#endif
+
+/* SNMP definitions */
+#ifndef _INCLUDE_SNMP_COMPONENT_API_
+#define _INCLUDE_SNMP_COMPONENT_API_
+#define L7_SNMP_PACKAGE 1
+#endif
+
+/* xWeb definitions */
+/* PTin to be excluded */
+#ifndef _INCLUDE_XWEB_COMPONENT_API_
+#define _INCLUDE_XWEB_COMPONENT_API_
+#define L7_XWEB_PACKAGE 1
+#endif 
+
+/* Routing definitions */
+#ifndef _INCLUDE_ROUTING_COMPONENT_API_
+#define _INCLUDE_ROUTING_COMPONENT_API_
+#define L7_ROUTING_PACKAGE 1
+#endif
+#define CLI_WEB_PRESENT 1
+#define SNMP_PRESENT 1
+
+
+#endif /* FLEX_H */

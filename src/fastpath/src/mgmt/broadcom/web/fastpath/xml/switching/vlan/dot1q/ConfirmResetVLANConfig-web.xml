@@ -1,0 +1,16 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+<FastPathXML>
+    <webxml version="1.0" name="ConfirmResetVLANConfig" title="Reset VLAN Configuration to Factory Defaults">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <message>Are you sure you wish to reset all VLAN configuration? </message>
+            </node>
+            <node id="2">
+                <button scope="page" type="buttonSubmit"  value="Enable" obj-name="SwitchingVlanResetConfig_ResetVlan" level="ReadWriteUser" help="Resets VLAN Configuration to default values" id="1"  target-page="VLANStatus.html" name="Reset"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

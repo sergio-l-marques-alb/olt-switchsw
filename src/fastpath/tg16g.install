@@ -1,0 +1,10 @@
+#!/bin/sh
+
+PLATFORM=TG16G
+PLATFORM_FOLDER=$PLATFORM
+FILESYSTEM=rootfs
+
+KO_PATH=./output/FastPath-Ent-esw-xgs4-pq2pro-LR-CSxw-IQH_$PLATFORM/target
+BIN_PATH=./output/FastPath-Ent-esw-xgs4-pq2pro-LR-CSxw-IQH_$PLATFORM/ipl
+
+. ./common.install

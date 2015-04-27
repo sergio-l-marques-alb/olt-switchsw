@@ -1,0 +1,23 @@
+#!/bin/sh
+
+export MODULE=fastpath-tg4g
+export PLATFORMS="TG4G1 TG4G2"
+
+export APPLICATION=fp
+
+echo "Compiling fastpath for TG4G..."
+make -C ../fastpath -f tg4g.make
+if [ $? -ne 0 ]; then
+ echo ERROR!!!
+ exit 1;
+fi
+echo "Copying binaries to apps..."
+make -C ../fastpath -f tg4g.make install
+if [ $? -ne 0 ]; then
+ echo ERROR!!!
+ exit 1;
+fi
+echo "Done... Going to prepare tarball."
+echo
+
+. ./fastpath.build $1

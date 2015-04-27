@@ -1,0 +1,8 @@
+cxo160.c:182:20:serdes_clock_to_string	16	static
+cxo160.c:43:5:checkboard	32	static
+cxo160.c:91:5:board_early_init_f	8	static
+cxo160.c:106:6:board_config_lanes_mux	16	static
+cxo160.c:146:5:board_early_init_r	24	static
+cxo160.c:174:15:get_board_sys_clk	16	static
+cxo160.c:198:5:misc_init_r	64	static
+cxo160.c:227:6:ft_board_setup	24	static

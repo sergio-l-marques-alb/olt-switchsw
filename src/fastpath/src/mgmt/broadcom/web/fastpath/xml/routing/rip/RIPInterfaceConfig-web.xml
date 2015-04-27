@@ -1,0 +1,101 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="RIPInterfaceConfig" title="RIP Interface Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element control="combo"  properties="filter,iterate" obj-name="routingipmapConfig_Interface" id="1" name="Interface"/>
+                <element cpval="routingipmapConfig_Interface" properties="filter,hidden" obj-name="routingRip2InterfaceStats_Address"  id="2" name="Interface"/>
+                <element cpval="routingipmapConfig_Interface" properties="filter,hidden" obj-name="routingConfigRip2InterfaceParams_Address" id="3" name="Interface1"/>
+                <element cpval="routingipmapConfig_Interface" properties="filter,hidden" obj-name="routingConfigRip2Interface_ConfAddress" id="4" name="Interface2"/>
+            </node>
+            <node id="2">
+                <element control="combo" obj-name="routingConfigRip2InterfaceParams_Send" id="1" name="Send Version"/>
+            </node>
+            <node id="3">
+                <element control="combo" obj-name="routingConfigRip2InterfaceParams_Receive" id="1" name="Receive Version"/>
+            </node>
+            <node id="4">
+                <element control="combo" obj-name="routingConfigRip2InterfaceParams_Status" id="1" name="RIP Admin Mode"/>
+            </node>
+            <node id="20">
+                <element control="combo" obj-name="routingConfigRip2InterfaceParams_AuthType" id="1" name="Authentication Type">
+                <action type="enum"  hide="1_21|1_22" disable="1_21|1_22"/> 
+                <action type="enum" show="1_21" hide="1_22" enable="1_21" disable="1_22"/>
+                <action type="enum" show="1_21|1_22" enable="1_21|1_22"/>
+                </element>
+            </node>
+            <node id="21">
+                <element arghelp="HELP_FORMAT_AUTH_ENCRYPT" control="textbox" obj-name="routingConfigRip2InterfaceParams_AuthKey" id="1" maxLength="16" name="Authentication Key"/>
+            </node>
+            <node id="22">
+                <element arghelp="HELP_FORMAT_FP" maxLength="3" obj-name="routingConfigRip2Interface_ConfAuthKeyId" id="1" name="Authentication Key ID"/>
+            </node>
+            <node id="11">
+                <element control="label" properties="read-only" obj-name="routingConfigRip2InterfaceParams_SrcAddress" id="1" name="IP Address"/>
+            </node>
+            <node id="12">
+                <element control="label" properties="read-only" obj-name="routingConfigRip2InterfaceParams_IntfState" id="1" name="Link State"/>
+            </node>
+            <node id="13">
+                <element control="label" obj-name="routingRip2InterfaceStats_RcvBadPackets" id="1" name="Bad Packets Received "/>
+            </node>
+            <node id="14">
+                <element control="label" obj-name="routingRip2InterfaceStats_RcvBadRoutes" id="1" name="Bad Routes Received "/>
+            </node>
+            <node id="15">
+                <element control="label" obj-name="routingRip2InterfaceStats_SentUpdates" id="1" name="Updates Sent"/>
+            </node>
+            <node id="16">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="2" name="Cancel"/>
+            </node>
+        </group>
+        <group level="ReadOnlyUser" id="2" heading="  ">
+            <node id="1">
+                <element control="combo"  properties="filter,iterate" obj-name="routingipmapConfig_Interface" id="1" name="Interface"/>
+                <element cpval="routingipmapConfig_Interface" properties="filter,hidden" obj-name="routingRip2InterfaceStats_Address"  id="2" name="Interface"/>
+                <element cpval="routingipmapConfig_Interface" properties="filter,hidden" obj-name="routingConfigRip2InterfaceParams_Address" id="3" name="Interface1"/>
+                <element cpval="routingipmapConfig_Interface" properties="filter,hidden" obj-name="routingConfigRip2Interface_ConfAddress" id="4" name="Interface2"/>
+            </node>
+            <node id="2">
+                <element control="label" properties="read-only" obj-name="routingConfigRip2InterfaceParams_Send" id="1" name="Send Version"/>
+            </node>
+            <node id="3">
+                <element control="label" properties="read-only" obj-name="routingConfigRip2InterfaceParams_Receive" id="1" name="Receive Version"/>
+            </node>
+            <node id="4">
+                <element control="label" properties="read-only" obj-name="routingConfigRip2InterfaceParams_Status" id="1" name="RIP Admin Mode"/>
+            </node>
+            <node id="5">
+                <element control="label" properties="read-only" obj-name="routingConfigRip2InterfaceParams_AuthType" id="1" name="Authentication Type"/>
+            </node>
+            <node id="6">
+                <element control="label" properties="read-only" obj-name="routingConfigRip2InterfaceParams_SrcAddress" id="1" name="IP Address"/>
+            </node>
+            <node id="7">
+                <element control="label" properties="read-only" obj-name="routingConfigRip2InterfaceParams_IntfState" id="1" name="Link State"/>
+            </node>
+            <node id="8">
+                <element obj-name="routingRip2InterfaceStats_RcvBadPackets" id="1" name="Bad Packets Received"/>
+            </node>
+            <node id="9">
+                <element obj-name="routingRip2InterfaceStats_RcvBadRoutes" id="1" name="Bad Routes Received"/>
+            </node>
+            <node id="10">
+                <element obj-name="routingRip2InterfaceStats_SentUpdates" id="1" name="Updates Sent"/>
+            </node>
+            <node id="11">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+
+            <node id="12">
+                <element control="combo" properties="filter,iterate,hidden" obj-name="routingConfigRip2InterfaceParams_Address" id="1" name="Dummy"/>
+            </node>
+            
+        </group>
+    </webxml>
+</FastPathXML>

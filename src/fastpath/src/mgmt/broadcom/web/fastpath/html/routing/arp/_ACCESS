@@ -1,0 +1,4 @@
+arp_table_cfg.html realm="READONLY";
+arp_table_cfg_ro.html realm="READONLY";
+arp_table_cfg_rw.html realm="READWRITE";
+

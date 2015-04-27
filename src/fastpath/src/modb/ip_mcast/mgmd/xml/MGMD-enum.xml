@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "types.dtd">
+<FastPathXML>
+  <data-types version="1.0">
+<enum name="mgmdFilterMode_t">
+<option name="None" macro="L7_XUI_MGMD_FILTER_MODE_NONE"> </option>
+<option name="Include" macro="L7_XUI_MGMD_FILTER_MODE_INCLUDE"> </option>
+<option name="Exclude" macro="L7_XUI_MGMD_FILTER_MODE_EXCLUDE"> </option>
+</enum>
+<enum name="mgmdVersion_t">
+<option name="V1" macro="L7_XUI_MGMD_VERSION_1"> </option>
+<option name="V2" macro="L7_XUI_MGMD_VERSION_2"> </option>
+<option name="V3" macro="L7_XUI_MGMD_VERSION_3"> </option>
+</enum>
+<enum name="mgmdQuerierStatus_t">
+<option name="Non-Querier" macro="L7_FALSE"> </option>
+<option name="Querier" macro="L7_TRUE"> </option>
+</enum>
+<enum name="L7_XUI_MGMD_HOST_STATE_T">
+<option name="NonMember" macro="L7_XUI_MGMD_HOST_NON_MEMBER"> </option>
+<option name="DelayMember" macro="L7_XUI_MGMD_HOST_DELAY_MEMBER"> </option>
+<option name="IdleMember" macro="L7_XUI_MGMD_HOST_IDLE_MEMBER"> </option>
+</enum>
+<enum name="mgmdRouterInterfaceOperationalStatus_t">
+<option name="Operational" macro="L7_TRUE"> </option>
+<option name="Non-Operational" macro="L7_FALSE"> </option>
+</enum>
+</data-types>
+</FastPathXML>

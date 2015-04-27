@@ -1,0 +1,23 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="LLDPRemoteDeviceSumm" title="LLDP Remote Device Summary">
+        <group id="1" heading=" ">
+            <repeat present="vtable" edit="no" heading=" " id="1">
+                <element properties="filter,iterate" obj-name="SwitchingLLDPRemoteSystemData_LocalPortNum" id="1" name="Interface"/>
+                <element properties="filter,iterate," obj-name="SwitchingLLDPRemoteSystemData_RemIndex" id="2" name="Remote ID"/>
+                <element properties="filter,iterate,hidden" obj-name="SwitchingLLDPRemoteSystemData_TimeMark" id="3"/>
+                <element properties="" obj-name="SwitchingLLDPRemoteSystemData_ChassisId" id="4" name="Chassis ID"/>
+                <element properties="" obj-name="SwitchingLLDPRemoteSystemData_PortId" id="5" name="Port ID"/>
+                <element properties="" obj-name="SwitchingLLDPRemoteSystemData_SysName" id="6" name="System Name"/>
+            </repeat>
+            <node id="2">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+                <button scope="page" level="ReadWriteUser" type="buttonSubmit" value="Enable" obj-name="SwitchingLLDPRemoteSystemData_ClearAllRemoteData" help="Submits the form on this page to the Switch" id="2" name="Clear"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

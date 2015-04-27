@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "web-layout.dtd">
+<FastPathXML>
+  <!--
+        This file specifies the layout of various levels of pages
+        possible values for the style include tree and tabs.
+        it is also possible to have additional such layout-styles 
+        defined in future.
+
+        Multiple levels can exist. 
+
+        Tool dependencies -
+
+                - xE reads this file and generates the html code accordingly.
+                - xI allows users to defins a specific layout for their 'web'.
+                - No dependency on xL 
+
+        Other XML file dependencies -
+
+                - this file is specifically used only in the container.
+                - container xml file refers to the layout styles mentioned this 
+                  file.
+                - container xml can specifically mention a style, if the generic 
+                definition needs to be overridden. 
+                - this is only used in web pages. no other UI pages use these styles.
+                
+        Thus, the layout mechanism is separated from the xml files containing 
+        the core web functionality. the files themselves are unaware of how
+        they are being laid-out on the screen.
+        -->
+  <web-layout version="1">
+    <level name="level1" style="tree" open-icon="folder-open.png" close-icon="folder-close.png" display-grid="yes" />
+    <!-- 
+                open-icon and close-icon refer to tree icons displayed. 
+                if not mentioned specifically, the defaults will be used, these look like 
+                what we have today, looking like windows style.
+                display-grid refers to the dotted line that connects the individual nodes.
+                default is always yes.
+                neither of these properties are applicable for tabs.
+                -->
+    <level name="level2" style="tabs" tab-background="my-tab.png" />
+    <!-- 
+                tab-background refers to the image displayed on the tab, behind the name.
+                not applicable for tree nodes
+                -->
+    <level name="level3" style="tabs" />
+    <level name="level4" style="tree" />
+    <level name="level5" style="tree" />
+    <level name="leaf" leaf-background="light-cyan.png" style="tabs" />
+    <!--
+                This is a special node. It indicates that the node is a leaf node. 
+                A specific background can be mentioned for any node. If not mentioned
+                it will be no-background.
+                -->
+  </web-layout>
+</FastPathXML>
+<!-- 
+Some of the options mentioned above can be optional for first release
+They are just mentioned here for the sake of completeness.
+Also, how much of this style specification conflicts with the usual css ?
+
+The following may be moved to css, if possible
+        leaf-background
+        tab-background
+        open-icon
+        close-icon
+        display-grid
+
+-->

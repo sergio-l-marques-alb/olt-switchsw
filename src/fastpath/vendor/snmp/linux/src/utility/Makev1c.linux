@@ -1,0 +1,795 @@
+
+#
+#
+# Copyright (C) 1992-2006 by SNMP Research, Incorporated.
+#
+# This software is furnished under a license and may be used and copied
+# only in accordance with the terms of such license and with the
+# inclusion of the above copyright notice. This software or any other
+# copies thereof may not be provided or otherwise made available to any
+# other person. No title to and ownership of the software is hereby
+# transferred.
+#
+# The information in this software is subject to change without notice
+# and should not be construed as a commitment by SNMP Research, Incorporated.
+#
+# Restricted Rights Legend:
+#  Use, duplication, or disclosure by the Government is subject to
+#  restrictions as set forth in subparagraph (c)(1)(ii) of the Rights
+#  in Technical Data and Computer Software clause at DFARS 252.227-7013;
+#  subparagraphs (c)(4) and (d) of the Commercial Computer
+#  Software-Restricted Rights Clause, FAR 52.227-19; and in similar
+#  clauses in the NASA FAR Supplement and other corresponding
+#  governmental regulations.
+#
+#
+
+#
+#                PROPRIETARY NOTICE
+#
+# This software is an unpublished work subject to a confidentiality agreement
+# and is protected by copyright and trade secret law.  Unauthorized copying,
+# redistribution or other use of this work is prohibited.
+#
+# The above notice of copyright on this source code product does not indicate
+# any actual or intended publication of such source code.
+#
+#
+
+
+TOPDIR = ..
+
+# 
+# Operating System Information
+#
+
+RM = rm -f
+RMDIR = rmdir
+MOVE = mv
+CP = cp
+CAT = cat
+MKDIR = mkdir
+# PRESERVE is the flag to $(CP) to duplicate the modification time and
+# permission modes of the original file or directory.
+PRESERVE = -p
+
+
+# Extensions to certain kinds of files are set here.
+LIBEXT = a
+BINEXT =
+OBJEXT = o
+
+
+LIBPRF = lib
+
+
+              OS = -DLINUX
+              os = linux
+      SR_OSTYPE =
+         OSFLAGS =
+      SOCKETLIBS =
+            LLIB =
+      LINTLIBOPT =
+        LINTOPTS =
+     THREAD_LIBS = -lpthread
+     SR_SEM_LIBS = -lrt
+      EXTRA_DEFS = 
+
+
+              CC = cc
+              LD = cc
+      DEBUGFLAGS = -g -Wall -fno-builtin -Wpointer-arith -Wstrict-prototypes
+            LINT = lint
+              AR = ar
+             LEX = flex
+            YACC = yacc
+          AROPTS = cr
+          RANLIB = touch
+
+      EXTRA_SRCS =
+      EXTRA_OBJS =
+
+# for shared libraries
+DYNCFLAGS = -fPIC
+DYNLDFLAGS = -shared
+DYN_LINK_FLAGS = -rdynamic
+DYNLDLIBS =
+DYNLD = ld 
+DYN_LIB_LIBS = -ldl
+SHLIBPRF = lib
+SHLIBEXT = so
+IPC_DEFAULT = -DSR_UDS_IPC
+IPC_DEFAULT_LIB = uds
+
+
+#
+# Directories
+#
+
+
+OBD_V1 = 1
+
+OBD_V2c = c
+
+OBD_V3 =
+
+OSBASEDIR = v$(OBD_V1)$(OBD_V2c)$(OBD_V3)
+
+
+SRM_ARCH = $(shell /bin/arch)
+
+OSLIBDIR = $(os)_$(SRM_ARCH)$(OSBASEDIR).lib
+OSOBJDIR = $(os)_$(SRM_ARCH)$(OSBASEDIR).obj
+OSBINDIR = $(os)_$(SRM_ARCH)$(OSBASEDIR).bin
+
+SECUR_DIR = $(TOPDIR)/../basic
+
+LIBDIR      = $(SECUR_DIR)/$(OSLIBDIR)
+BINDIR      = $(SECUR_DIR)/$(OSBINDIR)
+INSTALLDIR  = $(SECUR_DIR)/$(OSBINDIR)
+MIBS_DIR    = $(TOPDIR)/mibs
+RFCS_DIR    = $(TOPDIR)/mibs/rfcs
+IDRAFTS_DIR = $(TOPDIR)/mibs/internet-drafts
+IANA_DIR    = $(TOPDIR)/mibs/iana
+MIBCOMP_DIR = $(SECUR_DIR)/$(OSBINDIR)
+
+#
+# Subordinant Makefile
+#
+
+
+BMFN_V1 = 1
+
+BMFN_V2c = c
+
+BMFN_V3 =
+
+BASEMAKEFILENAME = Makev$(BMFN_V1)$(BMFN_V2c)$(BMFN_V3)
+
+
+SUBMAKEFILE = $(BASEMAKEFILENAME).$(os)
+
+
+#
+# What to build
+#
+GETID = $(OSOBJDIR)/getid$(BINEXT)
+GETBULK = $(OSOBJDIR)/getbulk$(BINEXT)
+INFORM = $(OSOBJDIR)/inform$(BINEXT)
+GETMANY = $(OSOBJDIR)/getmany$(BINEXT)
+GETMET = $(OSOBJDIR)/getmet$(BINEXT)
+GETNEXT = $(OSOBJDIR)/getnext$(BINEXT)
+GETONE = $(OSOBJDIR)/getone$(BINEXT)
+GETROUTE = $(OSOBJDIR)/getroute$(BINEXT)
+GETSUB = $(OSOBJDIR)/getsub$(BINEXT)
+GETTAB = $(OSOBJDIR)/gettab$(BINEXT)
+TRAPRCV = $(OSOBJDIR)/traprcv$(BINEXT)
+TRAPSEND = $(OSOBJDIR)/trapsend$(BINEXT)
+SETANY = $(OSOBJDIR)/setany$(BINEXT)
+
+TARGETS = $(GETID) \
+	   $(GETBULK) \
+           $(INFORM) \
+           $(GETMANY) \
+           $(GETMET) \
+           $(GETNEXT) \
+           $(GETONE) \
+           $(GETROUTE) \
+           $(GETSUB) \
+           $(GETTAB) \
+           $(TRAPRCV) \
+           $(TRAPSEND) \
+           $(SETANY)
+
+V3_SH_SRCS =
+
+SH_SRCS = \
+	common.c \
+	globals.c \
+	$(V3_SH_SRCS)
+
+RT_SRCS = prnt_rt.c
+
+SRCS = getid.c \
+	   getbulk.c \
+           inform.c \
+           getmany.c \
+           getmet.c \
+           getnext.c \
+           getone.c \
+           getroute.c \
+           getsub.c \
+           gettab.c \
+           traprcv.c \
+           trapsend.c \
+           setany.c
+
+V3_SH_OBJS =
+
+SH_OBJS = \
+	$(OSOBJDIR)/common.$(OBJEXT) \
+	$(OSOBJDIR)/globals.$(OBJEXT) \
+	$(V3_SH_OBJS)
+
+RT_OBJS = $(OSOBJDIR)/prnt_rt.$(OBJEXT) $(SH_OBJS)
+
+OBJS = $(OSOBJDIR)/getid.$(OBJEXT) \
+	   $(OSOBJDIR)/getbulk.$(OBJEXT) \
+           $(OSOBJDIR)/inform.$(OBJEXT) \
+           $(OSOBJDIR)/getmany.$(OBJEXT) \
+           $(OSOBJDIR)/getmet.$(OBJEXT) \
+           $(OSOBJDIR)/getnext.$(OBJEXT) \
+           $(OSOBJDIR)/getone.$(OBJEXT) \
+           $(OSOBJDIR)/getroute.$(OBJEXT) \
+           $(OSOBJDIR)/getsub.$(OBJEXT) \
+           $(OSOBJDIR)/gettab.$(OBJEXT) \
+           $(OSOBJDIR)/traprcv.$(OBJEXT) \
+           $(OSOBJDIR)/trapsend.$(OBJEXT) \
+           $(OSOBJDIR)/setany.$(OBJEXT)
+
+#
+# Structure Information
+#
+
+SNMPLIBS = \
+	$(LIBDIR)/libdevkit.$(LIBEXT) \
+	$(LIBDIR)/libengine.$(LIBEXT) \
+	$(LIBDIR)/libmibtree.$(LIBEXT) \
+	$(LIBDIR)/libdevkit.$(LIBEXT)
+
+SR_INCDIR = $(TOPDIR)/include
+
+INC_DIRS = \
+            -I$(SR_INCDIR) \
+            -I. \
+            -I$(TOPDIR)/snmpd/mibs \
+            $(ARC_INC_DIRS)
+
+
+#
+# Build Options
+#
+
+
+#
+# Compile Options
+#
+
+LIGHT = -DNOTICE
+DEBUG = -DSR_DEBUG
+SR_MIB_TABLE_HASHING = -DSR_MIB_TABLE_HASHING
+SR_CONFIG_FP = -DSR_CONFIG_FP
+PROXY =
+SETS = -DSETS
+WEB_AGT =
+WEB_MGR =
+
+CUSTOMER_DEFINES =
+
+epictest := EPICTEST = -DSR_EPICTEST
+EPIC = -DSR_EPIC
+
+EXPORT = -DSR_UNSECURABLE
+
+SNMP_V1_PACKET = -DSR_SNMPv1_PACKET -DSR_SNMPv1_WRAPPER
+
+SNMP_V2C_PACKET = -DSR_SNMPv2c_PACKET -DSR_SNMPv1_WRAPPER -DSR_SNMPv2_PDU
+
+SNMP_V1_PACKET_MIB = -DSR_SNMPv1_PACKET_MIB
+
+SNMP_V3_PACKET =
+SNMP_V3_PACKET_MIB =
+
+SYS_OR_TABLE =
+
+TRANSPORT_TABLE = -DSR_TRANSPORT_TABLE
+
+
+NOTIFY_COMPLIANCE_LEVEL = \
+	-DSR_NOTIFY_FULL_COMPLIANCE
+
+PROXY_COMPLIANCE_LEVEL =
+
+SNMPV3_COMPLIANCE_OPTIONS = \
+	$(NOTIFY_COMPLIANCE_LEVEL) \
+	$(PROXY_COMPLIANCE_LEVEL)
+
+USER_SEC_MODEL =
+
+SUPPORTED_SECURITY_MODELS = \
+	$(USER_SEC_MODEL)
+
+3DES_PRIVACY_PROTOCOL =
+AES_PRIVACY_PROTOCOL =
+
+SUPPORTED_PRIVACY_PROTOCOLS = \
+	$(3DES_PRIVACY_PROTOCOL) \
+	$(AES_PRIVACY_PROTOCOL)
+
+
+MD5_HASH_ALGORITHM =
+SHA_HASH_ALGORITHM =
+
+SUPPORTED_HASHING_ALGORITHMS = \
+	$(SHA_HASH_ALGORITHM) \
+	$(MD5_HASH_ALGORITHM)
+
+SNMP_ADMINISTRATIVE_FRAMEWORK_VERSION = -DSR_SNMPv1_ADMIN
+
+SNMP_ADMINISTRATIVE_MIB_SUPPORT = -DSR_SNMP_ADMIN_MIB
+
+SUPPORTED_PACKET_VERSIONS = \
+	$(SNMP_V1_PACKET) \
+	$(SNMP_V2C_PACKET) \
+	$(SNMP_V3_PACKET)
+
+SUPPORTED_PACKET_MIBS = \
+	$(SNMP_V1_PACKET_MIB) \
+	$(SNMP_V3_PACKET_MIB)
+
+SUPPORTED_APO_LEVEL =
+
+GENERATE_CONFIGURATION = \
+	-DSR_GENERATE_CONFIGURATION \
+	-DSR_GENERATE_SNMPV3_CONFIGURATION
+#	-DSR_GENERATE_OLD_STYLE_CONFIGURATION
+
+SNMP_OPTIONS = \
+	$(CUSTOMER_DEFINES)  \
+	$(EXPORT) \
+	$(SYS_OR_TABLE) \
+	$(TRANSPORT_TABLE) \
+	$(SUPPORTED_PACKET_VERSIONS) \
+	$(SUPPORTED_PACKET_MIBS) \
+	$(SUPPORTED_APO_LEVEL) \
+	$(SUPPORTED_SECURITY_MODELS) \
+	$(SUPPORTED_PRIVACY_PROTOCOLS) \
+	$(SUPPORTED_HASHING_ALGORITHMS) \
+	$(SNMPV3_COMPLIANCE_OPTIONS) \
+	$(SNMP_ADMINISTRATIVE_FRAMEWORK_VERSION) \
+	$(SNMP_ADMINISTRATIVE_MIB_SUPPORT) \
+	$(EPIC) $(EPICTEST) \
+	$(GENERATE_CONFIGURATION)
+
+
+#
+# Transports
+#
+
+IP_TRANSPORT = -DSR_IP
+
+IPX_TRANSPORT =
+
+TRANSPORTS = $(IP_TRANSPORT) $(IPX_TRANSPORT)
+
+
+DEFS = \
+	$(OS) \
+	$(DEBUG)   \
+	$(SR_OSTYPE) \
+	$(LIGHT) \
+	$(EXTRA_DEFS) \
+	$(TRANSPORTS)  \
+	$(SNMP_OPTIONS) \
+	$(SR_MIB_TABLE_HASHING) \
+	$(SR_CONFIG_FP) \
+	-DWANT_ALL_ERRORS
+
+COPTIONS = $(DEFS) $(SYSOPTS)
+CFLAGS = $(DEBUGFLAGS) $(COPTIONS) $(INC_DIRS)
+LINTFLAGS = $(DEFS) $(COPTIONS) $(INC_DIRS)
+
+LDFLAGS =
+
+#
+# Compile Commands
+#
+
+
+CORULE = $(CC) -c $(OSFLAGS) $(CFLAGS) -o $@ $(@F:.o=.c)
+THREADRULE = $(CC) -c $(OSFLAGS) $(CFLAGS) -o $@ $(@F:.o=.c)
+REMOTERULE = $(CC) -c $(OSFLAGS) $(CFLAGS) $(REMOTEFLAGS) -o $@ $(REMOTEDIR)/$(@F:.o=.c)
+REMOTERULE2 = $(CC) -c $(OSFLAGS) $(CFLAGS) $(REMOTEFLAGS) -o $@ $(REMOTEDIR2)/$(@F:.o=.c)
+MGRCORULE = $(CC) -c $(OSFLAGS) $(MGRCFLAGS) -o $@ $(@F:.o=.c)
+YACCRULE = $(CC) -c $(OSFLAGS) $(CFLAGS) -o $@ $(OSOBJDIR)/$(@F:.o=.c)
+MOSYRULE = $(CC) -c $(OSFLAGS) $(MGRCFLAGS) -o $@ $(SECLIBDIR)/$(@F:.o=.c)
+
+
+all: $(OSOBJDIR) $(SOURCELINKS) $(TARGETS)
+
+$(OSOBJDIR):
+	-mkdir $(OSOBJDIR)
+
+
+$(GETBULK): $(OSOBJDIR)/getbulk.$(OBJEXT) $(SNMPLIBS) $(SH_OBJS)
+	$(LD) $(LDFLAGS) -o $(GETBULK) $(OSOBJDIR)/getbulk.$(OBJEXT) $(SH_OBJS) $(SNMPLIBS) $(SOCKETLIBS) $(EXTRA_LIBS)
+	-$(CP) $(GETBULK) $(BINDIR)
+
+$(INFORM): $(OSOBJDIR)/inform.$(OBJEXT) $(SNMPLIBS) $(SH_OBJS)
+	$(LD) $(LDFLAGS) -o $(INFORM) $(OSOBJDIR)/inform.$(OBJEXT) $(SH_OBJS) $(SNMPLIBS) $(SOCKETLIBS) $(EXTRA_LIBS)
+	-$(CP) $(INFORM) $(BINDIR)
+
+
+$(GETID): $(OSOBJDIR)/getid.$(OBJEXT) $(SNMPLIBS) $(SH_OBJS)
+	$(LD) $(LDFLAGS) -o $(GETID) $(OSOBJDIR)/getid.$(OBJEXT) $(SH_OBJS) $(SNMPLIBS) $(SOCKETLIBS) $(EXTRA_LIBS)
+	-$(CP) $(GETID) $(BINDIR)
+
+$(GETMANY): $(OSOBJDIR)/getmany.$(OBJEXT) $(SNMPLIBS) $(SH_OBJS)
+	$(LD) $(LDFLAGS) -o $(GETMANY) $(OSOBJDIR)/getmany.$(OBJEXT) $(SH_OBJS) $(SNMPLIBS) $(SOCKETLIBS) $(EXTRA_LIBS)
+	-$(CP) $(GETMANY) $(BINDIR)
+
+$(GETMET): $(OSOBJDIR)/getmet.$(OBJEXT) $(SNMPLIBS) $(SH_OBJS)
+	$(LD) $(LDFLAGS) -o $(GETMET) $(OSOBJDIR)/getmet.$(OBJEXT) $(SH_OBJS) $(SNMPLIBS) $(SOCKETLIBS) $(EXTRA_LIBS)
+	-$(CP) $(GETMET) $(BINDIR)
+
+$(GETNEXT): $(OSOBJDIR)/getnext.$(OBJEXT) $(SNMPLIBS) $(SH_OBJS)
+	$(LD) $(LDFLAGS) -o $(GETNEXT) $(OSOBJDIR)/getnext.$(OBJEXT) $(SH_OBJS) $(SNMPLIBS) $(SOCKETLIBS) $(EXTRA_LIBS)
+	-$(CP) $(GETNEXT) $(BINDIR)
+
+$(GETONE): $(OSOBJDIR)/getone.$(OBJEXT) $(SNMPLIBS) $(SH_OBJS)
+	$(LD) $(LDFLAGS) -o $(GETONE) $(OSOBJDIR)/getone.$(OBJEXT) $(SH_OBJS) $(SNMPLIBS) $(SOCKETLIBS) $(EXTRA_LIBS)
+	-$(CP) $(GETONE) $(BINDIR)
+
+$(GETROUTE): $(OSOBJDIR)/getroute.$(OBJEXT) $(RT_OBJS) $(SNMPLIBS) 
+	$(LD) $(LDFLAGS) -o $(GETROUTE) $(OSOBJDIR)/getroute.$(OBJEXT) $(RT_OBJS) $(SNMPLIBS) $(SOCKETLIBS) $(EXTRA_LIBS)
+	-$(CP) $(GETROUTE) $(BINDIR)
+
+$(GETSUB): $(OSOBJDIR)/getsub.$(OBJEXT) $(RT_OBJS) $(SNMPLIBS)
+	$(LD) $(LDFLAGS) -o $(GETSUB) $(OSOBJDIR)/getsub.$(OBJEXT) $(RT_OBJS) $(SNMPLIBS) $(SOCKETLIBS) $(EXTRA_LIBS)
+	-$(CP) $(GETSUB) $(BINDIR)
+
+$(GETTAB): $(OSOBJDIR)/gettab.$(OBJEXT) $(SNMPLIBS) $(SH_OBJS)
+	$(LD) $(LDFLAGS) -o $(GETTAB) $(OSOBJDIR)/gettab.$(OBJEXT) $(SH_OBJS) $(SNMPLIBS) $(SOCKETLIBS) $(EXTRA_LIBS)
+	-$(CP) $(GETTAB) $(BINDIR)
+
+$(SETANY): $(OSOBJDIR)/setany.$(OBJEXT) $(SNMPLIBS) $(SH_OBJS)
+	$(LD) $(LDFLAGS) -o $(SETANY) $(OSOBJDIR)/setany.$(OBJEXT) $(SH_OBJS) $(SNMPLIBS) $(SOCKETLIBS) $(EXTRA_LIBS)
+	-$(CP) $(SETANY) $(BINDIR)
+
+$(TRAPRCV): $(OSOBJDIR)/traprcv.$(OBJEXT) $(SNMPLIBS) $(SH_OBJS)
+	$(LD) $(LDFLAGS) -o $(TRAPRCV) $(OSOBJDIR)/traprcv.$(OBJEXT) $(SH_OBJS) $(SNMPLIBS) $(SOCKETLIBS) $(EXTRA_LIBS)
+	-$(CP) $(TRAPRCV) $(BINDIR)
+
+
+$(TRAPSEND): $(OSOBJDIR)/trapsend.$(OBJEXT) $(SNMPLIBS) $(SH_OBJS)
+	$(LD) $(LDFLAGS) -o $(TRAPSEND) $(OSOBJDIR)/trapsend.$(OBJEXT) $(SH_OBJS) $(SNMPLIBS) $(SOCKETLIBS) $(EXTRA_LIBS)
+	-$(CP) $(TRAPSEND) $(BINDIR)
+
+
+clean:
+	-$(RM) $(OSOBJDIR)/* $(TARGETS) core *~ \#*
+	-$(RM) $(LIBDIR)/$(LLIB)getid.ln
+	-$(RM) $(LIBDIR)/$(LLIB)getbulk.ln
+	-$(RM) $(LIBDIR)/$(LLIB)inform.ln
+	-$(RM) $(LIBDIR)/$(LLIB)getmany.ln
+	-$(RM) $(LIBDIR)/$(LLIB)getmet.ln
+	-$(RM) $(LIBDIR)/$(LLIB)getnext.ln
+	-$(RM) $(LIBDIR)/$(LLIB)getone.ln
+	-$(RM) $(LIBDIR)/$(LLIB)getroute.ln
+	-$(RM) $(LIBDIR)/$(LLIB)getsub.ln
+	-$(RM) $(LIBDIR)/$(LLIB)gettab.ln
+	-$(RM) $(LIBDIR)/$(LLIB)traprcv.ln
+	-$(RM) $(LIBDIR)/$(LLIB)trapsend.ln
+	-$(RM) $(LIBDIR)/$(LLIB)setany.ln
+	-$(RMDIR) $(OSOBJDIR)
+
+lint: $(LIBDIR)/$(LLIB)getid.ln $(LIBDIR)/$(LLIB)getbulk.ln \
+	$(LIBDIR)/$(LLIB)inform.ln $(LIBDIR)/$(LLIB)getmany.ln \
+	$(LIBDIR)/$(LLIB)getmet.ln $(LIBDIR)/$(LLIB)getnext.ln \
+	$(LIBDIR)/$(LLIB)getone.ln $(LIBDIR)/$(LLIB)getroute.ln \
+	$(LIBDIR)/$(LLIB)getsub.ln $(LIBDIR)/$(LLIB)gettab.ln \
+	$(LIBDIR)/$(LLIB)traprcv.ln $(LIBDIR)/$(LLIB)trapsend.ln \
+	$(LIBDIR)/$(LLIB)setany.ln
+
+$(LIBDIR)/$(LLIB)getid.ln: getid.c
+	-$(LINT) $(LINTOPTS) $(LINTLIBOPT)getid $(LINTFLAGS) getid.c
+	$(MOVE) $(LLIB)getid.ln $(LIBDIR)
+
+$(LIBDIR)/$(LLIB)getbulk.ln: getbulk.c
+	-$(LINT) $(LINTOPTS) $(LINTLIBOPT)getbulk $(LINTFLAGS) getbulk.c
+	$(MOVE) $(LLIB)getbulk.ln $(LIBDIR)
+
+$(LIBDIR)/$(LLIB)inform.ln: inform.c
+	-$(LINT) $(LINTOPTS) $(LINTLIBOPT)inform $(LINTFLAGS) inform.c
+	$(MOVE) $(LLIB)inform.ln $(LIBDIR)
+
+$(LIBDIR)/$(LLIB)getmany.ln: getmany.c
+	-$(LINT) $(LINTOPTS) $(LINTLIBOPT)getmany $(LINTFLAGS) getmany.c
+	$(MOVE) $(LLIB)getmany.ln $(LIBDIR)
+
+$(LIBDIR)/$(LLIB)getmet.ln: getmet.c
+	-$(LINT) $(LINTOPTS) $(LINTLIBOPT)getmet $(LINTFLAGS) getmet.c
+	$(MOVE) $(LLIB)getmet.ln $(LIBDIR)
+
+$(LIBDIR)/$(LLIB)getnext.ln: getnext.c
+	-$(LINT) $(LINTOPTS) $(LINTLIBOPT)getnext $(LINTFLAGS) getnext.c
+	$(MOVE) $(LLIB)getnext.ln $(LIBDIR)
+
+$(LIBDIR)/$(LLIB)getone.ln: getone.c
+	-$(LINT) $(LINTOPTS) $(LINTLIBOPT)getone $(LINTFLAGS) getone.c
+	$(MOVE) $(LLIB)getone.ln $(LIBDIR)
+
+$(LIBDIR)/$(LLIB)getroute.ln: getroute.c
+	-$(LINT) $(LINTOPTS) $(LINTLIBOPT)getroute $(LINTFLAGS) getroute.c
+	$(MOVE) $(LLIB)getroute.ln $(LIBDIR)
+
+$(LIBDIR)/$(LLIB)getsub.ln: getsub.c
+	-$(LINT) $(LINTOPTS) $(LINTLIBOPT)getsub $(LINTFLAGS) getsub.c
+	$(MOVE) $(LLIB)getsub.ln $(LIBDIR)
+
+$(LIBDIR)/$(LLIB)gettab.ln: gettab.c
+	-$(LINT) $(LINTOPTS) $(LINTLIBOPT)gettab $(LINTFLAGS) gettab.c
+	$(MOVE) $(LLIB)gettab.ln $(LIBDIR)
+
+$(LIBDIR)/$(LLIB)traprcv.ln: traprcv.c
+	-$(LINT) $(LINTOPTS) $(LINTLIBOPT)traprcv $(LINTFLAGS) traprcv.c
+	$(MOVE) $(LLIB)traprcv.ln $(LIBDIR)
+
+$(LIBDIR)/$(LLIB)trapsend.ln: trapsend.c
+	-$(LINT) $(LINTOPTS) $(LINTLIBOPT)trapsend $(LINTFLAGS) trapsend.c
+	$(MOVE) $(LLIB)trapsend.ln $(LIBDIR)
+
+$(LIBDIR)/$(LLIB)setany.ln: setany.c
+	-$(LINT) $(LINTOPTS) $(LINTLIBOPT)setany $(LINTFLAGS) setany.c
+	$(MOVE) $(LLIB)setany.ln $(LIBDIR)
+
+
+$(OSOBJDIR)/common.$(OBJEXT): common.c
+	$(CORULE)
+
+$(OSOBJDIR)/globals.$(OBJEXT): globals.c
+	$(CORULE)
+
+
+$(OSOBJDIR)/getbulk.$(OBJEXT): getbulk.c
+	$(CORULE)
+
+$(OSOBJDIR)/inform.$(OBJEXT): inform.c
+	$(CORULE)
+
+$(OSOBJDIR)/prnt_rt.$(OBJEXT): prnt_rt.c
+	$(CORULE)
+
+$(OSOBJDIR)/getid.$(OBJEXT): getid.c
+	$(CORULE)
+
+$(OSOBJDIR)/getmany.$(OBJEXT): getmany.c
+	$(CORULE)
+
+$(OSOBJDIR)/getmet.$(OBJEXT): getmet.c
+	$(CORULE)
+
+$(OSOBJDIR)/getnext.$(OBJEXT): getnext.c
+	$(CORULE)
+
+$(OSOBJDIR)/getone.$(OBJEXT): getone.c
+	$(CORULE)
+
+$(OSOBJDIR)/getroute.$(OBJEXT): getroute.c
+	$(CORULE)
+
+$(OSOBJDIR)/getsub.$(OBJEXT): getsub.c
+	$(CORULE)
+
+$(OSOBJDIR)/gettab.$(OBJEXT): gettab.c
+	$(CORULE)
+
+$(OSOBJDIR)/setany.$(OBJEXT): setany.c
+	$(CORULE)
+
+$(OSOBJDIR)/traprcv.$(OBJEXT): traprcv.c
+	$(CORULE)
+
+
+$(OSOBJDIR)/trapsend.$(OBJEXT): trapsend.c
+	$(CORULE)
+
+
+# DO NOT DELETE THIS LINE -- make depend depends on it.
+
+$(OSOBJDIR)/getid.o: sr_utils.h ../include/sr_conf.h ../include/sr_vrsn.h
+$(OSOBJDIR)/getid.o: ../include/osconf/linux.h ../include/sr_featr.h
+$(OSOBJDIR)/getid.o: ../include/sr_type.h ../include/sr_time.h
+$(OSOBJDIR)/getid.o: ../include/sr_proto.h ../include/sr_snmp.h
+$(OSOBJDIR)/getid.o: ../include/sr_copyright.h ../include/sri/getport.h
+$(OSOBJDIR)/getid.o: ../include/sri/make_lib.h ../include/sri/free_lib.h
+$(OSOBJDIR)/getid.o: ../include/sri/bld_pkt.h ../include/sri/prse_pkt.h
+$(OSOBJDIR)/getid.o: ../include/sri/auth_lib.h ../include/sri/nvt_chk.h
+$(OSOBJDIR)/getid.o: ../include/sri/sigfunc.h ../include/sri/gettime.h
+$(OSOBJDIR)/getid.o: ../include/diag.h util_def.h ../include/lookup.h
+$(OSOBJDIR)/getid.o: ../include/v2table.h ../include/scan.h
+$(OSOBJDIR)/getid.o: ../include/snmpio.h ../include/snmpio.bsd
+$(OSOBJDIR)/getid.o: ../include/mib_tree.h ../include/prnt_lib.h
+$(OSOBJDIR)/getbulk.o: sr_utils.h ../include/sr_conf.h ../include/sr_vrsn.h
+$(OSOBJDIR)/getbulk.o: ../include/osconf/linux.h ../include/sr_featr.h
+$(OSOBJDIR)/getbulk.o: ../include/sr_type.h ../include/sr_time.h
+$(OSOBJDIR)/getbulk.o: ../include/sr_proto.h ../include/sr_snmp.h
+$(OSOBJDIR)/getbulk.o: ../include/sr_copyright.h ../include/sri/getport.h
+$(OSOBJDIR)/getbulk.o: ../include/sri/make_lib.h ../include/sri/free_lib.h
+$(OSOBJDIR)/getbulk.o: ../include/sri/bld_pkt.h ../include/sri/prse_pkt.h
+$(OSOBJDIR)/getbulk.o: ../include/sri/auth_lib.h ../include/sri/nvt_chk.h
+$(OSOBJDIR)/getbulk.o: ../include/sri/sigfunc.h ../include/sri/gettime.h
+$(OSOBJDIR)/getbulk.o: ../include/diag.h util_def.h ../include/lookup.h
+$(OSOBJDIR)/getbulk.o: ../include/v2table.h ../include/scan.h
+$(OSOBJDIR)/getbulk.o: ../include/snmpio.h ../include/snmpio.bsd
+$(OSOBJDIR)/getbulk.o: ../include/mib_tree.h ../include/prnt_lib.h
+$(OSOBJDIR)/inform.o: sr_utils.h ../include/sr_conf.h ../include/sr_vrsn.h
+$(OSOBJDIR)/inform.o: ../include/osconf/linux.h ../include/sr_featr.h
+$(OSOBJDIR)/inform.o: ../include/sr_type.h ../include/sr_time.h
+$(OSOBJDIR)/inform.o: ../include/sr_proto.h ../include/sr_snmp.h
+$(OSOBJDIR)/inform.o: ../include/sr_copyright.h ../include/sri/getport.h
+$(OSOBJDIR)/inform.o: ../include/sri/make_lib.h ../include/sri/free_lib.h
+$(OSOBJDIR)/inform.o: ../include/sri/bld_pkt.h ../include/sri/prse_pkt.h
+$(OSOBJDIR)/inform.o: ../include/sri/auth_lib.h ../include/sri/nvt_chk.h
+$(OSOBJDIR)/inform.o: ../include/sri/sigfunc.h ../include/sri/gettime.h
+$(OSOBJDIR)/inform.o: ../include/diag.h util_def.h ../include/lookup.h
+$(OSOBJDIR)/inform.o: ../include/v2table.h ../include/scan.h
+$(OSOBJDIR)/inform.o: ../include/snmpio.h ../include/snmpio.bsd
+$(OSOBJDIR)/inform.o: ../include/mib_tree.h ../include/prnt_lib.h
+$(OSOBJDIR)/getmany.o: ../include/sr_snmp.h ../include/sr_type.h
+$(OSOBJDIR)/getmany.o: ../include/sr_conf.h ../include/sr_vrsn.h
+$(OSOBJDIR)/getmany.o: ../include/osconf/linux.h ../include/sr_featr.h
+$(OSOBJDIR)/getmany.o: ../include/sr_proto.h ../include/sr_time.h
+$(OSOBJDIR)/getmany.o: ../include/sr_copyright.h ../include/sri/getport.h
+$(OSOBJDIR)/getmany.o: ../include/sri/make_lib.h ../include/sri/free_lib.h
+$(OSOBJDIR)/getmany.o: ../include/sri/bld_pkt.h ../include/sri/prse_pkt.h
+$(OSOBJDIR)/getmany.o: ../include/sri/auth_lib.h ../include/sri/nvt_chk.h
+$(OSOBJDIR)/getmany.o: ../include/sri/sigfunc.h ../include/sri/gettime.h
+$(OSOBJDIR)/getmany.o: sr_utils.h ../include/diag.h util_def.h
+$(OSOBJDIR)/getmany.o: ../include/lookup.h ../include/v2table.h
+$(OSOBJDIR)/getmany.o: ../include/scan.h ../include/snmpio.h
+$(OSOBJDIR)/getmany.o: ../include/snmpio.bsd ../include/mib_tree.h
+$(OSOBJDIR)/getmany.o: ../include/prnt_lib.h ../include/oid_lib.h
+$(OSOBJDIR)/getmet.o: sr_utils.h ../include/sr_conf.h ../include/sr_vrsn.h
+$(OSOBJDIR)/getmet.o: ../include/osconf/linux.h ../include/sr_featr.h
+$(OSOBJDIR)/getmet.o: ../include/sr_type.h ../include/sr_time.h
+$(OSOBJDIR)/getmet.o: ../include/sr_proto.h ../include/sr_snmp.h
+$(OSOBJDIR)/getmet.o: ../include/sr_copyright.h ../include/sri/getport.h
+$(OSOBJDIR)/getmet.o: ../include/sri/make_lib.h ../include/sri/free_lib.h
+$(OSOBJDIR)/getmet.o: ../include/sri/bld_pkt.h ../include/sri/prse_pkt.h
+$(OSOBJDIR)/getmet.o: ../include/sri/auth_lib.h ../include/sri/nvt_chk.h
+$(OSOBJDIR)/getmet.o: ../include/sri/sigfunc.h ../include/sri/gettime.h
+$(OSOBJDIR)/getmet.o: ../include/diag.h util_def.h ../include/lookup.h
+$(OSOBJDIR)/getmet.o: ../include/v2table.h ../include/scan.h
+$(OSOBJDIR)/getmet.o: ../include/snmpio.h ../include/snmpio.bsd
+$(OSOBJDIR)/getmet.o: ../include/mib_tree.h ../include/prnt_lib.h
+$(OSOBJDIR)/getmet.o: ../include/oid_lib.h
+$(OSOBJDIR)/getnext.o: sr_utils.h ../include/sr_conf.h ../include/sr_vrsn.h
+$(OSOBJDIR)/getnext.o: ../include/osconf/linux.h ../include/sr_featr.h
+$(OSOBJDIR)/getnext.o: ../include/sr_type.h ../include/sr_time.h
+$(OSOBJDIR)/getnext.o: ../include/sr_proto.h ../include/sr_snmp.h
+$(OSOBJDIR)/getnext.o: ../include/sr_copyright.h ../include/sri/getport.h
+$(OSOBJDIR)/getnext.o: ../include/sri/make_lib.h ../include/sri/free_lib.h
+$(OSOBJDIR)/getnext.o: ../include/sri/bld_pkt.h ../include/sri/prse_pkt.h
+$(OSOBJDIR)/getnext.o: ../include/sri/auth_lib.h ../include/sri/nvt_chk.h
+$(OSOBJDIR)/getnext.o: ../include/sri/sigfunc.h ../include/sri/gettime.h
+$(OSOBJDIR)/getnext.o: ../include/diag.h util_def.h ../include/lookup.h
+$(OSOBJDIR)/getnext.o: ../include/v2table.h ../include/scan.h
+$(OSOBJDIR)/getnext.o: ../include/snmpio.h ../include/snmpio.bsd
+$(OSOBJDIR)/getnext.o: ../include/mib_tree.h ../include/prnt_lib.h
+$(OSOBJDIR)/getone.o: sr_utils.h ../include/sr_conf.h ../include/sr_vrsn.h
+$(OSOBJDIR)/getone.o: ../include/osconf/linux.h ../include/sr_featr.h
+$(OSOBJDIR)/getone.o: ../include/sr_type.h ../include/sr_time.h
+$(OSOBJDIR)/getone.o: ../include/sr_proto.h ../include/sr_snmp.h
+$(OSOBJDIR)/getone.o: ../include/sr_copyright.h ../include/sri/getport.h
+$(OSOBJDIR)/getone.o: ../include/sri/make_lib.h ../include/sri/free_lib.h
+$(OSOBJDIR)/getone.o: ../include/sri/bld_pkt.h ../include/sri/prse_pkt.h
+$(OSOBJDIR)/getone.o: ../include/sri/auth_lib.h ../include/sri/nvt_chk.h
+$(OSOBJDIR)/getone.o: ../include/sri/sigfunc.h ../include/sri/gettime.h
+$(OSOBJDIR)/getone.o: ../include/diag.h util_def.h ../include/lookup.h
+$(OSOBJDIR)/getone.o: ../include/v2table.h ../include/scan.h
+$(OSOBJDIR)/getone.o: ../include/snmpio.h ../include/snmpio.bsd
+$(OSOBJDIR)/getone.o: ../include/mib_tree.h ../include/prnt_lib.h
+$(OSOBJDIR)/getroute.o: sr_utils.h ../include/sr_conf.h ../include/sr_vrsn.h
+$(OSOBJDIR)/getroute.o: ../include/osconf/linux.h ../include/sr_featr.h
+$(OSOBJDIR)/getroute.o: ../include/sr_type.h ../include/sr_time.h
+$(OSOBJDIR)/getroute.o: ../include/sr_proto.h ../include/sr_snmp.h
+$(OSOBJDIR)/getroute.o: ../include/sr_copyright.h ../include/sri/getport.h
+$(OSOBJDIR)/getroute.o: ../include/sri/make_lib.h ../include/sri/free_lib.h
+$(OSOBJDIR)/getroute.o: ../include/sri/bld_pkt.h ../include/sri/prse_pkt.h
+$(OSOBJDIR)/getroute.o: ../include/sri/auth_lib.h ../include/sri/nvt_chk.h
+$(OSOBJDIR)/getroute.o: ../include/sri/sigfunc.h ../include/sri/gettime.h
+$(OSOBJDIR)/getroute.o: ../include/diag.h util_def.h ../include/lookup.h
+$(OSOBJDIR)/getroute.o: ../include/v2table.h ../include/scan.h
+$(OSOBJDIR)/getroute.o: ../include/snmpio.h ../include/snmpio.bsd
+$(OSOBJDIR)/getroute.o: ../include/mib_tree.h ../include/prnt_lib.h
+$(OSOBJDIR)/getroute.o: ../include/oid_lib.h
+$(OSOBJDIR)/getsub.o: sr_utils.h ../include/sr_conf.h ../include/sr_vrsn.h
+$(OSOBJDIR)/getsub.o: ../include/osconf/linux.h ../include/sr_featr.h
+$(OSOBJDIR)/getsub.o: ../include/sr_type.h ../include/sr_time.h
+$(OSOBJDIR)/getsub.o: ../include/sr_proto.h ../include/sr_snmp.h
+$(OSOBJDIR)/getsub.o: ../include/sr_copyright.h ../include/sri/getport.h
+$(OSOBJDIR)/getsub.o: ../include/sri/make_lib.h ../include/sri/free_lib.h
+$(OSOBJDIR)/getsub.o: ../include/sri/bld_pkt.h ../include/sri/prse_pkt.h
+$(OSOBJDIR)/getsub.o: ../include/sri/auth_lib.h ../include/sri/nvt_chk.h
+$(OSOBJDIR)/getsub.o: ../include/sri/sigfunc.h ../include/sri/gettime.h
+$(OSOBJDIR)/getsub.o: ../include/diag.h util_def.h ../include/lookup.h
+$(OSOBJDIR)/getsub.o: ../include/v2table.h ../include/scan.h
+$(OSOBJDIR)/getsub.o: ../include/snmpio.h ../include/snmpio.bsd
+$(OSOBJDIR)/getsub.o: ../include/mib_tree.h ../include/prnt_lib.h
+$(OSOBJDIR)/getsub.o: ../include/oid_lib.h
+$(OSOBJDIR)/gettab.o: sr_utils.h ../include/sr_conf.h ../include/sr_vrsn.h
+$(OSOBJDIR)/gettab.o: ../include/osconf/linux.h ../include/sr_featr.h
+$(OSOBJDIR)/gettab.o: ../include/sr_type.h ../include/sr_time.h
+$(OSOBJDIR)/gettab.o: ../include/sr_proto.h ../include/sr_snmp.h
+$(OSOBJDIR)/gettab.o: ../include/sr_copyright.h ../include/sri/getport.h
+$(OSOBJDIR)/gettab.o: ../include/sri/make_lib.h ../include/sri/free_lib.h
+$(OSOBJDIR)/gettab.o: ../include/sri/bld_pkt.h ../include/sri/prse_pkt.h
+$(OSOBJDIR)/gettab.o: ../include/sri/auth_lib.h ../include/sri/nvt_chk.h
+$(OSOBJDIR)/gettab.o: ../include/sri/sigfunc.h ../include/sri/gettime.h
+$(OSOBJDIR)/gettab.o: ../include/diag.h util_def.h ../include/lookup.h
+$(OSOBJDIR)/gettab.o: ../include/v2table.h ../include/scan.h
+$(OSOBJDIR)/gettab.o: ../include/snmpio.h ../include/snmpio.bsd
+$(OSOBJDIR)/gettab.o: ../include/mib_tree.h ../include/prnt_lib.h
+$(OSOBJDIR)/gettab.o: ../include/oid_lib.h ../include/sri/vbtable.h
+$(OSOBJDIR)/gettab.o: ../include/sr_trans.h
+$(OSOBJDIR)/traprcv.o: ../include/sr_conf.h ../include/sr_vrsn.h
+$(OSOBJDIR)/traprcv.o: ../include/osconf/linux.h ../include/sr_featr.h
+$(OSOBJDIR)/traprcv.o: sr_utils.h ../include/sr_type.h ../include/sr_time.h
+$(OSOBJDIR)/traprcv.o: ../include/sr_proto.h ../include/sr_snmp.h
+$(OSOBJDIR)/traprcv.o: ../include/sr_copyright.h ../include/sri/getport.h
+$(OSOBJDIR)/traprcv.o: ../include/sri/make_lib.h ../include/sri/free_lib.h
+$(OSOBJDIR)/traprcv.o: ../include/sri/bld_pkt.h ../include/sri/prse_pkt.h
+$(OSOBJDIR)/traprcv.o: ../include/sri/auth_lib.h ../include/sri/nvt_chk.h
+$(OSOBJDIR)/traprcv.o: ../include/sri/sigfunc.h ../include/sri/gettime.h
+$(OSOBJDIR)/traprcv.o: ../include/diag.h util_def.h ../include/lookup.h
+$(OSOBJDIR)/traprcv.o: ../include/v2table.h ../include/scan.h
+$(OSOBJDIR)/traprcv.o: ../include/snmpio.h ../include/snmpio.bsd
+$(OSOBJDIR)/traprcv.o: ../include/mib_tree.h ../include/sr_trans.h
+$(OSOBJDIR)/traprcv.o: ../include/sr_msg.h ../include/v1_msg.h
+$(OSOBJDIR)/traprcv.o: ../include/oid_lib.h ../include/prnt_lib.h
+$(OSOBJDIR)/trapsend.o: sr_utils.h ../include/sr_conf.h ../include/sr_vrsn.h
+$(OSOBJDIR)/trapsend.o: ../include/osconf/linux.h ../include/sr_featr.h
+$(OSOBJDIR)/trapsend.o: ../include/sr_type.h ../include/sr_time.h
+$(OSOBJDIR)/trapsend.o: ../include/sr_proto.h ../include/sr_snmp.h
+$(OSOBJDIR)/trapsend.o: ../include/sr_copyright.h ../include/sri/getport.h
+$(OSOBJDIR)/trapsend.o: ../include/sri/make_lib.h ../include/sri/free_lib.h
+$(OSOBJDIR)/trapsend.o: ../include/sri/bld_pkt.h ../include/sri/prse_pkt.h
+$(OSOBJDIR)/trapsend.o: ../include/sri/auth_lib.h ../include/sri/nvt_chk.h
+$(OSOBJDIR)/trapsend.o: ../include/sri/sigfunc.h ../include/sri/gettime.h
+$(OSOBJDIR)/trapsend.o: ../include/diag.h util_def.h ../include/lookup.h
+$(OSOBJDIR)/trapsend.o: ../include/v2table.h ../include/scan.h
+$(OSOBJDIR)/trapsend.o: ../include/snmpio.h ../include/snmpio.bsd
+$(OSOBJDIR)/trapsend.o: ../include/mib_tree.h ../include/prnt_lib.h
+$(OSOBJDIR)/setany.o: sr_utils.h ../include/sr_conf.h ../include/sr_vrsn.h
+$(OSOBJDIR)/setany.o: ../include/osconf/linux.h ../include/sr_featr.h
+$(OSOBJDIR)/setany.o: ../include/sr_type.h ../include/sr_time.h
+$(OSOBJDIR)/setany.o: ../include/sr_proto.h ../include/sr_snmp.h
+$(OSOBJDIR)/setany.o: ../include/sr_copyright.h ../include/sri/getport.h
+$(OSOBJDIR)/setany.o: ../include/sri/make_lib.h ../include/sri/free_lib.h
+$(OSOBJDIR)/setany.o: ../include/sri/bld_pkt.h ../include/sri/prse_pkt.h
+$(OSOBJDIR)/setany.o: ../include/sri/auth_lib.h ../include/sri/nvt_chk.h
+$(OSOBJDIR)/setany.o: ../include/sri/sigfunc.h ../include/sri/gettime.h
+$(OSOBJDIR)/setany.o: ../include/diag.h util_def.h ../include/lookup.h
+$(OSOBJDIR)/setany.o: ../include/v2table.h ../include/scan.h
+$(OSOBJDIR)/setany.o: ../include/snmpio.h ../include/snmpio.bsd
+$(OSOBJDIR)/setany.o: ../include/mib_tree.h ../include/prnt_lib.h
+$(OSOBJDIR)/common.o: ../include/sr_conf.h ../include/sr_vrsn.h
+$(OSOBJDIR)/common.o: ../include/osconf/linux.h ../include/sr_featr.h
+$(OSOBJDIR)/common.o: sr_utils.h ../include/sr_type.h ../include/sr_time.h
+$(OSOBJDIR)/common.o: ../include/sr_proto.h ../include/sr_snmp.h
+$(OSOBJDIR)/common.o: ../include/sr_copyright.h ../include/sri/getport.h
+$(OSOBJDIR)/common.o: ../include/sri/make_lib.h ../include/sri/free_lib.h
+$(OSOBJDIR)/common.o: ../include/sri/bld_pkt.h ../include/sri/prse_pkt.h
+$(OSOBJDIR)/common.o: ../include/sri/auth_lib.h ../include/sri/nvt_chk.h
+$(OSOBJDIR)/common.o: ../include/sri/sigfunc.h ../include/sri/gettime.h
+$(OSOBJDIR)/common.o: ../include/diag.h util_def.h ../include/lookup.h
+$(OSOBJDIR)/common.o: ../include/v2table.h ../include/scan.h
+$(OSOBJDIR)/common.o: ../include/snmpio.h ../include/snmpio.bsd
+$(OSOBJDIR)/common.o: ../include/mib_tree.h ../include/sr_cfg.h
+$(OSOBJDIR)/common.o: ../include/snmpid.h ../include/sr_trans.h
+$(OSOBJDIR)/common.o: ../include/snmpv2.h ../include/ct_old.h
+$(OSOBJDIR)/common.o: ../include/sr_msg.h ../include/v1_msg.h
+$(OSOBJDIR)/common.o: ../include/oid_lib.h ../include/oidtranh.h
+$(OSOBJDIR)/common.o: ../include/tc_time.h ../include/prnt_lib.h
+$(OSOBJDIR)/common.o: ../include/sri/sr_kwmatch.h
+$(OSOBJDIR)/globals.o: ../include/sr_conf.h ../include/sr_vrsn.h
+$(OSOBJDIR)/globals.o: ../include/osconf/linux.h ../include/sr_featr.h
+$(OSOBJDIR)/globals.o: ../include/sr_type.h ../include/sr_snmp.h
+$(OSOBJDIR)/globals.o: ../include/sr_proto.h ../include/sr_time.h
+$(OSOBJDIR)/globals.o: ../include/sr_copyright.h ../include/sri/getport.h
+$(OSOBJDIR)/globals.o: ../include/sri/make_lib.h ../include/sri/free_lib.h
+$(OSOBJDIR)/globals.o: ../include/sri/bld_pkt.h ../include/sri/prse_pkt.h
+$(OSOBJDIR)/globals.o: ../include/sri/auth_lib.h ../include/sri/nvt_chk.h
+$(OSOBJDIR)/globals.o: ../include/sri/sigfunc.h ../include/sri/gettime.h
+$(OSOBJDIR)/globals.o: util_def.h

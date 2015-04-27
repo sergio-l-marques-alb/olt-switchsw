@@ -1,0 +1,88 @@
+HPEMANATE-MIB DEFINITIONS ::= BEGIN
+
+hp 		OBJECT IDENTIFIER ::= { enterprises 11 }
+nm		OBJECT IDENTIFIER ::= { hp 2 }
+snmpdConf	OBJECT IDENTIFIER ::= { nm 13 2 }
+
+
+
+snmpdConfRespond OBJECT-TYPE
+	SYNTAX	INTEGER {
+		    true(1),
+		    false(2)
+		}
+	ACCESS 	read-write
+	STATUS	mandatory
+	DESCRIPTION
+		"The SNMP agent was configured to respond to all
+		objects if snmpdConfRespond is true.  HP-Internal
+		use only."
+	::= { snmpdConf 1 }
+
+snmpdReConfigure OBJECT-TYPE
+	SYNTAX	INTEGER {
+		    reset(1)
+		}
+	ACCESS 	read-write
+	STATUS	mandatory
+	DESCRIPTION
+		"The agent will re-configure itself if
+		snmpdReConfigure is set to reset(1)"
+	::= { snmpdConf 2 }
+
+snmpdFlag OBJECT-TYPE
+	SYNTAX	INTEGER {
+		    removetrap(1),
+		    netwareproxy(2)
+		}
+	ACCESS 	read-only
+	STATUS	mandatory
+	DESCRIPTION
+		"Indicates the capability of the agent."
+	::= { snmpdConf 3 }
+
+snmpdLogMask	OBJECT-TYPE
+	SYNTAX	INTEGER
+	ACCESS 	read-write
+	STATUS	mandatory
+	DESCRIPTION
+		"The agent's log mask."
+	::= { snmpdConf 4 }
+
+snmpdVersion	OBJECT-TYPE
+	SYNTAX	INTEGER
+	ACCESS 	read-only
+	STATUS	mandatory
+	DESCRIPTION
+		"The agent's version number."
+	::= { snmpdConf 5 }
+
+snmpdStatus OBJECT-TYPE
+	SYNTAX	INTEGER {
+		    up(1),
+		    down(2)
+		}
+	ACCESS 	read-write
+	STATUS	mandatory
+	DESCRIPTION
+		"Indicates the status of the agent.  Setting 
+		the agent to down will kill it."
+	::= { snmpdConf 6 }
+
+snmpdSize OBJECT-TYPE
+	SYNTAX	INTEGER
+	ACCESS 	read-only
+	STATUS	mandatory
+	DESCRIPTION
+		"The amount of memory the agent has allocated."
+	::= { snmpdConf 7 }
+
+snmpdWhatString OBJECT-TYPE
+	SYNTAX	DisplayString
+	ACCESS 	read-only
+	STATUS	mandatory
+	DESCRIPTION
+		"The what string of the agent."
+	::= { snmpdConf 9 }
+
+END

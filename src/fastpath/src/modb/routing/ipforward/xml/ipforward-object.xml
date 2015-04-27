@@ -1,0 +1,89 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="routing" version="1.0" >
+<module name="inetCidrRoute" >
+<key-combo list="destinationIpAddress,prefixLen,nextHop"/>
+<object name="destinationType"  >
+<core  type="uint" key="yes" access="read-write" descr="The type of the inetCidrRouteDest address, as defined in the InetAddress MIB. Only those address types that may appear in an actual routing table are allowed as values of this object."/>
+<ui  name="Destination Address Type" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.4.24.7.1.1"/> 
+</ui></object>
+<object name="destinationIpAddress"  >
+<core  type="uint" key="yes" access="read-write" descr="The destination IP address of this route.The type of this address is determined by the value of the inetCidrRouteDestType object. The values for the index objects inetCidrRouteDest and inetCidrRoutePfxLen must be consistent. When the value of inetCidrRouteDest (excluding the zone index, if one is present) is x, then the bitwise logical-AND of x with the value of the mask formed from the corresponding index object inetCidrRoutePfxLen MUST be equal to x. If not, then the index pair is not consistent and an inconsistentName error must be returned on SET or CREATE requests."/>
+<ui  name="Destination IP Address" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.4.24.7.1.2"/> 
+</ui></object>
+<object name="prefixLen"  >
+<core  type="uint" key="yes" access="read-write" descr="Indicates the number of leading one bits which form the mask to be logical-ANDed with the destination address before being compared to the value in the inetCidrRouteDest field. The values for the index objects inetCidrRouteDest and inetCidrRoutePfxLen must be consistent.When the value of inetCidrRouteDest (excluding the zone index, if one is present) is x, then the bitwise logical-AND of x with the value of the mask formed from the corresponding index object inetCidrRoutePfxLen MUST be equal to x. If not, then the index pair is not consistent and an inconsistentName error must be returned on SET or CREATE requests."/>
+<ui  name="Prefix Length" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.4.24.7.1.3"/> 
+</ui></object>
+<object name="policy"  >
+<core  type="string" key="yes" access="read-write" descr="This object is an opaque object without any defined semantics. Its purpose is to serve as an additional index which may delineate between multiple entries to the same destination. The value { 0 0 } shall be used as the default value for this object."/>
+<ui  name="Policy" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.4.24.7.1.4"/> 
+</ui></object>
+<object name="nextHopType"  >
+<core  type="uint" key="yes" access="read-write" descr="The type of the inetCidrRouteNextHop address, as defined in the InetAddress MIB. Value should be set to unknown(0) for non-remote routes. Only those address types that may appear in an actual routing table are allowed as values of this object."/>
+<ui  name="Next Hop Address Type" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.4.24.7.1.5"/> 
+</ui></object>
+<object name="nextHop"  >
+<core  type="string" key="yes" access="read-write" descr="On remote routes, the address of the next system en route. For non-remote routes, a zero length string. The type of this address is determined by the value of the inetCidrRouteNextHopType object."/>
+<ui  name="Next Hop IP" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.4.24.7.1.6"/> 
+</ui></object>
+<object name="ifIndex" depends="destinationType,destinationIpAddress,prefixLen,policy,nextHopType,nextHop" >
+<core  type="uint" access="read-only" descr="The ifIndex value which identifies the local interface through which the next hop of this route should be reached. A value of 0 is valid and represents the scenario where no interface is specified."/>
+<ui  name="Interface" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.4.24.7.1.7"/> 
+</ui></object>
+<object name="type" depends="destinationType,destinationIpAddress,prefixLen,policy,nextHopType,nextHop" >
+<core  type="uint" access="read-only" descr="The type of route. Note that local(3) refers to a route for which the next hop is the final destination; remote(4)refers to a route for which the next hop is not the final destination. Routes which do not result in traffic forwarding or rejection should not be displayed even if the implementation keeps them stored internally. reject(2) refers to a route which, if matched, discards the message as unreachable and returns a notification(e.g. ICMP error) to the message sender. This is used in some protocols as a means of correctly aggregating routes. blackhole(5) refers to a route which, if matched, discards the message silently."/>
+<ui  name="Route Type" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.4.24.7.1.8"/> 
+</ui></object>
+<object name="protocol" depends="destinationType,destinationIpAddress,prefixLen,policy,nextHopType,nextHop" >
+<core  type="enum" xtype="L7_IP_CIDR_ROUTE_PROTO_t" access="read-only" descr="The routing mechanism via which this route was learned. Inclusion of values for gateway routing protocols is not intended to imply that hosts should support those protocols."/>
+<ui  name="Protocol" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.4.24.7.1.9"/> 
+</ui></object>
+<object name="metric1" depends="destinationType,destinationIpAddress,prefixLen,policy,nextHopType,nextHop" >
+<core  type="uint" access="read-only" descr="The primary routing metric for this route. The semantics of this metric are determined by the routing- protocol specified in the route's inetCidrRouteProto value. If this metric is not used, its value should be set to -1."/>
+<ui  name="Metric1" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.4.24.7.1.12"/> 
+</ui></object>
+<object name="metric2" depends="destinationType,destinationIpAddress,prefixLen,policy,nextHopType,nextHop" >
+<core  type="uint" access="read-only" descr="An alternate routing metric for this route. The semantics of this metric are determined by the routing protocol specified in the route's inetCidrRouteProto value. If this metric is not used, its value should be set to -1."/>
+<ui  name="Metric2" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.4.24.7.1.13"/> 
+</ui></object>
+<object name="metric3" depends="destinationType,destinationIpAddress,prefixLen,policy,nextHopType,nextHop" >
+<core  type="uint" access="read-only" descr="An alternate routing metric for this route. The semantics of this metric are determined by the routing- protocol specified in the route's inetCidrRouteProto value. If this metric is not used, its value should be set to -1."/>
+<ui  name="Metric3" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.4.24.7.1.14"/> 
+</ui></object>
+<object name="metric4" depends="destinationType,destinationIpAddress,prefixLen,policy,nextHopType,nextHop" >
+<core  type="uint" access="read-only" descr="An alternate routing metric for this route. The semantics of this metric are determined by the routing- protocol specified in the route's inetCidrRouteProto value. If this metric is not used, its value should be set to -1."/>
+<ui  name="Metric4" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.4.24.7.1.15"/> 
+</ui></object>
+<object name="metric5" depends="destinationType,destinationIpAddress,prefixLen,policy,nextHopType,nextHop" >
+<core  type="uint" access="read-only" descr="An alternate routing metric for this route. The semantics of this metric are determined by the routing- protocol specified in the route's inetCidrRouteProto value. If this metric is not used, its value should be set to -1."/>
+<ui  name="Metric5" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.4.24.7.1.16"/> 
+</ui></object>
+<object name="status" depends="destinationType,destinationIpAddress,prefixLen,policy,nextHopType,nextHop" >
+<core  type="row-status" xtype= "L7_ROW_STATUS_t" access="read-only" descr="The row status variable, used according to row installation and removal conventions. A row entry cannot be modified when the status is marked as active(1)."/>
+<ui  name="Status" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.4.24.7.1.17"/> 
+</ui></object>
+<object name="numberOfEntries"  >
+<core  type="uint" access="read-only" descr="The number of current inetCidrRouteTable entries that are not invalid."/>
+<ui  name="Number Of Entries" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.4.24.6"/> 
+</ui></object>
+</module>
+</objectxml>
+</FastPathXML>

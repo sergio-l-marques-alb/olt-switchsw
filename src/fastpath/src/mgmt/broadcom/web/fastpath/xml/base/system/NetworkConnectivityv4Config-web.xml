@@ -1,0 +1,93 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="NetworkConnectivityv4Config" title="Network Connectivity Configuration for IPv4">
+        <group id="1" level="ReadWriteUser" heading="IPv4">
+            <node id="1">
+                <element control="combo" obj-name="baseSystemInfo_sysAgentBasicConfigNetworkConfigProtocol" id="1" name="Network Configuration Protocol">
+                    <action invoke="onChange" type="enum" discard="no" enable="1_2_1|1_3_1|1_4_1" setval_ids="1_2_1|1_3_1|1_4_1" setval_args="Default_IPAddress|Default_IPAddress|Default_IPAddress" />
+                    <action type="enum" disable="1_2_1|1_3_1|1_4_1"/>
+                    <action type="enum" disable="1_2_1|1_3_1|1_4_1"/>
+                </element>
+            </node>
+            <node id="2">
+                <element obj-name="baseSystemInfo_sysIpAddr" id="1" name="IP Address" maxLength="15"/>
+            </node>
+            <node id="3">
+                <element obj-name="baseSystemInfo_sysIpNetMask" id="1" name="Subnet Mask" maxLength="15"/>
+            </node>
+            <node id="4">
+                <element obj-name="baseSystemInfo_sysAgentIpIfDefaultRouter" id="1" name="Default Gateway" maxLength="15"/>
+            </node>
+            <node id="5">
+                <element obj-name="basesysHardwareInfo_sysInventoryBurnedInMacAddr" id="1" name="Burned In MAC Address"/>
+            </node>
+            <node id="6">
+                <element obj-name="basesysHardwareInfo_sysLocalAdminMacAddr" id="1" name="Locally Administered MAC Address" run_if="SIM_ALLOW_LOCAL_MAC_USAGE_FEATURE" maxLength="17"/>
+            </node>
+            <node id="7">
+                <element control="combo" obj-name="basesysHardwareInfo_sysMacAddrType" id="1" name="MAC Address Type" run_if="SIM_ALLOW_LOCAL_MAC_USAGE_FEATURE">
+                  <action type="enum" disable="1_6_1"/>
+                  <action type="enum" disable="1_6_1"/>
+                  <action type="enum" enable="1_6_1" />
+                </element>  
+            </node>
+            <node id="8">
+                <element obj-name="baseSystemInfo_sysMgmtVlanId" id="1" name="Management VLAN ID" maxLength="10"/>
+            </node>
+            <node id="9">
+                <element control="combo" obj-name="baseSysWebConnection_sysWebMgmtMode" id="1" name="Web Mode"/>
+            </node>
+            <node id="10">
+                <element control="combo" obj-name="baseSysWebConnection_sysWebJavaMode" id="1" name="Java Mode"/>
+            </node>
+        </group>
+        <group id="2" level="ReadWriteUser" heading=" ">
+            <node id="1">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit" >
+                    <action type="button" disable="2_2_1"/>
+                </button>
+            </node>
+            <node id="2">
+                <button scope="page" type="buttonSubmit" target-page="NetworkConnectivityv4Config.html" value="0" obj-name="baseSystemInfo_renewDHCP" help="Submits the form on this page to the Switch" id="1" name="Renew DHCP IP Address">
+                    <action type="button" disable="2_1_1"/>
+                </button>
+            </node>    
+        </group>
+        <group id="3" level="ReadOnlyUser" heading=" ">
+            <node id="1">
+                <element control="label" obj-name="baseSystemInfo_sysAgentBasicConfigNetworkConfigProtocol" id="1" name="Network Configuration Protocol"/>
+            </node>
+            <node id="2">
+                <element control="label" obj-name="baseSystemInfo_sysIpAddr" id="1" name="IP Address"/>
+            </node>
+            <node id="3">
+                <element control="label" obj-name="baseSystemInfo_sysIpNetMask" id="1" name="Subnet Mask"/>
+            </node>
+            <node id="4">
+                <element control="label" obj-name="baseSystemInfo_sysAgentIpIfDefaultRouter" id="1" name="Default Gateway"/>
+            </node>
+            <node id="5">
+                <element control="label" obj-name="basesysHardwareInfo_sysInventoryBurnedInMacAddr" id="1" name="Burned In MAC Address"/>
+            </node>
+            <node id="6">
+                <element control="label" obj-name="basesysHardwareInfo_sysLocalAdminMacAddr" id="1" name="Locally Administered MAC Address" run_if="SIM_ALLOW_LOCAL_MAC_USAGE_FEATURE"/>
+            </node>
+            <node id="7">
+                <element control="label" obj-name="basesysHardwareInfo_sysMacAddrType" id="1" name="MAC Address Type" run_if="SIM_ALLOW_LOCAL_MAC_USAGE_FEATURE"/>
+            </node>
+            <node id="8">
+                <element control="label" obj-name="baseSystemInfo_sysMgmtVlanId" id="1" name="Management VLAN ID"/>
+            </node>
+            <node id="9">
+                <element control="label" obj-name="baseSysWebConnection_sysWebMgmtMode" id="1" name="Web Mode"/>
+            </node>
+            <node id="10">
+                <element control="label" obj-name="baseSysWebConnection_sysWebJavaMode" id="1" name="Java Mode"/>
+            </node>            
+        </group>
+    </webxml>
+</FastPathXML>

@@ -1,0 +1,468 @@
+.\"
+.\"
+.\" Copyright (C) 1992-2006 by SNMP Research, Incorporated.
+.\"
+.\" This software is furnished under a license and may be used and copied
+.\" only in accordance with the terms of such license and with the
+.\" inclusion of the above copyright notice. This software or any other
+.\" copies thereof may not be provided or otherwise made available to any
+.\" other person. No title to and ownership of the software is hereby
+.\" transferred.
+.\"
+.\" The information in this software is subject to change without notice
+.\" and should not be construed as a commitment by SNMP Research, Incorporated.
+.\"
+.\" Restricted Rights Legend:
+.\"  Use, duplication, or disclosure by the Government is subject to
+.\"  restrictions as set forth in subparagraph (c)(1)(ii) of the Rights
+.\"  in Technical Data and Computer Software clause at DFARS 252.227-7013;
+.\"  subparagraphs (c)(4) and (d) of the Commercial Computer
+.\"  Software-Restricted Rights Clause, FAR 52.227-19; and in similar
+.\"  clauses in the NASA FAR Supplement and other corresponding
+.\"  governmental regulations.
+.\"
+.\"
+.\"
+.\"                PROPRIETARY NOTICE
+.\"
+.\" This software is an unpublished work subject to a confidentiality agreement
+.\" and is protected by copyright and trade secret law.  Unauthorized copying,
+.\" redistribution or other use of this work is prohibited.
+.\"
+.\" The above notice of copyright on this source code product does not indicate
+.\" any actual or intended publication of such source code.
+.\"
+.\"
+.\"
+.\"
+.TH FreeOctetString SR_CLIBMAN "27 May 1996"
+.SH NAME
+.HP 5
+FreeOctetString, MakeOctetString, MakeOctetStringFromHex, MakeOctetStringFromText, PrintOctetString, SPrintOctetString, PrintAscii, SPrintAscii, CloneOctetString, CmpOctetStrings, CmpOctetStringsWithLen, IsDisplayString, ConvertToDisplayString, ConvertFromDisplayString
+\- routines for manipulating an octet string.
+.SH SYNOPSIS
+.LP
+void
+.br
+.BI FreeOctetString (os_ptr)
+.br
+OctetString \(**os_ptr;
+.LP
+OctetString \(**
+.br
+.BI MakeOctetString " (string, length) "
+.br
+unsigned char \(**string;
+.br
+SR_INT32 length;
+.LP
+OctetString \(**
+.br
+.BI MakeOctetStringFromHex (text_str)
+.br
+char \(**text_str;
+.LP
+OctetString \(**
+.br
+.BI MakeOctetStringFromText (text_str)
+.br
+char \(**text_str;
+.LP
+void
+.br
+.BI PrintOctetString " (oct_ptr, wrap) "
+.br
+OctetString \(**oct_ptr;
+.br
+int wrap;
+.br
+.LP
+void
+.br
+.BI SPrintOctetString " (oct_ptr, wrap, buf) "
+.br
+OctetString \(**oct_ptr;
+.br
+int wrap;
+.br
+char \(**buf;
+.br
+.LP
+int
+.br
+.BI PrintAscii " (os_ptr) "
+.br
+OctetString \(**os_ptr;
+.br
+.LP
+int
+.br
+.BI SPrintAscii " (os_ptr, buf) "
+.br
+OctetString \(**os_ptr;
+.br
+char \(**buf;
+.br
+.LP
+OctetString \(**
+.br
+.BI CloneOctetString " (oct_ptr) "
+.br
+OctetString \(**oct_ptr;
+.br
+.LP
+int
+.br
+.BI CmpOctetStrings " (o1, o2) "
+.br
+OctetString \(**o1;
+.br
+OctetString \(**o2;
+.br
+.LP
+int
+.br
+.BI CmpOctetStringsWithLen " (o1, o2) "
+.br
+OctetString \(**o1;
+.br
+OctetString \(**o2;
+.br
+.LP
+int
+.br
+.BI IsDisplayString " (os) "
+.br
+OctetString \(**os;
+.br
+.LP
+OctetString \(**
+.br
+.BI ConvertToDisplayString " (os) "
+.br
+OctetString \(**os;
+.br
+.LP
+int
+.br
+.BI ConvertFromDisplayString " (os) "
+.br
+OctetString \(**os;
+.SH DESCRIPTION
+.HP 5
+.I FreeOctetString 
+frees the data structures allocated and built by 
+calls to routines like MakeOctetString(SR_CLIBMAN) and MakeOctetStringFromHex(SR_CLIBMAN).
+.HP 5
+Returns nothing.
+.HP 5
+The parameter,
+.I os_ptr,
+is the pointer to the OctetString to be freed.
+.HP 5
+.I MakeOctetString 
+produces an OctetString structure from the two
+parameters passed to it.  This value may subsequently be used in
+calls to routines such as MakeVarBindWithValue(SR_CLIBMAN).  The 
+FreeOctetString(SR_CLIBMAN) routine can be used to free this structure 
+after the user is finished using it. 
+.HP 5
+.in+4
+\h'-10'
+On success: Returns the new OctetString structure.
+
+\h'-10'
+On failure: returns NULL.
+.HP 5
+The parameter, 
+.I string, 
+contains the value for the octet_ptr field of
+the OctetString structure (os_ptr\->octet_ptr).
+.HP 5
+The parameter, 
+.I length, 
+contains the value for the length field of
+the OctetString structure (os_ptr\->length). 
+.HP 5
+.I MakeOctetStringFromHex 
+produces an OctetString structure from the text
+string passed to it.  The format of the text string is a hexadecimal
+value (1 or more hex digits, upper or lower case) followed by a space,
+with more hex values and spaces to finish out the string.  For example,
+to create an octet string of length two with a hex 15 in the first 
+octet and a hex 3D in the second octet, the text string passed
+to this routine could be "15 3d" or "0x15 0x3D". The OctetString
+structure returned by a call to this routine can be freed by a call
+to FreeOctetString(SR_CLIBMAN).  However, this structure is most often passed
+to another library routine for inclusion in a larger ASN.1
+construct and another free routine will free up the memory. An example
+would be a call to MakeVarBindWithValue(SR_CLIBMAN).
+.HP 5
+.in+4
+\h'-10'
+On success: returns the newly created OctetString structure.
+
+\h'-10'
+On failure: returns NULL.
+.HP 5
+The parameter, 
+.I text_str, 
+contains the value for the octet_ptr field
+of the OctetString structure (os_ptr\->octet_ptr).
+.HP 5
+.I MakeOctetStringFromText 
+produces an OctetString structure from the text
+string passed to it.  The format of the text string is a string of
+ASCII characters.  For example,
+to create an octet string of length four, the text string passed
+to this routine could be "SNMP". The OctetString
+structure returned by a call to this routine can be freed by a call
+to FreeOctetString(SR_CLIBMAN).  However, this structure is most often passed
+to another library routine for inclusion in a larger ASN.1
+construct and another free routine will free up the memory. An example
+would be a call to MakeVarBindWithValue(SR_CLIBMAN).
+.HP 5
+.in+4
+\h'-10'
+On success: returns the newly created OctetString structure.
+
+\h'-10'
+On failure: returns NULL.
+.HP 5
+The parameter, 
+.I text_str, 
+contains the value for the octet_ptr field
+of the OctetString structure 
+(os_ptr\->octet_ptr).
+.HP 5
+.I PrintOctetString 
+prints out the contents of an OctetString's value
+in hexadecimal.  
+.HP 5
+Returns nothing.
+.HP 5
+The parameter, 
+.I oct_ptr, 
+contains the octet_ptr field of the OctetString
+structure (oct_ptr\->octet_ptr).  This is the string that should be 
+printed to the screen.
+.HP 5
+The parameter, 
+.I wrap, 
+indicates how many bytes to display on each line
+of output. The 
+.I wrap 
+argument is checked only if the length of the
+OctetString is greater than eight(8) octets.
+.HP 5
+.I SPrintOctetString 
+prints into buffer
+.I buf 
+the contents of an OctetString's value in hexadecimal.
+.HP 5
+Returns nothing.
+.HP 5
+The parameter, 
+.I oct_ptr, 
+contains the octet_ptr field of the OctetString
+structure (oct_ptr\->octet_ptr).  This is the string that will 
+be printed.
+.HP 5
+The parameter, 
+.I wrap, 
+indicates how many bytes to display on each line
+of output. The 
+.I wrap
+argument is checked only if the length of the
+OctetString is greater than eight(8) octets.
+.HP 5
+The parameter, 
+.I buf, 
+is a buffer which must be large enough to contain the formatted output string.
+.HP 5
+.I PrintAscii
+attempts to print to standard output the contents of an OctetString's
+value as an ASCII string. If
+.I os_ptr
+contains an octet which is not a printable character, no output is generated.
+.HP 5
+.in+4
+\h'-10'
+On success: returns 1.
+
+\h'-10'
+On failure: Returns -1.
+.HP 5
+The parameter,
+.I os_ptr,
+contains the octet_ptr field of the OctetString structure (os_ptr\->octet_ptr).
+This is the string that will be printed.
+.HP 5
+.I SPrintAscii
+attempts to print into buffer
+.I buf
+the contents of an OctetString's value as an ASCII string. If
+.I os_ptr
+contains an octet which is not a printable character, no output is generated. 
+.HP 5
+.in+4
+\h'-10'
+On success: returns 1.
+
+\h'-10'
+On failure: Returns -1.
+.HP 5
+The parameter,
+.I os_ptr,
+contains the octet_ptr field of the OctetString structure (os_ptr\->octet_ptr).
+This is the string that will be printed.
+.HP 5
+The parameter,
+.I buf,
+is a buffer which must be large enough to contain the formatted output string.
+.HP 5
+.I CloneOctetString
+creates a new OctetString with the same contents as the one pointed to by
+.I os_ptr. 
+It does not free or modify the input parameter.
+.HP 5
+.in+4
+\h'-10'
+On success: returns a pointer to the newly allocated OctetString.
+
+\h'-10'
+On failure: returns NULL.
+.HP 5
+.I CmpOctetStrings
+compares the value and length of two OctetStrings.
+.HP 5
+.in+4
+\h'-10'
+Returns 0 if
+.I o1
+is identical to
+.I o2.
+
+\h'-10'
+Returns a difference value similar to 
+.I strcmp()
+if 
+.I o1
+is not identical to
+.I o2. 
+.HP 5
+The parameters
+.I o1
+and
+.I o2
+must be non-NULL pointers to OctetString data structures.
+.HP 5
+.I CmpOctetStringsWithLen
+compares the value and length of two OctetStrings which contain the
+length encoded within the string. This is useful for comparing OctetStrings
+which are table indices.
+.HP 5
+.in+4
+\h'-10'
+Returns 0 if
+.I o1
+is identical to
+.I o2.
+
+\h'-10'
+Returns o1\->octet_ptr[i] - o2\->octet_ptr[i] if
+.I o1
+and
+.I o2
+are the same length but differ at the i-th octet. 
+
+\h'-10'
+Returns o1\->length - o2\->length if
+.I o1
+and
+.I o2
+are different lengths.
+.HP 5
+The parameters
+.I o1
+and
+.I o2
+must be non-NULL pointers to OctetString data structures.
+.HP 5
+.I IsDisplayString
+checks if the contents of an OctetString is a valid NVT ASCII string.
+.HP 5
+.in+4
+\h'-10'
+Returns 1 if the OctetString is printable.
+
+\h'-10'
+Returns 0 if the OctetString is not printable. 
+.HP 5
+The parameter
+.I os
+contains the octet_ptr field of the OctetString structure (os_ptr\->octet_ptr).
+This is the string that will be tested.
+.HP 5
+.I ConvertToDisplayString
+converts an OctetString to an NVT ASCII string. This consists of
+.HP 5
+1. Converting all newline characters to a carriage-return/linefeed
+pair, and 
+.HP 5
+2. Converting any single carriage-return characters which are not followed
+by a NULL character into a carriage-return/NULL pair.
+.HP 5
+.I ConvertToDisplayString
+allocates memory for a new OctetString. Upon successful completion,
+this function frees the OctetString pointed to by
+.I os.
+This function will fail if the
+.I os
+contains any non-printable characters.
+.HP 5
+.in+4
+\h'-10'
+On success: returns a pointer to the converted OctetString.
+
+\h'-10'
+On failure: returns NULL. 
+.HP 5
+The parameter
+.I os
+contains the octet_ptr field of the OctetString structure (os_ptr\->octet_ptr).
+This is the string that will be converted.
+.HP 5
+.I ConvertFromDisplayString
+converts an OctetString containing special character combinations required
+for NVT ASCII to a "normal" string which does not contain the extra
+characters. This function performs the inverse operation of 
+ConvertToDisplayString(SR_CLIBMAN). This consists of 
+.HP 5
+1. Converting carriage-return/linefeed pairs into a single newline
+character, and
+.HP 5
+2. Converting carriage-return/NULL pairs into a single carriage 
+return.
+.HP 5
+.I ConvertFromDisplayString
+modifies the DisplayString argument
+.I os
+to produce the new OctetString. This function will fail if there are any
+non-printable characters.
+.HP 5
+.in+4
+\h'-10'
+On success: returns 1. 
+
+\h'-10'
+On failure: returns 0.
+.HP 5
+The parameter
+.I os
+contains the octet_ptr field of the OctetString structure (os_ptr\->octet_ptr).
+This is the DisplayString that will be converted.
+.HP 5
+.SH EXAMPLES
+For an example of how these routines are used, please look at the printed
+documentation.

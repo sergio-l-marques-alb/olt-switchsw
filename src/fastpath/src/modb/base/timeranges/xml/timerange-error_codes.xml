@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "misc.dtd">
+<FastPathXML>
+  <misc version="1.0">
+<error name="NO_TIMERANGES_CONFIGURED" output="\nError! No TimeRanges are currently Configured."/>
+<error name="TIMERANGE_ID_ALREADY_EXISTS" output="\nError! Specified TimeRange ID already exists."/>
+<error name="TIMERANGE_NAME_ALREADY_EXISTS" output="\nError! Specified TimeRange name already exists."/>
+<error name="TIMERANGE_TABLE_FULL_ERROR" output="\nError! Exceeded Maximum number of TimeRanges. The maximum of 100 TimeRanges are already configured."/>
+<error name="TIMERANGE_ABS_ENTRY_ALREADY_EXISTS" output="\nError! Absolute Time Entry exists in the TimeRange."/>
+<error name="TIMERANGE_ENTRY_END_TIME_ERROR" output="\nError! Unable to set TimeRange Entry's End date and Time."/>
+<error name="TIMERANGE_ENTRY_START_TIME_ERROR" output="\nError! Unable to set TimeRange Entry's Start date and Time."/>
+<error name="TIMERANGE_ENTRY_ID_ALREADY_EXISTS" output="\nError! Specified TimeRange Entry ID is already configured."/>
+<error name="TIMERANGE_ENTRY_ID_INVALID" output="\nError! Specified TimeRange Entry ID is Invalid."/>
+<error name="TIMERANGE_ENTRY_ID_OUT_OF_RANGE"  output="\r\nError: Value ($$objValue$$) is out of range for Time Range Entry ID. The valid range is %d to %d." args="L7_TIMERANGE_MIN_RULE_NUM,L7_TIMERANGE_MAX_RULE_NUM"/>
+<error name="TIMERANGE_MAX_ENTRIES_ALREADY_CONFIGURED" output="\nError! Maximum number of TimeRange entries are already configured in the current TimeRange."/>
+<error name="TIMERANGE_ABS_ENTRY_ADD_ERROR" output="\nError! Neither Start Date and Time nor End Date and Time is specified for the Absolute time range entry."/>
+<error name="TIMERANGE_INVALID_START_DATE" output="\nError!  Invalid start date is specified for the Absolute time range entry."/>
+<error name="TIMERANGE_INVALID_END_DATE" output="\nError!  Invalid end date is specified for the Absolute time range entry."/>
+  </misc>
+</FastPathXML>

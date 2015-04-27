@@ -1,0 +1,26 @@
+#!/bin/sh
+
+export MODULE=fastpath-olt360
+export PLATFORMS="CXO360G-MX TOLT8G"
+
+export APPLICATION=fp
+
+#echo "Updating SVN..."
+#svn update
+
+echo "Compiling fastpath for OLT360..."
+make -C ../fastpath -f olt360.make all
+if [ $? -ne 0 ]; then
+ echo ERROR!!!
+ exit 1;
+fi
+echo "Copying binaries to apps..."
+make -C ../fastpath -f olt360.make install
+if [ $? -ne 0 ]; then
+ echo ERROR!!!
+ exit 1;
+fi
+echo "Done... Going to prepare tarball."
+echo
+
+. ./fastpath.build $1

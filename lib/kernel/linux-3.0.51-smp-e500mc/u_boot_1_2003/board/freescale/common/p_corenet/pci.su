@@ -1,0 +1,2 @@
+pci.c:31:6:pci_init_board	8	static
+pci.c:36:6:pci_of_setup	24	static

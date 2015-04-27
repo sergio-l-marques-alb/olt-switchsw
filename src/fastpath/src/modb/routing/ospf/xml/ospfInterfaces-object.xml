@@ -1,0 +1,289 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="routing" version="1.0">
+<module name="ospfInterface">
+<key-combo list="IpAddress,AddressLess"/>
+<object name="IpAddress">
+<core type="ipv4" key="yes" access="read-write" descr="The IP address of this OSPF interface."/>
+<ui name="IP Address" style="plainText">
+ <snmp asn-id="1.3.6.1.2.1.14.7.1.1"/> 
+</ui></object>
+<object name="AddressLess" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr="For the purpose of easing the instancing of addressed and addressless interfaces; This variable takes the value 0 on interfaces with IP Addresses, and the corresponding value of ifIndex for interfaces having no IP Address."/>
+<ui name="Unit/Slot/Port" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.14.7.1.2"/> 
+</ui></object>
+<object name="AddressLess" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr="For the purpose of easing the instancing of addressed and addressless interfaces; This variable takes the value 0 on interfaces with IP Addresses, and the corresponding value of ifIndex for interfaces having no IP Address."/>
+<ui name="Slot/Port" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.14.7.1.2"/> 
+</ui></object>
+<object name="AreaId" depends="IpAddress,AddressLess">
+<core type="user" xtype="ipv4_uint" access="read-write" descr="A 32-bit integer uniquely identifying the area to which the interface connects. Area ID 0.0.0.0 is used for the OSPF backbone."/>
+<ui name="Area Id" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.14.7.1.3"/> 
+</ui></object>
+<object name="Type" depends="IpAddress,AddressLess">
+<core type="enum" xtype="XUI_L7_OSPF_TYPE_t" access="read-write" descr="The OSPF interface type. By way of a default, this field may be intuited from the corresponding value of ifType. Broadcast LANs, such as Ethernet and IEEE 802.5, take the value &apos;broadcast&apos;, X.25 and similar technologies take the value &apos;nbma&apos;, and links that are definitively point to point take the value &apos;pointToPoint&apos;."/>
+<ui name="Type" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.14.7.1.4"/> 
+</ui></object>
+<object name="AdminStat" depends="IpAddress,AddressLess">
+<core type="enum" xtype="enable_t" access="read-write" descr="The OSPF interface&apos;s administrative status. The value formed on the interface, and the interface will be advertised as an internal route to some area. The value &apos;disabled&apos; denotes that the interface is external to OSPF."/>
+<ui name="Admin Status" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.14.7.1.5"/> 
+</ui></object>
+<object name="RtrPriority" depends="IpAddress,AddressLess">
+<core type="uint" access="read-write" default="L7_OSPF_INTF_PRIORITY_DEF" min="L7_OSPF_INTF_PRIORITY_MIN" max="L7_OSPF_INTF_PRIORITY_MAX" descr="The priority of this interface. Used in multi-access networks, this field is used in the designated router election algorithm. The value 0 signifies that the router is not eligible to become the designated router on this particular network. In the event of a tie in this value, routers will use their Router ID as a tie breaker."/>
+<ui name="Router Priority" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.14.7.1.6"/> 
+</ui></object>
+<object name="TransitDelay" depends="IpAddress,AddressLess">
+<core type="uint" access="read-write" default="L7_OSPF_INTF_TRANSMITDELAY_DEF" min="L7_OSPF_INTF_TRANSMITDELAY_MIN" max="L7_OSPF_INTF_TRANSMITDELAY_MAX" descr="The estimated number of seconds it takes to transmit a link state update packet over this interface."/>
+<ui name="Transmit Delay" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.14.7.1.7"/> 
+</ui></object>
+<object name="RetransInterval" depends="IpAddress,AddressLess">
+<core type="uint" access="read-write" default="L7_OSPF_INTF_RETRANSMIT_DEF" min="L7_OSPF_INTF_RETRANSMIT_MIN" max="L7_OSPF_INTF_RETRANSMIT_MAX" descr="The number of seconds between link-state advertisement retransmissions, for adjacencies belonging to this interface. This value is also used when retransmitting database description and link-state request packets."/>
+<ui name="Retransmit Interval" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.14.7.1.8"/> 
+</ui></object>
+<object name="HelloInterval" depends="IpAddress,AddressLess">
+<core type="uint" access="read-write" default="L7_OSPF_INTF_SECONDS_DEF" min="L7_OSPF_INTF_SECONDS_MIN" max="L7_OSPF_INTF_SECONDS_MAX" descr="The length of time, in seconds, between the Hello packets that the router sends on the interface. This value must be the same for all routers attached to a common network."/>
+<ui name="Hello Interval" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.14.7.1.9"/> 
+</ui></object>
+<object name="RtrDeadInterval" depends="IpAddress,AddressLess">
+<core type="uint" access="read-write" default="L7_OSPF_INTF_DEAD_DEF" min="L7_OSPF_INTF_DEAD_MIN" max="L7_OSPF_INTF_DEAD_MAX" descr="The number of seconds that a router&apos;s Hello packets have not been seen before it&apos;s neighbors declare the router down. This should be some multiple of the Hello interval. This value must be the same for all routers attached to a common network."/>
+<ui name="Router Dead Interval" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.14.7.1.10"/> 
+</ui></object>
+<object name="State" depends="IpAddress,AddressLess">
+<core type="enum" xtype="L7_OSPF_INTF_STATE_t" access="read-only" descr="The OSPF Interface State."/>
+<ui name="State" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.14.7.1.12"/> 
+</ui></object>
+<object name="DesignatedRouter" depends="IpAddress,AddressLess">
+<core type="ipv4" access="read-only" descr="The IP Address of the Designated Router."/>
+<ui name="Designated Router" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.14.7.1.13"/> 
+</ui></object>
+<object name="BackupDesignatedRouter" depends="IpAddress,AddressLess">
+<core type="ipv4" access="read-only" descr="The IP Address of the Backup Designated Router."/>
+<ui name="Backup Designated Router" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.14.7.1.14"/> 
+</ui></object>
+<object name="Events" depends="IpAddress,AddressLess">
+<core type="uint" access="read-only" descr="The number of times this OSPF interface has changed its state, or an error has occurred."/>
+<ui name="Events" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.14.7.1.15"/> 
+</ui></object>
+<object name="AuthKey" depends="IpAddress,AddressLess">
+<core type="string" access="read-write" descr="The Authentication Key. If the Area&apos;s Authorization Type is simplePassword, and the key length is shorter than 8 octets, the agent will left adjust and zero fill to 8 octets. Note that unauthenticated interfaces need no authentication key, and simple password authentication cannot use a key of more than 8 octets. Larger keys are useful only with authentication mechanisms not specified in this document. When read, ospfIfAuthKey always returns an Octet String of length zero."/>
+<ui name="Authentication Key" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.14.7.1.16"/> 
+</ui></object>
+<object name="Status" depends="IpAddress,AddressLess">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="This variable displays the status of the entry. Setting it to &apos;invalid&apos; has the effect of rendering it inoperative. The internal effect (row removal) is implementation dependent."/>
+<ui name="Status" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.14.7.1.17"/> 
+</ui></object>
+<object name="MulticastForwarding" depends="IpAddress,AddressLess">
+<core type="enum" xtype="L7_OSPF_INTF_XUI_TYPE_t" access="read-write" descr="The way multicasts should forwarded on this interface; not forwarded, forwarded as data link multicasts, or forwarded as data link unicasts. Data link multicasting is not meaningful on point to point and NBMA interfaces, and setting ospfMulticastForwarding to 0 effectively disables all multicast forwarding."/>
+<ui name="Multicast Forwarding" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.14.7.1.18"/> 
+</ui></object>
+<object name="Demand" depends="IpAddress,AddressLess">
+<core type="enum" xtype="L7_TrueFalse" access="read-write" descr="Indicates whether Demand OSPF procedures (hello supression to FULL neighbors and setting the DoNotAge flag on proogated LSAs) should be performed on this interface."/>
+<ui name="Demand" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.14.7.1.19"/> 
+</ui></object>
+<object name="AuthType" depends="IpAddress,AddressLess">
+<core type="enum" xtype="L7_XUI_AUTH_TYPES_t" access="read-write" descr="The authentication type specified for an interface. Additional authentication types may be assigned locally."/>
+<ui name="Authentication Type" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.14.7.1.20"/> 
+</ui></object>
+<object name="PollInterval" depends="IpAddress,AddressLess">
+<core type="uint" access="read-write" descr="The larger time interval, in seconds, between the Hello packets sent to an inactive non-broadcast multi-access neighbor."/>
+<ui name="Poll Interval" style="inputLine"/>
+</object>
+<object name="ConfigAdminMode" depends="IpAddress,AddressLess">
+<core type="enum" xtype="enable_t" access="read-only" descr="Gets the Ospf Admin mode configured for the specified interface"/>
+<ui name="Admin Mode" style="plainText"/>
+</object>
+<object name="ConfigAreaId" depends="IpAddress,AddressLess">
+<core type="ipv4" access="read-only" descr="Gets the Ospf Area Id configured on the specified interface"/>
+<ui name="Area Id" style="plainText"/>
+</object>
+<object name="ConfigSecondariesFlag" depends="IpAddress,AddressLess">
+<core type="enum" xtype="enable_t" access="read-only" descr="Gets the Ospf Secondary addresses advertisability setting configured on the specified interface"/>
+<ui name="Secondaries Flag" style="plainText"/>
+</object>
+<object name="LocalLinkOpaqueLSACksum" depends="IpAddress,AddressLess">
+<core type="uint" access="read-only" descr=" Gets the checksum of Local Link Opaque LSAs"/>
+<ui name="Link Local Opaque LSAs Checksum" style="plainText"/>
+</object>
+<object name="LocalLinkOpaqueLSAs" depends="IpAddress,AddressLess">
+<core type="uint" access="read-only" descr="Gets the total number of Local Link Opaque LSAs"/>
+<ui name="Number of Link Local Opaque LSAs" style="plainText"/>
+</object>
+<object name="LSAAckInterval" depends="IpAddress,AddressLess">
+<core type="uint" access="read-only" descr="Gets the Ospf LSA Acknowledgement Interval for the specified interface"/>
+<ui name="LSA Acknowledgement Interval" style="plainText"/>
+</object>
+<object name="SecondariesFlag" depends="IpAddress,AddressLess">
+<core type="enum" xtype="enable_t" access="read-write" descr="Gets/Set the Ospf Secondary addresses advertisability setting effective on the specified interface"/>
+<ui name="Secondaries Flag" style="choiceNselect1"/>
+</object>
+<object name="RtrIntfAllVirtIfEvents" depends="IpAddress,AddressLess">
+<core type="int" access="read-only" descr="Get the number of state changes or error events on this interface for all virtual links"/>
+<ui name="Number of Virtual Link Events" style="plainText"/>
+</object>
+<object name="RtrIntfAllNbrEventsCounter" depends="IpAddress,AddressLess">
+<core type="uint" access="read-only" descr="Get the Ospf Events counter of all neighbour on the specified interface."/>
+<ui name="Number of Neighbor events" style="plainText"/>
+</object>
+<object name="ospfIntfIPAddr" depends="IpAddress,AddressLess">
+<core type="ipv4" access="read-only" descr="Gets the Ospf IP Address for the specified interface."/>
+<ui name="IP Address" style="plainText"/>
+</object>
+<object name="AuthKeyId" depends="IpAddress,AddressLess">
+<core type="uint" access="read-write" min="L7_OSPF_AUTH_KEY_ID_MIN" max="L7_OSPF_AUTH_KEY_ID_MAX" descr="The identifier for the authentication key used on this interface. This field is only meaningful when the OSPF-MIB ospfIfAuthType is md5(2); otherwise, the value is not used."/>
+<ui name="Authentication Key Id" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.4.9.1.1"/> 
+</ui></object>
+<object name="IpMtuIgnoreFlag" depends="IpAddress,AddressLess">
+<core type="enum" xtype="enable_t" access="read-write" descr="Configures the IP MTU Ignore Flag value for this OSPF interface."/>
+<ui name="IP MTU Ignore Flag" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.4.9.1.2"/> 
+</ui></object>
+<object name="PassiveMode" depends="IpAddress,AddressLess">
+<core type="enum" xtype="enable_t" access="read-write" default="FD_OSPF_DEFAULT_PASSIVE_MODE" descr="Flag to determine whether the interface is passive. A passive interface will not participate in the OSPF adjacency formation."/>
+<ui name="Passive Mode" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.4.9.1.3"/> 
+</ui></object>
+
+<object name="AdvertiseSecondaries" depends="IpAddress,AddressLess">
+<core type="enum" xtype="enable_t" access="read-write" default="FD_OSPF_INTF_DEFAULT_SECONDARIES_FLAG" descr="Secondary address on interface is advertised as stub network in its router LSA."/>
+<ui name="Advertise Secondaries" style="choiceNselect1">
+</ui></object>
+<!-- The objects BdrRtrCount, ospfAsBdrRtrCount, LsaCount are added in ospfInterface module to be able to retrieve these values corresponding to the area configured on the interface from the interface module directly. This was to workaround a problem faced in displaying these area stats on the interface stats WEB page. -->
+<object name="BdrRtrCount" depends="Id">
+<core type="uint" access="read-only" descr="The total number of area border routers reachable within the area configured on this interface. This is initially zero, and is calculated in each SPF Pass."/>
+<ui name="Border Router Count" style="plainText">
+</ui></object>
+<object name="ospfAsBdrRtrCount" depends="Id">
+<core type="uint" access="read-only" descr="The total number of Autonomous System border routers reachable within this area configured on this interface. This is initially zero, and is calculated in each SPF Pass."/>
+<ui name="Autonomous System Border Routers Count" style="plainText">
+</ui></object>
+<object name="LsaCount" depends="Id">
+<core type="uint" access="read-only" descr="The total number of link-state advertisements in this area&apos;s link-state database, excluding AS External LSAs corresponding to the area configured on this interface."/>
+<ui name="Lsa Count" style="plainText">
+</ui></object>
+</module>
+
+<module name="ospfInterfaceStats">
+<object name="Interface" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr="Interface Number."/>
+<ui name="Unit/Slot/Port" style="inputLine">
+</ui></object>
+<object name="Interface" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr="Interface Number."/>
+<ui name="Slot/Port" style="inputLine">
+</ui></object>
+<object name="RxPackets" depends="Interface">
+<core type="uint" access="read-only" descr="The number of valid OSPF packets received on the interface."/>
+<ui name="Rx Packets" style="plainText">
+</ui></object>
+<object name="DiscardPackets" depends="Interface">
+<core type="uint" access="read-only" descr="The number of received OSPF packets discarded because of an error in the packet or an error in processing the packet."/>
+<ui name="Discarded Packets" style="plainText">
+</ui></object>
+<object name="BadVersion" depends="Interface">
+<core type="uint" access="read-only" descr="The number of received OSPF packets whose version field in the OSPF header does not match the version of the OSPF process handling the packet."/>
+<ui name="Bad Version Packets" style="plainText">
+</ui></object>
+<object name="BadNetwork" depends="Interface">
+<core type="uint" access="read-only" descr="The number of received packets discarded because the source IP address is not within a subnet configured on a local interface."/>
+<ui name="Bad Network Packets" style="plainText">
+</ui></object>
+<object name="BadVirtualLink" depends="Interface">
+<core type="uint" access="read-only" descr="The number of received OSPF packets discarded where the ingress interface is in a non-backbone area and the OSPF header identifies the packet as belonging to the backbone, but OSPF does not have a virtual link to the packet&apos;s sender."/>
+<ui name="Bad VirtualLink Packets" style="plainText">
+</ui></object>
+<object name="BadArea" depends="Interface">
+<core type="uint" access="read-only" descr="The number of OSPF packets discarded because the area ID in the OSPF header is not the area ID configured on the ingress interface."/>
+<ui name="Bad Area Packets" style="plainText">
+</ui></object>
+<object name="BadDstAdr" depends="Interface">
+<core type="uint" access="read-only" descr="The number of OSPF packets discarded because the packet&apos;s destination IP address is not the address of the ingress interface and is not the AllDrRouters or AllSpfRouters multicast addresses."/>
+<ui name="Bad Destination Address Packets" style="plainText">
+</ui></object>
+<object name="BadAuType" depends="Interface">
+<core type="uint" access="read-only" descr="The number of packets discarded because the authentication type specified in the OSPF header does not match the authentication type configured on the ingress interface."/>
+<ui name="Bad Authentication Type Packets" style="plainText">
+</ui></object>
+<object name="BadAuthentication" depends="Interface">
+<core type="uint" access="read-only" descr="The number of OSPF packets dropped failing the authentication on this interface."/>
+<ui name="Bad Authentication Packets" style="plainText">
+</ui></object>
+<object name="BadNeighbor" depends="Interface">
+<core type="uint" access="read-only" descr="The number of OSPF packets dropped because the sender is not an existing neighbor or the sender&apos;s IP address does not match the previously recorded IP address for that neighbor."/>
+<ui name="Bad Neighbor Packets" style="plainText">
+</ui></object>
+<object name="BadPckType" depends="Interface">
+<core type="uint" access="read-only" descr="The number of OSPF packets discarded because the packet type field in the OSPF header is not a known type."/>
+<ui name="Bad Packet Type Packets" style="plainText">
+</ui></object>
+<object name="TxPackets" depends="Interface">
+<core type="uint" access="read-only" descr="The number of OSPF packets transmitted on the interface."/>
+<ui name="Transmitted Packets" style="plainText">
+</ui></object>
+<object name="RxHellos" depends="Interface">
+<core type="uint" access="read-only" descr="The number of Hello packets received on this interface by this router."/>
+<ui name="Received Hello Packets" style="plainText">
+</ui></object>
+<object name="RxDbDescr" depends="Interface">
+<core type="uint" access="read-only" descr="The number of Database Description packets received on this interface by this router."/>
+<ui name="Received Database Description Packets" style="plainText">
+</ui></object>
+<object name="RxLsReq" depends="Interface">
+<core type="uint" access="read-only" descr="The number of LS Requests received on this interface by this router."/>
+<ui name="Received LS Request Packets" style="plainText">
+</ui></object>
+<object name="RxLsUpdate" depends="Interface">
+<core type="uint" access="read-only" descr="The number of LS updates received on this interface by this router."/>
+<ui name="Received LS Update packets" style="plainText">
+</ui></object>
+<object name="RxLsAck" depends="Interface">
+<core type="uint" access="read-only" descr="The number of LS acknowledgements received on this interface by this router."/>
+<ui name="Received LS Ack Packets" style="plainText">
+</ui></object>
+<object name="HellosIgnored" depends="Interface">
+<core type="uint" access="read-only" descr="The number of received Hello packets that were ignored by this router from the new neighbors after the limit has been reached for the number of neighbors on an interface or on the system as a whole."/>
+<ui name="Hellos Ignored" style="plainText">
+</ui></object>
+<object name="TxHellos" depends="Interface">
+<core type="uint" access="read-only" descr="The number of Hello packets sent on this interface by this router."/>
+<ui name="Hellos Transmitted" style="plainText">
+</ui></object>
+<object name="TxDbDescr" depends="Interface">
+<core type="uint" access="read-only" descr="The number of Database Description packets sent on this interface by this router."/>
+<ui name="Database Description Packets Transmitted" style="plainText">
+</ui></object>
+<object name="TxLsReq" depends="Interface">
+<core type="uint" access="read-only" descr="The number of LS Requests sent on this interface by this router."/>
+<ui name="LS Requests Transmitted" style="plainText">
+</ui></object>
+<object name="TxLsUpdate" depends="Interface">
+<core type="uint" access="read-only" descr="The number of LS updates sent on this interface by this router."/>
+<ui name="LS Update Packets Transmitted" style="plainText">
+</ui></object>
+<object name="TxLsAck" depends="Interface">
+<core type="uint" access="read-only" descr="The number of LS acknowledgements sent on this interface by this router."/>
+<ui name="LS Ack Packets Transmitted" style="plainText">
+</ui></object>
+</module>
+</objectxml>
+</FastPathXML>

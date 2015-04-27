@@ -1,0 +1,445 @@
+# This file defines link-level build rules and is included by make.magic.link.
+#
+
+# Local source path abbreviations (for convenience).
+#
+src_ipl        := bsp/cpu/common/linux/ipl
+src_tools      := bsp/cpu/common/linux/tools
+src_cpu_linux  := bsp/cpu/$(L7_CPU)/linux
+src_bld_utils  := src/l7tools/build/utils
+#src_cli_common := src/mgmt/$(L7_EMWEBPACKAGE)/cli/base/common
+ifeq (,$(UIMAGE_ADDR))
+UIMAGE_ADDR := 0
+endif
+
+# Define name and location of normal and stripped executable files.
+#
+exec_name      := switchdrvr
+
+
+# Define the STK_FILE and IMG_PARMS derived from either the package.cfg values
+# or from the system date information.
+#
+ifeq (ipl,$(PKGNAME))
+  ifneq (,$(filter-out clean cleanexe debug-variables,$(MAKECMDGOALS)))
+    -include $(STK_NAME_VARS_FILE)
+  endif
+endif
+
+
+# Set up image name variables (if not already defined in package.cfg).
+#
+# Note: Do not use a L7_BUILD_NUM of 0 in the case where values are being set
+#       from system date info so that file name will contain the 'b' portion.
+#
+ifeq (,$(strip $(rel_num)))
+  ifeq (0,$(L7_REL_NUM))
+    rel_num   := $(strip $(shell date +%_m))
+    ver_num   := $(strip $(shell date +%_d))
+    maint_num := $(strip $(shell date +%_H))
+    build_num := $(strip $(shell date +%_M))
+    ifeq (0,$(build_num))
+      build_num := 1
+    endif
+  else
+    rel_num   := $(L7_REL_NUM)
+    ver_num   := $(L7_VER_NUM)
+    maint_num := $(L7_MAINT_NUM)
+    build_num := $(L7_BUILD_NUM)
+  endif
+  export rel_num
+
+  ifneq (0,$(build_num))
+    build_num_field := b$(build_num)
+    stk_build_parm  := -b $(build_num)
+  endif
+endif
+
+
+# Capture the .stk image name variables in a file that is included above.
+#
+# Note: This is being done here to get a consistent set of values for both the
+#       file names and the input variables to mk_img.
+#
+$(STK_NAME_VARS_FILE): $(exec_name)
+	-$(DBG) $(RM) $(STK_NAME_VARS_FILE)
+	$(DBG) touch $(STK_NAME_VARS_FILE)
+	$(DBG) echo -e "export STK_FILE  := $(L7_BUILD_ID)r$(rel_num)v$(ver_num)m$(maint_num)$(build_num_field).stk" >> $(STK_NAME_VARS_FILE)
+	$(DBG) echo -e "export IMG_PARMS := -r $(rel_num) -v $(ver_num) -m $(maint_num) $(stk_build_parm)" >> $(STK_NAME_VARS_FILE)
+
+
+# Define location of the kernel file in the source tree.
+#
+ifeq (1,$(BLD_L7_TARGETOS_LINUX_24))
+  sysloc       := system24
+  sysloc_upper := SYSTEM24
+else
+  sysloc       := system
+  sysloc_upper := SYSTEM
+endif  
+
+# Define system source location.
+#
+src_system := $(FP_BASE)/$(src_cpu_linux)/$(sysloc)
+
+# Define output locations.
+#
+out_archives := $(FP_BASE)/$(OUT_ARCHIVES)
+out_base     := $(FP_BASE)/$(OUT_BASE)
+out_kmod     := $(FP_BASE)/$(OUT_KMOD)
+out_libs     := $(FP_BASE)/$(OUT_LIBS)
+out_system   := $(FP_BASE)/$(OUT_$(sysloc_upper))
+out_target   := $(FP_BASE)/$(OUT_TARGET)
+
+
+# Names of files into which various list of filenames are collected:
+#   - pkglib_file  :  All fp_*.lib filenames.
+#   - pkgarc_file  :  All linkable *.a filenames.
+#   - cpiolist_file:  Version of cpiolist file with modified path information.  
+#
+pkglib_file   := packageLibs
+pkgarc_file   := packageArcs
+cpiolist_file := cpiolist_mod
+
+
+# Name of debug symbols file used for 'devshell'.
+#
+# Note:  This is only needed if a CLI is present.
+#
+symbols_name := devshell_symbols.gz
+ifeq (1,$(BLD_L7_UI_HAS_CLI))
+  symbols_name_dep := $(symbols_name)
+endif
+ifeq (1,$(BLD_L7_UI_HAS_XCLI))
+  symbols_name_dep := $(symbols_name)
+endif
+
+
+# Name of text-based config file download executable used by boot menu (via rc.fastpath).
+#
+# Note:  This is only used if CLI is present.
+#
+#txtcfg_exe_name := fpTxtCfgComp.exe
+#ifeq (1,$(BLD_L7_PRODUCT_ENTERPRISE))
+# ifeq (1,$(BLD_L7_UI_HAS_CLI))
+#   txtcfg_exe_dep := $(out_target)/$(txtcfg_exe_name)
+# endif
+#endif
+
+# Garbage collection link option.
+#
+# In SMB/SP/Raptor Enterprise product, turn-on garbage collection link 
+# option to remove unused function/data for reducing code size.
+#
+gc_option :=
+ifeq (1,$(BLD_L7_PRODUCT_SMB))
+  gc_option := -Wl,-gc-sections
+endif
+
+ifeq (1,$(BLD_L7_PRODUCT_SMARTPATH))
+  gc_option := -Wl,-gc-sections
+endif
+
+ifeq (1,$(BLD_L7_CPU_RAPTOR))
+  gc_option := -Wl,-gc-sections
+endif
+
+# Platform-specific build rules (if any).
+#
+kernelobjs := 
+ifneq (,$(strip $(BROADCOM_SDK)))
+  out_kmod := $(FP_BASE)/$(OUT_ANDL)/vendor
+  -include $(FP_ROOT)/$(BROADCOM_SDK)/make/makerules.link.vendor
+endif
+
+
+# Define gzip flags per debugging mode.
+#
+ifneq (verbose,$(CMD_DISPLAY_MODE))
+  gzflags := -f9
+else
+  gzflags := -vf9
+endif  
+
+
+# The following objects are built during link processing (i.e. not part of
+# package libraries) so that they can be positioned properly in the start-group.
+#
+iplobjs := bootos.o
+
+
+kernel_src     := $(FP_BASE)/bsp/cpu/$(L7_CPU)/$(L7_TARGETOS)/$(sysloc)/vmlinux
+rootfs_src_dir := $(FP_BASE)/bsp/cpu/$(L7_CPU)/$(L7_TARGETOS)/$(sysloc)/rootfs
+
+
+# Define name of stripped/compressed kernel file to create.
+#
+# Non-Raptor uses the same file type for both 2.4 and 2.6.
+# Raptor uses different file types for 2.4 vs. 2.6.
+#
+ifeq (0,$(BLD_L7_STK_EXCLUDES_KERNEL))
+  kernel_zip := $(out_system)/vmlinux.bin.gz
+else
+  ifeq (1,$(BLD_L7_TARGETOS_LINUX_24))
+    kernel_zip := $(out_system)/vmlinux.str
+  else
+    kernel_zip := $(out_system)/kernel.tar
+  endif
+endif
+
+# Name of root file system zip file.
+#
+rootfs_zip := $(out_system)/rootfs_image.gz
+
+
+# Set up dependency variables to cause certain items to be built:
+#  - gzip'd kernel file
+#  - gzip'd root file system
+#
+# Note: These variables will be empty for platforms that don't support
+#       building the corresponding items.
+#
+kernel_dep = $(shell if [ -f $(kernel_src) ] ; then echo "$(kernel_zip)" ; fi)
+rootfs_dep = $(shell if [ -d $(rootfs_src_dir) ] ; then echo "$(rootfs_zip)" ; fi)
+
+uimage_entry = $(strip $(shell $(objdumpcmd) -t $(kernel_src) | grep __init_begin | cut -d g -f1))
+
+# Specific build targets.
+#
+
+# Note: bldlib target not used for linking.
+bldlib:
+	$(NOOP)
+
+#installexe:  mk_target_dir $(STK_FILE) mk_prom
+# PTin modified: avoid creating the STK file (which takes a long time!)
+installexe:  mk_target_dir $(symbols_name_dep) mk_prom
+	$(NOOP)
+
+# Note: convert target is not used for Linux builds.
+convert:
+	$(NOOP)
+
+clean cleanexe:: clean_linux_ipl
+	$(NOOP)
+
+
+# Loadable image.
+#
+
+.PHONY: mk_target_dir
+mk_target_dir:
+	+@[ -d $(out_target) ] || $(MKDIRP) $(out_target)
+
+ifeq (0,$(BLD_L7_CPU_LINUXHOST))
+%.stk: mk_stk extimage $(kernelobjs) $(exec_name) $(symbols_name_dep) $(kernel_dep) $(rootfs_dep) $(txtcfg_exe_dep)
+	$(CREATING_MSG)
+	$(DBG) $(STRIP) $(exec_name) -o $(out_target)/$(exec_name)  
+	$(DBG) $(FP_BASE)/src/l7tools/build/linux/mk_img \
+		-c $(L7_CPU) -t $(L7_BUILD_ID) -i $(L7_MODEL_ID) -a $(UIMAGE_ADDR) -e $(uimage_entry) \
+		$(IMG_PARMS) $(HUSH)
+else
+%.stk: $(exec_name) $(symbols_name_dep)
+	$(NOOP)
+endif
+
+$(symbols_name): $(exec_name)
+	$(CREATING_MSG)
+	-$(DBG) $(RM) $@
+	$(DBG) $(FP_BASE)/src/l7tools/build/gen_devshell_file.pl $(NM) $< $@ $(HUSH)
+
+$(exec_name): $(pkglib_file) $(pkgarc_file) $(iplobjs)
+	$(LINKING_MSG)
+	$(DBG) $(CC) -o $@ \
+		-Wl,-Map,$@.map \
+		-Wl,--relax \
+		-Wl,--start-group \
+			$(iplobjs) \
+			$$(cat $(pkglib_file) | xargs) \
+			$$(cat $(pkgarc_file) | xargs) \
+			$(VENDOR_LIBS) \
+		-Wl,--end-group \
+		$(gc_option) -lm \
+		-Wl,-Bstatic $(CPPLIBS) $(OSLIBS_STATIC) \
+		-Wl,-Bdynamic $(OSLIBS) \
+		$(GCOV_LINK)
+
+
+# Update list of fp_*.lib package libraries used for building loadable image.
+#
+# Add linkable object *.lib files to the list.
+#
+# Note: Relies on $(pkgarc_file) rule to extract linkable object files.
+#
+$(pkglib_file): $(wildcard $(out_libs)/$(FP_PREFIX)_*.lib) $(pkgarc_file)
+	$(CREATING_MSG)
+	-$(DBG) $(RM) $@
+	$(DBG) touch $@
+	$(DBG) find $(out_libs) -name "$(FP_PREFIX)_*.lib" -print | sort >> $@
+	$(DBG) if [[ -d $(out_archives) ]] ; \
+	then \
+		find $(out_archives) -name "*.lib" -print | sort >> $@ ; \
+	fi
+
+
+# Update list of .a package archives used for building loadable image.
+# Note: This is mainly intended for vendor code archives that cannot be pre-linked into a package lib.
+#
+# Extract linkable object files from FASTPATH_LIB and add its *.a files to the list.
+#
+# Copy Linux kernel modules (if exist) to their expected output location.
+#
+$(pkgarc_file): $(wildcard $(addsuffix /*.a,$(LIBARCS)))
+	$(CREATING_MSG)
+	$(DBG) if [[ -s $(FASTPATH_LIB) ]] ; \
+	then \
+		$(MKDIRP) $(out_archives) ; cd $(out_archives) ; $(AR) -x $(FASTPATH_LIB) ; \
+	fi
+	-$(DBG) $(RM) $@
+	$(DBG) touch $@
+	$(DBG) find $(LIBARCS) -name "*.a" -print | sort >> $@
+	$(DBG) if [[ -d $(out_archives) ]] ; \
+	then \
+		find $(out_archives) -name "*.a" -print | sort >> $@ ; \
+	fi
+	$(DBG) for i in $(L7_MODULE_LIST) ; \
+	do \
+		if [[ -f $(out_archives)/$$i ]] ; \
+		then \
+			$(MKDIRP) $(out_target) ; cp -pf $(out_archives)/$$i $(out_target) ; \
+		fi ; \
+	done
+
+
+clean_linux_ipl::
+	$(CLEANING_MSG)
+	-$(DBG) $(RM) $(QT)$(exec_name)$(QT)
+	-$(DBG) $(RM) $(QT)$(symbols_name)$(QT)
+	-$(DBG) $(RM) $(QT)*.map$(QT)
+	-$(DBG) $(RM) $(QT)*.a$(QT)
+	-$(DBG) $(RM) $(QT)*.o$(QT)
+	-$(DBG) $(RM) $(QT)*.d$(QT)
+	-$(DBG) $(RM) $(QT)*.stk$(QT)
+	-$(DBG) $(RM) $(QT)$(STK_NAME_VARS_FILE)$(QT)
+	-$(DBG) $(RM) $(QT)$(pkglib_file)$(QT)
+	-$(DBG) $(RM) $(QT)$(pkgarc_file)$(QT)
+	-$(DBG) $(RM) $(QT)$(cpiolist_file)$(QT)
+	-$(DBG) $(RM) $(QT)mk_stk$(QT)
+	-$(DBG) $(RM) $(QT)extimage$(QT)
+	-$(DBG) $(RM) $(QT)mk_prom$(QT)
+	-$(DBG) $(RM) $(QT)$(out_archives)/*$(QT)
+	-$(DBG) $(RM) $(QT)$(out_system)/*$(QT)
+	-$(DBG) $(RM) $(QT)$(out_target)/*$(QT)
+
+
+# Special build rules needed by this package
+#
+
+# Rules to create the Linux kernel file in various forms, driven by $(kernel_dep).
+# Note: Not all platforms use a kernel file.
+#
+
+# Create gzip'd Linux kernel.
+#
+$(out_system)/vmlinux.bin.gz: $(kernel_src)
+	$(CREATING_MSG)
+	$(DBG) mkdir -p $(out_system)
+	$(DBG) $(objcopycmd) -O binary $(OBJCOPYFLAGS) $< $(patsubst %.gz,%,$@)
+	$(DBG) gzip $(gzflags) $(patsubst %.gz,%,$@)
+
+
+# Create stripped-only Linux kernel.
+#
+$(out_system)/vmlinux.str: $(kernel_src)
+	$(CREATING_MSG)
+	$(DBG) mkdir -p $(out_system)
+	$(DBG) $(STRIP) $< -o $@
+
+# Create Linux uSystem
+#
+$(out_system)/uSystem: $(out_system)/vmlinux.bin.gz $(out_system)/rootfs_image.gz
+	$(CREATING_MSG)
+	$(DBG) mkdir -p $(out_system)
+	$(DBG) mkimage -A mips -O linux -T multi -C gzip -a $(UIMAGE_ADDR) -e $(uimage_entry) \
+		-n $(UIMAGE_TITLE) \
+		-d $(out_system)/vmlinux.bin.gz:$(out_system)/rootfs_image.gz \
+		$(out_system)/uSystem $(HUSH) $(REDIRERR)
+
+# Create Linux kernel tarball.
+# Need to change directory to $(out_system) to avoid the tarball having full path for the files.
+$(out_system)/kernel.tar: $(src_system)/UPDATE_KERNEL $(out_system)/uSystem
+	$(CREATING_MSG)
+	$(DBG) mkdir -p $(out_system)
+	$(DBG) cp -f $(src_system)/UPDATE_KERNEL $(out_system)
+	$(DBG) cd $(out_system) ; tar -cf kernel.tar uSystem UPDATE_KERNEL $(HUSH) $(REDIRERR)
+
+
+# Create compressed (stripped and gzip'd) Linux kernel.
+#
+$(out_system)/vmlinux.elf.gz: $(kernel_src)
+	$(CREATING_MSG)
+	$(DBG) mkdir -p $(out_system)
+	$(DBG) $(STRIP) $< -o $(patsubst %.gz,%,$@)
+	$(DBG) gzip $(gzflags) $(patsubst %.gz,%,$@)
+
+
+# Create gzip'd Linux root file system.
+#
+$(rootfs_zip): $(wildcard $(rootfs_src_dir)/*)
+	$(CREATING_MSG)
+	$(DBG) mkdir -p $(out_system)
+	$(DBG) sed -e 's#^\(file .* \)rootfs#\1$(rootfs_src_dir)#' <$(rootfs_src_dir)/cpiolist >$(cpiolist_file)
+	$(DBG) gen_init_cpio $(cpiolist_file) | gzip $(gzflags) > $@
+
+
+# Create the utility program to generate STK files.
+#
+mk_stk: $(FP_BASE)/$(src_bld_utils)/mk_stk.c \
+		$(FP_BASE)/src/l7public/common/stk.h
+	$(CREATING_MSG)
+	$(DBG) gcc $(GCCFLAGS) $(L7PUBLIC_INCLDIR) $< -o $@
+
+
+# Create utility program to extract image files.
+#
+extimage: $(FP_BASE)/$(src_bld_utils)/extimage.c \
+		$(FP_BASE)/src/l7public/common/stk.h \
+		$(FP_BASE)/$(src_bld_utils)/image.h
+ifeq (0,$(BLD_L7_CPU_LINUXHOST))
+	$(CREATING_MSG)
+	$(DBG) gcc $(GCCFLAGS) $(L7PUBLIC_INCLDIR) $< -o $@
+else
+	$(NOOP)
+endif
+
+
+# Create utility program to build the VPD file.
+#
+mk_prom: $(FP_BASE)/$(src_tools)/mk_prom.c \
+		$(FP_BASE)/$(src_tools)/crc16.c
+ifeq (0,$(BLD_L7_CPU_LINUXHOST))
+	$(CREATING_MSG)
+	$(DBG) gcc $(GCCFLAGS) -I. $(L7PUBLIC_INCLDIR) $(COMPONENT_INCLDIR) $(CFLAGSLOCAL) $(L7_OS_VERSION) -Wno-error $^ -o $@
+else
+	$(NOOP)
+endif
+
+
+# Build text-based config executable used by boot menu.
+#
+#txtcfg_deps    := $(out_base)/../os/osapi_file.o \
+#			$(out_base)/fp_zlib.a
+
+#txtcfg_c_flags := -I$(FP_BASE)/src/mgmt/cli/base/include \
+#			-I$(FP_BASE)/src/mgmt/util \
+#			-DFP_CFG_COMP_TOOL
+
+#$(out_target)/$(txtcfg_exe_name): $(out_system)/cli_txtcfg_util.o $(txtcfg_deps)
+#	$(CREATING_MSG)
+#	$(DBG) $(CC) $(txtcfg_c_flags) -o $@ $< $(txtcfg_deps) -lpthread
+#	$(DBG) $(STRIP) $@
+
+#$(out_system)/cli_txtcfg_util.o: $(FP_BASE)/$(src_cli_common)/cli_txtcfg_util.c
+#	$(CREATING_MSG)
+#	$(DBG) mkdir -p $(out_system)
+#	$(DBG) $(CC) $(CFLAGS) $(CFLAGSLOCAL) $(txtcfg_c_flags) -o $@ -c $<

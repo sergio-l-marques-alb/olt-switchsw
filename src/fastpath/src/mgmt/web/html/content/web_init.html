@@ -1,0 +1,2717 @@
+<HTML>
+<EMWEB_HEAD C='
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include "l7_common.h"
+    #include "log_exports.h"
+    #include "osapi.h"
+    #include "osapi_support.h"
+    #include "log.h"
+    #include "web.h"
+    #include "ewnet.h"
+    #include "web_tabs.h"
+    #include "sshd_api.h"
+    #include "usmdb_1213_api.h"
+    #include "usmdb_nim_api.h"
+    #include "usmdb_dot3ad_api.h"
+    #include "usmdb_mib_vlan_api.h"
+    #include "usmdb_dot1s_api.h"
+    #include "usmdb_dhcps_api.h"
+    #include "usmdb_sntp_api.h"
+    #include "usmdb_sshd_api.h"
+    #include "usmdb_sslt_api.h"
+    #include "usmdb_dot1x_api.h"
+    #include "usmdb_snooping_api.h"
+    #include "usmdb_mirror_api.h"
+    #include "usmdb_cnfgr_api.h"
+    #include "usmdb_filter_api.h"
+    #ifdef L7_WIRELESS_PACKAGE
+    #include "usmdb_wdm_client_security_api.h"
+    #endif
+    #include "usmdb_poe_api.h"
+ 
+    static L7_uint32 idx;
+    static L7_uint32 garpFlag;
+    static L7_char8  wBuf[1024];
+    static L7_char8  sBuf[256];
+
+    static L7_uint32 staticUINT32;
+
+    #if defined (L7_WIRELESS_PACKAGE) || defined (L7_CAPTIVE_PORTAL_PACKAGE)
+    static L7_uchar8 usmWebStaticBuffer[USMWEB_STATIC_BUFFER_SIZE];
+    #endif
+    /* ---------------------------------------------------------------------- */
+    /*  Utility Functions                                                     */
+    /* ---------------------------------------------------------------------- */
+    extern void      usmWebSetPreferableLanguage( void );
+    extern void      usmWebInitialize(void);
+    extern L7_uint32 usmWebNumActiveDot1qInterfacesGet(L7_uint32 unit);
+    extern L7_BOOL   usmWebComponentPresent(L7_char8 *compName);
+    extern L7_BOOL   usmWebFeaturePresent(L7_char8 *featureDescription);
+    extern L7_char8 *usmWebLogFormat(L7_char8 *msg);
+    extern L7_char8 *usmWebEventLogFormat(EwsContext ewsContext, L7_char8 *msg);
+
+
+    /* ---------------------------------------------------------------------- */
+    /*  trunk_cfg.html                                                        */
+    /* ---------------------------------------------------------------------- */
+    extern L7_uint32 usmWebCfgLagFirstGet(L7_uint32 unit);
+    extern L7_char8 *usmWebLagStatusMembersGet(L7_uint32 unit, L7_uint32 intIfNum);
+
+    /* ---------------------------------------------------------------------- */
+    /*  igmp_snuping_cfg.html                                                 */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebIGMPSnoopingInterfacesGet(L7_uint32 unit, L7_uchar8 family);
+    extern L7_uchar8 *usmWebSnoopQuerierVlanStatusGet(L7_uint32 vlanId, L7_uchar8 family);
+    extern L7_uchar8 *usmWebSnoopQuerierVlanCfgSummGet(L7_uint32 vlanId, L7_uchar8 family);
+
+    /* ---------------------------------------------------------------------- */
+    /*  mul_router_stats.html                                                 */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebVlanIDListGet(L7_uint32 selected_intIfNum);
+
+    /* ---------------------------------------------------------------------- */
+    /*  port_mac_locking.html                                                 */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebAgentPmlAdminModeGet(L7_uint32 unit);
+
+    /* ---------------------------------------------------------------------- */
+    /*  mac_filter_summ.html                                                  */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebFilterConfigurationGet(L7_uchar8 *macaddr, L7_uint32 vlanID);
+
+    /* ---------------------------------------------------------------------- */
+    /*  pbvlan_summ.html                                                      */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebPbVlanInfoGet(L7_uint32 unit, L7_uint32  groupId);
+
+
+    /* ---------------------------------------------------------------------- */
+    /*  sys_descr.html                                                        */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebSnmpMibSupportInfoNameGet(L7_uint32 unit, L7_uint32 idx);
+    extern L7_char8 *usmWebSysDescrGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSysNameGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSysLocationGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSysContactGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSysObjectIDGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSysUpTimeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebAgentMibCapabilityDescrGet(L7_uint32 unit);
+    /*  L7_char8 *usmWebAgentIpIfAddressGet(L7_uint32 unit); ** net_conn_cfg **/
+
+    /* ---------------------------------------------------------------------- */
+    /*  net_conn_cfg.html                                                     */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebAgentIpIfAddressGet(L7_uint32 unit);
+    extern L7_char8 *usmWebAgentIpIfNetMaskGet(L7_uint32 unit);
+    extern L7_char8 *usmWebAgentIpIfDefaultRouterGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwMacAddrTypeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwLocalMacAddrGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwBurnedInMacAddrGet(L7_uint32 unit);
+    extern L7_char8 *usmWebNetworkConfigProtocolCurrentGet(L7_uint32 unit);
+    extern L7_RC_t usmWebSubnetCompare(L7_uint32 unit, L7_uint32 switchIP, L7_uint32 switchNM);
+    extern L7_char8 *usmWebSwDevCtrlWebMgmtModeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebJavaModeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebMgmtVlanIdGet(L7_uint32 unit);
+    
+    /* ---------------------------------------------------------------------- */
+    /* ndp_summ.html                                                          */
+    /* ---------------------------------------------------------------------- */
+#if defined (L7_IPV6_PACKAGE) || defined (L7_IPV6_MGMT_PACKAGE)
+    extern L7_uint32 usmWebNetworkNdpCountGet(L7_uint32 unit);
+#endif
+
+    /* ---------------------------------------------------------------------- */
+    /*  qnp_port_cfg.html                                                     */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebQnpPortSettingsGet(L7_uint32 intIfNum);
+    extern L7_char8 *usmWebPortOptionsGet(L7_uint32 unit);
+    extern L7_uint32 usmWebQnPPvidGet(L7_uint32 slot, L7_uint32 port);
+    extern L7_uint32 usmWebQnPAcceptableFrameTypeGet(L7_uint32 slot, L7_uint32 port, L7_char8 *mode);
+    extern L7_uint32 usmWebQnPIngressFilterGet(L7_uint32 slot, L7_uint32 port, L7_char8 *mode);
+    extern L7_uint32 usmWebQnPGvrpGet(L7_uint32 slot, L7_uint32 port, L7_char8 *mode);
+
+    /* ---------------------------------------------------------------------- */
+    /*  port_cfg.html                                                         */
+    /* ---------------------------------------------------------------------- */
+    extern L7_uint32 usmWebPortCtrlSpecialPortTypeGet(L7_uint32 intIfNum, L7_char8 *ptype);
+    extern L7_uint32 usmWebPortCtrlSTPModeGet(L7_uint32 intIfNum, L7_char8 *mode);
+    extern L7_uint32 usmWebPortCtrlAdminModeGet(L7_uint32 intIfNum, L7_char8 *mode);
+    extern L7_uint32 usmWebPortCtrlPhysModeGet(L7_uint32 intIfNum, L7_char8 *mode);
+    extern L7_uint32 usmWebPortCtrlLinkTrapGet(L7_uint32 intIfNum, L7_char8 *trap);
+    extern L7_uint32 usmWebPortCtrlIfIndexGet(L7_uint32 intIfNum);
+    extern L7_uint32 usmWebPortCtrlSTPStatusGet(L7_uint32 intIfNum, L7_char8 *stpStatus);
+    extern L7_uint32 usmWebPortCtrlPhysStatusGet(L7_uint32 intIfNum, L7_char8 *physStatus);
+    extern L7_uint32 usmWebPortCtrlLinkStatusGet(L7_uint32 intIfNum, L7_char8 *linkStatus);
+
+    /* ---------------------------------------------------------------------- */
+    /*  hw_info.html                                                          */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebMachineTypeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebMachineModelGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwDevInfoSerialNumGet(L7_uint32 unit);
+    extern L7_char8 *usmWebFRUNumGet(L7_uint32 unit);
+    extern L7_char8 *usmWebPartNumGet(L7_uint32 unit);
+    extern L7_char8 *usmWebMaintLevelGet(L7_uint32 unit);
+    extern L7_char8 *usmWebManufacturerGet(L7_uint32 unit);
+    extern L7_char8 *usmWebAboutMacGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwVersionGet(L7_uint32 unit);
+    extern L7_char8 *usmWebOperSysGet(L7_uint32 unit);
+    extern L7_char8 *usmWebNPUcodeTypeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebAdditionalPackagesGet(L7_uint32 unit);
+
+    /* ---------------------------------------------------------------------- */
+    /*  serial_cfg.html                                                       */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebSerialTimeOutGet(L7_uint32 unit);
+    extern L7_char8 *usmWebAgentBasicConfigSerialBaudRateGet(L7_uint32 unit);
+
+    /* ---------------------------------------------------------------------- */
+    /*  switch_cfg.html                                                       */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebDot1dTpAgingTimeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwDevCtrlBcastStormModeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwDevCtrlMcastStormModeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwDevCtrlUcastStormModeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwDevCtrlBcastStormThresholdGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwDevCtrlMcastStormThresholdGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwDevCtrlUcastStormThresholdGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwDevCtrlFlowControlModeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebStaticCapabilityLagMode();
+
+    /* ---------------------------------------------------------------------- */
+    /*  telnet_cfg.html                                                       */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebAgentTelnetCtrlTimeoutGet(L7_uint32 unit);
+    extern L7_char8 *usmWebAgentTelnetCtrlNumSessionsGet(L7_uint32 unit);
+    extern L7_char8 *usmWebAgentTelnetCtrlNewSessionsGet(L7_uint32 unit);
+	extern L7_char8 *usmWebAgentTelnetServerAdminModeTimeoutGet(L7_uint32 unit);
+
+    /* ---------------------------------------------------------------------- */
+    /*  port_mon.html                                                         */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebSwPortMirrorModeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwPortMirrorDestPortGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwPortMirrorSourcePortGet(L7_uint32 unit);
+
+    /* ---------------------------------------------------------------------- */
+    /*  double_vlan_tag_summ.html                                                         */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebDVlanTunnelInfoGet(L7_uint32 unit, L7_uint32 intIfNum);
+
+    /* ---------------------------------------------------------------------- */
+    /*  file_upload.html                                                      */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebTftpUpResultGet(L7_uint32 unit);
+
+    /* ---------------------------------------------------------------------- */
+    /*  trap_flags_cfg.html                                                   */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebSwDevTrapAuthGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwDevTrapBcastStormGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwDevTrapLinkStatusGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwDevTrapMultiUsersGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwDevTrapSpanningTreeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwDevTrapPoEGet(L7_uint32 unit);
+    extern L7_char8 *usmWebAclTrapModeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebBgpTrapModeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebOspfTrapModeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebDvmrpTrapModeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebPimTrapModeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebCaptivePortalTrapModeGet(L7_uint32 unit);
+
+
+    /* ---------------------------------------------------------------------- */
+    /*  telnetc_cfg.html                                                      */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebTelnetAdminModeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebMaxSessionsGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSessionTimeoutGet(L7_uint32 unit);
+
+
+
+    /* ---------------------------------------------------------------------- */
+    /*  dhcp_global_cfg.html                                                  */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebAdminModeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebPingPacketCntGet(L7_uint32 unit);
+    extern L7_char8 *usmWebExcludedAddrGet(L7_uint32 unit);
+    extern L7_uint32 usmWebTotalExcludeRangesGet(L7_uint32 unit);
+    extern L7_char8 *usmWebConflictLoggingModeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebBootpAutomaticModeGet(L7_uint32 unit);
+
+
+
+    /* ---------------------------------------------------------------------- */
+    /*  dhcp_bindings_info.html                                                   */
+    /* ---------------------------------------------------------------------- */
+    extern L7_uint32 usmWebTotalBindingGet(L7_uint32 unit);
+
+
+
+    /* ---------------------------------------------------------------------- */
+    /*  dhcp_conflicts_info.html                                              */
+    /* ---------------------------------------------------------------------- */
+    extern L7_uint32 usmWebTotalConflictGet(L7_uint32 unit);
+
+
+    /* ---------------------------------------------------------------------- */
+    /*  dhcp_pool_options.html                                                */
+    /* ---------------------------------------------------------------------- */
+    extern L7_uint32 usmWebTotalOptionsCfgrdGet(L7_uint32 unit);
+
+    /* ---------------------------------------------------------------------- */
+    /* dhcp_snooping_binding_cfg.html                                         */
+    /* ---------------------------------------------------------------------- */
+    extern L7_RC_t usmWebStaticEntriesCountGet (L7_uint32 *count, L7_uint32 spage); 
+    extern L7_RC_t usmWebDynamicEntriesCountGet (L7_uint32 *count, L7_uint32 dpage); 
+    extern L7_BOOL usmDbDsIntfIsValid (L7_uint32 intf);
+    extern L7_RC_t usmDbDsPortEnabledGet (L7_uint32 intf, L7_BOOL *val);
+    extern L7_RC_t usmDbDsIntfTrustGet(L7_uint32 intIfNum, L7_BOOL *trust);
+    extern L7_char8 *usmWebDhcpL2RelayIntfStatsGet(L7_uint32 intIfNum);
+    extern L7_char8 *usmWebDhcpL2RelayIntfSubscEntryGet(L7_uint32  intIfNum,
+                                             L7_uchar8 *subscName);            
+    
+    /* ---------------------------------------------------------------------- */
+    /*  ipsg_binding_cfg.html                                                */
+    /* ---------------------------------------------------------------------- */
+ 
+    extern L7_RC_t usmWebIpsgStaticEntriesCountGet (L7_uint32 *count, L7_uint32 spage);
+    extern L7_RC_t usmWebIpsgDynamicEntriesCountGet (L7_uint32 *count, L7_uint32 dpage);
+
+    /* ---------------------------------------------------------------------- */
+    /*  dns_global_cfg.html                                                  */
+    /* ---------------------------------------------------------------------- */
+    extern L7_RC_t usmDbDNSClientDomainNameListGetNext(L7_char8 *next_domainname);
+    /* ---------------------------------------------------------------------- */
+    /*  dns_server_cfg_rw.html                                                */
+    /* ---------------------------------------------------------------------- */
+    extern L7_RC_t usmDbDNSClientNameServerEntryNextGet(L7_inet_addr_t *serverAddr);
+    /* ---------------------------------------------------------------------- */
+    /*  dns_host_summary_rw.html                                              */
+    /* ---------------------------------------------------------------------- */
+    extern L7_RC_t usmDbDNSClientStaticHostEntryNextGet(L7_char8  *hostname,
+                                                     L7_inet_addr_t *inetAddr);
+    /* ---------------------------------------------------------------------- */
+    /*  sntp_global_cfg.html                                                  */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebClientModeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebPortGet(L7_uint32 unit);
+    extern L7_char8 *usmWebUnicastPollIntervalGet(L7_uint32 unit);
+    extern L7_char8 *usmWebBroadcastPollIntervalGet(L7_uint32 unit);
+    extern L7_char8 *usmWebUnicastPollTimeoutGet(L7_uint32 unit);
+    extern L7_char8 *usmWebUnicastPollRetryGet(L7_uint32 unit);
+
+
+    /* ---------------------------------------------------------------------- */
+    /*  sntp_global_status.html                                                  */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebVersionGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSupportedModeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebLastUpdatedTimeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebLastAttemptTimeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebLastAttemptStatusGet(L7_uint32 unit);
+    extern L7_char8 *usmWebServerIPAddressGet(L7_uint32 unit);
+    extern L7_char8 *usmWebAddressTypeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebServerStratumGet(L7_uint32 unit);
+    extern L7_char8 *usmWebReferenceClockIdGet(L7_uint32 unit);
+    extern L7_char8 *usmWebServerModeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebUnicastServerMaxEntriesGet(L7_uint32 unit);
+    extern L7_char8 *usmWebUnicastServerCurrentEntriesGet(L7_uint32 unit);
+    extern L7_char8 *usmWebBroadcastCountGet(L7_uint32 unit);
+    extern L7_char8 *usmWebMulticastCountGet(L7_uint32 unit);
+
+
+    /* ---------------------------------------------------------------------- */
+    /*  stats_switch.html                                                     */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebSwitchIfIndexGet(L7_uint32 unit);
+    extern L7_char8 *usmWebMgtIfInOctetsGet(L7_uint32 unit);
+    extern L7_char8 *usmWebMgtEtherStatsPktsGet(L7_uint32 unit);
+    extern L7_char8 *usmWebMgtIfInUcastPktsGet(L7_uint32 unit);
+    extern L7_char8 *usmWebMgtEtherStatsMulticastPktsGet(L7_uint32 unit);
+    extern L7_char8 *usmWebMgtEtherStatsBroadcastPktsGet(L7_uint32 unit);
+    extern L7_char8 *usmWebMgtIfInDiscardsGet(L7_uint32 unit);
+    extern L7_char8 *usmWebMgtIfOutOctetsGet(L7_uint32 unit);
+    extern L7_char8 *usmWebMgtDot1dTpPortOutFramesGet(L7_uint32 unit);
+    extern L7_char8 *usmWebMgtIfOutUcastPktsGet(L7_uint32 unit);
+    extern L7_char8 *usmWebMgtTxMcastPktsGet(L7_uint32 unit);
+    extern L7_char8 *usmWebMgtTxBcastPktsGet(L7_uint32 unit);
+    extern L7_char8 *usmWebMgtIfOutDiscardsGet(L7_uint32 unit);
+    extern L7_char8 *usmWebMostAddrEntriesGet(L7_uint32 unit);
+    extern L7_char8 *usmWebActiveAddrEntriesGet(L7_uint32 unit);
+    extern L7_char8 *usmWebDot1qMaxSupportedVlansGet(L7_uint32 unit);
+    extern L7_char8 *usmWebMostVlanEntriesGet(L7_uint32 unit);
+    extern L7_char8 *usmWebStaticVlanEntriesGet(L7_uint32 unit);
+    extern L7_char8 *usmWebDynamicVlanEntriesGet(L7_uint32 unit);
+    extern L7_char8 *usmWebDot1qVlanNumDeletesGet(L7_uint32 unit);
+    extern L7_char8 *usmWebTimeSinceLastSwitchStatsResetGet(L7_uint32 unit);
+    extern L7_char8 *usmWebDot1dTpPortMaxInfoGet(L7_uint32 interface, L7_uint32 unit);
+    extern L7_char8 *usmWebIfInUnknownProtosGet(L7_uint32 interface, L7_uint32 unit);
+    extern L7_char8 *usmWebIfOutQLenGet(L7_uint32 interface, L7_uint32 unit);
+
+    /* ---------------------------------------------------------------------- */
+    /*  cos_intf_cfg_ro.html                                                  */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebCOSIntfCfgGet(L7_uint32 intIfNum);
+
+    /* ---------------------------------------------------------------------- */
+    /*  cos_intf_queue_status.html                                            */
+    /* ---------------------------------------------------------------------- */
+    extern L7_uint32 usmWebnumQGet(L7_uint32 unit);
+
+    /* ---------------------------------------------------------------------- */
+    /*  cos_intf_queue_dropprec_status.html                                   */
+    /* ---------------------------------------------------------------------- */
+    extern L7_uint32 usmWebnumLvlGet(L7_uint32 unit);
+
+    /* ---------------------------------------------------------------------- */
+    /*  reset_pwds.html                                                       */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebResetDone(L7_uint32 unit);
+
+    /* ---------------------------------------------------------------------- */
+    /*  stp_switch_cfg.html                                                   */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebDot1dStpProtocolSpecificationGet(L7_uint32 unit);
+    extern L7_char8 *usmWebStpBaseMacAddrGet(L7_uint32 unit);
+    extern L7_char8 *usmWebDot1dStpTopChangesGet(L7_uint32 unit);
+    extern L7_char8 *usmWebDot1dStpTimeSinceTopologyChangeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebDot1dStpDesignatedRootGet(L7_uint32 unit);
+    extern L7_char8 *usmWebDot1dStpRootPortGet(L7_uint32 unit);
+    extern L7_char8 *usmWebDot1dStpRootCostGet(L7_uint32 unit);
+    extern L7_char8 *usmWebDot1dStpMaxAgeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebDot1dStpHelloTimeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebDot1dStpForwardDelayGet(L7_uint32 unit);
+    extern L7_char8 *usmWebDot1dStpHoldTimeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebDot1dStpPriorityGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwDevCtrlSpanningTreeModeGet(L7_uint32 unit);
+
+
+    /* ---------------------------------------------------------------------- */
+    /*  stp_port_cfg.html                                                     */
+    /* ---------------------------------------------------------------------- */
+    extern L7_uint32 usmWebDot1dStpPortGet(L7_uint32 unit, L7_uint32 slot, L7_uint32 port);
+    extern L7_uint32 usmWebDot1dStpPortPriorityGet(L7_uint32 unit, L7_uint32 slot, L7_uint32 port);
+    extern L7_uint32 usmWebDot1dStpPortPathCostGet(L7_uint32 unit, L7_uint32 slot, L7_uint32 port);
+    extern L7_uint32 usmWebDot1dStpPortDesignatedCostGet(L7_uint32 unit, L7_uint32 slot, L7_uint32 port);
+    extern L7_uint32 usmWebDot1dStpPortDesignatedPortGet(L7_uint32 unit, L7_uint32 slot, L7_uint32 port);
+    extern L7_uint32 usmWebDot1dStpPortForwardTransitionsGet(L7_uint32 unit, L7_uint32 slot, L7_uint32 port);
+    extern L7_RC_t usmWebDot1dStpPortDesignatedBridgeGet(L7_uint32 unit, L7_uint32 slot, L7_uint32 port, L7_char8 *desig_bridge);
+    extern L7_RC_t usmWebDot1dStpPortStateGet(L7_uint32 unit, L7_uint32 slot, L7_uint32 port, L7_char8 *port_state);
+    extern L7_RC_t usmWebDot1dStpPortDesignatedRootGet(L7_uint32 unit, L7_uint32 slot, L7_uint32 port, L7_char8 *desig_root);
+    extern L7_RC_t usmWebSwPortCtrlSpanningTreeModeGet(L7_uint32 unit, L7_uint32 slot, L7_uint32 port, L7_char8 *stp_mode);
+    extern L7_char8 *usmWebSTPPortCfgSettingsGet(L7_uint32 unit);
+    extern L7_char8 *usmWebGetTpPortMaxFrameSizeGet(EwsContext ewsContext);
+    /* ---------------------------------------------------------------------- */
+    /*  mstp_switch.html                                                     */
+    /* ---------------------------------------------------------------------- */
+    extern L7_uchar8* usmWebDot1sMstiTableRowGet(L7_uint32 unit, L7_uint32 mstid);
+
+    /* ---------------------------------------------------------------------- */
+    /*  garp_cfg.html                                                         */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebGarpGvrpEnableGet(L7_uint32 unit);
+    extern L7_char8 *usmWebGarpJoinTimeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebGarpLeaveTimeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebGarpLeaveAllTimeGet(L7_uint32 unit);
+
+    /* ---------------------------------------------------------------------- */
+    /*  arp_cache.html                                                        */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebArpInfoSearch(L7_uint32 unit, usmdbArpEntry_t arpEntry);
+   
+    /* ---------------------------------------------------------------------- */
+    /*  dai_arp_acl_rule_cfg.html                                             */
+    /* ---------------------------------------------------------------------- */
+    extern L7_RC_t usmDbArpAclRuleInAclNextGet(L7_uchar8 *aclName, L7_uint32 ipAddrIn,
+                                               L7_enetMacAddr_t *macAddrIn,
+                                               L7_uint32 *ipAddrOut, L7_enetMacAddr_t *macAddrOut);
+    extern L7_RC_t usmDbArpAclNextGet(L7_uchar8 *aclName, L7_uchar8 *nextAclName);
+    
+    /* ---------------------------------------------------------------------- */
+    /*  dai_stats.html                                             */
+    /* ---------------------------------------------------------------------- */
+    extern L7_RC_t usmDbDaiVlanEnableGet(L7_uint32 vlanId, L7_uint32 *val);
+    extern L7_RC_t usmDbDaiVlanNextGet(L7_uint32 vlanId, L7_uint32 *nextVlanId);
+
+    /*----------------------------------------------------------------------- */
+    /* ipsubnet_vlan_summ.html                                                */
+    /*----------------------------------------------------------------------- */
+    extern L7_char8 *usmWebIpSubnetBasedVLANConfigurationGet(usmWeb_ipSubnetBasedVlanEntry_t ipSubnetVlan);
+
+    /* ---------------------------------------------------------------------- */
+    /*  file_download.html                                                    */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebTftpDownResultGet(L7_uint32 unit);
+
+    /* ---------------------------------------------------------------------- */
+    /*  trap_recvr_cfg.html                                                   */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8  *usmWebAgentIpTrapManagerStatusGet(L7_uint32 unit, L7_uint32 index);
+    extern L7_char8  *usmWebAgentIpTrapManagerCommGet(L7_uint32 unit, L7_uint32 index);
+    extern L7_char8  *usmWebAgentIpTrapManagerIpAddrGet(L7_uint32 unit, L7_uint32 index);
+    extern L7_char8  *usmWebTrapRecvrInfoGet(L7_uint32 unit);
+    extern L7_uint32  usmWebTrapCommunityFirstGet();
+
+    /* ---------------------------------------------------------------------- */
+    /*  snmp_comm_cfg.html                                                    */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8  *usmWebSnmpCommunityIpAddrGet(L7_uint32 unit, L7_uint32 index);
+    extern L7_char8  *usmWebSnmpCommunityIpMaskGet(L7_uint32 unit, L7_uint32 index);
+    extern L7_char8  *usmWebSnmpCommunityAccessLevelGet(L7_uint32 unit, L7_uint32 index);
+    extern L7_char8  *usmWebSnmpCommunityStatusGet(L7_uint32 unit, L7_uint32 index);
+    extern L7_char8  *usmWebSnmpCommunityNameGet(L7_uint32 unit, L7_uint32 index);
+    extern L7_char8  *usmWebSnmpCommunityInfoGet(L7_uint32 unit);
+    extern L7_uint32  usmWebSnmpCommunityFirstGet();
+
+    /* ---------------------------------------------------------------------- */
+    /*  snmp_mib_support.html                                                 */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebSnmpMibSupportInfoGet(L7_uint32 unit, L7_uint32 idx);
+
+    /* ---------------------------------------------------------------------- */
+    /*  ping.html                                                             */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebPingResultGet(L7_uint32 unit);
+    extern L7_char8 *usmWebPingCountGet(L7_uint32 unit);
+    /* ---------------------------------------------------------------------- */
+    /*  reset_cfg.html                                                        */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebAgentBasicConfigSystemResetGet(L7_uint32 unit);
+
+    /* ---------------------------------------------------------------------- */
+    /*  save_changes.html                                                     */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebSwDevCtrlSaveConfigurationGet(L7_uint32 unit);
+
+    /* ---------------------------------------------------------------------- */
+    /*  serv_port_cfg.html                                                    */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebAgentServicePortIpAddrGet(L7_uint32 unit);
+    extern L7_char8 *usmWebAgentServicePortNetMaskGet(L7_uint32 unit);
+    extern L7_char8 *usmWebAgentServicePortGatewayGet(L7_uint32 unit);
+    extern L7_char8 *usmWebAgentServPortBurnedInMacAddrGet();
+    extern L7_char8 *usmWebServPortConfigProtocolCurrentGet(L7_uint32 unit);
+    extern L7_char8 *usmWebBasicConfigServPortConfigProtocolDesiredGet(L7_uint32 unit);
+#if defined (L7_IPV6_PACKAGE) || defined (L7_IPV6_MGMT_PACKAGE)
+    extern L7_char8 *usmWebServiceNdpInfoGet(L7_uint32 unit);
+#endif
+    
+    /* ---------------------------------------------------------------------- */
+    /* serv_ndp_summ.html                                                     */
+    /*------------------------------------------------------------------------*/
+#if defined (L7_IPV6_PACKAGE) || defined (L7_IPV6_MGMT_PACKAGE)
+    extern L7_uint32 usmWebServiceNdpCountGet(L7_uint32 unit);
+#endif
+    
+    /* ---------------------------------------------------------------------- */
+    /*  stats_switch_summ.html                                                */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebMgtSwitchIfIndexGet(L7_uint32 unit);
+    extern L7_char8 *usmWebMgtRxGoodPktsGet(L7_uint32 unit);
+    extern L7_char8 *usmWebMgtIfInErrorsGet(L7_uint32 unit);
+    extern L7_char8 *usmWebMgtIfOutErrorsGet(L7_uint32 unit);
+    extern L7_char8 *usmWebDot1qNumVlansGet(L7_uint32 unit);
+
+    /* ---------------------------------------------------------------------- */
+    /*  stats_port_summ.html                                                  */
+    /* ---------------------------------------------------------------------- */
+    extern L7_uint32 usmWebSwPortCtrlIfIndexGet(L7_uint32 unit, L7_uint32 slot, L7_uint32 port);
+    extern L7_uint32 usmWebRxGoodPktsGet(L7_uint32 unit, L7_uint32 slot, L7_uint32 port);
+    extern L7_uint32 usmWebEtherStatsBroadcastPktsGet(L7_uint32 unit, L7_uint32 slot, L7_uint32 port);
+    extern L7_uint32 usmWebIfInErrorsGet(L7_uint32 unit, L7_uint32 slot, L7_uint32 port);
+    extern L7_uint32 usmWebDot1dTpPortOutFramesGet(L7_uint32 unit, L7_uint32 slot, L7_uint32 port);
+    extern L7_uint32 usmWebIfOutErrorsGet(L7_uint32 unit, L7_uint32 slot, L7_uint32 port);
+    extern L7_uint32 usmWebEtherStatsCollisionsGet(L7_uint32 unit, L7_uint32 slot, L7_uint32 port);
+    extern L7_RC_t usmWebTimeSinceLastResetGet(L7_uint32 unit, L7_uint32 slot, L7_uint32 port, L7_char8 *buf);
+    extern L7_char8 *usmWebPortStatsSettingsGet(void);
+
+    /* ---------------------------------------------------------------------- */
+    /*  stats_port.html                                                       */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebStatGet(EwsContext ewsContext, L7_uint32 stat_ctr, L7_uint32 descr_num);
+    extern L7_char8 *usmWebStatGet64(EwsContext ewsContext, L7_uint32 stat_ctr, L7_uint32 descr_num);
+    extern L7_char8 *usmWebGetPortGvrpFailedRegistrations(EwsContext ewsContext, L7_uint32 stat_ctr, L7_uint32 descr_num);
+    extern L7_char8 *usmWebGetTpPortMaxInfoGet(EwsContext ewsContext, L7_uint32 stat_ctr, L7_uint32 descr_num);
+    extern L7_char8 *usmWebDot1sStatGet(EwsContext ewsContext, L7_uint32 descr_num);
+
+    /* ---------------------------------------------------------------------- */
+    /*  trunk_cfg.html                                                        */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebGetSlotDotPort(L7_uint32 unit, L7_uint32 intIfNum);
+    extern L7_uint32 usmWebTotalPopulatedPortsGet(L7_uint32 unit);
+    extern L7_char8 *usmWebLagConfiguredMembersGet(L7_uint32 unit, L7_uint32 intIfNum);
+
+    /* ---------------------------------------------------------------------- */
+    /*  trap_log.html                                                         */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebSwDevInfoTrapsSinceLastResetGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwDevInfoTrapsSinceLastDisplayGet(L7_uint32 unit);
+    extern L7_char8 *usmWebTrapInfoLogGet(usmWebTrapLogEntry_t *trapLog);
+
+    /* ---------------------------------------------------------------------- */
+    /*  fwd_db_search.html                                                    */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebFDBSearch(L7_uint32 lvl7_flag, L7_uint32 unit, L7_uint32 filter, usmdbFdbEntry_t fdbEntry);
+    extern L7_RC_t   usmWebMacAddrGet(L7_BOOL search, L7_uchar8 *macBuf, usmdbFdbEntry_t *entry);
+
+    /* ---------------------------------------------------------------------- */
+    /*  trunk_info.html                                                       */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebLagStatusNameGet(L7_uint32 unit, L7_uint32 index);
+    extern L7_char8 *usmWebLagStatusIndexGet(L7_uint32 unit, L7_uint32 index);
+    extern L7_char8 *usmWebLagStatusFlushTimerGet(L7_uint32 unit, L7_uint32 index);
+    extern L7_char8 *usmWebLagStatusSpanStateGet(L7_uint32 unit, L7_uint32 index);
+    extern L7_char8 *usmWebLagStatusLinkStateGet(L7_uint32 unit, L7_uint32 index);
+    extern L7_char8 *usmWebLagStatusMembersGet(L7_uint32 unit, L7_uint32 index);
+    extern L7_char8 *usmWebLagInfoGet(L7_uint32 lagIntf);
+
+    /* ---------------------------------------------------------------------- */
+    /*  user_accounts.html                                                     */
+    /* ---------------------------------------------------------------------- */
+    extern L7_uint32 usmWebUserFirstGet();
+
+    /* ---------------------------------------------------------------------- */
+    /*  vlan_info.html                                                        */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebVlanNameGet(L7_uint32 unit, L7_uint32 index);
+    extern L7_char8 *usmWebVlanTypeGet(L7_uint32 unit, L7_uint32 index);
+    extern L7_char8 *usmWebVlanInfoGet(L7_uint32 unit, L7_uint32 vid);
+
+    /* ---------------------------------------------------------------------- */
+    /*  mfdb_stats.html                                                       */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebMfdbTotalEntriesGet(L7_uint32 unit);
+    extern L7_char8 *usmWebMfdbMaxEntriesGet(L7_uint32 unit);
+    extern L7_char8 *usmWebMfdbCurrEntriesGet(L7_uint32 unit);
+
+    /* ---------------------------------------------------------------------- */
+    /*  mfdb_table.html                                                       */
+    /* ---------------------------------------------------------------------- */
+    extern L7_RC_t  usmWebMacAddressGet(usmdbMfdbEntry_t *entry);
+    extern L7_char8 *usmWebMfdbTableInfoGet(L7_uint32 unit, usmWeb_MfdbEntry_t *entry);
+            
+    /* ---------------------------------------------------------------------- */
+    /*  mfdb_gmrp.html                                                        */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebMfdbGmrpTableInfoGet(L7_uint32 unit, usmWeb_MfdbEntry_t *entry);
+
+    /* ---------------------------------------------------------------------- */
+    /*  mfdb_igmp.html                                                        */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebMfdbIgmpTableInfoGet(L7_uint32 unit, usmWeb_MfdbEntry_t *entry);
+
+    /* ---------------------------------------------------------------------- */
+    /*  msti_cfg.html                                                         */
+    /* ---------------------------------------------------------------------- */
+    extern L7_uint32 usmWebDot1sMstiListFirstGet(L7_uint32 unit, L7_uint32 *buf, L7_uint32 *val);
+
+    /* ---------------------------------------------------------------------- */
+    /*  dot1x_summ.html                                                       */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebDot1xPortSummGet(L7_uint32 unit, L7_uint32 intf);
+    
+    /* ---------------------------------------------------------------------- */
+    /*  dot1x_status.html                                                     */
+    /* ---------------------------------------------------------------------- */
+    extern L7_uchar8 *usmWebDot1xPortDetailGet(L7_uint32 unit, L7_uint32 lIndex);
+
+    /* ---------------------------------------------------------------------- */
+    /*  dot1x_client_summ.html                                                */
+    /* ---------------------------------------------------------------------- */
+    extern L7_uchar8 *usmWebDot1xClientSummGet(L7_uint32 unit, L7_uint32 lIndex);
+
+    /* ---------------------------------------------------------------------- */
+    /*  dot1x_client_detail.html                                              */
+    /* ---------------------------------------------------------------------- */
+    L7_char8 *usmWebDot1xClientInfo(L7_uint32  lIntIfNum);
+
+    /* ---------------------------------------------------------------------- */
+    /*  apl_summ.html                                                         */
+    /* ---------------------------------------------------------------------- */
+    extern L7_uchar8* usmWebAPLSummGet(L7_uint32 unit, L7_uint32 val);
+
+    /* ---------------------------------------------------------------------- */
+    /*  apl_summ.html                                                         */
+    /* ---------------------------------------------------------------------- */
+    extern L7_uchar8* usmWebDot1xUsersGet(L7_uint32 unit, L7_uint32 val);
+    
+            
+    /* ---------------------------------------------------------------------- */
+    /*  apl_ssessions.html                                                    */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebAPLSessionsGet(L7_uint32 unit, L7_uint32 ind);
+
+
+    /* ---------------------------------------------------------------------- */
+    /*  poe_cfg.html                                                          */
+    /* ---------------------------------------------------------------------- */
+    extern L7_RC_t    usmDbIsPoeSupported(L7_uint32 unit);
+    extern L7_char8  *usmWebPoePortStatusGet(L7_uint32 unit, L7_uint32 intIfNum);
+
+    /* ---------------------------------------------------------------------- */
+    /*  poe_status.html                                                       */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebPoeStatusGet(EwsContext context, L7_uint32 unit, L7_uint32 intIfNum);
+
+    /* ---------------------------------------------------------------------- */
+    /*  slot_summary.html                                                     */
+    /* ---------------------------------------------------------------------- */
+    extern L7_uchar8* usmWebSlotSummary(L7_uint32 unit, L7_uint32 slot);
+
+    /* ---------------------------------------------------------------------- */
+    /*  supp_unit.html                                                        */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebSlotCardSummary(L7_uint32 slot, L7_uint32 cid);
+
+    /* ---------------------------------------------------------------------- */
+    /*  igmp_vlan_stats.html                                                */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebIgmpVlanGet(L7_uint32 unit, L7_uint32 vid, L7_uchar8 family);
+
+    /* ---------------------------------------------------------------------- */
+    /*  license_advance.html                                                  */
+    /* ---------------------------------------------------------------------- */
+    extern L7_uint32 usmWebTotalfunctionsGet(L7_uint32 unit);
+
+
+    /* ----------------------------------------------------------------------- */
+    /* port_mac_locking_status.html                                            */
+    /* ----------------------------------------------------------------------- */
+    extern L7_char8 *usmWebAgentPmlViolationStatusGet(L7_uint32 intIfNum, L7_uint32 unit);
+
+    /* ----------------------------------------------------------------------- */
+    /* port_mac_locking_setup.html                                            */
+    /* ----------------------------------------------------------------------- */
+
+    extern L7_char8 *usmWebAgentIntIfPmlAdminModeGet(L7_uint32 unit, L7_uint32 intIfNum);
+    extern L7_char8 *usmWebAgentIntIfPmlStaticMaxLimitGet(L7_uint32 unit, L7_uint32 intIfNum);
+    extern L7_char8 *usmWebAgentIntIfPmlDynamicMaxLimitGet(L7_uint32 unit, L7_uint32 intIfNum);
+    extern L7_char8 *usmWebAgentIntIfPmlViolationTrapModeGet(L7_uint32 unit, L7_uint32 intIfNum);
+
+    /* ----------------------------------------------------------------------- */
+    /* port_mac_locking_static.html                                            */
+    /* ----------------------------------------------------------------------- */
+    extern L7_char8 *usmWebAgentPmlStaticAddrGet(L7_uint32 intIfNum, L7_uint32 unit);
+
+    /* ----------------------------------------------------------------------- */
+    /* port_mac_locking_dynamic.html                                            */
+    /* ----------------------------------------------------------------------- */
+    extern L7_RC_t usmWebAgentPmlDynamicAddrGet(pmlEntry_t pmlEntry, L7_uchar8 *buffer, L7_uint32 bufSize);
+    extern L7_char8 *usmWebAgentIntIfPmlDynamicNumEntriesGet(L7_uint32 unit, L7_uint32 intIfNum);
+
+    /*-------------------------------------------------------------------------*/
+    /* DHCP Filtering Pages                                                     */
+    /*-------------------------------------------------------------------------*/
+    extern L7_char8 *usmWebDhcpFilteringIntfConfigGet(L7_uint32 unit, L7_uint32 intfIfNum);
+
+
+    /* ---------------------------------------------------------------------- */
+    /* /stacking/unit_config.html                                             */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebAgentSpmFpsConfigQosModeGet(L7_uint32 unit);
+
+    /* ---------------------------------------------------------------------- */
+    /* /stacking/port_counters.html                                           */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebAgentSpmStackingCapablePortNextGet(SPM_STACK_PORT_ENTRY_t port_entry_itr);
+
+    /* ---------------------------------------------------------------------- */
+    /* /stacking/port_diag.html                                               */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebAgentSpmStackingCapablePortDiagNextGet(SPM_STACK_PORT_ENTRY_t port_entry_itr);
+
+    /* ---------------------------------------------------------------------- */
+    /* /stacking/stack_port.html                                              */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebAgentStackPortGet(SPM_STACK_PORT_ENTRY_t port_entry_itr);
+
+    /* ---------------------------------------------------------------------- */
+    /* /switching/protected_ports_summ.html                                   */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebPrintIntIfMask(L7_INTF_MASK_t  intIfMask);
+
+
+    /* ---------------------------------------------------------------------- */
+    /* dos_cfg.html                                                           */
+    /* ---------------------------------------------------------------------- */
+    extern L7_char8 *usmWebSwDevCtrlDoSSIPDIPModeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwDevCtrlDoSFirstFragModeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwDevCtrlDoSTCPPartialModeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwDevCtrlDoSMinTcpHdrSizeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwDevCtrlDoSTCPFragModeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwDevCtrlDoSTCPFlagModeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwDevCtrlDoSL4PortModeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwDevCtrlDoSICMPModeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwDevCtrlDoSICMPv4ModeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwDevCtrlDoSICMPv6ModeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwDevCtrlDoSICMPSizeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwDevCtrlDoSICMPv4SizeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwDevCtrlDoSICMPv6SizeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwDevCtrlDoSICMPFragModeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwDevCtrlDoSSMACDMACModeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwDevCtrlDoSTCPFinUrgPshModeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwDevCtrlDoSTCPFlagSeqModeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwDevCtrlDoSTCPOffsetModeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwDevCtrlDoSTCPPortModeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwDevCtrlDoSTCPSynModeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwDevCtrlDoSTCPSynFinModeGet(L7_uint32 unit);
+    extern L7_char8 *usmWebSwDevCtrlDoSUDPPortModeGet(L7_uint32 unit);
+
+
+    /* ---------------------------------------------------------------------- */
+    /* /LLDP                                                                  */
+    /* ---------------------------------------------------------------------- */
+     extern L7_char8 *usmWebLLDPPortSettingsGet(L7_uint32 intIfNum);
+     extern L7_char8 *usmWebLldpPortCtrlLinkStatusGet(L7_uint32 intIfNum);
+     extern L7_char8 *usmWebLldpIntfTxModeGet(L7_uint32 intIfNum);
+     extern L7_char8 *usmWebLldpIntfRxModeGet(L7_uint32 intIfNum);
+     extern L7_char8 *usmWebLldpIntfNotificationModeGet(L7_uint32 intIfNum);
+     extern L7_char8 *usmWebLldpIntfTxMgmtAddrGet(L7_uint32 intIfNum);
+     extern L7_char8 *usmWebLldpIntfTxTLVsGet(L7_uint32 intIfNum);
+     extern L7_char8 *usmWebLldpInterfaceGet(L7_uint32 IntIfNum);
+     extern L7_char8 *usmWebLldpLocPortIdGet(L7_uint32 intIfNum);
+     extern L7_char8 *usmWebLldpLocPortDescrGet(L7_uint32 intIfNum);
+     extern L7_char8 *usmWebLldpRemChassisIdGet(L7_uint32 intIfNum,L7_uint32 remIndex,L7_uint32 timeStamp);
+     extern L7_char8 *usmWebLldpRemPortIdGet(L7_uint32 intIfNum,L7_uint32 remIndex,L7_uint32 timeStamp);
+     extern L7_char8 *usmWebLldpRemIndexGet(L7_uint32 remIndex);       
+     extern L7_char8 *usmWebLldpRemSysNameGet(L7_uint32 intIfNum);
+     extern L7_char8 *usmWebLldpRemMgmtAddrGet(lldp_mgmtAddrEntry_t remoteAddr);
+
+    /* ---------------------------------------------------------------------- */
+    /* /securit/tacacs/tacacs_server_cfg.html                                 */
+    /* ---------------------------------------------------------------------- */
+   extern L7_RC_t usmDbTacacsHostNameServerFirstGet(L7_IP_ADDRESS_TYPE_t *type,
+                                                    L7_uchar8  *pServerAddress);
+
+
+   extern L7_char8 *usmWebXMedLocMediaPolicyTaggedGet(usmWeb_lldpMedNetAppTypeEntry_t lldpMedEntry_itr);
+   /* ---------------------------------------------------------------------- */
+   /* sFlow_Agent_Summary.html                                               */
+   /* ---------------------------------------------------------------------- */
+   extern L7_char8 *usmWebsFlowAgentVersionGet(L7_uint32 unit);
+   extern L7_char8 *usmWebsFlowAgentIpAddressTypeGet(L7_uint32 unit);
+   extern L7_char8 *usmWebsFlowAgentIpAddressGet(L7_uint32 unit);
+
+   /* ---------------------------------------------------------------------- */
+   /* sFlow_Rcvr_cfg.html                                                    */
+   /* ---------------------------------------------------------------------- */
+   extern L7_char8 *usmWebRcvrStatusGet(L7_uint32 unit, L7_uint32 selected_index);
+
+   /* ---------------------------------------------------------------------- */
+   /* sFlow_Poller_cfg.html                                                  */
+   /* ---------------------------------------------------------------------- */
+   extern L7_RC_t usmWebsFlowPollerifNumFirstGet(L7_uint32 unit, L7_uint32 *ifIndex);
+   extern L7_RC_t usmWebsFlowPollerifNumNextGet(L7_uint32 unit, L7_uint32 prevIfIndex, L7_uint32 *ifIndex);
+   extern L7_uchar8 *usmWebPollerStatusGet(L7_uint32 unit, L7_uint32 ifIndex);
+
+   /* ---------------------------------------------------------------------- */
+   /* sFlow_Sampler_cfg..html                                               */
+   /* ---------------------------------------------------------------------- */
+   extern L7_RC_t usmWebsFlowSamplerifNumFirstGet(L7_uint32 unit, L7_uint32 *ifIndex);
+   extern L7_RC_t usmWebsFlowSamplerifNumNextGet(L7_uint32 unit, L7_uint32 prevIfIndex, L7_uint32 *ifIndex);
+   extern L7_uchar8 *usmWebSamplerStatusGet(L7_uint32 unit, L7_uint32 ifIndex);
+ ' >
+
+<EMWEB_LOAD C='
+    usmWebInitialize();
+' >
+
+
+<!-- Macro Definitions Here -->
+
+<EMWEB_STRING ID=USMWEB_PORT_OPTIONS_GET C='
+
+    L7_uint32 unit;
+    unit = usmDbThisUnitGet();
+
+    return usmWebPortOptionsGet(unit);
+   ' >
+
+<EMWEB_STRING ID=USMWEB_SELECTED_PORT_GET EMWEB_TYPE=DECIMAL_UINT C='
+
+     EwaNetHandle net;
+     usmWeb_AppInfo_t appInfo;
+
+     idx = 0;
+
+     net = ewsContextNetHandle(ewsContext);
+     if (net->app_pointer != NULL)
+     {
+         memcpy(&appInfo, net->app_pointer, sizeof(appInfo));
+         if (appInfo.data[3] == L7_TRUE)
+         {
+             idx = appInfo.data[2];
+            /* if (appInfo.data[1] >= L7_MAX_PHYSICAL_SLOTS_PER_UNIT)
+                 idx--;  */   /* This is a trunk */
+         }
+     }
+     return &idx;
+
+   ' >
+
+<EMWEB_STRING ID=USMWEB_SELECTED_PORT_GET_NEW EMWEB_TYPE=DECIMAL_UINT C='
+
+     EwaNetHandle net;
+     usmWeb_AppInfo_t appInfo;
+
+     idx = 0;
+
+     net = ewsContextNetHandle(ewsContext);
+     if (net->app_pointer != NULL)
+     {
+         memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+         if (appInfo.data[3] == L7_TRUE)
+         {
+             idx = appInfo.data[2];
+           /*  if (appInfo.data[1] >= L7_MAX_PHYSICAL_SLOTS_PER_UNIT)
+                 idx--;  */   /* This is a trunk */
+         }
+     }
+     return &idx;
+
+   ' >
+
+<EMWEB_STRING ID=USMWEB_SELECTED_SLOT_GET EMWEB_TYPE=DECIMAL_UINT C='
+
+     EwaNetHandle net;
+     usmWeb_AppInfo_t appInfo;
+
+     idx = 0;
+
+     net = ewsContextNetHandle(ewsContext);
+     if (net->app_pointer != NULL)
+     {
+         memcpy(&appInfo, net->app_pointer, sizeof(appInfo));
+         if (appInfo.data[3] == L7_TRUE)
+             idx = appInfo.data[1];
+     }
+     return &idx;
+
+   ' >
+
+<EMWEB_STRING ID=USMWEB_SELECTED_UNIT_GET EMWEB_TYPE=DECIMAL_UINT C='
+
+     EwaNetHandle net;
+     usmWeb_AppInfo_t appInfo;
+
+     idx = 0;
+
+     net = ewsContextNetHandle(ewsContext);
+     if (net->app_pointer != NULL)
+     {
+         memcpy(&appInfo, net->app_pointer, sizeof(appInfo));
+         if (appInfo.data[3] == L7_TRUE)
+             idx = appInfo.data[0];
+     }
+     return &idx;
+
+   ' >
+
+<EMWEB_STRING ID=USMWEB_SELECTED_USP_GET C='
+
+     EwaNetHandle net;
+     usmWeb_AppInfo_t appInfo;
+     L7_uint32    unit, slot, port;
+
+     memset(wBuf, 0x00, sizeof(wBuf));
+
+     net = ewsContextNetHandle(ewsContext);
+     if (net->app_pointer != NULL)
+     {
+         memcpy(&appInfo, net->app_pointer, sizeof(appInfo));
+         if (appInfo.data[3] == L7_TRUE)
+         {
+             unit = appInfo.data[0];
+             slot = appInfo.data[1];
+             port = appInfo.data[2];
+             if (slot >= L7_MAX_PHYSICAL_SLOTS_PER_UNIT)
+                 sprintf(wBuf, "Trunk%d", port);
+             else
+                 sprintf(wBuf, "Unit-%d   Slot-%d   Port-%d", unit, slot, port);
+         }
+     }
+
+     return wBuf;
+
+   ' >
+
+
+<EMWEB_STRING ID=USMWEB_SYSDESCR_GET C='
+
+    L7_uint32 unit;
+
+    unit = usmDbThisUnitGet();
+    memset(sBuf, 0x00, sizeof(sBuf));
+    usmDb1213SysDescrGet(unit, (char *) sBuf);
+
+    return sBuf;
+
+   ' >
+
+<EMWEB_STRING ID=USMWEB_GARPFLAG_GET EMWEB_TYPE=DECIMAL_UINT C='
+
+    garpFlag = 0;
+
+    garpFlag = usmWebGarpErrorGet();
+    return &garpFlag;
+
+   ' >
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE C='
+     if (usmWebUserAccessGet(ewsContext) == USMWEB_READWRITE)
+     {
+         return "TRUE";
+     }
+     else
+     {
+         return NULL;
+     }
+   ' >
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE="COMPONENT"  C='
+     if (usmWebComponentPresent( (char *) ewsContextGetValue(ewsContext)) == L7_TRUE)
+     {
+         return "TRUE";
+     }
+     else
+     {
+         return NULL;
+     }
+   ' >
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="FILTER_SOURCE_PORT_FILTERING"  C='
+     if (usmWebFeaturePresent( (char *) ewsContextGetValue(ewsContext)) == L7_TRUE)
+     {
+         return "TRUE";
+     }
+     else
+     {
+         return NULL;
+     }
+   ' >
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_CONTEXT C='
+
+  EwaNetHandle      net;
+  usmWeb_AppInfo_t  appInfo;
+  net = ewsContextNetHandle(ewsContext);
+
+  if (net->app_pointer != L7_NULL)
+  {
+    memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+    return "HAVE_CONTEXT";
+  }
+  else
+  {
+    return NULL;
+  }
+   '>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_SHOW_CABLE_TEST_FAILURE_LOCATION C='
+
+  EwaNetHandle      net;
+  usmWeb_AppInfo_t  appInfo;
+  net = ewsContextNetHandle(ewsContext);
+
+  if (net->app_pointer != L7_NULL)
+    {
+    memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+    if ((appInfo.data[1] == L7_CABLE_OPEN) || (appInfo.data[1] == L7_CABLE_SHORT))
+      return "SHOW_CABLE_TEST_FAILURE_LOCATION";
+    }
+    return NULL;
+   '>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_SHOW_CABLE_TEST_LENGTH C='
+
+  EwaNetHandle      net;
+  usmWeb_AppInfo_t  appInfo;
+  net = ewsContextNetHandle(ewsContext);
+    if (net->app_pointer != L7_NULL)
+    {
+    memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+    if (appInfo.data[1] == L7_CABLE_NORMAL)
+      return "SHOW_CABLE_TEST_LENGTH";
+    }
+    return NULL;
+   '>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_SERVICE_PORT_PRESENT C='
+
+  L7_uint32 unit;
+  unit = usmDbThisUnitGet();
+
+  if ( usmDbComponentPresentCheck(unit, L7_SERVICE_PORT_PRESENT_ID) == L7_TRUE )
+  {
+    return "SERVICE_PORT_PRESENT";
+  }
+  else
+  {
+    return NULL;
+  }
+   '>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_SERVICE_PORT_PROTOCOL_NONE C='
+
+  L7_uint32 protocol;
+  L7_uint32 unit;
+
+  unit = usmDbThisUnitGet();
+
+  if (SERVICE_PORT_PRESENT == L7_FALSE)
+  {
+    return "NO_SERVICE_PORT";
+  }
+
+  if (usmDbAgentBasicConfigServPortConfigProtocolDesiredGet(unit, &protocol) == L7_SUCCESS)
+  {
+    if (protocol == L7_SYSCONFIG_MODE_NONE)
+      return "Service Port Protocol None";
+    else
+      return NULL;
+  }
+  else
+  {
+    return "SERVICE_PORT_PROTOCOL_CALL_FAILURE";
+  }
+
+ '>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_NETWORK_PROTOCOL_NONE C='
+
+  L7_uint32 protocol;
+  L7_uint32 unit;
+
+  unit = usmDbThisUnitGet();
+
+  if (usmDbAgentBasicConfigNetworkConfigProtocolDesiredGet(unit, &protocol) == L7_SUCCESS)
+  {
+    if (protocol == L7_SYSCONFIG_MODE_NONE)
+      return "Network Protocol None";
+    else
+      return NULL;
+  }
+  else
+  {
+    return "NETWORK_PROTOCOL_CALL_FAILURE";
+  }
+
+ '>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_VLAN_ROUTING_INTERFACE_NOT_SELECTED C='
+
+  EwaNetHandle      net;
+  usmWeb_AppInfo_t  appInfo;
+  L7_uint32         intIfNum = 0;
+  L7_uint32         sysIntfType, status, lag;
+  L7_RC_t           rc;
+  L7_BOOL           bVLANRoutingIntIfNum, intfFound;
+  static L7_uint32  unit;
+
+  unit = usmDbThisUnitGet();
+
+  net = ewsContextNetHandle(ewsContext);
+
+  if (net->app_pointer != L7_NULL)
+  {
+    memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+    intIfNum = appInfo.data[0];
+    intfFound = L7_TRUE;
+  }
+
+  else
+  {
+    /* Find the first allowable routing interface */
+    intfFound = L7_FALSE;
+    rc = usmDbValidIntIfNumFirstGet(&intIfNum);
+    while ((intfFound == L7_FALSE) && (rc == L7_SUCCESS))
+    {
+      if (usmDbIntfTypeGet(intIfNum, &sysIntfType) == L7_SUCCESS)
+      {
+        status = usmDbDot3adIntfIsMemberGet(unit, intIfNum, &lag);
+        if ( ( ((sysIntfType == L7_PHYSICAL_INTF) &&
+                (usmDbComponentPresentCheck(unit, L7_IP_MAP_COMPONENT_ID) == L7_TRUE)) ||
+               (sysIntfType == L7_LOGICAL_VLAN_INTF)    ) &&
+             (status != L7_SUCCESS))
+        {
+          intfFound = L7_TRUE;
+        }
+        else
+        {
+          rc = usmDbValidIntIfNumNext(intIfNum, &intIfNum);
+        }
+      }
+    }
+  }
+
+  if (intfFound == L7_TRUE)
+  {
+    if (usmDbIntfTypeGet(intIfNum, &sysIntfType) == L7_SUCCESS)
+    {
+      if (sysIntfType == L7_LOGICAL_VLAN_INTF)
+        bVLANRoutingIntIfNum = L7_TRUE;
+      else
+        bVLANRoutingIntIfNum = L7_FALSE;
+    }
+    else
+    {
+      bVLANRoutingIntIfNum = L7_FALSE;
+    }
+  }
+  else
+  {
+    bVLANRoutingIntIfNum = L7_FALSE;
+  }
+
+  if (bVLANRoutingIntIfNum == L7_FALSE)
+    return "NOT A VLAN ROUTING INTERFACE";
+  else
+    return NULL;
+
+   '>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_DOT1S_MSTI_NOT_CREATE C='
+
+  EwaNetHandle      net;
+  usmWeb_AppInfo_t  appInfo;
+  L7_uint32 mstid, val;
+  L7_uint32 buf[L7_MAX_MULTIPLE_STP_INSTANCES];
+  L7_uint32 unit;
+
+  unit = usmDbThisUnitGet();
+
+  net = ewsContextNetHandle(ewsContext);
+
+  if (net->app_pointer != L7_NULL)
+  {
+    memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+    mstid = appInfo.data[1];
+  }
+  else
+  {
+    mstid = usmWebDot1sMstiListFirstGet(unit, buf, &val);
+  }
+
+  if (mstid == 0)         /*create option*/
+    return L7_NULL;
+  else
+    return "NOT_CREATE";
+   '>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_DOT1S_VLAN_NOT_CREATE C='
+
+  EwaNetHandle      net;
+  usmWeb_AppInfo_t  appInfo;
+  L7_uint32 buf[L7_MAX_MULTIPLE_STP_INSTANCES];
+  L7_uint32 unit;
+  L7_RC_t   rc;
+  L7_uint32 vlanid=0;
+
+  unit = usmDbThisUnitGet();
+
+  net = ewsContextNetHandle(ewsContext);
+
+  if (net->app_pointer != L7_NULL)
+  {
+    memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+    vlanid = appInfo.data[0];
+    rc = usmDbVlanNameGet(unit, vlanid, (char *) buf);
+    if (rc != L7_SUCCESS)
+       vlanid = 0;
+  }
+  else
+  {
+      vlanid=1;
+  }
+
+  if (vlanid == 0)         /*create option*/
+    return L7_NULL;
+  else
+    return "NOT_CREATE";
+   '>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_DOT1S_MSTI_EXISTING C='
+
+  L7_uint32 mstid, val;
+  L7_uint32 buf[L7_MAX_MULTIPLE_STP_INSTANCES];
+  L7_uint32 unit;
+
+  unit = usmDbThisUnitGet();
+
+  mstid = usmWebDot1sMstiListFirstGet(unit, buf, &val);
+
+  if (mstid == 0)
+    return NULL;
+  else
+    return "MST_ENTRY_EXISTS";
+   '>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_DOT1S_MSTI_EXISTING_RO C='
+
+  L7_uint32 mstid, val;
+  L7_uint32 buf[L7_MAX_MULTIPLE_STP_INSTANCES];
+  L7_uint32 unit;
+
+  unit = usmDbThisUnitGet();
+
+  if (usmWebUserAccessGet(ewsContext) == USMWEB_READWRITE)
+  {
+    return "TRUE";
+  }
+  else
+  {
+    mstid = usmWebDot1sMstiListFirstGet(unit, buf, &val);
+
+    if (mstid == 0)
+      return NULL;
+    else
+      return "MST_ENTRY_EXISTS";
+  }
+  '>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_DOT1S_ENABLED C='
+
+   L7_BOOL flag;
+   L7_uint32 unit;
+
+   unit = usmDbThisUnitGet();
+
+   if (usmDbDot1sModeGet(unit, &flag) != L7_SUCCESS)
+      return L7_NULL;
+
+   if (flag == L7_TRUE)
+      return "enabled";
+   else
+      return L7_NULL;
+   '>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_POE_ENABLED C='
+    L7_uint32 unit;
+
+    for (unit = 1; unit < L7_ALL_UNITS; unit++)
+    {
+      if (usmDbFeaturePresentCheck(unit, L7_POE_COMPONENT_ID,
+                                   L7_POE_FEATURE_ID) == L7_TRUE)
+      {
+         return "TRUE";
+      }
+    }
+    return L7_NULL;
+   ' >
+</EMWEB_IF>
+
+
+
+
+
+<EMWEB_IF ID=USMWEB_IF_LVL_HDR_NOT_REQ C='
+      return NULL;   /* Never display the file header in html files */
+'>
+</EMWEB_IF>
+
+
+<EMWEB_IF ID=USMWEB_IF_REMOVE_SPECIFIC_IP C='
+
+  EwaNetHandle      net;
+  usmWeb_AppInfo_t  appInfo;
+  L7_uint32        unit;
+
+  unit = usmDbThisUnitGet();
+  net = ewsContextNetHandle(ewsContext);
+
+  if (net->app_pointer != L7_NULL)
+  {
+    memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+    if ((appInfo.data[3] == 3) || (appInfo.data[3] == 4))  /* Specific IP Address Selected */
+        return "SPECIFIC IP SELECTED";
+    else
+        return NULL;
+  }
+   return NULL;
+    '>
+</EMWEB_IF>
+
+
+
+<EMWEB_IF ID=USMWEB_IF_NEW_POOL C='
+#ifdef L7_DHCPS_PACKAGE
+  EwaNetHandle      net;
+  usmWeb_AppInfo_t  appInfo;
+  L7_uint32        unit;
+  L7_int32 poolID;
+  L7_char8  poolName[L7_DHCPS_POOL_NAME_MAXLEN];
+  L7_RC_t   rc;
+
+
+  unit = usmDbThisUnitGet();
+  net = ewsContextNetHandle(ewsContext);
+
+  if ((net->app_pointer != L7_NULL) && (appInfo.data[0] != 888))
+  {
+    memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+    if (appInfo.data[0] == (L7_DHCPS_MAX_POOL_NUMBER + 1))   /* Create New Pool */
+        return "CREATE NEW POOL SELECTED";
+    else
+    {
+       return NULL;
+    }
+  }
+  rc = usmDbDhcpsPoolEntryFirst(unit, poolName, &poolID);
+  if ( rc != L7_SUCCESS )
+      return "CREATE NEW POOL SELECTED";
+  else
+#endif
+      return NULL;
+  '>
+</EMWEB_IF>
+
+
+<EMWEB_IF ID=USMWEB_IF_BINDING_DYNAMIC C='
+
+#ifdef L7_DHCPS_PACKAGE
+  EwaNetHandle      net;
+  usmWeb_AppInfo_t  appInfo;
+  L7_uint32        unit;
+  L7_uint32 poolID,poolType;
+  L7_char8  poolName[L7_DHCPS_POOL_NAME_MAXLEN];
+  L7_RC_t   rc;
+
+
+
+  unit = usmDbThisUnitGet();
+  net = ewsContextNetHandle(ewsContext);
+
+  if (net->app_pointer != L7_NULL)
+  {
+    memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+    if (appInfo.data[1] == 2)   /* Type of Binding selected as Dynamic */
+        return "BINDING DYNAMIC";
+    else
+        return NULL;
+  }
+  rc = usmDbDhcpsPoolEntryFirst(unit, poolName, &poolID);
+  if ( rc == L7_SUCCESS )
+  {
+     rc = usmDbDhcpsPoolTypeGet(unit, poolName, &poolType);
+     if ( rc == L7_SUCCESS )
+     {
+       if (poolType == L7_DHCPS_DYNAMIC_POOL)
+           {
+                  return "BINDING DYNAMIC";
+       }
+       else
+          return NULL;
+     }
+  }
+#endif
+  return NULL;
+    '>
+</EMWEB_IF>
+
+
+
+<EMWEB_IF ID=USMWEB_IF_BINDING_MANUAL C='
+
+#ifdef L7_DHCPS_PACKAGE
+  EwaNetHandle      net;
+  usmWeb_AppInfo_t  appInfo;
+  L7_uint32        unit;
+  L7_uint32 poolID,poolType;
+  L7_char8  poolName[L7_DHCPS_POOL_NAME_MAXLEN];
+  L7_RC_t   rc;
+
+
+
+  unit = usmDbThisUnitGet();
+  net = ewsContextNetHandle(ewsContext);
+
+  if (net->app_pointer != L7_NULL)
+  {
+    memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+    if (appInfo.data[1] == 3)   /* Type of Binding selected as Manual */
+        return "BINDING MANUAL";
+    else
+        return NULL;
+  }
+  rc = usmDbDhcpsPoolEntryFirst(unit, poolName, &poolID);
+  if ( rc == L7_SUCCESS )
+  {
+     rc = usmDbDhcpsPoolTypeGet(unit, poolName, &poolType);
+     if ( rc == L7_SUCCESS )
+     {
+       if (poolType == L7_DHCPS_MANUAL_POOL)
+           {
+                  return "BINDING MANUAL";
+       }
+       else
+          return NULL;
+     }
+  }
+#endif
+  return NULL;
+    '>
+</EMWEB_IF>
+
+
+<EMWEB_IF ID=USMWEB_IF_IPSG C='
+ #ifdef L7_IPSG_PACKAGE
+  if(usmWebFeaturePresent("IPSG") == L7_TRUE)
+  {
+   return "L7_TRUE";
+  }
+ #endif
+ return NULL;
+'>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_NSF C='
+ #ifdef L7_NSF_PACKAGE
+  if(usmWebFeaturePresent("NSF") == L7_TRUE)
+  {
+   return "L7_TRUE";
+  }
+ #endif
+ return NULL;
+'>
+</EMWEB_IF>
+
+
+<EMWEB_IF ID=USMWEB_IF_AE_PROTOCOL_SUPPORTED C='
+#ifdef L7_AE_PROTOCOL_PACKAGE
+  return "OK";
+#else
+  return NULL;
+#endif
+'>
+</EMWEB_IF>
+
+
+<EMWEB_IF ID=USMWEB_IF_LEASE_TIME_SPECIFIC C='
+
+#ifdef L7_DHCPS_PACKAGE
+  EwaNetHandle      net;
+  usmWeb_AppInfo_t  appInfo;
+  L7_uint32        unit;
+  L7_int32 poolID,leaseTime;
+  L7_char8  poolName[L7_DHCPS_POOL_NAME_MAXLEN];
+  L7_RC_t   rc;
+
+
+  unit = usmDbThisUnitGet();
+  net = ewsContextNetHandle(ewsContext);
+
+  if (net->app_pointer != L7_NULL)
+  {
+    memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+    if (appInfo.data[2] == 2)   /* Lease Time selected as Specified Duration */
+        return "LEASE TIME SPECIFIC";
+    else
+        return NULL;
+  }
+  rc = usmDbDhcpsPoolEntryFirst(unit, poolName, &poolID);
+  if ( rc == L7_SUCCESS )
+  {
+     rc = usmDbDhcpsLeaseTimeGet(unit, &leaseTime, poolName);
+     if (rc == L7_SUCCESS)
+          {
+                if (leaseTime >= 86400)
+                {
+                   return NULL;
+        }
+        else
+           return "LEASE TIME SPECIFIC";
+      }
+  }
+   return "LEASE TIME SPECIFIC";
+#else
+  return NULL;
+#endif
+    '>
+</EMWEB_IF>
+
+ <EMWEB_IF ID=USMWEB_IF_POOL_EXISTS C='
+#ifdef L7_DHCPS_PACKAGE
+  L7_uint32        unit;
+  L7_int32 poolID;
+  L7_char8  poolName[L7_DHCPS_POOL_NAME_MAXLEN];
+  L7_RC_t   rc;
+
+
+  unit = usmDbThisUnitGet();
+
+  rc = usmDbDhcpsPoolEntryFirst(unit, poolName, &poolID);
+  if ( rc != L7_SUCCESS )
+  {
+     return NULL;
+  }
+  else
+     return "POOL EXISTS";
+#else
+  return NULL;
+#endif
+    '>
+</EMWEB_IF>
+
+
+ <EMWEB_IF ID=USMWEB_IF_SPECIFIC_BINDING C='
+
+  EwaNetHandle      net;
+  usmWeb_AppInfo_t  appInfo;
+  L7_uint32        unit;
+
+  unit = usmDbThisUnitGet();
+  net = ewsContextNetHandle(ewsContext);
+
+  if (net->app_pointer != L7_NULL)
+  {
+    memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+    if (appInfo.data[0] == 2)   /* Specific Binding is to be addressed */
+        return "SPECIFIC_BINDING";
+    else
+        return NULL;
+  }
+   return NULL;
+    '>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_OUT_FEATURE_EXIST C='
+    L7_uint32 unit;
+
+    unit = usmDbThisUnitGet();
+    if (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,
+                              L7_DIFFSERV_SERVICE_OUT_SLOTPORT_FEATURE_ID) == L7_TRUE ||
+        usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,
+                               L7_DIFFSERV_SERVICE_OUT_ALLPORTS_FEATURE_ID) == L7_TRUE )
+    {
+      return "TRUE";
+    }
+
+    return NULL;
+ '>
+</EMWEB_IF>
+
+
+<EMWEB_IF ID=USMWEB_IF_SPECIFIC C='
+
+  EwaNetHandle      net;
+  usmWeb_AppInfo_t  appInfo;
+  L7_uint32        unit;
+
+  unit = usmDbThisUnitGet();
+  net = ewsContextNetHandle(ewsContext);
+
+  if (net->app_pointer != L7_NULL)
+  {
+    memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+    if ((appInfo.data[0] == 2) || (appInfo.data[0] == 4))  /* Specific case is to be addressed */
+        return "SPECIFIC";
+    else
+        return NULL;
+  }
+   return NULL;
+    '>
+</EMWEB_IF>
+
+
+<EMWEB_IF ID=USMWEB_IF_SPECIFIC_CONFLICT C='
+
+  EwaNetHandle      net;
+  usmWeb_AppInfo_t  appInfo;
+  L7_uint32        unit;
+
+  unit = usmDbThisUnitGet();
+  net = ewsContextNetHandle(ewsContext);
+
+  if (net->app_pointer != L7_NULL)
+  {
+    memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+    if (appInfo.data[0] == 2)   /* Specific Conflict is to be addressed */
+        return "SPECIFIC_CONFLICT";
+    else
+        return NULL;
+  }
+   return NULL;
+    '>
+</EMWEB_IF>
+
+
+<EMWEB_IF ID=USMWEB_IF_NEW_SNTP_SERVER C='
+
+  EwaNetHandle      net;
+  usmWeb_AppInfo_t  appInfo;
+  L7_uint32 unit,id;
+  L7_SNTP_SERVER_STATUS_t status;
+  L7_BOOL server_exists = L7_FALSE;
+  L7_RC_t   rc;
+
+
+  unit = usmDbThisUnitGet();
+  net = ewsContextNetHandle(ewsContext);
+
+  if ((net->app_pointer != L7_NULL) && (appInfo.data[0] != 888))
+  {
+    memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+    if (appInfo.data[0] == (L7_SNTP_MAX_SERVERS + 1))   /* Create New SNTP Server */
+        return "CREATE NEW SNTP SERVER SELECTED";
+    else
+    {
+       return NULL;
+    }
+  }
+
+  for( id=1 ; id <= L7_SNTP_MAX_SERVERS ; id++ )
+  {
+    rc = usmDbSntpServerTableRowStatusGet(unit, id, &status);
+    if (rc == L7_SUCCESS)
+    {
+      if ((status == L7_SNTP_SERVER_STATUS_ACTIVE) || (status == L7_SNTP_SERVER_STATUS_NOT_IN_SERVICE))
+      {
+        server_exists = L7_TRUE;
+        break;
+      }
+    }
+  }
+
+  if (server_exists == L7_FALSE)
+      return "CREATE NEW SNTP SERVER SELECTED";
+  else
+      return NULL;
+
+  '>
+</EMWEB_IF>
+
+
+<EMWEB_IF ID=USMWEB_IF_SERVER_EXISTS C='
+
+  L7_uint32 unit,id;
+  L7_SNTP_SERVER_STATUS_t status;
+  L7_BOOL server_exists = L7_FALSE;
+  L7_RC_t   rc;
+
+
+  unit = usmDbThisUnitGet();
+
+  for( id=1 ; id <= L7_SNTP_MAX_SERVERS ; id++ )
+  {
+    rc = usmDbSntpServerTableRowStatusGet(unit, id, &status);
+    if (rc == L7_SUCCESS)
+    {
+      if ((status == L7_SNTP_SERVER_STATUS_ACTIVE) || (status == L7_SNTP_SERVER_STATUS_NOT_IN_SERVICE))
+      {
+        server_exists = L7_TRUE;
+        break;
+      }
+    }
+  }
+
+  if (server_exists == L7_FALSE)
+      return NULL;
+  else
+      return "SERVER EXISTS";
+
+  '>
+</EMWEB_IF>
+
+ <EMWEB_IF ID=USMWEB_IF_KERNEL_DOWNLOAD_ALLOWED C='
+  #if defined(_L7_OS_LINUX_) && defined(L7_SDK_EXCLUDES_KERNEL)
+  {
+    return "KERNEL_DOWNLOAD_ALLOWED";
+  }
+  #else
+    return NULL;
+  #endif
+  '>
+</EMWEB_IF>
+
+
+
+<EMWEB_IF ID=USMWEB_IF_SSH_KEY_DOWNLOAD_ALLOWED C='
+
+    L7_uint32    unit;
+    L7_uint32    val;
+
+    unit = usmDbThisUnitGet();
+    val = 0;
+
+#ifdef L7_MGMT_SECURITY_PACKAGE
+    /* if keys are being generated, do not allow download */
+    if ((usmDbsshdKeyExists(SSHD_KEY_TYPE_DSA) == L7_FAILURE) ||
+        (usmDbsshdKeyExists(SSHD_KEY_TYPE_RSA) == L7_FAILURE))
+    {
+      return NULL;
+    }
+    else if (usmDbsshdAdminModeGet(unit, &val) == L7_SUCCESS)
+    {
+      if (val == L7_DISABLE)
+      {
+        if (usmDbsshdNumSessionsGet(unit, &val) == L7_SUCCESS)
+        {
+          if (val == 0)
+            return "SSH KEY DOWNLOAD ALLOWED";
+          else
+            return NULL;
+        }
+        else
+          return NULL;
+      }
+      else
+        return NULL;
+    }
+    else
+#endif /* L7_MGMT_SECURITY_PACKAGE */
+        return NULL;
+
+   ' >
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_SSL_CERT_DOWNLOAD_ALLOWED C='
+
+    L7_uint32    unit;
+    L7_uint32    val;
+
+    unit = usmDbThisUnitGet();
+    val = 0;
+
+#ifdef L7_MGMT_SECURITY_PACKAGE
+    if (usmDbssltCertificateExists(1) == L7_FAILURE)
+    {
+      return NULL;
+    }
+    else if (usmDbssltAdminModeGet(unit, &val) == L7_SUCCESS)
+    {
+      if (val == L7_DISABLE)
+      {
+        return "SSL CERTIFICATE DOWNLOAD ALLOWED";
+      }
+      else
+        return NULL;
+    }
+    else
+#endif /* L7_MGMT_SECURITY_PACKAGE */
+        return NULL;
+
+   ' >
+</EMWEB_IF>
+
+<EMWEB_STRING ID=USMWEB_UNIT_SLOT_PORT_DISPLAY C='
+
+    L7_uint32    unit;
+    unit = usmDbThisUnitGet();
+
+    if (usmDbComponentPresentCheck(unit, L7_FLEX_STACKING_COMPONENT_ID))
+        return "Unit/Slot/Port";
+    else
+        return "Slot/Port";
+   ' >
+
+
+
+<EMWEB_STRING ID=USMWEB_JAVA_STACKING_ENABLED_GET C='
+{
+  L7_uint32     unit;
+  L7_char8     *buf;
+  L7_uint32     bStacking = 0;
+
+  buf = ewsContextNetHandle(ewsContext)->buffer;
+
+  if (usmDbUnitMgrMgrNumberGet(&unit) == L7_SUCCESS)
+  {
+    if (usmDbComponentPresentCheck(unit, L7_FLEX_STACKING_COMPONENT_ID) == L7_TRUE)
+      bStacking = 1;
+    else
+      bStacking = 0;
+  }
+  sprintf(buf, "\"%d\"", bStacking);
+
+  return(buf);
+}
+
+' >
+
+
+<EMWEB_IF ID=USMWEB_IF_QOS_PACKAGE C='
+  #ifdef L7_QOS_PACKAGE
+  {
+    return "QOS";
+  }
+  #else
+    return NULL;
+  #endif
+  '>
+</EMWEB_IF>
+
+
+<EMWEB_IF ID=USMWEB_IF_STACKING_PACKAGE C='
+  #ifdef L7_STACKING_PACKAGE
+  {
+    return "STACKING";
+  }
+  #else
+    return NULL;
+  #endif
+  '>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_WIRELESS_PACKAGE C='
+  #ifdef L7_WIRELESS_PACKAGE
+  {
+    return "WIRELESS";
+  }
+  #else
+    return NULL;
+  #endif
+  '>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_CAPTIVE_PORTAL_PACKAGE C='
+  #ifdef L7_CAPTIVE_PORTAL_PACKAGE
+  {
+    return "CAPTIVE_PORTAL";
+  }
+  #else
+    return NULL;
+  #endif
+  '>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_SPECIFIC_SESSION  C='
+
+     usmWeb_AppInfo_t appInfo;
+     EwaNetHandle net;
+
+     net = ewsContextNetHandle(ewsContext);
+     if (net->app_pointer != NULL)
+     {
+       memcpy(&appInfo, net->app_pointer, sizeof(appInfo));
+       if ( appInfo.data[1]== 999)
+          return L7_NULL;
+       else
+          return "SPECIFIC_SESSION";
+     }
+     return "SPECIFIC_SESSION";
+
+' >
+
+</EMWEB_IF>
+
+<EMWEB_IF ID=INCLUDE_COMPONENT_FACILITY_ADDRTYPE C='
+   #ifdef L7_INCLUDE_COMPONENT_FACILITY_ADDRTYPE
+     return "TRUE";
+   #endif
+     return L7_NULL;
+' >
+
+</EMWEB_IF>
+
+<EMWEB_IF ID=IF_L7_PERSISTENT_LOG_SUPPORTED C='
+
+   L7_uint32 unit;
+
+   usmDbUnitMgrMgrNumberGet(&unit);
+
+   if (usmDbFeaturePresentCheck(unit, L7_LOG_COMPONENT_ID, L7_LOG_PERSISTENT_FEATURE_ID) != L7_TRUE)
+   {
+     return L7_NULL;
+   }
+   return "PERSISTENT" ;
+' >
+
+</EMWEB_IF>
+
+
+<EMWEB_IF ID=IF_SYSAPI_FEATURE_KEYING_SUPPORTED C='
+
+   L7_uint32 unit;
+
+   usmDbUnitMgrMgrNumberGet(&unit);
+
+
+   /*Check if keying feature is supported*/
+   if (usmDbFeaturePresentCheck(unit, L7_SIM_COMPONENT_ID, L7_SIM_FEATURE_KEYING_FEATURE_ID) != L7_TRUE)
+   {
+     return L7_NULL;
+   }
+   return "KEYING" ;
+' >
+
+</EMWEB_IF>
+
+
+<EMWEB_IF ID=USMWEB_IF_UNIT_SLOT_PORT_DISPLAY  C='
+  L7_uint32    unit;
+    unit = usmDbThisUnitGet();
+
+    if (usmDbComponentPresentCheck(unit, L7_FLEX_STACKING_COMPONENT_ID))
+        return "TRUE";
+    else
+        return NULL;
+   ' >
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_ACL_RULE_LOGGING_FEATURE_PRESENT C='
+  L7_uint32        unit;
+  L7_uint32        componentId;
+
+  unit = usmDbThisUnitGet();
+  componentId = L7_FLEX_QOS_ACL_COMPONENT_ID;
+
+  if ((usmDbFeaturePresentCheck(unit, componentId, L7_ACL_LOG_DENY_FEATURE_ID) == L7_TRUE) ||
+      (usmDbFeaturePresentCheck(unit, componentId, L7_ACL_LOG_PERMIT_FEATURE_ID) == L7_TRUE))
+  {
+    return "ACL LOGGING PRESENT";
+  }
+
+  return NULL;
+   '>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_COS_QUEUE_DROP_PREC_CFG_SUPPORTED C='
+
+    L7_uint32    unit;
+    unit = usmDbThisUnitGet();
+
+    if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_COS_COMPONENT_ID, L7_COS_QUEUE_TDROP_THRESH_FEATURE_ID) == L7_TRUE)||
+        (usmDbFeaturePresentCheck(unit,L7_FLEX_QOS_COS_COMPONENT_ID, L7_COS_QUEUE_WRED_SUPPORT_FEATURE_ID) == L7_TRUE))
+    {
+        return "Present";
+    }
+    return NULL;
+' >
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_VOIP_SUPPORTED C='
+
+    L7_uint32    unit;
+    unit = usmDbThisUnitGet();
+    
+	  if (usmDbComponentPresentCheck(unit, L7_FLEX_QOS_VOIP_COMPONENT_ID) == L7_TRUE)
+	  {
+      return "Present";
+	  }
+    return NULL;
+' >
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_COS_MAPPING_TRUST_MODE_SUPPORTED C='
+
+    L7_uint32    unit;
+    unit = usmDbThisUnitGet();
+
+	if( usmDbFeaturePresentCheck( unit, L7_FLEX_QOS_COS_COMPONENT_ID, L7_COS_MAP_TRUST_MODE_FEATURE_ID) )
+
+	{
+        return "Present";
+    }
+    return NULL;
+   ' >
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_COS_MAPPING_IPPREC_SUPPORTED C='
+
+    L7_uint32    unit;
+    unit = usmDbThisUnitGet();
+
+    if( usmDbFeaturePresentCheck( unit, L7_FLEX_QOS_COS_COMPONENT_ID, L7_COS_MAP_IPPREC_FEATURE_ID) )
+    {
+        return "Present";
+    }
+    return NULL;
+   ' >
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_COS_MAPPING_IPDSCP_SUPPORTED C='
+
+    L7_uint32    unit;
+    unit = usmDbThisUnitGet();
+
+    if( usmDbFeaturePresentCheck( unit, L7_FLEX_QOS_COS_COMPONENT_ID, L7_COS_MAP_IPDSCP_FEATURE_ID) )
+    {
+        return "Present";
+    }
+    return NULL;
+   ' >
+</EMWEB_IF>
+
+
+<EMWEB_IF ID=USMWEB_IF_COS_MAPPING_TABLE_CFG_SUPPORTED C='
+
+    L7_uint32    unit;
+    unit = usmDbThisUnitGet();
+
+    if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_COS_COMPONENT_ID, L7_COS_MAP_IPPREC_FEATURE_ID) == L7_TRUE)||
+    (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_COS_COMPONENT_ID, L7_COS_MAP_IPDSCP_FEATURE_ID) == L7_TRUE))
+    {
+        return "Present";
+    }
+    return NULL;
+   ' >
+</EMWEB_IF>
+
+
+
+<EMWEB_IF ID=USMWEB_IF_PORT_NOT_MAC_BASED C='
+  L7_uint32 val,unit,interface;
+  EwaNetHandle  net = NULL;
+  usmWeb_AppInfo_t  appInfo;
+
+  if (ewsContext != NULL )
+  {
+    net = ewsContextNetHandle(ewsContext);  
+    if (net->app_pointer != NULL )
+    {
+        memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+        interface = appInfo.data[0];  
+        unit = usmDbThisUnitGet();
+        if(usmDbDot1xPortControlModeGet(unit, interface, &val) == L7_SUCCESS &&
+             val == L7_DOT1X_PORT_AUTO_MAC_BASED )
+        {
+            return NULL;
+        }
+     }     
+    
+  }
+  return "display";
+'>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_IGMP_VLAN_NEW_ENTRY  C='
+
+  usmWeb_AppInfo_t appInfo;
+  EwaNetHandle net;
+  L7_uint32 lastvid;
+  L7_RC_t rc;
+  L7_uint32 adminMode;
+  L7_uint32 unit;
+  L7_uchar8 family = L7_AF_INET;
+  unit = usmDbThisUnitGet();
+
+
+  net = ewsContextNetHandle(ewsContext);
+
+  if (net->app_pointer != NULL)
+  {
+    memcpy(&appInfo, net->app_pointer, sizeof(appInfo));
+    if ( appInfo.data[0] == 0)
+      return "NEW_ENTRY";
+    else
+      return L7_NULL;
+  }
+  else
+  {
+    lastvid = 0;
+    while (lastvid < L7_DOT1Q_MAX_VLAN_ID)
+    {
+      lastvid = lastvid + 1;
+      rc = usmDbSnoopVlanModeGet(unit, lastvid, &adminMode, family);
+      if ((rc == L7_SUCCESS) && (adminMode == L7_ENABLE))
+      {
+        return L7_NULL;
+      }
+    }
+    return "NEW_ENTRY";
+  }
+
+  return "NEW_ENTRY";
+' >
+</EMWEB_IF>
+<EMWEB_IF ID=USMWEB_IF_IGMP_QUERIER_VLAN_NEW_ENTRY  C='
+
+  usmWeb_AppInfo_t appInfo;
+  EwaNetHandle net;
+  L7_uint32 lastvid;
+  L7_RC_t rc;
+  L7_uint32 adminMode;
+  L7_uint32 unit;
+  L7_uchar8 family = L7_AF_INET;
+  unit = usmDbThisUnitGet();
+
+  net = ewsContextNetHandle(ewsContext);
+
+  if (net->app_pointer != NULL)
+  {
+    memcpy(&appInfo, net->app_pointer, sizeof(appInfo));
+    if ( appInfo.data[0] == 0)
+      return "NEW_ENTRY";
+    else
+      return L7_NULL;
+  }
+  else
+  {
+    lastvid = 0;
+    while (lastvid < L7_DOT1Q_MAX_VLAN_ID)
+    {
+      lastvid = lastvid + 1;
+      rc = usmDbSnoopQuerierVlanModeGet(lastvid, &adminMode, family);
+      if ((rc == L7_SUCCESS) && (adminMode == L7_ENABLE))
+      {
+        return L7_NULL;
+      }
+    }
+    return "NEW_ENTRY";
+  }
+
+  return "NEW_ENTRY";
+' >
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_MLD_VLAN_NEW_ENTRY  C='
+
+  usmWeb_AppInfo_t appInfo;
+  EwaNetHandle net;
+  L7_uint32 lastvid;
+  L7_RC_t rc;
+  L7_uint32 adminMode;
+  L7_uint32 unit;
+  L7_uchar8 family = L7_AF_INET6;
+  unit = usmDbThisUnitGet();
+
+  net = ewsContextNetHandle(ewsContext);
+
+  if (net->app_pointer != NULL)
+  {
+    memcpy(&appInfo, net->app_pointer, sizeof(appInfo));
+    if ( appInfo.data[0] == 0)
+      return "NEW_ENTRY";
+    else
+      return L7_NULL;
+  }
+  else
+  {
+    lastvid = 0;
+    while (lastvid < L7_DOT1Q_MAX_VLAN_ID)
+    {
+      lastvid = lastvid + 1;
+      rc = usmDbSnoopVlanModeGet(unit, lastvid, &adminMode, family);
+      if ((rc == L7_SUCCESS) && (adminMode == L7_ENABLE))
+      {
+        return L7_NULL;
+      }
+    }
+    return "NEW_ENTRY";
+  }
+
+  return "NEW_ENTRY";
+' >
+</EMWEB_IF>
+<EMWEB_IF ID=USMWEB_IF_MLD_QUERIER_VLAN_NEW_ENTRY  C='
+
+  usmWeb_AppInfo_t appInfo;
+  EwaNetHandle net;
+  L7_uint32 lastvid;
+  L7_RC_t rc;
+  L7_uint32 adminMode;
+  L7_uint32 unit;
+  L7_uchar8 family = L7_AF_INET6;
+  unit = usmDbThisUnitGet();
+
+  net = ewsContextNetHandle(ewsContext);
+
+  if (net->app_pointer != NULL)
+  {
+    memcpy(&appInfo, net->app_pointer, sizeof(appInfo));
+    if ( appInfo.data[0] == 0)
+      return "NEW_ENTRY";
+    else
+      return L7_NULL;
+  }
+  else
+  {
+    lastvid = 0;
+    while (lastvid < L7_DOT1Q_MAX_VLAN_ID)
+    {
+      lastvid = lastvid + 1;
+      rc = usmDbSnoopQuerierVlanModeGet(lastvid, &adminMode, family);
+      if ((rc == L7_SUCCESS) && (adminMode == L7_ENABLE))
+      {
+        return L7_NULL;
+      }
+    }
+    return "NEW_ENTRY";
+  }
+
+  return "NEW_ENTRY";
+' >
+</EMWEB_IF>
+
+
+
+<EMWEB_STRING ID=USMWEB_VLAN_RANGE_GET C='
+   return usmWebIntegerRangeHelp(L7_DOT1Q_MIN_VLAN_ID, L7_DOT1Q_MAX_VLAN_ID);
+'>
+
+
+<EMWEB_IF ID=USMWEB_IF_SOURCE_PORTS_EXIST C='
+
+  usmWeb_AppInfo_t appInfo;
+  EwaNetHandle net;
+  L7_RC_t   rc;
+  L7_uint32 unit, sessionID, numIntf;
+  L7_INTF_MASK_t intIfMask;
+  L7_uint32  intfList[L7_FILTER_MAX_INTF];
+
+  unit = usmDbThisUnitGet();
+  net = ewsContextNetHandle(ewsContext);
+  memset(intfList, 0x00, sizeof(intfList));
+
+  if(net->app_pointer != L7_NULL)
+  {
+    memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+    sessionID = appInfo.data[1];
+  }
+  else
+  {
+    sessionID = 1;
+  }
+
+  rc = usmDbSwPortMonitorSourcePortsGet(unit, sessionID, &intIfMask);
+  if (rc == L7_SUCCESS)
+  {
+    rc = usmDbConvertMaskToList(&intIfMask, intfList, &numIntf);
+    if((rc == L7_SUCCESS) && (numIntf !=0))
+    {
+      return "EXISTS";
+    }
+  }
+  return L7_NULL;
+
+' >
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_MAX_SOURCE_PORTS_EXIST C='
+
+  usmWeb_AppInfo_t appInfo;
+  EwaNetHandle net;
+  L7_RC_t   rc;
+  L7_uint32 unit, sessionID, numIntf;
+  L7_INTF_MASK_t intIfMask;
+  L7_uint32  intfList[L7_FILTER_MAX_INTF];
+
+  unit = usmDbThisUnitGet();
+  net = ewsContextNetHandle(ewsContext);
+  memset(intfList, 0x00, sizeof(intfList));
+
+  if(net->app_pointer != L7_NULL)
+  {
+    memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+    sessionID = appInfo.data[1];
+  }
+  else
+  {
+    sessionID = 1;
+  }
+
+  rc = usmDbSwPortMonitorSourcePortsGet(unit, sessionID, &intIfMask);
+  if (rc == L7_SUCCESS)
+  {
+    rc = usmDbConvertMaskToList(&intIfMask, intfList, &numIntf);
+    if((rc == L7_SUCCESS) && (numIntf >= L7_MIRRORING_MAX_SRC_PORTS_PER_SESSION))
+    {
+      return "MAX";
+    }
+  }
+  return L7_NULL;
+
+' >
+</EMWEB_IF>
+
+
+<EMWEB_IF ID=USMWEB_LLDP_INTERFACE_STATUS VALUE="RXORTX" C='
+
+  #define LLDP_RX     0
+  #define LLDP_TX     1
+  #define LLDP_RX_TX  2
+  #define LLDP_FOUND  3
+
+  L7_uint32 unit, mode = L7_DISABLE, flag;
+  L7_RC_t rc;
+  L7_uint32 intIfNum;
+  L7_char8 buf[8];
+
+  unit = usmDbThisUnitGet();
+  sprintf(buf, "%s", (char *) ewsContextGetValue(ewsContext));
+
+  if (strcmp(buf, "RX") == 0)
+  {
+    flag = LLDP_RX;
+  }
+  else if (strcmp(buf, "TX") == 0)
+  {
+    flag = LLDP_TX;
+  }
+  else
+  {
+    flag = LLDP_RX_TX;
+  }
+
+  rc = usmDbIntIfNumTypeFirstGet(unit, USM_PHYSICAL_INTF, 0, &intIfNum);
+  while (rc == L7_SUCCESS)
+  {
+    if (flag == LLDP_RX || flag == LLDP_RX_TX)
+    {
+      if ((usmDbLldpIntfRxModeGet(intIfNum, &mode) == L7_SUCCESS)
+          && (mode == L7_ENABLE))
+      {
+        flag = LLDP_FOUND;
+        break;
+      }
+    }
+    if (flag == LLDP_TX || flag == LLDP_RX_TX)
+    {
+      if ((usmDbLldpIntfTxModeGet(intIfNum, &mode) == L7_SUCCESS)
+         && (mode == L7_ENABLE))
+      {
+        flag = LLDP_FOUND;
+        break;
+      }
+    }
+    rc = usmDbIntIfNumTypeNextGet(unit, USM_PHYSICAL_INTF, 0,
+                                                  intIfNum, &intIfNum);
+  }
+
+  if (flag == LLDP_FOUND)
+    return "EXISTS";
+  else
+    return L7_NULL;
+ ' >
+</EMWEB_IF>
+
+
+<EMWEB_IF ID=USMWEB_IF_DHCP_POOL_EXISTS C='
+
+#ifdef L7_DHCPS_PACKAGE
+  L7_uint32          unit =usmDbThisUnitGet(),
+                     poolID=0;
+  L7_uchar8          poolName[L7_DHCPS_POOL_NAME_MAXLEN+1];
+  usmWeb_AppInfo_t  appInfo;
+  EwaNetHandle      net = ewsContextNetHandle(ewsContext);
+
+  if(net->app_pointer != NULL)
+  {
+    memcpy(&appInfo, net->app_pointer, sizeof(appInfo));
+    if(appInfo.data[0] == 17)
+    {
+      return NULL;
+    }
+  }
+
+  if(usmDbDhcpsPoolEntryFirst(unit, poolName, &poolID) == L7_SUCCESS)
+  {
+    return "POOL_EXITS";
+  }
+#endif
+  return NULL;
+  '>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_MAC_FILTER_EXISTS C='
+
+  L7_uint32         unit =usmDbThisUnitGet(), vlanId=0;
+  L7_uchar8         macAddr[32];
+  EwaNetHandle      net = ewsContextNetHandle(ewsContext);
+  usmWeb_AppInfo_t  appInfo;
+
+  if(net->app_pointer != L7_NULL)
+  {
+    memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+    if(appInfo.data[1] == 0) /* Zero is for new create */
+    {
+      return NULL;
+    }
+    else
+    {
+      return "FILTER_EXISTS";
+    }
+  }
+
+  if(usmDbFilterFirstGet(unit, macAddr, &vlanId) == L7_SUCCESS)
+  {
+    return "FILTER_EXITS";
+  }
+  return NULL;
+' >
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_DVLAN_TUNNEL_PER_INTERFACE_PRESENT C=' 
+
+  L7_uint32         unit =usmDbThisUnitGet();
+  EwaNetHandle      net = ewsContextNetHandle(ewsContext);
+  usmWeb_AppInfo_t  appInfo;
+
+  if(net->app_pointer != L7_NULL)
+  {
+    memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+    if((appInfo.data[0] == 0) && (usmDbFeaturePresentCheck(unit, L7_DVLANTAG_COMPONENT_ID, L7_DVLANTAG_ETHERTYPE_FEATURE_ID) == L7_TRUE))
+    {
+      return "DVLAN_TUNNEL_EXITS";
+    }
+    else if ((appInfo.data[0] > 0) && (usmDbFeaturePresentCheck(unit, L7_DVLANTAG_COMPONENT_ID, L7_DVLANTAG_ETHERTYPE_PER_INTERFACE_FEATURE_ID) == L7_TRUE))
+    {
+      return "DVLAN_TUNNEL_EXITS";
+    }
+    else
+    {
+      return NULL;
+    }
+  } 
+  
+  return "DVLAN_TUNNEL_EXITS";
+
+'>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_MAC_FILTER_SUMMARY C='
+
+  L7_uint32         unit =usmDbThisUnitGet(), vlanId=0;
+  L7_uchar8         macAddr[32];
+
+  if(usmDbFilterFirstGet(unit, macAddr, &vlanId) == L7_SUCCESS)
+  {
+    return "FILTER_EXITS";
+  }
+  return NULL;
+
+  '>
+</EMWEB_IF>
+
+
+<EMWEB_STRING ID=USMWEB_INPUT C=' return "<input";  ' >
+
+<EMWEB_STRING EMWEB_TYPE=DECIMAL_UINT ID=USMWEB_PAGE_NUMBER_OF_ROWS C='
+  staticUINT32 = USMWEB_PAGE_NUMBER_OF_ROWS;
+  return &staticUINT32;
+' >
+
+<EMWEB_STRING EMWEB_TYPE=DECIMAL_UINT ID=USMWEB_PAGES_PER_BLOCK C='
+  staticUINT32 = USMWEB_PAGES_PER_BLOCK;
+  return &staticUINT32;
+' >
+
+<EMWEB_STRING EMWEB_TYPE=DECIMAL_UINT ID=USMWEB_USER_READWRITE C='
+  if (usmWebUserAccessGet(ewsContext) == USMWEB_READWRITE)
+    staticUINT32 = 1;
+  else
+    staticUINT32 = 0;
+
+  return &staticUINT32;
+' >
+
+<EMWEB_IF ID=USMWEB_IF_PRODUCT_ENTERPRISE C='
+  if (L7_WIRELESS_MAX_PEER_SWITCHES == 1)
+  {
+    return NULL;
+  }
+  return "ENTERPRISE";
+ '>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_DETECTED_CLIENTS C='
+#if defined (L7_WIRELESS_PACKAGE)
+  if (usmDbWdmDetectedClientDatabasePresent() != L7_SUCCESS )
+  {
+    return NULL;
+  }
+  return "DETECTED CLIENT PRESENT";
+#else
+  return NULL;
+#endif
+ '>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_STANDBY_UNIT_PRESENT C='
+
+     L7_uint32 unit=0, nextUnit=0, mgrUnit=0, count=0;
+     L7_RC_t rc;     
+     
+     count=0;
+     rc = usmDbUnitMgrMgrNumberGet(&mgrUnit);
+     rc = usmDbUnitMgrStackMemberGetNext(unit, &nextUnit);
+     while (rc == L7_SUCCESS)
+     {
+       unit= nextUnit;
+       if(mgrUnit != unit)
+       {
+          count++;
+       }
+       rc = usmDbUnitMgrStackMemberGetNext(unit, &nextUnit);
+     }
+     
+     if(count >= 1)
+        return "STDBY_PRESENT";
+     else
+        return NULL;
+'>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_MGMT_SECURITY_PACKAGE C='
+#ifdef L7_MGMT_SECURITY_PACKAGE
+  return "TRUE";
+#else
+  return NULL;
+#endif
+'>
+</EMWEB_IF>
+
+<EMWEB_IF ID=XUI_IF_STACKING_PRESENT C='
+#ifdef L7_STACKING_PACKAGE
+  return "TRUE";
+#else
+  return NULL;
+#endif
+'>
+</EMWEB_IF>
+
+<EMWEB_IF ID=XUI_IF_BGP_PRESENT C='
+#ifdef L7_BGP_PACKAGE
+  return "TRUE";
+#else
+  return NULL;
+#endif
+'>
+</EMWEB_IF>
+
+<EMWEB_IF ID=XUI_IF_PRODUCT_ENTERPRISE C='
+#ifdef L7_PRODUCT_ENTERPRISE
+  return "TRUE";
+#else
+  return NULL;
+#endif
+'>
+</EMWEB_IF>
+
+<EMWEB_IF ID=XUI_IF_MERLION C='
+ #ifdef FEAT_METRO_CPE_V1_0
+    return "TRUE";
+ #else
+    return NULL;
+ #endif
+
+'>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_WIDS_CONTROLLER C='
+#ifdef L7_CAPTIVE_PORTAL_PACKAGE
+#ifdef L7_WIRELESS_PACKAGE
+
+  L7_BOOL widsInd = L7_FALSE;
+  if ((usmDbWdmWidsControllerIndGet (&widsInd) == L7_SUCCESS) &&
+                      (widsInd == L7_TRUE))
+  {
+    return "DISPLAY";
+  }
+#endif
+  return NULL;
+#else
+#ifdef L7_WIRELESS_PACKAGE
+  L7_BOOL widsInd = L7_FALSE;
+
+  if ((usmDbWdmWidsControllerIndGet (&widsInd) == L7_SUCCESS) &&
+                      (widsInd == L7_TRUE))
+  {
+    return "DISPLAY";
+  }
+#endif
+  return NULL;
+#endif
+ '>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_L2_CENTTNNL_FEATURE_PRESENT C='
+#ifdef L7_WIRELESS_PACKAGE
+  L7_uint32 unit = 0;
+
+  unit = usmDbThisUnitGet();
+  if(usmDbFeaturePresentCheck(unit, L7_FLEX_WIRELESS_COMPONENT_ID,
+                  L7_WIRELESS_L2_CENTTNNL_FEATURE_ID) == L7_TRUE)
+  {
+     return "DISPLAY";
+  }
+  else
+  {
+    return NULL;
+  }
+#else
+  return NULL;
+#endif 
+'>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_AP_IMAGE_AVAILABILITY_PRESENT C='
+#ifdef L7_WIRELESS_PACKAGE
+    L7_uint32 unit;
+
+    unit = usmDbThisUnitGet();
+    if (usmDbFeaturePresentCheck(unit, L7_FLEX_WIRELESS_COMPONENT_ID,
+                                 L7_WIRELESS_AP_IMAGE_MODE_INTEGRATED_FEATURE_ID) == L7_TRUE)
+      return "DISPLAY";
+
+    return NULL;
+#else
+  return NULL;
+#endif
+'>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_XUIBASE_PACKAGE C='
+  #ifdef L7_XUIBASE_PACKAGE
+    return "TRUE";
+  #else
+    return NULL;
+  #endif
+  '>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_PFC_PACKAGE C='
+  #ifdef L7_PFC_PACKAGE
+    return "TRUE";
+  #else
+    return NULL;
+  #endif
+  '>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_DOT3AH_PACKAGE C='
+  #ifdef L7_DOT3AH_PACKAGE
+    return "TRUE";
+  #else
+    return NULL;
+  #endif
+  '>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_NETWORK_PORT_PRESENT C='
+
+  L7_uint32 unit;
+  unit = usmDbThisUnitGet();
+
+  if ( usmDbFeaturePresentCheck (unit, L7_SIM_COMPONENT_ID, L7_SIM_NETWORK_PORT_FEATURE_ID) == L7_TRUE )
+  {
+    return "NETWORK_PORT_PRESENT";
+  }
+  else
+  {
+    return NULL;
+  }
+   '>
+</EMWEB_IF>
+
+</HTML>
+
+
+

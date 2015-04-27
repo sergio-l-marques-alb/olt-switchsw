@@ -1,0 +1,477 @@
+/*********************************************************************
+*
+* (C) Copyright Broadcom Corporation 2002-2007
+*
+**********************************************************************
+*
+* Name: broad_qos_common.c
+*
+* Purpose: This file contains all the routines for the QOS package
+*
+* Component: hapi
+*
+* Comments:
+*
+* Created by: grantc 7/24/02
+*
+*********************************************************************/
+
+#include "broad_qos_common.h"
+
+/*********************************************************************
+*
+* @purpose Initialize the QOS common package
+*
+* @param   DAPI_t           *dapi_g
+*
+* @returns L7_RC_t     result
+*
+* @notes   none
+*
+* @end
+*
+*********************************************************************/
+L7_RC_t hapiBroadQosCommonInit(DAPI_t *dapi_g)
+{
+    BROAD_SYSTEM_t     *hapiSystemPtr;
+    HAPI_BROAD_QOS_t   *qos;
+
+    hapiSystemPtr = (BROAD_SYSTEM_t *)(dapi_g->system->hapiSystem);
+    if (L7_NULLPTR == hapiSystemPtr)
+    {
+        LOG_ERROR(0);
+        return L7_FAILURE;
+    }
+
+    hapiSystemPtr->qos = (void*)osapiMalloc(L7_DRIVER_COMPONENT_ID, sizeof(HAPI_BROAD_QOS_t));
+    if (L7_NULLPTR == hapiSystemPtr->qos)
+    {
+        LOG_ERROR(0);
+        return L7_FAILURE;
+    }
+
+	memset(hapiSystemPtr->qos, 0, sizeof(HAPI_BROAD_QOS_t));
+
+    qos = (HAPI_BROAD_QOS_t *)(hapiSystemPtr->qos);
+    qos->semaphore = osapiSemaMCreate(OSAPI_SEM_Q_FIFO);
+    if (L7_NULLPTR == qos->semaphore)
+    {
+        LOG_ERROR(0);
+        return L7_FAILURE;
+    }
+
+    return L7_SUCCESS;
+}
+
+/*********************************************************************
+*
+* @purpose Take semaphore to protect QOS resources
+*
+* @param   DAPI_t           *dapi_g
+*
+* @returns L7_RC_t     result
+*
+* @notes   none
+*
+* @end
+*
+*********************************************************************/
+L7_RC_t hapiBroadQosSemTake(DAPI_t *dapi_g)
+{
+    BROAD_SYSTEM_t      *hapiSystemPtr;
+    HAPI_BROAD_QOS_t    *qos;
+
+    hapiSystemPtr = (BROAD_SYSTEM_t *)(dapi_g->system->hapiSystem);
+    qos = (HAPI_BROAD_QOS_t *)(hapiSystemPtr->qos);
+
+    osapiSemaTake(qos->semaphore, L7_WAIT_FOREVER);
+
+    return L7_SUCCESS;
+}
+
+/*********************************************************************
+*
+* @purpose Give semaphore to protect QOS resources
+*
+* @param   DAPI_t           *dapi_g
+*
+* @returns L7_RC_t     result
+*
+* @notes   none
+*
+* @end
+*
+*********************************************************************/
+L7_RC_t hapiBroadQosSemGive(DAPI_t *dapi_g)
+{
+    BROAD_SYSTEM_t      *hapiSystemPtr;
+    HAPI_BROAD_QOS_t    *qos;
+
+    hapiSystemPtr = (BROAD_SYSTEM_t *)(dapi_g->system->hapiSystem);
+    qos = (HAPI_BROAD_QOS_t *)(hapiSystemPtr->qos);
+
+    osapiSemaGive(qos->semaphore);
+
+    return L7_SUCCESS;
+}
+
+/*********************************************************************
+*
+* @purpose Determines the bandwidth of an interface
+*
+* @param   BROAD_PORT_t       *hapiPortPtr
+* @param   L7_uint32          *portSpeed (output)
+*
+* @returns none
+*
+* @notes   none
+*
+* @end
+*
+*********************************************************************/
+void hapiBroadQosIntfSpeedGet(BROAD_PORT_t *hapiPortPtr, L7_uint32 *portSpeed)
+{
+    /* use the cached value */
+    switch (hapiPortPtr->speed)
+    {
+    case DAPI_PORT_SPEED_FE_100MBPS:
+        *portSpeed = 100000;
+        break;
+    case DAPI_PORT_SPEED_GE_1GBPS:
+        *portSpeed = 1000000;
+        break;
+    /* PTin added: Speed 2.5G */
+    case DAPI_PORT_SPEED_GE_2G5BPS:
+        *portSpeed = 2500000;
+        break;
+    /* PTin end */
+    case DAPI_PORT_SPEED_GE_10GBPS:
+        *portSpeed = 10000000;
+        break;
+    /* PTin added: Speed 40G */
+    case DAPI_PORT_SPEED_GE_40GBPS:
+        *portSpeed = 40000000;
+        break;
+    /* PTin added: Speed 100G */
+    case DAPI_PORT_SPEED_GE_100GBPS:
+        *portSpeed = 100000000;
+        break;
+    /* PTin end */
+    default:
+        *portSpeed = 10000;
+        break;
+    }
+}
+
+/*********************************************************************
+*
+* @purpose  Apply QOS attributes to a physical port
+*
+* @param    BROAD_POLICY_t    policy
+* @param    BROAD_PORT_t     *hapiPortPtr
+*
+* @returns  L7_RC_t
+*
+* @notes    For internal use only.
+*
+* @end
+*
+*********************************************************************/
+L7_RC_t hapiBroadQosApplyToIface(BROAD_POLICY_t policy, BROAD_PORT_t *hapiPortPtr)
+{
+    L7_RC_t result = L7_SUCCESS;
+
+    result = hapiBroadPolicyApplyToIface(policy, hapiPortPtr->bcmx_lport);
+
+    return result;
+}
+
+/*********************************************************************
+*
+* @purpose  Remove QOS attributes from a physical port
+*
+* @param    BROAD_POLICY_t    policy
+* @param    BROAD_PORT_t     *hapiPortPtr
+*
+* @returns  L7_RC_t
+*
+* @notes    For internal use only.
+*
+* @end
+*
+*********************************************************************/
+L7_RC_t hapiBroadQosRemoveFromIface(BROAD_POLICY_t policy, BROAD_PORT_t *hapiPortPtr)
+{
+    L7_RC_t result = L7_SUCCESS;
+
+    result = hapiBroadPolicyRemoveFromIface(policy, hapiPortPtr->bcmx_lport);
+
+    return result;
+}
+
+
+/*********************************************************************
+*
+* @purpose  Apply QOS attributes to a port or LAG interface
+*
+* @param    BROAD_POLICY_t    policy
+* @param    DAPI_USP_t       *usp
+* @param    DAPI_t           *dapi_g
+*
+* @returns  L7_RC_t
+*
+* @notes    none
+*
+* @end
+*
+*********************************************************************/
+L7_RC_t hapiBroadQosApplyPolicy(BROAD_POLICY_t policy, DAPI_USP_t *usp, DAPI_t *dapi_g)
+{
+    DAPI_PORT_t                *dapiPortPtr;
+    BROAD_PORT_t               *hapiPortPtr;
+    L7_RC_t                     result = L7_SUCCESS;
+
+    dapiPortPtr = DAPI_PORT_GET(usp, dapi_g);
+    hapiPortPtr = dapiPortPtr->hapiPort;
+
+    if (IS_PORT_TYPE_CPU(dapiPortPtr))
+    {
+      return L7_SUCCESS;
+    }
+    else if (BROAD_PORT_IS_LAG(hapiPortPtr))
+    {
+        int               i;
+        DAPI_LAG_ENTRY_t *lagMemberSet;
+        BROAD_PORT_t     *lagMemberPtr;
+        L7_RC_t           tmpRc;
+
+        lagMemberSet = dapiPortPtr->modeparm.lag.memberSet;
+
+        /* apply policy to each LAG member */
+        for (i = 0; i < L7_MAX_MEMBERS_PER_LAG; i++)
+        {
+            if (L7_TRUE == lagMemberSet[i].inUse)
+            {
+                lagMemberPtr = HAPI_PORT_GET(&lagMemberSet[i].usp, dapi_g);
+
+                tmpRc = hapiBroadQosApplyToIface(policy, lagMemberPtr);
+                if (L7_SUCCESS != tmpRc)
+                    result = tmpRc;
+            }
+        }
+    }
+    else
+    {
+        /* apply policy to individual port */
+        if (!BROAD_PORT_IS_ACQUIRED(hapiPortPtr))
+        {
+            result = hapiBroadQosApplyToIface(policy, hapiPortPtr);
+        }
+    }
+
+    return result;
+}
+
+/*********************************************************************
+*
+* @purpose  Remove Qos attributes from a port or LAG interface
+*
+* @param    DAPI_USP_t       *usp
+* @param    DAPI_t           *dapi_g
+*
+* @returns  L7_RC_t
+*
+* @notes    none
+*
+* @end
+*
+*********************************************************************/
+L7_RC_t hapiBroadQosRemovePolicy(BROAD_POLICY_t policy, DAPI_USP_t *usp, DAPI_t *dapi_g)
+{
+    DAPI_PORT_t                *dapiPortPtr;
+    BROAD_PORT_t               *hapiPortPtr;
+    L7_RC_t                     result = L7_SUCCESS;
+
+    dapiPortPtr = DAPI_PORT_GET(usp, dapi_g);
+    hapiPortPtr = dapiPortPtr->hapiPort;
+
+    if (BROAD_PORT_IS_LAG(hapiPortPtr))
+    {
+        int               i;
+        DAPI_LAG_ENTRY_t *lagMemberSet;
+        BROAD_PORT_t     *lagMemberPtr;
+        L7_RC_t           tmpRc;
+
+        lagMemberSet = dapiPortPtr->modeparm.lag.memberSet;
+
+        /* apply policy to each LAG member */
+        for (i = 0; i < L7_MAX_MEMBERS_PER_LAG; i++)
+        {
+            if (L7_TRUE == lagMemberSet[i].inUse)
+            {
+                lagMemberPtr = HAPI_PORT_GET(&lagMemberSet[i].usp, dapi_g);
+
+                tmpRc = hapiBroadQosRemoveFromIface(policy, lagMemberPtr);
+                if (L7_SUCCESS != tmpRc)
+                    result = tmpRc;
+            }
+        }
+    }
+    else
+    {
+        /* remove policy from individual port */
+        result = hapiBroadQosRemoveFromIface(policy, hapiPortPtr);
+    }
+
+    return result;
+}
+
+/*********************************************************************
+*
+* @purpose  Find policy in dependency list for a port.
+*
+* @returns  L7_RC_t
+*
+* @notes    none
+*
+* @end
+*
+*********************************************************************/
+static L7_RC_t hapiBroadQosFindDepends(BROAD_POLICY_t policy, HAPI_BROAD_QOS_PORT_t *qosPortPtr, int *idx)
+{
+    int i;
+
+    for (i = 0; i < BROAD_MAX_POLICY_DEPENDS; i++)
+    {
+        if (qosPortPtr->aclds.dependList[i] == policy)
+        {
+            *idx = i;    /* return index to caller */
+
+            return L7_SUCCESS;
+        }
+    }
+
+    return L7_FAILURE;
+}
+
+/*********************************************************************
+*
+* @purpose  Add dependency between the policy and the port/LAG.
+*
+* @param    BROAD_POLICY_t    policy - dependent policy
+* @param    DAPI_USP_t       *usp    - subject port/LAG
+*
+* @returns  L7_RC_t
+*
+* @notes    none
+*
+* @end
+*
+*********************************************************************/
+L7_RC_t hapiBroadQosAddDepends(BROAD_POLICY_t policy, DAPI_USP_t *usp, DAPI_t *dapi_g)
+{
+    int                    idx;
+    BROAD_PORT_t          *hapiPortPtr;
+    HAPI_BROAD_QOS_PORT_t *qosPortPtr;
+
+    hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
+    qosPortPtr  = (HAPI_BROAD_QOS_PORT_t*)hapiPortPtr->qos;
+
+    /* check if dependency already exists */
+    if (hapiBroadQosFindDepends(policy, qosPortPtr, &idx) == L7_SUCCESS)
+        return L7_SUCCESS;
+
+    /* find free entry and use it */
+    if (hapiBroadQosFindDepends(BROAD_POLICY_INVALID, qosPortPtr, &idx) == L7_SUCCESS)
+    {
+        qosPortPtr->aclds.dependList[idx] = policy;
+        return L7_SUCCESS;
+    }
+
+    return L7_FAILURE;
+}
+
+/*********************************************************************
+*
+* @purpose  Delete all dependencies this policy has on any ports as it
+*           is going away.
+*
+* @param    BROAD_POLICY_t    policy - dependent policy
+*
+* @returns  L7_RC_t
+*
+* @notes    none
+*
+* @end
+*
+*********************************************************************/
+L7_RC_t hapiBroadQosDelDependsAll(BROAD_POLICY_t policy, DAPI_t *dapi_g)
+{
+    int                    idx;
+    DAPI_USP_t             dapiUsp;
+    BROAD_PORT_t          *hapiPortPtr;
+    HAPI_BROAD_QOS_PORT_t *qosPortPtr;
+
+    /* Remove this policy from the list of dependencies for all port/LAGs in the system. */
+    for (dapiUsp.unit=0;dapiUsp.unit<dapi_g->system->totalNumOfUnits;dapiUsp.unit++)
+    {
+        for (dapiUsp.slot=0;dapiUsp.slot<dapi_g->unit[dapiUsp.unit]->numOfSlots;dapiUsp.slot++)
+        {
+            if (dapi_g->unit[dapiUsp.unit]->slot[dapiUsp.slot]->cardPresent == L7_TRUE)
+            {
+                for (dapiUsp.port=0;
+                    dapiUsp.port<dapi_g->unit[dapiUsp.unit]->slot[dapiUsp.slot]->numOfPortsInSlot;
+                    dapiUsp.port++)
+                {
+                    hapiPortPtr = HAPI_PORT_GET(&dapiUsp, dapi_g);
+                    qosPortPtr  = (HAPI_BROAD_QOS_PORT_t*)hapiPortPtr->qos;
+
+                    if (L7_NULLPTR != qosPortPtr)    /* QoS not supported on some ports */
+                    {
+                        /* check if dependency exists and remove it */
+                        if (hapiBroadQosFindDepends(policy, qosPortPtr, &idx) == L7_SUCCESS)
+                            qosPortPtr->aclds.dependList[idx] = BROAD_POLICY_INVALID;
+                    }
+                }
+            }
+        }
+    }
+
+    return L7_SUCCESS;
+}
+
+/*********************************************************************
+*
+* @purpose  Update dependent policies as result of subject port change.
+*
+* @param    DAPI_USP_t       *usp    - subject port/LAG
+*
+* @returns  L7_RC_t
+*
+* @notes    none
+*
+* @end
+*
+*********************************************************************/
+L7_RC_t hapiBroadQosUpdateDepends(DAPI_USP_t *usp, DAPI_t *dapi_g)
+{
+    int                    i;
+    BROAD_PORT_t          *hapiPortPtr;
+    HAPI_BROAD_QOS_PORT_t *qosPortPtr;
+    L7_RC_t                result = L7_SUCCESS;
+
+    hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
+    qosPortPtr  = (HAPI_BROAD_QOS_PORT_t*)hapiPortPtr->qos;
+
+    /* update all policies that depend upon this port */
+    for (i = 0; i < BROAD_MAX_POLICY_DEPENDS; i++)
+    {
+        if (qosPortPtr->aclds.dependList[i] != BROAD_POLICY_INVALID)
+        {
+            if (hapiBroadPolicyRecommit(qosPortPtr->aclds.dependList[i]) != L7_SUCCESS)
+                result = L7_FAILURE;
+        }
+    }
+
+    return result;
+}

@@ -1,0 +1,1 @@
+cmd_drivers/tty/serial/8250/built-in.o :=  /home/devtools/dev-bcm-ldk/3.4.7-RC4/iproc/buildroot/output/host/usr/bin/arm-linux-ld -EL    -r -o drivers/tty/serial/8250/built-in.o drivers/tty/serial/8250/8250.o drivers/tty/serial/8250/8250_pci.o drivers/tty/serial/8250/8250_early.o 

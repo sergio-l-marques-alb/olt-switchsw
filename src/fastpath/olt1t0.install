@@ -1,0 +1,10 @@
+#!/bin/sh
+
+PLATFORM=OLT1T0
+PLATFORM_FOLDER=CX$PLATFORM
+FILESYSTEM=rootfs
+
+KO_PATH=./output/FastPath-Ent-esw-xgs4-helixarm-LR-CSxw-IQH_$PLATFORM/target
+BIN_PATH=./output/FastPath-Ent-esw-xgs4-helixarm-LR-CSxw-IQH_$PLATFORM/ipl
+
+. ./common.install

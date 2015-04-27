@@ -1,0 +1,90 @@
+
+<HTML>
+<EMWEB_HEAD C='
+    #include "web.h"
+  '>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>SNTP Server Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+
+<hr size=4 width="80%" align=center>
+
+<h2><a name=sntp_global_status></a>Help for SNTP Global Status</h2>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Version</b> - Specifies the SNTP Version the client supports.</li>
+  <li><b>Supported Mode</b> - Specifies the SNTP modes the client supports. Multiple modes may
+  be supported by a client.</li>
+  <li><b>Last Update Time</b> - Specifies the local date and time (UTC) the SNTP client last
+  updated the system clock.</li>
+  <li><b>Last Attempt Time</b> - Specifies the local date and time (UTC) of the last SNTP
+  request or receipt of an unsolicited message.</li>
+  <li><b>Last Attempt Status</b> - Specifies the status of the last SNTP request or unsolicited
+  message for both unicast and broadcast modes. If no message has been received from a server,
+  a status of other is displayed. These values are appropriate for all operational modes.
+
+     <UL>
+         <LI><I><B>Other</B></I> - None of the following enumeration values.</LI>
+         <li><I><B>Success</B></I> - The SNTP operation was successful and the system time was
+         updated.</LI>
+         <LI><I><B>Request Timed Out</B></I> - A directed SNTP request timed out without receiving
+         a response from the SNTP server.</li>
+         <LI><I><B>Bad Date Encoded</B></I> - The time provided by the SNTP server is not valid.</li>
+         <LI><I><B>Version Not Supported</B></I> - The SNTP version supported by the server is not
+         compatible with the version supported by the client.</li>
+         <LI><I><B>Server Unsynchronized</B></I> - The SNTP server is not synchronized with its
+         peers. This is indicated via the 'leap indicator' field on the SNTP message.</li>
+         <LI><I><B>Server Kiss Of Death</B></I> - The SNTP server indicated that no further queries
+         were to be sent to this server. This is indicated by a stratum field equal to 0 in a
+         message received from a server.</li>
+    </UL>
+
+  </li>
+
+  <li><b>Server IP Address</b> - Specifies the IP address of the server for the last received
+  valid packet. If no message has been received from any server, an empty string is shown.</li>
+  <li><b>Address Type</b> - Specifies the address type of the SNTP Server address for the
+  last received valid packet.</li>
+  <li><b>Server Stratum</b> - Specifies the claimed stratum of the server for the last received
+  valid packet.</li>
+  <li><b>Reference Clock Id</b> - Specifies the reference clock identifier of the server for
+  the last received valid packet.</li>
+  <li><b>Server Mode</b> - Specifies the mode of the server for the last received valid packet.
+  </li>
+  <li><b>Unicast Server Max Entries</b> - Specifies the maximum number of unicast server entries
+  that can be configured on this client.</li>
+  <li><b>Unicast Server Current Entries</b> - Specifies the number of current valid unicast
+  server entries configured for this client.</li>
+  <li><b>Broadcast Count</b> - Specifies the number of unsolicited broadcast SNTP messages that
+  have been received and processed by the SNTP client since last reboot.</li>
+  </ul>
+</ul>
+
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li>
+     <b>Refresh</b> - <EMWEB_STRING C='return usmWebRefreshDescriptionHelp();' >.
+  </li>
+
+ </ul>
+</ul>
+
+ <hr size=4 width="80%" align=center>
+</body>
+
+</html>
+
+
