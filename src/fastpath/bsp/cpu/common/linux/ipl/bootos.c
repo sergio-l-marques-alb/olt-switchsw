@@ -940,7 +940,7 @@ int main(int argc, char *argv[], char *envp[])
 #endif
 
   /* Initialize logger */
-  log_init(LOG_OUTPUT_FILE);
+  logger_init(LOG_OUTPUT_FILE);
 
   /* Configure output files */
   log_output_file_set(LOG_OUTPUT_FILE,  LOG_OUTPUT_FILE_DEFAULT);

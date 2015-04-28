@@ -226,9 +226,9 @@ void log_help(void)
  * 
  * @param default_output : type of output
  */
-void log_init(log_output_t default_output)
+void logger_init(log_output_t default_output)
 {
-  log_deinit();
+  logger_deinit();
 
   outFile.lock = WRITE_LOCK;
 
@@ -256,7 +256,7 @@ void log_init(log_output_t default_output)
 /**
  * Deinitialize logger
  */
-void log_deinit(void)
+void logger_deinit(void)
 {
   int i;
 

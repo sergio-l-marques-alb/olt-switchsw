@@ -126,12 +126,12 @@ struct log_cfg_entry_s {
  * 
  * @param default_output : type of output
  */
-extern void log_init(log_output_t default_output);
+extern void logger_init(log_output_t default_output);
 
 /**
  * Deinitialize logger
  */
-extern void log_deinit(void);
+extern void logger_deinit(void);
 
 /**
  * Initialize stream descriptors for each output type
