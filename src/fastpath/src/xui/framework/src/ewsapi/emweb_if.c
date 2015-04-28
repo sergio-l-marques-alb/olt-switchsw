@@ -506,7 +506,12 @@ void ewaCopyInetAddrFromContext (EwsContext context, L7_inet_addr_t * ipAddrPtr)
 #elif defined(_L7_OS_ECOS_)
       ipAddrPtr->addr.ipv4.s_addr = net->peer.u.sa6.sin6_addr.__u6_addr.__u6_addr32[3];
 #elif !defined(PC_LINUX_HOST) /* hack */
-      ipAddrPtr->addr.ipv4.s_addr = net->peer.u.sa6.sin6_addr.in6_u.u6_addr32[3];
+      /* PTin modified: xweb */
+      ipAddrPtr->addr.ipv4.s_addr = ((L7_uint32) net->peer.u.sa6.sin6_addr.s6_addr[12] << 24) |
+                                    ((L7_uint32) net->peer.u.sa6.sin6_addr.s6_addr[13] << 16) |
+                                    ((L7_uint32) net->peer.u.sa6.sin6_addr.s6_addr[14] << 8) |
+                                    ((L7_uint32) net->peer.u.sa6.sin6_addr.s6_addr[15]);
+      //ipAddrPtr->addr.ipv4.s_addr = net->peer.u.sa6.sin6_addr.in6_u.u6_addr32[3];
 #endif	  
     }
     else
@@ -522,7 +527,12 @@ void ewaCopyInetAddrFromContext (EwsContext context, L7_inet_addr_t * ipAddrPtr)
 #elif defined(_L7_OS_ECOS_)
     ipAddrPtr->addr.ipv4.s_addr = net->peer.u.sa4.sin_addr.s_addr;  
 #elif !defined(PC_LINUX_HOST) /* hack */
-    ipAddrPtr->addr.ipv4.s_addr = net->peer.u.sa6.sin6_addr.in6_u.u6_addr32[3];
+	/* PTin modified: xweb */
+    ipAddrPtr->addr.ipv4.s_addr = ((L7_uint32) net->peer.u.sa6.sin6_addr.s6_addr[12] << 24) |
+                                  ((L7_uint32) net->peer.u.sa6.sin6_addr.s6_addr[13] << 16) |
+                                  ((L7_uint32) net->peer.u.sa6.sin6_addr.s6_addr[14] << 8) |
+                                  ((L7_uint32) net->peer.u.sa6.sin6_addr.s6_addr[15]);
+    //ipAddrPtr->addr.ipv4.s_addr = net->peer.u.sa6.sin6_addr.in6_u.u6_addr32[3];
 #endif	  
   }
 }
