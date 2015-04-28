@@ -108,7 +108,7 @@ L7_RC_t ptin_hapi_maclimit_init(void)
 
     macLearn_info_flow[i].send_trap           = L7_FALSE;
     macLearn_info_flow[i].trap_sent           = L7_FALSE;
-    macLearn_info_flow[i].ptin_intf.intf_type = 0;
+    macLearn_info_flow[i].ptin_intf.intf_type = 2;
     macLearn_info_flow[i].ptin_intf.intf_id   = 0;
     macLearn_info_flow[i].uni_ovid            = 0;
   }
@@ -649,6 +649,7 @@ L7_RC_t ptin_hapi_vport_maclimit_reset(bcm_gport_t gport)
     macLearn_info_flow[vport_id].mac_counter = 0;
     macLearn_info_flow[vport_id].mac_total = 0;
     macLearn_info_flow[vport_id].mac_limit = DEFAULT_VALUE; /* no limit */
+    macLearn_info_flow[vport_id].enable = L7_FALSE;
 
     /* Close the alarm */
     if (macLearn_info_flow[vport_id].trap_sent == L7_TRUE)
@@ -804,7 +805,7 @@ L7_RC_t ptin_hapi_vport_maclimit_setmax(bcm_gport_t gport, L7_uint32 mac_limit)
       LOG_NOTICE(LOG_CTX_PTIN_HAPI, "GPORT is out of range! (vport_id=%u max=%u)", vport_id, MAX_GPORTS);
       return L7_FAILURE;
     }
-    if (mac_limit == -1)
+    if (mac_limit == (L7_uint8)-1)
     {
       if (macLearn_info_flow[vport_id].enable == L7_FALSE)
       {
