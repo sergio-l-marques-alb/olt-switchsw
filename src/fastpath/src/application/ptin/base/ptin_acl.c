@@ -10,6 +10,7 @@
 #include "ptin_evc.h"
 #include "dot1q_api.h"
 #include "dai_api.h"
+#include "ptin_intf.h"
 
 #define ACL_STANDARD  0
 #define ACL_EXTENDED  1
@@ -919,16 +920,17 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
  */
 L7_RC_t ptin_aclIpApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
 {
-  L7_BOOL aclVlanIdGiven = L7_FALSE;
-  L7_RC_t rc;
-  L7_uint32 aclId, interface = 0;
-  L7_uint32 vlanId = 0;
-  L7_char8 aclName[L7_ACL_NAME_LEN_MAX+1];
-  L7_uint32 direction, feature;
-  L7_uint32 unit = 0;
-  L7_uint32 sequence = L7_ACL_AUTO_INCR_INTF_SEQ_NUM;
-  L7_BOOL   isNamedAcl = L7_FALSE;
-  L7_RC_t status = L7_SUCCESS;
+  L7_BOOL     aclVlanIdGiven = L7_FALSE;
+  L7_RC_t     rc;
+  L7_uint32   aclId;
+  ptin_intf_t ptin_intf;
+  L7_uint32   intIfNum, vlanId = 0;
+  L7_char8    aclName[L7_ACL_NAME_LEN_MAX+1];
+  L7_uint32   direction, feature;
+  L7_uint32   unit = 0;
+  L7_uint32   sequence = L7_ACL_AUTO_INCR_INTF_SEQ_NUM;
+  L7_BOOL     isNamedAcl = L7_FALSE;
+  L7_RC_t     status = L7_SUCCESS;
 
 
   /* determine if ACL is being applied to a VLAN ID */
@@ -951,8 +953,17 @@ L7_RC_t ptin_aclIpApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
   }
   else
   {
-    interface = aclApply->interface;
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Applying ACL to Interface %d", interface);
+    if (ptin_intf_port2intIfNum(aclApply->interface, &intIfNum) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Cannot convert port %u to intIfNum", aclApply->interface);
+      return L7_FAILURE;
+    }
+    if (ptin_intf_port2ptintf(aclApply->interface, &ptin_intf) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Cannot convert port %u to ptin_intf", aclApply->interface);
+      return L7_FAILURE;
+    }
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Applying ACL to Interface %d", aclApply->interface);
   }
 
 
@@ -1023,13 +1034,15 @@ L7_RC_t ptin_aclIpApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
 
   if (aclVlanIdGiven == L7_FALSE)
   {
+    LOG_TRACE(LOG_CTX_PTIN_MSG, "operation=%d intIfNum=%d direction=%d aclId=%u sequence=%d", operation, intIfNum, direction, aclId, sequence);
+
     if (operation == ACL_OPERATION_CREATE)
     {
-      rc = usmDbQosAclInterfaceDirectionAdd(unit, interface, direction, aclId, sequence);
+      rc = usmDbQosAclInterfaceDirectionAdd(unit, intIfNum, direction, aclId, sequence);
     }
     else /* ACL_OPERATION_REMOVE */
     {
-      rc = usmDbQosAclInterfaceDirectionRemove(unit, interface, direction, aclId);
+      rc = usmDbQosAclInterfaceDirectionRemove(unit, intIfNum, direction, aclId);
       if (rc != L7_SUCCESS)
       {
         LOG_DEBUG(LOG_CTX_PTIN_MSG, "No ACL to be Unapplied");
@@ -1046,16 +1059,14 @@ L7_RC_t ptin_aclIpApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
   }
   else
   {
-    
+    LOG_TRACE(LOG_CTX_PTIN_MSG, "operation=%d vlanId=%d direction=%d aclId=%u sequence=%d", operation, vlanId, direction, aclId, sequence);
+
     #ifdef __VLAN_XLATE__
     L7_uint32 oldVlan = vlanId;
     L7_uint16 newVlan;
-    ptin_intf_t intf;
-    intf.intf_type = 0;
-    intf.intf_id = aclApply->interface; /* A valid interface MUST be specified by the Manager in order to translate the VLAN ID */
 
     /* ...and translate it to the internal VLAN ID */
-    rc = ptin_evc_intVlan_get_fromOVlan(&intf, oldVlan, 0, &newVlan);
+    rc = ptin_evc_intVlan_get_fromOVlan(&ptin_intf, oldVlan, 0, &newVlan);
     if (rc != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE (rc=%d)", rc);
@@ -1609,15 +1620,16 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
  */
 L7_RC_t ptin_aclIpv6Apply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
 {
-  L7_BOOL aclVlanIdGiven = L7_FALSE;
-  L7_RC_t rc;
-  L7_uint32 aclId, interface = 0;
-  L7_uint32 vlanId = 0;
-  L7_char8 aclName[L7_ACL_NAME_LEN_MAX+1];
-  L7_uint32 direction, feature;
-  L7_uint32 unit = 0;
-  L7_uint32 sequence = L7_ACL_AUTO_INCR_INTF_SEQ_NUM;
-  L7_RC_t status = L7_SUCCESS;
+  L7_BOOL     aclVlanIdGiven = L7_FALSE;
+  L7_RC_t     rc;
+  L7_uint32   aclId;
+  ptin_intf_t ptin_intf;
+  L7_uint32   intIfNum, vlanId = 0;
+  L7_char8    aclName[L7_ACL_NAME_LEN_MAX+1];
+  L7_uint32   direction, feature;
+  L7_uint32   unit = 0;
+  L7_uint32   sequence = L7_ACL_AUTO_INCR_INTF_SEQ_NUM;
+  L7_RC_t     status = L7_SUCCESS;
 
 
   /* determine if ACL is being applied to a VLAN ID */
@@ -1640,8 +1652,17 @@ L7_RC_t ptin_aclIpv6Apply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
   }
   else
   {
-    interface = aclApply->interface;
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Applying ACL to Interface %d", interface);
+    if (ptin_intf_port2intIfNum(aclApply->interface, &intIfNum) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Cannot convert port %u to intIfNum", aclApply->interface);
+      return L7_FAILURE;
+    }
+    if (ptin_intf_port2ptintf(aclApply->interface, &ptin_intf) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Cannot convert port %u to ptin_intf", aclApply->interface);
+      return L7_FAILURE;
+    }
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Applying ACL to Interface %d", aclApply->interface);
   }
 
 
@@ -1705,13 +1726,15 @@ L7_RC_t ptin_aclIpv6Apply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
 
   if (aclVlanIdGiven == L7_FALSE)
   {
+    LOG_TRACE(LOG_CTX_PTIN_MSG, "operation=%d intIfNum=%d direction=%d aclId=%u sequence=%d", operation, intIfNum, direction, aclId, sequence);
+
     if (operation == ACL_OPERATION_CREATE)
     {
-      rc = usmDbQosAclInterfaceDirectionAdd(unit, interface, direction, aclId, sequence);
+      rc = usmDbQosAclInterfaceDirectionAdd(unit, intIfNum, direction, aclId, sequence);
     }
     else /* ACL_OPERATION_REMOVE */
     {
-      rc = usmDbQosAclInterfaceDirectionRemove(unit, interface, direction, aclId);
+      rc = usmDbQosAclInterfaceDirectionRemove(unit, intIfNum, direction, aclId);
       if (rc != L7_SUCCESS)
       {
         LOG_DEBUG(LOG_CTX_PTIN_MSG, "No ACL to be Unapplied");
@@ -1732,12 +1755,9 @@ L7_RC_t ptin_aclIpv6Apply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
     #ifdef __VLAN_XLATE__
     L7_uint32 oldVlan = vlanId;
     L7_uint16 newVlan;
-    ptin_intf_t intf;
-    intf.intf_type = 0;
-    intf.intf_id = aclApply->interface; /* A valid interface MUST be specified by the Manager in order to translate the VLAN ID */
 
     /* ...and translate it to the internal VLAN ID */
-    rc = ptin_evc_intVlan_get_fromOVlan(&intf, oldVlan, 0, &newVlan);
+    rc = ptin_evc_intVlan_get_fromOVlan(&ptin_intf, oldVlan, 0, &newVlan);
     if (rc != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE (rc=%d)", rc);
@@ -2163,15 +2183,16 @@ L7_RC_t ptin_aclMacRuleConfig(msg_mac_acl_t *msgAcl, ACL_OPERATION_t operation)
  */
 L7_RC_t ptin_aclMacApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
 {
-  L7_BOOL aclVlanIdGiven = L7_FALSE;
-  L7_RC_t rc = L7_FAILURE;
-  L7_uint32 interface = 0, aclId = 0, direction, feature;
-  L7_uint32 vlanId = 0;
-  L7_char8 macAclName[L7_ACL_NAME_LEN_MAX + 1];
-  L7_uint32 sequence = L7_ACL_AUTO_INCR_INTF_SEQ_NUM;
-  L7_uint32 unit = 0;
-  L7_BOOL noMacAclName = L7_FALSE;
-  L7_RC_t status = L7_SUCCESS;
+  L7_BOOL     aclVlanIdGiven = L7_FALSE;
+  L7_RC_t     rc = L7_FAILURE;
+  ptin_intf_t ptin_intf;
+  L7_uint32   aclId = 0, direction, feature;
+  L7_uint32   intIfNum, vlanId = 0;
+  L7_char8    macAclName[L7_ACL_NAME_LEN_MAX + 1];
+  L7_uint32   sequence = L7_ACL_AUTO_INCR_INTF_SEQ_NUM;
+  L7_uint32   unit = 0;
+  L7_BOOL     noMacAclName = L7_FALSE;
+  L7_RC_t     status = L7_SUCCESS;
 
   /* determine if ACL is being applied to a VLAN ID */
   if (aclApply->number_of_vlans > 0 &&
@@ -2193,8 +2214,17 @@ L7_RC_t ptin_aclMacApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
   }
   else
   {
-    interface = aclApply->interface;
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Applying ACL to Interface %d", interface);
+    if (ptin_intf_port2intIfNum(aclApply->interface, &intIfNum) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Cannot convert port %u to intIfNum", aclApply->interface);
+      return L7_FAILURE;
+    }
+    if (ptin_intf_port2ptintf(aclApply->interface, &ptin_intf) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Cannot convert port %u to ptin_intf", aclApply->interface);
+      return L7_FAILURE;
+    }
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Applying ACL to Interface %d", aclApply->interface);
   }
 
 
@@ -2220,7 +2250,6 @@ L7_RC_t ptin_aclMacApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
   }
 
 
-
   if (aclApply->direction == ACL_DIRECTION_IN)          /* inbound */
   {
     feature = L7_ACL_INTF_DIRECTION_INBOUND_FEATURE_ID;
@@ -2238,7 +2267,6 @@ L7_RC_t ptin_aclMacApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
   }
 
 
-
   if (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_ACL_COMPONENT_ID, feature) == L7_FALSE)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: L7_FLEX_QOS_ACL_COMPONENT_ID");
@@ -2246,12 +2274,12 @@ L7_RC_t ptin_aclMacApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
   }
 
 
-
   if (aclVlanIdGiven == L7_FALSE)
   {
+    LOG_TRACE(LOG_CTX_PTIN_MSG, "operation=%d intIfNum=%d direction=%d aclId=%u sequence=%d", operation, intIfNum, direction, aclId, sequence);
+
     if (operation == ACL_OPERATION_CREATE)
     {
-      
       #ifdef __VLAN_XLATE__
       L7_uint32 i;
       L7_uint32 oldVlan;
@@ -2271,11 +2299,8 @@ L7_RC_t ptin_aclMacApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
           }
           else if (oldVlan != 0)
           {
-            ptin_intf_t intf;
-            intf.intf_type = 0;
-            intf.intf_id = interface;
             /* ...and translate it to the internal VLAN ID */
-            rc = ptin_evc_intVlan_get_fromOVlan(&intf, oldVlan, 0, &newVlan);
+            rc = ptin_evc_intVlan_get_fromOVlan(&ptin_intf, oldVlan, 0, &newVlan);
             if (rc == L7_SUCCESS)
             {
               LOG_DEBUG(LOG_CTX_PTIN_MSG, "Rule %d: Translating VLAN ID %d to %d (rc=%d)", i, oldVlan, (L7_uint32) newVlan, rc);
@@ -2289,11 +2314,11 @@ L7_RC_t ptin_aclMacApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
       }
       #endif
 
-      rc = usmDbQosAclMacInterfaceDirectionAdd(unit, interface, direction, aclId, sequence);
+      rc = usmDbQosAclMacInterfaceDirectionAdd(unit, intIfNum, direction, aclId, sequence);
     }
     else /* ACL_OPERATION_REMOVE */
     {
-      rc = usmDbQosAclMacInterfaceDirectionRemove(unit, interface, direction, aclId);
+      rc = usmDbQosAclMacInterfaceDirectionRemove(unit, intIfNum, direction, aclId);
       if (rc != L7_SUCCESS)
       {
         LOG_DEBUG(LOG_CTX_PTIN_MSG, "No ACL to be Unapplied");
@@ -2312,17 +2337,12 @@ L7_RC_t ptin_aclMacApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
   else
   {
     /* applying ACL to a VLAN */
-
-
     #ifdef __VLAN_XLATE__
     L7_uint32 oldVlan = vlanId;
     L7_uint16 newVlan;
-    ptin_intf_t intf;
-    intf.intf_type = 0;
-    intf.intf_id = aclApply->interface; /* A valid interface MUST be specified by the Manager in order to translate the VLAN ID */
 
     /* ...and translate it to the internal VLAN ID */
-    rc = ptin_evc_intVlan_get_fromOVlan(&intf, oldVlan, 0, &newVlan);
+    rc = ptin_evc_intVlan_get_fromOVlan(&ptin_intf, oldVlan, 0, &newVlan);
     if (rc != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE (rc=%d)", rc);

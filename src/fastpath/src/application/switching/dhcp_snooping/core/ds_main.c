@@ -4786,6 +4786,10 @@ L7_RC_t dsFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId,
                 return L7_FAILURE;
              }
 
+             if (ptin_debug_dhcp_snooping)
+               LOG_TRACE(LOG_CTX_PTIN_DHCP, "ipVersion=%u: isActiveOp82=%u isActiveOp37=%u isActiveOp18=%u",
+                         ipVersion, isActiveOp82, isActiveOp37, isActiveOp18);
+
              if(L7_IP_VERSION == ipVersion)
              {
                 if(isActiveOp82)
