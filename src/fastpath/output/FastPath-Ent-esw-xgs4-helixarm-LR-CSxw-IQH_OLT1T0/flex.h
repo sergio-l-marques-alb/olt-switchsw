@@ -227,22 +227,20 @@
 #endif
 
 /* Secure_Mgmt definitions */
-/* PTin removed
+/* PTin to be excluded */
 #ifndef _INCLUDE_SECURE_MGMT_COMPONENT_API_
 #define _INCLUDE_SECURE_MGMT_COMPONENT_API_
 #define L7_SECURE_MGMT_PACKAGE 1
 #define L7_MGMT_SECURITY_PACKAGE 1
 #endif
-*/
 
 /* SSL_LIB definitions */
-/* PTin removed
+/* PTin to be excluded */
 #ifndef _INCLUDE_SSL_LIB_COMPONENT_API_
 #define _INCLUDE_SSL_LIB_COMPONENT_API_
 #define L7_SSL_LIB_PACKAGE 1
 #define L7_OPENSSL_PACKAGE 1
 #endif
-*/
 
 /* CLI definitions */
 #ifndef _INCLUDE_CLI_COMPONENT_API_
@@ -257,12 +255,11 @@
 #endif
 
 /* xWeb definitions */
-/* PTin removed
+/* PTin to be excluded */
 #ifndef _INCLUDE_XWEB_COMPONENT_API_
 #define _INCLUDE_XWEB_COMPONENT_API_
 #define L7_XWEB_PACKAGE 1
 #endif 
-*/ 
 
 /* Routing definitions */
 #ifndef _INCLUDE_ROUTING_COMPONENT_API_
