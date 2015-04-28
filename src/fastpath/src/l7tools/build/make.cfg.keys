@@ -517,6 +517,11 @@ ifneq (,$(filter xgs4,$(L7_PLATFORM)))
   export BLD_L7_PLATFORM_IS_TYPE_XGS4	:= 1
 endif
 
+ifneq (,$(filter xgs5,$(L7_PLATFORM)))
+  export BLD_L7_PLATFORM_XGS4           := 1
+  export BLD_L7_PLATFORM_IS_TYPE_XGS4   := 1
+endif
+
 ifneq (,$(filter xgs4_dni,$(L7_PLATFORM)))
   export BLD_L7_PLATFORM_XGS4		:= 1
   export BLD_L7_PLATFORM_IS_TYPE_XGS4	:= 1
