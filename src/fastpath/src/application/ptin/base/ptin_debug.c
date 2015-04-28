@@ -16,6 +16,7 @@
 #include "dtl_ptin.h"
 #include "ptin_msg.h"
 #include "usmdb_telnet_api.h"
+#include "usmdb_sim_api.h"
 #include <unistd.h>
 #include <usmdb_nim_api.h>
 #include <string.h>
@@ -113,7 +114,8 @@ void ptin_debug(void)
   printf("  ptin_l2_maclimit_status                                         - Dumps MAC limit tables per interface (non empty)\r\n");
   printf("  ptin_l2_maclimit_config <sys> <ifType> <ifId> <vid> <lmt>       - Configures L2 MAC Limit on system/ per VLAN / per Port\r\n");
   printf("  ptin_debug_example <intIfNum> <oper> <param1> <param2>          - Generic DTL processor example\r\n");
-  printf("  cliTelnetAdminModeSet <port>\r\n");                            
+  printf("  cliTelnetAdminModeSet <port>\r\n");
+  printf("  webAccessAdminModeSet <port>\r\n");
   printf("\r\n");                                                          
   printf("  ptin_evc_clean_all <id>                                         - Clean all profiles and counters of an EVC (internal id)\r\n");
   printf("  ptin_evc_intf_clean_all <id> <intf_type> <intf_id>              - Clean all profiles and counters of one interface of an EVC (internal id)\r\n");
@@ -260,6 +262,24 @@ void cliTelnetAdminModeSet(L7_int port)
     if (port == 0)
     {
       printf("CLI Telnet disabled\r\n");
+    }
+  }
+  fflush(stdout);
+}
+
+void webAccessAdminModeSet(L7_int port)
+{
+  if (port == FD_HTTP_PORT_NUM)
+  {
+    usmDbSwDevCtrlWebMgmtModeSet(1, L7_ENABLE);
+    printf("WEB Access enabled\r\n");
+  }
+  else
+  {
+    usmDbSwDevCtrlWebMgmtModeSet(1, L7_DISABLE);
+    if (port == 0)
+    {
+      printf("WEB Access disabled\r\n");
     }
   }
   fflush(stdout);

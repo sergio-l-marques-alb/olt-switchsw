@@ -534,9 +534,9 @@ extern snmpTrapMgr_t FD_snmpTrapMgr[L7_MAX_SNMP_COMM];
                                             FD_TELNET_DEFAULT_MAX_SESSIONS + 1)
 #define FD_APL_DEFAULT_LIST_NAME           "defaultList"
 #define FD_CLI_WEB_JAVA_MODE                 L7_ENABLE
-#define FD_CLI_WEB_MODE                      L7_ENABLE
+#define FD_CLI_WEB_MODE                      L7_DISABLE     /* PTin modified: XUI */
 #define FD_CLI_WEB_TELNET_NEW_SESSIONS       L7_ENABLE
-#define FD_CLI_WEB_TELNET_DEFAULT_ADMIN_MODE L7_DISABLE
+#define FD_CLI_WEB_TELNET_DEFAULT_ADMIN_MODE L7_DISABLE     /* PTin modified: CLI */
 #define FD_CLI_WEB_DEFAULT_REMOTECON_TIMEOUT     5
 #define FD_CLI_WEB_DEFAULT_LOGIN_NAME            ""
 #define FD_WEB_DEFAULT_MAX_CONNECTIONS           FD_HTTP_DEFAULT_MAX_CONNECTIONS+FD_SECURE_HTTP_DEFAULT_MAX_CONNECTIONS
