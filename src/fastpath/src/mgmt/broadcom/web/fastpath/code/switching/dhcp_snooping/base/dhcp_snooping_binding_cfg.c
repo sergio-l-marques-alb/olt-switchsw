@@ -234,7 +234,7 @@ void ewaFormServe_ds_binding_cfg( EwsContext context, EwaForm_ds_binding_cfgP fo
     form->status.dhcpSnoopStaticList[cnt].interface |= (EW_FORM_INITIALIZED | EW_FORM_DYNAMIC);
 
     /* Mac Address */
-    memcpy (form->value.dhcpSnoopStaticList[cnt].macaddr, dsBinding.macAddr, L7_ENET_MAC_ADDR_LEN);
+    memcpy (form->value.dhcpSnoopStaticList[cnt].macaddr, dsBinding.key.macAddr, L7_ENET_MAC_ADDR_LEN);
     form->status.dhcpSnoopStaticList[cnt].macaddr |= (EW_FORM_INITIALIZED |  EW_FORM_DYNAMIC);
     
     /* Vlan */ 
@@ -265,7 +265,7 @@ void ewaFormServe_ds_binding_cfg( EwsContext context, EwaForm_ds_binding_cfgP fo
     form->value.dhcpSnoopDynamicList[cnt].dinterface = osapiStrDup(slotPort);
     form->status.dhcpSnoopDynamicList[cnt].dinterface |= (EW_FORM_INITIALIZED |EW_FORM_DYNAMIC);
     /* Mac Address */
-    memcpy (form->value.dhcpSnoopDynamicList[cnt].dmacaddr, dsBinding.macAddr, L7_ENET_MAC_ADDR_LEN);
+    memcpy (form->value.dhcpSnoopDynamicList[cnt].dmacaddr, dsBinding.key.macAddr, L7_ENET_MAC_ADDR_LEN);
     form->status.dhcpSnoopDynamicList[cnt].dmacaddr |= (EW_FORM_INITIALIZED |  EW_FORM_DYNAMIC);
 
     /* Vlan */ 

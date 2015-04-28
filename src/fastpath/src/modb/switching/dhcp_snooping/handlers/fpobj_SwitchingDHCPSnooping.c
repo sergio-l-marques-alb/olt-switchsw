@@ -1355,7 +1355,7 @@ xLibRC_t fpObjGet_SwitchingDHCPSnooping_MACAddress (void *wap, void *bufp)
     memset(objMACAddressValue,0,L7_MAC_ADDR_LEN);
   }
 
-  memcpy(binding.macAddr,objMACAddressValue,L7_MAC_ADDR_LEN);
+  memcpy(binding.key.macAddr,objMACAddressValue,L7_MAC_ADDR_LEN);
 
   while(owa.l7rc == L7_SUCCESS)
   {
@@ -1376,7 +1376,7 @@ xLibRC_t fpObjGet_SwitchingDHCPSnooping_MACAddress (void *wap, void *bufp)
     return owa.rc;
   }
 
-  memcpy(nextObjMACAddressValue, binding.macAddr,L7_MAC_ADDR_LEN);
+  memcpy(nextObjMACAddressValue, binding.key.macAddr,L7_MAC_ADDR_LEN);
 
   FPOBJ_TRACE_NEW_KEY (bufp, nextObjMACAddressValue, owa.len);
 
@@ -1417,7 +1417,7 @@ xLibRC_t fpObjGet_SwitchingDHCPSnooping_DynMACAddress (void *wap, void *bufp)
     memset(objMACAddressValue,0,L7_MAC_ADDR_LEN);
   }
 
-  memcpy(binding.macAddr,objMACAddressValue,L7_MAC_ADDR_LEN);
+  memcpy(binding.key.macAddr,objMACAddressValue,L7_MAC_ADDR_LEN);
 
   while(owa.l7rc == L7_SUCCESS)
   {
@@ -1439,7 +1439,7 @@ xLibRC_t fpObjGet_SwitchingDHCPSnooping_DynMACAddress (void *wap, void *bufp)
     return owa.rc;
   }
 
-  memcpy(nextObjMACAddressValue, binding.macAddr,L7_MAC_ADDR_LEN);
+  memcpy(nextObjMACAddressValue, binding.key.macAddr,L7_MAC_ADDR_LEN);
 
   FPOBJ_TRACE_NEW_KEY (bufp, nextObjMACAddressValue, owa.len);
 
@@ -1483,7 +1483,7 @@ xLibRC_t fpObjGet_SwitchingDHCPSnooping_Vlan (void *wap, void *bufp)
 
   FPOBJ_TRACE_CURRENT_KEY (bufp, keyMACAddressValue, kwaMACAddress.len);
 
-  memcpy(binding.macAddr,keyMACAddressValue,L7_MAC_ADDR_LEN);
+  memcpy(binding.key.macAddr,keyMACAddressValue,L7_MAC_ADDR_LEN);
   /* get the value from application */
   owa.l7rc = usmDbDsBindingGet(&binding);
   if (owa.l7rc != L7_SUCCESS)
@@ -1590,7 +1590,7 @@ xLibRC_t fpObjGet_SwitchingDHCPSnooping_DynVlan (void *wap, void *bufp)
 
   FPOBJ_TRACE_CURRENT_KEY (bufp, keyMACAddressValue, kwaMACAddress.len);
 
-  memcpy(binding.macAddr,keyMACAddressValue,L7_MAC_ADDR_LEN);
+  memcpy(binding.key.macAddr,keyMACAddressValue,L7_MAC_ADDR_LEN);
   /* get the value from application */
   owa.l7rc = usmDbDsBindingGet(&binding);
   if (owa.l7rc != L7_SUCCESS)
@@ -1662,7 +1662,7 @@ xLibRC_t fpObjGet_SwitchingDHCPSnooping_intIfNumber (void *wap, void *bufp)
 
   FPOBJ_TRACE_CURRENT_KEY (bufp, keyMACAddressValue, kwaMACAddress.len);
 
-  memcpy(binding.macAddr,keyMACAddressValue,L7_MAC_ADDR_LEN);
+  memcpy(binding.key.macAddr,keyMACAddressValue,L7_MAC_ADDR_LEN);
   /* get the value from application */
   owa.l7rc = usmDbDsBindingGet(&binding);
   if (owa.l7rc != L7_SUCCESS)
@@ -1777,7 +1777,7 @@ xLibRC_t fpObjGet_SwitchingDHCPSnooping_DynintIfNumber (void *wap, void *bufp)
 
   FPOBJ_TRACE_CURRENT_KEY (bufp, keyMACAddressValue, kwaMACAddress.len);
 
-  memcpy(binding.macAddr,keyMACAddressValue,L7_MAC_ADDR_LEN);
+  memcpy(binding.key.macAddr,keyMACAddressValue,L7_MAC_ADDR_LEN);
   /* get the value from application */
   owa.l7rc = usmDbDsBindingGet(&binding);
   if (owa.l7rc != L7_SUCCESS)
@@ -1849,7 +1849,7 @@ xLibRC_t fpObjGet_SwitchingDHCPSnooping_BindingType (void *wap, void *bufp)
 
   FPOBJ_TRACE_CURRENT_KEY (bufp, keyMACAddressValue, kwaMACAddress.len);
 
-  memcpy(binding.macAddr,keyMACAddressValue,L7_MAC_ADDR_LEN);
+  memcpy(binding.key.macAddr,keyMACAddressValue,L7_MAC_ADDR_LEN);
   /* get the value from application */
   owa.l7rc = usmDbDsBindingGet(&binding);
   if (owa.l7rc != L7_SUCCESS)
@@ -1921,7 +1921,7 @@ xLibRC_t fpObjGet_SwitchingDHCPSnooping_IPAddress (void *wap, void *bufp)
 
   FPOBJ_TRACE_CURRENT_KEY (bufp, keyMACAddressValue, kwaMACAddress.len);
 
-  memcpy(binding.macAddr,keyMACAddressValue,L7_MAC_ADDR_LEN);
+  memcpy(binding.key.macAddr,keyMACAddressValue,L7_MAC_ADDR_LEN);
   /* get the value from application */
   owa.l7rc = usmDbDsBindingGet(&binding);
   if (owa.l7rc != L7_SUCCESS)
@@ -1972,7 +1972,7 @@ xLibRC_t fpObjGet_SwitchingDHCPSnooping_DynIPAddress (void *wap, void *bufp)
 
   FPOBJ_TRACE_CURRENT_KEY (bufp, keyMACAddressValue, kwaMACAddress.len);
 
-  memcpy(binding.macAddr,keyMACAddressValue,L7_MAC_ADDR_LEN);
+  memcpy(binding.key.macAddr,keyMACAddressValue,L7_MAC_ADDR_LEN);
   /* get the value from application */
   owa.l7rc = usmDbDsBindingGet(&binding);
   if (owa.l7rc != L7_SUCCESS)
@@ -2045,7 +2045,7 @@ xLibRC_t fpObjGet_SwitchingDHCPSnooping_LeaseTime (void *wap, void *bufp)
 
   FPOBJ_TRACE_CURRENT_KEY (bufp, keyMACAddressValue, kwaMACAddress.len);
 
-  memcpy(binding.macAddr,keyMACAddressValue,L7_MAC_ADDR_LEN);
+  memcpy(binding.key.macAddr,keyMACAddressValue,L7_MAC_ADDR_LEN);
 
   /* get the value from application */
   owa.l7rc = usmDbDsBindingGet(&binding);
@@ -2100,7 +2100,7 @@ xLibRC_t fpObjSet_SwitchingDHCPSnooping_DynClearBindings (void *wap, void *bufp)
  
   FPOBJ_TRACE_CURRENT_KEY (bufp, keyMACAddressValue, kwaMACAddress.len);
  
-  memcpy(binding.macAddr, keyMACAddressValue, L7_MAC_ADDR_LEN);
+  memcpy(binding.key.macAddr, keyMACAddressValue, L7_MAC_ADDR_LEN);
 
   /* get the value from application */
   owa.l7rc = usmDbDsBindingGet(&binding);
