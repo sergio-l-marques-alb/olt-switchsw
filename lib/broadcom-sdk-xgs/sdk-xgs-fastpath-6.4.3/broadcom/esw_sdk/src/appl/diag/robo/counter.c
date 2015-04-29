@@ -84,7 +84,7 @@ robo_counter_val_set(int unit, soc_port_t port, soc_reg_t ctr_reg,
 
     ind = soc_robo_counter_idx_get(unit, ctr_reg, port);
 
-    LOG_BSL_INFO(BSL_LS_APPL_COUNTER,
+    LOG_BSL_VERBOSE(BSL_LS_APPL_COUNTER,
              (BSL_META_U(unit,
                          "cval_set: %s ar_idx=%d p=%d idx=%d vh=%d vl=%d\n"),
               SOC_ROBO_REG_NAME(unit, ctr_reg), ar_idx,
@@ -155,7 +155,7 @@ counter_val_get(int unit, soc_port_t port, soc_reg_t ctr_reg,
         }
         *val = robo_counter_val[unit][ind];
 
-        LOG_BSL_INFO(BSL_LS_APPL_COUNTER,
+        LOG_BSL_VERBOSE(BSL_LS_APPL_COUNTER,
                  (BSL_META_U(unit,
                              "cval_get: %s ar_idx=%d p=%d idx=%d vh=%d vl=%d\n"),
                   SOC_ROBO_REG_NAME(unit, ctr_reg),
