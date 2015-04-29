@@ -3443,11 +3443,13 @@ void hapiBroadCmDefaults(void)
 {
   hapiBroadCmReset();
 
+  hapiBroadCmLayerSet(bslLayerAppl, L7_TRUE);
   hapiBroadCmLayerSet(bslLayerBcm,  L7_TRUE);
   hapiBroadCmLayerSet(bslLayerBcmx, L7_TRUE);
   hapiBroadCmLayerSet(bslLayerSoc,  L7_TRUE);
   hapiBroadCmLayerSet(bslLayerSys,  L7_TRUE);
 
+  hapiBroadCmSourceSet(bslSourceShell,  L7_TRUE);
   hapiBroadCmSourceSet(bslSourceMii,    L7_TRUE);
   hapiBroadCmSourceSet(bslSourceMiim,   L7_TRUE);
   hapiBroadCmSourceSet(bslSourceMim,    L7_TRUE);
@@ -3546,7 +3548,7 @@ int hapiBroadCmCheck(bsl_packed_meta_t meta_pack)
     int source   = BSL_SOURCE_GET(meta_pack);
 
     /* Always TRUE */
-    if (severity <= bslSeverityWarn || layer == bslLayerAppl) {
+    if (severity <= bslSeverityWarn /*|| layer == bslLayerAppl*/) {
         return 1;
     }
 
