@@ -1591,9 +1591,12 @@ L7_RC_t hapiBroadStormControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_
       return L7_FAILURE;
   }
 
+  /* No stormcontrol using FP rules */
+#if 0
   #if (!PTIN_BOARD_IS_LINECARD)
   status = hapi_ptin_stormControl_set(&dapiPort, enable, stormControl, PTIN_PORT_EGRESS_TYPE_PROMISCUOUS);
   #endif
+#endif
   //#if (!PTIN_BOARD_IS_MATRIX)
   status = hapi_ptin_stormControl_set(&dapiPort, enable, stormControl, PTIN_PORT_EGRESS_TYPE_ISOLATED);
   //#endif

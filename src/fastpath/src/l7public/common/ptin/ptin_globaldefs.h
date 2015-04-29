@@ -130,8 +130,6 @@ extern int ptin_sys_number_of_ports;
 #endif  // PTIN_BOARD_IS_MATRIX
 
 
-
-
 #define PTIN_VLAN_MIN                 L7_DOT1Q_MIN_VLAN_ID_CREATE
 #define PTIN_VLAN_MAX                 L7_DOT1Q_MAX_VLAN_ID
 #define PTIN_RESERVED_VLANS           2

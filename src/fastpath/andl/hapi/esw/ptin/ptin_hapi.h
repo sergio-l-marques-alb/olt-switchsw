@@ -317,19 +317,6 @@ extern L7_RC_t hapi_ptin_counters_clear(L7_uint phyPort);
  */
 extern L7_RC_t hapi_ptin_counters_activity_get(ptin_HWEth_PortsActivity_t *portsActivity);
 
-#if 0
-/**
- * Add/remove a rate limiter to a particular traffic type
- * 
- * @param dapiPort : port 
- * @param enable   : Add or remove rate limit
- * @param rateLimit : rate limit profile
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-extern L7_RC_t hapi_ptin_rateLimit_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, ptin_pktRateLimit_t *rateLimit);
-#endif
-
 /**
  * Configures storm control
  * 
@@ -341,28 +328,6 @@ extern L7_RC_t hapi_ptin_rateLimit_set(ptin_dapi_port_t *dapiPort, L7_BOOL enabl
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, ptin_stormControl_t *stormControl, PORT_EGRESS_TYPE egress_type);
-
-#if 1
-/**
- * Add port to storm control policies
- * 
- * @param dapiPort 
- * @param egress_type : Egress type port  
- * 
- * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
- */
-extern L7_RC_t hapi_ptin_stormControl_port_add(ptin_dapi_port_t *dapiPort, PORT_EGRESS_TYPE egress_type);
-
-/**
- * Remove port to storm control policies
- * 
- * @param dapiPort 
- * @param egress_type : Egress type port  
- * 
- * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
- */
-extern L7_RC_t hapi_ptin_stormControl_port_remove(ptin_dapi_port_t *dapiPort, PORT_EGRESS_TYPE egress_type);
-#endif
 
 /**
  * Configure default (Outer+Inner) VLANs using VCAP
