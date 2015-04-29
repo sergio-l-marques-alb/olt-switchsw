@@ -6667,7 +6667,7 @@ _phy_wc40_c73_adv_local_get(int unit, soc_port_t port,
     }
     ability->pause = pause;
 
-    LOG_BSL_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_phy_wc40_c73_adv_local_get: u=%d p=%d pause=%08x speeds=%04x\n"),
               unit, port, pause, speeds));
@@ -6980,7 +6980,7 @@ phy_wc40_ability_advert_get(int unit, soc_port_t port,
             (_phy_wc40_c73_adv_local_get(unit, port, ability));
     }
 
-    LOG_BSL_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_wc40_ability_advert_get:unit=%d p=%d pause=%08x sp=%08x\n"),
               unit, port, ability->pause, ability->speed_full_duplex));
