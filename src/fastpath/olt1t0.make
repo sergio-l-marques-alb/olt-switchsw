@@ -60,15 +60,6 @@ export LVL7_MAKEFILE_DISPLAY_MODE := S
 
 all: welcome setsdk mgmdconfig cli_clean shell_clean cli shell
 	$(RM) -f $(BIN_PATH)/$(BIN_FILE)
-	@if [ -f $(TMP_FILE) ]; then\
-		echo "Replacing package.cfg with the one without xweb and snmp compilation...";\
-		cd $(CCVIEWS_HOME)/$(OUTPATH) && $(CP) package.cfg_woXweb package.cfg;\
-		echo "";\
-	else\
-		echo "Replacing package.cfg with the one with xweb and snmp compilation...";\
-		cd $(CCVIEWS_HOME)/$(OUTPATH) && $(CP) package.cfg_original package.cfg;\
-		echo "";\
-	fi;
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH)
 	@touch $(TMP_FILE);\
 	cd $(CCVIEWS_HOME)/$(OUTPATH) && $(CP) package.cfg_original package.cfg
@@ -168,7 +159,11 @@ clean-platform: setsdk
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) clean-binds clean-plat_bsp clean-cpu_bsp clean-base
 	$(RM) -f $(TMP_FILE)
 
-clean-ptin clean-switching clean-routing clean-base clean-andl: setsdk
+clean-ptin clean-switching clean-routing clean-base clean-andl clean-cli: setsdk
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
+	$(RM) -f $(TMP_FILE)
+
+clean-xui: setsdk
+	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) clean-snmp clean-openssl clean-cli clean-modb clean-xlib clean-xweb clean-emweb
 	$(RM) -f $(TMP_FILE)
 
