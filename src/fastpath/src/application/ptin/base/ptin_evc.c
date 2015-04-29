@@ -8805,8 +8805,6 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
       l3_intf.flags |= PTIN_BCM_L3_ADD_TO_ARL;
 
       l3_intf.l3_intf_id = PTIN_HAPI_BROAD_INVALID_L3_INTF_ID;
-      /* L3 management disabled (for now) */
-      #if 0
       /*Add L3 Leaf Interface*/
       rc = dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_L3_INTF, DAPI_CMD_SET, sizeof(ptin_dtl_l3_intf_t), &l3_intf);
 
@@ -8827,7 +8825,6 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
       }
 
       LOG_TRACE(LOG_CTX_PTIN_EVC, "Egress Port Added to Multicast Group [ptin_port:%u l3_intf_id:%d multicast_group:0x%x]", ptin_port, l3_intf.l3_intf_id, evcs[evc_id].multicast_group);      
-      #endif
     }
   }
 
@@ -8954,7 +8951,7 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
   ptin_intf_t        intf;
   L7_uint32          intIfNum;
   ptin_dtl_l3_intf_t l3_intf;
-  //L7_RC_t            rc;
+  L7_RC_t            rc;
 
   is_p2p     = (evcs[evc_id].flags & PTIN_EVC_MASK_P2P    ) == PTIN_EVC_MASK_P2P;
   is_quattro = (evcs[evc_id].flags & PTIN_EVC_MASK_QUATTRO) == PTIN_EVC_MASK_QUATTRO;
@@ -9053,8 +9050,6 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
         /*Copy L3 Intf Id*/
         l3_intf.l3_intf_id = evcs[evc_id].intf[ptin_port].l3_intf_id;
 
-        /* L3 management disabled (for now) */
-        #if 0
         /*Remove L3 Leaf Interface*/
         rc = dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_L3_INTF, DAPI_CMD_CLEAR, sizeof(ptin_dtl_l3_intf_t), &l3_intf);
 
@@ -9075,7 +9070,7 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
         }
 
         LOG_TRACE(LOG_CTX_PTIN_EVC, "Egress Port Added to Multicast Group [ptin_port:%u l3_intf_id:%d multicast_group:0x%x]", ptin_port, l3_intf.l3_intf_id, evcs[evc_id].multicast_group);    
-        #endif
+
       }
       else
       {
