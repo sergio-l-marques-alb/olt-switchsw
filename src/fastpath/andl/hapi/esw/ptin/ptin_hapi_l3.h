@@ -89,6 +89,16 @@ extern L7_RC_t ptin_hapi_l3_ipmc_remove(ptin_dtl_ipmc_addr_t *ptin_ipmc);
 extern L7_RC_t ptin_hapi_l3_ipmc_get(ptin_dtl_ipmc_addr_t *ptin_ipmc);
 
 /*********************************************************************
+* @purpose  Init HAPI L3 Intf Id Structures
+*
+*
+* @end
+*********************************************************************/
+#if 0
+extern L7_RC_t ptin_hapi_l3_intf_init(void);
+#endif
+
+/*********************************************************************
 * @purpose  Create an L3 Interface
 *
 * @param    intf          @{(input)} Interface attributes

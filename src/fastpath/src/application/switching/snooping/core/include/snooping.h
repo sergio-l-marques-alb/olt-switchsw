@@ -560,6 +560,47 @@ typedef struct snoopPTinQueryData_s
 }snoopPTinQueryData_t;
 #endif
 
+/* AVL Tree Snooping  Group Intf Mask Entry Strucutre */
+typedef struct snoopChannelIntfMaskInfoDataKey_s
+{
+  L7_uint32               vlanId;
+  L7_INTF_MASK_t          channelIntfMask;
+} snoopChannelIntfMaskInfoDataKey_t;
+
+typedef struct snoopChannelIntfMaskInfoData_s
+{  
+  snoopChannelIntfMaskInfoDataKey_t  snoopChannelIntfMaskInfoDataKey; /*AVL Tree Key*/
+  L7_uint8                           noOfInterfaces;
+  L7_int32                           multicastGroup;   
+  L7_int32                           noOfChannelEntries;
+  void                              *next;
+} snoopChannelIntfMaskInfoData_t;
+
+/* AVL Tree Snooping Channel Entry Strucutre */
+typedef struct snoopChannelInfoDataKey_s
+{
+  L7_uint32        vlanId;
+  L7_inet_addr_t   groupAddr;
+  L7_inet_addr_t   sourceAddr;
+} snoopChannelInfoDataKey_t;
+
+#define SNOOP_CHANNEL_ENTRY_IS_STATIC        0x0001
+#define SNOOP_CHANNEL_ENTRY_IS_DYNAMIC       0x0002
+#define SNOOP_CHANNEL_ENTRY_IS_PROTECTION    0x0004
+#define SNOOP_CHANNEL_ENTRY_IS_IN_HARDWARE   0x0008
+
+typedef struct snoopChannelInfoData_s
+{
+  snoopChannelInfoDataKey_t  snoopChannelInfoDataKey; /*AVL Tree Key*/  
+  L7_INTF_MASK_t                     channelIntfMask;
+  L7_uint8                           noOfInterfaces;
+  L7_INTF_MASK_t                     channelIntfProtectionMask;
+  L7_uint8                           noOfProtectionInterfaces;
+  L7_uint8                           flags;  
+  snoopChannelIntfMaskInfoData_t    *pChannelIntfMask;
+  void                              *next;
+} snoopChannelInfoData_t;
+
 /* AVL Tree Snooping L3 Entry Strucutre */
 typedef struct snoopL3InfoDataKey_s
 {
@@ -632,6 +673,16 @@ typedef struct snoop_eb_s
   avlTree_t           snoopL3AvlTree;
   avlTreeTables_t    *snoopL3TreeHeap;
   snoopL3InfoData_t  *snoopL3DataHeap;
+
+  /* Channel AVL Tree data */
+  avlTree_t                snoopChannelAvlTree;
+  avlTreeTables_t         *snoopChannelTreeHeap;
+  snoopChannelInfoData_t  *snoopChannelDataHeap;
+
+  /* ChannelIntfMask AVL Tree data */
+  avlTree_t                      snoopChannelIntfMaskAvlTree;
+  avlTreeTables_t               *snoopChannelIntfMaskTreeHeap;
+  snoopChannelIntfMaskInfoData_t *snoopChannelIntfMaskDataHeap;  
 
   /* Checkpoint/Backup AVL Tree data */
   avlTree_t              snoopCkptAvlTree;

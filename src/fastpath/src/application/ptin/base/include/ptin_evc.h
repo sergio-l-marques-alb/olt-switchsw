@@ -921,4 +921,28 @@ L7_RC_t ptin_evc_mac_bridge_check(L7_uint32 evc_ext_id, L7_BOOL *is_mac_bridge);
  */
 extern L7_RC_t ptin_evc_ext2int(L7_uint32 evc_ext_id, L7_uint32 *evc_id);
 
+/**
+ * Get L3 Intf Id of EVC Port
+ * 
+ * 
+ * @param evc_ext_id 
+ * @param intfNum 
+ * @param l3_intf_id 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_evc_l3_intf_get(L7_uint32 evc_ext_id, L7_uint32 intfNum, L7_int *l3_intf_id);
+
+/**
+ * Get L3 Multicast Group of an EVC 
+ * 
+ * 
+ * @param evc_ext_id 
+ * @param multicast_group 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_evc_l3_multicast_group_get(L7_uint32 evc_ext_id, L7_int *multicast_group);
+
+
 #endif /* _PTIN_EVC_H */

@@ -758,7 +758,7 @@ L7_RC_t snoopPTinInterfaceRemove(snoopPTinL3Interface_t *interfacePtr,L7_uint32 
   {
     LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Going to close this L2 Port (interfaceIdx:%u vlanId:%u groupAddr:%s)",interfaceIdx,vlanId,inetAddrPrint(groupAddr, debug_buf));
     /*Close L2 Port on Switch*/
-    if (snoopGroupIntfRemove(vlanId,groupAddr,interfaceIdx, L7_FALSE)!=L7_SUCCESS)
+    if (snoopL2GroupIntfRemove(vlanId,groupAddr,interfaceIdx, L7_FALSE)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopGroupIntfRemove()");
       return L7_FAILURE;
@@ -1306,7 +1306,7 @@ L7_RC_t snoopPTinMembershipReportToIncludeProcess(snoopPTinL3InfoData_t* avlTree
 #endif
       LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Going to open this L2 Port (interfaceIdx:%u vlanId:%u groupAddr:%s)",intIfNum,avlTreeEntry->snoopPTinL3InfoDataKey.vlanId,inetAddrPrint(&avlTreeEntry->snoopPTinL3InfoDataKey.mcastGroupAddr, debug_buf));
       /*Open L2 Port on Switch*/   
-      if (snoopGroupIntfAdd(avlTreeEntry->snoopPTinL3InfoDataKey.vlanId, &avlTreeEntry->snoopPTinL3InfoDataKey.mcastGroupAddr,intIfNum,avlTreeEntry->interfaces[intIfNum].isStatic, L7_FALSE)!=L7_SUCCESS)
+      if (snoopL2GroupIntfAdd(avlTreeEntry->snoopPTinL3InfoDataKey.vlanId, &avlTreeEntry->snoopPTinL3InfoDataKey.mcastGroupAddr,intIfNum,avlTreeEntry->interfaces[intIfNum].isStatic, L7_FALSE)!=L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopGroupIntfAdd()");       
         return L7_FAILURE;
@@ -1354,7 +1354,7 @@ L7_RC_t snoopPTinMembershipReportToIncludeProcess(snoopPTinL3InfoData_t* avlTree
         else
         {
           LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Going to close this L2 Port (interfaceIdx:%u vlanId:%u groupAddr:%s)",intIfNum,avlTreeEntry->snoopPTinL3InfoDataKey.vlanId,inetAddrPrint(&avlTreeEntry->snoopPTinL3InfoDataKey.mcastGroupAddr, debug_buf));
-          if (snoopGroupIntfRemove(avlTreeEntry->snoopPTinL3InfoDataKey.vlanId, &avlTreeEntry->snoopPTinL3InfoDataKey.mcastGroupAddr,intIfNum, L7_FALSE)!=L7_SUCCESS)
+          if (snoopL2GroupIntfRemove(avlTreeEntry->snoopPTinL3InfoDataKey.vlanId, &avlTreeEntry->snoopPTinL3InfoDataKey.mcastGroupAddr,intIfNum, L7_FALSE)!=L7_SUCCESS)
           {
             LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopGroupIntfRemove()");       
             return L7_FAILURE;
@@ -1670,7 +1670,7 @@ L7_RC_t snoopPTinMembershipReportToExcludeProcess(snoopPTinL3InfoData_t* avlTree
 #endif
     LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Going to open this L2 Port (interfaceIdx:%u vlanId:%u groupAddr:%s)",intIfNum,avlTreeEntry->snoopPTinL3InfoDataKey.vlanId,inetAddrPrint(&avlTreeEntry->snoopPTinL3InfoDataKey.mcastGroupAddr, debug_buf));
     /*Open L2 Port on Switch*/   
-    if (snoopGroupIntfAdd(avlTreeEntry->snoopPTinL3InfoDataKey.vlanId, &avlTreeEntry->snoopPTinL3InfoDataKey.mcastGroupAddr,intIfNum,avlTreeEntry->interfaces[intIfNum].isStatic, L7_FALSE)!=L7_SUCCESS)
+    if (snoopL2GroupIntfAdd(avlTreeEntry->snoopPTinL3InfoDataKey.vlanId, &avlTreeEntry->snoopPTinL3InfoDataKey.mcastGroupAddr,intIfNum,avlTreeEntry->interfaces[intIfNum].isStatic, L7_FALSE)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopGroupIntfAdd()");       
       return L7_FAILURE;
@@ -1801,7 +1801,7 @@ L7_RC_t snoopPTinMembershipReportAllowProcess(snoopPTinL3InfoData_t* avlTreeEntr
   {
     LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Going to open this L2 Port (interfaceIdx:%u vlanId:%u groupAddr:%s)",intIfNum,avlTreeEntry->snoopPTinL3InfoDataKey.vlanId,inetAddrPrint(&avlTreeEntry->snoopPTinL3InfoDataKey.mcastGroupAddr, debug_buf));
     /*Open L2 Port on Switch*/   
-    if (snoopGroupIntfAdd(avlTreeEntry->snoopPTinL3InfoDataKey.vlanId, &avlTreeEntry->snoopPTinL3InfoDataKey.mcastGroupAddr,intIfNum,avlTreeEntry->interfaces[intIfNum].isStatic, L7_FALSE)!=L7_SUCCESS)
+    if (snoopL2GroupIntfAdd(avlTreeEntry->snoopPTinL3InfoDataKey.vlanId, &avlTreeEntry->snoopPTinL3InfoDataKey.mcastGroupAddr,intIfNum,avlTreeEntry->interfaces[intIfNum].isStatic, L7_FALSE)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to snoopGroupIntfAdd()");       
       return L7_FAILURE;

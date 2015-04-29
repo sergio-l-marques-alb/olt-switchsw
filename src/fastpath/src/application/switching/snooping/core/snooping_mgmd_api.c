@@ -1053,6 +1053,7 @@ unsigned int snooping_port_close(unsigned int serviceId, unsigned int portId, un
 
   LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X]", serviceId, portId, groupAddr, sourceAddr);
 
+  #if !PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
   /*In L2 we do not support forwarding multicast packets based on the Source Address. 
     To support IGMPv3 protocol we only close the ports if the Source Address is equal to 0x0000.
     If not we ignore the request*/
@@ -1062,6 +1063,7 @@ unsigned int snooping_port_close(unsigned int serviceId, unsigned int portId, un
       LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Ignoring Port Close Request!");
     return rc;
   }
+  #endif
 
 #if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
   ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};

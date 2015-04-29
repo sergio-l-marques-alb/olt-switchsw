@@ -219,7 +219,7 @@ L7_RC_t broad_ptin_l3_ipmc(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uin
   ptin_dtl_ipmc_addr_t *ipmc = (ptin_dtl_ipmc_addr_t *) data;
   L7_RC_t               rc = L7_SUCCESS;
 
-  LOG_INFO(LOG_CTX_PTIN_HAPI, "usp={%d,%d,%d} operation=%u dataSize=%u", usp->unit, usp->slot, usp->port, operation, dataSize);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "usp={%d,%d,%d} operation=%u dataSize=%u", usp->unit, usp->slot, usp->port, operation, dataSize);
 
   /* Validate data pointer */
   if (ipmc == L7_NULLPTR)
@@ -235,7 +235,7 @@ L7_RC_t broad_ptin_l3_ipmc(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uin
     return L7_FAILURE;
   }
 
-  LOG_INFO(LOG_CTX_PTIN_HAPI, "Input Parameters [flags:0x08%X vid:%d group_index:0x%x sourceAddr:0x%08x groupAddr:0x%08x]", ipmc->flags, ipmc->vid, ipmc->group_index, 
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Input Parameters [flags:0x08%X vid:%d group_index:0x%x sourceAddr:0x%08x groupAddr:0x%08x]", ipmc->flags, ipmc->vid, ipmc->group_index, 
            ipmc->s_ip_addr.addr.ipv4.s_addr, ipmc->mc_ip_addr.addr.ipv4.s_addr);
   
   switch (operation)

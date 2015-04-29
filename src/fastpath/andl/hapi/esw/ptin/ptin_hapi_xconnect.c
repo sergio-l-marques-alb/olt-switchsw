@@ -1049,7 +1049,7 @@ L7_RC_t ptin_hapi_bridgeVlan_multicast_set(L7_uint16 vlanId, L7_int *mcast_group
     }
     *mcast_group = mc_group;
 
-    LOG_NOTICE(LOG_CTX_PTIN_HAPI, "mc_group=%d created!", mc_group);
+    LOG_DEBUG(LOG_CTX_PTIN_HAPI, "mc_group=0x%08x created!", mc_group);
   }
 
   if (multicast_flag & BCM_MULTICAST_TYPE_VLAN)
@@ -1138,9 +1138,18 @@ L7_RC_t ptin_hapi_bridgeVlan_multicast_reset(L7_uint16 vlanId, L7_int mcast_grou
   {
     if ((error=bcm_multicast_destroy(0, mcast_group)) != BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with bcm_multicast_destroy (mcast_group=%u): error=%d (\"%s\")",
-              mcast_group, error, bcm_errmsg(error));
-      return L7_FAILURE;
+      if (error != BCM_E_BUSY)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with bcm_multicast_destroy (mcast_group=0x%08x): error=%d (\"%s\")",
+                mcast_group, error, bcm_errmsg(error));
+        return L7_FAILURE;
+      }
+      else
+      {
+        LOG_WARNING(LOG_CTX_PTIN_HAPI,"bcm_multicast_destroy (mcast_group=0x%08x): rv=%d (\"%s\")",
+                mcast_group, error, bcm_errmsg(error));
+        return L7_SUCCESS;
+      }
     }
   }
 

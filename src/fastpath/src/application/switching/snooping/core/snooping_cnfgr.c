@@ -1160,33 +1160,6 @@ L7_RC_t snoopPtinRouterAVLTreeInit(void)
   avlCreateAvlTree(&(pSnoopEB->snoopPTinL3AvlTree), pSnoopEB->snoopPTinL3TreeHeap, pSnoopEB->snoopPTinL3DataHeap,
                    1, sizeof(snoopPTinL3InfoData_t), 0x10, sizeof(snoopPTinL3InfoDataKey_t));
 
-
-#if 0
-  LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Testing AVL Tree initialization");
-  memset(&groupAddr, 0x00, sizeof(groupAddr));
-  vlanId=0x0;
-  groupAddr.family=L7_AF_INET;
-  groupAddr.addr.ipv4.s_addr=0x0000;
-  /* Create new entry in AVL tree for VLAN+IP if necessary */
-  if (L7_NULLPTR == (snoopEntry = snoopPTinL3EntryFind(vlanId, &groupAddr, L7_MATCH_EXACT)))
-  {
-    if (L7_SUCCESS != snoopPTinL3EntryAdd(vlanId,&groupAddr))
-    {
-      LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Add L3 Entry");
-      return L7_FAILURE;
-    }
-    else
-    {
-      LOG_TRACE(LOG_CTX_PTIN_IGMP, "snoopPTinL3EntryAdd(%04X,%u)",groupAddr.addr.ipv4.s_addr,vlanId);
-    }
-    if (L7_NULLPTR == (snoopEntry = snoopPTinL3EntryFind(vlanId, &groupAddr, L7_MATCH_EXACT)))
-    {
-      LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Add&Find L3 Entry");
-      return L7_FAILURE;
-    }
-  }
-#endif
-
   return L7_SUCCESS;
 }
 #endif
@@ -1399,6 +1372,67 @@ L7_RC_t snoopEBInit(void)
                    sizeof(snoopInfoData_t), 0x10,
                    sizeof(snoopInfoDataKey_t));
 
+  /*Alloc Memory for IPMC*/
+  {        
+    LOG_WARNING(LOG_CTX_PTIN_IGMP,"snoopIpmcTreeHeap: Allocating %u",PTIN_SYSTEM_IGMP_L3_MULTICAST_MAX_ENTRIES*sizeof(avlTreeTables_t));  
+    pSnoopEB->snoopChannelTreeHeap =
+                          (avlTreeTables_t *)osapiMalloc(L7_SNOOPING_COMPONENT_ID,
+                            PTIN_SYSTEM_IGMP_L3_MULTICAST_MAX_ENTRIES *
+                            sizeof(avlTreeTables_t));
+
+    LOG_WARNING(LOG_CTX_PTIN_IGMP,"snoopIpmcDataHeap: Allocating %u",PTIN_SYSTEM_IGMP_L3_MULTICAST_MAX_ENTRIES*sizeof(snoopChannelInfoData_t));     
+    pSnoopEB->snoopChannelDataHeap  = (snoopChannelInfoData_t *)osapiMalloc(L7_SNOOPING_COMPONENT_ID,
+                                PTIN_SYSTEM_IGMP_L3_MULTICAST_MAX_ENTRIES *
+                                sizeof(snoopChannelInfoData_t));
+
+    if ((pSnoopEB->snoopChannelTreeHeap == L7_NULLPTR) ||
+        (pSnoopEB->snoopChannelDataHeap == L7_NULLPTR)
+       )
+    {
+      L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_SNOOPING_COMPONENT_ID,
+             "snoopEBInit: Error allocating data for snoop Ipmc AVL Tree \n");
+      return L7_FAILURE;
+    }
+
+    LOG_WARNING(LOG_CTX_PTIN_IGMP,"snoopIpmcAvlTree: Allocating %u",sizeof(avlTree_t));
+    /* AVL Tree creations - snoopIpmcAvlTree*/
+    avlCreateAvlTree(&(pSnoopEB->snoopChannelAvlTree),  pSnoopEB->snoopChannelTreeHeap,
+                     pSnoopEB->snoopChannelDataHeap, PTIN_SYSTEM_IGMP_L3_MULTICAST_MAX_ENTRIES,
+                     sizeof(snoopChannelInfoData_t), 0x10,
+                     sizeof(snoopChannelInfoDataKey_t));
+  }
+
+  /*Alloc Data for Group Interface Mask*/
+  { 
+    LOG_WARNING(LOG_CTX_PTIN_IGMP,"snoopGroupIntfMaskTreeHeap: Allocating %u",PTIN_SYSTEM_IGMP_L3_MULTICAST_MAX_ENTRIES*sizeof(avlTreeTables_t));
+    pSnoopEB->snoopChannelIntfMaskTreeHeap =
+                            (avlTreeTables_t *)osapiMalloc(L7_SNOOPING_COMPONENT_ID,
+                            PTIN_SYSTEM_IGMP_L3_MULTICAST_MAX_ENTRIES *
+                            sizeof(avlTreeTables_t));
+
+    LOG_WARNING(LOG_CTX_PTIN_IGMP,"snoopGroupIntfMaskDataHeap: Allocating %u",PTIN_SYSTEM_IGMP_L3_MULTICAST_MAX_ENTRIES*sizeof(snoopChannelIntfMaskInfoData_t)); 
+    pSnoopEB->snoopChannelIntfMaskDataHeap  = (snoopChannelIntfMaskInfoData_t *)osapiMalloc(L7_SNOOPING_COMPONENT_ID,
+                                PTIN_SYSTEM_IGMP_L3_MULTICAST_MAX_ENTRIES *
+                                sizeof(snoopChannelIntfMaskInfoData_t));
+
+    if ((pSnoopEB->snoopChannelIntfMaskTreeHeap == L7_NULLPTR) ||
+        (pSnoopEB->snoopChannelIntfMaskDataHeap == L7_NULLPTR)
+       )
+    {
+      L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_SNOOPING_COMPONENT_ID,
+             "snoopEBInit: Error allocating data for snoop Group Interface Mask AVL Tree \n");
+      return L7_FAILURE;
+    }
+
+    LOG_WARNING(LOG_CTX_PTIN_IGMP,"snoopGroupIntfMaskAvlTree: Allocating %u",sizeof(avlTree_t));
+    /* AVL Tree creations - snoopGroupIntfMaskAvlTree*/
+    avlCreateAvlTree(&(pSnoopEB->snoopChannelIntfMaskAvlTree),  pSnoopEB->snoopChannelIntfMaskTreeHeap,
+                     pSnoopEB->snoopChannelIntfMaskDataHeap, PTIN_SYSTEM_IGMP_L3_MULTICAST_MAX_ENTRIES,
+                     sizeof(snoopChannelIntfMaskInfoData_t), 0x10,
+                     sizeof(snoopChannelIntfMaskInfoDataKey_t));  
+    
+  }
+
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE=%u PTIN_SYSTEM_MAXINTERFACES_PER_GROUP=%u",PTIN_SYSTEM_IGMP_MAXCLIENTS,PTIN_SYSTEM_MAXINTERFACES_PER_GROUP);
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinL3TreeHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(avlTreeTables_t));
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinL3DataHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(snoopPTinL3InfoData_t));
@@ -1418,7 +1452,6 @@ L7_RC_t snoopEBInit(void)
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxyInterfaceAvlTree: Allocating %u",sizeof(avlTree_t));
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxyInterfaceTreeHeap: Allocating %u",PTIN_SYSTEM_N_IGMP_INSTANCES*sizeof(avlTreeTables_t));
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxyInterfaceDataHeap: Allocating %u",PTIN_SYSTEM_N_IGMP_INSTANCES*sizeof(snoopPTinProxyInterface_t));
-  
 
 
 /* DFF - PTin added: IGMPv3 snooping */
@@ -1427,17 +1460,17 @@ L7_RC_t snoopEBInit(void)
 #if SNOOP_PTIN_IGMPv3_ROUTER
   if ( snoop_ptin_grouptimer_init()!=L7_SUCCESS) // IGMPv3 grouptimer
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopEBInit: snoop_ptin_grouptimer_init() failed");
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"snoop_ptin_grouptimer_init() failed");
     return L7_FAILURE;
   }
   if ( snoop_ptin_sourcetimer_init()!=L7_SUCCESS) // IGMPv3 sourcetimer
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopEBInit: snoop_ptin_sourcetimer_init() failed");
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"snoop_ptin_sourcetimer_init() failed");
     return L7_FAILURE;
   }
   if ( snoop_ptin_querytimer_init()!=L7_SUCCESS) // IGMPv3 querytimer
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopEBInit: snoop_ptin_querytimer_init() failed");
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"snoop_ptin_querytimer_init() failed");
     return L7_FAILURE;
   }
 

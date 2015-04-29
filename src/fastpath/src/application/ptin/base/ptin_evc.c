@@ -30,6 +30,7 @@
 #include "ptin_hal_erps.h"
 
 #include "dtlinclude.h"
+#include "usmdb_nim_api.h"
 
 #include <vlan_port.h>
 
@@ -3015,7 +3016,7 @@ _ptin_evc_create1:
       if (ptin_multicast_group_destroy(evcs[evc_id].multicast_group)!=L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error destroying Multicast group %u", evc_id, evcs[evc_id].multicast_group);
-        //return L7_FAILURE;
+        //return L7_FAILURE;/*Operation still running*/
       }
       evcs[evc_id].multicast_group = -1;
     } 
@@ -3658,7 +3659,7 @@ L7_RC_t ptin_evc_delete(L7_uint32 evc_ext_id)
     if (ptin_multicast_group_destroy(evcs[evc_id].multicast_group)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error destroying multicast group %d", evc_id, evcs[evc_id].multicast_group);
-      return L7_FAILURE;
+//    return L7_FAILURE;/*Operation still running*/
     }    
   }
   
@@ -3903,7 +3904,7 @@ L7_RC_t ptin_evc_destroy(L7_uint32 evc_ext_id)
     if (ptin_multicast_group_destroy(evcs[evc_id].multicast_group)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error destroying multicast group %d", evc_id, evcs[evc_id].multicast_group);
-      return L7_FAILURE;
+//    return L7_FAILURE; /*Operation still running*/
     }
   }  
   evcs[evc_id].multicast_group = -1;
@@ -8407,6 +8408,114 @@ static L7_RC_t ptin_evc_extEvcInfo_get(L7_uint32 evc_ext_id, ptinExtEvcIdInfoDat
   return L7_SUCCESS;
 }
 
+/**
+ * Get L3 Intf Id of EVC Port
+ * 
+ * 
+ * @param evc_ext_id 
+ * @param intfNum 
+ * @param l3_intf_id 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_evc_l3_intf_get(L7_uint32 evc_ext_id, L7_uint32 intfNum, L7_int *l3_intf_id)
+{
+  L7_uint32   evc_id = (L7_uint32) -1;
+   L7_uint32  ptin_port = (L7_uint32) -1;
+
+  /* Validate arguments */
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS || intfNum == 0 || intfNum >= PTIN_SYSTEM_N_INTERF || l3_intf_id == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Invalid Parameters [eEVC:%u intfNum:%u l3_intf_id:%p]", evc_ext_id, intfNum, l3_intf_id);
+    return L7_FAILURE;
+  }
+
+  if (ptin_evc_ext2int(evc_ext_id, &evc_id) != L7_SUCCESS || evc_id >= PTIN_SYSTEM_N_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Failed to Obtain Internal Id [evc_ext_id:%u, evc_id:%u]", evc_ext_id, evc_id);
+    return L7_FAILURE;
+  }
+  else
+  {
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "Internal evcId:%u (internal index %u)...", evc_ext_id, evc_id);
+  }
+
+  /* EVC in use? */
+  if (!evcs[evc_id].in_use)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"evc id %u not in use", evc_ext_id);
+    return L7_FAILURE;
+  }
+
+  if (ptin_intf_intIfNum2port(intfNum, &ptin_port) != L7_SUCCESS || ptin_port >= PTIN_SYSTEM_N_INTERF)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Failed to Obtain ptin_port:%u from  intfNum:%u", ptin_port, intfNum);
+    return L7_FAILURE;
+  }
+
+  if (evcs[evc_id].intf[ptin_port].in_use == L7_FALSE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"ptin port %u (intfNum:%u) is not in use on evc id %u", ptin_port, intfNum, evc_ext_id);
+    return L7_FAILURE;
+  }
+
+  if (!IS_EVC_IPTV(evc_id)) 
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"EVC Id %u is not IPTV", evc_ext_id);
+    return L7_FAILURE;
+  }
+
+  if (evcs[evc_id].intf[ptin_port].type != PTIN_EVC_INTF_LEAF)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"ptin port %u (intfNum:%u) type:%u different from leaf :%u", ptin_port, intfNum, evcs[evc_id].intf[ptin_port].type, PTIN_EVC_INTF_LEAF);
+    return L7_FAILURE;
+  }
+
+  *l3_intf_id = evcs[evc_id].intf[ptin_port].l3_intf_id;
+  return L7_SUCCESS;
+}
+
+/**
+ * Get L3 Multicast Group of an EVC 
+ * 
+ * 
+ * @param evc_ext_id 
+ * @param multicast_group 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_evc_l3_multicast_group_get(L7_uint32 evc_ext_id, L7_int *multicast_group)
+{
+  L7_uint32   evc_id = (L7_uint32) -1;
+
+  /* Validate arguments */
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS || multicast_group == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Invalid Parameters [eEVC:%u multicast_group:%p]", evc_ext_id, multicast_group);
+    return L7_FAILURE;
+  }
+
+  if (ptin_evc_ext2int(evc_ext_id, &evc_id) != L7_SUCCESS || evc_id >= PTIN_SYSTEM_N_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Failed to Obtain Internal Id [evc_ext_id:%u, evc_id:%u]", evc_ext_id, evc_id);
+    return L7_FAILURE;
+  }
+  else
+  {
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "Internal evcId:%u (internal index %u)...", evc_ext_id, evc_id);
+  }
+
+  /* EVC in use? */
+  if (!evcs[evc_id].in_use)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"evc id %u not in use", evc_ext_id);
+    return L7_FAILURE;
+  }
+
+  *multicast_group = evcs[evc_id].multicast_group;
+  return L7_SUCCESS;
+}
+
 
 /**
  * Convert EVC extended id into the internal id
@@ -8667,11 +8776,26 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
     
     if (iptv_flag)
     {
+      L7_uint32 frameMax = 0;
       memset(&l3_intf, 0x00, sizeof(l3_intf));
 
       l3_intf.vid = int_vlan;
 
-      /* Apply configuration */
+      /* Get the MTU of this interface */
+      if (usmDbIfConfigMaxFrameSizeGet(intIfNum, &frameMax) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to get max MTU of intIfNum %u", intIfNum);
+        return L7_FAILURE;                
+      }
+      l3_intf.mtu = frameMax;
+      l3_intf.mtu-= (18 /*Bytes for L2 Header*/ + 4  /*Bytes for VLAN Tagging*/);
+      if ( l3_intf.mtu <= 0 )
+      {
+        LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid MTU %d of intIfNum %u", l3_intf.mtu, intIfNum);
+        return L7_FAILURE;                
+      }
+
+      /* Get MAC Address of this interface */
       if (nimGetIntfAddress(intIfNum, L7_NULL, l3_intf.mac_addr)!=L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_EVC, "Error getting MAC address of ptin port %u", ptin_port);
@@ -8681,7 +8805,6 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
       l3_intf.flags |= PTIN_BCM_L3_ADD_TO_ARL;
 
       l3_intf.l3_intf_id = PTIN_HAPI_BROAD_INVALID_L3_INTF_ID;
-
       /* L3 management disabled (for now) */
       #if 0
       /*Add L3 Leaf Interface*/
@@ -8695,7 +8818,7 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
 
       LOG_TRACE(LOG_CTX_PTIN_EVC, "Added L3 Leaf Interface [ptin_port:%u l3_intf_id:%d]", ptin_port, l3_intf.l3_intf_id);      
 
-      rc = ptin_multicast_egress_port_add(intIfNum, evcs[evc_id].multicast_group, BCM_MULTICAST_TYPE_L3, l3_intf.l3_intf_id);
+      rc = ptin_multicast_l3_egress_port_add(intIfNum, evcs[evc_id].multicast_group, l3_intf.l3_intf_id);
 
       if (rc != L7_SUCCESS)
       {
@@ -8729,6 +8852,8 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
 
   if (iptv_flag)
     evcs[evc_id].intf[ptin_port].l3_intf_id = l3_intf.l3_intf_id;
+  else
+    evcs[evc_id].intf[ptin_port].l3_intf_id = -1;
 
   #ifdef PTIN_ERPS_EVC
   evcs[evc_id].intf[ptin_port].portState = PTIN_EVC_PORT_FORWARDING;
@@ -8941,7 +9066,7 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
 
         LOG_TRACE(LOG_CTX_PTIN_EVC, "Added L3 Leaf Interface [ptin_port:%u l3_intf_id:%d]", ptin_port, l3_intf.l3_intf_id);      
 
-        rc = ptin_multicast_egress_port_remove(intIfNum, evcs[evc_id].multicast_group, BCM_MULTICAST_TYPE_L3, l3_intf.l3_intf_id);
+        rc = ptin_multicast_l3_egress_port_remove(intIfNum, evcs[evc_id].multicast_group, l3_intf.l3_intf_id);
 
         if (rc != L7_SUCCESS)
         {

@@ -20,6 +20,7 @@
 #include "ptin_hapi_xlate.h"
 #include "ptin_hapi_xconnect.h"
 #include "ptin_hapi_l2.h"
+#include "ptin_hapi_l3.h"
 #include "ptin_hapi_fp_bwpolicer.h"
 #include "ptin_hapi_fp_counters.h"
 #include "broad_policy.h"
@@ -29,6 +30,9 @@
 #include <bcmx/switch.h>
 #include <bcmx/port.h>
 #include <bcmx/l2.h>
+#if 0//Required to init L3 Modules. Not used since FP is already performing the init of those Modules
+#include <bcm/init.h>
+#endif
 
 /********************************************************************
  * DEFINES
@@ -135,7 +139,11 @@ L7_RC_t hapi_ptin_data_init(void)
   rc = ptin_hapi_maclimit_init();
   if (rc != L7_SUCCESS)
     return L7_FAILURE;
-
+#if 0
+  rc = ptin_hapi_l3_intf_init();
+  if (rc != L7_SUCCESS)
+    return L7_FAILURE;
+#endif
   return rc;
 }
 
@@ -163,6 +171,18 @@ L7_RC_t hapi_ptin_config_init(void)
   /* ptin_hapi_bridge initializations */
   if (ptin_hapi_bridge_init()!=L7_SUCCESS)
     rc = L7_FAILURE;
+
+  #if 0//Not Required. Already Performed by FP. 
+  /*Initialize L3 Module*/
+  if (bcm_init_selective(0, BCM_MODULE_L3) != L7_SUCCESS)
+    rc = L7_FAILURE;
+  #endif
+
+  #if 0//Not Required. Already Performed by FP
+  /*Initialize IPMC Table*/
+  if (bcm_ipmc_init(0) != L7_SUCCESS)
+    rc = L7_FAILURE;
+  #endif
 
   return rc;
 }

@@ -32,6 +32,7 @@
 #include "broad_common.h"
 #include "l7_usl_bcm.h"
 #include "l7_usl_bcm_l3.h"
+#include "ptin_globaldefs.h"
 
 typedef struct 
 {
@@ -152,7 +153,7 @@ typedef struct
                                                             (L7_uchar8 *)(s),\
                                                             (L7_uint32)(l)))
 
-#define USL_L3_INTF_DB_LEN (platIntfVlanIntfMaxCountGet() + platIntfRouterMaxCountGet())
+#define USL_L3_INTF_DB_LEN (platIntfVlanIntfMaxCountGet() + platIntfRouterMaxCountGet() + (PTIN_SYSTEM_N_IGMP_INSTANCES * PTIN_SYSTEM_N_UPLINK_INTERF))
 
 /*********************************************************************
 * @purpose  Initialize the IPMC tables, semaphores, ...

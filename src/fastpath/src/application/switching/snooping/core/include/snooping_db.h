@@ -125,17 +125,49 @@ void snoopChannelsGet(L7_uint16 vlanId,
                              L7_uint16 *num_channels); 
 
 /**
- * Add IPv4 channel and update Snoop Entry database.
+ * Add a channel and update Snoop Entry database.
+ *  
+ * @param serviceId             : Service ID  
+ * @param vlanId                : Vlan id
+ * @param groupAddr             : group Address
+ * @param sourceAddr            : source Address 
+ * @param intIfNum              : interface 
+ * @param isStatic              : Static Entry 
+ * @param isProtection          : Protection Entry 
+ * @param isL3Entry             : L2/L3 Entry  
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILRE
+ */
+L7_RC_t snoopGroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_t* groupAddr, L7_inet_addr_t* sourceAddr, L7_uint32 intIfNum, L7_BOOL isStatic, L7_BOOL isProtection, L7_BOOL isL3Entry);
+
+/**
+ * Remove IPv4 channel, and update Snoop Entry database. 
+ *  
+ * @param serviceId             : Service ID 
+ * @param vlanId                : Vlan id
+ * @param groupAddr             : group Address
+ * @param sourceAddr            : source Address 
+ * @param intIfNum              : interface 
+ * @param isProtection          : protection 
+ * @param isL3Entry             : L2/L3 Entry  
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILRE
+ */
+L7_RC_t snoopGroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_t *groupAddr, L7_inet_addr_t* sourceAddr, L7_uint32 intIfNum, L7_BOOL isProtection, L7_BOOL isL3Entry);
+
+/**
+ * Add L2 channel and update Snoop Entry database.
  * 
  * @param vlanId                : Vlan id
- * @param mgmdGroupAddr         : channel IP
+ * @param groupAddr             : group Address
+ * @param sourceAddr            : source Address 
  * @param intIfNum              : interface 
  * @param isStatic              : Static Entry 
  * @param isProtection          : Protection Entry 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILRE
  */
-L7_RC_t snoopGroupIntfAdd(L7_uint16 vlanId, L7_inet_addr_t* mgmdGroupAddr, L7_uint32 intIfNum, L7_BOOL isStatic, L7_BOOL isProtection);
+L7_RC_t snoopL2GroupIntfAdd(L7_uint16 vlanId, L7_inet_addr_t* groupAddr, L7_uint32 intIfNum, L7_BOOL isStatic, L7_BOOL isProtection);
 
 /**
  * Remove IPv4 channel, and update Snoop Entry database. 
@@ -143,11 +175,11 @@ L7_RC_t snoopGroupIntfAdd(L7_uint16 vlanId, L7_inet_addr_t* mgmdGroupAddr, L7_ui
  * @param vlanId                : Vlan id
  * @param mgmdGroupAddr         : channel IP
  * @param intIfNum              : interface 
+ * @param isProtection          : protection
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILRE
  */
-L7_RC_t snoopGroupIntfRemove(L7_uint16 vlanId, L7_inet_addr_t *mgmdGroupAddr, L7_uint32 intIfNum, L7_BOOL isProtection);
-
+L7_RC_t snoopL2GroupIntfRemove(L7_uint16 vlanId, L7_inet_addr_t *mgmdGroupAddr, L7_uint32 intIfNum, L7_BOOL isProtection);
 #endif
 
 /* Snoop Entry interraction with MFDB */
@@ -184,6 +216,15 @@ L7_RC_t snoopPTinProxyInterfaceEntryDelete(L7_uint32 vlanId);
 #endif
 
 #endif
+
+L7_RC_t                        snoopChannelEntryAdd(snoopChannelInfoData_t   **snoopEntry);
+snoopChannelInfoData_t        *snoopChannelEntryFind(L7_uint32 vlanId, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, L7_uint8 flag);
+L7_RC_t                        snoopChannelEntryDelete(L7_uint32 vlanId, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, snoopChannelInfoData_t *pSnoopEntry);
+
+L7_RC_t                         snoopChannelIntfMaskEntryAdd(snoopChannelIntfMaskInfoData_t   **snoopEntry);
+snoopChannelIntfMaskInfoData_t *snoopChannelIntfMaskEntryFind(L7_uint32 vlanId, L7_INTF_MASK_t *groupIntfMask, L7_uint8 flag);
+L7_RC_t                         snoopChannelIntfMaskEntryDelete(L7_uint32 vlanId, L7_INTF_MASK_t *groupIntfMask, snoopChannelIntfMaskInfoData_t   *pSnoopEntry);
+
 /******************************************************************************
   SNOOP L3 Mcast DB Entry Processing Routines
 *******************************************************************************/

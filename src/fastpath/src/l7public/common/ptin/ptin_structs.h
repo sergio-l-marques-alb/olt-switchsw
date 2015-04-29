@@ -58,7 +58,12 @@ typedef struct
 } ptin_l2_maclimit_status_t;
 
 /* L3 module defines*/
-#define PTIN_HAPI_BROAD_INVALID_L3_INTF_ID  0xFFFFFFFF
+#define PTIN_HAPI_BROAD_INVALID_L3_INTF_ID         0xFFFFFFFF
+#define PTIN_HAPI_BROAD_MAX_L3_INTERFACES          4096
+#define PTIN_HAPI_BROAD_FP_RESERVED_L3_INTERFACES  129
+#define PTIN_HAPI_BROAD_PT_RESERVED_L3_INTERFACES  PTIN_HAPI_BROAD_MAX_L3_INTERFACES - PTIN_HAPI_BROAD_FP_RESERVED_L3_INTERFACES
+
+
 
 /* L3 module flags. */
 #define PTIN_BCM_L3_ADD_TO_ARL        (1 << 5)   /* Add interface address MAC to  ARL. */

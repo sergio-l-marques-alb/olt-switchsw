@@ -25,6 +25,30 @@
  */
 static L7_RC_t ptin_multicast_group_create(L7_int *mcast_group, L7_uint32 multicast_flag);
 
+/**
+ * Remove port from Multicast egress
+ * 
+ * @param intIfNum    : interface to be removed
+ * @param mcast_group : Multicast group id. 
+ * @param multicast_flag: Multicast flags 
+ * @param virtual_gport     : Virtual Port Identifier 
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+static L7_RC_t ptin_multicast_egress_port_remove(L7_uint32 intIfNum, L7_int mcast_group, L7_uint32 multicast_flag, L7_int virtual_gport);
+
+/**
+ * Add ports to Multicast egress
+ * 
+ * @param intIfNum    : interface to be added
+ * @param mcast_group : Multicast group id. 
+ * @param multicast_flag: Multicast flags 
+ * @param virtual_gport     : Virtual Port Identifier
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+static L7_RC_t ptin_multicast_egress_port_add(L7_uint32 intIfNum, L7_int mcast_group, L7_uint32 multicast_flag, L7_int virtual_gport);
+
 /***************************************************************** 
  * EXTERNAL FUNCTIONS IMPLEMENTATION
  *****************************************************************/
@@ -473,6 +497,33 @@ L7_RC_t ptin_multicast_egress_port_remove(L7_uint32 intIfNum, L7_int mcast_group
   LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d", rc);
 
   return rc;
+}
+
+/**
+ * Add ports to Multicast egress
+ * 
+ * @param intIfNum    : interface to be added
+ * @param mcast_group : Multicast group id. 
+ * @param l3_intf_id  : L3 Intf Id
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+L7_RC_t ptin_multicast_l3_egress_port_add(L7_uint32 intIfNum, L7_int mcast_group, L7_int l3_intf_id)
+{ 
+  return (ptin_multicast_egress_port_add(intIfNum, mcast_group, BCM_MULTICAST_TYPE_L3, l3_intf_id));
+}
+
+/**
+ * Remove port from Multicast egress
+ * 
+ * @param intIfNum    : interface to be removed
+ * @param mcast_group : Multicast group id. 
+ * @param l3_intf_id  : L3 Intf Id*
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+L7_RC_t ptin_multicast_l3_egress_port_remove(L7_uint32 intIfNum, L7_int mcast_group, L7_int l3_intf_id)
+{
+  return (ptin_multicast_egress_port_remove(intIfNum, mcast_group, BCM_MULTICAST_TYPE_L3, l3_intf_id));
 }
 
 /**
