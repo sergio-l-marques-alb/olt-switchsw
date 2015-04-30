@@ -2548,8 +2548,7 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t* g
   snoopChannelInfoData_t             channelEntry;
   snoopChannelInfoData_t            *pChannelEntry = &channelEntry;
   snoopChannelIntfMaskInfoData_t     channelIntfMaskEntry;
-  snoopChannelIntfMaskInfoData_t    *pChannelIntfMask = &channelIntfMaskEntry;
-  L7_uint32                          noOfInterfaces = 0;  
+  snoopChannelIntfMaskInfoData_t    *pChannelIntfMask = &channelIntfMaskEntry;  
   ptin_dtl_ipmc_addr_t               dtl_ipmc;
   L7_uint32                          flags = 0x0;  
   L7_int                             multicast_group;  
@@ -2661,7 +2660,7 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t* g
         {
           /*Copy this bitmap Interface*/
           memcpy(&pChannelIntfMask->snoopChannelIntfMaskInfoDataKey.channelIntfMask, &pChannelEntry->channelIntfMask, sizeof(pChannelIntfMask->snoopChannelIntfMaskInfoDataKey.channelIntfMask));
-          noOfInterfaces = pChannelEntry->noOfInterfaces;
+          pChannelIntfMask->noOfInterfaces = pChannelEntry->noOfInterfaces;          
         }
       }
     }
@@ -2737,17 +2736,13 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t* g
     }
   }
 
-  if (!L7_INTF_ISMASKBITSET(pChannelIntfMask->snoopChannelIntfMaskInfoDataKey.channelIntfMask, intIfNum))
-  {
-    L7_INTF_SETMASKBIT(pChannelIntfMask->snoopChannelIntfMaskInfoDataKey.channelIntfMask, intIfNum);
-    noOfInterfaces++;
-  }  
+  L7_INTF_SETMASKBIT(pChannelIntfMask->snoopChannelIntfMaskInfoDataKey.channelIntfMask, intIfNum);
+  pChannelIntfMask->noOfInterfaces++;
 
   pChannelIntfMask->snoopChannelIntfMaskInfoDataKey.vlanId = vlanId;
 
   /*Search for Bitmap of Ports*/
   rc = snoopChannelIntfMaskEntryAdd(&pChannelIntfMask);
-
   if (rc == L7_SUCCESS)
   {
     //New Entry Interface Mask Entry
@@ -2769,41 +2764,59 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t* g
           LOG_DEBUG(LOG_CTX_PTIN_IGMP, "L3 Multicast group 0x%08x created", multicast_group);       
       }
 
-      /* Add Egress Ports*/  
-      uint32 intf;
-      for (intf = 1; intf <= L7_MAX_INTERFACE_COUNT; intf++)
+      /*Channel Only Has one Interface*/
+      if ( newChannelEntry == L7_TRUE )
+      {        
+        l3_intf_id = -1;
+        if (ptin_evc_l3_intf_get(evcId, intIfNum, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
+        {
+          LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", evcId, l3_intf_id);      
+          return L7_FAILURE;
+        }          
+        if (ptin_debug_igmp_snooping)
+          LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Obtained L3 Interface l3_intf_id:%d", l3_intf_id);          
+
+        rc = ptin_multicast_l3_egress_port_add(intIfNum, multicast_group,  l3_intf_id);
+        if ( rc != L7_SUCCESS )
+        {
+          LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to add L3 Egress portId:%d to multicastGroup:0x%08x (rc%u)", l3_intf_id, multicast_group, rc);      
+          return L7_FAILURE;
+        }
+      }
+      else
       {
-        if (noOfInterfaces == 1)
+        /* Add Egress Ports*/  
+        uint32     intf;
+        L7_uint32  noOfInterfacesFound = 0; 
+        for (intf = 1; intf <= L7_MAX_INTERFACE_COUNT; intf++)
         {
-          intf = intIfNum;
-        }
+          if (!L7_INTF_ISMASKBYTESET(pChannelIntfMask->snoopChannelIntfMaskInfoDataKey.channelIntfMask, intf))
+          {            
+            intf += L7_INTF_MASK_UNIT -1;
+            continue;
+          }
 
-        if (pChannelIntfMask->snoopChannelIntfMaskInfoDataKey.channelIntfMask.value[intf/L7_INTF_MASK_UNIT] == 0x00)
-        {
-          intf += L7_INTF_MASK_UNIT -1;
-          continue;
-        }
-
-        if (L7_INTF_ISMASKBITSET(pChannelIntfMask->snoopChannelIntfMaskInfoDataKey.channelIntfMask, intf))
-        {
-          l3_intf_id = -1;
-          if (ptin_evc_l3_intf_get(evcId, intf, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
+          if (L7_INTF_ISMASKBITSET(pChannelIntfMask->snoopChannelIntfMaskInfoDataKey.channelIntfMask, intf))
           {
-            LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", evcId, l3_intf_id);      
-            return L7_FAILURE;
+            l3_intf_id = -1;
+            if (ptin_evc_l3_intf_get(evcId, intf, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
+            {
+              LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", evcId, l3_intf_id);      
+              return L7_FAILURE;
+            }          
+            if (ptin_debug_igmp_snooping)
+              LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Obtained L3 Interface l3_intf_id:%d", l3_intf_id);          
+
+            rc = ptin_multicast_l3_egress_port_add(intf, multicast_group,  l3_intf_id);
+            if ( rc != L7_SUCCESS )
+            {
+              LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to add L3 Egress portId:%d to multicastGroup:0x%08x (rc%u)", l3_intf_id, multicast_group, rc);      
+              return L7_FAILURE;
+            }           
+            
+            if (++noOfInterfacesFound >= pChannelIntfMask->noOfInterfaces)
+              break;              
           }          
-          if (ptin_debug_igmp_snooping)
-            LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Obtained L3 Interface l3_intf_id:%d", l3_intf_id);          
-
-          rc = ptin_multicast_l3_egress_port_add(intf, multicast_group,  l3_intf_id);
-          if ( rc != L7_SUCCESS )
-          {
-            LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to add L3 Egress portId:%d to multicastGroup:0x%08x (rc%u)", l3_intf_id, multicast_group, rc);      
-            return L7_FAILURE;
-          }           
-          
-          if (++pChannelIntfMask->noOfInterfaces >= noOfInterfaces)
-            break;              
         }
       }
     }
@@ -2883,7 +2896,7 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t* g
     uint32 noOfInterfacesFound = 0;
     for (intf = 1; intf <= L7_MAX_INTERFACE_COUNT; intf++)
     {
-      if (pChannelEntry->channelIntfMask.value[intf/L7_INTF_MASK_UNIT] == 0x00)
+      if (!L7_INTF_ISMASKBYTESET(pChannelEntry->channelIntfMask, intf))
       {
         intf += L7_INTF_MASK_UNIT -1;
         continue;
@@ -3199,7 +3212,7 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t
       uint32 intf;
       for (intf = 1; intf <= L7_MAX_INTERFACE_COUNT; intf++)
       {
-        if (pChannelIntfMask->snoopChannelIntfMaskInfoDataKey.channelIntfMask.value[intf/L7_INTF_MASK_UNIT] == 0x00)
+        if (!L7_INTF_ISMASKBYTESET(pChannelIntfMask->snoopChannelIntfMaskInfoDataKey.channelIntfMask, intf))
         {
           intf += L7_INTF_MASK_UNIT -1;
           continue;
@@ -3313,7 +3326,7 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t
   
     for (intf = 1; intf <= L7_MAX_INTERFACE_COUNT; intf++)
     {
-      if (pChannelEntry->pChannelIntfMask->snoopChannelIntfMaskInfoDataKey.channelIntfMask.value[intf/L7_INTF_MASK_UNIT] == 0x00)
+      if (!L7_INTF_ISMASKBYTESET(pChannelEntry->pChannelIntfMask->snoopChannelIntfMaskInfoDataKey.channelIntfMask, intf))
       {
         intf += L7_INTF_MASK_UNIT -1;
         continue;

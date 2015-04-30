@@ -302,7 +302,7 @@ unsigned int snooping_cos_set(unsigned char cos)
 
 unsigned int snooping_portList_get(unsigned int serviceId, ptin_mgmd_port_type_t portType, PTIN_MGMD_PORT_MASK_t *portList, unsigned int *noOfPorts)
 {
-  L7_INTF_MASK_t interfaceBitmap = {{0}};
+  L7_INTF_MASK_t interfaceBitmap;
   L7_uint32      noOfInterfaces = 0;
   L7_uint16      mcastRootVlan;
   L7_RC_t        res = SUCCESS;  
@@ -317,10 +317,12 @@ unsigned int snooping_portList_get(unsigned int serviceId, ptin_mgmd_port_type_t
 
   *noOfPorts = 0;
 
+  memset(&interfaceBitmap, 0x00, sizeof(interfaceBitmap));
+
   if( SUCCESS != ptin_evc_intRootVlan_get(serviceId, &mcastRootVlan))
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to get mcastRootVlan from serviceId");
-    memcpy(portList, &interfaceBitmap.value, PTIN_MGMD_PORT_MASK_INDICES*sizeof(uchar8));
+    memcpy(portList, &interfaceBitmap, sizeof(*portList));
     return NOT_EXIST;
   } 
 
@@ -336,7 +338,7 @@ unsigned int snooping_portList_get(unsigned int serviceId, ptin_mgmd_port_type_t
   else
   {   
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Unknown port type");
-    memcpy(portList, &interfaceBitmap.value, PTIN_MGMD_PORT_MASK_INDICES*sizeof(uchar8));
+    memcpy(portList, &interfaceBitmap, sizeof(*portList));
     return NOT_SUPPORTED;
   }
 
@@ -368,7 +370,7 @@ unsigned int snooping_portList_get(unsigned int serviceId, ptin_mgmd_port_type_t
     return FAILURE;
   }
 
-  memcpy(portList, &interfaceBitmap.value, PTIN_MGMD_PORT_MASK_INDICES*sizeof(uchar8));
+  memcpy(portList, &interfaceBitmap, sizeof(*portList));
   *noOfPorts = noOfInterfaces;
 
   return SUCCESS;

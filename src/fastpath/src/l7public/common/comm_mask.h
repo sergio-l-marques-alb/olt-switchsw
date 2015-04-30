@@ -385,6 +385,10 @@ typedef struct
 }
 
 
+/*  returns 0 if the byte k is not set in mask j */
+#define L7_INTF_ISMASKBYTESET(j, k)                                   \
+        ((j).value[((k-1)/(8*sizeof(L7_uchar8)))])
+
 /* ISMASKBITSET returns 0 if the interface k is not set in mask j */
 #define L7_INTF_ISMASKBITSET(j, k)                                   \
         ((j).value[((k-1)/(8*sizeof(L7_uchar8)))]                    \
