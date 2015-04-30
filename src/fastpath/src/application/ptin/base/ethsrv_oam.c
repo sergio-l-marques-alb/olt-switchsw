@@ -935,7 +935,7 @@ ETH_LMM_OAM_DATAGRM lmm, *p_lmm;
  p_lmm->opcode=                 LMM_OPCODE;
  p_lmm->flags=                  0;
  p_lmm->TLV_offset=             12;
- //p_lmm->RxFCf= p_lmm->TxFCb=    0;
+ p_lmm->RxFCf= p_lmm->TxFCb=    0;
  p_lmm->end_TLV=                0;
  p_lmm->TxFCf=                  htonl(rd_TxFCl(i_mep));
 
