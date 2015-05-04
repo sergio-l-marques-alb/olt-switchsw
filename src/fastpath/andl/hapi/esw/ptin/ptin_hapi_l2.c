@@ -103,12 +103,11 @@ L7_RC_t ptin_hapi_maclimit_init(void)
     macLearn_info_flow[i].mac_counter = 0;
     macLearn_info_flow[i].mac_total   = 0;
     macLearn_info_flow[i].mac_limit   = DEFAULT_VALUE; /* no limit */
-    macLearn_info_flow[i].enable      = L7_FALSE;
     macLearn_info_flow[i].mask        = 0x0;
 
     macLearn_info_flow[i].send_trap           = L7_FALSE;
     macLearn_info_flow[i].trap_sent           = L7_FALSE;
-    macLearn_info_flow[i].ptin_intf.intf_type = 2;
+    macLearn_info_flow[i].ptin_intf.intf_type = 0;
     macLearn_info_flow[i].ptin_intf.intf_id   = 0;
     macLearn_info_flow[i].uni_ovid            = 0;
   }
@@ -175,10 +174,10 @@ L7_RC_t ptin_hapi_maclimit_inc(bcmx_l2_addr_t *bcmx_l2_addr)
     }
 
     /* Feature enabled? */
-    if (macLearn_info_flow[vport_id].enable == L7_FALSE)
-    {
-      return L7_FAILURE;
-    }
+    //if (macLearn_info_flow[vport_id].enable == L7_FALSE)
+    //{
+      //return L7_FAILURE;
+    //}
 
     /* Do not accept more mac addresses, if maximum was reached */
     if (macLearn_info_flow[vport_id].mac_counter >= macLearn_info_flow[vport_id].mac_limit)
@@ -368,7 +367,7 @@ L7_RC_t ptin_hapi_maclimit_inc(bcmx_l2_addr_t *bcmx_l2_addr)
       return L7_FAILURE;
     }
     /* Feature enabled? */
-    if (macLearn_info_flow[vport_id].enable == L7_FALSE)
+    if (macLearn_info_vlan[vlan_id].enable == L7_FALSE)
     {
       return L7_FAILURE;
     }
@@ -416,17 +415,17 @@ L7_RC_t ptin_hapi_maclimit_dec(bcmx_l2_addr_t *bcmx_l2_addr)
     }
 
     /* Feature enabled? */
-    if (macLearn_info_flow[vport_id].enable == L7_FALSE)
-    {
-      return L7_FAILURE;
-    }
+    //if (macLearn_info_flow[vport_id].enable == L7_FALSE)
+    //{
+      //return L7_FAILURE;
+    //}
 
     LOG_TRACE(LOG_CTX_PTIN_HAPI, "%s: MAC %02x:%02x:%02x:%02x:%02x:%02x on VID %d and GPORT 0x%x cleared (flags 0x%x)",
               __FUNCTION__, 
               bcmx_l2_addr->mac[0], bcmx_l2_addr->mac[1], bcmx_l2_addr->mac[2], bcmx_l2_addr->mac[3], bcmx_l2_addr->mac[4], bcmx_l2_addr->mac[5], 
               bcmx_l2_addr->vid, bcmx_l2_addr->lport, bcmx_l2_addr->flags);
 
-    #if (PTIN_BOARD == PTIN_BOARD_CXO640G) 
+    
     /* Do not accept more MAC addresses, if maximum was reached */
     /* if BCM_L2_PENDING is cleared, it means it is a aging of a learned MAC in the L2 table */
     if ( ((bcmx_l2_addr->flags & BCM_L2_PENDING) && !(bcmx_l2_addr->flags & BCM_L2_MOVE)) )
@@ -443,7 +442,6 @@ L7_RC_t ptin_hapi_maclimit_dec(bcmx_l2_addr_t *bcmx_l2_addr)
 
       return L7_FAILURE;
     }
-    #endif
 
     /* Decrement, but only if greater than 0 */
     if (macLearn_info_flow[vport_id].mac_counter > 0)
@@ -644,11 +642,13 @@ L7_RC_t ptin_hapi_vport_maclimit_reset(bcm_gport_t gport)
     LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Disabling Pending Mechanism (GPORT=0x%x)", gport);
 
     /* Disable the use of Pending Mechanism */
-    bcm_port_learn_set(0, gport, BCM_PORT_LEARN_FWD );
+    bcm_port_learn_set(0, gport, BCM_PORT_LEARN_FWD | /*BCM_PORT_LEARN_CPU |*/ BCM_PORT_LEARN_PENDING | BCM_PORT_LEARN_ARL );
 
     macLearn_info_flow[vport_id].mac_counter = 0;
     macLearn_info_flow[vport_id].mac_total = 0;
-    macLearn_info_flow[vport_id].mac_limit = DEFAULT_VALUE; /* no limit */
+    macLearn_info_flow[vport_id].mac_limit = -1; /* no limit */
+
+    LOG_NOTICE(LOG_CTX_PTIN_HAPI, "%u", macLearn_info_flow[vport_id].mac_limit );
     macLearn_info_flow[vport_id].enable = L7_FALSE;
 
     /* Close the alarm */
@@ -789,10 +789,10 @@ L7_RC_t ptin_hapi_maclimit_fdbFlush(bcm_vlan_t vlan_id, bcm_gport_t gport, BROAD
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_hapi_vport_maclimit_setmax(bcm_gport_t gport, L7_uint32 mac_limit)
+L7_RC_t ptin_hapi_vport_maclimit_setmax(bcm_gport_t gport, L7_uint8 mac_limit)
 {
   L7_uint vport_id = 0;
-  L7_uint32 mac_limit_old;
+  L7_uint8 mac_limit_old;
   L7_RC_t rc = L7_SUCCESS;
 
   if (BCM_GPORT_IS_VLAN_PORT(gport))
@@ -807,10 +807,9 @@ L7_RC_t ptin_hapi_vport_maclimit_setmax(bcm_gport_t gport, L7_uint32 mac_limit)
     }
     if (mac_limit == (L7_uint8)-1)
     {
-      if (macLearn_info_flow[vport_id].enable == L7_FALSE)
-      {
-        rc = ptin_hapi_vport_maclimit_reset(gport);
-      }
+      LOG_NOTICE(LOG_CTX_PTIN_HAPI, "%d %d)", mac_limit , (L7_uint8)-1);
+      rc = ptin_hapi_vport_maclimit_reset(gport);
+
       return rc;
     }
 
@@ -818,19 +817,20 @@ L7_RC_t ptin_hapi_vport_maclimit_setmax(bcm_gport_t gport, L7_uint32 mac_limit)
 
     mac_limit_old = macLearn_info_flow[vport_id].mac_limit;
     macLearn_info_flow[vport_id].mac_limit = mac_limit;
-    macLearn_info_flow[vport_id].enable = L7_TRUE;
+    //macLearn_info_flow[vport_id].enable = L7_TRUE;
 
     /* Check if maximum was reached */
-    if (macLearn_info_flow[vport_id].mac_counter >= macLearn_info_flow[vport_id].mac_limit)
-    {
+    //if (macLearn_info_flow[vport_id].mac_counter >= macLearn_info_flow[vport_id].mac_limit)
+    //{
       /* Enable the use of Pending Mechanism but disable FWD*/
-      bcm_port_learn_set(0, gport, /*BCM_PORT_LEARN_CPU |*/ BCM_PORT_LEARN_PENDING | BCM_PORT_LEARN_ARL );
-    }
-    else
-    {
+      //bcm_port_learn_set(0, gport, /*BCM_PORT_LEARN_CPU |*/ BCM_PORT_LEARN_PENDING | BCM_PORT_LEARN_ARL );
+    //}
+    //else
+    //{
+
       /* Enable the use of Pending Mechanism and enable FWD */
       bcm_port_learn_set(0, gport, BCM_PORT_LEARN_FWD | /*BCM_PORT_LEARN_CPU |*/ BCM_PORT_LEARN_PENDING | BCM_PORT_LEARN_ARL );
-    }
+    //}
 
     #if 0
     /* New MAX value lower than old value. Clear the L2 table. */
@@ -980,7 +980,7 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, int mac_
     LOG_NOTICE(LOG_CTX_PTIN_HAPI, "flags  0x%.4X", limit.flags);
     LOG_NOTICE(LOG_CTX_PTIN_HAPI, "flags  0x%.4X", macLearn_info_physical[physical_port].mask);
     LOG_NOTICE(LOG_CTX_PTIN_HAPI, "flags  0x%.4X", limit.limit);
-    LOG_NOTICE(LOG_CTX_PTIN_HAPI, "flags  0x%.4X",macLearn_info_physical[physical_port].old_limit);
+    LOG_NOTICE(LOG_CTX_PTIN_HAPI, "flags  0x%.4X", macLearn_info_physical[physical_port].old_limit);
 
     if(send_trap == 1 || send_trap == 0)
     {

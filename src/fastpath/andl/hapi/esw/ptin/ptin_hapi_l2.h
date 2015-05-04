@@ -72,7 +72,7 @@ extern L7_RC_t ptin_hapi_lag_maclimit_reset(bcm_trunk_t trunk_id);
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_hapi_vport_maclimit_setmax(bcm_gport_t gport, L7_uint32 max_value);
+extern L7_RC_t ptin_hapi_vport_maclimit_setmax(bcm_gport_t gport, L7_uint8 max_value);
 
 /**
  * Set maximum number of learned MAC addresses
