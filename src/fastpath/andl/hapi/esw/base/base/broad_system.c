@@ -1102,7 +1102,7 @@ L7_RC_t hapiBroadIntfBroadcastControlModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
          break;
      /* PTin added: Speed 2.5G */
      case DAPI_PORT_SPEED_GE_2G5BPS:
-         portSpeed = 2500000;
+         portSpeed = 1250000;           /* PTin modified: At ingress, PON ports operate at half of the max speed (2500000) */
          break;
      /* PTin end */
      case DAPI_PORT_SPEED_GE_10GBPS:
@@ -1126,11 +1126,17 @@ L7_RC_t hapiBroadIntfBroadcastControlModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
   #if 1
     if (dapiCmd->cmdData.broadcastControl.unit == L7_RATE_UNIT_PERCENT)
     {
+      /* Limit threshold */
+      if (threshold > 100)  threshold = 100;
+
       rate = ((L7_int64) portSpeed * threshold) / 100;
     }
     else
     {
-      rate = (L7_int64) portSpeed;
+      /* Limit threshold */
+      if (threshold > portSpeed)  threshold = portSpeed;
+
+      rate = (L7_int64) threshold;
     }
 
     /* Multiple of 64 Kbps */

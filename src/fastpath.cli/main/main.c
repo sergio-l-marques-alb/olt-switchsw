@@ -1854,7 +1854,7 @@ int main (int argc, char *argv[])
               help_oltBuga();
               exit(0);
             }
-            ptr->cos_config.cos[cos].min_bandwidth = (uint32) valued*1000;
+            ptr->cos_config.cos[cos].min_bandwidth = (uint32) valued;
             ptr->cos_config.cos[cos].local_mask |= MSG_QOS_CONFIGURATION_QOSCONF_BW_MIN_MASK;
           }
 
@@ -1865,7 +1865,7 @@ int main (int argc, char *argv[])
               help_oltBuga();
               exit(0);
             }
-            ptr->cos_config.cos[cos].max_bandwidth = (uint32) valued*1000;
+            ptr->cos_config.cos[cos].max_bandwidth = (uint32) valued;
             ptr->cos_config.cos[cos].local_mask |= MSG_QOS_CONFIGURATION_QOSCONF_BW_MAX_MASK;
           }
 
