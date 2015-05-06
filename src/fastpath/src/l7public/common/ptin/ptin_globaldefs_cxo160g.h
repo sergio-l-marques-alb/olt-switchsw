@@ -6,6 +6,8 @@
 /* To manage linkscan, uncomment this line */
 #define PTIN_LINKSCAN_CONTROL
 
+#define PHY_RECOVERY_PROCEDURE 1
+
 /* Allows direct control over port add/remove of a LAG (shortcut to message queues) */
 #define LAG_DIRECT_CONTROL_FEATURE  1
 

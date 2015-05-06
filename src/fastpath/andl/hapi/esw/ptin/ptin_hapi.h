@@ -177,6 +177,15 @@ extern void hapi_ptin_allportsbmp_get(pbmp_t *pbmp_mask);
 extern L7_RC_t ptin_hapi_portDescriptor_get(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, ptin_hapi_intf_t *intf_desc, pbmp_t *pbmp);
 
 /**
+ * Reset a warpcore
+ * 
+ * @param slot_id : backplane slot id
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id);
+
+/**
  * get linkscan state
  * 
  * @param dapiPort: Port 

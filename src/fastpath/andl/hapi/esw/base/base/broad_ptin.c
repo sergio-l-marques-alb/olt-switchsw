@@ -517,6 +517,18 @@ L7_RC_t hapiBroadHwApply(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *da
     }
     break;
 
+  case PTIN_HWPROC_WARPCORE_RESET:
+    if (hwproc->operation == DAPI_CMD_SET)
+    {
+      rc = ptin_hapi_warpcore_reset(hwproc->param1);
+    }
+    else
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Operation not recognized: %u", hwproc->operation);
+      rc = L7_FAILURE;
+    }
+    break;
+
   default:
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid procedure: %u", hwproc->procedure);
     rc = L7_FAILURE;

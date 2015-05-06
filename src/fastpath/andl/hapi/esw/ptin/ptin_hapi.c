@@ -508,7 +508,8 @@ L7_RC_t ptin_hapi_phy_init_matrix(void)
   #endif
     if (hapiWCMapPtr[i].slotNum >= 0 && hapiWCMapPtr[i].wcSpeedG == 10)
     {
-    #if (0 /*PTIN_BOARD == PTIN_BOARD_CXO160G*/)
+    #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+      /* Firmware mode 2 */
       if (bcm_port_phy_control_set(0, bcm_port, BCM_PORT_PHY_CONTROL_FIRMWARE_MODE, 2) != BCM_E_NONE)
       {
         LOG_ERR(LOG_CTX_PTIN_HAPI, "Error applying Firmware mode 2 to port %u (bcm_port %u)", i, bcm_port);
@@ -839,6 +840,137 @@ L7_RC_t ptin_hapi_phy_init_olt1t0(void)
   return rc;
 }
 
+/**
+ * Reset a warpcore
+ * 
+ * @param slot_id : backplane slot id
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id)
+{
+  L7_RC_t    rc = L7_SUCCESS;
+
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
+  L7_uint    i;
+  bcm_port_t bcm_port;
+  bcm_pbmp_t pbm, pbm_out;
+
+  SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
+  DAPI_CARD_ENTRY_t            *dapiCardPtr;
+  HAPI_WC_PORT_MAP_t           *hapiWCMapPtr;
+
+  /* Get WC port map */
+  sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(0));
+  dapiCardPtr          = sysapiHpcCardInfoPtr->dapiCardInfo;
+  hapiWCMapPtr         = dapiCardPtr->wcPortMap;
+
+  BCM_PBMP_CLEAR(pbm);
+
+  /* Run all slots */
+  for (i=0; i<ptin_sys_number_of_ports; i++)
+  {
+    /* Get bcm_port format */
+    if (hapi_ptin_bcmPort_get(i, &bcm_port)!=BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error obtaining bcm_port for port %u", i);
+      continue;
+    }
+    /* Skip non SFI ports */
+    if (hapiWCMapPtr[i].slotNum < 0)
+    {
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "bcm_port %u (port %u) not considered", bcm_port, i);
+      continue;
+    }
+    /* And add the ports associated to the provided slot_id */
+    if (hapiWCMapPtr[i].slotNum == slot_id)
+    {
+      BCM_PBMP_PORT_ADD(pbm, bcm_port);
+      LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_port %u (port %u) added to list of ports to be reseted", bcm_port, i);
+    }
+  }
+  
+  /* Check if list has ports */
+  if (BCM_PBMP_IS_NULL(pbm))
+  {
+    LOG_WARNING(LOG_CTX_PTIN_HAPI, "List of selected ports is empty... nothing to be done!");
+    return L7_NOT_EXIST;
+  }
+
+  /* Detach ports */
+  if (bcm_port_detach(0, pbm, &pbm_out) != BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error dettaching selected ports");
+    rc = L7_FAILURE;
+  }
+  LOG_INFO(LOG_CTX_PTIN_HAPI, "Selected ports detached");
+
+  /* Probe ports */
+  if (bcm_port_probe(0, pbm, &pbm_out) != BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error probing selected ports");
+    rc = L7_FAILURE;
+  }
+  LOG_INFO(LOG_CTX_PTIN_HAPI, "Selected ports probed");
+
+  /* Reenable ports */
+  BCM_PBMP_ITER(pbm, bcm_port)
+  {
+    /* Disable ports */
+    if (bcm_port_enable_set(0, bcm_port, L7_DISABLE) != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error disabling bcm_port %u", bcm_port);
+      rc = L7_FAILURE;
+    }
+    if (bcm_port_autoneg_set(0, bcm_port, L7_DISABLE) != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_autoneg_set to bcm_port %u", bcm_port);
+      rc = L7_FAILURE;
+    }
+    if (bcm_port_duplex_set(0, bcm_port, L7_ENABLE) != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_duplex_set to bcm_port %u", bcm_port);
+      rc = L7_FAILURE;
+    }
+    if (bcm_port_pause_set(0, bcm_port, L7_DISABLE, L7_DISABLE) != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_pause_set to bcm_port %u", bcm_port);
+      rc = L7_FAILURE;
+    }
+    if (bcm_port_interface_set(0, bcm_port, BCM_PORT_IF_SFI) != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_interface_set to bcm_port %u", bcm_port);
+      rc = L7_FAILURE;
+    }
+    /* Reenable ports */
+    if (bcm_port_enable_set(0, bcm_port, L7_ENABLE) != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error reenabling bcm_port %u", bcm_port);
+      rc = L7_FAILURE;
+    }
+//  if (bcm_port_stp_set(0, bcm_port, BCM_PORT_STP_FORWARD) != BCM_E_NONE)
+//  {
+//    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_stp_set to bcm_port %u", bcm_port);
+//    rc = L7_FAILURE;
+//  }
+    LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_port %u reconfigured", bcm_port);
+  }
+
+  if (rc == L7_SUCCESS)
+  {
+    LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Selected ports reseted successfully");
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error reseting selected ports");
+  }
+
+  /* Wait 100ms */
+  osapiSleepMSec(100);
+#endif
+
+  return rc;
+}
 
 /**
  * Execute a linkscan procedure
@@ -1500,6 +1632,15 @@ L7_RC_t ptin_hapi_link_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 link, L7_
       LOG_ERR(LOG_CTX_PTIN_HAPI, "Link is down for port {%d,%d,%d}/bcm_port %u/port %u to %u",
               usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable);
       return L7_FAILURE;
+    }
+
+    osapiSleepUSec(20000);
+
+    /* Execute a linkscan update */
+    LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_linkscan_update to bcm_port %u", hapiPortPtr->bcm_port);
+    if (bcm_linkscan_update(0, pbmp) != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error applying linkscan to bcm_port %u", hapiPortPtr->bcm_port);
     }
 
     #if 0
