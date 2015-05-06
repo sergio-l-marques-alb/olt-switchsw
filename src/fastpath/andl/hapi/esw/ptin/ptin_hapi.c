@@ -481,6 +481,23 @@ L7_RC_t ptin_hapi_phy_init_matrix(void)
     return L7_FAILURE;
   }
 
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+ #if (PHY_RECOVERY_PROCEDURE)
+  for (i = PTIN_SYS_LC_SLOT_MIN; i <= PTIN_SYS_LC_SLOT_MAX; i++)
+  {
+    if (ptin_hapi_warpcore_reset(i) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error resetting warpcore of slot %u", i);
+      rc = L7_FAILURE;
+    }
+    else
+    {
+      LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Warpcore of slot %u reseted!", i);
+    }
+  }
+ #endif
+#endif
+
   /* Run all ports */
   for (i=0; i<ptin_sys_number_of_ports; i++)
   {
