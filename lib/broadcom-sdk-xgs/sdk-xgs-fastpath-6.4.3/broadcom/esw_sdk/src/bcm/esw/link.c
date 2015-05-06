@@ -2957,21 +2957,21 @@ _ptin_esw_link_force(int unit, bcm_port_t port, int force, int link, int no_link
     LC_CHECK_INIT(unit);
 
     if (!SOC_PORT_VALID(unit, port) || !IS_PORT(unit, port)) {
-	return BCM_E_PORT;
+        return BCM_E_PORT;
     }
 
     LC_LOCK(unit);
 
     if (force) {
         SOC_PBMP_PORT_REMOVE(sop->lc_pbm_override_link, port);
-	if (link) {
+	    if (link) {
             if (lc->lc_warm_boot) {
                 /* Don't update ports when recovering from Warm Boot. */
                 SOC_PBMP_PORT_ADD(sop->lc_pbm_link, port);
                 SOC_PBMP_PORT_REMOVE(sop->lc_pbm_link_change, port);
             }
-	    SOC_PBMP_PORT_ADD(sop->lc_pbm_override_link, port);
-	}
+	        SOC_PBMP_PORT_ADD(sop->lc_pbm_override_link, port);
+	    }
         SOC_PBMP_PORT_ADD(sop->lc_pbm_override_ports, port);
     } else {
         SOC_PBMP_PORT_REMOVE(sop->lc_pbm_override_ports, port);
