@@ -4748,7 +4748,7 @@ L7_RC_t ptin_msg_stormControl2_set(msg_HwEthStormControl2_t *msgStormControl)
       rate_value =  msgStormControl->broadcast.rate_value;
 
       /* Apply stormcontrol */
-      rc = ptin_intf_bcast_stormControl_set(&ptin_intf, enable, rate_value, 16*1024, rate_units);
+      rc = ptin_intf_bcast_stormControl_set(&ptin_intf, enable, rate_value, FD_POLICY_DEFAULT_BCAST_STORM_BURSTSIZE, rate_units);
       if (rc != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_MSG,"Error configuring Broadcast stormcontrol for ptin_intf %u/%u", ptin_intf.intf_type, ptin_intf.intf_id);
@@ -4782,7 +4782,7 @@ L7_RC_t ptin_msg_stormControl2_set(msg_HwEthStormControl2_t *msgStormControl)
       rate_value =  msgStormControl->multicast.rate_value;
 
       /* Apply stormcontrol */
-      rc = ptin_intf_mcast_stormControl_set(&ptin_intf, enable, rate_value, 16*1024, rate_units);
+      rc = ptin_intf_mcast_stormControl_set(&ptin_intf, enable, rate_value, FD_POLICY_DEFAULT_BCAST_STORM_BURSTSIZE, rate_units);
       if (rc != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_MSG,"Error configuring Multicast stormcontrol for ptin_intf %u/%u", ptin_intf.intf_type, ptin_intf.intf_id);
@@ -4816,7 +4816,7 @@ L7_RC_t ptin_msg_stormControl2_set(msg_HwEthStormControl2_t *msgStormControl)
       rate_value =  msgStormControl->unknown_uc.rate_value;
 
       /* Apply stormcontrol */
-      rc = ptin_intf_ucast_stormControl_set(&ptin_intf, enable, rate_value, 16*1024, rate_units);
+      rc = ptin_intf_ucast_stormControl_set(&ptin_intf, enable, rate_value, FD_POLICY_DEFAULT_BCAST_STORM_BURSTSIZE, rate_units);
       if (rc != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_MSG,"Error configuring Unicast stormcontrol for ptin_intf %u/%u", ptin_intf.intf_type, ptin_intf.intf_id);
@@ -10080,9 +10080,9 @@ L7_RC_t ptin_msg_arp_acl_rule_config(msg_arp_acl_t *msgArpAcl, ACL_OPERATION_t o
     return L7_FAILURE;
   }
 
-  if (msgArpAcl->action != ACL_ACTION_PERMIT)
+  if (operation == ACL_OPERATION_CREATE && msgArpAcl->action != ACL_ACTION_PERMIT)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "action Invalid (%d)", msgArpAcl->action);
+    LOG_ERR(LOG_CTX_PTIN_MSG, "action Invalid (%d) for rule creation", msgArpAcl->action);
     return L7_FAILURE;
   }
   

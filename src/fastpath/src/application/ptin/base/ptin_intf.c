@@ -3892,6 +3892,14 @@ L7_RC_t ptin_intf_bcast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL e
 
   LOG_TRACE(LOG_CTX_PTIN_MSG, "Configuring Broadcast stormcontrol...");
 
+  /* If purpose is to block traffic, apply 0 PPS */
+  if ( enable && rate_value == 0 &&
+      (rate_units == L7_RATE_UNIT_PERCENT || rate_units == L7_RATE_UNIT_KBPS))
+  {
+    rate_value = 0;
+    rate_units = L7_RATE_UNIT_PPS;
+  }
+
   /* Read current enable status */
   rc = usmDbSwDevCtrlBcastStormModeIntfGet(intIfNum, &enable_curr);
   if (rc != L7_SUCCESS)
@@ -3932,7 +3940,7 @@ L7_RC_t ptin_intf_bcast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL e
     LOG_TRACE(LOG_CTX_PTIN_MSG,"Going to apply BC threshold of %u (units=%u)", rate_value, rate_units);
 
     /* Redefine threshold/units */
-    rc = usmDbSwDevCtrlBcastStormThresholdIntfSet(intIfNum, rate_value, FD_POLICY_DEFAULT_BCAST_STORM_BURSTSIZE, rate_units);
+    rc = usmDbSwDevCtrlBcastStormThresholdIntfSet(intIfNum, rate_value, rate_burst, rate_units);
     if (rc != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG,"Error setting Broadcast threashold to %u for ptin_intf %u/%u", rate_value,
@@ -3992,6 +4000,15 @@ L7_RC_t ptin_intf_mcast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL e
 
   LOG_TRACE(LOG_CTX_PTIN_MSG, "Configuring Multicast stormcontrol...");
 
+  /* If purpose is to block traffic, apply 0 PPS */
+  /* This is because 0 Percent/Kbps, disables metering... */
+  if ( enable && rate_value == 0 &&
+      (rate_units == L7_RATE_UNIT_PERCENT || rate_units == L7_RATE_UNIT_KBPS))
+  {
+    rate_value = 0;
+    rate_units = L7_RATE_UNIT_PPS;
+  }
+
   /* Read current enable status */
   rc = usmDbSwDevCtrlMcastStormModeIntfGet(intIfNum, &enable_curr);
   if (rc != L7_SUCCESS)
@@ -4032,7 +4049,7 @@ L7_RC_t ptin_intf_mcast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL e
     LOG_TRACE(LOG_CTX_PTIN_MSG,"Going to apply BC threshold of %u (units=%u)", rate_value, rate_units);
 
     /* Redefine threshold/units */
-    rc = usmDbSwDevCtrlMcastStormThresholdIntfSet(intIfNum, rate_value, FD_POLICY_DEFAULT_MCAST_STORM_BURSTSIZE, rate_units);
+    rc = usmDbSwDevCtrlMcastStormThresholdIntfSet(intIfNum, rate_value, rate_burst, rate_units);
     if (rc != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG,"Error setting Multicast threashold to %u for ptin_intf %u/%u", rate_value,
@@ -4093,6 +4110,15 @@ L7_RC_t ptin_intf_ucast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL e
 
   LOG_TRACE(LOG_CTX_PTIN_MSG, "Configuring Unicast stormcontrol...");
 
+  /* If purpose is to block traffic, apply 0 PPS */
+  /* This is because 0 Percent/Kbps, disables metering... */
+  if ( enable && rate_value == 0 &&
+      (rate_units == L7_RATE_UNIT_PERCENT || rate_units == L7_RATE_UNIT_KBPS))
+  {
+    rate_value = 0;
+    rate_units = L7_RATE_UNIT_PPS;
+  }
+
   /* Read current enable status */
   rc = usmDbSwDevCtrlUcastStormModeIntfGet(intIfNum, &enable_curr);
   if (rc != L7_SUCCESS)
@@ -4133,7 +4159,7 @@ L7_RC_t ptin_intf_ucast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL e
     LOG_TRACE(LOG_CTX_PTIN_MSG,"Going to apply BC threshold of %u (units=%u)", rate_value, rate_units);
 
     /* Redefine threshold/units */
-    rc = usmDbSwDevCtrlUcastStormThresholdIntfSet(intIfNum, rate_value, FD_POLICY_DEFAULT_UCAST_STORM_BURSTSIZE, rate_units);
+    rc = usmDbSwDevCtrlUcastStormThresholdIntfSet(intIfNum, rate_value, rate_burst, rate_units);
     if (rc != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG,"Error setting Unicast threashold to %u for ptin_intf %u/%u", rate_value,
