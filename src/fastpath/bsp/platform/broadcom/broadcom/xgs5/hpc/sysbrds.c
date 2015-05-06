@@ -287,6 +287,10 @@ L7_RC_t hpcConfigBoardSet()
         if (sal_config_set(spn_PBMP_XPORT_XE, "0x3fffffe0") != 0)
           return(L7_FAILURE);
 
+        /* Linkscan interval */
+        if (sal_config_set(spn_BCM_LINKSCAN_INTERVAL, "10000") != 0)
+          return(L7_FAILURE);
+
         /* L2 table */
         if (sal_config_set(spn_L2_MEM_ENTRIES, "131072") != 0)
           return(L7_FAILURE);
@@ -803,6 +807,10 @@ L7_RC_t hpcConfigBoardSet()
 
         /* Configure mmu lossy mode */
         if (sal_config_set(spn_MMU_LOSSLESS, "0") != 0)
+          return(L7_FAILURE);
+
+        /* Linkscan interval */
+        if (sal_config_set(spn_BCM_LINKSCAN_INTERVAL, "10000") != 0)
           return(L7_FAILURE);
 
         /* For CXO640G */
@@ -1410,6 +1418,7 @@ static L7_RC_t hpcConfigWCmap_validate(HAPI_WC_PORT_MAP_t *wcMap)
  */
 L7_RC_t hpcBoardWCinit_bcm56640(void)
 {
+  bcm_port_t bcm_port;
   L7_int  gport_idx, fport_idx, bport_idx, port_idx, offset, i;
   L7_int  slot, lane, speed, portgroup;
   HAPI_CARD_SLOT_MAP_t *dapiBroadBaseCardSlotMap;
@@ -1522,6 +1531,9 @@ L7_RC_t hpcBoardWCinit_bcm56640(void)
       /* Calculate portgroup from slot id */
       portgroup = (is_matrix_protection()) ? (PTIN_SYS_LC_SLOT_MAX - slot) : (slot - PTIN_SYS_LC_SLOT_MIN);
 
+      /* bcm_port */
+      bcm_port = (portgroup * CXO160G_BACKPLANE_PORT_LANES) + CXO160G_BACKPLANE_BCMPORT_BASE + lane;
+
       /* Only apply portgroup configuration once port WC */
       if (lane == 0)
       {
@@ -1529,16 +1541,23 @@ L7_RC_t hpcBoardWCinit_bcm56640(void)
         sprintf(param_name, spn_PORTGROUP"_%u", portgroup);
         sprintf(param_value, "%u", (speed == 40) ? 4 : ((speed == 20) ? 2 : 1));
 
-        LOG_INFO(LOG_CTX_STARTUP, "slot=%d: sal_config_set(%s,%s)", slot, param_name, param_value);
+        LOG_INFO(LOG_CTX_STARTUP, "slot=%d, bcm_port=%d: sal_config_set(%s,%s)", slot, bcm_port, param_name, param_value);
         if (sal_config_set(param_name, param_value) != 0)
           return(L7_FAILURE);
       }
 
+      /* Copper mode for backplane interfaces */
+      sprintf(param_name, spn_SERDES_FIRMWARE_MODE"_%u", bcm_port);
+      sprintf(param_value, "2");
+      LOG_INFO(LOG_CTX_STARTUP, "slot=%d, bcm_port=%d: sal_config_set(%s,%s)", slot, bcm_port, param_name, param_value);
+      if (sal_config_set(param_name, param_value) != 0)
+        return(L7_FAILURE);
+
       /* Update port list */
-      dapiBroadBaseCardSlotMap[port_idx].slotNum = 0;
-      dapiBroadBaseCardSlotMap[port_idx].portNum = port_idx;
+      dapiBroadBaseCardSlotMap[port_idx].slotNum     = 0;
+      dapiBroadBaseCardSlotMap[port_idx].portNum     = port_idx;
       dapiBroadBaseCardSlotMap[port_idx].bcm_cpuunit = 0;
-      dapiBroadBaseCardSlotMap[port_idx].bcm_port    = (portgroup * CXO160G_BACKPLANE_PORT_LANES) + CXO160G_BACKPLANE_BCMPORT_BASE + lane;
+      dapiBroadBaseCardSlotMap[port_idx].bcm_port    = bcm_port;
 
       bport_idx++;
     }

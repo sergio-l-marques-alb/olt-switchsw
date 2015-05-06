@@ -1110,6 +1110,48 @@ int ptin_vlan_control_port_get(int port, bcm_vlan_control_port_t type)
   return error;
 }
 
+
+int ptin_port_phy_control_set(int port, bcm_port_phy_control_t type, int arg)
+{
+  int error;
+  bcm_port_t bcm_port;
+
+  // Validate port, and get bcm_port reference
+  if (port>=PTIN_SYSTEM_N_PORTS || hapi_ptin_bcmPort_get(port,&bcm_port)!=L7_SUCCESS)
+  {
+    printf("Port is invalid\r\n");
+    return -1;
+  }
+
+  error = bcm_port_phy_control_set(0, bcm_port, type,arg);
+
+  printf("bcm_port_phy_control_set(0,%d,%d,%d) => %d (\"%s\")\r\n",bcm_port,type,arg,error,bcm_errmsg(error));
+
+  return error;
+}
+
+
+int ptin_port_phy_control_get(int port, bcm_port_phy_control_t type)
+{
+  int error;
+  bcm_port_t bcm_port;
+  int arg;
+
+  // Validate port, and get bcm_port reference
+  if (port>=PTIN_SYSTEM_N_PORTS || hapi_ptin_bcmPort_get(port,&bcm_port)!=L7_SUCCESS)
+  {
+    printf("Port is invalid\r\n");
+    return -1;
+  }
+
+  error = bcm_port_phy_control_get(0, bcm_port, type, &arg);
+
+  printf("bcm_port_phy_control_get(0,%d,%d,&arg) => %d (\"%s\") arg=%d\r\n",bcm_port,type,error,bcm_errmsg(error),arg);
+
+  return error;
+}
+
+
 // Control Vlan settings (to allow modifiy Learning on a per-vlan basis and single/double cross-connections)
 
 int ptin_vlan_control_vlan_fwdMode_set(bcm_vlan_t vlanId, bcm_vlan_forward_t fwd_mode, uint32 learn)
