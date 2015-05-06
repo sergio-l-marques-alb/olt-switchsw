@@ -205,7 +205,7 @@ L7_RC_t ptin_l2_mac_table_load(void)
   L7_RC_t           rc = L7_SUCCESS;
   L7_uint32         evc_ext_id;
 
-  LOG_TRACE(LOG_CTX_PTIN_L2, "Loading MAC table...");
+  LOG_INFO(LOG_CTX_PTIN_L2, "Loading MAC table...");
 
   memset( keyNext, 0x00, sizeof(L7_uchar8)*L7_FDB_KEY_SIZE );
 
@@ -289,7 +289,7 @@ L7_RC_t ptin_l2_mac_table_load(void)
 
   /* Update total number of entries */
   mac_table_entries = index;
-  LOG_TRACE(LOG_CTX_PTIN_L2, "%u MAC entries loaded.",index);
+  LOG_INFO(LOG_CTX_PTIN_L2, "%u MAC entries loaded.",index);
 
   return rc;
 }
