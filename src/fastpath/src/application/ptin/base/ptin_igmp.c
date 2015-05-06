@@ -15904,7 +15904,7 @@ void ptin_igmp_assoc_dump(L7_int evc_mc, L7_int evc_uc)
           "bw:%u (kbps)"
 #endif
           "(entryType=%-1u) "
-          "noOfPackages:%u "
+          "noOfPorts:%u noOfPackages:%u "
 #if (IGMPASSOC_CHANNEL_UC_EVC_ISOLATION)
           , avl_info->channelDataKey.evc_uc
 #endif
@@ -15917,6 +15917,7 @@ void ptin_igmp_assoc_dump(L7_int evc_mc, L7_int evc_uc)
           ,avl_info->channelBandwidth
 #endif
           , avl_info->entryType
+          , avl_info->noOfPorts
           , avl_info->queuePackage.n_elems                    
           );          
           while ( L7_NULLPTR != (packageEntry = queue_package_entry_get_next(avl_info, packageEntry)) && 
@@ -15928,7 +15929,7 @@ void ptin_igmp_assoc_dump(L7_int evc_mc, L7_int evc_uc)
           {
             if (avl_info->noOfGroupClientsPerPort[portIdIterator] == 0)
               continue;
-            printf("portId:%u noOfGroupClients:%u groupClientBmp: 0x", portIdIterator, avl_info->noOfGroupClientsPerPort[portIdIterator]);
+            printf(" portId:%u noOfGroupClients:%u groupClientBmp: 0x", portIdIterator, avl_info->noOfGroupClientsPerPort[portIdIterator]);
             for ( groupClientIterator = PTIN_IGMP_CLIENT_BITMAP_SIZE-1; groupClientIterator>=0; --groupClientIterator )
             {
               printf("%08X", avl_info->groupClientBmpPerPort[portIdIterator][groupClientIterator]);
@@ -17013,13 +17014,6 @@ static RC_t ptin_igmp_multicast_package_channel_add(L7_uint32 packageId, L7_uint
 static RC_t ptin_igmp_multicast_package_channel_remove(L7_uint32 packageId, L7_uint32 serviceId, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr)
 {
   ptinIgmpChannelInfoData_t           *channelAvlTreeEntry;
-#if 0
-  L7_uint32                            portIterator;
-  L7_uint32                            noOfPortsFound = 0;
-  L7_uint32                            groupClientIterator;
-  L7_uint32                            noOfgroupClientsFound;
-  ptinIgmpGroupClientInfoData_t       *groupClientPtr;
-#endif
   char                                 groupAddrStr[IPV6_DISP_ADDR_LEN]={};
   char                                 sourceAddrStr[IPV6_DISP_ADDR_LEN]={}; 
   RC_t                                 rc;
@@ -17068,7 +17062,12 @@ static RC_t ptin_igmp_multicast_package_channel_remove(L7_uint32 packageId, L7_u
 
   if ( multicastPackage[packageId].noOfPorts != 0 )
   {
-#if 0 //We have disabled this operation to ensure consistency between the upper layers!        
+    L7_uint32                            portIterator;
+    L7_uint32                            noOfPortsFound = 0;
+    L7_uint32                            groupClientIterator;
+    L7_uint32                            noOfgroupClientsFound;
+    ptinIgmpGroupClientInfoData_t       *groupClientPtr;
+
     for ( portIterator = 0; portIterator < PTIN_SYSTEM_N_UPLINK_INTERF && noOfPortsFound < multicastPackage[packageId].noOfPorts; portIterator++)
     {
       /*Check if this position on the Client Array is Empty*/
@@ -17126,12 +17125,6 @@ static RC_t ptin_igmp_multicast_package_channel_remove(L7_uint32 packageId, L7_u
         }
       }
     }
-#else
-    LOG_WARNING(LOG_CTX_PTIN_IGMP,"Dependency not met: This Channel has ports still attached [packageId:%u serviceId:%u groupAddr:%s sourceAddr:%s noOfPorts:%u]",
-                packageId, serviceId, inetAddrPrint(groupAddr, groupAddrStr), inetAddrPrint(sourceAddr, sourceAddrStr), multicastPackage[packageId].noOfPorts);    
-    return L7_DEPENDENCY_NOT_MET;
-
-#endif
   }
 
   if ( L7_SUCCESS != (rc = queue_channel_entry_remove(packageId, channelAvlTreeEntry) ) )
@@ -18236,7 +18229,7 @@ RC_t ptin_igmp_multicast_channel_client_remove(L7_uint32 packageId, ptinIgmpGrou
         if (channelAvlTreeEntry->noOfPorts > 0)
         {
           /*Decrement the Number of Used Ports*/
-          channelAvlTreeEntry->noOfPorts++;    
+          --channelAvlTreeEntry->noOfPorts;    
         }
       }
     }
