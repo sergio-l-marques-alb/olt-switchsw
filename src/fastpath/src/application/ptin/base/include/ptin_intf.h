@@ -780,6 +780,15 @@ extern L7_RC_t ptin_intf_frame_oversize_get(L7_uint32 intIfNum, L7_uint32 *frame
 extern L7_RC_t ptin_intf_linkscan_control(L7_uint port, L7_BOOL enable);
 
 /**
+ * Reset warpcore associated to a specific slot 
+ * 
+ * @param slot_id 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_intf_slot_reset(L7_int slot_id);
+
+/**
  * read linkscan status
  *  
  * @param intIfNum : Interface

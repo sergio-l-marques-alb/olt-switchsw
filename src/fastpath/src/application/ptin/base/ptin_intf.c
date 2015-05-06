@@ -1242,13 +1242,13 @@ L7_RC_t ptin_intf_boardid_get(L7_int ptin_port, L7_uint16 *board_id)
 
   if (ptin_intf_port2SlotPort(ptin_port, &slot_id, L7_NULLPTR, L7_NULLPTR) != L7_SUCCESS)
   {
-    //LOG_ERR(LOG_CTX_PTIN_API,"Invalid inputs: ptin_port=%d", ptin_port);
+    //LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid inputs: ptin_port=%d", ptin_port);
     return L7_FAILURE;
   }
   /* Validate input params */
   if ((slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX) && (slot_id != 0))
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Invalid slot_id=%d", slot_id);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid slot_id=%d", slot_id);
     return L7_FAILURE;
   }
 
@@ -1280,13 +1280,13 @@ L7_RC_t ptin_intf_boardid_set(L7_int ptin_port, L7_uint16 board_id)
 
   if (ptin_intf_port2SlotPort(ptin_port, &slot_id, L7_NULLPTR, L7_NULLPTR) != L7_SUCCESS)
   {
-    //LOG_ERR(LOG_CTX_PTIN_API,"Invalid inputs: ptin_port=%d", ptin_port);
+    //LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid inputs: ptin_port=%d", ptin_port);
     return L7_FAILURE;
   }
   /* Validate input params */
   if ((slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX) && (slot_id != 0))
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Invalid inputs: slot_id=%d", slot_id);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid inputs: slot_id=%d", slot_id);
     return L7_FAILURE;
   }
 
@@ -1312,7 +1312,7 @@ L7_RC_t ptin_slot_boardid_get(L7_int slot_id, L7_uint16 *board_id)
   /* Validate input params */
   if ((slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX) && (slot_id != 0))
   {
-    //LOG_ERR(LOG_CTX_PTIN_API,"Invalid inputs: slot_id=%d", slot_id);
+    //LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid inputs: slot_id=%d", slot_id);
     return L7_FAILURE;
   }
 
@@ -1341,7 +1341,7 @@ L7_RC_t ptin_slot_boardtype_set(L7_int slot_id, L7_uint16 board_id)
   /* Validate input params */
   if ((slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX) && (slot_id != 0))
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Invalid inputs: slot_id=%d", slot_id);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid inputs: slot_id=%d", slot_id);
     return L7_FAILURE;
   }
 
@@ -5484,11 +5484,11 @@ L7_RC_t ptin_pcs_prbs_enable(L7_uint32 intIfNum, L7_BOOL enable)
 
   rc=dtlPtinPcsPrbs(intIfNum, &dapiCmd);
   if (rc!=L7_SUCCESS)  {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error setting PRBS enable of intIfNum %u to %u",intIfNum, enable);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Error setting PRBS enable of intIfNum %u to %u",intIfNum, enable);
     return rc;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API,"Success applying global enable of intIfNum %u to %u",intIfNum,enable);
+  LOG_TRACE(LOG_CTX_PTIN_INTF,"Success applying global enable of intIfNum %u to %u",intIfNum,enable);
 
   return L7_SUCCESS;
 }
@@ -5512,7 +5512,7 @@ L7_RC_t ptin_pcs_prbs_errors_get(L7_uint32 intIfNum, L7_uint32 *counter)
 
   rc=dtlPtinPcsPrbs(intIfNum, &dapiCmd);
   if (rc!=L7_SUCCESS)  {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error getting PRBS errors of intIfNum %u",intIfNum);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Error getting PRBS errors of intIfNum %u",intIfNum);
     return rc;
   }
 
@@ -5656,6 +5656,47 @@ L7_RC_t ptin_intf_linkscan_control(L7_uint port, L7_BOOL enable)
 }
 
 /**
+ * Reset warpcore associated to a specific slot 
+ * 
+ * @param slot_id 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_intf_slot_reset(L7_int slot_id)
+{
+  ptin_hwproc_t hw_proc;
+  L7_RC_t   rc = L7_SUCCESS;
+
+  /* Validate interface */
+  if (slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid slot id %d", slot_id);
+    return L7_FAILURE;
+  }
+
+  memset(&hw_proc,0x00,sizeof(hw_proc));
+
+  hw_proc.operation = DAPI_CMD_SET;
+  hw_proc.procedure = PTIN_HWPROC_WARPCORE_RESET;
+  hw_proc.mask   = 0xff;
+  hw_proc.param1 = (L7_int32) slot_id;
+  hw_proc.param2 = 0;
+
+  /* Apply procedure */
+  rc = dtlPtinHwProc(L7_ALL_INTERFACES, &hw_proc);
+
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Error applying HW procedure to slot %d", slot_id);
+    return rc;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_INTF,"HW procedure applied to slot %d", slot_id);
+
+  return L7_SUCCESS;
+}
+
+/**
  * read linkscan status
  *  
  * @param intIfNum : Interface
@@ -5671,7 +5712,7 @@ L7_RC_t ptin_intf_linkscan_get(L7_uint32 intIfNum, L7_uint8 *enable)
   /* Validate interface */
   if (intIfNum == 0 || intIfNum > L7_ALL_INTERFACES)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Invalid intIfNum %u", intIfNum);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid intIfNum %u", intIfNum);
     return L7_FAILURE;
   }
 
@@ -5687,14 +5728,14 @@ L7_RC_t ptin_intf_linkscan_get(L7_uint32 intIfNum, L7_uint8 *enable)
   rc = dtlPtinHwProc(intIfNum, &hw_proc);
 
   if (rc != L7_SUCCESS)
-    LOG_ERR(LOG_CTX_PTIN_API,"Error applying HW procedure to intIfNum=%u", intIfNum);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Error applying HW procedure to intIfNum=%u", intIfNum);
   else
   {
     if (enable != L7_NULLPTR)
     {
       *enable = (L7_uint8) hw_proc.param1;
     }
-    LOG_TRACE(LOG_CTX_PTIN_API,"HW linkscan get from intIfNum=%u (%u)", intIfNum, hw_proc.param1);
+    LOG_TRACE(LOG_CTX_PTIN_INTF,"HW linkscan get from intIfNum=%u (%u)", intIfNum, hw_proc.param1);
   }
 
   return rc;
@@ -5716,7 +5757,7 @@ L7_RC_t ptin_intf_linkscan_set(L7_uint32 intIfNum, L7_uint8 enable)
   /* Validate interface */
   if (intIfNum == 0 || intIfNum > L7_ALL_INTERFACES)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Invalid intIfNum %u", intIfNum);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid intIfNum %u", intIfNum);
     return L7_FAILURE;
   }
 
@@ -5733,11 +5774,11 @@ L7_RC_t ptin_intf_linkscan_set(L7_uint32 intIfNum, L7_uint8 enable)
 
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error applying HW procedure to intIfNum=%u", intIfNum);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Error applying HW procedure to intIfNum=%u", intIfNum);
     return rc;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API,"HW procedure applied to intIfNum=%u", intIfNum);
+  LOG_TRACE(LOG_CTX_PTIN_INTF,"HW procedure applied to intIfNum=%u", intIfNum);
 
   return L7_SUCCESS;
 }
@@ -5760,14 +5801,14 @@ L7_RC_t ptin_intf_link_force(L7_uint32 intIfNum, L7_uint8 link, L7_uint8 enable)
   /* Validate interface */
   if (intIfNum == 0 || intIfNum > L7_ALL_INTERFACES)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Invalid intIfNum %u", intIfNum);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid intIfNum %u", intIfNum);
     return L7_FAILURE;
   }
 
   /* Get ptin_port format */
   if (ptin_intf_intIfNum2port(intIfNum, &ptin_port) != L7_SUCCESS || ptin_port >= ptin_sys_number_of_ports)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Invalid intIfNum %u -> no ptin_port correspondence", intIfNum);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid intIfNum %u -> no ptin_port correspondence", intIfNum);
     return L7_FAILURE;
   }
 
@@ -5784,7 +5825,7 @@ L7_RC_t ptin_intf_link_force(L7_uint32 intIfNum, L7_uint8 link, L7_uint8 enable)
 
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error applying link force to %u for intIfNum=%u", enable, intIfNum);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Error applying link force to %u for intIfNum=%u", enable, intIfNum);
     return rc;
   }
 
@@ -5800,7 +5841,7 @@ L7_RC_t ptin_intf_link_force(L7_uint32 intIfNum, L7_uint8 link, L7_uint8 enable)
   }
 #endif
 
-  LOG_TRACE(LOG_CTX_PTIN_API,"Force link to %u, applied to intIfNum=%u", enable, intIfNum);
+  LOG_TRACE(LOG_CTX_PTIN_INTF,"Force link to %u, applied to intIfNum=%u", enable, intIfNum);
 
   return rc;
 }
@@ -5826,7 +5867,7 @@ L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable
   if (slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX ||
       slot_port >= PTIN_SYS_INTFS_PER_SLOT_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Invalid inputs: slot_id=%d, slot_port=%d", slot_id, slot_port);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid inputs: slot_id=%d, slot_port=%d", slot_id, slot_port);
     return L7_FAILURE;
   }
 
@@ -5840,7 +5881,7 @@ L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable
     if (ptin_port < 0 || ptin_port >= ptin_sys_number_of_ports ||
         ptin_intf_port2intIfNum(ptin_port, &intIfNum)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_API,"Invalid reference slot_id=%d, slot_port=%d -> port=%d", slot_id, port_idx, ptin_port);
+      LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid reference slot_id=%d, slot_port=%d -> port=%d", slot_id, port_idx, ptin_port);
       return L7_FAILURE;
     }
 
@@ -5852,9 +5893,9 @@ L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable
       rc = ptin_intf_linkscan_set(intIfNum, enable); 
 
       if (rc != L7_SUCCESS)
-        LOG_ERR(LOG_CTX_PTIN_API,"Error applying LS procedure to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum);
+        LOG_ERR(LOG_CTX_PTIN_INTF,"Error applying LS procedure to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum);
       else
-        LOG_TRACE(LOG_CTX_PTIN_API,"LS procedure applied to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, port_idx, intIfNum);
+        LOG_TRACE(LOG_CTX_PTIN_INTF,"LS procedure applied to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, port_idx, intIfNum);
     }
   }
   /* Apply to all slot ports */
@@ -5873,7 +5914,7 @@ L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable
       if (ptin_port >= ptin_sys_number_of_ports ||
           ptin_intf_port2intIfNum(ptin_port, &intIfNum)!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_API,"Invalid reference slot_id=%d, slot_port=%d -> port=%d", slot_id, port_idx, ptin_port);
+        LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid reference slot_id=%d, slot_port=%d -> port=%d", slot_id, port_idx, ptin_port);
         return L7_FAILURE;
       }
 
@@ -5890,21 +5931,21 @@ L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable
 
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_API,"Error applying LS procedure to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum);
+        LOG_ERR(LOG_CTX_PTIN_INTF,"Error applying LS procedure to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum);
         break;
       }
       else
       {
-        LOG_TRACE(LOG_CTX_PTIN_API,"LS procedure applied to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum);
+        LOG_TRACE(LOG_CTX_PTIN_INTF,"LS procedure applied to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum);
         /* Next port */
       }
     }
   }
 
   if (rc != L7_SUCCESS)
-    LOG_ERR(LOG_CTX_PTIN_API,"Terminated with error %d", rc);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Terminated with error %d", rc);
   else
-    LOG_TRACE(LOG_CTX_PTIN_API,"Finished successfully");
+    LOG_TRACE(LOG_CTX_PTIN_INTF,"Finished successfully");
 
   /* Return execution state */
   return rc;
@@ -5935,7 +5976,7 @@ L7_RC_t ptin_slot_link_force(L7_int slot_id, L7_int slot_port, L7_uint8 link, L7
   if (slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX ||
       slot_port >= PTIN_SYS_INTFS_PER_SLOT_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Invalid inputs: slot_id=%d, slot_port=%d", slot_id, slot_port);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid inputs: slot_id=%d, slot_port=%d", slot_id, slot_port);
     return L7_FAILURE;
   }
 
@@ -5949,7 +5990,7 @@ L7_RC_t ptin_slot_link_force(L7_int slot_id, L7_int slot_port, L7_uint8 link, L7
     if (ptin_port < 0 || ptin_port >= ptin_sys_number_of_ports ||
         ptin_intf_port2intIfNum(ptin_port, &intIfNum)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_API,"Invalid reference slot_id=%d, slot_port=%d -> port=%d", slot_id, port_idx, ptin_port);
+      LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid reference slot_id=%d, slot_port=%d -> port=%d", slot_id, port_idx, ptin_port);
       return L7_FAILURE;
     }
 
@@ -5962,9 +6003,9 @@ L7_RC_t ptin_slot_link_force(L7_int slot_id, L7_int slot_port, L7_uint8 link, L7
       rc = ptin_intf_link_force(intIfNum, link, enable);
 
       if (rc != L7_SUCCESS)
-        LOG_ERR(LOG_CTX_PTIN_API,"Error forcing link to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum);
+        LOG_ERR(LOG_CTX_PTIN_INTF,"Error forcing link to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum);
       else
-        LOG_TRACE(LOG_CTX_PTIN_API,"Link forced to %u to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", enable, slot_id, port_idx, port_idx, intIfNum);
+        LOG_TRACE(LOG_CTX_PTIN_INTF,"Link forced to %u to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", enable, slot_id, port_idx, port_idx, intIfNum);
     }
   }
   /* Apply to all slot ports */
@@ -5983,7 +6024,7 @@ L7_RC_t ptin_slot_link_force(L7_int slot_id, L7_int slot_port, L7_uint8 link, L7
       if (ptin_port >= ptin_sys_number_of_ports ||
           ptin_intf_port2intIfNum(ptin_port, &intIfNum)!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_API,"Invalid reference slot_id=%d, slot_port=%d -> port=%d", slot_id, port_idx, ptin_port);
+        LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid reference slot_id=%d, slot_port=%d -> port=%d", slot_id, port_idx, ptin_port);
         return L7_FAILURE;
       }
 
@@ -6000,21 +6041,21 @@ L7_RC_t ptin_slot_link_force(L7_int slot_id, L7_int slot_port, L7_uint8 link, L7
 
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_API,"Error forcing link to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum);
+        LOG_ERR(LOG_CTX_PTIN_INTF,"Error forcing link to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum);
         break;
       }
       else
       {
-        LOG_TRACE(LOG_CTX_PTIN_API,"Link forced to %u in slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", enable, slot_id, port_idx, ptin_port, intIfNum);
+        LOG_TRACE(LOG_CTX_PTIN_INTF,"Link forced to %u in slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", enable, slot_id, port_idx, ptin_port, intIfNum);
         /* Next port */
       }
     }
   }
 
   if (rc != L7_SUCCESS)
-    LOG_ERR(LOG_CTX_PTIN_API,"Terminated with error %d", rc);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Terminated with error %d", rc);
   else
-    LOG_TRACE(LOG_CTX_PTIN_API,"Finished successfully");
+    LOG_TRACE(LOG_CTX_PTIN_INTF,"Finished successfully");
 
   /* Return execution state */
   return rc;
@@ -6043,17 +6084,17 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
   L7_uint16 board_id_current;
   L7_RC_t   rc;
 
-  LOG_DEBUG(LOG_CTX_PTIN_API,"Inserting board %u at slot %u", board_id, slot_id);
+  LOG_DEBUG(LOG_CTX_PTIN_INTF,"Inserting board %u at slot %u", board_id, slot_id);
 
   /* Validate input params */
   if (slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Invalid slot_id=%d", slot_id);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid slot_id=%d", slot_id);
     return L7_FAILURE;
   }
   if (board_id == 0 || board_id == (L7_uint16)-1)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Invalid board_id %d", board_id);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid board_id %d", board_id);
     return L7_FAILURE;
   }
 
@@ -6065,14 +6106,14 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
   if (rc != L7_SUCCESS)
   {
     osapiSemaGive(ptin_boardaction_sem);
-    LOG_ERR(LOG_CTX_PTIN_API, "Error getting board id for slot %u (rc=%d)", slot_id, rc);
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Error getting board id for slot %u (rc=%d)", slot_id, rc);
     return L7_FAILURE;
   }
   /* If board is already present, do nothing */
   if (board_id_current != 0)
   {
     osapiSemaGive(ptin_boardaction_sem);
-    LOG_WARNING(LOG_CTX_PTIN_API, "Card already present at slot %u (board id is %u)", slot_id, board_id_current);
+    LOG_WARNING(LOG_CTX_PTIN_INTF, "Card already present at slot %u (board id is %u)", slot_id, board_id_current);
     return L7_SUCCESS;
   }
 
@@ -6081,9 +6122,39 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
   if (rc != L7_SUCCESS)
   {
     osapiSemaGive(ptin_boardaction_sem);
-    LOG_ERR(LOG_CTX_PTIN_API, "Error inserting card %u at slot %u (%d)", board_id, slot_id, rc);
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Error inserting card %u at slot %u (%d)", board_id, slot_id, rc);
     return L7_FAILURE;
   }
+
+  /* For CXO160G reset warpcore associated to this slot (only applied to 10G-SFI ports) */
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+  /* Mark this slot to be reseted */
+ #if (PHY_RECOVERY_PROCEDURE)
+  if (slots_to_be_reseted[slot_id])
+  {
+    /* Only reset warpcore, if new board is a TG16G board */
+    if (board_id == PTIN_BOARD_TYPE_TG16G)
+    {
+      LOG_INFO(LOG_CTX_PTIN_INTF, "Going to reset warpcore of slot %u", slot_id);
+      rc = ptin_intf_slot_reset(slot_id);
+      if (rc == L7_SUCCESS)
+      {
+        LOG_INFO(LOG_CTX_PTIN_INTF, "Slot %d reseted", slot_id);
+      }
+      else if (rc == L7_NOT_EXIST)
+      {
+        LOG_TRACE(LOG_CTX_PTIN_INTF, "Nothing done to slot %u", slot_id);
+      }
+      else
+      {
+        LOG_ERR(LOG_CTX_PTIN_INTF, "Error reseting slot %u", slot_id);
+      }
+    }
+
+    slots_to_be_reseted[slot_id] = L7_FALSE;
+  }
+ #endif
+#endif
 
   #ifdef MAP_CPLD
   /* Only active matrix will manage linkscan and force links */
@@ -6109,7 +6180,7 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
         ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
     {
       rc_global = max(L7_FAILURE, rc_global);
-      LOG_ERR(LOG_CTX_PTIN_API,"Invalid ptin_port %d", ptin_port);
+      LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid ptin_port %d", ptin_port);
       continue;
     }
 
@@ -6132,7 +6203,7 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
         if (rc != L7_SUCCESS)
         {
           rc_global = max(rc, rc_global);
-          LOG_ERR(LOG_CTX_PTIN_API, "Error enabling force linkup for port %u (%d)", ptin_port, rc);
+          LOG_ERR(LOG_CTX_PTIN_INTF, "Error enabling force linkup for port %u (%d)", ptin_port, rc);
         }
 
         /* Add port to vlans again */
@@ -6141,7 +6212,7 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
         {
           ptin_vlan_port_add(ptin_port, 0);
         }
-        LOG_INFO(LOG_CTX_PTIN_API, "Forced linkup for port %u", ptin_port);
+        LOG_INFO(LOG_CTX_PTIN_INTF, "Forced linkup for port %u", ptin_port);
       }
       /* Enable linkscan for uplink boards */
       else if (PTIN_BOARD_IS_UPLINK(board_id))
@@ -6150,9 +6221,9 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
         if (rc != L7_SUCCESS)
         {
           rc_global = max(rc, rc_global);
-          LOG_ERR(LOG_CTX_PTIN_API, "Error enabling linkscan for port %u (%d)", ptin_port, rc);
+          LOG_ERR(LOG_CTX_PTIN_INTF, "Error enabling linkscan for port %u (%d)", ptin_port, rc);
         }
-        LOG_INFO(LOG_CTX_PTIN_API, "Linkscan enabled for port %u", ptin_port);
+        LOG_INFO(LOG_CTX_PTIN_INTF, "Linkscan enabled for port %u", ptin_port);
       }
     }
     #endif
@@ -6186,12 +6257,12 @@ L7_RC_t ptin_slot_action_remove(L7_uint16 slot_id)
   L7_uint16 board_id;
   L7_RC_t   rc;
 
-  LOG_DEBUG(LOG_CTX_PTIN_API,"Removing board from slot %u", slot_id);
+  LOG_DEBUG(LOG_CTX_PTIN_INTF,"Removing board from slot %u", slot_id);
 
   /* Validate input params */
   if (slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Invalid slot_id=%d", slot_id);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid slot_id=%d", slot_id);
     return L7_FAILURE;
   }
 
@@ -6203,14 +6274,14 @@ L7_RC_t ptin_slot_action_remove(L7_uint16 slot_id)
   if (rc != L7_SUCCESS)
   {
     osapiSemaGive(ptin_boardaction_sem);
-    LOG_ERR(LOG_CTX_PTIN_API, "Error getting board type for slot %u (rc=%d)", slot_id, rc);
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Error getting board type for slot %u (rc=%d)", slot_id, rc);
     return L7_FAILURE;
   }
   /* If board is not present, do nothing */
   if (board_id == 0 || board_id == (L7_uint16)-1)
   {
     osapiSemaGive(ptin_boardaction_sem);
-    LOG_WARNING(LOG_CTX_PTIN_API, "No card present at slot %u (board id is %u)", slot_id, board_id);
+    LOG_WARNING(LOG_CTX_PTIN_INTF, "No card present at slot %u (board id is %u)", slot_id, board_id);
     return L7_SUCCESS;
   }
 
@@ -6219,7 +6290,7 @@ L7_RC_t ptin_slot_action_remove(L7_uint16 slot_id)
   if (rc != L7_SUCCESS)
   {
     osapiSemaGive(ptin_boardaction_sem);
-    LOG_ERR(LOG_CTX_PTIN_API, "Error removing card %u from slot %u (%d)", board_id, slot_id, rc);
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Error removing card %u from slot %u (%d)", board_id, slot_id, rc);
     return L7_FAILURE;
   }
 
@@ -6247,7 +6318,7 @@ L7_RC_t ptin_slot_action_remove(L7_uint16 slot_id)
         ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
     {
       rc_global = max(L7_FAILURE, rc_global);
-      LOG_ERR(LOG_CTX_PTIN_API,"Invalid ptin_port %d", ptin_port);
+      LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid ptin_port %d", ptin_port);
       continue;
     }
 
@@ -6262,16 +6333,16 @@ L7_RC_t ptin_slot_action_remove(L7_uint16 slot_id)
         if (rc != L7_SUCCESS)
         {
           rc_global = max(rc, rc_global);
-          LOG_ERR(LOG_CTX_PTIN_API, "Error disabling force linkup for port %u (%d)", ptin_port, rc);
+          LOG_ERR(LOG_CTX_PTIN_INTF, "Error disabling force linkup for port %u (%d)", ptin_port, rc);
         }
         /* Cause link-down */
         rc = ptin_intf_link_force(intIfNum, L7_FALSE, 0);
         if (rc != L7_SUCCESS)
         {
           rc_global = max(rc, rc_global);
-          LOG_ERR(LOG_CTX_PTIN_API, "Error disabling force linkup for port %u (%d)", ptin_port, rc);
+          LOG_ERR(LOG_CTX_PTIN_INTF, "Error disabling force linkup for port %u (%d)", ptin_port, rc);
         }
-        LOG_INFO(LOG_CTX_PTIN_API, "Force link-up disabled for port %u", ptin_port);
+        LOG_INFO(LOG_CTX_PTIN_INTF, "Force link-up disabled for port %u", ptin_port);
       }
       /* Enable linkscan for uplink boards */
       else if (PTIN_BOARD_IS_UPLINK(board_id))
@@ -6280,13 +6351,24 @@ L7_RC_t ptin_slot_action_remove(L7_uint16 slot_id)
         if (rc != L7_SUCCESS)
         {
           rc_global = max(rc, rc_global);
-          LOG_ERR(LOG_CTX_PTIN_API, "Error disabling linkscan (%d)", rc);
+          LOG_ERR(LOG_CTX_PTIN_INTF, "Error disabling linkscan (%d)", rc);
         }
-        LOG_INFO(LOG_CTX_PTIN_API, "Linkscan disabled for port %u", ptin_port);
+        LOG_INFO(LOG_CTX_PTIN_INTF, "Linkscan disabled for port %u", ptin_port);
       }
     }
     #endif
   }
+
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+ #if (PHY_RECOVERY_PROCEDURE)
+  /* Mark this slot to be reseted */
+  if (rc_global == L7_SUCCESS)
+  {
+    slots_to_be_reseted[slot_id] = L7_TRUE;
+    LOG_INFO(LOG_CTX_PTIN_INTF, "Slot %u marked to be reseted ", slot_id);
+  }
+ #endif
+#endif
 
   /* Unblock board event processing */
   osapiSemaGive(ptin_boardaction_sem);
@@ -6321,7 +6403,7 @@ L7_RC_t ptin_intf_info_get(const ptin_intf_t *ptin_intf, L7_uint16 *enable, L7_u
   /* Validate arguments */
   if (ptin_intf_ptintf2intIfNum(ptin_intf, &intIfNum) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Intf %u/%u does not exist!", ptin_intf->intf_type, ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Intf %u/%u does not exist!", ptin_intf->intf_type, ptin_intf->intf_id);
     return L7_FAILURE;
   }
 
@@ -6331,20 +6413,20 @@ L7_RC_t ptin_intf_info_get(const ptin_intf_t *ptin_intf, L7_uint16 *enable, L7_u
     slot_id   = 0;
     slot_port = 0;
     board_id  = 0;
-    //LOG_WARNING(LOG_CTX_PTIN_API,"Error getting slot information for intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    //LOG_WARNING(LOG_CTX_PTIN_INTF,"Error getting slot information for intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
   }
 
   /* Admin state */
   if (nimGetIntfAdminState(intIfNum, &adminState) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error getting admin state for intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Error getting admin state for intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
     return L7_FAILURE;
   }
 
   /* Link state */
   if (nimGetIntfLinkState(intIfNum, &linkState) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error getting link state for intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Error getting link state for intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
     return L7_FAILURE;
   }
 
@@ -6407,14 +6489,14 @@ L7_BOOL ptin_intf_link_get(L7_uint32 ptin_port)
 
   if (ptin_intf_port2intIfNum(ptin_port, &intIfNum)!=L7_SUCCESS || nimGetIntfAdminState(intIfNum, &adminState)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error getting admin state for ptin_port %d", ptin_port);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Error getting admin state for ptin_port %d", ptin_port);
     return link;
   }
 
   /* Link state */
   if (nimGetIntfLinkState(intIfNum, &linkState) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error getting link state for ptin_port %d", ptin_port);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Error getting link state for ptin_port %d", ptin_port);
     return link;
   }
 
@@ -6447,7 +6529,7 @@ L7_RC_t ptin_intf_slotMode_get(L7_uint32 *slotmodes)
 
   rc=dtlPtinSlotMode(&slot_mode);
   if (rc!=L7_SUCCESS)  {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error reading slot mode list");
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Error reading slot mode list");
     return rc;
   }
 
@@ -6483,7 +6565,7 @@ L7_RC_t ptin_intf_slotMode_validate(L7_uint32 *slotmodes)
 
   rc=dtlPtinSlotMode(&slot_mode);
   if (rc!=L7_SUCCESS)  {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error validating slot mode list");
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Error validating slot mode list");
     return rc;
   }
 
@@ -6664,9 +6746,9 @@ L7_RC_t ptin_intf_protection_cmd_planC(L7_uint slot, L7_uint port, L7_uint cmd)
       rc = ptin_intf_linkscan_set(intIfNum, L7_ENABLE);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_API, "Error enabling linkscan for port %u (%d)", ptin_port, rc);
+        LOG_ERR(LOG_CTX_PTIN_INTF, "Error enabling linkscan for port %u (%d)", ptin_port, rc);
       }
-      LOG_TRACE(LOG_CTX_PTIN_API, "Linkscan enabled for port %u", ptin_port);
+      LOG_TRACE(LOG_CTX_PTIN_INTF, "Linkscan enabled for port %u", ptin_port);
     }
     #endif
   #else
@@ -6695,17 +6777,17 @@ L7_RC_t ptin_intf_protection_cmd_planC(L7_uint slot, L7_uint port, L7_uint cmd)
       rc = ptin_intf_linkscan_set(intIfNum, L7_DISABLE);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_API, "Error disabling linkscan for port %u (%d)", ptin_port, rc);
+        LOG_ERR(LOG_CTX_PTIN_INTF, "Error disabling linkscan for port %u (%d)", ptin_port, rc);
       }
-      LOG_TRACE(LOG_CTX_PTIN_API, "Linkscan enabled for port %u", ptin_port);
+      LOG_TRACE(LOG_CTX_PTIN_INTF, "Linkscan enabled for port %u", ptin_port);
       if (rc == L7_SUCCESS)
       {
         rc = ptin_intf_link_force(intIfNum, L7_TRUE, L7_ENABLE); 
         if (rc != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_PTIN_API, "Error forcing linkup for port %u (%d)", ptin_port, rc);
+          LOG_ERR(LOG_CTX_PTIN_INTF, "Error forcing linkup for port %u (%d)", ptin_port, rc);
         }
-        LOG_TRACE(LOG_CTX_PTIN_API, "Forced link-up for port %u", ptin_port);
+        LOG_TRACE(LOG_CTX_PTIN_INTF, "Forced link-up for port %u", ptin_port);
       }
     }
     #endif
@@ -6785,26 +6867,26 @@ L7_RC_t ptin_intf_protection_cmd_planD(L7_uint slot_old, L7_uint port_old, L7_ui
     rc = ptin_intf_linkscan_set(intIfNum_old, L7_DISABLE);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_API, "Error disabling linkscan for port %u (%d)", ptin_port_old, rc);
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Error disabling linkscan for port %u (%d)", ptin_port_old, rc);
     }
-    LOG_TRACE(LOG_CTX_PTIN_API, "Linkscan enabled for port %u", ptin_port_old);
+    LOG_TRACE(LOG_CTX_PTIN_INTF, "Linkscan enabled for port %u", ptin_port_old);
     if (rc == L7_SUCCESS)
     {
       rc = ptin_intf_link_force(intIfNum_old, L7_TRUE, L7_ENABLE); 
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_API, "Error forcing linkup for port %u (%d)", ptin_port_old, rc);
+        LOG_ERR(LOG_CTX_PTIN_INTF, "Error forcing linkup for port %u (%d)", ptin_port_old, rc);
       }
-      LOG_TRACE(LOG_CTX_PTIN_API, "Forced link-up for port %u", ptin_port_old);
+      LOG_TRACE(LOG_CTX_PTIN_INTF, "Forced link-up for port %u", ptin_port_old);
     }
 
     /* Enable linkscan for newly active port */
     rc = ptin_intf_linkscan_set(intIfNum_new, L7_ENABLE);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_API, "Error enabling linkscan for port %u (%d)", ptin_port_new, rc);
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Error enabling linkscan for port %u (%d)", ptin_port_new, rc);
     }
-    LOG_TRACE(LOG_CTX_PTIN_API, "Linkscan enabled for port %u", ptin_port_new);
+    LOG_TRACE(LOG_CTX_PTIN_INTF, "Linkscan enabled for port %u", ptin_port_new);
   }
   #endif
 #else
@@ -6836,14 +6918,14 @@ L7_RC_t ptin_intf_vcap_defvid(L7_uint32 intIfNum, L7_uint16 outerVlan, L7_uint16
   /* Validate ports */
   if (intIfNum == 0 || intIfNum >= L7_ALL_INTERFACES)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Invalid intIfNum %d", intIfNum);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid intIfNum %d", intIfNum);
     return L7_FAILURE;
   }
 
   /* Interface type */
   if (nimGetIntfType(intIfNum, &intf_type) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Unable to get intfType from intIfNum %d", intIfNum);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Unable to get intfType from intIfNum %d", intIfNum);
     return L7_FAILURE;
   }
 
@@ -6858,13 +6940,13 @@ L7_RC_t ptin_intf_vcap_defvid(L7_uint32 intIfNum, L7_uint16 outerVlan, L7_uint16
     intIfNum_list_size = PTIN_SYSTEM_N_PORTS;
     if (usmDbDot3adMemberListGet(1, intIfNum, &intIfNum_list_size, intIfNum_list) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_API,"Unable to get LAG members from intIfNum %d", intIfNum);
+      LOG_ERR(LOG_CTX_PTIN_INTF,"Unable to get LAG members from intIfNum %d", intIfNum);
       return L7_FAILURE;
     }
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Not supported type (%u) for intIfNum %d", intf_type, intIfNum);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Not supported type (%u) for intIfNum %d", intf_type, intIfNum);
     return L7_FAILURE;
   }
 
@@ -6883,12 +6965,12 @@ L7_RC_t ptin_intf_vcap_defvid(L7_uint32 intIfNum, L7_uint16 outerVlan, L7_uint16
 
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_API,"Error configuring defVid %u+%u for intIfNum %u", outerVlan, innerVlan, intIfNum_list[i]);
+      LOG_ERR(LOG_CTX_PTIN_INTF,"Error configuring defVid %u+%u for intIfNum %u", outerVlan, innerVlan, intIfNum_list[i]);
       rc_global = rc;
     }
     else
     {
-      LOG_TRACE(LOG_CTX_PTIN_API,"defVid %u+%u for intIfNum %u configured", outerVlan, innerVlan, intIfNum_list[i]);
+      LOG_TRACE(LOG_CTX_PTIN_INTF,"defVid %u+%u for intIfNum %u configured", outerVlan, innerVlan, intIfNum_list[i]);
     }
   }
 
@@ -6912,12 +6994,12 @@ L7_RC_t ptin_intf_clock_recover_set(L7_int ptin_port_main, L7_int ptin_port_bckp
   /* Validate ports */
   if (ptin_port_main < 0 || ptin_port_main >= ptin_sys_number_of_ports)
   {
-    LOG_WARNING(LOG_CTX_PTIN_API,"Invalid ptin_port %d", ptin_port_main);
+    LOG_WARNING(LOG_CTX_PTIN_INTF,"Invalid ptin_port %d", ptin_port_main);
     ptin_port_main = -1;
   }
   if (ptin_port_bckp < 0 || ptin_port_bckp >= ptin_sys_number_of_ports)
   {
-    LOG_WARNING(LOG_CTX_PTIN_API,"Invalid ptin_port %d", ptin_port_bckp);
+    LOG_WARNING(LOG_CTX_PTIN_INTF,"Invalid ptin_port %d", ptin_port_bckp);
     ptin_port_bckp = -1;
   }
 
@@ -6934,11 +7016,11 @@ L7_RC_t ptin_intf_clock_recover_set(L7_int ptin_port_main, L7_int ptin_port_bckp
 
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error configuring recover clocks (main port %d and backup port %d)", ptin_port_main, ptin_port_bckp);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Error configuring recover clocks (main port %d and backup port %d)", ptin_port_main, ptin_port_bckp);
     return rc;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API,"Recover clocks configured (main port %d and backup port %d)", ptin_port_main, ptin_port_bckp);
+  LOG_TRACE(LOG_CTX_PTIN_INTF,"Recover clocks configured (main port %d and backup port %d)", ptin_port_main, ptin_port_bckp);
 
   return rc;
 }
@@ -6963,14 +7045,14 @@ L7_RC_t ptin_intf_frame_oversize_set(L7_uint32 intIfNum, L7_uint32 frame_size)
   /* Validate ports */
   if (intIfNum == 0 || intIfNum >= L7_ALL_INTERFACES)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Invalid intIfNum %d", intIfNum);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid intIfNum %d", intIfNum);
     return L7_FAILURE;
   }
 
   /* Interface type */
   if (nimGetIntfType(intIfNum, &intf_type) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Unable to get intfType from intIfNum %d", intIfNum);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Unable to get intfType from intIfNum %d", intIfNum);
     return L7_FAILURE;
   }
 
@@ -6985,13 +7067,13 @@ L7_RC_t ptin_intf_frame_oversize_set(L7_uint32 intIfNum, L7_uint32 frame_size)
     intIfNum_list_size = PTIN_SYSTEM_N_PORTS;
     if (usmDbDot3adMemberListGet(1, intIfNum, &intIfNum_list_size, intIfNum_list) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_API,"Unable to get LAG members from intIfNum %d", intIfNum);
+      LOG_ERR(LOG_CTX_PTIN_INTF,"Unable to get LAG members from intIfNum %d", intIfNum);
       return L7_FAILURE;
     }
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Not supported type (%u) for intIfNum %d", intf_type, intIfNum);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Not supported type (%u) for intIfNum %d", intf_type, intIfNum);
     return L7_FAILURE;
   }
 
@@ -7009,12 +7091,12 @@ L7_RC_t ptin_intf_frame_oversize_set(L7_uint32 intIfNum, L7_uint32 frame_size)
 
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_API,"Error configuring frame_size %u for intIfNum %u", frame_size, intIfNum_list[i]);
+      LOG_ERR(LOG_CTX_PTIN_INTF,"Error configuring frame_size %u for intIfNum %u", frame_size, intIfNum_list[i]);
       rc_global = rc;
     }
     else
     {
-      LOG_TRACE(LOG_CTX_PTIN_API,"Max Frame size (%u) configured for intIfNum %u configured", frame_size, intIfNum_list[i]);
+      LOG_TRACE(LOG_CTX_PTIN_INTF,"Max Frame size (%u) configured for intIfNum %u configured", frame_size, intIfNum_list[i]);
     }
   }
 
@@ -7042,14 +7124,14 @@ L7_RC_t ptin_intf_frame_oversize_get(L7_uint32 intIfNum, L7_uint32 *frame_size)
   /* Validate ports */
   if (intIfNum == 0 || intIfNum >= L7_ALL_INTERFACES)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Invalid intIfNum %d", intIfNum);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid intIfNum %d", intIfNum);
     return L7_FAILURE;
   }
 
   /* Interface type */
   if (nimGetIntfType(intIfNum, &intf_type) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Unable to get intfType from intIfNum %d", intIfNum);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Unable to get intfType from intIfNum %d", intIfNum);
     return L7_FAILURE;
   }
 
@@ -7064,13 +7146,13 @@ L7_RC_t ptin_intf_frame_oversize_get(L7_uint32 intIfNum, L7_uint32 *frame_size)
     intIfNum_list_size = PTIN_SYSTEM_N_PORTS;
     if (usmDbDot3adMemberListGet(1, intIfNum, &intIfNum_list_size, intIfNum_list) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_API,"Unable to get LAG members from intIfNum %d", intIfNum);
+      LOG_ERR(LOG_CTX_PTIN_INTF,"Unable to get LAG members from intIfNum %d", intIfNum);
       return L7_FAILURE;
     }
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Not supported type (%u) for intIfNum %d", intf_type, intIfNum);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Not supported type (%u) for intIfNum %d", intf_type, intIfNum);
     return L7_FAILURE;
   }
 
@@ -7088,12 +7170,12 @@ L7_RC_t ptin_intf_frame_oversize_get(L7_uint32 intIfNum, L7_uint32 *frame_size)
 
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_API,"Error reading frame_size for intIfNum %u", intIfNum_list[i]);
+      LOG_ERR(LOG_CTX_PTIN_INTF,"Error reading frame_size for intIfNum %u", intIfNum_list[i]);
       rc_global = rc;
     }
     else 
     {
-      LOG_TRACE(LOG_CTX_PTIN_API,"Oversize frame_size for intIfNum %u is %u bytes", intIfNum_list[i], hw_proc.param1);
+      LOG_TRACE(LOG_CTX_PTIN_INTF,"Oversize frame_size for intIfNum %u is %u bytes", intIfNum_list[i], hw_proc.param1);
 
       /* Select minimum frame size */
       if (hw_proc.param1 < fsize)
@@ -7104,7 +7186,7 @@ L7_RC_t ptin_intf_frame_oversize_get(L7_uint32 intIfNum, L7_uint32 *frame_size)
   /* Validate calculated frame size */
   if (rc_global == L7_SUCCESS && fsize > L7_MAX_FRAME_SIZE)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Invalid frame_size (%u) for intIfNum %u", fsize, intIfNum_list[i]);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid frame_size (%u) for intIfNum %u", fsize, intIfNum_list[i]);
     rc_global = L7_FAILURE;
   }
 
@@ -7114,7 +7196,7 @@ L7_RC_t ptin_intf_frame_oversize_get(L7_uint32 intIfNum, L7_uint32 *frame_size)
     if (frame_size != L7_NULLPTR)
     {
       *frame_size = fsize;
-      LOG_TRACE(LOG_CTX_PTIN_API,"Oversize frame_size for intIfNum %u is %u bytes", intIfNum_list[i], *frame_size);
+      LOG_TRACE(LOG_CTX_PTIN_INTF,"Oversize frame_size for intIfNum %u is %u bytes", intIfNum_list[i], *frame_size);
     }
   }
 

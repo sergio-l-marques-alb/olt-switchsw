@@ -48,6 +48,12 @@ static L7_int    linkStatus[PTIN_SYSTEM_N_INTERF];        /* Link status of each
 static L7_BOOL   lagActiveMembers[PTIN_SYSTEM_N_PORTS];   /* Port is an active Lag member? */
 static L7_uint32 lagIdList[PTIN_SYSTEM_N_PORTS];          /* LAG id that belongs the port */
 
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+#if (PHY_RECOVERY_PROCEDURE)
+L7_BOOL slots_to_be_reseted[PTIN_SYS_SLOTS_MAX];
+#endif
+#endif
+
 /* Local prototypes */
 static void startup_trap_send(void);
 static void monitor_throughput(void);
@@ -795,7 +801,7 @@ void ptin_control_switchover_monitor(void)
   L7_uint8  port;
   L7_uint32 intIfNum;
   //L7_uint8  slot_id;
-  L7_uint16 board_id;
+  L7_uint16 board_id, slot_id;
 
   L7_uint8 interfaces_active[PTIN_SYSTEM_MAX_N_PORTS];
   static L7_uint8 matrix_is_active_h = 0xFF;    //L7_TRUE;
@@ -983,12 +989,48 @@ void ptin_control_switchover_monitor(void)
         interfaces_active[port] = 1;
       }
     }
+
+    /* Get board id */
+    if (ptin_intf_port2SlotPort(port, &slot_id, L7_NULLPTR, &board_id) != L7_SUCCESS)
+      continue;
+    //ptin_intf_boardid_get(port, &board_id);
+
     /* Save board_id */
-    ptin_intf_boardid_get(port, &board_id);
     if ( (ports_info.port[port].board_id != 0) && (board_id != ports_info.port[port].board_id) )
     {
       ptin_intf_boardid_set(port, ports_info.port[port].board_id);
       LOG_INFO(LOG_CTX_PTIN_CONTROL, "Board id %u set for port %u", ports_info.port[port].board_id, port);
+
+    #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+     #if (PHY_RECOVERY_PROCEDURE)
+      /* Reset slot? */
+      if (slots_to_be_reseted[slot_id])
+      {
+        L7_RC_t rc;
+
+        /* Only for TG16G boards */
+        if (ports_info.port[port].board_id == PTIN_BOARD_TYPE_TG16G)
+        {
+          LOG_INFO(LOG_CTX_PTIN_INTF, "Going to reset warpcore of slot %u", slot_id);
+          rc = ptin_intf_slot_reset(slot_id);
+          if (rc == L7_SUCCESS)
+          {
+            LOG_INFO(LOG_CTX_PTIN_INTF, "Slot %d reseted", slot_id);
+          }
+          else if (rc == L7_NOT_EXIST)
+          {
+            LOG_TRACE(LOG_CTX_PTIN_INTF, "Nothing done to slot %u", slot_id);
+          }
+          else
+          {
+            LOG_ERR(LOG_CTX_PTIN_INTF, "Error reseting slot %u", slot_id);
+          }
+        }
+        /* Clear flag */
+        slots_to_be_reseted[slot_id] = L7_FALSE;
+      }
+     #endif
+    #endif
     }
   }
 
@@ -1070,12 +1112,27 @@ void ptin_control_switchover_monitor(void)
   /* Update list of active interfaces */
   for (port=0; port<ports_info.number_of_ports; port++)
   {
+    /* Get board id */
+    if (ptin_intf_port2SlotPort(port, &slot_id, L7_NULLPTR, &board_id) != L7_SUCCESS)
+      continue;
+    //ptin_intf_boardid_get(port, &board_id);
+
     /* Save board_id */
-    ptin_intf_boardid_get(port, &board_id);
     if (board_id != ports_info.port[port].board_id )
     {
       ptin_intf_boardid_set(port, ports_info.port[port].board_id);
       LOG_INFO(LOG_CTX_PTIN_CONTROL, "Board id %u set for port %u", ports_info.port[port].board_id, port);
+
+    #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+     #if (PHY_RECOVERY_PROCEDURE)
+      /* Board remove? */
+      if (ports_info.port[port].board_id == 0)
+      {
+        slots_to_be_reseted[slot_id] = L7_TRUE;
+        LOG_INFO(LOG_CTX_PTIN_CONTROL, "Slot %u marked to be reseted ", slot_id);
+      }
+     #endif
+    #endif
     }
   }
 
