@@ -2254,11 +2254,11 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
 
   if (ptin_evc_ext2int(evc_ext_id, &evc_id) == L7_SUCCESS)
   {
-    LOG_INFO(LOG_CTX_PTIN_EVC, "Configuring eEVC# %u (internal index %u)...", evc_ext_id, evc_id);
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "Configuring eEVC# %u (internal index %u)...", evc_ext_id, evc_id);
   }
   else
   {
-    LOG_INFO(LOG_CTX_PTIN_EVC, "Configuring eEVC# %u (new index)...", evc_ext_id);
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "Configuring eEVC# %u (new index)...", evc_ext_id);
   }
 
   /* Validate parameters */
@@ -2298,7 +2298,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   if (is_quattro)
   {
     #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-    LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u: This is a QUATTRO EVC", evc_ext_id);
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: This is a QUATTRO EVC", evc_ext_id);
     #else
     LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u: Flows not available for this board", evc_ext_id);
     return L7_FAILURE;
@@ -2403,7 +2403,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       return L7_FAILURE;
     }
 
-    LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u: allocated new internal EVC id %u...", evc_ext_id, evc_id);
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: allocated new internal EVC id %u...", evc_ext_id, evc_id);
 
     /* Allocate queue of free vlans */
     #if (1)   /* EVCid extended feature */
@@ -2499,7 +2499,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       }
       else
       {
-        LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: Multicast group %u created", evc_id, multicast_group);
+        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Multicast group %u created", evc_id, multicast_group);
       }
 
       if (!error)
@@ -2512,7 +2512,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
         }
         else
         {
-          LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: Multicast group %u associated to vlan %u", evc_id, multicast_group, root_vlan);
+          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Multicast group %u associated to vlan %u", evc_id, multicast_group, root_vlan);
         }
       }
     }    
@@ -2528,7 +2528,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
         }
         else
         {
-          LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: Multicast group %u created", evc_id, multicast_group);
+          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Multicast group %u created", evc_id, multicast_group);
         }
       }
     }
@@ -2633,7 +2633,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     /* For unstacked P2P services, don't allow ports change */
     if ( !(is_p2p && !is_stacked) )
     {
-      LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: applying new config...", evc_id);
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: applying new config...", evc_id);
 
       /* Create a lookup table to map the evcConf.intf (sequecial) to the evc.intf (indexed) */
       for (i=0; i<PTIN_SYSTEM_N_INTERF; i++)
@@ -2845,7 +2845,7 @@ _ptin_evc_create1:
           LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error configuring Multicast replication for VLAN %u (mcgroup=%u)", evc_id, root_vlan, evcs[evc_id].multicast_group);
           //return L7_FAILURE;
         }
-        LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: Removed multicast replication for vlan %u / group %d", evc_id, root_vlan, evcs[evc_id].multicast_group);
+        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Removed multicast replication for vlan %u / group %d", evc_id, root_vlan, evcs[evc_id].multicast_group);
       }
       #endif
 
@@ -2882,11 +2882,11 @@ _ptin_evc_create1:
   /* If error */
   if (error)
   {
-    LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u creation failed", evc_ext_id);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u creation failed", evc_ext_id);
     return L7_FAILURE;
   }
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u successfully created with internal index %u", evc_ext_id, evc_id);
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u successfully created with internal index %u", evc_ext_id, evc_id);
 
   return L7_SUCCESS;
 }
@@ -2985,7 +2985,7 @@ L7_RC_t ptin_evc_port_add(L7_uint32 evc_ext_id, ptin_HwEthMef10Intf_t *evc_intf)
     }
   }
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u / EVC %u: Added port %u/%u!", evc_ext_id, evc_idx, ptin_intf.intf_type, ptin_intf.intf_id);
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u / EVC %u: Added port %u/%u!", evc_ext_id, evc_idx, ptin_intf.intf_type, ptin_intf.intf_id);
 
   return L7_SUCCESS;
 }
@@ -3115,7 +3115,7 @@ _ptin_evc_port_remove1:
     ptin_evc_destroy(evc_ext_id);
   }
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u / EVC %u: Removed port %u/%u!", evc_ext_id, evc_idx, ptin_intf.intf_type, ptin_intf.intf_id);
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u / EVC %u: Removed port %u/%u!", evc_ext_id, evc_idx, ptin_intf.intf_type, ptin_intf.intf_id);
 
   return L7_SUCCESS;
 }
@@ -3296,7 +3296,7 @@ L7_RC_t ptin_evc_delete(L7_uint32 evc_ext_id)
 {
   L7_uint evc_id;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Deleting eEVC# %u...", evc_ext_id);
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "Deleting eEVC# %u...", evc_ext_id);
 
   /* Validate eEVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
@@ -3428,7 +3428,7 @@ L7_RC_t ptin_evc_delete(L7_uint32 evc_ext_id)
         return L7_FAILURE;
       }
     }
-    LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: Removed multicast replication for vlan %u / group %d", evc_id, evcs[evc_id].rvlan, evcs[evc_id].multicast_group);
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Removed multicast replication for vlan %u / group %d", evc_id, evcs[evc_id].rvlan, evcs[evc_id].multicast_group);
     #endif
     /*  Destroy Multicast group */
     if (ptin_multicast_group_destroy(evcs[evc_id].multicast_group)!=L7_SUCCESS)
@@ -3467,7 +3467,7 @@ L7_RC_t ptin_evc_delete(L7_uint32 evc_ext_id)
 
   ptin_evc_entry_free(evc_ext_id);
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u successfully removed (internal id %u)", evc_ext_id, evc_id);
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u successfully removed (internal id %u)", evc_ext_id, evc_id);
 
   return L7_SUCCESS;
 }
@@ -3486,7 +3486,7 @@ L7_RC_t ptin_evc_destroy(L7_uint32 evc_ext_id)
   L7_uint     evc_id;
   ptin_intf_t ptin_intf;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Destroying eEVC# %u...", evc_ext_id);
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "Destroying eEVC# %u...", evc_ext_id);
 
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
@@ -3625,7 +3625,7 @@ L7_RC_t ptin_evc_destroy(L7_uint32 evc_ext_id)
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing Multicast replication for VLAN %u (mcgroup=%u)", evc_id, evcs[evc_id].rvlan, evcs[evc_id].multicast_group);
         return L7_FAILURE;      
       }
-      LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: Removed multicast replication for vlan %u / group %d", evc_id, evcs[evc_id].rvlan, evcs[evc_id].multicast_group);
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Removed multicast replication for vlan %u / group %d", evc_id, evcs[evc_id].rvlan, evcs[evc_id].multicast_group);
     }
     #endif
 
@@ -3665,7 +3665,7 @@ L7_RC_t ptin_evc_destroy(L7_uint32 evc_ext_id)
 
   ptin_evc_entry_free(evc_ext_id);
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u successfully destroyed (internal id %u)", evc_ext_id, evc_id);
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u successfully destroyed (internal id %u)", evc_ext_id, evc_id);
 
   return L7_SUCCESS;
 }
@@ -3718,7 +3718,7 @@ L7_RC_t ptin_evc_p2p_bridge_add(ptin_HwEthEvcBridge_t *evcBridge)
 
   evc_ext_id = evcBridge->index;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Adding eEVC# %u bridge connection...", evc_ext_id);
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "Adding eEVC# %u bridge connection...", evc_ext_id);
 
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
@@ -3797,7 +3797,7 @@ L7_RC_t ptin_evc_p2p_bridge_add(ptin_HwEthEvcBridge_t *evcBridge)
     return L7_FAILURE;
   }
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: adding bridge [Root: Intf=%u IntVID=%u] <=> [Leaf: Intf=%u NEW Out.VID=%u Inn.VID=%u] ...", evc_id,
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: adding bridge [Root: Intf=%u IntVID=%u] <=> [Leaf: Intf=%u NEW Out.VID=%u Inn.VID=%u] ...", evc_id,
            root_intf, evcs[evc_id].rvlan, leaf_intf, evcBridge->intf.vid, evcBridge->inn_vlan);
 
   /* Add translation rules */
@@ -3864,7 +3864,7 @@ L7_RC_t ptin_evc_p2p_bridge_add(ptin_HwEthEvcBridge_t *evcBridge)
   //if (evcBridge->inn_vlan<4096)
   //  evcs[evc_id].client_ref[evcBridge->inn_vlan] = pclient;
   
-  LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u: bridge successfully added", evc_ext_id);
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: bridge successfully added", evc_ext_id);
 
   return L7_SUCCESS;
 }
@@ -3890,7 +3890,7 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
 
   evc_ext_id = evcBridge->index;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Removing eEVC# %u bridge connection...", evc_ext_id);
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "Removing eEVC# %u bridge connection...", evc_ext_id);
 
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
@@ -3972,7 +3972,7 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
     return L7_NOT_EXIST;
   }
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: deleting bridge [Root: Intf=%u IntVID=%u] <=> [Leaf: Intf=%u NEW Out.VID=%u Inn.VID=%u] ...", evc_id,
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: deleting bridge [Root: Intf=%u IntVID=%u] <=> [Leaf: Intf=%u NEW Out.VID=%u Inn.VID=%u] ...", evc_id,
            root_intf, evcs[evc_id].rvlan, leaf_intf, pclient->uni_ovid, pclient->int_ivid);
 
   /* Check if there are counters attached */
@@ -4053,7 +4053,7 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
   //if (evcBridge->inn_vlan<4096)
   //  evcs[evc_id].client_ref[evcBridge->inn_vlan] = L7_NULLPTR;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u: bridge successfully removed", evc_ext_id);
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: bridge successfully removed", evc_ext_id);
 
   return L7_SUCCESS;
 }
@@ -4398,7 +4398,7 @@ static int intf_vp_policer(intf_vp_entry_t *intf_vp, ptin_bw_meter_t *meter)
   /* If success... */
   if (rc == L7_SUCCESS)
   {
-    LOG_INFO(LOG_CTX_PTIN_L2, "Success updating policer to virtual port 0x%08x",intf_vp->vport_id);
+    LOG_TRACE(LOG_CTX_PTIN_L2, "Success updating policer to virtual port 0x%08x",intf_vp->vport_id);
 
     /* Remove policer, if it was that intention */
     if (meter == L7_NULLPTR || meter->cir == (L7_uint32)-1)
@@ -4468,7 +4468,7 @@ L7_RC_t ptin_evc_macbridge_client_packages_add(ptin_evc_macbridge_client_package
   }
   
   evc_ext_id = ecvFlow->evc_idx;
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Adding eEVC# %u flow connection...", evc_ext_id);
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "Adding eEVC# %u flow connection...", evc_ext_id);
 
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
@@ -4576,7 +4576,7 @@ L7_RC_t ptin_evc_macbridge_client_packages_remove(ptin_evc_macbridge_client_pack
   }
 
   evc_ext_id = ecvFlow->evc_idx;
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Adding eEVC# %u flow connection...", evc_ext_id);
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "Adding eEVC# %u flow connection...", evc_ext_id);
 
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
@@ -4679,7 +4679,7 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
 
   evc_ext_id = evcFlow->evc_idx;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Adding eEVC# %u flow connection...", evc_ext_id);
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "Adding eEVC# %u flow connection...", evc_ext_id);
 
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
@@ -4790,7 +4790,7 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
     dl_queue_add_tail(&evcs[evc_id].intf[leaf_port].clients, (dl_queue_elem_t*) pflow); /* add it to the corresponding interface */
     evcs[evc_id].n_clientflows++;
 
-    LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u: flow successfully added (vport_id=%lu\tpon=%u/%u(%lu)\tgem_id=%u\tvirtual_gport=0x%8.8lx)",
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: flow successfully added (vport_id=%lu\tpon=%u/%u(%lu)\tgem_id=%u\tvirtual_gport=0x%8.8lx)",
              evc_ext_id,
              vport_id & 0xffffff,
              evcFlow->ptin_intf.intf_type,evcFlow->ptin_intf.intf_id, intIfNum,
@@ -4908,7 +4908,7 @@ L7_RC_t ptin_evc_flow_remove(ptin_HwEthEvcFlow_t *evcFlow)
 
   evc_ext_id = evcFlow->evc_idx;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Removing eEVC# %u flow connection...", evc_ext_id);
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "Removing eEVC# %u flow connection...", evc_ext_id);
 
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
@@ -8540,7 +8540,7 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
       !ptin_intf_is_uplinkProtectionActive(ptin_port))
   {
     ptin_vlan_port_removeFlush(ptin_port, int_vlan);
-    LOG_INFO(LOG_CTX_PTIN_EVC,"Root intf %u removed from all vlans", ptin_port);
+    LOG_TRACE(LOG_CTX_PTIN_EVC,"Root intf %u removed from all vlans", ptin_port);
   }
 
   /* Update snooping configuration */
@@ -9196,7 +9196,7 @@ static void ptin_evc_vlan_pool_init(void)
     vlans_pool[i].vid = i;
     dl_queue_add(&queue_free_vlans[PTIN_VLAN_TYPE_CPU_MCAST], (dl_queue_elem_t*)&vlans_pool[i]);
   }
-  LOG_INFO(LOG_CTX_PTIN_EVC,"Multicast vlans (type=%u): %u - %u", PTIN_VLAN_TYPE_CPU_MCAST, PTIN_SYSTEM_EVC_MCAST_VLAN_MIN, i-1);
+  LOG_TRACE(LOG_CTX_PTIN_EVC,"Multicast vlans (type=%u): %u - %u", PTIN_VLAN_TYPE_CPU_MCAST, PTIN_SYSTEM_EVC_MCAST_VLAN_MIN, i-1);
 
   /* IPTV services */
   dl_queue_init(&queue_free_vlans[PTIN_VLAN_TYPE_CPU_BCAST]);
@@ -9205,7 +9205,7 @@ static void ptin_evc_vlan_pool_init(void)
     vlans_pool[i].vid = i;
     dl_queue_add(&queue_free_vlans[PTIN_VLAN_TYPE_CPU_BCAST], (dl_queue_elem_t*)&vlans_pool[i]);
   }
-  LOG_INFO(LOG_CTX_PTIN_EVC,"Broadcast vlans (type=%u): %u - %u", PTIN_VLAN_TYPE_CPU_BCAST, PTIN_SYSTEM_EVC_BCAST_VLAN_MIN, i-1);
+  LOG_TRACE(LOG_CTX_PTIN_EVC,"Broadcast vlans (type=%u): %u - %u", PTIN_VLAN_TYPE_CPU_BCAST, PTIN_SYSTEM_EVC_BCAST_VLAN_MIN, i-1);
 
   /* Bitstream with no MAC learning vlans */
   dl_queue_init(&queue_free_vlans[PTIN_VLAN_TYPE_BITSTREAM]);
@@ -9214,7 +9214,7 @@ static void ptin_evc_vlan_pool_init(void)
     vlans_pool[i].vid = i;
     dl_queue_add(&queue_free_vlans[PTIN_VLAN_TYPE_BITSTREAM], (dl_queue_elem_t*)&vlans_pool[i]);
   }
-  LOG_INFO(LOG_CTX_PTIN_EVC,"Bitstream vlans (type=%u): %u - %u", PTIN_VLAN_TYPE_BITSTREAM, PTIN_SYSTEM_EVC_BITSTR_VLAN_MIN, i-1);
+  LOG_TRACE(LOG_CTX_PTIN_EVC,"Bitstream vlans (type=%u): %u - %u", PTIN_VLAN_TYPE_BITSTREAM, PTIN_SYSTEM_EVC_BITSTR_VLAN_MIN, i-1);
 
   /* QUATTRO P2P vlans */
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
@@ -9224,7 +9224,7 @@ static void ptin_evc_vlan_pool_init(void)
     vlans_pool[i].vid = i;
     dl_queue_add(&queue_free_vlans[PTIN_VLAN_TYPE_QUATTRO], (dl_queue_elem_t*)&vlans_pool[i]);
   }
-  LOG_INFO(LOG_CTX_PTIN_EVC,"QUATTRO vlans (type=%u): %u - %u", PTIN_VLAN_TYPE_QUATTRO, PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN, i-1);
+  LOG_TRACE(LOG_CTX_PTIN_EVC,"QUATTRO vlans (type=%u): %u - %u", PTIN_VLAN_TYPE_QUATTRO, PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN, i-1);
   #endif
 #endif
 
@@ -9613,7 +9613,7 @@ static L7_RC_t switching_root_add(L7_uint root_intf, L7_uint16 out_vlan, L7_uint
   L7_uint32 intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Adding root intf# %u [Out.VID=%u Inn.VID=%u Int.VLAN=%u]...",
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "Adding root intf# %u [Out.VID=%u Inn.VID=%u Int.VLAN=%u]...",
            root_intf, out_vlan, inner_vlan, int_vlan);
 
   /* Get intIfNum of ptin interface */
@@ -9638,7 +9638,7 @@ static L7_RC_t switching_root_add(L7_uint root_intf, L7_uint16 out_vlan, L7_uint
   #ifdef PTIN_ERPS_EVC
   }
   else {
-    LOG_INFO(LOG_CTX_PTIN_EVC, "Association of root Int.VLAN %u to root intIfNum# %u will be done later by ERPS", int_vlan, intIfNum);
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "Association of root Int.VLAN %u to root intIfNum# %u will be done later by ERPS", int_vlan, intIfNum);
   }
   #endif
 
@@ -9685,7 +9685,7 @@ static L7_RC_t switching_root_remove(L7_uint root_intf, L7_uint16 out_vlan, L7_u
   L7_uint32 intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Removing root intf# %u [Out.VID=%u Inn.VID=%u Int.VLAN=%u]...",
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "Removing root intf# %u [Out.VID=%u Inn.VID=%u Int.VLAN=%u]...",
            root_intf, out_vlan, inner_vlan, int_vlan);
 
   /* Get intIfNum of ptin interface */
@@ -10224,7 +10224,7 @@ static L7_RC_t switching_leaf_add(L7_uint leaf_intf, L7_uint16 leaf_int_vlan)
   L7_uint32 intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Adding leaf intf# %u [Int.VLAN=%u]...",
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "Adding leaf intf# %u [Int.VLAN=%u]...",
            leaf_intf, leaf_int_vlan);
 
   /* Get intIfNum of ptin interface */
@@ -10267,7 +10267,7 @@ static L7_RC_t switching_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_int_vlan)
   L7_uint32 intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Removing leaf intf# %u [Int.VLAN=%u]...",
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "Removing leaf intf# %u [Int.VLAN=%u]...",
            leaf_intf, leaf_int_vlan);
 
   /* Get intIfNum of ptin interface */
@@ -10302,7 +10302,7 @@ static L7_RC_t switching_elan_leaf_add(L7_uint leaf_intf, L7_uint16 leaf_out_vla
   L7_uint32 intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Adding stacked leaf intf# %u [Int.VLAN=%u]...",
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "Adding stacked leaf intf# %u [Int.VLAN=%u]...",
            leaf_intf, int_vlan);
 
   /* Get intIfNum of ptin interface */
@@ -10347,7 +10347,7 @@ static L7_RC_t switching_elan_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_out_
   L7_uint32 intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Removing stacked leaf intf# %u [Int.VLAN=%u]...",
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "Removing stacked leaf intf# %u [Int.VLAN=%u]...",
            leaf_intf, int_vlan);
 
   /* Get intIfNum of ptin interface */
@@ -10395,7 +10395,7 @@ static L7_RC_t switching_mcevc_leaf_add(L7_uint leaf_intf, L7_uint16 leaf_out_vl
   L7_uint32 intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Adding stacked leaf intf# %u [Int.VLAN=%u]...",
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "Adding stacked leaf intf# %u [Int.VLAN=%u]...",
            leaf_intf, int_vlan);
 
   /* Get intIfNum of ptin interface */
@@ -10435,7 +10435,7 @@ static L7_RC_t switching_mcevc_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_out
   L7_uint32 intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Removing stacked leaf intf# %u [Int.VLAN=%u]...",
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "Removing stacked leaf intf# %u [Int.VLAN=%u]...",
            leaf_intf, int_vlan);
 
   /* Get intIfNum of ptin interface */
@@ -10476,7 +10476,7 @@ static L7_RC_t switching_etree_root_add(L7_uint root_intf, L7_uint16 root_out_vl
   L7_uint32 intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Configuring unstacked root intf# %u [Leaf Int.VLAN=%u => Root Out.VLAN=%u]...",
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "Configuring unstacked root intf# %u [Leaf Int.VLAN=%u => Root Out.VLAN=%u]...",
            root_intf, leaf_int_vlan, root_out_vlan);
 
   /* Get intIfNum of ptin interface */
@@ -10487,7 +10487,7 @@ static L7_RC_t switching_etree_root_add(L7_uint root_intf, L7_uint16 root_out_vl
     return L7_FAILURE;
   }
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Adding intIfNum# %u xlate Egress entry [Leaf Int.VLAN %u => Root Out.VLAN %u] (egress_del_ivid=%u)",
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "Adding intIfNum# %u xlate Egress entry [Leaf Int.VLAN %u => Root Out.VLAN %u] (egress_del_ivid=%u)",
            intIfNum, leaf_int_vlan, root_out_vlan, egress_del_ivid);
 
   /* Add egress xlate entry: (root_intf) leaf_int_vlan -> root_out_vlan; innerVlan is to be removed if EVC is unstacked */
@@ -10524,7 +10524,7 @@ static L7_RC_t switching_etree_root_remove(L7_uint root_intf, L7_uint16 root_out
   L7_uint32 intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Removing unstacked root intf# %u [Leaf Int.VLAN=%u => Root Out.VLAN=%u]...",
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "Removing unstacked root intf# %u [Leaf Int.VLAN=%u => Root Out.VLAN=%u]...",
            root_intf, leaf_int_vlan, root_out_vlan);
 
   /* Get intIfNum of ptin interface */
@@ -10568,7 +10568,7 @@ static L7_RC_t switching_etree_leaf_add(L7_uint leaf_intf, L7_uint16 root_int_vl
   L7_uint32 intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Configuring leaf intf# %u [Root Int.VLAN=%u]",leaf_intf, root_int_vlan);
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "Configuring leaf intf# %u [Root Int.VLAN=%u]",leaf_intf, root_int_vlan);
 
   /* Get intIfNum of ptin interface */
   rc = ptin_intf_port2intIfNum(leaf_intf, &intIfNum);
@@ -10607,7 +10607,7 @@ static L7_RC_t switching_etree_unstacked_leaf_add(L7_uint leaf_intf, L7_uint16 l
   L7_uint32 intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Configuring unstacked leaf intf# %u [Leaf Out.VLAN=%u => Leaf Int.VLAN=%u; Root Int.VLAN=%u => Leaf Out.VLAN=%u]...",
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "Configuring unstacked leaf intf# %u [Leaf Out.VLAN=%u => Leaf Int.VLAN=%u; Root Int.VLAN=%u => Leaf Out.VLAN=%u]...",
            leaf_intf, leaf_out_vlan, leaf_int_vlan, root_int_vlan, leaf_out_vlan);
 
   /* Get intIfNum of ptin interface */
@@ -10659,7 +10659,7 @@ static L7_RC_t switching_etree_stacked_leaf_add(L7_uint leaf_intf, L7_uint16 lea
   L7_uint32 intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Configuring unstacked leaf intf# %u [Leaf Out.VLAN=%u => Leaf Int.VLAN=%u + Inn.VLAN=%u; Root Int.VLAN=%u + Inn.VLAN=%u => Leaf Out.VLAN=%u]...",
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "Configuring unstacked leaf intf# %u [Leaf Out.VLAN=%u => Leaf Int.VLAN=%u + Inn.VLAN=%u; Root Int.VLAN=%u + Inn.VLAN=%u => Leaf Out.VLAN=%u]...",
            leaf_intf, leaf_out_vlan, leaf_int_vlan, leaf_inn_vlan, root_int_vlan, leaf_inn_vlan, leaf_out_vlan);
 
   /* Get intIfNum of ptin interface */
@@ -10705,7 +10705,7 @@ static L7_RC_t switching_etree_leaf_remove(L7_uint leaf_intf, L7_uint16 root_int
   L7_uint32 intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Removing leaf intf# %u [Root Int.VLAN=%u]", leaf_intf, root_int_vlan);
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "Removing leaf intf# %u [Root Int.VLAN=%u]", leaf_intf, root_int_vlan);
 
   /* Get intIfNum of ptin interface */
   rc = ptin_intf_port2intIfNum(leaf_intf, &intIfNum);
@@ -10744,7 +10744,7 @@ static L7_RC_t switching_etree_unstacked_leaf_remove(L7_uint leaf_intf, L7_uint1
   L7_uint32 intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Removing unstacked leaf intf# %u [Leaf Out.VLAN=%u => Leaf Int.VLAN=%u; Root Int.VLAN=%u => Leaf Out.VLAN=%u]...",
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "Removing unstacked leaf intf# %u [Leaf Out.VLAN=%u => Leaf Int.VLAN=%u; Root Int.VLAN=%u => Leaf Out.VLAN=%u]...",
            leaf_intf, leaf_out_vlan, leaf_int_vlan, root_int_vlan, leaf_out_vlan);
 
   /* Get intIfNum of ptin interface */
@@ -10796,7 +10796,7 @@ static L7_RC_t switching_etree_stacked_leaf_remove(L7_uint leaf_intf, L7_uint16 
   L7_uint32 intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Removing stacked leaf intf# %u [Leaf Out.VLAN=%u => Leaf Int.VLAN=%u + Inn.VLAN=%u; Root Int.VLAN=%u + Inn.VLAN=%u => Leaf Out.VLAN=%u]...",
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "Removing stacked leaf intf# %u [Leaf Out.VLAN=%u => Leaf Int.VLAN=%u + Inn.VLAN=%u; Root Int.VLAN=%u + Inn.VLAN=%u => Leaf Out.VLAN=%u]...",
            leaf_intf, leaf_out_vlan, leaf_int_vlan, leaf_inn_vlan, root_int_vlan, leaf_inn_vlan, leaf_out_vlan);
 
   /* Get intIfNum of ptin interface */
@@ -10848,7 +10848,7 @@ static L7_RC_t switching_p2p_bridge_add(L7_uint root_intf, L7_uint16 root_int_vi
   L7_uint32 leaf_intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Adding stacked bridge [Root: Intf=%u IntVID=%u] <=> [Leaf: Intf=%u NEW Out.VID=%u Inn.VID=%u] ...",
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "Adding stacked bridge [Root: Intf=%u IntVID=%u] <=> [Leaf: Intf=%u NEW Out.VID=%u Inn.VID=%u] ...",
            root_intf, root_int_vid, leaf_intf, leaf_out_vid, leaf_inn_vid);
 
   /* Get intIfNum of root */
@@ -10898,7 +10898,7 @@ static L7_RC_t switching_p2p_bridge_remove(L7_uint root_intf, L7_uint16 root_int
   L7_uint32 leaf_intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Removing stacked bridge [Root: Intf=%u IntVID=%u] <=> [Leaf: Intf=%u NEW Out.VID=%u Inn.VID=%u] ...",
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "Removing stacked bridge [Root: Intf=%u IntVID=%u] <=> [Leaf: Intf=%u NEW Out.VID=%u Inn.VID=%u] ...",
            root_intf, root_int_vid, leaf_intf, leaf_out_vid, leaf_inn_vid);
 
   /* Get intIfNum of root */

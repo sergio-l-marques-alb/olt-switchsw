@@ -59,7 +59,7 @@ L7_RC_t broad_ptin_example(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uin
 {
   ptin_dtl_example_t *example = (ptin_dtl_example_t *) data;
 
-  LOG_INFO(LOG_CTX_PTIN_HAPI, "Hello World: usp={%d,%d,%d} operation=%u dataSize=%u", usp->unit, usp->slot, usp->port, operation, dataSize);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Hello World: usp={%d,%d,%d} operation=%u dataSize=%u", usp->unit, usp->slot, usp->port, operation, dataSize);
 
   /* Validate data pointer */
   if (example == L7_NULLPTR)
@@ -78,17 +78,17 @@ L7_RC_t broad_ptin_example(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uin
   switch (operation)
   {
     case DAPI_CMD_GET:
-      LOG_INFO(LOG_CTX_PTIN_HAPI, "Operation is DAPI_CMD_GET");
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Operation is DAPI_CMD_GET");
       /* Put here function for GET procedure */
       break;
 
     case DAPI_CMD_SET:
-      LOG_INFO(LOG_CTX_PTIN_HAPI, "Operation is DAPI_CMD_SET");
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Operation is DAPI_CMD_SET");
       /* Put here function for SET procedure */
       break;
 
     case DAPI_CMD_CLEAR:
-      LOG_INFO(LOG_CTX_PTIN_HAPI, "Operation is DAPI_CMD_CLEAR");
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Operation is DAPI_CMD_CLEAR");
       /* Put here function for CLEAR procedure */
       break;
 
@@ -97,7 +97,7 @@ L7_RC_t broad_ptin_example(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uin
       return L7_FAILURE;
   }
 
-  LOG_INFO(LOG_CTX_PTIN_HAPI, "Calling ptin_hapi_example...");
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Calling ptin_hapi_example...");
   return ptin_hapi_example(usp, example, dapi_g);
 }
 
@@ -119,7 +119,7 @@ L7_RC_t broad_ptin_l2_maclimit(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7
 
   entry = (ptin_l2_maclimit_t*) data;
 
-  LOG_INFO(LOG_CTX_PTIN_HAPI, "%s: usp={%d,%d,%d} operation=%u dataSize=%u", __FUNCTION__, usp->unit, usp->slot, usp->port, operation, dataSize);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "%s: usp={%d,%d,%d} operation=%u dataSize=%u", __FUNCTION__, usp->unit, usp->slot, usp->port, operation, dataSize);
 
   // Check action: None-0 or Limit-1. If none, the MAC learning is not limited 
   if (entry->limit == -1)
@@ -140,7 +140,7 @@ L7_RC_t broad_ptin_l2_maclimit_status(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operat
 
   entry = (ptin_l2_maclimit_status_t*) data;
 
-  LOG_INFO(LOG_CTX_PTIN_HAPI, "%s: usp={%d,%d,%d} operation=%u dataSize=%u", __FUNCTION__, usp->unit, usp->slot, usp->port, operation, dataSize);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "%s: usp={%d,%d,%d} operation=%u dataSize=%u", __FUNCTION__, usp->unit, usp->slot, usp->port, operation, dataSize);
 
   rc = ptin_hapi_maclimit_status(usp, &entry->number_mac_learned, &entry->status, dapi_g);
 
@@ -163,7 +163,7 @@ L7_RC_t broad_ptin_l3_intf(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uin
   ptin_dtl_l3_intf_t *intf = (ptin_dtl_l3_intf_t *) data;
   L7_RC_t             rc = L7_SUCCESS;
 
-  LOG_INFO(LOG_CTX_PTIN_HAPI, "usp={%d,%d,%d} operation=%u dataSize=%u", usp->unit, usp->slot, usp->port, operation, dataSize);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "usp={%d,%d,%d} operation=%u dataSize=%u", usp->unit, usp->slot, usp->port, operation, dataSize);
 
   /* Validate data pointer */
   if (intf == L7_NULLPTR)
@@ -179,7 +179,7 @@ L7_RC_t broad_ptin_l3_intf(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uin
     return L7_FAILURE;
   }
 
-  LOG_INFO(LOG_CTX_PTIN_HAPI, "Input Parameters [flags:0x08%X vid:%d mac_address:%02x:%02x:%02x:%02x:%02x:%02x l3_intf_id:%d mtu:%d]", intf->flags, intf->vid, 
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Input Parameters [flags:0x08%X vid:%d mac_address:%02x:%02x:%02x:%02x:%02x:%02x l3_intf_id:%d mtu:%d]", intf->flags, intf->vid, 
            intf->mac_addr[0], intf->mac_addr[1], intf->mac_addr[2], intf->mac_addr[3], intf->mac_addr[4], intf->mac_addr[5], intf->l3_intf_id, intf->mtu);
   
   switch (operation)
