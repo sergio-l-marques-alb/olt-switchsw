@@ -313,7 +313,7 @@ int send_trap_switch_event(unsigned char intfType, int interface, int code, int 
 
   memset(alarm,0x00,sizeof(st_EthSwitchEvent));
 
-  if(PTIN_BOARD == PTIN_BOARD_TYPE_TU40G)
+  if(PTIN_BOARD == PTIN_BOARD_CXO640G)
   {
     alarm->slotId      = slot_to_send;
   }
