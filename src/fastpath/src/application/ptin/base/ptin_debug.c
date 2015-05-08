@@ -784,7 +784,10 @@ void ptin_intf_dump(void)
         sprintf(board_id_str,"TG8GR");
         break;
       case PTIN_BOARD_TYPE_TA48GE:
-        sprintf(board_id_str,"TA48G");
+        sprintf(board_id_str,"TA48GE");
+        break;
+      case PTIN_BOARD_TYPE_TA48GED:
+        sprintf(board_id_str,"TA48GD");
         break;
       default:
         sprintf(board_id_str," 0x%02x", board_type);
