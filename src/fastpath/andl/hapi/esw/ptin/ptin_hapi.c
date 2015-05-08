@@ -1499,6 +1499,7 @@ L7_RC_t ptin_hapi_linkscan_set(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable)
 
   /* Speed of this interface should be 10G */
   if (ptin_port >= dapiCardPtr->numOfWCPortMapEntries ||    /* Invalid port */
+      hapiWCMapPtr[ptin_port].wcSpeedG > 10 ||
       intf_type == BCM_PORT_IF_KR ||
       intf_type == BCM_PORT_IF_KR4)
   {
