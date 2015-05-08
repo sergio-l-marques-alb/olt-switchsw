@@ -63,8 +63,8 @@ if [ $# -ge 3 ]; then
 	fi
 
 	if [ $BOARD == "tg4g" ]; then
-		cd $MKBOARDS/TA48GE/
-		sudo ./build_ramdisk_TA48GE.sh $IMAGE_VERSION > /dev/null 2>&1
+		cd $MKBOARDS/TG4G2/
+		sudo ./build_ramdisk_TG4G2.sh $IMAGE_VERSION > /dev/null 2>&1
 		echo "OK!"
 	fi
 

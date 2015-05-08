@@ -209,11 +209,17 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
 #endif
 
   /* PTin added: new switch 56340 (Helix4) */
-  #if (PTIN_BOARD==PTIN_BOARD_OLT1T0)
+  #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
   /* PCI device ID override: when switch id is uncorrectly identified as 0xb34f */
   (void) sal_config_set(spn_PCI_OVERRIDE_DEV, "0xb340");
 
   LOG_TRACE(LOG_CTX_STARTUP,"b340 id imposed for Helix4 switch");
+
+  #elif (PTIN_BOARD == PTIN_BOARD_TG4G)
+  /* PCI device ID override: when switch id is uncorrectly identified as 0xb64f */
+  (void) sal_config_set(spn_PCI_OVERRIDE_DEV, "0xb643");
+
+  LOG_TRACE(LOG_CTX_STARTUP,"b643 id imposed for Triumph3 switch");
   #endif
 
 #if (SDK_VERSION_IS >= SDK_VERSION(6,4,0,0))
