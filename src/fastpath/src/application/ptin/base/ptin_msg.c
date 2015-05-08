@@ -2426,6 +2426,952 @@ L7_RC_t ptin_msg_CoS2_set(msg_QoSConfiguration2_t *qos_msg)
   return rc_global;
 }
 
+/**
+ * Get CoS configuration
+ * 
+ * @param qos_config : CoS configuration
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
+{
+  L7_int i, j;
+  ptin_intf_t             ptin_intf;
+  L7_uint                 trust_mode;
+  ptin_QoS_intf_t         qos_intf;
+  ptin_QoS_cos_t          qos_cos[8];
+  ptin_QoS_drop_t         qos_drop[8];
+  L7_RC_t                 rc;
+  L7_uint8 slotId;
+
+  /* Validate input */
+  if (qos_msg == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Null pointer!");
+    return L7_FAILURE;
+  }
+
+  /* Interface */
+  ptin_intf.intf_type = qos_msg->intf.intf_type;
+  ptin_intf.intf_id   = qos_msg->intf.intf_id;
+  slotId = qos_msg->SlotId;
+
+  /* Clear structure */
+  memset(&qos_msg,0x00,sizeof(msg_QoSConfiguration3_t));
+  /* Pre-fill it */
+  qos_msg->SlotId = slotId;
+  qos_msg->intf.intf_type = ptin_intf.intf_type;
+  qos_msg->intf.intf_id   = ptin_intf.intf_id;
+
+  /* Get current interface configuration */
+  memset(&qos_intf,0x00,sizeof(ptin_QoS_intf_t));
+  rc = ptin_QoS_intf_config_get(&ptin_intf, &qos_intf);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading interface configuration (rc=%d)", rc);
+    return rc;
+  }
+  trust_mode = qos_intf.trust_mode;
+
+  /* Bandwidth units */
+  qos_msg->bandwidth_unit = 0;
+  qos_msg->main_mask |= MSG_QOS3_BANDWIDTH_UNITS_MASK;
+
+  /* Interface configuration */
+
+  /* Trust mode */
+  if (qos_intf.mask & PTIN_QOS_INTF_TRUSTMODE_MASK)
+  {
+    qos_msg->ingress.trust_mode = qos_intf.trust_mode;
+    qos_msg->ingress.ingress_mask |= MSG_QOS3_INGRESS_TRUST_MODE_MASK;
+    qos_msg->main_mask |= MSG_QOS3_INGRESS_MASK;
+  }
+
+  /* COS classification */
+  if (qos_intf.mask & PTIN_QOS_INTF_PACKETPRIO_MASK)
+  {
+    if (trust_mode == L7_QOS_COS_MAP_INTF_MODE_TRUST_DOT1P)
+    {
+      /* Run all priorities */
+      for (i=0; i<8; i++)
+      {
+        /* Is priority i to be defined? If so define CoS */
+        if (qos_intf.pktprio.mask[i])
+        {
+          qos_msg->ingress.cos_classif.pcp_map.prio_mask |= (1 << i);
+          qos_msg->ingress.cos_classif.pcp_map.cos[i] = qos_intf.pktprio.cos[i];
+
+          qos_msg->ingress.ingress_mask |= MSG_QOS3_INGRESS_COS_CLASSIF_MASK;
+          qos_msg->main_mask |= MSG_QOS3_INGRESS_MASK;
+        }
+      }
+    }
+    else if (trust_mode == L7_QOS_COS_MAP_INTF_MODE_TRUST_IPPREC)
+    {
+      /* Run all priorities */
+      for (i=0; i<8; i++)
+      {
+        /* Is priority i to be defined? If so define CoS */
+        if (qos_intf.pktprio.mask[i])
+        {
+          qos_msg->ingress.cos_classif.ipprec_map.prio_mask |= (1 << i);
+          qos_msg->ingress.cos_classif.ipprec_map.cos[i] = qos_intf.pktprio.cos[i];
+
+          qos_msg->ingress.ingress_mask |= MSG_QOS3_INGRESS_COS_CLASSIF_MASK;
+          qos_msg->main_mask |= MSG_QOS3_INGRESS_MASK;
+        }
+      }
+    }
+    else if (trust_mode == L7_QOS_COS_MAP_INTF_MODE_TRUST_IPDSCP)
+    {
+      /* Run all priorities */
+      for (i=0; i<64; i++)
+      {
+        /* Is priority i to be defined? If so define CoS */
+        if (qos_intf.pktprio.mask[i/8] >> (i%8))
+        {
+          qos_msg->ingress.cos_classif.dscp_map.prio_mask |= 1ULL << i;
+          qos_msg->ingress.cos_classif.dscp_map.cos[i] = (qos_intf.pktprio.cos[i/8] >> ((i%8)*4)) & 0xf;
+
+          qos_msg->ingress.ingress_mask |= MSG_QOS3_INGRESS_COS_CLASSIF_MASK;
+          qos_msg->main_mask |= MSG_QOS3_INGRESS_MASK;
+        }
+      }
+    }
+  }
+  /* Shaping rate */
+  if (qos_intf.mask & PTIN_QOS_INTF_SHAPINGRATE_MASK)
+  {
+    qos_msg->egress.shaping_rate = qos_intf.shaping_rate;
+    qos_msg->egress.egress_mask |= MSG_QOS3_EGRESS_INTF_SHAPER_MASK;
+    qos_msg->main_mask |= MSG_QOS3_EGRESS_MASK;
+  }
+
+  /* COS configuration */
+
+  /* Clear structures */
+  memset(qos_cos,0x00,sizeof(qos_cos));
+  rc = ptin_QoS_cos_config_get(&ptin_intf, (L7_uint8)-1, qos_cos); 
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading QoS configurations (rc=%d)",rc);
+    return rc;
+  }
+
+  /* Scheduler configurations */
+  /* Run all QoS */
+  for (i=0; i<8; i++)
+  {
+    /* Scheduler type */
+    if (qos_cos[i].mask & PTIN_QOS_COS_SCHEDULER_MASK)
+    {
+      qos_msg->egress.cos_scheduler[i].schedulerType = qos_cos[i].scheduler_type;
+
+      qos_msg->egress.cos_scheduler[i].local_mask |= MSG_QOS3_EGRESS_COS_SCHEDULER_TYPE_MASK;
+      qos_msg->egress.egress_mask |= MSG_QOS3_EGRESS_COS_SCHEDULER_MASK;
+      qos_msg->main_mask |= MSG_QOS3_EGRESS_MASK;
+    }
+    /* WRR Weight */
+    if (qos_cos[i].mask & PTIN_QOS_COS_WRR_WEIGHT_MASK)
+    {
+      qos_msg->egress.cos_scheduler[i].wrrSched_weight = qos_cos[i].wrrSched_weight;
+
+      qos_msg->egress.cos_scheduler[i].local_mask |= MSG_QOS3_EGRESS_COS_SCHEDULER_WRR_WEIGHT_MASK;
+      qos_msg->egress.egress_mask |= MSG_QOS3_EGRESS_COS_SCHEDULER_MASK;
+      qos_msg->main_mask |= MSG_QOS3_EGRESS_MASK;
+    }
+  }
+  /* COS Shaper configurations */
+  /* Run all QoS */
+  for (i=0; i<8; i++)
+  {
+    /* Minimum mandwidth */
+    if (qos_cos[i].mask & PTIN_QOS_COS_BW_MIN_MASK)
+    {
+      qos_msg->egress.cos_shaper[i].min_bandwidth = qos_cos[i].min_bandwidth;
+      
+      qos_msg->egress.cos_shaper[i].local_mask |= MSG_QOS3_EGRESS_COS_SHAPER_MIN_BW_MASK;
+      qos_msg->egress.egress_mask |= MSG_QOS3_EGRESS_COS_SHAPER_MASK;
+      qos_msg->main_mask |= MSG_QOS3_EGRESS_MASK;
+    }
+    /* Maximum bandwidth */
+    if (qos_cos[i].mask & PTIN_QOS_COS_BW_MAX_MASK)
+    {
+      qos_msg->egress.cos_shaper[i].max_bandwidth = qos_cos[i].max_bandwidth;
+      
+      qos_msg->egress.cos_shaper[i].local_mask |= MSG_QOS3_EGRESS_COS_SHAPER_MAX_BW_MASK;
+      qos_msg->egress.egress_mask |= MSG_QOS3_EGRESS_COS_SHAPER_MASK;
+      qos_msg->main_mask |= MSG_QOS3_EGRESS_MASK;
+    }
+  }
+
+  /* DROP configuration */
+
+  /* Clear structures */
+  memset(qos_drop,0x00,sizeof(qos_drop));
+  rc = ptin_QoS_drop_config_get(&ptin_intf, (L7_uint8)-1, qos_drop);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading QoS Drop management configurations (rc=%d)",rc);
+    return rc;
+  }
+
+  /* Run all QoS */
+  for (i=0; i<8; i++)
+  {
+    /* Drop MGMT type */
+    if (qos_drop[i].mask & PTIN_QOS_COS_QUEUE_MANGM_MASK)
+    {
+      qos_msg->egress.cos_dropmgmt[i].dropMgmtType = qos_drop[i].queue_management_type;
+      
+      qos_msg->egress.cos_dropmgmt[i].local_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_TYPE_MASK;
+      qos_msg->egress.egress_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_MASK;
+      qos_msg->main_mask |= MSG_QOS3_EGRESS_MASK;
+    }
+    /* WRED decay exponent */
+    if (qos_drop[i].mask & PTIN_QOS_COS_WRED_DECAY_EXP_MASK)
+    {
+      qos_msg->egress.cos_dropmgmt[i].wred_decayExp = qos_drop[i].wred_decayExp;
+      
+      qos_msg->egress.cos_dropmgmt[i].local_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_WRED_DECAYEXP_MASK;
+      qos_msg->egress.egress_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_MASK;
+      qos_msg->main_mask |= MSG_QOS3_EGRESS_MASK;
+    }
+
+    /* Run all DP levels */
+    for (j = 0; j < 4; j++)
+    {
+      /* Taildrop threshold */
+      if (qos_drop[i].dp[j].local_mask & PTIN_QOS_COS_DP_TAILDROP_THRESH_MASK)
+      {
+        qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].tailDrop_threshold = qos_drop[i].dp[j].taildrop_threshold;
+        
+        qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].local2_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_TAILDROP_MAX_MASK;
+        qos_msg->egress.cos_dropmgmt[i].local_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLDS_MASK;
+        qos_msg->egress.egress_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_MASK;
+        qos_msg->main_mask |= MSG_QOS3_EGRESS_MASK;
+      }
+      /* WRED min threshold */
+      if (qos_drop[i].dp[j].local_mask & PTIN_QOS_COS_DP_WRED_THRESH_MIN_MASK)
+      {
+        qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].wred_minThreshold = qos_drop[i].dp[j].wred_min_threshold;
+        
+        qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].local2_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_WRED_MIN_MASK;
+        qos_msg->egress.cos_dropmgmt[i].local_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLDS_MASK;
+        qos_msg->egress.egress_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_MASK;
+        qos_msg->main_mask |= MSG_QOS3_EGRESS_MASK;
+      }
+      /* WRED max threshold */
+      if (qos_drop[i].dp[j].local_mask & PTIN_QOS_COS_DP_WRED_THRESH_MAX_MASK)
+      {
+        qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].wred_maxThreshold = qos_drop[i].dp[j].wred_max_threshold;
+        
+        qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].local2_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_WRED_MAX_MASK;
+        qos_msg->egress.cos_dropmgmt[i].local_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLDS_MASK;
+        qos_msg->egress.egress_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_MASK;
+        qos_msg->main_mask |= MSG_QOS3_EGRESS_MASK;
+      }
+      /* WRED drop probability */
+      if (qos_drop[i].dp[j].local_mask & PTIN_QOS_COS_DP_WRED_DROP_PROB_MASK)
+      {
+        qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].wred_dropProb = qos_drop[i].dp[j].wred_drop_prob;
+        
+        qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].local2_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_WRED_DROPPROB_MASK;
+        qos_msg->egress.cos_dropmgmt[i].local_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLDS_MASK;
+        qos_msg->egress.egress_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_MASK;
+        qos_msg->main_mask |= MSG_QOS3_EGRESS_MASK;
+      }
+    }
+  }
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Slotid         = %u",qos_msg->SlotId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Interface      = %u/%u",qos_msg->intf.intf_type,qos_msg->intf.intf_id);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Main Mask      = 0x%02x",qos_msg->main_mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Bandwidth unit = %u",qos_msg->bandwidth_unit);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Ingress:");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Ingress Mask = 0x%02x",qos_msg->ingress.ingress_mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Trust mode   = %u",qos_msg->ingress.trust_mode);
+  if (qos_msg->ingress.trust_mode == L7_QOS_COS_MAP_INTF_MODE_TRUST_DOT1P)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_classif.pcp_map.prio_mask = 0x%02x",qos_msg->ingress.cos_classif.pcp_map.prio_mask);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_classif.pcp_map.cos = { %u %u %u %u %u %u %u %u } ",
+              qos_msg->ingress.cos_classif.pcp_map.cos[0],
+              qos_msg->ingress.cos_classif.pcp_map.cos[1],
+              qos_msg->ingress.cos_classif.pcp_map.cos[2],
+              qos_msg->ingress.cos_classif.pcp_map.cos[3],
+              qos_msg->ingress.cos_classif.pcp_map.cos[4],
+              qos_msg->ingress.cos_classif.pcp_map.cos[5],
+              qos_msg->ingress.cos_classif.pcp_map.cos[6],
+              qos_msg->ingress.cos_classif.pcp_map.cos[7]);
+  }
+  else if (qos_msg->ingress.trust_mode == L7_QOS_COS_MAP_INTF_MODE_TRUST_IPPREC)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_classif.ipprec_map.prio_mask = 0x%02x",qos_msg->ingress.cos_classif.ipprec_map.prio_mask);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_classif.ipprec_map.cos = { %u %u %u %u %u %u %u %u } ",
+              qos_msg->ingress.cos_classif.ipprec_map.cos[0],
+              qos_msg->ingress.cos_classif.ipprec_map.cos[1],
+              qos_msg->ingress.cos_classif.ipprec_map.cos[2],
+              qos_msg->ingress.cos_classif.ipprec_map.cos[3],
+              qos_msg->ingress.cos_classif.ipprec_map.cos[4],
+              qos_msg->ingress.cos_classif.ipprec_map.cos[5],
+              qos_msg->ingress.cos_classif.ipprec_map.cos[6],
+              qos_msg->ingress.cos_classif.ipprec_map.cos[7]);
+  }
+  else if (qos_msg->ingress.trust_mode == L7_QOS_COS_MAP_INTF_MODE_TRUST_IPDSCP)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_classif.dscp_map.prio_mask = 0x%016llx",qos_msg->ingress.cos_classif.dscp_map.prio_mask);
+    for (i = 0; i < 64; i+=8)
+    {
+      LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_classif.dscp_map.cos[%2u-%2u] = { %u %u %u %u %u %u %u %u } ", i, i+7,
+                qos_msg->ingress.cos_classif.dscp_map.cos[i+0],
+                qos_msg->ingress.cos_classif.dscp_map.cos[i+1],
+                qos_msg->ingress.cos_classif.dscp_map.cos[i+2],
+                qos_msg->ingress.cos_classif.dscp_map.cos[i+3],
+                qos_msg->ingress.cos_classif.dscp_map.cos[i+4],
+                qos_msg->ingress.cos_classif.dscp_map.cos[i+5],
+                qos_msg->ingress.cos_classif.dscp_map.cos[i+6],
+                qos_msg->ingress.cos_classif.dscp_map.cos[i+7]);
+    }
+  }
+  else
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_classif does not have usable information.");
+  }
+  for (i = 0; i < 64; i+=8)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Policer[%u]: mask=0x%02x - cir=%u eir=%u cbs=%u ebs=%u",
+              i, qos_msg->ingress.cos_policer[i].local_mask,
+              qos_msg->ingress.cos_policer[i].cir, qos_msg->ingress.cos_policer[i].eir,
+              qos_msg->ingress.cos_policer[i].cbs, qos_msg->ingress.cos_policer[i].ebs);
+  }
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Egress:");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Egress Mask  = 0x%02x", qos_msg->egress.egress_mask); 
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Shaping rate = %u %%", qos_msg->egress.shaping_rate);
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_scheduler->local_mask      = [ 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ]",
+            qos_msg->egress.cos_scheduler[0].local_mask,
+            qos_msg->egress.cos_scheduler[1].local_mask,
+            qos_msg->egress.cos_scheduler[2].local_mask,
+            qos_msg->egress.cos_scheduler[3].local_mask,
+            qos_msg->egress.cos_scheduler[4].local_mask,
+            qos_msg->egress.cos_scheduler[5].local_mask,
+            qos_msg->egress.cos_scheduler[6].local_mask,
+            qos_msg->egress.cos_scheduler[7].local_mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_scheduler->schedulerType   = [ %u %u %u %u %u %u %u %u ]",
+            qos_msg->egress.cos_scheduler[0].schedulerType,
+            qos_msg->egress.cos_scheduler[1].schedulerType,
+            qos_msg->egress.cos_scheduler[2].schedulerType,
+            qos_msg->egress.cos_scheduler[3].schedulerType,
+            qos_msg->egress.cos_scheduler[4].schedulerType,
+            qos_msg->egress.cos_scheduler[5].schedulerType,
+            qos_msg->egress.cos_scheduler[6].schedulerType,
+            qos_msg->egress.cos_scheduler[7].schedulerType);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_scheduler->wrrSched_weight = [ %u %u %u %u %u %u %u %u ]",
+            qos_msg->egress.cos_scheduler[0].wrrSched_weight,
+            qos_msg->egress.cos_scheduler[1].wrrSched_weight,
+            qos_msg->egress.cos_scheduler[2].wrrSched_weight,
+            qos_msg->egress.cos_scheduler[3].wrrSched_weight,
+            qos_msg->egress.cos_scheduler[4].wrrSched_weight,
+            qos_msg->egress.cos_scheduler[5].wrrSched_weight,
+            qos_msg->egress.cos_scheduler[6].wrrSched_weight,
+            qos_msg->egress.cos_scheduler[7].wrrSched_weight);
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_shaper->local_mask         = [ 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ]",
+            qos_msg->egress.cos_shaper[0].local_mask,
+            qos_msg->egress.cos_shaper[1].local_mask,
+            qos_msg->egress.cos_shaper[2].local_mask,
+            qos_msg->egress.cos_shaper[3].local_mask,
+            qos_msg->egress.cos_shaper[4].local_mask,
+            qos_msg->egress.cos_shaper[5].local_mask,
+            qos_msg->egress.cos_shaper[6].local_mask,
+            qos_msg->egress.cos_shaper[7].local_mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_shaper->min_bandwidth      = [ %u %u %u %u %u %u %u %u ]",
+            qos_msg->egress.cos_shaper[0].min_bandwidth,
+            qos_msg->egress.cos_shaper[1].min_bandwidth,
+            qos_msg->egress.cos_shaper[2].min_bandwidth,
+            qos_msg->egress.cos_shaper[3].min_bandwidth,
+            qos_msg->egress.cos_shaper[4].min_bandwidth,
+            qos_msg->egress.cos_shaper[5].min_bandwidth,
+            qos_msg->egress.cos_shaper[6].min_bandwidth,
+            qos_msg->egress.cos_shaper[7].min_bandwidth);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_shaper->max_bandwidth      = [ %u %u %u %u %u %u %u %u ]",
+            qos_msg->egress.cos_shaper[0].max_bandwidth,
+            qos_msg->egress.cos_shaper[1].max_bandwidth,
+            qos_msg->egress.cos_shaper[2].max_bandwidth,
+            qos_msg->egress.cos_shaper[3].max_bandwidth,
+            qos_msg->egress.cos_shaper[4].max_bandwidth,
+            qos_msg->egress.cos_shaper[5].max_bandwidth,
+            qos_msg->egress.cos_shaper[6].max_bandwidth,
+            qos_msg->egress.cos_shaper[7].max_bandwidth);
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_dropmgmt->local_mask       = [ 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ]",
+            qos_msg->egress.cos_dropmgmt[0].local_mask,
+            qos_msg->egress.cos_dropmgmt[1].local_mask,
+            qos_msg->egress.cos_dropmgmt[2].local_mask,
+            qos_msg->egress.cos_dropmgmt[3].local_mask,
+            qos_msg->egress.cos_dropmgmt[4].local_mask,
+            qos_msg->egress.cos_dropmgmt[5].local_mask,
+            qos_msg->egress.cos_dropmgmt[6].local_mask,
+            qos_msg->egress.cos_dropmgmt[7].local_mask);
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_dropmgmt->dropMgmttype     = [ %u %u %u %u %u %u %u %u ]",
+            qos_msg->egress.cos_dropmgmt[0].dropMgmtType,
+            qos_msg->egress.cos_dropmgmt[1].dropMgmtType,
+            qos_msg->egress.cos_dropmgmt[2].dropMgmtType,
+            qos_msg->egress.cos_dropmgmt[3].dropMgmtType,
+            qos_msg->egress.cos_dropmgmt[4].dropMgmtType,
+            qos_msg->egress.cos_dropmgmt[5].dropMgmtType,
+            qos_msg->egress.cos_dropmgmt[6].dropMgmtType,
+            qos_msg->egress.cos_dropmgmt[7].dropMgmtType);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_dropmgmt->wred_decayExp    = [ %u %u %u %u %u %u %u %u ]",
+            qos_msg->egress.cos_dropmgmt[0].wred_decayExp,
+            qos_msg->egress.cos_dropmgmt[1].wred_decayExp,
+            qos_msg->egress.cos_dropmgmt[2].wred_decayExp,
+            qos_msg->egress.cos_dropmgmt[3].wred_decayExp,
+            qos_msg->egress.cos_dropmgmt[4].wred_decayExp,
+            qos_msg->egress.cos_dropmgmt[5].wred_decayExp,
+            qos_msg->egress.cos_dropmgmt[6].wred_decayExp,
+            qos_msg->egress.cos_dropmgmt[7].wred_decayExp);
+
+  for (i=0; i<6; i++)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_dropmgmt->dp_threshold[%u]: local_mask = [ 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ]", i+1,
+              qos_msg->egress.cos_dropmgmt[0].dp_thresholds[i].local2_mask,
+              qos_msg->egress.cos_dropmgmt[1].dp_thresholds[i].local2_mask,
+              qos_msg->egress.cos_dropmgmt[2].dp_thresholds[i].local2_mask,
+              qos_msg->egress.cos_dropmgmt[3].dp_thresholds[i].local2_mask,
+              qos_msg->egress.cos_dropmgmt[4].dp_thresholds[i].local2_mask,
+              qos_msg->egress.cos_dropmgmt[5].dp_thresholds[i].local2_mask,
+              qos_msg->egress.cos_dropmgmt[6].dp_thresholds[i].local2_mask,
+              qos_msg->egress.cos_dropmgmt[7].dp_thresholds[i].local2_mask);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_dropmgmt->dp_threshold[%u]: Taildrop threshold = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
+              qos_msg->egress.cos_dropmgmt[0].dp_thresholds[i].tailDrop_threshold,
+              qos_msg->egress.cos_dropmgmt[1].dp_thresholds[i].tailDrop_threshold,
+              qos_msg->egress.cos_dropmgmt[2].dp_thresholds[i].tailDrop_threshold,
+              qos_msg->egress.cos_dropmgmt[3].dp_thresholds[i].tailDrop_threshold,
+              qos_msg->egress.cos_dropmgmt[4].dp_thresholds[i].tailDrop_threshold,
+              qos_msg->egress.cos_dropmgmt[5].dp_thresholds[i].tailDrop_threshold,
+              qos_msg->egress.cos_dropmgmt[6].dp_thresholds[i].tailDrop_threshold,
+              qos_msg->egress.cos_dropmgmt[7].dp_thresholds[i].tailDrop_threshold);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_dropmgmt->dp_threshold[%u]: WRED min.threshold = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
+              qos_msg->egress.cos_dropmgmt[0].dp_thresholds[i].wred_minThreshold,
+              qos_msg->egress.cos_dropmgmt[1].dp_thresholds[i].wred_minThreshold,
+              qos_msg->egress.cos_dropmgmt[2].dp_thresholds[i].wred_minThreshold,
+              qos_msg->egress.cos_dropmgmt[3].dp_thresholds[i].wred_minThreshold,
+              qos_msg->egress.cos_dropmgmt[4].dp_thresholds[i].wred_minThreshold,
+              qos_msg->egress.cos_dropmgmt[5].dp_thresholds[i].wred_minThreshold,
+              qos_msg->egress.cos_dropmgmt[6].dp_thresholds[i].wred_minThreshold,
+              qos_msg->egress.cos_dropmgmt[7].dp_thresholds[i].wred_minThreshold);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_dropmgmt->dp_threshold[%u]: WRED drop prob.    = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
+              qos_msg->egress.cos_dropmgmt[0].dp_thresholds[i].wred_dropProb,
+              qos_msg->egress.cos_dropmgmt[1].dp_thresholds[i].wred_dropProb,
+              qos_msg->egress.cos_dropmgmt[2].dp_thresholds[i].wred_dropProb,
+              qos_msg->egress.cos_dropmgmt[3].dp_thresholds[i].wred_dropProb,
+              qos_msg->egress.cos_dropmgmt[4].dp_thresholds[i].wred_dropProb,
+              qos_msg->egress.cos_dropmgmt[5].dp_thresholds[i].wred_dropProb,
+              qos_msg->egress.cos_dropmgmt[6].dp_thresholds[i].wred_dropProb,
+              qos_msg->egress.cos_dropmgmt[7].dp_thresholds[i].wred_dropProb);
+  }
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Dump finished!");
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Redefine CoS configuration
+ * 
+ * @param qos_config : CoS configuration
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
+{
+  L7_int i, j;
+  ptin_intf_t             ptin_intf;
+  L7_uint                 trust_mode;
+  ptin_QoS_intf_t         qos_intf, qos_intf_curr;
+  ptin_QoS_cos_t          qos_cos[8];
+  ptin_QoS_drop_t         qos_drop[8];
+  L7_RC_t                 rc, rc_global = L7_SUCCESS;
+  L7_BOOL                 apply_conf;
+
+  if (qos_msg == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Null pointer!");
+    return L7_FAILURE;
+  }
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Slotid         = %u",qos_msg->SlotId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Interface      = %u/%u",qos_msg->intf.intf_type,qos_msg->intf.intf_id);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Main Mask      = 0x%02x",qos_msg->main_mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Bandwidth unit = %u",qos_msg->bandwidth_unit);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Ingress:");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Ingress Mask = 0x%02x",qos_msg->ingress.ingress_mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Trust mode   = %u",qos_msg->ingress.trust_mode);
+  if (qos_msg->ingress.trust_mode == L7_QOS_COS_MAP_INTF_MODE_TRUST_DOT1P)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_classif.pcp_map.prio_mask = 0x%02x",qos_msg->ingress.cos_classif.pcp_map.prio_mask);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_classif.pcp_map.cos = { %u %u %u %u %u %u %u %u } ",
+              qos_msg->ingress.cos_classif.pcp_map.cos[0],
+              qos_msg->ingress.cos_classif.pcp_map.cos[1],
+              qos_msg->ingress.cos_classif.pcp_map.cos[2],
+              qos_msg->ingress.cos_classif.pcp_map.cos[3],
+              qos_msg->ingress.cos_classif.pcp_map.cos[4],
+              qos_msg->ingress.cos_classif.pcp_map.cos[5],
+              qos_msg->ingress.cos_classif.pcp_map.cos[6],
+              qos_msg->ingress.cos_classif.pcp_map.cos[7]);
+  }
+  else if (qos_msg->ingress.trust_mode == L7_QOS_COS_MAP_INTF_MODE_TRUST_IPPREC)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_classif.ipprec_map.prio_mask = 0x%02x",qos_msg->ingress.cos_classif.ipprec_map.prio_mask);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_classif.ipprec_map.cos = { %u %u %u %u %u %u %u %u } ",
+              qos_msg->ingress.cos_classif.ipprec_map.cos[0],
+              qos_msg->ingress.cos_classif.ipprec_map.cos[1],
+              qos_msg->ingress.cos_classif.ipprec_map.cos[2],
+              qos_msg->ingress.cos_classif.ipprec_map.cos[3],
+              qos_msg->ingress.cos_classif.ipprec_map.cos[4],
+              qos_msg->ingress.cos_classif.ipprec_map.cos[5],
+              qos_msg->ingress.cos_classif.ipprec_map.cos[6],
+              qos_msg->ingress.cos_classif.ipprec_map.cos[7]);
+  }
+  else if (qos_msg->ingress.trust_mode == L7_QOS_COS_MAP_INTF_MODE_TRUST_IPDSCP)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_classif.dscp_map.prio_mask = 0x%016llx",qos_msg->ingress.cos_classif.dscp_map.prio_mask);
+    for (i = 0; i < 64; i+=8)
+    {
+      LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_classif.dscp_map.cos[%2u-%2u] = { %u %u %u %u %u %u %u %u } ", i, i+7,
+                qos_msg->ingress.cos_classif.dscp_map.cos[i+0],
+                qos_msg->ingress.cos_classif.dscp_map.cos[i+1],
+                qos_msg->ingress.cos_classif.dscp_map.cos[i+2],
+                qos_msg->ingress.cos_classif.dscp_map.cos[i+3],
+                qos_msg->ingress.cos_classif.dscp_map.cos[i+4],
+                qos_msg->ingress.cos_classif.dscp_map.cos[i+5],
+                qos_msg->ingress.cos_classif.dscp_map.cos[i+6],
+                qos_msg->ingress.cos_classif.dscp_map.cos[i+7]);
+    }
+  }
+  else
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_classif does not have usable information.");
+  }
+  for (i = 0; i < 64; i+=8)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Policer[%u]: mask=0x%02x - cir=%u eir=%u cbs=%u ebs=%u",
+              i, qos_msg->ingress.cos_policer[i].local_mask,
+              qos_msg->ingress.cos_policer[i].cir, qos_msg->ingress.cos_policer[i].eir,
+              qos_msg->ingress.cos_policer[i].cbs, qos_msg->ingress.cos_policer[i].ebs);
+  }
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Egress:");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Egress Mask  = 0x%02x", qos_msg->egress.egress_mask); 
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Shaping rate = %u %%", qos_msg->egress.shaping_rate);
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_scheduler->local_mask      = [ 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ]",
+            qos_msg->egress.cos_scheduler[0].local_mask,
+            qos_msg->egress.cos_scheduler[1].local_mask,
+            qos_msg->egress.cos_scheduler[2].local_mask,
+            qos_msg->egress.cos_scheduler[3].local_mask,
+            qos_msg->egress.cos_scheduler[4].local_mask,
+            qos_msg->egress.cos_scheduler[5].local_mask,
+            qos_msg->egress.cos_scheduler[6].local_mask,
+            qos_msg->egress.cos_scheduler[7].local_mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_scheduler->schedulerType   = [ %u %u %u %u %u %u %u %u ]",
+            qos_msg->egress.cos_scheduler[0].schedulerType,
+            qos_msg->egress.cos_scheduler[1].schedulerType,
+            qos_msg->egress.cos_scheduler[2].schedulerType,
+            qos_msg->egress.cos_scheduler[3].schedulerType,
+            qos_msg->egress.cos_scheduler[4].schedulerType,
+            qos_msg->egress.cos_scheduler[5].schedulerType,
+            qos_msg->egress.cos_scheduler[6].schedulerType,
+            qos_msg->egress.cos_scheduler[7].schedulerType);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_scheduler->wrrSched_weight = [ %u %u %u %u %u %u %u %u ]",
+            qos_msg->egress.cos_scheduler[0].wrrSched_weight,
+            qos_msg->egress.cos_scheduler[1].wrrSched_weight,
+            qos_msg->egress.cos_scheduler[2].wrrSched_weight,
+            qos_msg->egress.cos_scheduler[3].wrrSched_weight,
+            qos_msg->egress.cos_scheduler[4].wrrSched_weight,
+            qos_msg->egress.cos_scheduler[5].wrrSched_weight,
+            qos_msg->egress.cos_scheduler[6].wrrSched_weight,
+            qos_msg->egress.cos_scheduler[7].wrrSched_weight);
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_shaper->local_mask         = [ 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ]",
+            qos_msg->egress.cos_shaper[0].local_mask,
+            qos_msg->egress.cos_shaper[1].local_mask,
+            qos_msg->egress.cos_shaper[2].local_mask,
+            qos_msg->egress.cos_shaper[3].local_mask,
+            qos_msg->egress.cos_shaper[4].local_mask,
+            qos_msg->egress.cos_shaper[5].local_mask,
+            qos_msg->egress.cos_shaper[6].local_mask,
+            qos_msg->egress.cos_shaper[7].local_mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_shaper->min_bandwidth      = [ %u %u %u %u %u %u %u %u ]",
+            qos_msg->egress.cos_shaper[0].min_bandwidth,
+            qos_msg->egress.cos_shaper[1].min_bandwidth,
+            qos_msg->egress.cos_shaper[2].min_bandwidth,
+            qos_msg->egress.cos_shaper[3].min_bandwidth,
+            qos_msg->egress.cos_shaper[4].min_bandwidth,
+            qos_msg->egress.cos_shaper[5].min_bandwidth,
+            qos_msg->egress.cos_shaper[6].min_bandwidth,
+            qos_msg->egress.cos_shaper[7].min_bandwidth);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_shaper->max_bandwidth      = [ %u %u %u %u %u %u %u %u ]",
+            qos_msg->egress.cos_shaper[0].max_bandwidth,
+            qos_msg->egress.cos_shaper[1].max_bandwidth,
+            qos_msg->egress.cos_shaper[2].max_bandwidth,
+            qos_msg->egress.cos_shaper[3].max_bandwidth,
+            qos_msg->egress.cos_shaper[4].max_bandwidth,
+            qos_msg->egress.cos_shaper[5].max_bandwidth,
+            qos_msg->egress.cos_shaper[6].max_bandwidth,
+            qos_msg->egress.cos_shaper[7].max_bandwidth);
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_dropmgmt->local_mask       = [ 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ]",
+            qos_msg->egress.cos_dropmgmt[0].local_mask,
+            qos_msg->egress.cos_dropmgmt[1].local_mask,
+            qos_msg->egress.cos_dropmgmt[2].local_mask,
+            qos_msg->egress.cos_dropmgmt[3].local_mask,
+            qos_msg->egress.cos_dropmgmt[4].local_mask,
+            qos_msg->egress.cos_dropmgmt[5].local_mask,
+            qos_msg->egress.cos_dropmgmt[6].local_mask,
+            qos_msg->egress.cos_dropmgmt[7].local_mask);
+  
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_dropmgmt->dropMgmttype     = [ %u %u %u %u %u %u %u %u ]",
+            qos_msg->egress.cos_dropmgmt[0].dropMgmtType,
+            qos_msg->egress.cos_dropmgmt[1].dropMgmtType,
+            qos_msg->egress.cos_dropmgmt[2].dropMgmtType,
+            qos_msg->egress.cos_dropmgmt[3].dropMgmtType,
+            qos_msg->egress.cos_dropmgmt[4].dropMgmtType,
+            qos_msg->egress.cos_dropmgmt[5].dropMgmtType,
+            qos_msg->egress.cos_dropmgmt[6].dropMgmtType,
+            qos_msg->egress.cos_dropmgmt[7].dropMgmtType);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_dropmgmt->wred_decayExp    = [ %u %u %u %u %u %u %u %u ]",
+            qos_msg->egress.cos_dropmgmt[0].wred_decayExp,
+            qos_msg->egress.cos_dropmgmt[1].wred_decayExp,
+            qos_msg->egress.cos_dropmgmt[2].wred_decayExp,
+            qos_msg->egress.cos_dropmgmt[3].wred_decayExp,
+            qos_msg->egress.cos_dropmgmt[4].wred_decayExp,
+            qos_msg->egress.cos_dropmgmt[5].wred_decayExp,
+            qos_msg->egress.cos_dropmgmt[6].wred_decayExp,
+            qos_msg->egress.cos_dropmgmt[7].wred_decayExp);
+
+  for (i=0; i<6; i++)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_dropmgmt->dp_threshold[%u]: local_mask = [ 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ]", i+1,
+              qos_msg->egress.cos_dropmgmt[0].dp_thresholds[i].local2_mask,
+              qos_msg->egress.cos_dropmgmt[1].dp_thresholds[i].local2_mask,
+              qos_msg->egress.cos_dropmgmt[2].dp_thresholds[i].local2_mask,
+              qos_msg->egress.cos_dropmgmt[3].dp_thresholds[i].local2_mask,
+              qos_msg->egress.cos_dropmgmt[4].dp_thresholds[i].local2_mask,
+              qos_msg->egress.cos_dropmgmt[5].dp_thresholds[i].local2_mask,
+              qos_msg->egress.cos_dropmgmt[6].dp_thresholds[i].local2_mask,
+              qos_msg->egress.cos_dropmgmt[7].dp_thresholds[i].local2_mask);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_dropmgmt->dp_threshold[%u]: Taildrop threshold = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
+              qos_msg->egress.cos_dropmgmt[0].dp_thresholds[i].tailDrop_threshold,
+              qos_msg->egress.cos_dropmgmt[1].dp_thresholds[i].tailDrop_threshold,
+              qos_msg->egress.cos_dropmgmt[2].dp_thresholds[i].tailDrop_threshold,
+              qos_msg->egress.cos_dropmgmt[3].dp_thresholds[i].tailDrop_threshold,
+              qos_msg->egress.cos_dropmgmt[4].dp_thresholds[i].tailDrop_threshold,
+              qos_msg->egress.cos_dropmgmt[5].dp_thresholds[i].tailDrop_threshold,
+              qos_msg->egress.cos_dropmgmt[6].dp_thresholds[i].tailDrop_threshold,
+              qos_msg->egress.cos_dropmgmt[7].dp_thresholds[i].tailDrop_threshold);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_dropmgmt->dp_threshold[%u]: WRED min.threshold = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
+              qos_msg->egress.cos_dropmgmt[0].dp_thresholds[i].wred_minThreshold,
+              qos_msg->egress.cos_dropmgmt[1].dp_thresholds[i].wred_minThreshold,
+              qos_msg->egress.cos_dropmgmt[2].dp_thresholds[i].wred_minThreshold,
+              qos_msg->egress.cos_dropmgmt[3].dp_thresholds[i].wred_minThreshold,
+              qos_msg->egress.cos_dropmgmt[4].dp_thresholds[i].wred_minThreshold,
+              qos_msg->egress.cos_dropmgmt[5].dp_thresholds[i].wred_minThreshold,
+              qos_msg->egress.cos_dropmgmt[6].dp_thresholds[i].wred_minThreshold,
+              qos_msg->egress.cos_dropmgmt[7].dp_thresholds[i].wred_minThreshold);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_dropmgmt->dp_threshold[%u]: WRED drop prob.    = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
+              qos_msg->egress.cos_dropmgmt[0].dp_thresholds[i].wred_dropProb,
+              qos_msg->egress.cos_dropmgmt[1].dp_thresholds[i].wred_dropProb,
+              qos_msg->egress.cos_dropmgmt[2].dp_thresholds[i].wred_dropProb,
+              qos_msg->egress.cos_dropmgmt[3].dp_thresholds[i].wred_dropProb,
+              qos_msg->egress.cos_dropmgmt[4].dp_thresholds[i].wred_dropProb,
+              qos_msg->egress.cos_dropmgmt[5].dp_thresholds[i].wred_dropProb,
+              qos_msg->egress.cos_dropmgmt[6].dp_thresholds[i].wred_dropProb,
+              qos_msg->egress.cos_dropmgmt[7].dp_thresholds[i].wred_dropProb);
+  }
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Dump finished!");
+
+  /* Interface */
+  ptin_intf.intf_type = qos_msg->intf.intf_type;
+  ptin_intf.intf_id   = qos_msg->intf.intf_id;
+
+  /* Get current interface configuration */
+  memset(&qos_intf_curr,0x00,sizeof(ptin_QoS_intf_t));
+  rc = ptin_QoS_intf_config_get(&ptin_intf, &qos_intf_curr);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Error readin interface configuration (rc=%d)", rc);
+    return L7_FAILURE;
+  }
+  trust_mode = qos_intf_curr.trust_mode;
+
+  /* Interface configuration */
+
+  /* Clear structures */
+  memset(&qos_intf,0x00,sizeof(ptin_QoS_intf_t));
+  apply_conf = L7_FALSE;
+
+  if (qos_msg->main_mask & MSG_QOS3_INGRESS_MASK)
+  {
+    /* Trust mode */
+    if (qos_msg->ingress.ingress_mask & MSG_QOS3_INGRESS_TRUST_MODE_MASK)
+    {
+      qos_intf.trust_mode = qos_msg->ingress.trust_mode;
+      qos_intf.mask |= PTIN_QOS_INTF_TRUSTMODE_MASK;
+      /* Save new trust mode */
+      trust_mode = qos_intf.trust_mode;
+    }
+
+    /* COS classification */
+    if (qos_msg->ingress.ingress_mask & MSG_QOS3_INGRESS_COS_CLASSIF_MASK)
+    {
+      if (trust_mode == L7_QOS_COS_MAP_INTF_MODE_TRUST_DOT1P)
+      {
+        /* Run all priorities */
+        for (i=0; i<8; i++)
+        {
+          /* Is priority i to be defined? If so define CoS */
+          if ((qos_msg->ingress.cos_classif.pcp_map.prio_mask >> i) & 1)
+          {
+            qos_intf.pktprio.mask[i] = 1;
+            qos_intf.pktprio.cos[i]  = qos_msg->ingress.cos_classif.pcp_map.cos[i];
+
+            qos_intf.mask |= PTIN_QOS_INTF_PACKETPRIO_MASK;
+          }
+        }
+      }
+      else if (trust_mode == L7_QOS_COS_MAP_INTF_MODE_TRUST_IPPREC)
+      {
+        /* Run all priorities */
+        for (i=0; i<8; i++)
+        {
+          /* Is priority i to be defined? If so define CoS */
+          if ((qos_msg->ingress.cos_classif.ipprec_map.prio_mask >> i) & 1)
+          {
+            qos_intf.pktprio.mask[i] = 1;
+            qos_intf.pktprio.cos[i]  = qos_msg->ingress.cos_classif.pcp_map.cos[i];
+
+            qos_intf.mask |= PTIN_QOS_INTF_PACKETPRIO_MASK;
+          }
+        }
+      }
+      else if (trust_mode == L7_QOS_COS_MAP_INTF_MODE_TRUST_IPDSCP)
+      {
+        /* Run all priorities */
+        for (i=0; i<64; i++)
+        {
+          /* Is priority i to be defined? If so define CoS */
+          if ((qos_msg->ingress.cos_classif.dscp_map.prio_mask >> i) & 1)
+          {
+            qos_intf.pktprio.mask[i/8] |= 1 << (i%8);
+            qos_intf.pktprio.cos[i/8]  |= (qos_msg->ingress.cos_classif.dscp_map.cos[i] & 0xf) << (i%8);
+
+            qos_intf.mask |= PTIN_QOS_INTF_PACKETPRIO_MASK;
+          }
+        }
+      }
+    }
+    /* COS Policer */
+    if (qos_msg->ingress.ingress_mask & MSG_QOS3_INGRESS_COS_POLICER_MASK)
+    {
+      /* Run all CoS */
+      for (i=0; i<8; i++)
+      {
+        if (qos_msg->ingress.cos_policer[i].local_mask != 0)
+        {
+          /* Missing Policer configuration */
+          LOG_WARNING(LOG_CTX_PTIN_MSG,"Missing policer implementation for CoS %u", i);
+        }
+      }
+    }
+  }
+  if (qos_msg->main_mask & MSG_QOS3_EGRESS_MASK)
+  {
+    /* Shaping rate */
+    if (qos_msg->egress.egress_mask & MSG_QOS3_EGRESS_INTF_SHAPER_MASK)
+    {
+      qos_intf.shaping_rate = qos_msg->egress.shaping_rate;
+      qos_intf.mask |= PTIN_QOS_INTF_SHAPINGRATE_MASK;
+    }
+  }
+  /* Apply configuration? */
+  apply_conf = (qos_intf.mask != 0);
+  /* Apply interface configuration */
+  if (apply_conf)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_MSG,"Applying Interface configurations...");
+    /* Execute priority map configuration */
+    rc = ptin_QoS_intf_config_set(&ptin_intf, &qos_intf);
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Error applying interface configuration (rc=%d)", rc);
+      rc_global = rc;
+    }
+    else
+    {
+      LOG_TRACE(LOG_CTX_PTIN_MSG,"Interface successfully configured");
+    }
+  }
+
+  /* COS configuration */
+
+  /* Clear structures */
+  memset(qos_cos,0x00,sizeof(qos_cos));
+  apply_conf = L7_FALSE;
+
+  if (qos_msg->main_mask & MSG_QOS3_EGRESS_MASK)
+  {
+    /* Scheduler configurations */
+    if (qos_msg->egress.egress_mask & MSG_QOS3_EGRESS_COS_SCHEDULER_MASK)
+    {
+      /* Run all QoS */
+      for (i=0; i<8; i++)
+      {
+        /* Scheduler type */
+        if (qos_msg->egress.cos_scheduler[i].local_mask & MSG_QOS3_EGRESS_COS_SCHEDULER_TYPE_MASK)
+        {
+          qos_cos[i].scheduler_type = qos_msg->egress.cos_scheduler[i].schedulerType;
+          qos_cos[i].mask |= PTIN_QOS_COS_SCHEDULER_MASK;
+          apply_conf = L7_TRUE;
+        }
+        /* WRR Weight */
+        if (qos_msg->egress.cos_scheduler[i].local_mask & MSG_QOS3_EGRESS_COS_SCHEDULER_WRR_WEIGHT_MASK)
+        {
+          qos_cos[i].wrrSched_weight = qos_msg->egress.cos_scheduler[i].wrrSched_weight;
+          qos_cos[i].mask |= PTIN_QOS_COS_WRR_WEIGHT_MASK;
+          apply_conf = L7_TRUE;
+        }
+      }
+    }
+    /* COS Shaper configurations */
+    if (qos_msg->egress.egress_mask & MSG_QOS3_EGRESS_COS_SHAPER_MASK)
+    {
+      /* Run all QoS */
+      for (i=0; i<8; i++)
+      {
+        /* Minimum mandwidth */
+        if (qos_msg->egress.cos_shaper[i].local_mask & MSG_QOS3_EGRESS_COS_SHAPER_MIN_BW_MASK)
+        {
+          qos_cos[i].min_bandwidth = qos_msg->egress.cos_shaper[i].min_bandwidth;
+          qos_cos[i].mask |= PTIN_QOS_COS_BW_MIN_MASK;
+          apply_conf = L7_TRUE;
+        }
+        /* Maximum bandwidth */
+        if (qos_msg->egress.cos_shaper[i].local_mask & MSG_QOS3_EGRESS_COS_SHAPER_MAX_BW_MASK)
+        {
+          qos_cos[i].max_bandwidth = qos_msg->egress.cos_shaper[i].max_bandwidth;
+          qos_cos[i].mask |= PTIN_QOS_COS_BW_MAX_MASK;
+          apply_conf = L7_TRUE;
+        }
+      }
+    }
+  }
+  /* Apply configuration */
+  if (apply_conf)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_MSG,"Applying QoS configurations...");
+    rc = ptin_QoS_cos_config_set(&ptin_intf, (L7_uint8)-1, qos_cos); 
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Error configuring QoS (rc=%d)",rc);
+      rc_global = rc;
+    }
+    else
+    {
+      LOG_TRACE(LOG_CTX_PTIN_MSG,"QoS successfully configured");
+    }
+  }
+
+  /* DROP configuration */
+
+  /* Clear structures */
+  memset(qos_drop,0x00,sizeof(qos_drop));
+  apply_conf = L7_FALSE;
+
+  if (qos_msg->main_mask & MSG_QOS3_EGRESS_MASK)
+  {
+    if (qos_msg->egress.egress_mask & MSG_QOS3_EGRESS_COS_DROPMGMT_MASK)
+    {
+      /* Run all QoS */
+      for (i=0; i<8; i++)
+      {
+        /* Drop MGMT type */
+        if (qos_msg->egress.cos_dropmgmt[i].local_mask & MSG_QOS3_EGRESS_COS_DROPMGMT_TYPE_MASK)
+        {
+          qos_drop[i].queue_management_type = qos_msg->egress.cos_dropmgmt[i].dropMgmtType;
+          qos_drop[i].mask |= PTIN_QOS_COS_QUEUE_MANGM_MASK;
+          apply_conf = L7_TRUE;
+        }
+        /* WRED decay exponent */
+        if (qos_msg->egress.cos_dropmgmt[i].local_mask & MSG_QOS3_EGRESS_COS_DROPMGMT_WRED_DECAYEXP_MASK)
+        {
+          qos_drop[i].wred_decayExp = qos_msg->egress.cos_dropmgmt[i].wred_decayExp;
+          qos_drop[i].mask |= PTIN_QOS_COS_WRED_DECAY_EXP_MASK;
+          apply_conf = L7_TRUE;
+        }
+
+        /* Run all DP levels */
+        for (j = 0; j < 4; j++)
+        {
+          /* Taildrop threshold */
+          if (qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].local2_mask & MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_TAILDROP_MAX_MASK)
+          {
+            qos_drop[i].dp[j].taildrop_threshold = qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].tailDrop_threshold;
+            qos_drop[i].dp[j].local_mask |= PTIN_QOS_COS_DP_TAILDROP_THRESH_MASK;
+            apply_conf = L7_TRUE;
+          }
+          /* WRED min threshold */
+          if (qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].local2_mask & MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_WRED_MIN_MASK)
+          {
+            qos_drop[i].dp[j].wred_min_threshold = qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].wred_minThreshold;
+            qos_drop[i].dp[j].local_mask |= PTIN_QOS_COS_DP_WRED_THRESH_MIN_MASK;
+            apply_conf = L7_TRUE;
+          }
+          /* WRED max threshold */
+          if (qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].local2_mask & MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_WRED_MAX_MASK)
+          {
+            qos_drop[i].dp[j].wred_max_threshold = qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].wred_maxThreshold;
+            qos_drop[i].dp[j].local_mask |= PTIN_QOS_COS_DP_WRED_THRESH_MAX_MASK;
+            apply_conf = L7_TRUE;
+          }
+          /* WRED drop probability */
+          if (qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].local2_mask & MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_WRED_DROPPROB_MASK)
+          {
+            qos_drop[i].dp[j].wred_drop_prob = qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].wred_dropProb;
+            qos_drop[i].dp[j].local_mask |= PTIN_QOS_COS_DP_WRED_DROP_PROB_MASK;
+            apply_conf = L7_TRUE;
+          }
+        }
+      }
+    }
+  }
+  /* Apply configuration */
+  if (apply_conf)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_MSG,"Applying Drop Management configurations...");
+    rc = ptin_QoS_drop_config_set(&ptin_intf, (L7_uint8)-1, qos_drop);
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Error configuring QoS Drop management (rc=%d)",rc);
+      rc_global = rc;
+    }
+    else
+    {
+      LOG_TRACE(LOG_CTX_PTIN_MSG,"QoS Drop management successfully configurted");
+    }
+  }
+
+  if (rc_global==L7_SUCCESS)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Success applying QoS configurations to all CoS");
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Error applying QoS configurations to all CoS (rc_global=%d)", rc_global);
+  }
+
+  return rc_global;
+}
 
 /* LAGs Manipulation Functions ************************************************/
 /**
