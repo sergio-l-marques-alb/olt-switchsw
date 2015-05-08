@@ -373,6 +373,18 @@ L7_RC_t hpcConfigBoardSet()
           if (sal_config_set(param_name, param_value) != 0)
             return(L7_FAILURE);
 
+          sprintf(param_name, spn_PORT_INIT_SPEED"_%u", idx);
+          sprintf(param_value, "%u", 1000);
+          LOG_INFO(LOG_CTX_STARTUP, "port=%d: sal_config_set(%s,%s)", idx, param_name, param_value);
+          if (sal_config_set(param_name, param_value) != 0)
+            return(L7_FAILURE);
+          
+          sprintf(param_name, spn_PORT_MAX_SPEED"_%u", idx);
+          sprintf(param_value, "%u", 1000);
+          LOG_INFO(LOG_CTX_STARTUP, "port=%d: sal_config_set(%s,%s)", idx, param_name, param_value);
+          if (sal_config_set(param_name, param_value) != 0)
+            return(L7_FAILURE);
+
           /* For older SDK versions */
         #if (SDK_VERSION_IS < SDK_VERSION(6,3,7,0))
           sprintf(param_name, spn_PORT_PHY_ADDR"_%u", idx);
@@ -1552,6 +1564,35 @@ L7_RC_t hpcBoardWCinit_bcm56640(void)
       LOG_INFO(LOG_CTX_STARTUP, "slot=%d, bcm_port=%d: sal_config_set(%s,%s)", slot, bcm_port, param_name, param_value);
       if (sal_config_set(param_name, param_value) != 0)
         return(L7_FAILURE);
+
+      /* Configurations for 1000 BASE-X mode */
+      sprintf(param_name, spn_SERDES_AUTOMEDIUM"_%u", bcm_port);
+      sprintf(param_value, "%u", 0);
+      LOG_INFO(LOG_CTX_STARTUP, "port=%d: sal_config_set(%s,%s)", bcm_port, param_name, param_value);
+      if (sal_config_set(param_name, param_value) != 0)
+        return(L7_FAILURE);
+
+      sprintf(param_name, spn_SERDES_FIBER_PREF"_%u", bcm_port);
+      sprintf(param_value, "%u", 0);
+      LOG_INFO(LOG_CTX_STARTUP, "port=%d: sal_config_set(%s,%s)", bcm_port, param_name, param_value);
+      if (sal_config_set(param_name, param_value) != 0)
+        return(L7_FAILURE);
+
+      /* For backplane-10G interfaces */
+      if (speed == 10)
+      {
+        sprintf(param_name, spn_PORT_INIT_SPEED"_%u", bcm_port); 
+        sprintf(param_value, "%u", 10000);
+        LOG_INFO(LOG_CTX_STARTUP, "port=%d: sal_config_set(%s,%s)", bcm_port, param_name, param_value);
+        if (sal_config_set(param_name, param_value) != 0)
+          return(L7_FAILURE);
+        
+        sprintf(param_name, spn_PORT_MAX_SPEED"_%u", bcm_port);
+        sprintf(param_value, "%u", 10000);
+        LOG_INFO(LOG_CTX_STARTUP, "port=%d: sal_config_set(%s,%s)", bcm_port, param_name, param_value);
+        if (sal_config_set(param_name, param_value) != 0)
+          return(L7_FAILURE);
+      }
 
       /* Update port list */
       dapiBroadBaseCardSlotMap[port_idx].slotNum     = 0;

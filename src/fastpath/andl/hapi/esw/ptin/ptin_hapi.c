@@ -1653,12 +1653,12 @@ L7_RC_t ptin_hapi_link_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 link, L7_
 
     osapiSleepUSec(20000);
 
-    /* Execute a linkscan update */
-    LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_linkscan_update to bcm_port %u", hapiPortPtr->bcm_port);
-    if (bcm_linkscan_update(0, pbmp) != BCM_E_NONE)
-    {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error applying linkscan to bcm_port %u", hapiPortPtr->bcm_port);
-    }
+//  /* Execute a linkscan update */
+//  LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_linkscan_update to bcm_port %u", hapiPortPtr->bcm_port);
+//  if (bcm_linkscan_update(0, pbmp) != BCM_E_NONE)
+//  {
+//    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error applying linkscan to bcm_port %u", hapiPortPtr->bcm_port);
+//  }
 
     #if 0
     /* Disable loopback */
@@ -1679,6 +1679,9 @@ L7_RC_t ptin_hapi_link_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 link, L7_
       return L7_FAILURE;
     }
     #endif
+
+    /* Wait more 20ms */
+    osapiSleepUSec(20000);
 
     LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Force link-up applied to port {%d,%d,%d}/bcm_port %u/port %u to %u",
                usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable);
