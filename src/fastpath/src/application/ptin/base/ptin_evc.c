@@ -6094,7 +6094,7 @@ L7_RC_t ptin_evc_bwProfile_set(L7_uint32 evc_ext_id, ptin_bw_profile_t *profile,
   }
 
   /* For QUATTRO services, apply special profiles */
-  if (IS_EVC_QUATTRO(evc_id))
+  if (0 /*IS_EVC_QUATTRO(evc_id)*/)
   {
     L7_uint32 vport_id;
 
@@ -6163,7 +6163,7 @@ L7_RC_t ptin_evc_bwProfile_delete(L7_uint32 evc_ext_id, ptin_bw_profile_t *profi
   }
 
   /* For QUATTRO services, apply special profiles */
-  if (IS_EVC_QUATTRO(evc_id))
+  if (0 /*IS_EVC_QUATTRO(evc_id)*/)
   {
     L7_uint32 vport_id;
 

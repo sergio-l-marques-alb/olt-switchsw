@@ -1020,6 +1020,8 @@ L7_RC_t ptin_aclIpApply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation)
 
   if (aclVlanIdGiven == L7_FALSE)
   {
+    LOG_TRACE(LOG_CTX_PTIN_MSG, "operation=%d interface=%d direction=%d aclId=%u sequence=%d", operation, interface, direction, aclId, sequence);
+
     if (operation == ACL_OPERATION_CREATE)
     {
       rc = usmDbQosAclInterfaceDirectionAdd(unit, interface, direction, aclId, sequence);
@@ -2245,6 +2247,8 @@ L7_RC_t ptin_aclMacApply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation)
 
   if (aclVlanIdGiven == L7_FALSE)
   {
+    LOG_TRACE(LOG_CTX_PTIN_MSG, "operation=%d interface=%d direction=%d aclId=%u sequence=%d", operation, interface, direction, aclId, sequence);
+
     if (operation == ACL_OPERATION_CREATE)
     {
       
