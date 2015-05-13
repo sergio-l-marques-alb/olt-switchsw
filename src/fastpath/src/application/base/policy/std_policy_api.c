@@ -531,6 +531,13 @@ L7_uint32 policySystemBcastStormModeIntfSet(L7_uint32 interface, L7_uint32 mode)
   if (policyMapIntfIsConfigurable(interface, &pCfg) != L7_TRUE)
     return L7_FAILURE;
 
+  /* Nothing to be done */
+  if (pCfg->bcastStormMode == mode)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_API, "policySystemBcastStormModeIntfSet: Nothing to be done");
+    return L7_SUCCESS;
+  }
+
   pCfg->bcastStormMode = mode;
   policyCfgData->cfgHdr.dataChanged = L7_TRUE;
 
@@ -570,6 +577,15 @@ L7_uint32 policySystemBcastStormThresholdIntfSet(L7_uint32 interface, L7_uint32 
   if (policyMapIntfIsConfigurable(interface, &pCfg) != L7_TRUE)
     return L7_FAILURE;
 
+  /* Nothing to be done */
+  if (pCfg->bcastStormThreshold     == threshold &&
+      pCfg->bcastStormBurstSize     == burstSize &&
+      pCfg->bcastStormThresholdUnit == rate_unit)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_API, "policySystemBcastStormThresholdIntfSet: Nothing to be done");
+    return L7_SUCCESS;
+  }
+
   pCfg->bcastStormThreshold = threshold;
   pCfg->bcastStormBurstSize = burstSize;      /* PTin added: stormcontrol */
   pCfg->bcastStormThresholdUnit = rate_unit;
@@ -608,6 +624,13 @@ L7_uint32 policySystemMcastStormModeIntfSet(L7_uint32 interface, L7_uint32 mode)
 
   if (policyMapIntfIsConfigurable(interface, &pCfg) != L7_TRUE)
     return L7_FAILURE;
+
+  /* Nothing to be done */
+  if (pCfg->mcastStormMode == mode)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_API, "policySystemMcastStormModeIntfSet: Nothing to be done");
+    return L7_SUCCESS;
+  }
 
   pCfg->mcastStormMode = mode;
   policyCfgData->cfgHdr.dataChanged = L7_TRUE;
@@ -649,6 +672,15 @@ L7_uint32 policySystemMcastStormThresholdIntfSet(L7_uint32 interface, L7_uint32 
   if (policyMapIntfIsConfigurable(interface, &pCfg) != L7_TRUE)
     return L7_FAILURE;
 
+  /* Nothing to be done */
+  if (pCfg->mcastStormThreshold     == threshold &&
+      pCfg->mcastStormBurstSize     == burstSize &&
+      pCfg->mcastStormThresholdUnit == rate_unit)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_API, "policySystemMcastStormThresholdIntfSet: Nothing to be done");
+    return L7_SUCCESS;
+  }
+
   pCfg->mcastStormThreshold = threshold;
   pCfg->mcastStormBurstSize = burstSize;      /* PTin added: stormcontrol */
   pCfg->mcastStormThresholdUnit = rate_unit;
@@ -688,6 +720,13 @@ L7_uint32 policySystemUcastStormModeIntfSet(L7_uint32 interface, L7_uint32 mode)
   if (policyMapIntfIsConfigurable(interface, &pCfg) != L7_TRUE)
     return L7_FAILURE;
 
+  /* Nothing to be done */
+  if (pCfg->ucastStormMode == mode)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_API, "policySystemUcastStormModeIntfSet: Nothing to be done");
+    return L7_SUCCESS;
+  }
+
   pCfg->ucastStormMode = mode;
   policyCfgData->cfgHdr.dataChanged = L7_TRUE;
 
@@ -726,6 +765,15 @@ L7_uint32 policySystemUcastStormThresholdIntfSet(L7_uint32 interface, L7_uint32 
 
   if (policyMapIntfIsConfigurable(interface, &pCfg) != L7_TRUE)
     return L7_FAILURE;
+
+    /* Nothing to be done */
+  if (pCfg->ucastStormThreshold     == threshold &&
+      pCfg->ucastStormBurstSize     == burstSize &&
+      pCfg->ucastStormThresholdUnit == rate_unit)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_API, "policySystemUcastStormThresholdIntfSet: Nothing to be done");
+    return L7_SUCCESS;
+  }
 
   pCfg->ucastStormThreshold = threshold;
   pCfg->ucastStormBurstSize = burstSize;      /* PTin added: stormcontrol */

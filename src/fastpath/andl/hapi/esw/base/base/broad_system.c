@@ -1188,6 +1188,10 @@ L7_RC_t hapiBroadIntfBroadcastControlModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
   /* PTin added: Units */
   rateLimit.units = units;
 
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "broadcastControl.type=%u broadcastControl.enable=%u", dapiCmd->cmdData.broadcastControl.type, dapiCmd->cmdData.broadcastControl.enable);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "hapiBroadIntfBroadcastControlModeSet with limit=%u bucket_size=%u units=%u for bcmx_lport=0x%x",
+            rate, bucket_size, units, hapiPortPtr->bcmx_lport);
+
   switch (dapiCmd->cmdData.broadcastControl.type) 
   {
   case STORMCONTROL_BCAST:
@@ -1204,7 +1208,10 @@ L7_RC_t hapiBroadIntfBroadcastControlModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
         rateLimit.flags       = 0;
       }
 
-	  rv = usl_bcmx_rate_bcast_set(hapiPortPtr->bcmx_lport, rateLimit);
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "usl_bcmx_rate_bcast_set with limit=%u bucket_size=%u flags=0x%x for bcmx_lport=0x%x",
+                rateLimit.limit, rateLimit.bucket_size, rateLimit.flags, hapiPortPtr->bcmx_lport);
+      rv = usl_bcmx_rate_bcast_set(hapiPortPtr->bcmx_lport, rateLimit);
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "rv=%d", rv);
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
         LOG_ERROR (rv);
@@ -1226,7 +1233,10 @@ L7_RC_t hapiBroadIntfBroadcastControlModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
         rateLimit.flags       = 0;
       }
 
-	  rv = usl_bcmx_rate_mcast_set(hapiPortPtr->bcmx_lport, rateLimit);
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "usl_bcmx_rate_mcast_set with limit=%u bucket_size=%u flags=0x%x for bcmx_lport=0x%x",
+                rateLimit.limit, rateLimit.bucket_size, rateLimit.flags, hapiPortPtr->bcmx_lport);
+      rv = usl_bcmx_rate_mcast_set(hapiPortPtr->bcmx_lport, rateLimit);
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "rv=%d", rv);
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
          LOG_ERROR (rv);
@@ -1248,7 +1258,10 @@ L7_RC_t hapiBroadIntfBroadcastControlModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
         rateLimit.flags       = 0;
       }
 
-	  rv = usl_bcmx_rate_dlfbc_set(hapiPortPtr->bcmx_lport, rateLimit);
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "usl_bcmx_rate_dlfbc_set with limit=%u bucket_size=%u flags=0x%x for bcmx_lport=0x%x",
+                rateLimit.limit, rateLimit.bucket_size, rateLimit.flags, hapiPortPtr->bcmx_lport);
+      rv = usl_bcmx_rate_dlfbc_set(hapiPortPtr->bcmx_lport, rateLimit);
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "rv=%d", rv);
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
          LOG_ERROR (rv);
