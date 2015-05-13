@@ -3857,6 +3857,78 @@ L7_RC_t ptin_intf_ucast_stormControl_get(const ptin_intf_t *ptin_intf, L7_BOOL *
   return L7_SUCCESS;
 }
 
+
+static L7_RC_t ptin_intf_stormcontrol_reset(L7_uint32 intIfNum, L7_uint8 rate_units)
+{
+  L7_RC_t rc, rc_global = L7_SUCCESS;
+
+  /* Disable current stormcontrol */
+  rc = usmDbSwDevCtrlBcastStormModeIntfSet(intIfNum, L7_DISABLE);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"intIfNum=%u: Error disabling Broadcast StormControl - rc=%d", intIfNum, rc);
+    rc_global = rc;
+  }
+  LOG_TRACE(LOG_CTX_PTIN_MSG,"intIfNum=%u: Broadcast StormControl disabled", intIfNum);
+
+  rc = usmDbSwDevCtrlMcastStormModeIntfSet(intIfNum, L7_DISABLE);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"intIfNum=%u: Error disabling Multicast StormControl - rc=%d", intIfNum, rc);
+    rc_global = rc;
+  }
+  LOG_TRACE(LOG_CTX_PTIN_MSG,"intIfNum=%u: Multicast StormControl disabled", intIfNum);
+
+  rc = usmDbSwDevCtrlUcastStormModeIntfSet(intIfNum, L7_DISABLE);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"intIfNum=%u: Error disabling Unicast StormControl - rc=%d", intIfNum, rc);
+    rc_global = rc;
+  }
+  LOG_TRACE(LOG_CTX_PTIN_MSG,"intIfNum=%u: Unicast StormControl disabled", intIfNum);
+
+  /* Check result */
+  if (rc_global != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"intIfNum=%u: Error disabling StormControl - rc_global=%d", intIfNum, rc_global);
+    return rc_global;
+  }
+
+  /* Redefine units */
+  rc = usmDbSwDevCtrlBcastStormThresholdIntfSet(intIfNum, 0, 0, rate_units);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"intIfNum=%u: Error setting Broadcast threashold units to %u - rc=%d", intIfNum, rate_units, rc);
+    rc_global = rc;
+  }
+  LOG_TRACE(LOG_CTX_PTIN_MSG,"intIfNum=%u: Broadcast threashold units defined to %u", intIfNum, rate_units);
+
+  rc = usmDbSwDevCtrlMcastStormThresholdIntfSet(intIfNum, 0, 0, rate_units);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"intIfNum=%u: Error setting Multicast threashold units to %u - rc=%d", intIfNum, rate_units, rc);
+    rc_global = rc;
+  }
+  LOG_TRACE(LOG_CTX_PTIN_MSG,"intIfNum=%u: Multicast threashold units defined to %u", intIfNum, rate_units);
+
+  rc = usmDbSwDevCtrlUcastStormThresholdIntfSet(intIfNum, 0, 0, rate_units);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"intIfNum=%u: Error setting Unicast threashold units to %u - rc=%d", intIfNum, rate_units, rc);
+    rc_global = rc;
+  }
+  LOG_TRACE(LOG_CTX_PTIN_MSG,"intIfNum=%u: Unicast threashold units defined to %u", intIfNum, rate_units);
+
+  /* Check results */
+  if (rc_global != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"intIfNum=%u: Error redefining rate units - rc_global=%d", intIfNum, rc_global);
+    return rc_global;
+  }
+
+  return rc_global;
+}
+
 /**
  * Configure stormcontrol for Broadcast traffic
  * 
@@ -3927,28 +3999,17 @@ L7_RC_t ptin_intf_bcast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL e
     if (rate_units != rate_units_curr)
     {
       enable_curr = L7_DISABLE;
-      /* Disable current stormcontrol */
-      rc = usmDbSwDevCtrlBcastStormModeIntfSet(intIfNum, L7_DISABLE);
+
+      /* Reset stormcontrol to apply same units to all traffic types */
+      rc = ptin_intf_stormcontrol_reset(intIfNum, rate_units);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG,"Error disabling Broadcast StormControl for ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+        LOG_ERR(LOG_CTX_PTIN_MSG,"ptin_intf %u/%u: Error resetting StormControl to units %u - rc=%d",
+                ptin_intf->intf_type,ptin_intf->intf_id, rate_units, rc);
         return rc;
       }
-      LOG_TRACE(LOG_CTX_PTIN_MSG,"Broadcast StormControl disabled for ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
-      rc = usmDbSwDevCtrlMcastStormModeIntfSet(intIfNum, L7_DISABLE);
-      if (rc != L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_MSG,"Error disabling Multicast StormControl for ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
-        return rc;
-      }
-      LOG_TRACE(LOG_CTX_PTIN_MSG,"Multicast StormControl disabled for ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
-      rc = usmDbSwDevCtrlUcastStormModeIntfSet(intIfNum, L7_DISABLE);
-      if (rc != L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_MSG,"Error disabling Unicast StormControl for ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
-        return rc;
-      }
-      LOG_TRACE(LOG_CTX_PTIN_MSG,"Unicast StormControl disabled for ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+      LOG_TRACE(LOG_CTX_PTIN_MSG,"ptin_intf %u/%u: StormControl resetted to units %u",
+                ptin_intf->intf_type,ptin_intf->intf_id, rate_units);
     }
 
     LOG_TRACE(LOG_CTX_PTIN_MSG,"Going to apply BC threshold of %u (units=%u)", rate_value, rate_units);
@@ -4050,28 +4111,17 @@ L7_RC_t ptin_intf_mcast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL e
     if (rate_units != rate_units_curr)
     {
       enable_curr = L7_DISABLE;
-      /* Disable current stormcontrol */
-      rc = usmDbSwDevCtrlBcastStormModeIntfSet(intIfNum, L7_DISABLE);
+
+      /* Reset stormcontrol to apply same units to all traffic types */
+      rc = ptin_intf_stormcontrol_reset(intIfNum, rate_units);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG,"Error disabling Broadcast StormControl for ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+        LOG_ERR(LOG_CTX_PTIN_MSG,"ptin_intf %u/%u: Error resetting StormControl to units %u - rc=%d",
+                ptin_intf->intf_type,ptin_intf->intf_id, rate_units, rc);
         return rc;
       }
-      LOG_TRACE(LOG_CTX_PTIN_MSG,"Broadcast StormControl disabled for ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
-      rc = usmDbSwDevCtrlMcastStormModeIntfSet(intIfNum, L7_DISABLE);
-      if (rc != L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_MSG,"Error disabling Multicast StormControl for ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
-        return rc;
-      }
-      LOG_TRACE(LOG_CTX_PTIN_MSG,"Multicast StormControl disabled for ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
-      rc = usmDbSwDevCtrlUcastStormModeIntfSet(intIfNum, L7_DISABLE);
-      if (rc != L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_MSG,"Error disabling Unicast StormControl for ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
-        return rc;
-      }
-      LOG_TRACE(LOG_CTX_PTIN_MSG,"Unicast StormControl disabled for ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+      LOG_TRACE(LOG_CTX_PTIN_MSG,"ptin_intf %u/%u: StormControl resetted to units %u",
+                ptin_intf->intf_type,ptin_intf->intf_id, rate_units);
     }
 
     LOG_TRACE(LOG_CTX_PTIN_MSG,"Going to apply BC threshold of %u (units=%u)", rate_value, rate_units);
@@ -4174,28 +4224,17 @@ L7_RC_t ptin_intf_ucast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL e
     if (rate_units != rate_units_curr)
     {
       enable_curr = L7_DISABLE;
-      /* Disable current stormcontrol */
-      rc = usmDbSwDevCtrlBcastStormModeIntfSet(intIfNum, L7_DISABLE);
+
+      /* Reset stormcontrol to apply same units to all traffic types */
+      rc = ptin_intf_stormcontrol_reset(intIfNum, rate_units);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG,"Error disabling Broadcast StormControl for ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+        LOG_ERR(LOG_CTX_PTIN_MSG,"ptin_intf %u/%u: Error resetting StormControl to units %u - rc=%d",
+                ptin_intf->intf_type,ptin_intf->intf_id, rate_units, rc);
         return rc;
       }
-      LOG_TRACE(LOG_CTX_PTIN_MSG,"Broadcast StormControl disabled for ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
-      rc = usmDbSwDevCtrlMcastStormModeIntfSet(intIfNum, L7_DISABLE);
-      if (rc != L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_MSG,"Error disabling Multicast StormControl for ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
-        return rc;
-      }
-      LOG_TRACE(LOG_CTX_PTIN_MSG,"Multicast StormControl disabled for ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
-      rc = usmDbSwDevCtrlUcastStormModeIntfSet(intIfNum, L7_DISABLE);
-      if (rc != L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_MSG,"Error disabling Unicast StormControl for ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
-        return rc;
-      }
-      LOG_TRACE(LOG_CTX_PTIN_MSG,"Unicast StormControl disabled for ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+      LOG_TRACE(LOG_CTX_PTIN_MSG,"ptin_intf %u/%u: StormControl resetted to units %u",
+                ptin_intf->intf_type,ptin_intf->intf_id, rate_units);
     }
 
     LOG_TRACE(LOG_CTX_PTIN_MSG,"Going to apply BC threshold of %u (units=%u)", rate_value, rate_units);

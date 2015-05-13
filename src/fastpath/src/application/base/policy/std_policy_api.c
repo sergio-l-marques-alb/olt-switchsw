@@ -591,14 +591,17 @@ L7_uint32 policySystemBcastStormThresholdIntfSet(L7_uint32 interface, L7_uint32 
   pCfg->bcastStormThresholdUnit = rate_unit;
   policyCfgData->cfgHdr.dataChanged = L7_TRUE;
 
-  if ( dtlPolicyIntfBcastCtrlModeSet(interface, pCfg->bcastStormMode, 
-                                     threshold, 
-                                     burstSize /* PTin added: stormcontrol */, 
-                                     rate_unit) != L7_SUCCESS)
+  if (pCfg->bcastStormMode)
   {
-    L7_LOGF(L7_LOG_SEVERITY_INFO, L7_POLICY_COMPONENT_ID,
-            "Failure setting port %d broadcast storm threshold to %d\n", interface, threshold);
-    rc = L7_FAILURE;
+    if ( dtlPolicyIntfBcastCtrlModeSet(interface, pCfg->bcastStormMode, 
+                                       threshold, 
+                                       burstSize /* PTin added: stormcontrol */, 
+                                       rate_unit) != L7_SUCCESS)
+    {
+      L7_LOGF(L7_LOG_SEVERITY_INFO, L7_POLICY_COMPONENT_ID,
+              "Failure setting port %d broadcast storm threshold to %d\n", interface, threshold);
+      rc = L7_FAILURE;
+    }
   }
 
   return(rc);
@@ -686,14 +689,17 @@ L7_uint32 policySystemMcastStormThresholdIntfSet(L7_uint32 interface, L7_uint32 
   pCfg->mcastStormThresholdUnit = rate_unit;
   policyCfgData->cfgHdr.dataChanged = L7_TRUE;
 
-  if ( dtlPolicyIntfMcastCtrlModeSet(interface, pCfg->mcastStormMode, 
-                                     threshold, 
-                                     burstSize /* PTin added: stormcontrol */, 
-                                     rate_unit) != L7_SUCCESS)
+  if (pCfg->mcastStormMode)
   {
-    L7_LOGF(L7_LOG_SEVERITY_INFO, L7_POLICY_COMPONENT_ID,
-            "Failure setting port %d multicast storm threshold to %d\n", interface, threshold);
-    rc = L7_FAILURE;
+    if ( dtlPolicyIntfMcastCtrlModeSet(interface, pCfg->mcastStormMode, 
+                                       threshold, 
+                                       burstSize /* PTin added: stormcontrol */, 
+                                       rate_unit) != L7_SUCCESS)
+    {
+      L7_LOGF(L7_LOG_SEVERITY_INFO, L7_POLICY_COMPONENT_ID,
+              "Failure setting port %d multicast storm threshold to %d\n", interface, threshold);
+      rc = L7_FAILURE;
+    }
   }
 
   return(rc);
@@ -780,14 +786,17 @@ L7_uint32 policySystemUcastStormThresholdIntfSet(L7_uint32 interface, L7_uint32 
   pCfg->ucastStormThresholdUnit = rate_unit;
   policyCfgData->cfgHdr.dataChanged = L7_TRUE;
 
-  if ( dtlPolicyIntfUcastCtrlModeSet(interface, pCfg->ucastStormMode, 
-                                     threshold, 
-                                     burstSize /* PTin added: stormcontrol */, 
-                                     rate_unit) != L7_SUCCESS)
+  if (pCfg->ucastStormMode)
   {
-    L7_LOGF(L7_LOG_SEVERITY_INFO, L7_POLICY_COMPONENT_ID,
-            "Failure setting port %d unicast storm threshold to %d\n", interface, threshold);
-    rc = L7_FAILURE;
+    if ( dtlPolicyIntfUcastCtrlModeSet(interface, pCfg->ucastStormMode, 
+                                       threshold, 
+                                       burstSize /* PTin added: stormcontrol */, 
+                                       rate_unit) != L7_SUCCESS)
+    {
+      L7_LOGF(L7_LOG_SEVERITY_INFO, L7_POLICY_COMPONENT_ID,
+              "Failure setting port %d unicast storm threshold to %d\n", interface, threshold);
+      rc = L7_FAILURE;
+    }
   }
 
   return(rc);

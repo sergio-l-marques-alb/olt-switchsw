@@ -1189,7 +1189,7 @@ L7_RC_t hapiBroadIntfBroadcastControlModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
   rateLimit.units = units;
 
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "broadcastControl.type=%u broadcastControl.enable=%u", dapiCmd->cmdData.broadcastControl.type, dapiCmd->cmdData.broadcastControl.enable);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "hapiBroadIntfBroadcastControlModeSet with limit=%u bucket_size=%u units=%u for bcmx_lport=0x%x",
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "hapiBroadIntfBroadcastControlModeSet with limit=%llu bucket_size=%u units=%u for bcmx_lport=0x%x",
             rate, bucket_size, units, hapiPortPtr->bcmx_lport);
 
   switch (dapiCmd->cmdData.broadcastControl.type) 
