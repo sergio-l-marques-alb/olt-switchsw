@@ -17879,18 +17879,18 @@ RC_t ptin_igmp_multicast_channel_service_get(L7_uint32 ptinPort, L7_uint32 devic
   /* Input Argument validation */
   if ( ptinPort >= PTIN_SYSTEM_N_UPLINK_INTERF || deviceClientId >= PTIN_IGMP_CLIENTIDX_MAX ||  groupAddr == L7_NULLPTR || sourceAddr == L7_NULLPTR || serviceId == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [ptinPort:%u clientId:%u groupAddr:%p sourceAddr:%p serviceId:%p]",ptinPort, deviceClientId, groupAddr, sourceAddr, serviceId);    
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [ptinPort:%u deviceClientId:%u groupAddr:%p sourceAddr:%p serviceId:%p]",ptinPort, deviceClientId, groupAddr, sourceAddr, serviceId);    
     return L7_FAILURE;
   }
 
   /*Input Parameters*/
   if (ptin_debug_igmp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Input Parameters [ptinPort:%u clientId:%u groupAddr:%s sourceAddr:%s serviceId:%p]",
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Input Parameters [ptinPort:%u deviceClientId:%u groupAddr:%s sourceAddr:%s serviceId:%p]",
               ptinPort, deviceClientId, inetAddrPrint(groupAddr, groupAddrStr), inetAddrPrint(sourceAddr, sourceAddrStr), serviceId);
 
   if ( (groupClient = deviceClientId2groupClientPtr(ptinPort, deviceClientId)) == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Obtain groupClient [ptinPort:%u clientId:%u serviceId:%u groupAddr:%p sourceAddr:%p serviceId:%p groupClient:%p]",ptinPort, deviceClientId, groupAddr, sourceAddr, serviceId, groupClient);    
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Obtain groupClient [ptinPort:%u deviceClientId:%u serviceId:%u groupAddr:%p sourceAddr:%p serviceId:%p groupClient:%p]",ptinPort, deviceClientId, groupAddr, sourceAddr, serviceId, groupClient);    
     return L7_FAILURE;
   }
 
@@ -17904,7 +17904,7 @@ RC_t ptin_igmp_multicast_channel_service_get(L7_uint32 ptinPort, L7_uint32 devic
   {
     /*Output Parameters*/  
     if (ptin_debug_igmp_snooping)
-      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "No Multicast Service Configured [ptinPort:%u clientId:%u groupAddr:%s sourceAddr:%s noOfMulticastServices:%u]",
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "No Multicast Service Configured [ptinPort:%u deviceClientId:%u groupAddr:%s sourceAddr:%s noOfMulticastServices:%u]",
                  ptinPort, deviceClientId, inetAddrPrint(groupAddr, groupAddrStr), inetAddrPrint(sourceAddr, sourceAddrStr), multicastServices[ptinPort][onuId].noOfMulticastServices);
     return L7_NOT_EXIST;
   }
@@ -17917,7 +17917,7 @@ RC_t ptin_igmp_multicast_channel_service_get(L7_uint32 ptinPort, L7_uint32 devic
       {
         /*Exit Here No More Internal Identifers Left*/
         if (ptin_debug_igmp_snooping)
-          LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Entry Does Not Exist [ptinPort:%u clientId:%u groupAddr:%s sourceAddr:%s internalServiceId:%u noOfMulticastServices:%u]",
+          LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Entry Does Not Exist [ptinPort:%u deviceClientId:%u groupAddr:%s sourceAddr:%s internalServiceId:%u noOfMulticastServices:%u]",
                     ptinPort, deviceClientId, inetAddrPrint(groupAddr, groupAddrStr), inetAddrPrint(sourceAddr, sourceAddrStr), internalServiceId, multicastServices[ptinPort][onuId].noOfMulticastServices);
         return L7_NOT_EXIST;        
       }
@@ -17951,7 +17951,7 @@ RC_t ptin_igmp_multicast_channel_service_get(L7_uint32 ptinPort, L7_uint32 devic
       {
         /*Exit Here No More Internal Identifers Left and Entry Not Found*/
         if (ptin_debug_igmp_snooping)
-          LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Entry Does Not Exist [ptinPort:%u clientId:%u groupAddr:%s sourceAddr:%s serviceId:%u internalServiceId:%u noOfMulticastServices:%u]",
+          LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Entry Does Not Exist [ptinPort:%u deviceClientId:%u groupAddr:%s sourceAddr:%s serviceId:%u internalServiceId:%u noOfMulticastServices:%u]",
                     ptinPort, deviceClientId, inetAddrPrint(groupAddr, groupAddrStr), inetAddrPrint(sourceAddr, sourceAddrStr), serviceIdAux, internalServiceId, multicastServices[ptinPort][onuId].noOfMulticastServices);
         return L7_NOT_EXIST;      
       }
