@@ -546,7 +546,7 @@ L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
   vlan_port.egress_inner_vlan = egress_ivid;
   BCM_GPORT_LOCAL_SET(vlan_port.port, hapiPortPtr->bcm_port);
 
-  LOG_NOTICE(LOG_CTX_PTIN_HAPI, "bcm_port=%d vlan_port.port=%d vport=%d", hapiPortPtr->bcm_port, vlan_port.port, vlan_port.vlan_port_id);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "bcm_port=%d vlan_port.port=%d vport=%d", hapiPortPtr->bcm_port, vlan_port.port, vlan_port.vlan_port_id);
 
   if ((error=bcm_vlan_port_create(0, &vlan_port)) != BCM_E_NONE)
   {
@@ -554,7 +554,7 @@ L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
     return L7_FAILURE;
   }
 
-  LOG_NOTICE(LOG_CTX_PTIN_HAPI, "vport=0x%x", vlan_port.vlan_port_id);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "vport=0x%x", vlan_port.vlan_port_id);
 
   #if 0
   /* MAC learning */
@@ -642,7 +642,7 @@ L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
     *mcast_group = mc_group;
   }
 
-  LOG_NOTICE(LOG_CTX_PTIN_HAPI, "mc_group=%d vlan_port.port=%d vport=%d", mc_group, vlan_port.port, vlan_port.vlan_port_id);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "mc_group=%d vlan_port.port=%d vport=%d", mc_group, vlan_port.port, vlan_port.vlan_port_id);
 
   /* Add virtual port to multicast group */
   if ((error=bcm_multicast_vlan_encap_get(0, mc_group, vlan_port.port, vlan_port.vlan_port_id, &encap_id))!=BCM_E_NONE)
@@ -660,7 +660,7 @@ L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
   if (virtual_gport != L7_NULLPTR)
     *virtual_gport = vlan_port.vlan_port_id;
 
-  LOG_INFO(LOG_CTX_PTIN_HAPI, "ptin_hapi_vp_create: vport 0x%x created", vlan_port.vlan_port_id);
+  LOG_DEBUG(LOG_CTX_PTIN_HAPI, "ptin_hapi_vp_create: vport 0x%x created", vlan_port.vlan_port_id);
 
   return L7_SUCCESS;
 }
@@ -741,9 +741,9 @@ L7_RC_t ptin_hapi_vp_remove(ptin_dapi_port_t *dapiPort,
     return L7_FAILURE;
   }
 
-  LOG_NOTICE(LOG_CTX_PTIN_HAPI, "gport=0x%x, bcm_port=%d => vlan_port.port=%d vport=%d",
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "gport=0x%x, bcm_port=%d => vlan_port.port=%d vport=%d",
              virtual_gport, hapiPortPtr->bcm_port, vlan_port.port, vlan_port.vlan_port_id);
-  LOG_NOTICE(LOG_CTX_PTIN_HAPI, "flags=0x%08x criteria=0x%08x match_vlan=%u match_ivlan=%u egress_vlan=%u egress_ivlan=%u",
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "flags=0x%08x criteria=0x%08x match_vlan=%u match_ivlan=%u egress_vlan=%u egress_ivlan=%u",
              vlan_port.flags, vlan_port.criteria, vlan_port.match_vlan, vlan_port.match_inner_vlan, vlan_port.egress_vlan, vlan_port.egress_inner_vlan);
 
   /* Remove virtual port from multicast group */
