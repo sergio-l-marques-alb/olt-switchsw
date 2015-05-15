@@ -13217,10 +13217,6 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
     }
 #endif
     
-    #if PTIN_BOARD_ACTIVETH_FAMILY
-    msg[messageIterator].onuId = 0;
-    #endif
-
     /* Output data */
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to add MC client");
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "  MC evc_idx = %u", msg[messageIterator].evcId);
@@ -13231,6 +13227,14 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.Intf         = %u/%u", msg[messageIterator].client.intf.intf_type,msg[messageIterator].client.intf.intf_id);        
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "   noOfPackages        = %u ", msg[messageIterator].noOfPackages);
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "   PackageBmpList      = %s", packageBmpStr);
+
+    #if PTIN_BOARD_IS_ACTIVETH   
+    if (msg[messageIterator].onuId != 0)
+    {
+      LOG_WARNING(LOG_CTX_PTIN_MSG, "   I'm an Active Ethernet Card. OnuId:%u is different from 0. Going to set it to zero", msg[messageIterator].onuId);
+      msg[messageIterator].onuId = 0;
+    }    
+    #endif
 
     memset(&client,0x00,sizeof(ptin_client_id_t));
     if (msg[messageIterator].client.mask & MSG_CLIENT_OVLAN_MASK)
@@ -13310,8 +13314,12 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_pac
     }
 #endif
 
-    #if PTIN_BOARD_ACTIVETH_FAMILY
-    msg[messageIterator].onuId = 0;
+    #if PTIN_BOARD_IS_ACTIVETH   
+    if (msg[messageIterator].onuId != 0)
+    {
+      LOG_WARNING(LOG_CTX_PTIN_MSG, "   I'm an Active Ethernet Card. OnuId:%u is different from 0. Going to set it to zero", msg[messageIterator].onuId);
+      msg[messageIterator].onuId = 0;
+    }    
     #endif
     
      /* Output data */
@@ -13393,12 +13401,16 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_add(msg_igmp_macbridge_client_pa
 
   for (messageIterator = 0; messageIterator < noOfMessages; messageIterator++)
   {    
+    #if PTIN_BOARD_IS_ACTIVETH   
+    if (msg[messageIterator].onuId != 0)
+    {
+      LOG_WARNING(LOG_CTX_PTIN_MSG, "   I'm an Active Ethernet Card. OnuId:%u is different from 0. Going to set it to zero", msg[messageIterator].onuId);
+      msg[messageIterator].onuId = 0;
+    }    
+    #endif
+
     /*Initialize Structure*/
     memset(&ptinEvcFlow, 0x00, sizeof(ptinEvcFlow));
-
-    #if PTIN_BOARD_ACTIVETH_FAMILY
-    msg[messageIterator].onuId = 0;
-    #endif
 
     /* Copy data */
     ptinEvcFlow.evc_idx             = msg[messageIterator].evcId;    
@@ -13407,7 +13419,7 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_add(msg_igmp_macbridge_client_pa
     ptinEvcFlow.ptin_intf.intf_id   = msg[messageIterator].intf.intf_id;
     ptinEvcFlow.uni_ovid            = msg[messageIterator].intf.outer_vid; /* must be a leaf */
     ptinEvcFlow.uni_ivid            = msg[messageIterator].intf.inner_vid;
-    ptinEvcFlow.onuId               = msg->onuId;
+    ptinEvcFlow.onuId               = msg[messageIterator].onuId;
     ptinEvcFlow.noOfPackages        = msg[messageIterator].noOfPackages;
 
     /*Copy Multicast Package Bitmap*/
@@ -13430,6 +13442,7 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_add(msg_igmp_macbridge_client_pa
     LOG_DEBUG(LOG_CTX_PTIN_MSG, " OnuId        = %u", ptinEvcFlow.onuId);
     LOG_DEBUG(LOG_CTX_PTIN_MSG, " noOfPackages       = %u", ptinEvcFlow.noOfPackages);      
     LOG_DEBUG(LOG_CTX_PTIN_MSG, " packageBmpList:%s", packageBmpStr);
+
 
     if (ptinEvcFlow.noOfPackages >= 0)
     {
@@ -13481,22 +13494,26 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_remove(msg_igmp_macbridge_client
     /*Initialize Structure*/
     memset(&ptinEvcFlow, 0x00, sizeof(ptinEvcFlow));
 
-    #if PTIN_BOARD_ACTIVETH_FAMILY
-    msg[messageIterator].onuId = 0;
+    #if PTIN_BOARD_IS_ACTIVETH   
+    if (msg[messageIterator].onuId != 0)
+    {
+      LOG_WARNING(LOG_CTX_PTIN_MSG, "   I'm an Active Ethernet Card. OnuId:%u is different from 0. Going to set it to zero", msg[messageIterator].onuId);
+      msg[messageIterator].onuId = 0;
+    }    
     #endif
 
     /* Copy data */
-    ptinEvcFlow.evc_idx             = msg->evcId;    
-    ptinEvcFlow.int_ivid            = msg->nni_cvlan;
-    ptinEvcFlow.ptin_intf.intf_type = msg->intf.intf_type;
-    ptinEvcFlow.ptin_intf.intf_id   = msg->intf.intf_id;
-    ptinEvcFlow.uni_ovid            = msg->intf.outer_vid; /* must be a leaf */
-    ptinEvcFlow.uni_ivid            = msg->intf.inner_vid;    
-    ptinEvcFlow.onuId               = msg->onuId;
-    ptinEvcFlow.noOfPackages        = msg->noOfPackages;
+    ptinEvcFlow.evc_idx             = msg[messageIterator].evcId;    
+    ptinEvcFlow.int_ivid            = msg[messageIterator].nni_cvlan;
+    ptinEvcFlow.ptin_intf.intf_type = msg[messageIterator].intf.intf_type;
+    ptinEvcFlow.ptin_intf.intf_id   = msg[messageIterator].intf.intf_id;
+    ptinEvcFlow.uni_ovid            = msg[messageIterator].intf.outer_vid; /* must be a leaf */
+    ptinEvcFlow.uni_ivid            = msg[messageIterator].intf.inner_vid;    
+    ptinEvcFlow.onuId               = msg[messageIterator].onuId;
+    ptinEvcFlow.noOfPackages        = msg[messageIterator].noOfPackages;
 
     /*Copy Multicast Package Bitmap*/
-    memcpy(ptinEvcFlow.packageBmpList, msg->packageBmpList, sizeof(ptinEvcFlow.packageBmpList));
+    memcpy(ptinEvcFlow.packageBmpList, msg[messageIterator].packageBmpList, sizeof(ptinEvcFlow.packageBmpList));
 #if 0    
     for (packageIdIterator =PTIN_IGMP_PACKAGE_BITMAP_SIZE-1; packageIdIterator>=0; --packageIdIterator)
     {
