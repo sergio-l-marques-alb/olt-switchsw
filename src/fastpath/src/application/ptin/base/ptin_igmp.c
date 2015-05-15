@@ -856,7 +856,7 @@ static L7_RC_t ptin_igmp_multicast_package_init(void)
     /*Initialize Free Channel Pool*/
     memset(&channelPoolEntry, 0x00, sizeof(channelPoolEntry));
 
-    for (iterator = 0; iterator < PTIN_SYSTEM_IGMP_MAXPACKAGES_CHANNEL_ENTRIES; iterator++)
+    for (iterator = 0; iterator < PTIN_SYSTEM_IGMP_MAXPACKAGES; iterator++)
     {
       /* Init Channel Queue*/
       if ( (rc = dl_queue_init(&multicastPackage[iterator].queueChannel)) != L7_SUCCESS )
@@ -1148,11 +1148,13 @@ L7_RC_t ptin_igmp_proxy_init(void)
                    0x10,
                    sizeof(ptinIgmpChannelDataKey_t));
 
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"Going to initialize Multicast Packages.");
   if (ptin_igmp_multicast_package_init() != L7_SUCCESS)
   {
     LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to Initialize Multicast Packages!");
     return L7_FAILURE;
   }
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"Initialized Multicast Packages.");
 #endif
 
   ptin_igmp_stats_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);

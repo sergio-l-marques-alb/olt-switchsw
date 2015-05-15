@@ -13527,7 +13527,7 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_remove(msg_igmp_macbridge_client
     {
       if ((rc=ptin_evc_macbridge_client_packages_remove(&ptinEvcFlow)) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding EVC# %u flow", ptinEvcFlow.evc_idx);
+        LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing EVC# %u flow", ptinEvcFlow.evc_idx);
         return rc;
       }
     }
