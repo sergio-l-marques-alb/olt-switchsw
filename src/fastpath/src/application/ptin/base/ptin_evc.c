@@ -4589,7 +4589,7 @@ L7_RC_t ptin_evc_macbridge_client_packages_remove(ptin_evc_macbridge_client_pack
   if (ptin_evc_ext2int(evc_ext_id, &evc_id) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_id);
-    return L7_FAILURE;
+    return L7_NOT_EXIST;
   }
 
   /* Determine leaf ptin_intf */

@@ -156,8 +156,8 @@ void ptin_debug(void)
   printf("  ptin_igmp_snoop_dump <id>                                       - prints IGMP snooping entries (use -1 to display all)\r\n");
   printf("  ptin_igmp_proxy_dump                                            - prints IGMP proxy configuration\r\n");
   printf("  ptin_igmp_querier_dump <evc_idx>                                - prints IGMP querier configuration (none/0/-1 for all)\r\n");
-  printf("  ptin_igmp_clients_dump                                          - prints info about IMGP device clients\r\n");
-  printf("  ptin_igmp_groupclients_dump                                     - prints info about IMGP group of clients\r\n");
+  printf("  ptin_igmp_device_clients_dump                                   - prints info about IMGP device clients\r\n");
+  printf("  ptin_igmp_group_clients_dump                                    - prints info about IMGP group of clients\r\n");
   printf("  ptin_igmptimer_show                                             - Show IGMP packet processing time data\r\n");
   printf("  ptin_igmptimer_clear                                            - Initializes IGMP packet processing time data\r\n");
   printf("  dai_settings_get                                                - Get DAI configurations\r\n");
@@ -212,7 +212,7 @@ void ptin_debug(void)
   printf("Multicast Admission Control\r\n");
   printf("  ptin_igmp_admission_control_port_dump_active                    - Dump Admission Control Parameters of Port\r\n");
   printf("  ptin_igmp_admission_control_multicast_service_dump_active       - Dump Admission Control Parameters of Multicast Service\r\n");
-  printf("  ptin_igmp_groupclients_dump                                     - Dump Admission Control Parameters of Service with IGMP Flag\r\n");
+  printf("  ptin_igmp_group_clients_dump                                     - Dump Admission Control Parameters of Service with IGMP Flag\r\n");
   printf("  ptin_igmp_admission_control_port_reset_allocation               - Reset Admission Control Parameters of Port\r\n");
   printf("  ptin_igmp_admission_control_multicast_service_reset_allocation  - Reset Admission Control Parameters of Multicast Service\r\n");
   printf("  ptin_igmp_admission_control_group_clients_reset_allocation      - Reset Admission Control Parameters of Service with IGMP Flag\r\n");

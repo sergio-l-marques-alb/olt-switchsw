@@ -5238,6 +5238,7 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
       LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Admission Control Parameters [mask:0x%02x maxBandwidth:%llu bits/s maxChannels:%hu]",msgEvcFlow->mask, msgEvcFlow->maxBandwidth, msgEvcFlow->maxChannels);
       return L7_FAILURE;
     }
+    ptinEvcFlow.mask                = msgEvcFlow->mask;
     ptinEvcFlow.onuId               = msgEvcFlow->onuId;      
     ptinEvcFlow.maxBandwidth        = msgEvcFlow->maxBandwidth;
     ptinEvcFlow.maxChannels         = msgEvcFlow->maxChannels;
@@ -13544,8 +13545,16 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_remove(msg_igmp_macbridge_client
     {
       if ((rc=ptin_evc_macbridge_client_packages_remove(&ptinEvcFlow)) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing EVC# %u flow", ptinEvcFlow.evc_idx);
-        return rc;
+        if (rc != L7_NOT_EXIST)
+        {
+          LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing EVC# %u flow", ptinEvcFlow.evc_idx);
+          return rc;
+        }
+        else
+        {          
+          //Warning already logged          
+          rc = L7_SUCCESS;
+        }
       }
     }
   }
