@@ -906,8 +906,9 @@ L7_RC_t ptin_pppoe_reconf_evc(L7_uint32 evcId, L7_uint8 pppoe_flag, L7_uint32 op
    /* Get PPPOE instance index */
    if (ptin_pppoe_instance_find(evcId, &pppoe_idx) != L7_SUCCESS)
    {
-    LOG_ERR(LOG_CTX_PTIN_PPPOE, "There is no PPPOE instance with EVC id %u", evcId);
-    return L7_FAILURE;
+     if (ptin_debug_pppoe_snooping)
+       LOG_WARNING(LOG_CTX_PTIN_PPPOE, "There is no PPPOE instance with EVC id %u", evcId);
+    return L7_SUCCESS;
    }
 
    return ptin_pppoe_reconf_instance(pppoe_idx, pppoe_flag, options);
@@ -987,8 +988,9 @@ L7_RC_t ptin_pppoe_circuitid_set_evc(L7_uint32 evc_idx, L7_char8 *template_str, 
   /* Get PPPOE instance index */
   if (ptin_pppoe_instance_find(evc_idx, &pppoe_idx) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_PPPOE, "There is no PPPOE instance with EVC id %u", evc_idx);
-    return L7_FAILURE;
+    if (ptin_debug_pppoe_snooping)
+      LOG_WARNING(LOG_CTX_PTIN_PPPOE, "There is no PPPOE instance with EVC id %u", evc_idx);
+    return L7_SUCCESS;
   }
 
   return ptin_pppoe_circuitid_set_instance(pppoe_idx, template_str, mask, access_node_id, chassis, rack, frame, ethernet_priority, s_vid);
@@ -1245,8 +1247,9 @@ L7_RC_t ptin_pppoe_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_
   /* Get PPPOE instance index */
   if (ptin_pppoe_instance_find(evc_idx, &pppoe_idx)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_PPPOE,"There is no PPPOE instance with EVC id %u",evc_idx);
-    return L7_FAILURE;
+    if (ptin_debug_pppoe_snooping)
+       LOG_WARNING(LOG_CTX_PTIN_PPPOE,"There is no PPPOE instance with EVC id %u",evc_idx);
+    return L7_SUCCESS;
   }
 
   memcpy(&client, client_id, sizeof(ptin_client_id_t));

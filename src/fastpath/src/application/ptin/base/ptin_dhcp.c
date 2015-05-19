@@ -1606,7 +1606,8 @@ L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_i
   /* Check if this key already exists */
   if ((avl_infoData=(ptinDhcpClientInfoData_t *) avlSearchLVL7( &(avl_tree->dhcpClientsAvlTree), (void *)&avl_key, AVL_EXACT))!=L7_NULLPTR)
   {
-    LOG_WARNING(LOG_CTX_PTIN_DHCP,"This key {"
+    if (ptin_debug_dhcp_snooping)
+      LOG_WARNING(LOG_CTX_PTIN_DHCP,"This key {"
                 #if (DHCP_CLIENT_INTERF_SUPPORTED)
                                   "port=%u,"
                 #endif

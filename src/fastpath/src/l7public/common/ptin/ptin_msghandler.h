@@ -1760,7 +1760,7 @@ typedef struct _msg_MCStaticChannel_t
 
 /* To List all channels */
 // Message CCMSG_ETH_IGMP_GROUPS_GET
-#define MSG_MCACTIVECHANNELS_CHANNELS_MAX       1024
+#define MSG_MCACTIVECHANNELS_CHANNELS_MAX       4096
 typedef struct
 {
    L7_uint8          SlotId;                                                  

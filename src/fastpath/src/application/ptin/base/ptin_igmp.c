@@ -2139,7 +2139,8 @@ L7_RC_t ptin_igmp_instance_add(L7_uint32 McastEvcId, L7_uint32 UcastEvcId)
   /* Check if there is an instance with these parameters */
   if (ptin_igmp_instance_find(McastEvcId,UcastEvcId,L7_NULLPTR)==L7_SUCCESS)
   {
-    LOG_WARNING(LOG_CTX_PTIN_IGMP,"There is already an instance with [mcEvcId,ucEvcId]=[%u,%u]",McastEvcId,UcastEvcId);
+    if (ptin_debug_igmp_snooping)
+      LOG_WARNING(LOG_CTX_PTIN_IGMP,"There is already an instance with [mcEvcId,ucEvcId]=[%u,%u]",McastEvcId,UcastEvcId);
     return L7_SUCCESS;
   }
 
@@ -16175,7 +16176,8 @@ RC_t ptin_igmp_multicast_package_add(L7_uint32 packageId)
   }
   else /*This Multicast Package Already Exists*/
   {
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Multicast Package Already Created [packageId:%u noOfMulticastPackages:%u]",
+    if (ptin_debug_igmp_snooping)  
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Multicast Package Already Created [packageId:%u noOfMulticastPackages:%u]",
                packageId, noOfMulticastPackages);
     #if 0//Do Not Signal this to the caller
     return L7_ALREADY_CONFIGURED;
@@ -16219,7 +16221,8 @@ RC_t ptin_igmp_multicast_package_remove(L7_uint32 packageId)
 
   if ( multicastPackage[packageId].inUse == L7_FALSE )
   {
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Package does not exist [packageId:%u]",packageId);        
+    if (ptin_debug_igmp_snooping)  
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Package does not exist [packageId:%u]",packageId);        
     #if 0//Do Not Signal this to the caller
     return L7_NOT_EXIST;
     #else
@@ -16565,7 +16568,8 @@ RC_t ptin_igmp_multicast_package_channels_add(L7_uint32 packageId, L7_uint32 ser
 
   if (groupMask == 0)
   {
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Multicast Package Created with Empty Channels [packageId:%u serviceId:%u groupAddr:%s groupMask:%u sourceAddr:%s sourceMask:%u",
+    if (ptin_debug_igmp_snooping)  
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Multicast Package Created with Empty Channels [packageId:%u serviceId:%u groupAddr:%s groupMask:%u sourceAddr:%s sourceMask:%u",
                packageId, serviceId, inetAddrPrint(groupNetAddr, groupAddrStr), groupMask, inetAddrPrint(sourceNetAddr, sourceAddrStr), sourceMask);
     return L7_SUCCESS;
   }
@@ -16783,7 +16787,8 @@ RC_t ptin_igmp_multicast_package_channels_remove(L7_uint32 packageId, L7_uint32 
   /*Creating the Multicast Package for the First Time*/
   if (multicastPackage[packageId].inUse == L7_FALSE)
   {
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Multicast Package Does Not Exists [packageId:%u serviceId:%u groupNetAddr:%s groupMask:%u sourceNetAddr:%s sourceMask:%u",
+    if (ptin_debug_igmp_snooping)  
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Multicast Package Does Not Exists [packageId:%u serviceId:%u groupNetAddr:%s groupMask:%u sourceNetAddr:%s sourceMask:%u",
                packageId, serviceId, inetAddrPrint(groupNetAddr, groupAddrStr), groupMask, inetAddrPrint(sourceNetAddr, sourceAddrStr), sourceMask);
     return L7_NOT_EXIST;
 
@@ -16796,7 +16801,8 @@ RC_t ptin_igmp_multicast_package_channels_remove(L7_uint32 packageId, L7_uint32 
 
   if (groupMask == 0)
   {
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "No Channels to Remove [packageId:%u serviceId:%u groupAddr:%s groupMask:%u sourceAddr:%s sourceMask:%u",
+    if (ptin_debug_igmp_snooping)  
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "No Channels to Remove [packageId:%u serviceId:%u groupAddr:%s groupMask:%u sourceAddr:%s sourceMask:%u",
                packageId, serviceId, inetAddrPrint(groupNetAddr, groupAddrStr), groupMask, inetAddrPrint(sourceNetAddr, sourceAddrStr), sourceMask);
     return L7_SUCCESS;
   }
@@ -17364,7 +17370,8 @@ static RC_t queue_channel_entry_remove(L7_uint32 packageId, ptinIgmpChannelInfoD
   {
     if (rc == L7_NOT_EXIST)
     {
-      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Channel Entry Does Not Exist [packageId:%u channelAvlTreeEntry:%p]",packageId, channelAvlTreeEntry);          
+      if (ptin_debug_igmp_snooping)
+        LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Channel Entry Does Not Exist [packageId:%u channelAvlTreeEntry:%p]",packageId, channelAvlTreeEntry);          
       return L7_NOT_EXIST;      
     }
     else
@@ -17694,7 +17701,8 @@ RC_t ptin_igmp_multicast_service_add(L7_uint32 ptinPort, L7_uint32 onuId, L7_uin
 
   if ( multicastServiceId[ptinPort][onuId][internalServiceId].inUse == L7_TRUE )
   {
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Multicast Service Already Added [ptinPort:%u onuId:%u serviceId:%u internalServiceId:%u noOfMulticastServices:%u]",
+    if (ptin_debug_igmp_snooping)
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Multicast Service Already Added [ptinPort:%u onuId:%u serviceId:%u internalServiceId:%u noOfMulticastServices:%u]",
                 ptinPort, onuId, serviceId, internalServiceId, multicastServices[ptinPort][onuId].noOfMulticastServices);
     #if 0//Do Not Signal this to the Caller
     return L7_ALREADY_CONFIGURED;
@@ -17748,7 +17756,8 @@ RC_t ptin_igmp_multicast_service_remove(L7_uint32 ptinPort, L7_uint32 onuId, L7_
 
   if ( (internalServiceId = ptinIgmpAdmissionControlMulticastInternalServiceId[serviceId]) == (L7_uint8) -1 ||  multicastServiceId[ptinPort][onuId][internalServiceId].inUse == L7_FALSE )
   {
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Multicast Service Does Not Exist [ptinPort:%u onuId:%u serviceId:%u internalServiceId:%u noOfMulticastServices:%u]",
+    if (ptin_debug_igmp_snooping)
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Multicast Service Does Not Exist [ptinPort:%u onuId:%u serviceId:%u internalServiceId:%u noOfMulticastServices:%u]",
                 ptinPort, onuId, serviceId, internalServiceId, multicastServices[ptinPort][onuId].noOfMulticastServices);
     #if 0//Do Not Signal this to the Caller
     return L7_NOT_EXIST;
@@ -18090,7 +18099,8 @@ RC_t ptin_igmp_multicast_channel_client_add(L7_uint32 packageId, ptinIgmpGroupCl
 
   if (IS_BITMAP_BIT_SET(channelAvlTreeEntry->groupClientBmpPerPort[groupClient->igmpClientDataKey.ptin_port], groupClient->groupClientId, UINT32_BITSIZE) == L7_TRUE)
   {
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "This groupClient was already added to this channel [ptin_port:%u groupClientId:%u serviceId:%u groupAddr:%s sourceAddr:%s]", groupClient->igmpClientDataKey.ptin_port, groupClient->groupClientId, 
+    if (ptin_debug_igmp_snooping)
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "This groupClient was already added to this channel [ptin_port:%u groupClientId:%u serviceId:%u groupAddr:%s sourceAddr:%s]", groupClient->igmpClientDataKey.ptin_port, groupClient->groupClientId, 
                channelAvlTreeEntry->channelDataKey.evc_mc, inetAddrPrint(&channelAvlTreeEntry->channelDataKey.channel_group, groupAddrStr), inetAddrPrint(&channelAvlTreeEntry->channelDataKey.channel_source, sourceAddrStr));    
     #if 0//DO Not Signal this to the Caller
     return L7_ALREADY_CONFIGURED;    
@@ -18512,7 +18522,8 @@ static RC_t ptin_igmp_multicast_client_package_add(L7_uint32 packageId, ptinIgmp
   /* Is this PackageId not set in the Bitmap*/
   if ( IS_BITMAP_BIT_SET(groupClient->package_bmp_list, packageId, UINT32_BITSIZE) == L7_TRUE )
   {
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "This package was already added to this groupClient [packageId:%u ptin_port:%u groupClientId:%u]", packageId, groupClient->igmpClientDataKey.ptin_port, groupClient->groupClientId);    
+	if (ptin_debug_igmp_snooping)
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "This package was already added to this groupClient [packageId:%u ptin_port:%u groupClientId:%u]", packageId, groupClient->igmpClientDataKey.ptin_port, groupClient->groupClientId);    
     #if 0//DO Not Signal this to the Caller
     return L7_ALREADY_CONFIGURED;    
     #else
@@ -18616,7 +18627,8 @@ static RC_t ptin_igmp_multicast_client_package_remove(L7_uint32 packageId, ptinI
   /* Is this PackageId set in the Bitmap*/
   if ( IS_BITMAP_BIT_SET(groupClient->package_bmp_list, packageId, UINT32_BITSIZE) == L7_FALSE )
   {
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "This package does not belong to this groupClient [packageId:%u ptin_port:%u groupClientId:%u]", packageId, groupClient->igmpClientDataKey.ptin_port, groupClient->groupClientId);    
+    if (ptin_debug_igmp_snooping)
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "This package does not belong to this groupClient [packageId:%u ptin_port:%u groupClientId:%u]", packageId, groupClient->igmpClientDataKey.ptin_port, groupClient->groupClientId);    
     #if 0//DO Not Signal this to the Caller
     return L7_NOT_EXIST;    
     #else

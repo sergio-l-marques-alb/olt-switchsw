@@ -40,6 +40,19 @@
 #define EVC_BWPROFILES_REQUIRE_CLEANUP_BEFORE_REMOVAL 1       /* Used for EVC remotion */
 #define EVC_CLIENTS_REQUIRE_CLEANUP_BEFORE_REMOVAL    1       /* Used for EVC remotion */
 
+
+/******************************* 
+ * Debug procedures
+ *******************************/
+
+L7_BOOL ptin_debug_evc = 0;
+
+void ptin_debug_evc_enable(L7_BOOL enable)
+{
+  ptin_debug_evc = enable;
+}
+
+
 /* EVC Client entry (ONLY APPLICABLE to Stacked EVCs) */
 struct ptin_evc_client_s {
   /* Pointers used in queues manipulation (MUST be placed at the top of the struct) */
@@ -3785,7 +3798,8 @@ L7_RC_t ptin_evc_p2p_bridge_add(ptin_HwEthEvcBridge_t *evcBridge)
   ptin_evc_find_client(evcBridge->inn_vlan, &evcs[evc_id].intf[leaf_intf].clients, (dl_queue_elem_t**) &pclient);
   if (pclient != NULL)
   {
-    LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %u already have a bridge with Inner VID = %u", evc_id,
+    if (ptin_debug_evc)
+      LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %u already have a bridge with Inner VID = %u", evc_id,
                 evcBridge->intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG", evcBridge->intf.intf_id, evcBridge->inn_vlan);
     return L7_SUCCESS;
   }

@@ -5611,7 +5611,10 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
   time_end = osapiTimeMicrosecondsGet();
   time_delta = time_end - time_start;
 
-  LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,"Message 0x%04X was processed in %lu usec, with rc=%u (res=0x%08x)", inbuffer->msgId, time_delta, rc, res);
+  if (inbuffer->msgId != CCMSG_ETH_PHY_ACTIVITY_GET)
+    LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,"Message 0x%04X was processed in %lu usec, with rc=%u (res=0x%08x)", inbuffer->msgId, time_delta, rc, res);
+  else
+    LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,"Message 0x%04X was processed in %lu usec, with rc=%u (res=0x%08x)", inbuffer->msgId, time_delta, rc, res);
 
   /* Message Runtime Meter */
   /* Only for successfull messages */
