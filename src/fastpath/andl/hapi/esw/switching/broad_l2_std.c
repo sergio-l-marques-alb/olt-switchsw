@@ -908,12 +908,15 @@ L7_RC_t hapiBroadDot1sStateAsyncSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
         break;
       }
 
+      /* Uncommente bellow to allow hw reconfiguration, even if no change is registered */
+      #if 1
       if ((old_dot1s_state == state) &&
           (old_hw_dot1s_state == stgState))
       {
         result = L7_SUCCESS;
         break;
       }
+      #endif
 
       lport = hapiPortPtr->bcmx_lport;
 

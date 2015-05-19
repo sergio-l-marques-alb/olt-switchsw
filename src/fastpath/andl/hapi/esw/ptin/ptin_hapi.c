@@ -623,6 +623,12 @@ L7_RC_t ptin_hapi_phy_init_ta48ge(void)
     /* Disable ports */
     for (i=0; i<4; i++)
     {
+      if (bcm_port_stp_set(0, bcm_port+i, BCM_PORT_STP_FORWARD) != BCM_E_NONE)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error activating STP for bcm_port %u", bcm_port+i);
+        rc = L7_FAILURE;
+      }
+
       if (bcm_port_enable_set(0, bcm_port+i, L7_DISABLE) != BCM_E_NONE)
       {
         LOG_ERR(LOG_CTX_PTIN_HAPI, "Error disabling bcm_port %u", bcm_port+i);
@@ -965,11 +971,11 @@ L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id)
       LOG_ERR(LOG_CTX_PTIN_HAPI, "Error reenabling bcm_port %u", bcm_port);
       rc = L7_FAILURE;
     }
-//  if (bcm_port_stp_set(0, bcm_port, BCM_PORT_STP_FORWARD) != BCM_E_NONE)
-//  {
-//    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_stp_set to bcm_port %u", bcm_port);
-//    rc = L7_FAILURE;
-//  }
+    if (bcm_port_stp_set(0, bcm_port, BCM_PORT_STP_FORWARD) != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_stp_set to bcm_port %u", bcm_port);
+      rc = L7_FAILURE;
+    }
     LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_port %u reconfigured", bcm_port);
   }
 
