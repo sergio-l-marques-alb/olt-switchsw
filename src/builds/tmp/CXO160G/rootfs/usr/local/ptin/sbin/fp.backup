@@ -1,0 +1,15 @@
+#!/bin/sh
+
+BOARD=cxo160g
+VERSION=`ver | head -n 1 | awk '{print $4}'`
+
+TGZ_DST=/fastpath-$BOARD.rootfs.bak_$VERSION.tgz
+APPS_FOLDER=usr/local/ptin
+
+cd /
+tar czvf $TGZ_DST $APPS_FOLDER/sbin/switchdrvr $APPS_FOLDER/sbin/devshell_symbols.gz $APPS_FOLDER/sbin/linux-kernel-bde.ko $APPS_FOLDER/sbin/linux-user-bde.ko \
+$APPS_FOLDER/sbin/fastpath $APPS_FOLDER/sbin/fp.cli $APPS_FOLDER/sbin/fp.shell $APPS_FOLDER/sbin/mgmd.cli $APPS_FOLDER/lib/libmgmd.so \
+$APPS_FOLDER/sbin/fp.dbg $APPS_FOLDER/sbin/fp.debug $APPS_FOLDER/sbin/fp.log $APPS_FOLDER/sbin/fp.reg $APPS_FOLDER/sbin/fp.ver $APPS_FOLDER/sbin/fp.backup
+cd -
+
+echo "Done!"
