@@ -3718,14 +3718,18 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     case CCMSG_ETH_IGMP_CLIENT_GROUPS_GET:
     {      
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-               "Message received: CCMSG_ETH_IGMP_CLIENT_GROUPS_GET (0x%04X)", inbuffer->msgId);
+               "Message received: CCMSG_ETH_IGMP_CLIENT_GROUPS_GET (0x%04X) msgSize:%u bytes", inbuffer->msgId, inbuffer->infoDim);
 
-      CHECK_INFO_SIZE(msg_MCActiveChannelClients_t);
+      #if 1//To be changed to 0
+      CHECK_INFO_SIZE_ATLEAST(msg_MCActiveChannelClientsRequest_t);
+      #else
+      CHECK_INFO_SIZE(msg_MCActiveChannelClientsRequest_t);
+      #endif
 
-      msg_MCActiveChannelClients_t *ptr;
-      ptr = (msg_MCActiveChannelClients_t *) outbuffer->info;
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_MCActiveChannelClientsRequest_t));
 
-      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_MCActiveChannelClients_t));
+      msg_MCActiveChannelClientsResponse_t *ptr;
+      ptr = (msg_MCActiveChannelClientsResponse_t *) outbuffer->info;
 
       /* Execute command */
       ptin_timer_start(41,"CCMSG_ETH_IGMP_CLIENT_GROUPS_GET");
@@ -3740,7 +3744,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_MCActiveChannelClients_t);
+      outbuffer->infoDim = sizeof(msg_MCActiveChannelClientsResponse_t);
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);      
     }

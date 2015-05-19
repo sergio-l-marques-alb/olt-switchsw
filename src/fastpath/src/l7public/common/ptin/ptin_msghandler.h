@@ -1792,7 +1792,19 @@ typedef struct
 /* To list all clients of a channel */
 // Message CCMSG_ETH_IGMP_CLIENT_GROUPS_GET
 #define MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX  512
-typedef struct _st_MCActiveChannelClients
+typedef struct _st_MCActiveChannelClientsRequest
+{
+  uint8  SlotId;                       // slot
+  uint32 evc_id;                       // index: EVCid      /* L7_uint32 */
+  msg_in_addr_t channelIp;             // IP do canal a consultar
+  msg_in_addr_t sourceIp;              // IP do source Address
+  L7_uint16 page_index;                // Indice da mensagem
+  L7_uint16 n_pages_total;             // Numero de mensagens para transportar todos os canais
+  L7_uint16 n_clients_total;           // Numero total de canais
+  L7_uint16 n_clients_msg;             // Numero de canais presentes na mensagem  
+} __attribute__((packed)) msg_MCActiveChannelClientsRequest_t;
+
+typedef struct _st_MCActiveChannelClientsResponse
 {
   uint8  SlotId;                       // slot
   uint32 evc_id;                       // index: EVCid      /* L7_uint32 */
@@ -1810,7 +1822,7 @@ typedef struct _st_MCActiveChannelClients
     msg_HwEthInterface_t     intf;             /* [mask=0x04] interface  */
     L7_uint32                evc_id;           /* [mask=0x08] Service Id */
   } __attribute__((packed))  clients_list[MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX]; // List of clients
-} __attribute__((packed)) msg_MCActiveChannelClients_t;
+} __attribute__((packed)) msg_MCActiveChannelClientsResponse_t;
 
 // Message CCMSG_MGMD_SNOOP_SYNC_REQUEST
 typedef struct

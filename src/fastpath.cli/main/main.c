@@ -117,7 +117,7 @@ void help_oltBuga(void)
         "m 1411 vlan1[2-4093] ipaddr1[ddd.ddd.ddd.ddd] vlan2 ipaddr2 ... - IGMP snooping querier: Add vlan and its ip address\r\n"
 //      "m 1412 vlan1[2-4093] vlan2 ... - IGMP snooping querier: remove vlans\r\n"*/
         "m 1420 EVC# page_idx(0..) intfType/intf# [svid(1-4095)] [cvid(1-4095/0)] - List active channels for a particular EVC and client\r\n"
-        "m 1421 EVC# page_idx(0..) ipchannel(d.d.d.d) - List clients watching a channel (ip) associated to this EVCid\r\n"
+        "m 1421 EVC# page_idx(0..) ipchannel(d.d.d.d) ipSource(d.d.d.d) - List clients watching a channel (ip) associated to this EVCid\r\n"
         "m 1430 EVC# ipchannel(d.d.d.d) sourceAddr(d.d.d.d) - Add static MC channel\r\n"
         "m 1431 EVC# ipchannel(d.d.d.d) sourceAddr(d.d.d.d) - Remove static MC channel\r\n"
         "--- LAGs -----------------------------------------------------------------------------------------------------------------------------\n\r"
@@ -3932,17 +3932,17 @@ int main (int argc, char *argv[])
 
       case 1421:
         {
-          msg_MCActiveChannelClients_t *ptr;
+          msg_MCActiveChannelClientsRequest_t *ptr;
 
           // Validate number of arguments
-          if (argc<3+1)  {
+          if (argc<4+1)  {
             help_oltBuga();
             exit(0);
           }
 
           // Pointer to data array
-          ptr = (msg_MCActiveChannelClients_t *) &(comando.info[0]);
-          memset(ptr,0x00,sizeof(msg_MCActiveChannelClients_t));
+          ptr = (msg_MCActiveChannelClientsRequest_t *) &(comando.info[0]);
+          memset(ptr,0x00,sizeof(msg_MCActiveChannelClientsRequest_t));
 
           ptr->SlotId = (uint8)-1;
 
@@ -3970,8 +3970,18 @@ int main (int argc, char *argv[])
             ptr->channelIp.s_addr = (L7_uint32) valued;
           }
 
+          if (argc>=3+4)
+          {
+            // Channel IP
+            if (convert_ipaddr2uint64(argv[3+3],&valued)<0)  {
+              help_oltBuga();
+              exit(0);
+            }
+            ptr->sourceIp.s_addr = (L7_uint32) valued;
+          }
+
           comando.msgId = CCMSG_ETH_IGMP_CLIENT_GROUPS_GET;
-          comando.infoDim = sizeof(msg_MCActiveChannelClients_t);
+          comando.infoDim = sizeof(msg_MCActiveChannelClientsRequest_t);
         }
         break;
 
@@ -8088,16 +8098,17 @@ int main (int argc, char *argv[])
 
       case 1421:
         {
-          msg_MCActiveChannelClients_t *po=(msg_MCActiveChannelClients_t *) &resposta.info[0];
+          msg_MCActiveChannelClientsResponse_t *po=(msg_MCActiveChannelClientsResponse_t *) &resposta.info[0];
           uint16 i;
 
           if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))  {
-            if (resposta.infoDim!=sizeof(msg_MCActiveChannelClients_t)) {
+            if (resposta.infoDim!=sizeof(msg_MCActiveChannelClientsResponse_t)) {
               printf(" Switch: Invalid structure size\r\n");
               break;
             }
-            printf(" MC clients for Slot=%u, EVC=%lu and channel %03lu.%03lu.%03lu.%03lu (total=%u)\n\r",po->SlotId, po->evc_id,
+            printf(" MC clients for Slot=%u, EVC=%lu and channel:%03lu.%03lu.%03lu.%03lu sourceIp:%03lu.%03lu.%03lu.%03lu (total=%u)\n\r",po->SlotId, po->evc_id,
                    (po->channelIp.s_addr>>24) & 0xFF, (po->channelIp.s_addr>>16) & 0xFF, (po->channelIp.s_addr>>8) & 0xFF, po->channelIp.s_addr & 0xFF,
+                   (po->sourceIp.s_addr>>24) & 0xFF, (po->sourceIp.s_addr>>16) & 0xFF, (po->sourceIp.s_addr>>8) & 0xFF, po->sourceIp.s_addr & 0xFF,
                    po->n_clients_total);
             printf("Page %u of %u:\r\n",po->page_index,po->n_pages_total);
             for (i=0; i<po->n_clients_msg; i++) {
