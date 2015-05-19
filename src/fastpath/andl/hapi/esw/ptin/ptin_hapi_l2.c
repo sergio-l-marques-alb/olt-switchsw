@@ -227,6 +227,8 @@ L7_RC_t ptin_hapi_maclimit_inc(bcmx_l2_addr_t *bcmx_l2_addr)
     /* Feature enabled? */
     if (macLearn_info_lag[tgid].enable == L7_FALSE)
     { 
+      macLearn_info_lag[tgid].mac_counter++;
+      macLearn_info_lag[tgid].mac_total++;
       return L7_FAILURE;
     }
      
@@ -298,6 +300,8 @@ L7_RC_t ptin_hapi_maclimit_inc(bcmx_l2_addr_t *bcmx_l2_addr)
       /* Feature enabled? */
       if (macLearn_info_physical[physical_port].enable == L7_FALSE)
       { 
+        macLearn_info_physical[physical_port].mac_counter++;
+        macLearn_info_physical[physical_port].mac_total++;
         return L7_FAILURE;
       }
       
@@ -479,6 +483,8 @@ L7_RC_t ptin_hapi_maclimit_dec(bcmx_l2_addr_t *bcmx_l2_addr)
     /* Feature enabled? */
     if (macLearn_info_lag[tgid].enable == L7_FALSE)
     {
+      macLearn_info_lag[tgid].mac_counter--;
+      macLearn_info_lag[tgid].mac_total--;
       return L7_FAILURE;
     }
 
@@ -538,6 +544,8 @@ L7_RC_t ptin_hapi_maclimit_dec(bcmx_l2_addr_t *bcmx_l2_addr)
     /* Feature enabled? */
     if (macLearn_info_physical[physical_port].enable == L7_FALSE)
     {
+      macLearn_info_physical[physical_port].mac_counter--;
+      macLearn_info_physical[physical_port].mac_total--;
       return L7_FAILURE;
     }
 
@@ -1028,11 +1036,11 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, int mac_
     limit.limit = mac_limit;
   }
 
-  LOG_NOTICE(LOG_CTX_PTIN_HAPI, "flags  0x%.4X", limit.flags);
-  LOG_NOTICE(LOG_CTX_PTIN_HAPI, "trunk  %u", limit.trunk);
-  LOG_NOTICE(LOG_CTX_PTIN_HAPI, "port   %u", limit.port);
-  LOG_NOTICE(LOG_CTX_PTIN_HAPI, "vlan   %u", limit.vlan);
-  LOG_NOTICE(LOG_CTX_PTIN_HAPI, "limit  %u", limit.limit);
+  //LOG_NOTICE(LOG_CTX_PTIN_HAPI, "flags  0x%.4X", limit.flags);
+  //LOG_NOTICE(LOG_CTX_PTIN_HAPI, "trunk  %u", limit.trunk);
+  //LOG_NOTICE(LOG_CTX_PTIN_HAPI, "port   %u", limit.port);
+  //LOG_NOTICE(LOG_CTX_PTIN_HAPI, "vlan   %u", limit.vlan);
+  //LOG_NOTICE(LOG_CTX_PTIN_HAPI, "limit  %u", limit.limit);
 
   #if(PTIN_BOARD != PTIN_BOARD_CXO640G) /*Not supported in Trident(Plus). */
 
