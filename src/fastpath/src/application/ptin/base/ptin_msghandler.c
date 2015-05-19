@@ -1795,12 +1795,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     {
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message received: CCMSG_ETH_MAC_ENTRY_REMOVE (0x%04X)", CCMSG_ETH_MAC_ENTRY_REMOVE);
-      CHECK_INFO_SIZE(msg_switch_mac_table_t);
+      CHECK_INFO_SIZE(msg_switch_mac_table_entry_t);
 
-      msg_switch_mac_table_t *mac_table = (msg_switch_mac_table_t *) inbuffer->info;
+      msg_switch_mac_table_entry_t *mac_table = (msg_switch_mac_table_entry_t *) inbuffer->info;
+      L7_uint32 n = inbuffer->infoDim /(sizeof(msg_switch_mac_table_entry_t));
 
       /* Execute command */
-      rc = ptin_msg_l2_macTable_remove(mac_table);
+      rc = ptin_msg_l2_macTable_remove(mac_table, n);
 
       if (L7_SUCCESS != rc)
       {
@@ -1821,12 +1822,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     {
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message received: CCMSG_ETH_MAC_ENTRY_ADD (0x%04X)", CCMSG_ETH_MAC_ENTRY_ADD);
-      CHECK_INFO_SIZE(msg_switch_mac_table_t);
+      CHECK_INFO_SIZE(msg_switch_mac_table_entry_t);
 
-      msg_switch_mac_table_t *mac_table = (msg_switch_mac_table_t *) inbuffer->info;
+      msg_switch_mac_table_entry_t *mac_table = (msg_switch_mac_table_entry_t *) inbuffer->info;
+      L7_uint32 n = inbuffer->infoDim /(sizeof(msg_switch_mac_table_entry_t));
 
       /* Execute command */
-      rc = ptin_msg_l2_macTable_add(mac_table);
+      rc = ptin_msg_l2_macTable_add(mac_table, n);
 
       if (L7_SUCCESS != rc)
       {
@@ -3069,13 +3071,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message received: CCMSG_ETH_DHCP_BIND_TABLE_CLEAR (0x%04X)", inbuffer->msgId);
 
-      CHECK_INFO_SIZE(msg_DHCPv4v6_bind_table_t);
+      CHECK_INFO_SIZE(msg_DHCP_bind_table_entry_t);
 
-      msg_DHCPv4v6_bind_table_t *ptr;
-      ptr = (msg_DHCPv4v6_bind_table_t *) inbuffer->info;
+      msg_DHCP_bind_table_entry_t *bind_table;
+      bind_table = (msg_DHCP_bind_table_entry_t *) inbuffer->info;
+      L7_uint32 n = inbuffer->infoDim /(sizeof(msg_DHCP_bind_table_entry_t));
 
       /* Execute command */
-      rc = ptin_msg_DHCP_bindTable_remove(ptr);
+      rc = ptin_msg_DHCP_bindTable_remove(bind_table, n);
 
       if (L7_SUCCESS != rc)
       {

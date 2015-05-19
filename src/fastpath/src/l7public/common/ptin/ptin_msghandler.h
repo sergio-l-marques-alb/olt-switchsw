@@ -132,7 +132,7 @@
 #define CCMSG_ETH_DHCP_INTF_STATS_CLEAR     0x90C6  // struct msg_DhcpClientStatistics_t
 
 #define CCMSG_ETH_DHCP_BIND_TABLE_GET       0x90C7  // struct msg_DHCP_bind_table_t
-#define CCMSG_ETH_DHCP_BIND_TABLE_REMOVE    0x90C8  // struct msg_DHCP_bind_table_t
+#define CCMSG_ETH_DHCP_BIND_TABLE_REMOVE    0x90C8  // struct msg_DHCP_bind_table_entry_t
                                                     //
 #define CCMSG_ETH_DHCP_EVC_CIRCUITID_SET    0x90C9  // struct msg_AccessNodeCircuitId_t
 #define CCMSG_ETH_DHCP_EVC_CIRCUITID_GET    0x90CA  // struct msg_AccessNodeCircuitId_t
@@ -151,9 +151,9 @@
 #define CCMSG_ETH_PORT_COS3_SET             0x9095  // struct msg_QoSConfiguration3_t
 
 #define CCMSG_ETH_MAC_TABLE_SHOW            0x90A2  // struct msg_switch_mac_table_t
-#define CCMSG_ETH_MAC_ENTRY_REMOVE          0x90A3  // struct msg_switch_mac_table_t
-#define CCMSG_ETH_MAC_ENTRY_ADD             0x90A4  // struct msg_switch_mac_table_t
-#define CCMSG_ETH_MAC_TABLE_SHOW2           0x90A5  // struct msg_switch_mac_table2_t
+#define CCMSG_ETH_MAC_ENTRY_REMOVE          0x90A3  // struct msg_switch_mac_table_entry_t
+#define CCMSG_ETH_MAC_ENTRY_ADD             0x90A4  // struct msg_switch_mac_table_entry_t
+#define CCMSG_ETH_MAC_TABLE_SHOW2           0x90A5  // struct msg_switch_mac_table_t
 
 #define CCMSG_ETH_IGMP_CHANNEL_ASSOC_GET    0x906A  // struct msg_MCAssocChannel_t
 #define CCMSG_ETH_IGMP_CHANNEL_ASSOC_ADD    0x906B  // struct msg_MCAssocChannel_t
@@ -836,6 +836,13 @@ typedef struct {
     msg_switch_mac_entry    entry[MSG_CMDGET_MAC_TABLE_MAXENTRIES]; /* List of entries */
 } __attribute__((packed)) msg_switch_mac_table_t;
 
+// Messages CCMSG_ETH_MAC_ENTRY_ADD / CCMSG_ETH_MAC_ENTRY_REMOVE
+typedef struct {
+    L7_uint8              slotId;         /* Slot Id */
+    L7_uint32             entryId;        /* Entry id (starts from 0) */
+    msg_switch_mac_entry  entry;          /* Entry information */
+} __attribute__((packed)) msg_switch_mac_table_entry_t;
+
 #if 0
 typedef struct {
   L7_uint16 mac_index;                // MAC index (from 0 to 254)
@@ -1440,6 +1447,11 @@ typedef struct {
   L7_uint16 page;       // [mask = 0x01] Page index
 } __attribute__((packed)) msg_DHCP_bind_table_request_t;
 
+typedef struct {
+  uint8  SlotId;                        // slot
+  uint32 entryId;                       // Page index
+  msg_DHCPv4v6_bind_entry bind_entry;       // Bind entry
+} __attribute__((packed)) msg_DHCP_bind_table_entry_t;
 
 /***************************************************** 
  * IP Source Guard  configuration messages

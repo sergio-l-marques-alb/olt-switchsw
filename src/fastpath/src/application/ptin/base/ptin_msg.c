@@ -3990,13 +3990,14 @@ L7_RC_t ptin_msg_l2_macTable_get(msg_switch_mac_table_t *mac_table, int struct1o
 /**
  * Remove an address from the L2 table
  * 
- * @param mac_table: Mac list structure
+ * @param mac_table: Mac list structure 
+ * @param numEntries: Number of entries 
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_msg_l2_macTable_remove(msg_switch_mac_table_t *mac_table)
+L7_RC_t ptin_msg_l2_macTable_remove(msg_switch_mac_table_entry_t *mac_table, L7_uint16 numEntries)
 {
-  L7_uint32 i, numEntries;
+  L7_uint32 i;
   ptin_switch_mac_entry entry;
   L7_RC_t rc = L7_SUCCESS;
 
@@ -4009,16 +4010,17 @@ L7_RC_t ptin_msg_l2_macTable_remove(msg_switch_mac_table_t *mac_table)
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," SlotId       = %u",mac_table->intro.slotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," StartEntryId = %u",mac_table->intro.startEntryId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," NumEntries   = %u",mac_table->intro.numEntries);
+  /* Consider only a maximum of 256 elements */
+  if (numEntries > MSG_CMDGET_MAC_TABLE_MAXENTRIES)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_MSG,"numEntries limited from %u to %u", numEntries, MSG_CMDGET_MAC_TABLE_MAXENTRIES);
+    numEntries = MSG_CMDGET_MAC_TABLE_MAXENTRIES;
+  }
 
-  /* Get input number of MAC itemns, and majorate them */
-
-  numEntries = mac_table->intro.numEntries;
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," NumEntries   = %u", numEntries);
 
   /* If numEntries is -1, flush all L2 MAC entries */
-  if (numEntries==(L7_uint32)-1)
+  if (numEntries == 0)
   {
     if (ptin_l2_mac_table_flush()!=L7_SUCCESS)
     {
@@ -4031,25 +4033,19 @@ L7_RC_t ptin_msg_l2_macTable_remove(msg_switch_mac_table_t *mac_table)
       return L7_SUCCESS;
     }
   }
-  /* Consider only a maximum of 256 elements */
-  else if (numEntries>MSG_CMDGET_MAC_TABLE_MAXENTRIES)
-  {
-    LOG_WARNING(LOG_CTX_PTIN_MSG,"numEntries limited from %u to %u",numEntries,MSG_CMDGET_MAC_TABLE_MAXENTRIES);
-    numEntries = MSG_CMDGET_MAC_TABLE_MAXENTRIES;
-  }
 
   /* Remove all elements */
-  for (i=0; i<numEntries; i++)
+  for (i = 0; i < numEntries; i++)
   {
     entry.entryId = 0;
-    memcpy(entry.addr, mac_table->entry[i].addr, sizeof(L7_uint8)*6);
-    entry.evcId          = mac_table->entry[i].evcId;
-    entry.vlanId         = mac_table->entry[i].vlanId;
-    entry.intf.intf_type = mac_table->entry[i].intf.intf_type;
-    entry.intf.intf_id   = mac_table->entry[i].intf.intf_id;
-    entry.static_entry   = mac_table->entry[i].static_entry;
+    memcpy(entry.addr, mac_table[i].entry.addr, sizeof(L7_uint8)*6);
+    entry.evcId          = mac_table[i].entry.evcId;
+    entry.vlanId         = mac_table[i].entry.vlanId;
+    entry.intf.intf_type = mac_table[i].entry.intf.intf_type;
+    entry.intf.intf_id   = mac_table[i].entry.intf.intf_id;
+    entry.static_entry   = mac_table[i].entry.static_entry;
 
-    if (ptin_l2_mac_table_entry_remove(&entry)!=L7_SUCCESS)
+    if (ptin_l2_mac_table_entry_remove(&entry) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG,"Error removing index entry %u",i);
       rc = L7_FAILURE;
@@ -4066,13 +4062,14 @@ L7_RC_t ptin_msg_l2_macTable_remove(msg_switch_mac_table_t *mac_table)
 /**
  * Add an address to the L2 table
  * 
- * @param mac_table: Mac list structure
+ * @param mac_table: Mac list structure 
+ * @param numEntries: Number of entries
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_msg_l2_macTable_add(msg_switch_mac_table_t *mac_table)
+L7_RC_t ptin_msg_l2_macTable_add(msg_switch_mac_table_entry_t *mac_table, L7_uint16 numEntries)
 {
-  L7_uint32 i, numEntries;
+  L7_uint32 i;
   ptin_switch_mac_entry entry;
   L7_RC_t rc = L7_SUCCESS;
 
@@ -4085,31 +4082,25 @@ L7_RC_t ptin_msg_l2_macTable_add(msg_switch_mac_table_t *mac_table)
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," SlotId       = %u",mac_table->intro.slotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," StartEntryId = %u",mac_table->intro.startEntryId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," NumEntries   = %u",mac_table->intro.numEntries);
-
-  /* Get input number of MAC itemns, and majorate them */
-
-  numEntries = mac_table->intro.numEntries;
-
   /* Consider only a maximum of 256 elements */
-  if (numEntries>MSG_CMDGET_MAC_TABLE_MAXENTRIES)
+  if (numEntries > MSG_CMDGET_MAC_TABLE_MAXENTRIES)
   {
-    LOG_WARNING(LOG_CTX_PTIN_MSG,"numEntries limited from %u to %u",numEntries,MSG_CMDGET_MAC_TABLE_MAXENTRIES);
+    LOG_WARNING(LOG_CTX_PTIN_MSG,"numEntries limited from %u to %u", numEntries, MSG_CMDGET_MAC_TABLE_MAXENTRIES);
     numEntries = MSG_CMDGET_MAC_TABLE_MAXENTRIES;
   }
 
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," NumEntries   = %u", numEntries);
+
   /* Remove all elements */
-  for (i=0; i<numEntries; i++)
+  for (i = 0; i < numEntries; i++)
   {
     entry.entryId = 0;
-    memcpy(entry.addr, mac_table->entry[i].addr, sizeof(L7_uint8)*6);
-    entry.evcId          = mac_table->entry[i].evcId;
-    entry.vlanId         = mac_table->entry[i].vlanId;
-    entry.intf.intf_type = mac_table->entry[i].intf.intf_type;
-    entry.intf.intf_id   = mac_table->entry[i].intf.intf_id;
-    entry.static_entry   = mac_table->entry[i].static_entry;
+    memcpy(entry.addr, mac_table[i].entry.addr, sizeof(L7_uint8)*6);
+    entry.evcId          = mac_table[i].entry.evcId;
+    entry.vlanId         = mac_table[i].entry.vlanId;
+    entry.intf.intf_type = mac_table[i].entry.intf.intf_type;
+    entry.intf.intf_id   = mac_table[i].entry.intf.intf_id;
+    entry.static_entry   = mac_table[i].entry.static_entry;
 
     if (ptin_l2_mac_table_entry_add(&entry)!=L7_SUCCESS)
     {
@@ -4124,7 +4115,6 @@ L7_RC_t ptin_msg_l2_macTable_add(msg_switch_mac_table_t *mac_table)
 
   return rc;
 }
-
 
 /**
  * Configure L2 MAC Learn limit
@@ -7329,37 +7319,39 @@ L7_RC_t ptin_msg_DHCPv4v6_bindTable_get(msg_DHCP_bind_table_request_t *input, ms
 /**
  * Remove a DHCP bind table entry
  * 
- * @param table: bind table entries
+ * @param table: bind table entries 
+ * @param numEntries: number of entries 
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_msg_DHCP_bindTable_remove(msg_DHCPv4v6_bind_table_t *table)
+L7_RC_t ptin_msg_DHCP_bindTable_remove(msg_DHCP_bind_table_entry_t *table, L7_uint16 numEntries)
 {
-  L7_uint16           i, i_max;
+  L7_uint16           i;
   dhcpSnoopBinding_t  dsBinding;
   L7_RC_t             rc;
 
-  i_max = table->bind_table_msg_size;
-  if (i_max>128)  i_max = 128;
+  if (numEntries > 128)  numEntries = 128;
 
-  for (i=0; i<i_max ; i++)
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"NumEntries=%u", numEntries);
+
+  for (i=0; i<numEntries ; i++)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Evc_idx=%u",table->bind_table[i].evc_idx);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Port   = %u/%u",table->bind_table[i].intf.intf_type,table->bind_table[i].intf.intf_id);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"OVlan  = %u",table->bind_table[i].outer_vlan);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"IVlan  = %u",table->bind_table[i].inner_vlan);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Evc_idx=%u",    table[i].bind_entry.evc_idx);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Port   = %u/%u",table[i].bind_entry.intf.intf_type, table[i].bind_entry.intf.intf_id);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"OVlan  = %u",   table[i].bind_entry.outer_vlan);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"IVlan  = %u",   table[i].bind_entry.inner_vlan);
     LOG_DEBUG(LOG_CTX_PTIN_MSG,"MacAddr=%02X:%02X:%02X:%02X:%02X:%02X",
-              table->bind_table[i].macAddr[0],
-              table->bind_table[i].macAddr[1],
-              table->bind_table[i].macAddr[2],
-              table->bind_table[i].macAddr[3],
-              table->bind_table[i].macAddr[4],
-              table->bind_table[i].macAddr[5]);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"family = %u",table->bind_table[i].ipAddr.family);
+              table[i].bind_entry.macAddr[0],
+              table[i].bind_entry.macAddr[1],
+              table[i].bind_entry.macAddr[2],
+              table[i].bind_entry.macAddr[3],
+              table[i].bind_entry.macAddr[4],
+              table[i].bind_entry.macAddr[5]);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"family = %u",table[i].bind_entry.ipAddr.family);
 
     memset(&dsBinding,0x00,sizeof(dhcpSnoopBinding_t));
-    memcpy(dsBinding.key.macAddr,table->bind_table[i].macAddr,sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
-    dsBinding.key.ipType = (table->bind_table[i].ipAddr.family==0)?(L7_AF_INET):(L7_AF_INET6);
+    memcpy(dsBinding.key.macAddr, table[i].bind_entry.macAddr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
+    dsBinding.key.ipType = (table[i].bind_entry.ipAddr.family==0) ? (L7_AF_INET) : (L7_AF_INET6);
     rc = ptin_dhcp82_bindtable_remove(&dsBinding);
 
     if (rc!=L7_SUCCESS)
@@ -7372,7 +7364,6 @@ L7_RC_t ptin_msg_DHCP_bindTable_remove(msg_DHCPv4v6_bind_table_t *table)
 
   return L7_SUCCESS;
 }
-
 
 /*IP Source Guard Management Functions **************************************************/
 

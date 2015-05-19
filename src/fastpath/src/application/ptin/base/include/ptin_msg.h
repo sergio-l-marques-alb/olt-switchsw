@@ -439,20 +439,22 @@ extern L7_RC_t ptin_msg_l2_macTable_get(msg_switch_mac_table_t *mac_table, int s
 /**
  * Remove an address from the L2 table
  * 
- * @param mac_table: Mac list structure
+ * @param mac_table: Mac list structure 
+ * @param numEntries: Number of entries 
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_msg_l2_macTable_remove(msg_switch_mac_table_t *mac_table);
+extern L7_RC_t ptin_msg_l2_macTable_remove(msg_switch_mac_table_entry_t *mac_table, L7_uint16 numEntries);
 
 /**
  * Add an address to the L2 table
  * 
- * @param mac_table: Mac list structure
+ * @param mac_table: Mac list structure 
+ * @param numEntries: Number of entries
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_msg_l2_macTable_add(msg_switch_mac_table_t *mac_table);
+extern L7_RC_t ptin_msg_l2_macTable_add(msg_switch_mac_table_entry_t *mac_table, L7_uint16 numEntries);
 
 /**
  * Configure L2 MAC Learn limit
@@ -855,11 +857,12 @@ extern L7_RC_t ptin_msg_DHCPv4v6_bindTable_get(msg_DHCP_bind_table_request_t *in
 /**
  * Remove a DHCP bind table entry
  * 
- * @param table: bind table entries
+ * @param table: bind table entries 
+ * @param numEntries: number of entries 
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_msg_DHCP_bindTable_remove(msg_DHCPv4v6_bind_table_t *table);
+extern L7_RC_t ptin_msg_DHCP_bindTable_remove(msg_DHCP_bind_table_entry_t *table, L7_uint16 numEntries);
 
 /* IPSG Management Functions **************************************************/
 
