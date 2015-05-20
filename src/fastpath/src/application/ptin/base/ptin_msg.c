@@ -5006,11 +5006,17 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
     {
     case PTIN_MSG_OPER_ADD:
       if ((rc=ptin_evc_port_add(msgEvcPort[i].evcId, &ptinEvcPort)) != L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding port %u/%u to EVC# %u", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId);
+      {        
         rc_global = rc;
         if (IS_FAILURE_ERROR(rc))
+        {
+          LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding port %u/%u to EVC# %u (rc:%u)", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId, rc);
           rc_global_failure = rc;
+        }
+        else
+        {
+          //Notice Already Logged
+        }
       }
       else
       {

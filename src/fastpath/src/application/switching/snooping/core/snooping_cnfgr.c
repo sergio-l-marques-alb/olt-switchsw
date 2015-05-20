@@ -1347,12 +1347,12 @@ L7_RC_t snoopEBInit(void)
 
   /* Create Heap for AVL tree */
   pSnoopEB = &snoopEB;
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopTreeHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(avlTreeTables_t));
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"snoopTreeHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(avlTreeTables_t));
   pSnoopEB->snoopTreeHeap =
                           (avlTreeTables_t *)osapiMalloc(L7_SNOOPING_COMPONENT_ID,
                           L7_MAX_GROUP_REGISTRATION_ENTRIES *
                           sizeof(avlTreeTables_t));
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopDataHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(snoopInfoData_t));
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"snoopDataHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(snoopInfoData_t));
   pSnoopEB->snoopDataHeap  = (snoopInfoData_t *)osapiMalloc(L7_SNOOPING_COMPONENT_ID,
                               L7_MAX_GROUP_REGISTRATION_ENTRIES *
                               sizeof(snoopInfoData_t));
@@ -1374,13 +1374,13 @@ L7_RC_t snoopEBInit(void)
 
   /*Alloc Memory for IPMC*/
   {        
-    LOG_WARNING(LOG_CTX_PTIN_IGMP,"snoopIpmcTreeHeap: Allocating %u",PTIN_SYSTEM_IGMP_L3_MULTICAST_MAX_ENTRIES*sizeof(avlTreeTables_t));  
+    LOG_INFO(LOG_CTX_PTIN_IGMP,"snoopChannelTreeHeap: Allocating %u",PTIN_SYSTEM_IGMP_L3_MULTICAST_MAX_ENTRIES*sizeof(avlTreeTables_t));  
     pSnoopEB->snoopChannelTreeHeap =
                           (avlTreeTables_t *)osapiMalloc(L7_SNOOPING_COMPONENT_ID,
                             PTIN_SYSTEM_IGMP_L3_MULTICAST_MAX_ENTRIES *
                             sizeof(avlTreeTables_t));
 
-    LOG_WARNING(LOG_CTX_PTIN_IGMP,"snoopIpmcDataHeap: Allocating %u",PTIN_SYSTEM_IGMP_L3_MULTICAST_MAX_ENTRIES*sizeof(snoopChannelInfoData_t));     
+    LOG_INFO(LOG_CTX_PTIN_IGMP,"snoopChannelDataHeap: Allocating %u",PTIN_SYSTEM_IGMP_L3_MULTICAST_MAX_ENTRIES*sizeof(snoopChannelInfoData_t));     
     pSnoopEB->snoopChannelDataHeap  = (snoopChannelInfoData_t *)osapiMalloc(L7_SNOOPING_COMPONENT_ID,
                                 PTIN_SYSTEM_IGMP_L3_MULTICAST_MAX_ENTRIES *
                                 sizeof(snoopChannelInfoData_t));
@@ -1394,7 +1394,7 @@ L7_RC_t snoopEBInit(void)
       return L7_FAILURE;
     }
 
-    LOG_WARNING(LOG_CTX_PTIN_IGMP,"snoopIpmcAvlTree: Allocating %u",sizeof(avlTree_t));
+    LOG_INFO(LOG_CTX_PTIN_IGMP,"snoopChannelAvlTree: Allocating %u",sizeof(avlTree_t));
     /* AVL Tree creations - snoopIpmcAvlTree*/
     avlCreateAvlTree(&(pSnoopEB->snoopChannelAvlTree),  pSnoopEB->snoopChannelTreeHeap,
                      pSnoopEB->snoopChannelDataHeap, PTIN_SYSTEM_IGMP_L3_MULTICAST_MAX_ENTRIES,
@@ -1404,13 +1404,13 @@ L7_RC_t snoopEBInit(void)
 
   /*Alloc Data for Group Interface Mask*/
   { 
-    LOG_WARNING(LOG_CTX_PTIN_IGMP,"snoopGroupIntfMaskTreeHeap: Allocating %u",PTIN_SYSTEM_IGMP_L3_MULTICAST_MAX_ENTRIES*sizeof(avlTreeTables_t));
+    LOG_INFO(LOG_CTX_PTIN_IGMP,"snoopChannelIntfMaskTreeHeap: Allocating %u",PTIN_SYSTEM_IGMP_L3_MULTICAST_MAX_ENTRIES*sizeof(avlTreeTables_t));
     pSnoopEB->snoopChannelIntfMaskTreeHeap =
                             (avlTreeTables_t *)osapiMalloc(L7_SNOOPING_COMPONENT_ID,
                             PTIN_SYSTEM_IGMP_L3_MULTICAST_MAX_ENTRIES *
                             sizeof(avlTreeTables_t));
 
-    LOG_WARNING(LOG_CTX_PTIN_IGMP,"snoopGroupIntfMaskDataHeap: Allocating %u",PTIN_SYSTEM_IGMP_L3_MULTICAST_MAX_ENTRIES*sizeof(snoopChannelIntfMaskInfoData_t)); 
+    LOG_INFO(LOG_CTX_PTIN_IGMP,"snoopChannelIntfMaskTreeHeap: Allocating %u",PTIN_SYSTEM_IGMP_L3_MULTICAST_MAX_ENTRIES*sizeof(snoopChannelIntfMaskInfoData_t)); 
     pSnoopEB->snoopChannelIntfMaskDataHeap  = (snoopChannelIntfMaskInfoData_t *)osapiMalloc(L7_SNOOPING_COMPONENT_ID,
                                 PTIN_SYSTEM_IGMP_L3_MULTICAST_MAX_ENTRIES *
                                 sizeof(snoopChannelIntfMaskInfoData_t));
@@ -1424,7 +1424,7 @@ L7_RC_t snoopEBInit(void)
       return L7_FAILURE;
     }
 
-    LOG_WARNING(LOG_CTX_PTIN_IGMP,"snoopGroupIntfMaskAvlTree: Allocating %u",sizeof(avlTree_t));
+    LOG_INFO(LOG_CTX_PTIN_IGMP,"snoopChannelIntfMaskAvlTree: Allocating %u",sizeof(avlTree_t));
     /* AVL Tree creations - snoopGroupIntfMaskAvlTree*/
     avlCreateAvlTree(&(pSnoopEB->snoopChannelIntfMaskAvlTree),  pSnoopEB->snoopChannelIntfMaskTreeHeap,
                      pSnoopEB->snoopChannelIntfMaskDataHeap, PTIN_SYSTEM_IGMP_L3_MULTICAST_MAX_ENTRIES,
@@ -1433,25 +1433,25 @@ L7_RC_t snoopEBInit(void)
     
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE=%u PTIN_SYSTEM_MAXINTERFACES_PER_GROUP=%u",PTIN_SYSTEM_IGMP_MAXCLIENTS,PTIN_SYSTEM_MAXINTERFACES_PER_GROUP);
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinL3TreeHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(avlTreeTables_t));
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinL3DataHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(snoopPTinL3InfoData_t));
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE=%u PTIN_SYSTEM_MAXINTERFACES_PER_GROUP=%u",PTIN_SYSTEM_IGMP_MAXCLIENTS,PTIN_SYSTEM_MAXINTERFACES_PER_GROUP);
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"snoopPTinL3TreeHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(avlTreeTables_t));
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"snoopPTinL3DataHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(snoopPTinL3InfoData_t));
 
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxySourceAvlTree: Allocating %u",sizeof(avlTree_t));
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxySourceTreeHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(avlTreeTables_t));
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxySourceDataHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(snoopPTinProxySource_t));
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"snoopPTinProxySourceAvlTree: Allocating %u",sizeof(avlTree_t));
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"snoopPTinProxySourceTreeHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(avlTreeTables_t));
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"snoopPTinProxySourceDataHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(snoopPTinProxySource_t));
 
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxySourceAvlTree: Allocating %u",sizeof(avlTree_t));
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxySourceTreeHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(avlTreeTables_t));
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxySourceDataHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(snoopPTinProxySource_t));
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"snoopPTinProxySourceAvlTree: Allocating %u",sizeof(avlTree_t));
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"snoopPTinProxySourceTreeHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(avlTreeTables_t));
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"snoopPTinProxySourceDataHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(snoopPTinProxySource_t));
 
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxyGroupAvlTree: Allocating %u",sizeof(avlTree_t));
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxyGroupTreeHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(avlTreeTables_t));
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxyGroupDataHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(snoopPTinProxyGroup_t));
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"snoopPTinProxyGroupAvlTree: Allocating %u",sizeof(avlTree_t));
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"snoopPTinProxyGroupTreeHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(avlTreeTables_t));
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"snoopPTinProxyGroupDataHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(snoopPTinProxyGroup_t));
 
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxyInterfaceAvlTree: Allocating %u",sizeof(avlTree_t));
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxyInterfaceTreeHeap: Allocating %u",PTIN_SYSTEM_N_IGMP_INSTANCES*sizeof(avlTreeTables_t));
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"snoopPTinProxyInterfaceDataHeap: Allocating %u",PTIN_SYSTEM_N_IGMP_INSTANCES*sizeof(snoopPTinProxyInterface_t));
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"snoopPTinProxyInterfaceAvlTree: Allocating %u",sizeof(avlTree_t));
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"snoopPTinProxyInterfaceTreeHeap: Allocating %u",PTIN_SYSTEM_N_IGMP_INSTANCES*sizeof(avlTreeTables_t));
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"snoopPTinProxyInterfaceDataHeap: Allocating %u",PTIN_SYSTEM_N_IGMP_INSTANCES*sizeof(snoopPTinProxyInterface_t));
 
 
 /* DFF - PTin added: IGMPv3 snooping */
