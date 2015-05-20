@@ -190,35 +190,35 @@ extern void logger_print(log_context_t ctx, log_severity_t sev, char const *file
                          char const *func, int line, char const *fmt, ...);
 
 
-#define LOG_PT_TRACE( ctx , fmt , args... ) \
+#define PT_LOG_TRACE( ctx , fmt , args... ) \
         logger_print( ctx, LOG_SEV_TRACE, NULL, __FUNCTION__, __LINE__, fmt, ##args )
     
-#define LOG_PT_DEBUG( ctx , fmt , args... ) \
+#define PT_LOG_DEBUG( ctx , fmt , args... ) \
         logger_print( ctx, LOG_SEV_DEBUG, NULL, __FUNCTION__, __LINE__, fmt, ##args )
     
-#define LOG_PT_INFO( ctx , fmt , args... ) \
+#define PT_LOG_INFO( ctx , fmt , args... ) \
         logger_print( ctx, LOG_SEV_INFO, NULL, __FUNCTION__, __LINE__, fmt, ##args )
     
-#define LOG_PT_NOTICE( ctx , fmt , args... ) \
+#define PT_LOG_NOTICE( ctx , fmt , args... ) \
         logger_print( ctx, LOG_SEV_NOTICE, NULL, __FUNCTION__, __LINE__, fmt, ##args )
     
-#define LOG_PT_WARN( ctx , fmt , args... ) \
+#define PT_LOG_WARN( ctx , fmt , args... ) \
         logger_print( ctx, LOG_SEV_WARNING, NULL, __FUNCTION__, __LINE__, fmt, ##args )
     
-#define LOG_PT_ERR( ctx , fmt , args... ) \
+#define PT_LOG_ERR( ctx , fmt , args... ) \
         logger_print( ctx, LOG_SEV_ERROR, NULL, __FUNCTION__, __LINE__, fmt, ##args )
     
-#define LOG_PT_CRITIC( ctx , fmt , args... ) \
+#define PT_LOG_CRITIC( ctx , fmt , args... ) \
         logger_print( ctx, LOG_SEV_CRITICAL, NULL, __FUNCTION__, __LINE__, fmt, ##args )
     
-#define LOG_PT_FATAL( ctx , fmt , args... ) \
+#define PT_LOG_FATAL( ctx , fmt , args... ) \
         logger_print( ctx, LOG_SEV_FATAL, NULL, __FUNCTION__, __LINE__, fmt, ##args )
     
     
-#define LOG_PT_PRINT( ctx , fmt , args... ) \
+#define PT_LOG_PRINT( ctx , fmt , args... ) \
         logger_print( ctx, LOG_SEV_PRINT, NULL, NULL, 0, fmt, ##args )
     
 #define LOGGER_PRINT( ctx , fmt , args... ) \
-        LOG_PT_PRINT( ctx , fmt , args... )
+        PT_LOG_PRINT( ctx , fmt , args... )
 
 #endif /* _LOGGER_H */

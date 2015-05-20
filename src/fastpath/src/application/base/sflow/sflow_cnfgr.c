@@ -817,7 +817,7 @@ void sFlowCnfgrFiniPhase2Process(void)
 {
   sysnetNotifyEntry_t snEntry;
 
-  LOG_PT_NOTICE(LOG_CTX_CNFGR, "ATTENTION: sFlow callback will be deregistered!");
+  PT_LOG_NOTICE(LOG_CTX_CNFGR, "ATTENTION: sFlow callback will be deregistered!");
 
   /* deregistrations with
              NIM, NVStore, sysNet

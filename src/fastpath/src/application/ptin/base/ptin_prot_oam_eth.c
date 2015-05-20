@@ -215,40 +215,40 @@ st_RegEthOAMTrap v;
 }
 void ethsrv_oam_register_mismerge(T_MEG_ID *meg_id, L7_uint16 mep_id, L7_uint16 mep_indx, L7_uint16 porta, L7_uint64 vid) {
     ethsrv_oam_register(UNEXP_MEG, 0xffff, meg_id, mep_id, porta, vid);
-    LOG_PT_TRACE(LOG_CTX_OAM,"UNEXP_MEG imep=%u mep_id=%u port=%u vid=%llu", mep_indx, mep_id, porta, vid);
+    PT_LOG_TRACE(LOG_CTX_OAM,"UNEXP_MEG imep=%u mep_id=%u port=%u vid=%llu", mep_indx, mep_id, porta, vid);
 }
 void ethsrv_oam_register_LVL(T_MEG_ID *meg_id, L7_uint16 mep_id, L7_uint16 mep_indx, L7_uint16 porta, L7_uint64 vid, L7_uint8 level) {
     ethsrv_oam_register(UNEXP_LVL, 0xffff, meg_id, mep_id, porta, vid);
-    LOG_PT_TRACE(LOG_CTX_OAM,"UNEXP_LVL imep=%u mep_id=%u port=%u vid=%llu", mep_indx, mep_id, porta, vid);
+    PT_LOG_TRACE(LOG_CTX_OAM,"UNEXP_LVL imep=%u mep_id=%u port=%u vid=%llu", mep_indx, mep_id, porta, vid);
 }
 void ethsrv_oam_register_T(T_MEG_ID *meg_id, L7_uint16 mep_id, L7_uint16 mep_indx, L7_uint16 porta, L7_uint64 vid, L7_uint8 period) {
     ethsrv_oam_register(UNEXP_T, 0xffff, meg_id, mep_id, porta, vid);
-    LOG_PT_TRACE(LOG_CTX_OAM,"UNEXP_T imep=%u mep_id=%u port=%u vid=%llu", mep_indx, mep_id, porta, vid);
+    PT_LOG_TRACE(LOG_CTX_OAM,"UNEXP_T imep=%u mep_id=%u port=%u vid=%llu", mep_indx, mep_id, porta, vid);
 }
 void ethsrv_oam_register_unexpected_MEP_potential_loop(T_MEG_ID *meg_id, L7_uint16 mep_id, L7_uint16 mep_indx, L7_uint16 porta, L7_uint64 vid) {}
 void ethsrv_oam_register_unexpected_MEP_id(T_MEG_ID *meg_id, L7_uint16 mep_id, L7_uint16 mep_indx, L7_uint16 porta, L7_uint64 vid) {
     ethsrv_oam_register(UNEXP_MEP, 0xffff, meg_id, mep_id, porta, vid);
-    LOG_PT_TRACE(LOG_CTX_OAM,"UNEXP_MEP imep=%u mep_id=%u port=%u vid=%llu", mep_indx, mep_id, porta, vid);
+    PT_LOG_TRACE(LOG_CTX_OAM,"UNEXP_MEP imep=%u mep_id=%u port=%u vid=%llu", mep_indx, mep_id, porta, vid);
 }
 void ethsrv_oam_register_connection_restored(L7_uint8 *meg_id, L7_uint16 mep_id, L7_uint16 rmep_id, L7_uint16 port, L7_uint64 vid) {
     //send_trap_ETH_OAM_uplinkprot(port, 0, MEP_LOC, vid);
     ethsrv_oam_register(ME_CONNECTION_UP, rmep_id, (T_MEG_ID*) meg_id, mep_id, port, vid);
-    LOG_PT_TRACE(LOG_CTX_OAM,"ME_CONNECTION_UP imep=? mep_id=%u rmep_id=%u port=%u vid=%llu", mep_id, rmep_id, port, vid);
+    PT_LOG_TRACE(LOG_CTX_OAM,"ME_CONNECTION_UP imep=? mep_id=%u rmep_id=%u port=%u vid=%llu", mep_id, rmep_id, port, vid);
 }
 void ethsrv_oam_register_receiving_RDI(L7_uint8 *meg_id, L7_uint16 mep_id, L7_uint16 rmep_id, L7_uint16 port, L7_uint64 vid) {
     //send_trap_ETH_OAM_uplinkprot(port, MEP_RDI, MEP_RDI, vid);
     ethsrv_oam_register(ME_RDI, rmep_id, (T_MEG_ID*) meg_id, mep_id, port, vid);
-    LOG_PT_TRACE(LOG_CTX_OAM,"ME_RDI imep=? mep_id=%u rmep_id=%u port=%u vid=%llu", mep_id, rmep_id, port, vid);
+    PT_LOG_TRACE(LOG_CTX_OAM,"ME_RDI imep=? mep_id=%u rmep_id=%u port=%u vid=%llu", mep_id, rmep_id, port, vid);
 }
 void ethsrv_oam_register_RDI_END(L7_uint8 *meg_id, L7_uint16 mep_id, L7_uint16 rmep_id, L7_uint16 port, L7_uint64 vid) {
     //send_trap_ETH_OAM_uplinkprot(port, 0, MEP_RDI, vid);
     ethsrv_oam_register(ME_RDI_END, rmep_id, (T_MEG_ID*) meg_id, mep_id, port, vid);
-    LOG_PT_TRACE(LOG_CTX_OAM,"ME_RDI_END imep=? mep_id=%u rmep_id=%u port=%u vid=%llu", mep_id, rmep_id, port, vid);
+    PT_LOG_TRACE(LOG_CTX_OAM,"ME_RDI_END imep=? mep_id=%u rmep_id=%u port=%u vid=%llu", mep_id, rmep_id, port, vid);
 }
 void ethsrv_oam_register_connection_loss(L7_uint8 *meg_id, L7_uint16 mep_id, L7_uint16 rmep_id, L7_uint16 port, L7_uint64 vid) {
     //send_trap_ETH_OAM_uplinkprot(port, MEP_LOC, MEP_LOC, vid);
     ethsrv_oam_register(ME_CONNECTION_LOSS, rmep_id, (T_MEG_ID*) meg_id, mep_id, port, vid);
-    LOG_PT_TRACE(LOG_CTX_OAM,"ME_CONNECTION_LOSS imep=? mep_id=%u rmep_id=%u port=%u vid=%llu", mep_id, rmep_id, port, vid);
+    PT_LOG_TRACE(LOG_CTX_OAM,"ME_CONNECTION_LOSS imep=? mep_id=%u rmep_id=%u port=%u vid=%llu", mep_id, rmep_id, port, vid);
 }
 
 
@@ -283,7 +283,7 @@ int send_eth_pckt(L7_uint16 port, L7_uint8 up1_down0,
   if (!ptin_fgpa_mx_is_matrixactive())
   {
     if (ptin_debug_oam)
-      LOG_PT_DEBUG(LOG_CTX_OAM,"Silently ignoring packet transmission. I'm a Slave Matrix");
+      PT_LOG_DEBUG(LOG_CTX_OAM,"Silently ignoring packet transmission. I'm a Slave Matrix");
     return L7_SUCCESS;
   }
 #endif
@@ -298,7 +298,7 @@ int send_eth_pckt(L7_uint16 port, L7_uint8 up1_down0,
     if ( (nimGetIntfActiveState(intIfNum, &activeState) != L7_SUCCESS) || (activeState != L7_ACTIVE) )
     {
       if (ptin_debug_oam)
-        LOG_PT_DEBUG(LOG_CTX_OAM,"Silently ignoring packet transmission. Outgoing interface [intIfNum=%u] is down!",intIfNum);    
+        PT_LOG_DEBUG(LOG_CTX_OAM,"Silently ignoring packet transmission. Outgoing interface [intIfNum=%u] is down!",intIfNum);    
       return L7_SUCCESS;
     }
 
@@ -309,7 +309,7 @@ int send_eth_pckt(L7_uint16 port, L7_uint8 up1_down0,
 #ifdef RAW_MODE
     SYSAPI_NET_MBUF_GET(bufHandle);
     if (bufHandle == L7_NULL) {
-      LOG_PT_WARN(LOG_CTX_OAM,"send_eth_pckt: System out of netbuffs");
+      PT_LOG_WARN(LOG_CTX_OAM,"send_eth_pckt: System out of netbuffs");
       return 2;
     }
 #endif
@@ -512,10 +512,10 @@ void ptin_eth_oamTimerCallback(void)
  */
 void ptin_oam_eth_task(void)
 {
-  LOG_PT_TRACE(LOG_CTX_OAM,"OAM ETH Task started");
+  PT_LOG_TRACE(LOG_CTX_OAM,"OAM ETH Task started");
 
   if (osapiTaskInitDone(L7_PTIN_OAM_ETH_TASK_SYNC)!=L7_SUCCESS) {
-    LOG_PT_FATAL(LOG_CTX_OAM, "Error syncing task");
+    PT_LOG_FATAL(LOG_CTX_OAM, "Error syncing task");
     PTIN_CRASH();
   }
 
@@ -529,11 +529,11 @@ void ptin_oam_eth_task(void)
                                                PTIN_CCM_PDU_MSG_SIZE,
                                                L7_WAIT_FOREVER);
 
-      if (L7_SUCCESS!=status) LOG_PT_ERR(LOG_CTX_OAM,"Failed packet reception from ptin_ccm_packet queue (status = %d)",status);
+      if (L7_SUCCESS!=status) PT_LOG_ERR(LOG_CTX_OAM,"Failed packet reception from ptin_ccm_packet queue (status = %d)",status);
 
       switch (msg.msgId) {
       case PTIN_CCM_PACKET_MESSAGE_ID:  //CCM Rx
-          //LOG_PT_INFO(LOG_CTX_OAM,"ETH OAM packet received OK");
+          //PT_LOG_INFO(LOG_CTX_OAM,"ETH OAM packet received OK");
           {
            L7_uint32 i, ptin_port;//, vid;
            L7_uint16 newOuterVlanId;           
@@ -543,7 +543,7 @@ void ptin_oam_eth_task(void)
              newOuterVlanId = 0;
            }
 
-           if (L7_SUCCESS!=ptin_intf_intIfNum2port(msg.intIfNum, &ptin_port)) {LOG_PT_INFO(LOG_CTX_OAM,"but in invalid port"); break;}
+           if (L7_SUCCESS!=ptin_intf_intIfNum2port(msg.intIfNum, &ptin_port)) {PT_LOG_INFO(LOG_CTX_OAM,"but in invalid port"); break;}
            //for (i=0; i<msg.payloadLen; i++) printf(" %2.2x", msg.payload[i]);      printf("\n\r");
            for (i=2*L7_MAC_ADDR_LEN/*, vid=-1*/; i<msg.payloadLen; i+=4) {
                switch (msg.payload[i]<<8 | msg.payload[i+1]) {//ETHtype
@@ -556,11 +556,11 @@ void ptin_oam_eth_task(void)
                     int r;
 
                     if ((r=rx_oam_pckt(ptin_port, &msg.payload[i], msg.payloadLen-i, /*msg.vlanId*/ newOuterVlanId, &msg.payload[L7_MAC_ADDR_LEN], &oam, msg.timestamp)))
-                        LOG_PT_INFO(LOG_CTX_OAM,"rx_oam_pckt()==%d", r);
+                        PT_LOG_INFO(LOG_CTX_OAM,"rx_oam_pckt()==%d", r);
                    }
                    goto _ptin_oam_eth_task1;
                default:
-                   LOG_PT_INFO(LOG_CTX_OAM,"but unexpected ETH type");
+                   PT_LOG_INFO(LOG_CTX_OAM,"but unexpected ETH type");
                    goto _ptin_oam_eth_task1;
                }//switch
            }//for
@@ -572,7 +572,7 @@ _ptin_oam_eth_task1:;
           osapiTimerAdd((void *)ptin_eth_oamTimerCallback, L7_NULL, L7_NULL, 10, &ptin_eth_oamTimer);
           break;
       default:
-          LOG_PT_INFO(LOG_CTX_OAM,"ETH OAM packet received NOK");
+          PT_LOG_INFO(LOG_CTX_OAM,"ETH OAM packet received NOK");
       }//switch
 
   }//while (1)
@@ -681,7 +681,7 @@ L7_RC_t ptin_oam_eth_init(void)
 
   osapiTimerAdd((void *)ptin_eth_oamTimerCallback, L7_NULL, L7_NULL, 10, &ptin_eth_oamTimer);
 
-  LOG_PT_TRACE(LOG_CTX_OAM,"OAM ETH task ready");
+  PT_LOG_TRACE(LOG_CTX_OAM,"OAM ETH task ready");
 
 
   oam_eth_TaskId = osapiTaskCreate("ptin_oam_eth_task", ptin_oam_eth_task, 0, 0,
@@ -690,16 +690,16 @@ L7_RC_t ptin_oam_eth_init(void)
                                 0);
 
   if (oam_eth_TaskId == L7_ERROR) {
-    LOG_PT_FATAL(LOG_CTX_CNFGR, "Could not create task ptin_oam_eth_task");
+    PT_LOG_FATAL(LOG_CTX_CNFGR, "Could not create task ptin_oam_eth_task");
     return L7_FAILURE;
   }
-  LOG_PT_TRACE(LOG_CTX_CNFGR,"Task ptin_oam_eth_task created");
+  PT_LOG_TRACE(LOG_CTX_CNFGR,"Task ptin_oam_eth_task created");
 
   if (osapiWaitForTaskInit (L7_PTIN_OAM_ETH_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS) {
-    LOG_PT_FATAL(LOG_CTX_CNFGR,"Unable to initialize ptin_oam_eth_task()\n");
+    PT_LOG_FATAL(LOG_CTX_CNFGR,"Unable to initialize ptin_oam_eth_task()\n");
     return(L7_FAILURE);
   }
-  LOG_PT_TRACE(LOG_CTX_CNFGR,"Task ptin_oam_eth_task initialized");
+  PT_LOG_TRACE(LOG_CTX_CNFGR,"Task ptin_oam_eth_task initialized");
 
   return L7_SUCCESS;
 }//ptin_oam_eth_init

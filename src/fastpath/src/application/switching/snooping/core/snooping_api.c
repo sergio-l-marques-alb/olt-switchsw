@@ -55,14 +55,14 @@ L7_RC_t ptin_snoop_activeChannels_get(L7_uint16 vlanId,L7_uint32 intIfNum, L7_ui
 
   if (vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX || channels==L7_NULLPTR || nChannels==L7_NULLPTR)
   {
-    LOG_PT_ERR(LOG_CTX_IGMP, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_IGMP, "Invalid arguments");
     return L7_FAILURE;
   }
  
   /* Get proxy configurations */
   if (ptin_igmp_proxy_config_get__snooping_old(&igmpCfg) != L7_SUCCESS)
   {
-    LOG_PT_ERR(LOG_CTX_IGMP, "Error getting IGMP Proxy configurations");
+    PT_LOG_ERR(LOG_CTX_IGMP, "Error getting IGMP Proxy configurations");
     return L7_FAILURE;
   }
 
@@ -79,10 +79,10 @@ L7_RC_t ptin_snoop_activeChannels_get(L7_uint16 vlanId,L7_uint32 intIfNum, L7_ui
   }
   else
   {
-    LOG_PT_ERR(LOG_CTX_IGMP, "Invalid IGMP version [clientVersion=%u]", igmpCfg.clientVersion);
+    PT_LOG_ERR(LOG_CTX_IGMP, "Invalid IGMP version [clientVersion=%u]", igmpCfg.clientVersion);
     return L7_FAILURE;
   }
-  LOG_PT_NOTICE(LOG_CTX_IGMP, "We've read num_channels:%u",*nChannels);
+  PT_LOG_NOTICE(LOG_CTX_IGMP, "We've read num_channels:%u",*nChannels);
   return L7_SUCCESS;
 }
 
@@ -105,13 +105,13 @@ L7_RC_t ptin_snoop_clientsList_get(L7_inet_addr_t *groupAddr, L7_uint16 vlanId, 
 
   if (groupAddr==L7_NULL || vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX || client_list_bmp==L7_NULLPTR  || number_of_clients==L7_NULLPTR)
   {
-    LOG_PT_ERR(LOG_CTX_IGMP,"Invalid Parameters");
+    PT_LOG_ERR(LOG_CTX_IGMP,"Invalid Parameters");
     return L7_FAILURE;
   }
 
   if (groupAddr->family!=L7_AF_INET)
   {
-    LOG_PT_ERR(LOG_CTX_IGMP,"Only IPv4 is supported!");
+    PT_LOG_ERR(LOG_CTX_IGMP,"Only IPv4 is supported!");
     return L7_FAILURE;
   }
 
@@ -120,14 +120,14 @@ L7_RC_t ptin_snoop_clientsList_get(L7_inet_addr_t *groupAddr, L7_uint16 vlanId, 
 
   if (igmp_network_version==3)
   {
-    LOG_PT_TRACE(LOG_CTX_IGMP,"IGMPv3 Clients List Get!");
+    PT_LOG_TRACE(LOG_CTX_IGMP,"IGMPv3 Clients List Get!");
      snoopPTinL3InfoData_t  *snoopEntryV3; 
      /* Search for entry in AVL tree*/
     if (L7_NULLPTR == (snoopEntryV3 = snoopPTinL3EntryFind(vlanId, groupAddr, L7_MATCH_EXACT)) || 
         snoopEntryV3->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].active==L7_FALSE ||
         snoopEntryV3->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].numberOfClients==0)
     {
-      LOG_PT_WARN(LOG_CTX_IGMP,"Channel %u.%u.%u.%u does not exist for vlan %u",
+      PT_LOG_WARN(LOG_CTX_IGMP,"Channel %u.%u.%u.%u does not exist for vlan %u",
                   (groupAddr->addr.ipv4.s_addr>>24) & 0xff,
                   (groupAddr->addr.ipv4.s_addr>>16) & 0xff,
                   (groupAddr->addr.ipv4.s_addr>> 8) & 0xff,
@@ -155,13 +155,13 @@ L7_RC_t ptin_snoop_clientsList_get(L7_inet_addr_t *groupAddr, L7_uint16 vlanId, 
             if (snoopEntryV3->interfaces[intIfNum].clients[idx]!=0)
             {
               client_list_bmp_tmp[idx]|=snoopEntryV3->interfaces[intIfNum].clients[idx];  
-              LOG_PT_NOTICE(LOG_CTX_IGMP,"At least one client!");
+              PT_LOG_NOTICE(LOG_CTX_IGMP,"At least one client!");
             }            
           } 
           *number_of_clients+=snoopEntryV3->interfaces[intIfNum].numberOfClients;          
         }
       }
-      LOG_PT_NOTICE(LOG_CTX_IGMP,"We have read number_of_clients:%u",*number_of_clients);
+      PT_LOG_NOTICE(LOG_CTX_IGMP,"We have read number_of_clients:%u",*number_of_clients);
       if(*number_of_clients>0)
       {        
         memcpy(client_list_bmp,
@@ -170,7 +170,7 @@ L7_RC_t ptin_snoop_clientsList_get(L7_inet_addr_t *groupAddr, L7_uint16 vlanId, 
       }
       else
       {
-        LOG_PT_WARN(LOG_CTX_IGMP,"Something must had went wrong, since the variable number of clients is different from what we have read on the client bitmap!");
+        PT_LOG_WARN(LOG_CTX_IGMP,"Something must had went wrong, since the variable number of clients is different from what we have read on the client bitmap!");
       }
     }
   }
@@ -179,7 +179,7 @@ L7_RC_t ptin_snoop_clientsList_get(L7_inet_addr_t *groupAddr, L7_uint16 vlanId, 
     // Search for channel
     if (!snoopChannelExist4VlanId(vlanId,groupAddr,&snoopEntry))
     {
-      LOG_PT_WARN(LOG_CTX_IGMP,"Channel %u.%u.%u.%u does not exist for vlan %u",
+      PT_LOG_WARN(LOG_CTX_IGMP,"Channel %u.%u.%u.%u does not exist for vlan %u",
                   (groupAddr->addr.ipv4.s_addr>>24) & 0xff,
                   (groupAddr->addr.ipv4.s_addr>>16) & 0xff,
                   (groupAddr->addr.ipv4.s_addr>> 8) & 0xff,
@@ -242,7 +242,7 @@ L7_RC_t ptin_snoop_client_remove(L7_uint16 sVlanId, L7_uint16 client_index, L7_u
       client_index>=PTIN_SYSTEM_IGMP_MAXCLIENTS ||
       intIfNum>=L7_MAX_INTERFACE_COUNT)
   {
-    LOG_PT_ERR(LOG_CTX_IGMP,"Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_IGMP,"Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -274,7 +274,7 @@ L7_RC_t ptin_snoop_client_remove(L7_uint16 sVlanId, L7_uint16 client_index, L7_u
       }
       else
       {
-        LOG_PT_ERR(LOG_CTX_IGMP,"Error with snoop_client_remove_procedure");
+        PT_LOG_ERR(LOG_CTX_IGMP,"Error with snoop_client_remove_procedure");
         rc = L7_FAILURE;
       }
     }
@@ -299,12 +299,12 @@ L7_RC_t ptin_snoop_static_channel_add(L7_uint16 vlanId, L7_inet_addr_t *channel)
   /* Validate arguments */
   if (vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX || channel==L7_NULLPTR)
   {
-    LOG_PT_ERR(LOG_CTX_IGMP,"Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_IGMP,"Invalid arguments");
     return L7_FAILURE;
   }
   if (channel->family!=L7_AF_INET || channel->addr.ipv4.s_addr==0)
   {
-    LOG_PT_ERR(LOG_CTX_IGMP,"Invalid channel");
+    PT_LOG_ERR(LOG_CTX_IGMP,"Invalid channel");
     return L7_FAILURE;
   }
 
@@ -317,7 +317,7 @@ L7_RC_t ptin_snoop_static_channel_add(L7_uint16 vlanId, L7_inet_addr_t *channel)
     L7_INTF_MASK_t mcastClientAttached;
     if (ptin_igmp_clientIntfs_getList(vlanId, &mcastClientAttached, &noOfInterfaces)!=L7_SUCCESS)
     {
-      LOG_PT_ERR(LOG_CTX_IGMP, "Error getting client interfaces of vlan %u",vlanId);
+      PT_LOG_ERR(LOG_CTX_IGMP, "Error getting client interfaces of vlan %u",vlanId);
       return L7_SUCCESS;
     }  
 
@@ -329,7 +329,7 @@ L7_RC_t ptin_snoop_static_channel_add(L7_uint16 vlanId, L7_inet_addr_t *channel)
         /* Add static channel */
         if (snoopPTinAddStaticGroup(vlanId,intIfNum,channel,0,L7_NULLPTR)!=L7_SUCCESS)
         {
-          LOG_PT_ERR(LOG_CTX_IGMP,"Error adding static channel");
+          PT_LOG_ERR(LOG_CTX_IGMP,"Error adding static channel");
           return L7_FAILURE;
         }
       }
@@ -351,7 +351,7 @@ L7_RC_t ptin_snoop_static_channel_add(L7_uint16 vlanId, L7_inet_addr_t *channel)
     /* Add channel */
     if (snoop_channel_add_procedure(dmac,vlanId,channel,L7_TRUE,&sendJoin)!=L7_SUCCESS)
     {
-      LOG_PT_ERR(LOG_CTX_IGMP,"Error adding static channel");
+      PT_LOG_ERR(LOG_CTX_IGMP,"Error adding static channel");
       return L7_FAILURE;
     }
   }
@@ -375,12 +375,12 @@ L7_RC_t ptin_snoop_channel_remove(L7_uint16 vlanId, L7_inet_addr_t *channel)
   /* Validate arguments */
   if (vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX || channel==L7_NULLPTR)
   {
-    LOG_PT_ERR(LOG_CTX_IGMP,"Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_IGMP,"Invalid arguments");
     return L7_FAILURE;
   }
   if (channel->family!=L7_AF_INET || channel->addr.ipv4.s_addr==0)
   {
-    LOG_PT_ERR(LOG_CTX_IGMP,"Invalid channel");
+    PT_LOG_ERR(LOG_CTX_IGMP,"Invalid channel");
     return L7_FAILURE;
   }
 
@@ -393,7 +393,7 @@ L7_RC_t ptin_snoop_channel_remove(L7_uint16 vlanId, L7_inet_addr_t *channel)
     L7_INTF_MASK_t mcastClientAttached;
     if (ptin_igmp_clientIntfs_getList(vlanId, &mcastClientAttached, &noOfInterfaces)!=L7_SUCCESS)
     {
-      LOG_PT_ERR(LOG_CTX_IGMP, "Error getting client interfaces of vlan %u",vlanId);
+      PT_LOG_ERR(LOG_CTX_IGMP, "Error getting client interfaces of vlan %u",vlanId);
       return L7_SUCCESS;
     }  
 
@@ -405,7 +405,7 @@ L7_RC_t ptin_snoop_channel_remove(L7_uint16 vlanId, L7_inet_addr_t *channel)
         /* Remove static channel */
         if (snoopPTinRemoveStaticGroup(vlanId,intIfNum,channel,0,L7_NULLPTR)!=L7_SUCCESS)
         {
-          LOG_PT_ERR(LOG_CTX_IGMP,"Error adding static channel");
+          PT_LOG_ERR(LOG_CTX_IGMP,"Error adding static channel");
           return L7_FAILURE;
         }
       }
@@ -426,7 +426,7 @@ L7_RC_t ptin_snoop_channel_remove(L7_uint16 vlanId, L7_inet_addr_t *channel)
     /* Add channel */
     if (snoop_channel_remove_procedure(dmac,vlanId,channel)!=L7_SUCCESS)
     {
-      LOG_PT_ERR(LOG_CTX_IGMP,"Error removing channel");
+      PT_LOG_ERR(LOG_CTX_IGMP,"Error removing channel");
       return L7_FAILURE;
     }
   }
@@ -452,7 +452,7 @@ L7_RC_t ptin_snoop_channel_removeAll(L7_uint16 sVlanId)
   /* Validate arguments */
   if (sVlanId!=0 && (sVlanId<PTIN_VLAN_MIN || sVlanId>PTIN_VLAN_MAX))
   {
-    LOG_PT_ERR(LOG_CTX_IGMP,"Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_IGMP,"Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -480,11 +480,11 @@ L7_RC_t ptin_snoop_channel_removeAll(L7_uint16 sVlanId)
       /* Remove channel */
       if (snoop_channel_remove_procedure(macAddr,vlanId,&channel)==L7_SUCCESS)
       {
-        LOG_PT_TRACE(LOG_CTX_IGMP,"Channel removed from vlan %u",vlanId);
+        PT_LOG_TRACE(LOG_CTX_IGMP,"Channel removed from vlan %u",vlanId);
       }
       else
       {
-        LOG_PT_ERR(LOG_CTX_IGMP,"Error removing channel from vlan %u",vlanId);
+        PT_LOG_ERR(LOG_CTX_IGMP,"Error removing channel from vlan %u",vlanId);
         rc = L7_FAILURE;
       }
     }

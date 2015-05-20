@@ -133,7 +133,7 @@ GetSNMPPort()
 
     return snmp_port;
   #endif
-  LOG_PT_WARN(LOG_CTX_MISC, "Returning SNMP_PORT=%u",SNMP_PORT);
+  PT_LOG_WARN(LOG_CTX_MISC, "Returning SNMP_PORT=%u",SNMP_PORT);
   return SNMP_PORT;
 }
 
@@ -198,7 +198,7 @@ GetSNMPTrapPort()
 
     return trap_port;
   #endif
-  LOG_PT_WARN(LOG_CTX_MISC, "Returning SNMP_TRAP_PORT=%u",SNMP_TRAP_PORT);
+  PT_LOG_WARN(LOG_CTX_MISC, "Returning SNMP_TRAP_PORT=%u",SNMP_TRAP_PORT);
   return SNMP_TRAP_PORT;
 }
 

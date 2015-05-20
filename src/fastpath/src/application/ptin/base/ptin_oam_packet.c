@@ -95,7 +95,7 @@ L7_RC_t ptin_aps_packet_vlan_trap(L7_uint16 vlanId, L7_uint8 ringId_oam_level, L
   /* Policer must be a valid pointer */
   if (vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX)
   {
-    LOG_PT_ERR(LOG_CTX_API,"Invalid argument");
+    PT_LOG_ERR(LOG_CTX_API,"Invalid argument");
     return L7_FAILURE;
   }
 
@@ -111,11 +111,11 @@ L7_RC_t ptin_aps_packet_vlan_trap(L7_uint16 vlanId, L7_uint8 ringId_oam_level, L
 
   rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES, &dapiCmd);
   if (rc!=L7_SUCCESS)  {
-    LOG_PT_ERR(LOG_CTX_API,"Error setting rule to %u",enable);
+    PT_LOG_ERR(LOG_CTX_API,"Error setting rule to %u",enable);
     return rc;
   }
 
-  LOG_PT_TRACE(LOG_CTX_API,"Success applying rule to %u",enable);
+  PT_LOG_TRACE(LOG_CTX_API,"Success applying rule to %u",enable);
 
   return L7_SUCCESS;
 }
@@ -144,11 +144,11 @@ L7_RC_t ptin_aps_packet_global_trap(L7_BOOL enable)
 
   rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES, &dapiCmd);
   if (rc!=L7_SUCCESS)  {
-    LOG_PT_ERR(LOG_CTX_API,"Error setting global enable to %u",enable);
+    PT_LOG_ERR(LOG_CTX_API,"Error setting global enable to %u",enable);
     return rc;
   }
 
-  LOG_PT_TRACE(LOG_CTX_API,"Success applying global enable to %u",enable);
+  PT_LOG_TRACE(LOG_CTX_API,"Success applying global enable to %u",enable);
 
   return L7_SUCCESS;
 }
@@ -178,7 +178,7 @@ L7_RC_t ptin_ccm_packet_vlan_trap(L7_uint16 vlanId, L7_uint16 oam_level, L7_BOOL
   /* Policer must be a valid pointer */
   if (vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX)
   {
-    LOG_PT_ERR(LOG_CTX_API,"Invalid argument");
+    PT_LOG_ERR(LOG_CTX_API,"Invalid argument");
     return L7_FAILURE;
   }
 
@@ -194,11 +194,11 @@ L7_RC_t ptin_ccm_packet_vlan_trap(L7_uint16 vlanId, L7_uint16 oam_level, L7_BOOL
 
   rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
   if (rc!=L7_SUCCESS)  {
-    LOG_PT_ERR(LOG_CTX_API,"Error setting rule to %u",enable);
+    PT_LOG_ERR(LOG_CTX_API,"Error setting rule to %u",enable);
     return rc;
   }
 
-  LOG_PT_TRACE(LOG_CTX_API,"Success applying rule to %u",enable);
+  PT_LOG_TRACE(LOG_CTX_API,"Success applying rule to %u",enable);
 
   return L7_SUCCESS;
 #endif
@@ -228,10 +228,10 @@ L7_RC_t ptin_aps_packet_init(L7_uint8 erps_idx)
   ptin_aps_packetRx_queue[erps_idx] = (void *) osapiMsgQueueCreate(queue_str,
                                                        PTIN_APS_PACKET_MAX_MESSAGES, PTIN_APS_PDU_MSG_SIZE);
   if (ptin_aps_packetRx_queue[erps_idx] == L7_NULLPTR) {
-    LOG_PT_FATAL(LOG_CTX_ERPS,"APS packet queue %d creation error.", erps_idx);
+    PT_LOG_FATAL(LOG_CTX_ERPS,"APS packet queue %d creation error.", erps_idx);
     return L7_FAILURE;
   }
-  LOG_PT_INFO(LOG_CTX_ERPS,"APS packet queue %d created.", erps_idx);
+  PT_LOG_INFO(LOG_CTX_ERPS,"APS packet queue %d created.", erps_idx);
 
 
   /* Ring ID needs to be set on rule/trap creation. */
@@ -250,10 +250,10 @@ L7_RC_t ptin_aps_packet_init(L7_uint8 erps_idx)
   snEntry.type = SYSNET_MAC_ENTRY;
   memcpy(snEntry.u.macAddr, apsMacAddr, L7_MAC_ADDR_LEN);
   if (sysNetRegisterPduReceive(&snEntry) != L7_SUCCESS) {
-    LOG_PT_ERR(LOG_CTX_ERPS, "Cannot register ptin_aps_packetRx_callback callback!");
+    PT_LOG_ERR(LOG_CTX_ERPS, "Cannot register ptin_aps_packetRx_callback callback!");
     return L7_FAILURE;
   }
-  LOG_PT_INFO(LOG_CTX_ERPS, "ptin_aps_packetRx_callback registered!");
+  PT_LOG_INFO(LOG_CTX_ERPS, "ptin_aps_packetRx_callback registered!");
 #else
   //return common_aps_ccm_packetRx_callback_register(); must register callback elsewhere, being sure both OAM ETH and ERP are up
 #endif
@@ -283,10 +283,10 @@ L7_RC_t ptin_ccm_packet_init(L7_long32 oam_level)
         ptin_ccm_packetRx_queue = (void *) osapiMsgQueueCreate("PTin_CCM_PacketRx_Queue",
                                                                PTIN_CCM_PACKET_MAX_MESSAGES, PTIN_CCM_PDU_MSG_SIZE);
         if (L7_NULLPTR==ptin_ccm_packetRx_queue) {
-          LOG_PT_FATAL(LOG_CTX_OAM,"CCM packet queue creation error.");
+          PT_LOG_FATAL(LOG_CTX_OAM,"CCM packet queue creation error.");
           return L7_FAILURE;
         }
-        LOG_PT_INFO(LOG_CTX_OAM,"CCM packet queue created.");
+        PT_LOG_INFO(LOG_CTX_OAM,"CCM packet queue created.");
     
         for (i=0; i<N_OAM_TMR_VALUES; i++) nr_using_ETH_oam_lvl[i]=0;
       }
@@ -305,10 +305,10 @@ L7_RC_t ptin_ccm_packet_init(L7_long32 oam_level)
   snEntry.u.macAddr[5]&=0xf0;
   snEntry.u.macAddr[5]|=oam_level;
   if (sysNetRegisterPduReceive(&snEntry) != L7_SUCCESS) {
-    LOG_PT_ERR(LOG_CTX_OAM, "Cannot register ptin_ccm_packetRx_callback !");
+    PT_LOG_ERR(LOG_CTX_OAM, "Cannot register ptin_ccm_packetRx_callback !");
     return L7_FAILURE;
   }
-  LOG_PT_INFO(LOG_CTX_OAM, "ptin_ccm_packetRx_callback registered!");
+  PT_LOG_INFO(LOG_CTX_OAM, "ptin_ccm_packetRx_callback registered!");
 #else
   //return common_aps_ccm_packetRx_callback_register(); must register callback elsewhere, being sure both OAM ETH and ERP are up
 #endif
@@ -349,10 +349,10 @@ L7_RC_t ptin_aps_packet_deinit(L7_uint8 erps_idx)
     snEntry.type = SYSNET_MAC_ENTRY;
     memcpy(snEntry.u.macAddr, apsMacAddr, L7_MAC_ADDR_LEN);
     if (sysNetDeregisterPduReceive(&snEntry) != L7_SUCCESS) {
-      LOG_PT_ERR(LOG_CTX_ERPS, "Cannot unregister ptin_aps_packetRx_callback callback!");
+      PT_LOG_ERR(LOG_CTX_ERPS, "Cannot unregister ptin_aps_packetRx_callback callback!");
       return L7_FAILURE;
     }
-    LOG_PT_INFO(LOG_CTX_ERPS, "ptin_aps_packetRx_callback unregistered!");
+    PT_LOG_INFO(LOG_CTX_ERPS, "ptin_aps_packetRx_callback unregistered!");
   }
 
   /* Queue that will process packets */
@@ -362,7 +362,7 @@ L7_RC_t ptin_aps_packet_deinit(L7_uint8 erps_idx)
   }
 #endif
 
-  LOG_PT_INFO(LOG_CTX_ERPS, "PTin APS packet deinit OK");
+  PT_LOG_INFO(LOG_CTX_ERPS, "PTin APS packet deinit OK");
 
   return L7_SUCCESS;
 }
@@ -407,10 +407,10 @@ L7_RC_t ptin_ccm_packet_deinit(L7_long32 oam_level)
     snEntry.u.macAddr[5]&=0xf0;
     snEntry.u.macAddr[5]|=i;
     if (sysNetDeregisterPduReceive(&snEntry) != L7_SUCCESS) {
-      LOG_PT_ERR(LOG_CTX_OAM, "Cannot unregister ptin_ccm_packetRx_callback !");
+      PT_LOG_ERR(LOG_CTX_OAM, "Cannot unregister ptin_ccm_packetRx_callback !");
       if (oam_level<N_OAM_TMR_VALUES) return L7_FAILURE;
     }
-    LOG_PT_INFO(LOG_CTX_OAM, "ptin_ccm_packetRx_callback unregistered!");
+    PT_LOG_INFO(LOG_CTX_OAM, "ptin_ccm_packetRx_callback unregistered!");
   }//for
 #endif
 
@@ -422,7 +422,7 @@ L7_RC_t ptin_ccm_packet_deinit(L7_long32 oam_level)
     ptin_ccm_packetRx_queue = L7_NULLPTR;
   }
 
-  LOG_PT_INFO(LOG_CTX_OAM, "PTin CCM packet deinit OK");
+  PT_LOG_INFO(LOG_CTX_OAM, "PTin CCM packet deinit OK");
 
   return L7_SUCCESS;
 }
@@ -449,7 +449,7 @@ L7_RC_t ptin_aps_checkOwnNodeId(L7_uint8 erps_idx, ptin_APS_PDU_Msg_t *pktMsg)
   aps_frame = (aps_frame_t*) pktMsg->payload;
 
   if (ptin_oam_packet_debug_enable)
-    LOG_PT_TRACE(LOG_CTX_ERPS,"erps_idx %d, intIfNum %d, P0intIfNum %d, P1intIfNum %d", erps_idx, pktMsg->intIfNum, tbl_halErps[erps_idx].port0intfNum, tbl_halErps[erps_idx].port1intfNum);
+    PT_LOG_TRACE(LOG_CTX_ERPS,"erps_idx %d, intIfNum %d, P0intIfNum %d, P1intIfNum %d", erps_idx, pktMsg->intIfNum, tbl_halErps[erps_idx].port0intfNum, tbl_halErps[erps_idx].port1intfNum);
 
   // ERPS Rx Ring port
   if ( pktMsg->intIfNum == tbl_halErps[erps_idx].port0intfNum ) {
@@ -463,7 +463,7 @@ L7_RC_t ptin_aps_checkOwnNodeId(L7_uint8 erps_idx, ptin_APS_PDU_Msg_t *pktMsg)
   // Check Node ID
   if ( memcmp(aps_frame->aspmsg.nodeid, srcMacAddr, L7_MAC_ADDR_LEN) == 0 ) {   
     if (ptin_oam_packet_debug_enable)
-      LOG_PT_TRACE(LOG_CTX_ERPS,"Own APS Packet! Dropped.");
+      PT_LOG_TRACE(LOG_CTX_ERPS,"Own APS Packet! Dropped.");
 
     // Own packet! Drop it.
     ptin_hal_erps_counters_rxdrop(erps_idx, rxport);
@@ -497,7 +497,7 @@ L7_RC_t ptin_aps_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t 
 
 
   if (ptin_oam_packet_debug_enable)
-    LOG_PT_TRACE(LOG_CTX_ERPS,"Packet received at intIfNum=%u with vlanId=%u and innerVlanId=%u",
+    PT_LOG_TRACE(LOG_CTX_ERPS,"Packet received at intIfNum=%u with vlanId=%u and innerVlanId=%u",
               intIfNum, vlanId, innerVlanId);
 
   SYSAPI_NET_MBUF_GET_DATASTART(bufHandle, payload);
@@ -506,21 +506,21 @@ L7_RC_t ptin_aps_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t 
   /* Validate vlan id */
   if ( vlanId < PTIN_VLAN_MIN || vlanId > PTIN_VLAN_MAX ) {
     if (ptin_oam_packet_debug_enable)
-      LOG_PT_ERR(LOG_CTX_ERPS,"Invalid vlanId %u",vlanId);
+      PT_LOG_ERR(LOG_CTX_ERPS,"Invalid vlanId %u",vlanId);
     return L7_FAILURE;
   }
 
   /* Packet should be APS MAC Addr (last byte is ignored) */
   if ( memcmp(&payload[0], apsMacAddr, (L7_MAC_ADDR_LEN-1))!=0 ) {
     if (ptin_oam_packet_debug_enable)
-      LOG_PT_ERR(LOG_CTX_ERPS,"Not an APS Packet");
+      PT_LOG_ERR(LOG_CTX_ERPS,"Not an APS Packet");
     return L7_FAILURE;
   }
 
   /* Validate interface and VLAN, as belonging to a valid interface in a valid EVC */
   if (ptin_evc_intfVlan_validate(intIfNum, vlanId) != L7_SUCCESS) {
     if (ptin_oam_packet_debug_enable)
-      LOG_PT_ERR(LOG_CTX_ERPS,"intIfNum %u and vlan %u does not belong to any valid EVC/interface", intIfNum, vlanId);
+      PT_LOG_ERR(LOG_CTX_ERPS,"intIfNum %u and vlan %u does not belong to any valid EVC/interface", intIfNum, vlanId);
     return L7_FAILURE;
   }
 
@@ -548,11 +548,11 @@ L7_RC_t ptin_aps_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t 
   }
 
   if (ptin_oam_packet_debug_enable)
-    LOG_PT_TRACE(LOG_CTX_ERPS,"Packet sent to queue %d",erpsIdx_from_controlVidInternal[vlanId]);
+    PT_LOG_TRACE(LOG_CTX_ERPS,"Packet sent to queue %d",erpsIdx_from_controlVidInternal[vlanId]);
 
   if (rc != L7_SUCCESS) {
     if (ptin_oam_packet_debug_enable)
-      LOG_PT_ERR(LOG_CTX_ERPS,"Failed message sending to ptin_aps_packet queue");
+      PT_LOG_ERR(LOG_CTX_ERPS,"Failed message sending to ptin_aps_packet queue");
     return L7_FAILURE;
   }
 
@@ -583,7 +583,7 @@ L7_RC_t ptin_ccm_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t 
   L7_RC_t rc = L7_SUCCESS;
 
   if (ptin_oam_packet_debug_enable)
-    LOG_PT_TRACE(LOG_CTX_OAM,"Packet received at intIfNum=%u with vlanId=%u and innerVlanId=%u",
+    PT_LOG_TRACE(LOG_CTX_OAM,"Packet received at intIfNum=%u with vlanId=%u and innerVlanId=%u",
               intIfNum, vlanId, innerVlanId);
 
   SYSAPI_NET_MBUF_GET_DATASTART(bufHandle, payload);
@@ -592,21 +592,21 @@ L7_RC_t ptin_ccm_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t 
   /* Validate vlan id */
   /*if ( vlanId < PTIN_VLAN_MIN || vlanId > PTIN_VLAN_MAX ) {
     if (ptin_oam_packet_debug_enable)
-      LOG_PT_ERR(LOG_CTX_OAM,"Invalid vlanId %u",vlanId);
+      PT_LOG_ERR(LOG_CTX_OAM,"Invalid vlanId %u",vlanId);
     return L7_FAILURE;
   }*/
 
   /* Packet should be CCM type */
   //if ( memcmp(&payload[0], ccmMacAddr, L7_MAC_ADDR_LEN)!=0 ) {
   //  if (ptin_oam_packet_debug_enable)
-  //    LOG_PT_ERR(LOG_CTX_OAM,"Not a CCM Packet");
+  //    PT_LOG_ERR(LOG_CTX_OAM,"Not a CCM Packet");
   //  return L7_FAILURE;
   //}
 
   /* Validate interface and vlan, as belonging to a valid interface in a valid EVC */
   /*if (ptin_evc_intfVlan_validate(intIfNum, vlanId)!=L7_SUCCESS) {
     if (ptin_oam_packet_debug_enable)
-      LOG_PT_ERR(LOG_CTX_OAM,"intIfNum %u and vlan %u does not belong to any valid EVC/interface");
+      PT_LOG_ERR(LOG_CTX_OAM,"intIfNum %u and vlan %u does not belong to any valid EVC/interface");
     return L7_FAILURE;
   }*/
 
@@ -625,11 +625,11 @@ L7_RC_t ptin_ccm_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t 
 
   if (rc != L7_SUCCESS) {
     if (ptin_oam_packet_debug_enable)
-      LOG_PT_ERR(LOG_CTX_OAM,"Failed message sending to ptin_ccm_packet queue");
+      PT_LOG_ERR(LOG_CTX_OAM,"Failed message sending to ptin_ccm_packet queue");
     return L7_FAILURE;
   }
 
-  //LOG_PT_WARN(LOG_CTX_OAM,"Decide what to do with CCM packet! Packets are in proper queue waiting for someone to process. NOT YET DONE!!!");
+  //PT_LOG_WARN(LOG_CTX_OAM,"Decide what to do with CCM packet! Packets are in proper queue waiting for someone to process. NOT YET DONE!!!");
 
   /* Return failure to guarantee these packets are consumed by other entities */
   return L7_FAILURE;
@@ -644,7 +644,7 @@ L7_RC_t common_aps_ccm_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_i
     L7_uchar8 *payload;
     //L7_uint32 payloadLen;
 
-    if (ptin_oam_packet_debug_enable)   LOG_PT_TRACE(LOG_CTX_OAM,"APS or CCM packet received");
+    if (ptin_oam_packet_debug_enable)   PT_LOG_TRACE(LOG_CTX_OAM,"APS or CCM packet received");
 
     SYSAPI_NET_MBUF_GET_DATASTART(bufHandle, payload);
     //SYSAPI_NET_MBUF_GET_DATALENGTH(bufHandle, payloadLen);
@@ -675,10 +675,10 @@ L7_RC_t common_aps_ccm_packetRx_callback_register(void) {
   snEntry.type = SYSNET_ETHERTYPE_ENTRY;
   snEntry.u.protocol_type = L7_ETYPE_CFM;
   if (sysNetRegisterPduReceive(&snEntry) != L7_SUCCESS) {
-    LOG_PT_ERR(LOG_CTX_OAM, "Cannot register common_aps_ccm_packetRx_callback !");
+    PT_LOG_ERR(LOG_CTX_OAM, "Cannot register common_aps_ccm_packetRx_callback !");
     return L7_FAILURE;
   }
-  LOG_PT_INFO(LOG_CTX_OAM, "common_aps_ccm_packetRx_callback registered!");
+  PT_LOG_INFO(LOG_CTX_OAM, "common_aps_ccm_packetRx_callback registered!");
   return L7_SUCCESS;
 }
 
@@ -700,14 +700,14 @@ L7_RC_t ptin_aps_packetRx_process(L7_uint32 queueidx, L7_uint8 *aps_req, L7_uint
   int i;
   aps_frame_t         *aps_frame;
 
-  //LOG_PT_TRACE(LOG_CTX_ERPS,"Any APS packet received?");
+  //PT_LOG_TRACE(LOG_CTX_ERPS,"Any APS packet received?");
   if (queueidx > MAX_PROT_PROT_ERPS) {
-    LOG_PT_ERR(LOG_CTX_OAM, "queueidx (%d) out of range", queueidx);
+    PT_LOG_ERR(LOG_CTX_OAM, "queueidx (%d) out of range", queueidx);
     return L7_FAILURE;
   }
 
   if (ptin_aps_packetRx_queue[queueidx] == L7_NULLPTR) {
-    LOG_PT_ERR(LOG_CTX_OAM, "queueidx (%d) is a NULL Pointer", queueidx);
+    PT_LOG_ERR(LOG_CTX_OAM, "queueidx (%d) is a NULL Pointer", queueidx);
     return L7_FAILURE;
   }
 
@@ -719,7 +719,7 @@ L7_RC_t ptin_aps_packetRx_process(L7_uint32 queueidx, L7_uint8 *aps_req, L7_uint
   if (status == L7_SUCCESS) {
     if ( msg.msgId == PTIN_APS_PACKET_MESSAGE_ID ) {
       if ( ptin_oam_packet_debug_enable ) {
-        LOG_PT_TRACE(LOG_CTX_ERPS,"APS packet received: intIfNum %d, vlanId %d, innerVlanId %d, payloadLen %d", msg.intIfNum, msg.vlanId, msg.innerVlanId, msg.payloadLen);
+        PT_LOG_TRACE(LOG_CTX_ERPS,"APS packet received: intIfNum %d, vlanId %d, innerVlanId %d, payloadLen %d", msg.intIfNum, msg.vlanId, msg.innerVlanId, msg.payloadLen);
 
         if ( msg.payloadLen < 128 ) {
           L7_uint8 buf[512], buf2[4];
@@ -729,7 +729,7 @@ L7_RC_t ptin_aps_packetRx_process(L7_uint32 queueidx, L7_uint8 *aps_req, L7_uint
             strcat(buf, buf2);
           }
           buf[511]=0;
-          LOG_PT_TRACE(LOG_CTX_ERPS,"Payload: %s", buf);
+          PT_LOG_TRACE(LOG_CTX_ERPS,"Payload: %s", buf);
         }
       }
 
@@ -744,7 +744,7 @@ L7_RC_t ptin_aps_packetRx_process(L7_uint32 queueidx, L7_uint8 *aps_req, L7_uint
 
     } else {
       if (ptin_oam_packet_debug_enable)
-        LOG_PT_TRACE(LOG_CTX_ERPS,"APS packet received with Unknown ID");
+        PT_LOG_TRACE(LOG_CTX_ERPS,"APS packet received with Unknown ID");
       return L7_FAILURE;
     }
   }
@@ -802,7 +802,7 @@ void ptin_oam_packet_send(L7_uint32 intfNum,
   dtlPduTransmit (bufHandle, DTL_CMD_TX_L2, &dtlCmd);
 
   if (ptin_oam_packet_debug_enable) {
-    LOG_PT_TRACE(LOG_CTX_ERPS,"OAM Packet transmited to intIfNum=%u, vlanId=%u", intfNum, vlanId);
+    PT_LOG_TRACE(LOG_CTX_ERPS,"OAM Packet transmited to intIfNum=%u, vlanId=%u", intfNum, vlanId);
   }
 
   return;
@@ -886,7 +886,7 @@ L7_RC_t ptin_aps_packet_forward(L7_uint8 erps_idx, ptin_APS_PDU_Msg_t *pktMsg)
 
     // Port blocked. Do not forward packet
     if (ptin_oam_packet_debug_enable)
-      LOG_PT_TRACE(LOG_CTX_ERPS,"Port blocked! Do not forward APS packet.");
+      PT_LOG_TRACE(LOG_CTX_ERPS,"Port blocked! Do not forward APS packet.");
 
     return L7_SUCCESS;
   }
@@ -895,7 +895,7 @@ L7_RC_t ptin_aps_packet_forward(L7_uint8 erps_idx, ptin_APS_PDU_Msg_t *pktMsg)
   req = (tbl_halErps[erps_idx].apsReqStatusTx >> 12) & 0xF;
   if (req != RReq_NONE) {
     if (ptin_oam_packet_debug_enable)
-      LOG_PT_TRACE(LOG_CTX_ERPS,"Local Req! Do not forward APS packet.");
+      PT_LOG_TRACE(LOG_CTX_ERPS,"Local Req! Do not forward APS packet.");
 
     return L7_SUCCESS;
   }
@@ -917,7 +917,7 @@ L7_RC_t ptin_aps_packet_forward(L7_uint8 erps_idx, ptin_APS_PDU_Msg_t *pktMsg)
   aps_frame->vlan_tag[3] = tbl_erps[erps_idx].protParam.controlVid & 0x0FF;
 
   if (ptin_oam_packet_debug_enable)
-    LOG_PT_TRACE(LOG_CTX_ERPS,"Forwarding APS Packet transmited to intIfNum=%u", txintport);
+    PT_LOG_TRACE(LOG_CTX_ERPS,"Forwarding APS Packet transmited to intIfNum=%u", txintport);
 
   ptin_oam_packet_send(txintport,
                        tbl_halErps[erps_idx].controlVidInternal,

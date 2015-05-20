@@ -69,7 +69,7 @@ L7_RC_t trapMgrLinkDownLogTrap(L7_uint32 intIfNum)
     /* make sure you have message Queue created before sending and trap message */
     if (trapMgrCnfgrPhaseReady() == L7_FALSE)
     {
-      LOG_PT_ERR(LOG_CTX_MISC,"intfIfNum=%u: Not ready to be processed",intIfNum);
+      PT_LOG_ERR(LOG_CTX_MISC,"intfIfNum=%u: Not ready to be processed",intIfNum);
       return L7_FAILURE;
     }
 
@@ -83,7 +83,7 @@ L7_RC_t trapMgrLinkDownLogTrap(L7_uint32 intIfNum)
     rc = osapiMessageSend(trapMsgQueue, (void *)&trap, sizeof(L7_TRAP_t), L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
     if (rc != L7_SUCCESS)
     {
-      LOG_PT_ERR(LOG_CTX_MISC,"intfIfNum=%u: Error sending message",intIfNum);
+      PT_LOG_ERR(LOG_CTX_MISC,"intfIfNum=%u: Error sending message",intIfNum);
       trapMsgQueueLostMsgs++;
     }
   }

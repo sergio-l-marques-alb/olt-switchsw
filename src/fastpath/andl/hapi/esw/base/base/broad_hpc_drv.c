@@ -1371,7 +1371,7 @@ void hpcHardwareDefaultConfigApply(void)
         /* PTin added: debug/test new switch */
         if (SOC_IS_TRIDENT(i))
         {
-          LOG_PT_NOTICE(LOG_CTX_MISC, "bcm_cosq_port_mapping_set invoked for priority %u (of %u)",priority,L7_MAX_CFG_QUEUES_PER_PORT);
+          PT_LOG_NOTICE(LOG_CTX_MISC, "bcm_cosq_port_mapping_set invoked for priority %u (of %u)",priority,L7_MAX_CFG_QUEUES_PER_PORT);
           PBMP_PORT_ITER (i, port)
           {
             rv = bcm_cosq_port_mapping_set(i, port, priority, cosq);
@@ -1412,7 +1412,7 @@ void hpcHardwareDefaultConfigApply(void)
        {
          bcm_pbmp_t pbmp;
 
-         LOG_PT_NOTICE(LOG_CTX_MISC, "bcm_cosq_port_sched_set invoked for all physical ports");
+         PT_LOG_NOTICE(LOG_CTX_MISC, "bcm_cosq_port_sched_set invoked for all physical ports");
          
          BCM_PBMP_ASSIGN(pbmp, PBMP_PORT_ALL(i));
          rv = bcm_cosq_port_sched_set (i,
@@ -1478,14 +1478,14 @@ void hpcHardwareDefaultConfigApply(void)
     rv = bcm_vlan_create(i,HPC_STACKING_VLAN_ID);
     if ((rv < 0) && (rv != BCM_E_EXISTS))
     {
-      LOG_PT_ERR(LOG_CTX_STARTUP,"bcm_vlan_create failed unit %d\n", i);
+      PT_LOG_ERR(LOG_CTX_STARTUP,"bcm_vlan_create failed unit %d\n", i);
       LOG_ERROR (rv);
     }
 
     rv = bcm_vlan_port_add(i,HPC_STACKING_VLAN_ID,PBMP_CMIC(i),ubmp);
     if (rv < 0)
     {
-      LOG_PT_ERR(LOG_CTX_STARTUP,"bcm_vlan_port_add failed unit %d\n", i);
+      PT_LOG_ERR(LOG_CTX_STARTUP,"bcm_vlan_port_add failed unit %d\n", i);
       LOG_ERROR (rv);
     }
 
@@ -1518,7 +1518,7 @@ void hpcHardwareDefaultConfigApply(void)
           }
 
           rv = bcm_port_pfm_set(i, port, BCM_PORT_PFM_MODEC);   /* PTin modified: L2 */
-          LOG_PT_NOTICE(LOG_CTX_STARTUP,"bcm_port_pfm_set configuration to mode C: unit=%d,port=%d => rv=%d (%s)", i, port, rv, bcm_errmsg(rv));
+          PT_LOG_NOTICE(LOG_CTX_STARTUP,"bcm_port_pfm_set configuration to mode C: unit=%d,port=%d => rv=%d (%s)", i, port, rv, bcm_errmsg(rv));
           if (L7_BCMX_OK(rv) != L7_TRUE && rv != BCM_E_UNAVAIL)
           {
             LOG_ERROR (rv);
@@ -1834,7 +1834,7 @@ void hpcHardwareDefaultConfigApply(void)
        }
        else
        {
-         LOG_PT_WARN(LOG_CTX_HAPI,"Dual Hash was not configured for L2");
+         PT_LOG_WARN(LOG_CTX_HAPI,"Dual Hash was not configured for L2");
        }
 
        if (soc_feature(i, soc_feature_l3))
@@ -1863,7 +1863,7 @@ void hpcHardwareDefaultConfigApply(void)
          }
          else
          {
-           LOG_PT_WARN(LOG_CTX_HAPI,"Dual Hash was not configured for L3");
+           PT_LOG_WARN(LOG_CTX_HAPI,"Dual Hash was not configured for L3");
          }
        }
     }
@@ -1872,7 +1872,7 @@ void hpcHardwareDefaultConfigApply(void)
     #if 1
     if (ptin_hapi_hash_init() != L7_SUCCESS)
     {
-      LOG_PT_NOTICE(LOG_CTX_HAPI,"Error initializing hash procedures");
+      PT_LOG_NOTICE(LOG_CTX_HAPI,"Error initializing hash procedures");
       LOG_ERROR(BCM_E_INIT);
     }
     #endif
@@ -2560,7 +2560,7 @@ L7_RC_t hpcXeHgSetup(void)
   DAPI_CARD_ENTRY_t            *dapiCardPtr;
   HAPI_CARD_SLOT_MAP_t         *hapiSlotMapPtr;
 
-  LOG_PT_TRACE(LOG_CTX_STARTUP,"Starting hpcXeHgSetup (%u slots)...", L7_MAX_PHYSICAL_SLOTS_PER_UNIT);
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"Starting hpcXeHgSetup (%u slots)...", L7_MAX_PHYSICAL_SLOTS_PER_UNIT);
 
   /* clear the bitmaps */
   for (i = 0; i < BCM_LOCAL_UNITS_MAX;i++)
@@ -2624,7 +2624,7 @@ extern L7_RC_t hpcStackingXeHgSetup(pbmp_t *pbmp_xport_xe);
     }
   }
 
-  LOG_PT_TRACE(LOG_CTX_STARTUP,"Finished hpcXeHgSetup successfully!");
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"Finished hpcXeHgSetup successfully!");
 
   return L7_SUCCESS;
 }
@@ -2698,7 +2698,7 @@ soc_trident_port_cbl_table_parity_set(int unit, int enable)
   soc_reg32_set(unit, enable_reg, REG_PORT_ANY, 0, rval);
 
 //soc_reg32_get(unit, enable_reg, REG_PORT_ANY, 0, &rval);
-//LOG_PT_NOTICE(LOG_CTX_STARTUP, "rval = 0x%08X", rval);
+//PT_LOG_NOTICE(LOG_CTX_STARTUP, "rval = 0x%08X", rval);
 
   soc_trident_pipe_select(unit, 0, 1);
 
@@ -2707,7 +2707,7 @@ soc_trident_port_cbl_table_parity_set(int unit, int enable)
   soc_reg32_set(unit, enable_reg, REG_PORT_ANY, 0, rval);
 
 //soc_reg32_get(unit, enable_reg, REG_PORT_ANY, 0, &rval);
-//LOG_PT_NOTICE(LOG_CTX_STARTUP, "rval = 0x%08X", rval);
+//PT_LOG_NOTICE(LOG_CTX_STARTUP, "rval = 0x%08X", rval);
 
   soc_trident_pipe_select(unit, 0, 0);
 
@@ -2768,7 +2768,7 @@ L7_RC_t hpcBroadInit()
   /* PTin added: workaround for parity errors */
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
   soc_trident_port_cbl_table_parity_set(0, 0);
-  LOG_PT_NOTICE(LOG_CTX_STARTUP, "port_cbl_table_parity_set(0)");
+  PT_LOG_NOTICE(LOG_CTX_STARTUP, "port_cbl_table_parity_set(0)");
 #endif
 
   /* 
@@ -2792,14 +2792,14 @@ L7_RC_t hpcBroadInit()
   /*  normally done as part of hpcBroadStackInit */
   if (hapiBroadMapDbCreate() == L7_FAILURE)
   {
-    LOG_PT_ERR(LOG_CTX_STARTUP,"Could not create port mapping database\n");
+    PT_LOG_ERR(LOG_CTX_STARTUP,"Could not create port mapping database\n");
     return(L7_FAILURE);
   }
 
   /* normally done as part of hpcBroadStackInit */
   if (bcmx_uport_create_callback_set(lvl7_uport_create_callback) != BCM_E_NONE)
   {
-    LOG_PT_ERR(LOG_CTX_STARTUP,"Could not register bcmx_uport_create_callback\n");
+    PT_LOG_ERR(LOG_CTX_STARTUP,"Could not register bcmx_uport_create_callback\n");
     return(L7_FAILURE);
   }
 #endif
@@ -3275,13 +3275,13 @@ static soc_phy_table_t phy10GBASET_custom_entry =
 /* PTin modified: logger */
 #define SYSTEM_INIT_CHECK(action, description)                  \
         if ((rv = (action)) < 0) {                              \
-            LOG_PT_ERR(LOG_CTX_STARTUP,"%s: Error %d!", description, action); \
+            PT_LOG_ERR(LOG_CTX_STARTUP,"%s: Error %d!", description, action); \
             msg = (description);                                \
             goto done;                                          \
         }                                                       \
         else                                                    \
         {                                                       \
-            LOG_PT_INFO(LOG_CTX_STARTUP,"%s: OK!", description);   \
+            PT_LOG_INFO(LOG_CTX_STARTUP,"%s: OK!", description);   \
         }                                                       \
 
 int
@@ -3370,7 +3370,7 @@ extern int soc_robo_mmu_init(int );
 
 done:
   if (msg != NULL) {
-  LOG_PT_ERR(LOG_CTX_STARTUP,
+  PT_LOG_ERR(LOG_CTX_STARTUP,
            "system_init: %s failed: %s\n",
            msg, soc_errmsg(rv));
   }

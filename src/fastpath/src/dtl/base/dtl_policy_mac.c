@@ -179,7 +179,7 @@ L7_RC_t dtlPolicyIntfBcastCtrlModeSet(L7_uint32 intIfNum,
     return L7_FAILURE;
   }
 
-  LOG_PT_TRACE(LOG_CTX_DTL, "dtlPolicyIntfBcastCtrlModeSet: intIfNum=%u mode=%u threshold=%u burstSize=%u rate_unit=%u",
+  PT_LOG_TRACE(LOG_CTX_DTL, "dtlPolicyIntfBcastCtrlModeSet: intIfNum=%u mode=%u threshold=%u burstSize=%u rate_unit=%u",
             intIfNum, mode, threshold, burstSize, rate_unit);
 
   if (mode == L7_ENABLE)
@@ -245,7 +245,7 @@ L7_RC_t dtlPolicyIntfMcastCtrlModeSet(L7_uint32 intIfNum,
     return L7_FAILURE;
   }
 
-  LOG_PT_TRACE(LOG_CTX_DTL, "dtlPolicyIntfMcastCtrlModeSet: intIfNum=%u mode=%u threshold=%u burstSize=%u rate_unit=%u",
+  PT_LOG_TRACE(LOG_CTX_DTL, "dtlPolicyIntfMcastCtrlModeSet: intIfNum=%u mode=%u threshold=%u burstSize=%u rate_unit=%u",
             intIfNum, mode, threshold, burstSize, rate_unit);
 
   if (mode == L7_ENABLE)
@@ -312,7 +312,7 @@ L7_RC_t dtlPolicyIntfUcastCtrlModeSet(L7_uint32 intIfNum,
     return L7_FAILURE;
   }
 
-  LOG_PT_TRACE(LOG_CTX_DTL, "dtlPolicyIntfUcastCtrlModeSet: intIfNum=%u mode=%u threshold=%u burstSize=%u rate_unit=%u",
+  PT_LOG_TRACE(LOG_CTX_DTL, "dtlPolicyIntfUcastCtrlModeSet: intIfNum=%u mode=%u threshold=%u burstSize=%u rate_unit=%u",
             intIfNum, mode, threshold, burstSize, rate_unit);
 
   if (mode == L7_ENABLE)

@@ -117,7 +117,7 @@ L7_RC_t dot1sPortDisabledAction(DOT1S_PORT_COMMON_t *p)
   L7_uint32 instIndex;
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_PT_TRACE(LOG_CTX_MISC, "IntIfNum %u: Applying action - dot1sBridge->Mode=%u p->notParticipating=%u",
+  PT_LOG_TRACE(LOG_CTX_MISC, "IntIfNum %u: Applying action - dot1sBridge->Mode=%u p->notParticipating=%u",
            p->portNum, dot1sBridge->Mode, p->notParticipating);
 
   if (dot1sBridge->Mode == L7_ENABLE)
@@ -151,7 +151,7 @@ L7_RC_t dot1sPortEnabledAction(DOT1S_PORT_COMMON_t *p)
 {
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_PT_TRACE(LOG_CTX_MISC, "IntIfNum %u: Applying action - dot1sBridge->Mode=%u p->notParticipating=%u",
+  PT_LOG_TRACE(LOG_CTX_MISC, "IntIfNum %u: Applying action - dot1sBridge->Mode=%u p->notParticipating=%u",
            p->portNum, dot1sBridge->Mode, p->notParticipating);
 
   /* is MSTP Enabled */
@@ -335,7 +335,7 @@ L7_uint32 dot1sIhProcessIntfChange(L7_uint32 intIfNum, NIM_EVENT_COMPLETE_INFO_t
 
   intIfEvent = status.event;
 
-  LOG_PT_TRACE(LOG_CTX_MISC, "Interface change detected for intIfNum %u: event=%u", intIfNum, intIfEvent);
+  PT_LOG_TRACE(LOG_CTX_MISC, "Interface change detected for intIfNum %u: event=%u", intIfNum, intIfEvent);
 
   if (nimCheckIfNumber(intIfNum) == L7_SUCCESS)
   {
@@ -363,7 +363,7 @@ L7_uint32 dot1sIhProcessIntfChange(L7_uint32 intIfNum, NIM_EVENT_COMPLETE_INFO_t
     return rc;
   }
 
-  LOG_PT_TRACE(LOG_CTX_MISC, "IntIfNum %u: Event %u - adminState=%u, portEnabled=%u portLinkState=%u ignoreLinkStateChanges=%u", 
+  PT_LOG_TRACE(LOG_CTX_MISC, "IntIfNum %u: Event %u - adminState=%u, portEnabled=%u portLinkState=%u ignoreLinkStateChanges=%u", 
            intIfNum, intIfEvent, adminState, p->portEnabled, p->portLinkState, p->ignoreLinkStateChanges);
 
   switch (intIfEvent)
@@ -1607,7 +1607,7 @@ void dot1sIhStateSet(L7_uint32 mstID, L7_uint32 intIfNum, L7_uint32 state)
   L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
   nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
 
-  LOG_PT_TRACE(LOG_CTX_MISC, "IntIfNum %u: mstID=%u state=%u", intIfNum, mstID, state);
+  PT_LOG_TRACE(LOG_CTX_MISC, "IntIfNum %u: mstID=%u state=%u", intIfNum, mstID, state);
 
   p = dot1sIntfFind(intIfNum);
   if (p == L7_NULLPTR)

@@ -1566,7 +1566,7 @@ static int _policy_super_qset_init_ifp(int unit)
       SOC_IS_TRIUMPH3(unit))
   {
     if (SOC_IS_TRIDENT(unit))
-      LOG_PT_WARN(LOG_CTX_MISC, "Using systemQsetTriumph2Def for TRIDENT family!");
+      PT_LOG_WARN(LOG_CTX_MISC, "Using systemQsetTriumph2Def for TRIDENT family!");
 
     if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
       sysapiPrintf("Adding qset systemQsetTriumph2\r\n");
@@ -1707,7 +1707,7 @@ static int _policy_super_qset_init(int unit)
       sprintf(val,"%08X ",super_qset_table[unit][i].qsetAgg.w[j]);
       strcat(str, val);
     }
-    LOG_PT_TRACE(LOG_CTX_STARTUP, "%s", str);
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "%s", str);
   }
 
   return BCM_E_NONE;
@@ -4010,7 +4010,7 @@ static int _policy_group_alloc_init(int unit, BROAD_POLICY_STAGE_t policyStage, 
 
     lowPrioGroup = hapiBroadPolicyFirstAclDsGroupGet(unit);
 
-    LOG_PT_INFO(LOG_CTX_STARTUP,"Stage=%u, groups=%u, lowPrioGroup=%u", policyStage, groups, lowPrioGroup);
+    PT_LOG_INFO(LOG_CTX_STARTUP,"Stage=%u, groups=%u, lowPrioGroup=%u", policyStage, groups, lowPrioGroup);
 
     switch (policyStage)
     {
@@ -4169,22 +4169,22 @@ static int _policy_group_alloc_init(int unit, BROAD_POLICY_STAGE_t policyStage, 
       break;
     }
 
-    LOG_PT_INFO(LOG_CTX_STARTUP," ALLOC_BLOCK_LOW   : Groups %u - %u",
+    PT_LOG_INFO(LOG_CTX_STARTUP," ALLOC_BLOCK_LOW   : Groups %u - %u",
              group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].lowPrio,
              group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].highPrio);
-    LOG_PT_INFO(LOG_CTX_STARTUP," ALLOC_BLOCK_MEDIUM: Groups %u - %u",
+    PT_LOG_INFO(LOG_CTX_STARTUP," ALLOC_BLOCK_MEDIUM: Groups %u - %u",
              group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].lowPrio,
              group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio);
-    LOG_PT_INFO(LOG_CTX_STARTUP," ALLOC_BLOCK_HIGH  : Groups %u - %u",
+    PT_LOG_INFO(LOG_CTX_STARTUP," ALLOC_BLOCK_HIGH  : Groups %u - %u",
              group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio,
              group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio);
-    LOG_PT_INFO(LOG_CTX_STARTUP," ALLOC_BLOCK_PTIN  : Groups %u - %u",
+    PT_LOG_INFO(LOG_CTX_STARTUP," ALLOC_BLOCK_PTIN  : Groups %u - %u",
              group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio,
              group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].highPrio);
-    LOG_PT_INFO(LOG_CTX_STARTUP," ALLOC_BLOCK_STATS_EVC   : Groups %u - %u",
+    PT_LOG_INFO(LOG_CTX_STARTUP," ALLOC_BLOCK_STATS_EVC   : Groups %u - %u",
              group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].lowPrio,
              group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].highPrio);
-    LOG_PT_INFO(LOG_CTX_STARTUP," ALLOC_BLOCK_STATS_CLIENT: Groups %u - %u",
+    PT_LOG_INFO(LOG_CTX_STARTUP," ALLOC_BLOCK_STATS_CLIENT: Groups %u - %u",
              group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].lowPrio,
              group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].highPrio);
 
@@ -4700,7 +4700,7 @@ int policy_group_add_rule(int                        unit,
         if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
           sysapiPrintf("%s(%d) rv = %d\n",__FUNCTION__,__LINE__,rv);
 
-        LOG_PT_ERR(LOG_CTX_HAPI, "Error commiting rule: unit=%d stage=%d gid=%d eid=%d (maxgroups=%d)",
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error commiting rule: unit=%d stage=%d gid=%d eid=%d (maxgroups=%d)",
                 unit, policyStage, gid, eid, group_table_size[unit][policyStage]);
 
         /* Destroy rule */

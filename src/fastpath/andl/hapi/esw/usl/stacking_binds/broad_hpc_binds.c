@@ -213,7 +213,7 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
   /* PCI device ID override: when switch id is uncorrectly identified as 0xb34f */
   (void) sal_config_set(spn_PCI_OVERRIDE_DEV, "0xb340");
 
-  LOG_PT_TRACE(LOG_CTX_STARTUP,"b340 id imposed for Helix4 switch");
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"b340 id imposed for Helix4 switch");
   #endif
 
 #if (SDK_VERSION_IS >= SDK_VERSION(6,4,0,0))
@@ -311,7 +311,7 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
     rv = bcm_rx_init(i);
     if (rv < 0)
     {
-      LOG_PT_ERR(LOG_CTX_STARTUP,"RX init failed, unit %d\n", i);
+      PT_LOG_ERR(LOG_CTX_STARTUP,"RX init failed, unit %d\n", i);
       break;
     }
 
@@ -320,7 +320,7 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
       rv = bcm_rx_start(i, NULL);
       if (rv < 0)
       {
-        LOG_PT_ERR(LOG_CTX_STARTUP,"RX start failed unit %d\n", i);
+        PT_LOG_ERR(LOG_CTX_STARTUP,"RX start failed unit %d\n", i);
         break;
       }
     }

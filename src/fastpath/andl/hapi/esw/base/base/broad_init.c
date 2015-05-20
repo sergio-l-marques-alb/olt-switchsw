@@ -547,21 +547,21 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&eap_ethtype, exact_match);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS, 0, 0);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
-  LOG_PT_TRACE(LOG_CTX_STARTUP,"DOT1X EAPOL rule added");
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"DOT1X EAPOL rule added");
 
   /* Drop BPDUs which are within the reserved range but not used. Add rule
      with least priority for the valid address range to trap to CPU */
   hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_LOWEST);
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, res_macda, res_mac_drop_mask);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
-  LOG_PT_TRACE(LOG_CTX_STARTUP,"BPDUs drop rule added");
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"BPDUs drop rule added");
 
   /* give BPDUs high priority */
   hapiBroadPolicyRuleAdd(&ruleId);
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, res_macda, res_macmask);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_BPDU_COS, 0, 0);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
-  LOG_PT_TRACE(LOG_CTX_STARTUP,"High priority BPDU rule added");
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"High priority BPDU rule added");
 
 #ifdef L7_STACKING_PACKAGE
   hapiBroadPolicyEnableFPS(); /* Enable on FPS ports, if applicable */
@@ -579,7 +579,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   if (L7_SUCCESS != result)
     return result;
 #else
-  LOG_PT_WARN(LOG_CTX_STARTUP,"dot1x violation policy not installed!");
+  PT_LOG_WARN(LOG_CTX_STARTUP,"dot1x violation policy not installed!");
 #endif
 
   /* DHCP packets on ports must go to the CPU and be rate limited to 64 kbps */
@@ -621,7 +621,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_LOOKUP_STATUS, (L7_uchar8 *)&tunnel_hit, (L7_uchar8 *)&tunnel_l3_hit);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_COPY_TO_CPU, 0, 0, 0);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_MED_PRIORITY_COS, 0, 0);
-  LOG_PT_TRACE(LOG_CTX_STARTUP,"OSPFv3 rule added");
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"OSPFv3 rule added");
   }
 #endif /* L7_IPV6_PACKAGE */
 
@@ -637,7 +637,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PROTO,   udp_proto,  exact_match);
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DPORT,   (L7_uchar8 *)&rip_dport,  exact_match);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS, 0, 0);
-  LOG_PT_TRACE(LOG_CTX_STARTUP,"RIP frames rule added");
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"RIP frames rule added");
   #endif
 
   /* give OSPF frames high priority. We give multicast frames
@@ -650,7 +650,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   hapiBroadPolicyRuleAdd(&ruleId);
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PROTO,   ospf_proto, exact_match);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS, 0, 0);
-  LOG_PT_TRACE(LOG_CTX_STARTUP,"OSPF frames rule added");
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"OSPF frames rule added");
   #endif
 
   /* give BGP frames high priority. We need to gaurantee that these get to the CPU if the CPU
@@ -662,7 +662,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PROTO,   tcp_proto,  exact_match);
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DPORT,   (L7_uchar8 *)&bgp_dport,  exact_match);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS, 0, 0);
-  LOG_PT_TRACE(LOG_CTX_STARTUP,"BGP frames rule added");
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"BGP frames rule added");
   #endif
 
   /* Copy VRRP frames to cpu */
@@ -671,7 +671,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PROTO,   vrrp_proto, exact_match);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS, 0, 0);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_COPY_TO_CPU, 0, 0, 0);
-  LOG_PT_TRACE(LOG_CTX_STARTUP,"VRRP rule added");
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"VRRP rule added");
   
   /* give Router solicitation frames medium priority and copy to the CPU.
    * Restricted to XGS3 due to resource constraints on XGS2.
@@ -689,7 +689,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
      */
     hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_SPORT,   (L7_uchar8 *)&icmp_rtr_solicit, (L7_uchar8 *)&icmp_type_match);
     hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_MED_PRIORITY_COS, 0, 0);
-    LOG_PT_TRACE(LOG_CTX_STARTUP,"Router solicitation frames rule added");
+    PT_LOG_TRACE(LOG_CTX_STARTUP,"Router solicitation frames rule added");
     #endif
   }
 
@@ -713,7 +713,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
     hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP6_HOPLIMIT,   &hoplim, exact_match);
     hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP6_NEXTHEADER,   &icmp_prot, exact_match);
     hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS, 0,0);
-    LOG_PT_TRACE(LOG_CTX_STARTUP,"ICMPv6 frames rule added");
+    PT_LOG_TRACE(LOG_CTX_STARTUP,"ICMPv6 frames rule added");
 
     /* Note that the rule above for OSPF packets will generally work for both IPv4 and IPv6. However, 
        in some cases (e.g. Helix), we use a UDF to qualify on some packet fields and in those cases
@@ -723,7 +723,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
     hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ipV6_ethtype, exact_match);
     hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP6_NEXTHEADER, (L7_uchar8 *)&ospf_proto, exact_match);
     hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS, 0,0);
-    LOG_PT_TRACE(LOG_CTX_STARTUP,"OSPFv3 rule added");
+    PT_LOG_TRACE(LOG_CTX_STARTUP,"OSPFv3 rule added");
     
     result = hapiBroadPolicyCommit(&Ip6SysId);
     if (result != L7_SUCCESS)
@@ -751,7 +751,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
   hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
   hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
-  LOG_PT_TRACE(LOG_CTX_STARTUP,"ARP rule added");
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"ARP rule added");
 
   result = hapiBroadPolicyCommit(&hapiSystem->dynamicArpInspectUntrustedPolicyId);
   if (L7_SUCCESS != result)
@@ -775,7 +775,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&arp_ethtype, exact_match);
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, bcast_macda, exact_match);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_MED_PRIORITY_COS, 0, 0);
-  LOG_PT_TRACE(LOG_CTX_STARTUP,"High priority ARP rule added");
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"High priority ARP rule added");
 
   result = hapiBroadPolicyCommit(&arpPolicyId);
   if (L7_SUCCESS != result)
@@ -802,14 +802,14 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
        hapiBroadPolicyRuleQualifierAdd(fpsRuleId, BROAD_FIELD_OVID,
                                        (L7_uchar8*)&vlanId, exact_match);
        hapiBroadPolicyRuleActionAdd(fpsRuleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
-       LOG_PT_TRACE(LOG_CTX_STARTUP,"Rule added");
+       PT_LOG_TRACE(LOG_CTX_STARTUP,"Rule added");
 
        result = hapiBroadPolicyCommit(&fpsId);
        if (result == L7_SUCCESS)
        {
          hapiSystem->fpsSysId = fpsId;
        }
-       LOG_PT_TRACE(LOG_CTX_STARTUP,"RIP frames rule added");
+       PT_LOG_TRACE(LOG_CTX_STARTUP,"RIP frames rule added");
        #endif
     }
   }
@@ -829,7 +829,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
            (L7_SUCCESS == hapiBroadPolicyRuleActionAdd(isdpRuleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0)) &&
            (L7_SUCCESS == hapiBroadPolicyRuleActionAdd(isdpRuleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS, 0, 0)))
        {
-         LOG_PT_TRACE(LOG_CTX_STARTUP,"cdp/udld/dtp/vtp/pagp frames rule added");
+         PT_LOG_TRACE(LOG_CTX_STARTUP,"cdp/udld/dtp/vtp/pagp frames rule added");
          if (L7_SUCCESS == hapiBroadPolicyCommit(&isdpId))
          {
            hapiSystem->isdpSysId = isdpId;
@@ -887,7 +887,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
           hapiBroadPolicyCreateCancel();
           break;
         }
-        LOG_PT_TRACE(LOG_CTX_STARTUP,"DHCP frames rule added");
+        PT_LOG_TRACE(LOG_CTX_STARTUP,"DHCP frames rule added");
 
         if (L7_SUCCESS == hapiBroadPolicyCommit(&voiceId))
         {
@@ -907,12 +907,12 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
 
 #ifdef L7_MCAST_PACKAGE
   hapiBroadConfigL3McastFilter(L7_TRUE);
-  LOG_PT_TRACE(LOG_CTX_STARTUP,"Multicast package");
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"Multicast package");
 #endif  
 #ifdef L7_LLPF_PACKAGE
   /*Drop rules to discard LLPF PDU's like cdp/dtp/vtp/pagp/sstp*/
   result = hapiBroadLlpfPolicyInstall(dapi_g);
-  LOG_PT_TRACE(LOG_CTX_STARTUP,"LLPF rules added");
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"LLPF rules added");
   if(L7_SUCCESS != result)
   {
     return result;
@@ -928,7 +928,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   }
   #endif
 
-  LOG_PT_INFO(LOG_CTX_STARTUP,"Default rules initialization finished! (result=%d)",result);
+  PT_LOG_INFO(LOG_CTX_STARTUP,"Default rules initialization finished! (result=%d)",result);
 
   return result;
 }
@@ -1463,7 +1463,7 @@ L7_RC_t hapiBroadPhysicalCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *d
   usp.unit = dapiUsp->unit;
   usp.slot = dapiUsp->slot;
 
-  LOG_PT_TRACE(LOG_CTX_STARTUP,"PhysicalCardInsert starting...");
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"PhysicalCardInsert starting...");
 
   /*
    * Retrieve the Database Info Pointers
@@ -1480,7 +1480,7 @@ L7_RC_t hapiBroadPhysicalCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *d
       break;
     }
 
-    LOG_PT_TRACE(LOG_CTX_STARTUP,"unitKey=%02x:%02x:%02x:%02x:%02x:%02x",
+    PT_LOG_TRACE(LOG_CTX_STARTUP,"unitKey=%02x:%02x:%02x:%02x:%02x:%02x",
               unitKey.addr[0],unitKey.addr[1],unitKey.addr[2],unitKey.addr[3],unitKey.addr[4],unitKey.addr[5]);
 #ifdef L7_STACKING_PACKAGE
 
@@ -1701,7 +1701,7 @@ L7_RC_t hapiBroadPhysicalCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *d
   
   if (result != L7_SUCCESS)
   {
-    LOG_PT_TRACE(LOG_CTX_STARTUP,"Error inserting card!");
+    PT_LOG_TRACE(LOG_CTX_STARTUP,"Error inserting card!");
     usl_card_remove(usp.unit, usp.slot);     
 
     L7_LOGF(L7_LOG_SEVERITY_DEBUG, L7_DRIVER_COMPONENT_ID,
@@ -1709,7 +1709,7 @@ L7_RC_t hapiBroadPhysicalCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *d
             usp.unit, usp.slot);
   }
 
-  LOG_PT_NOTICE(LOG_CTX_STARTUP,"Complete: result=%d",result);
+  PT_LOG_NOTICE(LOG_CTX_STARTUP,"Complete: result=%d",result);
 
   return result;
 }
@@ -2562,7 +2562,7 @@ void hapiBroadFfpSysMacInstall (DAPI_t      *dapi_g,
   meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
   /* PTin end */
 
-  LOG_PT_INFO(LOG_CTX_MISC,"Going to configure Inband Trap rule...");
+  PT_LOG_INFO(LOG_CTX_MISC,"Going to configure Inband Trap rule...");
 
   /* If we already have an old MAC address for the network interface
   ** then remove it.
@@ -2604,7 +2604,7 @@ void hapiBroadFfpSysMacInstall (DAPI_t      *dapi_g,
       hapiSystemPtr->mgmtPolicy = mgmtId;
   }
 
-  LOG_PT_INFO(LOG_CTX_MISC,"Inband Trap rule configured for VLAN %u", new_vlan_id);
+  PT_LOG_INFO(LOG_CTX_MISC,"Inband Trap rule configured for VLAN %u", new_vlan_id);
 }
 
 #ifdef L7_DOT1AG_PACKAGE
@@ -2686,7 +2686,7 @@ L7_RC_t hapiBroadCpuCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *data, 
   L7_uint32                     mgmtUnit;
   L7_enetMacAddr_t              mgrKey;
 
-  LOG_PT_TRACE(LOG_CTX_STARTUP,"CpuCardInsert starting (slot=%d)...", dapiUsp->slot);
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"CpuCardInsert starting (slot=%d)...", dapiUsp->slot);
 
   usp.unit = dapiUsp->unit;
   usp.slot = dapiUsp->slot;
@@ -2717,7 +2717,7 @@ L7_RC_t hapiBroadCpuCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *data, 
       
   }
 
-  LOG_PT_TRACE(LOG_CTX_STARTUP,"mgmtUnit=%u",mgmtUnit);
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"mgmtUnit=%u",mgmtUnit);
 
   if (sysapiHpcUnitIdentifierKeyGet(mgmtUnit, &mgrKey) != L7_SUCCESS)
   {
@@ -2727,7 +2727,7 @@ L7_RC_t hapiBroadCpuCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *data, 
     return L7_FAILURE;
   }
 
-  LOG_PT_TRACE(LOG_CTX_STARTUP,"mgrKey=%02x:%02x:%02x:%02x:%02x:%02x",
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"mgrKey=%02x:%02x:%02x:%02x:%02x:%02x",
          mgrKey.addr[0],mgrKey.addr[1],mgrKey.addr[2],mgrKey.addr[3],mgrKey.addr[4],mgrKey.addr[5]);
 
 #ifdef L7_STACKING_PACKAGE
@@ -2804,7 +2804,7 @@ L7_RC_t hapiBroadCpuCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *data, 
     return L7_FAILURE;
   }
 
-  LOG_PT_NOTICE(LOG_CTX_STARTUP,"Complete!");
+  PT_LOG_NOTICE(LOG_CTX_STARTUP,"Complete!");
 
   return L7_SUCCESS;
 }

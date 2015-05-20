@@ -71,24 +71,24 @@ L7_RC_t ptin_hapi_policy_resources_get(st_ptin_policy_resources *resources)
       /* Is entry in use */
       if (!(gtable->flags & GROUP_USED))
       {
-        LOG_PT_TRACE(LOG_CTX_HAPI,"Group index %u (stage=%d) is not in use.",group_idx,stage_idx);
+        PT_LOG_TRACE(LOG_CTX_HAPI,"Group index %u (stage=%d) is not in use.",group_idx,stage_idx);
         memset(&resources->cap[group_idx][stage_idx],0x00,sizeof(st_ptin_ffp_rules));
         continue;
       }
 
-      LOG_PT_TRACE(LOG_CTX_HAPI,"Analysing group index %u / stage=%d: gid=%d (flags=0x%08x)",group_idx,stage_idx,gtable->gid,gtable->flags);
+      PT_LOG_TRACE(LOG_CTX_HAPI,"Analysing group index %u / stage=%d: gid=%d (flags=0x%08x)",group_idx,stage_idx,gtable->gid,gtable->flags);
 
       /* Get group details */
       error = bcm_field_group_status_get(0, gtable->gid, &group_status);
       if (error==BCM_E_NOT_FOUND)
       {
-        LOG_PT_TRACE(LOG_CTX_HAPI,"Group %u (stage=%d) does not exist",gtable->gid,stage_idx);
+        PT_LOG_TRACE(LOG_CTX_HAPI,"Group %u (stage=%d) does not exist",gtable->gid,stage_idx);
         memset(&resources->cap[group_idx][stage_idx],0x00,sizeof(st_ptin_ffp_rules));
         continue;
       }
       else if (error!=BCM_E_NONE)
       {
-        LOG_PT_ERR(LOG_CTX_HAPI,"Error reading status of group %u, stage=%d (error=%d \"%s\")",gtable->gid,stage_idx,error,bcm_errmsg(error));
+        PT_LOG_ERR(LOG_CTX_HAPI,"Error reading status of group %u, stage=%d (error=%d \"%s\")",gtable->gid,stage_idx,error,bcm_errmsg(error));
         return L7_FAILURE;
       }
 
@@ -151,7 +151,7 @@ void ptin_hapi_policy_clear(void *elem, ptin_hapi_database_t *db)
   /* Validate pointer address */
   if ( !FP_POLICY_VALID_PTR(elem,db) )
   {
-    LOG_PT_ERR(LOG_CTX_HAPI,"Invalid policy");
+    PT_LOG_ERR(LOG_CTX_HAPI,"Invalid policy");
     return;
   }
 
@@ -164,7 +164,7 @@ void ptin_hapi_policy_clear(void *elem, ptin_hapi_database_t *db)
   /* If index to be freed is before the first_free_index value, update it */
   FP_FREEPOLICY_UPDATE_INDEX(index,db);
 
-  LOG_PT_TRACE(LOG_CTX_HAPI,"Policy cleared");
+  PT_LOG_TRACE(LOG_CTX_HAPI,"Policy cleared");
 }
 
 
@@ -191,11 +191,11 @@ void *ptin_hapi_policy_next(void *base_ptr, ptin_hapi_database_t *db)
   /* Check if all elements were checked without success: not found situation */
   if (!FP_POLICY_VALID_PTR(ptr,db))
   {
-    LOG_PT_TRACE(LOG_CTX_HAPI,"Cell not found");
+    PT_LOG_TRACE(LOG_CTX_HAPI,"Cell not found");
     return L7_NULLPTR;
   }
 
-  LOG_PT_TRACE(LOG_CTX_HAPI,"Cell found!");
+  PT_LOG_TRACE(LOG_CTX_HAPI,"Cell found!");
 
   /* At this point a match has ocurred (index points to that match) */
   return ptr;
@@ -230,11 +230,11 @@ void *ptin_hapi_policy_find(DAPI_USP_t *usp, void *profile, void *base_ptr, ptin
   /* Check if all elements were checked without success: not found situation */
   if (!FP_POLICY_VALID_PTR(ptr,db))
   {
-    LOG_PT_TRACE(LOG_CTX_HAPI,"Cell not found");
+    PT_LOG_TRACE(LOG_CTX_HAPI,"Cell not found");
     return L7_NULLPTR;
   }
 
-  LOG_PT_TRACE(LOG_CTX_HAPI,"Cell found!");
+  PT_LOG_TRACE(LOG_CTX_HAPI,"Cell found!");
 
   /* At this point a match has ocurred (index points to that match) */
   return ptr;
@@ -269,11 +269,11 @@ void *ptin_hapi_policy_check_conflicts(DAPI_USP_t *usp, void *profile, void *bas
   /* Check if all elements were checked without success: not found situation */
   if (!FP_POLICY_VALID_PTR(ptr,db))
   {
-    LOG_PT_TRACE(LOG_CTX_HAPI,"Cell not found");
+    PT_LOG_TRACE(LOG_CTX_HAPI,"Cell not found");
     return L7_NULLPTR;
   }
 
-  LOG_PT_TRACE(LOG_CTX_HAPI,"Cell found in conflict!");
+  PT_LOG_TRACE(LOG_CTX_HAPI,"Cell found in conflict!");
 
   /* At this point a match has ocurred (index points to that match) */
   return ptr;
@@ -294,7 +294,7 @@ void *ptin_hapi_policy_find_free(ptin_hapi_database_t *db)
   /* No free elements situation */
   if ( FP_FREEPOLICY_HAS_NOVALUE(db) )
   {
-    LOG_PT_TRACE(LOG_CTX_HAPI,"No free elements");
+    PT_LOG_TRACE(LOG_CTX_HAPI,"No free elements");
     FP_FREEPOLICY_SET_NOVALUE(db);
     return L7_NULLPTR;
   }
@@ -310,7 +310,7 @@ void *ptin_hapi_policy_find_free(ptin_hapi_database_t *db)
   /* Not found situation */
   if ( !FP_POLICY_VALID_INDEX(index,db) )
   {
-    LOG_PT_TRACE(LOG_CTX_HAPI,"No free elements");
+    PT_LOG_TRACE(LOG_CTX_HAPI,"No free elements");
     FP_FREEPOLICY_SET_NOVALUE(db);
     return L7_NULLPTR;
   }
@@ -319,7 +319,7 @@ void *ptin_hapi_policy_find_free(ptin_hapi_database_t *db)
   /* Free Index to be used next time */
   FP_FREEPOLICY_SET_INDEX(index,db);
 
-  LOG_PT_TRACE(LOG_CTX_HAPI,"Found free element");
+  PT_LOG_TRACE(LOG_CTX_HAPI,"Found free element");
 
   return ((void *) FP_POLICY_GET_PTR_FROM_INDEX(index,db));
 }

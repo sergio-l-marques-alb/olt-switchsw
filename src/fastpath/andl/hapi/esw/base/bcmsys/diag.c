@@ -51,16 +51,16 @@ tks_st_thread(void *cookie)
 
   rv = topo_pkt_handle_init(TOPO_ATP_FLAGS);
   if (rv < 0) {
-        LOG_PT_ERR(LOG_CTX_STARTUP,"WARNING: topo pkt handle init returned %s\n", bcm_errmsg(rv));
+        PT_LOG_ERR(LOG_CTX_STARTUP,"WARNING: topo pkt handle init returned %s\n", bcm_errmsg(rv));
         LOG_ERROR (rv);
   }
 
   if ((rv=bcm_stack_attach_init()) != BCM_E_NONE) {
-    LOG_PT_ERR(LOG_CTX_STARTUP,"WARNING: bcm_stack_attach_init returned %s\n", bcm_errmsg(rv));
+    PT_LOG_ERR(LOG_CTX_STARTUP,"WARNING: bcm_stack_attach_init returned %s\n", bcm_errmsg(rv));
   }
 
   rv = bcm_st_start(cfg, TRUE);
-  LOG_PT_INFO(LOG_CTX_STARTUP,"st thread exitted with value %d\n", rv);
+  PT_LOG_INFO(LOG_CTX_STARTUP,"st thread exitted with value %d\n", rv);
   st_tid = SAL_THREAD_ERROR;
   sal_thread_exit(rv);
 }

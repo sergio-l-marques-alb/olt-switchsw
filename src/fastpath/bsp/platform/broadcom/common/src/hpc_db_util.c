@@ -253,17 +253,17 @@ L7_RC_t hpcLocalCardIdDiscover(void)
           localPortCnt[i] = card_descriptor_ptr->cardTypeDescriptor.numOfNiPorts;
           localPhysicalPortCount += localPortCnt[i];
         }
-        LOG_PT_TRACE(LOG_CTX_STARTUP,"Card id 0x%x present!",cardId);
+        PT_LOG_TRACE(LOG_CTX_STARTUP,"Card id 0x%x present!",cardId);
       }
       else
       {
-        LOG_PT_ERR(LOG_CTX_STARTUP,"Card not present!");
+        PT_LOG_ERR(LOG_CTX_STARTUP,"Card not present!");
       }
     }
   }
   else
   {
-    LOG_PT_ERR(LOG_CTX_STARTUP,"Cannot find board");
+    PT_LOG_ERR(LOG_CTX_STARTUP,"Cannot find board");
     return(L7_FAILURE);
   }
 

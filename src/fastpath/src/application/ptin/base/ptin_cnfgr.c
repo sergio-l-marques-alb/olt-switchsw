@@ -85,7 +85,7 @@ static ptinCnfgrState_t ptinCnfgrState = PTIN_PHASE_INIT_0;
  */
 void main_sig_caught(int signum)
 {
-  LOG_PT_INFO(LOG_CTX_STARTUP, "firmware recebeu o sinal %d",signum);
+  PT_LOG_INFO(LOG_CTX_STARTUP, "firmware recebeu o sinal %d",signum);
 
   /* Close IPC channel */
   CloseIPC();
@@ -96,9 +96,9 @@ void main_sig_caught(int signum)
   /* Open channel to communicate with the Manager */
   if (OpenIPC() != S_OK)
   {
-    LOG_PT_ERR(LOG_CTX_CNFGR, "Error opening IPC channel!");
+    PT_LOG_ERR(LOG_CTX_CNFGR, "Error opening IPC channel!");
   }
-  LOG_PT_INFO(LOG_CTX_CNFGR, "IPC Communications channel OK");
+  PT_LOG_INFO(LOG_CTX_CNFGR, "IPC Communications channel OK");
 }
 
 
@@ -124,7 +124,7 @@ L7_RC_t ptinApplyConfigCompleteCb(L7_uint32 event)
 
   if (event == TXT_CFG_APPLY_FAILURE)
   {
-    LOG_PT_FATAL(LOG_CTX_CNFGR, "OLTSWITCH configurations failed!");
+    PT_LOG_FATAL(LOG_CTX_CNFGR, "OLTSWITCH configurations failed!");
     return L7_FAILURE;
   }
 
@@ -320,7 +320,7 @@ L7_RC_t ptinCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
 {
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_PT_TRACE(LOG_CTX_STARTUP,"Phase 1...");
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"Phase 1...");
 
   /* Phase 1:
    *  - Create queues, tasks, semaphores, timers
@@ -337,7 +337,7 @@ L7_RC_t ptinCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
   ptin_ready_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_EMPTY);
   if (ptin_ready_sem == L7_NULLPTR)
   {
-    LOG_PT_FATAL(LOG_CTX_CNFGR, "Failed to create ptin_ready semaphore!");
+    PT_LOG_FATAL(LOG_CTX_CNFGR, "Failed to create ptin_ready semaphore!");
 
     *pResponse = 0;
     *pReason   = L7_CNFGR_ERR_RC_LACK_OF_RESOURCES;
@@ -360,13 +360,13 @@ L7_RC_t ptinCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
   /* Open shared memory to communicate with the GPON application */
   if (fw_shm_open() != 0)
   {
-    LOG_PT_FATAL(LOG_CTX_CNFGR, "Error initializing shared memory!");
+    PT_LOG_FATAL(LOG_CTX_CNFGR, "Error initializing shared memory!");
     return L7_FAILURE;
   }
   else
   {
     memset(pfw_shm, 0x00, sizeof(t_fw_shm));
-    LOG_PT_INFO(LOG_CTX_CNFGR, "Shared memory OK");
+    PT_LOG_INFO(LOG_CTX_CNFGR, "Shared memory OK");
   }
 #endif
 
@@ -375,9 +375,9 @@ L7_RC_t ptinCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
 
   ptinCnfgrState = PTIN_PHASE_INIT_1;
 
-  LOG_PT_INFO(LOG_CTX_CNFGR, "PTIN Phase 1 initialization OK");
+  PT_LOG_INFO(LOG_CTX_CNFGR, "PTIN Phase 1 initialization OK");
 
-  LOG_PT_TRACE(LOG_CTX_STARTUP,"End of Phase 1: rc=%d",rc);
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"End of Phase 1: rc=%d",rc);
 
   return rc;
 }
@@ -411,7 +411,7 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
   *  - Register for callbacks with other components
   */
   
-  LOG_PT_TRACE(LOG_CTX_STARTUP,"Phase 2...");
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"Phase 2...");
 
   *pResponse  = L7_CNFGR_CMD_COMPLETE;
   *pReason    = 0;
@@ -420,14 +420,14 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
 #ifdef L7_CLI_PACKAGE
   if (txtCfgApplyCompletionNotifyRegister(L7_PTIN_COMPONENT_ID, ptinApplyConfigCompleteCb))
   {
-    LOG_PT_FATAL(LOG_CTX_CNFGR, "Failed to register for config completion callback!");
+    PT_LOG_FATAL(LOG_CTX_CNFGR, "Failed to register for config completion callback!");
 
     *pResponse  = 0;
     *pReason    = L7_CNFGR_ERR_RC_FATAL;
     return L7_FAILURE;
   }
 #else
-  LOG_PT_FATAL(LOG_CTX_CNFGR, "L7_CLI_PACKAGE is not present!");
+  PT_LOG_FATAL(LOG_CTX_CNFGR, "L7_CLI_PACKAGE is not present!");
 
   *pResponse  = 0;
   *pReason    = L7_CNFGR_ERR_RC_FATAL;
@@ -439,7 +439,7 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
   ptin_boardaction_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
   if (ptin_boardaction_sem == L7_NULLPTR)
   {
-    LOG_PT_FATAL(LOG_CTX_CNFGR, "Failed to create ptin_boardaction_sem semaphore!");
+    PT_LOG_FATAL(LOG_CTX_CNFGR, "Failed to create ptin_boardaction_sem semaphore!");
 
     *pResponse = 0;
     *pReason   = L7_CNFGR_ERR_RC_LACK_OF_RESOURCES;
@@ -456,7 +456,7 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
                       L7_DEFAULT_TASK_PRIORITY,
                       L7_DEFAULT_TASK_SLICE) == L7_ERROR)
   {
-    LOG_PT_FATAL(LOG_CTX_CNFGR, "Failed to create PTin task!");
+    PT_LOG_FATAL(LOG_CTX_CNFGR, "Failed to create PTin task!");
 
     *pResponse = 0;
     *pReason   = L7_CNFGR_ERR_RC_LACK_OF_RESOURCES;
@@ -465,13 +465,13 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
   /* Wait for task to be launched */
   if (osapiWaitForTaskInit (L7_PTIN_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS)
   {
-    LOG_PT_FATAL(LOG_CTX_CNFGR, "Failed to start PTin task!");
+    PT_LOG_FATAL(LOG_CTX_CNFGR, "Failed to start PTin task!");
 
     *pResponse = 0;
     *pReason   = L7_CNFGR_ERR_RC_LACK_OF_RESOURCES;
     return L7_FAILURE;
   }
-  LOG_PT_INFO(LOG_CTX_CNFGR, "PTin task launch OK");
+  PT_LOG_INFO(LOG_CTX_CNFGR, "PTin task launch OK");
 
   /* Initialize OAM data structures (includes task and timer) */
   ptin_oam_eth_init();
@@ -483,7 +483,7 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
     *pReason   = L7_CNFGR_ERR_RC_LACK_OF_RESOURCES;
     return L7_FAILURE;
   }
-  LOG_PT_INFO(LOG_CTX_CNFGR, "SSM init OK");
+  PT_LOG_INFO(LOG_CTX_CNFGR, "SSM init OK");
 
     /* Initialize ERPS data structures (includes semaphores and timer) */
 #ifdef PTIN_ENABLE_ERPS
@@ -514,7 +514,7 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
     *pReason   = L7_CNFGR_ERR_RC_FATAL;
     return L7_ERROR;
   }
-  LOG_PT_INFO(LOG_CTX_CNFGR, "ptin_packet initialized!");
+  PT_LOG_INFO(LOG_CTX_CNFGR, "ptin_packet initialized!");
 #endif
 
 /* Only make interface state management, if CXO board */
@@ -524,7 +524,7 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
   ptin_switchover_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_EMPTY);
   if (ptin_switchover_sem == L7_NULLPTR)
   {
-    LOG_PT_FATAL(LOG_CTX_CNFGR, "Failed to create ptin_switchover_sem semaphore!");
+    PT_LOG_FATAL(LOG_CTX_CNFGR, "Failed to create ptin_switchover_sem semaphore!");
 
     *pResponse = 0;
     *pReason   = L7_CNFGR_ERR_RC_LACK_OF_RESOURCES;
@@ -537,18 +537,18 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
                       L7_DEFAULT_TASK_PRIORITY,
                       L7_DEFAULT_TASK_SLICE) == L7_ERROR)
   {
-    LOG_PT_FATAL(LOG_CTX_CONTROL, "Failed to create ptinSwitchoverTask!");
+    PT_LOG_FATAL(LOG_CTX_CONTROL, "Failed to create ptinSwitchoverTask!");
     return L7_FAILURE;
   }
-  LOG_PT_INFO(LOG_CTX_CONTROL, "ptinSwitchoverTask created");
+  PT_LOG_INFO(LOG_CTX_CONTROL, "ptinSwitchoverTask created");
 
   /* Wait for task to be launched */
   if (osapiWaitForTaskInit (L7_PTIN_SWITCHOVER_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS)
   {
-    LOG_PT_FATAL(LOG_CTX_CONTROL, "Failed to start ptinSwitchoverTask!");
+    PT_LOG_FATAL(LOG_CTX_CONTROL, "Failed to start ptinSwitchoverTask!");
     return L7_FAILURE;
   }
-  LOG_PT_INFO(LOG_CTX_CONTROL, "ptinSwitchoverTask launch OK");
+  PT_LOG_INFO(LOG_CTX_CONTROL, "ptinSwitchoverTask launch OK");
 #endif
 #endif
 #endif
@@ -558,9 +558,9 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
 
   ptinCnfgrState = PTIN_PHASE_INIT_2;
 
-  LOG_PT_INFO(LOG_CTX_CNFGR, "PTIN Phase 2 initialization OK");
+  PT_LOG_INFO(LOG_CTX_CNFGR, "PTIN Phase 2 initialization OK");
 
-  LOG_PT_TRACE(LOG_CTX_STARTUP,"End of Phase 2 (Success)");
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"End of Phase 2 (Success)");
 
   return L7_SUCCESS;
 }
@@ -591,7 +591,7 @@ L7_RC_t ptinCnfgrInitPhase3Process( L7_CNFGR_RESPONSE_t *pResponse,
 {
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_PT_TRACE(LOG_CTX_STARTUP,"Phase 3...");
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"Phase 3...");
 
   /* Phase 3:
    *  - Reset all status structures to initial state 
@@ -608,15 +608,15 @@ L7_RC_t ptinCnfgrInitPhase3Process( L7_CNFGR_RESPONSE_t *pResponse,
   /* Open channel to communicate with the Manager */
   while (OpenIPC() != S_OK)
   {
-    LOG_PT_CRITIC(LOG_CTX_CNFGR, "Error opening IPC channel! Retrying in %d seconds...", PTIN_T_RETRY_IPC);
+    PT_LOG_CRITIC(LOG_CTX_CNFGR, "Error opening IPC channel! Retrying in %d seconds...", PTIN_T_RETRY_IPC);
     sleep(PTIN_T_RETRY_IPC);
   }
-  LOG_PT_INFO(LOG_CTX_CNFGR, "IPC Communications channel OK");
+  PT_LOG_INFO(LOG_CTX_CNFGR, "IPC Communications channel OK");
 
   /* Define signal trap callback */
   if ( signal(SIGUSR1, main_sig_caught)==SIG_ERR )
   {
-    LOG_PT_FATAL(LOG_CTX_STARTUP,"Create SIGTERM Handler [ERROR]");
+    PT_LOG_FATAL(LOG_CTX_STARTUP,"Create SIGTERM Handler [ERROR]");
     PTIN_CRASH();
   }
 
@@ -625,9 +625,9 @@ L7_RC_t ptinCnfgrInitPhase3Process( L7_CNFGR_RESPONSE_t *pResponse,
 
   ptinCnfgrState = PTIN_PHASE_INIT_3;
 
-  LOG_PT_INFO(LOG_CTX_CNFGR, "PTIN Phase 3 initialization OK");
+  PT_LOG_INFO(LOG_CTX_CNFGR, "PTIN Phase 3 initialization OK");
 
-  LOG_PT_TRACE(LOG_CTX_STARTUP,"End of Phase 3: rc=%d", rc);
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"End of Phase 3: rc=%d", rc);
 
   return rc;
 }
@@ -650,7 +650,7 @@ void ptinCnfgrFiniPhase1Process(void)
   /* Deconfigure IGMP proxy */
   ptin_igmp_proxy_deinit();
 
-  LOG_PT_INFO(LOG_CTX_CNFGR, "SSM fini OK");
+  PT_LOG_INFO(LOG_CTX_CNFGR, "SSM fini OK");
 
   ptinCnfgrState = PTIN_PHASE_INIT_0;
 }

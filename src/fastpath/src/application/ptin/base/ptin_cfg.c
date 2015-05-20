@@ -43,7 +43,7 @@ L7_RC_t ptin_cfg_ntw_connectivity_get(ptin_NtwConnectivity_t *ntwConn)
     rc = usmDbAgentIpIfAddressGet(1, &ntwConn->ipaddr);
     if (rc != L7_SUCCESS)
     {
-      LOG_PT_ERR(LOG_CTX_API, "Error getting inBand management IPv4 Address");
+      PT_LOG_ERR(LOG_CTX_API, "Error getting inBand management IPv4 Address");
       return L7_FAILURE;
     }
     ntwConn->mask |= PTIN_NTWCONN_MASK_IPADDR;
@@ -55,7 +55,7 @@ L7_RC_t ptin_cfg_ntw_connectivity_get(ptin_NtwConnectivity_t *ntwConn)
     rc = usmDbAgentIpIfNetMaskGet(1, &ntwConn->netmask);
     if (rc != L7_SUCCESS)
     {
-      LOG_PT_ERR(LOG_CTX_API, "Error getting inBand management NetMask");
+      PT_LOG_ERR(LOG_CTX_API, "Error getting inBand management NetMask");
       return L7_FAILURE;
     }
     ntwConn->mask |= PTIN_NTWCONN_MASK_NETMASK;
@@ -67,7 +67,7 @@ L7_RC_t ptin_cfg_ntw_connectivity_get(ptin_NtwConnectivity_t *ntwConn)
     rc = usmDbAgentIpIfDefaultRouterGet(1, &ntwConn->gateway);
     if (rc != L7_SUCCESS)
     {
-      LOG_PT_ERR(LOG_CTX_API, "Error getting inBand management Gateway Addr");
+      PT_LOG_ERR(LOG_CTX_API, "Error getting inBand management Gateway Addr");
       return L7_FAILURE;
     }
     ntwConn->mask |= PTIN_NTWCONN_MASK_GATEWAY;
@@ -81,7 +81,7 @@ L7_RC_t ptin_cfg_ntw_connectivity_get(ptin_NtwConnectivity_t *ntwConn)
     evcConf.index = PTIN_EVC_INBAND;
     if (ptin_evc_get(&evcConf) != L7_SUCCESS)
     {
-      LOG_PT_ERR(LOG_CTX_API, "Error getting inBand interface and VLAN info (EVC read error)");
+      PT_LOG_ERR(LOG_CTX_API, "Error getting inBand interface and VLAN info (EVC read error)");
     }
     else
     {
@@ -139,7 +139,7 @@ L7_RC_t ptin_cfg_ntw_connectivity_set(ptin_NtwConnectivity_t *ntwConn)
   rc |= usmDbMgmtVlanIdGet(1, &old_vlan);
   if (rc != L7_SUCCESS)
   {
-    LOG_PT_ERR(LOG_CTX_API, "Error reading current inBand management config");
+    PT_LOG_ERR(LOG_CTX_API, "Error reading current inBand management config");
     return L7_FAILURE;
   }
 
@@ -153,7 +153,7 @@ L7_RC_t ptin_cfg_ntw_connectivity_set(ptin_NtwConnectivity_t *ntwConn)
       rc = usmDbAgentIpIfAddressSet(1, ntwConn->ipaddr);
       if (rc != L7_SUCCESS)
       {
-        LOG_PT_ERR(LOG_CTX_API, "Error setting inBand management IPv4 Address");
+        PT_LOG_ERR(LOG_CTX_API, "Error setting inBand management IPv4 Address");
         break;
       }
       undo_mask |= PTIN_NTWCONN_MASK_IPADDR;
@@ -165,7 +165,7 @@ L7_RC_t ptin_cfg_ntw_connectivity_set(ptin_NtwConnectivity_t *ntwConn)
       rc = usmDbAgentIpIfNetMaskSet(1, ntwConn->netmask);
       if (rc != L7_SUCCESS)
       {
-        LOG_PT_ERR(LOG_CTX_API, "Error setting inBand management NetMask");
+        PT_LOG_ERR(LOG_CTX_API, "Error setting inBand management NetMask");
         break;
       }
       undo_mask |= PTIN_NTWCONN_MASK_NETMASK;
@@ -177,7 +177,7 @@ L7_RC_t ptin_cfg_ntw_connectivity_set(ptin_NtwConnectivity_t *ntwConn)
       rc = usmDbAgentIpIfDefaultRouterSet(1, ntwConn->gateway);
       if (rc != L7_SUCCESS)
       {
-        LOG_PT_ERR(LOG_CTX_API, "Error setting inBand management Gateway Addr");
+        PT_LOG_ERR(LOG_CTX_API, "Error setting inBand management Gateway Addr");
         break;
       }
       undo_mask |= PTIN_NTWCONN_MASK_GATEWAY;
@@ -219,7 +219,7 @@ L7_RC_t ptin_cfg_ntw_connectivity_set(ptin_NtwConnectivity_t *ntwConn)
       rc = ptin_evc_create(&evcConf);
       if (rc != L7_SUCCESS)
       {
-        LOG_PT_ERR(LOG_CTX_API, "Error creating EVC# %u for inBand management purposes", PTIN_EVC_INBAND);
+        PT_LOG_ERR(LOG_CTX_API, "Error creating EVC# %u for inBand management purposes", PTIN_EVC_INBAND);
         break;
       }
       undo_mask |= PTIN_NTWCONN_MASK_INTF;
@@ -230,7 +230,7 @@ L7_RC_t ptin_cfg_ntw_connectivity_set(ptin_NtwConnectivity_t *ntwConn)
       rc = usmDbMgmtVlanIdSet(1, PTIN_VLAN_INBAND);
       if (rc != L7_SUCCESS)
       {
-        LOG_PT_ERR(LOG_CTX_API, "Error setting inBand management VLAN ID");
+        PT_LOG_ERR(LOG_CTX_API, "Error setting inBand management VLAN ID");
         break;
       }
       undo_mask |= PTIN_NTWCONN_MASK_VLAN;
@@ -241,12 +241,12 @@ L7_RC_t ptin_cfg_ntw_connectivity_set(ptin_NtwConnectivity_t *ntwConn)
       rc = usmDbMgmtVlanIdSet(1, 0);
       if (rc != L7_SUCCESS)
       {
-        LOG_PT_ERR(LOG_CTX_API, "Error resetting inBand management VLAN ID to ZERO");
+        PT_LOG_ERR(LOG_CTX_API, "Error resetting inBand management VLAN ID to ZERO");
         break;
       }
       else
       {
-        LOG_PT_TRACE(LOG_CTX_API, "inBand VLAN cleared");
+        PT_LOG_TRACE(LOG_CTX_API, "inBand VLAN cleared");
       }
     }
   } while (0);
@@ -271,31 +271,31 @@ L7_RC_t ptin_cfg_ntw_connectivity_set(ptin_NtwConnectivity_t *ntwConn)
 #if 0
   /* Create/remove inband rule to trap packets to the CPU */
   simGetSystemIPBurnedInMac(macAddr);
-  LOG_PT_TRACE(LOG_CTX_API,"MacAddr=%02X:%02X:%02X:%02X:%02X:%02X",macAddr[0],macAddr[1],macAddr[2],macAddr[3],macAddr[4],macAddr[5]);
+  PT_LOG_TRACE(LOG_CTX_API,"MacAddr=%02X:%02X:%02X:%02X:%02X:%02X",macAddr[0],macAddr[1],macAddr[2],macAddr[3],macAddr[4],macAddr[5]);
   if (usmDbAgentIpIfAddressGet(1,&ipAddr)!=L7_SUCCESS)
   {
-    LOG_PT_WARN(LOG_CTX_API, "Error acquiring dtl0 ipaddress");
+    PT_LOG_WARN(LOG_CTX_API, "Error acquiring dtl0 ipaddress");
     ipAddr = 0;
   }
-  LOG_PT_TRACE(LOG_CTX_API,"IP_Addr=%u.%u.%u.%u",(ipAddr>>24) & 0xFF,(ipAddr>>16) & 0xFF,(ipAddr>>8) & 0xFF,ipAddr & 0xFF);
+  PT_LOG_TRACE(LOG_CTX_API,"IP_Addr=%u.%u.%u.%u",(ipAddr>>24) & 0xFF,(ipAddr>>16) & 0xFF,(ipAddr>>8) & 0xFF,ipAddr & 0xFF);
   if ( (ntwConn->intf_type!=PTIN_EVC_INTF_PHYSICAL && ntwConn->intf_type!=PTIN_EVC_INTF_LOGICAL) ||
        (ntwConn->intf_type==PTIN_EVC_INTF_PHYSICAL && ptin_intf_port2intf(ntwConn->intf_id,&intIfNum)!=L7_SUCCESS) ||
        (ntwConn->intf_type==PTIN_EVC_INTF_LOGICAL  && ptin_intf_lag2intf(ntwConn->intf_id,&intIfNum)!=L7_SUCCESS) )
   {
-    LOG_PT_WARN(LOG_CTX_API, "Error calculating intIfNum");
+    PT_LOG_WARN(LOG_CTX_API, "Error calculating intIfNum");
     intIfNum = L7_ALL_INTERFACES;
   }
-  LOG_PT_TRACE(LOG_CTX_API,"intIfNum=%u",intIfNum);
+  PT_LOG_TRACE(LOG_CTX_API,"intIfNum=%u",intIfNum);
   /* Create trap rule */
   if (ipAddr!=0)
   {
     if ((rc=ptin_inbandPkts_trap_set(intIfNum,PTIN_VLAN_INBAND,ipAddr,macAddr))!=L7_SUCCESS)
     {
-      LOG_PT_ERR(LOG_CTX_API, "Error activating rule to trap inband packets");
+      PT_LOG_ERR(LOG_CTX_API, "Error activating rule to trap inband packets");
     }
     else
     {
-      LOG_PT_TRACE(LOG_CTX_API, "Success activating rule to trap inband packets");
+      PT_LOG_TRACE(LOG_CTX_API, "Success activating rule to trap inband packets");
     }
   }
   /* Remove rule */
@@ -303,11 +303,11 @@ L7_RC_t ptin_cfg_ntw_connectivity_set(ptin_NtwConnectivity_t *ntwConn)
   {
     if ((rc=ptin_inbandPkts_trap_clear())!=L7_SUCCESS)
     {
-      LOG_PT_ERR(LOG_CTX_API, "Error deactivating rule to trap inband packets");
+      PT_LOG_ERR(LOG_CTX_API, "Error deactivating rule to trap inband packets");
     }
     else
     {
-      LOG_PT_TRACE(LOG_CTX_API, "Success deactivating rule to trap inband packets");
+      PT_LOG_TRACE(LOG_CTX_API, "Success deactivating rule to trap inband packets");
     }
   }
 #endif
@@ -345,11 +345,11 @@ L7_RC_t ptin_cfg_inband_bridge_set(void)
   rc = system(PTIN_INBAND_BRIDGE_SCRIPT);
   if (rc != 0)
   {
-    LOG_PT_ERR(LOG_CTX_API, "Error executing script " PTIN_INBAND_BRIDGE_SCRIPT " (rc=%d)", rc);
+    PT_LOG_ERR(LOG_CTX_API, "Error executing script " PTIN_INBAND_BRIDGE_SCRIPT " (rc=%d)", rc);
     return L7_FAILURE;
   }
 
-  LOG_PT_TRACE(LOG_CTX_API, "InBand bridge script successfully executed");
+  PT_LOG_TRACE(LOG_CTX_API, "InBand bridge script successfully executed");
 
   return L7_SUCCESS;
 }

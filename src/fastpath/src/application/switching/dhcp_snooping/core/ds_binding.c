@@ -299,7 +299,7 @@ L7_RC_t dsBindingAdd(dsBindingType_t bindingType,
        /*If New Address is Different Remove Existing Address*/
        if ( L7_INET_ADDR_COMPARE(&ipAddr, &pNode->ipAddr) != 0 )
        {
-         LOG_PT_ERR(LOG_CTX_DHCP,"Removing Entry");
+         PT_LOG_ERR(LOG_CTX_DHCP,"Removing Entry");
          ipsgEntryRemove (IPSG_ENTRY_DYNAMIC,
                        pNode->intIfNum,
                        pNode->vlanId,
@@ -510,7 +510,7 @@ L7_RC_t dsv6BindingAdd(dsBindingType_t bindingType,
        /*If New Address is Different Remove Existing Address*/
        if ( L7_INET_ADDR_COMPARE(ipAddr, &pNode->ipAddr) != 0 )
        {
-         LOG_PT_ERR(LOG_CTX_DHCP,"Removing Entry");
+         PT_LOG_ERR(LOG_CTX_DHCP,"Removing Entry");
          ipsgEntryRemove (IPSG_ENTRY_DYNAMIC,
                      pNode->intIfNum,
                      pNode->vlanId,
@@ -877,7 +877,7 @@ static L7_RC_t dsLeaseStatusUpdate(dsBindingTreeKey_t *key, L7_uint inetFamily, 
     return L7_SUCCESS;
   }
 
-  LOG_PT_TRACE(LOG_CTX_DHCP, "Updating lease status [macAddr:%02x:%02x:%02x:%02x:%02x:%02x messageType:%u]",
+  PT_LOG_TRACE(LOG_CTX_DHCP, "Updating lease status [macAddr:%02x:%02x:%02x:%02x:%02x:%02x messageType:%u]",
             key->macAddr.addr[0], key->macAddr.addr[1], key->macAddr.addr[2], key->macAddr.addr[3], key->macAddr.addr[4], key->macAddr.addr[5], messageType);
 
   dsInfo->dsDbDataChanged = L7_TRUE;
@@ -902,12 +902,12 @@ L7_RC_t dsBindingFlagsUpdate(dsBindingTreeKey_t *key, L7_uint8 flags)
 
   if (dsBindingTreeSearch(key, L7_MATCH_EXACT, &binding) != L7_SUCCESS)
   {
-    LOG_PT_ERR(LOG_CTX_DHCP, "Unable to find requested entry [macAddr:%02x:%02x:%02x:%02x:%02x:%02x]",
+    PT_LOG_ERR(LOG_CTX_DHCP, "Unable to find requested entry [macAddr:%02x:%02x:%02x:%02x:%02x:%02x]",
             key->macAddr.addr[0], key->macAddr.addr[1], key->macAddr.addr[2], key->macAddr.addr[3], key->macAddr.addr[4], key->macAddr.addr[5]);
     return L7_FAILURE;
   }
 
-  LOG_PT_TRACE(LOG_CTX_DHCP, "Updating lease flags [macAddr:%02x:%02x:%02x:%02x:%02x:%02x flags:%02X]",
+  PT_LOG_TRACE(LOG_CTX_DHCP, "Updating lease flags [macAddr:%02x:%02x:%02x:%02x:%02x:%02x flags:%02X]",
             key->macAddr.addr[0], key->macAddr.addr[1], key->macAddr.addr[2], key->macAddr.addr[3], key->macAddr.addr[4], key->macAddr.addr[5], flags);
 
   dsInfo->dsDbDataChanged = L7_TRUE;

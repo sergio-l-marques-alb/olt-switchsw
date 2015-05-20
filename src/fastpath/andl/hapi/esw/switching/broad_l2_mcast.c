@@ -761,7 +761,7 @@ L7_RC_t hapiBroadGarpGroupRegModify(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
     /* add the mcast entry to the HW */
     rv = usl_bcmx_mcast_addr_add(&bcmMcastAddr);
 
-    LOG_PT_DEBUG(LOG_CTX_IGMP,"MFDB Vlan=%u, MAC=%02x:%02x:%02x:%02x:%02x:%02x added",
+    PT_LOG_DEBUG(LOG_CTX_IGMP,"MFDB Vlan=%u, MAC=%02x:%02x:%02x:%02x:%02x:%02x added",
               bcmMcastAddr.vid,
               bcmMcastAddr.mac[0],bcmMcastAddr.mac[1],bcmMcastAddr.mac[2],bcmMcastAddr.mac[3],bcmMcastAddr.mac[4],bcmMcastAddr.mac[5]);
 
@@ -953,7 +953,7 @@ L7_RC_t hapiBroadGarpGroupRegDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
       /* remove the entry from HW */
       rv = usl_bcmx_mcast_addr_remove(&bcmMcastAddr);
 
-      LOG_PT_DEBUG(LOG_CTX_IGMP,"MFDB Vlan=%u, MAC=%02x:%02x:%02x:%02x:%02x:%02x removed",
+      PT_LOG_DEBUG(LOG_CTX_IGMP,"MFDB Vlan=%u, MAC=%02x:%02x:%02x:%02x:%02x:%02x removed",
                 bcmMcastAddr.vid,
                 bcmMcastAddr.mac[0],bcmMcastAddr.mac[1],bcmMcastAddr.mac[2],bcmMcastAddr.mac[3],bcmMcastAddr.mac[4],bcmMcastAddr.mac[5]);
 
@@ -1547,7 +1547,7 @@ void hapiBroadL2AsyncMcastRetryFailures(void)
     /* add the mcast entry to the HW */
     rv = usl_bcmx_mcast_addr_add(&bcmMcastAddr);
 
-    LOG_PT_DEBUG(LOG_CTX_IGMP,"MFDB Vlan=%u, MAC=%02x:%02x:%02x:%02x:%02x:%02x added",
+    PT_LOG_DEBUG(LOG_CTX_IGMP,"MFDB Vlan=%u, MAC=%02x:%02x:%02x:%02x:%02x:%02x added",
               bcmMcastAddr.vid,
               bcmMcastAddr.mac[0],bcmMcastAddr.mac[1],bcmMcastAddr.mac[2],bcmMcastAddr.mac[3],bcmMcastAddr.mac[4],bcmMcastAddr.mac[5]);
 
