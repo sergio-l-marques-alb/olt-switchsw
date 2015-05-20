@@ -3691,7 +3691,7 @@ phy_wcmod_init(int unit, soc_port_t port)
 
     /* PTin added: PHY link down problem */
     #if 1
-    LOG_INFO(LOG_CTX_STARTUP,"WCMOD initialized for bcm_port %u", port);
+    LOG_PT_INFO(LOG_CTX_STARTUP,"WCMOD initialized for bcm_port %u", port);
     osapiSleepMSec(50);
     #endif
 
