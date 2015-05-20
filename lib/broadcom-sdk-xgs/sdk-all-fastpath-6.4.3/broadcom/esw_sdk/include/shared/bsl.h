@@ -99,12 +99,12 @@
     } while (0)
 
 /* Any layer log macros */
-#define LOG_FATAL(ls_, stuff_)          BSL_LOG(ls_|BSL_FATAL, stuff_)
-#define LOG_ERROR(ls_, stuff_)          BSL_LOG(ls_|BSL_ERROR, stuff_)
-#define LOG_WARN(ls_, stuff_)           BSL_LOG(ls_|BSL_WARN, stuff_)
-#define LOG_INFO(ls_, stuff_)           BSL_LOG(ls_|BSL_INFO, stuff_)
-#define LOG_VERBOSE(ls_, stuff_)        BSL_LOG(ls_|BSL_VERBOSE, stuff_)
-#define LOG_DEBUG(ls_, stuff_)          BSL_LOG(ls_|BSL_DEBUG, stuff_)
+#define LOG_FATAL(ls_, stuff_)      BSL_LOG(ls_|BSL_FATAL, stuff_)
+#define LOG_ERROR(ls_, stuff_)      BSL_LOG(ls_|BSL_ERROR, stuff_)
+#define LOG_WARN(ls_, stuff_)       BSL_LOG(ls_|BSL_WARN, stuff_)
+#define LOG_INFO(ls_, stuff_)       BSL_LOG(ls_|BSL_INFO, stuff_)
+#define LOG_VERBOSE(ls_, stuff_)    BSL_LOG(ls_|BSL_VERBOSE, stuff_)
+#define LOG_DEBUG(ls_, stuff_)      BSL_LOG(ls_|BSL_DEBUG, stuff_)
 
 /* Shell output from core driver */
 #define BSL_LSS_CLI                     (BSL_L_APPL | BSL_S_SHELL | BSL_INFO)
@@ -114,7 +114,7 @@
 #define cli_out bsl_printf
 
 /* Wrapper macro for layer/source/severity checker */
-#define LOG_CHECK(packed_meta_)         bsl_fast_check(packed_meta_)
+#define LOG_CHECK(packed_meta_)     bsl_fast_check(packed_meta_)
 
 /* 
  * DEPRECATED FUNCTIONS

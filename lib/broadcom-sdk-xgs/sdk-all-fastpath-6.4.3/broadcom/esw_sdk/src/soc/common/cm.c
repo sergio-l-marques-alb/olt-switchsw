@@ -73,6 +73,9 @@
 
 #include <sal/core/memlog.h>
 
+/* PTin added: logger */
+#include "logger.h"
+
 cm_device_t                     soc_cm_device[SOC_MAX_NUM_DEVICES];
 int                             soc_cm_device_count;
 
@@ -5876,6 +5879,11 @@ soc_cm_salloc(int dev, int size, const char *name)
     int             size_words = (size + 3) / 4;
     int             modified_size = 0;
 
+    if (name == NULL || name[0] == 0)
+    {
+      LOG_FATAL(LOG_CTX_PTIN_HAPI,"XXXXXX - SEGMENTATION FAULT - XXXXXX");
+    }
+
     assert(name != NULL);        /* Don't pass NULLs in here! */
     assert(name[0] != 0);        /* Don't pass empty strings in here! */
 
@@ -5944,6 +5952,11 @@ soc_cm_sfree(int dev, void *ptr)
     p = (shared_block_t *) (((char*)ptr) -
         ( (((char*)&(((shared_block_t*)0)->user_data[0]))) - ((char*)(shared_block_t*)0) ));
 
+    if (p == NULL)
+    {
+      LOG_FATAL(LOG_CTX_PTIN_HAPI,"XXXXXX - SEGMENTATION FAULT - XXXXXX");
+    }
+
     assert(SHARED_GOOD_START(p));
     assert(SHARED_GOOD_END(p));
     /*
@@ -5960,6 +5973,10 @@ soc_cm_sfree(int dev, void *ptr)
              head->prev = NULL;
         }
     } else {
+        if (p->prev == NULL)
+        {
+          LOG_FATAL(LOG_CTX_PTIN_HAPI,"XXXXXX - SEGMENTATION FAULT - XXXXXX");
+        }
         p->prev->next = p->next;
         if (p->next != NULL) {
             p->next->prev = p->prev;
@@ -6086,6 +6103,13 @@ soc_cm_sflush(int dev, void *addr, int length)
 int
 soc_cm_sinval(int dev, void *addr, int length)
 {
+#if defined(LVL7_FIXUP) && defined(LVL7_DNI8541)
+/* The cache doesn't need to be synced on the PPC85XX processor. 
+** Invoking the function causes a crash on the PPC85XX devices.
+*/
+    return SOC_E_NONE;
+#endif	
+
     if (CMVEC(dev).sinval) {
         return CMVEC(dev).sinval(&CMDEV(dev).dev, addr, length);
     }

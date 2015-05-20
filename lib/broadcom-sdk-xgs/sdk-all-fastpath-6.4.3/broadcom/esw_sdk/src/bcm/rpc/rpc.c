@@ -307,6 +307,16 @@ bcm_rpc_request(int unit, uint8 *buf, int len, uint8 **rbuf,
            was given, but if sal_sem_take returns in error then the
            request record needs to be be unlinked here.
         */
+#ifdef LVL7_FIXUP
+      LOG_ERROR(BSL_LS_BCM_COMMON,
+                    (BSL_META("RPC - Timeout to CPU: %x:%x:%x:%x:%x:%x.\n"),
+                     cpu.key[0],
+                     cpu.key[1],
+                     cpu.key[2],
+                     cpu.key[3],
+                     cpu.key[4],
+                     cpu.key[5]));
+#endif
         _bcm_rpc_unlink_request(&req);
         RPC_COUNT(_rpc_count_c_timeout);
         return BCM_E_TIMEOUT;

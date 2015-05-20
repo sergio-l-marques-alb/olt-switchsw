@@ -1245,7 +1245,11 @@ phy_combo65_medium_config_get(int unit, soc_port_t port,
         sal_memcpy(cfg, &pc->fiber, sizeof (*cfg));
         return SOC_E_NONE;
     default:
+#ifdef LVL7_FIXUP
+        return SOC_E_UNAVAIL;
+#else
         return SOC_E_PARAM;
+#endif
     }
 }
 

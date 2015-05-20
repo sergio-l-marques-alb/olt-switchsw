@@ -1408,10 +1408,22 @@ _bcm_trx_vlan_action_profile_init(int unit)
                 if (0 != fs_idx) { /* Recover flex stat counter */
                     sal_memset(&event, 0, sizeof(event));
                     /* Construct key-only entry, copy to FS handle */
-                    soc_EGR_VLAN_XLATEm_field32_set(unit, &event,
-                                                    ENTRY_TYPEf,
-                             soc_EGR_VLAN_XLATEm_field32_get(unit,
-                                          &egr_xlate_entry, ENTRY_TYPEf));
+                    /* PTin modified: Virtual port supported for Helix4 */
+                    if (soc_mem_field_valid(unit, EGR_VLAN_XLATEm, ENTRY_TYPEf)) {
+                      soc_EGR_VLAN_XLATEm_field32_set(unit, &event,
+                                                      ENTRY_TYPEf,
+                               soc_EGR_VLAN_XLATEm_field32_get(unit,
+                                            &egr_xlate_entry, ENTRY_TYPEf));
+                    }
+                    else if (soc_mem_field_valid(unit, EGR_VLAN_XLATEm, KEY_TYPEf)) {
+                      soc_EGR_VLAN_XLATEm_field32_set(unit, &event,
+                                                      KEY_TYPEf,
+                                                      soc_EGR_VLAN_XLATEm_field32_get(unit, &egr_xlate_entry, KEY_TYPEf));
+                    }
+                    else {
+                      return BCM_E_CONFIG;
+                    }
+                    /* PTin end */
                     soc_mem_field_get(unit, EGR_VLAN_XLATEm,
                                       (uint32 *) &egr_xlate_entry,
                                       KEYf, (uint32 *) key);
@@ -7076,8 +7088,19 @@ _bcm_trx_vlan_translate_egress_action_delete_all(int unit)
                                                   VINTF_CTR_IDXf))) {
             sal_memset(&vent, 0, sizeof(vent));
             /* Construct key-only entry, copy to FS handle */
-            soc_EGR_VLAN_XLATEm_field32_set(unit, &vent, ENTRY_TYPEf,
-                soc_EGR_VLAN_XLATEm_field32_get(unit, vtabp, ENTRY_TYPEf));
+            /* PTin modified: Virtual port supported for Helix4 */
+            if (soc_mem_field_valid(unit, EGR_VLAN_XLATEm, ENTRY_TYPEf)) {
+              soc_EGR_VLAN_XLATEm_field32_set(unit, &vent, ENTRY_TYPEf,
+                  soc_EGR_VLAN_XLATEm_field32_get(unit, vtabp, ENTRY_TYPEf));
+            }
+            else if (soc_mem_field_valid(unit, EGR_VLAN_XLATEm, KEY_TYPEf)) {
+              soc_EGR_VLAN_XLATEm_field32_set(unit, &vent, KEY_TYPEf,
+                  soc_EGR_VLAN_XLATEm_field32_get(unit, vtabp, KEY_TYPEf));
+            }
+            else {
+              return BCM_E_CONFIG;
+            }
+            /* PTin end */
             soc_mem_field_get(unit, EGR_VLAN_XLATEm, (uint32 *) vtabp,
                                KEYf, (uint32 *) key);
             soc_mem_field_set(unit, EGR_VLAN_XLATEm, (uint32 *) &vent,

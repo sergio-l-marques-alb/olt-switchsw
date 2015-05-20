@@ -55,9 +55,14 @@
 #endif
 #include <soc/schanmsg.h>
 #include <soc/types.h>
+/* PTin modified: SDK 6.3.0 */
+#ifdef LVL7_FIXUP
+#include <soc/robo/mcm/allenum.h>
+#else
 #ifdef BCM_ROBO_SUPPORT
 #include <soc/robo/mcm/allenum.h>
 #endif      
+#endif
 
 #ifdef BCM_EA_SUPPORT    
 #include <soc/ea/allenum.h>

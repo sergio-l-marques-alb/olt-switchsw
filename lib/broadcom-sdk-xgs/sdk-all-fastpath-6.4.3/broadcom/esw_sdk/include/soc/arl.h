@@ -55,11 +55,18 @@
 #include <shared/bsl.h>
 
 #include <shared/avl.h>
+
+/* PTin modified: SDK 6.3.0 */
+#ifdef LVL7_FIXUP
+#include <soc/mcm/memregs.h>
+#include <soc/robo/mcm/memregs.h>
+#else
 #if defined(BCM_ESW_SUPPORT) || defined(BCM_SBX_SUPPORT) || defined(BCM_PETRA_SUPPORT) || defined(BCM_DFE_SUPPORT)
 #include <soc/mcm/memregs.h>
 #endif
 #ifdef BCM_ROBO_SUPPORT        
 #include <soc/robo/mcm/memregs.h>
+#endif
 #endif
 extern int soc_arl_attach(int unit);
 extern int soc_arl_detach(int unit);
