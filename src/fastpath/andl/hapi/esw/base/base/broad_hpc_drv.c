@@ -1834,7 +1834,7 @@ void hpcHardwareDefaultConfigApply(void)
        }
        else
        {
-         LOG_WARNING(LOG_CTX_PTIN_HAPI,"Dual Hash was not configured for L2");
+         LOG_WARNING(LOG_CTX_HAPI,"Dual Hash was not configured for L2");
        }
 
        if (soc_feature(i, soc_feature_l3))
@@ -1863,7 +1863,7 @@ void hpcHardwareDefaultConfigApply(void)
          }
          else
          {
-           LOG_WARNING(LOG_CTX_PTIN_HAPI,"Dual Hash was not configured for L3");
+           LOG_WARNING(LOG_CTX_HAPI,"Dual Hash was not configured for L3");
          }
        }
     }
@@ -1872,7 +1872,7 @@ void hpcHardwareDefaultConfigApply(void)
     #if 1
     if (ptin_hapi_hash_init() != L7_SUCCESS)
     {
-      LOG_NOTICE(LOG_CTX_PTIN_HAPI,"Error initializing hash procedures");
+      LOG_NOTICE(LOG_CTX_HAPI,"Error initializing hash procedures");
       LOG_ERROR(BCM_E_INIT);
     }
     #endif

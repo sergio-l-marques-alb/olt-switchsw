@@ -465,8 +465,8 @@ log_context_t fp_to_ptin_component(L7_COMPONENT_IDS_t fp_component)
 {
   switch (fp_component)
   {
-  case L7_DHCP_SNOOPING_COMPONENT_ID: return LOG_CTX_PTIN_DHCP;
-  case L7_SNOOPING_COMPONENT_ID: return LOG_CTX_PTIN_IGMP;  
+  case L7_DHCP_SNOOPING_COMPONENT_ID: return LOG_CTX_DHCP;
+  case L7_SNOOPING_COMPONENT_ID: return LOG_CTX_IGMP;  
   default: return LOG_CTX_MISC;
   }
 }

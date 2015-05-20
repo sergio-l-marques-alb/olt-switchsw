@@ -162,31 +162,31 @@ L7_RC_t ptin_intf_init(void)
   memset(phyExt_data,         0x00, sizeof(phyExt_data));
 
   /* Initialize phy lookup tables */
-  LOG_TRACE(LOG_CTX_PTIN_INTF, "Port <=> intIfNum lookup tables init:");
+  LOG_TRACE(LOG_CTX_INTF, "Port <=> intIfNum lookup tables init:");
   for (i=0; i<ptin_sys_number_of_ports; i++)
   {
     /* Get interface ID */
     if (usmDbIntIfNumFromUSPGet(1, 0, i+1, &intIfNum) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to get interface of port# %u", i);
+      LOG_ERR(LOG_CTX_INTF, "Failed to get interface of port# %u", i);
       return L7_FAILURE;
     }
 
     UPDATE_PORT_MAP(i, intIfNum);
 
-    LOG_TRACE(LOG_CTX_PTIN_INTF, " Port# %02u => intIfNum# %02u", i, intIfNum);
+    LOG_TRACE(LOG_CTX_INTF, " Port# %02u => intIfNum# %02u", i, intIfNum);
   }
 
-  LOG_INFO(LOG_CTX_PTIN_INTF, "Waiting for interfaces to be attached...");
+  LOG_INFO(LOG_CTX_INTF, "Waiting for interfaces to be attached...");
   for (i=0; i<ptin_sys_number_of_ports; i++)
   {
     while (nimGetIntfState(map_port2intIfNum[i])!=L7_INTF_ATTACHED)
     {
       osapiSleep(1);
     }
-    LOG_TRACE(LOG_CTX_PTIN_INTF, "Port %u attached!",i);
+    LOG_TRACE(LOG_CTX_INTF, "Port %u attached!",i);
   }
-  LOG_INFO(LOG_CTX_PTIN_INTF, "All interfaces attached!");
+  LOG_INFO(LOG_CTX_INTF, "All interfaces attached!");
 
   /* LAG Lookup tables are not initialized because there are no LAGs created yet
    * L7_FEAT_LAG_PRECREATE must be cleared! (checked on ptin_globaldefs.h) */
@@ -197,7 +197,7 @@ L7_RC_t ptin_intf_init(void)
     rc = usmDbVlanMemberSet(1, 1, map_port2intIfNum[i], L7_DOT1Q_FORBIDDEN, DOT1Q_SWPORT_MODE_NONE);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to remove port# %u from vlan 1", i);
+      LOG_ERR(LOG_CTX_INTF, "Failed to remove port# %u from vlan 1", i);
       return L7_FAILURE;
     }
   }
@@ -223,7 +223,7 @@ L7_RC_t ptin_intf_init(void)
       rc = usmDbIfAdminStateSet(1, map_port2intIfNum[i], L7_DISABLE);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to disable port# %u", i);
+        LOG_ERR(LOG_CTX_INTF, "Failed to disable port# %u", i);
         return L7_FAILURE;
       }
     }
@@ -236,7 +236,7 @@ L7_RC_t ptin_intf_init(void)
       rc = usmDbDaiIntfTrustSet(map_port2intIfNum[i], L7_TRUE);
       if (rc != L7_SUCCESS)
       {
-        LOG_CRITICAL(LOG_CTX_PTIN_INTF, "Failed to set DAI-trust mode for port# %u", i);
+        LOG_CRITICAL(LOG_CTX_INTF, "Failed to set DAI-trust mode for port# %u", i);
         return L7_FAILURE;
       }
     }
@@ -245,14 +245,14 @@ L7_RC_t ptin_intf_init(void)
     rc = usmDbDvlantagIntfModeSet(1, map_port2intIfNum[i], L7_ENABLE);
     if (rc != L7_SUCCESS)
     {
-      LOG_CRITICAL(LOG_CTX_PTIN_INTF, "Failed to enable DVLAN mode on port# %u", i);
+      LOG_CRITICAL(LOG_CTX_INTF, "Failed to enable DVLAN mode on port# %u", i);
       return L7_FAILURE;
     }
 
     rc = usmDbDvlantagIntfEthertypeSet(1, map_port2intIfNum[i], PTIN_TPID_OUTER_DEFAULT, L7_TRUE);
     if ((rc != L7_SUCCESS) && (rc != L7_ALREADY_CONFIGURED))
     {
-      LOG_CRITICAL(LOG_CTX_PTIN_INTF, "Failed to configure default TPID 0x%04X on port# %u (rc = %d)", PTIN_TPID_OUTER_DEFAULT, i, rc);
+      LOG_CRITICAL(LOG_CTX_INTF, "Failed to configure default TPID 0x%04X on port# %u (rc = %d)", PTIN_TPID_OUTER_DEFAULT, i, rc);
       return L7_FAILURE;
     }
 
@@ -261,7 +261,7 @@ L7_RC_t ptin_intf_init(void)
     rc = usmDbIfConfigMaxFrameSizeSet(map_port2intIfNum[i], mtu_size);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to set max frame on port# %u", i);
+      LOG_ERR(LOG_CTX_INTF, "Failed to set max frame on port# %u", i);
       return L7_FAILURE;
     }
 
@@ -270,7 +270,7 @@ L7_RC_t ptin_intf_init(void)
     rc = ptin_intf_oversize_frame_set(map_port2intIfNum[i], 1518);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to set ovsersized frame size on port# %u", i);
+      LOG_ERR(LOG_CTX_INTF, "Failed to set ovsersized frame size on port# %u", i);
       return L7_FAILURE;
     }
     #endif
@@ -278,7 +278,7 @@ L7_RC_t ptin_intf_init(void)
     /* QoS initialization */
     if (ptin_intf_QoS_init(&ptin_intf)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Phy# %u: Error initializing QoS definitions",i);
+      LOG_ERR(LOG_CTX_INTF, "Phy# %u: Error initializing QoS definitions",i);
       return L7_FAILURE;
     }
 
@@ -289,7 +289,7 @@ L7_RC_t ptin_intf_init(void)
 //      rc = dtlPtinL2LearnPortSet(map_port2intIfNum[i], PTIN_SYSTEM_PON_PRIO);
 //      if (rc != L7_SUCCESS)
 //      {
-//        LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to set Mac Learn priority on port# %u", i);
+//        LOG_ERR(LOG_CTX_INTF, "Failed to set Mac Learn priority on port# %u", i);
 //        return L7_FAILURE;
 //      }
 //    }
@@ -299,10 +299,10 @@ L7_RC_t ptin_intf_init(void)
   /* MEF Ext defaults */
   if (ptin_intf_portExt_init()!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Failed initializing MEF Ext parameters");
+    LOG_ERR(LOG_CTX_INTF, "Failed initializing MEF Ext parameters");
     return L7_FAILURE;
   }
-  LOG_NOTICE(LOG_CTX_PTIN_INTF, "MEF Ext defaults applied");
+  LOG_NOTICE(LOG_CTX_INTF, "MEF Ext defaults applied");
 
   /* Initialize phy conf structure (must be run after default configurations!) */
   for (i=0; i<ptin_sys_number_of_ports; i++)
@@ -416,7 +416,7 @@ L7_RC_t ptin_intf_portExt_init(void)
     /* Apply MEF EXT defaults */
     if (ptin_intf_portExt_set(&ptin_intf, &mefExt)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Failed initializing MEF Ext parameters for interface %u/%u",ptin_intf.intf_type,ptin_intf.intf_id);
+      LOG_ERR(LOG_CTX_INTF, "Failed initializing MEF Ext parameters for interface %u/%u",ptin_intf.intf_type,ptin_intf.intf_id);
       rc = L7_FAILURE;
     }
   }
@@ -441,31 +441,31 @@ L7_RC_t ptin_intf_portExt_set(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
   /* Validate arguments */
   if (ptin_intf==L7_NULLPTR || mefExt==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid argument");
+    LOG_ERR(LOG_CTX_INTF, "Invalid argument");
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_INTF,"MefExt parameters:");
-  LOG_TRACE(LOG_CTX_PTIN_INTF," Port = %u/%u"                     , ptin_intf->intf_type,ptin_intf->intf_id);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," Mask = 0x%08x"                    , mefExt->Mask);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," defVid = %u"                      , mefExt->defVid);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," defPrio = %u"                     , mefExt->defPrio);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," acceptable_frame_types = %u"      , mefExt->acceptable_frame_types);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," ingress_filter = %u"              , mefExt->ingress_filter);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," restricted_vlan_reg = %u"         , mefExt->restricted_vlan_reg);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," vlan_aware = %u"                  , mefExt->vlan_aware);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," type       = %u"                  , mefExt->type);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," doubletag  = %u"                  , mefExt->doubletag);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," outer_tpid = 0x%04X"              , mefExt->outer_tpid);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," inner_tpid = 0x%04X"              , mefExt->inner_tpid);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," egress_type = %u"                 , mefExt->egress_type);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," macLearn_enable = %u"             , mefExt->macLearn_enable);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," macLearn_stationMove_enable  = %u", mefExt->macLearn_stationMove_enable);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," macLearn_stationMove_prio    = %u", mefExt->macLearn_stationMove_prio);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," macLearn_stationMove_samePrio= %u", mefExt->macLearn_stationMove_samePrio);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," MaxChannels  = %u"                , mefExt->maxChannels);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," MaxBandwidth = %llu bits/s", mefExt->maxBandwidth);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," dhcp_trusted = %u"                , mefExt->dhcp_trusted);
+  LOG_TRACE(LOG_CTX_INTF,"MefExt parameters:");
+  LOG_TRACE(LOG_CTX_INTF," Port = %u/%u"                     , ptin_intf->intf_type,ptin_intf->intf_id);
+  LOG_TRACE(LOG_CTX_INTF," Mask = 0x%08x"                    , mefExt->Mask);
+  LOG_TRACE(LOG_CTX_INTF," defVid = %u"                      , mefExt->defVid);
+  LOG_TRACE(LOG_CTX_INTF," defPrio = %u"                     , mefExt->defPrio);
+  LOG_TRACE(LOG_CTX_INTF," acceptable_frame_types = %u"      , mefExt->acceptable_frame_types);
+  LOG_TRACE(LOG_CTX_INTF," ingress_filter = %u"              , mefExt->ingress_filter);
+  LOG_TRACE(LOG_CTX_INTF," restricted_vlan_reg = %u"         , mefExt->restricted_vlan_reg);
+  LOG_TRACE(LOG_CTX_INTF," vlan_aware = %u"                  , mefExt->vlan_aware);
+  LOG_TRACE(LOG_CTX_INTF," type       = %u"                  , mefExt->type);
+  LOG_TRACE(LOG_CTX_INTF," doubletag  = %u"                  , mefExt->doubletag);
+  LOG_TRACE(LOG_CTX_INTF," outer_tpid = 0x%04X"              , mefExt->outer_tpid);
+  LOG_TRACE(LOG_CTX_INTF," inner_tpid = 0x%04X"              , mefExt->inner_tpid);
+  LOG_TRACE(LOG_CTX_INTF," egress_type = %u"                 , mefExt->egress_type);
+  LOG_TRACE(LOG_CTX_INTF," macLearn_enable = %u"             , mefExt->macLearn_enable);
+  LOG_TRACE(LOG_CTX_INTF," macLearn_stationMove_enable  = %u", mefExt->macLearn_stationMove_enable);
+  LOG_TRACE(LOG_CTX_INTF," macLearn_stationMove_prio    = %u", mefExt->macLearn_stationMove_prio);
+  LOG_TRACE(LOG_CTX_INTF," macLearn_stationMove_samePrio= %u", mefExt->macLearn_stationMove_samePrio);
+  LOG_TRACE(LOG_CTX_INTF," MaxChannels  = %u"                , mefExt->maxChannels);
+  LOG_TRACE(LOG_CTX_INTF," MaxBandwidth = %llu bits/s", mefExt->maxBandwidth);
+  LOG_TRACE(LOG_CTX_INTF," dhcp_trusted = %u"                , mefExt->dhcp_trusted);
 
   /*Port Multicast Admission Control Support*/
   #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
@@ -478,7 +478,7 @@ L7_RC_t ptin_intf_portExt_set(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
 
       if (ptin_intf_ptintf2port(ptin_intf, &ptin_port) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG,"Failed to obtain ptin_port from ptin_intf [ptin_intf.intf_type:%u ptin_intf:%u]",ptin_intf->intf_type, ptin_intf->intf_id);
+        LOG_ERR(LOG_CTX_MSG,"Failed to obtain ptin_port from ptin_intf [ptin_intf.intf_type:%u ptin_intf:%u]",ptin_intf->intf_type, ptin_intf->intf_id);
         return L7_FAILURE;
       }
       
@@ -499,13 +499,13 @@ L7_RC_t ptin_intf_portExt_set(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
                ( ((mefExt->Mask & PTIN_HWPORTEXT_MASK_MAXCHANNELS_INTF) == PTIN_HWPORTEXT_MASK_MAXCHANNELS_INTF)
                  && (mefExt->maxChannels != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE && mefExt->maxChannels > PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS) ) )
           {
-            LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Admission Control Parameters [ptin_port:%u mask:0x%04x maxBandwidth:%llu maxChannels:%hu", ptin_port, mefExt->Mask, mefExt->maxBandwidth, mefExt->maxChannels);
+            LOG_ERR(LOG_CTX_MSG, "Invalid Admission Control Parameters [ptin_port:%u mask:0x%04x maxBandwidth:%llu maxChannels:%hu", ptin_port, mefExt->Mask, mefExt->maxBandwidth, mefExt->maxChannels);
             return L7_FAILURE;
           }
 
           if (ptin_igmp_admission_control_port_set(ptin_port, mask, mefExt->maxChannels, mefExt->maxBandwidth) != L7_SUCCESS)
           {
-            LOG_ERR(LOG_CTX_PTIN_MSG,"Failed to set port admission control parameters");
+            LOG_ERR(LOG_CTX_MSG,"Failed to set port admission control parameters");
             return L7_FAILURE;
           }      
         }
@@ -513,7 +513,7 @@ L7_RC_t ptin_intf_portExt_set(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
 #if 0 //This only applies for the internal ports and it is not considered an error.
       else
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Admission Control Port = %u/%u (ptin_port=%u)", ptin_intf->intf_type, ptin_intf->intf_id, ptin_port);
+        LOG_ERR(LOG_CTX_MSG, "Invalid Admission Control Port = %u/%u (ptin_port=%u)", ptin_intf->intf_type, ptin_intf->intf_id, ptin_port);
         return L7_FAILURE;
       }
 #endif
@@ -525,17 +525,17 @@ L7_RC_t ptin_intf_portExt_set(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
   /* Get intIfNum */
   if (ptin_intf_ptintf2intIfNum(ptin_intf, &intIfNum)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting port %u/%u to intIfNum", ptin_intf->intf_type, ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_INTF, "Error converting port %u/%u to intIfNum", ptin_intf->intf_type, ptin_intf->intf_id);
     return L7_FAILURE;
   }
-  LOG_TRACE(LOG_CTX_PTIN_INTF, "Port# %u/%u: intIfNum# %2u", ptin_intf->intf_type,ptin_intf->intf_id, intIfNum);
+  LOG_TRACE(LOG_CTX_INTF, "Port# %u/%u: intIfNum# %2u", ptin_intf->intf_type,ptin_intf->intf_id, intIfNum);
 
   if (mefExt->Mask & PTIN_HWPORTEXT_MASK_DEFVID)
   {
     /* New VID: translation and verification */
     if ((mefExt->defVid == 0) || (ptin_xlate_PVID_set(intIfNum, mefExt->defVid) != L7_SUCCESS))
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting VID %u", mefExt->defVid);
+      LOG_ERR(LOG_CTX_INTF, "Error converting VID %u", mefExt->defVid);
       return L7_FAILURE;
     }
   }
@@ -545,14 +545,14 @@ L7_RC_t ptin_intf_portExt_set(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
     /* Priority verification */
     if (mefExt->defPrio > 7)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid Priority %u", mefExt->defPrio);
+      LOG_ERR(LOG_CTX_INTF, "Invalid Priority %u", mefExt->defPrio);
       return L7_FAILURE;
     }
 
     /* Apply Default Priority configuration */
     if (usmDbDot1dPortDefaultUserPrioritySet(unit, intIfNum, mefExt->defPrio) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Error applying Priority %u", mefExt->defPrio);
+      LOG_ERR(LOG_CTX_INTF, "Error applying Priority %u", mefExt->defPrio);
       return L7_FAILURE;
     }
   }
@@ -564,14 +564,14 @@ L7_RC_t ptin_intf_portExt_set(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
          (mefExt->acceptable_frame_types != L7_DOT1Q_ADMIN_ONLY_VLAN_TAGGED)  && 
          (mefExt->acceptable_frame_types != L7_DOT1Q_ADMIN_ONLY_VLAN_UNTAGGED)  )
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid Acceptable Frame Type %d", mefExt->acceptable_frame_types);
+      LOG_ERR(LOG_CTX_INTF, "Invalid Acceptable Frame Type %d", mefExt->acceptable_frame_types);
       return L7_FAILURE;
     }
 
     /* Configure how to handle tagged/untagged frames */
     if (usmDbQportsAcceptFrameTypeSet(unit, intIfNum, mefExt->acceptable_frame_types) != L7_SUCCESS) 
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Error applying Ingress Filtering %d", mefExt->acceptable_frame_types);
+      LOG_ERR(LOG_CTX_INTF, "Error applying Ingress Filtering %d", mefExt->acceptable_frame_types);
       return L7_FAILURE;
     }
   }
@@ -586,11 +586,11 @@ L7_RC_t ptin_intf_portExt_set(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
   /* Apply configuration */
   if (dtlPtinL2PortExtSet(intIfNum, mefExt)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error SETTING MEF Ext of port %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_INTF, "Error SETTING MEF Ext of port %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_INTF, "Success setting MEF Ext of port %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+  LOG_TRACE(LOG_CTX_INTF, "Success setting MEF Ext of port %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
   return L7_SUCCESS;
 }
 
@@ -609,22 +609,22 @@ L7_RC_t ptin_intf_portExt_get(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
   /* Validate arguments */
   if (ptin_intf==L7_NULLPTR || mefExt==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid argument");
+    LOG_ERR(LOG_CTX_INTF, "Invalid argument");
     return L7_FAILURE;
   }
 
   /* Get intIfNum */
   if (ptin_intf_ptintf2intIfNum(ptin_intf, &intIfNum)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting port %u/%u to intIfNum",ptin_intf->intf_type,ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_INTF, "Error converting port %u/%u to intIfNum",ptin_intf->intf_type,ptin_intf->intf_id);
     return L7_FAILURE;
   }
-  LOG_TRACE(LOG_CTX_PTIN_INTF, "Port# %u/%u: intIfNum# %2u", ptin_intf->intf_type,ptin_intf->intf_id, intIfNum);
+  LOG_TRACE(LOG_CTX_INTF, "Port# %u/%u: intIfNum# %2u", ptin_intf->intf_type,ptin_intf->intf_id, intIfNum);
 
   /* Apply configuration */
   if (dtlPtinL2PortExtGet(intIfNum, mefExt)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error getting MEF Ext of port %u/%u", ptin_intf->intf_type,ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_INTF, "Error getting MEF Ext of port %u/%u", ptin_intf->intf_type,ptin_intf->intf_id);
     return L7_FAILURE;
   }
 
@@ -632,28 +632,28 @@ L7_RC_t ptin_intf_portExt_get(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
   mefExt->dhcp_trusted = ptin_dhcp_is_intfTrusted(intIfNum, L7_NULL);
   mefExt->Mask        |= PTIN_HWPORTEXT_MASK_DHCP_TRUSTED;
 
-  LOG_TRACE(LOG_CTX_PTIN_INTF,"MefExt parameters:");
-  LOG_TRACE(LOG_CTX_PTIN_INTF," Port = %u/%u"                     , ptin_intf->intf_type,ptin_intf->intf_id);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," Mask = 0x%08x"                    , mefExt->Mask);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," defVid = %u"                      , mefExt->defVid);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," defPrio = %u"                     , mefExt->defPrio);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," acceptable_frame_types = %u"      , mefExt->acceptable_frame_types);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," ingress_filter = %u"              , mefExt->ingress_filter);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," restricted_vlan_reg = %u"         , mefExt->restricted_vlan_reg);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," vlan_aware = %u"                  , mefExt->vlan_aware);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," type       = %u"                  , mefExt->type);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," doubletag  = %u"                  , mefExt->doubletag);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," outer_tpid = %u"                  , mefExt->outer_tpid);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," inner_tpid = %u"                  , mefExt->inner_tpid);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," egress_type = %u"                 , mefExt->egress_type);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," macLearn_enable = %u"             , mefExt->macLearn_enable);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," macLearn_stationMove_enable = %u" , mefExt->macLearn_stationMove_enable);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," macLearn_stationMove_prio   = %u" , mefExt->macLearn_stationMove_prio);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," Max Channels      = %u"           , mefExt->maxChannels);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," Max Bandwidth     = %u"           , mefExt->maxBandwidth);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," Interface trusted = %u"           , mefExt->dhcp_trusted);
+  LOG_TRACE(LOG_CTX_INTF,"MefExt parameters:");
+  LOG_TRACE(LOG_CTX_INTF," Port = %u/%u"                     , ptin_intf->intf_type,ptin_intf->intf_id);
+  LOG_TRACE(LOG_CTX_INTF," Mask = 0x%08x"                    , mefExt->Mask);
+  LOG_TRACE(LOG_CTX_INTF," defVid = %u"                      , mefExt->defVid);
+  LOG_TRACE(LOG_CTX_INTF," defPrio = %u"                     , mefExt->defPrio);
+  LOG_TRACE(LOG_CTX_INTF," acceptable_frame_types = %u"      , mefExt->acceptable_frame_types);
+  LOG_TRACE(LOG_CTX_INTF," ingress_filter = %u"              , mefExt->ingress_filter);
+  LOG_TRACE(LOG_CTX_INTF," restricted_vlan_reg = %u"         , mefExt->restricted_vlan_reg);
+  LOG_TRACE(LOG_CTX_INTF," vlan_aware = %u"                  , mefExt->vlan_aware);
+  LOG_TRACE(LOG_CTX_INTF," type       = %u"                  , mefExt->type);
+  LOG_TRACE(LOG_CTX_INTF," doubletag  = %u"                  , mefExt->doubletag);
+  LOG_TRACE(LOG_CTX_INTF," outer_tpid = %u"                  , mefExt->outer_tpid);
+  LOG_TRACE(LOG_CTX_INTF," inner_tpid = %u"                  , mefExt->inner_tpid);
+  LOG_TRACE(LOG_CTX_INTF," egress_type = %u"                 , mefExt->egress_type);
+  LOG_TRACE(LOG_CTX_INTF," macLearn_enable = %u"             , mefExt->macLearn_enable);
+  LOG_TRACE(LOG_CTX_INTF," macLearn_stationMove_enable = %u" , mefExt->macLearn_stationMove_enable);
+  LOG_TRACE(LOG_CTX_INTF," macLearn_stationMove_prio   = %u" , mefExt->macLearn_stationMove_prio);
+  LOG_TRACE(LOG_CTX_INTF," Max Channels      = %u"           , mefExt->maxChannels);
+  LOG_TRACE(LOG_CTX_INTF," Max Bandwidth     = %u"           , mefExt->maxBandwidth);
+  LOG_TRACE(LOG_CTX_INTF," Interface trusted = %u"           , mefExt->dhcp_trusted);
 
-  LOG_TRACE(LOG_CTX_PTIN_INTF, "Success getting MEF Ext of port %u/%u", ptin_intf->intf_type,ptin_intf->intf_id);
+  LOG_TRACE(LOG_CTX_INTF, "Success getting MEF Ext of port %u/%u", ptin_intf->intf_type,ptin_intf->intf_id);
 
   return L7_SUCCESS;
 }
@@ -673,33 +673,33 @@ L7_RC_t ptin_intf_portMAC_set(const ptin_intf_t *ptin_intf, ptin_HWPortMac_t *po
   /* Validate arguments */
   if (ptin_intf==L7_NULLPTR || portMac==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid argument");
+    LOG_ERR(LOG_CTX_INTF, "Invalid argument");
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_INTF,"MAC address parameters:");
-  LOG_TRACE(LOG_CTX_PTIN_INTF," Port = %u/%u"                       , ptin_intf->intf_type,ptin_intf->intf_id);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," Mask = 0x%04x"                      , portMac->Mask);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," MAC = %02x:%02x:%02x:%02x:%02x:%02x",
+  LOG_TRACE(LOG_CTX_INTF,"MAC address parameters:");
+  LOG_TRACE(LOG_CTX_INTF," Port = %u/%u"                       , ptin_intf->intf_type,ptin_intf->intf_id);
+  LOG_TRACE(LOG_CTX_INTF," Mask = 0x%04x"                      , portMac->Mask);
+  LOG_TRACE(LOG_CTX_INTF," MAC = %02x:%02x:%02x:%02x:%02x:%02x",
             portMac->macAddr[0],portMac->macAddr[1],portMac->macAddr[2],portMac->macAddr[3],portMac->macAddr[4],portMac->macAddr[5]);
 
   /* Get intIfNum */
   if (ptin_intf_ptintf2intIfNum(ptin_intf, &intIfNum)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting port %u/%u to intIfNum",ptin_intf->intf_type,ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_INTF, "Error converting port %u/%u to intIfNum",ptin_intf->intf_type,ptin_intf->intf_id);
     return L7_FAILURE;
   }
-  LOG_TRACE(LOG_CTX_PTIN_INTF, "Port# %u/%u: intIfNum# %2u", ptin_intf->intf_type,ptin_intf->intf_id, intIfNum);
+  LOG_TRACE(LOG_CTX_INTF, "Port# %u/%u: intIfNum# %2u", ptin_intf->intf_type,ptin_intf->intf_id, intIfNum);
 
   /* Set a new MAC address for the specified interface */
   /* Warning: if interface is removed and readded, MAC address will be set to default: For physical interfaces this shouldn't happen */
   if (nimSetIntfAddress(intIfNum,L7_NULL,portMac->macAddr)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error SETTING MAC address to port %u/%u", ptin_intf->intf_type,ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_INTF, "Error SETTING MAC address to port %u/%u", ptin_intf->intf_type,ptin_intf->intf_id);
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_INTF, "Success setting MAC address to port %u/%u", ptin_intf->intf_type,ptin_intf->intf_id);
+  LOG_TRACE(LOG_CTX_INTF, "Success setting MAC address to port %u/%u", ptin_intf->intf_type,ptin_intf->intf_id);
 
   return L7_SUCCESS;
 }
@@ -719,33 +719,33 @@ L7_RC_t ptin_intf_portMAC_get(const ptin_intf_t *ptin_intf, ptin_HWPortMac_t *po
   /* Validate arguments */
   if (ptin_intf==L7_NULLPTR || portMac==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid argument");
+    LOG_ERR(LOG_CTX_INTF, "Invalid argument");
     return L7_FAILURE;
   }
 
   /* Get intIfNum */
   if (ptin_intf_ptintf2intIfNum(ptin_intf, &intIfNum)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting port %u/%u to intIfNum",ptin_intf->intf_type,ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_INTF, "Error converting port %u/%u to intIfNum",ptin_intf->intf_type,ptin_intf->intf_id);
     return L7_FAILURE;
   }
-  LOG_TRACE(LOG_CTX_PTIN_INTF, "Port# %u/%u: intIfNum# %2u", ptin_intf->intf_type,ptin_intf->intf_id, intIfNum);
+  LOG_TRACE(LOG_CTX_INTF, "Port# %u/%u: intIfNum# %2u", ptin_intf->intf_type,ptin_intf->intf_id, intIfNum);
 
   /* Apply configuration */
   if (nimGetIntfAddress(intIfNum,L7_NULL,portMac->macAddr)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error getting MAC address of port %u/%u", ptin_intf->intf_type,ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_INTF, "Error getting MAC address of port %u/%u", ptin_intf->intf_type,ptin_intf->intf_id);
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_INTF,"MAC address parameters:");
-  LOG_TRACE(LOG_CTX_PTIN_INTF," Port = %u/%u"                     , ptin_intf->intf_type,ptin_intf->intf_id);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," Mask = 0x%04x"                    , portMac->Mask);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," MAC = %02x:%02x:%02x:%02x:%02x:%02x",
+  LOG_TRACE(LOG_CTX_INTF,"MAC address parameters:");
+  LOG_TRACE(LOG_CTX_INTF," Port = %u/%u"                     , ptin_intf->intf_type,ptin_intf->intf_id);
+  LOG_TRACE(LOG_CTX_INTF," Mask = 0x%04x"                    , portMac->Mask);
+  LOG_TRACE(LOG_CTX_INTF," MAC = %02x:%02x:%02x:%02x:%02x:%02x",
             portMac->macAddr[0],portMac->macAddr[1],portMac->macAddr[2],portMac->macAddr[3],portMac->macAddr[4],portMac->macAddr[5]);
 
 
-  LOG_TRACE(LOG_CTX_PTIN_INTF, "Success getting MAC address of port %u/%u", ptin_intf->intf_type,ptin_intf->intf_id);
+  LOG_TRACE(LOG_CTX_INTF, "Success getting MAC address of port %u/%u", ptin_intf->intf_type,ptin_intf->intf_id);
 
   return L7_SUCCESS;
 }
@@ -768,7 +768,7 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
   /* Validate arguments */
   if (phyConf == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid argument");
+    LOG_ERR(LOG_CTX_INTF, "Invalid argument");
     return L7_FAILURE;
   }
 
@@ -777,13 +777,13 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
   /* Validate port range */
   if (port >= ptin_sys_number_of_ports)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u is out of range [0..%u]", port, ptin_sys_number_of_ports-1);
+    LOG_ERR(LOG_CTX_INTF, "Port# %u is out of range [0..%u]", port, ptin_sys_number_of_ports-1);
     return L7_FAILURE;
   }
 
   /* Get intIfNum */
   ptin_intf_port2intIfNum(port, &intIfNum);
-  LOG_TRACE(LOG_CTX_PTIN_INTF, "Port# %2u:     intIfNum# %2u", port, intIfNum);
+  LOG_TRACE(LOG_CTX_INTF, "Port# %2u:     intIfNum# %2u", port, intIfNum);
 
   /* PortEnable */
   if ( (phyConf->Mask & PTIN_PHYCONF_MASK_PORTEN) )     /* Enable mask bit */
@@ -792,7 +792,7 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
     /* Port should not have force link scheme applied */
     if ( (forcelinked_ports_bmp >> port) & 1 )
     {
-      LOG_INFO(LOG_CTX_PTIN_INTF, "Port %u in forced link state... nothing to be done!");
+      LOG_INFO(LOG_CTX_INTF, "Port %u in forced link state... nothing to be done!");
     }
     else
   #endif
@@ -802,7 +802,7 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
       {
         if (usmDbIfAdminStateSet(1, intIfNum, phyConf->PortEnable & 1) != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to set enable state on port# %u", port);
+          LOG_ERR(LOG_CTX_INTF, "Failed to set enable state on port# %u", port);
           return L7_FAILURE;
         }
 
@@ -812,7 +812,7 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
         #endif
 
         phyConf_data[port].PortEnable = phyConf->PortEnable & 1; /* update buffered conf data */
-        LOG_TRACE(LOG_CTX_PTIN_INTF, " State:       %s", phyConf->PortEnable ? "Enabled":"Disabled");
+        LOG_TRACE(LOG_CTX_INTF, " State:       %s", phyConf->PortEnable ? "Enabled":"Disabled");
       }
     }
   #if ( PTIN_BOARD_IS_STANDALONE )
@@ -829,12 +829,12 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
   {
     if (usmDbIfConfigMaxFrameSizeSet(intIfNum, phyConf->MaxFrame) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to set max frame on port# %u", port);
+      LOG_ERR(LOG_CTX_INTF, "Failed to set max frame on port# %u", port);
       return L7_FAILURE;
     }
 
     phyConf_data[port].MaxFrame = phyConf->MaxFrame; /* update buffered conf data */
-    LOG_TRACE(LOG_CTX_PTIN_INTF, " MaxFrame:    %u", phyConf->MaxFrame);
+    LOG_TRACE(LOG_CTX_INTF, " MaxFrame:    %u", phyConf->MaxFrame);
   }
   #else
   if ((phyConf->Mask & PTIN_PHYCONF_MASK_MAXFRAME) &&
@@ -843,12 +843,12 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
   {
     if (ptin_intf_frame_oversize_set(intIfNum, phyConf->MaxFrame) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to set max frame on port# %u", port);
+      LOG_ERR(LOG_CTX_INTF, "Failed to set max frame on port# %u", port);
       return L7_FAILURE;
     }
 
     phyConf_data[port].MaxFrame = phyConf->MaxFrame; /* update buffered conf data */
-    LOG_TRACE(LOG_CTX_PTIN_INTF, " MaxFrame:    %u", phyConf->MaxFrame);
+    LOG_TRACE(LOG_CTX_INTF, " MaxFrame:    %u", phyConf->MaxFrame);
   }
   #endif
 
@@ -859,12 +859,12 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
   {
     if (usmDbIfLoopbackModeSet(intIfNum, (phyConf->LoopBack != 0)) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to set loopback state on port# %u", port);
+      LOG_ERR(LOG_CTX_INTF, "Failed to set loopback state on port# %u", port);
       return L7_FAILURE;
     }
 
     phyConf_data[port].LoopBack = phyConf->LoopBack; /* update buffered conf data */
-    LOG_TRACE(LOG_CTX_PTIN_INTF, " Loopback:    %s", phyConf->LoopBack ? "Enabled":"Disabled");
+    LOG_TRACE(LOG_CTX_INTF, " Loopback:    %s", phyConf->LoopBack ? "Enabled":"Disabled");
   }
 
   /* Speed */
@@ -933,12 +933,12 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
     {
       if (usmDbIfSpeedSet(1, intIfNum, speed_mode) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to set port speed on port# %u", port);
+        LOG_ERR(LOG_CTX_INTF, "Failed to set port speed on port# %u", port);
         return L7_FAILURE;
       }
 
       phyConf_data[port].Speed = phyConf->Speed; /* update buffered conf data */
-      LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       %s", speedstr);
+      LOG_TRACE(LOG_CTX_INTF, " Speed:       %s", speedstr);
     }
   }
 
@@ -962,10 +962,10 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
   portStats.TxMask = 0xFFFFFFFF;
   if (ptin_intf_counters_clear(&portStats) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to clear counters on port# %u", port);
+    LOG_ERR(LOG_CTX_INTF, "Failed to clear counters on port# %u", port);
     return L7_FAILURE;
   }
-  LOG_TRACE(LOG_CTX_PTIN_INTF, " Counters:    Cleared!");
+  LOG_TRACE(LOG_CTX_INTF, " Counters:    Cleared!");
 
   /* Wait for changes to be applied */
   while (!nimIntfRequestsDone())
@@ -992,7 +992,7 @@ L7_RC_t ptin_intf_PhyConfig_get(ptin_HWEthPhyConf_t *phyConf)
   /* Validate arguments */
   if (phyConf == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid argument");
+    LOG_ERR(LOG_CTX_INTF, "Invalid argument");
     return L7_FAILURE;
   }
 
@@ -1001,7 +1001,7 @@ L7_RC_t ptin_intf_PhyConfig_get(ptin_HWEthPhyConf_t *phyConf)
   /* Validate port range */
   if (port >= ptin_sys_number_of_ports)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u is out of range [0..%u]", port, ptin_sys_number_of_ports-1);
+    LOG_ERR(LOG_CTX_INTF, "Port# %u is out of range [0..%u]", port, ptin_sys_number_of_ports-1);
     return L7_FAILURE;
   }
 
@@ -1029,7 +1029,7 @@ L7_RC_t ptin_intf_PhyState_read(ptin_HWEthPhyState_t *phyState)
   /* Validate arguments */
   if (phyState == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid argument");
+    LOG_ERR(LOG_CTX_INTF, "Invalid argument");
     return L7_FAILURE;
   }
 
@@ -1039,18 +1039,18 @@ L7_RC_t ptin_intf_PhyState_read(ptin_HWEthPhyState_t *phyState)
   /* Validate port range */
   if (port >= ptin_sys_number_of_ports)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u is out of range [0..%u]", port, ptin_sys_number_of_ports-1);
+    LOG_ERR(LOG_CTX_INTF, "Port# %u is out of range [0..%u]", port, ptin_sys_number_of_ports-1);
     return L7_FAILURE;
   }
 
   /* Get intIfNum ID */
   ptin_intf_port2intIfNum(port, &intIfNum);
-  LOG_TRACE(LOG_CTX_PTIN_INTF, "Port# %2u:     intIfNum# %2u", port, intIfNum);
+  LOG_TRACE(LOG_CTX_INTF, "Port# %2u:     intIfNum# %2u", port, intIfNum);
 
   /* Speed */
   if (usmDbIfSpeedGet(1, intIfNum, &speed_mode))
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to get speed of port# %u", port);
+    LOG_ERR(LOG_CTX_INTF, "Failed to get speed of port# %u", port);
     return L7_FAILURE;
   }
   else {
@@ -1061,42 +1061,42 @@ L7_RC_t ptin_intf_PhyState_read(ptin_HWEthPhyState_t *phyState)
       case L7_PORTCTRL_PORTSPEED_AUTO_NEG:
         phyState->Speed = PHY_PORT_AUTONEG;
         phyState->AutoNegComplete = L7_FALSE;
-        LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       AutoNeg");
+        LOG_TRACE(LOG_CTX_INTF, " Speed:       AutoNeg");
         break;
 
       case L7_PORTCTRL_PORTSPEED_FULL_100FX:
         phyState->Speed = PHY_PORT_100_MBPS;
         phyState->AutoNegComplete = L7_FALSE;
-        LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       100Mbps");
+        LOG_TRACE(LOG_CTX_INTF, " Speed:       100Mbps");
         break;
 
       case L7_PORTCTRL_PORTSPEED_FULL_1000SX:
         phyState->Speed = PHY_PORT_1000_MBPS;
-        LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       1000Mbps");
+        LOG_TRACE(LOG_CTX_INTF, " Speed:       1000Mbps");
         break;
 
       /* PTin added: Speed 2.5G */
       case L7_PORTCTRL_PORTSPEED_FULL_2P5FX:
         phyState->Speed = PHY_PORT_2500_MBPS;
-        LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       2.5G");
+        LOG_TRACE(LOG_CTX_INTF, " Speed:       2.5G");
         break;
 
       /* PTin added: Speed 10G */
       case L7_PORTCTRL_PORTSPEED_FULL_10GSX:
         phyState->Speed = PHY_PORT_10_GBPS;
-        LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       10G");
+        LOG_TRACE(LOG_CTX_INTF, " Speed:       10G");
         break;
 
       /* PTin added: Speed 40G */
       case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
         phyState->Speed = PHY_PORT_40_GBPS;
-        LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       40G");
+        LOG_TRACE(LOG_CTX_INTF, " Speed:       40G");
         break;
 
       /* PTin added: Speed 100G */
       case L7_PORTCTRL_PORTSPEED_FULL_100G_BKP:
         phyState->Speed = PHY_PORT_100_GBPS;
-        LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:      100G");
+        LOG_TRACE(LOG_CTX_INTF, " Speed:      100G");
         break;
 
       /* PTin end */
@@ -1109,19 +1109,19 @@ L7_RC_t ptin_intf_PhyState_read(ptin_HWEthPhyState_t *phyState)
   /* Full-Duplex */
   phyState->Mask |= PTIN_PHYSTATE_MASK_DUPLEX;
   phyState->Duplex = 1;
-  LOG_TRACE(LOG_CTX_PTIN_INTF, " Full-Duplex: %s", phyState->Duplex?"Enabled":"Disabled");
+  LOG_TRACE(LOG_CTX_INTF, " Full-Duplex: %s", phyState->Duplex?"Enabled":"Disabled");
 
   /* Link State */
   if (nimGetIntfLinkState(intIfNum, &value) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to get link state of port# %d", port);
+    LOG_ERR(LOG_CTX_INTF, "Failed to get link state of port# %d", port);
     return L7_FAILURE;
   }
   else
   {
     phyState->Mask |= PTIN_PHYSTATE_MASK_LINKUP;
     phyState->LinkUp = (value == L7_UP);
-    LOG_TRACE(LOG_CTX_PTIN_INTF, " Link State:  %s", phyState->LinkUp ? "Up":"Down");
+    LOG_TRACE(LOG_CTX_INTF, " Link State:  %s", phyState->LinkUp ? "Up":"Down");
   }
 
   /* Auto-negotiation complete? */
@@ -1131,7 +1131,7 @@ L7_RC_t ptin_intf_PhyState_read(ptin_HWEthPhyState_t *phyState)
     /* AN should be always disabled: bug to be solved! */
     phyState->Mask |= PTIN_PHYSTATE_MASK_AUTONEG;
     phyState->AutoNegComplete = (phyState->LinkUp) ? 1 : 0;
-    LOG_TRACE(LOG_CTX_PTIN_INTF, " AutoNeg End: %s", phyState->AutoNegComplete?"Yes":"No");
+    LOG_TRACE(LOG_CTX_INTF, " AutoNeg End: %s", phyState->AutoNegComplete?"Yes":"No");
   }
 
   return L7_SUCCESS;
@@ -1157,7 +1157,7 @@ L7_RC_t ptin_intf_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
   /* Validate arguments */
   if (portStats == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid argument");
+    LOG_ERR(LOG_CTX_INTF, "Invalid argument");
     return L7_FAILURE;
   }
 
@@ -1166,7 +1166,7 @@ L7_RC_t ptin_intf_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
   /* Validate port range */
   if (port >= ptin_sys_number_of_ports)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u is out of range [0..%u]", port, ptin_sys_number_of_ports-1);
+    LOG_ERR(LOG_CTX_INTF, "Port# %u is out of range [0..%u]", port, ptin_sys_number_of_ports-1);
     return L7_FAILURE;
   }
 
@@ -1186,14 +1186,14 @@ L7_RC_t ptin_intf_counters_clear(ptin_HWEthRFC2819_PortStatistics_t *portStats)
   /* Validate arguments */
   if (portStats == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid argument");
+    LOG_ERR(LOG_CTX_INTF, "Invalid argument");
     return L7_FAILURE;
   }
 
   /* Validate port range */
   if (portStats->Port >= ptin_sys_number_of_ports)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u is out of range [0..%u]", portStats->Port, ptin_sys_number_of_ports-1);
+    LOG_ERR(LOG_CTX_INTF, "Port# %u is out of range [0..%u]", portStats->Port, ptin_sys_number_of_ports-1);
     return L7_FAILURE;
   }
 
@@ -1214,7 +1214,7 @@ L7_RC_t ptin_intf_counters_activity_get(ptin_HWEth_PortsActivity_t *portActivity
   /* Validate arguments */
   if (portActivity == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid argument");
+    LOG_ERR(LOG_CTX_INTF, "Invalid argument");
     return L7_FAILURE;
   }
 
@@ -1242,13 +1242,13 @@ L7_RC_t ptin_intf_boardid_get(L7_int ptin_port, L7_uint16 *board_id)
 
   if (ptin_intf_port2SlotPort(ptin_port, &slot_id, L7_NULLPTR, L7_NULLPTR) != L7_SUCCESS)
   {
-    //LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid inputs: ptin_port=%d", ptin_port);
+    //LOG_ERR(LOG_CTX_INTF,"Invalid inputs: ptin_port=%d", ptin_port);
     return L7_FAILURE;
   }
   /* Validate input params */
   if ((slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX) && (slot_id != 0))
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid slot_id=%d", slot_id);
+    LOG_ERR(LOG_CTX_INTF,"Invalid slot_id=%d", slot_id);
     return L7_FAILURE;
   }
 
@@ -1280,13 +1280,13 @@ L7_RC_t ptin_intf_boardid_set(L7_int ptin_port, L7_uint16 board_id)
 
   if (ptin_intf_port2SlotPort(ptin_port, &slot_id, L7_NULLPTR, L7_NULLPTR) != L7_SUCCESS)
   {
-    //LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid inputs: ptin_port=%d", ptin_port);
+    //LOG_ERR(LOG_CTX_INTF,"Invalid inputs: ptin_port=%d", ptin_port);
     return L7_FAILURE;
   }
   /* Validate input params */
   if ((slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX) && (slot_id != 0))
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid inputs: slot_id=%d", slot_id);
+    LOG_ERR(LOG_CTX_INTF,"Invalid inputs: slot_id=%d", slot_id);
     return L7_FAILURE;
   }
 
@@ -1312,7 +1312,7 @@ L7_RC_t ptin_slot_boardid_get(L7_int slot_id, L7_uint16 *board_id)
   /* Validate input params */
   if ((slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX) && (slot_id != 0))
   {
-    //LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid inputs: slot_id=%d", slot_id);
+    //LOG_ERR(LOG_CTX_INTF,"Invalid inputs: slot_id=%d", slot_id);
     return L7_FAILURE;
   }
 
@@ -1341,7 +1341,7 @@ L7_RC_t ptin_slot_boardtype_set(L7_int slot_id, L7_uint16 board_id)
   /* Validate input params */
   if ((slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX) && (slot_id != 0))
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid inputs: slot_id=%d", slot_id);
+    LOG_ERR(LOG_CTX_INTF,"Invalid inputs: slot_id=%d", slot_id);
     return L7_FAILURE;
   }
 
@@ -1507,7 +1507,7 @@ L7_RC_t ptin_intf_slotPort2port(L7_uint16 slot, L7_uint16 port, L7_uint32 *ptin_
     /* Validate slot and port */
     if (slot < PTIN_SYS_LC_SLOT_MIN || slot > PTIN_SYS_LC_SLOT_MAX || port >= PTIN_SYS_INTFS_PER_SLOT_MAX)
     {
-      //LOG_ERR(LOG_CTX_PTIN_INTF,"slot %u / port %u is out of range",slot,port);
+      //LOG_ERR(LOG_CTX_INTF,"slot %u / port %u is out of range",slot,port);
       return L7_FAILURE;
     }
 
@@ -1518,21 +1518,21 @@ L7_RC_t ptin_intf_slotPort2port(L7_uint16 slot, L7_uint16 port, L7_uint32 *ptin_
   /* Do not allow slot below PTIN_SYS_LC_SLOT_MIN */
   if (slot < 2)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"slot %u is invalid", slot);
+    LOG_ERR(LOG_CTX_INTF,"slot %u is invalid", slot);
     return L7_FAILURE;
   }
 
   ptin_port = (port==0) ? (slot-2) : (slot+18-2);
 
 #else
-  LOG_ERR(LOG_CTX_PTIN_INTF, "Not in a matrix board");
+  LOG_ERR(LOG_CTX_INTF, "Not in a matrix board");
   return L7_FAILURE;
 #endif
 
   /* Validate ptin_port */
   if (ptin_port < 0 || ptin_port >= ptin_sys_number_of_ports)
   {
-    //LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid ptin_port %u derived from slot %u / port %u", ptin_port, slot, port);
+    //LOG_ERR(LOG_CTX_INTF,"Invalid ptin_port %u derived from slot %u / port %u", ptin_port, slot, port);
     return L7_FAILURE;
   }
 
@@ -1579,7 +1579,7 @@ L7_RC_t ptin_intf_port2SlotPort(L7_uint32 ptin_port, L7_uint16 *slot_ret, L7_uin
   /* Validate arguments */
   if (ptin_port >= ptin_sys_number_of_ports)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid port id (%u)", ptin_port);
+    LOG_ERR(LOG_CTX_INTF,"Invalid port id (%u)", ptin_port);
     return L7_FAILURE;
   }
 
@@ -1599,7 +1599,7 @@ L7_RC_t ptin_intf_port2SlotPort(L7_uint32 ptin_port, L7_uint16 *slot_ret, L7_uin
     /* Check if interface is used */
     if ( ptin_sys_intf_to_slot_map[ptin_port] < 0 || ptin_sys_intf_to_port_map[ptin_port] < 0 )
     {
-      //LOG_ERR(LOG_CTX_PTIN_INTF,"ptin_intf=%u/%u is not mapped!", ptin_intf->intf_type, ptin_intf->intf_id);
+      //LOG_ERR(LOG_CTX_INTF,"ptin_intf=%u/%u is not mapped!", ptin_intf->intf_type, ptin_intf->intf_id);
       return L7_FAILURE;
     }
     slot = ptin_sys_intf_to_slot_map[ptin_port];
@@ -1616,7 +1616,7 @@ L7_RC_t ptin_intf_port2SlotPort(L7_uint32 ptin_port, L7_uint16 *slot_ret, L7_uin
   }
 
 #else
-  LOG_ERR(LOG_CTX_PTIN_INTF, "Not in a matrix board");
+  LOG_ERR(LOG_CTX_INTF, "Not in a matrix board");
   return L7_FAILURE;
 #endif
 
@@ -1626,14 +1626,14 @@ L7_RC_t ptin_intf_port2SlotPort(L7_uint32 ptin_port, L7_uint16 *slot_ret, L7_uin
   {
     if (port >= ptin_sys_number_of_ports)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid slot (%u) or port (%u) for ptin_port=%u", slot, port, ptin_port);
+      LOG_ERR(LOG_CTX_INTF, "Invalid slot (%u) or port (%u) for ptin_port=%u", slot, port, ptin_port);
     }
   }
   else
  #endif
   if (slot < PTIN_SYS_LC_SLOT_MIN || slot > PTIN_SYS_LC_SLOT_MAX || port >= PTIN_SYS_INTFS_PER_SLOT_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid slot (%u) or port (%u) for ptin_port=%u", slot, port, ptin_port);
+    LOG_ERR(LOG_CTX_INTF, "Invalid slot (%u) or port (%u) for ptin_port=%u", slot, port, ptin_port);
     return L7_FAILURE;
   }
 
@@ -1679,7 +1679,7 @@ L7_RC_t ptin_intf_slotPort2ptintf(L7_uint16 slot, L7_uint16 port, ptin_intf_t *p
   /* Determine ptin_port */
   if (ptin_intf_slotPort2port(slot, port, &ptin_port)!=L7_SUCCESS)
   {
-    //LOG_ERR(LOG_CTX_PTIN_INTF,"Error converting slot %u / port %u to ptin_port",slot,port);
+    //LOG_ERR(LOG_CTX_INTF,"Error converting slot %u / port %u to ptin_port",slot,port);
     return L7_FAILURE;
   }
 
@@ -1708,7 +1708,7 @@ L7_RC_t ptin_intf_ptintf2SlotPort(const ptin_intf_t *ptin_intf, L7_uint16 *slot_
   /* Validate arguments */
   if (ptin_intf == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid arguments");
+    LOG_ERR(LOG_CTX_INTF,"Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -1734,14 +1734,14 @@ L7_RC_t ptin_intf_typeId2SlotPort(L7_uint8 intf_type, L7_uint8 intf_id,
   /* Do not accept non physical interfaces */
   if (intf_type!=PTIN_EVC_INTF_PHYSICAL)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid interface (%u/%u)", intf_type, intf_id);
+    LOG_ERR(LOG_CTX_INTF,"Invalid interface (%u/%u)", intf_type, intf_id);
     return L7_FAILURE;
   }
 
   /* Validate interface id */
   if (intf_id >= ptin_sys_number_of_ports)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid interface id (%u/%u)", intf_type, intf_id);
+    LOG_ERR(LOG_CTX_INTF,"Invalid interface id (%u/%u)", intf_type, intf_id);
     return L7_FAILURE;
   }
 
@@ -1782,14 +1782,14 @@ inline L7_RC_t ptin_intf_port2intIfNum(L7_uint32 ptin_port, L7_uint32 *intIfNum)
   if (ptin_port >= PTIN_SYSTEM_N_INTERF ||
       (ptin_port >= ptin_sys_number_of_ports && ptin_port < PTIN_SYSTEM_N_PORTS))
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u is out of range [0..%u]", ptin_port, PTIN_SYSTEM_N_INTERF-1);
+    LOG_ERR(LOG_CTX_INTF, "Port# %u is out of range [0..%u]", ptin_port, PTIN_SYSTEM_N_INTERF-1);
     return L7_FAILURE;
   }
 
   /* Validate output */
   if (map_port2intIfNum[ptin_port] == 0 || map_port2intIfNum[ptin_port] >= L7_MAX_INTERFACE_COUNT)
   {
-    //LOG_WARNING(LOG_CTX_PTIN_INTF, "ptin_port# %u is not assigned to any interface",ptin_port);
+    //LOG_WARNING(LOG_CTX_INTF, "ptin_port# %u is not assigned to any interface",ptin_port);
     return L7_FAILURE;
   }
 
@@ -1814,7 +1814,7 @@ inline L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint32 *ptin_port)
   /* Validate arguments */
   if (intIfNum==0 || intIfNum >= L7_MAX_INTERFACE_COUNT)
   {
-    //LOG_ERR(LOG_CTX_PTIN_INTF, "intIfNum# %u is out of range [1..%u]", intIfNum, L7_MAX_INTERFACE_COUNT);
+    //LOG_ERR(LOG_CTX_INTF, "intIfNum# %u is out of range [1..%u]", intIfNum, L7_MAX_INTERFACE_COUNT);
     return L7_FAILURE;
   }
 
@@ -1822,7 +1822,7 @@ inline L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint32 *ptin_port)
   if (map_intIfNum2port[intIfNum] >= PTIN_SYSTEM_N_INTERF ||
       (map_intIfNum2port[intIfNum] >= ptin_sys_number_of_ports && map_intIfNum2port[intIfNum] < PTIN_SYSTEM_N_PORTS))
   {
-    //LOG_WARNING(LOG_CTX_PTIN_INTF, "intIfNum# %u is not assigned!", intIfNum);
+    //LOG_WARNING(LOG_CTX_INTF, "intIfNum# %u is not assigned!", intIfNum);
     return L7_FAILURE;
   }
 
@@ -1851,7 +1851,7 @@ inline L7_RC_t ptin_intf_port2ptintf(L7_uint32 ptin_port, ptin_intf_t *ptin_intf
   if (ptin_port >= PTIN_SYSTEM_N_INTERF ||
       (ptin_port >= ptin_sys_number_of_ports && ptin_port < PTIN_SYSTEM_N_PORTS))
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "PTin port is out of range: %u", ptin_port);
+    LOG_ERR(LOG_CTX_INTF, "PTin port is out of range: %u", ptin_port);
     return L7_FAILURE;
   }
 
@@ -1888,7 +1888,7 @@ inline L7_RC_t ptin_intf_port2lag(L7_uint32 ptin_port, L7_uint32 *lag_idx)
   if (ptin_port >= PTIN_SYSTEM_N_INTERF ||
       (ptin_port >= ptin_sys_number_of_ports && ptin_port < PTIN_SYSTEM_N_PORTS))
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "PTin port is out of range: %u", ptin_port);
+    LOG_ERR(LOG_CTX_INTF, "PTin port is out of range: %u", ptin_port);
     return L7_FAILURE;
   }
 
@@ -1931,7 +1931,7 @@ inline L7_RC_t ptin_intf_ptintf2port(const ptin_intf_t *ptin_intf, L7_uint32 *pt
   /* Validate arguments */
   if (ptin_intf == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"ptin_intf is a null pointer");
+    LOG_ERR(LOG_CTX_INTF,"ptin_intf is a null pointer");
     return L7_FAILURE;
   }
 
@@ -1956,7 +1956,7 @@ inline L7_RC_t ptin_intf_typeId2port(L7_uint8 intf_type, L7_uint8 intf_id, L7_ui
   {
     if (intf_id >= ptin_sys_number_of_ports)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Physical port id is out of range: %u", intf_id);
+      LOG_ERR(LOG_CTX_INTF, "Physical port id is out of range: %u", intf_id);
       return L7_FAILURE;
     }
     p_port = intf_id;
@@ -1965,14 +1965,14 @@ inline L7_RC_t ptin_intf_typeId2port(L7_uint8 intf_type, L7_uint8 intf_id, L7_ui
   {
     if (intf_id >= PTIN_SYSTEM_MAX_N_LAGS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Lag id is out of range: %u", intf_id);
+      LOG_ERR(LOG_CTX_INTF, "Lag id is out of range: %u", intf_id);
       return L7_FAILURE;
     }
     p_port = PTIN_SYSTEM_N_PORTS + intf_id;
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Port type is not valid");
+    LOG_ERR(LOG_CTX_INTF, "Port type is not valid");
     return L7_FAILURE;
   }
 
@@ -1980,7 +1980,7 @@ inline L7_RC_t ptin_intf_typeId2port(L7_uint8 intf_type, L7_uint8 intf_id, L7_ui
   if (p_port >= PTIN_SYSTEM_N_INTERF ||
       (p_port >= ptin_sys_number_of_ports && p_port < PTIN_SYSTEM_N_PORTS))
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Port id is out of range: %u", p_port);
+    LOG_ERR(LOG_CTX_INTF, "Port id is out of range: %u", p_port);
     return L7_FAILURE;
   }
 
@@ -2006,7 +2006,7 @@ inline L7_RC_t ptin_intf_intIfNum2ptintf(L7_uint32 intIfNum, ptin_intf_t *ptin_i
 
   if(nimGetIntfType(intIfNum, &intfType) != L7_SUCCESS)
   {
-    LOG_TRACE(LOG_CTX_PTIN_INTF, "Unable to get interface type for intfNum %u", intIfNum);
+    LOG_TRACE(LOG_CTX_INTF, "Unable to get interface type for intfNum %u", intIfNum);
     return L7_FAILURE;
   }
 
@@ -2042,14 +2042,14 @@ inline L7_RC_t ptin_intf_intIfNum2ptintf(L7_uint32 intIfNum, ptin_intf_t *ptin_i
     if (ptin_port >= PTIN_SYSTEM_N_INTERF ||
         (ptin_port >= ptin_sys_number_of_ports && ptin_port < PTIN_SYSTEM_N_PORTS))
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "PTin port is out of range: %u", ptin_port);
+      LOG_ERR(LOG_CTX_INTF, "PTin port is out of range: %u", ptin_port);
       return L7_FAILURE;
     }
 
     /* Convert ptin_port to type+id format */
     if (ptin_intf_port2ptintf(ptin_port, ptin_intf)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting ptin_port %u to type+id format", ptin_port);
+      LOG_ERR(LOG_CTX_INTF, "Error converting ptin_port %u to type+id format", ptin_port);
       return L7_FAILURE;
     }
   }
@@ -2071,7 +2071,7 @@ inline L7_RC_t ptin_intf_ptintf2intIfNum(const ptin_intf_t *ptin_intf, L7_uint32
   /* Validate arguments */
   if (ptin_intf == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid argument");
+    LOG_ERR(LOG_CTX_INTF, "Invalid argument");
     return L7_FAILURE;
   }
 
@@ -2125,7 +2125,7 @@ inline L7_RC_t ptin_intf_typeId2intIfNum(L7_uint8 intf_type, L7_uint8 intf_id, L
     /* Calculate ptin_port index */
     if (ptin_intf_typeId2port(intf_type, intf_id, &ptin_port)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting ptin_intf %u/%u to ptin_port", intf_type, intf_id);
+      LOG_ERR(LOG_CTX_INTF, "Error converting ptin_intf %u/%u to ptin_port", intf_type, intf_id);
       return L7_FAILURE;
     }
 
@@ -2137,7 +2137,7 @@ inline L7_RC_t ptin_intf_typeId2intIfNum(L7_uint8 intf_type, L7_uint8 intf_id, L
   /* Validate intIfNum */
   if (intIfNum0 == 0 || intIfNum0 >= L7_MAX_INTERFACE_COUNT)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "IntIfNum is out of range (%u)", intIfNum0);
+    LOG_ERR(LOG_CTX_INTF, "IntIfNum is out of range (%u)", intIfNum0);
     return L7_FAILURE;
   }
 
@@ -2159,7 +2159,7 @@ inline L7_RC_t ptin_intf_lag2intIfNum(L7_uint32 lag_idx, L7_uint32 *intIfNum)
 {
   if (lag_idx >= PTIN_SYSTEM_N_LAGS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u is out of range [0..%u]", lag_idx, PTIN_SYSTEM_N_LAGS-1);
+    LOG_ERR(LOG_CTX_INTF, "LAG# %u is out of range [0..%u]", lag_idx, PTIN_SYSTEM_N_LAGS-1);
     return L7_FAILURE;
   }
 
@@ -2194,7 +2194,7 @@ inline L7_RC_t ptin_intf_intIfNum2lag(L7_uint32 intIfNum, L7_uint32 *lag_idx)
   /* Validate intIfNum */
   if (intIfNum == 0 || intIfNum >= L7_ALL_INTERFACES)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid intIfNum %u", intIfNum);
+    LOG_ERR(LOG_CTX_INTF, "Invalid intIfNum %u", intIfNum);
     return L7_FAILURE;
   }
 
@@ -2202,13 +2202,13 @@ inline L7_RC_t ptin_intf_intIfNum2lag(L7_uint32 intIfNum, L7_uint32 *lag_idx)
   /* Get interface type */
   if (nimGetIntfType(intIfNum, &sysIntfType) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Can't get intIfNum %u type", intIfNum);
+    LOG_ERR(LOG_CTX_INTF, "Can't get intIfNum %u type", intIfNum);
     return L7_FAILURE;
   }
   /* This should be a LAG port */
   if (sysIntfType != L7_LAG_INTF)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "intIfNum %u is not a lag (type=%u)", intIfNum, sysIntfType);
+    LOG_ERR(LOG_CTX_INTF, "intIfNum %u is not a lag (type=%u)", intIfNum, sysIntfType);
     return L7_FAILURE;
   }
   #endif
@@ -2219,13 +2219,13 @@ inline L7_RC_t ptin_intf_intIfNum2lag(L7_uint32 intIfNum, L7_uint32 *lag_idx)
   /* Validate ptin_port */
   if (ptin_port >= PTIN_SYSTEM_N_INTERF)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "intIfNum %u / ptin_port %u is invalid", intIfNum, ptin_port);
+    LOG_ERR(LOG_CTX_INTF, "intIfNum %u / ptin_port %u is invalid", intIfNum, ptin_port);
     return L7_FAILURE;
   }
   /* Check again for LAG type */
   if (ptin_port < PTIN_SYSTEM_N_PORTS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "intIfNum %u / ptin_port %u is physical type", intIfNum, ptin_port);
+    LOG_ERR(LOG_CTX_INTF, "intIfNum %u / ptin_port %u is physical type", intIfNum, ptin_port);
     return L7_FAILURE;
   }
 
@@ -2253,7 +2253,7 @@ inline L7_RC_t ptin_intf_slot2lagIdx(L7_uint16 slot, L7_uint32 *lag_idx)
 
   if ( (slot < PTIN_SYS_LC_SLOT_MIN) || (slot > PTIN_SYS_LC_SLOT_MAX) )
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Slot %u is out of range [%u..%u]", slot, PTIN_SYS_LC_SLOT_MIN, PTIN_SYS_LC_SLOT_MAX);
+    LOG_ERR(LOG_CTX_INTF, "Slot %u is out of range [%u..%u]", slot, PTIN_SYS_LC_SLOT_MIN, PTIN_SYS_LC_SLOT_MAX);
     return L7_FAILURE;
   }
 
@@ -2261,7 +2261,7 @@ inline L7_RC_t ptin_intf_slot2lagIdx(L7_uint16 slot, L7_uint32 *lag_idx)
 
   if (aux >= PTIN_SYSTEM_N_LAGS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u is out of range [0..%u]", aux, PTIN_SYSTEM_N_LAGS-1);
+    LOG_ERR(LOG_CTX_INTF, "LAG# %u is out of range [0..%u]", aux, PTIN_SYSTEM_N_LAGS-1);
     return L7_FAILURE;
   }
 
@@ -2285,7 +2285,7 @@ inline L7_RC_t ptin_intf_lag_exists(L7_uint32 lag_idx)
 {
   if (lag_idx >= PTIN_SYSTEM_N_LAGS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u is out of range [0..%u]", lag_idx, PTIN_SYSTEM_N_LAGS-1);
+    LOG_ERR(LOG_CTX_INTF, "LAG# %u is out of range [0..%u]", lag_idx, PTIN_SYSTEM_N_LAGS-1);
     return L7_FAILURE;
   }
 
@@ -2318,7 +2318,7 @@ L7_RC_t ptin_intf_LagConfig_get(ptin_LACPLagConfig_t *lagInfo)
   /* Validate arguments */
   if (lagInfo == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid arguments");
+    LOG_ERR(LOG_CTX_INTF,"Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -2327,14 +2327,14 @@ L7_RC_t ptin_intf_LagConfig_get(ptin_LACPLagConfig_t *lagInfo)
   /* Validate LAG range (LAG index [0..PTIN_SYSTEM_N_LAGS[) */
   if (lag_idx >= PTIN_SYSTEM_N_LAGS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u is out of range [0..%u]", lag_idx, PTIN_SYSTEM_N_LAGS-1);
+    LOG_ERR(LOG_CTX_INTF, "LAG# %u is out of range [0..%u]", lag_idx, PTIN_SYSTEM_N_LAGS-1);
     return L7_FAILURE;
   }
 
   /* Check if LAG is not created */
   if (!ptin_intf_lag_exists(lag_idx))
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u does not exist", lag_idx);
+    LOG_ERR(LOG_CTX_INTF, "LAG# %u does not exist", lag_idx);
     return L7_FAILURE;
   }
 
@@ -2427,7 +2427,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
   /* Validate arguments */
   if (lagInfo == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid arguments");
+    LOG_ERR(LOG_CTX_INTF,"Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -2436,7 +2436,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
   /* Validate LAG range (LAG index [0..PTIN_SYSTEM_N_LAGS[) */
   if (lag_idx >= PTIN_SYSTEM_N_LAGS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u is out of range [0..%u]", lag_idx, PTIN_SYSTEM_N_LAGS-1);
+    LOG_ERR(LOG_CTX_INTF, "LAG# %u is out of range [0..%u]", lag_idx, PTIN_SYSTEM_N_LAGS-1);
     return L7_FAILURE;
   }
 
@@ -2455,7 +2455,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       /* Get intIfNum */
       if (ptin_intf_port2intIfNum(port, &intIfNum) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_INTF,"Error converting port %u to intIfNum", port);
+        LOG_ERR(LOG_CTX_INTF,"Error converting port %u to intIfNum", port);
         continue;
       }
 
@@ -2492,7 +2492,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       /* Check if this port can be a protection port */
       if (ptin_intf_boardid_get(port, &board_id) != L7_SUCCESS || !PTIN_BOARD_IS_UPLINK(board_id))
       {
-        LOG_ERR(LOG_CTX_PTIN_INTF,"Port %u does not belong to an uplink board (board id %u)", port, board_id);
+        LOG_ERR(LOG_CTX_INTF,"Port %u does not belong to an uplink board (board id %u)", port, board_id);
         continue;
       }
       #endif
@@ -2502,34 +2502,34 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       {
         if ((lag_uplink_protection_ports_bmp[lag_idx - PTIN_SYSTEM_PROTECTION_LAGID_BASE] >> port) & 1)
         {
-          LOG_WARNING(LOG_CTX_PTIN_INTF,"Port %u already belongs to this protection lag", port);
+          LOG_WARNING(LOG_CTX_INTF,"Port %u already belongs to this protection lag", port);
         }
         else
         {
-          LOG_ERR(LOG_CTX_PTIN_INTF,"Port %u already belongs to another protection lag", port);
+          LOG_ERR(LOG_CTX_INTF,"Port %u already belongs to another protection lag", port);
         }
         continue;
       }
 
       /* Remove port from all vlans at hardware */
       ptin_vlan_port_removeFlush(port, 0);
-      LOG_INFO(LOG_CTX_PTIN_INTF,"Port %u removed from all vlans", port);
+      LOG_INFO(LOG_CTX_INTF,"Port %u removed from all vlans", port);
 
       /* Check if port is enabled */
       if (!phyConf_data[port].PortEnable)
       {
         if (usmDbIfAdminStateSet(0, intIfNum, L7_ENABLE) != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_PTIN_INTF,"Error enabling port %u", port);
+          LOG_ERR(LOG_CTX_INTF,"Error enabling port %u", port);
           ptin_vlan_port_add(port, 0);
           continue;
         }
         phyConf_data[port].PortEnable = L7_TRUE;
-        LOG_INFO(LOG_CTX_PTIN_INTF,"Port %u enabled", port);
+        LOG_INFO(LOG_CTX_INTF,"Port %u enabled", port);
       }
       else
       {
-        LOG_INFO(LOG_CTX_PTIN_INTF,"Port %u is already enabled", port);
+        LOG_INFO(LOG_CTX_INTF,"Port %u is already enabled", port);
       }
 
     #ifdef PTIN_LINKSCAN_CONTROL
@@ -2540,11 +2540,11 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
         /* Guarantee linkscan is enabled */
         if (ptin_intf_linkscan_set(intIfNum, L7_ENABLE) != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_PTIN_INTF,"Error disablink linkscan for intIfNum %u", intIfNum);
+          LOG_ERR(LOG_CTX_INTF,"Error disablink linkscan for intIfNum %u", intIfNum);
         }
         else
         {
-          LOG_INFO(LOG_CTX_PTIN_INTF,"Linkscan successfully enabled for intIfNum %u (port %u)", intIfNum, port);
+          LOG_INFO(LOG_CTX_INTF,"Linkscan successfully enabled for intIfNum %u (port %u)", intIfNum, port);
         }
       }
       #endif
@@ -2557,7 +2557,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       /* Save port to lag bitmap */
       lag_uplink_protection_ports_bmp[lag_idx - PTIN_SYSTEM_PROTECTION_LAGID_BASE] |= (L7_uint64) 1 << port;
 
-      LOG_INFO(LOG_CTX_PTIN_INTF,"Port %u is a protection port", port);
+      LOG_INFO(LOG_CTX_INTF,"Port %u is a protection port", port);
     }
 
     /* Update LAG structures */
@@ -2566,7 +2566,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     lagConf_data[lag_idx].lagId = lag_idx;
     lagConf_data[lag_idx].members_pbmp64 = members_pbmp;
 
-    LOG_WARNING(LOG_CTX_PTIN_INTF, "Protection LAG %u configured", lag_idx);
+    LOG_WARNING(LOG_CTX_INTF, "Protection LAG %u configured", lag_idx);
     return L7_SUCCESS;
   }
 #endif
@@ -2574,7 +2574,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
   /* If members list is empty, report error */
   if (lagInfo->members_pbmp64 == 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: members list is empty", lag_idx);
+    LOG_ERR(LOG_CTX_INTF, "LAG# %u: members list is empty", lag_idx);
     return L7_FAILURE;
   }
 
@@ -2593,7 +2593,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       /* check to find the speed of the interface about to join a portChannel */
       if (usmDbIfSpeedGet(1, intIfNum, &value) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: error reading ifSpeed from port# %u", lag_idx, port);
+        LOG_ERR(LOG_CTX_INTF, "LAG# %u: error reading ifSpeed from port# %u", lag_idx, port);
         return L7_FAILURE;
       }
 
@@ -2602,7 +2602,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
 
       if (value != ifSpeed)
       {
-        LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: there are members with different if speed", lag_idx);
+        LOG_ERR(LOG_CTX_INTF, "LAG# %u: there are members with different if speed", lag_idx);
         return L7_FAILURE;
       }
       #endif
@@ -2612,7 +2612,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
 
       if (lagEtherType != phyExt_data[port].outer_tpid)
       {
-        LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: there are members with different EtherType (0x%04X != 0x%04X)",
+        LOG_ERR(LOG_CTX_INTF, "LAG# %u: there are members with different EtherType (0x%04X != 0x%04X)",
                 lag_idx, lagEtherType, phyExt_data[port].outer_tpid);
         return L7_FAILURE;
       }
@@ -2633,7 +2633,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
   /* The two bitmaps must not overlap */
   if (lagInfo->members_pbmp64 & members_pbmp_all)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: the following members belong to other LAGs: 0x%010llX", lag_idx, lagInfo->members_pbmp64 & members_pbmp_all);
+    LOG_ERR(LOG_CTX_INTF, "LAG# %u: the following members belong to other LAGs: 0x%010llX", lag_idx, lagInfo->members_pbmp64 & members_pbmp_all);
     return L7_FAILURE;
   }
 
@@ -2644,7 +2644,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     if ((members_pbmp & 1) &&
         (ptin_evc_is_intf_in_use(i)))
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: member %u is being used in EVCs! Lag cannot be created/updated", lag_idx, i);
+      LOG_ERR(LOG_CTX_INTF, "LAG# %u: member %u is being used in EVCs! Lag cannot be created/updated", lag_idx, i);
       return L7_FAILURE;
     }
   }
@@ -2660,7 +2660,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
                               FD_DOT3AD_HASH_MODE, NULL, &lag_intf);
     if (res != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: error on usmDbDot3adCreateSet()", lag_idx);
+      LOG_ERR(LOG_CTX_INTF, "LAG# %u: error on usmDbDot3adCreateSet()", lag_idx);
       return L7_FAILURE;
     }
 
@@ -2679,7 +2679,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     UPDATE_LAG_MAP(lag_idx, lag_intf);
     newLag = L7_TRUE;
 
-    LOG_TRACE(LOG_CTX_PTIN_INTF, "LAG# %02u created with empty members (interface# %02u)", lag_idx, lag_intf);
+    LOG_TRACE(LOG_CTX_INTF, "LAG# %02u created with empty members (interface# %02u)", lag_idx, lag_intf);
 
     /* Configure Max Frame Size on LAG interface
      * IMPORTANT!!!
@@ -2693,12 +2693,12 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     {
       if (usmDbIfConfigMaxFrameSizeSet(lag_intf, maxFrame) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: failed setting max frame (%u)", lag_idx, maxFrame);
+        LOG_ERR(LOG_CTX_INTF, "LAG# %u: failed setting max frame (%u)", lag_idx, maxFrame);
         rc = L7_FAILURE;
       }
       else
       {
-        LOG_TRACE(LOG_CTX_PTIN_INTF, " MaxFrameSize set to %u", maxFrame);
+        LOG_TRACE(LOG_CTX_INTF, " MaxFrameSize set to %u", maxFrame);
       }
     }
 
@@ -2708,12 +2708,12 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
 
     if (ptin_intf_QoS_init(&ptin_intf)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: Error initializing QoS definitions", lag_idx);
+      LOG_ERR(LOG_CTX_INTF, "LAG# %u: Error initializing QoS definitions", lag_idx);
       rc = L7_FAILURE;
     }
     else
     {
-      LOG_TRACE(LOG_CTX_PTIN_INTF, "LAG# %u: Success initializing QoS definitions", lag_idx);
+      LOG_TRACE(LOG_CTX_INTF, "LAG# %u: Success initializing QoS definitions", lag_idx);
     }
 
     /* Set MAC learn attributes */
@@ -2735,7 +2735,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
 
       if (ptin_intf_portExt_set(&ptin_intf, &port_ext) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: Error setting MAC learning attributes", lag_idx);
+        LOG_ERR(LOG_CTX_INTF, "LAG# %u: Error setting MAC learning attributes", lag_idx);
       }
     }
     #else
@@ -2751,7 +2751,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       #if (PTIN_BOARD_IS_LINECARD)
       usmDbDaiIntfTrustSet(lag_intf, L7_TRUE);
       #endif
-      LOG_TRACE(LOG_CTX_PTIN_INTF, "LAG# %u is trusted", lag_idx);
+      LOG_TRACE(LOG_CTX_INTF, "LAG# %u is trusted", lag_idx);
      #endif
     }
     #endif
@@ -2768,11 +2768,11 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       CLEAR_LAG_CONF(lag_idx);
       CLEAR_LAG_MAP(lag_idx);
 
-      LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: no FP config found! Clearing PTin structs and aborting operation", lag_idx);
+      LOG_ERR(LOG_CTX_INTF, "LAG# %u: no FP config found! Clearing PTin structs and aborting operation", lag_idx);
       return L7_FAILURE;
     }
 
-    LOG_TRACE(LOG_CTX_PTIN_INTF, "LAG# %02u already exists (interface# %02u)", lag_idx, lag_intf);
+    LOG_TRACE(LOG_CTX_INTF, "LAG# %02u already exists (interface# %02u)", lag_idx, lag_intf);
   }
 
   /* Now lets procceed with the configuration...
@@ -2789,12 +2789,12 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     {
       if (usmDbDot3adAdminModeSet(1, lag_intf, lagInfo->admin) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: error setting Admin mode to %u", lag_idx, lagInfo->admin);
+        LOG_ERR(LOG_CTX_INTF, "LAG# %u: error setting Admin mode to %u", lag_idx, lagInfo->admin);
         rc = L7_FAILURE;
       }
       else
       {
-        LOG_TRACE(LOG_CTX_PTIN_INTF, " .admin            = %u", lagInfo->admin);
+        LOG_TRACE(LOG_CTX_INTF, " .admin            = %u", lagInfo->admin);
         lagConf_data[lag_idx].admin = lagInfo->admin;
       }
     }
@@ -2805,12 +2805,12 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     {
       if (usmDbDot1sPortStateSet(1, lag_intf, lagInfo->stp_enable) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: error setting STP mode to %u", lag_idx, lagInfo->stp_enable);
+        LOG_ERR(LOG_CTX_INTF, "LAG# %u: error setting STP mode to %u", lag_idx, lagInfo->stp_enable);
         rc = L7_FAILURE;
       }
       else
       {
-        LOG_TRACE(LOG_CTX_PTIN_INTF, " .stp_enable       = %u", lagInfo->stp_enable);
+        LOG_TRACE(LOG_CTX_INTF, " .stp_enable       = %u", lagInfo->stp_enable);
         lagConf_data[lag_idx].stp_enable = lagInfo->stp_enable;
       }
     }
@@ -2821,12 +2821,12 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     {
       if (usmDbDot3adLagStaticModeSet(1, lag_intf, lagInfo->static_enable) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: error setting Static mode to %u", lag_idx, lagInfo->static_enable);
+        LOG_ERR(LOG_CTX_INTF, "LAG# %u: error setting Static mode to %u", lag_idx, lagInfo->static_enable);
         rc = L7_FAILURE;
       }
       else
       {
-        LOG_TRACE(LOG_CTX_PTIN_INTF, " .static_enable    = %u", lagInfo->static_enable);
+        LOG_TRACE(LOG_CTX_INTF, " .static_enable    = %u", lagInfo->static_enable);
         lagConf_data[lag_idx].static_enable = lagInfo->static_enable;
       }
     }
@@ -2836,12 +2836,12 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     {
       if (usmDbDot3adLagHashModeSet(1, lag_intf, lagInfo->loadBalance_mode) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: error setting Balance mode to %u", lag_idx, lagInfo->loadBalance_mode);
+        LOG_ERR(LOG_CTX_INTF, "LAG# %u: error setting Balance mode to %u", lag_idx, lagInfo->loadBalance_mode);
         rc = L7_FAILURE;
       }
       else
       {
-        LOG_TRACE(LOG_CTX_PTIN_INTF, " .loadBalance_mode = %u", lagInfo->loadBalance_mode);
+        LOG_TRACE(LOG_CTX_INTF, " .loadBalance_mode = %u", lagInfo->loadBalance_mode);
         lagConf_data[lag_idx].loadBalance_mode = lagInfo->loadBalance_mode;
       }
     }
@@ -2854,7 +2854,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     if (newLag)
     {
       if (usmDbDot3adRemoveSet(1, lag_intf) != L7_SUCCESS)
-        LOG_CRITICAL(LOG_CTX_PTIN_INTF, "LAG# %u: failed to undo LAG creation", lag_idx);
+        LOG_CRITICAL(LOG_CTX_INTF, "LAG# %u: failed to undo LAG creation", lag_idx);
 
       /* Return to untrust state */
       #if (PTIN_BOARD_IS_LINECARD)
@@ -2864,14 +2864,14 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
         #if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
         ptin_dhcp_intfTrusted_set(lag_intf, L7_FALSE); 
         ptin_pppoe_intfTrusted_set(lag_intf, L7_FALSE);
-        LOG_TRACE(LOG_CTX_PTIN_INTF, "LAG# %u goes back to untrusted", lag_idx);
+        LOG_TRACE(LOG_CTX_INTF, "LAG# %u goes back to untrusted", lag_idx);
         #endif
       }
 
       CLEAR_LAG_CONF(lag_idx);
       CLEAR_LAG_MAP(lag_idx);
 
-      LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u was removed (undo creation)", lag_idx);
+      LOG_ERR(LOG_CTX_INTF, "LAG# %u was removed (undo creation)", lag_idx);
       return rc;
     }
 
@@ -2879,7 +2879,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
   }
 
   if (lagConf_data[lag_idx].members_pbmp64 != lagInfo->members_pbmp64)
-    LOG_TRACE(LOG_CTX_PTIN_INTF, " .members_pbmp     = 0x%010llX", lagInfo->members_pbmp64);
+    LOG_TRACE(LOG_CTX_INTF, " .members_pbmp     = 0x%010llX", lagInfo->members_pbmp64);
 
   /* Initialize vars needed in the loop */
   if (newLag)
@@ -2902,7 +2902,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     ptin_intf.intf_id   = port;
     if (ptin_intf_mefExt_get(&ptin_intf,&mefExt_phy)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF,"Error getting MEF Ext. attributes of interface %u/%u",ptin_intf.intf_type,ptin_intf.intf_id);
+      LOG_ERR(LOG_CTX_INTF,"Error getting MEF Ext. attributes of interface %u/%u",ptin_intf.intf_type,ptin_intf.intf_id);
       rc = L7_FAILURE;
       continue;
     }
@@ -2918,7 +2918,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       {
         /* Is LACP enabled on this interface? */
         if ((usmDbDot3adAggPortLacpModeGet(1, intIfNum, &value) != L7_SUCCESS) || (value != L7_ENABLE)) {
-          LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: port# %u does not have LACP enabled", lag_idx, port);
+          LOG_ERR(LOG_CTX_INTF, "LAG# %u: port# %u does not have LACP enabled", lag_idx, port);
           rc = L7_FAILURE;
           continue;
         }
@@ -2946,7 +2946,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
         /* Is the LAG a different one ? */
         if (value != lag_intf)
         {
-          LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: port# %u already belongs to another LAG", lag_idx, port);
+          LOG_ERR(LOG_CTX_INTF, "LAG# %u: port# %u already belongs to another LAG", lag_idx, port);
           rc = L7_FAILURE;
         }
         continue;
@@ -2958,7 +2958,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       lacpAdminState.port = port;
       if (ptin_intf_LACPAdminState_get(&lacpAdminState) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: Error getting admin state of port# %u", lag_idx, port);
+        LOG_ERR(LOG_CTX_INTF, "LAG# %u: Error getting admin state of port# %u", lag_idx, port);
         rc = L7_FAILURE;
         continue;
       }
@@ -2969,7 +2969,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       /* Disable auto-negotiation */
       if (usmDbIfAutoNegoStatusCapabilitiesSet(intIfNum, L7_DISABLE) != L7_SUCCESS)
       {
-        LOG_WARNING(LOG_CTX_PTIN_INTF, "LAG# %u: could not configure Auto-Neg off on port# %u", lag_idx, port);
+        LOG_WARNING(LOG_CTX_INTF, "LAG# %u: could not configure Auto-Neg off on port# %u", lag_idx, port);
         //rc = L7_FAILURE;
         //continue;
       }
@@ -2980,7 +2980,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       //else
       if (usmDbDot3adMemberAddSet(1, lag_intf, intIfNum) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: could not add member port# %u", lag_idx, port);
+        LOG_ERR(LOG_CTX_INTF, "LAG# %u: could not add member port# %u", lag_idx, port);
         rc = L7_FAILURE;
         continue;
       }
@@ -2989,14 +2989,14 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       /* Restore admin state of this interface */
       if (ptin_intf_LACPAdminState_set(&lacpAdminState) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: Error setting admin state to port# %u", lag_idx, port);
+        LOG_ERR(LOG_CTX_INTF, "LAG# %u: Error setting admin state to port# %u", lag_idx, port);
         //rc = L7_FAILURE;
         //continue;
       }
       #endif
 
       lagConf_data[lag_idx].members_pbmp64 |= (L7_uint64)1 << port;
-      LOG_TRACE(LOG_CTX_PTIN_INTF, " Port# %02u added", port);
+      LOG_TRACE(LOG_CTX_INTF, " Port# %02u added", port);
 
       /* To be removed */
       #if 0
@@ -3007,15 +3007,15 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
         /* Disable linkscan */
         if (ptin_intf_linkscan_set(intIfNum, L7_DISABLE) != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_PTIN_INTF,"Error disablink linkscan for intIfNum %u", intIfNum);
+          LOG_ERR(LOG_CTX_INTF,"Error disablink linkscan for intIfNum %u", intIfNum);
         }
         else if (ptin_intf_link_force(intIfNum, L7_TRUE, L7_ENABLE) != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_PTIN_INTF,"Error forcing link-up for intIfNum %u", intIfNum);
+          LOG_ERR(LOG_CTX_INTF,"Error forcing link-up for intIfNum %u", intIfNum);
         }
         else
         {
-          LOG_INFO(LOG_CTX_PTIN_INTF,"Linkscan successfully disabled for intIfNum %u (port %u)", intIfNum, port);
+          LOG_INFO(LOG_CTX_INTF,"Linkscan successfully disabled for intIfNum %u (port %u)", intIfNum, port);
         }
       }
       #endif
@@ -3035,7 +3035,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       /* At this point, we know this interface belongs to this lag. Just remove it */
       if (usmDbDot3adMemberDeleteSet(1, lag_intf, intIfNum) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: could not remove member port# %u", lag_idx, port);
+        LOG_ERR(LOG_CTX_INTF, "LAG# %u: could not remove member port# %u", lag_idx, port);
         rc = L7_FAILURE;
         continue;
       }
@@ -3043,12 +3043,12 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       /* Update PortGroup for the member removed (reset to default value) */
       if (ptin_xlate_portgroup_set(intIfNum, PTIN_XLATE_PORTGROUP_INTERFACE) != L7_SUCCESS)
       {
-        LOG_CRITICAL(LOG_CTX_PTIN_INTF, "LAG# %u: could not update PortGroup for member port# %u", lag_idx, port);
+        LOG_CRITICAL(LOG_CTX_INTF, "LAG# %u: could not update PortGroup for member port# %u", lag_idx, port);
         rc = L7_FAILURE;
       }
 
       lagConf_data[lag_idx].members_pbmp64 &= ~((L7_uint64)1 << port);
-      LOG_TRACE(LOG_CTX_PTIN_INTF, " Port# %02u removed", port);
+      LOG_TRACE(LOG_CTX_INTF, " Port# %02u removed", port);
     }
   }
 
@@ -3059,7 +3059,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
      * the portgroups lookup table, which means a CRITICAL or even FATAL situation!
      * However, any error should occur ONLY during debug or validation process, and
      * not during normal operation (under production) */ 
-    LOG_CRITICAL(LOG_CTX_PTIN_INTF, "LAG# %u: could not update PortGroup for this LAG", lag_idx);
+    LOG_CRITICAL(LOG_CTX_INTF, "LAG# %u: could not update PortGroup for this LAG", lag_idx);
     rc = L7_FAILURE;
   }
 
@@ -3069,25 +3069,25 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
   {
     if (usmDbVlanMemberSet(1, 1, lag_intf, L7_DOT1Q_FORBIDDEN, DOT1Q_SWPORT_MODE_NONE) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: could not remove interface# %u from VLAN 1", lag_idx, lag_intf);
+      LOG_ERR(LOG_CTX_INTF, "LAG# %u: could not remove interface# %u from VLAN 1", lag_idx, lag_intf);
       rc = L7_FAILURE;
     }
     else
     {
-      LOG_TRACE(LOG_CTX_PTIN_INTF, " Intf# %02u removed from VLAN# 1", lag_intf);
+      LOG_TRACE(LOG_CTX_INTF, " Intf# %02u removed from VLAN# 1", lag_intf);
     }
 
     /* Enable DVLAN mode */
     if (usmDbDvlantagIntfModeSet(0, lag_intf, L7_ENABLE) != L7_SUCCESS)
     {
-      LOG_CRITICAL(LOG_CTX_PTIN_INTF, "Failed to enable DVLAN mode on LAG# %u", lag_idx);
+      LOG_CRITICAL(LOG_CTX_INTF, "Failed to enable DVLAN mode on LAG# %u", lag_idx);
       rc = L7_FAILURE;
     }
 
     res = usmDbDvlantagIntfEthertypeSet(0, lag_intf, lagEtherType, L7_TRUE);
     if ((res != L7_SUCCESS) && (res != L7_ALREADY_CONFIGURED))
     {
-      LOG_CRITICAL(LOG_CTX_PTIN_INTF, "Failed to configure TPID 0x%04X on LAG# %u (rc = %d)", lagEtherType, lag_idx, rc);
+      LOG_CRITICAL(LOG_CTX_INTF, "Failed to configure TPID 0x%04X on LAG# %u (rc = %d)", lagEtherType, lag_idx, rc);
       rc = L7_FAILURE;
     }
   }
@@ -3099,7 +3099,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     /* Use LAG intIfNum */
     if (ptin_intf_intIfNum2ptintf(lag_intf,&ptin_intf)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF,"Error getting ptin_intf from LAG intIfNum %u",lag_intf);
+      LOG_ERR(LOG_CTX_INTF,"Error getting ptin_intf from LAG intIfNum %u",lag_intf);
       rc = L7_FAILURE;
     }
     else
@@ -3110,7 +3110,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
                         PTIN_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_PRIO;
       if (ptin_intf_mefExt_set(&ptin_intf,&mefExt_lag)!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_INTF,"Error applying MEF Ext attributes to ptin_intf %u/%u",ptin_intf.intf_type,ptin_intf.intf_id);
+        LOG_ERR(LOG_CTX_INTF,"Error applying MEF Ext attributes to ptin_intf %u/%u",ptin_intf.intf_type,ptin_intf.intf_id);
         rc = L7_FAILURE;
       }
     }
@@ -3124,7 +3124,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     if (newLag)
     {
       if (usmDbDot3adRemoveSet(1, lag_intf) != L7_SUCCESS)
-        LOG_CRITICAL(LOG_CTX_PTIN_INTF, "LAG# %u: failed to undo LAG creation", lag_idx);
+        LOG_CRITICAL(LOG_CTX_INTF, "LAG# %u: failed to undo LAG creation", lag_idx);
 
       /* Return to untrust state */
       #if (PTIN_BOARD_IS_LINECARD)
@@ -3134,14 +3134,14 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       {
         ptin_dhcp_intfTrusted_set(lag_intf, L7_FALSE); 
         ptin_pppoe_intfTrusted_set(lag_intf, L7_FALSE);
-        LOG_TRACE(LOG_CTX_PTIN_INTF, "LAG# %u goes back to untrusted", lag_idx);
+        LOG_TRACE(LOG_CTX_INTF, "LAG# %u goes back to untrusted", lag_idx);
       }
       #endif
 
       CLEAR_LAG_CONF(lag_idx);
       CLEAR_LAG_MAP(lag_idx);
 
-      LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u was removed (undo creation)", lag_idx);
+      LOG_ERR(LOG_CTX_INTF, "LAG# %u was removed (undo creation)", lag_idx);
       return rc;
     }
   }
@@ -3169,7 +3169,7 @@ L7_RC_t ptin_intf_Lag_delete(ptin_LACPLagConfig_t *lagInfo)
   /* Validate arguments */
   if (lagInfo == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid arguments");
+    LOG_ERR(LOG_CTX_INTF,"Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -3179,7 +3179,7 @@ L7_RC_t ptin_intf_Lag_delete(ptin_LACPLagConfig_t *lagInfo)
   /* Validate LAG range (LAG index [0..PTIN_SYSTEM_N_LAGS[) */
   if (lag_idx >= PTIN_SYSTEM_N_LAGS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u is out of range [0..%u]", lag_idx, PTIN_SYSTEM_N_LAGS-1);
+    LOG_ERR(LOG_CTX_INTF, "LAG# %u is out of range [0..%u]", lag_idx, PTIN_SYSTEM_N_LAGS-1);
     return L7_FAILURE;
   }
 
@@ -3200,7 +3200,7 @@ L7_RC_t ptin_intf_Lag_delete(ptin_LACPLagConfig_t *lagInfo)
       
       if (ptin_intf_port2intIfNum(port, &intIfNum) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_INTF,"Error converting port %u to intIfNum", port);
+        LOG_ERR(LOG_CTX_INTF,"Error converting port %u to intIfNum", port);
         continue;
       }
 
@@ -3212,11 +3212,11 @@ L7_RC_t ptin_intf_Lag_delete(ptin_LACPLagConfig_t *lagInfo)
         /* Enable linkscan */
         if (ptin_intf_linkscan_set(intIfNum, L7_ENABLE) != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_PTIN_INTF,"Error enabling linkscan for intIfNum %u", intIfNum);
+          LOG_ERR(LOG_CTX_INTF,"Error enabling linkscan for intIfNum %u", intIfNum);
         }
         else
         {
-          LOG_INFO(LOG_CTX_PTIN_INTF,"Linkscan successfully enabled for intIfNum %u (port %u)", intIfNum, port);
+          LOG_INFO(LOG_CTX_INTF,"Linkscan successfully enabled for intIfNum %u (port %u)", intIfNum, port);
         }
       }
       #endif
@@ -3238,7 +3238,7 @@ L7_RC_t ptin_intf_Lag_delete(ptin_LACPLagConfig_t *lagInfo)
     /* Update LAG structures */
     CLEAR_LAG_CONF(lag_idx);
 
-    LOG_WARNING(LOG_CTX_PTIN_INTF, "Protection lag %u removed", lag_idx);
+    LOG_WARNING(LOG_CTX_INTF, "Protection lag %u removed", lag_idx);
     return L7_SUCCESS;
   }
 #endif
@@ -3246,27 +3246,27 @@ L7_RC_t ptin_intf_Lag_delete(ptin_LACPLagConfig_t *lagInfo)
   /* Check if LAG really exists */
   if (!ptin_intf_lag_exists(lag_idx))
   {
-    LOG_WARNING(LOG_CTX_PTIN_INTF, "LAG# %u does not exist", lag_idx);
+    LOG_WARNING(LOG_CTX_INTF, "LAG# %u does not exist", lag_idx);
     return L7_SUCCESS;
   }
 
   if (ptin_intf_lag2intIfNum(lag_idx, &lag_intIfNum) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error acquiring intIfNum of lag_idx %u", lag_idx);
+    LOG_ERR(LOG_CTX_INTF, "Error acquiring intIfNum of lag_idx %u", lag_idx);
     return L7_FAILURE;
   }
 
   /* Check if LAG is being used in any EVC */
   if (ptin_evc_is_intf_in_use(lag_port))
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u is being used in EVCs! Cannot be removed", lag_idx);
+    LOG_ERR(LOG_CTX_INTF, "LAG# %u is being used in EVCs! Cannot be removed", lag_idx);
     return L7_FAILURE;
   }
 
   /* Remove LAG */
   if (usmDbDot3adRemoveSet(1, lag_intIfNum) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: failed to remove this LAG", lag_idx);
+    LOG_ERR(LOG_CTX_INTF, "LAG# %u: failed to remove this LAG", lag_idx);
     return L7_FAILURE;
   }
 
@@ -3286,7 +3286,7 @@ L7_RC_t ptin_intf_Lag_delete(ptin_LACPLagConfig_t *lagInfo)
   {
     ptin_dhcp_intfTrusted_set(lag_intIfNum, L7_FALSE); 
     ptin_pppoe_intfTrusted_set(lag_intIfNum, L7_FALSE);
-    LOG_TRACE(LOG_CTX_PTIN_INTF, "LAG# %u returns to untrusted", lag_idx);
+    LOG_TRACE(LOG_CTX_INTF, "LAG# %u returns to untrusted", lag_idx);
   }
   #endif
 
@@ -3304,7 +3304,7 @@ L7_RC_t ptin_intf_Lag_delete(ptin_LACPLagConfig_t *lagInfo)
          * the portgroups lookup table, which means a CRITICAL or even FATAL situation!
          * However, any error should occur ONLY during debug or validation process, and
          * not during normal operation (under production) */ 
-        LOG_CRITICAL(LOG_CTX_PTIN_INTF, "LAG# %u: could not update PortGroup for member port# %u", lag_idx, i);
+        LOG_CRITICAL(LOG_CTX_INTF, "LAG# %u: could not update PortGroup for member port# %u", lag_idx, i);
       }
 
       /* To be removed */
@@ -3316,7 +3316,7 @@ L7_RC_t ptin_intf_Lag_delete(ptin_LACPLagConfig_t *lagInfo)
         /* Disable linkscan */
         if (ptin_intf_linkscan_set(intIfNum, L7_ENABLE) != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_PTIN_INTF,"Error reenabling linkscan for intIfNum %u", intIfNum);
+          LOG_ERR(LOG_CTX_INTF,"Error reenabling linkscan for intIfNum %u", intIfNum);
         }
       }
       #endif
@@ -3334,7 +3334,7 @@ L7_RC_t ptin_intf_Lag_delete(ptin_LACPLagConfig_t *lagInfo)
    */ 
 // TODO
 
-  LOG_TRACE(LOG_CTX_PTIN_INTF, "LAG# %u: successfully deleted", lag_idx);
+  LOG_TRACE(LOG_CTX_INTF, "LAG# %u: successfully deleted", lag_idx);
 
   return L7_SUCCESS;
 }
@@ -3376,7 +3376,7 @@ L7_RC_t ptin_intf_LagStatus_get(ptin_LACPLagStatus_t *lagStatus)
   /* Validate arguments */
   if (lagStatus == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid arguments");
+    LOG_ERR(LOG_CTX_INTF,"Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -3385,14 +3385,14 @@ L7_RC_t ptin_intf_LagStatus_get(ptin_LACPLagStatus_t *lagStatus)
   /* Validate LAG range (LAG index [0..PTIN_SYSTEM_N_LAGS[) */
   if (lag_idx >= PTIN_SYSTEM_N_LAGS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u is out of range [0..%u]", lag_idx, PTIN_SYSTEM_N_LAGS-1);
+    LOG_ERR(LOG_CTX_INTF, "LAG# %u is out of range [0..%u]", lag_idx, PTIN_SYSTEM_N_LAGS-1);
     return L7_FAILURE;
   }
 
   /* Check if LAG really exists */
   if (!ptin_intf_lag_exists(lag_idx))
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u does not exist", lag_idx);
+    LOG_ERR(LOG_CTX_INTF, "LAG# %u does not exist", lag_idx);
     return L7_FAILURE;
   }
 
@@ -3413,7 +3413,7 @@ L7_RC_t ptin_intf_LagStatus_get(ptin_LACPLagStatus_t *lagStatus)
   {
     if (ptin_intf_lag2intIfNum(lag_idx, &lag_intf) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Error acquiring intIfNum of lag_idx %u", lag_idx);
+      LOG_ERR(LOG_CTX_INTF, "Error acquiring intIfNum of lag_idx %u", lag_idx);
       return L7_FAILURE;
     }
 
@@ -3426,7 +3426,7 @@ L7_RC_t ptin_intf_LagStatus_get(ptin_LACPLagStatus_t *lagStatus)
     /* Link status */
     if (nimGetIntfLinkState(lag_intf, &value) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: error reading Link State", lag_idx);
+      LOG_ERR(LOG_CTX_INTF, "LAG# %u: error reading Link State", lag_idx);
       return L7_FAILURE;
     }
     lagStatus->link_status = (value == L7_UP);
@@ -3438,7 +3438,7 @@ L7_RC_t ptin_intf_LagStatus_get(ptin_LACPLagStatus_t *lagStatus)
     nElems = sizeof(members_list) / sizeof(members_list[0]);
     if (usmDbDot3adActiveMemberListGet(1, lag_intf, &nElems, members_list) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: error reading Active Members List", lag_idx);
+      LOG_ERR(LOG_CTX_INTF, "LAG# %u: error reading Active Members List", lag_idx);
       return L7_FAILURE;
     }
 
@@ -3452,7 +3452,7 @@ L7_RC_t ptin_intf_LagStatus_get(ptin_LACPLagStatus_t *lagStatus)
           || (value <  PTIN_SYSTEM_N_PONS)
           || (value >= ptin_sys_number_of_ports))
       {
-        LOG_CRITICAL(LOG_CTX_PTIN_INTF, "LAG# %u: invalid active members found (port# %u; intf# %u)", lag_idx, value, members_list[i]);
+        LOG_CRITICAL(LOG_CTX_INTF, "LAG# %u: invalid active members found (port# %u; intf# %u)", lag_idx, value, members_list[i]);
         continue;
       }
       members_pbmp |= (L7_uint64)1 << value;
@@ -3479,7 +3479,7 @@ L7_RC_t ptin_intf_LACPAdminState_set(ptin_LACPAdminState_t *adminState)
   /* Validate arguments */
   if (adminState == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid arguments");
+    LOG_ERR(LOG_CTX_INTF,"Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -3488,7 +3488,7 @@ L7_RC_t ptin_intf_LACPAdminState_set(ptin_LACPAdminState_t *adminState)
   /* Validate Port range (Port index [0..PTIN_SYSTEM_N_PORTS[) */
   if (port_idx > ptin_sys_number_of_ports)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u is out of range [0..%u]", port_idx, ptin_sys_number_of_ports-1);
+    LOG_ERR(LOG_CTX_INTF, "Port# %u is out of range [0..%u]", port_idx, ptin_sys_number_of_ports-1);
     return L7_FAILURE;
   }
 
@@ -3498,7 +3498,7 @@ L7_RC_t ptin_intf_LACPAdminState_set(ptin_LACPAdminState_t *adminState)
   if ((usmDbDot3adAggPortActorAdminStateGet(1, port_intf, &actor_state) != L7_SUCCESS) ||
       (usmDbDot3adAggPortPartnerAdminStateGet(1, port_intf, &partner_state) != L7_SUCCESS))
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u: failed to read actor/partner states (intf=%u)", port_idx, port_intf);
+    LOG_ERR(LOG_CTX_INTF, "Port# %u: failed to read actor/partner states (intf=%u)", port_idx, port_intf);
     return L7_FAILURE;
   }
 
@@ -3534,7 +3534,7 @@ L7_RC_t ptin_intf_LACPAdminState_set(ptin_LACPAdminState_t *adminState)
   if ((usmDbDot3adAggPortActorAdminStateSet(1, port_intf, &actor_state) != L7_SUCCESS) ||
       (usmDbDot3adAggPortPartnerAdminStateSet(1, port_intf, &partner_state) != L7_SUCCESS))
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: failed to set actor/partner states", port_idx);
+    LOG_ERR(LOG_CTX_INTF, "LAG# %u: failed to set actor/partner states", port_idx);
     return L7_FAILURE;
   }
 
@@ -3557,7 +3557,7 @@ L7_RC_t ptin_intf_LACPAdminState_get(ptin_LACPAdminState_t *adminState)
   /* Validate arguments */
   if (adminState == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid arguments");
+    LOG_ERR(LOG_CTX_INTF,"Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -3566,7 +3566,7 @@ L7_RC_t ptin_intf_LACPAdminState_get(ptin_LACPAdminState_t *adminState)
   /* Validate Port range (Port index [0..PTIN_SYSTEM_N_PORTS[) */
   if (port_idx > ptin_sys_number_of_ports)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u is out of range [0..%u]", port_idx, ptin_sys_number_of_ports-1);
+    LOG_ERR(LOG_CTX_INTF, "Port# %u is out of range [0..%u]", port_idx, ptin_sys_number_of_ports-1);
     return L7_FAILURE;
   }
 
@@ -3575,7 +3575,7 @@ L7_RC_t ptin_intf_LACPAdminState_get(ptin_LACPAdminState_t *adminState)
   /* Get Current Admin State */
   if (usmDbDot3adAggPortActorAdminStateGet(1, port_intf, &actor_state) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u: failed to read actor state (intf=%u)", port_idx, port_intf);
+    LOG_ERR(LOG_CTX_INTF, "Port# %u: failed to read actor state (intf=%u)", port_idx, port_intf);
     return L7_FAILURE;
   }
 
@@ -3602,7 +3602,7 @@ L7_RC_t ptin_intf_LACPStats_get(ptin_LACPStats_t *lagStats)
   /* Validate arguments */
   if (lagStats == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid arguments");
+    LOG_ERR(LOG_CTX_INTF,"Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -3611,26 +3611,26 @@ L7_RC_t ptin_intf_LACPStats_get(ptin_LACPStats_t *lagStats)
   /* Validate Port range (Port index [0..PTIN_SYSTEM_N_PORTS[) */
   if (port_idx > ptin_sys_number_of_ports)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u is out of range [0..%u]", port_idx, ptin_sys_number_of_ports-1);
+    LOG_ERR(LOG_CTX_INTF, "Port# %u is out of range [0..%u]", port_idx, ptin_sys_number_of_ports-1);
     return L7_FAILURE;
   }
 
   if (ptin_intf_port2intIfNum(port_idx, &port_intf)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error getting intIfNum value from Port# %u", port_idx);
+    LOG_ERR(LOG_CTX_INTF, "Error getting intIfNum value from Port# %u", port_idx);
     return L7_FAILURE;
   }
 
   /* Read values */
   if (usmDbDot3adAggPortStatsLACPDUsRxGet(1, port_intf, &rxStats) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u: error reading LACPDUs Rx stats", port_idx);
+    LOG_ERR(LOG_CTX_INTF, "Port# %u: error reading LACPDUs Rx stats", port_idx);
     return L7_FAILURE;
   }
 
   if (usmDbDot3adAggPortStatsLACPDUsTxGet(1, port_intf, &txStats) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u: error reading LACPDUs Tx stats", port_idx);
+    LOG_ERR(LOG_CTX_INTF, "Port# %u: error reading LACPDUs Tx stats", port_idx);
     return L7_FAILURE;
   }
 
@@ -3655,7 +3655,7 @@ L7_RC_t ptin_intf_LACPStats_clear(ptin_LACPStats_t *lagStats)
   /* Validate arguments */
   if (lagStats == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid arguments");
+    LOG_ERR(LOG_CTX_INTF,"Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -3664,7 +3664,7 @@ L7_RC_t ptin_intf_LACPStats_clear(ptin_LACPStats_t *lagStats)
   /* Validate Port range (Port index [0..PTIN_SYSTEM_N_PORTS[) */
   if (port_idx > ptin_sys_number_of_ports)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u is out of range [0..%u]", port_idx, ptin_sys_number_of_ports-1);
+    LOG_ERR(LOG_CTX_INTF, "Port# %u is out of range [0..%u]", port_idx, ptin_sys_number_of_ports-1);
     return L7_FAILURE;
   }
 
@@ -3673,7 +3673,7 @@ L7_RC_t ptin_intf_LACPStats_clear(ptin_LACPStats_t *lagStats)
   /* Clear stats */
   if (usmDbDot3adPortStatsClear(1, port_intf) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u: error clearing LACP stats", port_idx);
+    LOG_ERR(LOG_CTX_INTF, "Port# %u: error clearing LACP stats", port_idx);
     return L7_FAILURE;
   }
 
@@ -3702,31 +3702,31 @@ L7_RC_t ptin_intf_bcast_stormControl_get(const ptin_intf_t *ptin_intf, L7_BOOL *
   /* Validate arguments */
   if (ptin_intf == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Null pointer");
+    LOG_ERR(LOG_CTX_MSG,"Null pointer");
     return L7_FAILURE;
   }
 
   /* Validate interface */
   if (ptin_intf_ptintf2intIfNum(ptin_intf, &intIfNum) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_MSG,"Invalid ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_MSG, "Reading Broadcast stormcontrol data...");
+  LOG_TRACE(LOG_CTX_MSG, "Reading Broadcast stormcontrol data...");
 
   /* Read current enable status */
   rc = usmDbSwDevCtrlBcastStormModeIntfGet(intIfNum, &enable_status);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading Broadcast enable status from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_MSG,"Error reading Broadcast enable status from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
     return rc;
   }
   /* Read current threshold data */
   rc = usmDbSwDevCtrlBcastStormThresholdIntfGet(intIfNum, &rate_limit_status, &burst_size_status, &rate_units_status);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading Broadcast threshold data from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_MSG,"Error reading Broadcast threshold data from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
     return rc;
   }
 
@@ -3761,31 +3761,31 @@ L7_RC_t ptin_intf_mcast_stormControl_get(const ptin_intf_t *ptin_intf, L7_BOOL *
   /* Validate arguments */
   if (ptin_intf == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Null pointer");
+    LOG_ERR(LOG_CTX_MSG,"Null pointer");
     return L7_FAILURE;
   }
 
   /* Validate interface */
   if (ptin_intf_ptintf2intIfNum(ptin_intf, &intIfNum) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_MSG,"Invalid ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_MSG, "Reading Multicast stormcontrol data...");
+  LOG_TRACE(LOG_CTX_MSG, "Reading Multicast stormcontrol data...");
 
   /* Read current enable status */
   rc = usmDbSwDevCtrlMcastStormModeIntfGet(intIfNum, &enable_status);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading Multicast enable status from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_MSG,"Error reading Multicast enable status from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
     return rc;
   }
   /* Read current threshold data */
   rc = usmDbSwDevCtrlMcastStormThresholdIntfGet(intIfNum, &rate_limit_status, &burst_size_status, &rate_units_status);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading Multicast threshold data from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_MSG,"Error reading Multicast threshold data from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
     return rc;
   }
 
@@ -3820,31 +3820,31 @@ L7_RC_t ptin_intf_ucast_stormControl_get(const ptin_intf_t *ptin_intf, L7_BOOL *
   /* Validate arguments */
   if (ptin_intf == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Null pointer");
+    LOG_ERR(LOG_CTX_MSG,"Null pointer");
     return L7_FAILURE;
   }
 
   /* Validate interface */
   if (ptin_intf_ptintf2intIfNum(ptin_intf, &intIfNum) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_MSG,"Invalid ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_MSG, "Reading Unicast stormcontrol data...");
+  LOG_TRACE(LOG_CTX_MSG, "Reading Unicast stormcontrol data...");
 
   /* Read current enable status */
   rc = usmDbSwDevCtrlUcastStormModeIntfGet(intIfNum, &enable_status);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading Unicast enable status from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_MSG,"Error reading Unicast enable status from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
     return rc;
   }
   /* Read current threshold data */
   rc = usmDbSwDevCtrlUcastStormThresholdIntfGet(intIfNum, &rate_limit_status, &burst_size_status, &rate_units_status);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading Unicast threshold data from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_MSG,"Error reading Unicast threshold data from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
     return rc;
   }
 
@@ -3866,31 +3866,31 @@ static L7_RC_t ptin_intf_stormcontrol_reset(L7_uint32 intIfNum, L7_uint8 rate_un
   rc = usmDbSwDevCtrlBcastStormModeIntfSet(intIfNum, L7_DISABLE);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"intIfNum=%u: Error disabling Broadcast StormControl - rc=%d", intIfNum, rc);
+    LOG_ERR(LOG_CTX_MSG,"intIfNum=%u: Error disabling Broadcast StormControl - rc=%d", intIfNum, rc);
     rc_global = rc;
   }
-  LOG_TRACE(LOG_CTX_PTIN_MSG,"intIfNum=%u: Broadcast StormControl disabled", intIfNum);
+  LOG_TRACE(LOG_CTX_MSG,"intIfNum=%u: Broadcast StormControl disabled", intIfNum);
 
   rc = usmDbSwDevCtrlMcastStormModeIntfSet(intIfNum, L7_DISABLE);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"intIfNum=%u: Error disabling Multicast StormControl - rc=%d", intIfNum, rc);
+    LOG_ERR(LOG_CTX_MSG,"intIfNum=%u: Error disabling Multicast StormControl - rc=%d", intIfNum, rc);
     rc_global = rc;
   }
-  LOG_TRACE(LOG_CTX_PTIN_MSG,"intIfNum=%u: Multicast StormControl disabled", intIfNum);
+  LOG_TRACE(LOG_CTX_MSG,"intIfNum=%u: Multicast StormControl disabled", intIfNum);
 
   rc = usmDbSwDevCtrlUcastStormModeIntfSet(intIfNum, L7_DISABLE);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"intIfNum=%u: Error disabling Unicast StormControl - rc=%d", intIfNum, rc);
+    LOG_ERR(LOG_CTX_MSG,"intIfNum=%u: Error disabling Unicast StormControl - rc=%d", intIfNum, rc);
     rc_global = rc;
   }
-  LOG_TRACE(LOG_CTX_PTIN_MSG,"intIfNum=%u: Unicast StormControl disabled", intIfNum);
+  LOG_TRACE(LOG_CTX_MSG,"intIfNum=%u: Unicast StormControl disabled", intIfNum);
 
   /* Check result */
   if (rc_global != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"intIfNum=%u: Error disabling StormControl - rc_global=%d", intIfNum, rc_global);
+    LOG_ERR(LOG_CTX_MSG,"intIfNum=%u: Error disabling StormControl - rc_global=%d", intIfNum, rc_global);
     return rc_global;
   }
 
@@ -3898,31 +3898,31 @@ static L7_RC_t ptin_intf_stormcontrol_reset(L7_uint32 intIfNum, L7_uint8 rate_un
   rc = usmDbSwDevCtrlBcastStormThresholdIntfSet(intIfNum, 0, 0, rate_units);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"intIfNum=%u: Error setting Broadcast threashold units to %u - rc=%d", intIfNum, rate_units, rc);
+    LOG_ERR(LOG_CTX_MSG,"intIfNum=%u: Error setting Broadcast threashold units to %u - rc=%d", intIfNum, rate_units, rc);
     rc_global = rc;
   }
-  LOG_TRACE(LOG_CTX_PTIN_MSG,"intIfNum=%u: Broadcast threashold units defined to %u", intIfNum, rate_units);
+  LOG_TRACE(LOG_CTX_MSG,"intIfNum=%u: Broadcast threashold units defined to %u", intIfNum, rate_units);
 
   rc = usmDbSwDevCtrlMcastStormThresholdIntfSet(intIfNum, 0, 0, rate_units);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"intIfNum=%u: Error setting Multicast threashold units to %u - rc=%d", intIfNum, rate_units, rc);
+    LOG_ERR(LOG_CTX_MSG,"intIfNum=%u: Error setting Multicast threashold units to %u - rc=%d", intIfNum, rate_units, rc);
     rc_global = rc;
   }
-  LOG_TRACE(LOG_CTX_PTIN_MSG,"intIfNum=%u: Multicast threashold units defined to %u", intIfNum, rate_units);
+  LOG_TRACE(LOG_CTX_MSG,"intIfNum=%u: Multicast threashold units defined to %u", intIfNum, rate_units);
 
   rc = usmDbSwDevCtrlUcastStormThresholdIntfSet(intIfNum, 0, 0, rate_units);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"intIfNum=%u: Error setting Unicast threashold units to %u - rc=%d", intIfNum, rate_units, rc);
+    LOG_ERR(LOG_CTX_MSG,"intIfNum=%u: Error setting Unicast threashold units to %u - rc=%d", intIfNum, rate_units, rc);
     rc_global = rc;
   }
-  LOG_TRACE(LOG_CTX_PTIN_MSG,"intIfNum=%u: Unicast threashold units defined to %u", intIfNum, rate_units);
+  LOG_TRACE(LOG_CTX_MSG,"intIfNum=%u: Unicast threashold units defined to %u", intIfNum, rate_units);
 
   /* Check results */
   if (rc_global != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"intIfNum=%u: Error redefining rate units - rc_global=%d", intIfNum, rc_global);
+    LOG_ERR(LOG_CTX_MSG,"intIfNum=%u: Error redefining rate units - rc_global=%d", intIfNum, rc_global);
     return rc_global;
   }
 
@@ -3951,18 +3951,18 @@ L7_RC_t ptin_intf_bcast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL e
   /* Validate arguments */
   if (ptin_intf == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Null pointer");
+    LOG_ERR(LOG_CTX_MSG,"Null pointer");
     return L7_FAILURE;
   }
 
   /* Validate interface */
   if (ptin_intf_ptintf2intIfNum(ptin_intf, &intIfNum) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_MSG,"Invalid ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_MSG, "Configuring Broadcast stormcontrol...");
+  LOG_TRACE(LOG_CTX_MSG, "Configuring Broadcast stormcontrol...");
 
   /* If purpose is to block traffic, apply 0 PPS */
   if ( enable && rate_value == 0 &&
@@ -3976,14 +3976,14 @@ L7_RC_t ptin_intf_bcast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL e
   rc = usmDbSwDevCtrlBcastStormModeIntfGet(intIfNum, &enable_curr);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading Broadcast enable status from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_MSG,"Error reading Broadcast enable status from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
     return rc;
   }
   /* Read current threshold data */
   rc = usmDbSwDevCtrlBcastStormThresholdIntfGet(intIfNum, &rate_value_curr, L7_NULLPTR, &rate_units_curr);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading Broadcast threshold data from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_MSG,"Error reading Broadcast threshold data from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
     return rc;
   }
 
@@ -3991,7 +3991,7 @@ L7_RC_t ptin_intf_bcast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL e
   {
     if (rate_units == L7_RATE_UNIT_NONE || rate_units >= L7_RATE_UNIT_TOTAL)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Unknown units (%u)", rate_units);
+      LOG_ERR(LOG_CTX_MSG,"Unknown units (%u)", rate_units);
       return L7_FAILURE;
     }
 
@@ -4004,21 +4004,21 @@ L7_RC_t ptin_intf_bcast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL e
       rc = ptin_intf_stormcontrol_reset(intIfNum, rate_units);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG,"ptin_intf %u/%u: Error resetting StormControl to units %u - rc=%d",
+        LOG_ERR(LOG_CTX_MSG,"ptin_intf %u/%u: Error resetting StormControl to units %u - rc=%d",
                 ptin_intf->intf_type,ptin_intf->intf_id, rate_units, rc);
         return rc;
       }
-      LOG_TRACE(LOG_CTX_PTIN_MSG,"ptin_intf %u/%u: StormControl resetted to units %u",
+      LOG_TRACE(LOG_CTX_MSG,"ptin_intf %u/%u: StormControl resetted to units %u",
                 ptin_intf->intf_type,ptin_intf->intf_id, rate_units);
     }
 
-    LOG_TRACE(LOG_CTX_PTIN_MSG,"Going to apply BC threshold of %u (units=%u)", rate_value, rate_units);
+    LOG_TRACE(LOG_CTX_MSG,"Going to apply BC threshold of %u (units=%u)", rate_value, rate_units);
 
     /* Redefine threshold/units */
     rc = usmDbSwDevCtrlBcastStormThresholdIntfSet(intIfNum, rate_value, rate_burst, rate_units);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Error setting Broadcast threashold to %u for ptin_intf %u/%u", rate_value,
+      LOG_ERR(LOG_CTX_MSG,"Error setting Broadcast threashold to %u for ptin_intf %u/%u", rate_value,
               ptin_intf->intf_type, ptin_intf->intf_id);
       return rc;
     }
@@ -4030,12 +4030,12 @@ L7_RC_t ptin_intf_bcast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL e
     rc = usmDbSwDevCtrlBcastStormModeIntfSet(intIfNum, enable);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Error setting Broadcast enable to %u for ptin_intf %u/%u", enable, ptin_intf->intf_type, ptin_intf->intf_id);
+      LOG_ERR(LOG_CTX_MSG,"Error setting Broadcast enable to %u for ptin_intf %u/%u", enable, ptin_intf->intf_type, ptin_intf->intf_id);
       return rc;
     }
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_MSG, "Success applying Broadcast stormcontrol to ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+  LOG_TRACE(LOG_CTX_MSG, "Success applying Broadcast stormcontrol to ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
 
   return L7_SUCCESS;
 }
@@ -4062,18 +4062,18 @@ L7_RC_t ptin_intf_mcast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL e
   /* Validate arguments */
   if (ptin_intf == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Null pointer");
+    LOG_ERR(LOG_CTX_MSG,"Null pointer");
     return L7_FAILURE;
   }
 
   /* Validate interface */
   if (ptin_intf_ptintf2intIfNum(ptin_intf, &intIfNum) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_MSG,"Invalid ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_MSG, "Configuring Multicast stormcontrol for ptin_intf %u/%u, intIfNum %u...", ptin_intf->intf_type, ptin_intf->intf_id, intIfNum);
+  LOG_TRACE(LOG_CTX_MSG, "Configuring Multicast stormcontrol for ptin_intf %u/%u, intIfNum %u...", ptin_intf->intf_type, ptin_intf->intf_id, intIfNum);
 
   /* If purpose is to block traffic, apply 0 PPS */
   /* This is because 0 Percent/Kbps, disables metering... */
@@ -4088,14 +4088,14 @@ L7_RC_t ptin_intf_mcast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL e
   rc = usmDbSwDevCtrlMcastStormModeIntfGet(intIfNum, &enable_curr);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading Multicast enable status from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_MSG,"Error reading Multicast enable status from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
     return rc;
   }
   /* Read current threshold data */
   rc = usmDbSwDevCtrlMcastStormThresholdIntfGet(intIfNum, &rate_value_curr, L7_NULLPTR, &rate_units_curr);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading Multicast threshold data from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_MSG,"Error reading Multicast threshold data from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
     return rc;
   }
 
@@ -4103,7 +4103,7 @@ L7_RC_t ptin_intf_mcast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL e
   {
     if (rate_units == L7_RATE_UNIT_NONE || rate_units >= L7_RATE_UNIT_TOTAL)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Unknown units (%u)", rate_units);
+      LOG_ERR(LOG_CTX_MSG,"Unknown units (%u)", rate_units);
       return L7_FAILURE;
     }
 
@@ -4116,21 +4116,21 @@ L7_RC_t ptin_intf_mcast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL e
       rc = ptin_intf_stormcontrol_reset(intIfNum, rate_units);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG,"ptin_intf %u/%u: Error resetting StormControl to units %u - rc=%d",
+        LOG_ERR(LOG_CTX_MSG,"ptin_intf %u/%u: Error resetting StormControl to units %u - rc=%d",
                 ptin_intf->intf_type,ptin_intf->intf_id, rate_units, rc);
         return rc;
       }
-      LOG_TRACE(LOG_CTX_PTIN_MSG,"ptin_intf %u/%u: StormControl resetted to units %u",
+      LOG_TRACE(LOG_CTX_MSG,"ptin_intf %u/%u: StormControl resetted to units %u",
                 ptin_intf->intf_type,ptin_intf->intf_id, rate_units);
     }
 
-    LOG_TRACE(LOG_CTX_PTIN_MSG,"Going to apply BC threshold of %u (units=%u)", rate_value, rate_units);
+    LOG_TRACE(LOG_CTX_MSG,"Going to apply BC threshold of %u (units=%u)", rate_value, rate_units);
 
     /* Redefine threshold/units */
     rc = usmDbSwDevCtrlMcastStormThresholdIntfSet(intIfNum, rate_value, rate_burst, rate_units);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Error setting Multicast threashold to %u for ptin_intf %u/%u", rate_value,
+      LOG_ERR(LOG_CTX_MSG,"Error setting Multicast threashold to %u for ptin_intf %u/%u", rate_value,
               ptin_intf->intf_type, ptin_intf->intf_id);
       return rc;
     }
@@ -4142,12 +4142,12 @@ L7_RC_t ptin_intf_mcast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL e
     rc = usmDbSwDevCtrlMcastStormModeIntfSet(intIfNum, enable);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Error setting Multicast enable to %u for ptin_intf %u/%u", enable, ptin_intf->intf_type, ptin_intf->intf_id);
+      LOG_ERR(LOG_CTX_MSG,"Error setting Multicast enable to %u for ptin_intf %u/%u", enable, ptin_intf->intf_type, ptin_intf->intf_id);
       return rc;
     }
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_MSG, "Success applying Multicast stormcontrol to ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+  LOG_TRACE(LOG_CTX_MSG, "Success applying Multicast stormcontrol to ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
 
   return L7_SUCCESS;
 }
@@ -4175,18 +4175,18 @@ L7_RC_t ptin_intf_ucast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL e
   /* Validate arguments */
   if (ptin_intf == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Null pointer");
+    LOG_ERR(LOG_CTX_MSG,"Null pointer");
     return L7_FAILURE;
   }
 
   /* Validate interface */
   if (ptin_intf_ptintf2intIfNum(ptin_intf, &intIfNum) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_MSG,"Invalid ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_MSG, "Configuring Unicast stormcontrol...");
+  LOG_TRACE(LOG_CTX_MSG, "Configuring Unicast stormcontrol...");
 
   /* If purpose is to block traffic, apply 0 PPS */
   /* This is because 0 Percent/Kbps, disables metering... */
@@ -4201,14 +4201,14 @@ L7_RC_t ptin_intf_ucast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL e
   rc = usmDbSwDevCtrlUcastStormModeIntfGet(intIfNum, &enable_curr);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading Unicast enable status from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_MSG,"Error reading Unicast enable status from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
     return rc;
   }
   /* Read current threshold data */
   rc = usmDbSwDevCtrlUcastStormThresholdIntfGet(intIfNum, &rate_value_curr, L7_NULLPTR, &rate_units_curr);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading Unicast threshold data from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_MSG,"Error reading Unicast threshold data from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
     return rc;
   }
 
@@ -4216,7 +4216,7 @@ L7_RC_t ptin_intf_ucast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL e
   {
     if (rate_units == L7_RATE_UNIT_NONE || rate_units >= L7_RATE_UNIT_TOTAL)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Unknown units (%u)", rate_units);
+      LOG_ERR(LOG_CTX_MSG,"Unknown units (%u)", rate_units);
       return L7_FAILURE;
     }
 
@@ -4229,21 +4229,21 @@ L7_RC_t ptin_intf_ucast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL e
       rc = ptin_intf_stormcontrol_reset(intIfNum, rate_units);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG,"ptin_intf %u/%u: Error resetting StormControl to units %u - rc=%d",
+        LOG_ERR(LOG_CTX_MSG,"ptin_intf %u/%u: Error resetting StormControl to units %u - rc=%d",
                 ptin_intf->intf_type,ptin_intf->intf_id, rate_units, rc);
         return rc;
       }
-      LOG_TRACE(LOG_CTX_PTIN_MSG,"ptin_intf %u/%u: StormControl resetted to units %u",
+      LOG_TRACE(LOG_CTX_MSG,"ptin_intf %u/%u: StormControl resetted to units %u",
                 ptin_intf->intf_type,ptin_intf->intf_id, rate_units);
     }
 
-    LOG_TRACE(LOG_CTX_PTIN_MSG,"Going to apply BC threshold of %u (units=%u)", rate_value, rate_units);
+    LOG_TRACE(LOG_CTX_MSG,"Going to apply BC threshold of %u (units=%u)", rate_value, rate_units);
 
     /* Redefine threshold/units */
     rc = usmDbSwDevCtrlUcastStormThresholdIntfSet(intIfNum, rate_value, rate_burst, rate_units);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Error setting Unicast threashold to %u for ptin_intf %u/%u", rate_value,
+      LOG_ERR(LOG_CTX_MSG,"Error setting Unicast threashold to %u for ptin_intf %u/%u", rate_value,
               ptin_intf->intf_type, ptin_intf->intf_id);
       return rc;
     }
@@ -4255,12 +4255,12 @@ L7_RC_t ptin_intf_ucast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL e
     rc = usmDbSwDevCtrlUcastStormModeIntfSet(intIfNum, enable);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Error setting Unicast enable to %u for ptin_intf %u/%u", enable, ptin_intf->intf_type, ptin_intf->intf_id);
+      LOG_ERR(LOG_CTX_MSG,"Error setting Unicast enable to %u for ptin_intf %u/%u", enable, ptin_intf->intf_type, ptin_intf->intf_id);
       return rc;
     }
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_MSG, "Success applying Unicast stormcontrol to ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+  LOG_TRACE(LOG_CTX_MSG, "Success applying Unicast stormcontrol to ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
 
   return L7_SUCCESS;
 }
@@ -4285,17 +4285,17 @@ L7_RC_t ptin_QoS_intf_cos_policer_set(const ptin_intf_t *ptin_intf, L7_uint8 cos
   /* Validate arguments */
   if (ptin_intf == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Null pointer");
+    LOG_ERR(LOG_CTX_INTF, "Null pointer");
     return L7_FAILURE;
   }
   if (ptin_intf_ptintf2port(ptin_intf, &ptin_port) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid ptin_intf=%u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_INTF, "Invalid ptin_intf=%u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
     return L7_FAILURE;
   }
   if (cos >= L7_COS_INTF_QUEUE_MAX_COUNT)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid COS %u", cos);
+    LOG_ERR(LOG_CTX_INTF, "Invalid COS %u", cos);
     return L7_FAILURE;
   }
 
@@ -4307,7 +4307,7 @@ L7_RC_t ptin_QoS_intf_cos_policer_set(const ptin_intf_t *ptin_intf, L7_uint8 cos
   /* Apply policer */
   if ((rc = ptin_bwPolicer_set(&profile, meter, -1)) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Error applying policer");
+    LOG_ERR(LOG_CTX_EVC,"Error applying policer");
     return rc;
   }
 
@@ -4333,17 +4333,17 @@ L7_RC_t ptin_QoS_intf_cos_policer_clear(const ptin_intf_t *ptin_intf, L7_uint8 c
   /* Validate arguments */
   if (ptin_intf == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Null pointer");
+    LOG_ERR(LOG_CTX_INTF, "Null pointer");
     return L7_FAILURE;
   }
   if (ptin_intf_ptintf2port(ptin_intf, &ptin_port) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid ptin_intf=%u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_INTF, "Invalid ptin_intf=%u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
     return L7_FAILURE;
   }
   if (cos >= L7_COS_INTF_QUEUE_MAX_COUNT)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid COS %u", cos);
+    LOG_ERR(LOG_CTX_INTF, "Invalid COS %u", cos);
     return L7_FAILURE;
   }
 
@@ -4355,7 +4355,7 @@ L7_RC_t ptin_QoS_intf_cos_policer_clear(const ptin_intf_t *ptin_intf, L7_uint8 c
   /* Apply policer */
   if ((rc = ptin_bwPolicer_delete(&profile)) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Error applying policer");
+    LOG_ERR(LOG_CTX_EVC,"Error applying policer");
     return rc;
   }
 
@@ -4380,18 +4380,18 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
   /* Validate arguments */
   if (ptin_intf == L7_NULLPTR || intfQos == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid arguments");
+    LOG_ERR(LOG_CTX_INTF, "Invalid arguments");
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_INTF,"Interface = %u/%u",ptin_intf->intf_type,ptin_intf->intf_id);
-  LOG_TRACE(LOG_CTX_PTIN_INTF,"Mask         = 0x%02x",intfQos->mask);
-  LOG_TRACE(LOG_CTX_PTIN_INTF,"TrustMode    = %u",intfQos->trust_mode);
-  LOG_TRACE(LOG_CTX_PTIN_INTF,"BWunits      = %u",intfQos->bandwidth_unit);
-  LOG_TRACE(LOG_CTX_PTIN_INTF,"ShapingRate  = %u",intfQos->shaping_rate);
-  LOG_TRACE(LOG_CTX_PTIN_INTF,"WREDDecayExp = %u",intfQos->wred_decay_exponent);
-  LOG_TRACE(LOG_CTX_PTIN_INTF,"PrioMap.mask   =0x%02x",intfQos->pktprio.mask);
-  LOG_TRACE(LOG_CTX_PTIN_INTF,"PrioMap.prio[8]={0x%08x,0x%08x,0x%08x,0x%08x,0x%08x,0x%08x,0x%08x,0x%08x}",
+  LOG_TRACE(LOG_CTX_INTF,"Interface = %u/%u",ptin_intf->intf_type,ptin_intf->intf_id);
+  LOG_TRACE(LOG_CTX_INTF,"Mask         = 0x%02x",intfQos->mask);
+  LOG_TRACE(LOG_CTX_INTF,"TrustMode    = %u",intfQos->trust_mode);
+  LOG_TRACE(LOG_CTX_INTF,"BWunits      = %u",intfQos->bandwidth_unit);
+  LOG_TRACE(LOG_CTX_INTF,"ShapingRate  = %u",intfQos->shaping_rate);
+  LOG_TRACE(LOG_CTX_INTF,"WREDDecayExp = %u",intfQos->wred_decay_exponent);
+  LOG_TRACE(LOG_CTX_INTF,"PrioMap.mask   =0x%02x",intfQos->pktprio.mask);
+  LOG_TRACE(LOG_CTX_INTF,"PrioMap.prio[8]={0x%08x,0x%08x,0x%08x,0x%08x,0x%08x,0x%08x,0x%08x,0x%08x}",
             intfQos->pktprio.cos[0],
             intfQos->pktprio.cos[1],
             intfQos->pktprio.cos[2],
@@ -4404,22 +4404,22 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
   /* Validate interface */
   if (ptin_intf_ptintf2intIfNum(ptin_intf,&intIfNum)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Interface %u/%u invalid",ptin_intf->intf_type,ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_INTF, "Interface %u/%u invalid",ptin_intf->intf_type,ptin_intf->intf_id);
     return L7_FAILURE;
   }
-  LOG_TRACE(LOG_CTX_PTIN_INTF, "Interface %u/%u is intIfNum=%u",ptin_intf->intf_type,ptin_intf->intf_id,intIfNum);
+  LOG_TRACE(LOG_CTX_INTF, "Interface %u/%u is intIfNum=%u",ptin_intf->intf_type,ptin_intf->intf_id,intIfNum);
 
   /* Is there any configuration to be applied? */
   if (intfQos->mask==0x00)
   {
-    LOG_WARNING(LOG_CTX_PTIN_INTF, "Empty mask: no configuration to be applied");
+    LOG_WARNING(LOG_CTX_INTF, "Empty mask: no configuration to be applied");
     return L7_SUCCESS;
   }
 
   /* Check if interface is valid for QoS configuration */
   if (!usmDbQosCosMapIntfIsValid(1,intIfNum))
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid interface for QoS operation (intIfNum=%u, ptin_intf=%u/%u)",intIfNum,ptin_intf->intf_type,ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_INTF,"Invalid interface for QoS operation (intIfNum=%u, ptin_intf=%u/%u)",intIfNum,ptin_intf->intf_type,ptin_intf->intf_id);
     return L7_FAILURE;
   }
 
@@ -4427,18 +4427,18 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
   rc = usmDbQosCosMapTrustModeGet(1, intIfNum, &trust_mode);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Error with usmDbQosCosMapTrustModeGet (rc=%d)", rc);
+    LOG_ERR(LOG_CTX_INTF,"Error with usmDbQosCosMapTrustModeGet (rc=%d)", rc);
     trust_mode = L7_QOS_COS_MAP_INTF_MODE_UNTRUSTED;
     rc_global = rc;
   }
   // Validate trust mode
   else if (trust_mode==L7_NULL || trust_mode>L7_QOS_COS_MAP_INTF_MODE_TRUST_IPDSCP)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid trust mode (%u)",trust_mode);
+    LOG_ERR(LOG_CTX_INTF,"Invalid trust mode (%u)",trust_mode);
     trust_mode = L7_QOS_COS_MAP_INTF_MODE_UNTRUSTED;
     rc_global = L7_FAILURE;
   }
-  LOG_TRACE(LOG_CTX_PTIN_INTF, "Current trust mode is %u",trust_mode);
+  LOG_TRACE(LOG_CTX_INTF, "Current trust mode is %u",trust_mode);
 
   /* Set Trust mode */
   if (intfQos->mask & PTIN_QOS_INTF_TRUSTMODE_MASK)
@@ -4447,21 +4447,21 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
     rc = usmDbQosCosMapTrustModeSet(1,intIfNum,intfQos->trust_mode);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Error with usmDbQosCosMapTrustModeSet (rc=%d)", rc);
+      LOG_ERR(LOG_CTX_INTF, "Error with usmDbQosCosMapTrustModeSet (rc=%d)", rc);
       rc_global = rc;
     }
     else
     {
       // Configuration successfull => change trust mode value
       trust_mode = intfQos->trust_mode;
-      LOG_TRACE(LOG_CTX_PTIN_INTF, "New trust mode is %u",trust_mode);
+      LOG_TRACE(LOG_CTX_INTF, "New trust mode is %u",trust_mode);
     }
   }
   /* Bandwidth units */
   if (intfQos->mask & PTIN_QOS_INTF_BANDWIDTHUNIT_MASK)
   {
     /* Do nothing */
-    LOG_WARNING(LOG_CTX_PTIN_INTF, "Bandwidth units were not changed");
+    LOG_WARNING(LOG_CTX_INTF, "Bandwidth units were not changed");
   }
   /* Shaping rate */
   if (intfQos->mask & PTIN_QOS_INTF_SHAPINGRATE_MASK)
@@ -4469,12 +4469,12 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
     rc = usmDbQosCosQueueIntfShapingRateSet(1,intIfNum,intfQos->shaping_rate);
     if (rc != L7_SUCCESS)
     {  
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Error with usmDbQosCosQueueIntfShapingRateSet (rc=%d)", rc);
+      LOG_ERR(LOG_CTX_INTF, "Error with usmDbQosCosQueueIntfShapingRateSet (rc=%d)", rc);
       rc_global = rc;
     }
     else
     {
-      LOG_TRACE(LOG_CTX_PTIN_INTF, "New shaping rate is %u",intfQos->shaping_rate);
+      LOG_TRACE(LOG_CTX_INTF, "New shaping rate is %u",intfQos->shaping_rate);
     }
   }
   /* WRED decay exponent */
@@ -4483,12 +4483,12 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
     rc = usmDbQosCosQueueWredDecayExponentSet(1,intIfNum,intfQos->wred_decay_exponent);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Error with usmDbQosCosQueueWredDecayExponentSet (rc=%d)", rc);
+      LOG_ERR(LOG_CTX_INTF, "Error with usmDbQosCosQueueWredDecayExponentSet (rc=%d)", rc);
       rc_global = rc;
     }
     else
     {
-      LOG_TRACE(LOG_CTX_PTIN_INTF, "New WRED Decay exponent is %u",intfQos->wred_decay_exponent);
+      LOG_TRACE(LOG_CTX_INTF, "New WRED Decay exponent is %u",intfQos->wred_decay_exponent);
     }
   }
   /* Packet priority mask */
@@ -4510,12 +4510,12 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
         rc = usmDbDot1dTrafficClassSet(1,intIfNum,prio,cos);
         if (rc != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_PTIN_INTF, "Error with usmDbDot1dTrafficClassSet (prio=%u => cos=%u): rc=%d",prio,cos, rc);
+          LOG_ERR(LOG_CTX_INTF, "Error with usmDbDot1dTrafficClassSet (prio=%u => cos=%u): rc=%d",prio,cos, rc);
           rc_global = rc;
         }
         else
         {
-          LOG_TRACE(LOG_CTX_PTIN_INTF, "Pbit %u => CoS=%u",prio,cos);
+          LOG_TRACE(LOG_CTX_INTF, "Pbit %u => CoS=%u",prio,cos);
         }
       }
       // IP-precedence trust mode
@@ -4527,12 +4527,12 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
         rc = usmDbQosCosMapIpPrecTrafficClassSet(1, intIfNum, prio, cos);
         if (rc != L7_SUCCESS)
         { 
-          LOG_ERR(LOG_CTX_PTIN_INTF, "Error with usmDbQosCosMapIpPrecTrafficClassSet (IPprec=%u => cos=%u): rc=%d",prio,cos, rc); 
+          LOG_ERR(LOG_CTX_INTF, "Error with usmDbQosCosMapIpPrecTrafficClassSet (IPprec=%u => cos=%u): rc=%d",prio,cos, rc); 
           rc_global = rc;
         }
         else
         {
-          LOG_TRACE(LOG_CTX_PTIN_INTF, "IPprec %u => CoS=%u",prio,cos);
+          LOG_TRACE(LOG_CTX_INTF, "IPprec %u => CoS=%u",prio,cos);
         }
       }
       // DSCP trust mode
@@ -4549,18 +4549,18 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
           rc = usmDbQosCosMapIpDscpTrafficClassSet(1, intIfNum, prio*8+prio2, cos);
           if (rc != L7_SUCCESS)
           {
-            LOG_ERR(LOG_CTX_PTIN_INTF, "Error with usmDbQosCosMapIpDscpTrafficClassSet (DscpPrio=%u => CoS=%u): rc=%d",prio*8+prio2,cos, rc);
+            LOG_ERR(LOG_CTX_INTF, "Error with usmDbQosCosMapIpDscpTrafficClassSet (DscpPrio=%u => CoS=%u): rc=%d",prio*8+prio2,cos, rc);
             rc_global = rc;
           }
           else
           {
-            LOG_TRACE(LOG_CTX_PTIN_INTF, "DscpPrio %u => CoS=%u",prio*8+prio2,cos);
+            LOG_TRACE(LOG_CTX_INTF, "DscpPrio %u => CoS=%u",prio*8+prio2,cos);
           }
         }
       }
       else
       {
-        LOG_ERR(LOG_CTX_PTIN_INTF, "Unknown trust mode for prio=%u (%u)",prio,trust_mode);
+        LOG_ERR(LOG_CTX_INTF, "Unknown trust mode for prio=%u (%u)",prio,trust_mode);
         rc_global = L7_FAILURE;
       }
     }
@@ -4568,11 +4568,11 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
 
   if (rc_global==L7_SUCCESS)
   {
-    LOG_TRACE(LOG_CTX_PTIN_INTF, "QoS configuration successfully applied to ptin_intf=%u/%u",ptin_intf->intf_type,ptin_intf->intf_id);
+    LOG_TRACE(LOG_CTX_INTF, "QoS configuration successfully applied to ptin_intf=%u/%u",ptin_intf->intf_type,ptin_intf->intf_id);
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error applying QoS configuration to ptin_intf=%u/%u (rc_global=%d)",ptin_intf->intf_type,ptin_intf->intf_id, rc_global);
+    LOG_ERR(LOG_CTX_INTF, "Error applying QoS configuration to ptin_intf=%u/%u (rc_global=%d)",ptin_intf->intf_type,ptin_intf->intf_id, rc_global);
   }
 
   return rc_global;
@@ -4596,27 +4596,27 @@ L7_RC_t ptin_QoS_intf_config_get(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
   /* Validate arguments */
   if (ptin_intf == L7_NULLPTR || intfQos == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid arguments");
+    LOG_ERR(LOG_CTX_INTF, "Invalid arguments");
     return L7_FAILURE;
   }
 
   /* Clear configurations to be returned */
   memset(intfQos,0x00,sizeof(ptin_QoS_intf_t));
 
-  LOG_TRACE(LOG_CTX_PTIN_INTF,"Interface = %u/%u",ptin_intf->intf_type,ptin_intf->intf_id);
+  LOG_TRACE(LOG_CTX_INTF,"Interface = %u/%u",ptin_intf->intf_type,ptin_intf->intf_id);
 
   /* Validate interface */
   if (ptin_intf_ptintf2intIfNum(ptin_intf,&intIfNum)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Interface %u/%u invalid",ptin_intf->intf_type,ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_INTF, "Interface %u/%u invalid",ptin_intf->intf_type,ptin_intf->intf_id);
     return L7_FAILURE;
   }
-  LOG_TRACE(LOG_CTX_PTIN_INTF, "Interface %u/%u is intIfNum=%u",ptin_intf->intf_type,ptin_intf->intf_id,intIfNum);
+  LOG_TRACE(LOG_CTX_INTF, "Interface %u/%u is intIfNum=%u",ptin_intf->intf_type,ptin_intf->intf_id,intIfNum);
 
   /* Check if interface is valid for QoS configuration */
   if (!usmDbQosCosMapIntfIsValid(1,intIfNum))
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid interface for QoS operation (intIfNum=%u, ptin_intf=%u/%u)",intIfNum,ptin_intf->intf_type,ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_INTF,"Invalid interface for QoS operation (intIfNum=%u, ptin_intf=%u/%u)",intIfNum,ptin_intf->intf_type,ptin_intf->intf_id);
     return L7_FAILURE;
   }
 
@@ -4625,7 +4625,7 @@ L7_RC_t ptin_QoS_intf_config_get(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
   if (rc != L7_SUCCESS)
   {
     trust_mode = L7_QOS_COS_MAP_INTF_MODE_UNTRUSTED;
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Error with usmDbQosCosMapTrustModeGet (rc=%d)", rc);
+    LOG_ERR(LOG_CTX_INTF,"Error with usmDbQosCosMapTrustModeGet (rc=%d)", rc);
     rc_global = rc;
   }
   else
@@ -4643,7 +4643,7 @@ L7_RC_t ptin_QoS_intf_config_get(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
   rc = usmDbQosCosQueueIntfShapingRateGet(1,intIfNum,&value);
   if (rc != L7_SUCCESS)
   {  
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error with usmDbQosCosQueueIntfShapingRateGet (rc=%d)", rc);
+    LOG_ERR(LOG_CTX_INTF, "Error with usmDbQosCosQueueIntfShapingRateGet (rc=%d)", rc);
     rc_global = rc;
   }
   else
@@ -4656,7 +4656,7 @@ L7_RC_t ptin_QoS_intf_config_get(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
   rc = usmDbQosCosQueueWredDecayExponentGet(1,intIfNum,&value);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error with usmDbQosCosQueueWredDecayExponentGet (rc=%d)", rc);
+    LOG_ERR(LOG_CTX_INTF, "Error with usmDbQosCosQueueWredDecayExponentGet (rc=%d)", rc);
     rc_global = rc;
   }
   else
@@ -4677,14 +4677,14 @@ L7_RC_t ptin_QoS_intf_config_get(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
         rc = usmDbDot1dTrafficClassGet(1,intIfNum,prio,&cos);
         if (rc != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_PTIN_INTF, "Error with usmDbDot1dTrafficClassGet (prio=%u) (rc=%d)",prio, rc);
+          LOG_ERR(LOG_CTX_INTF, "Error with usmDbDot1dTrafficClassGet (prio=%u) (rc=%d)",prio, rc);
           rc_global = rc;
         }
         else
         {
           intfQos->pktprio.mask[prio] = 1;
           intfQos->pktprio.cos[prio]  = cos;
-          LOG_TRACE(LOG_CTX_PTIN_INTF, "Pbit %u => CoS=%u",prio,cos);
+          LOG_TRACE(LOG_CTX_INTF, "Pbit %u => CoS=%u",prio,cos);
         }
       }
       // IP-precedence trust mode
@@ -4693,14 +4693,14 @@ L7_RC_t ptin_QoS_intf_config_get(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
         rc = usmDbQosCosMapIpPrecTrafficClassGet(1, intIfNum, prio, &cos);
         if (rc != L7_SUCCESS)
         { 
-          LOG_ERR(LOG_CTX_PTIN_INTF, "Error with usmDbQosCosMapIpPrecTrafficClassGet (IPprec=%u) (rc=%d)",prio, rc);
+          LOG_ERR(LOG_CTX_INTF, "Error with usmDbQosCosMapIpPrecTrafficClassGet (IPprec=%u) (rc=%d)",prio, rc);
           rc_global = rc;
         }
         else
         {
           intfQos->pktprio.mask[prio] = 1;
           intfQos->pktprio.cos[prio]  = cos;
-          LOG_TRACE(LOG_CTX_PTIN_INTF, "IPprec %u => CoS=%u",prio,cos);
+          LOG_TRACE(LOG_CTX_INTF, "IPprec %u => CoS=%u",prio,cos);
         }
       }
       // DSCP trust mode
@@ -4712,7 +4712,7 @@ L7_RC_t ptin_QoS_intf_config_get(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
           rc = usmDbQosCosMapIpDscpTrafficClassGet(1, intIfNum, prio*8+prio2, &cos);
           if (rc != L7_SUCCESS)
           {
-            LOG_ERR(LOG_CTX_PTIN_INTF, "Error with usmDbQosCosMapIpDscpTrafficClassGet (DscpPrio=%u) (rc=%d)",prio*8+prio2, rc);
+            LOG_ERR(LOG_CTX_INTF, "Error with usmDbQosCosMapIpDscpTrafficClassGet (DscpPrio=%u) (rc=%d)",prio*8+prio2, rc);
             rc_global = rc;
             break;
           }
@@ -4720,13 +4720,13 @@ L7_RC_t ptin_QoS_intf_config_get(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
           {
             intfQos->pktprio.mask[prio] |= (L7_uint8) 1 << prio2;
             intfQos->pktprio.cos[prio]  |= ((L7_uint32) cos & 0x0f)<<(prio2*4);
-            LOG_TRACE(LOG_CTX_PTIN_INTF, "DscpPrio %u => CoS=%u",prio*8+prio2,cos);
+            LOG_TRACE(LOG_CTX_INTF, "DscpPrio %u => CoS=%u",prio*8+prio2,cos);
           }
         }
       }
       else
       {
-        LOG_ERR(LOG_CTX_PTIN_INTF, "Unknown trust mode for prio=%u (%u)",prio,trust_mode);
+        LOG_ERR(LOG_CTX_INTF, "Unknown trust mode for prio=%u (%u)",prio,trust_mode);
         rc_global = L7_FAILURE;
       }
     }
@@ -4738,14 +4738,14 @@ L7_RC_t ptin_QoS_intf_config_get(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
     }
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_INTF,"Mask         = 0x%02x",intfQos->mask);
-  LOG_TRACE(LOG_CTX_PTIN_INTF,"TrustMode    = %u",intfQos->trust_mode);
-  LOG_TRACE(LOG_CTX_PTIN_INTF,"BWunits      = %u",intfQos->bandwidth_unit);
-  LOG_TRACE(LOG_CTX_PTIN_INTF,"ShapingRate  = %u",intfQos->shaping_rate);
-  LOG_TRACE(LOG_CTX_PTIN_INTF,"WREDDecayExp = %u",intfQos->wred_decay_exponent);
-  LOG_TRACE(LOG_CTX_PTIN_INTF,"PrioMap.mask   ={0x%02x,0x%02x,0x%02x,0x%02x,0x%02x,0x%02x,0x%02x,0x%02x}",
+  LOG_TRACE(LOG_CTX_INTF,"Mask         = 0x%02x",intfQos->mask);
+  LOG_TRACE(LOG_CTX_INTF,"TrustMode    = %u",intfQos->trust_mode);
+  LOG_TRACE(LOG_CTX_INTF,"BWunits      = %u",intfQos->bandwidth_unit);
+  LOG_TRACE(LOG_CTX_INTF,"ShapingRate  = %u",intfQos->shaping_rate);
+  LOG_TRACE(LOG_CTX_INTF,"WREDDecayExp = %u",intfQos->wred_decay_exponent);
+  LOG_TRACE(LOG_CTX_INTF,"PrioMap.mask   ={0x%02x,0x%02x,0x%02x,0x%02x,0x%02x,0x%02x,0x%02x,0x%02x}",
             intfQos->pktprio.mask[0],intfQos->pktprio.mask[1],intfQos->pktprio.mask[2],intfQos->pktprio.mask[3],intfQos->pktprio.mask[4],intfQos->pktprio.mask[5],intfQos->pktprio.mask[6],intfQos->pktprio.mask[7]);
-  LOG_TRACE(LOG_CTX_PTIN_INTF,"PrioMap.prio[8]={0x%08x,0x%08x,0x%08x,0x%08x,0x%08x,0x%08x,0x%08x,0x%08x}",
+  LOG_TRACE(LOG_CTX_INTF,"PrioMap.prio[8]={0x%08x,0x%08x,0x%08x,0x%08x,0x%08x,0x%08x,0x%08x,0x%08x}",
             intfQos->pktprio.cos[0],
             intfQos->pktprio.cos[1],
             intfQos->pktprio.cos[2],
@@ -4757,11 +4757,11 @@ L7_RC_t ptin_QoS_intf_config_get(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
 
   if (rc_global == L7_SUCCESS)
   {
-    LOG_TRACE(LOG_CTX_PTIN_INTF, "QoS configuration successfully read from ptin_intf=%u/%u",ptin_intf->intf_type,ptin_intf->intf_id);
+    LOG_TRACE(LOG_CTX_INTF, "QoS configuration successfully read from ptin_intf=%u/%u",ptin_intf->intf_type,ptin_intf->intf_id);
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error reading QoS configuration from ptin_intf=%u/%u (rc_global=%d)",ptin_intf->intf_type,ptin_intf->intf_id, rc_global);
+    LOG_ERR(LOG_CTX_INTF, "Error reading QoS configuration from ptin_intf=%u/%u (rc_global=%d)",ptin_intf->intf_type,ptin_intf->intf_id, rc_global);
   }
 
   return rc_global;
@@ -4789,22 +4789,22 @@ L7_RC_t ptin_QoS_cos_config_set(const ptin_intf_t *ptin_intf, L7_uint8 cos, ptin
   /* Validate arguments */
   if (ptin_intf == L7_NULLPTR || qosConf == L7_NULLPTR || (cos != (L7_uint8)-1 && cos > 7))
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid arguments");
+    LOG_ERR(LOG_CTX_INTF, "Invalid arguments");
     return L7_FAILURE;
   }
 
   /* Validate interface */
   if (ptin_intf_ptintf2intIfNum(ptin_intf,&intIfNum)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Interface %u/%u invalid",ptin_intf->intf_type,ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_INTF, "Interface %u/%u invalid",ptin_intf->intf_type,ptin_intf->intf_id);
     return L7_FAILURE;
   }
-  LOG_TRACE(LOG_CTX_PTIN_INTF, "Interface %u/%u is intIfNum=%u",ptin_intf->intf_type,ptin_intf->intf_id,intIfNum);
+  LOG_TRACE(LOG_CTX_INTF, "Interface %u/%u is intIfNum=%u",ptin_intf->intf_type,ptin_intf->intf_id,intIfNum);
 
   /* Check if interface is valid for QoS configuration */
   if (!usmDbQosCosMapIntfIsValid(1,intIfNum))
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid interface for QoS operation (intIfNum=%u, ptin_intf=%u/%u)",intIfNum,ptin_intf->intf_type,ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_INTF,"Invalid interface for QoS operation (intIfNum=%u, ptin_intf=%u/%u)",intIfNum,ptin_intf->intf_type,ptin_intf->intf_id);
     return L7_FAILURE;
   }
 
@@ -4813,28 +4813,28 @@ L7_RC_t ptin_QoS_cos_config_set(const ptin_intf_t *ptin_intf, L7_uint8 cos, ptin
   rc = usmDbQosCosQueueSchedulerTypeListGet(1, intIfNum, &schedType_list);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Error reading scheduler type (rc=%d)", rc);
+    LOG_ERR(LOG_CTX_INTF,"Error reading scheduler type (rc=%d)", rc);
     return rc;
   }
   /* Minimum bandwidth */
   rc = usmDbQosCosQueueMinBandwidthListGet(1, intIfNum, &minBw_list);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Error reading minimum bandwith (rc=%d)", rc);
+    LOG_ERR(LOG_CTX_INTF,"Error reading minimum bandwith (rc=%d)", rc);
     return rc;
   }
   /* Maximum bandwidth */
   rc = usmDbQosCosQueueMaxBandwidthListGet(1, intIfNum, &maxBw_list);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Error reading maximum bandwith (rc=%d)", rc);
+    LOG_ERR(LOG_CTX_INTF,"Error reading maximum bandwith (rc=%d)", rc);
     return rc;
   }
   /* Weights list */
   rc = usmDbQosCosQueueWeightListGet(1, intIfNum, &schedWeight_list);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Error reading weights list (rc=%d)", rc);
+    LOG_ERR(LOG_CTX_INTF,"Error reading weights list (rc=%d)", rc);
     return rc;
   }
 
@@ -4857,7 +4857,7 @@ L7_RC_t ptin_QoS_cos_config_set(const ptin_intf_t *ptin_intf, L7_uint8 cos, ptin
     /* Is there any configuration to be applied? */
     if (qosConf[conf_index].mask==0x00)
     {
-      //LOG_WARNING(LOG_CTX_PTIN_INTF, "Empty mask: no configuration to be applied");
+      //LOG_WARNING(LOG_CTX_INTF, "Empty mask: no configuration to be applied");
       continue;
     }
 
@@ -4865,25 +4865,25 @@ L7_RC_t ptin_QoS_cos_config_set(const ptin_intf_t *ptin_intf, L7_uint8 cos, ptin
     if (qosConf[conf_index].mask & PTIN_QOS_COS_SCHEDULER_MASK)
     {
       schedType_list.schedType[i] = qosConf[conf_index].scheduler_type;
-      LOG_TRACE(LOG_CTX_PTIN_INTF,"Scheduler type in cos=%u, will be updated to %u",i,qosConf[conf_index].scheduler_type);
+      LOG_TRACE(LOG_CTX_INTF,"Scheduler type in cos=%u, will be updated to %u",i,qosConf[conf_index].scheduler_type);
     }
     /* Minimum bandwidth */
     if (qosConf[conf_index].mask & PTIN_QOS_COS_BW_MIN_MASK)
     {
       minBw_list.bandwidth[i] = qosConf[conf_index].min_bandwidth;
-      LOG_TRACE(LOG_CTX_PTIN_INTF,"Minimum bandwidth in cos=%u, will be updated to %u",i,qosConf[conf_index].min_bandwidth);
+      LOG_TRACE(LOG_CTX_INTF,"Minimum bandwidth in cos=%u, will be updated to %u",i,qosConf[conf_index].min_bandwidth);
     }
     /* Maximum bandwidth */
     if (qosConf[conf_index].mask & PTIN_QOS_COS_BW_MAX_MASK)
     {
       maxBw_list.bandwidth[i] = qosConf[conf_index].max_bandwidth;
-      LOG_TRACE(LOG_CTX_PTIN_INTF,"Maximum bandwidth in cos=%u, will be updated to %u",i,qosConf[conf_index].max_bandwidth);
+      LOG_TRACE(LOG_CTX_INTF,"Maximum bandwidth in cos=%u, will be updated to %u",i,qosConf[conf_index].max_bandwidth);
     }
     /* Scheduler type */
     if (qosConf[conf_index].mask & PTIN_QOS_COS_WRR_WEIGHT_MASK)
     {
       schedWeight_list.queue_weight[i] = qosConf[conf_index].wrrSched_weight;
-      LOG_TRACE(LOG_CTX_PTIN_INTF,"WRR weight for cos=%u, will be updated to %u",i,qosConf[conf_index].wrrSched_weight);
+      LOG_TRACE(LOG_CTX_INTF,"WRR weight for cos=%u, will be updated to %u",i,qosConf[conf_index].wrrSched_weight);
     }
   }
 
@@ -4892,39 +4892,39 @@ L7_RC_t ptin_QoS_cos_config_set(const ptin_intf_t *ptin_intf, L7_uint8 cos, ptin
   rc = usmDbQosCosQueueSchedulerTypeListSet(1, intIfNum, &schedType_list);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Error applying scheduler type (rc=%d)", rc);
+    LOG_ERR(LOG_CTX_INTF,"Error applying scheduler type (rc=%d)", rc);
     rc_global = rc;
   }
   /* Minimum bandwidth */
   rc = usmDbQosCosQueueMinBandwidthListSet(1, intIfNum, &minBw_list);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Error applying minimum bandwith (rc=%d)", rc);
+    LOG_ERR(LOG_CTX_INTF,"Error applying minimum bandwith (rc=%d)", rc);
     rc_global = rc;
   }
   /* Maximum bandwidth */
   rc = usmDbQosCosQueueMaxBandwidthListSet(1, intIfNum, &maxBw_list);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Error applying maximum bandwith (rc=%d)", rc);
+    LOG_ERR(LOG_CTX_INTF,"Error applying maximum bandwith (rc=%d)", rc);
     rc_global = rc;
   }
   /* WRR weights */
   rc = usmDbQosCosQueueWeightListSet(1, intIfNum, &schedWeight_list);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Error applying WRR weights (rc=%d)", rc);
+    LOG_ERR(LOG_CTX_INTF,"Error applying WRR weights (rc=%d)", rc);
     rc_global = rc;
   }
 
   /* Check result */
   if (rc_global == L7_SUCCESS)
   {
-    LOG_TRACE(LOG_CTX_PTIN_INTF, "QoS configuration successfully applied to ptin_intf=%u/%u, cos=%u",ptin_intf->intf_type,ptin_intf->intf_id,cos);
+    LOG_TRACE(LOG_CTX_INTF, "QoS configuration successfully applied to ptin_intf=%u/%u, cos=%u",ptin_intf->intf_type,ptin_intf->intf_id,cos);
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error applying QoS configuration to ptin_intf=%u/%u, cos=%u (rc_global=%d)",ptin_intf->intf_type,ptin_intf->intf_id,cos, rc_global);
+    LOG_ERR(LOG_CTX_INTF, "Error applying QoS configuration to ptin_intf=%u/%u, cos=%u (rc_global=%d)",ptin_intf->intf_type,ptin_intf->intf_id,cos, rc_global);
   }
 
   return rc_global;
@@ -4951,24 +4951,24 @@ L7_RC_t ptin_QoS_cos_config_get(const ptin_intf_t *ptin_intf, L7_uint8 cos, ptin
   /* Validate arguments */
   if (ptin_intf == L7_NULLPTR || qosConf == L7_NULLPTR || (cos != (L7_uint8)-1 && cos > 7))
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid arguments");
+    LOG_ERR(LOG_CTX_INTF, "Invalid arguments");
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_INTF,"Interface=%u/%u, cos=%u",ptin_intf->intf_type,ptin_intf->intf_id,cos);
+  LOG_TRACE(LOG_CTX_INTF,"Interface=%u/%u, cos=%u",ptin_intf->intf_type,ptin_intf->intf_id,cos);
 
   /* Validate interface */
   if (ptin_intf_ptintf2intIfNum(ptin_intf,&intIfNum)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Interface %u/%u invalid",ptin_intf->intf_type,ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_INTF, "Interface %u/%u invalid",ptin_intf->intf_type,ptin_intf->intf_id);
     return L7_FAILURE;
   }
-  LOG_TRACE(LOG_CTX_PTIN_INTF, "Interface %u/%u is intIfNum=%u",ptin_intf->intf_type,ptin_intf->intf_id,intIfNum);
+  LOG_TRACE(LOG_CTX_INTF, "Interface %u/%u is intIfNum=%u",ptin_intf->intf_type,ptin_intf->intf_id,intIfNum);
 
   /* Check if interface is valid for QoS configuration */
   if (!usmDbQosCosMapIntfIsValid(1,intIfNum))
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid interface for QoS operation (intIfNum=%u, ptin_intf=%u/%u)",intIfNum,ptin_intf->intf_type,ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_INTF,"Invalid interface for QoS operation (intIfNum=%u, ptin_intf=%u/%u)",intIfNum,ptin_intf->intf_type,ptin_intf->intf_id);
     return L7_FAILURE;
   }
 
@@ -4977,28 +4977,28 @@ L7_RC_t ptin_QoS_cos_config_get(const ptin_intf_t *ptin_intf, L7_uint8 cos, ptin
   rc = usmDbQosCosQueueSchedulerTypeListGet(1, intIfNum, &schedType_list);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Error reading scheduler type (rc=%d)", rc);
+    LOG_ERR(LOG_CTX_INTF,"Error reading scheduler type (rc=%d)", rc);
     return rc;
   }
   /* Minimum bandwidth */
   rc = usmDbQosCosQueueMinBandwidthListGet(1, intIfNum, &minBw_list);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Error reading minimum bandwith (rc=%d)", rc);
+    LOG_ERR(LOG_CTX_INTF,"Error reading minimum bandwith (rc=%d)", rc);
     return rc;
   }
   /* Maximum bandwidth */
   rc = usmDbQosCosQueueMaxBandwidthListGet(1, intIfNum, &maxBw_list);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Error reading maximum bandwith (rc=%d)", rc);
+    LOG_ERR(LOG_CTX_INTF,"Error reading maximum bandwith (rc=%d)", rc);
     return rc;
   }
   /* WRR weights */
   rc = usmDbQosCosQueueWeightListGet(1, intIfNum, &schedWeight_list);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Error reading WRR weights (rc=%d)", rc);
+    LOG_ERR(LOG_CTX_INTF,"Error reading WRR weights (rc=%d)", rc);
     return rc;
   }
 
@@ -5023,22 +5023,22 @@ L7_RC_t ptin_QoS_cos_config_get(const ptin_intf_t *ptin_intf, L7_uint8 cos, ptin
 
     qosConf[conf_index].scheduler_type = (L7_uint8) schedType_list.schedType[i];
     qosConf[conf_index].mask |= PTIN_QOS_COS_SCHEDULER_MASK;
-    LOG_TRACE(LOG_CTX_PTIN_INTF,"Scheduler type for cos=%u is %u",i,qosConf[conf_index].scheduler_type);
+    LOG_TRACE(LOG_CTX_INTF,"Scheduler type for cos=%u is %u",i,qosConf[conf_index].scheduler_type);
 
     qosConf[conf_index].min_bandwidth = minBw_list.bandwidth[i];
     qosConf[conf_index].mask |= PTIN_QOS_COS_BW_MIN_MASK;
-    LOG_TRACE(LOG_CTX_PTIN_INTF,"Minimum bandwith for cos=%u is %u",i,qosConf[conf_index].min_bandwidth);
+    LOG_TRACE(LOG_CTX_INTF,"Minimum bandwith for cos=%u is %u",i,qosConf[conf_index].min_bandwidth);
 
     qosConf[conf_index].max_bandwidth = maxBw_list.bandwidth[i];
     qosConf[conf_index].mask |= PTIN_QOS_COS_BW_MAX_MASK;
-    LOG_TRACE(LOG_CTX_PTIN_INTF,"Maximum bandwith for cos=%u is %u",i,qosConf[conf_index].max_bandwidth);
+    LOG_TRACE(LOG_CTX_INTF,"Maximum bandwith for cos=%u is %u",i,qosConf[conf_index].max_bandwidth);
 
     qosConf[conf_index].wrrSched_weight = schedWeight_list.queue_weight[i];
     qosConf[conf_index].mask |= PTIN_QOS_COS_WRR_WEIGHT_MASK;
-    LOG_TRACE(LOG_CTX_PTIN_INTF,"WRR weight for cos=%u is %u",i,qosConf[conf_index].wrrSched_weight);
+    LOG_TRACE(LOG_CTX_INTF,"WRR weight for cos=%u is %u",i,qosConf[conf_index].wrrSched_weight);
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_INTF, "QoS drop configuration successfully read from ptin_intf=%u/%u, cos=%u",ptin_intf->intf_type,ptin_intf->intf_id,cos);
+  LOG_TRACE(LOG_CTX_INTF, "QoS drop configuration successfully read from ptin_intf=%u/%u, cos=%u",ptin_intf->intf_type,ptin_intf->intf_id,cos);
 
   return L7_SUCCESS;
 }
@@ -5062,24 +5062,24 @@ L7_RC_t ptin_QoS_drop_config_set(const ptin_intf_t *ptin_intf, L7_uint8 cos, pti
   /* Validate arguments */
   if (ptin_intf == L7_NULLPTR || qosConf == L7_NULLPTR || (cos != (L7_uint8)-1 && cos > 7))
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid arguments");
+    LOG_ERR(LOG_CTX_INTF, "Invalid arguments");
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_INTF,"Interface=%u/%u, cos=%u",ptin_intf->intf_type,ptin_intf->intf_id,cos);
+  LOG_TRACE(LOG_CTX_INTF,"Interface=%u/%u, cos=%u",ptin_intf->intf_type,ptin_intf->intf_id,cos);
 
   /* Validate interface */
   if (ptin_intf_ptintf2intIfNum(ptin_intf,&intIfNum)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Interface %u/%u invalid",ptin_intf->intf_type,ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_INTF, "Interface %u/%u invalid",ptin_intf->intf_type,ptin_intf->intf_id);
     return L7_FAILURE;
   }
-  LOG_TRACE(LOG_CTX_PTIN_INTF, "Interface %u/%u is intIfNum=%u",ptin_intf->intf_type,ptin_intf->intf_id,intIfNum);
+  LOG_TRACE(LOG_CTX_INTF, "Interface %u/%u is intIfNum=%u",ptin_intf->intf_type,ptin_intf->intf_id,intIfNum);
 
   /* Check if interface is valid for QoS configuration */
   if (!usmDbQosCosMapIntfIsValid(1,intIfNum))
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid interface for QoS operation (intIfNum=%u, ptin_intf=%u/%u)",intIfNum,ptin_intf->intf_type,ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_INTF,"Invalid interface for QoS operation (intIfNum=%u, ptin_intf=%u/%u)",intIfNum,ptin_intf->intf_type,ptin_intf->intf_id);
     return L7_FAILURE;
   }
 
@@ -5088,7 +5088,7 @@ L7_RC_t ptin_QoS_drop_config_set(const ptin_intf_t *ptin_intf, L7_uint8 cos, pti
   rc = usmDbQosCosQueueMgmtTypeListGet(1, intIfNum, &mgmtType_list);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Error reading mgmtType type (rc=%d)", rc);
+    LOG_ERR(LOG_CTX_INTF,"Error reading mgmtType type (rc=%d)", rc);
     return rc;
   }
 
@@ -5096,7 +5096,7 @@ L7_RC_t ptin_QoS_drop_config_set(const ptin_intf_t *ptin_intf, L7_uint8 cos, pti
   rc = usmDbQosCosQueueDropParmsListGet(1, intIfNum, &dropParams_list);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Error reading dropParams list (rc=%d)", rc);
+    LOG_ERR(LOG_CTX_INTF,"Error reading dropParams list (rc=%d)", rc);
     return rc;
   }
 
@@ -5119,7 +5119,7 @@ L7_RC_t ptin_QoS_drop_config_set(const ptin_intf_t *ptin_intf, L7_uint8 cos, pti
     /* Is there any configuration to be applied? */
     if (qosConf[conf_index].mask==0x00)
     {
-      //LOG_WARNING(LOG_CTX_PTIN_INTF, "Empty mask: no configuration to be applied");
+      //LOG_WARNING(LOG_CTX_INTF, "Empty mask: no configuration to be applied");
       continue;
     }
 
@@ -5127,13 +5127,13 @@ L7_RC_t ptin_QoS_drop_config_set(const ptin_intf_t *ptin_intf, L7_uint8 cos, pti
     if (qosConf[conf_index].mask & PTIN_QOS_COS_QUEUE_MANGM_MASK)
     {
       dropParams_list.queue[i].mgmtType = qosConf[conf_index].queue_management_type + 1;
-      LOG_TRACE(LOG_CTX_PTIN_INTF,"Mgmt type in cos=%u, will be updated to %u",i,qosConf[conf_index].queue_management_type);
+      LOG_TRACE(LOG_CTX_INTF,"Mgmt type in cos=%u, will be updated to %u",i,qosConf[conf_index].queue_management_type);
     }
     /* WRED decay exponent */
     if (qosConf[conf_index].mask & PTIN_QOS_COS_WRED_DECAY_EXP_MASK)
     {
       dropParams_list.queue[i].wred_decayExponent = qosConf[conf_index].wred_decayExp;
-      LOG_TRACE(LOG_CTX_PTIN_INTF,"WRED decay Exp. in cos=%u, will be updated to %u",i,qosConf[conf_index].wred_decayExp);
+      LOG_TRACE(LOG_CTX_INTF,"WRED decay Exp. in cos=%u, will be updated to %u",i,qosConf[conf_index].wred_decayExp);
     }
 
     /* Thresholds */
@@ -5148,25 +5148,25 @@ L7_RC_t ptin_QoS_drop_config_set(const ptin_intf_t *ptin_intf, L7_uint8 cos, pti
         if (qosConf[conf_index].dp[j].local_mask & PTIN_QOS_COS_DP_TAILDROP_THRESH_MASK)
         {
           dropParams_list.queue[i].tailDropMaxThreshold[j] = qosConf[conf_index].dp[j].taildrop_threshold;
-          LOG_TRACE(LOG_CTX_PTIN_INTF,"Taildrop threshold for cos=%u/dp=%u, will be updated to %u",i,j,qosConf[conf_index].dp[j].taildrop_threshold);
+          LOG_TRACE(LOG_CTX_INTF,"Taildrop threshold for cos=%u/dp=%u, will be updated to %u",i,j,qosConf[conf_index].dp[j].taildrop_threshold);
         }
         /* WRED min threshold */
         if (qosConf[conf_index].dp[j].local_mask & PTIN_QOS_COS_DP_WRED_THRESH_MIN_MASK)
         {
           dropParams_list.queue[i].minThreshold[j] = qosConf[conf_index].dp[j].wred_min_threshold;
-          LOG_TRACE(LOG_CTX_PTIN_INTF,"WRED min threshold for cos=%u/dp=%u, will be updated to %u",i,j,qosConf[conf_index].dp[j].wred_min_threshold);
+          LOG_TRACE(LOG_CTX_INTF,"WRED min threshold for cos=%u/dp=%u, will be updated to %u",i,j,qosConf[conf_index].dp[j].wred_min_threshold);
         }
         /* WRED max threshold */
         if (qosConf[conf_index].dp[j].local_mask & PTIN_QOS_COS_DP_WRED_THRESH_MAX_MASK)
         {
           dropParams_list.queue[i].wredMaxThreshold[j] = qosConf[conf_index].dp[j].wred_max_threshold;
-          LOG_TRACE(LOG_CTX_PTIN_INTF,"WRED max threshold for cos=%u/dp=%u, will be updated to %u",i,j,qosConf[conf_index].dp[j].wred_max_threshold);
+          LOG_TRACE(LOG_CTX_INTF,"WRED max threshold for cos=%u/dp=%u, will be updated to %u",i,j,qosConf[conf_index].dp[j].wred_max_threshold);
         }
         /* WRED drop probability */
         if (qosConf[conf_index].dp[j].local_mask & PTIN_QOS_COS_DP_WRED_DROP_PROB_MASK)
         {
           dropParams_list.queue[i].dropProb[j] = qosConf[conf_index].dp[j].wred_drop_prob;
-          LOG_TRACE(LOG_CTX_PTIN_INTF,"WRED drop probability for cos=%u/dp=%u, will be updated to %u",i,j,qosConf[conf_index].dp[j].wred_drop_prob);
+          LOG_TRACE(LOG_CTX_INTF,"WRED drop probability for cos=%u/dp=%u, will be updated to %u",i,j,qosConf[conf_index].dp[j].wred_drop_prob);
         }
       }
     }
@@ -5177,7 +5177,7 @@ L7_RC_t ptin_QoS_drop_config_set(const ptin_intf_t *ptin_intf, L7_uint8 cos, pti
   rc = usmDbQosCosQueueMgmtTypeListSet(1, intIfNum, &mgmtType_list);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Error setting new mgmtType list (rc=%d)", rc);
+    LOG_ERR(LOG_CTX_INTF,"Error setting new mgmtType list (rc=%d)", rc);
     rc_global = rc;
   }
 
@@ -5185,18 +5185,18 @@ L7_RC_t ptin_QoS_drop_config_set(const ptin_intf_t *ptin_intf, L7_uint8 cos, pti
   rc = usmDbQosCosQueueDropParmsListSet(1, intIfNum, &dropParams_list);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Error setting new dropParams list (rc=%d)", rc);
+    LOG_ERR(LOG_CTX_INTF,"Error setting new dropParams list (rc=%d)", rc);
     rc_global = rc;
   }
 
   /* Check result */
   if (rc_global == L7_SUCCESS)
   {
-    LOG_TRACE(LOG_CTX_PTIN_INTF, "QoS drop configuration successfully applied to ptin_intf=%u/%u, cos=%u",ptin_intf->intf_type,ptin_intf->intf_id,cos);
+    LOG_TRACE(LOG_CTX_INTF, "QoS drop configuration successfully applied to ptin_intf=%u/%u, cos=%u",ptin_intf->intf_type,ptin_intf->intf_id,cos);
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error applying QoS drop configuration to ptin_intf=%u/%u, cos=%u (rc_global=%d)",ptin_intf->intf_type,ptin_intf->intf_id,cos, rc_global);
+    LOG_ERR(LOG_CTX_INTF, "Error applying QoS drop configuration to ptin_intf=%u/%u, cos=%u (rc_global=%d)",ptin_intf->intf_type,ptin_intf->intf_id,cos, rc_global);
   }
 
   return rc_global;
@@ -5221,24 +5221,24 @@ L7_RC_t ptin_QoS_drop_config_get(const ptin_intf_t *ptin_intf, L7_uint8 cos, pti
   /* Validate arguments */
   if (ptin_intf == L7_NULLPTR || qosConf == L7_NULLPTR || (cos != (L7_uint8)-1 && cos > 7))
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid arguments");
+    LOG_ERR(LOG_CTX_INTF, "Invalid arguments");
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_INTF,"Interface=%u/%u, cos=%u",ptin_intf->intf_type,ptin_intf->intf_id,cos);
+  LOG_TRACE(LOG_CTX_INTF,"Interface=%u/%u, cos=%u",ptin_intf->intf_type,ptin_intf->intf_id,cos);
 
   /* Validate interface */
   if (ptin_intf_ptintf2intIfNum(ptin_intf,&intIfNum)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Interface %u/%u invalid",ptin_intf->intf_type,ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_INTF, "Interface %u/%u invalid",ptin_intf->intf_type,ptin_intf->intf_id);
     return L7_FAILURE;
   }
-  LOG_TRACE(LOG_CTX_PTIN_INTF, "Interface %u/%u is intIfNum=%u",ptin_intf->intf_type,ptin_intf->intf_id,intIfNum);
+  LOG_TRACE(LOG_CTX_INTF, "Interface %u/%u is intIfNum=%u",ptin_intf->intf_type,ptin_intf->intf_id,intIfNum);
 
   /* Check if interface is valid for QoS configuration */
   if (!usmDbQosCosMapIntfIsValid(1,intIfNum))
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid interface for QoS operation (intIfNum=%u, ptin_intf=%u/%u)",intIfNum,ptin_intf->intf_type,ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_INTF,"Invalid interface for QoS operation (intIfNum=%u, ptin_intf=%u/%u)",intIfNum,ptin_intf->intf_type,ptin_intf->intf_id);
     return L7_FAILURE;
   }
 
@@ -5247,7 +5247,7 @@ L7_RC_t ptin_QoS_drop_config_get(const ptin_intf_t *ptin_intf, L7_uint8 cos, pti
   rc = usmDbQosCosQueueMgmtTypeListGet(1, intIfNum, &mgmtType_list);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Error reading mgmtType type (rc=%d)", rc);
+    LOG_ERR(LOG_CTX_INTF,"Error reading mgmtType type (rc=%d)", rc);
     return rc;
   }
 
@@ -5255,7 +5255,7 @@ L7_RC_t ptin_QoS_drop_config_get(const ptin_intf_t *ptin_intf, L7_uint8 cos, pti
   rc = usmDbQosCosQueueDropParmsListGet(1, intIfNum, &dropParams_list);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Error reading dropParams list (rc=%d)", rc);
+    LOG_ERR(LOG_CTX_INTF,"Error reading dropParams list (rc=%d)", rc);
     return rc;
   }
 
@@ -5280,12 +5280,12 @@ L7_RC_t ptin_QoS_drop_config_get(const ptin_intf_t *ptin_intf, L7_uint8 cos, pti
     /* Drop Management type */
     qosConf[conf_index].queue_management_type = dropParams_list.queue[i].mgmtType - 1;
     qosConf[conf_index].mask |= PTIN_QOS_COS_QUEUE_MANGM_MASK;
-    LOG_TRACE(LOG_CTX_PTIN_INTF,"Mgmt type at cos=%u is %u",i,qosConf[conf_index].queue_management_type);
+    LOG_TRACE(LOG_CTX_INTF,"Mgmt type at cos=%u is %u",i,qosConf[conf_index].queue_management_type);
 
     /* WRED decay exponent */
     qosConf[conf_index].wred_decayExp = dropParams_list.queue[i].wred_decayExponent;
     qosConf[conf_index].mask |= PTIN_QOS_COS_WRED_DECAY_EXP_MASK;
-    LOG_TRACE(LOG_CTX_PTIN_INTF,"WRED decay Exp. at cos=%u is %u",i,qosConf[conf_index].wred_decayExp);
+    LOG_TRACE(LOG_CTX_INTF,"WRED decay Exp. at cos=%u is %u",i,qosConf[conf_index].wred_decayExp);
 
     /* Run all DP levels */
     for (j = 0; j < 4; j++)
@@ -5293,26 +5293,26 @@ L7_RC_t ptin_QoS_drop_config_get(const ptin_intf_t *ptin_intf, L7_uint8 cos, pti
       /* Taildrop threshold */
       qosConf[conf_index].dp[j].taildrop_threshold = dropParams_list.queue[i].tailDropMaxThreshold[j];
       qosConf[conf_index].dp[j].local_mask |= PTIN_QOS_COS_DP_TAILDROP_THRESH_MASK;
-      LOG_TRACE(LOG_CTX_PTIN_INTF,"Taildrop threshold for cos=%u/dp=%u is %u",i,j,qosConf[conf_index].dp[j].taildrop_threshold);
+      LOG_TRACE(LOG_CTX_INTF,"Taildrop threshold for cos=%u/dp=%u is %u",i,j,qosConf[conf_index].dp[j].taildrop_threshold);
 
       /* WRED min threshold */
       qosConf[conf_index].dp[j].wred_min_threshold = dropParams_list.queue[i].minThreshold[j];
       qosConf[conf_index].dp[j].local_mask |= PTIN_QOS_COS_DP_WRED_THRESH_MIN_MASK;
-      LOG_TRACE(LOG_CTX_PTIN_INTF,"WRED min threshold for cos=%u/dp=%u is %u",i,j,qosConf[conf_index].dp[j].wred_min_threshold);
+      LOG_TRACE(LOG_CTX_INTF,"WRED min threshold for cos=%u/dp=%u is %u",i,j,qosConf[conf_index].dp[j].wred_min_threshold);
 
       /* WRED max threshold */
       qosConf[conf_index].dp[j].wred_max_threshold = dropParams_list.queue[i].wredMaxThreshold[j];
       qosConf[conf_index].dp[j].local_mask |= PTIN_QOS_COS_DP_WRED_THRESH_MAX_MASK;
-      LOG_TRACE(LOG_CTX_PTIN_INTF,"WRED max threshold for cos=%u/dp=%u is %u",i,j,qosConf[conf_index].dp[j].wred_max_threshold);
+      LOG_TRACE(LOG_CTX_INTF,"WRED max threshold for cos=%u/dp=%u is %u",i,j,qosConf[conf_index].dp[j].wred_max_threshold);
 
       /* WRED drop probability */
       qosConf[conf_index].dp[j].wred_drop_prob = dropParams_list.queue[i].dropProb[j];
       qosConf[conf_index].dp[j].local_mask |= PTIN_QOS_COS_DP_WRED_DROP_PROB_MASK;
-      LOG_TRACE(LOG_CTX_PTIN_INTF,"WRED drop probability for cos=%u/dp=%u is %u",i,j,qosConf[conf_index].dp[j].wred_drop_prob);
+      LOG_TRACE(LOG_CTX_INTF,"WRED drop probability for cos=%u/dp=%u is %u",i,j,qosConf[conf_index].dp[j].wred_drop_prob);
     }
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_INTF, "QoS drop configuration successfully applied to ptin_intf=%u/%u, cos=%u",ptin_intf->intf_type,ptin_intf->intf_id,cos);
+  LOG_TRACE(LOG_CTX_INTF, "QoS drop configuration successfully applied to ptin_intf=%u/%u, cos=%u",ptin_intf->intf_type,ptin_intf->intf_id,cos);
 
   return L7_SUCCESS;
 }
@@ -5339,7 +5339,7 @@ static L7_RC_t ptin_intf_PhyConfig_read(ptin_HWEthPhyConf_t *phyConf)
   /* Validate arguments */
   if (phyConf == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid arguments");
+    LOG_ERR(LOG_CTX_INTF,"Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -5349,18 +5349,18 @@ static L7_RC_t ptin_intf_PhyConfig_read(ptin_HWEthPhyConf_t *phyConf)
   /* Validate port range */
   if (port >= ptin_sys_number_of_ports)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u is out of range [0..%u]", port, ptin_sys_number_of_ports-1);
+    LOG_ERR(LOG_CTX_INTF, "Port# %u is out of range [0..%u]", port, ptin_sys_number_of_ports-1);
     return L7_FAILURE;
   }
 
   /* Get interface ID */
   ptin_intf_port2intIfNum(port, &intIfNum);
-  LOG_TRACE(LOG_CTX_PTIN_INTF, "Port# %2u:     intIfNum# %2u", port, intIfNum);
+  LOG_TRACE(LOG_CTX_INTF, "Port# %2u:     intIfNum# %2u", port, intIfNum);
 
   /* PortEnable */
   if (usmDbIfAdminStateGet(1, intIfNum, &value))
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to get enable state of port# %d", port);
+    LOG_ERR(LOG_CTX_INTF, "Failed to get enable state of port# %d", port);
     return L7_FAILURE;
   }
   else
@@ -5372,39 +5372,39 @@ static L7_RC_t ptin_intf_PhyConfig_read(ptin_HWEthPhyConf_t *phyConf)
     /* Update shared memory */
     pfw_shm->intf[port].admin = value & 1;
   #endif
-    LOG_TRACE(LOG_CTX_PTIN_INTF, " State:       %s", phyConf->PortEnable ? "Enabled":"Disabled");
+    LOG_TRACE(LOG_CTX_INTF, " State:       %s", phyConf->PortEnable ? "Enabled":"Disabled");
   }
 
   /* MaxFrame */
   if (usmDbIfConfigMaxFrameSizeGet(intIfNum, &value))
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to get max frame value of port# %u", port);
+    LOG_ERR(LOG_CTX_INTF, "Failed to get max frame value of port# %u", port);
     return L7_FAILURE;
   }
   else
   {
     phyConf->Mask |= 0x0040;
     phyConf->MaxFrame = value;
-    LOG_TRACE(LOG_CTX_PTIN_INTF, " MaxFrame:    %u", phyConf->MaxFrame);
+    LOG_TRACE(LOG_CTX_INTF, " MaxFrame:    %u", phyConf->MaxFrame);
   }
 
   /* Loopback */
   if (usmDbIfLoopbackModeGet(intIfNum, &value))
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to get loopback state of port# %u", port);
+    LOG_ERR(LOG_CTX_INTF, "Failed to get loopback state of port# %u", port);
     return L7_FAILURE;
   }
   else
   {
     phyConf->Mask |= 0x0008;
     phyConf->LoopBack = value;
-    LOG_TRACE(LOG_CTX_PTIN_INTF, " Loopback:    %s", phyConf->LoopBack ? "Enabled":"Disabled");
+    LOG_TRACE(LOG_CTX_INTF, " Loopback:    %s", phyConf->LoopBack ? "Enabled":"Disabled");
   }
 
   /* Speed */
   if (usmDbIfDefaultSpeedGet(1, intIfNum, &speed_mode))
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to get speed of port# %u", port);
+    LOG_ERR(LOG_CTX_INTF, "Failed to get speed of port# %u", port);
     return L7_FAILURE;
   }
   else {
@@ -5414,12 +5414,12 @@ static L7_RC_t ptin_intf_PhyConfig_read(ptin_HWEthPhyConf_t *phyConf)
     {
       case L7_PORTCTRL_PORTSPEED_AUTO_NEG:
         phyConf->Speed = PHY_PORT_1000AN_GBPS;
-        LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       Auto-Neg");
+        LOG_TRACE(LOG_CTX_INTF, " Speed:       Auto-Neg");
         break;
 
       case L7_PORTCTRL_PORTSPEED_FULL_100FX:
         phyConf->Speed = PHY_PORT_100_MBPS;
-        LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       100Mbps");
+        LOG_TRACE(LOG_CTX_INTF, " Speed:       100Mbps");
         break;
 
       case L7_PORTCTRL_PORTSPEED_FULL_1000SX:
@@ -5434,31 +5434,31 @@ static L7_RC_t ptin_intf_PhyConfig_read(ptin_HWEthPhyConf_t *phyConf)
         }
         #endif
         phyConf->Speed = PHY_PORT_1000_MBPS;
-        LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       1000Mbps");
+        LOG_TRACE(LOG_CTX_INTF, " Speed:       1000Mbps");
         break;
 
       /* PTin added: Speed 2.5G */
       case L7_PORTCTRL_PORTSPEED_FULL_2P5FX:
         phyConf->Speed = PHY_PORT_2500_MBPS;
-        LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       2.5G");
+        LOG_TRACE(LOG_CTX_INTF, " Speed:       2.5G");
         break;
 
       /* PTin added: Speed 10G */
       case L7_PORTCTRL_PORTSPEED_FULL_10GSX:
         phyConf->Speed = PHY_PORT_10_GBPS;
-        LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       10G");
+        LOG_TRACE(LOG_CTX_INTF, " Speed:       10G");
         break;
 
       /* PTin added: Speed 40G */
       case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
         phyConf->Speed = PHY_PORT_40_GBPS;
-        LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       40G");
+        LOG_TRACE(LOG_CTX_INTF, " Speed:       40G");
         break;
 
       /* PTin added: Speed 100G */
       case L7_PORTCTRL_PORTSPEED_FULL_100G_BKP:
         phyConf->Speed = PHY_PORT_100_GBPS;
-        LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:      100G");
+        LOG_TRACE(LOG_CTX_INTF, " Speed:      100G");
         break;
 
       /* PTin end */
@@ -5471,7 +5471,7 @@ static L7_RC_t ptin_intf_PhyConfig_read(ptin_HWEthPhyConf_t *phyConf)
   /* Full-Duplex */
   phyConf->Mask |= 0x0004;
   phyConf->Duplex = 1;
-  LOG_TRACE(LOG_CTX_PTIN_INTF, " Full-Duplex: %s", phyConf->Duplex?"Enabled":"Disabled");
+  LOG_TRACE(LOG_CTX_INTF, " Full-Duplex: %s", phyConf->Duplex?"Enabled":"Disabled");
 
   /* Media */
   /* NOTE: it is assumed that the PON ports are mapped from port 0 to L7_SYSTEM_PON_PORTS-1 */
@@ -5479,12 +5479,12 @@ static L7_RC_t ptin_intf_PhyConfig_read(ptin_HWEthPhyConf_t *phyConf)
   if ( port < PTIN_SYSTEM_N_PONS || port >= PTIN_SYSTEM_N_ETH )
   {
     phyConf->Media = PHY_PORT_MEDIA_INTERNAL;
-    LOG_TRACE(LOG_CTX_PTIN_INTF, " Media:       Internal");
+    LOG_TRACE(LOG_CTX_INTF, " Media:       Internal");
   }
   else
   {
     phyConf->Media = PHY_PORT_MEDIA_OPTICAL;
-    LOG_TRACE(LOG_CTX_PTIN_INTF, " Media:       Optical");
+    LOG_TRACE(LOG_CTX_INTF, " Media:       Optical");
   }
 
   return L7_SUCCESS;
@@ -5507,7 +5507,7 @@ static L7_RC_t ptin_intf_QoS_init(ptin_intf_t *ptin_intf)
   /* Validate arguments */
   if (ptin_intf == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid arguments");
+    LOG_ERR(LOG_CTX_INTF,"Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -5530,7 +5530,7 @@ static L7_RC_t ptin_intf_QoS_init(ptin_intf_t *ptin_intf)
   /* Apply configurations to interface */
   if (ptin_QoS_intf_config_set(ptin_intf, &qos_intf_cfg)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Intf %u/%u: failed QoS initialization of interface", ptin_intf->intf_type,ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_INTF, "Intf %u/%u: failed QoS initialization of interface", ptin_intf->intf_type,ptin_intf->intf_id);
     rc = L7_FAILURE;
   }
   /* Apply configurations to CoS */
@@ -5538,7 +5538,7 @@ static L7_RC_t ptin_intf_QoS_init(ptin_intf_t *ptin_intf)
   {
     if (ptin_QoS_cos_config_set (ptin_intf, i, &qos_cos_cfg)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Intf %u/%u: failed QoS initialization of CoS=%u", ptin_intf->intf_type,ptin_intf->intf_id, i);
+      LOG_ERR(LOG_CTX_INTF, "Intf %u/%u: failed QoS initialization of CoS=%u", ptin_intf->intf_type,ptin_intf->intf_id, i);
       rc = L7_FAILURE;
     }
   }
@@ -5565,11 +5565,11 @@ L7_RC_t ptin_pcs_prbs_enable(L7_uint32 intIfNum, L7_BOOL enable)
 
   rc=dtlPtinPcsPrbs(intIfNum, &dapiCmd);
   if (rc!=L7_SUCCESS)  {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Error setting PRBS enable of intIfNum %u to %u",intIfNum, enable);
+    LOG_ERR(LOG_CTX_INTF,"Error setting PRBS enable of intIfNum %u to %u",intIfNum, enable);
     return rc;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_INTF,"Success applying global enable of intIfNum %u to %u",intIfNum,enable);
+  LOG_TRACE(LOG_CTX_INTF,"Success applying global enable of intIfNum %u to %u",intIfNum,enable);
 
   return L7_SUCCESS;
 }
@@ -5593,7 +5593,7 @@ L7_RC_t ptin_pcs_prbs_errors_get(L7_uint32 intIfNum, L7_uint32 *counter)
 
   rc=dtlPtinPcsPrbs(intIfNum, &dapiCmd);
   if (rc!=L7_SUCCESS)  {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Error getting PRBS errors of intIfNum %u",intIfNum);
+    LOG_ERR(LOG_CTX_INTF,"Error getting PRBS errors of intIfNum %u",intIfNum);
     return rc;
   }
 
@@ -5626,7 +5626,7 @@ L7_RC_t ptin_intf_linkscan_control(L7_uint port, L7_BOOL enable)
 
   if (ptin_intf_port2intIfNum(port, &intIfNum) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error getting intIfNum from port %u", port);
+    LOG_ERR(LOG_CTX_INTF, "Error getting intIfNum from port %u", port);
     return L7_FAILURE;
   }
 
@@ -5649,19 +5649,19 @@ L7_RC_t ptin_intf_linkscan_control(L7_uint port, L7_BOOL enable)
         /* Disable force link-up */
         if ((rc=ptin_intf_link_force(intIfNum, L7_TRUE, L7_DISABLE)) != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_PTIN_INTF, "Uplink port %u: Error disabling force link-up", port);
+          LOG_ERR(LOG_CTX_INTF, "Uplink port %u: Error disabling force link-up", port);
           break;
         }
         /* Force link-down */
         if ((rc=ptin_intf_link_force(intIfNum, L7_FALSE, 0)) != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_PTIN_INTF, "Uplink port %u: Error forcing link-down", port);
+          LOG_ERR(LOG_CTX_INTF, "Uplink port %u: Error forcing link-down", port);
           break;
         }
         /* Enable linkscan */
         if ((rc=ptin_intf_linkscan_set(intIfNum, L7_ENABLE)) != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_PTIN_INTF, "Uplink port %u: Error enabling linkscan", port);
+          LOG_ERR(LOG_CTX_INTF, "Uplink port %u: Error enabling linkscan", port);
           break;
         }
       }
@@ -5671,19 +5671,19 @@ L7_RC_t ptin_intf_linkscan_control(L7_uint port, L7_BOOL enable)
         /* Disable linkscan */
         if ((rc=ptin_intf_linkscan_set(intIfNum, L7_DISABLE)) != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_PTIN_INTF, "Board port %u: Error disabling linkscan", port);
+          LOG_ERR(LOG_CTX_INTF, "Board port %u: Error disabling linkscan", port);
           break;
         }
         /* Disable force link-up */
         if ((rc=ptin_intf_link_force(intIfNum, L7_TRUE, L7_DISABLE)) != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_PTIN_INTF, "Board port %u: Error disabling force link-up", port);
+          LOG_ERR(LOG_CTX_INTF, "Board port %u: Error disabling force link-up", port);
           break;
         }
         /* Force link-down */
         if ((rc=ptin_intf_link_force(intIfNum, L7_FALSE, 0)) != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_PTIN_INTF, "Board port %u: Error forcing link-down", port);
+          LOG_ERR(LOG_CTX_INTF, "Board port %u: Error forcing link-down", port);
           break;
         }
 
@@ -5693,7 +5693,7 @@ L7_RC_t ptin_intf_linkscan_control(L7_uint port, L7_BOOL enable)
           /* Force link-up */
           if ((rc=ptin_intf_link_force(intIfNum, L7_TRUE, L7_ENABLE)) != L7_SUCCESS)
           {
-            LOG_ERR(LOG_CTX_PTIN_INTF, "Board port %u: Error enabling force link-up", port);
+            LOG_ERR(LOG_CTX_INTF, "Board port %u: Error enabling force link-up", port);
             break;
           }
         }
@@ -5705,19 +5705,19 @@ L7_RC_t ptin_intf_linkscan_control(L7_uint port, L7_BOOL enable)
       /* Disable force link-up */
       if ((rc=ptin_intf_link_force(intIfNum, L7_TRUE, L7_DISABLE)) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_INTF, "Port %u: Error disabling link-up force", port);
+        LOG_ERR(LOG_CTX_INTF, "Port %u: Error disabling link-up force", port);
         break;
       }
       /* Force link-down */
       if ((rc=ptin_intf_link_force(intIfNum, L7_FALSE, 0)) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_INTF, "Port %u: Error forcing link-down force", port);
+        LOG_ERR(LOG_CTX_INTF, "Port %u: Error forcing link-down force", port);
         break;
       }
       /* Enable linkscan */
       if ((rc=ptin_intf_linkscan_set(intIfNum, L7_ENABLE)) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_INTF, "Port %u: Error enabling linkscan", port);
+        LOG_ERR(LOG_CTX_INTF, "Port %u: Error enabling linkscan", port);
         break;
       }
     }
@@ -5726,9 +5726,9 @@ L7_RC_t ptin_intf_linkscan_control(L7_uint port, L7_BOOL enable)
   osapiSemaGive(ptin_boardaction_sem);
 
   if (rc == L7_SUCCESS)
-    LOG_INFO(LOG_CTX_PTIN_INTF, "Success setting linkscan to %u of port %u", enable, port); 
+    LOG_INFO(LOG_CTX_INTF, "Success setting linkscan to %u of port %u", enable, port); 
   else
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error setting linkscan to %u of port %u", enable, port);
+    LOG_ERR(LOG_CTX_INTF, "Error setting linkscan to %u of port %u", enable, port);
   #endif
   #endif
   #endif
@@ -5751,7 +5751,7 @@ L7_RC_t ptin_intf_slot_reset(L7_int slot_id)
   /* Validate interface */
   if (slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid slot id %d", slot_id);
+    LOG_ERR(LOG_CTX_INTF,"Invalid slot id %d", slot_id);
     return L7_FAILURE;
   }
 
@@ -5768,11 +5768,11 @@ L7_RC_t ptin_intf_slot_reset(L7_int slot_id)
 
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Error applying HW procedure to slot %d", slot_id);
+    LOG_ERR(LOG_CTX_INTF,"Error applying HW procedure to slot %d", slot_id);
     return rc;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_INTF,"HW procedure applied to slot %d", slot_id);
+  LOG_TRACE(LOG_CTX_INTF,"HW procedure applied to slot %d", slot_id);
 
   return L7_SUCCESS;
 }
@@ -5793,7 +5793,7 @@ L7_RC_t ptin_intf_linkscan_get(L7_uint32 intIfNum, L7_uint8 *enable)
   /* Validate interface */
   if (intIfNum == 0 || intIfNum > L7_ALL_INTERFACES)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid intIfNum %u", intIfNum);
+    LOG_ERR(LOG_CTX_INTF,"Invalid intIfNum %u", intIfNum);
     return L7_FAILURE;
   }
 
@@ -5809,14 +5809,14 @@ L7_RC_t ptin_intf_linkscan_get(L7_uint32 intIfNum, L7_uint8 *enable)
   rc = dtlPtinHwProc(intIfNum, &hw_proc);
 
   if (rc != L7_SUCCESS)
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Error applying HW procedure to intIfNum=%u", intIfNum);
+    LOG_ERR(LOG_CTX_INTF,"Error applying HW procedure to intIfNum=%u", intIfNum);
   else
   {
     if (enable != L7_NULLPTR)
     {
       *enable = (L7_uint8) hw_proc.param1;
     }
-    LOG_TRACE(LOG_CTX_PTIN_INTF,"HW linkscan get from intIfNum=%u (%u)", intIfNum, hw_proc.param1);
+    LOG_TRACE(LOG_CTX_INTF,"HW linkscan get from intIfNum=%u (%u)", intIfNum, hw_proc.param1);
   }
 
   return rc;
@@ -5838,7 +5838,7 @@ L7_RC_t ptin_intf_linkscan_set(L7_uint32 intIfNum, L7_uint8 enable)
   /* Validate interface */
   if (intIfNum == 0 || intIfNum > L7_ALL_INTERFACES)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid intIfNum %u", intIfNum);
+    LOG_ERR(LOG_CTX_INTF,"Invalid intIfNum %u", intIfNum);
     return L7_FAILURE;
   }
 
@@ -5855,11 +5855,11 @@ L7_RC_t ptin_intf_linkscan_set(L7_uint32 intIfNum, L7_uint8 enable)
 
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Error applying HW procedure to intIfNum=%u", intIfNum);
+    LOG_ERR(LOG_CTX_INTF,"Error applying HW procedure to intIfNum=%u", intIfNum);
     return rc;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_INTF,"HW procedure applied to intIfNum=%u", intIfNum);
+  LOG_TRACE(LOG_CTX_INTF,"HW procedure applied to intIfNum=%u", intIfNum);
 
   return L7_SUCCESS;
 }
@@ -5882,14 +5882,14 @@ L7_RC_t ptin_intf_link_force(L7_uint32 intIfNum, L7_uint8 link, L7_uint8 enable)
   /* Validate interface */
   if (intIfNum == 0 || intIfNum > L7_ALL_INTERFACES)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid intIfNum %u", intIfNum);
+    LOG_ERR(LOG_CTX_INTF,"Invalid intIfNum %u", intIfNum);
     return L7_FAILURE;
   }
 
   /* Get ptin_port format */
   if (ptin_intf_intIfNum2port(intIfNum, &ptin_port) != L7_SUCCESS || ptin_port >= ptin_sys_number_of_ports)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid intIfNum %u -> no ptin_port correspondence", intIfNum);
+    LOG_ERR(LOG_CTX_INTF,"Invalid intIfNum %u -> no ptin_port correspondence", intIfNum);
     return L7_FAILURE;
   }
 
@@ -5906,7 +5906,7 @@ L7_RC_t ptin_intf_link_force(L7_uint32 intIfNum, L7_uint8 link, L7_uint8 enable)
 
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Error applying link force to %u for intIfNum=%u", enable, intIfNum);
+    LOG_ERR(LOG_CTX_INTF,"Error applying link force to %u for intIfNum=%u", enable, intIfNum);
     return rc;
   }
 
@@ -5922,7 +5922,7 @@ L7_RC_t ptin_intf_link_force(L7_uint32 intIfNum, L7_uint8 link, L7_uint8 enable)
   }
 #endif
 
-  LOG_TRACE(LOG_CTX_PTIN_INTF,"Force link to %u, applied to intIfNum=%u", enable, intIfNum);
+  LOG_TRACE(LOG_CTX_INTF,"Force link to %u, applied to intIfNum=%u", enable, intIfNum);
 
   return rc;
 }
@@ -5948,7 +5948,7 @@ L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable
   if (slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX ||
       slot_port >= PTIN_SYS_INTFS_PER_SLOT_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid inputs: slot_id=%d, slot_port=%d", slot_id, slot_port);
+    LOG_ERR(LOG_CTX_INTF,"Invalid inputs: slot_id=%d, slot_port=%d", slot_id, slot_port);
     return L7_FAILURE;
   }
 
@@ -5962,7 +5962,7 @@ L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable
     if (ptin_port < 0 || ptin_port >= ptin_sys_number_of_ports ||
         ptin_intf_port2intIfNum(ptin_port, &intIfNum)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid reference slot_id=%d, slot_port=%d -> port=%d", slot_id, port_idx, ptin_port);
+      LOG_ERR(LOG_CTX_INTF,"Invalid reference slot_id=%d, slot_port=%d -> port=%d", slot_id, port_idx, ptin_port);
       return L7_FAILURE;
     }
 
@@ -5974,9 +5974,9 @@ L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable
       rc = ptin_intf_linkscan_set(intIfNum, enable); 
 
       if (rc != L7_SUCCESS)
-        LOG_ERR(LOG_CTX_PTIN_INTF,"Error applying LS procedure to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum);
+        LOG_ERR(LOG_CTX_INTF,"Error applying LS procedure to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum);
       else
-        LOG_TRACE(LOG_CTX_PTIN_INTF,"LS procedure applied to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, port_idx, intIfNum);
+        LOG_TRACE(LOG_CTX_INTF,"LS procedure applied to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, port_idx, intIfNum);
     }
   }
   /* Apply to all slot ports */
@@ -5995,7 +5995,7 @@ L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable
       if (ptin_port >= ptin_sys_number_of_ports ||
           ptin_intf_port2intIfNum(ptin_port, &intIfNum)!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid reference slot_id=%d, slot_port=%d -> port=%d", slot_id, port_idx, ptin_port);
+        LOG_ERR(LOG_CTX_INTF,"Invalid reference slot_id=%d, slot_port=%d -> port=%d", slot_id, port_idx, ptin_port);
         return L7_FAILURE;
       }
 
@@ -6012,21 +6012,21 @@ L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable
 
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_INTF,"Error applying LS procedure to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum);
+        LOG_ERR(LOG_CTX_INTF,"Error applying LS procedure to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum);
         break;
       }
       else
       {
-        LOG_TRACE(LOG_CTX_PTIN_INTF,"LS procedure applied to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum);
+        LOG_TRACE(LOG_CTX_INTF,"LS procedure applied to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum);
         /* Next port */
       }
     }
   }
 
   if (rc != L7_SUCCESS)
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Terminated with error %d", rc);
+    LOG_ERR(LOG_CTX_INTF,"Terminated with error %d", rc);
   else
-    LOG_TRACE(LOG_CTX_PTIN_INTF,"Finished successfully");
+    LOG_TRACE(LOG_CTX_INTF,"Finished successfully");
 
   /* Return execution state */
   return rc;
@@ -6057,7 +6057,7 @@ L7_RC_t ptin_slot_link_force(L7_int slot_id, L7_int slot_port, L7_uint8 link, L7
   if (slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX ||
       slot_port >= PTIN_SYS_INTFS_PER_SLOT_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid inputs: slot_id=%d, slot_port=%d", slot_id, slot_port);
+    LOG_ERR(LOG_CTX_INTF,"Invalid inputs: slot_id=%d, slot_port=%d", slot_id, slot_port);
     return L7_FAILURE;
   }
 
@@ -6071,7 +6071,7 @@ L7_RC_t ptin_slot_link_force(L7_int slot_id, L7_int slot_port, L7_uint8 link, L7
     if (ptin_port < 0 || ptin_port >= ptin_sys_number_of_ports ||
         ptin_intf_port2intIfNum(ptin_port, &intIfNum)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid reference slot_id=%d, slot_port=%d -> port=%d", slot_id, port_idx, ptin_port);
+      LOG_ERR(LOG_CTX_INTF,"Invalid reference slot_id=%d, slot_port=%d -> port=%d", slot_id, port_idx, ptin_port);
       return L7_FAILURE;
     }
 
@@ -6084,9 +6084,9 @@ L7_RC_t ptin_slot_link_force(L7_int slot_id, L7_int slot_port, L7_uint8 link, L7
       rc = ptin_intf_link_force(intIfNum, link, enable);
 
       if (rc != L7_SUCCESS)
-        LOG_ERR(LOG_CTX_PTIN_INTF,"Error forcing link to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum);
+        LOG_ERR(LOG_CTX_INTF,"Error forcing link to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum);
       else
-        LOG_TRACE(LOG_CTX_PTIN_INTF,"Link forced to %u to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", enable, slot_id, port_idx, port_idx, intIfNum);
+        LOG_TRACE(LOG_CTX_INTF,"Link forced to %u to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", enable, slot_id, port_idx, port_idx, intIfNum);
     }
   }
   /* Apply to all slot ports */
@@ -6105,7 +6105,7 @@ L7_RC_t ptin_slot_link_force(L7_int slot_id, L7_int slot_port, L7_uint8 link, L7
       if (ptin_port >= ptin_sys_number_of_ports ||
           ptin_intf_port2intIfNum(ptin_port, &intIfNum)!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid reference slot_id=%d, slot_port=%d -> port=%d", slot_id, port_idx, ptin_port);
+        LOG_ERR(LOG_CTX_INTF,"Invalid reference slot_id=%d, slot_port=%d -> port=%d", slot_id, port_idx, ptin_port);
         return L7_FAILURE;
       }
 
@@ -6122,21 +6122,21 @@ L7_RC_t ptin_slot_link_force(L7_int slot_id, L7_int slot_port, L7_uint8 link, L7
 
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_INTF,"Error forcing link to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum);
+        LOG_ERR(LOG_CTX_INTF,"Error forcing link to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum);
         break;
       }
       else
       {
-        LOG_TRACE(LOG_CTX_PTIN_INTF,"Link forced to %u in slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", enable, slot_id, port_idx, ptin_port, intIfNum);
+        LOG_TRACE(LOG_CTX_INTF,"Link forced to %u in slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", enable, slot_id, port_idx, ptin_port, intIfNum);
         /* Next port */
       }
     }
   }
 
   if (rc != L7_SUCCESS)
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Terminated with error %d", rc);
+    LOG_ERR(LOG_CTX_INTF,"Terminated with error %d", rc);
   else
-    LOG_TRACE(LOG_CTX_PTIN_INTF,"Finished successfully");
+    LOG_TRACE(LOG_CTX_INTF,"Finished successfully");
 
   /* Return execution state */
   return rc;
@@ -6165,17 +6165,17 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
   L7_uint16 board_id_current;
   L7_RC_t   rc;
 
-  LOG_DEBUG(LOG_CTX_PTIN_INTF,"Inserting board %u at slot %u", board_id, slot_id);
+  LOG_DEBUG(LOG_CTX_INTF,"Inserting board %u at slot %u", board_id, slot_id);
 
   /* Validate input params */
   if (slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid slot_id=%d", slot_id);
+    LOG_ERR(LOG_CTX_INTF,"Invalid slot_id=%d", slot_id);
     return L7_FAILURE;
   }
   if (board_id == 0 || board_id == (L7_uint16)-1)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid board_id %d", board_id);
+    LOG_ERR(LOG_CTX_INTF,"Invalid board_id %d", board_id);
     return L7_FAILURE;
   }
 
@@ -6187,14 +6187,14 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
   if (rc != L7_SUCCESS)
   {
     osapiSemaGive(ptin_boardaction_sem);
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error getting board id for slot %u (rc=%d)", slot_id, rc);
+    LOG_ERR(LOG_CTX_INTF, "Error getting board id for slot %u (rc=%d)", slot_id, rc);
     return L7_FAILURE;
   }
   /* If board is already present, do nothing */
   if (board_id_current != 0)
   {
     osapiSemaGive(ptin_boardaction_sem);
-    LOG_WARNING(LOG_CTX_PTIN_INTF, "Card already present at slot %u (board id is %u)", slot_id, board_id_current);
+    LOG_WARNING(LOG_CTX_INTF, "Card already present at slot %u (board id is %u)", slot_id, board_id_current);
     return L7_SUCCESS;
   }
 
@@ -6203,7 +6203,7 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
   if (rc != L7_SUCCESS)
   {
     osapiSemaGive(ptin_boardaction_sem);
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error inserting card %u at slot %u (%d)", board_id, slot_id, rc);
+    LOG_ERR(LOG_CTX_INTF, "Error inserting card %u at slot %u (%d)", board_id, slot_id, rc);
     return L7_FAILURE;
   }
 
@@ -6216,19 +6216,19 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
     /* Only reset warpcore, if new board is a TG16G board */
     if (board_id == PTIN_BOARD_TYPE_TG16G)
     {
-      LOG_INFO(LOG_CTX_PTIN_INTF, "Going to reset warpcore of slot %u", slot_id);
+      LOG_INFO(LOG_CTX_INTF, "Going to reset warpcore of slot %u", slot_id);
       rc = ptin_intf_slot_reset(slot_id);
       if (rc == L7_SUCCESS)
       {
-        LOG_INFO(LOG_CTX_PTIN_INTF, "Slot %d reseted", slot_id);
+        LOG_INFO(LOG_CTX_INTF, "Slot %d reseted", slot_id);
       }
       else if (rc == L7_NOT_EXIST)
       {
-        LOG_TRACE(LOG_CTX_PTIN_INTF, "Nothing done to slot %u", slot_id);
+        LOG_TRACE(LOG_CTX_INTF, "Nothing done to slot %u", slot_id);
       }
       else
       {
-        LOG_ERR(LOG_CTX_PTIN_INTF, "Error reseting slot %u", slot_id);
+        LOG_ERR(LOG_CTX_INTF, "Error reseting slot %u", slot_id);
       }
     }
 
@@ -6242,7 +6242,7 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
   if (!ptin_fgpa_mx_is_matrixactive())
   {
     osapiSemaGive(ptin_boardaction_sem);
-    LOG_ERR(LOG_CTX_PTIN_MSG, "I am not active matrix");
+    LOG_ERR(LOG_CTX_MSG, "I am not active matrix");
     return L7_SUCCESS;
   }
   #endif
@@ -6261,7 +6261,7 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
         ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
     {
       rc_global = max(L7_FAILURE, rc_global);
-      LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid ptin_port %d", ptin_port);
+      LOG_ERR(LOG_CTX_INTF,"Invalid ptin_port %d", ptin_port);
       continue;
     }
 
@@ -6284,7 +6284,7 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
         if (rc != L7_SUCCESS)
         {
           rc_global = max(rc, rc_global);
-          LOG_ERR(LOG_CTX_PTIN_INTF, "Error enabling force linkup for port %u (%d)", ptin_port, rc);
+          LOG_ERR(LOG_CTX_INTF, "Error enabling force linkup for port %u (%d)", ptin_port, rc);
         }
 
         /* Add port to vlans again */
@@ -6293,7 +6293,7 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
         {
           ptin_vlan_port_add(ptin_port, 0);
         }
-        LOG_INFO(LOG_CTX_PTIN_INTF, "Forced linkup for port %u", ptin_port);
+        LOG_INFO(LOG_CTX_INTF, "Forced linkup for port %u", ptin_port);
       }
       /* Enable linkscan for uplink boards */
       else if (PTIN_BOARD_IS_UPLINK(board_id))
@@ -6302,9 +6302,9 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
         if (rc != L7_SUCCESS)
         {
           rc_global = max(rc, rc_global);
-          LOG_ERR(LOG_CTX_PTIN_INTF, "Error enabling linkscan for port %u (%d)", ptin_port, rc);
+          LOG_ERR(LOG_CTX_INTF, "Error enabling linkscan for port %u (%d)", ptin_port, rc);
         }
-        LOG_INFO(LOG_CTX_PTIN_INTF, "Linkscan enabled for port %u", ptin_port);
+        LOG_INFO(LOG_CTX_INTF, "Linkscan enabled for port %u", ptin_port);
       }
     }
     #endif
@@ -6338,12 +6338,12 @@ L7_RC_t ptin_slot_action_remove(L7_uint16 slot_id)
   L7_uint16 board_id;
   L7_RC_t   rc;
 
-  LOG_DEBUG(LOG_CTX_PTIN_INTF,"Removing board from slot %u", slot_id);
+  LOG_DEBUG(LOG_CTX_INTF,"Removing board from slot %u", slot_id);
 
   /* Validate input params */
   if (slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid slot_id=%d", slot_id);
+    LOG_ERR(LOG_CTX_INTF,"Invalid slot_id=%d", slot_id);
     return L7_FAILURE;
   }
 
@@ -6355,14 +6355,14 @@ L7_RC_t ptin_slot_action_remove(L7_uint16 slot_id)
   if (rc != L7_SUCCESS)
   {
     osapiSemaGive(ptin_boardaction_sem);
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error getting board type for slot %u (rc=%d)", slot_id, rc);
+    LOG_ERR(LOG_CTX_INTF, "Error getting board type for slot %u (rc=%d)", slot_id, rc);
     return L7_FAILURE;
   }
   /* If board is not present, do nothing */
   if (board_id == 0 || board_id == (L7_uint16)-1)
   {
     osapiSemaGive(ptin_boardaction_sem);
-    LOG_WARNING(LOG_CTX_PTIN_INTF, "No card present at slot %u (board id is %u)", slot_id, board_id);
+    LOG_WARNING(LOG_CTX_INTF, "No card present at slot %u (board id is %u)", slot_id, board_id);
     return L7_SUCCESS;
   }
 
@@ -6371,7 +6371,7 @@ L7_RC_t ptin_slot_action_remove(L7_uint16 slot_id)
   if (rc != L7_SUCCESS)
   {
     osapiSemaGive(ptin_boardaction_sem);
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error removing card %u from slot %u (%d)", board_id, slot_id, rc);
+    LOG_ERR(LOG_CTX_INTF, "Error removing card %u from slot %u (%d)", board_id, slot_id, rc);
     return L7_FAILURE;
   }
 
@@ -6380,7 +6380,7 @@ L7_RC_t ptin_slot_action_remove(L7_uint16 slot_id)
   if (!ptin_fgpa_mx_is_matrixactive())
   {
     osapiSemaGive(ptin_boardaction_sem);
-    LOG_ERR(LOG_CTX_PTIN_MSG, "I am not active matrix");
+    LOG_ERR(LOG_CTX_MSG, "I am not active matrix");
     return L7_SUCCESS;
   }
   #endif
@@ -6399,7 +6399,7 @@ L7_RC_t ptin_slot_action_remove(L7_uint16 slot_id)
         ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
     {
       rc_global = max(L7_FAILURE, rc_global);
-      LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid ptin_port %d", ptin_port);
+      LOG_ERR(LOG_CTX_INTF,"Invalid ptin_port %d", ptin_port);
       continue;
     }
 
@@ -6414,16 +6414,16 @@ L7_RC_t ptin_slot_action_remove(L7_uint16 slot_id)
         if (rc != L7_SUCCESS)
         {
           rc_global = max(rc, rc_global);
-          LOG_ERR(LOG_CTX_PTIN_INTF, "Error disabling force linkup for port %u (%d)", ptin_port, rc);
+          LOG_ERR(LOG_CTX_INTF, "Error disabling force linkup for port %u (%d)", ptin_port, rc);
         }
         /* Cause link-down */
         rc = ptin_intf_link_force(intIfNum, L7_FALSE, 0);
         if (rc != L7_SUCCESS)
         {
           rc_global = max(rc, rc_global);
-          LOG_ERR(LOG_CTX_PTIN_INTF, "Error disabling force linkup for port %u (%d)", ptin_port, rc);
+          LOG_ERR(LOG_CTX_INTF, "Error disabling force linkup for port %u (%d)", ptin_port, rc);
         }
-        LOG_INFO(LOG_CTX_PTIN_INTF, "Force link-up disabled for port %u", ptin_port);
+        LOG_INFO(LOG_CTX_INTF, "Force link-up disabled for port %u", ptin_port);
       }
       /* Enable linkscan for uplink boards */
       else if (PTIN_BOARD_IS_UPLINK(board_id))
@@ -6432,9 +6432,9 @@ L7_RC_t ptin_slot_action_remove(L7_uint16 slot_id)
         if (rc != L7_SUCCESS)
         {
           rc_global = max(rc, rc_global);
-          LOG_ERR(LOG_CTX_PTIN_INTF, "Error disabling linkscan (%d)", rc);
+          LOG_ERR(LOG_CTX_INTF, "Error disabling linkscan (%d)", rc);
         }
-        LOG_INFO(LOG_CTX_PTIN_INTF, "Linkscan disabled for port %u", ptin_port);
+        LOG_INFO(LOG_CTX_INTF, "Linkscan disabled for port %u", ptin_port);
       }
     }
     #endif
@@ -6446,7 +6446,7 @@ L7_RC_t ptin_slot_action_remove(L7_uint16 slot_id)
   if (rc_global == L7_SUCCESS)
   {
     slots_to_be_reseted[slot_id] = L7_TRUE;
-    LOG_INFO(LOG_CTX_PTIN_INTF, "Slot %u marked to be reseted ", slot_id);
+    LOG_INFO(LOG_CTX_INTF, "Slot %u marked to be reseted ", slot_id);
   }
  #endif
 #endif
@@ -6477,14 +6477,14 @@ L7_RC_t ptin_intf_info_get(const ptin_intf_t *ptin_intf, L7_uint16 *enable, L7_u
   /* Validate arguments */
   if (ptin_intf == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid arguments");
+    LOG_ERR(LOG_CTX_INTF,"Invalid arguments");
     return L7_FAILURE;
   }
 
   /* Validate arguments */
   if (ptin_intf_ptintf2intIfNum(ptin_intf, &intIfNum) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Intf %u/%u does not exist!", ptin_intf->intf_type, ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_INTF,"Intf %u/%u does not exist!", ptin_intf->intf_type, ptin_intf->intf_id);
     return L7_FAILURE;
   }
 
@@ -6494,20 +6494,20 @@ L7_RC_t ptin_intf_info_get(const ptin_intf_t *ptin_intf, L7_uint16 *enable, L7_u
     slot_id   = 0;
     slot_port = 0;
     board_id  = 0;
-    //LOG_WARNING(LOG_CTX_PTIN_INTF,"Error getting slot information for intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    //LOG_WARNING(LOG_CTX_INTF,"Error getting slot information for intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
   }
 
   /* Admin state */
   if (nimGetIntfAdminState(intIfNum, &adminState) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Error getting admin state for intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_INTF,"Error getting admin state for intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
     return L7_FAILURE;
   }
 
   /* Link state */
   if (nimGetIntfLinkState(intIfNum, &linkState) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Error getting link state for intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_INTF,"Error getting link state for intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
     return L7_FAILURE;
   }
 
@@ -6570,14 +6570,14 @@ L7_BOOL ptin_intf_link_get(L7_uint32 ptin_port)
 
   if (ptin_intf_port2intIfNum(ptin_port, &intIfNum)!=L7_SUCCESS || nimGetIntfAdminState(intIfNum, &adminState)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Error getting admin state for ptin_port %d", ptin_port);
+    LOG_ERR(LOG_CTX_INTF,"Error getting admin state for ptin_port %d", ptin_port);
     return link;
   }
 
   /* Link state */
   if (nimGetIntfLinkState(intIfNum, &linkState) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Error getting link state for ptin_port %d", ptin_port);
+    LOG_ERR(LOG_CTX_INTF,"Error getting link state for ptin_port %d", ptin_port);
     return link;
   }
 
@@ -6601,7 +6601,7 @@ L7_RC_t ptin_intf_slotMode_get(L7_uint32 *slotmodes)
   /* Validate arguments */
   if (slotmodes == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid arguments");
+    LOG_ERR(LOG_CTX_INTF,"Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -6610,7 +6610,7 @@ L7_RC_t ptin_intf_slotMode_get(L7_uint32 *slotmodes)
 
   rc=dtlPtinSlotMode(&slot_mode);
   if (rc!=L7_SUCCESS)  {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Error reading slot mode list");
+    LOG_ERR(LOG_CTX_INTF,"Error reading slot mode list");
     return rc;
   }
 
@@ -6635,7 +6635,7 @@ L7_RC_t ptin_intf_slotMode_validate(L7_uint32 *slotmodes)
   /* Validate arguments */
   if (slotmodes == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid arguments");
+    LOG_ERR(LOG_CTX_INTF,"Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -6646,7 +6646,7 @@ L7_RC_t ptin_intf_slotMode_validate(L7_uint32 *slotmodes)
 
   rc=dtlPtinSlotMode(&slot_mode);
   if (rc!=L7_SUCCESS)  {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Error validating slot mode list");
+    LOG_ERR(LOG_CTX_INTF,"Error validating slot mode list");
     return rc;
   }
 
@@ -6677,7 +6677,7 @@ L7_BOOL ptin_intf_is_internal_lag_member(L7_uint32 intIfNum)
     port = PTIN_SYSTEM_N_ETH+i;
     if (ptin_intf_port2intIfNum(port, &_intIfNum) != L7_SUCCESS)
     {
-      LOG_WARNING(LOG_CTX_PTIN_INTF, "Error getting intIfNum from port %u", port);
+      LOG_WARNING(LOG_CTX_INTF, "Error getting intIfNum from port %u", port);
       return L7_FALSE;
     }
 
@@ -6710,14 +6710,14 @@ L7_RC_t ptin_intf_protection_cmd(L7_uint slot, L7_uint port, L7_uint cmd)
   /* Get intIfNum from slot/port */
   if (ptin_intf_slotPort2IntIfNum(slot, port, &intIfNum) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Cannot find a valid intIfNum from slot/port=%u/%u", slot, port);
+    LOG_ERR(LOG_CTX_INTF, "Cannot find a valid intIfNum from slot/port=%u/%u", slot, port);
     return L7_FAILURE;
   }
 
   /* Get lag which belongs this port */
   if (dot3adAggGet(intIfNum, &lag_intIfNum) != L7_SUCCESS || lag_intIfNum == 0 || lag_intIfNum >= L7_ALL_INTERFACES)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "intIfNum %u does not belong to any lag", intIfNum);
+    LOG_ERR(LOG_CTX_INTF, "intIfNum %u does not belong to any lag", intIfNum);
     return L7_FAILURE;
   }
 
@@ -6726,7 +6726,7 @@ L7_RC_t ptin_intf_protection_cmd(L7_uint slot, L7_uint port, L7_uint cmd)
 
   if (ptin_port < PTIN_SYSTEM_N_PORTS || ptin_port >= PTIN_SYSTEM_N_INTERF)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "intIfNum %u / ptin_port %u is not a lag", intIfNum, ptin_port);
+    LOG_ERR(LOG_CTX_INTF, "intIfNum %u / ptin_port %u is not a lag", intIfNum, ptin_port);
     return L7_FAILURE;
   }
 
@@ -6735,14 +6735,14 @@ L7_RC_t ptin_intf_protection_cmd(L7_uint slot, L7_uint port, L7_uint cmd)
   /* Only apply commands to lags where the protection is related */
   if (lag_idx < PTIN_SYSTEM_PROTECTION_LAGID_BASE)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Protection not applicable to intIfNum %u / ptin_port %u (lag_idx=%u)", intIfNum, ptin_port, lag_idx);
+    LOG_ERR(LOG_CTX_INTF, "Protection not applicable to intIfNum %u / ptin_port %u (lag_idx=%u)", intIfNum, ptin_port, lag_idx);
     return L7_FAILURE;
   }
 
   /* Check if port is protected */
   if (!ptin_intf_is_uplinkProtection(ptin_port))
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "ptin_port %u is not a protection port", ptin_port);
+    LOG_ERR(LOG_CTX_INTF, "ptin_port %u is not a protection port", ptin_port);
     return L7_FAILURE;
   }
 
@@ -6751,24 +6751,24 @@ L7_RC_t ptin_intf_protection_cmd(L7_uint slot, L7_uint port, L7_uint cmd)
   {
     if (dtlDot3adInternalPortAdd(lag_intIfNum, 1, &intIfNum, 1) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Error adding intIfNum %u (ptin_port %u) to lag_intIfNum %u (lag_idx=%u)", intIfNum, ptin_port, lag_intIfNum, lag_idx);
+      LOG_ERR(LOG_CTX_INTF, "Error adding intIfNum %u (ptin_port %u) to lag_intIfNum %u (lag_idx=%u)", intIfNum, ptin_port, lag_intIfNum, lag_idx);
       return L7_FAILURE;
     }
     /* Port is active */
     uplink_protection_ports_active_bmp |= ((L7_uint64) 1 << ptin_port);
-    LOG_TRACE(LOG_CTX_PTIN_INTF, "intIfNum %u (ptin_port %u) added to lag_intIfNum %u (lag_idx=%u)", intIfNum, ptin_port, lag_intIfNum, lag_idx);
+    LOG_TRACE(LOG_CTX_INTF, "intIfNum %u (ptin_port %u) added to lag_intIfNum %u (lag_idx=%u)", intIfNum, ptin_port, lag_intIfNum, lag_idx);
   }
   /* Innactivate command: remove port */
   else
   {
     if (dtlDot3adInternalPortDelete(lag_intIfNum, 1, &intIfNum, 1) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Error removing intIfNum %u (ptin_port %u) from lag_intIfNum %u (lag_idx=%u)", intIfNum, ptin_port, lag_intIfNum, lag_idx);
+      LOG_ERR(LOG_CTX_INTF, "Error removing intIfNum %u (ptin_port %u) from lag_intIfNum %u (lag_idx=%u)", intIfNum, ptin_port, lag_intIfNum, lag_idx);
       return L7_FAILURE;
     }
     /* Port inactive */
     uplink_protection_ports_active_bmp &= ~((L7_uint64) 1 << ptin_port);
-    LOG_TRACE(LOG_CTX_PTIN_INTF, "intIfNum %u (ptin_port %u) removed from lag_intIfNum %u (lag_idx=%u)", intIfNum, ptin_port, lag_intIfNum, lag_idx);
+    LOG_TRACE(LOG_CTX_INTF, "intIfNum %u (ptin_port %u) removed from lag_intIfNum %u (lag_idx=%u)", intIfNum, ptin_port, lag_intIfNum, lag_idx);
   }
 #endif
 
@@ -6795,14 +6795,14 @@ L7_RC_t ptin_intf_protection_cmd_planC(L7_uint slot, L7_uint port, L7_uint cmd)
   if (ptin_intf_slotPort2port(slot, port, &ptin_port) != L7_SUCCESS ||
       ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Slot/port=%u/%u is not valid", slot, port);
+    LOG_ERR(LOG_CTX_INTF, "Slot/port=%u/%u is not valid", slot, port);
     return L7_FAILURE;
   }
 
   /* Check if port is protected */
   if (!ptin_intf_is_uplinkProtection(ptin_port))
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "ptin_port %u is not a protection port", ptin_port);
+    LOG_ERR(LOG_CTX_INTF, "ptin_port %u is not a protection port", ptin_port);
     return L7_FAILURE;
   }
 
@@ -6811,12 +6811,12 @@ L7_RC_t ptin_intf_protection_cmd_planC(L7_uint slot, L7_uint port, L7_uint cmd)
   {
     if (ptin_vlan_port_add(ptin_port, 0) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Error adding port %u to all vlans", ptin_port);
+      LOG_ERR(LOG_CTX_INTF, "Error adding port %u to all vlans", ptin_port);
       return L7_FAILURE;
     }
     /* Port is active */
     uplink_protection_ports_active_bmp |= ((L7_uint64) 1 << ptin_port);
-    LOG_TRACE(LOG_CTX_PTIN_INTF, "ptin_port %u added to all vlans", ptin_port);
+    LOG_TRACE(LOG_CTX_INTF, "ptin_port %u added to all vlans", ptin_port);
 
   #ifdef PTIN_LINKSCAN_CONTROL
     #ifdef MAP_CPLD
@@ -6827,9 +6827,9 @@ L7_RC_t ptin_intf_protection_cmd_planC(L7_uint slot, L7_uint port, L7_uint cmd)
       rc = ptin_intf_linkscan_set(intIfNum, L7_ENABLE);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_INTF, "Error enabling linkscan for port %u (%d)", ptin_port, rc);
+        LOG_ERR(LOG_CTX_INTF, "Error enabling linkscan for port %u (%d)", ptin_port, rc);
       }
-      LOG_TRACE(LOG_CTX_PTIN_INTF, "Linkscan enabled for port %u", ptin_port);
+      LOG_TRACE(LOG_CTX_INTF, "Linkscan enabled for port %u", ptin_port);
     }
     #endif
   #else
@@ -6841,13 +6841,13 @@ L7_RC_t ptin_intf_protection_cmd_planC(L7_uint slot, L7_uint port, L7_uint cmd)
   {
     if (ptin_vlan_port_removeFlush(ptin_port, 0) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Error removing port %u from all vlans", ptin_port);
+      LOG_ERR(LOG_CTX_INTF, "Error removing port %u from all vlans", ptin_port);
       return L7_FAILURE;
     }
     //fdbFlushByPort(intIfNum);
     /* Port inactive */
     uplink_protection_ports_active_bmp &= ~((L7_uint64) 1 << ptin_port);
-    LOG_TRACE(LOG_CTX_PTIN_INTF, "ptin_port %u removed from all vlans", ptin_port);
+    LOG_TRACE(LOG_CTX_INTF, "ptin_port %u removed from all vlans", ptin_port);
 
   #ifdef PTIN_LINKSCAN_CONTROL
     #ifdef MAP_CPLD
@@ -6858,17 +6858,17 @@ L7_RC_t ptin_intf_protection_cmd_planC(L7_uint slot, L7_uint port, L7_uint cmd)
       rc = ptin_intf_linkscan_set(intIfNum, L7_DISABLE);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_INTF, "Error disabling linkscan for port %u (%d)", ptin_port, rc);
+        LOG_ERR(LOG_CTX_INTF, "Error disabling linkscan for port %u (%d)", ptin_port, rc);
       }
-      LOG_TRACE(LOG_CTX_PTIN_INTF, "Linkscan enabled for port %u", ptin_port);
+      LOG_TRACE(LOG_CTX_INTF, "Linkscan enabled for port %u", ptin_port);
       if (rc == L7_SUCCESS)
       {
         rc = ptin_intf_link_force(intIfNum, L7_TRUE, L7_ENABLE); 
         if (rc != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_PTIN_INTF, "Error forcing linkup for port %u (%d)", ptin_port, rc);
+          LOG_ERR(LOG_CTX_INTF, "Error forcing linkup for port %u (%d)", ptin_port, rc);
         }
-        LOG_TRACE(LOG_CTX_PTIN_INTF, "Forced link-up for port %u", ptin_port);
+        LOG_TRACE(LOG_CTX_INTF, "Forced link-up for port %u", ptin_port);
       }
     }
     #endif
@@ -6900,13 +6900,13 @@ L7_RC_t ptin_intf_protection_cmd_planD(L7_uint slot_old, L7_uint port_old, L7_ui
   if (ptin_intf_slotPort2port(slot_old, port_old, &ptin_port_old) != L7_SUCCESS ||
       ptin_intf_port2intIfNum(ptin_port_old, &intIfNum_old) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Slot/port=%u/%u is not valid", slot_old, port_old);
+    LOG_ERR(LOG_CTX_INTF, "Slot/port=%u/%u is not valid", slot_old, port_old);
     return L7_FAILURE;
   }
   if (ptin_intf_slotPort2port(slot_new, port_new, &ptin_port_new) != L7_SUCCESS ||
       ptin_intf_port2intIfNum(ptin_port_new, &intIfNum_new) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Slot/port=%u/%u is not valid", slot_new, port_new);
+    LOG_ERR(LOG_CTX_INTF, "Slot/port=%u/%u is not valid", slot_new, port_new);
     return L7_FAILURE;
   }
 
@@ -6914,27 +6914,27 @@ L7_RC_t ptin_intf_protection_cmd_planD(L7_uint slot_old, L7_uint port_old, L7_ui
   if (!ptin_intf_is_uplinkProtection(ptin_port_old) ||
       !ptin_intf_is_uplinkProtection(ptin_port_new))
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "ptin_port %u or ptin_port %u is not a protection port", ptin_port_old, ptin_port_new);
+    LOG_ERR(LOG_CTX_INTF, "ptin_port %u or ptin_port %u is not a protection port", ptin_port_old, ptin_port_new);
     return L7_FAILURE;
   }
 
   /* Check if ports are protection ones */
   if (ptin_intf_is_uplinkProtectionActive(ptin_port_new))
   {
-    LOG_WARNING(LOG_CTX_PTIN_INTF, "ptin_port %u is already the active port", ptin_port_new);
+    LOG_WARNING(LOG_CTX_INTF, "ptin_port %u is already the active port", ptin_port_new);
     return L7_SUCCESS;
   }
 
   /* Switch ports */
   if (ptin_vlan_port_switch(ptin_port_old, ptin_port_new, 0) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error switching port %u to port %u", ptin_port_old, ptin_port_new);
+    LOG_ERR(LOG_CTX_INTF, "Error switching port %u to port %u", ptin_port_old, ptin_port_new);
     return L7_FAILURE;
   }
   /* Update active and inactive ports */
   uplink_protection_ports_active_bmp &= ~((L7_uint64) 1 << ptin_port_old);
   uplink_protection_ports_active_bmp |=  ((L7_uint64) 1 << ptin_port_new);
-  LOG_TRACE(LOG_CTX_PTIN_INTF, "port %u successfully switched to port %u", ptin_port_old, ptin_port_new);
+  LOG_TRACE(LOG_CTX_INTF, "port %u successfully switched to port %u", ptin_port_old, ptin_port_new);
 
   /* Wait 200ms, to stabilise traffic flow */
   osapiSleepMSec(200);
@@ -6948,26 +6948,26 @@ L7_RC_t ptin_intf_protection_cmd_planD(L7_uint slot_old, L7_uint port_old, L7_ui
     rc = ptin_intf_linkscan_set(intIfNum_old, L7_DISABLE);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Error disabling linkscan for port %u (%d)", ptin_port_old, rc);
+      LOG_ERR(LOG_CTX_INTF, "Error disabling linkscan for port %u (%d)", ptin_port_old, rc);
     }
-    LOG_TRACE(LOG_CTX_PTIN_INTF, "Linkscan enabled for port %u", ptin_port_old);
+    LOG_TRACE(LOG_CTX_INTF, "Linkscan enabled for port %u", ptin_port_old);
     if (rc == L7_SUCCESS)
     {
       rc = ptin_intf_link_force(intIfNum_old, L7_TRUE, L7_ENABLE); 
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_INTF, "Error forcing linkup for port %u (%d)", ptin_port_old, rc);
+        LOG_ERR(LOG_CTX_INTF, "Error forcing linkup for port %u (%d)", ptin_port_old, rc);
       }
-      LOG_TRACE(LOG_CTX_PTIN_INTF, "Forced link-up for port %u", ptin_port_old);
+      LOG_TRACE(LOG_CTX_INTF, "Forced link-up for port %u", ptin_port_old);
     }
 
     /* Enable linkscan for newly active port */
     rc = ptin_intf_linkscan_set(intIfNum_new, L7_ENABLE);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Error enabling linkscan for port %u (%d)", ptin_port_new, rc);
+      LOG_ERR(LOG_CTX_INTF, "Error enabling linkscan for port %u (%d)", ptin_port_new, rc);
     }
-    LOG_TRACE(LOG_CTX_PTIN_INTF, "Linkscan enabled for port %u", ptin_port_new);
+    LOG_TRACE(LOG_CTX_INTF, "Linkscan enabled for port %u", ptin_port_new);
   }
   #endif
 #else
@@ -6999,14 +6999,14 @@ L7_RC_t ptin_intf_vcap_defvid(L7_uint32 intIfNum, L7_uint16 outerVlan, L7_uint16
   /* Validate ports */
   if (intIfNum == 0 || intIfNum >= L7_ALL_INTERFACES)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid intIfNum %d", intIfNum);
+    LOG_ERR(LOG_CTX_INTF,"Invalid intIfNum %d", intIfNum);
     return L7_FAILURE;
   }
 
   /* Interface type */
   if (nimGetIntfType(intIfNum, &intf_type) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Unable to get intfType from intIfNum %d", intIfNum);
+    LOG_ERR(LOG_CTX_INTF,"Unable to get intfType from intIfNum %d", intIfNum);
     return L7_FAILURE;
   }
 
@@ -7021,13 +7021,13 @@ L7_RC_t ptin_intf_vcap_defvid(L7_uint32 intIfNum, L7_uint16 outerVlan, L7_uint16
     intIfNum_list_size = PTIN_SYSTEM_N_PORTS;
     if (usmDbDot3adMemberListGet(1, intIfNum, &intIfNum_list_size, intIfNum_list) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF,"Unable to get LAG members from intIfNum %d", intIfNum);
+      LOG_ERR(LOG_CTX_INTF,"Unable to get LAG members from intIfNum %d", intIfNum);
       return L7_FAILURE;
     }
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Not supported type (%u) for intIfNum %d", intf_type, intIfNum);
+    LOG_ERR(LOG_CTX_INTF,"Not supported type (%u) for intIfNum %d", intf_type, intIfNum);
     return L7_FAILURE;
   }
 
@@ -7046,12 +7046,12 @@ L7_RC_t ptin_intf_vcap_defvid(L7_uint32 intIfNum, L7_uint16 outerVlan, L7_uint16
 
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF,"Error configuring defVid %u+%u for intIfNum %u", outerVlan, innerVlan, intIfNum_list[i]);
+      LOG_ERR(LOG_CTX_INTF,"Error configuring defVid %u+%u for intIfNum %u", outerVlan, innerVlan, intIfNum_list[i]);
       rc_global = rc;
     }
     else
     {
-      LOG_TRACE(LOG_CTX_PTIN_INTF,"defVid %u+%u for intIfNum %u configured", outerVlan, innerVlan, intIfNum_list[i]);
+      LOG_TRACE(LOG_CTX_INTF,"defVid %u+%u for intIfNum %u configured", outerVlan, innerVlan, intIfNum_list[i]);
     }
   }
 
@@ -7075,12 +7075,12 @@ L7_RC_t ptin_intf_clock_recover_set(L7_int ptin_port_main, L7_int ptin_port_bckp
   /* Validate ports */
   if (ptin_port_main < 0 || ptin_port_main >= ptin_sys_number_of_ports)
   {
-    LOG_WARNING(LOG_CTX_PTIN_INTF,"Invalid ptin_port %d", ptin_port_main);
+    LOG_WARNING(LOG_CTX_INTF,"Invalid ptin_port %d", ptin_port_main);
     ptin_port_main = -1;
   }
   if (ptin_port_bckp < 0 || ptin_port_bckp >= ptin_sys_number_of_ports)
   {
-    LOG_WARNING(LOG_CTX_PTIN_INTF,"Invalid ptin_port %d", ptin_port_bckp);
+    LOG_WARNING(LOG_CTX_INTF,"Invalid ptin_port %d", ptin_port_bckp);
     ptin_port_bckp = -1;
   }
 
@@ -7097,11 +7097,11 @@ L7_RC_t ptin_intf_clock_recover_set(L7_int ptin_port_main, L7_int ptin_port_bckp
 
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Error configuring recover clocks (main port %d and backup port %d)", ptin_port_main, ptin_port_bckp);
+    LOG_ERR(LOG_CTX_INTF,"Error configuring recover clocks (main port %d and backup port %d)", ptin_port_main, ptin_port_bckp);
     return rc;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_INTF,"Recover clocks configured (main port %d and backup port %d)", ptin_port_main, ptin_port_bckp);
+  LOG_TRACE(LOG_CTX_INTF,"Recover clocks configured (main port %d and backup port %d)", ptin_port_main, ptin_port_bckp);
 
   return rc;
 }
@@ -7126,14 +7126,14 @@ L7_RC_t ptin_intf_frame_oversize_set(L7_uint32 intIfNum, L7_uint32 frame_size)
   /* Validate ports */
   if (intIfNum == 0 || intIfNum >= L7_ALL_INTERFACES)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid intIfNum %d", intIfNum);
+    LOG_ERR(LOG_CTX_INTF,"Invalid intIfNum %d", intIfNum);
     return L7_FAILURE;
   }
 
   /* Interface type */
   if (nimGetIntfType(intIfNum, &intf_type) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Unable to get intfType from intIfNum %d", intIfNum);
+    LOG_ERR(LOG_CTX_INTF,"Unable to get intfType from intIfNum %d", intIfNum);
     return L7_FAILURE;
   }
 
@@ -7148,13 +7148,13 @@ L7_RC_t ptin_intf_frame_oversize_set(L7_uint32 intIfNum, L7_uint32 frame_size)
     intIfNum_list_size = PTIN_SYSTEM_N_PORTS;
     if (usmDbDot3adMemberListGet(1, intIfNum, &intIfNum_list_size, intIfNum_list) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF,"Unable to get LAG members from intIfNum %d", intIfNum);
+      LOG_ERR(LOG_CTX_INTF,"Unable to get LAG members from intIfNum %d", intIfNum);
       return L7_FAILURE;
     }
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Not supported type (%u) for intIfNum %d", intf_type, intIfNum);
+    LOG_ERR(LOG_CTX_INTF,"Not supported type (%u) for intIfNum %d", intf_type, intIfNum);
     return L7_FAILURE;
   }
 
@@ -7172,12 +7172,12 @@ L7_RC_t ptin_intf_frame_oversize_set(L7_uint32 intIfNum, L7_uint32 frame_size)
 
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF,"Error configuring frame_size %u for intIfNum %u", frame_size, intIfNum_list[i]);
+      LOG_ERR(LOG_CTX_INTF,"Error configuring frame_size %u for intIfNum %u", frame_size, intIfNum_list[i]);
       rc_global = rc;
     }
     else
     {
-      LOG_TRACE(LOG_CTX_PTIN_INTF,"Max Frame size (%u) configured for intIfNum %u configured", frame_size, intIfNum_list[i]);
+      LOG_TRACE(LOG_CTX_INTF,"Max Frame size (%u) configured for intIfNum %u configured", frame_size, intIfNum_list[i]);
     }
   }
 
@@ -7205,14 +7205,14 @@ L7_RC_t ptin_intf_frame_oversize_get(L7_uint32 intIfNum, L7_uint32 *frame_size)
   /* Validate ports */
   if (intIfNum == 0 || intIfNum >= L7_ALL_INTERFACES)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid intIfNum %d", intIfNum);
+    LOG_ERR(LOG_CTX_INTF,"Invalid intIfNum %d", intIfNum);
     return L7_FAILURE;
   }
 
   /* Interface type */
   if (nimGetIntfType(intIfNum, &intf_type) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Unable to get intfType from intIfNum %d", intIfNum);
+    LOG_ERR(LOG_CTX_INTF,"Unable to get intfType from intIfNum %d", intIfNum);
     return L7_FAILURE;
   }
 
@@ -7227,13 +7227,13 @@ L7_RC_t ptin_intf_frame_oversize_get(L7_uint32 intIfNum, L7_uint32 *frame_size)
     intIfNum_list_size = PTIN_SYSTEM_N_PORTS;
     if (usmDbDot3adMemberListGet(1, intIfNum, &intIfNum_list_size, intIfNum_list) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF,"Unable to get LAG members from intIfNum %d", intIfNum);
+      LOG_ERR(LOG_CTX_INTF,"Unable to get LAG members from intIfNum %d", intIfNum);
       return L7_FAILURE;
     }
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Not supported type (%u) for intIfNum %d", intf_type, intIfNum);
+    LOG_ERR(LOG_CTX_INTF,"Not supported type (%u) for intIfNum %d", intf_type, intIfNum);
     return L7_FAILURE;
   }
 
@@ -7251,12 +7251,12 @@ L7_RC_t ptin_intf_frame_oversize_get(L7_uint32 intIfNum, L7_uint32 *frame_size)
 
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF,"Error reading frame_size for intIfNum %u", intIfNum_list[i]);
+      LOG_ERR(LOG_CTX_INTF,"Error reading frame_size for intIfNum %u", intIfNum_list[i]);
       rc_global = rc;
     }
     else 
     {
-      LOG_TRACE(LOG_CTX_PTIN_INTF,"Oversize frame_size for intIfNum %u is %u bytes", intIfNum_list[i], hw_proc.param1);
+      LOG_TRACE(LOG_CTX_INTF,"Oversize frame_size for intIfNum %u is %u bytes", intIfNum_list[i], hw_proc.param1);
 
       /* Select minimum frame size */
       if (hw_proc.param1 < fsize)
@@ -7267,7 +7267,7 @@ L7_RC_t ptin_intf_frame_oversize_get(L7_uint32 intIfNum, L7_uint32 *frame_size)
   /* Validate calculated frame size */
   if (rc_global == L7_SUCCESS && fsize > L7_MAX_FRAME_SIZE)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid frame_size (%u) for intIfNum %u", fsize, intIfNum_list[i]);
+    LOG_ERR(LOG_CTX_INTF,"Invalid frame_size (%u) for intIfNum %u", fsize, intIfNum_list[i]);
     rc_global = L7_FAILURE;
   }
 
@@ -7277,7 +7277,7 @@ L7_RC_t ptin_intf_frame_oversize_get(L7_uint32 intIfNum, L7_uint32 *frame_size)
     if (frame_size != L7_NULLPTR)
     {
       *frame_size = fsize;
-      LOG_TRACE(LOG_CTX_PTIN_INTF,"Oversize frame_size for intIfNum %u is %u bytes", intIfNum_list[i], *frame_size);
+      LOG_TRACE(LOG_CTX_INTF,"Oversize frame_size for intIfNum %u is %u bytes", intIfNum_list[i], *frame_size);
     }
   }
 
@@ -7290,7 +7290,7 @@ int dapi_usp_is_internal_lag_member(DAPI_USP_t *dusp)
   /* Validate arguments */
   if (dusp == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid arguments");
+    LOG_ERR(LOG_CTX_INTF,"Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -7308,7 +7308,7 @@ int dapi_usp_is_internal_lag_member(DAPI_USP_t *dusp)
    /* Interface should be a LAG */
    if (dusp->slot != L7_LAG_SLOT_NUM)
    {
-     LOG_ERR(LOG_CTX_PTIN_INTF, "usp {%d,%d,%d} is not a LAG", dusp->unit, dusp->slot, dusp->port);
+     LOG_ERR(LOG_CTX_INTF, "usp {%d,%d,%d} is not a LAG", dusp->unit, dusp->slot, dusp->port);
      return L7_FALSE;
    }
 
@@ -7319,7 +7319,7 @@ int dapi_usp_is_internal_lag_member(DAPI_USP_t *dusp)
 
    if (nimGetIntIfNumFromUSP(&usp, &intIfNum) != L7_SUCCESS)
    {
-     LOG_ERR(LOG_CTX_PTIN_INTF, "Error getting intIfNum from usp {%d,%d,%d}", usp.unit, usp.slot, usp.port);
+     LOG_ERR(LOG_CTX_INTF, "Error getting intIfNum from usp {%d,%d,%d}", usp.unit, usp.slot, usp.port);
      return L7_FALSE;
    }
 
@@ -7330,17 +7330,17 @@ int dapi_usp_is_internal_lag_member(DAPI_USP_t *dusp)
    /* Convert to lag index (management point of view) */
    if (ptin_intf_intIfNum2lag(intIfNum, &lag_idx) != L7_SUCCESS)
    {
-     LOG_ERR(LOG_CTX_PTIN_INTF, "Error getting intIfNum from usp {%d,%d,%d}", usp.unit, usp.slot, usp.port);
+     LOG_ERR(LOG_CTX_INTF, "Error getting intIfNum from usp {%d,%d,%d}", usp.unit, usp.slot, usp.port);
      return L7_FALSE;
    }
 
    /* If LAG a lag protection? */
    if (lag_idx >= PTIN_SYSTEM_PROTECTION_LAGID_BASE)
    {
-     LOG_TRACE(LOG_CTX_PTIN_INTF, "intIfNum %u is a special port (lagIdx=%u)", intIfNum, lag_idx);
+     LOG_TRACE(LOG_CTX_INTF, "intIfNum %u is a special port (lagIdx=%u)", intIfNum, lag_idx);
      return L7_TRUE;
    }
-   LOG_WARNING(LOG_CTX_PTIN_INTF, "intIfNum %u is a regular LAG (lagIdx=%u)", intIfNum, lag_idx);
+   LOG_WARNING(LOG_CTX_INTF, "intIfNum %u is a regular LAG (lagIdx=%u)", intIfNum, lag_idx);
    #endif
    
 #endif
@@ -7406,7 +7406,7 @@ static L7_RC_t ptin_intf_LagConfig_read(ptin_LACPLagConfig_t *lagInfo)
   /* Determine loop range (LAG index [1..PTIN_SYSTEM_N_LAGS]) */
   if ((lag_idx == 0) || (lag_idx > PTIN_SYSTEM_N_LAGS))
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u is out of range [1..%u]", lag_idx, PTIN_SYSTEM_N_LAGS);
+    LOG_ERR(LOG_CTX_INTF, "LAG# %u is out of range [1..%u]", lag_idx, PTIN_SYSTEM_N_LAGS);
     return L7_FAILURE;
   }
 
@@ -7416,28 +7416,28 @@ static L7_RC_t ptin_intf_LagConfig_read(ptin_LACPLagConfig_t *lagInfo)
 
   /* LAG admin */
   if (usmDbDot3adAdminModeGet(1, intIfNum, &value) != L7_SUCCESS) {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: error reading admin field", lag_idx);
+    LOG_ERR(LOG_CTX_INTF, "LAG# %u: error reading admin field", lag_idx);
     return L7_FAILURE;
   }
   lagInfo->admin = value;
 
   /* LAG STP Mode */
   if (usmDbDot1sPortStateGet(1, intIfNum, &value) != L7_SUCCESS) {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: error reading Dot1sPortState field", lag_idx);
+    LOG_ERR(LOG_CTX_INTF, "LAG# %u: error reading Dot1sPortState field", lag_idx);
     return L7_FAILURE;
   }
   lagInfo->stp_enable = value;
 
   /* LAG Static Mode */
   if (usmDbDot3adIsStaticLag(1, intIfNum, &value) != L7_SUCCESS) {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: error reading static mode field", lag_idx);
+    LOG_ERR(LOG_CTX_INTF, "LAG# %u: error reading static mode field", lag_idx);
     return L7_FAILURE;
   }
   lagInfo->static_enable = value;
 
   /* LAG Balance Mode */
   if (usmDbDot3adLagHashModeGet(1, intIfNum, &value) != L7_SUCCESS) {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: error reading balance mode field", lag_idx);
+    LOG_ERR(LOG_CTX_INTF, "LAG# %u: error reading balance mode field", lag_idx);
     return L7_FAILURE;
   }
   lagInfo->loadBalance_mode = value;

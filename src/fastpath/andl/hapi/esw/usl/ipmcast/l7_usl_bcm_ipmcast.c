@@ -188,7 +188,7 @@ int usl_bcm_ipmc_add (usl_bcm_ipmc_addr_t  *ipmc, L7_BOOL replace_entry)
           }
         }
 
-        LOG_TRACE(LOG_CTX_PTIN_HAPI,"Group id %d will %s created (flags=0x%08x)",group,((create_group) ? "BE" : "NOT be"),flags);
+        LOG_TRACE(LOG_CTX_HAPI,"Group id %d will %s created (flags=0x%08x)",group,((create_group) ? "BE" : "NOT be"),flags);
 
         /* Create group, if necessary */
         if (create_group)
@@ -198,7 +198,7 @@ int usl_bcm_ipmc_add (usl_bcm_ipmc_addr_t  *ipmc, L7_BOOL replace_entry)
           {
             break;
           }
-          LOG_TRACE(LOG_CTX_PTIN_HAPI,"Group id %d reated (with flags=0x%08x)",group,flags);
+          LOG_TRACE(LOG_CTX_HAPI,"Group id %d reated (with flags=0x%08x)",group,flags);
         }
 
         /* Save group id */
@@ -227,7 +227,7 @@ int usl_bcm_ipmc_add (usl_bcm_ipmc_addr_t  *ipmc, L7_BOOL replace_entry)
         {
           break;
         }
-        LOG_TRACE(LOG_CTX_PTIN_HAPI,"IPMC added");
+        LOG_TRACE(LOG_CTX_HAPI,"IPMC added");
       }
       else
       {
@@ -368,7 +368,7 @@ int usl_bcm_ipmc_delete (usl_bcm_ipmc_addr_t *ipmc, L7_uint32 keep)
         break;
       }
 
-      LOG_TRACE(LOG_CTX_PTIN_HAPI,"IPMC removed");
+      LOG_TRACE(LOG_CTX_HAPI,"IPMC removed");
 
       /* PTin added: SDK 6.3.0 */
       #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
@@ -379,7 +379,7 @@ int usl_bcm_ipmc_delete (usl_bcm_ipmc_addr_t *ipmc, L7_uint32 keep)
         break;
       }
 
-      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Group id %d destroyed",ipmc->ipmc_index);
+      LOG_TRACE(LOG_CTX_HAPI,"Group id %d destroyed",ipmc->ipmc_index);
 
       ipmc->ipmc_index = -1;
       bcm_ipmc.group   = -1;
@@ -571,7 +571,7 @@ L7_RC_t usl_bcm_ipmc_set_l2_ports (usl_bcm_ipmc_addr_t *ipmc_addr)
 
       /* PTin removed: SDK 6.3.0 */
       #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Adding L2 ports");
+      LOG_TRACE(LOG_CTX_HAPI,"Adding L2 ports");
       /* Add L2 ports */
       BCM_PBMP_ITER(ipmc_addr->l2_pbmp[modid], port)
       {
@@ -590,7 +590,7 @@ L7_RC_t usl_bcm_ipmc_set_l2_ports (usl_bcm_ipmc_addr_t *ipmc_addr)
         if (rv != BCM_E_NONE && rv != BCM_E_EXISTS)
           break;
 
-        LOG_TRACE(LOG_CTX_PTIN_HAPI,"Added bcm_port %d (gport=0x%08x)",port,gport);
+        LOG_TRACE(LOG_CTX_HAPI,"Added bcm_port %d (gport=0x%08x)",port,gport);
       }
       /* If error, undo procedure */
       if (L7_BCMX_OK(rv) != L7_TRUE)
@@ -745,7 +745,7 @@ int usl_bcm_ipmc_add_l2_port_groups (int unit, bcm_port_t port,
         if (rv != BCM_E_NONE && rv != BCM_E_EXISTS)
           continue;
 
-        LOG_TRACE(LOG_CTX_PTIN_HAPI,"Added bcm_port %d (gport=0x%08x)",port,gport);
+        LOG_TRACE(LOG_CTX_HAPI,"Added bcm_port %d (gport=0x%08x)",port,gport);
         #else
         rv = bcm_ipmc_get_by_index(unit, index, &ipmc);
         if (rv != BCM_E_NONE)
@@ -901,7 +901,7 @@ int usl_bcm_ipmc_delete_l2_port_groups (int unit, bcm_port_t port,
         if (rv != BCM_E_NONE && rv != BCM_E_EXISTS)
           continue;
 
-        LOG_TRACE(LOG_CTX_PTIN_HAPI,"Removed bcm_port %d (gport=0x%08x)",port,gport);
+        LOG_TRACE(LOG_CTX_HAPI,"Removed bcm_port %d (gport=0x%08x)",port,gport);
         #else
         rv = bcm_ipmc_get_by_index(unit, index, &ipmc);
         if (rv != BCM_E_NONE)
@@ -1057,7 +1057,7 @@ int usl_bcm_ipmc_add_l3_port_groups (int unit, bcm_port_t port,
       if (rv != BCM_E_NONE && rv != BCM_E_EXISTS)
         continue;
 
-      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Added bcm_port %d (gport=0x%08x)",port,gport);
+      LOG_TRACE(LOG_CTX_HAPI,"Added bcm_port %d (gport=0x%08x)",port,gport);
 
       #else
       rv = bcm_ipmc_get_by_index(unit, index, &ipmc);
@@ -1252,7 +1252,7 @@ int usl_bcm_ipmc_egress_port_add (int unit, bcm_port_t port,
         continue;
       }
 
-      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Added egress port %d (gport=0x%08x)",port,gport);
+      LOG_TRACE(LOG_CTX_HAPI,"Added egress port %d (gport=0x%08x)",port,gport);
 
       #else
       rv = bcm_ipmc_get_by_index(unit, index, &ipmc);
@@ -1397,7 +1397,7 @@ int usl_bcm_ipmc_egress_port_delete (int unit, bcm_port_t port,
         continue;
       }
 
-      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Removed egress port %d (gport=0x%08x)",port,gport);
+      LOG_TRACE(LOG_CTX_HAPI,"Removed egress port %d (gport=0x%08x)",port,gport);
       #else
       rv = bcm_ipmc_get_by_index(unit, index, &ipmc);
       if (rv != BCM_E_NONE)

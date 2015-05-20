@@ -694,20 +694,20 @@ L7_RC_t fdbDelEntry(fdbMeberInfo_t *fdbMemberInfo)
 
 #if (SDK_VERSION_IS >= SDK_VERSION(6,4,0,0))
 
-  LOG_TRACE(LOG_CTX_PTIN_L2, "Going to remove MacAddr=%02x:%02x:%02x:%02x:%02x:%02x, VLAN=%u (intIfNum=%u): entryType=%u",
+  LOG_TRACE(LOG_CTX_L2, "Going to remove MacAddr=%02x:%02x:%02x:%02x:%02x:%02x, VLAN=%u (intIfNum=%u): entryType=%u",
             fdbMemberInfo->macAddr[0], fdbMemberInfo->macAddr[1], fdbMemberInfo->macAddr[2], fdbMemberInfo->macAddr[3], fdbMemberInfo->macAddr[4], fdbMemberInfo->macAddr[5], 
             fdbMemberInfo->vlanId, fdbMemberInfo->intIfNum, fdbMemberInfo->entryType);
 
   if (dtlFlag == L7_FDB_ADDR_FLAG_STATIC)
   {
-    LOG_TRACE(LOG_CTX_PTIN_L2, "Sending message to remove SW table...");
+    LOG_TRACE(LOG_CTX_L2, "Sending message to remove SW table...");
     if (osapiMessageSend(fdbQueue, &fdbMsg, sizeof(fdbLearnMsg_t), L7_NO_WAIT, L7_MSG_PRIORITY_NORM) != L7_SUCCESS)
       rc = L7_FAILURE;
   }
 
   if (rc == L7_SUCCESS)
   {
-    LOG_TRACE(LOG_CTX_PTIN_L2, "Removing MAC at HW...");
+    LOG_TRACE(LOG_CTX_L2, "Removing MAC at HW...");
     rc = dtlFdbMacAddrDelete(fdbMemberInfo->macAddr,
                              fdbMemberInfo->intIfNum,
                              fdbMemberInfo->vlanId,
@@ -727,7 +727,7 @@ L7_RC_t fdbDelEntry(fdbMeberInfo_t *fdbMemberInfo)
     rc = L7_FAILURE;
 #endif
 
-  LOG_TRACE(LOG_CTX_PTIN_L2, "result = %d", rc);
+  LOG_TRACE(LOG_CTX_L2, "result = %d", rc);
 
   return(rc);
 }

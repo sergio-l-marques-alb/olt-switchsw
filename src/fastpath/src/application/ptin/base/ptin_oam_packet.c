@@ -95,7 +95,7 @@ L7_RC_t ptin_aps_packet_vlan_trap(L7_uint16 vlanId, L7_uint8 ringId_oam_level, L
   /* Policer must be a valid pointer */
   if (vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Invalid argument");
+    LOG_ERR(LOG_CTX_API,"Invalid argument");
     return L7_FAILURE;
   }
 
@@ -111,11 +111,11 @@ L7_RC_t ptin_aps_packet_vlan_trap(L7_uint16 vlanId, L7_uint8 ringId_oam_level, L
 
   rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES, &dapiCmd);
   if (rc!=L7_SUCCESS)  {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error setting rule to %u",enable);
+    LOG_ERR(LOG_CTX_API,"Error setting rule to %u",enable);
     return rc;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API,"Success applying rule to %u",enable);
+  LOG_TRACE(LOG_CTX_API,"Success applying rule to %u",enable);
 
   return L7_SUCCESS;
 }
@@ -144,11 +144,11 @@ L7_RC_t ptin_aps_packet_global_trap(L7_BOOL enable)
 
   rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES, &dapiCmd);
   if (rc!=L7_SUCCESS)  {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error setting global enable to %u",enable);
+    LOG_ERR(LOG_CTX_API,"Error setting global enable to %u",enable);
     return rc;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API,"Success applying global enable to %u",enable);
+  LOG_TRACE(LOG_CTX_API,"Success applying global enable to %u",enable);
 
   return L7_SUCCESS;
 }
@@ -178,7 +178,7 @@ L7_RC_t ptin_ccm_packet_vlan_trap(L7_uint16 vlanId, L7_uint16 oam_level, L7_BOOL
   /* Policer must be a valid pointer */
   if (vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Invalid argument");
+    LOG_ERR(LOG_CTX_API,"Invalid argument");
     return L7_FAILURE;
   }
 
@@ -194,11 +194,11 @@ L7_RC_t ptin_ccm_packet_vlan_trap(L7_uint16 vlanId, L7_uint16 oam_level, L7_BOOL
 
   rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
   if (rc!=L7_SUCCESS)  {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error setting rule to %u",enable);
+    LOG_ERR(LOG_CTX_API,"Error setting rule to %u",enable);
     return rc;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API,"Success applying rule to %u",enable);
+  LOG_TRACE(LOG_CTX_API,"Success applying rule to %u",enable);
 
   return L7_SUCCESS;
 #endif

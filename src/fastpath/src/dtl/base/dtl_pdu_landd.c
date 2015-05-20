@@ -108,7 +108,7 @@ L7_RC_t dtlPduReceiveCallback(DAPI_USP_t *ddusp,
   DAPI_FRAME_CMD_t *dei;
 
   if (pdu_receive_debug)
-    LOG_TRACE(LOG_CTX_PTIN_DTL,"Packet received here");
+    LOG_TRACE(LOG_CTX_DTL,"Packet received here");
 
   dei = (DAPI_FRAME_CMD_t *)dapiEventInfo;
 
@@ -140,7 +140,7 @@ L7_RC_t dtlPduReceiveCallback(DAPI_USP_t *ddusp,
     dtlMsg[savedTail].eventType = event;
 
     if (pdu_receive_debug)
-      LOG_TRACE(LOG_CTX_PTIN_DTL,"Sending packet to dtlMsgQueue queue");
+      LOG_TRACE(LOG_CTX_DTL,"Sending packet to dtlMsgQueue queue");
 
     if ((mrc = osapiMessageSend(dtlMsgQueue, (void *)&savedTail, DTL_MSG_SIZE,L7_NO_WAIT, L7_MSG_PRIORITY_NORM))
         != L7_SUCCESS)
@@ -197,7 +197,7 @@ L7_RC_t dtlPduReceive(DAPI_USP_t *ddusp,
   sysnet_pdu_info_t pduInfo;
 
   if (pdu_receive_debug)
-    LOG_TRACE(LOG_CTX_PTIN_DTL,"I have received a packet here");
+    LOG_TRACE(LOG_CTX_DTL,"I have received a packet here");
 
   debug_pktTimer.pkt_dtl2_counter++;
 
@@ -225,7 +225,7 @@ L7_RC_t dtlPduReceive(DAPI_USP_t *ddusp,
   pduInfo.timestamp = dei->cmdData.receive.timestamp;   /* PTIN added */
 
   if (pdu_receive_debug)
-    LOG_TRACE(LOG_CTX_PTIN_DTL,"...");
+    LOG_TRACE(LOG_CTX_DTL,"...");
 
   if (sysNetHas8021qVlanERIF(data) == L7_TRUE)
   {
@@ -235,7 +235,7 @@ L7_RC_t dtlPduReceive(DAPI_USP_t *ddusp,
   else
   {
     if (pdu_receive_debug)
-      LOG_TRACE(LOG_CTX_PTIN_DTL,"Going to call sysNetNotifyPduReceive");
+      LOG_TRACE(LOG_CTX_DTL,"Going to call sysNetNotifyPduReceive");
 
     rc = sysNetNotifyPduReceive (dei->cmdData.receive.frameHdl, &pduInfo);
   }
@@ -280,7 +280,7 @@ L7_RC_t dtlPduTransmit( L7_netBufHandle bufHandle,
   if (!ptin_fgpa_mx_is_matrixactive_rt())
   {
     if (ptin_debug_dtl)
-      LOG_NOTICE(LOG_CTX_PTIN_DTL,"Silently ignoring packet transmission [intfNum:%u]. I'm a Stanby Matrix",dtlCmdInfo->intfNum);
+      LOG_NOTICE(LOG_CTX_DTL,"Silently ignoring packet transmission [intfNum:%u]. I'm a Stanby Matrix",dtlCmdInfo->intfNum);
     SYSAPI_NET_MBUF_FREE(bufHandle);
     return L7_SUCCESS;
   }
@@ -291,7 +291,7 @@ L7_RC_t dtlPduTransmit( L7_netBufHandle bufHandle,
        ((nimGetIntfActiveState(dtlCmdInfo->intfNum, &activeState) != L7_SUCCESS) || (activeState != L7_ACTIVE)) )
   {
     if (ptin_debug_dtl)
-      LOG_NOTICE(LOG_CTX_PTIN_DTL,"Silently ignoring packet transmission. Outgoing interface [intIfNum=%u] is down!",dtlCmdInfo->intfNum);    
+      LOG_NOTICE(LOG_CTX_DTL,"Silently ignoring packet transmission. Outgoing interface [intIfNum=%u] is down!",dtlCmdInfo->intfNum);    
     SYSAPI_NET_MBUF_FREE(bufHandle);
     return L7_SUCCESS;
   }
@@ -576,7 +576,7 @@ L7_RC_t dtlPduLoopback(L7_uint32 destIntf, L7_netBufHandle bufHandle)
   DAPI_FRAME_CMD_t dapiEventInfo;
 
   if (pdu_receive_debug)
-    LOG_TRACE(LOG_CTX_PTIN_DTL,"Received packet here!");
+    LOG_TRACE(LOG_CTX_DTL,"Received packet here!");
 
   if ((rc = nimGetUnitSlotPort(destIntf, &usp)) != L7_SUCCESS)
       return rc;
@@ -590,7 +590,7 @@ L7_RC_t dtlPduLoopback(L7_uint32 destIntf, L7_netBufHandle bufHandle)
   dapiEventInfo.cmdData.receive.type = 0;
 
   if (pdu_receive_debug)
-    LOG_TRACE(LOG_CTX_PTIN_DTL,"Calling dtlPduReceiveCallback function");
+    LOG_TRACE(LOG_CTX_DTL,"Calling dtlPduReceiveCallback function");
 
   dr = dtlPduReceiveCallback(&ddUsp, family, cmd, event, &dapiEventInfo);
   if (dr==L7_FAILURE)

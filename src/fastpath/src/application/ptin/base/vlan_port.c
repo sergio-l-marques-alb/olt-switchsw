@@ -162,7 +162,7 @@ L7_RC_t vlan_port_intIfNum_create(L7_uint32 intfId, L7_uint32 *pIntIfNum)
   /* Tell the system about the interface */
   if ((rc = nimIntfCreate(&nimRequest, &nimOutput)) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to create interface %u", intfId);
+    LOG_ERR(LOG_CTX_INTF, "Failed to create interface %u", intfId);
     return L7_FAILURE;
   }
 
@@ -217,7 +217,7 @@ L7_RC_t vlan_port_intIfNum_delete(L7_uint32 intIfNum)
     if (nimIntfQuery(&nimQueryData) != L7_SUCCESS)
     {
       /* should never get here */
-      LOG_ERR(LOG_CTX_PTIN_INTF, "nimIntfQuery failed for intIfNum %u", intIfNum);
+      LOG_ERR(LOG_CTX_INTF, "nimIntfQuery failed for intIfNum %u", intIfNum);
       return L7_FAILURE;
     }
 
@@ -263,7 +263,7 @@ L7_RC_t vlan_port_intIfNum_delete(L7_uint32 intIfNum)
 
     if (nimEventIntfNotify(eventInfo, &handle) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "detach notification failed for intIfNum %u", intIfNum);
+      LOG_ERR(LOG_CTX_INTF, "detach notification failed for intIfNum %u", intIfNum);
       return L7_FAILURE;
     }
   }                             /* detach == L7_TRUE */
@@ -276,7 +276,7 @@ L7_RC_t vlan_port_intIfNum_delete(L7_uint32 intIfNum)
       if (nimIntfQuery(&nimQueryData) != L7_SUCCESS)
       {
         /* should never get here */
-        LOG_ERR(LOG_CTX_PTIN_INTF, "nimIntfQuery failed for intIfNum %u in delete attempt", intIfNum);
+        LOG_ERR(LOG_CTX_INTF, "nimIntfQuery failed for intIfNum %u in delete attempt", intIfNum);
         return L7_FAILURE;
       }
 
@@ -310,7 +310,7 @@ L7_RC_t vlan_port_intIfNum_delete(L7_uint32 intIfNum)
 
         default:
           /* detach the interface before deleting */
-          LOG_ERR(LOG_CTX_PTIN_INTF, "Interface should not be in state %d", nimQueryData.data.state);
+          LOG_ERR(LOG_CTX_INTF, "Interface should not be in state %d", nimQueryData.data.state);
           wait_for_transition = L7_FALSE;
           return L7_FAILURE;
           break;
@@ -330,7 +330,7 @@ L7_RC_t vlan_port_intIfNum_delete(L7_uint32 intIfNum)
 
     if (nimEventIntfNotify(eventInfo, &handle) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "delete notification failed for intIfNum %u", intIfNum);
+      LOG_ERR(LOG_CTX_INTF, "delete notification failed for intIfNum %u", intIfNum);
       return L7_FAILURE;
     }
   }                             /* detach != L7_TRUE */
@@ -358,7 +358,7 @@ void vlanportNimEventCompletionCallback(NIM_NOTIFY_CB_INFO_t retVal)
   if (retVal.response.rc != L7_SUCCESS)
   {
     /* Failed to complete the request */
-    LOG_ERR(LOG_CTX_PTIN_INTF, "notification failed for event(%d), intIfNum(%u), reason(%d)",
+    LOG_ERR(LOG_CTX_INTF, "notification failed for event(%d), intIfNum(%u), reason(%d)",
             retVal.event, retVal.intIfNum, retVal.response.reason);
     return;
   }
@@ -378,7 +378,7 @@ void vlanportNimEventCompletionCallback(NIM_NOTIFY_CB_INFO_t retVal)
         break;
 
       case L7_ATTACH:
-        LOG_TRACE(LOG_CTX_PTIN_INTF, "intIfNum %u attached!", retVal.intIfNum);
+        LOG_TRACE(LOG_CTX_INTF, "intIfNum %u attached!", retVal.intIfNum);
         break;
 
     case L7_DETACH:
@@ -387,7 +387,7 @@ void vlanportNimEventCompletionCallback(NIM_NOTIFY_CB_INFO_t retVal)
         break;
 
       case L7_DELETE:
-        LOG_TRACE(LOG_CTX_PTIN_INTF, "intIfNum %u deleted!", retVal.intIfNum);
+        LOG_TRACE(LOG_CTX_INTF, "intIfNum %u deleted!", retVal.intIfNum);
         break;
 
       default:

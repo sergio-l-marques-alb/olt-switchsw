@@ -3911,7 +3911,7 @@ L7_RC_t ptin_prot_erps_init(void)
   ptin_prot_erps_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
   if (ptin_prot_erps_sem == L7_NULLPTR)
   {
-    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to create ptin_prot_erps_sem semaphore!");
+    LOG_FATAL(LOG_CTX_CNFGR, "Failed to create ptin_prot_erps_sem semaphore!");
     return L7_FAILURE;
   }
 
@@ -3922,16 +3922,16 @@ L7_RC_t ptin_prot_erps_init(void)
                                 0);
 
   if (erps_TaskId == L7_ERROR) {
-    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Could not create task ptin_prot_erps_task");
+    LOG_FATAL(LOG_CTX_CNFGR, "Could not create task ptin_prot_erps_task");
     return L7_FAILURE;
   }
-  LOG_INFO(LOG_CTX_PTIN_CNFGR,"Task ptin_prot_erps_task created");
+  LOG_INFO(LOG_CTX_CNFGR,"Task ptin_prot_erps_task created");
 
   if (osapiWaitForTaskInit (L7_PTIN_ERPS_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS) {
-    LOG_FATAL(LOG_CTX_PTIN_CNFGR,"Unable to initialize ptin_prot_erps_task()\n");
+    LOG_FATAL(LOG_CTX_CNFGR,"Unable to initialize ptin_prot_erps_task()\n");
     return(L7_FAILURE);
   }
-  LOG_INFO(LOG_CTX_PTIN_CNFGR,"Task ptin_prot_erps_task initialized");
+  LOG_INFO(LOG_CTX_CNFGR,"Task ptin_prot_erps_task initialized");
 
   return L7_SUCCESS;
 }

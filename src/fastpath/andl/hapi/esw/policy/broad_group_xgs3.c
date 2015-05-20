@@ -4700,7 +4700,7 @@ int policy_group_add_rule(int                        unit,
         if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
           sysapiPrintf("%s(%d) rv = %d\n",__FUNCTION__,__LINE__,rv);
 
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error commiting rule: unit=%d stage=%d gid=%d eid=%d (maxgroups=%d)",
+        LOG_ERR(LOG_CTX_HAPI, "Error commiting rule: unit=%d stage=%d gid=%d eid=%d (maxgroups=%d)",
                 unit, policyStage, gid, eid, group_table_size[unit][policyStage]);
 
         /* Destroy rule */

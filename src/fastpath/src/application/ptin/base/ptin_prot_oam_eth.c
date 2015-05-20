@@ -690,16 +690,16 @@ L7_RC_t ptin_oam_eth_init(void)
                                 0);
 
   if (oam_eth_TaskId == L7_ERROR) {
-    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Could not create task ptin_oam_eth_task");
+    LOG_FATAL(LOG_CTX_CNFGR, "Could not create task ptin_oam_eth_task");
     return L7_FAILURE;
   }
-  LOG_TRACE(LOG_CTX_PTIN_CNFGR,"Task ptin_oam_eth_task created");
+  LOG_TRACE(LOG_CTX_CNFGR,"Task ptin_oam_eth_task created");
 
   if (osapiWaitForTaskInit (L7_PTIN_OAM_ETH_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS) {
-    LOG_FATAL(LOG_CTX_PTIN_CNFGR,"Unable to initialize ptin_oam_eth_task()\n");
+    LOG_FATAL(LOG_CTX_CNFGR,"Unable to initialize ptin_oam_eth_task()\n");
     return(L7_FAILURE);
   }
-  LOG_TRACE(LOG_CTX_PTIN_CNFGR,"Task ptin_oam_eth_task initialized");
+  LOG_TRACE(LOG_CTX_CNFGR,"Task ptin_oam_eth_task initialized");
 
   return L7_SUCCESS;
 }//ptin_oam_eth_init

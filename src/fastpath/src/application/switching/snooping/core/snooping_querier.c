@@ -1393,14 +1393,14 @@ L7_RC_t snoopQuerySend(L7_uint32 intIfNum, L7_uint32 vlanId,
    /* Get proxy configurations */
   if (ptin_igmp_proxy_config_get__snooping_old(&igmpCfg) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations, going to use default values!");
+    LOG_ERR(LOG_CTX_IGMP, "Error getting IGMP Proxy configurations, going to use default values!");
     pSnoopOperEntry->snoopQuerierInfo.sFlagQRV=PTIN_IGMP_DEFAULT_ROBUSTNESS;
     
   }
   else
   {    
     pSnoopOperEntry->snoopQuerierInfo.sFlagQRV=igmpCfg.host.robustness;
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Robustness Variable %u",pSnoopOperEntry->snoopQuerierInfo.sFlagQRV);
+    LOG_TRACE(LOG_CTX_IGMP, "Robustness Variable %u",pSnoopOperEntry->snoopQuerierInfo.sFlagQRV);
   }
 
   version = pSnoopOperEntry->snoopQuerierInfo.snoopQuerierOperVersion;
@@ -2078,7 +2078,7 @@ void snoopQuerierPeriodicQuerySend(snoopOperData_t *pSnoopOperEntry)
   /* Get proxy configurations */
   if (ptin_igmp_proxy_config_get__snooping_old(&igmpCfg) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations, going to use default values!");
+    LOG_ERR(LOG_CTX_IGMP, "Error getting IGMP Proxy configurations, going to use default values!");
     pSnoopOperEntry->snoopQuerierInfo.sFlagQRV=PTIN_IGMP_DEFAULT_ROBUSTNESS;
     pSnoopOperEntry->snoopQuerierInfo.qqic=PTIN_IGMP_DEFAULT_QUERYINTERVAL;
 #if ( PTIN_BOARD_IS_MATRIX )
@@ -2097,9 +2097,9 @@ void snoopQuerierPeriodicQuerySend(snoopOperData_t *pSnoopOperEntry)
     pSnoopOperEntry->snoopQuerierInfo.qqic=igmpCfg.querier.query_interval;    
     pSnoopOperEntry->snoopQuerierInfo.maxResponseCode=igmpCfg.querier.query_response_interval;    
   }
-  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Robustness Variable:%u",pSnoopOperEntry->snoopQuerierInfo.sFlagQRV);
-  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Querier's Query Interval Code:%u",pSnoopOperEntry->snoopQuerierInfo.qqic);    
-  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Max Response Code:%u",pSnoopOperEntry->snoopQuerierInfo.maxResponseCode);    
+  LOG_TRACE(LOG_CTX_IGMP, "Robustness Variable:%u",pSnoopOperEntry->snoopQuerierInfo.sFlagQRV);
+  LOG_TRACE(LOG_CTX_IGMP, "Querier's Query Interval Code:%u",pSnoopOperEntry->snoopQuerierInfo.qqic);    
+  LOG_TRACE(LOG_CTX_IGMP, "Max Response Code:%u",pSnoopOperEntry->snoopQuerierInfo.maxResponseCode);    
 
   pSnoopCB = pSnoopOperEntry->cbHandle;
   vlanId   = pSnoopOperEntry->vlanId;
@@ -2232,7 +2232,7 @@ void snoopQuerierPeriodicQuerySend(snoopOperData_t *pSnoopOperEntry)
 
     SNOOP_TRACE(SNOOP_DEBUG_QUERIER,pSnoopCB->family,"Going to send membership query to client interfaces (vlanId=%u)\n",vlanId);
 
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Sending periodic query to client interfaces (vlanId=%u)",vlanId);
+    LOG_DEBUG(LOG_CTX_IGMP,"Sending periodic query to client interfaces (vlanId=%u)",vlanId);
 
     rc=snoopPacketClientIntfsForward(&mcastPacket,L7_IGMP_MEMBERSHIP_QUERY);
     SYSAPI_NET_MBUF_FREE(bufHandle);

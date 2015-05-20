@@ -33,7 +33,7 @@ L7_RC_t ptin_bwPolicer_create(ptin_bw_meter_t *meter, L7_int *policer_id)
   /* Policer must be a valid pointer */
   if (meter==L7_NULLPTR || policer_id==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments");
+    LOG_ERR(LOG_CTX_EVC,"Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -69,7 +69,7 @@ L7_RC_t ptin_bwPolicer_destroy(L7_int policer_id)
   /* Policer must be a valid pointer */
   if (policer_id <= 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments (policer_id=%d)", policer_id);
+    LOG_ERR(LOG_CTX_EVC,"Invalid arguments (policer_id=%d)", policer_id);
     return L7_FAILURE;
   }
 
@@ -100,7 +100,7 @@ L7_RC_t ptin_bwPolicer_get(ptin_bw_profile_t *profile, ptin_bw_meter_t *meter)
   /* Validate profile */
   if (profile == L7_NULLPTR || meter == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid profile");
+    LOG_ERR(LOG_CTX_EVC,"Invalid profile");
     return L7_FAILURE;
   }
   /* Get intIfNum */
@@ -108,7 +108,7 @@ L7_RC_t ptin_bwPolicer_get(ptin_bw_profile_t *profile, ptin_bw_meter_t *meter)
   {
     if (ptin_intf_port2intIfNum(profile->ptin_port, &intIfNum) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ptin_port %u", profile->ptin_port);
+      LOG_ERR(LOG_CTX_EVC,"Invalid ptin_port %u", profile->ptin_port);
       return L7_FAILURE;
     }
   }
@@ -153,7 +153,7 @@ L7_RC_t ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_meter_t *meter, L
   /* Policer must be a valid pointer */
   if (profile==L7_NULLPTR || meter==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid profile");
+    LOG_ERR(LOG_CTX_EVC,"Invalid profile");
     return L7_FAILURE;
   }
   /* Get intIfNum */
@@ -161,7 +161,7 @@ L7_RC_t ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_meter_t *meter, L
   {
     if (ptin_intf_port2intIfNum(profile->ptin_port, &intIfNum) != L7_SUCCESS) 
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ptin_port %u", profile->ptin_port);
+      LOG_ERR(LOG_CTX_EVC,"Invalid ptin_port %u", profile->ptin_port);
       return L7_FAILURE;
     }
   }
@@ -199,7 +199,7 @@ L7_RC_t ptin_bwPolicer_delete(ptin_bw_profile_t *profile)
   /* Validate arguments */
   if (profile == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid profile");
+    LOG_ERR(LOG_CTX_EVC,"Invalid profile");
     return L7_FAILURE;
   }
   /* Get intIfNum */
@@ -207,7 +207,7 @@ L7_RC_t ptin_bwPolicer_delete(ptin_bw_profile_t *profile)
   {
     if (ptin_intf_port2intIfNum(profile->ptin_port, &intIfNum) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC,"ptin_port %u not valid", profile->ptin_port);
+      LOG_ERR(LOG_CTX_EVC,"ptin_port %u not valid", profile->ptin_port);
       return L7_FAILURE;
     }
   }
@@ -244,7 +244,7 @@ L7_RC_t ptin_bwPolicer_deleteAll(ptin_bw_profile_t *profile)
   /* Validate arguments */
   if (profile == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid profile");
+    LOG_ERR(LOG_CTX_EVC,"Invalid profile");
     return L7_FAILURE;
   }
   /* Get intIfNum */
@@ -252,7 +252,7 @@ L7_RC_t ptin_bwPolicer_deleteAll(ptin_bw_profile_t *profile)
   {
     if (ptin_intf_port2intIfNum(profile->ptin_port, &intIfNum) != L7_SUCCESS) 
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC,"ptin_port %u not valid", profile->ptin_port);
+      LOG_ERR(LOG_CTX_EVC,"ptin_port %u not valid", profile->ptin_port);
       return L7_FAILURE;
     }
   }
@@ -293,13 +293,13 @@ L7_RC_t ptin_evcStats_get(ptin_evcStats_counters_t *stats, ptin_evcStats_profile
   /* Validate arguments */
   if (profile == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid profile");
+    LOG_ERR(LOG_CTX_EVC,"Invalid profile");
     return L7_FAILURE;
   }
   /* Get intIfNum */
   if (ptin_intf_port2intIfNum(profile->ptin_port, &intIfNum) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ptin_port %u", profile->ptin_port);
+    LOG_ERR(LOG_CTX_EVC,"Invalid ptin_port %u", profile->ptin_port);
     return L7_FAILURE;
   }
 
@@ -334,13 +334,13 @@ L7_RC_t ptin_evcStats_set(ptin_evcStats_profile_t *profile)
   /* Validate arguments */
   if (profile == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid profile");
+    LOG_ERR(LOG_CTX_EVC,"Invalid profile");
     return L7_FAILURE;
   }
   /* Get intIfNum */
   if (ptin_intf_port2intIfNum(profile->ptin_port, &intIfNum) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ptin_port %u", profile->ptin_port);
+    LOG_ERR(LOG_CTX_EVC,"Invalid ptin_port %u", profile->ptin_port);
     return L7_FAILURE;
   }
 
@@ -371,13 +371,13 @@ L7_RC_t ptin_evcStats_delete(ptin_evcStats_profile_t *profile)
   /* Validate arguments */
   if (profile == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid profile");
+    LOG_ERR(LOG_CTX_EVC,"Invalid profile");
     return L7_FAILURE;
   }
   /* Get intIfNum */
   if (ptin_intf_port2intIfNum(profile->ptin_port, &intIfNum) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"ptin_port %u not valid", profile->ptin_port);
+    LOG_ERR(LOG_CTX_EVC,"ptin_port %u not valid", profile->ptin_port);
     return L7_FAILURE;
   }
 
@@ -406,7 +406,7 @@ L7_RC_t ptin_evcStats_deleteAll(ptin_evcStats_profile_t *profile)
   /* Validate arguments */
   if (profile == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid profile");
+    LOG_ERR(LOG_CTX_EVC,"Invalid profile");
     return L7_FAILURE;
   }
   /* Get intIfNum */
@@ -415,7 +415,7 @@ L7_RC_t ptin_evcStats_deleteAll(ptin_evcStats_profile_t *profile)
   {
     if (ptin_intf_port2intIfNum(profile->ptin_port, &intIfNum) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC,"ptin_port %u not valid", profile->ptin_port);
+      LOG_ERR(LOG_CTX_EVC,"ptin_port %u not valid", profile->ptin_port);
       return L7_FAILURE;
     }
   }
@@ -456,11 +456,11 @@ L7_RC_t ptin_igmpPkts_global_trap(L7_BOOL enable)
 
   rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
   if (rc!=L7_SUCCESS)  {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error setting global enable to %u",enable);
+    LOG_ERR(LOG_CTX_API,"Error setting global enable to %u",enable);
     return rc;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API,"Success applying global enable to %u",enable);
+  LOG_TRACE(LOG_CTX_API,"Success applying global enable to %u",enable);
 
   return L7_SUCCESS;
 }
@@ -481,7 +481,7 @@ L7_RC_t ptin_igmpPkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable)
   /* Policer must be a valid pointer */
   if (vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Invalid argument");
+    LOG_ERR(LOG_CTX_API,"Invalid argument");
     return L7_FAILURE;
   }
 
@@ -496,11 +496,11 @@ L7_RC_t ptin_igmpPkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable)
 
   rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
   if (rc!=L7_SUCCESS)  {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error setting rule to %u",enable);
+    LOG_ERR(LOG_CTX_API,"Error setting rule to %u",enable);
     return rc;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API,"Success applying rule to %u",enable);
+  LOG_TRACE(LOG_CTX_API,"Success applying rule to %u",enable);
 
   return L7_SUCCESS;
 }
@@ -528,11 +528,11 @@ L7_RC_t ptin_mldPkts_global_trap(L7_BOOL enable)
 
   rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
   if (rc!=L7_SUCCESS)  {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error setting global enable to %u",enable);
+    LOG_ERR(LOG_CTX_API,"Error setting global enable to %u",enable);
     return rc;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API,"Success applying global enable to %u",enable);
+  LOG_TRACE(LOG_CTX_API,"Success applying global enable to %u",enable);
 
   return L7_SUCCESS;
 }
@@ -553,7 +553,7 @@ L7_RC_t ptin_mldPkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable)
   /* Policer must be a valid pointer */
   if (vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Invalid argument");
+    LOG_ERR(LOG_CTX_API,"Invalid argument");
     return L7_FAILURE;
   }
 
@@ -568,11 +568,11 @@ L7_RC_t ptin_mldPkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable)
 
   rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
   if (rc!=L7_SUCCESS)  {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error setting rule to %u",enable);
+    LOG_ERR(LOG_CTX_API,"Error setting rule to %u",enable);
     return rc;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API,"Success applying rule to %u",enable);
+  LOG_TRACE(LOG_CTX_API,"Success applying rule to %u",enable);
 
   return L7_SUCCESS;
 }
@@ -600,11 +600,11 @@ L7_RC_t ptin_dhcpPkts_global_trap(L7_BOOL enable)
 
   rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
   if (rc!=L7_SUCCESS)  {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error setting global enable to %u",enable);
+    LOG_ERR(LOG_CTX_API,"Error setting global enable to %u",enable);
     return rc;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API,"Success applying global enable to %u",enable);
+  LOG_TRACE(LOG_CTX_API,"Success applying global enable to %u",enable);
 
   return L7_SUCCESS;
 }
@@ -626,7 +626,7 @@ L7_RC_t ptin_dhcpPkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable, L7_uint8 famil
   /* Policer must be a valid pointer */
   if (vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Invalid argument");
+    LOG_ERR(LOG_CTX_API,"Invalid argument");
     return L7_FAILURE;
   }
 
@@ -641,11 +641,11 @@ L7_RC_t ptin_dhcpPkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable, L7_uint8 famil
 
   rc = dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
   if (rc != L7_SUCCESS)  {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error setting rule to %u",enable);
+    LOG_ERR(LOG_CTX_API,"Error setting rule to %u",enable);
     return rc;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API,"Success applying rule to %u",enable);
+  LOG_TRACE(LOG_CTX_API,"Success applying rule to %u",enable);
 
   return L7_SUCCESS;
 }
@@ -673,11 +673,11 @@ L7_RC_t ptin_pppoePkts_global_trap(L7_BOOL enable)
 
   rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
   if (rc!=L7_SUCCESS)  {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error setting global enable to %u",enable);
+    LOG_ERR(LOG_CTX_API,"Error setting global enable to %u",enable);
     return rc;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API,"Success applying global enable to %u",enable);
+  LOG_TRACE(LOG_CTX_API,"Success applying global enable to %u",enable);
 
   return L7_SUCCESS;
 }
@@ -698,7 +698,7 @@ L7_RC_t ptin_pppoePkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable)
   /* Policer must be a valid pointer */
   if (vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Invalid argument");
+    LOG_ERR(LOG_CTX_API,"Invalid argument");
     return L7_FAILURE;
   }
 
@@ -713,11 +713,11 @@ L7_RC_t ptin_pppoePkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable)
 
   rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
   if (rc!=L7_SUCCESS)  {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error setting rule to %u",enable);
+    LOG_ERR(LOG_CTX_API,"Error setting rule to %u",enable);
     return rc;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API,"Success applying rule to %u",enable);
+  LOG_TRACE(LOG_CTX_API,"Success applying rule to %u",enable);
 
   return L7_SUCCESS;
 }
@@ -748,20 +748,20 @@ L7_RC_t ptin_stormControl_config(L7_BOOL enable, ptin_stormControl_t *stormContr
 {
   L7_RC_t rc;
 
-  LOG_TRACE(LOG_CTX_PTIN_API,"Going to apply storm control (enable=%u)", enable);
+  LOG_TRACE(LOG_CTX_API,"Going to apply storm control (enable=%u)", enable);
 
   rc = dtlPtinStormControl(L7_ALL_INTERFACES, enable, stormControl);
   if (rc!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error setting storm control enable=%u", enable);
+    LOG_ERR(LOG_CTX_API,"Error setting storm control enable=%u", enable);
     return rc;
   }
   else
   {
-    LOG_TRACE(LOG_CTX_PTIN_API,"Success setting storm control enable=%u", enable);
+    LOG_TRACE(LOG_CTX_API,"Success setting storm control enable=%u", enable);
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API,"Storm control applied successfully (enable=%u)", enable);
+  LOG_TRACE(LOG_CTX_API,"Storm control applied successfully (enable=%u)", enable);
 
   return L7_SUCCESS;
 }
@@ -782,7 +782,7 @@ L7_RC_t ptin_broadcast_rateLimit(L7_BOOL enable, L7_uint16 vlanId)
 
   if (vlanId==0 || vlanId>4095)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Invalid Vlan Id %u",vlanId);
+    LOG_ERR(LOG_CTX_API,"Invalid Vlan Id %u",vlanId);
     return L7_FAILURE;
   }
 
@@ -797,11 +797,11 @@ L7_RC_t ptin_broadcast_rateLimit(L7_BOOL enable, L7_uint16 vlanId)
 
   if (rc!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error setting broadcast rate limit to vlan %u to %u",vlanId,enable);
+    LOG_ERR(LOG_CTX_API,"Error setting broadcast rate limit to vlan %u to %u",vlanId,enable);
   }
   else
   {
-    LOG_TRACE(LOG_CTX_PTIN_API,"Success setting broadcast rate limit to vlan %u to %u",vlanId,enable);
+    LOG_TRACE(LOG_CTX_API,"Success setting broadcast rate limit to vlan %u to %u",vlanId,enable);
   }
 
   return rc;
@@ -822,7 +822,7 @@ L7_RC_t ptin_multicast_rateLimit(L7_BOOL enable, L7_uint16 vlanId)
 
   if (vlanId==0 || vlanId>4095)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Invalid Vlan Id %u",vlanId);
+    LOG_ERR(LOG_CTX_API,"Invalid Vlan Id %u",vlanId);
     return L7_FAILURE;
   }
 
@@ -837,11 +837,11 @@ L7_RC_t ptin_multicast_rateLimit(L7_BOOL enable, L7_uint16 vlanId)
 
   if (rc!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error setting multicast rate limit to vlan %u to %u",vlanId,enable);
+    LOG_ERR(LOG_CTX_API,"Error setting multicast rate limit to vlan %u to %u",vlanId,enable);
   }
   else
   {
-    LOG_TRACE(LOG_CTX_PTIN_API,"Success setting multicast rate limit to vlan %u to %u",vlanId,enable);
+    LOG_TRACE(LOG_CTX_API,"Success setting multicast rate limit to vlan %u to %u",vlanId,enable);
   }
 
   return rc;
@@ -863,7 +863,7 @@ L7_RC_t ptin_hw_resources_get(st_ptin_policy_resources *resources)
 
   if ((rc=dtlPtinHwResources(resources))!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error consulting hardware resources");
+    LOG_ERR(LOG_CTX_API,"Error consulting hardware resources");
   }
 
   return rc;

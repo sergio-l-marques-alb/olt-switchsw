@@ -953,7 +953,7 @@ static int _policy_policy_destroy_with_counter_backup(int unit, BROAD_POLICY_t p
 
         /* TODO: SDK 6.3.0 */
         #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-          LOG_WARNING(LOG_CTX_PTIN_HAPI,"Shuffle counters not supported!");
+          LOG_WARNING(LOG_CTX_HAPI,"Shuffle counters not supported!");
           rv = BCM_E_UNAVAIL;
         #else
           if (policyInfo.policyStage == BROAD_POLICY_STAGE_EGRESS)
@@ -1042,7 +1042,7 @@ static int _policy_counters_restore(int unit)
       {
         /* TODO: SDK 6.3.0 */
         #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-          LOG_WARNING(LOG_CTX_PTIN_HAPI,"Shuffle counters not supported!");
+          LOG_WARNING(LOG_CTX_HAPI,"Shuffle counters not supported!");
           rv = BCM_E_UNAVAIL;
         #else
           if (policyInfo.policyStage == BROAD_POLICY_STAGE_EGRESS)

@@ -37,19 +37,19 @@ fw_shm_open( void )
   if (shmid < 0)
   {
     pfw_shm = &fw_shm;
-    LOG_ERR(LOG_CTX_PTIN_CNFGR, "Failed acquiring new shmid (%d), errno=%d (sizeof=%u)",shmid,err,sizeof(fw_shm));
+    LOG_ERR(LOG_CTX_CNFGR, "Failed acquiring new shmid (%d), errno=%d (sizeof=%u)",shmid,err,sizeof(fw_shm));
     return -1;
   }
-  LOG_INFO(LOG_CTX_PTIN_CNFGR, "Success acquiring new shmid: %d", shmid);
+  LOG_INFO(LOG_CTX_CNFGR, "Success acquiring new shmid: %d", shmid);
 
   /* Make the attach */
   if ( ( pfw_shm = (t_fw_shm*)shmat( shmid , NULL , 0 ) ) == (t_fw_shm*)(-1) ) {
     pfw_shm = &fw_shm;
-    LOG_ERR(LOG_CTX_PTIN_CNFGR, "Failed attaching shared memory");
+    LOG_ERR(LOG_CTX_CNFGR, "Failed attaching shared memory");
     return -1;
   }
 
-  LOG_INFO(LOG_CTX_PTIN_CNFGR, "Success attaching shared memory\n");
+  LOG_INFO(LOG_CTX_CNFGR, "Success attaching shared memory\n");
 
   return (0);
 }

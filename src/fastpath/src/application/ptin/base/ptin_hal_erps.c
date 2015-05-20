@@ -94,7 +94,7 @@ L7_RC_t ptin_hal_erps_init(void)
   ptin_hal_erps_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
   if (ptin_hal_erps_sem == L7_NULLPTR)
   {
-    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to create ptin_hal_erps_sem semaphore!");
+    LOG_FATAL(LOG_CTX_CNFGR, "Failed to create ptin_hal_erps_sem semaphore!");
     return L7_FAILURE;
   }
 
@@ -618,7 +618,7 @@ L7_RC_t ptin_hal_erps_deinit(void)
   /* Create semaphore to control concurrent accesses */
   if (osapiSemaDelete(ptin_hal_erps_sem) != L7_SUCCESS)
   {
-    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to delete ptin_hal_erps_sem semaphore!");
+    LOG_FATAL(LOG_CTX_CNFGR, "Failed to delete ptin_hal_erps_sem semaphore!");
     return L7_FAILURE;
   }
 
@@ -713,7 +713,7 @@ void ptin_hal_apsPacketTx_task(void)
   LOG_INFO(LOG_CTX_ERPS,"PTin APS packet process task started");
 
   if (osapiTaskInitDone(L7_PTIN_APS_PACKET_TASK_SYNC)!=L7_SUCCESS) {
-    LOG_FATAL(LOG_CTX_PTIN_SSM, "Error syncing task");
+    LOG_FATAL(LOG_CTX_SSM, "Error syncing task");
     PTIN_CRASH();
   }
 

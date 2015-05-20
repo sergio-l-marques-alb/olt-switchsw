@@ -233,7 +233,7 @@ inline L7_BOOL dhcp_clientIndex_check_free(L7_uint8 dhcp_idx)
   /* Validate arguments */
   if (dhcp_idx >= PTIN_SYSTEM_N_DHCP_INSTANCES)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid DHCP instance %u", dhcp_idx);
+    LOG_ERR(LOG_CTX_DHCP,"Invalid DHCP instance %u", dhcp_idx);
     return -1;
   }
 
@@ -251,34 +251,34 @@ inline L7_int dhcp_clientIndex_allocate(L7_uint8 dhcp_idx, ptinDhcpClientInfoDat
   /* Validate arguments */
   if (dhcp_idx >= PTIN_SYSTEM_N_DHCP_INSTANCES)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid DHCP instance %u", dhcp_idx);
+    LOG_ERR(LOG_CTX_DHCP,"Invalid DHCP instance %u", dhcp_idx);
     return -1;
   }
 
   /* Check if there is free clients */
   if (dhcpClients_unified.number_of_clients >= PTIN_SYSTEM_DHCP_MAXCLIENTS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"No free clients available");
+    LOG_ERR(LOG_CTX_DHCP,"No free clients available");
     return -1;
   }
 
   /* Check if queue has free elements */
   if (queue_free_clients.n_elems == 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"No free clients available in queue");
+    LOG_ERR(LOG_CTX_DHCP,"No free clients available in queue");
     return -1;
   }
 
   /* Try to get an entry from the pool of free elements */
   rc = dl_queue_remove_head(&queue_free_clients, (dl_queue_elem_t **) &clientIdx_pool_entry);
   if (rc != NOERR) {
-    LOG_ERR(LOG_CTX_PTIN_DHCP, "There are no free clients available! rc=%d", rc);
+    LOG_ERR(LOG_CTX_DHCP, "There are no free clients available! rc=%d", rc);
     return -1;
   }
 
   client_idx = clientIdx_pool_entry->client_id;
 
-  LOG_DEBUG(LOG_CTX_PTIN_DHCP, "Selected index=%u, Free clients pool: %u of %u entries",
+  LOG_DEBUG(LOG_CTX_DHCP, "Selected index=%u, Free clients pool: %u of %u entries",
             client_idx, queue_free_clients.n_elems, PTIN_SYSTEM_DHCP_MAXCLIENTS);
 
   /* Assign AVL entry reference */
@@ -294,7 +294,7 @@ inline L7_int dhcp_clientIndex_allocate(L7_uint8 dhcp_idx, ptinDhcpClientInfoDat
     if (rc != NOERR) {
       memset(clientInfo_pool_entry, 0x00, sizeof(struct ptin_clientInfo_entry_s));
       dl_queue_add_head(&queue_free_clients, (dl_queue_elem_t *) clientIdx_pool_entry);
-      LOG_ERR(LOG_CTX_PTIN_DHCP, "Error adding element to queue! rc=%d", rc);
+      LOG_ERR(LOG_CTX_DHCP, "Error adding element to queue! rc=%d", rc);
       return -1;
     }
   }
@@ -315,14 +315,14 @@ inline void dhcp_clientIndex_release(L7_uint8 dhcp_idx, L7_uint32 client_idx)
   /* Validate arguments */
   if (dhcp_idx >= PTIN_SYSTEM_N_DHCP_INSTANCES || client_idx >= PTIN_SYSTEM_DHCP_MAXCLIENTS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP, "Invalid DHCP instance %u, or client index %u", dhcp_idx, client_idx);
+    LOG_ERR(LOG_CTX_DHCP, "Invalid DHCP instance %u, or client index %u", dhcp_idx, client_idx);
     return;
   }
 
   /* Check if there is busy clients in queue */
   if (queue_free_clients.n_elems >= PTIN_SYSTEM_DHCP_MAXCLIENTS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP, "There are no busy clients in queue!");
+    LOG_ERR(LOG_CTX_DHCP, "There are no busy clients in queue!");
     return;
   }
 
@@ -333,7 +333,7 @@ inline void dhcp_clientIndex_release(L7_uint8 dhcp_idx, L7_uint32 client_idx)
   /* Remove element from clientInfo queue */
   rc = dl_queue_remove(&dhcpInstances[dhcp_idx].queue_clients, (dl_queue_elem_t *) clientInfo_pool_entry);
   if (rc != NOERR) {
-    LOG_ERR(LOG_CTX_PTIN_DHCP, "Error removing element from queue! rc=%d", rc);
+    LOG_ERR(LOG_CTX_DHCP, "Error removing element from queue! rc=%d", rc);
     return;
   }
 
@@ -341,7 +341,7 @@ inline void dhcp_clientIndex_release(L7_uint8 dhcp_idx, L7_uint32 client_idx)
   rc = dl_queue_add_tail(&queue_free_clients, (dl_queue_elem_t *) clientIdx_pool_entry);
   if (rc != NOERR) {
     dl_queue_add_head(&dhcpInstances[dhcp_idx].queue_clients, (dl_queue_elem_t *) clientInfo_pool_entry);
-    LOG_ERR(LOG_CTX_PTIN_DHCP, "Error adding client to free queue! rc=%d", rc);
+    LOG_ERR(LOG_CTX_DHCP, "Error adding client to free queue! rc=%d", rc);
     return;
   }
 
@@ -352,7 +352,7 @@ inline void dhcp_clientIndex_release(L7_uint8 dhcp_idx, L7_uint32 client_idx)
   if (dhcpClients_unified.number_of_clients > 0)
     dhcpClients_unified.number_of_clients--;
 
-  LOG_DEBUG(LOG_CTX_PTIN_DHCP, "Free client pool: %u of %u entries",
+  LOG_DEBUG(LOG_CTX_DHCP, "Free client pool: %u of %u entries",
             queue_free_clients.n_elems, PTIN_SYSTEM_DHCP_MAXCLIENTS);
 }
 
@@ -388,7 +388,7 @@ L7_RC_t ptin_dhcp_init(void)
   dhcp_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
   if (dhcp_sem == NULL)
   {
-    LOG_TRACE(LOG_CTX_PTIN_DHCP, "Error creating a mutex for DHCP module");
+    LOG_TRACE(LOG_CTX_DHCP, "Error creating a mutex for DHCP module");
     return L7_FAILURE;
   }
 
@@ -402,7 +402,7 @@ L7_RC_t ptin_dhcp_init(void)
   if ((avlTree->dhcpClientsTreeHeap == L7_NULLPTR) ||
       (avlTree->dhcpClientsDataHeap == L7_NULLPTR))
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error allocating data for DHCP AVL Trees\n");
+    LOG_ERR(LOG_CTX_DHCP,"Error allocating data for DHCP AVL Trees\n");
     return L7_FAILURE;
   }
 
@@ -440,26 +440,26 @@ L7_RC_t ptin_dhcp_init(void)
   ptin_dhcp_stats_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
   if (ptin_dhcp_stats_sem == L7_NULLPTR)
   {
-    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to create ptin_dhcp_stats_sem semaphore!");
+    LOG_FATAL(LOG_CTX_CNFGR, "Failed to create ptin_dhcp_stats_sem semaphore!");
     return L7_FAILURE;
   }
 
-  LOG_INFO(LOG_CTX_PTIN_DHCP, "sizeof(dhcp_intIfNum_trusted)      = %u", sizeof(dhcp_intIfNum_trusted));
-  LOG_INFO(LOG_CTX_PTIN_DHCP, "sizeof(dhcpInstances)              = %u", sizeof(dhcpInstances));
-  LOG_INFO(LOG_CTX_PTIN_DHCP, "sizeof(global_stats_intf)          = %u", sizeof(global_stats_intf));
-  LOG_INFO(LOG_CTX_PTIN_DHCP, "sizeof(dhcpClients_unified.avlTree)= %u",
+  LOG_INFO(LOG_CTX_DHCP, "sizeof(dhcp_intIfNum_trusted)      = %u", sizeof(dhcp_intIfNum_trusted));
+  LOG_INFO(LOG_CTX_DHCP, "sizeof(dhcpInstances)              = %u", sizeof(dhcpInstances));
+  LOG_INFO(LOG_CTX_DHCP, "sizeof(global_stats_intf)          = %u", sizeof(global_stats_intf));
+  LOG_INFO(LOG_CTX_DHCP, "sizeof(dhcpClients_unified.avlTree)= %u",
            sizeof(avlTree_t) + sizeof(avlTreeTables_t)*PTIN_SYSTEM_DHCP_MAXCLIENTS + sizeof(ptinDhcpClientInfoData_t)*PTIN_SYSTEM_DHCP_MAXCLIENTS);
 
-  LOG_INFO(LOG_CTX_PTIN_DHCP, "DHCP init OK");
+  LOG_INFO(LOG_CTX_DHCP, "DHCP init OK");
 
 
 #if 0
   if (usmDbDsAdminModeSet(L7_ENABLE)!=L7_SUCCESS)  {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error with usmDbDsAdminModeSet");
+    LOG_ERR(LOG_CTX_DHCP,"Error with usmDbDsAdminModeSet");
     return L7_FAILURE;
   }
   if (usmDbDsL2RelayAdminModeSet(L7_ENABLE)!=L7_SUCCESS)  {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error with usmDbDsL2RelayAdminModeSet");
+    LOG_ERR(LOG_CTX_DHCP,"Error with usmDbDsL2RelayAdminModeSet");
     return L7_FAILURE;
   }
 #endif
@@ -478,31 +478,31 @@ L7_RC_t ptin_dhcp_enable(L7_BOOL enable)
 {
   if (usmDbDsAdminModeSet(enable)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error applying DHCP module enable=%u",enable);
+    LOG_ERR(LOG_CTX_DHCP,"Error applying DHCP module enable=%u",enable);
     return L7_FAILURE;
   }
   if (dsL2RelayAdminModeSet(enable)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error applying DHCP Relay Agent enable=%u",enable);
+    LOG_ERR(LOG_CTX_DHCP,"Error applying DHCP Relay Agent enable=%u",enable);
     return L7_FAILURE;
   }
   
   /* Global trap */
   if (ptin_dhcpPkts_global_trap(enable)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error setting DHCP global enable to %u",enable);
+    LOG_ERR(LOG_CTX_DHCP,"Error setting DHCP global enable to %u",enable);
     dsL2RelayAdminModeSet(!enable);
     usmDbDsAdminModeSet(!enable);
     return L7_FAILURE;
   }
-  LOG_TRACE(LOG_CTX_PTIN_DHCP,"Success setting DHCP global enable to %u",enable);
+  LOG_TRACE(LOG_CTX_DHCP,"Success setting DHCP global enable to %u",enable);
 
 #if (PTIN_QUATTRO_FLOWS_FEATURE_ENABLED && QUATTRO_DHCP_TRAP_PREACTIVE)
   /* Configure packet trapping for this VLAN  */
   if (ptin_dhcpPkts_vlan_trap(PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN, enable, L7_AF_INET) != L7_SUCCESS ||
       ptin_dhcpPkts_vlan_trap(PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN, enable, L7_AF_INET6) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error configuring packet trapping for QUATTRO VLANs (enable=%u)", enable);
+    LOG_ERR(LOG_CTX_DHCP,"Error configuring packet trapping for QUATTRO VLANs (enable=%u)", enable);
     ptin_dhcpPkts_vlan_trap(PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN, !enable, L7_AF_INET6);
     ptin_dhcpPkts_vlan_trap(PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN, !enable, L7_AF_INET);
     ptin_dhcpPkts_global_trap(!enable);
@@ -510,7 +510,7 @@ L7_RC_t ptin_dhcp_enable(L7_BOOL enable)
     usmDbDsAdminModeSet(!enable);
     return L7_FAILURE;
   }
-  LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet trapping for QUATTRO VLANs configured (enable=%u)", enable);
+  LOG_TRACE(LOG_CTX_DHCP,"Packet trapping for QUATTRO VLANs configured (enable=%u)", enable);
 #endif
 
   return L7_SUCCESS;
@@ -528,14 +528,14 @@ L7_RC_t ptin_dhcp_is_evc_used(L7_uint32 evc_idx)
   /* Validate arguments */
   if (evc_idx>=PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid eEVC id: evc_idx=%u",evc_idx);
+    LOG_ERR(LOG_CTX_DHCP,"Invalid eEVC id: evc_idx=%u",evc_idx);
     return L7_FALSE;
   }
 
   /* This evc must be active */
   if (!ptin_evc_is_in_use(evc_idx))
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"EVC id is not active: evc_idx=%u",evc_idx);
+    LOG_ERR(LOG_CTX_DHCP,"EVC id is not active: evc_idx=%u",evc_idx);
     return L7_FALSE;
   }
 
@@ -563,14 +563,14 @@ L7_RC_t ptin_dhcp_instance_add(L7_uint32 evc_idx)
   /* Validate arguments */
   if (evc_idx>=PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid eEVC id: ucEvcId=%u",evc_idx);
+    LOG_ERR(LOG_CTX_DHCP,"Invalid eEVC id: ucEvcId=%u",evc_idx);
     return L7_FAILURE;
   }
 
   /* These evcs must be active */
   if (!ptin_evc_is_in_use(evc_idx))
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"eEVC id is not active: ucEvcId%u",evc_idx);
+    LOG_ERR(LOG_CTX_DHCP,"eEVC id is not active: ucEvcId%u",evc_idx);
     return L7_FAILURE;
   }
 
@@ -578,7 +578,7 @@ L7_RC_t ptin_dhcp_instance_add(L7_uint32 evc_idx)
   if (ptin_evc_check_evctype(evc_idx, &evc_type) != L7_SUCCESS ||
       ptin_evc_flags_get(evc_idx, &evc_flags, L7_NULLPTR) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error getting eEVC %u type and flags", evc_idx);
+    LOG_ERR(LOG_CTX_DHCP,"Error getting eEVC %u type and flags", evc_idx);
     return L7_FAILURE;
   }
 
@@ -589,21 +589,21 @@ L7_RC_t ptin_dhcp_instance_add(L7_uint32 evc_idx)
     if (!(evc_flags & PTIN_EVC_MASK_DHCPV4_PROTOCOL) &&
         !(evc_flags & PTIN_EVC_MASK_DHCPV6_PROTOCOL))
     {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"DHCP flag is not present for eEVC %u", evc_idx);
+      LOG_ERR(LOG_CTX_DHCP,"DHCP flag is not present for eEVC %u", evc_idx);
       return L7_FAILURE;
     }
 
     /* Find an empty instance to be used */
     if (ptin_dhcp_instance_find_free(&dhcp_idx)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"There is no free instances to be used");
+      LOG_ERR(LOG_CTX_DHCP,"There is no free instances to be used");
       return L7_FAILURE;
     }
 
     /* Save direct referencing to dhcp index from evc ids */
     if (ptin_evc_dhcpInst_set(evc_idx, dhcp_idx) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error setting DHCP instance to ext evc id %u", evc_idx);
+      LOG_ERR(LOG_CTX_DHCP,"Error setting DHCP instance to ext evc id %u", evc_idx);
       return L7_FAILURE;
     }
 
@@ -615,7 +615,7 @@ L7_RC_t ptin_dhcp_instance_add(L7_uint32 evc_idx)
   }
   else
   {
-    LOG_WARNING(LOG_CTX_PTIN_DHCP,"There is already an instance with eEvcId%u", evc_idx);
+    LOG_WARNING(LOG_CTX_DHCP,"There is already an instance with eEvcId%u", evc_idx);
   }
 
   /* Configure trap rule for this instance */
@@ -641,7 +641,7 @@ L7_RC_t ptin_dhcp_instance_add(L7_uint32 evc_idx)
 
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error configuring DHCP snooping for dhcp_idx=%u",dhcp_idx);
+      LOG_ERR(LOG_CTX_DHCP,"Error configuring DHCP snooping for dhcp_idx=%u",dhcp_idx);
       ptin_dhcp_trap_configure(dhcp_idx, L7_DISABLE, L7_AF_INET6);
       ptin_dhcp_trap_configure(dhcp_idx, L7_DISABLE, L7_AF_INET);
       memset(&dhcpInstances[dhcp_idx], 0x00, sizeof(st_DhcpInstCfg_t));
@@ -669,21 +669,21 @@ L7_RC_t ptin_dhcp_instance_remove(L7_uint32 evc_idx)
   /* Validate arguments */
   if (evc_idx>=PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid eEVC ids: ucEvcId=%u",evc_idx);
+    LOG_ERR(LOG_CTX_DHCP,"Invalid eEVC ids: ucEvcId=%u",evc_idx);
     return L7_FAILURE;
   }
 
   /* Check if there is an instance with these parameters */
   if (ptin_dhcp_instance_find(evc_idx, &dhcp_idx)!=L7_SUCCESS)
   {
-    LOG_WARNING(LOG_CTX_PTIN_DHCP,"There is no instance with ucEvcId=%u",evc_idx);
+    LOG_WARNING(LOG_CTX_DHCP,"There is no instance with ucEvcId=%u",evc_idx);
     return L7_SUCCESS;
   }
 
   /* Remove all clients attached to this instance */
   if (ptin_dhcp_instance_deleteAll_clients(dhcp_idx)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error removing all clients from dhcp_idx %u (evc_idx=%u)",dhcp_idx,evc_idx);
+    LOG_ERR(LOG_CTX_DHCP,"Error removing all clients from dhcp_idx %u (evc_idx=%u)",dhcp_idx,evc_idx);
     return L7_FAILURE;
   }
 
@@ -694,7 +694,7 @@ L7_RC_t ptin_dhcp_instance_remove(L7_uint32 evc_idx)
   /* Save direct referencing to dhcp index from evc ids */
   if (ptin_evc_dhcpInst_set(evc_idx, DHCP_INVALID_ENTRY) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error resetting DHCP instance to ext evc id %u", evc_idx);
+    LOG_ERR(LOG_CTX_DHCP,"Error resetting DHCP instance to ext evc id %u", evc_idx);
     return L7_FAILURE;
   }
 
@@ -744,21 +744,21 @@ L7_RC_t ptin_dhcp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
   /* Validate arguments */
   if (evc_idx>=PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid eEVC id: ucEvcId=%u",evc_idx);
+    LOG_ERR(LOG_CTX_DHCP,"Invalid eEVC id: ucEvcId=%u",evc_idx);
     return L7_FAILURE;
   }
 
   /* These evcs must be active */
   if (!ptin_evc_is_in_use(evc_idx))
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"eEVC id is not active: ucEvcId%u",evc_idx);
+    LOG_ERR(LOG_CTX_DHCP,"eEVC id is not active: ucEvcId%u",evc_idx);
     return L7_FAILURE;
   }
 
   /* Get EVC type */
   if (ptin_evc_check_evctype(evc_idx, &evc_type) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error getting eEVC %u type", evc_idx);
+    LOG_ERR(LOG_CTX_DHCP,"Error getting eEVC %u type", evc_idx);
     return L7_FAILURE;
   }
 
@@ -783,7 +783,7 @@ L7_RC_t ptin_dhcp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
       /* Find an empty instance to be used */
       if (ptin_dhcp_instance_find_free(&dhcp_idx) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_DHCP,"There is no free instances to be used");
+        LOG_ERR(LOG_CTX_DHCP,"There is no free instances to be used");
         return L7_FAILURE;
       }
       else
@@ -795,7 +795,7 @@ L7_RC_t ptin_dhcp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
     /* Save direct referencing to dhcp index from evc ids */
     if (ptin_evc_dhcpInst_set(evc_idx, dhcp_idx) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error setting DHCP instance to ext evc id %u", evc_idx);
+      LOG_ERR(LOG_CTX_DHCP,"Error setting DHCP instance to ext evc id %u", evc_idx);
       return L7_FAILURE;
     }
 
@@ -816,7 +816,7 @@ L7_RC_t ptin_dhcp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
   }
   else
   {
-    LOG_WARNING(LOG_CTX_PTIN_DHCP,"There is already an instance with eEvcId %u",evc_idx);
+    LOG_WARNING(LOG_CTX_DHCP,"There is already an instance with eEvcId %u",evc_idx);
   }
 
   /* Use ptin_dhcp_evc_trap_configure, to set traps */
@@ -830,7 +830,7 @@ L7_RC_t ptin_dhcp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
 
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error configuring DHCP snooping for dhcp_idx=%u",dhcp_idx);
+      LOG_ERR(LOG_CTX_DHCP,"Error configuring DHCP snooping for dhcp_idx=%u",dhcp_idx);
       ptin_dhcp_evc_trap_configure(evc_idx, L7_DISABLE, L7_AF_INET6);
       ptin_dhcp_evc_trap_configure(evc_idx, L7_DISABLE, L7_AF_INET);
       memset(&dhcpInstances[dhcp_idx], 0x00, sizeof(st_DhcpInstCfg_t));
@@ -875,21 +875,21 @@ L7_RC_t ptin_dhcp_evc_remove(L7_uint32 evc_idx)
   /* Validate arguments */
   if (evc_idx>=PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid eEVC ids: ucEvcId=%u",evc_idx);
+    LOG_ERR(LOG_CTX_DHCP,"Invalid eEVC ids: ucEvcId=%u",evc_idx);
     return L7_FAILURE;
   }
 
   /* Check if there is an instance with these parameters */
   if (ptin_dhcp_instance_find(evc_idx,&dhcp_idx)!=L7_SUCCESS)
   {
-    LOG_WARNING(LOG_CTX_PTIN_DHCP,"There is no instance with ucEvcId=%u",evc_idx);
+    LOG_WARNING(LOG_CTX_DHCP,"There is no instance with ucEvcId=%u",evc_idx);
     return L7_SUCCESS;
   }
 
   /* Get EVC type */
   if (ptin_evc_check_evctype(evc_idx, &evc_type) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error getting eEVC %u type", evc_idx);
+    LOG_ERR(LOG_CTX_DHCP,"Error getting eEVC %u type", evc_idx);
     return L7_FAILURE;
   }
 
@@ -915,7 +915,7 @@ L7_RC_t ptin_dhcp_evc_remove(L7_uint32 evc_idx)
     /* Remove all clients attached to this instance */
     if (ptin_dhcp_instance_deleteAll_clients(dhcp_idx)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error removing all clients from dhcp_idx %u (evc_idx=%u)",dhcp_idx,evc_idx);
+      LOG_ERR(LOG_CTX_DHCP,"Error removing all clients from dhcp_idx %u (evc_idx=%u)",dhcp_idx,evc_idx);
       return L7_FAILURE;
     }
   }
@@ -923,7 +923,7 @@ L7_RC_t ptin_dhcp_evc_remove(L7_uint32 evc_idx)
   /* Remove EVC index referencing */
   if (ptin_evc_dhcpInst_set(evc_idx, DHCP_INVALID_ENTRY) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error resetting DHCP instance to ext evc id %u", evc_idx);
+    LOG_ERR(LOG_CTX_DHCP,"Error resetting DHCP instance to ext evc id %u", evc_idx);
     return L7_FAILURE;
   }
 
@@ -987,7 +987,7 @@ L7_RC_t ptin_dhcp_reconf_evc(L7_uint32 evc_idx, L7_uint8 dhcp_flag, L7_uint32 op
    /* Get DHCP instance index */
    if (ptin_dhcp_instance_find(evc_idx, &dhcp_idx) != L7_SUCCESS)
    {
-    LOG_ERR(LOG_CTX_PTIN_DHCP, "There is no DHCP instance with EVC id %u", evc_idx);
+    LOG_ERR(LOG_CTX_DHCP, "There is no DHCP instance with EVC id %u", evc_idx);
     return L7_NOT_EXIST;
    }
 
@@ -1010,7 +1010,7 @@ L7_RC_t ptin_dhcp_reconf_rootVid(L7_uint16 rootVid, L7_uint8 dhcp_flag, L7_uint3
   /* Get DHCP instance index */
   if (ptin_dhcp_instance_find_agg(rootVid, &dhcp_idx) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP, "There is no DHCP instance for root Vid %u", rootVid);
+    LOG_ERR(LOG_CTX_DHCP, "There is no DHCP instance for root Vid %u", rootVid);
     return L7_NOT_EXIST;
   }
 
@@ -1039,21 +1039,21 @@ L7_RC_t ptin_dhcp_circuitid_get(L7_uint32 evc_idx, L7_char8 *template_str, L7_ui
   /* Validate arguments */
   if (template_str == L7_NULLPTR || access_node_id == L7_NULLPTR || mask == 0x00)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP, "Invalid arguments or no parameters provided");
+    LOG_ERR(LOG_CTX_DHCP, "Invalid arguments or no parameters provided");
     return L7_FAILURE;
   }
 
   /* Get DHCP instance index */
   if (ptin_dhcp_instance_find(evc_idx, &dhcp_idx) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP, "There is no DHCP instance with EVC id %u", evc_idx);
+    LOG_ERR(LOG_CTX_DHCP, "There is no DHCP instance with EVC id %u", evc_idx);
     return L7_FAILURE;
   }
 
   /* Validate dhcp instance */
   if (!dhcpInstances[dhcp_idx].inUse)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCP instance %u is not in use", dhcp_idx);
+    LOG_ERR(LOG_CTX_DHCP, "DHCP instance %u is not in use", dhcp_idx);
     return L7_FAILURE;
   }
 
@@ -1093,7 +1093,7 @@ L7_RC_t ptin_dhcp_circuitid_set_evc(L7_uint32 evc_idx, L7_char8 *template_str, L
   /* Get DHCP instance index */
   if (ptin_dhcp_instance_find(evc_idx, &dhcp_idx) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP, "There is no DHCP instance with EVC id %u", evc_idx);
+    LOG_ERR(LOG_CTX_DHCP, "There is no DHCP instance with EVC id %u", evc_idx);
     return L7_NOT_EXIST;
   }
 
@@ -1122,7 +1122,7 @@ L7_RC_t ptin_dhcp_circuitid_set_nniVid(L7_uint16 nni_outerVid, L7_char8 *templat
   /* Get DHCP instance index */
   if (ptin_dhcp_instance_find_agg(nni_outerVid, &dhcp_idx) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP, "There is no DHCP instance for NNI Vid %u", nni_outerVid);
+    LOG_ERR(LOG_CTX_DHCP, "There is no DHCP instance for NNI Vid %u", nni_outerVid);
     return L7_NOT_EXIST;
   }
 
@@ -1152,32 +1152,32 @@ static L7_RC_t ptin_dhcp_circuitid_set_instance(L7_uint16 dhcp_idx, L7_char8 *te
   /* Validate arguments */
   if (template_str == L7_NULLPTR || access_node_id == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP, "Invalid arguments or no parameters provided");
+    LOG_ERR(LOG_CTX_DHCP, "Invalid arguments or no parameters provided");
     return L7_FAILURE;
   }
   /* Validate string lengths */
   if ( strnlen(template_str, CIRCUITID_TEMPLATE_MAX_STRING) >= CIRCUITID_TEMPLATE_MAX_STRING )
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP, "Template string length is invalid!");
+    LOG_ERR(LOG_CTX_DHCP, "Template string length is invalid!");
     return L7_FAILURE;
   }
   if ( strnlen(access_node_id, FD_DS_MAX_REMOTE_ID_STRING) >= FD_DS_MAX_REMOTE_ID_STRING )
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP, "Access node identifier length is invalid!");
+    LOG_ERR(LOG_CTX_DHCP, "Access node identifier length is invalid!");
     return L7_FAILURE;
   }
 
   /* Validate DHCP instance index */
   if (dhcp_idx >= PTIN_SYSTEM_N_DHCP_INSTANCES)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP, "Invalid DHCP instance %u", dhcp_idx);
+    LOG_ERR(LOG_CTX_DHCP, "Invalid DHCP instance %u", dhcp_idx);
     return L7_FAILURE;
   }
 
   /* Validate dhcp instance */
   if (!dhcpInstances[dhcp_idx].inUse)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCP instance %u is not in use", dhcp_idx);
+    LOG_ERR(LOG_CTX_DHCP, "DHCP instance %u is not in use", dhcp_idx);
     return L7_FAILURE;
   }
 
@@ -1233,14 +1233,14 @@ L7_RC_t ptin_dhcp_evc_flags_get(L7_uint32 evc_idx, L7_uchar8 *dhcp_mask, L7_char
   /* Get DHCP instance index */
   if (ptin_dhcp_instance_find(evc_idx, &dhcp_idx) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP, "There is no DHCP instance with EVC id %u", evc_idx);
+    LOG_ERR(LOG_CTX_DHCP, "There is no DHCP instance with EVC id %u", evc_idx);
     return L7_FAILURE;
   }
 
   /* Validate dhcp instance */
   if (ptin_dhcp_flags_get_instance(dhcp_idx, dhcp_mask, dhcp_flags) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP, "Error getting DHCP flags for eEVC %u / dhcp_idx=%u", evc_idx, dhcp_idx);
+    LOG_ERR(LOG_CTX_DHCP, "Error getting DHCP flags for eEVC %u / dhcp_idx=%u", evc_idx, dhcp_idx);
     return L7_FAILURE;
   }
 
@@ -1263,7 +1263,7 @@ L7_RC_t ptin_dhcp_evc_flags_set(L7_uint32 evc_idx, L7_uchar8 mask, L7_uchar8 fla
   /* Get DHCP instance index */
   if (ptin_dhcp_instance_find(evc_idx, &dhcp_idx) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP, "There is no DHCP instance with EVC id %u", evc_idx);
+    LOG_ERR(LOG_CTX_DHCP, "There is no DHCP instance with EVC id %u", evc_idx);
     return L7_NOT_EXIST;
   }
 
@@ -1286,7 +1286,7 @@ L7_RC_t ptin_dhcp_nniVid_flags_set(L7_uint16 nni_outerVid, L7_uchar8 mask, L7_uc
   /* Get DHCP instance index */
   if (ptin_dhcp_instance_find_agg(nni_outerVid, &dhcp_idx) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP, "There is no DHCP instance for NNI Vid %u", nni_outerVid);
+    LOG_ERR(LOG_CTX_DHCP, "There is no DHCP instance for NNI Vid %u", nni_outerVid);
     return L7_NOT_EXIST;
   }
 
@@ -1307,14 +1307,14 @@ L7_RC_t ptin_dhcp_flags_get_instance(L7_uint16 dhcp_idx, L7_uchar8 *mask, L7_cha
   /* Validate DHCP instance index */
   if (dhcp_idx >= PTIN_SYSTEM_N_DHCP_INSTANCES)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP, "Invalid DHCP instance %u", dhcp_idx);
+    LOG_ERR(LOG_CTX_DHCP, "Invalid DHCP instance %u", dhcp_idx);
     return L7_FAILURE;
   }
 
   /* Validate dhcp instance */
   if (!dhcpInstances[dhcp_idx].inUse)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCP instance %u is not in use", dhcp_idx);
+    LOG_ERR(LOG_CTX_DHCP, "DHCP instance %u is not in use", dhcp_idx);
     return L7_FAILURE;
   }
 
@@ -1351,14 +1351,14 @@ static L7_RC_t ptin_dhcp_flags_set_instance(L7_uint16 dhcp_idx, L7_uchar8 mask, 
   /* Validate DHCP instance index */
   if (dhcp_idx >= PTIN_SYSTEM_N_DHCP_INSTANCES)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP, "Invalid DHCP instance %u", dhcp_idx);
+    LOG_ERR(LOG_CTX_DHCP, "Invalid DHCP instance %u", dhcp_idx);
     return L7_FAILURE;
   }
 
   /* Validate dhcp instance */
   if (!dhcpInstances[dhcp_idx].inUse)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCP instance %u is not in use", dhcp_idx);
+    LOG_ERR(LOG_CTX_DHCP, "DHCP instance %u is not in use", dhcp_idx);
     return L7_FAILURE;
   }
 
@@ -1392,21 +1392,21 @@ L7_RC_t ptin_dhcp_client_get(L7_uint32 evc_idx, ptin_client_id_t *client, L7_uin
   /* Validate arguments */
   if (client==L7_NULLPTR || DHCP_CLIENT_MASK_UPDATE(client->mask)==0x00)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid arguments or no parameters provided");
+    LOG_ERR(LOG_CTX_DHCP,"Invalid arguments or no parameters provided");
     return L7_FAILURE;
   }
 
   /* Get DHCP instance index */
   if (ptin_dhcp_instance_find(evc_idx, &dhcp_idx)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"There is no DHCP instance with EVC id %u",evc_idx);
+    LOG_ERR(LOG_CTX_DHCP,"There is no DHCP instance with EVC id %u",evc_idx);
     return L7_FAILURE;
   }
 
   /* Find client information */
   if (ptin_dhcp_client_find(dhcp_idx,client,&client_info)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Non existent client in DHCP instance %u (EVC id %u)",dhcp_idx,evc_idx);
+    LOG_ERR(LOG_CTX_DHCP,"Non existent client in DHCP instance %u (EVC id %u)",dhcp_idx,evc_idx);
     return L7_FAILURE;
   }
 
@@ -1428,13 +1428,13 @@ L7_RC_t ptin_dhcp_client_get(L7_uint32 evc_idx, ptin_client_id_t *client, L7_uin
   {
     strncpy(circuitId ,client_info->client_data.circuitId_str ,FD_DS_MAX_REMOTE_ID_STRING);
     circuitId[FD_DS_MAX_REMOTE_ID_STRING-1] = '\0';
-    LOG_TRACE(LOG_CTX_PTIN_DHCP, "%s", circuitId);
+    LOG_TRACE(LOG_CTX_DHCP, "%s", circuitId);
   }
   if (remoteId!=L7_NULLPTR)
   {
     strncpy(remoteId ,client_info->client_data.remoteId_str ,FD_DS_MAX_REMOTE_ID_STRING);
     remoteId[FD_DS_MAX_REMOTE_ID_STRING-1] = '\0';
-    LOG_TRACE(LOG_CTX_PTIN_DHCP, "%s", remoteId);
+    LOG_TRACE(LOG_CTX_DHCP, "%s", remoteId);
   }
 
   return L7_SUCCESS;
@@ -1470,14 +1470,14 @@ L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_i
   /* Validate arguments */
   if (client_id == L7_NULLPTR || DHCP_CLIENT_MASK_UPDATE(client_id->mask) == 0x00)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid arguments or no parameters provided");
+    LOG_ERR(LOG_CTX_DHCP,"Invalid arguments or no parameters provided");
     return L7_FAILURE;
   }
 
   /* Get DHCP instance index */
   if (ptin_dhcp_instance_find(evc_idx, &dhcp_idx)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"There is no DHCP instance with EVC id %u",evc_idx);
+    LOG_ERR(LOG_CTX_DHCP,"There is no DHCP instance with EVC id %u",evc_idx);
     return L7_FAILURE;
   }
 
@@ -1486,7 +1486,7 @@ L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_i
   /* Validate and rearrange clientId info */
   if (ptin_dhcp_clientId_convert(evc_idx, &client) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid client id");
+    LOG_ERR(LOG_CTX_DHCP,"Invalid client id");
     return L7_FAILURE;
   }
 
@@ -1498,19 +1498,19 @@ L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_i
     /* Get interface configuration in the UC EVC */
     if (ptin_evc_intfCfg_get(evc_idx, &client.ptin_intf, &intfCfg)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error acquiring intf configuration for intf %u/%u, evc=%u",client.ptin_intf.intf_type,client.ptin_intf.intf_id,evc_idx);
+      LOG_ERR(LOG_CTX_DHCP,"Error acquiring intf configuration for intf %u/%u, evc=%u",client.ptin_intf.intf_type,client.ptin_intf.intf_id,evc_idx);
       return L7_FAILURE;
     }
     /* Validate interface configuration in EVC: must be in use, and be a leaf/client */
     if (!intfCfg.in_use || intfCfg.type!=PTIN_EVC_INTF_LEAF)
     {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"intf %u/%u is not in use or is not a leaf in evc %u",client.ptin_intf.intf_type,client.ptin_intf.intf_id,evc_idx);
+      LOG_ERR(LOG_CTX_DHCP,"intf %u/%u is not in use or is not a leaf in evc %u",client.ptin_intf.intf_type,client.ptin_intf.intf_id,evc_idx);
       return L7_FAILURE;
     }
     /* Convert to ptin_port format */
     if (ptin_intf_ptintf2port(&client.ptin_intf,&ptin_port)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Cannot convert client intf %u/%u to ptin_port format",client.ptin_intf.intf_type,client.ptin_intf.intf_id);
+      LOG_ERR(LOG_CTX_DHCP,"Cannot convert client intf %u/%u to ptin_port format",client.ptin_intf.intf_type,client.ptin_intf.intf_id);
       return L7_FAILURE;
     }
   }
@@ -1526,19 +1526,19 @@ L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_i
     {
       if (ptin_evc_extVlans_get(intIfNum, evc_idx,(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
       {
-        LOG_TRACE(LOG_CTX_PTIN_DHCP,"Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
+        LOG_TRACE(LOG_CTX_DHCP,"Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
                   client.ptin_intf.intf_type, client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
       }
       else
       {
         uni_ovid = uni_ivid = 0;
-        LOG_ERR(LOG_CTX_PTIN_DHCP,"Cannot get ext vlans for ptin_intf %u/%u, cvlan %u",
+        LOG_ERR(LOG_CTX_DHCP,"Cannot get ext vlans for ptin_intf %u/%u, cvlan %u",
                 client.ptin_intf.intf_type, client.ptin_intf.intf_id, client.innerVlan);
       }
     }
     else
     {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid ptin_intf %u/%u", client.ptin_intf.intf_type, client.ptin_intf.intf_id);
+      LOG_ERR(LOG_CTX_DHCP,"Invalid ptin_intf %u/%u", client.ptin_intf.intf_type, client.ptin_intf.intf_id);
     }
   }
 
@@ -1568,7 +1568,7 @@ L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_i
   #endif
 
   #if (DHCP_CLIENT_DEBUG)
-  LOG_TRACE(LOG_CTX_PTIN_DHCP,"Key {"
+  LOG_TRACE(LOG_CTX_DHCP,"Key {"
             #if (DHCP_CLIENT_INTERF_SUPPORTED)
                               "port=%u,"
             #endif
@@ -1607,7 +1607,7 @@ L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_i
   if ((avl_infoData=(ptinDhcpClientInfoData_t *) avlSearchLVL7( &(avl_tree->dhcpClientsAvlTree), (void *)&avl_key, AVL_EXACT))!=L7_NULLPTR)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_WARNING(LOG_CTX_PTIN_DHCP,"This key {"
+      LOG_WARNING(LOG_CTX_DHCP,"This key {"
                 #if (DHCP_CLIENT_INTERF_SUPPORTED)
                                   "port=%u,"
                 #endif
@@ -1647,14 +1647,14 @@ L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_i
     /* Check if there is free clients */
     if ( !dhcp_clientIndex_check_free(dhcp_idx) )
     {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"There is no more free clients to be allocated for dhcp_idx=%u (evc=%u)", dhcp_idx, evc_idx);
+      LOG_ERR(LOG_CTX_DHCP,"There is no more free clients to be allocated for dhcp_idx=%u (evc=%u)", dhcp_idx, evc_idx);
       return L7_FAILURE;
     }
 
     /* Insert entry in AVL tree */
     if (avlInsertEntry(&(avl_tree->dhcpClientsAvlTree), (void *)&avl_key)!=L7_NULLPTR)
     {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error inserting key {"
+      LOG_ERR(LOG_CTX_DHCP,"Error inserting key {"
               #if (DHCP_CLIENT_INTERF_SUPPORTED)
                                 "port=%u,"
               #endif
@@ -1693,7 +1693,7 @@ L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_i
     /* Find the inserted entry */
     if ((avl_infoData=(ptinDhcpClientInfoData_t *) avlSearchLVL7(&(avl_tree->dhcpClientsAvlTree),(void *)&avl_key, AVL_EXACT))==L7_NULLPTR)
     {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Cannot find key {"
+      LOG_ERR(LOG_CTX_DHCP,"Cannot find key {"
               #if (DHCP_CLIENT_INTERF_SUPPORTED)
                                 "port=%u,"
               #endif
@@ -1735,7 +1735,7 @@ L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_i
     if (client_idx < 0 || client_idx >= PTIN_SYSTEM_DHCP_MAXCLIENTS)
     {
       avlDeleteEntry(&(avl_tree->dhcpClientsAvlTree), (void *)&avl_key);
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error obtaining new client index for dhcp_idx=%u (evc=%u)",dhcp_idx, evc_idx);
+      LOG_ERR(LOG_CTX_DHCP,"Error obtaining new client index for dhcp_idx=%u (evc=%u)",dhcp_idx, evc_idx);
       return L7_FAILURE;
     }
 
@@ -1782,7 +1782,7 @@ L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_i
   strncpy(avl_infoData->client_data.remoteId_str ,remoteId ,FD_DS_MAX_REMOTE_ID_STRING);
   avl_infoData->client_data.remoteId_str[FD_DS_MAX_REMOTE_ID_STRING-1] = '\0';
 
-  LOG_TRACE(LOG_CTX_PTIN_DHCP,"Success inserting Key {"
+  LOG_TRACE(LOG_CTX_DHCP,"Success inserting Key {"
             #if (DHCP_CLIENT_INTERF_SUPPORTED)
                               "port=%u,"
             #endif
@@ -1841,14 +1841,14 @@ L7_RC_t ptin_dhcp_client_delete(L7_uint32 evc_idx, const ptin_client_id_t *clien
   /* Validate arguments */
   if (client_id == L7_NULLPTR || DHCP_CLIENT_MASK_UPDATE(client_id->mask) == 0x00)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid arguments or no parameters provided");
+    LOG_ERR(LOG_CTX_DHCP,"Invalid arguments or no parameters provided");
     return L7_FAILURE;
   }
 
   /* Get DHCP instance index */
   if (ptin_dhcp_instance_find(evc_idx, &dhcp_idx)!=L7_SUCCESS)
   {
-    LOG_WARNING(LOG_CTX_PTIN_DHCP,"There is no DHCP instance with EVC id %u",evc_idx);
+    LOG_WARNING(LOG_CTX_DHCP,"There is no DHCP instance with EVC id %u",evc_idx);
     return L7_NOT_EXIST;
   }
 
@@ -1857,7 +1857,7 @@ L7_RC_t ptin_dhcp_client_delete(L7_uint32 evc_idx, const ptin_client_id_t *clien
   /* Validate and rearrange clientId info */
   if (ptin_dhcp_clientId_convert(evc_idx, &client) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid client id");
+    LOG_ERR(LOG_CTX_DHCP,"Invalid client id");
     return L7_NOT_EXIST;
   }
 
@@ -1868,7 +1868,7 @@ L7_RC_t ptin_dhcp_client_delete(L7_uint32 evc_idx, const ptin_client_id_t *clien
   {
     if (ptin_intf_ptintf2port(&client.ptin_intf,&ptin_port)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Cannot convert client intf %u/%u to ptin_port format",client.ptin_intf.intf_type, client.ptin_intf.intf_id);
+      LOG_ERR(LOG_CTX_DHCP,"Cannot convert client intf %u/%u to ptin_port format",client.ptin_intf.intf_type, client.ptin_intf.intf_id);
       return L7_FAILURE;
     }
   }
@@ -1901,7 +1901,7 @@ L7_RC_t ptin_dhcp_client_delete(L7_uint32 evc_idx, const ptin_client_id_t *clien
   #endif
 
   #if (DHCP_CLIENT_DEBUG)
-  LOG_TRACE(LOG_CTX_PTIN_DHCP,"Key to search {"
+  LOG_TRACE(LOG_CTX_DHCP,"Key to search {"
             #if (DHCP_CLIENT_INTERF_SUPPORTED)
                               "port=%u,"
             #endif
@@ -1939,7 +1939,7 @@ L7_RC_t ptin_dhcp_client_delete(L7_uint32 evc_idx, const ptin_client_id_t *clien
   /* Check if this entry does not exist in AVL tree */
   if ((avl_infoData=(ptinDhcpClientInfoData_t *) avlSearchLVL7( &(avl_tree->dhcpClientsAvlTree), (void *)&avl_key, AVL_EXACT))==L7_NULLPTR)
   {
-    LOG_WARNING(LOG_CTX_PTIN_DHCP,"This key {"
+    LOG_WARNING(LOG_CTX_DHCP,"This key {"
                 #if (DHCP_CLIENT_INTERF_SUPPORTED)
                                   "port=%u,"
                 #endif
@@ -1981,7 +1981,7 @@ L7_RC_t ptin_dhcp_client_delete(L7_uint32 evc_idx, const ptin_client_id_t *clien
   /* Remove entry from AVL tree */
   if (avlDeleteEntry(&(avl_tree->dhcpClientsAvlTree), (void *)&avl_key)==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error removing key {"
+    LOG_ERR(LOG_CTX_DHCP,"Error removing key {"
             #if (DHCP_CLIENT_INTERF_SUPPORTED)
                               "port=%u,"
             #endif
@@ -2020,7 +2020,7 @@ L7_RC_t ptin_dhcp_client_delete(L7_uint32 evc_idx, const ptin_client_id_t *clien
   /* Release client index */
   dhcp_clientIndex_release(dhcp_idx, client_idx);
 
-  LOG_TRACE(LOG_CTX_PTIN_DHCP,"Success removing Key {"
+  LOG_TRACE(LOG_CTX_DHCP,"Success removing Key {"
             #if (DHCP_CLIENT_INTERF_SUPPORTED)
                               "port=%u,"
             #endif
@@ -2057,7 +2057,7 @@ L7_RC_t ptin_dhcp_client_delete(L7_uint32 evc_idx, const ptin_client_id_t *clien
   /* Remove all associated DHCP leases */
   if (L7_SUCCESS != dsEvcBindingsClear(evc_idx))
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to remove DHCP leases [evc_idx:%u]", evc_idx);
+    LOG_ERR(LOG_CTX_MSG, "Unable to remove DHCP leases [evc_idx:%u]", evc_idx);
     return L7_FAILURE;
   }
 
@@ -2187,14 +2187,14 @@ L7_RC_t ptin_dhcp82_bindtable_remove(dhcpSnoopBinding_t *dsBinding)
 
   // Find This entry
   if (usmDbDsBindingGet(dsBinding)!=L7_SUCCESS) {
-    LOG_ERR(LOG_CTX_PTIN_DHCP, "This entry does not exist");
+    LOG_ERR(LOG_CTX_DHCP, "This entry does not exist");
     return L7_FAILURE;
   }
 
   // Remove this entry
   memcpy(macAddr.addr,dsBinding->key.macAddr,sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
   if (usmDbDsBindingRemove(&macAddr)!=L7_SUCCESS) {
-    LOG_ERR(LOG_CTX_PTIN_DHCP, "Error removing entry");
+    LOG_ERR(LOG_CTX_DHCP, "Error removing entry");
     return L7_FAILURE;
   }
 
@@ -2210,7 +2210,7 @@ L7_RC_t ptin_dhcp82_bindtable_remove(dhcpSnoopBinding_t *dsBinding)
  */
 L7_RC_t ptin_dhcp_bindtable_service_remove(L7_uint32 evc_ext_id)
 {
-  LOG_DEBUG(LOG_CTX_PTIN_DHCP, "Removing all DHCP leases associated with external service ID %u", evc_ext_id);
+  LOG_DEBUG(LOG_CTX_DHCP, "Removing all DHCP leases associated with external service ID %u", evc_ext_id);
 
   return L7_SUCCESS;
 }
@@ -2231,14 +2231,14 @@ L7_RC_t ptin_dhcp_stat_intf_get(ptin_intf_t *ptin_intf, ptin_DHCP_Statistics_t *
   /* Validate arguments */
   if (ptin_intf==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid arguments");
+    LOG_ERR(LOG_CTX_DHCP,"Invalid arguments");
     return L7_FAILURE;
   }
 
   /* Validate interface */
   if (ptin_intf_ptintf2port(ptin_intf,&ptin_port)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid interface %u/%u",ptin_intf->intf_id,ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_DHCP,"Invalid interface %u/%u",ptin_intf->intf_id,ptin_intf->intf_id);
     return L7_FAILURE;
   }
 
@@ -2272,33 +2272,33 @@ L7_RC_t ptin_dhcp_stat_instanceIntf_get(L7_uint32 evc_idx, ptin_intf_t *ptin_int
   /* Validate arguments */
   if (ptin_intf==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid arguments");
+    LOG_ERR(LOG_CTX_DHCP,"Invalid arguments");
     return L7_FAILURE;
   }
 
   /* Validate interface */
   if (ptin_intf_ptintf2port(ptin_intf,&ptin_port)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid interface %u/%u",ptin_intf->intf_id,ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_DHCP,"Invalid interface %u/%u",ptin_intf->intf_id,ptin_intf->intf_id);
     return L7_FAILURE;
   }
 
   /* Check if EVC is active, and if interface is part of the EVC */
   if (ptin_evc_intfCfg_get(evc_idx,ptin_intf,&intfCfg)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error getting interface (%u/%u) configuration from EVC %u",ptin_intf->intf_id,ptin_intf->intf_id,evc_idx);
+    LOG_ERR(LOG_CTX_DHCP,"Error getting interface (%u/%u) configuration from EVC %u",ptin_intf->intf_id,ptin_intf->intf_id,evc_idx);
     return L7_FAILURE;
   }
   if (!intfCfg.in_use)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Interface %u/%u is not in use by EVC %u",ptin_intf->intf_id,ptin_intf->intf_id,evc_idx);
+    LOG_ERR(LOG_CTX_DHCP,"Interface %u/%u is not in use by EVC %u",ptin_intf->intf_id,ptin_intf->intf_id,evc_idx);
     return L7_FAILURE;
   }
 
   /* Get Dhcp instance */
   if (ptin_dhcp_instance_find(evc_idx,&dhcp_idx)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"EVC %u does not belong to any DHCP instance",evc_idx);
+    LOG_ERR(LOG_CTX_DHCP,"EVC %u does not belong to any DHCP instance",evc_idx);
     return L7_FAILURE;
   }
 
@@ -2332,14 +2332,14 @@ L7_RC_t ptin_dhcp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cli
   /* Validate arguments */
   if (client_id == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid arguments");
+    LOG_ERR(LOG_CTX_DHCP,"Invalid arguments");
     return L7_FAILURE;
   }
 
   /* Get Dhcp instance */
   if (ptin_dhcp_instance_find(evc_idx, &dhcp_idx)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"EVC %u does not belong to any DHCP instance",evc_idx);
+    LOG_ERR(LOG_CTX_DHCP,"EVC %u does not belong to any DHCP instance",evc_idx);
     return L7_FAILURE;
   }
 
@@ -2348,14 +2348,14 @@ L7_RC_t ptin_dhcp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cli
   /* Validate and rearrange clientId info */
   if (ptin_dhcp_clientId_convert(evc_idx, &client) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid client id");
+    LOG_ERR(LOG_CTX_DHCP,"Invalid client id");
     return L7_FAILURE;
   }
 
   /* Get client */
   if (ptin_dhcp_client_find(dhcp_idx, &client, &clientInfo)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,
+    LOG_ERR(LOG_CTX_DHCP,
             "Error searching for client {mask=0x%02x,"
             "port=%u/%u,"
             "svlan=%u,"
@@ -2463,7 +2463,7 @@ L7_RC_t ptin_dhcp_stat_instance_clear(L7_uint32 evc_idx)
   /* Get Dhcp instance */
   if (ptin_dhcp_instance_find(evc_idx,&dhcp_idx)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"EVC %u does not belong to any DHCP instance",evc_idx);
+    LOG_ERR(LOG_CTX_DHCP,"EVC %u does not belong to any DHCP instance",evc_idx);
     return L7_FAILURE;
   }
 
@@ -2509,14 +2509,14 @@ L7_RC_t ptin_dhcp_stat_intf_clear(ptin_intf_t *ptin_intf)
   /* Validate arguments */
   if (ptin_intf==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid arguments");
+    LOG_ERR(LOG_CTX_DHCP,"Invalid arguments");
     return L7_FAILURE;
   }
 
   /* Convert interface to ptin_port */
   if (ptin_intf_ptintf2port(ptin_intf,&ptin_port)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid interface %u/%u",ptin_intf->intf_type,ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_DHCP,"Invalid interface %u/%u",ptin_intf->intf_type,ptin_intf->intf_id);
     return L7_FAILURE;
   }
 
@@ -2576,33 +2576,33 @@ L7_RC_t ptin_dhcp_stat_instanceIntf_clear(L7_uint32 evc_idx, ptin_intf_t *ptin_i
   /* Validate arguments */
   if (ptin_intf==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid arguments");
+    LOG_ERR(LOG_CTX_DHCP,"Invalid arguments");
     return L7_FAILURE;
   }
 
   /* Convert interface to ptin_port */
   if (ptin_intf_ptintf2port(ptin_intf,&ptin_port)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid interface %u/%u",ptin_intf->intf_type,ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_DHCP,"Invalid interface %u/%u",ptin_intf->intf_type,ptin_intf->intf_id);
     return L7_FAILURE;
   }
 
   /* Check if EVC is active, and if interface is part of the EVC */
   if (ptin_evc_intfCfg_get(evc_idx,ptin_intf,&intfCfg)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error getting interface (%u/%u) configuration from EVC %u",ptin_intf->intf_id,ptin_intf->intf_id,evc_idx);
+    LOG_ERR(LOG_CTX_DHCP,"Error getting interface (%u/%u) configuration from EVC %u",ptin_intf->intf_id,ptin_intf->intf_id,evc_idx);
     return L7_FAILURE;
   }
   if (!intfCfg.in_use)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Interface %u/%u is not in use by EVC %u",ptin_intf->intf_id,ptin_intf->intf_id,evc_idx);
+    LOG_ERR(LOG_CTX_DHCP,"Interface %u/%u is not in use by EVC %u",ptin_intf->intf_id,ptin_intf->intf_id,evc_idx);
     return L7_FAILURE;
   }
 
   /* Get Dhcp instance */
   if (ptin_dhcp_instance_find(evc_idx,&dhcp_idx)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"EVC %u does not belong to any DHCP instance",evc_idx);
+    LOG_ERR(LOG_CTX_DHCP,"EVC %u does not belong to any DHCP instance",evc_idx);
     return L7_FAILURE;
   }
 
@@ -2655,14 +2655,14 @@ L7_RC_t ptin_dhcp_stat_client_clear(L7_uint32 evc_idx, const ptin_client_id_t *c
   /* Validate arguments */
   if (client_id == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid arguments");
+    LOG_ERR(LOG_CTX_DHCP,"Invalid arguments");
     return L7_FAILURE;
   }
 
   /* Get Dhcp instance */
   if (ptin_dhcp_instance_find(evc_idx, &dhcp_idx) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"EVC %u does not belong to any DHCP instance",evc_idx);
+    LOG_ERR(LOG_CTX_DHCP,"EVC %u does not belong to any DHCP instance",evc_idx);
     return L7_FAILURE;
   }
 
@@ -2671,14 +2671,14 @@ L7_RC_t ptin_dhcp_stat_client_clear(L7_uint32 evc_idx, const ptin_client_id_t *c
   /* Validate and rearrange clientId info */
   if (ptin_dhcp_clientId_convert(evc_idx, &client) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid client id");
+    LOG_ERR(LOG_CTX_DHCP,"Invalid client id");
     return L7_FAILURE;
   }
 
   /* Find client */
   if (ptin_dhcp_client_find(dhcp_idx, &client, &clientInfo) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,
+    LOG_ERR(LOG_CTX_DHCP,
             "Error searching for client {mask=0x%02x,"
             "port=%u/%u,"
             "svlan=%u,"
@@ -2722,7 +2722,7 @@ L7_BOOL ptin_dhcp_intf_validate(L7_uint32 intIfNum)
   /* Validate arguments */
   if ( intIfNum==0 || intIfNum>=L7_MAX_INTERFACE_COUNT )
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid arguments: intIfNum=%u",intIfNum);
+    LOG_ERR(LOG_CTX_DHCP,"Invalid arguments: intIfNum=%u",intIfNum);
     return L7_FALSE;
   }
 
@@ -2730,7 +2730,7 @@ L7_BOOL ptin_dhcp_intf_validate(L7_uint32 intIfNum)
   if (ptin_intf_intIfNum2ptintf(intIfNum,L7_NULLPTR)!=L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid intIfNum %u",intIfNum);
+      LOG_ERR(LOG_CTX_DHCP,"Invalid intIfNum %u",intIfNum);
     return L7_FALSE;
   }
 
@@ -2749,7 +2749,7 @@ L7_BOOL ptin_dhcp_vlan_validate(L7_uint16 intVlanId)
   /* Validate arguments */
   if ( intVlanId<1 || intVlanId>=4095 )
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid arguments: intVlan=%u",intVlanId);
+    LOG_ERR(LOG_CTX_DHCP,"Invalid arguments: intVlan=%u",intVlanId);
     return L7_FALSE;
   }
 
@@ -2757,7 +2757,7 @@ L7_BOOL ptin_dhcp_vlan_validate(L7_uint16 intVlanId)
   if (ptin_dhcp_inst_get_fromIntVlan(intVlanId,L7_NULLPTR,L7_NULLPTR)!=L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"No DHCP instance associated to intVlan %u",intVlanId);
+      LOG_ERR(LOG_CTX_DHCP,"No DHCP instance associated to intVlan %u",intVlanId);
     return L7_FALSE;
   }
 
@@ -2787,7 +2787,7 @@ L7_BOOL ptin_dhcp_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlanId /*, 
        intVlanId<PTIN_VLAN_MIN || intVlanId>PTIN_VLAN_MAX )
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid arguments: intIfNum=%u intVlan=%u",intIfNum,intVlanId);
+      LOG_ERR(LOG_CTX_DHCP,"Invalid arguments: intIfNum=%u intVlan=%u",intIfNum,intVlanId);
     return L7_FALSE;
   }
 
@@ -2795,7 +2795,7 @@ L7_BOOL ptin_dhcp_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlanId /*, 
   if (ptin_intf_intIfNum2ptintf(intIfNum, &ptin_intf)!=L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid intIfNum %u", intIfNum);
+      LOG_ERR(LOG_CTX_DHCP,"Invalid intIfNum %u", intIfNum);
     return L7_FALSE;
   }
 
@@ -2803,7 +2803,7 @@ L7_BOOL ptin_dhcp_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlanId /*, 
   if (ptin_dhcp_inst_get_fromIntVlan(intVlanId, &dhcpInst, &dhcp_idx)!=L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"No DHCP instance associated to intVlan %u", intVlanId);
+      LOG_ERR(LOG_CTX_DHCP,"No DHCP instance associated to intVlan %u", intVlanId);
     return L7_FALSE;
   }
 
@@ -2811,7 +2811,7 @@ L7_BOOL ptin_dhcp_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlanId /*, 
   if (ptin_evc_get_evcIdfromIntVlan(intVlanId, &evc_id_ext) != L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"No EVC id associated to intVlan %u", intVlanId);
+      LOG_ERR(LOG_CTX_DHCP,"No EVC id associated to intVlan %u", intVlanId);
     return L7_FALSE;
   }
 
@@ -2819,7 +2819,7 @@ L7_BOOL ptin_dhcp_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlanId /*, 
   if (!ptin_evc_is_in_use(evc_id_ext))
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Inconsistency: eEVCid=%u (Vlan %u) not in use", evc_id_ext, intVlanId);
+      LOG_ERR(LOG_CTX_DHCP,"Inconsistency: eEVCid=%u (Vlan %u) not in use", evc_id_ext, intVlanId);
     return L7_FAILURE;
   }
 
@@ -2827,7 +2827,7 @@ L7_BOOL ptin_dhcp_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlanId /*, 
   if (ptin_evc_intfCfg_get(evc_id_ext, &ptin_intf, &intfCfg)!=L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error acquiring interface %u/%u configuarion from eEVC id %u",
+      LOG_ERR(LOG_CTX_DHCP,"Error acquiring interface %u/%u configuarion from eEVC id %u",
               ptin_intf.intf_type, ptin_intf.intf_id, evc_id_ext);
     return L7_FALSE;
   }
@@ -2836,7 +2836,7 @@ L7_BOOL ptin_dhcp_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlanId /*, 
   if (!intfCfg.in_use)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Interface %u/%u (intIfNum=%u) is not in use for eEVC %u",
+      LOG_ERR(LOG_CTX_DHCP,"Interface %u/%u (intIfNum=%u) is not in use for eEVC %u",
               ptin_intf.intf_type, ptin_intf.intf_id, intIfNum, evc_id_ext);
     return L7_FALSE;
   }
@@ -2852,7 +2852,7 @@ void ptin_dhcp_intfTrusted_init(void)
   /* All ports as untrusted */
   memset(&dhcp_intIfNum_trusted, 0x00, sizeof(dhcp_intIfNum_trusted));
 
-  LOG_INFO(LOG_CTX_PTIN_DHCP,"Trusted ports initialized");
+  LOG_INFO(LOG_CTX_DHCP,"Trusted ports initialized");
 }
 
 /**
@@ -2894,7 +2894,7 @@ L7_BOOL ptin_dhcp_is_intfTrusted(L7_uint32 intIfNum, L7_uint16 intVlanId)
   if ( intIfNum == 0 || intIfNum >= L7_MAX_INTERFACE_COUNT ||
       (intVlanId != 0 && (intVlanId < PTIN_VLAN_MIN || intVlanId > PTIN_VLAN_MAX)) )
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid arguments: intIfNum=%u intVlan=%u",intIfNum,intVlanId);
+    LOG_ERR(LOG_CTX_DHCP,"Invalid arguments: intIfNum=%u intVlan=%u",intIfNum,intVlanId);
     return L7_FALSE;
   }
 
@@ -2916,7 +2916,7 @@ L7_BOOL ptin_dhcp_is_intfTrusted(L7_uint32 intIfNum, L7_uint16 intVlanId)
   if (ptin_intf_intIfNum2ptintf(intIfNum, &ptin_intf)!=L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid intIfNum %u", intIfNum);
+      LOG_ERR(LOG_CTX_DHCP,"Invalid intIfNum %u", intIfNum);
     return L7_FALSE;
   }
 
@@ -2924,7 +2924,7 @@ L7_BOOL ptin_dhcp_is_intfTrusted(L7_uint32 intIfNum, L7_uint16 intVlanId)
   if (ptin_dhcp_inst_get_fromIntVlan(intVlanId, &dhcpInst, &dhcp_idx)!=L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"No DHCP instance associated to intVlan %u", intVlanId);
+      LOG_ERR(LOG_CTX_DHCP,"No DHCP instance associated to intVlan %u", intVlanId);
     return L7_FALSE;
   }
 
@@ -2932,7 +2932,7 @@ L7_BOOL ptin_dhcp_is_intfTrusted(L7_uint32 intIfNum, L7_uint16 intVlanId)
   if (ptin_evc_get_evcIdfromIntVlan(intVlanId, &evc_id_ext) != L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"No EVC id associated to intVlan %u", intVlanId);
+      LOG_ERR(LOG_CTX_DHCP,"No EVC id associated to intVlan %u", intVlanId);
     return L7_FALSE;
   }
 
@@ -2940,7 +2940,7 @@ L7_BOOL ptin_dhcp_is_intfTrusted(L7_uint32 intIfNum, L7_uint16 intVlanId)
   if (!ptin_evc_is_in_use(evc_id_ext))
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Inconsistency: eEVCid=%u (Vlan %u) not in use", evc_id_ext, intVlanId);
+      LOG_ERR(LOG_CTX_DHCP,"Inconsistency: eEVCid=%u (Vlan %u) not in use", evc_id_ext, intVlanId);
     return L7_FAILURE;
   }
 
@@ -2948,7 +2948,7 @@ L7_BOOL ptin_dhcp_is_intfTrusted(L7_uint32 intIfNum, L7_uint16 intVlanId)
   if (ptin_evc_intfCfg_get(evc_id_ext, &ptin_intf, &intfCfg)!=L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error acquiring interface %u/%u configuarion from eEVC id %u",
+      LOG_ERR(LOG_CTX_DHCP,"Error acquiring interface %u/%u configuarion from eEVC id %u",
               ptin_intf.intf_type, ptin_intf.intf_id, evc_id_ext);
     return L7_FALSE;
   }
@@ -2957,7 +2957,7 @@ L7_BOOL ptin_dhcp_is_intfTrusted(L7_uint32 intIfNum, L7_uint16 intVlanId)
   if (!intfCfg.in_use)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Interface %u/%u (intIfNum=%u) is not in use for eEVC %u",
+      LOG_ERR(LOG_CTX_DHCP,"Interface %u/%u (intIfNum=%u) is not in use for eEVC %u",
               ptin_intf.intf_type, ptin_intf.intf_id, intIfNum, evc_id_ext);
     return L7_FALSE;
   }
@@ -2987,7 +2987,7 @@ L7_BOOL ptin_dhcp_intfTrusted_getList(L7_uint16 intVlanId, NIM_INTF_MASK_t *intf
   if (ptin_dhcp_inst_get_fromIntVlan(intVlanId, &dhcpInst, &dhcp_idx)!=L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"No DHCP instance associated to intVlan %u", intVlanId);
+      LOG_ERR(LOG_CTX_DHCP,"No DHCP instance associated to intVlan %u", intVlanId);
     return L7_FALSE;
   }
 
@@ -2995,7 +2995,7 @@ L7_BOOL ptin_dhcp_intfTrusted_getList(L7_uint16 intVlanId, NIM_INTF_MASK_t *intf
   if (ptin_evc_get_evcIdfromIntVlan(intVlanId, &evc_id_ext) != L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"No EVC id associated to intVlan %u", intVlanId);
+      LOG_ERR(LOG_CTX_DHCP,"No EVC id associated to intVlan %u", intVlanId);
     return L7_FALSE;
   }
 
@@ -3003,7 +3003,7 @@ L7_BOOL ptin_dhcp_intfTrusted_getList(L7_uint16 intVlanId, NIM_INTF_MASK_t *intf
   if (!ptin_evc_is_in_use(evc_id_ext))
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Inconsistency: eEVCid=%u (Vlan %u) not in use", evc_id_ext, intVlanId);
+      LOG_ERR(LOG_CTX_DHCP,"Inconsistency: eEVCid=%u (Vlan %u) not in use", evc_id_ext, intVlanId);
     return L7_FAILURE;
   }
 
@@ -3013,7 +3013,7 @@ L7_BOOL ptin_dhcp_intfTrusted_getList(L7_uint16 intVlanId, NIM_INTF_MASK_t *intf
   if (ptin_evc_get(&evcConf) != L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error acquiring eEVC %u configuration", evc_id_ext);
+      LOG_ERR(LOG_CTX_DHCP,"Error acquiring eEVC %u configuration", evc_id_ext);
     return L7_FALSE;
   }
 
@@ -3021,12 +3021,12 @@ L7_BOOL ptin_dhcp_intfTrusted_getList(L7_uint16 intVlanId, NIM_INTF_MASK_t *intf
   if (intfList == L7_NULLPTR)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_WARNING(LOG_CTX_PTIN_DHCP,"Will not return data");
+      LOG_WARNING(LOG_CTX_DHCP,"Will not return data");
     return L7_SUCCESS;
   }
 
   if (ptin_debug_dhcp_snooping)
-    LOG_WARNING(LOG_CTX_PTIN_DHCP,"eEVC %u, has %u ports", evc_id_ext, evcConf.n_intf);
+    LOG_WARNING(LOG_CTX_DHCP,"eEVC %u, has %u ports", evc_id_ext, evcConf.n_intf);
 
   /* Clear output mask ports */
   memset(intfList, 0x00, sizeof(NIM_INTF_MASK_t));
@@ -3038,13 +3038,13 @@ L7_BOOL ptin_dhcp_intfTrusted_getList(L7_uint16 intVlanId, NIM_INTF_MASK_t *intf
     ptintf.intf_id   = evcConf.intf[i].intf_id;
 
     if (ptin_debug_dhcp_snooping)
-      LOG_WARNING(LOG_CTX_PTIN_DHCP,"Processing ptin_intf %u/%u", ptintf.intf_type, ptintf.intf_id);
+      LOG_WARNING(LOG_CTX_DHCP,"Processing ptin_intf %u/%u", ptintf.intf_type, ptintf.intf_id);
 
     /* Convert interface to intIfNum */
     if (ptin_intf_ptintf2intIfNum(&ptintf, &intIfNum) != L7_SUCCESS)
     {
       if (ptin_debug_dhcp_snooping)
-        LOG_WARNING(LOG_CTX_PTIN_DHCP,"Error converting ptin_intf %u/%u to intIfNum format", ptintf.intf_type, ptintf.intf_id);
+        LOG_WARNING(LOG_CTX_DHCP,"Error converting ptin_intf %u/%u to intIfNum format", ptintf.intf_type, ptintf.intf_id);
       continue;
     }
 
@@ -3052,13 +3052,13 @@ L7_BOOL ptin_dhcp_intfTrusted_getList(L7_uint16 intVlanId, NIM_INTF_MASK_t *intf
     if (L7_INTF_ISMASKBITSET(dhcp_intIfNum_trusted, intIfNum))
     {
       if (ptin_debug_dhcp_snooping)
-        LOG_TRACE(LOG_CTX_PTIN_DHCP,"ptin_intf %u/%u or intIfNum %u is trusted", ptintf.intf_type, ptintf.intf_id, intIfNum);
+        LOG_TRACE(LOG_CTX_DHCP,"ptin_intf %u/%u or intIfNum %u is trusted", ptintf.intf_type, ptintf.intf_id, intIfNum);
       L7_INTF_SETMASKBIT(*intfList, intIfNum);
     }
     else
     {
       if (ptin_debug_dhcp_snooping)
-        LOG_TRACE(LOG_CTX_PTIN_DHCP,"ptin_intf %u/%u or intIfNum %u is UNtrusted", ptintf.intf_type, ptintf.intf_id, intIfNum);
+        LOG_TRACE(LOG_CTX_DHCP,"ptin_intf %u/%u or intIfNum %u is UNtrusted", ptintf.intf_type, ptintf.intf_id, intIfNum);
     }
   }
 
@@ -3090,14 +3090,14 @@ L7_RC_t ptin_dhcp_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16
   if (ptin_evc_intf_type_get(intOVlan, intIfNum, &intf_type) != L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_TRACE(LOG_CTX_PTIN_DHCP, "Error getting intf configuration for intVlan %u, intIfNum %u", intOVlan, intIfNum);
+      LOG_TRACE(LOG_CTX_DHCP, "Error getting intf configuration for intVlan %u, intIfNum %u", intOVlan, intIfNum);
     return L7_FAILURE;
   }
   /* Validate interface type */
   if (intf_type != PTIN_EVC_INTF_ROOT && intf_type != PTIN_EVC_INTF_LEAF)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_TRACE(LOG_CTX_PTIN_DHCP, "intVlan %u / intIfNum %u is not used", intOVlan, intIfNum);
+      LOG_TRACE(LOG_CTX_DHCP, "intVlan %u / intIfNum %u is not used", intOVlan, intIfNum);
     return L7_FAILURE;
   }
 
@@ -3116,7 +3116,7 @@ L7_RC_t ptin_dhcp_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16
   }
 
   if (ptin_debug_dhcp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_DHCP, "ovid=%u ivid=%u", ovid, ivid); 
+    LOG_TRACE(LOG_CTX_DHCP, "ovid=%u ivid=%u", ovid, ivid); 
 
   /* If no data was retrieved, goto EVC info */
   if (ovid == 0)
@@ -3139,7 +3139,7 @@ L7_RC_t ptin_dhcp_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16
   }
 
   if (ptin_debug_dhcp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_DHCP,"ovid=%u ivid=%u", ovid, ivid);
+    LOG_TRACE(LOG_CTX_DHCP,"ovid=%u ivid=%u", ovid, ivid);
 
   /* Return vlans */
   if (uni_ovid != L7_SUCCESS)  *uni_ovid = ovid;
@@ -3171,7 +3171,7 @@ L7_RC_t ptin_dhcp_clientIndex_get(L7_uint32 intIfNum, L7_uint16 intVlan,
   if ( client==L7_NULLPTR || DHCP_CLIENT_MASK_UPDATE(client->mask)==0x00)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid arguments");
+      LOG_ERR(LOG_CTX_DHCP,"Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -3179,7 +3179,7 @@ L7_RC_t ptin_dhcp_clientIndex_get(L7_uint32 intIfNum, L7_uint16 intVlan,
   if (ptin_dhcp_inst_get_fromIntVlan(intVlan,L7_NULLPTR,&dhcp_idx)!=L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"No DHCP instance associated to intVlan %u",intVlan);
+      LOG_ERR(LOG_CTX_DHCP,"No DHCP instance associated to intVlan %u",intVlan);
     return L7_FAILURE;
   }
 
@@ -3207,7 +3207,7 @@ L7_RC_t ptin_dhcp_clientIndex_get(L7_uint32 intIfNum, L7_uint16 intVlan,
       else
       {
         if (ptin_debug_dhcp_snooping)
-          LOG_ERR(LOG_CTX_PTIN_DHCP,"Connot convert client intIfNum %u to ptin_port_format",intIfNum);
+          LOG_ERR(LOG_CTX_DHCP,"Connot convert client intIfNum %u to ptin_port_format",intIfNum);
         return L7_FAILURE;
       }
     }
@@ -3219,7 +3219,7 @@ L7_RC_t ptin_dhcp_clientIndex_get(L7_uint32 intIfNum, L7_uint16 intVlan,
   {
     if (ptin_debug_dhcp_snooping)
     {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,
+      LOG_ERR(LOG_CTX_DHCP,
               "Error searching for client {mask=0x%02x,"
               "port=%u/%u,"
               "svlan=%u,"
@@ -3242,7 +3242,7 @@ L7_RC_t ptin_dhcp_clientIndex_get(L7_uint32 intIfNum, L7_uint16 intVlan,
   client_idx = clientInfo->client_index;
 
   #if (DHCP_CLIENT_DEBUG)
-  LOG_TRACE(LOG_CTX_PTIN_DHCP,"Client_idx=%u for key {"
+  LOG_TRACE(LOG_CTX_DHCP,"Client_idx=%u for key {"
             #if (DHCP_CLIENT_INTERF_SUPPORTED)
                               "port=%u,"
             #endif
@@ -3305,7 +3305,7 @@ L7_RC_t ptin_dhcp_clientData_get(L7_uint16 intVlan,
   if ( client==L7_NULLPTR || client_idx>=PTIN_SYSTEM_DHCP_MAXCLIENTS )
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid arguments");
+      LOG_ERR(LOG_CTX_DHCP,"Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -3314,7 +3314,7 @@ L7_RC_t ptin_dhcp_clientData_get(L7_uint16 intVlan,
   if (ptin_dhcp_inst_get_fromIntVlan(intVlan,&dhcpInst,L7_NULLPTR)!=L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"No DHCP instance associated to intVlan %u",intVlan);
+      LOG_ERR(LOG_CTX_DHCP,"No DHCP instance associated to intVlan %u",intVlan);
     return L7_FAILURE;
   }
   #endif
@@ -3325,7 +3325,7 @@ L7_RC_t ptin_dhcp_clientData_get(L7_uint16 intVlan,
   if (clientInfo==L7_NULLPTR)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Provided client_idx (%u) does not exist",client_idx);
+      LOG_ERR(LOG_CTX_DHCP,"Provided client_idx (%u) does not exist",client_idx);
     return L7_FAILURE;
   }
 
@@ -3334,7 +3334,7 @@ L7_RC_t ptin_dhcp_clientData_get(L7_uint16 intVlan,
   if (ptin_intf_port2ptintf(clientInfo->dhcpClientDataKey.ptin_port,&ptin_intf)!=L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Cannot convert client port %uu to ptin_intf format",clientInfo->dhcpClientDataKey.ptin_port);
+      LOG_ERR(LOG_CTX_DHCP,"Cannot convert client port %uu to ptin_intf format",clientInfo->dhcpClientDataKey.ptin_port);
     return L7_FAILURE;
   }
   client->ptin_intf = ptin_intf;
@@ -3381,7 +3381,7 @@ L7_RC_t ptin_dhcp_flags_get(L7_uint16 intVlan, L7_uint8 *dhcp_flags, L7_uint32 *
   if (intVlan < PTIN_VLAN_MIN || intVlan > PTIN_VLAN_MAX)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid arguments");
+      LOG_ERR(LOG_CTX_DHCP,"Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -3389,7 +3389,7 @@ L7_RC_t ptin_dhcp_flags_get(L7_uint16 intVlan, L7_uint8 *dhcp_flags, L7_uint32 *
   if (ptin_dhcp_inst_get_fromIntVlan(intVlan, L7_NULLPTR, &dhcp_idx) != L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Internal vlan %u does not correspond to any DHCP instance",intVlan);
+      LOG_ERR(LOG_CTX_DHCP,"Internal vlan %u does not correspond to any DHCP instance",intVlan);
     return L7_FAILURE;
   }
 
@@ -3399,7 +3399,7 @@ L7_RC_t ptin_dhcp_flags_get(L7_uint16 intVlan, L7_uint8 *dhcp_flags, L7_uint32 *
     if (ptin_dhcp_flags_get_instance(dhcp_idx, L7_NULLPTR, dhcp_flags) != L7_SUCCESS) 
     {
       if (ptin_debug_dhcp_snooping)
-        LOG_ERR(LOG_CTX_PTIN_DHCP,"Error acquiring DHCP flags for internal vlan %u / dhcp_idx=%u", intVlan, dhcp_idx);
+        LOG_ERR(LOG_CTX_DHCP,"Error acquiring DHCP flags for internal vlan %u / dhcp_idx=%u", intVlan, dhcp_idx);
       return L7_FAILURE;
     }
   }
@@ -3410,7 +3410,7 @@ L7_RC_t ptin_dhcp_flags_get(L7_uint16 intVlan, L7_uint8 *dhcp_flags, L7_uint32 *
     if (ptin_evc_flags_get_fromIntVlan(intVlan, evc_flags, L7_NULLPTR) != L7_SUCCESS)
     {
       if (ptin_debug_dhcp_snooping)
-        LOG_ERR(LOG_CTX_PTIN_DHCP,"Error acquiring EVC flags for internal vlan %u", intVlan);
+        LOG_ERR(LOG_CTX_DHCP,"Error acquiring EVC flags for internal vlan %u", intVlan);
       return L7_FAILURE;
     }
   }
@@ -3443,7 +3443,7 @@ L7_RC_t ptin_dhcp_stringIds_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16
       innerVlan==0 || innerVlan>=4096*/)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid arguments");
+      LOG_ERR(LOG_CTX_DHCP,"Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -3451,7 +3451,7 @@ L7_RC_t ptin_dhcp_stringIds_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16
   if (ptin_intf_intIfNum2ptintf(intIfNum,&ptin_intf)!=L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid intIfNum (%u)",intIfNum);
+      LOG_ERR(LOG_CTX_DHCP,"Invalid intIfNum (%u)",intIfNum);
     return L7_FAILURE;
   }
 
@@ -3459,7 +3459,7 @@ L7_RC_t ptin_dhcp_stringIds_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16
   if (ptin_dhcp_inst_get_fromIntVlan(intVlan,L7_NULLPTR,&dhcp_idx)!=L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Internal vlan %u does not correspond to any DHCP instance",intVlan);
+      LOG_ERR(LOG_CTX_DHCP,"Internal vlan %u does not correspond to any DHCP instance",intVlan);
     return L7_FAILURE;
   }
 
@@ -3492,7 +3492,7 @@ L7_RC_t ptin_dhcp_stringIds_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16
     if (ptin_dhcp_client_find(dhcp_idx,&client,&client_info)!=L7_SUCCESS)
     {
       if (ptin_debug_dhcp_snooping)
-        LOG_ERR(LOG_CTX_PTIN_DHCP,"Non existent client in DHCP instance %u (EVC id %u)",dhcp_idx,dhcpInstances[dhcp_idx].evc_idx);
+        LOG_ERR(LOG_CTX_DHCP,"Non existent client in DHCP instance %u (EVC id %u)",dhcp_idx,dhcpInstances[dhcp_idx].evc_idx);
       return L7_FAILURE;
     }
 
@@ -3504,7 +3504,7 @@ L7_RC_t ptin_dhcp_stringIds_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16
     }
     else
     {
-      LOG_ERR(LOG_CTX_PTIN_DHCP, "circuitId is NULL");
+      LOG_ERR(LOG_CTX_DHCP, "circuitId is NULL");
     }
     if (remoteId!=L7_NULLPTR)
     {
@@ -3518,11 +3518,11 @@ L7_RC_t ptin_dhcp_stringIds_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16
     if (ptin_dhcp_strings_def_get(&ptin_intf,macAddr,circuitId,remoteId)!=L7_SUCCESS)
     {
       if (ptin_debug_dhcp_snooping)
-        LOG_ERR(LOG_CTX_PTIN_DHCP,"Error getting default strings");
+        LOG_ERR(LOG_CTX_DHCP,"Error getting default strings");
       return L7_FAILURE;
     }
     #else
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"No client defined!");
+    LOG_ERR(LOG_CTX_DHCP,"No client defined!");
     return L7_FAILURE;
     #endif
   }
@@ -3547,7 +3547,7 @@ L7_RC_t ptin_dhcp_ethPrty_get(L7_uint16 intVlan, L7_uint8 *ethPrty)
       L7_NULLPTR == ethPrty)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid arguments");
+      LOG_ERR(LOG_CTX_DHCP,"Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -3555,7 +3555,7 @@ L7_RC_t ptin_dhcp_ethPrty_get(L7_uint16 intVlan, L7_uint8 *ethPrty)
   if (ptin_dhcp_inst_get_fromIntVlan(intVlan,L7_NULLPTR,&dhcp_idx)!=L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Internal vlan %u does not correspond to any DHCP instance",intVlan);
+      LOG_ERR(LOG_CTX_DHCP,"Internal vlan %u does not correspond to any DHCP instance",intVlan);
     return L7_FAILURE;
   }
 
@@ -3606,7 +3606,7 @@ L7_RC_t ptin_dhcp_client_options_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_u
        )
    {
       if (ptin_debug_dhcp_snooping)
-         LOG_ERR(LOG_CTX_PTIN_DHCP, "Invalid arguments");
+         LOG_ERR(LOG_CTX_DHCP, "Invalid arguments");
       return L7_FAILURE;
    }
 
@@ -3614,7 +3614,7 @@ L7_RC_t ptin_dhcp_client_options_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_u
    if (ptin_intf_intIfNum2ptintf(intIfNum, &ptin_intf) != L7_SUCCESS)
    {
       if (ptin_debug_dhcp_snooping)
-         LOG_ERR(LOG_CTX_PTIN_DHCP, "Invalid intIfNum (%u)", intIfNum);
+         LOG_ERR(LOG_CTX_DHCP, "Invalid intIfNum (%u)", intIfNum);
       return L7_FAILURE;
    }
 
@@ -3622,7 +3622,7 @@ L7_RC_t ptin_dhcp_client_options_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_u
    if (ptin_dhcp_inst_get_fromIntVlan(intVlan, L7_NULLPTR, &dhcp_idx) != L7_SUCCESS)
    {
       if (ptin_debug_dhcp_snooping)
-         LOG_ERR(LOG_CTX_PTIN_DHCP, "Internal vlan %u does not correspond to any DHCP instance", intVlan);
+         LOG_ERR(LOG_CTX_DHCP, "Internal vlan %u does not correspond to any DHCP instance", intVlan);
       return L7_FAILURE;
    }
 
@@ -3655,7 +3655,7 @@ L7_RC_t ptin_dhcp_client_options_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_u
       if (ptin_dhcp_client_find(dhcp_idx, &client, &client_info) != L7_SUCCESS)
       {
          if (ptin_debug_dhcp_snooping)
-            LOG_ERR(LOG_CTX_PTIN_DHCP, "Non existent client in DHCP instance %u (EVC id %u)",
+            LOG_ERR(LOG_CTX_DHCP, "Non existent client in DHCP instance %u (EVC id %u)",
                   dhcp_idx, dhcpInstances[dhcp_idx].evc_idx);
          return L7_FAILURE;
       }
@@ -3672,7 +3672,7 @@ L7_RC_t ptin_dhcp_client_options_get(L7_uint32 intIfNum, L7_uint16 intVlan, L7_u
    }
    else
    {
-      LOG_ERR(LOG_CTX_PTIN_DHCP, "No client defined!");
+      LOG_ERR(LOG_CTX_DHCP, "No client defined!");
       return L7_FAILURE;
    }
 
@@ -3937,7 +3937,7 @@ static L7_RC_t ptin_dhcp_client_find(L7_uint dhcp_idx, ptin_client_id_t *client_
   if (dhcp_idx>=PTIN_SYSTEM_N_DHCP_INSTANCES || client_ref==L7_NULLPTR)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid arguments");
+      LOG_ERR(LOG_CTX_DHCP,"Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -3945,7 +3945,7 @@ static L7_RC_t ptin_dhcp_client_find(L7_uint dhcp_idx, ptin_client_id_t *client_
   if (!dhcpInstances[dhcp_idx].inUse)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"DHCP instance %u is not in use",dhcp_idx);
+      LOG_ERR(LOG_CTX_DHCP,"DHCP instance %u is not in use",dhcp_idx);
     return L7_FAILURE;
   }
 
@@ -3958,7 +3958,7 @@ static L7_RC_t ptin_dhcp_client_find(L7_uint dhcp_idx, ptin_client_id_t *client_
     if (ptin_intf_ptintf2port(&client_ref->ptin_intf,&ptin_port)!=L7_SUCCESS)
     {
       if (ptin_debug_dhcp_snooping)
-        LOG_ERR(LOG_CTX_PTIN_DHCP,"Cannot convert client_ref intf %u/%u to ptin_port format",client_ref->ptin_intf.intf_type,client_ref->ptin_intf.intf_id);
+        LOG_ERR(LOG_CTX_DHCP,"Cannot convert client_ref intf %u/%u to ptin_port format",client_ref->ptin_intf.intf_type,client_ref->ptin_intf.intf_id);
       return L7_FAILURE;
     }
   }
@@ -3997,7 +3997,7 @@ static L7_RC_t ptin_dhcp_client_find(L7_uint dhcp_idx, ptin_client_id_t *client_
   {
     if (ptin_debug_dhcp_snooping)
     {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Key {"
+      LOG_ERR(LOG_CTX_DHCP,"Key {"
               #if (DHCP_CLIENT_INTERF_SUPPORTED)
                                 "port=%u"
               #endif
@@ -4059,13 +4059,13 @@ static L7_RC_t ptin_dhcp_instance_deleteAll_clients(L7_uint dhcp_idx)
   /* Validate argument */
   if (dhcp_idx>=PTIN_SYSTEM_N_DHCP_INSTANCES)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid dhcp instance index (%u)",dhcp_idx);
+    LOG_ERR(LOG_CTX_DHCP,"Invalid dhcp instance index (%u)",dhcp_idx);
     return L7_FAILURE;
   }
   /* DHCP instance must be in use */
   if (!dhcpInstances[dhcp_idx].inUse)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"dhcp instance index %u is not in use",dhcp_idx);
+    LOG_ERR(LOG_CTX_DHCP,"dhcp instance index %u is not in use",dhcp_idx);
     return L7_FAILURE;
   }
 
@@ -4093,7 +4093,7 @@ static L7_RC_t ptin_dhcp_instance_deleteAll_clients(L7_uint dhcp_idx)
      }
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_DHCP,"Success removing all clients from dhcp_idx=%u",dhcp_idx);
+  LOG_TRACE(LOG_CTX_DHCP,"Success removing all clients from dhcp_idx=%u",dhcp_idx);
 
   return L7_SUCCESS;
 }
@@ -4116,7 +4116,7 @@ static L7_RC_t ptin_dhcp_inst_get_fromIntVlan(L7_uint16 intVlan, st_DhcpInstCfg_
   if (ptin_evc_get_evcIdfromIntVlan(intVlan,&evc_idx)!=L7_SUCCESS)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"No EVC associated to internal vlan %u",intVlan);
+      LOG_ERR(LOG_CTX_DHCP,"No EVC associated to internal vlan %u",intVlan);
     return L7_FAILURE;
   }
 
@@ -4125,7 +4125,7 @@ static L7_RC_t ptin_dhcp_inst_get_fromIntVlan(L7_uint16 intVlan, st_DhcpInstCfg_
       dhcp_idx >= PTIN_SYSTEM_N_DHCP_INSTANCES)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"No DHCP instance associated to evc_idx=%u (intVlan=%u)",evc_idx,intVlan);
+      LOG_ERR(LOG_CTX_DHCP,"No DHCP instance associated to evc_idx=%u (intVlan=%u)",evc_idx,intVlan);
     return L7_FAILURE;
   }
 
@@ -4133,7 +4133,7 @@ static L7_RC_t ptin_dhcp_inst_get_fromIntVlan(L7_uint16 intVlan, st_DhcpInstCfg_
   if (!dhcpInstances[dhcp_idx].inUse)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Inconsistency: DHCP index %u (EVCid=%u, Vlan %u) is not in use",dhcp_idx,evc_idx,intVlan);
+      LOG_ERR(LOG_CTX_DHCP,"Inconsistency: DHCP index %u (EVCid=%u, Vlan %u) is not in use",dhcp_idx,evc_idx,intVlan);
     return L7_FAILURE;
   }
 
@@ -4141,7 +4141,7 @@ static L7_RC_t ptin_dhcp_inst_get_fromIntVlan(L7_uint16 intVlan, st_DhcpInstCfg_
   if (!ptin_evc_is_in_use(dhcpInstances[dhcp_idx].evc_idx))
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Inconsistency: DHCP index %u (EVCid=%u, Vlan %u) has EVC not in use (evc=%u)",dhcp_idx,evc_idx,intVlan,dhcpInstances[dhcp_idx].evc_idx);
+      LOG_ERR(LOG_CTX_DHCP,"Inconsistency: DHCP index %u (EVCid=%u, Vlan %u) has EVC not in use (evc=%u)",dhcp_idx,evc_idx,intVlan,dhcpInstances[dhcp_idx].evc_idx);
     return L7_FAILURE;
   }
 
@@ -4233,13 +4233,13 @@ static L7_RC_t ptin_dhcp_trap_configure(L7_uint dhcp_idx, L7_BOOL enable, L7_uin
   /* Validate argument */
   if (dhcp_idx>=PTIN_SYSTEM_N_DHCP_INSTANCES)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid dhcp instance index (%u)",dhcp_idx);
+    LOG_ERR(LOG_CTX_DHCP,"Invalid dhcp instance index (%u)",dhcp_idx);
     return L7_FAILURE;
   }
   /* DHCP instance must be in use */
   if (!dhcpInstances[dhcp_idx].inUse)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"dhcp instance index %u is not in use",dhcp_idx);
+    LOG_ERR(LOG_CTX_DHCP,"dhcp instance index %u is not in use",dhcp_idx);
     return L7_FAILURE;
   }
 
@@ -4263,7 +4263,7 @@ L7_RC_t ptin_dhcp_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable, L7_uint8
 
   if (ptin_evc_intRootVlan_get(evc_idx, &vlan) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Can't get UC root vlan for evc id %u",evc_idx);
+    LOG_ERR(LOG_CTX_DHCP,"Can't get UC root vlan for evc id %u",evc_idx);
     return L7_FAILURE;
   }
 
@@ -4273,10 +4273,10 @@ L7_RC_t ptin_dhcp_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable, L7_uint8
   {
     if (ptin_dhcpPkts_vlan_trap(vlan, enable, family)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error configuring vlan %u for packet trapping", vlan);
+      LOG_ERR(LOG_CTX_DHCP,"Error configuring vlan %u for packet trapping", vlan);
       return L7_FAILURE;
     }
-    LOG_TRACE(LOG_CTX_PTIN_DHCP,"Success configuring vlan %u for packet trapping", vlan);
+    LOG_TRACE(LOG_CTX_DHCP,"Success configuring vlan %u for packet trapping", vlan);
   }
 
   return L7_SUCCESS;
@@ -4287,7 +4287,7 @@ void ptin_dhcp_evc_ethprty_get(ptin_AccessNodeCircuitId_t *evc_circuitid, L7_uin
 {
    if(L7_NULLPTR == evc_circuitid || L7_NULLPTR == ethprty)
    {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid arguments");
+      LOG_ERR(LOG_CTX_DHCP,"Invalid arguments");
    }
 
    *ethprty = evc_circuitid->ethernet_priority;
@@ -4395,7 +4395,7 @@ L7_RC_t ptin_dhcp_reconf_instance(L7_uint32 dhcp_instance_idx, L7_uint8 dhcp_fla
    /* Validate dhcp instance */
    if (!dhcpInstances[dhcp_instance_idx].inUse)
    {
-    LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCP instance %u is not in use", dhcp_instance_idx);
+    LOG_ERR(LOG_CTX_DHCP, "DHCP instance %u is not in use", dhcp_instance_idx);
     return L7_FAILURE;
    }
 
@@ -4710,14 +4710,14 @@ L7_RC_t ptin_dhcp82_get(L7_uint32 evc_idx, ptin_intf_t *ptin_intf, L7_uint16 inn
   /* Get intIfNum and internal vlan */
   if (ptin_dhcp82_get_intfData(evc_idx, ptin_intf, &intIfNum, &intVlanId)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error getting intIfNum or internal Vlan");
+    LOG_ERR(LOG_CTX_DHCP,"Error getting intIfNum or internal Vlan");
     return L7_FAILURE;
   }
 
   /* Add circuitId and remoteId */
   if (ptin_dhcp82_database_get(intIfNum,intVlanId,innerVlanId,macAddr,circuitId,remoteId)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error reading circuitId+remoteId entry");
+    LOG_ERR(LOG_CTX_DHCP,"Error reading circuitId+remoteId entry");
     return L7_FAILURE;
   }
 
@@ -4745,14 +4745,14 @@ L7_RC_t ptin_dhcp82_config(L7_uint32 evc_idx, ptin_intf_t *ptin_intf, L7_uint16 
   /* Get intIfNum and internal vlan */
   if (ptin_dhcp82_get_intfData(evc_idx, ptin_intf, &intIfNum, &intVlanId)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error getting intIfNum or internal Vlan");
+    LOG_ERR(LOG_CTX_DHCP,"Error getting intIfNum or internal Vlan");
     return L7_FAILURE;
   }
 
   /* Add circuitId and remoteId */
   if (ptin_dhcp82_database_add(intIfNum,intVlanId,innerVlanId,L7_NULLPTR,circuitId,remoteId)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error adding circuitId+remoteId entry");
+    LOG_ERR(LOG_CTX_DHCP,"Error adding circuitId+remoteId entry");
     return L7_FAILURE;
   }
 
@@ -4777,14 +4777,14 @@ L7_RC_t ptin_dhcp82_unconfig(L7_uint32 evc_idx, ptin_intf_t *ptin_intf, L7_uint1
   /* Get intIfNum and internal vlan */
   if (ptin_dhcp82_get_intfData(evc_idx, ptin_intf, &intIfNum, &intVlanId)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error getting intIfNum or internal Vlan");
+    LOG_ERR(LOG_CTX_DHCP,"Error getting intIfNum or internal Vlan");
     return L7_FAILURE;
   }
 
   /* Remove circuitId and remoteId */
   if (ptin_dhcp82_database_remove(intIfNum,intVlanId,innerVlanId,L7_NULLPTR)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error removing circuitId+remoteId entry");
+    LOG_ERR(LOG_CTX_DHCP,"Error removing circuitId+remoteId entry");
     return L7_FAILURE;
   }
 
@@ -4817,7 +4817,7 @@ L7_RC_t ptin_dhcp82_database_get(L7_uint32 intIfNum, L7_uint16 intVlanId, L7_uin
   /* Validate inputs */
   if (!ptin_dhcp82_validate_inputs(&intIfNum, &intVlanId, &innerVlanId, &enetMacAddr))
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"No valid input fields provided");
+    LOG_ERR(LOG_CTX_DHCP,"No valid input fields provided");
     return L7_FAILURE;
   }
 
@@ -4840,7 +4840,7 @@ L7_RC_t ptin_dhcp82_database_get(L7_uint32 intIfNum, L7_uint16 intVlanId, L7_uin
   {
     if (circuitId!=L7_NULLPTR)  *circuitId='\0';
     if (remoteId!=L7_NULLPTR)   *remoteId ='\0';
-    LOG_WARNING(LOG_CTX_PTIN_DHCP,"Not found entry with the provided inputs (intIfNum=%u, intVlanId=%u, innerVlanId=%u)",intIfNum,intVlanId,innerVlanId);
+    LOG_WARNING(LOG_CTX_DHCP,"Not found entry with the provided inputs (intIfNum=%u, intVlanId=%u, innerVlanId=%u)",intIfNum,intVlanId,innerVlanId);
     return L7_FAILURE;
   }
 
@@ -4883,7 +4883,7 @@ static L7_RC_t ptin_dhcp82_database_add(L7_uint32 intIfNum, L7_uint16 intVlanId,
   /* Validate inputs */
   if (!ptin_dhcp82_validate_inputs(&intIfNum, &intVlanId, &innerVlanId, &enetMacAddr))
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"No valid input fields provided");
+    LOG_ERR(LOG_CTX_DHCP,"No valid input fields provided");
     return L7_FAILURE;
   }
 
@@ -4952,7 +4952,7 @@ static L7_RC_t ptin_dhcp82_database_remove(L7_uint32 intIfNum, L7_uint16 intVlan
   /* Validate inputs */
   if (!ptin_dhcp82_validate_inputs(&intIfNum, &intVlanId, &innerVlanId, &enetMacAddr))
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"No valid input fields provided");
+    LOG_ERR(LOG_CTX_DHCP,"No valid input fields provided");
     return L7_FAILURE;
   }
 
@@ -4973,7 +4973,7 @@ static L7_RC_t ptin_dhcp82_database_remove(L7_uint32 intIfNum, L7_uint16 intVlan
   // Entry not found... leave function... return success
   if (i>=DHCP_RELAY_DATABASE_MAX_ENTRIES)
   {
-    LOG_WARNING(LOG_CTX_PTIN_DHCP,"Not found entry");
+    LOG_WARNING(LOG_CTX_DHCP,"Not found entry");
     return L7_SUCCESS;
   }
 
@@ -5009,28 +5009,28 @@ static L7_RC_t ptin_dhcp82_get_intfData(L7_uint32 evc_idx, ptin_intf_t *ptin_int
   /* Extract interface configuration */
   if (ptin_evc_intfCfg_get(evc_idx, ptin_intf, &intf_cfg)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error getting interface configuration for evc_idx=%u, intf=%u/%u",evc_idx,ptin_intf->intf_type,ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_DHCP,"Error getting interface configuration for evc_idx=%u, intf=%u/%u",evc_idx,ptin_intf->intf_type,ptin_intf->intf_id);
     return L7_FAILURE;
   }
 
   /* Check if interface is in use */
   if (!intf_cfg.in_use)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Interface %u/%u is not in use in evc_idx=%u",ptin_intf->intf_type,ptin_intf->intf_id,evc_idx);
+    LOG_ERR(LOG_CTX_DHCP,"Interface %u/%u is not in use in evc_idx=%u",ptin_intf->intf_type,ptin_intf->intf_id,evc_idx);
     return L7_FAILURE;
   }
 
   /* Get interface# */
   if (ptin_intf_ptintf2intIfNum(ptin_intf, intIfNum)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Caanot calculate intIfNum (evc_idx=%u, intf=%u/%u)",evc_idx,ptin_intf->intf_type,ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_DHCP,"Caanot calculate intIfNum (evc_idx=%u, intf=%u/%u)",evc_idx,ptin_intf->intf_type,ptin_intf->intf_id);
     return L7_FAILURE;
   }
 
   /* Validate internal vlan */
   if (intf_cfg.int_vlan<PTIN_VLAN_MIN || intf_cfg.int_vlan>PTIN_VLAN_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"intVlan %u is not valid (evc_idx=%u, intf=%u/%u)",intf_cfg.int_vlan,evc_idx,ptin_intf->intf_type,ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_DHCP,"intVlan %u is not valid (evc_idx=%u, intf=%u/%u)",intf_cfg.int_vlan,evc_idx,ptin_intf->intf_type,ptin_intf->intf_id);
     return L7_FAILURE;
   }
   /* Get internal vlan */
@@ -5155,26 +5155,26 @@ static L7_RC_t ptin_dhcp_clientId_convert(L7_uint32 evc_idx, ptin_client_id_t *c
   /* Validate evc index  */
   if (evc_idx>=PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid eEVC id: evc_idx=%u",evc_idx);
+    LOG_ERR(LOG_CTX_DHCP,"Invalid eEVC id: evc_idx=%u",evc_idx);
     return L7_FAILURE;
   }
   /* This evc must be active */
   if (!ptin_evc_is_in_use(evc_idx))
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"eEVC id is not active: evc_idx=%u",evc_idx);
+    LOG_ERR(LOG_CTX_DHCP,"eEVC id is not active: evc_idx=%u",evc_idx);
     return L7_FAILURE;
   }
   /* Validate client */
   if (client==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid client pointer");
+    LOG_ERR(LOG_CTX_DHCP,"Invalid client pointer");
     return L7_FAILURE;
   }
 
   /* Check mask */
   if (DHCP_CLIENT_MASK_UPDATE(client->mask)==0x00)
   {
-    LOG_WARNING(LOG_CTX_PTIN_DHCP,"Client mask is null");
+    LOG_WARNING(LOG_CTX_DHCP,"Client mask is null");
     return L7_FAILURE;
   }
 
@@ -5186,7 +5186,7 @@ static L7_RC_t ptin_dhcp_clientId_convert(L7_uint32 evc_idx, ptin_client_id_t *c
     /* Validate inner vlan */
     if (client->innerVlan>4095)
     {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid inner vlan (%u)",client->innerVlan);
+      LOG_ERR(LOG_CTX_DHCP,"Invalid inner vlan (%u)",client->innerVlan);
       return L7_FAILURE;
     }
     innerVlan = client->innerVlan;
@@ -5205,7 +5205,7 @@ static L7_RC_t ptin_dhcp_clientId_convert(L7_uint32 evc_idx, ptin_client_id_t *c
       /* Obtain intVlan */
       if (ptin_evc_intVlan_get(evc_idx, &client->ptin_intf, &intVlan)!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_DHCP,"Error obtaining internal vlan for evc_idx=%u, ptin_intf=%u/%u",
+        LOG_ERR(LOG_CTX_DHCP,"Error obtaining internal vlan for evc_idx=%u, ptin_intf=%u/%u",
                 evc_idx, client->ptin_intf.intf_type, client->ptin_intf.intf_id);
         return L7_FAILURE;
       }
@@ -5215,7 +5215,7 @@ static L7_RC_t ptin_dhcp_clientId_convert(L7_uint32 evc_idx, ptin_client_id_t *c
       /* Obtain intVlan from the outer vlan */
       if (ptin_evc_intVlan_get_fromOVlan(&client->ptin_intf, client->outerVlan, innerVlan, &intVlan)!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_DHCP,"Error obtaining internal vlan for OVid=%u, IVid=%u, ptin_intf=%u/%u",
+        LOG_ERR(LOG_CTX_DHCP,"Error obtaining internal vlan for OVid=%u, IVid=%u, ptin_intf=%u/%u",
                 client->outerVlan, innerVlan, client->ptin_intf.intf_type, client->ptin_intf.intf_id);
         return L7_FAILURE;
       }
@@ -5245,14 +5245,14 @@ static L7_RC_t ptin_dhcp_clientId_restore(ptin_client_id_t *client)
   /* Validate client */
   if (client==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid arguments or no parameters provided");
+    LOG_ERR(LOG_CTX_DHCP,"Invalid arguments or no parameters provided");
     return L7_FAILURE;
   }
 
   /* Check mask */
   if (DHCP_CLIENT_MASK_UPDATE(client->mask)==0x00)
   {
-    LOG_WARNING(LOG_CTX_PTIN_DHCP,"Client mask is null");
+    LOG_WARNING(LOG_CTX_DHCP,"Client mask is null");
     return L7_FAILURE;
   }
 
@@ -5263,7 +5263,7 @@ static L7_RC_t ptin_dhcp_clientId_restore(ptin_client_id_t *client)
     /* Validate inner vlan */
     if (client->innerVlan>4095)
     {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid inner vlan (%u)",client->innerVlan);
+      LOG_ERR(LOG_CTX_DHCP,"Invalid inner vlan (%u)",client->innerVlan);
       return L7_FAILURE;
     }
     innerVlan = client->innerVlan;
@@ -5278,7 +5278,7 @@ static L7_RC_t ptin_dhcp_clientId_restore(ptin_client_id_t *client)
     /* Convert to intIfNum format */
     if (ptin_intf_ptintf2intIfNum(&client->ptin_intf, &intIfNum)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Cannot convert client intf %u/%u to intIfNum format",
+      LOG_ERR(LOG_CTX_DHCP,"Cannot convert client intf %u/%u to intIfNum format",
               client->ptin_intf.intf_type,client->ptin_intf.intf_id);
       return L7_FAILURE;
     }
@@ -5286,13 +5286,13 @@ static L7_RC_t ptin_dhcp_clientId_restore(ptin_client_id_t *client)
     /* Validate outer vlan */
     if (client->outerVlan<PTIN_VLAN_MIN || client->outerVlan>PTIN_VLAN_MAX)
     {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid outer vlan (%u)",client->outerVlan);
+      LOG_ERR(LOG_CTX_DHCP,"Invalid outer vlan (%u)",client->outerVlan);
       return L7_FAILURE;
     }
     /* Replace the outer vlan, with the internal vlan relative to the leaf interface */
     if (ptin_evc_extVlans_get_fromIntVlan(intIfNum, client->outerVlan, innerVlan, &extVlan, L7_NULLPTR)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Could not obtain external vlan for intVlan %u, ptin_intf %u/%u",
+      LOG_ERR(LOG_CTX_DHCP,"Could not obtain external vlan for intVlan %u, ptin_intf %u/%u",
               client->outerVlan, client->ptin_intf.intf_type, client->ptin_intf.intf_id);
       return L7_FAILURE;
     }

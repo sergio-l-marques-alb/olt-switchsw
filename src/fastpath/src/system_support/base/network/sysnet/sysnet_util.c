@@ -361,7 +361,7 @@ L7_RC_t sysNetFindReasonCodeMatch(sysnet_pdu_info_t *pduInfo, L7_netBufHandle bu
   L7_RC_t     rc = L7_FAILURE;
 
   if (pdu_process_debug)
-    LOG_TRACE(LOG_CTX_PTIN_DTL,"RxReason reference=0x%x",((SYSAPI_NET_MBUF_HEADER_t *)bufHandle)->rxCode);
+    LOG_TRACE(LOG_CTX_DTL,"RxReason reference=0x%x",((SYSAPI_NET_MBUF_HEADER_t *)bufHandle)->rxCode);
 
   for (i = 0; i < FD_CNFGR_SYSNET_MAX_REGISTRATIONS; i++)
   {
@@ -370,7 +370,7 @@ L7_RC_t sysNetFindReasonCodeMatch(sysnet_pdu_info_t *pduInfo, L7_netBufHandle bu
       if (sysnetNotifyList.sysnetNotifyEntries[i].u.rxReason & ((SYSAPI_NET_MBUF_HEADER_t *)bufHandle)->rxCode)
       {
         if (pdu_process_debug)
-          LOG_TRACE(LOG_CTX_PTIN_DTL,"Calling callback for rxReason=%u",sysnetNotifyList.sysnetNotifyEntries[i].u.rxReason);
+          LOG_TRACE(LOG_CTX_DTL,"Calling callback for rxReason=%u",sysnetNotifyList.sysnetNotifyEntries[i].u.rxReason);
 
         rc = (*sysnetNotifyList.sysnetNotifyEntries[i].notify_pdu_receive)(bufHandle, pduInfo);
         if (rc == L7_SUCCESS)
@@ -456,7 +456,7 @@ L7_RC_t sysNetFindSubTypeMatch(sysnet_pdu_info_t *pduInfo, L7_netBufHandle bufHa
   }
 
   if (pdu_process_debug)
-    LOG_TRACE(LOG_CTX_PTIN_DTL,"Searching for subType=%u",sub_type);
+    LOG_TRACE(LOG_CTX_DTL,"Searching for subType=%u",sub_type);
 
   for (i = 0; i < FD_CNFGR_SYSNET_MAX_REGISTRATIONS; i++)
   {
@@ -465,7 +465,7 @@ L7_RC_t sysNetFindSubTypeMatch(sysnet_pdu_info_t *pduInfo, L7_netBufHandle bufHa
       if (sysnetNotifyList.sysnetNotifyEntries[i].u.subType == sub_type)
       {
         if (pdu_process_debug)
-          LOG_TRACE(LOG_CTX_PTIN_DTL,"Calling callback for subType=%u",sub_type);
+          LOG_TRACE(LOG_CTX_DTL,"Calling callback for subType=%u",sub_type);
 
         rc = (*sysnetNotifyList.sysnetNotifyEntries[i].notify_pdu_receive)(bufHandle, pduInfo);
         if (rc == L7_SUCCESS)
@@ -506,7 +506,7 @@ L7_RC_t sysNetFindMacAddrMatch(sysnet_pdu_info_t *pduInfo, L7_netBufHandle bufHa
   bcopy(data, (L7_uchar8 *)macAddr, L7_MAC_ADDR_LEN);
 
   if (pdu_process_debug)
-    LOG_TRACE(LOG_CTX_PTIN_DTL,"Searching for macAddr=%02x:%02x:%02x:%02x:%02x:%02x",macAddr[0],macAddr[1],macAddr[2],macAddr[3],macAddr[4],macAddr[5]);
+    LOG_TRACE(LOG_CTX_DTL,"Searching for macAddr=%02x:%02x:%02x:%02x:%02x:%02x",macAddr[0],macAddr[1],macAddr[2],macAddr[3],macAddr[4],macAddr[5]);
 
   for (i = 0; i < FD_CNFGR_SYSNET_MAX_REGISTRATIONS; i++)
   {
@@ -516,7 +516,7 @@ L7_RC_t sysNetFindMacAddrMatch(sysnet_pdu_info_t *pduInfo, L7_netBufHandle bufHa
                  macAddr, L7_MAC_ADDR_LEN) == 0)
       {
         if (pdu_process_debug)
-          LOG_TRACE(LOG_CTX_PTIN_DTL,"Calling callback for macAddr=%02x:%02x:%02x:%02x:%02x:%02x",macAddr[0],macAddr[1],macAddr[2],macAddr[3],macAddr[4],macAddr[5]);
+          LOG_TRACE(LOG_CTX_DTL,"Calling callback for macAddr=%02x:%02x:%02x:%02x:%02x:%02x",macAddr[0],macAddr[1],macAddr[2],macAddr[3],macAddr[4],macAddr[5]);
 
         rc = (*sysnetNotifyList.sysnetNotifyEntries[i].notify_pdu_receive)(bufHandle, pduInfo);
         if (rc == L7_SUCCESS)
@@ -604,7 +604,7 @@ L7_RC_t sysNetFindProtocolTypeMatch(sysnet_pdu_info_t *pduInfo, L7_netBufHandle 
   }
 
   if (pdu_process_debug)
-    LOG_TRACE(LOG_CTX_PTIN_DTL,"Searching for protocol_type=0x%04X",protocol_type);
+    LOG_TRACE(LOG_CTX_DTL,"Searching for protocol_type=0x%04X",protocol_type);
 
   for (i = 0; i < FD_CNFGR_SYSNET_MAX_REGISTRATIONS; i++)
   {
@@ -626,7 +626,7 @@ L7_RC_t sysNetFindProtocolTypeMatch(sysnet_pdu_info_t *pduInfo, L7_netBufHandle 
         }
 
         if (pdu_process_debug)
-          LOG_TRACE(LOG_CTX_PTIN_DTL,"Calling callback for protocol_type=0x%04X",protocol_type);
+          LOG_TRACE(LOG_CTX_DTL,"Calling callback for protocol_type=0x%04X",protocol_type);
 
         rc = (*(sysnetNotifyList.sysnetNotifyEntries[i].notify_pdu_receive))(bufHandle, pduInfo);
             break;
@@ -702,7 +702,7 @@ L7_RC_t sysNetNotifyPduReceive (L7_netBufHandle bufHandle, sysnet_pdu_info_t *pd
   SYSAPI_NET_MBUF_GET_DATASTART(bufHandle, data);
 
   if (pdu_process_debug)
-    LOG_TRACE(LOG_CTX_PTIN_DTL,"I have received a packet here");
+    LOG_TRACE(LOG_CTX_DTL,"I have received a packet here");
 
   rc = sysNetFindReasonCodeMatch(pduInfo, bufHandle, data);
 

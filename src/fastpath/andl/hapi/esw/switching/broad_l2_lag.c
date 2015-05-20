@@ -971,7 +971,7 @@ L7_RC_t hapiBroadLagCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *
   /* PTin modified: LAGs */
   #if 1
   tid = usp->port;
-  LOG_DEBUG(LOG_CTX_PTIN_TRUNKS, "Suggested TID is %u", tid);
+  LOG_DEBUG(LOG_CTX_TRUNKS, "Suggested TID is %u", tid);
   #else
   tid = hapiPortPtr->hapiModeparm.lag.lastValidTgid; // Try to assign the previous tid * BCM_TRUNK_INVALID;
   #endif
@@ -980,7 +980,7 @@ L7_RC_t hapiBroadLagCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *
   {
     L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't create trunk ID %d, rv = %d", usp->port, rc);
   }
-  LOG_DEBUG(LOG_CTX_PTIN_TRUNKS, "LAG {%d.%d.%d} => New trunk created: tid=%u", usp->unit, usp->slot, usp->port, tid);
+  LOG_DEBUG(LOG_CTX_TRUNKS, "LAG {%d.%d.%d} => New trunk created: tid=%u", usp->unit, usp->slot, usp->port, tid);
   hapiPortPtr->hapiModeparm.lag.tgid = tid;
   BCM_GPORT_TRUNK_SET(hapiPortPtr->bcmx_lport, tid);
 
@@ -1203,7 +1203,7 @@ L7_RC_t hapiBroadLagPortAsyncAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
       {
         if (hapiBroadDebugLag)
         {
-          LOG_DEBUG(LOG_CTX_PTIN_TRUNKS, "Adding %d.%d.%d to %d.%d.%d, psc %d, (Up Time: %d)",
+          LOG_DEBUG(LOG_CTX_TRUNKS, "Adding %d.%d.%d to %d.%d.%d, psc %d, (Up Time: %d)",
                     cmdLagPortAdd->cmdData.lagPortAdd.memberSet[entry].unit,
                     cmdLagPortAdd->cmdData.lagPortAdd.memberSet[entry].slot,
                     cmdLagPortAdd->cmdData.lagPortAdd.memberSet[entry].port,
@@ -1435,7 +1435,7 @@ L7_RC_t hapiBroadLagPortAsyncAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
       tid = hapiLagPortPtr->hapiModeparm.lag.tgid;
       if (tid == BCM_TRUNK_INVALID)
       {
-        LOG_CRITICAL(LOG_CTX_PTIN_TRUNKS, "There trunk ID is invalid!!! CRITICAL!");
+        LOG_CRITICAL(LOG_CTX_TRUNKS, "There trunk ID is invalid!!! CRITICAL!");
       }
     }
 
@@ -1693,20 +1693,20 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
 
       if (hapiBroadDebugLag)
       {
-        LOG_DEBUG(LOG_CTX_PTIN_TRUNKS, "lagPortDelete.memberSet[%d]={%d,%d,%d}", entry,
+        LOG_DEBUG(LOG_CTX_TRUNKS, "lagPortDelete.memberSet[%d]={%d,%d,%d}", entry,
                   cmdLagPortDelete->cmdData.lagPortDelete.memberSet[entry].unit, cmdLagPortDelete->cmdData.lagPortDelete.memberSet[entry].slot, cmdLagPortDelete->cmdData.lagPortDelete.memberSet[entry].port);
-        LOG_DEBUG(LOG_CTX_PTIN_TRUNKS, "lagMemberSet[%u].usp={%u,%u,%u}  cmdLagPortDelete->cmdData.lagPortDelete.memberSet[%u]={%u,%u,%u}",
+        LOG_DEBUG(LOG_CTX_TRUNKS, "lagMemberSet[%u].usp={%u,%u,%u}  cmdLagPortDelete->cmdData.lagPortDelete.memberSet[%u]={%u,%u,%u}",
                   searchEntry,lagMemberSet[searchEntry].usp.unit,lagMemberSet[searchEntry].usp.slot,lagMemberSet[searchEntry].usp.port,
                   entry,cmdLagPortDelete->cmdData.lagPortDelete.memberSet[entry].unit,cmdLagPortDelete->cmdData.lagPortDelete.memberSet[entry].slot,cmdLagPortDelete->cmdData.lagPortDelete.memberSet[entry].port);
-        LOG_DEBUG(LOG_CTX_PTIN_TRUNKS, "(lagMemberSet[%d].inUse    == L7_TRUE): %u\n",
+        LOG_DEBUG(LOG_CTX_TRUNKS, "(lagMemberSet[%d].inUse    == L7_TRUE): %u\n",
                   searchEntry, cond0);
-        LOG_DEBUG(LOG_CTX_PTIN_TRUNKS, "(lagMemberSet[%d].usp.unit == cmdLagPortDelete->cmdData.lagPortDelete.memberSet[entry].unit): %u",
+        LOG_DEBUG(LOG_CTX_TRUNKS, "(lagMemberSet[%d].usp.unit == cmdLagPortDelete->cmdData.lagPortDelete.memberSet[entry].unit): %u",
                   searchEntry, cond1);
-        LOG_DEBUG(LOG_CTX_PTIN_TRUNKS, "(lagMemberSet[%d].usp.slot == cmdLagPortDelete->cmdData.lagPortDelete.memberSet[entry].slot): %u",
+        LOG_DEBUG(LOG_CTX_TRUNKS, "(lagMemberSet[%d].usp.slot == cmdLagPortDelete->cmdData.lagPortDelete.memberSet[entry].slot): %u",
                   searchEntry, cond2);
-        LOG_DEBUG(LOG_CTX_PTIN_TRUNKS, "(lagMemberSet[%d].usp.port == cmdLagPortDelete->cmdData.lagPortDelete.memberSet[entry].port): %u",
+        LOG_DEBUG(LOG_CTX_TRUNKS, "(lagMemberSet[%d].usp.port == cmdLagPortDelete->cmdData.lagPortDelete.memberSet[entry].port): %u",
                   searchEntry, cond3);
-        LOG_DEBUG(LOG_CTX_PTIN_TRUNKS, "Total: %u\n", __FUNCTION__, __LINE__, cond);
+        LOG_DEBUG(LOG_CTX_TRUNKS, "Total: %u\n", __FUNCTION__, __LINE__, cond);
       }
 
       /* This code was never asserted as true, although all the conditions were right... weird! */
@@ -1717,14 +1717,14 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
       if (cond) /* This way the if is correctly asserted. Weird... */
       /* PTin end */
       {
-        LOG_TRACE(LOG_CTX_PTIN_TRUNKS, "lagMemberSet[%d].usp={%d,%d,%d}",
+        LOG_TRACE(LOG_CTX_TRUNKS, "lagMemberSet[%d].usp={%d,%d,%d}",
                   searchEntry, lagMemberSet[searchEntry].usp.unit, lagMemberSet[searchEntry].usp.slot,lagMemberSet[searchEntry].usp.port);
 
         /* PTin added: debug */
         if (hapiBroadDebugLag)
         {
-          LOG_DEBUG(LOG_CTX_PTIN_TRUNKS, "**** Found LAG: searchEntry=%u", searchEntry);
-          LOG_DEBUG(LOG_CTX_PTIN_TRUNKS, "lagMemberSet[%d].usp={%d,%d,%d}",
+          LOG_DEBUG(LOG_CTX_TRUNKS, "**** Found LAG: searchEntry=%u", searchEntry);
+          LOG_DEBUG(LOG_CTX_TRUNKS, "lagMemberSet[%d].usp={%d,%d,%d}",
                     searchEntry, lagMemberSet[searchEntry].usp.unit, lagMemberSet[searchEntry].usp.slot,lagMemberSet[searchEntry].usp.port);
         }
         /* PTin end */
@@ -1733,7 +1733,7 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
           removing_first_member = L7_TRUE;
         }
         member_found = L7_TRUE;
-        LOG_TRACE(LOG_CTX_PTIN_TRUNKS, "lagMemberSet[%d].usp={%d,%d,%d}",
+        LOG_TRACE(LOG_CTX_TRUNKS, "lagMemberSet[%d].usp={%d,%d,%d}",
                   searchEntry, lagMemberSet[searchEntry].usp.unit, lagMemberSet[searchEntry].usp.slot,lagMemberSet[searchEntry].usp.port);
         break;
       }
@@ -1741,7 +1741,7 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
 
     if (member_found == L7_TRUE)
     {
-      LOG_TRACE(LOG_CTX_PTIN_TRUNKS, "lagMemberSet[%d].usp={%d,%d,%d}",
+      LOG_TRACE(LOG_CTX_TRUNKS, "lagMemberSet[%d].usp={%d,%d,%d}",
                 searchEntry, lagMemberSet[searchEntry].usp.unit, lagMemberSet[searchEntry].usp.slot,lagMemberSet[searchEntry].usp.port);
       break;
     }
@@ -1749,11 +1749,11 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
 
   if (member_found == L7_FALSE)
   {
-    LOG_TRACE(LOG_CTX_PTIN_TRUNKS, "Member not found");
+    LOG_TRACE(LOG_CTX_TRUNKS, "Member not found");
     return L7_SUCCESS;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_TRUNKS, "lagMemberSet[%d].usp={%d,%d,%d}",
+  LOG_TRACE(LOG_CTX_TRUNKS, "lagMemberSet[%d].usp={%d,%d,%d}",
             searchEntry, lagMemberSet[searchEntry].usp.unit, lagMemberSet[searchEntry].usp.slot,lagMemberSet[searchEntry].usp.port);
 
   /* acquire the drivers vlan database during this operation */
@@ -1822,19 +1822,19 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
         cond3 = (lagMemberSet[searchEntry].usp.port == cmdLagPortDelete->cmdData.lagPortDelete.memberSet[entry].port);
         cond  = cond0 && cond1 && cond2 && cond3;
 
-        LOG_DEBUG(LOG_CTX_PTIN_TRUNKS, "lagMemberSet[%u].usp={%u,%u,%u}  cmdLagPortDelete->cmdData.lagPortDelete.memberSet[%u]={%u,%u,%u}",
+        LOG_DEBUG(LOG_CTX_TRUNKS, "lagMemberSet[%u].usp={%u,%u,%u}  cmdLagPortDelete->cmdData.lagPortDelete.memberSet[%u]={%u,%u,%u}",
                 searchEntry,lagMemberSet[searchEntry].usp.unit,lagMemberSet[searchEntry].usp.slot,lagMemberSet[searchEntry].usp.port,
                 entry,cmdLagPortDelete->cmdData.lagPortDelete.memberSet[entry].unit,cmdLagPortDelete->cmdData.lagPortDelete.memberSet[entry].slot,cmdLagPortDelete->cmdData.lagPortDelete.memberSet[entry].port);
 
-        LOG_DEBUG(LOG_CTX_PTIN_TRUNKS, "(lagMemberSet[searchEntry].inUse    == L7_TRUE): %u",
+        LOG_DEBUG(LOG_CTX_TRUNKS, "(lagMemberSet[searchEntry].inUse    == L7_TRUE): %u",
                 cond0);
-        LOG_DEBUG(LOG_CTX_PTIN_TRUNKS, "(lagMemberSet[searchEntry].usp.unit == cmdLagPortDelete->cmdData.lagPortDelete.memberSet[entry].unit): %u",
+        LOG_DEBUG(LOG_CTX_TRUNKS, "(lagMemberSet[searchEntry].usp.unit == cmdLagPortDelete->cmdData.lagPortDelete.memberSet[entry].unit): %u",
                 cond1);
-        LOG_DEBUG(LOG_CTX_PTIN_TRUNKS, "(lagMemberSet[searchEntry].usp.slot == cmdLagPortDelete->cmdData.lagPortDelete.memberSet[entry].slot): %u",
+        LOG_DEBUG(LOG_CTX_TRUNKS, "(lagMemberSet[searchEntry].usp.slot == cmdLagPortDelete->cmdData.lagPortDelete.memberSet[entry].slot): %u",
                 cond2);
-        LOG_DEBUG(LOG_CTX_PTIN_TRUNKS, "(lagMemberSet[searchEntry].usp.port == cmdLagPortDelete->cmdData.lagPortDelete.memberSet[entry].port): %u",
+        LOG_DEBUG(LOG_CTX_TRUNKS, "(lagMemberSet[searchEntry].usp.port == cmdLagPortDelete->cmdData.lagPortDelete.memberSet[entry].port): %u",
                 cond3);
-        LOG_DEBUG(LOG_CTX_PTIN_TRUNKS, "Total: %u",cond);
+        LOG_DEBUG(LOG_CTX_TRUNKS, "Total: %u",cond);
       }
       /* PTin end */
       if ((lagMemberSet[searchEntry].inUse    == L7_TRUE) &&
@@ -1845,7 +1845,7 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
 #endif
         if (hapiBroadDebugLag)
         {
-          LOG_DEBUG(LOG_CTX_PTIN_TRUNKS, "Removing %d.%d.%d from %d.%d.%d (Up Time: %d)",
+          LOG_DEBUG(LOG_CTX_TRUNKS, "Removing %d.%d.%d from %d.%d.%d (Up Time: %d)",
                     cmdLagPortDelete->cmdData.lagPortDelete.memberSet[entry].unit,
                     cmdLagPortDelete->cmdData.lagPortDelete.memberSet[entry].slot,
                     cmdLagPortDelete->cmdData.lagPortDelete.memberSet[entry].port,
@@ -1957,12 +1957,12 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
       LOG_INFO(LOG_CTX_MISC, "Port removed");
 
       /* PTin added: trunks (code ported from hapiBroadLagPortAsyncAdd()) */
-      LOG_DEBUG(LOG_CTX_PTIN_TRUNKS, "Trunk ID# %d was temporarily removed", tid);
+      LOG_DEBUG(LOG_CTX_TRUNKS, "Trunk ID# %d was temporarily removed", tid);
       rc = usl_bcmx_trunk_create(usp->port, &tid);
       if (L7_BCMX_OK(rc) != L7_TRUE) {
         L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't create trunk ID %d, rv = %d", usp->port, rc);
       }
-      LOG_DEBUG(LOG_CTX_PTIN_TRUNKS, "Trunk ID# %d is alive again :-)", tid);
+      LOG_DEBUG(LOG_CTX_TRUNKS, "Trunk ID# %d is alive again :-)", tid);
       hapiLagPortPtr->hapiModeparm.lag.tgid = tid;
       BCM_GPORT_TRUNK_SET(hapiLagPortPtr->bcmx_lport, tid);
 
@@ -2008,7 +2008,7 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
     rc = usl_bcmx_port_frame_max_set(lport, maxFrameSize);
     if (L7_BCMX_OK(rc) != L7_TRUE)
     {
-      LOG_ERR(LOG_CTX_PTIN_TRUNKS, "Failed to set max frame on %d",lport);
+      LOG_ERR(LOG_CTX_TRUNKS, "Failed to set max frame on %d",lport);
 
       hapiBroadLagCritSecExit ();
 
@@ -2062,7 +2062,7 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
                                           hapiLagMemberPortPtr->pvid, dapi_g);
     if (L7_SUCCESS != result)
     {
-      LOG_ERR(LOG_CTX_PTIN_TRUNKS, "Failed to set pvid \n");
+      LOG_ERR(LOG_CTX_TRUNKS, "Failed to set pvid \n");
       hapiBroadLagCritSecExit ();
 
       hapiBroadIpsgSemGive();
@@ -2335,7 +2335,7 @@ L7_RC_t hapiBroadLagDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *
     
     if (intfCount != 0)
     {
-      LOG_NOTICE(LOG_CTX_PTIN_TRUNKS, "LAG (tid=%u) still has %u members! Waiting 250ms...", usp->port, intfCount);
+      LOG_NOTICE(LOG_CTX_TRUNKS, "LAG (tid=%u) still has %u members! Waiting 250ms...", usp->port, intfCount);
       osapiSleepMSec(250);
 
       /* NOTE: when a LAG is removed and it has active ports, it is issued a command
@@ -2353,7 +2353,7 @@ L7_RC_t hapiBroadLagDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *
     {
       L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't destroy trunk ID %d, rv = %d", usp->port, rc);
     }
-    LOG_DEBUG(LOG_CTX_PTIN_TRUNKS, "Trunk ID# %d was successfully removed", hapiLagPortPtr->hapiModeparm.lag.tgid);
+    LOG_DEBUG(LOG_CTX_TRUNKS, "Trunk ID# %d was successfully removed", hapiLagPortPtr->hapiModeparm.lag.tgid);
 
     /* Set it to something invalid */
     hapiLagPortPtr->hapiModeparm.lag.isolatePending = L7_FALSE;

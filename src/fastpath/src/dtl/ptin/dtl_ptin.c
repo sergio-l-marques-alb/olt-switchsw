@@ -57,7 +57,7 @@ L7_RC_t dtlPtinGeneric(L7_uint32 intIfNum, L7_uint16 msgId, DAPI_CMD_GET_SET_t o
   {
     if (nimGetUnitSlotPort(intIfNum, &usp) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_DTL, "Invalid intIfNum %u!", intIfNum);
+      LOG_ERR(LOG_CTX_DTL, "Invalid intIfNum %u!", intIfNum);
       return L7_FAILURE;
     }
 
@@ -69,7 +69,7 @@ L7_RC_t dtlPtinGeneric(L7_uint32 intIfNum, L7_uint16 msgId, DAPI_CMD_GET_SET_t o
   /* Validate size */
   if (dataSize > PTIN_DTL_GENERICMSG_MAX_DATASIZE)
   {
-    LOG_ERR(LOG_CTX_PTIN_DTL, "Invalid dataSize (%u > %u bytes)!", dataSize, PTIN_DTL_GENERICMSG_MAX_DATASIZE);
+    LOG_ERR(LOG_CTX_DTL, "Invalid dataSize (%u > %u bytes)!", dataSize, PTIN_DTL_GENERICMSG_MAX_DATASIZE);
     return L7_FAILURE;
   }
 
@@ -86,7 +86,7 @@ L7_RC_t dtlPtinGeneric(L7_uint32 intIfNum, L7_uint16 msgId, DAPI_CMD_GET_SET_t o
 
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DTL, "Error rc=%u", rc);
+    LOG_ERR(LOG_CTX_DTL, "Error rc=%u", rc);
     return rc;
   }
   else

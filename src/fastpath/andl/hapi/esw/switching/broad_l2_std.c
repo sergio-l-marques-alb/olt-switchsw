@@ -3470,7 +3470,7 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
     return;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "MacUpdateLearn: New MAC [%02X:%02X:%02X:%02X:%02X:%02X] with VID %d, GPORT 0x%08X, flags 0x%x",
+  LOG_TRACE(LOG_CTX_HAPI, "MacUpdateLearn: New MAC [%02X:%02X:%02X:%02X:%02X:%02X] with VID %d, GPORT 0x%08X, flags 0x%x",
             bcmx_l2_addr->mac[0], bcmx_l2_addr->mac[1], bcmx_l2_addr->mac[2], bcmx_l2_addr->mac[3], bcmx_l2_addr->mac[4], bcmx_l2_addr->mac[5], 
             bcmx_l2_addr->vid, bcmx_l2_addr->lport, bcmx_l2_addr->flags);
 
@@ -3569,20 +3569,20 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
   /* If pending flag is active, check if MAC should be learnt */
   if (bcmx_l2_addr->flags & BCM_L2_PENDING)
   {
-    LOG_WARNING(LOG_CTX_PTIN_HAPI, "MacUpdateLearn: VID %d, GPORT 0x%08X, flags 0x%x",
+    LOG_WARNING(LOG_CTX_HAPI, "MacUpdateLearn: VID %d, GPORT 0x%08X, flags 0x%x",
                   bcmx_l2_addr->vid, bcmx_l2_addr->lport, bcmx_l2_addr->flags);
 
     #if 1
     if (bcmx_l2_addr->flags & BCM_L2_MOVE)
     {
-      LOG_TRACE(LOG_CTX_PTIN_HAPI, " Decrease learned mac ");
+      LOG_TRACE(LOG_CTX_HAPI, " Decrease learned mac ");
       ptin_hapi_maclimit_dec(bcmx_l2_addr);
     }
     else
     {
       if (ptin_hapi_maclimit_inc(bcmx_l2_addr) != L7_FAILURE)
       {
-        LOG_TRACE(LOG_CTX_PTIN_HAPI, " Increase learned mac ");
+        LOG_TRACE(LOG_CTX_HAPI, " Increase learned mac ");
         bcmx_l2_addr->flags &= ~((L7_uint32)BCM_L2_PENDING);
         rv = usl_bcmx_l2_addr_add(bcmx_l2_addr, L7_NULL);
       }
@@ -3591,8 +3591,8 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
         /* This action allows rejected MACs to appear in Fdb table */
         //bcmx_l2_addr->flags &= ~((L7_uint32)BCM_L2_PENDING);
         //rv = usl_bcmx_l2_addr_delete(bcmx_l2_addr->mac, bcmx_l2_addr->vid);
-        LOG_TRACE(LOG_CTX_PTIN_HAPI, " Warning ");
-        LOG_WARNING(LOG_CTX_PTIN_HAPI, "MAC limit has been reached for VID %d, GPORT 0x%08X",
+        LOG_TRACE(LOG_CTX_HAPI, " Warning ");
+        LOG_WARNING(LOG_CTX_HAPI, "MAC limit has been reached for VID %d, GPORT 0x%08X",
                     bcmx_l2_addr->vid, bcmx_l2_addr->lport);
       }
     }
@@ -3630,7 +3630,7 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
       /* Save virtual port */
       if (BCM_GPORT_IS_VLAN_PORT(bcmx_l2_addr->lport))
       {
-        LOG_TRACE(LOG_CTX_PTIN_HAPI, " Warning ");
+        LOG_TRACE(LOG_CTX_HAPI, " Warning ");
         macAddressInfo.virtual_port = _SHR_GPORT_VLAN_PORT_ID_GET(bcmx_l2_addr->lport);
       }
       else
@@ -3642,13 +3642,13 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
       /* PTin added: physical ports */
       if (BCMX_LPORT_VALID(bcmx_l2_addr->lport))
       {
-        LOG_TRACE(LOG_CTX_PTIN_HAPI, " Physical");
+        LOG_TRACE(LOG_CTX_HAPI, " Physical");
         ptin_hapi_maclimit_inc(bcmx_l2_addr);
       } 
       /* PTin added: LAGS ports */
       else if((bcmx_l2_addr->tgid > 0) && ((bcmx_l2_addr->tgid < PTIN_SYSTEM_N_LAGS)))
       {
-        LOG_TRACE(LOG_CTX_PTIN_HAPI, " LAG ");
+        LOG_TRACE(LOG_CTX_HAPI, " LAG ");
         ptin_hapi_maclimit_inc(bcmx_l2_addr);
       }
       
@@ -3719,14 +3719,14 @@ void hapiBroadAddrMacUpdateAge(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
     return;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "hapiBroadAddrMacUpdateAge: Aged MAC [%02X:%02X:%02X:%02X:%02X:%02X] with VID %d, GPORT 0x%08X, flags 0x%x",
+  LOG_TRACE(LOG_CTX_HAPI, "hapiBroadAddrMacUpdateAge: Aged MAC [%02X:%02X:%02X:%02X:%02X:%02X] with VID %d, GPORT 0x%08X, flags 0x%x",
             bcmx_l2_addr->mac[0], bcmx_l2_addr->mac[1], bcmx_l2_addr->mac[2], bcmx_l2_addr->mac[3], bcmx_l2_addr->mac[4], bcmx_l2_addr->mac[5], 
             bcmx_l2_addr->vid, bcmx_l2_addr->lport, bcmx_l2_addr->flags);
 
   /* If move, it will be handled in the Learn Callback */
   if (bcmx_l2_addr->flags & BCM_L2_MOVE)
   {
-    LOG_TRACE(LOG_CTX_PTIN_HAPI, "hapiBroadAddrMacUpdateAge: BCM_L2_MOVE flag causes event drop");
+    LOG_TRACE(LOG_CTX_HAPI, "hapiBroadAddrMacUpdateAge: BCM_L2_MOVE flag causes event drop");
     return;
   }
 
@@ -3812,7 +3812,7 @@ void hapiBroadAddrMacUpdateAge(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
       /* Do not check return code, no guarentee that the address will be present in all devices */
       if(hapiBroadRoboVariantCheck() != __BROADCOM_53115_ID)
       {
-        LOG_TRACE(LOG_CTX_PTIN_HAPI, "hapiBroadAddrMacUpdateAge: VID %d, GPORT 0x%08X, flags 0x%x",
+        LOG_TRACE(LOG_CTX_HAPI, "hapiBroadAddrMacUpdateAge: VID %d, GPORT 0x%08X, flags 0x%x",
                   bcmx_l2_addr->vid, bcmx_l2_addr->lport, bcmx_l2_addr->flags);
 
         rv = usl_bcmx_l2_addr_delete(bcmx_l2_addr->mac,bcmx_l2_addr->vid);
