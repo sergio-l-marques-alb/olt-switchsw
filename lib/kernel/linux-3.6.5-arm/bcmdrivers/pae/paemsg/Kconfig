@@ -1,9 +1,0 @@
-config IPROC_PAE
-	tristate "PAE support"
-	depends on ARCH_IPROC && MACH_NSP
-	default n
-	help
-	  PAE support 
-	  This driver provides support for the Programmable Accelerator Engine in the NorthstarPlus
-	
-	  If unsure, say N.

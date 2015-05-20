@@ -1,4 +1,0 @@
-ppcstring.o: ppcstring.S \
- /home/devtools/dev-QorIQ/dev-P204x/cxo160/u_boot_1_2003/include/ppc_asm.tmpl \
- /home/devtools/dev-QorIQ/dev-P204x/cxo160/u_boot_1_2003/include/asm/errno.h \
- /home/devtools/dev-QorIQ/dev-P204x/cxo160/u_boot_1_2003/include/asm-generic/errno.h

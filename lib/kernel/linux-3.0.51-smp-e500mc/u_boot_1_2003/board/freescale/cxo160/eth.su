@@ -1,2 +1,0 @@
-eth.c:91:6:board_ft_fman_fixup_port	48	static
-eth.c:135:5:board_eth_init	56	static

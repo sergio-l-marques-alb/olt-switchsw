@@ -1,1 +1,0 @@
-cmd_block/partitions/built-in.o :=  /home/devtools/dev-bcm-ldk/3.4.7-RC4/iproc/buildroot/output/host/usr/bin/arm-linux-ld -EL    -r -o block/partitions/built-in.o block/partitions/check.o block/partitions/msdos.o 

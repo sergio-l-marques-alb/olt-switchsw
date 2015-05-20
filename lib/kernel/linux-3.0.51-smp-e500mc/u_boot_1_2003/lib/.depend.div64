@@ -1,7 +1,0 @@
-div64.o: div64.c \
- /home/devtools/dev-QorIQ/dev-P204x/cxo160/u_boot_1_2003/include/linux/types.h \
- /home/devtools/dev-QorIQ/dev-P204x/cxo160/u_boot_1_2003/include/linux/config.h \
- /home/devtools/dev-QorIQ/dev-P204x/cxo160/u_boot_1_2003/include/linux/posix_types.h \
- /home/devtools/dev-QorIQ/dev-P204x/cxo160/u_boot_1_2003/include/linux/stddef.h \
- /home/devtools/dev-QorIQ/dev-P204x/cxo160/u_boot_1_2003/include/asm/posix_types.h \
- /home/devtools/dev-QorIQ/dev-P204x/cxo160/u_boot_1_2003/include/asm/types.h

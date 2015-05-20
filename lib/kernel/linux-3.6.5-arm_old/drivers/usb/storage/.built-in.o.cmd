@@ -1,1 +1,0 @@
-cmd_drivers/usb/storage/built-in.o :=  /home/devtools/dev-bcm-ldk/3.4.7-RC4/iproc/buildroot/output/host/usr/bin/arm-linux-ld -EL    -r -o drivers/usb/storage/built-in.o drivers/usb/storage/uas.o drivers/usb/storage/usb-storage.o 

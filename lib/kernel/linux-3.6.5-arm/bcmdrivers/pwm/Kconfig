@@ -1,8 +1,0 @@
-config IPROC_PWM
-	tristate "PWM support"
-	depends on ARCH_IPROC
-	default n
-	help
-	  Add PWM support
-	
-	  If unsure, say N.

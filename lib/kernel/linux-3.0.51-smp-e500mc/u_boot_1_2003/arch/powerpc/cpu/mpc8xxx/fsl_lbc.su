@@ -1,4 +1,0 @@
-fsl_lbc.c:14:13:__lbc_sdram_init	8	static
-fsl_lbc.c:22:6:print_lbc_regs	24	static
-fsl_lbc.c:35:6:init_early_memctl_regs	8	static
-fsl_lbc.c:109:6:upmconfig	24	static
