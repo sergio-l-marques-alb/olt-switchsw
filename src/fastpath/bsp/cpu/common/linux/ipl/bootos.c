@@ -943,8 +943,8 @@ int main(int argc, char *argv[], char *envp[])
   logger_init(LOG_OUTPUT_FILE);
 
   /* Configure output files */
-  log_output_file_set(LOG_OUTPUT_FILE,  LOG_OUTPUT_FILE_DEFAULT);
-  log_output_file_set(LOG_OUTPUT_FILE2, LOG_OUTPUT_FILE_DEFAULT2);
+  logger_output_file_set(LOG_OUTPUT_FILE,  LOG_OUTPUT_FILE_DEFAULT);
+  logger_output_file_set(LOG_OUTPUT_FILE2, LOG_OUTPUT_FILE_DEFAULT2);
 
   fflush(stdout);
 

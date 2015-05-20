@@ -233,7 +233,7 @@ log_context_t fp_to_ptin_component(L7_COMPONENT_IDS_t fp_component);
 #define LOG_USER_TRACE(__comp__,__fmt__, __args__... )                      \
   if (logCnfgrStateCheck() == L7_TRUE)                                      \
   {                                                                         \
-    log_print( fp_to_ptin_component(__comp__), fp_to_ptin_logger_verbosity(L7_LOG_SEVERITY_DEBUG) , NULL, __FUNCTION__, __LINE__, __fmt__, ##__args__ );\
+    logger_print( fp_to_ptin_component(__comp__), fp_to_ptin_logger_verbosity(L7_LOG_SEVERITY_DEBUG) , NULL, __FUNCTION__, __LINE__, __fmt__, ##__args__ );\
   }
 #endif
 
@@ -256,7 +256,7 @@ log_context_t fp_to_ptin_component(L7_COMPONENT_IDS_t fp_component);
         l7_logf(__sev__, __comp__, (L7_char8 *)__FILE__, __LINE__, (L7_char8 *)__fmt__, ## __args__)
 #else
 #define L7_LOGF(__sev__, __comp__, __fmt__,__args__...)                         \
-        log_print( fp_to_ptin_component(__comp__), fp_to_ptin_logger_verbosity(__sev__) , NULL, __FUNCTION__, __LINE__, __fmt__, ##__args__ )
+        logger_print( fp_to_ptin_component(__comp__), fp_to_ptin_logger_verbosity(__sev__) , NULL, __FUNCTION__, __LINE__, __fmt__, ##__args__ )
 #endif
 
 

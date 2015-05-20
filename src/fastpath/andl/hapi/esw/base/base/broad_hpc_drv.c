@@ -3679,7 +3679,7 @@ int hapiBroadCmPrint(bsl_meta_t *meta_data, const char *format, va_list args)
       }
       else
       {
-        log_print(LOG_CTX_SDK, ptin_log_sev, meta_data->file, meta_data->func, meta_data->line, "%s", buf);
+        logger_print(LOG_CTX_SDK, ptin_log_sev, meta_data->file, meta_data->func, meta_data->line, "%s", buf);
       }
     }
   }
@@ -3775,7 +3775,7 @@ int hapiBroadCmPrint(uint32 flags, const char *format, va_list args)
       else
       {
         //l7_logf(sev, L7_DRIVER_COMPONENT_ID, __FILE__, __LINE__, buf);
-        log_print(LOG_CTX_SDK, ptin_log_sev, NULL, NULL, 0, "(0x%08x) %s", flags, buf);
+        logger_print(LOG_CTX_SDK, ptin_log_sev, NULL, NULL, 0, "(0x%08x) %s", flags, buf);
       }
     }
   }

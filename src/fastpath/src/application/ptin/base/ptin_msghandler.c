@@ -334,7 +334,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       if (inbuffer->infoDim==0)
       {
         LOG_NOTICE(LOG_CTX_MSGHANDLER, "Redirecting logger output (0) to \"%s\"...", LOG_OUTPUT_FILE_DEFAULT);
-        log_redirect(LOG_OUTPUT_FILE, LOG_OUTPUT_FILE_DEFAULT);
+        logger_redirect(LOG_OUTPUT_FILE, LOG_OUTPUT_FILE_DEFAULT);
         ptin_mgmd_logredirect(MGMD_LOG_FILE, LOG_OUTPUT_FILE_DEFAULT);
         LOG_NOTICE(LOG_CTX_MSGHANDLER, "...Logger output (0) redirected to \"%s\" :-)", LOG_OUTPUT_FILE_DEFAULT);
       }
@@ -344,7 +344,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         output = LOG_OUTPUT_FILE + inbuffer->info[0];
 
         LOG_NOTICE(LOG_CTX_MSGHANDLER, "Redirecting logger output (%u) to \"%s\"...", output, LOG_OUTPUT_FILE_DEFAULT);
-        log_redirect(output, LOG_OUTPUT_FILE_DEFAULT);
+        logger_redirect(output, LOG_OUTPUT_FILE_DEFAULT);
         if (output == LOG_OUTPUT_FILE)
         {
           ptin_mgmd_logredirect(MGMD_LOG_FILE, LOG_OUTPUT_FILE_DEFAULT); 
@@ -357,7 +357,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         filename = (char *) &inbuffer->info[1];
 
         LOG_NOTICE(LOG_CTX_MSGHANDLER, "Redirecting logger output (%u) to \"%s\"...", output, filename);
-        log_redirect(output, filename);
+        logger_redirect(output, filename);
         if (output == LOG_OUTPUT_FILE)
         {
           ptin_mgmd_logredirect(MGMD_LOG_FILE, filename);

@@ -138,7 +138,7 @@ extern void logger_deinit(void);
  * 
  * @param output : type of output
  */
-extern void log_output_file_set(log_output_t output, char *filename);
+extern void logger_output_file_set(log_output_t output, char *filename);
 
 /**
  * Redirect logger to a specific file
@@ -146,12 +146,12 @@ extern void log_output_file_set(log_output_t output, char *filename);
  * @param output : type of output
  * @param output_file_path : path and file name
  */
-extern void log_redirect(log_output_t output, char* output_file_path);
+extern void logger_redirect(log_output_t output, char* output_file_path);
 
 /**
  * Log help
  */
-extern void log_help(void);
+extern void logger_help(void);
 
 /**
  * Sets severity level for a group of contexts
@@ -162,7 +162,7 @@ extern void log_help(void);
  * 
  * @return int Zero if OK, otherwise means error
  */
-extern int log_sev_set(unsigned int ctx_mask, int sev);
+extern int logger_sev_set(unsigned int ctx_mask, int sev);
 
 /**
  * Sets a color for a group of contexts
@@ -173,7 +173,7 @@ extern int log_sev_set(unsigned int ctx_mask, int sev);
  * 
  * @return int Zero if OK, otherwise means error
  */
-extern int log_color_set(unsigned int ctx_mask, int color);
+extern int logger_color_set(unsigned int ctx_mask, int color);
 
 
 /**
@@ -186,37 +186,37 @@ extern int log_color_set(unsigned int ctx_mask, int color);
  * @param line Line# (if zero, is ignored)
  * @param fmt  Format string+ arguments (like printf)
  */
-extern void log_print(log_context_t ctx, log_severity_t sev, char const *file,
-               char const *func, int line, char const *fmt, ...);
+extern void logger_print(log_context_t ctx, log_severity_t sev, char const *file,
+                         char const *func, int line, char const *fmt, ...);
 
 
 #define LOG_TRACE( ctx , fmt , args... ) \
-    log_print( ctx, LOG_SEV_TRACE, NULL, __FUNCTION__, __LINE__, fmt, ##args )
+    logger_print( ctx, LOG_SEV_TRACE, NULL, __FUNCTION__, __LINE__, fmt, ##args )
     
 #define LOG_DEBUG( ctx , fmt , args... ) \
-    log_print( ctx, LOG_SEV_DEBUG, NULL, __FUNCTION__, __LINE__, fmt, ##args )
+    logger_print( ctx, LOG_SEV_DEBUG, NULL, __FUNCTION__, __LINE__, fmt, ##args )
     
 #define LOG_INFO( ctx , fmt , args... ) \
-    log_print( ctx, LOG_SEV_INFO, NULL, __FUNCTION__, __LINE__, fmt, ##args )
+    logger_print( ctx, LOG_SEV_INFO, NULL, __FUNCTION__, __LINE__, fmt, ##args )
     
 #define LOG_NOTICE( ctx , fmt , args... ) \
-    log_print( ctx, LOG_SEV_NOTICE, NULL, __FUNCTION__, __LINE__, fmt, ##args )
+    logger_print( ctx, LOG_SEV_NOTICE, NULL, __FUNCTION__, __LINE__, fmt, ##args )
     
 #define LOG_WARNING( ctx , fmt , args... ) \
-    log_print( ctx, LOG_SEV_WARNING, NULL, __FUNCTION__, __LINE__, fmt, ##args )
+    logger_print( ctx, LOG_SEV_WARNING, NULL, __FUNCTION__, __LINE__, fmt, ##args )
     
 #define LOG_ERR( ctx , fmt , args... ) \
-    log_print( ctx, LOG_SEV_ERROR, NULL, __FUNCTION__, __LINE__, fmt, ##args )
+    logger_print( ctx, LOG_SEV_ERROR, NULL, __FUNCTION__, __LINE__, fmt, ##args )
     
 #define LOG_CRITICAL( ctx , fmt , args... ) \
-    log_print( ctx, LOG_SEV_CRITICAL, NULL, __FUNCTION__, __LINE__, fmt, ##args )
+    logger_print( ctx, LOG_SEV_CRITICAL, NULL, __FUNCTION__, __LINE__, fmt, ##args )
     
 #define LOG_FATAL( ctx , fmt , args... ) \
-    log_print( ctx, LOG_SEV_FATAL, NULL, __FUNCTION__, __LINE__, fmt, ##args )
+    logger_print( ctx, LOG_SEV_FATAL, NULL, __FUNCTION__, __LINE__, fmt, ##args )
     
     
 #define LOG_PRINT( ctx , fmt , args... ) \
-    log_print( ctx, LOG_SEV_PRINT, NULL, NULL, 0, fmt, ##args )
+    logger_print( ctx, LOG_SEV_PRINT, NULL, NULL, 0, fmt, ##args )
     
 
 #endif /* _LOGGER_H */
