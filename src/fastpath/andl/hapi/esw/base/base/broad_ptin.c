@@ -2422,7 +2422,7 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
        bcm_mac_t v;
    } d={{0x01, 0x80, 0xC2, 0x00, 0x00, 0x30}};//, s={{0, 1, 2, 3, 4, 5}};
 
-   d.v[5]= p->level;
+   d.v[5]|= p->level;
    memcpy(mep.dst_mac_address, &d, 6);
    {//SRC MAC ADDRESS
      L7_uint32 intIfNum;
