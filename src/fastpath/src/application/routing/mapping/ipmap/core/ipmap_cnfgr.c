@@ -435,7 +435,7 @@ L7_RC_t ipMapCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
 
   /* Initialize the router interfaces */
   /* There is no way to Fini this function therefore it will only be executed once
-   * If it fails for any reason a LOG_ERROR will be issued
+   * If it fails for any reason a L7_LOG_ERROR will be issued
    */
   ipmRouterIfInitPhase1Process(L7_RTR_MAX_RTR_INTERFACES);
 

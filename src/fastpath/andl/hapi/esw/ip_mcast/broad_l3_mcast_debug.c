@@ -90,7 +90,7 @@ void dumpMcastCounters(bcm_port_t dport)
       SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
                      "\nError: ipmc counters get: %s\n",
                      bcm_errmsg(rv));
-      /* HACK - this will be a LOG_ERROR return L7_FAILURE; */
+      /* HACK - this will be a L7_LOG_ERROR return L7_FAILURE; */
     }
     hapiBroadStatsConvert(&rmca_l, counters.rmca);
     hapiBroadStatsConvert(&tmca_l, counters.tmca);

@@ -1757,7 +1757,7 @@ rip_rtadd(naddr dst,
         rc = ripMapVendRouteChangeCallback(RTM_ADD, rt->rt_dst, rt->rt_msk,
                                       rt->rt_gate, rt->rt_metric);
         if (ripMapVendRnTreeCritEnter())
-          LOG_ERROR(1);
+          L7_LOG_ERROR(1);
 
         if(rc != L7_SUCCESS)
         {
@@ -1854,7 +1854,7 @@ rip_rtchange(struct rt_entry *rt,
       ripMapVendRouteChangeCallback(RTM_DELETE, rt->rt_dst, rt->rt_msk,
                                     rt->rt_gate, rt->rt_metric);
       if (ripMapVendRnTreeCritEnter())
-        LOG_ERROR(1);
+        L7_LOG_ERROR(1);
     }
     if ((new->rts_metric < HOPCNT_INFINITY) &&
         ((state & (RS_IF | RS_NET_SYN)) == 0) &&
@@ -1870,7 +1870,7 @@ rip_rtchange(struct rt_entry *rt,
       ripMapVendRouteChangeCallback(RTM_ADD, rt->rt_dst, rt->rt_msk,
                                     new->rts_gate, new->rts_metric);
       if (ripMapVendRnTreeCritEnter())
-        LOG_ERROR(1);
+        L7_LOG_ERROR(1);
     }
     rip_glob_mibstats.route_changes++;    /* LVL7_MOD: RFC 1724 RIPv2 MIB */
   }
@@ -1976,7 +1976,7 @@ rip_rtdelete(struct rt_entry *rt)
       ripMapVendRouteChangeCallback(RTM_DELETE, rt->rt_dst, rt->rt_msk,
                                     rt->rt_gate, rt->rt_metric);
       if (ripMapVendRnTreeCritEnter())
-        LOG_ERROR(1);
+        L7_LOG_ERROR(1);
     }
     rip_glob_mibstats.route_changes++;    /* LVL7_MOD: RFC 1724 RIPv2 MIB */
     /* LVL7_MOD end */

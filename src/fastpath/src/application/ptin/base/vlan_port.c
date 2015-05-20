@@ -173,7 +173,7 @@ L7_RC_t vlan_port_intIfNum_create(L7_uint32 intfId, L7_uint32 *pIntIfNum)
   rc = nimEventIntfNotify(notifyEventInfo, &handle);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR(rc);
+    L7_LOG_ERROR(rc);
     return L7_FAILURE;
   }
 

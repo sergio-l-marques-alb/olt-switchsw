@@ -363,7 +363,7 @@ L7_RC_t dot1qIssueCmd(DOT1Q_MSG_t *msg )
                   msg->event, msg->vlanId, num);
         dot1qDebugMsgQueue(1);
         osapiSleep(1);
-        LOG_ERROR(msg->event);
+        L7_LOG_ERROR(msg->event);
 
     }
 
@@ -2630,7 +2630,7 @@ void dot1qQueueSyncSemCreate (void)
    dot1qQueueSyncSem = osapiSemaBCreate (OSAPI_SEM_Q_FIFO, OSAPI_SEM_EMPTY);
    if (dot1qQueueSyncSem == L7_NULL)
    {
-       LOG_ERROR (0);
+       L7_LOG_ERROR (0);
    }
 }
 
@@ -2648,7 +2648,7 @@ void dot1qQueueSyncSemGet (void)
    rc = osapiSemaTake (dot1qQueueSyncSem, L7_WAIT_FOREVER);
    if (rc != L7_SUCCESS)
    {
-       LOG_ERROR (rc);
+       L7_LOG_ERROR (rc);
    }
 }
 
@@ -2666,7 +2666,7 @@ void dot1qQueueSyncSemFree (void)
     rc = osapiSemaGive (dot1qQueueSyncSem);
     if (rc != L7_SUCCESS)
     {
-        LOG_ERROR (rc);
+        L7_LOG_ERROR (rc);
     }
 }
 
@@ -2684,7 +2684,7 @@ void dot1qQueueSyncSemDelete (void)
     rc = osapiSemaDelete (dot1qQueueSyncSem);
     if (rc != L7_SUCCESS)
     {
-        LOG_ERROR (rc);
+        L7_LOG_ERROR (rc);
     }
 }
 

@@ -841,7 +841,7 @@ L7_RC_t usl_vlan_db_init(void)
 
       if (usl_db_sync_func_table_register(USL_L2_VLAN_DB_ID, &vlanDbFuncs) != L7_SUCCESS)
       {
-        LOG_ERROR(0);   
+        L7_LOG_ERROR(0);   
       }
 
       pUslVlanDbHandle = pUslOperVlanDb;

@@ -141,7 +141,7 @@ L7_RC_t ripMapRouteTableRouteAdd(ripMapRouteData_t *routeData)
   ripMapRouteData_t *pData = L7_NULLPTR;
 
   if (avlTreeCount(&ripMapRouteTableTree) >= ripMapRoutesMax)
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
 
   pData = avlInsertEntry(&ripMapRouteTableTree, routeData);
   if (pData != L7_NULLPTR)
@@ -322,7 +322,7 @@ L7_RC_t ripMapRouteTableShow()
 
   /* Acquire the ripmap internal redist route table resource and get the routes */
   if (ripMapRouteTableResourceAcquire() != L7_SUCCESS)
-    LOG_ERROR(1);
+    L7_LOG_ERROR(1);
 
   memset(&routeData, 0, sizeof(ripMapRouteData_t));
   rtData = &routeData;

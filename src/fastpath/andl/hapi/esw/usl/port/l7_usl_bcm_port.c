@@ -1168,14 +1168,14 @@ int usl_bcm_port_vlan_config(int unit,
               rv = bcm_vlan_port_get (unit, vid, &old_pbmp, &old_ubmp);
               if (rv != BCM_E_NONE)
               {
-                LOG_ERROR (rv);
+                L7_LOG_ERROR (rv);
               }
               if (BCM_PBMP_MEMBER(old_pbmp, port))
               {
                 rv = bcm_vlan_port_remove (unit, vid, pbmp);
                 if (rv != BCM_E_NONE)
                 {
-                  LOG_ERROR (rv);
+                  L7_LOG_ERROR (rv);
                 }
               }
             }
@@ -1197,7 +1197,7 @@ int usl_bcm_port_vlan_config(int unit,
             }
             if (rv != BCM_E_NONE)
             {
-              LOG_ERROR (rv);
+              L7_LOG_ERROR (rv);
             }
 
             
@@ -1236,7 +1236,7 @@ int usl_bcm_port_vlan_config(int unit,
   
             if ((rv != BCM_E_NONE) && (rv != BCM_E_NOT_FOUND))
             {
-              LOG_ERROR (rv);
+              L7_LOG_ERROR (rv);
             }
 
 

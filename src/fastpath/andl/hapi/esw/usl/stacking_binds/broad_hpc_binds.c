@@ -88,26 +88,26 @@ static cpudb_t *hpcBroadLocalCpudbCreate(void)
   if ((cpudbPtr = cpudb_create()) == NULL)
   {
     sysapiPrintf("hpcBroadLocalCpudbCreate: Error returned from cpudb_create().\n");
-    LOG_ERROR(2);
+    L7_LOG_ERROR(2);
   }
 
   (void)memset((void *)&local_cpu_key, 0, sizeof(cpudb_key_t));
   if (hpcLocalUnitIdentifierMacGet((L7_enetMacAddr_t *)&(local_cpu_key.key)) != L7_SUCCESS)
   {
     sysapiPrintf("hpcBroadLocalCpudbCreate: Error returned from hpcLocalUnitIdentifierMacGet().\n");
-    LOG_ERROR(3);
+    L7_LOG_ERROR(3);
   }
 
   if ((cpudbLclEntryPtr = cpudb_entry_create(cpudbPtr, local_cpu_key, L7_TRUE)) == NULL)
   {
     sysapiPrintf("hpcBroadLocalCpudbCreate: Error returned from cpudb_entry_create().\n");
-    LOG_ERROR(3);
+    L7_LOG_ERROR(3);
   }
 
   if ((lclUnitDescriptorPtr = hpcLocalUnitDescriptorGet()) == L7_NULLPTR)
   {
     sysapiPrintf("hpcBroadLocalCpudbCreate: Error returned from hpcLocalUnitDescriptorGet().\n");
-    LOG_ERROR(3);
+    L7_LOG_ERROR(3);
   }
 
   /* load local cpu database entry with data */
@@ -222,7 +222,7 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
   if (soc_cm_init(&init_data) != SOC_E_NONE)
 #endif
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR (0);
   }
   
   hapiBroadSocFileLoad("sdk-preinit.soc", L7_TRUE);
@@ -232,7 +232,7 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
    */
   if (sysconf_probe() != 0)
   {
-    LOG_ERROR (1);
+    L7_LOG_ERROR (1);
   }
   board_info = hpcBoardGet();
   
@@ -247,13 +247,13 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
 
   if ((rc = hpcBroadInit()) != L7_SUCCESS) 
   {
-    LOG_ERROR (1);
+    L7_LOG_ERROR (1);
   }
 
 
   if (hpcLocalUnitIdentifierMacGet((L7_enetMacAddr_t *)&(cpu_key.key)) != L7_SUCCESS)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 
   /* 
@@ -271,7 +271,7 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
      system_cpudb = hpcBroadLocalCpudbCreate ();
      if (system_cpudb == L7_NULLPTR)
      {
-       LOG_ERROR(0);    
+       L7_LOG_ERROR(0);    
      }
 
      /* Set the local cpu as master */
@@ -279,24 +279,24 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
 
      if ((rv = topology_mod_ids_assign(system_cpudb)) != BCM_E_NONE)
      {
-       LOG_ERROR(rv);
+       L7_LOG_ERROR(rv);
      }
 
      if ((rv = bcm_stack_topo_create(system_cpudb, &system_topo)) != BCM_E_NONE)
      {
-       LOG_ERROR(rv);
+       L7_LOG_ERROR(rv);
      }
 
      /* PTin added: new SDK */
      if ((rv = topo_board_register(topo_board_default_board_program, NULL)) != BCM_E_NONE)
      {
-       LOG_ERROR(rv);
+       L7_LOG_ERROR(rv);
      }
      /* PTin end */
 
      if ((rv = topo_board_program (system_cpudb, &system_topo)) != BCM_E_NONE)
      {
-       LOG_ERROR(rv);
+       L7_LOG_ERROR(rv);
      }
   }
 #endif

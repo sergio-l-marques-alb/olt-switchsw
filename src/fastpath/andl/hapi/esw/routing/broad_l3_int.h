@@ -77,7 +77,7 @@
     sysapiPrintf("Log error: %s, %d, code %d\n", __FILE__, __LINE__, e);      \
     hapiBroadL3StatsShow();                                                   \
     hapiBroadL3DebugStackTrace();                                             \
-    LOG_ERROR((e));                                                           \
+    L7_LOG_ERROR((e));                                                           \
   }
 
 /* Macros for improving readability */

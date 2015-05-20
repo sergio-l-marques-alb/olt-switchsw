@@ -784,7 +784,7 @@ L7_RC_t pmlIntfStaticEntryAdd(L7_uint32 intIfNum, L7_enetMacAddr_t macAddr, L7_u
   if (i == L7_MACLOCKING_MAX_STATIC_ADDRESSES)
   {
     /* shouldn't get here */
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 
   pOpr->staticCount++;
@@ -1223,7 +1223,7 @@ L7_RC_t pmlIntfDynamicToStaticMove(L7_uint32 intIfNum)
     if (staticCfgIndex == L7_MACLOCKING_MAX_STATIC_ADDRESSES)
     {
       /* shouldn't get here */
-      LOG_ERROR(0);
+      L7_LOG_ERROR(0);
     }
 
     /* tell FDB component about this address */

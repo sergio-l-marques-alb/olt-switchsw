@@ -74,7 +74,7 @@ void logDebugInit(struct logCfg_s * cfg, struct logOps_s * ops)
 *********************************************************************/
 void logDebugEventLogAdd(L7_uint32 event_code)
 {
-    LOG_EVENT(event_code);
+    L7_LOG_EVENT(event_code);
 }
 
 
@@ -99,7 +99,7 @@ void logDebugEventLogAddN(L7_uint32 event_code, L7_uint32 numEntries)
 
     for (i=1; i <= numEntries; i++)
     {
-        LOG_EVENT(event_code);
+        L7_LOG_EVENT(event_code);
     }
 }
 

@@ -2211,7 +2211,7 @@ void usmDbSwDevCtrlComponentConfigAllSave(void)
  *********************************************************************/
 L7_RC_t usmDbSwDevCtrlResetSet(L7_uint32 UnitIndex, L7_uint32 val)
 {
-  LOG_EVENT(0);
+  L7_LOG_EVENT(0);
 #if defined(FEAT_METRO_CPE_V1_0)
   /* Initialize ASIC to defaults so no traffic flows while system is reloaded,
    * This is a temporary fix, TODO-Need a cleaner way to do it. */
@@ -2302,7 +2302,7 @@ L7_RC_t usmDbResetConfigActionSet(L7_uint32 UnitIndex, L7_uint32 val)
   rc = cnfgrApiCommand(pCmdData);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR (rc);
   }
  
   sysapiClearConfigFlagSet(L7_TRUE);

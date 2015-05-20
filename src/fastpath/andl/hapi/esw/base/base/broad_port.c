@@ -279,7 +279,7 @@ void hapiBroadPortLinkStatusChange(bcmx_lport_t lport, bcm_port_info_t *portInfo
                       L7_WAIT_FOREVER,
                       L7_MSG_PRIORITY_NORM) != L7_SUCCESS)
  {
-   LOG_ERROR (lport);
+   L7_LOG_ERROR (lport);
  }
 
 }
@@ -375,7 +375,7 @@ void hapiBroadPortLinkStatusTask(void)
     if (osapiMessageReceive(hapiLinkStatusQueue,
                             (void *)&link_msg,sizeof(link_msg),L7_WAIT_FOREVER) != L7_SUCCESS)
     {
-      LOG_ERROR(0);
+      L7_LOG_ERROR(0);
     }
 
     uport = BCMX_UPORT_GET(link_msg.lport);

@@ -604,7 +604,7 @@ L7_RC_t usl_port_db_init()
     if (usl_db_sync_func_table_register(USL_PORT_DB_ID, 
                                         &portDbFuncs) != L7_SUCCESS)
     {
-      LOG_ERROR(0);   
+      L7_LOG_ERROR(0);   
     }
   
  
@@ -1119,7 +1119,7 @@ L7_RC_t usl_portdb_update(L7_BOOL updateCmd, L7_uint32 targetFpUnit,
       }
     }
 #else
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
 #endif
   }
 
@@ -1290,7 +1290,7 @@ L7_RC_t usl_portdb_update_msg_send(L7_BOOL updateCmd, L7_uint32 targetFpUnit,
     {
       if (updateCmd == L7_TRUE)
       {
-        LOG_ERROR(rv);    
+        L7_LOG_ERROR(rv);    
       }
       else
         continue;
@@ -1302,7 +1302,7 @@ L7_RC_t usl_portdb_update_msg_send(L7_BOOL updateCmd, L7_uint32 targetFpUnit,
     {
       if (updateCmd == L7_TRUE)
       {
-        LOG_ERROR(rv);    
+        L7_LOG_ERROR(rv);    
       }
       else
         continue;

@@ -2505,7 +2505,7 @@ L7_RC_t osapiMacAddrChange(L7_uchar8 *newMac, L7_uchar8 *intfName, int intfNum)
   /* Get the current flags */
   if (ioctl(sock, SIOCGIFFLAGS, &ifr) == -1)
   {
-    LOG_ERROR(errno);
+    L7_LOG_ERROR(errno);
   }
 
   flags = ifr.ifr_flags;
@@ -2517,7 +2517,7 @@ L7_RC_t osapiMacAddrChange(L7_uchar8 *newMac, L7_uchar8 *intfName, int intfNum)
 
     if (ioctl(sock, SIOCSIFFLAGS, &ifr) == -1)
     {
-      LOG_ERROR(errno);
+      L7_LOG_ERROR(errno);
     }
   }
 
@@ -2527,7 +2527,7 @@ L7_RC_t osapiMacAddrChange(L7_uchar8 *newMac, L7_uchar8 *intfName, int intfNum)
 
   if (ioctl(sock, SIOCSIFHWADDR, &ifr) == -1)
   {
-    LOG_ERROR(errno);
+    L7_LOG_ERROR(errno);
   }
 
   /* Set the old flags back */
@@ -2535,7 +2535,7 @@ L7_RC_t osapiMacAddrChange(L7_uchar8 *newMac, L7_uchar8 *intfName, int intfNum)
 
   if (ioctl(sock, SIOCSIFFLAGS, &ifr) == -1)
   {
-      LOG_ERROR(errno);
+      L7_LOG_ERROR(errno);
   }
   close(sock);
 

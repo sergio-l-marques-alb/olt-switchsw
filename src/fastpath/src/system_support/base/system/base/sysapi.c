@@ -180,7 +180,7 @@ void sysapiInit (void (*box_reset)(void))
   if (statsCfgInit() != L7_SUCCESS)
   {
     printf("Stats initialization failed\n");
-    LOG_ERROR(876);
+    L7_LOG_ERROR(876);
   }
 
   if ( sysapiIfNetInit() != L7_SUCCESS )
@@ -207,7 +207,7 @@ void sysapiInit (void (*box_reset)(void))
   {
     L7_LOGF(L7_LOG_SEVERITY_EMERGENCY, L7_IP_MAP_COMPONENT_ID,
         "Failed to initialize the routing infrastructure.");
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 #endif
 
@@ -252,7 +252,7 @@ void sysapiTimerTaskStart(void)
   {
     SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "In routine %s line %d, osapiWaitForTaskInit failed\n",
         __FUNCTION__, __LINE__);
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
   return;
 }
@@ -666,7 +666,7 @@ L7_RC_t sysapiUnconfig(void)
   rc = cnfgrApiScheduleCommand(pCmdData, (L7_uint32)5000);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR (rc);
   }
   clearConfig = L7_TRUE;
   return(rc);
@@ -821,7 +821,7 @@ L7_RC_t sysapiCfgFileSysInit(void)
     {
       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SIM_COMPONENT_ID,
               "Failed to malloc pSysapiCfgTree[%u]\n", i);
-      LOG_ERROR(1);
+      L7_LOG_ERROR(1);
       return L7_ERROR;
     }
     else
@@ -831,7 +831,7 @@ L7_RC_t sysapiCfgFileSysInit(void)
       pSysapiCfgTree[i]->fileInfo.filename = osapiMalloc(L7_SIM_COMPONENT_ID, L7_MAX_FILENAME);
       if ( pSysapiCfgTree[i]->fileInfo.filename == L7_NULLPTR)
       {
-        LOG_ERROR (0);
+        L7_LOG_ERROR (0);
       }
       pSysapiCfgTree[i]->fileInfo.filename[0] = 0;
     }
@@ -1394,7 +1394,7 @@ L7_RC_t sysapiCfgFileSave(L7_uchar8* filename)
   rc = osapiFsFileCreate (filename, &file_desc);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR (rc);
   }
 
   checksum = nvStoreCrcInit ();
@@ -1409,7 +1409,7 @@ L7_RC_t sysapiCfgFileSave(L7_uchar8* filename)
   rc = osapiFsWriteNoClose (file_desc, (L7_char8 *) &cfgFileHdr, sizeof (cfgFileHdr));
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR (rc);
   }
 
   /*--------------------------------------------*/
@@ -1431,7 +1431,7 @@ L7_RC_t sysapiCfgFileSave(L7_uchar8* filename)
     rc = osapiFsWriteNoClose (file_desc, source_location, size_to_copy);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERROR (rc);
+      L7_LOG_ERROR (rc);
     }
 
     octet = source_location;
@@ -1450,7 +1450,7 @@ L7_RC_t sysapiCfgFileSave(L7_uchar8* filename)
     rc = osapiFsWriteNoClose (file_desc, source_location, size_to_copy);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERROR (rc);
+      L7_LOG_ERROR (rc);
     }
 
     octet = source_location;
@@ -1471,7 +1471,7 @@ L7_RC_t sysapiCfgFileSave(L7_uchar8* filename)
   rc = osapiFsWriteNoClose (file_desc, (L7_uchar8 *) &checksum, 4);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR (rc);
   }
 
   (void)osapiFsClose (file_desc);

@@ -40,9 +40,9 @@
 #include "wdm_api.h"
 
 #define SEMA_TAKE(access)   \
-  if (CPDM_##access##_LOCK_TAKE(cpdmSema, L7_WAIT_FOREVER) != L7_SUCCESS)  LOG_ERROR(0);
+  if (CPDM_##access##_LOCK_TAKE(cpdmSema, L7_WAIT_FOREVER) != L7_SUCCESS)  L7_LOG_ERROR(0);
 #define SEMA_GIVE(access)   \
-  if (CPDM_##access##_LOCK_GIVE(cpdmSema) != L7_SUCCESS)  LOG_ERROR(0);
+  if (CPDM_##access##_LOCK_GIVE(cpdmSema) != L7_SUCCESS)  L7_LOG_ERROR(0);
 
 
 /* What is the size of one more item of client connection information? */
@@ -5763,19 +5763,19 @@ void cpClusterConfigRxApply()
   cpdmUserEntryPurge();
   if (L7_FAILURE == cpdmCPConfigInit(CP_ID_MAX))
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
   if (L7_FAILURE == cpdmUserGroupEntryInit())
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
   if (L7_FAILURE == cpdmUserGroupAssocEntryInit())
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
   if (L7_FAILURE == cpIntfAssocInit(CP_INTERFACE_MAX))
   {
-    LOG_ERROR(0); /* suicide is the answer */
+    L7_LOG_ERROR(0); /* suicide is the answer */
   }
 
   cpdmCfgData->cpGlobalData.cpMode = ptrCpGlobalData->cpMode;

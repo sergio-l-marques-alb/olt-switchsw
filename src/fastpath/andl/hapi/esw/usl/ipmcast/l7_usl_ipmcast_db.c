@@ -159,7 +159,7 @@ static usl_ipmc_port_db_elem_t  *usl_db_ipmc_egress_port_ptr_get(L7_uint32 modid
       if (pPortData == L7_NULL)
       {
         /* This shouldn't happen since the entry was just added. */
-        LOG_ERROR(0);
+        L7_LOG_ERROR(0);
       }
 
       pPortData->replInfo      = L7_NULL;
@@ -856,7 +856,7 @@ L7_RC_t usl_ipmc_db_init()
       if (usl_db_sync_func_table_register(USL_IPMC_ROUTE_DB_ID,
                                           &ipmcDbFuncs) != L7_SUCCESS)
       {
-        LOG_ERROR(0);
+        L7_LOG_ERROR(0);
       }
 
       memset(&ipmcPortDbFuncs, 0, sizeof(ipmcPortDbFuncs));
@@ -871,7 +871,7 @@ L7_RC_t usl_ipmc_db_init()
       if (usl_db_sync_func_table_register(USL_IPMC_PORT_DB_ID,
                                           &ipmcPortDbFuncs) != L7_SUCCESS)
       {
-        LOG_ERROR(0);
+        L7_LOG_ERROR(0);
       }
 
       pUslIpMcastTreeHandle  = &uslOperIpMcastTreeData;
@@ -1112,7 +1112,7 @@ int usl_db_ipmc_add(usl_bcm_ipmc_addr_t *bcm_ipmc, L7_BOOL replace_entry)
     }
     else
     {
-      LOG_ERROR(data.bcm_data.ipmc_index);
+      L7_LOG_ERROR(data.bcm_data.ipmc_index);
     }
   }
 
@@ -1759,7 +1759,7 @@ int usl_ipmc_hw_id_allocate(usl_bcm_ipmc_addr_t *ipmcAddr, L7_int32 *index)
       *index = groupInfo.ipmc_index;
       if ((*index > uslIpmcHwIdMax) || (*index < uslIpmcHwIdMin))
       {
-        LOG_ERROR(*index);
+        L7_LOG_ERROR(*index);
       }
 
       /* Mark this index as used in HwIdList */
@@ -2702,7 +2702,7 @@ L7_int32 usl_delete_ipmc_db_elem(USL_DB_TYPE_t   dbType,
         }
         else
         {
-          LOG_ERROR(ipmcIndex);
+          L7_LOG_ERROR(ipmcIndex);
         }
 
         /* Deleting shadow DB entries is a normal part of reconciliation... don't
@@ -3550,7 +3550,7 @@ L7_RC_t usl_db_ipmc_wlan_l3_insert(L7_uint32 mc_index, L7_uint32 l3_intf_id, bcm
     pData = avlSearchLVL7(&uslIpMcastWlanPortTreeData, &data, AVL_EXACT);
     if (L7_NULL == pData)
     {
-      LOG_ERROR(wlanvp); /* Cannot find the inserted item */
+      L7_LOG_ERROR(wlanvp); /* Cannot find the inserted item */
     }
 
     memcpy(pData, &data, sizeof(usl_ipmc_wlan_port_elem_t));

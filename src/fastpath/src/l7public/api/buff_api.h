@@ -183,7 +183,7 @@ L7_RC_t bufferPoolTerminate (L7_uint32  buffer_pool_id);
 * @returns  None
 *
 * @notes  
-*      Function calls LOG_ERROR if buffer is corrupted or returned
+*      Function calls L7_LOG_ERROR if buffer is corrupted or returned
 *      to the wrong pool.  
 *
 * @end
@@ -200,7 +200,7 @@ void bufferPoolFree (L7_uint32 buffer_pool_id, L7_uchar8 * buffer_addr);
 * @returns  L7_SUCCESS, if success
 *
 * @notes  
-*      Function calls LOG_ERROR if buffer is corrupted
+*      Function calls L7_LOG_ERROR if buffer is corrupted
 *
 * @end
 *********************************************************************/

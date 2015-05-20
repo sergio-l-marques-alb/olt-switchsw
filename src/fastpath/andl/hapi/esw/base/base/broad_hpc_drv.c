@@ -1314,7 +1314,7 @@ void hpcHardwareDefaultConfigApply(void)
     rv = bcm_linkscan_register (i,hpcStackPortLinkStatusCallback);
     if (rv != BCM_E_NONE)
     {
-      LOG_ERROR (i);
+      L7_LOG_ERROR (i);
     }
 #endif
     /* PTin modified: SDK 6.3.0 */
@@ -1325,7 +1325,7 @@ void hpcHardwareDefaultConfigApply(void)
     #endif
      if (rv != BCM_E_NONE)
      {
-       LOG_ERROR (rv);
+       L7_LOG_ERROR (rv);
      }
 
     if (!SOC_IS_XGS_FABRIC(i))
@@ -1377,7 +1377,7 @@ void hpcHardwareDefaultConfigApply(void)
             rv = bcm_cosq_port_mapping_set(i, port, priority, cosq);
             if ((rv != BCM_E_NONE) && (rv != BCM_E_PARAM))
             {
-              LOG_ERROR (rv);
+              L7_LOG_ERROR (rv);
             }
           }
         }
@@ -1386,7 +1386,7 @@ void hpcHardwareDefaultConfigApply(void)
           rv = bcm_cosq_mapping_set(i, priority, cosq);
           if ((rv != BCM_E_NONE) && (rv != BCM_E_PARAM))
           {
-            LOG_ERROR (rv);
+            L7_LOG_ERROR (rv);
           }
         }
       }
@@ -1422,7 +1422,7 @@ void hpcHardwareDefaultConfigApply(void)
                                        0);
          if (rv != BCM_E_NONE)
          {
-           LOG_ERROR (rv);
+           L7_LOG_ERROR (rv);
          }         
        }
        else
@@ -1433,7 +1433,7 @@ void hpcHardwareDefaultConfigApply(void)
                                   0);
          if (rv != BCM_E_NONE)
          {
-           LOG_ERROR (rv);
+           L7_LOG_ERROR (rv);
          }
        }
     }
@@ -1457,7 +1457,7 @@ void hpcHardwareDefaultConfigApply(void)
     rv = bcm_rx_rate_set (i, rate_limit);
     if (rv != BCM_E_NONE) 
     {
-      LOG_ERROR (rv);
+      L7_LOG_ERROR (rv);
     }
 
     num_queues = sizeof(cpu_kbps_rate_limit_per_cos) / sizeof(L7_int32);
@@ -1479,14 +1479,14 @@ void hpcHardwareDefaultConfigApply(void)
     if ((rv < 0) && (rv != BCM_E_EXISTS))
     {
       PT_LOG_ERR(LOG_CTX_STARTUP,"bcm_vlan_create failed unit %d\n", i);
-      LOG_ERROR (rv);
+      L7_LOG_ERROR (rv);
     }
 
     rv = bcm_vlan_port_add(i,HPC_STACKING_VLAN_ID,PBMP_CMIC(i),ubmp);
     if (rv < 0)
     {
       PT_LOG_ERR(LOG_CTX_STARTUP,"bcm_vlan_port_add failed unit %d\n", i);
-      LOG_ERROR (rv);
+      L7_LOG_ERROR (rv);
     }
 
     PBMP_E_ITER (i, port)
@@ -1498,7 +1498,7 @@ void hpcHardwareDefaultConfigApply(void)
           rv = bcm_port_enable_set (i, port , 0);
           if (rv != BCM_E_NONE)
           {
-            LOG_ERROR (rv);
+            L7_LOG_ERROR (rv);
           }
 
           /* Disable learning on the ports. The port security component sets
@@ -1514,14 +1514,14 @@ void hpcHardwareDefaultConfigApply(void)
 #endif
           if (rv != BCM_E_NONE)
           {
-            LOG_ERROR (rv);
+            L7_LOG_ERROR (rv);
           }
 
           rv = bcm_port_pfm_set(i, port, BCM_PORT_PFM_MODEC);   /* PTin modified: L2 */
           PT_LOG_NOTICE(LOG_CTX_STARTUP,"bcm_port_pfm_set configuration to mode C: unit=%d,port=%d => rv=%d (%s)", i, port, rv, bcm_errmsg(rv));
           if (L7_BCMX_OK(rv) != L7_TRUE && rv != BCM_E_UNAVAIL)
           {
-            LOG_ERROR (rv);
+            L7_LOG_ERROR (rv);
           }
 
           /* Set the spanning-tree state for each front-panel port to
@@ -1542,7 +1542,7 @@ void hpcHardwareDefaultConfigApply(void)
         rv = bcm_port_vlan_member_set(i, port, BCM_PORT_VLAN_MEMBER_EGRESS);
         if (L7_BCMX_OK(rv) != L7_TRUE && rv != BCM_E_UNAVAIL)
         {
-          LOG_ERROR (rv);
+          L7_LOG_ERROR (rv);
         }
       }
     }
@@ -1565,7 +1565,7 @@ void hpcHardwareDefaultConfigApply(void)
           rv = bcm_switch_control_set (i, bcmSwitchCpuProtocolPrio, HAPI_BROAD_INGRESS_MED_PRIORITY_COS);
           if (rv != BCM_E_NONE)
           {
-            LOG_ERROR (rv);
+            L7_LOG_ERROR (rv);
           }
           }
 
@@ -1575,7 +1575,7 @@ void hpcHardwareDefaultConfigApply(void)
              rv = bcm_switch_control_set(i, bcmSwitchCpuProtoArpPriority, HAPI_BROAD_INGRESS_MED_PRIORITY_COS);
              if (rv != BCM_E_NONE)
              {
-                LOG_ERROR (rv);
+                L7_LOG_ERROR (rv);
              }
           }
           /* Send L2 static station movement packets to cpu */
@@ -1601,7 +1601,7 @@ void hpcHardwareDefaultConfigApply(void)
           rv = bcm_rx_cosq_mapping_set(i, index, reason, reason, 0, 0, 0, 0, HAPI_BROAD_INGRESS_MED_PRIORITY_COS);
           if (rv != BCM_E_NONE)
           {
-            LOG_ERROR (rv);
+            L7_LOG_ERROR (rv);
           }
           index++;
 
@@ -1610,7 +1610,7 @@ void hpcHardwareDefaultConfigApply(void)
           rv = bcm_rx_cosq_mapping_set(i, index, reason, reason, 0, 0, 0, 0, HAPI_BROAD_INGRESS_MED_PRIORITY_COS);
           if (rv != BCM_E_NONE)
           {
-            LOG_ERROR (rv);
+            L7_LOG_ERROR (rv);
           }
           index++;
 
@@ -1619,7 +1619,7 @@ void hpcHardwareDefaultConfigApply(void)
           rv = bcm_rx_cosq_mapping_set(i, index, reason, reason, 0, 0, 0, 0, HAPI_BROAD_INGRESS_MED_PRIORITY_COS);
           if (rv != BCM_E_NONE)
           {
-            LOG_ERROR (rv);
+            L7_LOG_ERROR (rv);
           }
           index++;
 
@@ -1632,7 +1632,7 @@ void hpcHardwareDefaultConfigApply(void)
           rv = bcm_rx_cosq_mapping_set(i, index, reason, reason, 0, 0, 0, 0, HAPI_BROAD_INGRESS_MED_PRIORITY_COS);
           if (rv != BCM_E_NONE)
           {
-            LOG_ERROR (rv);
+            L7_LOG_ERROR (rv);
           }
           index++;
 
@@ -1643,7 +1643,7 @@ void hpcHardwareDefaultConfigApply(void)
             rv = bcm_rx_cosq_mapping_set(i, index, no_reason, no_reason, internal_priority, 0x07, 0, 0, internal_priority);
             if (rv != BCM_E_NONE)
             {
-              LOG_ERROR (rv);
+              L7_LOG_ERROR (rv);
             }
             index++;
           }
@@ -1653,7 +1653,7 @@ void hpcHardwareDefaultConfigApply(void)
             rv = bcm_linkscan_register(i, hapiBroadMmuLinkscanCb);
             if (rv != BCM_E_NONE)
             {
-              LOG_ERROR(rv);
+              L7_LOG_ERROR(rv);
             }
           }
         }
@@ -1664,7 +1664,7 @@ void hpcHardwareDefaultConfigApply(void)
 
         if (rv != BCM_E_NONE)
         {
-          LOG_ERROR (rv);
+          L7_LOG_ERROR (rv);
         }
 
         /* PTin added: new switch 56689 (Valkyrie2) */
@@ -1680,7 +1680,7 @@ void hpcHardwareDefaultConfigApply(void)
           rv = bcm_switch_control_set (i, bcmSwitchCpuDefaultPrio, HAPI_BROAD_INGRESS_MED_PRIORITY_COS);
           if (rv != BCM_E_NONE)
           {
-            LOG_ERROR (rv);
+            L7_LOG_ERROR (rv);
           }
         }
     } 
@@ -1715,7 +1715,7 @@ void hpcHardwareDefaultConfigApply(void)
 
           if (rv != BCM_E_NONE)
           {
-            LOG_ERROR (rv);
+            L7_LOG_ERROR (rv);
           }
         }
 
@@ -1730,7 +1730,7 @@ void hpcHardwareDefaultConfigApply(void)
           rv = bcm_switch_control_set (i, bcmSwitchCpuUnknownPrio, 0);
           if (rv != BCM_E_NONE)
           {
-            LOG_ERROR (rv);
+            L7_LOG_ERROR (rv);
           }
         }
       }
@@ -1750,7 +1750,7 @@ void hpcHardwareDefaultConfigApply(void)
                                     HAPI_BROAD_INGRESS_MED_PRIORITY_COS);
         if (rv != BCM_E_NONE)
         {
-          LOG_ERROR (rv);
+          L7_LOG_ERROR (rv);
         }
       }
       /* Set priority of IPv4/IPv6 packets with options or IPv6
@@ -1764,7 +1764,7 @@ void hpcHardwareDefaultConfigApply(void)
                                     HAPI_BROAD_INGRESS_MED_PRIORITY_COS);
         if (rv != BCM_E_NONE)
         {
-          LOG_ERROR (rv);
+          L7_LOG_ERROR (rv);
         }
       }
     }
@@ -1778,13 +1778,13 @@ void hpcHardwareDefaultConfigApply(void)
       rv = bcm_switch_control_set (i, bcmSwitchL2StaticMoveToCpu, 1);
       if (rv != BCM_E_NONE)
       {
-        LOG_ERROR (rv);
+        L7_LOG_ERROR (rv);
       }
       /* Set priority of ARP sent to CPU */ 
       rv = bcm_switch_control_set(i, bcmSwitchCpuProtoArpPriority, HAPI_BROAD_INGRESS_MED_PRIORITY_COS);
       if (rv != BCM_E_NONE)
       {
-        LOG_ERROR (rv);
+        L7_LOG_ERROR (rv);
       }
       /* Set prioirty of IPv4/IPv6 multicast reserved packets sent to CPU.
        * Dont know yet which to send. Sending it to a low priority queue 
@@ -1792,7 +1792,7 @@ void hpcHardwareDefaultConfigApply(void)
       rv = bcm_switch_control_set(i, bcmSwitchCpuProtoIpmcReservedPriority, HAPI_BROAD_INGRESS_LOWEST_PRIORITY_COS);
       if (rv != BCM_E_NONE)
       {
-        LOG_ERROR (rv);
+        L7_LOG_ERROR (rv);
       }
     } 
 
@@ -1813,7 +1813,7 @@ void hpcHardwareDefaultConfigApply(void)
        rv = bcm_switch_control_get(i, bcmSwitchHashL2, &hashControl);
        if (rv != BCM_E_NONE && rv != BCM_E_UNAVAIL)     /* PTin modified: new switch 5664x (Triumph3) */
        {
-          LOG_ERROR (rv);
+          L7_LOG_ERROR (rv);
        }
        /* PTin added: new switch 5664x (Triumph3): Execute, only if success */
        if (rv == BCM_E_NONE)
@@ -1829,7 +1829,7 @@ void hpcHardwareDefaultConfigApply(void)
     
          if (rv != BCM_E_NONE)
          {
-            LOG_ERROR (rv);
+            L7_LOG_ERROR (rv);
          }
        }
        else
@@ -1842,7 +1842,7 @@ void hpcHardwareDefaultConfigApply(void)
          rv = bcm_switch_control_get(i, bcmSwitchHashL3, &hashControl);
          if (rv != BCM_E_NONE && rv != BCM_E_UNAVAIL)   /* PTin modified: new switch 5664x (Triumph3) */
          {
-            LOG_ERROR (rv);
+            L7_LOG_ERROR (rv);
          }
          /* PTin added: new switch 5664x (Triumph3) - Execute, only if success */
          if (rv == BCM_E_NONE)
@@ -1858,7 +1858,7 @@ void hpcHardwareDefaultConfigApply(void)
 
            if (rv != BCM_E_NONE)
            {
-              LOG_ERROR (rv);
+              L7_LOG_ERROR (rv);
            }
          }
          else
@@ -1873,7 +1873,7 @@ void hpcHardwareDefaultConfigApply(void)
     if (ptin_hapi_hash_init() != L7_SUCCESS)
     {
       PT_LOG_NOTICE(LOG_CTX_HAPI,"Error initializing hash procedures");
-      LOG_ERROR(BCM_E_INIT);
+      L7_LOG_ERROR(BCM_E_INIT);
     }
     #endif
 
@@ -1882,43 +1882,43 @@ void hpcHardwareDefaultConfigApply(void)
       rv = bcm_switch_control_set(i, bcmSwitchCpuProtoIgmpPriority, HAPI_BROAD_INGRESS_MED_PRIORITY_COS);
       if (rv != BCM_E_NONE)
       {
-        LOG_ERROR (i);
+        L7_LOG_ERROR (i);
       }
 
       rv = bcm_switch_control_set(i, bcmSwitchCpuProtoIpmcReservedPriority, HAPI_BROAD_INGRESS_MED_PRIORITY_COS);
       if (rv != BCM_E_NONE)
       {
-        LOG_ERROR (i);
+        L7_LOG_ERROR (i);
       }
 
       rv = bcm_switch_control_set(i,bcmSwitchCpuProtoDhcpPriority,HAPI_BROAD_INGRESS_MED_PRIORITY_COS);
       if (rv != BCM_E_NONE)
       {
-        LOG_ERROR (i);
+        L7_LOG_ERROR (i);
       }
 
       rv = bcm_switch_control_set(i , bcmSwitchDhcpPktToCpu, 1 );
       if (rv != BCM_E_NONE)
       {
-        LOG_ERROR (i);
+        L7_LOG_ERROR (i);
       }
 
 
       rv = bcm_switch_control_set(i, bcmSwitchNdPktToCpu, 1);
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
-        LOG_ERROR (rv);
+        L7_LOG_ERROR (rv);
       }
 
       rv = bcm_switch_control_set(i, bcmSwitchV4ResvdMcPktToCpu, 1);
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
-        LOG_ERROR (rv);
+        L7_LOG_ERROR (rv);
       }
       rv = bcm_switch_control_set(i, bcmSwitchV6ResvdMcPktToCpu, 1);
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
-        LOG_ERROR (rv);
+        L7_LOG_ERROR (rv);
       }
 
       /* For Hawkeye, the hardware default value is 0, so enable it */
@@ -1927,12 +1927,12 @@ void hpcHardwareDefaultConfigApply(void)
         rv = bcm_switch_control_set(i,bcmSwitchIgmpReservedMcastEnable, 1);
         if (L7_BCMX_OK(rv) != L7_TRUE)
         {
-          LOG_ERROR (rv);
+          L7_LOG_ERROR (rv);
         }
         rv = bcm_switch_control_set(i,bcmSwitchMldReservedMcastEnable, 1);
         if (L7_BCMX_OK(rv) != L7_TRUE)
         {
-          LOG_ERROR (rv);
+          L7_LOG_ERROR (rv);
         }
      
       }
@@ -1958,7 +1958,7 @@ void hpcHardwareDefaultConfigApply(void)
       /* Treat this as fatal error, even if rv is E_UNAVAIL
        * HAPI L3 code assumes egress mode is ON!
        */
-      LOG_ERROR(rv);
+      L7_LOG_ERROR(rv);
     }
 #endif
 
@@ -1995,7 +1995,7 @@ void hpcHardwareDefaultConfigApply(void)
 
     if (hapiBroadSwitchControlSet(i) != L7_SUCCESS)
     {
-      LOG_ERROR(i);
+      L7_LOG_ERROR(i);
     }
 
     /* Modify flood mask to cpu for various traffic */
@@ -2007,7 +2007,7 @@ void hpcHardwareDefaultConfigApply(void)
     rv = bcm_l3_enable_set(i, L7_TRUE);
     if ((L7_BCMX_OK(rv) != L7_TRUE) && (rv != BCM_E_UNAVAIL))
     {
-      LOG_ERROR (rv);
+      L7_LOG_ERROR (rv);
     }
 #endif
 
@@ -2015,7 +2015,7 @@ void hpcHardwareDefaultConfigApply(void)
     rv = bcm_ipmc_enable(i, L7_FALSE);
     if ((L7_BCMX_OK(rv) != L7_TRUE) && (rv != BCM_E_UNAVAIL))
     {
-      LOG_ERROR (rv);
+      L7_LOG_ERROR (rv);
     }
 #endif
 
@@ -2023,13 +2023,13 @@ void hpcHardwareDefaultConfigApply(void)
     rv = bcm_vlan_control_port_set(i, -1, bcmVlanLookupIPEnable, 1);
     if ((L7_BCMX_OK(rv) != L7_TRUE) && (rv != BCM_E_UNAVAIL))
     {
-      LOG_ERROR (rv);
+      L7_LOG_ERROR (rv);
     }
 
     rv = bcm_vlan_control_port_set(i, -1, bcmVlanLookupMACEnable, 1);
     if ((L7_BCMX_OK(rv) != L7_TRUE) && (rv != BCM_E_UNAVAIL))
     {
-      LOG_ERROR (rv);
+      L7_LOG_ERROR (rv);
     }
 
 
@@ -2101,13 +2101,13 @@ static L7_int32 hapiBroadSetRoboDefaultParameters( L7_int32 unit )
     rv = bcm_switch_control_set(unit, bcmSwitchArpReplyToCpu, 1);
     if (rv != BCM_E_NONE)
     {
-      LOG_ERROR(rv);
+      L7_LOG_ERROR(rv);
     }
 
     rv = bcm_switch_control_set(unit, bcmSwitchDhcpPktToCpu, 1);
     if (rv != BCM_E_NONE)
     {
-      LOG_ERROR(rv);
+      L7_LOG_ERROR(rv);
     }
 
     /* Enabling tagging with PVID for untagged GMRP/GVRP packets */
@@ -2186,7 +2186,7 @@ L7_RC_t hpcHardwareDriverReset(void)
           rv = bcm_port_enable_set (i,port , 0);
           if (rv != BCM_E_NONE)
           { 
-            LOG_ERROR (rv);
+            L7_LOG_ERROR (rv);
           }
 
           /* Disable learning on the ports. The port security component sets
@@ -2195,7 +2195,7 @@ L7_RC_t hpcHardwareDriverReset(void)
           rv = bcm_port_learn_set (i,port,  0);
           if (rv != BCM_E_NONE)
           {
-            LOG_ERROR (rv);
+            L7_LOG_ERROR (rv);
           }
         }
       }
@@ -2227,7 +2227,7 @@ L7_RC_t hpcHardwareDriverReset(void)
       rv = bcm_vlan_init (i);
       if (rv != BCM_E_NONE)
       {
-        LOG_ERROR (rv);
+        L7_LOG_ERROR (rv);
       }
 
      /* Broadcom recommends not clearing the COS table for the 5670. This table should not 
@@ -2238,7 +2238,7 @@ L7_RC_t hpcHardwareDriverReset(void)
       rv = bcm_mcast_init (i);
       if (rv != BCM_E_NONE)
       {
-        LOG_ERROR (rv);
+        L7_LOG_ERROR (rv);
       }
 
     } else
@@ -2250,7 +2250,7 @@ L7_RC_t hpcHardwareDriverReset(void)
       rv = bcm_clear(i);
       if (rv != BCM_E_NONE)
       {
-        LOG_ERROR (rv);
+        L7_LOG_ERROR (rv);
       }
     }
   }
@@ -2360,7 +2360,7 @@ void hpcBcmxFilterStackPortRemove(bcm_filterid_t *bcmx_filter)
  rv = bcmx_lplist_init(&portList,L7_MAX_INTERFACE_COUNT,0);
  if (L7_BCMX_OK(rv) != L7_TRUE)
  {
-   LOG_ERROR(rv);
+   L7_LOG_ERROR(rv);
  }
 
  /* Add all physical ports to the list. Stack ports are excluded by the isValidUsp() test.
@@ -2415,7 +2415,7 @@ void hpcBcmxFilterStackPortRemove(bcm_filterid_t *bcmx_filter)
  rv = bcmx_filter_qualify_ingress (*bcmx_filter, portList);
  if (L7_BCMX_OK(rv) != L7_TRUE)
  {
-   LOG_ERROR (rv);
+   L7_LOG_ERROR (rv);
  }
 
  bcmx_lplist_free(&portList);

@@ -126,7 +126,7 @@ void cmgrNimSyncSemCreate (void)
   cmgrNimSyncSem = osapiSemaBCreate (OSAPI_SEM_Q_PRIORITY, OSAPI_SEM_EMPTY);
   if (cmgrNimSyncSem == L7_NULLPTR)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR (0);
   }
 }
 
@@ -148,7 +148,7 @@ static void cmgrNimSyncSemGet (void)
   rc = osapiSemaTake (cmgrNimSyncSem, L7_WAIT_FOREVER);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR (rc);
   }
 }
 
@@ -170,7 +170,7 @@ void cmgrNimSyncSemGive (NIM_NOTIFY_CB_INFO_t retVal)
   rc = osapiSemaGive (cmgrNimSyncSem);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR (rc);
   }
 }
 
@@ -209,7 +209,7 @@ void cmgrAsyncCardCreateNotify(L7_uint32 unit, L7_uint32 slot,
   /* We are using the high priority to get the slots created before the plugins */
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR (rc);
   }
 }
 
@@ -229,7 +229,7 @@ void cmgrAsyncCardConfigSlots(void)
                         L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR (rc);
   }
 }
 
@@ -249,7 +249,7 @@ void cmgrAsyncCardConfigPorts(void)
                         L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR (rc);
   }
 }
 
@@ -352,7 +352,7 @@ void cmgrAsyncCardClearNotify(L7_uint32 unit, L7_uint32 slot,
                         L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR (rc);
   }
 }
 
@@ -445,7 +445,7 @@ void cmgrAsyncCardPluginNotify(L7_uint32 unit, L7_uint32 slot,
                         L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR (rc);
   }
 }
 
@@ -745,7 +745,7 @@ void cmgrAsyncUnitDisconnectNotify(L7_uint32 unit)
 
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR (rc);
   }
 }
 
@@ -783,7 +783,7 @@ void cmgrAsyncCardUnPlugNotify(L7_uint32 unit, L7_uint32 slot,
                         L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR (rc);
   }
 }
 
@@ -922,7 +922,7 @@ void cmgrAsyncTaskLocalUnitIsManager (L7_LAST_STARTUP_REASON_t systemStartupReas
                         L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR (rc);
   }
 }
 
@@ -1009,7 +1009,7 @@ void cmgrTaskLocalUnitIsManager(L7_LAST_STARTUP_REASON_t systemStartupReason,
     cardTypeDb = sysapiHpcCardDbEntryGet(card_id);
     if (cardTypeDb == L7_NULL)
     {
-      LOG_ERROR (card_id);
+      L7_LOG_ERROR (card_id);
     }
 
     PT_LOG_TRACE(LOG_CTX_STARTUP, "slot=%u", slot);
@@ -1027,7 +1027,7 @@ void cmgrTaskLocalUnitIsManager(L7_LAST_STARTUP_REASON_t systemStartupReason,
       rc = dtlCardCmd(L7_LOGICAL_UNIT, slot, DTL_CARD_INSERT, card_id);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERROR(card_id);
+        L7_LOG_ERROR(card_id);
       }
       CMGR_PROFILE_EVENT(CMGR_PROFILE_EVENT_CARD_INSERT, L7_FALSE, L7_LOGICAL_UNIT, slot);
     }
@@ -1036,7 +1036,7 @@ void cmgrTaskLocalUnitIsManager(L7_LAST_STARTUP_REASON_t systemStartupReason,
   /* The unit number of the stack should be known by now */
   if (unitMgrNumberGet(&unit) != L7_SUCCESS)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR (0);
   }
 
   for (slot = 0; slot <= maxSlots; slot++ )
@@ -1054,7 +1054,7 @@ void cmgrTaskLocalUnitIsManager(L7_LAST_STARTUP_REASON_t systemStartupReason,
     cardTypeDb = sysapiHpcCardDbEntryGet(card_id);
     if (cardTypeDb == L7_NULL)
     {
-      LOG_ERROR (card_id);
+      L7_LOG_ERROR (card_id);
     }
 
     if (cardTypeDb->type == SYSAPI_CARD_TYPE_LINE)
@@ -1064,7 +1064,7 @@ void cmgrTaskLocalUnitIsManager(L7_LAST_STARTUP_REASON_t systemStartupReason,
       rc = dtlCardCmd(unit, slot, DTL_CARD_INSERT, card_id);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERROR(card_id);
+        L7_LOG_ERROR(card_id);
       }
       CMGR_PROFILE_EVENT(CMGR_PROFILE_EVENT_CARD_INSERT, L7_FALSE, unit, slot);
     }
@@ -1112,7 +1112,7 @@ L7_RC_t cmgrAsyncTaskHwApplyNotify (L7_CNFGR_HW_APPLY_t phase)
                         L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR (rc);
   }
 
   return rc;
@@ -1205,7 +1205,7 @@ void cmgrAsyncTaskLocalUnitIsNotManager(void)
                         L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR (rc);
   }
 }
 
@@ -1247,7 +1247,7 @@ void cmgrTaskLocalUnitIsNotManager(void)
     cardTypeDb = sysapiHpcCardDbEntryGet(card_id);
     if (cardTypeDb == L7_NULL)
     {
-      LOG_ERROR (card_id);
+      L7_LOG_ERROR (card_id);
     }
 
     if ((cardTypeDb->type == SYSAPI_CARD_TYPE_LOGICAL_CPU) ||
@@ -2094,7 +2094,7 @@ L7_RC_t cmgrDoNotifyPortCreate(L7_uint32 unit,
     rc = nimEventIntfNotify(notifyEventInfo,&handle);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERROR (rc);
+      L7_LOG_ERROR (rc);
     }
 
     /* Wait for NIM to notify everybody about the the event.
@@ -2149,7 +2149,7 @@ void cmgrDatabaseInit()
                                                       sizeof (cmgr_unit_cmpdu_db_t) * (maxUnits + 1));
   if (cmUnitCmpduDb == L7_NULLPTR)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 
   for (unit=0; unit <= maxUnits; unit++)
@@ -2164,7 +2164,7 @@ void cmgrDatabaseInit()
       (cmgr_cmpdu_statusUpdate_t *)osapiMalloc(L7_CARDMGR_COMPONENT_ID, tempsize);
     if (unitCmpduDb->slotInfo == L7_NULLPTR)
     {
-      LOG_ERROR(0);
+      L7_LOG_ERROR(0);
     }
   }
 
@@ -2191,13 +2191,13 @@ void cmgrDatabaseInit()
   rc = sysapiHpcUnitDbEntryLocalUnitIndexGet (&local_unit_index);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);  /* Local unit must always be defined */
+    L7_LOG_ERROR (rc);  /* Local unit must always be defined */
   }
 
   rc = sysapiHpcUnitDbUnitIdGet (local_unit_index, &local_unit_id);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);  /* Local unit must always be defined */
+    L7_LOG_ERROR (rc);  /* Local unit must always be defined */
   }
 
   /* Configure the local unit. The local unit is always configured
@@ -2252,7 +2252,7 @@ L7_RC_t cmgrInitSlotsOnUnit(L7_uint32 unit)
   unitDb = &cmUnit[unit];
   if (unitDb == NULL)
   {
-    LOG_ERROR (unit);
+    L7_LOG_ERROR (unit);
   }
 
   if(L7_SUCCESS != (sysapiHpcSlotMapMPModuleInfoGet(phySlot, &moduleType,
@@ -2272,7 +2272,7 @@ L7_RC_t cmgrInitSlotsOnUnit(L7_uint32 unit)
     slotDb = &unitDb->cmSlot[slot];
     if (slotDb == NULL)
     {
-      LOG_ERROR (slot);
+      L7_LOG_ERROR (slot);
     }
 
     slotDb->slotId = slot;
@@ -3765,7 +3765,7 @@ static void cmgrCardInsertRemoveWait(void)
                         L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR (rc);
   }
 
   /* Wait until Card Insert/Remove task is done processing all
@@ -3774,7 +3774,7 @@ static void cmgrCardInsertRemoveWait(void)
   rc = osapiSemaTake (cmgrCardInsertRemoveSemaId, L7_WAIT_FOREVER);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR (rc);
   }
 }
 
@@ -3804,7 +3804,7 @@ void cmgrCardInsertRemoveTask()
                              L7_WAIT_FOREVER);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERROR (rc);
+      L7_LOG_ERROR (rc);
     }
 
     CMGR_TRACE_CARD_EVENT(cmd.event, L7_TRUE, cmd.data.cardMsg.unit, cmd.data.cardMsg.slot);
@@ -3835,7 +3835,7 @@ void cmgrCardInsertRemoveTask()
         rc = osapiSemaGive(cmgrCardInsertRemoveSemaId);
         if (rc != L7_SUCCESS)
         {
-          LOG_ERROR (rc);
+          L7_LOG_ERROR (rc);
         }
         break;
 
@@ -3928,7 +3928,7 @@ void cmgrCardInsertRemoveTask()
         cmgrTaskUnitDisconnectNotify(cmd.data.cardMsg.unit);
         break;
       default:
-        LOG_ERROR (cmd.event);
+        L7_LOG_ERROR (cmd.event);
         break;
     }
 

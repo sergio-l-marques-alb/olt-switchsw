@@ -249,7 +249,7 @@ static GARPStatus garpIfStateChange(L7_uint32 intIfNum, L7_uint32 event, NIM_COR
             "garpIfStateChange: QUEUE SEND FAILURE: intf= %s, event = %d, correlator = %d."
             " The garpQueue is full, logs specifics of the message content like"
             " internal interface number, type of message etc.", ifName, event, correlator);
-        LOG_ERROR(intIfNum);
+        L7_LOG_ERROR(intIfNum);
     }
     else
     {

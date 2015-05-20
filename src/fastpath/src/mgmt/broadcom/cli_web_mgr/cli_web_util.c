@@ -1035,13 +1035,13 @@ void cliWebAccessSemaGet(void)
 
     if (cliWebAccessSem == L7_NULL)
     {
-      LOG_ERROR (0);
+      L7_LOG_ERROR (0);
     }
   }
 
   if (osapiSemaTake (cliWebAccessSem, L7_WAIT_FOREVER) != L7_SUCCESS)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR (0);
   }
 }
 
@@ -1060,7 +1060,7 @@ void cliWebAccessSemaFree(void)
 {
   if (cliWebAccessSem == L7_NULL)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR (0);
   }
 
   osapiSemaGive(cliWebAccessSem);

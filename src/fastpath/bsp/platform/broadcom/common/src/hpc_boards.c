@@ -223,30 +223,30 @@ L7_RC_t hpcConfigSet()
 
 #ifdef _L7_OS_LINUX_
   /* Use polling on Linux. Was a fixup before */
-  if (sal_config_set(spn_SCHAN_INTR_ENABLE, "1") != 0) LOG_ERROR(33); /* PTin modified: 0->1 */
-  if (sal_config_set(spn_MIIM_INTR_ENABLE, "0") != 0) LOG_ERROR(33);  /* PTin modified: 0->1 */
+  if (sal_config_set(spn_SCHAN_INTR_ENABLE, "1") != 0) L7_LOG_ERROR(33); /* PTin modified: 0->1 */
+  if (sal_config_set(spn_MIIM_INTR_ENABLE, "0") != 0) L7_LOG_ERROR(33);  /* PTin modified: 0->1 */
 #ifdef LVL7_KEYSTONE
-  if (sal_config_set(spn_TSLAM_INTR_ENABLE, "0") != 0) LOG_ERROR(33);
+  if (sal_config_set(spn_TSLAM_INTR_ENABLE, "0") != 0) L7_LOG_ERROR(33);
 #endif
 #ifdef LVL7_RAPTOR
-  if (sal_config_set(spn_TDMA_INTR_ENABLE, "0") != 0) LOG_ERROR(33);
+  if (sal_config_set(spn_TDMA_INTR_ENABLE, "0") != 0) L7_LOG_ERROR(33);
 #endif
 #else
   /* SDK does defaults to interrupt mode */
-  if (sal_config_set(spn_SCHAN_INTR_ENABLE, "1") != 0) LOG_ERROR(33);
-  if (sal_config_set(spn_MIIM_INTR_ENABLE, "1") != 0) LOG_ERROR(33);
+  if (sal_config_set(spn_SCHAN_INTR_ENABLE, "1") != 0) L7_LOG_ERROR(33);
+  if (sal_config_set(spn_MIIM_INTR_ENABLE, "1") != 0) L7_LOG_ERROR(33);
 #endif
 #ifdef PC_LINUX_HOST  
   sysapiPrintf("Setting salconfig for PC_LINUX_HOST\n");
-  if (sal_config_set(spn_L2XMSG_THREAD_USEC,"0") != 0) LOG_ERROR(33);
-  if (sal_config_set(spn_BCM_LINKSCAN_INTERVAL,"0") != 0) LOG_ERROR(33);
-  if (sal_config_set(spn_BCM_STAT_INTERVAL,"60000000") != 0) LOG_ERROR(33);
+  if (sal_config_set(spn_L2XMSG_THREAD_USEC,"0") != 0) L7_LOG_ERROR(33);
+  if (sal_config_set(spn_BCM_LINKSCAN_INTERVAL,"0") != 0) L7_LOG_ERROR(33);
+  if (sal_config_set(spn_BCM_STAT_INTERVAL,"60000000") != 0) L7_LOG_ERROR(33);
 #endif
 
   /* Set property to skip initialization of BPDU addresses in L2 User table.
    * For BPDUs, the system policy redirects them to CPU (local or remote).
    */
-  if (sal_config_set(spn_SKIP_L2_USER_ENTRY,"1") != 0) LOG_ERROR(33); 
+  if (sal_config_set(spn_SKIP_L2_USER_ENTRY,"1") != 0) L7_LOG_ERROR(33); 
 
   /* Ptin removed: init */
   #if 1
@@ -258,18 +258,18 @@ L7_RC_t hpcConfigSet()
   #endif
 
 #ifdef L7_STACKING_PACKAGE
-  if (sal_config_set(spn_L2XMSG_MODE,"0") != 0) LOG_ERROR(33);
+  if (sal_config_set(spn_L2XMSG_MODE,"0") != 0) L7_LOG_ERROR(33);
 #endif
 
-  if (sal_config_set(spn_BCM_NUM_COS,"8") != 0) LOG_ERROR(33);
+  //if (sal_config_set(spn_BCM_NUM_COS,"8") != 0) L7_LOG_ERROR(33);
 
   /* Turn-off dual modid feature */
-  if (sal_config_set(spn_MODULE_64PORTS,"1") != 0) LOG_ERROR(33);
+  if (sal_config_set(spn_MODULE_64PORTS,"1") != 0) L7_LOG_ERROR(33);
 
   /* PTin modified: log error on failure! */
   rc = hpcConfigBoardSet();
   if (rc != L7_SUCCESS)
-     LOG_ERROR(33);
+     L7_LOG_ERROR(33);
 
   /* Ptin added: init */
   #if 1

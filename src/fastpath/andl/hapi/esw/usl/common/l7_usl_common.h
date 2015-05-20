@@ -294,7 +294,7 @@ typedef struct
           usl_log_buf[LOG_MSG_MAX_MSG_SIZE-1] = (L7_uchar8)0x00;\
       usl_log_msg_fmt(__FILE__,__LINE__,usl_log_buf,L7_TRUE);\
       if (allowed_types & USL_INFO_LOG) usl_trace_show(0,"INF",0); \
-    LOG_ERROR(0xbadd); \
+    L7_LOG_ERROR(0xbadd); \
     }
 
 /* PTin added: little endian */

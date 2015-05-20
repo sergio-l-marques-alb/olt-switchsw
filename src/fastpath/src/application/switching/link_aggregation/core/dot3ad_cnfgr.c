@@ -414,7 +414,7 @@ void dot3adApiCnfgrCommand( L7_CNFGR_CMD_DATA_t *pCmdData )
                              L7_NO_WAIT, L7_MSG_PRIORITY_NORM) != L7_SUCCESS)
         {
           sysapiPrintf("DOT3AD: error sending message for cnfgr\n");
-          LOG_ERROR(666);
+          L7_LOG_ERROR(666);
         }
       }
 

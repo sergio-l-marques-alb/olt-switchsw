@@ -188,7 +188,7 @@ L7_RC_t rmonIntfCreate(L7_uint32 intIfNum)
     rc = osapiSemaTake(rmon_sem, L7_WAIT_FOREVER);
     if (rc != L7_SUCCESS)
     {
-        LOG_ERROR (rc);
+        L7_LOG_ERROR (rc);
     }
 
     if (intfType == L7_LAG_INTF)
@@ -268,7 +268,7 @@ L7_RC_t rmonIntfDelete(L7_uint32 intIfNum)
     rc = osapiSemaTake(rmon_sem, L7_WAIT_FOREVER);
     if (rc != L7_SUCCESS)
     {
-        LOG_ERROR (rc);
+        L7_LOG_ERROR (rc);
     }
 
     if (intfType == L7_LAG_INTF)
@@ -436,7 +436,7 @@ rmonTimerCall()
     rc = osapiSemaTake (rmon_sem, L7_WAIT_FOREVER);
     if (rc != L7_SUCCESS)
     {
-     LOG_ERROR (rc);
+     L7_LOG_ERROR (rc);
     }
 
 
@@ -865,7 +865,7 @@ L7_RC_t rmonPhaseOneInit()
   rmonLagEntryArray = osapiMalloc (L7_RMON_COMPONENT_ID, data_size);
   if (rmonLagEntryArray == 0)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR (0);
   }
   memset (rmonLagEntryArray, 0, data_size);
 
@@ -875,7 +875,7 @@ L7_RC_t rmonPhaseOneInit()
   rmonEtherStatsEntryArray = osapiMalloc (L7_RMON_COMPONENT_ID, data_size);
   if (rmonEtherStatsEntryArray == 0)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR (0);
   }
   memset (rmonEtherStatsEntryArray, 0, data_size);
 
@@ -885,7 +885,7 @@ L7_RC_t rmonPhaseOneInit()
   rmonHistoryControlEntryArray = osapiMalloc (L7_RMON_COMPONENT_ID, data_size);
   if (rmonHistoryControlEntryArray == 0)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR (0);
   }
   memset (rmonHistoryControlEntryArray, 0, data_size);
 
@@ -895,7 +895,7 @@ L7_RC_t rmonPhaseOneInit()
   rmonAlarmEntryArray = osapiMalloc (L7_RMON_COMPONENT_ID, data_size);
   if (rmonAlarmEntryArray == 0)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR (0);
   }
   memset (rmonAlarmEntryArray, 0, data_size);
 
@@ -905,7 +905,7 @@ L7_RC_t rmonPhaseOneInit()
   rmonEventEntryArray = osapiMalloc (L7_RMON_COMPONENT_ID, data_size);
   if (rmonEventEntryArray == 0)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR (0);
   }
   memset (rmonEventEntryArray, 0, data_size);
 

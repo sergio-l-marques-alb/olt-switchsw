@@ -453,7 +453,7 @@ L7_RC_t nimConvertoOldSpeedvalue(L7_uint32 intIfNum, L7_uint32 newintfSpeed, L7_
 
 #define NIM_LOG_ERROR(format, args...) \
           nimLogMsg (L7_TRUE,__FILE__, __LINE__, format, ## args); \
-          LOG_ERROR(0xbadd) 
+          L7_LOG_ERROR(0xbadd) 
 
 #define IS_INTIFNUM_PRESENT(_intIfNum,_rc) \
    { \

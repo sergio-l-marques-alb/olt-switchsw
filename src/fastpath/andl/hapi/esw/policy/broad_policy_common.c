@@ -153,7 +153,7 @@ static char* broadTypeNameTable[BROAD_POLICY_TYPE_LAST] =
 int hapiBroadPolicyFieldSize(BROAD_POLICY_FIELD_t field)
 {
     if (field >= BROAD_FIELD_LAST)
-        LOG_ERROR(field);
+        L7_LOG_ERROR(field);
 
     return broadFieldMapTable[field];
 }
@@ -169,12 +169,12 @@ char *hapiBroadPolicyFieldName(BROAD_POLICY_FIELD_t field)
 void hapiBroadPolicyFieldFlagsSet(BROAD_FIELD_ENTRY_t *fieldInfo, BROAD_POLICY_FIELD_t field, L7_uchar8 value)
 {
   if (field >= BROAD_FIELD_LAST)
-      LOG_ERROR(field);
+      L7_LOG_ERROR(field);
 
   if (field >= 64)    /* PTin modified: 64 qualifiers */
   {
     /* Need to add another 'flags' field to BROAD_FIELD_ENTRY_t */
-    LOG_ERROR(field);
+    L7_LOG_ERROR(field);
   }
 
   if (value == BROAD_FIELD_SPECIFIED)
@@ -192,12 +192,12 @@ L7_uchar8 hapiBroadPolicyFieldFlagsGet(BROAD_FIELD_ENTRY_t *fieldInfo, BROAD_POL
   L7_uchar8 value;
 
   if (field >= BROAD_FIELD_LAST)
-      LOG_ERROR(field);
+      L7_LOG_ERROR(field);
 
   if (field >= 64)    /* PTin modified: 64 qualifiers */
   {
     /* Need to add another 'flags' field to BROAD_FIELD_ENTRY_t */
-    LOG_ERROR(field);
+    L7_LOG_ERROR(field);
   }
 
   if (fieldInfo->flags & ((L7_uint64) 1 << field))  /* PTin modified: 64 qualifiers */
@@ -217,7 +217,7 @@ L7_uchar8 *hapiBroadPolicyFieldValuePtr(BROAD_FIELD_ENTRY_t *fieldInfo, BROAD_PO
   L7_uchar8 *ptr = L7_NULL;
 
   if (field >= BROAD_FIELD_LAST)
-      LOG_ERROR(field);
+      L7_LOG_ERROR(field);
 
   switch (field)
   {
@@ -338,7 +338,7 @@ L7_uchar8 *hapiBroadPolicyFieldValuePtr(BROAD_FIELD_ENTRY_t *fieldInfo, BROAD_PO
     break;
   // PTin end
   default:
-    LOG_ERROR(field);
+    L7_LOG_ERROR(field);
     break;
   }
 
@@ -350,7 +350,7 @@ L7_uchar8 *hapiBroadPolicyFieldMaskPtr(BROAD_FIELD_ENTRY_t *fieldInfo, BROAD_POL
   L7_uchar8 *ptr = L7_NULL;
 
   if (field >= BROAD_FIELD_LAST)
-      LOG_ERROR(field);
+      L7_LOG_ERROR(field);
 
   switch (field)
   {
@@ -460,7 +460,7 @@ L7_uchar8 *hapiBroadPolicyFieldMaskPtr(BROAD_FIELD_ENTRY_t *fieldInfo, BROAD_POL
     break;
 
   default:
-    LOG_ERROR(field);
+    L7_LOG_ERROR(field);
     break;
   }
 

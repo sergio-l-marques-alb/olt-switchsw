@@ -39,14 +39,14 @@ L7_RC_t hapiBroadQosCommonInit(DAPI_t *dapi_g)
     hapiSystemPtr = (BROAD_SYSTEM_t *)(dapi_g->system->hapiSystem);
     if (L7_NULLPTR == hapiSystemPtr)
     {
-        LOG_ERROR(0);
+        L7_LOG_ERROR(0);
         return L7_FAILURE;
     }
 
     hapiSystemPtr->qos = (void*)osapiMalloc(L7_DRIVER_COMPONENT_ID, sizeof(HAPI_BROAD_QOS_t));
     if (L7_NULLPTR == hapiSystemPtr->qos)
     {
-        LOG_ERROR(0);
+        L7_LOG_ERROR(0);
         return L7_FAILURE;
     }
 
@@ -56,7 +56,7 @@ L7_RC_t hapiBroadQosCommonInit(DAPI_t *dapi_g)
     qos->semaphore = osapiSemaMCreate(OSAPI_SEM_Q_FIFO);
     if (L7_NULLPTR == qos->semaphore)
     {
-        LOG_ERROR(0);
+        L7_LOG_ERROR(0);
         return L7_FAILURE;
     }
 

@@ -604,7 +604,7 @@ static L7_RC_t rtoChangeListPurgeRoute(rtoRouteData_t *pData)
   {
     pData = radixDeleteEntry(&rtoRouteTreeData, pData);
     if (pData == L7_NULLPTR)
-      LOG_ERROR (0);
+      L7_LOG_ERROR (0);
     rtoStats.radix_entries--;
   }
   else if (pData->nextRouteInfo->flags & RTO_BEST_ROUTE_NODE)

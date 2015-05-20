@@ -387,7 +387,7 @@ void sysapiMbufFree(  L7_uint32 *mbuf )
   */
   if (MbufsFree > MbufsMaxFree)
   {
-    LOG_ERROR ((unsigned long) mbuf);
+    L7_LOG_ERROR ((unsigned long) mbuf);
   }
 
   SYSAPI_MBUF_UNLOCK();
@@ -578,7 +578,7 @@ L7_netBufHandle sysapiRxNetMbufGet( L7_MBUF_RX_PRIORITY priority,
     break;
 
   default:
-    LOG_ERROR (priority);
+    L7_LOG_ERROR (priority);
     break;
   }
 
@@ -735,7 +735,7 @@ void sysapiNetMbufFreeTrack( L7_netBufHandle netMbufHandle, L7_uchar8 *file, L7_
 
   if (header->in_use == L7_FALSE)
   {
-    LOG_ERROR (netMbufHandle);
+    L7_LOG_ERROR (netMbufHandle);
   }
 
   l7utilsFilenameStrip((L7_char8 **)&file);
@@ -780,7 +780,7 @@ L7_uchar8 *sysapiNetMbufGetDataStart( L7_netBufHandle netMbufHandle )
     return(((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->bufStart);
   } else
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR (0);
   }
 
   return((L7_uchar8 *)0xFFFFFFFF);

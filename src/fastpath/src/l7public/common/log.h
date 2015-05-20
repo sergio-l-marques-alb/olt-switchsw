@@ -292,19 +292,19 @@ log_context_t fp_to_ptin_component(L7_COMPONENT_IDS_t fp_component);
 
 /* Logs an error code then resets switch */
 
-#define LOG_ERROR(error_code)                                                   \
+#define L7_LOG_ERROR(error_code)                                                   \
           log_error_code ((L7_uint32) (error_code), __FILE__, __LINE__)
 
 /* Logs the event code to the system log, then to the event log */
 
-#define LOG_EVENT(event_code)                                                   \
+#define L7_LOG_EVENT(event_code)                                                   \
           l7_log_event(L7_LOG_SEVERITY_CRITICAL, L7_LOG_COMPONENT_DEFAULT,      \
                        __FILE__, __LINE__, event_code)
 
 #ifdef L7_DEBUG
 #define L7_assert(test)  \
         if ((test) !=0)    \
-        { LOG_ERROR(1); }
+        { L7_LOG_ERROR(1); }
 #else
 #define L7_assert(test)  \
         if ((test) !=0)    \

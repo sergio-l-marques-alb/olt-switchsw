@@ -477,7 +477,7 @@ void process_tap_control_msg()
 	  osapiWriteLockGive(reg_table_lock);
 	  /* No place to put this entry? Fatal error - the interface will be 
 	     non-functional */
-	  LOG_ERROR(111);
+	  L7_LOG_ERROR(111);
           break; 
       }/*end case*/
 

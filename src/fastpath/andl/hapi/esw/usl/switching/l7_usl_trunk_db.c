@@ -891,7 +891,7 @@ L7_RC_t usl_trunk_db_init(void)
     if (usl_db_sync_func_table_register(USL_L2_TRUNK_DB_ID, 
                                         &trunkDbFuncs) != L7_SUCCESS)
     {
-      LOG_ERROR(0);   
+      L7_LOG_ERROR(0);   
     }
 
 
@@ -1336,7 +1336,7 @@ int usl_trunk_hw_id_allocate(L7_uint32 appId, bcm_trunk_t *tid)
 
         if (*tid == BCM_TRUNK_INVALID)
         {
-          LOG_ERROR(*tid);    
+          L7_LOG_ERROR(*tid);    
         }
 
 

@@ -54,7 +54,7 @@ static char __fileid[] = "$Header: HL.C 1.0 97/12/14 18:57:17 alexo";
 #if defined(_L7_OS_VXWORKS_) || defined(_L7_OS_VXWORKS_PNE_)
 extern char *sysMemTop (void );
 static unsigned int debug_mem_top = 0;
-#define LOG_ERROR(error_code)                                                   \
+#define L7_LOG_ERROR(error_code)                                                   \
           log_error_code ((unsigned long) (error_code), __FILE__, __LINE__)
 extern void log_error_code (unsigned long err_code,
                             unsigned char *file_name,
@@ -62,7 +62,7 @@ extern void log_error_code (unsigned long err_code,
 #define DEBUG_PTR_CHECK(p) \
         if (debug_mem_top == 0) debug_mem_top = (unsigned int)sysMemTop(); \
         if (((unsigned long)(p)) < 0x1000 || ((unsigned long)(p)) >= debug_mem_top) { \
-            LOG_ERROR(p); \
+            L7_LOG_ERROR(p); \
         }
 #else
 #define DEBUG_PTR_CHECK(p)

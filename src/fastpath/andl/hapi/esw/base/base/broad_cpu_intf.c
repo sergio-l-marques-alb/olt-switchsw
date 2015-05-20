@@ -623,14 +623,14 @@ void hapiBroadCpuTxRxInit(DAPI_t *dapi_g)
 
   if (hapiTxBpduQueue == L7_NULL)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 
   /* spawn BPDU sender task */
   if (osapiTaskCreate("hapiBpduTxTask",hapiBroadBpduTxTask,1,dapi_g, L7_DEFAULT_STACK_SIZE,
                        L7_DEFAULT_TASK_PRIORITY,L7_DEFAULT_TASK_SLICE) == L7_ERROR)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 #endif  /* (L7_DOT1S_BPDUFLOOD_SET == L7_TRUE) */
 
@@ -644,14 +644,14 @@ void hapiBroadCpuTxRxInit(DAPI_t *dapi_g)
 
   if (hapiTxPduQueue == L7_NULL)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 
   /* spawn L2 Protocol Tunnel task */
   if (osapiTaskCreate("hapiPduTransmitTask",hapiBroadPduTransmitTask,1,dapi_g, L7_DEFAULT_STACK_SIZE,
                        L7_DEFAULT_TASK_PRIORITY,L7_DEFAULT_TASK_SLICE) == L7_ERROR)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 #endif
 #endif
@@ -662,14 +662,14 @@ void hapiBroadCpuTxRxInit(DAPI_t *dapi_g)
 
   if (hapiRxQueue == L7_NULL)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 
   /* spawn RX task */
   if (osapiTaskCreate("hapiRxTask",hapiBroadReceiveTask,1,dapi_g, L7_DEFAULT_STACK_SIZE,
                       L7_DEFAULT_TASK_PRIORITY,L7_DEFAULT_TASK_SLICE) == L7_ERROR)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 
   if (hapiBroadHawkeyeCheck() == L7_TRUE)
@@ -1201,7 +1201,7 @@ int bcmx_tx_lplist_intercept(bcm_pkt_t *pkt, bcmx_lplist_t *tx_ports,
   rv = bcmx_lplist_init(&removeList,L7_MAX_INTERFACE_COUNT,0);
   if (L7_BCMX_OK(rv) != L7_TRUE)
   {
-    LOG_ERROR(rv);
+    L7_LOG_ERROR(rv);
   }
   BCMX_LPLIST_IDX_ITER(tx_ports, lport, i) 
   {
@@ -1366,7 +1366,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
     if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_LEVEL2)
       PT_LOG_ERR(LOG_CTX_HAPI,"Non valid frameData");
 
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
     return L7_FAILURE;
   }
 
@@ -3344,7 +3344,7 @@ void hapiBroadReceiveTask(L7_uint32 numArgs, DAPI_t *dapi_g)
   {
     if (osapiMessageReceive(hapiRxQueue,(void *)&pktRxMsg,sizeof(BROAD_PKT_RX_MSG_t),L7_WAIT_FOREVER) != L7_SUCCESS)
     {
-      LOG_ERROR(0);
+      L7_LOG_ERROR(0);
     }
 
     debug_pktTimer.pkt_cpu2_counter++;
@@ -4634,7 +4634,7 @@ void hapiBroadBpduTxTask(L7_uint32 numArgs, DAPI_t *dapi_g)
                             sizeof(BROAD_TX_BPDU_MSG_t),
                             L7_WAIT_FOREVER) != L7_SUCCESS)
     {
-      LOG_ERROR(0);
+      L7_LOG_ERROR(0);
     }
 
     memset (&bcm_pkt, 0, sizeof (bcm_pkt_t));
@@ -4656,17 +4656,17 @@ void hapiBroadBpduTxTask(L7_uint32 numArgs, DAPI_t *dapi_g)
     rv = bcmx_lplist_init(&lplist,L7_MAX_INTERFACE_COUNT,0);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
-      LOG_ERROR(rv);
+      L7_LOG_ERROR(rv);
     }
     rv = bcmx_lplist_init(&untaggedLplist,L7_MAX_INTERFACE_COUNT,0);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
-      LOG_ERROR(rv);
+      L7_LOG_ERROR(rv);
     }
     rv = bcmx_lplist_init(&taggedLplist,L7_MAX_INTERFACE_COUNT,0);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
-      LOG_ERROR(rv);
+      L7_LOG_ERROR(rv);
     }
 
     if (bpdu_msg.sendBpdu)
@@ -4845,7 +4845,7 @@ L7_BOOL hapiBroadPortIsForwarding(DAPI_USP_t *usp, L7_ushort16 vlanId, DAPI_t *d
   {
     if (vlanId > L7_MAX_VLAN_ID)
     {
-      LOG_ERROR(vlanId);
+      L7_LOG_ERROR(vlanId);
     }
 
     instNumber = hapiSystemPtr->stg_instNumber[vlanId];
@@ -5047,7 +5047,7 @@ void hapiBroadPruneRxPort(DAPI_USP_t *usp, bcmx_lplist_t *lplist, DAPI_t *dapi_g
   }
   else
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 }
 
@@ -5086,7 +5086,7 @@ void hapiBroadPruneTxPorts(bcmx_lplist_t *lplist, DAPI_t *dapi_g)
 
   rv = bcmx_lplist_init(&removeList,L7_MAX_INTERFACE_COUNT,0);
   if (L7_BCMX_OK(rv) != L7_TRUE)
-    LOG_ERROR(rv);
+    L7_LOG_ERROR(rv);
 
   /* clear ports from bit mask that are not link up, or originally received the PDU */
   BCMX_LPLIST_IDX_ITER(lplist, lport, count)
@@ -5112,7 +5112,7 @@ void hapiBroadPruneTxPorts(bcmx_lplist_t *lplist, DAPI_t *dapi_g)
 
     if (tempHapiPort->bcmx_lport != lport)
     {
-      LOG_ERROR((L7_ulong32)uport);
+      L7_LOG_ERROR((L7_ulong32)uport);
     }
 
     /* if this physical port is link down, clear the corresponding bit */
@@ -5208,7 +5208,7 @@ void hapiBroadPruneTxDiscardingPorts(L7_ushort16 vlanId, bcmx_lplist_t *lplist, 
   rv = bcmx_lplist_init(&removeList,L7_MAX_INTERFACE_COUNT,0);
   if (L7_BCMX_OK(rv) != L7_TRUE)
   {
-    LOG_ERROR(rv);
+    L7_LOG_ERROR(rv);
   }
 
   /* clear ports from bit mask that are not link up, or originally received the PDU */
@@ -5233,7 +5233,7 @@ void hapiBroadPruneTxDiscardingPorts(L7_ushort16 vlanId, bcmx_lplist_t *lplist, 
 
     if (tempHapiPort->bcmx_lport != lport)
     {
-      LOG_ERROR((L7_ulong32)uport);
+      L7_LOG_ERROR((L7_ulong32)uport);
     }
 
     /* if this port is a LAG member, make sure only one member of that LAG sends the pkt */
@@ -5344,7 +5344,7 @@ L7_RC_t hapiBroadTaggedStatusLplistSet(L7_ushort16 vlanId, bcmx_lplist_t *lplist
 
     if (hapiPortPtr->bcmx_lport != lport)
     {
-      LOG_ERROR((L7_ulong32)lport);
+      L7_LOG_ERROR((L7_ulong32)lport);
     }
 
     /* If its a member of a lag, use the lags tagging status */
@@ -5410,7 +5410,7 @@ void hapiBroadPruneTxUnauthorizedPorts(bcmx_lplist_t *lplist, DAPI_t *dapi_g)
   rv = bcmx_lplist_init(&removeList,L7_MAX_INTERFACE_COUNT,0);
   if (L7_BCMX_OK(rv) != L7_TRUE)
   {
-    LOG_ERROR(rv);
+    L7_LOG_ERROR(rv);
   }
 
   /* clear ports from bit mask that are not link up, or originally received the PDU */
@@ -5435,7 +5435,7 @@ void hapiBroadPruneTxUnauthorizedPorts(bcmx_lplist_t *lplist, DAPI_t *dapi_g)
 
     if (tempHapiPort->bcmx_lport != lport)
     {
-      LOG_ERROR((L7_ulong32)uport);
+      L7_LOG_ERROR((L7_ulong32)uport);
     }
 
     /* if this physical port is not authorized, clear the corresponding bit */
@@ -6208,7 +6208,7 @@ void hapiBroadPduTransmitTask(L7_uint32 numArgs, DAPI_t *dapi_g)
                             sizeof(BROAD_TX_PDU_MSG_t),
                             L7_WAIT_FOREVER) != L7_SUCCESS)
     {
-      LOG_ERROR(0);
+      L7_LOG_ERROR(0);
     }
 
     memset (&bcm_pkt, 0, sizeof (bcm_pkt_t));

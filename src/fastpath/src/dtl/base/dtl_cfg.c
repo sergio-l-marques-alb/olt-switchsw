@@ -69,7 +69,7 @@ L7_RC_t dtlTask()
   dtlMsg = osapiMalloc (L7_DTL_COMPONENT_ID, dtl_msgq_size);
   if (dtlMsg == 0)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR (0);
   }
   memset (dtlMsg, 0, dtl_msgq_size);
 
@@ -153,7 +153,7 @@ L7_RC_t dtlTaskAddr()
                                                 sizeof (DTL_MSG_t));
   if (dtlAddrMsgQueue == L7_NULLPTR)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR (0);
   }
 
   do
@@ -162,7 +162,7 @@ L7_RC_t dtlTaskAddr()
                                    (void *)&Message,
                                    sizeof (Message), L7_WAIT_FOREVER)) != L7_SUCCESS)
     {
-      LOG_ERROR (mrc);
+      L7_LOG_ERROR (mrc);
     }
 
    #if defined(FEAT_METRO_CPE_V1_0)
@@ -251,7 +251,7 @@ L7_RC_t dtlStartTask(L7_uint32 *taskId)
 
   if (dtlAddrTask == L7_ERROR)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR (0);
   }
 
   return(rc);
@@ -873,7 +873,7 @@ void dtlEnterCS(void)
 
   if ((rc = osapiSemaTake(dtlLockSem, L7_WAIT_FOREVER)) != L7_SUCCESS)
   {
-    LOG_ERROR(rc);
+    L7_LOG_ERROR(rc);
   }
 }
 
@@ -895,7 +895,7 @@ void dtlExitCS(void)
 
   if ((rc = osapiSemaGive(dtlLockSem)) != L7_SUCCESS)
   {
-    LOG_ERROR(rc);
+    L7_LOG_ERROR(rc);
   }
 }
 

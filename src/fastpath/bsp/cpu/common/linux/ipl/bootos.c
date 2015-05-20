@@ -416,7 +416,7 @@ int fp_main(int argc, char *argv[])
   /* diagnostics? */
 
 /* PTin commented... */
-//  LOG_EVENT (0xaaaaaaaa);    /* Start of new execution. */
+//  L7_LOG_EVENT (0xaaaaaaaa);    /* Start of new execution. */
 
 #ifdef USE_LM75_MONITOR
   /*

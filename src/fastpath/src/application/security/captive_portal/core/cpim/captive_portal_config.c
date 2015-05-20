@@ -39,9 +39,9 @@
 
 /* Syntactic sugar */
 #define SEMA_TAKE(access)   \
-  if ( CPDM_##access##_LOCK_TAKE(cpdmSema, L7_WAIT_FOREVER) != L7_SUCCESS)  LOG_ERROR(0);  
+  if ( CPDM_##access##_LOCK_TAKE(cpdmSema, L7_WAIT_FOREVER) != L7_SUCCESS)  L7_LOG_ERROR(0);  
 #define SEMA_GIVE(access)   \
-  if ( CPDM_##access##_LOCK_GIVE(cpdmSema) != L7_SUCCESS)  LOG_ERROR(0);  
+  if ( CPDM_##access##_LOCK_GIVE(cpdmSema) != L7_SUCCESS)  L7_LOG_ERROR(0);  
 
 extern cpdmCfgData_t            *cpdmCfgData;   
 extern cpdmOprData_t            *cpdmOprData;
@@ -89,28 +89,28 @@ L7_RC_t cpNewCfgData(void)
                       sizeof(cpdmCfgData_t));
     if (L7_NULLPTR == cpdmCfgData) 
     {
-      LOG_ERROR(0); /* no point in continuing */
+      L7_LOG_ERROR(0); /* no point in continuing */
     }
     memset((void *) cpdmCfgData, 0, sizeof(cpdmCfgData_t));
 
     if (L7_FAILURE == cpdmCPConfigInit(CP_ID_MAX))
     {
-      LOG_ERROR(0);
+      L7_LOG_ERROR(0);
     }
 
     if (L7_FAILURE == cpdmUserGroupEntryInit())
     {
-      LOG_ERROR(0);
+      L7_LOG_ERROR(0);
     }
 
     if (L7_FAILURE == cpdmUserGroupAssocEntryInit())
     {
-      LOG_ERROR(0);
+      L7_LOG_ERROR(0);
     }
 
     if (L7_FAILURE == cpIntfAssocInit(CP_INTERFACE_MAX))
     {
-      LOG_ERROR(0); /* suicide is the answer */
+      L7_LOG_ERROR(0); /* suicide is the answer */
     }
 
     SEMA_TAKE(WRITE);
@@ -207,7 +207,7 @@ L7_RC_t cpNewOprData(void)
       pSem = osapiSemaBCreate(OSAPI_SEM_Q_PRIORITY, OSAPI_SEM_FULL);
       if (L7_NULLPTR == pSem) 
       {
-        LOG_ERROR(0); /* no point in continuing */
+        L7_LOG_ERROR(0); /* no point in continuing */
       }
       else
       {
@@ -219,38 +219,38 @@ L7_RC_t cpNewOprData(void)
                                  sizeof(cpdmOprData_t));
     if (L7_NULLPTR == cpdmOprData) 
     {
-      LOG_ERROR(0); /* no point in continuing */
+      L7_LOG_ERROR(0); /* no point in continuing */
     }
     memset((void *) cpdmOprData, 0, sizeof(cpdmOprData_t));
 
     if (L7_FAILURE == cpIntfCapabStatusInit(CP_INTERFACE_MAX))
     {
-      LOG_ERROR(0); 
+      L7_LOG_ERROR(0); 
     }
 
     if (L7_FAILURE == cpcmAIPStatusInit(CP_AUTH_IN_PROGRESS_MAX))
     {
-      LOG_ERROR(0); 
+      L7_LOG_ERROR(0); 
     }
 
     if (L7_FAILURE == cpdmCACStatusInit(CP_CLIENT_CONN_STATUS_MAX))
     {
-      LOG_ERROR(0); 
+      L7_LOG_ERROR(0); 
     }
 
     if (L7_FAILURE == cpdmClientConnStatusInit(CP_CLIENT_CONN_STATUS_MAX))
     {
-      LOG_ERROR(0); 
+      L7_LOG_ERROR(0); 
     }
 
     if (L7_FAILURE == cpdmIntfStatusInit(CP_INTERFACE_MAX))
     {
-      LOG_ERROR(0); 
+      L7_LOG_ERROR(0); 
     }
 
     if (L7_FAILURE == cpdmActStatusInit(CP_INTERFACE_MAX))
     {
-      LOG_ERROR(0); 
+      L7_LOG_ERROR(0); 
     }
 
     SEMA_TAKE(WRITE);
@@ -325,7 +325,7 @@ L7_RC_t cpNewOprData(void)
                              sizeof(cpdmCkptData_t)*CP_CLIENT_CONN_STATUS_MAX);
       if ((treeHeap == L7_NULLPTR) || (dataHeap == L7_NULLPTR))
       {
-        LOG_ERROR(0);
+        L7_LOG_ERROR(0);
         return L7_FAILURE;
       }
       memset((void *)treeHeap, 0, (sizeof(avlTreeTables_t))*CP_CLIENT_CONN_STATUS_MAX);
@@ -337,7 +337,7 @@ L7_RC_t cpNewOprData(void)
       cpdmOprData->cpCkptPendingSema = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
       if (cpdmOprData->cpCkptPendingSema == L7_NULLPTR)
       {
-        LOG_ERROR (0);
+        L7_LOG_ERROR (0);
         return L7_FAILURE;
       }
     }

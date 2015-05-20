@@ -787,7 +787,7 @@ L7_RC_t nimIntfDataAlloc()
     nimCtlBlk_g->intfTypeData = osapiMalloc (L7_NIM_COMPONENT_ID, sizeof(nimIntfTypeData_t) * L7_MAX_INTF_TYPE_VALUE);
     if (nimCtlBlk_g->intfTypeData == L7_NULLPTR)
     {
-      LOG_ERROR (0);
+      L7_LOG_ERROR (0);
     }
 
   }while (0);

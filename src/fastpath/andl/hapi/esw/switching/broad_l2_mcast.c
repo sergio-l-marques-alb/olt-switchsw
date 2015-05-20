@@ -679,7 +679,7 @@ L7_RC_t hapiBroadGarpGroupRegModify(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
   L7_BOOL                     firstPort;
   usl_bcm_mcast_addr_t        bcmMcastAddr;
 
-  if (hapiMcInit == L7_FALSE) LOG_ERROR(hapiMcInit);
+  if (hapiMcInit == L7_FALSE) L7_LOG_ERROR(hapiMcInit);
 
   memset(&bcmMcastAddr, 0, sizeof(bcmMcastAddr));
 
@@ -919,7 +919,7 @@ L7_RC_t hapiBroadGarpGroupRegDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
   usl_bcm_mcast_addr_t        bcmMcastAddr;
   L7_uint32 maxEntries = platMfdbTotalMaxEntriesGet();
 
-  if (hapiMcInit == L7_FALSE) LOG_ERROR(hapiMcInit);
+  if (hapiMcInit == L7_FALSE) L7_LOG_ERROR(hapiMcInit);
 
   memset(&bcmMcastAddr, 0, sizeof(bcmMcastAddr));
 
@@ -1011,7 +1011,7 @@ void hapiBroadMgmPortVlanAddNotify (DAPI_USP_t *usp, L7_ushort16 vlan_id, DAPI_t
   L7_uint32   maxEntries = platMfdbTotalMaxEntriesGet();
   L7_BOOL     retryFailures = L7_FALSE; 
 
-  if (hapiMcInit == L7_FALSE) LOG_ERROR(hapiMcInit);
+  if (hapiMcInit == L7_FALSE) L7_LOG_ERROR(hapiMcInit);
 
   hapiBroadL2McastCritSecEnter();
 
@@ -1082,7 +1082,7 @@ void hapiBroadMgmPortVlanRemoveNotify (DAPI_USP_t *usp, L7_ushort16 vlan_id, DAP
   L7_uint32            index;
   L7_uint32 maxEntries = platMfdbTotalMaxEntriesGet();
 
-  if (hapiMcInit == L7_FALSE) LOG_ERROR(hapiMcInit);
+  if (hapiMcInit == L7_FALSE) L7_LOG_ERROR(hapiMcInit);
 
   hapiBroadL2McastCritSecEnter();
 
@@ -1141,7 +1141,7 @@ void hapiBroadMgmLagMemberAddNotify (DAPI_USP_t *memberUsp, DAPI_USP_t *lagUsp, 
   BROAD_PORT_t  *hapiPortPtr;
   bcm_gport_t port;
 
-  if (hapiMcInit == L7_FALSE) LOG_ERROR(hapiMcInit);
+  if (hapiMcInit == L7_FALSE) L7_LOG_ERROR(hapiMcInit);
 
   memset(mgmBcmxMcastGroups, 0, sizeof(mgmBcmxMcastGroups));
 
@@ -1218,7 +1218,7 @@ void hapiBroadMgmLagMemberRemoveNotify (DAPI_USP_t *memberUsp, DAPI_USP_t *lagUs
   BROAD_PORT_t  *hapiPortPtr;
   bcm_gport_t port;
 
-  if (hapiMcInit == L7_FALSE) LOG_ERROR(hapiMcInit);
+  if (hapiMcInit == L7_FALSE) L7_LOG_ERROR(hapiMcInit);
 
   memset(mgmBcmxMcastGroups, 0, sizeof(mgmBcmxMcastGroups));
 
@@ -1325,7 +1325,7 @@ void hapiBroadDebugL2mcDump()
   L7_uint32 i,maxEntries;
   maxEntries = platMfdbTotalMaxEntriesGet();
 
-  if (hapiMcInit == L7_FALSE) LOG_ERROR(hapiMcInit);
+  if (hapiMcInit == L7_FALSE) L7_LOG_ERROR(hapiMcInit);
 
   printf("Total number of groups = %d current failed inserts = %d Total failures = %d\n", 
          numMcastGroups, numCurrentFailedMcastGroups, numTotalMcastGroupFailures);
@@ -1365,7 +1365,7 @@ void hapiBroadMgmL2TunnelRemove(DAPI_USP_t *usp, L7_ushort16 vlanId, DAPI_t *dap
   L7_uint32                   index;
   L7_uint32                   maxEntries = platMfdbTotalMaxEntriesGet();
 
-  if (hapiMcInit == L7_FALSE) LOG_ERROR(hapiMcInit);
+  if (hapiMcInit == L7_FALSE) L7_LOG_ERROR(hapiMcInit);
 
 
   hapiBroadL2McastCritSecEnter();
@@ -1413,7 +1413,7 @@ void hapiBroadMgmL2TunnelAdd(DAPI_USP_t *usp, L7_ushort16 vlanId, DAPI_t *dapi_g
   L7_uint32                   index;
   L7_uint32                   maxEntries = platMfdbTotalMaxEntriesGet();
 
-  if (hapiMcInit == L7_FALSE) LOG_ERROR(hapiMcInit);
+  if (hapiMcInit == L7_FALSE) L7_LOG_ERROR(hapiMcInit);
 
 
   hapiBroadL2McastCritSecEnter();
@@ -1686,7 +1686,7 @@ static L7_RC_t hapiBroadMgmNextPortGet(L7_uint32 index, L7_BOOL first, DAPI_USP_
   L7_int32    portOffset = 0;
   L7_int32    startOffset = 0;
 
-  if (hapiMcInit == L7_FALSE) LOG_ERROR(hapiMcInit);
+  if (hapiMcInit == L7_FALSE) L7_LOG_ERROR(hapiMcInit);
 
   /* Convert given DAPI_USP to an port bit offset */
 
@@ -1741,7 +1741,7 @@ static L7_int32 hapiBroadMgmPortIndexFromUsp(DAPI_USP_t *usp)
   L7_uint32 portOffset;
   L7_uint32 i;
 
-  if (hapiMcInit == L7_FALSE) LOG_ERROR(hapiMcInit);
+  if (hapiMcInit == L7_FALSE) L7_LOG_ERROR(hapiMcInit);
 
   if (usp->slot == L7_LAG_SLOT_NUM)
   {
@@ -1829,7 +1829,7 @@ static L7_RC_t hapiBroadMgmUspFromPortIndexGet(L7_int32 portIndex, DAPI_USP_t *u
   L7_BOOL   slotAndPortFound;
 
 
-  if (hapiMcInit == L7_FALSE) LOG_ERROR(hapiMcInit);
+  if (hapiMcInit == L7_FALSE) L7_LOG_ERROR(hapiMcInit);
 
   if (portIndex >= maxInterfaces) return L7_FAILURE;
 
@@ -1925,7 +1925,7 @@ static L7_BOOL hapiBroadMgmIsPortMember(MCAST_GROUP_LIST_t *mcastGroup, DAPI_USP
 {
   L7_int32 portOffset;
 
-  if (hapiMcInit == L7_FALSE) LOG_ERROR(hapiMcInit);
+  if (hapiMcInit == L7_FALSE) L7_LOG_ERROR(hapiMcInit);
 
   /* Convert given DAPI_USP to an port bit offset */
   portOffset = hapiBroadMgmPortIndexFromUsp(port);
@@ -1957,7 +1957,7 @@ static void hapiBroadMgmPortMemberSet(MCAST_GROUP_LIST_t *mcastGroup, DAPI_USP_t
 
   L7_int32 portOffset;
 
-  if (hapiMcInit == L7_FALSE) LOG_ERROR(hapiMcInit);
+  if (hapiMcInit == L7_FALSE) L7_LOG_ERROR(hapiMcInit);
 
   /* Convert given DAPI_USP to an port bit offset */
 
@@ -1986,7 +1986,7 @@ static void hapiBroadMgmPortMemberClear(MCAST_GROUP_LIST_t *mcastGroup, DAPI_USP
 
   L7_int32 portOffset;
 
-  if (hapiMcInit == L7_FALSE) LOG_ERROR(hapiMcInit);
+  if (hapiMcInit == L7_FALSE) L7_LOG_ERROR(hapiMcInit);
 
   /* Convert given DAPI_USP to an port bit offset */
 

@@ -144,7 +144,7 @@ L7_RC_t hapiBroadDot1xGroupIdFree(HAPI_DOT1X_GROUP_MASK_t *mask, L7_uint32 group
 
   if (bitNumber >= HAPI_DOT1X_GROUP_INDICES)
   {
-    LOG_ERROR(bitNumber);
+    L7_LOG_ERROR(bitNumber);
   }
 
   HAPI_DOT1X_GROUP_CLRMASKBIT(*mask, bitNumber);
@@ -493,7 +493,7 @@ L7_RC_t hapiBroadDot1xInit(DAPI_t *dapi_g)
   hapiBroadDot1xSemaphore = osapiSemaMCreate(OSAPI_SEM_Q_FIFO);
   if (hapiBroadDot1xSemaphore == L7_NULL)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
   return L7_SUCCESS;
 }
@@ -1324,7 +1324,7 @@ L7_RC_t hapiBroadIntfDot1xStatus(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
     rv = usl_bcmx_port_dot1x_config(hapiPortPtr->bcmx_lport, status);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
-      LOG_ERROR(rv);    
+      L7_LOG_ERROR(rv);    
     }
 
     hapiBroadDot1xAuthMacUpdate(hapiPortPtr, dapi_g);

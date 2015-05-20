@@ -165,14 +165,14 @@ static void set_result(L7_int32 result)
       if ((rc = osapiSemaGive(L7_transferStatSem)) != L7_SUCCESS) {
 
          /* couldn't give lock? */
-         LOG_ERROR(rc);
+         L7_LOG_ERROR(rc);
 
       }
 
    } else {
 
       /* lock doesn't exist? */
-      LOG_ERROR(rc);
+      L7_LOG_ERROR(rc);
 
    }
 }
@@ -200,14 +200,14 @@ static void set_result_string(L7_char8 *string)
       if ((rc = osapiSemaGive(L7_transferStatSem)) != L7_SUCCESS) {
 
          /* couldn't give lock? */
-         LOG_ERROR(rc);
+         L7_LOG_ERROR(rc);
 
       }
 
    } else {
 
       /* lock doesn't exist? */
-      LOG_ERROR(rc);
+      L7_LOG_ERROR(rc);
 
    }
 }
@@ -378,14 +378,14 @@ static void set_upload_result_code(L7_int32 code)
       if ((rc = osapiSemaGive(L7_transferStatSem)) != L7_SUCCESS) {
 
          /* couldn't give lock? */
-         LOG_ERROR(rc);
+         L7_LOG_ERROR(rc);
 
       }
 
    } else {
 
       /* lock doesn't exist? */
-      LOG_ERROR(rc);
+      L7_LOG_ERROR(rc);
 
    }
 }
@@ -412,14 +412,14 @@ static void set_download_result_code(L7_int32 code)
       if ((rc = osapiSemaGive(L7_transferStatSem)) != L7_SUCCESS) {
 
          /* couldn't give lock? */
-         LOG_ERROR(rc);
+         L7_LOG_ERROR(rc);
 
       }
 
    } else {
 
       /* lock doesn't exist? */
-      LOG_ERROR(rc);
+      L7_LOG_ERROR(rc);
 
    }
 }
@@ -1854,14 +1854,14 @@ void transfer_get_status(L7_int32 *currentStatus, L7_char8 *buf)
       if ((rc = osapiSemaGive(L7_transferStatSem)) != L7_SUCCESS) {
 
          /* couldn't give lock? */
-         LOG_ERROR(rc);
+         L7_LOG_ERROR(rc);
 
       }
 
    } else {
 
       /* lock doesn't exist? */
-      LOG_ERROR(rc);
+      L7_LOG_ERROR(rc);
 
    }
 }
@@ -1893,14 +1893,14 @@ void transfer_get_upload_status_code(L7_int32 *currentStatus)
       if ((rc = osapiSemaGive(L7_transferStatSem)) != L7_SUCCESS) {
 
          /* couldn't give lock? */
-         LOG_ERROR(rc);
+         L7_LOG_ERROR(rc);
 
       }
 
    } else {
 
       /* lock doesn't exist? */
-      LOG_ERROR(rc);
+      L7_LOG_ERROR(rc);
 
    }
 }
@@ -1932,14 +1932,14 @@ void transfer_get_download_status_code(L7_int32 *currentStatus)
       if ((rc = osapiSemaGive(L7_transferStatSem)) != L7_SUCCESS) {
 
          /* couldn't give lock? */
-         LOG_ERROR(rc);
+         L7_LOG_ERROR(rc);
 
       }
 
    } else {
 
       /* lock doesn't exist? */
-      LOG_ERROR(rc);
+      L7_LOG_ERROR(rc);
 
    }
 }
@@ -1965,13 +1965,13 @@ void set_download_code_status(L7_uint32 stkRc)
     if ((rc = osapiSemaGive(L7_transferStatSem)) != L7_SUCCESS) 
     {
       /* couldn't give lock? */
-      LOG_ERROR(rc);
+      L7_LOG_ERROR(rc);
     }
   } 
   else 
   {
     /* lock doesn't exist? */
-    LOG_ERROR(rc);
+    L7_LOG_ERROR(rc);
   }
 }
 
@@ -2002,13 +2002,13 @@ void transfer_get_download_code_status(L7_int32 *currentStatus)
     if ((rc = osapiSemaGive(L7_transferStatSem)) != L7_SUCCESS)
     {
       /* couldn't give lock? */
-      LOG_ERROR(rc);
+      L7_LOG_ERROR(rc);
     }
   }
   else
   {
     /* lock doesn't exist? */
-    LOG_ERROR(rc);
+    L7_LOG_ERROR(rc);
   }
 }
 
@@ -2040,7 +2040,7 @@ L7_RC_t L7_transfer_start(L7_uint32 direction)
             if ((rc = osapiSemaGive(L7_transferParmSem)) != L7_SUCCESS)
             {
               /* couldn't give lock? */
-              LOG_ERROR(rc);
+              L7_LOG_ERROR(rc);
 
             }
             return L7_IMAGE_IN_USE;
@@ -2116,14 +2116,14 @@ L7_RC_t L7_transfer_start(L7_uint32 direction)
       if ((rc = osapiSemaGive(L7_transferParmSem)) != L7_SUCCESS) {
 
          /* couldn't give lock? */
-         LOG_ERROR(rc);
+         L7_LOG_ERROR(rc);
 
       }
 
    } else {
 
       /* lock doesn't exist? */
-      LOG_ERROR(rc);
+      L7_LOG_ERROR(rc);
 
    }
    return L7_SUCCESS;
@@ -2255,14 +2255,14 @@ L7_int32 L7_transfer_task()
             if ((rc = osapiSemaGive(L7_transferParmSem)) != L7_SUCCESS) {
 
                /* couldn't give lock? */
-               LOG_ERROR(rc);
+               L7_LOG_ERROR(rc);
 
             }
 
          } else {
 
             /* couldn't get lock? */
-            LOG_ERROR(rc);
+            L7_LOG_ERROR(rc);
 
          }
 
@@ -2279,7 +2279,7 @@ L7_int32 L7_transfer_task()
       } else {
 
          /* couldn't get signal? */
-         LOG_ERROR(rc);
+         L7_LOG_ERROR(rc);
 
       }
 
@@ -2346,7 +2346,7 @@ L7_int32 L7_transfer_task()
    }
 
    /* should not get here... */
-   LOG_ERROR(0xdeadbeef);
+   L7_LOG_ERROR(0xdeadbeef);
 
    return(L7_FAILURE);
 }

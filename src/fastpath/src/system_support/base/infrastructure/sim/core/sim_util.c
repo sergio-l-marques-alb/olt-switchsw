@@ -1169,13 +1169,13 @@ L7_RC_t simCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
   servPortRoutingProtRoute = (simRouteStorage_t *) osapiMalloc(L7_SIM_COMPONENT_ID, sizeof(simRouteStorage_t));
   if (servPortRoutingProtRoute == L7_NULLPTR)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR (0);
   }
   memset((void *)servPortRoutingProtRoute, 0, sizeof(simRouteStorage_t));
   netPortRoutingProtRoute = (simRouteStorage_t *) osapiMalloc(L7_SIM_COMPONENT_ID, sizeof(simRouteStorage_t));
   if (netPortRoutingProtRoute == L7_NULLPTR)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR (0);
   }
   memset((void *)netPortRoutingProtRoute, 0, sizeof(simRouteStorage_t));
 
@@ -1192,7 +1192,7 @@ L7_RC_t simCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
   simImageSemaphore = osapiSemaBCreate (OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
   if(L7_NULLPTR == simImageSemaphore)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR (0);
   }
 
 #ifdef L7_NSF_PACKAGE
@@ -1200,7 +1200,7 @@ L7_RC_t simCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
   simRC = simCkptInit();
   if (simRC != L7_SUCCESS)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR (0);
   }
 #endif
 
@@ -1212,7 +1212,7 @@ L7_RC_t simCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
 
   if ((bspapiMacAddrGet((L7_char8 *)&systemBIA)) != L7_SUCCESS)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR (0);
   }
 
   /* Return Value to caller */
@@ -1634,7 +1634,7 @@ void simRestoreSystemMac(void)
 {
   if ((bspapiMacAddrGet((L7_char8 *)&systemBIA)) != L7_SUCCESS)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR (0);
   }
 }
 

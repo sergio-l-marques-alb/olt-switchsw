@@ -4894,7 +4894,7 @@ L7_RC_t dot3adPrivateLagCreate(L7_uint32 lagId, L7_char8 *name, L7_uint32 member
     rc = nimEventIntfNotify(notifyEventInfo,&handle);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERROR (rc);
+      L7_LOG_ERROR (rc);
     }
 	else if (cfgCreated == L7_FALSE)
 	{

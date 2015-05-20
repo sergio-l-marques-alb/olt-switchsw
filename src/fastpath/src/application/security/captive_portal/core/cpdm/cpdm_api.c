@@ -55,9 +55,9 @@ static L7_uint32         assocCount = 0;
 
 /* Syntactic sugar */
 #define SEMA_TAKE(access)   \
-  if ( CPDM_##access##_LOCK_TAKE(cpdmSema, L7_WAIT_FOREVER) != L7_SUCCESS)  LOG_ERROR(0);
+  if ( CPDM_##access##_LOCK_TAKE(cpdmSema, L7_WAIT_FOREVER) != L7_SUCCESS)  L7_LOG_ERROR(0);
 #define SEMA_GIVE(access)   \
-  if ( CPDM_##access##_LOCK_GIVE(cpdmSema) != L7_SUCCESS)  LOG_ERROR(0);
+  if ( CPDM_##access##_LOCK_GIVE(cpdmSema) != L7_SUCCESS)  L7_LOG_ERROR(0);
 
 static L7_int32 cpdmFindIntfAssocIndex(cpId_t cpId, L7_uint32 ifNum, find_assoc_t how);
 static ifNumCPPair_t * cpdmFindIntfAssoc(cpId_t cpId, L7_uint32 ifNum);

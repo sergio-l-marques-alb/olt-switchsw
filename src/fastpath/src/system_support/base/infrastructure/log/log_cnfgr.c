@@ -896,7 +896,7 @@ void loggingInit()
 
     error_type = *(L7_uint32 *) &log_buf[0];
 
-    if (error_type == LOG_ERROR_FORMAT)
+    if (error_type == L7_LOG_ERROR_FORMAT)
     {
       memcpy (&err_code, &log_buf[4], sizeof (err_code));
       memcpy (&line_num, &log_buf[8], sizeof (line_num));
@@ -1056,12 +1056,12 @@ void loggingCalloutsInit(void (*logNvStoreFuncPtrLocal)(L7_uchar8 *buf),
 #if defined(CPU_FAMILY) && (CPU_FAMILY == PPC)
 
 /* Name of the file in which crashdump will be written */
-#define LOG_ERROR_CRASHDUMP_FILENAME "log_error_crashdump"
+#define L7_LOG_ERROR_CRASHDUMP_FILENAME "log_error_crashdump"
 
 /* Software watchdog will reset the system after this time in case crashdump
  * generation hangs the box
  */
-#define LOG_ERROR_SOFTWARE_WATCHDOG_PERIOD (120)  /* secs */
+#define L7_LOG_ERROR_SOFTWARE_WATCHDOG_PERIOD (120)  /* secs */
 
 
 /*********************************************************************
@@ -1127,7 +1127,7 @@ void log_error_crashdump_print(L7_BOOL deleteFile)
 
   SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, 
                 "Printing the contents of %s\n\n",
-                LOG_ERROR_CRASHDUMP_FILENAME);
+                L7_LOG_ERROR_CRASHDUMP_FILENAME);
 
   bufSize = sizeof(buffer) - 1;
 
@@ -1218,7 +1218,7 @@ void log_error_code (L7_uint32 err_code,
   if (logNvStoreFuncPtr != L7_NULLPTR)
   {
     memset(log_buf, 0, LOG_CALLOUT_BUF_SIZE);
-    *(L7_uint32 *) &log_buf[0] = LOG_ERROR_FORMAT;
+    *(L7_uint32 *) &log_buf[0] = L7_LOG_ERROR_FORMAT;
     memcpy(&log_buf[4], &err_code, sizeof(err_code));
     memcpy(&log_buf[8], &line_num, sizeof(line_num));
     l7utilsFilenameStrip((L7_char8 **)&file_name);

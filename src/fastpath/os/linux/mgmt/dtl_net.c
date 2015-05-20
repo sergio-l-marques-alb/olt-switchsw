@@ -910,7 +910,7 @@ L7_RC_t dtlMacAddrChange(L7_uchar8 *newMac, L7_uchar8 *ifName, L7_uint16 vlanId)
   /* Get the current flags */
   if (ioctl(sock, SIOCGIFFLAGS, &ifr) == -1)
   {
-    LOG_ERROR(errno);
+    L7_LOG_ERROR(errno);
   }
 
   flags = ifr.ifr_flags;
@@ -922,7 +922,7 @@ L7_RC_t dtlMacAddrChange(L7_uchar8 *newMac, L7_uchar8 *ifName, L7_uint16 vlanId)
 
     if (ioctl(sock, SIOCSIFFLAGS, &ifr) == -1)
     {
-      LOG_ERROR(errno);
+      L7_LOG_ERROR(errno);
     }
   }
 
@@ -932,7 +932,7 @@ L7_RC_t dtlMacAddrChange(L7_uchar8 *newMac, L7_uchar8 *ifName, L7_uint16 vlanId)
 
   if (ioctl(sock, SIOCSIFHWADDR, &ifr) == -1)
   {
-    LOG_ERROR(errno);
+    L7_LOG_ERROR(errno);
   }
 
   /* Set the old flags back */
@@ -940,7 +940,7 @@ L7_RC_t dtlMacAddrChange(L7_uchar8 *newMac, L7_uchar8 *ifName, L7_uint16 vlanId)
 
   if (ioctl(sock, SIOCSIFFLAGS, &ifr) == -1)
   {
-      LOG_ERROR(errno);
+      L7_LOG_ERROR(errno);
   }
   close(sock);
 
@@ -1053,7 +1053,7 @@ void dtlNetInit(void)
  {
     SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Unable to create corresponding dtl net ifc\n");
     close(dtl_net_fd);
-    LOG_ERROR(dtl_net_fd);
+    L7_LOG_ERROR(dtl_net_fd);
     return;
  }
 #if 0
@@ -1287,7 +1287,7 @@ void dtlNetReopen(void)
  {
     printf("Unable to create corresponding dtl net ifc\n");
     close(dtl_net_fd);
-    LOG_ERROR(dtl_net_fd);
+    L7_LOG_ERROR(dtl_net_fd);
     return;
  }
 

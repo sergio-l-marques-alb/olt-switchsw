@@ -1145,7 +1145,7 @@ L7_RC_t dapiInit(L7_ulong32 cardId)
 
       if (osapiRWLockCreate(&(dapi_g->unit[usp.unit]->slot[usp.slot]->cardCmdInfo.cardConfigSema), OSAPI_RWLOCK_Q_PRIORITY) == L7_FAILURE)
       {
-        LOG_ERROR(usp.slot);
+        L7_LOG_ERROR(usp.slot);
       }
     }
   }
@@ -1312,7 +1312,7 @@ L7_RC_t dapiCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *data)
     dapi_g->unit[usp.unit]->slot[usp.slot]->port = (DAPI_PORT_t**)osapiMalloc(L7_DRIVER_COMPONENT_ID, sizeof(DAPI_PORT_t*)*dapi_g->unit[usp.unit]->slot[usp.slot]->numOfPortsInSlot);
     if (dapi_g->unit[usp.unit]->slot[usp.slot]->port == L7_NULLPTR)
     {
-      LOG_ERROR (0);
+      L7_LOG_ERROR (0);
     }
 
     for (portInfoIndex=0; portInfoIndex < dapi_g->unit[usp.unit]->slot[usp.slot]->numOfPortsInSlot; portInfoIndex++)
@@ -1322,7 +1322,7 @@ L7_RC_t dapiCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *data)
       dapi_g->unit[usp.unit]->slot[usp.slot]->port[usp.port] = (DAPI_PORT_t*)osapiMalloc(L7_DRIVER_COMPONENT_ID, sizeof(DAPI_PORT_t));
       if (dapi_g->unit[usp.unit]->slot[usp.slot]->port[usp.port] == L7_NULLPTR)
       {
-        LOG_ERROR (0);
+        L7_LOG_ERROR (0);
       }
 
       dapiPortPtr = DAPI_PORT_GET(&usp,dapi_g);
@@ -1331,7 +1331,7 @@ L7_RC_t dapiCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *data)
       dapiPortPtr->modeparm.physical.stats = (L7_ulong64*)osapiMalloc(L7_DRIVER_COMPONENT_ID, DAPI_STATS_NUM_OF_INTF_ENTRIES * sizeof(L7_ulong64));
       if (dapiPortPtr->modeparm.physical.stats == L7_NULLPTR)
       {
-        LOG_ERROR (0);
+        L7_LOG_ERROR (0);
       }
       else
       {
@@ -1454,7 +1454,7 @@ L7_RC_t dapiCardRemove(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *data)
   /* Uninitialize the hapi driver first */
   if ((dapiCardInfoPtr->hapiCardRemove)(&usp, cmd, data, dapi_g) == L7_FAILURE)
   {
-    LOG_ERROR (sysapiHpcCardInfoPtr->cardTypeId);
+    L7_LOG_ERROR (sysapiHpcCardInfoPtr->cardTypeId);
     result = L7_FAILURE;
   }
 
@@ -2438,7 +2438,7 @@ L7_RC_t dapiCardConfigReadLockTake(L7_int8 unit, L7_int8 slot)
 
   if (result != L7_SUCCESS)
   {
-    LOG_ERROR(slot);
+    L7_LOG_ERROR(slot);
   }
 
   return result;
@@ -2479,7 +2479,7 @@ L7_RC_t dapiCardConfigReadLockGive(L7_int8 unit, L7_int8 slot)
 
   if (result != L7_SUCCESS)
   {
-    LOG_ERROR(slot);
+    L7_LOG_ERROR(slot);
   }
 
   return result;
@@ -2521,7 +2521,7 @@ L7_RC_t dapiCardConfigWriteLockTake(L7_int8 unit, L7_int8 slot)
 
   if (result != L7_SUCCESS)
   {
-    LOG_ERROR(slot);
+    L7_LOG_ERROR(slot);
   }
 
   return result;
@@ -2562,7 +2562,7 @@ L7_RC_t dapiCardConfigWriteLockGive(L7_int8 unit, L7_int8 slot)
 
   if (result != L7_SUCCESS)
   {
-    LOG_ERROR(slot);
+    L7_LOG_ERROR(slot);
   }
 
   return result;

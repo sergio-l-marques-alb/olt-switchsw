@@ -52,7 +52,7 @@ L7_RC_t hapiBroadCosPolicyUtilInit()
       broadCosUtilTable = (BROAD_COS_POLICY_UTIL_ENTRY_t *)osapiMalloc(L7_DRIVER_COMPONENT_ID, L7_MAX_PORT_COUNT * sizeof(BROAD_COS_POLICY_UTIL_ENTRY_t));
       if (broadCosUtilTable == L7_NULL)
       {
-        LOG_ERROR(0);
+        L7_LOG_ERROR(0);
         return L7_FAILURE;
       }
     }
@@ -99,7 +99,7 @@ L7_RC_t hapiBroadCosPolicyUtilAdd(L7_uchar8 *data, L7_uint32 size, BROAD_POLICY_
         if (tmpPolicy == policy)
             return L7_SUCCESS;   /* already present */
 
-     /*   LOG_ERROR(policy);  */     /* duplicate hash? */
+     /*   L7_LOG_ERROR(policy);  */     /* duplicate hash? */
         L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_DRIVER_COMPONENT_ID, 
             "ERROR: policy %d, tmpPolicy %d, size %d, data %d %d %d %d %d %d %d %d."
             " An issue installing the policy due to a possible duplicate hash.",

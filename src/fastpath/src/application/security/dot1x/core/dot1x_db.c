@@ -742,7 +742,7 @@ L7_RC_t dot1xAuthHistoryLogEntryDelete(L7_uint32 intIfNum, L7_uint32 entryIndex)
     /* Entry deleted */
     if(dot1xAuthHistEntryIndexCount == 0)
     {
-      LOG_ERROR("History Log Entry Delete Invoked with Entry Index Count as NULL!\n\r");
+      L7_LOG_ERROR("History Log Entry Delete Invoked with Entry Index Count as NULL!\n\r");
     }
     else
     {
@@ -751,7 +751,7 @@ L7_RC_t dot1xAuthHistoryLogEntryDelete(L7_uint32 intIfNum, L7_uint32 entryIndex)
 
     if(dot1xAuthHistEntryIndexIntfCount[intIfNum] == 0)
     {
-      LOG_ERROR("History Log Entry Delete Invoked with Interface Entry Index Count as NULL!\n\r");
+      L7_LOG_ERROR("History Log Entry Delete Invoked with Interface Entry Index Count as NULL!\n\r");
     }
     else
     {

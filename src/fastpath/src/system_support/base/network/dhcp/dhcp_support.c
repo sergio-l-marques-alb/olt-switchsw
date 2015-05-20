@@ -502,7 +502,7 @@ void dhcpNotificationSemGet (void)
   rc = osapiSemaTake (dhcpClientCB.notifyListSem, L7_WAIT_FOREVER);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR (rc);
   }
 }
 
@@ -520,7 +520,7 @@ void dhcpNotificationSemFree (void)
   rc = osapiSemaGive (dhcpClientCB.notifyListSem);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR (rc);
   }
 }
 

@@ -747,7 +747,7 @@ L7_RC_t usl_vlan_ipsubnet_db_init()
       if (usl_db_sync_func_table_register(USL_L2_VLAN_IPSUBNET_DB_ID, 
                                           &vlanIpSubnetDbFuncs) != L7_SUCCESS)
       {
-        LOG_ERROR(0);   
+        L7_LOG_ERROR(0);   
       }
 
       uslVlanIpSubnetDbActive = L7_TRUE;
@@ -1529,7 +1529,7 @@ L7_RC_t usl_vlan_mac_db_init()
       if (usl_db_sync_func_table_register(USL_L2_VLAN_MAC_DB_ID, 
                                           &vlanMacDbFuncs) != L7_SUCCESS)
       {
-        LOG_ERROR(0);   
+        L7_LOG_ERROR(0);   
       }
 
       uslVlanMacDbActive = L7_TRUE;
@@ -2401,7 +2401,7 @@ L7_RC_t usl_protected_group_db_init()
       if (usl_db_sync_func_table_register(USL_L2_PROTECTED_GRP_DB_ID, 
                                           &protectedGroupDbFuncs) != L7_SUCCESS)
       {
-        LOG_ERROR(0);   
+        L7_LOG_ERROR(0);   
       }
     
       pUslProtectedGroupDbHandle = pUslOperProtectedGroupDb;
@@ -3111,7 +3111,7 @@ L7_RC_t usl_system_db_init(void)
       if (usl_db_sync_func_table_register(USL_SYSTEM_DB_ID, 
                                           &systemDbFuncs)!= L7_SUCCESS)
       {
-        LOG_ERROR(0);   
+        L7_LOG_ERROR(0);   
       }
 
       /* Set the Run time handle to Oper Db */

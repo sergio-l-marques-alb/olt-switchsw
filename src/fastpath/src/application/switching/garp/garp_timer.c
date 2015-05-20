@@ -90,7 +90,7 @@ void garpTimerListFini()
     GARP_TRACE_TIMER_EVENTS("In function garpTimerListFini \n");
 
     /* Fini is unsupported as of this writing */
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
 
     if (&garpTimers.garpTimersPendingList != L7_NULL)
     {

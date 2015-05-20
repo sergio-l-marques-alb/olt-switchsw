@@ -33,7 +33,7 @@
 
 /* Fatal log format types. If format changes then create new constants.
 */
-#define LOG_ERROR_FORMAT 0xA1A1A1A1
+#define L7_LOG_ERROR_FORMAT 0xA1A1A1A1
 #define LOG_FAULT_FORMAT 0xB2B2B2B2
 
 

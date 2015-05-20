@@ -63,7 +63,7 @@ static void *BufferPoolLockSem = L7_NULL;
 * @notes   This routine both allocates the memory for a buffer pool and creates
 *          the buffer pool. It is preferred over bufferPoolCreate().
 *
-*          Function calls LOG_ERROR if the it detects memory corruption.
+*          Function calls L7_LOG_ERROR if the it detects memory corruption.
 *
 * @end
 *********************************************************************/
@@ -87,7 +87,7 @@ L7_uint32 bufferPoolInit (L7_uint32 num_buffers,L7_uint32 buffer_size,
 
   if (pool == L7_NULLPTR)
   {
-    LOG_ERROR (0); /* Out of memory */
+    L7_LOG_ERROR (0); /* Out of memory */
   }
 
   /* Create the buffer pool.
@@ -100,7 +100,7 @@ L7_uint32 bufferPoolInit (L7_uint32 num_buffers,L7_uint32 buffer_size,
                          &buff_count);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR (rc);
   }
 
   /* Since we use bufferPoolSizeCompute function to determine pool size, the
@@ -108,7 +108,7 @@ L7_uint32 bufferPoolInit (L7_uint32 num_buffers,L7_uint32 buffer_size,
   */
   if (buff_count != num_buffers)
   {
-    LOG_ERROR (buff_count);
+    L7_LOG_ERROR (buff_count);
   }
   return rc;
 }
@@ -163,7 +163,7 @@ L7_RC_t bufferPoolCreate (void * buffer_pool_addr,
   {
     if ((BufferPoolLockSem = osapiSemaMCreate(OSAPI_SEM_Q_FIFO)) == NULL)
     {
-      LOG_ERROR (L7_ERROR);
+      L7_LOG_ERROR (L7_ERROR);
     }
   }
 
@@ -315,7 +315,7 @@ L7_RC_t bufferPoolTerminate (L7_uint32  buffer_pool_id)
 
   if ((void *)buffer_pool_addr ==  L7_NULLPTR)
   {
-      LOG_ERROR(1);
+      L7_LOG_ERROR(1);
       return L7_FAILURE;
   }
 
@@ -361,7 +361,7 @@ L7_RC_t bufferPoolDelete (L7_uint32 buffer_pool_id)
 
   if (pool_id >= MaxBufferPools)
   {
-    LOG_ERROR (buffer_pool_id);
+    L7_LOG_ERROR (buffer_pool_id);
   }
 
 
@@ -427,14 +427,14 @@ L7_RC_t bufferPoolAllocate (L7_uint32 buffer_pool_id,
 
   if (pool_id >= MaxBufferPools)
   {
-    LOG_ERROR (buffer_pool_id);
+    L7_LOG_ERROR (buffer_pool_id);
   }
 
 
   if ((BufferPoolList[pool_id].pool_size == 0) ||
       (BufferPoolList[pool_id].id != buffer_pool_id))
   {
-    LOG_ERROR (buffer_pool_id);
+    L7_LOG_ERROR (buffer_pool_id);
   }
 
   /*>>>>>>>>>>>>>>>>> Start Critical Section
@@ -484,7 +484,7 @@ L7_RC_t bufferPoolAllocate (L7_uint32 buffer_pool_id,
   */
   if (descr->in_use)
   {
-    LOG_ERROR ((L7_uint32) descr);
+    L7_LOG_ERROR ((L7_uint32) descr);
   }
 
 
@@ -506,7 +506,7 @@ L7_RC_t bufferPoolAllocate (L7_uint32 buffer_pool_id,
 * @returns  None
 *
 * @notes
-*      Function calls LOG_ERROR if buffer is corrupted or returned
+*      Function calls L7_LOG_ERROR if buffer is corrupted or returned
 *      to the wrong pool.
 *
 * @end
@@ -529,19 +529,19 @@ void bufferPoolFree (L7_uint32 buffer_pool_id, L7_uchar8 * buffer_addr)
   */
   if (pool_id >= MaxBufferPools)
   {
-    LOG_ERROR (buffer_pool_id);
+    L7_LOG_ERROR (buffer_pool_id);
   }
 
   if ((BufferPoolList[pool_id].pool_size == 0) ||
       (BufferPoolList[pool_id].id != buffer_pool_id))
   {
-    LOG_ERROR (buffer_pool_id);
+    L7_LOG_ERROR (buffer_pool_id);
   }
 
   if (BufferPoolList[pool_id].free_count >=
       BufferPoolList[pool_id].total )
   {
-    LOG_ERROR (buffer_pool_id);
+    L7_LOG_ERROR (buffer_pool_id);
   }
 
   /* Set up a pointer to the buffer descriptor.
@@ -553,12 +553,12 @@ void bufferPoolFree (L7_uint32 buffer_pool_id, L7_uchar8 * buffer_addr)
   */
   if (descr->in_use == 0)
   {
-    LOG_ERROR ((L7_uint32) descr);
+    L7_LOG_ERROR ((L7_uint32) descr);
   }
 
   if (descr->id != (L7_ushort16) buffer_pool_id)
   {
-    LOG_ERROR ((L7_uint32) descr);
+    L7_LOG_ERROR ((L7_uint32) descr);
   }
 
 
@@ -572,7 +572,7 @@ void bufferPoolFree (L7_uint32 buffer_pool_id, L7_uchar8 * buffer_addr)
   */
   if (osapiSemaTake(BufferPoolLockSem, L7_WAIT_FOREVER) != L7_SUCCESS)
   {
-    LOG_ERROR ((L7_uint32) L7_FAILURE);
+    L7_LOG_ERROR ((L7_uint32) L7_FAILURE);
   }
 
   BufferPoolList[pool_id].free_list[BufferPoolList[pool_id].free_count] = descr;
@@ -580,7 +580,7 @@ void bufferPoolFree (L7_uint32 buffer_pool_id, L7_uchar8 * buffer_addr)
 
   if (osapiSemaGive(BufferPoolLockSem) != L7_SUCCESS)
   {
-    LOG_ERROR ((L7_uint32) L7_FAILURE);
+    L7_LOG_ERROR ((L7_uint32) L7_FAILURE);
   }
   /* <<<<<<<<<<<<<<<< End Critical Section
   */
@@ -598,7 +598,7 @@ void bufferPoolFree (L7_uint32 buffer_pool_id, L7_uchar8 * buffer_addr)
 * @returns  L7_SUCCESS, if success
 *
 * @notes
-*      Function calls LOG_ERROR if buffer is corrupted
+*      Function calls L7_LOG_ERROR if buffer is corrupted
 *
 * @end
 *********************************************************************/
@@ -615,7 +615,7 @@ L7_RC_t bufferPoolIdGet (L7_uchar8 * buffer_addr, L7_uint32 *buffer_pool_id)
   */
   if (descr->in_use == 0)
   {
-    LOG_ERROR ((L7_uint32) descr);
+    L7_LOG_ERROR ((L7_uint32) descr);
   }
 
 

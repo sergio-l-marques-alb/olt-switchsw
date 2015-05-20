@@ -127,7 +127,7 @@ heapBuffPool_t *mgmdV6HeapPoolListGet(void)
 
   if (i != MGMD_IPV6_POOL_LIST_SIZE)
   {
-    LOG_ERROR(i);
+    L7_LOG_ERROR(i);
   }
   return mgmdV6HeapPoolList;
 }
@@ -211,7 +211,7 @@ heapBuffPool_t *mgmdProxyV6HeapPoolListGet(void)
 
   if (i != MGMD_PROXY_IPV6_POOL_LIST_SIZE)
   {
-    LOG_ERROR(i);
+    L7_LOG_ERROR(i);
   }
   return mgmdProxyV6HeapPoolList;
 }

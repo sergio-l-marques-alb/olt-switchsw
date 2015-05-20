@@ -862,7 +862,7 @@ L7_RC_t usl_l2mc_db_init(void)
 
       if (usl_db_sync_func_table_register(USL_L2_MCAST_DB_ID, &l2mcDbFuncs) != L7_SUCCESS)
       {
-        LOG_ERROR(0);   
+        L7_LOG_ERROR(0);   
       }
 
 
@@ -1288,7 +1288,7 @@ int usl_l2mc_hw_id_allocate(usl_bcm_mcast_addr_t *mcAddr, L7_int32 *group)
         hwIndex = _BCM_MULTICAST_ID_GET(*group);   
         if ((hwIndex > uslL2McHwIdMax) || (hwIndex < uslL2McHwIdMin))
         {
-          LOG_ERROR(*group);    
+          L7_LOG_ERROR(*group);    
         }
 
         /* Mark this index as used in HwList */ 

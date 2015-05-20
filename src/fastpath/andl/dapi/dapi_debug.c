@@ -199,7 +199,7 @@ static void dapiDebugTask(DAPI_t *dapi_g)
      * If the semaphore cannot be obtained, record the error for retrieval later.
      */
     if (osapiSemaTake(dapiDebugBufferSemaphore, L7_WAIT_FOREVER) != L7_SUCCESS) {
-      LOG_ERROR(DAPI_ERROR_GENERAL);
+      L7_LOG_ERROR(DAPI_ERROR_GENERAL);
     }
 
     dapiDebugBufferTail = dapiDebugMsgNumber;
@@ -211,7 +211,7 @@ static void dapiDebugTask(DAPI_t *dapi_g)
     if (osapiSemaGive(dapiDebugBufferSemaphore) != L7_SUCCESS)
     {
       osapiSleep(5);
-      LOG_ERROR(DAPI_ERROR_GENERAL);
+      L7_LOG_ERROR(DAPI_ERROR_GENERAL);
     }
   }
 }
@@ -337,7 +337,7 @@ void dapiInfoMsg(const char *format, ...)
 
   /* if the buffer overflows, stack corruption has occurred. */
   if (length > DAPI_DEBUG_INFO_MSG_SIZE) {
-    LOG_ERROR(DAPI_ERROR_GENERAL|length);
+    L7_LOG_ERROR(DAPI_ERROR_GENERAL|length);
   }
 
   dapiDebugSendMsg("%s", dapiInfoBuf);
@@ -408,7 +408,7 @@ void dapiWarnMsg(const char *fname, L7_long32 line, const char *format, ...)
 
   /* if the buffer overflows, stack corruption has occurred. */
   if (length > DAPI_DEBUG_WARN_MSG_SIZE) {
-    LOG_ERROR(DAPI_ERROR_GENERAL|length);
+    L7_LOG_ERROR(DAPI_ERROR_GENERAL|length);
   }
 
   dapiDebugSendMsg("%s", dapiWarnBuf);
@@ -473,7 +473,7 @@ void dapiLogMsg(const char *fname, L7_ulong32 line, const char *format, ...)
                                                                       /*@end@*/
 
   if (length > DAPI_DEBUG_MSG_SIZE) {
-    LOG_ERROR(DAPI_ERROR_GENERAL|length);
+    L7_LOG_ERROR(DAPI_ERROR_GENERAL|length);
   }
 
   /* If the log message is longer than the event log buffer, it will be trimmed */

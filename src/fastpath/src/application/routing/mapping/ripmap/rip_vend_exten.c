@@ -220,7 +220,7 @@ L7_RC_t ripMapExtenRipHostRoutesAcceptModeSet(L7_uint32 val)
 
     /* Acquire the ripmap internal redist route table resource and get the routes */
     if (ripMapRouteTableResourceAcquire() != L7_SUCCESS)
-      LOG_ERROR(1);
+      L7_LOG_ERROR(1);
 
     (void) ripMapExtenRipRouteRedistributeRecalculate(&flashUpdateNeeded);
 
@@ -322,7 +322,7 @@ L7_RC_t ripMapExtenRipRouteRedistributeFilterSet(L7_REDIST_RT_INDICES_t protocol
   {
     /* Acquire the ripmap internal redist route table resource and get the routes */
     if (ripMapRouteTableResourceAcquire() != L7_SUCCESS)
-      LOG_ERROR(1);
+      L7_LOG_ERROR(1);
 
     (void) ripMapExtenRipRouteRedistributeRecalculate(&flashUpdateNeeded);
 
@@ -357,7 +357,7 @@ L7_RC_t ripMapExtenRouteRedistFilterChange(L7_uint32 val)
   {
     /* Acquire the ripmap internal redist route table resource and get the routes */
     if (ripMapRouteTableResourceAcquire() != L7_SUCCESS)
-      LOG_ERROR(1);
+      L7_LOG_ERROR(1);
 
     (void) ripMapExtenRipRouteRedistributeRecalculate(&flashUpdateNeeded);
 
@@ -396,7 +396,7 @@ L7_RC_t ripMapExtenRipRouteRedistributeParmsSet(L7_REDIST_RT_INDICES_t protocol,
   {
     /* Acquire the ripmap internal redist route table resource and get the routes */
     if (ripMapRouteTableResourceAcquire() != L7_SUCCESS)
-      LOG_ERROR(1);
+      L7_LOG_ERROR(1);
 
     (void) ripMapExtenRipRouteRedistributeRecalculate(&flashUpdateNeeded);
 
@@ -480,7 +480,7 @@ L7_RC_t ripMapExtenRipRouteRedistributeMatchTypeSet(L7_REDIST_RT_INDICES_t proto
   {
     /* Acquire the ripmap internal redist route table resource and get the routes */
     if (ripMapRouteTableResourceAcquire() != L7_SUCCESS)
-      LOG_ERROR(1);
+      L7_LOG_ERROR(1);
 
     (void) ripMapExtenRipRouteRedistributeRecalculate(&flashUpdateNeeded);
 
@@ -515,7 +515,7 @@ L7_RC_t ripMapExtenRipRouteRedistributeModeSet(L7_REDIST_RT_INDICES_t protocol,
   {
     /* Acquire the ripmap internal redist route table resource and get the routes */
     if (ripMapRouteTableResourceAcquire() != L7_SUCCESS)
-      LOG_ERROR(1);
+      L7_LOG_ERROR(1);
 
     (void) ripMapExtenRipRouteRedistributeRecalculate(&flashUpdateNeeded);
 
@@ -605,7 +605,7 @@ L7_RC_t ripMapExtenRipPurgeRedistRoutes(void)
 
   /* Acquire the ripmap internal redist route table resource */
   if (ripMapRouteTableResourceAcquire() != L7_SUCCESS)
-    LOG_ERROR(1);
+    L7_LOG_ERROR(1);
 
   while (ripMapRouteTableRouteGetNext(&routeData, &rtData) == L7_SUCCESS)
   {
@@ -760,7 +760,7 @@ L7_RC_t ripMapExtenRouteAdd(L7_IP_ADDR_t network, L7_IP_MASK_t subnetMask,
 
   /* Acquire the ripmap internal redist route table resource */
   if (ripMapRouteTableResourceAcquire() != L7_SUCCESS)
-    LOG_ERROR(1);
+    L7_LOG_ERROR(1);
 
   if ((ripInit == L7_TRUE) && (rc == L7_SUCCESS))
   {
@@ -817,7 +817,7 @@ L7_RC_t ripMapExtenRouteDelete(L7_IP_ADDR_t network, L7_IP_MASK_t subnetMask)
 
   /* Acquire the ripmap internal redist route table resource */
   if (ripMapRouteTableResourceAcquire() != L7_SUCCESS)
-    LOG_ERROR(1);
+    L7_LOG_ERROR(1);
 
   /* Search ripMap route table for this route. */
   if (ripMapRouteTableRouteSearch(network, subnetMask, &routeData) == L7_SUCCESS)
@@ -886,7 +886,7 @@ L7_RC_t ripMapExtenRouteChange(L7_IP_ADDR_t network, L7_IP_MASK_t subnetMask,
 
   /* Acquire the ripmap internal redist route table resource */
   if (ripMapRouteTableResourceAcquire() != L7_SUCCESS)
-    LOG_ERROR(1);
+    L7_LOG_ERROR(1);
 
   /* Search ripMap route table for this route and check if it was added. */
   rcRtTblSrch = ripMapRouteTableRouteSearch(network, subnetMask, &routeData);

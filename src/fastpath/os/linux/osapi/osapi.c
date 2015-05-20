@@ -99,7 +99,7 @@ int osapi_printf(const char *fmt, ...)
 ** checked to make sure that memory is not corrupted.
 **
 ** The following debug functions are available:
-**   osapiDebugTestMemorySet() - Sets flag that when enabled will cause a LOG_ERROR
+**   osapiDebugTestMemorySet() - Sets flag that when enabled will cause a L7_LOG_ERROR
 **                               if the sentinel is corrupted when memory is freed.
 **   osapiDebugMemoryCheck() - Searches the list of allocated memory blocks for
 **                             corrupted memory. Information about the first block
@@ -162,7 +162,7 @@ typedef struct osapiMemAllocType_s {
 #define OSAPI_MEM_START (0xA7A7A7A7)
 #define OSAPI_MEM_END (0xB7B7B7B7)
 
-/* Set this flag to 1 in order to change default behavior to LOG_ERROR
+/* Set this flag to 1 in order to change default behavior to L7_LOG_ERROR
 ** when corrupted sentinel is detected on osapiFree()
 */
 static L7_uint32 osapiTestMemory = 1;
@@ -932,12 +932,12 @@ void osapiFree(L7_COMPONENT_IDS_t compId, void * memory)
 
   if (compId >= L7_LAST_COMPONENT_ID)
   {
-    LOG_ERROR (compId);
+    L7_LOG_ERROR (compId);
   }
 
   if (memory == 0)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 
   {
@@ -954,7 +954,7 @@ void osapiFree(L7_COMPONENT_IDS_t compId, void * memory)
     {
       printf("*** Start-of-block heap corruption found\n");
       osapi_heap_corruption_dump(mem_alloc, 1);
-      LOG_ERROR ((L7_uint32) memory);
+      L7_LOG_ERROR ((L7_uint32) memory);
     }
 
     mem_size_word = (mem_alloc->length + 3) / 4;
@@ -963,7 +963,7 @@ void osapiFree(L7_COMPONENT_IDS_t compId, void * memory)
     {
       printf("*** End-of-block heap corruption found\n");
       osapi_heap_corruption_dump(mem_alloc, 0);
-      LOG_ERROR ((L7_uint32) memory);
+      L7_LOG_ERROR ((L7_uint32) memory);
     }
     if (mem_alloc->in_use == 0)
     {
@@ -971,7 +971,7 @@ void osapiFree(L7_COMPONENT_IDS_t compId, void * memory)
       printf("Block had been allocated by %s line %d at time %d\n",
              mem_alloc->file_name, mem_alloc->line_number,
              mem_alloc->time_stamp);
-      LOG_ERROR(0);
+      L7_LOG_ERROR(0);
     }
   }
 
@@ -1061,7 +1061,7 @@ void *osapiMalloc_track_try( L7_uint32 numberofbytes,
 
   if (compId >= L7_LAST_COMPONENT_ID)
   {
-    LOG_ERROR (compId);
+    L7_LOG_ERROR (compId);
   }
 
   mem_size_word = (numberofbytes + 3) / 4;
@@ -1208,7 +1208,7 @@ void *osapiRealloc_track(void *pBlock,
 
       if (compId != old_alloc->component_id)
       {
-          LOG_ERROR (compId);
+          L7_LOG_ERROR (compId);
       }
 #ifdef OSAPI_MEM_LIST
     {
@@ -1233,7 +1233,7 @@ void *osapiRealloc_track(void *pBlock,
 
   if (compId >= L7_LAST_COMPONENT_ID)
   {
-    LOG_ERROR (compId);
+    L7_LOG_ERROR (compId);
   }
 
   mem_size_word = (numberofbytes + 3) / 4;
@@ -1325,7 +1325,7 @@ void *osapiMalloc_aligned(L7_COMPONENT_IDS_t compId,
 {
 
 #if 1  /* ALT - This function should be depricated. */
-	LOG_ERROR (size);
+  L7_LOG_ERROR (size);
 #endif
   /* Not sure how to do this in a way that makes the returned pointer
      freeable.  Should only be needed for drivers which will need to

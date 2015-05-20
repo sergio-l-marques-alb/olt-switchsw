@@ -151,7 +151,7 @@ static heapBuffPool_t *dvmrpHeapPoolListGet(void)
 
   if (i != DVMRP_POOL_LIST_SIZE)
   {
-    LOG_ERROR(i);
+    L7_LOG_ERROR(i);
   }
   return dvmrpV4HeapPoolList;
 }

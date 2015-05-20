@@ -372,7 +372,7 @@ L7_RC_t nimRegisterIntfChange(L7_COMPONENT_IDS_t registrar_ID,
       nimStartUpCreate(registrar_ID, priority, startupFcn);
     }
     else {
-      LOG_ERROR(registrar_ID);
+      L7_LOG_ERROR(registrar_ID);
     }
     rc = L7_SUCCESS;
   }
@@ -2011,7 +2011,7 @@ L7_RC_t   nimIntfCreate(nimIntfCreateRequest_t *pRequest, nimIntfCreateOutput_t 
       nimCtlBlk_g->nimPorts[*intIfNum].present = L7_FALSE;
 
       NIM_LOG_MSG("NIM: Create error for Physical Interface \n");
-      LOG_EVENT(*intIfNum);
+      L7_LOG_EVENT(*intIfNum);
       rc = (L7_FAILURE);
     }
 

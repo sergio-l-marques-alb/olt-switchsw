@@ -58,9 +58,9 @@ static L7_short16         *policy_map_index_map[SOC_MAX_NUM_DEVICES] = {0}; /* T
 
 void *_cfp_policy_sem = L7_NULL;
 
-#define CHECK_POLICY(p)  {if (p >= BROAD_MAX_POLICIES)  LOG_ERROR(p);}
-#define CHECK_UNIT(u)    {if (u >= SOC_MAX_NUM_DEVICES) LOG_ERROR(u);}
-#define CHECK_RULE(r)    {if (r >= BROAD_MAX_RULES_PER_POLICY) LOG_ERROR(r);}
+#define CHECK_POLICY(p)  {if (p >= BROAD_MAX_POLICIES)  L7_LOG_ERROR(p);}
+#define CHECK_UNIT(u)    {if (u >= SOC_MAX_NUM_DEVICES) L7_LOG_ERROR(u);}
+#define CHECK_RULE(r)    {if (r >= BROAD_MAX_RULES_PER_POLICY) L7_LOG_ERROR(r);}
 
 typedef struct
 {
@@ -148,7 +148,7 @@ static void _cfp_policy_sem_take()
 {
   if (_cfp_policy_sem == L7_NULL)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 
   osapiSemaTake(_cfp_policy_sem, L7_WAIT_FOREVER);
@@ -158,7 +158,7 @@ static void _cfp_policy_sem_give()
 {
   if (_cfp_policy_sem == L7_NULL)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 
   osapiSemaGive(_cfp_policy_sem);
@@ -190,7 +190,7 @@ static void _policy_group_set_default_pbm(int unit, BROAD_POLICY_TYPE_t type, po
         break;
     default:
         /* indicate that a type was missed */
-        LOG_ERROR(type);
+        L7_LOG_ERROR(type);
         break;
     }        
 
@@ -208,7 +208,7 @@ static void _policy_table_init(int unit)
 
     if (L7_NULLPTR == policy_map_table[unit])
     {
-        LOG_ERROR(0);
+        L7_LOG_ERROR(0);
         return;
     }
 
@@ -219,7 +219,7 @@ static void _policy_table_init(int unit)
 
     if (L7_NULLPTR == policy_map_index_map[unit])
     {
-        LOG_ERROR(0);
+        L7_LOG_ERROR(0);
         return;
     }
 
@@ -230,7 +230,7 @@ static void _policy_table_init(int unit)
 
     if (L7_NULLPTR == _cfp_policy_sem)
     {
-        LOG_ERROR(0);
+        L7_LOG_ERROR(0);
         return;
     }
 

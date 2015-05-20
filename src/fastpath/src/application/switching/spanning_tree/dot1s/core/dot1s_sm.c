@@ -397,7 +397,7 @@ L7_RC_t dot1sStateMachineClassifier(dot1sEvents_t dot1sEvent,
     L7_LOGF(L7_LOG_SEVERITY_ALERT, L7_DOT1S_COMPONENT_ID,
      "Error: Reached the limit on number of recurring state machine events");
     dot1sDebugEventsTraceStop();
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
 
   }
   dot1sDepth++;
@@ -1188,7 +1188,7 @@ L7_RC_t dot1sPrxMachine(L7_uint32 dot1sEvent,
       if (bpdu ==L7_NULLPTR)
       {
         SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS,"BPDU cannot be NULL \n");
-        LOG_ERROR(0);
+        L7_LOG_ERROR(0);
       }
 
       dot1sPrxReceiveAction(p, bpdu);

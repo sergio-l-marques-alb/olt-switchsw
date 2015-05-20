@@ -210,7 +210,7 @@ static void hpcBroadRpcCritEnter (void)
   rc = osapiSemaTake(hpc_rpc_sem, L7_WAIT_FOREVER);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR (rc);
   }
 }
 
@@ -242,7 +242,7 @@ void hpcBroadRpcMsgSentCb(uint8 *pkt_buf, void *cookie, int rv)
   unit = (L7_uint32) cookie;
   if (unit > L7_MAX_UNITS_PER_STACK)
   {
-    LOG_ERROR (unit);  /* Something gone wrong... */
+    L7_LOG_ERROR (unit);  /* Something gone wrong... */
   }
 
   if (rv != BCM_E_NONE)
@@ -379,7 +379,7 @@ bcm_rx_t hpcBroadRpcMsgHandler(cpudb_key_t src_key,
                            L7_MSG_PRIORITY_NORM);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERROR (rc);
+      L7_LOG_ERROR (rc);
     }
   } else
   {
@@ -391,7 +391,7 @@ bcm_rx_t hpcBroadRpcMsgHandler(cpudb_key_t src_key,
       rc = osapiSemaTake (hpc_rpc_trans_sem, L7_WAIT_FOREVER);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERROR (rc);
+        L7_LOG_ERROR (rc);
       }
 
       unit = rpc_header->server_unit;
@@ -446,7 +446,7 @@ bcm_rx_t hpcBroadRpcMsgHandler(cpudb_key_t src_key,
       rc = osapiSemaGive (hpc_rpc_trans_sem);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERROR (rc);
+        L7_LOG_ERROR (rc);
       }
     }
   }
@@ -475,7 +475,7 @@ void hpcBroadRpcServer(void)
   msg_buf = osapiMalloc (L7_DRIVER_COMPONENT_ID, HPC_RPC_QUEUE_MSG_SIZE);
   if (msg_buf == 0)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR (0);
   }
 
   /* Buffer to hold the RPC response for the incoming RPC request */
@@ -484,7 +484,7 @@ void hpcBroadRpcServer(void)
   app_resp.buf = osapiMalloc (L7_DRIVER_COMPONENT_ID, app_resp.buf_size);
   if (msg_buf == 0)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR (0);
   }
 
   while (1)
@@ -493,7 +493,7 @@ void hpcBroadRpcServer(void)
                           HPC_RPC_QUEUE_MSG_SIZE,
                           L7_WAIT_FOREVER) != L7_SUCCESS)
     {
-      LOG_ERROR(0);
+      L7_LOG_ERROR(0);
     }
 
     hpc_rpc_stats.rpc_server_rx_count++;
@@ -562,11 +562,11 @@ L7_RC_t l7_rpc_buffer_init(void)
   /* Allocate RPC request message */
   l7RpcReqMsgBuf = osapiMalloc (L7_DRIVER_COMPONENT_ID, (l7RpcReqMsgBufSize));
   if (l7RpcReqMsgBuf == L7_NULLPTR)
-    LOG_ERROR("USL: unable to allocate l7RpcReqMsgBuf\n");
+    L7_LOG_ERROR("USL: unable to allocate l7RpcReqMsgBuf\n");
 
   l7RpcReqMsgBufSema = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
   if (l7RpcReqMsgBufSema == L7_NULLPTR)
-    LOG_ERROR("USL: unable to create the l7RpcReqMsgBufSema\n");
+    L7_LOG_ERROR("USL: unable to create the l7RpcReqMsgBufSema\n");
 
 
   /* Allocate RPC response message */
@@ -576,13 +576,13 @@ L7_RC_t l7_rpc_buffer_init(void)
   {
     l7RpcRespMsgBuf[i].buf = osapiMalloc (L7_DRIVER_COMPONENT_ID, (l7RpcRespMsgBufSize));
     if (l7RpcRespMsgBuf[i].buf == L7_NULLPTR)
-      LOG_ERROR("USL: unable to allocate l7RpcReqMsgBuf\n");
+      L7_LOG_ERROR("USL: unable to allocate l7RpcReqMsgBuf\n");
     l7RpcRespMsgBuf[i].buf_size = l7RpcRespMsgBufSize;
   }
 
   l7RpcRespMsgBufSema = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
   if (l7RpcRespMsgBufSema == L7_NULLPTR)
-    LOG_ERROR("USL: unable to create the l7RpcRespMsgBufSema\n");
+    L7_LOG_ERROR("USL: unable to create the l7RpcRespMsgBufSema\n");
 
   return L7_SUCCESS;
 }
@@ -601,7 +601,7 @@ L7_RC_t l7_rpc_buffer_init(void)
 L7_uchar8* l7_rpc_req_buffer_get(void)
 {
   if ((l7RpcReqMsgBuf == L7_NULLPTR) || (l7RpcReqMsgBufSema == L7_NULLPTR))
-    LOG_ERROR("USL: unable to allocate buffer before USL is initted\n");
+    L7_LOG_ERROR("USL: unable to allocate buffer before USL is initted\n");
 
 
   /* The corresponding give is when the buffer is freed later on */
@@ -624,7 +624,7 @@ L7_uchar8* l7_rpc_req_buffer_get(void)
 L7_RC_t l7_rpc_req_buffer_free(L7_uchar8 *buffer)
 {
   if ((l7RpcReqMsgBuf == L7_NULLPTR) || (l7RpcReqMsgBufSema == L7_NULLPTR))
-    LOG_ERROR("USL: unable to free RPC buffer \n");
+    L7_LOG_ERROR("USL: unable to free RPC buffer \n");
 
   /* The corresponding give is when the buffer is freed later on */
   osapiSemaGive(l7RpcReqMsgBufSema);
@@ -644,7 +644,7 @@ L7_RC_t l7_rpc_req_buffer_free(L7_uchar8 *buffer)
 L7_RC_t l7_rpc_req_buffer_size_get()
 {
   if ((l7RpcReqMsgBuf == L7_NULLPTR) || (l7RpcReqMsgBufSema == L7_NULLPTR))
-    LOG_ERROR("USL: RPC buffer not allocated\n");
+    L7_LOG_ERROR("USL: RPC buffer not allocated\n");
 
   return l7RpcReqMsgBufSize;
 }
@@ -727,7 +727,7 @@ void hpcBroadRpcInit (void)
                       L7_DEFAULT_TASK_PRIORITY,
                       L7_DEFAULT_TASK_SLICE) == L7_ERROR)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 #endif
   
@@ -876,7 +876,7 @@ L7_RC_t hpcHardwareRpc  (L7_uint32          target_unit_number,
   rc = osapiSemaTake (hpc_rpc_trans_sem, L7_WAIT_FOREVER);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR (rc);
   }
 
   for (i = 0; i <= L7_MAX_UNITS_PER_STACK; i++)
@@ -901,7 +901,7 @@ L7_RC_t hpcHardwareRpc  (L7_uint32          target_unit_number,
   rc = osapiSemaGive (hpc_rpc_trans_sem);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR (rc);
   }
 
   /* Dispatch calls to remote units only on Stackables */
@@ -1010,7 +1010,7 @@ L7_RC_t hpcHardwareRpc  (L7_uint32          target_unit_number,
     rc = osapiSemaTake (hpc_rpc_trans_sem, L7_WAIT_FOREVER);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERROR (rc);
+      L7_LOG_ERROR (rc);
     }
 
     rpc_client_info[local_unit].rpc_pending = L7_FALSE;
@@ -1027,7 +1027,7 @@ L7_RC_t hpcHardwareRpc  (L7_uint32          target_unit_number,
     rc = osapiSemaGive (hpc_rpc_trans_sem);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERROR (rc);
+      L7_LOG_ERROR (rc);
     }
 
   }
@@ -1112,7 +1112,7 @@ L7_RC_t hpcHardwareRpcRegister (L7_uint32 rpc_transaction_id,
     */
     if (hpc_rpc_callback[i].transaction_id == rpc_transaction_id)
     {
-      LOG_ERROR (rpc_transaction_id);
+      L7_LOG_ERROR (rpc_transaction_id);
     }
 
     if (hpc_rpc_callback[i].callback == 0)
@@ -1125,7 +1125,7 @@ L7_RC_t hpcHardwareRpcRegister (L7_uint32 rpc_transaction_id,
 
   if (i == HPC_HW_RPC_MAX_CALLBACKS)
   {
-    LOG_ERROR (rpc_transaction_id);
+    L7_LOG_ERROR (rpc_transaction_id);
   }
 
   hpc_rpc_stats.rpc_num_functions++;
