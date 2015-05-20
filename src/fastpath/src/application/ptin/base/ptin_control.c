@@ -104,54 +104,54 @@ void ptinTask(L7_uint32 numArgs, void *unit)
 
   /* Wait for a signal indicating that all other modules
    * configurations were executed */
-  LOG_INFO(LOG_CTX_CONTROL, "PTin task waiting for other modules to boot up...");
+  LOG_PT_INFO(LOG_CTX_CONTROL, "PTin task waiting for other modules to boot up...");
   rc = osapiSemaTake(ptin_ready_sem, L7_WAIT_FOREVER);
-  LOG_NOTICE(LOG_CTX_CONTROL, "PTin task will now start!");
+  LOG_PT_NOTICE(LOG_CTX_CONTROL, "PTin task will now start!");
 
   /* System StormControl no more supported */
   /* Initialize storm control */
   rc = ptin_stormControl_init();
   if (rc != L7_SUCCESS)
   {
-    LOG_FATAL(LOG_CTX_CNFGR, "Error initializing storm control CRASH!");
+    LOG_PT_FATAL(LOG_CTX_CNFGR, "Error initializing storm control CRASH!");
     PTIN_CRASH();
   }
-  LOG_INFO(LOG_CTX_CNFGR, "Storm Control is active with default values.");
+  LOG_PT_INFO(LOG_CTX_CNFGR, "Storm Control is active with default values.");
 
   /* Initialize PTin Interface module data structures
    * Note: ptin_intf_data_init() needs to be invoked ONLY after nim
    * initialization, which can be guaranteed at this stage */
   if (ptin_intf_init() != L7_SUCCESS)
   {
-    LOG_FATAL(LOG_CTX_CNFGR, "Error initializing PTin Interface module! CRASH!");
+    LOG_PT_FATAL(LOG_CTX_CNFGR, "Error initializing PTin Interface module! CRASH!");
     PTIN_CRASH();
   }
 
   /* Apply configuration on DTL and lower layers */
   if (dtlPtinInit() != L7_SUCCESS)
   {
-    LOG_FATAL(LOG_CTX_CNFGR, "Error initializing PTin DTL module! CRASH!");
+    LOG_PT_FATAL(LOG_CTX_CNFGR, "Error initializing PTin DTL module! CRASH!");
     PTIN_CRASH();
   }
 
   /* Initialize xlate module in application layer */
   if (ptin_xlate_init()!=L7_SUCCESS)
   {
-    LOG_FATAL(LOG_CTX_CNFGR, "Error initializing PTin XLATE module! CRASH!");
+    LOG_PT_FATAL(LOG_CTX_CNFGR, "Error initializing PTin XLATE module! CRASH!");
     PTIN_CRASH();
   }
 
   /* By default enable global DHCP trapping */
   if (ptin_dhcp_enable(L7_ENABLE) != L7_SUCCESS)
   {
-    LOG_FATAL(LOG_CTX_CNFGR, "Error enabling DHCP global trapping! CRASH!");
+    LOG_PT_FATAL(LOG_CTX_CNFGR, "Error enabling DHCP global trapping! CRASH!");
     PTIN_CRASH();
   }
 
   /* PPPoE Global enable */
   if (ptin_pppoe_enable(L7_ENABLE) != L7_SUCCESS)
   {
-    LOG_FATAL(LOG_CTX_CNFGR, "Error enabling PPPoE global trapping! CRASH!");
+    LOG_PT_FATAL(LOG_CTX_CNFGR, "Error enabling PPPoE global trapping! CRASH!");
     PTIN_CRASH();
   }
 
@@ -159,27 +159,27 @@ void ptinTask(L7_uint32 numArgs, void *unit)
   /* Configure InBand bridge if this board is CXP360G */
   if (ptin_cfg_inband_bridge_set() != L7_SUCCESS)
   {
-    LOG_CRITICAL(LOG_CTX_CNFGR, "Error creating InBand bridge!");
+    LOG_PT_CRITIC(LOG_CTX_CNFGR, "Error creating InBand bridge!");
   }
 #endif
 
   /* Default EVCs */
   if (ptin_evc_startup() != L7_SUCCESS)
   {
-    LOG_FATAL(LOG_CTX_CNFGR, "Failed to create default EVCs!");
+    LOG_PT_FATAL(LOG_CTX_CNFGR, "Failed to create default EVCs!");
     PTIN_CRASH();
   }
 
   /* Register a period timer */
   if (osapiPeriodicUserTimerRegister(PTIN_LOOP_TICK, &ptin_loop_handle) != L7_SUCCESS)
   {
-    LOG_FATAL(LOG_CTX_CNFGR, "Error registering period timer! CRASH!");
+    LOG_PT_FATAL(LOG_CTX_CNFGR, "Error registering period timer! CRASH!");
     PTIN_CRASH();
   }
 
   /* Unblock switchover monitor task */
 #if (PTIN_BOARD_IS_MATRIX)
-  LOG_INFO(LOG_CTX_CNFGR, "Unblocking switchover monitor task");
+  LOG_PT_INFO(LOG_CTX_CNFGR, "Unblocking switchover monitor task");
   osapiSemaGive(ptin_switchover_sem);
 #endif
 
@@ -196,17 +196,17 @@ void ptinTask(L7_uint32 numArgs, void *unit)
                       L7_MEDIUM_TASK_PRIORITY,
                       L7_DEFAULT_TASK_SLICE) == L7_ERROR)
   {
-    LOG_FATAL(LOG_CTX_CNFGR, "Failed to create 10ms task!");
+    LOG_PT_FATAL(LOG_CTX_CNFGR, "Failed to create 10ms task!");
     PTIN_CRASH();
   }
   else
   {
-    LOG_INFO(LOG_CTX_CNFGR, "10ms task launch OK");
+    LOG_PT_INFO(LOG_CTX_CNFGR, "10ms task launch OK");
   }
 
   if (osapiWaitForTaskInit (L7_PTIN_10MS_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS)
   {
-    LOG_FATAL(LOG_CTX_CNFGR,"Unable to initialize 10ms task()\n");
+    LOG_PT_FATAL(LOG_CTX_CNFGR,"Unable to initialize 10ms task()\n");
     PTIN_CRASH();
   }
 #endif
@@ -239,7 +239,7 @@ void ptinTask(L7_uint32 numArgs, void *unit)
  */
 void _10msTask(void)
 {
-  LOG_NOTICE(LOG_CTX_CONTROL,"10ms Task started");
+  LOG_PT_NOTICE(LOG_CTX_CONTROL,"10ms Task started");
 
 #if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
   {
@@ -256,7 +256,7 @@ void _10msTask(void)
    ptin_intf_Lag_create(&lagInfo);
   }
 
-  LOG_NOTICE(LOG_CTX_CONTROL,"Internal LAG created");
+  LOG_PT_NOTICE(LOG_CTX_CONTROL,"Internal LAG created");
 
   /* Wait one second, before starting high speed process */
   osapiSleep(1);
@@ -264,14 +264,14 @@ void _10msTask(void)
 
   if (osapiTaskInitDone(L7_PTIN_10MS_TASK_SYNC)!=L7_SUCCESS)
   {
-    LOG_FATAL(LOG_CTX_CONTROL, "Error syncing task");
+    LOG_PT_FATAL(LOG_CTX_CONTROL, "Error syncing task");
     PTIN_CRASH();
   }
 
   /* Register a period timer */
   if (osapiPeriodicUserTimerRegister(10, &_10ms_loop_handle) != L7_SUCCESS)
   {
-    LOG_FATAL(LOG_CTX_CNFGR, "Error registering period timer! CRASH!");
+    LOG_PT_FATAL(LOG_CTX_CNFGR, "Error registering period timer! CRASH!");
     PTIN_CRASH();
   }
 
@@ -282,7 +282,7 @@ void _10msTask(void)
   //}
   sleep(5);     //Allow ANDL/HAPI layer to create the trunk before manipulating it in "monitor_matrix_commutation()"
 
-  LOG_NOTICE(LOG_CTX_CONTROL, "10ms task will now start!");
+  LOG_PT_NOTICE(LOG_CTX_CONTROL, "10ms task will now start!");
 
   //nice(-1);
 
@@ -321,11 +321,11 @@ static void startup_trap_send(void)
   while (1)
   {
     if (send_trap(IPC_CHMSG_TRAP_PORT, TRAP_ARRANQUE, -1) < 0) {
-      LOG_ERR(LOG_CTX_CONTROL, "Failed to send Startup Trap");
+      LOG_PT_ERR(LOG_CTX_CONTROL, "Failed to send Startup Trap");
       sleep(1);
     }
     else {
-      LOG_NOTICE(LOG_CTX_CONTROL, "Startup Trap successfully sent");
+      LOG_PT_NOTICE(LOG_CTX_CONTROL, "Startup Trap successfully sent");
       break;
     }
   }
@@ -342,7 +342,7 @@ static void monitor_throughput(void)
   //L7_uint32 intIfNum, admin, link_state;
 
   if (dtlPtinCountersActivityGet(&portsActivity) != L7_SUCCESS) {
-    LOG_ERR(LOG_CTX_CONTROL, "Error reading counters activity");
+    LOG_PT_ERR(LOG_CTX_CONTROL, "Error reading counters activity");
     return;
   }
 
@@ -411,7 +411,7 @@ static void monitor_alarms(void)
   }
   else
   {
-    LOG_ERR(LOG_CTX_CONTROL,"Stat Activity get failed!");
+    LOG_PT_ERR(LOG_CTX_CONTROL,"Stat Activity get failed!");
     portActivity_valid = L7_FALSE;
   }
 
@@ -479,10 +479,10 @@ static void monitor_alarms(void)
           if (send_trap_intf_alarm(ptin_intf.intf_type, ptin_intf.intf_id,
                                  ((!link) ? TRAP_ALARM_LINK_DOWN_START : TRAP_ALARM_LINK_DOWN_END),
                                  TRAP_ALARM_STATUS_EVENT,0) == 0)
-          LOG_NOTICE(LOG_CTX_CONTROL,"Alarm sent: port=%u, link=%u", port, link);
+          LOG_PT_NOTICE(LOG_CTX_CONTROL,"Alarm sent: port=%u, link=%u", port, link);
         }
       #endif
-      LOG_INFO(LOG_CTX_CONTROL,"Link state changed: port=%u, link=%u", port, link);
+      LOG_PT_INFO(LOG_CTX_CONTROL,"Link state changed: port=%u, link=%u", port, link);
       linkStatus[port]=link;
     }
 
@@ -530,11 +530,11 @@ static void monitor_alarms(void)
                                      ((isActiveMember) ? TRAP_ALARM_LAG_INACTIVE_MEMBER_END : TRAP_ALARM_LAG_INACTIVE_MEMBER_START),
                                      TRAP_ALARM_STATUS_EVENT,
                                      lagIdList[port])==0)
-            LOG_NOTICE(LOG_CTX_CONTROL,"Alarm sent: port=%u, activeMember=%u (lag_id=%u)",port,isActiveMember,lagIdList[port]);
+            LOG_PT_NOTICE(LOG_CTX_CONTROL,"Alarm sent: port=%u, activeMember=%u (lag_id=%u)",port,isActiveMember,lagIdList[port]);
           }
         #endif
         lagActiveMembers[port]=isActiveMember;
-        LOG_INFO(LOG_CTX_CONTROL,"Active LAG membership changed: port=%u, activeMember=%u (lag_id=%u)",port,isActiveMember,lagIdList[port]);
+        LOG_PT_INFO(LOG_CTX_CONTROL,"Active LAG membership changed: port=%u, activeMember=%u (lag_id=%u)",port,isActiveMember,lagIdList[port]);
       }
 
       /* Led control */
@@ -548,20 +548,20 @@ static void monitor_alarms(void)
           if (link)
           {
             /* Link is up */
-            //LOG_TRACE(LOG_CTX_CONTROL,"Interface %u have link up",port);
+            //LOG_PT_TRACE(LOG_CTX_CONTROL,"Interface %u have link up",port);
 
             /* Blink led */
             if ((portActivity_valid) && ((portActivity.ports_mask>>port) & 1) &&
                 (portActivity.activity_bmap[port] & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY))
             {
-              //LOG_TRACE(LOG_CTX_CONTROL,"Activity on interface %u",port);
+              //LOG_PT_TRACE(LOG_CTX_CONTROL,"Activity on interface %u",port);
 
               /* Port throughput values are valid, and we have positive throughput */
               ptin_ta48ge_led_control(port, LED_COLOR_GREEN, 0xAA);
             }
             else
             {
-              //LOG_TRACE(LOG_CTX_CONTROL,"NO activity on interface %u",port);
+              //LOG_PT_TRACE(LOG_CTX_CONTROL,"NO activity on interface %u",port);
               /* No activity, but link is up */
               ptin_ta48ge_led_control(port, LED_COLOR_GREEN, 0xff);
             }
@@ -642,7 +642,7 @@ static void monitor_matrix_commutation(void)
     phyConf.Port = port;
     if (ptin_intf_PhyConfig_set(&phyConf)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_CONTROL,"Error setting port %u to enable=%u",port,phyConf.PortEnable);
+      LOG_PT_ERR(LOG_CTX_CONTROL,"Error setting port %u to enable=%u",port,phyConf.PortEnable);
       rc = L7_FAILURE;
     }
   }
@@ -657,7 +657,7 @@ static void monitor_matrix_commutation(void)
   if (rc != L7_SUCCESS)
   {
     cx_work_slot_h = -1;
-    //LOG_TRACE(LOG_CTX_CONTROL,"Machine reseted");
+    //LOG_PT_TRACE(LOG_CTX_CONTROL,"Machine reseted");
     return;
   }
 
@@ -669,28 +669,28 @@ static void monitor_matrix_commutation(void)
     return;
   }
 
-  LOG_INFO(LOG_CTX_CONTROL,"Something is going to be done (cx_work_slot_h=%d, cx_work_slot=%d)", cx_work_slot_h, cx_work_slot);
-  LOG_INFO(LOG_CTX_CONTROL,"intIfNum of lag 0 is %u", lag_intf);
+  LOG_PT_INFO(LOG_CTX_CONTROL,"Something is going to be done (cx_work_slot_h=%d, cx_work_slot=%d)", cx_work_slot_h, cx_work_slot);
+  LOG_PT_INFO(LOG_CTX_CONTROL,"intIfNum of lag 0 is %u", lag_intf);
 
   if (cx_work_slot)
   {
-    LOG_INFO(LOG_CTX_CONTROL,"CX is working");
+    LOG_PT_INFO(LOG_CTX_CONTROL,"CX is working");
 
     if (ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH+1, &intIfNum) != L7_SUCCESS ||
         ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH, &intIfNum_del) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_CONTROL,"Failure");
+      LOG_PT_ERR(LOG_CTX_CONTROL,"Failure");
       rc = L7_FAILURE;
     }
   }
   else
   {
-    LOG_INFO(LOG_CTX_CONTROL,"CX is protection");
+    LOG_PT_INFO(LOG_CTX_CONTROL,"CX is protection");
 
     if (ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH, &intIfNum) != L7_SUCCESS ||
         ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH+1, &intIfNum_del) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_CONTROL,"Failure");
+      LOG_PT_ERR(LOG_CTX_CONTROL,"Failure");
       rc = L7_FAILURE;
     }
   }
@@ -698,18 +698,18 @@ static void monitor_matrix_commutation(void)
   /* Only proceed to switchover, if intIfNum values were successfully retrieved */
   if (rc == L7_SUCCESS)
   {
-    LOG_INFO(LOG_CTX_CONTROL,"Everyhing is ok... going to apply change (intIfNum_del=%u, intIfNum_new=%u)", intIfNum_del, intIfNum);
+    LOG_PT_INFO(LOG_CTX_CONTROL,"Everyhing is ok... going to apply change (intIfNum_del=%u, intIfNum_new=%u)", intIfNum_del, intIfNum);
 
     // hashmode: FIRST=0, SA_VLAN=1, DA_VLAN=2, SDA_VLAN=3, SIP_SPORT=4, DIP_DPORT=5, SDIP_DPORT=6
     if (dtlDot3adInternalPortAdd(lag_intf, 1, &intIfNum, 1) != L7_SUCCESS ||
         dtlDot3adInternalPortDelete(lag_intf, 1, &intIfNum_del, 1) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_CONTROL,"Failure");
+      LOG_PT_ERR(LOG_CTX_CONTROL,"Failure");
       rc = L7_FAILURE;
     }
     else
     {
-      LOG_INFO(LOG_CTX_CONTROL,"Success");
+      LOG_PT_INFO(LOG_CTX_CONTROL,"Success");
     }
   }
   #endif    //#elif ( PTIN_BOARD == PTIN_BOARD_TA48GE )
@@ -717,13 +717,13 @@ static void monitor_matrix_commutation(void)
   /* Any error? */
   if (rc!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_CONTROL,"Error commuting to %s slot",(cx_work_slot) ? "working" : "protection");
+    LOG_PT_ERR(LOG_CTX_CONTROL,"Error commuting to %s slot",(cx_work_slot) ? "working" : "protection");
   }
   else
   {
     /* Save new state */
     cx_work_slot_h = cx_work_slot;
-    LOG_NOTICE(LOG_CTX_CONTROL,"Success commuting to %s slot",(cx_work_slot) ? "working" : "protection");
+    LOG_PT_NOTICE(LOG_CTX_CONTROL,"Success commuting to %s slot",(cx_work_slot) ? "working" : "protection");
   }
 
   /* if successfull, resend queries */
@@ -771,14 +771,14 @@ void ptinSwitchoverTask(L7_uint32 numArgs, void *unit)
 {
   L7_RC_t rc;
 
-  LOG_NOTICE(LOG_CTX_CONTROL, "ptinSwitchover running!");
+  LOG_PT_NOTICE(LOG_CTX_CONTROL, "ptinSwitchover running!");
   rc = osapiTaskInitDone(L7_PTIN_SWITCHOVER_TASK_SYNC);
 
   /* Wait for a signal indicating that all other modules
    * configurations were executed */
-  LOG_INFO(LOG_CTX_CONTROL, "ptinSwitchover task waiting for other modules to boot up...");
+  LOG_PT_INFO(LOG_CTX_CONTROL, "ptinSwitchover task waiting for other modules to boot up...");
   rc = osapiSemaTake(ptin_switchover_sem, L7_WAIT_FOREVER);
-  LOG_NOTICE(LOG_CTX_CONTROL, "ptinSwitchover task will now start!");
+  LOG_PT_NOTICE(LOG_CTX_CONTROL, "ptinSwitchover task will now start!");
 
   while (1)
   {
@@ -823,11 +823,11 @@ void ptin_control_switchover_monitor(void)
 
     if (linkscan_update_control)
     {
-      LOG_INFO(LOG_CTX_CONTROL, "Switchover detected (to active=%d). Waiting 10 seconds...", matrix_is_active);
+      LOG_PT_INFO(LOG_CTX_CONTROL, "Switchover detected (to active=%d). Waiting 10 seconds...", matrix_is_active);
 
       osapiSleep(30);
 
-      LOG_INFO(LOG_CTX_CONTROL, "Going to process switchover init (active=%d)", matrix_is_active);
+      LOG_PT_INFO(LOG_CTX_CONTROL, "Going to process switchover init (active=%d)", matrix_is_active);
 
       osapiSemaTake(ptin_boardaction_sem, L7_WAIT_FOREVER);
 
@@ -846,14 +846,14 @@ void ptin_control_switchover_monitor(void)
 
           /* Disable force link-up, and enable linkscan for uplink boards */
           /* ... except for protected ports */
-          LOG_TRACE(LOG_CTX_CONTROL, "Going to disable force link-up to slot %u", slot_id); 
+          LOG_PT_TRACE(LOG_CTX_CONTROL, "Going to disable force link-up to slot %u", slot_id); 
           ptin_slot_link_force(slot_id, -1, L7_TRUE, L7_DISABLE);
-          LOG_TRACE(LOG_CTX_CONTROL, "Goig to enable linkscan to slot %u", slot_id);
+          LOG_PT_TRACE(LOG_CTX_CONTROL, "Goig to enable linkscan to slot %u", slot_id);
           ptin_slot_linkscan_set(slot_id, -1, L7_ENABLE);
-          LOG_INFO(LOG_CTX_CONTROL, "Linkscan enabled for slot %u", slot_id);
+          LOG_PT_INFO(LOG_CTX_CONTROL, "Linkscan enabled for slot %u", slot_id);
         }
 #endif
-        LOG_TRACE(LOG_CTX_CONTROL, "Going to disable linkscan to all ports");
+        LOG_PT_TRACE(LOG_CTX_CONTROL, "Going to disable linkscan to all ports");
 
         /* Enable linkscan for all ports (links will go down) */
         for (port=0; port<ptin_sys_number_of_ports; port++)
@@ -869,11 +869,11 @@ void ptin_control_switchover_monitor(void)
           
           /* Disable force link-up, and enable linkscan for uplink boards */
           /* ... except for protected ports */
-          LOG_TRACE(LOG_CTX_CONTROL, "Going to disable force link-up to interface %u", intIfNum); 
+          LOG_PT_TRACE(LOG_CTX_CONTROL, "Going to disable force link-up to interface %u", intIfNum); 
           ptin_intf_link_force(intIfNum, L7_TRUE, L7_DISABLE);
-          LOG_TRACE(LOG_CTX_CONTROL, "Goig to enable linkscan to interface %u", intIfNum);
+          LOG_PT_TRACE(LOG_CTX_CONTROL, "Goig to enable linkscan to interface %u", intIfNum);
           ptin_intf_linkscan_set(intIfNum, L7_ENABLE);
-          LOG_INFO(LOG_CTX_CONTROL, "Linkscan enabled for interface %u", intIfNum);
+          LOG_PT_INFO(LOG_CTX_CONTROL, "Linkscan enabled for interface %u", intIfNum);
         }
       }
       /* For passive matrix, reset all ports, and disable linkscan for all of them */
@@ -882,7 +882,7 @@ void ptin_control_switchover_monitor(void)
         /* Clear historic values of active interfaces */
         memset(switchover_intf_active_h, 0x00, sizeof(switchover_intf_active_h));
 
-        LOG_TRACE(LOG_CTX_CONTROL, "Goig to force link-down to all ports");
+        LOG_PT_TRACE(LOG_CTX_CONTROL, "Goig to force link-down to all ports");
 
         /* Disable force linkup for all ports */
         for (port=0; port<ptin_sys_number_of_ports; port++)
@@ -897,7 +897,7 @@ void ptin_control_switchover_monitor(void)
           }
         }
 
-        LOG_TRACE(LOG_CTX_CONTROL, "Going to enable linkscan to all ports");
+        LOG_PT_TRACE(LOG_CTX_CONTROL, "Going to enable linkscan to all ports");
 
         /* Enable linkscan for all ports (links will go down) */
         for (port=0; port<ptin_sys_number_of_ports; port++)
@@ -911,7 +911,7 @@ void ptin_control_switchover_monitor(void)
         /* Wait 3 seconds */
         osapiSleep(2);
 
-        LOG_TRACE(LOG_CTX_CONTROL, "Going to disable linkscan to all ports");
+        LOG_PT_TRACE(LOG_CTX_CONTROL, "Going to disable linkscan to all ports");
 
         /* Disable linkscan for all ports */
         for (port=0; port<ptin_sys_number_of_ports; port++)
@@ -922,7 +922,7 @@ void ptin_control_switchover_monitor(void)
             ptin_intf_linkscan_set(intIfNum, L7_DISABLE);
         }
 
-        LOG_INFO(LOG_CTX_CONTROL, "Linkscan disabled for all ports");
+        LOG_PT_INFO(LOG_CTX_CONTROL, "Linkscan disabled for all ports");
       }
 
       /* End of procedure */
@@ -957,14 +957,14 @@ void ptin_control_switchover_monitor(void)
                        sizeof(msg_HwIntfInfo_t),
                        NULL) < 0)
   {
-    LOG_ERR(LOG_CTX_CONTROL, "Failed to send interfaces query!");
+    LOG_PT_ERR(LOG_CTX_CONTROL, "Failed to send interfaces query!");
     return;
   }
   #if 0
-  LOG_TRACE(LOG_CTX_CONTROL, "ptin_board_slotId=%d",  ptin_board_slotId);
+  LOG_PT_TRACE(LOG_CTX_CONTROL, "ptin_board_slotId=%d",  ptin_board_slotId);
   for (port=0; port<ports_info.number_of_ports; port++)
   {
-    LOG_TRACE(LOG_CTX_CONTROL, "port=%u: boardId=%u admin=%u link=%u", port,
+    LOG_PT_TRACE(LOG_CTX_CONTROL, "port=%u: boardId=%u admin=%u link=%u", port,
               ports_info.port[port].board_id, ports_info.port[port].enable, ports_info.port[port].link);
   }
   #endif
@@ -972,7 +972,7 @@ void ptin_control_switchover_monitor(void)
   /* Do nothing for active matrix */
   if (ptin_fgpa_mx_is_matrixactive())
   {
-    LOG_ERR(LOG_CTX_CONTROL, "I am active matrix");
+    LOG_PT_ERR(LOG_CTX_CONTROL, "I am active matrix");
     return;
   }
 
@@ -999,7 +999,7 @@ void ptin_control_switchover_monitor(void)
     if ( (ports_info.port[port].board_id != 0) && (board_id != ports_info.port[port].board_id) )
     {
       ptin_intf_boardid_set(port, ports_info.port[port].board_id);
-      LOG_INFO(LOG_CTX_CONTROL, "Board id %u set for port %u", ports_info.port[port].board_id, port);
+      LOG_PT_INFO(LOG_CTX_CONTROL, "Board id %u set for port %u", ports_info.port[port].board_id, port);
 
     #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
      #if (PHY_RECOVERY_PROCEDURE)
@@ -1011,19 +1011,19 @@ void ptin_control_switchover_monitor(void)
         /* Only for TG16G boards */
         if (ports_info.port[port].board_id == PTIN_BOARD_TYPE_TG16G)
         {
-          LOG_INFO(LOG_CTX_INTF, "Going to reset warpcore of slot %u", slot_id);
+          LOG_PT_INFO(LOG_CTX_INTF, "Going to reset warpcore of slot %u", slot_id);
           rc = ptin_intf_slot_reset(slot_id);
           if (rc == L7_SUCCESS)
           {
-            LOG_INFO(LOG_CTX_INTF, "Slot %d reseted", slot_id);
+            LOG_PT_INFO(LOG_CTX_INTF, "Slot %d reseted", slot_id);
           }
           else if (rc == L7_NOT_EXIST)
           {
-            LOG_TRACE(LOG_CTX_INTF, "Nothing done to slot %u", slot_id);
+            LOG_PT_TRACE(LOG_CTX_INTF, "Nothing done to slot %u", slot_id);
           }
           else
           {
-            LOG_ERR(LOG_CTX_INTF, "Error reseting slot %u", slot_id);
+            LOG_PT_ERR(LOG_CTX_INTF, "Error reseting slot %u", slot_id);
           }
         }
         /* Clear flag */
@@ -1042,7 +1042,7 @@ void ptin_control_switchover_monitor(void)
     /* Do nothing for active matrix */
     if (ptin_fgpa_mx_is_matrixactive())
     {
-      LOG_ERR(LOG_CTX_CONTROL, "I am active matrix");
+      LOG_PT_ERR(LOG_CTX_CONTROL, "I am active matrix");
       return;
     }
 
@@ -1055,7 +1055,7 @@ void ptin_control_switchover_monitor(void)
       if (interfaces_active[port] == switchover_intf_active_h[port])
         continue;
 
-      LOG_INFO(LOG_CTX_CONTROL, "Port %u status changed to %u", port, interfaces_active[port]);
+      LOG_PT_INFO(LOG_CTX_CONTROL, "Port %u status changed to %u", port, interfaces_active[port]);
 
       /* Update new changes */
       switchover_intf_active_h[port] = interfaces_active[port];
@@ -1065,41 +1065,41 @@ void ptin_control_switchover_monitor(void)
       /* For passive board, update force link states */
       if (ptin_intf_boardid_get(port, &board_id) != L7_SUCCESS || !PTIN_BOARD_LS_CTRL(board_id))
       {
-        LOG_TRACE(LOG_CTX_CONTROL, "ptin_port %d is not under linkscan control.", port);
+        LOG_PT_TRACE(LOG_CTX_CONTROL, "ptin_port %d is not under linkscan control.", port);
         continue;
       }
       if (ptin_intf_port2intIfNum(port, &intIfNum) != L7_SUCCESS) 
       {
-        LOG_ERR(LOG_CTX_CONTROL, "Error getting intIfNum from ptin_port %d!", port);
+        LOG_PT_ERR(LOG_CTX_CONTROL, "Error getting intIfNum from ptin_port %d!", port);
         continue;
       }
       /* Enable/Disable force linkup */
       if (interfaces_active[port])
       {
-        LOG_TRACE(LOG_CTX_CONTROL, "Forcing link up to port %u", port);
+        LOG_PT_TRACE(LOG_CTX_CONTROL, "Forcing link up to port %u", port);
         if (ptin_intf_link_force(intIfNum, L7_TRUE, L7_ENABLE) != L7_SUCCESS) 
         {
-          LOG_ERR(LOG_CTX_CONTROL, "Error setting force link to %u for ptin_port %d!", interfaces_active[port], port);
+          LOG_PT_ERR(LOG_CTX_CONTROL, "Error setting force link to %u for ptin_port %d!", interfaces_active[port], port);
           continue;
         }
       }
       else
       {
-        LOG_TRACE(LOG_CTX_CONTROL, "Forcing link down to port %u", port);
+        LOG_PT_TRACE(LOG_CTX_CONTROL, "Forcing link down to port %u", port);
         /* Disable force link-up */
         if (ptin_intf_link_force(intIfNum, L7_TRUE, L7_DISABLE) != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_CONTROL, "Error disabling force link-up for ptin_port %d!", interfaces_active[port], port);
+          LOG_PT_ERR(LOG_CTX_CONTROL, "Error disabling force link-up for ptin_port %d!", interfaces_active[port], port);
           continue;
         }
         /* Cause a linkdown */
         if (ptin_intf_link_force(intIfNum, L7_FALSE, 0) != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_CONTROL, "Error causing change link for ptin_port %d!", interfaces_active[port], port);
+          LOG_PT_ERR(LOG_CTX_CONTROL, "Error causing change link for ptin_port %d!", interfaces_active[port], port);
           continue;
         }
       }
-      LOG_INFO(LOG_CTX_CONTROL, "Link forced to %u for port%u", interfaces_active[port], port);
+      LOG_PT_INFO(LOG_CTX_CONTROL, "Link forced to %u for port%u", interfaces_active[port], port);
     }
     osapiSemaGive(ptin_boardaction_sem);
   }
@@ -1121,7 +1121,7 @@ void ptin_control_switchover_monitor(void)
     if (board_id != ports_info.port[port].board_id )
     {
       ptin_intf_boardid_set(port, ports_info.port[port].board_id);
-      LOG_INFO(LOG_CTX_CONTROL, "Board id %u set for port %u", ports_info.port[port].board_id, port);
+      LOG_PT_INFO(LOG_CTX_CONTROL, "Board id %u set for port %u", ports_info.port[port].board_id, port);
 
     #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
      #if (PHY_RECOVERY_PROCEDURE)
@@ -1129,7 +1129,7 @@ void ptin_control_switchover_monitor(void)
       if (ports_info.port[port].board_id == 0)
       {
         slots_to_be_reseted[slot_id] = L7_TRUE;
-        LOG_INFO(LOG_CTX_CONTROL, "Slot %u marked to be reseted ", slot_id);
+        LOG_PT_INFO(LOG_CTX_CONTROL, "Slot %u marked to be reseted ", slot_id);
       }
      #endif
     #endif
@@ -1154,18 +1154,18 @@ void ptinIntfTask(L7_uint32 numArgs, void *unit)
   L7_RC_t rc;
   ptinIntfEventMsg_t eventMsg;
 
-  LOG_NOTICE(LOG_CTX_CONTROL, "PTinIntf running!");
+  LOG_PT_NOTICE(LOG_CTX_CONTROL, "PTinIntf running!");
 
   rc = osapiTaskInitDone(L7_PTIN_INTF_TASK_SYNC);
 
-  LOG_NOTICE(LOG_CTX_CONTROL, "PTinIntf task will now start!");
+  LOG_PT_NOTICE(LOG_CTX_CONTROL, "PTinIntf task will now start!");
 
   #if 0
   /* Wait for a signal indicating that all other modules
    * configurations were executed */
-  LOG_INFO(LOG_CTX_CONTROL, "PTinIntf task waiting for other modules to boot up...");
+  LOG_PT_INFO(LOG_CTX_CONTROL, "PTinIntf task waiting for other modules to boot up...");
   rc = osapiSemaTake(ptin_ready_sem, L7_WAIT_FOREVER);
-  LOG_NOTICE(LOG_CTX_CONTROL, "PTinIntf task will now start!");
+  LOG_PT_NOTICE(LOG_CTX_CONTROL, "PTinIntf task will now start!");
   #endif
 
   while (1)
@@ -1181,11 +1181,11 @@ void ptinIntfTask(L7_uint32 numArgs, void *unit)
     {
       /* Process interface events: only a maximum of 10 per loop */
       rc = ptinIntfUpdate(&eventMsg);
-      LOG_INFO(LOG_CTX_CNFGR, "Event processed: rc=%d", rc);
+      LOG_PT_INFO(LOG_CTX_CNFGR, "Event processed: rc=%d", rc);
     }
     else
     {
-      LOG_ERR(LOG_CTX_CNFGR, "Error receiving queue messages");
+      LOG_PT_ERR(LOG_CTX_CNFGR, "Error receiving queue messages");
     }
   }
 }
@@ -1215,13 +1215,13 @@ L7_RC_t ptinIntfChangeCallback(L7_uint32 intIfNum,
   status.correlator   = correlator;
   status.response.reason = NIM_ERR_RC_UNUSED;
 
-  //LOG_INFO(LOG_CTX_CONTROL, "Event received: event=%u, intIfNum=%u",event, intIfNum);
+  //LOG_PT_INFO(LOG_CTX_CONTROL, "Event received: event=%u, intIfNum=%u",event, intIfNum);
 
   if (nimPhaseStatusCheck() != L7_TRUE)
   {
     L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
     nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
-    LOG_ERR(LOG_CTX_CONTROL,
+    LOG_PT_ERR(LOG_CTX_CONTROL,
             "DHCP snooping received an interface change callback for event %s"
             " on interface %s during invalid initialization phase.",
             nimGetIntfEvent(event), ifName);
@@ -1238,14 +1238,14 @@ L7_RC_t ptinIntfChangeCallback(L7_uint32 intIfNum,
   /* Get slot associated to this interface */
   if (ptin_intf_intIfNum2SlotPort(intIfNum, &slot_id, L7_NULLPTR, &board_id) != L7_SUCCESS || slot_id > PTIN_SYS_SLOTS_MAX)
   {
-    LOG_ERR(LOG_CTX_CONTROL, "Error getting slot for intIfNum %u", intIfNum);
+    LOG_PT_ERR(LOG_CTX_CONTROL, "Error getting slot for intIfNum %u", intIfNum);
     nimEventStatusCallback(status);
     return L7_SUCCESS;
   }
   /* Only disable linkscan if slot have an inserted board */
   if (board_id == L7_NULL)
   {
-    LOG_WARNING(LOG_CTX_CONTROL, "Slot %u (intIfNum %u) not present", slot_id, intIfNum);
+    LOG_PT_WARN(LOG_CTX_CONTROL, "Slot %u (intIfNum %u) not present", slot_id, intIfNum);
     nimEventStatusCallback(status);
     return L7_SUCCESS;
   }
@@ -1257,11 +1257,11 @@ L7_RC_t ptinIntfChangeCallback(L7_uint32 intIfNum,
                        L7_NO_WAIT, L7_MSG_PRIORITY_NORM) != L7_SUCCESS)
 
   {
-    LOG_ERR(LOG_CTX_CONTROL, "Error sending message to queue: event=%u, intIfNum=%u",event, intIfNum);
+    LOG_PT_ERR(LOG_CTX_CONTROL, "Error sending message to queue: event=%u, intIfNum=%u",event, intIfNum);
   }
   else
   {
-    LOG_INFO(LOG_CTX_CONTROL, "Message sent to queue: event=%u, intIfNum=%u",event, intIfNum);
+    LOG_PT_INFO(LOG_CTX_CONTROL, "Message sent to queue: event=%u, intIfNum=%u",event, intIfNum);
   }
 
   nimEventStatusCallback(status);
@@ -1288,12 +1288,12 @@ static L7_RC_t ptinIntfUpdate(ptinIntfEventMsg_t *eventMsg)
   #ifdef PTIN_LINKSCAN_CONTROL
   if ( eventMsg->event == L7_UP ) /* No need to process any other NIM event than these  */
   {
-    LOG_INFO(LOG_CTX_CONTROL, "Link up detected at interface intIfNum %u", eventMsg->intIfNum);
+    LOG_PT_INFO(LOG_CTX_CONTROL, "Link up detected at interface intIfNum %u", eventMsg->intIfNum);
 
     /* Disable linkscan */
     rc = ptin_intf_linkscan_set(eventMsg->intIfNum, L7_DISABLE);
 
-    LOG_INFO(LOG_CTX_CONTROL, "Linkscan disabled: rc=%d, intIfNum=%u", rc, eventMsg->intIfNum);
+    LOG_PT_INFO(LOG_CTX_CONTROL, "Linkscan disabled: rc=%d, intIfNum=%u", rc, eventMsg->intIfNum);
   }
   #endif
 
@@ -1315,7 +1315,7 @@ void ptinIntfStartupCallback(NIM_STARTUP_PHASE_t startupPhase)
 {
   PORTEVENT_MASK_t portEvent_mask;
 
-  LOG_INFO(LOG_CTX_CONTROL, "Startup executed");
+  LOG_PT_INFO(LOG_CTX_CONTROL, "Startup executed");
 
   memset(&portEvent_mask, 0x00, sizeof(portEvent_mask));
 
@@ -1366,7 +1366,7 @@ static void ptin_control_syncE(void)
   {
     if (ptin_intf_clock_recover_set(ptin_port_main, ptin_port_bckp) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_CONTROL, "Error applying new recovery clocks: main port=%d, backup port=%d", ptin_port_main, ptin_port_bckp);
+      LOG_PT_ERR(LOG_CTX_CONTROL, "Error applying new recovery clocks: main port=%d, backup port=%d", ptin_port_main, ptin_port_bckp);
     }
   }
 #endif
@@ -1464,7 +1464,7 @@ uint32 ip, len, i;
     memcpy(stat.dot3adAggIdx, dot3adAggIdx, sizeof(dot3adAggIdx));
     memcpy(stat.dot3adPortIdx, dot3adPortIdx, sizeof(dot3adPortIdx));
     memcpy(&stat.dot3adSystem, &dot3adSystem, sizeof(dot3adSystem));
-    LOG_INFO(LOG_CTX_CONTROL, "sizeof(dot3adAgg)=%u\tsizeof(dot3adPort)=%u\tsizeof(dot3adOperPort)=%u\tsizeof(dot3adAggIdx)=%u\tsizeof(dot3adPortIdx)=%u\tsizeof(dot3adSystem)=%u",
+    LOG_PT_INFO(LOG_CTX_CONTROL, "sizeof(dot3adAgg)=%u\tsizeof(dot3adPort)=%u\tsizeof(dot3adOperPort)=%u\tsizeof(dot3adAggIdx)=%u\tsizeof(dot3adPortIdx)=%u\tsizeof(dot3adSystem)=%u",
              sizeof(dot3adAgg), sizeof(dot3adPort), sizeof(dot3adOperPort), sizeof(dot3adAggIdx), sizeof(dot3adPortIdx), sizeof(dot3adSystem));
 
     ip=     ((ptin_board_slotId <= 1) ? IPC_MX_IPADDR_PROTECTION : IPC_MX_IPADDR_WORKING);
@@ -1480,7 +1480,7 @@ uint32 ip, len, i;
                              &((char *) &stat)[i],
                              NULL,//answer,
                              len) < 0) {
-            LOG_INFO(LOG_CTX_CONTROL, "Failed syncing matrixes .3ad wise");
+            LOG_PT_INFO(LOG_CTX_CONTROL, "Failed syncing matrixes .3ad wise");
             //return 1;
         }
 
@@ -1517,9 +1517,9 @@ uint32 len;
 
     if (dim==len) {
          i=0;      //1st message has this size to align @Rx
-         LOG_INFO(LOG_CTX_CONTROL, "rx_dot3ad_matrix_sync_t()\ti=0");
+         LOG_PT_INFO(LOG_CTX_CONTROL, "rx_dot3ad_matrix_sync_t()\ti=0");
     }
-    else LOG_INFO(LOG_CTX_CONTROL, "rx_dot3ad_matrix_sync_t()");
+    else LOG_PT_INFO(LOG_CTX_CONTROL, "rx_dot3ad_matrix_sync_t()");
 
     if (i>sizeof(dot3ad_matrix_sync_t)) return;
 
@@ -1546,7 +1546,7 @@ uint32 len;
 //    memcpy(dot3adAggIdx, stat.dot3adAggIdx, sizeof(dot3adAggIdx));
 //    memcpy(&dot3adSystem, &stat.dot3adSystem, sizeof(dot3adSystem));
 //
-    LOG_INFO(LOG_CTX_CONTROL, "rx_dot3ad_matrix_sync_t()\tEND");
+    LOG_PT_INFO(LOG_CTX_CONTROL, "rx_dot3ad_matrix_sync_t()\tEND");
 }//rx_dot3ad_matrix_sync_t
 
 
@@ -1650,7 +1650,7 @@ uint32 ip, len, i;
                              NULL,//answer,
                              len,
                              NULL) < 0) {
-            LOG_TRACE(LOG_CTX_CONTROL, "Failed syncing(2) matrixes .3ad wise");
+            LOG_PT_TRACE(LOG_CTX_CONTROL, "Failed syncing(2) matrixes .3ad wise");
             //return 1;
         }
 
@@ -1715,7 +1715,7 @@ void rx_dot3ad_matrix_sync2_t(char *pbuf, unsigned long dim) {
     //p->actorOperPortKey=p2->pdu.actorKey;
     dot3adLacpClassifier(lacpPduRx, p, (void *)&p2->pdu);
 
-    LOG_TRACE(LOG_CTX_CONTROL, "rx_dot3ad_matrix_sync2_t()\tEND");
+    LOG_PT_TRACE(LOG_CTX_CONTROL, "rx_dot3ad_matrix_sync2_t()\tEND");
 #endif
 }//rx_dot3ad_matrix_sync2_t
 

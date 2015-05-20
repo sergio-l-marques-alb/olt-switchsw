@@ -333,7 +333,7 @@ void hapiBroadDebugInit(DAPI_t *dapi_g)
   }
 
 #ifdef DEBUG_STARTUP
-  LOG_WARNING(LOG_CTX_STARTUP,"debugk_select not being applied!");
+  LOG_PT_WARN(LOG_CTX_STARTUP,"debugk_select not being applied!");
   //debugk_select(DEBUG_STARTUP);
 #endif
 

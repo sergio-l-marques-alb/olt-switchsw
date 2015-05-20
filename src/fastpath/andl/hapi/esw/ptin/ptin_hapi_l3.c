@@ -42,13 +42,13 @@ L7_RC_t ptin_hapi_l3_host_add(ptin_dapi_port_t *dapiPort, st_ptin_l3 *data)
     /* Input parameters */
 
     /* Input port/trunk */
-    LOG_TRACE(LOG_CTX_HAPI, "dapiPort={%d,%d,%d}",
+    LOG_PT_TRACE(LOG_CTX_HAPI, "dapiPort={%d,%d,%d}",
               dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
 
     /* Validate dapiPort */
     if (dapiPort->usp->unit<0 || dapiPort->usp->slot<0 || dapiPort->usp->port<0)
     {
-      LOG_ERR(LOG_CTX_HAPI, "Invalid interface");
+      LOG_PT_ERR(LOG_CTX_HAPI, "Invalid interface");
       return L7_FAILURE;
     }
 
@@ -69,7 +69,7 @@ L7_RC_t ptin_hapi_l3_host_add(ptin_dapi_port_t *dapiPort, st_ptin_l3 *data)
     }
     else
     {
-      LOG_ERR(LOG_CTX_HAPI,"Interface has a not valid type: error!");
+      LOG_PT_ERR(LOG_CTX_HAPI,"Interface has a not valid type: error!");
       return L7_FAILURE;
     }
 
@@ -128,7 +128,7 @@ L7_RC_t ptin_hapi_l3_host_add(ptin_dapi_port_t *dapiPort, st_ptin_l3 *data)
 
     rv = bcm_l3_egress_create(unit, flags, &egress_object, &object_id);
     if (BCM_FAILURE(rv)) {
-        LOG_ERR(LOG_CTX_HAPI,"Error creating egress object entry: %s\n", bcm_errmsg(rv));
+        LOG_PT_ERR(LOG_CTX_HAPI,"Error creating egress object entry: %s\n", bcm_errmsg(rv));
         return L7_FAILURE;
     }
 
@@ -232,7 +232,7 @@ L7_RC_t ptin_hapi_l3_host_add(ptin_dapi_port_t *dapiPort, st_ptin_l3 *data)
 
     if (BCM_FAILURE(rv))
     {
-        LOG_ERR(LOG_CTX_HAPI,"Error creating entry in L3 host table: rv=\"%s\"", bcm_errmsg(rv));
+        LOG_PT_ERR(LOG_CTX_HAPI,"Error creating entry in L3 host table: rv=\"%s\"", bcm_errmsg(rv));
         return L7_FAILURE;
     }
 
@@ -251,7 +251,7 @@ L7_RC_t ptin_hapi_l3_host_add(ptin_dapi_port_t *dapiPort, st_ptin_l3 *data)
  */
 L7_RC_t ptin_hapi_l3_host_remove(ptin_dapi_port_t *dapiPort, st_ptin_l3 *data)
 {
-  LOG_ERR(LOG_CTX_HAPI,"Not implemented yet");
+  LOG_PT_ERR(LOG_CTX_HAPI,"Not implemented yet");
   return L7_NOT_IMPLEMENTED_YET;
 }
 
@@ -267,7 +267,7 @@ L7_RC_t ptin_hapi_l3_host_remove(ptin_dapi_port_t *dapiPort, st_ptin_l3 *data)
  */
 L7_RC_t ptin_hapi_l3_route_add(ptin_dapi_port_t *dapiPort, st_ptin_l3 *data)
 {
-  LOG_ERR(LOG_CTX_HAPI,"Not implemented yet");
+  LOG_PT_ERR(LOG_CTX_HAPI,"Not implemented yet");
   return L7_NOT_IMPLEMENTED_YET;
 }
 
@@ -283,7 +283,7 @@ L7_RC_t ptin_hapi_l3_route_add(ptin_dapi_port_t *dapiPort, st_ptin_l3 *data)
  */
 L7_RC_t ptin_hapi_l3_route_remove(ptin_dapi_port_t *dapiPort, st_ptin_l3 *data)
 {
-  LOG_ERR(LOG_CTX_HAPI,"Not implemented yet");
+  LOG_PT_ERR(LOG_CTX_HAPI,"Not implemented yet");
   return L7_NOT_IMPLEMENTED_YET;
 }
 
@@ -458,7 +458,7 @@ L7_RC_t ptin_hapi_l3_ipmc_add(ptin_dtl_ipmc_addr_t *ptin_ipmc)
     rv = bcm_multicast_group_is_free(0, group);
     if (rv != BCM_E_NONE || rv != BCM_E_EXISTS)
     {
-      LOG_ERR(LOG_CTX_HAPI,"Invalid group index:%0x%08x rv:%d (\"%s\")", group, rv, bcm_errmsg(rv));
+      LOG_PT_ERR(LOG_CTX_HAPI,"Invalid group index:%0x%08x rv:%d (\"%s\")", group, rv, bcm_errmsg(rv));
       return L7_FAILURE;
     }
 
@@ -477,7 +477,7 @@ L7_RC_t ptin_hapi_l3_ipmc_add(ptin_dtl_ipmc_addr_t *ptin_ipmc)
     #endif
   }
 
-  LOG_TRACE(LOG_CTX_HAPI,"Group id %d will %s created (flags=0x%08x)",ptin_ipmc->group_index,((create_group) ? "BE" : "NOT be"),flags);
+  LOG_PT_TRACE(LOG_CTX_HAPI,"Group id %d will %s created (flags=0x%08x)",ptin_ipmc->group_index,((create_group) ? "BE" : "NOT be"),flags);
 
   /* Create group, if necessary */
   if (create_group)
@@ -485,11 +485,11 @@ L7_RC_t ptin_hapi_l3_ipmc_add(ptin_dtl_ipmc_addr_t *ptin_ipmc)
     rv = bcm_multicast_create(0, flags, &group);
     if ( (rv != BCM_E_NONE && rv != BCM_E_EXISTS) || group <= 0)
     {
-      LOG_ERR(LOG_CTX_HAPI,"Error with bcm_multicast_create(0x%x, group_index:0x%08x rv:%d) (\"%s\")",
+      LOG_PT_ERR(LOG_CTX_HAPI,"Error with bcm_multicast_create(0x%x, group_index:0x%08x rv:%d) (\"%s\")",
               BCM_MULTICAST_TYPE_L3, group, rv, bcm_errmsg(rv));
       return L7_FAILURE;
     }
-    LOG_TRACE(LOG_CTX_HAPI,"Group id 0x%x created (with flags=0x%08x)",group,flags);
+    LOG_PT_TRACE(LOG_CTX_HAPI,"Group id 0x%x created (with flags=0x%08x)",group,flags);
     ptin_ipmc->group_index = group;
   }
 
@@ -497,7 +497,7 @@ L7_RC_t ptin_hapi_l3_ipmc_add(ptin_dtl_ipmc_addr_t *ptin_ipmc)
 
   if (BCM_FAILURE(rv))
   {
-    LOG_ERR(LOG_CTX_HAPI,"Error converting from dtl to bcm: group_index:0x%x rv:%d rv=\"%s\"", bcm_ipmc.group, rv, bcm_errmsg(rv));
+    LOG_PT_ERR(LOG_CTX_HAPI,"Error converting from dtl to bcm: group_index:0x%x rv:%d rv=\"%s\"", bcm_ipmc.group, rv, bcm_errmsg(rv));
     return L7_FAILURE;
   }
 
@@ -505,7 +505,7 @@ L7_RC_t ptin_hapi_l3_ipmc_add(ptin_dtl_ipmc_addr_t *ptin_ipmc)
 
   if (BCM_FAILURE(rv))
   {
-    LOG_ERR(LOG_CTX_HAPI,"Error adding Channel to IPMC Table: group_index:0x%x rv:%d rv=\"%s\"", bcm_ipmc.group, rv, bcm_errmsg(rv));
+    LOG_PT_ERR(LOG_CTX_HAPI,"Error adding Channel to IPMC Table: group_index:0x%x rv:%d rv=\"%s\"", bcm_ipmc.group, rv, bcm_errmsg(rv));
     return L7_FAILURE;
   }
 
@@ -530,7 +530,7 @@ L7_RC_t ptin_hapi_l3_ipmc_remove(ptin_dtl_ipmc_addr_t *ptin_ipmc)
 
   if (BCM_FAILURE(rv))
   {
-    LOG_ERR(LOG_CTX_HAPI,"Error converting from dtl to bcm: group_index:0x%x rv:%d rv=\"%s\"", bcm_ipmc.group, rv, bcm_errmsg(rv));
+    LOG_PT_ERR(LOG_CTX_HAPI,"Error converting from dtl to bcm: group_index:0x%x rv:%d rv=\"%s\"", bcm_ipmc.group, rv, bcm_errmsg(rv));
     return L7_FAILURE;
   }
 
@@ -543,7 +543,7 @@ L7_RC_t ptin_hapi_l3_ipmc_remove(ptin_dtl_ipmc_addr_t *ptin_ipmc)
 
   if (BCM_FAILURE(rv))
   {
-    LOG_ERR(LOG_CTX_HAPI,"Error removing Channel from IPMC Table: rv=\"%s\" ipmc_index:0x%x", bcm_errmsg(rv), ptin_ipmc->group_index);
+    LOG_PT_ERR(LOG_CTX_HAPI,"Error removing Channel from IPMC Table: rv=\"%s\" ipmc_index:0x%x", bcm_errmsg(rv), ptin_ipmc->group_index);
     return L7_FAILURE;
   }
 
@@ -689,7 +689,7 @@ L7_RC_t ptin_hapi_l3_intf_create (ptin_dtl_l3_intf_t *intf)
   /*Validate Input Parameters*/
   if (intf == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_HAPI,"Invalid Arguments :%p", intf);
+    LOG_PT_ERR(LOG_CTX_HAPI,"Invalid Arguments :%p", intf);
     return L7_FAILURE;
   }
 
@@ -718,7 +718,7 @@ L7_RC_t ptin_hapi_l3_intf_create (ptin_dtl_l3_intf_t *intf)
     rv = ptin_hapi_l3_intf_id_set(intf->l3_intf_id);
     if (rv != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_HAPI,"Failed to set L3 Interface Id %d", intf->l3_intf_id);
+      LOG_PT_ERR(LOG_CTX_HAPI,"Failed to set L3 Interface Id %d", intf->l3_intf_id);
       return L7_FAILURE;
     }
     #endif
@@ -740,7 +740,7 @@ L7_RC_t ptin_hapi_l3_intf_create (ptin_dtl_l3_intf_t *intf)
 #endif
     if (rv != L7_SUCCESS || intf->l3_intf_id == -1)
     {
-      LOG_ERR(LOG_CTX_HAPI,"Failed to pop L3 Interface Id %d (rv=%d) rv=\"%s\"", intf->l3_intf_id, rv, bcm_errmsg(rv));
+      LOG_PT_ERR(LOG_CTX_HAPI,"Failed to pop L3 Interface Id %d (rv=%d) rv=\"%s\"", intf->l3_intf_id, rv, bcm_errmsg(rv));
       return L7_FAILURE;
     }       
   }
@@ -760,7 +760,7 @@ L7_RC_t ptin_hapi_l3_intf_create (ptin_dtl_l3_intf_t *intf)
 
   if (BCM_FAILURE(rv) || bcm_data.l3a_intf_id == HAPI_BROAD_INVALID_L3_INTF_ID)
   {
-    LOG_ERR(LOG_CTX_HAPI,"Error creating L3 interface: rv=\"%s\" l3_intf_id:%d", bcm_errmsg(rv), bcm_data.l3a_intf_id);
+    LOG_PT_ERR(LOG_CTX_HAPI,"Error creating L3 interface: rv=\"%s\" l3_intf_id:%d", bcm_errmsg(rv), bcm_data.l3a_intf_id);
     return L7_FAILURE;
   }
 
@@ -816,7 +816,7 @@ L7_RC_t ptin_hapi_l3_intf_delete (ptin_dtl_l3_intf_t *intf)
   /*Validate Input Parameters*/
   if (intf == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_HAPI,"Invalid Arguments :%p", intf);
+    LOG_PT_ERR(LOG_CTX_HAPI,"Invalid Arguments :%p", intf);
     return L7_FAILURE;
   }
 
@@ -829,7 +829,7 @@ L7_RC_t ptin_hapi_l3_intf_delete (ptin_dtl_l3_intf_t *intf)
   }
   else
   {
-    LOG_ERR(LOG_CTX_HAPI,"Flag Not set: l3_intf_id:%d", intf->l3_intf_id);
+    LOG_PT_ERR(LOG_CTX_HAPI,"Flag Not set: l3_intf_id:%d", intf->l3_intf_id);
     return L7_FAILURE;
   }
 
@@ -840,7 +840,7 @@ L7_RC_t ptin_hapi_l3_intf_delete (ptin_dtl_l3_intf_t *intf)
   rv = bcm_l3_intf_delete (0, &bcm_data);
   if (BCM_FAILURE(rv))
   {
-    LOG_ERR(LOG_CTX_HAPI,"Error removing L3 interface: (rv=%d) rv=\"%s\" l3_intf_id:%d", rv, bcm_errmsg(rv), intf->l3_intf_id);
+    LOG_PT_ERR(LOG_CTX_HAPI,"Error removing L3 interface: (rv=%d) rv=\"%s\" l3_intf_id:%d", rv, bcm_errmsg(rv), intf->l3_intf_id);
     return L7_FAILURE;
   }
 
@@ -852,7 +852,7 @@ L7_RC_t ptin_hapi_l3_intf_delete (ptin_dtl_l3_intf_t *intf)
   #endif
   if (rv != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_HAPI,"Failed to push L3 Interface Id %d (rv=%d) rv=\"%s\"", intf->l3_intf_id, rv, bcm_errmsg(rv));
+    LOG_PT_ERR(LOG_CTX_HAPI,"Failed to push L3 Interface Id %d (rv=%d) rv=\"%s\"", intf->l3_intf_id, rv, bcm_errmsg(rv));
     return L7_FAILURE;
   }
 

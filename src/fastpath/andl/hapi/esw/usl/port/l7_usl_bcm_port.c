@@ -54,7 +54,7 @@ int usl_bcm_port_rate_bcast_set (int unit,
   int          rv = BCM_E_NONE;
   bcm_gport_t  gport = BCM_GPORT_INVALID;
 
-  LOG_TRACE(LOG_CTX_HAPI, "Inside usl_bcm_port_rate_bcast_set with limit=%u bucket_size=%u flags=0x%x for bcm_port=0x%x",
+  LOG_PT_TRACE(LOG_CTX_HAPI, "Inside usl_bcm_port_rate_bcast_set with limit=%u bucket_size=%u flags=0x%x for bcm_port=0x%x",
             bcast_limit->limit, bcast_limit->bucket_size, bcast_limit->flags, port);
 
   /* Check if the hardware should be configured */
@@ -64,14 +64,14 @@ int usl_bcm_port_rate_bcast_set (int unit,
     if (bcast_limit->units == L7_RATE_UNIT_PPS)
     {
       rv = bcm_rate_bcast_set(unit, bcast_limit->limit, bcast_limit->flags, port);
-      LOG_TRACE(LOG_CTX_HAPI, "bcm_rate_bcast_set with limit=%u flags=0x%x for bcm_port=0x%x: rv=%d",
+      LOG_PT_TRACE(LOG_CTX_HAPI, "bcm_rate_bcast_set with limit=%u flags=0x%x for bcm_port=0x%x: rv=%d",
                 bcast_limit->limit, bcast_limit->flags, port, rv);
     }
     else if (bcast_limit->units == L7_RATE_UNIT_KBPS)
     {
       bcast_limit->flags |= BCM_RATE_BCAST;
       rv = bcm_rate_bandwidth_set(unit, port, bcast_limit->flags, bcast_limit->limit, bcast_limit->bucket_size);
-      LOG_TRACE(LOG_CTX_HAPI, "bcm_rate_bandwidth_set with limit=%u bucket_size=%u flags=0x%x for bcm_port=0x%x: rv=%d",
+      LOG_PT_TRACE(LOG_CTX_HAPI, "bcm_rate_bandwidth_set with limit=%u bucket_size=%u flags=0x%x for bcm_port=0x%x: rv=%d",
                 bcast_limit->limit, bcast_limit->bucket_size, bcast_limit->flags, port, rv);
     }
     else
@@ -119,7 +119,7 @@ int usl_bcm_port_rate_mcast_set (int unit,
   int          rv = BCM_E_NONE;
   bcm_gport_t  gport = BCM_GPORT_INVALID;
 
-  LOG_TRACE(LOG_CTX_HAPI, "Inside usl_bcm_port_rate_mcast_set with limit=%u bucket_size=%u flags=0x%x for bcm_port=0x%x",
+  LOG_PT_TRACE(LOG_CTX_HAPI, "Inside usl_bcm_port_rate_mcast_set with limit=%u bucket_size=%u flags=0x%x for bcm_port=0x%x",
             mcast_limit->limit, mcast_limit->bucket_size, mcast_limit->flags, port);
 
   /* Check if the hardware should be configured */
@@ -129,14 +129,14 @@ int usl_bcm_port_rate_mcast_set (int unit,
     if (mcast_limit->units == L7_RATE_UNIT_PPS)
     {
       rv = bcm_rate_mcast_set(unit, mcast_limit->limit, mcast_limit->flags, port);
-      LOG_TRACE(LOG_CTX_HAPI, "bcm_rate_mcast_set with limit=%u flags=0x%x for bcm_port=0x%x: rv=%d",
+      LOG_PT_TRACE(LOG_CTX_HAPI, "bcm_rate_mcast_set with limit=%u flags=0x%x for bcm_port=0x%x: rv=%d",
                 mcast_limit->limit, mcast_limit->flags, port, rv);
     }
     else if (mcast_limit->units == L7_RATE_UNIT_KBPS)
     {
       mcast_limit->flags |= BCM_RATE_MCAST;
       rv = bcm_rate_bandwidth_set(unit, port, mcast_limit->flags, mcast_limit->limit, mcast_limit->bucket_size);
-      LOG_TRACE(LOG_CTX_HAPI, "bcm_rate_bandwidth_set with limit=%u bucket_size=%u flags=0x%x for bcm_port=0x%x: rv=%d",
+      LOG_PT_TRACE(LOG_CTX_HAPI, "bcm_rate_bandwidth_set with limit=%u bucket_size=%u flags=0x%x for bcm_port=0x%x: rv=%d",
                 mcast_limit->limit, mcast_limit->bucket_size, mcast_limit->flags, port, rv);
     }
     else
@@ -183,7 +183,7 @@ int usl_bcm_port_rate_dlfbc_set (int unit,
   int                         rv = BCM_E_NONE;
   bcm_gport_t                 gport = BCM_GPORT_INVALID;
 
-  LOG_TRACE(LOG_CTX_HAPI, "Inside usl_bcm_port_rate_dlfbc_set with limit=%u bucket_size=%u flags=0x%x for bcm_port=0x%x",
+  LOG_PT_TRACE(LOG_CTX_HAPI, "Inside usl_bcm_port_rate_dlfbc_set with limit=%u bucket_size=%u flags=0x%x for bcm_port=0x%x",
             dlf_limit->limit, dlf_limit->bucket_size, dlf_limit->flags, port);
 
   /* Check if the hardware should be configured */
@@ -193,14 +193,14 @@ int usl_bcm_port_rate_dlfbc_set (int unit,
     if (dlf_limit->units == L7_RATE_UNIT_PPS)
     {
       rv = bcm_rate_dlfbc_set(unit, dlf_limit->limit, dlf_limit->flags, port);
-      LOG_TRACE(LOG_CTX_HAPI, "bcm_rate_dlfbc_set with limit=%u flags=0x%x for bcm_port=0x%x: rv=%d",
+      LOG_PT_TRACE(LOG_CTX_HAPI, "bcm_rate_dlfbc_set with limit=%u flags=0x%x for bcm_port=0x%x: rv=%d",
                 dlf_limit->limit, dlf_limit->flags, port, rv);
     }
     else if (dlf_limit->units == L7_RATE_UNIT_KBPS)
     {
       dlf_limit->flags |= BCM_RATE_DLF;
       rv = bcm_rate_bandwidth_set(unit, port, dlf_limit->flags, dlf_limit->limit, dlf_limit->bucket_size);
-      LOG_TRACE(LOG_CTX_HAPI, "bcm_rate_bandwidth_set with limit=%u bucket_size=%u flags=0x%x for bcm_port=0x%x: rv=%d",
+      LOG_PT_TRACE(LOG_CTX_HAPI, "bcm_rate_bandwidth_set with limit=%u bucket_size=%u flags=0x%x for bcm_port=0x%x: rv=%d",
                 dlf_limit->limit, dlf_limit->bucket_size, dlf_limit->flags, port, rv);
     }
     else

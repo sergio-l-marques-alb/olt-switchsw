@@ -87,20 +87,20 @@ static void ipc_server_ipaddr_init(void);
       /* Initialize server ip */
       ipc_server_ipaddr_init();
 
-      LOG_INFO(LOG_CTX_IPC,
+      LOG_PT_INFO(LOG_CTX_IPC,
                   "Vai iniciar o modulo de comunicacoes IPC."); 
       init_ipc_lib ();
 
       if ((res=open_ipc (IPC_HW_FASTPATH_PORT, INADDR_ANY, &CHMessageHandler, IPC_CH_TIMEOUT, &g_iInterfaceHW))!=S_OK)
       {
-        LOG_CRITICAL(LOG_CTX_IPC,
+        LOG_PT_CRITIC(LOG_CTX_IPC,
                      "Nao foi possivel abrir o canal de comunicacoes para atendimento de mensagens (%08X).", res);
         return res;
       }
      
       if ((res=open_ipc (IPC_HW_FP_CTRL_PORT, INADDR_ANY, &CHMessageHandler, IPC_CH_TIMEOUT, &g_iInterfaceCX))!=S_OK)
       {
-        LOG_CRITICAL(LOG_CTX_IPC,
+        LOG_PT_CRITIC(LOG_CTX_IPC,
                      "Nao foi possivel abrir o canal de comunicacoes para atendimento de mensagens (%08X).", res);
         close_ipc(g_iInterfaceHW);
         return res;
@@ -108,7 +108,7 @@ static void ipc_server_ipaddr_init(void);
 
       if ((res=open_ipc (0, 0, NULL, IPC_CM_TIMEOUT, &g_iInterfaceSW))!=S_OK)
       {
-        LOG_INFO(LOG_CTX_IPC,
+        LOG_PT_INFO(LOG_CTX_IPC,
                  "Nao foi possivel abrir o canal para o envio de mensagens (%08X).", res);
         close_ipc (g_iInterfaceHW);
         close_ipc (g_iInterfaceCX);
@@ -117,14 +117,14 @@ static void ipc_server_ipaddr_init(void);
 
       pid = (int)getpid();
       g_iCCounter = (pid&0x0000FFFF)<<16;
-      LOG_INFO(LOG_CTX_IPC,
+      LOG_PT_INFO(LOG_CTX_IPC,
                   "Modulo de comunicacoes IPC iniciado com sucesso."); 
       return S_OK;
    } // OpenIPC (V1.0.0.060622)
 
    void CloseIPC	(void)
    {
-     LOG_INFO(LOG_CTX_IPC,
+     LOG_PT_INFO(LOG_CTX_IPC,
               "Vai fechar o modulo de comunicacoes IPC."); 
       if (g_iInterfaceSW>=0)
          close_ipc (g_iInterfaceSW);
@@ -134,13 +134,13 @@ static void ipc_server_ipaddr_init(void);
          close_ipc (g_iInterfaceCX);
       if (g_iInterfaceMan>=0)
          close_ipc (g_iInterfaceMan);
-      LOG_INFO(LOG_CTX_IPC,
+      LOG_PT_INFO(LOG_CTX_IPC,
                "Modulo de comunicacoes IPC fechado com sucesso."); 
    } // CloseIPC (V1.0.0.060622)
 
    void EnableHandling (BOOLEAN enable)
    {
-     LOG_INFO(LOG_CTX_IPC,
+     LOG_PT_INFO(LOG_CTX_IPC,
               "(Des)activacao do processamento de mensagens do modulo de comunicacoes IPC (%d).", enable); 
    } // EnableHandling (V1.0.0.060622)
 
@@ -198,9 +198,9 @@ int send_trap(int porto, int trap_type, int arg)
 
   ret=send_data(g_iInterfaceSW, IPC_CHMSG_TRAP_PORT, IPC_SERVER_IPADDR, (ipc_msg *)&comando, (ipc_msg *)NULL);
   if(ret<0)
-      LOG_ERR(LOG_CTX_IPC,"SENDTRAP to PORT %d (Canal =%d), Code = 0x%.4x, arg = 0x%08x (%d): ERROR = %d", IPC_CHMSG_TRAP_PORT, g_iInterfaceSW, trap_type,arg,arg, ret);
+      LOG_PT_ERR(LOG_CTX_IPC,"SENDTRAP to PORT %d (Canal =%d), Code = 0x%.4x, arg = 0x%08x (%d): ERROR = %d", IPC_CHMSG_TRAP_PORT, g_iInterfaceSW, trap_type,arg,arg, ret);
   else
-      LOG_TRACE(LOG_CTX_IPC,"SENDTRAP to PORT %d (Canal =%d), Code = 0x%.4x: arg = 0x%08x (%d)", IPC_CHMSG_TRAP_PORT, g_iInterfaceSW, trap_type,arg,arg);  
+      LOG_PT_TRACE(LOG_CTX_IPC,"SENDTRAP to PORT %d (Canal =%d), Code = 0x%.4x: arg = 0x%08x (%d)", IPC_CHMSG_TRAP_PORT, g_iInterfaceSW, trap_type,arg,arg);  
   return(ret);
 }
 
@@ -237,7 +237,7 @@ int send_trap_intf_alarm(unsigned char intfType, int porto, int code, int status
 
   ret=send_data(g_iInterfaceSW, IPC_CHMSG_TRAP_PORT, IPC_SERVER_IPADDR, (ipc_msg *)&comando, (ipc_msg *)NULL);
   if(ret<0)
-      LOG_ERR(LOG_CTX_IPC,"SENDTRAP to PORT %d: interface=%d, Code = 0x%.4x, status = %d: ERROR = %d", IPC_CHMSG_TRAP_PORT, porto, code, status, ret);
+      LOG_PT_ERR(LOG_CTX_IPC,"SENDTRAP to PORT %d: interface=%d, Code = 0x%.4x, status = %d: ERROR = %d", IPC_CHMSG_TRAP_PORT, porto, code, status, ret);
   return(ret);
 }
 
@@ -271,7 +271,7 @@ int send_trap_gen_alarm(unsigned char intfType, int porto, int code, int status,
 
   ret=send_data(g_iInterfaceSW, IPC_CHMSG_TRAP_PORT, IPC_SERVER_IPADDR, (ipc_msg *)&comando, (ipc_msg *)NULL);
   if(ret<0)
-      LOG_ERR(LOG_CTX_IPC,"SENDTRAP to PORT %d: interface=%d, Code = 0x%.4x, status = %d: ERROR = %d", IPC_CHMSG_TRAP_PORT, porto, code, status, ret);
+      LOG_PT_ERR(LOG_CTX_IPC,"SENDTRAP to PORT %d: interface=%d, Code = 0x%.4x, status = %d: ERROR = %d", IPC_CHMSG_TRAP_PORT, porto, code, status, ret);
   return(ret);
 }
 
@@ -293,16 +293,16 @@ int send_trap_switch_event(unsigned char intfType, int interface, int code, int 
   ptin_intf.intf_type = intfType;
   ptin_intf.intf_id   = interface;
 
-  LOG_TRACE(LOG_CTX_IPC,"%d",intfType);
-  LOG_TRACE(LOG_CTX_IPC,"%d",interface);
+  LOG_PT_TRACE(LOG_CTX_IPC,"%d",intfType);
+  LOG_PT_TRACE(LOG_CTX_IPC,"%d",interface);
 
   if (ptin_intf_ptintf2SlotPort(&ptin_intf, &slot_to_send, L7_NULLPTR, L7_NULLPTR)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_IPC,"Unable to determine slot to send trap (port=%u)", interface);
+    LOG_PT_ERR(LOG_CTX_IPC,"Unable to determine slot to send trap (port=%u)", interface);
     return -1;
   }
 
-  LOG_TRACE(LOG_CTX_IPC,"%d",slot_to_send);
+  LOG_PT_TRACE(LOG_CTX_IPC,"%d",slot_to_send);
 
   comando.protocolId= SIR_IPCPROTOCOL_ID;
   comando.flags		= IPCLIB_FLAGS_CMD;
@@ -328,11 +328,11 @@ int send_trap_switch_event(unsigned char intfType, int interface, int code, int 
   alarm->intf_id     = interface;
   alarm->outer_vid   = param;
 
-  LOG_TRACE(LOG_CTX_IPC,"SENDTRAP to PORT %d: interface=%d, Code = 0x%.4x, status = %d, param = %d: ERROR = %d %d", IPC_CHMSG_TRAP_PORT, interface, code, status, param, ret, alarm->slotId);
+  LOG_PT_TRACE(LOG_CTX_IPC,"SENDTRAP to PORT %d: interface=%d, Code = 0x%.4x, status = %d, param = %d: ERROR = %d %d", IPC_CHMSG_TRAP_PORT, interface, code, status, param, ret, alarm->slotId);
 
   ret=send_data(g_iInterfaceSW, IPC_CHMSG_TRAP_PORT, IPC_SERVER_IPADDR, (ipc_msg *)&comando, (ipc_msg *)NULL);
   if(ret<0)
-      LOG_ERR(LOG_CTX_IPC,"SENDTRAP to PORT %d: interface=%d, Code = 0x%.4x, status = %d: ERROR = %d", IPC_CHMSG_TRAP_PORT, interface, code, status, ret);
+      LOG_PT_ERR(LOG_CTX_IPC,"SENDTRAP to PORT %d: interface=%d, Code = 0x%.4x, status = %d: ERROR = %d", IPC_CHMSG_TRAP_PORT, interface, code, status, ret);
   return(ret);
 }
 
@@ -357,7 +357,7 @@ int send_trap_to_linecard(unsigned char intfType, int porto, int code, int statu
   ptin_intf.intf_id   = porto;
   if (ptin_intf_ptintf2SlotPort(&ptin_intf, &slot_to_send, L7_NULLPTR, L7_NULLPTR)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_IPC,"Unable to determine slot to send trap (port=%u)", porto);
+    LOG_PT_ERR(LOG_CTX_IPC,"Unable to determine slot to send trap (port=%u)", porto);
     return -1;
   }
   /* Which ipaddr? */
@@ -383,7 +383,7 @@ int send_trap_to_linecard(unsigned char intfType, int porto, int code, int statu
 
   ret=send_data(g_iInterfaceSW, IPC_TRAP_LC_PORT, ipaddr, (ipc_msg *)&comando, (ipc_msg *)NULL);
   if(ret<0)
-      LOG_ERR(LOG_CTX_IPC,"SENDTRAP to PORT %d: interface=%d, Code = 0x%.4x, status = %d: ERROR = %d", IPC_TRAP_LC_PORT, porto, code, status, ret);
+      LOG_PT_ERR(LOG_CTX_IPC,"SENDTRAP to PORT %d: interface=%d, Code = 0x%.4x, status = %d: ERROR = %d", IPC_TRAP_LC_PORT, porto, code, status, ret);
   return(ret);
 }
 
@@ -416,12 +416,12 @@ int send_TxTsRecord(ptin_PptTsRecord_t *ptpTs)
   tsInfo->sequenceId = ptpTs->sequenceId;
   tsInfo->domainNumber = ptpTs->domainNumber;
 
-  LOG_TRACE(LOG_CTX_IPC,"send_message (Canal=%d) 0x%04X. PTP info: ToD %lld.%d, Encap %ld, messageType %d, sequenceId %d, domainNumber %d\n", 
+  LOG_PT_TRACE(LOG_CTX_IPC,"send_message (Canal=%d) 0x%04X. PTP info: ToD %lld.%d, Encap %ld, messageType %d, sequenceId %d, domainNumber %d\n", 
             g_iInterfaceSW, comando.msgId, tsInfo->seconds, tsInfo->nanosecond, tsInfo->encap, tsInfo->messageType, tsInfo->sequenceId, tsInfo->domainNumber);
 
   ret=send_data(g_iInterfaceSW, IPC_TRAP_TO_PTP, IPC_LOCALHOST_IPADDR, (ipc_msg *)&comando, (ipc_msg *)NULL);
   if(ret<0)
-      LOG_ERR(LOG_CTX_IPC,"SENDTRAP ERROR = %d", ret);
+      LOG_PT_ERR(LOG_CTX_IPC,"SENDTRAP ERROR = %d", ret);
 
   return(ret);
 }
@@ -461,7 +461,7 @@ int send_ipc_message(int porto, uint32 ipaddr, int msg_id, char *request, char *
   ret=send_data(g_iInterfaceSW, porto, ipaddr, (ipc_msg *)&comando, NULL==answer? NULL:(ipc_msg *)&resposta);
   if(ret<0)
   {
-    LOG_ERR(LOG_CTX_IPC,"send_message to PORT %d (Canal =%d), Code = 0x%.4x: ERROR = %d", porto, g_iInterfaceSW, msg_id, ret);
+    LOG_PT_ERR(LOG_CTX_IPC,"send_message to PORT %d (Canal =%d), Code = 0x%.4x: ERROR = %d", porto, g_iInterfaceSW, msg_id, ret);
     return ret;
   }
   if (NULL==answer) return ret;
@@ -469,7 +469,7 @@ int send_ipc_message(int porto, uint32 ipaddr, int msg_id, char *request, char *
   /* Check if ACK */
   if (resposta.flags != IPCLIB_FLAGS_ACK)
   {
-    LOG_ERR(LOG_CTX_IPC,"NACK (%u)", resposta.flags);
+    LOG_PT_ERR(LOG_CTX_IPC,"NACK (%u)", resposta.flags);
     return -1;
   }
 
@@ -479,7 +479,7 @@ int send_ipc_message(int porto, uint32 ipaddr, int msg_id, char *request, char *
   {
     if  (resposta.infoDim != infoDimRequest)
     {
-      LOG_ERR(LOG_CTX_IPC,"Wrong infodim (expected %u bytes VS received %u bytes)", infoDimRequest, resposta.infoDim);    
+      LOG_PT_ERR(LOG_CTX_IPC,"Wrong infodim (expected %u bytes VS received %u bytes)", infoDimRequest, resposta.infoDim);    
       return -1;
     }
      /* Return answer */
@@ -489,7 +489,7 @@ int send_ipc_message(int porto, uint32 ipaddr, int msg_id, char *request, char *
   {
     if( resposta.infoDim>IPCLIB_MAX_MSGSIZE || 0 != (resposta.infoDim % (*infoDimAnswer)))
     {
-      LOG_ERR(LOG_CTX_IPC,"Infodim (%u) higher than the maximum allowed value (IPCLIB_MAX_MSGSIZE=%u)",resposta.infoDim, IPCLIB_MAX_MSGSIZE);    
+      LOG_PT_ERR(LOG_CTX_IPC,"Infodim (%u) higher than the maximum allowed value (IPCLIB_MAX_MSGSIZE=%u)",resposta.infoDim, IPCLIB_MAX_MSGSIZE);    
       return -1;
     }
     
@@ -530,7 +530,7 @@ int send_trap_ETH_OAM(void *param, int param_size)
 
   ret=send_data(g_iInterfaceSW, IPC_CHMSG_TRAP_PORT, IPC_SERVER_IPADDR, (ipc_msg *)&comando, (ipc_msg *)NULL);
   if(ret<0)
-      LOG_ERR(LOG_CTX_IPC,"SENDTRAP to PORT %d: ERROR = %d", IPC_CHMSG_TRAP_PORT, ret);
+      LOG_PT_ERR(LOG_CTX_IPC,"SENDTRAP to PORT %d: ERROR = %d", IPC_CHMSG_TRAP_PORT, ret);
   return(ret);
 }
 
@@ -565,7 +565,7 @@ static void ipc_server_ipaddr_init(void)
 #ifdef MAP_CPLD
   if (ptin_intf_slot_get(&ptin_board_slotId) != L7_SUCCESS)
   {
-    LOG_CRITICAL(LOG_CTX_IPC, "Could not acquire slot position");
+    LOG_PT_CRITIC(LOG_CTX_IPC, "Could not acquire slot position");
   }
 #endif
 #endif

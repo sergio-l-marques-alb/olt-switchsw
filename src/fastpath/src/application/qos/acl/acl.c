@@ -5618,7 +5618,7 @@ L7_RC_t aclTlvRuleDefBuild(L7_uint32 aclnum, L7_uint32 *ruleCount,
           new_start = p->dstStartPort & mask;
           new_end = new_start | (~mask);
 
-          LOG_DEBUG(LOG_CTX_MSG, "DSTL4 Range: [%d-%d] -> [%d->%d]", p->dstStartPort, p->dstEndPort, new_start, new_end);
+          LOG_PT_DEBUG(LOG_CTX_MSG, "DSTL4 Range: [%d-%d] -> [%d->%d]", p->dstStartPort, p->dstEndPort, new_start, new_end);
 
           /* PTIN Changed: dstL4Port.portMask  = osapiHtons(L7_QOS_ACL_TLV_MATCH_DSTL4PORT_MASK); */
           dstL4Port.portMask  = osapiHtons(mask);
@@ -5723,7 +5723,7 @@ L7_RC_t aclTlvRuleDefBuild(L7_uint32 aclnum, L7_uint32 *ruleCount,
           new_start = p->srcStartPort & mask;
           new_end = new_start | (~mask);
 
-          LOG_DEBUG(LOG_CTX_MSG, "SRCL4 Range: [%d-%d] -> [%d->%d]", p->srcStartPort, p->srcEndPort, new_start, new_end);
+          LOG_PT_DEBUG(LOG_CTX_MSG, "SRCL4 Range: [%d-%d] -> [%d->%d]", p->srcStartPort, p->srcEndPort, new_start, new_end);
 
           /* PTIN Changed: srcL4Port.portMask  = osapiHtons(L7_QOS_ACL_TLV_MATCH_SRCL4PORT_MASK); */
           srcL4Port.portMask  = osapiHtons(mask);

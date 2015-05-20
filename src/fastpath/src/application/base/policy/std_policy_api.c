@@ -534,7 +534,7 @@ L7_uint32 policySystemBcastStormModeIntfSet(L7_uint32 interface, L7_uint32 mode)
   /* Nothing to be done */
   if (pCfg->bcastStormMode == mode)
   {
-    LOG_TRACE(LOG_CTX_API, "policySystemBcastStormModeIntfSet: Nothing to be done");
+    LOG_PT_TRACE(LOG_CTX_API, "policySystemBcastStormModeIntfSet: Nothing to be done");
     return L7_SUCCESS;
   }
 
@@ -582,7 +582,7 @@ L7_uint32 policySystemBcastStormThresholdIntfSet(L7_uint32 interface, L7_uint32 
       pCfg->bcastStormBurstSize     == burstSize &&
       pCfg->bcastStormThresholdUnit == rate_unit)
   {
-    LOG_TRACE(LOG_CTX_API, "policySystemBcastStormThresholdIntfSet: Nothing to be done");
+    LOG_PT_TRACE(LOG_CTX_API, "policySystemBcastStormThresholdIntfSet: Nothing to be done");
     return L7_SUCCESS;
   }
 
@@ -631,7 +631,7 @@ L7_uint32 policySystemMcastStormModeIntfSet(L7_uint32 interface, L7_uint32 mode)
   /* Nothing to be done */
   if (pCfg->mcastStormMode == mode)
   {
-    LOG_TRACE(LOG_CTX_API, "policySystemMcastStormModeIntfSet: Nothing to be done");
+    LOG_PT_TRACE(LOG_CTX_API, "policySystemMcastStormModeIntfSet: Nothing to be done");
     return L7_SUCCESS;
   }
 
@@ -680,7 +680,7 @@ L7_uint32 policySystemMcastStormThresholdIntfSet(L7_uint32 interface, L7_uint32 
       pCfg->mcastStormBurstSize     == burstSize &&
       pCfg->mcastStormThresholdUnit == rate_unit)
   {
-    LOG_TRACE(LOG_CTX_API, "policySystemMcastStormThresholdIntfSet: Nothing to be done");
+    LOG_PT_TRACE(LOG_CTX_API, "policySystemMcastStormThresholdIntfSet: Nothing to be done");
     return L7_SUCCESS;
   }
 
@@ -729,7 +729,7 @@ L7_uint32 policySystemUcastStormModeIntfSet(L7_uint32 interface, L7_uint32 mode)
   /* Nothing to be done */
   if (pCfg->ucastStormMode == mode)
   {
-    LOG_TRACE(LOG_CTX_API, "policySystemUcastStormModeIntfSet: Nothing to be done");
+    LOG_PT_TRACE(LOG_CTX_API, "policySystemUcastStormModeIntfSet: Nothing to be done");
     return L7_SUCCESS;
   }
 
@@ -777,7 +777,7 @@ L7_uint32 policySystemUcastStormThresholdIntfSet(L7_uint32 interface, L7_uint32 
       pCfg->ucastStormBurstSize     == burstSize &&
       pCfg->ucastStormThresholdUnit == rate_unit)
   {
-    LOG_TRACE(LOG_CTX_API, "policySystemUcastStormThresholdIntfSet: Nothing to be done");
+    LOG_PT_TRACE(LOG_CTX_API, "policySystemUcastStormThresholdIntfSet: Nothing to be done");
     return L7_SUCCESS;
   }
 

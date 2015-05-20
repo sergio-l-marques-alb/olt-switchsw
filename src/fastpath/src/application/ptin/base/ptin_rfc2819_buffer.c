@@ -85,9 +85,9 @@ L7_RC_t ptin_rfc2819_buffer_clear(L7_int buffer_index)
     }
 
     if(buffer_index==RFC2819_BUFFER_15MIN)
-      LOG_TRACE(LOG_CTX_RFC2819, "rfc2819 15min buffer cleared");
+      LOG_PT_TRACE(LOG_CTX_RFC2819, "rfc2819 15min buffer cleared");
     else
-      LOG_TRACE(LOG_CTX_RFC2819, "rfc2819 24hours buffer cleared");
+      LOG_PT_TRACE(LOG_CTX_RFC2819, "rfc2819 24hours buffer cleared");
 
     return L7_SUCCESS;
 }
@@ -147,7 +147,7 @@ L7_RC_t ptin_rfc2819_buffer_write(L7_int buffer_index, void *data, L7_int flag)
         return L7_FAILURE;
     }
 
-    LOG_TRACE(LOG_CTX_RFC2819, "ptin_rfc2819_buffer_write(buffer_index=%d, wrptr=%d, flag=%d)", buffer_index, bufferQualRFC2819.wrptr[buffer_index], flag);
+    LOG_PT_TRACE(LOG_CTX_RFC2819, "ptin_rfc2819_buffer_write(buffer_index=%d, wrptr=%d, flag=%d)", buffer_index, bufferQualRFC2819.wrptr[buffer_index], flag);
 
     preg  = (unsigned char *)&(bufferQualRFC2819.reg[buffer_index][bufferQualRFC2819.wrptr[buffer_index]]);
 
@@ -219,7 +219,7 @@ void ptin_rfc2819_buffer_print_ctrl(void)
 {
     L7_int i,nregs;
 
-    LOG_INFO(LOG_CTX_RFC2819, " Index  wrptr  rdflag   nreg");
+    LOG_PT_INFO(LOG_CTX_RFC2819, " Index  wrptr  rdflag   nreg");
     printf("+++++++++++++++++++++++++++++");
 
     for ( i=0; i<MAX_QUAL_RFC2819_BUFFERS; i++ ) {
@@ -233,9 +233,9 @@ void ptin_rfc2819_buffer_print_ctrl(void)
         else
             nregs=MAX_QUAL_RFC2819_REG_NUM;        
 
-        LOG_INFO(LOG_CTX_RFC2819, "%4d     %4d      %d   %4d",i,bufferQualRFC2819.wrptr[i], bufferQualRFC2819.bufferfull[i],nregs);
+        LOG_PT_INFO(LOG_CTX_RFC2819, "%4d     %4d      %d   %4d",i,bufferQualRFC2819.wrptr[i], bufferQualRFC2819.bufferfull[i],nregs);
     }
-    LOG_INFO(LOG_CTX_RFC2819, "+++++++++++++++++++++++++++++\n\r");
+    LOG_PT_INFO(LOG_CTX_RFC2819, "+++++++++++++++++++++++++++++\n\r");
 }
 
 
@@ -259,7 +259,7 @@ void ptin_rfc2819_buffer_print_ctrl(void)
  */
 L7_int ptin_rfc2819_buffer_get(L7_int buffer_index, L7_int reg_index, TBufferRegQualRFC2819 *reg)
 {
-  LOG_TRACE(LOG_CTX_RFC2819, "buffer_index=%d, reg_index=%d, full=%d ",
+  LOG_PT_TRACE(LOG_CTX_RFC2819, "buffer_index=%d, reg_index=%d, full=%d ",
             buffer_index,
             reg_index,
             bufferQualRFC2819.bufferfull[buffer_index]);
@@ -322,7 +322,7 @@ L7_int ptin_rfc2819_buffer_get(L7_int buffer_index, L7_int reg_index, TBufferReg
  */
 L7_int ptin_rfc2819_buffer_get_inv(L7_int buffer_index, L7_int reg_index, TBufferRegQualRFC2819 *reg)
 {
-    LOG_TRACE(LOG_CTX_RFC2819, "buffer_index=%d, reg_index=%d, full=%d ",
+    LOG_PT_TRACE(LOG_CTX_RFC2819, "buffer_index=%d, reg_index=%d, full=%d ",
               buffer_index,
               reg_index,
               bufferQualRFC2819.bufferfull[buffer_index]);
@@ -396,7 +396,7 @@ L7_RC_t ptin_rfc2819_buffer_fill(L7_uint8 buffer, L7_int n_elementos)
 
 
     if (buffer>=MAX_QUAL_RFC2819_BUFFERS) {
-        LOG_TRACE(LOG_CTX_RFC2819, "buffer overflow (%d)",buffer);
+        LOG_PT_TRACE(LOG_CTX_RFC2819, "buffer overflow (%d)",buffer);
     }
 
 

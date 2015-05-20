@@ -11,7 +11,7 @@ typedef unsigned long long u64;
 #endif
 
 #include <logger.h>
-#define ETHSRV_OAM_LOG( args... )   LOG_TRACE(LOG_CTX_OAM, ##args )
+#define ETHSRV_OAM_LOG( args... )   LOG_PT_TRACE(LOG_CTX_OAM, ##args )
 
 #ifndef offsetof
     #define offsetof(struct_datatype,field) ((size_t)&((struct_datatype *)0)->field)

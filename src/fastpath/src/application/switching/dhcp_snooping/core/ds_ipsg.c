@@ -510,7 +510,7 @@ L7_RC_t ipsgIntfEnableApply(L7_uint32 intIfNum, L7_BOOL addingMacFilter)
   ipsgEntryTreeNode_t  key;
   L7_RC_t              rc;
 
-  LOG_TRACE(LOG_CTX_IPSG, "Enabling IPSG on intIfNum %u addingMacFilter:%s",
+  LOG_PT_TRACE(LOG_CTX_IPSG, "Enabling IPSG on intIfNum %u addingMacFilter:%s",
             intIfNum,addingMacFilter==L7_TRUE?"Yes":"No");
 
   if (dsCfgData->dsTraceFlags & DS_TRACE_IPSG_PORT)
@@ -831,7 +831,7 @@ L7_RC_t ipsgBindingHwAdd(L7_uint32 intIfNum, L7_inet_addr_t* ipAddr,
   /* If IPSG not enabled on bindings' interface, nothing to do. */
   if (!ipsgIsEnabled(intIfNum))
   {
-    LOG_TRACE(LOG_CTX_IPSG, "IPSG not enabled on bindings' interface, nothing to do.");
+    LOG_PT_TRACE(LOG_CTX_IPSG, "IPSG not enabled on bindings' interface, nothing to do.");
     return L7_FAILURE;
   }
 

@@ -89,10 +89,10 @@ L7_RC_t ptin_rfc2819_config_probe(L7_int Port, L7_uint8 Admin)
   if (Admin==RFC2819_PROBE_ENABLE)
   { 
     if (ptin_rfc2819_get_admin(&RFC2819_probes_Rx[Port]) || ptin_rfc2819_get_admin(&RFC2819_probes_Tx[Port])) {
-      LOG_INFO(LOG_CTX_RFC2819, "RFC2819 Probe (Port: %d) already enabled",Port);
+      LOG_PT_INFO(LOG_CTX_RFC2819, "RFC2819 Probe (Port: %d) already enabled",Port);
     }
     else {
-      LOG_INFO(LOG_CTX_RFC2819, "Enable RFC2819 Probe (Port: %d)",Port);
+      LOG_PT_INFO(LOG_CTX_RFC2819, "Enable RFC2819 Probe (Port: %d)",Port);
       ptin_rfc2819_refresh_counters(Port);
       ptin_rfc2819_enable(&RFC2819_probes_Rx[Port]);
       ptin_rfc2819_enable(&RFC2819_probes_Tx[Port]);
@@ -100,7 +100,7 @@ L7_RC_t ptin_rfc2819_config_probe(L7_int Port, L7_uint8 Admin)
   }
   else
   {
-      LOG_INFO(LOG_CTX_RFC2819, "Disable RFC2819 Probe (Port: %d)",Port);
+      LOG_PT_INFO(LOG_CTX_RFC2819, "Disable RFC2819 Probe (Port: %d)",Port);
       ptin_rfc2819_disable(&RFC2819_probes_Rx[Port]);
       ptin_rfc2819_disable(&RFC2819_probes_Tx[Port]);
   }
@@ -166,7 +166,7 @@ void ptin_rfc2819_init_buffers(void)
 {
   L7_int aux;
 
-  LOG_INFO(LOG_CTX_RFC2819, "Initializing RFC2819 buffers");
+  LOG_PT_INFO(LOG_CTX_RFC2819, "Initializing RFC2819 buffers");
   aux=ptin_rfc2819_buffer_init(-1);
 }
 
@@ -188,7 +188,7 @@ void ptin_rfc2819_clear_buffers(void)
   L7_int i;
 
   for (i=0;i<MAX_QUAL_RFC2819_BUFFERS;i++) {
-    LOG_INFO(LOG_CTX_RFC2819, "Clearing RFC2819 buffers");
+    LOG_PT_INFO(LOG_CTX_RFC2819, "Clearing RFC2819 buffers");
     ptin_rfc2819_buffer_clear(i);
   }
 }
@@ -238,7 +238,7 @@ void ptin_rfc2819_regista_15min(L7_uint8 slot, T_QUALIDADE_RFC2819 *qual)
   aux_qual_RFC2819.Pkts512to1023Octets  =   qual->status[RFC2819_ACTUAL].Pkts512to1023Octets ;
   aux_qual_RFC2819.Pkts1024to1518Octets =   qual->status[RFC2819_ACTUAL].Pkts1024to1518Octets;   
 
-  LOG_TRACE(LOG_CTX_RFC2819, "15MIN  : %.08lx  |  %.02d-%.02d-%.04d  |  %d:%.02d:00  | %5d | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld",
+  LOG_PT_TRACE(LOG_CTX_RFC2819, "15MIN  : %.08lx  |  %.02d-%.02d-%.04d  |  %d:%.02d:00  | %5d | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld",
             qual->conf.path,
             qual->reg_data.dia,
             qual->reg_data.mes,
@@ -312,7 +312,7 @@ void ptin_rfc2819_regista_24horas(L7_uint8 slot, T_QUALIDADE_RFC2819 *qual)
   aux_qual_RFC2819.Pkts512to1023Octets =   qual->status[RFC2819_PER24HORAS].Pkts512to1023Octets ;
   aux_qual_RFC2819.Pkts1024to1518Octets=   qual->status[RFC2819_PER24HORAS].Pkts1024to1518Octets;
 
-  LOG_TRACE(LOG_CTX_RFC2819, "24HOURS: %.08lx  |  %.02d-%.02d-%.04d  |  %d:%.02d:00  | %5d | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld",
+  LOG_PT_TRACE(LOG_CTX_RFC2819, "24HOURS: %.08lx  |  %.02d-%.02d-%.04d  |  %d:%.02d:00  | %5d | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld | %13lld",
             qual->conf.path,
             qual->reg_data.dia,
             qual->reg_data.mes,
@@ -428,7 +428,7 @@ void ptin_rfc2819_init_all_probes(void)
 {
   L7_int Port;
 
-  LOG_INFO(LOG_CTX_STARTUP, "Initializing RFC2819 all Probes");
+  LOG_PT_INFO(LOG_CTX_STARTUP, "Initializing RFC2819 all Probes");
 
   for (Port=0; Port<PTIN_SYSTEM_N_PORTS; Port++)
   {
@@ -464,11 +464,11 @@ L7_int ptin_rfc2819_refresh_counters(L7_int Port)
   portStats.RxMask = 0xFFFFFFFF;
   portStats.TxMask = 0xFFFFFFFF;
   if (ptin_intf_counters_read(&portStats) != L7_SUCCESS) {
-    LOG_ERR(LOG_CTX_RFC2819, "Error getting statistics of port# %u", portStats.Port);
+    LOG_PT_ERR(LOG_CTX_RFC2819, "Error getting statistics of port# %u", portStats.Port);
     return L7_FAILURE;
   }
   else
-    LOG_TRACE(LOG_CTX_RFC2819, "Getting statistics of port# %u: SUCCESS", portStats.Port);
+    LOG_PT_TRACE(LOG_CTX_RFC2819, "Getting statistics of port# %u: SUCCESS", portStats.Port);
 
   //RX
   RFC2819_probes_Rx[Port].Octets               = portStats.Rx.etherStatsOctets;
@@ -539,11 +539,11 @@ L7_int ptin_rfc2819_load_counters(L7_int Port)
       portStats.RxMask = 0xFFFFFFFF;
       portStats.TxMask = 0xFFFFFFFF;
       if (ptin_intf_counters_read(&portStats) != L7_SUCCESS) {
-        LOG_ERR(LOG_CTX_RFC2819, "Error getting statistics of port# %u", portStats.Port);
+        LOG_PT_ERR(LOG_CTX_RFC2819, "Error getting statistics of port# %u", portStats.Port);
         return L7_FAILURE;
       }
       else
-        LOG_TRACE(LOG_CTX_RFC2819, "Getting statistics of port# %u: SUCCESS", portStats.Port);
+        LOG_PT_TRACE(LOG_CTX_RFC2819, "Getting statistics of port# %u: SUCCESS", portStats.Port);
 
   }
 
@@ -697,7 +697,7 @@ void ptin_rfc2819_task( void )
 
   if (osapiTaskInitDone(L7_PTIN_RFC2819_TASK_SYNC) != L7_SUCCESS)
   {
-    LOG_FATAL(LOG_CTX_RFC2819, "Error syncing task");
+    LOG_PT_FATAL(LOG_CTX_RFC2819, "Error syncing task");
     PTIN_CRASH();
   }
 
@@ -708,7 +708,7 @@ void ptin_rfc2819_task( void )
 
   /* Loop */
   while (1) {
-    //LOG_INFO(LOG_CTX_RFC2819, "ptin_rfc2819_task running...");
+    //LOG_PT_INFO(LOG_CTX_RFC2819, "ptin_rfc2819_task running...");
 
     time(&tm);
     memcpy(&tm_time, localtime(&tm), sizeof(tm_time));        
@@ -717,17 +717,17 @@ void ptin_rfc2819_task( void )
 
     if(tm_time.tm_sec==0) {
         tgl_clock=PERIODO_1MIN;
-        //LOG_INFO(LOG_CTX_RFC2819, "ptin_rfc2819_task running...1 min");
+        //LOG_PT_INFO(LOG_CTX_RFC2819, "ptin_rfc2819_task running...1 min");
         if ((tm_time.tm_min%15)==0) {
-            //LOG_INFO(LOG_CTX_RFC2819, "ptin_rfc2819_task running...15 min");
+            //LOG_PT_INFO(LOG_CTX_RFC2819, "ptin_rfc2819_task running...15 min");
             tgl_clock |= PERIODO_15MIN;
         }
         if (tm_time.tm_min==0) {
-            //LOG_INFO(LOG_CTX_RFC2819, "ptin_rfc2819_task running...60 min");
+            //LOG_PT_INFO(LOG_CTX_RFC2819, "ptin_rfc2819_task running...60 min");
             tgl_clock |= PERIODO_60MIN;
         }
         if(tm_time.tm_mday!=old_day) {
-            //LOG_INFO(LOG_CTX_RFC2819, "ptin_rfc2819_task running...24 hours");
+            //LOG_PT_INFO(LOG_CTX_RFC2819, "ptin_rfc2819_task running...24 hours");
             old_day=tm_time.tm_mday;
             tgl_clock |= PERIODO_24HORAS;
         }
@@ -775,16 +775,16 @@ L7_RC_t ptin_rfc2819_init(void)
                                                 L7_DEFAULT_TASK_SLICE);
 
   if (ptin_rfc2819_TaskId == L7_ERROR) {
-    LOG_FATAL(LOG_CTX_RFC2819, "Could not create task ptin_rfc2819_task");
+    LOG_PT_FATAL(LOG_CTX_RFC2819, "Could not create task ptin_rfc2819_task");
     return L7_FAILURE;
   }
-  LOG_TRACE(LOG_CTX_RFC2819,"Task ptin_rfc2819_task created");
+  LOG_PT_TRACE(LOG_CTX_RFC2819,"Task ptin_rfc2819_task created");
 
   if (osapiWaitForTaskInit (L7_PTIN_RFC2819_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS) {
-    LOG_FATAL(LOG_CTX_RFC2819,"Unable to initialize ptin_rfc2819_task()\n");
+    LOG_PT_FATAL(LOG_CTX_RFC2819,"Unable to initialize ptin_rfc2819_task()\n");
     return(L7_FAILURE);
   }
-  LOG_TRACE(LOG_CTX_RFC2819,"Task ptin_rfc2819_task initialized");
+  LOG_PT_TRACE(LOG_CTX_RFC2819,"Task ptin_rfc2819_task initialized");
 
   return L7_SUCCESS;
 

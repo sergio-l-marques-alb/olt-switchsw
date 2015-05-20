@@ -524,7 +524,7 @@ int usl_bcm_l3_egress_create (L7_uint32 flags,
         #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
         if (rv == BCM_E_UNAVAIL)
         {
-          LOG_WARNING(LOG_CTX_HAPI,"bcm_l3_egress_create is not supported in this version... ignoring!");
+          LOG_PT_WARN(LOG_CTX_HAPI,"bcm_l3_egress_create is not supported in this version... ignoring!");
           rv = BCM_E_INIT;
         }
         #endif

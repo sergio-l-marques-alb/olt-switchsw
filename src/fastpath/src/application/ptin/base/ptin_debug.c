@@ -303,7 +303,7 @@ L7_RC_t ptin_debug_example(L7_uint32 intIfNum, L7_uint operation, L7_uint param1
   ptin_dtl_example_t example;
   L7_RC_t rc;
 
-  LOG_INFO(LOG_CTX_MISC, "Executing generic DTL processor: intIfNum=%u operation=%u param1=%u param2=%u sizeof(ptin_dtl_example_t)=%u",
+  LOG_PT_INFO(LOG_CTX_MISC, "Executing generic DTL processor: intIfNum=%u operation=%u param1=%u param2=%u sizeof(ptin_dtl_example_t)=%u",
            intIfNum, operation, param1, param2, sizeof(ptin_dtl_example_t));
 
   memset(&example, 0x00, sizeof(example));
@@ -312,7 +312,7 @@ L7_RC_t ptin_debug_example(L7_uint32 intIfNum, L7_uint operation, L7_uint param1
 
   rc = dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_EXAMPLE, operation, sizeof(ptin_dtl_example_t), (void *) &example);
 
-  LOG_INFO(LOG_CTX_DTL, "Result rc=%u", rc);
+  LOG_PT_INFO(LOG_CTX_DTL, "Result rc=%u", rc);
 
   return rc;
 }
@@ -637,14 +637,14 @@ void ptin_intf_dump(void)
     /* Admin state */
     if (usmDbIfAdminStateGet(1, intIfNum, &admin) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_INTF, "Failed to get admin state of port# %u", port);
+      LOG_PT_ERR(LOG_CTX_INTF, "Failed to get admin state of port# %u", port);
       continue;
     }
 
     /* Speed */
     if (usmDbIfSpeedGet(1, intIfNum, &speed_mode) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_INTF, "Failed to get speed of port# %u", port);
+      LOG_PT_ERR(LOG_CTX_INTF, "Failed to get speed of port# %u", port);
       continue;
     }
     switch (speed_mode)
@@ -711,19 +711,19 @@ void ptin_intf_dump(void)
     /* Get Oversize packets limit */
     if (ptin_intf_frame_oversize_get(intIfNum, &frameOversize) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_INTF, "Failed to get Oversize frame limit of port# %d", port);
+      LOG_PT_ERR(LOG_CTX_INTF, "Failed to get Oversize frame limit of port# %d", port);
       continue;
     }
     if (usmDbIfConfigMaxFrameSizeGet(intIfNum, &frameMax) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_INTF, "Failed to get max MTU of port# %d", port);
+      LOG_PT_ERR(LOG_CTX_INTF, "Failed to get max MTU of port# %d", port);
       continue;
     }
 
     /* Link State */
     if (nimGetIntfLinkState(intIfNum, &link) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_INTF, "Failed to get link state of port# %d", port);
+      LOG_PT_ERR(LOG_CTX_INTF, "Failed to get link state of port# %d", port);
       continue;
     }
 
@@ -744,7 +744,7 @@ void ptin_intf_dump(void)
     /* Apply configuration */
     if (dtlPtinL2PortExtGet(intIfNum, &portExt) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_INTF, "Error getting MEF Ext of port# %d", port);
+      LOG_PT_ERR(LOG_CTX_INTF, "Error getting MEF Ext of port# %d", port);
       continue;
     }
 

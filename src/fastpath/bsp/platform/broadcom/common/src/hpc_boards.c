@@ -145,7 +145,7 @@ L7_RC_t hpcConfigPhySet(void)
   DAPI_CARD_ENTRY_t            *dapiCardPtr;
   HAPI_CARD_SLOT_MAP_t         *hapiSlotMapPtr;
 
-  LOG_TRACE(LOG_CTX_STARTUP,"Configuring ports (%u slots)...",L7_MAX_PHYSICAL_SLOTS_PER_UNIT);
+  LOG_PT_TRACE(LOG_CTX_STARTUP,"Configuring ports (%u slots)...",L7_MAX_PHYSICAL_SLOTS_PER_UNIT);
 
   for (slotIndex = 0; slotIndex < L7_MAX_PHYSICAL_SLOTS_PER_UNIT; slotIndex++)
   {
@@ -195,7 +195,7 @@ L7_RC_t hpcConfigPhySet(void)
   
   HPC_BROAD_PHY_INIT(); /* phy settings depending on box */
 
-  LOG_TRACE(LOG_CTX_STARTUP,"Finished bcm_ports configuration!");
+  LOG_PT_TRACE(LOG_CTX_STARTUP,"Finished bcm_ports configuration!");
 
   return L7_SUCCESS;
 }
@@ -250,7 +250,7 @@ L7_RC_t hpcConfigSet()
 
   /* Ptin removed: init */
   #if 1
-  LOG_NOTICE(LOG_CTX_STARTUP,"hpcXeHgSetup/hpcGeHlSetup will not be executed here!");
+  LOG_PT_NOTICE(LOG_CTX_STARTUP,"hpcXeHgSetup/hpcGeHlSetup will not be executed here!");
   #else
   /* setup the xe/hg combo ports */
   hpcXeHgSetup();
@@ -273,7 +273,7 @@ L7_RC_t hpcConfigSet()
 
   /* Ptin added: init */
   #if 1
-  LOG_NOTICE(LOG_CTX_STARTUP,"hpcXeHgSetup/hpcGeHlSetup will be executed now!");
+  LOG_PT_NOTICE(LOG_CTX_STARTUP,"hpcXeHgSetup/hpcGeHlSetup will be executed now!");
   /* setup the xe/hg combo ports */
   hpcXeHgSetup();
   hpcGeHlSetup();

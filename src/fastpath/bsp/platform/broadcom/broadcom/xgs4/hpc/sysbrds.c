@@ -223,7 +223,7 @@ L7_RC_t hpcConfigBoardSet()
         if (0)
       #endif
         {
-          LOG_TRACE(LOG_CTX_STARTUP, "Using Port Expanders mapping for CXP360G V2 or below");
+          LOG_PT_TRACE(LOG_CTX_STARTUP, "Using Port Expanders mapping for CXP360G V2 or below");
 
           if (sal_config_set(spn_PORT_PHY_ADDR"_1",  "0x10") != 0) return(L7_FAILURE);
           if (sal_config_set(spn_PORT_PHY_ADDR"_2",  "0x11") != 0) return(L7_FAILURE);
@@ -268,7 +268,7 @@ L7_RC_t hpcConfigBoardSet()
         }
         else
         {
-          LOG_TRACE(LOG_CTX_STARTUP, "Using Port Expanders mapping for CXP360G V3 or higher");
+          LOG_PT_TRACE(LOG_CTX_STARTUP, "Using Port Expanders mapping for CXP360G V3 or higher");
 
           if (sal_config_set(spn_PORT_PHY_ADDR"_1",  "0x30") != 0) return(L7_FAILURE);
           if (sal_config_set(spn_PORT_PHY_ADDR"_2",  "0x31") != 0) return(L7_FAILURE);
@@ -462,9 +462,9 @@ L7_RC_t hpcConfigBoardSet()
           return(L7_FAILURE);
         if (sal_config_set(spn_TABLE_DMA_ENABLE, "0") != 0)
           return(L7_FAILURE);
-        LOG_NOTICE(LOG_CTX_MISC,"Interrupts and DMA disabled!");
+        LOG_PT_NOTICE(LOG_CTX_MISC,"Interrupts and DMA disabled!");
         #else
-        LOG_NOTICE(LOG_CTX_MISC,"Interrupts and DMA are enabled!");
+        LOG_PT_NOTICE(LOG_CTX_MISC,"Interrupts and DMA are enabled!");
         #endif
 
         if (sal_config_set(spn_TRUNK_EXTEND, "0x1") != 0) return(L7_FAILURE);
@@ -476,11 +476,11 @@ L7_RC_t hpcConfigBoardSet()
         #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
         if (hpcBoardWCinit_bcm56846() == L7_SUCCESS)
         {
-          LOG_NOTICE(LOG_CTX_STARTUP,"WCs initialized successfully");
+          LOG_PT_NOTICE(LOG_CTX_STARTUP,"WCs initialized successfully");
         }
         else
         {
-          LOG_ERR(LOG_CTX_STARTUP,"Error initializing WCs");
+          LOG_PT_ERR(LOG_CTX_STARTUP,"Error initializing WCs");
         }
 
         /* Disable BAM */
@@ -622,7 +622,7 @@ static L7_RC_t hpcConfigWCmap_read(char *filename, L7_uint32 *slot_mode)
   /* Validate arguments */
   if (filename==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_STARTUP,"Invalid provided filename");
+    LOG_PT_ERR(LOG_CTX_STARTUP,"Invalid provided filename");
     return L7_FAILURE;
   }
 
@@ -630,7 +630,7 @@ static L7_RC_t hpcConfigWCmap_read(char *filename, L7_uint32 *slot_mode)
   fp = fopen(filename,"r");
   if(fp == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_STARTUP, "Erro a abrir o ficheiro %s", filename);
+    LOG_PT_ERR(LOG_CTX_STARTUP, "Erro a abrir o ficheiro %s", filename);
     return L7_FAILURE;
   }
 
@@ -653,7 +653,7 @@ static L7_RC_t hpcConfigWCmap_read(char *filename, L7_uint32 *slot_mode)
     /* Validate values */
     if (slot_idx < PTIN_SYS_LC_SLOT_MIN || slot_idx > PTIN_SYS_LC_SLOT_MAX)
     {
-      LOG_WARNING(LOG_CTX_STARTUP, "Invalid slot id (%u) in line %u", slot_idx, i);
+      LOG_PT_WARN(LOG_CTX_STARTUP, "Invalid slot id (%u) in line %u", slot_idx, i);
       continue;
     }
 
@@ -667,12 +667,12 @@ static L7_RC_t hpcConfigWCmap_read(char *filename, L7_uint32 *slot_mode)
     /* Validate values */
     if (mode < WC_SLOT_MODE_NONE || mode >= WC_SLOT_MODE_MAX)
     {
-      LOG_ERR(LOG_CTX_STARTUP, "Invalid slot mode (%u) in line %u", mode, i);
+      LOG_PT_ERR(LOG_CTX_STARTUP, "Invalid slot mode (%u) in line %u", mode, i);
       continue;
     }
 
     slot_mode[slot_idx-1] = mode;
-    LOG_TRACE(LOG_CTX_STARTUP, "Line=%u: slotIdx=%u slotmode=%u", i, slot_idx, mode);
+    LOG_PT_TRACE(LOG_CTX_STARTUP, "Line=%u: slotIdx=%u slotmode=%u", i, slot_idx, mode);
   }
   fclose(fp);
 
@@ -702,7 +702,7 @@ static L7_RC_t hpcConfigWCmap_validate(HAPI_WC_PORT_MAP_t *wcMap)
   /* Validate arguments */
   if (wcMap==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_STARTUP,"Invalid arguments");
+    LOG_PT_ERR(LOG_CTX_STARTUP,"Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -728,7 +728,7 @@ static L7_RC_t hpcConfigWCmap_validate(HAPI_WC_PORT_MAP_t *wcMap)
     }
     if (slot >= PTIN_SYS_SLOTS_MAX)
     {
-      LOG_ERR(LOG_CTX_STARTUP,"Invalid slot (%u) for port %u", slot, port);
+      LOG_PT_ERR(LOG_CTX_STARTUP,"Invalid slot (%u) for port %u", slot, port);
       return L7_FAILURE;
     }
 
@@ -736,12 +736,12 @@ static L7_RC_t hpcConfigWCmap_validate(HAPI_WC_PORT_MAP_t *wcMap)
     wc_index = dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1[port].wcIdx;
     if (wc_index >= WC_MAX_NUMBER)
     {
-      LOG_ERR(LOG_CTX_STARTUP,"Invalid WC index (%u)", wc_index);
+      LOG_PT_ERR(LOG_CTX_STARTUP,"Invalid WC index (%u)", wc_index);
       return L7_FAILURE;
     }
     if (WCSlotMap[wc_index].slotIdx != slot)
     {
-      LOG_ERR(LOG_CTX_STARTUP,"Inconsistence with slot references (port=%u, WC=%u)", port, wc_index);
+      LOG_PT_ERR(LOG_CTX_STARTUP,"Inconsistence with slot references (port=%u, WC=%u)", port, wc_index);
       return L7_FAILURE;
     }
 
@@ -749,7 +749,7 @@ static L7_RC_t hpcConfigWCmap_validate(HAPI_WC_PORT_MAP_t *wcMap)
     wc_group = WCSlotMap[wc_index].wcGroup;
     if (wc_group>=WC_MAX_GROUPS)
     {
-      LOG_ERR(LOG_CTX_STARTUP,"Invalid WC group (%u) or WC index (%u)", wc_group, wc_index);
+      LOG_PT_ERR(LOG_CTX_STARTUP,"Invalid WC group (%u) or WC index (%u)", wc_group, wc_index);
       return L7_FAILURE;
     }
 
@@ -758,7 +758,7 @@ static L7_RC_t hpcConfigWCmap_validate(HAPI_WC_PORT_MAP_t *wcMap)
 
     if (speedG!=1 && speedG!=10 && speedG!=40 && speedG!=100)
     {
-      LOG_ERR(LOG_CTX_STARTUP,"Invalid speed (%u) for port %u", speedG, port);
+      LOG_PT_ERR(LOG_CTX_STARTUP,"Invalid speed (%u) for port %u", speedG, port);
       return L7_FAILURE;
     }
 
@@ -772,7 +772,7 @@ static L7_RC_t hpcConfigWCmap_validate(HAPI_WC_PORT_MAP_t *wcMap)
   {
     if (bw_max[i] > WC_GROUP_MAX_BW)
     {
-      LOG_ERR(LOG_CTX_STARTUP,"WC group %u is higher then %u Gbps", i, WC_GROUP_MAX_BW);
+      LOG_PT_ERR(LOG_CTX_STARTUP,"WC group %u is higher then %u Gbps", i, WC_GROUP_MAX_BW);
       return L7_NOT_SUPPORTED;
     }
   }
@@ -782,7 +782,7 @@ static L7_RC_t hpcConfigWCmap_validate(HAPI_WC_PORT_MAP_t *wcMap)
   {
     if (ports_per_segment[i] > WC_SEGMENT_MAX_PORTS)
     {
-      LOG_ERR(LOG_CTX_STARTUP,"WC segment %u has more than %u ports (%u)", i, WC_SEGMENT_MAX_PORTS, ports_per_segment[i]);
+      LOG_PT_ERR(LOG_CTX_STARTUP,"WC segment %u has more than %u ports (%u)", i, WC_SEGMENT_MAX_PORTS, ports_per_segment[i]);
       return L7_NOT_SUPPORTED;
     }
   }
@@ -819,9 +819,9 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
   memset(slot_mode, 0x00, sizeof(slot_mode));
   memset(wcMap, 0x00, sizeof(wcMap));
 
-  LOG_INFO(LOG_CTX_STARTUP,"Board is %s matrix.", (is_matrix_protection() ? "Protection" : "Working"));
+  LOG_PT_INFO(LOG_CTX_STARTUP,"Board is %s matrix.", (is_matrix_protection() ? "Protection" : "Working"));
 
-  LOG_DEBUG(LOG_CTX_STARTUP,"Initializing WC map:");
+  LOG_PT_DEBUG(LOG_CTX_STARTUP,"Initializing WC map:");
 
   /* Different WC base maps */
 
@@ -857,14 +857,14 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
     /* Validate slot index */
     if (ptr->slotIdx == 0 || ptr->slotIdx > PTIN_SYS_SLOTS_MAX)
     {
-      LOG_ERR(LOG_CTX_STARTUP,"Invalid slot index (%u) for WC %u!",ptr->slotIdx, wc_idx);
+      LOG_PT_ERR(LOG_CTX_STARTUP,"Invalid slot index (%u) for WC %u!",ptr->slotIdx, wc_idx);
       return L7_FAILURE;
     }
 
     /* Invert WCs */
     ptr->slotIdx = PTIN_SYS_SLOTS_MAX - ptr->slotIdx + 1;
 
-    LOG_DEBUG(LOG_CTX_STARTUP," WC%02u: WCgroup=%u slot=%-2u (invLanes=0x%02x invPol=0x%02x)",
+    LOG_PT_DEBUG(LOG_CTX_STARTUP," WC%02u: WCgroup=%u slot=%-2u (invLanes=0x%02x invPol=0x%02x)",
               ptr->wcIndex, ptr->wcGroup, ptr->slotIdx, ptr->invert_lanes, ptr->invert_polarities);
   }
 
@@ -872,7 +872,7 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
   WCSlotMap = is_matrix_protection() ? dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1_PROT :
                                        dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_REV_1_WORK;
 
-  LOG_INFO(LOG_CTX_STARTUP,"Trying to open \"%s\" file...",WC_MAP_FILE);
+  LOG_PT_INFO(LOG_CTX_STARTUP,"Trying to open \"%s\" file...",WC_MAP_FILE);
 
   /* Read map from file */
   /* Get slot modes from file */
@@ -882,39 +882,39 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
     if (hpcConfigWCmap_build(slot_mode, L7_NULLPTR)==L7_SUCCESS)
     {
       memcpy(dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56846_REV_1, slot_mode, sizeof(slot_mode));
-      LOG_INFO(LOG_CTX_STARTUP,"Slot mode list is valid! Slot mode list updated successfully");
+      LOG_PT_INFO(LOG_CTX_STARTUP,"Slot mode list is valid! Slot mode list updated successfully");
     }
     else
     {
-      LOG_ERR(LOG_CTX_STARTUP,"Error validating WC map! Assuming default slot mode list.");
+      LOG_PT_ERR(LOG_CTX_STARTUP,"Error validating WC map! Assuming default slot mode list.");
     }
   }
   else
   {
-    LOG_WARNING(LOG_CTX_STARTUP,"Error opening file \"%s\". Going to assume default slot mode list.",WC_MAP_FILE);
+    LOG_PT_WARN(LOG_CTX_STARTUP,"Error opening file \"%s\". Going to assume default slot mode list.",WC_MAP_FILE);
   }
-  LOG_DEBUG(LOG_CTX_STARTUP,"Slot map:");
+  LOG_PT_DEBUG(LOG_CTX_STARTUP,"Slot map:");
   for (i=0; i<PTIN_SYS_SLOTS_MAX; i++)
   {
-    LOG_DEBUG(LOG_CTX_STARTUP," Slot %02u: Mode=%u", i+1, dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56846_REV_1[i]);
+    LOG_PT_DEBUG(LOG_CTX_STARTUP," Slot %02u: Mode=%u", i+1, dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56846_REV_1[i]);
   }
 
   /* Create map */
   if (hpcConfigWCmap_build(dapiBroadBaseWCSlotPortmodeMap_CARD_BROAD_64_TENGIG_56846_REV_1, wcMap)==L7_SUCCESS)
   {
     memcpy(dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1, wcMap, sizeof(wcMap));
-    LOG_INFO(LOG_CTX_STARTUP,"WC map updated successfully");
+    LOG_PT_INFO(LOG_CTX_STARTUP,"WC map updated successfully");
   }
   else
   {
-    LOG_ERR(LOG_CTX_STARTUP,"Error creating WC map! Assuming default WC map.");
+    LOG_PT_ERR(LOG_CTX_STARTUP,"Error creating WC map! Assuming default WC map.");
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_STARTUP,"Port map:");
+  LOG_PT_DEBUG(LOG_CTX_STARTUP,"Port map:");
   for (i=0; i<L7_MAX_PHYSICAL_PORTS_PER_UNIT; i++)
   {
-    LOG_DEBUG(LOG_CTX_STARTUP," Port %02u: Slot=%02u WCidx=%02u WClane=%u Speed=%uG",
+    LOG_PT_DEBUG(LOG_CTX_STARTUP," Port %02u: Slot=%02u WCidx=%02u WClane=%u Speed=%uG",
               dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1[i].portNum,
               dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1[i].slotNum,
               dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1[i].wcIdx,
@@ -925,10 +925,10 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
   /* Validate map */
   if (hpcConfigWCmap_validate(dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_STARTUP,"Not valid WC map!");
+    LOG_PT_ERR(LOG_CTX_STARTUP,"Not valid WC map!");
     return L7_FAILURE;
   }
-  LOG_INFO(LOG_CTX_STARTUP,"WC map is valid!");
+  LOG_PT_INFO(LOG_CTX_STARTUP,"WC map is valid!");
 
   /* Run all ports */
   for (port_idx=0; port_idx<L7_MAX_PHYSICAL_PORTS_PER_UNIT; port_idx++)
@@ -1006,10 +1006,10 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
     if (sysapiHpcCardInfoPtr != L7_NULLPTR)
       sysapiHpcCardInfoPtr->numOfNiPorts = port_idx;
     else
-      LOG_ERR(LOG_CTX_STARTUP,"Error updating number of ports for slotIndex %u!", i);
+      LOG_PT_ERR(LOG_CTX_STARTUP,"Error updating number of ports for slotIndex %u!", i);
   }
 
-  LOG_INFO(LOG_CTX_STARTUP,"WC map applied successfully with %u ports!",port_idx);
+  LOG_PT_INFO(LOG_CTX_STARTUP,"WC map applied successfully with %u ports!",port_idx);
 
   return L7_SUCCESS;
 }

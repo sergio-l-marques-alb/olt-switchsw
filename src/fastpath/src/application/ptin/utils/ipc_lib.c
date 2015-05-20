@@ -56,7 +56,7 @@ void init_ipc_lib(void)
    int i;
 
 //   DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL,
-   LOG_INFO(LOG_CTX_IPC,
+   LOG_PT_INFO(LOG_CTX_IPC,
             "Vai iniciar a biblioteca ipc_lib."); 
    for(i=0;i<IPCLIB_MAX_CANAIS;i++)
    {
@@ -71,7 +71,7 @@ void init_ipc_lib(void)
       ipc_canais[i].clone_ipc_id = 0;
    }
 //   DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL,
-   LOG_INFO(LOG_CTX_IPC,
+   LOG_PT_INFO(LOG_CTX_IPC,
             "Biblioteca ipc_lib iniciada."); 
 } // init_ipc_lib (V1.0.5.040820)
 
@@ -111,7 +111,7 @@ int open_ipc (int porto_rx, unsigned int ipaddr, int  (*MessageHandler)(ipc_msg 
    tv.tv_usec = 0;
    *handlerid = -1;
 //   DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL,
-   LOG_INFO(LOG_CTX_IPC,
+   LOG_PT_INFO(LOG_CTX_IPC,
             "Abertura de canal de comunicacao (%d, %08X, %d).", porto_rx, MessageHandler, timeout); 
    // Deteccao do primeiro canal livre
    for(i=0;i<IPCLIB_MAX_CANAIS;i++)
@@ -122,7 +122,7 @@ int open_ipc (int porto_rx, unsigned int ipaddr, int  (*MessageHandler)(ipc_msg 
    if(i==IPCLIB_MAX_CANAIS)
    {
 //      DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_EMERGENCY,
-      LOG_CRITICAL(LOG_CTX_IPC,
+      LOG_PT_CRITIC(LOG_CTX_IPC,
                   "Nao existem canais disponiveis."); 
       return SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_EMERGENCY, ERROR_CODE_NOFREECHAN);
    }
@@ -135,7 +135,7 @@ int open_ipc (int porto_rx, unsigned int ipaddr, int  (*MessageHandler)(ipc_msg 
    if((ipc_canais[canal_id].socket_descriptor_cliente = socket(AF_INET, SOCK_DGRAM, 0)) ==-1)
    {
 //      DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_EMERGENCY,
-      LOG_CRITICAL(LOG_CTX_IPC,
+      LOG_PT_CRITIC(LOG_CTX_IPC,
                   "Falhou ao criar o socket cliente (%08X).", errno); 
       return SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_EMERGENCY, ERROR_CODE_CREATESOCKET);
    }
@@ -154,11 +154,11 @@ int open_ipc (int porto_rx, unsigned int ipaddr, int  (*MessageHandler)(ipc_msg 
    //   DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_ERROR, "Nao obteve o valor de SO_MAX_MSG_SIZE no Socket cliente do canal %d (errno=%d).", canal_id, errno);
    if (getsockopt (ipc_canais[canal_id].socket_descriptor_cliente, SOL_SOCKET, SO_SNDBUF, (char*)&optVal, &optLen)==0)
 //      DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL,
-      LOG_INFO(LOG_CTX_IPC,
+      LOG_PT_INFO(LOG_CTX_IPC,
                "Socket cliente do canal %d, SO_SNDBUF=%d.", canal_id, optVal); 
    else
 //      DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_ERROR,
-      LOG_ERR(LOG_CTX_IPC,
+      LOG_PT_ERR(LOG_CTX_IPC,
                 "Nao obteve o valor de SO_SNDBUF no Socket cliente do canal %d (errno=%d).", canal_id, errno); 
    ipc_canais[canal_id].timeout = timeout;
    // Inicializacao do socket Servidor
@@ -168,7 +168,7 @@ int open_ipc (int porto_rx, unsigned int ipaddr, int  (*MessageHandler)(ipc_msg 
       if((ipc_canais[canal_id].socket_descriptor_servidor = socket(AF_INET, SOCK_DGRAM, 0)) ==-1)
       {
 //         DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_EMERGENCY,
-         LOG_CRITICAL(LOG_CTX_IPC,
+         LOG_PT_CRITIC(LOG_CTX_IPC,
                       "Falhou ao criar o socket servidor (%08X).", errno); 
          close(ipc_canais[canal_id].socket_descriptor_cliente);    //liberta o descritor de cliente
          return SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_EMERGENCY, ERROR_CODE_CREATESOCKET);
@@ -184,7 +184,7 @@ int open_ipc (int porto_rx, unsigned int ipaddr, int  (*MessageHandler)(ipc_msg 
                sizeof(ipc_canais[canal_id].socketaddr_servidor)) != 0 )
       {
 //         DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_EMERGENCY,
-         LOG_CRITICAL(LOG_CTX_IPC,
+         LOG_PT_CRITIC(LOG_CTX_IPC,
                       "Falhou ao ligar o socket servidor ao porto de escuta (%08X).", errno); 
          close(ipc_canais[canal_id].socket_descriptor_cliente);    //liberta o descritor de cliente
          close(ipc_canais[canal_id].socket_descriptor_servidor);   //liberta o descritor de servidor
@@ -194,7 +194,7 @@ int open_ipc (int porto_rx, unsigned int ipaddr, int  (*MessageHandler)(ipc_msg 
       /* RX Buffer size redefinition */
       getsockopt (ipc_canais[canal_id].socket_descriptor_servidor, SOL_SOCKET, 
                   SO_RCVBUF, &buffersize, &size_of_buffersize);
-      LOG_NOTICE(LOG_CTX_IPC, "Canal %u: Default rx buffer size is %u bytes!", canal_id, buffersize);
+      LOG_PT_NOTICE(LOG_CTX_IPC, "Canal %u: Default rx buffer size is %u bytes!", canal_id, buffersize);
 
       buffersize = 55296;    //Configuracao do timeout
       setsockopt (ipc_canais[canal_id].socket_descriptor_servidor, SOL_SOCKET, 
@@ -202,7 +202,7 @@ int open_ipc (int porto_rx, unsigned int ipaddr, int  (*MessageHandler)(ipc_msg 
 
       getsockopt (ipc_canais[canal_id].socket_descriptor_servidor, SOL_SOCKET, 
                   SO_RCVBUF, &buffersize, &size_of_buffersize);
-      LOG_NOTICE(LOG_CTX_IPC, "Canal %u: Redefined rx buffer size to %u bytes!", canal_id, buffersize);
+      LOG_PT_NOTICE(LOG_CTX_IPC, "Canal %u: Redefined rx buffer size to %u bytes!", canal_id, buffersize);
 #endif
 
 //      // Definicao do Clone de escutas
@@ -227,7 +227,7 @@ int open_ipc (int porto_rx, unsigned int ipaddr, int  (*MessageHandler)(ipc_msg 
                (void*)&ipc_canais[canal_id].canal_id)) == -1 )
       {
 //         DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_EMERGENCY,
-         LOG_CRITICAL(LOG_CTX_IPC,
+         LOG_PT_CRITIC(LOG_CTX_IPC,
                       "Falhou na criacao do thread de atendimento de mensagens.");
          close(ipc_canais[canal_id].socket_descriptor_cliente);    //liberta o descritor de cliente
          close(ipc_canais[canal_id].socket_descriptor_servidor);   //liberta o descritor de servidor
@@ -238,7 +238,7 @@ int open_ipc (int porto_rx, unsigned int ipaddr, int  (*MessageHandler)(ipc_msg 
    } // fim do if(Message...
    *handlerid = canal_id;  //Retorna o handler correspondente ao canal de comunicacao alocado
 //   DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL,
-   LOG_INFO(LOG_CTX_IPC,
+   LOG_PT_INFO(LOG_CTX_IPC,
             "Canal aberto com sucesso (id=%d).", canal_id);
    return S_OK;
 } // open_ipc (V1.0.5.040820)
@@ -258,19 +258,19 @@ int close_ipc(int canal_id)
    int res;
 
 //   DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL,
-   LOG_INFO(LOG_CTX_IPC,
+   LOG_PT_INFO(LOG_CTX_IPC,
             "Fecho de canal de comunicacoes (id=%d).", canal_id); 
    if (canal_id<0 || canal_id>=IPCLIB_MAX_CANAIS)
    {
 //      DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_ERROR,
-      LOG_ERR(LOG_CTX_IPC,
+      LOG_PT_ERR(LOG_CTX_IPC,
                 "Identificador de canal invalido."); 
       return SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDCH);
    }
    if (ipc_canais[canal_id].estado==IPCLIB_CANAL_LIVRE)
    {
 //      DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_ERROR,
-      LOG_ERR(LOG_CTX_IPC,
+      LOG_PT_ERR(LOG_CTX_IPC,
                 "O canal indicado nao esta atribuido."); 
       return SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_NOTOPENED);
    }
@@ -291,12 +291,12 @@ int close_ipc(int canal_id)
    //destroi o descritor para o socket cliente
    if ((res=close (ipc_canais[canal_id].socket_descriptor_cliente))!=0)
 //      DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_ERROR,
-      LOG_ERR(LOG_CTX_IPC,
+      LOG_PT_ERR(LOG_CTX_IPC,
                 "O socket cliente NAO foi fechado com sucesso (%d).", res);
    //destroi o descritor para o socket servidor
    if ((res=close (ipc_canais[canal_id].socket_descriptor_servidor))!=0)
 //      DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_ERROR,
-      LOG_ERR(LOG_CTX_IPC,
+      LOG_PT_ERR(LOG_CTX_IPC,
                 "O socket servidor NAO foi fechado com sucesso (%d).", res);
    ipc_canais[canal_id].processa_msg_handler = NULL;        //coloca o ponteiro para o metodo de 
                                                             //processamento de mensagens a NULL
@@ -306,7 +306,7 @@ int close_ipc(int canal_id)
 
    ipc_canais[canal_id].estado = IPCLIB_CANAL_LIVRE;        //marca o canal como livre
 //   DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL,
-   LOG_INFO(LOG_CTX_IPC,
+   LOG_PT_INFO(LOG_CTX_IPC,
             "O canal %d foi fechado com sucesso.", canal_id);
    return S_OK;
 } // close_ipc (V1.0.5.040820)
@@ -343,7 +343,7 @@ int send_data (int canal_id, int porto_destino, unsigned int ipdest, ipc_msg *se
    if (canal_id<0 || canal_id>=IPCLIB_MAX_CANAIS)
    {
 //      DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_ERROR,
-      LOG_ERR(LOG_CTX_IPC,
+      LOG_PT_ERR(LOG_CTX_IPC,
                 "Identificador de canal invalido."); 
       return SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDCH);
    }
@@ -366,12 +366,12 @@ int send_data (int canal_id, int porto_destino, unsigned int ipdest, ipc_msg *se
 //         osapiSemaGive(g_AppIpcSemaphore);
 //      }
 //      DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_ERROR, 
-      LOG_ERR(LOG_CTX_IPC,
+      LOG_PT_ERR(LOG_CTX_IPC,
                 "Nao foi possivel enviar a mensagem (%08X).", errno); 
       return SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_SENDFAILED);
    }
 //   DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL, 
-   LOG_TRACE(LOG_CTX_IPC,
+   LOG_PT_TRACE(LOG_CTX_IPC,
             "Mensagem enviada pelo canal %d.", canal_id); 
    if(receivebuffer==NULL)						//se receivebuffer apontar para null, nao espera resposta
    {
@@ -382,7 +382,7 @@ int send_data (int canal_id, int porto_destino, unsigned int ipdest, ipc_msg *se
       return S_OK;
    }
 //   DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL, 
-   LOG_TRACE(LOG_CTX_IPC,
+   LOG_PT_TRACE(LOG_CTX_IPC,
             "Aguarda resposta pelo canal %d.", canal_id); 
     
    // 2 - Espera pela resposta do outro lado
@@ -400,7 +400,7 @@ int send_data (int canal_id, int porto_destino, unsigned int ipdest, ipc_msg *se
             case EAGAIN:   timeout--;
                            break;
             default:       //DEBUGTRACE(TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_WARNING, 
-                           LOG_WARNING(LOG_CTX_IPC,
+                           LOG_PT_WARN(LOG_CTX_IPC,
                                        "Saída anormal do recvfrom de respostas no canal %d (%d).", canal_id, errno);
                            break;
          }
@@ -413,12 +413,12 @@ int send_data (int canal_id, int porto_destino, unsigned int ipdest, ipc_msg *se
    if(timeout<=0)
    {                         
 //      DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_WARNING, 
-      LOG_WARNING(LOG_CTX_IPC,
+      LOG_PT_WARN(LOG_CTX_IPC,
                   "Timeout na recepcao da resposta no canal %d.", canal_id); 
       return SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_WARNING, ERROR_CODE_TIMEOUT);
    }
 //   DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL,
-   LOG_TRACE(LOG_CTX_IPC,
+   LOG_PT_TRACE(LOG_CTX_IPC,
             "Devolve resposta recebida no canal %d.", canal_id); 
    return S_OK;
 } // send_data (V1.5.0.040823)
@@ -452,7 +452,7 @@ static int clone_proc_msg (void* canal_id)
 #endif
 
 //   DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL, 
-   LOG_TRACE(LOG_CTX_IPC, "Abertura do thread de atendimento de mensagens do canal %d.", canal);
+   LOG_PT_TRACE(LOG_CTX_IPC, "Abertura do thread de atendimento de mensagens do canal %d.", canal);
    while (ipc_canais[canal].keep_running)
    {		
       timeout  = ipc_canais[canal].timeout ? ipc_canais[canal].timeout : IPCLIB_DEFAULT_TIMEOUT;
@@ -469,7 +469,7 @@ static int clone_proc_msg (void* canal_id)
                case EAGAIN:   timeout--;
                               break;
                default:       //DEBUGTRACE(TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_WARNING, 
-                              LOG_WARNING(LOG_CTX_IPC, "Saída anormal do recvfrom de comandos no canal %d (%d).", canal, errno);
+                              LOG_PT_WARN(LOG_CTX_IPC, "Saída anormal do recvfrom de comandos no canal %d (%d).", canal, errno);
                               break;
             }
          }
@@ -477,7 +477,7 @@ static int clone_proc_msg (void* canal_id)
       if (bytes>0)	//Se pacote valido, processa
       {                              
          //DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL, 
-         LOG_TRACE(LOG_CTX_IPC, "Recebeu comando no canal %d (msgid=%08X, Dim=%d, size=%d).", canal, inbuffer.msgId, inbuffer.infoDim, bytes);
+         LOG_PT_TRACE(LOG_CTX_IPC, "Recebeu comando no canal %d (msgid=%08X, Dim=%d, size=%d).", canal, inbuffer.msgId, inbuffer.infoDim, bytes);
          //envia pacote para a rotina de processamento de pacotes (definida no metodo <open_ipc>,
          //e que devera ser definida pelo utilizador
          if(ipc_canais[canal].processa_msg_handler(&inbuffer,&outbuffer) == IPC_OK)
@@ -485,30 +485,30 @@ static int clone_proc_msg (void* canal_id)
             // se o valor de retorno for ==0 entao e enviada um pacote outbuffer para 
             // a origem do pacote que veio no inbuffer
 //            DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL, 
-            LOG_TRACE(LOG_CTX_IPC, "Vai enviar resposta pelo canal %d (size=%d).", canal, outbuffer.infoDim);
+            LOG_PT_TRACE(LOG_CTX_IPC, "Vai enviar resposta pelo canal %d (size=%d).", canal, outbuffer.infoDim);
             //if(sendto(ipc_canais[canal].socket_descriptor_servidor, &outbuffer, sizeof(outbuffer), 0,
            if (sendto(ipc_canais[canal].socket_descriptor_servidor, &outbuffer, (outbuffer.infoDim)+(7*sizeof(UINT)), 0,
                    (struct sockaddr*)&socketaddr_aux, 
                    sizeof(socketaddr_aux))==-1)
             {
 //               DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_ERROR, 
-              LOG_ERR(LOG_CTX_IPC, "Nao foi possivel enviar a resposta pelo canal %d - %s ", canal, strerror(errno));
+              LOG_PT_ERR(LOG_CTX_IPC, "Nao foi possivel enviar a resposta pelo canal %d - %s ", canal, strerror(errno));
             }
             else
             {
 //               DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL, 
-               LOG_TRACE(LOG_CTX_IPC, "Enviada resposta pelo canal %d.", canal);
+               LOG_PT_TRACE(LOG_CTX_IPC, "Enviada resposta pelo canal %d.", canal);
             }
          }
          else
          {
 //            DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL, 
-            LOG_TRACE(LOG_CTX_IPC, "Nao existe resposta 'a mensagem %08X no canal %d.", inbuffer.msgId, canal);
+            LOG_PT_TRACE(LOG_CTX_IPC, "Nao existe resposta 'a mensagem %08X no canal %d.", inbuffer.msgId, canal);
          }
       }
    } //while  
 //   DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_APP, TRACE_SEVERITY_INFORMATIONAL, 
-   LOG_TRACE(LOG_CTX_IPC, "Fecho do thread de atendimento de mensagens do canal %d.",  canal);
+   LOG_PT_TRACE(LOG_CTX_IPC, "Fecho do thread de atendimento de mensagens do canal %d.",  canal);
    return S_OK;
 } // clone_proc_msg (V1.5.0.040823)
 

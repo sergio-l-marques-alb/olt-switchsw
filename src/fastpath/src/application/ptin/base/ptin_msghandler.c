@@ -49,7 +49,7 @@ static void CHMessage_runtime_meter_update(L7_uint msg_id, L7_uint32 time_delta)
 /* Macro to check infoDim consistency */
 #define CHECK_INFO_SIZE_ATLEAST(msg_st) {             \
   if (inbuffer->infoDim < sizeof(msg_st)) {  \
-    LOG_ERR(LOG_CTX_MSGHANDLER, "Data size inconsistent! Expecting at least %u bytes; Received %u bytes!", sizeof(msg_st), inbuffer->infoDim);\
+    LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Data size inconsistent! Expecting at least %u bytes; Received %u bytes!", sizeof(msg_st), inbuffer->infoDim);\
     res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE); \
     SetIPCNACK(outbuffer, res);               \
     break;                                    \
@@ -59,7 +59,7 @@ static void CHMessage_runtime_meter_update(L7_uint msg_id, L7_uint32 time_delta)
 /* Macro to check infoDim consistency */
 #define CHECK_INFO_SIZE(msg_st) {             \
   if (inbuffer->infoDim != sizeof(msg_st)) {  \
-    LOG_ERR(LOG_CTX_MSGHANDLER, "Data size inconsistent! Expecting %u bytes; Received %u bytes!", sizeof(msg_st), inbuffer->infoDim);\
+    LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Data size inconsistent! Expecting %u bytes; Received %u bytes!", sizeof(msg_st), inbuffer->infoDim);\
     res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE); \
     SetIPCNACK(outbuffer, res);               \
     break;                                    \
@@ -69,7 +69,7 @@ static void CHMessage_runtime_meter_update(L7_uint msg_id, L7_uint32 time_delta)
 /* Macro to check infoDim consistency (including modulo match) */
 #define CHECK_INFO_SIZE_MOD(msg_st) {             \
   if ( ((inbuffer->infoDim % sizeof(msg_st)) != 0)) {  \
-    LOG_ERR(LOG_CTX_MSGHANDLER, "Data size inconsistent! Expecting multiple of %u bytes; Received %u bytes", sizeof(msg_st), inbuffer->infoDim);\
+    LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Data size inconsistent! Expecting multiple of %u bytes; Received %u bytes", sizeof(msg_st), inbuffer->infoDim);\
     res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE); \
     SetIPCNACK(outbuffer, res);               \
     break;                                    \
@@ -140,13 +140,13 @@ static int msg_generic_wrd(int (*msg_generic_wrd_1struct)(ipc_msg *inbuff, ipc_m
 {
   L7_ushort16 i,n;
 
-  LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: 0x%04X", inbuff->msgId);
+  LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message received: 0x%04X", inbuff->msgId);
 
   //CHECK_INFO_SIZE_MOD(msg_ptin_pcs_prbs);
   if (inbuff->infoDim > IPCLIB_MAX_MSGSIZE     ||      inbuff->infoDim % STRUCT_SIZE_IN !=0)
   {
     seterror(outbuff, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE); //seterror(outbuff, ERROR_SEVERITY_DEBUG, HW_INVALID_MSG_SIZE);
-    LOG_ERR(LOG_CTX_MSGHANDLER, "Data size inconsistent! Expecting multiple of %u bytes; Received %u bytes", STRUCT_SIZE_IN, inbuff->infoDim);
+    LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Data size inconsistent! Expecting multiple of %u bytes; Received %u bytes", STRUCT_SIZE_IN, inbuff->infoDim);
     return(0);
   }
 
@@ -160,7 +160,7 @@ static int msg_generic_wrd(int (*msg_generic_wrd_1struct)(ipc_msg *inbuff, ipc_m
     {
      if ((*msg_generic_wrd_1struct)((void*)inbuff, (void*)outbuff, i)) {
        outbuff->flags = (IPCLIB_FLAGS_NACK);
-       LOG_ERR(LOG_CTX_MSGHANDLER, "Error WRDing data");
+       LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error WRDing data");
      }
     }
   }
@@ -175,13 +175,13 @@ static int msg_generic_wrd(int (*msg_generic_wrd_1struct)(ipc_msg *inbuff, ipc_m
     {
       if ((*msg_generic_wrd_1struct)((void*)inbuff, (void*)outbuff, i-1)) {
           outbuff->flags = (IPCLIB_FLAGS_NACK);
-          LOG_ERR(LOG_CTX_MSGHANDLER, "Error WRDing data");
+          LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error WRDing data");
       }
     }
   }
 
   outbuff->infoDim = n*STRUCT_SIZE_OUT;  //inbuff->infoDim;
-  LOG_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuff->infoDim);
+  LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuff->infoDim);
   return(0);
 }//msg_generic_wrd
 #endif //__802_1x__
@@ -233,7 +233,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
   if (inbuffer == NULL)
   {
-    LOG_WARNING(LOG_CTX_MSGHANDLER, "NULL message received!");
+    LOG_PT_WARN(LOG_CTX_MSGHANDLER, "NULL message received!");
     return SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_EMPTYMSG);
   }
 
@@ -246,14 +246,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
   /* If message is a ping, reply with PTin loading state, which can signal crash errors too */
   if (inbuffer->msgId == CCMSG_APPLICATION_IS_ALIVE)
   {
-    LOG_TRACE(LOG_CTX_MSGHANDLER,
+    LOG_PT_TRACE(LOG_CTX_MSGHANDLER,
               "Message received: CCMSG_APPLICATION_IS_ALIVE (0x%04X)", CCMSG_APPLICATION_IS_ALIVE);
 
-    LOG_TRACE(LOG_CTX_MSGHANDLER, "PTin state: %d", ptin_state);
+    LOG_PT_TRACE(LOG_CTX_MSGHANDLER, "PTin state: %d", ptin_state);
     outbuffer->infoDim = sizeof(L7_uint32);
     *((L7_uint32 *) outbuffer->info) = ptin_state;
 
-    LOG_TRACE(LOG_CTX_MSGHANDLER,
+    LOG_PT_TRACE(LOG_CTX_MSGHANDLER,
               "Message processed: response with %d bytes", outbuffer->infoDim);
 
     return IPC_OK;
@@ -262,7 +262,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
   /* PTin module is still loading or crashed ? */
   if (ptin_state != PTIN_LOADED)
   {
-    LOG_WARNING(LOG_CTX_MSGHANDLER, "IPC message cannot be processed! PTin state = %d (msgId=%u)", ptin_state, inbuffer->msgId);
+    LOG_PT_WARN(LOG_CTX_MSGHANDLER, "IPC message cannot be processed! PTin state = %d (msgId=%u)", ptin_state, inbuffer->msgId);
     res = SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_NOTALLOWED);
     SetIPCNACK(outbuffer, res);
     return IPC_OK;
@@ -275,7 +275,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     if (inbuffer == NULL)
     {
-        LOG_WARNING(LOG_CTX_MSGHANDLER, "NULL message received!");
+        LOG_PT_WARN(LOG_CTX_MSGHANDLER, "NULL message received!");
         return SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_EMPTYMSG);
     }
     printf("\n\rmsgId[%4.4x] inbuffer->info:",inbuffer->msgId);
@@ -297,9 +297,9 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_APP_CHANGE_STDOUT ************************************************/
     case CCMSG_APP_CHANGE_STDOUT:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_APP_CHANGE_STDOUT (0x%04X)", CCMSG_APP_CHANGE_STDOUT);
-      LOG_NOTICE(LOG_CTX_MSGHANDLER, "Redirecting stdout...");
+      LOG_PT_NOTICE(LOG_CTX_MSGHANDLER, "Redirecting stdout...");
 
       /* Validate message data */
       if (inbuffer->infoDim == 0)
@@ -314,8 +314,8 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       SETIPCACKOK(outbuffer);
 
-      LOG_NOTICE(LOG_CTX_MSGHANDLER, "...Stdout redirected to here :-)");
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_NOTICE(LOG_CTX_MSGHANDLER, "...Stdout redirected to here :-)");
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %"
                "d bytes", outbuffer->infoDim);
 
@@ -324,7 +324,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_APP_LOGGER_OUTPUT:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_APP_LOGGER_OUTPUT (0x%04X)", CCMSG_APP_LOGGER_OUTPUT);
 
       L7_uint8 output;
@@ -333,41 +333,41 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* If infodim is null, use stdout */
       if (inbuffer->infoDim==0)
       {
-        LOG_NOTICE(LOG_CTX_MSGHANDLER, "Redirecting logger output (0) to \"%s\"...", LOG_OUTPUT_FILE_DEFAULT);
+        LOG_PT_NOTICE(LOG_CTX_MSGHANDLER, "Redirecting logger output (0) to \"%s\"...", LOG_OUTPUT_FILE_DEFAULT);
         logger_redirect(LOG_OUTPUT_FILE, LOG_OUTPUT_FILE_DEFAULT);
         ptin_mgmd_logredirect(MGMD_LOG_FILE, LOG_OUTPUT_FILE_DEFAULT);
-        LOG_NOTICE(LOG_CTX_MSGHANDLER, "...Logger output (0) redirected to \"%s\" :-)", LOG_OUTPUT_FILE_DEFAULT);
+        LOG_PT_NOTICE(LOG_CTX_MSGHANDLER, "...Logger output (0) redirected to \"%s\" :-)", LOG_OUTPUT_FILE_DEFAULT);
       }
       /* Otherwise, use the specified filename */
       else if (inbuffer->infoDim==1 || inbuffer->info[1]=='\0')
       {
         output = LOG_OUTPUT_FILE + inbuffer->info[0];
 
-        LOG_NOTICE(LOG_CTX_MSGHANDLER, "Redirecting logger output (%u) to \"%s\"...", output, LOG_OUTPUT_FILE_DEFAULT);
+        LOG_PT_NOTICE(LOG_CTX_MSGHANDLER, "Redirecting logger output (%u) to \"%s\"...", output, LOG_OUTPUT_FILE_DEFAULT);
         logger_redirect(output, LOG_OUTPUT_FILE_DEFAULT);
         if (output == LOG_OUTPUT_FILE)
         {
           ptin_mgmd_logredirect(MGMD_LOG_FILE, LOG_OUTPUT_FILE_DEFAULT); 
         }
-        LOG_NOTICE(LOG_CTX_MSGHANDLER, "...Logger output (%u) redirected to \"%s\" :-)", output, LOG_OUTPUT_FILE_DEFAULT);
+        LOG_PT_NOTICE(LOG_CTX_MSGHANDLER, "...Logger output (%u) redirected to \"%s\" :-)", output, LOG_OUTPUT_FILE_DEFAULT);
       }
       else
       {
         output = LOG_OUTPUT_FILE + inbuffer->info[0];
         filename = (char *) &inbuffer->info[1];
 
-        LOG_NOTICE(LOG_CTX_MSGHANDLER, "Redirecting logger output (%u) to \"%s\"...", output, filename);
+        LOG_PT_NOTICE(LOG_CTX_MSGHANDLER, "Redirecting logger output (%u) to \"%s\"...", output, filename);
         logger_redirect(output, filename);
         if (output == LOG_OUTPUT_FILE)
         {
           ptin_mgmd_logredirect(MGMD_LOG_FILE, filename);
         }
-        LOG_NOTICE(LOG_CTX_MSGHANDLER, "...Logger output (%u) redirected to \"%s\" :-)", output, filename);
+        LOG_PT_NOTICE(LOG_CTX_MSGHANDLER, "...Logger output (%u) redirected to \"%s\" :-)", output, filename);
       }
 
       SETIPCACKOK(outbuffer);
 
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_APP_CHANGE_STDOUT */
@@ -376,7 +376,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_APP_SHELL_CMD_RUN ************************************************/
     case CCMSG_APP_SHELL_CMD_RUN:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_APP_SHELL_CMD_RUN (0x%04X)", CCMSG_APP_SHELL_CMD_RUN);
 
       if (inbuffer->infoDim == 0)
@@ -388,7 +388,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (ptin_msg_ShellCommand_run((L7_char8 *) &inbuffer->info[0]) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error on ptin_msg_ShellCommand_run()");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error on ptin_msg_ShellCommand_run()");
         res = SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
         SetIPCNACK(outbuffer, res);
 
@@ -396,7 +396,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_APP_SHELL_CMD_RUN */
@@ -410,7 +410,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Uplink protection command *********************************************/
     case CHMSG_ETH_UPLINK_COMMAND:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CHMSG_ETH_UPLINK_COMMAND (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE_MOD(msg_uplinkProtCmd);
@@ -425,21 +425,21 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error processing command");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error processing command");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message processed: no response necessary");
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message processed: no response necessary");
     }
     break;
 
     /* CCMSG_BOARD_SHOW *******************************************************/
     case CCMSG_BOARD_SHOW:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_BOARD_SHOW (0x%04X)", CCMSG_BOARD_SHOW);
 
       CHECK_INFO_SIZE(0);
@@ -455,7 +455,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         outbuffer->info[0] = inbuffer->info[0];
 
       outbuffer->infoDim = sizeof(msg_FWFastpathInfo);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes (present=%d)", outbuffer->infoDim,fpInfo->BoardPresent);
 
       break;  /* CCMSG_BOARD_SHOW */
@@ -465,7 +465,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ALARMS_RESET *****************************************************/
     case CCMSG_ALARMS_RESET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ALARMS_RESET (0x%04X)", CCMSG_ALARMS_RESET);
 
       CHECK_INFO_SIZE(msg_HwGenReq_t);
@@ -474,7 +474,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       ptin_msg_alarms_reset();
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ALARMS_RESET */
@@ -483,7 +483,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_APPLICATION_RESOURCES *********************************************/
     case CCMSG_APPLICATION_RESOURCES:
     {
-      LOG_TRACE(LOG_CTX_MSGHANDLER,
+      LOG_PT_TRACE(LOG_CTX_MSGHANDLER,
                 "Message received: CCMSG_APPLICATION_RESOURCES (0x%04X)", CCMSG_APPLICATION_RESOURCES);
 
       CHECK_INFO_SIZE_MOD(msg_ptin_policy_resources);
@@ -497,14 +497,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Get values */
       if ( L7_SUCCESS != (rc=ptin_msg_hw_resources_get(resources)) )
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while consulting hardware resources");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while consulting hardware resources");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_ptin_policy_resources);
-      LOG_TRACE(LOG_CTX_MSGHANDLER,
+      LOG_PT_TRACE(LOG_CTX_MSGHANDLER,
                 "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_APPLICATION_RESOURCES */
@@ -513,7 +513,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_DEFAULTS_RESET ***************************************************/
     case CCMSG_DEFAULTS_RESET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_DEFAULTS_RESET (0x%04X)", CCMSG_DEFAULTS_RESET);
 
       CHECK_INFO_SIZE(msg_HwGenReq_t);
@@ -525,7 +525,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       ptin_msg_defaults_reset(config->param);
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_DEFAULTS_RESET */
@@ -534,7 +534,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_MULTICAST_MACHINE_RESET *******************************************/
     case CCMSG_MULTICAST_MACHINE_RESET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_MULTICAST_MACHINE_RESET (0x%04X)", CCMSG_MULTICAST_MACHINE_RESET);
 
       CHECK_INFO_SIZE(msg_HwGenReq_t);
@@ -547,14 +547,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Error? */
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
       /* Success */
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
       break;  /* CCMSG_DEFAULTS_RESET */
     }
@@ -562,7 +562,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_TYPEB_PROT_SWITCH *******************************************/
     case CCMSG_TYPEB_PROT_SWITCH_NOTIFY:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_TYPEB_PROT_SWITCH_NOTIFY (0x%04X)", CCMSG_TYPEB_PROT_SWITCH_NOTIFY);
 
       CHECK_INFO_SIZE(msg_HwTypeBProtSwitchNotify_t);
@@ -575,21 +575,21 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Error? */
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
       /* Success */
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
       break;  /* CCMSG_DEFAULTS_RESET */
     }
 
     case CCMSG_TYPEB_PROT_INTF_CONFIG:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_TYPEB_PROT_INTF_CONFIG (0x%04X)", CCMSG_TYPEB_PROT_INTF_CONFIG);
 
       CHECK_INFO_SIZE(msg_HwTypeBProtIntfConfig_t);
@@ -602,21 +602,21 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Error? */
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
       /* Success */
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
       break;  /* CCMSG_DEFAULTS_RESET */
     }
 
     case CCMSG_TYPEB_PROT_SWITCH:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_TYPEB_PROT_SWITCH (0x%04X)", CCMSG_TYPEB_PROT_SWITCH);
 
       CHECK_INFO_SIZE(msg_HwTypeBprot_t);
@@ -629,21 +629,21 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Error? */
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
       /* Success */
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
       break;  /* CCMSG_DEFAULTS_RESET */
     }
 
     case CCMSG_HW_BOARD_ACTION:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_HW_BOARD_ACTION (0x%04X)", CCMSG_HW_BOARD_ACTION);
 
       CHECK_INFO_SIZE(msg_HwGenReq_t);
@@ -656,21 +656,21 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Error? */
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
       /* Success */
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
       break;  /* CCMSG_HW_BOARD_ACTION */
     }
 
     case CCMSG_HW_LINK_ACTION:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_HW_LINK_ACTION (0x%04X)", CCMSG_HW_LINK_ACTION);
 
       CHECK_INFO_SIZE(msg_HwGenReq_t);
@@ -683,14 +683,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Error? */
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
       /* Success */
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
       break;  /* CCMSG_HW_LINK_ACTION */
     }
@@ -701,7 +701,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_SLOT_MAP_MODE_GET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_SLOT_MAP_MODE_GET (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE_ATLEAST(L7_uint32);
@@ -715,21 +715,21 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error reading slot map");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error reading slot map");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_slotModeCfg_t);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
 
     case CCMSG_SLOT_MAP_MODE_VALIDATE:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_SLOT_MAP_MODE_VALIDATE (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE_MOD(msg_slotModeCfg_t);
@@ -741,21 +741,21 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
 
     case CCMSG_SLOT_MAP_MODE_APPLY:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_SLOT_MAP_MODE_APPLY (0x%04X)", inbuffer->msgId);
 
       //CHECK_INFO_SIZE_MOD(msg_slotModeCfg_t);
@@ -767,21 +767,21 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
 
     case CCMSG_HW_INTF_INFO_GET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_HW_INTF_INFO_GET (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE_ATLEAST(L7_uint32);
@@ -795,14 +795,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error interface status");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error interface status");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_HwIntfInfo_t);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -813,7 +813,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_ETH_PHY_STATUS_GET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_PHY_STATUS_GET (0x%04X)", CCMSG_ETH_PHY_STATUS_GET);
 
       CHECK_INFO_SIZE_ATLEAST(L7_uint32);
@@ -825,10 +825,10 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       msg_HWEthPhyStatus_t *pout    = (msg_HWEthPhyStatus_t *) outbuffer->info;
 
       /* Output info read */
-      LOG_DEBUG(LOG_CTX_MSG, "Requesting...");
-      LOG_DEBUG(LOG_CTX_MSG, " SlotId    = %u", pin->SlotId);
-      LOG_DEBUG(LOG_CTX_MSG, " BoardType = %u", pin->BoardType );
-      LOG_DEBUG(LOG_CTX_MSG, " PortId    = %u", pin->Port );
+      LOG_PT_DEBUG(LOG_CTX_MSG, "Requesting...");
+      LOG_PT_DEBUG(LOG_CTX_MSG, " SlotId    = %u", pin->SlotId);
+      LOG_PT_DEBUG(LOG_CTX_MSG, " BoardType = %u", pin->BoardType );
+      LOG_PT_DEBUG(LOG_CTX_MSG, " PortId    = %u", pin->Port );
 
       /* Single port ? */
       if (pin->Port < max(PTIN_SYSTEM_N_PONS, PTIN_SYSTEM_N_ETH))
@@ -837,7 +837,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
         if (ptin_msg_PhyStatus_get(pout) != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting port status (port# %u)", pin->Port);
+          LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while getting port status (port# %u)", pin->Port);
           res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
           SetIPCNACK(outbuffer, res);
           break;
@@ -860,7 +860,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         /* Error? */
         if (i < PTIN_SYSTEM_N_ETH)
         {
-          LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting port Status (port# %u)", pin->Port);
+          LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while getting port Status (port# %u)", pin->Port);
           res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
           SetIPCNACK(outbuffer, res);
           break;
@@ -869,13 +869,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         outbuffer->infoDim = sizeof(msg_HWEthPhyStatus_t) * i;
       }
       #else
-      LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting port Status (port# %u)", pin->Port);
+      LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while getting port Status (port# %u)", pin->Port);
       res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
       SetIPCNACK(outbuffer, res);
       break;
       #endif
 
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_PHY_STATUS_GET */
@@ -884,7 +884,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_PHY_CONFIG_SET ***********************************************/
     case CCMSG_ETH_PHY_CONFIG_SET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_PHY_CONFIG_SET (0x%04X)", CCMSG_ETH_PHY_CONFIG_SET);
 
       CHECK_INFO_SIZE_MOD(msg_HWEthPhyConf_t);
@@ -895,7 +895,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Validate info size */
       if ( (inbuffer->infoDim < sizeof(msg_HWEthPhyConf_t)) || ((inbuffer->infoDim % sizeof(msg_HWEthPhyConf_t)) != 0) )
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Data size inconsistent! (%u)", inbuffer->infoDim);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Data size inconsistent! (%u)", inbuffer->infoDim);
         res = SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE);
         SetIPCNACK(outbuffer, res);
         break;
@@ -912,14 +912,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (i != n)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while setting ports configuration (port# %u)", i);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while setting ports configuration (port# %u)", i);
         res = SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_PHY_CONFIG_SET */
@@ -929,7 +929,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_PHY_CONFIG_GET ***********************************************/
     case CCMSG_ETH_PHY_CONFIG_GET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_PHY_CONFIG_GET (0x%04X)", CCMSG_ETH_PHY_CONFIG_GET);
 
       CHECK_INFO_SIZE(msg_HwGenReq_t);
@@ -952,7 +952,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
         if (ptin_msg_PhyConfig_get(pout) != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting port configuration (port# %u)", pin->Port);
+          LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while getting port configuration (port# %u)", pin->Port);
           res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
           SetIPCNACK(outbuffer, res);
           break;
@@ -975,7 +975,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         /* Error? */
         if (i != PTIN_SYSTEM_N_PORTS)
         {
-          LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting port configuration (port# %u)", pin->Port);
+          LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while getting port configuration (port# %u)", pin->Port);
           res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
           SetIPCNACK(outbuffer, res);
           break;
@@ -984,7 +984,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         outbuffer->infoDim = sizeof(msg_HWEthPhyConf_t) * i;
       }
 
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_PHY_CONFIG_GET */
@@ -994,7 +994,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_PHY_STATE_GET ************************************************/
     case CCMSG_ETH_PHY_STATE_GET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_PHY_STATE_GET (0x%04X)", CCMSG_ETH_PHY_STATE_GET);
 
       CHECK_INFO_SIZE(msg_HwGenReq_t);
@@ -1017,7 +1017,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
         if (ptin_msg_PhyState_get(pout) != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting port state (port# %u)", pin->Port);
+          LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while getting port state (port# %u)", pin->Port);
           res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
           SetIPCNACK(outbuffer, res);
           break;
@@ -1040,7 +1040,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         /* Error? */
         if (i != PTIN_SYSTEM_N_PORTS)
         {
-          LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting port state (port# %u)", pin->Port);
+          LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while getting port state (port# %u)", pin->Port);
           res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
           SetIPCNACK(outbuffer, res);
           break;
@@ -1049,7 +1049,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         outbuffer->infoDim = sizeof(msg_HWEthPhyState_t) * i;
       }
 
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_PHY_STATE_GET */
@@ -1058,7 +1058,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_PHY_ACTIVITY_GET ************************************************/
     case CCMSG_ETH_PHY_ACTIVITY_GET:
     {
-      LOG_TRACE(LOG_CTX_MSGHANDLER,
+      LOG_PT_TRACE(LOG_CTX_MSGHANDLER,
                 "Message received: CCMSG_ETH_PHY_ACTIVITY_GET (0x%04X)", CCMSG_ETH_PHY_ACTIVITY_GET);
 
       CHECK_INFO_SIZE(msg_HWEthPhyActivity_t);
@@ -1071,7 +1071,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (ptin_msg_PhyActivity_get(pout) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting port activity (slot=%u/%u)", pin->intf.slot, pin->intf.port);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while getting port activity (slot=%u/%u)", pin->intf.slot, pin->intf.port);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
         SetIPCNACK(outbuffer, res);
         break;
@@ -1079,7 +1079,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       outbuffer->infoDim = sizeof(msg_HWEthPhyActivity_t);
 
-      LOG_TRACE(LOG_CTX_MSGHANDLER,
+      LOG_PT_TRACE(LOG_CTX_MSGHANDLER,
                 "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_PHY_STATE_GET */
@@ -1092,7 +1092,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_PHY_COUNTERS_GET *********************************************/
     case CCMSG_ETH_PHY_COUNTERS_GET:
     {
-      LOG_TRACE(LOG_CTX_MSGHANDLER,
+      LOG_PT_TRACE(LOG_CTX_MSGHANDLER,
                 "Message received: CCMSG_ETH_PHY_COUNTERS_GET (0x%04X)", CCMSG_ETH_PHY_COUNTERS_GET);
 
       CHECK_INFO_SIZE_MOD(msg_HwGenReq_t);
@@ -1107,14 +1107,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Get values */
       if (L7_SUCCESS != ptin_msg_PhyCounters_read(request,portStats,nElems))
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting counters (port# %u)", portStats->Port);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while getting counters (port# %u)", portStats->Port);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_HWEthRFC2819_PortStatistics_t)*nElems;
-      LOG_TRACE(LOG_CTX_MSGHANDLER,
+      LOG_PT_TRACE(LOG_CTX_MSGHANDLER,
                 "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_PHY_COUNTERS_GET */
@@ -1124,7 +1124,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_PHY_COUNTERS_CLEAR *******************************************/
     case CCMSG_ETH_PHY_COUNTERS_CLEAR:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_PHY_COUNTERS_CLEAR (0x%04X)", CCMSG_ETH_PHY_COUNTERS_CLEAR);
 
       CHECK_INFO_SIZE(msg_HWEthRFC2819_PortStatistics_t);
@@ -1135,14 +1135,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Execute command */
       if (L7_SUCCESS != ptin_msg_PhyCounters_clear(portStats))
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while clearing counters (port# %u)", portStats->Port);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while clearing counters (port# %u)", portStats->Port);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                 "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break; /* CCMSG_ETH_PHY_COUNTERS_CLEAR */
@@ -1155,7 +1155,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Set Port type (MEF extension) configuration */
     case CCMSG_ETH_PORT_EXT_SET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_PORT_EXT_SET (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE_MOD(msg_HWPortExt_t);
@@ -1168,14 +1168,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -1183,7 +1183,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Get Port type (MEF extension) configuration */
     case CCMSG_ETH_PORT_EXT_GET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_PORT_TYPE_GET (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_HWPortExt_t);
@@ -1199,14 +1199,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error reading data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error reading data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_HWPortExt_t)*nElems;
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -1214,7 +1214,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Set MAC address */
     case CCMSG_ETH_PORT_MAC_SET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_PORT_MAC_SET (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE_MOD(msg_HWPortMac_t);
@@ -1227,14 +1227,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -1242,7 +1242,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Get MAC address */
     case CCMSG_ETH_PORT_MAC_GET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_PORT_MAC_GET (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_HWPortMac_t);
@@ -1258,14 +1258,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error reading data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error reading data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_HWPortMac_t)*nElems;
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -1277,7 +1277,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Get CoS configuration */
     case CCMSG_ETH_PORT_COS_GET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_PORT_COS_GET (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_QoSConfiguration_t);
@@ -1292,14 +1292,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error getting data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error getting data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_QoSConfiguration_t);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -1307,7 +1307,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Set new CoS configuration */
     case CCMSG_ETH_PORT_COS_SET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_PORT_COS_SET (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_QoSConfiguration_t);
@@ -1320,14 +1320,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -1335,7 +1335,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Get CoS configuration */
     case CCMSG_ETH_PORT_COS2_GET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_PORT_COS2_GET (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_QoSConfiguration2_t);
@@ -1350,14 +1350,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error getting data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error getting data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_QoSConfiguration2_t);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -1365,7 +1365,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Set new CoS configuration */
     case CCMSG_ETH_PORT_COS2_SET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_PORT_COS2_SET (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_QoSConfiguration2_t);
@@ -1378,14 +1378,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -1393,7 +1393,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Get CoS configuration */
     case CCMSG_ETH_PORT_COS3_GET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_PORT_COS3_GET (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_QoSConfiguration3_t);
@@ -1408,14 +1408,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error getting data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error getting data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_QoSConfiguration3_t);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -1423,7 +1423,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Set new CoS configuration */
     case CCMSG_ETH_PORT_COS3_SET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_PORT_COS3_SET (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_QoSConfiguration3_t);
@@ -1436,14 +1436,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -1455,7 +1455,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_LACP_LAG_GET *************************************************/
     case CCMSG_ETH_LACP_LAG_GET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_LACP_LAG_GET (0x%04X)", CCMSG_ETH_LACP_LAG_GET);
 
       CHECK_INFO_SIZE(msg_LACPLagInfo_t);
@@ -1469,14 +1469,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Execute command */
       if (L7_SUCCESS != ptin_msg_Lag_get(lagInfo, &nElems))
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting LAGs info");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while getting LAGs info");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_LACPLagInfo_t) * nElems;
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_LACP_LAG_GET */
@@ -1486,7 +1486,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_LACP_LAG_ADD *************************************************/
     case CCMSG_ETH_LACP_LAG_ADD:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_LACP_LAG_ADD (0x%04X)", CCMSG_ETH_LACP_LAG_ADD);
 
       CHECK_INFO_SIZE(msg_LACPLagInfo_t);
@@ -1497,14 +1497,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Execute command */
       if (L7_SUCCESS != ptin_msg_Lag_create(lagInfo))
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while creating a LAG");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while creating a LAG");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_LACP_LAG_ADD */
@@ -1514,7 +1514,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_LACP_LAG_REMOVE **********************************************/
     case CCMSG_ETH_LACP_LAG_REMOVE:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_LACP_LAG_REMOVE (0x%04X)", CCMSG_ETH_LACP_LAG_REMOVE);
 
       CHECK_INFO_SIZE(msg_LACPLagInfo_t);
@@ -1525,14 +1525,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Execute command */
       if (L7_SUCCESS != ptin_msg_Lag_destroy(lagInfo))
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while destroying a LAG");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while destroying a LAG");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_LACP_LAG_REMOVE */
@@ -1542,7 +1542,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_LACP_LAG_STATUS_GET ******************************************/
     case CCMSG_ETH_LACP_LAG_STATUS_GET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_LACP_LAG_STATUS_GET (0x%04X)", CCMSG_ETH_LACP_LAG_STATUS_GET);
 
       CHECK_INFO_SIZE(msg_LACPLagStatus_t);
@@ -1556,14 +1556,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Execute command */
       if (L7_SUCCESS != ptin_msg_LagStatus_get(lagStatus, &nElems))
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting LAGs status");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while getting LAGs status");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_LACPLagStatus_t) * nElems;
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_LACP_LAG_STATUS_GET */
@@ -1573,7 +1573,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_LACP_ADMINSTATE_SET ******************************************/
     case CCMSG_ETH_LACP_ADMINSTATE_SET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_LACP_ADMINSTATE_SET (0x%04X)", CCMSG_ETH_LACP_ADMINSTATE_SET);
 
       CHECK_INFO_SIZE_MOD(msg_LACPAdminState_t);
@@ -1584,14 +1584,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Execute command */
       if (L7_SUCCESS != ptin_msg_LACPAdminState_set(lagAdminState, nElems))
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while setting LACP admin state");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while setting LACP admin state");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_LACP_ADMINSTATE_SET */
@@ -1601,7 +1601,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_LACP_ADMINSTATE_GET ******************************************/
     case CCMSG_ETH_LACP_ADMINSTATE_GET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_LACP_ADMINSTATE_GET (0x%04X)", CCMSG_ETH_LACP_ADMINSTATE_GET);
 
       CHECK_INFO_SIZE(msg_LACPAdminState_t);
@@ -1615,14 +1615,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Execute command */
       if (L7_SUCCESS != ptin_msg_LACPAdminState_get(lagAdminState, &nElems))
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting LACP admin state");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while getting LACP admin state");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_LACPAdminState_t) * nElems;
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_LACP_ADMINSTATE_GET */
@@ -1632,7 +1632,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_LACP_STATS_GET ***********************************************/
     case CCMSG_ETH_LACP_STATS_GET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_LACP_STATS_GET (0x%04X)", CCMSG_ETH_LACP_STATS_GET);
 
       CHECK_INFO_SIZE(msg_LACPStats_t);
@@ -1647,14 +1647,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Execute command */
       if (L7_SUCCESS != ptin_msg_LACPStats_get(lagStats, &nElems))
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting LACP stats");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while getting LACP stats");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_LACPStats_t) * nElems;
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_LACP_STATS_GET */
@@ -1664,7 +1664,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_LACP_STATS_CLEAR *********************************************/
     case CCMSG_ETH_LACP_STATS_CLEAR:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_LACP_STATS_CLEAR (0x%04X)", CCMSG_ETH_LACP_STATS_CLEAR);
 
       CHECK_INFO_SIZE(msg_LACPStats_t);
@@ -1675,14 +1675,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Execute command */
       if (L7_SUCCESS != ptin_msg_LACPStats_clear(lagStats))
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while clearing LACP stats");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while clearing LACP stats");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_LACP_STATS_CLEAR */
@@ -1694,13 +1694,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 #if (PTIN_BOARD_IS_MATRIX)
     case CCMSG_ETH_LACP_MATRIXES_SYNC2:
     {
-        LOG_TRACE(LOG_CTX_MSGHANDLER,
+        LOG_PT_TRACE(LOG_CTX_MSGHANDLER,
                  "Message received: CCMSG_ETH_LACP_MATRIXES_SYNC2 (0x%04X)", CCMSG_ETH_LACP_MATRIXES_SYNC2);
 
         rx_dot3ad_matrix_sync2_t(inbuffer->info, inbuffer->infoDim);
 
         outbuffer->infoDim = 1;
-        LOG_TRACE(LOG_CTX_MSGHANDLER,
+        LOG_PT_TRACE(LOG_CTX_MSGHANDLER,
                  "Message processed: response with %d bytes", outbuffer->infoDim);
       break;
     }
@@ -1712,7 +1712,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* L2 Aging get */
     case CCMSG_ETH_SWITCH_CONFIG_GET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_SWITCH_CONFIG_GET (0x%04X)", CCMSG_ETH_SWITCH_CONFIG_GET);
       CHECK_INFO_SIZE(msg_switch_config_t);
 
@@ -1724,14 +1724,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting config");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while getting config");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_HwEthMef10Evc_t);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -1739,7 +1739,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* L2 Aging set */
     case CCMSG_ETH_SWITCH_CONFIG_SET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_SWITCH_CONFIG_SET (0x%04X)", CCMSG_ETH_SWITCH_CONFIG_SET);
       CHECK_INFO_SIZE(msg_switch_config_t);
 
@@ -1750,14 +1750,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while setting config");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while setting config");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -1766,7 +1766,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     case CCMSG_ETH_MAC_TABLE_SHOW:
     case CCMSG_ETH_MAC_TABLE_SHOW2:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_MAC_TABLE_SHOW (0x%04X)", inbuffer->msgId);
       CHECK_INFO_SIZE(msg_switch_mac_intro_t);
 
@@ -1778,14 +1778,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting MAC list");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while getting MAC list");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_switch_mac_table_t);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -1793,7 +1793,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Remove an entry of the L2 table */
     case CCMSG_ETH_MAC_ENTRY_REMOVE:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_MAC_ENTRY_REMOVE (0x%04X)", CCMSG_ETH_MAC_ENTRY_REMOVE);
       CHECK_INFO_SIZE(msg_switch_mac_table_entry_t);
 
@@ -1805,14 +1805,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while removing MAC");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while removing MAC");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -1820,7 +1820,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Add an entry to the L2 table */
     case CCMSG_ETH_MAC_ENTRY_ADD:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_MAC_ENTRY_ADD (0x%04X)", CCMSG_ETH_MAC_ENTRY_ADD);
       CHECK_INFO_SIZE(msg_switch_mac_table_entry_t);
 
@@ -1832,14 +1832,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while adding MAC");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while adding MAC");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -1850,7 +1850,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Dynamic ARP Inspection */
     case CCMSG_ETH_DAI_GLOBAL_CONFIG:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_DAI_GLOBAL_CONFIG (0x%04X)", CCMSG_ETH_DAI_GLOBAL_CONFIG);
       CHECK_INFO_SIZE(msg_dai_global_settings_t);
 
@@ -1861,21 +1861,21 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while setting config");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while setting config");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
 
     case CCMSG_ETH_DAI_INTF_CONFIG:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_DAI_INTF_CONFIG (0x%04X)", CCMSG_ETH_DAI_INTF_CONFIG);
       CHECK_INFO_SIZE_MOD(msg_dai_intf_settings_t);
 
@@ -1887,21 +1887,21 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while setting config");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while setting config");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
 
     case CCMSG_ETH_DAI_VLAN_CONFIG:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_DAI_VLAN_CONFIG (0x%04X)", CCMSG_ETH_DAI_VLAN_CONFIG);
       CHECK_INFO_SIZE_MOD(msg_dai_vlan_settings_t);
 
@@ -1913,21 +1913,21 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while setting config");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while setting config");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
 
     case CCMSG_ETH_DAI_STATISTICS:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_DAI_STATISTICS (0x%04X)", CCMSG_ETH_DAI_STATISTICS);
       CHECK_INFO_SIZE_MOD(msg_dai_statistics_t);
 
@@ -1942,7 +1942,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while setting config");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while setting config");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
@@ -1950,7 +1950,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       outbuffer->infoDim = sizeof(msg_dai_statistics_t)*nElems;
 
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -1962,7 +1962,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_EVC_GET ******************************************************/
     case CCMSG_ETH_EVC_GET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_EVC_GET (0x%04X)", CCMSG_ETH_EVC_GET);
   
       CHECK_INFO_SIZE(msg_HwEthMef10Evc_t);
@@ -1975,14 +1975,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Execute command */
       if (L7_SUCCESS != ptin_msg_EVC_get(evcConf))
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting EVC# %u config", evcConf->id);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while getting EVC# %u config", evcConf->id);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_HwEthMef10Evc_t);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_EVC_GET */
@@ -1992,7 +1992,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_EVC_ADD ******************************************************/
     case CCMSG_ETH_EVC_ADD:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_EVC_ADD (0x%04X)", CCMSG_ETH_EVC_ADD);
 
       CHECK_INFO_SIZE(msg_HwEthMef10Evc_t);
@@ -2005,14 +2005,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while creating EVC# %u", evcConf->id);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while creating EVC# %u", evcConf->id);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_EVC_ADD */
@@ -2021,7 +2021,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_EVC_REMOVE ***************************************************/
     case CCMSG_ETH_EVC_REMOVE:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_EVC_REMOVE (0x%04X)", CCMSG_ETH_EVC_REMOVE);
 
       CHECK_INFO_SIZE_MOD(msg_HwEthMef10EvcRemove_t);
@@ -2034,14 +2034,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while deleting EVCs");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while deleting EVCs");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_EVC_REMOVE */
@@ -2050,7 +2050,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_EVC_PORT_ADD ******************************************************/
     case CCMSG_ETH_EVC_PORT_ADD:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_EVC_PORT_ADD (0x%04X)", CCMSG_ETH_EVC_PORT_ADD);
 
       CHECK_INFO_SIZE_MOD(msg_HWevcPort_t);
@@ -2064,13 +2064,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       if (L7_SUCCESS != rc)
       {       
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while adding port to EVC [res:0x%x]", res);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while adding port to EVC [res:0x%x]", res);
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_EVC_PORT_ADD */
@@ -2079,7 +2079,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_EVC_PORT_REMOVE ***************************************************/
     case CCMSG_ETH_EVC_PORT_REMOVE:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_EVC_PORT_REMOVE (0x%04X)", CCMSG_ETH_EVC_PORT_REMOVE);
 
       CHECK_INFO_SIZE_MOD(msg_HWevcPort_t);
@@ -2093,13 +2093,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       if (L7_SUCCESS != rc)
       {        
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while adding port to EVC [res:0x%x]", res);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while adding port to EVC [res:0x%x]", res);
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_EVC_PORT_REMOVE */
@@ -2108,7 +2108,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_EVC_OPTIONS_SET *************************************************/
     case CCMSG_ETH_EVC_OPTIONS_SET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_EVC_OPTIONS_SET (0x%04X)", CCMSG_ETH_EVC_OPTIONS_SET);
 
       CHECK_INFO_SIZE_MOD(msg_HwEthMef10EvcOptions_t);
@@ -2121,14 +2121,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while reconfiguring EVC# %u", evcOptions->id);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while reconfiguring EVC# %u", evcOptions->id);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_EVC_ADD */
@@ -2137,7 +2137,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_EVC_BRIDGE_ADD ***********************************************/
     case CCMSG_ETH_EVC_BRIDGE_ADD:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_EVC_BRIDGE_ADD (0x%04X)", CCMSG_ETH_EVC_BRIDGE_ADD);
 
       CHECK_INFO_SIZE(msg_HwEthEvcBridge_t);
@@ -2150,14 +2150,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while adding a bridge to EVC# %u", evcBridge->evcId);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while adding a bridge to EVC# %u", evcBridge->evcId);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_EVC_BRIDGE_ADD */
@@ -2167,7 +2167,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_EVC_BRIDGE_REMOVE ********************************************/
     case CCMSG_ETH_EVC_BRIDGE_REMOVE:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_EVC_BRIDGE_REMOVE (0x%04X)", CCMSG_ETH_EVC_BRIDGE_REMOVE);
 
       CHECK_INFO_SIZE(msg_HwEthEvcBridge_t);
@@ -2180,14 +2180,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while removing a bridge to EVC# %u", evcBridge->evcId);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while removing a bridge to EVC# %u", evcBridge->evcId);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_EVC_BRIDGE_REMOVE */
@@ -2196,7 +2196,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_EVC_FLOW_ADD ***********************************************/
     case CCMSG_ETH_EVC_FLOW_ADD:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_EVC_FLOW_ADD (0x%04X)", CCMSG_ETH_EVC_FLOW_ADD);
 
       CHECK_INFO_SIZE(msg_HwEthEvcFlow_t);
@@ -2209,14 +2209,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while adding a flow to eEVC# %u", evcFlow->evcId);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while adding a flow to eEVC# %u", evcFlow->evcId);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_EVC_FLOW_ADD */
@@ -2225,7 +2225,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_EVC_FLOW_REMOVE ********************************************/
     case CCMSG_ETH_EVC_FLOW_REMOVE:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_EVC_FLOW_REMOVE (0x%04X)", CCMSG_ETH_EVC_FLOW_REMOVE);
 
       CHECK_INFO_SIZE(msg_HwEthEvcFlow_t);
@@ -2238,14 +2238,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while removing a flow from eEVC# %u", evcFlow->evcId);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while removing a flow from eEVC# %u", evcFlow->evcId);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_EVC_BRIDGE_REMOVE */
@@ -2254,7 +2254,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Add vlan to be flooded */
     case CCMSG_ETH_EVC_FLOOD_VLAN_ADD:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_EVC_FLOOD_VLAN_ADD (0x%04X)", CCMSG_ETH_EVC_FLOOD_VLAN_ADD);
 
       CHECK_INFO_SIZE_MOD(msg_HwEthEvcFloodVlan_t);
@@ -2268,14 +2268,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Execute command */
       if (L7_SUCCESS != ptin_msg_EvcFloodVlan_add(evcFlood, n_clients))
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while adding a flood vlan to EVC# %u", evcFlood->evcId);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while adding a flood vlan to EVC# %u", evcFlood->evcId);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_EVC_FLOOD_VLAN_ADD */
@@ -2284,7 +2284,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Remove vlan to be flooded */
     case CCMSG_ETH_EVC_FLOOD_VLAN_REMOVE:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_EVC_FLOOD_VLAN_REMOVE (0x%04X)", CCMSG_ETH_EVC_FLOOD_VLAN_REMOVE);
 
       CHECK_INFO_SIZE_MOD(msg_HwEthEvcFloodVlan_t);
@@ -2298,14 +2298,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Execute command */
       if (L7_SUCCESS != ptin_msg_EvcFloodVlan_remove(evcFlood, n_clients))
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while removing a flood vlan to EVC# %u", evcFlood->evcId);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while removing a flood vlan to EVC# %u", evcFlood->evcId);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_EVC_FLOOD_VLAN_ADD */
@@ -2318,7 +2318,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_EVC_COUNTERS_GET *********************************************/
     case CCMSG_ETH_EVC_COUNTERS_GET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_EVC_COUNTERS_GET (0x%04X)", CCMSG_ETH_EVC_COUNTERS_GET);
 
       CHECK_INFO_SIZE(msg_evcStats_t);
@@ -2334,14 +2334,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while reading EVC stats");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while reading EVC stats");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_evcStats_t);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_EVC_COUNTERS_GET */
@@ -2351,7 +2351,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_EVC_COUNTERS_ADD *********************************************/
     case CCMSG_ETH_EVC_COUNTERS_ADD:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_EVC_COUNTERS_ADD (0x%04X)", CCMSG_ETH_EVC_COUNTERS_ADD);
 
       CHECK_INFO_SIZE(msg_evcStats_t);
@@ -2364,14 +2364,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while adding EVC stats");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while adding EVC stats");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_EVC_COUNTERS_ADD */
@@ -2380,7 +2380,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_EVC_COUNTERS_REMOVE ******************************************/
     case CCMSG_ETH_EVC_COUNTERS_REMOVE:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_EVC_COUNTERS_REMOVE (0x%04X)", CCMSG_ETH_EVC_COUNTERS_REMOVE);
 
       CHECK_INFO_SIZE(msg_evcStats_t);
@@ -2393,14 +2393,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while removing EVC stats");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while removing EVC stats");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_EVC_COUNTERS_REMOVE */
@@ -2414,7 +2414,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_BW_PROFILE_GET ***********************************************/
     case CCMSG_ETH_BW_PROFILE_GET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_BW_PROFILE_GET (0x%04X)", CCMSG_ETH_BW_PROFILE_GET);
 
       CHECK_INFO_SIZE(msg_HwEthBwProfile_t);
@@ -2430,14 +2430,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting BW profile");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while getting BW profile");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_HwEthBwProfile_t);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_BW_PROFILE_GET */
@@ -2448,7 +2448,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     case CCMSG_ETH_BW_PROFILE_SET:
     case CCMSG_ETH_BW_PROFILE_SET_II:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_BW_PROFILE_SET (0x%04X)", CCMSG_ETH_BW_PROFILE_SET);
 
       if (CCMSG_ETH_BW_PROFILE_SET==inbuffer->msgId)    CHECK_INFO_SIZE(msg_HwEthBwProfile_t)
@@ -2462,14 +2462,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while setting BW profile");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while setting BW profile");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_BW_PROFILE_SET */
@@ -2480,7 +2480,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     case CCMSG_ETH_BW_PROFILE_DELETE:
     case CCMSG_ETH_BW_PROFILE_DELETE_II:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_BW_PROFILE_DELETE (0x%04X)", CCMSG_ETH_BW_PROFILE_DELETE);
 
       if (CCMSG_ETH_BW_PROFILE_DELETE==inbuffer->msgId) CHECK_INFO_SIZE(msg_HwEthBwProfile_t)
@@ -2494,14 +2494,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Execute command */
       if ( L7_SUCCESS != rc )
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while removing BW profile");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while removing BW profile");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_BW_PROFILE_DELETE */
@@ -2510,7 +2510,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_STORM_CONTROL_GET ***********************************************/
     case CCMSG_ETH_STORM_CONTROL_GET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_STORM_CONTROL_GET (0x%04X)", CCMSG_ETH_STORM_CONTROL_GET);
 
       CHECK_INFO_SIZE(msg_HwEthStormControl_t);
@@ -2524,14 +2524,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Execute command */
       if (L7_SUCCESS != ptin_msg_stormControl_get(stormControl_out))
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting Storm Control profile");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while getting Storm Control profile");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_HwEthStormControl_t);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_STORM_CONTROL_GET */
@@ -2540,7 +2540,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_STORM_CONTROL_SET ***********************************************/
     case CCMSG_ETH_STORM_CONTROL_SET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_STORM_CONTROL_SET (0x%04X)", CCMSG_ETH_STORM_CONTROL_SET);
 
       CHECK_INFO_SIZE(msg_HwEthStormControl_t);
@@ -2551,14 +2551,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Execute command */
       if (L7_SUCCESS != ptin_msg_stormControl_set(stormControl))
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while setting Storm Control profile");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while setting Storm Control profile");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_STORM_CONTROL_SET */
@@ -2567,7 +2567,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_STORM_CONTROL_RESET *********************************************/
     case CCMSG_ETH_STORM_CONTROL_RESET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_STORM_CONTROL_RESET (0x%04X)", CCMSG_ETH_STORM_CONTROL_RESET);
 
       CHECK_INFO_SIZE(msg_HwEthStormControl_t);
@@ -2578,14 +2578,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Execute command */
       if (L7_SUCCESS != ptin_msg_stormControl_reset(stormControl))
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while resetting Storm Control profile");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while resetting Storm Control profile");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_STORM_CONTROL_RESET */
@@ -2594,7 +2594,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_STORM_CONTROL_CLEAR ********************************************/
     case CCMSG_ETH_STORM_CONTROL_CLEAR:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_STORM_CONTROL_CLEAR (0x%04X)", CCMSG_ETH_STORM_CONTROL_CLEAR);
 
       CHECK_INFO_SIZE(msg_HwEthStormControl_t);
@@ -2607,14 +2607,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Execute command */
       if ( L7_SUCCESS != rc )
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while clearing Storm Control profile");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while clearing Storm Control profile");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_BW_PROFILE_DELETE */
@@ -2623,7 +2623,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_STORMCONTROL2_GET ***********************************************/
     case CCMSG_ETH_STORMCONTROL2_GET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_STORMCONTROL2_GET (0x%04X)", CCMSG_ETH_STORMCONTROL2_GET);
 
       CHECK_INFO_SIZE(msg_HwEthStormControl2_t);
@@ -2637,14 +2637,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Execute command */
       if (L7_SUCCESS != ptin_msg_stormControl2_get(stormControl_out))
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting StormControl2 profile");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while getting StormControl2 profile");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_HwEthStormControl2_t);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_STORMCONTROL2_GET */
@@ -2653,7 +2653,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_STORMCONTROL2_SET ***********************************************/
     case CCMSG_ETH_STORMCONTROL2_SET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_STORMCONTROL2_SET (0x%04X)", CCMSG_ETH_STORMCONTROL2_SET);
 
       CHECK_INFO_SIZE(msg_HwEthStormControl2_t);
@@ -2664,14 +2664,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Execute command */
       if (L7_SUCCESS != ptin_msg_stormControl2_set(stormControl))
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while setting StormControl2 profile");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while setting StormControl2 profile");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_STORMCONTROL2_SET */
@@ -2684,7 +2684,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_NTW_CONNECTIVITY_GET *****************************************/
     case CCMSG_ETH_NTW_CONNECTIVITY_GET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_NTW_CONNECTIVITY_GET (0x%04X)", CCMSG_ETH_NTW_CONNECTIVITY_GET);
 
       CHECK_INFO_SIZE(msg_NtwConnectivity_t);
@@ -2697,14 +2697,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Execute command */
       if (L7_SUCCESS != ptin_msg_ntw_connectivity_get(ntwConn))
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting Network Connectivity config");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while getting Network Connectivity config");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_NtwConnectivity_t);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_NTW_CONNECTIVITY_GET */
@@ -2713,7 +2713,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_NTW_CONNECTIVITY_SET *****************************************/
     case CCMSG_ETH_NTW_CONNECTIVITY_SET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_NTW_CONNECTIVITY_SET (0x%04X)", CCMSG_ETH_NTW_CONNECTIVITY_SET);
 
       CHECK_INFO_SIZE(msg_NtwConnectivity_t);
@@ -2724,14 +2724,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Execute command */
       if (L7_SUCCESS != ptin_msg_ntw_connectivity_set(ntwConn))
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while setting Network Connectivity config");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while setting Network Connectivity config");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_NTW_CONNECTIVITY_SET */
@@ -2744,7 +2744,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Reconfigure Global DHCP EVC ****************************/
     case CCMSG_ETH_DHCP_EVC_RECONF:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_DHCP_EVC_RECONF (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_DhcpEvcReconf_t);
@@ -2759,14 +2759,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_DhcpEvcReconf_t);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -2774,7 +2774,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Configure DHCP circuit-id global components ****************************/
     case CCMSG_ETH_DHCP_EVC_CIRCUITID_SET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_DHCP_EVC_CIRCUITID_SET (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_AccessNodeCircuitId_t);
@@ -2789,14 +2789,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_AccessNodeCircuitId_t);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -2804,7 +2804,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Get DHCP profile data **************************************************/
     case CCMSG_ETH_DHCP_EVC_CIRCUITID_GET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_DHCP_PROFILE_GET (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_AccessNodeCircuitId_t);
@@ -2819,14 +2819,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error getting data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error getting data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_AccessNodeCircuitId_t);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -2834,7 +2834,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Get DHCP profile data **************************************************/
     case CCMSG_ETH_DHCP_PROFILE_GET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_DHCP_PROFILE_GET (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_HwEthernetDhcpOpt82Profile_t);
@@ -2849,14 +2849,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error getting data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error getting data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_HwEthernetDhcpOpt82Profile_t);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -2864,7 +2864,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Add a new DHCP profile **************************************************/
     case CCMSG_ETH_DHCP_PROFILE_ADD:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_DHCP_PROFILE_ADD (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE_MOD(msg_HwEthernetDhcpOpt82Profile_t);
@@ -2878,14 +2878,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -2893,7 +2893,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Remove a DHCP profile ****************************************************/
     case CCMSG_ETH_DHCP_PROFILE_REMOVE:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_DHCP_PROFILE_REMOVE (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE_MOD(msg_HwEthernetDhcpOpt82Profile_t);
@@ -2907,14 +2907,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Execute command */
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -2922,7 +2922,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Get client DHCP statistics */
     case CCMSG_ETH_DHCP_CLIENT_STATS_GET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_DHCP_CLIENT_STATS_GET (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_DhcpClientStatistics_t);
@@ -2937,14 +2937,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error getting data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error getting data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_DhcpClientStatistics_t);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -2952,7 +2952,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Clear client DHCP statistics */
     case CCMSG_ETH_DHCP_CLIENT_STATS_CLEAR:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_DHCP_CLIENT_STATS_CLEAR (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_DhcpClientStatistics_t);
@@ -2965,14 +2965,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -2980,7 +2980,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Get interface DHCP statistics */
     case CCMSG_ETH_DHCP_INTF_STATS_GET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_DHCP_INTF_STATS_GET (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_DhcpClientStatistics_t);
@@ -2995,14 +2995,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error getting statistics");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error getting statistics");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_DhcpClientStatistics_t);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -3010,7 +3010,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Clear interface DHCP statistics */
     case CCMSG_ETH_DHCP_INTF_STATS_CLEAR:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_DHCP_INTF_STATS_CLEAR (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_DhcpClientStatistics_t);
@@ -3023,14 +3023,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -3038,7 +3038,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Get DHCP Bind Table */
     case CCMSG_ETH_DHCP_BIND_TABLE_GET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_DHCP_BIND_TABLE_GET (0x%04X)", CCMSG_ETH_DHCP_BIND_TABLE_GET);
 
       CHECK_INFO_SIZE(msg_DHCP_bind_table_request_t);
@@ -3053,14 +3053,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error getting data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error getting data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_DHCPv4v6_bind_table_t);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -3068,7 +3068,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Remove a DHCP Bind Table entry */
     case CCMSG_ETH_DHCP_BIND_TABLE_REMOVE:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_DHCP_BIND_TABLE_CLEAR (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_DHCP_bind_table_entry_t);
@@ -3082,14 +3082,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -3099,7 +3099,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
    
     case CCMSG_ETH_IPSG_ENABLE:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_IPSG_ENABLE (0x%04X)", CCMSG_ETH_IPSG_ENABLE);
 
       CHECK_INFO_SIZE(msg_IPSG_set_t);
@@ -3112,21 +3112,21 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while configuring IP Source Guard");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while configuring IP Source Guard");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break; 
     }
     case CCMSG_ETH_IPSG_STATIC_ENTRY:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_IPSG_VERIFY_SOURCE (0x%04X)", CCMSG_ETH_IPSG_ENABLE);
 
       CHECK_INFO_SIZE_MOD(msg_IPSG_static_entry_t);
@@ -3141,14 +3141,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while configuring an IP Source Guard Static Entry");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while configuring an IP Source Guard Static Entry");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break; 
@@ -3161,7 +3161,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_IGMP_ADMISSION_CONTROL ***********************************************/
     case CCMSG_ETH_IGMP_ADMISSION_CONTROL:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_IGMP_ADMISSION_CONTROL (0x%04X)", CCMSG_ETH_IGMP_ADMISSION_CONTROL);
 
       CHECK_INFO_SIZE(msg_IgmpAdmissionControl_t);
@@ -3176,14 +3176,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while setting Igmp Admission Control Config");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while setting Igmp Admission Control Config");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_IGMP_PROXY_SET */
@@ -3196,7 +3196,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_IGMP_PROXY_SET ***********************************************/
     case CCMSG_ETH_IGMP_PROXY_SET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_IGMP_PROXY_SET (0x%04X)", CCMSG_ETH_IGMP_PROXY_SET);
 
       CHECK_INFO_SIZE(msg_IgmpProxyCfg_t);
@@ -3211,14 +3211,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting IGMP Proxy config");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while getting IGMP Proxy config");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_IGMP_PROXY_SET */
@@ -3228,7 +3228,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_IGMP_PROXY_GET ***********************************************/
     case CCMSG_ETH_IGMP_PROXY_GET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_IGMP_PROXY_GET (0x%04X)", CCMSG_ETH_IGMP_PROXY_GET);
 
       CHECK_INFO_SIZE(msg_IgmpProxyCfg_t);
@@ -3241,14 +3241,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting IGMP proxy configuration");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while getting IGMP proxy configuration");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_IGMP_PROXY_GET */
@@ -3258,7 +3258,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_IGMP_ENTRY_ADD ***********************************************/
     case CCMSG_ETH_IGMP_ENTRY_ADD:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_IGMP_ENTRY_ADD (0x%04X)", CCMSG_ETH_IGMP_ENTRY_ADD);
 
       CHECK_INFO_SIZE(msg_IgmpMultcastUnicastLink_t);
@@ -3272,13 +3272,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       if (L7_SUCCESS != rc)
       {        
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while adding an IGMP entry [res:0x%x]", res);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while adding an IGMP entry [res:0x%x]", res);
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_IGMP_ENTRY_ADD */
@@ -3287,7 +3287,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_IGMP_ENTRY_REMOVE ********************************************/
     case CCMSG_ETH_IGMP_ENTRY_REMOVE:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_IGMP_ENTRY_REMOVE (0x%04X)", CCMSG_ETH_IGMP_ENTRY_REMOVE);
 
       CHECK_INFO_SIZE(msg_IgmpMultcastUnicastLink_t);
@@ -3301,13 +3301,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       if (L7_SUCCESS != rc)
       {        
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while removing an IGMP entry [res:0x%x]", res);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while removing an IGMP entry [res:0x%x]", res);
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_IGMP_ENTRY_REMOVE */
@@ -3316,7 +3316,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_IGMP_CLIENT_ADD **********************************************/
     case CCMSG_ETH_IGMP_CLIENT_ADD:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_IGMP_CLIENT_ADD (0x%04X)", CCMSG_ETH_IGMP_CLIENT_ADD);
 
       CHECK_INFO_SIZE_MOD(msg_IgmpClient_t);
@@ -3331,13 +3331,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       if (L7_SUCCESS != rc)
       {       
        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
-       LOG_ERR(LOG_CTX_MSGHANDLER, "Error while adding an IGMP client [res:0x%x]", res);
+       LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while adding an IGMP client [res:0x%x]", res);
        SetIPCNACK(outbuffer, res);
        break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_IGMP_CLIENT_ADD */
@@ -3346,7 +3346,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_IGMP_CLIENT_REMOVE *******************************************/
     case CCMSG_ETH_IGMP_CLIENT_REMOVE:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_IGMP_CLIENT_REMOVE (0x%04X)", CCMSG_ETH_IGMP_CLIENT_REMOVE);
 
       CHECK_INFO_SIZE_MOD(msg_IgmpClient_t);
@@ -3361,13 +3361,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       if (L7_SUCCESS != rc)
       {        
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while removing IGMP client [res:0x%x]", res);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while removing IGMP client [res:0x%x]", res);
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_IGMP_CLIENT_REMOVE */
@@ -3376,7 +3376,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_IGMP_CLIENT_STATS_GET ****************************************/
     case CCMSG_ETH_IGMP_CLIENT_STATS_GET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_IGMP_CLIENT_STATS_GET (0x%04X)", CCMSG_ETH_IGMP_CLIENT_STATS_GET);
 
       CHECK_INFO_SIZE(msg_IgmpClientStatistics_t);
@@ -3392,13 +3392,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       if (L7_SUCCESS != rc)
       {        
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting IGMP client statistics [res:0x%x]", res);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while getting IGMP client statistics [res:0x%x]", res);
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_IgmpClientStatistics_t);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_IGMP_CLIENT_STATS_GET */
@@ -3408,7 +3408,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_IGMP_CLIENT_STATS_CLEAR **************************************/
     case CCMSG_ETH_IGMP_CLIENT_STATS_CLEAR:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_IGMP_CLIENT_STATS_CLEAR (0x%04X)", CCMSG_ETH_IGMP_CLIENT_STATS_CLEAR);
 
       CHECK_INFO_SIZE(msg_IgmpClientStatistics_t);
@@ -3423,13 +3423,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       if (L7_SUCCESS != rc)
       {        
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while clearing IGMP client statistics [res:0x%x]", res);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while clearing IGMP client statistics [res:0x%x]", res);
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_IGMP_CLIENT_STATS_CLEAR */
@@ -3438,7 +3438,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_IGMP_INTF_STATS_GET ******************************************/
     case CCMSG_ETH_IGMP_INTF_STATS_GET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_IGMP_INTF_STATS_GET (0x%04X)", CCMSG_ETH_IGMP_INTF_STATS_GET);
 
       CHECK_INFO_SIZE(msg_IgmpClientStatistics_t);
@@ -3454,13 +3454,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       if (L7_SUCCESS != rc)
       {        
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting IGMP port statistics [res:0x%x]", res);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while getting IGMP port statistics [res:0x%x]", res);
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_IgmpClientStatistics_t);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_IGMP_INTF_STATS_GET */
@@ -3470,7 +3470,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_IGMP_INTF_STATS_CLEAR ****************************************/
     case CCMSG_ETH_IGMP_INTF_STATS_CLEAR:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_IGMP_INTF_STATS_CLEAR (0x%04X)", CCMSG_ETH_IGMP_INTF_STATS_CLEAR);
 
       CHECK_INFO_SIZE(msg_IgmpClientStatistics_t);
@@ -3485,13 +3485,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       if (L7_SUCCESS != rc)
       {        
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error while clearing IGMP client statistics [res:0x%x]", res);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while clearing IGMP client statistics [res:0x%x]", res);
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_IGMP_INTF_STATS_CLEAR */
@@ -3499,7 +3499,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_ETH_IGMP_CHANNEL_ASSOC_GET:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_IGMP_CHANNEL_ASSOC_GET (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_MCAssocChannel_t);
@@ -3516,20 +3516,20 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       if (L7_SUCCESS != rc)
       {        
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error getting MC channels [res:0x%x]", res);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error getting MC channels [res:0x%x]", res);
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_MCAssocChannel_t)*n;
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
 
     case CCMSG_ETH_IGMP_CHANNEL_ASSOC_ADD:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_IGMP_CHANNEL_ASSOC_ADD (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE_MOD(msg_MCAssocChannel_t);
@@ -3546,20 +3546,20 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       if (L7_SUCCESS != rc)
       {        
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error adding MC channels [res:0x%x]", res);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error adding MC channels [res:0x%x]", res);
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
 
     case CCMSG_ETH_IGMP_CHANNEL_ASSOC_REMOVE:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_IGMP_CHANNEL_ASSOC_REMOVE (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE_MOD(msg_MCAssocChannel_t);
@@ -3576,20 +3576,20 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       if (L7_SUCCESS != rc)
       {        
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error removing MC channels [res:0x%x]", res);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error removing MC channels [res:0x%x]", res);
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
 
     case CCMSG_ETH_IGMP_CHANNEL_ASSOC_REMALL:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_IGMP_CHANNEL_ASSOC_REMALL (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE_MOD(msg_MCAssocChannel_t);
@@ -3606,13 +3606,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       if (L7_SUCCESS != rc)
       {        
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error removing MC channels [res:0x%x]", res);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error removing MC channels [res:0x%x]", res);
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -3620,7 +3620,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Add static multicast channel */
     case CCMSG_ETH_IGMP_STATIC_GROUP_ADD:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_IGMP_STATIC_GROUP_ADD (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE_MOD(msg_MCStaticChannel_t);
@@ -3636,14 +3636,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -3651,7 +3651,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Remove static multicast channel */
     case CCMSG_ETH_IGMP_STATIC_GROUP_REMOVE:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_IGMP_STATIC_GROUP_REMOVE (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE_MOD(msg_MCStaticChannel_t);
@@ -3667,14 +3667,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -3686,7 +3686,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       msg_MCActiveChannelsReply_t   *outputPtr;
       L7_uint16                     numberOfChannels;
 
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_IGMP_GROUPS_GET (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_MCActiveChannelsRequest_t);
@@ -3702,14 +3702,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error getting data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error getting data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = numberOfChannels * sizeof(msg_MCActiveChannelsReply_t);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);       
     }
     break;
@@ -3717,7 +3717,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Get list of clients watching a multicast channel */
     case CCMSG_ETH_IGMP_CLIENT_GROUPS_GET:
     {      
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_IGMP_CLIENT_GROUPS_GET (0x%04X) msgSize:%u bytes", inbuffer->msgId, inbuffer->infoDim);
 
       #if 1//To be changed to 0
@@ -3738,14 +3738,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error getting data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error getting data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_MCActiveChannelClientsResponse_t);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);      
     }
     break;
@@ -3753,7 +3753,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Remove static multicast channel */
     case CCMSG_ETH_IGMP_STATIC_GROUP_REMALL:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_IGMP_STATIC_GROUP_REMALL (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE_MOD(msg_MCStaticChannel_t);
@@ -3769,14 +3769,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -3784,7 +3784,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Sync MGMD open ports between different cards/interfaces*/
     case CCMSG_MGMD_PORT_SYNC:
     {
-      LOG_TRACE(LOG_CTX_MSGHANDLER, "Message received: CCMSG_MGMD_PORT_SYNC (0x%04X)", inbuffer->msgId);
+      LOG_PT_TRACE(LOG_CTX_MSGHANDLER, "Message received: CCMSG_MGMD_PORT_SYNC (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_HwMgmdPortSync);
 
@@ -3796,7 +3796,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Execute command */
       rc = ptin_msg_mgmd_sync_ports(ptr);
       outbuffer->infoDim = 1;
-      LOG_TRACE(LOG_CTX_MSGHANDLER,
+      LOG_PT_TRACE(LOG_CTX_MSGHANDLER,
                "Message processed: response with rc:%d", rc);
     }
     break;
@@ -3805,7 +3805,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     case CCMSG_MGMD_SNOOP_SYNC_REQUEST:
     {      
       
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_MGMD_SNOOP_SYNC (0x%04X)", inbuffer->msgId);
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_MGMD_SNOOP_SYNC (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_SnoopSyncRequest_t);
          
@@ -3815,14 +3815,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       ptin_timer_stop(42);
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);      
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -3830,7 +3830,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Request Snoop Sync between different cards/interfaces*/
     case CCMSG_MGMD_SNOOP_SYNC_REPLY:
     {          
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_MGMD_SNOOP_SYNC_REPLY (0x%04X)", inbuffer->msgId);
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_MGMD_SNOOP_SYNC_REPLY (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE_MOD(msg_SnoopSyncReply_t);
 
@@ -3841,14 +3841,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
       
     }
@@ -3860,7 +3860,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ROUTING_INTF_CREATE ****************************************/
     case CCMSG_ROUTING_INTF_CREATE:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_INTF_CREATE (0x%04X)", inbuffer->msgId);
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_INTF_CREATE (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_RoutingIntf);
 
@@ -3874,14 +3874,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error %u while processing message", rc);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error %u while processing message", rc);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_RoutingIntf);
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;
     }
@@ -3889,7 +3889,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ROUTING_INTF_MODIFY ****************************************/
     case CCMSG_ROUTING_INTF_MODIFY:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_INTF_MODIFY (0x%04X)", inbuffer->msgId);
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_INTF_MODIFY (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_RoutingIntf);
 
@@ -3903,14 +3903,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error %u while processing message", rc);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error %u while processing message", rc);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_RoutingIntf);
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;
     }
@@ -3918,7 +3918,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ROUTING_INTF_REMOVE ****************************************/
     case CCMSG_ROUTING_INTF_REMOVE:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_INTF_REMOVE (0x%04X)", inbuffer->msgId);
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_INTF_REMOVE (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_RoutingIntf);
 
@@ -3932,14 +3932,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error %u while processing message", rc);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error %u while processing message", rc);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_RoutingIntf);
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;
     }
@@ -3951,7 +3951,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       msg_RoutingArpTableResponse *outputPtr;
       L7_uint32                   readEntries;
 
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_ARPTABLE_GET (0x%04X)", inbuffer->msgId);
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_ARPTABLE_GET (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_RoutingArpTableRequest);
 
@@ -3962,21 +3962,21 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       rc = ptin_msg_routing_arptable_get(inputPtr, outputPtr, &readEntries);
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error %u while processing message", rc);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error %u while processing message", rc);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = readEntries * sizeof(msg_RoutingArpTableResponse);
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);   
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);   
       break;    
     }
 
     /* CCMSG_ROUTING_ARPENTRY_PURGE ****************************************/
     case CCMSG_ROUTING_ARPENTRY_PURGE:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_ARPENTRY_PURGE (0x%04X)", inbuffer->msgId);
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_ARPENTRY_PURGE (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_RoutingArpEntryPurge);
 
@@ -3990,14 +3990,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error %u while processing message", rc);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error %u while processing message", rc);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_RoutingArpEntryPurge);
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;
     }
@@ -4010,7 +4010,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       L7_uint32                      maxEntries;
       L7_uint32                      readEntries;
 
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_ROUTETABLE_GET (0x%04X)", inbuffer->msgId);
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_ROUTETABLE_GET (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_RoutingRouteTableRequest);
 
@@ -4023,21 +4023,21 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error %u while processing message", rc);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error %u while processing message", rc);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = readEntries * sizeof(msg_RoutingRouteTableResponse);
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);   
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);   
       break;    
     }
 
     /* CCMSG_ROUTING_STATICROUTE_ADD ****************************************/
     case CCMSG_ROUTING_STATICROUTE_ADD:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_STATICROUTE_ADD (0x%04X)", inbuffer->msgId);
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_STATICROUTE_ADD (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_RoutingStaticRoute);
 
@@ -4051,14 +4051,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error %u while processing message", rc);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error %u while processing message", rc);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_RoutingStaticRoute);
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;
     }
@@ -4066,7 +4066,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ROUTING_STATICROUTE_DELETE ****************************************/
     case CCMSG_ROUTING_STATICROUTE_DELETE:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_STATICROUTE_DELETE (0x%04X)", inbuffer->msgId);
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_STATICROUTE_DELETE (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_RoutingStaticRoute);
 
@@ -4080,14 +4080,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error %u while processing message", rc);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error %u while processing message", rc);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_RoutingStaticRoute);
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;
     }
@@ -4095,7 +4095,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ROUTING_PINGSESSION_CREATE ****************************************/
     case CCMSG_ROUTING_PINGSESSION_CREATE:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_PINGSESSION_CREATE (0x%04X)", inbuffer->msgId);
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_PINGSESSION_CREATE (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_RoutingPingSessionCreate);
 
@@ -4109,14 +4109,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error %u while processing message", rc);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error %u while processing message", rc);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_RoutingPingSessionCreate);
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;
     }
@@ -4124,7 +4124,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ROUTING_PINGSESSION_QUERY ****************************************/
     case CCMSG_ROUTING_PINGSESSION_QUERY:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_PINGSESSION_QUERY (0x%04X)", inbuffer->msgId);
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_PINGSESSION_QUERY (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_RoutingPingSessionQuery);
 
@@ -4138,14 +4138,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error %u while processing message", rc);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error %u while processing message", rc);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_RoutingPingSessionQuery);
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;
     }
@@ -4153,7 +4153,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ROUTING_PINGSESSION_FREE ****************************************/
     case CCMSG_ROUTING_PINGSESSION_FREE:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_PINGSESSION_FREE (0x%04X)", inbuffer->msgId);
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_PINGSESSION_FREE (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_RoutingPingSessionFree);
 
@@ -4167,14 +4167,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error %u while processing message", rc);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error %u while processing message", rc);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_RoutingPingSessionFree);
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;
     }
@@ -4182,7 +4182,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ROUTING_TRACERTSESSION_CREATE ****************************************/
     case CCMSG_ROUTING_TRACERTSESSION_CREATE:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_TRACERTSESSION_CREATE (0x%04X)", inbuffer->msgId);
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_TRACERTSESSION_CREATE (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_RoutingTracertSessionCreate);
 
@@ -4196,14 +4196,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error %u while processing message", rc);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error %u while processing message", rc);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_RoutingTracertSessionCreate);
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;
     }
@@ -4211,7 +4211,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ROUTING_TRACERTSESSION_QUERY ****************************************/
     case CCMSG_ROUTING_TRACERTSESSION_QUERY:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_TRACERTSESSION_QUERY (0x%04X)", inbuffer->msgId);
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_TRACERTSESSION_QUERY (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_RoutingTracertSessionQuery);
 
@@ -4225,14 +4225,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error %u while processing message", rc);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error %u while processing message", rc);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_RoutingTracertSessionQuery);
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;
     }
@@ -4245,7 +4245,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       L7_uint32                              maxEntries;
       L7_uint32                              readEntries;
 
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_TRACERTSESSION_GETHOPS (0x%04X)", inbuffer->msgId);
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_TRACERTSESSION_GETHOPS (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_RoutingTracertSessionHopsRequest);
 
@@ -4258,21 +4258,21 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error %u while processing message", rc);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error %u while processing message", rc);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = readEntries * sizeof(msg_RoutingTracertSessionHopsResponse);
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);   
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);   
       break;    
     }
 
     /* CCMSG_ROUTING_TRACERTSESSION_FREE ****************************************/
     case CCMSG_ROUTING_TRACERTSESSION_FREE:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_TRACERTSESSION_FREE (0x%04X)", CCMSG_ROUTING_TRACERTSESSION_FREE);
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_TRACERTSESSION_FREE (0x%04X)", CCMSG_ROUTING_TRACERTSESSION_FREE);
 
       CHECK_INFO_SIZE(msg_RoutingTracertSessionFree);
 
@@ -4286,14 +4286,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error %u while processing message", rc);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error %u while processing message", rc);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_RoutingTracertSessionFree);
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;
     }
@@ -4301,7 +4301,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         /* Set PRBS mode */
     case CCMSG_ETH_PCS_PRBS_ENABLE:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_PCS_PRBS_ENABLE (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE_MOD(msg_ptin_pcs_prbs);
@@ -4316,14 +4316,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -4331,7 +4331,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Get PRBS status */
     case CCMSG_ETH_PCS_PRBS_STATUS:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_PCS_PRBS_STATUS (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE_MOD(msg_ptin_pcs_prbs);
@@ -4347,14 +4347,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error getting data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error getting data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_ptin_pcs_prbs)*n;
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -4362,7 +4362,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Set PRBS mode */
     case CCMSG_ETH_PRBS_ENABLE:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_PRBS_ENABLE (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE_MOD(msg_ptin_prbs_enable);
@@ -4377,14 +4377,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -4392,7 +4392,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Get PRBS status */
     case CCMSG_ETH_PRBS_STATUS:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_PRBS_STATUS (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE_MOD(msg_ptin_prbs_request);
@@ -4409,14 +4409,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error getting data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error getting data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_ptin_prbs_status)*n;
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -4428,7 +4428,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 #ifdef __Y1731_802_1ag_OAM_ETH__
     case CCMSG_WR_MEP:
     case CCMSG_FLUSH_MEP:
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_WR_MEP/CCMSG_FLUSH_MEP (0x%04X)", inbuffer->msgId);
     
       CHECK_INFO_SIZE_MOD(msg_bd_mep_t);
@@ -4437,19 +4437,19 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     
       break;
     case CCMSG_RM_MEP:
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_RM_MEP (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE_MOD(msg_bd_mep_t);
@@ -4457,20 +4457,20 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       rc = ptin_msg_del_MEP(inbuffer, outbuffer, 0);
 
       if (L7_SUCCESS != rc) {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;
     case CCMSG_WR_RMEP:
     case CCMSG_FLUSH_RMEP:
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_WR_RMEP/CCMSG_FLUSH_RMEP (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE_MOD(msg_bd_rmep_t);
@@ -4478,19 +4478,19 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       rc = ptin_msg_wr_RMEP(inbuffer, outbuffer, 0);
 
       if (L7_SUCCESS != rc) {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;
     case CCMSG_RM_RMEP:
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_RM_RMEP (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE_MOD(msg_bd_rmep_t);
@@ -4498,38 +4498,38 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       rc = ptin_msg_del_RMEP(inbuffer, outbuffer, 0);
 
       if (L7_SUCCESS != rc) {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;
     case CCMSG_DUMP_MEPs:
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
              "Message received: CCMSG_DUMP_MEPs (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE_MOD(msg_generic_prefix_t);
 
       rc = ptin_msg_dump_MEPs(inbuffer, outbuffer);
       if (L7_SUCCESS != rc) {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;
 
     case CCMSG_DUMP_MEs:
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_DUMP_MEs (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE_MOD(msg_bd_me_t);
@@ -4537,19 +4537,19 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       rc = ptin_msg_dump_MEs(inbuffer, outbuffer);
 
       if (L7_SUCCESS != rc) {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;
 
     case CCMSG_DUMP_LUT_MEPs:
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_DUMP_LUT_MEPs (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE_MOD(msg_generic_prefix_t);
@@ -4557,20 +4557,20 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       rc = ptin_msg_dump_LUT_MEPs(inbuffer, outbuffer);
 
       if (L7_SUCCESS != rc) {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;
 
     case CCMSG_WR_MEP_LM:
     case CCMSG_RM_MEP_LM:
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                CCMSG_WR_MEP_LM==inbuffer->msgId? "Message received: CCMSG_WR_MEP_LM (0x%04X)":
                                                  "Message received: CCMSG_RM_MEP_LM (0x%04X)", inbuffer->msgId);
     
@@ -4600,20 +4600,20 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
     
       if (L7_SUCCESS != rc) {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;
 
     case CCMSG_RD_MEP_LM:
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_RD_MEP_LM (0x%04X)", inbuffer->msgId);
   
       CHECK_INFO_SIZE(msg_generic_prefix_t);
@@ -4648,19 +4648,19 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
   
       if (L7_SUCCESS != rc) {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
   
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
   
       break;
 
     case CHMSG_CCM_MEP_FRAMELOSS:
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CHMSG_CCM_MEP_FRAMELOSS (0x%04X)", inbuffer->msgId);
   
   
@@ -4693,13 +4693,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
   
       if (L7_SUCCESS != rc) {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
   
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
   
       break;
@@ -4713,7 +4713,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_ERPS_SET:
       {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ERPS_SET (0x%04X)", inbuffer->msgId);
     
       CHECK_INFO_SIZE_MOD(msg_erps_t);
@@ -4728,21 +4728,21 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
       }
       break;
 
     case CCMSG_ERPS_DEL:
       {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ERPS_DEL (0x%04X)", inbuffer->msgId);
     
       CHECK_INFO_SIZE_MOD(msg_erps_t);
@@ -4757,21 +4757,21 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
       }
       break;
 
     case CCMSG_ERPS_CONF:
       {
-        LOG_INFO(LOG_CTX_MSGHANDLER,
+        LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                  "Message received: CCMSG_ERPS_CONF (0x%04X)", inbuffer->msgId);
       
         CHECK_INFO_SIZE_MOD(msg_erps_t);
@@ -4786,14 +4786,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
         if (L7_SUCCESS != rc)
         {
-          LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+          LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
           res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
           SetIPCNACK(outbuffer, res);
           break;
         }
 
         SETIPCACKOK(outbuffer);
-        LOG_INFO(LOG_CTX_MSGHANDLER,
+        LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                  "Message processed: response with %d bytes", outbuffer->infoDim);
       
       }
@@ -4801,7 +4801,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_ERPS_STATUS:
       {
-        LOG_INFO(LOG_CTX_MSGHANDLER,
+        LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                  "Message received: CCMSG_ERPS_STATUS (0x%04X)", inbuffer->msgId);
       
         CHECK_INFO_SIZE_MOD(msg_erps_status_t);
@@ -4816,14 +4816,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
         if (L7_SUCCESS != rc)
         {
-          LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+          LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
           res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
           SetIPCNACK(outbuffer, res);
           break;
         }
 
         outbuffer->infoDim = sizeof(msg_erps_status_t);
-        LOG_INFO(LOG_CTX_MSGHANDLER,
+        LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                  "Message processed: response with %d bytes", outbuffer->infoDim);
       
       }
@@ -4831,7 +4831,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_ERPS_STATUS_NEXT:
       {
-        LOG_INFO(LOG_CTX_MSGHANDLER,
+        LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                  "Message received: CCMSG_ERPS_STATUS_NEXT (0x%04X)", inbuffer->msgId);
       
         CHECK_INFO_SIZE_MOD(msg_erps_status_t);
@@ -4848,14 +4848,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
         if (L7_SUCCESS != rc)
         {
-          LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+          LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
           res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
           SetIPCNACK(outbuffer, res);
           break;
         }
 
         outbuffer->infoDim = sizeof(msg_erps_status_t)*n;
-        LOG_INFO(LOG_CTX_MSGHANDLER,
+        LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                  "Message processed: response with %d bytes", outbuffer->infoDim);
       
       }
@@ -4863,7 +4863,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_ERPS_OPERATOR_CMD:
       {
-        LOG_INFO(LOG_CTX_MSGHANDLER,
+        LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                  "Message received: CCMSG_ERPS_OPERATOR_CMD (0x%04X)", inbuffer->msgId);
       
         CHECK_INFO_SIZE_MOD(msg_erps_cmd_t);
@@ -4879,14 +4879,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
         if (L7_SUCCESS != rc)
         {
-          LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+          LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
           res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
           SetIPCNACK(outbuffer, res);
           break;
         }
 
         SETIPCACKOK(outbuffer);
-        LOG_INFO(LOG_CTX_MSGHANDLER,
+        LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                  "Message processed: response with %d bytes", outbuffer->infoDim);
       
       }
@@ -4894,7 +4894,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_ERPS_SYNC:
       {
-        LOG_INFO(LOG_CTX_MSGHANDLER,
+        LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                  "Message received: CCMSG_ERPS_SYNC (0x%04X)", inbuffer->msgId);
       
         CHECK_INFO_SIZE_MOD(msg_erps_cmd_t);
@@ -4910,14 +4910,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
         if (L7_SUCCESS != rc)
         {
-          LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+          LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
           res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
           SetIPCNACK(outbuffer, res);
           break;
         }
 
         SETIPCACKOK(outbuffer);
-        LOG_INFO(LOG_CTX_MSGHANDLER,
+        LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                  "Message processed: response with %d bytes", outbuffer->infoDim);
       
       }
@@ -4930,7 +4930,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     case CCMSG_ACL_RULE_ADD:
     case CCMSG_ACL_RULE_DEL:
       {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ACL_RULE_ADD/DEL (0x%04X)", inbuffer->msgId);
     
       #if 0
@@ -4956,14 +4956,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
       }
       break;
@@ -4971,7 +4971,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     case CCMSG_ACL_APPLY:
     case CCMSG_ACL_UNAPPLY:
       {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ACL_APPLY/UNAPPLY (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE_MOD(msg_apply_acl_t);
@@ -4981,21 +4981,21 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
       }
       break;
 
     case CHMSG_RFC2819_MONITORING_CONFIG:      
       {
-        LOG_INFO(LOG_CTX_MSGHANDLER,
+        LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                  "Message received: CHMSG_RFC2819_MONITORING_CONFIG (0x%04X)", inbuffer->msgId);
 
         CHECK_INFO_SIZE_MOD(msg_rfc2819_admin_t);
@@ -5009,21 +5009,21 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
         if (L7_SUCCESS != rc)
         {
-          LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+          LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
           res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
           SetIPCNACK(outbuffer, res);
           break;
         }
 
         SETIPCACKOK(outbuffer);
-        LOG_INFO(LOG_CTX_MSGHANDLER,
+        LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                  "Message processed: response with %d bytes", outbuffer->infoDim);
       }
       break;
 
     case CHMSG_RFC2819_MONITORING_GET:
       {
-        LOG_INFO(LOG_CTX_MSGHANDLER,
+        LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                  "Message received: CHMSG_RFC2819_MONITORING_GET (0x%04X)", inbuffer->msgId);
   
         CHECK_INFO_SIZE_MOD(L7_int);
@@ -5038,21 +5038,21 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
   
         if (L7_SUCCESS != rc)
         {
-          LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+          LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
           res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
           SetIPCNACK(outbuffer, res);
           break;
         }
   
         outbuffer->infoDim = sizeof(msg_rfc2819_buffer_t)*n;
-        LOG_INFO(LOG_CTX_MSGHANDLER,
+        LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                  "Message processed: response with %d bytes", outbuffer->infoDim);
       }
       break;
 
     case CHMSG_RFC2819_MONITORING_CLEAR:
       {
-        LOG_INFO(LOG_CTX_MSGHANDLER,
+        LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                  "Message received: CHMSG_RFC2819_MONITORING_CLEAR (0x%04X)", inbuffer->msgId);
   
         CHECK_INFO_SIZE_MOD(L7_uint32);
@@ -5062,14 +5062,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
   
         if (L7_SUCCESS != rc)
         {
-          LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+          LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
           res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
           SetIPCNACK(outbuffer, res);
           break;
         }
   
         SETIPCACKOK(outbuffer);
-        LOG_INFO(LOG_CTX_MSGHANDLER,
+        LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                  "Message processed: response with %d bytes", outbuffer->infoDim);
         
       }
@@ -5078,7 +5078,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CHMSG_RFC2819_MONITORING_SHOW_CONF:
       {
-        LOG_INFO(LOG_CTX_MSGHANDLER,
+        LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                  "Message received: CHMSG_RFC2819_MONITORING_SHOW_CONF (0x%04X)", inbuffer->msgId);
 
         L7_int Port;
@@ -5094,7 +5094,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
         if (L7_SUCCESS != rc)
         {
-          LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+          LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
           res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
           SetIPCNACK(outbuffer, res);
           break;
@@ -5108,14 +5108,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         }
 
         outbuffer->infoDim = sizeof(L7_uint32);
-        LOG_INFO(LOG_CTX_MSGHANDLER,
+        LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                  "Message processed: response with %d bytes", outbuffer->infoDim);
       }
       break;
 
     case CHMSG_RFC2819_MONITORING_BUFF_STATUS:
       {
-        LOG_INFO(LOG_CTX_MSGHANDLER,
+        LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                  "Message received: CHMSG_RFC2819_MONITORING_BUFF_STATUS (0x%04X)", inbuffer->msgId);
 
         msg_rfc2819_buffer_status_t *status;
@@ -5132,14 +5132,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
         if (L7_SUCCESS != rc)
         {
-          LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+          LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
           res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
           SetIPCNACK(outbuffer, res);
           break;
         }
 
         outbuffer->infoDim = sizeof(msg_rfc2819_buffer_status_t);
-        LOG_INFO(LOG_CTX_MSGHANDLER,
+        LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                  "Message processed: response with %d bytes", outbuffer->infoDim);
       }
       break;
@@ -5178,7 +5178,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /*Multicast Packages Add*/
     case CCMSG_IGMP_PACKAGES_ADD:
     {        
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_IGMP_PACKAGES_ADD (0x%04X)", CCMSG_IGMP_PACKAGES_ADD);
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_IGMP_PACKAGES_ADD (0x%04X)", CCMSG_IGMP_PACKAGES_ADD);
 
       CHECK_INFO_SIZE(msg_igmp_package_t);
 
@@ -5192,14 +5192,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error %u while processing message", rc);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error %u while processing message", rc);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_igmp_package_t);
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;/*Multicast Packages Add*/
     }
@@ -5207,7 +5207,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /*Multicast Packages Remove*/
     case CCMSG_IGMP_PACKAGES_REMOVE:
     {        
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_IGMP_PACKAGES_REMOVE (0x%04X)", CCMSG_IGMP_PACKAGES_REMOVE);
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_IGMP_PACKAGES_REMOVE (0x%04X)", CCMSG_IGMP_PACKAGES_REMOVE);
 
       CHECK_INFO_SIZE(msg_igmp_package_t);
 
@@ -5221,14 +5221,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error %u while processing message", rc);
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error %u while processing message", rc);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_igmp_package_t);
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break; /* CCMSG_IGMP_PACKAGES_REMOVE */
     }
@@ -5236,7 +5236,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /*Multicast Package Channels Add*/
     case CCMSG_IGMP_PACKAGE_CHANNELS_ADD:
     {        
-     LOG_INFO(LOG_CTX_MSGHANDLER,
+     LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_IGMP_PACKAGE_CHANNELS_ADD (0x%04X)", CCMSG_IGMP_PACKAGE_CHANNELS_ADD);
 
       CHECK_INFO_SIZE_MOD(msg_igmp_package_channels_t);
@@ -5251,13 +5251,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       if (L7_SUCCESS != rc)
       {       
        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
-       LOG_ERR(LOG_CTX_MSGHANDLER, "Error while adding Channels to Package [res:0x%x]", res);
+       LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while adding Channels to Package [res:0x%x]", res);
        SetIPCNACK(outbuffer, res);
        break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_IGMP_PACKAGE_CHANNELS_ADD */
@@ -5266,7 +5266,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /*Multicast Package Channels Remove*/
     case CCMSG_IGMP_PACKAGE_CHANNELS_REMOVE:
     {        
-     LOG_INFO(LOG_CTX_MSGHANDLER,
+     LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_IGMP_PACKAGE_CHANNELS_REMOVE (0x%04X)", CCMSG_IGMP_PACKAGE_CHANNELS_REMOVE);
 
       CHECK_INFO_SIZE_MOD(msg_igmp_package_channels_t);
@@ -5281,13 +5281,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       if (L7_SUCCESS != rc)
       {       
        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
-       LOG_ERR(LOG_CTX_MSGHANDLER, "Error while adding Channels to Package [res:0x%x]", res);
+       LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while adding Channels to Package [res:0x%x]", res);
        SetIPCNACK(outbuffer, res);
        break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_IGMP_PACKAGE_CHANNELS_REMOVE */
@@ -5296,7 +5296,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /*Igmp Unicast Client Packages Add*/
     case CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_ADD:
     {        
-     LOG_INFO(LOG_CTX_MSGHANDLER,
+     LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_ADD (0x%04X)", CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_ADD);
 
       CHECK_INFO_SIZE_MOD(msg_igmp_unicast_client_packages_t);
@@ -5311,13 +5311,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       if (L7_SUCCESS != rc)
       {       
        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
-       LOG_ERR(LOG_CTX_MSGHANDLER, "Error while adding Channels to Package [res:0x%x]", res);
+       LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while adding Channels to Package [res:0x%x]", res);
        SetIPCNACK(outbuffer, res);
        break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_ADD */
@@ -5326,7 +5326,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /*Igmp Unicast Client Packages Remove*/
     case CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_REMOVE:
     {        
-     LOG_INFO(LOG_CTX_MSGHANDLER,
+     LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_REMOVE (0x%04X)", CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_REMOVE);
 
       CHECK_INFO_SIZE_MOD(msg_igmp_unicast_client_packages_t);
@@ -5341,13 +5341,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       if (L7_SUCCESS != rc)
       {       
        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
-       LOG_ERR(LOG_CTX_MSGHANDLER, "Error while adding Channels to Package [res:0x%x]", res);
+       LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while adding Channels to Package [res:0x%x]", res);
        SetIPCNACK(outbuffer, res);
        break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_REMOVE */
@@ -5356,7 +5356,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /*Igmp Macbridge Client Packages Add*/
     case CCMSG_IGMP_MACBRIDGE_CLIENT_PACKAGES_ADD:
     {        
-     LOG_INFO(LOG_CTX_MSGHANDLER,
+     LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_IGMP_MACBRIDGE_CLIENT_PACKAGES_ADD (0x%04X)", CCMSG_IGMP_MACBRIDGE_CLIENT_PACKAGES_ADD);
 
       CHECK_INFO_SIZE_MOD(msg_igmp_macbridge_client_packages_t);
@@ -5371,13 +5371,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       if (L7_SUCCESS != rc)
       {       
        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
-       LOG_ERR(LOG_CTX_MSGHANDLER, "Error while adding Channels to Package [res:0x%x]", res);
+       LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while adding Channels to Package [res:0x%x]", res);
        SetIPCNACK(outbuffer, res);
        break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_REMOVE */
@@ -5386,7 +5386,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /*Igmp Macbridge Client Packages Remove*/
     case CCMSG_IGMP_MACBRIDGE_CLIENT_PACKAGES_REMOVE:
     {        
-     LOG_INFO(LOG_CTX_MSGHANDLER,
+     LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_IGMP_MACBRIDGE_CLIENT_PACKAGES_REMOVE (0x%04X)", CCMSG_IGMP_MACBRIDGE_CLIENT_PACKAGES_REMOVE);
 
       CHECK_INFO_SIZE_MOD(msg_igmp_macbridge_client_packages_t);
@@ -5401,13 +5401,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       if (L7_SUCCESS != rc)
       {       
        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
-       LOG_ERR(LOG_CTX_MSGHANDLER, "Error while removing Channels from Package [res:0x%x]", res);
+       LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while removing Channels from Package [res:0x%x]", res);
        SetIPCNACK(outbuffer, res);
        break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_REMOVE */
@@ -5416,7 +5416,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /*Multicast Service Add*/
     case CCMSG_MULTICAST_SERVICE_ADD:
     {        
-     LOG_INFO(LOG_CTX_MSGHANDLER,
+     LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_MULTICAST_SERVICE_ADD (0x%04X)", CCMSG_MULTICAST_SERVICE_ADD);
 
       CHECK_INFO_SIZE_MOD(msg_multicast_service_t);
@@ -5431,13 +5431,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       if (L7_SUCCESS != rc)
       {       
        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
-       LOG_ERR(LOG_CTX_MSGHANDLER, "Error while adding Channels to Package [res:0x%x]", res);
+       LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while adding Channels to Package [res:0x%x]", res);
        SetIPCNACK(outbuffer, res);
        break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_REMOVE */
@@ -5446,7 +5446,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /*Multicast Service Remove*/
     case CCMSG_MULTICAST_SERVICE_REMOVE:
     {        
-     LOG_INFO(LOG_CTX_MSGHANDLER,
+     LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_MULTICAST_SERVICE_REMOVE (0x%04X)", CCMSG_MULTICAST_SERVICE_REMOVE);
 
       CHECK_INFO_SIZE_MOD(msg_multicast_service_t);
@@ -5461,13 +5461,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       if (L7_SUCCESS != rc)
       {       
        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
-       LOG_ERR(LOG_CTX_MSGHANDLER, "Error while adding Channels to Package [res:0x%x]", res);
+       LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error while adding Channels to Package [res:0x%x]", res);
        SetIPCNACK(outbuffer, res);
        break;
       }
 
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_REMOVE */
@@ -5510,7 +5510,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_L2_MACLIMIT_CONFIG:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_L2_MACLIMIT_CONFIG (0x%04X)", inbuffer->msgId); 
       CHECK_INFO_SIZE(msg_l2_maclimit_config_t);
 
@@ -5524,14 +5524,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
 
       outbuffer->infoDim = sizeof(msg_l2_maclimit_config_t);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim); 
     }
     break;
@@ -5542,7 +5542,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_L2_MACLIMIT_STATUS:
     {
-     LOG_INFO(LOG_CTX_MSGHANDLER,
+     LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_L2_MACLIMIT_STATUS (0x%04X)", inbuffer->msgId);
      CHECK_INFO_SIZE(msg_l2_maclimit_status_t);
 
@@ -5556,7 +5556,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
      if (L7_SUCCESS != rc)
      {
-        LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        LOG_PT_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
@@ -5564,13 +5564,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       outbuffer->infoDim = sizeof(msg_l2_maclimit_status_t);
 
-      LOG_TRACE(LOG_CTX_MSGHANDLER," Status Response");
-      LOG_TRACE(LOG_CTX_MSGHANDLER," slotId       = %u",      ptr->slotId);
-      LOG_TRACE(LOG_CTX_MSGHANDLER," interface    = %u/%u",   ptr->intf.intf_type, ptr->intf.intf_id);
-      LOG_TRACE(LOG_CTX_MSGHANDLER," MacLearned   = %u",      ptr->number_mac_learned);
-      LOG_TRACE(LOG_CTX_MSGHANDLER," Status       = %u",      ptr->status);
-      LOG_TRACE(LOG_CTX_MSGHANDLER," Mask         = %u",      ptr->mask);
-      LOG_TRACE(LOG_CTX_MSGHANDLER,
+      LOG_PT_TRACE(LOG_CTX_MSGHANDLER," Status Response");
+      LOG_PT_TRACE(LOG_CTX_MSGHANDLER," slotId       = %u",      ptr->slotId);
+      LOG_PT_TRACE(LOG_CTX_MSGHANDLER," interface    = %u/%u",   ptr->intf.intf_type, ptr->intf.intf_id);
+      LOG_PT_TRACE(LOG_CTX_MSGHANDLER," MacLearned   = %u",      ptr->number_mac_learned);
+      LOG_PT_TRACE(LOG_CTX_MSGHANDLER," Status       = %u",      ptr->status);
+      LOG_PT_TRACE(LOG_CTX_MSGHANDLER," Mask         = %u",      ptr->mask);
+      LOG_PT_TRACE(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
@@ -5578,11 +5578,11 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Signalling the end of a Equipment Flush Configuration*/
     case CCMSG_PROTECTION_MATRIX_FLUSH_CONFIGURATION_END:
     {
-      LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_MATRIX_FLUSH_CONFIGURATION_END (0x%04X)", inbuffer->msgId);
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_MATRIX_FLUSH_CONFIGURATION_END (0x%04X)", inbuffer->msgId);
       
       /*Sending Ack*/  
       SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_MSGHANDLER,
+      LOG_PT_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       /* Execute command */
@@ -5593,9 +5593,9 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     default:
     {
-      LOG_WARNING(LOG_CTX_MSGHANDLER,
+      LOG_PT_WARN(LOG_CTX_MSGHANDLER,
                   "Message received: UNKNOWN! (0x%04X)\n", inbuffer->msgId);
-      LOG_WARNING(LOG_CTX_MSGHANDLER,
+      LOG_PT_WARN(LOG_CTX_MSGHANDLER,
                   "The received message is not supported!");
       SetIPCNACK (outbuffer, SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_WARNING, ERROR_CODE_NOSUCHMSG));
 
@@ -5619,9 +5619,9 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
   time_delta = time_end - time_start;
 
   if (inbuffer->msgId != CCMSG_ETH_PHY_ACTIVITY_GET)
-    LOG_INFO(LOG_CTX_MSGHANDLER,"Message 0x%04X was processed in %lu usec, with rc=%u (res=0x%08x)", inbuffer->msgId, time_delta, rc, res);
+    LOG_PT_INFO(LOG_CTX_MSGHANDLER,"Message 0x%04X was processed in %lu usec, with rc=%u (res=0x%08x)", inbuffer->msgId, time_delta, rc, res);
   else
-    LOG_TRACE(LOG_CTX_MSGHANDLER,"Message 0x%04X was processed in %lu usec, with rc=%u (res=0x%08x)", inbuffer->msgId, time_delta, rc, res);
+    LOG_PT_TRACE(LOG_CTX_MSGHANDLER,"Message 0x%04X was processed in %lu usec, with rc=%u (res=0x%08x)", inbuffer->msgId, time_delta, rc, res);
 
   /* Message Runtime Meter */
   /* Only for successfull messages */

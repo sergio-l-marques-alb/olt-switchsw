@@ -89,11 +89,11 @@ static void ptin_ipdtl0_task(void)
     ptin_IPDTL0_PDU_Msg_t   msg;
     L7_RC_t                 rc;
 
-    LOG_INFO(LOG_CTX_API,"IP dtl0 Task started");
+    LOG_PT_INFO(LOG_CTX_API,"IP dtl0 Task started");
 
     if (osapiTaskInitDone(L7_PTIN_IPDTL0_TASK_SYNC) != L7_SUCCESS)
     {
-        LOG_FATAL(LOG_CTX_API, "Error syncing task");
+        LOG_PT_FATAL(LOG_CTX_API, "Error syncing task");
         PTIN_CRASH();
     }
 
@@ -111,7 +111,7 @@ static void ptin_ipdtl0_task(void)
             {
                 if (ptin_ipdtl0_debug_enable)
                 {
-                    LOG_TRACE(LOG_CTX_API, "Packet received: intIfNum %d, vlanId %d, innerVlanId %d, payloadLen %d, Rx TS %ld\n", 
+                    LOG_PT_TRACE(LOG_CTX_API, "Packet received: intIfNum %d, vlanId %d, innerVlanId %d, payloadLen %d, Rx TS %ld\n", 
                            msg.intIfNum, msg.vlanId, msg.innerVlanId, msg.payloadLen, msg.timestamp);
                 
                     #ifdef _PAYLOAD_DEBUG_
@@ -146,14 +146,14 @@ static void ptin_ipdtl0_task(void)
 
                 if (ptin_ipdtl0_debug_enable)
                 {
-                    LOG_TRACE(LOG_CTX_API, "Converting Internal VLAN ID (%d) to dtl0 VLAN ID (%d)\n\r", msg.vlanId, ptin_ipdtl0_intVid_info[msg.vlanId].dtl0Vid);
+                    LOG_PT_TRACE(LOG_CTX_API, "Converting Internal VLAN ID (%d) to dtl0 VLAN ID (%d)\n\r", msg.vlanId, ptin_ipdtl0_intVid_info[msg.vlanId].dtl0Vid);
                 }
 
                 dtlIPProtoRecvAny(msg.bufHandle, msg.payload, msg.payloadLen, &pduInfo);
             }
             else
             {
-                LOG_TRACE(LOG_CTX_API, "Packet received with Unknown ID");
+                LOG_PT_TRACE(LOG_CTX_API, "Packet received with Unknown ID");
             }
         }
 
@@ -186,11 +186,11 @@ static  L7_RC_t ptin_ipdtl0_packetHandle(L7_netBufHandle netBufHandle, sysnet_pd
 
     if (ptin_ipdtl0_debug_enable)
     {
-        LOG_TRACE(LOG_CTX_API,
+        LOG_PT_TRACE(LOG_CTX_API,
                   "Packet intercepted vlan %d, innerVlan=%u, intIfNum %d, rx_port=%d, dataLength=%d",
                   pduInfo->vlanId, pduInfo->innerVlanId, pduInfo->intIfNum, pduInfo->rxPort, dataLength);
 
-        LOG_TRACE(LOG_CTX_API,
+        LOG_PT_TRACE(LOG_CTX_API,
                   "ptin_ipdtl0_intVid2dtl0Vid[pduInfo->vlanId] %d", ptin_ipdtl0_intVid_info[pduInfo->vlanId].dtl0Vid);
     }
 
@@ -199,7 +199,7 @@ static  L7_RC_t ptin_ipdtl0_packetHandle(L7_netBufHandle netBufHandle, sysnet_pd
     {
         if (ptin_ipdtl0_debug_enable)
         {
-            LOG_TRACE(LOG_CTX_API, "Trapping is not enabled on this VLAN");
+            LOG_PT_TRACE(LOG_CTX_API, "Trapping is not enabled on this VLAN");
         }
         rc = L7_FAILURE;
         return rc;
@@ -211,7 +211,7 @@ static  L7_RC_t ptin_ipdtl0_packetHandle(L7_netBufHandle netBufHandle, sysnet_pd
 
     if (ptin_ipdtl0_debug_enable)
     {
-        LOG_TRACE(LOG_CTX_API, "DMAC=%02x:%02x:%02x:%02x:%02x:%02x SMAC=%02x:%02x:%02x:%02x:%02x:%02x",
+        LOG_PT_TRACE(LOG_CTX_API, "DMAC=%02x:%02x:%02x:%02x:%02x:%02x SMAC=%02x:%02x:%02x:%02x:%02x:%02x",
                   data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7],data[8],data[9],data[10],data[11]);
     }
 
@@ -231,7 +231,7 @@ static  L7_RC_t ptin_ipdtl0_packetHandle(L7_netBufHandle netBufHandle, sysnet_pd
     /* If any error, packet will be dropped */
     if (rc!=L7_SUCCESS)
     {
-        LOG_TRACE(LOG_CTX_API, "If any error, packet will be dropped");
+        LOG_PT_TRACE(LOG_CTX_API, "If any error, packet will be dropped");
     }
 
     return rc;
@@ -298,7 +298,7 @@ static L7_RC_t ptin_ipdtl0_trapRuleCreate(L7_uint16 vlanId, ptin_ipdtl0_type_t t
         rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
         if (rc!=L7_SUCCESS)
         {
-            LOG_ERR(LOG_CTX_API,"Error setting rule to %u",enable);
+            LOG_PT_ERR(LOG_CTX_API,"Error setting rule to %u",enable);
             return rc;
         }
 
@@ -307,11 +307,11 @@ static L7_RC_t ptin_ipdtl0_trapRuleCreate(L7_uint16 vlanId, ptin_ipdtl0_type_t t
         rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
         if (rc!=L7_SUCCESS)
         {
-            LOG_ERR(LOG_CTX_API,"Error setting rule to %u",enable);
+            LOG_PT_ERR(LOG_CTX_API,"Error setting rule to %u",enable);
             return rc;
         }
 
-        LOG_TRACE(LOG_CTX_API,"Success applying rule to %u",enable);
+        LOG_PT_TRACE(LOG_CTX_API,"Success applying rule to %u",enable);
     }
 
     /* HW Rule Creation replaced by L3 Table entry with IP/MAC/Port */
@@ -327,10 +327,10 @@ static L7_RC_t ptin_ipdtl0_trapRuleCreate(L7_uint16 vlanId, ptin_ipdtl0_type_t t
         rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
         if (rc!=L7_SUCCESS)
         {
-            LOG_ERR(LOG_CTX_API,"Error setting rule to %u",enable);
+            LOG_PT_ERR(LOG_CTX_API,"Error setting rule to %u",enable);
             return rc;
         }
-        LOG_TRACE(LOG_CTX_API,"Success applying rule to %u",enable);
+        LOG_PT_TRACE(LOG_CTX_API,"Success applying rule to %u",enable);
         #endif
     }
 
@@ -350,13 +350,13 @@ static L7_RC_t ptin_ipdtl0_trapRuleCreate(L7_uint16 vlanId, ptin_ipdtl0_type_t t
         {
             /* Register with sysnet */
             sysNetPduInterceptRegister(&sysnetPduIntercept);
-            LOG_TRACE(LOG_CTX_API,"sysNetPduInterceptRegister executed");    
+            LOG_PT_TRACE(LOG_CTX_API,"sysNetPduInterceptRegister executed");    
         }
         else
         {
             /* Deregister with sysnet */
             sysNetPduInterceptDeregister(&sysnetPduIntercept);
-            LOG_TRACE(LOG_CTX_API,"sysNetPduInterceptDeregister executed");
+            LOG_PT_TRACE(LOG_CTX_API,"sysNetPduInterceptDeregister executed");
         }
     }
 
@@ -375,13 +375,13 @@ static L7_RC_t ptin_ipdtl0_trapRuleCreate(L7_uint16 vlanId, ptin_ipdtl0_type_t t
         {
             /* Register with sysnet */
             sysNetPduInterceptRegister(&sysnetPduIntercept);
-            LOG_TRACE(LOG_CTX_API,"sysNetPduInterceptRegister executed");    
+            LOG_PT_TRACE(LOG_CTX_API,"sysNetPduInterceptRegister executed");    
         }
         else
         {
             /* Deregister with sysnet */
             sysNetPduInterceptDeregister(&sysnetPduIntercept);
-            LOG_TRACE(LOG_CTX_API,"sysNetPduInterceptDeregister executed");
+            LOG_PT_TRACE(LOG_CTX_API,"sysNetPduInterceptDeregister executed");
         }
     }
 
@@ -414,10 +414,10 @@ L7_RC_t ptin_ipdtl0_init(void)
     ptin_ipdtl0_packetRx_queue = (void *) osapiMsgQueueCreate(queue_str, PTIN_IPDTL0_MAX_MESSAGES, PTIN_IPDTL0_PDU_MSG_SIZE);
     if (ptin_ipdtl0_packetRx_queue == L7_NULLPTR)
     {
-        LOG_FATAL(LOG_CTX_API,"IP dtl0 Packet Queue creation error.");
+        LOG_PT_FATAL(LOG_CTX_API,"IP dtl0 Packet Queue creation error.");
         return L7_FAILURE;
     }
-    LOG_TRACE(LOG_CTX_API,"IP dtl0 Packet Queue created.");
+    LOG_PT_TRACE(LOG_CTX_API,"IP dtl0 Packet Queue created.");
 
 
     /* Task that will process packets */
@@ -428,17 +428,17 @@ L7_RC_t ptin_ipdtl0_init(void)
 
     if (ptin_ipdtl0_TaskId == L7_ERROR)
     {
-        LOG_FATAL(LOG_CTX_API, "Could not create IP dtl0 Packet Task");
+        LOG_PT_FATAL(LOG_CTX_API, "Could not create IP dtl0 Packet Task");
         return L7_FAILURE;
     }
-    LOG_TRACE(LOG_CTX_API,"IP dtl0 Packet Task created");
+    LOG_PT_TRACE(LOG_CTX_API,"IP dtl0 Packet Task created");
 
     if (osapiWaitForTaskInit (L7_PTIN_IPDTL0_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS)
     {
-        LOG_FATAL(LOG_CTX_API,"Unable to initialize IP dtl0 Packet Task\n");
+        LOG_PT_FATAL(LOG_CTX_API,"Unable to initialize IP dtl0 Packet Task\n");
         return(L7_FAILURE);
     }
-    LOG_TRACE(LOG_CTX_API,"IP dtl0 Packet Task initialized");
+    LOG_PT_TRACE(LOG_CTX_API,"IP dtl0 Packet Task initialized");
 
     return L7_SUCCESS;
 }
@@ -457,14 +457,14 @@ L7_RC_t ptin_ipdtl0_deinit(void)
     osapiMsgQueueDelete(ptin_ipdtl0_packetRx_queue);
     ptin_ipdtl0_packetRx_queue = L7_NULLPTR;
 
-    LOG_TRACE(LOG_CTX_API,"IP dtl0 Packet Queue deleted.");
+    LOG_PT_TRACE(LOG_CTX_API,"IP dtl0 Packet Queue deleted.");
 
 
     /* Task that will process packets */
     osapiTaskDelete(ptin_ipdtl0_TaskId);
     ptin_ipdtl0_TaskId = L7_ERROR;
 
-    LOG_TRACE(LOG_CTX_API,"IP dtl0 Packet Task destroyed.");
+    LOG_PT_TRACE(LOG_CTX_API,"IP dtl0 Packet Task destroyed.");
 
     return L7_SUCCESS;
 }
@@ -490,20 +490,20 @@ L7_RC_t ptin_ipdtl0_control(L7_uint16 dtl0Vid, L7_uint16 outerVid, L7_uint16 int
     /* VLAN ID Validation */
     if (dtl0Vid<PTIN_VLAN_MIN || dtl0Vid>PTIN_VLAN_MAX)
     {
-        LOG_ERR(LOG_CTX_API,"dtl0 Vid Invalid argument");
+        LOG_PT_ERR(LOG_CTX_API,"dtl0 Vid Invalid argument");
         return L7_FAILURE;
     }
 
     /* VLAN ID Validation */
     if (outerVid<PTIN_VLAN_MIN || outerVid>PTIN_VLAN_MAX)
     {
-        LOG_ERR(LOG_CTX_API,"dtl0 Vid Invalid argument");
+        LOG_PT_ERR(LOG_CTX_API,"dtl0 Vid Invalid argument");
         return L7_FAILURE;
     }
 
     if (type <= PTIN_IPDTL0_NONE || type >= PTIN_IPDTL0_LAST)
     {
-        LOG_ERR(LOG_CTX_API,"dtl0 Invalid type");
+        LOG_PT_ERR(LOG_CTX_API,"dtl0 Invalid type");
         return L7_FAILURE;
     }
 
@@ -513,7 +513,7 @@ L7_RC_t ptin_ipdtl0_control(L7_uint16 dtl0Vid, L7_uint16 outerVid, L7_uint16 int
       rc = ptin_xlate_ingress_get(intfNum, outerVid, PTIN_XLATE_NOT_DEFINED, &internalVid, L7_NULLPTR);
       if ((rc != L7_SUCCESS) || (internalVid == 0))
       {
-          LOG_ERR(LOG_CTX_API,"Error Enabling IP dtl0");
+          LOG_PT_ERR(LOG_CTX_API,"Error Enabling IP dtl0");
           return rc;
       }
     }
@@ -532,7 +532,7 @@ L7_RC_t ptin_ipdtl0_control(L7_uint16 dtl0Vid, L7_uint16 outerVid, L7_uint16 int
     rc = ptin_ipdtl0_trapRuleCreate(internalVid, type, enable);
     if (rc != L7_SUCCESS)
     {
-        LOG_ERR(LOG_CTX_API,"Error Enabling IP dtl0");
+        LOG_PT_ERR(LOG_CTX_API,"Error Enabling IP dtl0");
         return rc;
     }
 
@@ -544,7 +544,7 @@ L7_RC_t ptin_ipdtl0_control(L7_uint16 dtl0Vid, L7_uint16 outerVid, L7_uint16 int
         ptin_ipdtl0_dtl0Vid_info[dtl0Vid].outerVid = outerVid;
         ptin_ipdtl0_dtl0Vid_info[dtl0Vid].type = type;
 
-        LOG_TRACE(LOG_CTX_API,"(dtl0Vid=%d, outerVid=%d, intfNum=%d, type=%d, enable=%d) internalVid %d\n", dtl0Vid, outerVid, intfNum, type, enable, internalVid);
+        LOG_PT_TRACE(LOG_CTX_API,"(dtl0Vid=%d, outerVid=%d, intfNum=%d, type=%d, enable=%d) internalVid %d\n", dtl0Vid, outerVid, intfNum, type, enable, internalVid);
     }
 
     return rc;
@@ -571,7 +571,7 @@ L7_RC_t ptin_ipdtl0_control_b(L7_uint16 dtl0Vid, L7_uint16 outerVid, L7_uint32 l
     rc = ptin_intf_lag2intIfNum(lag_idx, &intfNum);
     if (rc != L7_SUCCESS)
     {
-        LOG_ERR(LOG_CTX_API,"Error Enabling IP dtl0");
+        LOG_PT_ERR(LOG_CTX_API,"Error Enabling IP dtl0");
         return rc;
     }
 

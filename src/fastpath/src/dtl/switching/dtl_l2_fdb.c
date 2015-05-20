@@ -203,7 +203,7 @@ L7_RC_t dtlFdbReceive(DAPI_USP_t *ddusp,
       return L7_FAILURE;
     }
 
-    LOG_TRACE(LOG_CTX_HAPI, "usp={%d,%d,%d} -> intIfNum=%u", usp.unit, usp.slot, usp.port, intIfNum);
+    LOG_PT_TRACE(LOG_CTX_HAPI, "usp={%d,%d,%d} -> intIfNum=%u", usp.unit, usp.slot, usp.port, intIfNum);
 
 #ifdef L7_MACLOCK_PACKAGE
     pmlLearnEntryCallBack(intIfNum,
@@ -250,7 +250,7 @@ L7_RC_t dtlFdbReceive(DAPI_USP_t *ddusp,
                 usp.unit, usp.slot, usp.port);
     }
 
-    LOG_TRACE(LOG_CTX_HAPI, "usp={%d,%d,%d} -> intIfNum=%u", usp.unit, usp.slot, usp.port, intIfNum);
+    LOG_PT_TRACE(LOG_CTX_HAPI, "usp={%d,%d,%d} -> intIfNum=%u", usp.unit, usp.slot, usp.port, intIfNum);
 
 #ifdef L7_MACLOCK_PACKAGE
     pmlAgeEntryCallBack(dei->cmdData.unsolLearnedAddress.macAddr,
@@ -596,13 +596,13 @@ L7_RC_t dtlFdbMacAddrDelete(L7_uchar8 *macAddr,
   L7_RC_t dr;
   nimUSP_t usp;
 
-  LOG_TRACE(LOG_CTX_L2, "vlan=%u, MAC=%02x:%02x:%02x:%02x:%02x:%02x",
+  LOG_PT_TRACE(LOG_CTX_L2, "vlan=%u, MAC=%02x:%02x:%02x:%02x:%02x:%02x",
             filterDbID,
             macAddr[0], macAddr[1], macAddr[2], macAddr[3], macAddr[4], macAddr[5]);
 
   if (nimGetUnitSlotPort(intfNum, &usp) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_L2,"Error!");
+    LOG_PT_ERR(LOG_CTX_L2,"Error!");
     return L7_FAILURE;
   }
   ddUsp.unit = usp.unit;
@@ -640,7 +640,7 @@ L7_RC_t dtlFdbMacAddrDelete(L7_uchar8 *macAddr,
 
   dr = dapiCtl(&ddUsp,DAPI_CMD_ADDR_MAC_ADDRESS_ENTRY_DELETE,&dapiCmd);
 
-  LOG_TRACE(LOG_CTX_L2, "getOrSet=%d flags=0x%08x vlanId=%u, dr=%d",
+  LOG_PT_TRACE(LOG_CTX_L2, "getOrSet=%d flags=0x%08x vlanId=%u, dr=%d",
             dapiCmd.cmdData.macAddressEntryDelete.getOrSet,
             dapiCmd.cmdData.macAddressEntryDelete.flags,
             dapiCmd.cmdData.macAddressEntryDelete.vlanID,

@@ -1740,7 +1740,7 @@ static int _policy_group_add_std_field(int                   unit,
         /* TODO: SDK 6.3.0 */
         #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
         rv = BCM_E_UNAVAIL;
-        LOG_ERR(LOG_CTX_HAPI,"bcm_field_qualify_LookupStatus is not supported!");
+        LOG_PT_ERR(LOG_CTX_HAPI,"bcm_field_qualify_LookupStatus is not supported!");
         #else
         rv = bcm_field_qualify_LookupStatus(unit, eid, lookupStatus, lookupStatusMask);
         #endif

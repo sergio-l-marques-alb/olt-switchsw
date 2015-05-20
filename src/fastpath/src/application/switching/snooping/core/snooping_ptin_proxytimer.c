@@ -78,7 +78,7 @@ L7_RC_t snoop_ptin_proxytimer_init(void)
    timerSem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
    if (timerSem == L7_NULLPTR)
    {
-     LOG_FATAL(LOG_CTX_CNFGR, "Failed to create timers_sem semaphore!");
+     LOG_PT_FATAL(LOG_CTX_CNFGR, "Failed to create timers_sem semaphore!");
      return L7_FAILURE;
    }
 
@@ -86,7 +86,7 @@ L7_RC_t snoop_ptin_proxytimer_init(void)
    cbEventQueue = (void *) osapiMsgQueueCreate("cb_event_queue_proxytimer", TIMER_COUNT, PTIN_IGMP_TIMER_MSG_SIZE);
    if (cbEventQueue == L7_NULLPTR)
    {
-     LOG_FATAL(LOG_CTX_CNFGR,"cb_event_queue creation error.");
+     LOG_PT_FATAL(LOG_CTX_CNFGR,"cb_event_queue creation error.");
      return L7_FAILURE;
    }
 
@@ -97,12 +97,12 @@ L7_RC_t snoop_ptin_proxytimer_init(void)
                                          L7_DEFAULT_TASK_SLICE);
    if (cbTaskId == L7_ERROR)
    {
-     LOG_FATAL(LOG_CTX_CNFGR, "Could not create task ptin_igmp_proxytimer_task");
+     LOG_PT_FATAL(LOG_CTX_CNFGR, "Could not create task ptin_igmp_proxytimer_task");
      return L7_FAILURE;
    }
    if (osapiWaitForTaskInit (L7_PTIN_IGMP_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS)
    {
-     LOG_FATAL(LOG_CTX_CNFGR,"Unable to initialize ptin_igmp_proxytimer_task");
+     LOG_PT_FATAL(LOG_CTX_CNFGR,"Unable to initialize ptin_igmp_proxytimer_task");
      return(L7_FAILURE);
    }
 
@@ -113,7 +113,7 @@ L7_RC_t snoop_ptin_proxytimer_init(void)
                      "PTin_IGMP_CB_ProxyTimer_Buffer",
                      &cbBufferPoolId) != L7_SUCCESS)
    {
-     LOG_FATAL(LOG_CTX_CNFGR, "Failed to allocate memory for IGMP Control Block timer buffers");
+     LOG_PT_FATAL(LOG_CTX_CNFGR, "Failed to allocate memory for IGMP Control Block timer buffers");
      return L7_FAILURE;
    }
 
@@ -122,7 +122,7 @@ L7_RC_t snoop_ptin_proxytimer_init(void)
                 sizeof(L7_uint32)*2, timerDataCmp, timerDataDestroy,
                 &timerLinkedList) != L7_SUCCESS)
    {
-     LOG_FATAL(LOG_CTX_CNFGR,"Failed to create timer linked list");
+     LOG_PT_FATAL(LOG_CTX_CNFGR,"Failed to create timer linked list");
      return L7_FAILURE;
    }
 
@@ -130,14 +130,14 @@ L7_RC_t snoop_ptin_proxytimer_init(void)
    handleListMemHndl = (handle_member_t*) osapiMalloc(L7_PTIN_COMPONENT_ID, TIMER_COUNT*sizeof(handle_member_t));
    if (handleListMemHndl == L7_NULLPTR)
    {
-     LOG_FATAL(LOG_CTX_CNFGR,"Error allocating Handle List Buffers");
+     LOG_PT_FATAL(LOG_CTX_CNFGR,"Error allocating Handle List Buffers");
      return L7_FAILURE;
    }
 
    /* Create timers handle list for this IGMP instance  */
    if(handleListInit(L7_PTIN_COMPONENT_ID, TIMER_COUNT, &handleList, handleListMemHndl) != L7_SUCCESS)
    {
-     LOG_FATAL(LOG_CTX_CNFGR,"Unable to create timer handle list");
+     LOG_PT_FATAL(LOG_CTX_CNFGR,"Unable to create timer handle list");
      return L7_FAILURE;
    }
 
@@ -147,11 +147,11 @@ L7_RC_t snoop_ptin_proxytimer_init(void)
                           cbBufferPoolId);
    if (cbTimer  == L7_NULLPTR)
    {
-     LOG_FATAL(LOG_CTX_CNFGR,"snoopEntry App Timer Initialization Failed.");
+     LOG_PT_FATAL(LOG_CTX_CNFGR,"snoopEntry App Timer Initialization Failed.");
      return L7_FAILURE;
    }
 
-   LOG_TRACE(LOG_CTX_CNFGR,"Initializations for IGMPv3 group timers finished");
+   LOG_PT_TRACE(LOG_CTX_CNFGR,"Initializations for IGMPv3 group timers finished");
 
   return(L7_SUCCESS);
 }
@@ -236,7 +236,7 @@ void cbtimerCallback(L7_APP_TMR_CTRL_BLK_t timerCtrlBlk, void* ptrData)
   rc = osapiMessageSend(cbEventQueue, &msg, PTIN_IGMP_TIMER_MSG_SIZE, L7_NO_WAIT,L7_MSG_PRIORITY_NORM);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_IGMP,"Proxytimer timer tick send failed");
+    LOG_PT_ERR(LOG_CTX_IGMP,"Proxytimer timer tick send failed");
     return;
   }
 }
@@ -257,7 +257,7 @@ void cbEventqueueTask(void)
 
   if (osapiTaskInitDone(L7_PTIN_IGMP_TASK_SYNC)!=L7_SUCCESS)
   {
-    LOG_FATAL(LOG_CTX_SSM, "Error syncing task");
+    LOG_PT_FATAL(LOG_CTX_SSM, "Error syncing task");
     PTIN_CRASH();
   }
 
@@ -271,7 +271,7 @@ void cbEventqueueTask(void)
     }
     else
     {
-      LOG_ERR(LOG_CTX_IGMP,"This is an invalid event");
+      LOG_PT_ERR(LOG_CTX_IGMP,"This is an invalid event");
     }
   }
 }
@@ -346,7 +346,7 @@ L7_RC_t timerDataDestroy (L7_sll_member_t *ll_member)
   /* Validate argument */
   if (ll_member==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_IGMP,"Null arguments");
+    LOG_PT_ERR(LOG_CTX_IGMP,"Null arguments");
     return L7_FAILURE;
   }
 
@@ -358,7 +358,7 @@ L7_RC_t timerDataDestroy (L7_sll_member_t *ll_member)
     /* Delete the apptimer node */
     if (appTimerDelete(cbTimer, pTimerData->timer)!=L7_SUCCESS)
     {
-      LOG_NOTICE(LOG_CTX_IGMP,"Cannot delete timer");
+      LOG_PT_NOTICE(LOG_CTX_IGMP,"Cannot delete timer");
     }
     pTimerData->timer = (L7_APP_TMR_HNDL_t) NULL;
 
@@ -396,7 +396,7 @@ void timerCallback(void *param)
   pTimerData = (snoopPTinProxyTimer_t*) handleListNodeRetrieve(timerHandle);
   if (pTimerData == L7_NULLPTR)
   {
-    LOG_DEBUG(LOG_CTX_IGMP,"Failed to retrieve handle");
+    LOG_PT_DEBUG(LOG_CTX_IGMP,"Failed to retrieve handle");
     osapiSemaGive(timerSem);
     return;
   }
@@ -405,20 +405,20 @@ void timerCallback(void *param)
   /* Check if our handle is OK*/
   if (timerHandle != pTimerData->timerHandle)
   {
-    LOG_ERR(LOG_CTX_IGMP,"timerHandle and pTimerData->timerHandle do not match!");
+    LOG_PT_ERR(LOG_CTX_IGMP,"timerHandle and pTimerData->timerHandle do not match!");
     return;
   }
     
 
   if (pTimerData->isInterface)
   {
-    LOG_TRACE(LOG_CTX_IGMP,"Proxy Interface timer expired (vlan:%u)",
+    LOG_PT_TRACE(LOG_CTX_IGMP,"Proxy Interface timer expired (vlan:%u)",
             ((snoopPTinProxyInterface_t *) pTimerData->groupData)->key.vlanId);    
     interfacePtr    = (snoopPTinProxyInterface_t *) pTimerData->groupData;
   }
   else
   {
-    LOG_TRACE(LOG_CTX_IGMP,"Proxy Group timer expired(vlan:%u group:%s)",((snoopPTinProxyGroup_t *) pTimerData->groupData)->key.vlanId,
+    LOG_PT_TRACE(LOG_CTX_IGMP,"Proxy Group timer expired(vlan:%u group:%s)",((snoopPTinProxyGroup_t *) pTimerData->groupData)->key.vlanId,
             inetAddrPrint(&(((snoopPTinProxyGroup_t *) pTimerData->groupData)->key.groupAddr), debug_buf));
     groupPtr    = (snoopPTinProxyGroup_t *) pTimerData->groupData;
     interfacePtr=(snoopPTinProxyInterface_t*) groupPtr->interfacePtr;    
@@ -432,7 +432,7 @@ void timerCallback(void *param)
   if (SLLDelete(&timerLinkedList, (L7_sll_member_t *)pTimerData) != L7_SUCCESS)
   {
     osapiSemaGive(timerSem);
-    LOG_ERR(LOG_CTX_IGMP,"Failed to delete timer node");
+    LOG_PT_ERR(LOG_CTX_IGMP,"Failed to delete timer node");
     return;
   }
   osapiSemaGive(timerSem);
@@ -440,13 +440,13 @@ void timerCallback(void *param)
 
   if (interfacePtr==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_IGMP,"interfacePtr==L7_NULLPTR");
+    LOG_PT_ERR(LOG_CTX_IGMP,"interfacePtr==L7_NULLPTR");
     return ;
   }
-  LOG_TRACE(LOG_CTX_IGMP, "Trigger Membership Report Message");
+  LOG_PT_TRACE(LOG_CTX_IGMP, "Trigger Membership Report Message");
   if (snoopPTinScheduleReportMessage(interfacePtr->key.vlanId,&groupPtr->key.groupAddr,reportType,0,isInterface,noOfRecords,groupData,robustnessVariable)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_IGMP,"Failed snoopPTinReportSchedule()");
+    LOG_PT_ERR(LOG_CTX_IGMP,"Failed snoopPTinReportSchedule()");
     return ;
   } 
 }
@@ -472,11 +472,11 @@ L7_RC_t snoop_ptin_proxytimer_start(snoopPTinProxyTimer_t* pTimer, L7_uint32 tim
   /* Argument validation */
   if (pTimer == L7_NULLPTR || groupData == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_IGMP, "Invalid arguments");
+    LOG_PT_ERR(LOG_CTX_IGMP, "Invalid arguments");
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_IGMP, "timeout:%u; reportType:%u; isInterface:%u;  noOfRecords:%u; robustnessVariable:%u",timeout,reportType,isInterface,noOfRecords,robustnessVariable);
+  LOG_PT_TRACE(LOG_CTX_IGMP, "timeout:%u; reportType:%u; isInterface:%u;  noOfRecords:%u; robustnessVariable:%u",timeout,reportType,isInterface,noOfRecords,robustnessVariable);
 
   osapiSemaTake(timerSem, L7_WAIT_FOREVER);
 
@@ -493,7 +493,7 @@ L7_RC_t snoop_ptin_proxytimer_start(snoopPTinProxyTimer_t* pTimer, L7_uint32 tim
     if (appTimerDelete(cbTimer, (void *) pTimer->timer) != L7_SUCCESS)
     {
       osapiSemaGive(timerSem);
-      LOG_ERR(LOG_CTX_IGMP,"Failed restarting timer");
+      LOG_PT_ERR(LOG_CTX_IGMP,"Failed restarting timer");
       return L7_FAILURE;
     }
     pTimer->timer = L7_NULLPTR;
@@ -513,15 +513,15 @@ L7_RC_t snoop_ptin_proxytimer_start(snoopPTinProxyTimer_t* pTimer, L7_uint32 tim
 
   if (isInterface  || reportType==L7_IGMP_MEMBERSHIP_QUERY)
   {
-    LOG_DEBUG(LOG_CTX_IGMP,"Starting Proxy Interface timer (timeout:%u)",timeout);
+    LOG_PT_DEBUG(LOG_CTX_IGMP,"Starting Proxy Interface timer (timeout:%u)",timeout);
   }
   else
   {
 #if 0
-    LOG_DEBUG(LOG_CTX_IGMP,"Starting Proxy Group timer (timeout:%u group:%s)",timeout,
+    LOG_PT_DEBUG(LOG_CTX_IGMP,"Starting Proxy Group timer (timeout:%u group:%s)",timeout,
               inetAddrPrint(&pTimer->(snoopPTinProxyGroup_t*)(groupData)->key.groupAddr, debug_buf));
 #else
-    LOG_DEBUG(LOG_CTX_IGMP,"Starting Proxy Group timer (timeout:%u groupRecord:%u",timeout);
+    LOG_PT_DEBUG(LOG_CTX_IGMP,"Starting Proxy Group timer (timeout:%u groupRecord:%u",timeout);
 #endif
   }
 
@@ -529,7 +529,7 @@ L7_RC_t snoop_ptin_proxytimer_start(snoopPTinProxyTimer_t* pTimer, L7_uint32 tim
   if ((pTimer->timerHandle = handleListNodeStore(handleList, pTimer)) == 0)
   {
     osapiSemaGive(timerSem);
-    LOG_ERR(LOG_CTX_IGMP,"Could not get the handle node to store the timer data.");
+    LOG_PT_ERR(LOG_CTX_IGMP,"Could not get the handle node to store the timer data.");
     return L7_FAILURE;
   }
 
@@ -542,7 +542,7 @@ L7_RC_t snoop_ptin_proxytimer_start(snoopPTinProxyTimer_t* pTimer, L7_uint32 tim
     handleListNodeDelete(handleList, &pTimer->timerHandle);
     pTimer->timerHandle = 0;
     osapiSemaGive(timerSem);
-    LOG_ERR(LOG_CTX_IGMP,"Could not start the proxytimer.");
+    LOG_PT_ERR(LOG_CTX_IGMP,"Could not start the proxytimer.");
     return L7_FAILURE;
   }
 
@@ -551,13 +551,13 @@ L7_RC_t snoop_ptin_proxytimer_start(snoopPTinProxyTimer_t* pTimer, L7_uint32 tim
   {
     if (appTimerDelete(cbTimer, pTimer->timer) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_IGMP,"Failed to delete timer");
+      LOG_PT_ERR(LOG_CTX_IGMP,"Failed to delete timer");
     }
     pTimer->timer = L7_NULLPTR;
     handleListNodeDelete(handleList, &pTimer->timerHandle);
     memset(pTimer, 0x00, sizeof(pTimer));
     osapiSemaGive(timerSem);
-    LOG_WARNING(LOG_CTX_IGMP,"Could not add new timer data node");
+    LOG_PT_WARN(LOG_CTX_IGMP,"Could not add new timer data node");
     return L7_FAILURE;
   }
 
@@ -581,18 +581,18 @@ L7_RC_t snoop_ptin_proxytimer_stop(snoopPTinProxyTimer_t *pTimer)
   /* Argument validation */
   if (pTimer == L7_NULLPTR || pTimer->groupData == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_IGMP, "Invalid arguments");
+    LOG_PT_ERR(LOG_CTX_IGMP, "Invalid arguments");
     return L7_FAILURE;
   }
 
 
   if (pTimer->isInterface)
   {
-    LOG_TRACE(LOG_CTX_IGMP,"Stopping Proxy Interface timer");    
+    LOG_PT_TRACE(LOG_CTX_IGMP,"Stopping Proxy Interface timer");    
   }
   else
   {
-    LOG_TRACE(LOG_CTX_IGMP,"Stopping Proxy Group timer (group:%s)",
+    LOG_PT_TRACE(LOG_CTX_IGMP,"Stopping Proxy Group timer (group:%s)",
             inetAddrPrint(&(((snoopPTinProxyGroup_t *) pTimer->groupData)->key.groupAddr), debug_buf));    
   }
 
@@ -602,7 +602,7 @@ L7_RC_t snoop_ptin_proxytimer_stop(snoopPTinProxyTimer_t *pTimer)
   if (SLLDelete(&timerLinkedList, (L7_sll_member_t *)pTimer) != L7_SUCCESS)
   {
     osapiSemaGive(timerSem);
-    LOG_NOTICE(LOG_CTX_IGMP,"Failed to delete timer node");
+    LOG_PT_NOTICE(LOG_CTX_IGMP,"Failed to delete timer node");
     return L7_FAILURE;
   }
 

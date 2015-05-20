@@ -2158,7 +2158,7 @@ L7_RC_t hapiBroadTridentMmuModify(L7_uint32 unit)
         SOC_IF_ERROR_RETURN(WRITE_PORT_MIN_CELLr(unit, port, cell_rval));
     }
 
-    LOG_INFO(LOG_CTX_MISC, "PORT_MIN_CELL value applied to all ports: %u", cell_rval);
+    LOG_PT_INFO(LOG_CTX_MISC, "PORT_MIN_CELL value applied to all ports: %u", cell_rval);
 
     /* handle the cpu backpressure issue */
     /* set the cpu port_min to the max so no bp is allowed on cpu */
@@ -2168,7 +2168,7 @@ L7_RC_t hapiBroadTridentMmuModify(L7_uint32 unit)
     soc_reg_field_set(unit, PORT_MIN_CELLr, &cell_rval, PORT_MINf,field_max);
     SOC_IF_ERROR_RETURN(WRITE_PORT_MIN_CELLr(unit, cpu_port, cell_rval));
 
-    LOG_INFO(LOG_CTX_MISC, "PORT_MIN_CELL value applied to CPU: %u", cell_rval);
+    LOG_PT_INFO(LOG_CTX_MISC, "PORT_MIN_CELL value applied to CPU: %u", cell_rval);
 
     return SOC_E_NONE;
 }
@@ -4394,13 +4394,13 @@ L7_RC_t hapiBroadMmuConfigModify(L7_uint32 unit)
   else if (SOC_IS_TRIDENT(unit))
   {
     // TODO
-    LOG_INFO(LOG_CTX_MISC, "hapiBroadTridentMmuModify() IMPLEMENTED!");
+    LOG_PT_INFO(LOG_CTX_MISC, "hapiBroadTridentMmuModify() IMPLEMENTED!");
     rc = hapiBroadTridentMmuModify(unit);
   }
   else if (SOC_IS_TRIUMPH3(unit))
   {
     // TODO
-    LOG_WARNING(LOG_CTX_MISC, "hapiBroadTriumph3MmuModify() is NOT IMPLEMENTED!");
+    LOG_PT_WARN(LOG_CTX_MISC, "hapiBroadTriumph3MmuModify() is NOT IMPLEMENTED!");
   }
   /* PTin end */
 #endif /* TRIUMPH */
@@ -4485,11 +4485,11 @@ int hapiBroadMmuPauseSet(int unit,int mode)
   /* PTin added: new switch 56843 (Trident) */
   else if (SOC_IS_TRIDENT(unit))
   {
-    LOG_WARNING(LOG_CTX_MISC, "hapiBroadMmuTridentPauseSet() is not implemented!");
+    LOG_PT_WARN(LOG_CTX_MISC, "hapiBroadMmuTridentPauseSet() is not implemented!");
   }
   else if (SOC_IS_TRIUMPH3(unit))
   {
-    LOG_WARNING(LOG_CTX_MISC, "hapiBroadMmuTriumph3PauseSet() is not implemented!");
+    LOG_PT_WARN(LOG_CTX_MISC, "hapiBroadMmuTriumph3PauseSet() is not implemented!");
   }
   /* PTin end */
 #endif

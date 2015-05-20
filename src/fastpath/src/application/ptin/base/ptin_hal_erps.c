@@ -94,7 +94,7 @@ L7_RC_t ptin_hal_erps_init(void)
   ptin_hal_erps_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
   if (ptin_hal_erps_sem == L7_NULLPTR)
   {
-    LOG_FATAL(LOG_CTX_CNFGR, "Failed to create ptin_hal_erps_sem semaphore!");
+    LOG_PT_FATAL(LOG_CTX_CNFGR, "Failed to create ptin_hal_erps_sem semaphore!");
     return L7_FAILURE;
   }
 
@@ -105,16 +105,16 @@ L7_RC_t ptin_hal_erps_init(void)
                                            0);
 
   if (ptin_hal_apsPacketTx_TaskId == L7_ERROR) {
-    LOG_FATAL(LOG_CTX_ERPS, "Could not create task ptin_hal_apsPacketTx_task");
+    LOG_PT_FATAL(LOG_CTX_ERPS, "Could not create task ptin_hal_apsPacketTx_task");
     return L7_FAILURE;
   }
-  LOG_TRACE(LOG_CTX_ERPS,"Task ptin_hal_apsPacketTx_task created");
+  LOG_PT_TRACE(LOG_CTX_ERPS,"Task ptin_hal_apsPacketTx_task created");
 
   if (osapiWaitForTaskInit (L7_PTIN_APS_PACKET_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS) {
-    LOG_FATAL(LOG_CTX_ERPS,"Unable to initialize ptin_hal_apsPacketTx_task()\n");
+    LOG_PT_FATAL(LOG_CTX_ERPS,"Unable to initialize ptin_hal_apsPacketTx_task()\n");
     return(L7_FAILURE);
   }
-  LOG_TRACE(LOG_CTX_ERPS,"Task ptin_hal_apsPacketTx_task initialized");
+  LOG_PT_TRACE(LOG_CTX_ERPS,"Task ptin_hal_apsPacketTx_task initialized");
 
   // Get base MAC address and use it as Src MAC and Node ID
   if (bspapiMacAddrGet(srcMacAddr) != L7_SUCCESS) {
@@ -141,7 +141,7 @@ L7_RC_t ptin_hal_erps_counters(L7_uint8 erps_idx)
   /* Validate arguments */
   if (erps_idx >= MAX_PROT_PROT_ERPS)
   {
-    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    LOG_PT_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
     return PROT_ERPS_INDEX_VIOLATION;
   }
 
@@ -186,7 +186,7 @@ L7_RC_t ptin_hal_erps_countersClear(L7_uint8 erps_idx)
   /* Validate arguments */
   if (erps_idx >= MAX_PROT_PROT_ERPS)
   {
-    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    LOG_PT_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
     return PROT_ERPS_INDEX_VIOLATION;
   }
 
@@ -227,12 +227,12 @@ L7_RC_t ptin_hal_erps_counters_tx(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 req
   /* Validate arguments */
   if (erps_idx >= MAX_PROT_PROT_ERPS)
   {
-    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    LOG_PT_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
     return PROT_ERPS_INDEX_VIOLATION;
   }
   if (port > PROT_ERPS_PORT1)
   {
-    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d: port %d not valid", erps_idx, port);
+    LOG_PT_ERR(LOG_CTX_ERPS,"ERPS#%d: port %d not valid", erps_idx, port);
     return PROT_ERPS_INDEX_VIOLATION;
   }
 
@@ -260,7 +260,7 @@ L7_RC_t ptin_hal_erps_counters_tx(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 req
   }
   else
   {
-    LOG_TRACE(LOG_CTX_ERPS,"Unknown Req: 0x%02X, erps_idx %d, port %d", req, erps_idx, port);
+    LOG_PT_TRACE(LOG_CTX_ERPS,"Unknown Req: 0x%02X, erps_idx %d, port %d", req, erps_idx, port);
   }
 
   return L7_SUCCESS;
@@ -279,12 +279,12 @@ L7_RC_t ptin_hal_erps_counters_fw(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 req
   /* Validate arguments */
   if (erps_idx >= MAX_PROT_PROT_ERPS)
   {
-    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    LOG_PT_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
     return PROT_ERPS_INDEX_VIOLATION;
   }
   if (port > PROT_ERPS_PORT1)
   {
-    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d: port %d not valid", erps_idx, port);
+    LOG_PT_ERR(LOG_CTX_ERPS,"ERPS#%d: port %d not valid", erps_idx, port);
     return PROT_ERPS_INDEX_VIOLATION;
   }
 
@@ -310,12 +310,12 @@ L7_RC_t ptin_hal_erps_counters_rx(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 req
   /* Validate arguments */
   if (erps_idx >= MAX_PROT_PROT_ERPS)
   {
-    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    LOG_PT_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
     return PROT_ERPS_INDEX_VIOLATION;
   }
   if (port > PROT_ERPS_PORT1)
   {
-    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d: port %d not valid", erps_idx, port);
+    LOG_PT_ERR(LOG_CTX_ERPS,"ERPS#%d: port %d not valid", erps_idx, port);
     return PROT_ERPS_INDEX_VIOLATION;
   }
 
@@ -343,7 +343,7 @@ L7_RC_t ptin_hal_erps_counters_rx(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 req
   }
   else
   {
-    LOG_TRACE(LOG_CTX_ERPS,"Unknown Req: 0x%02X, erps_idx %d, port %d", req, erps_idx, port);
+    LOG_PT_TRACE(LOG_CTX_ERPS,"Unknown Req: 0x%02X, erps_idx %d, port %d", req, erps_idx, port);
   }
 
   return L7_SUCCESS;
@@ -362,12 +362,12 @@ L7_RC_t ptin_hal_erps_counters_rxdrop(L7_uint8 erps_idx, L7_uint8 port)
   /* Validate arguments */
   if (erps_idx >= MAX_PROT_PROT_ERPS)
   {
-    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    LOG_PT_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
     return PROT_ERPS_INDEX_VIOLATION;
   }
   if (port > PROT_ERPS_PORT1)
   {
-    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d: port %d not valid", erps_idx, port);
+    LOG_PT_ERR(LOG_CTX_ERPS,"ERPS#%d: port %d not valid", erps_idx, port);
     return PROT_ERPS_INDEX_VIOLATION;
   }
 
@@ -389,7 +389,7 @@ L7_RC_t ptin_hal_erps_entry_print(L7_uint8 erps_idx)
   /* Validate arguments */
   if (erps_idx >= MAX_PROT_PROT_ERPS)
   {
-    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    LOG_PT_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
     return PROT_ERPS_INDEX_VIOLATION;
   }
 
@@ -432,13 +432,13 @@ L7_RC_t ptin_hal_erps_convert_vid_init(L7_uint8 erps_idx)
       vid = (byte*8)+bit;
 
       if ((tbl_erps[erps_idx].protParam.vid_bmp[byte] >> bit) & 1) {       
-        LOG_DEBUG(LOG_CTX_ERPS, "ERPS#%d: VLAN ID %d Added", erps_idx, vid);
+        LOG_PT_DEBUG(LOG_CTX_ERPS, "ERPS#%d: VLAN ID %d Added", erps_idx, vid);
         erpsIdx_from_serviceVid[vid] = erps_idx;
       }
       else if (erpsIdx_from_serviceVid[vid] == erps_idx)
       {
         erpsIdx_from_serviceVid[vid] = PROT_ERPS_UNUSEDIDX;
-        LOG_DEBUG(LOG_CTX_ERPS, "ERPS#%d: VLAN ID %d Removed", erps_idx, vid);
+        LOG_PT_DEBUG(LOG_CTX_ERPS, "ERPS#%d: VLAN ID %d Removed", erps_idx, vid);
       }
     } // for(bit...)
   } // for(byte...)
@@ -459,11 +459,11 @@ L7_RC_t ptin_hal_erps_entry_init(L7_uint8 erps_idx)
   /* Validate arguments */
   if (erps_idx >= MAX_PROT_PROT_ERPS)
   {
-    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    LOG_PT_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
     return PROT_ERPS_INDEX_VIOLATION;
   }
 
-  LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d", erps_idx);
+  LOG_PT_TRACE(LOG_CTX_ERPS,"ERPS#%d", erps_idx);
 
   osapiSemaTake(ptin_hal_erps_sem, L7_WAIT_FOREVER);
 
@@ -540,11 +540,11 @@ L7_RC_t ptin_hal_erps_entry_deinit(L7_uint8 erps_idx)
   /* Validate arguments */
   if (erps_idx >= MAX_PROT_PROT_ERPS)
   {
-    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    LOG_PT_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
     return PROT_ERPS_INDEX_VIOLATION;
   }
 
-  LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d", erps_idx);
+  LOG_PT_TRACE(LOG_CTX_ERPS,"ERPS#%d", erps_idx);
 
   osapiSemaTake(ptin_hal_erps_sem, L7_WAIT_FOREVER);
 
@@ -588,11 +588,11 @@ L7_RC_t ptin_hal_erps_clear(void)
   L7_uint8 erps_idx;
   L7_RC_t  ret = L7_SUCCESS;
 
-  LOG_TRACE(LOG_CTX_ERPS, "");
+  LOG_PT_TRACE(LOG_CTX_ERPS, "");
 
   for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++) {
     if ((ret=ptin_hal_erps_entry_deinit(erps_idx))!=L7_SUCCESS) {
-      LOG_ERR(LOG_CTX_ERPS, "ERROR: (%d) while removing ERPS#%d\n\r", ret, erps_idx);
+      LOG_PT_ERR(LOG_CTX_ERPS, "ERROR: (%d) while removing ERPS#%d\n\r", ret, erps_idx);
       ret = L7_FAILURE;
     }
   }
@@ -618,7 +618,7 @@ L7_RC_t ptin_hal_erps_deinit(void)
   /* Create semaphore to control concurrent accesses */
   if (osapiSemaDelete(ptin_hal_erps_sem) != L7_SUCCESS)
   {
-    LOG_FATAL(LOG_CTX_CNFGR, "Failed to delete ptin_hal_erps_sem semaphore!");
+    LOG_PT_FATAL(LOG_CTX_CNFGR, "Failed to delete ptin_hal_erps_sem semaphore!");
     return L7_FAILURE;
   }
 
@@ -641,7 +641,7 @@ void __ptin_hal_erps_signal_handler (int sig)
   switch (sig) 
     {
       case PTIN_ERPS_WAKE_UP_SIGNAL:
-        //LOG_ERR(LOG_CTX_ERPS, "ERPS: Tx R-APS WAKE UP SIGNAL Handler!");
+        //LOG_PT_ERR(LOG_CTX_ERPS, "ERPS: Tx R-APS WAKE UP SIGNAL Handler!");
         break;
       default:
         break;
@@ -665,11 +665,11 @@ L7_RC_t ptin_hal_erps_sendaps(L7_uint8 erps_idx, L7_uint8 req, L7_uint8 status)
     /* Validate arguments */
   if (erps_idx >= MAX_PROT_PROT_ERPS)
   {
-    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    LOG_PT_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
     return PROT_ERPS_INDEX_VIOLATION;
   }
 
-  //LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d", erps_idx);
+  //LOG_PT_TRACE(LOG_CTX_ERPS,"ERPS#%d", erps_idx);
 
   apsTx = ((req << 12) & 0xF000) | (status & 0x00FF);
 
@@ -681,7 +681,7 @@ L7_RC_t ptin_hal_erps_sendaps(L7_uint8 erps_idx, L7_uint8 req, L7_uint8 status)
   osapiSemaGive(ptin_hal_erps_sem);
 
   osapiTaskSignal(ptin_hal_apsPacketTx_TaskId, PTIN_ERPS_WAKE_UP_SIGNAL);
-  //LOG_ERR(LOG_CTX_ERPS, "ERPS#%d: Tx R-APS WAKE UP SIGNAL Sent!", erps_idx);
+  //LOG_PT_ERR(LOG_CTX_ERPS, "ERPS#%d: Tx R-APS WAKE UP SIGNAL Sent!", erps_idx);
 
   return L7_SUCCESS;
 }
@@ -710,14 +710,14 @@ void ptin_hal_apsPacketTx_task(void)
   requiredSleepTime.tv_sec  = 5;
   requiredSleepTime.tv_nsec = 0;
   
-  LOG_INFO(LOG_CTX_ERPS,"PTin APS packet process task started");
+  LOG_PT_INFO(LOG_CTX_ERPS,"PTin APS packet process task started");
 
   if (osapiTaskInitDone(L7_PTIN_APS_PACKET_TASK_SYNC)!=L7_SUCCESS) {
-    LOG_FATAL(LOG_CTX_SSM, "Error syncing task");
+    LOG_PT_FATAL(LOG_CTX_SSM, "Error syncing task");
     PTIN_CRASH();
   }
 
-  LOG_INFO(LOG_CTX_ERPS,"PTin APS packet task ready to process events");
+  LOG_PT_INFO(LOG_CTX_ERPS,"PTin APS packet task ready to process events");
 
   /* Loop */
   while (1) {
@@ -766,7 +766,7 @@ void ptin_hal_apsPacketTx_task(void)
 
         if (counter > 0)
         {
-          LOG_NOTICE(LOG_CTX_ERPS, "ERPS#%d: Tx R-APS Req %d (reqStatus 0x%02X)", erps_idx, req, reqStatus);
+          LOG_PT_NOTICE(LOG_CTX_ERPS, "ERPS#%d: Tx R-APS Req %d (reqStatus 0x%02X)", erps_idx, req, reqStatus);
           osapiSemaTake(ptin_hal_erps_sem, L7_WAIT_FOREVER);
           tbl_halErps[erps_idx].apsReqTxRemainingCounter--;
           osapiSemaGive(ptin_hal_erps_sem);
@@ -801,13 +801,13 @@ void ptin_hal_apsPacketTx_task(void)
  */
 L7_RC_t ptin_hal_erps_rcvaps(L7_uint8 erps_idx, L7_uint8 *req, L7_uint8 *status, L7_uint8 *nodeid, L7_uint32 *rxport)
 {
-  //LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d", erps_idx);
+  //LOG_PT_TRACE(LOG_CTX_ERPS,"ERPS#%d", erps_idx);
   L7_uint32 rxintport;
 
   /* Validate arguments */
   if (erps_idx >= MAX_PROT_PROT_ERPS)
   {
-    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    LOG_PT_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
     return PROT_ERPS_INDEX_VIOLATION;
   }
 
@@ -882,7 +882,7 @@ static L7_RC_t ptin_hal_erps_queue_vlans_used_init(void)
     /* Initialize VLANs queue */
     if(NOERR != dl_queue_init(&queue_vlans_used[erps_idx]))
     {
-      LOG_ERR(LOG_CTX_ERPS, "Unable to create new dl_queue %d for VLANs in use", erps_idx);
+      LOG_PT_ERR(LOG_CTX_ERPS, "Unable to create new dl_queue %d for VLANs in use", erps_idx);
       return L7_FAILURE;
     }
   }
@@ -907,7 +907,7 @@ struct vlan_entry_s *ptin_hal_erps_queue_vlan_used_find(int erps_idx, L7_uint16 
   /* Get pointer to the first element */
   if(NOERR != dl_queue_get_head(&queue_vlans_used[erps_idx], (dl_queue_elem_t**)&vlan_entry))
   {
-    LOG_DEBUG(LOG_CTX_ERPS, "VLANs queue %d is empty", erps_idx);
+    LOG_PT_DEBUG(LOG_CTX_ERPS, "VLANs queue %d is empty", erps_idx);
     return NULL;
   }
 
@@ -940,7 +940,7 @@ static L7_RC_t ptin_hal_erps_queue_vlan_used_add(int erps_idx, L7_uint16 interna
   vlan_entry_find = ptin_hal_erps_queue_vlan_used_find(erps_idx, internalVlan);
   if (vlan_entry_find != NULL)
   {
-    LOG_TRACE(LOG_CTX_ERPS, "VLAN %d already exists on queue %d", internalVlan, erps_idx);
+    LOG_PT_TRACE(LOG_CTX_ERPS, "VLAN %d already exists on queue %d", internalVlan, erps_idx);
     return L7_SUCCESS;
   }
 
@@ -950,7 +950,7 @@ static L7_RC_t ptin_hal_erps_queue_vlan_used_add(int erps_idx, L7_uint16 interna
   vlan_entry[free_entry].vid = internalVlan;
   dl_queue_add(&queue_vlans_used[erps_idx], (dl_queue_elem_t*) &vlan_entry[free_entry]);
 
-  LOG_TRACE(LOG_CTX_ERPS, "VLAN %d added to queue %d", internalVlan, erps_idx);
+  LOG_PT_TRACE(LOG_CTX_ERPS, "VLAN %d added to queue %d", internalVlan, erps_idx);
 
   return L7_SUCCESS;
 }
@@ -972,11 +972,11 @@ static L7_RC_t ptin_hal_erps_queue_vlan_used_remove(int erps_idx, L7_uint16 inte
 
   if (vlan_entry == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_ERPS, "VLANs %d not found on queue %d", internalVlan, erps_idx);
+    LOG_PT_ERR(LOG_CTX_ERPS, "VLANs %d not found on queue %d", internalVlan, erps_idx);
     return L7_SUCCESS;
   }
 
-  LOG_TRACE(LOG_CTX_ERPS, "VLANs %d added to queue %d", internalVlan, erps_idx);
+  LOG_PT_TRACE(LOG_CTX_ERPS, "VLANs %d added to queue %d", internalVlan, erps_idx);
 
   vlan_entry->used = L7_FALSE;
   vlan_entry->vid = 0;
@@ -1003,7 +1003,7 @@ L7_RC_t ptin_hal_erps_queue_vlans_used_print(int erps_idx)
   /* Get pointer to the first element */
   if(NOERR != dl_queue_get_head(&queue_vlans_used[erps_idx], (dl_queue_elem_t**)&vlan_entry))
   {
-    LOG_DEBUG(LOG_CTX_ERPS, "VLANs queue %d is empty", erps_idx);
+    LOG_PT_DEBUG(LOG_CTX_ERPS, "VLANs queue %d is empty", erps_idx);
     return L7_FAILURE;
   }
 
@@ -1071,7 +1071,7 @@ L7_RC_t ptin_hal_erps_internal_vlans_used_sync(L7_uint8 erps_idx)
   L7_int initial_evc_id = 0;
   L7_uint16 internalVlan = 0;
   
-  LOG_TRACE(LOG_CTX_ERPS, "Adding VLANs to queue %d", erps_idx);
+  LOG_PT_TRACE(LOG_CTX_ERPS, "Adding VLANs to queue %d", erps_idx);
 
   while (initial_evc_id < PTIN_SYSTEM_N_EVCS)
   {
@@ -1125,7 +1125,7 @@ L7_RC_t ptin_hal_erps_hwSync(L7_uint8 erps_idx)
   /* Validate arguments */
   if (erps_idx >= MAX_PROT_PROT_ERPS)
   {
-    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    LOG_PT_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
     return PROT_ERPS_INDEX_VIOLATION;
   }
 
@@ -1133,14 +1133,14 @@ L7_RC_t ptin_hal_erps_hwSync(L7_uint8 erps_idx)
 
   if (tbl_halErps[erps_idx].hwSync == 1)
   {
-    LOG_DEBUG(LOG_CTX_ERPS,"ERPS#%d: HW Sync in progress...", erps_idx);
+    LOG_PT_DEBUG(LOG_CTX_ERPS,"ERPS#%d: HW Sync in progress...", erps_idx);
 
     /* Get pointer to the first element */
     if(NOERR != dl_queue_get_head(&queue_vlans_used[erps_idx], (dl_queue_elem_t**)&vlan_entry))
     {
       tbl_halErps[erps_idx].hwSync = 0;
       osapiSemaGive(ptin_hal_erps_sem);
-      LOG_DEBUG(LOG_CTX_ERPS, "VLANs queue is empty");
+      LOG_PT_DEBUG(LOG_CTX_ERPS, "VLANs queue is empty");
       return L7_FAILURE;
     }
 
@@ -1176,7 +1176,7 @@ L7_RC_t ptin_hal_erps_hwSync(L7_uint8 erps_idx)
       }
     }
 
-    LOG_DEBUG(LOG_CTX_ERPS,"ERPS#%d: HW Sync done!", erps_idx);
+    LOG_PT_DEBUG(LOG_CTX_ERPS,"ERPS#%d: HW Sync done!", erps_idx);
 
     tbl_halErps[erps_idx].hwSync = 0;
   }
@@ -1204,7 +1204,7 @@ L7_RC_t ptin_hal_erps_hwFdbFlush(L7_uint8 erps_idx)
   /* Validate arguments */
   if (erps_idx >= MAX_PROT_PROT_ERPS)
   {
-    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    LOG_PT_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
     return PROT_ERPS_INDEX_VIOLATION;
   }
 
@@ -1212,14 +1212,14 @@ L7_RC_t ptin_hal_erps_hwFdbFlush(L7_uint8 erps_idx)
 
   if (tbl_halErps[erps_idx].hwFdbFlush == 1)
   {
-    LOG_DEBUG(LOG_CTX_ERPS,"ERPS#%d: HW FdbFlush in progress...", erps_idx);
+    LOG_PT_DEBUG(LOG_CTX_ERPS,"ERPS#%d: HW FdbFlush in progress...", erps_idx);
 
     /* Get pointer to the first element */
     if(NOERR != dl_queue_get_head(&queue_vlans_used[erps_idx], (dl_queue_elem_t**)&vlan_entry))
     {
       tbl_halErps[erps_idx].hwFdbFlush = 0;
       osapiSemaGive(ptin_hal_erps_sem);
-      LOG_DEBUG(LOG_CTX_ERPS, "VLANs queue is empty");
+      LOG_PT_DEBUG(LOG_CTX_ERPS, "VLANs queue is empty");
       return L7_FAILURE;
     }
 
@@ -1231,7 +1231,7 @@ L7_RC_t ptin_hal_erps_hwFdbFlush(L7_uint8 erps_idx)
       {
         if (tbl_halErps[erps_idx].hwFdbFlush)
         {
-          //LOG_DEBUG(LOG_CTX_ERPS,"ERPS#%d: Flushing VLAN ID %d", erps_idx, internalVlan);
+          //LOG_PT_DEBUG(LOG_CTX_ERPS,"ERPS#%d: Flushing VLAN ID %d", erps_idx, internalVlan);
           fdbFlushByVlan(internalVlan);
         }
 
@@ -1240,7 +1240,7 @@ L7_RC_t ptin_hal_erps_hwFdbFlush(L7_uint8 erps_idx)
       }
     }
 
-    LOG_DEBUG(LOG_CTX_ERPS,"ERPS#%d: HW Flush done!", erps_idx);
+    LOG_PT_DEBUG(LOG_CTX_ERPS,"ERPS#%d: HW Flush done!", erps_idx);
 
     tbl_halErps[erps_idx].hwFdbFlush = 0;
   }
@@ -1265,7 +1265,7 @@ L7_RC_t ptin_hal_erps_forceHwReconfig(L7_uint8 erps_idx)
   /* Validate arguments */
   if (erps_idx >= MAX_PROT_PROT_ERPS)
   {
-    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    LOG_PT_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
     return PROT_ERPS_INDEX_VIOLATION;
   }
 
@@ -1296,7 +1296,7 @@ L7_BOOL ptin_hal_erps_isPortBlocked(L7_uint root_intf, L7_uint16 vlan, L7_uint16
   /* Validate arguments */
   if (vlan >= 4096)
   {
-    LOG_ERR(LOG_CTX_ERPS,"VLAN %u not valid", vlan);
+    LOG_PT_ERR(LOG_CTX_ERPS,"VLAN %u not valid", vlan);
     return PROT_ERPS_INDEX_VIOLATION;
   }
 
@@ -1305,7 +1305,7 @@ L7_BOOL ptin_hal_erps_isPortBlocked(L7_uint root_intf, L7_uint16 vlan, L7_uint16
   /* Validate arguments */
   if (erps_idx >= MAX_PROT_PROT_ERPS)
   {
-    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    LOG_PT_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
     return PROT_ERPS_INDEX_VIOLATION;
   }
 
@@ -1324,13 +1324,13 @@ L7_BOOL ptin_hal_erps_isPortBlocked(L7_uint root_intf, L7_uint16 vlan, L7_uint16
         if ( (root_intf == tbl_erps[erps_idx].protParam.port0.idx) && (tbl_erps[erps_idx].portState[PROT_ERPS_PORT0] == ERPS_PORT_BLOCKING) )
         {
           osapiSemaGive(ptin_prot_erps_sem);
-          LOG_TRACE(LOG_CTX_ERPS, "root intf %u with Int.VLAN %u is blocked by ERPS#%d", root_intf, vlan, erps_idx);      
+          LOG_PT_TRACE(LOG_CTX_ERPS, "root intf %u with Int.VLAN %u is blocked by ERPS#%d", root_intf, vlan, erps_idx);      
           return L7_TRUE;
         }
         else if ( (root_intf == tbl_erps[erps_idx].protParam.port1.idx) && (tbl_erps[erps_idx].portState[PROT_ERPS_PORT1] == ERPS_PORT_BLOCKING) )
         {
           osapiSemaGive(ptin_prot_erps_sem);
-          LOG_TRACE(LOG_CTX_ERPS, "root intf %u with Int.VLAN %u is blocked by ERPS#%d", root_intf, vlan, erps_idx);      
+          LOG_PT_TRACE(LOG_CTX_ERPS, "root intf %u with Int.VLAN %u is blocked by ERPS#%d", root_intf, vlan, erps_idx);      
           return L7_TRUE;
         }
 
@@ -1338,18 +1338,18 @@ L7_BOOL ptin_hal_erps_isPortBlocked(L7_uint root_intf, L7_uint16 vlan, L7_uint16
 
         //ptin_hal_erps_forceHwReconfig(erps_idx);
 
-        LOG_TRACE(LOG_CTX_ERPS, "root intf %u with Int.VLAN %u is NOT blocked by ERPS#%d", root_intf, vlan, erps_idx);      
+        LOG_PT_TRACE(LOG_CTX_ERPS, "root intf %u with Int.VLAN %u is NOT blocked by ERPS#%d", root_intf, vlan, erps_idx);      
         return L7_FALSE;
       }
     }
 
     osapiSemaGive(ptin_prot_erps_sem);
 
-    LOG_TRACE(LOG_CTX_ERPS, "EVC with root intf %u and Int.VLAN %u is NOT protected by ERPS#%d", root_intf, vlan, erps_idx);
+    LOG_PT_TRACE(LOG_CTX_ERPS, "EVC with root intf %u and Int.VLAN %u is NOT protected by ERPS#%d", root_intf, vlan, erps_idx);
     return L7_FALSE;
   }
 
-  LOG_TRACE(LOG_CTX_ERPS, "EVC with root intf %u and Int.VLAN %u is NOT protected by any ERPS", root_intf, vlan);
+  LOG_PT_TRACE(LOG_CTX_ERPS, "EVC with root intf %u and Int.VLAN %u is NOT protected by any ERPS", root_intf, vlan);
 
   return L7_FALSE;
 }
@@ -1371,7 +1371,7 @@ L7_BOOL ptin_hal_erps_evcProtectedRemove(L7_uint root_intf, L7_uint16 vlan, L7_u
   /* Validate arguments */
   if (vlan >= 4096)
   {
-    LOG_ERR(LOG_CTX_ERPS,"VLAN %u not valid", vlan);
+    LOG_PT_ERR(LOG_CTX_ERPS,"VLAN %u not valid", vlan);
     return PROT_ERPS_INDEX_VIOLATION;
   }
 
@@ -1380,7 +1380,7 @@ L7_BOOL ptin_hal_erps_evcProtectedRemove(L7_uint root_intf, L7_uint16 vlan, L7_u
   /* Validate arguments */
   if (erps_idx >= MAX_PROT_PROT_ERPS)
   {
-    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    LOG_PT_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
     return PROT_ERPS_INDEX_VIOLATION;
   }
 
@@ -1396,7 +1396,7 @@ L7_BOOL ptin_hal_erps_evcProtectedRemove(L7_uint root_intf, L7_uint16 vlan, L7_u
 
       osapiSemaGive(ptin_prot_erps_sem);
 
-      LOG_TRACE(LOG_CTX_ERPS, "EVC with root intf %u and Int.VLAN %u is protected by ERPS#%d", root_intf, vlan, erps_idx);      
+      LOG_PT_TRACE(LOG_CTX_ERPS, "EVC with root intf %u and Int.VLAN %u is protected by ERPS#%d", root_intf, vlan, erps_idx);      
 
       ptin_hal_erps_forceHwReconfig(erps_idx);
 
@@ -1406,7 +1406,7 @@ L7_BOOL ptin_hal_erps_evcProtectedRemove(L7_uint root_intf, L7_uint16 vlan, L7_u
     osapiSemaGive(ptin_prot_erps_sem);
   }
 
-  LOG_TRACE(LOG_CTX_ERPS, "EVC with root intf %u and Int.VLAN %u is NOT protected by any ERPS", root_intf, vlan);
+  LOG_PT_TRACE(LOG_CTX_ERPS, "EVC with root intf %u and Int.VLAN %u is NOT protected by any ERPS", root_intf, vlan);
 
   return L7_FALSE;
 }

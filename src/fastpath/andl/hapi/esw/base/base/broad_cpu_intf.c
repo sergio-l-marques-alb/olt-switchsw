@@ -1336,7 +1336,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
   if (isValidUsp(usp, dapi_g) == L7_FALSE)
   {
       if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_LEVEL2)
-        LOG_ERR(LOG_CTX_HAPI,"Non valid usp={%d,%d,%d}", usp->unit, usp->slot, usp->port);
+        LOG_PT_ERR(LOG_CTX_HAPI,"Non valid usp={%d,%d,%d}", usp->unit, usp->slot, usp->port);
 
       /* Free the frame from the buffer */
       sysapiNetMbufFree(cmdInfo->cmdData.send.frameHdl);
@@ -1346,7 +1346,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
 
   if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_LEVEL3)
   {
-    LOG_TRACE(LOG_CTX_HAPI,"Packet going to be transmited on usp={%d,%d,%d}", usp->unit, usp->slot, usp->port);
+    LOG_PT_TRACE(LOG_CTX_HAPI,"Packet going to be transmited on usp={%d,%d,%d}", usp->unit, usp->slot, usp->port);
   }
 
   /* Get the Driver Ports */
@@ -1364,7 +1364,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
   if (frameData == L7_NULL)
   {
     if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_LEVEL2)
-      LOG_ERR(LOG_CTX_HAPI,"Non valid frameData");
+      LOG_PT_ERR(LOG_CTX_HAPI,"Non valid frameData");
 
     LOG_ERROR(0);
     return L7_FAILURE;
@@ -1395,7 +1395,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
     sysapiNetMbufFree(cmdInfo->cmdData.send.frameHdl);
 
     if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_LEVEL2)
-      LOG_ERR(LOG_CTX_HAPI,"sal_dma_alloc failed");
+      LOG_PT_ERR(LOG_CTX_HAPI,"sal_dma_alloc failed");
 
     SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
                        "%s %d: In %s - sal_dma_alloc failed.\n",
@@ -1421,7 +1421,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
     if (buf_len + pkt_idx > bcm_pkt_alloc_len)
     {
       if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_LEVEL2)
-        LOG_ERR(LOG_CTX_HAPI,"packet too big: result=%d", result);
+        LOG_PT_ERR(LOG_CTX_HAPI,"packet too big: result=%d", result);
 
       SYSAPI_PRINTF(hapiDriverPrintfFlag,
                     "%s %d: In %s packet too big\n",
@@ -1673,7 +1673,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
   /* Dump first 64 bytes */
   if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_LEVEL3)
   {
-    LOG_DEBUG(LOG_CTX_HAPI,"Packet to be transmited on usp={%d,%d,%d} (lport=0x%08x) with sendVLAN=%u (frameType=%u, flags=0x%08x)",
+    LOG_PT_DEBUG(LOG_CTX_HAPI,"Packet to be transmited on usp={%d,%d,%d} (lport=0x%08x) with sendVLAN=%u (frameType=%u, flags=0x%08x)",
               destUsp.unit, destUsp.slot, destUsp.port, hapiPortPtr->bcmx_lport, cmdInfo->cmdData.send.vlanID, frameType, bcm_pkt.flags);
   }
 
@@ -1688,7 +1688,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
     if ((etype_eapol == L7_FALSE) && (!HAPI_DOT1X_PORT_IS_AUTHORIZED(hapiPortPtr)))
     {
       if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_LEVEL2)
-        LOG_ERR(LOG_CTX_HAPI,"Failed transmission: etype_eapol=%u HAPI_DOT1X_PORT_IS_AUTHORIZED(hapiPortPtr)=%u",
+        LOG_PT_ERR(LOG_CTX_HAPI,"Failed transmission: etype_eapol=%u HAPI_DOT1X_PORT_IS_AUTHORIZED(hapiPortPtr)=%u",
                 etype_eapol, HAPI_DOT1X_PORT_IS_AUTHORIZED(hapiPortPtr));
       /* Don't send - free the frame from the buffer */
       sysapiNetMbufFree(cmdInfo->cmdData.send.frameHdl);
@@ -1751,7 +1751,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
         }
         #else
         {
-          LOG_ERR(LOG_CTX_HAPI,"This HW Variant (%d) is not currently supported for Time Sync protocol", hapiBroadRoboVariantCheck());
+          LOG_PT_ERR(LOG_CTX_HAPI,"This HW Variant (%d) is not currently supported for Time Sync protocol", hapiBroadRoboVariantCheck());
 
           cmdInfo->cmdData.receive.timestamp = 0;
         }
@@ -1803,7 +1803,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
     if ((etype_eapol == L7_FALSE) && (!HAPI_DOT1X_PORT_IS_AUTHORIZED(hapiPortPtr)))
     {
       if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_LEVEL2)
-        LOG_ERR(LOG_CTX_HAPI,"Failed transmission: etype_eapol=%u HAPI_DOT1X_PORT_IS_AUTHORIZED(hapiPortPtr)=%u",
+        LOG_PT_ERR(LOG_CTX_HAPI,"Failed transmission: etype_eapol=%u HAPI_DOT1X_PORT_IS_AUTHORIZED(hapiPortPtr)=%u",
                 etype_eapol, HAPI_DOT1X_PORT_IS_AUTHORIZED(hapiPortPtr));
       /* Don't send - free the frame from the buffer */
       sysapiNetMbufFree(cmdInfo->cmdData.send.frameHdl);
@@ -1868,7 +1868,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_LEVEL2)
-        LOG_ERR(LOG_CTX_HAPI,"Failed transmission: rv=%d", rv);
+        LOG_PT_ERR(LOG_CTX_HAPI,"Failed transmission: rv=%d", rv);
       sysapiNetMbufFree(cmdInfo->cmdData.send.frameHdl);
       sal_dma_free(bcm_pkt.pkt_data->data);
       return L7_FAILURE;
@@ -1878,7 +1878,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_LEVEL2)
-        LOG_ERR(LOG_CTX_HAPI,"Failed transmission: rv=%d", rv);
+        LOG_PT_ERR(LOG_CTX_HAPI,"Failed transmission: rv=%d", rv);
       sysapiNetMbufFree(cmdInfo->cmdData.send.frameHdl);
       sal_dma_free(bcm_pkt.pkt_data->data);
       bcmx_lplist_free(&mcastLplist);
@@ -1889,7 +1889,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_LEVEL2)
-        LOG_ERR(LOG_CTX_HAPI,"Failed transmission: rv=%d", rv);
+        LOG_PT_ERR(LOG_CTX_HAPI,"Failed transmission: rv=%d", rv);
       sysapiNetMbufFree(cmdInfo->cmdData.send.frameHdl);
       sal_dma_free(bcm_pkt.pkt_data->data);
       bcmx_lplist_free(&mcastLplist);
@@ -1913,7 +1913,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
                                        dapi_g) != L7_SUCCESS)
     {
       if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_LEVEL2)
-        LOG_ERR(LOG_CTX_HAPI,"Failed transmission");
+        LOG_PT_ERR(LOG_CTX_HAPI,"Failed transmission");
       sysapiNetMbufFree(cmdInfo->cmdData.send.frameHdl);
       sal_dma_free(bcm_pkt.pkt_data->data);
       bcmx_lplist_free(&mcastLplist);
@@ -1972,7 +1972,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
       if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_LEVEL2)
-        LOG_ERR(LOG_CTX_HAPI,"Failed transmission: rv=%d", rv);
+        LOG_PT_ERR(LOG_CTX_HAPI,"Failed transmission: rv=%d", rv);
       sysapiNetMbufFree(cmdInfo->cmdData.send.frameHdl);
       sal_dma_free(bcm_pkt.pkt_data->data);
       return L7_FAILURE;
@@ -2262,7 +2262,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
 
   if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_LEVEL1)
   {
-    LOG_DEBUG(LOG_CTX_HAPI, "Sending to usp %d.%d.%d (bcmx_lport 0x%08x), with sendVLAN %u (frameType %u, pktflags 0x%x): bcmTxRv=%d result=%d",
+    LOG_PT_DEBUG(LOG_CTX_HAPI, "Sending to usp %d.%d.%d (bcmx_lport 0x%08x), with sendVLAN %u (frameType %u, pktflags 0x%x): bcmTxRv=%d result=%d",
               destUsp.unit, destUsp.slot, destUsp.port, hapiPortPtr->bcmx_lport, cmdInfo->cmdData.send.vlanID, frameType, bcm_pkt.flags, bcmTxRv, result);
   }
 
@@ -2357,16 +2357,16 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
   }
   else if (cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL1)
   {
-    LOG_TRACE(LOG_CTX_HAPI, "Lowest level reception: (reason=%u [%u,%u,%u]) %u rxport:%u, srcport=%u, vid=%d, length=%d\n",
+    LOG_PT_TRACE(LOG_CTX_HAPI, "Lowest level reception: (reason=%u [%u,%u,%u]) %u rxport:%u, srcport=%u, vid=%d, length=%d\n",
               bcm_pkt->rx_reason,bcm_pkt->rx_reasons.pbits[0],bcm_pkt->rx_reasons.pbits[1],bcm_pkt->rx_reasons.pbits[2],bcm_pkt->cos,
               bcm_pkt->rx_port,bcm_pkt->src_port,bcm_pkt->vlan, bcm_pkt->pkt_len);
 
-    LOG_TRACE(LOG_CTX_HAPI, "rx_timestamp %d, rx_timestamp_upper %d, timestamp_flags %d\n\r", bcm_pkt->rx_timestamp, bcm_pkt->rx_timestamp_upper, bcm_pkt->timestamp_flags);
+    LOG_PT_TRACE(LOG_CTX_HAPI, "rx_timestamp %d, rx_timestamp_upper %d, timestamp_flags %d\n\r", bcm_pkt->rx_timestamp, bcm_pkt->rx_timestamp_upper, bcm_pkt->timestamp_flags);
   }
   /* PTIN added: PTP Timestamp BCM_PKT_F_xxx flags. */
   else if ((cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL3) && (bcm_pkt->pkt_data->data[0x26]==0x01 && bcm_pkt->pkt_data->data[0x27]==0x3f))
   {
-    LOG_TRACE(LOG_CTX_HAPI, "rx_timestamp %d\n\r", bcm_pkt->rx_timestamp);
+    LOG_PT_TRACE(LOG_CTX_HAPI, "rx_timestamp %d\n\r", bcm_pkt->rx_timestamp);
   }
 
   // PTin
@@ -2398,7 +2398,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
   memset(&cmdInfo, 0, sizeof(cmdInfo));
 
   if (cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL4)
-    LOG_TRACE(LOG_CTX_HAPI,"...");
+    LOG_PT_TRACE(LOG_CTX_HAPI,"...");
 
 #ifdef HAPI_BROAD_PKT_DEBUG
   /* This is for the DebugPktSend test cases -- see broad_debug.c */
@@ -2488,7 +2488,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
   gmrpUspCheck.port = -1;
 
   if (cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL4)
-    LOG_TRACE(LOG_CTX_HAPI,"...");
+    LOG_PT_TRACE(LOG_CTX_HAPI,"...");
 
   if (hapiBroadGetSystemBoardFamily(&board_family) == L7_SUCCESS)
   {
@@ -2555,7 +2555,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
   } /* Frames from unknown boards will be dropped further*/
 
   if (cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL4)
-    LOG_TRACE(LOG_CTX_HAPI,"...");
+    LOG_PT_TRACE(LOG_CTX_HAPI,"...");
 
   if(hapiBroadRoboVariantCheck() == __BROADCOM_53115_ID)
   {
@@ -2575,7 +2575,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
   }
 
   if (cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL4)
-    LOG_TRACE(LOG_CTX_HAPI,"...");
+    LOG_PT_TRACE(LOG_CTX_HAPI,"...");
 
   {
     if (bcm_pkt->rx_port == 54 && BCM_GPORT_IS_WLAN_PORT(bcm_pkt->src_gport))
@@ -2634,7 +2634,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
   }
 
   if (cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL4)
-    LOG_TRACE(LOG_CTX_HAPI,"...");
+    LOG_PT_TRACE(LOG_CTX_HAPI,"...");
 
   /* check if the receiving port is locked and if this pkt is a source lookup failure 
   */
@@ -2755,7 +2755,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
   }
 
   if (cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL4)
-    LOG_TRACE(LOG_CTX_HAPI,"...");
+    LOG_PT_TRACE(LOG_CTX_HAPI,"...");
 
   if (hapiPortPtr->hapiModeparm.physical.isMemberOfLag == L7_TRUE)
   {
@@ -2811,7 +2811,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
   }
 
   if (cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL4)
-    LOG_TRACE(LOG_CTX_HAPI,"...");
+    LOG_PT_TRACE(LOG_CTX_HAPI,"...");
 
   if ((hapiPortPtr->locked == L7_TRUE) && (dot1xStatus == L7_DOT1X_PORT_STATUS_AUTHORIZED))
   {
@@ -2851,7 +2851,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
   }
 
   if (cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL4)
-    LOG_TRACE(LOG_CTX_HAPI,"...");
+    LOG_PT_TRACE(LOG_CTX_HAPI,"...");
 
   /* If port is not locked, Captive portal is not enabled and 802.1X-authorized and software learning is enabled 
   ** then learn the frame MAC address.
@@ -2918,7 +2918,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
   }
 
   if (cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL4)
-    LOG_TRACE(LOG_CTX_HAPI,"...");
+    LOG_PT_TRACE(LOG_CTX_HAPI,"...");
 
   /* If the port is not forwarding, drop the frame. The exceptions to this 
      are BPDUs, LACPDUs, EAPOLs, LLDP, ISDP, DOT3AH, and DOT1AG CCMs...
@@ -2950,7 +2950,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
   }
 
   if (cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL4)
-    LOG_TRACE(LOG_CTX_HAPI,"...");
+    LOG_PT_TRACE(LOG_CTX_HAPI,"...");
 
   /* At this point the USP will be a valid physical USP in the system */
 
@@ -2971,7 +2971,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
   }
 
   if (cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL4)
-    LOG_TRACE(LOG_CTX_HAPI,"...");
+    LOG_PT_TRACE(LOG_CTX_HAPI,"...");
 
    /*Drop tagged GVRP PDU's*/
   if ((memcmp(bcm_pkt->pkt_data->data, gvrpPduMac, L7_MAC_ADDR_LEN) == 0) && 
@@ -2989,7 +2989,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
   }
  
   if (cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL4)
-    LOG_TRACE(LOG_CTX_HAPI,"...");
+    LOG_PT_TRACE(LOG_CTX_HAPI,"...");
 
   /* Check for possible duplicate */
   if (hapiBroadRxDuplicatePkt(bcm_pkt) == L7_TRUE)
@@ -2998,7 +2998,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
   }
  
   if (cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL4)
-    LOG_TRACE(LOG_CTX_HAPI,"...");
+    LOG_PT_TRACE(LOG_CTX_HAPI,"...");
 
   /* Get MBUF to carry the frame to DTL */
   if (bcm_pkt->cos >= HAPI_BROAD_INGRESS_BPDU_COS)
@@ -3081,7 +3081,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
   }
 
   if (cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL4)
-    LOG_TRACE(LOG_CTX_HAPI,"...");
+    LOG_PT_TRACE(LOG_CTX_HAPI,"...");
 
   if (frameHdl == L7_NULL)
   {
@@ -3093,7 +3093,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
   }
 
   if (cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL4)
-    LOG_TRACE(LOG_CTX_HAPI,"...");
+    LOG_PT_TRACE(LOG_CTX_HAPI,"...");
 
   cmdInfo.cmdData.receive.type      = DAPI_FRAME_TYPE_DATA_TO_PORT;
   cmdInfo.cmdData.receive.frameHdl  = frameHdl;
@@ -3147,7 +3147,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
   pktRxMsg.cos = bcm_pkt->cos;
 
   if (cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL3)
-    LOG_TRACE(LOG_CTX_HAPI,"Going to send packet to hapiRxQueue queue");
+    LOG_PT_TRACE(LOG_CTX_HAPI,"Going to send packet to hapiRxQueue queue");
 
   if (osapiMessageSend(hapiRxQueue,(void *)&pktRxMsg,sizeof(BROAD_PKT_RX_MSG_t),L7_NO_WAIT, L7_MSG_PRIORITY_NORM) != L7_SUCCESS)
   {
@@ -3466,7 +3466,7 @@ void hapiBroadReceiveTask(L7_uint32 numArgs, DAPI_t *dapi_g)
       sysapiPrintf("Unkown Board Family 0x%x in Receive\n",board_family);
 
       if (cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL2)
-        LOG_ERR(LOG_CTX_HAPI,"Unkown Board Family 0x%x in Receive",board_family);
+        LOG_PT_ERR(LOG_CTX_HAPI,"Unkown Board Family 0x%x in Receive",board_family);
 
       dropFrame = L7_TRUE;
     }
@@ -3493,7 +3493,7 @@ void hapiBroadReceiveTask(L7_uint32 numArgs, DAPI_t *dapi_g)
     else if (hapiBroadMacDaCheck(&pktRxMsg, board_family, dapi_g) == L7_FALSE) 
     {
       if (cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL2)
-        LOG_ERR(LOG_CTX_HAPI,"hapiBroadMacDaCheck failed! dropping packet");
+        LOG_PT_ERR(LOG_CTX_HAPI,"hapiBroadMacDaCheck failed! dropping packet");
 
       dropFrame = L7_TRUE;
     }
@@ -3517,7 +3517,7 @@ void hapiBroadReceiveTask(L7_uint32 numArgs, DAPI_t *dapi_g)
       dropFrame = (fwdFrame == L7_TRUE)?L7_FALSE:L7_TRUE;
 
       if ((cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL2) && dropFrame)
-        LOG_ERR(LOG_CTX_HAPI,"hapiBroadRxXgs3 failed! dropping packet");
+        LOG_PT_ERR(LOG_CTX_HAPI,"hapiBroadRxXgs3 failed! dropping packet");
     }
     else
     {
@@ -3525,7 +3525,7 @@ void hapiBroadReceiveTask(L7_uint32 numArgs, DAPI_t *dapi_g)
       sysapiPrintf("Unkown Board Family 0x%x in Receive. Dropping the frame!!!\n",board_family);
 
       if ((cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL2) && dropFrame)
-        LOG_ERR(LOG_CTX_HAPI,"Unkown Board Family 0x%x in Receive. Dropping the frame!!!\n",board_family);
+        LOG_PT_ERR(LOG_CTX_HAPI,"Unkown Board Family 0x%x in Receive. Dropping the frame!!!\n",board_family);
 
       dropFrame = L7_TRUE;
     }
@@ -3586,7 +3586,7 @@ void hapiBroadReceiveTask(L7_uint32 numArgs, DAPI_t *dapi_g)
       hapiBroadRxReasonCodeSet(&pktRxMsg);
 
       if (cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL3)
-        LOG_TRACE(LOG_CTX_HAPI,"Going to call callback DAPI_FAMILY_FRAME, DAPI_EVENT_FRAME_RX");
+        LOG_PT_TRACE(LOG_CTX_HAPI,"Going to call callback DAPI_FAMILY_FRAME, DAPI_EVENT_FRAME_RX");
 
       /* notify the application of the frame */
       if (dapiCallback(&pktRxMsg.usp,

@@ -386,7 +386,7 @@ L7_RC_t osapiMessageSend(void *queue_ptr, void *Message, L7_uint32 Size,
 
     if ((osapiMsgQ->flags & MSGQ_DELETED) != 0)
     {
-      LOG_ERR(LOG_CTX_MISC,"Message deleted");
+      LOG_PT_ERR(LOG_CTX_MISC,"Message deleted");
       rc = L7_ERROR;
 
     }
@@ -461,7 +461,7 @@ L7_RC_t osapiMessageSend(void *queue_ptr, void *Message, L7_uint32 Size,
   else
   {
 
-    LOG_ERR(LOG_CTX_MISC,"queue_ptr 0x%08x is full",(L7_uint32) queue_ptr);
+    LOG_PT_ERR(LOG_CTX_MISC,"queue_ptr 0x%08x is full",(L7_uint32) queue_ptr);
     rc = L7_ERROR;
 
   }
@@ -532,7 +532,7 @@ L7_RC_t osapiMessageReceive(void *queue_ptr, void *Message,
 
     if (rc != L7_SUCCESS)
     {
-      //LOG_CRITICAL(LOG_CTX_MISC,"rc=%d (osapiMsgQ->send_wait.count=%u)", rc, osapiMsgQ->send_wait.count);    /* PTin added: Debug */
+      //LOG_PT_CRITIC(LOG_CTX_MISC,"rc=%d (osapiMsgQ->send_wait.count=%u)", rc, osapiMsgQ->send_wait.count);    /* PTin added: Debug */
       break;
     }
   }
@@ -541,7 +541,7 @@ L7_RC_t osapiMessageReceive(void *queue_ptr, void *Message,
   {
     /* PTin modified: Just to help detecting the problem */
     rc = L7_NOT_EXIST; // L7_ERROR;
-    LOG_CRITICAL(LOG_CTX_MISC,"rc=%d",rc);      /* PTin added: Debug */
+    LOG_PT_CRITIC(LOG_CTX_MISC,"rc=%d",rc);      /* PTin added: Debug */
 
   }
   else if (rc == L7_SUCCESS)

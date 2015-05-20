@@ -351,7 +351,7 @@ L7_RC_t nimSetIntfSpeed(L7_uint32 intIfNum, L7_uint32 intfSpeed)
              /*nimCtlBlk_g->nimPorts[intIfNum].operInfo.ianaType != L7_IANA_10G_ETHERNET) &&*/          /* PTin added */
             nimCtlBlk_g->nimPorts[intIfNum].configPort.cfgInfo.negoCapabilities != 0)
         {
-          LOG_WARNING(LOG_CTX_INTF,"Configuration ignored!");
+          LOG_PT_WARN(LOG_CTX_INTF,"Configuration ignored!");
           rc = (L7_SUCCESS);
 
       NIM_CRIT_SEC_WRITE_EXIT();

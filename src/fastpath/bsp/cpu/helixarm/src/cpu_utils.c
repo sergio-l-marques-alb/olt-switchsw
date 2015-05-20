@@ -61,7 +61,7 @@ L7_RC_t bspCpuReadSerialNum(L7_char8 *serialString)
   read_bootenv("serial#",serialString);
   close_bootenv();
 
-  LOG_TRACE(LOG_CTX_HAPI,"Serial# = \"%s\"",serialString);
+  LOG_PT_TRACE(LOG_CTX_HAPI,"Serial# = \"%s\"",serialString);
   #endif
 
   return(L7_FAILURE);
@@ -110,7 +110,7 @@ L7_RC_t bspapiMacAddrGet(L7_char8 *macString)
       memcpy(macString, ifr.ifr_hwaddr.sa_data, 6);
       rc = L7_SUCCESS;
 
-      LOG_TRACE(LOG_CTX_HAPI, "MACAddr = %02X:%02X:%02X:%02X:%02X:%02X",
+      LOG_PT_TRACE(LOG_CTX_HAPI, "MACAddr = %02X:%02X:%02X:%02X:%02X:%02X",
                 macString[0], macString[1], macString[2], macString[3], macString[4], macString[5]);
     }
     close(fd);
