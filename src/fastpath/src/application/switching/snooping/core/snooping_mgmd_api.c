@@ -262,7 +262,21 @@ L7_RC_t __matrix_mfdbport_sync(L7_uint8 admin, L7_uint8 matrixType, L7_uint32 se
 
 unsigned int snooping_igmp_admin_set(unsigned char admin)
 {
+  L7_BOOL adminMode = admin;
+
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [admin:%u]", admin);
+
+  if ( L7_SUCCESS != usmDbSnoopAdminModeGet(1, &adminMode, L7_AF_INET))
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error with usmDbSnoopAdminModeGet");
+    return FAILURE;
+  }
+
+  if (adminMode == admin)
+  {
+    LOG_NOTICE(LOG_CTX_PTIN_IGMP,"usmDbSnoopAdminModeSet is already :%u", admin);
+    return L7_SUCCESS;
+  }
 
   // Snooping global activation
   if (L7_SUCCESS != usmDbSnoopAdminModeSet(1, admin, L7_AF_INET))  {

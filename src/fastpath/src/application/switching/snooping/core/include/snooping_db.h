@@ -220,6 +220,7 @@ L7_RC_t snoopPTinProxyInterfaceEntryDelete(L7_uint32 vlanId);
 L7_RC_t                        snoopChannelEntryAdd(snoopChannelInfoData_t   **snoopEntry);
 snoopChannelInfoData_t        *snoopChannelEntryFind(L7_uint32 vlanId, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, L7_uint8 flag);
 L7_RC_t                        snoopChannelEntryDelete(L7_uint32 vlanId, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, snoopChannelInfoData_t *pSnoopEntry);
+void                           snoopChannelReset(void);
 
 L7_RC_t                         snoopChannelIntfMaskEntryAdd(snoopChannelIntfMaskInfoData_t   **snoopEntry);
 snoopChannelIntfMaskInfoData_t *snoopChannelIntfMaskEntryFind(L7_uint32 vlanId, L7_INTF_MASK_t *groupIntfMask, L7_uint8 flag);

@@ -251,6 +251,9 @@ L7_RC_t broad_ptin_l3_ipmc(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uin
     case DAPI_CMD_CLEAR:      
       rc = ptin_hapi_l3_ipmc_remove(ipmc);      
       break;
+    case DAPI_CMD_CLEAR_ALL:      
+      rc = ptin_hapi_l3_ipmc_reset();
+      break;
 
     default:
       LOG_ERR(LOG_CTX_PTIN_HAPI, "Not recognized operation (%u)!", operation);

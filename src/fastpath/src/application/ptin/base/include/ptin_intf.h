@@ -473,11 +473,11 @@ extern L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo);
 /**
  * Deletes a LAG
  * 
- * @param lagInfo Structure that references the LAG to destroy
+ * @param lag_idx LAG Identifier
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_intf_Lag_delete(ptin_LACPLagConfig_t *lagInfo);
+extern L7_RC_t ptin_intf_Lag_delete(L7_uint32 lag_idx);
 
 /**
  * Deletes all LAGs

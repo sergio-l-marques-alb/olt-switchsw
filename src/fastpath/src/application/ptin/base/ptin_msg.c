@@ -231,29 +231,41 @@ void ptin_msg_defaults_reset(L7_char8 mode)
 {
   LOG_INFO(LOG_CTX_PTIN_MSG, "Resetting to default configuration (mode %x)", mode);
 
+  /*This Should be the First Module*/
+  /* Reset IGMP Module */
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on IGMP...");
+  ptin_igmp_default_reset();
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
+
 #ifdef __Y1731_802_1ag_OAM_ETH__
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on OAM...");
   eth_srv_oam_msg_defaults_reset();
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
 #endif
 
-  /* Remove all IGMP instances */
-  ptin_igmp_clean_all();
-
-  /* Reset MGMD */
-  ptin_igmp_mgmd_resetdefaults();
-
-  /* Routing */
+  /* Reset Routing Module*/
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on OAM...");
   ptin_routing_intf_remove_all();
-
-  /* EVCs */
-  ptin_evc_destroy_all();
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
 
   /* ERPS */
 #ifdef PTIN_ENABLE_ERPS
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on ERPS...");
   ptin_erps_clear();
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on HAL...");
   ptin_hal_erps_clear();
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
 #endif
 
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on ACL...");
   ptin_aclCleanAll();
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
+
+  /* Reset EVC Module */
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on EVC...");
+  ptin_evc_destroy_all();
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
 
   if (mode == DEFATUL_RESET_MODE_FULL)
   {
@@ -262,10 +274,16 @@ void ptin_msg_defaults_reset(L7_char8 mode)
     /* Unconfig Connectivity */
     memset(&ptinNtwConn, 0x00, sizeof(ptin_NtwConnectivity_t));
     ptinNtwConn.mask = PTIN_NTWCONN_MASK_IPADDR;
+    LOG_INFO(LOG_CTX_PTIN_MSG, "(Re)Configure Inband...");
     ptin_cfg_ntw_connectivity_set(&ptinNtwConn);
+    LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
 
+    /*This Should be the Last Module*/
+    LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on LAG...");
     ptin_intf_Lag_delete_all();
+    LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
   }
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Concluded Reset Process.");
 
   return;
 }
@@ -3507,13 +3525,9 @@ L7_RC_t ptin_msg_Lag_create(msg_LACPLagInfo_t *lagInfo)
  */
 L7_RC_t ptin_msg_Lag_destroy(msg_LACPLagInfo_t *lagInfo)
 {
-  ptin_LACPLagConfig_t ptinLagConf;
-
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "LAG# %2u", (L7_uint32) lagInfo->id);
 
-  ptinLagConf.lagId = (L7_uint32) lagInfo->id;
-
-  if (ptin_intf_Lag_delete(&ptinLagConf) != L7_SUCCESS)
+  if (ptin_intf_Lag_delete((L7_uint32) lagInfo->id) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Failed to delete LAG# %u", (L7_uint32)lagInfo->id);
     return L7_FAILURE;

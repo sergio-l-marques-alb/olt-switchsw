@@ -41,6 +41,96 @@
 /* PTin added: logger */
 #include "logger.h"
 
+/******************************************************** 
+Left here for understanding the BCM Error Codes         
+        "Ok",                            E_NONE  
+        "Internal error",                E_INTERNAL 
+        "Out of memory",                 E_MEMORY  
+        "Invalid unit",                  E_UNIT  
+        "Invalid parameter",             E_PARAM 
+        "Table empty",                   E_EMPTY  
+        "Table full",                    E_FULL  
+        "Entry not found",               E_NOT_FOUND 
+        "Entry exists",                  E_EXISTS 
+        "Operation timed out",           E_TIMEOUT 
+        "Operation still running",       E_BUSY 
+        "Operation failed",              E_FAIL 
+        "Operation disabled",            E_DISABLED 
+        "Invalid identifier",            E_BADID 
+        "No resources for operation",    E_RESOURCE 
+        "Invalid configuration",         E_CONFIG  
+        "Feature unavailable",           E_UNAVAIL 
+        "Feature not initialized",       E_INIT
+        "Invalid port",                  E_PORT 
+        "Unknown error"                  E_LIMIT         
+***********************************************************/
+
+
+/*--------------------------------------*/
+/*  FP Common Return Codes              */
+/*--------------------------------------*/
+/**************************************** 
+Left here to easily convert from bcm error code to fp
+typedef enum
+{
+  L7_SUCCESS = 0,
+  L7_FAILURE,
+  L7_ERROR,
+  L7_NOT_IMPLEMENTED_YET,
+  L7_NOT_SUPPORTED,
+  L7_NOT_EXIST,
+  L7_ALREADY_CONFIGURED,
+  L7_TABLE_IS_FULL,
+  L7_REQUEST_DENIED,
+  L7_ASYNCH_RESPONSE,
+  L7_ADDR_INUSE,
+  L7_NO_VALUE,
+  L7_NO_MEMORY,
+  L7_DEPENDENCY_NOT_MET,
+  L7_HARDWARE_ERROR,
+  L7_IMAGE_IN_USE
+} L7_RC_t;
+***********************************/
+
+/*********************************************************************
+*
+* @purpose Convert from BCM Return Value to FP Return Code
+*
+* @param   rv: Return Value
+* @returns L7_RC_t: Return Code
+*
+* @notes 
+*
+* @end
+*
+*********************************************************************/
+L7_RC_t ptin_bcm_to_fp_error_code(ptin_bcm_error_t rv)
+{
+  switch (rv)
+  {  
+  case PTIN_BCM_E_NONE        : return L7_SUCCESS;
+  case PTIN_BCM_E_INTERNAL    : return L7_HARDWARE_ERROR;
+  case PTIN_BCM_E_MEMORY      : return L7_NO_MEMORY;
+  case PTIN_BCM_E_UNIT        : return L7_FAILURE;
+  case PTIN_BCM_E_PARAM       : return L7_NO_VALUE;
+  case PTIN_BCM_E_EMPTY       : return L7_FAILURE;               //Use Default Error Code
+  case PTIN_BCM_E_FULL        : return L7_TABLE_IS_FULL;
+  case PTIN_BCM_E_NOT_FOUND   : return L7_NOT_EXIST;
+  case PTIN_BCM_E_EXISTS      : return L7_ALREADY_CONFIGURED;
+  case PTIN_BCM_E_TIMEOUT     : return L7_FAILURE;               //Use Default Error Code
+  case PTIN_BCM_E_BUSY        : return L7_FAILURE;               //Use Default Error Code
+  case PTIN_BCM_E_FAIL        : return L7_FAILURE;               //Use Default Error Code
+  case PTIN_BCM_E_DISABLED    : return L7_FAILURE;               //Use Default Error Code
+  case PTIN_BCM_E_BADID       : return L7_FAILURE;               //Use Default Error Code
+  case PTIN_BCM_E_RESOURCE    : return L7_FAILURE;               //Use Default Error Code
+  case PTIN_BCM_E_CONFIG      : return L7_FAILURE;               //Use Default Error Code
+  case PTIN_BCM_E_UNAVAIL     : return L7_NOT_SUPPORTED;
+  case PTIN_BCM_E_INIT        : return L7_FAILURE;               //Use Default Error Code
+  case PTIN_BCM_E_PORT        : return L7_FAILURE;               //Use Default Error Code
+  default                     : return L7_FAILURE;               //Use Default Error Code
+  }
+}
+
 /*
  * Globals
  */

@@ -47,6 +47,37 @@
 
 /*********************************************************************
 *
+* @enums BCM Return Value
+*
+* @purpose    Return Value used for identifying an error
+*
+* @comments
+*
+*********************************************************************/
+typedef enum ptin_bcm_error_e {
+  PTIN_BCM_E_NONE         = 0,  
+  PTIN_BCM_E_INTERNAL     = -1, 
+  PTIN_BCM_E_MEMORY       = -2, 
+  PTIN_BCM_E_UNIT         = -3, 
+  PTIN_BCM_E_PARAM        = -4, 
+  PTIN_BCM_E_EMPTY        = -5, 
+  PTIN_BCM_E_FULL         = -6, 
+  PTIN_BCM_E_NOT_FOUND    = -7, 
+  PTIN_BCM_E_EXISTS       = -8, 
+  PTIN_BCM_E_TIMEOUT      = -9, 
+  PTIN_BCM_E_BUSY         = -10,
+  PTIN_BCM_E_FAIL         = -11,
+  PTIN_BCM_E_DISABLED     = -12,
+  PTIN_BCM_E_BADID        = -13,
+  PTIN_BCM_E_RESOURCE     = -14,
+  PTIN_BCM_E_CONFIG       = -15,
+  PTIN_BCM_E_UNAVAIL      = -16,
+  PTIN_BCM_E_INIT         = -17,
+  PTIN_BCM_E_PORT         = -18
+} ptin_bcm_error_t;
+
+/*********************************************************************
+*
 * @structures DAPI_USP_t
 *
 * @purpose    Type used for identifying a port
@@ -3146,5 +3177,19 @@ L7_RC_t dapiCardConfigWriteLockGive(L7_int8 unit, L7_int8 slot);
 *
 *********************************************************************/
 L7_BOOL dapiCardPortConfigCache(L7_int8 unit, L7_int8 slot);
+
+/*********************************************************************
+*
+* @purpose Convert from BCM Return Value to FP Return Code
+*
+* @param   rv: Return Value
+* @returns L7_RC_t: Return Code
+*
+* @notes 
+*
+* @end
+*
+*********************************************************************/
+L7_RC_t ptin_bcm_to_fp_error_code(ptin_bcm_error_t rv);
 
 #endif /* INCLUDE_DAPI_H */

@@ -775,6 +775,15 @@ L7_RC_t snoopEntriesDoFlush(snoop_cb_t *pSnoopCB)
   snoopOperData_t  *pSnoopOperEntry  = L7_NULLPTR;
   snoopIntfCfgData_t  *pCfg = L7_NULLPTR;
 
+  /*Remove L3 Channel Entries*/
+  {
+    snoopChannelReset();
+
+    #if 0
+    snoopChannelIntfMaskReset();
+    #endif
+  }
+
   rc = snoopFirstGet(macAddr, &vlanId, pSnoopCB->family);
   while (rc == L7_SUCCESS)
   {

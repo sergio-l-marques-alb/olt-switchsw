@@ -620,6 +620,7 @@ L7_BOOL ptin_evc_is_in_use(L7_uint32 evc_ext_id)
   return IS_eEVC_IN_USE(evc_ext_id);
 }
 
+
 /**
  * Determines if a particular Port/LAG is being used on any EVC
  * 
@@ -3071,11 +3072,21 @@ L7_RC_t ptin_evc_port_remove(L7_uint32 evc_ext_id, ptin_HwEthMef10Intf_t *evc_in
     LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error cleaning service profiles and counters!!!", evc_idx);
     return L7_FAILURE;
   }
-  /* Remove all clients/flows */
-  if (ptin_evc_intfclientsflows_remove(evc_idx, ptin_intf.intf_type, ptin_intf.intf_id)!=L7_SUCCESS)
+
+  /* Only stacked services have clients */
+  if (IS_EVC_STD(evc_idx) && !IS_EVC_STACKED(evc_idx))
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing clients!!!", evc_idx);
-    return L7_FAILURE;
+   //Do Nothing   
+  }
+  else
+  {
+
+    /* Remove all clients/flows */
+    if (ptin_evc_intfclientsflows_remove(evc_idx, ptin_intf.intf_type, ptin_intf.intf_id)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing clients!!!", evc_idx);
+      return L7_FAILURE;
+    }
   }
 
   /* Check if there is allocated resources */
@@ -3572,6 +3583,9 @@ L7_RC_t ptin_evc_destroy(L7_uint32 evc_ext_id)
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error cleaning service profiles and counters!!!", evc_id);
       return L7_FAILURE;
     }
+
+    if (IS_EVC_STD(evc_id) && !IS_EVC_STACKED(evc_id))
+      continue;
 
     /* Remove all clients/flows */
     if (ptin_evc_intfclientsflows_remove(evc_id, ptin_intf.intf_type, ptin_intf.intf_id)!=L7_SUCCESS)
@@ -6728,6 +6742,7 @@ L7_RC_t ptin_evc_allclientsflows_remove( L7_uint evc_id )
     if (!evcs[evc_id].intf[intf_idx].in_use)
       continue;
 
+    /* Only stacked services have clients */
     if (ptin_intf_port2ptintf(intf_idx,&ptin_intf)!=L7_SUCCESS)
       continue;
 

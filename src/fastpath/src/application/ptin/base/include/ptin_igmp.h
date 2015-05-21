@@ -584,14 +584,11 @@ extern L7_RC_t ptin_igmp_instance_add(L7_uint32 McastEvcId, L7_uint32 UcastEvcId
 extern L7_RC_t ptin_igmp_instance_remove(L7_uint32 McastEvcId, L7_uint32 UcastEvcId);
 
 /**
- * Removes all IGMP instances
- * 
- * @param McastEvcId : Multicast evc id 
- * @param UcastEvcId : Unicast evc id 
+ * Reset IGMP Module to Default
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_clean_all(void);
+extern L7_RC_t ptin_igmp_default_reset(void);
 
 /**
  * Reset MGMD
@@ -1389,6 +1386,17 @@ extern L7_RC_t igmp_intVlan_from_clientId_get(L7_uint ptin_port, L7_uint client_
 
 
 #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
+
+/**
+ * @purpose Reset Admission Control Parameters
+ * 
+ *  
+ * @return RC_t
+ *
+ * @notes none 
+ *  
+ */
+void ptin_igmp_admission_control_reset_all(void);
 
 /**
  * @purpose Set the Port Admission Control Parameters

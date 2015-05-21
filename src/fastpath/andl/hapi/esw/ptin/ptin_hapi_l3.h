@@ -89,6 +89,16 @@ extern L7_RC_t ptin_hapi_l3_ipmc_remove(ptin_dtl_ipmc_addr_t *ptin_ipmc);
 extern L7_RC_t ptin_hapi_l3_ipmc_get(ptin_dtl_ipmc_addr_t *ptin_ipmc);
 
 /*********************************************************************
+* @purpose  Reset IPMC Table
+*
+*
+* @returns  Defined by the Broadcom driver
+*
+* @end
+*********************************************************************/
+L7_RC_t ptin_hapi_l3_ipmc_reset(void);
+
+/*********************************************************************
 * @purpose  Init HAPI L3 Intf Id Structures
 *
 *

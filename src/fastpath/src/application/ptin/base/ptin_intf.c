@@ -3152,13 +3152,12 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
 /**
  * Deletes a LAG
  * 
- * @param lagInfo Structure that references the LAG to destroy
+ * @param lag_idx LAG Identifier
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_intf_Lag_delete(ptin_LACPLagConfig_t *lagInfo)
-{
-  L7_uint32 lag_idx;
+L7_RC_t ptin_intf_Lag_delete(L7_uint32 lag_idx)
+{ 
   L7_uint32 lag_intIfNum;
   L7_uint   lag_port;
   L7_uint32 value;
@@ -3166,22 +3165,20 @@ L7_RC_t ptin_intf_Lag_delete(ptin_LACPLagConfig_t *lagInfo)
   L7_uint64 ptin_pbmp;
   L7_uint32 intIfNum = 0;
 
-  /* Validate arguments */
-  if (lagInfo == L7_NULLPTR)
-  {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid arguments");
-    return L7_FAILURE;
-  }
-
-  lag_idx = lagInfo->lagId;
-  lag_port = PTIN_SYSTEM_N_PORTS + lag_idx;
-
   /* Validate LAG range (LAG index [0..PTIN_SYSTEM_N_LAGS[) */
   if (lag_idx >= PTIN_SYSTEM_N_LAGS)
   {
     LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u is out of range [0..%u]", lag_idx, PTIN_SYSTEM_N_LAGS-1);
     return L7_FAILURE;
   }
+
+  if (!ptin_intf_lag_exists(lag_idx))
+  {
+    LOG_NOTICE(LOG_CTX_PTIN_INTF, "LAG# %u is disabled!", lag_idx);
+    return L7_SUCCESS;
+  }
+  
+  lag_port = PTIN_SYSTEM_N_PORTS + lag_idx;
 
   /* Uplink protection */
 #ifdef PTIN_SYSTEM_PROTECTION_LAGID_BASE
@@ -3352,7 +3349,9 @@ L7_RC_t ptin_intf_Lag_delete_all(void)
 
   for (lag_idx = 0; lag_idx < PTIN_SYSTEM_N_LAGS; lag_idx++)
   {
-    ptin_intf_Lag_delete(&lagConf_data[lag_idx]);
+    if (!ptin_intf_lag_exists(lag_idx))
+      continue;
+    ptin_intf_Lag_delete(lag_idx);
   }
   return L7_SUCCESS;
 }

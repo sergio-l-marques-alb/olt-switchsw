@@ -487,7 +487,7 @@ L7_RC_t ptin_hapi_l3_ipmc_add(ptin_dtl_ipmc_addr_t *ptin_ipmc)
     {
       LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with bcm_multicast_create(0x%x, group_index:0x%08x rv:%d) (\"%s\")",
               BCM_MULTICAST_TYPE_L3, group, rv, bcm_errmsg(rv));
-      return L7_FAILURE;
+      return ptin_bcm_to_fp_error_code(rv);
     }
     LOG_TRACE(LOG_CTX_PTIN_HAPI,"Group id 0x%x created (with flags=0x%08x)",group,flags);
     ptin_ipmc->group_index = group;
@@ -498,7 +498,7 @@ L7_RC_t ptin_hapi_l3_ipmc_add(ptin_dtl_ipmc_addr_t *ptin_ipmc)
   if (BCM_FAILURE(rv))
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI,"Error converting from dtl to bcm: group_index:0x%x rv:%d rv=\"%s\"", bcm_ipmc.group, rv, bcm_errmsg(rv));
-    return L7_FAILURE;
+    return ptin_bcm_to_fp_error_code(rv);
   }
 
   rv = bcm_ipmc_add(0, &bcm_ipmc);        
@@ -506,7 +506,7 @@ L7_RC_t ptin_hapi_l3_ipmc_add(ptin_dtl_ipmc_addr_t *ptin_ipmc)
   if (BCM_FAILURE(rv))
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI,"Error adding Channel to IPMC Table: group_index:0x%x rv:%d rv=\"%s\"", bcm_ipmc.group, rv, bcm_errmsg(rv));
-    return L7_FAILURE;
+    return ptin_bcm_to_fp_error_code(rv);
   }
 
   return L7_SUCCESS;
@@ -531,7 +531,7 @@ L7_RC_t ptin_hapi_l3_ipmc_remove(ptin_dtl_ipmc_addr_t *ptin_ipmc)
   if (BCM_FAILURE(rv))
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI,"Error converting from dtl to bcm: group_index:0x%x rv:%d rv=\"%s\"", bcm_ipmc.group, rv, bcm_errmsg(rv));
-    return L7_FAILURE;
+    return ptin_bcm_to_fp_error_code(rv);
   }
 
   /*Always Remove Entry*/
@@ -544,7 +544,7 @@ L7_RC_t ptin_hapi_l3_ipmc_remove(ptin_dtl_ipmc_addr_t *ptin_ipmc)
   if (BCM_FAILURE(rv))
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI,"Error removing Channel from IPMC Table: rv=\"%s\" ipmc_index:0x%x", bcm_errmsg(rv), ptin_ipmc->group_index);
-    return L7_FAILURE;
+    return ptin_bcm_to_fp_error_code(rv);
   }
 
 
@@ -565,6 +565,28 @@ L7_RC_t ptin_hapi_l3_ipmc_get(ptin_dtl_ipmc_addr_t *ptin_ipmc)
    return L7_NOT_IMPLEMENTED_YET;
 }
 
+/*********************************************************************
+* @purpose  Reset IPMC Table
+*
+*
+* @returns  Defined by the Broadcom driver
+*
+* @end
+*********************************************************************/
+L7_RC_t ptin_hapi_l3_ipmc_reset(void)
+{
+  int   rv = L7_SUCCESS;
+ 
+  /*Initialize IPMC Table*/   
+  rv = bcm_ipmc_remove_all(0);
+  if (BCM_FAILURE(rv))
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI,"Error initializing IPMC Table: rv=\"%s\" (rv:%u)", bcm_errmsg(rv));
+    return ptin_bcm_to_fp_error_code(rv);
+  }
+  return rv;
+}
+  
 #if 0
 typedef struct ptin_hapi_l3_intf_s
 {
@@ -738,10 +760,10 @@ L7_RC_t ptin_hapi_l3_intf_create (ptin_dtl_l3_intf_t *intf)
     intfInfo.bcm_data.l3a_intf_id = HAPI_BROAD_INVALID_L3_INTF_ID;
     rv = usl_l3_intf_hw_id_allocate(&intfInfo, &intf->l3_intf_id );
 #endif
-    if (rv != L7_SUCCESS || intf->l3_intf_id == -1)
+    if (rv != BCM_E_NONE || intf->l3_intf_id == -1)
     {
       LOG_ERR(LOG_CTX_PTIN_HAPI,"Failed to pop L3 Interface Id %d (rv=%d) rv=\"%s\"", intf->l3_intf_id, rv, bcm_errmsg(rv));
-      return L7_FAILURE;
+      return ptin_bcm_to_fp_error_code(rv);
     }       
   }
   bcm_data.l3a_intf_flags |= BCM_L3_WITH_ID;
@@ -761,7 +783,7 @@ L7_RC_t ptin_hapi_l3_intf_create (ptin_dtl_l3_intf_t *intf)
   if (BCM_FAILURE(rv) || bcm_data.l3a_intf_id == HAPI_BROAD_INVALID_L3_INTF_ID)
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI,"Error creating L3 interface: rv=\"%s\" l3_intf_id:%d", bcm_errmsg(rv), bcm_data.l3a_intf_id);
-    return L7_FAILURE;
+    return ptin_bcm_to_fp_error_code(rv);
   }
 
   /*Save L3 Interface Interface Id*/
@@ -850,10 +872,10 @@ L7_RC_t ptin_hapi_l3_intf_delete (ptin_dtl_l3_intf_t *intf)
   #else
   rv = usl_l3_intf_hw_id_free(intf->l3_intf_id);
   #endif
-  if (rv != L7_SUCCESS)
+  if (BCM_FAILURE(rv))
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI,"Failed to push L3 Interface Id %d (rv=%d) rv=\"%s\"", intf->l3_intf_id, rv, bcm_errmsg(rv));
-    return L7_FAILURE;
+    return ptin_bcm_to_fp_error_code(rv);
   }
 
   intf->l3_intf_id = -1;

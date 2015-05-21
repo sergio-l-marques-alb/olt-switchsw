@@ -189,7 +189,7 @@ L7_RC_t ptin_cfg_ntw_connectivity_set(ptin_NtwConnectivity_t *ntwConn)
     {
       /* Delete EVC if was already created */
       evcConf.index = PTIN_EVC_INBAND;
-      if (ptin_evc_get(&evcConf) == L7_SUCCESS)
+      if (ptin_evc_is_in_use(PTIN_EVC_INBAND) && ptin_evc_get(&evcConf) == L7_SUCCESS)
         ptin_evc_delete(evcConf.index);
     }
 
@@ -199,7 +199,7 @@ L7_RC_t ptin_cfg_ntw_connectivity_set(ptin_NtwConnectivity_t *ntwConn)
     {
       /* Delete EVC if was already created */
       evcConf.index = PTIN_EVC_INBAND;
-      if (ptin_evc_get(&evcConf) == L7_SUCCESS)
+      if (ptin_evc_is_in_use(PTIN_EVC_INBAND) && ptin_evc_get(&evcConf) == L7_SUCCESS)
         ptin_evc_delete(evcConf.index);
 
       /* Create a new EVC */

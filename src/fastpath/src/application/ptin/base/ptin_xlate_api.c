@@ -1162,11 +1162,13 @@ L7_RC_t ptin_xlate_egress_delete( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_
   /* DTL call */
   rc = ptin_xlate_operation(DAPI_CMD_CLEAR, L7_ALL_INTERFACES, &xlate);
 
+  #if 0//Already Performed Above
   /* If deletion went well... */
   if (rc == L7_SUCCESS)
   {
     rc = xlate_database_clear(L7_ALL_INTERFACES, &xlate);
   }
+  #endif
 
   if (ptin_debug_xlate)
     LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: rc=%d", rc);
@@ -2229,6 +2231,12 @@ static L7_RC_t xlate_database_clear(L7_uint32 intIfNum, const ptin_vlanXlate_t *
   L7_uint32 ptin_port=(L7_uint32)-1;
 
   /* Validate arguments */
+  if ( vlanXlate_data == L7_NULLPTR )
+  {
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " vlanXlate_data:%p", vlanXlate_data);
+    return L7_FAILURE;
+  }
+
   if ( ( vlanXlate_data->stage != PTIN_XLATE_STAGE_INGRESS && vlanXlate_data->stage != PTIN_XLATE_STAGE_EGRESS ) ||
        ( intIfNum > 0 && intIfNum < L7_ALL_INTERFACES && ptin_intf_intIfNum2port(intIfNum, &ptin_port) != L7_SUCCESS ) ||
        ( vlanXlate_data->outerVlan > 4095) )

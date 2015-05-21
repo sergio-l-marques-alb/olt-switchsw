@@ -3353,8 +3353,24 @@ static void snoopMgmdSwitchPortOpenProcess(L7_uint32 serviceId, L7_uint32 portId
   L7_inet_addr_t sourceIp;
   L7_BOOL        isL3Entry;
   L7_RC_t        rc;
-
+  
   LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Received request to open a new port on the switch [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X isStatic:%u isProtection:%s]", serviceId, portId, groupAddr, sourceAddr, isStatic, isProtection?"Yes":"No");
+
+  #if 0
+  L7_BOOL        adminMode = L7_DISABLE;
+  if (L7_SUCCESS != snoopAdminModeGet(&adminMode, L7_AF_INET))
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Get Admin Mode");
+    return;
+  }
+
+  if (adminMode != L7_ENABLE)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Ignoring Port Open Request adminMode:%u",adminMode);
+    return;
+  }
+  #endif
 
   if( L7_SUCCESS != (rc=ptin_evc_intRootVlan_get(serviceId, &mcastRootVlan)))
   {
@@ -3404,6 +3420,22 @@ static void snoopMgmdSwitchPortCloseProcess(L7_uint32 serviceId, L7_uint32 portI
   L7_BOOL        isL3Entry;
 
   LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Received request to close an existing port on the switch [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X isProtection:%s]", serviceId, portId, groupAddr, sourceAddr, isProtection?"Yes":"No");
+
+  #if 0//We need to allow this operation
+  L7_BOOL        adminMode = L7_DISABLE;
+  if (L7_SUCCESS != snoopAdminModeGet(&adminMode, L7_AF_INET))
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Get Admin Mode");
+    return;
+  }
+
+  if (adminMode != L7_ENABLE)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Ignoring Port Close Request adminMode:%u",adminMode);
+    return;
+  }
+  #endif    
 
   if( L7_SUCCESS != ptin_evc_intRootVlan_get(serviceId, &mcastRootVlan))
   {
