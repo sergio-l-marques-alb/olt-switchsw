@@ -269,6 +269,9 @@ L7_BOOL ipsgClientAuthorized(L7_enetMacAddr_t *macAddr,
   L7_ushort16      tmpVlanId;
   L7_uint32        tmpIntIfNum;
   
+#ifndef IPSG_VLAN_FIELD_IS_CARE
+  vlanId = 0;
+#endif
   
   memset(&ipAddr, 0x00, sizeof(ipAddr));
 

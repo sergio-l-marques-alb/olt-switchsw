@@ -35,7 +35,7 @@
 #include "snooping_api.h"
 #include "snooping_db.h"
 #include "l7_mgmd_api.h"
-
+#include "dhcp_snooping_api.h"
 #include "ptin_mgmd_eventqueue.h"
 
 /* PTin added: IGMP snooping */
@@ -406,18 +406,18 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
                           sysnet_pdu_info_t *pduInfo,
                           L7_uchar8 family)
 {
-  snoopPDU_Msg_t   msg;
-  L7_uchar8       *data;
-  L7_uint32        dataLength;
-  L7_uint32        dot1qMode;
-  L7_INTF_TYPES_t  sysIntfType;
-  L7_RC_t          rc;
-  snoop_cb_t      *pSnoopCB      = L7_NULLPTR;  
-  L7_uchar8       *igmpPtr       = L7_NULLPTR;
-  L7_uint32        client_idx    = (L7_uint32) -1;              /* PTin added: IGMP snooping */
-  L7_uint16        mcastRootVlan; /* Internal vlan will be converted to MC root vlan */
-  L7_BOOL          isRootPort;
-
+  snoopPDU_Msg_t     msg;
+  L7_uchar8         *data;
+  L7_uint32          dataLength;
+  L7_uint32          dot1qMode;
+  L7_INTF_TYPES_t    sysIntfType;
+  L7_RC_t            rc;
+  snoop_cb_t        *pSnoopCB      = L7_NULLPTR;  
+  L7_uchar8         *igmpPtr       = L7_NULLPTR;
+  L7_uint32          client_idx    = (L7_uint32) -1;              /* PTin added: IGMP snooping */
+  L7_uint16          mcastRootVlan; /* Internal vlan will be converted to MC root vlan */
+  L7_BOOL            isRootPort;
+ 
   if (ptin_debug_igmp_snooping)
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"{");
 
@@ -495,9 +495,6 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   SYSAPI_NET_MBUF_GET_DATASTART(netBufHandle, data);
   SYSAPI_NET_MBUF_GET_DATALENGTH(netBufHandle, dataLength);
 
-  LOG_TRACE(LOG_CTX_PTIN_IGMP, "DMAC=%02x:%02x:%02x:%02x:%02x:%02x SMAC=%02x:%02x:%02x:%02x:%02x:%02x",
-              data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7],data[8],data[9],data[10],data[11]);
-
   if (ptin_debug_igmp_packet_trace)
   {    
     L7_uint32 i;
@@ -506,6 +503,27 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
       printf("%02x ",data[i]);
     printf("\n");
   }
+
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "DMAC=%02x:%02x:%02x:%02x:%02x:%02x SMAC=%02x:%02x:%02x:%02x:%02x:%02x",
+              data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7],data[8],data[9],data[10],data[11]);
+
+#ifdef L7_DHCP_SNOOPING_PACKAGE
+#ifdef L7_IPSG_PACKAGE
+  L7_enetMacAddr_t   clientMacAddr;
+  memcpy(&clientMacAddr.addr, &data[6], sizeof(clientMacAddr));   
+  if ( ipsgClientAuthorized(&clientMacAddr, pduInfo->vlanId, pduInfo->intIfNum) != L7_TRUE )
+  {
+    L7_uchar8 macAddrStr[SNOOP_MAC_STR_LEN];      
+    snoopMacToString(clientMacAddr.addr, macAddrStr);
+
+    if(ptin_debug_igmp_snooping)
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Packet Silently Ignored. Client Not Authorized! [intIfNum:%u vlanId:%u macAddrStr:%s]", pduInfo->intIfNum, pduInfo->vlanId, macAddrStr);
+    ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
+    return L7_FAILURE;
+  }
+#endif
+#endif
+  
 
   /* PTin added: IGMP snooping */
 #if 1

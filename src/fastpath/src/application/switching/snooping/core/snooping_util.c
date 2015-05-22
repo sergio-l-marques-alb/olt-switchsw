@@ -3023,3 +3023,22 @@ L7_uint8 snoopPacketType2IGMPStatField(L7_uint8 packetType,L7_uint8 fieldType)
     return SNOOP_STAT_FIELD_ALL;
   }
 }
+
+/*********************************************************************
+* @purpose  Convert a MAC address to a string.
+*
+* @param    macAddr    @b((input)) MAC address to be converted
+* @param    macAddrStr @b((output)) In string format
+*
+* @returns  void
+*
+* @notes    macAddrStr must be at least SNOOP_MAC_STR_LEN.
+*
+* @end
+*********************************************************************/
+void snoopMacToString(L7_uchar8 *macAddr, L7_uchar8 *macAddrStr)
+{
+  osapiSnprintf(macAddrStr, SNOOP_MAC_STR_LEN, "%02X:%02X:%02X:%02X:%02X:%02X",
+                macAddr[0], macAddr[1], macAddr[2],
+                macAddr[3], macAddr[4], macAddr[5]);
+}

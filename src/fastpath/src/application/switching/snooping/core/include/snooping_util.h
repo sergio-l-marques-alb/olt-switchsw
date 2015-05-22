@@ -121,6 +121,7 @@ L7_RC_t  snoopTimerDestroy(L7_APP_TMR_CTRL_BLK_t timerCB, L7_APP_TMR_HNDL_t *tim
 L7_BOOL snoop_is_timer_running(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum,
                                L7_uint32 vlanId, snoop_interface_type_t timerType,
                                snoop_cb_t *pSnoopCB);
+void     snoopMacToString(L7_uchar8 *macAddr, L7_uchar8 *macAddrStr);
 /*************************************************************** 
  IGMP Statistics  
 **************************************************************/
@@ -178,5 +179,8 @@ L7_uint8 snoopPacketType2IGMPStatField(L7_uint8 packetType,L7_uint8 fieldType);
 #define SNOOP_MAXRESP_INTVL_ROUND(x, y) (((x)/(y))+1)
 #define SNOOP_L3_INGRESS_VLAN_MASK_PRESENT 0x01
 #define SNOOP_L3_EGRESS_VLAN_MASK_PRESENT  0x10
+
+/* incl NULL terminator */
+#define SNOOP_MAC_STR_LEN 18    
 
 #endif /* SNOOPING_UTIL_H */
