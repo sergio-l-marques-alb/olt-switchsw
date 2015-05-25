@@ -2717,7 +2717,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     }
 
     /* Set MAC learn attributes */
-    #if (PTIN_BOARD_IS_MATRIX)
+   #if (PTIN_BOARD_IS_MATRIX)
     if (lag_idx < PTIN_SYSTEM_N_LAGS_EXTERNAL)
     {
       ptin_HWPortExt_t port_ext;
@@ -2738,23 +2738,26 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
         LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: Error setting MAC learning attributes", lag_idx);
       }
     }
-    #else
+   #else
     /* For Linecards, LAG 1/0 belongs to backplane... should be trusted */
     #if (PTIN_BOARD_IS_LINECARD)
     if (lag_idx == 0)
+    #elif (PTIN_BOARD_IS_MATRIX)
+    if (lag_idx >= PTIN_SYSTEM_INTERNAL_LAGID_BASE)
     #endif
     {
      #if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
       ptin_dhcp_intfTrusted_set(lag_intf, L7_TRUE); 
       ptin_pppoe_intfTrusted_set(lag_intf, L7_TRUE);
       /* Internal interfaces of linecards, should always be trusted */
-      #if (PTIN_BOARD_IS_LINECARD)
+      LOG_TRACE(LOG_CTX_PTIN_INTF, "LAG# %u is DHCP/PPPoE trusted", lag_idx);
+     #endif
+     #if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_MATRIX)
       usmDbDaiIntfTrustSet(lag_intf, L7_TRUE);
-      #endif
-      LOG_TRACE(LOG_CTX_PTIN_INTF, "LAG# %u is trusted", lag_idx);
+      LOG_TRACE(LOG_CTX_PTIN_INTF, "LAG# %u is DAI trusted", lag_idx);
      #endif
     }
-    #endif
+   #endif
   }
   else
   {
