@@ -808,7 +808,8 @@ L7_RC_t ssmPDUTransmit(L7_uint32 intIfNum)
   }
 
   if (ssm_debug_enable)
-    LOG_TRACE(LOG_CTX_PTIN_SSM,"SSM transmitted to intIfNum %u (slot=%u/intf=%u) with SSM_code=%x",intIfNum,slot,intf,SHMEM(slot,intf).ssm_tx);
+    LOG_TRACE(LOG_CTX_PTIN_SSM,"SSM transmitted to intIfNum %u (slot=%u/intf=%u) with SSM_code=%x (length=%u)",
+              intIfNum, slot, intf, SHMEM(slot,intf).ssm_tx, frameLength);
 
   return L7_SUCCESS;
 }

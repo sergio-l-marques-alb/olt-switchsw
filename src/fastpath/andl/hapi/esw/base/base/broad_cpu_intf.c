@@ -2229,15 +2229,15 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
   /* Dump first 64 bytes */
   if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_STDOUT)
   {
-    printf("Packet transmited on usp={%d,%d,%d} (lport=0x%08x) with sendVLAN=%u (frameType=%u, flags=0x%x): bcmTxRv=%d result=%d\r\n",
-           destUsp.unit, destUsp.slot, destUsp.port, hapiPortPtr->bcmx_lport, cmdInfo->cmdData.send.vlanID, frameType, bcm_pkt.flags, bcmTxRv, result);
+    printf("Packet transmited on usp={%d,%d,%d} (lport=0x%08x) with sendVLAN=%u, length=%u (frameType=%u, flags=0x%x): bcmTxRv=%d result=%d\r\n",
+           destUsp.unit, destUsp.slot, destUsp.port, hapiPortPtr->bcmx_lport, cmdInfo->cmdData.send.vlanID, bcm_pkt.pkt_data->len, frameType, bcm_pkt.flags, bcmTxRv, result);
     fflush(stdout);
   }
 
   if (cpu_transmited_packets_dump)
   {
     int i;
-    for (i=0; i<bcm_pkt.pkt_data->len && i<64; i++)
+    for (i=0; i<bcm_pkt.pkt_data->len && i<128; i++)
     {
       if (i%16==0)
       {
@@ -2262,8 +2262,8 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
 
   if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_LEVEL1)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_HAPI, "Sending to usp %d.%d.%d (bcmx_lport 0x%08x), with sendVLAN %u (frameType %u, pktflags 0x%x): bcmTxRv=%d result=%d",
-              destUsp.unit, destUsp.slot, destUsp.port, hapiPortPtr->bcmx_lport, cmdInfo->cmdData.send.vlanID, frameType, bcm_pkt.flags, bcmTxRv, result);
+    LOG_DEBUG(LOG_CTX_PTIN_HAPI, "Sending to usp %d.%d.%d (bcmx_lport 0x%08x), with sendVLAN %u, length=%u/%u (frameType %u, pktflags 0x%x): bcmTxRv=%d result=%d",
+              destUsp.unit, destUsp.slot, destUsp.port, hapiPortPtr->bcmx_lport, cmdInfo->cmdData.send.vlanID, bcm_pkt.pkt_data->len, frameType, bcm_pkt.flags, bcmTxRv, result);
   }
 
   return result;
