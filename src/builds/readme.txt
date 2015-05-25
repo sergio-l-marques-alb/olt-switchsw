@@ -35,15 +35,15 @@ Tarballs transfer are split into two stages, to minimize time availability:
  - The second will transfer the unstripped binaries for debugging purposes.
 After conclusion of the first stage, you can proceed to step 5.
 
-5. After transfer, go to 10.112.15.243:/home/olt/fastpath_builds, and update the
+4. After transfer, go to 10.112.15.243:/home/olt/fastpath_builds, and update the
    appropriate mkboards. This will unpach the binaries tarball into the given
    mkboards folder:
 
    @fastpath_builds$ sudo sh image_update.sh
    fastpath/fastpath-olt.image-v<version>-r<revision>.tgz /home/olt/<mkboards>/
 
-Finally, go to mkboards of CXO160G and CXOLT1T0 and run fastpath-xxx.sh script to
-prepare the final tarball to be present inside 'files' folder.
+5. Finally, go to mkboards of CXO160G and CXOLT1T0 and run fastpath-xxx.sh script to
+   prepare the final tarball to be present inside 'files' folder.
 
 Now, mkboards is ready to be used to build the setup file!
 
