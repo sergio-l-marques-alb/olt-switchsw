@@ -4705,6 +4705,101 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break;
 
 
+    case CCMSG_WR_MEP_DM:
+    case CCMSG_RM_MEP_DM:
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               CCMSG_WR_MEP_DM==inbuffer->msgId? "Message received: CCMSG_WR_MEP_DM (0x%04X)":
+                                                 "Message received: CCMSG_RM_MEP_DM (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE(msg_bd_mep_dm_t);
+
+      if (CCMSG_RM_MEP_DM==inbuffer->msgId) {
+          rc = del_mep_dm(((msg_bd_mep_dm_t*)inbuffer->info)->idx, &oam)? L7_FAILURE: L7_SUCCESS;
+      }
+      else {
+       msg_bd_mep_dm_t *p;
+
+       p = (msg_bd_mep_dm_t*)inbuffer->info;
+
+       if (0==p->packet_number) rc = L7_NOT_EXIST;
+       else {
+        T_MEP_DM mep_dm;
+
+        mep_dm.n_frames =          p->packet_number;
+        mep_dm.period =            p->period;
+        mep_dm.oam_datagrm_len =   p->packet_size;
+//        mep_dm.dmmCosColor =         p->dmmCosColor;
+
+        switch (wr_mep_dm(p->idx, &mep_dm, &oam)) {
+			case 0: rc = L7_SUCCESS; break;
+			case 1: rc = L7_NOT_EXIST; break;
+			default: rc = L7_ERROR; break;
+        }//switch
+       }
+      }
+
+      if (L7_SUCCESS != rc) {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;
+
+    case CHMSG_CCM_MEP_FRAMEDELAY:
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CHMSG_CCM_MEP_FRAMEDELAY (0x%04X)", inbuffer->msgId);
+
+
+      {
+        MSG_FRAMEDELAY_status *pi;
+        MSG_FRAMEDELAY_status *po;
+        u16 i_mep;
+
+        if (inbuffer->infoDim<offsetof(MSG_FRAMEDELAY_status, idx)+sizeof(pi->idx)) {
+            SetIPCNACK(outbuffer, SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE));
+            break;
+        }
+        //CHECK_INFO_SIZE(MSG_FRAMEDELAY_status);
+
+
+        pi = (MSG_FRAMEDELAY_status*)inbuffer->info;
+        i_mep = pi->idx;
+
+        po = (MSG_FRAMEDELAY_status*)outbuffer->info;
+        outbuffer->infoDim = sizeof(MSG_FRAMEDELAY_status);
+
+        if (i_mep>=N_MEPs) rc = L7_NOT_EXIST;
+        else {
+
+//            DM_2way_frame_delay(&oam.db[i_mep].dm, &oam.db[i_mep].dm);
+        	//????
+            po->DM_Max           = oam.db[i_mep].dm.fd_max;
+            po->DM_Min           = oam.db[i_mep].dm.fd_min;
+            po->DM_Total         = oam.db[i_mep].dm.fd_sum;
+            po->DM_packet_number = oam.db[i_mep].dm.n_frames;
+            rc = L7_SUCCESS;
+        }
+      }
+
+      if (L7_SUCCESS != rc) {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;
+
+
 #endif //__Y1731_802_1ag_OAM_ETH__
 
     /************************************************************************** 

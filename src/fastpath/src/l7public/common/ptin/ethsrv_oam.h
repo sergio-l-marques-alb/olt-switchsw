@@ -339,7 +339,31 @@ typedef struct {
 
 
 
+typedef struct {
+    //proactive delay measurement [...] DM frames with the following information elements:
+	//	DMM is used to support proactive or on-demand Single-Ended ETH-DM request
 
+	u64 TxTimeStampf,
+	    RxTimeStampf,  //for DMM receiving equipment (0)
+	    TxTimeStampb,  //for DMR (0)
+	    RxTimeStampb;  //for DMR receiving equipment (0)
+
+    //DMM frame contains the following values:
+	//	•  TxTimeStampf:  TxTimeStampf  is  an  8-octet  field  that  contains  the  timestamp  of  DMM
+	//	transmission. The format of TxTimeStampf is equal to the TimeRepresentation format in
+	//	[IEEE 1588].
+
+    //DMR frame contains the following values:
+	//	•  TxTimeStampf: TxTimeStampf is an 8-octet field that contains the copy of TxTimeStampf
+	//	field in received DMM.
+	//	•  RxTimeStampf: RxTimeStampf is an optional 8-octet field that contains the timestamp of
+	//	DMM reception. The format of RxTimeStampf is equal to the TimeRepresentation format
+	//	in [IEEE 1588]. When not used, a value of all 0 is used.
+	//	•  TxTimeStampb: TxTimeStampb is an optional 8-octet field that contains the timestamp of
+	//	DMR  transmission.  The  format  of  TxTimeStampb  is  equal  to  the  TimeRepresentation
+	//	format in [IEEE 1588]. When not used, a value of all 0 is used.
+
+} __attribute__ ((packed)) T_DM;
 
 
 
@@ -350,9 +374,20 @@ typedef struct {
 
 
 typedef struct {
+#define invalid_T_MEP_DM(p_mep_dm)  ((p_mep_dm)->period==0xFF)
+#define T_DM_VIRGIN_PATTERN 0xff
+#define invalidate_T_MEP_DM(p_mep_dm) {memset(p_mep_dm, T_DM_VIRGIN_PATTERN, sizeof(T_MEP_DM));}
+#define VIRGIN_DM_TIMER   0xffffffffffffffffULL
+#define virgin_DM_timer(timer)  (VIRGIN_DM_TIMER==(timer))
+#define invalid_DM_timer  virgin_DM_timer
+#define diff_DM_timers(m,s)   (invalid_DM_timer(m) || invalid_DM_timer(s)?    VIRGIN_DM_TIMER:  (m)-(s))
     u32 n_frames;
     u16 oam_datagrm_len;
     u8  period;
+
+    u32 DMM_timer;          // RO    (ms)        TX; used to decide when to send a DM packet
+
+    T_DM dm[2];
 
     u64 fd, fd_min, fd_max, fd_sum,
         //delta
@@ -382,6 +417,7 @@ typedef struct {
     T_MEP          mep;             //MEP data base
     T_MEP_CSF      mep_csf;         //MEP CSF data base
     T_MEP_LM       lm;              //MEP LM data base
+    T_MEP_DM       dm;              //MEP DM data base
 } T_MEP_DB;
 
 //THIS STRUCTURE AGGREGATES ALL - DECLARE ONE INSTANCE OF THIS TYPE*********************
@@ -803,7 +839,8 @@ extern void ethsrv_oam_register_T(T_MEG_ID *meg_id, u16 mep_id, u16 mep_indx, u1
 extern u64 rd_TxFCl(u16 i_mep);     // counter for in-profile data frames txed twrds peer MEP
 //extern u64 rd_RxFCl(u16 i_mep);     // counter ...                        rxed from peer
 
-
+extern u64 rd_TxTimeStampb(u16 i_mep);  //Timestamp for packets leaving this card
+extern u64 rd_TxTimeStampf(u16 i_mep);  //Timestamp for packets leaving this card
 
 
 //this function returns the port where the bridge knows this MAC is or an invalid value (all 1s) otherwise
@@ -879,5 +916,9 @@ extern void LM_medium(T_MEP_LM *p, u64 *NE_flr_Dividend, u64 *NE_flr_divisor, u6
 
 extern int wr_mep_lm(u32 i_mep, T_MEP_LM *p_mep, T_ETH_SRV_OAM *p_oam);
 extern int del_mep_lm(u32 i_mep, T_ETH_SRV_OAM *p_oam);
+
+extern int del_mep_dm(u32 i_mep, T_ETH_SRV_OAM *p_oam);
+extern int wr_mep_dm(u32 i_mep, T_MEP_DM *p_mep_dm, T_ETH_SRV_OAM *p_oam);
+
 #endif /*_ETHSRV_OAM_H_*/
 

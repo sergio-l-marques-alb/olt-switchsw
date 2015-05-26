@@ -37,6 +37,7 @@ __OAM_MC_MAC_DECLARATION__
 static int send_ccm(u16 i_mep, T_MEP_HDR *p_mep, u8 RDI, T_MEP_LM *p_lm, u8 use_mcast_DMAC);
 static int send_csf(u16 oam_prt, T_MEP_HDR *p_mep, u8 CSF_period, u8 CSF_flags);
 static int send_lmm(u16 i_mep, T_MEP_HDR *p_mep, T_MEP_LM *p_lm);
+static int send_dmm(u16 i_mep, T_MEP_HDR *p_mep, T_MEP_DM *p_dm);
 static int rx_ccm(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC,
                     T_MEP_DB *p_mep_db, T_LOOKUP_MEP *p_mep_lut, u64 RxFCl);
 static int rx_csf(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC,
@@ -49,6 +50,10 @@ static int rx_lbm(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC,
                     T_MEP_DB *p_mep_db, T_LOOKUP_MEP *p_mep_lut);
 static int rx_ltm(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC,
                     T_MEP_DB *p_mep_db, T_LOOKUP_MEP *p_mep_lut);
+static int rx_dmm(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC,
+                    T_MEP_DB *p_mep_db, T_LOOKUP_MEP *p_mep_lut, u64 RxFCl);
+static int rx_dmr(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC,
+                    T_MEP_DB *p_mep_db, T_LOOKUP_MEP *p_mep_lut, u64 RxFCl);
 //PUBLIC ROUTINES***********************************************************************
 
 static void init_mep(T_MEP *p_mep) {
@@ -87,6 +92,9 @@ static void init_mep_lm(T_MEP_LM *p) {
 }
 
 
+static void init_mep_dm(T_MEP_DM *p) {
+    invalidate_T_MEP_DM(p)
+}
 
 
 void init_mep_db(T_MEP_DB *p_mep_db) {
@@ -101,6 +109,7 @@ T_MEP *_p_mep;
      init_mep(_p_mep);
      init_mep_csf(&p_mep_db[i].mep_csf);
      init_mep_lm(&p_mep_db[i].lm);
+     init_mep_dm(&p_mep_db[i].dm);
  }//for
 }//init_mep_db
 
@@ -608,6 +617,7 @@ T_MEP       *_p_mep;
 T_MEP_DB    *p_mep_db;
 T_MEP_CSF   *_p_mep_csf;
 T_MEP_LM    *_p_mep_lm;
+T_MEP_DM    *_p_mep_dm;
 
 u16 *proc_i_mep;
 static u32 j, meps_procssd_per_function_call=0;
@@ -730,6 +740,24 @@ _proc_ethsrv_oam_CSF_function_end:
         }
     }
 _proc_ethsrv_oam_LM_function_end:;
+
+
+
+
+    // DM Function --------------------------------------------------------------------
+    _p_mep_dm =   &p_oam->db[*proc_i_mep].dm; //Get the pointer to this MEP,...
+
+    if (0!=_p_mep_dm->n_frames){
+		//Check if it's time to send DMMs on this MEP...
+		if (!valid_oam_tmr(_p_mep_dm->period)) goto _proc_ethsrv_oam_DM_function_end;
+		tmout= OAM_TMR_CODE_TO_ms[_p_mep_dm->period];
+		_p_mep_dm->DMM_timer += T_ms;
+		if (_p_mep_dm->DMM_timer+T_ms/2 > tmout) {//time_2_send_dmm=1;
+			_p_mep_dm->DMM_timer=0;
+			send_dmm(*proc_i_mep, (T_MEP_HDR *)_p_mep, _p_mep_dm);
+		}
+    }
+_proc_ethsrv_oam_DM_function_end:;
     // -------------------------------------------------------------------- LM Function
  }//for (j=meps_procssd_per_function_call; j; j--)
 }//proc_ethsrv_oam
@@ -1010,6 +1038,72 @@ static int send_lbr(u16 oam_prt, T_MEP_HDR *p_mep, ETH_LBR_OAM_DATAGRM *p_lbr, u
 
 
 
+static int send_dmm(u16 i_mep, T_MEP_HDR *p_mep, T_MEP_DM *p_dm) {
+T_ETH_OAM_MAC DMAC;
+ETH_DMM_OAM_DATAGRM dmm, *p_dmm;
+
+ DMAC=  OAM_MC_MAC;
+ //pkt[5] &=                      ~0x07;
+ DMAC.byte[5] |=                p_mep->level;// & 0x07;
+
+ p_dmm=                         &dmm;
+ p_dmm->MAlevel_and_version=    ASSEMBLE_OAM_MALEVEL_AND_VERSION(p_mep->level, OAM_PROTO_VERSION);
+ p_dmm->opcode=                 DMM_OPCODE;
+ p_dmm->flags=                  0;
+ p_dmm->TLV_offset=             12;
+ p_dmm->RxTimeStampb=           0;
+ p_dmm->RxTimeStampf=           0;
+ p_dmm->TxTimeStampb=           0;
+ p_dmm->end_TLV=                0;
+
+ //TODO
+ p_dmm->TxTimeStampf=           rd_TxTimeStampf(i_mep);		//Read timestamp of DMM tansmission (equal to TimeRepresentation format in IEEE 1588)
+
+ return send_eth_pckt(p_mep->prt, p_mep->up1_down0, (u8*)p_dmm, sizeof(ETH_DMM_OAM_DATAGRM), p_mep->vid, p_mep->prior, p_mep->CoS, 0, OAM_ETH_TYPE, DMAC.byte);
+}//send_dmm
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+static int send_dmr(u16 i_mep, T_MEP_HDR *p_mep, ETH_DMM_OAM_DATAGRM *p_dmm, u8 *pDMAC) {
+ETH_DMR_OAM_DATAGRM dmr, *p_dmr;
+
+ p_dmr=                         &dmr;
+ p_dmr->MAlevel_and_version=    ASSEMBLE_OAM_MALEVEL_AND_VERSION(p_mep->level, OAM_PROTO_VERSION);
+ p_dmr->opcode=                 DMR_OPCODE;
+ p_dmr->flags=                  0;
+ p_dmr->TLV_offset=             12;
+ p_dmr->TxTimeStampf=           p_dmm->TxTimeStampf;
+ p_dmr->RxTimeStampb=           0;
+ p_dmr->end_TLV=                0;
+ p_dmr->RxTimeStampf=           p_dmm->RxTimeStampf;        //Optional: Read timestamp of DMM reception. When not used set to 0.
+
+ //TODO
+ p_dmr->TxTimeStampb=           rd_TxTimeStampb(i_mep);     //Optional: Read timestamp of DMR transmission. When not used set to 0.
+
+ return send_eth_pckt(p_mep->prt, p_mep->up1_down0, (u8*)p_dmr, sizeof(ETH_DMR_OAM_DATAGRM), p_mep->vid, p_mep->prior, p_mep->CoS, 0, OAM_ETH_TYPE, pDMAC);
+}//send_dmr
+
+
+
+
+
 
 
 
@@ -1132,6 +1226,18 @@ T_LOOKUP_MEP    *p_mep_lut;
      p_mep_db=  p_oam->db;
      p_mep_lut= p_oam->mep_lut;
      rx_ltm(oam_prt, pkt_ethtype, pkt_len, vid, pSMAC, p_mep_db, p_mep_lut);
+     return 0;
+ case DMM_OPCODE:
+     if (pkt_len<sizeof(ETH_DMM_OAM_DATAGRM)+2)  return 5;
+     p_mep_db=  p_oam->db;
+     p_mep_lut= p_oam->mep_lut;
+     rx_dmm(oam_prt, pkt_ethtype, pkt_len, vid, pSMAC, p_mep_db, p_mep_lut, RxFCl);	 //TODO TxTimeStamp
+     return 0;
+ case DMR_OPCODE:
+     if (pkt_len<sizeof(ETH_DMR_OAM_DATAGRM)+2)  return 5;
+     p_mep_db=  p_oam->db;
+     p_mep_lut= p_oam->mep_lut;
+     rx_dmr(oam_prt, pkt_ethtype, pkt_len, vid, pSMAC, p_mep_db, p_mep_lut, RxFCl);    //TODO Rx valid?
      return 0;
 
  //case LBR_OPCODE:
@@ -1486,6 +1592,149 @@ u8 unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4; u32 alrm_index;
 
 
 
+static int rx_dmm(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC,
+                    T_MEP_DB *p_mep_db, T_LOOKUP_MEP *p_mep_lut, u64 RxFCl) {
+ETH_DMM_OAM_DATAGRM *p_dmm;
+T_MEP       *_p_mep;
+u32 i_look_r, i_mep;
+int i;
+u8 unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4; u32 alrm_index;
+
+
+ p_dmm= (ETH_DMM_OAM_DATAGRM *) &pkt_ethtype[2];
+
+ i_look_r=  finger_lut_index(0, oam_prt, vid, MALEVEL_AND_VERSION_TO_MALEVEL(p_dmm->MAlevel_and_version), 0,
+                             -1, //DMM packet doesn't bring any MEP_ID...
+                             -1 , -1, p_mep_lut, &unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4, &alrm_index);
+
+ i_mep= MEP_INDEX_TO_iMEP(i_look_r);    //...so this MEP_ID (-1) won't be found...
+ //i_rmep=MEP_INDEX_TO_iRMEP(i_look_r);
+
+ if (!valid_mep_index(i_mep) /*|| !valid_rmep_index(i_rmep)*/) {
+     i_mep= MEP_INDEX_TO_iMEP(alrm_index);      //...and we'll have to deal just with alarms: the MEP in a certain port, VID and level (alarm: unexpected MEP)
+     //i_rmep=MEP_INDEX_TO_iRMEP(alrm_index);
+
+     if (!valid_mep_index(i_mep)) return 1;
+
+     _p_mep=        &p_mep_db[i_mep].mep;
+
+     i= _p_mep->level - MALEVEL_AND_VERSION_TO_MALEVEL(p_dmm->MAlevel_and_version);
+     if (/*0==unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4 ||*/  i>0) {
+         return 2;
+     }
+     else
+     if (i<0) {
+         //FWD this packet to every other port on the same vlan
+         return 3;
+     }
+
+     if (2!=unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4) return 0;
+
+
+     //Response to an DMM
+     p_dmm->RxTimeStampf = RxFCl;
+     send_dmr(i_mep, (T_MEP_HDR *)_p_mep, (ETH_DMM_OAM_DATAGRM *)p_dmm, pSMAC);
+ }
+ return 0;
+}//rx_dmm
+
+
+
+
+
+
+
+static int rx_dmr(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC,
+                    T_MEP_DB *p_mep_db, T_LOOKUP_MEP *p_mep_lut, u64 RxFCl) {
+ETH_DMR_OAM_DATAGRM *p_dmr;
+T_MEP       *_p_mep;
+T_MEP_DM    *_p_mep_dm;
+u32 i_look_r, i_mep;
+int i;
+u8 unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4; u32 alrm_index;
+
+
+ p_dmr= (ETH_DMR_OAM_DATAGRM *) &pkt_ethtype[2];
+
+ i_look_r=  finger_lut_index(0, oam_prt, vid, MALEVEL_AND_VERSION_TO_MALEVEL(p_dmr->MAlevel_and_version), 0,
+                             -1, //DMR packet doesn't bring any MEP_ID...
+                             -1 , -1, p_mep_lut, &unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4, &alrm_index);
+
+ i_mep= MEP_INDEX_TO_iMEP(i_look_r);    //...so this MEP_ID (-1) won't be found...
+ //i_rmep=MEP_INDEX_TO_iRMEP(i_look_r);
+
+ if (!valid_mep_index(i_mep) /*|| !valid_rmep_index(i_rmep)*/) {
+     i_mep= MEP_INDEX_TO_iMEP(alrm_index);      //...and we'll have to deal just with alarms: the MEP in a certain port, VID and level (alarm: unexpected MEP)
+     //i_rmep=MEP_INDEX_TO_iRMEP(alrm_index);
+
+     if (!valid_mep_index(i_mep)) return 1;
+
+     _p_mep=        &p_mep_db[i_mep].mep;
+
+     i= _p_mep->level - MALEVEL_AND_VERSION_TO_MALEVEL(p_dmr->MAlevel_and_version);
+     if (/*0==unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4 ||*/  i>0) {
+         return 2;
+     }
+     else
+     if (i<0) {
+         //FWD this packet to every other port on the same vlan
+         return 3;
+     }
+
+     if (2!=unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4) return 0;
+
+
+     //DMR processing
+     _p_mep_dm=     &p_mep_db[i_mep].dm;
+
+     {
+    	 //two-way measurement
+    	if ((0 != p_dmr->TxTimeStampb) && (0 != p_dmr->RxTimeStampf)){
+    		_p_mep_dm->fd = ((RxFCl - p_dmr->TxTimeStampf) - (p_dmr->TxTimeStampb - p_dmr->RxTimeStampf));
+    	}
+    	else {
+    		_p_mep_dm->fd = (RxFCl - p_dmr->TxTimeStampf);
+    	}
+
+    	//one-way measurements  ?
+
+    	_p_mep_dm->fd_sum +=  _p_mep_dm->fd;
+
+    	if(_p_mep_dm->fd > _p_mep_dm->fd_max){
+    		_p_mep_dm->fd_max = _p_mep_dm->fd;
+    	}
+    	if(_p_mep_dm->fd < _p_mep_dm->fd_min){
+    		_p_mep_dm->fd_min = _p_mep_dm->fd;
+    	}
+//    	_p_mep_dm->n_frames;
+
+     }
+ }
+ return 0;
+}//rx_dmr
+
+
+
+//Frame Delay two-way = (RxTimeb–TxTimeStampf)–(TxTimeStampb–RxTimeStampf)
+//Frame Delay one-way_far = RxTimeStampf – TxTimeStampf
+//Frame Delay one-way_near = RxTimeb – TxTimeStampb
+
+//void DM_2way_frame_delay(T_DM *DM, u64 *TxTimestampf, u64 *RxTimestampf, u64 *TxTimestampb, u64 *RxTimestampb) {
+//u64 a, b;
+// if (NULL!=TxTimestampf && NULL!=RxTimestampf && NULL!=TxTimestampb && NULL!=RxTimestampb) {
+//     a = diff_DM_timers(RxTimestampf, TxTimestampf);
+//     b = diff_DM_timers(DM->rx, DM0->rx);
+//
+// }
+//
+//}//DM_2way_frame_delay
+
+
+
+
+
+
+
 
 
 
@@ -1562,6 +1811,37 @@ int del_mep_lm(u32 i_mep, T_ETH_SRV_OAM *p_oam) {
 
 
 
+
+
+
+
+
+int wr_mep_dm(u32 i_mep, T_MEP_DM *p_mep_dm, T_ETH_SRV_OAM *p_oam) {
+T_MEP_DM *_p_mep_dm;
+
+ if (!valid_mep_index(i_mep)) return 1;
+
+ if (invalid_T_MEP_DM(p_mep_dm)) return del_mep_dm(i_mep,p_oam);
+
+// if (1==p_mep_dm->CCMs0_LMMR1 && !valid_oam_tmr(p_mep_lm->period)) return 2;
+
+ _p_mep_dm = &p_oam->db[i_mep].dm;
+ init_mep_dm(_p_mep_dm);
+ _p_mep_dm->n_frames=         p_mep_dm->n_frames;
+ _p_mep_dm->period=           p_mep_dm->period;
+ _p_mep_dm->oam_datagrm_len=  p_mep_dm->oam_datagrm_len;
+
+ return 0;
+}//wr_mep_lm
+
+
+
+
+int del_mep_dm(u32 i_mep, T_ETH_SRV_OAM *p_oam) {
+ if (!valid_mep_index(i_mep)) return 1;
+ invalidate_T_MEP_DM(&p_oam->db[i_mep].dm);
+ return 0;
+}
 
 
 

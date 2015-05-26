@@ -864,3 +864,7 @@ L7_RC_t ptin_oam_eth_init(void) {return L7_SUCCESS;}
 
 u64 rd_TxFCl(u16 i_mep) {return 0;}  //No need to do anything; BCM HW fills this field
 
+u64 rd_TxTimeStampb(u16 i_mep) {return 0;}  //Need to check what to do; BCM HW should fill this field
+u64 rd_TxTimeStampf(u16 i_mep) {return 0;}  //Need to check what to do; BCM HW should fill this field
+
+
