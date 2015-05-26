@@ -206,12 +206,14 @@
 #define CCMSG_FLUSH_MEP                     0x9147
 #define CCMSG_FLUSH_RMEP                    0x9148
 
-#define CCMSG_WR_MEP_LM                     0x9149
-#define CCMSG_RM_MEP_LM                     0x914A
-#define CCMSG_RD_MEP_LM                     0x914B
-#define CCMSG_RD_MEP_LM_II                  0x914C
-#define CHMSG_CCM_MEP_FRAMELOSS             CCMSG_RD_MEP_LM_II
+#define CCMSG_WR_MEP_LM                     0x9149  // struct msg_bd_mep_lm_t
+#define CCMSG_RM_MEP_LM                     0x914A  // struct msg_bd_mep_lm_t
+#define CCMSG_RD_MEP_LM                     0x914B  // struct msg_frame_loss_t
+#define CHMSG_CCM_MEP_FRAMELOSS             0x914C  // struct MSG_FRAMELOSS_status
 
+#define CCMSG_WR_MEP_DM                     0x914D	// struct msg_bd_mep_dm_t
+#define CCMSG_RM_MEP_DM                     0x914E	// struct msg_bd_mep_dm_t
+#define CHMSG_CCM_MEP_FRAMEDELAY            0x914F	// struct MSG_FRAMEDELAY_status
 
 /* Routing */
 #define CCMSG_ROUTING_INTF_CREATE             0x9151  // msg_RoutingIpv4Intf
@@ -2272,6 +2274,29 @@ typedef struct {
 } __attribute__ ((packed)) MSG_FRAMELOSS_status;
 
 
+
+typedef struct
+{
+   unsigned char         slot;
+   unsigned int          idx;                   // indice do MP
+   unsigned long         port;
+   unsigned short        period;                // [n x ms]
+   unsigned short        packet_size;           // Bytes
+   unsigned short        packet_number;         // packet_number = 0: Abort
+   unsigned char         dmmCosColor;
+} __attribute__ ((packed)) msg_bd_mep_dm_t;
+
+typedef struct
+{
+   unsigned char         slot;
+   unsigned int          idx;                // indice do MP
+   unsigned long         port;
+   unsigned int          status;             // status: 0-Idle; 1-Running; 2-Finished
+   unsigned long long    DM_Max;             // [ms]
+   unsigned long long    DM_Min;             // [ms]
+   unsigned long long    DM_Total;           // DM_Med = (DM_Total / DM_packet_number) [ms]
+   unsigned short        DM_packet_number;   //
+} __attribute__ ((packed)) MSG_FRAMEDELAY_status;
 /***************************************************************************** 
  * ERPS Configuration
  *****************************************************************************/
