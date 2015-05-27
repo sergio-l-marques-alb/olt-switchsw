@@ -1264,6 +1264,7 @@ L7_RC_t hapiBroadMemInit(DAPI_t *dapi_g)
 {
   BROAD_SYSTEM_t             *hapiSystem;
   L7_ushort16                 result = L7_SUCCESS;
+  L7_uchar8                   counter;
 
 
   /*
@@ -1281,7 +1282,10 @@ L7_RC_t hapiBroadMemInit(DAPI_t *dapi_g)
   bzero(dapi_g->system->hapiSystem, sizeof(BROAD_SYSTEM_t));
   hapiSystem = (BROAD_SYSTEM_t *)dapi_g->system->hapiSystem;
 
-  hapiSystem->mgmtPolicy = BROAD_POLICY_INVALID;
+  for (counter=0; counter<BROAD_POLICY_STAGE_COUNT; counter++)
+  {
+    hapiSystem->mgmtPolicy[counter] = BROAD_POLICY_INVALID; 
+  }
   hapiSystem->mgmtVlanId = 0;
 
   hapiSystem->sysId1 = BROAD_POLICY_INVALID;
@@ -2564,13 +2568,16 @@ void hapiBroadFfpSysMacInstall (DAPI_t      *dapi_g,
 
   LOG_INFO(LOG_CTX_MISC,"Going to configure Inband Trap rule...");
 
+
+  /* Process the Ingress Stage */
+
   /* If we already have an old MAC address for the network interface
   ** then remove it.
   */
-  if (hapiSystemPtr->mgmtPolicy != BROAD_POLICY_INVALID)
+  if (hapiSystemPtr->mgmtPolicy[BROAD_POLICY_STAGE_INGRESS] != BROAD_POLICY_INVALID)
   {
-    (void)hapiBroadPolicyDelete(hapiSystemPtr->mgmtPolicy);
-    hapiSystemPtr->mgmtPolicy = BROAD_POLICY_INVALID;
+    (void)hapiBroadPolicyDelete(hapiSystemPtr->mgmtPolicy[BROAD_POLICY_STAGE_INGRESS]);
+    hapiSystemPtr->mgmtPolicy[BROAD_POLICY_STAGE_INGRESS] = BROAD_POLICY_INVALID;
   }
 
   /* Create new system mac filter, if specified. */
@@ -2601,8 +2608,111 @@ void hapiBroadFfpSysMacInstall (DAPI_t      *dapi_g,
 #endif
 
     if (hapiBroadPolicyCommit(&mgmtId) == L7_SUCCESS)
-      hapiSystemPtr->mgmtPolicy = mgmtId;
+      hapiSystemPtr->mgmtPolicy[BROAD_POLICY_STAGE_INGRESS] = mgmtId;
   }
+
+
+  /* Process the Egress Stage */
+
+  /* If we already have an old MAC address for the network interface
+  ** then remove it.
+  */
+  if (hapiSystemPtr->mgmtPolicy[BROAD_POLICY_STAGE_EGRESS] != BROAD_POLICY_INVALID)
+  {
+    (void)hapiBroadPolicyDelete(hapiSystemPtr->mgmtPolicy[BROAD_POLICY_STAGE_EGRESS]);
+    hapiSystemPtr->mgmtPolicy[BROAD_POLICY_STAGE_EGRESS] = BROAD_POLICY_INVALID;
+  }
+
+
+  /* Create new system mac filter, if specified. */
+  if ((0 != new_vlan_id) && (L7_NULLPTR != new_mac_addr))
+  {
+    BROAD_POLICY_t      mgmtId;
+    BROAD_POLICY_RULE_t ruleId;
+    bcmx_lport_t  lport;
+    bcm_port_t    bcm_port;
+    bcm_port_t    bcm_port_mask = (bcm_port_t) -1;
+
+    /* CPU port */
+    if (bcmx_lport_local_cpu_get(0, &lport) != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with bcmx_lport_local_cpu_get");
+      return;
+    }
+    bcm_port = bcmx_lport_bcm_port(lport);
+    if (bcm_port < 0)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with bcmx_lport_bcm_port");
+      return;
+    }
+
+    /* Create policy */
+    if (hapiBroadPolicyCreate(BROAD_POLICY_TYPE_PTIN) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_STARTUP, "Cannot create trap policy\r\n");
+      return;
+    }
+
+    /* Egress stage */
+    if (hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_EGRESS) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_STARTUP, "Error creating a egress policy\r\n");
+      hapiBroadPolicyCreateCancel();
+      return;
+    }
+
+    /* Create rule */    
+    if (hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_STARTUP, "Error adding rule\r\n");
+      hapiBroadPolicyCreateCancel();
+      return;
+    }
+    
+    if (hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OUTPORT, (L7_uchar8 *)&bcm_port, (L7_uchar8 *)&bcm_port_mask) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_STARTUP, "Error adding port qualifier (bcm_port=%d)\r\n",bcm_port);
+      hapiBroadPolicyCreateCancel();
+      return;
+    }
+
+    /* Drop red packets */    
+    if (hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_STARTUP, "Error adding hard_drop action\r\n");
+      hapiBroadPolicyCreateCancel();
+      return;
+    }
+
+    /* Define meter action, to rate limit packets */   
+    if (hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_STARTUP, "Error adding rate limit\r\n");
+      hapiBroadPolicyCreateCancel();
+      return;
+    }
+
+    /* Add counter */
+    if (hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_STARTUP,"Error with hapiBroadPolicyRuleCounterAdd");
+      hapiBroadPolicyCreateCancel();
+      return;
+    }
+
+    /* Commit rule */
+    if ((hapiBroadPolicyCommit(&mgmtId)) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_STARTUP, "Error commiting trap policy\r\n");
+      hapiBroadPolicyCreateCancel();
+      return;
+    }
+    LOG_TRACE(LOG_CTX_STARTUP, "Trap policy commited successfully (policyId=%u)\r\n",mgmtId);
+
+    /* Store policyId */
+    hapiSystemPtr->mgmtPolicy[BROAD_POLICY_STAGE_EGRESS] = mgmtId;
+  }
+
 
   LOG_INFO(LOG_CTX_MISC,"Inband Trap rule configured for VLAN %u", new_vlan_id);
 }

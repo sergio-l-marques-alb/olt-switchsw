@@ -540,7 +540,7 @@ struct BROAD_SYSTEM_s
 
   L7_enetMacAddr_t       bridgeMacAddr;
   L7_ushort16            mgmtVlanId;
-  BROAD_POLICY_t         mgmtPolicy;
+  BROAD_POLICY_t         mgmtPolicy[BROAD_POLICY_STAGE_COUNT];
 #ifdef L7_DOT1AG_PACKAGE
   BROAD_POLICY_t         dot1agPolicy;
 #endif
