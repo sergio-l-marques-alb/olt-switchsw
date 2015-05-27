@@ -155,11 +155,13 @@ static soc_interrupt_clear_read_fifo_t FE1600_INT_DCL_CCPSRCDCNGLINK_read_fifo =
 
 int fe1600_interrupts_array_init(int unit)  
 {
-    char* interrupts_info_allocation= "interrupts_info_allocation";
+    char interrupts_info_allocation[31]= "interrupts_info_allocation";
     soc_interrupt_db_t *fe1600_interrupts;            
     soc_interrupt_tree_t *fe1600_interrupt_tree;
     SOCDNX_INIT_FUNC_DEFS;
 	SOC_FE1600_ONLY(unit);
+
+    interrupts_info_allocation[30] = '\0';
 
     SOC_CONTROL(unit)->interrupts_info = sal_alloc(sizeof(soc_interrupt_t), "DFE: fe1600_interrupts");
     if (SOC_CONTROL(unit)->interrupts_info == NULL) {

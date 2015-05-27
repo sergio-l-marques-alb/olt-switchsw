@@ -242,7 +242,9 @@ STATUS
   #include <stdio.h>
   #include <stdlib.h>
   #include <termios.h>
+ #ifndef min
   #define min(a,b)    (((a) < (b)) ? (a) : (b))
+ #endif
   
 /*} LINUX */
 #endif
