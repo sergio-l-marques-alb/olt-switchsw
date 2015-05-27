@@ -53,7 +53,11 @@ export MIPS_TOOLS_DIR   := $(PPC_TOOLS_DIR)
 ifeq (1,$(BLD_L7_TARGETOS_LINUX))
   export LINUX_INCLUDE := $(KERNEL_SRC)/include
   export KERNDIR     := $(KERNEL_SRC)
+ifeq (1,$(BLD_L7_TARGETOS_LINUX_3x))
+  os_suffix          := -3_x
+else
   os_suffix          := -2_6
+endif
 endif
 
 
@@ -64,7 +68,8 @@ l7_extra_inc_paths := \
 	$(COMPONENT_INCLDIR) \
 	-I$(FP_BASE)/andl/hapi/$(L7_CHIP)/base \
 	-I$(FP_BASE)/andl/hapi/$(L7_CHIP)/base/bcmsys \
-	-I$(SDK)/include/customer/$(L7_CUSTOMER)
+	-I$(SDK)/include/customer/$(L7_CUSTOMER) \
+	-I$(SDK)/libs/phymod/include
 
 ifneq (,$(strip $(PRJ_DIR)))
   l7_extra_inc_paths += \
