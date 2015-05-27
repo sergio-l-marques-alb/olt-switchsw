@@ -4072,7 +4072,7 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
   )
   {
 //  if (ptin_debug_igmp_snooping)
-      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Ignoring Port Close. This port is inactive [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X]", serviceId, intIfNum, groupAddr, sourceAddr);
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Ignoring Port Close. This port is standby [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X]", serviceId, intIfNum, groupAddr, sourceAddr);
     return rc;
   }
   

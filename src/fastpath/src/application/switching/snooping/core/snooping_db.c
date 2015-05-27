@@ -6345,10 +6345,13 @@ L7_RC_t snoopChannelEntryDelete(L7_uint32 vlanId, L7_inet_addr_t *groupAddr, L7_
 
   snoopEntry = pData;
 
+  inetAddrPrint(groupAddr, groupAddrStr);
+  inetAddrPrint(sourceAddr, sourceAddrStr);
+
   if (pData==L7_NULLPTR)
   {    
     LOG_WARNING(LOG_CTX_PTIN_IGMP, "Entry Does Not Exist [vlanId:%u groupAddr:%s sourceAddr:%s]",
-                  vlanId, inetAddrPrint(groupAddr, groupAddrStr), inetAddrPrint(sourceAddr, sourceAddrStr));              
+                  vlanId, groupAddrStr, sourceAddrStr);              
     return L7_NOT_EXIST;
   }
 
@@ -6357,7 +6360,7 @@ L7_RC_t snoopChannelEntryDelete(L7_uint32 vlanId, L7_inet_addr_t *groupAddr, L7_
   if (pData == L7_NULL)
   {
     LOG_WARNING(LOG_CTX_PTIN_IGMP, "Entry Already Removed [vlanId:%u groupAddr:%s sourceAddr:%s]",
-                  vlanId, inetAddrPrint(groupAddr, groupAddrStr), inetAddrPrint(sourceAddr, sourceAddrStr)); 
+                  vlanId, groupAddrStr, sourceAddrStr); 
     /* Entry does not exist */
     return L7_NOT_EXIST;
   }
@@ -6365,7 +6368,7 @@ L7_RC_t snoopChannelEntryDelete(L7_uint32 vlanId, L7_inet_addr_t *groupAddr, L7_
   {    
     /* Entry deleted */
     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Entry Removed [vlanId:%u groupAddr:%s sourceAddr:%s]",
-                  vlanId, inetAddrPrint(groupAddr, groupAddrStr), inetAddrPrint(sourceAddr, sourceAddrStr)); 
+                  vlanId, groupAddrStr, sourceAddrStr); 
     return L7_SUCCESS;
   }
   return L7_SUCCESS;
