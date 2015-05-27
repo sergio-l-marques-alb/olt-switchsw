@@ -128,7 +128,7 @@ typedef struct l3end_device
   L7_uint32   ip_netmask; /* Netmask of the interface */
   L7_uint32   ip_gateway; /* Default gateway */
 
-  FUNCPTR     addrResFunc; /* Address resolution function for this interface */
+  L7_FUNCPTR  addrResFunc; /* Address resolution function for this interface */
 
 /* We support multiple instances of the routing interface END driver. 
 ** Each driver has its own buffer pool and cluster descriptors.

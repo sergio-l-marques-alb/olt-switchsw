@@ -686,8 +686,7 @@ L7_RC_t hapiBroadDebugSocRegRead(L7_uint32 reg, L7_uint32 unit, soc_port_t port,
 
 L7_RC_t hapiBroadDebugSocRegReadDebug(L7_uint32 reg, L7_uint32 unit, soc_port_t port)
 {
-
-  L7_uint32 val;
+  L7_uint32 val=0;
 
   hapiBroadDebugSocRegRead(reg, unit, port, &val);
 
@@ -2992,11 +2991,11 @@ void driverWvTraceSet(void)
   trgOff();
   trgAdd(L7_TRACE_TRIGGER_DRIVER_UNIT_FAIL_START, TRG_ENABLE, TRG_CTX_ANY, 0, 0,
           TRIGGER_COND_NO, 0, 0, 0, 0,
-          1, NULL, TRG_ACT_WV_START, (FUNCPTR)wvEvtLogStart, TRUE, 0);
+          1, NULL, TRG_ACT_WV_START, (L7_FUNCPTR)wvEvtLogStart, TRUE, 0);
 
   trgAdd(L7_TRACE_TRIGGER_DRIVER_UNIT_FAIL_END, TRG_ENABLE, TRG_CTX_ANY, 0, 0,
           TRIGGER_COND_NO, 0, 0, 0, 0,
-          1, NULL, TRG_ACT_WV_STOP, (FUNCPTR)wvEvtLogStop, TRUE, 0);
+          1, NULL, TRG_ACT_WV_STOP, (L7_FUNCPTR)wvEvtLogStop, TRUE, 0);
   trgOn();
 }
 

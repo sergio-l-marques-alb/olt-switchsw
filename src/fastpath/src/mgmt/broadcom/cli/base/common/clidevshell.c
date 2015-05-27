@@ -37,7 +37,7 @@
 typedef struct
 {
   char * name;
-   FUNCPTR value;
+  L7_FUNCPTR value;
 } SYMBOL;  /* need tools to build symbol table */
 typedef unsigned long ULONG;
 #endif /* _L7_OS_LINUX_ */
@@ -64,7 +64,7 @@ L7_char8 shell_strings[CMD_MAX_ARGS][CMD_MAX_SIZE];
 L7_int32 cliDevShell(L7_char8 * cmd)
 {
    L7_char8 func_name[CMD_MAX_SIZE];
-   FUNCPTR func_ptr;
+   L7_FUNCPTR func_ptr;
    L7_int32 args[CMD_MAX_ARGS];
    L7_BOOL arg_strings[CMD_MAX_ARGS];
    L7_int32 rc;
@@ -78,7 +78,7 @@ L7_int32 cliDevShell(L7_char8 * cmd)
 
    if (func_name[0])
    {
-    func_ptr = (FUNCPTR)(osapiAddressLookup(func_name));
+    func_ptr = (L7_FUNCPTR)(osapiAddressLookup(func_name));
       printf("\n");
       if (func_ptr)
       {
