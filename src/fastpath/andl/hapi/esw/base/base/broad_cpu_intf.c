@@ -3505,10 +3505,11 @@ void hapiBroadReceiveTask(L7_uint32 numArgs, DAPI_t *dapi_g)
     else if ((board_family == BCM_FAMILY_FIREBOLT) ||
              (board_family == BCM_FAMILY_BRADLEY)  ||
              (board_family == BCM_FAMILY_TRIUMPH)  ||
-             (board_family == BCM_FAMILY_TRIUMPH2)  ||
-             (board_family == BCM_FAMILY_SCORPION)  ||
-             (board_family == BCM_FAMILY_ROBO)      ||
-             (board_family == BCM_FAMILY_TRIDENT))      /* PTin added: new switch 56843 (Trident) */
+             (board_family == BCM_FAMILY_TRIUMPH2) ||
+             (board_family == BCM_FAMILY_SCORPION) ||
+             (board_family == BCM_FAMILY_ROBO)     ||
+             (board_family == BCM_FAMILY_TRIDENT)  ||      /* PTin added: new switch 56843 (Trident) */
+             (board_family == BCM_FAMILY_DPP))             /* PTin added: new switch 88650 (ARAD) */
     {
       L7_BOOL fwdFrame = L7_TRUE;
 

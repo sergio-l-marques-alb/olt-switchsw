@@ -2391,6 +2391,9 @@ L7_RC_t hapiBroadGetSystemBoardFamily(bcm_chip_family_t *board_family)
     case __BROADCOM_56843_ID:  /* PTin added: new switch 56843 (Trident) */
       *board_family = BCM_FAMILY_TRIDENT;
       break;
+    case __BROADCOM_88650_ID:  /* PTin added: new switch 88650 (ARAD) */
+      *board_family = BCM_FAMILY_DPP;
+      break;
   default:
     {
       printf("\nhapiBroadGetSystemBoardFamily : Unknown BoardFamily, npd_id = %x\n", board_info->npd_id);
