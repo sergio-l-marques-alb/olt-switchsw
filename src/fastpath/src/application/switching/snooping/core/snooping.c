@@ -711,7 +711,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     /*RFC5771 - Local Network Control Block (224.0.0.0 - 224.0.0.255 (224.0.0/24)) 
     The range of addresses between 224.0.0.0 and 224.0.0.255, inclusive, is reserved for the use of routing protocols and other low-level topology discovery or maintenance protocols, such as gateway discovery
     and group membership reporting.  Multicast routers should not forward any multicast datagram with destination addresses in this range, regardless of its TTL.*/    
-    if(groupAddr.addr.ipv4.s_addr >= L7_IP_MCAST_BASE_ADDR && groupAddr.addr.ipv4.s_addr <= L7_IP_MAX_LOCAL_MULTICAST && (igmpPtr[0] == L7_IGMP_V3_MEMBERSHIP_REPORT && noOfGroupRecords == 1) )    
+    if(groupAddr.addr.ipv4.s_addr >= L7_IP_MCAST_BASE_ADDR && groupAddr.addr.ipv4.s_addr <= L7_IP_MAX_LOCAL_MULTICAST )    
     {
       if(ptin_debug_igmp_snooping)
         LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Multicast Group Address is Reserved for Protocol use [vlan=%u innerVlan=%u client_idx grpAddr=%s]. Packet Silently ignored...",

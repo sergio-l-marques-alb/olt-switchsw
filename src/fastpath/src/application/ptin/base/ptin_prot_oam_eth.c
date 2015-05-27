@@ -280,7 +280,7 @@ int send_eth_pckt(L7_uint16 port, L7_uint8 up1_down0,
 
 #if PTIN_BOARD_IS_MATRIX  
   /* Do nothing for slave matrix */
-  if (!ptin_fgpa_mx_is_matrixactive())
+  if (!ptin_fpga_mx_is_matrixactive())
   {
     if (ptin_debug_oam)
       LOG_DEBUG(LOG_CTX_OAM,"Silently ignoring packet transmission. I'm a Slave Matrix");

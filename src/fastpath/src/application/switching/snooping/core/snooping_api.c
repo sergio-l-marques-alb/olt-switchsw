@@ -22,7 +22,6 @@
 **********************************************************************/
 #include "osapi_support.h"
 #include "l7utils_inet_addr_api.h"
-
 #include "l7_product.h"
 #include "snooping_defs.h"
 #include "snooping_api.h"
@@ -30,13 +29,122 @@
 #include "snooping_outcalls.h"
 #include "snooping_db.h"
 #include "snooping_proto.h"
-
+//#include "ipc.h"
+#if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
+  #include "ptin_prot_typeb.h"
+#endif
+#if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
+  #include "ptin_fpga_api.h"
+  #include "ptin_msghandler.h"
+#endif
 /* PTin added: IGMP snooping */
 #if 1
   #include "logger.h"  
   #include  "snooping_ptin_db.h"
   #include  "ptin_igmp.h"
+#endif
 
+/******************Protection Schemes Support************************************/
+#if PTIN_BOARD_IS_LINECARD
+static L7_RC_t __remoteslot_mfdbport_sync(L7_uint8 slotId, L7_uint8 admin, L7_uint32 serviceId, L7_uint32 portId, L7_uint32 groupAddr, L7_uint32 sourceAddr, L7_uint8 groupType);
+#endif
+#if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
+static L7_RC_t __matrix_mfdbport_sync(L7_uint8 admin, ptin_fpga_matrix_type_t matrixType, L7_uint32 serviceId, L7_uint32 slotId, L7_uint32 groupAddr, L7_uint32 sourceAddr, L7_uint8 groupType);
+#endif
+
+#if PTIN_BOARD_IS_LINECARD
+/**
+ * Send CCMSG_MGMD_PORT_SYNC message to a remote slot to sync a MGMD MFDB port.
+ * 
+ * @param slotId     : Protection slot
+ * @param admin      : L7_ENABLE/L7_DISABLE
+ * @param serviceId  : Service ID
+ * @param portId     : Port ID (intfnum)
+ * @param groupAddr  : Group IP
+ * @param sourceAddr : Source IP
+ * @param groupType  : Group type (0-dynamic; 1-static)
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t __remoteslot_mfdbport_sync(L7_uint8 slotId, L7_uint8 admin, L7_uint32 serviceId, L7_uint32 portId, L7_uint32 groupAddr, L7_uint32 sourceAddr, L7_uint8 groupType)
+{
+  msg_HwMgmdPortSync mgmdPortSync = {0};
+  L7_uint32          protectionSlotIp = 0xC0A8C800; //192.168.200.X
+
+  /* Determine protection slot/ip/interface */
+  protectionSlotIp |= (slotId+1) & 0x000000FF;
+
+  /* Fill the sync structure */
+  mgmdPortSync.SlotId     = slotId;
+  mgmdPortSync.admin      = admin;
+  mgmdPortSync.serviceId  = serviceId;
+  mgmdPortSync.portId     = portId;
+  mgmdPortSync.groupAddr  = groupAddr;
+  mgmdPortSync.sourceAddr = sourceAddr;
+  mgmdPortSync.groupType  = groupType;
+
+  LOG_TRACE(LOG_CTX_PTIN_PROTB, "Sending message to card %08X(%u) to set port %u admin to %u for group %08X/%08X", protectionSlotIp, slotId, portId, admin, groupAddr, sourceAddr);
+
+  /* Send the mfdb port configurations to the remote slot */
+  if (send_ipc_message(IPC_HW_FASTPATH_PORT, protectionSlotIp, CCMSG_MGMD_PORT_SYNC, (char *)(&mgmdPortSync), NULL, sizeof(mgmdPortSync), NULL) < 0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_PROTB, "Failed to sync MGMD between active and protection interface");
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+#endif
+
+#if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
+/**
+ * Send CCMSG_MGMD_PORT_SYNC message to a matrix (active or backup) to open/close a port in the MFDB.
+ * 
+ * @param admin      : L7_ENABLE/L7_DISABLE
+ * @param matrixType : Matrix type (1-active; 0-backup)
+ * @param serviceId  : Service ID
+ * @param slotId     : Slot ID
+ * @param groupAddr  : Group IP
+ * @param sourceAddr : Source IP
+ * @param groupType  : Group type (0-dynamic; 1-static)
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t __matrix_mfdbport_sync(L7_uint8 admin, ptin_fpga_matrix_type_t matrixType, L7_uint32 serviceId, L7_uint32 portId, L7_uint32 groupAddr, L7_uint32 sourceAddr, L7_uint8 groupType)
+{
+  msg_HwMgmdPortSync mgmdPortSync = {0};
+  L7_uint32          matrixIpAddr = 0;
+  L7_uint8           matrixSlotId = 0;
+
+  /* Determine active/standby matrix slotId and IP address */
+  matrixSlotId = ptin_fpga_matrix_slotid_get(matrixType);
+  
+  matrixIpAddr = ptin_fpga_matrix_ipaddr_get(matrixType);
+  
+  /* Fill the sync structure */
+  mgmdPortSync.SlotId     = matrixSlotId;
+  mgmdPortSync.admin      = admin;
+  mgmdPortSync.serviceId  = serviceId;
+  mgmdPortSync.portId     = portId;
+  mgmdPortSync.groupAddr  = groupAddr;
+  mgmdPortSync.sourceAddr = sourceAddr;
+  mgmdPortSync.groupType  = groupType;
+
+  LOG_TRACE(LOG_CTX_PTIN_PROTB, "Sending message to matrix %08X(%u) to set port %u admin to %u for group %08X/%08X", matrixIpAddr, matrixSlotId, portId, admin, groupAddr, sourceAddr);
+
+  /* Send the mfdb port configurations to the remote slot */
+  if (send_ipc_message(IPC_HW_FASTPATH_PORT, matrixIpAddr, CCMSG_MGMD_PORT_SYNC, (char *)(&mgmdPortSync), NULL, sizeof(mgmdPortSync), NULL) < 0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_PROTB, "Failed to sync MGMD between active and protection interface");
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+#endif
+/******************End Protection Schemes Support************************************/
+
+#if 1
 /**
  * Get a list of channels consumed by a particular vlan and 
  * client index 
@@ -3821,4 +3929,213 @@ L7_RC_t snoopIntfApiVlanStaticMcastRtrMaskGet(L7_uint32 intIfNum,
   return L7_SUCCESS;
 }
 
+L7_RC_t snoopPortOpen(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, L7_BOOL isStatic, L7_BOOL isProtection)
+{
+  L7_RC_t         rc = L7_SUCCESS;
+  snoop_cb_t     *pSnoopCB = L7_NULLPTR;
+  snoopPDU_Msg_t  msg;
+  snoop_eb_t     *pSnoopEB = L7_NULLPTR;
+  char            groupAddrStr[IPV6_DISP_ADDR_LEN]={};
+  char            sourceAddrStr[IPV6_DISP_ADDR_LEN]={};
 
+  /*
+   * We were forced to implement this method asynchronous from MGMD as the SDK crashes if the mfdb request is made by the MGMD thread. 
+   * The SDK exits in an assert that checks for the in_interrupt() method. As no solution was found, an alternative method was implemented. 
+   * Instead of directly calling mfdb, MGMD will place a request in the snooping queue, which will eventually be processed. 
+   */
+
+  inetAddrPrint(groupAddr, groupAddrStr);
+  inetAddrPrint(sourceAddr, sourceAddrStr);
+
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isStatic:%u isProtection:%u]", serviceId, intIfNum, groupAddrStr, sourceAddrStr, isStatic, isProtection);
+
+  /* Get Snoop Execution Block and Control Block */
+  pSnoopEB = snoopEBGet();
+  if ((pSnoopCB = snoopCBGet(L7_AF_INET)) == L7_NULLPTR)
+  {
+    return L7_FAILURE;
+  }
+
+  /* Fill the message */
+  memset((L7_uchar8 *)&msg, 0, sizeof(msg));
+  msg.msgId         = snoopMgmdSwitchPortOpen;
+  msg.intIfNum      = intIfNum;
+  msg.serviceId     = serviceId;
+  memcpy(&msg.groupAddr, groupAddr, sizeof(msg.groupAddr));
+  memcpy(&msg.sourceAddr, sourceAddr, sizeof(msg.sourceAddr));  
+  msg.isStatic      = isStatic; 
+  msg.isProtection  = isProtection;
+  msg.cbHandle      = pSnoopCB;
+
+  
+  /* Send a Port_Open event to the FP */
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Sending request to FP to open a port on the switch");
+  if(L7_SUCCESS == (rc = osapiMessageSend(pSnoopCB->snoopExec->snoopIGMPQueue, &msg, SNOOP_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM)))
+  {
+    if (osapiSemaGive(pSnoopEB->snoopMsgQSema) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to unlock snooping's queue semaphore");
+      return L7_FAILURE;
+    }
+  }
+
+  /*
+   * Sync MFDB ports to the protection type-b linecard and backup matrix. 
+   * However, do this only for dynamic ports! Static ports are already sent to those cards by the management layer. 
+   */
+  if(isStatic != L7_TRUE)
+  {
+#if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
+    ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};
+
+    /* Sync the status of this switch port on the backup type-b protection port, if it exists */
+    ptin_prottypeb_intf_config_get(intIfNum, &protTypebIntfConfig);
+#endif
+
+#if PTIN_BOARD_IS_MATRIX
+    /* Sync the status of this switch port on the backup backup matrix, if it exists */
+    if(ptin_fpga_mx_is_matrixactive())
+    {
+      __matrix_mfdbport_sync(L7_ENABLE, PTIN_FPGA_STANDBY_MATRIX, serviceId, intIfNum, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr, isStatic);
+    }
+#elif PTIN_BOARD_IS_LINECARD   
+    if(protTypebIntfConfig.status == L7_ENABLE)
+    {
+      __remoteslot_mfdbport_sync(protTypebIntfConfig.pairSlotId, L7_ENABLE, serviceId, protTypebIntfConfig.pairIntfNum, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr, isStatic);
+      __matrix_mfdbport_sync(L7_ENABLE, PTIN_FPGA_ACTIVE_MATRIX, serviceId, protTypebIntfConfig.pairSlotId, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr, isStatic);
+    }
+#elif PTIN_BOARD_IS_STANDALONE
+    if(protTypebIntfConfig.status == L7_ENABLE)
+    {
+      msg.intIfNum      = protTypebIntfConfig.pairIntfNum;
+
+      /* Send a Port_Open event to the FP */
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "Sending request to FP to open a protection port on the switch");
+      if(L7_SUCCESS == (rc = osapiMessageSend(pSnoopCB->snoopExec->snoopIGMPQueue, &msg, SNOOP_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM)))
+      {
+        if (osapiSemaGive(pSnoopEB->snoopMsgQSema) != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to unlock snooping's queue semaphore");
+          return L7_FAILURE;
+        }
+      }
+    }
+#else
+    #error "Not Implemented Yet!"
+#endif
+  }
+
+  return rc;
+  
+}
+L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, L7_BOOL isProtection)
+{
+  L7_RC_t        rc = L7_SUCCESS;
+  snoop_cb_t    *pSnoopCB = L7_NULLPTR;
+  snoopPDU_Msg_t msg;
+  snoop_eb_t    *pSnoopEB = L7_NULLPTR;
+   char          groupAddrStr[IPV6_DISP_ADDR_LEN]={};
+  char           sourceAddrStr[IPV6_DISP_ADDR_LEN]={};
+
+
+  inetAddrPrint(groupAddr, groupAddrStr);
+  inetAddrPrint(sourceAddr, sourceAddrStr);
+
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u groupAddr:%s sourceAddr:%s isProtection:%s]", serviceId, intIfNum, groupAddr, sourceAddr, isProtection?"Yes":"No");
+
+  #if !PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
+  /*In L2 we do not support forwarding multicast packets based on the Source Address. 
+    To support IGMPv3 protocol we only close the ports if the Source Address is equal to 0x0000.
+    If not we ignore the request*/
+  if(sourceAddr != PTIN_MGMD_ANY_IPv4_HOST)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Ignoring Port Close Request!");
+    return rc;
+  }
+  #endif
+
+#if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
+  ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};
+  ptin_prottypeb_intf_config_get(intIfNum, &protTypebIntfConfig);
+#endif
+
+  /*Workaround to prevent MGMD from closing a port, when it is inactive and belongs to a protection scheme*/
+  if (
+  #if PTIN_BOARD_IS_MATRIX
+  (!ptin_fpga_mx_is_matrixactive()) 
+  #elif (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
+  (protTypebIntfConfig.intfRole != PROT_TYPEB_ROLE_NONE && protTypebIntfConfig.status != L7_ENABLE)  
+  #else
+  #error "Not Implemented Yet!"
+  #endif
+  )
+  {
+//  if (ptin_debug_igmp_snooping)
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Ignoring Port Close. This port is inactive [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X]", serviceId, intIfNum, groupAddr, sourceAddr);
+    return rc;
+  }
+  
+  /* Get Snoop Execution Block and Control Block */
+  pSnoopEB = snoopEBGet();
+  if ((pSnoopCB = snoopCBGet(L7_AF_INET)) == L7_NULLPTR)
+  {
+    return L7_FAILURE;
+  }
+
+  /* Fill the message */
+  memset((L7_uchar8 *)&msg, 0, sizeof(msg));
+  msg.msgId         = snoopMgmdSwitchPortClose;
+  msg.intIfNum      = intIfNum;
+  msg.serviceId     = serviceId;
+  memcpy(&msg.groupAddr, groupAddr, sizeof(msg.groupAddr));
+  memcpy(&msg.sourceAddr, sourceAddr, sizeof(msg.sourceAddr));  
+  msg.isProtection  = isProtection;
+  msg.cbHandle      = pSnoopCB;
+
+  /* Send a Port_Close event to the FP */
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Sending request to FP to close a port");
+  if(L7_SUCCESS == (rc = osapiMessageSend(pSnoopCB->snoopExec->snoopIGMPQueue, &msg, SNOOP_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM)))
+  {
+    if (osapiSemaGive(pSnoopEB->snoopMsgQSema) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to unlock snooping's queue semaphore");
+      return L7_FAILURE;
+    }
+  }
+
+#if PTIN_BOARD_IS_MATRIX
+  /* Sync the status of this switch port on the backup backup matrix, if it exists */
+  if(ptin_fpga_mx_is_matrixactive())
+  {
+    __matrix_mfdbport_sync(L7_DISABLE, 0, serviceId, intIfNum, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr, L7_FALSE);
+  }
+#elif PTIN_BOARD_IS_LINECARD
+  /* Sync the status of this switch port on the backup type-b protection port, if it exists */ 
+  if(protTypebIntfConfig.status == L7_ENABLE)
+  {
+    __remoteslot_mfdbport_sync(protTypebIntfConfig.pairSlotId, L7_DISABLE, serviceId, protTypebIntfConfig.pairIntfNum, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr, L7_FALSE);
+    __matrix_mfdbport_sync(L7_DISABLE, 1, serviceId, protTypebIntfConfig.pairSlotId, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr, L7_FALSE);
+  }
+#elif PTIN_BOARD_IS_STANDALONE
+  if(protTypebIntfConfig.status == L7_ENABLE)
+  {
+    msg.intIfNum      = protTypebIntfConfig.pairIntfNum;
+
+    /* Send a Port_Close event to the FP */
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Sending request to FP to close a protection port on the switch");
+    if(L7_SUCCESS == (rc = osapiMessageSend(pSnoopCB->snoopExec->snoopIGMPQueue, &msg, SNOOP_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM)))
+    {
+      if (osapiSemaGive(pSnoopEB->snoopMsgQSema) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to unlock snooping's queue semaphore");
+        return L7_FAILURE;
+      }
+    }
+  }
+#else
+    #error "Not Implemented Yet!"
+#endif
+
+  return rc;
+}

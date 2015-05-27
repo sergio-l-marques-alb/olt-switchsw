@@ -42,13 +42,10 @@
   #include "ptin_debug.h"
   #include "logger.h"
   #include "usmdb_mfdb_api.h"
-
   #include "snooping_ptin_db.h"
   #include "l3_addrdefs.h"//MMelo
-
   #include "dtl_ptin.h"
 #endif
-
 #include "ptin_xconnect_api.h"
 
 
@@ -56,7 +53,7 @@
 /**
  * Add a channel and update Snoop Entry database.
  * 
- * @param evcId                 : EVC Id  
+ * @param evcId                 : Service Id   
  * @param vlanId                : Vlan Id
  * @param groupAddr             : group Address
  * @param sourceAddr            : source Address 
@@ -71,7 +68,7 @@ static L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_ine
 /**
  * Remove a channel from a Snoop Entry database.
  * 
- * @param evcId                 : EVC Id  
+ * @param evcId                 : Service Id  
  * @param vlanId                : Vlan Id
  * @param groupAddr             : group Address
  * @param sourceAddr            : source Address 
@@ -80,7 +77,7 @@ static L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_ine
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILRE
  */
-static L7_RC_t snoopL3GroupIntfRemove(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t* groupAddr, L7_inet_addr_t* sourceAddr, L7_uint32 intIfNum, L7_BOOL isProtection);
+static L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_t* groupAddr, L7_inet_addr_t* sourceAddr, L7_uint32 intIfNum, L7_BOOL isProtection);
 
 //void snoopChannelIntfMaskReset(void);
 
@@ -809,26 +806,6 @@ L7_RC_t snoopIntfRemove(L7_uchar8* macAddr, L7_uint32 vlanId,
 #if 1
 
   #define PTIN_IGMP_DEBUG 0
-
-  #define PTIN_CLEAR_ARRAY(array)         memset((array),0x00,sizeof(array))
-  #define PTIN_IS_MASKBYTESET(array,idx)  (array[((idx)/(8*sizeof(L7_uint32)))] == 0 ? 0 : 1)
-  #define PTIN_IS_MASKBITSET(array,idx)   ((array[(idx)/(sizeof(L7_uint32)*8)] >> ((idx)%(sizeof(L7_uint32)*8))) & 1)
-  #define PTIN_SET_MASKBIT(array,idx)     { array[(idx)/(sizeof(L7_uint32)*8)] |=   (L7_uint32) 1 << ((idx)%(sizeof(L7_uint32)*8)) ; }
-  #define PTIN_UNSET_MASKBIT(array,idx)   { array[(idx)/(sizeof(L7_uint32)*8)] &= ~((L7_uint32) 1 << ((idx)%(sizeof(L7_uint32)*8))); }
-
-  #define PTIN_NONZEROMASK(array, result)                              \
-{                                                                    \
-    L7_uint32 _i_;                                                   \
-                                                                     \
-    for(_i_ = 0; _i_ < sizeof(array)/sizeof(L7_uint32); _i_++)       \
-        if(array[_i_] != 0)                                          \
-        {                                                            \
-            result = 1;                                              \
-            break;                                                   \
-        }                                                            \
-        else                                                         \
-            result = 0;                                              \
-}
 
   #define PTIN_INCREMENT_COUNTER(counter,val)   { counter+=val; }
   #define PTIN_DECREMENT_COUNTER(counter,val)   { ((counter)>=(val)) ? (counter-=val) : (counter=0); }
@@ -2535,7 +2512,7 @@ L7_RC_t snoopGroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr
 /**
  * Add a channel and update Snoop Entry database.
  * 
- * @param evcId           : EVC ID  
+ * @param serviceId       : Service Id   
  * @param vlanId          : Vlan id
  * @param groupAddr       : group Address
  * @param sourceAddr      : source Address 
@@ -2545,7 +2522,7 @@ L7_RC_t snoopGroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILRE
  */
-L7_RC_t snoopL3GroupIntfAdd(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t* groupAddr, L7_inet_addr_t* sourceAddr, L7_uint32 intIfNum, L7_BOOL isStatic, L7_BOOL isProtection)
+L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_t* groupAddr, L7_inet_addr_t* sourceAddr, L7_uint32 intIfNum, L7_BOOL isStatic, L7_BOOL isProtection)
 {
   snoopChannelInfoData_t             channelEntry;
   snoopChannelInfoData_t            *pChannelEntry = &channelEntry;
@@ -2564,29 +2541,31 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t* g
   L7_RC_t                            rc;
 
   /* Validate arguments */
-  if (evcId == 0 || vlanId < PTIN_VLAN_MIN || vlanId > PTIN_VLAN_MAX || groupAddr==L7_NULLPTR || groupAddr->family!=L7_AF_INET || sourceAddr == L7_NULLPTR || sourceAddr->family != L7_AF_INET
-      || intIfNum==0 || intIfNum >= PTIN_SYSTEM_MAXINTERFACES_PER_GROUP)
+  if (serviceId == 0 || serviceId >= PTIN_SYSTEM_N_EXTENDED_EVCS || vlanId < PTIN_VLAN_MIN || vlanId > PTIN_VLAN_MAX || groupAddr==L7_NULLPTR || groupAddr->family!=L7_AF_INET || sourceAddr == L7_NULLPTR || sourceAddr->family != L7_AF_INET
+      || intIfNum==0 || intIfNum > PTIN_SYSTEM_IGMP_MAXINTERFACES)
   {   
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments [evcId:%u vlanId:%u groupAddr:%p sourceAddr:%p intIfNum:%u isStatic:%u isProtection:%u", evcId, vlanId, groupAddr, sourceAddr, intIfNum, isStatic, isProtection);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments [evcId:%u vlanId:%u groupAddr:%p sourceAddr:%p intIfNum:%u isStatic:%u isProtection:%u", serviceId, vlanId, groupAddr, sourceAddr, intIfNum, isStatic, isProtection);
     return L7_FAILURE;
   }
 
   inetAddrPrint(groupAddr, groupAddrStr);
   inetAddrPrint(sourceAddr, sourceAddrStr);
 
-  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Input Arguments [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isStatic:%u isProtection:%u", evcId, vlanId, intIfNum, 
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Input Arguments [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isStatic:%u isProtection:%u", serviceId, vlanId, intIfNum, 
             groupAddrStr, sourceAddrStr, isStatic, isProtection); 
 
   /*Set Flags*/
+  #if 0
   if (isProtection)
   {
     flags |= SNOOP_CHANNEL_ENTRY_IS_PROTECTION;
   }
+  #endif
 
   if (isStatic)
   {
     flags |= SNOOP_CHANNEL_ENTRY_IS_STATIC;  
-    ptin_evc_l3_multicast_group_get(evcId, &multicast_group);  
+    ptin_evc_l3_multicast_group_get(serviceId, &multicast_group);  
   }
   else
   {
@@ -2603,7 +2582,7 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t* g
   memcpy(&channelEntry.snoopChannelInfoDataKey.sourceAddr, sourceAddr, sizeof(channelEntry.snoopChannelInfoDataKey.sourceAddr));
   
   rc = snoopChannelEntryAdd(&pChannelEntry);
-  
+
   if (rc == L7_SUCCESS)
   {
     //  New Channel Entry
@@ -2620,22 +2599,54 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t* g
       /*Check if the Interface Mask Pointer is Valid*/
       if ( pChannelEntry->pChannelIntfMask == L7_NULLPTR)
       {
-        LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid Interface Mask Pointer [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isStatic:%u isProtection:%u pChannelIntfMask:%p", evcId, vlanId, intIfNum, 
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid Interface Mask Pointer [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isStatic:%u isProtection:%u pChannelIntfMask:%p", serviceId, vlanId, intIfNum, 
               groupAddrStr, sourceAddrStr, isStatic, isProtection, pChannelEntry->pChannelIntfMask); 
         return L7_FAILURE;
       }
 
       //Exiting Channel Entry
-      if (L7_INTF_ISMASKBITSET(pChannelEntry->channelIntfMask, intIfNum))
+      if (PTIN_IS_MASKBITSET(pChannelEntry->channelIntfMask, intIfNum))
       {
         /*This Interface is already added. 
           Please Check if we are changing any flag bits.
           If not. Return Here and Log a Warning.         
           */
+
+        #if PTIN_BOARD_IS_MATRIX
+        if (isProtection == L7_TRUE)
+        {
+          if (!PTIN_IS_MASKBITSET(pChannelEntry->channelIntfProtectionMask,intIfNum))
+          {
+            LOG_TRACE(LOG_CTX_PTIN_IGMP,"Protection Entry Add. [evcId:%u vlanId:%u groupAddr:%s sourceAddr:%s intIfNum:%u]",serviceId, vlanId, groupAddrStr, sourceAddrStr, intIfNum);
+            PTIN_SET_MASKBIT(pChannelEntry->channelIntfProtectionMask,intIfNum);        
+            ++pChannelEntry->noOfProtectionInterfaces;
+          }
+          else
+          {
+            if (ptin_debug_igmp_snooping)
+              LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Interface %u is already in protection",intIfNum);
+          }
+        }
+        else
+        {
+          if (!PTIN_IS_MASKBITSET(pChannelEntry->channelIntfDynamicMask,intIfNum))
+          {
+            LOG_TRACE(LOG_CTX_PTIN_IGMP,"Dynamic Entry Add. [evcId:%u vlanId:%u groupAddr:%s sourceAddr:%s intIfNum:%u]",serviceId, vlanId, groupAddrStr, sourceAddrStr, intIfNum);
+            PTIN_SET_MASKBIT(pChannelEntry->channelIntfDynamicMask,intIfNum);        
+            ++pChannelEntry->noOfDynamicInterfaces;
+          }
+          else
+          {
+            if (ptin_debug_igmp_snooping)
+              LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Interface %u is already in dynamic",intIfNum);
+          }
+        }
+        #endif  
+
         if (flags != pChannelEntry->flags)
         {
           LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Channel Already Updating Flags [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isStatic:%u isProtection:%u oldFlags:0x%02x newFlags:0x%02x]", 
-                    evcId, vlanId, intIfNum, groupAddrStr, sourceAddrStr, isStatic, isProtection, pChannelEntry->flags, flags);     
+                    serviceId, vlanId, intIfNum, groupAddrStr, sourceAddrStr, isStatic, isProtection, pChannelEntry->flags, flags);     
 
           /*Update Flags*/
           pChannelEntry->flags |= flags;
@@ -2645,7 +2656,7 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t* g
         else
         {
          LOG_WARNING(LOG_CTX_PTIN_IGMP, "Channel Already Added [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isStatic:%u isProtection:%u]", 
-                    evcId, vlanId, intIfNum, groupAddrStr, sourceAddrStr, isStatic, isProtection);     
+                    serviceId, vlanId, intIfNum, groupAddrStr, sourceAddrStr, isStatic, isProtection);     
           return L7_SUCCESS;
         }
       }
@@ -2656,7 +2667,7 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t* g
         {
           /*This situation should not happen. Log a Warning here*/
           LOG_WARNING(LOG_CTX_PTIN_IGMP, "Channel Without Interfaces [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isStatic:%u isProtection:%u]", 
-                    evcId, vlanId, intIfNum, groupAddrStr, sourceAddrStr, isStatic, isProtection);         
+                    serviceId, vlanId, intIfNum, groupAddrStr, sourceAddrStr, isStatic, isProtection);         
         }
         else
         {
@@ -2678,7 +2689,7 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t* g
       {
         //Error
         LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Add Channel [rc:%u evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isStatic:%u isProtection:%u]", 
-                    rc, evcId, vlanId, intIfNum, groupAddrStr, sourceAddrStr, isStatic, isProtection);
+                    rc, serviceId, vlanId, intIfNum, groupAddrStr, sourceAddrStr, isStatic, isProtection);
         return rc;
       }
     }
@@ -2737,7 +2748,7 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t* g
     }
   }
 
-  L7_INTF_SETMASKBIT(pChannelIntfMask->snoopChannelIntfMaskInfoDataKey.channelIntfMask, intIfNum);
+  PTIN_SET_MASKBIT(pChannelIntfMask->snoopChannelIntfMaskInfoDataKey.channelIntfMask, intIfNum);
   pChannelIntfMask->noOfInterfaces++;
 
   pChannelIntfMask->snoopChannelIntfMaskInfoDataKey.vlanId = vlanId;
@@ -2769,9 +2780,9 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t* g
       if ( newChannelEntry == L7_TRUE )
       {        
         l3_intf_id = -1;
-        if (ptin_evc_l3_intf_get(evcId, intIfNum, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
+        if (ptin_evc_l3_intf_get(serviceId, intIfNum, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
         {
-          LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", evcId, l3_intf_id);      
+          LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", serviceId, l3_intf_id);      
           return L7_FAILURE;
         }          
         if (ptin_debug_igmp_snooping)
@@ -2789,20 +2800,20 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t* g
         /* Add Egress Ports*/  
         uint32     intf;
         L7_uint32  noOfInterfacesFound = 0; 
-        for (intf = 1; intf <= L7_MAX_INTERFACE_COUNT; intf++)
+        for (intf = 1; intf <= PTIN_SYSTEM_IGMP_MAXINTERFACES; intf++)
         {
-          if (!L7_INTF_ISMASKBYTESET(pChannelIntfMask->snoopChannelIntfMaskInfoDataKey.channelIntfMask, intf))
+          if (!PTIN_IS_MASKBYTESET(pChannelIntfMask->snoopChannelIntfMaskInfoDataKey.channelIntfMask, intf))
           {            
-            intf += L7_INTF_MASK_UNIT -1;
+            intf += PTIN_SNOOP_PORT_MASK_UNIT -1;
             continue;
           }
 
-          if (L7_INTF_ISMASKBITSET(pChannelIntfMask->snoopChannelIntfMaskInfoDataKey.channelIntfMask, intf))
+          if (PTIN_IS_MASKBITSET(pChannelIntfMask->snoopChannelIntfMaskInfoDataKey.channelIntfMask, intf))
           {
             l3_intf_id = -1;
-            if (ptin_evc_l3_intf_get(evcId, intf, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
+            if (ptin_evc_l3_intf_get(serviceId, intf, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
             {
-              LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", evcId, l3_intf_id);      
+              LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", serviceId, l3_intf_id);      
               return L7_FAILURE;
             }          
             if (ptin_debug_igmp_snooping)
@@ -2834,9 +2845,9 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t* g
       removeMulticastGroup = L7_FALSE;
 
       l3_intf_id = -1;
-      if (ptin_evc_l3_intf_get(evcId, intIfNum, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
+      if (ptin_evc_l3_intf_get(serviceId, intIfNum, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
       {
-        LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", evcId, l3_intf_id);      
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", serviceId, l3_intf_id);      
         return L7_FAILURE;
       }          
       if (ptin_debug_igmp_snooping)
@@ -2864,14 +2875,14 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t* g
       {        
         // Table of  Interface Mask Entries is Full
         LOG_WARNING(LOG_CTX_PTIN_IGMP, "Failed to Add Interface Mask Table is Full [rc:%u evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isProtection:%u]", 
-                    rc, evcId, vlanId, intIfNum, groupAddrStr, sourceAddrStr, isProtection);  
+                    rc, serviceId, vlanId, intIfNum, groupAddrStr, sourceAddrStr, isProtection);  
         return L7_TABLE_IS_FULL;
       }
       else
       {
         //Error
         LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Add Interface Mask Table [rc:%u evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isProtection:%u]", 
-                    rc, evcId, vlanId, intIfNum, groupAddrStr, sourceAddrStr, isProtection);
+                    rc, serviceId, vlanId, intIfNum, groupAddrStr, sourceAddrStr, isProtection);
         return rc;
       }
     }
@@ -2885,7 +2896,7 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t* g
   rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_L3_IPMC, DAPI_CMD_SET, sizeof(ptin_dtl_ipmc_addr_t), &dtl_ipmc);
   if (rc != L7_SUCCESS)
   {    
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Add Channel to HW IPMC Table [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s multicast_group:0x%08x rc:%u]", evcId, vlanId, intIfNum, 
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Add Channel to HW IPMC Table [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s multicast_group:0x%08x rc:%u]", serviceId, vlanId, intIfNum, 
             inetAddrPrint(&dtl_ipmc.mc_ip_addr, groupAddrStr), inetAddrPrint(&dtl_ipmc.s_ip_addr, sourceAddrStr), dtl_ipmc.group_index, rc);      
     //Do not abort here the operation!
 //  return rc;
@@ -2896,20 +2907,20 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t* g
     /* Remove Egress Ports*/  
     uint32 intf;
     uint32 noOfInterfacesFound = 0;
-    for (intf = 1; intf <= L7_MAX_INTERFACE_COUNT; intf++)
+    for (intf = 1; intf <= PTIN_SYSTEM_IGMP_MAXINTERFACES; intf++)
     {
-      if (!L7_INTF_ISMASKBYTESET(pChannelEntry->channelIntfMask, intf))
+      if (!PTIN_IS_MASKBYTESET(pChannelEntry->channelIntfMask, intf))
       {
-        intf += L7_INTF_MASK_UNIT -1;
+        intf += PTIN_SNOOP_PORT_MASK_UNIT -1;
         continue;
       }
 
-      if (L7_INTF_ISMASKBITSET(pChannelEntry->channelIntfMask, intf))
+      if (PTIN_IS_MASKBITSET(pChannelEntry->channelIntfMask, intf))
       {
         l3_intf_id = -1;
-        if (ptin_evc_l3_intf_get(evcId, intf, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
+        if (ptin_evc_l3_intf_get(serviceId, intf, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
         {
-          LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", evcId, l3_intf_id);      
+          LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", serviceId, l3_intf_id);      
           return L7_FAILURE;
         }          
         if (ptin_debug_igmp_snooping)
@@ -2947,7 +2958,7 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t* g
     if (rc != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Remove Intferface Mask [rc:%u evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isProtection:%u]", 
-                rc, evcId, vlanId, intIfNum, groupAddrStr, sourceAddrStr, isProtection);   
+                rc, serviceId, vlanId, intIfNum, groupAddrStr, sourceAddrStr, isProtection);   
       return L7_FAILURE;
     }
     LOG_TRACE(LOG_CTX_PTIN_IGMP, "Removed Interface Mask!");       
@@ -2956,7 +2967,7 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t* g
 
   /*Update Parameters*/  
   pChannelEntry->flags |= flags;
-  L7_INTF_SETMASKBIT(pChannelEntry->channelIntfMask, intIfNum);
+  PTIN_SET_MASKBIT(pChannelEntry->channelIntfMask, intIfNum);
   pChannelEntry->noOfInterfaces++;
 
   pChannelIntfMask->noOfChannelEntries++;
@@ -2972,7 +2983,38 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t* g
       pChannelEntry->pChannelIntfMask->noOfChannelEntries--;
     }
     pChannelEntry->pChannelIntfMask = pChannelIntfMask;
-  }  
+  }
+  
+  #if PTIN_BOARD_IS_MATRIX
+  if (isProtection == L7_TRUE)
+  {
+    if (!PTIN_IS_MASKBITSET(pChannelEntry->channelIntfProtectionMask,intIfNum))
+    {
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Protection Entry Added. [evcId:%u vlanId:%u groupAddr:%s sourceAddr:%s intIfNum:%u]",serviceId, vlanId, groupAddrStr, sourceAddrStr, intIfNum);
+      PTIN_SET_MASKBIT(pChannelEntry->channelIntfProtectionMask,intIfNum);        
+      ++pChannelEntry->noOfProtectionInterfaces;
+    }
+    else
+    {
+      if (ptin_debug_igmp_snooping)
+        LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Interface %u is already in protection",intIfNum);
+    }
+  }
+  else
+  {
+    if (!PTIN_IS_MASKBITSET(pChannelEntry->channelIntfDynamicMask,intIfNum))
+    {
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Dynamic Entry Added. [evcId:%u vlanId:%u groupAddr:%s sourceAddr:%s intIfNum:%u]",serviceId, vlanId, groupAddrStr, sourceAddrStr, intIfNum);
+      PTIN_SET_MASKBIT(pChannelEntry->channelIntfDynamicMask,intIfNum);        
+      ++pChannelEntry->noOfDynamicInterfaces;
+    }
+    else
+    {
+      if (ptin_debug_igmp_snooping)
+        LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Interface %u is already in dynamic",intIfNum);
+    }
+  }
+  #endif  
 
   return rc;
 }
@@ -2980,7 +3022,7 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t* g
 /**
  * Remove a channel from a Snoop Entry database.
  * 
- * @param evcId                 : EVC ID   
+ * @param serviceId             : Service Id   
  * @param vlanId                : Vlan id
  * @param groupAddr             : group Address
  * @param sourceAddr            : source Address 
@@ -2989,7 +3031,7 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t* g
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILRE
  */
-L7_RC_t snoopL3GroupIntfRemove(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t* groupAddr, L7_inet_addr_t* sourceAddr, L7_uint32 intIfNum, L7_BOOL isProtection)
+L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_t* groupAddr, L7_inet_addr_t* sourceAddr, L7_uint32 intIfNum, L7_BOOL isProtection)
 {  
   snoopChannelInfoData_t            *pChannelEntry;
   snoopChannelIntfMaskInfoData_t     channelIntfMaskEntry;
@@ -3006,17 +3048,17 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t
   L7_RC_t                            rc;
 
   /* Validate arguments */
-  if (evcId == 0 || vlanId < PTIN_VLAN_MIN || vlanId > PTIN_VLAN_MAX || groupAddr==L7_NULLPTR || groupAddr->family!=L7_AF_INET || sourceAddr == L7_NULLPTR || sourceAddr->family != L7_AF_INET
-      || intIfNum==0 || intIfNum >= PTIN_SYSTEM_MAXINTERFACES_PER_GROUP)
+  if (serviceId == 0 || serviceId >= PTIN_SYSTEM_N_EXTENDED_EVCS || vlanId < PTIN_VLAN_MIN || vlanId > PTIN_VLAN_MAX || groupAddr==L7_NULLPTR || groupAddr->family!=L7_AF_INET || sourceAddr == L7_NULLPTR || sourceAddr->family != L7_AF_INET
+      || intIfNum==0 || intIfNum > PTIN_SYSTEM_IGMP_MAXINTERFACES)
   {   
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments [evcId:%u vlanId:%u groupAddr:%p sourceAddr:%p intIfNum:%u isProtection:%u", evcId, vlanId, groupAddr, sourceAddr, intIfNum, isProtection);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments [evcId:%u vlanId:%u groupAddr:%p sourceAddr:%p intIfNum:%u isProtection:%u", serviceId, vlanId, groupAddr, sourceAddr, intIfNum, isProtection);
     return L7_FAILURE;
   }
 
   inetAddrPrint(groupAddr, groupAddrStr);
   inetAddrPrint(sourceAddr, sourceAddrStr);
 
-  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Input Arguments [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isProtection:%u", evcId, vlanId, intIfNum, 
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Input Arguments [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isProtection:%u", serviceId, vlanId, intIfNum, 
             groupAddrStr, sourceAddrStr, isProtection); 
   
   /*Does this channel exist and has a interface mask valid and a multicast group valid?*/
@@ -3024,7 +3066,7 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t
        pChannelEntry->pChannelIntfMask == L7_NULLPTR || (multicast_group = pChannelEntry->pChannelIntfMask->multicastGroup) <= 0)
   {
     if (ptin_debug_igmp_snooping)
-      LOG_WARNING(LOG_CTX_PTIN_IGMP, "This channel does not exist [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isProtection:%u multicastGroup:0x%08x]", evcId, vlanId, intIfNum, 
+      LOG_WARNING(LOG_CTX_PTIN_IGMP, "This channel does not exist [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isProtection:%u multicastGroup:0x%08x]", serviceId, vlanId, intIfNum, 
             groupAddrStr, sourceAddrStr, isProtection, multicast_group); 
     return L7_NOT_EXIST;
   }
@@ -3045,28 +3087,28 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t
   dtl_ipmc.vid = pChannelEntry->snoopChannelInfoDataKey.vlanId;
 
   /*This interface does not belong to this channel?*/
-  if (!L7_INTF_ISMASKBITSET(pChannelEntry->channelIntfMask, intIfNum))
+  if (!PTIN_IS_MASKBITSET(pChannelEntry->channelIntfMask, intIfNum))
   {
     if (pChannelEntry->noOfInterfaces != 0)
     {
       if (ptin_debug_igmp_snooping)
         /*This Interface does not belong to this channel. */
         LOG_WARNING(LOG_CTX_PTIN_IGMP, "This interface does not belong to this channel [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isProtection:%u", 
-                  evcId, vlanId, intIfNum, groupAddrStr, sourceAddrStr, isProtection); 
+                  serviceId, vlanId, intIfNum, groupAddrStr, sourceAddrStr, isProtection); 
       return L7_NOT_EXIST;      
     }
     else
     {
       /*This situation should not happen. Log a Warning here*/
       LOG_WARNING(LOG_CTX_PTIN_IGMP, "Channel without Interfaces [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isProtection:%u", 
-                  evcId, vlanId, intIfNum, groupAddrStr, sourceAddrStr, isProtection);                
+                  serviceId, vlanId, intIfNum, groupAddrStr, sourceAddrStr, isProtection);                
 
       /*Remove Channel*/
       rc = snoopChannelEntryDelete(vlanId, groupAddr, sourceAddr, pChannelEntry);
       if (rc != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Remove Channel without Interfaces [rc:%u evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isProtection:%u", 
-                  rc, evcId, vlanId, intIfNum, groupAddrStr, sourceAddrStr, isProtection);   
+                  rc, serviceId, vlanId, intIfNum, groupAddrStr, sourceAddrStr, isProtection);   
         return rc;
       }
 
@@ -3081,17 +3123,68 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t
   if ( pChannelEntry->noOfInterfaces == 0 )
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Interface exists however the number of interfaces is equal to zero! [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isProtection:%u", 
-                evcId, vlanId, intIfNum, groupAddrStr, sourceAddrStr, isProtection);   
+                serviceId, vlanId, intIfNum, groupAddrStr, sourceAddrStr, isProtection);   
     return L7_FAILURE;
   }
 
   /*This interface does not belong to this Interface Mask?*/
-  if (!L7_INTF_ISMASKBITSET(pChannelEntry->pChannelIntfMask->snoopChannelIntfMaskInfoDataKey.channelIntfMask, intIfNum))
+  if (!PTIN_IS_MASKBITSET(pChannelEntry->pChannelIntfMask->snoopChannelIntfMaskInfoDataKey.channelIntfMask, intIfNum))
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Interface does not belong to the Interface Mask! [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isProtection:%u", 
-                evcId, vlanId, intIfNum, groupAddrStr, sourceAddrStr, isProtection);   
+                serviceId, vlanId, intIfNum, groupAddrStr, sourceAddrStr, isProtection);   
     return L7_FAILURE;
   }
+
+  #if PTIN_BOARD_IS_MATRIX
+  if (isProtection == L7_TRUE)
+  {
+    /*Is this Entry  a Interface Protection?*/
+    if (PTIN_IS_MASKBITSET(pChannelEntry->channelIntfProtectionMask,intIfNum))
+    {
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Protection Entry Removed. [evcId:%u vlanId:%u groupAddr:%s sourceAddr:%s intIfNum:%u]",serviceId, vlanId, groupAddrStr, sourceAddrStr, intIfNum);
+      PTIN_UNSET_MASKBIT(pChannelEntry->channelIntfProtectionMask,intIfNum);        
+      if (pChannelEntry->noOfProtectionInterfaces>0)
+        --pChannelEntry->noOfProtectionInterfaces;
+      else
+        LOG_WARNING(LOG_CTX_PTIN_IGMP,"Number of Protection Interfaces is already zero! [evcId:%u vlanId:%u groupAddr:%s sourceAddr:%s intIfNum:%u]",serviceId, vlanId, groupAddrStr, sourceAddrStr, intIfNum);
+
+      /*Is it also a dynamic entry?*/
+      if (PTIN_IS_MASKBITSET(pChannelEntry->channelIntfDynamicMask,intIfNum))
+      {
+        LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Ignoring Port Close. This is also a Dynamic Entry. [evcId:%u vlanId:%u groupAddr:%s sourceAddr:%s intIfNum:%u]",serviceId, vlanId, groupAddrStr, sourceAddrStr, intIfNum);
+        return L7_SUCCESS;      
+      }
+      else
+      {
+        //Proceed
+      }
+    }    
+  }
+  else
+  {
+    /*Is it  a dynamic entry?*/
+    if (PTIN_IS_MASKBITSET(pChannelEntry->channelIntfDynamicMask,intIfNum))
+    {
+      PTIN_UNSET_MASKBIT(pChannelEntry->channelIntfDynamicMask,intIfNum);        
+      if (pChannelEntry->noOfDynamicInterfaces>0)
+        --pChannelEntry->noOfDynamicInterfaces;
+      else
+        LOG_WARNING(LOG_CTX_PTIN_IGMP,"Number of Dynamic Interfaces is already zero! [evcId:%u vlanId:%u groupAddr:%s sourceAddr:%s intIfNum:%u]",serviceId, vlanId, groupAddrStr, sourceAddrStr, intIfNum);
+
+      /*Is this Entry  also a Interface Protection?*/
+      if (PTIN_IS_MASKBITSET(pChannelEntry->channelIntfProtectionMask,intIfNum))
+      {
+        LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Ignoring Port Close. This is also a Protection Entry. [evcId:%u vlanId:%u groupAddr:%s sourceAddr:%s intIfNum:%u]",serviceId, vlanId, groupAddrStr, sourceAddrStr, intIfNum);
+        return L7_SUCCESS;      
+      }
+    }
+    else
+    {
+      /*This situation should not occur*/
+      LOG_WARNING(LOG_CTX_PTIN_IGMP,"This is not either Protection or Dynamic! [evcId:%u vlanId:%u groupAddr:%s sourceAddr:%s intIfNum:%u]",serviceId, vlanId, groupAddrStr, sourceAddrStr, intIfNum);
+    }
+  }
+  #endif  
 
   /*Is it the last interface of this channel?*/
   if ( --pChannelEntry->noOfInterfaces == 0 )
@@ -3100,7 +3193,7 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t
     rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_L3_IPMC, DAPI_CMD_CLEAR, sizeof(ptin_dtl_ipmc_addr_t), &dtl_ipmc);
     if (rc != L7_SUCCESS)
     {    
-      LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Remove Channel from HW IPMC Table [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s multicast_group:0x%08x", evcId, vlanId, intIfNum, 
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Remove Channel from HW IPMC Table [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s multicast_group:0x%08x", serviceId, vlanId, intIfNum, 
           inetAddrPrint(&dtl_ipmc.mc_ip_addr, groupAddrStr), inetAddrPrint(&dtl_ipmc.s_ip_addr, sourceAddrStr), dtl_ipmc.group_index);      
 //    return rc;
     }
@@ -3110,9 +3203,9 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t
     {
       /*Get L3 Interface Id*/
       l3_intf_id = -1;
-      if (ptin_evc_l3_intf_get(evcId, intIfNum, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
+      if (ptin_evc_l3_intf_get(serviceId, intIfNum, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
       {
-        LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", evcId, l3_intf_id);      
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", serviceId, l3_intf_id);      
         return L7_FAILURE;
       }
 
@@ -3144,7 +3237,7 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t
       if (rc != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Remove Intferface Mask [rc:%u evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isProtection:%u]", 
-                  rc, evcId, vlanId, intIfNum, groupAddrStr, sourceAddrStr, isProtection);   
+                  rc, serviceId, vlanId, intIfNum, groupAddrStr, sourceAddrStr, isProtection);   
         return rc;
       }
       LOG_TRACE(LOG_CTX_PTIN_IGMP, "Removed Interface Mask!"); 
@@ -3161,7 +3254,7 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t
     if (rc != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Remove Channel without Interfaces [rc:%u evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isProtection:%u]", 
-                rc, evcId, vlanId, intIfNum, groupAddrStr, sourceAddrStr, isProtection);   
+                rc, serviceId, vlanId, intIfNum, groupAddrStr, sourceAddrStr, isProtection);   
       return L7_FAILURE;
     }
     LOG_TRACE(LOG_CTX_PTIN_IGMP, "Removed Channel!"); 
@@ -3170,7 +3263,7 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t
   /*else*/
     /*This Channel Has More Interfaces Left*/
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "This Channel Has %u Interface(s)  Left!", pChannelEntry->noOfInterfaces);
-  L7_INTF_CLRMASKBIT(pChannelEntry->channelIntfMask, intIfNum);
+  PTIN_UNSET_MASKBIT(pChannelEntry->channelIntfMask, intIfNum);
 
   /*Is this channel the last entry of this interface mask?*/
   if ( --pChannelEntry->pChannelIntfMask->noOfChannelEntries == 0 )
@@ -3214,15 +3307,15 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t
 
       /* Add Egress Ports*/  
       uint32 intf;
-      for (intf = 1; intf <= L7_MAX_INTERFACE_COUNT; intf++)
+      for (intf = 1; intf <= PTIN_SYSTEM_IGMP_MAXINTERFACES; intf++)
       {
-        if (!L7_INTF_ISMASKBYTESET(pChannelIntfMask->snoopChannelIntfMaskInfoDataKey.channelIntfMask, intf))
+        if (!PTIN_IS_MASKBYTESET(pChannelIntfMask->snoopChannelIntfMaskInfoDataKey.channelIntfMask, intf))
         {
-          intf += L7_INTF_MASK_UNIT -1;
+          intf += PTIN_SNOOP_PORT_MASK_UNIT -1;
           continue;
         }
 
-        if (L7_INTF_ISMASKBITSET(pChannelIntfMask->snoopChannelIntfMaskInfoDataKey.channelIntfMask, intf))
+        if (PTIN_IS_MASKBITSET(pChannelIntfMask->snoopChannelIntfMaskInfoDataKey.channelIntfMask, intf))
         {
           if (intf == intIfNum)
           {
@@ -3230,9 +3323,9 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t
           }
 
           l3_intf_id = -1;
-          if (ptin_evc_l3_intf_get(evcId, intf, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
+          if (ptin_evc_l3_intf_get(serviceId, intf, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
           {
-            LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", evcId, l3_intf_id);      
+            LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", serviceId, l3_intf_id);      
             return L7_FAILURE;
           }
           else
@@ -3265,9 +3358,9 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t
       removeMulticastGroup = L7_FALSE;
 
       l3_intf_id = -1;
-      if (ptin_evc_l3_intf_get(evcId, intIfNum, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
+      if (ptin_evc_l3_intf_get(serviceId, intIfNum, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
       {
-        LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", evcId, l3_intf_id);      
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", serviceId, l3_intf_id);      
         return L7_FAILURE;
       }          
       if (ptin_debug_igmp_snooping)
@@ -3299,14 +3392,14 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t
       {        
         // Table of  Interface Mask Entries is Full        
         LOG_WARNING(LOG_CTX_PTIN_IGMP, "Failed to Add Interface Mask Table is Full [rc:%u evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isProtection:%u]", 
-                    rc, evcId, vlanId, intIfNum, groupAddrStr, sourceAddrStr, isProtection);  
+                    rc, serviceId, vlanId, intIfNum, groupAddrStr, sourceAddrStr, isProtection);  
         return L7_TABLE_IS_FULL;
       }
       else
       {
         //Error
         LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Add Interface Mask Table [rc:%u evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isProtection:%u]", 
-                    rc, evcId, vlanId, intIfNum, groupAddrStr, sourceAddrStr, isProtection);  
+                    rc, serviceId, vlanId, intIfNum, groupAddrStr, sourceAddrStr, isProtection);  
         return rc;
       }
     }
@@ -3317,7 +3410,7 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t
   rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_L3_IPMC, DAPI_CMD_SET, sizeof(ptin_dtl_ipmc_addr_t), &dtl_ipmc);
   if (rc != L7_SUCCESS)
   {    
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Update Channel on the HW IPMC Table [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s multicast_group:0x%08x", evcId, vlanId, intIfNum, 
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Update Channel on the HW IPMC Table [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s multicast_group:0x%08x", serviceId, vlanId, intIfNum, 
             inetAddrPrint(&dtl_ipmc.mc_ip_addr, groupAddrStr), sourceAddrStr, dtl_ipmc.group_index);      
 //  return rc;
   }
@@ -3328,20 +3421,20 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t
     uint32 intf;
     uint32 noOfInterfacesFound = 0;
   
-    for (intf = 1; intf <= L7_MAX_INTERFACE_COUNT; intf++)
+    for (intf = 1; intf <= PTIN_SYSTEM_IGMP_MAXINTERFACES; intf++)
     {
-      if (!L7_INTF_ISMASKBYTESET(pChannelEntry->pChannelIntfMask->snoopChannelIntfMaskInfoDataKey.channelIntfMask, intf))
+      if (!PTIN_IS_MASKBYTESET(pChannelEntry->pChannelIntfMask->snoopChannelIntfMaskInfoDataKey.channelIntfMask, intf))
       {
-        intf += L7_INTF_MASK_UNIT -1;
+        intf += PTIN_SNOOP_PORT_MASK_UNIT -1;
         continue;
       }
 
-      if (L7_INTF_ISMASKBITSET(pChannelEntry->pChannelIntfMask->snoopChannelIntfMaskInfoDataKey.channelIntfMask, intf))
+      if (PTIN_IS_MASKBITSET(pChannelEntry->pChannelIntfMask->snoopChannelIntfMaskInfoDataKey.channelIntfMask, intf))
       {
         l3_intf_id = -1;
-        if (ptin_evc_l3_intf_get(evcId, intf, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
+        if (ptin_evc_l3_intf_get(serviceId, intf, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
         {
-          LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", evcId, l3_intf_id);      
+          LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", serviceId, l3_intf_id);      
           return L7_FAILURE;
         }          
         if (ptin_debug_igmp_snooping)
@@ -3383,7 +3476,7 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t
     if (rc != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Remove Intferface Mask [rc:%u evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isProtection:%u]", 
-                rc, evcId, vlanId, intIfNum, groupAddrStr, sourceAddrStr, isProtection);   
+                rc, serviceId, vlanId, intIfNum, groupAddrStr, sourceAddrStr, isProtection);   
       return L7_FAILURE;
     }
     LOG_TRACE(LOG_CTX_PTIN_IGMP, "Removed Existing Interface Mask!");       
@@ -4287,7 +4380,7 @@ void ptin_igmp_snoop_dump(L7_uint16 index)
       printf("  Ports information:\r\n");
       printf("  IntfNUm:");
       uint32 intf;
-      for (intf = 1; intf <= L7_MAX_INTERFACE_COUNT; intf++)
+      for (intf = 1; intf <= PTIN_SYSTEM_MAXINTERFACES_PER_GROUP; intf++)
       {
        if (L7_INTF_ISMASKBITSET(avl_info->snoopGrpMemberList,intf))
        {
@@ -4448,37 +4541,43 @@ void snoop_l3_channels_dump(void)
   memset(&key, 0x00, sizeof(key));
   while ( (pEntry = snoopChannelEntryFind(key.vlanId, &key.groupAddr, &key.sourceAddr, L7_MATCH_GETNEXT)) != L7_NULLPTR)
   {
-      printf("vlanId:%u groupAddr:%s sourceAddr:%s noOfInterfaces:%u noOfProtectionInterfaces:%u flags:0x%02x\n", 
+      printf("vlanId:%u groupAddr:%s sourceAddr:%s noOfInterfaces:%u flags:0x%02x ", 
              pEntry->snoopChannelInfoDataKey.vlanId, inetAddrPrint(&pEntry->snoopChannelInfoDataKey.groupAddr, groupAddrStr), inetAddrPrint(&pEntry->snoopChannelInfoDataKey.sourceAddr, sourceAddrStr), 
-             pEntry->noOfInterfaces, pEntry->noOfProtectionInterfaces, pEntry->flags);
-      #if 0
-      uint32                     idx;
-      printf(" channelIntfMask:0x");      
-      for (idx = 0; idx < L7_INTF_INDICES; idx++)
-      {
-       printf("%08x", pEntry->channelIntfMask.value[idx]);       
-      }
-      #else      
+             pEntry->noOfInterfaces, pEntry->flags);
+      #if PTIN_BOARD_IS_MATRIX
+      printf("noOfProtectionInterfaces:%u  noOfDynamicInterfaces:%u", pEntry->noOfProtectionInterfaces, pEntry->noOfDynamicInterfaces);
+      #endif
+      printf("\n");            
       printf("  Ports IntfNum:");
       uint32 intf;
-      for (intf = 1; intf <= L7_MAX_INTERFACE_COUNT; intf++)
+      for (intf = 1; intf <= PTIN_SYSTEM_IGMP_MAXINTERFACES; intf++)
       {
-       if (L7_INTF_ISMASKBITSET(pEntry->channelIntfMask,intf))
-       {
-         printf(" %u",intf);
-       }
-      }
-      printf("\r\n");
-      #endif
-      printf("  Protection Ports IntfNUm:");      
-      for (intf = 1; intf <= L7_MAX_INTERFACE_COUNT; intf++)
-      {
-       if (L7_INTF_ISMASKBITSET(pEntry->channelIntfProtectionMask, intf))
+       if (PTIN_IS_MASKBITSET(pEntry->channelIntfMask,intf))
        {
          printf(" %u",intf);
        }
       }
       printf("\r\n");      
+      #if PTIN_BOARD_IS_MATRIX
+      printf("  Protection Ports IntfNUm:");      
+      for (intf = 1; intf <= PTIN_SYSTEM_IGMP_MAXINTERFACES; intf++)
+      {
+       if (PTIN_IS_MASKBITSET(pEntry->channelIntfProtectionMask, intf))
+       {
+         printf(" %u",intf);
+       }
+      }
+      printf("\r\n");      
+      printf("  Dynamic Ports IntfNUm:");      
+      for (intf = 1; intf <= PTIN_SYSTEM_IGMP_MAXINTERFACES; intf++)
+      {
+       if (PTIN_IS_MASKBITSET(pEntry->channelIntfDynamicMask, intf))
+       {
+         printf(" %u",intf);
+       }
+      }
+      printf("\r\n");      
+      #endif
 
     /*Next Element*/
     memcpy(&key, &pEntry->snoopChannelInfoDataKey, sizeof(key));
@@ -4511,9 +4610,9 @@ void snoop_l3_channels_intf_mask_dump(void)
     #else    
     printf("  Ports IntfNum:");
     uint32 intf;
-    for (intf = 1; intf <= L7_MAX_INTERFACE_COUNT; intf++)
+    for (intf = 1; intf <= PTIN_SYSTEM_IGMP_MAXINTERFACES; intf++)
     {
-     if (L7_INTF_ISMASKBITSET(pEntry->snoopChannelIntfMaskInfoDataKey.channelIntfMask, intf))
+     if (PTIN_IS_MASKBITSET(pEntry->snoopChannelIntfMaskInfoDataKey.channelIntfMask, intf))
      {
        printf(" %u",intf);
      }
@@ -6306,12 +6405,30 @@ void snoopChannelReset(void)
       continue;
     }
    
-    for (intf = 1; intf <= L7_MAX_INTERFACE_COUNT; intf++)
+    for (intf = 1; intf <= PTIN_SYSTEM_IGMP_MAXINTERFACES; intf++)
     {
-      if (L7_INTF_ISMASKBITSET(pEntry->channelIntfMask,intf))
-      {
-         snoopL3GroupIntfRemove(evcId, pEntry->snoopChannelInfoDataKey.vlanId, &pEntry->snoopChannelInfoDataKey.groupAddr, &pEntry->snoopChannelInfoDataKey.sourceAddr, 
-                                intf, L7_INTF_ISMASKBITSET(pEntry->channelIntfProtectionMask, intf));       
+      if (PTIN_IS_MASKBITSET(pEntry->channelIntfMask,intf))
+      {        
+        #if PTIN_BOARD_IS_MATRIX
+        if ( PTIN_IS_MASKBITSET(pEntry->channelIntfProtectionMask, intf) && PTIN_IS_MASKBITSET(pEntry->channelIntfDynamicMask, intf) )
+        {
+          /*Remove Protection Entry*/
+          snoopL3GroupIntfRemove(evcId, pEntry->snoopChannelInfoDataKey.vlanId, &pEntry->snoopChannelInfoDataKey.groupAddr, &pEntry->snoopChannelInfoDataKey.sourceAddr, 
+                                  intf, PTIN_IS_MASKBITSET(pEntry->channelIntfProtectionMask, intf));               
+          /*Remove Dynamic Entry*/
+          snoopL3GroupIntfRemove(evcId, pEntry->snoopChannelInfoDataKey.vlanId, &pEntry->snoopChannelInfoDataKey.groupAddr, &pEntry->snoopChannelInfoDataKey.sourceAddr, 
+                                  intf, PTIN_IS_MASKBITSET(pEntry->channelIntfProtectionMask, intf));               
+        }
+        else
+        {
+          /*Remove Dynamic Entry*/
+          snoopL3GroupIntfRemove(evcId, pEntry->snoopChannelInfoDataKey.vlanId, &pEntry->snoopChannelInfoDataKey.groupAddr, &pEntry->snoopChannelInfoDataKey.sourceAddr, 
+                                  intf, PTIN_IS_MASKBITSET(pEntry->channelIntfProtectionMask, intf));               
+        }
+        #else
+        snoopL3GroupIntfRemove(evcId, pEntry->snoopChannelInfoDataKey.vlanId, &pEntry->snoopChannelInfoDataKey.groupAddr, &pEntry->snoopChannelInfoDataKey.sourceAddr, 
+                                intf, 0);       
+        #endif       
       }
     }
   }
@@ -6334,7 +6451,7 @@ void snoopChannelReset(void)
 *
 * @end
 *********************************************************************/
-snoopChannelIntfMaskInfoData_t *snoopChannelIntfMaskEntryFind(L7_uint32 vlanId, L7_INTF_MASK_t *groupIntfMask, L7_uint8 flag)
+snoopChannelIntfMaskInfoData_t *snoopChannelIntfMaskEntryFind(L7_uint32 vlanId, PTIN_INTF_MASK_t *groupIntfMask, L7_uint8 flag)
 {
   snoopChannelIntfMaskInfoData_t    *snoopEntry;
   snoopChannelIntfMaskInfoDataKey_t  key;  
@@ -6437,7 +6554,7 @@ L7_RC_t snoopChannelIntfMaskEntryAdd(snoopChannelIntfMaskInfoData_t   **snoopEnt
 * @end
 *
 *********************************************************************/
-L7_RC_t snoopChannelIntfMaskEntryDelete(L7_uint32 vlanId, L7_INTF_MASK_t *groupIntfMask, snoopChannelIntfMaskInfoData_t   *pSnoopEntry)
+L7_RC_t snoopChannelIntfMaskEntryDelete(L7_uint32 vlanId, PTIN_INTF_MASK_t *groupIntfMask, snoopChannelIntfMaskInfoData_t   *pSnoopEntry)
 {
   snoopChannelIntfMaskInfoData_t  *pData;
   snoopChannelIntfMaskInfoData_t  *snoopEntry;

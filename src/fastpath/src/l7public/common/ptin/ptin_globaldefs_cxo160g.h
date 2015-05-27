@@ -113,6 +113,7 @@
 
 # define PTIN_SYSTEM_N_IGMP_INSTANCES                  40    /* Maximum nr of IGMP instances */
 # define PTIN_SYSTEM_MAXINTERFACES_PER_GROUP           (L7_MAX_PORT_COUNT + L7_MAX_CPU_SLOTS_PER_UNIT + L7_MAX_NUM_LAG_INTF + 2)   /* Maximum nr of interfaces per multicast group */
+# define PTIN_SYSTEM_IGMP_MAXINTERFACES                PTIN_SYSTEM_N_INTERF                                                        /* Maximum nr of interfaces per multicast group */
 # define PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF             1
 # define PTIN_SYSTEM_IGMP_MAXONUS                      (PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF*PTIN_SYSTEM_N_INTERF)  /* 20 clients per IGMP instance (20 slots) */
 # define PTIN_SYSTEM_IGMP_MAXDEVICES_PER_ONU           1     /* Settop boxes connected to ONUs */

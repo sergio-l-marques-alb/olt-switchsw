@@ -18,7 +18,6 @@
 * 
 * @end
 **********************************************************************/
-
 #include "ptin_fpga_api.h"
 
 #ifdef MAP_CPLD
@@ -38,7 +37,7 @@
 * @end
 *
 *************************************************************************/
-L7_uint8 ptin_fgpa_mx_is_matrixactive(void)
+L7_uint8 ptin_fpga_mx_is_matrixactive(void)
 {
   return (cpld_map->reg.mx_is_active != 0);
 }
@@ -57,14 +56,14 @@ L7_uint8 ptin_fgpa_mx_is_matrixactive(void)
 * @end
 *
 *************************************************************************/
-L7_uint8 ptin_fgpa_mx_is_matrixactive_rt(void)
+L7_uint8 ptin_fpga_mx_is_matrixactive_rt(void)
 {
-  if (ptin_fgpa_mx_get_matrixactive()==PTIN_SLOT_WORK && !ptin_fgpa_mx_is_matrix_in_workingslot())
+  if (ptin_fpga_mx_get_matrixactive()==PTIN_SLOT_WORK && !ptin_fpga_mx_is_matrix_in_workingslot())
   {
     /* Running on Stanby matrix */
     return 0;
   }
-  if (ptin_fgpa_mx_get_matrixactive()==PTIN_SLOT_PROT && ptin_fgpa_mx_is_matrix_in_workingslot())
+  if (ptin_fpga_mx_get_matrixactive()==PTIN_SLOT_PROT && ptin_fpga_mx_is_matrix_in_workingslot())
   {
     /* Running on Stanby matrix */
     return 0;
@@ -80,7 +79,7 @@ L7_uint8 ptin_fgpa_mx_is_matrixactive_rt(void)
  * 
  * @return L7_uint8 : L7_TRUE / L7_FALSE
  */
-L7_uint8 ptin_fgpa_mx_is_matrix_in_workingslot(void)
+L7_uint8 ptin_fpga_mx_is_matrix_in_workingslot(void)
 {
   return (cpld_map->reg.slot_id == 0);
 }
@@ -93,7 +92,7 @@ L7_uint8 ptin_fgpa_mx_is_matrix_in_workingslot(void)
  * 
  * @return L7_uint8 : L7_TRUE / L7_FALSE
  */
-L7_uint8 ptin_fgpa_lc_is_matrixactive_in_workingslot(void)
+L7_uint8 ptin_fpga_lc_is_matrixactive_in_workingslot(void)
 {
   return ((cpld_map->reg.slot_matrix & 0x0f) != 0);
 }
@@ -106,7 +105,7 @@ L7_uint8 ptin_fgpa_lc_is_matrixactive_in_workingslot(void)
  *  
  * @return L7_uint8 : L7_TRUE / L7_FALSE
  */
-L7_uint8 ptin_fgpa_matrixActive_slot(void)
+L7_uint8 ptin_fpga_matrixActive_slot(void)
 {
   L7_uint8 slot = 0;
   L7_uint8 working_slot, protection_slot;
@@ -147,7 +146,7 @@ L7_uint8 ptin_fgpa_matrixActive_slot(void)
  * 
  * @return L7_uint8 : L7_TRUE / L7_FALSE
  */
-L7_uint8 ptin_fgpa_matrixInactive_slot(void)
+L7_uint8 ptin_fpga_matrixInactive_slot(void)
 {
   L7_uint8 slot = 0;
   L7_uint8 working_slot, protection_slot;
@@ -196,9 +195,7 @@ L7_uint8 ptin_fgpa_matrixInactive_slot(void)
 * @end
 *
 *************************************************************************/
-#include <stdio.h>
-#include <logger.h>
-L7_uint8 ptin_fgpa_mx_get_matrixactive(void)
+L7_uint8 ptin_fpga_mx_get_matrixactive(void)
 {
   int current_state = -1;
   static int previous_state = -1;
@@ -239,13 +236,62 @@ L7_uint8 ptin_fgpa_mx_get_matrixactive(void)
 
 #endif//MAP_CPLD
 
+#if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
+/**
+ * Get active/backup matrix slot id.
+ * 
+ * @param matrixType : Matrix type (1-active; 0-backup) 
+ * 
+ * @return slotId  : Slot Id of the  matrix type
+ *  
+ * @note When this method is used in a linecard, the matrixType parameter is ignored and the slotId returned always belongs to the active matrix 
+ */
+L7_uint8 ptin_fpga_matrix_slotid_get(ptin_fpga_matrix_type_t matrixType)
+{
+#if PTIN_BOARD_IS_MATRIX  
+  if(matrixType == PTIN_FPGA_STANDBY_MATRIX)  //Return backup matrix slot ID 
+  {
+    return (ptin_fpga_matrixInactive_slot());
+  }
+  else //Return active matrix slot ID
+  {
+    return (ptin_fpga_matrixActive_slot());   
+  }
+#elif PTIN_BOARD_IS_LINECARD
+  return (ptin_fpga_matrixActive_slot());
+#endif
+}
+
+/**
+ * Get active/backup matrix IP address.
+ * 
+ * @param matrixType : Matrix type (1-active; 0-backup)
+ * @param 
+ * 
+ * @return ipAddr    : IP address of the matrix type
+ *  
+ * @note When this method is used in a linecard, the matrixType parameter is ignored and the IP address returned always belongs to the active matrix 
+ */
+L7_uint32 ptin_fpga_matrix_ipaddr_get(ptin_fpga_matrix_type_t matrixType)
+{
+  if( ptin_fpga_matrix_slotid_get(matrixType) == PTIN_SYS_MX1_SLOT )
+  {
+    return (IPC_MX_IPADDR_WORKING);
+  }
+  else
+  {
+    return (IPC_MX_IPADDR_PROTECTION);
+  }
+}
+#endif // (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
+
 /**
  * Get slot id 
  * (For all cards)
  * 
  * @return L7_uint8 : slot id
  */
-L7_uint8 ptin_fgpa_board_slot(void)
+L7_uint8 ptin_fpga_board_slot(void)
 {
   L7_uint8 slot = 0;
 
@@ -276,4 +322,5 @@ L7_uint8 ptin_fgpa_board_slot(void)
 
   return slot;
 }
+
 

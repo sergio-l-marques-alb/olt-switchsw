@@ -1037,13 +1037,18 @@ typedef struct {
 /* MGMD port sync */
 // Messages CCMSG_MGMD_PORT_SYNC
 typedef struct {
-  L7_uint8  SlotId;
-  L7_uint8  admin;      // [L7_ENABLE; L7_DISABLE]
-  L7_uint32 serviceId;  
-  L7_uint32 portId;
-  L7_uint32 groupAddr;
-  L7_uint32 sourceAddr;
-  L7_uint8  groupType;  // [0-dynamic; 1-static] (ignored when admin is L7_DISABLE)
+  L7_uint8                  SlotId;
+  L7_uint8                  admin;      // [L7_ENABLE; L7_DISABLE]
+  L7_uint32                 serviceId;  
+  L7_uint32                 portId;
+#if 0//PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
+   chmessage_ip_addr_t      groupAddr;
+   chmessage_ip_addr_t      sourceAddr;
+#else
+  L7_uint32                 groupAddr;
+  L7_uint32                 sourceAddr;
+#endif
+  L7_uint8                  groupType;  // [0-dynamic; 1-static] (ignored when admin is L7_DISABLE)
 } __attribute__((packed)) msg_HwMgmdPortSync;
 
 /* Type-B Protection */
@@ -1829,26 +1834,41 @@ typedef struct _st_MCActiveChannelClientsResponse
 // Message CCMSG_MGMD_SNOOP_SYNC_REQUEST
 typedef struct
 {
-   L7_uint32          serviceId;  //Extended Service Id
-   L7_uint32          groupAddr; //IP Address of the Multicast Group  
+   L7_uint32                serviceId;  //Extended Service Id
+#if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
+   chmessage_ip_addr_t      groupAddr;
+   chmessage_ip_addr_t      sourceAddr;
+#else
+   L7_uint32                groupAddr; //IP Address of the Multicast Group  
+#endif
+
 #if !PTIN_BOARD_IS_MATRIX  
-   L7_uint8           portId;
+   L7_uint8                 portId;
 #endif
 } __attribute__((packed)) msg_SnoopSyncRequest_t;
 
 // Message CCMSG_MGMD_SNOOP_SYNC_REPLY
 typedef struct 
 {
-  L7_uint32      serviceId; //Extended Service Id 
-  L7_uint32      groupAddr; //IP Address of the Multicast Group  
-  L7_uint8       isStatic;//Static Entry 
-#if PTIN_BOARD_IS_MATRIX
-  L7_uint8       numberOfActivePorts;
+  L7_uint32                 serviceId; //Extended Service Id 
+#if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
+  chmessage_ip_addr_t       groupAddr;
+  chmessage_ip_addr_t       sourceAddr;
 #else
-  L7_uint8       portId;
+  L7_uint32                 groupAddr; //IP Address of the Multicast Group  
+#endif
+  L7_uint8                  isStatic;//Static Entry 
+#if PTIN_BOARD_IS_MATRIX
+  L7_uint8                  numberOfActivePorts;
+#else
+  L7_uint8                  portId;
 #endif  
 #if PTIN_BOARD_IS_MATRIX
-  L7_uint32      intIfNum_mask[PTIN_SYSTEM_MAXINTERFACES_PER_GROUP/(sizeof(L7_uint32)*8)+1];  /* List of ports, this IP is being used */   
+#if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
+  PTIN_INTF_MASK_t          intIfNum_mask;  /* List of ports, this IP is being used */   
+#else
+  L7_uint32                 intIfNum_mask[PTIN_SYSTEM_MAXINTERFACES_PER_GROUP/(sizeof(L7_uint32)*8)+1];  /* List of ports, this IP is being used */   
+#endif
 #endif
 } __attribute__((packed)) msg_SnoopSyncReply_t;
 

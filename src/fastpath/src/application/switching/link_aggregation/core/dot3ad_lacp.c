@@ -1697,7 +1697,7 @@ L7_RC_t dot3adTransmitLacpdu(dot3ad_port_t *p)
 
 #if PTIN_BOARD_IS_MATRIX
   /* Do nothing if running on stanby matrix */
-  if (!ptin_fgpa_mx_is_matrixactive_rt())
+  if (!ptin_fpga_mx_is_matrixactive_rt())
   {
     if (ptin_debug_lacp)
       LOG_NOTICE(LOG_CTX_MISC,"Silently ignoring packet transmission. I'm a Stanby Matrix");

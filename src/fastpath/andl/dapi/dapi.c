@@ -96,7 +96,7 @@ typedef enum
 *
 * @purpose Convert from BCM Return Value to FP Return Code
 *
-* @param   rv: Return Value
+* @param   ptin_bcm_error_t: Return Value
 * @returns L7_RC_t: Return Code
 *
 * @notes 

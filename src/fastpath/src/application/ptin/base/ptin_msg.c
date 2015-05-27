@@ -60,10 +60,6 @@
 
 #define CMD_MAX_LEN   200   /* Shell command maximum length */
 
-#ifndef PTIN_IS_MASKBITSET
-#define PTIN_IS_MASKBITSET(array,idx)   ((array[(idx)/(sizeof(L7_uint32)*8)] >> ((idx)%(sizeof(L7_uint32)*8))) & 1)
-#endif
-
 #define IS_FAILURE_ERROR(rc)  ((rc) != L7_NOT_EXIST          && \
                                (rc) != L7_ALREADY_CONFIGURED && \
                                (rc) != L7_NOT_SUPPORTED      && \
@@ -83,7 +79,6 @@ static void ptin_msg_PortStats_convert(msg_HWEthRFC2819_PortStatistics_t  *msgPo
 static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile, ptin_bw_profile_t *profile, ptin_bw_meter_t *meter);
 static L7_RC_t ptin_msg_evcStatsStruct_fill(msg_evcStats_t *msg_evcStats, ptin_evcStats_profile_t *evcStats_profile);
 
-L7_RC_t fp_to_ptin_ip_notation(L7_inet_addr_t *fpIpAddr, chmessage_ip_addr_t *ptinIpAddr);
 L7_RC_t ptin_to_fp_ip_notation(chmessage_ip_addr_t *ptinIpAddr, L7_inet_addr_t *fpIpAddr);
 
 /******************************************************** 
@@ -156,7 +151,7 @@ L7_RC_t ptin_msg_FPInfo_get(msg_FWFastpathInfo *msgFPInfo)
 {
   memset(msgFPInfo, 0x00, sizeof(msg_FWFastpathInfo));
 
-  msgFPInfo->SlotIndex    = ptin_fgpa_board_slot();
+  msgFPInfo->SlotIndex    = ptin_fpga_board_slot();
   msgFPInfo->BoardPresent = (ptin_state == PTIN_LOADED);
 
   osapiStrncpySafe(msgFPInfo->BoardSerialNumber, "OLTSWITCH 1.2.3.4", 20);
@@ -1232,7 +1227,7 @@ L7_RC_t ptin_msg_intfInfo_get(msg_HwIntfInfo_t *intf_info)
   intf_info->number_of_ports = ptin_sys_number_of_ports;
 
   #ifdef MAP_CPLD
-  if (!ptin_fgpa_mx_is_matrixactive())
+  if (!ptin_fpga_mx_is_matrixactive())
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "I am inactive matrix");
     return L7_FAILURE;
@@ -9147,24 +9142,44 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
  */
 L7_RC_t ptin_msg_snoop_sync_request(msg_SnoopSyncRequest_t *snoopSyncRequest)
 {
-  L7_uint16 mcastRootVlan = 0;
-  L7_RC_t   rc;
+#if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)    
+  L7_uint16      mcastRootVlan = 0;
+#if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
+  L7_inet_addr_t groupAddr;
+  L7_inet_addr_t sourceAddr;
+  char           groupAddrStr[IPV6_DISP_ADDR_LEN]={};
+  char           sourceAddrStr[IPV6_DISP_ADDR_LEN]={};
+#endif
+  L7_RC_t        rc;
 
   if (snoopSyncRequest==L7_NULLPTR )
   {
     LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid input parameters snoopSyncRequest=%p",snoopSyncRequest);
     return L7_FAILURE;
   }
-  
+
+#if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD    
+  ptin_to_fp_ip_notation(&snoopSyncRequest->groupAddr, &groupAddr);
+  ptin_to_fp_ip_notation(&snoopSyncRequest->sourceAddr, &sourceAddr);
+
+  inetAddrPrint(&groupAddr, groupAddrStr);
+  inetAddrPrint(&sourceAddr, sourceAddrStr);
+#endif
+
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Received Snoop Sync Request Message");     
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," serviceId=%u",snoopSyncRequest->serviceId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," serviceId=%u",snoopSyncRequest->serviceId);  
+#if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," groupAddr=%s", groupAddrStr);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," sourceAddr=%s", sourceAddrStr);
+#else
   LOG_DEBUG(LOG_CTX_PTIN_MSG," groupAddr=%08X",snoopSyncRequest->groupAddr);
+#endif
 #if !PTIN_BOARD_IS_MATRIX  
   LOG_DEBUG(LOG_CTX_PTIN_MSG," portId=%u",snoopSyncRequest->portId);
 #endif
-
-  if( (snoopSyncRequest->serviceId != 0 &&  snoopSyncRequest->groupAddr != 0)
-       && (L7_SUCCESS != (rc=ptin_evc_intRootVlan_get(snoopSyncRequest->serviceId, &mcastRootVlan))))
+  
+  if( snoopSyncRequest->serviceId != 0 &&  !inetIsAddressZero(&groupAddr) && !inetIsAddressZero(&sourceAddr)
+       && (L7_SUCCESS != (rc=ptin_evc_intRootVlan_get(snoopSyncRequest->serviceId, &mcastRootVlan))) )
   {
     if( rc != L7_NOT_EXIST)
     {
@@ -9172,19 +9187,40 @@ L7_RC_t ptin_msg_snoop_sync_request(msg_SnoopSyncRequest_t *snoopSyncRequest)
       return rc;
     }
 #if PTIN_BOARD_IS_MATRIX 
+  #if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
+    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Evc Id is not yet created. Silently Ignoring Snoop Sync Request! [serviceId:%u groupAddr:%08X sourceAddr:%08X]", snoopSyncRequest->serviceId, snoopSyncRequest->groupAddr, snoopSyncRequest->sourceAddr);
+  #else
     LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Evc Id is not yet created. Silently Ignoring Snoop Sync Request! [serviceId:%u groupAddr:%08X]", snoopSyncRequest->serviceId, snoopSyncRequest->groupAddr);
+  #endif
 #else
+  #if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
+    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Evc Id is not yet created. Silently Ignoring Snoop Sync Request! [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X]", snoopSyncRequest->serviceId, snoopSyncRequest->portId, snoopSyncRequest->groupAddr, snoopSyncRequest->sourceAddr);
+  #else
     LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Evc Id is not yet created. Silently Ignoring Snoop Sync Request! [serviceId:%u portId:%u groupAddr:%08X]", snoopSyncRequest->serviceId, snoopSyncRequest->portId, snoopSyncRequest->groupAddr);
+  #endif
 #endif
     return rc;
   }
-
    
-#if PTIN_BOARD_IS_MATRIX    
-  return (ptin_snoop_sync_mx_process_request(mcastRootVlan, snoopSyncRequest->groupAddr));            
-#else    
-  return (ptin_snoop_sync_port_process_request(mcastRootVlan, snoopSyncRequest->groupAddr,snoopSyncRequest->portId));           
-#endif                
+#if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
+  #if PTIN_BOARD_IS_MATRIX    
+    return (ptin_snoop_l3_sync_mx_process_request(mcastRootVlan, &groupAddr, &sourceAddr));            
+  #else    
+    return (ptin_snoop_l3_sync_port_process_request(mcastRootVlan, &groupAddr, &sourceAddr, snoopSyncRequest->portId));           
+  #endif                
+#else
+  #if PTIN_BOARD_IS_MATRIX    
+    return (ptin_snoop_sync_mx_process_request(mcastRootVlan, snoopSyncRequest->groupAddr));            
+  #else    
+    return (ptin_snoop_sync_port_process_request(mcastRootVlan, snoopSyncRequest->groupAddr, snoopSyncRequest->portId));           
+  #endif                
+#endif
+
+#else
+    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Silently Ignoring Snoop Sync Request. I'm a standalone!");
+    return L7_SUCCESS;
+#endif
+
 }
 
 /**
@@ -9197,9 +9233,17 @@ L7_RC_t ptin_msg_snoop_sync_request(msg_SnoopSyncRequest_t *snoopSyncRequest)
  */
 L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint32 numberOfSnoopEntries)
 {
-  L7_uint32  maxNumberOfSnoopEntries  =  IPCLIB_MAX_MSGSIZE/sizeof(msg_SnoopSyncReply_t); //IPC buffer size / struct size 
-  L7_uint32  iterator; 
-  L7_uint32  sourceAddr = 0x0;
+  L7_uint32      maxNumberOfSnoopEntries  =  IPCLIB_MAX_MSGSIZE/sizeof(msg_SnoopSyncReply_t); //IPC buffer size / struct size 
+  L7_uint32      iterator; 
+#if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
+  L7_BOOL        isProtection = L7_TRUE;
+  L7_inet_addr_t groupAddr;
+  L7_inet_addr_t sourceAddr;
+  char           groupAddrStr[IPV6_DISP_ADDR_LEN]={};
+  char           sourceAddrStr[IPV6_DISP_ADDR_LEN]={};
+#else
+  L7_uint32      sourceAddr = 0x0;
+#endif
   
   if (snoopSyncReply==L7_NULLPTR)
   {
@@ -9223,7 +9267,17 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
     for(iterator=0;iterator < numberOfSnoopEntries; iterator++)
     {
       LOG_TRACE(LOG_CTX_PTIN_MSG," serviceId=%u",snoopSyncReply[iterator].serviceId);
+#if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
+      ptin_to_fp_ip_notation(&snoopSyncReply[iterator].groupAddr, &groupAddr);
+      ptin_to_fp_ip_notation(&snoopSyncReply[iterator].sourceAddr, &sourceAddr);
+
+      inetAddrPrint(&groupAddr, groupAddrStr);
+      inetAddrPrint(&sourceAddr, sourceAddrStr);
+      LOG_TRACE(LOG_CTX_PTIN_MSG," groupAddr=%s", groupAddrStr);
+      LOG_TRACE(LOG_CTX_PTIN_MSG," sourceAddr=%s", sourceAddrStr);
+#else
       LOG_TRACE(LOG_CTX_PTIN_MSG," groupAddr=%08X",snoopSyncReply[iterator].groupAddr);
+#endif
       LOG_TRACE(LOG_CTX_PTIN_MSG," StaticEntry=%s",snoopSyncReply[iterator].isStatic?"Yes":"No");
       LOG_TRACE(LOG_CTX_PTIN_MSG," numberOfActivePorts=%u",snoopSyncReply[iterator].numberOfActivePorts);
       numberOfActivePorts=0;
@@ -9234,7 +9288,11 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
           if (PTIN_IS_MASKBITSET(snoopSyncReply[iterator].intIfNum_mask,intIfNum))
           {
             LOG_DEBUG(LOG_CTX_PTIN_PROTB, "Snoop Port Open :%u", intIfNum);
+            #if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
+            if(snoopPortOpen(snoopSyncReply[iterator].serviceId, intIfNum, &groupAddr, &sourceAddr, snoopSyncReply[iterator].isStatic, isProtection)!=L7_SUCCESS)
+            #else
             if(snooping_port_open(snoopSyncReply[iterator].serviceId, intIfNum, snoopSyncReply[iterator].groupAddr, sourceAddr, snoopSyncReply[iterator].isStatic)!=L7_SUCCESS)
+            #endif
             {
               LOG_ERR(LOG_CTX_PTIN_PROTB, "Failed to open port");
               return L7_FAILURE;
@@ -9254,11 +9312,24 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
     for(iterator=0;iterator < numberOfSnoopEntries; iterator++)
     { 
       LOG_TRACE(LOG_CTX_PTIN_MSG," serviceId=%u",snoopSyncReply[iterator].serviceId);
+#if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
+      ptin_to_fp_ip_notation(&snoopSyncReply[iterator].groupAddr, &groupAddr);
+      ptin_to_fp_ip_notation(&snoopSyncReply[iterator].sourceAddr, &sourceAddr);
+
+      inetAddrPrint(&groupAddr, groupAddrStr);
+      inetAddrPrint(&sourceAddr, sourceAddrStr);
+      LOG_TRACE(LOG_CTX_PTIN_MSG," groupAddr=%s", groupAddrStr);
+      LOG_TRACE(LOG_CTX_PTIN_MSG," sourceAddr=%s", sourceAddrStr);
+#else
       LOG_TRACE(LOG_CTX_PTIN_MSG," groupAddr=%08X",snoopSyncReply[iterator].groupAddr);
+#endif
       LOG_TRACE(LOG_CTX_PTIN_MSG," StaticEntry=%s",snoopSyncReply[iterator].isStatic?"Yes":"No");   
       LOG_TRACE(LOG_CTX_PTIN_MSG," portId=%u",snoopSyncReply->portId);
-      
+      #if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
+      if(snoopPortOpen(snoopSyncReply[iterator].serviceId, snoopSyncReply[iterator].portId, &groupAddr, &sourceAddr, snoopSyncReply[iterator].isStatic, isProtection)!=L7_SUCCESS)
+      #else
       if(snooping_port_open(snoopSyncReply[iterator].serviceId, snoopSyncReply[iterator].portId, snoopSyncReply[iterator].groupAddr, sourceAddr, snoopSyncReply[iterator].isStatic)!=L7_SUCCESS)
+      #endif
       {
         LOG_ERR(LOG_CTX_PTIN_PROTB, "Failed to open port");
         return L7_FAILURE;
@@ -9277,18 +9348,25 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
   msg_SnoopSyncRequest_t   snoopSyncRequest;
   L7_uint32                ipAddr;
 
+  memset(&snoopSyncRequest, 0x00, sizeof(snoopSyncRequest));
+
+#if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
+  memcpy(&snoopSyncRequest.groupAddr, &snoopSyncReply[numberOfSnoopEntries-1].groupAddr, sizeof(snoopSyncRequest.groupAddr));
+  memcpy(&snoopSyncRequest.sourceAddr, &snoopSyncReply[numberOfSnoopEntries-1].sourceAddr, sizeof(snoopSyncRequest.sourceAddr));
+#else
   snoopSyncRequest.groupAddr    = snoopSyncReply[numberOfSnoopEntries-1].groupAddr;
+#endif
   snoopSyncRequest.serviceId    = snoopSyncReply[numberOfSnoopEntries-1].serviceId;
 
 #if PTIN_BOARD_IS_MATRIX    
-  if(ptin_fgpa_mx_is_matrixactive())//If I'm a Working Matrix
+  if(ptin_fpga_mx_is_matrixactive())//If I'm a Active Matrix
   {
-    LOG_NOTICE(LOG_CTX_PTIN_MSG, "Not sending Another Snoop Sync Request Message to Sync the Remaining Snoop Entries. I'm a Working Matrix on slotId:%u",ptin_fgpa_board_slot());
+    LOG_NOTICE(LOG_CTX_PTIN_MSG, "Not sending Another Snoop Sync Request Message to Sync the Remaining Snoop Entries. I'm a Active Matrix on slotId:%u",ptin_fpga_board_slot());
     return SUCCESS;
   }
 
   /* MX board IP address */
-  ipAddr = IPC_MX_IPADDR;
+  ipAddr = ptin_fpga_matrix_ipaddr_get(PTIN_FPGA_ACTIVE_MATRIX);
   
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Sending Snoop Sync Request Message [groupAddr:%08X | serviceId:%u] to ipAddr:%08X to Sync the Remaining Snoop Entries", snoopSyncRequest.groupAddr, snoopSyncRequest.serviceId, ipAddr);         
 #else
@@ -9299,7 +9377,7 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
 
   if(protTypebIntfConfig.status==L7_ENABLE)//If I'm a Protection
   {
-    LOG_NOTICE(LOG_CTX_PTIN_MSG, "Not sending Another Snoop Sync Request Message to Sync the Remaining Snoop Entries. I'm a Working slotId/intfNum:%u/%u",protTypebIntfConfig.pairSlotId, protTypebIntfConfig.intfNum);
+    LOG_NOTICE(LOG_CTX_PTIN_MSG, "Not sending Another Snoop Sync Request Message to Sync the Remaining Snoop Entries. I'm a Active slotId/intfNum:%u/%u",protTypebIntfConfig.pairSlotId, protTypebIntfConfig.intfNum);
     return SUCCESS;
   }
     
@@ -12756,13 +12834,13 @@ void ptin_msg_protection_matrix_configuration_flush_end(void)
 
   { /*Trigger the Sync of the Snooping Table*/   
   #if PTIN_BOARD_IS_MATRIX    
-    if(!ptin_fgpa_mx_is_matrixactive())//If I'm a Protection Matrix
+    if(!ptin_fpga_mx_is_matrixactive())//If I'm a Standby Matrix
     {
       msg_SnoopSyncRequest_t   snoopSyncRequest = {0};
       L7_uint32                ipAddr; 
     
-      /* MX board IP address */
-      ipAddr = IPC_MX_IPADDR;
+      /* IP address of Active Matrix*/
+      ipAddr = ptin_fpga_matrix_ipaddr_get(PTIN_FPGA_ACTIVE_MATRIX);
 
       LOG_DEBUG(LOG_CTX_PTIN_MSG, "Sending a Snoop Sync Request Message to ipAddr:%08X", ipAddr);
 
@@ -12775,7 +12853,7 @@ void ptin_msg_protection_matrix_configuration_flush_end(void)
     }
     else
     {
-      LOG_NOTICE(LOG_CTX_PTIN_MSG, "Not sending Snoop Sync Request Message. Since, I'm not a protection matrix");      
+      LOG_NOTICE(LOG_CTX_PTIN_MSG, "Not sending Snoop Sync Request Message. Since, I'm not a standby matrix");      
 //    return
     }
   #endif

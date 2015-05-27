@@ -1380,6 +1380,8 @@ extern int msg_wr_802_1x_AuthServ(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 
  */
 extern void ptin_msg_protection_matrix_configuration_flush_end(void);
 
+extern L7_RC_t fp_to_ptin_ip_notation(L7_inet_addr_t *fpIpAddr, chmessage_ip_addr_t *ptinIpAddr);
+
 /****************************************************************************** 
  * Routing
  ******************************************************************************/

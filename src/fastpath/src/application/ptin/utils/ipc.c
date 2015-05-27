@@ -225,7 +225,7 @@ int send_trap_intf_alarm(unsigned char intfType, int porto, int code, int status
   alarm             = (st_alarmGeral *) &comando.info[0];
 
   memset(alarm,0x00,sizeof(st_alarmGeral));
-  alarm->SlotId      = ptin_fgpa_board_slot();
+  alarm->SlotId      = ptin_fpga_board_slot();
   alarm->trapSrc     = ERROR_FAMILY_HARDWARE;
   alarm->oltiftype   = intfType;
   alarm->oltifindex  = porto;
@@ -319,7 +319,7 @@ int send_trap_switch_event(unsigned char intfType, int interface, int code, int 
   }
   else
   {
-    alarm->slotId      = ptin_fgpa_board_slot();
+    alarm->slotId      = ptin_fpga_board_slot();
   }
 
   alarm->code        = code;
@@ -525,7 +525,7 @@ int send_trap_ETH_OAM(void *param, int param_size)
   {
    st_alarmGeral *p;
    p=           (st_alarmGeral*)comando.info;
-   p->SlotId=   ptin_fgpa_board_slot();  //this field's structure agnostic
+   p->SlotId=   ptin_fpga_board_slot();  //this field's structure agnostic
   }
 
   ret=send_data(g_iInterfaceSW, IPC_CHMSG_TRAP_PORT, IPC_SERVER_IPADDR, (ipc_msg *)&comando, (ipc_msg *)NULL);

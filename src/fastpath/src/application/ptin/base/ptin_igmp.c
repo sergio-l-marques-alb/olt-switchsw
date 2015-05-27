@@ -53,10 +53,6 @@ L7_BOOL ptin_debug_igmp_snooping = 0;
 
 L7_BOOL ptin_debug_igmp_packet_trace = 0;
 
-L7_BOOL ptin_igmp_flag_port_close = 0;
-
-L7_BOOL ptin_igmp_flag_port_open = 0;
-
 void ptin_debug_igmp_enable(L7_BOOL enable)
 {
   ptin_debug_igmp_snooping = enable;
@@ -5571,19 +5567,21 @@ L7_RC_t ptin_igmp_dynamic_client_add(L7_uint32 intIfNum,
   /* Add client */
   rc = ptin_igmp_new_client(&client, uni_ovid, uni_ivid, L7_TRUE, client_idx_ret);
 
-#if PTIN_SNOOP_USE_MGMD
-  /*Start the Timer*/
-  ptin_igmp_client_timer_start(intIfNum, *client_idx_ret);
-#endif
-
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"New client created: intIfNum %u, intVlan %u, innerVlan %u",
-            intIfNum, intVlan, innerVlan);
-
   if (rc!=L7_SUCCESS)
   {
-    if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error adding dynamic client");
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error adding dynamic client: intIfNum %u, intVlan %u, innerVlan %u", intIfNum, intVlan, innerVlan);
+    return rc;
   }
+  else
+  {
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"New client created: intIfNum %u, intVlan %u, innerVlan %u",
+            intIfNum, intVlan, innerVlan);
+  }
+
+  #if PTIN_SNOOP_USE_MGMD
+  /*Start the Timer*/
+  rc = ptin_igmp_client_timer_start(intIfNum, *client_idx_ret);
+  #endif
 
   return rc;
 }
@@ -12918,15 +12916,23 @@ L7_RC_t ptin_igmp_stat_decrement_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
  * @param portId     : Port ID (intfNum)
  * @param groupAddr  : Group IP Address
  * @param sourceAddr : Source IP Address
- * @param groupType  : Dynamic or static port (0-dynamic; 1-static)
+ * @param isStatic   : Dynamic or static port (0-dynamic; 
+ *                  1-static)
  *  
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_mgmd_port_sync(L7_uint8 admin, L7_uint32 serviceId, L7_uint32 portId, L7_uint32 groupAddr, L7_uint32 sourceAddr, L7_uint8 groupType)
+L7_RC_t ptin_igmp_mgmd_port_sync(L7_uint8 admin, L7_uint32 serviceId, L7_uint32 portId, L7_uint32 ipv4GroupAddr, L7_uint32 ipv4SourceAddr, L7_uint8 isStatic)
 {
-  L7_RC_t rc = L7_SUCCESS;
+  L7_inet_addr_t groupAddr;
+  L7_inet_addr_t sourceAddr;
+  L7_BOOL        isProtection = L7_TRUE;
+  L7_RC_t        rc = L7_SUCCESS;
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Received request to sync port");
+
+  inetAddressSet(L7_AF_INET, &ipv4GroupAddr, &groupAddr);
+  inetAddressSet(L7_AF_INET, &ipv4SourceAddr, &sourceAddr);
+
 
 #if PTIN_BOARD_IS_MATRIX
   L7_uint32 slotId;
@@ -12936,7 +12942,7 @@ L7_RC_t ptin_igmp_mgmd_port_sync(L7_uint8 admin, L7_uint32 serviceId, L7_uint32 
    * PortId is a slot in the matrix context. We need to convert it first, but only if this is the active matrix.
    * The backup matrix only receives sync requests from the active matrix. Hence, the ports are already converted.
    */
-  if (ptin_fgpa_mx_is_matrixactive() == 1)
+  if (ptin_fpga_mx_is_matrixactive() == 1)
   {
     slotId = portId;
     if (L7_SUCCESS != ptin_intf_slot2lagIdx(slotId, &lagId))
@@ -12954,19 +12960,15 @@ L7_RC_t ptin_igmp_mgmd_port_sync(L7_uint8 admin, L7_uint32 serviceId, L7_uint32 
 
   if (admin == L7_ENABLE)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Going to open port [intfNum:%u]", portId);
-    ptin_igmp_flag_port_open = 1; 
-    rc = snooping_port_open(serviceId, portId, groupAddr, sourceAddr, groupType);
-    ptin_igmp_flag_port_open = 0; 
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Going to open port [intfNum:%u]", portId);    
+    rc = snoopPortOpen(serviceId, portId, &groupAddr, &sourceAddr, isStatic, isProtection);    
     return rc;
   }
   else if (admin == L7_DISABLE)
   {
     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Going to close port [intfNum:%u]", portId); 
-
-    ptin_igmp_flag_port_close = 1;   
-    rc = snooping_port_close(serviceId, portId, groupAddr, sourceAddr);
-    ptin_igmp_flag_port_close = 0;
+    
+    rc = snoopPortClose(serviceId, portId, &groupAddr, &sourceAddr, isProtection);    
 
     return rc;
   }
@@ -15952,7 +15954,7 @@ void ptin_igmp_device_clients_dump(void)
 /**
  * Dumps all IGMP associations 
  */
-void ptin_igmp_assoc_dump(L7_int evc_mc, L7_int evc_uc)
+void ptin_igmp_assoc_dump(L7_int evc_mc, L7_int evc_uc, L7_uint8 flag_port)
 {
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
   ptinIgmpChannelDataKey_t   avl_key;
@@ -16032,16 +16034,19 @@ void ptin_igmp_assoc_dump(L7_int evc_mc, L7_int evc_uc)
             (packageIdAux = packageEntry->packageId) < PTIN_SYSTEM_IGMP_MAXPACKAGES )
     {
       printf("packageId:%u ", packageIdAux);
-    }          
-    for (portIdIterator = 0; portIdIterator<PTIN_SYSTEM_N_UPLINK_INTERF; portIdIterator++)
+    }
+    if (flag_port)
     {
-      if (avl_info->noOfGroupClientsPerPort[portIdIterator] == 0)
-        continue;
-      printf(" portId:%u noOfGroupClients:%u groupClientBmp: 0x", portIdIterator, avl_info->noOfGroupClientsPerPort[portIdIterator]);
-      for ( groupClientIterator = PTIN_IGMP_CLIENT_BITMAP_SIZE-1; groupClientIterator>=0; --groupClientIterator )
+      for (portIdIterator = 0; portIdIterator<PTIN_SYSTEM_N_UPLINK_INTERF; portIdIterator++)
       {
-        printf("%08X", avl_info->groupClientBmpPerPort[portIdIterator][groupClientIterator]);
-      }            
+        if (avl_info->noOfGroupClientsPerPort[portIdIterator] == 0)
+          continue;
+        printf(" portId:%u noOfGroupClients:%u groupClientBmp: 0x", portIdIterator, avl_info->noOfGroupClientsPerPort[portIdIterator]);
+        for ( groupClientIterator = PTIN_IGMP_CLIENT_BITMAP_SIZE-1; groupClientIterator>=0; --groupClientIterator )
+        {
+          printf("%08X", avl_info->groupClientBmpPerPort[portIdIterator][groupClientIterator]);
+        }            
+      }
     }
     printf("\n");             
     n_entries++;

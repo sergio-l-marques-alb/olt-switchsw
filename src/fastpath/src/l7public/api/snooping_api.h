@@ -1208,8 +1208,8 @@ L7_RC_t snoopIntfApiVlanStaticMcastRtrMaskGet(L7_uint32 intIfNum,
                                               L7_VLAN_MASK_t *vlanStaticMcastRtr,
                                               L7_uchar8 family);
 
-extern unsigned int snooping_port_open(unsigned int serviceId, unsigned int portId, unsigned int groupAddr, unsigned int sourceAddr, unsigned char isStatic);
-extern unsigned int snooping_port_close(unsigned int serviceId, unsigned int portId, unsigned int groupAddr, unsigned int sourceAddr);
+L7_RC_t snoopPortOpen(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, L7_BOOL isStatic, L7_BOOL isProtection);
+L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, L7_BOOL isProtection);
 
 #endif /* SNOOPING_API_H */
 

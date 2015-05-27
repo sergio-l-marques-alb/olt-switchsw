@@ -18,7 +18,9 @@
 /*********************************************************** 
  * MACRO TOOLS
  ***********************************************************/
+#ifndef UINT32_BITSIZE
 #define UINT32_BITSIZE  (sizeof(L7_uint32)*8)
+#endif
 
 #define IS_BITMAP_BIT_SET(array, index, size) ( ( array[(index)/(size)] >> ((index)%(size)) ) & 1 )
 #define BITMAP_BIT_SET(array, index, size)    array[(index)/(size)] |=  ((L7_uint32) 1 << ((index)%(size)))
@@ -438,12 +440,6 @@ extern L7_BOOL ptin_debug_igmp_snooping;
 
 /* Packet trace for IGMP */
 extern L7_BOOL ptin_debug_igmp_packet_trace;
-
-/*Flag used to signal when a  port close request comes from IGMP Module*/
-extern L7_BOOL ptin_igmp_flag_port_close;
-
-/*Flag used to signal when a  port open request comes from IGMP Module*/
-extern L7_BOOL ptin_igmp_flag_port_open;
 
 typedef enum
 {
@@ -1373,10 +1369,18 @@ extern L7_RC_t ptin_igmp_groupclients_bmp_get(L7_uint32 extendedEvcId, L7_uint32
  */
 L7_RC_t ptin_igmp_mgmd_port_sync(L7_uint8 admin, L7_uint32 serviceId, L7_uint32 portId, L7_uint32 groupAddr, L7_uint32 sourceAddr, L7_uint8 groupType);
 
-#if PTIN_BOARD_IS_MATRIX
-extern L7_RC_t ptin_snoop_sync_mx_process_request(L7_uint16 vlanId, L7_uint32 groupAddr);
+#if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
+  #if PTIN_BOARD_IS_MATRIX
+    extern L7_RC_t ptin_snoop_l3_sync_mx_process_request(L7_uint16 vlanId, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr);
+  #else
+    extern L7_RC_t ptin_snoop_l3_sync_port_process_request(L7_uint16 vlanId, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, L7_uint32 portId);
+  #endif
 #else
-extern L7_RC_t ptin_snoop_sync_port_process_request(L7_uint16 vlanId, L7_uint32 groupAddr, L7_uint32 portId);
+  #if PTIN_BOARD_IS_MATRIX  
+    extern L7_RC_t ptin_snoop_sync_mx_process_request(L7_uint16 vlanId, L7_uint32 groupAddr);  
+  #else
+    extern L7_RC_t ptin_snoop_sync_port_process_request(L7_uint16 vlanId, L7_uint32 groupAddr, L7_uint32 portId);
+  #endif
 #endif
 
 /**

@@ -39,6 +39,7 @@
 
 /* PTin added: IGMP Snooping */
 #include "ptin_globaldefs.h"
+#include "ptin_structs.h"
 
 #include <pthread.h>
 
@@ -253,18 +254,19 @@ typedef struct snoopMrtrTimerData_s
 #if 1
 #define PTIN_SNOOP_CLIENT_MASK_UNIT               (sizeof(L7_uint32) * 8)
 #define PTIN_SNOOP_PORT_MASK_UNIT                (sizeof(L7_uint32) * 8)
+
 /* IP channel information */
 typedef struct
 {
   L7_BOOL   active;             /* Is channel active? */
   L7_uint32 ipAddr;             /* Channel IP address */
   L7_uint8  number_of_ports;    /* Number of interfaces being used */
-  L7_uint32 intIfNum_mask[PTIN_SYSTEM_MAXINTERFACES_PER_GROUP/(sizeof(L7_uint32)*8)+1];  /* List of ports, this IP is being used */  
+  L7_uint32 intIfNum_mask[PTIN_SYSTEM_MAXINTERFACES_PER_GROUP/PTIN_SNOOP_PORT_MASK_UNIT+1];  /* List of ports, this IP is being used */  
   L7_uint16 number_of_clients;  /* Number of clients using this channel */
-  L7_uint32 clients_list[PTIN_SYSTEM_IGMP_MAXCLIENTS/(sizeof(L7_uint32)*8)+1]; /* List of (index) clients */
+  L7_uint32 clients_list[PTIN_SYSTEM_IGMP_MAXCLIENTS/PTIN_SNOOP_CLIENT_MASK_UNIT+1]; /* List of (index) clients */
   L7_uint16 intf_number_of_clients[PTIN_SYSTEM_MAXINTERFACES_PER_GROUP];
 #if PTIN_BOARD_IS_MATRIX
-  L7_uint32 protection_mask[PTIN_SYSTEM_MAXINTERFACES_PER_GROUP/(sizeof(L7_uint32)*8)+1];  /* List of ports, this IP is being in protection */
+  L7_uint32 protection_mask[PTIN_SYSTEM_MAXINTERFACES_PER_GROUP/PTIN_SNOOP_PORT_MASK_UNIT+1];  /* List of ports, this IP is being in protection */
 #endif
 } ptinSnoopChannelInfo_t;
 
@@ -564,7 +566,7 @@ typedef struct snoopPTinQueryData_s
 typedef struct snoopChannelIntfMaskInfoDataKey_s
 {
   L7_uint32               vlanId;
-  L7_INTF_MASK_t          channelIntfMask;
+  PTIN_INTF_MASK_t        channelIntfMask;
 } snoopChannelIntfMaskInfoDataKey_t;
 
 typedef struct snoopChannelIntfMaskInfoData_s
@@ -579,23 +581,32 @@ typedef struct snoopChannelIntfMaskInfoData_s
 /* AVL Tree Snooping Channel Entry Strucutre */
 typedef struct snoopChannelInfoDataKey_s
 {
-  L7_uint32        vlanId;
+  L7_uint32        vlanId; 
   L7_inet_addr_t   groupAddr;
   L7_inet_addr_t   sourceAddr;
 } snoopChannelInfoDataKey_t;
 
-#define SNOOP_CHANNEL_ENTRY_IS_STATIC        0x0001
-#define SNOOP_CHANNEL_ENTRY_IS_DYNAMIC       0x0002
-#define SNOOP_CHANNEL_ENTRY_IS_PROTECTION    0x0004
-#define SNOOP_CHANNEL_ENTRY_IS_IN_HARDWARE   0x0008
+
+/* List of generic DTL messages */
+typedef enum
+{
+  SNOOP_CHANNEL_ENTRY_IS_STATIC      = 0x01,
+  SNOOP_CHANNEL_ENTRY_IS_DYNAMIC     = 0x02,
+  SNOOP_CHANNEL_ENTRY_IS_PROTECTION  = 0x04,
+  SNOOP_CHANNEL_ENTRY_IS_IN_HARDWARE = 0x08  
+} snoop_channel_entry_type_enum;
 
 typedef struct snoopChannelInfoData_s
-{
-  snoopChannelInfoDataKey_t  snoopChannelInfoDataKey; /*AVL Tree Key*/  
-  L7_INTF_MASK_t                     channelIntfMask;
-  L7_uint8                           noOfInterfaces;
-  L7_INTF_MASK_t                     channelIntfProtectionMask;
+{  
+  snoopChannelInfoDataKey_t          snoopChannelInfoDataKey; /*AVL Tree Key*/    
+  PTIN_INTF_MASK_t                   channelIntfMask;
+  L7_uint8                           noOfInterfaces;  
+  #if PTIN_BOARD_IS_MATRIX
+  PTIN_INTF_MASK_t                   channelIntfProtectionMask;
   L7_uint8                           noOfProtectionInterfaces;
+  PTIN_INTF_MASK_t                   channelIntfDynamicMask;
+  L7_uint8                           noOfDynamicInterfaces;
+  #endif
   L7_uint8                           flags;  
   snoopChannelIntfMaskInfoData_t    *pChannelIntfMask;
   void                              *next;
@@ -725,6 +736,7 @@ typedef struct snoop_eb_s
 
   /* Semaphores */
   void               *snoopMsgQSema;
+  
 /* PTin added: IGMPv3 snooping */
 #if 1
   void               *snoopPTinQueryQSema;
@@ -891,10 +903,11 @@ typedef struct snoopPDU_Msg_s
   L7_uint32        msgId;              /* Of type snoopMgmtMessages_t */
   L7_uint32        intIfNum;           /* Interface on which PDU was received */
   L7_uint32        vlanId;             /* VLAN on which PDU was received */
-  L7_uint32        innerVlanId;        /* Inner VLAN if present */
+  L7_uint32        innerVlanId;        /* Inner VLAN if present */  
   L7_uint32        client_idx;         /* Client index */          /* PTin added: IGMP snooping */
-  L7_uint32        groupAddress;       /* Group Address IP */      /* PTin added: MGMD integration */
-  L7_uint32        sourceAddress;      /* Source Address IP */     /* PTin added: MGMD integration */
+  L7_uint32        serviceId;          /* Service Id */            /* PTin added: MGMD integration */
+  L7_inet_addr_t   groupAddr;       /* Group Address IP */      /* PTin added: MGMD integration */
+  L7_inet_addr_t   sourceAddr;      /* Source Address IP */     /* PTin added: MGMD integration */
   L7_uint8         isStatic;           /* Static Entry*/           /* PTin added: MGMD integration */
   L7_uint8         isProtection;       /* Protection Entry*/       /* PTin added: MGMD integration */
   snoop_cb_t      *cbHandle;           /* Pointer to control block */

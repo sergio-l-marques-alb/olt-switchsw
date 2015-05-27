@@ -122,7 +122,7 @@ static void snoopL3McastModeChangeProcess(L7_uint32 l3Mode);
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-static void snoopMgmdSwitchPortOpenProcess(L7_uint32 serviceId, L7_uint32 portId, L7_uint32 groupAddr, L7_uint32 sourceAddr, L7_BOOL isStatic, L7_BOOL isProtection);
+static void snoopMgmdSwitchPortOpenProcess(L7_uint32 serviceId, L7_uint32 portId, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, L7_BOOL isStatic, L7_BOOL isProtection);
 
 /**
  * Close an MFDB port for multicast forwarding.
@@ -135,7 +135,7 @@ static void snoopMgmdSwitchPortOpenProcess(L7_uint32 serviceId, L7_uint32 portId
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-static void snoopMgmdSwitchPortCloseProcess(L7_uint32 serviceId, L7_uint32 portId, L7_uint32 groupAddr, L7_uint32 sourceAddr, L7_BOOL isProtection);
+static void snoopMgmdSwitchPortCloseProcess(L7_uint32 serviceId, L7_uint32 portId, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, L7_BOOL isProtection);
 
 static L7_uchar8 snoopMsgQueueSchedule();
 
@@ -433,11 +433,11 @@ void snoopTask(void)
         break;
 
     case snoopMgmdSwitchPortOpen:
-        snoopMgmdSwitchPortOpenProcess(pduMsg.vlanId, pduMsg.intIfNum, pduMsg.groupAddress, pduMsg.sourceAddress, pduMsg.isStatic, pduMsg.isProtection);
+        snoopMgmdSwitchPortOpenProcess(pduMsg.serviceId, pduMsg.intIfNum, &pduMsg.groupAddr, &pduMsg.sourceAddr, pduMsg.isStatic, pduMsg.isProtection);
         break;
 
     case snoopMgmdSwitchPortClose:
-        snoopMgmdSwitchPortCloseProcess(pduMsg.vlanId, pduMsg.intIfNum, pduMsg.groupAddress, pduMsg.sourceAddress, pduMsg.isProtection);
+        snoopMgmdSwitchPortCloseProcess(pduMsg.serviceId, pduMsg.intIfNum, &pduMsg.groupAddr, &pduMsg.sourceAddr, pduMsg.isProtection);
         break;
 
     default:
@@ -3338,7 +3338,7 @@ static void snoopL3McastModeChangeProcess(L7_uint32 l3Mode)
  * Open an MFDB port for multicast forwarding.
  * 
  * @param serviceId    : Service ID
- * @param portId       : Port ID
+ * @param intIfNum     : Port ID
  * @param groupAddr    : Group IP Address
  * @param sourceAddr   : Source IP Address 
  * @param isStatic     : Static Entry 
@@ -3346,15 +3346,18 @@ static void snoopL3McastModeChangeProcess(L7_uint32 l3Mode)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-static void snoopMgmdSwitchPortOpenProcess(L7_uint32 serviceId, L7_uint32 portId, L7_uint32 groupAddr, L7_uint32 sourceAddr, L7_BOOL isStatic, L7_BOOL isProtection)
+static void snoopMgmdSwitchPortOpenProcess(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t* groupAddr, L7_inet_addr_t* sourceAddr, L7_BOOL isStatic, L7_BOOL isProtection)
 {
-  L7_uint16      mcastRootVlan;
-  L7_inet_addr_t groupIp;
-  L7_inet_addr_t sourceIp;
+  L7_uint16      mcastRootVlan;  
   L7_BOOL        isL3Entry;
+  char           groupAddrStr[IPV6_DISP_ADDR_LEN]={};
+  char           sourceAddrStr[IPV6_DISP_ADDR_LEN]={};
   L7_RC_t        rc;
+
+  inetAddrPrint(groupAddr, groupAddrStr);
+  inetAddrPrint(sourceAddr, sourceAddrStr);
   
-  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Received request to open a new port on the switch [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X isStatic:%u isProtection:%s]", serviceId, portId, groupAddr, sourceAddr, isStatic, isProtection?"Yes":"No");
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Received request to open a new port on the switch [serviceId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isStatic:%s isProtection:%s]", serviceId, intIfNum, groupAddrStr, sourceAddrStr, isStatic?"Yes":"No", isProtection?"Yes":"No");
 
   #if 0
   L7_BOOL        adminMode = L7_DISABLE;
@@ -3377,26 +3380,24 @@ static void snoopMgmdSwitchPortOpenProcess(L7_uint32 serviceId, L7_uint32 portId
     if( rc != L7_NOT_EXIST)
     {
       if (ptin_debug_igmp_snooping)
-        LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to get mcastRootVlan from serviceId:%u",serviceId);
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to get mcastRootVlan [serviceId:%u portId:%u groupAddr:%s sourceAddr:%s isStatic:%s isProtection:%s]", mcastRootVlan, serviceId, intIfNum, groupAddrStr, sourceAddrStr, isStatic?"Yes":"No", isProtection?"Yes":"No");
       return;
     }
     if (ptin_debug_igmp_snooping)
-      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Evc Id is not yet created. Silently Ignoring Port Open Request! [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X]", serviceId, portId, groupAddr, sourceAddr);
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Evc Id is not yet created. Silently Ignoring Port Open Request! [serviceId:%u portId:%u groupAddr:%s sourceAddr:%s isStatic:%s isProtection:%s]", serviceId, intIfNum, groupAddrStr, sourceAddrStr, isStatic?"Yes":"No", isProtection?"Yes":"No");
     return;
   }
 
-  inetAddressSet(L7_AF_INET, &groupAddr, &groupIp);
-  inetAddressSet(L7_AF_INET, &sourceAddr, &sourceIp);
   #if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
   isL3Entry = L7_TRUE;
   #else
   isL3Entry = L7_FALSE;
   #endif
   ptin_timer_start(88,"snoopGroupIntfAdd");
-  if(L7_SUCCESS != snoopGroupIntfAdd(serviceId, mcastRootVlan, &groupIp, &sourceIp, portId, L7_TRUE, isProtection, isL3Entry))
+  if(L7_SUCCESS != snoopGroupIntfAdd(serviceId, mcastRootVlan, groupAddr, sourceAddr, intIfNum, isStatic, isProtection, isL3Entry))
   {
     if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to open port on switch for intVlan:%u groupAddr:%08X intfNum:%u", mcastRootVlan, groupIp.addr.ipv4.s_addr, portId);
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to open port on switch for mcastRootVlan:%u [serviceId:%u portId:%u groupAddr:%s sourceAddr:%s isStatic:%s isProtection:%s]", mcastRootVlan, serviceId, intIfNum, groupAddrStr, sourceAddrStr, isStatic?"Yes":"No", isProtection?"Yes":"No");      
   }
   ptin_timer_stop(88);
 }
@@ -3405,21 +3406,24 @@ static void snoopMgmdSwitchPortOpenProcess(L7_uint32 serviceId, L7_uint32 portId
  * Close an MFDB port for multicast forwarding.
  * 
  * @param serviceId    : Service ID
- * @param portId       : Port ID
+ * @param intIfNum       : Port ID
  * @param groupAddr    : Group IP Address
  * @param sourceAddr   : Source IP Address 
  * @param isProtection : Protection Entry
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-static void snoopMgmdSwitchPortCloseProcess(L7_uint32 serviceId, L7_uint32 portId, L7_uint32 groupAddr, L7_uint32 sourceAddr, L7_BOOL isProtection)
+static void snoopMgmdSwitchPortCloseProcess(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, L7_BOOL isProtection)
 {
   L7_uint16      mcastRootVlan;
-  L7_inet_addr_t groupIp;
-  L7_inet_addr_t sourceIp;
   L7_BOOL        isL3Entry;
+  char           groupAddrStr[IPV6_DISP_ADDR_LEN]={};
+  char           sourceAddrStr[IPV6_DISP_ADDR_LEN]={};
+  
+  inetAddrPrint(groupAddr, groupAddrStr);
+  inetAddrPrint(sourceAddr, sourceAddrStr);
 
-  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Received request to close an existing port on the switch [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X isProtection:%s]", serviceId, portId, groupAddr, sourceAddr, isProtection?"Yes":"No");
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Received request to close an existing port on the switch [serviceId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isProtection:%s]", serviceId, intIfNum, groupAddrStr, sourceAddrStr, isProtection?"Yes":"No");
 
   #if 0//We need to allow this operation
   L7_BOOL        adminMode = L7_DISABLE;
@@ -3440,22 +3444,20 @@ static void snoopMgmdSwitchPortCloseProcess(L7_uint32 serviceId, L7_uint32 portI
   if( L7_SUCCESS != ptin_evc_intRootVlan_get(serviceId, &mcastRootVlan))
   {
     if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to get mcastRootVlan from serviceId:%u",serviceId);
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to get mcastRootVlan [serviceId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isProtection:%s]", serviceId, intIfNum, groupAddrStr, sourceAddrStr, isProtection?"Yes":"No");      
     return;
   }
-
-  inetAddressSet(L7_AF_INET, &groupAddr, &groupIp);
-  inetAddressSet(L7_AF_INET, &sourceAddr, &sourceIp);
+  
   #if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
   isL3Entry = L7_TRUE;
   #else
   isL3Entry = L7_FALSE;
   #endif
   ptin_timer_start(89,"snoopGroupIntfRemove");
-  if(L7_SUCCESS != snoopGroupIntfRemove(serviceId, mcastRootVlan, &groupIp, &sourceIp, portId, isProtection, isL3Entry))
+  if(L7_SUCCESS != snoopGroupIntfRemove(serviceId, mcastRootVlan, groupAddr, sourceAddr, intIfNum, isProtection, isL3Entry))
   {
     if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to close port on switch for intVlan:%u groupAddr:%08X intfNum:%u", mcastRootVlan, groupIp.addr.ipv4.s_addr, portId);
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to close port on switch for mcastRootVlan:%u [serviceId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isProtection:%s]", mcastRootVlan, serviceId, intIfNum, groupAddrStr, sourceAddrStr, isProtection?"Yes":"No");      
   }
   ptin_timer_stop(89);
 }

@@ -223,8 +223,8 @@ L7_RC_t                        snoopChannelEntryDelete(L7_uint32 vlanId, L7_inet
 void                           snoopChannelReset(void);
 
 L7_RC_t                         snoopChannelIntfMaskEntryAdd(snoopChannelIntfMaskInfoData_t   **snoopEntry);
-snoopChannelIntfMaskInfoData_t *snoopChannelIntfMaskEntryFind(L7_uint32 vlanId, L7_INTF_MASK_t *groupIntfMask, L7_uint8 flag);
-L7_RC_t                         snoopChannelIntfMaskEntryDelete(L7_uint32 vlanId, L7_INTF_MASK_t *groupIntfMask, snoopChannelIntfMaskInfoData_t   *pSnoopEntry);
+snoopChannelIntfMaskInfoData_t *snoopChannelIntfMaskEntryFind(L7_uint32 vlanId, PTIN_INTF_MASK_t *groupIntfMask, L7_uint8 flag);
+L7_RC_t                         snoopChannelIntfMaskEntryDelete(L7_uint32 vlanId, PTIN_INTF_MASK_t *groupIntfMask, snoopChannelIntfMaskInfoData_t   *pSnoopEntry);
 
 /******************************************************************************
   SNOOP L3 Mcast DB Entry Processing Routines
@@ -250,4 +250,5 @@ snoopOperData_t *snoopOperEntryFirstGet(snoop_cb_t *pSnoopCB);
 snoopOperData_t *snoopOperEntryGet(L7_ushort16 vlanId, snoop_cb_t *pSnoopCB,
                                    L7_uint32 flag);
 void snoopOperEntryDeInit(snoopOperData_t  *pSnoopOperEntry);
+
 #endif /* SNOOPING_DB_H */

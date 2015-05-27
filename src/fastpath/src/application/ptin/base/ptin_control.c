@@ -661,7 +661,7 @@ static void monitor_matrix_commutation(void)
     return;
   }
 
-  cx_work_slot = (ptin_fgpa_mx_get_matrixactive()==PTIN_SLOT_WORK); //(cpld_map->reg.slot_matrix >> 4) & 1;
+  cx_work_slot = (ptin_fpga_mx_get_matrixactive()==PTIN_SLOT_WORK); //(cpld_map->reg.slot_matrix >> 4) & 1;
 
   /* Nothing to do if no change happened */
   if (cx_work_slot == cx_work_slot_h)
@@ -807,15 +807,15 @@ void ptin_control_switchover_monitor(void)
   static L7_uint8 matrix_is_active_h = 0xFF;    //L7_TRUE;
   L7_uint8 matrix_is_active;
 
-  matrix_is_active = ptin_fgpa_mx_is_matrixactive();
+  matrix_is_active = ptin_fpga_mx_is_matrixactive();
 
-  if (ptin_fgpa_mx_is_matrixactive() != ptin_fgpa_mx_is_matrixactive_rt())
+  if (ptin_fpga_mx_is_matrixactive() != ptin_fpga_mx_is_matrixactive_rt())
   {
     return;
   }
 
   /* First time procedure (after switchover) */
-  if (ptin_fgpa_mx_is_matrixactive() != matrix_is_active_h)
+  if (ptin_fpga_mx_is_matrixactive() != matrix_is_active_h)
   {
     //if (!matrix_is_active && 0xFF!=matrix_is_active_h) tx_dot3ad_matrix_sync_t();
     
@@ -932,7 +932,7 @@ void ptin_control_switchover_monitor(void)
   }
 
   /* Do nothing for active matrix */
-  if (ptin_fgpa_mx_is_matrixactive() && ptin_fgpa_mx_is_matrixactive_rt())
+  if (ptin_fpga_mx_is_matrixactive() && ptin_fpga_mx_is_matrixactive_rt())
   {
     return;
   }
@@ -945,12 +945,12 @@ void ptin_control_switchover_monitor(void)
   memset(interfaces_active, 0x00, sizeof(interfaces_active));
   memset(&ports_info, 0x00, sizeof(msg_HwIntfInfo_t));
 
-  ports_info.slot_id    = (ptin_fgpa_board_slot() <= PTIN_SYS_MX1_SLOT) ? PTIN_SYS_MX2_SLOT : PTIN_SYS_MX1_SLOT;
+  ports_info.slot_id    = (ptin_fpga_board_slot() <= PTIN_SYS_MX1_SLOT) ? PTIN_SYS_MX2_SLOT : PTIN_SYS_MX1_SLOT;
   ports_info.generic_id = 0;
   ports_info.generic_id = ptin_sys_number_of_ports;
 
   if (send_ipc_message(IPC_HW_FASTPATH_PORT,
-                       ((ptin_fgpa_board_slot() <= PTIN_SYS_MX1_SLOT) ? IPC_MX_IPADDR_PROTECTION : IPC_MX_IPADDR_WORKING),
+                       ((ptin_fpga_board_slot() <= PTIN_SYS_MX1_SLOT) ? IPC_MX_IPADDR_PROTECTION : IPC_MX_IPADDR_WORKING),
                        CCMSG_HW_INTF_INFO_GET,
                        (char *) &ports_info,
                        (char *) &ports_info,
@@ -970,7 +970,7 @@ void ptin_control_switchover_monitor(void)
   #endif
 
   /* Do nothing for active matrix */
-  if (ptin_fgpa_mx_is_matrixactive())
+  if (ptin_fpga_mx_is_matrixactive())
   {
     LOG_ERR(LOG_CTX_PTIN_CONTROL, "I am active matrix");
     return;
@@ -1040,7 +1040,7 @@ void ptin_control_switchover_monitor(void)
   if (linkscan_update_control)
   {
     /* Do nothing for active matrix */
-    if (ptin_fgpa_mx_is_matrixactive())
+    if (ptin_fpga_mx_is_matrixactive())
     {
       LOG_ERR(LOG_CTX_PTIN_CONTROL, "I am active matrix");
       return;
@@ -1621,7 +1621,7 @@ static dot3ad_matrix_sync2_t stat;
 uint32 ip, len, i;
 
 #ifdef MAP_CPLD
-    if (!ptin_fgpa_mx_is_matrixactive_rt()) return 0;  //It's the active matrix that sends its received LACPDUs to the other; not the other way around
+    if (!ptin_fpga_mx_is_matrixactive_rt()) return 0;  //It's the active matrix that sends its received LACPDUs to the other; not the other way around
 #endif
 
     {       //rate limit synchronizing LACPDUs between the 2 CXOs
@@ -1636,7 +1636,7 @@ uint32 ip, len, i;
     memcpy(stat.actorSys.addr, dot3adSystem.actorSys.addr, sizeof(dot3adSystem.actorSys));
     memcpy(&stat.pdu, pdu, sizeof(stat.pdu));
 
-    ip=     (ptin_fgpa_board_slot() <= PTIN_SYS_MX1_SLOT) ? IPC_MX_IPADDR_PROTECTION : IPC_MX_IPADDR_WORKING;
+    ip=     (ptin_fpga_board_slot() <= PTIN_SYS_MX1_SLOT) ? IPC_MX_IPADDR_PROTECTION : IPC_MX_IPADDR_WORKING;
 
     i=      0;
     len=    sizeof(dot3ad_matrix_sync2_t);
@@ -1686,7 +1686,7 @@ void rx_dot3ad_matrix_sync2_t(char *pbuf, unsigned long dim) {
     dot3ad_matrix_sync2_t *p2;
 
 #ifdef MAP_CPLD
-    if (ptin_fgpa_mx_is_matrixactive_rt()) return;  //It's the active matrix that sends its received LACPDUs to the other; not the other way around
+    if (ptin_fpga_mx_is_matrixactive_rt()) return;  //It's the active matrix that sends its received LACPDUs to the other; not the other way around
 #endif
 
     p2= (dot3ad_matrix_sync2_t *) pbuf;
