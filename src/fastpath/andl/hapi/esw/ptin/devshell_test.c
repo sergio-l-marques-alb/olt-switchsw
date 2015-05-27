@@ -483,6 +483,7 @@ bcm_error_t ptin_port_fault_get(bcm_port_t bcm_port)
 
 bcm_error_t ptin_link_fault_get(bcm_port_t bcm_port)
 {
+#ifdef BCM_ESW_SUPPORT
   uint32 flags;
   bcm_error_t rv;
 
@@ -491,6 +492,9 @@ bcm_error_t ptin_link_fault_get(bcm_port_t bcm_port)
   printf("_bcm_esw_link_fault_get: flags=%u   (rv=%d -> \"%s\")\r\n", flags, rv, bcm_errmsg(rv));
 
   return rv;
+#else
+  return -1;
+#endif
 }
 
 
@@ -1827,6 +1831,7 @@ L7_RC_t ptin_cpu_traffic_limit( L7_uint16 cir )
 */
 int configure_equalizer(unsigned char port, unsigned char equalizer)
 {
+#ifdef BCM_ESW_SUPPORT
   soc_xaui_config_t config;
 
   //printf("config: port=%d, equalizer=%d\n\r",port, equalizer);
@@ -1846,6 +1851,7 @@ int configure_equalizer(unsigned char port, unsigned char equalizer)
          config.preemphasis,
          config.equalizer_ctrl
          );
+#endif
 
   return(0);
 }

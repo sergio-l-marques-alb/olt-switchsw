@@ -2683,6 +2683,7 @@ void hapiBroadAssert(const L7_char8 *expr, const L7_char8 *file, L7_uint32 line)
 }
 
 /* PTin added: workaround for parity errors */
+#ifdef BCM_ESW_SUPPORT
 #include "soc/trident.h"
 int
 soc_trident_port_cbl_table_parity_set(int unit, int enable)
@@ -2713,6 +2714,7 @@ soc_trident_port_cbl_table_parity_set(int unit, int enable)
 
   return SOC_E_NONE;
 }
+#endif
 /* PTin end */
 
 
@@ -2767,8 +2769,10 @@ L7_RC_t hpcBroadInit()
   
   /* PTin added: workaround for parity errors */
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+#ifdef BCM_ESW_SUPPORT
   soc_trident_port_cbl_table_parity_set(0, 0);
   PT_LOG_NOTICE(LOG_CTX_STARTUP, "port_cbl_table_parity_set(0)");
+#endif
 #endif
 
   /* 
@@ -3304,7 +3308,9 @@ extern int soc_robo_mmu_init(int );
 #else
   SYSTEM_INIT_CHECK(soc_reset_init(unit), "Device reset");
   SYSTEM_INIT_CHECK(soc_misc_init(unit), "Misc init");
+#ifdef BCM_ESW_SUPPORT
   SYSTEM_INIT_CHECK(soc_mmu_init(unit), "MMU init");
+#endif
 #endif
 
 #if defined(INCLUDE_PHY_8706)  

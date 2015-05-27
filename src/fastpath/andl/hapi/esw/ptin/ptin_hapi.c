@@ -1004,7 +1004,10 @@ L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id)
  */
 L7_RC_t ptin_hapi_linkscan_execute(bcm_port_t bcm_port, L7_uint8 enable)
 {
-  int fault, linkStatus;
+#ifdef BCM_ESW_SUPPORT
+  int fault;
+#endif
+  int linkStatus;
   bcm_pbmp_t pbmp;
 
   PT_LOG_NOTICE(LOG_CTX_HAPI, "Starting Linkscan procedure to bcm_port %u", bcm_port);
@@ -1015,12 +1018,14 @@ L7_RC_t ptin_hapi_linkscan_execute(bcm_port_t bcm_port, L7_uint8 enable)
 
   if (enable)
   {
+  #ifdef BCM_ESW_SUPPORT
     /* Clear link faults */
     PT_LOG_INFO(LOG_CTX_HAPI, "_ptin_esw_link_fault_get from bcm_port %u", bcm_port);
     if (_ptin_esw_link_fault_get(0, bcm_port, &fault) != BCM_E_NONE)
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error clearing faults for bcm_port %u", bcm_port);
     }
+  #endif
     /* Read link status once, to update its real value */
     PT_LOG_INFO(LOG_CTX_HAPI, "bcm_port_link_status_get from bcm_port %u", bcm_port);
     if (bcm_port_link_status_get(0, bcm_port, &linkStatus) != BCM_E_NONE)
@@ -1667,7 +1672,7 @@ L7_RC_t ptin_hapi_link_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 link, L7_
 //    PT_LOG_ERR(LOG_CTX_HAPI, "Error applying linkscan to bcm_port %u", hapiPortPtr->bcm_port);
 //  }
 
-    #if 0
+  #if 0
     /* Disable loopback */
     PT_LOG_INFO(LOG_CTX_HAPI, "Going to disable physical loopback to port {%d,%d,%d}/bcm_port %u/port %u to %u",
              usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable);
@@ -1678,14 +1683,16 @@ L7_RC_t ptin_hapi_link_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 link, L7_
               usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable, rv);
       return L7_FAILURE;
     }
-    #else
+  #else
+   #ifdef BCM_ESW_SUPPORT
     if ((rv = ptin_esw_port_loopback_set(0, hapiPortPtr->bcm_port, BCM_PORT_LOOPBACK_NONE, L7_TRUE)) != BCM_E_NONE) 
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error disabling PHY loopback, with no link change -> port {%d,%d,%d}/bcm_port %u/port %u to %u (rv=%d)",
               usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable, rv);
       return L7_FAILURE;
     }
-    #endif
+   #endif
+  #endif
 
     /* Wait more 20ms */
     osapiSleepUSec(20000);

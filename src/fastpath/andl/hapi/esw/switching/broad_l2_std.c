@@ -3979,6 +3979,7 @@ int mac_sync_callback (void *user_data, shr_avl_datum_t *datum , void *extra_dat
 *********************************************************************/
 int mac_sync_callback (void *user_data, shr_avl_datum_t *datum , void *extra_data)
 {
+#ifdef BCM_ESW_SUPPORT
   int                  unit, i;
   l2x_entry_t          *l2x_entry;
   bcm_l2_addr_t        l2Addr, *macAddr;
@@ -4042,6 +4043,7 @@ int mac_sync_callback (void *user_data, shr_avl_datum_t *datum , void *extra_dat
   }
 
   osapiTaskYield ();
+#endif
 
   return BCM_E_NONE;
 }

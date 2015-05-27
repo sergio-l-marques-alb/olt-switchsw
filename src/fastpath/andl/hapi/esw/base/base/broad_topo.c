@@ -48,6 +48,7 @@ L7_int32 lvl7_internal_hg_trunkid = -1;
 /* by default, no customer topo needs to be registered */
 static cust_topo_brd_f customer_topo_board_program = L7_NULLPTR;
 
+#if !defined(INCLUDE_CHASSIS)
 /* Returns output stack port on src_unit to get to dest_modid 
    Customized to work with a 2 switch back to back configuration */
 static int _lvl7_board_topomap_48g_stk(int src_unit, int dest_modid,
@@ -102,10 +103,12 @@ static int _lvl7_board_topomap_48g_stk(int src_unit, int dest_modid,
         return BCM_E_UNIT;
     }
 }
+#endif
 
 /*
  * Use the data in the connList and topology db to setup the mod maps and fabric trunks
  */
+#if !defined(INCLUDE_CHASSIS)
 #define FB_UNIT0 0
 #define FB_UNIT1 1
 static int lvl7_48g_topo(topo_cpu_t *tp_cpu,cpudb_ref_t db_ref)
@@ -245,7 +248,9 @@ static int lvl7_48g_topo(topo_cpu_t *tp_cpu,cpudb_ref_t db_ref)
 
 #undef FB_UNIT0
 #undef FB_UNIT1
+#endif
 
+#if !defined(INCLUDE_CHASSIS)
 int
 static lvl7_bcm_board_topo_sdk_xgs3_48g(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
 {
@@ -270,6 +275,7 @@ lvl7_bcm_board_topo_sdk_dual_cpu (topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
 
     return BCM_E_NONE;
 }
+#endif
 #endif
 
 
