@@ -75,7 +75,11 @@ typedef int bcm_multicast_t;
 #define BCM_MAX_NUM_UNITS       BCM_LOCAL_UNITS_MAX 
 
 #if !defined(BCM_UNITS_MAX)
+#if defined(LVL7_FIXUP) && defined(L7_PRODUCT_SMARTPATH)
+#define BCM_UNITS_MAX           8
+#else
 #define BCM_UNITS_MAX           128        
+#endif
 #endif
 
 #define BCM_PBMP_PORT_MAX       _SHR_PBMP_PORT_MAX 

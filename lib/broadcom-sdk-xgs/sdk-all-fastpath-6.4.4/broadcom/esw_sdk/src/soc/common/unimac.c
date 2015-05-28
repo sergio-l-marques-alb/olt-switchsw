@@ -372,7 +372,12 @@ mac_uni_init(int unit, soc_port_t port)
 
     rval32 = 0;
     soc_reg_field_set(unit, PAUSE_CONTROLr, &rval32, ENABLEf, 1);
+#ifdef LVL7_FIXUP
+    /* Reduce the timer for periodic pause. Otherwise we see small data loss */
+    soc_reg_field_set(unit, PAUSE_CONTROLr, &rval32, VALUEf, 0xc000);
+#else
     soc_reg_field_set(unit, PAUSE_CONTROLr, &rval32, VALUEf, 0x1ffff);
+#endif
     SOC_IF_ERROR_RETURN(WRITE_PAUSE_CONTROLr(unit, port, rval32));
 
     SOC_IF_ERROR_RETURN(WRITE_PAUSE_QUANTr(unit, port, 0xffff));

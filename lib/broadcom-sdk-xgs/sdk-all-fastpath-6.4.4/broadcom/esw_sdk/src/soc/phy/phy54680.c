@@ -1242,6 +1242,12 @@ phy_54680_enable_set(int unit, soc_port_t port, int enable)
     SOC_IF_ERROR_RETURN
         (MODIFY_PHY54680_MII_CTRLr(unit, pc, power_down, MII_CTRL_PD));
 
+#ifdef LVL7_FIXUP
+        if (soc_property_port_get(unit, port, spn_PORT_SUPER_ISOLATE, 0) != 0) {
+            SOC_IF_ERROR_RETURN
+                (MODIFY_PHY54680_MII_POWER_CTRLr(unit, pc, 0, 0x20));
+        }
+#endif
     if (!enable) {
         if ((PHY_FLAGS_TST(unit, port, PHY_FLAGS_EEE_ENABLED)) &&
            (((pc->phy_rev & 0x4) == 0x0) || /* A0,A1,B0,B1 */

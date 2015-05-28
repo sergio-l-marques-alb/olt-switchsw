@@ -355,6 +355,11 @@ _bcm_stat_ge_get_set(int unit, bcm_port_t port,
         if (soc_feature(unit, soc_feature_stat_xgs3)) {
             if (incl_non_ge_stat) {
                 BCM_STAT_REG_OPER(unit, port, sync_mode, reg_op, RDISCr, &count); 
+#ifdef LVL7_FIXUP   
+               /* Add egress HOLD counter too. RFC is not very clear whether 
+                  it should be RX events only */
+                BCM_STAT_REG_OPER(unit, port, sync_mode, reg_op, HOLDr, &count); 
+#endif
             }
         }
         break;
@@ -701,6 +706,28 @@ _bcm_stat_ge_get_set(int unit, bcm_port_t port,
         }
         break;
     case snmpIfHCInUcastPkts:
+#ifdef LVL7_FIXUP
+        if (SOC_IS_DRACO(unit) ||
+            soc_feature(unit, soc_feature_hw_stats_calc)) {
+            BCM_STAT_REG_OPER(unit, port, sync_mode, reg_op, GRUCr, &count);        /* unicast pkts rcvd */
+        } else if (SOC_IS_HELIX15(unit)) {
+          BCM_STAT_REG_OPER(unit, port, sync_mode, reg_op, RUCr, &count);           /* unicast pkts rcvd */
+        } else {
+            BCM_STAT_REG_OPER(unit, port, sync_mode, reg_op, GRPKTr, &count);       /* all pkts rcvd */
+            BCM_STAT_REG_OPER(unit, port, sync_mode, reg_sub_op, GRMCAr, &count);    /* - multicast */
+            BCM_STAT_REG_OPER(unit, port, sync_mode, reg_sub_op, GRBCAr, &count);    /* - broadcast */
+            if (SOC_IS_XGS3_SWITCH(unit)) {
+               BCM_STAT_REG_OPER(unit, port, sync_mode, reg_sub_op, GRALNr, &count); /* - ALN Errors */
+               BCM_STAT_REG_OPER(unit, port, sync_mode, reg_sub_op, GRFCSr, &count); /* - FCS Errors */
+               BCM_STAT_REG_OPER(unit, port, sync_mode, reg_sub_op, GRUNDr, &count); /* - undersize, ok FCS */
+               BCM_STAT_REG_OPER(unit, port, sync_mode, reg_sub_op, GRFRGr, &count); /* - Receive Fragment Counter */
+               BCM_STAT_REG_OPER(unit, port, sync_mode, reg_sub_op, GRJBRr, &count); /* - Jabber Frame Counter */
+               /* PTin removed: SDK 6.3.0 */
+               #if 0
+               BCM_STAT_REG_OPER(unit, port, sync_mode, reg_sub_op, GRIPDr, &count); /* - discards (incompatible with version 6.3.0) */
+               #endif
+            }
+#else
         if (soc_feature(unit, soc_feature_hw_stats_calc)) {
             if (SOC_REG_IS_VALID(unit, GRUCr)
                 && !((SOC_IS_RAPTOR(unit) || SOC_IS_RAVEN(unit)) 
@@ -728,6 +755,7 @@ _bcm_stat_ge_get_set(int unit, bcm_port_t port,
                              GRFCSr, &count); /* - bad FCS, no dribble bit */
             BCM_STAT_REG_OPER(unit, port, sync_mode, reg_sub_op, 
                              GRJBRr, &count); /* - oversize, bad FCS */
+#endif
             if (SOC_REG_IS_VALID(unit, GRMTUEr)) {
                 BCM_STAT_REG_OPER(unit, port, sync_mode, reg_sub_op, 
                                  GRMTUEr, &count); /* mtu exceeded pkts */

@@ -4430,9 +4430,12 @@ bcm_tr3_ipmc_egress_intf_set(
                                        is_l3, check_port);
     REPL_UNLOCK(unit);
 intf_cleanup:
-    sal_free(if_array_cur);
-    sal_free(if_updated.if_array_new);
-    sal_free(if_updated.if_array_del);
+    if (if_array_cur != 0)
+      sal_free(if_array_cur);
+    if (if_updated.if_array_new != 0)
+      sal_free(if_updated.if_array_new);
+    if (if_updated.if_array_del != 0)
+      sal_free(if_updated.if_array_del);
     return rv;
 }
 

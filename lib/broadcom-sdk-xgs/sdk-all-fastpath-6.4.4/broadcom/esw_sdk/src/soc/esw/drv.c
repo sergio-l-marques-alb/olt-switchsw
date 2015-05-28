@@ -149,6 +149,9 @@
 #endif
 #include <soc/esw/portctrl.h>
 
+/* PTin added: PCIe */
+#include "logger.h"
+
 #ifdef BCM_KATANA_SUPPORT
 #define   BCM_SABER_MAX_COUNTER_DIRECTION 2
 #define   BCM_SABER_MAX_COUNTER_POOL      8
@@ -5923,9 +5926,33 @@ cmicm_pcie_deemphasis_set(int unit, uint16 phy_addr) {
 
 int cmic_pcie_cdr_bw_adj(int unit, uint16 phy_addr) {
 
+  /* PTin modified: PCIe */
+  #if 0
     SOC_IF_ERROR_RETURN(soc_miim_write(unit, phy_addr, 0x1f, 0x8630));
     SOC_IF_ERROR_RETURN(soc_miim_write(unit, phy_addr, 0x13, 0x190));
     SOC_IF_ERROR_RETURN(soc_miim_write(unit, phy_addr, 0x19, 0x191));
+  #else
+    int rc;
+
+    if ((rc=soc_miim_write(unit, phy_addr, 0x1f, 0x8630)) != SOC_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error writing to unit %d, phy_addr 0x%x/0x1f via MIIM: error %d", unit, phy_addr, rc);
+    }
+    else if ((rc=soc_miim_write(unit, phy_addr, 0x13, 0x190)) != SOC_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error writing to unit %d, phy_addr 0x%x/0x13 via MIIM: error %d", unit, phy_addr, rc);
+    }
+    else if ((rc=soc_miim_write(unit, phy_addr, 0x19, 0x191)) != SOC_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error writing to unit %d, phy_addr 0x%x/0x19 via MIIM: error %d", unit, phy_addr, rc);
+    }
+
+    /* Success */
+    if (rc == SOC_E_NONE)
+    {
+      PT_LOG_NOTICE(LOG_CTX_STARTUP, "Success updating MIIM registers for PCIe bw adjustment");
+    }
+#endif
 
     return SOC_E_NONE;
 }
@@ -6426,6 +6453,7 @@ soc_do_init(int unit, int reset)
             } else
 #endif
             {
+                PT_LOG_INFO(LOG_CTX_STARTUP, "Going to make PCIe bw adjustment...");
                 SOC_IF_ERROR_RETURN(cmic_pcie_cdr_bw_adj(unit, pcie_phy_addr));
             }
         }
@@ -13352,6 +13380,8 @@ soc_reset(int unit)
              */
             msi_en = 0;
         }
+
+        PT_LOG_NOTICE(LOG_CTX_STARTUP, "MSI enable=%d", msi_en);
 
         addr = CMIC_CMCx_PCIE_MISCEL_OFFSET(SOC_PCI_CMC(unit));
         rval = soc_pci_read(unit, addr);

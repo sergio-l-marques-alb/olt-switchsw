@@ -919,6 +919,28 @@ bcm_tr2_cosq_port_bandwidth_set(int unit, bcm_port_t port,
      * c. if MISCCONFIG.METERING_CLK_EN not set before, enable it.
      */
 
+#ifdef LVL7_FIXUP
+    uint64 maskval_64;
+
+    meter_flags = flags;
+
+    /* first clear bit corresponding for que then optionally set it to enable packet mode */
+    BCM_IF_ERROR_RETURN(READ_SHAPING_MODEr(unit, port, &regval_64));
+    maskval_64 = COMPILER_64_INIT(0, 1);
+    COMPILER_64_SHL(maskval_64, cosq);
+    COMPILER_64_NOT(maskval_64);
+    COMPILER_64_AND(regval_64, maskval_64);
+
+    /* set SHAPING_MODE bit if required. */
+    if ((max_quantum !=0) && 
+        (_BCM_XGS_METER_FLAG_PACKET_MODE == (flags&_BCM_XGS_METER_FLAG_PACKET_MODE))) {
+      COMPILER_64_NOT(maskval_64);
+      COMPILER_64_OR(regval_64, maskval_64);
+    }
+
+    BCM_IF_ERROR_RETURN(WRITE_SHAPING_MODEr(unit, port, regval_64));
+#endif    
+
     BCM_IF_ERROR_RETURN(READ_MISCCONFIGr(unit, &regval));
     if (soc_reg_field_get(unit, MISCCONFIGr, regval, ITU_MODE_SELf)) {
         meter_flags |= _BCM_XGS_METER_FLAG_NON_LINEAR;
@@ -951,10 +973,19 @@ bcm_tr2_cosq_port_bandwidth_set(int unit, bcm_port_t port,
     bucket_bitsize =
         soc_reg_field_length(unit, MINBUCKETCONFIG_64r, MIN_THDf);
 
+#ifdef LVL7_FIXUP
+    /* Hardcode the burst size to accommodate jumbo frames (9216 bytes). The unit
+       for 'burst_quantum' is kbits. So (9216 * 8 / 1000 = 74)*/
     BCM_IF_ERROR_RETURN
-        (_bcm_xgs_kbits_to_bucket_encoding(min_quantum, min_quantum,
+        (_bcm_xgs_kbits_to_bucket_encoding(min_quantum, min_quantum ? 74 : 0,
                           meter_flags, refresh_bitsize, bucket_bitsize,
                           &refresh_rate, &bucketsize, &granularity));
+#else
+    BCM_IF_ERROR_RETURN
+        (_bcm_xgs_kbits_to_bucket_encoding(min_quantum, burst_quantum,
+                          meter_flags, refresh_bitsize, bucket_bitsize,
+                          &refresh_rate, &bucketsize, &granularity));
+#endif
 
     COMPILER_64_ZERO(regval_64);
     soc_reg64_field32_set(unit, MINBUCKETCONFIG_64r, &regval_64,
@@ -981,6 +1012,15 @@ bcm_tr2_cosq_port_bandwidth_set(int unit, bcm_port_t port,
                           METER_GRANf, granularity);
     soc_reg64_field32_set(unit, MAXBUCKETCONFIG_64r, &regval_64,
                           MAX_REFRESHf, refresh_rate);
+#ifdef LVL7_FIXUP
+    /* We want as small a burst size as possible... 4 KB in this case. */
+    bucketsize = bucketsize ? 1 : 0;
+    if ((0 != max_quantum) && (0 == bucketsize))
+    {
+      /* Max is specified. bucketsize cannot be zero or else shaping is disabled. */
+      bucketsize = 1;
+    }
+#endif
     soc_reg64_field32_set(unit, MAXBUCKETCONFIG_64r, &regval_64, MAX_THDf,
                           bucketsize);
     BCM_IF_ERROR_RETURN(WRITE_MAXBUCKETCONFIG_64r(unit, port, cosq, regval_64));

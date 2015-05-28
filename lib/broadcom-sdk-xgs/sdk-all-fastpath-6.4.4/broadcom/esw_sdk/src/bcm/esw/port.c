@@ -4448,6 +4448,10 @@ _bcm_port_mmu_update(int unit, bcm_port_t port, int link)
     int pause_tx, pause_rx, q_limit_enable, cos;
     uint32 psl_rval, opc_rval, oqc_rval;
 
+#ifdef LVL7_FIXUP
+    if (SOC_IS_SCORPION(unit)) return BCM_E_NONE;
+#endif
+
     if (!SOC_IS_HBX(unit)) {
         return (BCM_E_UNAVAIL);
     }
@@ -4522,6 +4526,9 @@ _bcm_port_untagged_vlan_set(int unit, bcm_port_t port, bcm_vlan_t vid)
 
         BCM_IF_ERROR_RETURN
             (_bcm_trx_vlan_port_default_action_get(unit, port, &action));
+        #ifdef LVL7_FIXUP
+        action.it_inner_prio = bcmVlanActionNone;
+        #endif
         action.new_outer_vlan = vid;
         action.priority = PORT(unit, port).p_ut_prio;
 #ifdef BCM_KATANA2_SUPPORT
@@ -12357,6 +12364,225 @@ bcm_esw_port_loopback_set(int unit, bcm_port_t port, int loopback)
 
     return rv;
 }
+
+/* PTin added: linkscan */
+#if 1
+int
+ptin_esw_port_loopback_set(int unit, bcm_port_t port, int loopback, int no_linkchange)
+{
+    int             rv, link = TRUE;
+    int             phy_lane = -1;
+    int             phyn = 0, sys_side = 0;
+    bcm_port_t      local_port = -1;
+    soc_persist_t   *sop = SOC_PERSIST(unit);
+#ifdef BCM_TRIDENT2_SUPPORT
+    int             enable;
+#endif /* BCM_TRIDENT2_SUPPORT */
+
+#if defined(BCM_KATANA2_SUPPORT)
+    if (SOC_IS_KATANA2(unit) && (!BCM_GPORT_IS_SET(port)) &&
+        (!((port >= 1) && (port <= KT2_MAX_PHYSICAL_PORTS)))) {
+         return BCM_E_PORT;
+    }
+#endif
+
+    /* Make sure port module is initialized. */
+    PORT_INIT(unit);
+
+    BCM_IF_ERROR_RETURN(_bcm_esw_port_gport_phyn_validate(unit, port,
+                                                        &local_port, &phyn,
+                                                        &phy_lane, &sys_side));
+
+    if (local_port == -1) {
+       BCM_IF_ERROR_RETURN(_bcm_esw_port_gport_validate(unit, port, &port));
+    } else {
+       port = local_port;
+    }
+
+#ifdef BCM_RCPU_SUPPORT
+    if (SOC_IS_RCPU_ONLY(unit) && IS_RCPU_PORT(unit, port)) {
+        return BCM_E_PORT;
+    }
+#endif /* BCM_RCPU_SUPPORT */
+
+    soc_phyctrl_enable_get(unit, port, &link);
+    if (TRUE == link) {
+        if (SOC_PBMP_MEMBER(sop->lc_pbm_override_ports, port)) {
+            if(!SOC_PBMP_MEMBER(sop->lc_pbm_override_link, port)) {
+                link = FALSE;
+            }
+        }
+    }
+
+    rv = BCM_E_NONE;
+    /*
+     * Always force link before changing hardware to avoid
+     * race with the linkscan thread.
+     * On KT2, the operated port should be forced link down
+     * before mode change to prevent traffic being forwarded
+     * to the port.
+     */
+    if (!(loopback == BCM_PORT_LOOPBACK_NONE) || SOC_IS_KATANA2(unit)) {
+        rv = _bcm_esw_link_force(unit, 0 /*flags*/, port, TRUE, FALSE);
+    }
+
+    PORT_LOCK(unit);
+
+    if (BCM_SUCCESS(rv)) {
+        rv = MAC_LOOPBACK_SET(PORT(unit, port).p_mac, unit, port,
+                              (loopback == BCM_PORT_LOOPBACK_MAC));
+    }
+    if (BCM_SUCCESS(rv)) {
+        if (local_port == -1) {
+            rv = soc_phyctrl_loopback_set(unit, port,
+                              (loopback == BCM_PORT_LOOPBACK_PHY), TRUE);
+        } else {
+            rv = soc_phyctrl_redirect_loopback_set
+                                          (unit, port, phyn,
+                                           phy_lane, sys_side,
+                                           (loopback == BCM_PORT_LOOPBACK_PHY),
+                                           TRUE);
+        }
+    }
+
+    /* some mac loopback implementations require the phy to also be in loopback */
+    if (soc_feature(unit, soc_feature_phy_lb_needed_in_mac_lb) &&
+        (loopback == BCM_PORT_LOOPBACK_MAC)) {
+        if (local_port == -1) {
+            rv = soc_phyctrl_loopback_set(unit, port, 1, TRUE);
+        } else {
+            rv = soc_phyctrl_redirect_loopback_set(unit, port, phyn,
+                                                   phy_lane, sys_side,
+                                                   1, TRUE);
+        }
+     }
+
+    PORT_UNLOCK(unit);                  /* unlock before link call */
+
+    if ((loopback == BCM_PORT_LOOPBACK_NONE) || !BCM_SUCCESS(rv)) {
+        _ptin_esw_link_force(unit, port, FALSE, DONT_CARE, no_linkchange);
+        PORT_LOCK(unit);
+#ifdef BCM_TRIDENT2_SUPPORT
+        /* When the PHY is TSC, need to unsquelch TX LANE. */
+        if (SOC_IS_TD2_TT2(unit)){
+            enable = PORT(unit, port).enable;
+            if ((FALSE == enable) && (loopback == BCM_PORT_LOOPBACK_NONE)) {
+                (void)soc_phyctrl_notify(unit, port, phyEventTxSquelch, FALSE);
+                rv = soc_phyctrl_enable_set(unit, port, FALSE);
+                if (SOC_FAILURE(rv)) {
+                    PORT_UNLOCK(unit);
+                    return (rv);
+                }
+                rv = MAC_ENABLE_SET(PORT(unit, port).p_mac, unit, port, FALSE);
+            }
+        } else
+#endif /* BCM_TRIDENT2_SUPPORT */
+        {
+            if ((FALSE == link) && (loopback == BCM_PORT_LOOPBACK_NONE)) {
+                /* Disable MAC RX to prevent traffic going into this port */
+                MAC_CONTROL_SET(PORT(unit, port).p_mac, unit, port,
+                                SOC_MAC_CONTROL_RX_SET, FALSE);
+                sal_udelay(100); /* Wait for 1 jumbo packet transmission time */
+
+                rv = MAC_ENABLE_SET(PORT(unit, port).p_mac, unit, port, FALSE);
+            }
+        }
+        PORT_UNLOCK(unit);
+    } else {
+        /* Enable only MAC instead of calling bcm_port_enable_set so
+         * that this API doesn't silently enable the port if the
+         * port is disabled by application.
+         */
+        rv = MAC_ENABLE_SET(PORT(unit, port).p_mac, unit, port, TRUE);
+
+#ifdef BCM_TRIDENT2_SUPPORT
+        /* When the PHY is TSC, need to enable the PHY to support MAC loopback
+         * on a disabled port. In order to avoid link flap of link partner,
+         * need to squelch TX LANE before enabling PHY.
+         */
+        if (BCM_FAILURE(rv)) {
+            return (rv);
+        }
+        if ((SOC_IS_TD2_TT2(unit)) && (FALSE == link)
+            && (loopback == BCM_PORT_LOOPBACK_MAC)) {
+            (void)soc_phyctrl_notify(unit, port, phyEventTxSquelch, TRUE);
+            SOC_IF_ERROR_RETURN(soc_phyctrl_enable_set(unit, port, TRUE));
+        }
+#endif /* BCM_TRIDENT2_SUPPORT */
+
+        if (BCM_SUCCESS(rv)) {
+            /* Make sure that the link status is updated only after the
+             * MAC is enabled so that link_mask2 is set before the
+             * calling thread synchronizes with linkscan thread in
+             * _bcm_link_force call.
+             * If the link is forced before MAC is enabled, there could
+             * be a race condition in _soc_link_update where linkscan
+             * may use an old view of link_mask2 and override the
+             * EPC_LINK_BMAP after the mac_enable_set updates
+             * link_mask2 and EPC_LINK_BMAP.
+             */
+            if (loopback == BCM_PORT_LOOPBACK_MAC) {
+                rv = _bcm_esw_link_force(unit, 0 /*flags*/, port, TRUE, TRUE);
+            } else {
+                rv = _bcm_esw_link_force(unit, 0 /*flags*/, port, TRUE, link);
+            }
+        }
+        if (BCM_FAILURE(rv)) {
+            return (rv);
+        }
+
+#if defined(BCM_BRADLEY_SUPPORT)
+        /*
+         * Call _bcm_port_mmu_update explicitly because linkscan
+         * will not call bcm_port_update when the link is forced.
+         */
+        if (SOC_IS_HBX(unit) && !SOC_IS_SHADOW(unit)) {
+            rv = _bcm_port_mmu_update(unit, port, 1);
+        }
+
+        /* When a link comes up, hardware will not update the
+         * LINK_STATUS register until software has toggled the
+         * the LAG_FAILOVER_CONFIG.LINK_STATUS_UP field.
+         * Normally, this is done by bcm_port_update. But since
+         * linkscan will not call bcm_port_update when a link is
+         * forced up, the toggling of LAG_FAILOVER_CONFIG.LINK_STATUS_UP
+         * is done here.
+         */
+        if ((SOC_REG_IS_VALID(unit, GXPORT_LAG_FAILOVER_CONFIGr) &&
+             IS_GX_PORT(unit, port)) ||
+            ((SOC_REG_IS_VALID(unit, LAG_FAILOVER_CONFIGr) ||
+              SOC_REG_IS_VALID(unit, XLPORT_LAG_FAILOVER_CONFIGr)) &&
+              (IS_XL_PORT(unit, port) || IS_MXQ_PORT(unit, port) ))) {
+            soc_reg_t reg;
+            uint32 rval;
+
+            if (SOC_REG_IS_VALID(unit, LAG_FAILOVER_CONFIGr)) {
+                reg = LAG_FAILOVER_CONFIGr;
+            } else if (SOC_REG_IS_VALID(unit, GXPORT_LAG_FAILOVER_CONFIGr)) {
+                reg = GXPORT_LAG_FAILOVER_CONFIGr;
+            } else {
+                reg = XLPORT_LAG_FAILOVER_CONFIGr;
+            }
+
+            /* Toggle link bit to notify IPIPE on link up */
+            BCM_IF_ERROR_RETURN(soc_reg32_get(unit, reg, port, 0, &rval));
+            soc_reg_field_set(unit, reg, &rval, LINK_STATUS_UPf, 1);
+            BCM_IF_ERROR_RETURN(soc_reg32_set(unit, reg, port, 0, rval));
+            soc_reg_field_set(unit, reg, &rval, LINK_STATUS_UPf, 0);
+            BCM_IF_ERROR_RETURN(soc_reg32_set(unit, reg, port, 0, rval));
+        }
+#endif /* BCM_BRADLEY_SUPPORT */
+    }
+
+    LOG_INFO(BSL_LS_BCM_PORT,
+             (BSL_META_U(unit,
+                         "bcm_port_loopback_set: u=%d p=%d lb=%d rv=%d\n"),
+              unit, port, loopback, rv));
+
+    return rv;
+}
+#endif
+
 
 /*
  * Function:
@@ -23627,6 +23853,19 @@ bcm_esw_port_medium_config_set(int unit, bcm_port_t port,
 
     /* Make sure port module is initialized. */
     PORT_INIT(unit);
+
+#ifdef LVL7_FIXUP
+    bcm_phy_config_t currentConfig;
+    rv = bcm_esw_port_medium_config_get(unit, port, medium, &currentConfig);
+    if (rv == BCM_E_NONE)
+    {
+      if (memcmp(config, &currentConfig, sizeof(currentConfig)) == 0)
+      {
+        return rv;        
+      }
+    }
+#endif
+
     BCM_IF_ERROR_RETURN(_bcm_esw_port_gport_validate(unit, port, &port));
 
 #ifdef PORTMOD_SUPPORT

@@ -308,7 +308,11 @@ typedef uint64 phys_addr_t;
 #ifdef __DUNE_LINUX_BCM_CPU_PCIE__
 #define MMAP    mmap
 #else 
-#include <asm/page.h>
+/* PTin removed: 64 bit addressing */
+//#include <asm/page.h>
+/* PTin added: 64 bit addressing */
+extern void *mmap64 (void *__addr, size_t __len, int __prot,
+		     int __flags, int __fd, __off64_t __offset) __THROW;
 #define MMAP    mmap64
 #endif
 typedef uint64 phys_addr_t;

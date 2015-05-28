@@ -75,6 +75,7 @@
 #include "wcmod_defines.h"
 #include "wcmod_functions.h"
 
+#include "logger.h"
 
 
 #define WCMOD_SDK32387_REVS(_pc) (WCMOD_REVID_A0(_pc) || WCMOD_REVID_A1(_pc) || WCMOD_REVID_B0(_pc))
@@ -3698,6 +3699,12 @@ phy_wcmod_init(int unit, soc_port_t port)
              (BSL_META_U(pc->unit,
                          "phy_wcmod_init: u=%d p=%d\n"), unit, port));
 
+    /* PTin added: PHY link down problem */
+    #if 1
+    PT_LOG_INFO(LOG_CTX_STARTUP,"WCMOD initialized for bcm_port %u", port);
+    osapiSleepMSec(50);
+    #endif
+
     return SOC_E_NONE;
 }
 
@@ -6400,6 +6407,11 @@ phy_wcmod_xgxs16g1l_an_set(int unit, soc_port_t port, int an)
                                                                                 
     pc->fiber.autoneg_enable = an;
                                                                                 
+    LOG_INFO(BSL_LS_SOC_PHY,
+             (BSL_META_U(pc->unit,
+                         "phy_wcmod_xgxs16g1l_an_set: Successfully set u=%d p=%d an=%d\n"),
+              unit, port, an));
+
     return SOC_E_NONE;
 }
 
@@ -6988,10 +7000,11 @@ phy_wcmod_xgxs16g1l_ability_local_get(int unit, soc_port_t port,
     ability->flags     = 0 ; /*SOC_PA_AUTONEG */
  }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
-             (BSL_META_U(pc->unit,
-                         "phy_wc_xgxs16g11_ability_local_get:unit=%d p=%d sp=%08x\n"),
-              unit, pc->port, ability->speed_full_duplex));
+    /* PTin modified: logs */
+    LOG_DEBUG(BSL_LS_SOC_PHY,
+                  (BSL_META_U(pc->unit,
+                              "phy_wc_xgxs16g11_ability_local_get:unit=%d p=%d sp=%08x\n"),
+                   unit, pc->port, ability->speed_full_duplex));
 
     return (SOC_E_NONE);
 }
@@ -7623,7 +7636,7 @@ _phy_wcmod_c73_adv_local_get(int unit, soc_port_t port,
     }
     ability->pause = pause;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_VERBOSE(BSL_LS_SOC_PHY,
              (BSL_META_U(pc->unit,
                          "_phy_wcmod_c73_adv_local_get: u=%d p=%d pause=%08x speeds=%04x\n"),
               unit, port, pause, speeds));
@@ -7956,7 +7969,7 @@ phy_wcmod_ability_advert_get(int unit, soc_port_t port,
             (_phy_wcmod_c73_adv_local_get(unit, port, ability));
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_VERBOSE(BSL_LS_SOC_PHY,
              (BSL_META_U(pc->unit,
                          "phy_wcmod_ability_advert_get:unit=%d p=%d pause=%08x sp=%08x max_spd=%0d\n"),
               unit, port, ability->pause, ability->speed_full_duplex, pc->speed_max));
@@ -8676,10 +8689,11 @@ phy_wcmod_ability_local_get(int unit, soc_port_t port, soc_port_ability_t *abili
         ability->flags     = SOC_PA_AUTONEG;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
-             (BSL_META_U(pc->unit,
-                         "phy_wcmod_ability_local_get:unit=%d p=%d sp=%08x\n"),
-              unit, port, ability->speed_full_duplex));
+    /* PTin modified: logs */
+    LOG_DEBUG(BSL_LS_SOC_PHY,
+                  (BSL_META_U(pc->unit,
+                              "phy_wcmod_ability_local_get:unit=%d p=%d sp=%08x\n"),
+                   unit, port, ability->speed_full_duplex));
 
     return (SOC_E_NONE);
 }

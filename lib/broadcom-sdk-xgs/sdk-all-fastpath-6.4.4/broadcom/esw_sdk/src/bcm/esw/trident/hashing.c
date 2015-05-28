@@ -80,8 +80,18 @@ typedef struct bcm_rtag7_base_hash_s {
 #define   ETHERTYPE_IPV4 0x0800 /* ipv4 ethertype */
 #define   ETHERTYPE_MIN  0x0600 /* minimum ethertype for hashing */
 
+/* PTin modified: SDK 6.3.0 */
+#ifdef LVL7_FIXUP
+#ifndef IP_PROT_TCP
+#define   IP_PROT_TCP 0x6  /* TCP protocol number */
+#endif
+#ifndef IP_PROT_UDP
+#define   IP_PROT_UDP 0x11 /* TCP protocol number */
+#endif
+#else
 #define   IP_PROT_TCP 0x6  /* TCP protocol number */
 #define   IP_PROT_UDP 0x11 /* TCP protocol number */
+#endif
 
 #define RTAG7_L2_ONLY         0x0
 #define RTAG7_UNKNOWN_HIGIG   0x1

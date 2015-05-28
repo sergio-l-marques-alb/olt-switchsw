@@ -273,6 +273,11 @@ _bcm_stat_xe_get_set(int unit, bcm_port_t port,
 
     case snmpEtherStatsDropEvents:
         BCM_STAT_REG_OPER(unit, port, sync_mode, reg_op, RDISCr, &count);
+#ifdef LVL7_FIXUP
+        /* Add egress HOLD counter too. RFC is not very clear whether
+           it should be RX events only */
+        BCM_STAT_REG_OPER(unit, port, sync_mode, reg_op, HOLDr, &count);
+#endif
         break;
     case snmpEtherStatsOctets:
         BCM_STAT_REG_OPER(unit, port, sync_mode, reg_op, IRBYTr, &count);
@@ -553,6 +558,14 @@ _bcm_stat_xe_get_set(int unit, bcm_port_t port,
                               IRXPFr, &count); /* - not included in IRXCFr */
             BCM_STAT_REG_OPER(unit, port, sync_mode, reg_sub_op, 
                               IRJBRr, &count); /* - oversize, bad FCS */
+            /* snmpIfHCInUcastPkts */
+#ifdef LVL7_FIXUP
+            if (SOC_REG_IS_VALID(unit, IRMEGr)) 
+            {
+              REG_SUB(unit, port, sync_mode, IRMEGr, count); /* mtu exceeded pkts */
+            }
+            else 
+#endif
             if (COUNT_OVR_ERRORS(unit)) {
                 BCM_STAT_REG_OPER(unit, port, sync_mode, reg_sub_op, 
                                   IROVRr, &count); /* - oversize, good FCS */

@@ -8513,7 +8513,7 @@ bcm_cosq_port_sched_get(
 	if (!BCM_UNIT_CHECK(unit)) {
 		r_rv = BCM_E_UNIT;
 	} else {
-		BCM_API_XLATE_PORT_PBMP_DECL(t_pbm);
+		BCM_API_XLATE_PORT_PBMP_DECL(t_pbm);	/* PTin TODO: Attention! */
 		BCM_API_XLATE_PORT_PBMP_SAVE(t_pbm,pbm);
 		BCM_API_XLATE_PORT_PBMP_A2P(unit,&pbm);
 		dtype = BCM_DTYPE(unit);

@@ -53,6 +53,12 @@
 extern int _bcm_esw_link_get(int unit, bcm_port_t port, int *link);
 extern int _bcm_esw_link_force(int unit, uint32 flags, bcm_port_t port, 
                                int force, int link);
+/* PTin added: linkscan */
+#if 1
+extern int _ptin_esw_link_force(int unit, bcm_port_t port, int force, int link, int no_linkchange);
+extern int _ptin_esw_link_fault_get(int unit, int port, int *fault);
+extern int ptin_esw_port_loopback_set(int unit, bcm_port_t port, int loopback, int no_linkchange);
+#endif
 extern int _bcm_esw_link_down_tx_set(int unit, bcm_port_t port, int enable);
 extern int _bcm_esw_link_down_tx_get(int unit, bcm_port_t port, int *enable);
 extern int _bcm_esw_link_failover_set(int unit, bcm_port_t port, int enable);
