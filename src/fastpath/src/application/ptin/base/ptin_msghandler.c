@@ -315,10 +315,6 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       SETIPCACKOK(outbuffer);
 
       LOG_NOTICE(LOG_CTX_PTIN_MSGHANDLER, "...Stdout redirected to here :-)");
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-               "Message processed: response with %"
-               "d bytes", outbuffer->infoDim);
-
       break;  /* CCMSG_APP_CHANGE_STDOUT */
     }
 
@@ -364,10 +360,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         }
         LOG_NOTICE(LOG_CTX_PTIN_MSGHANDLER, "...Logger output (%u) redirected to \"%s\" :-)", output, filename);
       }
-
       SETIPCACKOK(outbuffer);
-
-
       break;  /* CCMSG_APP_CHANGE_STDOUT */
     }
 
@@ -392,9 +385,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
         break;
       }
-
       SETIPCACKOK(outbuffer);
-
       break;  /* CCMSG_APP_SHELL_CMD_RUN */
     }
 
@@ -427,8 +418,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: no response necessary");
+      SETIPCACKOK(outbuffer);      
     }
     break;
 
@@ -498,9 +488,6 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
 
       outbuffer->infoDim = sizeof(msg_ptin_policy_resources);
-      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,
-                "Message processed: response with %d bytes", outbuffer->infoDim);
-
       break;  /* CCMSG_APPLICATION_RESOURCES */
     }
 
@@ -1042,10 +1029,6 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
 
       outbuffer->infoDim = sizeof(msg_HWEthPhyActivity_t);
-
-      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,
-                "Message processed: response with %d bytes", outbuffer->infoDim);
-
       break;  /* CCMSG_ETH_PHY_STATE_GET */
     }
 
@@ -1077,10 +1060,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_HWEthRFC2819_PortStatistics_t)*nElems;
-      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,
-                "Message processed: response with %d bytes", outbuffer->infoDim);
-
+      outbuffer->infoDim = sizeof(msg_HWEthRFC2819_PortStatistics_t)*nElems;      
       break;  /* CCMSG_ETH_PHY_COUNTERS_GET */
     }
 
@@ -1105,10 +1085,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-                "Message processed: response with %d bytes", outbuffer->infoDim);
-
+      SETIPCACKOK(outbuffer);      
       break; /* CCMSG_ETH_PHY_COUNTERS_CLEAR */
     }
 
@@ -1627,9 +1604,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
         rx_dot3ad_matrix_sync2_t(inbuffer->info, inbuffer->infoDim);
 
-        outbuffer->infoDim = 1;
-        LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,
-                 "Message processed: response with %d bytes", outbuffer->infoDim);
+        outbuffer->infoDim = 1;        
       break;
     }
 #endif
@@ -3585,9 +3560,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       /* Execute command */
       rc = ptin_msg_mgmd_sync_ports(ptr);
-      outbuffer->infoDim = 1;
-      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,
-               "Message processed: response with rc:%d", rc);
+      outbuffer->infoDim = 1;      
     }
     break;
 
@@ -3667,7 +3640,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
 
       outbuffer->infoDim = sizeof(msg_RoutingIntf);
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+      
 
       break;
     }
@@ -3696,7 +3669,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
 
       outbuffer->infoDim = sizeof(msg_RoutingIntf);
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+      
 
       break;
     }
@@ -3725,7 +3698,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
 
       outbuffer->infoDim = sizeof(msg_RoutingIntf);
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+      
 
       break;
     }
@@ -3755,7 +3728,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
 
       outbuffer->infoDim = readEntries * sizeof(msg_RoutingArpTableResponse);
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);   
+         
       break;    
     }
 
@@ -3783,7 +3756,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
 
       outbuffer->infoDim = sizeof(msg_RoutingArpEntryPurge);
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+      
 
       break;
     }
@@ -3816,7 +3789,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
 
       outbuffer->infoDim = readEntries * sizeof(msg_RoutingRouteTableResponse);
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);   
+         
       break;    
     }
 
@@ -3844,7 +3817,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
 
       outbuffer->infoDim = sizeof(msg_RoutingStaticRoute);
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+      
 
       break;
     }
@@ -3873,7 +3846,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
 
       outbuffer->infoDim = sizeof(msg_RoutingStaticRoute);
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+      
 
       break;
     }
@@ -3902,7 +3875,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
 
       outbuffer->infoDim = sizeof(msg_RoutingPingSessionCreate);
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+      
 
       break;
     }
@@ -3931,7 +3904,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
 
       outbuffer->infoDim = sizeof(msg_RoutingPingSessionQuery);
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+      
 
       break;
     }
@@ -3960,7 +3933,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
 
       outbuffer->infoDim = sizeof(msg_RoutingPingSessionFree);
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+      
 
       break;
     }
@@ -3989,7 +3962,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
 
       outbuffer->infoDim = sizeof(msg_RoutingTracertSessionCreate);
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+      
 
       break;
     }
@@ -4018,7 +3991,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
 
       outbuffer->infoDim = sizeof(msg_RoutingTracertSessionQuery);
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+      
 
       break;
     }
@@ -4051,7 +4024,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
 
       outbuffer->infoDim = readEntries * sizeof(msg_RoutingTracertSessionHopsResponse);
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);   
+         
       break;    
     }
 
@@ -4079,7 +4052,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
 
       outbuffer->infoDim = sizeof(msg_RoutingTracertSessionFree);
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+      
 
       break;
     }
@@ -4637,10 +4610,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
           break;
         }
 
-        SETIPCACKOK(outbuffer);
-        LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-                 "Message processed: response with %d bytes", outbuffer->infoDim);
-      
+        SETIPCACKOK(outbuffer);        
       }
       break;
 
@@ -4667,10 +4637,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
           break;
         }
 
-        outbuffer->infoDim = sizeof(msg_erps_status_t);
-        LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-                 "Message processed: response with %d bytes", outbuffer->infoDim);
-      
+        outbuffer->infoDim = sizeof(msg_erps_status_t);        
       }
       break;
 
@@ -4699,10 +4666,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
           break;
         }
 
-        outbuffer->infoDim = sizeof(msg_erps_status_t)*n;
-        LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-                 "Message processed: response with %d bytes", outbuffer->infoDim);
-      
+        outbuffer->infoDim = sizeof(msg_erps_status_t)*n;        
       }
       break;
 
@@ -4730,10 +4694,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
           break;
         }
 
-        SETIPCACKOK(outbuffer);
-        LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-                 "Message processed: response with %d bytes", outbuffer->infoDim);
-      
+        SETIPCACKOK(outbuffer);        
       }
       break;
 
@@ -4762,9 +4723,6 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         }
 
         SETIPCACKOK(outbuffer);
-        LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-                 "Message processed: response with %d bytes", outbuffer->infoDim);
-      
       }
       break;
 
@@ -4857,8 +4815,6 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         }
 
         SETIPCACKOK(outbuffer);
-        LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-                 "Message processed: response with %d bytes", outbuffer->infoDim);
       }
       break;
 
@@ -4886,8 +4842,6 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         }
   
         outbuffer->infoDim = sizeof(msg_rfc2819_buffer_t)*n;
-        LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-                 "Message processed: response with %d bytes", outbuffer->infoDim);
       }
       break;
 
@@ -4910,9 +4864,6 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         }
   
         SETIPCACKOK(outbuffer);
-        LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-                 "Message processed: response with %d bytes", outbuffer->infoDim);
-        
       }
       break;
 
@@ -4948,9 +4899,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
           *resp = 0x80000000 | (Port & 0xFFFF);
         }
 
-        outbuffer->infoDim = sizeof(L7_uint32);
-        LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-                 "Message processed: response with %d bytes", outbuffer->infoDim);
+        outbuffer->infoDim = sizeof(L7_uint32);        
       }
       break;
 
@@ -4979,9 +4928,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
           break;
         }
 
-        outbuffer->infoDim = sizeof(msg_rfc2819_buffer_status_t);
-        LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-                 "Message processed: response with %d bytes", outbuffer->infoDim);
+        outbuffer->infoDim = sizeof(msg_rfc2819_buffer_status_t);        
       }
       break;
 
@@ -5040,7 +4987,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
 
       outbuffer->infoDim = sizeof(msg_igmp_package_t);
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+      
 
       break;/*Multicast Packages Add*/
     }
@@ -5069,7 +5016,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
 
       outbuffer->infoDim = sizeof(msg_igmp_package_t);
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+      
 
       break; /* CCMSG_IGMP_PACKAGES_REMOVE */
     }
@@ -5298,37 +5245,6 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break;  /* CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_REMOVE */
     }
 /************************************End Multicast Package Feature********************************************************/
-
-    
-    
-    
-
-    
-
-//CCMSG_ETH_IGMP_STATIC_GROUP_ADD
-//CCMSG_ETH_IGMP_STATIC_GROUP_REMOVE
-//CCMSG_ETH_IGMP_GROUPS_GET
-//CCMSG_ETH_IGMP_CLIENT_GROUPS_GET
-
-//CCMSG_ETH_PORT_COS_GET
-//CCMSG_ETH_PORT_COS_SET
-//
-//CCMSG_ETH_MAC_AGING_GET
-//CCMSG_ETH_MAC_AGING_SET
-//CCMSG_ETH_MAC_TABLE_SHOW
-//CCMSG_ETH_MAC_ENTRY_REMOVE
-//
-//CCMSG_ETH_DHCP_PROFILE_GET
-//CCMSG_ETH_DHCP_PROFILE_ADD
-//CCMSG_ETH_DHCP_PROFILE_REMOVE
-//CCMSG_ETH_DHCP_CLIENT_STATS_GET
-//CCMSG_ETH_DHCP_CLIENT_STATS_CLEAR
-//CCMSG_ETH_DHCP_INTF_STATS_GET
-//CCMSG_ETH_DHCP_INTF_STATS_CLEAR
-//CCMSG_ETH_DHCP_BIND_TABLE_GET
-//CCMSG_ETH_DHCP_BIND_TABLE_CLEAR
-
-
     /************************************************************************** 
     * MAC Limiting Configuration
     **************************************************************************/
@@ -5392,9 +5308,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER," interface    = %u/%u",   ptr->intf.intf_type, ptr->intf.intf_id);
       LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER," MacLearned   = %u",      ptr->number_mac_learned);
       LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER," Status       = %u",      ptr->status);
-      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER," Mask         = %u",      ptr->mask);
-      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,
-               "Message processed: response with %d bytes", outbuffer->infoDim);
+      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER," Mask         = %u",      ptr->mask);      
     }
     break;
 
@@ -5439,10 +5353,18 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
   time_end = osapiTimeMicrosecondsGet();
   time_delta = time_end - time_start;
 
-  if (inbuffer->msgId != CCMSG_ETH_PHY_ACTIVITY_GET)
-    LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,"Message 0x%04X was processed in %lu usec, with rc=%u (res=0x%08x)", inbuffer->msgId, time_delta, rc, res);
+  if( inbuffer->msgId == CCMSG_ETH_PHY_ACTIVITY_GET || 
+      inbuffer->msgId == CCMSG_ETH_PHY_COUNTERS_GET || 
+#if (PTIN_BOARD_IS_MATRIX)
+      inbuffer->msgId == CCMSG_ETH_LACP_MATRIXES_SYNC2 || 
+#endif
+      inbuffer->msgId == CCMSG_MGMD_PORT_SYNC || 
+      inbuffer->msgId == CCMSG_APPLICATION_RESOURCES || 
+      inbuffer->msgId == CCMSG_L2_MACLIMIT_STATUS )
+    LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,"Message processed: 0x%04X in %lu usec [response:%u (bytes) rc=%u res=0x%08x]", inbuffer->msgId, outbuffer->infoDim, time_delta, rc, res);    
   else
-    LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,"Message 0x%04X was processed in %lu usec, with rc=%u (res=0x%08x)", inbuffer->msgId, time_delta, rc, res);
+    LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,"Message processed: 0x%04X in %lu usec  [response:%u (bytes) rc=%u res=0x%08x]", inbuffer->msgId, outbuffer->infoDim, time_delta, rc, res);
+    
 
   /* Message Runtime Meter */
   /* Only for successfull messages */
