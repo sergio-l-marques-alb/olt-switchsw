@@ -46,7 +46,7 @@ ifeq (0,$(LINKABLE_OBJECT_ANDLSRC))
   
   # Additional source header file search paths (without the -I).
   #
-  SRCINCPATHS +=
+  SRCINCPATHS += $(vend_sdk)/libs/phymod/include
   
   
   # Additional compiler flags.
