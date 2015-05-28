@@ -562,7 +562,7 @@ _bcm_stat_xe_get_set(int unit, bcm_port_t port,
 #ifdef LVL7_FIXUP
             if (SOC_REG_IS_VALID(unit, IRMEGr)) 
             {
-              REG_SUB(unit, port, sync_mode, IRMEGr, count); /* mtu exceeded pkts */
+              BCM_STAT_REG_OPER(unit, port, sync_mode, reg_sub_op, IRMEGr, &count); /* mtu exceeded pkts */
             }
             else 
 #endif
