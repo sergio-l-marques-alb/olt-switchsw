@@ -1,0 +1,497 @@
+/*
+ * $Id: tdm_td2p_parse.c.$
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ * $All Rights Reserved.$
+ *
+ * TDM chip based printing and parsing functions
+ */
+#ifdef _TDM_STANDALONE
+	#include <tdm_top.h>
+#else
+	#include <soc/tdm/core/tdm_top.h>
+#endif
+
+
+/**
+@name: tdm_td2p_print_tbl
+@param:
+
+Prints PGW TDM main calendar
+**/
+void
+tdm_td2p_print_tbl(int *cal, int len, const char* name, int id)
+{
+	int idx;
+	
+	for (idx=0; idx<len; idx++) {
+		TDM_PRINT4("TDM: Pipe %d, %s, Slot -- #%03d, Port -- #%0d\n", id, name, idx, cal[idx]);
+	}
+}
+
+
+/**
+@name: tdm_td2p_print_tbl_ovs
+@param:
+
+Prints PGW TDM calendar oversub scheduling groups
+**/
+void
+tdm_td2p_print_tbl_ovs(int *cal, int *spc, int len, const char* name, int id)
+{
+	int idx;
+	
+	for (idx=0; idx<len; idx++) {
+		TDM_PRINT5("TDM: Pipe %d, %s, Slot -- #%03d, Port -- #%0d, Spacing -- #%0d\n", id, name, idx, cal[idx], spc[idx]);
+	}
+}
+
+
+/**
+@name: tdm_td2p_parse_quad
+@param:
+
+**/
+void
+tdm_td2p_parse_quad(enum port_speed_e speed[TD2P_NUM_EXT_PORTS], int portmap[TD2P_NUM_EXT_PORTS], int tsc[TD2P_NUM_PHY_PM][TD2P_NUM_PM_LNS], int traffic[TD2P_NUM_PM_MOD], int pipe_start, int pipe_end)
+{
+	int iter, iter2;
+
+	TDM_BIG_BAR
+	TDM_PRINT0("TDM: --- Pipe Config ---: ");
+	for (iter=pipe_start; iter<=pipe_end; iter++) {
+		if ((((iter-1)%16)==0)) {
+			TDM_PRINT0("\nTDM: ");
+		}		
+		TDM_PRINT1("{%03d}\t",(iter));
+		if (iter%16==0) {
+			TDM_PRINT0("\nTDM: ");
+			for (iter2=(iter-16); iter2<iter; iter2++) {
+				TDM_PRINT1("%d\t", speed[iter2+1]);
+			}
+			TDM_PRINT0("\nTDM: ");
+			for (iter2=(iter-16); iter2<iter; iter2++) {
+				if ((iter2-1)%4==0) {
+					switch (portmap[iter2-1]) {
+						case 1:
+							TDM_PRINT0("LINE\t---\t---\t---\t");
+							break;
+						case 2:
+							TDM_PRINT0("OVSB\t---\t---\t---\t");
+							break;
+						default:
+							break;
+					}
+				}
+			}
+			TDM_PRINT0("\nTDM: ");
+			for (iter2=(iter-16); iter2<iter; iter2++) {
+				if ((iter2-1)%4==0) {
+					switch (traffic[tdm_td2p_which_tsc(tdm_chip_td2p_shim__which_tsc((iter2+1),tsc))]) {
+						case 999:
+							TDM_PRINT0("HIGIG2\t---\t---\t---\t");
+							break;
+						case 998:
+							TDM_PRINT0("ETHRNT\t---\t---\t---\t");
+							break;
+						default:
+							break;
+					}
+				}
+			}
+		}
+	}
+	TDM_PRINT0("\n");
+	TDM_BIG_BAR
+
+}
+
+
+/**
+@name: tdm_td2p_parse_mmu_tdm_tbl
+@param:
+
+**/
+int
+tdm_td2p_parse_mmu_tdm_tbl( tdm_mod_t *_tdm )
+{
+	const char *name;
+	int j, k=256, m=0, oversub=BOOL_FALSE,
+		*mmu_tdm_tbl, *mmu_tdm_ovs_1, *mmu_tdm_ovs_2, *mmu_tdm_ovs_3, *mmu_tdm_ovs_4, *mmu_tdm_ovs_5, *mmu_tdm_ovs_6,
+		bw=_tdm->_chip_data.soc_pkg.clk_freq,
+		mgmt_bw=_tdm->_chip_data.soc_pkg.soc_vars.td2p.mgmtbw;
+	tdm_calendar_t *cal;
+	
+	switch (_tdm->_core_data.vars_pkg.cal_id) {
+		case 0:	cal=(&(_tdm->_chip_data.cal_0)); break;
+		case 1:	cal=(&(_tdm->_chip_data.cal_1)); break;
+		case 2:	cal=(&(_tdm->_chip_data.cal_2)); break;
+		case 3:	cal=(&(_tdm->_chip_data.cal_3)); break;
+		case 4:	cal=(&(_tdm->_chip_data.cal_4)); break;
+		case 5:	cal=(&(_tdm->_chip_data.cal_5)); break;
+		case 6:	cal=(&(_tdm->_chip_data.cal_6)); break;
+		case 7:	cal=(&(_tdm->_chip_data.cal_7)); break;
+		default:													
+			TDM_PRINT1("Invalid calendar ID - %0d\n",_tdm->_core_data.vars_pkg.cal_id);		
+			return (TDM_EXEC_CORE_SIZE+1);							
+	}
+	switch (_tdm->_core_data.vars_pkg.cal_id) {
+		case 4: name = "X-PIPE"; break;
+		case 5: name = "Y-PIPE"; break;
+		default: name = "UNKNOWN"; break;
+	}	
+	mmu_tdm_tbl = cal->cal_main;
+	mmu_tdm_ovs_1 = cal->cal_grp[0];
+	mmu_tdm_ovs_2 = cal->cal_grp[1];
+	mmu_tdm_ovs_3 = cal->cal_grp[2];
+	mmu_tdm_ovs_4 = cal->cal_grp[3];
+	mmu_tdm_ovs_5 = cal->cal_grp[4];
+	mmu_tdm_ovs_6 = cal->cal_grp[5];
+
+	for (j=0; j<16; j++) {
+		if (mmu_tdm_ovs_1[j]!=TD2P_NUM_EXT_PORTS || mmu_tdm_ovs_2[j]!=TD2P_NUM_EXT_PORTS || mmu_tdm_ovs_3[j]!=TD2P_NUM_EXT_PORTS || mmu_tdm_ovs_4[j]!=TD2P_NUM_EXT_PORTS) {
+			oversub=BOOL_TRUE;
+		}
+	}
+	for (j=0; j<k; j++) {
+		if (mmu_tdm_tbl[j]!=TD2P_ANCL_TOKEN) {
+			TDM_PRINT3("PIPE: %s, MMU TDM TABLE, element #%0d, contains physical port #%0d\n", name, j, mmu_tdm_tbl[j]);
+		}
+	 	else {
+			TDM_PRINT2("PIPE: %s, MMU TDM TABLE, element #%0d, CONTAINS ACCESSORY TOKEN - assigned as ", name, j);
+			m++;
+			if (bw==760) {
+				if (oversub==BOOL_FALSE) {
+					if (_tdm->_core_data.vars_pkg.cal_id==TD2P_XPIPE_CAL_ID) {
+						if (mgmt_bw==0) {
+							switch (m) {
+								case 1: case 3: case 5: case 7:
+									TD2P_CMIC(j)
+								case 2: case 4: case 6: case 8:
+									TD2P_ANCL(j)
+							}
+						}
+						else if (mgmt_bw==4) {
+							switch (m) {
+								case 1:
+									TD2P_MM13(j)
+								case 3:
+									TD2P_MM14(j)
+								case 5:
+									TD2P_MM15(j)
+								case 7:
+									TD2P_MM16(j)
+								case 2: case 6:
+									TD2P_ANCL(j)
+								case 4: case 8:
+									TD2P_CMIC(j)
+							}
+						}
+						else if (mgmt_bw==1) {
+							switch (m) {
+								case 2: case 4: case 6: case 8:
+									TD2P_MM13(j)
+								case 1: case 5:
+									TD2P_ANCL(j)
+								case 3: case 7:
+									TD2P_REFR(j)
+							}
+						}
+					}
+					else if (_tdm->_core_data.vars_pkg.cal_id==TD2P_YPIPE_CAL_ID) {
+						switch (m) {
+							case 1: case 3: case 5: case 7:
+								TD2P_LPBK(j)
+							case 2: case 4: case 6: case 8:
+								TD2P_ANCL(j)
+						}
+					}
+				}
+				else if (oversub==BOOL_TRUE) {
+					if (_tdm->_core_data.vars_pkg.cal_id==TD2P_XPIPE_CAL_ID) {
+						if (mgmt_bw==0) {
+							switch (m) {
+								case 1: case 3: case 6:
+									TD2P_CMIC(j)
+								case 2: case 4: case 5: case 7: case 8:
+									TD2P_ANCL(j)
+							}
+						}
+						else if (mgmt_bw==4) {
+							switch (m) {
+								case 1: 
+									TD2P_MM13(j)
+								case 3: 
+									TD2P_MM14(j)
+								case 5: 
+									TD2P_MM15(j)
+								case 7: 
+									TD2P_MM16(j)
+								case 2: case 4: case 6:
+									TD2P_ANCL(j)
+								case 8: 
+									TD2P_CMIC(j)
+							}
+						}
+						else if (mgmt_bw==1) {
+							TDM_PRINT0("UNSUPPORTED\n");
+						}
+					}
+					else if (_tdm->_core_data.vars_pkg.cal_id==TD2P_YPIPE_CAL_ID) {
+						switch (m)
+						{
+							case 1: case 3: case 6:
+								TD2P_LPBK(j)
+							case 2: case 4: case 5: case 7: case 8:
+								TD2P_ANCL(j)
+						}
+					}
+				}
+			}
+			else if (bw==608 || bw==609) {
+				if (_tdm->_core_data.vars_pkg.cal_id==TD2P_XPIPE_CAL_ID) {
+					if (mgmt_bw==0) {
+						switch (m) {
+							case 1: case 3: case 5: case 7: case 9:
+								TD2P_CMIC(j)
+							case 2: case 4: case 6: case 8: case 10:
+								TD2P_ANCL(j)
+						}
+					}
+					else if (mgmt_bw==4) {
+						switch (m) {
+							case 1: 
+								TD2P_MM13(j)
+							case 3: 
+								TD2P_MM14(j) 
+							case 6: 
+								TD2P_MM15(j)
+							case 8: 
+								TD2P_MM16(j)
+							case 2: case 5: case 9:
+								TD2P_ANCL(j)
+							case 4: case 7: case 10:
+								TD2P_CMIC(j)
+						}
+					}
+					else if (mgmt_bw==1) {
+						switch (m) {
+							case 2: case 4: case 7: case 9:
+								TD2P_MM13(j)
+							case 1: case 3: case 5: case 6: case 8:
+								TD2P_ANCL(j)
+							case 10: 
+								TD2P_CMIC(j)
+						}
+					}
+				}
+				else if (_tdm->_core_data.vars_pkg.cal_id==TD2P_YPIPE_CAL_ID) {
+					switch (m) {
+						case 1: case 3: case 5: case 7: case 9:
+							TD2P_LPBK(j)
+						case 2: case 4: case 6: case 8: case 10:
+							TD2P_ANCL(j)
+					}
+				}
+			}
+			else if (bw==517 || bw==518) {
+				if (oversub==BOOL_FALSE) {
+					if (_tdm->_core_data.vars_pkg.cal_id==TD2P_XPIPE_CAL_ID) {
+						if (mgmt_bw==0) {
+							switch (m) {
+								case 1: case 3: case 5: case 7:
+									TD2P_CMIC(j)
+								case 2: case 4: case 6: case 8:
+									TD2P_ANCL(j)
+							}
+						}
+						else if (mgmt_bw==4) {
+							switch (m) {
+								case 1: 
+									TD2P_MM13(j)
+								case 3: 
+									TD2P_MM14(j)
+								case 5: 
+									TD2P_MM15(j)
+								case 7: 
+									TD2P_MM16(j)
+								case 2: case 6:
+									TD2P_ANCL(j)
+								case 4: case 8:
+									TD2P_CMIC(j)
+							}
+						}
+						else if (mgmt_bw==1) {
+							switch (m) {
+								case 2: case 4: case 6: case 8:
+									TD2P_MM13(j)
+								case 1: case 5:
+									TD2P_ANCL(j)
+								case 3: case 7:
+									TD2P_REFR(j)
+							}
+						}
+					}
+					else if (_tdm->_core_data.vars_pkg.cal_id==TD2P_YPIPE_CAL_ID) {
+						switch (m) {
+							case 1: case 3: case 5: case 7:
+								TD2P_LPBK(j)
+							case 2: case 4: case 6: case 8:
+								TD2P_ANCL(j)
+						}
+					}
+				}
+				else if (oversub==BOOL_TRUE) {
+					if (_tdm->_core_data.vars_pkg.cal_id==TD2P_XPIPE_CAL_ID) {
+						if (mgmt_bw==0) {
+							switch (m) {
+								case 1: case 3: case 6:
+									TD2P_CMIC(j)
+								case 2: case 4: case 5: case 7: case 8:
+									TD2P_ANCL(j)
+							}
+						}
+						else if (mgmt_bw==4) {
+							switch (m) {
+								case 1: 
+									TD2P_MM13(j)
+								case 3: 
+									TD2P_MM14(j)
+								case 5: 
+									TD2P_MM15(j)
+								case 7: 
+									TD2P_MM16(j)
+								case 2: case 4: case 6:
+									TD2P_ANCL(j)
+								case 8: 
+									TD2P_CMIC(j)
+							}
+						}
+						else if (mgmt_bw==1) {
+							TDM_PRINT0("UNSUPPORTED\n");
+						}
+					}
+					else if (_tdm->_core_data.vars_pkg.cal_id==TD2P_YPIPE_CAL_ID) {
+						switch (m) {
+							case 1: case 3: case 6:
+								TD2P_LPBK(j)
+							case 2: case 4: case 5: case 7: case 8:
+								TD2P_ANCL(j)
+						}
+					}
+				}
+			}
+			else if (bw==415 || bw==416) {
+				if (_tdm->_core_data.vars_pkg.cal_id==TD2P_XPIPE_CAL_ID) {
+					if (mgmt_bw==0) {
+						switch (m) {
+							case 1: case 3: case 5: case 7: case 9:
+								TD2P_CMIC(j)
+							case 2: case 4: case 6: case 8: case 10:
+								TD2P_ANCL(j)
+						}
+					}
+					else if (mgmt_bw==4) {
+						switch (m) {
+							case 1: 
+								TD2P_MM13(j)
+							case 3: 
+								TD2P_MM14(j)
+							case 6: 
+								TD2P_MM15(j)
+							case 8: 
+								TD2P_MM16(j)
+							case 2: case 5: case 9:
+								TD2P_ANCL(j)
+							case 4: case 7: case 10:
+								TD2P_CMIC(j)
+						}
+					}
+					else if (mgmt_bw==1) {
+						switch (m) {
+							case 2: case 4: case 7: case 9:
+								TD2P_MM13(j)
+							case 1: case 3: case 5: case 6: case 8:
+								TD2P_ANCL(j)
+							case 10: 
+								TD2P_CMIC(j)
+						}
+					}
+				}
+				else if (_tdm->_core_data.vars_pkg.cal_id==TD2P_YPIPE_CAL_ID) {
+					switch (m) {
+						case 1: case 3: case 5: case 7: case 9:
+							TD2P_LPBK(j)
+						case 2: case 4: case 6: case 8: case 10:
+							TD2P_ANCL(j)
+					}
+				}
+			}
+			else {
+				TDM_PRINT0("INVALID PARAMETERS\n");
+			}
+		}
+	}
+
+	for (j=0; j<TD2P_OS_VBS_GRP_LEN; j++) {
+		TDM_PRINT3("PIPE: %s, MMU OVS BUCKET 0, element #%0d, contains physical port #%0d\n", name, j, mmu_tdm_ovs_1[j]);
+	}
+	for (j=0; j<TD2P_OS_VBS_GRP_LEN; j++) {
+		TDM_PRINT3("PIPE: %s, MMU OVS BUCKET 1, element #%0d, contains physical port #%0d\n", name, j, mmu_tdm_ovs_2[j]);
+	}
+	for (j=0; j<TD2P_OS_VBS_GRP_LEN; j++) {
+		TDM_PRINT3("PIPE: %s, MMU OVS BUCKET 2, element #%0d, contains physical port #%0d\n", name, j, mmu_tdm_ovs_3[j]);
+	}
+	for (j=0; j<TD2P_OS_VBS_GRP_LEN; j++) {
+		TDM_PRINT3("PIPE: %s, MMU OVS BUCKET 3, element #%0d, contains physical port #%0d\n", name, j, mmu_tdm_ovs_4[j]);
+	}
+	for (j=0; j<TD2P_OS_VBS_GRP_LEN; j++) {
+		TDM_PRINT3("PIPE: %s, MMU OVS BUCKET 4, element #%0d, contains physical port #%0d\n", name, j, mmu_tdm_ovs_5[j]);
+	}
+	for (j=0; j<TD2P_OS_VBS_GRP_LEN; j++) {
+		TDM_PRINT3("PIPE: %s, MMU OVS BUCKET 5, element #%0d, contains physical port #%0d\n", name, j, mmu_tdm_ovs_6[j]);
+	}
+	
+	
+	_tdm->_core_data.vars_pkg.pipe++;
+	return ( ( _tdm->_core_exec[TDM_CORE_EXEC__POST]( _tdm ) ) );
+}
