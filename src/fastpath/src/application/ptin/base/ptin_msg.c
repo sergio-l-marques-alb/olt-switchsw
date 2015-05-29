@@ -8647,7 +8647,7 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_get(msg_MCAssocChannel_t *channel_list, L7_ui
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_msg_IGMP_ChannelAssoc_add(msg_MCAssocChannel_t *channel_list, L7_uint16 n_channels, L7_uint8 isStatic)
+L7_RC_t ptin_msg_group_list_add(msg_MCAssocChannel_t *channel_list, L7_uint16 n_channels, L7_uint8 isStatic)
 {
   L7_uint16 i;
   L7_inet_addr_t groupAddr, sourceAddr;
@@ -8685,6 +8685,7 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_add(msg_MCAssocChannel_t *channel_list, L7_ui
       return rc;
     }
    
+    /*Validate Group Address*/
     if (inetIsAddressZero(&groupAddr) == L7_FALSE && inetIsInMulticast(&groupAddr)== L7_FALSE)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG,"Group channel = 0x%08x (ipv6=%u) / %u is not a multicast address",channel_list[i].channel_dstIp.addr.ipv4, channel_list[i].channel_dstIp.family, channel_list[i].channel_dstmask);
@@ -8698,7 +8699,15 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_add(msg_MCAssocChannel_t *channel_list, L7_ui
       return rc;
     }
 
-    if ( channel_list[i].channel_srcmask == 0 && inetIsAddressZero(&sourceAddr) != L7_TRUE)
+    /*Validate Source Address*/
+    if (!inetIsAddressZero(&sourceAddr) && inetIsValidHostAddress(&sourceAddr)== L7_FALSE )
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Source channel = 0x%08x (ipv6=%u) / %u is not a unicast address",channel_list[i].channel_srcIp.addr.ipv4, channel_list[i].channel_srcIp.family, channel_list[i].channel_srcmask);
+      return L7_FAILURE;
+    }
+
+    /*Validate Source Mask*/
+    if ( channel_list[i].channel_srcmask == 0 /*&& !inetIsAddressZero(&sourceAddr)*/ )
     {
       channel_list[i].channel_srcmask = 32;
     }    
@@ -8750,12 +8759,13 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_add(msg_MCAssocChannel_t *channel_list, L7_ui
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_msg_IGMP_ChannelAssoc_remove(msg_MCAssocChannel_t *channel_list, L7_uint16 n_channels, L7_uint8 isStatic)
+L7_RC_t ptin_msg_group_list_remove(msg_MCAssocChannel_t *channel_list, L7_uint16 n_channels, L7_uint8 isStatic)
 {
-  L7_uint16 i;
-  L7_inet_addr_t groupAddr, sourceAddr;
-  L7_RC_t rc = L7_SUCCESS;
-  L7_RC_t rc_global = L7_SUCCESS;
+  L7_uint16      i;
+  L7_inet_addr_t groupAddr, 
+                 sourceAddr;
+  L7_RC_t        rc = L7_SUCCESS;
+  L7_RC_t        rc_global = L7_SUCCESS;
 
   if (channel_list==L7_NULLPTR)
   {
@@ -8773,17 +8783,11 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_remove(msg_MCAssocChannel_t *channel_list, L7
     LOG_DEBUG(LOG_CTX_PTIN_MSG," DstIP_Channel = 0x%08x (ipv6=%u) / %u",channel_list[i].channel_dstIp.addr.ipv4, channel_list[i].channel_dstIp.family, channel_list[i].channel_dstmask);
     LOG_DEBUG(LOG_CTX_PTIN_MSG," SrcIP_Channel = 0x%08x (ipv6=%u) / %u",channel_list[i].channel_srcIp.addr.ipv4, channel_list[i].channel_srcIp.family, channel_list[i].channel_srcmask);
 
-    /* Prepare group address */
-    memset(&groupAddr, 0x00, sizeof(L7_inet_addr_t));
-    if (channel_list[i].channel_dstIp.family == PTIN_AF_INET6)
+    /* Prepare group address */    
+    rc = ptin_to_fp_ip_notation(&channel_list[i].channel_dstIp, &groupAddr);
+    if ( rc != L7_SUCCESS)
     {
-      groupAddr.family = L7_AF_INET6;
-      memcpy(groupAddr.addr.ipv6.in6.addr8, channel_list[i].channel_dstIp.addr.ipv6, sizeof(L7_uint8)*16);
-    }
-    else
-    {
-      groupAddr.family = L7_AF_INET;
-      groupAddr.addr.ipv4.s_addr = channel_list[i].channel_dstIp.addr.ipv4;
+      return rc;
     }
 
     if (inetIsAddressZero(&groupAddr) == L7_FALSE && inetIsInMulticast(&groupAddr)== L7_FALSE)
@@ -8792,20 +8796,22 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_remove(msg_MCAssocChannel_t *channel_list, L7
       return L7_FAILURE;
     }
 
-    /* Prepare source address */
-    memset(&sourceAddr, 0x00, sizeof(L7_inet_addr_t));
-    if (channel_list[i].channel_srcIp.family == PTIN_AF_INET6)
+    /* Prepare source address */     
+    rc = ptin_to_fp_ip_notation(&channel_list[i].channel_srcIp, &sourceAddr);
+    if ( rc != L7_SUCCESS)
     {
-      sourceAddr.family = L7_AF_INET6;
-      memcpy(sourceAddr.addr.ipv6.in6.addr8, channel_list[i].channel_srcIp.addr.ipv6, sizeof(L7_uint8)*16);
-    }
-    else
-    {
-      sourceAddr.family = L7_AF_INET;
-      sourceAddr.addr.ipv4.s_addr = channel_list[i].channel_srcIp.addr.ipv4;
+      return rc;
     }
 
-    if ( channel_list[i].channel_srcmask == 0 && inetIsAddressZero(&sourceAddr) != L7_TRUE)
+    /*Validate Source Address*/
+    if (!inetIsAddressZero(&sourceAddr) && inetIsValidHostAddress(&sourceAddr)== L7_FALSE )
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Source channel = 0x%08x (ipv6=%u) / %u is not a unicast address",channel_list[i].channel_srcIp.addr.ipv4, channel_list[i].channel_srcIp.family, channel_list[i].channel_srcmask);
+      return L7_FAILURE;
+    }
+
+    /*Validate Source Mask*/
+    if ( channel_list[i].channel_srcmask == 0 /*&& !inetIsAddressZero(&sourceAddr) */)
     {
       channel_list[i].channel_srcmask = 32;
     }
@@ -8889,38 +8895,39 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_remove_all(msg_MCAssocChannel_t *channel_list
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_msg_IGMP_staticChannel_add(msg_MCStaticChannel_t *channel, L7_uint16 n_channels)
+L7_RC_t ptin_msg_static_channel_add(msg_MCStaticChannel_t *channel, L7_uint16 n_channels)
 {
-  PTIN_MGMD_CTRL_STATICGROUP_t staticGroup={0};
-  L7_uint16 i;
-  L7_RC_t rc = L7_SUCCESS;
+  PTIN_MGMD_CTRL_STATICGROUP_t staticGroup={0};  
+  L7_uint16                    i;
+  L7_RC_t                      rc = L7_SUCCESS;
 
   if (channel==L7_NULLPTR)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid arguments");
     return L7_FAILURE;
-  }
-    
+  }    
 
   for (i=0; i<n_channels; i++)
   {
-    #ifdef IGMPASSOC_MULTI_MC_SUPPORTED//Add Static Channel to (WhiteList) Group List     
-    msg_MCAssocChannel_t channel_list;  
+    #ifdef IGMPASSOC_MULTI_MC_SUPPORTED//Add Static Channel to (WhiteList) Group List    
+    msg_MCAssocChannel_t         channel_list;                                        
+                                       
+    memset(&channel_list, 0x00, sizeof(channel_list));
 
     channel_list.SlotId=channel[i].SlotId;
     channel_list.evcid_mc=channel[i].evc_id;
 
-    channel_list.channel_dstIp.family = PTIN_AF_INET;
+    channel_list.channel_dstIp.family = PTIN_AF_INET;  
     channel_list.channel_dstIp.addr.ipv4 = channel[i].channelIp.s_addr;
     channel_list.channel_dstmask=32;//32 Bits of Mask
 
     channel_list.channel_srcIp.family=PTIN_AF_INET;
-    channel_list.channel_srcIp.addr.ipv4 = channel[i].sourceIp.s_addr;
+    channel_list.channel_srcIp.addr.ipv4 = channel[i].sourceIp.s_addr;    
     channel_list.channel_srcmask=32;
 
     channel_list.channelBandwidth = channel[i].channelBandwidth;
 
-    if ((rc =  ptin_msg_IGMP_ChannelAssoc_add(&channel_list,1, L7_TRUE)) != L7_SUCCESS)
+    if ((rc =  ptin_msg_group_list_add(&channel_list,1, L7_TRUE)) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error (%d) adding static channel", rc);
       return rc;
@@ -8968,12 +8975,12 @@ L7_RC_t ptin_msg_IGMP_staticChannel_add(msg_MCStaticChannel_t *channel, L7_uint1
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_msg_IGMP_channel_remove(msg_MCStaticChannel_t *channel, L7_uint16 n_channels)
+L7_RC_t ptin_msg_static_channel_remove(msg_MCStaticChannel_t *channel, L7_uint16 n_channels)
 {
-  PTIN_MGMD_CTRL_STATICGROUP_t staticGroup={0};
-  L7_uint16 i;
-  L7_RC_t rc;
-  L7_RC_t rc_global = L7_SUCCESS;
+  PTIN_MGMD_CTRL_STATICGROUP_t staticGroup={0};  
+  L7_uint16                    i;
+  L7_RC_t                      rc;
+  L7_RC_t                      rc_global = L7_SUCCESS;
 
   if (channel==L7_NULLPTR)
   {
@@ -9004,7 +9011,9 @@ L7_RC_t ptin_msg_IGMP_channel_remove(msg_MCStaticChannel_t *channel, L7_uint16 n
     }
 
     #ifdef IGMPASSOC_MULTI_MC_SUPPORTED//Remove Static Channel from (WhiteList) Group List     
-    msg_MCAssocChannel_t channel_list;  
+    msg_MCAssocChannel_t         channel_list;  
+
+    memset(&channel_list, 0x00, sizeof(channel_list));
 
     channel_list.SlotId=channel[i].SlotId;
     channel_list.evcid_mc=channel[i].evc_id;
@@ -9019,7 +9028,7 @@ L7_RC_t ptin_msg_IGMP_channel_remove(msg_MCStaticChannel_t *channel, L7_uint16 n
 
     channel_list.channelBandwidth = channel[i].channelBandwidth;
     
-    ptin_msg_IGMP_ChannelAssoc_remove(&channel_list,1, L7_TRUE);   
+    ptin_msg_group_list_remove(&channel_list,1, L7_TRUE);   
     #endif//End Static Channel Remove
     
   }
@@ -13176,11 +13185,31 @@ L7_RC_t ptin_msg_igmp_package_channels_add(msg_igmp_package_channels_t *msg, L7_
       return rc;
     }
 
+    /*Validate Group Address*/
+    if (inetIsInMulticast(&groupAddr)== L7_FALSE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Group channel = 0x%08x (ipv6=%u) / %u is not a multicast address", msg[messageIterator].groupAddr.addr.ipv4, msg[messageIterator].groupAddr.family, msg[messageIterator].groupMask);
+      return L7_FAILURE;
+    }
+
     /*Convert Source Address to fp Notation*/
     rc = ptin_to_fp_ip_notation(&msg[messageIterator].sourceAddr, &sourceAddr);
     if ( rc != L7_SUCCESS)
     {
       return rc;
+    }
+
+    /*Validate Source Address*/
+    if (!inetIsAddressZero(&sourceAddr) && inetIsValidHostAddress(&sourceAddr)== L7_FALSE )
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Source channel = 0x%08x (ipv6=%u) / %u is not a unicast address", msg[messageIterator].sourceAddr.addr.ipv4, msg[messageIterator].sourceAddr.family, msg[messageIterator].sourceMask);
+      return L7_FAILURE;
+    }
+
+    /*Validate Source Mask*/
+    if ( msg[messageIterator].sourceMask == 0 /*&& !inetIsAddressZero(&sourceAddr)*/ )
+    {
+      msg[messageIterator].sourceMask = 32;
     }
 
     /*Input Parameters*/
@@ -13240,11 +13269,31 @@ L7_RC_t ptin_msg_igmp_package_channels_remove(msg_igmp_package_channels_t *msg, 
       return rc;
     }
 
+    /*Validate Group Address*/
+    if (inetIsInMulticast(&groupAddr)== L7_FALSE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Group channel = 0x%08x (ipv6=%u) / %u is not a multicast address", msg[messageIterator].groupAddr.addr.ipv4, msg[messageIterator].groupAddr.family, msg[messageIterator].groupMask);
+      return L7_FAILURE;
+    }
+
     /*Convert Source Address to fp Notation*/
     rc = ptin_to_fp_ip_notation(&msg[messageIterator].sourceAddr, &sourceAddr);
     if ( rc != L7_SUCCESS)
     {
       return rc;
+    }
+
+    /*Validate Source Address*/
+    if (!inetIsAddressZero(&sourceAddr) && inetIsValidHostAddress(&sourceAddr)== L7_FALSE )
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Source channel = 0x%08x (ipv6=%u) / %u is not a unicast address", msg[messageIterator].sourceAddr.addr.ipv4, msg[messageIterator].sourceAddr.family, msg[messageIterator].sourceMask);
+      return L7_FAILURE;
+    }
+
+    /*Validate Source Mask*/
+    if ( msg[messageIterator].sourceMask == 0 /*&& !inetIsAddressZero(&sourceAddr)*/ )
+    {
+      msg[messageIterator].sourceMask = 32;
     }
 
     /*Input Parameters*/

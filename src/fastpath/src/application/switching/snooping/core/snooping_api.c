@@ -4069,6 +4069,7 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
   #else
   #error "Not Implemented Yet!"
   #endif
+  && isProtection == L7_FALSE
   )
   {
 //  if (ptin_debug_igmp_snooping)

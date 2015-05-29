@@ -742,7 +742,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_HW_INTF_INFO_GET:
     {
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,
                "Message received: CCMSG_HW_INTF_INFO_GET (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE_ATLEAST(L7_uint32);
@@ -3322,7 +3322,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       n = inbuffer->infoDim/sizeof(msg_MCAssocChannel_t);
 
       /* Execute command */
-      rc  = ptin_msg_IGMP_ChannelAssoc_add(ptr, n, L7_FALSE);
+      rc  = ptin_msg_group_list_add(ptr, n, L7_FALSE);
 
       if (L7_SUCCESS != rc)
       {        
@@ -3350,7 +3350,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       n = inbuffer->infoDim/sizeof(msg_MCAssocChannel_t);
 
       /* Execute command */
-      rc  = ptin_msg_IGMP_ChannelAssoc_remove(ptr, n, L7_FALSE);
+      rc  = ptin_msg_group_list_remove(ptr, n, L7_FALSE);
 
       if (L7_SUCCESS != rc)
       {        
@@ -3407,7 +3407,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       n = inbuffer->infoDim/sizeof(msg_MCStaticChannel_t);
 
       /* Execute command */
-      rc  = ptin_msg_IGMP_staticChannel_add(ptr, n);
+      rc  = ptin_msg_static_channel_add(ptr, n);
 
       if (L7_SUCCESS != rc)
       {
@@ -3436,7 +3436,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       n = inbuffer->infoDim/sizeof(msg_MCStaticChannel_t);
 
       /* Execute command */
-      rc = ptin_msg_IGMP_channel_remove(ptr, n);
+      rc = ptin_msg_static_channel_remove(ptr, n);
 
       if (L7_SUCCESS != rc)
       {
@@ -5354,7 +5354,8 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
   time_delta = time_end - time_start;
 
   if( inbuffer->msgId == CCMSG_ETH_PHY_ACTIVITY_GET || 
-      inbuffer->msgId == CCMSG_ETH_PHY_COUNTERS_GET || 
+      inbuffer->msgId == CCMSG_HW_INTF_INFO_GET     ||
+      inbuffer->msgId == CCMSG_ETH_PHY_COUNTERS_GET ||
 #if (PTIN_BOARD_IS_MATRIX)
       inbuffer->msgId == CCMSG_ETH_LACP_MATRIXES_SYNC2 || 
 #endif

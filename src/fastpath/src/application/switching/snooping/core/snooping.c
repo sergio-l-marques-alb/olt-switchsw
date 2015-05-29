@@ -595,9 +595,11 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   #endif
       {        
         client_idx = (L7_uint) -1;
-        LOG_TRACE(LOG_CTX_PTIN_IGMP,"intIfNum=%u,vlan=%u are not accepted", pduInfo->intIfNum, pduInfo->vlanId);
+        LOG_ERR(LOG_CTX_PTIN_IGMP,"intIfNum=%u,vlan=%u are not accepted", pduInfo->intIfNum, pduInfo->vlanId);
+        ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
       }
       ptin_timer_stop(75);    
+      return L7_FAILURE;
     }
   }
 #endif
@@ -714,7 +716,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     if(groupAddr.addr.ipv4.s_addr >= L7_IP_MCAST_BASE_ADDR && groupAddr.addr.ipv4.s_addr <= L7_IP_MAX_LOCAL_MULTICAST )    
     {
       if(ptin_debug_igmp_snooping)
-        LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Multicast Group Address is Reserved for Protocol use [vlan=%u innerVlan=%u client_idx grpAddr=%s]. Packet Silently ignored...",
+        LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Multicast Group Address is Reserved for Protocol use [vlan=%u innerVlan=%u client_idx=%u grpAddr=%s]. Packet Silently ignored...",
                 pduInfo->vlanId, pduInfo->innerVlanId, client_idx, inetAddrPrint(&groupAddr,groupAddrStr));  
       if(igmpPtr!=L7_NULLPTR)
         ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, snoopPacketType2IGMPStatField(igmpPtr[0],SNOOP_STAT_FIELD_VALID_RX));
