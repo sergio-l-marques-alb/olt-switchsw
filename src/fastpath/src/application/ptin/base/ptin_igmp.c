@@ -7388,7 +7388,7 @@ static L7_RC_t ptin_igmp_channel_get( L7_uint32 evc_mc,
   if ((avl_infoData=(ptinIgmpChannelInfoData_t *) avlSearchLVL7( &(channelDB.channelAvlTree), (void *)&avl_key, AVL_EXACT)) == L7_NULLPTR)
   {
     ptin_timer_stop(77);
-    //if (ptin_debug_igmp_snooping)
+    if (ptin_debug_igmp_snooping)
       LOG_WARNING(LOG_CTX_PTIN_IGMP,"Channel Does Not Exist [evc_mc:%u groupAddr:%s sourceAddr:%s]", evc_mc, groupAddrStr, sourceAddrStr);      
     return L7_NOT_EXIST;      
   }
@@ -7622,10 +7622,10 @@ L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
         else
         {
           rc = ptin_igmp_channel_get (avl_node.channelDataKey.evc_mc, &avl_node.channelDataKey.channel_group, &avl_node.channelDataKey.channel_source,  L7_NULLPTR);
-          if ( rc == L7_NOT_EXIST )
+          if ( rc != L7_SUCCESS )
           {
             LOG_ERR(LOG_CTX_PTIN_IGMP,"Channel Does Not Exist group 0x%08x, source 0x%08x", avl_node.channelDataKey.channel_group.addr.ipv4.s_addr, avl_node.channelDataKey.channel_source.addr.ipv4.s_addr);                    
-            return L7_NOT_EXIST;      
+            return rc;      
           }
           LOG_TRACE(LOG_CTX_PTIN_IGMP,"Added group 0x%08x, source 0x%08x, evc_mc=%u", avl_node.channelDataKey.channel_group.addr.ipv4.s_addr, avl_node.channelDataKey.channel_source.addr.ipv4.s_addr, avl_node.channelDataKey.evc_mc);
         }
@@ -7715,12 +7715,11 @@ L7_RC_t igmp_assoc_channel_remove( L7_uint32 evc_mc, L7_uint32 evc_uc,
 {
   L7_inet_addr_t              group;
   L7_inet_addr_t              source;  
-//L7_inet_addr_t              sourceIterator;
+  L7_inet_addr_t              sourceAux;
   L7_uint32                   i; 
   L7_uint32                   n_groups      = 1;
   L7_uint32                   j; 
-  L7_uint32                   n_sources     = 1;
-  ptinIgmpChannelDataKey_t    avl_key;
+  L7_uint32                   n_sources     = 1;  
   ptinIgmpChannelInfoData_t  *avlEntry;  
   L7_RC_t                     rc            = L7_SUCCESS;
 
@@ -7758,26 +7757,23 @@ L7_RC_t igmp_assoc_channel_remove( L7_uint32 evc_mc, L7_uint32 evc_uc,
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Maximum addresses to be remove: %u", n_groups*n_sources);
 
-  memset( &avl_key, 0x00, sizeof(ptinIgmpChannelDataKey_t));
-
-  avl_key.evc_mc = evc_mc;
-
-  /* Prepare key */
-  memcpy(&avl_key.channel_group, &group, sizeof(L7_inet_addr_t));
+   /* Save Source Address */
+  memcpy(&sourceAux, &source, sizeof(sourceAux));
 
   /* Remove channels */
   for (i=0; i<n_groups; i++)
-  {
-#if ( IGMPASSOC_CHANNEL_SOURCE_SUPPORTED )
-    memcpy(&avl_key.channel_source, &source, sizeof(L7_inet_addr_t));
-#endif
+  {    
+    if (i > 0)
+    {
+      memcpy(&source, &sourceAux, sizeof(source));
+    }
 
     for (j=0; j<n_sources; j++)
     {
       /* Find associated MC service */
-      if ( (rc =ptin_igmp_channel_get( evc_mc, &avl_key.channel_group, &avl_key.channel_source, &avlEntry )) !=L7_SUCCESS)
+      if ( (rc =ptin_igmp_channel_get( evc_mc, &group, &source, &avlEntry )) != L7_SUCCESS )
       {
-        LOG_ERR(LOG_CTX_PTIN_IGMP,"No MC EVC associated with UC EVC %u",evc_uc);        
+        LOG_ERR(LOG_CTX_PTIN_IGMP,"Channel Does Not Exist: evc_mc:%u group:%u source:%u",evc_mc, group.addr.ipv4.s_addr,  source.addr.ipv4.s_addr);        
       }
       else
       {
@@ -7823,34 +7819,31 @@ L7_RC_t igmp_assoc_channel_remove( L7_uint32 evc_mc, L7_uint32 evc_uc,
       /* Remove node from avl tree */
       if (rc == L7_SUCCESS)
       {
+        #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT  
+        ptin_igmp_channel_bandwidth_cache_unset(&avlEntry->channelDataKey);        
+        #endif
+
         if (ptin_igmp_channel_remove( &avlEntry->channelDataKey ) != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing group channel 0x%08x, source=0x%08x for UC_EVC=%u",
-                  avl_key.channel_group.addr.ipv4.s_addr, avl_key.channel_source.addr.ipv4.s_addr, evc_uc);
+          LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing group channel 0x%08x, source=0x%08x,  evc_mc=%u",
+                 group.addr.ipv4.s_addr, source.addr.ipv4.s_addr, evc_mc);
           return L7_FAILURE;
         }
         else
         {
-          LOG_TRACE(LOG_CTX_PTIN_IGMP,"Removed group 0x%08x, source 0x%08x", avl_key.channel_group.addr.ipv4.s_addr,  avl_key.channel_group.addr.ipv4.s_addr);
+          LOG_TRACE(LOG_CTX_PTIN_IGMP,"Removed group 0x%08x, source 0x%08x, evc_mc %u", group.addr.ipv4.s_addr,  source.addr.ipv4.s_addr, evc_mc);
         }
-
-#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT  
-        if (rc != L7_DEPENDENCY_NOT_MET)
-        {
-          ptin_igmp_channel_bandwidth_cache_unset(&avl_key);
-        }
-#endif
       }
 
       /* Next source ip address */
-      if (avl_key.channel_source.family != L7_AF_INET6)
-        avl_key.channel_source.addr.ipv4.s_addr++;
+      if (source.family != L7_AF_INET6)
+        source.addr.ipv4.s_addr++;
       else
         break;
     }
     /* Next group address */
-    if (avl_key.channel_group.family != L7_AF_INET6)
-      avl_key.channel_group.addr.ipv4.s_addr++;
+    if (group.family != L7_AF_INET6)
+      group.addr.ipv4.s_addr++;
     else
       break;
   }
