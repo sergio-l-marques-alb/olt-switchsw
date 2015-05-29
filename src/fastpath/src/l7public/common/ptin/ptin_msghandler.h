@@ -753,7 +753,7 @@ typedef struct
       } __attribute__((packed)) ipprec_map;         // IP Prec to CoS map
 
       struct {                                      // Struct:
-        L7_uint64 prio_mask;                            //   pktpriority map mask (nth bit, tells to configure the nth priority)
+        L7_uint32 prio_mask[2];                         //   pktpriority map mask (nth bit, tells to configure the nth priority) - Low + High
         L7_uint8  cos[64];                              //   Mapping: CoS(pcp): Default={0,1,2,3,4,5,6,7}
       } __attribute__((packed)) dscp_map;           // DSCP to CoS map
     } __attribute__((packed)) cos_classif;      // ingress_mask=0x04: Packet priority to CoS map (classification)

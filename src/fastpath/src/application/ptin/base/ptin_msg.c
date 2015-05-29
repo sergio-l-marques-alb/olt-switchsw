@@ -2543,7 +2543,7 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
         /* Is priority i to be defined? If so define CoS */
         if (qos_intf.pktprio.mask[i/8] >> (i%8))
         {
-          qos_msg->ingress.cos_classif.dscp_map.prio_mask |= 1ULL << i;
+          qos_msg->ingress.cos_classif.dscp_map.prio_mask[i/32] |= 1ULL << i;
           qos_msg->ingress.cos_classif.dscp_map.cos[i] = (qos_intf.pktprio.cos[i/8] >> ((i%8)*4)) & 0xf;
 
           qos_msg->ingress.ingress_mask |= MSG_QOS3_INGRESS_COS_CLASSIF_MASK;
@@ -2732,7 +2732,8 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
   }
   else if (qos_msg->ingress.trust_mode == L7_QOS_COS_MAP_INTF_MODE_TRUST_IPDSCP)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_classif.dscp_map.prio_mask = 0x%016llx",qos_msg->ingress.cos_classif.dscp_map.prio_mask);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_classif.dscp_map.prio_mask = 0x%08x 0x%08x",
+              qos_msg->ingress.cos_classif.dscp_map.prio_mask[0], qos_msg->ingress.cos_classif.dscp_map.prio_mask[1]);
     for (i = 0; i < 64; i+=8)
     {
       LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_classif.dscp_map.cos[%2u-%2u] = { %u %u %u %u %u %u %u %u } ", i, i+7,
@@ -2949,7 +2950,8 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
   }
   else if (qos_msg->ingress.trust_mode == L7_QOS_COS_MAP_INTF_MODE_TRUST_IPDSCP)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_classif.dscp_map.prio_mask = 0x%016llx",qos_msg->ingress.cos_classif.dscp_map.prio_mask);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_classif.dscp_map.prio_mask = 0x%08x 0x%08x",
+              qos_msg->ingress.cos_classif.dscp_map.prio_mask[0], qos_msg->ingress.cos_classif.dscp_map.prio_mask[1]);
     for (i = 0; i < 64; i+=8)
     {
       LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_classif.dscp_map.cos[%2u-%2u] = { %u %u %u %u %u %u %u %u } ", i, i+7,
@@ -3174,7 +3176,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
         for (i=0; i<64; i++)
         {
           /* Is priority i to be defined? If so define CoS */
-          if ((qos_msg->ingress.cos_classif.dscp_map.prio_mask >> i) & 1)
+          if ((qos_msg->ingress.cos_classif.dscp_map.prio_mask[i/32] >> i) & 1)
           {
             qos_intf.pktprio.mask[i/8] |= 1 << (i%8);
             qos_intf.pktprio.cos[i/8]  |= (qos_msg->ingress.cos_classif.dscp_map.cos[i] & 0xf) << (i%8);
