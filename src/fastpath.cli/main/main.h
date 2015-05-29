@@ -158,6 +158,16 @@ extern int canal_buga;
 
 #define CHMSG_ETH_UPLINK_COMMAND            0x9116  // Uplink protection command from Mx (fw control): struct msg_uplinkProtCmd
 
+#define CCMSG_WR_MEP_LM                     0x9149  // struct msg_bd_mep_lm_t
+#define CCMSG_RM_MEP_LM                     0x914A  // struct msg_bd_mep_lm_t
+#define CCMSG_RD_MEP_LM                     0x914B  // struct msg_frame_loss_t
+#define CHMSG_CCM_MEP_FRAMELOSS             0x914C  // struct MSG_FRAMELOSS_status
+
+#define CCMSG_WR_MEP_DM                     0x914D	// struct msg_bd_mep_dm_t
+#define CCMSG_RM_MEP_DM                     0x914E	// struct msg_bd_mep_dm_t
+#define CHMSG_CCM_MEP_FRAMEDELAY            0x914F	// struct MSG_FRAMEDELAY_status
+
+
 /* Routing */
 #define CCMSG_ROUTING_INTF_CREATE             0x9151  // msg_RoutingIpv4Intf
 #define CCMSG_ROUTING_INTF_MODIFY             0x9152  // msg_RoutingIpv4Intf
@@ -1948,6 +1958,61 @@ typedef struct {
   msg_HwEthInterface_t intf;         // Interface 
   L7_uint8             onuId;        // ONU Identifier                                     
 } __attribute__((packed)) msg_multicast_service_t;
+
+
+
+
+typedef struct {
+      unsigned char         slot;
+      unsigned int          idx;         // indice do MP
+      unsigned long         port;
+
+      unsigned char         type;        // ccm 0, lmm 1
+      unsigned char         lmmPeriod;   // Periodo de Tx das LLMs
+      unsigned char         lmmCosColor; // CoS e Color para Tx das LLMs
+      unsigned char         flrCosColor;
+} __attribute__ ((packed)) msg_bd_mep_lm_t;
+
+
+
+typedef struct {
+      unsigned char         slot;
+      unsigned int          idx;            // indice do MP
+      unsigned long         port;
+
+      unsigned int          mask;           // [0] Delta_LM_tx_e; [1] Delta_LM_rx_e; [2] Delta_LM_tx_i; [3] Delta_LM_rx_i; [4..] not used
+      unsigned long long    Delta_LM_tx_e;  // LM_egress  = (Delta_LM_tx_e - Delta_LM_rx_e) / Delta_LM_tx_e
+      unsigned long long    Delta_LM_rx_e;  //
+      unsigned long long    Delta_LM_tx_i;  // LM_ingress = (Delta_LM_tx_i - Delta_LM_rx_i) / Delta_LM_tx_i
+      unsigned long long    Delta_LM_rx_i;  //
+} __attribute__ ((packed)) MSG_FRAMELOSS_status;
+
+
+
+typedef struct
+{
+   unsigned char         slot;
+   unsigned int          idx;                   // indice do MP
+   unsigned long         port;
+   unsigned short        period;                // [n x ms]
+   unsigned short        packet_size;           // Bytes
+   unsigned short        packet_number;         // packet_number = 0: Abort
+   unsigned char         dmmCosColor;
+} __attribute__ ((packed)) msg_bd_mep_dm_t;
+
+typedef struct
+{
+   unsigned char         slot;
+   unsigned int          idx;                // indice do MP
+   unsigned long         port;
+   unsigned int          status;             // status: 0-Idle; 1-Running; 2-Finished
+   unsigned long long    DM_Max;             // [ms]
+   unsigned long long    DM_Min;             // [ms]
+   unsigned long long    DM_Total;           // DM_Med = (DM_Total / DM_packet_number) [ms]
+   unsigned short        DM_packet_number;   //
+} __attribute__ ((packed)) MSG_FRAMEDELAY_status;
+
+
 
 
 #endif //_MAIN_H_

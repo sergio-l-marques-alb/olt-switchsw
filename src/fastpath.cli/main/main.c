@@ -128,7 +128,12 @@ void help_oltBuga(void)
         "m 1504 port[0..MAX/-1) lacp_aggregation(0/1) lacp_activity(0/1) lacp_timeout(0=long,1=short) - Set LACP Admin State\r\n"
         "m 1505 port[0..MAX/-1) - Get LACP Admin State\r\n"
         "m 1510 port[0..MAC/-1) - Show LACP statistics for port <port>\n\r"
-        "m 1511 port[0..MAX/-1) - Clear LACP statistics for port <port>\n\r"        
+        "m 1511 port[0..MAX/-1) - Clear LACP statistics for port <port>\n\r"
+        "m 1997 - Reset Multicast machine\r\n"
+        "m 1998 - Reset alarms\r\n"
+        "m 1999 - Reset defaults, except for lag InBand\r\n"
+        "m 2000 age(30-1000000) - Set MAC Learning table aging time\r\n"
+        "m 2001 - Get MAC Learning aging time\r\n"
         "--- EVCs -----------------------------------------------------------------------------------------------------------------------------\r\n"
         "m 1600 EVC# - Read EVC config\r\n"
         "m 1601 EVC# Type(0-P2MP;1-P2P;2-Q) Stacked(0/1) MacLearn(0/1) Mask(010h-CPUtrap;100h-DHCP;200h-IGMP) MCFlood(0-All;1-Unknown;2-None)\r\n"
@@ -184,6 +189,13 @@ void help_oltBuga(void)
         "m 1851 index(0-15) - Query traceroute session\r\n"
         "m 1852 index(0-15) - Get traceroute session hops\r\n"
         "m 1853 index(0-15) - Free traceroute session\r\n"
+        "--- OAM --------------------------------------------------------------------------------------------------------------------------\n\r"
+        "m 1890 port# idx# packet_number(1-65535) packet_size(64-1500) period(0-127) dmmCosColor(0-7) - MEP Frame Delay Write \r\n"
+        "m 1891 port# idx# packet_number(1-65535) packet_size(64-1500) period(0-127) dmmCosColor(0-7) - MEP Frame Delay Remove \r\n"
+        "m 1892 port# idx# status(0-2) - MEP Frame Delay get results \r\n"
+        "m 1893 port# idx# type(0-1) lmmPeriod(1-7) lmmCosColor(0-1) flrCosColor(0-2) - MEP Frame Loss Write \r\n"
+        "m 1894 port# idx# type(0-1) lmmPeriod(1-7) lmmCosColor(0-1) flrCosColor(0-2) - MEP Frame Loss Remove \r\n"
+        "m 1895 port# idx# mask(0-15) - MEP Frame Loss get results \r\n"
         "--- Reset -----------------------------------------------------------------------------------------------------------------------------------\n\r"
         "m 1997 - Reset Multicast machine\r\n"
         "m 1998 - Reset alarms\r\n"
@@ -6578,6 +6590,269 @@ int main (int argc, char *argv[])
         comando.infoDim = sizeof(msg_igmp_macbridge_client_packages_t);
       }
       break;
+
+//    "m 1890 port# idx# packet_number(1-65535) packet_size(64-1500) period(0-127) dmmCosColor(0-7) - MEP Frame Delay Write \r\n"
+//    "m 1891 port# idx# packet_number(1-65535) packet_size(64-1500) period(0-127) dmmCosColor(0-7) - MEP Frame Delay Remove \r\n"
+    case 1890:
+    case 1891:
+      {
+    	  msg_bd_mep_dm_t *ptr;
+        uint port, mep_idx, packet_size, packet_number, period, dmmCosColor;
+
+        // Validate number of arguments
+        if (argc!=3+6)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+
+        // Pointer to data array
+        ptr = (msg_bd_mep_dm_t *) &(comando.info[0]);
+        memset(ptr,0x00,sizeof(msg_bd_mep_dm_t));
+
+        /* Port number */
+        if (sscanf(argv[3+0],"%u",&port)!=1)
+        {
+          help_oltBuga();
+          printf("Invalid port \n");
+          exit(0);
+        }
+        ptr->port = (uint16) port;
+
+        /* MEP id */
+        if (sscanf(argv[3+1],"%u",&mep_idx)!=1)
+        {
+          help_oltBuga();
+          printf("Invalid mep_idx \n");
+          exit(0);
+        }
+        ptr->idx = (uint16) mep_idx;
+
+        /* Number of packets */
+        if (sscanf(argv[3+2],"%u",&packet_number)!=1)
+        {
+          help_oltBuga();
+          printf("Invalid packet_number\n");
+          exit(0);
+        }
+        ptr->packet_number = (uint16) packet_number;
+
+        /* Packet size */
+        if (sscanf(argv[3+3],"%u",&packet_size)!=1)
+        {
+          help_oltBuga();
+          printf("Invalid packet_size \n");
+          exit(0);
+        }
+        ptr->packet_size = (uint16) packet_size;
+
+
+        /* Period */
+        if (sscanf(argv[3+4],"%u",&period)!=1)
+        {
+          help_oltBuga();
+          printf("Invalid period \n");
+          exit(0);
+        }
+        ptr->period = (uint16) period;
+
+        /* CoS Color */
+        if (sscanf(argv[3+5],"%u",&dmmCosColor)!=1)
+        {
+          help_oltBuga();
+          printf("Invalid dmmCosColor \n");
+          exit(0);
+        }
+        ptr->dmmCosColor = (uint8) dmmCosColor;
+
+        if (msg==1890)
+          comando.msgId = CCMSG_WR_MEP_DM;
+        else
+          comando.msgId = CCMSG_RM_MEP_DM;
+        comando.infoDim = sizeof(msg_bd_mep_dm_t);
+      }
+      break;
+//    "m 1892 port# idx# status(0-2) - MEP Frame Delay get results \r\n"
+    case 1892:
+      {
+    	MSG_FRAMEDELAY_status *ptr;
+        uint status, idx;
+        ulong port;
+
+        // Validate number of arguments
+        if (argc!=3+3)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+
+        // Pointer to data array
+        ptr = (MSG_FRAMEDELAY_status *) &(comando.info[0]);
+        memset(ptr,0x00,sizeof(MSG_FRAMEDELAY_status));
+
+        /* port */
+        if (sscanf(argv[3+0],"%lu",&port)!=1)
+        {
+          help_oltBuga();
+          printf("Invalid port \n");
+          exit(0);
+        }
+        ptr->port = (uint32) port;
+
+        /* index */
+        if (sscanf(argv[3+1],"%u",&idx)!=1)
+        {
+          help_oltBuga();
+          printf("Invalid idx \n");
+          exit(0);
+        }
+        ptr->idx = (uint16) idx;
+
+        /* status */
+        if (sscanf(argv[3+2],"%u",&status)!=1)
+        {
+          help_oltBuga();
+          printf("Invalid status\n");
+          exit(0);
+        }
+        ptr->status = (uint16) status;
+
+        comando.msgId = CHMSG_CCM_MEP_FRAMEDELAY;
+        comando.infoDim = sizeof(MSG_FRAMEDELAY_status);
+      }
+      break;
+
+//    "m 1893 port# idx# type(0-1) lmmPeriod(1-7) lmmCosColor(0-1) flrCosColor(0-2) - MEP Frame Loss Write \r\n"
+//    "m 1894 port# idx# type(0-1) lmmPeriod(1-7) lmmCosColor(0-1) flrCosColor(0-2) - MEP Frame Loss Remove \r\n"
+	  case 1893:
+	  case 1894:
+		{
+		  msg_bd_mep_lm_t *ptr;
+		  uint port, mep_idx, type, lmmPeriod, lmmCosColor, flrCosColor;
+
+		  // Validate number of arguments
+		  if (argc!=3+6)
+		  {
+			help_oltBuga();
+			exit(0);
+		  }
+
+		  // Pointer to data array
+		  ptr = (msg_bd_mep_lm_t *) &(comando.info[0]);
+		  memset(ptr,0x00,sizeof(msg_bd_mep_lm_t));
+
+		  /* Port number */
+		  if (sscanf(argv[3+0],"%u",&port)!=1)
+		  {
+			help_oltBuga();
+			printf("Invalid port \n");
+			exit(0);
+		  }
+		  ptr->port = (uint16) port;
+
+		  /* MEP id */
+		  if (sscanf(argv[3+1],"%u",&mep_idx)!=1)
+		  {
+			help_oltBuga();
+			printf("Invalid mep_idx \n");
+			exit(0);
+		  }
+		  ptr->idx = (uint16) mep_idx;
+
+		  /* Number of packets */
+		  if (sscanf(argv[3+2],"%u",&type)!=1)
+		  {
+			help_oltBuga();
+			printf("Invalid type\n");
+			exit(0);
+		  }
+		  ptr->type = (uint8) type;
+
+		  /* Packet size */
+		  if (sscanf(argv[3+3],"%u",&lmmPeriod)!=1)
+		  {
+			help_oltBuga();
+			printf("Invalid lmmPeriod \n");
+			exit(0);
+		  }
+		  ptr->lmmPeriod = (uint8) lmmPeriod;
+
+
+		  /* Period */
+		  if (sscanf(argv[3+4],"%u",&lmmCosColor)!=1)
+		  {
+			help_oltBuga();
+			printf("Invalid lmmCosColor \n");
+			exit(0);
+		  }
+		  ptr->lmmCosColor = (uint8) lmmCosColor;
+
+		  /* CoS Color */
+		  if (sscanf(argv[3+5],"%u",&flrCosColor)!=1)
+		  {
+			help_oltBuga();
+			printf("Invalid flrCosColor \n");
+			exit(0);
+		  }
+		  ptr->flrCosColor = (uint8) flrCosColor;
+
+		  if (msg==1893)
+			comando.msgId = CCMSG_WR_MEP_LM;
+		  else
+			comando.msgId = CCMSG_RM_MEP_LM;
+		  comando.infoDim = sizeof(msg_bd_mep_lm_t);
+		}
+		break;
+//    "m 1895 port# idx#  mask(0-15) - MEP Frame Loss get results \r\n"
+	  case 1895:
+		{
+		MSG_FRAMELOSS_status *ptr;
+		  uint mask, idx;
+		  ulong port;
+
+		  // Validate number of arguments
+		  if (argc!=3+3)
+		  {
+			help_oltBuga();
+			exit(0);
+		  }
+
+		  // Pointer to data array
+		  ptr = (MSG_FRAMELOSS_status *) &(comando.info[0]);
+		  memset(ptr,0x00,sizeof(MSG_FRAMELOSS_status));
+
+		  /* port */
+		  if (sscanf(argv[3+0],"%lu",&port)!=1)
+		  {
+			help_oltBuga();
+			printf("Invalid port \n");
+			exit(0);
+		  }
+		  ptr->port = (uint32) port;
+
+		  /* index */
+		  if (sscanf(argv[3+1],"%u",&idx)!=1)
+		  {
+			help_oltBuga();
+			printf("Invalid idx \n");
+			exit(0);
+		  }
+		  ptr->idx = (uint16) idx;
+
+		  /* status */
+		  if (sscanf(argv[3+2],"%u",&mask)!=1)
+		  {
+			help_oltBuga();
+			printf("Invalid mask\n");
+			exit(0);
+		  }
+		  ptr->mask = 0x0C; //(uint16) mask;    //SET to 0x0C
+
+		  comando.msgId = CHMSG_CCM_MEP_FRAMELOSS;
+		  comando.infoDim = sizeof(MSG_FRAMELOSS_status);
+		}
+		break;
+
       default:
         printf("A mensagem %d nao esta implementada!!\n\r", msg);
         exit(0);
@@ -8828,6 +9103,70 @@ int main (int argc, char *argv[])
       else
         printf(" IGMP MacBridge Client Failed to Remove\n\r");          
       break;
+      case 1890:
+      if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+        printf(" FrameDelay MEP Correctly Added\n\r");
+      else
+        printf(" FrameDelay MEP Failed to Add\n\r");
+      break;
+      case 1891:
+      if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+        printf(" FrameDelay MEP Correctly Removed\n\r");
+      else
+        printf(" FrameDelay MEP Failed to Remove\n\r");
+      break;
+      case 1892:
+        {
+          MSG_FRAMEDELAY_status *po=(MSG_FRAMEDELAY_status *) &resposta.info[0];
+
+          if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))  {
+            // Validate size
+            if (resposta.infoDim!=sizeof(MSG_FRAMEDELAY_status)) {
+              printf(" FrameDelay: Invalid structure size (expected=%u, received=%u bytes)\n\r",sizeof(MSG_FRAMEDELAY_status),resposta.infoDim);
+              break;
+            }
+            printf("FrameDelay: DM_Max             %lld\n\r", po->DM_Max);
+            printf("FrameDelay: DM_Min             %lld\n\r", po->DM_Min);
+            printf("FrameDelay: DM_Total           %lld\n\r", po->DM_Total);
+            printf("FrameDelay: DM_packet_number   %d\n\r", po->DM_packet_number);
+            printf("FrameDelay: results read successfully\n\r");
+          }
+          else
+            printf(" FrameDelay: Error reading results\n\r");
+        }
+        break;
+      case 1893:
+      if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+        printf(" FrameLoss MEP Correctly Added\n\r");
+      else
+        printf(" FrameLoss MEP Failed to Add\n\r");
+      break;
+      case 1894:
+      if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+        printf(" FrameLoss MEP Correctly Removed\n\r");
+      else
+        printf(" FrameLoss MEP Failed to Remove\n\r");
+      break;
+      case 1895:
+        {
+          MSG_FRAMELOSS_status *po=(MSG_FRAMELOSS_status *) &resposta.info[0];
+
+          if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))  {
+            // Validate size
+            if (resposta.infoDim!=sizeof(MSG_FRAMELOSS_status)) {
+              printf(" FrameDelay: Invalid structure size (expected=%u, received=%u bytes)\n\r",sizeof(MSG_FRAMELOSS_status),resposta.infoDim);
+              break;
+            }
+            printf("FrameLoss: Delta_LM_tx_i      %lld\n\r", po->Delta_LM_tx_i);
+            printf("FrameLoss: Delta_LM_rx_i      %lld\n\r", po->Delta_LM_rx_i);
+            printf("FrameLoss: Delta_LM_tx_e      %lld\n\r", po->Delta_LM_tx_e);
+            printf("FrameLoss: Delta_LM_rx_e      %lld\n\r", po->Delta_LM_rx_e);
+            printf("FrameLoss: results read successfully\n\r");
+          }
+          else
+            printf(" FrameDelay: Error reading results\n\r");
+        }
+        break;
       default:
         printf(" Resposta a mensagem %u\n\r",msg);
         break;
