@@ -7715,7 +7715,7 @@ L7_RC_t igmp_assoc_channel_remove( L7_uint32 evc_mc, L7_uint32 evc_uc,
 {
   L7_inet_addr_t              group;
   L7_inet_addr_t              source;  
-  L7_inet_addr_t              sourceIterator; 
+//L7_inet_addr_t              sourceIterator;
   L7_uint32                   i; 
   L7_uint32                   n_groups      = 1;
   L7_uint32                   j; 
@@ -7747,7 +7747,6 @@ L7_RC_t igmp_assoc_channel_remove( L7_uint32 evc_mc, L7_uint32 evc_uc,
     return L7_FAILURE;    
   }  
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to remove group 0x%08x (%u addresses)", group.addr.ipv4.s_addr, n_groups);
-
 
   /* Prepare source channel */
   if (L7_SUCCESS != ptin_igmp_channel_to_netmask( channel_source, channel_srcMask, &source, &n_sources) || n_sources == 0 || ( (n_sources * n_groups) > PTIN_IGMP_CHANNELS_MAX))
