@@ -7713,16 +7713,16 @@ L7_RC_t igmp_assoc_channel_remove( L7_uint32 evc_mc, L7_uint32 evc_uc,
                                    L7_inet_addr_t *channel_group, L7_uint16 channel_grpMask,
                                    L7_inet_addr_t *channel_source, L7_uint16 channel_srcMask, L7_uint8 isStatic)
 {
-  L7_inet_addr_t          group, 
-  source, 
-  sourceAux;
-  L7_uint32               i, 
-  n_groups      = 1;
-  L7_uint32               j, 
-  n_sources     = 1;
-  ptinIgmpChannelDataKey_t   avl_key;
-  ptinIgmpChannelInfoData_t *avlEntry;  
-  L7_RC_t                 rc            = L7_SUCCESS;
+  L7_inet_addr_t              group;
+  L7_inet_addr_t              source;  
+  L7_inet_addr_t              sourceIterator; 
+  L7_uint32                   i; 
+  L7_uint32                   n_groups      = 1;
+  L7_uint32                   j; 
+  L7_uint32                   n_sources     = 1;
+  ptinIgmpChannelDataKey_t    avl_key;
+  ptinIgmpChannelInfoData_t  *avlEntry;  
+  L7_RC_t                     rc            = L7_SUCCESS;
 
    /* Validate multicast service */
   if ( evc_mc >= PTIN_SYSTEM_N_EXTENDED_EVCS )
@@ -7827,12 +7827,12 @@ L7_RC_t igmp_assoc_channel_remove( L7_uint32 evc_mc, L7_uint32 evc_uc,
         if (ptin_igmp_channel_remove( &avlEntry->channelDataKey ) != L7_SUCCESS)
         {
           LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing group channel 0x%08x, source=0x%08x for UC_EVC=%u",
-                  group.addr.ipv4.s_addr, sourceAux.addr.ipv4.s_addr, evc_uc);
+                  avl_key.channel_group.addr.ipv4.s_addr, avl_key.channel_source.addr.ipv4.s_addr, evc_uc);
           return L7_FAILURE;
         }
         else
         {
-          LOG_TRACE(LOG_CTX_PTIN_IGMP,"Removed group 0x%08x, source 0x%08x", group.addr.ipv4.s_addr, sourceAux.addr.ipv4.s_addr);
+          LOG_TRACE(LOG_CTX_PTIN_IGMP,"Removed group 0x%08x, source 0x%08x", avl_key.channel_group.addr.ipv4.s_addr,  avl_key.channel_group.addr.ipv4.s_addr);
         }
 
 #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT  
