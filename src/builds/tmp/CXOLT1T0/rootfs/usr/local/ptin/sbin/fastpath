@@ -5,7 +5,6 @@ mode="run"
 app_name=switchdrvr
 app_path=/usr/local/ptin/sbin/$app_name
 cli=/usr/local/ptin/sbin/fp.cli
-startup_log=/usr/local/ptin/log/fastpath/startup.log
 proc_txt=/usr/local/ptin/log/fastpath/proc.txt
 ntry=0
 #cpld_gpr=fe000001fh
@@ -28,15 +27,6 @@ insert_modules()
 
 startup()
 {
-    # Add header info to startup log file
-    echo "*************************************************************" >> $startup_log
-    echo "FASTPATH STARTED AT: `date` [retry $ntry]" >> $startup_log
-    ps >> $startup_log
-    free >> $startup_log
-
-    # Redirect output to the log file (temporarily)
-    exec 1>>$startup_log 2>&1
-
     # get switch port mapping from unicom
     #SLOT=`/usr/local/ptin/bin/getslotid`
     #ftpget -u root -p lampada 192.168.200.`expr $SLOT + 100` /usr/local/ptin/var/bcm_port_map
@@ -110,20 +100,6 @@ elif [ $mode = "boot" ]; then
         exit 1;
     fi
     
-    # Handle startup log oversize issues
-    filesize=`du $startup_log`
-    if [ "$?" -eq "0" ]; then
-        filesize=`echo $filesize | awk '{print $1}'`
-        echo "File $startup_log has a size of $filesize KB"
-    else
-        filesize=0;
-    fi
-
-    if [ $filesize -gt "2048" ]; then
-      echo "Move file $startup_log => startup_log.old"
-      mv -f $startup_log $startup_log.old
-    fi
-
     # Wait for CXP to boot up and configure the hardware                                  
     wait4cxp
 
