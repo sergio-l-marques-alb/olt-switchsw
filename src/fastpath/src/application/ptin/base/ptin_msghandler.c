@@ -3568,7 +3568,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     case CCMSG_MGMD_SNOOP_SYNC_REQUEST:
     {      
       
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_MGMD_SNOOP_SYNC (0x%04X)", inbuffer->msgId);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_MGMD_SNOOP_SYNC_REQUEST (0x%04X)", inbuffer->msgId);
 
       CHECK_INFO_SIZE(msg_SnoopSyncRequest_t);
          
