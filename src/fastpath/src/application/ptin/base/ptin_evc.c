@@ -5056,11 +5056,21 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
     clientId.innerVlan            = pflow->int_ivid;
     clientId.mask                 = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
 
-    /* Add client */
-    if (ptin_igmp_group_client_remove(&clientId) != L7_SUCCESS)
+    /* Remove client */
+    if ( (rc = ptin_igmp_group_client_remove(&clientId)) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing client from IGMP instance", evc_id);
-      //rc = L7_FAILURE;    /* L7_NOT_EXIST is not an error */
+      /*This is not an error if this routine is invoked after a reset defaults message*/
+      if (rc == L7_NOT_EXIST)
+      {
+        /* L7_NOT_EXIST is not an error */
+       LOG_NOTICE(LOG_CTX_PTIN_EVC, "EVC# %u: Client does not exist on IGMP instance", evc_id);       
+      }
+      else
+      {
+         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing client from IGMP instance (rc:%u)", evc_id, rc);
+        //rc = L7_FAILURE;    
+      }
+      rc = L7_SUCCESS;
     }
     else
     {
