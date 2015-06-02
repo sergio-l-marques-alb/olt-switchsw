@@ -125,7 +125,8 @@ CFGFLAGS += -I$(SDK)/systems/linux/kernel/modules/include \
             -I$(KERNDIR)/arch/$(ARCH)
 endif
 
-CFGFLAGS += -DNO_FILEIO -DNO_CTRL_C -DNO_MEMTUNE
+CFGFLAGS += -DNO_CTRL_C -DNO_MEMTUNE
+#CFGFLAGS += -DNO_FILEIO
 
 CFGFLAGS += -D$(OSTYPE)
 

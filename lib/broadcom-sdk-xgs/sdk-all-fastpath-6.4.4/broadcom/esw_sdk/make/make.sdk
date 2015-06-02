@@ -112,7 +112,7 @@ export L7_BCM_VENDOR_CFLAGS := \
   -DSDK_INCLUDE_CUSTOM_CONFIG
 
 ifneq (1,$(BLD_L7_TARGETOS_VXWORKS))
-export L7_BCM_VENDOR_CFLAGS += -DNO_FILEIO
+#export L7_BCM_VENDOR_CFLAGS += -DNO_FILEIO
 endif
 
 ifneq (,$(filter -mlongcall,$(CPU_FLAGS)))
