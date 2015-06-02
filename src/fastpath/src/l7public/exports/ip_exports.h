@@ -154,8 +154,8 @@ typedef enum
 /*--------------------------*/
 #define L7_ARP_ACL_NAME_LEN_MIN              1
 #define L7_ARP_ACL_NAME_LEN_MAX             31
-#define L7_ARP_ACL_CMDS_MAX                 50
-#define L7_ARP_ACL_RULES_MAX               512
+#define L7_ARP_ACL_CMDS_MAX                100
+#define L7_ARP_ACL_RULES_MAX              1024
 #define L7_DAI_RATE_LIMIT_NONE              -1
 #define L7_DAI_RATE_LIMIT_MIN                0
 #define L7_DAI_RATE_LIMIT_MAX              300
