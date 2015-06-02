@@ -532,6 +532,8 @@ sal_config_refresh(void)
         return 0;   /* No config file */
     }
 
+    printf("%s: Going to load \"%s\" file...\r\n",__FUNCTION__, fname);
+
     /* Try to load config file ... */
     if ((fp = sal_fopen(fname, "r")) == NULL) {
 #if defined(BROADCOM_DEBUG)
