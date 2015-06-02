@@ -192,7 +192,8 @@ CFGFLAGS += -DBCM_PORT_DEFAULT_DISABLE
 CFGFLAGS += -DSAL_THREAD_NAME_PRINT_DISABLE
 
 # disable runtime reading of flash config.bcm file (even if !NO_FILEIO)
-CFGFLAGS += -DSAL_CONFIG_FILE_DISABLE
+CFGFLAGS += -DSAL_CONFIG_FILE=\"/usr/local/ptin/sbin/config.bcm\" -DSAL_CONFIG_TEMP=\"/usr/local/ptin/sbin/config.tmp\"
+#-DSAL_CONFIG_FILE_DISABLE
 
 # disable all Application SAL dependencies
 #NO_SAL_APPL=1
