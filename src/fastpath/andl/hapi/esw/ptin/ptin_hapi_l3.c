@@ -1,18 +1,12 @@
 #include "ptin_globaldefs.h"
 #include "logger.h"
 #include "ptin_hapi.h"
-#include "l7_usl_l3_db.h"
+#include "l7_usl_bcmx_l3.h"
+
 #include <bcmx/switch.h>
 #include <bcmx/port.h>
 #include <bcmx/l3.h>
 
-/****************************Static Routines Declaration***************************/
-#if 0
-static L7_RC_t ptin_hapi_l3_intf_id_set(L7_int32  l3a_intf_id);
-static L7_RC_t ptin_hapi_l3_intf_id_pop(L7_int32 *l3a_intf_id);
-static L7_RC_t ptin_hapi_l3_intf_id_push(L7_int32 l3a_intf_id);
-#endif
-/****************************End Static Routines Declaration***********************/
 /**
  * Add L3 host
  * 
@@ -587,113 +581,6 @@ L7_RC_t ptin_hapi_l3_ipmc_reset(void)
   return rv;
 }
   
-#if 0
-typedef struct ptin_hapi_l3_intf_s
-{
-  L7_uint8            is_free;
-  L7_int32            l3a_intf_id;
-} ptin_hapi_l3_intf_t;
-
-static ptin_hapi_l3_intf_t ptin_hapi_l3_intf[PTIN_HAPI_BROAD_PT_RESERVED_L3_INTERFACES];
-static L7_int32 ptin_hapi_l3_number_of_free_interfaces;
-
-
-L7_int32 ptin_hapi_l3_number_of_free_interfaces_get(void)
-{
-  return ptin_hapi_l3_number_of_free_interfaces;
-}
-
-/*********************************************************************
-* @purpose  Init HAPI L3 Intf Id Structures
-*
-*
-* @end
-*********************************************************************/
-L7_RC_t ptin_hapi_l3_intf_init(void)
-{
-  L7_uint32 iterator;
-
-  memset(ptin_hapi_l3_intf, 0x00, sizeof(ptin_hapi_l3_intf));
-  ptin_hapi_l3_number_of_free_interfaces = 0;
-  for (iterator = 0; iterator < PTIN_HAPI_BROAD_PT_RESERVED_L3_INTERFACES;  iterator++)
-  {
-    ptin_hapi_l3_intf[iterator].is_free = L7_TRUE;
-    ptin_hapi_l3_intf[iterator].l3a_intf_id = iterator + PTIN_HAPI_BROAD_FP_RESERVED_L3_INTERFACES;
-    ptin_hapi_l3_number_of_free_interfaces++;
-  }
-  return L7_SUCCESS;
-}
-
-/*********************************************************************
-* @purpose  Set L3 Intf Id
-*
-* @param    l3a_intf_id          @{(input)} Interface Id
-*
-* @returns  L7_SUCCESS/L7_FAILURE
-*
-* @end
-*********************************************************************/
-static L7_RC_t ptin_hapi_l3_intf_id_set(L7_int32 l3a_intf_id)
-{
-  if (ptin_hapi_l3_number_of_free_interfaces == PTIN_HAPI_BROAD_PT_RESERVED_L3_INTERFACES || 
-      l3a_intf_id >= PTIN_HAPI_BROAD_MAX_L3_INTERFACES || ptin_hapi_l3_intf[l3a_intf_id+PTIN_HAPI_BROAD_FP_RESERVED_L3_INTERFACES].is_free == L7_FALSE)
-  return L7_FAILURE;
-
-  --ptin_hapi_l3_number_of_free_interfaces;
-  ptin_hapi_l3_intf[l3a_intf_id+PTIN_HAPI_BROAD_FP_RESERVED_L3_INTERFACES].is_free = L7_FALSE;
-  return L7_SUCCESS;
-}
-
-/*********************************************************************
-* @purpose  Pop L3 Intf Id
-*
-* @param    l3a_intf_id          @{(output)} Interface Id
-*
-* @returns  L7_SUCCESS/L7_FAILURE
-*
-* @end
-*********************************************************************/
-static L7_RC_t ptin_hapi_l3_intf_id_pop(L7_int32 *l3a_intf_id)
-{
-  L7_uint32 iterator;
-  
-  if (l3a_intf_id == L7_NULLPTR || ptin_hapi_l3_number_of_free_interfaces <= 0)
-    return L7_FAILURE;
-
-  for (iterator = 0; iterator < PTIN_HAPI_BROAD_PT_RESERVED_L3_INTERFACES;  iterator++)
-  {
-    if (ptin_hapi_l3_intf[iterator].is_free == L7_TRUE)
-    {
-      --ptin_hapi_l3_number_of_free_interfaces;
-      ptin_hapi_l3_intf[iterator].is_free = L7_FALSE;
-      *l3a_intf_id = ptin_hapi_l3_intf[iterator].l3a_intf_id;
-      return L7_SUCCESS;
-    }    
-  }
-  return L7_FAILURE;
-}
-
-/*********************************************************************
-* @purpose  Push L3 Intf Id
-*
-* @param    l3a_intf_id          @{(input)} Interface Id
-*
-* @returns  L7_SUCCESS/L7_FAILURE
-*
-* @end
-*********************************************************************/
-static L7_RC_t ptin_hapi_l3_intf_id_push(L7_int32 l3a_intf_id)
-{
-  if (ptin_hapi_l3_number_of_free_interfaces == PTIN_HAPI_BROAD_PT_RESERVED_L3_INTERFACES || 
-      l3a_intf_id >= PTIN_HAPI_BROAD_MAX_L3_INTERFACES || ptin_hapi_l3_intf[l3a_intf_id+PTIN_HAPI_BROAD_FP_RESERVED_L3_INTERFACES].is_free == L7_TRUE)
-    return L7_FAILURE;
-
-  ptin_hapi_l3_intf[l3a_intf_id+PTIN_HAPI_BROAD_FP_RESERVED_L3_INTERFACES].is_free = L7_TRUE;
-  ++ptin_hapi_l3_number_of_free_interfaces;
-  return L7_SUCCESS;  
-}
-#endif
-
 /*********************************************************************
 * @purpose  Create an L3 Interface
 *
@@ -705,7 +592,7 @@ static L7_RC_t ptin_hapi_l3_intf_id_push(L7_int32 l3a_intf_id)
 *********************************************************************/
 L7_RC_t ptin_hapi_l3_intf_create (ptin_dtl_l3_intf_t *intf)
 {
-  bcm_l3_intf_t     bcm_data; 
+  usl_bcm_l3_intf_t intfInfo;
   int               rv = L7_SUCCESS;
 
   /*Validate Input Parameters*/
@@ -716,78 +603,32 @@ L7_RC_t ptin_hapi_l3_intf_create (ptin_dtl_l3_intf_t *intf)
   }
 
   /*Initialize Struct*/
-  bcm_l3_intf_t_init(&(bcm_data));
+  bcm_l3_intf_t_init(&(intfInfo.bcm_data));
 
   /*Mac Address*/  
-  memcpy(&bcm_data.l3a_mac_addr, &intf->mac_addr, sizeof(bcm_data.l3a_mac_addr));
+  memcpy(&intfInfo.bcm_data.l3a_mac_addr, &intf->mac_addr, sizeof(intfInfo.bcm_data.l3a_mac_addr));
 
   /*VLAN ID*/
-  bcm_data.l3a_vid = intf->vid;
+  intfInfo.bcm_data.l3a_vid = intf->vid;
 
   /*MTU*/
-  bcm_data.l3a_mtu = intf->mtu;
+  intfInfo.bcm_data.l3a_mtu = intf->mtu;
 
   /*Flags*/
   if ( (intf->flags & PTIN_BCM_L3_ADD_TO_ARL) == PTIN_BCM_L3_ADD_TO_ARL)
   {
-    bcm_data.l3a_intf_flags |= BCM_L3_ADD_TO_ARL;
+    intfInfo.bcm_data.l3a_intf_flags |= BCM_L3_ADD_TO_ARL;
   }
 
-  if ( (intf->flags & PTIN_BCM_L3_WITH_ID) == PTIN_BCM_L3_WITH_ID)
+  rv = usl_bcmx_l3_intf_create(&intfInfo);
+  if (BCM_FAILURE(rv) || intfInfo.bcm_data.l3a_intf_id == HAPI_BROAD_INVALID_L3_INTF_ID)
   {
-    #if 0    
-    /*Set this L3 Intf Id on the Pool*/
-    rv = ptin_hapi_l3_intf_id_set(intf->l3_intf_id);
-    if (rv != L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_HAPI,"Failed to set L3 Interface Id %d", intf->l3_intf_id);
-      return L7_FAILURE;
-    }
-    #endif
-  }
-  else
-  {    
-#if 0
-    intf->l3_intf_id = -1;
-    /*Get L3 Intf Id from the Pool*/
-    rv = ptin_hapi_l3_intf_id_pop(&intf->l3_intf_id);
-#else
-    usl_bcm_l3_intf_t intfInfo;
-    intf->l3_intf_id = -1;
-
-    memset(&intfInfo.bcm_data, 0x00, sizeof(intfInfo.bcm_data));
-    memcpy(&intfInfo.bcm_data, &bcm_data, sizeof(intfInfo.bcm_data));
-    intfInfo.bcm_data.l3a_intf_id = HAPI_BROAD_INVALID_L3_INTF_ID;
-    rv = usl_l3_intf_hw_id_allocate(&intfInfo, &intf->l3_intf_id );
-#endif
-    if (rv != BCM_E_NONE || intf->l3_intf_id == -1)
-    {
-      LOG_ERR(LOG_CTX_PTIN_HAPI,"Failed to pop L3 Interface Id %d (rv=%d) rv=\"%s\"", intf->l3_intf_id, rv, bcm_errmsg(rv));
-      return ptin_bcm_to_fp_error_code(rv);
-    }       
-  }
-  bcm_data.l3a_intf_flags |= BCM_L3_WITH_ID;
-
-  if ( (intf->flags & PTIN_BCM_L3_REPLACE) == PTIN_BCM_L3_REPLACE)
-  {
-    bcm_data.l3a_intf_flags |= BCM_L3_REPLACE;
-  }
-  /*End Flags*/
-
-  /*L3 Interface Id*/
-  bcm_data.l3a_intf_id = intf->l3_intf_id;
-
-  /* Add L3 Interface */
-  rv = bcm_l3_intf_create (0, &bcm_data);
-
-  if (BCM_FAILURE(rv) || bcm_data.l3a_intf_id == HAPI_BROAD_INVALID_L3_INTF_ID)
-  {
-    LOG_ERR(LOG_CTX_PTIN_HAPI,"Error creating L3 interface: rv=\"%s\" l3_intf_id:%d", bcm_errmsg(rv), bcm_data.l3a_intf_id);
+    LOG_ERR(LOG_CTX_PTIN_HAPI,"Error creating L3 interface: rv=\"%s\" l3_intf_id:%d", bcm_errmsg(rv), intfInfo.bcm_data.l3a_intf_id);
     return ptin_bcm_to_fp_error_code(rv);
   }
 
   /*Save L3 Interface Interface Id*/
-  intf->l3_intf_id = bcm_data.l3a_intf_id;
+  intf->l3_intf_id = intfInfo.bcm_data.l3a_intf_id;
 
   return L7_SUCCESS;  
 }
@@ -832,7 +673,7 @@ int ptin_hapi_debug_bcm_l3_intf_create(L7_uint32 vid, L7_uint32 mac_addr, L7_uin
 *********************************************************************/
 L7_RC_t ptin_hapi_l3_intf_delete (ptin_dtl_l3_intf_t *intf)
 {
-  bcm_l3_intf_t     bcm_data; 
+  usl_bcm_l3_intf_t intfInfo;
   int               rv = L7_SUCCESS;
 
   /*Validate Input Parameters*/
@@ -843,11 +684,11 @@ L7_RC_t ptin_hapi_l3_intf_delete (ptin_dtl_l3_intf_t *intf)
   }
 
   /*Initialize Struct*/
-  bcm_l3_intf_t_init(&(bcm_data));
+  bcm_l3_intf_t_init(&(intfInfo.bcm_data));
 
   if ( (intf->flags & PTIN_BCM_L3_WITH_ID) == PTIN_BCM_L3_WITH_ID)
   {
-    bcm_data.l3a_intf_flags |= BCM_L3_WITH_ID;
+    intfInfo.bcm_data.l3a_intf_flags |= BCM_L3_WITH_ID;
   }
   else
   {
@@ -856,29 +697,15 @@ L7_RC_t ptin_hapi_l3_intf_delete (ptin_dtl_l3_intf_t *intf)
   }
 
   /*L3 Interface Id*/
-  bcm_data.l3a_intf_id = intf->l3_intf_id;
-  
-  /* Remove L3 Interface */
-  rv = bcm_l3_intf_delete (0, &bcm_data);
+  intfInfo.bcm_data.l3a_intf_id = intf->l3_intf_id;
+
+  rv = usl_bcmx_l3_intf_delete(&intfInfo);
   if (BCM_FAILURE(rv))
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI,"Error removing L3 interface: (rv=%d) rv=\"%s\" l3_intf_id:%d", rv, bcm_errmsg(rv), intf->l3_intf_id);
-    return L7_FAILURE;
-  }
-
-  /*Return this L3 Intf Id to the Pool*/
-  #if 0
-  rv = ptin_hapi_l3_intf_id_push(intf->l3_intf_id);
-  #else
-  rv = usl_l3_intf_hw_id_free(intf->l3_intf_id);
-  #endif
-  if (BCM_FAILURE(rv))
-  {
-    LOG_ERR(LOG_CTX_PTIN_HAPI,"Failed to push L3 Interface Id %d (rv=%d) rv=\"%s\"", intf->l3_intf_id, rv, bcm_errmsg(rv));
     return ptin_bcm_to_fp_error_code(rv);
   }
 
-  intf->l3_intf_id = -1;
   return L7_SUCCESS;  
 }
 

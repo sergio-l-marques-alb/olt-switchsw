@@ -384,7 +384,7 @@ static L7_RC_t ptin_multicast_group_create(L7_int *mcast_group, L7_uint32 multic
     *mcast_group = mode.multicast_group;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d (new MC group=%d)", rc, mode.multicast_group);
+  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d (new MC group=0x%08x)", rc, mode.multicast_group);
 
   return rc;
 }
@@ -404,7 +404,7 @@ L7_RC_t ptin_multicast_group_destroy(L7_int mcast_group)
   /* Validate arguments */
   if ( mcast_group <= 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, "Invalid mc_group %d", mcast_group);
+    LOG_ERR(LOG_CTX_PTIN_API, "Invalid mc_group 0x%08x", mcast_group);
     return L7_FAILURE;
   }
 
@@ -418,7 +418,7 @@ L7_RC_t ptin_multicast_group_destroy(L7_int mcast_group)
   /* DTL call */
   rc = dtlPtinVlanBridgeMulticast(&mode);
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d (new MC group=%d)", rc, mode.multicast_group);
+  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d (removed MC group=0x%08x)", rc, mode.multicast_group);
 
   return rc;
 }

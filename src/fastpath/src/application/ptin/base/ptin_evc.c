@@ -8497,24 +8497,20 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
       l3_intf.l3_intf_id = PTIN_HAPI_BROAD_INVALID_L3_INTF_ID;
       /*Add L3 Leaf Interface*/
       rc = dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_L3_INTF, DAPI_CMD_SET, sizeof(ptin_dtl_l3_intf_t), &l3_intf);
-
       if (rc != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_EVC, "Error adding L3 leaf interface [ptin_port:%u rc:%d]",ptin_port, rc);
         return L7_FAILURE;
       }
-
       LOG_TRACE(LOG_CTX_PTIN_EVC, "Added L3 Leaf Interface [ptin_port:%u l3_intf_id:%d]", ptin_port, l3_intf.l3_intf_id);      
 
       rc = ptin_multicast_l3_egress_port_add(intIfNum, evcs[evc_id].multicast_group, l3_intf.l3_intf_id);
-
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_EVC, "Error adding Egress Port to Multicast Group [ptin_port:%u l3_intf_id:%d multicast_group:0x%x rc:%d]",ptin_port, l3_intf.l3_intf_id, evcs[evc_id].multicast_group, rc);
+        LOG_ERR(LOG_CTX_PTIN_EVC, "Error adding Egress Port to Multicast Group [ptin_port:%u l3_intf_id:%d mc_group:0x%x rc:%d]",ptin_port, l3_intf.l3_intf_id, evcs[evc_id].multicast_group, rc);
         return L7_FAILURE;
       }
-
-      LOG_TRACE(LOG_CTX_PTIN_EVC, "Egress Port Added to Multicast Group [ptin_port:%u l3_intf_id:%d multicast_group:0x%x]", ptin_port, l3_intf.l3_intf_id, evcs[evc_id].multicast_group);      
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "Egress Port Added to Multicast Group [ptin_port:%u l3_intf_id:%d mc_group:0x%x]", ptin_port, l3_intf.l3_intf_id, evcs[evc_id].multicast_group);      
     }
   }
 
@@ -8727,6 +8723,7 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
     {
       if (evcs[evc_id].intf[ptin_port].l3_intf_id  != PTIN_HAPI_BROAD_INVALID_L3_INTF_ID)
       {
+
         /*Initialize Struct*/
         memset(&l3_intf, 0x00, sizeof(l3_intf));
 
@@ -8735,27 +8732,26 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
         /*Copy L3 Intf Id*/
         l3_intf.l3_intf_id = evcs[evc_id].intf[ptin_port].l3_intf_id;
 
+        rc = ptin_multicast_l3_egress_port_remove(intIfNum, evcs[evc_id].multicast_group, l3_intf.l3_intf_id);
+
+        if (rc != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_EVC, "Error removing Egress Port from Multicast Group [ptin_port:%u l3_intf_id:%d mc_group:0x%x rc:%d]",ptin_port, l3_intf.l3_intf_id, evcs[evc_id].multicast_group, rc);
+          return L7_FAILURE;
+        }
+
+        LOG_TRACE(LOG_CTX_PTIN_EVC, "Egress Port Removed from Multicast Group [ptin_port:%u l3_intf_id:%d mc_group:0x%x]", ptin_port, l3_intf.l3_intf_id, evcs[evc_id].multicast_group);    
+        
+
         /*Remove L3 Leaf Interface*/
         rc = dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_L3_INTF, DAPI_CMD_CLEAR, sizeof(ptin_dtl_l3_intf_t), &l3_intf);
 
         if (rc != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_PTIN_EVC, "Error adding L3 leaf interface [ptin_port:%u rc:%d]",ptin_port, rc);
+          LOG_ERR(LOG_CTX_PTIN_EVC, "Error removing L3 leaf interface [ptin_port:%u rc:%d]",ptin_port, rc);
           return L7_FAILURE;
         }
-
-        LOG_TRACE(LOG_CTX_PTIN_EVC, "Added L3 Leaf Interface [ptin_port:%u l3_intf_id:%d]", ptin_port, l3_intf.l3_intf_id);      
-
-        rc = ptin_multicast_l3_egress_port_remove(intIfNum, evcs[evc_id].multicast_group, l3_intf.l3_intf_id);
-
-        if (rc != L7_SUCCESS)
-        {
-          LOG_ERR(LOG_CTX_PTIN_EVC, "Error adding Egress Port to Multicast Group [ptin_port:%u l3_intf_id:%d multicast_group:0x%x rc:%d]",ptin_port, l3_intf.l3_intf_id, evcs[evc_id].multicast_group, rc);
-          return L7_FAILURE;
-        }
-
-        LOG_TRACE(LOG_CTX_PTIN_EVC, "Egress Port Added to Multicast Group [ptin_port:%u l3_intf_id:%d multicast_group:0x%x]", ptin_port, l3_intf.l3_intf_id, evcs[evc_id].multicast_group);    
-
+        LOG_TRACE(LOG_CTX_PTIN_EVC, "Removed L3 Leaf Interface [ptin_port:%u l3_intf_id:%d]", ptin_port, l3_intf.l3_intf_id);      
       }
       else
       {
