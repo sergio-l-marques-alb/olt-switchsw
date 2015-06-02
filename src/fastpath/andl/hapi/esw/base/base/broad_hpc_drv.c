@@ -100,6 +100,10 @@
 #define PTIN_TRAP_TO_CPU  0
 #endif
 
+#include "shared/shr_bprof.h"
+#include "appl/diag/shell.h"
+
+
 extern void hapiBroadSocFileLoad(char *file_name, L7_BOOL suppressFileNotAvail);
 
 /* default weights for WRR queues 
@@ -2722,16 +2726,98 @@ L7_RC_t hpcBroadInit()
 {
   L7_uint32                    total_bcom_units, bcom_unit;
   const bcm_sys_board_t       *board_info;
-  int                          rc;
+  int                          rc, rv;
 
   hpcConfigSet();
 
   total_bcom_units = bde->num_devices(BDE_SWITCH_DEVICES);
 
+#if 1
+  //var_set_integer("units", total_bcom_units, FALSE, FALSE);
+
+  for (bcom_unit = 0; bcom_unit < total_bcom_units; bcom_unit++)
+  {
+      PT_LOG_TRACE(LOG_CTX_STARTUP,"bcom_unit=%d", bcm_unit);
+      /* coverity[stack_use_callee] */
+      /* coverity[stack_use_overflow] */
+      rv = sysconf_attach(bcom_unit);
+      if (rv < 0)
+      {
+          PT_LOG_FATAL(LOG_CTX_STARTUP,"ERROR: SOC unit %d attach failed!", bcom_unit);
+          L7_LOG_ERROR(0);
+      }
+  } /* for */
+
+#ifndef NO_SAL_APPL
+  char    *script;
+
+  /* Add backdoor for mem tuner to update system configuration */
+  soc_mem_config_set = sal_config_set;
+
+  /*
+   * If a startup script is given in the boot parameters, attempt to
+   * load it.  This script is for general system configurations such
+   * as host table additions and NFS mounts.
+   */
+
+  if ((script = sal_boot_script()) != NULL) {
+      if (sh_rcload_file(-1, NULL, script, FALSE) != CMD_OK) {
+          PT_LOG_ERR(LOG_CTX_STARTUP,"ERROR loading boot init script: %s\n", script);
+      }
+   }
+
+#if 0
+  /*
+   * If a default init file is given, attempt to load it.
+   */
+  for (bcom_unit = 0; bcom_unit < total_bcom_units; bcom_unit++) {
+      if (soc_attached(SOC_NDEV_IDX2DEV(bcom_unit))) {
+          sh_swap_unit_vars(SOC_NDEV_IDX2DEV(bcom_unit));
+          if (SOC_IS_RCPU_ONLY(SOC_NDEV_IDX2DEV(bcom_unit))) {
+              /* Wait for master unit to establish link */
+              sal_sleep(3);
+          }
+          PT_LOG_TRACE(LOG_CTX_STARTUP,"Going to load rc.soc file...");
+          if (sh_rcload_file(SOC_NDEV_IDX2DEV(bcom_unit), NULL, "/usr/local/ptin/sbin/rc.soc", FALSE) != CMD_OK) {
+              PT_LOG_ERR(LOG_CTX_STARTUP,"ERROR loading rc script on unit %d\n", SOC_NDEV_IDX2DEV(bcom_unit));
+          }
+          else
+          {
+            PT_LOG_TRACE(LOG_CTX_STARTUP,"rc.soc file loaded!");
+          }
+      }
+  }
+
+#if defined(BCM_EA_SUPPORT)
+#if defined(BCM_TK371X_SUPPORT)
+  if(BCM_E_NONE == soc_ea_do_init(total_bcom_units)){
+      for(bcom_unit = 0; bcom_unit < total_bcom_units; bcom_unit++){
+          if(soc_attached(SOC_NDEV_IDX2DEV(bcom_unit)) && SOC_IS_TK371X(SOC_NDEV_IDX2DEV(bcom_unit))){
+               int rv;
+               if ((rv = (bcm_init(SOC_NDEV_IDX2DEV(bcom_unit)))) < 0) { _SHR_ERROR_TRACE(rv);  return; }
+          }
+      }
+  }
+#endif
+#endif
+#endif
+
+  if (total_bcom_units <= 0) {
+      PT_LOG_ERR(LOG_CTX_STARTUP,"No attached units.\n");
+      L7_LOG_ERROR(0);
+  }
+  else
+  {
+    PT_LOG_TRACE(LOG_CTX_STARTUP,"Units attached!");
+  }
+#endif /* NO_SAL_APPL */
+
+#else
   for (bcom_unit=0; bcom_unit<total_bcom_units; bcom_unit++)
   {
     sysconf_attach(bcom_unit);
   }
+#endif
 
   hpcConfigPhySet();
 
@@ -3296,22 +3382,46 @@ systemInit(int unit)
   sal_usecs_t           usec;
   char          *msg = NULL;
   pbmp_t                pbmp;
+#if 0
 #ifdef BCM_ROBO_SUPPORT
 extern int soc_robo_misc_init(int ); 
 extern int soc_robo_mmu_init(int );
 #endif
+#endif
 
 #ifdef BCM_ROBO_SUPPORT
   SYSTEM_INIT_CHECK(soc_robo_reset_init(unit), "Device reset");
-  SYSTEM_INIT_CHECK(soc_robo_misc_init(unit), "Misc init");
-  SYSTEM_INIT_CHECK(soc_robo_mmu_init(unit), "MMU init");
+  //SYSTEM_INIT_CHECK(soc_robo_misc_init(unit), "Misc init");
+  //SYSTEM_INIT_CHECK(soc_robo_mmu_init(unit), "MMU init");
 #else
   SYSTEM_INIT_CHECK(soc_reset_init(unit), "Device reset");
-  SYSTEM_INIT_CHECK(soc_misc_init(unit), "Misc init");
+  //SYSTEM_INIT_CHECK(soc_misc_init(unit), "Misc init");
 #ifdef BCM_ESW_SUPPORT
-  SYSTEM_INIT_CHECK(soc_mmu_init(unit), "MMU init");
+  //SYSTEM_INIT_CHECK(soc_mmu_init(unit), "MMU init");
 #endif
 #endif
+
+  /*
+   * If a default init file is given, attempt to load it.
+   */
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"Initializing unit %u...", unit);
+  if (soc_attached(SOC_NDEV_IDX2DEV(unit))) {
+      sh_swap_unit_vars(SOC_NDEV_IDX2DEV(unit));
+      if (SOC_IS_RCPU_ONLY(SOC_NDEV_IDX2DEV(unit)))
+      {
+          /* Wait for master unit to establish link */
+          sal_sleep(3);
+      }
+      PT_LOG_TRACE(LOG_CTX_STARTUP,"Going to load rc.soc file...");
+      if (sh_rcload_file(SOC_NDEV_IDX2DEV(unit), NULL, "/usr/local/ptin/sbin/rc.soc", FALSE) != CMD_OK)
+      {
+          PT_LOG_ERR(LOG_CTX_STARTUP,"ERROR loading rc script on unit %d\n", SOC_NDEV_IDX2DEV(unit));
+      }
+      else
+      {
+        PT_LOG_TRACE(LOG_CTX_STARTUP,"rc.soc file loaded!");
+      }
+  }
 
 #if defined(INCLUDE_PHY_8706)  
 #if L7_FEAT_SF10GBT
@@ -3349,7 +3459,10 @@ extern int soc_robo_mmu_init(int );
  }
 #endif  /* BCM_XGS_SWITCH_SUPPORT */
 
+ /* PTin removed */
+#if 0
   SYSTEM_INIT_CHECK(bcm_init(unit), "BCM driver layer init");
+#endif
 
   if (soc_property_get_str(unit, spn_BCM_LINKSCAN_PBMP) == NULL) {
   SOC_PBMP_ASSIGN(pbmp, PBMP_PORT_ALL(unit));

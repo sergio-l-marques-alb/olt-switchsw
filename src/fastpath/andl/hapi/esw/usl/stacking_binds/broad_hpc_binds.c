@@ -187,8 +187,15 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
   /* Initialise the System Abstraction Layer(SAL) of the Broadcom vendor 
    * Driver
    */
-  sal_core_init();
-  sal_appl_init();
+   if (sal_core_init() < 0 || sal_appl_init() < 0)
+   {
+     PT_LOG_FATAL(LOG_CTX_STARTUP, "SAL Initialization failed!");
+     L7_LOG_ERROR (0);
+   }
+   PT_LOG_TRACE(LOG_CTX_STARTUP, "SAL Initialization done!");
+
+   /* PTin added: sal routines */
+   sal_thread_main_set(sal_thread_self());
 
 #if (SDK_VERSION_IS >= SDK_VERSION(6,4,0,0))
   bsl_vectors_get(&init_data);
@@ -222,8 +229,10 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
   if (soc_cm_init(&init_data) != SOC_E_NONE)
 #endif
   {
+    PT_LOG_FATAL(LOG_CTX_STARTUP, "Error initializing BSL and SOC_CM!");
     L7_LOG_ERROR (0);
   }
+  PT_LOG_TRACE(LOG_CTX_STARTUP, "BSL and SOC_CM initialized!");
   
   hapiBroadSocFileLoad("sdk-preinit.soc", L7_TRUE);
  
@@ -232,8 +241,11 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
    */
   if (sysconf_probe() != 0)
   {
+    PT_LOG_FATAL(LOG_CTX_STARTUP,"ERROR: PCI SOC device probe failed!");
     L7_LOG_ERROR (1);
   }
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"PCI SOC devices probed!");
+
   board_info = hpcBoardGet();
   
   if (board_info==L7_NULL) {
