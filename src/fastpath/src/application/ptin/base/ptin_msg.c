@@ -3115,7 +3115,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
   rc = ptin_QoS_intf_config_get(&ptin_intf, &qos_intf_curr);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error readin interface configuration (rc=%d)", rc);
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading interface configuration (rc=%d)", rc);
     return L7_FAILURE;
   }
   trust_mode = qos_intf_curr.trust_mode;
@@ -3176,7 +3176,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
         for (i=0; i<64; i++)
         {
           /* Is priority i to be defined? If so define CoS */
-          if ((qos_msg->ingress.cos_classif.dscp_map.prio_mask[i/32] >> i) & 1)
+          if ((qos_msg->ingress.cos_classif.dscp_map.prio_mask[i/32] >> (i%32)) & 1)
           {
             qos_intf.pktprio.mask[i/8] |= 1 << (i%8);
             qos_intf.pktprio.cos[i/8]  |= (qos_msg->ingress.cos_classif.dscp_map.cos[i] & 0xf) << (i%8);
