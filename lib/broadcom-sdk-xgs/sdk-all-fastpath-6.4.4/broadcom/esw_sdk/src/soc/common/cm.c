@@ -5778,7 +5778,8 @@ soc_cm_device_destroy(int dev)
 const char *
 soc_cm_get_name(int dev)
 {
-#ifdef BCM_HELIX4_SUPPORT
+#if 0
+//#ifdef BCM_HELIX4_SUPPORT
         uint16          dev_id = 0;
         uint32          rval;
         /*It is used to store the device name which should be renamed by feature*/
