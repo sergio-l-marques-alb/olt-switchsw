@@ -1,5 +1,5 @@
-#ifndef _PTIN_GLOBALDEFS_TA48GE_H
-#define _PTIN_GLOBALDEFS_TA48GE_H
+#ifndef _PTIN_GLOBALDEFS_TA12XG_H
+#define _PTIN_GLOBALDEFS_TA12XG_H
 
 /* If SSM is not supported, comment this line */
 #define SYNC_SSM_IS_SUPPORTED
@@ -226,5 +226,5 @@ extern volatile st_fpga_map_t *fpga_map;
 # define IPC_MX_IPADDR              IPC_MX_IPADDR_WORKING  /* Default ip address */
 #endif
 
-#endif /* _PTIN_GLOBALDEFS_TA48GE_H */
+#endif /* _PTIN_GLOBALDEFS_TA12XG_H */
 
