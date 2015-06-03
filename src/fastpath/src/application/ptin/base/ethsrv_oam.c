@@ -30,13 +30,14 @@
 
 //OWN TYPES/VARIABLES/OBJECTS***********************************************************
 #include <ethsrv_oam.h>
+#include "ptin_intf.h"
 //PUBLIC VARIABLES/OBJECTS**************************************************************
 __OAM_TIMER_CODE_VALUES_DECLARATION__
 __OAM_MC_MAC_DECLARATION__
 //OWN ROUTINES**************************************************************************
 static int send_ccm(u16 i_mep, T_MEP_HDR *p_mep, u8 RDI, T_MEP_LM *p_lm, u8 use_mcast_DMAC);
 static int send_csf(u16 oam_prt, T_MEP_HDR *p_mep, u8 CSF_period, u8 CSF_flags);
-static int send_lmm(u16 i_mep, T_MEP_HDR *p_mep, T_MEP_LM *p_lm);
+//static int send_lmm(u16 i_mep, T_MEP_HDR *p_mep, T_MEP_LM *p_lm);
 static int send_dmm(u16 i_mep, T_MEP_HDR *p_mep, T_MEP_DM *p_dm);
 static int rx_ccm(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC,
                     T_MEP_DB *p_mep_db, T_LOOKUP_MEP *p_mep_lut, u64 RxFCl);
@@ -541,6 +542,7 @@ T_LOOKUP_MEP *p_mep_lut;
 
  //Fill T_MEP table...
  _p_mep->ME[i_rmep].mep_id=         p_rmep->mep_id;
+ _p_mep->ME[i_mep].rmep_id=        p_rmep->mep_id;
 
  return 0;
 }//wr_rmep
@@ -736,13 +738,26 @@ _proc_ethsrv_oam_CSF_function_end:
         _p_mep_lm->LMM_timer += T_ms;
         if (_p_mep_lm->LMM_timer+T_ms/2 > tmout) {//time_2_send_lmm=1;
             _p_mep_lm->LMM_timer=0;
-            send_lmm(*proc_i_mep, (T_MEP_HDR *)_p_mep, _p_mep_lm);
+
+            // Get MAC Address
+            L7_int32 intIfNum; 
+            ETHSRV_OAM_LOG ("%u", _p_mep->prt);
+            ptin_intf_port2intIfNum( _p_mep->prt, &intIfNum);
+            nimGetIntfAddress(intIfNum, 1, _p_mep_lm->DMAC.byte);   //memcpy(buff, pSMAC, 6)
+
+
+
+            ETHSRV_OAM_LOG ("MAC %02x:%02x:%02x:%02x:%02x:%02x ", 
+           _p_mep_lm->SMAC.byte[0],  _p_mep_lm->SMAC.byte[1],  _p_mep_lm->SMAC.byte[2],  _p_mep_lm->SMAC.byte[3],  _p_mep_lm->SMAC.byte[4],  _p_mep_lm->SMAC.byte[5]);
+
+            ptin_send_lmm(_p_mep_lm->SMAC.byte, _p_mep_lm->DMAC.byte, intIfNum, (_p_mep->ME->rmep_id));
+
+            //send_lmm(*proc_i_mep, (T_MEP_HDR *)_p_mep, _p_mep_lm, _p_mep_lm->SMAC.byte);
+
         }
     }
 _proc_ethsrv_oam_LM_function_end:;
-
-
-
+    // -------------------------------------------------------------------- LM Function
 
     // DM Function --------------------------------------------------------------------
     _p_mep_dm =   &p_oam->db[*proc_i_mep].dm; //Get the pointer to this MEP,...
@@ -949,7 +964,7 @@ ETH_SRV_OAM_CSF_DATAGRM csf, *p_csf;
 
 
 
-
+/*
 static int send_lmm(u16 i_mep, T_MEP_HDR *p_mep, T_MEP_LM *p_lm) {
 T_ETH_OAM_MAC DMAC;
 ETH_LMM_OAM_DATAGRM lmm, *p_lmm;
@@ -969,6 +984,7 @@ ETH_LMM_OAM_DATAGRM lmm, *p_lmm;
 
  return send_eth_pckt(p_mep->prt, p_mep->up1_down0, (u8*)p_lmm, sizeof(ETH_LMM_OAM_DATAGRM), p_mep->vid, p_mep->prior, p_mep->CoS, 0, OAM_ETH_TYPE, DMAC.byte);
 }//send_lmm
+*/
 
 
 
@@ -986,11 +1002,11 @@ ETH_LMM_OAM_DATAGRM lmm, *p_lmm;
 
 
 
+ static int send_lmr(u16 i_mep, T_MEP_HDR *p_mep, ETH_LMM_OAM_DATAGRM *p_lmm, u8 *pDMAC) {
 
+ ETH_LMR_OAM_DATAGRM lmr, *p_lmr;
 
-
-static int send_lmr(u16 i_mep, T_MEP_HDR *p_mep, ETH_LMM_OAM_DATAGRM *p_lmm, u8 *pDMAC) {
-ETH_LMR_OAM_DATAGRM lmr, *p_lmr;
+ L7_uint32 entry,intIfNum;
 
  p_lmr=                         &lmr;
  p_lmr->MAlevel_and_version=    ASSEMBLE_OAM_MALEVEL_AND_VERSION(p_mep->level, OAM_PROTO_VERSION);
@@ -1000,11 +1016,17 @@ ETH_LMR_OAM_DATAGRM lmr, *p_lmr;
  p_lmr->TxFCf=                  p_lmm->TxFCf;
  p_lmr->RxFCf=                  p_lmm->RxFCf;   //Our side set this on the PDU, @LMM reception
  p_lmr->end_TLV=                0;
- p_lmr->TxFCb=                  htonl(rd_TxFCl(i_mep));
+ p_lmr->TxFCb = 0;
+ 
 
- return send_eth_pckt(p_mep->prt, p_mep->up1_down0, (u8*)p_lmr, sizeof(ETH_LMR_OAM_DATAGRM), p_mep->vid, p_mep->prior, p_mep->CoS, 0, OAM_ETH_TYPE, pDMAC);
+ /* Get TxFCb */
+ ptin_intf_port2intIfNum( p_mep->prt, &intIfNum); 
+ ptin_check_counters_lm(&entry, p_mep->prt);
+
+ p_lmr->TxFCb = entry;
+
+ return send_eth_pckt(p_mep->prt, p_mep->up1_down0, (u8*)p_lmr, sizeof(ETH_LMM_OAM_DATAGRM) + 4, p_mep->vid, p_mep->prior, p_mep->CoS, 0, OAM_ETH_TYPE, pDMAC);
 }//send_lmr
-
 
 
 
@@ -1204,13 +1226,13 @@ T_LOOKUP_MEP    *p_mep_lut;
      rx_csf(oam_prt, pkt_ethtype, pkt_len, vid, pSMAC, p_mep_db, p_mep_lut);
      return 0;
  case LMM_OPCODE:
-     if (pkt_len<sizeof(ETH_LMM_OAM_DATAGRM)+2)  return 5;
+     //if (pkt_len<sizeof(ETH_LMM_OAM_DATAGRM)+2)  return 5;
      p_mep_db=  p_oam->db;
      p_mep_lut= p_oam->mep_lut;
      rx_lmm(oam_prt, pkt_ethtype, pkt_len, vid, pSMAC, p_mep_db, p_mep_lut, RxFCl);
      return 0;
  case LMR_OPCODE:
-     if (pkt_len<sizeof(ETH_LMR_OAM_DATAGRM)+2)  return 5;
+     //if (pkt_len<sizeof(ETH_LMR_OAM_DATAGRM)+2)  return 5;
      p_mep_db=  p_oam->db;
      p_mep_lut= p_oam->mep_lut;
      rx_lmr(oam_prt, pkt_ethtype, pkt_len, vid, pSMAC, p_mep_db, p_mep_lut, RxFCl);
@@ -1367,11 +1389,12 @@ u16 ccm_mep_id;
  _p_mep->ME[i_rmep].RDI= flags_TO_RDI(p_ccm->flags);
 
  //p_mep_lut[i_look_r].SMAC=  *((T_ETH_OAM_MAC *) pSMAC);
-
+ 
  {
   T_MEP_LM *_p_mep_lm;
 
   _p_mep_lm=    &p_mep_db[i_mep].lm;
+  _p_mep_lm->SMAC = *((T_ETH_OAM_MAC *) pSMAC);
   if (0==_p_mep_lm->CCMs0_LMMR1) {
       T_LM *p;
 

@@ -5337,6 +5337,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       rc = L7_FAILURE;
       break;
     }
+
   }
 
   #if 0

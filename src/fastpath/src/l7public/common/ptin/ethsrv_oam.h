@@ -120,6 +120,7 @@ extern const T_ETH_OAM_MAC OAM_MC_MAC;
 
 typedef struct {
     u16 mep_id;             //Monitored MEP. ">HIGHEST_MEP"   means empty entry
+    u16 rmep_id;
     u32 LOC_timer;          //RO    (ms)        RX; used to decide that a timeout ocurred
 #define LOC(LOC_timer, CCM_period)  ((LOC_timer)*2 >= (CCM_period)*7)
 
@@ -306,7 +307,10 @@ typedef struct {
 
 
 
+
 typedef struct {
+
+u8 endpoint_id; 
 #define invalid_T_MEP_LM(p_mep_lm)  ((p_mep_lm)->CCMs0_LMMR1>1)
 #define T_LM_VIRGIN_PATTERN 0xff
 #define VIRGIN_LM_COUNTER   0xffffffffffffffffULL
@@ -321,7 +325,9 @@ typedef struct {
 
     u8  tog_iLM;        //toggle 0-1 or increment, to know which of T_LM lm[] is the last sample
 
-    u32 LMM_timer;          // RO    (ms)        TX; used to decide when to send a CSF packet
+    u32 LMM_timer;          // RO    (ms)        TX; used to decide when to send a CSF 
+
+    
 
 #define iLMlast(tog_iLM)    ((tog_iLM)&1)
 #define iLMpenu(tog_iLM)    ((tog_iLM)&1? 0:1)
@@ -330,7 +336,11 @@ typedef struct {
 #define N_iLMs  3
     T_LM
         lm[N_iLMs];
+T_ETH_OAM_MAC  SMAC;
+T_ETH_OAM_MAC  DMAC;
+   
 } __attribute__ ((packed)) T_MEP_LM;
+
 
 
 
@@ -850,7 +860,8 @@ extern u16 MAC_in_prt(u8 *MAC);
 extern u8 *this_prts_MAC(u16 oam_prt);
 
 
-
+extern L7_RC_t ptin_send_lmm(u8* sMAC , u8* dMAC, L7_uint32 intIfNum, u8 endpoint);
+extern L7_RC_t ptin_check_counters_lm(L7_uint32* lmr_TxFCb, L7_uint32 port);
 
 
 
@@ -907,6 +918,7 @@ extern int MEP_is_CSF_LOS(u16 mep_idx, T_ETH_SRV_OAM *p_oam);
 
 
 
+
 //Far End and/or Near End Frame loss ratio (expressed by dividend and divisor)
 //If either NE_flr_Dividend or NE_flr_divisor are NULL pointers, nothing is done to *NE_flr_Dividend and *NE_flr_divisor
 //The same applies to FE_flr_*
@@ -919,6 +931,7 @@ extern int del_mep_lm(u32 i_mep, T_ETH_SRV_OAM *p_oam);
 
 extern int del_mep_dm(u32 i_mep, T_ETH_SRV_OAM *p_oam);
 extern int wr_mep_dm(u32 i_mep, T_MEP_DM *p_mep_dm, T_ETH_SRV_OAM *p_oam);
+
 
 #endif /*_ETHSRV_OAM_H_*/
 

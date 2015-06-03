@@ -1044,7 +1044,6 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, int mac_
 
   #if(PTIN_BOARD != PTIN_BOARD_CXO640G) /*Not supported in Trident(Plus). */
 
-  LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Error");
   if ((rv=bcm_l2_learn_limit_set(0, &limit))!=BCM_E_NONE)
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Error (%d) setting L2 learn limit to %u", rv, mac_limit);

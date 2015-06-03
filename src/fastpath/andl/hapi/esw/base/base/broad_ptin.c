@@ -13,11 +13,15 @@
 #include "broad_common.h"
 #include "broad_l2_vlan.h"
 #include "broad_l2_std.h"
+#include <bcm/oam.h>
+#include <ethsrv_oam.h>
+#include <nimapi.h>
 
 #include <bcm/port.h>
 
 #include <dapi_db.h>
 #include <hpc_db.h>
+#include <soc/higig.h>
 
 static L7_RC_t hapiBroadPTinPrbsPreemphasisGet(DAPI_USP_t *usp, L7_uint16 *preemphasys, L7_int number_of_lanes);
 static L7_RC_t hapiBroadPTinPrbsPreemphasisSet(DAPI_USP_t *usp, L7_uint16 *preemphasys, L7_int number_of_lanes, L7_BOOL force);
@@ -34,14 +38,18 @@ L7_RC_t broad_ptin_l2_maclimit(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7
 L7_RC_t broad_ptin_l2_maclimit_status(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_l3_intf(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_l3_ipmc(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
-
+L7_RC_t broad_ptin_oam_sendlmm(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
+L7_RC_t broad_ptin_oam_check_lm_counters(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
+L7_RC_t broadPtin_oam_tx( int unit, int flags, bcm_gport_t gport_dst, bcm_mac_t *mac_dst, bcm_mac_t *mac_src, bcm_oam_endpoint_info_t *endpoint_info);
 /* List of callbacks */
 broad_ptin_generic_f ptin_dtl_callbacks[PTIN_DTL_MSG_MAX] = {  
   broad_ptin_example,
   broad_ptin_l2_maclimit,
   broad_ptin_l2_maclimit_status,
   broad_ptin_l3_intf, 
-  broad_ptin_l3_ipmc
+  broad_ptin_l3_ipmc,
+  broad_ptin_oam_sendlmm,
+  broad_ptin_oam_check_lm_counters
 };
 
 /**
@@ -202,6 +210,8 @@ L7_RC_t broad_ptin_l3_intf(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uin
   }
   return rc;  
 }
+
+
 
 /**
  * Handle L3 IP Multicast Entries
@@ -2287,10 +2297,6 @@ L7_RC_t hapiBroadPtinStart(void)
 */
 
 
-
-#include <bcm/oam.h>
-#include <ethsrv_oam.h>
-#include <nimapi.h>
 L7_RC_t hapiBroadPtinMEPControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g) {
     T_MEP_HDR         *p;
 
@@ -2308,14 +2314,14 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
   BROAD_PORT_t      *hapiPortPtr;
   T_MEP_HDR         *p;
   T_MEP_LM          *lm;
+  //T_ME               *_p_me;
+
   //bcm_error_t rv;
   bcm_oam_group_info_t ginfo;
   bcm_oam_endpoint_info_t mep;
   //bcm_oam_loss_t loss;
   int r, alrdy;
   unsigned long i, empty;
-
-
 
 
   // Get the port info
@@ -2331,29 +2337,24 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
   //else if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr_prev) == L7_TRUE)
 
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Success %d \n\r");
 
   //Check if MAID's already in use...
   for (i=0, empty=-1, alrdy=0; i<N_MEPs; i++) {    //nMEGsMAIDs<=MEPs
       r=bcm_oam_group_get(0, i, &ginfo);
       if (BCM_E_NOT_FOUND==r) {
           if (empty>=N_MEPs) empty=i;
-          LOG_TRACE(LOG_CTX_PTIN_API, "1 %d\n\r", r);
       }
       else
       if (BCM_E_EXISTS==r) {
           if (!memcmp(ginfo.name, &p->meg_id, sizeof(ginfo.name))) {
               ginfo.id=i;
               alrdy=1;
-              LOG_TRACE(LOG_CTX_PTIN_API, "2\n\r", r);
               break;
           }
       }
   }//for
   //... otherwise allocate it
-  LOG_TRACE(LOG_CTX_PTIN_API, "Success %d \n\r", r);
   if (!alrdy) {
-      LOG_TRACE(LOG_CTX_PTIN_API, "r = %d empty %d %d\n\r", r, empty);
       if (empty>=N_MEPs) return L7_TABLE_IS_FULL;
 
       bcm_oam_group_info_t_init(&ginfo);
@@ -2361,12 +2362,10 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
       memcpy(ginfo.name, &p->meg_id, sizeof(ginfo.name));   //memset(ginfo.name, 0, sizeof(ginfo.name));    //sprintf(ginfo.name, "");
       ginfo.flags= BCM_OAM_GROUP_WITH_ID; //| BCM_OAM_GROUP_REMOTE_DEFECT_TX;
       r=bcm_oam_group_create(0, &ginfo);
-      LOG_TRACE(LOG_CTX_PTIN_API, "r = %d \n\r", r);
       if (BCM_E_NONE!=r) {
           LOG_ERR(LOG_CTX_PTIN_API, "bcm_oam_group_create()=%d\n\r", r);
           return L7_DEPENDENCY_NOT_MET;
       }
-      LOG_TRACE(LOG_CTX_PTIN_API, "Success %d \n\r", r);
   }
 
 
@@ -2381,7 +2380,7 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
 
       //BCM_OAM_ENDPOINT_USE_QOS_MAP | BCM_OAM_ENDPOINT_PRI_TAG |
 
-      BCM_OAM_ENDPOINT_CCM_COPYTOCPU | //BCM_OAM_ENDPOINT_CCM_RX |
+      BCM_OAM_ENDPOINT_CCM_COPYTOCPU |// BCM_OAM_ENDPOINT_CCM_RX |
       //BCM_OAM_ENDPOINT_CCM_DROP | BCM_OAM_ENDPOINT_CCM_COPYFIRSTTOCPU |
       //BCM_OAM_ENDPOINT_REMOTE_DEFECT_TX | BCM_OAM_ENDPOINT_REMOTE_EVENT_DISABLE |
       //BCM_OAM_ENDPOINT_REMOTE_DEFECT_AUTO_UPDATE |
@@ -2401,11 +2400,14 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
 
   //if (!invalid_T_MEP_LM(lm))
       mep.flags |= BCM_OAM_ENDPOINT_LOSS_MEASUREMENT;
-  if (p->up1_down0)             mep.flags |= BCM_OAM_ENDPOINT_UP_FACING;
+ if (p->up1_down0) mep.flags |= BCM_OAM_ENDPOINT_UP_FACING;
 
   //mep.opcode_flags
   //mep.lm_flags
-  mep.id=           1+((hapi_mep_t *) data)->imep;  //1..N (creation function doesn't accept 0)
+ 
+  //memcpy(&lm->endpoint_id, &mep.id, sizeof(lm->endpoint_id)); 
+
+  mep.id=           1;//((hapi_mep_t *) data)->imep;  //1..N (creation function doesn't accept 0)
   mep.type=         bcmOAMEndpointTypeEthernet;
   mep.group=        ginfo.id;
   mep.name=         p->mep_id; //0;//mepid
@@ -2415,7 +2417,6 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
   mep.vlan=         p->vid; //50;
   mep.inner_vlan=   0;  //...or set to 0 for one-tag
   mep.gport=        mep.tx_gport=       hapiPortPtr->bcmx_lport;//BCM_GPORT_LOCAL_SET(mep.tx_gport, 2);
-  LOG_TRACE(LOG_CTX_PTIN_API, "Success\n\r", r);
   //mep.trunk_index= //The trunk port index for this
   //mep.intf_id=
   //mep.mpls_label=
@@ -2442,7 +2443,6 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
              goto _hapiBroadPtinMEPCreate_nokend;
          }//memcpy(mep.src_mac_address, &s, 6);
    }
-   LOG_TRACE(LOG_CTX_PTIN_API, "Success\n\r", r);
   }
   //mep.pkt_pri=
   //mep.inner_pkt_pri=
@@ -2465,16 +2465,20 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
   mep.lm_counter_base_id=mep.id;//0;             // Counter id assosiated to the mep
   //mep.loc_clear_threshold;          // Number of packets required to reset the Loss-of-Continuity status per end point
   //mep.timestamp_format;               // DM time stamp format - NTP/IEEE1588(PTP)
+
+
+  //LOG_TRACE(LOG_CTX_PTIN_API, "Success -> %d \n\r", mep.id);
   r=bcm_oam_endpoint_create(0, &mep);
   if (BCM_E_NONE!=r) LOG_ERR(LOG_CTX_PTIN_HAPI, "bcm_oam_endpoint_create()=%d\n\r", r);
 
-  /*bcm_oam_loss_t_init(&loss);
+ /*
+  bcm_oam_loss_t_init(&loss);
   loss.flags |=              BCM_OAM_LOSS_WITH_ID | BCM_OAM_LOSS_TX_ENABLE | BCM_OAM_LOSS_SINGLE_ENDED | BCM_OAM_LOSS_ALL_RX_COPY_TO_CPU;
-  loss.flags &=              ~(0UL | BCM_OAM_LOSS_COUNT_GREEN_AND_YELLOW);
+  //loss.flags &=              ~(0UL | BCM_OAM_LOSS_COUNT_GREEN_AND_YELLOW);
 
-  loss.loss_id=              0;//Oam Loss ID
-  loss.id=                   0;
-  loss.rem_id=               1;
+  loss.loss_id=              1;//Oam Loss ID
+  loss.id=                   1;
+  //loss.rem_id=               2;
   loss.period=               1000;
   //loss.loss_threshold=
   //loss.loss_nearend;
@@ -2490,8 +2494,18 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
   //loss.gport;
   //loss.rx_oam_packets;
   //loss.tx_oam_packets;
-  bcm_oam_loss_add(0, &loss);*/
+  bcm_oam_loss_add(0, &loss);
 
+  LOG_TRACE(LOG_CTX_PTIN_API, " loss.rx_oam_packets %d ", loss.rx_oam_packets);
+  LOG_TRACE(LOG_CTX_PTIN_API, " loss.tx_oam_packets %d ", loss.tx_oam_packets);
+  LOG_TRACE(LOG_CTX_PTIN_API, " loss.rx_oam_packets %d ", loss.rx_oam_packets);
+  LOG_TRACE(LOG_CTX_PTIN_API, " loss.rx_oam_packets %d ", loss.tx_oam_packets);
+  LOG_TRACE(LOG_CTX_PTIN_API, " loss.tx_nearend %d ", loss.tx_nearend);
+  LOG_TRACE(LOG_CTX_PTIN_API, " loss.rx_nearend %d ", loss.rx_nearend);
+  LOG_TRACE(LOG_CTX_PTIN_API, " loss.tx_farend %d ", loss.tx_farend);
+  LOG_TRACE(LOG_CTX_PTIN_API, " loss.rx_farend %d ", loss.rx_farend);
+  
+  */
   if (BCM_E_NONE==r) return L7_SUCCESS;
 
 _hapiBroadPtinMEPCreate_nokend:
@@ -2500,7 +2514,6 @@ _hapiBroadPtinMEPCreate_nokend:
       LOG_TRACE(LOG_CTX_PTIN_API, "ERROR\n\r", r);
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Success %d \n\r", r);
   return r;
 }//hapiBroadPtinMEPCreate
 
@@ -2530,10 +2543,6 @@ bcm_oam_endpoint_info_t mep;
     if (BCM_E_NONE!=r) LOG_ERR(LOG_CTX_PTIN_HAPI, "bcm_oam_endpoint_destroy()=%d\n\r", r);
     return r;
 }//hapiBroadPtinMEPDelete
-
-
-
-
 
 
 extern DAPI_t *dapi_g;
@@ -2570,12 +2579,6 @@ T_MEP_LM   lm;
     hapiBroadPtinMEPControl(&usp, 0, &mep, dapi_g);
 }
 
-
-
-
-
-
-
 void hapitest2(unsigned long intIfNum, unsigned short vid, unsigned char level, unsigned char prior) {
 nimUSP_t  nim_usp;
 DAPI_USP_t usp;
@@ -2608,3 +2611,192 @@ T_MEP_LM  lm;
     hapiBroadPtinMEPControl(&usp, 0, &mep, dapi_g);
 }
 
+/**
+ * Send LMM
+ * 
+ * @param usp 
+ * @param operation 
+ * @param dataSize 
+ * @param data 
+ * @param dapi_g 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t broad_ptin_oam_sendlmm(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g)
+{
+  bcm_mac_t mac_src;
+  bcm_mac_t mac_dst;
+  ptin_send_lmm_t entry;
+
+  memcpy(&entry, (ptin_send_lmm_t *) data, sizeof(entry));
+
+  bcm_oam_endpoint_info_t endpoint; 
+  //bcm_port_t port;
+  endpoint.id = 1;//; entry.endpoint; fixed number, only endpoint allowed
+  int unit = 0;
+
+  memcpy(mac_src, (u8*)entry.dMAC , sizeof(mac_src));
+  memcpy(mac_dst, (u8*)entry.sMAC , sizeof(mac_dst));
+
+  bcm_oam_endpoint_get(unit, endpoint.id, &endpoint);
+
+  endpoint.flags = 0x400; // BCM_OAM_ENDPOINT_LOSS_MEASUREMENT
+                        
+  broadPtin_oam_tx(unit, endpoint.flags, endpoint.gport, &mac_dst, &mac_src, &endpoint);
+
+  return L7_SUCCESS;
+}
+L7_RC_t broad_ptin_oam_check_lm_counters(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g)
+{
+    uint32 *ptr;
+    ptr = (uint32*) data;
+
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "%s: usp={%d,%d,%d} operation=%u dataSize=%u", __FUNCTION__, usp->unit, usp->slot, usp->port, operation, dataSize);
+    //soc_mem_info_t *memp;
+    int  i;
+    soc_mem_t mem = 5872; // Fixed position in SOC mem 
+    uint32    entry[SOC_MAX_MEM_WORDS];
+
+    /* Rx
+    int k = 0;
+    int entry_dw = soc_mem_entry_words(0, mem);
+
+    i = soc_mem_read(0, mem, 7, k, entry);
+    */
+
+    // Tx
+    int k1 = 8192;
+
+
+    // Read Memory from SoC
+    i = soc_mem_read(0, mem, 7, k1, entry);
+
+    *ptr = entry[0];  // Counter Value
+
+    return L7_SUCCESS;
+}
+
+
+L7_RC_t broadPtin_oam_tx(L7_int unit, L7_int flags, bcm_gport_t gport_dst, bcm_mac_t *mac_dst, bcm_mac_t *mac_src, bcm_oam_endpoint_info_t *endpoint_info)
+{
+    bcm_pkt_t pkt;
+    enet_hdr_t *ep = NULL;
+    oam_hdr_t *op = NULL;
+    int vp = 0;        
+    int rv = 0;
+    bcm_module_t module_id, dst_module_id;
+    bcm_port_t port_id, dst_port_id;
+    bcm_trunk_t trunk_id, dst_trunk_id;
+    int local_id, dst_local_id;
+    soc_higig_hdr_t *xgh = (soc_higig_hdr_t *)pkt._higig;
+
+    sal_memset(&pkt, 0, sizeof(bcm_pkt_t));
+    
+    BCM_IF_ERROR_RETURN(_bcm_esw_gport_resolve(unit, endpoint_info->gport,
+        &module_id, &port_id, &trunk_id, &local_id));
+
+    if (BCM_GPORT_IS_MIM_PORT(endpoint_info->gport) ||
+        BCM_GPORT_IS_MPLS_PORT(endpoint_info->gport)) {
+        vp = 1;
+    }
+
+    if ((endpoint_info->flags & BCM_OAM_ENDPOINT_UP_FACING) ||
+         BCM_GPORT_IS_TRUNK(endpoint_info->gport)) {
+        BCM_IF_ERROR_RETURN(_bcm_esw_gport_resolve(unit, gport_dst,
+            &dst_module_id, &dst_port_id, &dst_trunk_id, &dst_local_id));
+    }
+
+    sal_memset(xgh, 0, sizeof(pkt._higig));
+    soc_higig_field_set(unit, xgh, HG_start, SOC_HIGIG2_START);
+    soc_higig_field_set(unit, xgh, HG_opcode, SOC_HIGIG_OP_UC);
+    soc_higig_field_set(unit, xgh, HG_cos, 0x7);
+    
+    if (vp) {
+        soc_higig_field_set(unit, xgh, HG_ppd_type, 0x2);
+        soc_higig_field_set(unit, xgh, HG_fwd_type, 0x4);
+        soc_higig_field_set(unit, xgh, HG_multipoint, 0x0);
+        soc_higig_field_set(unit, xgh, HG_dst_type, 0);
+            soc_higig_field_set(unit, xgh, HG_src_type, 0);
+        if (endpoint_info->flags & BCM_OAM_ENDPOINT_UP_FACING) {
+            soc_higig_field_set(unit, xgh, HG_dst_vp, dst_local_id);
+            /* coverity[copy_paste_error : FALSE] */
+            soc_higig_field_set(unit, xgh, HG_src_vp, local_id);
+        } else {
+            soc_higig_field_set(unit, xgh, HG_dst_vp, local_id);
+            soc_higig_field_set(unit, xgh, HG_src_vp, local_id);
+        }
+    } else {
+        soc_higig_field_set(unit, xgh, HG_ppd_type, 0x0);
+        soc_higig_field_set(unit, xgh, HG_vlan_tag, endpoint_info->vlan);
+        if (endpoint_info->flags & BCM_OAM_ENDPOINT_UP_FACING) {
+            soc_higig_field_set(unit, xgh, HG_dst_mod, dst_module_id);
+            soc_higig_field_set(unit, xgh, HG_dst_port, dst_port_id);
+            if (BCM_GPORT_IS_TRUNK(endpoint_info->gport)) {
+                soc_higig_field_set(unit, xgh, HG_tgid, trunk_id);
+                soc_higig_field_set(unit, xgh, HG_src_t, 1);
+            } else {
+                soc_higig_field_set(unit, xgh, HG_src_mod, module_id);
+                soc_higig_field_set(unit, xgh, HG_src_port, port_id);
+            }
+        } else {
+            if (BCM_GPORT_IS_TRUNK(endpoint_info->gport)) {
+                soc_higig_field_set(unit, xgh, HG_dst_mod, dst_module_id);
+                soc_higig_field_set(unit, xgh, HG_dst_port, dst_port_id);
+                soc_higig_field_set(unit, xgh, HG_src_mod, dst_module_id);
+                soc_higig_field_set(unit, xgh, HG_src_port, 0);
+            } else {
+                soc_higig_field_set(unit, xgh, HG_dst_mod, module_id);
+                soc_higig_field_set(unit, xgh, HG_dst_port, port_id);
+                soc_higig_field_set(unit, xgh, HG_src_mod, module_id);
+                soc_higig_field_set(unit, xgh, HG_src_port, 0);
+            }
+        }
+    }
+
+    pkt.alloc_ptr = (uint8 *)soc_cm_salloc(unit, 128, "TX");        
+    if (pkt.alloc_ptr == NULL) {        
+        cli_out("WARNING: Could not alloc tx buffer. Memory error.\n");    
+        return (BCM_E_MEMORY);
+    } else {        
+        pkt._pkt_data.data = pkt.alloc_ptr;        
+        pkt.pkt_data = &pkt._pkt_data;        
+        pkt.blk_count = 1;        
+        pkt._pkt_data.len = 128;    
+    }        
+
+    /* setup the packet */    
+    pkt.flags &= ~BCM_TX_CRC_FLD;    
+    pkt.flags |= BCM_TX_CRC_REGEN; 
+    pkt.flags |= BCM_TX_HG_READY | BCM_TX_ETHER;
+    
+    sal_memset(pkt.pkt_data[0].data, 0, pkt.pkt_data[0].len);        
+    ep = (enet_hdr_t *)(pkt.pkt_data[0].data);
+    
+    ENET_SET_MACADDR(ep->en_dhost, mac_dst);    
+    ENET_SET_MACADDR(ep->en_shost, mac_src);
+    
+    ep->en_tag_tpid = bcm_htons(0x8100);
+    ep->en_tag_ctrl = bcm_htons(VLAN_CTRL(5, 0, endpoint_info->vlan));
+    ep->en_tag_len  = bcm_htons(0x8902);
+
+    op = (oam_hdr_t *)(&ep->en_snap_dsap);
+    op->mdl_ver = (endpoint_info->level << 5);
+    op->flags = 0;
+    if (flags & BCM_OAM_ENDPOINT_LOSS_MEASUREMENT) {
+        op->opcode = 43;
+        op->first_tlvoffset = 12;
+    } else {
+        op->opcode = 47;
+        op->first_tlvoffset = 32;
+    }
+
+    if ((rv = bcm_tx(unit, &pkt, NULL)) != BCM_E_NONE) {        
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
+                  (BSL_META_U(unit,
+                              "bcm_tx failed: Unit %d: %s\n"),                   
+                   unit, bcm_errmsg(rv)));
+    }
+
+    soc_cm_sfree(unit, pkt.alloc_ptr);
+    return L7_SUCCESS;
+} 

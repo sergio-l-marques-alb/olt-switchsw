@@ -4171,7 +4171,7 @@ L7_RC_t ptin_msg_l2_maclimit_config(msg_l2_maclimit_config_t *maclimit)
     /* Get intIfNum */
     ptin_intf.intf_type = maclimit->intf.intf_type;
     ptin_intf.intf_id = maclimit->intf.intf_id;
- 
+  
     if (ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ptin_intf");
@@ -10704,6 +10704,34 @@ L7_RC_t ptin_msg_dump_LUT_MEPs(ipc_msg *inbuff, ipc_msg *outbuff) {
   return L7_SUCCESS;
 
 }//msg_dump_LUT_MEPs
+
+
+L7_RC_t ptin_send_lmm(u8* sMAC , u8* dMAC, L7_uint32 intIfNum, u8 endpoint)
+{
+    ptin_send_lmm_t entry;
+
+    memcpy(&entry.sMAC, (u8*) sMAC, 6);
+    memcpy(&entry.dMAC, (u8*) dMAC, 6);
+    memcpy(&entry.endpoint, &endpoint, sizeof(entry.endpoint));
+
+    dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_LMM, DAPI_CMD_SET, sizeof(entry), &entry);
+
+    return L7_SUCCESS;
+}
+
+L7_RC_t ptin_check_counters_lm(L7_uint32* lmr_TxFCb, L7_uint32 port)
+{
+  ptin_check_counters_lm_t entry;
+
+  L7_int32 intIfNum; 
+  ptin_intf_port2intIfNum( port, &intIfNum);
+ 
+  dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_COUNTERS_LM, DAPI_CMD_GET, sizeof(entry), &entry);
+
+  *lmr_TxFCb = entry.lmr_TxFCb;
+
+  return L7_SUCCESS;
+}
 #endif //__Y1731_802_1ag_OAM_ETH__
 
 

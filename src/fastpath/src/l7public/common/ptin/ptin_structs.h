@@ -41,7 +41,10 @@ typedef enum
   PTIN_DTL_MSG_L2_MACLIMIT_STATUS,
   PTIN_DTL_MSG_L3_INTF,
   PTIN_DTL_MSG_L3_IPMC,
+  PTIN_DTL_MSG_LMM,
+  PTIN_DTL_MSG_COUNTERS_LM,
   PTIN_DTL_MSG_MAX
+  
 } ptin_dtl_msg_enum;
 
 /* Example structure for PTIN_DTL_MSG_EXAMPLE message */
@@ -1322,6 +1325,35 @@ typedef struct {
   L7_uint16 sequenceId;           /* sequence ID                    */
   L7_uint8 domainNumber;          /* Domain Number                  */
 } ptin_PptTsRecord_t;                                               
+
+/***************************************************************************** 
+ * OAM
+ *****************************************************************************/
+
+typedef struct
+{
+  L7_uint8 dMAC[6];
+  L7_uint8 sMAC[6];
+  L7_uint8 endpoint;
+
+} ptin_send_lmm_t;
+
+
+struct oam_hdr_s {
+    L7_uint8 mdl_ver;          /* Maintenance domain level + Version.  */
+    L7_uint8 opcode;           /* Identifies OAM packet type.          */
+    L7_uint8 flags;            /* Infomation depends on OAM PDU type.  */
+    L7_uint8 first_tlvoffset;  /* Offset to first TLV.                 */
+};
+typedef struct oam_hdr_s oam_hdr_t;
+
+typedef struct
+{
+
+ L7_uint32 lmr_TxFCb;
+
+} ptin_check_counters_lm_t;
+
 
 #endif /* _PTIN_STRUCTS_H */
 
