@@ -30,7 +30,7 @@ export COMPILER         = /opt/eldk/usr/bin/ppc_85xxDP-
 export KERNEL_PATH      = /home/olt/svnrepo/olt-switchsw/trunk/lib/kernel/linux-3.8.13
 
 
-CARD_FOLDER = FastPath-Ent-esw-dnx-e500-LR-CSxw-IQH_TA12XGE
+CARD_FOLDER = FastPath-Ent-esw-dnx-e500-LR-CSxw-IQH_TA12XG
 CARD		= $(word 2,$(subst _, ,$(CARD_FOLDER)))
 CPU		= $(word 5,$(subst -, ,$(CARD_FOLDER)))
 
@@ -52,7 +52,7 @@ export LVL7_MAKEFILE_DISPLAY_MODE := S
 
 .PHONY: welcome all install clean cleanall help h kernel cli cli_clean shell shell_clean
 
-all: welcome setsdk mgmdconfig
+all: welcome setsdk mgmdconfig cli_clean shell_clean cli shell
 	$(RM) -f $(BIN_PATH)/$(BIN_FILE)
 	@$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH)
 	@if [ -f $(BIN_PATH)/$(BIN_FILE) ]; then\
@@ -78,10 +78,10 @@ mgmdconfig:
 	@sh mgmd_config_$(CARD).sh
 
 kernel:
-	cd $(KERNEL_PATH) && ./build_ta48ge.sh
+	cd $(KERNEL_PATH) && ./build_ta12xg.sh
 
 install:
-	sh ta48ge.install
+	sh ta12xg.install
 
 help h:
 	@echo ""
@@ -115,16 +115,16 @@ welcome:
 	@echo ""
 
 cli:
-	@$(MAKE) -C $(FP_CLI_PATH) -f fp.cli-ta48ge.make
+	@$(MAKE) -C $(FP_CLI_PATH) -f fp.cli-ta12xg.make
 
 shell:
-	@$(MAKE) -C $(FP_SHELL_PATH) -f fp.shell-ta48ge.make
+	@$(MAKE) -C $(FP_SHELL_PATH) -f fp.shell-ta12xg.make
 
 cli_clean:
-	@$(MAKE) -C $(FP_CLI_PATH) -f fp.cli-ta48ge.make clean
+	@$(MAKE) -C $(FP_CLI_PATH) -f fp.cli-ta12xg.make clean
 
 shell_clean:
-	@$(MAKE) -C $(FP_SHELL_PATH) -f fp.shell-ta48ge.make clean
+	@$(MAKE) -C $(FP_SHELL_PATH) -f fp.shell-ta12xg.make clean
 
 clean cleanall: welcome setsdk cli_clean shell_clean
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
