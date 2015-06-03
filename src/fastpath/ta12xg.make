@@ -1,6 +1,6 @@
 #############################################
 #                                           #
-# FastPath Makefile for the TA12XGE card    #
+# FastPath Makefile for the TA12XG card     #
 #                                           #
 #  Daniel Figueira, 2013                    #
 #  daniel-f-figueira@ext.ptinovacao.pt      #
@@ -100,7 +100,7 @@ welcome:
 	@echo ""
 	@echo "###########################################"
 	@echo "#                                         #"
-	@echo "#  FastPath Makefile for the TA12XGE card #"
+	@echo "#  FastPath Makefile for the TA12XG card  #"
 	@echo "#                                         #"
 	@echo "###########################################"
 	@echo ""
