@@ -42,6 +42,16 @@ if [ $BOARD == "ta48ge" ]; then
  echo "OK!"
 fi
 
+if [ $BOARD == "ta12xg" ]; then
+ echo "Updating TA12XGE board...$1"
+ cd output/FastPath-Ent-esw-dnx-e500-LR-CSxw-IQH_TA12XG
+ cp -v ipl/switchdrvr ipl/devshell_symbols.gz target/*.ko ipl/fp.cli ipl/fp.shell ipl/mgmd.cli $MKBOARDS/TA12XG/rootfs/usr/local/ptin/sbin/
+ cp -v ipl/libmgmd.so $MKBOARDS/TA12XG/rootfs/usr/local/ptin/lib/
+ cd - > /dev/null 2>&1
+ cp -vr ../builds/tmp/TA12XG/rootfs/* $MKBOARDS/TA12XG/rootfs/
+ echo "OK!"
+fi
+
 if [ $# -ge 3 ]; then
 	IMAGE_VERSION=$3
 	EQUIP_IP=$4
@@ -70,6 +80,12 @@ if [ $# -ge 3 ]; then
 		sudo ./build_ramdisk_TA48GE.sh $IMAGE_VERSION > /dev/null 2>&1
 		echo "OK!"
 	fi
+
+        if [ $BOARD == "ta12xg" ]; then
+                cd $MKBOARDS/TA12XG/
+                sudo ./build_ramdisk_TA12XG.sh $IMAGE_VERSION > /dev/null 2>&1
+                echo "OK!"
+        fi
 
     if [ $# -ge 4 ]; then
 	echo -n "Uploading image to $4..."
