@@ -3,7 +3,7 @@
  */
 
 #define PLAT_BCM_CHIP   L7_BCM_ARAD
-#define PTIN_BOARD      PTIN_BOARD_TA12XGE
+#define PTIN_BOARD      PTIN_BOARD_TA12XG
 
 /* SDK version */
 #define SDK_MAJOR_VERSION   6

@@ -114,8 +114,8 @@
 #define SNOOP_PTIN_IGMPv3_PROXY 1//Change to 0 if you want to disable IGMPv3 Proxy SubModule
 
 /* FPGA AND CPLD BASE ADDRESS */
-# define MAP_FPGA
-# define MAP_CPLD
+//# define MAP_FPGA
+//# define MAP_CPLD
 # define FPGA_BASE_ADDR                0xF8000000
 # define CPLD_BASE_ADDR                0xFF500000
 

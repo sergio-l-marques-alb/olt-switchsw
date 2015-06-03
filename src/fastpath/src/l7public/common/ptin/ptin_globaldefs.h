@@ -118,8 +118,8 @@ extern int ptin_sys_number_of_ports;
 #include "ptin_globaldefs_cxo640g.h"
 
 /* OLT1T3 Matrix card */
-#elif (PTIN_BOARD == PTIN_BOARD_TA12XGE)
-#include "ptin_globaldefs_ta12xge.h"
+#elif (PTIN_BOARD == PTIN_BOARD_TA12XG)
+#include "ptin_globaldefs_ta12xg.h"
 
 #endif
 
