@@ -54,7 +54,7 @@ currentUser=$(whoami)
 
 if  [ "$builderUser"!="$currentUser" ]; then
 	echo "Current user: $currentUser is not the olt user"
-#	exit -1
+	exit -1
 fi
 ###############Validate Current User###################
 
@@ -76,12 +76,12 @@ fi
 
 if [ ! -d $buildPath ]; then
     echo "Path Not Found: $buildPath"
-#	exit $?
+	exit $?
 fi
 
 if [ ! -d $mkBoardsPath ]; then
     echo "Path Not Found: $mkBoardsPath"
-#	exit $?
+	exit $?
 fi
 
 if  [ $scriptDebugCommands -eq 1 ]; then
