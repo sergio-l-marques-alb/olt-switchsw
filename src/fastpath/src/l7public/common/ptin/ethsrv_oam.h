@@ -1,6 +1,8 @@
 #ifndef _ETHSRV_OAM_H_
 #define _ETHSRV_OAM_H_
 
+
+
 typedef unsigned char   u8;
 typedef unsigned short  u16;
 typedef unsigned long   u32;
@@ -860,11 +862,12 @@ extern u16 MAC_in_prt(u8 *MAC);
 extern u8 *this_prts_MAC(u16 oam_prt);
 
 
+#ifdef __Y1731_802_1ag_OAM_ETH__
+
 extern L7_RC_t ptin_send_lmm(u8* sMAC , u8* dMAC, L7_uint32 intIfNum, u8 endpoint);
 extern L7_RC_t ptin_check_counters_lm(L7_uint32* lmr_TxFCb, L7_uint32 port);
 
-
-
+#endif
 
 
 

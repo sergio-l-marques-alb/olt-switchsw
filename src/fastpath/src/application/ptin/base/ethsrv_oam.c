@@ -750,7 +750,15 @@ _proc_ethsrv_oam_CSF_function_end:
             ETHSRV_OAM_LOG ("MAC %02x:%02x:%02x:%02x:%02x:%02x ", 
            _p_mep_lm->SMAC.byte[0],  _p_mep_lm->SMAC.byte[1],  _p_mep_lm->SMAC.byte[2],  _p_mep_lm->SMAC.byte[3],  _p_mep_lm->SMAC.byte[4],  _p_mep_lm->SMAC.byte[5]);
 
+            #ifdef __Y1731_802_1ag_OAM_ETH__
+
+            #if(PTIN_BOARD == PTIN_BOARD_TA48GE)
+
             ptin_send_lmm(_p_mep_lm->SMAC.byte, _p_mep_lm->DMAC.byte, intIfNum, (_p_mep->ME->rmep_id));
+
+            #endif // (PTIN_BOARD == PTIN_BOARD_TA48GE)
+
+            #endif
 
             //send_lmm(*proc_i_mep, (T_MEP_HDR *)_p_mep, _p_mep_lm, _p_mep_lm->SMAC.byte);
 
@@ -1006,7 +1014,7 @@ ETH_LMM_OAM_DATAGRM lmm, *p_lmm;
 
  ETH_LMR_OAM_DATAGRM lmr, *p_lmr;
 
- L7_uint32 entry,intIfNum;
+ L7_uint32 intIfNum;
 
  p_lmr=                         &lmr;
  p_lmr->MAlevel_and_version=    ASSEMBLE_OAM_MALEVEL_AND_VERSION(p_mep->level, OAM_PROTO_VERSION);
@@ -1021,9 +1029,20 @@ ETH_LMM_OAM_DATAGRM lmm, *p_lmm;
 
  /* Get TxFCb */
  ptin_intf_port2intIfNum( p_mep->prt, &intIfNum); 
- ptin_check_counters_lm(&entry, p_mep->prt);
+ 
+ #ifdef __Y1731_802_1ag_OAM_ETH__
 
+ #if(PTIN_BOARD == PTIN_BOARD_TA48GE)
+
+ L7_uint32 entry;
+ ptin_check_counters_lm(&entry, p_mep->prt);
  p_lmr->TxFCb = entry;
+
+ #endif // (PTIN_BOARD == PTIN_BOARD_TA48GE)
+
+ #endif
+
+ 
 
  return send_eth_pckt(p_mep->prt, p_mep->up1_down0, (u8*)p_lmr, sizeof(ETH_LMM_OAM_DATAGRM) + 4, p_mep->vid, p_mep->prior, p_mep->CoS, 0, OAM_ETH_TYPE, pDMAC);
 }//send_lmr

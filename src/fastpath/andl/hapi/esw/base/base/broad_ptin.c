@@ -2624,6 +2624,10 @@ T_MEP_LM  lm;
  */
 L7_RC_t broad_ptin_oam_sendlmm(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g)
 {
+  #ifdef __Y1731_802_1ag_OAM_ETH__
+
+  #if(PTIN_BOARD == PTIN_BOARD_TA48GE)
+
   bcm_mac_t mac_src;
   bcm_mac_t mac_dst;
   ptin_send_lmm_t entry;
@@ -2644,10 +2648,18 @@ L7_RC_t broad_ptin_oam_sendlmm(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7
                         
   broadPtin_oam_tx(unit, endpoint.flags, endpoint.gport, &mac_dst, &mac_src, &endpoint);
 
+  #endif // (PTIN_BOARD == PTIN_BOARD_TA48GE)
+
+  #endif
+
   return L7_SUCCESS;
 }
 L7_RC_t broad_ptin_oam_check_lm_counters(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g)
 {
+
+  #ifdef __Y1731_802_1ag_OAM_ETH__
+
+  #if(PTIN_BOARD == PTIN_BOARD_TA48GE)
     uint32 *ptr;
     ptr = (uint32*) data;
 
@@ -2673,12 +2685,21 @@ L7_RC_t broad_ptin_oam_check_lm_counters(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t ope
 
     *ptr = entry[0];  // Counter Value
 
+    #endif // PTIN_BOARD == PTIN_BOARD_TA48GE
+
+    #endif
+
     return L7_SUCCESS;
 }
 
 
 L7_RC_t broadPtin_oam_tx(L7_int unit, L7_int flags, bcm_gport_t gport_dst, bcm_mac_t *mac_dst, bcm_mac_t *mac_src, bcm_oam_endpoint_info_t *endpoint_info)
 {
+
+  #ifdef __Y1731_802_1ag_OAM_ETH__ 
+
+  #if(PTIN_BOARD == PTIN_BOARD_TA48GE)
+
     bcm_pkt_t pkt;
     enet_hdr_t *ep = NULL;
     oam_hdr_t *op = NULL;
@@ -2754,8 +2775,7 @@ L7_RC_t broadPtin_oam_tx(L7_int unit, L7_int flags, bcm_gport_t gport_dst, bcm_m
     }
 
     pkt.alloc_ptr = (uint8 *)soc_cm_salloc(unit, 128, "TX");        
-    if (pkt.alloc_ptr == NULL) {        
-        cli_out("WARNING: Could not alloc tx buffer. Memory error.\n");    
+    if (pkt.alloc_ptr == NULL) {           
         return (BCM_E_MEMORY);
     } else {        
         pkt._pkt_data.data = pkt.alloc_ptr;        
@@ -2791,12 +2811,13 @@ L7_RC_t broadPtin_oam_tx(L7_int unit, L7_int flags, bcm_gport_t gport_dst, bcm_m
     }
 
     if ((rv = bcm_tx(unit, &pkt, NULL)) != BCM_E_NONE) {        
-        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
-                  (BSL_META_U(unit,
-                              "bcm_tx failed: Unit %d: %s\n"),                   
-                   unit, bcm_errmsg(rv)));
     }
 
     soc_cm_sfree(unit, pkt.alloc_ptr);
+
+    #endif   //PTIN_BOARD == PTIN_BOARD_TA48GE)
+
+    #endif
+
     return L7_SUCCESS;
 } 
