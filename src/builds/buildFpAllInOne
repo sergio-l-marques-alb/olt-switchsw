@@ -118,10 +118,10 @@ if  [ $scriptDebugCommands -eq 1 ]; then
 	echo svnRelease=$svnRelease
 fi
 
-if  [ "$svnRelease"=="*M" ]; then
-	echo "Local Changes Detected:$svnRelease Aborting process!"
-	exit -1
-fi
+#if  [ "$svnRelease"=="*M" ]; then
+#	echo "Local Changes Detected:$svnRelease Aborting process!"
+#	exit -1
+#fi
 ############End SVN Update & Validation#####################
 
 ############Fastpath Build Script####################
