@@ -146,11 +146,11 @@ fi
 ############End Fastpath Build Script####################
 
 ############Fastpath MKBoards Update####################
-cd $buildPath
 if  [ $scriptVerbose -eq 1 ]; then
-	echo "Going to extract fastpath-olt.image-v$oltVersion.$patchVersion-r$svnRelease.tgz to mkboards_$oltVersion...press Ctrl+C to abort"
+	echo "Going to extract fastpath-olt.image-v$oltVersion.$patchVersion-r$svnRelease.tgz to $mkBoardsPath...press Ctrl+C to abort"
 	sleep 1
 fi
+cd $buildPath
 if [ ! -f ./fastpath/fastpath-olt.image-v$oltVersion.$patchVersion-r$svnRelease.tgz ]; then
     echo "File not found: ./fastpath/fastpath-olt.image-v$oltVersion.$patchVersion-r$svnRelease.tgz"
 	exit $?
