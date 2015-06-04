@@ -239,7 +239,7 @@ void ptin_msg_defaults_reset(L7_char8 mode)
 #endif
 
   /* Reset Routing Module*/
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on OAM...");
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on Routing...");
   ptin_routing_intf_remove_all();
   LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
 
