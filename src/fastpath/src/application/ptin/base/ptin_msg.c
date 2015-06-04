@@ -8851,9 +8851,9 @@ L7_RC_t ptin_msg_group_list_remove(msg_MCAssocChannel_t *channel_list, L7_uint16
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_msg_IGMP_ChannelAssoc_remove_all(msg_MCAssocChannel_t *channel_list, L7_uint16 n_channels)
+L7_RC_t ptin_msg_IGMP_ChannelAssoc_remove_all(msg_MCAssocChannel_t *channel_list, L7_uint16 noOfMessages)
 {
-  L7_uint16 i;
+  L7_uint16 messageIterator;
   L7_RC_t rc = L7_SUCCESS;
   L7_RC_t rc_global = L7_SUCCESS;
 
@@ -8863,17 +8863,17 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_remove_all(msg_MCAssocChannel_t *channel_list
     return L7_FAILURE;
   }
 
-  for (i=0; i<n_channels; i++)
+  for (messageIterator=0; messageIterator<noOfMessages; messageIterator++)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Removing channel index %u:",i);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Slot   = %d",channel_list[i].SlotId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," EVC_MC = %d",channel_list[i].evcid_mc);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Removing channel index %u:",messageIterator);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Slot   = %d",channel_list[messageIterator].SlotId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," EVC_MC = %d",channel_list[messageIterator].evcid_mc);
 
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
 
-    if ((rc = igmp_assoc_channel_clear(-1, channel_list[i].evcid_mc)) != L7_SUCCESS)
+    if ((rc = igmp_assoc_channel_clear(-1, channel_list[messageIterator].evcid_mc)) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error (%d) removing groups to MC EVC %u", rc, channel_list[i].evcid_mc);
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error (%d) removing groups to MC EVC %u", rc, channel_list[messageIterator].evcid_mc);
       rc_global = rc;
       continue;
     }
@@ -9482,10 +9482,10 @@ L7_RC_t ptin_msg_IGMP_clientList_get(msg_MCActiveChannelClientsResponse_t *clien
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_msg_IGMP_channel_remove_all(msg_MCStaticChannel_t *channel, L7_uint16 n_channels)
+L7_RC_t ptin_msg_igmp_static_channel_remove_all(msg_MCStaticChannel_t *channel, L7_uint16 noOfMessages)
 {
   PTIN_MGMD_CTRL_STATICGROUP_t staticGroup;
-  L7_uint16 i;
+  L7_uint16 messageIterator;
   L7_RC_t rc = L7_SUCCESS;
   L7_RC_t rc_global = L7_SUCCESS;
 
@@ -9494,15 +9494,15 @@ L7_RC_t ptin_msg_IGMP_channel_remove_all(msg_MCStaticChannel_t *channel, L7_uint
     LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid arguments");
     return L7_FAILURE;
   }
-  for (i=0; i<n_channels; i++)
+  for (messageIterator=0; messageIterator<noOfMessages; messageIterator++)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Channel remotion index %u:",i);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," SlotId =%u",channel[i].SlotId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," EvcId  =%u",channel[i].evc_id);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Channel remotion index %u:",messageIterator);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," SlotId =%u",channel[messageIterator].SlotId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," EvcId  =%u",channel[messageIterator].evc_id);
 
-    staticGroup.serviceId = channel[i].evc_id;
+    staticGroup.serviceId = channel[messageIterator].evc_id;
     
-    if ((ptin_igmp_mgmd_service_remove(channel[i].evc_id)) != L7_SUCCESS)
+    if ((ptin_igmp_mgmd_service_remove(channel[messageIterator].evc_id)) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error (%d) removing channel", rc);
       rc_global = rc;

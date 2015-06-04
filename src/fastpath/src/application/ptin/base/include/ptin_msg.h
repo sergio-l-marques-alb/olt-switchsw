@@ -1109,7 +1109,7 @@ extern L7_RC_t ptin_msg_IGMP_clientList_get(msg_MCActiveChannelClientsResponse_t
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_msg_IGMP_channel_remove_all(msg_MCStaticChannel_t *channel, L7_uint16 n_channels);
+extern L7_RC_t ptin_msg_igmp_static_channel_remove_all(msg_MCStaticChannel_t *channel, L7_uint16 n_channels);
 
 /**
  * Uplink protection command

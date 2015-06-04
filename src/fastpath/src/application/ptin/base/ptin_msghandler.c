@@ -3532,7 +3532,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       n = inbuffer->infoDim/sizeof(msg_MCStaticChannel_t);
 
       /* Execute command */
-      rc = ptin_msg_IGMP_channel_remove_all(ptr, n);
+      rc = ptin_msg_igmp_static_channel_remove_all(ptr, n);
 
       if (L7_SUCCESS != rc)
       {

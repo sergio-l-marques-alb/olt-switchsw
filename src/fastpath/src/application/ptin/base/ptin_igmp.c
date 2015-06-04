@@ -733,7 +733,7 @@ static L7_RC_t ptin_igmp_querier_configure(L7_uint igmp_idx, L7_BOOL enable);
 static L7_RC_t ptin_igmp_evc_querier_configure(L7_uint32 evc_idx, L7_BOOL enable);
 L7_RC_t ptin_igmp_mgmd_whitelist_add(L7_uint16 serviceId, L7_uint32 groupAddr, L7_uint8 groupMaskLen, L7_uint32 sourceAddr, L7_uint8 sourceMaskLen, L7_uint64 bw);
 L7_RC_t ptin_igmp_mgmd_whitelist_remove(L7_uint16 serviceId, L7_uint32 groupAddr, L7_uint8 groupMaskLen, L7_uint32 sourceAddr, L7_uint8 sourceMaskLen, L7_uint64 bw);
-void    ptin_igmp_mgmd_whitelist_clean(void);
+L7_RC_t ptin_igmp_mgmd_whitelist_clean(void);
 /* Not used */
 #if 0
 static L7_RC_t ptin_igmp_instance_deleteAll_clients(L7_uint igmp_idx);
@@ -7874,6 +7874,8 @@ L7_RC_t igmp_assoc_channel_remove( L7_uint32 evc_mc, L7_uint32 evc_uc,
  */
 L7_RC_t igmp_assoc_channel_clear( L7_uint32 evc_uc, L7_uint32 evc_mc )
 {
+  L7_RC_t rc;
+
   /* Validate multicast service */
   if ( evc_mc >= PTIN_SYSTEM_N_EXTENDED_EVCS )
   {
@@ -7882,13 +7884,13 @@ L7_RC_t igmp_assoc_channel_clear( L7_uint32 evc_uc, L7_uint32 evc_mc )
   }
 
   /* Clear entries */
-  if (ptin_igmp_channel_remove_multicast_service(evc_uc, evc_mc)!=L7_SUCCESS)
+  if ( (rc = ptin_igmp_channel_remove_multicast_service(evc_uc, evc_mc)) !=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing all channels to MC evc %u, UC evc %u !", evc_mc, evc_uc);
-    return L7_FAILURE;
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error (rc:%u) removing all channels to MC evc %u!", rc, evc_mc);
+    return rc;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Removed all channels to MC evc %u, UC evc %u !", evc_mc, evc_uc);
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Removed all channels to MC evc %u!", evc_mc);
 
   return L7_SUCCESS;
 }
@@ -7900,10 +7902,24 @@ L7_RC_t igmp_assoc_channel_clear( L7_uint32 evc_uc, L7_uint32 evc_mc )
  */
 L7_RC_t ptin_igmp_assoc_clean_all(void)
 {
-  /*Trigger the Removal on MGMD Lib*/
-  ptin_igmp_mgmd_whitelist_clean();
+  L7_RC_t rc = L7_SUCCESS;
 
-  return igmp_igmp_channel_remove_all();
+  rc = igmp_igmp_channel_remove_all();
+  if ( rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error (rc:%u): failed to remove all channels!", rc);
+    return rc;
+  }
+
+  /*Trigger the Removal on MGMD Lib*/
+  rc = ptin_igmp_mgmd_whitelist_clean();
+  if ( rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error (rc:%u): failed to remove all channels from MGMD Lib!", rc);
+    return rc;
+  }
+
+  return rc;
 }
 
 
@@ -8123,6 +8139,36 @@ static L7_RC_t ptin_igmp_channel_remove_multicast_service( L7_uint32 evc_uc, L7_
   ptinIgmpChannelInfoData_t *avl_info;
   L7_RC_t rc = L7_SUCCESS;
 
+  /*Before removing any channel entry we need to validate if we have any package or ports attached to it*/
+  {
+
+    /* Run all cells in AVL tree */
+    memset(&avl_key,0x00,sizeof(ptinIgmpChannelDataKey_t));
+
+    while ( ( avl_info = (ptinIgmpChannelInfoData_t *)
+              avlSearchLVL7(&channelDB.channelAvlTree, (void *)&avl_key, AVL_NEXT)
+            ) != L7_NULLPTR )
+    {
+      /* Prepare next key */
+      memcpy(&avl_key, &avl_info->channelDataKey, sizeof(ptinIgmpChannelDataKey_t));
+
+      /* Check if this node will be removed */
+      if (avl_info->channelDataKey.evc_mc == evc_mc
+  #if IGMPASSOC_CHANNEL_UC_EVC_ISOLATION
+          && avl_info->channelDataKey.evc_uc == evc_uc
+  #endif
+         )
+      {
+        if (avl_info->queuePackage.n_elems != 0 || avl_info->noOfPorts != 0)
+        {
+          LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot remove this channel (EVC_MC=%u groupAddr:0x%08x sourceAddr:0x%08x): noOfPackages:%u noPorts:%u",
+                avl_key.evc_mc, avl_key.channel_group.addr.ipv4.s_addr, avl_key.channel_source.addr.ipv4.s_addr, avl_info->queuePackage.n_elems, avl_info->noOfPorts);
+          return L7_DEPENDENCY_NOT_MET;        
+        }
+      }
+    }
+  }
+
   /* Run all cells in AVL tree */
   memset(&avl_key,0x00,sizeof(ptinIgmpChannelDataKey_t));
 
@@ -8143,8 +8189,8 @@ static L7_RC_t ptin_igmp_channel_remove_multicast_service( L7_uint32 evc_uc, L7_
       /* Remove key */
       if ( avlDeleteEntry(&(channelDB.channelAvlTree), (void *)&avl_key) == L7_NULLPTR )
       {
-        LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing group channel 0x%08x to EVC_MC=%u, EVC=UC=%u",
-                avl_key.channel_group.addr.ipv4.s_addr, evc_mc, evc_uc);
+        LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing channel (groupAddr:0x%08x sourceAddr:0x%08x EVC_MC=%u)",
+                avl_key.channel_group.addr.ipv4.s_addr, avl_key.channel_source.addr.ipv4.s_addr, avl_key.evc_mc);
         rc = L7_FAILURE;
       }
       else
@@ -8152,8 +8198,8 @@ static L7_RC_t ptin_igmp_channel_remove_multicast_service( L7_uint32 evc_uc, L7_
         if (channelDB.number_of_entries>0)
           channelDB.number_of_entries--;
 
-        LOG_TRACE(LOG_CTX_PTIN_IGMP,"Removed group channel 0x%08x to EVC_MC=%u, EVC=UC=%u",
-                  avl_key.channel_group.addr.ipv4.s_addr, evc_mc, evc_uc);
+        LOG_TRACE(LOG_CTX_PTIN_IGMP,"Removed channel (groupAddr:0x%08x sourceAddr:0x%08x EVC_MC=%u)",
+                  avl_key.channel_group.addr.ipv4.s_addr, avl_key.channel_source.addr.ipv4.s_addr, avl_key.evc_mc);
       }
     }
   }
@@ -8168,6 +8214,27 @@ static L7_RC_t ptin_igmp_channel_remove_multicast_service( L7_uint32 evc_uc, L7_
  */
 static L7_RC_t igmp_igmp_channel_remove_all( void )
 {
+  /*Before removing any channel entry we need to validate if we have any package or ports attached to it*/
+  {
+    ptinIgmpChannelDataKey_t avl_key;
+    ptinIgmpChannelInfoData_t *avl_info;
+   
+    /* Run all cells in AVL tree */
+    memset(&avl_key,0x00,sizeof(ptinIgmpChannelDataKey_t));
+
+    while ( ( avl_info = (ptinIgmpChannelInfoData_t *)
+              avlSearchLVL7(&channelDB.channelAvlTree, (void *)&avl_key, AVL_NEXT)
+            ) != L7_NULLPTR )
+    {
+      if (avl_info->queuePackage.n_elems != 0 || avl_info->noOfPorts != 0)
+      {    
+        LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot remove this channel (EVC_MC=%u groupAddr:0x%08x sourceAddr:0x%08x): noOfPackages:%u noPorts:%u",
+              avl_key.evc_mc, avl_key.channel_group.addr.ipv4.s_addr, avl_key.channel_source.addr.ipv4.s_addr, avl_info->queuePackage.n_elems, avl_info->noOfPorts);
+        return L7_DEPENDENCY_NOT_MET;        
+      }
+    }
+  }
+
   /* Purge all AVL tree, but the root node */
   avlPurgeAvlTree( &channelDB.channelAvlTree, PTIN_IGMP_CHANNELS_MAX );
 
@@ -9995,7 +10062,7 @@ L7_RC_t ptin_igmp_mgmd_whitelist_remove(L7_uint16 serviceId, L7_uint32 groupAddr
   return ctrlResMsg.res;
 }
 
-void ptin_igmp_mgmd_whitelist_clean(void)
+L7_RC_t ptin_igmp_mgmd_whitelist_clean(void)
 {
   PTIN_MGMD_EVENT_t txMsg   = {0};
   uint32            params[PTIN_MGMD_EVENT_DEBUG_PARAM_MAX]  = {0}; 
@@ -10004,8 +10071,9 @@ void ptin_igmp_mgmd_whitelist_clean(void)
   if (SUCCESS != ptin_mgmd_eventQueue_tx(&txMsg))
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to sent event");
-    return;
+    return L7_FAILURE;
   }
+  return L7_SUCCESS;
 }
 
 /**
