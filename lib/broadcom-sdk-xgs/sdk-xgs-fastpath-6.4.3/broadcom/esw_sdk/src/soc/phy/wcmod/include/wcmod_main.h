@@ -157,7 +157,11 @@ typedef int     soc_port_t;
 
 #define CHK_RET_VAL_FUNC(op) \
     { int rv; if ((rv=(op)) != 0) \
-         printf("ERROR %s:%d. #op# returned %d\n", __FILE__,__LINE__,rv);}
+         LOG_ERR(LOG_CTX_SDK, "ERROR %s:%d. #op# returned %d", __FILE__,__LINE__,rv);}
+
+#define CHK_RET_VAL_FUNC_RET(op, rv) \
+    { if ((rv=(op)) != 0) \
+         LOG_ERR(LOG_CTX_SDK, "ERROR %s:%d. #op# returned %d", __FILE__,__LINE__,rv);}
 
 #define WC_AER_BCST_OFS_STRAP   0x1ff
 #define PHYCTRL_MDIO_ADDR_SHARE (1 << 0) /*use phy base addr. to access lanes */
