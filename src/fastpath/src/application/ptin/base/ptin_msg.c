@@ -2751,7 +2751,7 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
   {
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_classif does not have usable information.");
   }
-  for (i = 0; i < 64; i+=8)
+  for (i = 0; i < 8; i++)
   {
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Policer[%u]: mask=0x%02x - cir=%u eir=%u cbs=%u ebs=%u",
               i, qos_msg->ingress.cos_policer[i].local_mask,
@@ -2908,6 +2908,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
   ptin_QoS_drop_t         qos_drop[8];
   L7_RC_t                 rc, rc_global = L7_SUCCESS;
   L7_BOOL                 apply_conf;
+  ptin_bw_meter_t         meter;
 
   if (qos_msg == L7_NULLPTR)
   {
@@ -2969,7 +2970,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
   {
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_classif does not have usable information.");
   }
-  for (i = 0; i < 64; i+=8)
+  for (i = 0; i < 8; i++)
   {
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Policer[%u]: mask=0x%02x - cir=%u eir=%u cbs=%u ebs=%u",
               i, qos_msg->ingress.cos_policer[i].local_mask,
@@ -3192,10 +3193,25 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
       /* Run all CoS */
       for (i=0; i<8; i++)
       {
-        if (qos_msg->ingress.cos_policer[i].local_mask != 0)
+        if (qos_msg->ingress.cos_policer[i].local_mask == 0)  continue;
+
+        memset(&meter, 0x00, sizeof(meter));
+        meter.cir = qos_msg->ingress.cos_policer[i].cir; 
+        meter.eir = qos_msg->ingress.cos_policer[i].eir;
+        meter.cbs = qos_msg->ingress.cos_policer[i].cbs;
+        meter.ebs = qos_msg->ingress.cos_policer[i].ebs;
+
+        rc = ptin_QoS_intf_cos_policer_set(&ptin_intf, i, &meter);
+        if (rc != L7_SUCCESS)
         {
-          /* Missing Policer configuration */
-          LOG_WARNING(LOG_CTX_PTIN_MSG,"Missing policer implementation for CoS %u", i);
+          LOG_ERR(LOG_CTX_PTIN_MSG,"Error applying interface configuration to ptin_intf %u/%u, cos=%u: cir=%u eir=%u cbs=%u ebs=%u (rc=%d)",
+                  ptin_intf.intf_type,ptin_intf.intf_id, i, meter.cir, meter.eir, meter.cbs, meter.ebs, rc);
+          rc_global = rc;
+        }
+        else
+        {
+          LOG_TRACE(LOG_CTX_PTIN_MSG,"Interface successfully configured to ptin_intf %u/%u, cos=%u: cir=%u eir=%u cbs=%u ebs=%u",
+                    ptin_intf.intf_type,ptin_intf.intf_id, i, meter.cir, meter.eir, meter.cbs, meter.ebs);
         }
       }
     }
