@@ -55,6 +55,7 @@
 #include <soc/drv.h>
 #endif
 
+#include "logger.h"
 
 /*!
 \brief WCMod clause 45 read driver.
@@ -311,12 +312,12 @@ int wcmod_reg_aer_read(uint32 unit, wcmod_st *pc, uint32 a, uint16 *phy_data)
     cl45_addr    = SOC_PHY_CLAUSE45_ADDR(cl45Devid,0xffde);
 
     if (cl45_ln_no) /* write the lane number to the AER only if nonzero */
-      wcmod_cl45_write(pc,cl45_addr,cl45_ln_no);
+      CHK_RET_VAL_FUNC(wcmod_cl45_write(pc,cl45_addr,cl45_ln_no));
 
-    wcmod_cl45_read(pc,cl45_addr,&data16);
+    CHK_RET_VAL_FUNC(wcmod_cl45_read(pc,cl45_addr,&data16));
 
     if (cl45_ln_no) /* restore back the lane number to 0 */
-      wcmod_cl45_write(pc,cl45_addr,0);
+      CHK_RET_VAL_FUNC(wcmod_cl45_write(pc,cl45_addr,0));
 
   } else if (pc->mdio_type == WCMOD_MDIO_CL22) {
     phy_reg_aer  = PHY_AER_REG_ADDR_AER(addr);    /* upper 16 bits */
@@ -388,12 +389,12 @@ int wcmod_reg_aer_write(uint32 unit, wcmod_st *pc, uint32 a, uint16 d)
     cl45_addr    = SOC_PHY_CLAUSE45_ADDR(cl45_devid,0xffde);
 
     if (cl45_ln_no) /* write the lane number to the AER only if nonzero */
-      wcmod_cl45_write(pc,cl45_addr,cl45_ln_no);
+      CHK_RET_VAL_FUNC(wcmod_cl45_write(pc,cl45_addr,cl45_ln_no));
 
-    wcmod_cl45_write(pc, cl45_addr,data);
+    CHK_RET_VAL_FUNC(wcmod_cl45_write(pc, cl45_addr,data));
 
     if (cl45_ln_no) /* restore back the lane number to 0 */
-      wcmod_cl45_write(pc,cl45_addr,0);
+      CHK_RET_VAL_FUNC(wcmod_cl45_write(pc,cl45_addr,0));
   } else if (pc->mdio_type == WCMOD_MDIO_CL22) {
     phy_reg_aer  = PHY_AER_REG_ADDR_AER(addr);
     phy_reg_blk  = PHY_AER_REG_ADDR_BLK(addr);
@@ -402,10 +403,10 @@ int wcmod_reg_aer_write(uint32 unit, wcmod_st *pc, uint32 a, uint16 d)
   if (pc->verbosity > 1)
     printf("%-22s: unit:%d port:%d phy_ad:%d addr:0x%08x data:0x%04x\n",
                                FUNCTION_NAME(),pc->unit,pc->port,pc->phy_ad,addr,data);
-    rv = wcmod_cl22_write(pc, 0x1f, 0xffd0);
-    rv = wcmod_cl22_write(pc, 0x1e, phy_reg_aer);
-    rv = wcmod_cl22_write(pc, 0x1f, phy_reg_blk); /* map block */
-    rv = wcmod_cl22_write(pc, phy_reg_addr, data); /* write reg */
+    CHK_RET_VAL_FUNC_RET(wcmod_cl22_write(pc, 0x1f, 0xffd0), rv);
+    CHK_RET_VAL_FUNC_RET(wcmod_cl22_write(pc, 0x1e, phy_reg_aer), rv);
+    CHK_RET_VAL_FUNC_RET(wcmod_cl22_write(pc, 0x1f, phy_reg_blk), rv); /* map block */
+    CHK_RET_VAL_FUNC_RET(wcmod_cl22_write(pc, phy_reg_addr, data), rv); /* write reg */
   }
   else {
     printf ("%-22s ERROR: Bad mdio_type:%d\n",FUNCTION_NAME(), pc->mdio_type);
@@ -480,10 +481,10 @@ int wcmod_reg_aer_modify(uint32 unit, wcmod_st *pc,uint32 a,uint16 d,uint16 m)
     cl45_addr    = SOC_PHY_CLAUSE45_ADDR(cl45_devid,0xffde);
 
     if (cl45_ln_no) /* write the lane number to the AER only if nonzero */
-      wcmod_cl45_write(pc,cl45_addr,cl45_ln_no);
+      CHK_RET_VAL_FUNC(wcmod_cl45_write(pc,cl45_addr,cl45_ln_no));
 
     /* read */
-    wcmod_cl45_read(pc,cl45_addr,&tmp_data);
+    CHK_RET_VAL_FUNC(wcmod_cl45_read(pc,cl45_addr,&tmp_data));
 
     /* modify */
     otmp     = tmp_data;
@@ -492,12 +493,16 @@ int wcmod_reg_aer_modify(uint32 unit, wcmod_st *pc,uint32 a,uint16 d,uint16 m)
 
     /* modify */
     if (otmp != tmp_data)
-      wcmod_cl45_write(pc, cl45_addr,tmp_data);
+    {
+      CHK_RET_VAL_FUNC(wcmod_cl45_write(pc, cl45_addr,tmp_data));
+    }
     else
+    {
       printf ("%-22s Write skipped. No need to write\n", FUNCTION_NAME());
+    }
 
     if (cl45_ln_no) /* restore back the lane number to 0 */
-      wcmod_cl45_write(pc,cl45_addr,0);
+      CHK_RET_VAL_FUNC(wcmod_cl45_write(pc,cl45_addr,0));
 
   } else if (pc->mdio_type == WCMOD_MDIO_CL22) {
     phy_reg_aer  = PHY_AER_REG_ADDR_AER(raddr);    /* upper 16 bits */
@@ -505,10 +510,10 @@ int wcmod_reg_aer_modify(uint32 unit, wcmod_st *pc,uint32 a,uint16 d,uint16 m)
     phy_reg_addr = PHY_AER_REG_ADDR_REGAD(raddr);  /* 5 bits {15,3,2,1,0} */
 
     /*  read out value. */
-    rv = wcmod_cl22_write(pc, 0x1f, 0xffd0);
-    rv = wcmod_cl22_write(pc, 0x1e, phy_reg_aer);
-    rv = wcmod_cl22_write(pc, 0x1f, phy_reg_blk); /* map block */
-    rv = wcmod_cl22_read(pc, phy_reg_addr, &tmp_data); /* read reg */
+    CHK_RET_VAL_FUNC_RET(wcmod_cl22_write(pc, 0x1f, 0xffd0), rv);
+    CHK_RET_VAL_FUNC_RET(wcmod_cl22_write(pc, 0x1e, phy_reg_aer), rv);
+    CHK_RET_VAL_FUNC_RET(wcmod_cl22_write(pc, 0x1f, phy_reg_blk), rv); /* map block */
+    CHK_RET_VAL_FUNC_RET(wcmod_cl22_read(pc, phy_reg_addr, &tmp_data), rv); /* read reg */
 
     /* modify */
     data &= mask;
@@ -519,10 +524,10 @@ int wcmod_reg_aer_modify(uint32 unit, wcmod_st *pc,uint32 a,uint16 d,uint16 m)
     phy_reg_aer  = PHY_AER_REG_ADDR_AER(waddr);    /* upper 16 bits */
     phy_reg_blk  = PHY_AER_REG_ADDR_BLK(waddr);    /* 12 bits mask=0xfff0 */
     phy_reg_addr = PHY_AER_REG_ADDR_REGAD(waddr);  /* 5 bits {15,3,2,1,0} */
-    rv = wcmod_cl22_write(pc, 0x1f, 0xffd0);
-    rv = wcmod_cl22_write(pc, 0x1e, phy_reg_aer);
-    rv = wcmod_cl22_write(pc, 0x1f, phy_reg_blk);
-    rv = wcmod_cl22_write(pc, phy_reg_addr, tmp_data);
+    CHK_RET_VAL_FUNC_RET(wcmod_cl22_write(pc, 0x1f, 0xffd0), rv);
+    CHK_RET_VAL_FUNC_RET(wcmod_cl22_write(pc, 0x1e, phy_reg_aer), rv);
+    CHK_RET_VAL_FUNC_RET(wcmod_cl22_write(pc, 0x1f, phy_reg_blk), rv);
+    CHK_RET_VAL_FUNC_RET(wcmod_cl22_write(pc, phy_reg_addr, tmp_data), rv);
   }
   else {
     printf ("%-22s FATAL: Bad mdio_type:%d\n",FUNCTION_NAME(), pc->mdio_type);
