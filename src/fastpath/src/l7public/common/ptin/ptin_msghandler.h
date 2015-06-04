@@ -2802,7 +2802,7 @@ typedef struct {
 typedef struct {
   L7_uint8     slotId;
   L7_uint32    packageBmpList[PTIN_IGMP_PACKAGE_BITMAP_SIZE];  /*Package Bitmap List */
-  L7_uint8     noOfPackages;                                                          /*Number of Active Bits*/  
+  L7_uint16    noOfPackages;                                                          /*Number of Active Bits*/  
 } __attribute__ ((packed)) msg_igmp_package_t;
 
 /* Igmp Package Channels Add/Remove*/
@@ -2827,7 +2827,7 @@ typedef struct {
   msg_client_info_t   client;       //Client identification 
   L7_uint8            onuId;        //ONU Identifier
   L7_uint32           packageBmpList[PTIN_IGMP_PACKAGE_BITMAP_SIZE];  /*Package Bitmap List */
-  L7_uint8            noOfPackages;                                  /*Number of Active Bits*/  //This field needs to be increased to  L7_uint16
+  L7_uint16           noOfPackages;                                  /*Number of Active Bits*/  //This field needs to be increased to  L7_uint16
 } __attribute__ ((packed)) msg_igmp_unicast_client_packages_t;
 
 /* Igmp Macbridge Client Packages Add/Remove*/
@@ -2840,7 +2840,7 @@ typedef struct {
   msg_HwEthIntf_t     intf;         // Outer vlan is the GEM id  
   L7_uint8            onuId;        //ONU Identifier
   L7_uint32           packageBmpList[PTIN_IGMP_PACKAGE_BITMAP_SIZE];  /*Package Bitmap List */
-  L7_uint8            noOfPackages;                                  /*Number of Active Bits*/  //This field needs to be increased to  L7_uint16  
+  L7_uint16           noOfPackages;                                  /*Number of Active Bits*/  //This field needs to be increased to  L7_uint16  
 } __attribute__ ((packed)) msg_igmp_macbridge_client_packages_t;
 
 
