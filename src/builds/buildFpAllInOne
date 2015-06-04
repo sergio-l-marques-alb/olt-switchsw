@@ -52,10 +52,10 @@ fi
 builderUser=olt
 currentUser=$(whoami)
 
-if  [ "$builderUser"!="$currentUser" ]; then
-	echo "Current user: $currentUser is not the olt user"
-	exit -1
-fi
+#if  [ "$builderUser"!="$currentUser" ]; then
+#	echo "Current user: $currentUser is not the olt user"
+#	exit -1
+#fi
 ###############Validate Current User###################
 
 ############Paths Assignment & Validation#####################
