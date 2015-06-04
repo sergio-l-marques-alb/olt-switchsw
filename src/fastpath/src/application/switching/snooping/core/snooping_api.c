@@ -4008,6 +4008,7 @@ L7_RC_t snoopPortOpen(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *g
     if(protTypebIntfConfig.status == L7_ENABLE)
     {
       msg.intIfNum      = protTypebIntfConfig.pairIntfNum;
+      msg.isProtection  = L7_TRUE;
 
       /* Send a Port_Open event to the FP */
       LOG_TRACE(LOG_CTX_PTIN_IGMP, "Sending request to FP to open a protection port on the switch");
@@ -4034,16 +4035,15 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
   snoop_cb_t    *pSnoopCB = L7_NULLPTR;
   snoopPDU_Msg_t msg;
   snoop_eb_t    *pSnoopEB = L7_NULLPTR;
-   char          groupAddrStr[IPV6_DISP_ADDR_LEN]={};
+  char           groupAddrStr[IPV6_DISP_ADDR_LEN]={};
   char           sourceAddrStr[IPV6_DISP_ADDR_LEN]={};
-
 
   inetAddrPrint(groupAddr, groupAddrStr);
   inetAddrPrint(sourceAddr, sourceAddrStr);
 
   LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u groupAddr:%s sourceAddr:%s isProtection:%s]", serviceId, intIfNum, groupAddr, sourceAddr, isProtection?"Yes":"No");
 
-  #if !PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
+#if !PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
   /*In L2 we do not support forwarding multicast packets based on the Source Address. 
     To support IGMPv3 protocol we only close the ports if the Source Address is equal to 0x0000.
     If not we ignore the request*/
@@ -4053,7 +4053,8 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
       LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Ignoring Port Close Request!");
     return rc;
   }
-  #endif
+#endif
+
 
 #if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
   ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};
@@ -4074,9 +4075,10 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
   {
 //  if (ptin_debug_igmp_snooping)
       LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Ignoring Port Close. This port is standby [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X]", serviceId, intIfNum, groupAddr, sourceAddr);
+   
     return rc;
-  }
-  
+  } 
+
   /* Get Snoop Execution Block and Control Block */
   pSnoopEB = snoopEBGet();
   if ((pSnoopCB = snoopCBGet(L7_AF_INET)) == L7_NULLPTR)
@@ -4103,7 +4105,7 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to unlock snooping's queue semaphore");
       return L7_FAILURE;
     }
-  }
+  }  
 
 #if PTIN_BOARD_IS_MATRIX
   /* Sync the status of this switch port on the backup backup matrix, if it exists */
@@ -4122,6 +4124,7 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
   if(protTypebIntfConfig.status == L7_ENABLE)
   {
     msg.intIfNum      = protTypebIntfConfig.pairIntfNum;
+    msg.isProtection  = L7_TRUE; 
 
     /* Send a Port_Close event to the FP */
     LOG_TRACE(LOG_CTX_PTIN_IGMP, "Sending request to FP to close a protection port on the switch");

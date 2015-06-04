@@ -2612,7 +2612,7 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
           If not. Return Here and Log a Warning.         
           */
 
-        #if PTIN_BOARD_IS_MATRIX
+        #if PTIN_BOARD_IS_MATRIX//Protection
         if (isProtection == L7_TRUE)
         {
           if (!PTIN_IS_MASKBITSET(pChannelEntry->channelIntfProtectionMask,intIfNum))
@@ -2985,7 +2985,7 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
     pChannelEntry->pChannelIntfMask = pChannelIntfMask;
   }
   
-  #if PTIN_BOARD_IS_MATRIX
+  #if PTIN_BOARD_IS_MATRIX//Protection
   if (isProtection == L7_TRUE)
   {
     if (!PTIN_IS_MASKBITSET(pChannelEntry->channelIntfProtectionMask,intIfNum))
@@ -3135,7 +3135,7 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
     return L7_FAILURE;
   }
 
-  #if PTIN_BOARD_IS_MATRIX
+  #if PTIN_BOARD_IS_MATRIX//Protection
   if (isProtection == L7_TRUE)
   {
     /*Is this Entry  a Interface Protection?*/
@@ -4544,7 +4544,7 @@ void snoop_l3_channels_dump(void)
       printf("vlanId:%u groupAddr:%s sourceAddr:%s noOfInterfaces:%u flags:0x%02x ", 
              pEntry->snoopChannelInfoDataKey.vlanId, inetAddrPrint(&pEntry->snoopChannelInfoDataKey.groupAddr, groupAddrStr), inetAddrPrint(&pEntry->snoopChannelInfoDataKey.sourceAddr, sourceAddrStr), 
              pEntry->noOfInterfaces, pEntry->flags);
-      #if PTIN_BOARD_IS_MATRIX
+      #if PTIN_BOARD_IS_MATRIX//Protection
       printf("noOfProtectionInterfaces:%u  noOfDynamicInterfaces:%u", pEntry->noOfProtectionInterfaces, pEntry->noOfDynamicInterfaces);
       #endif
       printf("\n");            
@@ -4558,7 +4558,7 @@ void snoop_l3_channels_dump(void)
        }
       }
       printf("\r\n");      
-      #if PTIN_BOARD_IS_MATRIX
+      #if PTIN_BOARD_IS_MATRIX//Protection
       printf("  Protection Ports IntfNUm:");      
       for (intf = 1; intf <= PTIN_SYSTEM_IGMP_MAXINTERFACES; intf++)
       {
@@ -6412,7 +6412,7 @@ void snoopChannelReset(void)
     {
       if (PTIN_IS_MASKBITSET(pEntry->channelIntfMask,intf))
       {        
-        #if PTIN_BOARD_IS_MATRIX
+        #if PTIN_BOARD_IS_MATRIX//Protection
         if ( PTIN_IS_MASKBITSET(pEntry->channelIntfProtectionMask, intf) && PTIN_IS_MASKBITSET(pEntry->channelIntfDynamicMask, intf) )
         {
           /*Remove Protection Entry*/

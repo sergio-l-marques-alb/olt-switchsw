@@ -601,7 +601,7 @@ typedef struct snoopChannelInfoData_s
   snoopChannelInfoDataKey_t          snoopChannelInfoDataKey; /*AVL Tree Key*/    
   PTIN_INTF_MASK_t                   channelIntfMask;
   L7_uint8                           noOfInterfaces;  
-  #if PTIN_BOARD_IS_MATRIX
+  #if PTIN_BOARD_IS_MATRIX//Protection
   PTIN_INTF_MASK_t                   channelIntfProtectionMask;
   L7_uint8                           noOfProtectionInterfaces;
   PTIN_INTF_MASK_t                   channelIntfDynamicMask;
