@@ -1,9 +1,5 @@
-﻿#!/bin/sh
+#!/bin/sh
 
-###############Debug Flags#########################
-
-
-#############End 
 ###############Debug Flags#########################
 scriptDebugCommands=0
 scriptVerbose=1
@@ -95,8 +91,9 @@ fi
 
 ############SVN Update & Validation#####################
 if  [ $updateSvn -eq 1 ]; then
-	cd $srcPath
-	echo "Going to update fastpath..."
+	echo "Going to update $srcPath...press Ctrl+C to abort"
+	sleep 1
+	cd $srcPath	
 	svn update 
 	
 	if  [ $? -ne 0 ]; then
@@ -110,7 +107,7 @@ if  [ $updateSvn -eq 1 ]; then
 	svnRelease=$(svnversion $srcPath)
 else	
 	svnRelease=$(svnversion $srcPath)
-	echo "I'm not updating Faspath. Using current svn release:$svnRelease...press Ctrl+C to abort"
+	echo "I'm not updating $srcPath: Using current svn release:$svnRelease...press Ctrl+C to abort"
 	sleep 1
 fi
 
@@ -126,10 +123,12 @@ fi
 
 ############Fastpath Build Script####################
 #Go to Fastpath Builder Script
-cd $builderScriptPath
 if  [ $scriptVerbose -eq 1 ]; then
-	echo "Going to build fastpath $oltVersion.$patchVersion-r$svnRelease..."
+	echo "Going to build fp-$oltVersion.$patchVersion-r$svnRelease...press Ctrl+C to abort"
+	sleep 1
 fi
+cd $builderScriptPath
+
 
 if  [ $scriptDebugCommands -eq 1 ]; then
 	echo sh ./fastpath-olt.build $oltVersion.$patchVersion
@@ -149,7 +148,8 @@ fi
 ############Fastpath MKBoards Update####################
 cd $buildPath
 if  [ $scriptVerbose -eq 1 ]; then
-	echo "Going to extract fastpath-olt.image-v$oltVersion.$patchVersion-r$svnRelease.tgz to mkboards_$oltVersion..."
+	echo "Going to extract fastpath-olt.image-v$oltVersion.$patchVersion-r$svnRelease.tgz to mkboards_$oltVersion...press Ctrl+C to abort"
+	sleep 1
 fi
 if [ ! -f ./fastpath/fastpath-olt.image-v$oltVersion.$patchVersion-r$svnRelease.tgz ]; then
     echo "File not found: ./fastpath/fastpath-olt.image-v$oltVersion.$patchVersion-r$svnRelease.tgz"
@@ -172,7 +172,8 @@ exit $?
 fi
 
 if  [ $scriptVerbose -eq 1 ]; then
-	echo "Going to update fastpath image on mkboards of olt1t0..."
+	echo "Going to update fastpath image on mkboards of olt1t0...press Ctrl+C to abort"
+	sleep 1
 fi
 cd $mkBoardsPath/CXOLT1T0
 if  [ $scriptDebugCommands -eq 1 ]; then
@@ -190,7 +191,8 @@ exit $?
 fi
 
 if  [ $scriptVerbose -eq 1 ]; then
-	echo "Going to update fastpath image on mkboards of olt1t1..."
+	echo "Going to update fastpath image on mkboards of olt1t1...press Ctrl+C to abort"
+	sleep 1
 fi
 if  [ $scriptDebugCommands -eq 1 ]; then
 	echo "sudo sh fastpath_cxo160g.sh"
