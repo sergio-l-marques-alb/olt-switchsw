@@ -541,7 +541,7 @@ T_LOOKUP_MEP *p_mep_lut;
  //if (!valid_rmep_index(i_rmep)) return 7;
 
  //Fill T_MEP table...
- _p_mep->ME[i_rmep].mep_id=         p_rmep->mep_id;
+ _p_mep->ME[i_rmep].mep_id=        p_rmep->mep_id;
  _p_mep->ME[i_mep].rmep_id=        p_rmep->mep_id;
 
  return 0;
