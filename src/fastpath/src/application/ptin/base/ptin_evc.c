@@ -3458,7 +3458,7 @@ L7_RC_t ptin_evc_delete(L7_uint32 evc_ext_id)
     if (ptin_multicast_group_destroy(evcs[evc_id].multicast_group)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error destroying multicast group %d", evc_id, evcs[evc_id].multicast_group);
-//    return L7_FAILURE;/*Operation still running*/
+      return L7_FAILURE;
     }    
   }
   
@@ -3660,7 +3660,7 @@ L7_RC_t ptin_evc_destroy(L7_uint32 evc_ext_id)
     if (ptin_multicast_group_destroy(evcs[evc_id].multicast_group)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error destroying multicast group %d", evc_id, evcs[evc_id].multicast_group);
-//    return L7_FAILURE; /*Operation still running*/
+      return L7_FAILURE; 
     }
   }  
   evcs[evc_id].multicast_group = -1;
