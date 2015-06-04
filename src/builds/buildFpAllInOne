@@ -16,6 +16,7 @@ if [ $# -eq 1 ]; then
 	if  [ $updateSvn -ne 1 ]; then
 		if  [ $updateSvn -ne 0 ]; then
 			echo "Invalid Input Parameter: updateSvn=$updateSvn"
+			exit -1
 		fi
 	fi
 else
