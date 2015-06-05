@@ -18087,8 +18087,7 @@ RC_t ptin_igmp_multicast_channel_service_get(L7_uint32 ptinPort, L7_uint32 devic
         return L7_NOT_EXIST;      
       }
 
-      /*Next Multicast Service*/
-      ++internalServiceId;
+      /*Next Multicast Service*/      
       continue;      
     }
     else if (rc != L7_SUCCESS || channelEntry == L7_NULLPTR )
