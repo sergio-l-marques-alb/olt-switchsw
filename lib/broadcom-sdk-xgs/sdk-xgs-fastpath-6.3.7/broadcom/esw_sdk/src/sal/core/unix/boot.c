@@ -101,21 +101,6 @@ sal_core_init(void)
     return 0;
 }
 
-/* PTin added: application control */
-void sal_core_term(void)
-{
-  sal_dpc_term();
-  sal_thread_exit(0);
-}
-
-/* PTin added: application control */
-void sdk_term(int unit)
-{
-  //(void) bcm_detach(unit);
-  (void) _bcm_shutdown(unit);
-  (void) soc_shutdown(unit);
-}
-
 /*
  * Function:
  *	sal_boot_flags_get

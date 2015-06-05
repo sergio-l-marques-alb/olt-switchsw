@@ -114,11 +114,13 @@ endif
 # Define targets to be built by default.
 build_targets = $(all_targets)
 
+ADD_TO_CFLAGS += -I$(SDK)/systems/linux/kernel/modules/include
+
 # Target specific
 ifndef LVL7_FIXUP
 ADD_TO_CFLAGS += -DLINUX_SAL_DMA_ALLOC_OVERRIDE
-ADD_TO_CFLAGS += -DLINUX_SAL_USLEEP_OVERRIDE -DLINUX_SAL_SEM_OVERRIDE
-ADD_TO_CFLAGS += -DLINUX_SAL_UDELAY_OVERRIDE
+#ADD_TO_CFLAGS += -DLINUX_SAL_USLEEP_OVERRIDE -DLINUX_SAL_SEM_OVERRIDE
+#ADD_TO_CFLAGS += -DLINUX_SAL_UDELAY_OVERRIDE
 else # Only override SEM
 ADD_TO_CFLAGS += -DLINUX_SAL_SEM_OVERRIDE
 endif
@@ -174,8 +176,8 @@ endif
 build:: $(BLDDIR)/.tree $(build_targets)
 
 kernel_modules:
-	$(MAKE) -C $(SDK)/systems/bde/linux/kernel kernel_version=$(kernel_version)
-	$(MAKE) -C $(SDK)/systems/bde/linux/user/kernel kernel_version=$(kernel_version)
+	$(MAKE) -C $(SDK)/systems/bde/linux/kernel kernel_version=$(kernel_version) OPT_CFLAGS="$(ADD_TO_CFLAGS)"
+	$(MAKE) -C $(SDK)/systems/bde/linux/user/kernel kernel_version=$(kernel_version) OPT_CFLAGS="$(ADD_TO_CFLAGS)"
 
 # LVL7_FIXUP :
 # 1. Added $(MAKE) -C $(SDK)/systems/linux/user/common -f Makefile.fastpath CFLAGS="$(CFLAGS)"

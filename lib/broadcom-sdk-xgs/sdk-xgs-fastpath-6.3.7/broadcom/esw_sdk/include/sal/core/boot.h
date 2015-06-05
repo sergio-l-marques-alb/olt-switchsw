@@ -106,10 +106,6 @@ extern void _default_assert(const char *expr, const char *file, int line);
  */
 extern int sal_core_init(void);
 
-/* PTin added: application control */
-extern void sal_core_term(void);
-extern void sdk_term(int unit);
-
 /*
  * Returns a string describing the current Operating System
  */
