@@ -719,6 +719,9 @@ petra_device_create(void)
 {
     bde_ctrl_t* ctrl;
 
+    /* PTin added: Do not execute this function */
+    return 0;
+
     ctrl = _devices; 
 
 #ifndef __DUNE_LINUX_BCM_CPU_PCIE__
