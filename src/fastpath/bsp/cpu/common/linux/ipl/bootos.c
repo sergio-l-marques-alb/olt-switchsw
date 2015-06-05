@@ -790,6 +790,8 @@ void sigsegv_handler (int sig, siginfo_t * info, void * v)
   L7_RC_t rc;
   L7_localtime lt;
 
+  LOG_NOTICE(LOG_CTX_STARTUP,"Signal %u received (already_called=%u)", sig, already_called);
+
   /*
    * To minimize dumping of lots of sigsegv files, we will set
    * a static variable to handle only the first sigsegv
@@ -812,11 +814,12 @@ void sigsegv_handler (int sig, siginfo_t * info, void * v)
 
    if (sigsegv_recursion_guard == NULL)
    {
-     printf("sigsegv_recursion_guard is NULL\r\n");
+     LOG_NOTICE(LOG_CTX_STARTUP,"Going to shutdown...");
      /* Terminate SDK */
-     printf("Terminating SDK...\r\n");
+     LOG_NOTICE(LOG_CTX_STARTUP,"Terminating SDK...");
      hpcHardwareFini();
-     printf("SDK terminated!\r\n");
+     LOG_NOTICE(LOG_CTX_STARTUP,"SDK terminated!");
+     logger_deinit();
      exit(0);
    }
 
@@ -923,10 +926,12 @@ void sigsegv_handler (int sig, siginfo_t * info, void * v)
   */
   *sigsegv_recursion_guard = 0;
 
+  LOG_NOTICE(LOG_CTX_STARTUP,"Going to shutdown...");
   /* Terminate SDK */
-  printf("Terminating SDK...\r\n");
+  LOG_NOTICE(LOG_CTX_STARTUP,"Terminating SDK...");
   hpcHardwareFini();
-  printf("SDK terminated!\r\n");
+  LOG_NOTICE(LOG_CTX_STARTUP,"SDK terminated!");
+  logger_deinit();
 
   if (BACKTRACE_FILE)
   {
