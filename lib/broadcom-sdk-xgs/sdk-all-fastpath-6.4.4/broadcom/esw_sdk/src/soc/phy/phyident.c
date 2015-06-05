@@ -7449,7 +7449,7 @@ _phy_ident_type_get(uint16 phy_id0, uint16 phy_id1)
     model     = PHY_MODEL(phy_id0, phy_id1);
     rev_map   = 1 << PHY_REV(phy_id0, phy_id1);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_VERBOSE(BSL_LS_SOC_PHY,
              (BSL_META("phy_id0 = %04x phy_id1 %04x oui = %04x model = %04x rev_map = %04x\n"),
               phy_id0, phy_id1, oui, model, rev_map));
     for (i = 0; i < COUNTOF(phy_id_map); i++) {

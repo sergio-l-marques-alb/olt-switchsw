@@ -1161,7 +1161,7 @@ _phy_wcmod_config_init(int unit, soc_port_t port)
         preemphasis = soc_property_port_suffix_num_get(unit, port, i,
                                     spn_SERDES_PREEMPHASIS,
                                     "lane", pCfg->preemph[i]);
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_VERBOSE(BSL_LS_SOC_PHY,
                  (BSL_META_U(pc->unit,
                              "Port %d   - lane  %d -> preemphasis 0x%x\n"),
                   port, i, preemphasis));
@@ -1172,7 +1172,7 @@ _phy_wcmod_config_init(int unit, soc_port_t port)
         idriver = soc_property_port_suffix_num_get(unit, port, i,
                                     spn_SERDES_DRIVER_CURRENT,
                                     "lane", pCfg->idriver[i]);
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_VERBOSE(BSL_LS_SOC_PHY,
                  (BSL_META_U(pc->unit,
                              "Port %d   - lane  %d -> idriver 0x%x\n"),
                   port, i, idriver));
@@ -1183,7 +1183,7 @@ _phy_wcmod_config_init(int unit, soc_port_t port)
         pdriver = soc_property_port_suffix_num_get(unit, port, i,
                                     spn_SERDES_PRE_DRIVER_CURRENT,
                                     "lane", pCfg->pdriver[i]);
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_VERBOSE(BSL_LS_SOC_PHY,
                  (BSL_META_U(pc->unit,
                              "Port %d   - lane  %d -> pdriver 0x%x\n"),
                   port, i, pdriver));
@@ -1194,7 +1194,7 @@ _phy_wcmod_config_init(int unit, soc_port_t port)
         post2_driver = soc_property_port_suffix_num_get(unit, port, i,
                                     spn_SERDES_POST2_DRIVER_CURRENT,
                                     "lane", pCfg->post2driver[i]);
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_VERBOSE(BSL_LS_SOC_PHY,
                  (BSL_META_U(pc->unit,
                              "Port %d   - lane  %d -> post2_driver 0x%x\n"),
                   port, i, post2_driver));
@@ -7561,7 +7561,7 @@ _phy_wcmod_c73_adv_local_set(int unit, soc_port_t port,
                                      (CL73_AN_ADV_PAUSE |
                                       CL73_AN_ADV_ASYM_PAUSE)));
     
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_VERBOSE(BSL_LS_SOC_PHY,
              (BSL_META_U(pc->unit,
                          "_phy_wcmod_c73_adv_local_set: u=%d p=%d pause=%08x speeds=%04x,adv=0x%x\n"),
               unit, port, pause, ability->speed_full_duplex, an_adv));
@@ -7729,7 +7729,7 @@ phy_wcmod_ability_advert_set(int unit, soc_port_t port,
                 (_phy_wcmod_c73_adv_local_set(unit, port, ability));
         }
 
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_VERBOSE(BSL_LS_SOC_PHY,
                  (BSL_META_U(pc->unit,
                              "phy_wcmod_ability_advert_set: u=%d p=%d pause=%08x OVER1G_UP1 %04x\n"),
                   unit, port, ability->pause, an_adv));
