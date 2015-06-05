@@ -158,15 +158,15 @@ void hpcHardwareFini(void)
 
   for (bcom_unit = 0; bcom_unit < total_bcom_units; bcom_unit++)
   {
-    printf("Shuting down unit %u\r\n", SOC_NDEV_IDX2DEV(bcom_unit)); 
+    LOG_INFO(LOG_CTX_STARTUP,"Shuting down unit %u\r\n", SOC_NDEV_IDX2DEV(bcom_unit)); 
     (void) _bcm_shutdown(SOC_NDEV_IDX2DEV(bcom_unit));
     //(void) sal_thread_exit(SOC_NDEV_IDX2DEV(bcom_unit));
     //(void) soc_shutdown(SOC_NDEV_IDX2DEV(bcom_unit));
   }
 
-  printf("Destroying bde...\r\n");
+  LOG_INFO(LOG_CTX_STARTUP,"Destroying bde...\r\n");
   bde_destroy();
-  printf("bde destroyed!\r\n");
+  LOG_INFO(LOG_CTX_STARTUP,"bde destroyed!\r\n");
 }
 
 /**************************************************************************
