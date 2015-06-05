@@ -14,6 +14,7 @@
 #include "ptin_include.h"
 #include "l3_addrdefs.h"
 #include "ptin_mgmd_ctrl.h"
+#include "ptin_globaldefs.h"
 
 /*********************************************************** 
  * MACRO TOOLS
@@ -1602,11 +1603,11 @@ extern RC_t ptin_igmp_port_resources_allocate(L7_uint32 ptin_port, L7_uint32 cha
  */
 extern RC_t ptin_igmp_port_resources_release(L7_uint32 ptin_port, L7_uint32 channelBandwidth);
 
-extern inline L7_uint8 ptin_igmp_proxy_admission_control_get(void){return (igmpProxyCfg.bandwidthControl | igmpProxyCfg.channelsControl);};
+extern L7_uint8 ptin_igmp_proxy_admission_control_get(void);
 
-extern inline  L7_uint8 ptin_igmp_proxy_bandwidth_control_get(void){return igmpProxyCfg.bandwidthControl;};
+extern L7_uint8 ptin_igmp_proxy_bandwidth_control_get(void);
 
-extern inline  L7_uint8 ptin_igmp_proxy_channels_control_get(void){return igmpProxyCfg.channelsControl;};
+extern L7_uint8 ptin_igmp_proxy_channels_control_get(void);
 
 
 #endif

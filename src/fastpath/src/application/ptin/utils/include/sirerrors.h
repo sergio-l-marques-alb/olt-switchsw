@@ -80,6 +80,7 @@ Historico:  VM 2003.10.01 - Criacao do modulo V1.0.0.0
       // sub-familia interfaces (0x02)
          #define ERROR_CODE_FP_OK            0x0100   // OK
          #define ERROR_CODE_FP_EVC_UNKNOWN   0x0101   // Unknown EVC
+         #define ERROR_CODE_FP_BUSY          0x0102   // Unknown EVC
 
    // --------------------------------
    //Erros para a familia PDH (0x01)
