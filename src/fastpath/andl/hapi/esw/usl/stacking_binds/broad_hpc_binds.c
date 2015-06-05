@@ -51,6 +51,10 @@
 /* PTin added: logger */
 #include "logger.h"
 
+#include "sal/appl/io.h"
+#include "appl/diag/system.h"
+#include "appl/diag/bslmgmt.h"
+
 static cpudb_ref_t system_cpudb = L7_NULLPTR;
 static topo_cpu_t  system_topo;
 extern void hapiBroadSocFileLoad(char *file_name, L7_BOOL suppressFileNotAvail);
@@ -143,6 +147,12 @@ static cpudb_t *hpcBroadLocalCpudbCreate(void)
 }
 #endif
 
+#if (SDK_VERSION_IS < SDK_VERSION(6,4,0,0))
+#ifndef SOC_NDEV_IDX2DEV
+#define SOC_NDEV_IDX2DEV(bcom_unit) (bcom_unit)
+#endif
+#endif
+
 /* PTin added: application control */
 void hpcHardwareFini(void)
 {
@@ -158,15 +168,15 @@ void hpcHardwareFini(void)
 
   for (bcom_unit = 0; bcom_unit < total_bcom_units; bcom_unit++)
   {
-    printf("Shuting down unit %u\r\n", SOC_NDEV_IDX2DEV(bcom_unit)); 
+    PT_LOG_INFO(LOG_CTX_STARTUP,"Shuting down unit %u...", SOC_NDEV_IDX2DEV(bcom_unit));
     (void) _bcm_shutdown(SOC_NDEV_IDX2DEV(bcom_unit));
     //(void) sal_thread_exit(SOC_NDEV_IDX2DEV(bcom_unit));
     //(void) soc_shutdown(SOC_NDEV_IDX2DEV(bcom_unit));
   }
 
-  printf("Destroying bde...\r\n");
+  PT_LOG_INFO(LOG_CTX_STARTUP,"Destroying bde...");
   bde_destroy();
-  printf("bde destroyed!\r\n");
+  PT_LOG_INFO(LOG_CTX_STARTUP,"bde destroyed!");
 }
 
 /**************************************************************************
@@ -202,6 +212,10 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
 
   sal_assert_set((sal_assert_func_t)hapiBroadAssert);
 
+#ifdef BCM_BPROF_STATS
+    shr_bprof_stats_time_init();
+#endif
+
   /* Initialise the System Abstraction Layer(SAL) of the Broadcom vendor 
    * Driver
    */
@@ -234,12 +248,12 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
 #endif
 
   /* PTin added: new switch 56340 (Helix4) */
-  #if (PTIN_BOARD==PTIN_BOARD_OLT1T0)
+#if (PTIN_BOARD==PTIN_BOARD_OLT1T0)
   /* PCI device ID override: when switch id is uncorrectly identified as 0xb34f */
   (void) sal_config_set(spn_PCI_OVERRIDE_DEV, "0xb340");
 
   PT_LOG_TRACE(LOG_CTX_STARTUP,"b340 id imposed for Helix4 switch");
-  #endif
+#endif
 
 #if (SDK_VERSION_IS >= SDK_VERSION(6,4,0,0))
   if (bsl_init(&init_data) != SOC_E_NONE || soc_cm_init() != SOC_E_NONE)
@@ -253,7 +267,8 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
   PT_LOG_TRACE(LOG_CTX_STARTUP, "BSL and SOC_CM initialized!");
   
   hapiBroadSocFileLoad("sdk-preinit.soc", L7_TRUE);
- 
+
+  PT_LOG_INFO(LOG_CTX_STARTUP,"Probing devices...");
   /* 
    * Initialize all devices on the PCI bus.
    */
@@ -264,9 +279,12 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
   }
   PT_LOG_TRACE(LOG_CTX_STARTUP,"PCI SOC devices probed!");
 
+  PT_LOG_INFO(LOG_CTX_STARTUP,"PCI SOC devices probed.");
+
   board_info = hpcBoardGet();
   
   if (board_info==L7_NULL) {
+      PT_LOG_ERR(LOG_CTX_STARTUP,"Failed to detect board");
       SYSAPI_PRINTF( SYSAPI_LOGGING_ALWAYS,
                      "\n%s %d: In %s call to 'hpcBoardGet' - FAILED\n",
                      __FILE__, __LINE__, __FUNCTION__);
@@ -277,7 +295,9 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
 
   if ((rc = hpcBroadInit()) != L7_SUCCESS) 
   {
-    L7_LOG_ERROR (1);
+    PT_LOG_INFO(LOG_CTX_STARTUP,"Error with hpcBroadInit: %d", rc);
+    return -1;
+    //L7_LOG_ERROR (1);
   }
 
 

@@ -70,7 +70,11 @@ L7_RC_t sysapiHpcInit(void)
     return(result);
   }
 
-  if ((result = hpcInit()) != L7_SUCCESS)
+  PT_LOG_INFO(LOG_CTX_STARTUP,"Starting sysapiHpcInit...");
+  result = hpcInit();
+  PT_LOG_INFO(LOG_CTX_STARTUP,"sysapiHpcInit finished");
+
+  if (result != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SIM_COMPONENT_ID,
             "hpcInit: bad return code from hpcInit call.\n");

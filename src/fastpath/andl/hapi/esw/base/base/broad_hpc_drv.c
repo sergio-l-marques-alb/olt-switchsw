@@ -2733,7 +2733,7 @@ L7_RC_t hpcBroadInit()
   total_bcom_units = bde->num_devices(BDE_SWITCH_DEVICES);
 
 #if 1
-  //var_set_integer("units", total_bcom_units, FALSE, FALSE);
+  var_set_integer("units", total_bcom_units, FALSE, FALSE);
 
   for (bcom_unit = 0; bcom_unit < total_bcom_units; bcom_unit++)
   {
@@ -3396,10 +3396,10 @@ extern int soc_robo_mmu_init(int );
 #else
   SYSTEM_INIT_CHECK(soc_reset_init(unit), "Device reset");
   //SYSTEM_INIT_CHECK(soc_misc_init(unit), "Misc init");
-#ifdef BCM_ESW_SUPPORT
   //SYSTEM_INIT_CHECK(soc_mmu_init(unit), "MMU init");
 #endif
-#endif
+
+  PT_LOG_INFO(LOG_CTX_STARTUP,"Loading rc.soc file...");
 
   /*
    * If a default init file is given, attempt to load it.
@@ -3422,6 +3422,8 @@ extern int soc_robo_mmu_init(int );
         PT_LOG_TRACE(LOG_CTX_STARTUP,"rc.soc file loaded!");
       }
   }
+
+  PT_LOG_INFO(LOG_CTX_STARTUP,"rc.soc file loaded!");
 
 #if defined(INCLUDE_PHY_8706)  
 #if L7_FEAT_SF10GBT
@@ -3568,6 +3570,7 @@ void hapiBroadCmDefaults(void)
   hapiBroadCmLayerSet(bslLayerSoc,  L7_TRUE);
   hapiBroadCmLayerSet(bslLayerSys,  L7_TRUE);
 
+  hapiBroadCmSourceSet(bslSourceInit,   L7_TRUE);
   hapiBroadCmSourceSet(bslSourceShell,  L7_TRUE);
   hapiBroadCmSourceSet(bslSourceMii,    L7_TRUE);
   hapiBroadCmSourceSet(bslSourceMiim,   L7_TRUE);
