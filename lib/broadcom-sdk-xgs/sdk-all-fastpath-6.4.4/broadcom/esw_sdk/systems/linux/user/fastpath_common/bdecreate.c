@@ -88,6 +88,13 @@ bde_create(void)
     return linux_bde_create(&bus, &bde);
 }
 
+int
+bde_destroy(void)
+{	
+    return linux_bde_destroy(bde);
+}
+
+
 /*
  * These stubs are here for legacy compatability reasons. 
  * They are used only by the diag/test code, not the driver, 
