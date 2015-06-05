@@ -146,9 +146,27 @@ static cpudb_t *hpcBroadLocalCpudbCreate(void)
 /* PTin added: application control */
 void hpcHardwareFini(void)
 {
-  sal_core_term();
+  L7_uint32 total_bcom_units, bcm_unit;
+  extern int bde_destroy(void);
 
-  sdk_term(0);
+  total_bcom_units = bde->num_devices(BDE_SWITCH_DEVICES);
+
+#if 0
+  sal_dpc_term();
+  sal_thread_exit(0);
+#endif
+
+  for (bcom_unit = 0; bcom_unit < total_bcom_units; bcom_unit++)
+  {
+    printf("Shuting down unit %u\r\n", SOC_NDEV_IDX2DEV(bcm_unit)); 
+    (void) _bcm_shutdown(SOC_NDEV_IDX2DEV(bcm_unit));
+    (void) sal_thread_exit(SOC_NDEV_IDX2DEV(bcm_unit));
+    (void) soc_shutdown(SOC_NDEV_IDX2DEV(bcm_unit));
+  }
+
+  printf("Destroying bde...\r\n");
+  bde_destroy();
+  printf("bde destroyed!\r\n");
 }
 
 /**************************************************************************
