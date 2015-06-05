@@ -141,7 +141,10 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
                                                 L7_uint32 receive_id, 
                                                 L7_uchar8* buffer, 
                                                 L7_uint32 msg_len));
-   
+
+/* PTin added: terminate SDK */
+void hpcHardwareFini(void);
+
 /*********************************************************************
 * @purpose  Init the ASF mode.
 *          

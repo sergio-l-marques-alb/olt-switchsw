@@ -59,6 +59,8 @@
 #include <sys/resource.h>
 /* PTin end */
 
+#include "hpc_hw_api.h"
+
 #ifdef L7_CLI_PACKAGE
 extern void binsh(void);
 #endif
@@ -808,6 +810,16 @@ void sigsegv_handler (int sig, siginfo_t * info, void * v)
    */
    sigsegv_recursion_guard = pthread_getspecific(osapi_signal_key);
 
+   if (sigsegv_recursion_guard == NULL)
+   {
+     printf("sigsegv_recursion_guard is NULL\r\n");
+     /* Terminate SDK */
+     printf("Terminating SDK...\r\n");
+     hpcHardwareFini();
+     printf("SDK terminated!\r\n");
+     exit(0);
+   }
+
    if(*sigsegv_recursion_guard)
    {
       /*
@@ -910,6 +922,11 @@ void sigsegv_handler (int sig, siginfo_t * info, void * v)
   *the guardword to allow other sigsegv's to be processes
   */
   *sigsegv_recursion_guard = 0;
+
+  /* Terminate SDK */
+  printf("Terminating SDK...\r\n");
+  hpcHardwareFini();
+  printf("SDK terminated!\r\n");
 
   if (BACKTRACE_FILE)
   {
