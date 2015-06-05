@@ -15210,6 +15210,13 @@ RC_t ptin_igmp_port_resources_release(L7_uint32 ptin_port, L7_uint32 channelBand
   return rc;  
 }
 
+L7_uint8 ptin_igmp_proxy_admission_control_get(void){return (igmpProxyCfg.bandwidthControl | igmpProxyCfg.channelsControl);}
+
+L7_uint8 ptin_igmp_proxy_bandwidth_control_get(void){return igmpProxyCfg.bandwidthControl;}
+
+L7_uint8 ptin_igmp_proxy_channels_control_get(void){return igmpProxyCfg.channelsControl;}
+
+
 /**
  * @purpose Verifies if a given client Id has available 
  * resources for a new multicast channels 

@@ -109,7 +109,9 @@ L7_RC_t __matrix_slotid_get(L7_uint8 matrixType, L7_uint8 *slotId)
     *slotId = backupMatrixSlotId;
   }
 #elif PTIN_BOARD_IS_LINECARD
+#ifdef MAP_CPLD
   *slotId = ptin_fgpa_matrixActive_slot();
+#endif
 #endif
 
   return L7_SUCCESS;
