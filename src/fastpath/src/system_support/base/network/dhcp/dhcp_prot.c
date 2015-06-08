@@ -736,7 +736,7 @@ static void next_timeout_function (L7_uint32 data, L7_uint32 arg2)
       return;
     }
 
-    L7_LOGF (L7_LOG_SEVERITY_NOTICE, L7_DHCP_CLIENT_COMPONENT_ID,
+    L7_LOGF (L7_LOG_SEVERITY_DEBUG, L7_DHCP_CLIENT_COMPONENT_ID,
              "Failed to acquire an IP address on %s; DHCP Server did not respond.", buf);
     DHCPC_TRACE (DHCPC_DEBUG_FAILURE, "Failed to acquire an IP address on %s; "
                  "DHCP Server did not respond", buf);

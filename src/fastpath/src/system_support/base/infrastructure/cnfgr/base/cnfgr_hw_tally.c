@@ -423,10 +423,10 @@ static void cnfgrHwTallyTimerExpired(L7_uint32 phase, L7_uint32 unused)
       }
     }
 
-    L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_CNFGR_COMPONENT_ID,
+    L7_LOGF(L7_LOG_SEVERITY_DEBUG, L7_CNFGR_COMPONENT_ID,
             "%s hardware update tally timed out. Proceeding with hardware reconciliation.",
             phaseNames[i]);
-    L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_CNFGR_COMPONENT_ID,
+    L7_LOGF(L7_LOG_SEVERITY_DEBUG, L7_CNFGR_COMPONENT_ID,
             "The following components did not report: %s", compStr);
 
     hwUpdateTally[i].hwUpdatesDone = L7_TRUE;
