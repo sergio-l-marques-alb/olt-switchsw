@@ -91,20 +91,6 @@ void ptin_debug_igmp_packet_trace_enable(L7_BOOL enable)
             (PTIN_CLIENT_MASK_FIELD_IPADDR    & MC_CLIENT_IPADDR_SUPPORTED   ) |   \
             (PTIN_CLIENT_MASK_FIELD_MACADDR   & MC_CLIENT_MACADDR_SUPPORTED  ) ) & (mask) )
 
-/* If you want to repeat the client index range for each interface, activate this define */
-/* Otherwise will be used a unique range for all interfaces */
-#define PTIN_IGMP_CLIENTS_ISOLATED_PER_INTF 1
-
-#if PTIN_IGMP_CLIENTS_ISOLATED_PER_INTF
-  #define PTIN_IGMP_CLIENTIDX_MAX      (PTIN_SYSTEM_IGMP_MAXCLIENTS_PER_INTF)
-  #define PTIN_IGMP_INTFPORT_MAX       (PTIN_SYSTEM_N_INTERF)
-  #define PTIN_IGMP_CLIENT_PORT(port)  ((port < PTIN_SYSTEM_N_INTERF) ? (port) : 0)
-#else
-  #define PTIN_IGMP_CLIENTIDX_MAX      (PTIN_SYSTEM_IGMP_MAXCLIENTS)
-  #define PTIN_IGMP_INTFPORT_MAX       (1)
-  #define PTIN_IGMP_CLIENT_PORT(port)  (0)
-#endif
-
 /******************************* 
  * QUEUES
  *******************************/
@@ -3984,7 +3970,7 @@ L7_RC_t ptin_igmp_clientIndex_get(L7_uint32 intIfNum,
                 (client.ipv4_addr>>24) & 0xff, (client.ipv4_addr>>16) & 0xff, (client.ipv4_addr>>8) & 0xff, client.ipv4_addr & 0xff,
                 client.macAddr[0],client.macAddr[1],client.macAddr[2],client.macAddr[3],client.macAddr[4],client.macAddr[5]);
     }
-    return L7_FAILURE;
+    return L7_NOT_EXIST;
   }
 
   /* Update client index in data cell */
@@ -5600,13 +5586,23 @@ L7_RC_t ptin_igmp_dynamic_client_add(L7_uint32 intIfNum,
   }
   else
   {
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"New client created: intIfNum %u, intVlan %u, innerVlan %u",
-            intIfNum, intVlan, innerVlan);
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"New client created: intIfNum %u, intVlan %u, innerVlan %u, client_idx_ret:%u",
+            intIfNum, intVlan, innerVlan, *client_idx_ret);
   }
 
   #if PTIN_SNOOP_USE_MGMD
   /*Start the Timer*/
   rc = ptin_igmp_client_timer_start(intIfNum, *client_idx_ret);
+  if (rc!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error starting client timer: intIfNum %u, intVlan %u, innerVlan %u client_idx_ret:%u", intIfNum, intVlan, innerVlan, *client_idx_ret);
+    return rc;
+  }
+  else
+  {
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Started client timer: intIfNum %u, intVlan %u, innerVlan %u, client_idx_ret:%u",
+            intIfNum, intVlan, innerVlan, *client_idx_ret);
+  }
   #endif
 
   return rc;

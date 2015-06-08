@@ -152,6 +152,19 @@
 #endif
 /**End IGMP Admission Control Feature**/ 
 
+/* If you want to repeat the client index range for each interface, activate this define */
+/* Otherwise will be used a unique range for all interfaces */
+#define PTIN_IGMP_CLIENTS_ISOLATED_PER_INTF 1
+
+#if PTIN_IGMP_CLIENTS_ISOLATED_PER_INTF
+  #define PTIN_IGMP_CLIENTIDX_MAX      (PTIN_SYSTEM_IGMP_MAXCLIENTS_PER_INTF)
+  #define PTIN_IGMP_INTFPORT_MAX       (PTIN_SYSTEM_N_INTERF)
+  #define PTIN_IGMP_CLIENT_PORT(port)  ((port < PTIN_SYSTEM_N_INTERF) ? (port) : 0)
+#else
+  #define PTIN_IGMP_CLIENTIDX_MAX      (PTIN_SYSTEM_IGMP_MAXCLIENTS)
+  #define PTIN_IGMP_INTFPORT_MAX       (1)
+  #define PTIN_IGMP_CLIENT_PORT(port)  (0)
+#endif
 
 /* FOR STATISTICS */
 // The values below must be in the same order as in L7_IGMP_Statistics_t structure

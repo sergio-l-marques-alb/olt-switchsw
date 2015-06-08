@@ -532,74 +532,102 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   isRootPort  = ptin_igmp_clientIntfVlan_validate(pduInfo->intIfNum, pduInfo->vlanId);
   ptin_timer_stop(73);
 
-  /* Search for client index */
-  /* Validate client information */
-#if ( PTIN_BOARD_IS_MATRIX )
-  ptin_timer_start(74,"ptin_igmp_clientIndex_get");
-  if (ptin_igmp_clientIndex_get(pduInfo->intIfNum,
+  /* Search for client index if this is a leaf port*/
+   if (!isRootPort)
+   {
+     ptin_timer_start(74,"ptin_igmp_clientIndex_get");
+     #if ( PTIN_BOARD_IS_MATRIX )
+     rc = ptin_igmp_clientIndex_get(pduInfo->intIfNum,
                                 L7_NULL, L7_NULL,
                                 L7_NULL,
-                                &client_idx) != L7_SUCCESS)
-  {    
-    client_idx = (L7_uint) -1;
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "ptin_igmp_clientIndex_get failed");
-  }
-  ptin_timer_stop(74);  
-#else
-/* Only for linecards, clients are identified with the inner vlan (matrix are ports) */
-  if ( (!isRootPort) && (pduInfo->innerVlanId != 0) )
-  {
-    ptin_timer_start(74,"ptin_igmp_clientIndex_get");
-    if (ptin_igmp_clientIndex_get(pduInfo->intIfNum,
-                                  pduInfo->vlanId, pduInfo->innerVlanId,
-                                  &data[L7_MAC_ADDR_LEN],
-                                  &client_idx) != L7_SUCCESS)
-    {   
-      client_idx = (L7_uint) -1;
-      LOG_TRACE(LOG_CTX_PTIN_IGMP, "ptin_igmp_clientIndex_get failed");
-    }
-    ptin_timer_stop(74);
-  }      
-#endif
-  
-  /* Validate client index */
-  if (client_idx>=PTIN_SYSTEM_IGMP_MAXCLIENTS)
-  {
-    client_idx = (L7_uint) -1;
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Client not provided!");    
-  }
-  else
-  {    
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Client index is %u",client_idx);    
-  }
+                                &client_idx);
+     #else
+     rc =ptin_igmp_clientIndex_get(pduInfo->intIfNum,
+                              pduInfo->vlanId, pduInfo->innerVlanId,
+                              &data[L7_MAC_ADDR_LEN],
+                              &client_idx);
+     #endif
+     if (rc != L7_SUCCESS)
+     {
+       ptin_timer_stop(74);  
+       /*Client Does Not Exist*/
+       if (rc == L7_NOT_EXIST)
+       {
+         #ifdef IGMP_DYNAMIC_CLIENTS_SUPPORTED
+          LOG_TRACE(LOG_CTX_PTIN_IGMP,"Client Does Not Exist: (intIfNum=%u vlan=%u innerVlanId=%u", rc, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);  
+         #else         
+          LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed (rc:%u) to obtain clientId (intIfNum=%u vlan=%u innerVlanId=%u", rc, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);  
+          return L7_FAILURE;
+         #endif
+       }
+       else
+       {
+         /*Abort Here*/
+         ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
+         LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed (rc:%u) to obtain clientId  (intIfNum=%u vlan=%u innerVlanId=%u", rc, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);  
+         return L7_FAILURE;
+       }
+     }
+     else /*rc == L7_SUCCESS*/
+     {       
+       ptin_timer_stop(74);  
+
+       /* Validate client index */
+       if (client_idx>=PTIN_IGMP_CLIENTIDX_MAX)
+       {
+         /*Abort Here*/
+         ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
+         LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid  clientId:%u : (intIfNum=%u vlan=%u innerVlanId=%u", client_idx, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);  
+         return L7_FAILURE;
+       }
+       else
+       {
+         LOG_TRACE(LOG_CTX_PTIN_IGMP,"Obtained  clientId:%u: (intIfNum=%u vlan=%u innerVlanId=%u", client_idx, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);  
+       }
+     }
+   }  
 
 #ifdef IGMP_DYNAMIC_CLIENTS_SUPPORTED
   /* For leaf interfaces */
   if ( !isRootPort )
   {
-    if (client_idx>=PTIN_SYSTEM_IGMP_MAXCLIENTS)
+    if (client_idx>=PTIN_IGMP_CLIENTIDX_MAX)
     {
-       ptin_timer_start(75,"ptin_igmp_dynamic_client_add");
-  #if (PTIN_BOARD_IS_MATRIX)
+      ptin_timer_start(75,"ptin_igmp_dynamic_client_add");
+      #if (PTIN_BOARD_IS_MATRIX)
       /* If the client does not exist, it will be created in dynamic mode */
-       if (ptin_igmp_dynamic_client_add(pduInfo->intIfNum,
+      rc = ptin_igmp_dynamic_client_add(pduInfo->intIfNum,
                                        L7_NULL, L7_NULL,
                                        L7_NULL,
-                                       &client_idx) != L7_SUCCESS)
-  #else
+                                       &client_idx);
+      #else
       /* For Linecard only: If client was not recognized, add it as dynamic */
-      if (ptin_igmp_dynamic_client_add(pduInfo->intIfNum,
+      rc = ptin_igmp_dynamic_client_add(pduInfo->intIfNum,
                                        pduInfo->vlanId, pduInfo->innerVlanId,
                                        &data[L7_MAC_ADDR_LEN],
-                                       &client_idx) != L7_SUCCESS)
-  #endif
+                                       &client_idx);
+      #endif
+
+      if (rc != L7_SUCCESS)
       {        
-        client_idx = (L7_uint) -1;
-        LOG_ERR(LOG_CTX_PTIN_IGMP,"intIfNum=%u,vlan=%u are not accepted", pduInfo->intIfNum, pduInfo->vlanId);
+        ptin_timer_stop(75);            
         ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
+        LOG_ERR(LOG_CTX_PTIN_IGMP,"intIfNum=%u,vlan=%u innerVlanId:%u are not accepted", pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);        
+        return L7_FAILURE;
       }
-      ptin_timer_stop(75);    
-      return L7_FAILURE;
+      else
+      {
+        if (client_idx>=PTIN_IGMP_CLIENTIDX_MAX)
+        {
+          ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
+          LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid client_idx:%u (intIfNum=%u,vlan=%u innerVlanId=%u)", client_idx, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);    
+          return L7_FAILURE;
+        }
+        else
+        {
+          LOG_TRACE(LOG_CTX_PTIN_IGMP,"Created new  clientId:%u: (intIfNum=%u vlan=%u innerVlanId=%u", client_idx, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);    
+        }
+      }
     }
   }
 #endif
