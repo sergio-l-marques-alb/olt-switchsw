@@ -7,7 +7,7 @@ scriptVerbose=1
 
 ###############Input Arguments Validation#########################
 if [ $# -gt 1 ]; then
-   echo "Usage : sh ./builFpAllInOne [updateSvn=0|1]"   
+   echo "Usage: sh ./builFpAllInOne [\$updateSvn]"   
    exit -1
 fi
 

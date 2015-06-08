@@ -11,6 +11,10 @@
 # Note: This script requires permission elevation. 																	  #
 #  																																	  #
 #########################################################################################################
+if [ $# -lt 2 ]; then
+echo "./mkboards_update.sh <\$MKBOARDS_PATH> <\$CARD> [\$VERSION \$EQUIP_IP]"
+exit -1
+fi
 
 MKBOARDS=$1
 BOARD=$2
@@ -44,30 +48,46 @@ fi
 
 if [ $# -ge 3 ]; then
 	IMAGE_VERSION=$3
-	EQUIP_IP=$4
+	EQUIP_IP=$4	
 	echo -n "Generating image for version $3..."
 
-	if [ $BOARD == "tg16g" ]; then
+	if [ $BOARD == "tg16g" ]; then	
 		cd $MKBOARDS/TG16G/
 		sudo ./build_ramdisk_TG16G.sh $IMAGE_VERSION > /dev/null 2>&1
+		if  [ $? -ne 0 ]; then
+			echo "Failed to generate ramdisk!"
+			exit $?
+		fi
 		echo "OK!"
 	fi
 
 	if [ $BOARD == "cxo160g" ]; then
 		cd $MKBOARDS/CXO160G/
 		sudo ./build_ramdisk_CXO160G.sh $IMAGE_VERSION > /dev/null 2>&1
+		if  [ $? -ne 0 ]; then
+                        echo "Failed to generate ramdisk!"
+                        exit $?
+                fi
 		echo "OK!"
 	fi
 
 	if [ $BOARD == "cxo640g" ]; then
 		cd $MKBOARDS/CXO640G-MX/
 		sudo ./build_ramdisk_CXO640G-MX.sh $IMAGE_VERSION > /dev/null 2>&1
+		if  [ $? -ne 0 ]; then
+                        echo "Failed to generate ramdisk!"
+                        exit $?
+                fi
 		echo "OK!"
 	fi
 
 	if [ $BOARD == "ta48ge" ]; then
 		cd $MKBOARDS/TA48GE/
 		sudo ./build_ramdisk_TA48GE.sh $IMAGE_VERSION > /dev/null 2>&1
+		if  [ $? -ne 0 ]; then
+                        echo "Failed to generate ramdisk!"
+                        exit $?
+                fi
 		echo "OK!"
 	fi
 
