@@ -134,7 +134,8 @@ cd $builderScriptPath
 if  [ $scriptDebugCommands -eq 1 ]; then
 	echo sh ./fastpath-olt.build $oltVersion.$patchVersion
 fi
-sh ./fastpath-olt.build $oltVersion.$patchVersion
+sh ./fastpath-olt.build $oltVersion.$patchVersion compile
+sh ./fastpath-olt.build $oltVersion.$patchVersion build
 
 if  [ $? -ne 0 ]; then
 	echo -e "
@@ -213,6 +214,9 @@ fi
 
 #Restore User Path
 cd $currentPath
+
+# Create backup
+sh ./fastpath-olt.build $oltVersion.$patchVersion backup
 
 echo "Done: fastpath-olt.image-v$oltVersion.$patchVersion-r$svnRelease!"
 exit 0

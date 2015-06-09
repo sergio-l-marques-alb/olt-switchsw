@@ -140,23 +140,23 @@ echo -en $colorReset
 
 
 # Only if backup exists
-if [ -e $APPS_PATH/backup ]; then
-  echo -en $colorNotice
-  echo "Saving unstripped binaries..."
-  echo -en $colorReset
-
-  rm -f $BUILDS_FOLDER/$backup_7z
-  for plat in $PLATFORMS; do
-    rm -f $APPS_PATH/backup/$plat/*.ver $APPS_PATH/backup/$plat/*.releasenotes.txt
-    cp ./$APPLICATION.ver ./$APPLICATION.releasenotes.txt $APPS_PATH/backup/$plat
-  done
-  sync
-  cd $APPS_PATH/backup
-  rm -f *.tgz
-  7z a $backup_7z $PLATFORMS
-  cd -
-  mv $APPS_PATH/backup/$backup_7z $BUILDS_FOLDER
-fi
+#if [ -e $APPS_PATH/backup ]; then
+#  echo -en $colorNotice
+#  echo "Saving unstripped binaries..."
+#  echo -en $colorReset
+#
+#  rm -f $BUILDS_FOLDER/$backup_7z
+#  for plat in $PLATFORMS; do
+#    rm -f $APPS_PATH/backup/$plat/*.ver $APPS_PATH/backup/$plat/*.releasenotes.txt
+#    cp ./$APPLICATION.ver ./$APPLICATION.releasenotes.txt $APPS_PATH/backup/$plat
+#  done
+#  sync
+#  cd $APPS_PATH/backup
+#  rm -f *.tgz
+#  7z a $backup_7z $PLATFORMS
+#  cd -
+#  mv $APPS_PATH/backup/$backup_7z $BUILDS_FOLDER
+#fi
 
 echo -en $colorNotice
 echo "Cleaning..."
