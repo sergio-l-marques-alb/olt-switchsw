@@ -219,7 +219,7 @@ L7_RC_t l7_rpc_server_policy_handler(L7_uint32 tid,
 
 int custom_policy_init()
 {
-  int rv;
+  int rv = L7_SUCCESS;
   int i;
   L7_BOOL isRobo = L7_FALSE;
   L7_BOOL xgs3 = L7_FALSE;
@@ -238,11 +238,11 @@ int custom_policy_init()
   }
 
 //hapiBroadDebugPolicyEnable(0xFFFFFFFF); /* PTin added: policy debug */
-  if (isRobo == L7_TRUE)
+  if (isRobo)
   {
     rv = l7_bcm_cfp_policy_init();
   }
-  else
+  else if (xgs3)
   {
     rv = l7_bcm_policy_init();
   }

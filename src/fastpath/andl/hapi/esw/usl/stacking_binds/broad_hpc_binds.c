@@ -213,21 +213,21 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
   sal_assert_set((sal_assert_func_t)hapiBroadAssert);
 
 #ifdef BCM_BPROF_STATS
-    shr_bprof_stats_time_init();
+  shr_bprof_stats_time_init();
 #endif
 
   /* Initialise the System Abstraction Layer(SAL) of the Broadcom vendor 
    * Driver
    */
-   if (sal_core_init() < 0 || sal_appl_init() < 0)
-   {
-     PT_LOG_FATAL(LOG_CTX_STARTUP, "SAL Initialization failed!");
-     L7_LOG_ERROR (0);
-   }
-   PT_LOG_TRACE(LOG_CTX_STARTUP, "SAL Initialization done!");
+  if (sal_core_init() < 0 || sal_appl_init() < 0)
+  {
+    PT_LOG_FATAL(LOG_CTX_STARTUP, "SAL Initialization failed!");
+    L7_LOG_ERROR (0);
+  }
+  PT_LOG_TRACE(LOG_CTX_STARTUP, "SAL Initialization done!");
 
-   /* PTin added: sal routines */
-   sal_thread_main_set(sal_thread_self());
+  /* PTin added: sal routines */
+  sal_thread_main_set(sal_thread_self());
 
 #if (SDK_VERSION_IS >= SDK_VERSION(6,4,0,0))
   bsl_vectors_get(&init_data);
@@ -296,10 +296,8 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
   if ((rc = hpcBroadInit()) != L7_SUCCESS) 
   {
     PT_LOG_INFO(LOG_CTX_STARTUP,"Error with hpcBroadInit: %d", rc);
-    return -1;
-    //L7_LOG_ERROR (1);
+    L7_LOG_ERROR (1);
   }
-
 
   if (hpcLocalUnitIdentifierMacGet((L7_enetMacAddr_t *)&(cpu_key.key)) != L7_SUCCESS)
   {
@@ -370,7 +368,7 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
       rv = bcm_rx_start(i, NULL);
       if (rv < 0)
       {
-        PT_LOG_ERR(LOG_CTX_STARTUP,"RX start failed unit %d\n", i);
+        PT_LOG_ERR(LOG_CTX_STARTUP,"RX start failed unit %d: rv=%d (%s)\n", i, bcm_errmsg(rv));
         break;
       }
     }

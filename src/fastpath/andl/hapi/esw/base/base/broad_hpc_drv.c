@@ -2761,10 +2761,10 @@ L7_RC_t hpcBroadInit()
    */
 
   if ((script = sal_boot_script()) != NULL) {
-      if (sh_rcload_file(-1, NULL, script, FALSE) != CMD_OK) {
-          PT_LOG_ERR(LOG_CTX_STARTUP,"ERROR loading boot init script: %s\n", script);
-      }
-   }
+    if (sh_rcload_file(-1, NULL, script, FALSE) != CMD_OK) {
+      PT_LOG_ERR(LOG_CTX_STARTUP,"ERROR loading boot init script: %s\n", script);
+    }
+  }
 
 #if 0
   /*
@@ -2802,9 +2802,10 @@ L7_RC_t hpcBroadInit()
 #endif
 #endif
 
-  if (total_bcom_units <= 0) {
-      PT_LOG_ERR(LOG_CTX_STARTUP,"No attached units.\n");
-      L7_LOG_ERROR(0);
+  if (total_bcom_units <= 0)
+  {
+    PT_LOG_ERR(LOG_CTX_STARTUP,"No attached units.\n");
+    L7_LOG_ERROR(0);
   }
   else
   {
@@ -3377,11 +3378,11 @@ static soc_phy_table_t phy10GBASET_custom_entry =
 int
 systemInit(int unit)
 {
-  soc_port_t            port;
-  int                   rv;
-  sal_usecs_t           usec;
+  soc_port_t     port;
+  sal_usecs_t    usec;
+  pbmp_t         pbmp;
+  int            rv;
   char          *msg = NULL;
-  pbmp_t                pbmp;
 #if 0
 #ifdef BCM_ROBO_SUPPORT
 extern int soc_robo_misc_init(int ); 
@@ -3393,7 +3394,7 @@ extern int soc_robo_mmu_init(int );
   SYSTEM_INIT_CHECK(soc_robo_reset_init(unit), "Device reset");
   //SYSTEM_INIT_CHECK(soc_robo_misc_init(unit), "Misc init");
   //SYSTEM_INIT_CHECK(soc_robo_mmu_init(unit), "MMU init");
-#else
+#elif BCM_XGS_SUPPORT
   SYSTEM_INIT_CHECK(soc_reset_init(unit), "Device reset");
   //SYSTEM_INIT_CHECK(soc_misc_init(unit), "Misc init");
   //SYSTEM_INIT_CHECK(soc_mmu_init(unit), "MMU init");
@@ -3406,26 +3407,26 @@ extern int soc_robo_mmu_init(int );
    */
   PT_LOG_TRACE(LOG_CTX_STARTUP,"Initializing unit %u...", unit);
   if (soc_attached(SOC_NDEV_IDX2DEV(unit))) {
-      sh_swap_unit_vars(SOC_NDEV_IDX2DEV(unit));
-      if (SOC_IS_RCPU_ONLY(SOC_NDEV_IDX2DEV(unit)))
-      {
-          /* Wait for master unit to establish link */
-          sal_sleep(3);
-      }
-      PT_LOG_TRACE(LOG_CTX_STARTUP,"Going to load rc.soc file...");
-      if (sh_rcload_file(SOC_NDEV_IDX2DEV(unit), NULL, "/usr/local/ptin/sbin/rc.soc", FALSE) != CMD_OK)
-      {
-          PT_LOG_ERR(LOG_CTX_STARTUP,"ERROR loading rc script on unit %d\n", SOC_NDEV_IDX2DEV(unit));
-      }
-      else
-      {
-        PT_LOG_TRACE(LOG_CTX_STARTUP,"rc.soc file loaded!");
-      }
+    sh_swap_unit_vars(SOC_NDEV_IDX2DEV(unit));
+    if (SOC_IS_RCPU_ONLY(SOC_NDEV_IDX2DEV(unit)))
+    {
+      /* Wait for master unit to establish link */
+      sal_sleep(3);
+    }
+    PT_LOG_TRACE(LOG_CTX_STARTUP,"Going to load rc.soc file...");
+    if (sh_rcload_file(SOC_NDEV_IDX2DEV(unit), NULL, "/usr/local/ptin/sbin/rc.soc", FALSE) != CMD_OK)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP,"ERROR loading rc script on unit %d\n", SOC_NDEV_IDX2DEV(unit));
+    }
+    else
+    {
+      PT_LOG_TRACE(LOG_CTX_STARTUP,"rc.soc file loaded!");
+    }
   }
 
   PT_LOG_INFO(LOG_CTX_STARTUP,"rc.soc file loaded!");
 
-#if defined(INCLUDE_PHY_8706)  
+#if defined(INCLUDE_PHY_8706)
 #if L7_FEAT_SF10GBT
   socPhyCust8706.custPhySettings=cust_8706_settings;
 
@@ -3454,10 +3455,10 @@ extern int soc_robo_mmu_init(int );
  */
  if (hpcSoftwareLearningEnabled () != L7_TRUE)
  {
-	 if (soc_feature(unit, soc_feature_arl_hashed)) {
-	 usec = soc_property_get(unit, spn_L2XMSG_THREAD_USEC, 3000000);
-	 SYSTEM_INIT_CHECK(soc_l2x_start(unit, 0, usec), "L2X thread init");
-	 }
+   if (soc_feature(unit, soc_feature_arl_hashed)) {
+     usec = soc_property_get(unit, spn_L2XMSG_THREAD_USEC, 3000000);
+     SYSTEM_INIT_CHECK(soc_l2x_start(unit, 0, usec), "L2X thread init");
+   }
  }
 #endif  /* BCM_XGS_SWITCH_SUPPORT */
 
@@ -3466,19 +3467,22 @@ extern int soc_robo_mmu_init(int );
   SYSTEM_INIT_CHECK(bcm_init(unit), "BCM driver layer init");
 #endif
 
-  if (soc_property_get_str(unit, spn_BCM_LINKSCAN_PBMP) == NULL) {
-  SOC_PBMP_ASSIGN(pbmp, PBMP_PORT_ALL(unit));
-  } else {
-  pbmp = soc_property_get_pbmp(unit, spn_BCM_LINKSCAN_PBMP, 0);
+  if (soc_property_get_str(unit, spn_BCM_LINKSCAN_PBMP) == NULL)
+  {
+    SOC_PBMP_ASSIGN(pbmp, PBMP_PORT_ALL(unit));
+  }
+  else
+  {
+    pbmp = soc_property_get_pbmp(unit, spn_BCM_LINKSCAN_PBMP, 0);
   }
 
-  PBMP_ITER(pbmp, port) {
-
-  SYSTEM_INIT_CHECK(bcm_linkscan_mode_set(unit, port,
-                                              BCM_LINKSCAN_MODE_SW),
-             "Linkscan mode set");
-  SYSTEM_INIT_CHECK(bcm_stat_clear(unit, port),
-             "Stat clear");
+  PBMP_ITER(pbmp, port)
+  {
+    SYSTEM_INIT_CHECK(bcm_linkscan_mode_set(unit, port,
+                                            BCM_LINKSCAN_MODE_SW),
+                      "Linkscan mode set");
+    SYSTEM_INIT_CHECK(bcm_stat_clear(unit, port),
+                      "Stat clear");
   }
 
   usec = soc_property_get(unit, spn_BCM_LINKSCAN_INTERVAL, 250000);
@@ -3490,10 +3494,11 @@ extern int soc_robo_mmu_init(int );
 #endif
 
 done:
-  if (msg != NULL) {
-  PT_LOG_ERR(LOG_CTX_STARTUP,
-           "system_init: %s failed: %s\n",
-           msg, soc_errmsg(rv));
+  if (msg != NULL)
+  {
+    PT_LOG_ERR(LOG_CTX_STARTUP,
+               "system_init: %s failed: %s\n",
+               msg, soc_errmsg(rv));
   }
 
   return BCM_E_NONE;
