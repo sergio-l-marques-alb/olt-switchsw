@@ -3966,14 +3966,6 @@ L7_RC_t ptin_intf_bcast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL e
 
   LOG_TRACE(LOG_CTX_PTIN_MSG, "Configuring Broadcast stormcontrol...");
 
-  /* If purpose is to block traffic, apply 0 PPS */
-  if ( enable && rate_value == 0 &&
-      (rate_units == L7_RATE_UNIT_PERCENT || rate_units == L7_RATE_UNIT_KBPS))
-  {
-    rate_value = 0;
-    rate_units = L7_RATE_UNIT_PPS;
-  }
-
   /* Read current enable status */
   rc = usmDbSwDevCtrlBcastStormModeIntfGet(intIfNum, &enable_curr);
   if (rc != L7_SUCCESS)
@@ -4076,15 +4068,6 @@ L7_RC_t ptin_intf_mcast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL e
   }
 
   LOG_TRACE(LOG_CTX_PTIN_MSG, "Configuring Multicast stormcontrol for ptin_intf %u/%u, intIfNum %u...", ptin_intf->intf_type, ptin_intf->intf_id, intIfNum);
-
-  /* If purpose is to block traffic, apply 0 PPS */
-  /* This is because 0 Percent/Kbps, disables metering... */
-  if ( enable && rate_value == 0 &&
-      (rate_units == L7_RATE_UNIT_PERCENT || rate_units == L7_RATE_UNIT_KBPS))
-  {
-    rate_value = 0;
-    rate_units = L7_RATE_UNIT_PPS;
-  }
 
   /* Read current enable status */
   rc = usmDbSwDevCtrlMcastStormModeIntfGet(intIfNum, &enable_curr);
@@ -4189,15 +4172,6 @@ L7_RC_t ptin_intf_ucast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL e
   }
 
   LOG_TRACE(LOG_CTX_PTIN_MSG, "Configuring Unicast stormcontrol...");
-
-  /* If purpose is to block traffic, apply 0 PPS */
-  /* This is because 0 Percent/Kbps, disables metering... */
-  if ( enable && rate_value == 0 &&
-      (rate_units == L7_RATE_UNIT_PERCENT || rate_units == L7_RATE_UNIT_KBPS))
-  {
-    rate_value = 0;
-    rate_units = L7_RATE_UNIT_PPS;
-  }
 
   /* Read current enable status */
   rc = usmDbSwDevCtrlUcastStormModeIntfGet(intIfNum, &enable_curr);

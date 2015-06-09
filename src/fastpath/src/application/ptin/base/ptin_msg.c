@@ -5820,7 +5820,7 @@ L7_RC_t ptin_msg_stormControl2_set(msg_HwEthStormControl2_t *msgStormControl)
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error applying stormcontrol to ptin_intf %u/%u", ptin_intf.intf_type, ptin_intf.intf_id);
   }
 
-  return L7_SUCCESS;
+  return rc_global;
 }
 
 /**

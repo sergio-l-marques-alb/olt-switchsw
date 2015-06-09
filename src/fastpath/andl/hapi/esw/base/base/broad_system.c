@@ -1142,6 +1142,9 @@ L7_RC_t hapiBroadIntfBroadcastControlModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
     /* Multiple of 64 Kbps */
     rate  = (rate * 64) / 64;
 
+    /* Minimum value should be 64 Kbps */
+    if (rate == 0)  rate = 64;
+
     /* Always KBPS */
     units = L7_RATE_UNIT_KBPS;
 
