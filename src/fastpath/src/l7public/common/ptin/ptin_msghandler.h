@@ -880,9 +880,8 @@ typedef enum
   L2_MACLIMIT_MASK_LIMIT           = 0x0002,
   L2_MACLIMIT_MASK_ACTION          = 0x0004,
   L2_MACLIMIT_MASK_SEND_TRAP       = 0x0008,
-  //L2_MACLIMIT_MASK_VLAN            = 0x0010,
-  //L2_MACLIMIT_MASK_INTF            = 0x0011
-
+  L2_MACLIMIT_MASK_VLAN            = 0x0010,
+  L2_MACLIMIT_MASK_INTF            = 0x0020
 } L2_MACLIMIT_MASK_t;
 
 typedef enum

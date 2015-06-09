@@ -4176,7 +4176,7 @@ L7_RC_t ptin_msg_l2_maclimit_config(msg_l2_maclimit_config_t *maclimit)
   LOG_DEBUG(LOG_CTX_PTIN_MSG," action       = %u",      maclimit->action);
   LOG_DEBUG(LOG_CTX_PTIN_MSG," trap         = %u",      maclimit->send_trap);
 
-  memset(&entry, 0, sizeof(ptin_l2_maclimit_t));
+  memset(&entry, 0x00, sizeof(ptin_l2_maclimit_t));
 
   if ((maclimit->mask & L2_MACLIMIT_MASK_SYSTEM) & (maclimit->system))
   {
@@ -4186,47 +4186,55 @@ L7_RC_t ptin_msg_l2_maclimit_config(msg_l2_maclimit_config_t *maclimit)
   {
     /* Get intIfNum */
     ptin_intf.intf_type = maclimit->intf.intf_type;
-    ptin_intf.intf_id = maclimit->intf.intf_id;
-  
+    ptin_intf.intf_id = maclimit->intf.intf_id;  
     if (ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ptin_intf");
+      LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ptin_intf: %u/%u", ptin_intf.intf_type, ptin_intf.intf_id);
       return L7_FAILURE;
-    }
-    
-    if (maclimit->mask & L2_MACLIMIT_MASK_ACTION)
-    {
-      entry.action = maclimit->action;
-    }
-    else
-    {
-      entry.action = -1;
-    }
-    if (maclimit->mask & L2_MACLIMIT_MASK_SEND_TRAP)
-    {
-      entry.send_trap = maclimit->send_trap;
-    }
-    else
-    {
-      entry.send_trap = -1;
-    }
-    if (maclimit->mask & L2_MACLIMIT_MASK_LIMIT)
-    {
-      entry.limit = maclimit->limit;
-
-      if (entry.limit == -1) /* case unlimited turn off Trap and Action*/
-      {
-         entry.send_trap = 0;
-         entry.action = 0;
-      }
-    }
-    else
-    {
-      entry.limit = 0;
     }
   }
 
-  dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_L2_MACLIMIT, DAPI_CMD_SET, sizeof(ptin_l2_maclimit_t), &entry);
+  if (maclimit->mask & L2_MACLIMIT_MASK_LIMIT)
+  {
+    entry.limit = maclimit->limit;    
+  }
+  else
+  {
+    entry.limit = 0;
+  }
+
+  if (maclimit->mask & L2_MACLIMIT_MASK_ACTION)
+  {
+    entry.action = maclimit->action;
+  }
+  else
+  {
+    entry.action = -1;
+  }
+
+  if (maclimit->mask & L2_MACLIMIT_MASK_SEND_TRAP)
+  {
+    entry.send_trap = maclimit->send_trap;
+  }
+  else
+  {
+    entry.send_trap = -1;
+  }  
+
+  rc = dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_L2_MACLIMIT, DAPI_CMD_SET, sizeof(ptin_l2_maclimit_t), &entry);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Failed set limit on hardware: rc:%u!", rc);
+    LOG_ERR(LOG_CTX_PTIN_MSG," slotId       = %u",      maclimit->slotId);
+    LOG_ERR(LOG_CTX_PTIN_MSG," interface    = %u/%u",   maclimit->intf.intf_type, maclimit->intf.intf_id);
+    LOG_ERR(LOG_CTX_PTIN_MSG," mask         = 0x%.8X",  maclimit->mask);
+    LOG_ERR(LOG_CTX_PTIN_MSG," vid          = %u",      maclimit->vid);
+    LOG_ERR(LOG_CTX_PTIN_MSG," system       = %u",      maclimit->system);
+    LOG_ERR(LOG_CTX_PTIN_MSG," limit        = %u",      maclimit->limit);
+    LOG_ERR(LOG_CTX_PTIN_MSG," action       = %u",      maclimit->action);
+    LOG_ERR(LOG_CTX_PTIN_MSG," trap         = %u",      maclimit->send_trap);
+    return rc;
+  }
 
   return rc;
 }
@@ -4240,21 +4248,10 @@ L7_RC_t ptin_msg_l2_maclimit_config(msg_l2_maclimit_config_t *maclimit)
  */
 L7_RC_t ptin_msg_l2_maclimit_status(msg_l2_maclimit_status_t *maclimit_status)
 {
-  ptin_l2_maclimit_status_t entry;
-  L7_RC_t rc = L7_SUCCESS;
-
-  ptin_intf_t ptin_intf;
-  L7_uint32   intIfNum;
-  ptin_intf.intf_type = maclimit_status->intf.intf_type;
-  ptin_intf.intf_id = maclimit_status->intf.intf_id;
-
-  if (ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum) != L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ptin_intf");
-    return L7_FAILURE;
-  }
-
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Message function '%s' being executed",__FUNCTION__);
+  ptin_l2_maclimit_status_t entry;  
+  ptin_intf_t               ptin_intf;
+  L7_uint32                 intIfNum;
+  L7_RC_t                   rc = L7_SUCCESS;
 
   /* Validate arguments */
   if (maclimit_status==L7_NULLPTR)
@@ -4266,7 +4263,24 @@ L7_RC_t ptin_msg_l2_maclimit_status(msg_l2_maclimit_status_t *maclimit_status)
   LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId       = %u",      maclimit_status->slotId);
   LOG_DEBUG(LOG_CTX_PTIN_MSG," interface    = %u/%u",   maclimit_status->intf.intf_type, maclimit_status->intf.intf_id);
 
-  dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_L2_MACLIMIT_STATUS, DAPI_CMD_GET, sizeof(ptin_l2_maclimit_status_t), &entry);
+  ptin_intf.intf_type = maclimit_status->intf.intf_type;
+  ptin_intf.intf_id = maclimit_status->intf.intf_id;
+  if (ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ptin_intf: %u/%u", ptin_intf.intf_type, ptin_intf.intf_id);
+    return L7_FAILURE;
+  } 
+
+  memset(&entry, 0x00, sizeof(ptin_l2_maclimit_status_t));
+
+  rc = dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_L2_MACLIMIT_STATUS, DAPI_CMD_GET, sizeof(ptin_l2_maclimit_status_t), &entry);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Failed to get status from hardware: rc:%u!", rc);
+    LOG_ERR(LOG_CTX_PTIN_MSG," slotId       = %u",      maclimit_status->slotId);
+    LOG_ERR(LOG_CTX_PTIN_MSG," interface    = %u/%u",   maclimit_status->intf.intf_type, maclimit_status->intf.intf_id);    
+    return rc;
+  }
 
   maclimit_status->number_mac_learned = entry.number_mac_learned;
   maclimit_status->status = entry.status;
