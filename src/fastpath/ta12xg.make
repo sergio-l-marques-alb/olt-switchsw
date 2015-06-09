@@ -30,7 +30,7 @@ export COMPILER         = /opt/eldk/usr/bin/ppc_85xxDP-
 export KERNEL_PATH      = /home/olt/svnrepo/olt-switchsw/trunk/lib/kernel/linux-3.8.13
 
 
-CARD_FOLDER = FastPath-Ent-esw-dnx-e500-LR-CSxw-IQH_TA12XG
+CARD_FOLDER = FastPath-Ent-dpp-dnx-e500-LR-CSxw-IQH_TA12XG
 CARD		= $(word 2,$(subst _, ,$(CARD_FOLDER)))
 CPU		= $(word 5,$(subst -, ,$(CARD_FOLDER)))
 
