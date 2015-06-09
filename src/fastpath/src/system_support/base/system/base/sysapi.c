@@ -154,9 +154,7 @@ void sysapiInit (void (*box_reset)(void))
     printf("Failed to initialize the SDM template manager.\n\n");
   }
 
-  PT_LOG_INFO(LOG_CTX_STARTUP,"Starting sysapiSystemInit!");
   (void)sysapiSystemInit();
-  PT_LOG_INFO(LOG_CTX_STARTUP,"sysapiSystemInit finished!");
 
   rc = asyncEventHandlerInit();
   if (rc != L7_SUCCESS)
@@ -392,6 +390,8 @@ L7_RC_t sysapiSystemInit(void)
   /* clock while the CPU utilization is also using it.                  */
   sysapiCpuUtilTaskStart();
 #endif
+
+  PT_LOG_INFO(LOG_CTX_STARTUP,"sysapiSystemInit: Finished!");
 
   return(L7_SUCCESS);
 }
