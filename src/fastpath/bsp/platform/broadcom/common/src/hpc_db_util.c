@@ -253,7 +253,7 @@ L7_RC_t hpcLocalCardIdDiscover(void)
           localPortCnt[i] = card_descriptor_ptr->cardTypeDescriptor.numOfNiPorts;
           localPhysicalPortCount += localPortCnt[i];
         }
-        PT_LOG_TRACE(LOG_CTX_STARTUP,"Card id 0x%x present!",cardId);
+        PT_LOG_TRACE(LOG_CTX_STARTUP,"Card id 0x%x present!", localCardIDs[i]);
       }
       else
       {

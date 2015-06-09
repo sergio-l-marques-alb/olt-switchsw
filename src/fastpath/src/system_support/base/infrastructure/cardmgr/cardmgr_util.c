@@ -2263,7 +2263,7 @@ L7_RC_t cmgrInitSlotsOnUnit(L7_uint32 unit)
     return L7_FAILURE;
   }
 
-  PT_LOG_TRACE(LOG_CTX_STARTUP, "cmgrInitSlotsOnUnit: init");
+  PT_LOG_TRACE(LOG_CTX_STARTUP, "cmgrInitSlotsOnUnit: init (slot=0..%u)", cmgrCMDBUnitMaxSlotsGet(unit));
 
   for (slot = 0; slot <= cmgrCMDBUnitMaxSlotsGet(unit); slot++)
   {
@@ -3969,6 +3969,8 @@ void cmgrTask()
                              sizeof(cmgr_cmpdu_t), L7_WAIT_FOREVER);
     if (rc == L7_SUCCESS)
     {
+      PT_LOG_INFO(LOG_CTX_STARTUP,"cmpdu.cmgrPacketType=%u", cmpdu.cmgrPacketType);
+
       CMGR_TRACE_CMPDU_EVENT(cmpdu.cmgrPacketType,
                              L7_TRUE,
                              cmpdu.unit
