@@ -214,5 +214,5 @@ fi
 #Restore User Path
 cd $currentPath
 
-echo "Done!"
+echo "Done: fastpath-olt.image-v$oltVersion.$patchVersion-r$svnRelease!"
 exit 0
