@@ -38,10 +38,26 @@
    ** as the first card in the list. This arrangement produces
    ** consecutive card indexes that start with 1.
    */
+{
+  {
+    /* GTO CPU Card */
+    CARD_CPU_GTO_REV_1_ID,      /* cardtypeID */     
+    "LVL7 Base CPU Card",        /* cardModel  */
+    "LVL7 Base CPU Card",        /* cardDescription  */
+    SYSAPI_CARD_TYPE_CPU,        /* type       */
+    0,                           /* numOfNimPorts */
+
+    SYSAPI_NO_CODE_LOAD,    /* codeLoadTargetId - What code to load on this device */
+    SYSAPI_NO_CONFIG_LOAD,  /* configLoadTargetId - What configuration to load on this device */
+    L7_NULLPTR,                  /* portInfo, refers to table declared above for each card type */
+    &dapiBroadBaseCardEntry       /* dapiCardInfo */
+  }
+}
+,
 /* PTin added: new switch ARAD */
 {
   {
-    CARD_BROAD_12_ETH_4_BCK_88650_REV_1_ID,   /* cardtypeID */
+    CARD_BROAD_12_ETH_4_BCK_88360_REV_1_ID,   /* cardtypeID */
     "DNX-ARAD-12ETH-4BCK",                    /* cardModel  */
     "Broadcom DNX-ARAD - 12 Port ETH + 4 BCK Line Card",  /* cardDescription  */
     SYSAPI_CARD_TYPE_LINE,            /* type       */

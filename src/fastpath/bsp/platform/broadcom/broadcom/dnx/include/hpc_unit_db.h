@@ -38,7 +38,7 @@
 /* PTin added: new switch ARAD */
 {
   {     
-     UNIT_BROAD_12_ETH_4_BCK_88650_REV_1_ID,       /* unitTypeID */
+     UNIT_BROAD_12_ETH_4_BCK_88360_REV_1_ID,       /* unitTypeID */
      "BCM-88360-00",                                  /* unitModel */
      "Broadcom DNX-ARAD Development System - 12 ETH, 4 BCK",  /* unitDescription */
      L7_UNITMGR_MGMTFUNC_UNASSIGNED,                /* managementPreference */
