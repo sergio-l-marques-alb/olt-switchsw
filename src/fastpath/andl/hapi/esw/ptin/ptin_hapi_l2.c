@@ -1260,36 +1260,36 @@ void ptin_maclimit_dump(void)
   /* MAC learning control at vlan level */
   for (i=0; i<MAX_VLANS; i++)
   {
-    if (macLearn_info_vlan[i].mac_limit != DEFAULT_VALUE)
+    if (macLearn_info_vlan[i].enable != 0)
     {
-      printf(" VLAN=%.4u   %u of %u (total: %u)\n", i, macLearn_info_vlan[i].mac_counter, macLearn_info_vlan[i].mac_limit, macLearn_info_vlan[i].mac_total);
+      printf(" VLAN=%.4u   (enable:%u send_trap:%u old_limit:%u mask:0x%08x) %u of %u (total: %u) macs learned\n", i, macLearn_info_vlan[i].enable, macLearn_info_vlan[i].send_trap, macLearn_info_vlan[i].old_limit, macLearn_info_vlan[i].mask, macLearn_info_vlan[i].mac_counter, macLearn_info_vlan[i].mac_limit, macLearn_info_vlan[i].mac_total);
     }
   }
 
   /* MAC learning control at virtual port level */
   for (i=0; i<MAX_GPORTS; i++) 
   {
-    if (macLearn_info_flow[i].mac_limit != DEFAULT_VALUE)
+    if (macLearn_info_flow[i].enable != 0)
     {
-      printf(" GPORT=0x%.4x  %u of %u (total: %u)\n", i, macLearn_info_flow[i].mac_counter, macLearn_info_flow[i].mac_limit, macLearn_info_flow[i].mac_total);
+      printf(" GPORT=0x%.4x  (enable:%u send_trap:%u old_limit:%u mask:0x%08x) %u of %u (total: %u) macs learned\n", i, macLearn_info_flow[i].enable, macLearn_info_flow[i].send_trap, macLearn_info_flow[i].old_limit, macLearn_info_flow[i].mask, macLearn_info_flow[i].mac_counter, macLearn_info_flow[i].mac_limit, macLearn_info_flow[i].mac_total);
     }
   }
 
    /* MAC learning control at physical port level */
   for (i=0; i<L7_MAX_PORT_COUNT; i++) 
   {
-    if (macLearn_info_physical[i].mac_limit != DEFAULT_VALUE)
+    if (macLearn_info_physical[i].enable != 0)
     {
-      printf(" Physical PORT=0x%.4x  %u of %u (total: %u)\n", i, macLearn_info_physical[i].mac_counter, macLearn_info_physical[i].mac_limit, macLearn_info_physical[i].mac_total);
+      printf(" Physical PORT=0x%.4x  (enable:%u send_trap:%u old_limit:%u mask:0x%08x)  %u of %u (total: %u) macs learned\n", i, macLearn_info_physical[i].enable, macLearn_info_physical[i].send_trap, macLearn_info_physical[i].old_limit, macLearn_info_physical[i].mask,  macLearn_info_physical[i].mac_counter, macLearn_info_physical[i].mac_limit, macLearn_info_physical[i].mac_total);
     }
   }
 
   /* MAC learning control at physical port level */
   for (i=0; i<PTIN_SYSTEM_N_LAGS; i++) 
   {
-    if (macLearn_info_lag[i].mac_limit != DEFAULT_VALUE)
+    if (macLearn_info_lag[i].enable != 0)
     {
-      printf(" LAG=0x%.4x  %u of %u (total: %u)\n", i, macLearn_info_lag[i].mac_counter, macLearn_info_lag[i].mac_limit, macLearn_info_lag[i].mac_total);
+      printf(" LAG=0x%.4x  (enable:%u send_trap:%u old_limit:%u mask:0x%08x) %u of %u (total: %u) macs learned\n", i, macLearn_info_lag[i].enable, macLearn_info_lag[i].send_trap, macLearn_info_lag[i].old_limit, macLearn_info_lag[i].mask, macLearn_info_lag[i].mac_counter, macLearn_info_lag[i].mac_limit, macLearn_info_lag[i].mac_total);
     }
   }
   printf("\n");
