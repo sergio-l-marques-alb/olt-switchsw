@@ -2542,7 +2542,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
         }
         else
         {
-          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Multicast group %u created", evc_id, multicast_group);
+          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Multicast group 0x%08x created", evc_id, multicast_group);
         }
       }
     }
@@ -2862,14 +2862,15 @@ _ptin_evc_create1:
         LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Removed multicast replication for vlan %u / group %d", evc_id, root_vlan, evcs[evc_id].multicast_group);
       }
       #endif
-
+      /*  Destroy Multicast group */
       if (ptin_multicast_group_destroy(evcs[evc_id].multicast_group)!=L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error destroying Multicast group %u", evc_id, evcs[evc_id].multicast_group);
         //return L7_FAILURE;/*Operation still running*/
       }
-      evcs[evc_id].multicast_group = -1;
-    } 
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Removed multicast mc_group %d", evc_id, evcs[evc_id].multicast_group);
+    }
+    evcs[evc_id].multicast_group = -1; 
 
     if (evc_ext_id == PTIN_EVC_INBAND)
     {
@@ -3442,26 +3443,26 @@ L7_RC_t ptin_evc_delete(L7_uint32 evc_ext_id)
                     #endif
      ) && evcs[evc_id].multicast_group > 0)
   { 
-    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED      
-    if (IS_EVC_QUATTRO(evc_id))      
+    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+    if (IS_EVC_QUATTRO(evc_id))
     {
       /* Virtual ports: Configure multicast group for the vlan */
       if (ptin_vlanBridge_multicast_clear(evcs[evc_id].rvlan, evcs[evc_id].multicast_group)!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing Multicast replication for VLAN %u (mcgroup=%u)", evc_id, evcs[evc_id].rvlan, evcs[evc_id].multicast_group);
-        return L7_FAILURE;
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing Multicast replication for VLAN %u (mc_group=0x%08x)", evc_id, evcs[evc_id].rvlan, evcs[evc_id].multicast_group);
+        //return L7_FAILURE;
       }
-    }
-    LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Removed multicast replication for vlan %u / group %d", evc_id, evcs[evc_id].rvlan, evcs[evc_id].multicast_group);
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Removed multicast replication for vlan %u / mc_group 0x%08x", evc_id, evcs[evc_id].rvlan, evcs[evc_id].multicast_group);
+    }       
     #endif
     /*  Destroy Multicast group */
     if (ptin_multicast_group_destroy(evcs[evc_id].multicast_group)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error destroying multicast group %d", evc_id, evcs[evc_id].multicast_group);
-      return L7_FAILURE;
-    }    
-  }
-  
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error destroying mc_group 0x%08x", evc_id, evcs[evc_id].multicast_group);
+      //return L7_FAILURE;/*Operation still running*/
+    }
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Removed mc_group 0x%08x", evc_id, evcs[evc_id].multicast_group);
+  }  
   evcs[evc_id].multicast_group = -1;
 
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
@@ -3649,19 +3650,20 @@ L7_RC_t ptin_evc_destroy(L7_uint32 evc_ext_id)
       /* Virtual ports: Configure multicast group for the vlan */
       if (ptin_vlanBridge_multicast_clear(evcs[evc_id].rvlan, evcs[evc_id].multicast_group)!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing Multicast replication for VLAN %u (mcgroup=%u)", evc_id, evcs[evc_id].rvlan, evcs[evc_id].multicast_group);
-        return L7_FAILURE;      
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing Multicast replication for VLAN %u (mc_group=0x%08x)", evc_id, evcs[evc_id].rvlan, evcs[evc_id].multicast_group);
+        //return L7_FAILURE;
       }
-      LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Removed multicast replication for vlan %u / group %d", evc_id, evcs[evc_id].rvlan, evcs[evc_id].multicast_group);
-    }
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Removed multicast replication for vlan %u / mc_group 0x%08x", evc_id, evcs[evc_id].rvlan, evcs[evc_id].multicast_group);
+    }      
     #endif
 
     /* Destroy Multicast group */
     if (ptin_multicast_group_destroy(evcs[evc_id].multicast_group)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error destroying multicast group %d", evc_id, evcs[evc_id].multicast_group);
-      return L7_FAILURE; 
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error destroying mc_group 0x%08x", evc_id, evcs[evc_id].multicast_group);
+      //return L7_FAILURE;/*Operation still running*/
     }
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Removed mc_group 0x%08x", evc_id, evcs[evc_id].multicast_group);
   }  
   evcs[evc_id].multicast_group = -1;
 
@@ -8739,7 +8741,6 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
           LOG_ERR(LOG_CTX_PTIN_EVC, "Error removing Egress Port from Multicast Group [ptin_port:%u l3_intf_id:%d mc_group:0x%x rc:%d]",ptin_port, l3_intf.l3_intf_id, evcs[evc_id].multicast_group, rc);
           return L7_FAILURE;
         }
-
         LOG_TRACE(LOG_CTX_PTIN_EVC, "Egress Port Removed from Multicast Group [ptin_port:%u l3_intf_id:%d mc_group:0x%x]", ptin_port, l3_intf.l3_intf_id, evcs[evc_id].multicast_group);    
         
 
