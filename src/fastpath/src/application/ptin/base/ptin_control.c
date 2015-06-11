@@ -184,9 +184,12 @@ void ptinTask(L7_uint32 numArgs, void *unit)
 #endif
 
 #if (PTIN_BOARD_IS_MATRIX)
-  LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Waiting 30 seconds to switch from PTIN_ISLOADING to PTIN_LOADED state...");
+/*Added a 30 seconds delay to prevent abnormal behaviour on the HW L3_IPMC Table of the Standby Matrix. 
+  Restored the waiting delay of ptin_control_switchover_monitor() from 30 to 10 seconds.
+  This approach is preferable, since this routine is executed before the flush takes place*/
+  LOG_NOTICE(LOG_CTX_PTIN_CNFGR, "Waiting 30 seconds to switch from PTIN_ISLOADING to PTIN_LOADED state...");
   sleep(30);
-  LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Done.");
+  LOG_NOTICE(LOG_CTX_PTIN_CNFGR, "Done.");
 #endif
 
   /* Signal correct initialization */
