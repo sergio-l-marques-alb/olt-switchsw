@@ -2655,7 +2655,8 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
         }
         else
         {
-         LOG_WARNING(LOG_CTX_PTIN_IGMP, "Channel Already Added [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isStatic:%u isProtection:%u]", 
+          if (ptin_debug_igmp_snooping)            
+            LOG_WARNING(LOG_CTX_PTIN_IGMP, "Channel Already Added [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isStatic:%u isProtection:%u]", 
                     serviceId, vlanId, intIfNum, groupAddrStr, sourceAddrStr, isStatic, isProtection);     
           return L7_SUCCESS;
         }
