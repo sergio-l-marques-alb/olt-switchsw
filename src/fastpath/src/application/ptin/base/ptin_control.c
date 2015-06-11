@@ -183,6 +183,12 @@ void ptinTask(L7_uint32 numArgs, void *unit)
   osapiSemaGive(ptin_switchover_sem);
 #endif
 
+#if (PTIN_BOARD_IS_MATRIX)
+  LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Waiting 30 seconds to switch from PTIN_ISLOADING to PTIN_LOADED state...");
+  sleep(30);
+  LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Done.");
+#endif
+
   /* Signal correct initialization */
   ptin_state = PTIN_LOADED;
 
@@ -825,7 +831,7 @@ void ptin_control_switchover_monitor(void)
     {
       LOG_INFO(LOG_CTX_PTIN_CONTROL, "Switchover detected (to active=%d). Waiting 10 seconds...", matrix_is_active);
 
-      osapiSleep(30);
+      osapiSleep(10);
 
       LOG_INFO(LOG_CTX_PTIN_CONTROL, "Going to process switchover init (active=%d)", matrix_is_active);
 
