@@ -484,7 +484,8 @@ L7_RC_t ptin_multicast_egress_port_remove(L7_uint32 intIfNum, L7_int mcast_group
   }
   LOG_TRACE(LOG_CTX_PTIN_API, "intIfNum=%u, mcast_group=%u", intIfNum, mcast_group);
 
-  /* Fill structure */
+   /* Fill structure */
+  memset(&mode, 0x00, sizeof(mode));
   mode.oper             = DAPI_CMD_CLEAR;
   mode.virtual_gport    = virtual_gport;
   mode.multicast_group  = mcast_group;
@@ -548,6 +549,7 @@ L7_RC_t ptin_multicast_egress_clean(L7_int mcast_group)
   LOG_TRACE(LOG_CTX_PTIN_API, "mcast_group=%u", mcast_group);
 
   /* Fill structure */
+  memset(&mode, 0x00, sizeof(mode));
   mode.oper             = DAPI_CMD_CLEAR_ALL;
   mode.vlanId           = -1;
   mode.multicast_group  = mcast_group;
