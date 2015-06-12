@@ -130,7 +130,7 @@ L7_RC_t broad_ptin_l2_maclimit(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "%s: usp={%d,%d,%d} operation=%u dataSize=%u", __FUNCTION__, usp->unit, usp->slot, usp->port, operation, dataSize);
 
   // Check action: None-0 or Limit-1. If none, the MAC learning is not limited 
-  if (entry->limit == -1)
+  if (entry->limit == (L7_uint32) -1)
   {
     entry->action=0;
     entry->send_trap=0;

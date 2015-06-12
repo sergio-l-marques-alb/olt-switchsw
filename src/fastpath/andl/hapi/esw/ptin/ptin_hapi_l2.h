@@ -48,24 +48,6 @@ extern L7_RC_t ptin_hapi_maclimit_dec(bcmx_l2_addr_t *bcmx_l2_addr);
 extern L7_RC_t ptin_hapi_vport_maclimit_reset(bcm_gport_t gport);
 
 /**
- * Reset number of learned MAC addresses (VLAN level)
- * 
- * @param vlanId : VLAN id 
- * 
- * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
- */
-extern L7_RC_t ptin_hapi_vlan_maclimit_reset(bcm_vlan_t vlan_id);
-
-/**
- * Reset number of learned MAC addresses (LAG level)
- * 
- * @param trunkId : Trunk id 
- * 
- * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
- */
-extern L7_RC_t ptin_hapi_lag_maclimit_reset(bcm_trunk_t trunk_id);
-
-/**
  * Set maximum number of learned MAC addresses (Vport level)
  * 
  * @param gport  : GPort (virtual port)
@@ -82,7 +64,7 @@ extern L7_RC_t ptin_hapi_vport_maclimit_setmax(bcm_gport_t gport, L7_uint8 max_v
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, int mac_limit, L7_uint16 action, L7_uint16 send_trap, DAPI_t *dapi_g);
+extern L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, L7_uint32 mac_limit, L7_uint16 action, L7_uint16 send_trap, DAPI_t *dapi_g);
 
 /**
  * Set maximum number of learned MAC addresses
