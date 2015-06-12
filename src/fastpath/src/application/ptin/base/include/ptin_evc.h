@@ -289,6 +289,26 @@ extern L7_BOOL ptin_evc_is_in_use(L7_uint32 evc_ext_id);
 extern L7_BOOL ptin_evc_is_intf_in_use(L7_uint intf_idx);
 
 /**
+ * Determines if a particular Port/LAG is being used on EVC Id
+ *  
+ * @param evc_ext_id  
+ * @param intfNum 
+ * 
+ * @return L7_BOOL L7_TRUE/L7_FALSE
+ */
+extern L7_BOOL ptin_evc_is_intf_in_use_on_evc(L7_uint32 evc_ext_id, L7_uint intfNum);
+
+/**
+ * Determines if a particular Port/LAG is Leaf on EVC Id
+ *  
+ * @param evc_ext_id  
+ * @param intfNum 
+ * 
+ * @return L7_BOOL L7_TRUE/L7_FALSE
+ */
+extern L7_BOOL ptin_evc_is_intf_leaf_on_evc(L7_uint32 evc_ext_id, L7_uint intfNum);
+
+/**
  * Get interface configuration within an EVC
  *  
  * @param evc_ext_id : EVC extended id

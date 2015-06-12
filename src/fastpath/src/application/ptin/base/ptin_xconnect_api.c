@@ -310,7 +310,7 @@ L7_RC_t ptin_multicast_group_l3_create(L7_int *mcast_group)
 
   *mcast_group = mcastGroup;
   
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d (new MC group=%d)", rc, mcastGroup);
+  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d (new MC group=0x%08x)", rc, mcastGroup);
 
   return rc;
 }

@@ -1106,6 +1106,23 @@ extern L7_RC_t ptin_igmp_rootIntfVlan_validate(L7_uint32 intIfNum, L7_uint16 int
  */
 extern L7_RC_t ptin_igmp_clientIntfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan);
 
+/**
+ * Validate igmp packet checking if the input intIfNum is a 
+ * client (leaf) interface and internal Vlan is valid 
+ * 
+ * @param intIfNum : source interface number
+ * @param intVlan  : internal vlan
+ * 
+ * @return L7_RC_t : L7_SUCCESS: Parameters are valid
+ *                   L7_FAILURE: Not valid
+ *  
+ * This function will only apply to input packets, and so, input 
+ * packets in client/leaf interfaces must use the Unicast vlans. 
+ * Therefore we must use the Unicast EVC to validate a client 
+ * interface. 
+ */
+L7_RC_t ptin_igmp_get_port_type(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint32 *port_type);
+
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
 /**
  * Get the MC root vlan associated to the internal vlan

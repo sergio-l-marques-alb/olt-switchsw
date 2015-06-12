@@ -416,7 +416,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   L7_uchar8         *igmpPtr       = L7_NULLPTR;
   L7_uint32          client_idx    = (L7_uint32) -1;              /* PTin added: IGMP snooping */
   L7_uint16          mcastRootVlan; /* Internal vlan will be converted to MC root vlan */
-  L7_BOOL            isRootPort;
+  L7_uint32          port_type;
  
   if (ptin_debug_igmp_snooping)
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"{");
@@ -528,15 +528,26 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   /* PTin added: IGMP snooping */
 #if 1
    ptin_timer_start(73,"ptin_igmp_clientIntfVlan_validate");
-  /*Get Port Type*/
-  isRootPort  = ptin_igmp_clientIntfVlan_validate(pduInfo->intIfNum, pduInfo->vlanId);
+  /*Get Port Type*/   
+  rc = ptin_igmp_get_port_type(pduInfo->intIfNum, pduInfo->vlanId, &port_type);
   ptin_timer_stop(73);
+  if (rc != L7_SUCCESS)
+  {
+    L7_enetMacAddr_t   clientMacAddr;
+    memcpy(&clientMacAddr.addr, &data[6], sizeof(clientMacAddr));  
+    L7_uchar8 macAddrStr[SNOOP_MAC_STR_LEN];      
+    snoopMacToString(clientMacAddr.addr, macAddrStr);
+
+    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Packet Silently Ignored. Failed to Obtain Port Type! [intIfNum:%u vlanId:%u macAddrStr:%s]", pduInfo->intIfNum, pduInfo->vlanId, macAddrStr);
+    ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);    
+    return L7_FAILURE;
+  }  
 
   /* Search for client index if this is a leaf port*/
-   if (!isRootPort)
+   if (port_type == PTIN_EVC_INTF_LEAF)
    {
      ptin_timer_start(74,"ptin_igmp_clientIndex_get");
-     #if ( PTIN_BOARD_IS_MATRIX )
+     #if ( PTIN_BOARD_IS_MATRIX )     
      rc = ptin_igmp_clientIndex_get(pduInfo->intIfNum,
                                 L7_NULL, L7_NULL,
                                 L7_NULL,
@@ -589,7 +600,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 
 #ifdef IGMP_DYNAMIC_CLIENTS_SUPPORTED
   /* For leaf interfaces */
-  if ( !isRootPort )
+  if ( port_type == PTIN_EVC_INTF_LEAF )
   {
     if (client_idx>=PTIN_IGMP_CLIENTIDX_MAX)
     {
@@ -764,7 +775,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 
   ptin_timer_start(76,"ptin_igmp_McastRootVlan_get");
   /* Get multicast root vlan */  
-  if ( ptin_igmp_McastRootVlan_get(pduInfo->vlanId, pduInfo->intIfNum, !isRootPort, client_idx, &groupAddr, &sourceAddr, &mcastRootVlan) == L7_SUCCESS )
+  if ( ptin_igmp_McastRootVlan_get(pduInfo->vlanId, pduInfo->intIfNum, (port_type == PTIN_EVC_INTF_LEAF), client_idx, &groupAddr, &sourceAddr, &mcastRootVlan) == L7_SUCCESS )
   {
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"Vlan=%u will be converted to %u (grpAddr=%s)",
               pduInfo->vlanId, mcastRootVlan, inetAddrPrint(&groupAddr,groupAddrStr));

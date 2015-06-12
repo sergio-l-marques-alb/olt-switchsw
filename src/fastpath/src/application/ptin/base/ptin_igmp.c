@@ -6126,6 +6126,83 @@ L7_RC_t ptin_igmp_clientIntfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
   return L7_SUCCESS;
 }
 
+/**
+ * Validate igmp packet checking if the input intIfNum is a 
+ * client (leaf) interface and internal Vlan is valid 
+ * 
+ * @param intIfNum : source interface number
+ * @param intVlan  : internal vlan
+ * 
+ * @return L7_RC_t : L7_SUCCESS: Parameters are valid
+ *                   L7_FAILURE: Not valid
+ *  
+ * This function will only apply to input packets, and so, input 
+ * packets in client/leaf interfaces must use the Unicast vlans. 
+ * Therefore we must use the Unicast EVC to validate a client 
+ * interface. 
+ */
+L7_RC_t ptin_igmp_get_port_type(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint32 *port_type)
+{
+  //st_IgmpInstCfg_t *igmpInst;
+  ptin_intf_t ptin_intf;
+  ptin_evc_intfCfg_t intf_cfg;
+  L7_uint32 evc_id;
+
+  /* Get ptin_intf format for the interface number */
+  if (ptin_intf_intIfNum2ptintf(intIfNum,&ptin_intf)!=L7_SUCCESS)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting ptin_intf from intIfNum %u",intIfNum);
+    return L7_FAILURE;
+  }
+
+
+  if (ptin_evc_get_evcIdfromIntVlan(intVlan, &evc_id)!=L7_SUCCESS)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"No EVC id associated to intVlan %u",intVlan);
+    return L7_FAILURE;
+  }
+
+  /* Get interface configuration */
+  if (ptin_evc_intfCfg_get(evc_id, &ptin_intf,&intf_cfg)!=L7_SUCCESS)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting intf configuration for ptin_intf=%u/%u (intIfNum=%u), EvcId=%u (intVlan=%u)",
+              ptin_intf.intf_type,ptin_intf.intf_id,intIfNum,evc_id,intVlan);
+    return L7_FAILURE;
+  }
+
+  /* Interfaces must be in use in both evcs */
+  if (!intf_cfg.in_use)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Interface ptin_intf=%u/%u (intIfNum=%u) not in use for EvcId=%u (intVlan=%u)",
+              ptin_intf.intf_type,ptin_intf.intf_id,intIfNum,evc_id,intVlan);
+    return L7_FAILURE;
+  }
+
+  if (port_type != L7_NULLPTR)
+  {
+    if (intf_cfg.type == PTIN_EVC_INTF_LEAF)
+    {
+      *port_type = PTIN_EVC_INTF_LEAF;
+    }
+    else
+    {
+      if (intf_cfg.type == PTIN_EVC_INTF_ROOT)
+      {
+        *port_type = PTIN_EVC_INTF_ROOT;
+      }
+      else
+      {
+        return L7_FAILURE;
+      }
+    }
+  }
+  return L7_FAILURE;
+}
+
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
 /************IGMP Look Up Table Feature****************************************************/ 
 

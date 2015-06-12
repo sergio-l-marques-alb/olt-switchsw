@@ -655,6 +655,87 @@ L7_BOOL ptin_evc_is_intf_in_use(L7_uint intf_idx)
 }
 
 /**
+ * Determines if a particular Port/LAG is being used on EVC Id
+ *  
+ * @param evc_ext_id  
+ * @param intfNum 
+ * 
+ * @return L7_BOOL L7_TRUE/L7_FALSE
+ */
+L7_BOOL ptin_evc_is_intf_in_use_on_evc(L7_uint32 evc_ext_id, L7_uint intfNum)
+{  
+  L7_int evc_id;
+  L7_uint32 ptin_port;
+
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
+    return L7_FALSE;
+
+  if (intfNum == 0 || intfNum>PTIN_SYSTEM_N_INTERF)
+    return L7_FALSE;
+
+  if (ptin_evc_ext2int(evc_ext_id, &evc_id) != L7_SUCCESS)
+  {
+     LOG_ERR(LOG_CTX_PTIN_EVC, "evc_ext_id:%u is invalid", evc_ext_id);
+     return L7_FALSE;
+  }
+
+  /* Validate interface */
+  if (ptin_intf_intIfNum2port(intfNum,&ptin_port)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "intfNum:%u is invalid", intfNum);
+    return L7_FALSE;
+  }
+
+  if (evcs[evc_id].in_use == L7_FALSE)
+    return L7_FALSE;
+
+  return (evcs[evc_id].intf[ptin_port].in_use);    
+}
+
+/**
+ * Determines if a particular Port/LAG is Leaf on EVC Id
+ *  
+ * @param evc_ext_id  
+ * @param intfNum 
+ * 
+ * @return L7_BOOL L7_TRUE/L7_FALSE
+ */
+L7_BOOL ptin_evc_is_intf_leaf_on_evc(L7_uint32 evc_ext_id, L7_uint intfNum)
+{  
+  L7_int evc_id;
+  L7_uint32 ptin_port;
+
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
+    return L7_FALSE;
+
+  if (intfNum == 0 || intfNum>PTIN_SYSTEM_N_INTERF)
+    return L7_FALSE;
+
+  if (ptin_evc_ext2int(evc_ext_id, &evc_id) != L7_SUCCESS)
+  {
+     LOG_ERR(LOG_CTX_PTIN_EVC, "evc_ext_id:%u is invalid", evc_ext_id);
+     return L7_FALSE;
+  }
+
+  /* Validate interface */
+  if (ptin_intf_intIfNum2port(intfNum,&ptin_port)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "intfNum:%u is invalid", intfNum);
+    return L7_FALSE;
+  }
+
+  if (evcs[evc_id].in_use == L7_FALSE)
+    return L7_FALSE;
+
+  if (evcs[evc_id].intf[ptin_port].in_use == L7_FALSE)
+    return L7_FALSE;
+
+  if (evcs[evc_id].intf[ptin_port].type != PTIN_EVC_INTF_LEAF)
+    return L7_FALSE;
+
+  return L7_TRUE;
+}
+/**
  * Get interface configuration within an EVC
  *  
  * @param evc_ext_id : EVC extended id

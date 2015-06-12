@@ -193,6 +193,7 @@ unsigned int snooping_portList_get(unsigned int serviceId, ptin_mgmd_port_type_t
 unsigned int snooping_portType_get(unsigned int serviceId, unsigned int portId, ptin_mgmd_port_type_t *portType)
 {
   L7_uint16 mcastRootVlan;
+  L7_uint32 port_type;
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u portType:%u]", serviceId, portId, *portType);
 
@@ -202,27 +203,30 @@ unsigned int snooping_portType_get(unsigned int serviceId, unsigned int portId, 
     return FAILURE;
   } 
 
-  if(SUCCESS == ptin_igmp_rootIntfVlan_validate(portId, mcastRootVlan))
+  if (SUCCESS != ptin_igmp_get_port_type(portId, mcastRootVlan, &port_type))
   {
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Port is root");
-    *portType = PTIN_MGMD_PORT_TYPE_ROOT;
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Unknown port type");
+    return FAILURE;
   }
-  else if(SUCCESS == ptin_igmp_clientIntfVlan_validate(portId, mcastRootVlan))
+
+  if (port_type == PTIN_EVC_INTF_LEAF)
   {
     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Port is leaf");
     *portType = PTIN_MGMD_PORT_TYPE_LEAF;
   }
   else
   {
-    #if 0    
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Port is Unknown");
-    *portType = PTIN_MGMD_PORT_TYPE_LEAF;
-    #else
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Unknown port type");
-    return FAILURE;
-    #endif
+    if (port_type == PTIN_EVC_INTF_ROOT)
+    {
+      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Port is root");
+      *portType = PTIN_MGMD_PORT_TYPE_ROOT;
+    }
+    else
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Unknown port type");
+      return FAILURE;
+    }
   }
-
   return SUCCESS;
 }
 
