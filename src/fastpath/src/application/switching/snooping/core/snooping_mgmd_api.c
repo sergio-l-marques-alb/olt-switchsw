@@ -192,18 +192,11 @@ unsigned int snooping_portList_get(unsigned int serviceId, ptin_mgmd_port_type_t
 
 unsigned int snooping_portType_get(unsigned int serviceId, unsigned int portId, ptin_mgmd_port_type_t *portType)
 {
-  L7_uint16 mcastRootVlan;
-  L7_uint32 port_type;
+  L7_uint8 port_type;
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u portType:%u]", serviceId, portId, *portType);
 
-  if( SUCCESS != ptin_evc_intRootVlan_get(serviceId, &mcastRootVlan))
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to get mcastRootVlan from serviceId");
-    return FAILURE;
-  } 
-
-  if (SUCCESS != ptin_igmp_get_port_type(portId, mcastRootVlan, &port_type))
+  if (SUCCESS != ptin_evc_port_type_get(serviceId, portId, &port_type))
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Unknown port type");
     return FAILURE;
@@ -244,27 +237,20 @@ unsigned int snooping_channel_serviceid_get(unsigned int portId, unsigned int cl
 {
   L7_inet_addr_t groupInetAddr;
   L7_inet_addr_t sourceInetAddr;
-  L7_uint16      mcastRootVlan;
-  L7_uint16      intVlan = (L7_uint16) -1;
-  L7_BOOL        isLeafPort = L7_TRUE;
+  L7_uint16      intVlan         = (L7_uint16) -1;
+  L7_BOOL        isLeafPort      = L7_TRUE;
 
   /* Get multicast root vlan */
   inetAddressSet(L7_AF_INET, &groupAddr,  &groupInetAddr);
   inetAddressSet(L7_AF_INET, &sourceAddr, &sourceInetAddr);
-
-  if (ptin_igmp_McastRootVlan_get(intVlan, portId, isLeafPort, clientId, &groupInetAddr, &sourceInetAddr, &mcastRootVlan)==L7_SUCCESS)
+  
+  if (ptin_igmp_mcast_evc_id_get(intVlan,portId, isLeafPort, clientId, &groupInetAddr, &sourceInetAddr, serviceId) == L7_SUCCESS)
   {
-    if(SUCCESS != ptin_igmp_clientIntfVlan_validate(portId, mcastRootVlan))
+    if(L7_TRUE != ptin_evc_is_intf_leaf(*serviceId, portId))
     {
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"This is not a leaf Port (portId=%u, mcastRootVlan=%u)", portId, mcastRootVlan);    
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"This is not a leaf Port (portId=%u, serviceId=%u)", portId, *serviceId);    
       return L7_FAILURE;
-    }
-
-    if (ptin_evc_get_evcIdfromIntVlan(mcastRootVlan, serviceId)!=L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_IGMP, "No EVC associated to mcastRootVlan %u", mcastRootVlan);
-      return L7_FAILURE;
-    }
+    }    
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"Found serviceID %u associated to the pair {groupAddr,sourceAddr}={%08X,%08X}", *serviceId, groupAddr, sourceAddr);
   }
   else

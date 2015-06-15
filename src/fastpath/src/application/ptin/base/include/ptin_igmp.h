@@ -1133,6 +1133,21 @@ L7_RC_t ptin_igmp_get_port_type(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint32
  * @param clientId      : Client Identifier
  * @param groupAddr     : Channel Group address 
  * @param sourceAddr    : Channel Source address 
+ * @param mcastEvcId    : Multicast EVC Id
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_igmp_mcast_evc_id_get(L7_uint16 intVlan, L7_uint32 intIfNum, L7_BOOL isLeafPort, L7_uint32 clientId, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, L7_uint32 *mcastEvcId);
+
+/**
+ * Get the MC root vlan associated to the internal vlan
+ *  
+ * @param intVlan       : Internal VLAN 
+ * @param intIfNum      : Interface Number isLeafPort 
+ * @param isLeafPort    : Port Type is Leaf
+ * @param clientId      : Client Identifier
+ * @param groupAddr     : Channel Group address 
+ * @param sourceAddr    : Channel Source address 
  * @param mcastRootVlan : Multicast root vlan
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE

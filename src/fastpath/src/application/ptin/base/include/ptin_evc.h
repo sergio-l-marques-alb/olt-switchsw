@@ -306,7 +306,29 @@ extern L7_BOOL ptin_evc_is_intf_in_use_on_evc(L7_uint32 evc_ext_id, L7_uint intf
  * 
  * @return L7_BOOL L7_TRUE/L7_FALSE
  */
-extern L7_BOOL ptin_evc_is_intf_leaf_on_evc(L7_uint32 evc_ext_id, L7_uint intfNum);
+extern L7_BOOL ptin_evc_is_intf_leaf(L7_uint32 evc_ext_id, L7_uint intfNum);
+
+/**
+ * Get port type on EVC Id
+ *  
+ * @param evc_ext_id  
+ * @param intfNum 
+ * @param portType  
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_evc_port_type_get(L7_uint32 evc_ext_id, L7_uint intfNum, L7_uint8 *portType);
+
+/**
+ * Get port type on Intenal VLAN Id
+ *  
+ * @param internalVlan  
+ * @param intfNum 
+ * @param portType  
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_BOOL ptin_evc_internal_vlan_port_type_get(L7_uint32 internalVlan, L7_uint32 intfNum, L7_uint8 *portType);
 
 /**
  * Get interface configuration within an EVC

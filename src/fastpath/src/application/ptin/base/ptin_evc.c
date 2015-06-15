@@ -700,7 +700,7 @@ L7_BOOL ptin_evc_is_intf_in_use_on_evc(L7_uint32 evc_ext_id, L7_uint intfNum)
  * 
  * @return L7_BOOL L7_TRUE/L7_FALSE
  */
-L7_BOOL ptin_evc_is_intf_leaf_on_evc(L7_uint32 evc_ext_id, L7_uint intfNum)
+L7_BOOL ptin_evc_is_intf_leaf(L7_uint32 evc_ext_id, L7_uint intfNum)
 {  
   L7_int evc_id;
   L7_uint32 ptin_port;
@@ -735,6 +735,128 @@ L7_BOOL ptin_evc_is_intf_leaf_on_evc(L7_uint32 evc_ext_id, L7_uint intfNum)
 
   return L7_TRUE;
 }
+
+/**
+ * Get port type on EVC Id
+ *  
+ * @param evc_ext_id  
+ * @param intfNum 
+ * @param portType  
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_evc_port_type_get(L7_uint32 evc_ext_id, L7_uint intfNum, L7_uint8 *portType)
+{  
+  L7_int evc_id;
+  L7_uint32 ptin_port;
+
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS || intfNum == 0 || intfNum>PTIN_SYSTEM_N_INTERF)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments (evc_ext_id=%u intfNum:%u)", evc_ext_id, intfNum);
+    return L7_FAILURE;
+  }
+  
+  if (ptin_evc_ext2int(evc_ext_id, &evc_id) != L7_SUCCESS)
+  {
+     LOG_ERR(LOG_CTX_PTIN_EVC, "evc_ext_id:%u is invalid", evc_ext_id);
+     return L7_FAILURE;
+  }
+
+  /* Validate interface */
+  if (ptin_intf_intIfNum2port(intfNum,&ptin_port)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Failed to obtain ptin_port from intfNum:%u", intfNum);
+    return L7_FAILURE;
+  }
+
+  if (evcs[evc_id].in_use == L7_FALSE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "evc_ext_id:%u is not in use (evc_id:%u)", evc_id, evc_ext_id);
+    return L7_FAILURE;
+  }
+
+  if (evcs[evc_id].intf[ptin_port].in_use == L7_FALSE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "intfNum:%u (ptin_port:%u) is not in use on evc_ext_id:%u  (evc_id:%u)", intfNum, ptin_port, evc_ext_id, evc_id);
+    return L7_FAILURE;
+  }
+
+  if (evcs[evc_id].intf[ptin_port].type != PTIN_EVC_INTF_LEAF && evcs[evc_id].intf[ptin_port].type != PTIN_EVC_INTF_ROOT)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Invalid portType:%u of intfNum:%u (ptin_port:%u) on evc_ext_id:%u  (evc_id:%u)", evcs[evc_id].intf[ptin_port].type, intfNum, ptin_port, evc_ext_id, evc_id);
+    return L7_FAILURE;
+  }
+
+  if (ptin_debug_evc)
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "portType:%u of intfNum:%u (ptin_port:%u) on evc_ext_id:%u  (evc_id:%u)", evcs[evc_id].intf[ptin_port].type, intfNum, ptin_port, evc_ext_id, evc_id);
+  *portType = evcs[evc_id].intf[ptin_port].type;
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Get port type on Intenal VLAN Id
+ *  
+ * @param internalVlan  
+ * @param intfNum 
+ * @param portType  
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_BOOL ptin_evc_internal_vlan_port_type_get(L7_uint32 internalVlan, L7_uint32 intfNum, L7_uint8 *portType)
+{
+  L7_uint32   evc_id;
+  L7_uint32   ptin_port;
+
+  /* Validate arguments */
+  if (internalVlan>=4096 || intfNum == 0 || intfNum>PTIN_SYSTEM_N_INTERF)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments (intVlan=%u intfNum:%u)",internalVlan, intfNum);
+    return L7_FAILURE;
+  }
+
+  /* Validate interface */
+  if (ptin_intf_intIfNum2port(intfNum,&ptin_port)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Failed to obtain ptin_port from intfNum:%u", intfNum);
+    return L7_FAILURE;
+  }
+
+  /* Get evc id */
+  evc_id = evcId_from_internalVlan[internalVlan];
+
+  /* Check if this internal vlan is in use by any evc */
+  if (evc_id>=PTIN_SYSTEM_N_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Failed to obtain evc_id from internalVlan:%u", internalVlan);
+    return L7_FAILURE;
+  } 
+    
+  if (evcs[evc_id].in_use == L7_FALSE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "evc_id:%u is not in use (internalVlan:%u)", evc_id, internalVlan);
+    return L7_FAILURE;
+  }
+
+  if (evcs[evc_id].intf[ptin_port].in_use == L7_FALSE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "intfNum:%u (ptin_port:%u) is not in use on internalVlan:%u  (evc_id:%u)", intfNum, ptin_port, internalVlan, evc_id);
+    return L7_FAILURE;
+  }
+
+  if (evcs[evc_id].intf[ptin_port].type != PTIN_EVC_INTF_LEAF && evcs[evc_id].intf[ptin_port].type != PTIN_EVC_INTF_ROOT)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Invalid portType:%u of intfNum:%u (ptin_port:%u) on internalVlan:%u  (evc_id:%u)", evcs[evc_id].intf[ptin_port].type, intfNum, ptin_port, internalVlan, evc_id);
+    return L7_FAILURE;
+  }
+
+  if (ptin_debug_evc)
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "portType:%u of intfNum:%u (ptin_port:%u) on internalVlan:%u  (evc_id:%u)", evcs[evc_id].intf[ptin_port].type, intfNum, ptin_port, internalVlan, evc_id);
+  *portType = evcs[evc_id].intf[ptin_port].type;
+
+  return L7_SUCCESS;
+}
+
 /**
  * Get interface configuration within an EVC
  *  

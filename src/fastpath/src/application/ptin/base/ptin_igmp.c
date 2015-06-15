@@ -6241,6 +6241,57 @@ static ptinIgmpGroupClientInfoData_t* groupClientId2groupClientPtr(L7_uint32 pti
  * @param clientId      : Client Identifier
  * @param groupAddr     : Channel Group address 
  * @param sourceAddr    : Channel Source address 
+ * @param mcastEvcId    : Multicast EVC Id
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_mcast_evc_id_get(L7_uint16 intVlan, L7_uint32 intIfNum, L7_BOOL isLeafPort, L7_uint32 clientId, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, L7_uint32 *mcastEvcId)
+{
+  L7_uint32         ptinPort;
+  st_IgmpInstCfg_t *igmpInst;
+
+  /*Input Parameters Validation*/  
+  if ( intIfNum == 0 || intIfNum >= L7_MAX_INTERFACE_COUNT || (isLeafPort == L7_TRUE && clientId >= PTIN_IGMP_CLIENTIDX_MAX) || (isLeafPort == L7_FALSE && (intVlan <= PTIN_VLAN_MIN || intVlan>=PTIN_VLAN_MAX))
+       ||  groupAddr == L7_NULLPTR || sourceAddr == L7_NULLPTR || mcastEvcId == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [isLeafPort:%u intVlan:%u intIfNum:%u client_idx:%u groupAddr:%p sourceAddr:%p mcastEvcId:%p]", isLeafPort, intVlan, intIfNum, clientId, groupAddr, sourceAddr, mcastEvcId);    
+    return L7_FAILURE;
+  }
+
+  /* IGMP instance, from internal vlan */
+  if (isLeafPort == L7_FALSE && (L7_uint16)-1 != intVlan && ptin_igmp_inst_get_fromIntVlan(intVlan,&igmpInst,L7_NULLPTR)==L7_SUCCESS)
+  {
+    /* This vlan is related to an EVC belonging to an IGMP instance: use its evc id */
+    *mcastEvcId = igmpInst->McastEvcId;
+  }
+  else
+  {
+    if ( ptin_intf_intIfNum2port(intIfNum, &ptinPort) != L7_SUCCESS )
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed to obtain ptin_port from intIfNum:%u", intIfNum);
+      return L7_FAILURE;
+    }
+
+    if ( ptin_igmp_multicast_channel_service_get(ptinPort, clientId, groupAddr, sourceAddr, mcastEvcId) != L7_SUCCESS )
+    {
+      if (ptin_debug_igmp_snooping)
+        LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed to Get Multicast Service [ptin_port:%u client_idx:%u]", ptinPort, clientId);
+      return L7_FAILURE;
+    }
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Get the MC root vlan associated to the internal vlan
+ *  
+ * @param intVlan       : Internal VLAN 
+ * @param intIfNum      : Interface Number isLeafPort 
+ * @param isLeafPort    : Port Type is Leaf
+ * @param clientId      : Client Identifier
+ * @param groupAddr     : Channel Group address 
+ * @param sourceAddr    : Channel Source address 
  * @param mcastRootVlan : Multicast root vlan
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
@@ -6288,7 +6339,6 @@ L7_RC_t ptin_igmp_McastRootVlan_get(L7_uint16 intVlan, L7_uint32 intIfNum, L7_BO
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting McastRootVlan from MCEvcId=%u", mcastEvcId);      
     return L7_FAILURE;
   }
-
 
   /* Return Multicast root vlan */
   *mcastRootVlan = intRootVlan;  
@@ -8287,6 +8337,7 @@ static L7_RC_t ptin_igmp_channel_remove_multicast_service( L7_uint32 evc_uc, L7_
  */
 static L7_RC_t igmp_igmp_channel_remove_all( void )
 {
+#if 0
   /*Before removing any channel entry we need to validate if we have any package or ports attached to it*/
   {
     ptinIgmpChannelDataKey_t avl_key;
@@ -8307,6 +8358,7 @@ static L7_RC_t igmp_igmp_channel_remove_all( void )
       }
     }
   }
+#endif
 
   /* Purge all AVL tree, but the root node */
   avlPurgeAvlTree( &channelDB.channelAvlTree, PTIN_IGMP_CHANNELS_MAX );

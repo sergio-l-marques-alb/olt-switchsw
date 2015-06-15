@@ -3388,7 +3388,7 @@ static void snoopMgmdSwitchPortOpenProcess(L7_uint32 serviceId, L7_uint32 intIfN
     return;
   }
 
-  if( L7_TRUE != ptin_evc_is_intf_leaf_on_evc(serviceId, intIfNum))
+  if( L7_TRUE != ptin_evc_is_intf_leaf(serviceId, intIfNum))
   {
     if (ptin_debug_igmp_snooping)
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Intfnum is not leaf [serviceId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isProtection:%s]", serviceId, intIfNum, groupAddrStr, sourceAddrStr, isProtection?"Yes":"No");      
@@ -3455,7 +3455,7 @@ static void snoopMgmdSwitchPortCloseProcess(L7_uint32 serviceId, L7_uint32 intIf
     return;
   }
 
-  if( L7_TRUE != ptin_evc_is_intf_leaf_on_evc(serviceId, intIfNum))
+  if( L7_TRUE != ptin_evc_is_intf_leaf(serviceId, intIfNum))
   {
     if (ptin_debug_igmp_snooping)
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Intfnum is not leaf [serviceId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isProtection:%s]", serviceId, intIfNum, groupAddrStr, sourceAddrStr, isProtection?"Yes":"No");      

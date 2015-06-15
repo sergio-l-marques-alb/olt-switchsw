@@ -416,7 +416,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   L7_uchar8         *igmpPtr       = L7_NULLPTR;
   L7_uint32          client_idx    = (L7_uint32) -1;              /* PTin added: IGMP snooping */
   L7_uint16          mcastRootVlan; /* Internal vlan will be converted to MC root vlan */
-  L7_uint32          port_type;
+  L7_uint8           port_type;
  
   if (ptin_debug_igmp_snooping)
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"{");
@@ -529,7 +529,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 #if 1
    ptin_timer_start(73,"ptin_igmp_clientIntfVlan_validate");
   /*Get Port Type*/   
-  rc = ptin_igmp_get_port_type(pduInfo->intIfNum, pduInfo->vlanId, &port_type);
+  rc = ptin_evc_internal_vlan_port_type_get(pduInfo->vlanId, pduInfo->intIfNum, &port_type);
   ptin_timer_stop(73);
   if (rc != L7_SUCCESS)
   {
