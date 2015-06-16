@@ -10,7 +10,7 @@
 #define UINT32_BITSIZE  (sizeof(L7_uint32)*8)
 
 #define PTIN_CLEAR_ARRAY(array)         memset((array),0x00,sizeof(array))
-#define PTIN_IS_MASKBYTESET(array,idx)  (array[((idx)/UINT32_BITSIZE)] == 0 ? 0 : 1)
+#define PTIN_IS_MASK_WORD_SET(array,idx)  (array[((idx)/UINT32_BITSIZE)] == 0 ? 0 : 1)
 #define PTIN_IS_MASKBITSET(array,idx)   ((array[(idx)/UINT32_BITSIZE] >> ((idx)%UINT32_BITSIZE)) & 1)
 #define PTIN_SET_MASKBIT(array,idx)     { array[(idx)/UINT32_BITSIZE] |=   (L7_uint32) 1 << ((idx)%UINT32_BITSIZE) ; }
 #define PTIN_UNSET_MASKBIT(array,idx)   { array[(idx)/UINT32_BITSIZE] &= ~((L7_uint32) 1 << ((idx)%UINT32_BITSIZE)); }
