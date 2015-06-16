@@ -1,0 +1,427 @@
+/*
+ * $Id: cint_ecmp_hashing.c,v 1.7 Broadcom SDK $
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ *
+ * ECMP hashing example script
+ *
+ */
+
+/* 
+the cint creates an ECMP, containing 10 FEC entries, and points an IPV4 host and MPLS LSR to this ECMP. 
+each FEC points at a LL entry with the same DA, but different out-port.
+ 
+default ECMP hashing example: 
+-----------------------------
+run:
+cint utility/cint_utils_l3.c 
+cint cint_ip_route.c 
+cint cint_ecmp_hashing.c 
+cint 
+print ecmp_hashing_main(0, <in_port>, <out_port>, <ecmp_size>); 
+ 
+traffic example: 
+run: 
+    1) ethernet header with DA 0:C:0:2:01:23 and vlan tag id 17
+       and IPV4 header with DIP 10.0.255.0 and various SIPs (random)
+    2) ethernet header with DA 0:C:0:2:01:23 and vlan tag id 17
+       MPLS header with label_1 44 and various label_2 (incremental)
+ 
+ecmp_hashing_main() does not change the default ECMP hashing configuration, which is to look at all the packet fields: 
+for IPV4 packet - DIP, SIP, protocol, dest L4 port and src L4 port.
+for MPLS packet - fisrt label, second label and third label. 
+ 
+traffic will be divided equally between the ECMP memebers (FEC entries, each pointing to a different port). 
+ 
+disable ECMP hashing example: 
+----------------------------- 
+run: 
+disable_ecmp_hashing(0); 
+ 
+run same traffic. this time ECMP hashing will be set to "look at nothing". 
+none of the header fields mentioned above will be used for hashing. 
+in this case, all packets will be sent to one FEC entry. 
+
+print ecmp_hash_func_config(0, BCM_HASH_CONFIG_ROUND_ROBIN); 
+
+ecmp_hash_func_config() with BCM_HASH_CONFIG_ROUND_ROBIN uses a counter that is incremented every packet, instead of polynomial hashing, 
+so traffic will be divided equally between the ECMP memebers, although ECMP hashing is disabled. 
+
+print ecmp_hash_func_config(0, BCM_HASH_CONFIG_CRC16_0x101a1); 
+
+return ECMP hashing hashing to be done according to some polynomial, like before.
+ 
+ECMP hashing by IPV4 SIP example: 
+---------------------------------
+run: 
+ecmp_hash_sip(0); 
+ 
+run same IPV4 traffic. this time ECMP hashing will be done according to the IPV4 SIP. 
+in this case, all packets will be divided equally between the ECMP memebers (different ports). 
+ 
+ECMP hashing by MPLS label2 example: 
+------------------------------------
+run: 
+ecmp_hash_label2(0); 
+ 
+run same MPLS traffic. this time ECMP hashing will be done according to the MPLS label2. 
+in this case, all packets will be divided equally between the ECMP memebers (different ports). 
+ 
+ECMP hashing by SRC port: 
+-------------------------
+run: 
+ecmp_src_port_enable(0, 1);
+ 
+run IPV4 traffic, with fixed SIP, from port 13. All packets will go to one of the ECMP memebers (one dest port). 
+run same IPV4 traffic (with fixed SIP) from port 14. All packets will go to one of the ECMP memebers, but it will be a different one than before. 
+Changing the SRC port will change the packets' destination, because hashing takes into account the SRC port.
+ 
+ECMP hashing by 2 headers: 
+-------------------------
+run: 
+ecmp_nof_headers_set(0, <in_port>, 2);
+ 
+run IPoIPoEth: 
+    ethernet header with DA 0:C:0:2:01:23, fixed SA and vlan tag id 17
+    IPV4 header with DIP 10.0.255.0, and fixed SIP
+    and another IPV4 header with random DIP and random SIP
+ 
+packets will be divided between all ECMP memebers (dest ports), because ECMP hashing is set to look at 2 headers, 
+starting from the forwrding header, and it is also set to look at IPV4 SIP.
+*/
+
+struct cint_ecmp_hashing_cfg_s {
+  int ecmp_api_is_ecmp;
+};
+
+struct cint_ecmp_hashing_data_s {
+  /* After ecmp_hashing_main is run successfully, this will contain the ECMP object that was created. */
+  /* Only works with the bcm_l3_egress_ecmp_* interfaces.*/
+  bcm_l3_egress_ecmp_t ecmp;
+  /* After ecmp_hashing_main is run successfully, this will contain the FEC objects that were created. */
+  bcm_if_t egress_intfs[1000]; /* FECs */
+};
+
+cint_ecmp_hashing_cfg_s cint_ecmp_hashing_cfg = { 
+  1 /* ecmp_api_is_ecmp */
+};
+
+cint_ecmp_hashing_data_s cint_ecmp_hashing_data;
+
+/* delete functions */
+int delete_host(int unit, int intf) {
+  int rc;
+  bcm_l3_host_t l3host;
+
+  bcm_l3_host_t_init(l3host);
+
+  l3host.l3a_flags = 0;
+  l3host.l3a_intf = intf;
+
+  rc = bcm_l3_host_delete_all(unit, l3host);
+  if (rc != BCM_E_NONE) {
+    printf ("bcm_l3_host_delete_all failed: %d \n", rc);
+  }
+  return rc;
+}
+
+/* 
+disable_ecmp_hashing(): 
+set ECMP hashing to "look at nothing". 
+no part of the header will be used in hashing. 
+in this case, hashing result will be the same for every packet that arrives.
+*/ 
+int disable_ecmp_hashing(int unit) {
+  int rc;
+  int arg = 0; /* arg = 0 so no field in the IPV4/MPLS header will be looked at */
+  bcm_switch_control_t type;
+
+  /* disable IPV4 hashing */
+  type = bcmSwitchHashIP4Field0;
+  rc = bcm_switch_control_set(unit, type, arg);
+  if (rc != BCM_E_NONE) {
+    printf ("bcm_petra_switch_control_set with type bcmSwitchHashIP4Field0 failed: %d \n", rc);
+  }
+
+  /* disable MPLS hashing */
+  type = bcmSwitchHashMPLSField0;
+  rc = bcm_switch_control_set(unit, type, arg);
+  if (rc != BCM_E_NONE) {
+    printf ("bcm_petra_switch_control_set with type bcmSwitchHashMPLSField0 failed: %d \n", rc);
+  }
+
+  return rc;
+}
+
+/* 
+ecmp_hash_sip(): 
+set ECMP hashing to done according to IPV4 SIP. 
+in this case, hashing result will be the same for every packet with the same SIP.
+*/ 
+int ecmp_hash_sip(int unit) {
+  int rc;
+  int arg;
+  bcm_switch_control_t type = bcmSwitchHashIP4Field0;
+
+  /* only the whole SIP can be used for hashing, so both LO and HI must be used together */
+  arg = BCM_HASH_FIELD_IP4SRC_LO | BCM_HASH_FIELD_IP4SRC_HI;
+  rc = bcm_switch_control_set(unit, type, arg);
+  if (rc != BCM_E_NONE) {
+    printf ("bcm_petra_switch_control_set with type bcmSwitchHashIP4Field0 failed: %d \n", rc);
+  }
+
+  return rc;
+}
+
+/* 
+ecmp_hash_label2(): 
+set ECMP hashing to done according to MPLS label2. 
+in this case, hashing result will be the same for every packet with the same label2.
+*/ 
+int ecmp_hash_label2(int unit) {
+  int rc;
+  int arg = BCM_HASH_FIELD_2ND_LABEL;
+  bcm_switch_control_t type = bcmSwitchHashMPLSField0;
+
+  rc = bcm_switch_control_set(unit, type, arg);
+  if (rc != BCM_E_NONE) {
+    printf ("bcm_petra_switch_control_set with type bcmSwitchHashMPLSField0 failed: %d \n", rc);
+  }
+
+  return rc;
+}
+
+/* 
+ecmp_hash_func_config(): 
+set ECMP hashing function (polynomial). 
+bcm_hash_config = BCM_HASH_CONFIG_*
+*/ 
+int ecmp_hash_func_config(int unit, int bcm_hash_config) {
+  int rc;
+  bcm_switch_control_t type = bcmSwitchECMPHashConfig;
+
+  rc = bcm_switch_control_set(unit, type, bcm_hash_config);
+  if (rc != BCM_E_NONE) {
+    printf ("bcm_petra_switch_control_set with type bcmSwitchECMPHashConfig failed: %d \n", rc);
+  }
+
+  return rc;
+}
+
+/* 
+ecmp_src_port_enable(): 
+Make the Source port a part of the ECMP hash.
+arg = 1- enable, 0- disable. 
+*/ 
+int ecmp_src_port_enable(int unit, int arg) {
+  int rc;
+  bcm_switch_control_t type = bcmSwitchECMPHashSrcPortEnable;
+
+  rc = bcm_switch_control_set(unit, type, arg);
+  if (rc != BCM_E_NONE) {
+    printf ("bcm_petra_switch_control_set with type bcmSwitchECMPHashSrcPortEnable failed: %d \n", rc);
+  }
+
+  return rc;
+}
+
+/* 
+ecmp_nof_headers_set(): 
+Selects the number of headers to consider in ECMP hashing.
+nof_headers - can be 1/2. 
+*/ 
+int ecmp_nof_headers_set(int unit, int in_port, int nof_headers) {
+  int rc;
+  bcm_switch_control_t type = bcmSwitchECMPHashPktHeaderCount;
+
+  rc = bcm_switch_control_port_set(unit, in_port, type, nof_headers);
+  if (rc != BCM_E_NONE) {
+    printf ("bcm_petra_switch_control_port_set with type bcmSwitchECMPHashPktHeaderCount failed: %d \n", rc);
+  }
+
+  return rc;
+}
+
+/* 
+ecmp_hashing_main():
+1) create ECMP, containing <ecmp_size> FEC entries, each FEC points at a LL entry with the same DA, but different out-port
+2) Add IPV4 host entry and point to ECMP.
+3) Add switch entry to swap MPLS labels and also send to ECMP
+ 
+ecmp_size = the size of the ECMP that will be created (how many FECs will it contain) 
+            this will also determine the number of out-ports that will be used (because each FEC points to a different out-port)
+out_port  = the out ports numbers will be: <out_port>, <out_port> + 1, ... , <out_port> + <ecmp_size> -1
+*/ 
+int ecmp_hashing_main(int unit, int in_port, int out_port, int ecmp_size) {
+
+  int CINT_NO_FLAGS = 0;
+  int rc, i;
+  int vrf = 5;
+  int in_vlan = 17;
+  int out_vlan = 17;
+  bcm_pbmp_t pbmp, ubmp;
+
+  if (ecmp_size > 1000) {
+    printf("Error - Max ECMP size allowed is 1000.\n");
+    return BCM_E_PARAM;
+  }
+
+  int ingress_intfs[2]; /* in-RIF and out-RIF */  
+  int encap_ids[ecmp_size];
+  bcm_if_t multipath_id; /* ECMP */
+
+  bcm_mac_t mac_address  = {0x00, 0x0c, 0x00, 0x02, 0x01, 0x23};  /* my-MAC */
+  bcm_mac_t next_mac_address  = {0x00, 0x00, 0x00, 0x00, 0xcd, 0x1d}; /* outgoing DA */
+
+  int host = 0x0a00ff00; /* 10.0.255.0 */
+  bcm_l3_host_t l3host;
+
+  int in_label = 44;
+  int eg_label = 66;
+  bcm_mpls_tunnel_switch_t mpls_tunnel_info;
+
+  BCM_PBMP_CLEAR(ubmp);
+
+  if (ecmp_size > 1000)
+  {
+    printf("Error - ecmp_size must be no larger than 1000.\n");
+    return BCM_E_PARAM;
+  }
+
+  /* create in-RIF */
+  rc = create_l3_intf(unit, CINT_NO_FLAGS, 1, in_port, in_vlan, vrf, mac_address, &ingress_intfs[0]);
+  if (rc != BCM_E_NONE) {
+    printf ("create_l3_intf failed: %d \n", rc);
+    return rc;
+  }
+
+  /* create out-RIF */
+  rc = create_l3_intf(unit, CINT_NO_FLAGS, 1, out_port, out_vlan, vrf, mac_address, &ingress_intfs[1]);
+  if (rc != BCM_E_NONE) {
+    printf ("create_l3_intf no. %d failed: %d \n", i, rc);
+    return rc;
+  }
+
+  /* create 10 FEC entries (all with the same out-RIF)
+     each FEC will point to a different out-port.
+     also set vlan-port membership. each out-port will have a different vlan */
+  out_port--;
+  for (i = 0; i < ecmp_size; i++) {
+
+      out_port++;
+      out_vlan++;
+
+      BCM_PBMP_CLEAR(pbmp);
+      BCM_PBMP_PORT_ADD(pbmp, out_port);
+
+      /* create FEC */
+      rc = create_l3_egress(unit, CINT_NO_FLAGS, out_port, out_vlan, ingress_intfs[1], next_mac_address, &cint_ecmp_hashing_data.egress_intfs[i], &encap_ids[i]);      
+      if (rc != BCM_E_NONE) {
+        printf ("create_l3_egress no. %d failed: %d \n", i, rc);
+        return rc;
+      }
+
+      /* set vlan port membership for out-vlan and out-port */
+      rc = bcm_vlan_port_add(unit, out_vlan, pbmp, ubmp);
+      if (rc != BCM_E_NONE) {
+        printf ("bcm_vlan_port_add no. %d failed: %d \n", i, rc);
+        print rc;
+      }  
+  }
+
+  if (cint_ecmp_hashing_cfg.ecmp_api_is_ecmp) {
+    bcm_l3_egress_ecmp_t_init(&cint_ecmp_hashing_data.ecmp);
+    cint_ecmp_hashing_data.ecmp.max_paths = ecmp_size;
+
+    /* create an ECMP, containing the FEC entries */
+    rc = bcm_l3_egress_ecmp_create(unit, &cint_ecmp_hashing_data.ecmp, ecmp_size, cint_ecmp_hashing_data.egress_intfs);
+    if (rc != BCM_E_NONE) {
+      printf ("bcm_l3_egress_ecmp_create failed: %d \n", rc);
+      return rc;
+    }
+  } else {
+    rc = bcm_l3_egress_multipath_create(unit, CINT_NO_FLAGS, ecmp_size, cint_ecmp_hashing_data.egress_intfs, &multipath_id);
+    if (rc != BCM_E_NONE) {
+      printf ("bcm_l3_egress_multipath_create failed: %d \n", rc);
+      return rc;
+    }
+  }
+
+  /* add host entry and point to the ECMP */
+  bcm_l3_host_t_init(&l3host);
+  l3host.l3a_ip_addr = host;
+  l3host.l3a_vrf = vrf;
+  if (cint_ecmp_hashing_cfg.ecmp_api_is_ecmp) {
+    l3host.l3a_intf = cint_ecmp_hashing_data.ecmp.ecmp_intf;
+  } else {
+    l3host.l3a_intf = multipath_id; /* ECMP */
+  }
+
+  rc = bcm_l3_host_add(unit, &l3host);
+  if (rc != BCM_E_NONE) {
+    printf ("bcm_l3_host_add failed: %x \n", rc);
+    return rc;
+  }
+
+  /* add switch entry to swap labels and map to ECMP */
+  bcm_mpls_tunnel_switch_t_init(&mpls_tunnel_info);
+  mpls_tunnel_info.action = BCM_MPLS_SWITCH_ACTION_SWAP;
+  mpls_tunnel_info.flags = BCM_MPLS_SWITCH_TTL_DECREMENT; /* TTL decrement has to be present */
+  mpls_tunnel_info.flags |= BCM_MPLS_SWITCH_OUTER_TTL|BCM_MPLS_SWITCH_OUTER_EXP;
+  mpls_tunnel_info.label = in_label; /* incomming label */
+  mpls_tunnel_info.egress_label.label = eg_label; /* outgoing (egress) label */
+  if (cint_ecmp_hashing_cfg.ecmp_api_is_ecmp) {
+    mpls_tunnel_info.egress_if = cint_ecmp_hashing_data.ecmp.ecmp_intf;
+  } else {
+    mpls_tunnel_info.egress_if = multipath_id; /* ECMP */
+  }
+
+  rc = bcm_mpls_tunnel_switch_create(unit, &mpls_tunnel_info);
+  if (rc != BCM_E_NONE) {
+    printf ("bcm_mpls_tunnel_switch_create failed: %x \n", rc);
+    return rc;
+  }
+
+  return 0;
+}
+
+

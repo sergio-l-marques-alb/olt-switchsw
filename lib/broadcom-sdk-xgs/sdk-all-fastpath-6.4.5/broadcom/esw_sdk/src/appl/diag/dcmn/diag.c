@@ -1,0 +1,8891 @@
+/* 
+ * $Id: diag.c,v 1.109 Broadcom SDK $
+ *
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ *
+ * File:        diag.c
+ * Purpose:     Device diagnostics commands.
+ *
+ */
+
+#include <shared/bsl.h>
+
+#include <soc/drv.h>
+#include <soc/wb_engine.h>
+#include <bcm/debug.h>
+#include <bcm/error.h>
+#include <bcm/fabric.h>
+#include <appl/diag/diag.h>
+#include <appl/diag/diag_pp.h>
+#include <appl/diag/diag_oam.h>
+#include <appl/diag/diag_buffers.h>
+#include <appl/diag/diag_mmu.h>
+#include <appl/diag/diag_field.h>
+#include <appl/diag/diag_alloc.h>
+#include <appl/diag/diag_sw_state_dump.h>
+#include <appl/diag/dcmn/fabric.h>
+#include <sal/appl/sal.h>
+#include <appl/diag/dcmn/diag.h>
+#include <appl/diag/system.h>
+
+#ifdef BCM_DFE_SUPPORT
+#include <appl/diag/dfe/fabric.h>
+
+#include <bcm_int/dfe/fabric.h>
+
+#include <soc/dfe/cmn/dfe_drv.h>
+#include <soc/dfe/cmn/dfe_fabric.h>
+#include <soc/dfe/cmn/dfe_diag.h>
+#include <soc/dfe/cmn/mbcm.h>
+#endif
+
+#include <appl/diag/dcmn/diag_signals_dump.h>
+
+#ifdef BCM_PETRA_SUPPORT
+#include <soc/dpp/TMC/tmc_api_general.h>
+#include <bcm_int/petra_dispatch.h>
+#endif
+#ifdef BCM_ARAD_SUPPORT
+#include <soc/dpp/ARAD/arad_tbl_access.h>
+#include <soc/dpp/ARAD/arad_egr_queuing.h>
+#include <soc/dpp/ARAD/arad_api_diagnostics.h>
+#include <soc/dpp/ARAD/arad_debug.h>
+#include <soc/dpp/ARAD/arad_fabric.h>
+#include <soc/dpp/ARAD/arad_nif.h>
+#include <soc/dpp/ARAD/arad_sw_db.h>
+#include <soc/dpp/ARAD/arad_ports.h>
+#include <soc/dpp/ARAD/arad_egr_prge_mgmt.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_diag.h>
+#include <soc/dpp/port_sw_db.h>
+#include <bcm/types.h>
+#ifndef __KERNEL__
+#define UINT_MAX 0xffffffff
+#endif
+#define  ARAD_INGR_QUEUE_TABLE_BYTE_RESOL 16
+extern cmd_result_t
+   dpp_diag_egq_print(int unit, int last_cell_print, int map_print, int port_print);
+extern cmd_result_t
+   dpp_diag_e2e_ps_graphic(int unit, int port_num);
+extern void
+    phy_measure_ch0_calc(soc_reg_above_64_val_t reg_val, int *ch0_out_int, int *ch0_out_remainder);
+#endif
+#include <soc/defs.h>
+#include <soc/dpp/cosq.h>
+#include <soc/field.h>
+extern regtype_entry_t* dpp_regtype_lookup_name(char *str);
+#ifdef BCM_PETRAB_SUPPORT
+#include <soc/dpp/Petra/petra_api_statistics.h>
+#include <soc/dpp/TMC/tmc_api_statistics.h>
+#endif
+#ifdef BCM_DPP_SUPPORT
+#include <bcm_int/dpp/utils.h>
+#include <bcm_int/dpp/port.h>
+#include <bcm_int/dpp/error.h>
+#include <soc/dpp/mbcm.h>
+#include <shared/util.h>
+
+#include <soc/dpp/dpp_config_defs.h>
+#include <soc/dpp/dpp_config_imp_defs.h>
+#include <sal/compiler.h>
+#endif
+#ifdef DUNE_UI
+extern void dune_ui_module_free_bits();
+#endif
+
+#ifdef BCM_88750_SUPPORT
+extern diag_counter_data_t fe1600_counters_data[];
+extern diag_counter_data_t fe1600_packet_flow_counters_data[];
+#endif
+
+#ifdef BCM_88950_SUPPORT
+extern diag_counter_data_t fe3200_counters_data[];
+#endif
+
+#ifdef BCM_88675_A0
+#include <soc/dpp/JER/jer_nif.h>
+extern diag_counter_data_t jericho_counters_data[];
+extern diag_counter_data_t jericho_counters_for_graphic_display[];
+extern diag_counter_data_t jericho_rqp_counters_for_graphic_display[];
+extern cmd_result_t jer_phy_measure_nif_pll(int unit, bcm_port_t port, int *ch0_out_int, int *ch0_out_remainder);
+extern int _phy_jer_nif_measure(int unit, bcm_port_t port, uint32 *type_of_bit_clk, int *one_clk_time_measured_int, int *one_clk_time_measured_remainder, int *serdes_freq_int, int *serdes_freq_remainder, uint32 *lane);
+soc_reg_t jer_register_per_lane_num[] = {
+    CLPORT_XGXS0_LN0_STATUS0_REGr,
+    CLPORT_XGXS0_LN1_STATUS0_REGr,
+    CLPORT_XGXS0_LN2_STATUS0_REGr,
+    CLPORT_XGXS0_LN3_STATUS0_REGr,
+
+    XLPORT_XGXS0_LN0_STATUS0_REGr,
+    XLPORT_XGXS0_LN1_STATUS0_REGr,
+    XLPORT_XGXS0_LN2_STATUS0_REGr,
+    XLPORT_XGXS0_LN3_STATUS0_REGr
+};
+#define NOF_LANES_IN_PM      4
+#define MAX_NOF_PMS_IN_ILKN  6
+#endif
+
+#include <appl/diag/dcmn/rate_calc.h>
+#ifdef BCM_88650_A0
+extern diag_counter_data_t arad_counters_data[];
+extern diag_counter_data_t ardon_counters_data[];
+extern diag_counter_data_t arad_packet_flow_counters_data[];
+extern diag_counter_data_t ardon_packet_flow_counters_data[];
+extern diag_counter_data_t arad_diag_fabric_gci_backoff[];
+extern diag_counter_data_t arad_diag_fabric_gci[];
+/*import mesure function from phy cmds shell*/
+extern int _phy_arad_nif_measure(int unit, bcm_port_t port, uint32 *type_of_bit_clk, int *one_clk_time_measured_int, int *one_clk_time_measured_remainder, int *serdes_freq_int, int *serdes_freq_remainder, uint32 *lane);
+
+soc_reg_t register_per_lane_num[] = { /*0*/ PORT_XGXS_0_LN_0_STATUS_0_REGr,
+   /*1*/ PORT_XGXS_0_LN_1_STATUS_0_REGr,
+   /*2*/ PORT_XGXS_0_LN_2_STATUS_0_REGr,
+   /*3*/ PORT_XGXS_0_LN_3_STATUS_0_REGr,
+   /*4*/ PORT_XGXS_1_LN_0_STATUS_0_REGr,
+   /*5*/ PORT_XGXS_1_LN_1_STATUS_0_REGr,
+   /*6*/ PORT_XGXS_1_LN_2_STATUS_0_REGr,
+   /*7*/ PORT_XGXS_1_LN_3_STATUS_0_REGr,
+   /*8*/ PORT_XGXS_2_LN_0_STATUS_0_REGr,
+   /*9*/ PORT_XGXS_2_LN_1_STATUS_0_REGr,
+   /*10*/ PORT_XGXS_2_LN_2_STATUS_0_REGr,
+   /*11*/ PORT_XGXS_2_LN_3_STATUS_0_REGr,
+
+   /*12*/ PORT_XGXS_0_LN_0_STATUS_0_REGr,
+   /*13*/ PORT_XGXS_0_LN_1_STATUS_0_REGr,
+   /*14*/ PORT_XGXS_0_LN_2_STATUS_0_REGr,
+   /*15*/ PORT_XGXS_0_LN_3_STATUS_0_REGr,
+
+   /*16*/ PORT_XGXS_0_LN_0_STATUS_0_REGr,
+   /*17*/ PORT_XGXS_0_LN_1_STATUS_0_REGr,
+   /*18*/ PORT_XGXS_0_LN_2_STATUS_0_REGr,
+   /*19*/ PORT_XGXS_0_LN_3_STATUS_0_REGr,
+   /*20*/ PORT_XGXS_1_LN_0_STATUS_0_REGr,
+   /*21*/ PORT_XGXS_1_LN_1_STATUS_0_REGr,
+   /*22*/ PORT_XGXS_1_LN_2_STATUS_0_REGr,
+   /*23*/ PORT_XGXS_1_LN_3_STATUS_0_REGr,
+   /*24*/ PORT_XGXS_2_LN_0_STATUS_0_REGr,
+   /*25*/ PORT_XGXS_2_LN_1_STATUS_0_REGr,
+   /*26*/ PORT_XGXS_2_LN_2_STATUS_0_REGr,
+   /*27*/ PORT_XGXS_2_LN_3_STATUS_0_REGr,
+
+   /*28*/ PORT_XGXS_0_LN_0_STATUS_0_REGr,
+   /*29*/ PORT_XGXS_0_LN_1_STATUS_0_REGr,
+   /*30*/ PORT_XGXS_0_LN_2_STATUS_0_REGr,
+   /*31*/ PORT_XGXS_0_LN_3_STATUS_0_REGr };
+#endif
+
+STATIC diag_counter_data_t* diag_counters_get(int unit) {
+#ifdef BCM_88750_SUPPORT
+   if (SOC_IS_FE1600(unit)) {
+      return fe1600_counters_data;
+   }
+#endif
+#ifdef BCM_88950_SUPPORT
+   if (SOC_IS_FE3200(unit)) {
+       return fe3200_counters_data;
+   }
+#endif
+#ifdef BCM_88675_A0
+   if (SOC_IS_JERICHO(unit)) {
+       return jericho_counters_data;
+   }
+#endif
+#ifdef BCM_ARAD_SUPPORT
+   if (SOC_IS_ARDON(unit)) {
+      return ardon_counters_data;
+   } else if (SOC_IS_ARAD(unit)) {
+      return arad_counters_data;
+   }
+#endif
+   return NULL;
+}
+
+#ifdef BCM_DPP_SUPPORT
+STATIC cmd_result_t
+dpp_diag_cosq_flow_and_up_print(int unit,
+                                       int core,
+                                       uint32 is_flow,
+                                       uint32 dest_id,
+                                       uint32 print_status,
+                                       uint32 short_format);
+#endif
+
+STATIC uint32 get_field(uint32 in, int first, int last) {
+   /*DESCRIPTION# Declaration    : uint32 get_field(uint32 in, int first, int last);
+     DESCRIPTION# Input          : in - input value; first - LSB bit of in; last - MSB field of in;
+     DESCRIPTION# NOTE           : The field MUST be no longer than 32 bit.
+     DESCRIPTION# Output         : NONE.
+     DESCRIPTION# Return         : field value (uint32).*/
+   if (last != 31) in &= (0x7FFFFFFF >> (30 - last));
+   in = in >> first;
+   in &= ~(0xFFFFFFFF << (last - first + 1));
+   return (in);
+}
+
+STATIC int diag_reg_get(int unit, char *name, soc_reg_above_64_val_t value) {
+   int rv = SOC_E_NONE;
+   soc_regaddrlist_t alist;
+   soc_regaddrinfo_t    *ainfo;
+
+   if (!SOC_UNIT_VALID(unit)) {
+      cli_out("Invalid unit.\n");
+      return SOC_E_UNIT;
+   }
+
+   if (name == NULL) {
+      return SOC_E_PARAM;
+   }
+
+   if (soc_regaddrlist_alloc(&alist) < 0) {
+      cli_out("Could not allocate address list.  Memory error.\n");
+      return SOC_E_PARAM;
+   }
+
+   if (*name == '$') {
+      name++;
+   }
+
+#ifdef BCM_PETRAB_SUPPORT
+   /* direct 32 bit register access by address for Petra without indentifying the register */
+   if ((SOC_IS_PETRAB(unit)) && isint(name)) {    /* Numerical address given */
+      uint32 regaddr = parse_integer(name);
+
+      SOC_REG_ABOVE_64_CLEAR(value);
+      rv = soc_dpp_reg32_read(unit, regaddr, value);
+      /* cli_out("read 0x%x=0x%x %ssuccessful\n",regaddr, value[0], rv ? "un" : ""); */
+   } else
+#endif /* BCM_PETRAB_SUPPORT */
+
+      /* Symbolic name given, print all or some values ... */
+      if (parse_symbolic_reference(unit, &alist, name) < 0) {
+         cli_out("Syntax error parsing \"%s\"\n", name);
+         rv = SOC_E_PARAM;
+      } else {
+         if (alist.count > 1) {
+            /* a list is not supported, only a single address */
+            cli_out("Only a single address can be read %s.\n", name);
+            rv = SOC_E_PARAM;
+         } else {
+            ainfo = &alist.ainfo[0];
+            if (soc_cpureg == SOC_REG_INFO(unit, ainfo->reg).regtype) {
+               SOC_REG_ABOVE_64_CLEAR(value);
+               value[0] = soc_pci_read(unit, SOC_REG_INFO(unit, ainfo->reg).offset);
+               rv = BCM_E_NONE;
+            } else if ((rv = soc_reg_above_64_get(unit, ainfo->reg, ainfo->port, ainfo->idx, value)) < 0) {
+               char            buf[80];
+               soc_reg_sprint_addr(unit, buf, ainfo);
+               cli_out("ERROR: read from register %s failed: %s\n",
+                       buf, soc_errmsg(rv));
+            }
+         }
+      }
+   soc_regaddrlist_free(&alist);
+   return rv;
+}
+
+STATIC uint32 common_read_reg_long(int unit_, char *reg_name, uint32 *val, int nof_words) {
+   soc_reg_above_64_val_t r_;
+   int i;
+   if (diag_reg_get(unit_, reg_name, r_) != BCM_E_NONE) return (0);
+   for (i = nof_words - 1; i >= 0; i--) val[i] = r_[i];
+   return (1);
+}
+
+
+
+
+
+STATIC int diag_print_rejected_ERPP(int unit) {
+   int                 f;
+   soc_reg_info_t       *reginfo;
+   char                   reject_names_ln[70];
+   int                   space_left = 57;
+   uint8               num_of_rejects = 0;
+   uint32               val32;
+   soc_field_info_t    *fld;
+   uint32               field_val;
+
+   sal_sprintf(reject_names_ln, "     Discards:");
+   space_left -= sal_strlen("     Discards:");
+
+   reginfo = &SOC_REG_INFO(unit, EGQ_ERPP_DISCARD_INTERRUPT_REGISTERr);
+
+   if (BCM_E_NONE != READ_EGQ_ERPP_DISCARD_INTERRUPT_REGISTERr(unit, REG_PORT_ANY, &val32)) {
+      return CMD_FAIL;
+   }
+
+   for (f = 0; f < reginfo->nFields; f++) {
+      fld = &reginfo->fields[f];
+      field_val = soc_reg_field_get(unit, EGQ_ERPP_DISCARD_INTERRUPT_REGISTERr, val32, fld->field);
+      if (0 != field_val) {
+         char *field_name = SOC_FIELD_NAME(unit, fld->field);
+         int field_print_len = sal_strlen(field_name) - sal_strlen("_INT");
+
+         char field_print_name[40] = "";
+         num_of_rejects++;
+         sal_strncpy(field_print_name, field_name, field_print_len);
+         if (space_left > field_print_len) {
+             sal_sprintf(reject_names_ln, "%s %s", reject_names_ln, field_print_name);
+             space_left = space_left - field_print_len - 1;
+         } else if (space_left < field_print_len) {
+             cli_out("|                                                             |%-59s  |\n", reject_names_ln);
+             sal_sprintf(reject_names_ln, "     %s", field_print_name);
+             space_left = 57 - field_print_len - 6;
+         }
+         
+      }
+   }
+
+   if (num_of_rejects != 0) {
+       cli_out("|                                                             |%-59s  |\n", reject_names_ln);
+   }
+   return CMD_OK;
+}
+
+
+
+
+STATIC int diag_print_rejected_IQM(int unit) {
+   int                 f;
+   soc_reg_info_t       *reginfo;
+   char                   reject_names_ln[70];
+   int                   space_left = 57;
+   uint8               num_of_rejects = 0;
+   uint64               val64;
+   soc_field_info_t    *fld;
+   uint32               field_val;
+
+   sal_sprintf(reject_names_ln, "|     Rejects:");
+   space_left -= sal_strlen("|     Rejects:");
+
+   reginfo = &SOC_REG_INFO(unit, IQM_REJECT_STATUS_BMPr);
+
+   if (BCM_E_NONE != READ_IQM_REJECT_STATUS_BMPr(unit, REG_PORT_ANY, &val64)) {
+      return CMD_FAIL;
+   }
+
+   for (f = 0; f < reginfo->nFields; f++) {
+      fld = &reginfo->fields[f];
+      field_val = soc_reg64_field32_get(unit, IQM_REJECT_STATUS_BMPr, val64, fld->field);
+      if (0 != field_val) {
+         char *field_name = SOC_FIELD_NAME(unit, fld->field);
+         int field_print_len = sal_strlen(field_name) - sal_strlen("_RJCT");
+
+         if (sal_strcasecmp(field_name + field_print_len, "_RJCT") == 0) {
+            char field_print_name[20] = "";
+            num_of_rejects++;
+            sal_strncpy(field_print_name, field_name, field_print_len);
+            if (space_left > field_print_len) {
+               sal_sprintf(reject_names_ln, "%s %s", reject_names_ln, field_print_name);
+               space_left = space_left - field_print_len - 1;
+            } else if (space_left < field_print_len) {
+               cli_out("%-59s   |                                                             |\n", reject_names_ln);
+               sal_sprintf(reject_names_ln, "|     %s", field_print_name);
+               space_left = 57 - field_print_len - 6;
+            }
+         }
+      }
+   }
+
+   if (num_of_rejects != 0) {
+       cli_out("%-59s   |                                                             |\n", reject_names_ln);
+   }
+   return CMD_OK;
+}
+
+STATIC int diag_print_pqp_discard_reasons(int unit){
+    uint32  counter_data[2];
+    uint32  reasons=0;
+    uint32  mask=1;
+    uint32  i;
+    
+    uint32  space_left=55;
+    char    reject_names[56];
+    char    curr_reason[55];
+    uint32  first=1;
+
+
+    
+    
+    common_read_reg_long(unit,"CGM_PQP_DISCARD_REASONS",counter_data,2);
+    reasons=counter_data[0];/*bitmap of reasons*/
+    
+    if (reasons)
+    {
+        
+        sal_sprintf(reject_names,"Discard Reasons: ");
+        space_left-=sal_strlen("Discard Reasons: ");
+
+        for (i=0;i<=15;i++) /* go over the 16 optional reasons*/
+        {
+
+            if (reasons&mask)
+            {
+                switch (i)
+                {
+                case 0:
+                    sal_strncpy(curr_reason, "Total PDs violated", sizeof(curr_reason));
+                    break;
+                case 1:
+                    sal_strncpy(curr_reason, "Total PDs UC pool size violated", sizeof(curr_reason));
+                    break;
+                case 2:
+                    sal_strncpy(curr_reason, "Per port UC PDs", sizeof(curr_reason));
+                    break;
+                case 3:
+                    sal_strncpy(curr_reason, "Per Q UC PDs", sizeof(curr_reason));
+                    break;
+                case 4:
+                    sal_strncpy(curr_reason, "Per port UC DBs", sizeof(curr_reason));
+                    break;
+                case 5:
+                    sal_strncpy(curr_reason, "Per Q UC DBs", sizeof(curr_reason));
+                    break;
+                case 8:
+                    sal_strncpy(curr_reason, "Total PDs MC pool size", sizeof(curr_reason));
+                    break;
+                case 9:
+                    sal_strncpy(curr_reason, "Per interface PDs", sizeof(curr_reason));
+                    break;
+                case 10:
+                    sal_strncpy(curr_reason, "MC SP", sizeof(curr_reason));
+                    break;
+                case 11:
+                    sal_strncpy(curr_reason, "Per MC-TC", sizeof(curr_reason));
+                    break;
+                case 12:
+                    sal_strncpy(curr_reason, "MC PDs per port", sizeof(curr_reason));
+                    break;
+                case 13:
+                    sal_strncpy(curr_reason, "MC PDs per Q", sizeof(curr_reason));
+                    break;
+                case 14:
+                    sal_strncpy(curr_reason, "MC per port size(bytes)", sizeof(curr_reason));
+                    break;
+                case 15:
+                    sal_strncpy(curr_reason, "MC per Q size(bytes)", sizeof(curr_reason));
+                    break;
+                }
+
+                /*printing phase*/
+                if (space_left>=sal_strlen(curr_reason)+1) /* enough space to put current reason */
+                {
+                    if(first){
+                         sal_sprintf(reject_names,"%s%s",reject_names,curr_reason); /*dont put ","*/
+                         first=0;
+                    } else {
+                        sal_sprintf(reject_names,"%s,%s",reject_names,curr_reason);
+                    }
+                    space_left-=sal_strlen(curr_reason)+1;
+                    
+                }
+                else{
+                    sal_sprintf(reject_names,"%s%s",reject_names,",");
+                    cli_out("|                                                             |   %-57s |\n",reject_names);
+                    sal_sprintf(reject_names,curr_reason);
+                    space_left=55-sal_strlen(curr_reason);
+                    
+                }
+                
+            } /* end of "if current bit is 1"*/
+            mask<<=1;
+        }
+        cli_out("|                                                             |   %-57s |\n",reject_names);
+        
+    }
+    return CMD_OK;
+
+
+}
+
+
+STATIC int diag_print_rqp_discard_reasons(int unit)
+{
+    uint32  counter_data[2];
+    uint32  reasons=0;
+    uint32  mask=1;
+    uint32  i;
+    
+    uint32  space_left=55;
+    char    reject_names[56];
+    char    curr_reason[55];
+    uint32  first=1;
+
+    common_read_reg_long(unit,"CGM_RQP_DISCARD_REASONS",counter_data,2);
+    reasons=counter_data[0]; /* bitmap of reasons*/
+    
+    if (reasons)
+    {
+        
+        sal_sprintf(reject_names,"Discard Reasons: ");
+        space_left-=sal_strlen("Discard Reasons: ");
+
+        for (i=0;i<=9;i++) /* go over the 10 optional reasons*/
+        {
+
+            if (reasons&mask)
+            {
+                switch (i)
+                {
+
+                case 0:
+                    sal_strncpy(curr_reason, "Total DBs violated", sizeof(curr_reason));
+                    break;
+                case 1:
+                    sal_strncpy(curr_reason, "Total UC DBs pool size violated", sizeof(curr_reason));
+                    break;
+                case 2:
+                    sal_strncpy(curr_reason, "MC HP packet discarded in EHP because MC FIFO is full", sizeof(curr_reason));
+                    break;
+                case 3:
+                    sal_strncpy(curr_reason, "MC LP packet discarded in EHP because MC FIFO is full", sizeof(curr_reason));
+                    break;
+                case 4:
+                    sal_strncpy(curr_reason, "Total MC DBs pool size violated", sizeof(curr_reason));
+                    break;
+                case 5:
+                    sal_strncpy(curr_reason, "Packet-DP can't take from shared DBs resources", sizeof(curr_reason));
+                    break;
+                case 6:
+                    sal_strncpy(curr_reason, "SP DBs threshold violated", sizeof(curr_reason));
+                    break;
+                case 7:
+                    sal_strncpy(curr_reason, "Discrete-Partioning method:MC-TC DBs violated", sizeof(curr_reason));
+                    break;
+                case 8:
+                    sal_strncpy(curr_reason, "Strict-priority method:MC-TC mapped to SP0 is violated", sizeof(curr_reason));
+                    break;
+                case 9:
+                    sal_strncpy(curr_reason, "Strict-priority method:MC-TC mapped to SP1 is violated", sizeof(curr_reason));
+                    break;
+               
+                }
+
+                /*printing phase*/
+                if (space_left>=sal_strlen(curr_reason)+1) /* enough space to put current reason */
+                {
+                    if(first){
+                         sal_sprintf(reject_names,"%s%s",reject_names,curr_reason); /*dont put ","*/
+                         first=0;
+                    } else {
+                        sal_sprintf(reject_names,"%s,%s",reject_names,curr_reason);
+                    }
+                    space_left-=sal_strlen(curr_reason)+1;
+                    
+                }
+                else{
+                    sal_sprintf(reject_names,"%s%s",reject_names,",");
+                    cli_out("|                                                             |   %-57s |\n",reject_names);
+                    sal_sprintf(reject_names,curr_reason);
+                    space_left=55-sal_strlen(curr_reason);
+                    
+                }
+                
+            } /* end of "if current bit is 1"*/
+            mask<<=1;
+        }
+        cli_out("|                                                             |   %-57s |\n",reject_names);
+        
+    }
+    return CMD_OK;
+
+
+}
+
+
+
+#ifdef BCM_88675_A0
+
+/* print_counter_val_to_string
+ * 
+ * generate a string with counter value, according to the given attributes. 
+ * resulting string is given as res_buff 
+ */
+STATIC void
+print_counter_val_to_string(int unit, uint64 counter_val, uint32 counter_ovf, uint32 print_none_zero, 
+                            uint32 hex_base, char* res_buff) {
+    char ovf[] = "(ovf)";
+    char empty[] = "";
+    char *is_ovf;
+    char buffer[32];
+    int should_print = 1;
+    int  comma = soc_property_get(unit, spn_DIAG_COMMA, ',');
+
+    is_ovf = (counter_ovf) ? ovf : empty ;
+    if ((print_none_zero == 1) && (COMPILER_64_IS_ZERO(counter_val))) {
+        res_buff[0] = should_print = 0;
+    } else if (hex_base == 1){
+        _shr_format_uint64_hexa_string(counter_val, buffer);
+    } else {
+        format_uint64_decimal(buffer, counter_val, comma);
+    }
+    if (should_print){
+        sal_snprintf(res_buff, 32, "%s %s", buffer, is_ovf);
+    }
+}
+
+
+STATIC void
+compute_sum_fda_drop_count(int unit, uint64* counters_data, uint32 print_none_zero,
+                           uint32 hex_base, char* res_buff){
+    uint64 cnt_sum = COMPILER_64_INIT(0,0);
+    uint64 cnt_val1, cnt_val2;
+    uint32 ovf = 0;
+
+    cnt_val1 = soc_reg64_field_get(unit, FDA_EGQ_FABFIF_0_PRIO_0_DROP_CNTr, counters_data[FDA_EGQ_N_FABFIF_0_PRIO_0_DROP_CNT0], 
+                                   EGQ_N_FABFIF_0_PRIO_0_DROP_CNTf);
+    cnt_val2 = soc_reg64_field_get(unit, FDA_EGQ_FABFIF_0_PRIO_0_DROP_CNTr, counters_data[FDA_EGQ_N_FABFIF_0_PRIO_0_DROP_CNT1], 
+                                   EGQ_N_FABFIF_0_PRIO_0_DROP_CNTf);
+    COMPILER_64_ADD_64(cnt_sum, cnt_val1);
+    COMPILER_64_ADD_64(cnt_sum, cnt_val2);
+    ovf |= soc_reg64_field32_get(unit, FDA_EGQ_FABFIF_0_PRIO_0_DROP_CNTr, counters_data[FDA_EGQ_N_FABFIF_0_PRIO_0_DROP_CNT0], 
+                                 EGQ_N_FABFIF_0_PRIO_0_DROP_CNT_OVERFLOWf);
+    ovf |= soc_reg64_field32_get(unit, FDA_EGQ_FABFIF_0_PRIO_0_DROP_CNTr, counters_data[FDA_EGQ_N_FABFIF_0_PRIO_0_DROP_CNT1], 
+                                 EGQ_N_FABFIF_0_PRIO_0_DROP_CNT_OVERFLOWf);
+
+    cnt_val1 = soc_reg64_field_get(unit, FDA_EGQ_FABFIF_0_PRIO_1_DROP_CNTr, counters_data[FDA_EGQ_N_FABFIF_0_PRIO_1_DROP_CNT0], 
+                                   EGQ_N_FABFIF_0_PRIO_1_DROP_CNTf);
+    cnt_val2 = soc_reg64_field_get(unit, FDA_EGQ_FABFIF_0_PRIO_1_DROP_CNTr, counters_data[FDA_EGQ_N_FABFIF_0_PRIO_1_DROP_CNT1], 
+                                   EGQ_N_FABFIF_0_PRIO_1_DROP_CNTf);
+    COMPILER_64_ADD_64(cnt_sum, cnt_val1);
+    COMPILER_64_ADD_64(cnt_sum, cnt_val2);
+    ovf |= soc_reg64_field32_get(unit, FDA_EGQ_FABFIF_0_PRIO_1_DROP_CNTr, counters_data[FDA_EGQ_N_FABFIF_0_PRIO_1_DROP_CNT0], 
+                                 EGQ_N_FABFIF_0_PRIO_1_DROP_CNT_OVERFLOWf);
+    ovf |= soc_reg64_field32_get(unit, FDA_EGQ_FABFIF_0_PRIO_1_DROP_CNTr, counters_data[FDA_EGQ_N_FABFIF_0_PRIO_1_DROP_CNT1], 
+                                 EGQ_N_FABFIF_0_PRIO_1_DROP_CNT_OVERFLOWf);
+
+    cnt_val1 = soc_reg64_field_get(unit, FDA_EGQ_FABFIF_0_PRIO_2_DROP_CNTr, counters_data[FDA_EGQ_N_FABFIF_0_PRIO_2_DROP_CNT0], 
+                                  EGQ_N_FABFIF_0_PRIO_2_DROP_CNTf);
+    cnt_val2 = soc_reg64_field_get(unit, FDA_EGQ_FABFIF_0_PRIO_2_DROP_CNTr, counters_data[FDA_EGQ_N_FABFIF_0_PRIO_2_DROP_CNT1], 
+                                  EGQ_N_FABFIF_0_PRIO_2_DROP_CNTf);
+    COMPILER_64_ADD_64(cnt_sum, cnt_val1);
+    COMPILER_64_ADD_64(cnt_sum, cnt_val2);    
+    ovf |= soc_reg64_field32_get(unit, FDA_EGQ_FABFIF_0_PRIO_2_DROP_CNTr, counters_data[FDA_EGQ_N_FABFIF_0_PRIO_2_DROP_CNT0], 
+                                 EGQ_N_FABFIF_0_PRIO_2_DROP_CNT_OVERFLOWf);
+    ovf |= soc_reg64_field32_get(unit, FDA_EGQ_FABFIF_0_PRIO_2_DROP_CNTr, counters_data[FDA_EGQ_N_FABFIF_0_PRIO_2_DROP_CNT1], 
+                                 EGQ_N_FABFIF_0_PRIO_2_DROP_CNT_OVERFLOWf);
+
+    cnt_val1 = soc_reg64_field_get(unit, FDA_EGQ_FABFIF_1_PRIO_0_DROP_CNTr, counters_data[FDA_EGQ_N_FABFIF_1_PRIO_0_DROP_CNT0], 
+                                   EGQ_N_FABFIF_1_PRIO_0_DROP_CNTf);
+    cnt_val2 = soc_reg64_field_get(unit, FDA_EGQ_FABFIF_1_PRIO_0_DROP_CNTr, counters_data[FDA_EGQ_N_FABFIF_1_PRIO_0_DROP_CNT1], 
+                                   EGQ_N_FABFIF_1_PRIO_0_DROP_CNTf);
+    COMPILER_64_ADD_64(cnt_sum, cnt_val1);
+    COMPILER_64_ADD_64(cnt_sum, cnt_val2);        
+    ovf |= soc_reg64_field32_get(unit, FDA_EGQ_FABFIF_1_PRIO_0_DROP_CNTr, counters_data[FDA_EGQ_N_FABFIF_1_PRIO_0_DROP_CNT0], 
+                                 EGQ_N_FABFIF_1_PRIO_0_DROP_CNT_OVERFLOWf);
+    ovf |= soc_reg64_field32_get(unit, FDA_EGQ_FABFIF_1_PRIO_0_DROP_CNTr, counters_data[FDA_EGQ_N_FABFIF_1_PRIO_0_DROP_CNT1], 
+                                 EGQ_N_FABFIF_1_PRIO_0_DROP_CNT_OVERFLOWf);
+
+    cnt_val1 = soc_reg64_field_get(unit, FDA_EGQ_FABFIF_1_PRIO_1_DROP_CNTr, counters_data[FDA_EGQ_N_FABFIF_1_PRIO_1_DROP_CNT0], 
+                                   EGQ_N_FABFIF_1_PRIO_1_DROP_CNTf);
+    cnt_val2 = soc_reg64_field_get(unit, FDA_EGQ_FABFIF_1_PRIO_1_DROP_CNTr, counters_data[FDA_EGQ_N_FABFIF_1_PRIO_1_DROP_CNT1], 
+                                   EGQ_N_FABFIF_1_PRIO_1_DROP_CNTf);
+    COMPILER_64_ADD_64(cnt_sum, cnt_val1);
+    COMPILER_64_ADD_64(cnt_sum, cnt_val2);      
+    ovf |= soc_reg64_field32_get(unit, FDA_EGQ_FABFIF_1_PRIO_1_DROP_CNTr, counters_data[FDA_EGQ_N_FABFIF_1_PRIO_1_DROP_CNT0], 
+                                 EGQ_N_FABFIF_1_PRIO_1_DROP_CNT_OVERFLOWf);
+    ovf |= soc_reg64_field32_get(unit, FDA_EGQ_FABFIF_1_PRIO_1_DROP_CNTr, counters_data[FDA_EGQ_N_FABFIF_1_PRIO_1_DROP_CNT1], 
+                                 EGQ_N_FABFIF_1_PRIO_1_DROP_CNT_OVERFLOWf);
+
+    cnt_val1 = soc_reg64_field_get(unit, FDA_EGQ_FABFIF_1_PRIO_2_DROP_CNTr, counters_data[FDA_EGQ_N_FABFIF_1_PRIO_2_DROP_CNT0], 
+                                  EGQ_N_FABFIF_1_PRIO_2_DROP_CNTf);
+    cnt_val2 = soc_reg64_field_get(unit, FDA_EGQ_FABFIF_1_PRIO_2_DROP_CNTr, counters_data[FDA_EGQ_N_FABFIF_1_PRIO_2_DROP_CNT1], 
+                                  EGQ_N_FABFIF_1_PRIO_2_DROP_CNTf);
+    COMPILER_64_ADD_64(cnt_sum, cnt_val1);
+    COMPILER_64_ADD_64(cnt_sum, cnt_val2);      
+    ovf |= soc_reg64_field32_get(unit, FDA_EGQ_FABFIF_1_PRIO_2_DROP_CNTr, counters_data[FDA_EGQ_N_FABFIF_1_PRIO_2_DROP_CNT0], 
+                                 EGQ_N_FABFIF_1_PRIO_2_DROP_CNT_OVERFLOWf);
+    ovf |= soc_reg64_field32_get(unit, FDA_EGQ_FABFIF_1_PRIO_2_DROP_CNTr, counters_data[FDA_EGQ_N_FABFIF_1_PRIO_2_DROP_CNT1], 
+                                 EGQ_N_FABFIF_1_PRIO_2_DROP_CNT_OVERFLOWf);
+
+    cnt_val1 = soc_reg64_field_get(unit, FDA_EGQ_FABFIF_2_PRIO_0_DROP_CNTr, counters_data[FDA_EGQ_N_FABFIF_2_PRIO_0_DROP_CNT0], 
+                                   EGQ_N_FABFIF_2_PRIO_0_DROP_CNTf);
+    cnt_val2 = soc_reg64_field_get(unit, FDA_EGQ_FABFIF_2_PRIO_0_DROP_CNTr, counters_data[FDA_EGQ_N_FABFIF_2_PRIO_0_DROP_CNT1], 
+                                   EGQ_N_FABFIF_2_PRIO_0_DROP_CNTf);
+    COMPILER_64_ADD_64(cnt_sum, cnt_val1);
+    COMPILER_64_ADD_64(cnt_sum, cnt_val2);     
+    ovf |= soc_reg64_field32_get(unit, FDA_EGQ_FABFIF_2_PRIO_0_DROP_CNTr, counters_data[FDA_EGQ_N_FABFIF_2_PRIO_0_DROP_CNT0], 
+                                 EGQ_N_FABFIF_2_PRIO_0_DROP_CNT_OVERFLOWf);
+    ovf |= soc_reg64_field32_get(unit, FDA_EGQ_FABFIF_2_PRIO_0_DROP_CNTr, counters_data[FDA_EGQ_N_FABFIF_2_PRIO_0_DROP_CNT1], 
+                                 EGQ_N_FABFIF_2_PRIO_0_DROP_CNT_OVERFLOWf);
+
+    cnt_val1 = soc_reg64_field_get(unit, FDA_EGQ_FABFIF_2_PRIO_1_DROP_CNTr, counters_data[FDA_EGQ_N_FABFIF_2_PRIO_1_DROP_CNT0], 
+                                   EGQ_N_FABFIF_2_PRIO_1_DROP_CNTf);
+    cnt_val2 = soc_reg64_field_get(unit, FDA_EGQ_FABFIF_2_PRIO_1_DROP_CNTr, counters_data[FDA_EGQ_N_FABFIF_2_PRIO_1_DROP_CNT1], 
+                                   EGQ_N_FABFIF_2_PRIO_1_DROP_CNTf);
+    COMPILER_64_ADD_64(cnt_sum, cnt_val1);
+    COMPILER_64_ADD_64(cnt_sum, cnt_val2);      
+    ovf |= soc_reg64_field32_get(unit, FDA_EGQ_FABFIF_2_PRIO_1_DROP_CNTr, counters_data[FDA_EGQ_N_FABFIF_2_PRIO_1_DROP_CNT0], 
+                                 EGQ_N_FABFIF_2_PRIO_1_DROP_CNT_OVERFLOWf);
+    ovf |= soc_reg64_field32_get(unit, FDA_EGQ_FABFIF_2_PRIO_1_DROP_CNTr, counters_data[FDA_EGQ_N_FABFIF_2_PRIO_1_DROP_CNT1], 
+                                 EGQ_N_FABFIF_2_PRIO_1_DROP_CNT_OVERFLOWf);
+
+    cnt_val1 = soc_reg64_field_get(unit, FDA_EGQ_FABFIF_2_PRIO_2_DROP_CNTr, counters_data[FDA_EGQ_N_FABFIF_2_PRIO_2_DROP_CNT0], 
+                                   EGQ_N_FABFIF_2_PRIO_2_DROP_CNTf);
+    cnt_val2 = soc_reg64_field_get(unit, FDA_EGQ_FABFIF_2_PRIO_2_DROP_CNTr, counters_data[FDA_EGQ_N_FABFIF_2_PRIO_2_DROP_CNT1], 
+                                   EGQ_N_FABFIF_2_PRIO_2_DROP_CNTf);
+    COMPILER_64_ADD_64(cnt_sum, cnt_val1);
+    COMPILER_64_ADD_64(cnt_sum, cnt_val2);     
+    ovf |= soc_reg64_field32_get(unit, FDA_EGQ_FABFIF_2_PRIO_2_DROP_CNTr, counters_data[FDA_EGQ_N_FABFIF_2_PRIO_2_DROP_CNT0], 
+                                 EGQ_N_FABFIF_2_PRIO_2_DROP_CNT_OVERFLOWf);
+    ovf |= soc_reg64_field32_get(unit, FDA_EGQ_FABFIF_2_PRIO_2_DROP_CNTr, counters_data[FDA_EGQ_N_FABFIF_2_PRIO_2_DROP_CNT1], 
+                                 EGQ_N_FABFIF_2_PRIO_2_DROP_CNT_OVERFLOWf);
+
+    print_counter_val_to_string(unit, cnt_sum, ovf, print_none_zero, hex_base, res_buff);
+}
+
+
+STATIC void
+compute_sum_fda_meshmc_drop_count(int unit, uint64* counters_data, uint32 print_none_zero, 
+                                  uint32 hex_base, char* res_buff){                                
+    uint64 cnt_sum = COMPILER_64_INIT(0,0);
+    uint64 cnt_val1, cnt_val2;
+    uint32 ovf = 0;
+   
+    cnt_val1 = soc_reg64_field_get(unit, FDA_EGQ_MESHMC_PRIO_0_DROP_CNTr, counters_data[FDA_EGQ_N_MESHMC_PRIO_0_DROP_CNT0], 
+                                   EGQ_N_MESHMC_PRIO_0_DROP_CNTf);
+    cnt_val2 = soc_reg64_field_get(unit, FDA_EGQ_MESHMC_PRIO_0_DROP_CNTr, counters_data[FDA_EGQ_N_MESHMC_PRIO_0_DROP_CNT1], 
+                                   EGQ_N_MESHMC_PRIO_0_DROP_CNTf);
+    COMPILER_64_ADD_64(cnt_sum, cnt_val1);
+    COMPILER_64_ADD_64(cnt_sum, cnt_val2);     
+    ovf |= soc_reg64_field32_get(unit, FDA_EGQ_MESHMC_PRIO_0_DROP_CNTr, counters_data[FDA_EGQ_N_MESHMC_PRIO_0_DROP_CNT0], 
+                                 EGQ_N_MESHMC_PRIO_0_DROP_CNT_OVERFLOWf);
+    ovf |= soc_reg64_field32_get(unit, FDA_EGQ_MESHMC_PRIO_0_DROP_CNTr, counters_data[FDA_EGQ_N_MESHMC_PRIO_0_DROP_CNT1], 
+                                 EGQ_N_MESHMC_PRIO_0_DROP_CNT_OVERFLOWf);
+
+    cnt_val1 = soc_reg64_field_get(unit, FDA_EGQ_MESHMC_PRIO_1_DROP_CNTr, counters_data[FDA_EGQ_N_MESHMC_PRIO_1_DROP_CNT0], 
+                                  EGQ_N_MESHMC_PRIO_1_DROP_CNTf);;
+    cnt_val2 = soc_reg64_field_get(unit, FDA_EGQ_MESHMC_PRIO_1_DROP_CNTr, counters_data[FDA_EGQ_N_MESHMC_PRIO_1_DROP_CNT1], 
+                                  EGQ_N_MESHMC_PRIO_1_DROP_CNTf);;
+    COMPILER_64_ADD_64(cnt_sum, cnt_val1);
+    COMPILER_64_ADD_64(cnt_sum, cnt_val2);     
+    ovf |= soc_reg64_field32_get(unit, FDA_EGQ_MESHMC_PRIO_1_DROP_CNTr, counters_data[FDA_EGQ_N_MESHMC_PRIO_1_DROP_CNT0], 
+                                 EGQ_N_MESHMC_PRIO_1_DROP_CNT_OVERFLOWf);
+    ovf |= soc_reg64_field32_get(unit, FDA_EGQ_MESHMC_PRIO_1_DROP_CNTr, counters_data[FDA_EGQ_N_MESHMC_PRIO_1_DROP_CNT1], 
+                                 EGQ_N_MESHMC_PRIO_1_DROP_CNT_OVERFLOWf);
+
+    cnt_val1 = soc_reg64_field_get(unit, FDA_EGQ_MESHMC_PRIO_2_DROP_CNTr, counters_data[FDA_EGQ_N_MESHMC_PRIO_2_DROP_CNT0], 
+                                  EGQ_N_MESHMC_PRIO_2_DROP_CNTf);
+    cnt_val2 = soc_reg64_field_get(unit, FDA_EGQ_MESHMC_PRIO_2_DROP_CNTr, counters_data[FDA_EGQ_N_MESHMC_PRIO_2_DROP_CNT1], 
+                                  EGQ_N_MESHMC_PRIO_2_DROP_CNTf);
+    COMPILER_64_ADD_64(cnt_sum, cnt_val1);
+    COMPILER_64_ADD_64(cnt_sum, cnt_val2);
+    ovf |= soc_reg64_field32_get(unit, FDA_EGQ_MESHMC_PRIO_2_DROP_CNTr, counters_data[FDA_EGQ_N_MESHMC_PRIO_2_DROP_CNT0], 
+                                 EGQ_N_MESHMC_PRIO_2_DROP_CNT_OVERFLOWf);
+    ovf |= soc_reg64_field32_get(unit, FDA_EGQ_MESHMC_PRIO_2_DROP_CNTr, counters_data[FDA_EGQ_N_MESHMC_PRIO_2_DROP_CNT1], 
+                                 EGQ_N_MESHMC_PRIO_2_DROP_CNT_OVERFLOWf);
+
+    print_counter_val_to_string(unit, cnt_sum, ovf, print_none_zero, hex_base, res_buff);
+}
+
+
+/* compute_counter_val_into_string
+ * 
+ * get the values of the given field/s from the register value, 
+ * and generate a string from the result. 
+ *  
+ * returned string is in res_buff 
+ */
+STATIC void
+compute_counter_val_into_string(int unit, uint64 reg_val, soc_reg_t reg, soc_field_t field, 
+                                soc_field_t ovf_field, uint32 print_none_zero, uint32 hex_base, char* res_buff) {
+    uint64 counter_val;
+    uint32 counter_ovf = 0;
+    
+    counter_val = soc_reg64_field_get(unit, reg, reg_val, field); 
+
+    if (ovf_field != INVALIDf) {
+        counter_ovf = soc_reg64_field32_get(unit, reg, reg_val, ovf_field); 
+    }
+    print_counter_val_to_string(unit, counter_val, counter_ovf, print_none_zero, hex_base, res_buff);
+}
+
+STATIC void
+compute_sum_counters_into_string(int unit, uint64* counter_vals, jericho_graphic_counters_e* counter_names, int nof_counters, 
+                                diag_counter_data_t* counter_data, uint32 print_none_zero, uint32 hex_base, char* res_buff) {
+    uint64 counter_val;
+    uint64 counter_sum = COMPILER_64_INIT(0,0);
+    uint32 counter_ovf = 0;
+    jericho_graphic_counters_e index;
+    int i;
+  
+    for (i = 0; i < nof_counters; ++i) {
+        index = counter_names[i];
+        counter_val = soc_reg64_field_get(unit, counter_data[index].reg, counter_vals[index], counter_data[index].cnt_field); 
+        COMPILER_64_ADD_64(counter_sum, counter_val);
+        if (counter_data[index].overflow_field != INVALIDf) {
+            counter_ovf |= soc_reg64_field32_get(unit, counter_data[index].reg, counter_vals[index], counter_data[index].overflow_field); 
+        }
+    }
+    print_counter_val_to_string(unit, counter_sum, counter_ovf, print_none_zero, hex_base, res_buff);
+}
+
+STATIC void
+compute_sum_rqp_counters(int unit, soc_reg_above_64_val_t rqp_reg_vals, jericho_rqp_graphic_counters_e* counter_names, int nof_counters,
+                                diag_counter_data_t* counter_data, uint32 print_none_zero, uint32 hex_base, uint64* counter_sum) {
+    uint64 counter_val;
+    jericho_rqp_graphic_counters_e index;
+    int i;
+
+    for (i = 0; i < nof_counters; ++i) {
+        index = counter_names[i];
+        counter_val = soc_reg_above_64_field64_get(unit, counter_data[index].reg, rqp_reg_vals, counter_data[index].cnt_field);
+        COMPILER_64_ADD_64(*counter_sum, counter_val);
+    }
+}
+
+STATIC void
+compute_sum_rqp_counters32(int unit, soc_reg_above_64_val_t rqp_reg_vals, jericho_rqp_graphic_counters_e* counter_names, int nof_counters,
+                                diag_counter_data_t* counter_data, uint32 print_none_zero, uint32 hex_base, uint64* counter_sum) {
+    uint32 counter_val;
+    jericho_rqp_graphic_counters_e index;
+    int i;
+
+    for (i = 0; i < nof_counters; ++i) {
+        index = counter_names[i];
+        counter_val = soc_reg_above_64_field32_get(unit, counter_data[index].reg, rqp_reg_vals, counter_data[index].cnt_field);
+        COMPILER_64_ADD_32(*counter_sum, counter_val);
+    }
+}
+
+
+STATIC void
+print_counter_val_if_neccesary(int unit, char* str_to_print, char* counter_name_str, char* counter_val_str) {
+
+    if (*counter_val_str){
+        cli_out(str_to_print, counter_name_str, '=', counter_val_str);
+    } else {
+        cli_out(str_to_print, "", ' ', "");
+    }
+}
+
+
+/* 
+ * jericho_counters_graphic_print 
+ *  
+ * Read Jericho counters and print graphicly
+ * core_disp - display counters per core or only total counters on dual-core blocks
+ */
+int jericho_counters_graphic_print(int unit, uint32 print_none_zero, uint32 hex_base, uint32 core_disp) {
+
+    diag_counter_data_t* jer_counters = jericho_counters_for_graphic_display;
+    diag_counter_data_t* jer_rqp_counters = jericho_rqp_counters_for_graphic_display;
+    uint64 counters_data[128];
+    uint64 dual_counters_data[128] = {COMPILER_64_INIT(0,0)}; 
+    soc_reg_above_64_val_t rqp_reg;
+    soc_reg_above_64_val_t rqp_dual_reg;
+    uint64 sum_counters;
+    uint64 dual_sum_counters;
+    char frst_cntbuf[32];
+    char sec_cntbuf[32];
+    char third_cntbuf[32];
+    char forth_cntbuf[32];
+    jericho_graphic_counters_e counters_sum_array[4];
+    jericho_rqp_graphic_counters_e rqp_counters_sum_array[6];
+
+    char *core_div = (!core_disp) ? "" : "CORE 0   ------------+------------   CORE 1";
+    
+    jericho_graphic_counters_e i;
+    
+    /*read values of all counters registers into array*/
+    for (i = 0; i < NOF_GRAPHIC_COUNTERS; ++i) {
+       if (SOC_E_NONE != soc_reg_get(unit, jer_counters[i].reg, 0, jer_counters[i].reg_index, &counters_data[i])) { 
+           LOG_ERROR(BSL_LS_APPL_SHELL,
+                     (BSL_META_U(unit,
+                                 "Failed to read counter: %s\n"), jer_counters[i].reg_name)); 
+       }
+       if ((jer_counters[i].block == SOC_BLK_IQM) || 
+           (jer_counters[i].block == SOC_BLK_EGQ) ||
+           (jer_counters[i].block == SOC_BLK_NBIL) ||
+           (jer_counters[i].block == SOC_BLK_EPNI)) {
+           if (SOC_E_NONE != soc_reg_get(unit, jer_counters[i].reg, 1, jer_counters[i].reg_index, &dual_counters_data[i])) { 
+               LOG_ERROR(BSL_LS_APPL_SHELL,
+                         (BSL_META_U(unit,
+                                     "Failed to read counter: %s\n"), jer_counters[i].reg_name)); 
+           }
+       }
+       if (!COMPILER_64_IS_ZERO(dual_counters_data[i]) && !core_disp) {
+           COMPILER_64_ADD_64(counters_data[i], dual_counters_data[i]);
+       }
+    }
+
+    /*read RQP register*/
+    if (SOC_E_NONE != soc_reg_above_64_get(unit, EGQ_PRP_DEBUG_COUNTERSr, 0, 0, rqp_reg)) {
+       LOG_ERROR(BSL_LS_APPL_SHELL,
+                 (BSL_META_U(unit,
+                             "Failed to read counter EGQ_PRP_DEBUG_COUNTERS\n")));
+    }
+    if (SOC_E_NONE != soc_reg_above_64_get(unit, EGQ_PRP_DEBUG_COUNTERSr, 1, 1, rqp_dual_reg)) {
+       LOG_ERROR(BSL_LS_APPL_SHELL,
+                 (BSL_META_U(unit,
+                             "Failed to read counter EGQ_PRP_DEBUG_COUNTERS\n")));
+    }
+
+    /*print counters*/
+    cli_out("\n");
+    cli_out("                                    |                                                                      /|\\\n");
+    cli_out("                                    |           J E R I C H O   N E T W O R K   I N T E R F A C E           |\n");
+    cli_out("                                   \\|/                                                                      |\n");
+    cli_out("+-----------------------------------+-----------------------------------+-----------------------------------+-----------------------------------+\n");
+    cli_out("|                                                                      NBI                                                                      |\n");
+  
+    compute_counter_val_into_string(unit, counters_data[NBIH_RX_TOTAL_BYTE_COUNTER], NBIH_RX_TOTAL_BYTE_COUNTERr, 
+                                    RX_TOTAL_BYTE_COUNTERf, INVALIDf, print_none_zero, hex_base, frst_cntbuf);
+    compute_counter_val_into_string(unit, counters_data[NBIH_TX_TOTAL_BYTE_COUNTER], NBIH_TX_TOTAL_BYTE_COUNTERr, 
+                                    TX_TOTAL_BYTE_COUNTERf, INVALIDf, print_none_zero, hex_base, sec_cntbuf);
+    print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            ", "RX_TOTAL_BYTE_COUNTER", frst_cntbuf);
+    print_counter_val_if_neccesary(unit, "   %-30s %c %-24s            |\n", "TX_TOTAL_BYTE_COUNTER", sec_cntbuf);
+
+    compute_counter_val_into_string(unit, counters_data[NBIH_RX_TOTAL_PKT_COUNTER], NBIH_RX_TOTAL_PKT_COUNTERr, 
+                                    RX_TOTAL_PKT_COUNTERf, INVALIDf, print_none_zero, hex_base, frst_cntbuf);
+    compute_counter_val_into_string(unit, counters_data[NBIH_TX_TOTAL_PKT_COUNTER], NBIH_TX_TOTAL_PKT_COUNTERr, 
+                                    TX_TOTAL_PKT_COUNTERf, INVALIDf, print_none_zero, hex_base, sec_cntbuf);
+
+    print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            ", "RX_TOTAL_PKT_COUNTER", frst_cntbuf);
+    print_counter_val_if_neccesary(unit, "   %-30s %c %-24s            |\n", "TX_TOTAL_PKT_COUNTER", sec_cntbuf);
+
+    COMPILER_64_ZERO(sum_counters);
+    COMPILER_64_ADD_64(sum_counters ,counters_data[NBIH_RX_NUM_TOTAL_DROPPED_EOPS]);
+    COMPILER_64_ADD_64(sum_counters ,counters_data[NBIL_RX_NUM_TOTAL_DROPPED_EOPS]);
+    COMPILER_64_ADD_64(sum_counters ,dual_counters_data[NBIL_RX_NUM_TOTAL_DROPPED_EOPS]);
+    compute_counter_val_into_string(unit, sum_counters, NBIH_RX_NUM_TOTAL_DROPPED_EOPSr, 
+                                    RX_NUM_TOTAL_DROPPED_EOPSf, INVALIDf, print_none_zero, hex_base, frst_cntbuf);
+
+    print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            ", "RX_TOTAL_DROPPED_EOPS", frst_cntbuf);
+    cli_out("                                                                        |\n");
+
+    cli_out("|-----------------------------------------------------------------------+-----------------------------------+-----------------------------------|\n");
+    cli_out("|                                  IRE                                  |                                  EPNI                                 |\n");
+
+    compute_counter_val_into_string(unit, counters_data[IRE_CPU_PACKET_COUNTER], IRE_CPU_PACKET_COUNTERr, 
+                                    CPU_PACKET_COUNTERf, CPU_PACKET_COUNTER_OVFf, print_none_zero, hex_base, frst_cntbuf);
+
+    if (!core_disp) {
+        print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            ", "CPU_PACKET_COUNTER", frst_cntbuf);
+    } else {
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "CPU_PACKET_COUNTER", frst_cntbuf);
+        print_counter_val_if_neccesary(unit, "   %-20s %c %-9s ", "", "");
+    }
+    cli_out("|              %-43s              |\n", core_div);
+
+    counters_sum_array[0] = IRE_NIF_N_PACKET_COUNTER0;
+    counters_sum_array[1] = IRE_NIF_N_PACKET_COUNTER1;
+    compute_sum_counters_into_string(unit, counters_data, counters_sum_array, 2, jer_counters, print_none_zero, hex_base, frst_cntbuf);
+    
+    compute_counter_val_into_string(unit, counters_data[EPNI_EPE_BYTES_COUNTER], EPNI_EPE_BYTES_COUNTERr, 
+                                    EPE_BYTES_COUNTERf, INVALIDf, print_none_zero, hex_base, sec_cntbuf);
+
+    if (!core_disp) {
+        print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            ", "NIF_PACKET_COUNTER", frst_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            |\n", "EPE_BYTES_COUNTER", sec_cntbuf);
+
+    } else {
+        compute_counter_val_into_string(unit, dual_counters_data[EPNI_EPE_BYTES_COUNTER], EPNI_EPE_BYTES_COUNTERr, 
+                                        EPE_BYTES_COUNTERf, INVALIDf, print_none_zero, hex_base, third_cntbuf);
+        counters_sum_array[0] = IRE_NIF_N_PACKET_COUNTER0;
+        compute_sum_counters_into_string(unit, counters_data, counters_sum_array, 1, jer_counters, print_none_zero, hex_base, frst_cntbuf);
+        counters_sum_array[0] = IRE_NIF_N_PACKET_COUNTER1;
+        compute_sum_counters_into_string(unit, counters_data, counters_sum_array, 1, jer_counters, print_none_zero, hex_base, forth_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "NIF_PACKET_COUNTER_0", frst_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "NIF_PACKET_COUNTER_1", forth_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "EPE_BYTES_COUNTER", sec_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s |\n", "EPE_BYTES_COUNTER", third_cntbuf);
+    }
+
+    compute_counter_val_into_string(unit, counters_data[IRE_OAMP_PACKET_COUNTER], IRE_OAMP_PACKET_COUNTERr, 
+                                    OAMP_PACKET_COUNTERf, OAMP_PACKET_COUNTER_OVFf, print_none_zero, hex_base, frst_cntbuf); 
+    compute_counter_val_into_string(unit, counters_data[EPNI_EPE_PACKET_COUNTER], EPNI_EPE_PACKET_COUNTERr, 
+                                    EPE_PACKET_COUNTERf, INVALIDf, print_none_zero, hex_base, sec_cntbuf);
+    if (!core_disp) {
+        print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            ", "OAMP_PACKET_COUNTER", frst_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            |\n", "EPE_PKT_COUNTER", sec_cntbuf);
+    } else {
+        compute_counter_val_into_string(unit, dual_counters_data[EPNI_EPE_PACKET_COUNTER], EPNI_EPE_PACKET_COUNTERr, 
+                                        EPE_PACKET_COUNTERf, INVALIDf, print_none_zero, hex_base, third_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "OAMP_PACKET_COUNTER", frst_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "", "");
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "EPE_PKT_COUNTER", sec_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s |\n", "EPE_PKT_COUNTER", third_cntbuf);
+    }
+    
+    compute_counter_val_into_string(unit, counters_data[IRE_OLP_PACKET_COUNTER], IRE_OLP_PACKET_COUNTERr, 
+                                    OLP_PACKET_COUNTERf, OLP_PACKET_COUNTER_OVFf, print_none_zero, hex_base, frst_cntbuf); 
+    compute_counter_val_into_string(unit, counters_data[EPNI_EPE_DISCARDED_PACKETS_COUNTER], EPNI_EPE_DISCARDED_PACKETS_COUNTERr, 
+                                    EPE_DISCARDED_PACKETS_COUNTERf, INVALIDf, print_none_zero, hex_base, sec_cntbuf);
+    if (!core_disp) {
+        print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            ", "OLP_PACKET_COUNTER", frst_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            |\n", "EPE_DISCARD_PKT_CNT", sec_cntbuf);
+
+    } else {
+        compute_counter_val_into_string(unit, dual_counters_data[EPNI_EPE_DISCARDED_PACKETS_COUNTER], EPNI_EPE_DISCARDED_PACKETS_COUNTERr, 
+                                        EPE_DISCARDED_PACKETS_COUNTERf, INVALIDf, print_none_zero, hex_base, third_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "OLP_PACKET_COUNTER", frst_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "", "");
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "EPE_DISCARD_PKT_CNT", sec_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s |\n", "EPE_DISCARD_PKT_CNT", third_cntbuf);
+    }
+
+    if (!core_disp) {
+            counters_sum_array[0] = IRE_RCY_N_PACKET_COUNTER0;
+            counters_sum_array[1] = IRE_RCY_N_PACKET_COUNTER1;
+            counters_sum_array[2] = IRE_RCY_N_PACKET_COUNTER2;
+            counters_sum_array[3] = IRE_RCY_N_PACKET_COUNTER3;
+            compute_sum_counters_into_string(unit, counters_data, counters_sum_array, 4, jer_counters, print_none_zero, hex_base, frst_cntbuf);
+
+            print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            ", "RCY_PACKET_COUNTER", frst_cntbuf);
+            cli_out("|                                                                       |\n");
+    } else {
+            counters_sum_array[0] = IRE_RCY_N_PACKET_COUNTER0;
+            compute_sum_counters_into_string(unit, counters_data, counters_sum_array, 1, jer_counters, print_none_zero, hex_base, frst_cntbuf);
+            print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "RCY_PACKET_CNT_0_0", frst_cntbuf);
+            counters_sum_array[0] = IRE_RCY_N_PACKET_COUNTER2;
+            compute_sum_counters_into_string(unit, counters_data, counters_sum_array, 1, jer_counters, print_none_zero, hex_base, frst_cntbuf);
+            print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "RCY_PACKET_CNT_1_0", frst_cntbuf);
+            cli_out("|                                                                       |\n");
+
+            counters_sum_array[0] = IRE_RCY_N_PACKET_COUNTER1;
+            compute_sum_counters_into_string(unit, counters_data, counters_sum_array, 1, jer_counters, print_none_zero, hex_base, frst_cntbuf);
+            print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "RCY_PACKET_CNT_0_1", frst_cntbuf);
+            counters_sum_array[0] = IRE_RCY_N_PACKET_COUNTER3;
+            compute_sum_counters_into_string(unit, counters_data, counters_sum_array, 1, jer_counters, print_none_zero, hex_base, frst_cntbuf);
+            print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "RCY_PACKET_CNT_1_1", frst_cntbuf);
+            cli_out("|                                                                       |\n");
+
+
+    }
+
+    compute_counter_val_into_string(unit, counters_data[IRE_FDT_INTERFACE_COUNTER], IRE_FDT_INTERFACE_COUNTERr,
+                                        FDT_CREDITSf, FDT_CREDITS_OVFf, print_none_zero, hex_base, frst_cntbuf);
+    if (!core_disp) {
+        print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            ", "IRE_FDT_INTERFACE_COUNTER", frst_cntbuf);
+    } else {
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "IRE_FDT_INTRFACE_CNT", frst_cntbuf);
+        print_counter_val_if_neccesary(unit, "   %-20s %c %-9s ", "", "");
+    }
+
+    cli_out("+-----------------------------------+-----------------------------------|\n");
+    cli_out("|-----------------------------------------------------------------------+                                  EGQ                                  |\n");
+    cli_out("|                                  IDR                                  |              %-43s              |\n", core_div);
+
+    compute_counter_val_into_string(unit, counters_data[EGQ_FQP_PACKET_COUNTER], EGQ_FQP_PACKET_COUNTERr, 
+                                    FQP_PACKET_COUNTERf, INVALIDf, print_none_zero, hex_base, frst_cntbuf); 
+    compute_counter_val_into_string(unit, counters_data[MMU_IDR_PACKET_COUNTER], MMU_IDR_PACKET_COUNTERr, 
+                                    IDR_PACKET_COUNTERf, INVALIDf, print_none_zero, hex_base, third_cntbuf); 
+
+    if (!core_disp) {
+        print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            ", "MMU_IDR_PACKET_COUNTER", third_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            |\n", "FQP_PACKET_COUNTER", frst_cntbuf);
+
+    } else {
+        compute_counter_val_into_string(unit, dual_counters_data[EGQ_FQP_PACKET_COUNTER], EGQ_FQP_PACKET_COUNTERr, 
+                                        FQP_PACKET_COUNTERf, INVALIDf, print_none_zero, hex_base, sec_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            ", "MMU_IDR_PACKET_COUNTER", third_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "FQP_PACKET_COUNTER", frst_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s |\n", "FQP_PACKET_COUNTER", sec_cntbuf);
+    }
+
+    compute_counter_val_into_string(unit, counters_data[EGQ_PQP_UNICAST_PACKET_COUNTER], EGQ_PQP_UNICAST_PACKET_COUNTERr, 
+                                    PQP_UNICAST_PACKET_COUNTERf, INVALIDf, print_none_zero, hex_base, frst_cntbuf); 
+    compute_counter_val_into_string(unit, counters_data[IDR_OCB_INTERFACE_COUNTER], IDR_OCB_INTERFACE_COUNTERr,
+                                    OCB_BUBBLE_REQUESTSf, OCB_BUBBLE_REQUESTS_OVFf, print_none_zero, hex_base, third_cntbuf); 
+
+    if (!core_disp) {
+        print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            ", "IDR_OCB_INTERFACE_COUNTER", third_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            |\n", "PQP_UNICAST_PKT_CNT", frst_cntbuf);
+
+    } else {
+        compute_counter_val_into_string(unit, dual_counters_data[EGQ_PQP_UNICAST_PACKET_COUNTER], EGQ_PQP_UNICAST_PACKET_COUNTERr, 
+                                        PQP_UNICAST_PACKET_COUNTERf, INVALIDf, print_none_zero, hex_base, sec_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            ", "IDR_OCB_INTERFACE_COUNTER", third_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "PQP_UNICAST_PKT_CNT", frst_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s |\n", "PQP_UNICAST_PKT_CNT", sec_cntbuf);
+    }
+
+    compute_counter_val_into_string(unit, counters_data[EGQ_PQP_DISCARD_UNICAST_PACKET_COUNTER], EGQ_PQP_DISCARD_UNICAST_PACKET_COUNTERr, 
+                                    PQP_DISCARD_UNICAST_PACKET_COUNTERf, INVALIDf, print_none_zero, hex_base, frst_cntbuf);
+    cli_out("|                                                                       ");
+    if (!core_disp) {
+        print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            |\n", "PQP_DISCARD_UC_PKT_CNT", frst_cntbuf);
+
+    } else {
+        compute_counter_val_into_string(unit, dual_counters_data[EGQ_PQP_DISCARD_UNICAST_PACKET_COUNTER], EGQ_PQP_DISCARD_UNICAST_PACKET_COUNTERr, 
+                                        PQP_DISCARD_UNICAST_PACKET_COUNTERf, INVALIDf, print_none_zero, hex_base, sec_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "PQP_DSCRD_UC_PKT_CNT", frst_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s |\n", "PQP_DSCRD_UC_PKT_CNT", sec_cntbuf);
+    }
+
+    compute_counter_val_into_string(unit, counters_data[EGQ_PQP_UNICAST_BYTES_COUNTER], EGQ_PQP_UNICAST_BYTES_COUNTERr, 
+                                    PQP_UNICAST_BYTES_COUNTERf, INVALIDf, print_none_zero, hex_base, frst_cntbuf); 
+    cli_out("|                                                                       ");
+    if (!core_disp) {
+        print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            |\n", "PQP_UC_BYTES_CNT", frst_cntbuf);
+
+    } else {
+        compute_counter_val_into_string(unit, dual_counters_data[EGQ_PQP_UNICAST_BYTES_COUNTER], EGQ_PQP_UNICAST_BYTES_COUNTERr, 
+                                        PQP_UNICAST_BYTES_COUNTERf, INVALIDf, print_none_zero, hex_base, sec_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "PQP_UC_BYTES_CNT", frst_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s |\n", "PQP_UC_BYTES_CNT", sec_cntbuf);
+    }
+
+    compute_counter_val_into_string(unit, counters_data[EGQ_PQP_MULTICAST_PACKET_COUNTER], EGQ_PQP_MULTICAST_PACKET_COUNTERr, 
+                                    PQP_MULTICAST_PACKET_COUNTERf, INVALIDf, print_none_zero, hex_base, frst_cntbuf);
+    cli_out("|-----------------------------------+-----------------------------------+"); 
+    if (!core_disp) {
+        print_counter_val_if_neccesary(unit, "  %-30s %c %-24s            |\n", "PQP_MC_PKT_CNT", frst_cntbuf);
+
+    } else {
+        compute_counter_val_into_string(unit, dual_counters_data[EGQ_PQP_MULTICAST_PACKET_COUNTER], EGQ_PQP_MULTICAST_PACKET_COUNTERr, 
+                                        PQP_MULTICAST_PACKET_COUNTERf, INVALIDf, print_none_zero, hex_base, sec_cntbuf);
+        print_counter_val_if_neccesary(unit, "  %-20s %c %-9s ", "PQP_MC_PKT_CNT", frst_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s |\n", "PQP_MC_PKT_CNT", sec_cntbuf);
+    }
+    
+    compute_counter_val_into_string(unit, counters_data[EGQ_PQP_DISCARD_MULTICAST_PACKET_COUNTER], EGQ_PQP_DISCARD_MULTICAST_PACKET_COUNTERr, 
+                                    PQP_DISCARD_MULTICAST_PACKET_COUNTERf, INVALIDf, print_none_zero, hex_base, frst_cntbuf);
+     cli_out("|                                  IQM                                  "); 
+    if (!core_disp) {
+        print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            |\n", "PQP_DISCARD_MC_PKT_CNT", frst_cntbuf);
+
+    } else {
+        compute_counter_val_into_string(unit, dual_counters_data[EGQ_PQP_DISCARD_MULTICAST_PACKET_COUNTER], EGQ_PQP_DISCARD_MULTICAST_PACKET_COUNTERr, 
+                                        PQP_DISCARD_MULTICAST_PACKET_COUNTERf, INVALIDf, print_none_zero, hex_base, sec_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "PQP_DSCRD_MC_PKT_CNT", frst_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s |\n", "PQP_DSCRD_MC_PKT_CNT", sec_cntbuf);
+    }
+
+    compute_counter_val_into_string(unit, counters_data[EGQ_PQP_MULTICAST_BYTES_COUNTER], EGQ_PQP_MULTICAST_BYTES_COUNTERr, 
+                                    PQP_MULTICAST_BYTES_COUNTERf, INVALIDf, print_none_zero, hex_base, frst_cntbuf);
+    cli_out("|              %-43s              ", core_div);
+    if (!core_disp) {
+        print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            |\n", "PQP_MC_BYTES_CNT", frst_cntbuf);
+
+    } else {
+        compute_counter_val_into_string(unit, dual_counters_data[EGQ_PQP_MULTICAST_BYTES_COUNTER], EGQ_PQP_MULTICAST_BYTES_COUNTERr, 
+                                        PQP_MULTICAST_BYTES_COUNTERf, INVALIDf, print_none_zero, hex_base, sec_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "PQP_MC_BYTES_CNT", frst_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s |\n", "PQP_MC_BYTES_CNT", sec_cntbuf);
+    }
+
+    compute_counter_val_into_string(unit, counters_data[IQM_ENQUEUE_PACKET_COUNTER], IQM_ENQUEUE_PACKET_COUNTERr, 
+                                    ENQUEUE_PACKET_COUNTERf, INVALIDf, print_none_zero, hex_base, frst_cntbuf); 
+    compute_counter_val_into_string(unit, counters_data[EGQ_EHP_UNICAST_PACKET_COUNTER], EGQ_EHP_UNICAST_PACKET_COUNTERr, 
+                                    EHP_UNICAST_PACKET_COUNTERf, INVALIDf, print_none_zero, hex_base, third_cntbuf);
+    if (!core_disp) {
+        print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            ", "ENQUEUE_PKT_CNT", frst_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            |\n", "EHP_UNICAST_PKT_CNT", third_cntbuf);
+
+    } else {
+        compute_counter_val_into_string(unit, dual_counters_data[IQM_ENQUEUE_PACKET_COUNTER], IQM_ENQUEUE_PACKET_COUNTERr, 
+                                        ENQUEUE_PACKET_COUNTERf, INVALIDf, print_none_zero, hex_base, sec_cntbuf);
+        compute_counter_val_into_string(unit, dual_counters_data[EGQ_EHP_UNICAST_PACKET_COUNTER], EGQ_EHP_UNICAST_PACKET_COUNTERr, 
+                                        EHP_UNICAST_PACKET_COUNTERf, INVALIDf, print_none_zero, hex_base, forth_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "ENQUEUE_PKT_CNT", frst_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "ENQUEUE_PKT_CNT", sec_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "EHP_UNICAST_PKT_CNT", third_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s |\n", "EHP_UNICAST_PKT_CNT", forth_cntbuf);
+    }
+
+    compute_counter_val_into_string(unit, counters_data[IQM_DEQUEUE_PACKET_COUNTER], IQM_DEQUEUE_PACKET_COUNTERr, 
+                                    DEQUEUE_PACKET_COUNTERf, INVALIDf, print_none_zero, hex_base, frst_cntbuf); 
+    compute_counter_val_into_string(unit, counters_data[EGQ_EHP_MULTICAST_HIGH_PACKET_COUNTER], EGQ_EHP_MULTICAST_HIGH_PACKET_COUNTERr, 
+                                    EHP_MULTICAST_HIGH_PACKET_COUNTERf, INVALIDf, print_none_zero, hex_base, third_cntbuf);
+    if (!core_disp) {
+        print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            ", "DEQUEUE_PKT_CNT", frst_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            |\n", "EHP_MC_HIGH_PKT_CNT", third_cntbuf);
+
+    } else {
+        compute_counter_val_into_string(unit, dual_counters_data[IQM_DEQUEUE_PACKET_COUNTER], IQM_DEQUEUE_PACKET_COUNTERr, 
+                                        DEQUEUE_PACKET_COUNTERf, INVALIDf, print_none_zero, hex_base, sec_cntbuf);
+        compute_counter_val_into_string(unit, dual_counters_data[EGQ_EHP_MULTICAST_HIGH_PACKET_COUNTER], EGQ_EHP_MULTICAST_HIGH_PACKET_COUNTERr, 
+                                        EHP_MULTICAST_HIGH_PACKET_COUNTERf, INVALIDf, print_none_zero, hex_base, forth_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "DEQUEUE_PKT_CNT", frst_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "DEQUEUE_PKT_CNT", sec_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "EHP_MC_HIGH_PKT_CNT", third_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s |\n", "EHP_MC_HIGH_PKT_CNT", forth_cntbuf);
+    }
+  
+    compute_counter_val_into_string(unit, counters_data[IQM_QUEUE_DELETED_PACKET_COUNTER], IQM_QUEUE_DELETED_PACKET_COUNTERr, 
+                                    QUEUE_DELETED_PACKET_COUNTERf, INVALIDf, print_none_zero, hex_base, frst_cntbuf);
+    compute_counter_val_into_string(unit, counters_data[EGQ_EHP_MULTICAST_LOW_PACKET_COUNTER], EGQ_EHP_MULTICAST_LOW_PACKET_COUNTERr,
+                                    EHP_MULTICAST_LOW_PACKET_COUNTERf, INVALIDf, print_none_zero, hex_base, third_cntbuf);
+    if (!core_disp) {
+        print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            ", "DELETED_PKT_CNT", frst_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            |\n", "EHP_MC_LOW_PKT_CNT", third_cntbuf);
+
+    } else {
+        compute_counter_val_into_string(unit, dual_counters_data[IQM_QUEUE_DELETED_PACKET_COUNTER], IQM_QUEUE_DELETED_PACKET_COUNTERr, 
+                                       QUEUE_DELETED_PACKET_COUNTERf, INVALIDf, print_none_zero, hex_base, sec_cntbuf);
+        compute_counter_val_into_string(unit, dual_counters_data[EGQ_EHP_MULTICAST_LOW_PACKET_COUNTER], EGQ_EHP_MULTICAST_LOW_PACKET_COUNTERr, 
+                                        EHP_MULTICAST_LOW_PACKET_COUNTERf, INVALIDf, print_none_zero, hex_base, forth_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "DELETED_PKT_CNT", frst_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "DELETED_PKT_CNT", sec_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "EHP_MC_LOW_PKT_CNT", third_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s |\n", "EHP_MC_LOW_PKT_CNT", forth_cntbuf);
+    }
+ 
+    compute_counter_val_into_string(unit, counters_data[IQM_QUEUE_ENQ_DISCARDED_PACKET_COUNTER], IQM_QUEUE_ENQ_DISCARDED_PACKET_COUNTERr, 
+                                    QUEUE_ENQ_DISCARDED_PACKET_COUNTERf, INVALIDf, print_none_zero, hex_base, frst_cntbuf);
+    if (!core_disp) {
+        print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            ", "ENQ_DISCARDED_PACKET_COUNTER", frst_cntbuf);
+    } else {
+        compute_counter_val_into_string(unit, dual_counters_data[IQM_QUEUE_ENQ_DISCARDED_PACKET_COUNTER], IQM_QUEUE_ENQ_DISCARDED_PACKET_COUNTERr, 
+                                        QUEUE_ENQ_DISCARDED_PACKET_COUNTERf, INVALIDf, print_none_zero, hex_base, sec_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "ENQ_DSCRD_PKT_CNT", frst_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "ENQ_DSCRD_PKT_CNT", sec_cntbuf);
+    }
+
+    compute_counter_val_into_string(unit, counters_data[EGQ_EHP_DISCARD_PACKET_COUNTER], EGQ_EHP_DISCARD_PACKET_COUNTERr,
+                                    EHP_DISCARD_PACKET_COUNTERf, INVALIDf, print_none_zero, hex_base, frst_cntbuf);
+    if (!core_disp) {
+        print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            |\n", "DELETED_PKT_CNT", frst_cntbuf);
+
+    } else {
+        compute_counter_val_into_string(unit, dual_counters_data[EGQ_EHP_DISCARD_PACKET_COUNTER], EGQ_EHP_DISCARD_PACKET_COUNTERr,
+                                        EHP_DISCARD_PACKET_COUNTERf, INVALIDf, print_none_zero, hex_base, sec_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "DELETED_PKT_CNT", frst_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s |\n", "DELETED_PKT_CNT", sec_cntbuf);
+    }
+
+    cli_out("|                                                                       ");
+    COMPILER_64_ZERO(sum_counters);
+    COMPILER_64_ZERO(dual_sum_counters);
+
+    rqp_counters_sum_array[0] = EGQ_PRP_PACKET_GOOD_UC_CNT0;
+    rqp_counters_sum_array[1] = EGQ_PRP_PACKET_GOOD_MC_CNT0;
+    rqp_counters_sum_array[2] = EGQ_PRP_PACKET_GOOD_TDM_CNT0;
+    compute_sum_rqp_counters(unit, rqp_reg, rqp_counters_sum_array, 3, jer_rqp_counters, print_none_zero, hex_base, &sum_counters);
+
+    rqp_counters_sum_array[0] = EGQ_PRP_PACKET_GOOD_UC_CNT1;
+    rqp_counters_sum_array[1] = EGQ_PRP_PACKET_GOOD_MC_CNT1;
+    rqp_counters_sum_array[2] = EGQ_PRP_PACKET_GOOD_TDM_CNT1;
+    compute_sum_rqp_counters(unit, rqp_dual_reg, rqp_counters_sum_array, 3, jer_rqp_counters, print_none_zero, hex_base, &dual_sum_counters);
+
+    if (!core_disp) {
+        COMPILER_64_ADD_64(sum_counters, dual_sum_counters);
+        print_counter_val_to_string(unit, sum_counters, 0, print_none_zero, hex_base, frst_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            |\n", "RQP_PKT_CNT", frst_cntbuf);
+    } else {
+        print_counter_val_to_string(unit, sum_counters, 0, print_none_zero, hex_base, frst_cntbuf);
+        print_counter_val_to_string(unit, dual_sum_counters, 0, print_none_zero, hex_base, sec_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "RQP_PKT_CNT", frst_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s |\n", "RQP_PKT_CNT", sec_cntbuf);
+    }
+
+    cli_out("|                                                                       ");
+    COMPILER_64_ZERO(sum_counters);
+    COMPILER_64_ZERO(dual_sum_counters);
+
+    rqp_counters_sum_array[0] = EGQ_PRP_PACKET_DISCARD_UC_CNT0;
+    rqp_counters_sum_array[1] = EGQ_PRP_PACKET_DISCARD_MC_CNT0;
+    rqp_counters_sum_array[2] = EGQ_PRP_PACKET_DISCARD_TDM_CNT0;
+    rqp_counters_sum_array[3] = EGQ_PRP_SOP_DISCARD_UC_CNT0;
+    rqp_counters_sum_array[4] = EGQ_PRP_SOP_DISCARD_MC_CNT0;
+    rqp_counters_sum_array[5] = EGQ_PRP_SOP_DISCARD_TDM_CNT0;
+    compute_sum_rqp_counters32(unit, rqp_reg, rqp_counters_sum_array, 6, jer_rqp_counters, print_none_zero, hex_base, &sum_counters);
+
+    rqp_counters_sum_array[0] = EGQ_PRP_PACKET_DISCARD_UC_CNT1;
+    rqp_counters_sum_array[1] = EGQ_PRP_PACKET_DISCARD_MC_CNT1;
+    rqp_counters_sum_array[2] = EGQ_PRP_PACKET_DISCARD_TDM_CNT1;
+    rqp_counters_sum_array[3] = EGQ_PRP_SOP_DISCARD_UC_CNT1;
+    rqp_counters_sum_array[4] = EGQ_PRP_SOP_DISCARD_MC_CNT1;
+    rqp_counters_sum_array[5] = EGQ_PRP_SOP_DISCARD_TDM_CNT1;
+    compute_sum_rqp_counters32(unit, rqp_dual_reg, rqp_counters_sum_array, 6, jer_rqp_counters, print_none_zero, hex_base, &dual_sum_counters);
+
+    if (!core_disp) {
+        COMPILER_64_ADD_64(sum_counters, dual_sum_counters);
+        print_counter_val_to_string(unit, sum_counters, 0, print_none_zero, hex_base, frst_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            |\n", "RQP_DSCRD_PKT_CNT", frst_cntbuf);
+    } else {
+        print_counter_val_to_string(unit, sum_counters, 0, print_none_zero, hex_base, frst_cntbuf);
+        print_counter_val_to_string(unit, dual_sum_counters, 0, print_none_zero, hex_base, sec_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "RQP_DSCRD_PKT_CNT", frst_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s |\n", "RQP_DSCRD_PKT_CNT", sec_cntbuf);
+    }
+
+    cli_out("|-----------------------------------------------------------------------+-----------------------------------------------------------------------|\n");
+    cli_out("|                                                                       |                                  FDA                                  |\n");
+ 
+    compute_counter_val_into_string(unit, counters_data[FDA_FAB_36_SCH_CELLS_IN_CNT_P_1], FDA_FAB_36_SCH_CELLS_IN_CNT_P_1r, 
+                                    FAB_36_SCH_CELLS_IN_CNT_P_1f, FAB_36_SCH_CELLS_IN_CNT_P_1_OVERFLOWf, print_none_zero, hex_base, frst_cntbuf);
+    
+    counters_sum_array[0] = FDA_EGQ_N_CELLS_OUT_CNT_FAB_PIPE_00;
+    counters_sum_array[1] = FDA_EGQ_N_CELLS_OUT_CNT_FAB_PIPE_01;
+    compute_sum_counters_into_string(unit, counters_data, counters_sum_array, 2, jer_counters, print_none_zero, hex_base, sec_cntbuf);
+
+    cli_out("|                                                                       ");
+    print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "CELLS_IN_CNT_P1", frst_cntbuf);
+    print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s |\n", "CELLS_OUT_CNT_P1", sec_cntbuf);
+    
+    compute_counter_val_into_string(unit, counters_data[FDA_FAB_36_SCH_CELLS_IN_CNT_P_2], FDA_FAB_36_SCH_CELLS_IN_CNT_P_2r, 
+                                    FAB_36_SCH_CELLS_IN_CNT_P_2f, FAB_36_SCH_CELLS_IN_CNT_P_2_OVERFLOWf, print_none_zero, hex_base, frst_cntbuf);
+    
+    counters_sum_array[0] = FDA_EGQ_N_CELLS_OUT_CNT_FAB_PIPE_10;
+    counters_sum_array[1] = FDA_EGQ_N_CELLS_OUT_CNT_FAB_PIPE_11;
+    compute_sum_counters_into_string(unit, counters_data, counters_sum_array, 2, jer_counters, print_none_zero, hex_base, sec_cntbuf);
+
+
+    cli_out("|                                                                       ");
+    print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "CELLS_IN_CNT_P2", frst_cntbuf);
+    print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s |\n", "CELLS_OUT_CNT_P2", sec_cntbuf);
+
+    compute_counter_val_into_string(unit, counters_data[FDA_FAB_36_SCH_CELLS_IN_CNT_P_3], FDA_FAB_36_SCH_CELLS_IN_CNT_P_3r, 
+                                    FAB_36_SCH_CELLS_IN_CNT_P_3f, FAB_36_SCH_CELLS_IN_CNT_P_3_OVERFLOWf, print_none_zero, hex_base, frst_cntbuf);
+    
+    counters_sum_array[0] = FDA_EGQ_N_CELLS_OUT_CNT_FAB_PIPE_20;
+    counters_sum_array[1] = FDA_EGQ_N_CELLS_OUT_CNT_FAB_PIPE_21;
+    compute_sum_counters_into_string(unit, counters_data, counters_sum_array, 2, jer_counters, print_none_zero, hex_base, sec_cntbuf);
+
+    cli_out("|-----------------------------------------------------------------------+");
+    print_counter_val_if_neccesary(unit, "  %-20s %c %-9s ", "CELLS_IN_CNT_P3", frst_cntbuf);
+    print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s |\n", "CELLS_OUT_CNT_P3", sec_cntbuf);
+
+    counters_sum_array[0] = FDA_EGQ_N_CELLS_IN_CNT_TDM0;
+    counters_sum_array[1] = FDA_EGQ_N_CELLS_IN_CNT_TDM1;
+    compute_sum_counters_into_string(unit, counters_data, counters_sum_array, 2, jer_counters, print_none_zero, hex_base, frst_cntbuf);
+
+    counters_sum_array[0] = FDA_EGQ_N_CELLS_OUT_CNT_TDM0;
+    counters_sum_array[1] = FDA_EGQ_N_CELLS_OUT_CNT_TDM1;
+    compute_sum_counters_into_string(unit, counters_data, counters_sum_array, 2, jer_counters, print_none_zero, hex_base, sec_cntbuf);
+
+    cli_out("|                                  IPT                                  |");
+    print_counter_val_if_neccesary(unit, "  %-20s %c %-9s ", "CELLS_IN_TDM_CNT", frst_cntbuf);
+    print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s |\n", "CELLS_OUT_TDM_CNT", sec_cntbuf);
+
+    counters_sum_array[0] = FDA_EGQ_N_CELLS_IN_CNT_MESHMC0;
+    counters_sum_array[1] = FDA_EGQ_N_CELLS_IN_CNT_MESHMC1;
+    compute_sum_counters_into_string(unit, counters_data, counters_sum_array, 2, jer_counters, print_none_zero, hex_base, frst_cntbuf);
+
+    counters_sum_array[0] = FDA_EGQ_N_CELLS_OUT_CNT_MESHMC0;
+    counters_sum_array[1] = FDA_EGQ_N_CELLS_OUT_CNT_MESHMC1;
+    compute_sum_counters_into_string(unit, counters_data, counters_sum_array, 2, jer_counters, print_none_zero, hex_base, sec_cntbuf);
+
+    cli_out("|              %-43s              ", core_div);
+    print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "CELLS_IN_MESHMC_CNT", frst_cntbuf);
+    print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s |\n", "CELLS_OUT_MESHMC_CNT", sec_cntbuf);
+
+
+    counters_sum_array[0] = FDA_EGQ_N_CELLS_IN_CNT_IPT0;
+    counters_sum_array[1] = FDA_EGQ_N_CELLS_IN_CNT_IPT1;
+    compute_sum_counters_into_string(unit, counters_data, counters_sum_array, 2, jer_counters, print_none_zero, hex_base, frst_cntbuf);
+
+    counters_sum_array[0] = FDA_EGQ_N_CELLS_OUT_CNT_IPT0;
+    counters_sum_array[1] = FDA_EGQ_N_CELLS_OUT_CNT_IPT1;
+    compute_sum_counters_into_string(unit, counters_data, counters_sum_array, 2, jer_counters, print_none_zero, hex_base, sec_cntbuf);
+
+    if (!core_disp) {
+        counters_sum_array[0] = IPT_EGQ_0_PKT_CNT;
+        counters_sum_array[1] = IPT_EGQ_1_PKT_CNT;
+        compute_sum_counters_into_string(unit, counters_data, counters_sum_array, 2, jer_counters, print_none_zero, hex_base, third_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            ", "EGQ_PKT_CNT", third_cntbuf);
+
+    } else {
+        compute_counter_val_into_string(unit, counters_data[IPT_EGQ_0_PKT_CNT], IPT_EGQ_0_PKT_CNTr,
+                                        EGQ_0_PKT_CNTf, EGQ_0_PKT_CNT_OVFf, print_none_zero, hex_base, third_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "EGQ_PKT_CNT", third_cntbuf);
+        compute_counter_val_into_string(unit, counters_data[IPT_EGQ_1_PKT_CNT], IPT_EGQ_1_PKT_CNTr,
+                                        EGQ_1_PKT_CNTf, EGQ_1_PKT_CNT_OVFf, print_none_zero, hex_base, third_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "EGQ_PKT_CNT", third_cntbuf);
+    }
+    print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "CELLS_IN_IPT_CNT", frst_cntbuf);
+    print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s |\n", "CELLS_OUT_IPT_CNT", sec_cntbuf);
+
+
+    if (!core_disp) {
+        counters_sum_array[0] = IPT_ENQ_0_PKT_CNT;
+        counters_sum_array[1] = IPT_ENQ_1_PKT_CNT;
+        compute_sum_counters_into_string(unit, counters_data, counters_sum_array, 2, jer_counters, print_none_zero, hex_base, frst_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            ", "ENQ_PKT_CNT", frst_cntbuf);
+
+    } else {
+        compute_counter_val_into_string(unit, counters_data[IPT_ENQ_0_PKT_CNT], IPT_ENQ_0_PKT_CNTr,
+                                        ENQ_0_PKT_CNTf, ENQ_0_PKT_CNT_OVFf, print_none_zero, hex_base, third_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "ENQ_PKT_CNT", third_cntbuf);
+        compute_counter_val_into_string(unit, counters_data[IPT_ENQ_1_PKT_CNT], IPT_ENQ_1_PKT_CNTr,
+                                        ENQ_1_PKT_CNTf, ENQ_1_PKT_CNT_OVFf, print_none_zero, hex_base, third_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "ENQ_PKT_CNT", third_cntbuf);
+    }
+  
+
+    compute_sum_fda_drop_count(unit, counters_data, print_none_zero, hex_base, sec_cntbuf);
+    
+    print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s                                     |\n", "EGQ_DROP_CNT", sec_cntbuf);
+
+
+    if (!core_disp) {
+        counters_sum_array[0] = IPT_FDT_0_PKT_CNT;
+        counters_sum_array[1] = IPT_FDT_1_PKT_CNT;
+        compute_sum_counters_into_string(unit, counters_data, counters_sum_array, 2, jer_counters, print_none_zero, hex_base, frst_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            ", "FDT_PKT_CNT", frst_cntbuf);
+
+    } else {
+        compute_counter_val_into_string(unit, counters_data[IPT_FDT_0_PKT_CNT], IPT_FDT_0_PKT_CNTr,
+                                        FDT_0_PKT_CNTf, FDT_0_PKT_CNT_OVFf, print_none_zero, hex_base, frst_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "FDT_PKT_CNT", frst_cntbuf);
+        compute_counter_val_into_string(unit, counters_data[IPT_FDT_1_PKT_CNT], IPT_FDT_1_PKT_CNTr,
+                                        FDT_1_PKT_CNTf, FDT_1_PKT_CNT_OVFf, print_none_zero, hex_base, frst_cntbuf);
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s ", "FDT_PKT_CNT", frst_cntbuf);
+    }
+
+    compute_sum_fda_meshmc_drop_count(unit, counters_data, print_none_zero, hex_base, sec_cntbuf);
+
+    print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s                                     |\n", "EGQ_MESHMC_DROP_CNT", sec_cntbuf);
+
+    compute_counter_val_into_string(unit, counters_data[IPT_CRC_ERR_CNT], IPT_CRC_ERROR_COUNTERr,
+                                       CRC_ERR_CNTf, CRC_ERR_CNT_OVFf, print_none_zero, hex_base, frst_cntbuf);
+    if (!core_disp) {
+        print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            ", "CRC_ERROR_CNT", frst_cntbuf);
+    } else {
+        print_counter_val_if_neccesary(unit, "|  %-20s %c %-46s", "CRC_ERROR_CNT", frst_cntbuf);
+    }
+    counters_sum_array[0] = FDA_EGQ_N_TDM_OVF_DROP_CNT0;
+    counters_sum_array[1] = FDA_EGQ_N_TDM_OVF_DROP_CNT1;
+    compute_sum_counters_into_string(unit, counters_data, counters_sum_array, 2, jer_counters, print_none_zero, hex_base, sec_cntbuf);
+   
+    print_counter_val_if_neccesary(unit, "|  %-20s %c %-9s                                     |\n", "EGQ_TDM_OVF_DROP_CNT", sec_cntbuf);
+
+
+    cli_out("|-----------------------------------------------------------------------+-----------------------------------------------------------------------|\n");
+    cli_out("|                                  FDT                                  |                                  FDR                                  |\n");
+
+    compute_counter_val_into_string(unit, counters_data[FDT_DESC_CELL_CNT], FDT_IPT_DESC_CELL_COUNTERr, 
+                                    DESC_CELL_CNTf, DESC_CELL_CNTOf, print_none_zero, hex_base, frst_cntbuf); 
+    compute_counter_val_into_string(unit, counters_data[FDR_P_1_CELL_IN_CNT], FDR_P_1_CELL_IN_CNTr, 
+                                    P_1_CELL_IN_CNTf, P_1_CELL_IN_CNT_Of, print_none_zero, hex_base, sec_cntbuf);
+
+    print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            ", "IPT_DESC_CELL_COUNTER", frst_cntbuf);
+    print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            |\n", "P1_CELL_IN_CNT", sec_cntbuf);
+
+    compute_counter_val_into_string(unit, counters_data[FDT_IRE_DESC_CELL_CNT], FDT_IRE_DESC_CELL_COUNTERr, 
+                                    IRE_DESC_CELL_CNTf, IRE_DESC_CELL_CNTOf, print_none_zero, hex_base, frst_cntbuf); 
+    compute_counter_val_into_string(unit, counters_data[FDR_P_2_CELL_IN_CNT], FDR_P_2_CELL_IN_CNTr, 
+                                    P_2_CELL_IN_CNTf, P_2_CELL_IN_CNT_Of, print_none_zero, hex_base, sec_cntbuf);
+
+    print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            ", "IRE_DESC_CELL_COUNTER", frst_cntbuf);
+    print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            |\n", "P2_CELL_IN_CNT", sec_cntbuf);
+
+    compute_counter_val_into_string(unit, counters_data[FDR_P_3_CELL_IN_CNT], FDR_P_3_CELL_IN_CNTr, 
+                                    P_3_CELL_IN_CNTf, P_3_CELL_IN_CNT_Of, print_none_zero, hex_base, frst_cntbuf);
+
+    cli_out("|                                                                       ");
+    print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            |\n", "P3_CELL_IN_CNT", frst_cntbuf);
+
+    compute_counter_val_into_string(unit, counters_data[FDT_DATA_CELL_CNT], FDT_TRANSMITTED_DATA_CELLS_COUNTERr, 
+                                    DATA_CELL_CNTf, DATA_CELL_CNT_0f, print_none_zero, hex_base, frst_cntbuf); 
+    compute_counter_val_into_string(unit, counters_data[FDR_CELL_IN_CNT], FDR_CELL_IN_CNT_TOTALr, 
+                                    CELL_IN_CNTf, CELL_IN_CNT_Of, print_none_zero, hex_base, sec_cntbuf);
+
+    print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            ", "TRANSMITTED_DATA_CELLS_COUNTER", frst_cntbuf);
+    print_counter_val_if_neccesary(unit, "|  %-30s %c %-24s            |\n", "CELL_IN_CNT_TOTAL", sec_cntbuf);
+
+    cli_out("+-----------------------------------+-----------------------------------+-----------------------------------+-----------------------------------+\n");
+    cli_out("                                    |                                                                      /|\\\n");
+    cli_out("                                    |            J E R I C H O   F A B R I C   I N T E R F A C E            |\n");
+    cli_out("                                   \\|/                                                                      |\n");
+
+    cli_out("\n\n");
+    return CMD_OK;
+}
+
+#endif /*BCM_88675_A0*/
+
+
+/* Read Arad counters*/
+int arad_packet_flow_counter_get(int unit, uint32 print_none_zero, uint32 hex_base) {
+   char    counter1_str[30];
+   char    counter2_str[30];
+   uint32  counter_data[2];
+   uint32  counter_MSB;
+   uint32  counter_LSB;
+   uint32  counter_OVF;
+   uint32  print_reason=0;
+   uint32  skip_first_print = 0, skip_second_print = 0;
+   char    buf_val[32];
+   int     commachr = soc_property_get(unit, spn_DIAG_COMMA, ',');
+   uint64  val_64;
+   int rc;
+
+
+
+
+   cli_out("\n");
+   cli_out("                               |                                                            /|\\\n");
+   cli_out("                               |         A R A D   N E T W O R K   I N T E R F A C E         |\n");
+   cli_out("                              \\|/                                                            |\n");
+   cli_out("+------------------------------+------------------------------+------------------------------+------------------------------+\n");
+   cli_out("|                                                            NBI                                                            |\n");
+
+    if(!SOC_IS_ARDON(unit)) {
+        common_read_reg_long(unit, "NBI_STATISTICS_RX_BURSTS_OK_CNT", counter_data, 2); 
+        counter_MSB = counter_data[1];
+        counter_LSB = counter_data[0];
+        counter_OVF = get_field(counter_MSB, 16, 16);
+        counter_MSB = get_field(counter_MSB, 0, 15);
+        
+        if (hex_base == 1) {
+           if (counter_OVF == 0) {
+              if (counter_MSB == 0) {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x", counter_LSB); } else                  {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x%x", counter_MSB, counter_LSB); }
+           } else {
+              if (counter_MSB == 0) {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x (ovf)", counter_LSB); } else                  {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x%x (ovf)", counter_MSB, counter_LSB); }
+           }
+       } else {
+           COMPILER_64_SET(val_64, counter_MSB, counter_LSB);
+           format_uint64_decimal(buf_val, val_64, commachr);
+           if (counter_OVF == 0) {
+               sal_snprintf(counter1_str, sizeof(counter1_str), "%s", buf_val);
+           } else {
+               sal_snprintf(counter1_str, sizeof(counter1_str), "%s (ovf)", buf_val);
+           }
+        }
+
+        if (print_none_zero == 1) {
+            if ((counter_LSB == 0) && (counter_MSB == 0)) {
+                skip_first_print = 1;
+            }
+        }
+
+        common_read_reg_long(unit, "NBI_STATISTICS_TX_BURSTS_CNT", counter_data, 2); 
+        counter_MSB = counter_data[1];
+        counter_LSB = counter_data[0];
+
+        if (print_none_zero == 1) {
+            if ((counter_LSB == 0) && (counter_MSB == 0)) {
+                skip_second_print = 1;
+            }
+        }
+
+        counter_OVF = get_field(counter_MSB, 16, 16);
+        counter_MSB = get_field(counter_MSB, 0, 15);
+
+
+        if (hex_base == 1) {
+            if (counter_OVF == 0) {
+                if (counter_MSB == 0) {sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x", counter_LSB); } else                  {sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x%x", counter_MSB, counter_LSB); }
+            } else {
+                if (counter_MSB == 0) {sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x (ovf)", counter_LSB); } else                  {sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x%x (ovf)", counter_MSB, counter_LSB); }
+            }
+        } else {
+            COMPILER_64_SET(val_64, counter_MSB, counter_LSB);
+            format_uint64_decimal(buf_val, val_64, commachr);
+            if (counter_OVF == 0) {
+                sal_snprintf(counter2_str, sizeof(counter2_str), "%s", buf_val);
+            } else {
+                sal_snprintf(counter2_str, sizeof(counter2_str), "%s (ovf)", buf_val);
+            }
+        }
+
+        if ((skip_first_print == 1) && (skip_second_print == 1)) {
+            cli_out("|   %-30s   %-24s     %-30s   %-24s |\n", "", "", "", "");
+        } else if ((skip_first_print == 1) && (skip_second_print == 0)) {
+            cli_out("|   %-30s   %-24s     %-30s = %-24s |\n", "", "", "STATISTICS_TX_BURSTS_CNT", counter2_str);
+        } else if ((skip_first_print == 0) && (skip_second_print == 1)) {
+            cli_out("|   %-30s = %-24s     %-30s   %-24s |\n", "STATISTICS_RX_BURSTS_OK_CNT", counter1_str, "", "");
+        } else {
+            cli_out("|   %-30s = %-24s     %-30s = %-24s |\n", "STATISTICS_RX_BURSTS_OK_CNT", counter1_str, "STATISTICS_TX_BURSTS_CNT", counter2_str);
+        }
+        
+        skip_first_print = 0;
+        skip_second_print = 0;
+
+        common_read_reg_long(unit, "NBI_STATISTICS_RX_BURSTS_ERR_CNT", counter_data, 1);
+        counter_LSB = counter_data[0];
+        counter_OVF = get_field(counter_LSB, 31, 31);
+        counter_LSB = get_field(counter_LSB, 0, 30);
+
+        if (hex_base == 1) {
+            if (counter_OVF == 0) {
+                sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x", counter_LSB);
+            } else {
+                sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x (ovf)", counter_LSB);
+            }
+        } else {
+            COMPILER_64_SET(val_64, 0, counter_LSB);
+            format_uint64_decimal(buf_val, val_64, commachr);
+            if (counter_OVF == 0) {
+                sal_snprintf(counter1_str, sizeof(counter1_str), "%s", buf_val);
+            } else {
+                sal_snprintf(counter1_str, sizeof(counter1_str), "%s (ovf)", buf_val);
+            }
+        }
+
+        if (print_none_zero == 1) {
+            if (counter_LSB == 0) {
+                skip_first_print = 1;
+            }
+        }
+        if (skip_first_print == 1) {
+            cli_out("|   %-30s   %-24s                                                               |\n", "", "");
+        } else {
+            cli_out("|   %-30s = %-24s                                                               |\n", "STATISTICS_RX_BURSTS_ERR_CNT", counter1_str);
+        }
+   
+   } else { 
+
+        common_read_reg_long(unit, "NBI_RX_BYTE_TOTAL_CNT", counter_data, 2); 
+        counter_MSB = counter_data[1];
+        counter_LSB = counter_data[0];
+        counter_OVF = get_field(counter_MSB, 30, 30);
+        counter_MSB = get_field(counter_MSB, 0, 29);
+        
+        if (hex_base == 1) {
+           if (counter_OVF == 0) {
+              if (counter_MSB == 0) {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x", counter_LSB); } else                  {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x%x", counter_MSB, counter_LSB); }
+           } else {
+              if (counter_MSB == 0) {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x (ovf)", counter_LSB); } else                  {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x%x (ovf)", counter_MSB, counter_LSB); }
+           }
+       } else {
+           COMPILER_64_SET(val_64, counter_MSB, counter_LSB);
+           format_uint64_decimal(buf_val, val_64, commachr);
+           if (counter_OVF == 0) {
+               sal_snprintf(counter1_str, sizeof(counter1_str), "%s", buf_val);
+           } else {
+               sal_snprintf(counter1_str, sizeof(counter1_str), "%s (ovf)", buf_val);
+           }
+        }
+
+        if (print_none_zero == 1) {
+            if ((counter_LSB == 0) && (counter_MSB == 0)) {
+                skip_first_print = 1;
+            }
+        }
+
+        common_read_reg_long(unit, "NBI_TX_BYTE_TOTAL_CNT", counter_data, 2); 
+        counter_MSB = counter_data[1];
+        counter_LSB = counter_data[0];
+
+        if (print_none_zero == 1) {
+            if ((counter_LSB == 0) && (counter_MSB == 0)) {
+                skip_second_print = 1;
+            }
+        }
+
+        counter_OVF = get_field(counter_MSB, 30, 30);
+        counter_MSB = get_field(counter_MSB, 0, 29);
+
+
+        if (hex_base == 1) {
+            if (counter_OVF == 0) {
+                if (counter_MSB == 0) {sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x", counter_LSB); } else                  {sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x%x", counter_MSB, counter_LSB); }
+            } else {
+                if (counter_MSB == 0) {sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x (ovf)", counter_LSB); } else                  {sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x%x (ovf)", counter_MSB, counter_LSB); }
+            }
+        } else {
+            COMPILER_64_SET(val_64, counter_MSB, counter_LSB);
+            format_uint64_decimal(buf_val, val_64, commachr);
+            if (counter_OVF == 0) {
+                sal_snprintf(counter2_str, sizeof(counter2_str), "%s", buf_val);
+            } else {
+                sal_snprintf(counter2_str, sizeof(counter2_str), "%s (ovf)", buf_val);
+            }
+        }
+        
+        if ((skip_first_print == 1) && (skip_second_print == 1)) {
+            cli_out("|   %-30s   %-24s     %-30s   %-24s |\n", "", "", "", "");
+        } else if ((skip_first_print == 1) && (skip_second_print == 0)) {
+            cli_out("|   %-30s   %-24s     %-30s = %-24s |\n", "", "", "NBI_TX_BYTE_TOTAL_CNT", counter2_str);
+        } else if ((skip_first_print == 0) && (skip_second_print == 1)) {
+            cli_out("|   %-30s = %-24s     %-30s   %-24s |\n", "NBI_RX_BYTE_TOTAL_CNT", counter1_str, "", "");
+        } else {
+            cli_out("|   %-30s = %-24s     %-30s = %-24s |\n", "NBI_RX_BYTE_TOTAL_CNT", counter1_str, "NBI_TX_BYTE_TOTAL_CNT", counter2_str);
+        }
+
+        skip_first_print = 0;
+        skip_second_print = 0;
+    
+        common_read_reg_long(unit, "NBI_RX_EOP_PKT_TOTAL_CNT", counter_data, 2); 
+        counter_MSB = counter_data[1];
+        counter_LSB = counter_data[0];
+        counter_OVF = get_field(counter_MSB, 30, 30);
+        counter_MSB = get_field(counter_MSB, 0, 29);
+        
+        if (hex_base == 1) {
+           if (counter_OVF == 0) {
+              if (counter_MSB == 0) {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x", counter_LSB); } else                  {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x%x", counter_MSB, counter_LSB); }
+           } else {
+              if (counter_MSB == 0) {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x (ovf)", counter_LSB); } else                  {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x%x (ovf)", counter_MSB, counter_LSB); }
+           }
+       } else {
+           COMPILER_64_SET(val_64, counter_MSB, counter_LSB);
+           format_uint64_decimal(buf_val, val_64, commachr);
+           if (counter_OVF == 0) {
+               sal_snprintf(counter1_str, sizeof(counter1_str), "%s", buf_val);
+           } else {
+               sal_snprintf(counter1_str, sizeof(counter1_str), "%s (ovf)", buf_val);
+           }
+        }
+
+        if (print_none_zero == 1) {
+            if ((counter_LSB == 0) && (counter_MSB == 0)) {
+                skip_first_print = 1;
+            }
+        }
+
+        common_read_reg_long(unit, "NBI_TX_EOP_PKT_TOTAL_CNT", counter_data, 2); 
+        counter_MSB = counter_data[1];
+        counter_LSB = counter_data[0];
+
+        if (print_none_zero == 1) {
+            if ((counter_LSB == 0) && (counter_MSB == 0)) {
+                skip_second_print = 1;
+            }
+        }
+
+        counter_OVF = get_field(counter_MSB, 30, 30);
+        counter_MSB = get_field(counter_MSB, 0, 29);
+
+
+        if (hex_base == 1) {
+            if (counter_OVF == 0) {
+                if (counter_MSB == 0) {sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x", counter_LSB); } else                  {sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x%x", counter_MSB, counter_LSB); }
+            } else {
+                if (counter_MSB == 0) {sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x (ovf)", counter_LSB); } else                  {sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x%x (ovf)", counter_MSB, counter_LSB); }
+            }
+        } else {
+            COMPILER_64_SET(val_64, counter_MSB, counter_LSB);
+            format_uint64_decimal(buf_val, val_64, commachr);
+            if (counter_OVF == 0) {
+                sal_snprintf(counter2_str, sizeof(counter2_str), "%s", buf_val);
+            } else {
+                sal_snprintf(counter2_str, sizeof(counter2_str), "%s (ovf)", buf_val);
+            }
+        }
+               
+        if ((skip_first_print == 1) && (skip_second_print == 1)) {
+            cli_out("|   %-30s   %-24s     %-30s   %-24s |\n", "", "", "", "");
+        } else if ((skip_first_print == 1) && (skip_second_print == 0)) {
+            cli_out("|   %-30s   %-24s     %-30s = %-24s |\n", "", "", "NBI_TX_EOP_PKT_TOTAL_CNT", counter2_str);
+        } else if ((skip_first_print == 0) && (skip_second_print == 1)) {
+            cli_out("|   %-30s = %-24s     %-30s   %-24s |\n", "NBI_RX_EOP_PKT_TOTAL_CNT", counter1_str, "", "");
+        } else {
+            cli_out("|   %-30s = %-24s     %-30s = %-24s |\n", "NBI_RX_EOP_PKT_TOTAL_CNT", counter1_str, "NBI_TX_EOP_PKT_TOTAL_CNT", counter2_str);
+        }
+
+    
+        skip_first_print = 0;
+        skip_second_print = 0;
+    
+        common_read_reg_long(unit, "NBI_RX_SOP_PKT_TOTAL_CNT", counter_data, 2); 
+        counter_MSB = counter_data[1];
+        counter_LSB = counter_data[0];
+        counter_OVF = get_field(counter_MSB, 30, 30);
+        counter_MSB = get_field(counter_MSB, 0, 29);
+        
+        if (hex_base == 1) {
+           if (counter_OVF == 0) {
+              if (counter_MSB == 0) {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x", counter_LSB); } else                  {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x%x", counter_MSB, counter_LSB); }
+           } else {
+              if (counter_MSB == 0) {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x (ovf)", counter_LSB); } else                  {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x%x (ovf)", counter_MSB, counter_LSB); }
+           }
+       } else {
+           COMPILER_64_SET(val_64, counter_MSB, counter_LSB);
+           format_uint64_decimal(buf_val, val_64, commachr);
+           if (counter_OVF == 0) {
+               sal_snprintf(counter1_str, sizeof(counter1_str), "%s", buf_val);
+           } else {
+               sal_snprintf(counter1_str, sizeof(counter1_str), "%s (ovf)", buf_val);
+           }
+        }
+
+        if (print_none_zero == 1) {
+            if ((counter_LSB == 0) && (counter_MSB == 0)) {
+                skip_first_print = 1;
+            }
+        }
+
+        common_read_reg_long(unit, "NBI_TX_SOP_PKT_TOTAL_CNT", counter_data, 2); 
+        counter_MSB = counter_data[1];
+        counter_LSB = counter_data[0];
+
+        if (print_none_zero == 1) {
+            if ((counter_LSB == 0) && (counter_MSB == 0)) {
+                skip_second_print = 1;
+            }
+        }
+
+        counter_OVF = get_field(counter_MSB, 30, 30);
+        counter_MSB = get_field(counter_MSB, 0, 29);
+
+
+        if (hex_base == 1) {
+            if (counter_OVF == 0) {
+                if (counter_MSB == 0) {sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x", counter_LSB); } else                  {sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x%x", counter_MSB, counter_LSB); }
+            } else {
+                if (counter_MSB == 0) {sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x (ovf)", counter_LSB); } else                  {sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x%x (ovf)", counter_MSB, counter_LSB); }
+            }
+        } else {
+            COMPILER_64_SET(val_64, counter_MSB, counter_LSB);
+            format_uint64_decimal(buf_val, val_64, commachr);
+            if (counter_OVF == 0) {
+                sal_snprintf(counter2_str, sizeof(counter2_str), "%s", buf_val);
+            } else {
+                sal_snprintf(counter2_str, sizeof(counter2_str), "%s (ovf)", buf_val);
+            }
+        }    
+
+        if ((skip_first_print == 1) && (skip_second_print == 1)) {
+            cli_out("|   %-30s   %-24s     %-30s   %-24s |\n", "", "", "", "");
+        } else if ((skip_first_print == 1) && (skip_second_print == 0)) {
+            cli_out("|   %-30s   %-24s     %-30s = %-24s |\n", "", "", "NBI_TX_SOP_PKT_TOTAL_CNT", counter2_str);
+        } else if ((skip_first_print == 0) && (skip_second_print == 1)) {
+            cli_out("|   %-30s = %-24s     %-30s   %-24s |\n", "NBI_RX_SOP_PKT_TOTAL_CNT", counter1_str, "", "");
+        } else {
+            cli_out("|   %-30s = %-24s     %-30s = %-24s |\n", "NBI_RX_SOP_PKT_TOTAL_CNT", counter1_str, "NBI_TX_SOP_PKT_TOTAL_CNT", counter2_str);
+        }
+    
+        skip_first_print = 0;
+        skip_second_print = 0;
+    
+        common_read_reg_long(unit, "NBI_RX_ERR_PKT_TOTAL_CNT", counter_data, 2); 
+        counter_MSB = counter_data[1];
+        counter_LSB = counter_data[0];
+        counter_OVF = get_field(counter_MSB, 30, 30);
+        counter_MSB = get_field(counter_MSB, 0, 29);
+        
+        if (hex_base == 1) {
+           if (counter_OVF == 0) {
+              if (counter_MSB == 0) {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x", counter_LSB); } else                  {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x%x", counter_MSB, counter_LSB); }
+           } else {
+              if (counter_MSB == 0) {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x (ovf)", counter_LSB); } else                  {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x%x (ovf)", counter_MSB, counter_LSB); }
+           }
+       } else {
+           COMPILER_64_SET(val_64, counter_MSB, counter_LSB);
+           format_uint64_decimal(buf_val, val_64, commachr);
+           if (counter_OVF == 0) {
+               sal_snprintf(counter1_str, sizeof(counter1_str), "%s", buf_val);
+           } else {
+               sal_snprintf(counter1_str, sizeof(counter1_str), "%s (ovf)", buf_val);
+           }
+        }
+
+        if (print_none_zero == 1) {
+            if ((counter_LSB == 0) && (counter_MSB == 0)) {
+                skip_first_print = 1;
+            }
+        }
+
+        common_read_reg_long(unit, "NBI_TX_ERR_PKT_TOTAL_CNT", counter_data, 2); 
+        counter_MSB = counter_data[1];
+        counter_LSB = counter_data[0];
+
+        if (print_none_zero == 1) {
+            if ((counter_LSB == 0) && (counter_MSB == 0)) {
+                skip_second_print = 1;
+            }
+        }
+
+        counter_OVF = get_field(counter_MSB, 30, 30);
+        counter_MSB = get_field(counter_MSB, 0, 29);
+
+
+        if (hex_base == 1) {
+            if (counter_OVF == 0) {
+                if (counter_MSB == 0) {sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x", counter_LSB); } else                  {sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x%x", counter_MSB, counter_LSB); }
+            } else {
+                if (counter_MSB == 0) {sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x (ovf)", counter_LSB); } else                  {sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x%x (ovf)", counter_MSB, counter_LSB); }
+            }
+        } else {
+            COMPILER_64_SET(val_64, counter_MSB, counter_LSB);
+            format_uint64_decimal(buf_val, val_64, commachr);
+            if (counter_OVF == 0) {
+                sal_snprintf(counter2_str, sizeof(counter2_str), "%s", buf_val);
+            } else {
+                sal_snprintf(counter2_str, sizeof(counter2_str), "%s (ovf)", buf_val);
+            }
+        }      
+    
+    if ((skip_first_print == 1) && (skip_second_print == 1)) {
+             cli_out("|   %-30s   %-24s     %-30s   %-24s |\n", "", "", "", "");
+         } else if ((skip_first_print == 1) && (skip_second_print == 0)) {
+             cli_out("|   %-30s   %-24s     %-30s = %-24s |\n", "", "", "NBI_TX_ERR_PKT_TOTAL_CNT", counter2_str);
+         } else if ((skip_first_print == 0) && (skip_second_print == 1)) {
+             cli_out("|   %-30s = %-24s     %-30s   %-24s |\n", "NBI_RX_ERR_PKT_TOTAL_CNT", counter1_str, "", "");
+         } else {
+             cli_out("|   %-30s = %-24s     %-30s = %-24s |\n", "NBI_RX_ERR_PKT_TOTAL_CNT", counter1_str, "NBI_TX_ERR_PKT_TOTAL_CNT", counter2_str);
+         }
+   }
+   
+   skip_first_print = 0;
+   skip_second_print = 0;
+
+   cli_out("|-------------------------------------------------------------+-------------------------------------------------------------|\n");
+   cli_out("|                             IRE                             |                             EPNI                            |\n");
+
+   common_read_reg_long(unit, "IRE_NIF_PACKET_COUNTER", counter_data, 2);
+   counter_MSB = counter_data[1];
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_MSB, 31, 31);
+   counter_MSB = get_field(counter_MSB, 0, 30);
+
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         if (counter_MSB == 0) {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x", counter_LSB); } else                  {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x%x", counter_MSB, counter_LSB); }
+      } else {
+         if (counter_MSB == 0) {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x (ovf)", counter_LSB); } else                  {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x%x (ovf)", counter_MSB, counter_LSB); }
+      }
+   } else {
+      COMPILER_64_SET(val_64, counter_MSB, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if ((counter_LSB == 0) && (counter_MSB == 0)) {
+         skip_first_print = 1;
+      }
+   }
+
+   common_read_reg_long(unit, "EPNI_EPE_PACKET_COUNTER", counter_data, 2);
+   counter_MSB = counter_data[1];
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_MSB, 0, 0);
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x", counter_LSB);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x (ovf)", counter_LSB);
+      }
+   } else {
+      COMPILER_64_SET(val_64, 0, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if ((counter_LSB == 0) && (counter_MSB == 0)) {
+         skip_second_print = 1;
+      }
+   }
+
+   if ((skip_first_print == 1) && (skip_second_print == 1)) {
+      cli_out("|   %-30s   %-24s |   %-30s   %-24s |\n", "", "", "", "");
+   } else if ((skip_first_print == 1) && (skip_second_print == 0)) {
+      cli_out("|   %-30s   %-24s |   %-30s = %-24s |\n", "", "", "EPE_PACKET_COUNTER", counter2_str);
+   } else if ((skip_first_print == 0) && (skip_second_print == 1)) {
+      cli_out("|   %-30s = %-24s |   %-30s   %-24s |\n", "NIF_PACKET_COUNTER", counter1_str, "", "");
+   } else {
+      cli_out("|   %-30s = %-24s |   %-30s = %-24s |\n", "NIF_PACKET_COUNTER", counter1_str, "EPE_PACKET_COUNTER", counter2_str);
+   }
+   skip_first_print = 0;
+   skip_second_print = 0;
+
+   common_read_reg_long(unit, "IRE_CPU_PACKET_COUNTER", counter_data, 2);
+   counter_MSB = counter_data[1];
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_MSB, 31, 31);
+   counter_MSB = get_field(counter_MSB, 0, 30);
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         if (counter_MSB == 0) {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x", counter_LSB); } else                  {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x%x", counter_MSB, counter_LSB); }
+      } else {
+         if (counter_MSB == 0) {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x (ovf)", counter_LSB); } else                  {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x%x (ovf)", counter_MSB, counter_LSB); }
+      }
+   } else {
+      COMPILER_64_SET(val_64, counter_MSB, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if ((counter_LSB == 0) && (counter_MSB == 0)) {
+         skip_first_print = 1;
+      }
+   }
+   common_read_reg_long(unit, "EPNI_EPE_DISCARDED_PACKETS_COUNTER", counter_data, 2);
+   counter_MSB = counter_data[1];
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_MSB, 0, 0);
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x", counter_LSB);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x (ovf)", counter_LSB);
+      }
+   } else {
+      COMPILER_64_SET(val_64, 0, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if ((counter_LSB == 0) && (counter_MSB == 0)) {
+         skip_second_print = 1;
+      }
+   }
+
+   if ((skip_first_print == 1) && (skip_second_print == 1)) {
+      cli_out("|   %-30s   %-24s |   %-30s   %-24s |\n", "", "", "", "");
+   } else if ((skip_first_print == 1) && (skip_second_print == 0)) {
+      cli_out("|   %-30s   %-24s |   %-30s = %-24s |\n", "", "", "EPE_DISCARDED_PACKETS_COUNTER", counter2_str);
+   } else if ((skip_first_print == 0) && (skip_second_print == 1)) {
+      cli_out("|   %-30s = %-24s |   %-30s   %-24s |\n", "CPU_PACKET_COUNTER", counter1_str, "", "");
+   } else {
+      cli_out("|   %-30s = %-24s |   %-30s = %-24s |\n", "CPU_PACKET_COUNTER", counter1_str, "EPE_DISCARDED_PACKETS_COUNTER", counter2_str);
+   }
+   skip_first_print = 0;
+   skip_second_print = 0;
+
+   common_read_reg_long(unit, "IRE_REGI_PACKET_COUNTER", counter_data, 2);
+   counter_MSB = counter_data[1];
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_MSB, 31, 31);
+   counter_MSB = get_field(counter_MSB, 0, 30);
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         if (counter_MSB == 0) {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x", counter_LSB); } else                  {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x%x", counter_MSB, counter_LSB); }
+      } else {
+         if (counter_MSB == 0) {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x (ovf)", counter_LSB); } else                  {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x%x (ovf)", counter_MSB, counter_LSB); }
+      }
+   } else {
+      COMPILER_64_SET(val_64, counter_MSB, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if ((counter_LSB == 0) && (counter_MSB == 0)) {
+         skip_first_print = 1;
+      }
+   }
+
+   common_read_reg_long(unit, "EPNI_EPE_BYTES_COUNTER", counter_data, 2);
+   counter_LSB     = counter_data[0];
+   counter_MSB     = counter_data[1];
+   counter_OVF     = get_field(counter_MSB, 14, 14);
+   counter_MSB     = get_field(counter_MSB, 0, 13);
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x", counter_LSB);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x (ovf)", counter_LSB);
+      }
+   } else {
+      COMPILER_64_SET(val_64, 0, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if ((counter_LSB == 0) && (counter_MSB == 0)) {
+         skip_second_print = 1;
+      }
+   }
+
+   if ((skip_first_print == 1) && (skip_second_print == 1)) {
+      cli_out("|   %-30s   %-24s |   %-30s   %-24s |\n", "", "", "", "");
+   } else if ((skip_first_print == 1) && (skip_second_print == 0)) {
+      cli_out("|   %-30s   %-24s |   %-30s = %-24s |\n", "", "", "EPE_BYTES_COUNTER", counter2_str);
+   } else if ((skip_first_print == 0) && (skip_second_print == 1)) {
+      cli_out("|   %-30s = %-24s |   %-30s   %-24s |\n", "REGI_PACKET_COUNTER", counter1_str, "", "");
+   } else {
+      cli_out("|   %-30s = %-24s |   %-30s = %-24s |\n", "REGI_PACKET_COUNTER", counter1_str, "EPE_BYTES_COUNTER", counter2_str);
+   }
+   skip_first_print = 0;
+   skip_second_print = 0;
+
+   common_read_reg_long(unit, "IRE_RCY_PACKET_COUNTER", counter_data, 2);
+   counter_MSB = counter_data[1];
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_MSB, 31, 31);
+   counter_MSB = get_field(counter_MSB, 0, 30);
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         if (counter_MSB == 0) {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x", counter_LSB); } else                  {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x%x", counter_MSB, counter_LSB); }
+      } else {
+         if (counter_MSB == 0) {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x (ovf)", counter_LSB); } else                  {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x%x (ovf)", counter_MSB, counter_LSB); }
+      }
+   } else {
+      COMPILER_64_SET(val_64, counter_MSB, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if ((counter_LSB == 0) && (counter_MSB == 0)) {
+         skip_first_print = 1;
+      }
+   }
+
+   if (skip_first_print == 1) {
+      cli_out("|   %-30s   %-24s +-------------------------------------------------------------|\n", "", "");
+   } else {
+      cli_out("|   %-30s = %-24s +-------------------------------------------------------------|\n", "RCY_PACKET_COUNTER", counter1_str);
+   }
+   skip_first_print = 0;
+
+
+   common_read_reg_long(unit, "IRE_OAMP_PACKET_COUNTER", counter_data, 2);
+   counter_MSB = counter_data[1];
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_MSB, 31, 31);
+   counter_MSB = get_field(counter_MSB, 0, 30);
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         if (counter_MSB == 0) {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x", counter_LSB); } else                  {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x%x", counter_MSB, counter_LSB); }
+      } else {
+         if (counter_MSB == 0) {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x (ovf)", counter_LSB); } else                  {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x%x (ovf)", counter_MSB, counter_LSB); }
+      }
+   } else {
+      COMPILER_64_SET(val_64, counter_MSB, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if ((counter_LSB == 0) && (counter_MSB == 0)) {
+         skip_first_print = 1;
+      }
+   }
+
+   if (skip_first_print == 1) {
+      cli_out("|   %-30s   %-24s |                             EGQ                             |\n", "", "");
+   } else {
+      cli_out("|   %-30s = %-24s |                             EGQ                             |\n", "OAMP_PACKET_COUNTER", counter1_str);
+   }
+   skip_first_print = 0;
+
+
+
+   common_read_reg_long(unit, "IRE_OLP_PACKET_COUNTER", counter_data, 2);
+   counter_MSB = counter_data[1];
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_MSB, 31, 31);
+   counter_MSB = get_field(counter_MSB, 0, 30);
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         if (counter_MSB == 0) {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x", counter_LSB); } else                  {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x%x", counter_MSB, counter_LSB); }
+      } else {
+         if (counter_MSB == 0) {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x (ovf)", counter_LSB); } else                  {sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x%x (ovf)", counter_MSB, counter_LSB); }
+      }
+   } else {
+      COMPILER_64_SET(val_64, counter_MSB, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if ((counter_LSB == 0) && (counter_MSB == 0)) {
+         skip_first_print = 1;
+      }
+   }
+
+   common_read_reg_long(unit, "EGQ_FQP_PACKET_COUNTER", counter_data, 2);
+   counter_MSB = counter_data[1];
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_MSB, 0, 0);
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x", counter_LSB);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x (ovf)", counter_LSB);
+      }
+   } else {
+      COMPILER_64_SET(val_64, 0, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if ((counter_LSB == 0) && (counter_MSB == 0)) {
+         skip_second_print = 1;
+      }
+   }
+
+   if ((skip_first_print == 1) && (skip_second_print == 1)) {
+      cli_out("|   %-30s   %-24s |   %-30s   %-24s |\n", "", "", "", "");
+   } else if ((skip_first_print == 1) && (skip_second_print == 0)) {
+      cli_out("|   %-30s   %-24s |   %-30s = %-24s |\n", "", "", "FQP_PACKET_COUNTER", counter2_str);
+   } else if ((skip_first_print == 0) && (skip_second_print == 1)) {
+      cli_out("|   %-30s = %-24s |   %-30s   %-24s |\n", "OLP_PACKET_COUNTER", counter1_str, "", "");
+   } else {
+      cli_out("|   %-30s = %-24s |   %-30s = %-24s |\n", "OLP_PACKET_COUNTER", counter1_str, "FQP_PACKET_COUNTER", counter2_str);
+   }
+   skip_first_print = 0;
+   skip_second_print = 0;
+
+   cli_out("|-------------------------------------------------------------+                                                             |\n");
+
+   common_read_reg_long(unit, "EGQ_PQP_UNICAST_PACKET_COUNTER", counter_data, 2);
+   counter_MSB = counter_data[1];
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_MSB, 0, 0);
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x", counter_LSB);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x (ovf)", counter_LSB);
+      }
+   } else {
+      COMPILER_64_SET(val_64, 0, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if ((counter_LSB == 0) && (counter_MSB == 0)) {
+         skip_first_print = 1;
+      }
+   }
+
+   if (skip_first_print == 1) {
+      cli_out("|                                                             |   %-30s   %-24s |\n", "", "");
+   } else {
+      cli_out("|                                                             |   %-30s = %-24s |\n", "PQP_UNICAST_PACKET_COUNTER", counter2_str);
+   }
+   skip_first_print = 0;
+
+
+
+   common_read_reg_long(unit, "EGQ_PQP_DISCARD_UNICAST_PACKET_COUNTER", counter_data, 2);
+   counter_MSB = counter_data[1];
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_MSB, 0, 0);
+
+if (counter_LSB && SOC_IS_ARADPLUS(unit)) print_reason=1; /* if counter is on, we'll want to print the reasons */
+
+   
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x", counter_LSB);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x (ovf)", counter_LSB);
+      }
+   } else {
+      COMPILER_64_SET(val_64, 0, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if ((counter_LSB == 0) && (counter_MSB == 0)) {
+         skip_first_print = 1;
+      }
+   }
+
+   if (skip_first_print == 1) {
+      cli_out("|                                                             |   %-30s   %-24s |\n", "", "");
+   } else {
+      cli_out("|                                                             |   %-30s = %-24s |\n", "PQP_DISCARD_UC_PACKET_COUNTER", counter2_str);
+   }
+   skip_first_print = 0;
+
+   common_read_reg_long(unit, "EGQ_PQP_UNICAST_BYTES_COUNTER", counter_data, 2);
+   counter_LSB     = counter_data[0];
+   counter_MSB     = counter_data[1];
+   counter_OVF     = get_field(counter_MSB, 14, 14);
+   counter_MSB     = get_field(counter_MSB, 0, 13);
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         if (counter_MSB == 0) {sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x", counter_LSB); } else                  {sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x%x", counter_MSB, counter_LSB); }
+      } else {
+         if (counter_MSB == 0) {sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x (ovf)", counter_LSB); } else                  {sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x%x (ovf)", counter_MSB, counter_LSB); }
+      }
+   } else {
+      COMPILER_64_SET(val_64, counter_MSB, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if ((counter_LSB == 0) && (counter_MSB == 0)) {
+         skip_first_print = 1;
+      }
+   }
+
+   if (skip_first_print == 1) {
+      cli_out("|                                                             |   %-30s   %-24s |\n", "", "");
+   } else {
+      cli_out("|                                                             |   %-30s = %-24s |\n", "PQP_UNICAST_BYTES_COUNTER", counter2_str);
+   }
+   skip_first_print = 0;
+
+
+
+   common_read_reg_long(unit, "EGQ_PQP_MULTICAST_PACKET_COUNTER", counter_data, 2);
+   counter_MSB = counter_data[1];
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_MSB, 0, 0);
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x", counter_LSB);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x (ovf)", counter_LSB);
+      }
+   } else {
+      COMPILER_64_SET(val_64, 0, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if ((counter_LSB == 0) && (counter_MSB == 0)) {
+         skip_first_print = 1;
+      }
+   }
+
+   if (skip_first_print == 1) {
+      cli_out("|                                                             |   %-30s   %-24s |\n", "", "");
+   } else {
+      cli_out("|                                                             |   %-30s = %-24s |\n", "PQP_MULTICAST_PACKET_COUNTER", counter2_str);
+   }
+   skip_first_print = 0;
+
+   common_read_reg_long(unit, "EGQ_PQP_DISCARD_MULTICAST_PACKET_COUNTER", counter_data, 2);
+   counter_MSB = counter_data[1];
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_MSB, 0, 0);
+
+if (counter_LSB && SOC_IS_ARADPLUS(unit)) print_reason=1; /* if counter is on, we'll want to print the reasons */
+
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x", counter_LSB);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x (ovf)", counter_LSB);
+      }
+   } else {
+      COMPILER_64_SET(val_64, 0, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if ((counter_LSB == 0) && (counter_MSB == 0)) {
+         skip_first_print = 1;
+      }
+   }
+
+   if (skip_first_print == 1) {
+      cli_out("|                                                             |   %-30s   %-24s |\n", "", "");
+   } else {
+      cli_out("|                                                             |   %-30s = %-24s |\n", "PQP_DISCARD_MC_PACKET_COUNTER", counter2_str);
+   }
+   skip_first_print = 0;
+
+
+
+   common_read_reg_long(unit, "EGQ_PQP_MULTICAST_BYTES_COUNTER", counter_data, 2);
+   counter_LSB     = counter_data[0];
+   counter_MSB     = counter_data[1];
+   counter_OVF     = get_field(counter_MSB, 14, 14);
+   counter_MSB     = get_field(counter_MSB, 0, 13);
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         if (counter_MSB == 0) {sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x", counter_LSB); } else                  {sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x%x", counter_MSB, counter_LSB); }
+      } else {
+         if (counter_MSB == 0) {sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x (ovf)", counter_LSB); } else                  {sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x%x (ovf)", counter_MSB, counter_LSB); }
+      }
+   } else {
+      COMPILER_64_SET(val_64, counter_MSB, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if ((counter_LSB == 0) && (counter_MSB == 0)) {
+         skip_first_print = 1;
+      }
+   }
+
+   if (skip_first_print == 1) {
+      cli_out("|                                                             |   %-30s   %-24s |\n", "", "");
+   } else {
+      cli_out("|                                                             |   %-30s = %-24s |\n", "PQP_MULTICAST_BYTES_COUNTER", counter2_str);
+   }
+   skip_first_print = 0;
+
+
+   if (print_reason) diag_print_pqp_discard_reasons(unit); /* if ARAD+ and counter was on, print reasons*/
+   print_reason=0;       
+
+   
+
+   cli_out("|-------------------------------------------------------------+                                                             |\n");
+
+   common_read_reg_long(unit, "EGQ_EHP_UNICAST_PACKET_COUNTER", counter_data, 2);
+   counter_MSB = counter_data[1];
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_MSB, 0, 0);
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x", counter_LSB);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x (ovf)", counter_LSB);
+      }
+   } else {
+      COMPILER_64_SET(val_64, 0, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if ((counter_LSB == 0) && (counter_MSB == 0)) {
+         skip_first_print = 1;
+      }
+   }
+
+   if (skip_first_print == 1) {
+      cli_out("|                             IQM                             |   %-30s   %-24s |\n", "", "");
+   } else {
+      cli_out("|                             IQM                             |   %-30s = %-24s |\n", "EHP_UNICAST_PACKET_COUNTER", counter2_str);
+   }
+   skip_first_print = 0;
+
+
+
+   common_read_reg_long(unit, "IQM_ENQUEUE_PACKET_COUNTER", counter_data, 1);
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_LSB, 31, 31);
+   counter_LSB = get_field(counter_LSB, 0, 30);
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x", counter_LSB);
+      } else {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x (ovf)", counter_LSB);
+      }
+   } else {
+      COMPILER_64_SET(val_64, 0, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if (counter_LSB == 0) {
+         skip_first_print = 1;
+      }
+   }
+
+   common_read_reg_long(unit, "EGQ_EHP_MULTICAST_HIGH_PACKET_COUNTER", counter_data, 2);
+   counter_MSB = counter_data[1];
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_MSB, 0, 0);
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x", counter_LSB);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x (ovf)", counter_LSB);
+      }
+   } else {
+      COMPILER_64_SET(val_64, counter_MSB, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if ((counter_LSB == 0) && (counter_MSB == 0)) {
+         skip_second_print = 1;
+      }
+   }
+
+   if ((skip_first_print == 1) && (skip_second_print == 1)) {
+      cli_out("|   %-30s   %-24s |   %-30s   %-24s |\n", "", "", "", "");
+   } else if ((skip_first_print == 1) && (skip_second_print == 0)) {
+      cli_out("|   %-30s   %-24s |   %-30s = %-24s |\n", "", "", "EHP_MC_HIGH_PACKET_COUNTER", counter2_str);
+   } else if ((skip_first_print == 0) && (skip_second_print == 1)) {
+      cli_out("|   %-30s = %-24s |   %-30s   %-24s |\n", "ENQUEUE_PACKET_COUNTER", counter1_str, "", "");
+   } else {
+      cli_out("|   %-30s = %-24s |   %-30s = %-24s |\n", "ENQUEUE_PACKET_COUNTER", counter1_str, "EHP_MC_HIGH_PACKET_COUNTER", counter2_str);
+   }
+   skip_first_print = 0;
+   skip_second_print = 0;
+
+
+   common_read_reg_long(unit, "IQM_DEQUEUE_PACKET_COUNTER", counter_data, 1);
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_LSB, 31, 31);
+   counter_LSB = get_field(counter_LSB, 0, 30);
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x", counter_LSB);
+      } else {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x (ovf)", counter_LSB);
+      }
+   } else {
+      COMPILER_64_SET(val_64, 0, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if (counter_LSB == 0) {
+         skip_first_print = 1;
+      }
+   }
+
+   common_read_reg_long(unit, "EGQ_EHP_MULTICAST_LOW_PACKET_COUNTER", counter_data, 2);
+   counter_MSB = counter_data[1];
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_MSB, 0, 0);
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x", counter_LSB);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x (ovf)", counter_LSB);
+      }
+   } else {
+      COMPILER_64_SET(val_64, 0, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s (ovf)", buf_val);
+      }
+   }
+
+
+   if (print_none_zero == 1) {
+      if ((counter_LSB == 0) && (counter_MSB == 0)) {
+         skip_second_print = 1;
+      }
+   }
+
+   if ((skip_first_print == 1) && (skip_second_print == 1)) {
+      cli_out("|   %-30s   %-24s |   %-30s   %-24s |\n", "", "", "", "");
+   } else if ((skip_first_print == 1) && (skip_second_print == 0)) {
+      cli_out("|   %-30s   %-24s |   %-30s = %-24s |\n", "", "", "EHP_MC_LOW_PACKET_COUNTER", counter2_str);
+   } else if ((skip_first_print == 0) && (skip_second_print == 1)) {
+      cli_out("|   %-30s = %-24s |   %-30s   %-24s |\n", "DEQUEUE_PACKET_COUNTER", counter1_str, "", "");
+   } else {
+      cli_out("|   %-30s = %-24s |   %-30s = %-24s |\n", "DEQUEUE_PACKET_COUNTER", counter1_str, "EHP_MC_LOW_PACKET_COUNTER", counter2_str);
+   }
+   skip_first_print = 0;
+   skip_second_print = 0;
+
+
+   common_read_reg_long(unit, "IQM_TOTAL_DISCARDED_PACKET_COUNTER", counter_data, 1);
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_LSB, 31, 31);
+   counter_LSB = get_field(counter_LSB, 0, 30);
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x", counter_LSB);
+      } else {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x (ovf)", counter_LSB);
+      }
+   } else {
+      COMPILER_64_SET(val_64, 0, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if (counter_LSB == 0) {
+         skip_first_print = 1;
+      }
+   }
+
+   common_read_reg_long(unit, "EGQ_EHP_DISCARD_PACKET_COUNTER", counter_data, 2);
+   counter_MSB = counter_data[1];
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_MSB, 0, 0);
+
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x", counter_LSB);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x (ovf)", counter_LSB);
+      }
+   } else {
+      COMPILER_64_SET(val_64, 0, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if ((counter_LSB == 0) && (counter_MSB == 0)) {
+         skip_second_print = 1;
+      }
+   }
+
+   if ((skip_first_print == 1) && (skip_second_print == 1)) {
+      cli_out("|   %-30s   %-24s |   %-30s   %-24s |\n", "", "", "", "");
+   } else if ((skip_first_print == 1) && (skip_second_print == 0)) {
+      cli_out("|   %-30s   %-24s |   %-30s = %-24s |\n", "", "", "EHP_DISCARD_PACKET_COUNTER", counter2_str);
+   } else if ((skip_first_print == 0) && (skip_second_print == 1)) {
+      cli_out("|   %-30s = %-24s |   %-30s   %-24s |\n", "TOTAL_DISCARDED_PACKET_COUNTER", counter1_str, "", "");
+   } else {
+      cli_out("|   %-30s = %-24s |   %-30s = %-24s |\n", "TOTAL_DISCARDED_PACKET_COUNTER", counter1_str, "EHP_DISCARD_PACKET_COUNTER", counter2_str);
+   }
+
+   rc = diag_print_rejected_IQM(unit);
+   if (rc != CMD_OK) {
+       return rc;
+   }
+
+   rc = diag_print_rejected_ERPP(unit);
+   if (rc != CMD_OK) {
+       return rc;
+   }
+
+   skip_first_print = 0;
+   skip_second_print = 0;
+
+   common_read_reg_long(unit, "IQM_DELETED_PACKET_COUNTER", counter_data, 1);
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_LSB, 31, 31);
+   counter_LSB = get_field(counter_LSB, 0, 30);
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x", counter_LSB);
+      } else {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x (ovf)", counter_LSB);
+      }
+   } else {
+      COMPILER_64_SET(val_64, 0, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if (counter_LSB == 0) {
+         skip_first_print = 1;
+      }
+   }
+   if (skip_first_print == 1) {
+      cli_out("|   %-30s   %-24s |                                                             |\n", "", "");
+   } else {
+      cli_out("|   %-30s = %-24s |                                                             |\n", "DELETED_PACKET_COUNTER", counter1_str);
+   }
+   skip_first_print = 0;
+
+   common_read_reg_long(unit, "EGQ_RQP_PACKET_COUNTER", counter_data, 2);
+   counter_MSB = counter_data[1];
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_MSB, 0, 0);
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x", counter_LSB);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x (ovf)", counter_LSB);
+      }
+   } else {
+      COMPILER_64_SET(val_64, 0, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if ((counter_LSB == 0) && (counter_MSB == 0)) {
+         skip_first_print = 1;
+      }
+   }
+
+   if (skip_first_print == 1) {
+      cli_out("|-------------------------------------------------------------+   %-30s   %-24s |\n", "", "");
+   } else {
+      cli_out("|-------------------------------------------------------------+   %-30s = %-24s |\n", "RQP_PACKET_COUNTER", counter2_str);
+   }
+   skip_first_print = 0;
+
+
+
+   common_read_reg_long(unit, "EGQ_RQP_DISCARD_PACKET_COUNTER", counter_data, 2);
+   counter_MSB = counter_data[1];
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_MSB, 0, 0);
+
+   if (counter_LSB && SOC_IS_ARADPLUS(unit)) print_reason=1; /* if counter is on, we'll want to print the reasons */
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x", counter_LSB);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x (ovf)", counter_LSB);
+      }
+   } else {
+      COMPILER_64_SET(val_64, 0, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if ((counter_LSB == 0) && (counter_MSB == 0)) {
+         skip_first_print = 1;
+      }
+   }
+   if (skip_first_print == 1) {
+      cli_out("|                             IPT                             |   %-30s   %-24s |\n", "", "");
+   } else {
+      cli_out("|                             IPT                             |   %-30s = %-24s |\n", "RQP_DISCARD_PACKET_COUNTER", counter2_str);
+   }
+   skip_first_print = 0;
+
+   if (print_reason && SOC_IS_ARADPLUS(unit)) diag_print_rqp_discard_reasons(unit); /* if ARAD+ and counter was on, print reasons*/
+   print_reason=0;       
+
+   common_read_reg_long(unit, "IPT_ENQ_PKT_CNT", counter_data, 1);
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_LSB, 31, 31);
+   counter_LSB = get_field(counter_LSB, 0, 30);
+
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x", counter_LSB);
+      } else {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x (ovf)", counter_LSB);
+      }
+   } else {
+      COMPILER_64_SET(val_64, 0, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if (counter_LSB == 0) {
+         skip_first_print = 1;
+      }
+   }
+
+#ifdef BCM_88660_A0
+   if (SOC_IS_ARADPLUS(unit)) {
+       common_read_reg_long(unit, "EGQ_RQP_DISCARD_SOP_COUNTER", counter_data, 1);
+       counter_LSB = counter_data[0];
+       counter_OVF = get_field(counter_LSB, 31, 31);
+       counter_LSB = get_field(counter_LSB, 0, 30);
+
+
+       if (hex_base == 1) {
+          if (counter_OVF == 0) {
+             sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x", counter_LSB);
+          } else {
+             sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x (ovf)", counter_LSB);
+          }
+       } else {
+          COMPILER_64_SET(val_64, 0, counter_LSB);
+          format_uint64_decimal(buf_val, val_64, commachr);
+          if (counter_OVF == 0) {
+             sal_snprintf(counter2_str, sizeof(counter2_str), "%s", buf_val);
+          } else {
+             sal_snprintf(counter2_str, sizeof(counter2_str), "%s (ovf)", buf_val);
+          }
+       }
+
+       if (print_none_zero == 1) {
+          if (counter_LSB == 0) {
+             skip_second_print = 1;
+          }
+       }
+   } else
+#endif
+   {
+       skip_second_print = 1;
+   }
+
+
+   if ((skip_first_print == 1) && (skip_second_print == 1)) {
+      cli_out("|   %-30s   %-24s |   %-30s   %-24s |\n", "", "", "", "");
+   } else if ((skip_first_print == 1) && (skip_second_print == 0)) {
+      cli_out("|   %-30s   %-24s |   %-30s = %-24s |\n", "", "", "RQP_DISCARD_SOP_COUNTER", counter2_str);
+   } else if ((skip_first_print == 0) && (skip_second_print == 1)) {
+      cli_out("|   %-30s = %-24s |   %-30s   %-24s |\n", "ENQ_PKT_CNT", counter1_str, "", "");
+   } else {
+      cli_out("|   %-30s = %-24s |   %-30s = %-24s |\n", "ENQ_PKT_CNT", counter1_str, "RQP_DISCARD_SOP_COUNTER", counter2_str);
+   }
+   skip_first_print = 0;
+   skip_second_print = 0;
+   cli_out("|                                                             |                                                             |\n");
+
+
+   common_read_reg_long(unit, "IPT_CRC_ERROR_COUNTER", counter_data, 1);
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_LSB, 31, 31);
+   counter_LSB = get_field(counter_LSB, 0, 30);
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x", counter_LSB);
+      } else {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x (ovf)", counter_LSB);
+      }
+   } else {
+      COMPILER_64_SET(val_64, 0, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if (counter_LSB == 0) {
+         skip_first_print = 1;
+      }
+   }
+
+   common_read_reg_long(unit, "EGQ_CPU_PACKET_COUNTER", counter_data, 2);
+   counter_MSB = counter_data[1];
+   counter_LSB = counter_data[0];
+   counter_LSB = get_field(counter_LSB, 0, 31);
+   counter_OVF = get_field(counter_MSB, 0, 0);
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x", counter_LSB);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x (ovf)", counter_LSB);
+      }
+   } else {
+      COMPILER_64_SET(val_64, 0, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if ((counter_LSB == 0) && (counter_MSB == 0)) {
+         skip_second_print = 1;
+      }
+   }
+
+   if ((skip_first_print == 1) && (skip_second_print == 1)) {
+      cli_out("|   %-30s   %-24s |   %-30s   %-24s |\n", "", "", "", "");
+   } else if ((skip_first_print == 1) && (skip_second_print == 0)) {
+      cli_out("|   %-30s   %-24s |   %-30s = %-24s |\n", "", "", "CPU_PACKET_COUNTER", counter2_str);
+   } else if ((skip_first_print == 0) && (skip_second_print == 1)) {
+      cli_out("|   %-30s = %-24s |   %-30s   %-24s |\n", "CRC_ERROR_COUNTER", counter1_str, "", "");
+   } else {
+      cli_out("|   %-30s = %-24s |   %-30s = %-24s |\n", "CRC_ERROR_COUNTER", counter1_str, "CPU_PACKET_COUNTER", counter2_str);
+   }
+   skip_first_print = 0;
+   skip_second_print = 0;
+
+
+   cli_out("|                                                             |                                                             |\n");
+
+   common_read_reg_long(unit, "IPT_EGQ_PKT_CNT", counter_data, 1);
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_LSB, 31, 31);
+   counter_LSB = get_field(counter_LSB, 0, 30);
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x", counter_LSB);
+      } else {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x (ovf)", counter_LSB);
+      }
+   } else {
+      COMPILER_64_SET(val_64, 0, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if (counter_LSB == 0) {
+         skip_first_print = 1;
+      }
+   }
+
+   common_read_reg_long(unit, "EGQ_IPT_PACKET_COUNTER", counter_data, 2);
+   counter_MSB = counter_data[1];
+   counter_LSB = counter_data[0];
+   counter_LSB = get_field(counter_LSB, 0, 31);
+   counter_OVF = get_field(counter_MSB, 0, 0);
+
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x", counter_LSB);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x (ovf)", counter_LSB);
+      }
+   } else {
+      COMPILER_64_SET(val_64, 0, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if ((counter_LSB == 0) && (counter_MSB == 0)) {
+         skip_second_print = 1;
+      }
+   }
+
+   if ((skip_first_print == 1) && (skip_second_print == 1)) {
+      cli_out("|   %-30s   %-24s-->  %-30s   %-24s |\n", "", "", "", "");
+   } else if ((skip_first_print == 1) && (skip_second_print == 0)) {
+      cli_out("|   %-30s   %-24s-->  %-30s = %-24s |\n", "", "", "IPT_PACKET_COUNTER", counter2_str);
+   } else if ((skip_first_print == 0) && (skip_second_print == 1)) {
+      cli_out("|   %-30s = %-24s-->  %-30s   %-24s |\n", "EGQ_PKT_CNT", counter1_str, "", "");
+   } else {
+      cli_out("|   %-30s = %-24s-->  %-30s = %-24s |\n", "EGQ_PKT_CNT", counter1_str, "IPT_PACKET_COUNTER", counter2_str);
+   }
+   skip_first_print = 0;
+   skip_second_print = 0;
+
+
+   cli_out("|                                                             |                                                             |\n");
+
+   common_read_reg_long(unit, "EGQ_FDR_PRIMARY_PACKET_COUNTER", counter_data, 2);
+   counter_MSB = counter_data[1];
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_MSB, 0, 0);
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x", counter_LSB);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x (ovf)", counter_LSB);
+      }
+   } else {
+      COMPILER_64_SET(val_64, 0, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if ((counter_LSB == 0) && (counter_MSB == 0)) {
+         skip_first_print = 1;
+      }
+   }
+
+   if (skip_first_print == 1) {
+      cli_out("|                                                             |   %-30s   %-24s |\n", "", "");
+   } else {
+      cli_out("|                                                             |   %-30s = %-24s |\n", "FDR_PRIMARY_PACKET_COUNTER", counter2_str);
+   }
+   skip_first_print = 0;
+
+
+   common_read_reg_long(unit, "IPT_FDT_PKT_CNT", counter_data, 1);
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_LSB, 31, 31);
+   counter_LSB = get_field(counter_LSB, 0, 30);
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x", counter_LSB);
+      } else {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x (ovf)", counter_LSB);
+      }
+   } else {
+      COMPILER_64_SET(val_64, 0, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if (counter_LSB == 0) {
+         skip_first_print = 1;
+      }
+   }
+
+   common_read_reg_long(unit, "EGQ_FDR_SECONDARY_PACKET_COUNTER", counter_data, 2);
+   counter_MSB = counter_data[1];
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_MSB, 0, 0);
+
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x", counter_LSB);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x (ovf)", counter_LSB);
+      }
+   } else {
+      COMPILER_64_SET(val_64, 0, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if ((counter_LSB == 0) && (counter_MSB == 0)) {
+         skip_second_print = 1;
+      }
+   }
+
+   if ((skip_first_print == 1) && (skip_second_print == 1)) {
+      cli_out("|   %-30s   %-24s |   %-30s   %-24s |\n", "", "", "", "");
+   } else if ((skip_first_print == 1) && (skip_second_print == 0)) {
+      cli_out("|   %-30s   %-24s |   %-30s = %-24s |\n", "", "", "FDR_SECONDARY_PACKET_COUNTER", counter2_str);
+   } else if ((skip_first_print == 0) && (skip_second_print == 1)) {
+      cli_out("|   %-30s = %-24s |   %-30s   %-24s |\n", "FDT_PKT_CNT", counter1_str, "", "");
+   } else {
+      cli_out("|   %-30s = %-24s |   %-30s = %-24s |\n", "FDT_PKT_CNT", counter1_str, "FDR_SECONDARY_PACKET_COUNTER", counter2_str);
+   }
+   skip_first_print = 0;
+   skip_second_print = 0;
+
+
+
+   cli_out("|-------------------------------------------------------------+-------------------------------------------------------------|\n");
+   cli_out("|                             FDT                             |                             FDR                             |\n");
+
+   common_read_reg_long(unit, "FDT_IPT_DESC_CELL_COUNTER", counter_data, 1);
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_LSB, 31, 31);
+   counter_LSB = get_field(counter_LSB, 0, 30);
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x", counter_LSB);
+      } else {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x (ovf)", counter_LSB);
+      }
+   } else {
+      COMPILER_64_SET(val_64, 0, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if (counter_LSB == 0) {
+         skip_first_print = 1;
+      }
+   }
+
+   common_read_reg_long(unit, "FDR_CELL_OUT_CNT_PRIMARY", counter_data, 1);
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_LSB, 31, 31);
+   counter_LSB = get_field(counter_LSB, 0, 30);
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x", counter_LSB);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x (ovf)", counter_LSB);
+      }
+   } else {
+      COMPILER_64_SET(val_64, 0, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if ((counter_LSB == 0) && (counter_MSB == 0)) {
+         skip_second_print = 1;
+      }
+   }
+
+   if ((skip_first_print == 1) && (skip_second_print == 1)) {
+      cli_out("|   %-30s   %-24s |   %-30s   %-24s |\n", "", "", "", "");
+   } else if ((skip_first_print == 1) && (skip_second_print == 0)) {
+      cli_out("|   %-30s   %-24s |   %-30s = %-24s |\n", "", "", "CELL_OUT_CNT_PRIMARY", counter2_str);
+   } else if ((skip_first_print == 0) && (skip_second_print == 1)) {
+      cli_out("|   %-30s = %-24s |   %-30s   %-24s |\n", "IPT_DESC_CELL_COUNTER", counter1_str, "", "");
+   } else {
+      cli_out("|   %-30s = %-24s |   %-30s = %-24s |\n", "IPT_DESC_CELL_COUNTER", counter1_str, "CELL_OUT_CNT_PRIMARY", counter2_str);
+   }
+   skip_first_print = 0;
+   skip_second_print = 0;
+
+
+
+   common_read_reg_long(unit, "FDT_IRE_DESC_CELL_COUNTER", counter_data, 1);
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_LSB, 31, 31);
+   counter_LSB = get_field(counter_LSB, 0, 30);
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x", counter_LSB);
+      } else {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x (ovf)", counter_LSB);
+      }
+   } else {
+      COMPILER_64_SET(val_64, 0, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "%s (ovf)", buf_val);
+      }
+   }
+   if (print_none_zero == 1) {
+      if (counter_LSB == 0) {
+         skip_first_print = 1;
+      }
+   }
+   common_read_reg_long(unit, "FDR_CELL_OUT_CNT_SECONDARY", counter_data, 1);
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_LSB, 31, 31);
+   counter_LSB = get_field(counter_LSB, 0, 30);
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x", counter_LSB);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x (ovf)", counter_LSB);
+      }
+   } else {
+      COMPILER_64_SET(val_64, 0, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if ((counter_LSB == 0) && (counter_MSB == 0)) {
+         skip_second_print = 1;
+      }
+   }
+
+   if ((skip_first_print == 1) && (skip_second_print == 1)) {
+      cli_out("|   %-30s   %-24s |   %-30s   %-24s |\n", "", "", "", "");
+   } else if ((skip_first_print == 1) && (skip_second_print == 0)) {
+      cli_out("|   %-30s   %-24s |   %-30s = %-24s |\n", "", "", "CELL_OUT_CNT_SECONDARY", counter2_str);
+   } else if ((skip_first_print == 0) && (skip_second_print == 1)) {
+      cli_out("|   %-30s = %-24s |   %-30s   %-24s |\n", "IRE_DESC_CELL_COUNTER", counter1_str, "", "");
+   } else {
+      cli_out("|   %-30s = %-24s |   %-30s = %-24s |\n", "IRE_DESC_CELL_COUNTER", counter1_str, "CELL_OUT_CNT_SECONDARY", counter2_str);
+   }
+   skip_first_print = 0;
+   skip_second_print = 0;
+
+   common_read_reg_long(unit, "FDR_CELL_IN_CNT_PRIMARY", counter_data, 1);
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_LSB, 31, 31);
+   counter_LSB = get_field(counter_LSB, 0, 30);
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x", counter_LSB);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x (ovf)", counter_LSB);
+      }
+   } else {
+      COMPILER_64_SET(val_64, 0, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s (ovf)", buf_val);
+      }
+   }
+   if (print_none_zero == 1) {
+      if (counter_LSB == 0) {
+         skip_first_print = 1;
+      }
+   }
+
+   if (skip_first_print == 1) {
+      cli_out("|                                                             |   %-30s   %-24s |\n", "", "");
+   } else {
+      cli_out("|                                                             |   %-30s = %-24s |\n", "CELL_IN_CNT_PRIMARY", counter2_str);
+   }
+   skip_first_print = 0;
+
+   common_read_reg_long(unit, "FDR_CELL_IN_CNT_SECONDARY", counter_data, 1);
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_LSB, 31, 31);
+   counter_LSB = get_field(counter_LSB, 0, 30);
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x", counter_LSB);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x (ovf)", counter_LSB);
+      }
+   } else {
+      COMPILER_64_SET(val_64, 0, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s (ovf)", buf_val);
+      }
+   }
+   if (print_none_zero == 1) {
+      if (counter_LSB == 0) {
+         skip_first_print = 1;
+      }
+   }
+
+   if (skip_first_print == 1) {
+      cli_out("|                                                             |   %-30s   %-24s |\n", "", "");
+   } else {
+      cli_out("|                                                             |   %-30s = %-24s |\n", "CELL_IN_CNT_SECONDARY", counter2_str);
+   }
+   skip_first_print = 0;
+
+   common_read_reg_long(unit, "FDT_TRANSMITTED_DATA_CELLS_COUNTER", counter_data, 1);
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_LSB, 31, 31);
+   counter_LSB = get_field(counter_LSB, 0, 30);
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x", counter_LSB);
+      } else {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "0x%x (ovf)", counter_LSB);
+      }
+   } else {
+      COMPILER_64_SET(val_64, 0, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter1_str, sizeof(counter1_str), "%s (ovf)", buf_val);
+      }
+   }
+   if (print_none_zero == 1) {
+      if (counter_LSB == 0) {
+         skip_first_print = 1;
+      }
+   }
+
+   common_read_reg_long(unit, "FDR_CELL_IN_CNT_TOTAL", counter_data, 1);
+   counter_LSB = counter_data[0];
+   counter_OVF = get_field(counter_LSB, 31, 31);
+   counter_LSB = get_field(counter_LSB, 0, 30);
+
+   if (hex_base == 1) {
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x", counter_LSB);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "0x%x (ovf)", counter_LSB);
+      }
+   } else {
+      COMPILER_64_SET(val_64, 0, counter_LSB);
+      format_uint64_decimal(buf_val, val_64, commachr);
+      if (counter_OVF == 0) {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s", buf_val);
+      } else {
+         sal_snprintf(counter2_str, sizeof(counter2_str), "%s (ovf)", buf_val);
+      }
+   }
+
+   if (print_none_zero == 1) {
+      if (counter_LSB == 0) {
+         skip_second_print = 1;
+      }
+   }
+
+   if ((skip_first_print == 1) && (skip_second_print == 1)) {
+      cli_out("|   %-30s   %-24s |   %-30s   %-24s |\n", "", "", "", "");
+   } else if ((skip_first_print == 1) && (skip_second_print == 0)) {
+      cli_out("|   %-30s   %-24s |   %-30s = %-24s |\n", "", "", "CELL_IN_CNT_TOTAL", counter2_str);
+   } else if ((skip_first_print == 0) && (skip_second_print == 1)) {
+      cli_out("|   %-30s = %-24s |   %-30s   %-24s |\n", "TRANSMITTED_DATA_CELLS_COUNTER", counter1_str, "", "");
+   } else {
+      cli_out("|   %-30s = %-24s |   %-30s = %-24s |\n", "TRANSMITTED_DATA_CELLS_COUNTER", counter1_str, "CELL_IN_CNT_TOTAL", counter2_str);
+   }
+   skip_first_print = 0;
+   skip_second_print = 0;
+
+   cli_out("+------------------------------+------------------------------+------------------------------+------------------------------+\n");
+   cli_out("                               |                                                            /|\\\n");
+   cli_out("                               |          A R A D   F A B R I C   I N T E R F A C E          |\n");
+   cli_out("                              \\|/                                                            |\n");
+
+   cli_out("\n\n");
+   return CMD_OK;
+}
+
+
+
+char cmd_dpp_diag_usage[] =
+   "\n\tDIAGnostics commands\n\t"
+   "Usages:\n\t"
+   "DIAG [OPTION] <parameters> ..."
+   "OPTION can be:\n\t"
+#ifdef COMPILER_STRING_CONST_LIMIT
+   "Full documentation cannot be displayed with -pendantic compiler\n"
+#else
+#ifdef BCM_DPP_SUPPORT
+   "\npp             display packet processing diagnostics (use DIAG pp ? for further details) "
+   "\nfield          display field diagnostics (use DIAG field ? for further details) "
+   "\nrates          display rates diagnostics (use DIAG rates ? for further details) "
+   "\noam            display oam diagnostics (use DIAG oam ? for further details) "
+   "\nalloc          display allocation management diagnostics (use DIAG alloc for further details) " 
+   "\nssdump         display all sw states"
+   "\ntemplate       display template manager diagnostics (use DIAG template for further details)"
+   "\nlast_packet    display information on the last packet"
+   "\nHeaderDiff     display global compensation statistics"
+#endif
+   "\nnif            display all links status information "
+   "\ncounters       display all counters values"
+   "\n\t\tvoq - display voq programmable counters (use DIAG counters voq ? for further details)"
+   "\n\t\tvsq - display vsq programmable counters (use DIAG counters vsq ? for further details)"   
+   "\n\t\tnz - filter zero counters"
+   "\n\t\tpacket_flow - show packet_flow"
+   "\n\t\tgraphical - show a graphical representation"
+#ifdef BCM_88675_A0
+   "\n\t\tcore_disp(cdsp) - show counters per core"
+#endif
+   "\n\t\tinterval=x - show the counters rate in an interval of x"
+   "\n\t\t<blockName> - show counters in block <blockName> only (more then one blockName is supported)"
+
+   "\ning_congestion display ingress congestion statistics"
+   "\negr_congestion display egress congestion statistics"
+   "\negr_calendars  display egress calendars info"
+   "\n\t\tcurrent - print only current statistics"
+   "\n\t\tmax - print only max statistics"
+   "\n\t\tcontinuous - do not to disable updates to maximum values during their collection; will provide non correlated max values, but less time during which max values are not gathered"
+   "\n\t\tall - print current and current statistics - default"
+   "\n\t\tnz - don't print zero statistics"
+   "\n\t\tglobal - print only global related statistics"
+   "\n\t\tport=id - print only port id related statistics"
+   "\n\t\tqueue=id - port queue related statistics"
+   "\n\t\tinterface=id - interface queue related statistics"   
+   "\n\t\tingress [NetworkHeaderSize=<value>] - display packet length difference on ingerss path"
+   "\n\t\tegress [NetworkHeaderSize=<value>] - display packet length difference on egerss path"
+
+   "\nreassembly_context diaplay reassembly & port termination context"
+
+   "\ncosq\t\tdisplay cosq statistics"
+   "\n\t\tvoq - display all global information"
+   "\n\t\t\tcongestion=<1/0> - display all congested VOQs"
+   "\n\t\t\tid=<id> - print queue <id> related statistics only"
+   "\n\t\t\tmost=<num_of_queues> - print <num_of_queues> most congested VOQs"
+   "\n\t\t\tdetailed=<1/0> - print given VOQ's attributes"
+   "\n\t\tprint_flow_and_up - print packet flow info, parametrs:"
+   "\n\t\t\tis_voq_conn - 1 for voq_connector, 0 for system_port. dest_id - flow_id in case is_voq_conn is 1, system_port_id otherwise."
+   "\n\t\tprint_status - 1 for printing actual credit rate."
+   "\n\t\tnon_empty_queues - print non empty queues"
+   "\n\t\tlocal_to_sys - translate local port to system port"
+   "\n\t\tqpair - display qpair related diagnostics"  
+   "\n\t\t\tegq - display egq diagnostics"
+   "\n\t\t\te2e - display e2e diagnostics"
+   "\n\t\t\t\tps=<id> - display a graphical representation of the port scheduler in E2E associated with port <id>"   
+   "\n\t\tegq_port_shaper - enable egress shaping"
+   "\n\t\tautocredit - Configure the Scheduler AutoCredit"
+   "\n\t\tfc - enable flow control"
+   "\n\t\tscheduler_alloc_manager  - print allocated scheduling elements and voq connectors. parameters:"
+   "\n\t\t1. allocated_resource - can be either connector, cl, fq, hr, connector_composite, cl_composite, fq_composite or hr_composite. example allocated_resource==cl etc..."
+   "\n\t\t2. flow_id - requested flow id (flow_id=<flow_id>) - can be called together with flow_count(=<flow_count>). Prints the quad associated with the requested flow_id"
+#ifdef BCM_ARAD_SUPPORT
+   "\n\t\tcredit_watchdog - possibly set and print the credit watchdog global configuration, parametrs:"
+   "\n\t\t\tenable=<0/1>, first_queue=<queue number>, last_queue=<queue_number>"
+   "\nport_db        display software database information"
+   "\nretransmit     display retransmit information"
+   "\nprge_info      display egress programmable editor information"
+   "\nprge_last      display last program that was chosen by the egress programmable editor"
+   "\nprge_mgmt      display egress editor management system diagnostics"
+   "\n\t\tgraph=<program> - print dependency tree for the program"
+   "\n\t\tdeploy=<program> - print deploy decision for the program"
+   "\nfabric         display fabric related diagnostic"
+   "\n\t\tgci - display gci and gci-backoff related diagnostic"
+#endif
+   "\ndump_signals   display signals; add \"parse [file_path]\" to the command in order to create a dump file of the packet signals, parsed to match the verilog format. Default file name:\"diag_parsed_signals.txt\" in current directory"
+   "\nfc             flow control"
+   "\n\t\t module     - NONE(default),NBI,CFC,EGQ,SCH,ALL"
+   "\n\t\t interface  - NONE(default),XAUI,RXAUI,SPI,ILKN_INband,ILKN_OUTband,ALL"
+   "\n\t\t type       - NONE(default),LLFC,PFC,NIF,ALL"
+#ifdef DUNE_UI
+   "\ndune_ui_free_bits - see which bits are free to add new dune ui functions"
+#endif
+#endif /* COMPILER_STRING_CONST_LIMIT*/
+   "\n"
+;
+
+
+
+#ifdef BCM_ARAD_SUPPORT
+STATIC
+cmd_result_t
+_cmd_dpp_serdes_str_get(int unit, pbmp_t phy_ports, char *serdes_str)
+{
+    int port_i, is_range = 1;
+    int last_added = -1;
+    int ranges_num = 0;
+    char tmp_str1[22], tmp_str2[22] = "";
+
+    PBMP_ITER(phy_ports, port_i){
+        /*first time handle*/
+        if(last_added == -1){
+            last_added = port_i;
+            ranges_num++;
+            sal_sprintf(tmp_str1, "%02u", last_added-1);
+            sal_strncat(tmp_str2, tmp_str1, sizeof(tmp_str2) -  sal_strlen(tmp_str2) - 1);
+            continue;
+        }
+        /*continue of range*/
+        if((last_added == port_i - 1)){
+            last_added = port_i;
+            continue;
+        }
+        if (last_added == port_i - 4) {
+            last_added = port_i;
+            sal_sprintf(tmp_str1, ", %02u", last_added - 1);
+            sal_strncat(tmp_str2, tmp_str1, sizeof(tmp_str2) -  sal_strlen(tmp_str2) - 1);
+            is_range = 0;
+            continue;
+        }
+        /*check to avoid overflow*/
+        if(ranges_num == 3){
+            return CMD_FAIL;
+        }
+        ranges_num++;
+        sal_sprintf(tmp_str1, "-%02u", last_added - 1);
+        sal_strncat(tmp_str2, tmp_str1, sizeof(tmp_str2) -  sal_strlen(tmp_str2) - 1);
+        last_added = port_i;
+        sal_sprintf(tmp_str1, ", %02u", last_added - 1);
+        sal_strncat(tmp_str2, tmp_str1, sizeof(tmp_str2) -  sal_strlen(tmp_str2) - 1);
+    }
+    /*close the last range*/
+    if (is_range) {
+        sal_sprintf(tmp_str1, "-%02u", last_added - 1); 
+        sal_strncat(tmp_str2, tmp_str1, sizeof(tmp_str2) -  sal_strlen(tmp_str2) - 1);
+    } else {
+        ranges_num = 3;
+    }
+
+    switch(ranges_num){
+    case 1:
+        sal_snprintf(serdes_str, 30, "        %s", tmp_str2);
+        break;
+    case 2:
+        sal_snprintf(serdes_str, 30, "     %s", tmp_str2);
+        break;
+    case 3:
+        sal_snprintf(serdes_str, 30, " %s", tmp_str2);
+        break;
+    default:
+        return CMD_FAIL;
+    }
+
+    return CMD_OK;
+}
+#endif
+
+
+#ifdef BCM_ARAD_SUPPORT
+STATIC cmd_result_t
+cmd_dpp_nif(int unit, args_t *a) {
+    int rv;
+    bcm_pbmp_t pbmp_nif;
+    bcm_port_t port;
+    uint32 seq_done = 0;
+    int is_locked = 0;
+    const char *port_type = NULL;
+    int enable;
+    int serdes_freq_int, serdes_freq_remainder;
+    int ch0_out_int = 0, ch0_out_remainder = 0;
+    soc_reg_above_64_val_t reg_val;
+    uint32 lane;
+    uint32 type_of_bit_clk;
+    int one_clk_time_measured_int, one_clk_time_measured_remainder;
+    soc_port_t master; 
+    int serdes_freq_arr[SOC_MAX_NUM_PORTS];
+    int serdes_freq_remain_arr[SOC_MAX_NUM_PORTS];
+    int i;    
+    soc_port_if_t interface_type;
+    char *interface_types_names[] = SOC_PORT_IF_NAMES_INITIALIZER;
+    uint32 reg32_val[1];
+    int port_i;
+    uint32 nof_lanes, base_lane, ilkn_id;
+    pbmp_t phy_ports;
+    char *serdes_num_str, serdes_num_str_buf[30];
+    char serdes_freq_str[10];
+#ifdef BCM_88675_A0
+    SOC_JER_NIF_PLL_TYPE pll_type;
+    uint32 lane_reg, new_base_lane;
+#endif /*BCM_88675_A0*/
+
+    for (i = 0; i < SOC_MAX_NUM_PORTS; ++i) {
+        serdes_freq_arr[i] = -1;
+        serdes_freq_remain_arr[i] = -1;
+    }
+
+    cli_out("Nif status:\n");
+    cli_out("--------------------\n");
+    cli_out(" Port # |    Port Type    |       SerDes #      |   Rx Seq Done  | Signal Lock | SerDes Rate | Input RefClk \n");
+    cli_out(" ----------------------------------------------------------------------------------------------------------  \n");
+
+    BCM_PBMP_CLEAR(pbmp_nif);
+    BCM_PBMP_ASSIGN(pbmp_nif, PBMP_PORT_ALL(unit));
+    BCM_PBMP_REMOVE(pbmp_nif, PBMP_SFI_ALL(unit));
+    BCM_PBMP_REMOVE(pbmp_nif, PBMP_RCY_ALL(unit));
+
+    BCM_PBMP_ITER(pbmp_nif, port) {
+        rv = bcm_port_enable_get(unit, port, &enable);
+        if (rv != BCM_E_NONE) {
+           return CMD_FAIL;
+        }
+
+        /*get speed measured- only if port is master channel (or un-channelized) */
+        /* don't measure speed if synce is enabled (because it mess with its registers) or when running simulation (meaningless) */
+        if (enable && !(SOC_DPP_CONFIG(unit)->arad->init.synce.enable) && !SAL_BOOT_PLISIM){
+            rv = soc_port_sw_db_master_channel_get(unit, port, &master);
+            if (rv != BCM_E_NONE) {
+                  return CMD_FAIL;
+            }
+            if (serdes_freq_arr[master] == -1) {
+#ifdef BCM_88675_A0
+                if (SOC_IS_JERICHO(unit)) {
+                    rv = _phy_jer_nif_measure(unit, port, &type_of_bit_clk, &one_clk_time_measured_int, &one_clk_time_measured_remainder, &serdes_freq_int, &serdes_freq_remainder, &lane);
+                } else
+#endif /*BCM_88675_A0*/
+                {
+                    rv = _phy_arad_nif_measure(unit, port, &type_of_bit_clk, &one_clk_time_measured_int, &one_clk_time_measured_remainder, &serdes_freq_int, &serdes_freq_remainder, &lane);
+                }
+                if (rv != BCM_E_NONE) {
+                    return CMD_FAIL;
+                }
+                serdes_freq_arr[master] = serdes_freq_int;
+                serdes_freq_remain_arr[master] = serdes_freq_remainder;
+            /*master channel already measured */
+            } else { 
+                serdes_freq_int = serdes_freq_arr[master];
+                serdes_freq_remainder = serdes_freq_remain_arr[master];
+            }
+
+            sal_sprintf(serdes_freq_str, "%d.%d", serdes_freq_int, serdes_freq_remainder);
+        } else {
+            sal_sprintf(serdes_freq_str, "N/A");
+        }
+
+        rv = soc_port_sw_db_interface_type_get(unit, port, &interface_type);
+        if (rv != BCM_E_NONE) {
+            return CMD_FAIL;
+        }
+
+        port_type = interface_types_names[interface_type];
+
+        /*get serdes #*/
+        rv =  soc_port_sw_db_first_phy_port_get(unit, port , &base_lane);
+        if (rv != SOC_E_NONE) {
+            return CMD_FAIL;
+        }
+        base_lane--;
+        rv =  soc_port_sw_db_phy_ports_get(unit, port , &phy_ports);
+        if (rv != SOC_E_NONE) {
+            return CMD_FAIL;
+        }
+
+        rv = soc_port_sw_db_num_lanes_get(unit, port, &nof_lanes);
+        if (rv != SOC_E_NONE) {
+            return CMD_FAIL;
+        }
+
+        if (nof_lanes == 0) {
+        /*mis configuration*/
+            continue;
+        }
+
+        rv = _cmd_dpp_serdes_str_get(unit, phy_ports, serdes_num_str_buf);
+        if (rv != SOC_E_NONE) {
+            return CMD_FAIL;
+        }
+        serdes_num_str = serdes_num_str_buf;
+
+        /*get seq_done*/
+        seq_done = 0;
+#ifdef BCM_88675_A0
+        if (SOC_IS_JERICHO(unit)) {
+            phymod_phy_access_t phy[MAX_NOF_PMS_IN_ILKN];
+            portmod_access_get_params_t params;
+            uint32 lane_seq_done = 0;
+            int nof_pm, pm_index, offset;
+
+            for (pm_index = 0; pm_index < MAX_NOF_PMS_IN_ILKN; ++pm_index) {
+                rv = phymod_phy_access_t_init(&phy[pm_index]);
+                if (rv != BCM_E_NONE) {
+                    return CMD_FAIL;
+                }
+            }
+            rv = portmod_access_get_params_t_init(unit, &params);
+            if (rv != BCM_E_NONE) {
+                return CMD_FAIL;
+            }
+
+            for (i = 0; i < nof_lanes; ++i) {
+                params.lane = i;
+                rv = portmod_port_phy_lane_access_get(unit, port, &params, nof_lanes, phy, &nof_pm, NULL);
+                if (rv != BCM_E_NONE) {
+                    return CMD_FAIL;
+                }
+
+                for (pm_index = 0; pm_index < nof_pm; ++pm_index) {
+                    rv = phymod_phy_rx_pmd_locked_get(&phy[pm_index], &lane_seq_done);
+                    if (rv != BCM_E_NONE) {
+                        return CMD_FAIL;
+                    }
+
+                    if (lane_seq_done) {
+                        offset = pm_index * NOF_LANES_IN_PM;
+                        seq_done |= (phy[pm_index].access.lane_mask << offset);
+                    }
+                }
+            }
+
+        } else
+#endif /*BCM_88675_A0*/
+        {
+        rv = READ_NBI_NIF_WC_RX_SEQ_DONEr(unit, reg32_val);
+        if (SOC_FAILURE(rv)) {
+            cli_out("Failed to read NBI_NIF_WC_RX_SEQ_DONE register\n");
+            return CMD_FAIL;
+        }
+            if (interface_type == SOC_PORT_IF_CAUI) {
+            /*for case of swap*/
+            SHR_BITCOPY_RANGE(&seq_done, 0, reg32_val, base_lane, 12);
+        }
+        else{
+            i = 0;
+            PBMP_ITER(phy_ports, port_i){
+                SHR_BITCOPY_RANGE(&seq_done, i , reg32_val, port_i-1, 1);
+                i++;
+            }
+        }
+        }
+
+        /*get is_locked*/
+#ifdef BCM_88675_A0
+        if (SOC_IS_JERICHO(unit)) {
+            rv = soc_jer_port_pll_type_get(unit, port, &pll_type);
+            if (rv != BCM_E_NONE) {
+                return CMD_FAIL;
+            }
+
+            if (SOC_PORT_IF_ILKN == interface_type) {
+                uint32 offset;
+
+                rv = soc_port_sw_db_protocol_offset_get(unit, port, 0, &offset);
+                if (rv != SOC_E_NONE) {
+                    return CMD_FAIL;
+                }
+
+                if (pll_type == SOC_JER_NIF_PLL_TYPE_PMH) {
+                    rv = READ_ILKN_PMH_RX_ILKN_STATUSr(unit, REG_PORT_ANY, offset & 1, reg32_val);
+                    if (rv != BCM_E_NONE) {
+                        return CMD_FAIL;
+                    }
+                    is_locked = soc_reg_field_get(unit, ILKN_PMH_RX_ILKN_STATUSr, *reg32_val, RX_N_STAT_ALIGNED_RAWf);
+                } else {
+                    rv = READ_ILKN_PML_RX_ILKN_STATUSr(unit, (offset / 4), offset & 1, reg32_val);
+                    if (rv != BCM_E_NONE) {
+                        return CMD_FAIL;
+                    }
+                    is_locked = soc_reg_field_get(unit, ILKN_PML_RX_ILKN_STATUSr, *reg32_val, RX_N_STAT_ALIGNED_RAWf);
+                }
+            } else if (SOC_PORT_IF_CAUI == interface_type) {
+                rv = READ_NBIH_PORTS_INDICATIONSr(unit, reg32_val);
+                if (rv != BCM_E_NONE) {
+                    return CMD_FAIL;
+                }
+                is_locked = SHR_BITGET(reg32_val, base_lane);
+            } else {
+                if (pll_type == SOC_JER_NIF_PLL_TYPE_PMH) {
+                    lane_reg = base_lane % 4; /* CLPORT */
+                } else {
+                    rv = soc_jer_qsgmii_offsets_remove(unit, base_lane, &new_base_lane);
+                    lane_reg = new_base_lane % 4 + 4; /* XLPORT */
+                }
+                rv = soc_reg32_get(unit, jer_register_per_lane_num[lane_reg], port, 0, reg32_val);
+                if (rv != BCM_E_NONE) {
+                    return CMD_FAIL;
+                }
+                is_locked = soc_reg_field_get(unit, jer_register_per_lane_num[lane_reg], *reg32_val, LINK_STATUSf);
+            }
+        } else 
+#endif /*BCM_88675_A0*/
+        {
+            if (SOC_PORT_IF_ILKN == interface_type) {
+                rv = soc_port_sw_db_protocol_offset_get(unit, port, 0, &ilkn_id);
+                if (rv != BCM_E_NONE) {
+                    return CMD_FAIL;
+                }
+
+                rv = READ_NBI_RX_ILKN_STATUSr(unit, ilkn_id, reg32_val);
+                if (rv != BCM_E_NONE) {
+                    return CMD_FAIL;
+                }
+
+                is_locked = soc_reg_field_get(unit, NBI_RX_ILKN_STATUSr, *reg32_val, RX_N_STAT_ALIGNED_RAWf);
+            } else if (SOC_PORT_IF_CAUI == interface_type) {
+            rv = READ_NBI_PORTS_INDICATIONSr(unit, reg32_val);
+            if (rv != BCM_E_NONE) {
+                return CMD_FAIL;
+            }
+            if (base_lane < 12) {
+            /*CLP0*/
+            is_locked = SHR_BITGET(reg32_val, base_lane);
+            } else {
+            /*CLP1*/
+            is_locked = SHR_BITGET(reg32_val, base_lane - 4 /*xlp0 size*/);
+            }
+
+        } else {
+            rv = soc_reg32_get(unit, register_per_lane_num[base_lane], port, 0, reg32_val);
+            if (rv != BCM_E_NONE) {
+                return CMD_FAIL;
+            }
+            is_locked = soc_reg_field_get(unit, register_per_lane_num[base_lane], *reg32_val, LINKf);
+        }
+        }
+
+#ifdef BCM_88675_A0
+        if (SOC_IS_JERICHO(unit)) {
+            rv = jer_phy_measure_nif_pll(unit, port, &ch0_out_int, &ch0_out_remainder);
+            if(BCM_E_NONE != rv) { return CMD_FAIL; }
+        } else
+#endif /*BCM_88675_A0*/
+        {
+            /*SRD1 PLL - ch0 out print*/
+            if (READ_ECI_SRD_1_PLL_CONFIGr(unit, reg_val) != BCM_E_NONE) {
+               return CMD_FAIL;
+            }
+            phy_measure_ch0_calc(reg_val, &ch0_out_int, &ch0_out_remainder);
+        }
+
+        cli_out("   %3d  | %-15s |%-21s|    0x%-6x    |     %3s     |   %6s    |   %3d.%-3d  \n",
+                port,
+                port_type,
+                serdes_num_str,
+                seq_done,
+                (is_locked ? " + " : " - "),
+                serdes_freq_str,
+                ch0_out_int, ch0_out_remainder);
+    
+    }
+
+    return CMD_OK;
+
+}
+
+STATIC cmd_result_t
+cmd_dpp_port_db(int unit, args_t *a) {
+   int rv;
+
+   cli_out("Port Software Database:\n");
+   cli_out("----------------------\n");
+
+   rv =  soc_port_sw_db_print(unit, 0);
+   if (rv != SOC_E_NONE) {
+      return CMD_FAIL;
+   }
+
+   return CMD_OK;
+}
+
+STATIC cmd_result_t
+cmd_dpp_retransmit(int unit, args_t *a) {
+   int rv;
+   uint32 reg0_val32, reg1_val32;
+   uint64 reg_val64;
+
+   if (SOC_IS_DFE(unit)) {
+      cli_out("Diag retransmit unavailable for FE1600");
+      return CMD_FAIL;
+   }
+
+   cli_out("Retransmit Status:\n");
+   cli_out("------------------\n");
+
+   cli_out("\t\t\t\tILKN0:\t\tILKN1:\n");
+
+   rv = READ_NBI_RX_ILKN_0_SENT_RETRANS_REQ_CNTr(unit, &reg0_val32);
+   if (SOC_FAILURE(rv)) {
+      cli_out("Failed to read NBI_RX_ILKN_0_SENT_RETRANS_REQ_CNT register\n");
+      return CMD_FAIL;
+   }
+   /* check counter overflow */
+   if (((reg0_val32 >> 31) & 0x1) == 0x1) {
+      reg0_val32 = 0xffffffff;
+   }
+   rv = READ_NBI_RX_ILKN_1_SENT_RETRANS_REQ_CNTr(unit, &reg1_val32);
+   if (SOC_FAILURE(rv)) {
+      cli_out("Failed to read NBI_RX_ILKN_0_SENT_RETRANS_REQ_CNT register\n");
+      return CMD_FAIL;
+   }
+   /* check counter overflow */
+   if (((reg1_val32 >> 31) & 0x1) == 0x1) {
+      reg1_val32 = 0xffffffff;
+   }
+   cli_out("SENT REQ CNT \t\t\t%d\t\t%d\n", reg0_val32, reg1_val32);
+
+   rv = READ_NBI_TX_ILKN_0_RECEIVED_RETRANS_REQ_CNTr(unit, &reg0_val32);
+   if (SOC_FAILURE(rv)) {
+      cli_out("Failed to read NBI_TX_ILKN_0_RECEIVED_RETRANS_REQ_CNT register\n");
+      return CMD_FAIL;
+   }
+   /* check counter overflow */
+   if (((reg0_val32 >> 31) & 0x1) == 0x1) {
+      reg0_val32 = 0xffffffff;
+   }
+   rv = READ_NBI_TX_ILKN_1_RECEIVED_RETRANS_REQ_CNTr(unit, &reg1_val32);
+   if (SOC_FAILURE(rv)) {
+      cli_out("Failed to read NBI_TX_ILKN_0_RECEIVED_RETRANS_REQ_CNT register\n");
+      return CMD_FAIL;
+   }
+   /* check counter overflow */
+   if (((reg1_val32 >> 31) & 0x1) == 0x1) {
+      reg1_val32 = 0xffffffff;
+   }
+   cli_out("RECEIVED REQ CNT \t\t%d\t\t%d\n", reg0_val32, reg1_val32);
+
+   rv = READ_NBI_ILKN_RX_0_RETRANSMIT_DEBUG_INFORMATIONr(unit, &reg0_val32);
+   if (SOC_FAILURE(rv)) {
+      cli_out("Failed to read NBI_ILKN_RX_0_RETRANSMIT_DEBUG_INFORMATION register\n");
+      return CMD_FAIL;
+   }
+
+   rv = READ_NBI_ILKN_RX_1_RETRANSMIT_DEBUG_INFORMATIONr(unit, &reg1_val32);
+   if (SOC_FAILURE(rv)) {
+      cli_out("Failed to read NBI_ILKN_RX_0_RETRANSMIT_DEBUG_INFORMATION register\n");
+      return CMD_FAIL;
+   }
+
+
+   cli_out("WRAP BEFORE DISC ERR \t\t%d\t\t%d\n",
+           soc_reg_field_get(unit, NBI_ILKN_RX_0_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg0_val32, ILKN_RX_0_RETRANS_WRAP_B_4_DISC_ERRf),
+           soc_reg_field_get(unit, NBI_ILKN_RX_1_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg1_val32, ILKN_RX_1_RETRANS_WRAP_B_4_DISC_ERRf));
+   cli_out("WRAP AFTER DISC ERR \t\t%d\t\t%d\n",
+           soc_reg_field_get(unit, NBI_ILKN_RX_0_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg0_val32, ILKN_RX_0_RETRANS_WRAP_AFTER_DISC_ERRf),
+           soc_reg_field_get(unit, NBI_ILKN_RX_1_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg1_val32, ILKN_RX_1_RETRANS_WRAP_AFTER_DISC_ERRf));
+   cli_out("WDOG ERR \t\t\t%d\t\t%d\n",
+           soc_reg_field_get(unit, NBI_ILKN_RX_0_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg0_val32, ILKN_RX_0_RETRANS_WDOG_ERRf),
+           soc_reg_field_get(unit, NBI_ILKN_RX_1_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg1_val32, ILKN_RX_1_RETRANS_WDOG_ERRf));
+   cli_out("RETRY ERR \t\t\t%d\t\t%d\n",
+           soc_reg_field_get(unit, NBI_ILKN_RX_0_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg0_val32, ILKN_RX_0_RETRANS_RETRY_ERRf),
+           soc_reg_field_get(unit, NBI_ILKN_RX_1_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg1_val32, ILKN_RX_1_RETRANS_RETRY_ERRf));
+   cli_out("REQ SENT \t\t\t%d\t\t%d\n",
+           soc_reg_field_get(unit, NBI_ILKN_RX_0_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg0_val32, ILKN_RX_0_RETRANS_REQ_SENTf),
+           soc_reg_field_get(unit, NBI_ILKN_RX_1_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg1_val32, ILKN_RX_1_RETRANS_REQ_SENTf));
+   cli_out("REACHED TIMOUT \t\t\t%d\t\t%d\n",
+           soc_reg_field_get(unit, NBI_ILKN_RX_0_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg0_val32, ILKN_RX_0_RETRANS_REACHED_TIMOUTf),
+           soc_reg_field_get(unit, NBI_ILKN_RX_1_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg1_val32, ILKN_RX_1_RETRANS_REACHED_TIMOUTf));
+   cli_out("LAST GOOD SUB SEQ NUM \t\t%d\t\t%d\n",
+           soc_reg_field_get(unit, NBI_ILKN_RX_0_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg0_val32, ILKN_RX_0_RETRANS_LAST_GOOD_SUB_SEQ_NUMf),
+           soc_reg_field_get(unit, NBI_ILKN_RX_1_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg1_val32, ILKN_RX_1_RETRANS_LAST_GOOD_SUB_SEQ_NUMf));
+   cli_out("LAST GOOD SEQ NUM \t\t%d\t\t%d\n",
+           soc_reg_field_get(unit, NBI_ILKN_RX_0_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg0_val32, ILKN_RX_0_RETRANS_LAST_GOOD_SEQ_NUMf),
+           soc_reg_field_get(unit, NBI_ILKN_RX_1_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg1_val32, ILKN_RX_1_RETRANS_LAST_GOOD_SEQ_NUMf));
+   cli_out("FSM STATES:\n");
+   cli_out("\t7 \t\t\t%d\t\t%d\n",
+           soc_reg_field_get(unit, NBI_ILKN_RX_0_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg0_val32, ILKN_RX_0_RETRANS_FSM_STATE_7f),
+           soc_reg_field_get(unit, NBI_ILKN_RX_1_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg1_val32, ILKN_RX_1_RETRANS_FSM_STATE_7f));
+   cli_out("\t6 \t\t\t%d\t\t%d\n",
+           soc_reg_field_get(unit, NBI_ILKN_RX_0_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg0_val32, ILKN_RX_0_RETRANS_FSM_STATE_6f),
+           soc_reg_field_get(unit, NBI_ILKN_RX_1_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg1_val32, ILKN_RX_1_RETRANS_FSM_STATE_6f));
+   cli_out("\t5 \t\t\t%d\t\t%d\n",
+           soc_reg_field_get(unit, NBI_ILKN_RX_0_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg0_val32, ILKN_RX_0_RETRANS_FSM_STATE_5f),
+           soc_reg_field_get(unit, NBI_ILKN_RX_1_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg1_val32, ILKN_RX_1_RETRANS_FSM_STATE_5f));
+   cli_out("\t4 \t\t\t%d\t\t%d\n",
+           soc_reg_field_get(unit, NBI_ILKN_RX_0_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg0_val32, ILKN_RX_0_RETRANS_FSM_STATE_4f),
+           soc_reg_field_get(unit, NBI_ILKN_RX_1_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg1_val32, ILKN_RX_1_RETRANS_FSM_STATE_4f));
+   cli_out("\t3 \t\t\t%d\t\t%d\n",
+           soc_reg_field_get(unit, NBI_ILKN_RX_0_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg0_val32, ILKN_RX_0_RETRANS_FSM_STATE_3f),
+           soc_reg_field_get(unit, NBI_ILKN_RX_1_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg1_val32, ILKN_RX_1_RETRANS_FSM_STATE_3f));
+   cli_out("\t2 \t\t\t%d\t\t%d\n",
+           soc_reg_field_get(unit, NBI_ILKN_RX_0_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg0_val32, ILKN_RX_0_RETRANS_FSM_STATE_2f),
+           soc_reg_field_get(unit, NBI_ILKN_RX_1_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg1_val32, ILKN_RX_1_RETRANS_FSM_STATE_2f));
+   cli_out("\t1 \t\t\t%d\t\t%d\n",
+           soc_reg_field_get(unit, NBI_ILKN_RX_0_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg0_val32, ILKN_RX_0_RETRANS_FSM_STATE_1f),
+           soc_reg_field_get(unit, NBI_ILKN_RX_1_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg1_val32, ILKN_RX_1_RETRANS_FSM_STATE_1f));
+   cli_out("\t0 \t\t\t%d\t\t%d\n",
+           soc_reg_field_get(unit, NBI_ILKN_RX_0_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg0_val32, ILKN_RX_0_RETRANS_FSM_STATE_0f),
+           soc_reg_field_get(unit, NBI_ILKN_RX_1_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg1_val32, ILKN_RX_1_RETRANS_FSM_STATE_0f));
+   cli_out("FSM STATE \t\t\t%d\t\t%d\n",
+           soc_reg_field_get(unit, NBI_ILKN_RX_0_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg0_val32, ILKN_RX_0_RETRANS_FSM_STATEf),
+           soc_reg_field_get(unit, NBI_ILKN_RX_1_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg1_val32, ILKN_RX_1_RETRANS_FSM_STATEf));
+   cli_out("DISC \t\t\t\t%d\t\t%d\n",
+           soc_reg_field_get(unit, NBI_ILKN_RX_0_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg0_val32, ILKN_RX_0_RETRANS_DISCf),
+           soc_reg_field_get(unit, NBI_ILKN_RX_1_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg1_val32, ILKN_RX_1_RETRANS_DISCf));
+   cli_out("CRC 24 ERR \t\t\t%d\t\t%d\n",
+           soc_reg_field_get(unit, NBI_ILKN_RX_0_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg0_val32, ILKN_RX_0_RETRANS_CRC_24_ERRf),
+           soc_reg_field_get(unit, NBI_ILKN_RX_1_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg1_val32, ILKN_RX_1_RETRANS_CRC_24_ERRf));
+   cli_out("ACK RECEIVED \t\t\t%d\t\t%d\n",
+           soc_reg_field_get(unit, NBI_ILKN_RX_0_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg0_val32, ILKN_RX_0_RETRANS_ACK_RECEIVEDf),
+           soc_reg_field_get(unit, NBI_ILKN_RX_1_RETRANSMIT_DEBUG_INFORMATIONr,
+           reg1_val32, ILKN_RX_1_RETRANS_ACK_RECEIVEDf));
+
+
+   rv = READ_NBI_ILKN_DEBUG_STATUSr(unit, &reg_val64);
+   if (SOC_FAILURE(rv)) {
+      cli_out("Failed to read NBI_ILKN_RX_0_RETRANSMIT_DEBUG_INFORMATION register\n");
+      return CMD_FAIL;
+   }
+   cli_out("RX RETRANS LATENCY \t\t%d\t\t%d\n",
+           soc_reg_field_get(unit, NBI_ILKN_DEBUG_STATUSr,
+           reg0_val32, ILKN_RX_RETRANS_LATENCY_0f),
+           soc_reg_field_get(unit, NBI_ILKN_DEBUG_STATUSr,
+           reg1_val32, ILKN_RX_RETRANS_LATENCY_1f));
+
+
+   return CMD_OK;
+}
+
+#endif /* BCM_ARAD_SUPPORT */
+
+static char     *module_list[] = {
+   "NONE", "NBI", "CFC", "EGQ", "SCH", "ALL"
+};
+static char     *interface_list[] = {
+   "NONE", "XAUI", "RXAUI", "SPI", "ILKN_INband", "ILKN_OUTband", "ALL"
+};
+static char     *type_list[] = {
+   "NONE", "LLFC", "PFC", "NIF", "ALL"
+};
+
+typedef enum {
+   none_module_list = 0,
+   nbi_module_list,
+   cfc_module_list,
+   eqg_module_list,
+   sch_module_list,
+   all_module_list,
+   num_of_module_list
+} module_list_e;
+
+typedef enum {
+   none_interface_list = 0,
+   xaui_interface_list,
+   rxaui_interface_list,
+   spi_interface_list,
+   ilkn_inband_interface_list,
+   ilkn_outband_interface_list,
+   all_interface_list,
+   num_of_interface_list
+} interface_list_e;
+
+typedef enum {
+   none_type_list = 0,
+   llfc_type_list,
+   pfc_type_list,
+   nif_type_list,
+   all_type_list,
+   num_of_type_list
+
+} type_list_e;
+
+typedef struct diag_fc_s {
+   module_list_e    module_mask;
+   interface_list_e interface_mask;
+   type_list_e      type_mask;
+} diag_fc_t;
+
+
+
+#define EGQ_MODULE_MASK ( (fc_str.module_mask == eqg_module_list) || (fc_str.module_mask == all_module_list))
+#define NBI_MODULE_MASK ( (fc_str.module_mask == nbi_module_list) || (fc_str.module_mask == all_module_list))
+#define SCH_MODULE_MASK ( (fc_str.module_mask == sch_module_list)  || (fc_str.module_mask == all_module_list))
+
+
+#define  ILKN_INBAND_INTERFACE_MASK   ( (fc_str.interface_mask == ilkn_inband_interface_list) || (fc_str.interface_mask == all_interface_list))
+#define  ILKN_OUTBAND_INTERFACE_MASK  ( (fc_str.interface_mask == ilkn_outband_interface_list) || (fc_str.interface_mask == all_interface_list))
+
+
+#define  LLFC_TYPE_MASK  (( fc_str.type_mask == llfc_type_list) || (fc_str.type_mask == all_type_list))
+#define  PFC_TYPE_MASK   (( fc_str.type_mask == pfc_type_list) || (fc_str.type_mask == all_type_list))
+#define  NIF_TYPE_MASK   (( fc_str.type_mask == nif_type_list) || (fc_str.type_mask == all_type_list))
+
+#define MAX_COUNTER_NAME_LEN 54
+STATIC cmd_result_t
+dpp_diag_fc(int unit, args_t *a) {
+
+   parse_table_t       pt;
+   diag_fc_t           fc_str;
+   uint32              read_val;
+   uint64              read_val64;
+   soc_reg_above_64_val_t read_val_above64;
+   char                val_str[20];
+   char                dval_str[256];
+   uint32              default_val = 0;
+   uint8               i;
+   int                 rc = SOC_E_NONE;
+/*    int                 nprint; */
+   /*  Init default values*/
+   fc_str.interface_mask = 0;
+   fc_str.module_mask = 0;
+   fc_str.type_mask = 0;
+
+   /* Read parameters */
+   parse_table_init(unit, &pt);
+   parse_table_add(&pt, "Module", PQ_DFL | PQ_MULTI, &default_val, &fc_str.module_mask, module_list);
+   parse_table_add(&pt, "Interface", PQ_DFL | PQ_MULTI, &default_val, &fc_str.interface_mask, interface_list);
+   parse_table_add(&pt, "Type", PQ_DFL | PQ_MULTI, &default_val, &fc_str.type_mask, type_list);
+
+
+   if (parse_arg_eq(a, &pt) < 0) {
+      parse_arg_eq_done(&pt);
+      return CMD_USAGE;
+   }
+   cli_out("module:%d interface:%d type:%d \n", fc_str.module_mask, fc_str.interface_mask, fc_str.type_mask);
+
+
+
+   cli_out("NIF_TYPE_MASK %d EGQ_MODULE_MASK %d NBI_MODULE_MASK %d\n", NIF_TYPE_MASK, EGQ_MODULE_MASK, NBI_MODULE_MASK);
+   rc = READ_CFC_INTERRUPT_REGISTERr(unit, &read_val);
+   if (SOC_FAILURE(rc)) {
+      cli_out("Failed to read CFC_INTERRUPT_REGISTER register\n");
+      return CMD_FAIL;
+   }
+   cli_out("CFC Interrupt Register = 0x%x\n", read_val);
+
+
+   /*  ----------- Scheduler -------------------- */
+   if (SCH_MODULE_MASK) {
+      rc =  READ_SCH_DVS_FC_COUNTERS_CONFIGURATION_REGISTERr(unit, &read_val);
+      if (SOC_FAILURE(rc)) {
+         cli_out("Failed to read SCH_DVS_FC_COUNTERS_CONFIGURATION_REGISTER register\n");
+         return CMD_FAIL;
+      }
+      cli_out("SCH_DVS_FC_COUNTERS_CONFIGURATION_REGISTER Register = 0x%x\n", read_val);
+      rc = READ_SCH_DVS_FLOW_CONTROL_COUNTERr(unit, &read_val);
+      if (SOC_FAILURE(rc)) {
+         cli_out("Failed to read SCH_DVS_FLOW_CONTROL_COUNTER register\n");
+         return CMD_FAIL;
+      }
+      cli_out("SCH_DVS_FLOW_CONTROL_COUNTER Register = 0x%x\n", read_val);
+
+   }
+   /*  ----------- NBI -------------------- */
+   if (NBI_MODULE_MASK || PFC_TYPE_MASK) {
+      rc = READ_NBI_FC_PFC_DEBUG_INDICATIONSr(unit, &read_val);
+      if (SOC_FAILURE(rc)) {
+         cli_out("Failed to read NBI_FC_PFC_DEBUG_INDICATIONS register\n");
+         return CMD_FAIL;
+      }
+      cli_out("NBI_FC_PFC_DEBUG_INDICATIONS Register = 0x%x\n", read_val);
+   }
+   if (NBI_MODULE_MASK || LLFC_TYPE_MASK) {
+      rc = READ_NBI_FC_RX_GEN_LLFC_FROM_MLFr(unit, &read_val);
+      if (SOC_FAILURE(rc)) {
+         cli_out("Failed to read NBI_FC_RX_GEN_LLFC_FROM_MLF register\n");
+         return CMD_FAIL;
+      }
+      cli_out("NBI_FC_RX_GEN_LLFC_FROM_MLF Register = 0x%x\n", read_val);
+   }
+   if (NBI_MODULE_MASK || PFC_TYPE_MASK) {
+      rc = READ_NBI_FC_RX_GEN_PFC_FROM_MLFr(unit, &read_val);
+      if (SOC_FAILURE(rc)) {
+         cli_out("Failed to read NBI_FC_RX_GEN_PFC_FROM_MLF register\n");
+         return CMD_FAIL;
+      }
+      cli_out("NBI_FC_RX_GEN_PFC_FROM_MLF Register = 0x%x\n", read_val);
+   }
+   if (NBI_MODULE_MASK || ILKN_INBAND_INTERFACE_MASK) {
+
+      rc = READ_NBI_FC_ILKN_RX_0_CHFC_FROM_PORT_RAWr(unit, &read_val64);
+      if (SOC_FAILURE(rc)) {
+         cli_out("Failed to read NBI_FC_ILKN_RX_0_CHFC_FROM_PORT_RAW register\n");
+         return CMD_FAIL;
+      }
+      format_uint64(val_str, read_val64);
+      cli_out("NBI_FC_ILKN_RX_0_CHFC_FROM_PORT_RAW Register = 0x%s\n", val_str);
+
+      rc = READ_NBI_FC_ILKN_RX_0_CHFC_FROM_PORT_ROCr(unit, &read_val64);
+      if (SOC_FAILURE(rc)) {
+         cli_out("Failed to read NBI_FC_ILKN_RX_0_CHFC_FROM_PORT_ROC register\n");
+         return CMD_FAIL;
+      }
+      format_uint64(val_str, read_val64);
+      cli_out("NBI_FC_ILKN_RX_0_CHFC_FROM_PORT_ROC Register = 0x%s\n", val_str);
+
+      rc = READ_NBI_FC_ILKN_RX_1_CHFC_FROM_PORT_RAWr(unit, &read_val64);
+      if (SOC_FAILURE(rc)) {
+         cli_out("Failed to read NBI_FC_ILKN_RX_1_CHFC_FROM_PORT_RAW register\n");
+         return CMD_FAIL;
+      }
+      format_uint64(val_str, read_val64);
+      cli_out("NBI_FC_ILKN_RX_1_CHFC_FROM_PORT_RAW Register = 0x%s\n", val_str);
+
+      rc = READ_NBI_FC_ILKN_RX_1_CHFC_FROM_PORT_ROCr(unit, &read_val64);
+      if (SOC_FAILURE(rc)) {
+         cli_out("Failed to read NBI_FC_ILKN_RX_1_CHFC_FROM_PORT_ROC register\n");
+         return CMD_FAIL;
+      }
+      format_uint64(val_str, read_val64);
+      cli_out("NBI_FC_ILKN_RX_1_CHFC_FROM_PORT_ROC Register = 0x%s\n", val_str);
+
+   }
+   if (NBI_MODULE_MASK || ILKN_INBAND_INTERFACE_MASK || LLFC_TYPE_MASK) {
+      rc = READ_NBI_FC_ILKN_RX_0_LLFC_FROM_RX_CNTr(unit, &read_val);
+      if (SOC_FAILURE(rc)) {
+         cli_out("Failed to read NBI_FC_ILKN_RX_0_LLFC_FROM_RX_CNT register\n");
+         return CMD_FAIL;
+      }
+      cli_out("NBI_FC_ILKN_RX_0_LLFC_FROM_RX_CNT Register = 0x%x\n", read_val);
+
+      rc = READ_NBI_FC_ILKN_RX_1_LLFC_FROM_RX_CNTr(unit, &read_val);
+      if (SOC_FAILURE(rc)) {
+         cli_out("Failed to read NBI_FC_ILKN_RX_1_LLFC_FROM_RX_CNT register\n");
+         return CMD_FAIL;
+      }
+      cli_out("NBI_FC_ILKN_RX_1_LLFC_FROM_RX_CNT Register = 0x%x\n", read_val);
+   }
+   if (ILKN_INBAND_INTERFACE_MASK) {
+      rc = READ_CFC_ILKN_0_OOB_RX_LANES_STATUSr(unit, &read_val);
+      if (SOC_FAILURE(rc)) {
+         cli_out("Failed to read CFC_ILKN_0_OOB_RX_LANES_STATUS register\n");
+         return CMD_FAIL;
+      }
+      cli_out("CFC_ILKN_0_OOB_RX_LANES_STATUS Register = 0x%x\n", read_val);
+
+      rc = READ_CFC_ILKN_1_OOB_RX_LANES_STATUSr(unit, &read_val);
+      if (SOC_FAILURE(rc)) {
+         cli_out("Failed to read CFC_ILKN_1_OOB_RX_LANES_STATUS register\n");
+         return CMD_FAIL;
+      }
+      cli_out("CFC_ILKN_1_OOB_RX_LANES_STATUSRegister = 0x%x\n", read_val);
+   }
+
+
+   if (ILKN_INBAND_INTERFACE_MASK) {
+      rc = READ_CFC_ILKN_RX_0_FC_STATUSr(unit, read_val_above64);
+      if (SOC_FAILURE(rc)) {
+         cli_out("Failed to read CFC_ILKN_RX_0_FC_STATUS register\n");
+         return CMD_FAIL;
+      }
+      format_long_integer(dval_str, read_val_above64, SOC_REG_ABOVE_64_INFO(unit, EGQ_CFC_FLOW_CONTROLr).size);
+      cli_out("CFC_ILKN_RX_0_FC_STATUS Register Register = 0x%s\n", dval_str);
+
+      rc = READ_CFC_ILKN_RX_1_FC_STATUSr(unit, read_val_above64);
+      if (SOC_FAILURE(rc)) {
+         cli_out("Failed to read CFC_ILKN_RX_1_FC_STATUS register\n");
+         return CMD_FAIL;
+      }
+      format_long_integer(dval_str, read_val_above64, SOC_REG_ABOVE_64_INFO(unit, EGQ_CFC_FLOW_CONTROLr).size);
+      cli_out("CFC_ILKN_RX_1_FC_STATUS Register Register = 0x%s\n", dval_str);
+
+   }
+
+
+   if (NBI_MODULE_MASK || LLFC_TYPE_MASK || ILKN_INBAND_INTERFACE_MASK) {
+      rc = READ_NBI_FC_RX_MUBITS_TO_CFCr(unit, &read_val);
+      if (SOC_FAILURE(rc)) {
+         cli_out("Failed to read NBI_FC_RX_MUBITS_TO_CFC register\n");
+         return CMD_FAIL;
+      }
+      cli_out("NBI_FC_RX_MUBITS_TO_CFC Register = 0x%x\n", read_val);
+   }
+
+   if (NBI_MODULE_MASK || LLFC_TYPE_MASK || ILKN_INBAND_INTERFACE_MASK) {
+      rc = READ_NBI_FC_RX_LLFC_STOP_TX_FROM_MUBITSr(unit, &read_val);
+      if (SOC_FAILURE(rc)) {
+         cli_out("Failed to read NBI_FC_RX_LLFC_STOP_TX_FROM_MUBITS register\n");
+         return CMD_FAIL;
+      }
+      cli_out("NBI_FC_RX_LLFC_STOP_TX_FROM_MUBITS Register = 0x%x\n", read_val);
+   }
+   /* NBI TX*/
+   if (NBI_MODULE_MASK || LLFC_TYPE_MASK) {
+      rc = READ_NBI_FC_TX_GEN_LLFC_FROM_CFCr(unit, &read_val);
+      if (SOC_FAILURE(rc)) {
+         cli_out("Failed to read NBI_FC_TX_GEN_LLFC_FROM_CFC register\n");
+         return CMD_FAIL;
+      }
+      cli_out("NBI_FC_TX_GEN_LLFC_FROM_CFC Register = 0x%x\n", read_val);
+   }
+
+   if (NBI_MODULE_MASK || LLFC_TYPE_MASK) {
+      rc = READ_NBI_FC_TX_GEN_LLFC_TO_XMALr(unit, &read_val);
+      if (SOC_FAILURE(rc)) {
+         cli_out("Failed to read NBI_FC_TX_GEN_LLFC_TO_XMAL register\n");
+         return CMD_FAIL;
+      }
+      cli_out("NBI_FC_TX_GEN_LLFC_TO_XMAL Register = 0x%x\n", read_val);
+   }
+
+   if (NBI_MODULE_MASK || LLFC_TYPE_MASK) {
+      rc = READ_NBI_FC_TX_LLFC_STOP_TX_FROM_CFCr(unit, &read_val);
+      if (SOC_FAILURE(rc)) {
+         cli_out("Failed to read NBI_FC_TX_LLFC_STOP_TX_FROM_CFC register\n");
+         return CMD_FAIL;
+      }
+      cli_out("NBI_FC_TX_LLFC_STOP_TX_FROM_CFC Register = 0x%x\n", read_val);
+   }
+
+
+   if (NBI_MODULE_MASK || ILKN_OUTBAND_INTERFACE_MASK) {
+      rc = READ_NBI_FC_ILKN_TX_0_GEN_CHFC_ROCr(unit, &read_val64);
+      if (SOC_FAILURE(rc)) {
+         cli_out("Failed to read NBI_FC_ILKN_TX_0_GEN_CHFC_ROC register\n");
+         return CMD_FAIL;
+      }
+      format_uint64(val_str, read_val64);
+      cli_out("NBI_FC_ILKN_TX_0_GEN_CHFC_ROCRegister = 0x%s\n", val_str);
+
+      rc = READ_NBI_FC_ILKN_TX_1_GEN_CHFC_ROCr(unit, &read_val64);
+      if (SOC_FAILURE(rc)) {
+         cli_out("Failed to read NBI_FC_ILKN_TX_1_GEN_CHFC_ROC register\n");
+         return CMD_FAIL;
+      }
+      format_uint64(val_str, read_val64);
+      cli_out("NBI_FC_ILKN_TX_1_GEN_CHFC_ROCRegister = 0x%s\n", val_str);
+
+   }
+   if (NBI_MODULE_MASK || ILKN_OUTBAND_INTERFACE_MASK) {
+      rc = READ_NBI_FC_TX_MUBITS_FROM_CFCr(unit, &read_val);
+      if (SOC_FAILURE(rc)) {
+         cli_out("Failed to read NBI_FC_TX_MUBITS_FROM_CFC register\n");
+         return CMD_FAIL;
+      }
+      cli_out("NBI_FC_TX_MUBITS_FROM_CFC Register = 0x%x\n", read_val);
+   }
+
+   if (NBI_MODULE_MASK || ILKN_OUTBAND_INTERFACE_MASK || LLFC_TYPE_MASK) {
+      rc = READ_NBI_FC_ILKN_TX_0_LLFC_STOP_TX_CNTr(unit, &read_val);
+      if (SOC_FAILURE(rc)) {
+         cli_out("Failed to read NBI_FC_ILKN_TX_0_LLFC_STOP_TX_CNT register\n");
+         return CMD_FAIL;
+      }
+      cli_out("NBI_FC_ILKN_TX_0_LLFC_STOP_TX_CNT Register = 0x%x\n", read_val);
+      rc = READ_NBI_FC_ILKN_TX_1_LLFC_STOP_TX_CNTr(unit, &read_val);
+      if (SOC_FAILURE(rc)) {
+         cli_out("Failed to read NBI_FC_ILKN_TX_1_LLFC_STOP_TX_CNT register\n");
+         return CMD_FAIL;
+      }
+      cli_out("NBI_FC_ILKN_TX_1_LLFC_STOP_TX_CNT Register = 0x%x\n", read_val);
+
+   }
+
+   if (NBI_MODULE_MASK || ILKN_OUTBAND_INTERFACE_MASK || LLFC_TYPE_MASK) {
+      rc = READ_NBI_FC_ILKN_TX_0_GEN_LLFC_CNTr(unit, &read_val);
+      if (SOC_FAILURE(rc)) {
+         cli_out("Failed to read NBI_FC_ILKN_TX_0_GEN_LLFC_CNT register\n");
+         return CMD_FAIL;
+      }
+      cli_out("NBI_FC_ILKN_TX_0_GEN_LLFC_CNT Register = 0x%x\n", read_val);
+      rc = READ_NBI_FC_ILKN_TX_1_GEN_LLFC_CNTr(unit, &read_val);
+      if (SOC_FAILURE(rc)) {
+         cli_out("Failed to read NBI_FC_ILKN_TX_1_GEN_LLFC_CNT register\n");
+         return CMD_FAIL;
+      }
+      cli_out("NBI_FC_ILKN_TX_1_GEN_LLFC_CNT Register = 0x%x\n", read_val);
+
+   }
+
+
+/* NBI_FC_LLFC_STOP_TX_FROM_CFC_MASK 
+   */
+
+   /*  ----------- NIF -------------------- */
+   if (NIF_TYPE_MASK || EGQ_MODULE_MASK) {
+       rc = READ_EGQ_NIF_FLOW_CONTROLr(unit, REG_PORT_ANY, read_val_above64);
+       if (SOC_FAILURE(rc)) {
+           cli_out("Failed to read EGQ_NIF_FLOW_CONTROL register\n");
+           return CMD_FAIL;
+       }
+       format_long_integer(dval_str, read_val_above64, SOC_REG_ABOVE_64_MAX_SIZE_U32);
+       cli_out("NIF_FLOW_CONTROL Register = 0x%s\n", dval_str);
+   }
+
+   if (NIF_TYPE_MASK) {
+       rc = READ_CFC_NIF_AF_FC_STATUSr(unit, read_val_above64);
+       if (SOC_FAILURE(rc)) {
+           cli_out("Failed to read CFC_NIF_AF_FC_STATUS register\n");
+           return CMD_FAIL;
+       }
+       format_long_integer(dval_str, read_val_above64, SOC_REG_ABOVE_64_MAX_SIZE_U32);
+       cli_out("NIF_AF_FC_STATUS Register = 0x%s\n", dval_str);
+   }
+
+   if (NIF_TYPE_MASK || PFC_TYPE_MASK) {
+      for (i = 0; i < 4; i++) {
+         rc = WRITE_CFC_NIF_PFC_STATUS_SELr(unit, i);
+         if (SOC_FAILURE(rc)) {
+            cli_out("Failed to write CFC_NIF_PFC_STATUS_SEL register\n");
+            return CMD_FAIL;
+         }
+         rc = READ_CFC_NIF_PFC_STATUS_SELr(unit, &read_val);
+         if (SOC_FAILURE(rc)) {
+            cli_out("Failed to read CFC_NIF_PFC_STATUS_SEL register\n");
+            return CMD_FAIL;
+         }
+         rc = READ_CFC_NIF_PFC_STATUSr(unit, &read_val64);
+         if (SOC_FAILURE(rc)) {
+            cli_out("Failed to read CFC_NIF_PFC_STATUS register\n");
+            return CMD_FAIL;
+         }
+         format_uint64(val_str, read_val64);
+         cli_out("CFC_NIF_PFC Select = 0x%x [Bits: %3d - %3d]   Status = 0x%s\n", read_val, (uint16)64 * i, (uint16)(64 * (i + 1) - 1), val_str);
+      }
+   }
+
+   if (NIF_TYPE_MASK) {
+      rc = READ_CFC_NIF_MUB_STATUSr(unit, &read_val64);
+      if (SOC_FAILURE(rc)) {
+         cli_out("Failed to read CFC_NIF_MUB_STATUS register\n");
+         return CMD_FAIL;
+      }
+      format_uint64(val_str, read_val64);
+      cli_out("CFC_NIF_MUB_STATUS Register = 0x%s\n", val_str);
+   }
+
+   if (NIF_TYPE_MASK) {
+      rc = READ_CFC_NIF_RT_STATUSr(unit, &read_val);
+      if (SOC_FAILURE(rc)) {
+         cli_out("Failed to read CFC_NIF_RT_STATUS register\n");
+         return CMD_FAIL;
+      }
+      cli_out("CFC_NIF_RT_STATUS Register = 0x%x\n", read_val);
+   }
+
+/*  ----------- EGQ -------------------- */
+   if (EGQ_MODULE_MASK) {
+      rc = READ_EGQ_CFC_FLOW_CONTROLr(unit, REG_PORT_ANY, read_val_above64);
+      if (SOC_FAILURE(rc)) {
+         cli_out("Failed to read EGQ_CFC_FLOW_CONTROL register\n");
+         return CMD_FAIL;
+      }
+      format_long_integer(dval_str, read_val_above64, SOC_REG_ABOVE_64_INFO(unit, EGQ_CFC_FLOW_CONTROLr).size);
+      cli_out("EGQ_CFC_FLOW_CONTROL Register = 0x%s\n", dval_str);
+   }
+
+   if (EGQ_MODULE_MASK) {
+      rc = READ_CFC_EGQ_FC_STATUSr(unit, &read_val);
+      if (SOC_FAILURE(rc)) {
+         cli_out("Failed to read CFC_EGQ_FC_STATUS register\n");
+         return CMD_FAIL;
+      }
+      cli_out("CFC_EGQ_FC_STATUS Register = 0x%x\n", read_val);
+   }
+   if (EGQ_MODULE_MASK) {
+       rc = READ_CFC_EGQ_IF_FC_STATUSr(unit, read_val_above64);
+       if (SOC_FAILURE(rc)) {
+           cli_out("Failed to read CFC_EGQ_IF_FC_STATUS register\n");
+           return CMD_FAIL;
+       }
+       format_long_integer(dval_str, read_val_above64,SOC_REG_ABOVE_64_MAX_SIZE_U32);
+       cli_out("EGQ_IF_FC_STATUS Register = 0x%s\n", dval_str);
+   }
+
+   if (EGQ_MODULE_MASK || LLFC_TYPE_MASK) {
+       
+       rc = READ_CFC_EGQ_CNM_LLFC_STATUSr(unit, read_val_above64);
+       if (SOC_FAILURE(rc)) {
+           cli_out("Failed to read CFC_EGQ_CNM_LLFC_STATUS register\n");
+           return CMD_FAIL;
+       }
+       format_long_integer(dval_str, read_val_above64, SOC_REG_ABOVE_64_MAX_SIZE_U32);
+       cli_out("CFC_EGQ_CNM_LLFC_STATUS Register = 0x%s\n", dval_str);
+   }
+
+   if (EGQ_MODULE_MASK || PFC_TYPE_MASK) {
+      for (i = 0; i < 4; i++) {
+         uint32 sel_val = 0;
+         soc_reg_field_set(unit, CFC_EGQ_STATUS_SELr, &sel_val, EGQ_PFC_STATUS_SELf, i);
+         rc = WRITE_CFC_EGQ_STATUS_SELr(unit, sel_val);
+         if (SOC_FAILURE(rc)) {
+            cli_out("Failed to write CFC_EGQ_STATUS_SEL register\n");
+            return CMD_FAIL;
+         }
+         rc = READ_CFC_EGQ_STATUS_SELr(unit, &read_val);
+         if (SOC_FAILURE(rc)) {
+            cli_out("Failed to read CFC_EGQ_STATUS_SEL register\n");
+            return CMD_FAIL;
+         }
+         rc = READ_CFC_EGQ_PFC_STATUSr(unit, &read_val64);
+         if (SOC_FAILURE(rc)) {
+            cli_out("Failed to read CFC_EGQ_PFC_STATUS register\n");
+            return CMD_FAIL;
+         }
+         format_uint64(val_str, read_val64);
+         cli_out("CFC_EGQ_PFC Select = 0x%x [Bits: %3d - %3d]   Status = 0x%s\n", read_val, (uint16)64 * i, (uint16)(64 * (i + 1) - 1), val_str);
+      }
+   }
+
+   if (EGQ_MODULE_MASK || PFC_TYPE_MASK) {
+      for (i = 0; i < 4; i++) {
+         uint32 sel_val = 0;
+         soc_reg_field_set(unit, CFC_EGQ_STATUS_SELr, &sel_val, EGQ_CNM_PFC_STATUS_SELf, i);
+         rc = WRITE_CFC_EGQ_STATUS_SELr(unit, sel_val);
+         if (SOC_FAILURE(rc)) {
+            cli_out("Failed to write CFC_EGQ_STATUS_SEL register\n");
+            return CMD_FAIL;
+         }
+         rc = READ_CFC_EGQ_STATUS_SELr(unit, &read_val);
+         if (SOC_FAILURE(rc)) {
+            cli_out("Failed to read CFC_EGQ_STATUS_SEL register\n");
+            return CMD_FAIL;
+         }
+         rc = READ_CFC_EGQ_CNM_PFC_STATUSr(unit, &read_val64);
+         if (SOC_FAILURE(rc)) {
+            cli_out("Failed to read CFC_EGQ_CNM_PFC_STATUS register\n");
+            return CMD_FAIL;
+         }
+         format_uint64(val_str, read_val64);
+         cli_out("CFC_EGQ_CNM_PFC Select = 0x%x [Bits: %3d - %3d]   Status = 0x%s\n", read_val, (uint16)64 * i, (uint16)(64 * (i + 1) - 1), val_str);
+      }
+   }
+
+   return CMD_OK;
+}
+
+
+STATIC uint32 counter_value_higher_than_64(soc_reg_above_64_val_t reg_val) {
+
+   int i;
+
+   for (i = 2; i < SOC_REG_ABOVE_64_MAX_SIZE_U32; i++) {
+      if (reg_val[i] != 0) {
+         /* Return 1 if value is higher than 64 bit */
+         return 1;
+      }
+   }
+   return 0;
+}
+
+#ifdef BCM_DPP_SUPPORT
+int dpp_diag_gtimer_blocks_start(int unit, char **block_names, int num_of_block_names, int interval) {
+   int i;
+   int rv = 0;
+
+   /* Enable and Trigger gtimer */
+   for (i = 0; i < num_of_block_names; i++) {
+      if ((rv = gtimer_enable(unit, block_names[i], interval)) != CMD_OK) {
+         cli_out("Failed(%d) enable gtimer in block(%s)\n", rv, block_names[i]);
+         break;
+      }
+      
+      if ((rv = gtimer_trigger(unit, block_names[i])) != CMD_OK) {
+         cli_out("Failed(%d) trigger gtimer in block(%s)\n", rv, block_names[i]);
+         break;
+      }
+   }
+   
+   if (rv != CMD_OK){
+      for (i = 0; i < num_of_block_names; i++) {
+         if ((rv = gtimer_stop(unit, block_names[i])) != CMD_OK) {
+            cli_out("Failed(%d) stop gtimer in block(%s)\n", rv, block_names[i]);
+            continue;
+         }
+      }
+      
+      return CMD_FAIL;
+   }
+   
+   sal_usleep(interval);    /* Wait interval uSec */
+   
+   return CMD_OK;
+}
+
+int dpp_diag_gtimer_blocks_stop(int unit, char **block_names, int num_of_block_names) {
+   int i;
+   int rv = CMD_OK;
+
+   /* Stop gtimer */
+   for (i = 0; i < num_of_block_names; i++) {
+      if ((rv = gtimer_stop(unit, block_names[i])) != CMD_OK) {
+         cli_out("Failed(%d) stop gtimer in block(%s)\n", rv, block_names[i]);
+         continue;
+      }
+   }
+   
+   return rv;
+}
+
+void
+print_counter_voq_usage(void) {
+   char cmd_dpp_diag_counter_voq_usage[] =
+      "Usage (DIAG counter voq):"
+      "\n\tDIAGnotsics counter voq commands\n\t"
+      "Usages:\n\t"
+      "DIAG counter voq <parameters> ..."
+      "OPTION can be:"
+#ifdef COMPILER_STRING_CONST_LIMIT
+      "Full documentation cannot be displayed with -pendantic compiler\n"
+#else
+      "\nvoq - \tdisplay VOQ programmable counters for single voq."
+      "\n\t Parameters required:"
+      "\n\t\t queue - queue id"
+      "\n\t\t interval - rate diagnostic"
+      
+      "\nvoq - \tdisplay VOQ programmable counters for voq group."
+      "\n\t Parameters required:"
+      "\n\t\t basequeue - basequeue id"
+      "\n\t\t interval - rate diagnostic"
+#endif /* COMPILER_STRING_CONST_LIMIT*/
+      "\n";
+
+   cli_out(cmd_dpp_diag_counter_voq_usage);
+}
+
+void
+print_counter_vsq_usage(void) {
+   char cmd_dpp_diag_counter_vsq_usage[] =
+      "Usage (DIAG counter vsq):"
+      "\n\tDIAGnotsics counter vsq commands\n\t"
+      "Usages:\n\t"
+      "DIAG counter vsq <parameters> ..."
+      "OPTION can be:"
+#ifdef COMPILER_STRING_CONST_LIMIT
+      "Full documentation cannot be displayed with -pendantic compiler\n"
+#else
+      "\nvsq - \tdisplay VSQ programmable counters for single vsq."
+      "\n\t Parameters required:"
+      "\n\t\t queue - queue id"
+      "\n\t\t interval - rate diagnostic"
+#endif /* COMPILER_STRING_CONST_LIMIT*/
+      "\n";
+
+   cli_out(cmd_dpp_diag_counter_vsq_usage);
+}
+
+
+STATIC int
+dpp_diag_counter_voq_print(
+    int                        unit,
+    uint32                     voq_id,
+    uint32                     num_cos
+  )
+{
+   int rv = CMD_OK;
+   uint32 val32;
+   uint32 voq_enq_packet = 0, voq_enq_packet_ovf = 0;
+   uint32 voq_deq_packet = 0, voq_deq_packet_ovf = 0;
+   uint32 voq_tot_discarded_packet = 0, voq_tot_discarded_packet_ovf = 0;   
+   uint32 voq_deleted_packet = 0, voq_deleted_packet_ovf = 0;      
+   uint32 voq_max_oc0_qsize = 0, voq_max_oc0_refresh = 0;
+   
+  cli_out("voq[%-3u] num_cosq[%-2u]\n\r",
+          voq_id,
+          num_cos
+          );
+
+  if ((rv = soc_reg32_get(unit, IQM_QUEUE_MAXIMUM_OCCUPANCY_QUEUE_SIZE_0r, REG_PORT_ANY, 0, &val32)) != SOC_E_NONE) {
+     return CMD_FAIL;
+  }
+  voq_max_oc0_qsize = soc_reg_field_get(unit, IQM_QUEUE_MAXIMUM_OCCUPANCY_QUEUE_SIZE_0r, val32, Q_MX_OC_QSZf); 
+  voq_max_oc0_refresh = soc_reg_field_get(unit, IQM_QUEUE_MAXIMUM_OCCUPANCY_QUEUE_SIZE_0r, val32, Q_MX_OC_RFRSHf); 
+
+  if ((rv = soc_reg32_get(unit, IQM_QUEUE_ENQUEUE_PACKET_COUNTERr, REG_PORT_ANY, 0, &val32)) != SOC_E_NONE) {
+     return CMD_FAIL;
+  }
+  voq_enq_packet = soc_reg_field_get(unit, IQM_QUEUE_ENQUEUE_PACKET_COUNTERr, val32, Q_ENQ_PKT_CNTf); 
+  voq_enq_packet_ovf = soc_reg_field_get(unit, IQM_QUEUE_ENQUEUE_PACKET_COUNTERr, val32, Q_ENQ_PKT_CNT_OVFf); 
+
+  if ((rv = soc_reg32_get(unit, IQM_QUEUE_DEQUEUE_PACKET_COUNTERr, REG_PORT_ANY, 0, &val32)) != SOC_E_NONE) {
+     return CMD_FAIL;
+  }
+  voq_deq_packet = soc_reg_field_get(unit, IQM_QUEUE_DEQUEUE_PACKET_COUNTERr, val32, Q_DEQ_PKT_CNTf); 
+  voq_deq_packet_ovf = soc_reg_field_get(unit, IQM_QUEUE_DEQUEUE_PACKET_COUNTERr, val32, Q_DEQ_PKT_CNT_OVFf);   
+
+  if ((rv = soc_reg32_get(unit, IQM_QUEUE_TOTAL_DISCARDED_PACKET_COUNTERr, REG_PORT_ANY, 0, &val32)) != SOC_E_NONE) {
+     return CMD_FAIL;
+  }
+  voq_tot_discarded_packet = soc_reg_field_get(unit, IQM_QUEUE_TOTAL_DISCARDED_PACKET_COUNTERr, val32, Q_TOT_DSCRD_PKT_CNTf); 
+  voq_tot_discarded_packet_ovf = soc_reg_field_get(unit, IQM_QUEUE_TOTAL_DISCARDED_PACKET_COUNTERr, val32, Q_TOT_DSCRD_PKT_CNT_OVFf); 
+
+  if ((rv = soc_reg32_get(unit, IQM_QUEUE_DELETED_PACKET_COUNTERr, REG_PORT_ANY, 0, &val32)) != SOC_E_NONE) {
+     return CMD_FAIL;
+  }
+  voq_deleted_packet = soc_reg_field_get(unit, IQM_QUEUE_DELETED_PACKET_COUNTERr, val32, Q_DEQ_DELETE_PKT_CNTf); 
+  voq_deleted_packet_ovf = soc_reg_field_get(unit, IQM_QUEUE_DELETED_PACKET_COUNTERr, val32, Q_DEQ_DELETE_PKT_CNT_OVFf); 
+
+  cli_out("\tvoq max occupancy0 level: %d, refresh: %s\n\r", voq_max_oc0_qsize,(voq_max_oc0_refresh?"true":"false"));
+  cli_out("\tvoq enqueue packet: %d[%s]\n\r", voq_enq_packet, (voq_enq_packet_ovf?"ovf":""));
+  cli_out("\tvoq dequeue packet: %d[%s]\n\r", voq_deq_packet, (voq_deq_packet_ovf?"ovf":""));
+  cli_out("\tvoq total discarded packet: %d[%s]\n\r", voq_tot_discarded_packet, (voq_tot_discarded_packet_ovf?"ovf":""));
+  cli_out("\tvoq deleted packet: %d[%s]\n\r", voq_deleted_packet, (voq_deleted_packet_ovf?"ovf":""));  
+  
+  return rv;
+}
+
+STATIC int
+dpp_diag_counter_vsq_print(
+    int                        unit,
+    uint32                     vsq_id,
+    char                       *vsq_group_str,
+    int                        vsq_index
+  )
+{
+   int rv = CMD_OK;
+   uint32 val32;
+   uint32 vsq_max_oc0_qsize = 0, vsqmax_oc0_refresh = 0;
+   uint32 vsq_enq_packet = 0, vsq_enq_packet_ovf = 0;
+   uint32 vsq_deq_packet = 0, vsq_deq_packet_ovf = 0;
+   
+  cli_out("vsq[%-3u] group[%s] indexingroup[%d]\n\r",
+          vsq_id,
+          vsq_group_str,
+          vsq_index
+          );
+
+  if ((rv = soc_reg32_get(unit, IQM_VSQ_MAXIMUM_OCCUPANCY_0r, REG_PORT_ANY, 0, &val32)) != SOC_E_NONE) {
+     return CMD_FAIL;
+  }
+  vsq_max_oc0_qsize = soc_reg_field_get(unit, IQM_VSQ_MAXIMUM_OCCUPANCY_0r, val32, VSQ_MX_OC_QSZf); 
+  vsqmax_oc0_refresh = soc_reg_field_get(unit, IQM_VSQ_MAXIMUM_OCCUPANCY_0r, val32, VSQ_MX_OC_QSZf); 
+
+  if ((rv = soc_reg32_get(unit, IQM_VSQ_ENQUEUE_PACKET_COUNTERr, REG_PORT_ANY, 0, &val32)) != SOC_E_NONE) {
+     return CMD_FAIL;
+  }
+  vsq_enq_packet = soc_reg_field_get(unit, IQM_VSQ_ENQUEUE_PACKET_COUNTERr, val32, VSQ_ENQ_PKT_CNTf); 
+  vsq_enq_packet_ovf = soc_reg_field_get(unit, IQM_VSQ_ENQUEUE_PACKET_COUNTERr, val32, VSQ_ENQ_PKT_CNT_OVFf); 
+
+  if ((rv = soc_reg32_get(unit, IQM_VSQ_DEQUEUE_PACKET_COUNTERr, REG_PORT_ANY, 0, &val32)) != SOC_E_NONE) {
+     return CMD_FAIL;
+  }
+  vsq_deq_packet = soc_reg_field_get(unit, IQM_VSQ_DEQUEUE_PACKET_COUNTERr, val32, VSQ_DEQ_PKT_CNTf); 
+  vsq_deq_packet_ovf = soc_reg_field_get(unit, IQM_VSQ_DEQUEUE_PACKET_COUNTERr, val32, VSQ_DEQ_PKT_CNT_OVFf);   
+
+  cli_out("\tvsq max occupancy0 level: %d, refresh: %s\n\r", vsq_max_oc0_qsize,(vsqmax_oc0_refresh?"true":"false"));
+  cli_out("\tvsq enqueue packet: %d[%s]\n\r", vsq_enq_packet, (vsq_enq_packet_ovf?"ovf":""));
+  cli_out("\tvsq dequeue packet: %d[%s]\n\r", vsq_deq_packet, (vsq_deq_packet_ovf?"ovf":""));
+  
+  return rv;
+}
+
+int dpp_diag_counter_queue(int unit, args_t *a) {
+   int rv = CMD_OK;
+   int is_voq = 0;
+   char *option = NULL, *sub_option = NULL;
+   parse_table_t  pt;
+   int queue = -2, base_queue = -2, interval = -2;
+   bcm_gport_t base_gport = BCM_GPORT_INVALID, phy_port = BCM_GPORT_INVALID;
+   int num_cos = 0;
+   uint32 cosq_flags;
+   uint32 queue_mask = 0;
+   uint32 val32;
+   uint32 voq_id = 0, vsq_id = 0;
+   uint32 vsq_index_in_grp = 0, vsq_group_val = 0;
+   SOC_TMC_ITM_VSQ_GROUP     soc_vsq_group_type;
+   uint8 is_ocb_only;
+   char vsq_group_str[50];
+
+   option = ARG_GET(a);
+   if (NULL == option)
+      return CMD_FAIL;
+   
+   if (!sal_strncasecmp(option, "voq", strlen(option))) {
+      is_voq = TRUE;
+   }
+   else if (!sal_strncasecmp(option, "vsq", strlen(option))) {
+      is_voq = FALSE;
+   }
+
+   sub_option = ARG_CUR(a);
+   if ((sub_option != NULL) && (!sal_strncasecmp(sub_option, "?", strlen(sub_option)))) {
+      if (is_voq) {
+        print_counter_voq_usage();
+      }
+      else {
+        print_counter_vsq_usage();
+      }
+      return CMD_FAIL;
+   }
+
+   parse_table_init(unit, &pt);
+   parse_table_add(&pt, "Queue",     PQ_DFL | PQ_INT, &queue, &queue, NULL);
+   parse_table_add(&pt, "BaseQueue", PQ_DFL | PQ_INT, &base_queue, &base_queue, NULL);
+   parse_table_add(&pt, "Interval",  PQ_DFL | PQ_INT, &interval, &interval, NULL);
+   if (0 > parse_arg_eq(a, &pt)) {
+      parse_arg_eq_done(&pt);
+      return CMD_FAIL;
+   }   
+
+   parse_arg_eq_done(&pt);
+
+   if (queue != -2) {
+      num_cos = 1;
+      if (!is_voq) {
+         vsq_id = queue;
+         
+         /* Get vsq index in grp and vsq group type from vsq id */
+         rv = soc_dpp_cosq_vsq_index_global_to_group_get(unit, vsq_id, &soc_vsq_group_type, &vsq_index_in_grp, &is_ocb_only);
+         if (SOC_FAILURE(rv)) {
+            LOG_ERROR(BSL_LS_APPL_SHELL,
+                      (BSL_META_U(unit,
+                                  "\nsoc_dpp_cosq_vsq_index_global_to_group_get failed(%d)!"), rv));
+            return CMD_FAIL;
+         }
+          
+         switch(soc_vsq_group_type)
+         {
+            case SOC_TMC_ITM_VSQ_GROUP_CTGRY:
+               vsq_group_val = 0;
+               sal_sprintf(vsq_group_str, "%s", "category");
+               break;
+            case SOC_TMC_ITM_VSQ_GROUP_CTGRY_TRAFFIC_CLS:
+               vsq_group_val = 1;
+               sal_sprintf(vsq_group_str, "%s", "category and traffic class");               
+               break;
+            case SOC_TMC_ITM_VSQ_GROUP_CTGRY_2_3_CNCTN_CLS:
+               vsq_group_val = 2;
+               sal_sprintf(vsq_group_str, "%s", "category 2/3 and connection class");               
+               break;
+            case SOC_TMC_ITM_VSQ_GROUP_STTSTCS_TAG:
+               vsq_group_val = 3;
+               sal_sprintf(vsq_group_str, "%s", "statistics tag");               
+               break;
+            case SOC_TMC_ITM_VSQ_GROUP_LLFC:
+               vsq_group_val = 4;
+               sal_sprintf(vsq_group_str, "%s", "Link Level Flow Control");               
+               break;             
+            case SOC_TMC_ITM_VSQ_GROUP_PFC:
+               vsq_group_val = 5;
+               sal_sprintf(vsq_group_str, "%s", "Port Flow Control");               
+               break;               
+            default:
+               cli_out("Unkonw vsq group type\n");
+               return CMD_FAIL;            
+         }
+      }
+      else {
+         voq_id = queue;
+      }
+   }
+   else if (base_queue != -2) {
+      if (is_voq) {
+         do {
+            BCM_GPORT_UNICAST_QUEUE_GROUP_SET(base_gport, base_queue);      
+            rv = bcm_cosq_gport_get(unit, base_gport, &phy_port, &num_cos, &cosq_flags);
+            if (num_cos > 0) {
+               break;
+            }
+      
+            BCM_GPORT_MCAST_QUEUE_GROUP_SET(base_gport, base_queue);
+            rv = bcm_cosq_gport_get(unit, base_gport, &phy_port, &num_cos, &cosq_flags);
+            if (num_cos > 0) {
+               break;
+            }
+   
+            BCM_COSQ_GPORT_ISQ_SET(base_gport, base_queue);
+            rv = bcm_cosq_gport_get(unit, base_gport, &phy_port, &num_cos, &cosq_flags);
+            if (num_cos > 0) {
+               break;
+            }
+
+            break;
+         }while(1);
+         if ((rv != BCM_E_NONE) || (num_cos <= 0)) {
+            cli_out("Failed get voq num cos for voq(%d)\n", base_queue);
+            return CMD_FAIL;            
+         }
+            
+         voq_id = base_queue;
+      }
+      else {
+         cli_out("vsq Requires Queue value\n");
+         return CMD_FAIL;
+      }      
+   }
+   else {
+      if (is_voq)
+         cli_out("voq Requires Queue value or BaseQueue value\n");
+      else
+         cli_out("vsq Requires Queue value\n");
+
+      return CMD_FAIL;
+   }
+
+   queue_mask = num_cos - 1;
+   if (is_voq) {
+      /* Write program regitster to select queue */
+      val32 = 0;
+      soc_reg_field_set(unit, IQM_PROGRAMMABLE_COUNTER_QUEUE_SELECT_0r, &val32, PRG_CNT_Qf, voq_id);   
+      if ((rv = soc_reg32_set(unit, IQM_PROGRAMMABLE_COUNTER_QUEUE_SELECT_0r, REG_PORT_ANY, 0, val32)) != SOC_E_NONE) {
+         return CMD_FAIL;
+      }
+      val32 = 0;
+      soc_reg_field_set(unit, IQM_PROGRAMMABLE_COUNTER_QUEUE_SELECT_1r, &val32, PRG_CNT_MSKf, queue_mask);   
+      if ((rv = soc_reg32_set(unit, IQM_PROGRAMMABLE_COUNTER_QUEUE_SELECT_1r, REG_PORT_ANY, 0, val32)) != SOC_E_NONE) {
+         return CMD_FAIL;
+      }       
+
+      /* Enable and trigger gtimer in IQM */
+      if (interval != -2) {
+         if ((rv = gtimer_enable(unit, "IQM", interval)) != CMD_OK) {
+            cli_out("Failed(%d) enable gtimer\n", rv);
+            return CMD_FAIL;
+         }
+         if ((rv = gtimer_trigger(unit, "IQM")) != CMD_OK) {
+            cli_out("Failed(%d) enable gtimer\n", rv);
+            return CMD_FAIL;
+         }
+         
+         cli_out("Start gtimer in IQM\n");
+         sal_usleep(interval);    /* Wait interval uSec */
+      }
+
+      /* Read Counters value */
+      if ((dpp_diag_counter_voq_print(unit, voq_id, num_cos)) != CMD_OK) {
+         return CMD_FAIL;
+      }
+
+      /* Stop gtimer in IQM */
+      if (interval != -2) {
+         if ((rv = gtimer_stop(unit, "IQM")) != CMD_OK) {
+            cli_out("Failed(%d) enable gtimer\n", rv);
+            return CMD_FAIL;
+         }
+         else {
+            cli_out("Stop gtimer in IQM\n");
+         }
+      }       
+   }
+   else {
+      /* Write program regitster to select queue */
+      val32 = 0;
+      soc_reg_field_set(unit, IQM_VSQ_PROGRAMMABLE_COUNTER_SELECTr, &val32, VSQ_PRG_GRP_SELf, vsq_group_val); 
+      soc_reg_field_set(unit, IQM_VSQ_PROGRAMMABLE_COUNTER_SELECTr, &val32, VSQ_PRG_CNT_Qf, vsq_index_in_grp); 
+      soc_reg_field_set(unit, IQM_VSQ_PROGRAMMABLE_COUNTER_SELECTr, &val32, VSQ_PRG_CNT_MSKf, queue_mask); 
+      if ((rv = soc_reg32_set(unit, IQM_VSQ_PROGRAMMABLE_COUNTER_SELECTr, REG_PORT_ANY, 0, val32)) != SOC_E_NONE) {
+          return CMD_FAIL;
+      }
+       
+      /* Enable and trigger gtimer in IQM */
+      if (interval != -2) {
+         if ((rv = gtimer_enable(unit, "IQM", interval)) != CMD_OK) {
+            cli_out("Failed(%d) enable gtimer\n", rv);
+            return CMD_FAIL;
+         }
+         if ((rv = gtimer_trigger(unit, "IQM")) != CMD_OK) {
+            cli_out("Failed(%d) enable gtimer\n", rv);
+            return CMD_FAIL;
+         }
+         cli_out("Start gtimer in IQM\n");
+            
+         sal_usleep(interval);    /* Wait interval uSec */
+      }
+
+      /* Read Counters value */
+      if ((dpp_diag_counter_vsq_print(unit, vsq_id, vsq_group_str, vsq_index_in_grp)) != CMD_OK) {
+         return CMD_FAIL;
+      }
+
+      /* Stop gtimer in IQM */
+      if (interval != -2) {
+         if ((rv = gtimer_stop(unit, "IQM")) != CMD_OK) {
+            cli_out("Failed(%d) enable gtimer\n", rv);
+            return CMD_FAIL;
+         }
+         else {
+            cli_out("Stop gtimer in IQM\n");
+         }         
+      }    
+   }   
+   
+   return rv;
+}
+#endif /* BCM_DPP_SUPPORT */
+
+STATIC cmd_result_t
+dpp_diag_counters_print(int unit, diag_counter_data_t *counters, int ignore_zero, uint32 hex_base, char **block_names, int num_of_block_names) {
+   soc_reg_above_64_val_t data, field_val, ovf_field_val;
+   char dval_str[256], counter_name[MAX_COUNTER_NAME_LEN];
+   uint32 addr;
+   uint8 acc_type, any_reg_printed = 0;
+   soc_block_type_t last_block_type = SOC_BLOCK_TYPE_INVALID;
+   int i, rc = SOC_SAND_OK;
+   soc_block_t blk, blk_dummy;
+   char    buf_val[32];
+   int     commachr = soc_property_get(unit, spn_DIAG_COMMA, ',');
+   uint64  val_64;
+   bcm_pbmp_t bitmap;
+
+   /*check block ids to be printed according to given block names.*/
+   blk = 0;
+   BCM_PBMP_CLEAR(bitmap);
+   for (blk = 0; SOC_BLOCK_INFO(unit, blk).type != -1; blk++) {
+      if (block_names != NULL) {
+         int j;
+         for (j = 0; j < num_of_block_names; j++) {
+            if (0 == sal_strncasecmp(block_names[j], soc_block_name_lookup_ext(SOC_BLOCK_INFO(unit, blk).type, unit), strlen(block_names[j]))) {
+               break;
+            }
+         }
+         if (j == num_of_block_names) continue;
+      }
+      BCM_PBMP_PORT_ADD(bitmap, blk);
+   }
+
+   for (i = 0; INVALIDr != counters[i].reg; i++) {
+      if (!SOC_IS_ARADPLUS(unit) && counters[i].flags==DIAG_COUNTERS_F_ARADPLUS_ONLY)
+      {
+          continue;
+      }
+
+      if (!SOC_REG_IS_VALID(unit, counters[i].reg)) {
+         cli_out("Invalid register for counter: %s\n", counters[i].reg_name);
+         continue;
+      }
+
+     
+
+      SOC_BLOCKS_ITER(unit, blk, SOC_REG_INFO(unit, counters[i].reg).block) {
+         /*skip blks not mentioned in block_names*/
+         if (!BCM_PBMP_MEMBER(bitmap, blk)) continue;
+
+         /*reads data from a register*/
+         if (soc_cpureg == SOC_REG_INFO(unit, counters[i].reg).regtype) { /* CMIC register */
+            SOC_REG_ABOVE_64_CLEAR(data);
+            addr = soc_reg_addr_get(unit, counters[i].reg, SOC_BLOCK_INFO(unit, blk).number, counters[i].reg_index, FALSE, &blk_dummy, &acc_type);
+            data[0] = soc_pci_read(unit, addr);
+         } else { /* regular register */
+            rc = soc_reg_above_64_get(unit, counters[i].reg, SOC_BLOCK_INFO(unit, blk).number, counters[i].reg_index, data);
+            if (SOC_FAILURE(rc)) {
+               cli_out("Failed to read counter: %s\n", counters[i].reg_name);
+               continue;
+            }
+         }
+
+         /*reads specific field from a register*/
+         soc_reg_above_64_field_get(unit, counters[i].reg, data, counters[i].cnt_field, field_val);
+         if (INVALIDf != counters[i].overflow_field) {
+            soc_reg_above_64_field_get(unit, counters[i].reg, data, counters[i].overflow_field, ovf_field_val);
+         }
+
+         /* Skip if the counter is zero and we should ignore zero counters */
+         if (ignore_zero && SOC_REG_ABOVE_64_IS_ZERO(field_val)) {
+            continue;
+         }
+
+         if (last_block_type != counters[i].block) {
+            last_block_type = counters[i].block;
+            cli_out("\n%4s counters:\n==============\n",
+                    /*SOC_BLOCK_NAME(unit, SOC_REG_INFO(unit, counters[i].reg).block),*/
+                    soc_block_name_lookup_ext(last_block_type, unit));
+         }
+
+
+
+         /* print field to string according to register type/length */
+         if (SOC_REG_IS_ABOVE_64(unit, counters[i].reg)) {
+            /* SOC_REG_IS_ABOVE_64 only checks counter size, and not the value.
+               If value is higher than 64 bit print as hex, otherwise decimal */
+            if ((hex_base == 1) || counter_value_higher_than_64(field_val)) {
+               format_long_integer(dval_str, field_val, SOC_REG_ABOVE_64_INFO(unit, counters[i].reg).size);
+            } else {
+               /*print only hex else print decimal*/
+               COMPILER_64_SET(val_64, field_val[1], field_val[0]);
+               format_uint64_decimal(buf_val, val_64, commachr);
+               sal_snprintf(dval_str, sizeof(dval_str), "%s", buf_val);
+            }
+         } else if ((SOC_REG_IS_64(unit, counters[i].reg))) {
+            if (hex_base == 1) {
+               format_long_integer(dval_str, field_val, 2);
+            } else {
+               COMPILER_64_SET(val_64, field_val[1], field_val[0]);
+               format_uint64_decimal(buf_val, val_64, commachr);
+               sal_snprintf(dval_str, sizeof(dval_str), "%s", buf_val);
+            }
+         } else {
+            if (hex_base == 1) {
+               format_long_integer(dval_str, field_val, 1);
+            } else {
+               COMPILER_64_SET(val_64, 0, field_val[0]);
+               format_uint64_decimal(buf_val, val_64, commachr);
+               sal_snprintf(dval_str, sizeof(dval_str), "%s", buf_val);
+            }
+         }
+
+         sal_snprintf(counter_name, MAX_COUNTER_NAME_LEN, "%5s %s                                                ",
+                      SOC_BLOCK_NAME(unit, blk), counters[i].reg_name);
+         cli_out("%40.40s: %s%s\n", counter_name, dval_str,
+                 ((!SOC_REG_ABOVE_64_IS_ZERO(field_val) || !ignore_zero) && INVALIDf != counters[i].overflow_field && ovf_field_val[0]) ? " ovf" : "");
+         any_reg_printed = 1;
+      }
+   }
+   /*If all registers were filtered print warning */
+   if (!any_reg_printed) {
+      int j;
+      cli_out("No matches found for block names:");
+      if(block_names != NULL) {
+          for (j = 0; j < num_of_block_names; j++) {
+             cli_out(" %4s", block_names[j]);
+          }
+      }
+      if (ignore_zero) {
+         cli_out(" with non zero values.");
+      }
+      cli_out("\n");
+   }
+
+   return CMD_OK;
+}
+
+STATIC cmd_result_t
+dpp_diag_counters(int unit, args_t *a) {
+#ifdef BCM_PETRAB_SUPPORT
+   int rc = SOC_SAND_OK;
+#endif
+   diag_counter_data_t *counters = 0;
+#ifdef BCM_DFE_SUPPORT
+   int rv;
+#endif
+   uint32 ignore_zero = 0, packet_flow = 0, graphical = 0, show_in_hex_base = 0;
+   char *option;
+   char *block_names[50];
+   int num_of_block_names = 0;
+
+#ifdef BCM_88675_A0
+   uint32 core_disp = 0;
+#endif
+
+#ifdef BCM_PETRAB_SUPPORT   
+   uint32 sampling_period_in_ms = 0; /* default options */
+   uint32 print_zero = FALSE;
+   uint32 short_format = TRUE;
+#ifdef BCM_ARAD_SUPPORT
+   uint32 print_level = SOC_TMC_STAT_PRINT_LEVEL_ALL;
+#else
+   uint32 print_level = 0;
+#endif 
+#endif
+
+   parse_table_t  pt;
+   cmd_result_t   retCode = CMD_OK;
+#ifdef BCM_DPP_SUPPORT
+   uint32 interval = 0;
+   char *block_names_arad[] = {"EGQ", "EPNI", "FDR", "FDT", "IRE", "IPT", "IQM", "NBI"};
+   char *block_names_jericho[] = {"EGQ", "EPNI", "FDR", "FDT", "IRE", "IPT", "IQM", "NBIL", "NBIH"};
+   char *block_names_gtimer_all[] = {"CFC", "CRPS", "ECI", "EGQ", "EPNI", "FCR", "FCT", "FDR", "FDT", "FMAC", 
+      "IDR", "IHB", "IHP", "IPT", "IQM", "IRE", "IRR", "MMU", "NBI", "OAMP", "OCB", "OLP"};
+   char **block_names_cur = NULL;
+   int block_num = 0;
+   int rv1 = CMD_OK;
+#endif
+   
+
+   option = ARG_GET(a);
+#ifdef BCM_DPP_SUPPORT   
+   if ((NULL != option) && (!sal_strncasecmp(option, "voq", strlen(option)) || 
+       !sal_strncasecmp(option, "vsq", strlen(option)))) {
+      return dpp_diag_counter_queue(unit, a);
+   }
+#endif
+   
+   parse_table_init(unit, &pt);
+#ifdef BCM_DPP_SUPPORT    
+   if (SOC_IS_ARAD(unit) || SOC_IS_JERICHO(unit)) {
+       parse_table_add(&pt, "Interval", PQ_DFL | PQ_INT, &interval, &interval, NULL); 
+   }
+#endif
+#ifdef BCM_PETRAB_SUPPORT
+   if (SOC_IS_PETRAB(unit)) {
+       parse_table_add(&pt, "print_level", PQ_DFL | PQ_INT, &print_level, &print_level, NULL);
+       parse_table_add(&pt, "print_zero", PQ_DFL | PQ_INT, 0, &print_zero, NULL);
+       parse_table_add(&pt, "sampling_period_in_ms", PQ_DFL | PQ_INT, &sampling_period_in_ms, &sampling_period_in_ms, NULL);
+       parse_table_add(&pt, "short_format", PQ_DFL | PQ_INT, &short_format, &short_format, NULL);
+   }
+#endif
+
+   if (0 > parse_arg_eq(a, &pt)) {
+      return retCode;
+   }
+
+   while (NULL != option) {
+      if (!sal_strncasecmp(option, "nz", strlen(option))) {
+         ignore_zero = 1;
+      } else if (!sal_strncasecmp(option, "packet_flow", strlen(option))) {
+         packet_flow = 1;
+      } else if (!sal_strncasecmp(option, "graphical", strlen(option))) {
+         graphical = 1;
+      } else if (!sal_strncasecmp(option, "hex", strlen(option))) {
+         show_in_hex_base = 1;
+#ifdef BCM_88675_A0
+      } else if ((!sal_strncasecmp(option, "cdsp", strlen(option))) || 
+                 (!sal_strncasecmp(option, "core_disp", strlen(option)))) {
+         core_disp = 1;
+#endif
+#ifdef BCM_DPP_SUPPORT
+      } else if (sal_strchr(option, '=')) {
+         /* Nothing to do. Ignore current option */
+#endif         
+      } else {
+         block_names[num_of_block_names] = option;
+         num_of_block_names++;
+      }
+      option = ARG_GET(a);
+   }
+
+   if ((packet_flow == 0) && (graphical == 0)) {
+      counters = diag_counters_get(unit);
+      if (NULL == counters) {
+         cli_out("Not supported for unit %d \n", unit);
+         return CMD_FAIL;
+      }
+   } else if ((SOC_IS_ARAD(unit) || SOC_IS_JERICHO(unit)) && graphical == 1) {
+#ifdef BCM_DPP_SUPPORT
+      if (interval != 0) {
+
+          if (SOC_IS_JERICHO(unit)) {
+             block_names_cur = block_names_jericho;
+             block_num = sizeof(block_names_jericho)/sizeof(char *);
+          } else {
+             block_names_cur = block_names_arad;
+             block_num = sizeof(block_names_arad)/sizeof(char *);
+          }
+
+            
+         /* Enable and Trigger gtimer */
+         if ((rv1 = dpp_diag_gtimer_blocks_start(unit, block_names_cur, block_num, interval)) == CMD_FAIL) {
+            return CMD_FAIL;
+         }
+      }
+      if (SOC_IS_JERICHO(unit)) {
+#ifdef BCM_88675_A0
+          rv1 = jericho_counters_graphic_print(unit, ignore_zero, show_in_hex_base, core_disp);
+#endif
+      } else if (SOC_IS_ARAD(unit)) {
+          rv1 = arad_packet_flow_counter_get(unit, ignore_zero, show_in_hex_base); 
+      }
+     
+      if (interval != 0) {
+         /* Stop gtimer */
+         rv1 |= dpp_diag_gtimer_blocks_stop(unit, block_names_cur, block_num);
+      }
+      if (rv1 != CMD_OK) return CMD_FAIL;
+#endif 
+      
+   } else if (SOC_IS_DFE(unit) && graphical == 1){
+#ifdef BCM_DFE_SUPPORT
+       rv = diag_dfe_fabric_counters_print(unit);
+       if (BCM_FAILURE(rv)) {
+           cli_out("ERRROR: soc_dfe_counters_print failed.\n");
+           return CMD_FAIL;
+       }
+
+#endif      
+   } else { /*packet flow*/
+#ifdef BCM_ARAD_SUPPORT
+      if(SOC_IS_ARDON(unit)){
+         counters = ardon_packet_flow_counters_data;
+      } else if (SOC_IS_ARAD(unit)) {
+         counters = arad_packet_flow_counters_data;
+      }
+#endif
+#ifdef BCM_88750_SUPPORT
+      if (SOC_IS_FE1600(unit)) {
+         counters = fe1600_packet_flow_counters_data;
+      }
+#endif
+#ifdef BCM_88675_A0
+      if (SOC_IS_JERICHO(unit)) {
+         counters = jericho_counters_for_graphic_display;
+      }
+#endif
+   }
+
+   /*either packet flow or not graphical*/
+   if (counters) {
+#ifdef BCM_DPP_SUPPORT
+      if (interval != 0) {
+         if (num_of_block_names == 0) {
+            block_names_cur = block_names_gtimer_all;
+            block_num = sizeof(block_names_gtimer_all)/sizeof(char *);
+         }
+         else {
+            block_names_cur = block_names; 
+            block_num = num_of_block_names;
+         }
+            
+         /* Enable and Trigger gtimer */
+         if ((rv1 = dpp_diag_gtimer_blocks_start(unit, block_names_cur, block_num, interval)) == CMD_FAIL) {
+            return CMD_FAIL;
+         }
+      }
+#endif    
+      dpp_diag_counters_print(unit, counters, ignore_zero, show_in_hex_base, (num_of_block_names == 0 ? NULL : block_names), num_of_block_names);
+#ifdef BCM_DPP_SUPPORT
+      if (interval != 0) {
+         /* Stop gtimer */
+         if ((rv1 = dpp_diag_gtimer_blocks_stop(unit, block_names_cur, block_num)) == CMD_FAIL) {
+            return CMD_FAIL;
+         }
+      }
+#endif 
+
+   } else { /* old Petra code */
+#ifdef BCM_PETRAB_SUPPORT
+      if (SOC_IS_PETRAB(unit)) {
+
+         SOC_PETRA_STAT_ALL_STATISTIC_COUNTERS all_counters;
+         SOC_PETRA_STAT_PRINT_LEVEL
+            prm_level = SOC_PETRA_STAT_PRINT_LEVEL_ALL;
+         uint8 print_format;
+         unit = (unit);
+         soc_petra_PETRA_STAT_ALL_STATISTIC_COUNTERS_clear(&all_counters);
+
+         /* Call function */
+         rc = soc_petra_stat_all_counters_get(
+            unit,
+            print_level,
+            sampling_period_in_ms,
+            &all_counters
+            );
+         if (soc_sand_get_error_code_from_error_word(rc) != SOC_SAND_OK) {
+            soc_petra_disp_result(rc, "soc_petra_stat_all_counters_get");
+         }
+
+         print_format = 0;
+         if (short_format) {
+            print_format |= SOC_SAND_BIT(SOC_SAND_PRINT_FLAVORS_SHORT);
+         }
+         if (!print_zero) {
+            print_format |= SOC_SAND_BIT(SOC_SAND_PRINT_FLAVORS_NO_ZEROS);
+         }
+         soc_petra_PETRA_STAT_ALL_STATISTIC_COUNTERS_print(unit, &all_counters, prm_level, print_format);
+      }
+#endif /* BCM_PETRAB_SUPPORT*/
+
+   }
+   return CMD_OK;
+
+}
+/*----------------------------------------------------------------------------------------------------*/
+#ifdef BCM_DPP_SUPPORT
+
+STATIC cmd_result_t
+cmd_dpp_diag_rate(int unit, args_t *a) {
+   char  *option = ARG_GET(a);
+   char  *sub_option = NULL;
+   int   port_num = -2, tc_index = -2, if_num = -2, check_bw_scheme = -2, check_bw_num = 0, flow_id = -2;
+   parse_table_t  pt;
+   cmd_result_t   retCode = CMD_OK;
+   int mode_given = 0;
+   
+   if ((NULL != option) && (!sal_strncasecmp(option, "SCH", strlen(option)))){
+      sub_option = ARG_GET(a);
+   }
+   
+   parse_table_init(unit, &pt);
+   parse_table_add(&pt, "port", PQ_DFL | PQ_INT, &port_num, &port_num, NULL);
+   parse_table_add(&pt, "tc",    PQ_DFL | PQ_INT, &tc_index, &tc_index, NULL);
+   parse_table_add(&pt, "if",     PQ_DFL | PQ_INT, &if_num, &if_num, NULL);
+   parse_table_add(&pt, "scheme", PQ_DFL | PQ_INT, &check_bw_scheme, &check_bw_scheme, NULL);
+   parse_table_add(&pt, "bw",     PQ_DFL | PQ_INT, &check_bw_num, &check_bw_num, NULL);
+   parse_table_add(&pt, "flowid", PQ_DFL | PQ_INT, &flow_id, &flow_id, NULL);
+   if (0 > parse_arg_eq(a, &pt)) {
+      return CMD_FAIL;
+   }
+
+
+   /*determine and apply*/
+   while (NULL != option) {
+      if (!sal_strncasecmp(option, "?", strlen(option))) {
+         mode_given++;
+         parse_arg_eq_done(&pt);
+         return CMD_USAGE;
+      }      
+      if (!sal_strncasecmp(option, "SCH", strlen(option))) {
+         mode_given++;
+         if (NULL == sub_option) return CMD_USAGE;
+         if (!sal_strncasecmp(sub_option, "PS", strlen(option))) {
+            if (port_num == -2) {
+               cli_out("option SCH PS requires port value\n");
+               parse_arg_eq_done(&pt);
+               return CMD_FAIL;
+            }
+            
+            if (calc_sch_ps_rate(unit, port_num) != CMD_OK) retCode = CMD_FAIL;
+         }
+         else if (!sal_strncasecmp(sub_option, "FLOW", strlen(option))) {
+            if (flow_id == -2) {
+               cli_out("option SCH FLOW requires flow id\n");
+               parse_arg_eq_done(&pt);
+               return CMD_FAIL;
+            }
+
+            if (calc_sch_flow_bw(unit, flow_id) != CMD_OK) retCode = CMD_FAIL;
+         }
+         else {
+            parse_arg_eq_done(&pt);
+            return CMD_USAGE;            
+         }
+      }
+      else if (!sal_strncasecmp(option, "EGQ", strlen(option))) {
+         mode_given++;
+         if (port_num == -2 || tc_index == -2) {
+            cli_out("option EGQ requires port and tc values\n");
+            parse_arg_eq_done(&pt);
+            return CMD_FAIL;
+         }
+         if (calc_egq_rate(unit, port_num, tc_index) != CMD_OK) retCode = CMD_FAIL;
+      } else if (!sal_strncasecmp(option, "PQP", strlen(option))) {
+         mode_given++;
+         if (port_num == -2 || tc_index == -2) {
+            cli_out("option PQP requires port and tc values\n");
+            parse_arg_eq_done(&pt);
+            return CMD_FAIL;
+         }
+         if (calc_pqp_rate(unit, port_num, tc_index) != CMD_OK) retCode = CMD_FAIL;
+      } else if (!sal_strncasecmp(option, "EPEP", strlen(option))) {
+         mode_given++;
+         if (port_num == -2 || tc_index == -2) {
+            cli_out("option EPEP requires port and tc values\n");
+            parse_arg_eq_done(&pt);
+            return CMD_FAIL;
+         }
+         if (calc_epe_port_rate(unit, port_num, tc_index) != CMD_OK) retCode = CMD_FAIL;
+      } else if (!sal_strncasecmp(option, "EPNI", strlen(option))) {
+         mode_given++;
+         if (check_bw_scheme == -2) {
+            cli_out("option EPNI requires scheme value\n");
+            parse_arg_eq_done(&pt);
+            return CMD_FAIL;
+         }
+         if (calc_epni_rate(unit, check_bw_scheme, check_bw_num) != CMD_OK) retCode = CMD_FAIL;
+      } else if (!sal_strncasecmp(option, "IRE", strlen(option))) {
+         mode_given++;
+         if (port_num == -2) {
+            cli_out("option IRE requires port value\n");
+            parse_arg_eq_done(&pt);
+            return CMD_FAIL;
+         }
+         if (calc_ire_rate(unit, port_num) != CMD_OK) retCode = CMD_FAIL;
+      } else if (!sal_strncasecmp(option, "IQM", strlen(option))) {
+         mode_given++;
+         if (port_num == -2) {
+            cli_out("option IQM requires port value\n");
+            parse_arg_eq_done(&pt);
+            return CMD_FAIL;
+         }
+         if (calc_iqm_rate(unit, port_num) != CMD_OK) retCode = CMD_FAIL;
+      } else if (!sal_strncasecmp(option, "IPT", strlen(option))) {
+         mode_given++;
+         if (calc_ipt_rate(unit) != CMD_OK) retCode = CMD_FAIL;
+      }
+      option = ARG_GET(a);
+      if (retCode == CMD_FAIL) {
+         parse_arg_eq_done(&pt);
+         return CMD_FAIL;
+      }
+   }
+   parse_arg_eq_done(&pt);
+   if (mode_given == 0) {
+      return CMD_USAGE;
+   }
+   return CMD_OK;
+}
+
+#endif /*BCM_DPP_SUPPORT*/
+
+STATIC cmd_result_t
+cmd_dpp_diag_wb(int unit, args_t *a) {
+   char  *option = ARG_GET(a);
+   char  *file = NULL;
+#if BCM_WARM_BOOT_SUPPORT
+   char  *log = "log quiet=yes file=";
+   char  log_command[256] = "";
+#endif
+   int   buf_id = -1, var_id = -1, engine_id = 0;
+   parse_table_t  pt;
+   cmd_result_t   retCode = CMD_OK;
+   int mode_given = 0;
+
+   parse_table_init(unit, &pt);
+   parse_table_add(&pt, "buffer_id",PQ_DFL | PQ_INT, &buf_id, &buf_id, NULL);
+   parse_table_add(&pt, "var_id",     PQ_DFL | PQ_INT, &var_id, &var_id, NULL);
+   parse_table_add(&pt, "engine_id",     PQ_DFL | PQ_INT, &engine_id, &engine_id, NULL);
+   parse_table_add(&pt, "file", PQ_DFL | PQ_STRING, &file, &file, NULL);
+   if (0 > parse_arg_eq(a, &pt)) {
+      return CMD_FAIL;
+   }
+
+
+   /*determine and apply*/
+   while (NULL != option) {
+      if (!sal_strncasecmp(option, "?", strlen(option))) {
+         mode_given++;
+         parse_arg_eq_done(&pt);
+         return CMD_USAGE;
+      }
+      if (!sal_strncasecmp(option, "DUMP", strlen(option))) {
+#if BCM_WARM_BOOT_SUPPORT
+         if (file) {
+             sal_strncat(log_command, log, sizeof(log_command) - sal_strlen(log_command) - 1);
+             sal_strncat(log_command, file, sizeof(log_command) - sal_strlen(log_command) - 1);
+             sh_process_command(unit,"console off");
+             sh_process_command(unit,log_command);
+         }
+         mode_given++;
+         if (soc_wb_engine_dump(unit, engine_id, 0, var_id, buf_id, 0, "delete_me.txt", "w") != CMD_OK) retCode = CMD_FAIL;
+         if (file) {
+             sh_process_command(unit,"log off");
+             sh_process_command(unit,"console on");
+         }
+#else /*BCM_WARM_BOOT_SUPPORT*/
+         cli_out("sdk is not compiled with warmboot flags\n");
+         parse_arg_eq_done(&pt);
+         return CMD_FAIL;
+#endif /*BCM_WARM_BOOT_SUPPORT*/
+     }
+      option = ARG_GET(a);
+      if (retCode == CMD_FAIL) {
+         parse_arg_eq_done(&pt);
+         return CMD_FAIL;
+      }
+   }
+   parse_arg_eq_done(&pt);
+   if (mode_given == 0) {
+      return CMD_USAGE;
+   }
+   return CMD_OK;
+}
+
+/*----------------------------------------------------------------------------------------------------*/
+#ifdef BCM_ARAD_SUPPORT
+void
+print_egr_congestion_usage(void) {
+   char cmd_dpp_diag_egr_congestion_usage[] =
+      "Usage (DIAG counter vsq):"
+      "\n\tDIAGnotsics egr_congestion commands\n\t"
+      "Usages:\n\t"
+      "DIAG egr_congestion <parameters> ..."
+      "\n\tOPTION can be:"
+#ifdef COMPILER_STRING_CONST_LIMIT
+      "\n\tFull documentation cannot be displayed with -pendantic compiler\n"
+#else
+      "\ncurrent\t\t print current values"
+      "\nmax\t\t print maximum values"
+      "\nall\t\t print both current and maximum values"
+      "\ncontinuous\t\t disable maximum statistics updates"
+      "\nz\t\t print 0 values"
+      "\nglobal\t\t print only global values"
+      "\n\nAdditional options: \tport=<id> - per OTM port, queue=<id> - per queue, interface=<id> - per interface"
+#endif /* COMPILER_STRING_CONST_LIMIT*/
+      "\n";
+
+   cli_out(cmd_dpp_diag_egr_congestion_usage);
+}
+
+STATIC void
+dpp_diag_print_egr_congestion_statistics(int unit,
+        ARAD_EGR_CGM_CONGENSTION_STATS *stats,
+        int is_max,
+        int is_non_zero,
+        int port,
+        int queue,
+        int interface,
+        int global,
+        int all) {
+    int i, skip, first = 1;
+    cli_out("\nEgress congestion %s statistics: PD-packet descriptor  DB-data buffer\n\n", is_max ? "maximum" : "current");
+    skip = ((unsigned)stats->pd ||
+            (unsigned)stats->db ||
+            (unsigned)stats->uc_pd ||
+            (unsigned)stats->mc_pd ||
+            (unsigned)stats->uc_db ||
+            (unsigned)stats->mc_db ||
+            !is_non_zero) ? 0 : 1;
+    if (!skip && (global || all)) { /* if is_non_zero skip printing zero */
+        cli_out("%5u total PDs\n%5u total DBs\n%5u UC PDs\n%5u MC PDs\n%5u UC DBs\n%5u MC DBs\n",
+                (unsigned)stats->pd,
+                (unsigned)stats->db,
+                (unsigned)stats->uc_pd,
+                (unsigned)stats->mc_pd,
+                (unsigned)stats->uc_db,
+                (unsigned)stats->mc_db);
+    }
+    if (0 <= interface && interface < SOC_DPP_IMP_DEFS_GET(unit, nof_core_interfaces) && all != 1) { /* if interface was specified */
+        cli_out("Per interface: number of PDs or size measured in 256B (DBs per replication) for UC, MC\nintf UC_PD MC_PD UC_DB  MC_DB\n");
+        cli_out("%3u: %5u %5u %5u %6u\n", interface,
+                (unsigned)stats->uc_pd_if[interface],
+                (unsigned)stats->mc_pd_if[interface],
+                (unsigned)stats->uc_size_256_if[interface],
+                (unsigned)stats->mc_size_256_if[interface]);
+    } else if (interface == -1 && all == 1) { /* else print all interfaces*/
+        first = 1;
+        for (i = 0; i < SOC_DPP_IMP_DEFS_GET(unit, nof_core_interfaces); ++i) {
+            skip = ((unsigned)stats->uc_pd_if[i] ||
+                    (unsigned)stats->mc_pd_if[i] ||
+                    (unsigned)stats->uc_size_256_if[i] ||
+                    (unsigned)stats->mc_size_256_if[i] ||
+                    !is_non_zero) ? 0 : 1;
+            if (!skip) {  /* if is_non_zero skip printing zero */
+                if (first) {
+                    cli_out("Per interface: number of PDs or size measured in 256B (DBs per replication) for UC, MC\nintf UC_PD MC_PD UC_DB  MC_DB\n");
+                    first = 0;
+                }
+                cli_out("%3u: %5u %5u %5u %6u\n", i,
+                        (unsigned)stats->uc_pd_if[i],
+                        (unsigned)stats->mc_pd_if[i],
+                        (unsigned)stats->uc_size_256_if[i],
+                        (unsigned)stats->mc_size_256_if[i]);
+            }
+        }
+    }
+    if (0 <= port && port < ARAD_EGR_CGM_OTM_PORTS_NUM && all != 1) { /* if port was specified */
+        cli_out("Per OTM port: number of UC PDs, MC PDs, UC DBs, MC size measured in 256B (DBs per replication)\nport UC_PD MC_PD  UC_DB  MC_DB\n");
+        cli_out("%3u: %5u %5u %6u %6u\n", port,
+                (unsigned)stats->uc_pd_port[port],
+                (unsigned)stats->mc_pd_port[port],
+                (unsigned)stats->uc_db_port[port],
+                (unsigned)stats->mc_db_port[port]);
+    } else if (port == -1 && all == 1) { /* else print all ports*/
+        first = 1;
+        for (i = 0; i < ARAD_EGR_CGM_OTM_PORTS_NUM; ++i) {
+            skip = ((unsigned)stats->uc_pd_port[i] ||
+                    (unsigned)stats->mc_pd_port[i] ||
+                    (unsigned)stats->uc_db_port[i] ||
+                    (unsigned)stats->mc_db_port[i] ||
+                    !is_non_zero) ? 0 : 1;
+            if (!skip) { /* if is_non_zero skip printing zero */
+                if (first) {
+                    cli_out("Per OTM port: number of UC PDs, MC PDs, UC DBs, MC size measured in 256B (DBs per replication)\nport UC_PD MC_PD  UC_DB  MC_DB\n");
+                    first = 0;
+                }
+                cli_out("%3u: %5u %5u %6u %6u\n", i,
+                        (unsigned)stats->uc_pd_port[i],
+                        (unsigned)stats->mc_pd_port[i],
+                        (unsigned)stats->uc_db_port[i],
+                        (unsigned)stats->mc_db_port[i]);
+            }
+        }
+    }
+    if (0 <= queue && queue < ARAD_EGR_CGM_QUEUES_NUM && all != 1) {  /* if queue was specified */
+        cli_out("Per queue (port+TC): number of UC PDs, MC PDs, UC DBs, MC size measured in 256B (DBs per replication)\nqueue UC_PD MC_PD  UC_DB  MC_DB\n");
+        cli_out("%4u: %5u %5u %6u %6u\n", queue,
+                (unsigned)stats->uc_pd_queue[queue],
+                (unsigned)stats->mc_pd_queue[queue],
+                (unsigned)stats->uc_db_queue[queue],
+                (unsigned)stats->mc_db_queue[queue]);
+    } else if (queue == -1 && all == 1) { /* else print all queues*/
+        first = 1;
+        for (i = 0; i < ARAD_EGR_CGM_QUEUES_NUM; ++i) {
+            skip = ((unsigned)stats->uc_pd_queue[i] ||
+                    (unsigned)stats->mc_pd_queue[i] ||
+                    (unsigned)stats->uc_db_queue[i] ||
+                    (unsigned)stats->mc_db_queue[i] ||
+                    !is_non_zero) ? 0 : 1;
+            if (!skip) { /* if is_non_zero skip printing zero */
+                if (first) {
+                    cli_out("Per queue (port+TC): number of UC PDs, MC PDs, UC DBs, MC size measured in 256B (DBs per replication)\nqueue UC_PD MC_PD  UC_DB  MC_DB\n");
+                    first = 0;
+                }
+                cli_out("%4u: %5u %5u %6u %6u\n", i,
+                        (unsigned)stats->uc_pd_queue[i],
+                        (unsigned)stats->mc_pd_queue[i],
+                        (unsigned)stats->uc_db_queue[i],
+                        (unsigned)stats->mc_db_queue[i]);
+            }
+        }
+    }
+    skip = ((unsigned)stats->mc_pd_sp[0] ||
+            (unsigned)stats->mc_pd_sp[1] ||
+            (unsigned)stats->mc_db_sp[0] ||
+            (unsigned)stats->mc_db_sp[1] ||
+            !is_non_zero) ? 0 : 1;
+    if (!skip && (global || all)) { /* if is_non_zero skip printing zero */
+        cli_out("Per service pool: number of MC PDs and DBs\nMC_PD[0]:%u MC_PD[1]:%u  MC_DB[0]:%u  MC_DB[1]:%u\n",
+                (unsigned)stats->mc_pd_sp[0],
+                (unsigned)stats->mc_pd_sp[1],
+                (unsigned)stats->mc_db_sp[0],
+                (unsigned)stats->mc_db_sp[1]);
+    }
+    first = 1;
+    for (i = 0; i < 16; ++i) {
+        skip = ((unsigned)stats->mc_pd_sp_tc[i] ||
+                (unsigned)stats->mc_db_sp_tc[i] ||
+                !is_non_zero) ? 0 : 1;
+        if (!skip && (global || all)) { /* if is_non_zero skip printing zero */
+            if (first) {
+                cli_out("Per SP per TC: number of MC SDs, MC size measured in 256B (DBs per replication)\nSP TC MC_PD MC_DB\n");
+                first = 0;
+            }
+            cli_out("%2u%2u: %5u %5u\n", i >> 3, i % 8,
+                    (unsigned)stats->mc_pd_sp_tc[i],
+                    (unsigned)stats->mc_db_sp_tc[i]);
+        }
+    }
+    if (!is_max) { /* supported only for current values and not for max values */
+        skip = ((unsigned)stats->mc_rsvd_pd_sp[0] ||
+                (unsigned)stats->mc_rsvd_pd_sp[1] ||
+                (unsigned)stats->mc_rsvd_db_sp[0] ||
+                (unsigned)stats->mc_rsvd_db_sp[1] ||
+                !is_non_zero) ? 0 : 1;
+        if (!skip && (global || all)) { /* if is_non_zero skip printing zero */
+            cli_out("Per service pool: number of reserved MC PDs/DBs\nMC_PD[0]:%u MC_PD[1]:%u  MC_DB[0]:%u  MC_DB[1]:%u\n",
+                    (unsigned)stats->mc_rsvd_pd_sp[0],
+                    (unsigned)stats->mc_rsvd_pd_sp[1],
+                    (unsigned)stats->mc_rsvd_db_sp[0],
+                    (unsigned)stats->mc_rsvd_db_sp[1]);
+        }
+    }
+}
+
+STATIC cmd_result_t
+dpp_diag_egr_congestion(int unit, args_t *a) {
+    int rc;
+    char      *option;
+    ARAD_EGR_CGM_CONGENSTION_STATS *stats = NULL;
+    unsigned char current = 1, max = 1, all = 1, non_zero = 1, global = 0; /* default options */
+    uint32 port, queue, interface;
+    int no_updates = 0;                 /* default option stop updates during mac value collection */
+    parse_table_t  pt;
+    cmd_result_t res = CMD_OK;
+    int core;
+    int def = -1;
+    port = def; queue = def; interface = def; /* default options = -1*/
+    parse_table_init(unit, &pt);
+    parse_table_add(&pt, "port", PQ_DFL | PQ_INT, &def, &port, NULL);
+    parse_table_add(&pt, "queue", PQ_DFL | PQ_INT, &def, &queue, NULL);
+    parse_table_add(&pt, "interface", PQ_DFL | PQ_INT, &def, &interface, NULL);
+    if (0 > parse_arg_eq(a, &pt)) {
+        return res;
+    }
+    option = ARG_GET(a);
+    while (NULL != option) {
+        if (!sal_strncasecmp(option, "?", strlen(option))) {
+            print_egr_congestion_usage();
+            return CMD_OK;
+        } else if (!sal_strncasecmp(option, "current", strlen(option))) {
+            current = 1; max = 0;
+        } else if (!sal_strncasecmp(option, "max", strlen(option))) {
+            current = 0; max = 1;
+        } else if (!sal_strncasecmp(option, "all", strlen(option))) {
+            current = 1; max = 1;
+        } else if (!sal_strncasecmp(option, "continuous", strlen(option))) {
+            no_updates = 1;
+        } else if (!sal_strncasecmp(option, "z", strlen(option))) {
+            non_zero = 0;
+        } else if (!sal_strncasecmp(option, "global", strlen(option))) {
+            global = 1; all = 0;
+        } else {
+            cli_out("argument \"%s\" not recognized\n", option);
+            res = CMD_USAGE;
+        }
+        option = ARG_GET(a);
+    }
+    all = (port == -1) && (queue == -1) && (interface == -1) && all ? 1 : 0; /* print all if no port, queue or interface where specified*/
+    if (!SOC_IS_ARAD(unit)) {
+        cli_out("egress congestion statistics not supported for this device\n");
+        res = CMD_NOTIMPL;
+    }
+    if (res == CMD_OK) {
+        stats = sal_alloc(sizeof(ARAD_EGR_CGM_CONGENSTION_STATS), "dpp_diag_egr_congestion.stats");
+        if (!stats) {
+            cli_out("Memory Allocation failue\n");
+            return CMD_FAIL;
+        }
+
+        SOC_DPP_CORES_ITER(SOC_CORE_ALL, core) {
+            cli_out("\nCore %d:\n", core);
+            cli_out("=======");
+            if (current) {
+
+                rc = soc_arad_get_congestion_statistics(unit, core, stats, 0, 0, 1);
+                if (SOC_FAILURE(rc)) {
+                    cli_out("\nFailed to get current statistics\n\n");
+                    res = CMD_FAIL;
+                } else {
+                    dpp_diag_print_egr_congestion_statistics(unit,
+                            stats,
+                            0,
+                            non_zero,
+                            port,
+                            queue,
+                            interface,
+                            global,
+                            all);
+                }
+            }
+
+            if (max) {
+                rc = soc_arad_get_congestion_statistics(unit, core, 0, stats, 0, no_updates);
+                if (SOC_FAILURE(rc)) {
+                    cli_out("\nFailed to get maximum statistics\n\n");
+                    res = CMD_FAIL;
+                } else {
+                    dpp_diag_print_egr_congestion_statistics(unit,
+                            stats,
+                            1,
+                            non_zero,
+                            port,
+                            queue,
+                            interface,
+                            global,
+                            all);
+                }
+            }
+        }
+        sal_free(stats);
+    }
+
+    return res;
+}
+
+STATIC cmd_result_t
+dpp_diag_reassembly_context(int unit, args_t *a) {
+    int rc;
+    uint32 port;
+    cmd_result_t res = CMD_OK;
+    uint32 reassembly_context = 0, port_termination_context = 0;
+    soc_pbmp_t valid_ports;
+
+    if (!SOC_IS_ARAD(unit)) {
+        cli_out("reassembly context not supported for this device\n");
+        res = CMD_NOTIMPL;
+    }
+    if (res == CMD_OK) {
+        rc = soc_port_sw_db_valid_ports_get(unit, 0, &valid_ports);
+        if (SOC_FAILURE(rc)) {
+            cli_out("\nsoc_port_sw_db_valid_ports_get failed\n\n");
+            return CMD_FAIL;
+        }
+
+        cli_out(" Port | Reassembly Context | Port Termination Context\n");
+        cli_out(" ----------------------------------------------------\n");
+        BCM_PBMP_ITER(valid_ports, port) {
+            rc = MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_port_ingr_reassembly_context_get, (unit, port, &port_termination_context, &reassembly_context));
+            if (SOC_FAILURE(rc)) {
+                cli_out("\nFailed to get reassembly context for port %d\n\n", port);
+                res = CMD_FAIL;
+                break;
+            }
+
+            if (!(port_termination_context == 0xffffffff || reassembly_context == 0xffffffff)) {
+                cli_out(" %3u  |         %3u        |          %3u\n", port, reassembly_context, port_termination_context);
+            }
+        }
+    }
+
+    return res;
+}
+
+STATIC cmd_result_t
+dpp_diag_egr_calendars(int unit, args_t *a) {
+    int rc;
+    uint32 port;
+    cmd_result_t res = CMD_OK;
+    soc_pbmp_t valid_ports;
+
+    bcm_gport_t gport;
+    int mode, weight;
+    char priority[5];
+
+    uint32 high_cal_id;
+
+    uint32 low_cal_id;
+
+    uint32 tm_port, egress_offset = 0;
+    int core;
+
+    soc_reg_above_64_val_t tbl_data;
+    uint32 e2e_offset;
+
+    bcm_cosq_gport_info_t gport_info;
+    bcm_gport_t           interface_gport;
+    uint32                min_rate, egq_port_rate, egq_interface_rate, flags;
+
+    uint32                e2e_port_rate, e2e_interface_rate;
+
+    soc_port_if_t   nif_type;
+
+    if (!SOC_IS_ARAD(unit)) {
+        cli_out("egress calendars not supported for this device\n");
+        res = CMD_NOTIMPL;
+    }
+    if (res == CMD_OK) {
+        rc = soc_port_sw_db_valid_ports_get(unit, 0, &valid_ports);
+        if (SOC_FAILURE(rc)) {
+            cli_out("\nsoc_port_sw_db_valid_ports_get failed\n\n");
+            return CMD_FAIL;
+        }
+
+        cli_out(" Port | Priority | High Calendar | Low Calendar | EGQ IF | E2E IF | EGQ Port Rate | EGQ IF Rate | E2E Port Rate | E2E IF Rate\n");
+        cli_out(" ----------------------------------------------------------------------------------------------------------------------------\n");
+        BCM_PBMP_ITER(valid_ports, port) {
+
+            rc = soc_port_sw_db_interface_type_get(unit, port, &nif_type);
+            if (SOC_FAILURE(rc)) {
+                 return CMD_FAIL;
+            }
+
+            if (nif_type == SOC_PORT_IF_ERP) {
+                continue;
+            }
+
+            /* Port priority */
+            BCM_GPORT_LOCAL_SET(gport, port);
+            rc = bcm_cosq_gport_sched_get(unit, gport, 0, &mode, &weight);
+            if (SOC_FAILURE(rc)) {
+                cli_out("\nFailed to get priority of port %d\n", port);
+                return CMD_FAIL;
+            }
+
+            if (BCM_COSQ_SP0 == mode) {
+                sal_strncpy(priority, "HIGH", sizeof(priority));
+            } else if (BCM_COSQ_SP1 == mode) {
+                sal_strncpy(priority, "LOW", sizeof(priority));
+            }
+
+            /* High calendar */
+            rc = soc_port_sw_db_high_priority_cal_get(unit, port, &high_cal_id);
+            if (SOC_FAILURE(rc)) {
+                cli_out("\nFailed to get high priority calendar of port %d\n", port);
+                return CMD_FAIL;
+            }
+
+            /* Low calendar */
+            rc = soc_port_sw_db_low_priority_cal_get(unit, port, &low_cal_id);
+            if (SOC_FAILURE(rc)) {
+                cli_out("\nFailed to get low priority calendar of port %d\n", port);
+                return CMD_FAIL;
+            }
+
+            /* Egress interface */
+            rc = soc_port_sw_db_local_to_tm_port_get(unit, port, &tm_port, &core);
+            if (SOC_FAILURE(rc)) {
+                cli_out("\nFailed to get egress interface of port %d\n", port);
+                return CMD_FAIL;
+            }
+
+            rc = MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_port2egress_offset, (unit, core, tm_port, &egress_offset));
+            if (SOC_FAILURE(rc)) {
+                cli_out("\nFailed to get egress interface of port %d\n", port);
+                return CMD_FAIL;
+            }
+
+            /* E2E interface */
+            SOC_REG_ABOVE_64_CLEAR(tbl_data);
+
+            rc = READ_SCH_FC_MAP_FCMm(unit, SCH_BLOCK(unit, core), egress_offset, &tbl_data);
+            if (SOC_FAILURE(rc)) {
+                cli_out("\nFailed to get e2e interface of port %d\n", port);
+                return CMD_FAIL;
+            }
+            e2e_offset = soc_SCH_FC_MAP_FCMm_field32_get(unit, &tbl_data, FC_MAP_FCMf);
+
+            /* EGQ rate */
+            gport_info.in_gport = port;
+            rc = bcm_cosq_gport_handle_get(unit, bcmCosqGportTypeLocalPort, &gport_info);
+            if (SOC_FAILURE(rc)) {
+                return CMD_FAIL;
+            }
+            rc = bcm_fabric_port_get(unit, gport_info.out_gport, 0, &interface_gport);
+            if (SOC_FAILURE(rc)) {
+                return CMD_FAIL;
+            }
+            rc = bcm_cosq_gport_bandwidth_get(unit, gport_info.out_gport, 0, &min_rate, &egq_port_rate, &flags);
+            if (SOC_FAILURE(rc)) {
+                cli_out("\nFailed to get egress port rate of port %d\n", port);
+                return CMD_FAIL;
+            }
+            rc = bcm_cosq_gport_bandwidth_get(unit, interface_gport, 0, &min_rate, &egq_interface_rate, &flags);
+            if (SOC_FAILURE(rc)) {
+                cli_out("\nFailed to get egress interface rate of port %d\n", port);
+                return CMD_FAIL;
+            }
+
+            /* E2E rate */
+            gport_info.in_gport = port;
+            rc = bcm_cosq_gport_handle_get(unit, bcmCosqGportTypeE2EPort, &gport_info);
+            if (SOC_FAILURE(rc)) {
+                return CMD_FAIL;
+            }
+            rc = bcm_fabric_port_get(unit, gport_info.out_gport, 0, &interface_gport);
+            if (SOC_FAILURE(rc)) {
+                return CMD_FAIL;
+            }
+            rc = bcm_cosq_gport_bandwidth_get(unit, gport_info.out_gport, 0, &min_rate, &e2e_port_rate, &flags);
+            if (SOC_FAILURE(rc)) {
+                cli_out("\nFailed to get e2e port rate of port %d\n", port);
+                return CMD_FAIL;
+            }
+            rc = bcm_cosq_gport_bandwidth_get(unit, interface_gport, 0, &min_rate, &e2e_interface_rate, &flags);
+            if (SOC_FAILURE(rc)) {
+                cli_out("\nFailed to get e2e interface rate of port %d\n", port);
+                return CMD_FAIL;
+            }
+
+            cli_out(" %3u  |   %4s   |       %3u     |      %3u     |  %3u   |  %3u   |   %9u   |  %9u  |   %9u   |  %9u  \n",
+                    port, priority, high_cal_id, low_cal_id, egress_offset, e2e_offset, egq_port_rate, egq_interface_rate, e2e_port_rate, e2e_interface_rate);
+        }
+    }
+
+    return res;
+}
+
+#if ARAD_DEBUG
+STATIC cmd_result_t
+dpp_diag_dump_signals(int unit, args_t *a) {
+   cmd_result_t res = CMD_OK;
+   char* option;
+   if (!SOC_IS_ARAD(unit)) {
+      cli_out("egress congestion statistics not supported for this device\n");
+      res = CMD_NOTIMPL;
+   }
+   option = ARG_GET(a);
+
+   if (option && (!sal_strncasecmp(option,"parse",strlen(option)))) {
+       res = cmd_dpp_diag_parsed_signals_get(unit, ARG_GET(a));
+   } else if (res == CMD_OK) {
+      res = arad_diag_signals_dump(unit, 0);
+      if (SOC_FAILURE(res)) {
+         cli_out("\nFailed to getcosq flow and up statistics\n\n");
+         res = CMD_FAIL;
+      }
+   }
+
+   return res;
+}
+#endif
+
+STATIC void
+dpp_diag_print_ing_congestion_statistics(SOC_TMC_ITM_CGM_CONGENSTION_STATS *stats) {
+
+   cli_out("\nIngress congestion statistics: \n\n");
+
+   cli_out("Free BDBs: %d\n", stats->bdb_free);
+   cli_out("Occupied BDs: %d\n", stats->bd_occupied);
+   cli_out("Free BDs: %d\n", stats->bd2_free);
+   
+   cli_out("Occupied Unicast Type Dbuffs: %d\n", stats->db_uni_occupied);
+   cli_out("Free Unicast Type Dbuffs: %d\n", stats->db_uni_free);
+   cli_out("Free Full-Multicast Type Dbuffs: %d\n", stats->db_full_mul_free);
+   cli_out("Free Mini-Multicast Type Dbuffs: %d\n", stats->db_mini_mul_free);
+
+   cli_out("Free BDBs minumum occupancy indication: %d\n", stats->free_bdb_mini_occu);
+   cli_out("Free Unicast Type Dbuffs minimal occupancy level: %d\n", stats->free_db_uni_mini_occu);
+   cli_out("Free Full-Multicast Type Dbuffs minimal occupancy level: %d\n", stats->free_bdb_full_mul_mini_occu);
+   cli_out("Free Mini-Multicast Type Dbuffs minimal occupancy level: %d\n", stats->free_bdb_mini_mul_mini_occu);
+
+}
+
+
+STATIC cmd_result_t
+dpp_diag_ing_congestion(int unit, args_t *a) {
+   uint32 ret = 0;
+   SOC_TMC_ITM_CGM_CONGENSTION_STATS stats;
+
+   cmd_result_t res = CMD_OK;
+
+   unit = (unit);
+   ret = arad_itm_congestion_statistics_get(unit, &stats);
+   if (soc_sand_get_error_code_from_error_word(ret) != SOC_SAND_OK) {
+      cli_out("\nFailed to get current statistics\n\n");
+      res = CMD_FAIL;
+   } else {
+      dpp_diag_print_ing_congestion_statistics(&stats);
+   }
+
+   return res;
+}
+
+#endif /* BCM_ARAD_SUPPORT */
+
+#ifdef BCM_DPP_SUPPORT
+
+    STATIC cmd_result_t
+dpp_diag_last_packet_info(int unit, args_t *a) {
+   uint32 res = CMD_OK;
+   unsigned i;
+   SOC_TMC_DIAG_LAST_PACKET_INFO info;
+
+   if (!SOC_IS_DPP(unit)) {
+      cli_out("last packet information not supported for this device\n");
+      return CMD_NOTIMPL;
+   }
+
+   res = MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_diag_last_packet_info_get, (unit, &info));
+   if (soc_sand_get_error_code_from_error_word(res) != SOC_SAND_OK) {
+      cli_out("\nFailed to get the last packet information\n\n");
+      return CMD_FAIL;
+   }
+
+   /* print the retrieved information */
+/*
+ * COVERITY
+ *
+ * The variable info is assigned inside MBCM_DPP_DRIVER_CALL.
+ */
+/* coverity[uninit_use_in_call] */
+   cli_out("Last packet information: is_valid=%u  tm_port=%u\npp_port=%lu  src_syst_port=%lu  port_header_type=%s packet_size=%d\n",
+           (unsigned)info.is_valid, (unsigned)info.tm_port, (unsigned long)info.pp_port,
+           (unsigned long)info.src_syst_port, SOC_TMC_PORT_HEADER_TYPE_to_string(info.port_header_type), info.packet_size);
+   cli_out("Packet start, offset in bytes:");
+   for (i = 0; i < SOC_TMC_DIAG_LAST_PCKT_SNAPSHOT_LEN_BYTES_MAX; ++i) {
+      if (!(i % 4)) { /* every 4th byte */
+         if (!(i % 32)) { /* every 32nd byte */
+            cli_out("\n%.2x: ", i);
+         } else {
+            cli_out(" ");
+         }
+      }
+      cli_out("%2.2x", info.buffer[i]);
+   }
+   cli_out("\n");
+
+   return CMD_OK;
+}
+
+/*************************************** 
+* Writes last packet information 
+* to info parameter
+***************************************/
+    cmd_result_t
+dpp_diag_last_packet_info_get(int unit, SOC_TMC_DIAG_LAST_PACKET_INFO *info) {
+   uint32 res = CMD_OK;
+   
+   if (!SOC_IS_DPP(unit)) {
+      cli_out("last packet information not supported for this device\n");
+      return CMD_NOTIMPL;
+   }
+
+   /*The variable info is assigned inside MBCM_DPP_DRIVER_CALL*/
+   res = MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_diag_last_packet_info_get, (unit, info));
+   if (soc_sand_get_error_code_from_error_word(res) != SOC_SAND_OK) {
+      cli_out("\nFailed to get the last packet information\n\n");
+      return CMD_FAIL;
+   }
+
+   return CMD_OK;
+}
+
+
+typedef struct iqm_most_congested_queue_s {
+   uint32 queue_id;
+   uint32 size;
+} iqm_most_congested_queue_t;
+
+STATIC
+void iqm_add_to_most_congested_array(iqm_most_congested_queue_t *arr, int length, uint32 queue_id, uint32 current_queue_size) {
+   int i;
+   int arr_index_of_min = 0;
+   uint32 value_of_min = arr->size;
+   for (i = 0; i < length; i++) {
+      if ((arr + i)->size < value_of_min) {
+         arr_index_of_min = i;
+         value_of_min = (arr + i)->size;
+      }
+   }
+   if (value_of_min < current_queue_size) {
+      (arr + arr_index_of_min)->queue_id = queue_id;
+      (arr + arr_index_of_min)->size = current_queue_size;
+   }
+}
+
+STATIC
+void iqm_most_congested_array_init(iqm_most_congested_queue_t *arr, int length) {
+   int i;
+   for (i = 0; i < length; i++) {
+      (arr + i)->queue_id = 0;
+      (arr + i)->size = 0;
+   }
+}
+
+#define NUM_OF_QUEUES_PER_ITERATION 1024
+
+STATIC cmd_result_t
+dpp_diag_voq_non_empty_print(int unit, int core, uint32 specific_queue,uint32 is_flow_also,uint32 num_most_congested,uint32 poll_nof_times,uint32 poll_delay) {
+    uint32 i=0,j=0,k=0;
+    soc_error_t rc;
+    cmd_result_t result;
+    uint32 nof_queues_filled=0,next_queue=0,reached_end=0,queue_to_read_from=0;
+    int total_printed;
+    soc_ips_queue_info_t* queues;
+    iqm_most_congested_queue_t* most_congested_arr = NULL;
+
+    /*alloc memory for queues and most congested*/
+    queues=(soc_ips_queue_info_t*)sal_alloc(NUM_OF_QUEUES_PER_ITERATION*sizeof(soc_ips_queue_info_t), "Non empty queues");
+    if(queues == NULL) {
+        cli_out("\nFailed to alloc memory for non empty queues");
+        return CMD_FAIL;
+    }
+    if (num_most_congested)
+    {
+        most_congested_arr=(iqm_most_congested_queue_t*)sal_alloc(num_most_congested*sizeof(iqm_most_congested_queue_t), "Most congested");
+        if(most_congested_arr == NULL) {
+            sal_free(queues);
+            cli_out("\nFailed to alloc memory for most congested queues");
+            return CMD_FAIL;
+        }
+        /*initialize array*/
+        iqm_most_congested_array_init(most_congested_arr,num_most_congested);
+    }
+     
+    for (j=0;j<poll_nof_times;j++)
+    {
+        if (j>0) {                                  /*first iteration won't sleep*/
+            sal_msleep(poll_delay);
+        }
+
+        queue_to_read_from = 0;                       /*reading from the queues from beginning*/
+        reached_end = 0; 
+        total_printed = 0;       
+        
+        if(specific_queue != SAL_UINT32_MAX) {
+           queue_to_read_from = specific_queue;             
+        }
+
+        while(!reached_end)
+        {
+        
+            /*Get queues information*/
+            rc = soc_dpp_cosq_non_empty_queues_info_get(
+                   unit,
+                   queue_to_read_from,
+                   NUM_OF_QUEUES_PER_ITERATION,
+                   queues,
+                   &nof_queues_filled,
+                   &next_queue,
+                   &reached_end);
+            if (SOC_FAILURE(rc)) {
+                sal_free(queues);
+                if (most_congested_arr != NULL)
+                {
+                    sal_free(most_congested_arr);
+                }
+                cli_out("\nsoc_dpp_cosq_non_empty_queues_print failed!");
+                return CMD_FAIL;
+            }
+
+            queue_to_read_from=next_queue;                  /* next queue to read from */
+
+            /*print queues*/
+            for (i=0;i<nof_queues_filled;i++)
+            {
+                if(specific_queue != SAL_UINT32_MAX) {
+                    if(specific_queue == queues[i].queue_id ) {
+                        cli_out("VOQ %d holds %dB.\n", queues[i].queue_id, queues[i].queue_byte_size);
+                    }
+                    break; /*specific queue can apear only in slot 0*/
+                } else if (!num_most_congested) { /* printing the queues*/ 
+                      if(total_printed == 0) {                      /* printing headline before queues*/
+                          cli_out("Ingress VOQs Sizes (format: [queue_id(queue_size)]):");   
+                      }
+
+                      if(total_printed%4==0) {
+                          cli_out("\n");
+                      }
+
+                      cli_out("[%d(%dB)]\t", queues[i].queue_id, queues[i].queue_byte_size);
+                      total_printed++;
+
+                } else {
+                      iqm_add_to_most_congested_array(most_congested_arr, num_most_congested, queues[i].queue_id, queues[i].queue_byte_size); /* calculating most congested queues*/
+                }
+            }
+        
+        }
+
+        if (total_printed) { 
+            cli_out("\n");
+        }
+
+        /*print most congested*/
+        total_printed = 0;
+        for (k = 0; k < num_most_congested; k++) { /*printing the most congested queues*/
+            if (most_congested_arr[k].size != 0) {
+                if (total_printed==0) {
+                    cli_out("Ingress VOQs Sizes (format: [queue_id(queue_size)]):");
+                }
+                if (total_printed % 4 == 0) {
+                    cli_out("\n");
+                }
+                cli_out("[%d(%dB)]\t", most_congested_arr[k].queue_id, most_congested_arr[k].size);
+                total_printed++;
+            }
+        }
+
+        if (total_printed) { 
+            cli_out("\n");
+        }
+
+        /*print flow and up*/
+        if(is_flow_also && nof_queues_filled > 0) {
+            if (queues[nof_queues_filled-1].got_flow_info) {
+              cli_out("Queue ID %d is connected to Flow ID %d.   \n\r"
+                      " Following, Flow status flow level and up:\n\r"
+                      "------------------------------------------\n\r",
+                      queues[nof_queues_filled-1].queue_id, queues[nof_queues_filled-1].target_flow_id
+                      );
+
+              result = dpp_diag_cosq_flow_and_up_print(
+                 unit,
+                 core,
+                 TRUE,
+                 queues[nof_queues_filled-1].target_flow_id,
+                 FALSE,
+                 FALSE
+                 );
+              if (result != CMD_OK)
+              {
+                  sal_free(queues);
+                  if (most_congested_arr != NULL)
+                  {
+                      sal_free(most_congested_arr);
+                  }
+                  return result;
+              }
+            }
+        }
+        
+    }
+
+    sal_free(queues);
+    if (most_congested_arr != NULL)
+    {
+        sal_free(most_congested_arr);
+    }
+
+    return CMD_OK;
+}
+
+void
+  diag_dpp_voq_credit_request_class_print(
+    int mode
+  )
+{
+   cli_out("Credit request type: ");
+   switch(mode)
+   {
+      case BCM_COSQ_DELAY_TOLERANCE_NORMAL:
+         cli_out("BCM_COSQ_DELAY_TOLERANCE_NORMAL Delay tolerance is normal\n");
+         break;
+      case BCM_COSQ_DELAY_TOLERANCE_LOW_DELAY:
+         cli_out("BCM_COSQ_DELAY_TOLERANCE_LOW_DELAY Delay tolerance is low delay\n");
+         break;
+      case BCM_COSQ_DELAY_TOLERANCE_02:
+      case BCM_COSQ_DELAY_TOLERANCE_03:
+      case BCM_COSQ_DELAY_TOLERANCE_04:        
+      case BCM_COSQ_DELAY_TOLERANCE_05:
+      case BCM_COSQ_DELAY_TOLERANCE_06:
+      case BCM_COSQ_DELAY_TOLERANCE_07:
+      case BCM_COSQ_DELAY_TOLERANCE_08:
+      case BCM_COSQ_DELAY_TOLERANCE_09:
+      case BCM_COSQ_DELAY_TOLERANCE_10:
+      case BCM_COSQ_DELAY_TOLERANCE_11:
+      case BCM_COSQ_DELAY_TOLERANCE_12:
+      case BCM_COSQ_DELAY_TOLERANCE_13:        
+      case BCM_COSQ_DELAY_TOLERANCE_14:
+      case BCM_COSQ_DELAY_TOLERANCE_15:
+         cli_out("BCM_COSQ_DELAY_TOLERANCE_(%.2d) Flexible delay tolerance level\n", mode - BCM_COSQ_DELAY_TOLERANCE_NORMAL);
+         break;        
+      case BCM_COSQ_DELAY_TOLERANCE_10G_SLOW_ENABLED:
+         cli_out("BCM_COSQ_DELAY_TOLERANCE_10G_SLOW_ENABLED Adjusted for slow enabled 10Gb ports\n");
+         break;
+      case BCM_COSQ_DELAY_TOLERANCE_10G_LOW_DELAY:
+         cli_out("BCM_COSQ_DELAY_TOLERANCE_10G_LOW_DELAY Adjusted for low delay 10Gb ports\n");
+         break;
+      case BCM_COSQ_DELAY_TOLERANCE_1G:
+         cli_out("BCM_COSQ_DELAY_TOLERANCE_1G Adjusted for 1Gb ports\n");
+         break;
+      case BCM_COSQ_DELAY_TOLERANCE_40G_SLOW_ENABLED:
+         cli_out("BCM_COSQ_DELAY_TOLERANCE_40G_SLOW_ENABLED Adjusted for slow enabled 40Gb ports\n");
+         break;
+      case BCM_COSQ_DELAY_TOLERANCE_40G_LOW_DELAY:
+         cli_out("BCM_COSQ_DELAY_TOLERANCE_40G_LOW_DELAY Adjusted for low delay 40Gb ports\n");
+         break;
+      case BCM_COSQ_DELAY_TOLERANCE_100G_SLOW_ENABLED:
+         cli_out("BCM_COSQ_DELAY_TOLERANCE_100G_SLOW_ENABLED Adjusted for slow enabled 100Gb ports\n");
+         break;
+      case BCM_COSQ_DELAY_TOLERANCE_100G_LOW_DELAY:
+         cli_out("BCM_COSQ_DELAY_TOLERANCE_100G_LOW_DELAY Adjusted for low delay 100Gb ports\n");
+         break;
+      case BCM_COSQ_DELAY_TOLERANCE_200G_SLOW_ENABLED:
+         cli_out("BCM_COSQ_DELAY_TOLERANCE_200G_SLOW_ENABLED Adjusted for slow enabled 200Gb ports\n");
+         break;
+      case BCM_COSQ_DELAY_TOLERANCE_200G_LOW_DELAY:
+         cli_out("BCM_COSQ_DELAY_TOLERANCE_200G_LOW_DELAY Adjusted for low delay 200Gb ports\n");
+         break;
+      case BCM_COSQ_DELAY_TOLERANCE_SET_COMMON_STATUS_MSG:
+         cli_out("BCM_COSQ_DELAY_TOLERANCE_SET_COMMON_STATUS_MSG common status message mode\n");
+         break;
+      default:
+         cli_out("Unknown delay tolerance\n\r");
+         break;
+   }
+}
+
+void
+  diag_dpp_voq_credit_request_threshold_print(
+    int unit, 
+    bcm_cosq_delay_tolerance_t *dt
+  )
+{
+    int slow_level;
+   /* 2.b Credit watchdog message time,
+               Delete time 
+               Credit-Balance-Thresholds,
+               Empty-Queue-Credit-Balance-Thresholds,
+               Queue-Size-Thresholds */
+                    
+   cli_out("\tCredit watchdog message time: %d\n", dt->credit_request_watchdog_status_msg_gen);
+   cli_out("\tDelete queue time: %d\n", dt->credit_request_watchdog_delete_queue_thresh);
+    
+   cli_out("\tBackoff enter queue credit balance threshold: %d\n", dt->credit_request_satisfied_backoff_enter_thresh);
+   cli_out("\tBackoff exit queue credit balance threshold: %d\n", dt->credit_request_satisfied_backoff_exit_thresh);
+   cli_out("\tBacklog enter queue credit balance threshold: %d\n", dt->credit_request_satisfied_backlog_enter_thresh);
+   cli_out("\tBacklog exit queue credit balance threshold: %d\n", dt->credit_request_satisfied_backlog_enter_thresh);
+    
+   cli_out("\tEmpty queue satisfied credit balance threshold: %d\n", dt->credit_request_satisfied_empty_queue_thresh);   
+   cli_out("\tMax empty queue credit balance threshold: %d\n", dt->credit_request_satisfied_empty_queue_max_balance_thresh);     
+   cli_out("\tExceed max empty queue credit balance threshold: %d\n", dt->credit_request_satisfied_empty_queue_exceed_thresh);   
+    
+   cli_out("\tOff-To-Slow credit balance threshold: %d\n", dt->credit_request_hungry_off_to_slow_thresh);    
+   cli_out("\tOff-To-Normal credit balance threshold: %d\n", dt->credit_request_hungry_off_to_normal_thresh);    
+   cli_out("\tSlow-To-Normal credit balance threshold: %d\n", dt->credit_request_hungry_slow_to_normal_thresh);      
+   cli_out("\tNormal-To-Slow credit balance threshold: %d\n", dt->credit_request_hungry_normal_to_slow_thresh);
+
+   if (SOC_IS_JERICHO(unit)) {
+
+        if (dt->flags && BCM_COSQ_DELAY_TOLERANCE_TOLERANCE_OCB_ONLY == BCM_COSQ_DELAY_TOLERANCE_TOLERANCE_OCB_ONLY)
+            cli_out("\tDelay Tolerance is OCB only\n");
+        else
+            cli_out("\tDelay Tolerance is NOT OCB only\n");
+        if (dt->flags && BCM_COSQ_DELAY_TOLERANCE_HIGH_Q_PRIORITY == BCM_COSQ_DELAY_TOLERANCE_HIGH_Q_PRIORITY)
+            cli_out("\tDelay Tolerance is High Q Priority\n");
+        else
+            cli_out("\tDelay Tolerance is NOT High Q Priority\n");
+        for (slow_level = 0; slow_level < BCM_COSQ_DELAY_TOLERANCE_SLOW_LEVELS; slow_level++) {
+            cli_out("\tSlow Level Thresh Down in slow level number: %d is: %d\n",slow_level ,dt->slow_level_thresh_down[slow_level]);
+        }
+        for (slow_level = 0; slow_level < BCM_COSQ_DELAY_TOLERANCE_SLOW_LEVELS; slow_level++) {
+            cli_out("\tSlow Level Thresh Up in slow level number: %d is: %d\n",slow_level ,dt->slow_level_thresh_up[slow_level]);
+        }
+    }
+}
+
+void
+  diag_dpp_voq_admission_test_print(
+    int admission_test
+  )
+{
+    if (admission_test & BCM_COSQ_CONTROL_ADMISSION_CT)
+       cli_out("'category' ");
+    if (admission_test & BCM_COSQ_CONTROL_ADMISSION_CTTC)
+       cli_out("'category, traffic class' ");
+    if (admission_test & BCM_COSQ_CONTROL_ADMISSION_CTCC)
+       cli_out("'category, connection class' ");
+    if (admission_test & BCM_COSQ_CONTROL_ADMISSION_ST)
+       cli_out("'statistics tag' ");  
+}
+
+
+STATIC cmd_result_t
+dpp_diag_voq_details(int unit, int core_id, int voq_id)
+{
+   cmd_result_t                 res = CMD_OK;
+   soc_error_t rc;
+   bcm_error_t rv;
+   
+   
+   int isisq = 0;
+   char voqtype_str[10];
+   SOC_TMC_ITM_QUEUE_INFO q_info;
+   int voq_category;
+   int queue_range_start;
+   int pri_profile_id, pri_count, voq_priority = -1;
+   bcm_cosq_gport_priority_profile_t pri_profile;   
+   SOC_TMC_IPQ_QUARTET_MAP_INFO queue_map_info;
+   bcm_gport_t base_gport = BCM_GPORT_INVALID, phy_port = BCM_GPORT_INVALID;
+   int num_cos = 0, i, base_queue, queue_index;
+   int ispushqueue = 0;
+   int mode, weight;
+   int local_credit_worth, remote_credit_worth;
+   bcm_cosq_delay_tolerance_t dt;
+   int watchdogqueuemin, watchdogqueuemax, watchdogmode, isinwatchdogrange = 0;
+   int creditdiscount = 0;
+   bcm_cosq_gport_discard_t wred[DPP_DEVICE_COSQ_ING_NOF_DP];
+   uint32 color_flags[4] = {BCM_COSQ_DISCARD_COLOR_GREEN, BCM_COSQ_DISCARD_COLOR_YELLOW, BCM_COSQ_DISCARD_COLOR_RED, BCM_COSQ_DISCARD_COLOR_BLACK};
+   bcm_color_t colors[4] = {bcmColorGreen, bcmColorYellow, bcmColorRed, bcmColorBlack};
+   char * colors_str[4] = {"Green ", "Yellow", "Red   ", "Black "};
+   bcm_cosq_gport_size_t size_bytes[DPP_DEVICE_COSQ_ING_NOF_DP], size_bds[DPP_DEVICE_COSQ_ING_NOF_DP];
+   int isfatdenable = 0, alpha[DPP_DEVICE_COSQ_ING_NOF_DP] = {0};
+   bcm_cosq_gport_discard_t ecn_config_bds, ecn_config_bytes;
+   int signature;
+   SOC_TMC_ITM_ADMIT_TSTS test_tmplt[DPP_DEVICE_COSQ_ING_NOF_DP] = {0};
+   int admission_test_a, admission_test_b;
+   SOC_TMC_ITM_QUEUE_DYN_INFO q_dyn_info;
+   uint32 cosq_flags;
+   int voq_connector = -1;
+   bcm_cosq_threshold_t threshold;
+   int is_ocb_eligibility = 0;
+   bcm_cosq_gport_connection_t gport_connect;
+
+
+
+   
+   unit = (unit);
+
+   if (core_id != BCM_CORE_ALL && (core_id < 0 || core_id >= SOC_DPP_CONFIG(unit)->core_mode.nof_active_cores)) {
+      cli_out("\ncore id (%d) is not in valid range!\n", core_id);
+      return CMD_FAIL;
+   }
+   /* 1.a Get Q type(FMQ/VOQ/ISQ) */
+   /* 1.b. Base queue info*/
+   for (i = 0; i < 8; i++) {
+      base_queue = voq_id - i;
+      if (base_queue < 0) break;
+      if ((base_queue % 4) != 0) continue;
+
+      BCM_GPORT_UNICAST_QUEUE_GROUP_CORE_QUEUE_SET(base_gport, core_id, base_queue);
+
+      rv = bcm_cosq_gport_get(unit, base_gport, &phy_port, &num_cos, &cosq_flags);
+      if (num_cos > 0) {
+         sal_sprintf(voqtype_str, "%s", "voq");
+         break;
+      }
+      
+      BCM_GPORT_MCAST_QUEUE_GROUP_SET(base_gport, base_queue);
+      rv = bcm_cosq_gport_get(unit, base_gport, &phy_port, &num_cos, &cosq_flags);
+      if (num_cos > 0) {
+         sal_sprintf(voqtype_str, "%s", "fmq");
+         break;
+      }
+      
+      BCM_COSQ_GPORT_ISQ_SET(base_gport, base_queue);
+      rv = bcm_cosq_gport_get(unit, base_gport, &phy_port, &num_cos, &cosq_flags);
+      if (num_cos > 0) {
+         isisq = 1;
+         sal_sprintf(voqtype_str, "%s", "isq");
+         break;
+      }      
+   }  
+
+   if ((num_cos <= 0) || ((base_queue + num_cos - 1) < voq_id)) {
+      cli_out("\nGet base queue failed!");
+      return CMD_FAIL;
+   }
+   
+   queue_index = voq_id - base_queue;
+
+  
+   /* 2.0 Get Credit Request Type
+               Get Credit discount Class
+               Get Rate Class
+               Get Traffic Class
+               Get Connection Class 
+               Get Credit Request Class */
+   rc = soc_dpp_cosq_ingress_queue_info_get(unit, voq_id, &q_info);
+   if (SOC_FAILURE(rc)) {
+      cli_out("\nsoc_dpp_cosq_ingress_queue_info_get failed(%d)!", rc);
+      return CMD_FAIL;
+   }
+
+   if ((rv = bcm_cosq_gport_sched_get(unit, base_gport, queue_index, &mode, &weight)) != BCM_E_NONE) {
+      cli_out("\nFailed(%d) to get default credit rate template base_gport(0x%8.8x) queue_index(%d)\n", rc, base_gport, queue_index);
+      return CMD_FAIL;
+   }
+
+   ispushqueue = (mode == BCM_COSQ_DELAY_TOLERANCE_15 ) ? 1 : 0;
+
+   /* 2.a Credit watchdog message time,
+               delete time,
+               the device's credit watchdog mode,
+               is the queue in the credit watchdog queue range, 
+               is credit watchdog active */
+   if (!ispushqueue) {
+       if ((rv = bcm_fabric_control_get(unit, bcmFabricWatchdogQueueMin, &watchdogqueuemin)) != BCM_E_NONE) {
+          cli_out("\nbcm_fabric_control_get type(bcmFabricWatchdogQueueMin) failed(%d)!", rv);
+          return CMD_FAIL;
+       }
+       if ((rv = bcm_fabric_control_get(unit, bcmFabricWatchdogQueueMax, &watchdogqueuemax)) != BCM_E_NONE) {
+          cli_out("\nbcm_fabric_control_get type(bcmFabricWatchdogQueueMax) failed(%d)!", rv);
+          return CMD_FAIL;
+       }
+       if ((rv = bcm_fabric_control_get(unit, bcmFabricWatchdogQueueEnable, &watchdogmode)) != BCM_E_NONE) {
+          cli_out("\nbcm_fabric_control_get type(bcmFabricWatchdogQueueEnable) failed(%d)!", rv);
+          return CMD_FAIL;
+       }
+       if (voq_id >= watchdogqueuemin && voq_id <= watchdogqueuemax) 
+          isinwatchdogrange = 1;
+       else
+          isinwatchdogrange = 0;
+    
+      if ((watchdogmode == BCM_FABRIC_WATCHDOG_QUEUE_ENABLE_COMMON_STATUS_MESSAGE) && isinwatchdogrange){
+         if ((rv = bcm_cosq_delay_tolerance_level_get(unit, BCM_COSQ_DELAY_TOLERANCE_SET_COMMON_STATUS_MSG, &dt)) != BCM_E_NONE) {
+            cli_out("\nFailed(%d) to get delay tolerance\n", rc);
+            return CMD_FAIL;
+         }
+      }
+      else {
+          if ((rv = bcm_cosq_delay_tolerance_level_get(unit, mode, &dt)) != BCM_E_NONE) {
+             cli_out("\nFailed(%d) to get delay tolerance\n", rc);
+             return CMD_FAIL;
+          }
+      }        
+
+      /* 2.b Credit-Balance-Thresholds,
+                    Empty-Queue-Credit-Balance-Thresholds,
+                    Queue-Size-Thresholds */
+      /* Get from dt */
+
+
+      /* 2.c The credit value(Arad plus and above) */
+      if (SOC_IS_ARADPLUS(unit) || SOC_IS_JERICHO(unit)) {
+         if ((rv = bcm_fabric_control_get(unit, bcmFabricCreditSize, &local_credit_worth)) != BCM_E_NONE) {
+            cli_out("\nbcm_fabric_control_get type(bcmFabricCreditSize) failed(%d)!", rv);
+            return CMD_FAIL;
+         }
+      
+         if ((rv = bcm_fabric_control_get(unit, bcmFabricCreditSizeRemoteDefault, &remote_credit_worth)) != BCM_E_NONE) {
+            cli_out("\nbcm_fabric_control_get type(bcmFabricCreditSizeRemoteDefault) failed(%d)!", rv);
+            return CMD_FAIL;
+         }
+      }
+   }
+
+   
+   /* 3. Credit discount class */
+   if (!isisq) {
+      if ((rv = bcm_cosq_control_get(unit, base_gport, queue_index, bcmCosqControlPacketLengthAdjust, &creditdiscount)) != BCM_E_NONE) {
+         cli_out("\nbcm_cosq_control_get(bcmCosqControlPacketLengthAdjust) base_gport(0x%8.8x) queue_index(%d) failed(%d)!", base_gport, queue_index, rv);
+         return CMD_FAIL;
+      }   
+
+      /* 4. Rate class */
+      /* 4.a Get WRED per DP queue size */
+      for (i = 0; i < DPP_DEVICE_COSQ_ING_NOF_DP; i++) {
+         bcm_cosq_gport_discard_t_init(&wred[i]);
+         wred[i].flags = BCM_COSQ_DISCARD_BYTES | color_flags[i];
+
+         if ((rv = bcm_cosq_gport_discard_get(unit, base_gport, queue_index, &wred[i])) != BCM_E_NONE) {
+            cli_out("\nbcm_cosq_gport_discard_get base_gport(0x%8.8x) queue_index(%d) dp(%d) failed(%d)!", 
+                    base_gport, queue_index, i, rv);
+            return CMD_FAIL;
+         }
+      }
+   }
+
+   /* 4.b Get tail drop per DP */
+   /* 4.c Get guaranteed BDs  */
+   for (i = 0; i < DPP_DEVICE_COSQ_ING_NOF_DP; i++) {
+      if ((rv =  bcm_cosq_gport_color_size_get(unit, base_gport, queue_index, colors[i], BCM_COSQ_GPORT_SIZE_BYTES, &size_bytes[i])) != BCM_E_NONE) {
+         cli_out("\nbcm_cosq_gport_color_size_get(BCM_COSQ_GPORT_SIZE_BYTES) base_gport(0x%8.8x) queue_index(%d) colors(%d) failed(%d)!", 
+                 base_gport, queue_index, colors[i], rv);
+         return CMD_FAIL;
+      }
+
+      if ((rv =  bcm_cosq_gport_color_size_get(unit, base_gport, queue_index, colors[i], BCM_COSQ_GPORT_SIZE_BUFFER_DESC, &size_bds[i])) != BCM_E_NONE) {
+         cli_out("\nbcm_cosq_gport_color_size_get(BCM_COSQ_GPORT_SIZE_BUFFER_DESC) base_gport(0x%8.8x) queue_index(%d) colors(%d) failed(%d)!", 
+                 base_gport, queue_index, colors[i], rv);
+         return CMD_FAIL;
+      }
+   }   
+   
+   /* 4.d Get fair adaptive tail drop alpha value per DP(Arad plus and above) 
+               Is the fair adaptive tail drop mechanism enabled/disabled for the device */
+   if (SOC_IS_ARADPLUS(unit)) {
+      if ((rv =  bcm_cosq_control_get(unit, 0, 0, bcmCosqControlDropLimitAlpha, &isfatdenable)) != BCM_E_NONE) {
+         cli_out("\nbcm_cosq_control_get(bcmCosqControlDropLimitAlpha) failed(%d)!", rv);
+         return CMD_FAIL;
+      }
+      
+      for (i = 0; i < DPP_DEVICE_COSQ_ING_NOF_DP; i++) {
+         rc = soc_dpp_cosq_ingress_alpha_get(unit, q_info.rate_cls, i, &alpha[i]);
+         if (SOC_FAILURE(rc)) {
+            cli_out("\nsoc_dpp_cosq_ingress_queue_info_get failed(%d)!", rc);
+            return CMD_FAIL;
+         }   
+      }
+   }
+
+   /* 4.e Get ECN WRED queue size */
+   /* 4.f  Get ECN max queue sizes */
+   if (!isisq && !SOC_DPP_CONFIG(unit)->tm.is_petrab_in_system && !SOC_IS_ARAD_A0(unit)) {
+      bcm_cosq_gport_discard_t_init(&ecn_config_bds);
+      ecn_config_bds.flags = BCM_COSQ_DISCARD_MARK_CONGESTION | BCM_COSQ_DISCARD_BUFFER_DESC /* queue size in BDs */; 
+      if ((rv = bcm_cosq_gport_discard_get(unit, base_gport, queue_index, &ecn_config_bds)) != BCM_E_NONE) {
+         cli_out("\nbcm_cosq_gport_discard_get(BCM_COSQ_DISCARD_MARK_CONGESTION) base_gport(0x%8.8x) queue_index(%d) failed(%d)!", base_gport, queue_index, rv);
+         return CMD_FAIL;
+      }
+
+      bcm_cosq_gport_discard_t_init(&ecn_config_bytes);
+      ecn_config_bytes.flags = BCM_COSQ_DISCARD_MARK_CONGESTION | BCM_COSQ_DISCARD_BYTES    /* queue size in Bytes */; 
+      if ((rv = bcm_cosq_gport_discard_get(unit, base_gport, queue_index, &ecn_config_bytes)) != BCM_E_NONE) {
+         cli_out("\nbcm_cosq_gport_discard_get(BCM_COSQ_DISCARD_MARK_CONGESTION) base_gport(0x%8.8x) queue_index(%d) failed(%d)!", base_gport, queue_index, rv);
+         return CMD_FAIL;
+      }
+   }
+   
+   /* 5.a Get Priority */
+   if (!SOC_IS_JERICHO(unit)) {
+       queue_range_start = (voq_id/64)*64;
+       if ((rv = bcm_cosq_priority_get(unit, queue_range_start, queue_range_start+63, &pri_profile_id)) != BCM_E_NONE) {
+          cli_out("\nbcm_cosq_priority_get failed(%d)!", rv);
+          return CMD_FAIL;
+       }
+
+       if ((rv = bcm_cosq_priority_profile_get(unit, pri_profile_id, &pri_count, &pri_profile)) != BCM_E_NONE) {
+          cli_out("\nbcm_cosq_priority_profile_get failed(%d)!", rv);
+          return CMD_FAIL;
+       }
+
+       voq_priority = BCM_COSQ_PRI_PROFILE_GET(pri_profile, voq_id%64);
+   }
+
+   /* 5.b Queue signature */
+   if (!isisq) {
+      if ((rv = bcm_cosq_control_get(unit, base_gport, queue_index, bcmCosqControlHeaderUpdateField, &signature)) != BCM_E_NONE) {
+         cli_out("\nbcm_cosq_control_get(bcmCosqControlHeaderUpdateField) base_gport(0x%8.8x) queue_index(%d) failed(%d)!", base_gport, queue_index, rv);
+         return CMD_FAIL;
+      }
+   }
+
+   /* 6. Get Information used to associate the queue with a VSQ */
+   /* 6.a Get Category class */
+   rc = soc_dpp_cosq_ingress_queue_category_get(unit, voq_id, &voq_category);
+   if (SOC_FAILURE(rc)) {
+      cli_out("\nsoc_dpp_cosq_ingress_queue_category_get failed(%d)!", rc);
+      return CMD_FAIL;
+   }
+
+   /* 6.b Traffic Class ??? in flow mapped queues? */
+   /* Get from q_info.vsq_traffic_cls */
+
+
+   /* 6.c Get Connection class---q_info.vsq_connection_cls */
+
+   /* 6.d Get admission logic template 
+               Note: for now: assume only admission test 00 is used */
+   for (i = 0; i < DPP_DEVICE_COSQ_ING_NOF_DP; i++) {
+      rc = soc_dpp_cosq_ingress_test_tmplt_get(unit, q_info.rate_cls, i, &test_tmplt[i]);
+      if (SOC_FAILURE(rc)) {
+         cli_out("\nsoc_dpp_cosq_ingress_queue_info_get failed(%d)!", rc);
+         return CMD_FAIL;
+      }
+   }
+
+   if ((rv = bcm_cosq_control_get(unit, 0, 0, bcmCosqControlAdmissionTestProfileA, &admission_test_a)) != BCM_E_NONE) {
+      cli_out("\nbcm_cosq_control_get(bcmCosqControlAdmissionTestProfileA) failed(%d)!", rv);
+      return CMD_FAIL;
+   }
+
+   if ((rv = bcm_cosq_control_get(unit, 0, 0, bcmCosqControlAdmissionTestProfileB, &admission_test_b)) != BCM_E_NONE) {
+      cli_out("\nbcm_cosq_control_get(bcmCosqControlAdmissionTestProfileA) failed(%d)!", rv);
+      return CMD_FAIL;
+   }   
+
+   /* 7. Print current queue size in bytes, BDs or buffers */
+   rc = soc_dpp_cosq_ingress_queue_dyn_info_get(unit, voq_id, &q_dyn_info);
+   if (SOC_FAILURE(rc)) {
+      cli_out("\nsoc_dpp_cosq_ingress_queue_dyn_info_get failed(%d)!", rc);
+      return CMD_FAIL;
+   }   
+   
+
+   /* 8. Get Attached VOQ connector */
+   if (!isisq) {
+      gport_connect.flags = BCM_COSQ_GPORT_CONNECTION_INGRESS;
+      gport_connect.voq = base_gport;   
+      rv = bcm_cosq_gport_connection_get(unit, &gport_connect);
+      if (BCM_FAILURE(rv)) {
+         cli_out("\nbcm_cosq_gport_connection_get failed(%d) base_gport(0x%8.8x)!", rv, base_gport);
+         return CMD_FAIL;
+      }      
+
+      voq_connector = BCM_COSQ_GPORT_VOQ_CONNECTOR_ID_GET(gport_connect.voq_connector);
+   }   
+
+   /* 9. Get Destination sys port */
+   rc = soc_dpp_cosq_ingress_queue_to_flow_mapping_get(unit, voq_id, &queue_map_info);
+   if (SOC_FAILURE(rc)) {
+      cli_out("\nsoc_dpp_cosq_ingress_queue_to_flow_mapping_get failed(%d)!", rc);
+      return CMD_FAIL;
+   }
+
+   /* 10. Get OCB eligibility */
+   if (!isisq) {
+      threshold.flags = BCM_COSQ_THRESHOLD_INGRESS | BCM_COSQ_THRESHOLD_OCB;
+      threshold.type = bcmCosqThresholdBytes;
+      rv = bcm_cosq_gport_threshold_get(unit, base_gport, 0, &threshold);
+      if (BCM_FAILURE(rv)) {
+         cli_out("\nbcm_cosq_gport_threshold_get base_gport(0x%8.8x) queue_index(%d) failed(%d)!", base_gport, 0, rv);
+         return CMD_FAIL;
+      }   
+      is_ocb_eligibility = (threshold.flags & BCM_COSQ_THRESHOLD_SET)? 0x1 :0x0;
+   } 
+
+
+   cli_out("Basic info\n");
+   cli_out("\tQ type: %s\n", voqtype_str);
+   cli_out("\tnum cos: %d, cosq class: %d\n", num_cos, queue_index);
+   cli_out("\tBase queue id: %d, base queue gport: 0x%8.8x\n", base_queue, base_gport);
+
+   diag_dpp_voq_credit_request_class_print(mode);
+   
+   if (!ispushqueue) {
+   /* 2.a The device's credit watchdog mode,
+               is the queue in the credit watchdog queue range, 
+               is credit watchdog active */
+      switch(watchdogmode)
+      {
+         case BCM_FABRIC_WATCHDOG_QUEUE_DISABLE:
+            cli_out("\tWatchdog disable\n");
+            break;
+         case BCM_FABRIC_WATCHDOG_QUEUE_ENABLE_NORMAL:
+            cli_out("\tWatchdog enable in normal mode\n");
+            break;
+         case BCM_FABRIC_WATCHDOG_QUEUE_ENABLE_FAST_STATUS_MESSAGE:
+            cli_out("\tWatchdog enable in aggressive status message mode\n");
+            break;
+         case BCM_FABRIC_WATCHDOG_QUEUE_ENABLE_COMMON_STATUS_MESSAGE:
+            cli_out("\tWatchdog enable in common status message mode\n");
+            break;
+         default:
+            cli_out("\tWatchdog mode unknown\n");
+            break;
+      }
+
+      cli_out("\tIs queue in credit watchdog queue range:%s\n", (isinwatchdogrange?"True":"False"));
+      
+      /* 2.b Credit watchdog message time,
+                    Delete time 
+                    Credit-Balance-Thresholds,
+                    Empty-Queue-Credit-Balance-Thresholds,
+                    Queue-Size-Thresholds */
+      diag_dpp_voq_credit_request_threshold_print(unit, &dt);
+        
+      /* 2.c The credit value(Arad plus and above) */               
+      if (SOC_IS_ARADPLUS(unit) || SOC_IS_JERICHO(unit)) {
+         cli_out("Credit value(local): %d, Credit value(remote): %d\n", local_credit_worth, remote_credit_worth);
+      }
+   }
+
+   /* 3. Credit discount class */
+   if (!isisq) {
+      cli_out("Credit discount value: %d\n", creditdiscount);
+   }
+
+   /* 4. Rate class */
+   cli_out("Rate class info\n");   
+   /* 4.a Get WRED per DP queue size */
+   if (!isisq) {
+      cli_out("\tWRED info:\n");
+      for (i = 0; i < DPP_DEVICE_COSQ_ING_NOF_DP; i++) {
+         cli_out("\t\t%s: enable(%s) min_thresh(%d) max_thresh(%d) drop_probability(%d)\n", 
+                 colors_str[i], ((wred[i].flags & BCM_COSQ_DISCARD_ENABLE )? "True" : "False"), wred[i].min_thresh, wred[i].max_thresh, wred[i].drop_probability);
+      }
+   }
+
+   /* 4.b Get tail drop per DP */
+   cli_out("\tTail drop info:\n");
+   for (i = 0; i < DPP_DEVICE_COSQ_ING_NOF_DP; i++) {
+      cli_out("\t\t%s: max queue size in bytes(%d), max queue size in BDs(%d)\n", colors_str[i], size_bytes[i].size_max, size_bds[i].size_max);
+   }
+   
+   /* 4.c Get guaranteed BDs  */
+   cli_out("\tGuaranteed info:\n");
+   for (i = 0; i < DPP_DEVICE_COSQ_ING_NOF_DP; i++) {
+      cli_out("\t\t%s: min queue size in bytes(%d), min queue size in BDs(%d)\n", colors_str[i], size_bytes[i].size_min, size_bds[i].size_min);
+   }
+
+   /* 4.d Get fair adaptive tail drop alpha value per DP(Arad plus and above) 
+               Is the fair adaptive tail drop mechanism enabled/disabled for the device */
+   if (SOC_IS_ARADPLUS(unit)) {
+      cli_out("\tFair adaptive tail drop info:\n");
+      cli_out("\t\tEnable: %s\n", (isfatdenable ? "True" : "False"));
+    
+      for (i = 0; i < DPP_DEVICE_COSQ_ING_NOF_DP; i++) {
+         cli_out("\t\t%s: alpha(%d)\n", colors_str[i], alpha[i]);
+      }
+   }
+
+   /* 4.e Get ECN WRED queue size */
+   /* 4.f  Get ECN max queue sizes */
+   if (!isisq && !SOC_DPP_CONFIG(unit)->tm.is_petrab_in_system && !SOC_IS_ARAD_A0(unit)) {
+      cli_out("\tECN wred info: enable(%s) min_thresh(%d) max_thresh(%d) drop_probability(%d)\n", 
+              ((ecn_config_bds.flags & BCM_COSQ_DISCARD_ENABLE )? "True" : "False"), 
+              ecn_config_bds.min_thresh, ecn_config_bds.max_thresh, ecn_config_bds.drop_probability);
+      
+      cli_out("\tECN max queue size in bytes(%d), max queue size in BDs(%d)\n", ecn_config_bytes.ecn_thresh, ecn_config_bds.ecn_thresh);      
+   }
+
+   if (!SOC_IS_JERICHO(unit)) {
+       /* 5.a Get Priority */
+       cli_out("Priority: %s\n", ((voq_priority)?("High"):("Low")));
+       
+       /* 5.b Queue signature */
+       if (!isisq) {
+          cli_out("Signature: %d\n", signature);
+       }
+   }
+
+   /* 6. Get Information used to associate the queue with a VSQ */
+   cli_out("VSQ-related\n");
+   /* 6.a Get Category class */
+   cli_out("\tCategory class: %d\n", voq_category);
+   /* 6.b Traffic Class ??? in flow mapped queues? */
+   cli_out("\tTraffic class: %d\n", q_info.vsq_traffic_cls);
+
+   /* 6.c Get Connection class---q_info.vsq_connection_cls */
+   cli_out("\tConnection class: %d\n", q_info.vsq_connection_cls);
+
+
+   /* 6.d Get admission logic template 
+               Note: for now: assume only admission test 00 is used */
+   for (i = 0; i < DPP_DEVICE_COSQ_ING_NOF_DP; i++) {
+      cli_out("\t%s: Admission-test-templates(%d)\n", colors_str[i], test_tmplt[i]);
+   }               
+   cli_out("\tAdmissionTestProfileA[0]:");
+   diag_dpp_voq_admission_test_print(admission_test_a);
+   cli_out("\n");
+
+   cli_out("\tAdmissionTestProfileB[0]: ");
+   diag_dpp_voq_admission_test_print(admission_test_b); 
+   cli_out("\n");
+
+   /* 7. Print current queue size in bytes, BDs or buffers */
+   cli_out("current queue size: %d bytes, ", q_dyn_info.pq_inst_que_size);
+   if (SOC_DPP_CONFIG(unit)->tm.guaranteed_q_mode == SOC_DPP_GUARANTEED_Q_RESOURCE_BUFFERS)
+       cli_out("current queue buffer size: %d\n", q_dyn_info.pq_inst_que_buff_size);
+   else
+       cli_out("current queue bds size: %d\n", q_dyn_info.pq_inst_que_buff_size);
+
+   /* 8. Get Attached VOQ connector */
+   if (!isisq) {
+      cli_out("Attached VOQ connector: 0x%8.8x\n", voq_connector);
+   }      
+
+   /* 9. Get Destination sys port */
+   cli_out("Destination sys port: 0x%8.8x\n", queue_map_info.system_physical_port);
+
+   /* 10. Get OCB eligibility */
+   if (!isisq) {
+      cli_out("OCB eligiblity: %s\n", ((is_ocb_eligibility)?("True"):("False")));
+   }
+
+   return res;
+
+}
+
+
+STATIC cmd_result_t
+dpp_diag_voq_congestion(int unit, int core, int voq_id, int most) {
+   cmd_result_t                 res = CMD_OK;
+
+#if ARAD_DEBUG_IS_LVL1
+
+   if (most < 0) most = 0; /*invalid input: default is 0*/
+
+   res=dpp_diag_voq_non_empty_print(unit,core,voq_id,0,most,1,0);
+   if (SOC_FAILURE(res)) {
+       cli_out("\nFailed to get cosq non empty queues\n\n");
+       res = CMD_FAIL;
+   }
+
+#endif
+   return res;
+}
+
+
+STATIC cmd_result_t
+dpp_diag_voq_global(int unit, int core) {
+   cmd_result_t                 res = CMD_OK;
+   bcm_error_t rv;
+   bcm_cosq_range_t dram_mix_threshold, multicast_queue_range, watchdog_queue_range, fabric_queue_range, shaper_queue_range;
+   int core_gport;
+
+
+   if (SOC_DPP_CORE_MODE_IS_SYMMETRIC(unit))
+       cli_out("Core mode is symmetric!\n");
+   else
+       cli_out("Core mode is asymmetric!\n");
+
+
+   sal_memset(&dram_mix_threshold, 0x0, sizeof(dram_mix_threshold));
+
+   BCM_COSQ_GPORT_CORE_SET(core_gport, core);
+   if (SOC_IS_JERICHO(unit)) {
+       rv = bcm_cosq_control_range_get(unit, core_gport, 0, bcmCosqThresholdDramMixDbuff, &dram_mix_threshold);
+       if (BCM_FAILURE(rv)) {
+           cli_out("\nbcm_cosq_control_get(bcmCosqThresholdDramMixDbuff) failed(%d)!", rv);
+           return CMD_FAIL;
+       }
+   }
+   rv = bcm_cosq_control_range_get(unit, core_gport, 0, bcmCosqRangeMulticastQueue, &multicast_queue_range);
+   if (BCM_FAILURE(rv)) {
+       cli_out("\nbcm_cosq_control_range_get(bcmCosqRangeMulticastQueue) failed(%d)!", rv);
+       return CMD_FAIL;
+   }
+   rv = bcm_cosq_control_range_get(unit, core_gport, 0, bcmCosqRangeShaperQueue, &shaper_queue_range);
+   if (BCM_FAILURE(rv)) {
+       cli_out("\nbcm_cosq_control_range_get(bcmCosqRangeShaperQueue) failed(%d)!", rv);
+       return CMD_FAIL;
+   }
+   rv = bcm_cosq_control_range_get(unit, core_gport, 0, bcmCosqRangeFabricQueue, &fabric_queue_range);
+   if (BCM_FAILURE(rv)) {
+       cli_out("\nbcm_cosq_control_range_get(bcmCosqRangeQueueMin) failed(%d)!", rv);
+       return CMD_FAIL;
+   }
+   
+   
+   
+   rv = bcm_cosq_control_range_get(unit, core_gport, 0, bcmCosqWatchdogQueue, &watchdog_queue_range);
+   if (BCM_FAILURE(rv)) {
+       cli_out("\bcm_cosq_control_range_get(bcmCosqWatchdogQueueMin) failed(%d)!", rv);
+       return CMD_FAIL;
+   }
+
+   cli_out("Dram-mix threshold range is: Min: (%d) and Max: (%d).\n",dram_mix_threshold.range_start, dram_mix_threshold.range_end);
+   cli_out("Multicast Queue is %s. The range is: Min: (%d) and Max: (%d).\n", ((multicast_queue_range.is_enabled)?("enabled"):("not enabled")),multicast_queue_range.range_start, multicast_queue_range.range_end);
+   cli_out("Shaper Queue is %s. The range is: Min: (%d) and Max: (%d).\n", ((shaper_queue_range.is_enabled)?("enabled"):("not enabled")),shaper_queue_range.range_start, shaper_queue_range.range_end);
+   cli_out("Fabric Queue is %s. The range is: Min: (%d) and Max: (%d).\n", ((fabric_queue_range.is_enabled)?("enabled"):("not enabled")),fabric_queue_range.range_start, fabric_queue_range.range_end);
+   cli_out("Credit watchdog Queue is %s. The range is: Min: (%d) and Max: (%d).\n", ((watchdog_queue_range.is_enabled)?("enabled"):("not enabled")),watchdog_queue_range.range_start, watchdog_queue_range.range_end);
+
+   
+
+   
+   if (SOC_FAILURE(res)) {
+       cli_out("\nFailed to get global variables\n\n");
+       res = CMD_FAIL;
+   }
+   return res;
+}
+
+
+
+void
+  diag_dpp_sch_sub_flow_hr_print(
+    SOC_TMC_SCH_SUB_FLOW_HR *info
+  )
+{
+
+  cli_out("SP class %s \n\r",
+          SOC_TMC_SCH_SUB_FLOW_HR_CLASS_to_string(info->sp_class)
+          );
+  cli_out("Weight: %u\n\r",info->weight);
+}
+
+void
+  diag_dpp_sch_sub_flow_cl_print(
+    SOC_TMC_SCH_SUB_FLOW_CL *info
+  )
+{
+  
+  cli_out("Class %s \n\r",
+          SOC_TMC_SCH_SUB_FLOW_CL_CLASS_to_string(info->sp_class)
+          );
+  cli_out("Weight: %u\n\r",info->weight);
+}
+
+void
+  dpp_diag_sch_sub_flow_se_info_print(
+    SOC_TMC_SCH_SUB_FLOW_SE_INFO *info,
+    SOC_TMC_SCH_SE_TYPE se_type
+  )
+{
+
+  switch(se_type)
+  {
+  case SOC_TMC_SCH_SE_TYPE_HR:
+    cli_out("HR, ");
+    diag_dpp_sch_sub_flow_hr_print(&(info->hr));
+    break;
+  case SOC_TMC_SCH_SE_TYPE_CL:
+    cli_out("CL, ");
+    diag_dpp_sch_sub_flow_cl_print(&(info->cl));
+    break;
+  case SOC_TMC_SCH_SE_TYPE_FQ:
+    cli_out("FQ ");
+      break;
+  default:
+    cli_out("Undefined SE Type!\n\r");
+      break;
+  }
+
+}
+
+void
+  dpp_diag_sch_sub_flow_credit_source_print(
+    SOC_TMC_SCH_SUB_FLOW_CREDIT_SOURCE *info
+  )
+{
+
+  cli_out("    ID: %u, SE-TYPE: ",
+          info->id
+          );
+  dpp_diag_sch_sub_flow_se_info_print(&(info->se_info), info->se_type);
+
+}
+
+void
+  dpp_diag_sch_sub_flow_shaper_print(
+    SOC_TMC_SCH_SUB_FLOW_SHAPER *info
+  )
+{
+
+  if (info->max_rate == SOC_TMC_SCH_SUB_FLOW_SHAPE_NO_LIMIT)
+  {
+    cli_out("Max_rate: not limited, ");
+  }
+  else
+  {
+    cli_out("Max_rate:  %u[Kbps], ",info->max_rate);
+  }
+
+  if (info->max_burst >= SOC_TMC_SCH_SUB_FLOW_SHAPER_BURST_NO_LIMIT)
+  {
+    cli_out("Max_burst: not limited. ");
+  }
+  else if (info->max_burst == 0)
+  {
+    cli_out("Max_burst: 0 (sub-flow disabled by shaping). ");
+  }
+  else
+  {
+    cli_out("Max_burst: %u[Bytes]. ",info->max_burst);
+  }
+
+}
+
+void
+  dpp_diag_sch_subflow_print(
+    SOC_TMC_SCH_SUBFLOW *info,
+    uint8 is_table_flow,
+    uint32 subflow_id
+  )
+{
+  char
+    rate_tbl_style[15],
+    burst_tbl_style[15],
+    crdt_src_tbl_style[45],
+    crdt_src_weight_tbl_style[15];
+
+  if (!is_table_flow)
+  {
+    if (info->is_valid)
+    {
+      cli_out("__________________________\n\r");
+      cli_out("Shaper: ");
+      dpp_diag_sch_sub_flow_shaper_print(&(info->shaper));
+      cli_out("Slow rate id %s, ",
+              SOC_TMC_SCH_SLOW_RATE_NDX_to_string(info->slow_rate_ndx)
+              );
+      cli_out("Credit_source:\n\r");
+      dpp_diag_sch_sub_flow_credit_source_print(&(info->credit_source));
+    }
+    else
+    {
+      cli_out("Disabled:\n\r");
+    }
+  }
+  else
+  {
+    /*
+     *  Prepare shaper description
+     */
+    if (info->shaper.max_rate == SOC_TMC_SCH_SUB_FLOW_SHAPE_NO_LIMIT)
+    {
+      sal_sprintf(rate_tbl_style, " No Limit  ");
+    }
+    else if (info->shaper.max_rate == 0)
+    {
+      sal_sprintf(rate_tbl_style, "    *0*    ");
+    }
+    else
+    {
+      sal_sprintf(rate_tbl_style, " %-8u  ",info->shaper.max_rate);
+    }
+
+    if (info->shaper.max_burst >= SOC_TMC_SCH_SUB_FLOW_SHAPER_BURST_NO_LIMIT)
+    {
+      sal_sprintf(burst_tbl_style, " No Limit  ");
+    }
+    else if (info->shaper.max_burst == 0)
+    {
+      sal_sprintf(burst_tbl_style, "   *0*     ");
+    }
+    else
+    {
+      sal_sprintf(burst_tbl_style, "  %-6u   ",info->shaper.max_burst);
+    }
+
+    /*
+     *  Prepare Credit Source description
+     */
+
+    /* Credit Source Info */
+    switch(info->credit_source.se_type) {
+    case SOC_TMC_SCH_SE_TYPE_HR:
+      sal_sprintf(
+        crdt_src_tbl_style,
+        " HR[%-5u], SP-Cls: %s",
+        info->credit_source.id,
+        SOC_TMC_SCH_SUB_FLOW_HR_CLASS_to_string(info->credit_source.se_info.hr.sp_class)
+      );
+      break;
+    case SOC_TMC_SCH_SE_TYPE_CL:
+      sal_sprintf(
+        crdt_src_tbl_style,
+        " CL[%-5u], Class: %s  ",
+        info->credit_source.id,
+        SOC_TMC_SCH_SUB_FLOW_CL_CLASS_to_string(info->credit_source.se_info.cl.sp_class)
+      );
+      break;
+    case SOC_TMC_SCH_SE_TYPE_FQ:
+      sal_sprintf(
+        crdt_src_tbl_style,
+        " FQ[%-5u] %s",
+        info->credit_source.id,
+        "                       "
+       );
+      break;
+    default:
+      sal_sprintf(
+        crdt_src_tbl_style,
+        "%-34s",
+        "  ???  "
+       );
+    }
+
+    /* Credit Source Weight */
+    switch(info->credit_source.se_type) {
+    case SOC_TMC_SCH_SE_TYPE_HR:
+      sal_sprintf(
+        crdt_src_weight_tbl_style,
+        "  %-4u ",
+        info->credit_source.se_info.hr.weight
+      );
+      break;
+    case SOC_TMC_SCH_SE_TYPE_CL:
+      sal_sprintf(
+        crdt_src_weight_tbl_style,
+        "  %-4u ",
+        info->credit_source.se_info.cl.weight
+      );
+      break;
+    case SOC_TMC_SCH_SE_TYPE_FQ:
+      sal_sprintf(
+        crdt_src_weight_tbl_style,
+        "  ---  "
+       );
+      break;
+    default:
+      sal_sprintf(
+        crdt_src_weight_tbl_style,
+        "  ???  "
+       );
+    }
+
+    /* Part of Flow print, table-style */
+    cli_out("| %1u |%s|%s|%s|%s|\n\r",
+            subflow_id,
+            rate_tbl_style,
+            burst_tbl_style,
+            crdt_src_tbl_style,
+            crdt_src_weight_tbl_style
+            );
+  }
+}
+
+
+STATIC void
+dpp_diag_sch_flow_print(SOC_TMC_SCH_FLOW *info)
+{
+    uint32 ind=0;
+
+    cli_out(" Flow[%u] - %s",
+            info->sub_flow[0].id,
+            info->sub_flow[0].is_valid?"Enabled, ":"Disabled. \n\r"
+            );
+
+    if (info->sub_flow[0].is_valid)
+    {
+      cli_out("%s, %s, ",
+              SOC_TMC_SCH_FLOW_TYPE_to_string(info->flow_type),
+              info->is_slow_enabled?"slow-enabled": "not slow-enabled"
+              );
+      if (info->sub_flow[1].is_valid)
+      {
+        cli_out("2 subflows: %u, %u: \n\r", info->sub_flow[0].id, info->sub_flow[1].id);
+      }
+      else
+      {
+        cli_out("1 subflow: %u: \n\r", info->sub_flow[0].id);
+      }
+
+      cli_out("+----------------------------------------------------------------------+\n\r");
+      cli_out("|Id |Rate[Kbps] |Burst[Byte]|Credit Src[ID],                   |Weight |\n\r");
+      cli_out("+----------------------------------------------------------------------+\n\r");
+
+      for (ind = 0; ind < SOC_TMC_SCH_NOF_SUB_FLOWS; ind++)
+      {
+        if (info->sub_flow[ind].is_valid)
+        {
+          dpp_diag_sch_subflow_print(
+            &(info->sub_flow[ind]),
+            TRUE,
+            ind
+          );
+        }
+      }
+
+      cli_out("+----------------------------------------------------------------------+\n\r");
+
+      for (ind = 0; ind < SOC_TMC_SCH_NOF_SUB_FLOWS; ind++)
+      {
+        if (info->sub_flow[ind].is_valid)
+        {
+          if (info->sub_flow[ind].shaper.max_rate == 0)
+          {
+            cli_out("Note: sub-flow[%u] disabled by shaper rate\n\r", ind);
+          }
+          if (info->sub_flow[ind].shaper.max_burst == 0)
+          {
+            cli_out("Note: sub-flow[%u] disabled by shaper burst\n\r", ind);
+          }
+        }
+      }
+    }
+}
+
+STATIC void
+dpp_diag_sch_port_print(
+    SOC_TMC_SCH_PORT_INFO *info,
+    uint32                 port_id
+  )
+{
+  uint32
+    ind;
+
+
+  cli_out("Port[%-2u] - %s, \n\r",
+          port_id,
+          info->enable?"enabled":"disabled"
+          );
+
+  for (ind=0; ind<SOC_TMC_NOF_TRAFFIC_CLASSES; ++ind)
+  {
+    cli_out("    HR[%u] mode: %s\n\r",ind,SOC_TMC_SCH_SE_HR_MODE_to_string(info->hr_modes[ind]));
+  }
+
+  if (info->max_expected_rate != SOC_TMC_SCH_PORT_MAX_EXPECTED_RATE_AUTO)
+  {
+    cli_out(", Max_expected_rate: %u[Mbps]\n\r",info->max_expected_rate);
+  }
+  else
+  {
+    cli_out("\n\r");
+  }
+}
+
+STATIC void
+  dpp_diag_ofp_rate_info_print(
+     SOC_TMC_OFP_RATE_INFO *info
+  )
+{
+  cli_out("Port[%-2u] rate: ",info->port_id);
+  cli_out("SCH: %-8u[Kbps], ",info->sch_rate);
+  cli_out("EGQ: %-8u[Kbps], ",info->egq_rate);
+
+  if (info->max_burst == SOC_TMC_OFP_RATES_BURST_LIMIT_MAX)
+  {
+    cli_out("Max Burst: No Limit.\n\r");
+  }
+  else
+  {
+    cli_out("Max Burst: %-6u[Byte].\n\r",info->max_burst);
+  }
+
+}
+
+void
+  dpp_diag_sch_se_cl_print(
+    SOC_TMC_SCH_SE_CL *info,
+    SOC_TMC_SCH_CL_CLASS_WEIGHTS_MODE cl_mode,
+    SOC_TMC_SCH_FLOW_IPF_CONFIG_MODE ipf_mode
+  )
+{
+  cli_out("%s", SOC_TMC_SCH_CL_CLASS_WEIGHTS_MODE_to_string(cl_mode));
+  if(cl_mode == SOC_TMC_SCH_CL_WEIGHTS_MODE_INDEPENDENT_PER_FLOW){
+     cli_out("(%s)", SOC_TMC_SCH_FLOW_IPF_CONFIG_MODE_to_string(ipf_mode));
+  }
+  cli_out(", Class-id: %d", info->id);
+}
+
+
+void
+  dpp_diag_sch_se_hr_print(
+    SOC_TMC_SCH_SE_HR *info
+  )
+{
+  cli_out("HR-mode: %s", SOC_TMC_SCH_SE_HR_MODE_to_string(info->mode));
+}
+
+void
+  dpp_diag_sch_se_info_print(
+    SOC_TMC_SCH_SE_INFO *info,
+    SOC_TMC_SCH_CL_CLASS_WEIGHTS_MODE cl_mode,
+    SOC_TMC_SCH_FLOW_IPF_CONFIG_MODE ipf_mode
+  )
+{
+
+  cli_out("%s[%u] - %s, ",
+          SOC_TMC_SCH_SE_TYPE_to_string(info->type),
+          info->id,
+          SOC_TMC_SCH_SE_STATE_to_string(info->state)
+          );
+
+  if (info->state == SOC_TMC_SCH_SE_STATE_ENABLE)
+  {
+    switch(info->type)
+    {
+    case SOC_TMC_SCH_SE_TYPE_CL:
+      dpp_diag_sch_se_cl_print(&(info->type_info.cl),  cl_mode, ipf_mode);
+      cli_out(", ");
+      break;
+    case SOC_TMC_SCH_SE_TYPE_FQ:
+      break;
+    case SOC_TMC_SCH_SE_TYPE_HR:
+      dpp_diag_sch_se_hr_print(&(info->type_info.hr));
+      cli_out(", ");
+      break;
+    default:
+      break;
+    }
+
+    cli_out("%s",(info->is_dual)?"Dual Bucket":"Not Dual Bucket");
+
+    if (info->group != SOC_TMC_SCH_GROUP_AUTO)
+    {
+      cli_out(", group: %s \n\r",
+              SOC_TMC_SCH_GROUP_to_string(info->group)
+              );
+    }
+    else
+    {
+      cli_out("\n\r");
+    }
+  }
+}
+
+
+void
+  dpp_diag_ofp_rates_tbl_info_print(
+    SOC_TMC_OFP_RATES_TBL_INFO *info
+  )
+{
+  uint32
+    ind=0,
+    nof_zero_rate=0;
+  uint8
+    zero_rate;
+
+
+  cli_out("Nof_valid_entries: %u[Entries]\n\r",info->nof_valid_entries);
+  cli_out("Rates:\n\r");
+  for (ind=0; ind<info->nof_valid_entries; ++ind)
+  {
+    zero_rate = SOC_SAND_NUM2BOOL((info->rates[ind].egq_rate == 0) && (info->rates[ind].sch_rate == 0));
+    if(!zero_rate)
+    {
+      dpp_diag_ofp_rate_info_print(&(info->rates[ind]));
+    }
+    else
+    {
+      nof_zero_rate++;
+    }
+  }
+}
+
+void
+  dpp_diag_sch_hr2ps_info_print(
+    uint32               hr_se_id,
+    soc_hr2ps_info_t     *hr2ps_info
+  )
+{
+  char
+    rate_tbl_style[15],
+    burst_tbl_style[15],
+    crdt_src_tbl_style[45],
+    crdt_src_weight_tbl_style[15];
+
+  SOC_TMC_SCH_SE_INFO *se_info = &(hr2ps_info->se_info);
+  uint32 max_rate = hr2ps_info->kbits_sec_max;
+  uint32 max_burst = hr2ps_info->max_burst;
+  uint32 mode = hr2ps_info->mode;
+  uint32 weight = hr2ps_info->weight;
+
+  /*
+   * SE sch print
+   */
+  cli_out("Scheduling Element info:"
+          "\n\r"
+          );
+
+  cli_out("%s[%u] - %s, ",
+          SOC_TMC_SCH_SE_TYPE_to_string(se_info->type),
+          se_info->id,
+          SOC_TMC_SCH_SE_STATE_to_string(se_info->state)
+          );
+  
+  dpp_diag_sch_se_hr_print(&(se_info->type_info.hr));
+
+  cli_out("%s",(se_info->is_dual)?", Dual Bucket":", Not Dual Bucket");
+
+  if (se_info->group != SOC_TMC_SCH_GROUP_AUTO){
+    cli_out(", group: %s \n\r",
+            SOC_TMC_SCH_GROUP_to_string(se_info->group)
+            );
+  }
+  else {
+    cli_out("\n\r");
+  }
+  
+  /*
+   *  Prepare shaper description
+   */
+  if (max_rate == SOC_TMC_SCH_SUB_FLOW_SHAPE_NO_LIMIT)
+  {
+    sal_sprintf(rate_tbl_style, " No Limit  ");
+  }
+  else if (max_rate == 0)
+  {
+    sal_sprintf(rate_tbl_style, "    *0*    ");
+  }
+  else
+  {
+    sal_sprintf(rate_tbl_style, " %-8u  ", max_rate);
+  }
+
+  if (max_burst >= SOC_TMC_SCH_SUB_FLOW_SHAPER_BURST_NO_LIMIT)
+  {
+    sal_sprintf(burst_tbl_style, " No Limit  ");
+  }
+  else if (max_burst == 0)
+  {
+    sal_sprintf(burst_tbl_style, "   *0*     ");
+  }
+  else
+  {
+    sal_sprintf(burst_tbl_style, "  %-6u   ", max_burst);
+  }
+
+  /*
+   *  Prepare Credit Source description
+   */ 
+  /* Credit Source Info */
+  sal_sprintf(
+    crdt_src_tbl_style,
+    " TCG[%-2u]                           ",    
+    mode
+  );
+  
+  /* Credit Source Weight */
+  sal_sprintf(
+    crdt_src_weight_tbl_style,
+    "  %-4u ",
+    weight
+  );  
+
+  /* Part of Flow print, table-style */
+  cli_out("mapping between hr and tcg in ps:\n\r");  
+  cli_out("+----------------------------------------------------------------------+\n\r");
+  cli_out("|Id |Rate[Kbps] |Burst[Byte]|Credit Src[ID],                    |Weight |\n\r");
+  cli_out("+----------------------------------------------------------------------+\n\r");
+  
+  cli_out("|%-3u|%s|%s|%s|%s|\n\r",
+          hr_se_id,
+          rate_tbl_style,
+          burst_tbl_style,
+          crdt_src_tbl_style,
+          crdt_src_weight_tbl_style
+          );
+  cli_out("\n\r");  
+}
+
+STATIC cmd_result_t
+dpp_diag_cosq_flow_and_up_print(int unit,
+                                       int core,
+                                       uint32 is_flow,
+                                       uint32 dest_id,
+                                       uint32 print_status,
+                                       uint32 short_format)
+{
+    SOC_TMC_SCH_FLOW_AND_UP_INFO    flow_and_up_info;
+    uint32                          temp_credit_source[10];
+    uint32                          temp_credit_source_nof;
+    uint32                          level_idx;
+    uint32                          credit_source_i;
+    SOC_TMC_SCH_FLOW_AND_UP_PORT_INFO *port_sch_info;
+    SOC_TMC_SCH_FLOW_AND_UP_SE_INFO   *se_sch_info;
+    soc_hr2ps_info_t                  hr2ps_info[SOC_TMC_FLOW_AND_UP_MAX_CREDIT_SOURCES];
+
+    uint32                            hr_se_id[SOC_TMC_FLOW_AND_UP_MAX_CREDIT_SOURCES];
+    int                             rv;
+    cmd_result_t                    res = CMD_OK;
+
+    level_idx = 0;
+    SOC_TMC_SCH_FLOW_AND_UP_INFO_clear(&flow_and_up_info, TRUE);
+    rv = soc_dpp_cosq_flow_and_up_info_get(unit, core, is_flow, dest_id, print_status, &flow_and_up_info);
+    if (BCM_FAILURE(rv))
+    {
+        return CMD_FAIL;
+    }
+
+    /*
+     * Queue quartet print
+     */
+    if (!is_flow)
+    {
+        cli_out("base_queue_quartet: %u\n\r", flow_and_up_info.base_queue / 4);
+        if (
+            (flow_and_up_info.qrtt_map_info.flow_quartet_index == SOC_TMC_IPQ_INVALID_FLOW_QUARTET) &&
+            (flow_and_up_info.qrtt_map_info.is_composite == 0) &&
+            (flow_and_up_info.qrtt_map_info.system_physical_port == SOC_TMC_MAX_SYSTEM_PHYSICAL_PORT_ID)
+         )
+        {
+            cli_out("The queue quartet is unmapped.\n\r");
+        }
+        else
+        {
+            cli_out("Flow_quartet_index: %u\n\r",flow_and_up_info.qrtt_map_info.flow_quartet_index);
+            cli_out("Is_composite: %d\n\r",flow_and_up_info.qrtt_map_info.is_composite);
+            cli_out("System_physical_port: %u\n\r",flow_and_up_info.qrtt_map_info.system_physical_port);
+            cli_out("Fap_id: %u\n\r",((unsigned)flow_and_up_info.qrtt_map_info.fap_id));
+            cli_out("Fap_port_id: %u\n\r",((unsigned)flow_and_up_info.qrtt_map_info.fap_port_id));
+       }
+    }
+
+
+    /*
+     * SCH consumer print 
+     */
+    dpp_diag_sch_flow_print(&(flow_and_up_info.sch_consumer));
+
+    /*
+     * Flow status print
+     */
+    if (print_status)
+    {
+        cli_out("The flow %d current actual credit rate is %d Kbps\n\r",
+                flow_and_up_info.base_queue, flow_and_up_info.credit_rate
+                );
+    }
+
+    sal_memset(hr2ps_info, 0, (sizeof(soc_hr2ps_info_t)*SOC_TMC_FLOW_AND_UP_MAX_CREDIT_SOURCES));
+    sal_memset(hr_se_id, 0, (sizeof(uint32)*SOC_TMC_FLOW_AND_UP_MAX_CREDIT_SOURCES));
+    while (flow_and_up_info.credit_sources_nof != 0)
+    {
+
+        /*
+         * Level print
+         */
+        cli_out("\n\r"
+                "Next Scheduler Level (%02u)\n\r"
+                "==========================\n\r",
+                ++level_idx
+                );
+
+        /*
+         * Credit source print
+         */
+        for (credit_source_i = 0; credit_source_i < flow_and_up_info.credit_sources_nof; credit_source_i++)
+        {
+            cli_out("Credit Source %u:"
+                    "\n\r",
+                    credit_source_i
+                    );
+
+            if (flow_and_up_info.is_port_sch[credit_source_i])
+            {
+                /*
+                 * connection info between HR and Port sch print
+                 */
+                dpp_diag_sch_hr2ps_info_print(hr_se_id[credit_source_i], 
+                   &(hr2ps_info[credit_source_i]));
+
+                port_sch_info = &((flow_and_up_info.sch_union_info[credit_source_i]).port_sch_info);
+
+                /*
+                 * Port sch print
+                 */
+
+                dpp_diag_sch_port_print(&(port_sch_info->port_info), flow_and_up_info.sch_port_id[credit_source_i]);
+                if ((port_sch_info->ofp_rate_info).port_id != SAL_UINT32_MAX)
+                {
+                    dpp_diag_ofp_rate_info_print(&(port_sch_info->ofp_rate_info));
+                }
+
+                /*
+                 * Credit rate and flow control
+                 */
+                 if (print_status)
+                 {
+                      cli_out("Port[%u] HR[%u] actual credit rate: %d Kbps\n\r",
+                              flow_and_up_info.sch_port_id[credit_source_i],
+                              flow_and_up_info.sch_priority_ndx[credit_source_i],
+                              port_sch_info->credit_rate
+                              );
+
+                      if (port_sch_info->fc_cnt == 0)
+                      {
+                          cli_out("Not under flow control\n\r");
+                      }
+                      else
+                      {
+                        cli_out("!!!Under Flow Control: %d%% of the time\n\r",
+                                port_sch_info->fc_percent
+                                );
+                      }
+                  }
+
+
+            } else { /*SE*/
+                se_sch_info = &((flow_and_up_info.sch_union_info[credit_source_i]).se_sch_info);
+                /*
+                 * SE sch print
+                 */
+                cli_out("Scheduling Element info:"
+                        "\n\r"
+                        );
+
+                dpp_diag_sch_se_info_print(&(se_sch_info->se_info), se_sch_info->cl_mode, se_sch_info->ipf_mode );
+                cli_out("\n\r"
+                        "Flow info:"
+                        "\n\r"
+                        );
+                 dpp_diag_sch_flow_print(&(se_sch_info->sch_consumer));
+
+            }
+        }
+
+
+        /*
+         * Reterive next level
+         */
+        if (flow_and_up_info.next_level_credit_sources_nof == 0) {
+            /*Done*/
+            break;
+
+        }
+        temp_credit_source_nof = flow_and_up_info.next_level_credit_sources_nof;
+        sal_memcpy(temp_credit_source, flow_and_up_info.next_level_credit_sources, temp_credit_source_nof*sizeof(uint32));
+        SOC_TMC_SCH_FLOW_AND_UP_INFO_clear(&flow_and_up_info, FALSE);
+        flow_and_up_info.credit_sources_nof = temp_credit_source_nof;
+        sal_memcpy(flow_and_up_info.credit_sources, temp_credit_source, flow_and_up_info.credit_sources_nof*sizeof(uint32));
+
+        rv = soc_dpp_cosq_flow_and_up_info_get(unit, core, is_flow, dest_id, print_status, &flow_and_up_info);
+        if (BCM_FAILURE(rv))
+        {
+            return CMD_FAIL;
+        }
+
+        for (credit_source_i = 0; credit_source_i < flow_and_up_info.credit_sources_nof; credit_source_i++){
+          if (flow_and_up_info.is_port_sch[credit_source_i]) {        
+            /* 
+             * Get hr2ps info
+             */
+            rv = soc_dpp_cosq_hr2ps_info_get(unit, core,
+                   (flow_and_up_info.credit_sources)[credit_source_i], 
+                   &(hr2ps_info[credit_source_i]));
+            if (BCM_FAILURE(rv)){
+              return CMD_FAIL;
+            }
+
+#ifdef BCM_ARAD_SUPPORT
+            if (SOC_IS_ARAD(unit)) {
+              hr_se_id[credit_source_i] = (flow_and_up_info.credit_sources)[credit_source_i] - SOC_TMC_HR_SE_ID_MIN_ARAD;
+            }
+            else
+#endif
+            if(SOC_IS_PETRAB(unit)) {
+              hr_se_id[credit_source_i] = (flow_and_up_info.credit_sources)[credit_source_i] - SOC_TMC_HR_SE_ID_MIN_PETRA;
+            }
+          }
+        }
+    }
+
+#if defined(ARAD_PRINT_FLOW_AND_UP_PRINT_DRM_AND_MAL_RATES) || defined(PETRA_PRINT_FLOW_AND_UP_PRINT_DRM_AND_MAL_RATES)
+    if (flow_and_up_info.ofp_rate_valid)
+    {
+          cli_out("OFP rates table:"
+                  "\n\r"
+                  );
+          dpp_diag_ofp_rates_tbl_info_print(&(flow_and_up_info.ofp_rates_table);
+          cli_out("\n\r");
+    }
+#endif
+    return res;
+}
+
+#endif /* BCM_DPP_SUPPORT */
+
+#ifdef BCM_ARAD_SUPPORT
+STATIC
+void print_egq_usage(void) {
+   char dpp_diag_egq_usage[] =
+      "Usage (DIAG cosq qpair egq):"
+      "\n\tDIAGnotsics egq commands"
+      "\n\tUsages:"
+      "\n\tDIAG cosq qpair egq <OPTION> <parameters> ..."
+      "\n\tOPTION can be:"
+#ifdef COMPILER_STRING_CONST_LIMIT
+      "Full documentation cannot be displayed with -pendantic compiler\n"
+#else
+      "\n\t\tcapture - display last SOP header"
+      "\n\t\tmap - display port to egress port scheduler mapping"
+      "\n\tParmeters:"
+      "\n\t\tps=<id> - display a graphical representation of the port scheduler associated with port <id>."
+#endif /* COMPILER_STRING_CONST_LIMIT*/
+      "\n";
+
+   cli_out(dpp_diag_egq_usage);
+}
+
+STATIC cmd_result_t
+dpp_diag_cosq_qpair(int unit, args_t *a)
+{
+   cmd_result_t                 res = CMD_OK;
+
+   char           *option;
+   parse_table_t  pt;
+   uint8             mode_given = 0;
+   int               map_print = 0, last_cell_print = 0;
+   uint32            port_print = -1;
+
+   option = ARG_GET(a);
+   if (NULL == option) {
+       return CMD_USAGE;
+   }
+   
+   parse_table_init(unit, &pt);
+   parse_table_add(&pt, "ps", PQ_DFL | PQ_INT, &port_print, &port_print, NULL);
+
+   if (0 > parse_arg_eq(a, &pt)) {
+      return res;
+   }
+         
+   if (!sal_strncasecmp(option,"egq",strlen(option))){
+      option=ARG_GET(a); 
+
+      while (NULL!=option)
+      {
+         if (!sal_strncasecmp(option, "?", strlen(option))) {
+            mode_given++;
+            parse_arg_eq_done(&pt);
+            print_egq_usage();
+            return CMD_OK;
+         }
+         if (!sal_strncasecmp(option, "capture", strlen(option))) {
+            mode_given++;
+            last_cell_print = 1;
+         }
+         if (!sal_strncasecmp(option, "map", strlen(option))) {
+            mode_given++;
+            map_print = 1;
+         }
+         option = ARG_GET(a);
+      }
+
+      if (mode_given == 0 && port_print==-1) {
+         last_cell_print = 1;
+         map_print = 1;
+      }
+    
+      res = dpp_diag_egq_print(unit, last_cell_print, map_print, port_print);
+
+      parse_arg_eq_done(&pt);
+      if (res == CMD_USAGE) {
+         print_egq_usage();
+         return CMD_FAIL;
+      }
+   }
+   else if (!sal_strncasecmp(option,"e2e",strlen(option))){
+      if (port_print==-1) {
+         parse_arg_eq_done(&pt);
+         return CMD_USAGE;
+      }
+    
+      res = dpp_diag_e2e_ps_graphic(unit, port_print);
+      parse_arg_eq_done(&pt);
+
+      if (res == CMD_USAGE) {
+         return CMD_USAGE;
+      }
+   }
+   else {
+      parse_arg_eq_done(&pt);
+      return CMD_USAGE;
+   }
+   
+   return res;
+}
+#endif
+
+STATIC cmd_result_t
+dpp_diag_cosq(int unit, args_t *a) {
+   cmd_result_t   res = CMD_OK;
+#ifdef BCM_DPP_SUPPORT
+   if (SOC_IS_DPP(unit)) {
+      char           *option;
+      parse_table_t  pt;
+      uint32           is_voq_conn = 0, is_flow = 0, print_status = 0;
+      uint32           dest_id = 1;
+      unsigned char  print_flow_and_up = 1; /* default options */
+      unsigned char  non_empty_queues = 0;
+      unsigned char  credit_watchdog = 0;
+      cmd_result_t   retCode = CMD_OK;
+      uint32          short_format = 0;
+      uint32          is_flow_also = 0, poll_nof_times = 1, poll_delay = 0;
+      unsigned char     scheduler_alloc_manager = 0;
+      uint32            flow_id = -1, flow_count = 1;
+      char*             allocated_resource = NULL;
+      unsigned char  print_voqs = 0;
+      unsigned char  set_fc = 0, set_egq_port_shaper = 0, set_autocredit = 0;
+      uint32           enable = -1, last_queue = -1, first_queue = -1, rate = 0;
+      ARAD_DBG_AUTOCREDIT_INFO autocredit_info;
+      uint32        exact_rate;
+      int                  voq_id = -1;
+      int                  most = 0;
+      uint32           detailed = 0;
+      uint32           congestion = 0;
+      unsigned char  local_to_sys = 0;
+      bcm_pbmp_t     bcm_pbmp;
+      bcm_pbmp_t     arg_pbmp;
+      uint32         port_count;
+      int core = 0 ;
+
+
+      option = ARG_GET(a);
+
+      if(!option) {
+          return CMD_USAGE;
+      }
+
+      if (!sal_strncasecmp(option,"QPair",strlen(option))){
+          return dpp_diag_cosq_qpair(unit, a);
+      }
+
+      BCM_PBMP_CLEAR(arg_pbmp);
+      BCM_PBMP_CLEAR(bcm_pbmp);
+      parse_table_init(unit, &pt);
+      parse_table_add(&pt, "is_flow", PQ_DFL | PQ_INT, 0, &is_flow, NULL);
+      parse_table_add(&pt, "is_voq_conn", PQ_DFL | PQ_INT, 0, &is_voq_conn, NULL);
+      parse_table_add(&pt, "dest_id", PQ_DFL | PQ_INT, 0, &dest_id, NULL);
+      parse_table_add(&pt, "print_status", PQ_DFL | PQ_INT, 0, &print_status, NULL);
+      parse_table_add(&pt, "is_flow_also", PQ_DFL | PQ_INT, 0, &is_flow_also, NULL);
+      parse_table_add(&pt, "poll_nof_times", PQ_DFL | PQ_INT, 0, &poll_nof_times, NULL);
+      parse_table_add(&pt, "poll_delay", PQ_DFL | PQ_INT, 0, &poll_delay, NULL);
+      parse_table_add(&pt, "flow_id", PQ_DFL | PQ_INT, &flow_id, &flow_id, NULL);
+      parse_table_add(&pt, "core", PQ_DFL | PQ_INT, &core, &core, NULL);
+      parse_table_add(&pt, "flow_count", PQ_DFL | PQ_INT, &flow_count, &flow_count, NULL);
+      parse_table_add(&pt, "allocated_resource", PQ_DFL | PQ_STRING, &allocated_resource, &allocated_resource, NULL);
+      parse_table_add(&pt, "enable", PQ_DFL | PQ_INT, 0, &enable, NULL);
+      parse_table_add(&pt, "first_queue", PQ_DFL | PQ_INT, 0, &first_queue, NULL);
+      parse_table_add(&pt, "last_queue", PQ_DFL | PQ_INT, 0, &last_queue, NULL);
+      parse_table_add(&pt, "rate", PQ_DFL | PQ_INT, 0, &rate, NULL);
+      parse_table_add(&pt, "id", PQ_DFL | PQ_INT, &voq_id, &voq_id, NULL);
+      parse_table_add(&pt, "most", PQ_DFL | PQ_INT, &most, &most, NULL);
+      parse_table_add(&pt, "detailed", PQ_DFL | PQ_INT, 0, &detailed, NULL);
+      parse_table_add(&pt, "congestion", PQ_DFL | PQ_INT, 0, &congestion, NULL);
+      parse_table_add(&pt, "pbmp", PQ_DFL | PQ_PBMP | PQ_BCM, 0, &arg_pbmp, NULL);
+
+      if (0 > parse_arg_eq(a, &pt)) {
+         return retCode;
+      }
+
+      while (NULL != option) {
+         if (!sal_strncasecmp(option, "print_flow_and_up", strlen(option))) {
+            print_flow_and_up = 1;
+         } else if (!sal_strncasecmp(option, "non_empty_queues", strlen(option))) {
+            print_flow_and_up = 0;
+            non_empty_queues = 1;
+         } else if (!sal_strncasecmp(option, "fc", strlen(option))) {
+            set_fc = 1;
+            print_flow_and_up = 0;
+         } else if (!sal_strncasecmp(option, "egq_port_shaper", strlen(option))) {
+            set_egq_port_shaper = 1;
+            print_flow_and_up = 0;
+         } else if (!sal_strncasecmp(option, "autocredit", strlen(option))) {
+            set_autocredit = 1;
+            print_flow_and_up = 0;
+         } else if (!sal_strncasecmp(option, "voq", strlen(option))) {
+            print_voqs = 1;
+         } else if (!sal_strncasecmp(option, "local_to_sys", strlen(option))) {
+            print_flow_and_up = 0;
+            local_to_sys = 1;
+         } else if (!sal_strncasecmp(option, "credit_watchdog", strlen(option))) {
+            print_flow_and_up = 0;
+            credit_watchdog = 1;
+         } else if (!sal_strncasecmp(option, "scheduler_alloc_manager", strlen(option))) {
+            print_flow_and_up = 0;
+            scheduler_alloc_manager = 1;
+         } else {
+            cli_out("argument \"%s\" not recognized\n", option);
+            res = CMD_USAGE;
+         }
+
+         option = ARG_GET(a);
+      }
+
+      if (res == CMD_OK) {
+         if (print_voqs) {
+            if (detailed == 1) {
+                res = dpp_diag_voq_details(unit, core, voq_id);
+            } else if (congestion) {
+                  res = dpp_diag_voq_congestion(unit, core, voq_id, most);
+            } else { 
+                res = dpp_diag_voq_global(unit, core);
+            }
+            set_autocredit = 0;
+            set_egq_port_shaper = 0;
+            set_fc = 0;
+            non_empty_queues = 0;
+            print_flow_and_up = 0;
+            credit_watchdog = 0;
+            local_to_sys = 0;
+         }
+         if (!credit_watchdog) { /* different defaults for enable, first/last_queue when not a credit_watchdog command */
+            if (enable == (uint32)(-1)) enable = 1;
+            if (first_queue == (uint32)(-1)) first_queue = 0;
+            if (last_queue == (uint32)(-1)) last_queue = 0;
+         }
+         if (print_flow_and_up) {
+            unit = (unit);
+            is_flow = ((is_voq_conn == 0) && (is_flow == 0)) ? 0 : 1;
+            res = dpp_diag_cosq_flow_and_up_print(unit, core, is_flow, dest_id, print_status, short_format);
+            if (SOC_FAILURE(res)) {
+               cli_out("\nFailed to get cosq flow and up statistics\n\n");
+               res = CMD_FAIL;
+            }
+         }
+         if (non_empty_queues) {
+            unit = (unit);
+            res=dpp_diag_voq_non_empty_print(unit,core,SAL_UINT32_MAX,is_flow_also,0,poll_nof_times,poll_delay);
+            if (SOC_FAILURE(res)) {
+               cli_out("\nFailed to get cosq non empty queues\n\n");
+               res = CMD_FAIL;
+            }
+         }
+         if (set_fc) {
+            unit = (unit);
+            res = arad_dbg_flow_control_enable_set_unsafe(unit, enable);
+            if (SOC_FAILURE(res)) {
+               cli_out("\nFailed to set Flow Control to %d\n\n", enable);
+               res = CMD_FAIL;
+            }
+         }
+         if (set_egq_port_shaper) {
+            unit = (unit);
+            res = arad_dbg_egress_shaping_enable_set_unsafe(unit, enable);
+            if (SOC_FAILURE(res)) {
+               cli_out("\nFailed to set EGQ Port Shaper to %d\n\n", enable);
+               res = CMD_FAIL;
+            }
+         }
+         if (credit_watchdog) {
+            int is_enabled, start_queue, end_queue;
+            /* get current state */
+            if (bcm_fabric_control_get(unit, bcmFabricWatchdogQueueMin, &start_queue) ||
+                bcm_fabric_control_get(unit, bcmFabricWatchdogQueueMax, &end_queue) ||
+                bcm_fabric_control_get(unit, bcmFabricWatchdogQueueEnable, &is_enabled)) {
+               cli_out("\nFailed to get current watchdog configuration\n\n");
+               return CMD_FAIL;
+            }
+            /* change state if told to */
+            if (first_queue != (uint32)(-1) && bcm_fabric_control_set(unit, bcmFabricWatchdogQueueMin, start_queue = first_queue)) {
+               cli_out("\nFailed to set watchdog first queue\n\n");
+               return CMD_FAIL;
+            }
+            if (last_queue != (uint32)(-1) && bcm_fabric_control_set(unit, bcmFabricWatchdogQueueMax, end_queue = last_queue)) {
+               cli_out("\nFailed to set watchdog last queue\n\n");
+               return CMD_FAIL;
+            }
+            if (enable != (uint32)(-1) && bcm_fabric_control_set(unit, bcmFabricWatchdogQueueEnable, is_enabled = enable)) {
+               cli_out("\nFailed to set watchdog activeness\n\n");
+               return CMD_FAIL;
+            }
+            /* print state */
+            cli_out("\nCredit Watchdog is %sabled from  queue %d 0x%x  to  queue %d 0x%x\n",
+                    is_enabled ? "en" : "dis", start_queue, start_queue, end_queue, end_queue);
+         }
+
+         if (set_autocredit) {
+            unit = (unit);
+            autocredit_info.first_queue = first_queue;
+            autocredit_info.last_queue = last_queue;
+            autocredit_info.rate = rate;
+            res = arad_dbg_autocredit_set_unsafe(unit, &autocredit_info, &exact_rate);
+            if (SOC_FAILURE(res)) {
+               cli_out("\nFailed to set Autocredit\n\n");
+               res = CMD_FAIL;
+            }
+         }
+
+         if (local_to_sys) {
+            bcm_gport_t         sys_gport;
+            bcm_gport_t         gport;
+            bcm_port_t            local_port_id;
+            bcm_port_t             sys_port_id;
+
+            BCM_PBMP_COUNT(arg_pbmp, port_count);
+            BCM_PBMP_CLEAR(bcm_pbmp);
+            if (port_count == 0) {
+               BCM_PBMP_ASSIGN(bcm_pbmp, PBMP_PORT_ALL(unit));
+            } else {
+               BCM_PBMP_ASSIGN(bcm_pbmp, arg_pbmp);
+            }
+
+            BCM_PBMP_REMOVE(bcm_pbmp, PBMP_SFI_ALL(unit));
+            cli_out("         Local Port           |      System Port       |        NIF port           \n");
+            cli_out("-----------------------------------------------------------------------------------\n");
+            BCM_PBMP_ITER(bcm_pbmp, local_port_id) {
+               /*convert potr_id to gport(include type)*/
+               BCM_GPORT_LOCAL_SET(gport, local_port_id);
+               /*get system gport*/
+               bcm_stk_gport_sysport_get(unit, gport, &sys_gport);
+               /*get system port*/
+               sys_port_id = BCM_GPORT_SYSTEM_PORT_ID_GET(sys_gport);
+               cli_out("         %-10d           |        %-10d      |         %-10s               \n", local_port_id, sys_port_id, BCM_PORT_NAME(unit, local_port_id));
+            }
+         }
+
+         if (scheduler_alloc_manager) {
+            res = dpp_diag_alloc_cosq_sched_print(unit, core, flow_id, flow_count, allocated_resource);
+            if (SOC_FAILURE(res)) {
+               cli_out("\nFailed to get cosq scheduler statistics\n\n");
+               res = CMD_FAIL;
+            }
+         }
+      }
+   }
+#endif
+   return res;
+
+}
+
+STATIC cmd_result_t
+dpp_diag_fabric(int unit, args_t *a) {
+    char           *option;
+
+    option = ARG_GET(a);
+
+    if (option != NULL && !sal_strncasecmp(option, "gci", strlen(option))) {
+        diag_counter_data_t *gci_backoff_info = NULL;
+        diag_counter_data_t *gci_info = NULL;
+
+
+        if (SOC_IS_ARAD(unit))
+        {
+#ifdef BCM_ARAD_SUPPORT
+            gci_backoff_info = arad_diag_fabric_gci_backoff;
+            gci_info = arad_diag_fabric_gci;
+
+#endif  /*BCM_ARAD_SUPPORT*/
+        } else {
+            cli_out("argument \"%s\" not recognized\n", option);
+            return CMD_USAGE;
+        }   
+
+        if (gci_backoff_info != NULL)
+        {
+            /*GCI backoff congestion level maximal value and signal per multicast context*/
+            cli_out("Fabric GCI-backoff diagnostic\n");
+            cli_out("=============================\n");
+            dpp_diag_counters_print(unit, gci_backoff_info, 0, 0, NULL, 0); /*0 for print all*/
+            cli_out("\n\n");
+
+        }
+
+        if (gci_info != NULL)
+        {
+            /*GCI leaky buckets*/
+            cli_out("Fabric GCI diagnostic\n");
+            cli_out("=====================\n");
+            dpp_diag_counters_print(unit, gci_info, 0, 0, NULL, 0); /*0 for print all*/
+            cli_out("\n\n");
+        }
+ 
+    } else {
+        cli_out("argument \"%s\" not recognized\n", option);
+        return CMD_USAGE;
+    }
+
+   return CMD_OK;
+}
+
+#ifdef BCM_DPP_SUPPORT
+
+#define DIAG_DCMN_COMP_DEFAULT_NETWORK_HDR_SIZE 24
+
+void
+print_header_diff_usage(int unit)
+{
+    char cmd_dpp_diag_header_diff_usage[] =
+    "Usage (DIAG headerdiff):"
+    "\n\tDIAGnotsics HeaderDiff commands\n\t"
+    "Usages:\n\t"
+    "DIAG headerdiff [OPTION] "
+#ifdef __PEDANTIC__
+    "\nFull documentation cannot be displayed with -pendantic compiler\n";
+#else
+    "\n\tOPTION can be:"
+    "\n\t\tingress    display ingress header diff"
+    "\n\t\tegress     display egress header diff"
+    "\n\n";
+#endif   /*COMPILER_STRING_CONST_LIMIT*/
+    cli_out(cmd_dpp_diag_header_diff_usage);
+}
+
+cmd_result_t
+cmd_diag_header_diff(int unit, args_t* a)
+{
+    char                *subcmd;
+    parse_table_t       pt;
+    uint32              hdr_size;
+    uint64              pckts_num64;
+    uint64              reg64;
+    uint32              pckts_num32;
+    uint64              bytes_num64;
+    uint32              avg_bytes_num1;
+    uint32              avg_bytes_num2;
+    uint32 interval = 1000000; /* 1 second */
+    char *block_names_ingress[] = {"IQM", NULL};
+    char *block_names_egress[] = {"EGQ", NULL};
+    int block_num = 2;
+    int core = 0;
+    int rv;
+
+    block_names_ingress[1] = SOC_IS_JERICHO(unit) ? "NBIH" : "NBI";
+    block_names_egress[1] = SOC_IS_JERICHO(unit) ? "NBIH" : "NBI";
+
+    if (!sh_check_attached(ARG_CMD(a), unit)) {
+        return CMD_FAIL;
+    }
+
+    if ((subcmd = ARG_GET(a)) == NULL) {
+        return CMD_USAGE;
+    }
+
+
+    /* parse values */
+    parse_table_init(unit, &pt);
+    hdr_size = DIAG_DCMN_COMP_DEFAULT_NETWORK_HDR_SIZE;
+    parse_table_add(&pt, "NetworkHeaderSize", PQ_DFL | PQ_INT, &hdr_size, &hdr_size, NULL);
+
+    if (parse_arg_eq(a, &pt) < 0 ) {
+        cli_out("%s: ERROR: Unknown option: %s\n",
+                        ARG_CMD(a), ARG_CUR(a));
+        parse_arg_eq_done(&pt);
+        return CMD_FAIL;
+    }
+    parse_arg_eq_done(&pt);
+
+
+    BCM_DPP_CORES_ITER(BCM_CORE_ALL, core) {
+        if (!sal_strncasecmp(subcmd, "Ingress", strlen(subcmd))) {
+
+            /* init counters */
+            COMPILER_64_ZERO(reg64);
+#ifdef BCM_88675_A0
+            if (SOC_IS_JERICHO(unit)) {
+                rv = WRITE_NBIH_RX_TOTAL_PKT_COUNTERr(unit, 0);
+                if(rv != SOC_E_NONE) {
+                    return CMD_FAIL;
+                }
+                rv = WRITE_NBIH_RX_TOTAL_BYTE_COUNTERr(unit, reg64);
+                if(rv != SOC_E_NONE) {
+                    return CMD_FAIL;
+                }
+            } else
+#endif /*BCM_88675_A0*/
+            {
+                rv = WRITE_NBI_STATISTICS_RX_BURSTS_OK_CNTr(unit, reg64);
+                if(rv != SOC_E_NONE) {
+                    return CMD_FAIL;
+                }
+                rv = WRITE_NBI_STATISTICS_RX_TOTAL_LENG_CNTr(unit, reg64);
+                if(rv != SOC_E_NONE) {
+                    return CMD_FAIL;
+                }
+            }
+            rv = WRITE_IQM_ENQUEUE_BYTE_COUNTERr(unit, core, reg64);
+            if(rv != SOC_E_NONE) {
+                return CMD_FAIL;
+            }
+            rv = WRITE_IQM_ENQUEUE_PACKET_COUNTERr(unit, core, 0);
+            if(rv != SOC_E_NONE) {
+                return CMD_FAIL;
+            }
+
+            /* Enable and Trigger gtimer */
+            if ((rv = dpp_diag_gtimer_blocks_start(unit, block_names_ingress, block_num, interval)) == CMD_FAIL) {
+                return CMD_FAIL;
+            }
+
+            /* read NBI counters */
+#ifdef BCM_88675_A0
+            if (SOC_IS_JERICHO(unit)) {
+                uint32 pckts_num32;
+                rv = READ_NBIH_RX_TOTAL_PKT_COUNTERr(unit, &pckts_num32);
+                if(rv != SOC_E_NONE) {
+                    return CMD_FAIL;
+                }
+                rv = READ_NBIH_RX_TOTAL_BYTE_COUNTERr(unit, &bytes_num64);
+                if(rv != SOC_E_NONE) {
+                    return CMD_FAIL;
+                }
+                COMPILER_64_SET(pckts_num64, 0, pckts_num32);
+            } else
+#endif /*BCM_88675_A0*/
+            {
+                rv = READ_NBI_STATISTICS_RX_BURSTS_OK_CNTr(unit, &pckts_num64);
+                if(rv != SOC_E_NONE) {
+                    return CMD_FAIL;
+                }
+                rv = READ_NBI_STATISTICS_RX_TOTAL_LENG_CNTr(unit, &bytes_num64);
+                if(rv != SOC_E_NONE) {
+                    return CMD_FAIL;
+                }
+            }
+            COMPILER_64_UDIV_64(bytes_num64, pckts_num64);
+            COMPILER_64_TO_32_LO(avg_bytes_num1, bytes_num64);
+            avg_bytes_num1 += hdr_size;
+
+            /* read IQM counters */
+            rv = READ_IQM_ENQUEUE_PACKET_COUNTERr(unit, core, &pckts_num32);
+            if(rv != SOC_E_NONE) {
+                return CMD_FAIL;
+            }
+            rv = READ_IQM_ENQUEUE_BYTE_COUNTERr(unit, core, &bytes_num64);
+            if(rv != SOC_E_NONE) {
+                return CMD_FAIL;
+            }
+            COMPILER_64_SET(pckts_num64, 0, pckts_num32);
+            COMPILER_64_UDIV_64(bytes_num64, pckts_num64);
+            COMPILER_64_TO_32_LO(avg_bytes_num2, bytes_num64);
+
+            /* stop gtimer*/
+            if ((rv = dpp_diag_gtimer_blocks_stop(unit, block_names_ingress, block_num))== CMD_FAIL) {
+                return CMD_FAIL;
+            }
+
+            avg_bytes_num2 -= avg_bytes_num1;
+            cli_out("Core %d: Ingress header diff: %d\n", core, (int)avg_bytes_num2);
+        } else if (!sal_strncasecmp(subcmd, "Egress", strlen(subcmd))) {
+            /* init counters */
+            COMPILER_64_ZERO(reg64);
+            rv = WRITE_EPNI_EPE_BYTES_COUNTERr(unit, core, reg64);
+            if(rv != SOC_E_NONE) {
+                return CMD_FAIL;
+            }
+            rv = WRITE_EPNI_EPE_PACKET_COUNTERr(unit, core, reg64);
+            if(rv != SOC_E_NONE) {
+                return CMD_FAIL;
+            }
+            rv = WRITE_EGQ_PQP_UNICAST_BYTES_COUNTERr(unit, core, reg64);
+            if(rv != SOC_E_NONE) {
+                return CMD_FAIL;
+            }
+            rv = WRITE_EGQ_PQP_UNICAST_PACKET_COUNTERr(unit, core, reg64);
+            if(rv != SOC_E_NONE) {
+                return CMD_FAIL;
+            }
+
+            /* Enable and Trigger gtimer */
+            if ((rv = dpp_diag_gtimer_blocks_start(unit, block_names_egress, block_num, interval)) == CMD_FAIL) {
+                return CMD_FAIL;
+            }
+
+            /* read EPNI counters */
+            rv = READ_EPNI_EPE_PACKET_COUNTERr(unit, core, &pckts_num64);
+            if(rv != SOC_E_NONE) {
+                return CMD_FAIL;
+            }
+            rv = READ_EPNI_EPE_BYTES_COUNTERr(unit, core, &bytes_num64);
+            if(rv != SOC_E_NONE) {
+                return CMD_FAIL;
+            }
+            COMPILER_64_UDIV_64(bytes_num64, pckts_num64);
+            COMPILER_64_TO_32_LO(avg_bytes_num1, bytes_num64);
+            avg_bytes_num1 += hdr_size;
+
+            /* read EGQ counters */
+            rv = READ_EGQ_PQP_UNICAST_PACKET_COUNTERr(unit, core, &pckts_num64);
+            if(rv != SOC_E_NONE) {
+                return CMD_FAIL;
+            }
+            rv = READ_EGQ_PQP_UNICAST_BYTES_COUNTERr(unit, core, &bytes_num64);
+            if(rv != SOC_E_NONE) {
+                return CMD_FAIL;
+            }
+            COMPILER_64_UDIV_64(bytes_num64, pckts_num64);
+            COMPILER_64_TO_32_LO(avg_bytes_num2, bytes_num64);
+
+            /* stop gtimer*/
+            if ((rv = dpp_diag_gtimer_blocks_stop(unit, block_names_egress, block_num))== CMD_FAIL) {
+                return CMD_FAIL;
+            }
+
+            avg_bytes_num1 -= avg_bytes_num2;
+            cli_out("Core %d: Egress header diff: %d\n", core, (int)avg_bytes_num1);
+        } else {
+            return CMD_USAGE;
+        }
+    }
+
+    return CMD_OK;
+}
+#endif
+
+/*----------------------------------------------------------------------------------------------------*/
+#ifdef BCM_ARAD_SUPPORT
+
+
+STATIC cmd_result_t
+dpp_diag_prge_all(int unit, args_t *a) {
+    arad_egr_prog_editor_print_all_programs_data(unit);
+    return CMD_OK;
+}
+
+
+
+STATIC cmd_result_t
+dpp_diag_prge_last(int unit, args_t *a) {
+
+    uint32 first_instruction=0;
+
+    if (arad_pp_diag_prge_first_instr_get(unit, &first_instruction) != 0) {
+        return CMD_FAIL;
+    }
+
+    arad_egr_prog_editor_print_chosen_program(unit, first_instruction, FALSE /* NOT raw output */);
+    return CMD_OK;
+}
+
+STATIC cmd_result_t
+dpp_diag_prge_mgmt(int unit, args_t *a) {
+#ifdef LINK_ARAD_LIBRARIES
+
+    ARAD_PP_PRGE_MGMT_DIAG_PARAMS key_params = {0};
+    parse_table_t    pt;
+
+    /* Parse input */
+    parse_table_init(unit, &pt);
+    parse_table_add(&pt, "graph", PQ_DFL | PQ_STRING, NULL, &key_params.graph, NULL);
+    parse_table_add(&pt, "deploy", PQ_DFL | PQ_STRING, NULL, &key_params.deploy, NULL);
+
+    if (parse_arg_eq(a, &pt) != 1) {
+        parse_arg_eq_done(&pt);
+        return CMD_USAGE;
+    }
+
+    if (arad_egr_prge_mgmt_diag_print(unit, &key_params) != 0) {
+        parse_arg_eq_done(&pt);
+        cli_out("Diag failed.\n");
+    }
+
+    parse_arg_eq_done(&pt);
+    return 0;
+
+#else /*LINK_ARAD_LIBRARIES*/
+    cli_out("Diag unsupported when compiling without LINK_ARAD_LIBRARIES");
+    return 0;
+#endif /*LINK_ARAD_LIBRARIES*/
+}
+
+
+
+
+#endif /*BCM_ARAD_SUPPORT*/
+/*----------------------------------------------------------------------------------------------------*/
+
+
+void
+print_wb_usage(int unit) {
+   char cmd_dpp_diag_wb_usage[] =
+      "Usage (DIAG wb):"
+      "\n\tDIAGnotsics warmboot commands\n\t"
+      "Usages:\n\t"
+      "DIAG wb <OPTION> <parameters> ..."
+      "OPTION can be:"
+      "\nDUMP - \tDUMP wb_engine variables."
+      "\n\t optional Parameters:"
+      "\n\t\t engine_id - dump vars from wb_engine with ID engine_id"
+      "\n\t\t buffer_id - dump only vars from the buffer with id==buffer_id"
+      "\n\t\t var_id -  - dump only var with id==var_id"
+      "\n\t\t file - output to specified file instead of to screen"
+      "\n";
+
+   cli_out(cmd_dpp_diag_wb_usage);
+}
+
+#ifdef BCM_DPP_SUPPORT
+void
+print_rate_usage(int unit) {
+   char cmd_dpp_diag_rate_usage[] =
+      "Usage (DIAG rates):"
+      "\n\tDIAGnotsics rates commands\n\t"
+      "Usages:\n\t"
+      "DIAG rates <OPTION> <parameters> ..."
+      "OPTION can be:"
+#ifdef COMPILER_STRING_CONST_LIMIT
+      "Full documentation cannot be displayed with -pendantic compiler\n"
+#else
+      "\nEGQ - \tEGQ rates calculation."
+      "\n\t Parameters required:"
+      "\n\t\t port - local port id"
+      "\n\t\t tc - traffic class index"
+
+      "\nSCH PS-\tSCH port rates calculation."
+      "\n\t Parameters required:"
+      "\n\t\t port - local port id"
+
+      "\nSCH FLOW-\tSCH flow rates calculation."
+      "\n\t Parameters required:"
+      "\n\t\t flowid - flow id"
+
+      "\nPQP - \tPQP rates calculation"
+      "\n\t Parameters required:"
+      "\n\t\t port - local port id"
+      "\n\t\t tc - traffic class index"
+
+      "\nEPEP - \tEPE port rates calculation"
+      "\n\t Parameters required:"
+      "\n\t\t port - local port id"
+      "\n\t\t tc - traffic class index"
+
+      "\nEPNI - \tEPNI rates calculation"
+      "\n\t Parameters required:"
+      "\n\t\t scheme - measure bw scheme (0=measure total, 1=bw on interface, 2=bw on port, 3=bw on Q-pair, 4=bw on channel, 5=bw for mirror/not mirror (according to [bw]))"
+      "\n\t\t [bw] - bw id (if not specified uses 0 as default)"
+
+      "\n\nIRE - \tIRE rates calculation."
+      "\n\t Parameters required:"
+      "\n\t\t port - local port id"
+      "\nIQM - \tIQM rates calculation."
+      "\n\t Parameters required:"
+      "\n\t\t port - local port id"
+      "\nIPT - \tIPT rates calculation."
+#endif /* COMPILER_STRING_CONST_LIMIT*/
+      "\n";
+
+   cli_out(cmd_dpp_diag_rate_usage);
+}
+#endif
+
+cmd_result_t
+cmd_dpp_diag(int unit, args_t *a) {
+    char      *function;
+
+
+    cmd_result_t result;
+    uint32 str_to_func_array_size, field_idx;
+
+    const diag_dnx_table_t diag_str_to_function_array[] = {
+    {"wb",           cmd_dpp_diag_wb,            print_wb_usage   ,             DNX_DIAG_ID_UNAVAIL},
+#ifdef BCM_DPP_SUPPORT
+    {"pp",           cmd_dpp_diag_pp,            print_pp_usage   ,             DNX_DIAG_ID_UNAVAIL},
+    {"field",        cmd_dpp_diag_field,         print_field_usage,             DNX_DIAG_ID_UNAVAIL},
+    {"rates",        cmd_dpp_diag_rate,          print_rate_usage ,             DNX_DIAG_ID_UNAVAIL},
+    {"oam",          cmd_dpp_diag_oam,           print_oam_usage  ,             DNX_DIAG_ID_UNAVAIL},
+    {"alloc",        cmd_dpp_diag_alloc,         print_alloc_usage,             DNX_DIAG_ID_UNAVAIL},
+    {"template",     cmd_dpp_diag_tmplt,         print_tmplt_usage,             DNX_DIAG_ID_UNAVAIL},
+    {"last_packet",  dpp_diag_last_packet_info,  NULL,                          DNX_DIAG_ID_UNAVAIL},
+    {"HeaderDiff",   cmd_diag_header_diff,       print_header_diff_usage,       DNX_DIAG_ID_UNAVAIL},
+    {"ssdump",       cmd_dpp_diag_sw_state_dump, print_sw_state_dump_usage,     DNX_DIAG_ID_UNAVAIL},
+    {"buffers",      cmd_dpp_diag_buffers,       cmd_dpp_diag_buffers_usage,    DNX_DIAG_ID_UNAVAIL},
+    {"mmu",          cmd_dpp_diag_mmu,           cmd_dpp_diag_mmu_usage,        DNX_DIAG_ID_UNAVAIL},
+    {"dbal",         cmd_dpp_diag_dbal,          print_dbal_usage,              DNX_DIAG_ID_UNAVAIL}
+#endif
+    };
+
+
+    function = ARG_GET(a);
+    if (!function) {
+      return CMD_USAGE;
+    } else if (!sal_strncasecmp(function, "reachability", strlen(function))) {
+
+        cli_out("'diag reachabilty' is supported by the fabric diag pack.\n"
+                "type 'fabric usage' for additional information.\n");
+        return CMD_OK;
+
+    } else if (!sal_strncasecmp(function, "connectivity", strlen(function))) {
+        cli_out("'diag connectivity' is supported by the fabric diag pack.\n"
+                "type 'fabric usage' for additional information.\n");
+        return CMD_OK;
+    } else if (!sal_strncasecmp(function, "link", strlen(function))) {
+        cli_out("'diag link' is supported by the fabric diag pack.\n"
+                "type 'fabric usage' for additional information.\n");
+        return CMD_OK;
+    }
+   
+    str_to_func_array_size = sizeof(diag_str_to_function_array)/sizeof(diag_str_to_function_array[0]);
+     
+    for (field_idx = 0; field_idx < str_to_func_array_size; field_idx++) {
+        if((!sal_strncasecmp(function, (diag_str_to_function_array[field_idx].module_char), strlen(function)))) {
+            result = diag_str_to_function_array[field_idx].action_func(unit, a);
+            if (result == CMD_USAGE && diag_str_to_function_array[field_idx].usage_func != NULL) {         
+                diag_str_to_function_array[field_idx].usage_func(unit);
+                return CMD_FAIL;
+            }
+            return result;
+        }
+    }
+
+    if (!sal_strncasecmp(function, "counters", strlen(function))) {
+          return dpp_diag_counters(unit, a);
+       } else if (!sal_strncasecmp(function, "cosq", strlen(function))) {
+          return dpp_diag_cosq(unit, a);
+       } else if (!sal_strncasecmp(function, "fc", strlen(function))) {
+          return dpp_diag_fc(unit, a);
+       } else if (!sal_strncasecmp(function, "fabric", strlen(function))) {
+          return dpp_diag_fabric(unit, a);
+       } else if (!sal_strncasecmp(function, "queues", strlen(function))) {
+           cli_out("'diag queues' is supported by the fabric diag pack.\n"
+                   "type 'fabric usage' for additional information.\n");
+           return CMD_OK;
+       }
+#ifdef BCM_ARAD_SUPPORT
+    if (!sal_strncasecmp(function, "nif", strlen(function))) {
+      if (SOC_IS_ARAD(unit)) {
+         return cmd_dpp_nif(unit, a);
+      } else {
+         return CMD_USAGE;
+      }
+    } else if (!sal_strncasecmp(function, "port_db", strlen(function))) {
+      if (SOC_IS_ARAD(unit)) {
+         return cmd_dpp_port_db(unit, a);
+      } else {
+         return CMD_USAGE;
+      }
+    } else if (!sal_strncasecmp(function, "retransmit", strlen(function))) {
+      if (SOC_IS_ARAD(unit)) {
+         return cmd_dpp_retransmit(unit, a);
+      } else {
+         return CMD_USAGE;
+      }
+    } else if (!sal_strncasecmp(function, "prge_info", strlen(function))) {
+      if (SOC_IS_ARAD(unit)) {
+         return dpp_diag_prge_all(unit, a);
+      } else {
+         return CMD_USAGE;
+      }
+    } else if (!sal_strncasecmp(function, "prge_last", strlen(function))) {
+      if (SOC_IS_ARAD(unit)) {
+         return dpp_diag_prge_last(unit, a);
+      } else {
+         return CMD_USAGE;
+      }
+    } else if (!sal_strncasecmp(function, "prge_mgmt", strlen(function))) {
+      if (SOC_IS_ARAD(unit)) {
+         return dpp_diag_prge_mgmt(unit, a);
+      } else {
+         return CMD_USAGE;
+      }
+    } else if (!sal_strncasecmp(function, "egr_congestion", strlen(function))) {
+      return dpp_diag_egr_congestion(unit, a);
+    } else if (!sal_strncasecmp(function, "ing_congestion", strlen(function))) {
+      return dpp_diag_ing_congestion(unit, a);
+    } else if (! sal_strncasecmp(function, "reassembly_context", strlen(function)) ) {
+        return dpp_diag_reassembly_context(unit, a);
+    } else if (! sal_strncasecmp(function, "egr_calendars", strlen(function)) ) {
+        return dpp_diag_egr_calendars(unit, a);
+    }
+#if ARAD_DEBUG
+     else if (!sal_strncasecmp(function, "dump_signals", strlen(function))) {
+      return dpp_diag_dump_signals(unit, a);
+    }
+#endif
+#endif   
+
+#ifdef DUNE_UI
+    else if (!sal_strncasecmp(function, "dune_ui_free_bits", strlen(function))) {
+      dune_ui_module_free_bits();
+      return 1;
+    }
+#endif   
+    else if (! sal_strncasecmp(function, "th", strlen(function)) ) {
+           cli_out("'diag th' is supported by the fabric diag pack.\n"
+                   "type 'fabric usage' for additional information.\n");
+           return CMD_OK;
+    }
+
+    else {
+      return CMD_USAGE;
+    }
+}
+
+
+/*Diag pack infrastructure: start */
+
+/*
+ * Function: 
+ *      diag_dnx_usage_print 
+ * Purpose: 
+ *      print the usage of all the supported commands by this unit. 
+ * Parameters: 
+ *      unit            - (IN) Unit number.
+ *      diag_pack       - (IN) Diag pack table.
+ *      diag_id_support - (IN) Callback to a function that checks if diag_id supported.
+ */
+void 
+diag_dnx_usage_print(int unit, 
+                     const diag_dnx_table_t *diag_pack,
+                     diag_dnx_diag_id_supported_func_ptr_t diag_id_support)
+{
+    const diag_dnx_table_t *diag_pack_entry;
+
+    /*Iterate over diag pack table*/
+    for (diag_pack_entry = diag_pack; diag_pack_entry->action_func != NULL; diag_pack_entry++)
+    {
+        /*Call to usage func iff diag_id is supported by the device and usage function exist*/
+        if (diag_id_support(unit, diag_pack_entry->diag_id) && 
+            diag_pack_entry->usage_func != NULL)
+        {
+            diag_pack_entry->usage_func(unit);
+            cli_out("-\n");
+        }
+    }
+}
+
+/*
+ * Function: 
+ *      diag_dnx_usage_print 
+ * Purpose: 
+ *      Dispatch according to command name and if the diag_id is supported. 
+ * Parameters: 
+ *      unit            - (IN) Unit number.
+ *      diag_pack       - (IN) Diag pack table.
+ *      diag_id_support - (IN) Callback to a function that checks if diag_id supported.
+ *      cmd_name        - (IN) Command full name.
+ *      args            - (IN) args required by the command.
+ */
+cmd_result_t 
+diag_dnx_dispatch(int unit,
+                  const diag_dnx_table_t *diag_pack,
+                  diag_dnx_diag_id_supported_func_ptr_t diag_id_support,
+                  char *cmd_name,
+                  args_t *args)
+{
+    const diag_dnx_table_t *diag_pack_entry;
+    cmd_result_t res;
+
+    if (cmd_name == NULL)
+    {
+        return CMD_USAGE;
+    }
+
+    /*Iterate over diag pack table*/
+    for (diag_pack_entry = diag_pack; diag_pack_entry->action_func != NULL && diag_pack_entry->module_char != NULL; diag_pack_entry++)
+    {
+        /*Call to the first diag that is supported and match to cmd name*/
+        if((!sal_strncasecmp(cmd_name, (diag_pack_entry->module_char), strlen(cmd_name))) && 
+           diag_id_support(unit, diag_pack_entry->diag_id)) 
+        {
+            res = diag_pack_entry->action_func(unit, args);
+
+            /*If usage error -> print usage info (if exist)*/
+            if (res == CMD_USAGE && diag_pack_entry->usage_func != NULL) {         
+                diag_pack_entry->usage_func(unit);
+                return CMD_FAIL;
+            }
+            return res;
+        }
+    }
+
+    return CMD_USAGE;
+}
+            
+/*Diag pack infrastructure: end*/
+      

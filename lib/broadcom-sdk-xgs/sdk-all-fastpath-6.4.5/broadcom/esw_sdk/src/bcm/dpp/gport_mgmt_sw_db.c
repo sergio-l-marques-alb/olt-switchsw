@@ -1,0 +1,161 @@
+	/*
+ * $Id: gport_mgmt_sw_db.c,v 1.3 Broadcom SDK $
+ *
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ *
+ */
+#include <shared/bsl.h>
+
+#include <sal/types.h>
+#include <sal/core/libc.h>
+#include <sal/core/dpc.h>
+#include <sal/appl/sal.h>
+#include <sal/appl/io.h>
+
+#include <bcm_int/dpp/gport_mgmt.h> 
+
+
+
+
+
+STATIC int
+_bcm_dpp_sw_db_gport_type_to_string(int unit, int type, char* gport_type_name) {
+    if (type ==_bcmDppGportResolveTypeInvalid) sal_strncpy(gport_type_name, "INVALID", 50);
+    else if (type ==_bcmDppGportResolveTypeFec) sal_strncpy(gport_type_name, "FEC", 50);
+    else if (type ==_bcmDppGportResolveTypeAC) sal_strncpy(gport_type_name, "AC", 50);
+    else if (type ==_bcmDppGportResolveTypePhy) sal_strncpy(gport_type_name, "PHYSICAL PORT", 50);
+    else if (type ==_bcmDppGportResolveTypeFecVC) sal_strncpy(gport_type_name, "FEC VC", 50);
+    else if (type ==_bcmDppGportResolveTypePhyEEP) sal_strncpy(gport_type_name, "EEP", 50);
+    else if (type ==_bcmDppGportResolveTypeFecEEP) sal_strncpy(gport_type_name, "FEC EEP", 50);
+    else if (type ==_bcmDppGportResolveTypeMimMP) sal_strncpy(gport_type_name, "MIM MP", 50);
+    else if (type ==_bcmDppGportResolveTypeTrillMC) sal_strncpy(gport_type_name, "TRILL MC", 50);
+    else if (type ==_bcmDppGportResolveTypeMimP2P) sal_strncpy(gport_type_name, "MIM P2P", 50);
+    else if (type ==_bcmDppGportResolveTypeIPTunnel) sal_strncpy(gport_type_name, "IP TUNNEL", 50);
+    else if (type ==_bcmDppGportResolveTypeL2Gre) sal_strncpy(gport_type_name, "L2 GRE", 50);
+    else if (type ==_bcmDppGportResolveTypeL2GreEgFec) sal_strncpy(gport_type_name, "GRE EG FEC", 50);
+    else if (type ==_bcmDppGportResolveTypeVxlan) sal_strncpy(gport_type_name, "VXLAN", 50);
+    else if (type ==_bcmDppGportResolveTypeVxlanEgFec) sal_strncpy(gport_type_name, "VXLAN EG FEC", 50);
+    else if (type ==_bcmDppGportResolveTypeRing) sal_strncpy(gport_type_name, "RING", 50);
+    else sal_strncpy(gport_type_name, "INVALID", 50);
+
+    return BCM_E_NONE;
+}
+
+
+
+
+
+
+int 
+_bcm_dpp_sw_db_hash_vlan_print(int unit, _BCM_GPORT_PHY_PORT_INFO *data) {
+    char type_name[50];
+    int ret; 
+
+    /* get the type */
+    ret = _bcm_dpp_sw_db_gport_type_to_string(unit, data->type, type_name);
+    if (ret != BCM_E_NONE) {
+        LOG_CLI((BSL_META_U(unit,
+                            "_bcm_dpp_sw_db_gport_type_to_string failed")));
+        return BCM_E_FAIL;
+    }
+
+    LOG_CLI((BSL_META_U(unit,
+                        "\nforwarding database info: \n")));
+    LOG_CLI((BSL_META_U(unit,
+                        "   type:      %s\n"), type_name));
+    LOG_CLI((BSL_META_U(unit,
+                        "   phy_gport: 0x%x\n"), data->phy_gport));
+    LOG_CLI((BSL_META_U(unit,
+                        "   encap_id:  0x%x\n"),data->encap_id));
+
+    return BCM_E_NONE;
+}
+
+
+int 
+_bcm_dpp_lif_match_print(int unit, int lif, char* criteria_type, char* flag_type) {
+
+    _bcm_dpp_inlif_bookkeeping_t *lif_info = INLIF_INFO(unit);
+
+    LOG_CLI((BSL_META_U(unit,
+                        "\nlif database info: \n")));
+    LOG_CLI((BSL_META_U(unit,
+                        "   criteria:           0x%x %s \n"), lif_info->match_key[lif].criteria, criteria_type));
+    LOG_CLI((BSL_META_U(unit,
+                        "   flags:              0x%x %s \n"), lif_info->match_key[lif].flags, flag_type));
+    LOG_CLI((BSL_META_U(unit,
+                        "   port:               0x%x\n"), lif_info->match_key[lif].port));
+    LOG_CLI((BSL_META_U(unit,
+                        "   match1:             %d\n"), lif_info->match_key[lif].match1));
+    LOG_CLI((BSL_META_U(unit,
+                        "   match2:             %d\n"), lif_info->match_key[lif].match2));
+    LOG_CLI((BSL_META_U(unit,
+                        "   match_tunnel_value: %d\n"), lif_info->match_key[lif].match_tunnel));
+    LOG_CLI((BSL_META_U(unit,
+                        "   match_ethertype:    %d\n"), lif_info->match_key[lif].match_ethertype));
+    LOG_CLI((BSL_META_U(unit,
+                        "   port_id:            0x%x\n"), lif_info->match_key[lif].gport_id));
+    LOG_CLI((BSL_META_U(unit,
+                        "   key1:               %d\n"), lif_info->match_key[lif].key1));
+    LOG_CLI((BSL_META_U(unit,
+                        "   peer_gport:         0x%x\n"), lif_info->match_key[lif].peer_gport));
+    LOG_CLI((BSL_META_U(unit,
+                        "   learn_gport_id:     0x%x\n"), lif_info->match_key[lif].learn_gport_id));
+    LOG_CLI((BSL_META_U(unit,
+                        "   tpid_profile_type:  %d\n"), lif_info->match_key[lif].tpid_profile_type));
+    LOG_CLI((BSL_META_U(unit,
+                        "   vsi:                %d\n"), lif_info->match_key[lif].vsi));
+
+    return BCM_E_NONE;
+}
+
+
+int
+_bcm_dpp_lif_ac_match_print(int unit, int lif) {
+    return _bcm_dpp_lif_match_print(unit, lif, "(BCM_VLAN_PORT_MATCH_XXX)", "(BCM_VLAN_PORT_XXX)");
+}
+
+int
+_bcm_dpp_lif_mpls_match_print(int unit, int lif) {
+    return _bcm_dpp_lif_match_print(unit, lif, "(BCM_MPLS_PORT_MATCH_XXX)", "(BCM_MPLS_PORT_XXX)");
+}

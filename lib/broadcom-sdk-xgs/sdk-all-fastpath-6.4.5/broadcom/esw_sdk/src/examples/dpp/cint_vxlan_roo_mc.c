@@ -1,0 +1,933 @@
+/* $Id: cint_vxlan_roo.c,v 1.10 Broadcom SDK $
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ * 
+ * 
+ * **************************************************************************************************************************************************
+ * 
+ *  
+ * Network diagram
+ * 
+ * We configure Router A
+ *  
+ *  
+ *          
+ *                  _________    _________   v1
+ *      host2------| ROUTER E|  | ROUTER B|------host1
+ *                 |_________|  |_________|  
+ *                         |     |    
+ *                   v1, v3|     | |-host3                                                    
+ *             access_port2|   v1| |v1 access port1
+ *     ____________________|_____|_|______________________________
+ *    |                   |         |                             |
+ *    |                   | ROUTER A| (intra DC IP)    DC FABRIC  |
+ *    |                   |_________|                             |
+ *    |       provider_port2/       \provider_port1               |  
+ *    |                    /v2      \v2                           |
+ *    |            _______/___       \__________                  |
+ *    |           |          |      |          |                  |
+ *    |           | ROUTER C |      | ROUTER D |                  |
+ *    |           |__________|      |__________|                  | 
+ *    |            /                          \                   | 
+ *    |         /                               \                 | 
+ *    |_____ /____________________________________\_______________|
+ *     ____/___                                _____\__
+ *    |  TOR1 |                               |  TOR2 |                      
+ *    |_______|                               |_______|                      
+ *    |       |                               |       | 
+ *    |       |                               |       | 
+ *    |_______|                               |_______| 
+ *    | VM:A0 |                               |       | 
+ *    |_______|                               |_______| 
+ * 
+ * 
+ * Configuration:
+ * 
+ * soc properties:                                                        
+ * #enable VXLAN according to SIP/DIP                                     
+ * #0:none 1:dip_sip termination 2: dip_termination 3: both               
+ * bcm886xx_vxlan_enable=1                                                
+ * #1:seperated in SEM 2:for joined in TCAM                               
+ * bcm886xx_vxlan_tunnel_lookup_mode=1                                    
+ * #disable conflicting features                                          
+ * bcm886xx_ip4_tunnel_termination_mode=0                                 
+ * bcm886xx_l2gre_enable=0                                                
+ * bcm886xx_ether_ip_enable=0                                             
+ * bcm886xx_auxiliary_table_mode=1                                        
+ * #enable ROO for vxlan                                                  
+ * bcm886xx_roo_enable=1                                                  
+ *                                                                        
+ * cint;                                                                  
+ * cint_reset();                                                          
+ * exit;  
+ * cint ../../../../src/examples/dpp/utility/cint_utils_global.c  
+ * cint ../../../../src/examples/dpp/utility/cint_utils_l2.c
+ * cint ../../../../src/examples/dpp/utility/cint_utils_l3.c  
+ * cint ../../../../src/examples/dpp/utility/cint_utils_multicast.c  
+ * cint ../../../../src/examples/dpp/utility/cint_utils_vlan.c       \
+ * cint ../../../../src/examples/dpp/cint_ip_route.c                      
+ * cint ../../../../src/examples/dpp/cint_ip_tunnel.c                     
+ * cint ../../../../src/examples/dpp/cint_ip_tunnel_term.c                
+ * cint ../../../../src/examples/dpp/cint_port_tpid.c                     
+ * cint ../../../../src/examples/dpp/cint_advanced_vlan_translation_mode.c
+ * cint ../../../../src/examples/dpp/cint_mact.c                          
+ * cint ../../../../src/examples/dpp/cint_vswitch_metro_mp.c              
+ * cint ../../../../src/examples/dpp/cint_vxlan.c
+ * cint ../../../../src/examples/dpp/cint_vxlan_roo.c  
+ * cint ../../../../src/examples/dpp/cint_vxlan_roo_mc.c
+ * cint ../../../../src/examples/dpp/cint_field_gre_learn_data_rebuild.c  
+ * int unit=0;  
+ * int access_port1 = 200;  
+ * int access_port2 = 201;  
+ * int provider_port1 = 202;  
+ * int provider_port2 = 203;  
+ * int add_routing_table_entry = 0; 
+ * vxlan_roo_mc_run(unit, access_port1, access_port2, provider_port1, provider_port2);                            
+ * 
+ * 
+ *  
+ * MC Traffic from access routerB to access router: routerE, 
+ *                                to overlay network: routerC, routerD 
+ *                                to host3
+ *  Note: for now we only send to overlay network routerD
+ *  
+ * Purpose: - check compatible MC at L3 to overlay and to native router 
+ *          - check fall to bridge 
+ *          
+ *    Send:                                           
+ *             -----------------------------------   
+ *        eth: |    DA       |     SA      | VLAN |
+ *             ------------------------------------
+ *             | provider_MC | routerB_mac |  v1  |  
+ *             ------------------------------------
+ * 
+ *                 --------------------------- 
+ *             ip: |   SIP     | DIP          | 
+ *                 ----------------------------
+ *                 | host10_ip |  provider_MC | 
+ *                 ---------------------------- 
+ *  
+ * Receive:  to access router: router E
+ * 
+ *             ----------------------------------   
+ *        eth: |    DA       |     SA      | VLAN |
+ *             -----------------------------------
+ *             | provider_MC | routerA_mac |  v3  |  
+ *             ------------------------------------
+ * 
+ *                 --------------------------- 
+ *             ip: |   SIP     | DIP          | 
+ *                 ----------------------------
+ *                 | host10_ip |  provider_MC | 
+ *                 ---------------------------- 
+ *  
+ * Receive:  to host3 (fall to bridge)
+ *     
+ *             ------------------------------------   
+ *        eth: |    DA       |     SA      | VLAN |
+ *             ------------------------------------
+ *             | provider_MC | routerB_mac |  v1  |  
+ *             ------------------------------------
+ * 
+ *                 ---------------------------- 
+ *             ip: |   SIP     | DIP          | 
+ *                 ----------------------------
+ *                 | host10_ip |  provider_MC | 
+ *                 ---------------------------- 
+ *  
+ *  
+ * Receive:  to router C, router D (overlay)  
+ *             -----------------------------------   
+ *        eth: |    DA      |     SA      | VLAN |
+ *             -----------------------------------
+ *             | provider_MC| routerA_mac |  v2  |  
+ *             -----------------------------------
+ * 
+ *                 --------------------------- 
+ *             ip: |   SIP     | DIP         | 
+ *                 --------------------------- 
+ *                 | routerA_ip| provider_MC | 
+ *                 --------------------------- 
+ * 
+ *                udp:
+ * 
+ *                   vxlan:  ---------
+ *                           |  VNI  |
+ *                           ---------
+ *                           |  vni  |
+ *                           ---------
+ *    
+ *                                 ------------------------------------- 
+ *                     native eth: |    DA       |     SA      |  VLAN | 
+ *                                 ------------------------------------- 
+ *                                 | provider_MC | routerA_mac |   v4  | 
+ *                                 ------------------------------------- 
+ *                                                                      
+ *                                     ---------------------------         
+ *                         native ip:  |   SIP     | DIP          |        
+ *                                     ----------------------------       
+ *                                     | host10_ip |  native_MC   |        
+ *                                     ----------------------------   
+ *  
+ * Packet flow  :     
+ * - get the VSI from the VLAN. 
+ * - DA is identified as compatible MC, ethernet header is terminated
+ * - get the RIF (= vsi)
+ * - RIF is compatible MC 
+ * - packet is forwarded according to DIP and VRF (inRif.vrf)
+ * - result is MC 
+ * - each MC member contains: outLif, outRif and port. 
+ * - for MC entry to routerE (routing): LL outLif, outRif and port. 
+ *   - DA is built from DIP (compatible MC)
+ *   - SA = outRif.myMac
+ *   - VLAN = VSI (=outRif)
+ * - for MC entry to host3 (fall to bridge): LL outLif, outRif and port. 
+ *   - inRif == outRif so do fall to bridge
+ *   - packet is bridged
+ * - for MC entry to router C and D (overlay): vxlan outLif, outRif and port
+ *   - vxlan tunnel is built using IP tunnel eedb entry.     
+ *   - vxlan header.vni is resovled from outVsi (outRif) -> vni
+ *   - native is built from DIP (compatible MC)
+ *   - native SA = outRif.myMac
+ *   - VLAN = VSI (=outRif) 
+ * 
+ * 
+ * 
+ * 
+ * MC traffic from overlay router C to access router B,
+ *                                     access router E
+ *                                     and provider router D (will be filtered)
+ *  Purpose: - check tunnel is terminated, 
+ *           - check native MC 
+ *           - check fall to bridge and split horizon filter (for copy to provider router C)
+ *  Note: this test is separated into 2 tests: 1 MC group to terminate the tunnel and send to access router B and access router E
+ *                                             1 MC group to terminate the tunnel, fall back to bridge and split horizon filter
+ * 
+ * 
+ * Send: 
+ *             -----------------------------------   
+ *        eth: |    DA      |     SA      | VLAN |
+ *             -----------------------------------
+ *             | provider_MC| routerC_mac |  v2  |  
+ *             -----------------------------------
+ * 
+ *                 ------------------------ 
+ *             ip: |   SIP  | DIP         | 
+ *                 ------------------------ 
+ *                 | tor1_ip| provider_MC | 
+ *                 ------------------------ 
+ * 
+ *                udp:
+ * 
+ *                   vxlan:  ---------
+ *                           |  VNI  |
+ *                           ---------
+ *                           |  vni  |
+ *                           ---------
+ *    
+ *                                 ------------------------------------- 
+ *                     native eth: |    DA       |     SA      |  VLAN | 
+ *                                 ------------------------------------- 
+ *                                 | native_MC   | routerC_mac |   v4  | 
+ *                                 ------------------------------------- 
+ *                                                                      
+ *                                     ---------------------------         
+ *                         native ip:  |   SIP     | DIP          |        
+ *                                     ----------------------------       
+ *                                     | vmA0_ip   |  native_MC   |        
+ *                                     ----------------------------   
+ * 
+ * 
+ * Recieve 
+*                  ------------------------------------- 
+*      native eth: |    DA       |     SA      |  VLAN | 
+*                  ------------------------------------- 
+*                  | native_MC   | routerA_mac |   v1  | 
+*                  ------------------------------------- 
+*                                                       
+*                      ---------------------------         
+*          native ip:  |   SIP     | DIP          |        
+*                      ----------------------------       
+*                      | vmA0_ip   |  native_MC   |        
+*                      ----------------------------   
+ * 
+ * 
+ * - get the VSI from the VNI (vni -> vsi table in isem)
+ * - DA is identified as compatible MC, ethernet header is terminated
+ * - get the RIF (=vsi)
+ * - RIF is compatible MC
+ * - tunnel is terminated at TT (currently, tunnel is terminated by second pass VTT program, if recycle port and IP MC packet, terminate the tunnel)
+ * - get the inRif (=VSI)
+ * - packet is forwarded according to MC
+ * - RIF is compatible MC                                      
+ * - packet is forwarded according to DIP and VRF (inRif.vrf)  
+ * - result is MC  
+ * - MC members: outLif, outRif and port
+ * - for MC entry to provider routerD, vxlan outLif, outRif and port 
+ *   - outRif = inRif ( = vsi (vsi come from VNI -> VSI mapping)) 
+ *   - fall to bridge
+ *   - ip tunnel inLif.fwrd_group = ip tunnel outLif. frwrd_group, filter the packet. (orientation filter, BUD to BUD is filtered)
+ *  - for MC entries to access router E and access Router B, do routing
+ * 
+ */
+
+
+/* **************************************************************************************************
+  --------------          Global Variables Definition and Initialization  START     -----------------
+ **************************************************************************************************** */
+
+verbose = 2; 
+
+struct vxlan_roo_mc_s {
+    /* native header */
+    int       native_mc_dip; 
+    int       access_vlan; /* vlan at access ( = vsi = rif) */
+    bcm_mac_t native_mc_da; 
+
+    int       vpn; /* vxlan vpn, in native vlan (= vsi = rif) for packet that arrive from provider network.
+                                 out native vlan (= vsi = rif) for packet that go to provider network. */
+
+    /* native arp/LL */
+    int native_ll_outlif; /* interface of type encap: outlif (native arp eedb index) */
+
+    /* vrf */
+    int vrf; 
+
+    /* overlay arp/LL */
+    bcm_if_t overlay_ll_outlif; /* interface of type encap: outlif (or overlay arp eedb index) */ 
+
+    /* outer vlan for the Eth of the overlay: */
+    int overlay_out_vlan; 
+
+    /* overlay header */
+    int       overlay_mc_dip; 
+    bcm_mac_t overlay_mc_da; 
+};
+
+
+vxlan_roo_mc_s g_vxlan_roo_mc = 
+{
+/* native header
+ * native MC DIP: 224:0.1.1 | native vlan | native MC DA:  01:00:5e:00:01:01 */
+0xE0000101,                   35,           {0x01, 0x00, 0x5e, 0x00, 0x01, 0x01},
+
+/* vpn */
+15, 
+/* native ll outlif */
+0x3006,
+
+/* vrf */
+123,
+     
+/* overlay ll outlif */
+ 0, 
+
+/* overlay header
+ * 
+ * overlay out vlan */
+ 0x60, 
+/* overlay MC DIP: 224:0.2.2 | overlay MC DA:  01:00:5e:00:02:02 */
+0xE0000202,                    {0x01, 0x00, 0x5e, 0x00, 0x02, 0x02}
+};
+
+void vxlan_roo_mc_init(vxlan_roo_mc_s *param) {
+    if (param != NULL) {
+        sal_memcpy(&g_vxlan_roo_mc, param, sizeof(g_vxlan_roo_mc));
+    }
+}
+
+void vxlan_roo_mc_struct_get(vxlan_roo_mc_s *param) {
+    sal_memcpy( param, &g_vxlan_roo_mc, sizeof(g_vxlan_roo_mc));
+}
+
+
+/* create native rif,
+ * update it with vrf and RPF,
+   IPMC is enabled by default */
+int vxlan_roo_mc_create_rif(int unit, bcm_mac_t my_mac, int vlan, int vrf, int* native_ing_intf) {
+    int rv; 
+    bcm_l3_intf_t native_l3_intf; 
+
+    bcm_l3_intf_t_init(&native_l3_intf); 
+
+    sal_memcpy(native_l3_intf.l3a_mac_addr, my_mac, 6); /* native my mac */
+    native_l3_intf.l3a_vid = vlan; /* rif id */
+    native_l3_intf.native_routing_vlan_tags = 1; /* native ethernet compensation */ 
+
+    rv = bcm_l3_intf_create(unit, &native_l3_intf);
+    if (rv != BCM_E_NONE) {
+      return rv;
+    }
+    *native_ing_intf = native_l3_intf.l3a_intf_id; 
+
+    /* update RIF: update vrf and rpf */
+    rv = l3__update_rif_vrf_rpf(unit,
+                                &native_l3_intf,
+                                vrf, /* router instance */
+                                0 /* flags ( no rpf check for roo application: so flag BCM_L3_RPF is forbidden here.)  */
+    ); 
+    if (rv != BCM_E_NONE) {
+        printf("Error, l3__update_rif_vrf_rpf\n");
+    }
+
+    if (verbose >= 2) {
+        printf("update native rif 0x%x with vrf 0x%x, and disable rpf check \n", *native_ing_intf, g_vxlan_roo_mc.vrf);
+    }
+
+    return rv; 
+}
+
+
+/* disable split horizon per lif orientation.
+ * diable hub (lif.forwarding_group = 1) to hub split horizon. 
+ */
+int vxlan_roo_mc_disable_split_horizon(int unit) {
+    
+    int rv; 
+
+    bcm_switch_network_group_t inlif_forwarding_group = 1; 
+    bcm_switch_network_group_config_t group_config; 
+    bcm_switch_network_group_config_t_init(&group_config); 
+
+    group_config.dest_network_group_id = 1; /* outlif forwarding group */
+    group_config.config_flags = 0; /* disable filter */
+
+    rv = bcm_switch_network_group_config_set(unit, inlif_forwarding_group, &group_config); 
+    if (rv != BCM_E_NONE) {
+        printf("Error, bcm_switch_network_group_config_set\n");
+    }
+
+    return rv; 
+}
+
+int vxlan_roo_mc_run(int unit, 
+                     int access_port1, 
+                     int access_port2, 
+                     int provider_port1, 
+                     int provider_port2) {
+
+    int rv; 
+
+
+    printf("access port1: %d \n", access_port1); 
+    printf("access port2: %d \n", access_port2); 
+    printf("provider port1: %d \n", provider_port1); 
+    printf("provider port2: %d \n", provider_port2); 
+
+
+    /*** init ***/
+
+    rv = vlan_translation_default_mode_init(unit);
+    if (rv != BCM_E_NONE) {
+		printf("Error, vlan_translation_default_mode_init \n");
+	}
+
+    /** init global variables **/
+
+    /* init ip tunnel global */
+    ip_tunnel_s tunnel_1;   /* tunnel 1 info from cint_ip_tunnel.c */
+    ip_tunnel_s tunnel_2;   /* tunnel 2 is not used in vxlan roo mc*/
+    /* init ip tunnel info, to fit VXLAN usage */
+    ip_tunnel_glbl_init_vxlan(unit,0);
+    ip_tunnel_info_get(&tunnel_1, &tunnel_2);
+    ip_tunnel_glbl_info.tunnel_1.dip = g_vxlan_roo_mc.overlay_mc_dip; 
+
+    /* init ip tunnel termination global 
+       skip ethernet flag is available until arad+. 
+       For jericho, support 2nd my mac termination for native ethernet termination. */
+    ip_tunnel_term_glbl_info.skip_ethernet_flag = (!is_device_or_above(unit,JERICHO));
+    printf("skip ethernet flag: %d \n", ip_tunnel_term_glbl_info.skip_ethernet_flag); 
+    ip_tunnel_term_glbl_info.dip2 = g_vxlan_roo_mc.overlay_mc_dip; 
+
+
+     /* init vxlan globals */
+     vxlan_s vxlan_param; 
+     vxlan_struct_get(&vxlan_param);
+     vxlan_param.vpn_id =  g_vxlan_roo_mc.vpn;
+     vxlan_init(&vxlan_param);
+
+
+    /* use default vxlan roo global configuration */
+
+
+    /** init local variables **/
+
+    bcm_gport_t in_tunnel_gports[2];
+    bcm_gport_t out_tunnel_gports[2];
+    bcm_if_t out_tunnel_intf_ids[2];/* out tunnels interfaces
+                                  out_tunnel_intf_ids[0] : is tunnel-interface-id
+                                  out_tunnel_intf_ids[1] : is egress-object (FEC) points to tunnel
+                              */
+
+    int eg_intf_ids[2];/* interface for routing, not used */
+    bcm_gport_t vlan_port_id;
+    int vpn = g_vxlan.vpn_id; /* vpn = vsi at the provider side of the router */
+
+    /** init modules **/
+
+    /* init L2 VXLAN module */
+    rv = bcm_vxlan_init(unit); 
+    if (rv != BCM_E_NONE) {
+        printf("Error, bcm_switch_control_set \n");
+    }
+
+    /* set trap for bounce back filter to drop */
+    set_trap_to_drop(unit, bcmRxTrapEgTrillBounceBack);
+
+    /** configure global my mac **/
+    l2__global_mac__set(unit, tunnel_1.sa); 
+
+
+    /*** build LL for overlay/tunnel ***/
+    /* In ROO, the overlay LL encapsulation is built with a different API call 
+     * (bcm_l2_egress_create instead of bcm_l3_egress create)
+     * Jericho notes: 
+     *  - In Jericho, api l2_egress_create configures only 12 lsbs for overlay LL encapsulation, 
+     *    unlike in arad+ version, where all the 48bits are saved in the LL encapsulation
+     *  - In Jericho, we support only 8 msbs of overlay outer vlan: 4 lsbs of overlay outer vlan
+     *    and overlay inner vlan will be supported when eedb extension (1/4 EEDB entry)
+     * 36 MSBs are  global configuration. 
+
+       */
+    bcm_l2_egress_t l2_egress_overlay;
+    bcm_l2_egress_t_init(&l2_egress_overlay);
+
+    l2_egress_overlay.dest_mac   = g_vxlan_roo_mc.overlay_mc_da; /* next hop. default: 01:00:5e:00:02:02 */
+    l2_egress_overlay.src_mac    = tunnel_1.sa; /* my-mac. default:  {0x00, 0x0c, 0x00, 0x02, 0x00, 0x00}  */
+    l2_egress_overlay.outer_vlan = g_vxlan_roo_mc.overlay_out_vlan; /* PCP DEI (0) + outer_vlan (96=0x60)  */
+    l2_egress_overlay.ethertype  = 0x800;       /* ethertype for IP */
+    l2_egress_overlay.outer_tpid = 0x8100;      /* outer tpid */
+    if (g_vxlan_roo.overlay_ll_outlif != 0) {   /* outlif (or overlay LL eedb index) */
+        l2_egress_overlay.encap_id = g_vxlan_roo.overlay_ll_outlif ;     
+        /* indicate outlif is provided */
+        l2_egress_overlay.flags    = BCM_L2_EGRESS_WITH_ID;  
+    }
+    bcm_l2_egress_create(unit, &l2_egress_overlay);
+
+    /* update global variable for overlay LL outlif */
+    g_vxlan_roo_mc.overlay_ll_outlif = l2_egress_overlay.encap_id; 
+
+    if(verbose >= 2){
+        printf("over LL encapsulation, outlif: 0x%x: \n", l2_egress_overlay.encap_id);
+    }
+
+
+    /*** build tunnel initiators ***/
+    if(verbose >= 2){
+        printf("Open tunnels: \n\r");
+    }
+    rv = vxlan_roo_ipv4_tunnel_build_tunnels(unit, 
+                                             provider_port1, 
+                                             l2_egress_overlay.encap_id, /* overlay LL */
+                                             g_vxlan_roo_mc.overlay_out_vlan,
+                                             out_tunnel_intf_ids,
+                                             out_tunnel_gports);
+    if (rv != BCM_E_NONE) {
+        printf("Error, ipv4_tunnel_add_routes, in_port=%d, \n", provider_port1);
+    }
+    if(verbose >= 2){
+        printf("Open out-tunnel 1 gport-id: 0x%08x (No FEC)\n\r", out_tunnel_gports[0]);
+    }
+
+
+    /** build tunnel terminations and router interfaces **/
+    if(verbose >= 2){
+        printf("Open tunnels tunnel terminators: \n\r");
+    }
+
+    /* make sure in tunnel gport and out tunnel gport have same lif value
+       Requirement for vxlan port add api */
+    BCM_GPORT_TUNNEL_ID_SET(in_tunnel_gports[0], out_tunnel_gports[0]); 
+
+    rv = ipv4_tunnel_term_build_tunnel_terms(unit,
+                                             provider_port1,
+                                             access_port1,
+                                             eg_intf_ids,
+                                             in_tunnel_gports); 
+    if (rv != BCM_E_NONE) {
+        printf("Error, cip_tunnel_term_open_route_interfaces, in_port=%d, \n", provider_port1);
+    }
+    if(verbose >= 2){
+        printf("Open in-tunnel 1 gport-id: 0x%08x (No FEC)\n\r", in_tunnel_gports[1]);
+    }
+
+
+    /*** build L2 VPN ***/
+
+    rv = vxlan_open_vpn(unit,vpn,g_vxlan.vni);
+    if (rv != BCM_E_NONE) {
+        printf("Error, vxlan_open_vpn, vpn=%d, \n", vpn);
+    }
+
+    /***  native routing ***/
+
+    /* create rif, update vrf, rpf, enable IPMC
+       inRif is used for provider to access, inRif = vsi (aka vpn, from mapping vni to vsi) */
+    int native_ing_intf; 
+    rv = vxlan_roo_mc_create_rif(unit, 
+                                 tunnel_1.sa, /* native my mac: 00:0c:00:02:00:00 */
+                                 vpn, /* vlan: Use vxlan vpn */
+                                 g_vxlan_roo_mc.vrf,  /* router instance */
+                                 &native_ing_intf 
+                                 ); 
+    if (rv != BCM_E_NONE) {
+        printf("Error, vxlan_roo_mc_create_rif\n");
+    }
+    printf("native rif 0x%x for access copies \n", native_ing_intf);
+
+    /* create rif, update vrf, rpf, enable IPMC,
+     * inRif is used for access to provider. inRif = vsi = vlan. 
+     * outRif is used for provider to access. 
+             It specifies the native my mac and the out Vlan (outRif = out vsi = out vlan) */
+    rv = vxlan_roo_mc_create_rif(unit,                     
+                                   tunnel_1.sa,                    /* native my mac: 00:0c:00:02:00:00 */
+                                   g_vxlan_roo_mc.access_vlan, /* rif_id = vlan */
+                                   g_vxlan_roo_mc.vrf,             /* router instance */
+                                   &native_ing_intf               
+                                   );                             
+    if (rv != BCM_E_NONE) {                                       
+        printf("Error, vxlan_roo_mc_create_rif\n");        
+    }                                                             
+    printf("native rif 0x%x for provider copies \n", native_ing_intf);
+
+
+    /* create rif, update vrf,  rpf, enable IPMC
+       inRif is used for provider to access. inRif = vsi = vlan */
+    rv = vxlan_roo_mc_create_rif(unit, 
+                                 tunnel_1.sa, /* not used at inRif since mc packet, not used at outRif since overlay LL is built using l2_egress_create */
+                                 g_vxlan_roo_mc.overlay_out_vlan, /* rif (= vsi = vlan) */
+                                 g_vxlan_roo_mc.vrf,  /* router instance */
+                                 &native_ing_intf 
+                                 ); 
+    if (rv != BCM_E_NONE) {
+        printf("Error, vxlan_roo_mc_create_rif\n");
+    }
+       
+
+    /* configure vxlan gport using tunnel.
+       Note: Don't need FEC since we're configuring mc entries */
+    rv = vxlan_add_port(unit,
+                        vpn,
+                        provider_port1, /* dummy, since no learning */
+                        in_tunnel_gports[0], /* tunnel termination gport */
+                        out_tunnel_gports[0], /* tunnel initiator gport */
+                        0, /* fec entry for ip tunnel */
+                        0, /* vxlan port flag */
+                        &g_vxlan_roo.vxlan_port_id);
+    if (rv != BCM_E_NONE) {
+        printf("Error, vxlan_add_port 2, in_gport=0x%08x --> out_intf=0x%08x \n", in_tunnel_gports[1],out_tunnel_intf_ids[1]);
+    }
+
+    printf("after vxlan_add_port \n");
+
+    /*** mc configuration 
+     * Notes:
+     * 
+     * Note 1: 
+     * we should have only one MC group with entries:
+     * - native routing entries: for access to access scenario and provider to access scenario (after tunnel termination)
+     * - roo entries: for access to provider scenario and provider to provider: interesting case is when we have fall back to bridge on provider to provider, should do same interface filter.
+     * All those entries should be in the same MC GROUP.
+     * But it's not the case, cause it's difficult to add entries with 2 cuds and entries with one.
+     * 
+     * So for now we have MCs: 
+     * we have 1 MC group with 1 roo entry, for access to provider scenario
+     *                                      and fall back to bridge and same interface filter scenario 
+     *         1 MC group with 2 access entries for provider to access scenario
+     * 
+     * 
+     * Note 2: 
+     * Issue with IP tunnel termination for DIP compatible MC.
+     * we do 2 pass solution, until we adjust VTT program for IP tunnel term
+     * we need to terminate IPMC tunnel, VTT programs need to be adjusted in order to use IP tunnel terminator
+     * To overcome this issue, we'll terminate IPMC tunnel by recycling the packet.
+     * MC group from the IP tunnel has 1 entry: recycle port. 
+     ***/
+
+    int members_of_mc[2]; 
+    int nof_member_of_mc; 
+
+
+    /** create mc group from access to provider **/
+
+    /* with 1 roo entry, for access to provider scenario
+     * and fall back to bridge and same interface filter scenario */
+    int ipmc_index = 40960; 
+
+    /* create mc group */
+    rv = bcm_multicast_create(unit, 
+                              BCM_MULTICAST_EGRESS_GROUP | BCM_MULTICAST_TYPE_L3 | BCM_MULTICAST_WITH_ID, 
+                              &ipmc_index); 
+    if (rv != BCM_E_NONE) {
+        printf("Error, bcm_multicast_create \n");
+        return rv;
+    }
+    if (verbose >=2) {
+        printf("multicast group created: %x \n", ipmc_index);
+    }
+
+
+    /* add mc entry */
+    int encap_id;                                                   
+    rv = bcm_multicast_l3_encap_get(unit,                           
+                                    -1  /* mc: not used */ ,          
+                                    -1 /* tunnel gport: not used */ , 
+                                    out_tunnel_intf_ids[0],         
+                                    &encap_id);                     
+    if (rv != BCM_E_NONE) {                                         
+        printf("Error, in bcm_multicast_l3_encap_get \n");          
+        return rv;                                                  
+    }                                                               
+    members_of_mc[0] = provider_port1;                         
+    nof_member_of_mc = 1;                                      
+    rv = multicast__add_multicast_entry(unit,            
+                                             ipmc_index,         /* mc group */
+                                             members_of_mc,      /* port members of mc group */
+                                             nof_member_of_mc,  /* nof members in mc group */
+                                             encap_id,         
+                                             1                   /* indicate we do egress MC */
+                                             );                  
+
+
+    /* bypass to configure 2cuds for a MC entry:
+     * add a new mc entry (by adding a new mc group),
+     * configure 1st mc entry with OUTRIF,
+       2nd mc entry entry with OUTLIF */
+
+    /* add 2nd mc group */
+    int ipmc_index_dummy = 40961;                                                                                                    
+    rv = bcm_multicast_create(unit,                                                                                                  
+                              BCM_MULTICAST_EGRESS_GROUP | BCM_MULTICAST_TYPE_L3 | BCM_MULTICAST_WITH_ID,                            
+                              &ipmc_index_dummy);                                                                                    
+    if (rv != BCM_E_NONE) {                                                                                                          
+        printf("Error, bcm_multicast_create \n");                                                                                    
+        return rv;                                                                                                                   
+    }             
+    if (verbose >=2) {
+        printf("bypass to configure 2 cuds, create a new multicast group: %x \n", ipmc_index_dummy);
+    }
+
+    /* manually change the mc entries. 1st Mc entry with OUTRIF and link it to the 2nd mc entry with outlif */
+    bshell(0, "  mod IRR_MCDB_EGRESS_FORMAT_2 118785 1 ENTRY_FORMAT=1, NEW_FORMAT=1, BMP_PTR=0x2, LINK_PTR=118786,  OUTLIF_1=0xF "); 
+    bshell(0, "  mod IRR_MCDB_EGRESS_FORMAT_1 118786 1 LINK_PTR=0x3ffff PP_DSP_1A=202, OUTLIF_1=0x3F001");                            
+
+
+    /* add routing table entry */
+    rv = multicast__create_forwarding_entry_dip_sip(unit,                         
+                                                    g_vxlan_roo_mc.native_mc_dip,   /* dst mc ip, default: 224.0.1.1 */
+                                                    -1,                              /* src ip */
+                                                    ipmc_index,                   
+                                                    g_vxlan_roo_mc.access_vlan, /* inRif */
+                                                    g_vxlan_roo_mc.vrf
+                                                    );                          
+ 
+    int temp_mc_dip = g_vxlan_roo_mc.native_mc_dip + 2 ; /* 224.0.0.1.3 */   
+    rv = multicast__create_forwarding_entry_dip_sip(unit,                         
+                                                    temp_mc_dip,   /* 224.0.0.1.3 */
+                                                    -1,                              /* src ip */
+                                                    ipmc_index,                   
+                                                    g_vxlan_roo_mc.vpn, /* inRif */
+                                                    g_vxlan_roo_mc.vrf
+                                                    );           
+      
+    if (rv != BCM_E_NONE) {                                                       
+        printf("Error, multicast__create_forwarding_entry_dip_sip\n");                       
+        return rv;                                                                
+    }               
+    if (verbose >=2) {                                                              
+        printf("mc group entry %x added to routing table \n ", ipmc_index);         
+    }
+
+
+
+    /* create mc group for provider to access scenario */
+
+    /* create MC group for provider to access */
+
+    ipmc_index = 40965; 
+
+    /* create mc group */
+    rv = bcm_multicast_create(unit, 
+                              BCM_MULTICAST_EGRESS_GROUP | BCM_MULTICAST_TYPE_L3 | BCM_MULTICAST_WITH_ID, 
+                              &ipmc_index); 
+    if (rv != BCM_E_NONE) {
+        printf("Error, bcm_multicast_create \n");
+        return rv;
+    }
+    if (verbose >=2) {  
+        printf("multicast group created: %x \n", ipmc_index);
+    }
+
+    /* add mc entries: access ports */
+
+    members_of_mc[0] = access_port1; 
+    members_of_mc[1] = access_port2;
+    nof_member_of_mc = 2;
+    rv = multicast__add_multicast_entry(unit,
+                                        ipmc_index,  /* mc group */
+                                        members_of_mc, /* port members of mc group */
+                                        nof_member_of_mc, /* nof members in mc group */
+                                        g_vxlan_roo_mc.access_vlan, /* encap_id aka CUD: outRif */
+                                        1  /* indicate we do egress MC*/
+                                        ); 
+    if (rv != BCM_E_NONE) {
+        printf("Error, multicast__add_multicast_entry\n");
+        return rv;
+    }
+    if (verbose >=2) {  
+        printf("entries added to mc group %x \n", ipmc_index);
+    }
+
+    /* add host entry */
+    temp_mc_dip = g_vxlan_roo_mc.native_mc_dip + 1 ; /* 224.0.0.1.2 */
+    rv = multicast__create_forwarding_entry_dip_sip(unit, 
+                                                    temp_mc_dip, /* dst mc ip */
+                                                    -1,  /* src ip */
+                                                    ipmc_index, 
+                                                    vpn, /* inRif */
+                                                    g_vxlan_roo_mc.vrf
+                                                    ); 
+    if (rv != BCM_E_NONE) {
+        printf("Error, multicast__create_forwarding_entry_dip_sip\n");
+    }
+    if (verbose >=2) {                                                              
+        printf("mc group entry %x added to routing table \n ", ipmc_index);       
+    }
+
+
+    /* create mc group with recycle port (for provider to access scenario) */
+
+    /* we need to terminate IPMC tunnel, VTT programs need to be adjusted in order to use IP tunnel terminator
+     * For now we'll terminate IPMC tunnel by recycling the packet.
+     * MC group from the IP tunnel has 1 entry: recycle port.   */
+
+    /* configure recycle port */
+    int recycle_port = 40; 
+    rv = bcm_port_control_set(0,recycle_port, bcmPortControlOverlayRecycle, 1);  
+    if (rv != BCM_E_NONE) {
+        printf("Error, bcm_port_control_set\n");
+        return rv;
+    }
+
+    /* create mc group */
+    ipmc_index++;
+
+    rv = bcm_multicast_create(unit, BCM_MULTICAST_INGRESS_GROUP | BCM_MULTICAST_TYPE_L3 | BCM_MULTICAST_WITH_ID, ipmc_index); 
+    if (rv != BCM_E_NONE) {
+        printf("Error, bcm_multicast_create \n");
+        return rv;
+    }
+    if (verbose >=2) {  
+        printf("multicast group created: %x \n", ipmc_index);
+    }
+
+    /* overlay rif, for recycle port 
+     * outrif is used to build the new link layer, SA = outrif.sa
+     * inRif is used at the 2nd pass. Enable routing. 
+       */
+    int overlay_ing_intf; 
+    int dummy_vlan = 77; 
+
+    rv = vxlan_roo_mc_create_rif(unit, 
+                                        tunnel_1.sa, 
+                                        dummy_vlan, /* rif id: Use dummy vlan */
+                                        g_vxlan_roo_mc.vrf,  /* router instance */
+                                        &overlay_ing_intf 
+                                        ); 
+    if (rv != BCM_E_NONE) {
+        printf("Error, vxlan_roo_mc_create_rif\n");
+        return rv;
+    }
+
+    /* add recycle port to mc group */
+    members_of_mc[0] = recycle_port;
+    nof_member_of_mc = 1; 
+    rv = multicast__add_multicast_entry(unit,
+                                        ipmc_index, /* mc group */
+                                        members_of_mc, /* port members of mc group */
+                                        nof_member_of_mc, /* nof members in mc group */
+                                        dummy_vlan, /* encap_id aka CUD: outRif */
+                                        0 /* ingress replication */); 
+    if (rv != BCM_E_NONE) {
+        printf("Error, multicast__add_multicast_entry\n");
+        return rv;
+    }
+    if (verbose >=2) {  
+        printf("recycle port entrie added to mc group %x \n", ipmc_index);
+    }
+
+    /* add forwarding: DIP, VRF -> MC-group */
+    rv = multicast__create_forwarding_entry_dip_sip(unit, 
+                                                    g_vxlan_roo_mc.overlay_mc_dip, /* dst mc ip, default: 224:0.2.2 */
+                                                    -1,  /* src ip */
+                                                    ipmc_index, 
+                                                    g_vxlan_roo_mc.overlay_out_vlan, /* inRif */
+                                                    g_vxlan_roo_mc.vrf
+                                                    ); 
+    if (rv != BCM_E_NONE) {
+        printf("Error, vxlan_roo_mc_create_rif\n");
+        return rv;
+    }
+    if (verbose >=2) {                                                              
+        printf("mc group entry %x added to routing table \n ", ipmc_index);       
+    }
+
+    /* dummy lif configuration for vxlan.
+       Configure the tunnel termination to be a vxlan tunnel termination instead of the default ip tunnel termination */
+    int tunnel_gport_dummy_lif = 0; 
+    BCM_GPORT_TUNNEL_ID_SET(tunnel_gport_dummy_lif, 16484); 
+
+    rv = vxlan_add_port(unit,
+                        vpn,
+                        provider_port1, /* dummy since no learning */
+                        tunnel_gport_dummy_lif, /* tunnel termination gport */
+                        0, /* tunnel initiator gport */
+                        0, /* fec entry for ip tunnel */
+                        0, /* vxlan port flag */
+                        &g_vxlan_roo.vxlan_port_id);
+    if (rv != BCM_E_NONE) {
+        printf("Error, vxlan_add_port 2, in_gport=0x%08x --> out_intf=0x%08x \n", in_tunnel_gports[1],out_tunnel_intf_ids[1]);
+    }
+
+    return rv; 
+
+}
