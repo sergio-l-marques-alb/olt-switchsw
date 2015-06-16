@@ -8589,7 +8589,7 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_get(msg_MCAssocChannel_t *channel_list, L7_ui
     igmpAssoc_channels_max = 0;
 
     number_of_channels = PTIN_IGMP_CHANNELS_MAX;
-    if (igmp_assoc_channelList_get(0, channel_list->evcid_mc, igmpAssoc_list, &number_of_channels)!=L7_SUCCESS)
+    if (ptin_igmp_channel_list_get(0, channel_list->evcid_mc, igmpAssoc_list, &number_of_channels)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error reading list of channels");
       return L7_FAILURE;
@@ -13115,7 +13115,7 @@ L7_RC_t ptin_msg_igmp_packages_add(msg_igmp_package_t *msg)
   for (packageIdIterator = 0; packageIdIterator < PTIN_SYSTEM_IGMP_MAXPACKAGES && msg->noOfPackages > 0; packageIdIterator++)
   {
     //Move forward 32 bits if this byte is 0 (no packages)
-    if (IS_BITMAP_BYTE_SET(msg->packageBmpList, packageIdIterator, UINT32_BITSIZE) == L7_FALSE)
+    if (IS_BITMAP_WORD_SET(msg->packageBmpList, packageIdIterator, UINT32_BITSIZE) == L7_FALSE)
     {
      packageIdIterator += UINT32_BITSIZE -1; //Less one, because of the For cycle that increments also 1 unit.
      continue;
@@ -13155,6 +13155,7 @@ L7_RC_t ptin_msg_igmp_packages_remove(msg_igmp_package_t *msg)
   L7_uint32 noOfPackagesFound = 0;
   L7_char8  packageBmpStr[PTIN_SYSTEM_IGMP_MAXPACKAGES/(sizeof(L7_uint8)*8)-1]={};
 //L7_char8 *charPtr = packageBmpStr;
+  L7_BOOL   forceRemoval = L7_FALSE;
   L7_RC_t   rc = L7_SUCCESS;
 
   /* Input Argument validation */
@@ -13177,7 +13178,7 @@ L7_RC_t ptin_msg_igmp_packages_remove(msg_igmp_package_t *msg)
   for (packageIdIterator = 0; packageIdIterator < PTIN_SYSTEM_IGMP_MAXPACKAGES && msg->noOfPackages > 0; packageIdIterator++)
   {
     //Move forward 32 bits if this byte is 0 (no packages)
-    if (IS_BITMAP_BYTE_SET(msg->packageBmpList, packageIdIterator, UINT32_BITSIZE) == L7_FALSE)
+    if (IS_BITMAP_WORD_SET(msg->packageBmpList, packageIdIterator, UINT32_BITSIZE) == L7_FALSE)
     {
      packageIdIterator += UINT32_BITSIZE -1; //Less one, because of the For cycle that increments also 1 unit.
      continue;
@@ -13188,7 +13189,7 @@ L7_RC_t ptin_msg_igmp_packages_remove(msg_igmp_package_t *msg)
       continue;
     }
     /*Add This Package*/
-    if ( L7_DEPENDENCY_NOT_MET == (rc = ptin_igmp_multicast_package_remove(packageIdIterator)) )
+    if ( L7_DEPENDENCY_NOT_MET == (rc = ptin_igmp_multicast_package_remove(packageIdIterator, forceRemoval)) )
     {
       /*Error Already Logged*/
       return rc;
@@ -13202,7 +13203,7 @@ L7_RC_t ptin_msg_igmp_packages_remove(msg_igmp_package_t *msg)
  }
   return rc;   
 #else
-  LOG_ERR(LOG_CTX_PTIN_IGMP, "Featured not supported in this card!");  
+  LOG_ERR(LOG_CTX_PTIN_IGMP, "Feature not supported in this card!");  
   return L7_NOT_SUPPORTED;  
 #endif 
 }

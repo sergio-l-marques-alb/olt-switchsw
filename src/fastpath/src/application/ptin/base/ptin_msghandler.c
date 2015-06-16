@@ -3364,7 +3364,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     }
     break;
 
-    case CCMSG_ETH_IGMP_CHANNEL_ASSOC_REMALL:
+    case CCMSG_ETH_IGMP_CHANNEL_BULK_DELETE:
     {
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message received: CCMSG_ETH_IGMP_CHANNEL_ASSOC_REMALL (0x%04X)", inbuffer->msgId);

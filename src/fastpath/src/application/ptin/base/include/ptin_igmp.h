@@ -26,7 +26,7 @@
 #define IS_BITMAP_BIT_SET(array, index, size) ( ( array[(index)/(size)] >> ((index)%(size)) ) & 1 )
 #define BITMAP_BIT_SET(array, index, size)    array[(index)/(size)] |=  ((L7_uint32) 1 << ((index)%(size)))
 #define BITMAP_BIT_CLR(array, index, size)    array[(index)/(size)] &= ~((L7_uint32) 1 << ((index)%(size)))
-#define IS_BITMAP_BYTE_SET(array, index, size)  ( array[(index)/(size)] == 0 ? 0 : 1)
+#define IS_BITMAP_WORD_SET(array, index, size)  ( array[(index)/(size)] == 0 ? 0 : 1)
 
 
 #define PTIN_IGMP_PORT_MASK_UNIT      UINT32_BITSIZE
@@ -796,7 +796,7 @@ extern L7_RC_t igmp_assoc_init( void );
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t igmp_assoc_channelList_get( L7_uint32 evc_uc, L7_uint32 evc_mc,
+extern L7_RC_t ptin_igmp_channel_list_get( L7_uint32 evc_uc, L7_uint32 evc_mc,
                                            igmpAssoc_entry_t *channel_list,
                                            L7_uint16 *channels_number );
 
@@ -1681,13 +1681,17 @@ extern RC_t ptin_igmp_multicast_package_add(L7_uint32 packageId);
  * @purpose Remove Multicast Package
  * 
  * @param packageId 
+ * @param forceRemoval  
  *  
  * @return RC_t
  *
- * @notes none 
+ * @notes To maintain consistency we do not permit the removal
+ *        of packages if clients or channels exist. This
+ *        validation can be circumvent by setting to TRUE the
+ *        the forceRemoval flag
  *  
  */
-extern RC_t ptin_igmp_multicast_package_remove(L7_uint32 packageId);
+extern RC_t ptin_igmp_multicast_package_remove(L7_uint32 packageId, L7_BOOL forceRemoval);
 
 /**
  * @purpose Add Multicast Channels to a Package

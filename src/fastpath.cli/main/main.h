@@ -27,10 +27,10 @@ extern int canal_buga;
  ***********************************************************/
 #define UINT32_BITSIZE  (sizeof(L7_uint32)*8)
 
+#define IS_BITMAP_WORD_SET(array, index, size)  ( array[(index)/(size)] == 0 ? 0 : 1)
 #define IS_BITMAP_BIT_SET(array, index, size) ( ( array[(index)/(size)] >> ((index)%(size)) ) & 1 )
 #define BITMAP_BIT_SET(array, index, size)    array[(index)/(size)] |=  ((L7_uint32) 1 << ((index)%(size)))
 #define BITMAP_BIT_CLR(array, index, size)    array[(index)/(size)] &= ~((L7_uint32) 1 << ((index)%(size)))
-#define IS_BITMAP_BYTE_SET(array, index, size)  ( array[(index)/(size)] == 0 ? 0 : 1)
 
 /*****************************************************************************
  * IPC Messages codes 

@@ -158,7 +158,7 @@
 #define CCMSG_ETH_IGMP_CHANNEL_ASSOC_GET    0x906A  // struct msg_MCAssocChannel_t
 #define CCMSG_ETH_IGMP_CHANNEL_ASSOC_ADD    0x906B  // struct msg_MCAssocChannel_t
 #define CCMSG_ETH_IGMP_CHANNEL_ASSOC_REMOVE 0x906C  // struct msg_MCAssocChannel_t
-#define CCMSG_ETH_IGMP_CHANNEL_ASSOC_REMALL 0x906D  // struct msg_MCAssocChannel_t
+#define CCMSG_ETH_IGMP_CHANNEL_BULK_DELETE  0x906D  // struct msg_MCAssocChannel_t
 
 //#define CCMSG_ETH_IGMP_STATIC_SOURCE_ADD    0x907A  // struct msg_MCStaticChannel_t
 //#define CCMSG_ETH_IGMP_STATIC_SOURCE_REMOVE 0x907F  // struct msg_MCStaticChannel_t
