@@ -3941,6 +3941,8 @@ L7_RC_t hapiBroadSystemInstallPtin(void)
     if (rc != L7_SUCCESS)  break;
     rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *) &vlanId, exact_match);
     if (rc != L7_SUCCESS)  break;
+    rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_PERMIT, 0, 0, 0);
+    if (rc != L7_SUCCESS)  break;
     rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, 7, 0, 0);
     if (rc != L7_SUCCESS)  break;
   }
@@ -4219,6 +4221,9 @@ L7_RC_t ptin_hapi_vcap_defvid(DAPI_USP_t *usp, L7_uint16 outerVlan, L7_uint16 in
     LOG_TRACE(LOG_CTX_PTIN_HAPI,"PVID cleared successfully");
   }
 
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"Configuring policy: usp={%d,%d,%d}/lport=0x%x, vlan format 0x%x, outerVlan %u, innerVlan %u",
+            usp->unit,usp->slot,usp->port, hapiPortPtr->bcmx_lport, vlan_format, outerVlan, innerVlan);
+
   /* Only consider valid VLANs between 2 and 4095 */
   if (outerVlan >= 2 && outerVlan <= 4095)
   {
@@ -4229,22 +4234,22 @@ L7_RC_t ptin_hapi_vcap_defvid(DAPI_USP_t *usp, L7_uint16 outerVlan, L7_uint16 in
     rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_VLAN_FORMAT, (L7_uchar8 * ) &vlan_format, mask);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error adding qualifier");
+      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error adding qualifier: rc=%d", rc);
       hapiBroadPolicyCreateCancel();
       return rc;
     }
-    LOG_TRACE(LOG_CTX_PTIN_HAPI,"Vlan format qualifier added");
+    LOG_TRACE(LOG_CTX_PTIN_HAPI,"Vlan format qualifier added (vlan format 0x%x)", vlan_format);
 
     /* Actions */
     /* Outer Vlan qualifier */
     rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_ADD_OUTER_VID, outerVlan, 0, 0);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error adding action");
+      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error adding action: rc=%d", rc);
       hapiBroadPolicyCreateCancel();
       return rc;
     }
-    LOG_TRACE(LOG_CTX_PTIN_HAPI,"Outer vlan add action added");
+    LOG_TRACE(LOG_CTX_PTIN_HAPI,"Outer vlan add action added (%u)", outerVlan);
 
     /* Inner Vlan qualifier */
     if (innerVlan >= 1 && innerVlan <=4095)
@@ -4252,30 +4257,33 @@ L7_RC_t ptin_hapi_vcap_defvid(DAPI_USP_t *usp, L7_uint16 outerVlan, L7_uint16 in
       rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_ADD_INNER_VID, innerVlan, 0, 0);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error adding action");
+        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error adding action: rc=%d", rc);
         hapiBroadPolicyCreateCancel();
         return rc;
       }
-      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Inner vlan add action added");
+      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Inner vlan add action added (%u)", innerVlan);
     }
 
     /* Commit */
     rc = hapiBroadPolicyCommit(&policyId);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error commiting policy");
+      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error commiting policy: rc=%d", rc);
       hapiBroadPolicyCreateCancel();
       return rc;
     }
+    LOG_TRACE(LOG_CTX_PTIN_HAPI,"Policy %d commited successfully!", policyId);
 
     /* Apply to interface */
     rc = hapiBroadPolicyApplyToIface(policyId, hapiPortPtr->bcmx_lport);
     if (L7_SUCCESS != rc)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error applying policy to interface");
+      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error applying interface usp={%d,%d,%d}/lport=0x%x to policy %d: rc=%d",
+              usp->unit,usp->slot,usp->port, hapiPortPtr->bcmx_lport, policyId, rc);
       hapiBroadPolicyDelete(policyId);
       return rc;
     }
+    LOG_TRACE(LOG_CTX_PTIN_HAPI,"usp={%d,%d,%d} added to policy %d", usp->unit,usp->slot,usp->port, policyId);
 
     /* Save policy id */
     policyId_pvid[port] = policyId;
