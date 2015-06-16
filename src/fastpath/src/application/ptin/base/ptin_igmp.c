@@ -8267,10 +8267,14 @@ static L7_RC_t ptin_igmp_channel_remove( ptinIgmpChannelDataKey_t *avl_key )
  */
 static L7_RC_t ptin_igmp_channel_remove_multicast_service( L7_uint32 evc_uc, L7_uint32 evc_mc )
 {
-  ptinIgmpChannelDataKey_t avl_key;
-  ptinIgmpChannelInfoData_t *avl_info;
-  L7_RC_t rc = L7_SUCCESS;
+  ptinIgmpChannelDataKey_t      avl_key;
+  ptinIgmpChannelInfoData_t    *avl_info;
+  struct packagePoolEntry_s    *packageEntry = L7_NULLPTR;
+  char                          groupAddrStr[IPV6_DISP_ADDR_LEN]={};
+  char                          sourceAddrStr[IPV6_DISP_ADDR_LEN]={};
+  L7_RC_t                       rc = L7_SUCCESS;
 
+#if 0
   /*Before removing any channel entry we need to validate if we have any package or ports attached to it*/
   {
 
@@ -8300,6 +8304,7 @@ static L7_RC_t ptin_igmp_channel_remove_multicast_service( L7_uint32 evc_uc, L7_
       }
     }
   }
+#endif
 
   /* Run all cells in AVL tree */
   memset(&avl_key,0x00,sizeof(ptinIgmpChannelDataKey_t));
@@ -8318,6 +8323,30 @@ static L7_RC_t ptin_igmp_channel_remove_multicast_service( L7_uint32 evc_uc, L7_
 #endif
        )
     {
+      /*If Packages Exist. Remove Them First*/
+      if (avl_info->queuePackage.n_elems != 0 || avl_info->noOfPorts != 0)
+      {
+        packageEntry = L7_NULLPTR;    
+        while ( L7_NULLPTR != (packageEntry = queue_package_entry_get_next(avl_info, packageEntry)) && 
+            (packageEntry->packageId < PTIN_SYSTEM_IGMP_MAXPACKAGES) )
+        {        
+          if ( (rc = ptin_igmp_multicast_package_channel_remove(packageEntry->packageId, avl_info->channelDataKey.evc_mc, &avl_info->channelDataKey.channel_group, &avl_info->channelDataKey.channel_source)) != L7_SUCCESS)
+          {
+            LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing channel from multicast package [packageId:%u serviceId:%u groupAddr:%s sourceAddr:%s]",
+                    packageEntry->packageId, avl_info->channelDataKey.evc_mc, inetAddrPrint(&avl_info->channelDataKey.channel_group, groupAddrStr), inetAddrPrint(&avl_info->channelDataKey.channel_source, sourceAddrStr));
+            return rc;
+          }
+        }
+
+        /*Validate If No Dependency Exist*/
+        if (avl_info->queuePackage.n_elems != 0 || avl_info->noOfPorts != 0)
+        {
+          LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot remove this channel (EVC_MC=%u groupAddr:0x%08x sourceAddr:0x%08x): noOfPackages:%u noPorts:%u",
+                avl_key.evc_mc, avl_key.channel_group.addr.ipv4.s_addr, avl_key.channel_source.addr.ipv4.s_addr, avl_info->queuePackage.n_elems, avl_info->noOfPorts);
+          return L7_FAILURE;        
+        }
+      }      
+
       /* Remove key */
       if ( avlDeleteEntry(&(channelDB.channelAvlTree), (void *)&avl_key) == L7_NULLPTR )
       {
@@ -16063,9 +16092,9 @@ void ptin_igmp_device_clients_dump(void)
 }
 
 /**
- * Dumps all IGMP associations 
+ * Dumps all IGMP channels 
  */
-void ptin_igmp_channel_dump(L7_int evc_mc, L7_int evc_uc, L7_uint8 flag_port)
+void ptin_igmp_channels_dump(L7_int evc_mc, L7_int evc_uc, L7_uint8 flag_port)
 {
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
   ptinIgmpChannelDataKey_t   avl_key;
