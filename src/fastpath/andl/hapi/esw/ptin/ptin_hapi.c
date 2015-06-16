@@ -54,7 +54,7 @@ extern L7_uint64 hapiBroadReceice_dhcpv6_count;
 extern L7_uint64 hapiBroadReceice_pppoe_count;
 
 BROAD_POLICY_t lacp_policyId   = BROAD_POLICY_INVALID;
-BROAD_POLICY_t bl2cpu_policyId = BROAD_POLICY_INVALID;
+BROAD_POLICY_t bl2cpu_policyId[2] = {BROAD_POLICY_INVALID, BROAD_POLICY_INVALID};
 
 /********************************************************************
  * INTERNAL VARIABLES
@@ -3927,8 +3927,7 @@ L7_RC_t hapiBroadSystemInstallPtin(void)
   /* BroadLight packets should have high priority */
   vlanId = PTIN_VLAN_BL2CPU;
 
-  /* Create policy */
-  rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
+  rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_PORT);
   if (rc != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
@@ -3943,6 +3942,50 @@ L7_RC_t hapiBroadSystemInstallPtin(void)
     if (rc != L7_SUCCESS)  break;
     rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_PERMIT, 0, 0, 0);
     if (rc != L7_SUCCESS)  break;
+  }
+  while (0);
+  /* Commit rule */
+  if (rc == L7_SUCCESS)
+  {
+    rc = hapiBroadPolicyCommit(&policyId);
+    if (L7_SUCCESS != rc)
+    {
+      LOG_ERR(LOG_CTX_STARTUP, "Error committing policy!");
+      return L7_FAILURE;
+    }
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_STARTUP, "Error configurating rule.");
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+  /* Apply to all ports */
+  rc = hapiBroadPolicyApplyToAll(policyId);
+  if (L7_SUCCESS != rc)
+  {
+    LOG_ERR(LOG_CTX_STARTUP, "Error committing policy!");
+    return L7_FAILURE;
+  }
+  bl2cpu_policyId[0] = policyId;
+  LOG_NOTICE(LOG_CTX_STARTUP,"BL2CPU exception rule added");
+
+  /* Create policy */
+  rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
+    return L7_FAILURE;
+  }
+  /* Define qualifiers and actions */
+  do
+  {
+    rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
+    if (rc != L7_SUCCESS)  break;
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *) &vlanId, exact_match);
+    if (rc != L7_SUCCESS)  break;
+//  rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_PERMIT, 0, 0, 0);
+//  if (rc != L7_SUCCESS)  break;
     rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, 7, 0, 0);
     if (rc != L7_SUCCESS)  break;
   }
@@ -3964,7 +4007,7 @@ L7_RC_t hapiBroadSystemInstallPtin(void)
     return L7_FAILURE;
   }
   /* Save policy */
-  bl2cpu_policyId = policyId;
+  bl2cpu_policyId[1] = policyId;
   LOG_NOTICE(LOG_CTX_STARTUP,"BL2CPU rule added");
 
 #elif (PTIN_BOARD == PTIN_BOARD_TG16G)
