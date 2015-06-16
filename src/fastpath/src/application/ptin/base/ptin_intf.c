@@ -3945,6 +3945,7 @@ static L7_RC_t ptin_intf_stormcontrol_reset(L7_uint32 intIfNum, L7_uint8 rate_un
 L7_RC_t ptin_intf_bcast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL enable, L7_uint32 rate_value, L7_uint32 rate_burst, L7_uint8 rate_units)
 {
   L7_uint32       intIfNum;
+  L7_INTF_TYPES_t intfType;
   L7_BOOL         enable_curr;
   L7_uint32       rate_value_curr;
   L7_RATE_UNIT_t  rate_units_curr;
@@ -3962,6 +3963,18 @@ L7_RC_t ptin_intf_bcast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL e
   {
     LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
     return L7_FAILURE;
+  }
+  /* Get interface type */
+  if (nimGetIntfType(intIfNum, &intfType) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Error acquiring interface type for intIfNum %u - ptin_intf %u/%u", intIfNum, ptin_intf->intf_type, ptin_intf->intf_id);
+    return L7_FAILURE;
+  }
+  /* Ignore LAG configurations */
+  if (intfType == L7_LAG_INTF)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_MSG,"intIfNum %u - ptin_intf %u/%u - is a LAG... ignoring configuration!", intIfNum, ptin_intf->intf_type, ptin_intf->intf_id);
+    return L7_SUCCESS;
   }
 
   LOG_TRACE(LOG_CTX_PTIN_MSG, "Configuring Broadcast stormcontrol...");
@@ -4048,6 +4061,7 @@ L7_RC_t ptin_intf_bcast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL e
 L7_RC_t ptin_intf_mcast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL enable, L7_uint32 rate_value, L7_uint32 rate_burst, L7_uint8 rate_units)
 {
   L7_uint32       intIfNum;
+  L7_INTF_TYPES_t intfType;
   L7_BOOL         enable_curr;
   L7_uint32       rate_value_curr;
   L7_RATE_UNIT_t  rate_units_curr;
@@ -4065,6 +4079,18 @@ L7_RC_t ptin_intf_mcast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL e
   {
     LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
     return L7_FAILURE;
+  }
+  /* Get interface type */
+  if (nimGetIntfType(intIfNum, &intfType) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Error acquiring interface type for intIfNum %u - ptin_intf %u/%u", intIfNum, ptin_intf->intf_type, ptin_intf->intf_id);
+    return L7_FAILURE;
+  }
+  /* Ignore LAG configurations */
+  if (intfType == L7_LAG_INTF)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_MSG,"intIfNum %u - ptin_intf %u/%u - is a LAG... ignoring configuration!", intIfNum, ptin_intf->intf_type, ptin_intf->intf_id);
+    return L7_SUCCESS;
   }
 
   LOG_TRACE(LOG_CTX_PTIN_MSG, "Configuring Multicast stormcontrol for ptin_intf %u/%u, intIfNum %u...", ptin_intf->intf_type, ptin_intf->intf_id, intIfNum);
@@ -4152,6 +4178,7 @@ L7_RC_t ptin_intf_mcast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL e
 L7_RC_t ptin_intf_ucast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL enable, L7_uint32 rate_value, L7_uint32 rate_burst, L7_uint8 rate_units)
 {
   L7_uint32       intIfNum;
+  L7_INTF_TYPES_t intfType;
   L7_BOOL         enable_curr;
   L7_uint32       rate_value_curr;
   L7_RATE_UNIT_t  rate_units_curr;
@@ -4169,6 +4196,18 @@ L7_RC_t ptin_intf_ucast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL e
   {
     LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
     return L7_FAILURE;
+  }
+  /* Get interface type */
+  if (nimGetIntfType(intIfNum, &intfType) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Error acquiring interface type for intIfNum %u - ptin_intf %u/%u", intIfNum, ptin_intf->intf_type, ptin_intf->intf_id);
+    return L7_FAILURE;
+  }
+  /* Ignore LAG configurations */
+  if (intfType == L7_LAG_INTF)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_MSG,"intIfNum %u - ptin_intf %u/%u - is a LAG... ignoring configuration!", intIfNum, ptin_intf->intf_type, ptin_intf->intf_id);
+    return L7_SUCCESS;
   }
 
   LOG_TRACE(LOG_CTX_PTIN_MSG, "Configuring Unicast stormcontrol...");
