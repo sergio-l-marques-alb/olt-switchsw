@@ -276,32 +276,41 @@ int main (int argc, char *argv[])
         printf("Invalid answer... Request not Aknowledged\n\r");
         sleep(period);
       }
-      else if (resposta.infoDim == sizeof(int) && ret == 1) {
+      else if (resposta.infoDim == sizeof(int) && ret == 2) {
         printf("OLTSWITCH replied... Application is still loading!\n\r");
         sleep(period);
       }
-      else
+      else {
         break;
+      }
     } while ((--nretries) > 0);
 
     close_ipc(canal_buga);
 
     if (nretries > 0) {
+      printf("OLTSWITCH replied... ");
       if (ret == 0) {
-        printf("OLTSWITCH replied... Application is up!\n\r");
-        exit(ret);
+        printf("Application is ready!\n\r");
+      }
+      else if (ret == 1) {
+        printf("Application is busy!\n\r");
       }
       else if (ret == 2) {
-        printf("OLTSWITCH replied... Application has CRASHED!\n\r");
-        exit(ret);
+        printf("Application is loading!\n\r");
+      }
+      else if (ret == 3) {
+        printf("Application has CRASHED!\n\r");
       }
       else {
         printf("OLTSWITCH replied... return code is unknown: %d\n\r", (int)ret);
-        exit(ret);
       }
-    }
-    else if (resposta.infoDim == sizeof(int) && ret == 1)
       exit(ret);
+    }
+    else if (resposta.infoDim == sizeof(int) && ret == 2)
+    {
+      printf("OLTSWITCH is in loading process.\n\r");
+      exit(ret);
+    }
 
     printf("OLTSWITCH did not reply... Timeout!\n\r");
     exit(-2);
