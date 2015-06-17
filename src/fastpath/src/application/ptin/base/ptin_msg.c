@@ -152,7 +152,7 @@ L7_RC_t ptin_msg_FPInfo_get(msg_FWFastpathInfo *msgFPInfo)
   memset(msgFPInfo, 0x00, sizeof(msg_FWFastpathInfo));
 
   msgFPInfo->SlotIndex    = ptin_fpga_board_slot();
-  msgFPInfo->BoardPresent = (ptin_state == PTIN_LOADED);
+  msgFPInfo->BoardPresent = (ptin_state == PTIN_STATE_READY);
 
   osapiStrncpySafe(msgFPInfo->BoardSerialNumber, "OLTSWITCH 1.2.3.4", 20);
 
@@ -226,59 +226,11 @@ void ptin_msg_defaults_reset(L7_char8 mode)
 {
   LOG_INFO(LOG_CTX_PTIN_MSG, "Resetting to default configuration (mode %x)", mode);
 
-  /*This Should be the First Module*/
-  /* Reset IGMP Module */
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on IGMP...");
-  ptin_igmp_default_reset();
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
+  ptin_reset_defaults_mode = mode;
 
-#ifdef __Y1731_802_1ag_OAM_ETH__
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on OAM...");
-  eth_srv_oam_msg_defaults_reset();
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
-#endif
+  osapiSemaGive(ptin_busy_sem);
 
-  /* Reset Routing Module*/
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on Routing...");
-  ptin_routing_intf_remove_all();
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
-
-  /* ERPS */
-#ifdef PTIN_ENABLE_ERPS
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on ERPS...");
-  ptin_erps_clear();
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on HAL...");
-  ptin_hal_erps_clear();
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
-#endif
-
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on ACL...");
-  ptin_aclCleanAll();
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
-
-  /* Reset EVC Module */
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on EVC...");
-  ptin_evc_destroy_all();
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
-
-  if (mode == DEFATUL_RESET_MODE_FULL)
-  {
-    ptin_NtwConnectivity_t ptinNtwConn;
-
-    /* Unconfig Connectivity */
-    memset(&ptinNtwConn, 0x00, sizeof(ptin_NtwConnectivity_t));
-    ptinNtwConn.mask = PTIN_NTWCONN_MASK_IPADDR;
-    LOG_INFO(LOG_CTX_PTIN_MSG, "(Re)Configure Inband...");
-    ptin_cfg_ntw_connectivity_set(&ptinNtwConn);
-    LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
-
-    /*This Should be the Last Module*/
-    LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on LAG...");
-    ptin_intf_Lag_delete_all();
-    LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
-  }
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Concluded Reset Process.");
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Leaving %s function", __FUNCTION__);
 
   return;
 }

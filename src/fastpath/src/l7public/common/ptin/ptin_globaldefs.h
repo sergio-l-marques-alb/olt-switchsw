@@ -177,16 +177,17 @@ extern int ptin_sys_number_of_ports;
 
 /* PTin module states */
 typedef enum {
-  PTIN_LOADED = 0,
-  PTIN_ISLOADING,
-  PTIN_CRASHED,
+  PTIN_STATE_READY   = 0,
+  PTIN_STATE_BUSY    = 1,
+  PTIN_STATE_LOADING = 2,
+  PTIN_STATE_CRASHED = 3,
 } ptin_state_t;
 
 /* PTin module state */
 extern volatile ptin_state_t ptin_state;
 
 #define PTIN_CRASH()  {       \
-  ptin_state = PTIN_CRASHED;  \
+  ptin_state = PTIN_STATE_CRASHED;  \
   volatile int i;             \
   for(;;i++) sleep(60);       \
 }

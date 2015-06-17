@@ -58,8 +58,12 @@
 //#include "ptin_intf.h"
 //#include "ptin_msghandler.h"
 
+/* Reset defaults mode */
+L7_uint8 ptin_reset_defaults_mode = DEFATUL_RESET_MODE_PARTIAL;
+
 /* Semaphore to synchronize PTin task execution */
 void *ptin_ready_sem = L7_NULLPTR;
+void *ptin_busy_sem  = L7_NULLPTR;
 
 /* MGMD TxQueueId */
 L7_int32 ptinMgmdTxQueueId = -1;
@@ -342,6 +346,14 @@ L7_RC_t ptinCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
     *pResponse = 0;
     *pReason   = L7_CNFGR_ERR_RC_LACK_OF_RESOURCES;
     return L7_FAILURE;
+  }
+  /* Create an empty binary semphore (mutex) to hold ptinTask_reset_defaults
+   * to apply a reset defaults */
+  ptin_busy_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_EMPTY);
+  if (ptin_busy_sem == L7_NULLPTR)
+  {
+    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to create ptin_reset_defaults_sem semaphore!");
+    PTIN_CRASH();
   }
 
   /* Initialize EVC data structures */

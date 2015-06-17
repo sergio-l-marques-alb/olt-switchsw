@@ -18,6 +18,11 @@
 #include "ptin_igmp.h"
 #include "ptin_dhcp.h"
 #include "ptin_pppoe.h"
+#include "ptin_acl.h"
+#include "ptin_prot_oam_eth.h"
+#include "ptin_prot_erps.h"
+#include "ptin_hal_erps.h"
+#include "ptin_routing.h"
 #include "ptin_cfg.h"
 #include "dtl_ptin.h"
 #include "ipc.h"
@@ -37,7 +42,7 @@
 #include <usmdb_sim_api.h>
 
 /* PTin module state */
-volatile ptin_state_t ptin_state = PTIN_ISLOADING;
+volatile ptin_state_t ptin_state = PTIN_STATE_LOADING;
 
 /* Traffic activity bits for external module access */
 L7_uint32 ptin_control_port_activity[PTIN_SYSTEM_N_PORTS];  /* maps each phy port */
@@ -70,6 +75,8 @@ static void ptin_control_syncE(void);
 
 /* 10ms task */
 void _10msTask(void);
+/* Task for reset defaults operation */
+void ptinTask_reset_defaults(void);
 
 /******************************** 
  * Interface events 
@@ -193,7 +200,7 @@ void ptinTask(L7_uint32 numArgs, void *unit)
 #endif
 
   /* Signal correct initialization */
-  ptin_state = PTIN_LOADED;
+  ptin_state = PTIN_STATE_READY;
 
   /* Send startup trap */
   startup_trap_send();
@@ -220,6 +227,17 @@ void ptinTask(L7_uint32 numArgs, void *unit)
   }
 #endif
 
+  /* Create task to proceed to reset defaults */
+  if (osapiTaskCreate("PTin_reset_defaults task", ptinTask_reset_defaults, 0, 0,
+                      L7_DEFAULT_STACK_SIZE*10,
+                      L7_DEFAULT_TASK_PRIORITY,
+                      L7_DEFAULT_TASK_SLICE) == L7_ERROR)
+  {
+    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to create PTin_reset_defaults task!");
+    PTIN_CRASH();
+  }
+  LOG_INFO(LOG_CTX_PTIN_CNFGR, "PTin_reset_defaults task launch OK");
+
   /* Loop */
   while (1)
   {
@@ -238,6 +256,84 @@ void ptinTask(L7_uint32 numArgs, void *unit)
 
     /* Synchronize recovery clocks */
     ptin_control_syncE();
+  }
+}
+
+
+/**
+ * Task for reset defaults operation
+ */
+void ptinTask_reset_defaults(void)
+{
+  LOG_NOTICE(LOG_CTX_PTIN_CONTROL,"ptinTask_reset_defaults Task started");
+
+  /* Loop */
+  while (1)
+  {
+    osapiSemaTake(ptin_busy_sem, L7_WAIT_FOREVER);
+
+    ptin_state = PTIN_STATE_BUSY;
+
+    LOG_INFO(LOG_CTX_PTIN_CONTROL,"Executing a reset defaults with mode=%u", ptin_reset_defaults_mode);
+
+    /*This Should be the First Module*/
+    /* Reset IGMP Module */
+    LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on IGMP...");
+    ptin_igmp_default_reset();
+    LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
+
+#ifdef __Y1731_802_1ag_OAM_ETH__
+    LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on OAM...");
+    eth_srv_oam_msg_defaults_reset();
+    LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
+#endif
+
+    /* Reset Routing Module*/
+    LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on Routing...");
+    ptin_routing_intf_remove_all();
+    LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
+
+    /* ERPS */
+#ifdef PTIN_ENABLE_ERPS
+    LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on ERPS...");
+    ptin_erps_clear();
+    LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
+    LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on HAL...");
+    ptin_hal_erps_clear();
+    LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
+#endif
+
+    LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on ACL...");
+    ptin_aclCleanAll();
+    LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
+
+    /* Reset EVC Module */
+    LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on EVC...");
+    ptin_evc_destroy_all();
+    LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
+
+    if (ptin_reset_defaults_mode == DEFATUL_RESET_MODE_FULL)
+    {
+      ptin_NtwConnectivity_t ptinNtwConn;
+
+      /* Unconfig Connectivity */
+      memset(&ptinNtwConn, 0x00, sizeof(ptin_NtwConnectivity_t));
+      ptinNtwConn.mask = PTIN_NTWCONN_MASK_IPADDR;
+      LOG_INFO(LOG_CTX_PTIN_MSG, "(Re)Configure Inband...");
+      ptin_cfg_ntw_connectivity_set(&ptinNtwConn);
+      LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
+
+      /*This Should be the Last Module*/
+      LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on LAG...");
+      ptin_intf_Lag_delete_all();
+      LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
+    }
+
+    ptin_reset_defaults_mode = DEFATUL_RESET_MODE_PARTIAL;
+
+    ptin_state = PTIN_STATE_READY;
+
+    LOG_INFO(LOG_CTX_PTIN_CONTROL,"Reset defaults concluded");
   }
 }
 

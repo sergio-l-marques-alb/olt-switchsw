@@ -259,8 +259,16 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     return IPC_OK;
   }
 
+  /* If switchdrvr is busy, return FP_BUSY code error */
+  if (ptin_state == PTIN_STATE_BUSY)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_MSGHANDLER, "IPC message cannot be processed! PTin state = %d (msgId=%u)", ptin_state, inbuffer->msgId);
+    res = SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_FP_BUSY);
+    SetIPCNACK(outbuffer, res);
+    return IPC_OK;
+  }
   /* PTin module is still loading or crashed ? */
-  if (ptin_state != PTIN_LOADED)
+  else if (ptin_state != PTIN_STATE_READY)
   {
     LOG_WARNING(LOG_CTX_PTIN_MSGHANDLER, "IPC message cannot be processed! PTin state = %d (msgId=%u)", ptin_state, inbuffer->msgId);
     res = SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_NOTALLOWED);
