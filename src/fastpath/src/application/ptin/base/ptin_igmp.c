@@ -8270,6 +8270,7 @@ static L7_RC_t ptin_igmp_channel_remove_multicast_service( L7_uint32 evc_uc, L7_
   ptinIgmpChannelDataKey_t      avl_key;
   ptinIgmpChannelInfoData_t    *avl_info;
   struct packagePoolEntry_s    *packageEntry = L7_NULLPTR;
+  struct packagePoolEntry_s    *packageEntryAux;
   char                          groupAddrStr[IPV6_DISP_ADDR_LEN]={};
   char                          sourceAddrStr[IPV6_DISP_ADDR_LEN]={};
   L7_RC_t                       rc = L7_SUCCESS;
@@ -8326,16 +8327,21 @@ static L7_RC_t ptin_igmp_channel_remove_multicast_service( L7_uint32 evc_uc, L7_
       /*If Packages Exist. Remove Them First*/
       if (avl_info->queuePackage.n_elems != 0 || avl_info->noOfPorts != 0)
       {
-        packageEntry = L7_NULLPTR;    
-        while ( L7_NULLPTR != (packageEntry = queue_package_entry_get_next(avl_info, packageEntry)) && 
-            (packageEntry->packageId < PTIN_SYSTEM_IGMP_MAXPACKAGES) )
-        {        
+        packageEntry = queue_package_entry_get_next(avl_info, packageEntry);
+        while ( L7_NULLPTR != packageEntry && packageEntry->packageId < PTIN_SYSTEM_IGMP_MAXPACKAGES ) 
+        { 
+          /*Before Removing this Package Get the Next Package*/ 
+          packageEntryAux = queue_package_entry_get_next(avl_info, packageEntry);      
+
           if ( (rc = ptin_igmp_multicast_package_channel_remove(packageEntry->packageId, avl_info->channelDataKey.evc_mc, &avl_info->channelDataKey.channel_group, &avl_info->channelDataKey.channel_source)) != L7_SUCCESS)
           {
             LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing channel from multicast package [packageId:%u serviceId:%u groupAddr:%s sourceAddr:%s]",
                     packageEntry->packageId, avl_info->channelDataKey.evc_mc, inetAddrPrint(&avl_info->channelDataKey.channel_group, groupAddrStr), inetAddrPrint(&avl_info->channelDataKey.channel_source, sourceAddrStr));
             return rc;
           }
+
+          /*Assign the Next Package*/
+          packageEntry = packageEntryAux;
         }
 
         /*Validate If No Dependency Exist*/
