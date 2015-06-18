@@ -461,6 +461,13 @@ void *ptin_evc_clients_sem = L7_NULLPTR;
 /* Semaphore to handle L3 Interfaces */
 void *ptin_evc_l3_intf_sem = L7_NULLPTR;
 
+/**
+ * Get L3 Intf Sem
+ * 
+ *  
+ * 
+ * @return void* 
+ */
 void *ptin_evc_l3_intf_sem_get(void)
 {
   return ptin_evc_l3_intf_sem;
