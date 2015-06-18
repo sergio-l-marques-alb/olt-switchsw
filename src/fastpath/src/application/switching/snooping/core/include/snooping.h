@@ -157,8 +157,14 @@ typedef enum
   snoopHandleNewBackupManager,
   snoopActivateStartupDone,
 
+  snoopMsgEvcAdd,
+  snoopMsgEvcRemove,
+  snoopMsgEvcIntfAdd,
+  snoopMsgEvcIntfRemove,
+
   snoopMgmdSwitchPortOpen,
   snoopMgmdSwitchPortClose
+
 
 }snoopMgmtMessages_t;
 
@@ -561,6 +567,38 @@ typedef struct snoopPTinQueryData_s
   osapiTimerDescr_t *queryTimer;
 }snoopPTinQueryData_t;
 #endif
+
+typedef struct internalId_s
+{
+  L7_uint8   inUse;
+  L7_uint32  internalId;
+} internalId_t;
+
+#if 0
+typedef struct externalId_s
+{
+  L7_uint8  inUse;
+  L7_uint32 externalId;
+} externalId_t;
+#endif
+
+typedef struct snoopPtinEvc_s
+{
+  L7_uint8               inUse;
+  L7_uint32              evcId;
+  L7_uint32              vlanId;
+  PTIN_INTF_MASK_t       leafIntfMask;
+  L7_uint32              noOfLeafInterfaces;
+  PTIN_INTF_MASK_t       rootIntfMask;
+  L7_uint32              noOfRootInterfaces;
+  struct{
+    L7_uint8             inUse;
+    L7_uint8             portType;
+    L7_int32             l3IntfId;
+
+  } intfIfNum[PTIN_SYSTEM_MAXINTERFACES_PER_GROUP];            
+  L7_uint32              noOfInterfaces;
+} snoopPtinEvc_t;
 
 /* AVL Tree Snooping  Group Intf Mask Entry Strucutre */
 typedef struct snoopChannelIntfMaskInfoDataKey_s

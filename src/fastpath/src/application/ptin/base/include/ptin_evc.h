@@ -986,5 +986,13 @@ extern L7_RC_t ptin_evc_l3_intf_get(L7_uint32 evc_ext_id, L7_uint32 intfNum, L7_
  */
 L7_RC_t ptin_evc_l3_multicast_group_get(L7_uint32 evc_ext_id, L7_int *multicast_group);
 
+/**
+ * Get L3 Intf Sem
+ * 
+ *  
+ * 
+ * @return void* 
+ */
+extern void *ptin_evc_l3_intf_sem_get(void);
 
 #endif /* _PTIN_EVC_H */

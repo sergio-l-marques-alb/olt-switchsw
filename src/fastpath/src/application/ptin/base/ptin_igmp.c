@@ -2360,6 +2360,9 @@ L7_RC_t ptin_igmp_default_reset(void)
 
     if (adminMode == L7_ENABLE)
     {
+      /* SEM L3 Intf Up */
+      osapiSemaTake(ptin_evc_l3_intf_sem_get(), L7_WAIT_FOREVER);
+
       rc = usmDbSnoopAdminModeSet(0, L7_DISABLE, L7_AF_INET);
       if ( rc != L7_SUCCESS )
       {

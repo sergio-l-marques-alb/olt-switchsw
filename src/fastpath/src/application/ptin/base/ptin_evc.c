@@ -458,6 +458,13 @@ L7_RC_t ptin_evc_update_igmp (L7_uint16 evc_id, L7_uint32 *flags_ref, L7_BOOL ig
 /* Semaphore to access EVC clients */
 void *ptin_evc_clients_sem = L7_NULLPTR;
 
+/* Semaphore to handle L3 Interfaces */
+void *ptin_evc_l3_intf_sem = L7_NULLPTR;
+
+void *ptin_evc_l3_intf_sem_get(void)
+{
+  return ptin_evc_l3_intf_sem;
+}
 
 /* EVC manipulation functions *************************************************/
 /**
@@ -540,6 +547,14 @@ L7_RC_t ptin_evc_init(void)
     LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to create ptin_evc_clients_sem semaphore!");
     return L7_FAILURE;
   }
+
+  ptin_evc_l3_intf_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
+  if (ptin_evc_l3_intf_sem == L7_NULLPTR)
+  {
+    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to create ptin_evc_l3_intf_sem semaphore!");
+    return L7_FAILURE;
+  }
+  
 
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   intf_vp_DB(0, NULL);
@@ -3912,6 +3927,9 @@ L7_RC_t ptin_evc_destroy_all(void)
 {
   L7_uint i;
 
+  /* SEM L3 Intf Up */
+  osapiSemaTake(ptin_evc_l3_intf_sem_get(), L7_WAIT_FOREVER);
+
   /* Start with index 1 because PTIN_EVC_INBAND=0 */
   for (i=1; i<PTIN_SYSTEM_N_EXTENDED_EVCS; i++)
   {
@@ -3926,6 +3944,9 @@ L7_RC_t ptin_evc_destroy_all(void)
     if (IS_eEVC_IN_USE(i))
       ptin_evc_destroy(i);
   }
+
+  /* SEM L3 Intf Down */
+  osapiSemaGive(ptin_evc_l3_intf_sem_get());
 
   return L7_SUCCESS;
 }
