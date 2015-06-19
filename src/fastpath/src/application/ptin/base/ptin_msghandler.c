@@ -243,62 +243,55 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
   /* Prepare message header */
   SwapIPCHeader (inbuffer, outbuffer);
 
-  /* If message is a ping, reply with PTin loading state, which can signal crash errors too */
-  if (inbuffer->msgId == CCMSG_APPLICATION_IS_ALIVE)
-  {
-    LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,
-              "Message received: CCMSG_APPLICATION_IS_ALIVE (0x%04X)", CCMSG_APPLICATION_IS_ALIVE);
-
-    LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER, "PTin state: %d", ptin_state);
-    outbuffer->infoDim = sizeof(L7_uint32);
-    *((L7_uint32 *) outbuffer->info) = ptin_state;
-
-    LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,
-              "Message processed: response with %d bytes", outbuffer->infoDim);
-
-    return IPC_OK;
-  }
-
-  /* If switchdrvr is busy, return FP_BUSY code error */
-  if (ptin_state == PTIN_STATE_BUSY)
-  {
-    res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_FP_BUSY);
-    SetIPCNACK(outbuffer, res);
-    LOG_WARNING(LOG_CTX_PTIN_MSGHANDLER, "IPC message cannot be processed! PTin state = %d (msgId=0x%x) -> error 0x%08x", ptin_state, inbuffer->msgId, res);
-    return IPC_OK;
-  }
-  /* PTin module is still loading or crashed ? */
-  else if (ptin_state != PTIN_STATE_READY)
-  {
-    res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_NOTALLOWED);
-    SetIPCNACK(outbuffer, res);
-    LOG_WARNING(LOG_CTX_PTIN_MSGHANDLER, "IPC message cannot be processed! PTin state = %d (msgId=0x%x) -> error 0x%08x", ptin_state, inbuffer->msgId, res);
-    return IPC_OK;
-  }
-
-  if (ipc_msg_bytes_debug_enable(2))
-  {
-    L7_uint i;
-
-    if (inbuffer == NULL)
-    {
-        LOG_WARNING(LOG_CTX_PTIN_MSGHANDLER, "NULL message received!");
-        return SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_EMPTYMSG);
-    }
-    printf("\n\rmsgId[%4.4x] inbuffer->info:",inbuffer->msgId);
-    for(i=0; i<inbuffer->infoDim; i++)
-    {
-        printf(" %2.2Xh",inbuffer->info[i]); 
-    }
-    printf("\n\r");  
-  }
-
+  /* Commands allowed to be run, even if switchdrvr is busy */
   /* If reached here, means PTin module is loaded and ready to process messages */
   switch (inbuffer->msgId)
   {
     /************************************************************************** 
      * Application Utils Processing
      **************************************************************************/
+
+    /* If message is a ping, reply with PTin loading state, which can signal crash errors too */
+    case CCMSG_APPLICATION_IS_ALIVE:
+    {
+      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,
+                "Message received: CCMSG_APPLICATION_IS_ALIVE (0x%04X)", CCMSG_APPLICATION_IS_ALIVE);
+
+      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER, "PTin state: %d", ptin_state);
+      outbuffer->infoDim = sizeof(L7_uint32);
+      *((L7_uint32 *) outbuffer->info) = ptin_state;
+
+      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,
+                  "Message processed: response with %d bytes", outbuffer->infoDim);
+      return IPC_OK;
+    }
+
+    /* CCMSG_APP_FW_STATE_SET ************************************************/
+    case CCMSG_APP_FW_STATE_SET:
+    {
+        LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+                 "Message received: CCMSG_APP_FW_STATE_SET (0x%04X)", CCMSG_APP_FW_STATE_SET);
+
+        if (inbuffer->infoDim == 0)
+        {
+          res = SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE);
+          SetIPCNACK(outbuffer, res);
+          return IPC_OK;
+        }
+        /* Validate state */
+        if (inbuffer->info[0] >= PTIN_STATE_LAST)
+        {
+          LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Invalid state: %u", inbuffer->info[0]);
+          res = SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
+          SetIPCNACK(outbuffer, res);
+          return IPC_OK;
+        }
+        /* Set new state */
+        ptin_state = inbuffer->info[0];
+        SETIPCACKOK(outbuffer);
+
+        return IPC_OK;  /* CCMSG_APP_FW_STATE_SET */
+    }
 
     /* CCMSG_APP_CHANGE_STDOUT ************************************************/
     case CCMSG_APP_CHANGE_STDOUT:
@@ -312,7 +305,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       {
         res = SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE);
         SetIPCNACK(outbuffer, res);
-        break;
+        return IPC_OK;
       }
 
       /* Apply change */
@@ -321,7 +314,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       SETIPCACKOK(outbuffer);
 
       LOG_NOTICE(LOG_CTX_PTIN_MSGHANDLER, "...Stdout redirected to here :-)");
-      break;  /* CCMSG_APP_CHANGE_STDOUT */
+      return IPC_OK;  /* CCMSG_APP_CHANGE_STDOUT */
     }
 
     case CCMSG_APP_LOGGER_OUTPUT:
@@ -367,7 +360,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         LOG_NOTICE(LOG_CTX_PTIN_MSGHANDLER, "...Logger output (%u) redirected to \"%s\" :-)", output, filename);
       }
       SETIPCACKOK(outbuffer);
-      break;  /* CCMSG_APP_CHANGE_STDOUT */
+      return IPC_OK;  /* CCMSG_APP_CHANGE_STDOUT */
     }
 
     /* CCMSG_APP_SHELL_CMD_RUN ************************************************/
@@ -380,53 +373,76 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       {
         res = SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE);
         SetIPCNACK(outbuffer, res);
-        break;
+        return IPC_OK;
       }
-
       if (ptin_msg_ShellCommand_run((L7_char8 *) &inbuffer->info[0]) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error on ptin_msg_ShellCommand_run()");
         res = SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
         SetIPCNACK(outbuffer, res);
-
-        break;
+        return IPC_OK;
       }
       SETIPCACKOK(outbuffer);
-      break;  /* CCMSG_APP_SHELL_CMD_RUN */
+      return IPC_OK;  /* CCMSG_APP_SHELL_CMD_RUN */
     }
 
-
-    /************************************************************************** 
-     * Misc Processing
-     **************************************************************************/
-
-    /* Uplink protection command *********************************************/
-    case CHMSG_ETH_UPLINK_COMMAND:
+    /* CCMSG_ETH_PHY_ACTIVITY_GET ************************************************/
+    case CCMSG_ETH_PHY_ACTIVITY_GET:
     {
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-               "Message received: CHMSG_ETH_UPLINK_COMMAND (0x%04X)", inbuffer->msgId);
+      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,
+                "Message received: CCMSG_ETH_PHY_ACTIVITY_GET (0x%04X)", CCMSG_ETH_PHY_ACTIVITY_GET);
 
-      CHECK_INFO_SIZE_MOD(msg_uplinkProtCmd);
+      CHECK_INFO_SIZE(msg_HWEthPhyActivity_t);
 
-      msg_uplinkProtCmd *ptr = (msg_uplinkProtCmd *) inbuffer->info;
-      L7_int n = inbuffer->infoDim / sizeof(msg_uplinkProtCmd);
+      msg_HWEthPhyActivity_t *pin  = (msg_HWEthPhyActivity_t *) inbuffer->info;
+      msg_HWEthPhyActivity_t *pout = (msg_HWEthPhyActivity_t *) outbuffer->info;
 
-      rc = ptin_msg_uplink_protection_cmd(ptr, n);
+      /* Reference structure */
+      memcpy(pout, pin, sizeof(msg_HWEthPhyActivity_t));
 
-      /* No answer */
-      ret = IPC_NO_REPLY;
-
-      if (L7_SUCCESS != rc)
+      if (ptin_msg_PhyActivity_get(pout) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error processing command");
-        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while getting port activity (slot=%u/%u)", pin->intf.slot, pin->intf.port);
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
         SetIPCNACK(outbuffer, res);
-        break;
+        return IPC_OK;
       }
 
-      SETIPCACKOK(outbuffer);      
+      outbuffer->infoDim = sizeof(msg_HWEthPhyActivity_t);
+      return IPC_OK;  /* CCMSG_ETH_PHY_STATE_GET */
     }
-    break;
+
+    /* Sync MGMD open ports between different cards/interfaces*/
+    case CCMSG_MGMD_PORT_SYNC:
+    {
+      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,
+                "Message received: CCMSG_MGMD_PORT_SYNC (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE(msg_HwMgmdPortSync);
+
+      msg_HwMgmdPortSync *ptr;
+      ptr = (msg_HwMgmdPortSync *) outbuffer->info;
+
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_HwMgmdPortSync));
+
+      /* Execute command */
+      rc = ptin_msg_mgmd_sync_ports(ptr);
+      outbuffer->infoDim = 1;
+      return IPC_OK;
+    }
+
+#if (PTIN_BOARD_IS_MATRIX)
+    case CCMSG_ETH_LACP_MATRIXES_SYNC2:
+    {
+      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,
+                "Message received: CCMSG_ETH_LACP_MATRIXES_SYNC2 (0x%04X)", CCMSG_ETH_LACP_MATRIXES_SYNC2);
+
+      rx_dot3ad_matrix_sync2_t(inbuffer->info, inbuffer->infoDim);
+
+      outbuffer->infoDim = 1;        
+      return IPC_OK;
+    }
+#endif
 
     /* CCMSG_BOARD_SHOW *******************************************************/
     case CCMSG_BOARD_SHOW:
@@ -450,30 +466,40 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message processed: response with %d bytes (present=%d)", outbuffer->infoDim,fpInfo->BoardPresent);
 
-      break;  /* CCMSG_BOARD_SHOW */
+      return IPC_OK;  /* CCMSG_BOARD_SHOW */
     }
 
-
-    /* CCMSG_ALARMS_RESET *****************************************************/
-    case CCMSG_ALARMS_RESET:
+    /* CCMSG_HW_INTF_INFO_GET ****************************************************/
+    case CCMSG_HW_INTF_INFO_GET:
     {
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-               "Message received: CCMSG_ALARMS_RESET (0x%04X)", CCMSG_ALARMS_RESET);
+               "Message received: CCMSG_HW_INTF_INFO_GET (0x%04X)", inbuffer->msgId);
 
-      CHECK_INFO_SIZE(msg_HwGenReq_t);
+      CHECK_INFO_SIZE_ATLEAST(L7_uint32);
+      msg_HwIntfInfo_t *ptr;
+
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_HwIntfInfo_t));
+      ptr = (msg_HwIntfInfo_t *) outbuffer->info;
 
       /* Execute command */
-      ptin_msg_alarms_reset();
+      rc = ptin_msg_intfInfo_get(ptr);
 
-      SETIPCACKOK(outbuffer);
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error interface status");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        return IPC_OK;
+      }
 
-      break;  /* CCMSG_ALARMS_RESET */
+      outbuffer->infoDim = sizeof(msg_HwIntfInfo_t);
+      return IPC_OK;
     }
 
     /* CCMSG_APPLICATION_RESOURCES *********************************************/
     case CCMSG_APPLICATION_RESOURCES:
     {
-      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                 "Message received: CCMSG_APPLICATION_RESOURCES (0x%04X)", CCMSG_APPLICATION_RESOURCES);
 
       CHECK_INFO_SIZE_MOD(msg_ptin_policy_resources);
@@ -490,11 +516,94 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while consulting hardware resources");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
-        break;
+        return IPC_OK;
       }
 
       outbuffer->infoDim = sizeof(msg_ptin_policy_resources);
-      break;  /* CCMSG_APPLICATION_RESOURCES */
+      return IPC_OK;  /* CCMSG_APPLICATION_RESOURCES */
+    }
+
+    /* Uplink protection command *********************************************/
+    case CHMSG_ETH_UPLINK_COMMAND:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CHMSG_ETH_UPLINK_COMMAND (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE_MOD(msg_uplinkProtCmd);
+
+      msg_uplinkProtCmd *ptr = (msg_uplinkProtCmd *) inbuffer->info;
+      L7_int n = inbuffer->infoDim / sizeof(msg_uplinkProtCmd);
+
+      rc = ptin_msg_uplink_protection_cmd(ptr, n);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error processing command");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        return IPC_NO_REPLY;
+      }
+
+      SETIPCACKOK(outbuffer);      
+      return IPC_NO_REPLY;
+    }
+  }
+
+  /* If switchdrvr is busy, return FP_BUSY code error */
+  if (ptin_state == PTIN_STATE_BUSY)
+  {
+    res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_FP_BUSY);
+    SetIPCNACK(outbuffer, res);
+    LOG_WARNING(LOG_CTX_PTIN_MSGHANDLER, "IPC message cannot be processed! PTin state = %d (msgId=0x%x) -> error 0x%08x", ptin_state, inbuffer->msgId, res);
+    return IPC_OK;
+  }
+  /* PTin module is still loading or crashed ? */
+  else if (ptin_state != PTIN_STATE_READY)
+  {
+    res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_NOTALLOWED);
+    SetIPCNACK(outbuffer, res);
+    LOG_WARNING(LOG_CTX_PTIN_MSGHANDLER, "IPC message cannot be processed! PTin state = %d (msgId=0x%x) -> error 0x%08x", ptin_state, inbuffer->msgId, res);
+    return IPC_OK;
+  }
+
+  if (ipc_msg_bytes_debug_enable(2))
+  {
+    L7_uint i;
+
+    if (inbuffer == NULL)
+    {
+        LOG_WARNING(LOG_CTX_PTIN_MSGHANDLER, "NULL message received!");
+        return SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_EMPTYMSG);
+    }
+    printf("\n\rmsgId[%4.4x] inbuffer->info:",inbuffer->msgId);
+    for(i=0; i<inbuffer->infoDim; i++)
+    {
+        printf(" %2.2Xh",inbuffer->info[i]); 
+    }
+    printf("\n\r");  
+  }
+
+  /* If reached here, means PTin module is loaded and ready to process messages */
+  switch (inbuffer->msgId)
+  {
+    /************************************************************************** 
+     * Misc Processing
+     **************************************************************************/
+
+    /* CCMSG_ALARMS_RESET *****************************************************/
+    case CCMSG_ALARMS_RESET:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ALARMS_RESET (0x%04X)", CCMSG_ALARMS_RESET);
+
+      CHECK_INFO_SIZE(msg_HwGenReq_t);
+
+      /* Execute command */
+      ptin_msg_alarms_reset();
+
+      SETIPCACKOK(outbuffer);
+
+      break;  /* CCMSG_ALARMS_RESET */
     }
 
     /* CCMSG_DEFAULTS_RESET ***************************************************/
@@ -746,32 +855,6 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     }
     break;
 
-    case CCMSG_HW_INTF_INFO_GET:
-    {
-      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,
-               "Message received: CCMSG_HW_INTF_INFO_GET (0x%04X)", inbuffer->msgId);
-
-      CHECK_INFO_SIZE_ATLEAST(L7_uint32);
-      msg_HwIntfInfo_t *ptr;
-
-      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_HwIntfInfo_t));
-      ptr = (msg_HwIntfInfo_t *) outbuffer->info;
-
-      /* Execute command */
-      rc = ptin_msg_intfInfo_get(ptr);
-
-      if (L7_SUCCESS != rc)
-      {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error interface status");
-        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
-        SetIPCNACK(outbuffer, res);
-        break;
-      }
-
-      outbuffer->infoDim = sizeof(msg_HwIntfInfo_t);
-    }
-    break;
-
     /************************************************************************** 
      * PHY CONFIG Processing
      **************************************************************************/
@@ -1012,32 +1095,6 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break;  /* CCMSG_ETH_PHY_STATE_GET */
     }
 
-    /* CCMSG_ETH_PHY_ACTIVITY_GET ************************************************/
-    case CCMSG_ETH_PHY_ACTIVITY_GET:
-    {
-      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,
-                "Message received: CCMSG_ETH_PHY_ACTIVITY_GET (0x%04X)", CCMSG_ETH_PHY_ACTIVITY_GET);
-
-      CHECK_INFO_SIZE(msg_HWEthPhyActivity_t);
-
-      msg_HWEthPhyActivity_t *pin  = (msg_HWEthPhyActivity_t *) inbuffer->info;
-      msg_HWEthPhyActivity_t *pout = (msg_HWEthPhyActivity_t *) outbuffer->info;
-
-      /* Reference structure */
-      memcpy(pout, pin, sizeof(msg_HWEthPhyActivity_t));
-
-      if (ptin_msg_PhyActivity_get(pout) != L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while getting port activity (slot=%u/%u)", pin->intf.slot, pin->intf.port);
-        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
-        SetIPCNACK(outbuffer, res);
-        break;
-      }
-
-      outbuffer->infoDim = sizeof(msg_HWEthPhyActivity_t);
-      break;  /* CCMSG_ETH_PHY_STATE_GET */
-    }
-
     /************************************************************************** 
      * PHY COUNTERS Processing
      **************************************************************************/
@@ -1045,7 +1102,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_PHY_COUNTERS_GET *********************************************/
     case CCMSG_ETH_PHY_COUNTERS_GET:
     {
-      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                 "Message received: CCMSG_ETH_PHY_COUNTERS_GET (0x%04X)", CCMSG_ETH_PHY_COUNTERS_GET);
 
       CHECK_INFO_SIZE_MOD(msg_HwGenReq_t);
@@ -1599,21 +1656,6 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break;  /* CCMSG_ETH_LACP_STATS_CLEAR */
     }
 
-
-
-
-#if (PTIN_BOARD_IS_MATRIX)
-    case CCMSG_ETH_LACP_MATRIXES_SYNC2:
-    {
-        LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,
-                 "Message received: CCMSG_ETH_LACP_MATRIXES_SYNC2 (0x%04X)", CCMSG_ETH_LACP_MATRIXES_SYNC2);
-
-        rx_dot3ad_matrix_sync2_t(inbuffer->info, inbuffer->infoDim);
-
-        outbuffer->infoDim = 1;        
-      break;
-    }
-#endif
     /************************************************************************** 
      * L2 Table Processing
      **************************************************************************/
@@ -3552,24 +3594,6 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     }
     break;
     
-    /* Sync MGMD open ports between different cards/interfaces*/
-    case CCMSG_MGMD_PORT_SYNC:
-    {
-      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_MGMD_PORT_SYNC (0x%04X)", inbuffer->msgId);
-
-      CHECK_INFO_SIZE(msg_HwMgmdPortSync);
-
-      msg_HwMgmdPortSync *ptr;
-      ptr = (msg_HwMgmdPortSync *) outbuffer->info;
-
-      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_HwMgmdPortSync));
-
-      /* Execute command */
-      rc = ptin_msg_mgmd_sync_ports(ptr);
-      outbuffer->infoDim = 1;      
-    }
-    break;
-
     /* Request Snoop Sync between different cards/interfaces*/
     case CCMSG_MGMD_SNOOP_SYNC_REQUEST:
     {      
@@ -5360,19 +5384,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
   time_end = osapiTimeMicrosecondsGet();
   time_delta = time_end - time_start;
 
-  if( inbuffer->msgId == CCMSG_ETH_PHY_ACTIVITY_GET || 
-      inbuffer->msgId == CCMSG_HW_INTF_INFO_GET     ||
-      inbuffer->msgId == CCMSG_ETH_PHY_COUNTERS_GET ||
-#if (PTIN_BOARD_IS_MATRIX)
-      inbuffer->msgId == CCMSG_ETH_LACP_MATRIXES_SYNC2 || 
-#endif
-      inbuffer->msgId == CCMSG_MGMD_PORT_SYNC || 
-      inbuffer->msgId == CCMSG_APPLICATION_RESOURCES || 
-      inbuffer->msgId == CCMSG_L2_MACLIMIT_STATUS )
-    LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,"Message processed: 0x%04X in %lu usec [response:%u (bytes) rc=%u res=0x%08x]", inbuffer->msgId, outbuffer->infoDim, time_delta, rc, res);    
-  else
-    LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,"Message processed: 0x%04X in %lu usec  [response:%u (bytes) rc=%u res=0x%08x]", inbuffer->msgId, outbuffer->infoDim, time_delta, rc, res);
-    
+  LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,"Message processed: 0x%04X in %lu usec  [response:%u (bytes) rc=%u res=0x%08x]", inbuffer->msgId, outbuffer->infoDim, time_delta, rc, res);
 
   /* Message Runtime Meter */
   /* Only for successfull messages */

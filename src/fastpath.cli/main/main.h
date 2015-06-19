@@ -38,7 +38,8 @@ extern int canal_buga;
 #define CCMSG_APP_CHANGE_STDOUT             0x91F0  // (To be used with fastpath.cli)
 #define CCMSG_APP_SHELL_CMD_RUN             0x91F1  // (To be used with fastpath.cli)
 #define CCMSG_APP_LOGGER_OUTPUT             0x91F2  // (To be used with fastpath.cli)
-
+#define CCMSG_APP_FW_STATE_SET              0x91F3  // (To be used with fastpath.cli)
+                                                    //
 #define CCMSG_APPLICATION_IS_ALIVE          0x9000  // (To be used with fastpath.cli)
 #define CCMSG_BOARD_SHOW                    0x9001  // struct msg_FWFastpathInfo
 #define CCMSG_ALARMS_RESET                  0x9002  // No struct

@@ -39,9 +39,10 @@ void help_oltBuga(void)
         "\n\r"
         "Opcoes:\n\r"
         "help <comando>\n\r"
-        "ping <period> <N> - Waits until OLTSWITCH application is up or return error code (0-OK, 2-CRASH)\r\n"
+        "ping <period> <N> - Waits until OLTSWITCH application is up or return error code (0-READY, 1-BUSY, 2-LOADING, 3-CRASHED)\r\n"
         "m 1000 console(/dev/...)\n\r"
         "m 1001 file_index(0=main;1=sdk) filename - Logger output\n\r"
+        "m 1003 <state> - Set new fw state for switchdrvr (0-READY, 1-BUSY, 2-LOADING, 3-CRASHED)\r\n"
         "m 1004 - Get resources state\r\n"
         "--- Slot/Ports Configurations --------------------------------------------------------------------------------------------------------\n\r"
         "m 1005 - Get current slot map configuration\r\n"
@@ -532,6 +533,33 @@ int main (int argc, char *argv[])
           comando.msgId = CCMSG_APP_LOGGER_OUTPUT;
         }
         break;
+
+      // Set fw state
+      case 1003:
+      {
+        uint8 state = 0;
+
+        // Validate number of arguments
+        if (argc<3+1)  {
+          help_oltBuga();
+          exit(0);
+        }
+
+        comando.infoDim = 0;
+
+        // New state
+        if (StrToLongLong(argv[3+0],&valued)<0)  {
+          help_oltBuga();
+          exit(0);
+        }
+        state = (uint8) valued;
+
+        comando.info[0] = state;
+        comando.infoDim = sizeof(uint8);
+
+        comando.msgId = CCMSG_APP_FW_STATE_SET;
+      }
+      break;
 
       // Get application resources
       case 1004:
@@ -6960,6 +6988,13 @@ int main (int argc, char *argv[])
           printf(" Logger redirected successfully\n\r");
         else
           printf(" Error redirecting logger - error %08x\n\r", *(unsigned int*)resposta.info);
+        break;
+
+      case 1003:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" New fw state applied\n\r");
+        else
+          printf(" Error setting new fw state - error %08x\n\r", *(unsigned int*)resposta.info);
         break;
 
       case 1004:

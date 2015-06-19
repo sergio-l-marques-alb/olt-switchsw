@@ -181,6 +181,7 @@ typedef enum {
   PTIN_STATE_BUSY    = 1,
   PTIN_STATE_LOADING = 2,
   PTIN_STATE_CRASHED = 3,
+  PTIN_STATE_LAST
 } ptin_state_t;
 
 /* PTin module state */
