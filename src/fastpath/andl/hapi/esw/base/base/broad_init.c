@@ -736,9 +736,9 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
 #endif /* L7_IPV6_PACKAGE */
 
   /* Dynamic ARP Inspection: ARP packets on untrusted ports must go to the CPU and be rate limited to 64 kbps */
-  meterInfo.cir       = 64;
+  meterInfo.cir       = 512;
   meterInfo.cbs       = 64;
-  meterInfo.pir       = 64;
+  meterInfo.pir       = 512;
   meterInfo.pbs       = 64;
   meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
 

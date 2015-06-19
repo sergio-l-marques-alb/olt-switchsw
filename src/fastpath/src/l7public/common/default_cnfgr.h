@@ -332,7 +332,7 @@
 /* Could get a VLAN change event for all vlans in the system */
 #define DAI_EVENTQ_MSG_COUNT        L7_MAX_VLANS
 #define DAI_PACKET_QUEUE            "DAI Pkt Q"
-#define DAI_PACKETQ_MSG_COUNT       200
+#define DAI_PACKETQ_MSG_COUNT       2000
 
 /* End of Dynamic ARP Inspection Factory Defaults */
 
