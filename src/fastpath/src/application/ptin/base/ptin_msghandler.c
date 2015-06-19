@@ -262,22 +262,21 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
   /* If switchdrvr is busy, return FP_BUSY code error */
   if (ptin_state == PTIN_STATE_BUSY)
   {
-    LOG_WARNING(LOG_CTX_PTIN_MSGHANDLER, "IPC message cannot be processed! PTin state = %d (msgId=%u)", ptin_state, inbuffer->msgId);
-    res = SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_FP_BUSY);
+    res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_FP_BUSY);
     SetIPCNACK(outbuffer, res);
+    LOG_WARNING(LOG_CTX_PTIN_MSGHANDLER, "IPC message cannot be processed! PTin state = %d (msgId=0x%x) -> error 0x%08x", ptin_state, inbuffer->msgId, res);
     return IPC_OK;
   }
   /* PTin module is still loading or crashed ? */
   else if (ptin_state != PTIN_STATE_READY)
   {
-    LOG_WARNING(LOG_CTX_PTIN_MSGHANDLER, "IPC message cannot be processed! PTin state = %d (msgId=%u)", ptin_state, inbuffer->msgId);
-    res = SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_NOTALLOWED);
+    res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_NOTALLOWED);
     SetIPCNACK(outbuffer, res);
+    LOG_WARNING(LOG_CTX_PTIN_MSGHANDLER, "IPC message cannot be processed! PTin state = %d (msgId=0x%x) -> error 0x%08x", ptin_state, inbuffer->msgId, res);
     return IPC_OK;
   }
 
-
-  if(ipc_msg_bytes_debug_enable(2))
+  if (ipc_msg_bytes_debug_enable(2))
   {
     L7_uint i;
 
@@ -293,7 +292,6 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     }
     printf("\n\r");  
   }
-
 
   /* If reached here, means PTin module is loaded and ready to process messages */
   switch (inbuffer->msgId)
