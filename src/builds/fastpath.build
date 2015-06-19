@@ -179,7 +179,7 @@ echo "Transferring backup tarball to final destination..."
 #fi
 
 #scp $BUILDS_FOLDER/$backup_7z $USERNAME@$DST_IPADDR:$DST_PATH
-mv $BUILDS_FOLDER/$backup_7z $DST_PATH
+#mv $BUILDS_FOLDER/$backup_7z $DST_PATH
 
 echo -en $colorOk
 echo "DONE!"
