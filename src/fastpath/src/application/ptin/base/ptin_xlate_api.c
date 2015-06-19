@@ -66,8 +66,10 @@ ptinXlateAvlTree_t database_xlate_inv[PTIN_XLATE_STAGE_ALL];
 /* List of portgroups for each interface */
 static L7_int xlate_table_portgroup[PTIN_SYSTEM_N_PORTS];
 
+#define INTIFNUM_LOCAL_MAX  (1 + L7_MAX_PORT_COUNT + L7_MAX_CPU_SLOTS_PER_UNIT + L7_MAX_NUM_LAG_INTF)
+
 /* PVID database */ 
-static L7_uint16 xlate_table_pvid[PTIN_SYSTEM_N_INTERF];
+static L7_uint16 xlate_table_pvid[INTIFNUM_LOCAL_MAX];
 
 
 L7_BOOL ptin_debug_xlate = 0;
@@ -626,6 +628,13 @@ L7_RC_t ptin_xlate_ingress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_ui
     LOG_TRACE(LOG_CTX_PTIN_XLATE, "intIfNum=%u, outerVlanId=%u, innerVlanId=%u, newOuterVlanId=%u, newInnerVlanId=%u, newOuterPrio=%u, newInnerPrio=%u",
               intIfNum, outerVlanId, innerVlanId, newOuterVlanId, newInnerVlanId, newOuterPrio, newInnerPrio);
 
+  /* Validate intIfNum */
+  if (intIfNum == 0 || intIfNum >= INTIFNUM_LOCAL_MAX)
+  {
+    LOG_ERR(LOG_CTX_PTIN_XLATE, "Invalid intIfNum %d", intIfNum);
+    return L7_FAILURE;
+  }
+
   /* Validate arguments */
   if (outerVlanId>4095 || /*innerVlanId>4095 ||*/
       newOuterVlanId>4095 /*|| newInnerVlanId>4095*/)
@@ -741,6 +750,13 @@ L7_RC_t ptin_xlate_ingress_delete( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7
   if (ptin_debug_xlate)
     LOG_TRACE(LOG_CTX_PTIN_XLATE, "intIfNum=%u, outerVlanId=%u, innerVlanId=%u",
               intIfNum, outerVlanId, innerVlanId);
+
+  /* Validate intIfNum */
+  if (intIfNum == 0 || intIfNum >= INTIFNUM_LOCAL_MAX)
+  {
+    LOG_ERR(LOG_CTX_PTIN_XLATE, "Invalid intIfNum %d", intIfNum);
+    return L7_FAILURE;
+  }
 
   /* Validate arguments */
   if (outerVlanId>4095 || innerVlanId>4095)
@@ -1013,6 +1029,13 @@ L7_RC_t ptin_xlate_egress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uin
     LOG_TRACE(LOG_CTX_PTIN_XLATE, "intIfNum=%u, outerVlanId=%u, innerVlanId=%u, newOuterVlanId=%u, newInnerVlanId=%u, newOuterPrio=%u, newInnerPrio=%u",
               intIfNum, outerVlanId, innerVlanId, newOuterVlanId, newInnerVlanId, newOuterPrio, newInnerPrio);
 
+  /* Validate intIfNum */
+  if (intIfNum == 0 || intIfNum >= INTIFNUM_LOCAL_MAX)
+  {
+    LOG_ERR(LOG_CTX_PTIN_XLATE, "Invalid intIfNum %d", intIfNum);
+    return L7_FAILURE;
+  }
+
   /* Get class id */
   if (xlate_portgroup_from_intf(intIfNum, &class_id)!=L7_SUCCESS)
   {
@@ -1128,6 +1151,13 @@ L7_RC_t ptin_xlate_egress_delete( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_
   if (ptin_debug_xlate)
     LOG_TRACE(LOG_CTX_PTIN_XLATE, "intIfNum=%u, outerVlanId=%u, innerVlanId=%u",
               intIfNum, outerVlanId, innerVlanId);
+
+  /* Validate intIfNum */
+  if (intIfNum == 0 || intIfNum > INTIFNUM_LOCAL_MAX)
+  {
+    LOG_ERR(LOG_CTX_PTIN_XLATE, "Invalid intIfNum %d", intIfNum);
+    return L7_FAILURE;
+  }
 
   /* Get class id */
   if (xlate_portgroup_from_intf(intIfNum, &class_id)!=L7_SUCCESS)
@@ -1572,11 +1602,12 @@ L7_RC_t ptin_xlate_PVID_set(L7_uint32 intIfNum, L7_uint16 vlanId)
   ptin_vlanXlate_t      xlate;
 
   /* Validate arguments */
-  if (intIfNum == 0 || intIfNum > PTIN_SYSTEM_N_INTERF)
+  if (intIfNum == 0 || intIfNum >= INTIFNUM_LOCAL_MAX)
   {
     LOG_ERR(LOG_CTX_PTIN_XLATE, "Invalid intIfNum %d", intIfNum);
     return L7_FAILURE;
   }
+
   if (vlanId == 0 || vlanId >= 4096)
   {
     LOG_TRACE(LOG_CTX_PTIN_INTF, "Invalid VID %u", vlanId);
@@ -1752,6 +1783,13 @@ L7_RC_t ptin_xlate_PVID_set(L7_uint32 intIfNum, L7_uint16 vlanId)
  */
 L7_RC_t ptin_xlate_PVID_get(L7_uint32 intIfNum, L7_uint16 *vlanId)
 {
+  /* Validate arguments */
+  if (intIfNum == 0 || intIfNum >= INTIFNUM_LOCAL_MAX)
+  {
+    LOG_ERR(LOG_CTX_PTIN_XLATE, "Invalid intIfNum %d", intIfNum);
+    return L7_FAILURE;
+  }
+
   *vlanId = xlate_table_pvid[intIfNum];
   return L7_SUCCESS;
 }
@@ -1763,17 +1801,24 @@ L7_RC_t ptin_xlate_PVID_get(L7_uint32 intIfNum, L7_uint16 *vlanId)
  */
 void ptin_pvid_dump(void)
 {
-  L7_uint port;
+  L7_uint port, intIfNum;
 
   printf("PortGroup and PVID information:\r\n");
 
   for (port = 0; port < PTIN_SYSTEM_N_INTERF; port++)
   {
+    /* Determine intIfNum */
+    if (ptin_intf_port2intIfNum(port, &intIfNum) != L7_SUCCESS || intIfNum == 0 || intIfNum >= INTIFNUM_LOCAL_MAX)
+    {
+      printf("Invalid port %u\r\n", port);
+      continue;
+    }
+
     printf("Port %-2u:   PGroup=", port);
 
     (port < PTIN_SYSTEM_N_PORTS) ? printf("%-3u", xlate_table_portgroup[port]) : printf("---");
 
-    printf("   PVID=%u\r\n", xlate_table_pvid[port]);
+    printf("   PVID=%u\r\n", xlate_table_pvid[intIfNum]);
   }
 }
 
@@ -1789,7 +1834,7 @@ void ptin_pvid_dump(void)
 static L7_RC_t ptin_xlate_PVID_init(void)
 {
   L7_uint32 intIfNum;
-  for (intIfNum = 0; intIfNum < PTIN_SYSTEM_N_INTERF; intIfNum++)
+  for (intIfNum = 0; intIfNum < INTIFNUM_LOCAL_MAX; intIfNum++)
   {
     xlate_table_pvid[intIfNum] = 1;
   }
