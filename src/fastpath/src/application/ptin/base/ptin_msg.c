@@ -226,13 +226,34 @@ void ptin_msg_defaults_reset(L7_char8 mode)
 {
   LOG_INFO(LOG_CTX_PTIN_MSG, "Resetting to default configuration (mode %x)", mode);
 
+  /* Change switchdrvr state to BUSY */
+  ptin_state = PTIN_STATE_BUSY;
+
+  /* Pass to firmware reset defaults mode */
   ptin_reset_defaults_mode = mode;
 
+  /* Unblock reset defaults procedure */
   osapiSemaGive(ptin_busy_sem);
 
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Leaving %s function", __FUNCTION__);
+  /* Only for non linecards: wait 3 seconds for fw to be ready again */
+#if (!PTIN_BOARD_IS_LINECARD)
+  L7_int8 cycles_100ms = 30;
 
-  return;
+  /* Wait until state goes back to ready again */
+  while (ptin_state == PTIN_STATE_BUSY && (--cycles_100ms) >= 0)
+  {
+    osapiSleepMSec(100);
+  }
+  /* After 3 seconds, function should be terminated */
+  if (cycles_100ms == 0)
+  {
+    LOG_INFO(LOG_CTX_PTIN_MSG, "Timeout... Leaving %s function.", __FUNCTION__); 
+    return;
+  }
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Operation completed! Leaving %s function.", __FUNCTION__); 
+#else
+  LOG_INFO(LOG_CTX_PTIN_MSG, "I will not wait for completion. Leaving %s function.", __FUNCTION__); 
+#endif
 }
 
 /**
