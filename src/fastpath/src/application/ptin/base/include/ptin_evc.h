@@ -995,4 +995,14 @@ L7_RC_t ptin_evc_l3_multicast_group_get(L7_uint32 evc_ext_id, L7_int *multicast_
  */
 extern void *ptin_evc_l3_intf_sem_get(void);
 
+/**
+ * Give L3 Intf Sem
+ * 
+ * @param vlanId 
+ * @param intfNum 
+ * 
+ * @return  
+ */
+extern void ptin_evc_l3_intf_sem_give(L7_uint32 vlanId, L7_uint32 intfIfnum);
+
 #endif /* _PTIN_EVC_H */

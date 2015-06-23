@@ -2360,9 +2360,6 @@ L7_RC_t ptin_igmp_default_reset(void)
 
     if (adminMode == L7_ENABLE)
     {
-      /* SEM L3 Intf Up */
-      osapiSemaTake(ptin_evc_l3_intf_sem_get(), L7_WAIT_FOREVER);
-
       rc = usmDbSnoopAdminModeSet(0, L7_DISABLE, L7_AF_INET);
       if ( rc != L7_SUCCESS )
       {
@@ -10136,18 +10133,20 @@ L7_RC_t ptin_igmp_mgmd_service_remove(L7_uint32 evc_idx)
 
 /**
  * Removes all groups related to this port Id
- * 
- * @param intfnum : Multicast evc id 
+ *  
+ * @param EvcId   : Multicast evc id 
+ * @param intfnum : Port Id
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_mgmd_port_remove(L7_uint32 intIfNum)
+L7_RC_t ptin_igmp_mgmd_port_remove(L7_uint32 evc_idx, L7_uint32 intIfNum)
 {
   PTIN_MGMD_EVENT_t               reqMsg        = {0};
   PTIN_MGMD_EVENT_t               resMsg        = {0};
   PTIN_MGMD_EVENT_CTRL_t          ctrlResMsg    = {0};
   PTIN_MGMD_CTRL_PORT_REMOVE_t mgmdConfigMsg = {0}; 
 
+  mgmdConfigMsg.serviceId = evc_idx;
   mgmdConfigMsg.portId = intIfNum;
   ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_PORT_REMOVE, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdConfigMsg, sizeof(PTIN_MGMD_CTRL_PORT_REMOVE_t));
   ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);

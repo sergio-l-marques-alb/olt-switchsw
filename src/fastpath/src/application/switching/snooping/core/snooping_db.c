@@ -6463,9 +6463,7 @@ void snoopChannelReset(L7_uint32 vlanId, L7_uint32 intIfNum)
                               intf, 0);       
       #endif       
     }
-  }
-  /* SEM L3 Intf Down */
-  osapiSemaGive(ptin_evc_l3_intf_sem_get());
+  }  
 }
 
 /*********************************************************************

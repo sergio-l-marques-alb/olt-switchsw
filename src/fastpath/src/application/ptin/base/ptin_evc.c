@@ -407,7 +407,7 @@ static L7_RC_t switching_root_add(L7_uint root_intf, L7_uint16 out_vlan, L7_uint
                                   L7_BOOL egress_del_ivlan, L7_int force_pcp);
 static L7_RC_t switching_root_remove(L7_uint root_intf, L7_uint16 out_vlan, L7_uint16 inner_vlan, L7_uint16 int_vlan);
 static L7_RC_t switching_leaf_add(L7_uint leaf_intf, L7_uint16 leaf_int_vlan);
-static L7_RC_t switching_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_int_vlan);
+static L7_RC_t switching_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_int_vlan, L7_BOOL iptv_flag);
 
 static L7_RC_t switching_elan_leaf_add(L7_uint leaf_intf, L7_uint16 leaf_out_vlan, L7_uint16 leaf_inner_vlan, L7_uint16 int_vlan, L7_BOOL egress_del_ivid, L7_int force_pcp);
 static L7_RC_t switching_elan_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_out_vlan, L7_uint16 leaf_inner_vlan, L7_uint16 int_vlan);
@@ -459,18 +459,52 @@ L7_RC_t ptin_evc_update_igmp (L7_uint16 evc_id, L7_uint32 *flags_ref, L7_BOOL ig
 void *ptin_evc_clients_sem = L7_NULLPTR;
 
 /* Semaphore to handle L3 Interfaces */
-void *ptin_evc_l3_intf_sem = L7_NULLPTR;
+static void *__ptin_evc_l3_intf_sem = L7_NULLPTR;
 
-/**
- * Get L3 Intf Sem
- * 
- *  
- * 
- * @return void* 
- */
-void *ptin_evc_l3_intf_sem_get(void)
+#define L3_INTF_SEM_MAX_WAITING_PERIOD 10000 /*10 seconds*/
+
+static L7_uint32 __vlanId    = (L7_uint32) -1;
+static L7_uint32 __intfIfnum = (L7_uint32) -1;
+
+static void __ptin_evc_l3_intf_sem_handle(L7_uint32 vlanId, L7_uint32 intfIfnum)
 {
-  return ptin_evc_l3_intf_sem;
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "Take Sem vlanId:%u intfIfnum:%u", vlanId, intfIfnum);
+  osapiSemaTake(__ptin_evc_l3_intf_sem, L3_INTF_SEM_MAX_WAITING_PERIOD);
+
+  /*Are we on a clean state?*/
+  if ( __vlanId == (L7_uint32) -1 && __intfIfnum == (L7_uint32) -1)
+  {
+    /*Save Parameters*/
+    __vlanId    = vlanId;
+    __intfIfnum = intfIfnum;    
+  }
+  else
+  {
+    if ( __vlanId == vlanId && __intfIfnum == intfIfnum )
+    {
+      /*Clean  Internal Parameters*/
+      __vlanId = (L7_uint32) -1;    
+      __intfIfnum = (L7_uint32) -1; 
+
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "Give Sem vlanId:%u intfIfnum:%u", vlanId, intfIfnum);
+      /* SEM L3 Intf Down */
+      osapiSemaGive(__ptin_evc_l3_intf_sem);
+    }
+  }
+
+  return;
+}
+
+void ptin_evc_l3_intf_sem_give(L7_uint32 vlanId, L7_uint32 intfIfnum)
+{  
+  if ( __vlanId == vlanId && __intfIfnum == intfIfnum )
+  {
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "Give Sem vlanId:%u intfIfnum:%u", vlanId, intfIfnum);
+    /* SEM L3 Intf Down */
+    osapiSemaGive(__ptin_evc_l3_intf_sem);
+  }
+
+  return;
 }
 
 /* EVC manipulation functions *************************************************/
@@ -555,8 +589,8 @@ L7_RC_t ptin_evc_init(void)
     return L7_FAILURE;
   }
 
-  ptin_evc_l3_intf_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
-  if (ptin_evc_l3_intf_sem == L7_NULLPTR)
+  __ptin_evc_l3_intf_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
+  if (__ptin_evc_l3_intf_sem == L7_NULLPTR)
   {
     LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to create ptin_evc_l3_intf_sem semaphore!");
     return L7_FAILURE;
@@ -726,6 +760,7 @@ L7_BOOL ptin_evc_is_intf_leaf(L7_uint32 evc_ext_id, L7_uint intfNum)
 {  
   L7_int evc_id;
   L7_uint32 ptin_port;
+  L7_RC_t   rc;
 
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
     return L7_FALSE;
@@ -733,9 +768,14 @@ L7_BOOL ptin_evc_is_intf_leaf(L7_uint32 evc_ext_id, L7_uint intfNum)
   if (intfNum == 0 || intfNum>PTIN_SYSTEM_N_INTERF)
     return L7_FALSE;
 
-  if (ptin_evc_ext2int(evc_ext_id, &evc_id) != L7_SUCCESS)
+  rc = ptin_evc_ext2int(evc_ext_id, &evc_id);
+  if ( rc != L7_SUCCESS)
   {
-     LOG_ERR(LOG_CTX_PTIN_EVC, "evc_ext_id:%u is invalid", evc_ext_id);
+     if (rc != L7_NOT_EXIST)
+       LOG_ERR(LOG_CTX_PTIN_EVC, "evc_ext_id:%u is invalid", evc_ext_id);
+     else
+       LOG_TRACE(LOG_CTX_PTIN_EVC, "Evc does not exist evc_ext_id:%u", evc_ext_id);
+
      return L7_FALSE;
   }
 
@@ -1386,6 +1426,7 @@ L7_RC_t ptin_evc_intVlan_get(L7_uint32 evc_ext_id, ptin_intf_t *ptin_intf, L7_ui
 L7_RC_t ptin_evc_intRootVlan_get(L7_uint32 evc_ext_id, L7_uint16 *intRootVlan)
 {
   L7_uint32 evc_id;
+  L7_RC_t   rc;
 
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
@@ -1395,9 +1436,13 @@ L7_RC_t ptin_evc_intRootVlan_get(L7_uint32 evc_ext_id, L7_uint16 *intRootVlan)
   }
 
   /* Is EVC in use? */
-  if (ptin_evc_ext2int(evc_ext_id, &evc_id) != L7_SUCCESS)
+  rc = ptin_evc_ext2int(evc_ext_id, &evc_id);
+  if ( rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_ext_id);
+    if ( rc != L7_NOT_EXIST)
+      LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_ext_id);
+    else
+      LOG_DEBUG(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_ext_id);
     return L7_NOT_EXIST;
   }
 
@@ -3934,9 +3979,6 @@ L7_RC_t ptin_evc_destroy_all(void)
 {
   L7_uint i;
 
-  /* SEM L3 Intf Up */
-  osapiSemaTake(ptin_evc_l3_intf_sem_get(), L7_WAIT_FOREVER);
-
   /* Start with index 1 because PTIN_EVC_INBAND=0 */
   for (i=1; i<PTIN_SYSTEM_N_EXTENDED_EVCS; i++)
   {
@@ -3951,10 +3993,6 @@ L7_RC_t ptin_evc_destroy_all(void)
     if (IS_eEVC_IN_USE(i))
       ptin_evc_destroy(i);
   }
-
-  /* SEM L3 Intf Down */
-  osapiSemaGive(ptin_evc_l3_intf_sem_get());
-
   return L7_SUCCESS;
 }
 
@@ -8280,6 +8318,7 @@ static L7_RC_t ptin_evc_entry_free(L7_uint32 evc_ext_id)
  * @param infoData : AVL node pointer (output)
  * 
  * @return L7_RC_t :  L7_SUCCESS (EVC valid) 
+ *                    L7_NOT_EXIST(EVC do not exist)  
  *                    L7_FAILURE (EVC not valid)
  */
 static L7_RC_t ptin_evc_extEvcInfo_get(L7_uint32 evc_ext_id, ptinExtEvcIdInfoData_t **infoData)
@@ -8317,7 +8356,7 @@ static L7_RC_t ptin_evc_extEvcInfo_get(L7_uint32 evc_ext_id, ptinExtEvcIdInfoDat
   if (ext_evcId_infoData == L7_NULLPTR)
   {
     //LOG_ERR(LOG_CTX_PTIN_EVC,"Extended evc id %u not found in AVL tree", evc_ext_id);
-    return L7_FAILURE;
+    return L7_NOT_EXIST;
   }
 
   /* Valid EVC id? */
@@ -8459,13 +8498,19 @@ L7_RC_t ptin_evc_l3_multicast_group_get(L7_uint32 evc_ext_id, L7_int *multicast_
 L7_RC_t ptin_evc_ext2int(L7_uint32 evc_ext_id, L7_uint32 *evc_id)
 {
   ptinExtEvcIdInfoData_t  *ext_evcId_infoData;
+  L7_RC_t                  rc;
 
   /* Validate given extended evc id, and get pointer to AVL node */
-  if (ptin_evc_extEvcInfo_get(evc_ext_id, &ext_evcId_infoData) != L7_SUCCESS ||
-      ext_evcId_infoData == L7_NULLPTR)
+  rc = ptin_evc_extEvcInfo_get(evc_ext_id, &ext_evcId_infoData);  
+  if  (rc != L7_SUCCESS)
+  {
+    return rc;
+  }
+
+  if ( ext_evcId_infoData == L7_NULLPTR )
   {
     //LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ext_evc_id %u", evc_ext_id);
-    return L7_FAILURE;
+    return L7_FAILURE;  
   }
 
   /* Return internal evc id */
@@ -8906,7 +8951,18 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
   }
   else
   {
-    if (switching_leaf_remove(ptin_port, int_vlan) != L7_SUCCESS)
+    if (iptv_flag)
+    {
+      rc = ptin_igmp_mgmd_port_remove(evcs[evc_id].extended_id, intIfNum);
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing Mgmd Port [extended_id=%u intIfNum=%u]",
+                evcs[evc_id].extended_id, intIfNum);
+  //    return L7_FAILURE;
+      }
+    }
+
+    if (switching_leaf_remove(ptin_port, int_vlan, iptv_flag) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing leaf [ptin_port=%u Vl=%u]",
               evc_id, ptin_port, int_vlan);
@@ -10524,12 +10580,20 @@ static L7_RC_t switching_leaf_add(L7_uint leaf_intf, L7_uint16 leaf_int_vlan)
 /**
  * Removes a leaf port (for stacked and unstacked EVCs) 
  * 
- * @param leaf_intf Leaf interface (ptin_intf)
- * @param int_vlan  Inner VLAN
+ * @param  leaf_intf Leaf interface (ptin_intf)
+ * @param  int_vlan  Inner VLAN 
+ * @param  iptv_flag IPTV Flag 
  * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE 
+ *  
+ * @notes  This only applies when the iptv flag is on: before 
+ *         returning from this function we need ensure that the
+ *         Snooping module finishes the removal of all L3 Snoop
+ *         entries associated with this leaf_int_vlan/intIfNum.
+ *         This is taken care by the __ptin_evc_l3_intf_sem
+ *         semaphore.
  */
-static L7_RC_t switching_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_int_vlan)
+static L7_RC_t switching_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_int_vlan, L7_BOOL iptv_flag)
 {
   L7_uint32 intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
@@ -10544,13 +10608,25 @@ static L7_RC_t switching_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_int_vlan)
     LOG_ERR(LOG_CTX_PTIN_EVC, "Interface is invalid: %u", leaf_intf);
     return L7_FAILURE;
   }
+  
+  /*Please see the notes for further info*/
+  if (iptv_flag)
+  {    
+    __ptin_evc_l3_intf_sem_handle(leaf_int_vlan, intIfNum);   
+  }
 
   /* Delete intIfNum from leaf_int_vlan */
-  rc = usmDbVlanMemberSet(1, leaf_int_vlan, intIfNum, L7_DOT1Q_FORBIDDEN, DOT1Q_SWPORT_MODE_NONE);
+  rc = usmDbVlanMemberSet(1, leaf_int_vlan, intIfNum, L7_DOT1Q_FORBIDDEN, DOT1Q_SWPORT_MODE_NONE);  
   if (rc != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "Error deleting intIfNum# %u from Int.VLAN %u (rc=%d)", intIfNum, leaf_int_vlan, rc);
     return L7_FAILURE;
+  }
+
+  /*Please see the notes for further info*/
+  if (iptv_flag)
+  {
+    __ptin_evc_l3_intf_sem_handle(leaf_int_vlan, intIfNum);   
   }
 
   return L7_SUCCESS;

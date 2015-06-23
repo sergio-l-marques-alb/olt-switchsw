@@ -362,6 +362,13 @@ void snoopTask(void)
       /* Vlan change notification */
       (void)snoopVlanChangeProcess(&msg.u.vlanData, msg.intIfNum,
                                    msg.vlanEvent);
+      
+      if (msg.vlanEvent == VLAN_DELETE_PORT_NOTIFY && msg.u.vlanData.numVlans == 1)
+      {
+        /*Added to avoid the removal of L3 Interfaces from the EVC Module 
+          before removing all the L3 snoop entries associated to this vlanId and intIfNum*/
+        ptin_evc_l3_intf_sem_give(msg.u.vlanData.data.vlanId, msg.intIfNum);     
+      }
       break;
 
     case (snoopVlanModeChange):
@@ -931,6 +938,9 @@ L7_RC_t snoopIntfVlanModeApply(L7_uint32 intIfNum, L7_uint32 vlanId,
 
   /* Remove the interface from Multicast Router Attached List and snoopEntries*/
     snoopIntfVlanEntriesRemove(intIfNum, pSnoopOperEntry->vlanId, pSnoopCB);
+
+    /*Remove the interface from the L3 Table*/
+    snoopChannelReset(vlanId, intIfNum);
   }
 
   return L7_SUCCESS;
@@ -3448,6 +3458,13 @@ static void snoopMgmdSwitchPortCloseProcess(L7_uint32 serviceId, L7_uint32 intIf
   }
   #endif    
 
+  if( L7_TRUE != ptin_evc_is_intf_leaf(serviceId, intIfNum))
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "IntIfnum is not leaf [serviceId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isProtection:%s]", serviceId, intIfNum, groupAddrStr, sourceAddrStr, isProtection?"Yes":"No");      
+    return;
+  }
+
   if( L7_SUCCESS != ptin_evc_intRootVlan_get(serviceId, &mcastRootVlan))
   {
     if (ptin_debug_igmp_snooping)
@@ -3455,13 +3472,6 @@ static void snoopMgmdSwitchPortCloseProcess(L7_uint32 serviceId, L7_uint32 intIf
     return;
   }
 
-  if( L7_TRUE != ptin_evc_is_intf_leaf(serviceId, intIfNum))
-  {
-    if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP, "Intfnum is not leaf [serviceId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isProtection:%s]", serviceId, intIfNum, groupAddrStr, sourceAddrStr, isProtection?"Yes":"No");      
-    return;
-  }
-  
   #if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
   isL3Entry = L7_TRUE;
   #else
