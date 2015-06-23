@@ -412,38 +412,6 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       return IPC_OK;  /* CCMSG_ETH_PHY_STATE_GET */
     }
 
-    /* Sync MGMD open ports between different cards/interfaces*/
-    case CCMSG_MGMD_PORT_SYNC:
-    {
-      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,
-                "Message received: CCMSG_MGMD_PORT_SYNC (0x%04X)", inbuffer->msgId);
-
-      CHECK_INFO_SIZE(msg_HwMgmdPortSync);
-
-      msg_HwMgmdPortSync *ptr;
-      ptr = (msg_HwMgmdPortSync *) outbuffer->info;
-
-      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_HwMgmdPortSync));
-
-      /* Execute command */
-      rc = ptin_msg_mgmd_sync_ports(ptr);
-      outbuffer->infoDim = 1;
-      return IPC_OK;
-    }
-
-#if (PTIN_BOARD_IS_MATRIX)
-    case CCMSG_ETH_LACP_MATRIXES_SYNC2:
-    {
-      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,
-                "Message received: CCMSG_ETH_LACP_MATRIXES_SYNC2 (0x%04X)", CCMSG_ETH_LACP_MATRIXES_SYNC2);
-
-      rx_dot3ad_matrix_sync2_t(inbuffer->info, inbuffer->infoDim);
-
-      outbuffer->infoDim = 1;        
-      return IPC_OK;
-    }
-#endif
-
     /* CCMSG_BOARD_SHOW *******************************************************/
     case CCMSG_BOARD_SHOW:
     {
@@ -522,31 +490,6 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       outbuffer->infoDim = sizeof(msg_ptin_policy_resources);
       return IPC_OK;  /* CCMSG_APPLICATION_RESOURCES */
     }
-
-    /* Uplink protection command *********************************************/
-    case CHMSG_ETH_UPLINK_COMMAND:
-    {
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-               "Message received: CHMSG_ETH_UPLINK_COMMAND (0x%04X)", inbuffer->msgId);
-
-      CHECK_INFO_SIZE_MOD(msg_uplinkProtCmd);
-
-      msg_uplinkProtCmd *ptr = (msg_uplinkProtCmd *) inbuffer->info;
-      L7_int n = inbuffer->infoDim / sizeof(msg_uplinkProtCmd);
-
-      rc = ptin_msg_uplink_protection_cmd(ptr, n);
-
-      if (L7_SUCCESS != rc)
-      {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error processing command");
-        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
-        SetIPCNACK(outbuffer, res);
-        return IPC_NO_REPLY;
-      }
-
-      SETIPCACKOK(outbuffer);      
-      return IPC_NO_REPLY;
-    }
   }
 
   /* If switchdrvr is busy, return FP_BUSY code error */
@@ -586,6 +529,69 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
   /* If reached here, means PTin module is loaded and ready to process messages */
   switch (inbuffer->msgId)
   {
+    /************************************************************************** 
+     * Control processing
+     **************************************************************************/
+
+    /* Uplink protection command *********************************************/
+    case CHMSG_ETH_UPLINK_COMMAND:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CHMSG_ETH_UPLINK_COMMAND (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE_MOD(msg_uplinkProtCmd);
+
+      msg_uplinkProtCmd *ptr = (msg_uplinkProtCmd *) inbuffer->info;
+      L7_int n = inbuffer->infoDim / sizeof(msg_uplinkProtCmd);
+
+      ret = IPC_NO_REPLY;
+
+      rc = ptin_msg_uplink_protection_cmd(ptr, n);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error processing command");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      break;
+    }
+
+  #if (PTIN_BOARD_IS_MATRIX)
+    case CCMSG_ETH_LACP_MATRIXES_SYNC2:
+    {
+      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,
+                "Message received: CCMSG_ETH_LACP_MATRIXES_SYNC2 (0x%04X)", CCMSG_ETH_LACP_MATRIXES_SYNC2);
+
+      rx_dot3ad_matrix_sync2_t(inbuffer->info, inbuffer->infoDim);
+
+      outbuffer->infoDim = 1;        
+      break;
+    }
+  #endif
+
+    /* Sync MGMD open ports between different cards/interfaces*/
+    case CCMSG_MGMD_PORT_SYNC:
+    {
+      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,
+                "Message received: CCMSG_MGMD_PORT_SYNC (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE(msg_HwMgmdPortSync);
+
+      msg_HwMgmdPortSync *ptr;
+      ptr = (msg_HwMgmdPortSync *) outbuffer->info;
+
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_HwMgmdPortSync));
+
+      /* Execute command */
+      rc = ptin_msg_mgmd_sync_ports(ptr);
+      outbuffer->infoDim = 1;
+      break;
+    }
+
     /************************************************************************** 
      * Misc Processing
      **************************************************************************/
