@@ -365,6 +365,7 @@ L7_RC_t ptin_hapi_maclimit_inc(bcmx_l2_addr_t *bcmx_l2_addr)
       /* Feature enabled? */
       if (macLearn_info_physical[physical_port].enable == L7_FALSE)
       { 
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "Feature not enable");
         macLearn_info_physical[physical_port].mac_counter++;
         macLearn_info_physical[physical_port].mac_total++;
         return L7_FAILURE;
@@ -933,6 +934,7 @@ L7_RC_t ptin_hapi_vport_maclimit_setmax(bcm_gport_t gport, L7_uint8 mac_limit)
 
     mac_limit_old = macLearn_info_flow[vport_id].mac_limit;
     macLearn_info_flow[vport_id].mac_limit = mac_limit;
+
     //macLearn_info_flow[vport_id].enable = L7_TRUE;
 
     /* Check if maximum was reached */
@@ -975,7 +977,7 @@ L7_RC_t ptin_hapi_vport_maclimit_setmax(bcm_gport_t gport, L7_uint8 mac_limit)
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, L7_uint32 mac_limit, L7_uint16 action, L7_uint16 send_trap, DAPI_t *dapi_g )
+L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, L7_uint32 mac_limit, L7_uint8 action, L7_uint16 send_trap, DAPI_t *dapi_g )
 {
   DAPI_PORT_t           *dapiPortPtr;
   BROAD_PORT_t          *hapiPortPtr;
@@ -1030,7 +1032,13 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, L7_uint3
     l2_learn_limit.port = (bcm_port_t) hapiPortPtr->bcm_port;
 
     /*Set Flags*/
-    l2_learn_limit.flags   = BCM_L2_LEARN_LIMIT_PORT; 
+    l2_learn_limit.flags   = BCM_L2_LEARN_LIMIT_PORT ;
+
+   if(action == 1) 
+   {
+      l2_learn_limit.flags |= BCM_L2_LEARN_LIMIT_ACTION_DROP; // BCM_L2_LEARN_LIMIT_ACTION_CPU
+   }
+
   }
   /* Extract Trunk id */
   else if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr))
@@ -1052,7 +1060,12 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, L7_uint3
     l2_learn_limit.trunk   = trunk_id;
 
     /*Set Flags*/
-    l2_learn_limit.flags   = BCM_L2_LEARN_LIMIT_TRUNK; 
+    l2_learn_limit.flags   = BCM_L2_LEARN_LIMIT_TRUNK;
+    
+    if(action == 1) 
+    {
+      l2_learn_limit.flags |= BCM_L2_LEARN_LIMIT_ACTION_DROP; // BCM_L2_LEARN_LIMIT_ACTION_CPU
+    }
     
   }
   /* VLAN type if VLAN ID is valid? */
@@ -1068,6 +1081,12 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, L7_uint3
 
     /*Set Flags*/
     l2_learn_limit.flags = BCM_L2_LEARN_LIMIT_VLAN;
+
+    if(action == 1) 
+    {
+      l2_learn_limit.flags |= BCM_L2_LEARN_LIMIT_ACTION_DROP; // BCM_L2_LEARN_LIMIT_ACTION_CPU
+    }
+
   }
   /* Limit is system wide. */
   else
@@ -1079,6 +1098,12 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, L7_uint3
 
     /*Set Flags*/
     l2_learn_limit.flags = BCM_L2_LEARN_LIMIT_SYSTEM;
+  }
+
+  if (action == (L7_uint8) -1)
+  {
+    // Use last action value
+    l2_learn_limit.flags |= (macLearn_info_ptr->mask & 0x10) ;
   }
 
   /*Save Existing Values*/
