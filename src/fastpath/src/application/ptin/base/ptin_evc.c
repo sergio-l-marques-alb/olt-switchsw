@@ -300,6 +300,7 @@ static L7_uint16 n_quattro_igmp_evcs = 0;
 #define IS_EVC_CPU_TRAP(evc_id)       ((evcs[evc_id].flags & PTIN_EVC_MASK_CPU_TRAPPING) == PTIN_EVC_MASK_CPU_TRAPPING)
 
 #define IS_EVC_IPTV(evc_id)           ((evcs[evc_id].flags & PTIN_EVC_MASK_MC_IPTV ) == PTIN_EVC_MASK_MC_IPTV)
+#define IS_EVC_IGMP(evc_id)           ((evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL ) == PTIN_EVC_MASK_IGMP_PROTOCOL)
 #define IS_EVC_BITSTREAM(evc_id)      (IS_EVC_STD_P2P(evc_id) && !IS_EVC_CPU_TRAP(evc_id))
 
 #define IS_EVC_STACKED(evc_id)        ((evcs[evc_id].flags & PTIN_EVC_MASK_STACKED ) == PTIN_EVC_MASK_STACKED)
@@ -3287,8 +3288,8 @@ L7_RC_t ptin_evc_port_add(L7_uint32 evc_ext_id, ptin_HwEthMef10Intf_t *evc_intf)
  */
 L7_RC_t ptin_evc_port_remove(L7_uint32 evc_ext_id, ptin_HwEthMef10Intf_t *evc_intf)
 {
-  L7_uint evc_idx;
-  L7_uint ptin_port;
+  L7_uint     evc_idx;
+  L7_uint     ptin_port;
   ptin_intf_t ptin_intf;
 
   /* Validate arguments */
@@ -3349,7 +3350,46 @@ L7_RC_t ptin_evc_port_remove(L7_uint32 evc_ext_id, ptin_HwEthMef10Intf_t *evc_in
   /* Only stacked services have clients */
   if (IS_EVC_STD(evc_idx) && !IS_EVC_STACKED(evc_idx))
   {
-   //Do Nothing   
+    #if ( !PTIN_BOARD_IS_MATRIX )
+    /* IGMP management */
+    if (IS_EVC_IGMP(evc_idx))
+    {
+      L7_RC_t          rc;
+      ptin_client_id_t clientId;
+
+      /* Client id */
+      memset(&clientId, 0x00, sizeof(clientId));
+      clientId.ptin_intf.intf_type  = ptin_intf.intf_type;
+      clientId.ptin_intf.intf_id    = ptin_intf.intf_id;
+      clientId.outerVlan            = evcs[evc_idx].intf[ptin_port].int_vlan;
+      clientId.innerVlan            = evcs[evc_idx].intf[ptin_port].inner_vlan;
+      clientId.mask                 = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;    
+
+      /* Remove client */
+      if ( (rc = ptin_igmp_group_client_remove(&clientId)) != L7_SUCCESS)
+      {
+        /*This is not an error if this routine is invoked after a reset defaults message*/
+        if (rc == L7_NOT_EXIST)
+        {
+          /* L7_NOT_EXIST is not an error */
+          LOG_NOTICE(LOG_CTX_PTIN_EVC, "EVC# %u: Client does not exist on IGMP instance (intf_type:%u/intf_id:%u outerVlan:%u/innerVlan:%u)", 
+                  evc_ext_id, clientId.ptin_intf.intf_type, clientId.ptin_intf.intf_id, clientId.outerVlan, clientId.innerVlan);       
+        }
+        else
+        {
+          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing client from IGMP instance (intf_type:%u/intf_id:%u outerVlan:%u/innerVlan:%u) (rc:%u)", 
+                 evc_ext_id, clientId.ptin_intf.intf_type, clientId.ptin_intf.intf_id, clientId.outerVlan, clientId.innerVlan, rc);
+          //rc = L7_FAILURE;    
+        }
+        rc = L7_SUCCESS;
+      }
+      else
+      {
+        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Client removed from IGMP instance (intf_type:%u/intf_id:%u outerVlan:%u/innerVlan:%u)", 
+                  evc_ext_id, clientId.ptin_intf.intf_type, clientId.ptin_intf.intf_id, clientId.outerVlan, clientId.innerVlan);    
+      }
+    }
+    #endif
   }
   else
   {
@@ -3647,7 +3687,7 @@ L7_RC_t ptin_evc_delete(L7_uint32 evc_ext_id)
 
   /* For IGMP enabled evcs, remove trap rules */
   #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-  if (evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
+  if (IS_EVC_IGMP(evc_id))
   {
     if (ptin_igmp_evc_configure(evc_ext_id, L7_FALSE,
                                 (!(evcs[evc_id].flags & PTIN_EVC_MASK_MC_IPTV) && SINGLE_INSTANCE(evc_id, n_quattro_igmp_evcs))
@@ -4331,6 +4371,55 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
       return L7_FAILURE;
     }
   }
+
+  #if ( !PTIN_BOARD_IS_MATRIX )
+  /* IGMP management */
+  if (evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
+  {
+    ptin_intf_t      ptin_intf;
+    ptin_client_id_t clientId;
+    
+    /* Convert to ptin_intf */
+    if (ptin_intf_port2ptintf(leaf_intf, &ptin_intf)  != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Cannot get ptin_intf from port %u", evc_id, leaf_intf);
+      return L7_FAILURE;
+    }
+
+    /* Client id */
+    memset(&clientId, 0x00, sizeof(clientId));
+    clientId.ptin_intf.intf_type  = ptin_intf.intf_type;
+    clientId.ptin_intf.intf_id    = ptin_intf.intf_id;
+    clientId.outerVlan            = pclient->int_ovid;
+    clientId.innerVlan            = pclient->int_ivid;
+    clientId.mask                 = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;    
+
+    /* Remove client */
+    if ( (rc = ptin_igmp_group_client_remove(&clientId)) != L7_SUCCESS)
+    {
+      /*This is not an error if this routine is invoked after a reset defaults message*/
+      if (rc == L7_NOT_EXIST)
+      {
+        /* L7_NOT_EXIST is not an error */
+       LOG_NOTICE(LOG_CTX_PTIN_EVC, "EVC# %u: Client does not exist on IGMP instance (intf_type:%u/intf_id:%u outerVlan:%u/innerVlan:%u)", 
+                  evc_ext_id, clientId.ptin_intf.intf_type, clientId.ptin_intf.intf_id, clientId.outerVlan, clientId.innerVlan);       
+      }
+      else
+      {
+         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing client from IGMP instance (intf_type:%u/intf_id:%u outerVlan:%u/innerVlan:%u) (rc:%u)", 
+                 evc_ext_id, clientId.ptin_intf.intf_type, clientId.ptin_intf.intf_id, clientId.outerVlan, clientId.innerVlan, rc);
+        //rc = L7_FAILURE;    
+      }
+      rc = L7_SUCCESS;
+    }
+    else
+    {
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Client removed from IGMP instance (intf_type:%u/intf_id:%u outerVlan:%u/innerVlan:%u)", 
+                  evc_ext_id, clientId.ptin_intf.intf_type, clientId.ptin_intf.intf_id, clientId.outerVlan, clientId.innerVlan);    
+    }
+  }
+  #endif
+
 
   /* SEM CLIENTS UP */
   osapiSemaTake(ptin_evc_clients_sem, L7_WAIT_FOREVER);
@@ -5336,18 +5425,21 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
       if (rc == L7_NOT_EXIST)
       {
         /* L7_NOT_EXIST is not an error */
-       LOG_NOTICE(LOG_CTX_PTIN_EVC, "EVC# %u: Client does not exist on IGMP instance", evc_id);       
+       LOG_NOTICE(LOG_CTX_PTIN_EVC, "EVC# %u: Client does not exist on IGMP instance (intf_type:%u/intf_id:%u outerVlan:%u/innerVlan:%u)", 
+                  evc_ext_id, clientId.ptin_intf.intf_type, clientId.ptin_intf.intf_id, clientId.outerVlan, clientId.innerVlan);       
       }
       else
       {
-         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing client from IGMP instance (rc:%u)", evc_id, rc);
+         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing client from IGMP instance (intf_type:%u/intf_id:%u outerVlan:%u/innerVlan:%u) (rc:%u)", 
+                 evc_ext_id, clientId.ptin_intf.intf_type, clientId.ptin_intf.intf_id, clientId.outerVlan, clientId.innerVlan, rc);
         //rc = L7_FAILURE;    
       }
       rc = L7_SUCCESS;
     }
     else
     {
-      LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Client removed from IGMP instance", evc_id);
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Client removed from IGMP instance (intf_type:%u/intf_id:%u outerVlan:%u/innerVlan:%u)", 
+                  evc_ext_id, clientId.ptin_intf.intf_type, clientId.ptin_intf.intf_id, clientId.outerVlan, clientId.innerVlan);          
     }
   }
 
@@ -9056,7 +9148,7 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
   {
     if ( ptin_igmp_is_evc_used(evcs[evc_id].extended_id)
     #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-         || evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL
+         || IS_EVC_IGMP(evc_id)
     #endif
        )
     {
