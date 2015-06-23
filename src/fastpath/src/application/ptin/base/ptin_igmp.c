@@ -3123,8 +3123,8 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *
       LOG_ERR(LOG_CTX_PTIN_IGMP,
               "Error searching for client {mask=0x%02x,"
               "port=%u/%u,"
-              "svlan=%u,"
-              "cvlan=%u,"
+              "outerVlan=%u,"
+              "innerVlan=%u,"
               "ipAddr=%u.%u.%u.%u,"
               "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x} ",
               client.mask,
@@ -3956,8 +3956,8 @@ L7_RC_t ptin_igmp_clientIndex_get(L7_uint32 intIfNum,
       LOG_DEBUG(LOG_CTX_PTIN_IGMP,
                 "Client not found {mask=0x%02x,"
                 "port=%u/%u,"
-                "svlan=%u,"
-                "cvlan=%u,"
+                "outerVlan=%u,"
+                "innerVlan=%u,"
                 "ipAddr=%u.%u.%u.%u,"
                 "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x} ",
                 client.mask,
@@ -3980,10 +3980,10 @@ L7_RC_t ptin_igmp_clientIndex_get(L7_uint32 intIfNum,
               "port=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-              "svlan=%u,"
+              "outerVlan=%u,"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-              "cvlan=%u,"
+              "innerVlan=%u,"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
               "ipAddr=%u.%u.%u.%u,"
@@ -4255,10 +4255,10 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
               "port=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-              "svlan=%u,"
+              "outerVlan=%u,"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-              "cvlan=%u,"
+              "innerVlan=%u,"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
               "ipAddr=%u.%u.%u.%u,"
@@ -4299,10 +4299,10 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
               "port=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-              "svlan=%u,"
+              "outerVlan=%u,"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-              "cvlan=%u,"
+              "innerVlan=%u,"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
               "ipAddr=%u.%u.%u.%u,"
@@ -4340,10 +4340,10 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
               "port=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-              "svlan=%u,"
+              "outerVlan=%u,"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-              "cvlan=%u,"
+              "innerVlan=%u,"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
               "ipAddr=%u.%u.%u.%u,"
@@ -4381,10 +4381,10 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
               "port=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-              "svlan=%u,"
+              "outerVlan=%u,"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-              "cvlan=%u,"
+              "innerVlan=%u,"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
               "ipAddr=%u.%u.%u.%u,"
@@ -4421,10 +4421,10 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
               "port=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-              "svlan=%u,"
+              "outerVlan=%u,"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-              "cvlan=%u,"
+              "innerVlan=%u,"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
               "ipAddr=%u.%u.%u.%u,"
@@ -4460,10 +4460,10 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
                 "port=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-                "svlan=%u,"
+                "outerVlan=%u,"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-                "cvlan=%u,"
+                "innerVlan=%u,"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
                 "ipAddr=%u.%u.%u.%u,"
@@ -4547,10 +4547,10 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
                     "port=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-                    "svlan=%u,"
+                    "outerVlan=%u,"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-                    "cvlan=%u,"
+                    "innerVlan=%u,"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
                     "ipAddr=%u.%u.%u.%u,"
@@ -4656,10 +4656,10 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
                 "port=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-                "svlan=%u,"
+                "outerVlan=%u,"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-                "cvlan=%u,"
+                "innerVlan=%u,"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
                 "ipAddr=%u.%u.%u.%u,"
@@ -4699,10 +4699,10 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
                 "port=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-                "svlan=%u,"
+                "outerVlan=%u,"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-                "cvlan=%u,"
+                "innerVlan=%u,"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
                 "ipAddr=%u.%u.%u.%u,"
@@ -4786,10 +4786,10 @@ L7_RC_t ptin_igmp_clientGroupSnapshot_add(ptin_client_id_t *client)
               "port=%u/%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-              "svlan=%u,"
+              "outerVlan=%u,"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-              "cvlan=%u,"
+              "innerVlan=%u,"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
               "ipAddr=%u.%u.%u.%u,"
@@ -4829,10 +4829,10 @@ L7_RC_t ptin_igmp_clientGroupSnapshot_add(ptin_client_id_t *client)
               "port=%u/%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-              "svlan=%u,"
+              "outerVlan=%u,"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-              "cvlan=%u,"
+              "innerVlan=%u,"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
               "ipAddr=%u.%u.%u.%u,"
@@ -4869,10 +4869,10 @@ L7_RC_t ptin_igmp_clientGroupSnapshot_add(ptin_client_id_t *client)
               "port=%u/%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-              "svlan=%u,"
+              "outerVlan=%u,"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-              "cvlan=%u,"
+              "innerVlan=%u,"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
               "ipAddr=%u.%u.%u.%u,"
@@ -4908,10 +4908,10 @@ L7_RC_t ptin_igmp_clientGroupSnapshot_add(ptin_client_id_t *client)
                 "port=%u/%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-                "svlan=%u,"
+                "outerVlan=%u,"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-                "cvlan=%u,"
+                "innerVlan=%u,"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
                 "ipAddr=%u.%u.%u.%u,"
@@ -4948,10 +4948,10 @@ L7_RC_t ptin_igmp_clientGroupSnapshot_add(ptin_client_id_t *client)
                   "port=%u/%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-                  "svlan=%u,"
+                  "outerVlan=%u,"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-                  "cvlan=%u,"
+                  "innerVlan=%u,"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
                   "ipAddr=%u.%u.%u.%u,"
@@ -5048,10 +5048,10 @@ L7_RC_t ptin_igmp_group_client_remove(ptin_client_id_t *client)
               "port=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-              "svlan=%u,"
+              "outerVlan=%u,"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-              "cvlan=%u,"
+              "innerVlan=%u,"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
               "ipAddr=%u.%u.%u.%u,"
@@ -5090,10 +5090,10 @@ L7_RC_t ptin_igmp_group_client_remove(ptin_client_id_t *client)
                   "port=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-                  "svlan=%u,"
+                  "outerVlan=%u,"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-                  "cvlan=%u,"
+                  "innerVlan=%u,"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
                   "ipAddr=%u.%u.%u.%u,"
@@ -5145,10 +5145,10 @@ L7_RC_t ptin_igmp_group_client_remove(ptin_client_id_t *client)
             "port=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-            "svlan=%u,"
+            "outerVlan=%u,"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-            "cvlan=%u,"
+            "innerVlan=%u,"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
             "ipAddr=%u.%u.%u.%u,"
@@ -5187,10 +5187,10 @@ L7_RC_t ptin_igmp_group_client_remove(ptin_client_id_t *client)
             "port=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-            "svlan=%u,"
+            "outerVlan=%u,"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-            "cvlan=%u,"
+            "innerVlan=%u,"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
             "ipAddr=%u.%u.%u.%u,"
@@ -5232,10 +5232,10 @@ L7_RC_t ptin_igmp_group_client_remove(ptin_client_id_t *client)
               "port=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-              "svlan=%u,"
+              "outerVlan=%u,"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-              "cvlan=%u,"
+              "innerVlan=%u,"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
               "ipAddr=%u.%u.%u.%u,"
@@ -5312,10 +5312,10 @@ L7_RC_t ptin_igmp_group_client_clean(void)
               "port=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-              "svlan=%u,"
+              "outerVlan=%u,"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-              "cvlan=%u,"
+              "innerVlan=%u,"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
               "ipAddr=%u.%u.%u.%u,"
@@ -5355,10 +5355,10 @@ L7_RC_t ptin_igmp_group_client_clean(void)
                   "port=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-                  "svlan=%u,"
+                  "outerVlan=%u,"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-                  "cvlan=%u,"
+                  "innerVlan=%u,"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
                   "ipAddr=%u.%u.%u.%u,"
@@ -5442,10 +5442,10 @@ L7_RC_t ptin_igmp_clientGroupSnapshot_clean(void)
               "port=%u/%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-              "svlan=%u,"
+              "outerVlan=%u,"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-              "cvlan=%u,"
+              "innerVlan=%u,"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
               "ipAddr=%u.%u.%u.%u,"
@@ -5481,10 +5481,10 @@ L7_RC_t ptin_igmp_clientGroupSnapshot_clean(void)
                   "port=%u/%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-                  "svlan=%u,"
+                  "outerVlan=%u,"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-                  "cvlan=%u,"
+                  "innerVlan=%u,"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
                   "ipAddr=%u.%u.%u.%u,"
@@ -8664,10 +8664,10 @@ static L7_RC_t ptin_igmp_group_client_find(ptin_client_id_t *client_ref, ptinIgm
               "port=%u"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-              ",svlan=%u"
+              ",outerVlan=%u"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-              ",cvlan=%u"
+              ",innerVlan=%u"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
               ",ipAddr=%u.%u.%u.%u"
@@ -8771,10 +8771,10 @@ static L7_RC_t ptin_igmp_new_client(ptin_client_id_t *client,
               "port=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-              "svlan=%u,"
+              "outerVlan=%u,"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-              "cvlan=%u,"
+              "innerVlan=%u,"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
               "ipAddr=%u.%u.%u.%u,"
@@ -8874,10 +8874,10 @@ static L7_RC_t ptin_igmp_new_client(ptin_client_id_t *client,
               "port=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-              "svlan=%u,"
+              "outerVlan=%u,"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-              "cvlan=%u,"
+              "innerVlan=%u,"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
               "ipAddr=%u.%u.%u.%u,"
@@ -8916,10 +8916,10 @@ static L7_RC_t ptin_igmp_new_client(ptin_client_id_t *client,
               "port=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-              "svlan=%u,"
+              "outerVlan=%u,"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-              "cvlan=%u,"
+              "innerVlan=%u,"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
               "ipAddr=%u.%u.%u.%u,"
@@ -8957,10 +8957,10 @@ static L7_RC_t ptin_igmp_new_client(ptin_client_id_t *client,
                 "port=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-                "svlan=%u,"
+                "outerVlan=%u,"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-                "cvlan=%u,"
+                "innerVlan=%u,"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
                 "ipAddr=%u.%u.%u.%u,"
@@ -9027,10 +9027,10 @@ static L7_RC_t ptin_igmp_new_client(ptin_client_id_t *client,
                 "port=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-                "svlan=%u,"
+                "outerVlan=%u,"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-                "cvlan=%u,"
+                "innerVlan=%u,"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
                 "ipAddr=%u.%u.%u.%u,"
@@ -9146,10 +9146,10 @@ static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L
               "port=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-              "svlan=%u,"
+              "outerVlan=%u,"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-              "cvlan=%u,"
+              "innerVlan=%u,"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
               "ipAddr=%u.%u.%u.%u,"
@@ -9188,10 +9188,10 @@ static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L
                   "port=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-                  "svlan=%u,"
+                  "outerVlan=%u,"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-                  "cvlan=%u,"
+                  "innerVlan=%u,"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
                   "ipAddr=%u.%u.%u.%u,"
@@ -9249,10 +9249,10 @@ static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L
               "port=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-              "svlan=%u,"
+              "outerVlan=%u,"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-              "cvlan=%u,"
+              "innerVlan=%u,"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
               "ipAddr=%u.%u.%u.%u,"
@@ -9302,10 +9302,10 @@ static L7_RC_t ptin_igmp_rm_client(L7_uint igmp_idx, ptin_client_id_t *client, L
                 "port=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-                "svlan=%u,"
+                "outerVlan=%u,"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-                "cvlan=%u,"
+                "innerVlan=%u,"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
                 "ipAddr=%u.%u.%u.%u,"
@@ -9425,10 +9425,10 @@ static L7_RC_t ptin_igmp_rm_all_clients(L7_BOOL isDynamic, L7_BOOL only_wo_chann
               "port=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-              "svlan=%u,"
+              "outerVlan=%u,"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-              "cvlan=%u,"
+              "innerVlan=%u,"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
               "ipAddr=%u.%u.%u.%u,"
@@ -9486,10 +9486,10 @@ static L7_RC_t ptin_igmp_rm_all_clients(L7_BOOL isDynamic, L7_BOOL only_wo_chann
                   "port=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-                  "svlan=%u,"
+                  "outerVlan=%u,"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-                  "cvlan=%u,"
+                  "innerVlan=%u,"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
                   "ipAddr=%u.%u.%u.%u,"
@@ -9662,10 +9662,10 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint ptin_port, L7_uint client_idx, L7_
                   "port=%u,"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-                  "svlan=%u,"
+                  "outerVlan=%u,"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-                  "cvlan=%u,"
+                  "innerVlan=%u,"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
                   "ipAddr=%u.%u.%u.%u,"
@@ -10577,10 +10577,10 @@ static L7_RC_t ptin_igmp_client_find(ptin_client_id_t *client_ref, ptinIgmpClien
                 "port=%u"
 #endif
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-                ",svlan=%u"
+                ",outerVlan=%u"
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-                ",cvlan=%u"
+                ",innerVlan=%u"
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
                 ",ipAddr=%u.%u.%u.%u"
@@ -10997,8 +10997,8 @@ L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cli
     LOG_ERR(LOG_CTX_PTIN_IGMP,
             "Error searching for client {mask=0x%02x,"
             "port=%u/%u,"
-            "svlan=%u,"
-            "cvlan=%u,"
+            "outerVlan=%u,"
+            "innerVlan=%u,"
             "ipAddr=%u.%u.%u.%u,"
             "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x} ",
             client.mask,
@@ -11356,8 +11356,8 @@ L7_RC_t ptin_igmp_stat_client_clear(L7_uint32 evc_idx, const ptin_client_id_t *c
     LOG_ERR(LOG_CTX_PTIN_IGMP,
             "Error searching for client {mask=0x%02x,"
             "port=%u/%u,"
-            "svlan=%u,"
-            "cvlan=%u,"
+            "outerVlan=%u,"
+            "innerVlan=%u,"
             "ipAddr=%u.%u.%u.%u,"
             "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x} ",
             client.mask,
@@ -13591,10 +13591,10 @@ void ptin_igmp_group_clients_dump(void)
 #endif
           "groupClientId=%-2u (OnuId=%u) (#devices=%u) "
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-          "svlan=%-4u (intVlan=%-4u) "
+          "outerVlan=%-4u "
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-          "cvlan=%-4u "
+          "innerVlan=%-4u "
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
           "IP=%03u.%03u.%03u.%03u "
@@ -13612,7 +13612,7 @@ void ptin_igmp_group_clients_dump(void)
 #endif
           clientGroup->groupClientId, clientGroup->onuId, child_clients,
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-          clientGroup->uni_ovid, clientGroup->igmpClientDataKey.outerVlan,
+          clientGroup->igmpClientDataKey.outerVlan,
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
           clientGroup->igmpClientDataKey.innerVlan,
