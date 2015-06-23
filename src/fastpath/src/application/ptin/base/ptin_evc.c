@@ -297,8 +297,10 @@ static L7_uint16 n_quattro_igmp_evcs = 0;
 
 #define IS_EVC_STD_P2P(evc_id)        (IS_EVC_STD(evc_id) && IS_EVC_P2P(evc_id))
 #define IS_EVC_STD_P2MP(evc_id)       (IS_EVC_STD(evc_id) && IS_EVC_P2MP(evc_id))
+#define IS_EVC_CPU_TRAP(evc_id)       ((evcs[evc_id].flags & PTIN_EVC_MASK_CPU_TRAPPING) == PTIN_EVC_MASK_CPU_TRAPPING)
 
 #define IS_EVC_IPTV(evc_id)           ((evcs[evc_id].flags & PTIN_EVC_MASK_MC_IPTV ) == PTIN_EVC_MASK_MC_IPTV)
+#define IS_EVC_BITSTREAM(evc_id)      (IS_EVC_STD_P2P(evc_id) && !IS_EVC_CPU_TRAP(evc_id))
 
 #define IS_EVC_STACKED(evc_id)        ((evcs[evc_id].flags & PTIN_EVC_MASK_STACKED ) == PTIN_EVC_MASK_STACKED)
 #define IS_EVC_UNSTACKED(evc_id)      ((evcs[evc_id].flags & PTIN_EVC_MASK_STACKED ) == 0 )
@@ -2767,7 +2769,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: Enabling cross-connects?", evc_ext_id);
 
     /* For stacked EVCs, we need to enable forwarding mode to OVID(+IVID) */
-    ptin_crossconnect_enable(root_vlan, (evc_type==PTIN_EVC_TYPE_STD_P2P), is_stacked);
+    ptin_crossconnect_enable(root_vlan, (evc_type==PTIN_EVC_TYPE_STD_P2P && !cpu_trap) /* Bitstream services */, is_stacked);
 
     /* Virtual ports: Create Multicast group */
     multicast_group = -1;
@@ -2861,7 +2863,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       }
 
       /* For EVCs point-to-point unstacked, create now the crossconnection */
-      if (evc_type == PTIN_EVC_TYPE_STD_P2P && !is_stacked)
+      if ((evc_type==PTIN_EVC_TYPE_STD_P2P && !cpu_trap) /* Bitstream */ && !is_stacked)
       {
         LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: Configuring P2P unstacked bridge", evc_ext_id);
 
@@ -3103,7 +3105,7 @@ _ptin_evc_create1:
       ptin_evc_etree_intf_remove_all(evc_id);
     }
     /* For unstacked P2P EVCs, remove single vlan cross-connection */
-    else if (evc_type == PTIN_EVC_TYPE_STD_P2P && !is_stacked)
+    else if (evc_type==PTIN_EVC_TYPE_STD_P2P && !cpu_trap /* Bitstream */ && !is_stacked)
     {
       /* Add bridge between root and leaf port (Proot, Vr, Pleaf, Vs', Vc) */
       switching_p2p_bridge_remove(p2p_port1, evcs[evc_id].intf[p2p_port1].int_vlan,
@@ -3683,7 +3685,7 @@ L7_RC_t ptin_evc_delete(L7_uint32 evc_ext_id)
     }
   }
   /* For unstacked 1:1 EVCs, remove single vlan cross-connection */
-  else if (IS_EVC_STD_P2P(evc_id) && !IS_EVC_STACKED(evc_id))
+  else if (IS_EVC_BITSTREAM(evc_id) && !IS_EVC_STACKED(evc_id))
   {
     L7_int port1 = evcs[evc_id].p2p_port1_intf;
     L7_int port2 = evcs[evc_id].p2p_port2_intf;
@@ -3884,7 +3886,7 @@ L7_RC_t ptin_evc_destroy(L7_uint32 evc_ext_id)
     }
   }
   /* For unstacked 1:1 EVCs, remove single vlan cross-connection */
-  else if (IS_EVC_STD_P2P(evc_id) && !IS_EVC_STACKED(evc_id))
+  else if (IS_EVC_BITSTREAM(evc_id) && !IS_EVC_STACKED(evc_id))
   {
     L7_int port1 = evcs[evc_id].p2p_port1_intf;
     L7_int port2 = evcs[evc_id].p2p_port2_intf;
@@ -4120,7 +4122,7 @@ L7_RC_t ptin_evc_p2p_bridge_add(ptin_HwEthEvcBridge_t *evcBridge)
   #endif
 
   /* Only make cross-connections, if EVC is stacked (1:1) */
-  if (IS_EVC_STD_P2P(evc_id))
+  if (IS_EVC_BITSTREAM(evc_id))
   {
     /* Add bridge between root and leaf port (Proot, Vr, Pleaf, Vs', Vc) */
     rc = switching_p2p_bridge_add(root_intf, evcs[evc_id].rvlan, leaf_intf, evcBridge->intf.vid, evcBridge->inn_vlan);
@@ -4318,7 +4320,7 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
   #endif
 
   /* Only remove cross-connections, if EVC is stacked (1:1) */
-  if (IS_EVC_STD_P2P(evc_id))
+  if (IS_EVC_BITSTREAM(evc_id))
   {
     /* Delete bridge between root and leaf port (Proot, Vr, Pleaf, Vs', Vc) */
     rc = switching_p2p_bridge_remove(root_intf, evcs[evc_id].rvlan, leaf_intf, pclient->uni_ovid, pclient->int_ivid);
