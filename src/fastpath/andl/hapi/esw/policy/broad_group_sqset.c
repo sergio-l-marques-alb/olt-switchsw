@@ -247,8 +247,19 @@ bcm_field_qualify_t l2l3l4Xgs4ClassIdQset[] =    /* l2/l3/l4 */
 #else
     bcmFieldQualifySrcMacGroup,
 #endif
-    bcmFieldQualifyStageIngress
+
+  /* PTin added */
+  #if 1
+  bcmFieldQualifySrcIp6,
+  bcmFieldQualifyDstIp6,
+  bcmFieldQualifyIp6TrafficClass,
+  bcmFieldQualifyIp6FlowLabel,
+  bcmFieldQualifyIp6HopLimit,
+  #endif
+
+  bcmFieldQualifyStageIngress
 };
+
 
 #define l2l3l4Xgs4ClassIdQsetSize (sizeof(l2l3l4Xgs4ClassIdQset) / sizeof(bcm_field_qualify_t))
 

@@ -3970,6 +3970,7 @@ L7_RC_t hapiBroadSystemInstallPtin(void)
   }
   bl2cpu_policyId[1] = policyId;
 
+#if 0
   /* Exception rules to avoid packet drops */
   rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_VLAN);
   if (rc != L7_SUCCESS)
@@ -4012,6 +4013,7 @@ L7_RC_t hapiBroadSystemInstallPtin(void)
     return L7_FAILURE;
   }
   bl2cpu_policyId[2] = policyId;
+#endif
 
   LOG_NOTICE(LOG_CTX_STARTUP,"BL2CPU exception rules added");
 

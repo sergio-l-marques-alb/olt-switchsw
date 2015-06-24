@@ -1514,9 +1514,12 @@ static int _policy_super_qset_init_ifp(int unit)
       {
         _policy_super_qset_add(unit, &l2l3l4ClassIdQsetDef, applicable_policy_types);
       }
+      /* PTin removed: Qset not necessary */
+      #if 0
       _policy_super_qset_add(unit, &ipv6L3L4ClassIdQsetDef,  applicable_policy_types);
       _policy_super_qset_add(unit, &ipv6SrcL4ClassIdQsetDef, applicable_policy_types);
       _policy_super_qset_add(unit, &ipv6DstL4ClassIdQsetDef, applicable_policy_types);
+      #endif
     }
     else
     {
@@ -1529,8 +1532,11 @@ static int _policy_super_qset_init_ifp(int unit)
         _policy_super_qset_add(unit, &l2l3l4QsetDef, applicable_policy_types);
       }
       _policy_super_qset_add(unit, &ipv6L3L4QsetDef,  applicable_policy_types);
+      /* PTin removed: Qset not necessary */
+      #if 0
       _policy_super_qset_add(unit, &ipv6SrcL4QsetDef, applicable_policy_types);
       _policy_super_qset_add(unit, &ipv6DstL4QsetDef, applicable_policy_types);
+      #endif
     }
   }
 
@@ -1604,6 +1610,8 @@ static int _policy_super_qset_init_ifp(int unit)
     _policy_super_qset_add(unit, &ipv6NdQsetDef, applicable_policy_types);
   }
 
+  /* PTin removed: Qset not necessary */
+  #if 0
   /* The following sqset is used for user policies and in some cases, 
      system policies. */
   memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
@@ -1619,6 +1627,7 @@ static int _policy_super_qset_init_ifp(int unit)
     applicable_policy_types[BROAD_POLICY_TYPE_COSQ]        = L7_TRUE;
   }
   _policy_super_qset_add(unit, &l2SvtQsetDef, applicable_policy_types);
+  #endif
 
   /* The following sqset is used for iSCSI control rules. */
   memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
@@ -1626,18 +1635,26 @@ static int _policy_super_qset_init_ifp(int unit)
 
   _policy_super_qset_add(unit, &iscsiQsetDef, applicable_policy_types);
 
+  /* PTin removed: Qset not necessary */
+  #if 0
   /* The following sqset is used for iSCSI sessions but may also be used for user
      policies on devices that do not support doublewide mode. */
   memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
   applicable_policy_types[BROAD_POLICY_TYPE_ISCSI] = L7_TRUE;
   applicable_policy_types[BROAD_POLICY_TYPE_PORT]  = L7_TRUE;
   _policy_super_qset_add(unit, &l3l4QsetDef, applicable_policy_types);
+  #endif
 
+  /* PTin removed: Qset not necessary */
+  #if 0
   /* The following sqsets are used only for user policies. */
   memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
   applicable_policy_types[BROAD_POLICY_TYPE_VLAN]        = L7_TRUE;
   _policy_super_qset_add(unit, &vlanl3QsetDef,      applicable_policy_types);
+  #endif
 
+  /* PTin removed: Qset not necessary */
+  #if 0
   /* The following sqset is used for IPSG policies but may also be used for user
      policies on devices that do not support doublewide mode. */
   memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
@@ -1647,13 +1664,17 @@ static int _policy_super_qset_init_ifp(int unit)
   applicable_policy_types[BROAD_POLICY_TYPE_PORT] = L7_TRUE;
   applicable_policy_types[BROAD_POLICY_TYPE_VLAN] = L7_TRUE;
   _policy_super_qset_add(unit, &l2l3SrcQsetDef, applicable_policy_types);
+  #endif
 
+  /* PTin removed: Qset not necessary */
+  #if 0
   /* The following sqsets are used only for user policies. */
   memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
   applicable_policy_types[BROAD_POLICY_TYPE_PORT]        = L7_TRUE;
   applicable_policy_types[BROAD_POLICY_TYPE_VLAN]        = L7_TRUE;
 
   _policy_super_qset_add(unit, &l2l3DstQsetDef,     applicable_policy_types);
+  #endif
 
   return BCM_E_NONE;
 }
@@ -1907,6 +1928,27 @@ L7_BOOL _policy_group_types_compatible(int unit, BROAD_POLICY_TYPE_t group1_type
           sysapiPrintf("%s(%d) Incompatible group types (type1=%u VS type2=%u)\r\n", __FUNCTION__,__LINE__, group1_type, group2_type);
       }
     }
+    /* PTin added: PORT and VLAN types are compatible */
+    #if 1
+    else if (group1_type == BROAD_POLICY_TYPE_PORT)
+    {
+      if (group2_type != BROAD_POLICY_TYPE_VLAN)
+      {
+        groupTypesCompatible = L7_FALSE;
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+          sysapiPrintf("%s(%d) Incompatible group types (type1=%u VS type2=%u)\r\n", __FUNCTION__,__LINE__, group1_type, group2_type);
+      }
+    }
+    else if (group1_type == BROAD_POLICY_TYPE_VLAN)
+    {
+      if (group2_type != BROAD_POLICY_TYPE_PORT)
+      {
+        groupTypesCompatible = L7_FALSE;
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+          sysapiPrintf("%s(%d) Incompatible group types (type1=%u VS type2=%u)\r\n", __FUNCTION__,__LINE__, group1_type, group2_type);
+      }
+    }
+    #endif
     else
     {
       groupTypesCompatible = L7_FALSE;
