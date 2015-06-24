@@ -2406,7 +2406,7 @@ L7_BOOL dot3adIsLagMember(L7_uint32 intIfNum)
  * @param    *agg_intf   returned parent intf number
  *                            
  * @returns  L7_SUCCESS  interface is a LAG member
- * @returns  L7_FALSE    interface not a LAG member
+ * @returns  L7_FAILURE  interface not a LAG member
  *
  * @notes    None
  *
