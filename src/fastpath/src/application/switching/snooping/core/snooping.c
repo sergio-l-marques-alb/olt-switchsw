@@ -524,6 +524,14 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 #endif
 #endif
   
+/*If we support Inband*/
+#if PTIN_EVC_INBAND_SUPPORT 
+  if (pduInfo->vlanId == PTIN_VLAN_INBAND)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Packet Silently Ignored. Inband Vlan! [intIfNum:%u vlanId:%u]", pduInfo->intIfNum, pduInfo->vlanId);
+    return L7_SUCCESS;
+  }
+#endif
 
   /* PTin added: IGMP snooping */
 #if 1
