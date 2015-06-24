@@ -2004,13 +2004,24 @@ L7_RC_t daiFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVl
   else
 #endif
   {
-    if (ptin_evc_extVlans_get_fromIntVlan(intIfNum, vlanId, innerVlanId, &vlanId_list[0][0], &vlanId_list[0][1]) != L7_SUCCESS)
+    L7_BOOL   is_stacked;
+    L7_uint8  port_type;
+
+    if (ptin_evc_extVlans_get_fromIntVlan(intIfNum, vlanId, innerVlanId, &vlanId_list[0][0], &vlanId_list[0][1]) != L7_SUCCESS ||
+        ptin_evc_check_is_stacked_fromIntVlan(vlanId, &is_stacked) != L7_SUCCESS ||
+        ptin_evc_intf_type_get(vlanId, intIfNum, &port_type) != L7_SUCCESS)
     {
       if (ptin_debug_dai_snooping)
         LOG_ERR(LOG_CTX_DAI, "Error obtaining UNI VLANs from IntIfNum %u, VLANs %u+%u", intIfNum, vlanId, innerVlanId);
       return L7_FAILURE;
     }
-    number_of_vlans = 1;
+    /* No inner VLAN for root interfaces of unstacked services */
+    if (!is_stacked && port_type == PTIN_EVC_INTF_ROOT)
+    {
+      vlanId_list[0][1] = 0;
+    }
+    /* Only one VLAN */
+    number_of_vlans = 1; 
   }
 
   if (ptin_debug_dai_snooping)
