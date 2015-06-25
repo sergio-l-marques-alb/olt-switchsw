@@ -777,17 +777,23 @@ int _policy_super_qset_find_match(int                  unit,
 //}
 //printf("\r\n");
 
+  if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+    sysapiPrintf("%s(%d) Testing type %u against qsetWidth %u\n", __FUNCTION__, __LINE__, type, qsetWidth);
+
   for (i = 0; i < SUPER_QSET_TABLE_SIZE; i++)
   {
     if (super_qset_table[unit][i].flags & SUPER_QSET_USED)
     {
       bcm_field_qset_t qsetFull;
 
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+        sysapiPrintf("%s(%d) Looking to qset %d\n", __FUNCTION__, __LINE__, i);
+
       if ((super_qset_table[unit][i].applicablePolicyTypes & (1 << type)) == 0)
       {
         /* If this sqset isn't applicable for this type of policy, continue. */
         if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
-          sysapiPrintf("%s(%d) qualifier i=%d not selected: Continuing...\n", __FUNCTION__, __LINE__, i);
+          sysapiPrintf("%s(%d) qset i=%d not selected: Continuing...\n", __FUNCTION__, __LINE__, i);
         continue;
       }
 
@@ -795,7 +801,7 @@ int _policy_super_qset_find_match(int                  unit,
       {
         /* If this sqset doesn't have the proper width for this policy, continue. */
         if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
-          sysapiPrintf("%s(%d) Different width for i=%d (sqsetwidth=%u VS qsetwidth=%u): Continuing...\n", __FUNCTION__, __LINE__, i,
+          sysapiPrintf("%s(%d) Different width for qset %d (sqsetwidth=%u VS qsetwidth=%u): Continuing...\n", __FUNCTION__, __LINE__, i,
                        super_qset_table[unit][i].sqsetWidth, qsetWidth);
         continue;
       }
@@ -818,7 +824,7 @@ int _policy_super_qset_find_match(int                  unit,
         *idx = i;
         /* If this sqset doesn't have the proper width for this policy, continue. */
         if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
-          sysapiPrintf("%s(%d) Selected table entry: i=%d\n", __FUNCTION__, __LINE__, i);
+          sysapiPrintf("%s(%d) Selected table entry: qset %d\n", __FUNCTION__, __LINE__, i);
         return BCM_E_NONE;
       }
     }
@@ -1464,9 +1470,9 @@ static int _policy_super_qset_init_vfp(int unit)
     applicable_policy_types[BROAD_POLICY_TYPE_PORT] = L7_TRUE;
     //applicable_policy_types[BROAD_POLICY_TYPE_IPSG] = L7_TRUE;    /* PTin removed: IPSG */
     applicable_policy_types[BROAD_POLICY_TYPE_COSQ] = L7_TRUE;
-    applicable_policy_types[BROAD_POLICY_TYPE_PTIN]         = L7_TRUE;
-    applicable_policy_types[BROAD_POLICY_TYPE_STAT_EVC]     = L7_TRUE;
-    applicable_policy_types[BROAD_POLICY_TYPE_STAT_CLIENT]  = L7_TRUE;
+    //applicable_policy_types[BROAD_POLICY_TYPE_PTIN]         = L7_TRUE;
+    //applicable_policy_types[BROAD_POLICY_TYPE_STAT_EVC]     = L7_TRUE;
+    //applicable_policy_types[BROAD_POLICY_TYPE_STAT_CLIENT]  = L7_TRUE;
 
     if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
       sysapiPrintf("Adding qset l2l3l4QsetLookup\r\n");
@@ -1894,7 +1900,8 @@ L7_BOOL _policy_group_types_compatible(int unit, BROAD_POLICY_TYPE_t group1_type
            (group2_type != BROAD_POLICY_TYPE_PTIN) &&         /* PTin added: policer */
            (group2_type != BROAD_POLICY_TYPE_STAT_EVC) &&     /* PTin added: stats */
            (group2_type != BROAD_POLICY_TYPE_STAT_CLIENT) &&  /* PTin added: stats */
-           (group2_type != BROAD_POLICY_TYPE_SYSTEM_PORT)) ||
+           (group2_type != BROAD_POLICY_TYPE_SYSTEM_PORT) &&
+           (group2_type != BROAD_POLICY_TYPE_PORT)) ||        /* PTin added: port */
           SOC_IS_HELIX1(unit))
       {
         groupTypesCompatible = L7_FALSE;
@@ -1932,7 +1939,8 @@ L7_BOOL _policy_group_types_compatible(int unit, BROAD_POLICY_TYPE_t group1_type
     #if 1
     else if (group1_type == BROAD_POLICY_TYPE_PORT)
     {
-      if (group2_type != BROAD_POLICY_TYPE_VLAN)
+      if (group2_type != BROAD_POLICY_TYPE_VLAN &&
+          group2_type != BROAD_POLICY_TYPE_COSQ)
       {
         groupTypesCompatible = L7_FALSE;
         if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
@@ -1975,6 +1983,9 @@ static int _policy_group_find_first(int                  unit,
 
   _policy_group_alloc_type(type, &block, &dir);
 
+  if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+    sysapiPrintf("%s(%d) - STAGE %d: type %d -> block %d, dir=%d\n", __FUNCTION__, __LINE__, policyStage, type, block, dir);
+
   if (ALLOC_HIGH_TO_LOW == dir)
   {
     *group = group_alloc_table[unit][policyStage][block].highPrio;
@@ -1984,6 +1995,9 @@ static int _policy_group_find_first(int                  unit,
     *group = group_alloc_table[unit][policyStage][block].lowPrio;
   }
 
+  if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+    sysapiPrintf("%s(%d) - Selected group: %d\n", __FUNCTION__, __LINE__, *group);
+
   groupPtr = &group_table[unit][policyStage][*group];
   if (groupPtr->flags & GROUP_USED)
   {
@@ -1991,6 +2005,9 @@ static int _policy_group_find_first(int                  unit,
     _policy_sqset_get(unit, groupPtr->sqset, &sqsetInfo);
     *group -= *group % sqsetInfo.status.slice_width_physical;
     groupPtr = &group_table[unit][policyStage][*group];
+
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+      sysapiPrintf("%s(%d) - Selected group: %d (width_physical %d)\n", __FUNCTION__, __LINE__, *group, sqsetInfo.status.slice_width_physical);
 
     /* make sure that the block that this group belongs to matches
        the block requested */
@@ -2012,6 +2029,9 @@ static int _policy_group_find_first(int                  unit,
     }
     #endif
   }
+
+  if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+    sysapiPrintf("%s(%d) - Compatible group types\n", __FUNCTION__, __LINE__);
 
   return BCM_E_NONE;
 }
@@ -2644,6 +2664,9 @@ static int _policy_group_alloc_group(int                             unit,
 
   for (qsetWidth = sqsetWidthFirst; qsetWidth < sqsetWidthLast; qsetWidth++)
   {
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+      sysapiPrintf("%s(%d) Searching for a qset with a width of %u\n", __FUNCTION__, __LINE__, qsetWidth);
+
     /* create all new groups based upon a super qset */
     rv = _policy_super_qset_find_match(unit, 
                                        entryPtr->policyType, 
@@ -2662,6 +2685,9 @@ static int _policy_group_alloc_group(int                             unit,
       sysapiPrintf("- using super qset %d\n", sqset);
 
     _policy_sqset_get(unit, sqset, &sqsetInfo);
+
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+      sysapiPrintf("%s(%d) Searching for the first Group\n", __FUNCTION__, __LINE__);
 
     /* Try to find a group priority that we can use to create this group. */
     rv = _policy_group_find_first(unit, entryPtr->policyStage, entryPtr->policyType, group);
@@ -2682,11 +2708,21 @@ static int _policy_group_alloc_group(int                             unit,
     
           if (rv == BCM_E_NONE)
           {
+            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+              sysapiPrintf("%s(%d) Leaving...\n", __FUNCTION__, __LINE__);
             break;
           }
         }
       }
+      else
+      {
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+          sysapiPrintf("%s(%d) Group (%d) % slice_width (%d) failed!\n", __FUNCTION__, __LINE__, *group, sqsetInfo.status.slice_width_physical);
+      }
   
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+        sysapiPrintf("%s(%d) Searching for next Group\n", __FUNCTION__, __LINE__);
+
       rv = _policy_group_find_next(unit, entryPtr->policyStage, entryPtr->policyType, group);
       if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
         sysapiPrintf("Next Group=%u - rv %d\n", *group, rv);
@@ -2717,6 +2753,9 @@ static int _policy_group_alloc_group(int                             unit,
           #endif
         }
 
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+          sysapiPrintf("%s(%d) gid %d: we have resources!\n", __FUNCTION__, __LINE__, gid);
+
         break;
       }
       else
@@ -2726,9 +2765,15 @@ static int _policy_group_alloc_group(int                             unit,
   
         /* This policy won't fit in the new group, so destroy the group. */
         (void)bcm_field_group_destroy(unit, gid);
+
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+          sysapiPrintf("%s(%d) gid %d destroyed\n", __FUNCTION__, __LINE__, gid);
       }
     }
   }
+
+  if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+    sysapiPrintf("%s(%d) group=%d, gid=%d, rv=%d\n", __FUNCTION__, __LINE__, *group, gid, rv);
 
   return rv;
 }
@@ -4062,9 +4107,9 @@ static int _policy_group_alloc_init(int unit, BROAD_POLICY_STAGE_t policyStage, 
       group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].highPrio    = lowPrioGroup - 1;
 
       group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].lowPrio  = lowPrioGroup;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio = lowPrioGroup;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio = groups - 1;
 
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio    = lowPrioGroup + 1;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio    = lowPrioGroup;
       group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio   = groups - 1;
 
       /* PTin added: policer */
