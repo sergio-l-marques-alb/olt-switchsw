@@ -238,22 +238,29 @@ L7_RC_t ptin_hapi_hash_init(void)
 {
   L7_RC_t    rc = L7_SUCCESS;
 
-#if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
-  L7_uint32 i, banks;
-  L7_int    hash_type;
-  L7_uint32 hash_offset;
-
   /* Hash tables depth */
   if (bcm_switch_control_set(0, bcmSwitchHashDualMoveDepth, 8) != BCM_E_NONE)
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting bcmSwitchHashDualMoveDepth switch_control to 8");
     rc = L7_FAILURE;
   }
+
+  if (bcm_switch_control_set(0, bcmSwitchHashDualMoveDepthVlan, 8) != BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting bcmSwitchHashDualMoveDepthVlan switch_control to 8");
+    rc = L7_FAILURE;
+  }
+
   if (bcm_switch_control_set(0, bcmSwitchHashDualMoveDepthEgressVlan, 8) != BCM_E_NONE)
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting bcmSwitchHashDualMoveDepthEgressVlan switch_control to 8");
     rc = L7_FAILURE;
   }
+
+#if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+  L7_uint32 i, banks;
+  L7_int    hash_type;
+  L7_uint32 hash_offset;
 
   /* Ingress tranlation hash tables */
   if (bcm_switch_hash_banks_max_get(0, bcmHashTableVlanTranslate, &banks) == BCM_E_NONE)
