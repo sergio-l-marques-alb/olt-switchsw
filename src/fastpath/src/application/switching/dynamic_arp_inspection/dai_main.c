@@ -861,11 +861,17 @@ void daiRateLimitCheck(void)
       if (daiIntfInfo[i].pktRxCount >= (L7_uint32)daiCfgData->intfCfg[i].rate_limit)
       {
         daiIntfInfo[i].consecutiveInterval++;
+
+        /* If blocking packets, reset counter to maximum value */
+        if (daiIntfInfo[i].blockedInterval > 0)
+        {
+          daiIntfInfo[i].blockedInterval = daiCfgData->intfCfg[i].burst_interval*2;
+        }
       }
       /* Below rate limit */
       else
       {
-        daiIntfInfo[i].consecutiveInterval = 1;
+        daiIntfInfo[i].consecutiveInterval = 0;
 
         /* Decrement blocking interval */
         if (daiIntfInfo[i].blockedInterval > 0)
@@ -882,7 +888,7 @@ void daiRateLimitCheck(void)
     }
     else
     {
-      daiIntfInfo[i].consecutiveInterval = 1;
+      daiIntfInfo[i].consecutiveInterval = 0;
       daiIntfInfo[i].blockedInterval = 0;
     }
 
