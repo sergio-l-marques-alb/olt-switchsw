@@ -5390,7 +5390,19 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
   time_end = osapiTimeMicrosecondsGet();
   time_delta = time_end - time_start;
 
-  LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,"Message processed: 0x%04X in %lu usec  [response:%u (bytes) rc=%u res=0x%08x]", inbuffer->msgId, outbuffer->infoDim, time_delta, rc, res);
+  
+  if( inbuffer->msgId == CCMSG_ETH_PHY_ACTIVITY_GET || 
+      inbuffer->msgId == CCMSG_HW_INTF_INFO_GET     ||
+      inbuffer->msgId == CCMSG_ETH_PHY_COUNTERS_GET ||
+#if (PTIN_BOARD_IS_MATRIX)
+      inbuffer->msgId == CCMSG_ETH_LACP_MATRIXES_SYNC2 || 
+#endif
+      inbuffer->msgId == CCMSG_MGMD_PORT_SYNC || 
+      inbuffer->msgId == CCMSG_APPLICATION_RESOURCES || 
+      inbuffer->msgId == CCMSG_L2_MACLIMIT_STATUS )
+    LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,"Message processed: 0x%04X in %lu usec [response:%u (bytes) rc=%u res=0x%08x]", inbuffer->msgId, outbuffer->infoDim, time_delta, rc, res);    
+  else
+    LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,"Message processed: 0x%04X in %lu usec  [response:%u (bytes) rc=%u res=0x%08x]", inbuffer->msgId, outbuffer->infoDim, time_delta, rc, res);
 
   /* Message Runtime Meter */
   /* Only for successfull messages */
