@@ -177,6 +177,9 @@ L7_RC_t dtlQosCosMapIntfTrustModeSet(L7_uint32 intIfNum,
 
   } /* endswitch */
 
+  /* PTin added: + default prio */
+  dapiCmd.cmdData.intfTrustModeConfig.mapTable.defaultPrio = pMapTable->defaultPrio;
+
   /* copy 802.1p mapping table (contains either user or port default priority) */
   for (i= 0; i < (L7_DOT1P_MAX_PRIORITY+1); i++)
     dapiCmd.cmdData.intfTrustModeConfig.mapTable.dot1p_traffic_class[i] = 

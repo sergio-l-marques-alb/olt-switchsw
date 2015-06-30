@@ -2624,6 +2624,9 @@ struct DAPI_QOS_TLV_s
  */
 typedef struct
 {
+  /* PTin added: + default prio */
+  L7_uchar8     defaultPrio;
+
   /* NOTE:  The dot1p mapping table is used for all modes, but contains the
    *        mapped port default priority value for all entries when in any
    *        mode other than 'trust dot1p'.  This table is used in addition

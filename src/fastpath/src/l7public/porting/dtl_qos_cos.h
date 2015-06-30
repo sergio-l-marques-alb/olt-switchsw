@@ -27,8 +27,11 @@
 
 typedef struct
 {
+  /* PTin modified: + default prio */
+  L7_uchar8     defaultPrio;
+
   /* see DAPI_QOS_COS_MAP_TABLE_t note in dapi.h for usage details */
-  L7_uchar8     dot1pTrafficClass[L7_DOT1P_MAX_PRIORITY+1];     /* used for all modes               */
+  L7_uchar8     dot1pTrafficClass[L7_DOT1P_MAX_PRIORITY+1];  /* used for all modes               */
   L7_uchar8     ipPrecTrafficClass[L7_QOS_COS_MAP_NUM_IPPREC];  /* used for trust IP Prec mode only */
   L7_uchar8     ipDscpTrafficClass[L7_QOS_COS_MAP_NUM_IPDSCP];  /* used for trust IP DSCP mode only */
 

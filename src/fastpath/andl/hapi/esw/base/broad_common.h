@@ -425,7 +425,7 @@ typedef struct
 
 
   /* dot1p to traffic class mapping table and policy id */
-  L7_uchar8               dot1pMap[L7_DOT1P_MAX_PRIORITY+1];
+  L7_uchar8               dot1pMap[(L7_DOT1P_MAX_PRIORITY+1) +1];  /* PTin modified: + default prio */
   BROAD_POLICY_t          dot1pPolicy;
   BROAD_POLICY_t          voiceVlanPolicy;
   BROAD_POLICY_t          voipPolicy;

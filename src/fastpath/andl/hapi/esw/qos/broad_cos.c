@@ -1446,7 +1446,7 @@ L7_RC_t hapiBroadQosCosIntfTrustModeConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
     case DAPI_QOS_COS_INTF_MODE_UNTRUSTED:
         /* for untrusted mode use the same traffic class for all frames */
         qosPortPtr->cos.trustMode  = DAPI_QOS_COS_INTF_MODE_UNTRUSTED;
-        qosPortPtr->cos.defaultCos = pMapTable->dot1p_traffic_class[0];
+        qosPortPtr->cos.defaultCos = pMapTable->defaultPrio; /*pMapTable->dot1p_traffic_class[0];*/     /* PTin modified: + default prio */
         break;
 
     case DAPI_QOS_COS_INTF_MODE_TRUST_DOT1P:
@@ -1454,15 +1454,16 @@ L7_RC_t hapiBroadQosCosIntfTrustModeConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
          * from the tag or by the port default priority
          */
         qosPortPtr->cos.trustMode  = DAPI_QOS_COS_INTF_MODE_TRUST_DOT1P;
-        qosPortPtr->cos.defaultCos = 0;
+        qosPortPtr->cos.defaultCos = pMapTable->defaultPrio; /*0;*/                                     /* PTin modified: + default prio */
         for (i = 0; i < L7_DOT1P_MAX_PRIORITY+1; i++)
             hapiPortPtr->dot1pMap[i] = pMapTable->dot1p_traffic_class[i];
+        hapiPortPtr->dot1pMap[L7_DOT1P_MAX_PRIORITY+1] = pMapTable->defaultPrio;                        /* PTin modified: + default prio */
         break;
 
     case DAPI_QOS_COS_INTF_MODE_TRUST_IPPREC:
         /* for L3 frames use the IP Prec but for L2 frames use the default */
         qosPortPtr->cos.trustMode  = DAPI_QOS_COS_INTF_MODE_TRUST_IPPREC;
-        qosPortPtr->cos.defaultCos = pMapTable->dot1p_traffic_class[0];
+        qosPortPtr->cos.defaultCos = pMapTable->defaultPrio; /*pMapTable->dot1p_traffic_class[0];*/     /* PTin modified: + default prio */
         for (i = 0; i < L7_QOS_COS_MAP_NUM_IPPREC; i++)
             qosPortPtr->cos.precMap[i] = pMapTable->ip_prec_traffic_class[i];
         break;
@@ -1470,7 +1471,7 @@ L7_RC_t hapiBroadQosCosIntfTrustModeConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
     case DAPI_QOS_COS_INTF_MODE_TRUST_IPDSCP:
         /* for L3 frames use the IP DSCP but for L2 frames use the default */
         qosPortPtr->cos.trustMode  = DAPI_QOS_COS_INTF_MODE_TRUST_IPDSCP;
-        qosPortPtr->cos.defaultCos = pMapTable->dot1p_traffic_class[0];
+        qosPortPtr->cos.defaultCos = pMapTable->defaultPrio; /*pMapTable->dot1p_traffic_class[0];*/     /* PTin modified: + default prio */
 
         /* If the locally stored dscp mapping table is different from the
          * one passed down, indicate a change by setting the dirty bit */ 

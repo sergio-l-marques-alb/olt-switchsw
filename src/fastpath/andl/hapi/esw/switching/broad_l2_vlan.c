@@ -78,6 +78,11 @@ extern void  *broadVlanSema;
 /* synchronization sema for COSQ policies */
 extern void  *broadCOSQsema;
 
+
+/* PTin added: + default priority */
+#define PTIN_COS_EXTRA_PRIORITY 0
+
+
 /*********************************************************************
 *
 * @purpose Add the specified port to the hardware VLAN configuration.
@@ -1969,6 +1974,15 @@ L7_RC_t hapiBroadQvlanPortPriority(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
     return result;
   }
 
+  /* PTin added: + default ptio */
+#if 0
+  /* Configure policer for default priority */
+  result = hapiBroadCosSetDot1pParams(usp, L7_DOT1P_MAX_PRIORITY+1, priority, dapi_g);
+  if (result != L7_SUCCESS)
+  {
+    return result;
+  }
+#endif
 
   if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) == L7_TRUE)
   {
@@ -2065,7 +2079,7 @@ L7_RC_t hapiBroadCosCommitDot1pParams(BROAD_PORT_t *hapiPortPtr, L7_uchar8 *dot1
   /* For performance reasons make sure all the dot1p mappings are configured
    * prior to sending down any policies.
    */
-  for (i = 0; i < L7_DOT1P_MAX_PRIORITY+1; i++)
+  for (i = 0; i < (L7_DOT1P_MAX_PRIORITY+PTIN_COS_EXTRA_PRIORITY)+1; i++)      /* PTin modified: + default prio */
   {
     if (dot1pMap[i] > L7_DOT1P_MAX_PRIORITY)
     {
@@ -2078,6 +2092,7 @@ L7_RC_t hapiBroadCosCommitDot1pParams(BROAD_PORT_t *hapiPortPtr, L7_uchar8 *dot1
   {
     BROAD_POLICY_t      cosqId;
     BROAD_POLICY_RULE_t ruleId;
+    L7_uchar8           vlanFormat = BROAD_VLAN_FORMAT_UNTAG;                   /* PTin added: + default prio */
     L7_BOOL             policyFound = L7_FALSE;
     L7_uchar8           exactMask[] = {FIELD_MASK_NONE, FIELD_MASK_NONE};
 
@@ -2088,7 +2103,7 @@ L7_RC_t hapiBroadCosCommitDot1pParams(BROAD_PORT_t *hapiPortPtr, L7_uchar8 *dot1
     }
    
     /* Try to find existing policy with same mapping. */
-    if (hapiBroadCosPolicyUtilLookup(dot1pMap, L7_DOT1P_MAX_PRIORITY+1, &cosqId) == L7_TRUE)
+    if (hapiBroadCosPolicyUtilLookup(dot1pMap, (L7_DOT1P_MAX_PRIORITY+PTIN_COS_EXTRA_PRIORITY)+1, &cosqId) == L7_TRUE) /* PTin modified: + default prio */
     {
       if (hapiPortPtr->dot1pPolicy == cosqId)
       {
@@ -2110,11 +2125,25 @@ L7_RC_t hapiBroadCosCommitDot1pParams(BROAD_PORT_t *hapiPortPtr, L7_uchar8 *dot1
       /* PTin added: Allocate this rule to VCAP */
       hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_LOOKUP);
 
-      for (i = 0; i < L7_DOT1P_MAX_PRIORITY+1; i++)
+      for (i = 0; i < (L7_DOT1P_MAX_PRIORITY+PTIN_COS_EXTRA_PRIORITY)+1; i++)  /* PTin modified: + default prio */
       {
         L7_uchar8 dot1p = i;
+
         hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_LOWEST);
-        hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OCOS, &dot1p, exactMask);
+
+        /* PTin added: + default prio */
+        if (dot1p > L7_DOT1P_MAX_PRIORITY)
+        {
+          vlanFormat = BROAD_VLAN_FORMAT_UNTAG;
+          hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_VLAN_FORMAT, (L7_uchar8 *) &vlanFormat, exactMask);
+        }
+        else
+        {
+          
+          vlanFormat = BROAD_VLAN_FORMAT_STAG;
+          hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_VLAN_FORMAT, (L7_uchar8 *) &vlanFormat, exactMask);
+          hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OCOS, &dot1p, exactMask); 
+        }
         hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, dot1pMap[i], 0, 0);
         /* PTin added: FP */
         hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_CLASS_ID, dot1pMap[i], 0, 0);
@@ -2125,7 +2154,7 @@ L7_RC_t hapiBroadCosCommitDot1pParams(BROAD_PORT_t *hapiPortPtr, L7_uchar8 *dot1
       result = hapiBroadPolicyCommit(&cosqId);
 
       if (L7_SUCCESS == result)
-        (void)hapiBroadCosPolicyUtilAdd(dot1pMap, L7_DOT1P_MAX_PRIORITY+1, cosqId);
+        (void)hapiBroadCosPolicyUtilAdd(dot1pMap, (L7_DOT1P_MAX_PRIORITY+PTIN_COS_EXTRA_PRIORITY)+1, cosqId);  /* PTin modified: + default prio */
 
     }
 
@@ -2176,7 +2205,7 @@ L7_RC_t hapiBroadCosSetDot1pParams(DAPI_USP_t *usp, L7_uchar8 dot1p, L7_uchar8 c
   BROAD_PORT_t *hapiPortPtr;
   DAPI_PORT_t  *dapiPortPtr;
 
-  if ((dot1p > L7_DOT1P_MAX_PRIORITY) || (cosq > L7_DOT1P_MAX_PRIORITY))
+  if ((dot1p > (L7_DOT1P_MAX_PRIORITY+L7_DOT1P_MAX_PRIORITY)) || (cosq > L7_DOT1P_MAX_PRIORITY))  /* PTin modified: + default prio */
     return L7_FAILURE;
 
   dapiPortPtr = DAPI_PORT_GET(usp, dapi_g);
@@ -2189,8 +2218,11 @@ L7_RC_t hapiBroadCosSetDot1pParams(DAPI_USP_t *usp, L7_uchar8 dot1p, L7_uchar8 c
 
   if(hapiBroadRoboCheck() == L7_TRUE)
   {
-     bcmx_cosq_port_mapping_set(hapiPortPtr->bcmx_lport, (bcm_cos_t)dot1p,  (bcm_cos_queue_t)cosq);
-     return L7_SUCCESS;
+    if (dot1p <= L7_DOT1P_MAX_PRIORITY)   /* PTin modified: + default prio */
+    {
+      bcmx_cosq_port_mapping_set(hapiPortPtr->bcmx_lport, (bcm_cos_t)dot1p,  (bcm_cos_queue_t)cosq); 
+    }
+    return L7_SUCCESS;
   }
 
   if (L7_TRUE == hapiPortPtr->port_is_lag)

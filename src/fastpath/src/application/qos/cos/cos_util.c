@@ -431,6 +431,10 @@ L7_RC_t cosMapIntfTrustModeApply(L7_uint32 intIfNum,
    * for this interface (was previously obtained from dot1p component)
    */
   tc = pCosInfo_g->portDefaultTrafficClass[intIfNum]; /* port default traffic class */
+
+  /* PTin added: + default prio */
+  mapTable.defaultPrio = tc;
+
   for (i = 0; i < (L7_DOT1P_MAX_PRIORITY+1); i++)
   {
     if (mode == L7_QOS_COS_MAP_INTF_MODE_TRUST_DOT1P)

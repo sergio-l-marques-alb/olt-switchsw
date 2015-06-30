@@ -1796,6 +1796,9 @@ L7_RC_t hapiBroadPortMemAlloc(L7_ushort16 unitNum, L7_ushort16 slotNum, DAPI_t *
       for (i = 0; i < L7_DOT1P_MAX_PRIORITY+1; i++)
         hapiPortPtr->dot1pMap[i] = L7_DOT1P_MAX_PRIORITY+1;
 
+      /* PTin added: + default prio */
+      hapiPortPtr->dot1pMap[(L7_DOT1P_MAX_PRIORITY+1)] = 0;
+
       /* If this port is used for front panel stacking then set a flag.
       */
       if (spmFpsPortStackingModeCheck (usp.unit, usp.slot, usp.port + 1) == L7_TRUE)
