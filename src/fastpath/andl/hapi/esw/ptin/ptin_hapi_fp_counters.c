@@ -4,6 +4,7 @@
 #include "ptin_hapi_fp_utils.h"
 #include "broad_policy.h"
 #include "broad_group_bcm.h"
+#include "broad_l2_lag.h"
 
 #include "logger.h"
 
@@ -215,6 +216,8 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
   L7_uint8            mask[16] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
                                    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
   L7_RC_t             result;
+  DAPI_PORT_t        *dapiPortPtr;
+  BROAD_PORT_t       *hapiPortPtr;
   ptin_hapi_intf_t    portDescriptor;
   pbmp_t              pbm, pbm_mask;
   L7_uint8            packets_type;
@@ -323,11 +326,12 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
   portDescriptor.lport            = -1;
   portDescriptor.bcm_port         = -1;
   portDescriptor.trunk_id         = -1;
-  portDescriptor.efp_class_port   =  0;
+//portDescriptor.efp_class_port   =  0;
   portDescriptor.xlate_class_port =  0;
 
-  if (ptin_hapi_portDescriptor_get(usp, dapi_g, &portDescriptor,&pbm)!=L7_SUCCESS ||
-      (portDescriptor.bcm_port<0 && portDescriptor.trunk_id<0 && portDescriptor.efp_class_port==0))
+  if (ptin_hapi_portDescriptor_get(usp, dapi_g, &pbm, &portDescriptor, &dapiPortPtr, &hapiPortPtr) != L7_SUCCESS ||
+      (portDescriptor.bcm_port < 0 && portDescriptor.trunk_id < 0) ||
+      (dapiPortPtr == L7_NULLPTR || hapiPortPtr == L7_NULLPTR))
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI,"Error acquiring interface descriptor!");
     return L7_FAILURE;
@@ -460,26 +464,7 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
       }
       else if (stage==BROAD_POLICY_STAGE_EGRESS)
       {
-        /* Physical port */
-        if (portDescriptor.bcm_port>=0)
-        {
-          if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OUTPORT, (L7_uint8 *)&portDescriptor.bcm_port, (L7_uint8 *) mask))!=L7_SUCCESS)
-          {
-            LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(OUTPORT)");
-            break;
-          }
-          LOG_TRACE(LOG_CTX_PTIN_HAPI,"OutPort qualifier added");
-        }
-        /* Class port */
-        else if (portDescriptor.efp_class_port>0)
-        {
-          if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PORTCLASS, (L7_uint8 *)&(portDescriptor.efp_class_port), (L7_uint8 *) mask))!=L7_SUCCESS)
-          {
-            LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(PORTCLASS)");
-            break;
-          }
-          LOG_TRACE(LOG_CTX_PTIN_HAPI,"Port class qualifier added");
-        }
+        /* Do nothing */
       }
 
       /* SVLAN */
@@ -649,16 +634,49 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
       LOG_TRACE(LOG_CTX_PTIN_HAPI,"Policy committed (stage=%u)",stage);
     }
 
-    /* Add input port, for lookup stage */
-    if (stage == BROAD_POLICY_STAGE_LOOKUP)
+    /* Add physical ports for Lookup/Egress rules */
+    if (stage == BROAD_POLICY_STAGE_LOOKUP || stage == BROAD_POLICY_STAGE_EGRESS)
     {
-      result = hapiBroadPolicyApplyToIface(policyId, portDescriptor.lport);
-
-      if (L7_SUCCESS != result)
+      /* For valid ports */
+      if (usp->unit >= 0 && usp->slot >= 0 && usp->port >= 0)
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error adding lport 0x%08x (stage=%u)",portDescriptor.lport, stage);
-        hapiBroadPolicyDelete(policyId);
-        return result;
+        L7_uint i;
+
+        /* Remove all ports */
+        hapiBroadPolicyRemoveFromAll(policyId);
+
+        /* Physical port */
+        if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
+        {
+          if (hapiBroadPolicyApplyToIface(policyId, hapiPortPtr->bcm_port) != L7_SUCCESS)
+          {
+            hapiBroadPolicyDelete(policyId);
+            LOG_ERR(LOG_CTX_PTIN_HAPI,"Error applying interface usp={%d,%d,%d}/bcm_port %u!", usp->unit,usp->slot,usp->port, hapiPortPtr->bcm_port);
+            return L7_FAILURE;
+          }
+        }
+        /* Logical port to be added (add lag members) */
+        else if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) == L7_TRUE)
+        {
+          BROAD_PORT_t *hapiLagMemberPortPtr;
+
+          hapiBroadLagCritSecEnter ();
+          for (i = 0; i < L7_MAX_MEMBERS_PER_LAG; i++)
+          {
+            if (dapiPortPtr->modeparm.lag.memberSet[i].inUse == L7_TRUE)
+            {
+              hapiLagMemberPortPtr = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[i].usp, dapi_g);
+
+              if (hapiBroadPolicyApplyToIface(policyId, hapiLagMemberPortPtr->bcm_port) != L7_SUCCESS)
+              {
+                hapiBroadPolicyDelete(policyId);
+                LOG_ERR(LOG_CTX_PTIN_HAPI,"Error applying interface usp={%d,%d,%d}/bcm_port %u!", usp->unit,usp->slot,usp->port, hapiPortPtr->bcm_port);
+                return L7_FAILURE;
+              }
+            }
+          }
+          hapiBroadLagCritSecExit ();
+        }
       }
     }
 

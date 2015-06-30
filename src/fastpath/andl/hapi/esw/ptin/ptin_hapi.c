@@ -748,7 +748,6 @@ L7_RC_t ptin_hapi_phy_init_olt1t0(void)
   L7_RC_t rc = L7_SUCCESS;
 
 #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
-  L7_uint       port_index;
   bcm_port_t    bcm_port;
   L7_uint32     rval;
 
@@ -798,8 +797,6 @@ L7_RC_t ptin_hapi_phy_init_olt1t0(void)
     L7_uint16 vlanId_value = PTIN_VLAN_BL2CPU_EXT;
     L7_uint16 vlanId_mask  = 0xFFF;
 
-    bcmx_lport_t  lport;
-
     /* Create cancellation rule for VLANS 4092-4095 */
     hapiBroadPolicyCreate(BROAD_POLICY_TYPE_IPSG);
     hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_LOOKUP);
@@ -811,29 +808,10 @@ L7_RC_t ptin_hapi_phy_init_olt1t0(void)
     if (L7_SUCCESS != rc)
        return rc;
 
-    /* Apply this rule to PON ports */
-    for (port_index = 0; port_index < PTIN_SYSTEM_N_PONS; port_index++)
-    {
-      /* Get lport */
-      if (hapi_ptin_bcmPort_get(port_index, &bcm_port) != L7_SUCCESS)
-        return L7_FAILURE;
-      lport = bcmx_unit_port_to_lport(0, bcm_port);
-
-      rc = hapiBroadPolicyApplyToIface(policyId, lport);
-      if (L7_SUCCESS != rc)
-         return rc;
-      LOG_TRACE(LOG_CTX_STARTUP, "Cancellation rule applied to port %u", port_index);
-    }
-
-    /* Apply this rule only to GE48 port */
-    if (hapi_ptin_bcmPort_get(port_index, &bcm_port) != L7_SUCCESS)
-      return L7_FAILURE;
-    lport = bcmx_unit_port_to_lport(0, bcm_port);
-
-    rc = hapiBroadPolicyApplyToIface(policyId, lport);
+    rc = hapiBroadPolicyApplyToAll(policyId);
     if (L7_SUCCESS != rc)
        return rc;
-    LOG_TRACE(LOG_CTX_STARTUP, "Cancellation rule applied to GE48 port", port_index);
+    LOG_TRACE(LOG_CTX_STARTUP, "Cancellation rule applied to all ports");
 #endif
 
   #if 0
@@ -1319,22 +1297,23 @@ void hapi_ptin_allportsbmp_get(pbmp_t *pbmp_mask)
  * 
  * @param ddUsp : unit, slot and port reference
  * @param dapi_g
+ * @param pbmp : If is a physical port, it will be ADDED to this
+ *               port bitmap.
  * @param intf_desc : interface descriptor with lport, bcm_port 
  *                  (-1 if not physical) and trunk_id (-1 if not
  *                  trunk)
- * @param pbmp : If is a physical port, it will be ADDED to this
- *             port bitmap.
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_hapi_portDescriptor_get(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, ptin_hapi_intf_t *intf_desc, pbmp_t *pbmp)
+L7_RC_t ptin_hapi_portDescriptor_get(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, pbmp_t *pbmp, ptin_hapi_intf_t *intf_desc,
+                                     DAPI_PORT_t **dapiPortPtr_ret, BROAD_PORT_t **hapiPortPtr_ret)
 {
   DAPI_PORT_t  *dapiPortPtr;
   BROAD_PORT_t *hapiPortPtr;
   bcmx_lport_t  lport=-1;
   bcm_trunk_t   trunk_id=-1;
   bcm_port_t    bcm_port=-1;
-  L7_uint32     efp_class_port=0, xlate_class_port=0;
+  L7_uint32     /*efp_class_port=0,*/ xlate_class_port=0;
 
   /* Validate interface */
   if (ddUsp==L7_NULLPTR || (ddUsp->unit<0 && ddUsp->slot<0 && ddUsp->port<0))
@@ -1375,11 +1354,11 @@ L7_RC_t ptin_hapi_portDescriptor_get(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, ptin_hap
   }
 
   /* Class port */
-  efp_class_port   = (ddUsp->slot*L7_MAX_PORTS_PER_SLOT) + ddUsp->port + 1 + EFP_STD_CLASS_ID_MAX;
+  //efp_class_port   = (ddUsp->slot*L7_MAX_PORTS_PER_SLOT) + ddUsp->port + 1 + EFP_STD_CLASS_ID_MAX;
   xlate_class_port = (ddUsp->slot*L7_MAX_PORTS_PER_SLOT) + ddUsp->port + 1;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"Interface {%d,%d,%d}: efp_class_port=%d xlate_class_port=%d",
-            ddUsp->unit,ddUsp->slot,ddUsp->port,efp_class_port,xlate_class_port);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"Interface {%d,%d,%d}: xlate_class_port=%d",
+            ddUsp->unit,ddUsp->slot,ddUsp->port,xlate_class_port);
 
   /* Add physical interface to port bitmap */
   if (pbmp!=L7_NULLPTR && bcm_port>=0)
@@ -1393,8 +1372,17 @@ L7_RC_t ptin_hapi_portDescriptor_get(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, ptin_hap
     intf_desc->lport            = lport;
     intf_desc->trunk_id         = trunk_id;
     intf_desc->bcm_port         = bcm_port;
-    intf_desc->efp_class_port   = efp_class_port;
+    //intf_desc->efp_class_port   = efp_class_port;
     intf_desc->xlate_class_port = xlate_class_port;
+  }
+
+  if (dapiPortPtr_ret != L7_NULLPTR)
+  {
+    *dapiPortPtr_ret = dapiPortPtr;
+  }
+  if (hapiPortPtr_ret != L7_NULLPTR)
+  {
+    *hapiPortPtr_ret = hapiPortPtr;
   }
 
   return L7_SUCCESS;
@@ -3839,9 +3827,6 @@ L7_RC_t hapiBroadSystemInstallPtin(void)
 {
   BROAD_POLICY_t      policyId;
   BROAD_POLICY_RULE_t ruleId;
-  L7_int              port;
-  bcmx_lport_t        lport;
-  bcm_port_t          bcm_port;
   L7_ushort16         vlanId, vlanMask;
   BROAD_METER_ENTRY_t meterInfo;
   L7_RC_t             rc = L7_SUCCESS;
@@ -4069,8 +4054,11 @@ L7_RC_t hapiBroadSystemInstallPtin(void)
      At egressing is important to guarantee PBIT value of inner vlan is the same as the outer tag: a copy operation will be done */
 
   /* Multicast services */
-  L7_uint16 vlanId_value;
-  L7_uint16 vlanId_mask;
+  L7_int        port;
+  bcmx_lport_t  lport;
+  bcm_port_t    bcm_port;
+  L7_uint16     vlanId_value;
+  L7_uint16     vlanId_mask;
 
   /** INGRESS STAGE **/
 
@@ -4229,22 +4217,11 @@ L7_RC_t hapiBroadSystemInstallPtin(void)
   }
 
   /* Add all physical ports */
-  for (port = 0; port < ptin_sys_number_of_ports; port++)
+  if (hapiBroadPolicyApplyToAll(policyId) != L7_SUCCESS)
   {
-    if (hapi_ptin_bcmPort_get(port, &bcm_port) == L7_SUCCESS)
-    {
-      lport = bcmx_unit_port_to_lport(0, bcm_port);
-
-      if ((PTIN_SYSTEM_PORTS_MASK >> port) & 1)
-      {
-        if (hapiBroadPolicyApplyToIface(policyId, lport) != L7_SUCCESS)
-        {
-          LOG_ERR(LOG_CTX_STARTUP, "Error adding port %u", port);
-          hapiBroadPolicyDelete(policyId);
-          return L7_FAILURE;
-        }
-      }
-    }
+    LOG_ERR(LOG_CTX_STARTUP, "Error adding all ports");
+    hapiBroadPolicyDelete(policyId);
+    return L7_FAILURE;
   }
 
   return L7_SUCCESS;

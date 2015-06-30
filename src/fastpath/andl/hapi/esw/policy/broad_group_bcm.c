@@ -128,6 +128,10 @@ static int _policy_alloc_portclass(int unit, BROAD_POLICY_t policy)
       if (BCM_PBMP_EQ(policyPtr->pbm, port_class_table[unit][policyPtr->policyStage][i].pbm))
       {
         policyPtr->portClass = i;
+
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+          sysapiPrintf("%s(%d) Reusing portClass %u\n",__FUNCTION__,__LINE__,policyPtr->portClass);
+
         return BCM_E_NONE;
       }
     }
@@ -154,9 +158,16 @@ static int _policy_alloc_portclass(int unit, BROAD_POLICY_t policy)
       {
         policyPtr->portClass = i;
         BCM_PBMP_ASSIGN(port_class_table[unit][policyPtr->policyStage][i].pbm, policyPtr->pbm);
+
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+          sysapiPrintf("%s(%d) Using new portClass %u\n",__FUNCTION__,__LINE__,policyPtr->portClass);
+
         return BCM_E_NONE;
       }
     }
+
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+      sysapiPrintf("%s(%d) Portclasses not available!\n",__FUNCTION__,__LINE__);
 
     return BCM_E_RESOURCE;
 }

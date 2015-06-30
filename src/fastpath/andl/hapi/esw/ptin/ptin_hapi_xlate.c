@@ -1533,7 +1533,7 @@ L7_RC_t ptin_hapi_xlate_egress_portsGroup_set(L7_uint32 portgroup, DAPI_USP_t *u
       continue;
     }
     /* PTin removed: Let Fastpath to manage EFP Class ids */
-    #if 1
+    #if 0
     if (bcmx_port_class_set(hapiPortPtr->bcmx_lport, bcmPortClassFieldEgress, (L7_uint32) portgroup + EFP_STD_CLASS_ID_MAX) != BCM_E_NONE)
     {
       LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting class id %d to single port {%d,%d,%d} [ECAP]",

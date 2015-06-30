@@ -17,11 +17,11 @@ typedef struct {
 } ptin_dapi_port_t;
 
 typedef struct {
-//  L7_int        ptin_port;
+//L7_int        ptin_port;
   bcmx_lport_t  lport;
   bcm_trunk_t   trunk_id;
   bcm_port_t    bcm_port;
-  L7_uint32     efp_class_port;
+//L7_uint32     efp_class_port;
   L7_uint32     xlate_class_port;
 } ptin_hapi_intf_t;
 
@@ -166,15 +166,16 @@ extern void hapi_ptin_allportsbmp_get(pbmp_t *pbmp_mask);
  * 
  * @param ddUsp : unit, slot and port reference
  * @param dapi_g
+ * @param pbmp : If is a physical port, it will be ADDED to this
+ *             port bitmap.
  * @param intf_desc : interface descriptor with lport, bcm_port 
  *                  (-1 if not physical) and trunk_id (-1 if not
  *                  trunk)
- * @param pbmp : If is a physical port, it will be ADDED to this
- *             port bitmap.
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_hapi_portDescriptor_get(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, ptin_hapi_intf_t *intf_desc, pbmp_t *pbmp);
+extern L7_RC_t ptin_hapi_portDescriptor_get(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, pbmp_t *pbmp, ptin_hapi_intf_t *intf_desc,
+                                            DAPI_PORT_t **dapiPortPtr_ret, BROAD_PORT_t **hapiPortPtr_ret);
 
 /**
  * Reset a warpcore
