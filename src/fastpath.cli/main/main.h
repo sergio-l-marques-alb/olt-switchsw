@@ -119,8 +119,8 @@ extern int canal_buga;
 
 #define CCMSG_ETH_PORT_COS_GET              0x9090  // struct msg_QoSConfiguration_t
 #define CCMSG_ETH_PORT_COS_SET              0x9091  // struct msg_QoSConfiguration_t
-#define CCMSG_ETH_PORT_COS2_GET             0x9092  // struct msg_QoSConfiguration2_t
-#define CCMSG_ETH_PORT_COS2_SET             0x9093  // struct msg_QoSConfiguration2_t
+#define CCMSG_ETH_PORT_COS3_GET             0x9094  // struct msg_QoSConfiguration3_t
+#define CCMSG_ETH_PORT_COS3_SET             0x9095  // struct msg_QoSConfiguration3_t
 
 #define CCMSG_ETH_SWITCH_CONFIG_GET         0x90A0  // struct msg_switch_config_t
 #define CCMSG_ETH_SWITCH_CONFIG_SET         0x90A1  // struct msg_switch_config_t
@@ -514,47 +514,120 @@ typedef struct
   } __attribute__((packed)) cos_config; // mask=0x10: CoS configuration
 } __attribute__((packed)) msg_QoSConfiguration_t;
 
+
+#define MSG_QOS3_BANDWIDTH_UNITS_MASK   0x01
+
+#define MSG_QOS3_INGRESS_MASK           0x10
+#define MSG_QOS3_INGRESS_TRUST_MODE_MASK        0x01
+#define MSG_QOS3_INGRESS_COS_CLASSIF_MASK       0x04
+#define MSG_QOS3_INGRESS_COS_POLICER_MASK       0x08
+
+#define MSG_QOS3_EGRESS_MASK            0x20
+#define MSG_QOS3_EGRESS_INTF_SHAPER_MASK        0x01
+#define MSG_QOS3_EGRESS_COS_SCHEDULER_MASK      0x02
+
+#define MSG_QOS3_EGRESS_COS_SCHEDULER_TYPE_MASK           0x01
+#define MSG_QOS3_EGRESS_COS_SCHEDULER_WRR_WEIGHT_MASK     0x02
+
+#define MSG_QOS3_EGRESS_COS_SHAPER_MASK         0x04
+#define MSG_QOS3_EGRESS_COS_SHAPER_MIN_BW_MASK            0x01
+#define MSG_QOS3_EGRESS_COS_SHAPER_MAX_BW_MASK            0x02
+
+#define MSG_QOS3_EGRESS_COS_DROPMGMT_MASK       0x08
+#define MSG_QOS3_EGRESS_COS_DROPMGMT_TYPE_MASK            0x01
+#define MSG_QOS3_EGRESS_COS_DROPMGMT_WRED_DECAYEXP_MASK   0x02
+
+#define MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLDS_MASK      0x08
+#define MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_TAILDROP_MAX_MASK    0x01
+#define MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_WRED_MIN_MASK        0x02
+#define MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_WRED_MAX_MASK        0x04
+#define MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_WRED_DROPPROB_MASK   0x08
+
 typedef struct
 {
-  L7_uint8 SlotId;                      // Slot id
-  msg_HwEthInterface_t intf;            // Interface
+  L7_uint8 SlotId;                          // Slot id
+  msg_HwEthInterface_t intf;                // Interface
 
-  L7_uint8  generic_mask;               // General Configurations mask
+  L7_uint8  main_mask;                      // Main Mask
 
-  L7_uint8  trust_mode;                 // generic_mask=0x01: 0-None, 1-Untrust markings, 2-802.1p marking, 3: IP-precedence mark; 4-DSCP mark (Default=2)
-  L7_uint8  bandwidth_unit;             // generic_mask=0x02: 0: Percentage, 1: Kbps, 2: PPS, (Default=0)
-  L7_uint32 shaping_rate;               // generic_mask=0x04: in kbps. Default=0 (unlimited)
+  L7_uint8  bandwidth_unit;                 // main_mask=0x01: 0: Percentage, 1: Kbps, 2: PPS, (Default=0)
 
-  struct {                              // Packet priority map
-    L7_uint8  prio_mask[8];             //   pktpriority map mask (nth bit, tells to configure the nth priority)
-    L7_uint32 cos[8];                   //   Mapping: CoS(pcp): Default={0,1,2,3,4,5,6,7}
-  } __attribute__((packed)) pktprio;    // generic_mask=0x08: Packet priority map
+  // Ingress configurations
+  struct {                                  // Struct:
+    L7_uint8  ingress_mask;                     // Ingress Mask
 
-  struct {                              // CoS configuration (generic_mask=0x10)
-    L7_uint8 cos_mask;                  //   CoS map mask (nth bit, tells to configure the nth CoS)
-    struct {                            //   Specific CoS configuration
-      L7_uint8  local_mask;             //     Specific CoS configuration mask
+    L7_uint8  trust_mode;                       // ingress_mask=0x01: 0-None, 1-Untrust markings, 2-802.1p marking, 3: IP-precedence mark; 4-DSCP mark (Default=2)
 
-      L7_uint8  scheduler;              //     local_mask=0x01: Scheduler type: 0-None, 1-Strict, 2-Weighted (Default=1)
-      L7_uint32 min_bandwidth;          //     local_mask=0x02: Minimum bandwidth (kbps): Default=0 (no guarantee)
-      L7_uint32 max_bandwidth;          //     local_mask=0x04: Maximum bandwidth (kbps): Default=0 (unlimited)
+    // Packet priority map
+    union {                                     // Union:
+      struct {                                      // Struct:
+        L7_uint8 prio_mask;                             //   pktpriority map mask: nth bit, tells to configure the nth priority (0 to 7)
+        L7_uint8 cos[8];                                //   Mapping: CoS from PCP: Default={0,1,2,3,4,5,6,7}
+      } __attribute__((packed)) pcp_map;            // PCP to CoS map
 
-      L7_uint16 wrrSched_weight;        //     local_mask=0x08: WRR scheduler weight (for each queue)
+      struct {                                      // Struct:
+        L7_uint8 prio_mask;                             //   pktpriority map mask: nth bit, tells to configure the nth priority (0 to 7)
+        L7_uint8 cos[8];                                //   Mapping: CoS from IP Prec: Default={0,1,2,3,4,5,6,7}
+      } __attribute__((packed)) ipprec_map;         // IP Prec to CoS map
 
-      L7_uint8  dropMgmtType;           //     local_mask=0x10: Drop Management type (0:Taildrop, 1-WRED)
-      L7_uint8  wred_decayExp;          //     local_mask=0x20: WRED decay exponent (0-15)
+      struct {                                      // Struct:
+        L7_uint32 prio_mask[2];                         //   pktpriority map mask (nth bit, tells to configure the nth priority) - Low + High
+        L7_uint8  cos[64];                              //   Mapping: CoS(pcp): Default={0,1,2,3,4,5,6,7}
+      } __attribute__((packed)) dscp_map;           // DSCP to CoS map
+    } __attribute__((packed)) cos_classif;      // ingress_mask=0x04: Packet priority to CoS map (classification)
 
-      struct {                          //     Drop thresholds configuration for each Drop Precedence Level (local_mask=0x40)
-        L7_uint8  local2_mask;          //       Local mask for thresholds definition
-        L7_uint8  tailDrop_threshold;   //       local2_mask=0x01: Taildrop threshold (0-100)
-        L7_uint8  wred_minThreshold;    //       local2_mask=0x02: Min. WRED threshold (0-100)
-        L7_uint8  wred_maxThreshold;    //       local2_mask=0x04: Max. WRED threshold (0-100)
-        L7_uint8  wred_dropProb;        //       local2_mask=0x08: WRED Drop probability (0-100)
-      } dropThresholds[3+1];            //     local_mask=0x40: Drop thresholds configuration for each Drop Precedence Level
+    // CoS policer
+    struct {                                    // Struct:
+      L7_uint8  local_mask;                         // Local mask: only 0xff value is supported
+      L7_uint32 cir;                                // Policer CIR (in Kbps)
+      L7_uint32 cbs;                                // Policer CBS (in bytes)
+      L7_uint32 eir;                                // Policer EIR (in Kbps)
+      L7_uint32 ebs;                                // Policer EBS (in bytes)
+    } __attribute__((packed)) cos_policer[8];   // ingress_mask=0x08: CoS policer (for the 8 CoS)
+  } __attribute__((packed)) ingress;        // main_mask=0x10: Ingress configurations
 
-    } __attribute__((packed)) cos[8];   //   Specific CoS configuration (8 queues)
-  } __attribute__((packed)) cos_config; // generic_mask=0x10: CoS configuration
-} __attribute__((packed)) msg_QoSConfiguration2_t;
+  // Egress configurations
+  struct {                                  // Struct:
+    L7_uint8  egress_mask;                      // Egress Mask
+
+    L7_uint32 shaping_rate;                     // egress_mask=0x01: Interface Shaper (in percentage). Default=0 (unlimited)
+
+    // Scheduler configurations
+    struct {                                    // Struct:
+      L7_uint8  local_mask;                         // Local mask
+      L7_uint8  schedulerType;                      // local_mask=0x01: Scheduler type: 0-None, 1-Strict, 2-Weighted (Default=1)
+      L7_uint16 wrrSched_weight;                    // local_mask=0x02: WRR scheduler weight (for each queue): 1-128 (Default=1-8)
+    } __attribute__((packed)) cos_scheduler[8]; // egress_mask=0x02: CoS Scheduler (for the 8 CoS)
+
+    // CoS Shapers
+    struct {                                    // Struct:
+      L7_uint8  local_mask;                         // Local mask
+      L7_uint32 min_bandwidth;                      // local_mask=0x01: Minimum bandwidth (percentage): Default=0 (no guarantee)
+      L7_uint32 max_bandwidth;                      // local_mask=0x02: Maximum bandwidth (percentage): Default=0 (unlimited)
+    } __attribute__((packed)) cos_shaper[8];    // egress_mask=0x04: CoS Shaper (for the 8 CoS)
+
+    // CoS Drop Management
+    struct {                                    // Struct:
+      L7_uint8  local_mask;                         // Local mask
+
+      L7_uint8  dropMgmtType;                       // local_mask=0x01: Drop Management type: 0-Taildrop, 1-WRED (Default=0)
+      L7_uint8  wred_decayExp;                      // local_mask=0x02: WRED decay exponent:  0-15 (Default=8)
+
+      // Drop thresholds configuration
+      struct {                                      // Struct:
+        L7_uint8  local2_mask;                          // Local mask
+        L7_uint8  tailDrop_threshold;                   // local2_mask=0x01: Taildrop threshold:    0-100 (Default=100)
+        L7_uint8  wred_minThreshold;                    // local2_mask=0x02: Min. WRED threshold:   0-100 (Default=0)
+        L7_uint8  wred_maxThreshold;                    // local2_mask=0x04: Max. WRED threshold:   0-100 (Default=100)
+        L7_uint8  wred_dropProb;                        // local2_mask=0x08: WRED Drop probability: 0-100 (Default=10)
+      } __attribute__((packed)) dp_thresholds[3+3]; // local_mask=0x08: Drop thresholds configuration for each Drop Precedence Level
+
+    } __attribute__((packed)) cos_dropmgmt[8];  // egress_mask=0x08: CoS Drop Management configurations (for the 8 CoS)
+
+  } __attribute__((packed)) egress;         // main_mask=0x20: Egress configurations
+
+} __attribute__((packed)) msg_QoSConfiguration3_t;
+
 
 /***************************************************** 
  * L2 Table messages
