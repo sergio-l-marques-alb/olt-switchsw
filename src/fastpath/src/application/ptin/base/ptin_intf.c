@@ -1761,7 +1761,7 @@ L7_RC_t ptin_intf_slot_get(L7_uint8 *slot_id)
   /* Return management slot */
   if (slot_id != L7_NULLPTR)
   {
-    *slot_id = ptin_fpga_board_slot();
+    *slot_id = ptin_fpga_board_slot_get();
   }
 
   return L7_SUCCESS;

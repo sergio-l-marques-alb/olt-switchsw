@@ -19,6 +19,7 @@
 * @end
 **********************************************************************/
 #include "ptin_fpga_api.h"
+#include "commdefs.h"
 
 #ifdef MAP_CPLD
 
@@ -99,6 +100,9 @@ L7_uint8 ptin_fpga_lc_is_matrixactive_in_workingslot(void)
 #endif // (PTIN_BOARD_IS_LINECARD)
 
 #if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
+
+static void __ptin_fpga_board_set(void);
+
 /**
  * Get slot position of Active Matrix 
  * (For all cards) 
@@ -114,7 +118,7 @@ L7_uint8 ptin_fpga_matrixActive_slot(void)
   L7_BOOL  olt1t1_backplane;
 
   /* Condition for OLT1T1 backplane */
-  olt1t1_backplane = (((cpld_map->reg.slot_matrix >> 4) & 0x0f) != (cpld_map->reg.slot_matrix & 0x0f));
+  olt1t1_backplane = (ptin_fpga_board_get() == PTIN_BOARD_CXO160G);
 
   working_slot    = PTIN_SYS_MX1_SLOT;
   protection_slot = (olt1t1_backplane) ? PTIN_SYS_OLT1T1_SLOTS_MAX : PTIN_SYS_OLT1T3_SLOTS_MAX;
@@ -155,7 +159,7 @@ L7_uint8 ptin_fpga_matrixInactive_slot(void)
   L7_BOOL  olt1t1_backplane;
 
   /* Condition for OLT1T1 backplane */
-  olt1t1_backplane = (((cpld_map->reg.slot_matrix >> 4) & 0x0f) != (cpld_map->reg.slot_matrix & 0x0f));
+  olt1t1_backplane = (ptin_fpga_board_get() == PTIN_BOARD_CXO160G);
 
   working_slot    = PTIN_SYS_MX1_SLOT;
   protection_slot = (olt1t1_backplane) ? PTIN_SYS_OLT1T1_SLOTS_MAX : PTIN_SYS_OLT1T3_SLOTS_MAX;
@@ -201,9 +205,9 @@ L7_uint8 ptin_fpga_mx_get_matrixactive(void)
   static int previous_state = -1;
 
 #if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
-  L7_BOOL olt1t1_backplane = L7_FALSE;
-  /* Condition for OLT1T1 backplane */
-  olt1t1_backplane = (((cpld_map->reg.slot_matrix >> 4) & 0x0f) != (cpld_map->reg.slot_matrix & 0x0f));
+  L7_BOOL olt1t1_backplane;
+  /* Condition for OLT1T1 backplane */  
+  olt1t1_backplane = (ptin_fpga_board_get() == PTIN_BOARD_CXO160G);
 #endif
 
   if((cpld_map->reg.mx_get_active & 0x03) == 0x02) {
@@ -283,15 +287,160 @@ L7_uint32 ptin_fpga_matrix_ipaddr_get(ptin_fpga_matrix_type_t matrixType)
     return (IPC_MX_IPADDR_PROTECTION);
   }
 }
-#endif // (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
+
+static L7_uint32 __board_type    = (L7_uint32) -1;
 
 /**
- * Get slot id 
+ * Set Board Type
+ *  
+ *  
+ */
+static void __ptin_fpga_board_set(void)
+{
+  #if PTIN_BOARD_IS_MATRIX
+    #if ( PTIN_BOARD == PTIN_BOARD_CXO160G )
+      __board_type = PTIN_BOARD_CXO160G; 
+    #elif( PTIN_BOARD == PTIN_BOARD_CXO640G )             
+      __board_type = PTIN_BOARD_CXO640G;
+    #endif
+  #elif (PTIN_BOARD_IS_LINECARD)
+      /* Condition for OLT1T1 backplane */ 
+     if(((cpld_map->reg.slot_matrix >> 4) & 0x0f) != (cpld_map->reg.slot_matrix & 0x0f))
+     {
+       __board_type = PTIN_BOARD_CXO160G;
+     }
+     else
+     {
+       __board_type = PTIN_BOARD_CXO640G;
+     }
+  #else
+  #error "Not Supported Yet"
+  #endif
+
+  return;
+}
+
+/**
+ * Get Board Type
+ * 
+ * 
+ * @return boardType    : PTIN_BOARD_CXO160G 
+ *                        PTIN_BOARD_CXO640G 
+ *  
+ */
+L7_uint32 ptin_fpga_board_get(void)
+{
+  if (__board_type == (L7_uint32) -1)
+  {
+    __ptin_fpga_board_set();
+  }
+  return __board_type;
+}
+
+L7_uint32 ptin_fpga_slot_ip_addr_return(L7_uint8 slotId)
+{
+  L7_uint32 ipAddr;
+  ptin_fpga_slot_ip_addr_get(slotId, &ipAddr);
+  return ipAddr;
+}
+
+/**
+ * Get slot IP address.
+ * 
+ * @param slotId [in] : Slot Id 
+ * @param ipAddr [out]: IP Address  
+ * 
+ * @return rc    : L7_SUCESS 
+ *                 L7_FAILURE 
+ *  
+ */
+L7_RC_t ptin_fpga_slot_ip_addr_get(L7_uint8 slotId, L7_uint32 *ipAddr)
+{
+  L7_BOOL  olt1t1_backplane = L7_FALSE;
+  L7_uint8 max_slots;
+
+  olt1t1_backplane = (ptin_fpga_board_get() == PTIN_BOARD_CXO160G);
+    
+  /*Get the max slots of this system*/
+  max_slots = (olt1t1_backplane) ? PTIN_SYS_OLT1T1_SLOTS_MAX : PTIN_SYS_OLT1T3_SLOTS_MAX;
+
+  /*Validate Input Arguments*/
+  if (slotId == 0 || slotId > max_slots || ipAddr == L7_NULLPTR)
+  {
+    /*Invalid Arguments*/
+    return L7_FAILURE;
+  }
+
+  if (olt1t1_backplane)
+  {    
+    switch (slotId)
+    {
+    case 1:/*MX1*/
+      *ipAddr = PTIN_IPC_SUBNET_ID | 0x01;     
+      break;
+    case  2:/*LC1*/
+      *ipAddr = PTIN_IPC_SUBNET_ID | 0x05;     
+      break;
+    case 3:/*LC2*/
+      *ipAddr = PTIN_IPC_SUBNET_ID | 0x04;     
+      break;
+    case 4:/*LC3*/
+      *ipAddr = PTIN_IPC_SUBNET_ID | 0x03;     
+      break;
+    case 5:/*MX2*/
+      *ipAddr = PTIN_IPC_SUBNET_ID | 0x02;     
+      break;    
+    default:      
+      return L7_FAILURE;
+    }
+  }
+  else /*olt1t3_backplane*/
+  {
+    switch (slotId)
+    {
+    case 1:/*MX1*/
+      *ipAddr = PTIN_IPC_SUBNET_ID | 0x01;     
+      break;
+    case 2: /*LC1*/      
+    case 3: /*LC2*/    
+    case 4: /*LC3*/      
+    case 5: /*LC4*/
+    case 6: /*LC5*/
+    case 7: /*LC6*/
+    case 8: /*LC7*/
+    case 9: /*LC8*/
+    case 10:/*LC9*/
+    case 11:/*LC10*/
+    case 12:/*LC11*/
+    case 13:/*LC12*/
+    case 14:/*LC13*/
+    case 15:/*LC14*/
+    case 16:/*LC15*/
+    case 17:/*LC16*/
+    case 18:/*LC17*/
+    case 19:/*LC18*/
+      *ipAddr = PTIN_IPC_SUBNET_ID | ((slotId+1) & 0x000000FF);    
+      break;
+    case 20:/*MX2*/
+      *ipAddr = PTIN_IPC_SUBNET_ID | 0x02;     
+      break;    
+    default:      
+      return L7_FAILURE;
+    }
+  }
+  return L7_SUCCESS;
+}
+#endif // (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
+
+static L7_uint8 __board_slot_id = (L7_uint8) -1;
+
+/**
+ * Set slot id 
  * (For all cards)
  * 
  * @return L7_uint8 : slot id
  */
-L7_uint8 ptin_fpga_board_slot(void)
+static void __ptin_fpga_board_slot_set(void)
 {
   L7_uint8 slot = 0;
 
@@ -300,8 +449,8 @@ L7_uint8 ptin_fpga_board_slot(void)
   L7_BOOL  olt1t1_backplane;
 
   /* Condition for OLT1T1 backplane */
-  olt1t1_backplane = (((cpld_map->reg.slot_matrix >> 4) & 0x0f) != (cpld_map->reg.slot_matrix & 0x0f));
-
+  olt1t1_backplane = (ptin_fpga_board_get() == PTIN_BOARD_CXO160G);
+  
   /* If high and low nibbles are equal, we are at a OLT1T3 system */
   if (!olt1t1_backplane)
   {
@@ -312,7 +461,7 @@ L7_uint8 ptin_fpga_board_slot(void)
   {
     /* Validate slot id */
     if (cpld_map->reg.slot_id > 4)
-      return 0;
+      return;
     slot = 4 - cpld_map->reg.slot_id;     /* Invert slot ids */
   }
  #elif (PTIN_BOARD_IS_MATRIX)
@@ -320,7 +469,21 @@ L7_uint8 ptin_fpga_board_slot(void)
  #endif
 #endif
 
-  return slot;
+  __board_slot_id = slot;
+  return;
 }
 
-
+/**
+ * Get slot id 
+ * (For all cards)
+ * 
+ * @return L7_uint8 : slot id
+ */
+L7_uint8 ptin_fpga_board_slot_get(void)
+{
+  if (__board_slot_id == (L7_uint8) -1)
+  {
+    __ptin_fpga_board_slot_set();
+  }
+  return __board_slot_id;
+}

@@ -46,7 +46,7 @@
 
 /******************Protection Schemes Support************************************/
 #if PTIN_BOARD_IS_LINECARD
-static L7_RC_t __remoteslot_mfdbport_sync(L7_uint8 slotId, L7_uint8 admin, L7_uint32 serviceId, L7_uint32 portId, L7_uint32 groupAddr, L7_uint32 sourceAddr, L7_uint8 groupType);
+static L7_RC_t __remoteslot_mfdbport_sync(L7_uint8 slotId, L7_uint8 admin, L7_uint32 serviceId, L7_uint32 workingPortId, L7_uint32 protectionPortId, L7_uint32 groupAddr, L7_uint32 sourceAddr, L7_uint8 groupType);
 #endif
 #if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
 static L7_RC_t __matrix_mfdbport_sync(L7_uint8 admin, ptin_fpga_matrix_type_t matrixType, L7_uint32 serviceId, L7_uint32 slotId, L7_uint32 groupAddr, L7_uint32 sourceAddr, L7_uint8 groupType);
@@ -56,34 +56,61 @@ static L7_RC_t __matrix_mfdbport_sync(L7_uint8 admin, ptin_fpga_matrix_type_t ma
 /**
  * Send CCMSG_MGMD_PORT_SYNC message to a remote slot to sync a MGMD MFDB port.
  * 
- * @param slotId     : Protection slot
- * @param admin      : L7_ENABLE/L7_DISABLE
- * @param serviceId  : Service ID
- * @param portId     : Port ID (intfnum)
- * @param groupAddr  : Group IP
- * @param sourceAddr : Source IP
- * @param groupType  : Group type (0-dynamic; 1-static)
+ * @param protectionSlotId     : Protection slot
+ * @param admin                : L7_ENABLE/L7_DISABLE
+ * @param serviceId            : Service ID 
+ * @param workingPortId        : Port ID (intfnum)
+ * @param protectionPortId     : Port ID (intfnum)
+ * @param groupAddr            : Group IP
+ * @param sourceAddr           : Source IP
+ * @param groupType            : Group type (0-dynamic; 1-static)
  * 
  * @return L7_RC_t 
  */
-L7_RC_t __remoteslot_mfdbport_sync(L7_uint8 slotId, L7_uint8 admin, L7_uint32 serviceId, L7_uint32 portId, L7_uint32 groupAddr, L7_uint32 sourceAddr, L7_uint8 groupType)
+L7_RC_t __remoteslot_mfdbport_sync(L7_uint8 protectionSlotId, L7_uint8 admin, L7_uint32 serviceId, L7_uint32 workingPortId, L7_uint32 protectionPortId, L7_uint32 groupAddr, L7_uint32 sourceAddr, L7_uint8 groupType)
 {
   msg_HwMgmdPortSync mgmdPortSync = {0};
-  L7_uint32          protectionSlotIp = 0xC0A8C800; //192.168.200.X
+  L7_uint32          protectionSlotIp;
+  L7_uint8           workingSlotId = ptin_fpga_board_slot_get();
+  L7_uint32          workingSlotIp = simGetIpcIpAddr();
+  L7_RC_t            rc;
 
   /* Determine protection slot/ip/interface */
-  protectionSlotIp |= (slotId+1) & 0x000000FF;
+  rc = ptin_fpga_slot_ip_addr_get(protectionSlotId, &protectionSlotIp);
+  if (L7_SUCCESS != rc)
+  {
+    LOG_ERR(LOG_CTX_PTIN_PROTB, "Failed to obtain IP Address of slotId:%u", protectionSlotId);
+    return L7_FAILURE;
+  }
+
+  /*Added to Prevent Loops*/
+  if (protectionSlotId != workingSlotId) 
+  {
+    if ( protectionSlotIp == workingSlotIp )
+    {
+      LOG_ERR(LOG_CTX_PTIN_PROTB, "Invalid Configuration: protectionSlotId:%u != workingSlotId:%u && protectionSlotIp == workingSlotIp = :%u", protectionSlotId, workingSlotId, protectionSlotIp);
+      return L7_FAILURE;
+    }    
+  }
+  else
+  {
+    if (workingPortId == protectionPortId)
+    {
+      LOG_ERR(LOG_CTX_PTIN_PROTB, "Invalid Configuration: protectionSlotId:%u == workingSlotId:%u && workingPortId == protectionPortId = :%u", protectionSlotId, workingPortId);
+      return L7_FAILURE;
+    }
+  }  
 
   /* Fill the sync structure */
-  mgmdPortSync.SlotId     = slotId;
+  mgmdPortSync.SlotId     = protectionSlotId;
   mgmdPortSync.admin      = admin;
   mgmdPortSync.serviceId  = serviceId;
-  mgmdPortSync.portId     = portId;
+  mgmdPortSync.portId     = protectionPortId;
   mgmdPortSync.groupAddr  = groupAddr;
   mgmdPortSync.sourceAddr = sourceAddr;
   mgmdPortSync.groupType  = groupType;
 
-  LOG_TRACE(LOG_CTX_PTIN_PROTB, "Sending message to card %08X(%u) to set port %u admin to %u for group %08X/%08X", protectionSlotIp, slotId, portId, admin, groupAddr, sourceAddr);
+  LOG_TRACE(LOG_CTX_PTIN_PROTB, "Sending message to card %08X(%u) to set port %u admin to %u for group %08X/%08X", protectionSlotIp, protectionSlotId, protectionPortId, admin, groupAddr, sourceAddr);
 
   /* Send the mfdb port configurations to the remote slot */
   if (send_ipc_message(IPC_HW_FASTPATH_PORT, protectionSlotIp, CCMSG_MGMD_PORT_SYNC, (char *)(&mgmdPortSync), NULL, sizeof(mgmdPortSync), NULL) < 0)
@@ -3999,9 +4026,9 @@ L7_RC_t snoopPortOpen(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *g
       __matrix_mfdbport_sync(L7_ENABLE, PTIN_FPGA_STANDBY_MATRIX, serviceId, intIfNum, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr, isStatic);
     }
 #elif PTIN_BOARD_IS_LINECARD   
-    if(protTypebIntfConfig.status == L7_ENABLE)
+    if(protTypebIntfConfig.status == L7_ENABLE)       
     {
-      __remoteslot_mfdbport_sync(protTypebIntfConfig.pairSlotId, L7_ENABLE, serviceId, protTypebIntfConfig.pairIntfNum, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr, isStatic);
+      __remoteslot_mfdbport_sync(protTypebIntfConfig.pairSlotId, L7_ENABLE, serviceId, intIfNum, protTypebIntfConfig.pairIntfNum, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr, isStatic);
       __matrix_mfdbport_sync(L7_ENABLE, PTIN_FPGA_ACTIVE_MATRIX, serviceId, protTypebIntfConfig.pairSlotId, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr, isStatic);
     }
 #elif PTIN_BOARD_IS_STANDALONE
@@ -4117,7 +4144,7 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
   /* Sync the status of this switch port on the backup type-b protection port, if it exists */ 
   if(protTypebIntfConfig.status == L7_ENABLE)
   {
-    __remoteslot_mfdbport_sync(protTypebIntfConfig.pairSlotId, L7_DISABLE, serviceId, protTypebIntfConfig.pairIntfNum, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr, L7_FALSE);
+    __remoteslot_mfdbport_sync(protTypebIntfConfig.pairSlotId, L7_DISABLE, serviceId, intIfNum, protTypebIntfConfig.pairIntfNum, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr, L7_FALSE);
     __matrix_mfdbport_sync(L7_DISABLE, 1, serviceId, protTypebIntfConfig.pairSlotId, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr, L7_FALSE);
   }
 #elif PTIN_BOARD_IS_STANDALONE

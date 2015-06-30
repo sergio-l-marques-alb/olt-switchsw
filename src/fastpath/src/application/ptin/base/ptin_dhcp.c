@@ -5104,7 +5104,7 @@ static L7_RC_t ptin_dhcp_strings_def_get(ptin_intf_t *ptin_intf, L7_uchar8 *macA
   /* Circuit id */
   if (circuitId!=L7_NULLPTR)
   {
-    slot = ptin_fpga_board_slot();
+    slot = ptin_fpga_board_slot_get();
 
     if (slot>99)  slot = 99;
 

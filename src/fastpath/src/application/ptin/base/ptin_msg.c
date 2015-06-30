@@ -151,7 +151,7 @@ L7_RC_t ptin_msg_FPInfo_get(msg_FWFastpathInfo *msgFPInfo)
 {
   memset(msgFPInfo, 0x00, sizeof(msg_FWFastpathInfo));
 
-  msgFPInfo->SlotIndex    = ptin_fpga_board_slot();
+  msgFPInfo->SlotIndex    = ptin_fpga_board_slot_get();
   msgFPInfo->BoardPresent = (ptin_state == PTIN_STATE_READY);
 
   osapiStrncpySafe(msgFPInfo->BoardSerialNumber, "OLTSWITCH 1.2.3.4", 20);
@@ -354,6 +354,20 @@ L7_RC_t ptin_msg_typeBprotIntfConfig(msg_HwTypeBProtIntfConfig_t *msg)
     LOG_ERR(LOG_CTX_PTIN_MSG, "Non existent port");
     return L7_FAILURE;
   }
+
+  if (ptin_intfConfig.intfNum == ptin_intfConfig.pairIntfNum && msg->slotId == msg->pairSlotId)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Parameters: slotId=pairSlotId=%u, intfNum=pairIntfNum=%u", msg->slotId, ptin_intfConfig.intfNum);
+    return L7_FAILURE;
+  }
+
+  #if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
+  if ( msg->slotId != ptin_fpga_board_slot_get() )
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Parameters: msg.slotId!=my.slotId=%u", msg->slotId, ptin_fpga_board_slot_get());
+    return L7_FAILURE;
+  }
+  #endif
 
   ptin_intfConfig.pairSlotId = msg->pairSlotId;
   ptin_intfConfig.intfRole   = msg->intfRole;
@@ -9375,7 +9389,7 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
 #if PTIN_BOARD_IS_MATRIX    
   if(ptin_fpga_mx_is_matrixactive())//If I'm a Active Matrix
   {
-    LOG_NOTICE(LOG_CTX_PTIN_MSG, "Not sending Another Snoop Sync Request Message to Sync the Remaining Snoop Entries. I'm a Active Matrix on slotId:%u",ptin_fpga_board_slot());
+    LOG_NOTICE(LOG_CTX_PTIN_MSG, "Not sending Another Snoop Sync Request Message to Sync the Remaining Snoop Entries. I'm a Active Matrix on slotId:%u",ptin_fpga_board_slot_get());
     return SUCCESS;
   }
 

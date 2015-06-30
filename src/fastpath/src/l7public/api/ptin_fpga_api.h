@@ -127,7 +127,7 @@ L7_uint8 ptin_fpga_mx_get_matrixactive(void);
  * 
  * @return L7_uint8 : slot id
  */
-L7_uint8 ptin_fpga_board_slot(void);
+L7_uint8 ptin_fpga_board_slot_get(void);
 
 #if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
 /**
@@ -152,6 +152,28 @@ L7_uint8 ptin_fpga_matrix_slotid_get(ptin_fpga_matrix_type_t matrixType);
  * @note When this method is used in a linecard, the matrixType parameter is ignored and the IP address returned always belongs to the active matrix 
  */
 L7_uint32 ptin_fpga_matrix_ipaddr_get(ptin_fpga_matrix_type_t matrixType);
+
+/**
+ * Get slot IP address.
+ * 
+ * @param slotId [in] : Slot Id 
+ * @param ipAddr [out]: IP Address  
+ * 
+ * @return rc    : L7_SUCESS 
+ *                 L7_FAILURE 
+ *  
+ */
+L7_RC_t ptin_fpga_slot_ip_addr_get(L7_uint8 slotId, L7_uint32 *ipAddr);
+
+/**
+ * Get Board Type
+ * 
+ * 
+ * @return boardType    : PTIN_BOARD_CXO160G 
+ *                        PTIN_BOARD_CXO640G 
+ *  
+ */
+L7_uint32 ptin_fpga_board_get(void);
 #endif//(PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
 
 #endif //_PTIN_FPGA_API_H

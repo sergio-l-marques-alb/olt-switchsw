@@ -199,6 +199,10 @@ extern int ptin_sys_slotport_to_intf_map[PTIN_SYS_SLOTS_MAX+1][PTIN_SYS_INTFS_PE
 extern int ptin_sys_intf_to_slot_map[PTIN_SYSTEM_N_PORTS];
 extern int ptin_sys_intf_to_port_map[PTIN_SYSTEM_N_PORTS];
 
+// IPC NETWORK IP address
+#define PTIN_IPC_SUBNET_ID             0xC0A8C800  /* 192.168.200.0 Subnet Id*/
+#define PTIN_IPC_IF_NAME               "eth0:1"
+
 # define IPC_LOCALHOST_IPADDR          0x7F000001  /* 127.0.0.1 */
 # define IPC_SERVER_IPADDR_WORKING     0xC0A8C865  /* 192.168.200.101: Working Matrix */
 # define IPC_SERVER_IPADDR_PROTECTION  0xC0A8C866  /* 192.168.200.102: Protection Matrix */

@@ -180,6 +180,10 @@ typedef union
 extern volatile st_fpga_map_t *fpga_map;
 #endif
 
+// IPC NETWORK IP address
+#define PTIN_IPC_SUBNET_ID             0xC0A8C800  /* 192.168.200.0 Subnet Id*/
+#define PTIN_IPC_IF_NAME               "eth1:1"
+
 # define IPC_LOCALHOST_IPADDR          0x7F000001  /* 127.0.0.1 */
 # define IPC_SERVER_IPADDR             IPC_LOCALHOST_IPADDR
 # define IPC_MX_IPADDR                 0xC0A8C801  /* 192.168.200.101 Hardcoded!!! */

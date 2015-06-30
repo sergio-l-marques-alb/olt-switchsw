@@ -31,6 +31,18 @@
 #include "sim_exports.h"
 
 /*********************************************************************
+* @purpose  Get the Unit's Ipc IP Address
+*
+*
+* @returns  ipAddr
+*
+* @comments
+*
+* @end
+*********************************************************************/
+L7_uint32 simGetIpcIpAddr(void);
+
+/*********************************************************************
 * @purpose  Get the Unit's system name
 *
 * @param    *name  @b{(output)} system name, length L7_SYS_SIZE

@@ -51,6 +51,7 @@
 #include "bspapi_blade.h"
 #endif
 
+#include "ptin_globaldefs.h"
 simCfgData_t      simCfgData;
 simTransferInfo_t simTransferInfo;
 L7_BOOL           transferInProgress;
@@ -58,6 +59,8 @@ L7_BOOL           suspendMgmtAccess;
 void             *transferContext;
 static L7_uint32 systemUpTimeDelta=0;
 L7_char8         systemBIA[L7_MAC_ADDR_LEN];
+L7_uint32      __ipcIpAddr = 0x00;
+
 
 void* simImageSemaphore = L7_NULLPTR;
 
@@ -82,6 +85,50 @@ extern simOperInfo_t      * simOperInfo;
 
 static transferCompletionHandlerFnPtr transferCompletionHandler = L7_NULLPTR;
 
+/*********************************************************************
+* @purpose  Set the Unit's system IP Address
+*
+*
+* @returns  none
+*
+* @comments
+*
+* @end
+*********************************************************************/
+static L7_RC_t __simSetIpcIpAddr(void)
+{
+  L7_RC_t   rc;
+  
+  rc = ipstkIfAddrGet(PTIN_IPC_IF_NAME, &__ipcIpAddr);
+  if (rc != L7_SUCCESS)
+  {
+    /*Error Ocurred*/
+    return rc;
+  }  
+  return L7_SUCCESS;
+}
+
+/*********************************************************************
+* @purpose  Get the Unit's IPC IP Address
+*
+*
+* @returns  ipAddr
+*
+* @comments
+*
+* @end
+*********************************************************************/
+L7_uint32 simGetIpcIpAddr(void)
+{
+  if (__ipcIpAddr == 0x00)
+  {
+    if (__simSetIpcIpAddr() != L7_SUCCESS)
+    {
+      return 0x00;
+    }
+  }
+  return __ipcIpAddr;
+}
 
 /*********************************************************************
 * @purpose  Get the Unit's system name
