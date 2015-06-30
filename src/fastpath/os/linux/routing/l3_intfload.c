@@ -1280,7 +1280,7 @@ ipmRouterIfMapCreate ( L7_uint32 index, L7_uint32 intIfNum )
       L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_OSAPI_COMPONENT_ID,
              "TAP Unable to open /dev/tap."
              " The /dev/tap file is missing, or "
-             "the kernel is missing “Universal TUN/TAP device driver support” (CONFIG_TUN).");
+             "the kernel is missing Universal TUN/TAP device driver support (CONFIG_TUN).");
       rc = L7_ERROR; 
       break;
     }
