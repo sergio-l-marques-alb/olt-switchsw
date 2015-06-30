@@ -154,7 +154,10 @@ L7_RC_t ptin_msg_FPInfo_get(msg_FWFastpathInfo *msgFPInfo)
   msgFPInfo->SlotIndex    = ptin_fpga_board_slot_get();
   msgFPInfo->BoardPresent = (ptin_state == PTIN_STATE_READY);
 
-  osapiStrncpySafe(msgFPInfo->BoardSerialNumber, "OLTSWITCH 1.2.3.4", 20);
+  snprintf(msgFPInfo->BoardSerialNumber, 19, "OLTSW-SDK-%u.%u.%u.%u", SDK_MAJOR_VERSION, SDK_MINOR_VERSION, SDK_REVISION_ID, SDK_PATCH_ID);
+  msgFPInfo->BoardSerialNumber[19] = '\0';
+
+  LOG_NOTICE(LOG_CTX_PTIN_MSG, "Board info: \"%s\"", msgFPInfo->BoardSerialNumber);
 
   return L7_SUCCESS;
 }
@@ -2457,7 +2460,7 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
   slotId = qos_msg->SlotId;
 
   /* Clear structure */
-  memset(&qos_msg,0x00,sizeof(msg_QoSConfiguration3_t));
+  memset(qos_msg,0x00,sizeof(msg_QoSConfiguration3_t));
   /* Pre-fill it */
   qos_msg->SlotId = slotId;
   qos_msg->intf.intf_type = ptin_intf.intf_type;
@@ -2638,49 +2641,39 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
       qos_msg->main_mask |= MSG_QOS3_EGRESS_MASK;
     }
 
-    /* Run all DP levels */
-    for (j = 0; j < 4; j++)
+    if (qos_drop[i].mask & PTIN_QOS_COS_WRED_THRESHOLDS_MASK)
     {
-      /* Taildrop threshold */
-      if (qos_drop[i].dp[j].local_mask & PTIN_QOS_COS_DP_TAILDROP_THRESH_MASK)
+      /* Run all DP levels */
+      for (j = 0; j < 4; j++)
       {
-        qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].tailDrop_threshold = qos_drop[i].dp[j].taildrop_threshold;
-        
-        qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].local2_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_TAILDROP_MAX_MASK;
-        qos_msg->egress.cos_dropmgmt[i].local_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLDS_MASK;
-        qos_msg->egress.egress_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_MASK;
-        qos_msg->main_mask |= MSG_QOS3_EGRESS_MASK;
+        /* Taildrop threshold */
+        if (qos_drop[i].dp[j].local_mask & PTIN_QOS_COS_DP_TAILDROP_THRESH_MASK)
+        {
+          qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].tailDrop_threshold = qos_drop[i].dp[j].taildrop_threshold;
+          qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].local2_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_TAILDROP_MAX_MASK;
+        }
+        /* WRED min threshold */
+        if (qos_drop[i].dp[j].local_mask & PTIN_QOS_COS_DP_WRED_THRESH_MIN_MASK)
+        {
+          qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].wred_minThreshold = qos_drop[i].dp[j].wred_min_threshold;
+          qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].local2_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_WRED_MIN_MASK;
+        }
+        /* WRED max threshold */
+        if (qos_drop[i].dp[j].local_mask & PTIN_QOS_COS_DP_WRED_THRESH_MAX_MASK)
+        {
+          qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].wred_maxThreshold = qos_drop[i].dp[j].wred_max_threshold;
+          qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].local2_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_WRED_MAX_MASK;
+        }
+        /* WRED drop probability */
+        if (qos_drop[i].dp[j].local_mask & PTIN_QOS_COS_DP_WRED_DROP_PROB_MASK)
+        {
+          qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].wred_dropProb = qos_drop[i].dp[j].wred_drop_prob;
+          qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].local2_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_WRED_DROPPROB_MASK;
+        }
       }
-      /* WRED min threshold */
-      if (qos_drop[i].dp[j].local_mask & PTIN_QOS_COS_DP_WRED_THRESH_MIN_MASK)
-      {
-        qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].wred_minThreshold = qos_drop[i].dp[j].wred_min_threshold;
-        
-        qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].local2_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_WRED_MIN_MASK;
-        qos_msg->egress.cos_dropmgmt[i].local_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLDS_MASK;
-        qos_msg->egress.egress_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_MASK;
-        qos_msg->main_mask |= MSG_QOS3_EGRESS_MASK;
-      }
-      /* WRED max threshold */
-      if (qos_drop[i].dp[j].local_mask & PTIN_QOS_COS_DP_WRED_THRESH_MAX_MASK)
-      {
-        qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].wred_maxThreshold = qos_drop[i].dp[j].wred_max_threshold;
-        
-        qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].local2_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_WRED_MAX_MASK;
-        qos_msg->egress.cos_dropmgmt[i].local_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLDS_MASK;
-        qos_msg->egress.egress_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_MASK;
-        qos_msg->main_mask |= MSG_QOS3_EGRESS_MASK;
-      }
-      /* WRED drop probability */
-      if (qos_drop[i].dp[j].local_mask & PTIN_QOS_COS_DP_WRED_DROP_PROB_MASK)
-      {
-        qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].wred_dropProb = qos_drop[i].dp[j].wred_drop_prob;
-        
-        qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].local2_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_WRED_DROPPROB_MASK;
-        qos_msg->egress.cos_dropmgmt[i].local_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLDS_MASK;
-        qos_msg->egress.egress_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_MASK;
-        qos_msg->main_mask |= MSG_QOS3_EGRESS_MASK;
-      }
+      qos_msg->egress.cos_dropmgmt[i].local_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLDS_MASK;
+      qos_msg->egress.egress_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_MASK;
+      qos_msg->main_mask |= MSG_QOS3_EGRESS_MASK;
     }
   }
 
@@ -3167,7 +3160,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
           if ((qos_msg->ingress.cos_classif.dscp_map.prio_mask[i/32] >> (i%32)) & 1)
           {
             qos_intf.pktprio.mask[i/8] |= 1 << (i%8);
-            qos_intf.pktprio.cos[i/8]  |= (qos_msg->ingress.cos_classif.dscp_map.cos[i] & 0xf) << (i%8);
+            qos_intf.pktprio.cos[i/8]  |= (qos_msg->ingress.cos_classif.dscp_map.cos[i] & 0xf) << ((i%8)*4);
 
             qos_intf.mask |= PTIN_QOS_INTF_PACKETPRIO_MASK;
           }

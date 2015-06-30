@@ -5325,6 +5325,7 @@ L7_RC_t ptin_QoS_drop_config_get(const ptin_intf_t *ptin_intf, L7_uint8 cos, pti
       qosConf[conf_index].dp[j].local_mask |= PTIN_QOS_COS_DP_WRED_DROP_PROB_MASK;
       LOG_TRACE(LOG_CTX_PTIN_INTF,"WRED drop probability for cos=%u/dp=%u is %u",i,j,qosConf[conf_index].dp[j].wred_drop_prob);
     }
+    qosConf[conf_index].mask |= PTIN_QOS_COS_WRED_THRESHOLDS_MASK;
   }
 
   LOG_TRACE(LOG_CTX_PTIN_INTF, "QoS drop configuration successfully applied to ptin_intf=%u/%u, cos=%u",ptin_intf->intf_type,ptin_intf->intf_id,cos);
