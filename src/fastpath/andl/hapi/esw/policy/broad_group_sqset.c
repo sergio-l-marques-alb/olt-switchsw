@@ -249,13 +249,13 @@ bcm_field_qualify_t l2l3l4Xgs4ClassIdQset[] =    /* l2/l3/l4 */
 #endif
 
   /* PTin added */
-  #if 1
+#if (PTIN_BOARD != PTIN_BOARD_CXO640G)
   bcmFieldQualifySrcIp6,
   bcmFieldQualifyDstIp6,
   bcmFieldQualifyIp6TrafficClass,
   bcmFieldQualifyIp6FlowLabel,
   bcmFieldQualifyIp6HopLimit,
-  #endif
+#endif
 
   bcmFieldQualifyStageIngress
 };
@@ -381,7 +381,7 @@ bcm_field_qualify_t systemQsetPTin[] =  /* System requirement */
   bcmFieldQualifyDstIp,         /* PTin added: FP */
 
 #if (PTIN_BOARD == PTIN_BOARD_CXO160G || \
-     PTIN_BOARD == PTIN_BOARD_TA48GE ||  \
+     PTIN_BOARD == PTIN_BOARD_TA48GE  || \
      PTIN_BOARD == PTIN_BOARD_OLT1T0)
   bcmFieldQualifyIntPriority,   /* PTin added: FP */
 #endif

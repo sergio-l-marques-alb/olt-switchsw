@@ -1292,6 +1292,8 @@ static int _policy_super_qset_add(int                      unit,
     L7_uint32                q2Size;
     L7_uint32                gid;
 
+    LOG_TRACE(LOG_CTX_STARTUP,"Adding qset...");
+
     CHECK_UNIT(unit);
 
     q1     = sqset_def->standardQualifiers;
@@ -1351,19 +1353,31 @@ static int _policy_super_qset_add(int                      unit,
         {
             rv = bcm_field_qset_data_qualifier_add(unit, &qsetPtr->qsetAgg, sys0_ethType[unit]);
             if (BCM_E_NONE != rv)
-                return rv;
+            {
+              LOG_ERR(LOG_CTX_STARTUP,"Error adding qset qualifier: rv=%d", rv);
+              return rv;
+            }
 
             rv = bcm_field_qset_data_qualifier_add(unit, &qsetPtr->qsetAgg, sys0_ipProto[unit]);
             if (BCM_E_NONE != rv)
-                return rv;
+            {
+              LOG_ERR(LOG_CTX_STARTUP,"Error adding qset qualifier: rv=%d", rv);
+              return rv;
+            }
 
             rv = bcm_field_qset_data_qualifier_add(unit, &qsetPtr->qsetAgg, sys0_l4DstPort[unit]);
             if (BCM_E_NONE != rv)
-                return rv;
+            {
+              LOG_ERR(LOG_CTX_STARTUP,"Error adding qset qualifier: rv=%d", rv);
+              return rv;
+            }
 
             rv = bcm_field_qset_data_qualifier_add(unit, &qsetPtr->qsetAgg, sys0_tunIpv6NextHdr[unit]);
             if (BCM_E_NONE != rv)
-                return rv;
+            {
+              LOG_ERR(LOG_CTX_STARTUP,"Error adding qset qualifier: rv=%d", rv);
+              return rv;
+            }
 
             /* update the UDF qset with the new fields */
             BCM_FIELD_QSET_ADD(qsetPtr->qsetUdf, bcmFieldQualifyEtherType);
@@ -1377,29 +1391,41 @@ static int _policy_super_qset_add(int                      unit,
         else if (BROAD_ISCSI_UDF == q2[i])
         {
           rv = bcm_field_qset_data_qualifier_add(unit, &qsetPtr->qsetAgg, iscsi_dstIpAddr[unit]);
-            if (BCM_E_NONE != rv)
-                return rv;
+          if (BCM_E_NONE != rv)
+          {
+            LOG_ERR(LOG_CTX_STARTUP,"Error adding qset qualifier: rv=%d", rv);
+            return rv;
+          }
 
           rv = bcm_field_qset_data_qualifier_add(unit, &qsetPtr->qsetAgg, iscsi_l4SrcDstPort[unit]);
-            if (BCM_E_NONE != rv)
-                return rv;
+          if (BCM_E_NONE != rv)
+          {
+            LOG_ERR(LOG_CTX_STARTUP,"Error adding qset qualifier: rv=%d", rv);
+            return rv;
+          }
 
           rv = bcm_field_qset_data_qualifier_add(unit, &qsetPtr->qsetAgg, iscsi_opCode[unit]);
-            if (BCM_E_NONE != rv)
-                return rv;
+          if (BCM_E_NONE != rv)
+          {
+            LOG_ERR(LOG_CTX_STARTUP,"Error adding qset qualifier: rv=%d", rv);
+            return rv;
+          }
 
-            rv = bcm_field_qset_data_qualifier_add(unit, &qsetPtr->qsetAgg, iscsi_opCodeTcpOptions[unit]);
-            if (BCM_E_NONE != rv)
-                return rv;
+          rv = bcm_field_qset_data_qualifier_add(unit, &qsetPtr->qsetAgg, iscsi_opCodeTcpOptions[unit]);
+          if (BCM_E_NONE != rv)
+          {
+            LOG_ERR(LOG_CTX_STARTUP,"Error adding qset qualifier: rv=%d", rv);
+            return rv;
+          }
 
-            /* update the UDF qset with the new fields */
-            BCM_FIELD_QSET_ADD(qsetPtr->qsetUdf, bcmFieldQualifyDstIp);
-            BCM_FIELD_QSET_ADD(qsetPtr->qsetUdf, bcmFieldQualifyL4SrcPort);
-            BCM_FIELD_QSET_ADD(qsetPtr->qsetUdf, bcmFieldQualifyL4DstPort);
-            CUSTOM_FIELD_QSET_ADD(qsetPtr->customQset, customFieldQualifyIscsiOpcode);
-            CUSTOM_FIELD_QSET_ADD(qsetPtr->customQset, customFieldQualifyIscsiOpcodeTcpOptions);
+          /* update the UDF qset with the new fields */
+          BCM_FIELD_QSET_ADD(qsetPtr->qsetUdf, bcmFieldQualifyDstIp);
+          BCM_FIELD_QSET_ADD(qsetPtr->qsetUdf, bcmFieldQualifyL4SrcPort);
+          BCM_FIELD_QSET_ADD(qsetPtr->qsetUdf, bcmFieldQualifyL4DstPort);
+          CUSTOM_FIELD_QSET_ADD(qsetPtr->customQset, customFieldQualifyIscsiOpcode);
+          CUSTOM_FIELD_QSET_ADD(qsetPtr->customQset, customFieldQualifyIscsiOpcodeTcpOptions);
 
-            qsetPtr->udfId = BROAD_ISCSI_UDF;
+          qsetPtr->udfId = BROAD_ISCSI_UDF;
         }
     }
 
@@ -1411,6 +1437,7 @@ static int _policy_super_qset_add(int                      unit,
       {
         if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
           sysapiPrintf("%s(%d) bcm_field_group_create_mode: gid=%d, rv=%d\n", __FUNCTION__, __LINE__, gid, rv);
+        LOG_ERR(LOG_CTX_STARTUP,"Error with group_create: rv=%d", rv);
         break;
       }
 
@@ -1419,6 +1446,7 @@ static int _policy_super_qset_add(int                      unit,
       {
         if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
           sysapiPrintf("%s(%d) bcm_field_group_status_get: gid=%d, rv=%d\n", __FUNCTION__, __LINE__, gid, rv);
+        LOG_ERR(LOG_CTX_STARTUP,"Error with status_get: rv=%d", rv);
         break;
       }
 
@@ -1430,12 +1458,16 @@ static int _policy_super_qset_add(int                      unit,
 
     if (rv != BCM_E_NONE)
     {
+      LOG_ERR(LOG_CTX_STARTUP,"Error: rv=%d", rv);
+
       /* If there were any errors, clean up the sqset table entry. */
       memset(qsetPtr, 0, sizeof(*qsetPtr));
     }
 
     if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
       sysapiPrintf("%s(%d) qset_add: rv=%d\n", __FUNCTION__, __LINE__, rv);
+
+    LOG_TRACE(LOG_CTX_STARTUP,"qset_add: rv=%d", rv);
 
     return rv;
 }
@@ -1447,9 +1479,11 @@ static int _policy_udf_init(int unit)
     policy_udf_id[unit] = 0;
 
     rv = _policy_super_qset_add_udf(unit, BROAD_SYSTEM_UDF);
+    LOG_TRACE(LOG_CTX_STARTUP,"Adding BROAD_SYSTEM_UDF qset: rv=%d", rv);
     if (BCM_E_NONE == rv)
     {
       rv = _policy_super_qset_add_udf(unit, BROAD_ISCSI_UDF);
+      LOG_TRACE(LOG_CTX_STARTUP,"Adding BROAD_ISCSI_UDF qset: rv=%d", rv);
     }
 
     return rv;
@@ -1458,13 +1492,15 @@ static int _policy_udf_init(int unit)
 static int _policy_super_qset_init_vfp(int unit)
 {
   L7_BOOL applicable_policy_types[BROAD_POLICY_TYPE_LAST];
+  int rv;
 
   if(policy_stage_supported(unit, BROAD_POLICY_STAGE_LOOKUP))
   {
     memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
     applicable_policy_types[BROAD_POLICY_TYPE_LLPF] = L7_TRUE;
     applicable_policy_types[BROAD_POLICY_TYPE_IPSG] = L7_TRUE;
-    _policy_super_qset_add(unit, &llpfQsetLookupDef, applicable_policy_types);
+    rv = _policy_super_qset_add(unit, &llpfQsetLookupDef, applicable_policy_types);
+    LOG_TRACE(LOG_CTX_STARTUP,"Adding llpfQsetLookupDef qset: rv=%d", rv);
 
     memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
     applicable_policy_types[BROAD_POLICY_TYPE_PORT] = L7_TRUE;
@@ -1478,15 +1514,18 @@ static int _policy_super_qset_init_vfp(int unit)
       sysapiPrintf("Adding qset l2l3l4QsetLookup\r\n");
 
     /* The following qsets use intra-slice doublewide mode, so the number of rules is cut in half. */
-    _policy_super_qset_add(unit, &l2l3l4QsetLookupDef, applicable_policy_types);
+    rv = _policy_super_qset_add(unit, &l2l3l4QsetLookupDef, applicable_policy_types);
+    LOG_TRACE(LOG_CTX_STARTUP,"Adding l2l3l4QsetLookupDef qset: rv=%d", rv);
 
     /* PTin removed: IPSG */
-    //_policy_super_qset_add(unit, &ipv6L3L4QsetLookupDef, applicable_policy_types);
+    //rv = _policy_super_qset_add(unit, &ipv6L3L4QsetLookupDef, applicable_policy_types);
+    //LOG_TRACE(LOG_CTX_STARTUP,"Adding ipv6L3L4QsetLookupDef qset: rv=%d", rv);
 
     memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
     applicable_policy_types[BROAD_POLICY_TYPE_DOT1AD] = L7_TRUE;
 
-    _policy_super_qset_add(unit, &dot1adQsetLookupDef, applicable_policy_types);
+    rv = _policy_super_qset_add(unit, &dot1adQsetLookupDef, applicable_policy_types);
+    LOG_TRACE(LOG_CTX_STARTUP,"Adding dot1adQsetLookupDef qset: rv=%d", rv);
   }
 
   return BCM_E_NONE;
@@ -1495,6 +1534,7 @@ static int _policy_super_qset_init_vfp(int unit)
 static int _policy_super_qset_init_ifp(int unit)
 {
   L7_BOOL applicable_policy_types[BROAD_POLICY_TYPE_LAST];
+  int rv;
 
   if (_policy_supports_wide_mode(unit))
   {
@@ -1514,11 +1554,13 @@ static int _policy_super_qset_init_ifp(int unit)
            SOC_IS_TRIUMPH3(unit)    /* PTin added: new switch 5664x (Triumph3) */
          )
       {
-        _policy_super_qset_add(unit, &l2l3l4Xgs4ClassIdQsetDef, applicable_policy_types);
+        rv = _policy_super_qset_add(unit, &l2l3l4Xgs4ClassIdQsetDef, applicable_policy_types);
+        LOG_TRACE(LOG_CTX_STARTUP,"Adding l2l3l4Xgs4ClassIdQsetDef qset: rv=%d", rv);
       }
       else
       {
-        _policy_super_qset_add(unit, &l2l3l4ClassIdQsetDef, applicable_policy_types);
+        rv = _policy_super_qset_add(unit, &l2l3l4ClassIdQsetDef, applicable_policy_types);
+        LOG_TRACE(LOG_CTX_STARTUP,"Adding l2l3l4ClassIdQsetDef qset: rv=%d", rv);
       }
       /* PTin removed: Qset not necessary */
       #if 0
@@ -1531,13 +1573,16 @@ static int _policy_super_qset_init_ifp(int unit)
     {
       if (soc_feature(unit, soc_feature_src_mac_group))
       {
-        _policy_super_qset_add(unit, &l2l3l4SrcMacGroupQsetDef, applicable_policy_types);
+        rv = _policy_super_qset_add(unit, &l2l3l4SrcMacGroupQsetDef, applicable_policy_types);
+        LOG_TRACE(LOG_CTX_STARTUP,"Adding l2l3l4SrcMacGroupQsetDef qset: rv=%d", rv);
       }
       else
       {
-        _policy_super_qset_add(unit, &l2l3l4QsetDef, applicable_policy_types);
+        rv = _policy_super_qset_add(unit, &l2l3l4QsetDef, applicable_policy_types);
+        LOG_TRACE(LOG_CTX_STARTUP,"Adding l2l3l4QsetDef qset: rv=%d", rv);
       }
-      _policy_super_qset_add(unit, &ipv6L3L4QsetDef,  applicable_policy_types);
+      rv = _policy_super_qset_add(unit, &ipv6L3L4QsetDef,  applicable_policy_types);
+      LOG_TRACE(LOG_CTX_STARTUP,"Adding ipv6L3L4QsetDef qset: rv=%d", rv);
       /* PTin removed: Qset not necessary */
       #if 0
       _policy_super_qset_add(unit, &ipv6SrcL4QsetDef, applicable_policy_types);
@@ -1558,7 +1603,8 @@ static int _policy_super_qset_init_ifp(int unit)
     applicable_policy_types[BROAD_POLICY_TYPE_SYSTEM_PORT] = L7_TRUE;
     applicable_policy_types[BROAD_POLICY_TYPE_COSQ]        = L7_TRUE;
 
-    _policy_super_qset_add(unit, &l2SvtLookupStatusQsetDef, applicable_policy_types);
+    rv = _policy_super_qset_add(unit, &l2SvtLookupStatusQsetDef, applicable_policy_types);
+    LOG_TRACE(LOG_CTX_STARTUP,"Adding l2SvtLookupStatusQsetDef qset: rv=%d", rv);
   }
 
   memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
@@ -1584,7 +1630,8 @@ static int _policy_super_qset_init_ifp(int unit)
       sysapiPrintf("Adding qset systemQsetTriumph2\r\n");
 
     /* Doublewide mode. */
-    _policy_super_qset_add(unit, &systemQsetTriumph2Def, applicable_policy_types);
+    rv = _policy_super_qset_add(unit, &systemQsetTriumph2Def, applicable_policy_types);
+    LOG_TRACE(LOG_CTX_STARTUP,"Adding systemQsetTriumph2Def qset: rv=%d", rv);
 
     /* PTin added: ICAP */
     #if 1
@@ -1597,23 +1644,29 @@ static int _policy_super_qset_init_ifp(int unit)
       sysapiPrintf("Adding qset systemQsetPTin\r\n");
 
     /* Doublewide mode. */
-    _policy_super_qset_add(unit, &systemQsetPTinDef, applicable_policy_types);
+    rv = _policy_super_qset_add(unit, &systemQsetPTinDef, applicable_policy_types);
+    LOG_TRACE(LOG_CTX_STARTUP,"Adding systemQsetPTinDef qset: rv=%d", rv);
     #endif
   }
   else if (SOC_IS_SCORPION(unit))
   {
-    _policy_super_qset_add(unit, &systemQsetDef, applicable_policy_types);
-    _policy_super_qset_add(unit, &ipv6NdQsetScorpionDef, applicable_policy_types);
+    rv = _policy_super_qset_add(unit, &systemQsetDef, applicable_policy_types);
+    LOG_TRACE(LOG_CTX_STARTUP,"Adding systemQsetDef qset: rv=%d", rv);
+    rv = _policy_super_qset_add(unit, &ipv6NdQsetScorpionDef, applicable_policy_types);
+    LOG_TRACE(LOG_CTX_STARTUP,"Adding ipv6NdQsetScorpionDef qset: rv=%d", rv);
   }
   else if (_policy_supports_wide_mode(unit))
   {
     /* Doublewide mode. */
-    _policy_super_qset_add(unit, &systemQsetDoubleDef, applicable_policy_types);
+    rv = _policy_super_qset_add(unit, &systemQsetDoubleDef, applicable_policy_types);
+    LOG_TRACE(LOG_CTX_STARTUP,"Adding systemQsetDoubleDef qset: rv=%d", rv);
   }
   else
   {
-    _policy_super_qset_add(unit, &systemQsetDef, applicable_policy_types);
-    _policy_super_qset_add(unit, &ipv6NdQsetDef, applicable_policy_types);
+    rv = _policy_super_qset_add(unit, &systemQsetDef, applicable_policy_types);
+    LOG_TRACE(LOG_CTX_STARTUP,"Adding systemQsetDef qset: rv=%d", rv);
+    rv = _policy_super_qset_add(unit, &ipv6NdQsetDef, applicable_policy_types);
+    LOG_TRACE(LOG_CTX_STARTUP,"Adding ipv6NdQsetDef qset: rv=%d", rv);
   }
 
   /* PTin removed: Qset not necessary */
@@ -1639,7 +1692,8 @@ static int _policy_super_qset_init_ifp(int unit)
   memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
   applicable_policy_types[BROAD_POLICY_TYPE_ISCSI] = L7_TRUE;
 
-  _policy_super_qset_add(unit, &iscsiQsetDef, applicable_policy_types);
+  rv = _policy_super_qset_add(unit, &iscsiQsetDef, applicable_policy_types);
+  LOG_TRACE(LOG_CTX_STARTUP,"Adding iscsiQsetDef qset: rv=%d", rv);
 
   /* PTin removed: Qset not necessary */
   #if 0
@@ -1688,6 +1742,7 @@ static int _policy_super_qset_init_ifp(int unit)
 static int _policy_super_qset_init_efp(int unit)
 {
   L7_BOOL applicable_policy_types[BROAD_POLICY_TYPE_LAST];
+  int rv;
 
   if(policy_stage_supported(unit, BROAD_POLICY_STAGE_EGRESS))
   {
@@ -1699,14 +1754,14 @@ static int _policy_super_qset_init_efp(int unit)
     applicable_policy_types[BROAD_POLICY_TYPE_STAT_EVC]    = L7_TRUE;   /* PTin added: stats */
     applicable_policy_types[BROAD_POLICY_TYPE_STAT_CLIENT] = L7_TRUE;   /* PTin added: stats */
 
-    //printf("%s(%d)\r\n",__FUNCTION__,__LINE__);
-    _policy_super_qset_add(unit, &l2QsetEgressDef, applicable_policy_types);
+    rv = _policy_super_qset_add(unit, &l2QsetEgressDef, applicable_policy_types);
+    LOG_TRACE(LOG_CTX_STARTUP,"Adding l2QsetEgressDef qset: rv=%d", rv);
 
-    //printf("%s(%d)\r\n",__FUNCTION__,__LINE__);
-    _policy_super_qset_add(unit, &l3l4QsetEgressDef, applicable_policy_types);
+    rv = _policy_super_qset_add(unit, &l3l4QsetEgressDef, applicable_policy_types);
+    LOG_TRACE(LOG_CTX_STARTUP,"Adding l3l4QsetEgressDef qset: rv=%d", rv);
 
-    //printf("%s(%d)\r\n",__FUNCTION__,__LINE__);
-    _policy_super_qset_add(unit, &ipv6L3L4QsetEgressDef, applicable_policy_types);
+    rv = _policy_super_qset_add(unit, &ipv6L3L4QsetEgressDef, applicable_policy_types);
+    LOG_TRACE(LOG_CTX_STARTUP,"Adding ipv6L3L4QsetEgressDef qset: rv=%d", rv);
   }
 
   return BCM_E_NONE;
