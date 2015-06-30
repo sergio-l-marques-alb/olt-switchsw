@@ -1415,3 +1415,19 @@ L7_RC_t ptin_hapi_maclimit_trap( L7_uint16 int_f, L7_uint16 physical_port)
   send_trap_switch_event(int_f, physical_port, TRAP_ALARM_MAC_LIMIT_INTERFACE, TRAP_ALARM_STATUS_END, 0);
    return 1;
 }
+
+
+/* Enable port bridging for specified port. */
+bcm_error_t port_bridge(L7_int8 unit, bcm_port_t port, L7_BOOL enable)
+{
+   bcm_error_t rv;
+
+   if (BCM_FAILURE(rv = bcm_port_control_set(unit, port, bcmPortControlBridge, enable?1:0))) {
+       printf("Failed to %s port bridging for port %d [%s]\n", enable? "enable":"disable", port,
+              bcm_errmsg(rv));
+       return rv;
+   }
+   printf("%s port bridging on port %d\n", enable? "Enabled":"Disabled", port);
+   return BCM_E_NONE;
+}
+

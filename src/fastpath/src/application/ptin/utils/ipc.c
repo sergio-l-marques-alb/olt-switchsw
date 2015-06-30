@@ -23,12 +23,15 @@ static int g_iInterfaceMan = -1;      // Canal de dados com as aplicacoes firmwa
 
 static  int g_iCCounter   = 0;      //
 
+
+#define EQUIPID_OLT 0x10000
+
 typedef struct _st_alarmGeral {
   unsigned char  SlotId      ;  // Slot id
   unsigned char  trapSrc;    ;  // Trap source 
   unsigned char  oltiftype   ;  // Interface type: Physical:0, LAG:1
   unsigned int   oltifindex  ;  // Pon [0..7], Eth [8..15], Eth(10G)
-  unsigned int   equipid     ;  // 0-OLT, 1..128-ONT (onu_Id)
+  unsigned int   equipid     ;  // 0x10000-OLT, 0..128-ONT (onu_Id)
   unsigned int   equipifindex;  // [1..65535] (apenas usado nos ONTs (equipid!=0), índice do porto do ONT.
   unsigned int   alarmtype   ;  // Interfaces (TRAP_TYPE_INTERFACE = 3)
   unsigned int   alarmcode   ;  // TRAP_CODE_XXX
@@ -229,6 +232,7 @@ int send_trap_intf_alarm(unsigned char intfType, int porto, int code, int status
   alarm->trapSrc     = ERROR_FAMILY_HARDWARE;
   alarm->oltiftype   = intfType;
   alarm->oltifindex  = porto;
+  alarm->equipid     = EQUIPID_OLT;
   alarm->alarmtype   = TRAP_ALARM_TYPE_INTERFACE;
   alarm->alarmcode   = code;
   alarm->alarmstatus = status;
