@@ -278,6 +278,7 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
   ptin_hapi_intf_t     portDescriptor;
   pbmp_t               pbm, pbm_mask;
   BROAD_POLICY_STAGE_t stage = BROAD_POLICY_STAGE_INGRESS;
+  L7_RC_t rc;
 
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"Starting processing...");
 
@@ -693,7 +694,13 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
       L7_uint i;
 
       /* Remove all ports */
-      hapiBroadPolicyRemoveFromAll(policyId);
+      rc = hapiBroadPolicyRemoveFromAll(policyId);
+      if (rc != L7_SUCCESS)
+      {
+        hapiBroadPolicyDelete(policyId);
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "Error removing all interfaces: rc=%d", rc);
+        return L7_FAILURE;
+      }
 
       if (ptin_hapi_portDescriptor_get(usp, dapi_g, &pbm, &portDescriptor, &dapiPortPtr, &hapiPortPtr) != L7_SUCCESS)
       {
@@ -707,10 +714,11 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
       /* Physical port */
       if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
       {
-        if (hapiBroadPolicyApplyToIface(policyId, hapiPortPtr->bcm_port) != L7_SUCCESS)
+        rc = hapiBroadPolicyApplyToIface(policyId, hapiPortPtr->bcmx_lport);
+        if (rc != L7_SUCCESS)
         {
           hapiBroadPolicyDelete(policyId);
-          LOG_ERR(LOG_CTX_PTIN_HAPI,"Error applying interface usp={%d,%d,%d}/bcm_port %u", usp->unit,usp->slot,usp->port, hapiPortPtr->bcm_port);
+          LOG_ERR(LOG_CTX_PTIN_HAPI,"Error applying interface usp={%d,%d,%d}/bcm_port %u: rc=%d", usp->unit,usp->slot,usp->port, hapiPortPtr->bcm_port, rc);
           return L7_FAILURE;
         }
       }
@@ -726,10 +734,11 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
           {
             hapiLagMemberPortPtr = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[i].usp, dapi_g);
 
-            if (hapiBroadPolicyApplyToIface(policyId, hapiLagMemberPortPtr->bcm_port) != L7_SUCCESS)
+            rc = hapiBroadPolicyApplyToIface(policyId, hapiLagMemberPortPtr->bcmx_lport);
+            if (rc != L7_SUCCESS)
             {
               hapiBroadPolicyDelete(policyId);
-              LOG_ERR(LOG_CTX_PTIN_HAPI,"Error applying interface usp={%d,%d,%d}/bcm_port %u", usp->unit,usp->slot,usp->port, hapiPortPtr->bcm_port);
+              LOG_ERR(LOG_CTX_PTIN_HAPI,"Error applying interface usp={%d,%d,%d}/bcm_port %u: rc=%d", usp->unit,usp->slot,usp->port, hapiLagMemberPortPtr->bcm_port, rc);
               return L7_FAILURE;
             }
           }
