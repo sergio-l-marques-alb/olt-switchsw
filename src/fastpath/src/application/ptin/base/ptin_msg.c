@@ -9412,9 +9412,16 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
     return SUCCESS;
   }
     
-  /* Determine the IP address of the working port/slot */
-  ipAddr = 0xC0A8C800 /*192.168.200.X*/ | ((protTypebIntfConfig.pairSlotId+1) & 0x000000FF); 
-
+  #if PTIN_BOARD_IS_STANDALONE
+  ipAddr = simGetIpcIpAddr();
+  #else
+  /* Determine the IP address of the working port/slot */   
+  if (L7_SUCCESS != ptin_fpga_slot_ip_addr_get(protTypebIntfConfig.pairSlotId, &ipAddr))
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Failed to obtain ipAddress of slotId:%u", protTypebIntfConfig.pairSlotId);
+    return L7_FAILURE;
+  }
+  #endif
   snoopSyncRequest.portId    = protTypebIntfConfig.pairIntfNum;     
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Sending Snoop Sync Request Message [groupAddr:%08X | serviceId:%u | portId:%u] to ipAddr:%08X to Sync the Remaining Snoop Entries", snoopSyncRequest.groupAddr, snoopSyncRequest.serviceId, snoopSyncRequest.portId, ipAddr);

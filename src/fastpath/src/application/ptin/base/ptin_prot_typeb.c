@@ -12,6 +12,7 @@
 #include "ptin_prot_typeb.h"
 #include "ptin_msghandler.h"
 #include "ptin_igmp.h"
+#include "ptin_fpga_api.h"
 
 /*********************************************************** 
  * Defines
@@ -67,7 +68,7 @@ L7_RC_t ptin_prottypeb_init(void)
 L7_RC_t ptin_prottypeb_intf_config_set(ptin_prottypeb_intf_config_t* data)
 {
   L7_uint32 intfNum;
-
+ 
   /* Check input */
   if(data==L7_NULLPTR)
   {
@@ -109,9 +110,19 @@ L7_RC_t ptin_prottypeb_intf_config_set(ptin_prottypeb_intf_config_t* data)
     msg_SnoopSyncRequest_t   snoopSyncRequest={0};
 
     snoopSyncRequest.portId=prottypeb_interfaces[intfNum-1].pairIntfNum;
-    
+
+    L7_uint32 ipAddr;
+
+    #if PTIN_BOARD_IS_STANDALONE
+    ipAddr = simGetIpcIpAddr();
+    #else
     /* Determine the IP address of the working port/slot */
-    L7_uint32 ipAddr = 0xC0A8C800 /*192.168.200.X*/ | ((prottypeb_interfaces[intfNum-1].pairSlotId+1) & 0x000000FF); 
+    if (L7_SUCCESS != ptin_fpga_slot_ip_addr_get(prottypeb_interfaces[intfNum-1].pairSlotId, &ipAddr))
+    {
+      LOG_ERR(LOG_CTX_PTIN_PROTB, "Failed to obtain ipAddress of slotId:%u", prottypeb_interfaces[intfNum-1].pairSlotId);
+      return L7_FAILURE;
+    }
+    #endif      
 
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "Sending a Snoop Sync Request Message to ipAddr:%08X to Sync the Snoop Entries of remote slotId/intfNum:%u/%u", ipAddr,prottypeb_interfaces[intfNum-1].pairSlotId, prottypeb_interfaces[intfNum-1].pairIntfNum);
     /*Send the snoop sync request to the protection matrix */  

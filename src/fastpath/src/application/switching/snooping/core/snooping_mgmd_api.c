@@ -1238,8 +1238,16 @@ L7_RC_t ptin_snoop_l3_sync_port_process_request(L7_uint16 vlanId, L7_inet_addr_t
 
   if(protTypebIntfConfig.status == L7_ENABLE) //I'm Working
   {
-    /* Determine the IP address of the protection port/slot */
-    ipAddr = 0xC0A8C800 /*192.168.200.X*/ | ((protTypebIntfConfig.pairSlotId+1) & 0x000000FF); 
+    #if PTIN_BOARD_IS_STANDALONE
+    ipAddr = simGetIpcIpAddr();
+    #else
+    /* Determine the IP address of the protection port/slot */    
+    if (L7_SUCCESS != ptin_fpga_slot_ip_addr_get(protTypebIntfConfig.pairSlotId, &ipAddr))
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Failed to obtain ipAddress of slotId:%u", protTypebIntfConfig.pairSlotId);
+      return L7_FAILURE;
+    }
+    #endif
   }
   else
   { //I'm Standby
@@ -1537,8 +1545,12 @@ L7_RC_t ptin_snoop_sync_port_process_request(L7_uint16 vlanId, L7_uint32 groupAd
 
   if(protTypebIntfConfig.status == L7_ENABLE) //I'm Working
   {
-    /* Determine the IP address of the protection port/slot */
-    ipAddr = 0xC0A8C800 /*192.168.200.X*/ | ((protTypebIntfConfig.pairSlotId+1) & 0x000000FF); 
+    /* Determine the IP address of the protection port/slot */   
+    if (L7_SUCCESS != ptin_fpga_slot_ip_addr_get(protTypebIntfConfig.pairSlotId, &ipAddr))
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Failed to obtain ipAddress of slotId:%u", protTypebIntfConfig.pairSlotId);
+      return L7_FAILURE;
+    }
   }
   else
   { //I'm Protection
