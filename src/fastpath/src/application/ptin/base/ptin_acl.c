@@ -2601,7 +2601,7 @@ L7_RC_t ptin_aclArpApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
     }
   }
 
-  return L7_SUCCESS; 
+  return rc;
 }
 
 
