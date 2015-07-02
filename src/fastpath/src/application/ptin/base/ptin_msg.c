@@ -737,6 +737,16 @@ L7_RC_t ptin_msg_PhyConfig_set(msg_HWEthPhyConf_t *msgPhyConf)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " MACLearn Prio = %u", msgPhyConf->MacLearning );
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " Mask          = 0x%04X", msgPhyConf->Mask );
 
+  /*Added as a workaround to circunvent issue OLTSWITCH-787/OLTTS-16572.*/
+  #if PTIN_BOARD_IS_STANDALONE
+  if ( msgPhyConf->Port >= 8 && msgPhyConf->Port <= 12 && 
+       (msgPhyConf->Mask & 0x20) == 0x20 && !msgPhyConf->PortEnable)
+  {    
+    msgPhyConf->PortEnable = 1;
+    LOG_NOTICE(LOG_CTX_PTIN_MSG, " Enable        = %u", msgPhyConf->PortEnable );
+  }
+  #endif
+
   /* Copy the message data to a new structure (*/
   phyConf.Port         = msgPhyConf->Port;
   phyConf.Mask         = msgPhyConf->Mask;
