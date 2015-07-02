@@ -478,7 +478,7 @@ L7_RC_t ptin_hapi_maclimit_dec(bcmx_l2_addr_t *bcmx_l2_addr)
     vport_id = bcmx_l2_addr->lport & 0xffff;
 
     /* Virtual port ID is valid? */
-    if (vport_id >= L7_MAX_PORT_COUNT)
+    if (vport_id >= MAX_GPORTS)
     {
       LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Virtual port is out of range! (vport_id=%u max=%u)", vport_id, MAX_GPORTS);
       return L7_FAILURE;
