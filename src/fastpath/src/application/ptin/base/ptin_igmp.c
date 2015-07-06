@@ -16046,10 +16046,10 @@ void ptin_igmp_device_clients_dump(void)
 
     printf("ptin_port_port=%u / clientId=%u (OnuId:%u) "           
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-           "svlan=%-4u (intVlan=%-4u) "
+           "outerVlan=%-4u  "
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-           "cvlan=%-4u "
+           "innerVlan=%-4u "
 #endif
 #if (MC_CLIENT_IPADDR_SUPPORTED)
            "IP=%03u.%03u.%03u.%03u "
@@ -16064,7 +16064,7 @@ void ptin_igmp_device_clients_dump(void)
            "\r\n",
            avl_info->ptin_port, avl_info->deviceClientId, (avl_info->pClientGroup != L7_NULLPTR) ? avl_info->pClientGroup->onuId : 0,           
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-           avl_info->uni_ovid, avl_info->igmpClientDataKey.outerVlan,
+           avl_info->igmpClientDataKey.outerVlan,
 #endif
 #if (MC_CLIENT_INNERVLAN_SUPPORTED)
            avl_info->igmpClientDataKey.innerVlan,
