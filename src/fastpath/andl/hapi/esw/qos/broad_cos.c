@@ -694,7 +694,7 @@ static L7_RC_t hapiBroadQosCosIntfRateShape(BROAD_PORT_t *dstPortPtr, L7_uint32 
     usl_bcm_port_shaper_config_t     shaperConfig;
 
     memset(&shaperConfig, 0, sizeof(shaperConfig));
-
+  
     if (L7_QOS_COS_INTF_SHAPING_RATE_UNITS == L7_RATE_UNIT_KBPS)
     {
       /* parameter provided is in Kbps */
@@ -705,7 +705,13 @@ static L7_RC_t hapiBroadQosCosIntfRateShape(BROAD_PORT_t *dstPortPtr, L7_uint32 
       /* result is a percent converted to Kbps */
       hapiBroadQosIntfSpeedGet(dstPortPtr, &portSpeed);
       shaperConfig.rate = ((egrRate * portSpeed) / 100); 
+
     }
+
+    if(shaperConfig.rate  == 0)
+    {
+      shaperConfig.rate = 100; // ~ 80kbps
+    } 
 
     /* Set kbits_burst equal to 2% of kbit per sec */
     shaperConfig.burst = shaperConfig.rate / 50; 
