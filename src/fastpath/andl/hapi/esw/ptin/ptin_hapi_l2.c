@@ -285,7 +285,7 @@ L7_RC_t ptin_hapi_maclimit_inc(bcmx_l2_addr_t *bcmx_l2_addr)
     return L7_SUCCESS;
   }
   /* Check if is a LAG port level */
-  else if((bcmx_l2_addr->tgid > 0) && ((bcmx_l2_addr->tgid < PTIN_SYSTEM_N_LAGS)))
+  else if((bcmx_l2_addr->tgid >= 0) && ((bcmx_l2_addr->tgid < PTIN_SYSTEM_N_LAGS)))
   {
     L7_int tgid = bcmx_l2_addr->tgid;
      
@@ -328,10 +328,13 @@ L7_RC_t ptin_hapi_maclimit_inc(bcmx_l2_addr_t *bcmx_l2_addr)
     macLearn_info_lag[tgid].mac_counter++;
     macLearn_info_lag[tgid].mac_total++;
 
-    if ((macLearn_info_lag[tgid].trap_sent == L7_FALSE && macLearn_info_lag[tgid].send_trap == L7_TRUE) && (macLearn_info_lag[tgid].mac_limit!=0))
-    {
-      send_trap_switch_event(macLearn_info_lag[tgid].ptin_intf.intf_type, macLearn_info_lag[tgid].ptin_intf.intf_id, TRAP_ALARM_MAC_LIMIT_INTERFACE, TRAP_ALARM_STATUS_START, 0);
-      macLearn_info_lag[tgid].trap_sent = L7_TRUE;
+    if (macLearn_info_lag[tgid].mac_counter >= macLearn_info_lag[tgid].mac_limit)
+    { 
+      if ((macLearn_info_lag[tgid].trap_sent == L7_FALSE && macLearn_info_lag[tgid].send_trap == L7_TRUE) && (macLearn_info_lag[tgid].mac_limit!=0))
+      {
+        send_trap_switch_event(macLearn_info_lag[tgid].ptin_intf.intf_type, macLearn_info_lag[tgid].ptin_intf.intf_id, TRAP_ALARM_MAC_LIMIT_INTERFACE, TRAP_ALARM_STATUS_START, 0);
+        macLearn_info_lag[tgid].trap_sent = L7_TRUE;
+      }
     }
 
     #if (PTIN_BOARD == PTIN_BOARD_CXO640G)     
@@ -480,7 +483,7 @@ L7_RC_t ptin_hapi_maclimit_dec(bcmx_l2_addr_t *bcmx_l2_addr)
     /* Virtual port ID is valid? */
     if (vport_id >= MAX_GPORTS)
     {
-      LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Virtual port is out of range! (vport_id=%u max=%u)", vport_id, MAX_GPORTS);
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Virtual port is out of range! (vport_id=%u max=%u)", vport_id, MAX_GPORTS);
       return L7_FAILURE;
     }
 
@@ -924,7 +927,6 @@ L7_RC_t ptin_hapi_vport_maclimit_setmax(bcm_gport_t gport, L7_uint8 mac_limit)
     }
     if (mac_limit == (L7_uint8)-1)
     {
-      LOG_NOTICE(LOG_CTX_PTIN_HAPI, "%d %d)", mac_limit , (L7_uint8)-1);
       rc = ptin_hapi_vport_maclimit_reset(gport);
 
       return rc;
@@ -1116,7 +1118,7 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, L7_uint3
   {
     if (macLearn_info_ptr->enable == L7_DISABLE)
     {
-      LOG_NOTICE(LOG_CTX_PTIN_HAPI,"Mac Limiting is already disabled"); 
+      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Mac Limiting is already disabled"); 
       return L7_SUCCESS;
     }
 
@@ -1234,10 +1236,8 @@ L7_RC_t ptin_hapi_maclimit_status(DAPI_USP_t *ddUsp, L7_uint32 *mac_learned, L7_
   lport = hapiPortPtr->bcmx_lport;
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"Analysing interface {%d,%d,%d}: lport=0x%08x", ddUsp->unit, ddUsp->slot, ddUsp->port, lport);
 
-  /* Extract vid 
-  vlan_id = lport.vid;
 
-  Extract Trunk id */
+  /* Extract Trunk id */
   if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr))
   {
     trunk_id = hapiPortPtr->hapiModeparm.lag.tgid;
