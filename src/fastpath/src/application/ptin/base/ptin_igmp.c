@@ -321,11 +321,7 @@ typedef struct
 } ptinIgmpChannelInfoData_t;
 
 typedef struct
-{  
-  L7_uint32                  default_evc_mc;
-  L7_uint8                   default_evc_mc_is_in_use;
-  L7_uint32                  default_bandwidth;
-
+{ 
   avlTree_t                  channelAvlTree;
   avlTreeTables_t           *channelTreeHeap;
   ptinIgmpChannelInfoData_t *channelDataHeap;
@@ -348,7 +344,7 @@ static L7_RC_t ptin_igmp_channel_remove_multicast_service ( L7_uint32 evc_uc, L7
 static L7_RC_t ptin_igmp_channel_remove_all ( void );
 
 static ptinIgmpGroupClientInfoData_t* deviceClientId2groupClientPtr(L7_uint32 ptinPort, L7_uint32 clientId);
-static RC_t ptin_igmp_multicast_channel_service_get(L7_uint32 ptinPort, L7_uint32 clientId, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, L7_uint32 *serviceId);
+static RC_t ptin_igmp_multicast_channel_service_get(L7_uint32 ptinPort, L7_uint32 deviceClientId, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, L7_uint32 *serviceId);
 
 static RC_t ptin_igmp_max_mask_size(L7_uchar8 family, L7_uchar8 *maxMasklen);
 
@@ -7677,20 +7673,6 @@ L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
     return L7_FAILURE;
   }
 
-  //Default MC Service Gateway
-  if (inetIsAddressZero(channel_group)==L7_TRUE && channel_grpMask==0)
-  {
-    channelDB.default_evc_mc_is_in_use = L7_TRUE;
-    channelDB.default_evc_mc = evc_mc;   
-
-#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
-    channelDB.default_bandwidth = channelBandwidth/1000; /*Convert from bps to kbps*/      
-#endif
-
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Added a Default MC Service Gateway [evc_mc:%u]", channelDB.default_evc_mc );
-    return L7_SUCCESS;
-  }
-
   /* Validate and prepare channel group Address*/
   if (ptin_igmp_channel_to_netmask( channel_group, channel_grpMask, &group, &n_groups)!=L7_SUCCESS || n_groups == 0 || n_groups > PTIN_IGMP_CHANNELS_MAX )
   {
@@ -7818,16 +7800,20 @@ L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
 #if 1 
   if ( rc == L7_SUCCESS )
   {
-    //Only IPv4 is supported!
-    if (channel_group->family!=L7_AF_INET || channel_source->family!=L7_AF_INET)
+    //Default MC Service Gateway Not Supported on MGMD Lib
+    if (inetIsAddressZero(channel_group) != L7_TRUE)
     {
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"IPv6 not supported for MGMD [UC_EVC=%u MC_EVC]",evc_uc,evc_mc);
-      return L7_FAILURE;                       
-    }
-    if (L7_SUCCESS != ptin_igmp_mgmd_whitelist_add(evc_mc,channel_group->addr.ipv4.s_addr,channel_grpMask,channel_source->addr.ipv4.s_addr, channel_srcMask,channelBandwidth))
-    {
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to create requested entry in the whitelist");
-      return L7_FAILURE;
+      //Only IPv4 is supported!
+      if (channel_group->family!=L7_AF_INET || channel_source->family!=L7_AF_INET)
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP,"IPv6 not supported for MGMD [UC_EVC=%u MC_EVC]",evc_uc,evc_mc);
+        return L7_FAILURE;                       
+      }
+      if (L7_SUCCESS != ptin_igmp_mgmd_whitelist_add(evc_mc,channel_group->addr.ipv4.s_addr,channel_grpMask,channel_source->addr.ipv4.s_addr, channel_srcMask,channelBandwidth))
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to create requested entry in the whitelist");
+        return L7_FAILURE;
+      }
     }
   }
 #endif
@@ -7866,15 +7852,6 @@ L7_RC_t igmp_assoc_channel_remove( L7_uint32 evc_mc, L7_uint32 evc_uc,
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid MC evc (%u)", evc_mc);
     return L7_FAILURE;
-  }
-
-  //Default MC Service Gateway
-  if (inetIsAddressZero(channel_group)==L7_TRUE && channel_grpMask==0)
-  {
-    channelDB.default_evc_mc_is_in_use = L7_FALSE;
-
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Removed Default MC Service Gateway [evc_mc:%u]", evc_mc);
-    return L7_SUCCESS;
   }
 
   /* Validate and prepare channel group Address*/
@@ -7989,13 +7966,17 @@ L7_RC_t igmp_assoc_channel_remove( L7_uint32 evc_mc, L7_uint32 evc_uc,
 #if 1
   if ( rc == L7_SUCCESS )
   {
-    //Only IPv4 is supported!
-    if (channel_group->family !=L7_AF_INET || channel_source->family!=L7_AF_INET)
+    //Default MC Service Gateway Not Supported on MGMD Lib
+    if (inetIsAddressZero(channel_group) != L7_TRUE)
     {
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"IPv6 not supported for MGMD [UC_EVC=%u MC_EVC=%u]", evc_uc, evc_mc);
-      return FAILURE;                       
+      //Only IPv4 is supported!
+      if (channel_group->family !=L7_AF_INET || channel_source->family!=L7_AF_INET)
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP,"IPv6 not supported for MGMD [UC_EVC=%u MC_EVC=%u]", evc_uc, evc_mc);
+        return FAILURE;                       
+      }
+      ptin_igmp_mgmd_whitelist_remove(evc_mc,channel_group->addr.ipv4.s_addr,channel_grpMask,channel_source->addr.ipv4.s_addr,channel_srcMask, 0);   
     }
-    ptin_igmp_mgmd_whitelist_remove(evc_mc,channel_group->addr.ipv4.s_addr,channel_grpMask,channel_source->addr.ipv4.s_addr,channel_srcMask, 0);   
   }
 #endif
 
@@ -8368,15 +8349,6 @@ static L7_RC_t ptin_igmp_channel_remove_multicast_service( L7_uint32 evc_uc, L7_
     }
   }
 
-  if (channelDB.default_evc_mc_is_in_use == L7_TRUE && channelDB.default_evc_mc == evc_mc)
-  {
-    channelDB.default_bandwidth = 0;
-
-    channelDB.default_evc_mc = 0;
-
-    channelDB.default_evc_mc_is_in_use = L7_FALSE;
-  }
-
   return rc;
 }
 
@@ -8413,12 +8385,6 @@ static L7_RC_t ptin_igmp_channel_remove_all( void )
 
   /* Purge all AVL tree, but the root node */
   avlPurgeAvlTree( &channelDB.channelAvlTree, PTIN_IGMP_CHANNELS_MAX );
-
-  channelDB.default_bandwidth = 0;
-
-  channelDB.default_evc_mc = 0;
-
-  channelDB.default_evc_mc_is_in_use = L7_FALSE;
 
   return L7_SUCCESS;
 }
@@ -17030,14 +16996,6 @@ RC_t ptin_igmp_multicast_package_channels_remove(L7_uint32 packageId, L7_uint32 
               packageId, serviceId, inetAddrPrint(groupAddr, groupAddrStr), groupMask, inetAddrPrint(sourceAddr, sourceAddrStr), sourceMask);
   }
 
-  if (groupMask == 0)
-  {
-    if (ptin_debug_igmp_snooping)
-      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "No Channels to Remove [packageId:%u serviceId:%u groupAddr:%s groupMask:%u sourceAddr:%s sourceMask:%u",
-                 packageId, serviceId, inetAddrPrint(groupAddr, groupAddrStr), groupMask, inetAddrPrint(sourceAddr, sourceAddrStr), sourceMask);
-    return L7_SUCCESS;
-  }
-
  /* Validate and prepare channel group Address*/
   if ( (rc = ptin_igmp_channel_to_netmask( groupAddr, groupMask, &groupAddrBase, &noOfGroups)) !=L7_SUCCESS || noOfGroups == 0 || noOfGroups > PTIN_IGMP_CHANNELS_MAX )
   {
@@ -18191,8 +18149,7 @@ RC_t ptin_igmp_multicast_channel_service_get(L7_uint32 ptinPort, L7_uint32 devic
   L7_uint16                       groupClientId;
   L7_uint16                       noOfServicesFound = 0;
   L7_uint32                       serviceIdAux;
-  ptinIgmpGroupClientInfoData_t  *groupClient = L7_NULLPTR;
-  L7_uint8                        useDefaultMCService = L7_FALSE;
+  ptinIgmpGroupClientInfoData_t  *groupClient = L7_NULLPTR;  
   RC_t                            rc;
 
   /* Input Argument validation */
@@ -18253,16 +18210,6 @@ RC_t ptin_igmp_multicast_channel_service_get(L7_uint32 ptinPort, L7_uint32 devic
     /*Save the Service Id*/
     serviceIdAux = multicastServiceId[ptinPort][onuId][internalServiceId].serviceId;
 
-
-    if (useDefaultMCService == L7_FALSE && channelDB.default_evc_mc_is_in_use == L7_TRUE)
-    {
-      if ( channelDB.default_evc_mc == serviceIdAux)
-      {
-        /*Set Default Multicast Flag*/
-        useDefaultMCService = L7_TRUE;
-      }
-    }
-
     /* Find Channel Entry */
     rc = ptin_igmp_channel_get (serviceIdAux, groupAddr, sourceAddr,  &channelEntry );
 
@@ -18304,17 +18251,21 @@ RC_t ptin_igmp_multicast_channel_service_get(L7_uint32 ptinPort, L7_uint32 devic
     return L7_SUCCESS;    
   }
 
-  if (useDefaultMCService == L7_TRUE)
+  /*Let Us Try to Search for a default Multicast Service*/
+  if ( !inetIsAddressZero(groupAddr) )
   {
-    *serviceId = channelDB.default_evc_mc;
+    L7_inet_addr_t defaultGroupAddr;
+    L7_inet_addr_t defaultSourceAddr;
+
+    inetAddressZeroSet(groupAddr->family, &defaultGroupAddr);
+    inetAddressZeroSet(sourceAddr->family, &defaultSourceAddr);
 
     /*Exit Here Multicast Service Found*/
     if (ptin_debug_igmp_snooping)
-      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Entry Does Exist Going to Use Default MC Service [ptinPort:%u deviceClientId:%u groupClientId:%u onuId:%u groupAddr:%s sourceAddr:%s serviceId:%u]",
+      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Entry Does Exist Going to Search for Default MC Service [ptinPort:%u deviceClientId:%u groupClientId:%u onuId:%u groupAddr:%s sourceAddr:%s serviceId:%u]",
                 ptinPort, deviceClientId, groupClientId, onuId, inetAddrPrint(groupAddr, groupAddrStr), inetAddrPrint(sourceAddr, sourceAddrStr), *serviceId);
-
-    return L7_SUCCESS;
-
+      
+    return (ptin_igmp_multicast_channel_service_get(ptinPort, deviceClientId, &defaultGroupAddr, &defaultSourceAddr, serviceId));
   }
 
   /*Output Parameters*/

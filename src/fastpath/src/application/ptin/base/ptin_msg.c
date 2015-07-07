@@ -8671,10 +8671,13 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_get(msg_MCAssocChannel_t *channel_list, L7_ui
  */
 L7_RC_t ptin_msg_group_list_add(msg_MCAssocChannel_t *channel_list, L7_uint16 n_channels, L7_uint8 isStatic)
 {
-  L7_uint16 i;
-  L7_inet_addr_t groupAddr, sourceAddr;
-  L7_RC_t rc = L7_SUCCESS;
-  L7_RC_t rc_global = L7_SUCCESS;
+  L7_uint16      i;
+  L7_inet_addr_t groupAddr;
+  L7_inet_addr_t sourceAddr;
+  char           groupAddrStr[IPV6_DISP_ADDR_LEN]={};
+  char           sourceAddrStr[IPV6_DISP_ADDR_LEN]={};
+  L7_RC_t        rc = L7_SUCCESS;
+  L7_RC_t        rc_global = L7_SUCCESS;
 
   if (channel_list==L7_NULLPTR)
   {
@@ -8707,13 +8710,6 @@ L7_RC_t ptin_msg_group_list_add(msg_MCAssocChannel_t *channel_list, L7_uint16 n_
       return rc;
     }
    
-    /*Validate Group Address*/
-    if (inetIsAddressZero(&groupAddr) == L7_FALSE && inetIsInMulticast(&groupAddr)== L7_FALSE)
-    {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Group channel = 0x%08x (ipv6=%u) / %u is not a multicast address",channel_list[i].channel_dstIp.addr.ipv4, channel_list[i].channel_dstIp.family, channel_list[i].channel_dstmask);
-      return L7_FAILURE;
-    }
-
     /* Prepare source address */
     rc = ptin_to_fp_ip_notation(&channel_list[i].channel_srcIp, &sourceAddr);
     if ( rc != L7_SUCCESS)
@@ -8721,18 +8717,45 @@ L7_RC_t ptin_msg_group_list_add(msg_MCAssocChannel_t *channel_list, L7_uint16 n_
       return rc;
     }
 
-    /*Validate Source Address*/
-    if (!inetIsAddressZero(&sourceAddr) && inetIsValidHostAddress(&sourceAddr)== L7_FALSE )
-    {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Source channel = 0x%08x (ipv6=%u) / %u is not a unicast address",channel_list[i].channel_srcIp.addr.ipv4, channel_list[i].channel_srcIp.family, channel_list[i].channel_srcmask);
-      return L7_FAILURE;
-    }
+    inetAddrPrint(&groupAddr, groupAddrStr);
+    inetAddrPrint(&sourceAddr, sourceAddrStr);
 
-    /*Validate Source Mask*/
-    if ( channel_list[i].channel_srcmask == 0 /*&& !inetIsAddressZero(&sourceAddr)*/ )
+    /*Validate Group Address & Group Mask */
+    /*Validate Source Address & Source Mask*/
+    if (inetIsAddressZero(&groupAddr) == L7_FALSE) 
     {
-      channel_list[i].channel_srcmask = 32;
-    }    
+      if (inetIsInMulticast(&groupAddr)== L7_FALSE || channel_list[i].channel_dstmask < PTIN_IGMP_GROUP_MASK_MIN || channel_list[i].channel_dstmask > 32 || (!inetIsAddressZero(&sourceAddr) && inetIsValidHostAddress(&sourceAddr)== L7_FALSE) )            
+      {      
+        LOG_ERR(LOG_CTX_PTIN_MSG," Invalid Parameters: evcid_mc:%u groupAddr=%s/%u sourceAddr:%s/%u ", channel_list[i].evcid_mc, groupAddrStr, channel_list[i].channel_dstmask, sourceAddrStr, channel_list[i].channel_srcmask);
+        return L7_FAILURE;                           
+      }
+
+      if ( channel_list[i].channel_srcmask != 32 )
+      {
+//      LOG_WARNING(LOG_CTX_PTIN_MSG," Invalid Parameters: evcid_mc:%u groupAddr=%s/%u sourceAddr:%s/%u ", channel_list[i].evcid_mc, groupAddrStr, channel_list[i].channel_dstmask, sourceAddrStr, channel_list[i].channel_srcmask);
+        channel_list[i].channel_srcmask = 32;          
+      }
+    }
+    else
+    { /*Default Multicast Entry*/
+      if (!inetIsAddressZero(&sourceAddr))
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG," Invalid Parameters: evcid_mc:%u groupAddr=%s/%u sourceAddr:%s/%u ", channel_list[i].evcid_mc, groupAddrStr, channel_list[i].channel_dstmask, sourceAddrStr, channel_list[i].channel_srcmask);
+        return L7_FAILURE;                   
+      }
+
+      if ( channel_list[i].channel_dstmask != 0 )
+      {
+        LOG_WARNING(LOG_CTX_PTIN_MSG," Invalid Parameters: evcid_mc:%u groupAddr=%s/%u sourceAddr:%s/%u ", channel_list[i].evcid_mc, groupAddrStr, channel_list[i].channel_dstmask, sourceAddrStr, channel_list[i].channel_srcmask);
+        channel_list[i].channel_dstmask = 0;
+      }
+
+      if ( channel_list[i].channel_srcmask != 0 )
+      {
+        LOG_WARNING(LOG_CTX_PTIN_MSG," Invalid Parameters: evcid_mc:%u groupAddr=%s/%u sourceAddr:%s/%u ", channel_list[i].evcid_mc, groupAddrStr, channel_list[i].channel_dstmask, sourceAddrStr, channel_list[i].channel_srcmask);
+        channel_list[i].channel_srcmask = 0;
+      }       
+    }
 
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
 
@@ -8784,8 +8807,10 @@ L7_RC_t ptin_msg_group_list_add(msg_MCAssocChannel_t *channel_list, L7_uint16 n_
 L7_RC_t ptin_msg_group_list_remove(msg_MCAssocChannel_t *channel_list, L7_uint16 n_channels, L7_uint8 isStatic)
 {
   L7_uint16      i;
-  L7_inet_addr_t groupAddr, 
-                 sourceAddr;
+  L7_inet_addr_t groupAddr; 
+  L7_inet_addr_t sourceAddr;
+  char           groupAddrStr[IPV6_DISP_ADDR_LEN]={};
+  char           sourceAddrStr[IPV6_DISP_ADDR_LEN]={};
   L7_RC_t        rc = L7_SUCCESS;
   L7_RC_t        rc_global = L7_SUCCESS;
 
@@ -8811,13 +8836,6 @@ L7_RC_t ptin_msg_group_list_remove(msg_MCAssocChannel_t *channel_list, L7_uint16
     {
       return rc;
     }
-
-    if (inetIsAddressZero(&groupAddr) == L7_FALSE && inetIsInMulticast(&groupAddr)== L7_FALSE)
-    {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Group channel = 0x%08x (ipv6=%u) / %u is not a multicast address",channel_list[i].channel_dstIp.addr.ipv4, channel_list[i].channel_dstIp.family, channel_list[i].channel_dstmask);
-      return L7_FAILURE;
-    }
-
     /* Prepare source address */     
     rc = ptin_to_fp_ip_notation(&channel_list[i].channel_srcIp, &sourceAddr);
     if ( rc != L7_SUCCESS)
@@ -8825,18 +8843,46 @@ L7_RC_t ptin_msg_group_list_remove(msg_MCAssocChannel_t *channel_list, L7_uint16
       return rc;
     }
 
-    /*Validate Source Address*/
-    if (!inetIsAddressZero(&sourceAddr) && inetIsValidHostAddress(&sourceAddr)== L7_FALSE )
+    inetAddrPrint(&groupAddr, groupAddrStr);
+    inetAddrPrint(&sourceAddr, sourceAddrStr);
+
+    /*Validate Group Address & Group Mask */
+    /*Validate Source Address & Source Mask*/
+    if (inetIsAddressZero(&groupAddr) == L7_FALSE) 
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Source channel = 0x%08x (ipv6=%u) / %u is not a unicast address",channel_list[i].channel_srcIp.addr.ipv4, channel_list[i].channel_srcIp.family, channel_list[i].channel_srcmask);
-      return L7_FAILURE;
+      if (inetIsInMulticast(&groupAddr)== L7_FALSE || channel_list[i].channel_dstmask < PTIN_IGMP_GROUP_MASK_MIN || channel_list[i].channel_dstmask > 32 || (!inetIsAddressZero(&sourceAddr) && inetIsValidHostAddress(&sourceAddr)== L7_FALSE) )            
+      {      
+        LOG_ERR(LOG_CTX_PTIN_MSG," Invalid Parameters: evcid_mc:%u groupAddr=%s/%u sourceAddr:%s/%u ", channel_list[i].evcid_mc, groupAddrStr, channel_list[i].channel_dstmask, sourceAddrStr, channel_list[i].channel_srcmask);
+        return L7_FAILURE;                           
+      }
+
+      if ( channel_list[i].channel_srcmask != 32 )
+      {
+//      LOG_WARNING(LOG_CTX_PTIN_MSG," Invalid Parameters: evcid_mc:%u groupAddr=%s/%u sourceAddr:%s/%u ", channel_list[i].evcid_mc, groupAddrStr, channel_list[i].channel_dstmask, sourceAddrStr, channel_list[i].channel_srcmask);
+        channel_list[i].channel_srcmask = 32;          
+      }
+    }
+    else
+    { /*Default Multicast Entry*/
+      if (!inetIsAddressZero(&sourceAddr))
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG," Invalid Parameters: evcid_mc:%u groupAddr=%s/%u sourceAddr:%s/%u ", channel_list[i].evcid_mc, groupAddrStr, channel_list[i].channel_dstmask, sourceAddrStr, channel_list[i].channel_srcmask);
+        return L7_FAILURE;                   
+      }
+
+      if ( channel_list[i].channel_dstmask != 0 )
+      {
+        LOG_WARNING(LOG_CTX_PTIN_MSG," Invalid Parameters: evcid_mc:%u groupAddr=%s/%u sourceAddr:%s/%u ", channel_list[i].evcid_mc, groupAddrStr, channel_list[i].channel_dstmask, sourceAddrStr, channel_list[i].channel_srcmask);
+        channel_list[i].channel_dstmask = 0;
+      }
+
+      if ( channel_list[i].channel_srcmask != 0 )
+      {
+        LOG_WARNING(LOG_CTX_PTIN_MSG," Invalid Parameters: evcid_mc:%u groupAddr=%s/%u sourceAddr:%s/%u ", channel_list[i].evcid_mc, groupAddrStr, channel_list[i].channel_dstmask, sourceAddrStr, channel_list[i].channel_srcmask);
+        channel_list[i].channel_srcmask = 0;
+      }       
     }
 
-    /*Validate Source Mask*/
-    if ( channel_list[i].channel_srcmask == 0 /*&& !inetIsAddressZero(&sourceAddr) */)
-    {
-      channel_list[i].channel_srcmask = 32;
-    }
 
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
 
@@ -8844,7 +8890,7 @@ L7_RC_t ptin_msg_group_list_remove(msg_MCAssocChannel_t *channel_list, L7_uint16
                                    &groupAddr , channel_list[i].channel_dstmask,
                                    &sourceAddr, channel_list[i].channel_srcmask, isStatic )) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error (%d) removing group address 0x%08x/%u, source address 0x%08x/%u to MC EVC %u",
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error (%d) removing group address 0x%08x/%u, source address 0x%08x/%u from the MC EVC %u",
               rc,
               channel_list[i].channel_dstIp.addr.ipv4, channel_list[i].channel_dstmask,
               channel_list[i].channel_srcIp.addr.ipv4, channel_list[i].channel_srcmask,
@@ -13243,13 +13289,6 @@ L7_RC_t ptin_msg_igmp_package_channels_add(msg_igmp_package_channels_t *msg, L7_
       return rc;
     }
 
-    /*Validate Group Address*/
-    if (inetIsInMulticast(&groupAddr)== L7_FALSE)
-    {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Group channel = 0x%08x (ipv6=%u) / %u is not a multicast address", msg[messageIterator].groupAddr.addr.ipv4, msg[messageIterator].groupAddr.family, msg[messageIterator].groupMask);
-      return L7_FAILURE;
-    }
-
     /*Convert Source Address to fp Notation*/
     rc = ptin_to_fp_ip_notation(&msg[messageIterator].sourceAddr, &sourceAddr);
     if ( rc != L7_SUCCESS)
@@ -13257,17 +13296,44 @@ L7_RC_t ptin_msg_igmp_package_channels_add(msg_igmp_package_channels_t *msg, L7_
       return rc;
     }
 
-    /*Validate Source Address*/
-    if (!inetIsAddressZero(&sourceAddr) && inetIsValidHostAddress(&sourceAddr)== L7_FALSE )
-    {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Source channel = 0x%08x (ipv6=%u) / %u is not a unicast address", msg[messageIterator].sourceAddr.addr.ipv4, msg[messageIterator].sourceAddr.family, msg[messageIterator].sourceMask);
-      return L7_FAILURE;
-    }
+    inetAddrPrint(&groupAddr, groupAddrStr);
+    inetAddrPrint(&sourceAddr, sourceAddrStr);
 
-    /*Validate Source Mask*/
-    if ( msg[messageIterator].sourceMask == 0 /*&& !inetIsAddressZero(&sourceAddr)*/ )
+    /*Validate Group Address & Group Mask */
+    /*Validate Source Address & Source Mask*/
+    if (inetIsAddressZero(&groupAddr) == L7_FALSE) 
     {
-      msg[messageIterator].sourceMask = 32;
+      if (inetIsInMulticast(&groupAddr)== L7_FALSE ||  msg[messageIterator].groupMask < PTIN_IGMP_GROUP_MASK_MIN ||  msg[messageIterator].groupMask > 32 || (!inetIsAddressZero(&sourceAddr) && inetIsValidHostAddress(&sourceAddr)== L7_FALSE) )            
+      {      
+        LOG_ERR(LOG_CTX_PTIN_MSG," Invalid Parameters: packageId:%u evcId:%u groupAddr=%s/%u sourceAddr:%s/%u ",  msg[messageIterator].packageId, msg[messageIterator].evcId, groupAddrStr,  msg[messageIterator].groupMask, sourceAddrStr,  msg[messageIterator].sourceMask);
+        return L7_FAILURE;                           
+      }
+
+      if ( msg[messageIterator].sourceMask != 32 )
+      {
+//      LOG_WARNING(LOG_CTX_PTIN_MSG," Invalid Parameters: packageId:%u evcId:%u groupAddr=%s/%u sourceAddr:%s/%u ",  msg[messageIterator].packageId, msg[messageIterator].evcId, groupAddrStr,  msg[messageIterator].groupMask, sourceAddrStr,  msg[messageIterator].sourceMask);
+        msg[messageIterator].sourceMask = 32;          
+      }
+    }
+    else
+    { /*Default Multicast Entry*/
+      if (!inetIsAddressZero(&sourceAddr))
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG," Invalid Parameters: packageId:%u evcId:%u groupAddr=%s/%u sourceAddr:%s/%u ",  msg[messageIterator].packageId, msg[messageIterator].evcId, groupAddrStr,  msg[messageIterator].groupMask, sourceAddrStr,  msg[messageIterator].sourceMask);
+        return L7_FAILURE;                   
+      }
+
+      if ( msg[messageIterator].groupMask != 0 )
+      {
+        LOG_WARNING(LOG_CTX_PTIN_MSG," Invalid Parameters: packageId:%u evcId:%u groupAddr=%s/%u sourceAddr:%s/%u ",  msg[messageIterator].packageId, msg[messageIterator].evcId, groupAddrStr,  msg[messageIterator].groupMask, sourceAddrStr,  msg[messageIterator].sourceMask);
+        msg[messageIterator].groupMask = 0;
+      }
+
+      if ( msg[messageIterator].sourceMask != 0 )
+      {
+        LOG_WARNING(LOG_CTX_PTIN_MSG," Invalid Parameters: packageId:%u evcId:%u groupAddr=%s/%u sourceAddr:%s/%u ",  msg[messageIterator].packageId, msg[messageIterator].evcId, groupAddrStr,  msg[messageIterator].groupMask, sourceAddrStr,  msg[messageIterator].sourceMask);
+        msg[messageIterator].sourceMask = 0;
+      }       
     }
 
     /*Input Parameters*/
@@ -13327,13 +13393,6 @@ L7_RC_t ptin_msg_igmp_package_channels_remove(msg_igmp_package_channels_t *msg, 
       return rc;
     }
 
-    /*Validate Group Address*/
-    if (inetIsInMulticast(&groupAddr)== L7_FALSE)
-    {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Group channel = 0x%08x (ipv6=%u) / %u is not a multicast address", msg[messageIterator].groupAddr.addr.ipv4, msg[messageIterator].groupAddr.family, msg[messageIterator].groupMask);
-      return L7_FAILURE;
-    }
-
     /*Convert Source Address to fp Notation*/
     rc = ptin_to_fp_ip_notation(&msg[messageIterator].sourceAddr, &sourceAddr);
     if ( rc != L7_SUCCESS)
@@ -13341,17 +13400,44 @@ L7_RC_t ptin_msg_igmp_package_channels_remove(msg_igmp_package_channels_t *msg, 
       return rc;
     }
 
-    /*Validate Source Address*/
-    if (!inetIsAddressZero(&sourceAddr) && inetIsValidHostAddress(&sourceAddr)== L7_FALSE )
-    {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Source channel = 0x%08x (ipv6=%u) / %u is not a unicast address", msg[messageIterator].sourceAddr.addr.ipv4, msg[messageIterator].sourceAddr.family, msg[messageIterator].sourceMask);
-      return L7_FAILURE;
-    }
+    inetAddrPrint(&groupAddr, groupAddrStr);
+    inetAddrPrint(&sourceAddr, sourceAddrStr);
 
-    /*Validate Source Mask*/
-    if ( msg[messageIterator].sourceMask == 0 /*&& !inetIsAddressZero(&sourceAddr)*/ )
+    /*Validate Group Address & Group Mask */
+    /*Validate Source Address & Source Mask*/
+    if (inetIsAddressZero(&groupAddr) == L7_FALSE) 
     {
-      msg[messageIterator].sourceMask = 32;
+      if (inetIsInMulticast(&groupAddr)== L7_FALSE ||  msg[messageIterator].groupMask < PTIN_IGMP_GROUP_MASK_MIN ||  msg[messageIterator].groupMask > 32 || (!inetIsAddressZero(&sourceAddr) && inetIsValidHostAddress(&sourceAddr)== L7_FALSE) )            
+      {      
+        LOG_ERR(LOG_CTX_PTIN_MSG," Invalid Parameters: packageId:%u evcId:%u groupAddr=%s/%u sourceAddr:%s/%u ",  msg[messageIterator].packageId, msg[messageIterator].evcId, groupAddrStr,  msg[messageIterator].groupMask, sourceAddrStr,  msg[messageIterator].sourceMask);
+        return L7_FAILURE;                           
+      }
+
+      if ( msg[messageIterator].sourceMask != 32 )
+      {
+//      LOG_WARNING(LOG_CTX_PTIN_MSG," Invalid Parameters: packageId:%u evcId:%u groupAddr=%s/%u sourceAddr:%s/%u ",  msg[messageIterator].packageId, msg[messageIterator].evcId, groupAddrStr,  msg[messageIterator].groupMask, sourceAddrStr,  msg[messageIterator].sourceMask);
+        msg[messageIterator].sourceMask = 32;          
+      }
+    }
+    else
+    { /*Default Multicast Entry*/
+      if (!inetIsAddressZero(&sourceAddr))
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG," Invalid Parameters: packageId:%u evcId:%u groupAddr=%s/%u sourceAddr:%s/%u ",  msg[messageIterator].packageId, msg[messageIterator].evcId, groupAddrStr,  msg[messageIterator].groupMask, sourceAddrStr,  msg[messageIterator].sourceMask);
+        return L7_FAILURE;                   
+      }
+
+      if ( msg[messageIterator].groupMask != 0 )
+      {
+        LOG_WARNING(LOG_CTX_PTIN_MSG," Invalid Parameters: packageId:%u evcId:%u groupAddr=%s/%u sourceAddr:%s/%u ",  msg[messageIterator].packageId, msg[messageIterator].evcId, groupAddrStr,  msg[messageIterator].groupMask, sourceAddrStr,  msg[messageIterator].sourceMask);
+        msg[messageIterator].groupMask = 0;
+      }
+
+      if ( msg[messageIterator].sourceMask != 0 )
+      {
+        LOG_WARNING(LOG_CTX_PTIN_MSG," Invalid Parameters: packageId:%u evcId:%u groupAddr=%s/%u sourceAddr:%s/%u ",  msg[messageIterator].packageId, msg[messageIterator].evcId, groupAddrStr,  msg[messageIterator].groupMask, sourceAddrStr,  msg[messageIterator].sourceMask);
+        msg[messageIterator].sourceMask = 0;
+      }       
     }
 
     /*Input Parameters*/
