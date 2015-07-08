@@ -2512,7 +2512,9 @@ int _policy_group_calc_qset(int                             unit,
     return BCM_E_NONE;
 }
 
-static int _policy_group_resource_check(int unit, BROAD_POLICY_TYPE_t policyType, policy_resource_requirements_t *resourceReq, int gid)
+/* PTin modified: Only ICAP can use multiple groups */
+static int _policy_group_resource_check(int unit, BROAD_POLICY_TYPE_t policyType, BROAD_POLICY_STAGE_t policyStage,
+                                        policy_resource_requirements_t *resourceReq, int gid)
 {
   int                        rv;
   bcm_field_group_status_t   stat;
@@ -2536,6 +2538,16 @@ static int _policy_group_resource_check(int unit, BROAD_POLICY_TYPE_t policyType
 //       stat.meters_free, stat.counters_total);
 
   _policy_group_status_to_sqset_width(&stat, &groupSqsetWidth);
+
+  if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+  {
+    sysapiPrintf("%s(%d) policyType=%d gid=%d\n", __FUNCTION__, __LINE__, policyType, gid);
+    sysapiPrintf("%s(%d) entries  count/total/free = %d/%d/%d\n", __FUNCTION__, __LINE__, stat.entry_count  , stat.entries_total , stat.entries_free);
+    sysapiPrintf("%s(%d) counters count/total/free = %d/%d/%d\n", __FUNCTION__, __LINE__, stat.counter_count, stat.counters_total, stat.counters_free);
+    sysapiPrintf("%s(%d) meters   count/total/free = %d/%d/%d\n", __FUNCTION__, __LINE__, stat.meter_count  , stat.meters_total  , stat.meters_free);
+    sysapiPrintf("%s(%d) slice_width_physical=%d intraslice_mode_enable=%d natural_depth=%d\n", __FUNCTION__, __LINE__, 
+                 stat.slice_width_physical, stat.intraslice_mode_enable, stat.natural_depth);
+  }
 
   /* If this policy would require expansion of a group that is wider than the 
      policy needs, don't allow this to occur. The policy can be created w/ the
@@ -2648,7 +2660,8 @@ static int _policy_group_find_group(int                             unit,
 
           if (BCM_E_NONE == rv)
           {
-            rv = _policy_group_resource_check(unit, entryPtr->policyType, resourceReq, groupPtr->gid);
+            /* PTin modified: Only ICAP can use multiple groups */
+            rv = _policy_group_resource_check(unit, entryPtr->policyType, entryPtr->policyStage, resourceReq, groupPtr->gid);
 
             if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
               sysapiPrintf("_policy_group_find_group - rv = %d\n", rv);
@@ -2772,7 +2785,7 @@ static int _policy_group_alloc_group(int                             unit,
       else
       {
         if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
-          sysapiPrintf("%s(%d) Group (%d) % slice_width (%d) failed!\n", __FUNCTION__, __LINE__, *group, sqsetInfo.status.slice_width_physical);
+          sysapiPrintf("%s(%d) Group (%d) slice_width (%d) failed!\n", __FUNCTION__, __LINE__, *group, sqsetInfo.status.slice_width_physical);
       }
   
       if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
@@ -2785,7 +2798,8 @@ static int _policy_group_alloc_group(int                             unit,
   
     if (rv == BCM_E_NONE)
     {
-      rv = _policy_group_resource_check(unit, entryPtr->policyType, resourceReq, gid);
+      /* PTin modified: Only ICAP can use multiple groups */
+      rv = _policy_group_resource_check(unit, entryPtr->policyType, entryPtr->policyStage, resourceReq, gid);
       if (rv == BCM_E_NONE)
       {
         for (i = *group; i < (*group + sqsetInfo.status.slice_width_physical); i++)

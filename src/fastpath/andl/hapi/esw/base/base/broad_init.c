@@ -921,7 +921,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
 
   /* PTin added */
   #if 1
-  result = hapiBroadSystemInstallPtin();
+  result = hapiBroadSystemInstallPtin_preInit();
   if(L7_SUCCESS != result)
   {
     return result;
@@ -2626,7 +2626,6 @@ void hapiBroadFfpSysMacInstall (DAPI_t      *dapi_g,
     hapiSystemPtr->mgmtPolicy[BROAD_POLICY_STAGE_EGRESS] = BROAD_POLICY_INVALID;
   }
 
-
   /* Create new system mac filter, if specified. */
   if ((0 != new_vlan_id) && (L7_NULLPTR != new_mac_addr))
   {
@@ -2655,7 +2654,6 @@ void hapiBroadFfpSysMacInstall (DAPI_t      *dapi_g,
       LOG_ERR(LOG_CTX_STARTUP, "Cannot create trap policy\r\n");
       return;
     }
-
     /* Egress stage */
     if (hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_EGRESS) != L7_SUCCESS)
     {
@@ -2663,7 +2661,6 @@ void hapiBroadFfpSysMacInstall (DAPI_t      *dapi_g,
       hapiBroadPolicyCreateCancel();
       return;
     }
-
     /* Create rule */    
     if (hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH) != L7_SUCCESS)
     {
@@ -2671,14 +2668,26 @@ void hapiBroadFfpSysMacInstall (DAPI_t      *dapi_g,
       hapiBroadPolicyCreateCancel();
       return;
     }
-    
+    /* CPU port */
     if (hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OUTPORT, (L7_uchar8 *)&bcm_port, (L7_uchar8 *)&bcm_port_mask) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_STARTUP, "Error adding port qualifier (bcm_port=%d)\r\n",bcm_port);
       hapiBroadPolicyCreateCancel();
       return;
     }
-
+    /* Inband type packets */
+    if (hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, new_mac_addr, exact_match) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_STARTUP, "Error adding BROAD_FIELD_MACDA qualifier");
+      hapiBroadPolicyCreateCancel();
+      return;
+    }
+    if (hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID,  (L7_uchar8*)&new_vlan_id, exact_match) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_STARTUP, "Error adding BROAD_FIELD_OVID qualifier");
+      hapiBroadPolicyCreateCancel();
+      return;
+    }
     /* Drop red packets */    
     if (hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0) != L7_SUCCESS)
     {
@@ -2686,7 +2695,6 @@ void hapiBroadFfpSysMacInstall (DAPI_t      *dapi_g,
       hapiBroadPolicyCreateCancel();
       return;
     }
-
     /* Define meter action, to rate limit packets */   
     if (hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo) != L7_SUCCESS)
     {
@@ -2694,7 +2702,6 @@ void hapiBroadFfpSysMacInstall (DAPI_t      *dapi_g,
       hapiBroadPolicyCreateCancel();
       return;
     }
-
     /* Add counter */
     if (hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS) != L7_SUCCESS)
     {

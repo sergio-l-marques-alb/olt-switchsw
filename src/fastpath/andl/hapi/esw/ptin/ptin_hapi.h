@@ -369,7 +369,8 @@ extern L7_RC_t ptin_hapi_L3UcastTtl1ToCpu_set(DAPI_USP_t *usp, L7_BOOL enable, D
  * 
  * @return L7_RC_t 
  */
-extern L7_RC_t hapiBroadSystemInstallPtin(void);
+extern L7_RC_t hapiBroadSystemInstallPtin_preInit(void);
+extern L7_RC_t hapiBroadSystemInstallPtin_postInit(void);
 
 /**
  * Show trapped packets (to CPU) according to the configured 
