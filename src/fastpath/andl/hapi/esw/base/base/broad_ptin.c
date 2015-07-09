@@ -2820,4 +2820,300 @@ L7_RC_t broadPtin_oam_tx(L7_int unit, L7_int flags, bcm_gport_t gport_dst, bcm_m
     #endif
 
     return L7_SUCCESS;
-} 
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#ifdef __DEBUGGING_DEI_CFI_2_COLOR_2_DEI_CIF__
+L7_RC_t hapit3(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g) {
+bcm_port_t bcm_port;
+//bcm_color_t bcm_color;
+int i, r;
+
+ r=bcm_switch_control_set (0, bcmSwitchColorSelect, BCM_COLOR_OUTER_CFI);   printf("\tbcm_switch_control_set()=%d",r);
+
+ for (bcm_port=1; bcm_port<=2; bcm_port++) {
+     printf("\nbcm_port=%d\n", bcm_port);
+     r=bcm_port_cfi_color_set(0, bcm_port, 0, bcmColorGreen);   printf("\tbcm_port_cfi_color_set()=%d",r);
+     r=bcm_port_cfi_color_set(0, bcm_port, 1, bcmColorYellow);   printf("\tbcm_port_cfi_color_set()=%d",r);
+     for (i=0; i<8; i++) {
+         printf("\n\tpri=%d\n", i);
+         r=bcm_port_vlan_priority_unmap_set(0, bcm_port, i, bcmColorGreen, i, 0);   printf("\tbcm_port_vlan_priority_unmap_set()=%d",r);
+         r=bcm_port_vlan_priority_unmap_set(0, bcm_port, i, bcmColorYellow, i, 1);   printf("\tbcm_port_vlan_priority_unmap_set()=%d",r);
+     }
+     r=bcm_port_control_set(0, bcm_port, bcmPortControlEgressVlanPriUsesPktPri, 1); printf("\tbcm_port_control_set()=%d",r);
+ }
+ return L7_SUCCESS;
+}
+L7_RC_t hapit4(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g) {
+bcm_port_t bcm_port;
+int r;
+
+ for (bcm_port=1; bcm_port<=2; bcm_port++) {
+     r=bcm_port_control_set(0, bcm_port, bcmPortControlEgressVlanPriUsesPktPri, 0); printf("\tbcm_port_control_set()=%d",r);
+ }
+ return L7_SUCCESS;
+}
+
+
+
+
+
+
+
+
+
+#include <bcm/qos.h>
+#undef BCM_IF_ERROR_RETURN
+#define BCM_IF_ERROR_RETURN(op) {bcm_error_t r; r=op; printf("%s: f()=%d\n\r", __FUNCTION__,r); if (r) return r;}
+
+/*
+ * Function: create_entry()
+ *
+ * Create an IFP entry that matches on a specified VLAN ID. Attach a
+ * color-aware policer with hard coded rates to the entry. Packets exceeding
+ * PIR will be colored red and subsequently dropped. Yellow packets will
+ * egress with the CFI bit set in the VLAN tag.
+ */
+bcm_error_t
+create_entry(int unit, bcm_vlan_t vlanId, bcm_field_entry_t entry,
+             bcm_field_group_t gid, int group_priority, bcm_policer_t * PolicerId)
+{
+    const int   vlanMask = 0x3ff;       /* VLAN ID is 12 bits */
+
+    bcm_policer_config_t PolConfig;
+    bcm_field_qset_t BcmFPQualSet;
+
+    BCM_FIELD_QSET_INIT(BcmFPQualSet);
+    BCM_FIELD_QSET_ADD(BcmFPQualSet, bcmFieldQualifyStageIngress);
+    BCM_FIELD_QSET_ADD(BcmFPQualSet, bcmFieldQualifyOuterVlan);
+
+    BCM_IF_ERROR_RETURN(bcm_field_group_create_mode_id
+                        (unit, BcmFPQualSet, group_priority, bcmFieldGroupModeDouble,
+                         gid));
+
+    BCM_IF_ERROR_RETURN(bcm_field_entry_create_id(unit, gid, entry));
+    BCM_IF_ERROR_RETURN(bcm_field_qualify_OuterVlanId(unit, entry, vlanId, vlanMask));
+
+    /* Create a COLOR AWARE policer */
+    bcm_policer_config_t_init(&PolConfig);
+    PolConfig.mode = bcmPolicerModeTrTcm;
+    PolConfig.ckbits_sec = 0; 
+    PolConfig.ckbits_burst = 0;
+    PolConfig.pkbits_sec = 10000;
+    PolConfig.pkbits_burst = 10000;
+    BCM_IF_ERROR_RETURN(bcm_policer_create(unit, &PolConfig, PolicerId));
+
+    /* Attach at level = 0 */
+    BCM_IF_ERROR_RETURN(bcm_field_entry_policer_attach(unit, entry, 0, *PolicerId));
+
+    /* Drop Red */
+    BCM_IF_ERROR_RETURN(bcm_field_action_add(unit, entry, bcmFieldActionRpDrop, 0, 0));
+
+    /* Green packets are colored green and egress normally */
+    BCM_IF_ERROR_RETURN(bcm_field_action_add
+                        (unit, entry, bcmFieldActionGpDropPrecedence,
+                         BCM_FIELD_COLOR_GREEN, 0));
+
+    /* Yellow packets are colored yellow */
+    BCM_IF_ERROR_RETURN(bcm_field_action_add
+                        (unit, entry, bcmFieldActionYpDropPrecedence,
+                         BCM_FIELD_COLOR_YELLOW, 0));
+
+    BCM_IF_ERROR_RETURN(bcm_field_entry_install(unit, entry));
+    return BCM_E_NONE;
+}
+
+/*
+ * Function: color_counters()
+ *
+ * Attach stat counters to the specified entry to count either green/yellow
+ * or yellow/red depending of value of "count_green" flag.
+ */
+bcm_error_t
+color_counters(int unit, bcm_field_group_t group, bcm_field_entry_t entry,
+               int count_green)
+{
+    const int   statCount = 2;
+    /*const*/ bcm_field_stat_t stat_request1[2] = {
+        bcmFieldStatGreenPackets,       /* Packet count of Green traffic. */
+        bcmFieldStatYellowPackets       /* Packet count of Yellow traffic. */
+    };
+    /*const*/ bcm_field_stat_t stat_request2[2] = {
+        bcmFieldStatYellowPackets,      /* Packet count of yellow traffic. */
+        bcmFieldStatRedPackets  /* Packet count of red traffic. */
+    };
+    int         stat_id_1;
+    int         stat_id_2;
+
+    if (count_green) {
+        /* Create an FP stat object, containing multiple counters */
+        BCM_IF_ERROR_RETURN(bcm_field_stat_create
+                            (unit, group, statCount, stat_request1, &stat_id_1));
+
+        printf
+          ("Stat ID = %d; fp stat get statid=%d type0=greenpackets type1=yellowpackets\n",
+           stat_id_1, stat_id_1);
+
+        BCM_IF_ERROR_RETURN(bcm_field_entry_stat_attach(unit, entry, stat_id_1));
+
+    } else {
+        BCM_IF_ERROR_RETURN(bcm_field_stat_create
+                            (unit, group, statCount, stat_request2, &stat_id_2));
+
+        printf
+          ("Stat ID = %d; fp stat get statid=%d type0=yellowpackets type1=redpackets\n",
+           stat_id_2, stat_id_2);
+
+        BCM_IF_ERROR_RETURN(bcm_field_entry_stat_attach(unit, entry, stat_id_2));
+    }
+
+    /* Re-install the entry */
+    BCM_IF_ERROR_RETURN(bcm_field_entry_reinstall(unit, entry));
+
+    return BCM_E_NONE;
+}
+
+/*
+ * Function: create_vlan()
+ *
+ * Create the specified VLAN, add front panel and CPU ports to the new
+ * VLAN. Packets egressing on this VLAN will retain their VLAN tags.
+ */
+bcm_error_t
+create_vlan(int unit, bcm_vlan_t vlan)
+{
+    bcm_port_config_t portConfig;
+
+    bcm_pbmp_t  untagged;
+
+    BCM_IF_ERROR_RETURN(bcm_port_config_get(unit, &portConfig));
+    BCM_PBMP_CLEAR(untagged);   /* Never egress untagged for this VLAN */
+
+    BCM_IF_ERROR_RETURN(bcm_vlan_create(unit, vlan));
+
+    /* Add all front panel ports to new vlan */
+    BCM_IF_ERROR_RETURN(bcm_vlan_port_add(unit, vlan, portConfig.ge, untagged));
+    BCM_IF_ERROR_RETURN(bcm_vlan_port_add(unit, vlan, portConfig.cpu, untagged));
+
+    return BCM_E_NONE;
+}
+
+/*
+ * Function: configure_qos_mapping()
+ *
+ * Set up ingress and egress QOS mapping. By default, ingressing packets
+ * with the CFI bit from the VLAN tag set are marked RED. In this example,
+ * we want to mark them as yellow. To accomplish this, it is necessary to
+ * create a second QOS map. In the same example, we want to set the CFI bit
+ * in the egressing packet if the packet is yellow. We need to create a second
+ * egress QOS map to do this. All front panel ports will use the new QOS maps.
+ */
+bcm_error_t
+configure_qos_mapping(int unit)
+{
+    bcm_port_config_t portConfig;
+    bcm_port_t  port;
+    bcm_qos_map_t l2_eg_map;
+    bcm_qos_map_t l2_in_map;
+    int         cfi;
+    int         color;
+    int         internal_priority;
+    int         l2_eg_map_id;
+    int         l2_in_map_id;
+    int         pkt_pri;
+    uint32      flags;
+
+    /* Ingress mapping profile */
+    flags = BCM_QOS_MAP_INGRESS | BCM_QOS_MAP_L2;
+    BCM_IF_ERROR_RETURN(bcm_qos_map_create(unit, flags, &l2_in_map_id));
+
+    for (pkt_pri = 0; pkt_pri < 8; pkt_pri++) {
+        for (cfi = 0; cfi <= 1; cfi++) {
+            bcm_qos_map_t_init(&l2_in_map);
+            /* In */
+            l2_in_map.int_pri = pkt_pri;
+            l2_in_map.pkt_cfi = cfi;
+
+            /* Out: CFI maps to yellow */
+            l2_in_map.pkt_pri = pkt_pri;
+            l2_in_map.color = (cfi == 0) ? bcmColorGreen : bcmColorYellow;
+
+            BCM_IF_ERROR_RETURN(bcm_qos_map_add(unit, flags, &l2_in_map, l2_in_map_id));
+        }
+    }
+
+    /* Egress mapping profiles */
+    flags = BCM_QOS_MAP_EGRESS | BCM_QOS_MAP_L2;
+    BCM_IF_ERROR_RETURN(bcm_qos_map_create(unit, flags, &l2_eg_map_id));
+
+    for (internal_priority = 0; internal_priority < 16; internal_priority++) {
+        pkt_pri = (internal_priority < 8) ? internal_priority : 7;
+        for (color = bcmColorGreen; color <= bcmColorRed; color++) {
+            bcm_qos_map_t_init(&l2_eg_map);
+            /* In */
+            l2_eg_map.color = color;
+            l2_eg_map.int_pri = internal_priority;
+
+            /* Out */
+            l2_eg_map.pkt_pri = pkt_pri;
+            /* If packet is not green, set the CFI bit. */
+            l2_eg_map.pkt_cfi = (color == bcmColorGreen) ? 0 : 1;
+
+            BCM_IF_ERROR_RETURN(bcm_qos_map_add(unit, flags, &l2_eg_map, l2_eg_map_id));
+        }
+    }
+	
+    BCM_IF_ERROR_RETURN(bcm_port_config_get(unit, &portConfig));
+    BCM_PBMP_ITER(portConfig.e, port) {
+        BCM_IF_ERROR_RETURN(bcm_qos_port_map_set(unit, port, l2_in_map_id, l2_eg_map_id));
+    }
+
+    return BCM_E_NONE;
+}
+
+/*
+ * Function: testcase()
+ *
+ * This is the main entry point for this example
+ */
+bcm_error_t
+testcase(int unit)
+{
+    const bcm_vlan_t VID = 17;
+    const int   group_priority = 10;
+    const bcm_field_group_t gid = 10;
+    const bcm_field_entry_t entry = 1;
+
+    bcm_policer_t PolicerId;
+
+    BCM_IF_ERROR_RETURN(bcm_switch_control_set (unit, bcmSwitchColorSelect, BCM_COLOR_OUTER_CFI));
+    BCM_IF_ERROR_RETURN(configure_qos_mapping(unit));
+    BCM_IF_ERROR_RETURN(create_vlan(unit, VID));
+    BCM_IF_ERROR_RETURN(create_entry(unit, VID, entry, gid, group_priority, &PolicerId));
+    BCM_IF_ERROR_RETURN(color_counters(unit, gid, entry, 1));
+
+    return BCM_E_NONE;
+}
+
+//if (BCM_FAILURE(testcase(0))) {
+//    printf("Configuration Failed\n");
+//}
+#endif //__DEBUGGING_DEI_CFI_2_COLOR_2_DEI_CIF__
+

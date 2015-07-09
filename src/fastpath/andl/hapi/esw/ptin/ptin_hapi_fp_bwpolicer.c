@@ -598,7 +598,9 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"Drop qualifier added");
 
   //hapiBroadPolicyRuleExceedActionAdd (ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
-  if ((result=hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0))!=L7_SUCCESS)
+  if ((result=hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0))!=L7_SUCCESS
+      ||
+      (result=hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_DROPPREC, BROAD_COLOR_GREEN, BROAD_COLOR_YELLOW, BROAD_COLOR_RED))!=L7_SUCCESS)
   {
     hapiBroadPolicyCreateCancel();
     LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleNonConfActionAdd");

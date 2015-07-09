@@ -4104,12 +4104,43 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
   }
 #endif
 
+  /** COS & COLOR REMARKING **/
+  /** EGRESS STAGE **/
+
+#if 1
+  {
+      L7_uint8  prio;
+      bcm_port_t bcm_port;
+      //bcm_color_t bcm_color;
+      int i, r;
+    
+       r=bcm_switch_control_set (0, bcmSwitchColorSelect, BCM_COLOR_OUTER_CFI); LOG_INFO(LOG_CTX_PTIN_HAPI,"\tbcm_switch_control_set()=%d",r);
+
+       for (i=0; i<ptin_sys_number_of_ports; i++) {
+           // Get bcm_port format
+           if (hapi_ptin_bcmPort_get(i, &bcm_port)!=BCM_E_NONE) {
+             LOG_ERR(LOG_CTX_PTIN_HAPI, "Error obtaining bcm_port for port %u", i);
+             continue;
+           }
+
+           LOG_INFO(LOG_CTX_PTIN_HAPI,"i=%u\tbcm_port=%d\n", i, bcm_port);
+           //INGRESS STAGE
+           r=bcm_port_cfi_color_set(0, bcm_port, 0, bcmColorGreen);   LOG_INFO(LOG_CTX_PTIN_HAPI,"\tbcm_port_cfi_color_set()=%d",r);
+           r=bcm_port_cfi_color_set(0, bcm_port, 1, bcmColorYellow);   LOG_INFO(LOG_CTX_PTIN_HAPI,"\tbcm_port_cfi_color_set()=%d",r);
+           //EGRESS STAGE
+           for (prio=0; prio<8; prio++) {
+               LOG_INFO(LOG_CTX_PTIN_HAPI,"\n\tpri=%d\n", prio);
+               r=bcm_port_vlan_priority_unmap_set(0, bcm_port, prio, bcmColorGreen, prio, 0);   LOG_INFO(LOG_CTX_PTIN_HAPI,"\tbcm_port_vlan_priority_unmap_set()=%d",r);
+               r=bcm_port_vlan_priority_unmap_set(0, bcm_port, prio, bcmColorYellow, prio, 1);   LOG_INFO(LOG_CTX_PTIN_HAPI,"\tbcm_port_vlan_priority_unmap_set()=%d",r);
+           }
+           r=bcm_port_control_set(0, bcm_port, bcmPortControlEgressVlanPriUsesPktPri, 0);   LOG_INFO(LOG_CTX_PTIN_HAPI,"\tbcm_port_control_set()=%d",r);
+       }
+  }
+#else
+
   L7_uint8  prio, prio_mask  = 0x7;
   L7_uint8  vlanFormat_value = BROAD_VLAN_FORMAT_STAG | BROAD_VLAN_FORMAT_CTAG;
   L7_uint8  vlanFormat_mask  = 0xff;
-
-  /** COS REMARKING **/
-  /** EGRESS STAGE **/
 
   /* Create Policy for VLAN dot1p marking */
   rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_PTIN);
@@ -4189,7 +4220,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
 //  hapiBroadPolicyDelete(policyId);
 //  return L7_FAILURE;
 //}
-
+#endif
   return L7_SUCCESS;
 }
 
