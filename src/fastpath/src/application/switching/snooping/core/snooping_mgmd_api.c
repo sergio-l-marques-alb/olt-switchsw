@@ -135,7 +135,7 @@ unsigned int snooping_portList_get(unsigned int serviceId, ptin_mgmd_port_type_t
 
   if( SUCCESS != ptin_evc_intRootVlan_get(serviceId, &mcastRootVlan))
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to get mcastRootVlan from serviceId");
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to get mcastRootVlan from serviceId:%u", serviceId);
     memcpy(portList, &interfaceBitmap, sizeof(*portList));
     return NOT_EXIST;
   } 
