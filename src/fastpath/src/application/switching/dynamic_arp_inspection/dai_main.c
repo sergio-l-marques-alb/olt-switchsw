@@ -1606,6 +1606,8 @@ L7_BOOL daiFrameDHCPSnoopingDbFilter(L7_uint32 intIfNum, L7_ushort16 vlanId,
    * is not present in the DHCP snooping bindings database */
   senderIpAddr = GET_IP_FROM_PKT(arp_pkt->arp_spa);
   memcpy(dsBinding.key.macAddr, arp_pkt->arp_sha, L7_ENET_MAC_ADDR_LEN);
+  /*IPv4*/
+  dsBinding.key.ipType = L7_AF_INET;
 
   if(dsFuncTable.dsBindingGet == L7_NULL)
   {
