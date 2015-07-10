@@ -1303,7 +1303,7 @@ L7_RC_t hapiBroadLagPortAsyncAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
     maxFrameSize = cmdLagPortAdd->cmdData.lagPortAdd.maxFrameSize;
     rc = usl_bcmx_port_frame_max_set(lport, maxFrameSize);
 
-    LOG_INFO(LOG_CTX_PTIN_HAPI, "usp{d,%d,%d}: maxFrameSize %u applied over lport=0x%x (bcm_port=%u): rc=%d",
+    LOG_INFO(LOG_CTX_PTIN_HAPI, "usp{%d,%d,%d}: maxFrameSize %u applied over lport=0x%x (bcm_port=%u): rc=%d",
              usp->unit, usp->slot, usp->port, maxFrameSize, lport, hapiLagMemberPortPtr->bcm_port, rc);
 
     /* Port Priority 
@@ -2009,7 +2009,7 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
     maxFrameSize = cmdLagPortDelete->cmdData.lagPortDelete.maxFrameSize;
     rc = usl_bcmx_port_frame_max_set(lport, maxFrameSize);
 
-    LOG_INFO(LOG_CTX_PTIN_HAPI, "usp{d,%d,%d}: maxFrameSize %u applied over lport=0x%x (bcm_port=%u): rc=%d",
+    LOG_INFO(LOG_CTX_PTIN_HAPI, "usp{%d,%d,%d}: maxFrameSize %u applied over lport=0x%x (bcm_port=%u): rc=%d",
              usp->unit, usp->slot, usp->port, maxFrameSize, lport, hapiLagMemberPortPtr->bcm_port, rc);
 
     if (L7_BCMX_OK(rc) != L7_TRUE)
