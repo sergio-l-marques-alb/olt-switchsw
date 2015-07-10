@@ -708,11 +708,6 @@ static L7_RC_t hapiBroadQosCosIntfRateShape(BROAD_PORT_t *dstPortPtr, L7_uint32 
 
     }
 
-    if(shaperConfig.rate  == 0)
-    {
-      shaperConfig.rate = 100; // ~ 80kbps
-    } 
-
     /* Set kbits_burst equal to 2% of kbit per sec */
     shaperConfig.burst = shaperConfig.rate / 50; 
     
