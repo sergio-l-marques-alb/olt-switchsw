@@ -423,10 +423,11 @@ L7_RC_t ptin_fpga_slot_ip_addr_get(L7_uint8 slotId, L7_uint32 *ipAddr)
  */
 L7_uint8 ptin_fpga_board_slot_get(void)
 {
-  L7_uint8 __board_slot_id = 0;
+  L7_uint8 board_slot_id = 0;
 
   #ifdef MAP_CPLD
-    #if (PTIN_BOARD_IS_LINECARD)
+    board_slot_id = cpld_map->reg.slot_id;
+    #if (PTIN_BOARD_IS_LINECARD)      
       L7_BOOL  olt1t1_backplane;
 
       /* Condition for OLT1T1 backplane */
@@ -435,19 +436,20 @@ L7_uint8 ptin_fpga_board_slot_get(void)
       /* If high and low nibbles are equal, we are at a OLT1T3 system */
       if (!olt1t1_backplane)
       {
-        __board_slot_id = cpld_map->reg.slot_id + 2;
+        board_slot_id += 2;
       }
       /* Otherwise, we are at a OLT1T1 system */
       else
       {
-        /* Validate slot id */
-        if (cpld_map->reg.slot_id > 4)
+        /* Validate slot id */       
+        if (board_slot_id > 4)
           return ((L7_uint8) -1);
-        __board_slot_id = 4 - cpld_map->reg.slot_id;     /* Invert slot ids */
+        /* Invert slot ids */ 
+        board_slot_id = 4 - board_slot_id;        
       }
     #elif (PTIN_BOARD_IS_MATRIX)
-      __board_slot_id = (cpld_map->reg.slot_id == 0) ? PTIN_SYS_MX1_SLOT : PTIN_SYS_MX2_SLOT;
+      board_slot_id = (board_slot_id == 0) ? PTIN_SYS_MX1_SLOT : PTIN_SYS_MX2_SLOT;
     #endif
   #endif
-  return __board_slot_id;
+  return board_slot_id;
 }

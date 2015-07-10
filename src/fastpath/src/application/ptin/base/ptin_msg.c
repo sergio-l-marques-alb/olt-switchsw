@@ -367,14 +367,9 @@ L7_RC_t ptin_msg_typeBprotIntfConfig(msg_HwTypeBProtIntfConfig_t *msg)
   #if (PTIN_BOARD_IS_LINECARD)
   if (ptin_fpga_board_get() == PTIN_BOARD_CXO160G)
   {
-    msg->slotId     = 4 - msg->slotId;
-    msg->pairSlotId = 4 - msg->pairSlotId;
-  }
-  if ( msg->slotId != ptin_fpga_board_slot_get() )
-  {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Parameters: msg.slotId!=my.slotId=%u", msg->slotId, ptin_fpga_board_slot_get());
-    return L7_FAILURE;
-  }
+    msg->slotId     = 6 - msg->slotId;
+    msg->pairSlotId = 6 - msg->pairSlotId;
+  }  
   #endif
 
   ptin_intfConfig.pairSlotId = msg->pairSlotId;
