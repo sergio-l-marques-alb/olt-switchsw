@@ -101,8 +101,6 @@ L7_uint8 ptin_fpga_lc_is_matrixactive_in_workingslot(void)
 
 #if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
 
-static void __ptin_fpga_board_set(void);
-
 /**
  * Get slot position of Active Matrix 
  * (For all cards) 
@@ -288,38 +286,6 @@ L7_uint32 ptin_fpga_matrix_ipaddr_get(ptin_fpga_matrix_type_t matrixType)
   }
 }
 
-static L7_uint32 __board_type    = (L7_uint32) -1;
-
-/**
- * Set Board Type
- *  
- *  
- */
-static void __ptin_fpga_board_set(void)
-{
-  #if PTIN_BOARD_IS_MATRIX
-    #if ( PTIN_BOARD == PTIN_BOARD_CXO160G )
-      __board_type = PTIN_BOARD_CXO160G; 
-    #elif( PTIN_BOARD == PTIN_BOARD_CXO640G )             
-      __board_type = PTIN_BOARD_CXO640G;
-    #endif
-  #elif (PTIN_BOARD_IS_LINECARD)
-      /* Condition for OLT1T1 backplane */ 
-     if(((cpld_map->reg.slot_matrix >> 4) & 0x0f) != (cpld_map->reg.slot_matrix & 0x0f))
-     {
-       __board_type = PTIN_BOARD_CXO160G;
-     }
-     else
-     {
-       __board_type = PTIN_BOARD_CXO640G;
-     }
-  #else
-  #error "Not Supported Yet"
-  #endif
-
-  return;
-}
-
 /**
  * Get Board Type
  * 
@@ -330,10 +296,27 @@ static void __ptin_fpga_board_set(void)
  */
 L7_uint32 ptin_fpga_board_get(void)
 {
-  if (__board_type == (L7_uint32) -1)
-  {
-    __ptin_fpga_board_set();
-  }
+  L7_uint32 __board_type; 
+
+  #if PTIN_BOARD_IS_MATRIX
+    #if ( PTIN_BOARD == PTIN_BOARD_CXO160G )
+      __board_type = PTIN_BOARD_CXO160G; 
+    #elif( PTIN_BOARD == PTIN_BOARD_CXO640G )             
+      __board_type = PTIN_BOARD_CXO640G;
+    #endif
+  #elif (PTIN_BOARD_IS_LINECARD)
+    /* Condition for OLT1T1 backplane */ 
+   if(((cpld_map->reg.slot_matrix >> 4) & 0x0f) != (cpld_map->reg.slot_matrix & 0x0f))
+   {
+     __board_type = PTIN_BOARD_CXO160G;
+   }
+   else
+   {
+     __board_type = PTIN_BOARD_CXO640G;
+   }
+  #else
+    #error "Not Supported Yet"
+  #endif
   return __board_type;
 }
 
@@ -432,47 +415,6 @@ L7_RC_t ptin_fpga_slot_ip_addr_get(L7_uint8 slotId, L7_uint32 *ipAddr)
 }
 #endif // (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
 
-static L7_uint8 __board_slot_id = (L7_uint8) -1;
-
-/**
- * Set slot id 
- * (For all cards)
- * 
- * @return L7_uint8 : slot id
- */
-static void __ptin_fpga_board_slot_set(void)
-{
-  L7_uint8 slot = 0;
-
-#ifdef MAP_CPLD
- #if (PTIN_BOARD_IS_LINECARD)
-  L7_BOOL  olt1t1_backplane;
-
-  /* Condition for OLT1T1 backplane */
-  olt1t1_backplane = (ptin_fpga_board_get() == PTIN_BOARD_CXO160G);
-  
-  /* If high and low nibbles are equal, we are at a OLT1T3 system */
-  if (!olt1t1_backplane)
-  {
-    slot = cpld_map->reg.slot_id + 2;
-  }
-  /* Otherwise, we are at a OLT1T1 system */
-  else
-  {
-    /* Validate slot id */
-    if (cpld_map->reg.slot_id > 4)
-      return;
-    slot = 4 - cpld_map->reg.slot_id;     /* Invert slot ids */
-  }
- #elif (PTIN_BOARD_IS_MATRIX)
-  slot = (cpld_map->reg.slot_id == 0) ? PTIN_SYS_MX1_SLOT : PTIN_SYS_MX2_SLOT;
- #endif
-#endif
-
-  __board_slot_id = slot;
-  return;
-}
-
 /**
  * Get slot id 
  * (For all cards)
@@ -481,9 +423,31 @@ static void __ptin_fpga_board_slot_set(void)
  */
 L7_uint8 ptin_fpga_board_slot_get(void)
 {
-  if (__board_slot_id == (L7_uint8) -1)
-  {
-    __ptin_fpga_board_slot_set();
-  }
+  L7_uint8 __board_slot_id = 0;
+
+  #ifdef MAP_CPLD
+    #if (PTIN_BOARD_IS_LINECARD)
+      L7_BOOL  olt1t1_backplane;
+
+      /* Condition for OLT1T1 backplane */
+      olt1t1_backplane = (ptin_fpga_board_get() == PTIN_BOARD_CXO160G);
+      
+      /* If high and low nibbles are equal, we are at a OLT1T3 system */
+      if (!olt1t1_backplane)
+      {
+        __board_slot_id = cpld_map->reg.slot_id + 2;
+      }
+      /* Otherwise, we are at a OLT1T1 system */
+      else
+      {
+        /* Validate slot id */
+        if (cpld_map->reg.slot_id > 4)
+          return ((L7_uint8) -1);
+        __board_slot_id = 4 - cpld_map->reg.slot_id;     /* Invert slot ids */
+      }
+    #elif (PTIN_BOARD_IS_MATRIX)
+      __board_slot_id = (cpld_map->reg.slot_id == 0) ? PTIN_SYS_MX1_SLOT : PTIN_SYS_MX2_SLOT;
+    #endif
+  #endif
   return __board_slot_id;
 }

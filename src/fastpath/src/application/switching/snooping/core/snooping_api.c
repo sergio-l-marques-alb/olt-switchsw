@@ -46,7 +46,7 @@
 
 /******************Protection Schemes Support************************************/
 #if PTIN_BOARD_IS_LINECARD
-static L7_RC_t __remoteslot_mfdbport_sync(L7_uint8 slotId, L7_uint8 admin, L7_uint32 serviceId, L7_uint32 workingPortId, L7_uint32 protectionPortId, L7_uint32 groupAddr, L7_uint32 sourceAddr, L7_uint8 groupType);
+static L7_RC_t __remoteslot_mfdbport_sync(L7_uint8 workingSlotId, L7_uint8  protectionslotId, L7_uint8 admin, L7_uint32 serviceId, L7_uint32 workingPortId, L7_uint32 protectionPortId, L7_uint32 groupAddr, L7_uint32 sourceAddr, L7_uint8 groupType);
 #endif
 #if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
 static L7_RC_t __matrix_mfdbport_sync(L7_uint8 admin, ptin_fpga_matrix_type_t matrixType, L7_uint32 serviceId, L7_uint32 slotId, L7_uint32 groupAddr, L7_uint32 sourceAddr, L7_uint8 groupType);
@@ -67,11 +67,10 @@ static L7_RC_t __matrix_mfdbport_sync(L7_uint8 admin, ptin_fpga_matrix_type_t ma
  * 
  * @return L7_RC_t 
  */
-L7_RC_t __remoteslot_mfdbport_sync(L7_uint8 protectionSlotId, L7_uint8 admin, L7_uint32 serviceId, L7_uint32 workingPortId, L7_uint32 protectionPortId, L7_uint32 groupAddr, L7_uint32 sourceAddr, L7_uint8 groupType)
+L7_RC_t __remoteslot_mfdbport_sync(L7_uint8 workingSlotId, L7_uint8 protectionSlotId, L7_uint8 admin, L7_uint32 serviceId, L7_uint32 workingPortId, L7_uint32 protectionPortId, L7_uint32 groupAddr, L7_uint32 sourceAddr, L7_uint8 groupType)
 {
   msg_HwMgmdPortSync mgmdPortSync = {0};
   L7_uint32          protectionSlotIp;
-  L7_uint8           workingSlotId = ptin_fpga_board_slot_get();
   L7_uint32          workingSlotIp = simGetIpcIpAddr();
   L7_RC_t            rc;
 
@@ -4028,7 +4027,7 @@ L7_RC_t snoopPortOpen(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *g
 #elif PTIN_BOARD_IS_LINECARD   
     if(protTypebIntfConfig.status == L7_ENABLE)       
     {
-      __remoteslot_mfdbport_sync(protTypebIntfConfig.pairSlotId, L7_ENABLE, serviceId, intIfNum, protTypebIntfConfig.pairIntfNum, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr, isStatic);
+      __remoteslot_mfdbport_sync(protTypebIntfConfig.slotId, protTypebIntfConfig.pairSlotId, L7_ENABLE, serviceId, intIfNum, protTypebIntfConfig.pairIntfNum, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr, isStatic);
       __matrix_mfdbport_sync(L7_ENABLE, PTIN_FPGA_ACTIVE_MATRIX, serviceId, protTypebIntfConfig.pairSlotId, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr, isStatic);
     }
 #elif PTIN_BOARD_IS_STANDALONE
@@ -4144,7 +4143,7 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
   /* Sync the status of this switch port on the backup type-b protection port, if it exists */ 
   if(protTypebIntfConfig.status == L7_ENABLE)
   {
-    __remoteslot_mfdbport_sync(protTypebIntfConfig.pairSlotId, L7_DISABLE, serviceId, intIfNum, protTypebIntfConfig.pairIntfNum, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr, L7_FALSE);
+    __remoteslot_mfdbport_sync(protTypebIntfConfig.slotId, protTypebIntfConfig.pairSlotId, L7_DISABLE, serviceId, intIfNum, protTypebIntfConfig.pairIntfNum, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr, L7_FALSE);
     __matrix_mfdbport_sync(L7_DISABLE, 1, serviceId, protTypebIntfConfig.pairSlotId, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr, L7_FALSE);
   }
 #elif PTIN_BOARD_IS_STANDALONE
