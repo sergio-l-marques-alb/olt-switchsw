@@ -615,6 +615,7 @@ void ptin_intf_dump(void)
   L7_uint   port;
   L7_uint16 slot, sport;
   L7_uint32 intIfNum = -1;
+  L7_uint32 lagIntfNum = -1;
   L7_uint32 speed_mode;
   L7_uint32 frameOversize, frameMax;
   L7_char8  speed[8];
@@ -629,9 +630,9 @@ void ptin_intf_dump(void)
   sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(0));
   dapiCardPtr = sysapiHpcCardInfoPtr->dapiCardInfo;
   hapiSlotMapPtr = dapiCardPtr->slotMap;
-  printf("+-------+------+------+-----+----------+-----------+-----+------+-------+-----------+------------------------+------------------------+\r\n");
-  printf("| Board | Slot | Port | IfN | bcm_port | MEF Ext.* | Ena | Link | Speed | FOvr/FMax |   RX:  bytes       bps |   TX:  bytes       bps |\r\n");
-  printf("+-------+------+------+-----+----------+-----------+-----+------+-------+-----------+------------------------+------------------------+\r\n");
+  printf("+-------+------+------+---------+----------+-----------+-----+------+-------+-----------+------------------------+------------------------+\r\n");
+  printf("| Board | Slot | Port | IfN/Lag | bcm_port | MEF Ext.* | Ena | Link | Speed | FOvr/FMax |   RX:  bytes       bps |   TX:  bytes       bps |\r\n");
+  printf("+-------+------+------+---------+----------+-----------+-----+------+-------+-----------+------------------------+------------------------+\r\n");
   for (port=0; port<ptin_sys_number_of_ports; port++)
   {
     /* Get intIfNum ID */
@@ -642,6 +643,11 @@ void ptin_intf_dump(void)
     {
       LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to get admin state of port# %u", port);
       continue;
+    }
+
+    if (nimGetLagIntfNum(intIfNum, &lagIntfNum) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to get lagIntfNum from port# %u", port);
     }
 
     /* Speed */
@@ -809,10 +815,11 @@ void ptin_intf_dump(void)
     /* Switch port: ge/xe (indexes changed according to the board) */
     sprintf(bcm_port_str,"%.7s", hapiSlotMapPtr[port].portName);
 
-    printf("| %-6.6s| %2u/%-2u|  %2u  |  %2u | %2u (%-4.4s)| %-3.3s-%u/%u/%u | %-3.3s | %4.4s | %5.5s |%5u/%-5u|%s%12llu %9llu%s|%s%12llu %9llu%s|\r\n",
+    printf("| %-6.6s| %2u/%-2u|  %2u  |  %2u/%2d  | %2u (%-4.4s)| %-3.3s-%u/%u/%u | %-3.3s | %4.4s | %5.5s |%5u/%-5u|%s%12llu %9llu%s|%s%12llu %9llu%s|\r\n",
            board_id_str, slot, sport,
            port,
            intIfNum,
+           intIfNum==lagIntfNum?-1:lagIntfNum,
            bcm_port, bcm_port_str,
            (portExt.egress_type == PTIN_PORT_EGRESS_TYPE_ISOLATED) ? "ISO" : ((portExt.egress_type == PTIN_PORT_EGRESS_TYPE_COMMUNITY) ? "COM" : "PRO"),
            portExt.macLearn_stationMove_enable, portExt.macLearn_stationMove_samePrio, portExt.macLearn_stationMove_prio,
