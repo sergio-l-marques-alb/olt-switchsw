@@ -8744,10 +8744,10 @@ L7_RC_t ptin_msg_group_list_add(msg_MCAssocChannel_t *channel_list, L7_uint16 n_
         return L7_FAILURE;                   
       }
 
-      if ( channel_list[i].channel_dstmask != 0 )
+      if ( channel_list[i].channel_dstmask != 32 )
       {
         LOG_WARNING(LOG_CTX_PTIN_MSG," Invalid Parameters: evcid_mc:%u groupAddr=%s/%u sourceAddr:%s/%u ", channel_list[i].evcid_mc, groupAddrStr, channel_list[i].channel_dstmask, sourceAddrStr, channel_list[i].channel_srcmask);
-        channel_list[i].channel_dstmask = 0;
+        channel_list[i].channel_dstmask = 32;
       }
 
       if ( channel_list[i].channel_srcmask != 0 )
@@ -8870,10 +8870,10 @@ L7_RC_t ptin_msg_group_list_remove(msg_MCAssocChannel_t *channel_list, L7_uint16
         return L7_FAILURE;                   
       }
 
-      if ( channel_list[i].channel_dstmask != 0 )
+      if ( channel_list[i].channel_dstmask != 32 )
       {
         LOG_WARNING(LOG_CTX_PTIN_MSG," Invalid Parameters: evcid_mc:%u groupAddr=%s/%u sourceAddr:%s/%u ", channel_list[i].evcid_mc, groupAddrStr, channel_list[i].channel_dstmask, sourceAddrStr, channel_list[i].channel_srcmask);
-        channel_list[i].channel_dstmask = 0;
+        channel_list[i].channel_dstmask = 32;
       }
 
       if ( channel_list[i].channel_srcmask != 0 )
@@ -13323,10 +13323,10 @@ L7_RC_t ptin_msg_igmp_package_channels_add(msg_igmp_package_channels_t *msg, L7_
         return L7_FAILURE;                   
       }
 
-      if ( msg[messageIterator].groupMask != 0 )
+      if ( msg[messageIterator].groupMask != 32)
       {
         LOG_WARNING(LOG_CTX_PTIN_MSG," Invalid Parameters: packageId:%u evcId:%u groupAddr=%s/%u sourceAddr:%s/%u ",  msg[messageIterator].packageId, msg[messageIterator].evcId, groupAddrStr,  msg[messageIterator].groupMask, sourceAddrStr,  msg[messageIterator].sourceMask);
-        msg[messageIterator].groupMask = 0;
+        msg[messageIterator].groupMask = 32;
       }
 
       if ( msg[messageIterator].sourceMask != 0 )
@@ -13427,10 +13427,10 @@ L7_RC_t ptin_msg_igmp_package_channels_remove(msg_igmp_package_channels_t *msg, 
         return L7_FAILURE;                   
       }
 
-      if ( msg[messageIterator].groupMask != 0 )
+      if ( msg[messageIterator].groupMask != 32 )
       {
         LOG_WARNING(LOG_CTX_PTIN_MSG," Invalid Parameters: packageId:%u evcId:%u groupAddr=%s/%u sourceAddr:%s/%u ",  msg[messageIterator].packageId, msg[messageIterator].evcId, groupAddrStr,  msg[messageIterator].groupMask, sourceAddrStr,  msg[messageIterator].sourceMask);
-        msg[messageIterator].groupMask = 0;
+        msg[messageIterator].groupMask = 32;
       }
 
       if ( msg[messageIterator].sourceMask != 0 )
