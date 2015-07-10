@@ -367,8 +367,8 @@ L7_RC_t ptin_msg_typeBprotIntfConfig(msg_HwTypeBProtIntfConfig_t *msg)
   #if (PTIN_BOARD_IS_LINECARD)
   if (ptin_fpga_board_get() == PTIN_BOARD_CXO160G)
   {
-    msg->slotId     = PTIN_SYS_INTFS_PER_SLOT_MAX - msg->slotId;
-    msg->pairSlotId = PTIN_SYS_INTFS_PER_SLOT_MAX - msg->pairSlotId;
+    msg->slotId     = 4 - msg->slotId;
+    msg->pairSlotId = 4 - msg->pairSlotId;
   }
   if ( msg->slotId != ptin_fpga_board_slot_get() )
   {
