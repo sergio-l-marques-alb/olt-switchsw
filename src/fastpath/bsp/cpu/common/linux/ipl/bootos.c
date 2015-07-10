@@ -820,6 +820,8 @@ void sigsegv_handler (int sig, siginfo_t * info, void * v)
      hpcHardwareFini();
      LOG_NOTICE(LOG_CTX_STARTUP,"SDK terminated!");
      logger_deinit();
+     printf("OLTSWITCH terminated... Good bye!\r\n");
+     fflush(stdout);
      exit(0);
    }
 
@@ -932,6 +934,7 @@ void sigsegv_handler (int sig, siginfo_t * info, void * v)
   hpcHardwareFini();
   LOG_NOTICE(LOG_CTX_STARTUP,"SDK terminated!");
   logger_deinit();
+  printf("OLTSWITCH crashed!\r\n");
 
   if (BACKTRACE_FILE)
   {
@@ -939,6 +942,7 @@ void sigsegv_handler (int sig, siginfo_t * info, void * v)
     printf("This build was configured to copy this crash information to\n");
     printf("  a file.\n");
   }
+  fflush(stdout);
 
   already_called = 1;
 
