@@ -364,14 +364,6 @@ L7_RC_t ptin_msg_typeBprotIntfConfig(msg_HwTypeBProtIntfConfig_t *msg)
     return L7_FAILURE;
   }
   
-  #if (PTIN_BOARD_IS_LINECARD)
-  if (ptin_fpga_board_get() == PTIN_BOARD_CXO160G)
-  {
-    msg->slotId     = 6 - msg->slotId;
-    msg->pairSlotId = 6 - msg->pairSlotId;
-  }  
-  #endif
-
   ptin_intfConfig.pairSlotId = msg->pairSlotId;
   ptin_intfConfig.intfRole   = msg->intfRole;
   ptin_intfConfig.slotId     = msg->slotId;
