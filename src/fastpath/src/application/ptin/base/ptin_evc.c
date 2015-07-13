@@ -5042,8 +5042,8 @@ L7_RC_t ptin_evc_macbridge_client_packages_remove(ptin_evc_macbridge_client_pack
   /* Add client */
   if ( (rc = ptin_igmp_group_client_add(&clientId, pflow->uni_ovid, pflow->uni_ivid, ecvFlow->onuId, 0x0C, 0, 0, addOrRemove, ecvFlow->packageBmpList, ecvFlow->noOfPackages) != L7_SUCCESS) )
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding client to IGMP instance", evc_id);
-    return rc;
+    LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: IGMP Client Not Found", evc_id);
+    return SUCCESS;
   }
   return rc;
 #else
