@@ -20,9 +20,6 @@
 *
 **********************************************************************/
 
-/*************************************************************
-
-*************************************************************/
 
 #define DTL_USE_TAP
 
@@ -62,17 +59,12 @@
   #include "dtl_ptin.h"
   #include "usmdb_common.h"
 
-/* PTin added: inband */
+/* PTin added */
 #if ( (PTIN_BOARD == PTIN_BOARD_CXO640G) || (PTIN_BOARD == PTIN_BOARD_CXO160G) || (PTIN_BOARD == PTIN_BOARD_OLT1T0) )
 #define __ENABLE_DTL0INBANDVID_REMOVAL__      0
 #else
 #define __ENABLE_DTL0INBANDVID_REMOVAL__      0
 #endif
-
-
-/* Generic Defines */
-#define DTL0INBANDVID   PTIN_VLAN_INBAND
-
 
 extern L7_uint16 ptin_cfg_inband_vlan_get(void);
 
@@ -81,23 +73,39 @@ extern L7_uint16 ptin_ipdtl0_internalVid_get(L7_uint16 dtl0Vid);
 extern L7_uint16 ptin_ipdtl0_outerVid_get(L7_uint16 dtl0Vid);
 extern L7_uint16 ptin_ipdtl0_dtl0Type_get(L7_uint16 dtl0Vid);
 
-extern L7_RC_t dtlIpv4ArpEntryGets(L7_arpEntry_t *pArp);
-
 extern int send_TxTsRecord(ptin_PptTsRecord_t *ptpTs);
-
-static L7_uint64  secCounter = 0;  /* ToD Seconds Counter */
-static L7_ulong32 lastTs = 0;      /* ToD Nanoseconds Counter from PHYs */
 
 #ifdef DTL_USE_TAP
 void dtlSendCmd(int fd, L7_uint32 intIfNum, L7_netBufHandle handle, tapDtlInfo *info);
 #endif
+
+/* keep info about timestamp */
+dtlToD_t dtltod;
+
+/* debug level */
+dtlNetPtinDebug_enum_t dtlNetPtinDebug = DTLNET_PTINDEBUG_NONE;
+
+/**
+ * Set debug level
+ * 
+ * @author joaom (7/9/2015)
+ * 
+ * @param mask 
+ */
+void dtlNetPtinDebugEnable(L7_uchar8 mask)
+{
+    dtlNetPtinDebug = mask;
+}
+
+
 /* PTin end */
+
 
 /* need init function to open sockets for NET driver */
 /* need to start a task to read from socket and write to DTL */
 
-  #define L7_MAX_DTL_SEND_ENTRIES 1024
-  #define DTL_MIN_PDU_SIZE        0x3C
+#define L7_MAX_DTL_SEND_ENTRIES 1024
+#define DTL_MIN_PDU_SIZE        0x3C
 
 
 typedef struct dtlSendData_s
@@ -117,12 +125,12 @@ typedef struct dtl_stats_s
   L7_uint32 bad_adds;            /* failure to allocate space for add */
   L7_uint32 chg_adds;            /* update intIfNum for existing MAC addr */
   L7_uint32 bad_dels;            /* attempts to delete non-existant entries */
-  L7_uint32 insert_flushes;   /* number of times table was flushed due to max table entries  */
-  L7_uint32 stale_flushes;   /* number of times table was flushed due to stale port mapping  */
-  L7_uint32 ip_recv_insert1;           /* number of insertions at IP recv point 1  */
-  L7_uint32 ip_recv_insert2;           /* number of insertions at IP recv point 2  */
-  L7_uint32 arp_recv_insert1;           /* number of insertions at ARP recv point 1  */
-  L7_uint32 arp_recv_insert2;           /* number of insertions at ARP recv point 2  */
+  L7_uint32 insert_flushes;      /* number of times table was flushed due to max table entries  */
+  L7_uint32 stale_flushes;       /* number of times table was flushed due to stale port mapping  */
+  L7_uint32 ip_recv_insert1;     /* number of insertions at IP recv point 1  */
+  L7_uint32 ip_recv_insert2;     /* number of insertions at IP recv point 2  */
+  L7_uint32 arp_recv_insert1;    /* number of insertions at ARP recv point 1  */
+  L7_uint32 arp_recv_insert2;    /* number of insertions at ARP recv point 2  */
 } dtl_stats_t;
 
 static avlTreeTables_t   dtlSendTreeHeap[L7_MAX_DTL_SEND_ENTRIES];
@@ -138,37 +146,12 @@ extern L7_BOOL dtlNetInitDone;
 int dtl_net_fd = -1;
 #endif
 
-/* PTin added: inband */
-typedef enum  {
-  DTLNET_PTINDEBUG_NONE      = 0x00,
-  DTLNET_PTINDEBUG_TX_LEVEL1 = 0x01,
-  DTLNET_PTINDEBUG_TX_LEVEL2 = 0x02,
-  DTLNET_PTINDEBUG_TX_LEVEL3 = 0x04,
-  DTLNET_PTINDEBUG_TX_LEVEL4 = 0x08,
-  DTLNET_PTINDEBUG_RX_LEVEL1 = 0x10,
-  DTLNET_PTINDEBUG_RX_LEVEL2 = 0x20,
-  DTLNET_PTINDEBUG_RX_LEVEL3 = 0x40,
-  DTLNET_PTINDEBUG_RX_LEVEL4 = 0x80,
-} dtlNetPtinDebug_enum_t;
-
-dtlNetPtinDebug_enum_t dtlNetPtinDebug = DTLNET_PTINDEBUG_NONE;
-
-void dtlNetPtinDebugEnable(L7_uchar8 mask)
-{
-    dtlNetPtinDebug = mask;
-}
-
-void dtlNetPtinToDdump(void)
-{
-    SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "ToD: %lld.%ld \n\r", secCounter, lastTs);
-}
-
 void dtlDeleteAll()
 {
 
   osapiSemaTake(dtlSendTreeData.semId, L7_WAIT_FOREVER);
 
-   avlPurgeAvlTree(&dtlSendTreeData,L7_MAX_DTL_SEND_ENTRIES );
+  avlPurgeAvlTree(&dtlSendTreeData,L7_MAX_DTL_SEND_ENTRIES );
 
   osapiSemaGive(dtlSendTreeData.semId);
 }
@@ -305,6 +288,104 @@ void dtlStatsReset()
     bzero((char *) &dtlStats, sizeof(dtl_stats_t));
 }
 
+
+/* PTin added: ToD functions */
+
+/**
+ * ToD Statistics Increment
+ * 
+ * @author joaom (7/9/2015)
+ * 
+ * @param intIfNum (input) Internal Interface Number
+ * @param counter  (input) type of counter
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t dtlToDStatsIncrement(L7_uint32 intIfNum, dtlToDStats_enum_t counter)
+{
+  if (intIfNum > DTLTOD_MAX_INTF)
+  {
+    if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
+    {
+      SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Interface out of range (%d > %d) \n\r", __FUNCTION__, __LINE__, intIfNum, DTLTOD_MAX_INTF);
+    }
+    return L7_FAILURE;
+  }
+
+  switch (counter)
+  {
+    case DTLTOD_TX_SUCCESS:
+      dtltod.stats.ts_counter[intIfNum]++;
+      break;
+    case DTLTOD_TX_ERROR:
+      dtltod.stats.ts_error[intIfNum]++;
+      break;
+    default:
+      return L7_FAILURE;
+      break;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * ToD Statistics reset
+ * 
+ * @author joaom (7/9/2015)
+ * 
+ * @param intIfNum (input) Internal Interface Number
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t dtlToDStatsReset(L7_uint32 intIfNum)
+{
+  if (intIfNum > DTLTOD_MAX_INTF)
+  {
+    if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
+    {
+      SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Interface out of range (%d > %d) \n\r", __FUNCTION__, __LINE__, intIfNum, DTLTOD_MAX_INTF);
+    }
+    return L7_FAILURE;
+  }
+
+  dtltod.stats.ts_counter[intIfNum]=0;
+  dtltod.stats.ts_error[intIfNum]=0;
+
+  return L7_SUCCESS;
+}
+
+/**
+ * ToD Status show
+ * 
+ * @author joaom (7/9/2015)
+ * 
+ * @param intIfNum (input) Internal Interface Number
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t dtlToDShow(L7_uint32 intIfNum)
+{
+  /* timestamp info */
+  SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "ToD: %lld.%ld \n\r", dtltod.tsSeconds, dtltod.tsNanoseconds);
+
+  if (intIfNum > DTLTOD_MAX_INTF)
+  {
+    if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
+    {
+      SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Interface out of range (%d > %d) \n\r", __FUNCTION__, __LINE__, intIfNum, DTLTOD_MAX_INTF);
+    }
+    return L7_FAILURE;
+  }
+
+  SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Interface (%.02d): TS Records %lld \n\r"
+                                       "                TS Errors  %lld \n\r", intIfNum, dtltod.stats.ts_counter[intIfNum], dtltod.stats.ts_error[intIfNum]);
+
+  return L7_SUCCESS;
+}
+/* PTin end */
+
+
+
 void dtlGlobalInit (void)
 {
 
@@ -317,10 +398,18 @@ void dtlGlobalInit (void)
 #ifdef DTL_USE_TAP
    tap_monitor_init(1);
 #endif
+
+   /* PTin added */
+   dtltod.tsSemaphore = osapiSemaMCreate(OSAPI_SEM_Q_FIFO);
+   if (dtltod.tsSemaphore == L7_NULL)
+   {
+     LOG_ERROR(0);
+   }
+
 } /* dtlGlobalInit */
 
 
-/* PTin added: inband */
+/* PTin added */
 L7_RC_t dtlIPProtoRecvAny(L7_netBufHandle bufHandle, char *data, L7_uint32 nbytes, sysnet_pdu_info_t *pduInfo)
 {
   L7_ushort16 etype = 0;
@@ -340,9 +429,7 @@ L7_RC_t dtlIPProtoRecvAny(L7_netBufHandle bufHandle, char *data, L7_uint32 nbyte
     dtl0Vid &= 0x0FFF; /* VLAN ID */
 
     if (dtlNetPtinDebug & DTLNET_PTINDEBUG_RX_LEVEL1)
-    {
-      SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlIPProtoRecvAny (%d): etype %04X, nbytes %d \n\r", __LINE__, etype, nbytes);
-    }
+      SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): etype %04X, nbytes %d \n\r", __FUNCTION__, __LINE__, etype, nbytes);
 
     if(etype == L7_ETYPE_ARP)
     {
@@ -354,66 +441,34 @@ L7_RC_t dtlIPProtoRecvAny(L7_netBufHandle bufHandle, char *data, L7_uint32 nbyte
       arp_header = (L7_ether_arp_t *)(data + headerOffset);
       op = osapiNtohs (arp_header->ea_hdr.ar_op);
 
-      switch (op)
+      if (dtlNetPtinDebug & DTLNET_PTINDEBUG_RX_LEVEL2)
       {
-        case L7_ARPOP_REQUEST:
+        switch (op)
         {
-          if (dtlNetPtinDebug & DTLNET_PTINDEBUG_RX_LEVEL2) 
-          {
-            SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlIPProtoRecvAny (%d): ARP REQUEST Received \n\r", __LINE__);
-          }
-          break;
-        }
+          case L7_ARPOP_REQUEST:
+              SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlIPProtoRecvAny (%d): ARP REQUEST Received \n\r", __LINE__);
+            break;
 
-        case L7_ARPOP_REPLY:
-        {
-          if (dtlNetPtinDebug & DTLNET_PTINDEBUG_RX_LEVEL2) 
-          {
-            SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlIPProtoRecvAny (%d): ARP REPLY Received \n\r", __LINE__);
-          }
-          break;
-        }
+          case L7_ARPOP_REPLY:
+              SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlIPProtoRecvAny (%d): ARP REPLY Received \n\r", __LINE__);
 
-        case L7_ARPOP_REVREQUEST:
-        {
-          if (dtlNetPtinDebug & DTLNET_PTINDEBUG_RX_LEVEL2) 
-          {
-            SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlIPProtoRecvAny (%d): ARP REVREQUEST Received \n\r", __LINE__);
-          }
-          break;
-        }
+          case L7_ARPOP_REVREQUEST:
+              SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlIPProtoRecvAny (%d): ARP REVREQUEST Received \n\r", __LINE__);
 
-        case L7_ARPOP_REVREPLY:
-        {
-          if (dtlNetPtinDebug & DTLNET_PTINDEBUG_RX_LEVEL2) 
-          {
-            SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlIPProtoRecvAny (%d): ARP REVREPLY Received \n\r", __LINE__);
-          }
-          break;
-        }
+          case L7_ARPOP_REVREPLY:
+              SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlIPProtoRecvAny (%d): ARP REVREPLY Received \n\r", __LINE__);
 
-        case L7_ARPOP_INVREQUEST:
-        {
-          if (dtlNetPtinDebug & DTLNET_PTINDEBUG_RX_LEVEL2) 
-          {
-            SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlIPProtoRecvAny (%d): ARP INVREQUEST Received \n\r", __LINE__);
-          }
-          break;
-        }
+          case L7_ARPOP_INVREQUEST:
+              SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlIPProtoRecvAny (%d): ARP INVREQUEST Received \n\r", __LINE__);
 
-        case L7_ARPOP_INVREPLY:
-        {
-          if (dtlNetPtinDebug & DTLNET_PTINDEBUG_RX_LEVEL2) 
-          {
-            SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlIPProtoRecvAny (%d): ARP INVREPLY Received \n\r", __LINE__);
-          }
-          break;
+          case L7_ARPOP_INVREPLY:
+              SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlIPProtoRecvAny (%d): ARP INVREPLY Received \n\r", __LINE__);
         }
-      }      
+      }
     }
     else
     {
-      /* IEEE 1588 / PTP TS Activation */
+      /* PTin added: IEEE 1588 / PTP TS Activation */
       #if 1
       {
         L7_ipHeader_t *ip_header;
@@ -431,17 +486,45 @@ L7_RC_t dtlIPProtoRecvAny(L7_netBufHandle bufHandle, char *data, L7_uint32 nbyte
 
           ptpHeader = (L7_PtpV2_header_t *)((L7_char8 *)udpHeader + sizeof(L7_udp_header_t));
 
-          if (dtlNetPtinDebug & DTLNET_PTINDEBUG_RX_LEVEL3)
-          {
-            SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "UDP DST PORT %d: ptin_ipdtl0_dtl0Type_get(vid %d) = %d\n", osapiNtohs(udpHeader->destPort), dtl0Vid, ptin_ipdtl0_dtl0Type_get(dtl0Vid));
-          }
-
           /* PTP Timestamp: UDP Port 319 or 320 */
           if ((ptin_ipdtl0_dtl0Type_get(dtl0Vid) == PTIN_IPDTL0_ETH_IPv4_UDP_PTP ) && ((osapiNtohs(udpHeader->destPort) == UDP_PORT_EVENT_PTP) || (osapiNtohs(udpHeader->destPort) == UDP_PORT_GENERAL_PTP)))
           {
             if (osapiNtohs(udpHeader->destPort) == UDP_PORT_EVENT_PTP)
             {
-              ptpHeader->reserved3 = pduInfo->timestamp; 
+              osapiSemaTake(dtltod.tsSemaphore, L7_WAIT_FOREVER);
+
+              /* Deal with wraparounds of the hardware timestamp counter */
+              #if (PTIN_BOARD == PTIN_BOARD_TG16G)
+              {
+                /* On VK2 the timer wraps every (10^9)-1 nanoseconds */
+                if (pduInfo->timestamp < dtltod.tsHwCounter)
+                {
+                  dtltod.tsSeconds = dtltod.tsSeconds + 1;
+                  dtltod.tsNanoseconds = pduInfo->timestamp;
+                }            
+              }          
+              #elif (PTIN_BOARD == PTIN_BOARD_TA48GE)
+              {
+                /* On TR3 the timer wraps every 2^32 nanoseconds */
+                dtltod.tsNanoseconds = dtltod.tsNanoseconds + (pduInfo->timestamp - dtltod.tsHwCounter);
+                if (dtltod.tsNanoseconds >= 1000000000)
+                {
+                  dtltod.tsSeconds = dtltod.tsSeconds + 1;
+                  dtltod.tsNanoseconds = dtltod.tsNanoseconds - 1000000000;
+                }
+                else if (dtltod.tsNanoseconds < 0)
+                {
+                  dtltod.tsSeconds = dtltod.tsSeconds - 1;
+                  dtltod.tsNanoseconds = dtltod.tsNanoseconds + 1000000000;
+                }
+              }
+              #endif
+
+              dtltod.tsHwCounter = pduInfo->timestamp;
+
+              osapiSemaGive(dtltod.tsSemaphore);
+
+              ptpHeader->reserved3 = dtltod.tsNanoseconds;
 
               udpHeader->checksum = 0x0000; /* none. If checksum is not defined the OS IP Stack ignores it */
             }
@@ -464,7 +547,7 @@ L7_RC_t dtlIPProtoRecvAny(L7_netBufHandle bufHandle, char *data, L7_uint32 nbyte
                 SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "...");
 
               SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "\nPTP Header: message Type %d, version %d, domainNumber %d, sequenceId %d \n"
-                                                   "            messageLength %d, reserved2 %d, flags 0x%.4X, correctionField %lld, reserved3 %d \n"
+                                                   "            messageLength %d, reserved2 %d, flags 0x%.4X, correctionField %lld, reserved3 %u \n"
                                                    "            clockIdentity %02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X \n"
                                                    "            portNumber %d, controlField %d, logMessageInterval %d\n\r", 
                             (ptpHeader->transportSpecific_messageType & 0x0F), (ptpHeader->reserved1_versionPTP & 0x0F), ptpHeader->domainNumber, ptpHeader->sequenceId,
@@ -472,8 +555,6 @@ L7_RC_t dtlIPProtoRecvAny(L7_netBufHandle bufHandle, char *data, L7_uint32 nbyte
                             ptpHeader->sourcePortIdentity.clockIdentity[0], ptpHeader->sourcePortIdentity.clockIdentity[1], ptpHeader->sourcePortIdentity.clockIdentity[2], ptpHeader->sourcePortIdentity.clockIdentity[3], 
                             ptpHeader->sourcePortIdentity.clockIdentity[4], ptpHeader->sourcePortIdentity.clockIdentity[5], ptpHeader->sourcePortIdentity.clockIdentity[6], ptpHeader->sourcePortIdentity.clockIdentity[7],
                             ptpHeader->sourcePortIdentity.portNumber, ptpHeader->controlField, ptpHeader->logMessageInterval);
-
-              SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "\n\n\r");
             }
           }
         }
@@ -688,7 +769,7 @@ L7_RC_t dtlIPProtoRecv (L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
          }
          if (nbytes > 128)
            SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "...");
-         SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "\n\n\r");
+         SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "\n\r");
       }
     }
 
@@ -832,12 +913,13 @@ L7_RC_t dtlARPProtoRecv(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
 
 } /* dtlARPProtoRecv */
 
+
 /**
  * Add a vlan on to the dtl0 interface. 
  *  
- * @param vlanId : Vlan ID to which the routing interface will be associated
+ * @param   vlanId    Vlan ID to which the routing interface will be associated
  * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ * @return  L7_RC_t   L7_SUCCESS/L7_FAILURE 
  *  
  * @note This creates a routing interface named dtl0.VLANID, where VLANID is the value passed through 'vlanId' 
  */
@@ -880,19 +962,18 @@ L7_int dtlVlanIfAdd(L7_uint16 vlanId)
   return res;
 }
 
-/**************************************************************************
-* @purpose  Update the MAC address for a given interface
-*
-* @param    newMac   L7_uchar8 pointer to a mac address
-* @param    ifName   interface name
-* @param    vlanId   VLAN ID
-*
-* @returns  L7_SUCCESS or L7_FAILURE
-*
-* @comments    none.
-*
-* @end
-*************************************************************************/
+
+/**
+ * Update the MAC address for a given interface
+ * 
+ * @author joaom (7/9/2015)
+ * 
+ * @param newMac pointer to a mac address
+ * @param ifName interface name
+ * @param vlanId VLAN ID
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
 L7_RC_t dtlMacAddrChange(L7_uchar8 *newMac, L7_uchar8 *ifName, L7_uint16 vlanId)
 {
   int    sock;
@@ -1119,261 +1200,6 @@ void dtlNetInit(void)
   dtlNetInitDone = L7_TRUE;
 }
 
-/* PTin added */
-#if 1
-void dtlNetDebug(L7_uint level)
-{
-  if (dtl_net_fd < 0)
-  {
-    printf("dtl_net_fd not open\r\n");
-    return;
-  }
-
-  if (ioctl(dtl_net_fd, TUNSETDEBUG, level) < 0) 
-  {
-    printf("Unable to create corresponding dtl net ifc\n");
-  }
-}
-
-/**************************************************************************
-* @purpose  Close DTL interface.
-*
-* @param    none
-*
-* @returns   none
-*
-* @comments    none.
-*
-* @end
-*************************************************************************/
-void dtlNetClose(void)
-{
-  if (dtl_net_fd >= 0)
-  {
-    /*
-     *unregister this fd with the tap monitor.
-     */
-    if(tap_monitor_unregister(dtl_net_fd) == L7_FAILURE)
-    {
-       printf("Failed TAP UNREGISTRATION\n");
-    }
-
-  #ifdef DTL_USE_TAP
-    /*
-     *if we are using the tap driver here
-     *for the dtl interface then we need to
-     *a file descriptor to it and set up
-     *the corresponding network interface
-     */
-    if(close(dtl_net_fd) < 0)
-    {
-       printf("Unable to close %s\n",TUN_DRV_NAME);
-    }
-    else
-    {
-       dtl_net_fd = -1;
-       printf("%s closed\n",TUN_DRV_NAME);
-    }
-  #endif
-
-    dtlDeleteAll();
-
-    //dtlNetInitDone = L7_FALSE;
-  }
-}
-
-/**************************************************************************
-* @purpose  Reopen DTL interface.
-*
-* @param    none
-*
-* @returns   none
-*
-* @comments    none.
-*
-* @end
-*************************************************************************/
-void dtlNetReopen(void)
-{
-
-  L7_uchar8 empty[6], mac[6];
-  L7_uint32 vlanId;
-#ifdef DTL_USE_TAP
-  struct ifreq ifr;
-#endif
-  unsigned long queue_len;
-  char queue_len_buf[11];
-
-  if (dtl_net_fd >= 0)
-  {
-    /*
-     *unregister this fd with the tap monitor.
-     */
-    if(tap_monitor_unregister(dtl_net_fd) == L7_FAILURE)
-    {
-       printf("Failed TAP UNREGISTRATION\n");
-    }
-
-  #ifdef DTL_USE_TAP
-    /*
-     *if we are using the tap driver here
-     *for the dtl interface then we need to
-     *a file descriptor to it and set up
-     *the corresponding network interface
-     */
-    if(close(dtl_net_fd) < 0)
-    {
-       printf("Unable to close %s\n",TUN_DRV_NAME);
-    }
-    else
-    {
-      dtl_net_fd = -1;
-      printf("%s closed\n",TUN_DRV_NAME);
-    }
-  #endif
-
-    dtlDeleteAll();
-
-    //dtlNetInitDone = L7_FALSE;
-  }
-
-  /*******************************/
-
-  memset(empty, 0x00, L7_MAC_ADDR_LEN);
-
-#ifdef DTL_USE_TAP
-  /*
-   *if we are using the tap driver here
-   *for the dtl interface then we need to
-   *a file descriptor to it and set up
-   *the corresponding network interface
-   */
-  dtl_net_fd = open(TAP_DRV_NAME,O_RDWR);
-  if(dtl_net_fd < 0)
-  {
-     /*SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Unable to open %s\n",TAP_DRV_NAME);*/
-     dtl_net_fd = open(TUN_DRV_NAME,O_RDWR);
-     if(dtl_net_fd < 0)
-     {
-       printf("Unable to open %s\n",TUN_DRV_NAME);
-       return;
-     }
-  }
-
-  /*
-   *register this fd with the tap monitor.
-   *make sure to add a dtlCmd function
-   */
-  if(tap_monitor_register(dtl_net_fd,0,dtlSendCmd) == L7_FAILURE)
-  {
-     printf("Failed TAP REGISTRATION\n");
-     close(dtl_net_fd);
-     return;
-  }
-
- /*
-  *once its open we need to create the corresponding
-  *network interface.  We do this with an ioctl
-  */
- memset(&ifr, 0, sizeof(ifr));
- strcpy(ifr.ifr_name,"dtl0");
-
- /*
-  *Inidicate that this is a tap interface
-  *and that we provide no additional packet information
-  */
- ifr.ifr_flags = IFF_TAP | IFF_NO_PI | IFF_ONE_QUEUE ;
- if(ioctl(dtl_net_fd,TUNSETIFF,&ifr) < 0)
- {
-    printf("Unable to create corresponding dtl net ifc\n");
-    close(dtl_net_fd);
-    LOG_ERROR(dtl_net_fd);
-    return;
- }
-
-#if 0
- /* Debug level */
- if (ioctl(dtl_net_fd, TUNSETDEBUG, 1) < 0) 
- {
-   printf("Unable to create corresponding dtl net ifc\n");
- }
-#endif
-#endif
-
-  if (simGetSystemIPMacType() == L7_SYSMAC_BIA)
-  {
-
-    simGetSystemIPBurnedInMac(mac);
-
-  }
-  else
-  {
-
-    simGetSystemIPLocalAdminMac(mac);
-
-  }
-
-#ifdef DTL_USE_TAP
-  /*
-   *we need to override the random
-   *mac given to the tap interface
-   *with our own defined MAC
-   */
-
- /*
-  *  Do not set the interface mac here.
-  *  SIM config data has not yet been populated
-  *  at this point in the bootup, so the mac in there is all
-  *  zeros.  Newer kernel versions will error and not allow setting
-  *  the mac to all zeros.  The mac gets set properly later when
-  *  dtlFdbMacAddrChange() is called.  
-  */
-
-#endif
-
-  queue_len = L7_MAX_NETWORK_BUFF_PER_BOX;
-  osapiSnprintf(queue_len_buf, sizeof(queue_len_buf), "%lu", queue_len);
-  osapi_proc_set("/proc/sys/net/ipv4/neigh/default/unres_qlen", queue_len_buf);
-
-#if defined(L7_IPV6_PACKAGE) || defined(L7_IPV6_MGMT_PACKAGE)
-  /* need to check if this is needed as service port is enabled from sim*/
-  osapi_proc_set("/proc/sys/net/ipv6/conf/dtl0/ipv6_enable", "1");
-  osapi_proc_set("/proc/sys/net/ipv6/neigh/default/unres_qlen", queue_len_buf);
-  osapi_proc_set("/proc/sys/net/ipv6/conf/dtl0/autoconf", "0");
-#endif
-
-  /* Add our MAC Address to the Search Machines. */
-  if (bcmp (empty, mac, L7_MAC_ADDR_LEN))
-  {
-    vlanId = simMgmtVlanIdGet();
-    fdbSysMacAddEntry(mac, vlanId, 1, L7_FDB_ADDR_FLAG_MANAGEMENT);
-
-  }
-
-  //dtlNetInitDone = L7_TRUE;
-
-  printf("%s open\n",TUN_DRV_NAME);
-}
-
-/* Now read data coming from the kernel */
-void dtl_test(void)
-{
-  int nread, buffer[1522];
-
-  if (dtl_net_fd >= 0)
-  {
-      /* Note that "buffer" should be at least the MTU size of the interface, eg 1500 bytes */
-      nread = read(dtl_net_fd,buffer,sizeof(buffer));
-      if(nread < 0) {
-        printf("Reading from interface");
-      }
-
-      /* Do whatever with the data */
-      printf("Read %d bytes from device\n", nread);
-  }
-}
-#endif
-
 
 #ifdef DTL_USE_TAP
 
@@ -1409,7 +1235,6 @@ void ptin_ReplaceTag(L7_ushort16 etype, L7_ushort16 vlanId, L7_uchar8 *data)
  *              - Tagged packets are coming from virtual interfaces such as dtl0.1065 (VLAN ID 1065)
  *              and are switched according to that VLAN ID (4093 is a special case for inBand Communication Channel, others are used by PTP).
  */
-
 void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtlInfo *info)
 {
    L7_uchar8 *data;
@@ -1450,12 +1275,11 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
 
    if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
    {
-      SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlSendCmd(): Sending Packet...\n\r");
+      SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Sending Packet...\n\r", __FUNCTION__, __LINE__);
 
      if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL4)
      {
         int i;
-        SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Packet Tx: \n\r");
         for (i=0; i<data_length && i<128; i++)
         {
            if (i%16==0)
@@ -1468,7 +1292,7 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
         }
         if (data_length > 128)
           SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "...");
-        SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "\n\n\r");
+        SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "\n\r");
      }
    }
 
@@ -1478,11 +1302,6 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
       dtl0Vid = ((data[14]<<8) & 0xFF00) | (data[15] & 0x00FF);
 
       isTaggedPacket = L7_TRUE;
-
-      if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
-      {
-         SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlSendCmd(): Sending Tagged Packet... (vid=%d)\n\r", dtl0Vid);
-      }
 
       if (dtl0Vid == DTL0INBANDVID)
       {
@@ -1494,6 +1313,9 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
 
          ptin_ReplaceTag(L7_ETYPE_8021Q, vid, data);
 
+         if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
+           SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Repaced original packet VID %u with %u\n\r", __FUNCTION__, __LINE__, dtl0Vid, vid);
+
          vid = simMgmtVlanIdGet();                    /* This is the internal VID */
       }
       else
@@ -1503,12 +1325,15 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
          ptin_ReplaceTag(L7_ETYPE_8021Q, vid, data);
 
          vid = ptin_ipdtl0_internalVid_get(dtl0Vid);  /* This is the internal VID */
+
+         if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
+           SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Replaced original packet VID %u with %u\n\r", __FUNCTION__, __LINE__, dtl0Vid, vid);
+
          if (vid == 0)
          {
             if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
-            {
-              SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlSendCmd(): Packet discarded due to unconfigured internal VID (vid=%d)\n\r", vid);
-            }
+              SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Packet discarded due to unconfigured translation to the internal VID \n\r", __FUNCTION__, __LINE__);
+
             info->discard = L7_TRUE;
             goto dtlSendCmdExit;
          }
@@ -1521,29 +1346,13 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
         vid = simMgmtVlanIdGet();
 
       ptin_AddTag(L7_ETYPE_8021Q, vid, data, &data_length);
+
+      if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
+           SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Adding VID %u to the untagged packet\n\r", __FUNCTION__, __LINE__, vid);
+
       SYSAPI_NET_MBUF_SET_DATALENGTH(handle, data_length);
 
       vid = simMgmtVlanIdGet();                    /* This is the internal VID */
-   }
-
-   if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL4)
-   {
-      int i;
-
-      SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Packet Tx: \n\r");
-      for (i=0; i<data_length && i<128; i++)
-      {
-        if (i%16==0)
-        {
-          if (i!=0)
-            SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "\r\n");
-          SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, " 0x%02X:",i);
-        }
-        SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, " %02X", data[i]);
-      }
-      if (data_length > 128)
-        SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "...");
-      SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "\n\n\r");
    }
 
    /* PTin end */
@@ -1558,9 +1367,7 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
        */
 
       if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
-      {
-         SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlSendCmd(): This is a multicast or broadcast address (vid=%d)\n\r", vid);
-      }
+         SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): This is a multicast or broadcast address (vid=%d)\n\r", __FUNCTION__, __LINE__, vid);
 
       info->dtlCmdInfo.intfNum = 0;
       info->dtlCmdInfo.priority = 0;
@@ -1580,12 +1387,7 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
       /*
        *this is not a multicast frame
        *It is either an Unicast ARP or IP
-       */
-
-      if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
-      {
-         SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlSendCmd(): This is not a multicast frame. It is either ARP or IP. ETHERTYPE %.2x%.2x\n\r", data[16], data[17]);
-      }
+       */      
 
       /* At this point, Packet is always tagged */
       memcpy(&etype, &data[16], sizeof(etype));
@@ -1593,6 +1395,9 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
       etype = osapiNtohs(etype);
       if(etype == L7_ETYPE_ARP)
       {
+         if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
+           SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): This is an ARP packet", __FUNCTION__, __LINE__);
+
          /*
           *its an arp frame
           *Find the appropriate interface number
@@ -1618,25 +1423,17 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
            /* Search for this key: if not found, return success */
            if (fdbFind(keyToFind, L7_MATCH_EXACT, &fdbEntry)!=L7_SUCCESS)
            {
-             SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Entry of Vlan=0x%02x%02x and MAC=%02x:%02x:%02x:%02x:%02x:%02x not found\n\r",
+             SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Entry with Vlan=0x%02x%02x and MAC=%02x:%02x:%02x:%02x:%02x:%02x not found. This packet will be discarded.\n\r",
                            keyToFind[0], keyToFind[1],
                            keyToFind[2], keyToFind[3], keyToFind[4], keyToFind[5], keyToFind[6], keyToFind[7]);
 
              fdbEntry.dot1dTpFdbPort = 0; /* MAC not found! Discard this packet*/
            }
 
-
-           if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL2)
-           {
-             SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "intIfNum %d\n\r", fdbEntry.dot1dTpFdbPort);
-           }
-
            if(fdbEntry.dot1dTpFdbPort)
            {
              if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL2)
-             {
-               SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "MAC found at port=%d\n\r", fdbEntry.dot1dTpFdbPort);
-             }
+               SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "MAC found on port=%d\n\r", fdbEntry.dot1dTpFdbPort);
 
              dtlInsert (mac.addr, fdbEntry.dot1dTpFdbPort);
         
@@ -1669,7 +1466,10 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
 
       }/*end if(ether_type...*/
       else if(etype == L7_ETYPE_IP)
-      {
+      {         
+         if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
+           SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): This is an IP packet\n\r", __FUNCTION__, __LINE__);
+
           /* Find the physical port where the destination MAC address is. If
           * that port is not active, clear the ARP cache in the IP stack. It may
           * be that the port mapping is stale and we need to ARP again to update
@@ -1699,24 +1499,19 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
            {
              if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
              {
-               SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Entry of Vlan=0x%02x%02x and MAC=%02x:%02x:%02x:%02x:%02x:%02x not found\n\r",
+               SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Entry with Vlan=0x%02x%02x and MAC=%02x:%02x:%02x:%02x:%02x:%02x not found. This packet will be discarded.\n\r",
                              keyToFind[0], keyToFind[1],
                              keyToFind[2], keyToFind[3], keyToFind[4], keyToFind[5], keyToFind[6], keyToFind[7]);
 
                fdbEntry.dot1dTpFdbPort = 0;
              }
            }
-           
-           if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL2)
-           {
-             SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "intIfNum %d\n\r", fdbEntry.dot1dTpFdbPort);
-           }
 
            if(fdbEntry.dot1dTpFdbPort)
            {
              if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL2)
              {
-               SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "MAC found at port=%d\n\r", fdbEntry.dot1dTpFdbPort);
+               SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "MAC found on port=%d\n\r", fdbEntry.dot1dTpFdbPort);
              }
 
              dtlInsert (mac.addr, fdbEntry.dot1dTpFdbPort);
@@ -1757,7 +1552,7 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
           info->dtlCmd = DTL_CMD_TX_L2;
           info->discard = L7_FALSE;
 
-          /* IEEE 1588 / PTP TS Activation */
+          /* PTin added: IEEE 1588 / PTP TS Activation */
           #if 1
           {
             L7_ipHeader_t *ip_header;
@@ -1775,11 +1570,6 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
 
               ptpHeader = (L7_PtpV2_header_t *)((L7_char8 *)udpHeader + sizeof(L7_udp_header_t));
 
-              if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL3)
-              {
-                SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "UDP DST PORT %d\n", osapiNtohs(udpHeader->destPort));
-              }
-
               /* PTP Timestamp: UDP Port 319 */
               if ((ptin_ipdtl0_dtl0Type_get(dtl0Vid) == PTIN_IPDTL0_ETH_IPv4_UDP_PTP ) && ((osapiNtohs(udpHeader->destPort) == UDP_PORT_EVENT_PTP) || (osapiNtohs(udpHeader->destPort) == UDP_PORT_GENERAL_PTP)))
               {
@@ -1788,7 +1578,7 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
                   SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "PTP Header: message Type %d, version %d, domainNumber %d, sequenceId %d \n"
                                                        "            messageLength %d, reserved2 %d, flags 0x%.4X, correctionField %d, reserved3 %lld \n"
                                                        "            clockIdentity %02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X \n\r"
-                                                       "            portNumber %d, controlField %d, logMessageInterval %d", 
+                                                       "            portNumber %d, controlField %d, logMessageInterval %d\n\r", 
                                 (ptpHeader->transportSpecific_messageType & 0x0F), (ptpHeader->reserved1_versionPTP & 0x0F), ptpHeader->domainNumber, ptpHeader->sequenceId,
                                 ptpHeader->messageLength, ptpHeader->reserved2, ptpHeader->flags, ptpHeader->correctionField, ptpHeader->reserved3,
                                 ptpHeader->sourcePortIdentity.clockIdentity[0], ptpHeader->sourcePortIdentity.clockIdentity[1], ptpHeader->sourcePortIdentity.clockIdentity[2], ptpHeader->sourcePortIdentity.clockIdentity[3], 
@@ -1798,7 +1588,7 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
 
                 if (osapiNtohs(udpHeader->destPort) == UDP_PORT_EVENT_PTP)
                 {
-                  #if (PTIN_BOARD == PTIN_BOARD_TG16G)
+                  #if ((PTIN_BOARD == PTIN_BOARD_TG16G) || (PTIN_BOARD == PTIN_BOARD_TA48GE))
                   ptpTs.validTsRecord = L7_TRUE; 
                   ptpTs.inetAddr.ipv4Addr = ip_header->iph_dst;
                   ptpTs.encap = 0; /* TBD: unused for now */
@@ -1862,17 +1652,48 @@ dtlSendCmdExit:
 
       if (ptpTs.validTsRecord == L7_TRUE)
       {
-        if (info->dtlCmdInfo.cmdResponse.L2.timestamp < lastTs)
-        {
-          secCounter++;
-        }
+          osapiSemaTake(dtltod.tsSemaphore, L7_WAIT_FOREVER);
 
-        lastTs = info->dtlCmdInfo.cmdResponse.L2.timestamp;
+          /* Deal with wraparounds of the hardware timestamp counter */
+          #if (PTIN_BOARD == PTIN_BOARD_TG16G)
+          {
+            /* On VK2 the timer wraps every (10^9)-1 nanoseconds */
+            if (info->dtlCmdInfo.cmdResponse.L2.timestamp < dtltod.tsHwCounter)
+            {
+              dtltod.tsSeconds = dtltod.tsSeconds + 1;
+              dtltod.tsNanoseconds = info->dtlCmdInfo.cmdResponse.L2.timestamp;
+            }            
+          }          
+          #elif (PTIN_BOARD == PTIN_BOARD_TA48GE)
+          {
+            /* On TR3 the timer wraps every 2^32 nanoseconds */
+            dtltod.tsNanoseconds = dtltod.tsNanoseconds + (info->dtlCmdInfo.cmdResponse.L2.timestamp - dtltod.tsHwCounter);
+            if (dtltod.tsNanoseconds >= 1000000000)
+            {
+              dtltod.tsSeconds = dtltod.tsSeconds + 1;
+              dtltod.tsNanoseconds = dtltod.tsNanoseconds - 1000000000;
+            }
+            else if (dtltod.tsNanoseconds < 0)
+            {
+              dtltod.tsSeconds = dtltod.tsSeconds - 1;
+              dtltod.tsNanoseconds = dtltod.tsNanoseconds + 1000000000;
+            }
+          }
+          #endif
 
-        ptpTs.seconds = secCounter;  // Seconds field of timestamp
-        ptpTs.nanosecond = info->dtlCmdInfo.cmdResponse.L2.timestamp;   // Nanoseconds field of timestamp
+          dtltod.tsHwCounter = info->dtlCmdInfo.cmdResponse.L2.timestamp;
 
-        send_TxTsRecord(&ptpTs);
+          osapiSemaGive(dtltod.tsSemaphore);
+
+          ptpTs.seconds = dtltod.tsSeconds;          // Seconds field of timestamp
+          ptpTs.nanoseconds = dtltod.tsNanoseconds;  // Nanoseconds field of timestamp
+
+          if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL4)
+            SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Sending IEEE1588 Timestand: ToD %llu.%lu, Encap %d, messageType %d, sequenceId %d, domainNumber %d\n\r", 
+                          __FUNCTION__, __LINE__, ptpTs.seconds, ptpTs.nanoseconds, ptpTs.encap, ptpTs.messageType, ptpTs.sequenceId, ptpTs.domainNumber);
+
+          send_TxTsRecord(&ptpTs);
+          dtlToDStatsIncrement(intIfNum, DTLTOD_TX_SUCCESS);
       }
    }
    return;
@@ -1938,7 +1759,7 @@ L7_RC_t dtlIpBufSend(L7_uint32 intIfNum, L7_uint32 vlanId, L7_netBufHandle  bufH
      int i;
      L7_uchar8 *pkt = pdataStart;
      
-     SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlIpBufSend (%d): Sending Packet ===\n", __LINE__);
+     SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Sending Packet ===\n", __FUNCTION__, __LINE__);
      for (i=0; i<datalen && i<128; i++)
      {
         if (i%16==0)
@@ -1951,7 +1772,7 @@ L7_RC_t dtlIpBufSend(L7_uint32 intIfNum, L7_uint32 vlanId, L7_netBufHandle  bufH
      }
      if (datalen > 128)
        SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "...");
-     SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "\n\n\r");
+     SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "\n\r");
    }
 
    /* The VLAN tag information from application is kept as it is to have more control.
@@ -2023,7 +1844,7 @@ L7_RC_t dtlIpBufSend(L7_uint32 intIfNum, L7_uint32 vlanId, L7_netBufHandle  bufH
       {
         if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL4)
         {
-          SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "encapType %d, offset %d, commonHeaderLen %d \n", encapType, offset, commonHeaderLen);
+          SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): encapType %d, offset %d, commonHeaderLen %d \n", __FUNCTION__, __LINE__, encapType, offset, commonHeaderLen);
         }
       }
    }
@@ -2042,10 +1863,6 @@ L7_RC_t dtlIpBufSend(L7_uint32 intIfNum, L7_uint32 vlanId, L7_netBufHandle  bufH
 
    return(L7_SUCCESS);
 
-}
-
-void dltNetDebugSet(int val)
-{
 }
 
 #endif /* _L7_OS_LINUX_ */

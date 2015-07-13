@@ -111,12 +111,12 @@ static void ptin_ipdtl0_task(void)
             {
                 if (ptin_ipdtl0_debug_enable)
                 {
-                    LOG_TRACE(LOG_CTX_PTIN_API, "Packet received: intIfNum %d, vlanId %d, innerVlanId %d, payloadLen %d, Rx TS %ld\n", 
+                    LOG_TRACE(LOG_CTX_PTIN_API, "Packet received: intIfNum %d, vlanId %d, innerVlanId %d, payloadLen %d, Rx TS %lu\n", 
                            msg.intIfNum, msg.vlanId, msg.innerVlanId, msg.payloadLen, msg.timestamp);
                 
                     #ifdef _PAYLOAD_DEBUG_
                     int i;
-                    printf("Packet received: intIfNum %d, vlanId %d, innerVlanId %d, payloadLen %d, Rx TS %ld\n", 
+                    printf("Packet received: intIfNum %d, vlanId %d, innerVlanId %d, payloadLen %d, Rx TS %lu\n", 
                            msg.intIfNum, msg.vlanId, msg.innerVlanId, msg.payloadLen, msg.timestamp);
                     for (i=0; i<msg.payloadLen; i++)
                     {

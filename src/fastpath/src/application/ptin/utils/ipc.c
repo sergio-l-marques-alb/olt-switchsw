@@ -65,7 +65,7 @@ typedef struct{
       } __attribute__((packed)) inetAddr;
 
       unsigned long long seconds;           // Seconds field of timestamp
-      unsigned long nanosecond;             // nanoseconds field of timestamp
+      unsigned long nanoseconds;            // nanoseconds field of timestamp
 
       unsigned char encap;                  // Type of encapsulation
       unsigned char messageType;            // message type
@@ -414,14 +414,11 @@ int send_TxTsRecord(ptin_PptTsRecord_t *ptpTs)
   memcpy(&tsInfo->inetAddr, &ptpTs->inetAddr, sizeof(ptpTs->inetAddr));
 
   tsInfo->seconds = ptpTs->seconds;
-  tsInfo->nanosecond = ptpTs->nanosecond;
+  tsInfo->nanoseconds = ptpTs->nanoseconds;
   tsInfo->encap = ptpTs->encap;
   tsInfo->messageType = ptpTs->messageType;
   tsInfo->sequenceId = ptpTs->sequenceId;
   tsInfo->domainNumber = ptpTs->domainNumber;
-
-  LOG_TRACE(LOG_CTX_IPC,"send_message (Canal=%d) 0x%04X. PTP info: ToD %lld.%d, Encap %ld, messageType %d, sequenceId %d, domainNumber %d\n", 
-            g_iInterfaceSW, comando.msgId, tsInfo->seconds, tsInfo->nanosecond, tsInfo->encap, tsInfo->messageType, tsInfo->sequenceId, tsInfo->domainNumber);
 
   ret=send_data(g_iInterfaceSW, IPC_TRAP_TO_PTP, IPC_LOCALHOST_IPADDR, (ipc_msg *)&comando, (ipc_msg *)NULL);
   if(ret<0)

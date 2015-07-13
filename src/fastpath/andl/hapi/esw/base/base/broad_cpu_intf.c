@@ -1725,7 +1725,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
 #endif
 
       if (bcm_pkt.flags & BCM_PKT_F_TIMESYNC) /* Packet is for Time Sync protocol. */
-      {       
+      {
         #if (PTIN_BOARD == PTIN_BOARD_TG16G)
         {
           L7_uint32 counter = 1000;
@@ -1737,13 +1737,43 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
             counter--;  /* put a limit on this loop */
 
             soc_reg32_get(hapiPortPtr->bcm_unit, TS_STATUS_CNTRLr, hapiPortPtr->bcm_port, 0, &regvalue);
-
+            
             if ((regvalue & 0x02) == 0) /* TS_STATUS_CNTRL.TX_TS_FIFO_EMPTY bit indicator */
             {
               // getreg TX_TS_DATA.TX_TS_DATA;
               soc_reg32_get(hapiPortPtr->bcm_unit, TX_TS_DATAr, hapiPortPtr->bcm_port, 0, &regvalue);
 
               cmdInfo->cmdData.receive.timestamp = regvalue;
+
+              break;
+            }
+
+          }
+        }
+        #elif (PTIN_BOARD == PTIN_BOARD_TA48GE)
+        {
+          L7_uint32 counter = 1000;
+          L7_uint64 regvalue;
+
+          /* Poll Status Register */
+          while (counter > 0)
+          {
+            counter--;  /* put a limit on this loop */
+
+            soc_reg64_get(hapiPortPtr->bcm_unit, XMAC_TX_TIMESTAMP_FIFO_STATUSr, hapiPortPtr->bcm_port, 0, &regvalue);
+
+            if ((regvalue & 0x02) == 0) /* TS_STATUS_CNTRL.TX_TS_FIFO_EMPTY bit indicator */
+            {
+              // getreg TX_TS_DATA.TX_TS_DATA;
+              soc_reg64_get(hapiPortPtr->bcm_unit, XMAC_TX_TIMESTAMP_FIFO_DATAr, hapiPortPtr->bcm_port, 0, &regvalue);
+
+              cmdInfo->cmdData.receive.timestamp = (L7_ulong32) regvalue;
+
+              if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_STDOUT)
+              {
+                printf("%s(%d): Tx TS %lu\n", __FUNCTION__, __LINE__, cmdInfo->cmdData.receive.timestamp);
+              }
+
               break;
             }
 
@@ -2352,7 +2382,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
            bcm_pkt->rx_reason,bcm_pkt->rx_reasons.pbits[0],bcm_pkt->rx_reasons.pbits[1],bcm_pkt->rx_reasons.pbits[2],bcm_pkt->cos,
            bcm_pkt->rx_port,bcm_pkt->src_port,bcm_pkt->vlan, bcm_pkt->pkt_len);
 
-    printf("rx_timestamp %d, rx_timestamp_upper %d, timestamp_flags %d\n\r", bcm_pkt->rx_timestamp, bcm_pkt->rx_timestamp_upper, bcm_pkt->timestamp_flags);
+    printf("rx_timestamp %u, rx_timestamp_upper %u, timestamp_flags 0X%X\n\r", bcm_pkt->rx_timestamp, bcm_pkt->rx_timestamp_upper, bcm_pkt->timestamp_flags);
     fflush(stdout);
   }
   else if (cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL1)
@@ -2361,12 +2391,12 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
               bcm_pkt->rx_reason,bcm_pkt->rx_reasons.pbits[0],bcm_pkt->rx_reasons.pbits[1],bcm_pkt->rx_reasons.pbits[2],bcm_pkt->cos,
               bcm_pkt->rx_port,bcm_pkt->src_port,bcm_pkt->vlan, bcm_pkt->pkt_len);
 
-    LOG_TRACE(LOG_CTX_PTIN_HAPI, "rx_timestamp %d, rx_timestamp_upper %d, timestamp_flags %d\n\r", bcm_pkt->rx_timestamp, bcm_pkt->rx_timestamp_upper, bcm_pkt->timestamp_flags);
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "rx_timestamp %u, rx_timestamp_upper %u, timestamp_flags 0x%X\n\r", bcm_pkt->rx_timestamp, bcm_pkt->rx_timestamp_upper, bcm_pkt->timestamp_flags);
   }
   /* PTIN added: PTP Timestamp BCM_PKT_F_xxx flags. */
   else if ((cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL3) && (bcm_pkt->pkt_data->data[0x26]==0x01 && bcm_pkt->pkt_data->data[0x27]==0x3f))
   {
-    LOG_TRACE(LOG_CTX_PTIN_HAPI, "rx_timestamp %d\n\r", bcm_pkt->rx_timestamp);
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "rx_timestamp %u\n\r", bcm_pkt->rx_timestamp);
   }
 
   // PTin

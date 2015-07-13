@@ -30,6 +30,7 @@
 #include <bcmx/switch.h>
 #include <bcmx/port.h>
 #include <bcmx/l2.h>
+#include <bcm/time.h>
 #if 0//Required to init L3 Modules. Not used since FP is already performing the init of those Modules
 #include <bcm/init.h>
 #endif
@@ -5307,5 +5308,39 @@ L7_RC_t ptin_hapi_example(DAPI_USP_t *usp, ptin_dtl_example_t *example, DAPI_t *
   LOG_INFO(LOG_CTX_PTIN_HAPI, "Structure contents: param1=%u param2=%u", example->param1, example->param2); 
 
   return L7_SUCCESS;
+}
+
+
+/** 
+ * Enable timestamp function on ports 
+*/
+bcm_error_t time_interface_enable(void)
+{
+  int unit=0;
+  int port_min=0;
+  int port_max=48;
+  int port;
+  int rv = BCM_E_NONE;
+  
+  bcm_port_timesync_config_t port_timesync_config; bcm_time_interface_t time_interface;
+  
+  bcm_time_interface_t_init(&time_interface);
+  
+  for(port=port_min; port<=port_max; port++ )
+  { 
+    printf("Enabling TS for port %d\n", port); 
+
+    /* set up for 1-step TC */
+    port_timesync_config.flags |= BCM_PORT_TIMESYNC_DEFAULT; //BCM_PORT_TIMESYNC_TIMESTAMP_CFUPDATE_ALL;
+    port_timesync_config.flags |= BCM_PORT_TIMESYNC_ONE_STEP_TIMESTAMP; //BCM_PORT_TIMESYNC_TWO_STEP_TIMESTAMP;
+    rv=bcm_port_timesync_config_set(unit, port, 1, &port_timesync_config);
+    printf("rv=%d\n", rv);
+  }
+  time_interface.flags = BCM_TIME_ENABLE;
+  
+  rv = bcm_time_interface_add(unit, &time_interface);
+  printf("rv=%d\n", rv);
+  
+  return BCM_E_NONE;
 }
 

@@ -1318,7 +1318,7 @@ typedef struct {
   } inetAddr;                                                       
                                                                     
   L7_uint64 seconds;              /* Seconds field of timestamp     */
-  L7_ulong32 nanosecond;          /* nanoseconds field of timestamp */ 
+  L7_ulong32 nanoseconds;         /* nanoseconds field of timestamp */ 
                                                                     
   L7_uint8 encap;                 /* Type of encapsulation          */
   L7_uint8 messageType;           /* message type                   */
