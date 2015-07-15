@@ -18874,8 +18874,12 @@ static RC_t ptin_igmp_multicast_client_package_remove(L7_uint32 packageId, ptinI
   /*Let us Check if this Package is Configured*/
   if (multicastPackage[packageId].inUse == L7_FALSE )
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "This package does not exist [packageId:%u]", packageId);    
+    LOG_WARNING(LOG_CTX_PTIN_IGMP, "This package does not exist [packageId:%u]", packageId);    
+    #if 0//DO Not Signal this to the Caller
     return L7_DEPENDENCY_NOT_MET;
+    #else
+    return L7_SUCCESS;    
+    #endif
   }
 
   /* Is this PackageId set in the Bitmap*/
