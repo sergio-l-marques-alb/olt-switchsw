@@ -20,6 +20,8 @@ extern L7_BOOL slots_to_be_reseted[PTIN_SYS_SLOTS_MAX];
 #endif
 #endif
 
+extern int suppress_alarms_in_disabled_ports(int init0_setsup1_setnosup2_read3, L7_uint32 port);
+
 /**
  * Initialize interface changes notifier
  * 

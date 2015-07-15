@@ -476,6 +476,30 @@ static void monitor_throughput(void)
 }
 
 
+
+int suppress_alarms_in_disabled_ports(int init0_setsup1_setnosup2_read3, L7_uint32 port) {
+#if PTIN_BOARD_IS_STANDALONE
+static unsigned char suppress[PTIN_SYSTEM_N_INTERF];
+
+    switch (init0_setsup1_setnosup2_read3) {
+    default: return 0;
+    case 0:
+        for (port=0; port<PTIN_SYSTEM_N_INTERF; port++) suppress[port]=0;
+        return 0;
+    case 1:
+    case 2:
+        if (port>=PTIN_SYSTEM_N_INTERF) return 0;
+        return (suppress[port]= init0_setsup1_setnosup2_read3==1? 1:0);
+    case 3:
+        if (port>=PTIN_SYSTEM_N_INTERF) return 0;
+        return (suppress[port]);
+    }
+#else
+    return 0;
+#endif
+}//suppress_alarms_in_disabled_ports
+
+
 /**
  * Monitor alarms
  */
@@ -497,6 +521,7 @@ static void monitor_alarms(void)
   {
     /* Initialize alarms state */
     ptin_alarms_init();
+    suppress_alarms_in_disabled_ports(0, 0);
 
     memset(lagIdList,0xff,sizeof(lagIdList));
 
@@ -580,7 +605,7 @@ static void monitor_alarms(void)
         /* There is only alarms for non PON interfaces */
         if (port >= PTIN_SYSTEM_N_PONS)
         #endif
-        {
+        if (!suppress_alarms_in_disabled_ports(3, port)) {
           if (send_trap_intf_alarm(ptin_intf.intf_type, ptin_intf.intf_id,
                                  ((!link) ? TRAP_ALARM_LINK_DOWN_START : TRAP_ALARM_LINK_DOWN_END),
                                  TRAP_ALARM_STATUS_EVENT,0) == 0)
@@ -630,7 +655,7 @@ static void monitor_alarms(void)
           /* There is only alarms for non PON interfaces */
           if (port >= PTIN_SYSTEM_N_PONS)
           #endif
-          {
+          {//if (!suppress_alarms_in_disabled_ports(3, port)) {
             if (send_trap_intf_alarm(PTIN_EVC_INTF_PHYSICAL, port,
                                      ((isActiveMember) ? TRAP_ALARM_LAG_INACTIVE_MEMBER_END : TRAP_ALARM_LAG_INACTIVE_MEMBER_START),
                                      TRAP_ALARM_STATUS_EVENT,
