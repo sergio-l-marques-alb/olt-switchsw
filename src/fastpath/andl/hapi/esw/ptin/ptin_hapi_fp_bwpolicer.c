@@ -597,14 +597,24 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
   }
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"Drop qualifier added");
 
-  //hapiBroadPolicyRuleExceedActionAdd (ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
-  if ((result=hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0))!=L7_SUCCESS
-      ||
-      (result=hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_DROPPREC, BROAD_COLOR_GREEN, BROAD_COLOR_YELLOW, BROAD_COLOR_RED))!=L7_SUCCESS)
+  /* Drop red packets */
+  result = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
+  if (result != L7_SUCCESS)
   {
     hapiBroadPolicyCreateCancel();
     LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleNonConfActionAdd");
     return result;
+  }
+  /* Only apply drop precedence to ingress stage */
+  if (stage == BROAD_POLICY_STAGE_INGRESS)
+  {
+    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_DROPPREC, BROAD_COLOR_GREEN, BROAD_COLOR_YELLOW, BROAD_COLOR_RED);
+    if (result != L7_SUCCESS)
+    {
+      hapiBroadPolicyCreateCancel();
+      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleNonConfActionAdd");
+      return result;
+    }
   }
 
   /* Only configure local policer, if policer id was given */
