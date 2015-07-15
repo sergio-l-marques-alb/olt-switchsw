@@ -3265,7 +3265,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
       /* Run all QoS */
       for (i=0; i<8; i++)
       {
-        /* Minimum mandwidth */
+        /* Minimum bandwidth */
         if (qos_msg->egress.cos_shaper[i].local_mask & MSG_QOS3_EGRESS_COS_SHAPER_MIN_BW_MASK)
         {
           qos_cos[i].min_bandwidth = qos_msg->egress.cos_shaper[i].min_bandwidth;
@@ -3277,6 +3277,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
         {
           qos_cos[i].max_bandwidth = qos_msg->egress.cos_shaper[i].max_bandwidth;
           qos_cos[i].mask |= PTIN_QOS_COS_BW_MAX_MASK;
+          LOG_TRACE(LOG_CTX_PTIN_MSG,"Interface successfully configured %u", qos_msg->egress.cos_shaper[i].max_bandwidth);
           apply_conf = L7_TRUE;
         }
       }
@@ -3304,6 +3305,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
   memset(qos_drop,0x00,sizeof(qos_drop));
   apply_conf = L7_FALSE;
 
+  
   if (qos_msg->main_mask & MSG_QOS3_EGRESS_MASK)
   {
     if (qos_msg->egress.egress_mask & MSG_QOS3_EGRESS_COS_DROPMGMT_MASK)
@@ -3311,6 +3313,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
       /* Run all QoS */
       for (i=0; i<8; i++)
       {
+
         /* Drop MGMT type */
         if (qos_msg->egress.cos_dropmgmt[i].local_mask & MSG_QOS3_EGRESS_COS_DROPMGMT_TYPE_MASK)
         {
@@ -3334,7 +3337,9 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
           {
             qos_drop[i].dp[j].taildrop_threshold = qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].tailDrop_threshold;
             qos_drop[i].dp[j].local_mask |= PTIN_QOS_COS_DP_TAILDROP_THRESH_MASK;
+            qos_drop[i].mask |= PTIN_QOS_COS_TAIL_THRESHOLDS_MASK; 
             apply_conf = L7_TRUE;
+            LOG_TRACE(LOG_CTX_PTIN_MSG,"Interface successfully configured %u", qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].tailDrop_threshold);
           }
           /* WRED min threshold */
           if (qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].local2_mask & MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_WRED_MIN_MASK)
@@ -3362,6 +3367,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
     }
   }
   /* Apply configuration */
+
   if (apply_conf)
   {
     LOG_TRACE(LOG_CTX_PTIN_MSG,"Applying Drop Management configurations...");

@@ -5152,7 +5152,7 @@ L7_RC_t ptin_QoS_drop_config_set(const ptin_intf_t *ptin_intf, L7_uint8 cos, pti
     }
 
     /* Thresholds */
-    if (qosConf[conf_index].mask & PTIN_QOS_COS_WRED_THRESHOLDS_MASK)
+    if ((qosConf[conf_index].mask & PTIN_QOS_COS_WRED_THRESHOLDS_MASK) || (qosConf[conf_index].mask & PTIN_QOS_COS_TAIL_THRESHOLDS_MASK))
     {
       /* Run all DP levels */
       for (j = 0; j < 4; j++)
