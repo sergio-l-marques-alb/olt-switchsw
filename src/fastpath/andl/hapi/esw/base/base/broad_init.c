@@ -2676,6 +2676,8 @@ void hapiBroadFfpSysMacInstall (DAPI_t      *dapi_g,
       return;
     }
     /* Inband type packets */
+    /* Odd behavior when added: default rules are not applied! */
+#if 0
     if (hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, new_mac_addr, exact_match) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_STARTUP, "Error adding BROAD_FIELD_MACDA qualifier");
@@ -2688,6 +2690,7 @@ void hapiBroadFfpSysMacInstall (DAPI_t      *dapi_g,
       hapiBroadPolicyCreateCancel();
       return;
     }
+#endif
     /* Drop red packets */    
     if (hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0) != L7_SUCCESS)
     {
@@ -2702,6 +2705,7 @@ void hapiBroadFfpSysMacInstall (DAPI_t      *dapi_g,
       hapiBroadPolicyCreateCancel();
       return;
     }
+#if 0
     /* Add counter */
     if (hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS) != L7_SUCCESS)
     {
@@ -2709,7 +2713,7 @@ void hapiBroadFfpSysMacInstall (DAPI_t      *dapi_g,
       hapiBroadPolicyCreateCancel();
       return;
     }
-
+#endif
     /* Commit rule */
     if ((hapiBroadPolicyCommit(&mgmtId)) != L7_SUCCESS)
     {
