@@ -58,12 +58,24 @@
 //#include "ptin_intf.h"
 //#include "ptin_msghandler.h"
 
-/* Reset defaults mode */
-L7_uint8 ptin_reset_defaults_mode = DEFATUL_RESET_MODE_PARTIAL;
 
 /* Semaphore to synchronize PTin task execution */
 void *ptin_ready_sem = L7_NULLPTR;
 void *ptin_busy_sem  = L7_NULLPTR;
+
+void* ptin_cnfgr_get_sem(L7_uint8 semId)
+{
+  if (semId == 0)
+  {
+    LOG_INFO(LOG_CTX_STARTUP, "ptin_ready_sem:%p",ptin_ready_sem);
+    return ptin_ready_sem;
+  }
+  else
+  {
+    LOG_INFO(LOG_CTX_STARTUP, "ptin_busy_sem:%p",ptin_ready_sem);
+    return ptin_busy_sem;
+  }
+}
 
 /* MGMD TxQueueId */
 L7_int32 ptinMgmdTxQueueId = -1;
@@ -123,6 +135,7 @@ L7_RC_t ptinApplyConfigCompleteCb(L7_uint32 event)
   if ( (event != TXT_CFG_APPLY_FAILURE) &&
        (event != TXT_CFG_APPLY_SUCCESS) )
   {
+    LOG_NOTICE(LOG_CTX_PTIN_CNFGR, "Event Ignored:%u",event);
     return L7_SUCCESS;
   }
 
@@ -131,10 +144,9 @@ L7_RC_t ptinApplyConfigCompleteCb(L7_uint32 event)
     LOG_FATAL(LOG_CTX_PTIN_CNFGR, "OLTSWITCH configurations failed!");
     return L7_FAILURE;
   }
-
+  LOG_INFO(LOG_CTX_PTIN_CNFGR, "Configuration Applied with Success!");
   /* After this point, PTin task must start execution */
   osapiSemaGive(ptin_ready_sem);
-
   return L7_SUCCESS;
 }
 

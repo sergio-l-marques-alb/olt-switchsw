@@ -57,7 +57,25 @@ extern L7_RC_t ptin_msg_FPInfo_get(msg_FWFastpathInfo *msgFPInfo);
  * Actions: 
  *  - EVCs are destroyed (including counter, bw profiles, clientes, etc)
  */
-extern void ptin_msg_defaults_reset(L7_char8 mode);
+extern void ptin_msg_defaults_reset(msg_HwGenReq_t *msgPtr);
+
+/**
+ * Routine to asynchronously handle message processing if a 
+ * given timeout is reached.
+ *  
+ * @param msgId   : Message Identifier 
+ * @param msgPtr  : Message Pointer 
+ * @param msgSize : Message Size
+ * @param timeOut : Time Out (milliseconds) 
+ *  
+ * @notes: timeOut supported values: 
+ *  - -1 (L7_WAIT_FOREVER)
+ *  -  0 (L7_NO_WAIT)
+ *  - >0 (wait for a short amount of period - typically less
+ *    then IPC_LIB timeout ~3 seconds)
+ *  
+ **/
+extern void ptin_msg_task_process(L7_uint32 msgId, void *msgPtr, L7_uint32 msgSize, L7_int32 timeOut);
 
 /**
  * Reset Multicast Machine

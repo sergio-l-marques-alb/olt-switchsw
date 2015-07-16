@@ -805,7 +805,7 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
 
 #if PTIN_BOARD_IS_MATRIX
   /* Do nothing for slave matrix */
-  if (!ptin_fpga_mx_is_matrixactive())
+  if (!ptin_fpga_mx_is_matrixactive_rt())
   {
     if (ptin_debug_igmp_snooping)
       LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Silently ignoring packet transmission. I'm a Slave Matrix [portId=%u serviceId=%u]",portId, serviceId );
@@ -1105,7 +1105,7 @@ L7_RC_t ptin_snoop_l3_sync_mx_process_request(L7_uint16 vlanId, L7_inet_addr_t *
   char                        sourceAddrStr[IPV6_DISP_ADDR_LEN]={};
   L7_uint32                   ipAddr;
   
-  if(!ptin_fpga_mx_is_matrixactive())//I'm Standby Matrix
+  if(!ptin_fpga_mx_is_matrixactive_rt())//I'm Standby Matrix
   { 
     LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Silently Ignoring Snoop Sync Request. I'm a standby Matrix!");
     return L7_SUCCESS;
@@ -1113,7 +1113,7 @@ L7_RC_t ptin_snoop_l3_sync_mx_process_request(L7_uint16 vlanId, L7_inet_addr_t *
   else
   {
     /* Standby MX board IP address */
-    ipAddr = ptin_fpga_matrix_ipaddr_get(PTIN_FPGA_STANDBY_MATRIX);
+    ipAddr = IPC_MX_PAIR_IPADDR;
   }
 
   if (numberOfSnoopEntries==0)
@@ -1198,7 +1198,7 @@ L7_RC_t ptin_snoop_l3_sync_mx_process_request(L7_uint16 vlanId, L7_inet_addr_t *
 
   if (numberOfSnoopEntries>0)
   {    
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Sending a Snoop Sync Reply Message to ipAddr:%08X with %u snoop Entries  to sync the standby matrix",ipAddr, numberOfSnoopEntries);
+    LOG_INFO(LOG_CTX_PTIN_IGMP, "Sending a Snoop Sync Reply Message to ipAddr:%08X (%u) with %u snoop Entries  to sync the standby matrix",ipAddr, MX_PAIR_SLOT_ID, numberOfSnoopEntries);
     if(firstEntry)
     {
       LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Remaining Snoop Entries to be Sync:%u",avlTreeCount(&(snoopEBGet()->snoopChannelAvlTree))-numberOfSnoopEntries);     
@@ -1369,7 +1369,7 @@ L7_RC_t ptin_snoop_sync_mx_process_request(L7_uint16 vlanId, L7_uint32 groupAddr
 
   L7_uint32                        ipAddr;
   
-  if(!ptin_fpga_mx_is_matrixactive())//I'm a Standby Matrix
+  if(!ptin_fpga_mx_is_matrixactive_rt())//I'm a Standby Matrix
   { 
     LOG_NOTICE(LOG_CTX_PTIN_PROTB, "Silently Ignoring Snoop Sync Request. I'm a standby Matrix!");
     return L7_SUCCESS;
@@ -1377,7 +1377,7 @@ L7_RC_t ptin_snoop_sync_mx_process_request(L7_uint16 vlanId, L7_uint32 groupAddr
   else
   {
     /* Standby MX board IP address */
-    ipAddr = ptin_fpga_matrix_ipaddr_get(PTIN_FPGA_STANDBY_MATRIX);
+    ipAddr = IPC_MX_PAIR_IPADDR;
   }
 
   if (numberOfSnoopEntries==0)
@@ -1503,7 +1503,7 @@ L7_RC_t ptin_snoop_sync_mx_process_request(L7_uint16 vlanId, L7_uint32 groupAddr
 
   if (numberOfSnoopEntries>0)
   {    
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Sending a Snoop Sync Reply Message to ipAddr:%08X with %u snoop Entries  to sync the protection matrix",ipAddr, numberOfSnoopEntries);
+    LOG_INFO(LOG_CTX_PTIN_MSG, "Sending a Snoop Sync Reply Message to ipAddr:%08X (%u) with %u snoop Entries  to sync the protection matrix",ipAddr, MX_PAIR_SLOTID, numberOfSnoopEntries);
     if(vlanId==0 && groupAddr==0)
     {
       LOG_DEBUG(LOG_CTX_PTIN_MSG, "Remaining Snoop Entries to be Sync:%u",avlTreeCount(&(snoopEBGet()->snoopAvlTree))-numberOfSnoopEntries);     

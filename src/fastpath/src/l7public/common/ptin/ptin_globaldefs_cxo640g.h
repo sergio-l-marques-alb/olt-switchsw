@@ -197,6 +197,8 @@ extern int ptin_sys_intf_to_port_map[PTIN_SYSTEM_N_PORTS];
 # define IPC_MX_IPADDR_PROTECTION   0xC0A8C802  /* 192.168.200.2: Protection Matrix */
 #ifdef MAP_CPLD
 # define IPC_MX_IPADDR              ((cpld_map->reg.slot_id == 0) ? IPC_MX_IPADDR_WORKING : IPC_MX_IPADDR_PROTECTION)
+# define IPC_MX_PAIR_IPADDR         ((cpld_map->reg.slot_id == 0) ? IPC_MX_IPADDR_PROTECTION : IPC_MX_IPADDR_WORKING)
+# define MX_PAIR_SLOT_ID            ((cpld_map->reg.slot_id == 0) ? PTIN_SYS_MX2_SLOT : PTIN_SYS_MX1_SLOT)
 #else
 # define IPC_MX_IPADDR              IPC_MX_IPADDR_WORKING  /* Default ip address */
 #endif

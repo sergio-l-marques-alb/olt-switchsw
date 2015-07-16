@@ -44,6 +44,9 @@
 /* PTin module state */
 volatile ptin_state_t ptin_state = PTIN_STATE_LOADING;
 
+volatile L7_uint32    ptin_task_msg_id     = (L7_uint32) -1;
+volatile void        *ptin_task_msg_buffer = L7_NULLPTR;
+
 /* Traffic activity bits for external module access */
 L7_uint32 ptin_control_port_activity[PTIN_SYSTEM_N_PORTS];  /* maps each phy port */
 
@@ -75,8 +78,9 @@ static void ptin_control_syncE(void);
 
 /* 10ms task */
 void _10msTask(void);
-/* Task for reset defaults operation */
-void ptinTask_reset_defaults(void);
+
+/* Task for processing messages */
+void ptin_control_task_process(void);
 
 /******************************** 
  * Interface events 
@@ -228,15 +232,19 @@ void ptinTask(L7_uint32 numArgs, void *unit)
 #endif
 
   /* Create task to proceed to reset defaults */
-  if (osapiTaskCreate("PTin_reset_defaults task", ptinTask_reset_defaults, 0, 0,
+  if (osapiTaskCreate("ptin_control_task_process task", ptin_control_task_process, 0, 0,
                       L7_DEFAULT_STACK_SIZE*10,
                       L7_DEFAULT_TASK_PRIORITY,
                       L7_DEFAULT_TASK_SLICE) == L7_ERROR)
   {
-    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to create PTin_reset_defaults task!");
+    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to create ptin_control_task_process task!");
     PTIN_CRASH();
   }
-  LOG_INFO(LOG_CTX_PTIN_CNFGR, "PTin_reset_defaults task launch OK");
+  LOG_INFO(LOG_CTX_PTIN_CNFGR, "ptin_control_task_process task launch OK");
+
+  LOG_NOTICE(LOG_CTX_PTIN_CONTROL, "Free ptin_ready_sem:%p", ptin_ready_sem);
+  osapiSemaGive(ptin_ready_sem);  
+  
 
   /* Loop */
   while (1)
@@ -259,85 +267,61 @@ void ptinTask(L7_uint32 numArgs, void *unit)
   }
 }
 
-
 /**
- * Task for reset defaults operation
+ * Task for processing messages that may take a longer time 
+ * (>IPC_LIB_TIME_OUT) 
  */
-void ptinTask_reset_defaults(void)
+void ptin_control_task_process(void)
 {
-  LOG_NOTICE(LOG_CTX_PTIN_CONTROL,"ptinTask_reset_defaults Task started");
+  LOG_NOTICE(LOG_CTX_PTIN_CONTROL,"ptin_control_task_process started");
 
   /* Loop */
   while (1)
   {
+    /* Lock Busy State */
+    LOG_INFO(LOG_CTX_PTIN_CONTROL,"Going to take ptin_busy_sem:%p",ptin_busy_sem);
     osapiSemaTake(ptin_busy_sem, L7_WAIT_FOREVER);
-
     ptin_state = PTIN_STATE_BUSY;
+    LOG_INFO(LOG_CTX_PTIN_CONTROL,"Going to perform task :0x%x.",ptin_task_msg_id);
 
-    LOG_INFO(LOG_CTX_PTIN_CONTROL,"Executing a reset defaults with mode=%u", ptin_reset_defaults_mode);
-
-    /*This Should be the First Module*/
-    /* Reset IGMP Module */
-    LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on IGMP...");
-    ptin_igmp_default_reset();
-    LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
-
-#ifdef __Y1731_802_1ag_OAM_ETH__
-    LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on OAM...");
-    eth_srv_oam_msg_defaults_reset();
-    LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
-#endif
-
-    /* Reset Routing Module*/
-    LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on Routing...");
-    ptin_routing_intf_remove_all();
-    LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
-
-    /* ERPS */
-#ifdef PTIN_ENABLE_ERPS
-    LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on ERPS...");
-    ptin_erps_clear();
-    LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
-    LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on HAL...");
-    ptin_hal_erps_clear();
-    LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
-#endif
-
-    LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on ACL...");
-    ptin_aclCleanAll();
-    LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
-
-    /* Reset EVC Module */
-    LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on EVC...");
-    ptin_evc_destroy_all();
-    LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
-
-    if (ptin_reset_defaults_mode == DEFATUL_RESET_MODE_FULL)
+    #if 0
+    if (ptin_task_msg_id == (L7_uint32) -1)
     {
-      ptin_NtwConnectivity_t ptinNtwConn;
-
-      /* Unconfig Connectivity */
-      memset(&ptinNtwConn, 0x00, sizeof(ptin_NtwConnectivity_t));
-      ptinNtwConn.mask = PTIN_NTWCONN_MASK_IPADDR;
-      LOG_INFO(LOG_CTX_PTIN_MSG, "(Re)Configure Inband...");
-      ptin_cfg_ntw_connectivity_set(&ptinNtwConn);
-      LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
-
-      /*This Should be the Last Module*/
-      LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on LAG...");
-      ptin_intf_Lag_delete_all();
-      LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
+      LOG_ERR(LOG_CTX_PTIN_CONTROL,"Invalid Parameters: ptin_msg_id:%u ptin_msg_ptr_buffer=%p", ptin_task_msg_id, ptin_task_msg_buffer);
+      osapiSemaGive(ptin_ready_sem);
+      continue;
     }
+    #endif
 
-    ptin_reset_defaults_mode = DEFATUL_RESET_MODE_PARTIAL;
+    switch (ptin_task_msg_id)
+    {      
+      case CCMSG_DEFAULTS_RESET:
+      {
+        ptin_msg_defaults_reset((msg_HwGenReq_t*) ptin_task_msg_buffer);
+        break;
+      }
+      case CCMSG_PROTECTION_MATRIX_FLUSH_CONFIGURATION_END:
+      {
+        ptin_msg_protection_matrix_configuration_flush_end();
+        break;
+      }
+      default:
+      LOG_WARNING(LOG_CTX_PTIN_CONTROL,"Message Id 0x%x Not Supported!", ptin_task_msg_id);
+      break;
+    }
+    
+    /* Restore Ready State */
+    ptin_state = PTIN_STATE_READY;   
+    LOG_INFO(LOG_CTX_PTIN_CONTROL,"Task done:0x%x", ptin_task_msg_id);
 
-    ptin_state = PTIN_STATE_READY;
-
-    LOG_INFO(LOG_CTX_PTIN_CONTROL,"Reset defaults concluded");
+    /*Clear Global Variables*/
+    ptin_task_msg_id = (L7_uint32) -1; 
+    ptin_task_msg_buffer = L7_NULLPTR; 
+    
+    /* Unlock Ready State */
+    osapiSemaGive(ptin_ready_sem);
   }
 }
-
-
 
 /**
  * Task for processing 10ms periodicity events

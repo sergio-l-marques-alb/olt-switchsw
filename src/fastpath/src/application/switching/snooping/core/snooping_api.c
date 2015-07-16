@@ -142,10 +142,16 @@ L7_RC_t __matrix_mfdbport_sync(L7_uint8 admin, ptin_fpga_matrix_type_t matrixTyp
   L7_uint32          matrixIpAddr = 0;
   L7_uint8           matrixSlotId = 0;
 
+  #if PTIN_BOARD_IS_MATRIX
   /* Determine active/standby matrix slotId and IP address */
-  matrixSlotId = ptin_fpga_matrix_slotid_get(matrixType);
-  
+  matrixSlotId = MX_PAIR_SLOT_ID;  
+  matrixIpAddr = IPC_MX_PAIR_IPADDR;
+  #elif PTIN_BOARD_IS_LINECARD
+  matrixSlotId = ptin_fpga_matrix_slotid_get(matrixType);  
   matrixIpAddr = ptin_fpga_matrix_ipaddr_get(matrixType);
+  #else
+  #error "Not Yet Supported"
+  #endif
   
   /* Fill the sync structure */
   mgmdPortSync.SlotId     = matrixSlotId;
@@ -4020,7 +4026,7 @@ L7_RC_t snoopPortOpen(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *g
 
 #if PTIN_BOARD_IS_MATRIX
     /* Sync the status of this switch port on the backup backup matrix, if it exists */
-    if(ptin_fpga_mx_is_matrixactive())
+    if(ptin_fpga_mx_is_matrixactive_rt())
     {
       __matrix_mfdbport_sync(L7_ENABLE, PTIN_FPGA_STANDBY_MATRIX, serviceId, intIfNum, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr, isStatic);
     }
@@ -4090,7 +4096,7 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
   /*Workaround to prevent MGMD from closing a port, when it is inactive and belongs to a protection scheme*/
   if (
   #if PTIN_BOARD_IS_MATRIX
-  (!ptin_fpga_mx_is_matrixactive()) 
+  (!ptin_fpga_mx_is_matrixactive_rt()) 
   #elif (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
   (protTypebIntfConfig.intfRole != PROT_TYPEB_ROLE_NONE && protTypebIntfConfig.status != L7_ENABLE)  
   #else
@@ -4135,7 +4141,7 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
 
 #if PTIN_BOARD_IS_MATRIX
   /* Sync the status of this switch port on the backup backup matrix, if it exists */
-  if(ptin_fpga_mx_is_matrixactive())
+  if(ptin_fpga_mx_is_matrixactive_rt())
   {
     __matrix_mfdbport_sync(L7_DISABLE, 0, serviceId, intIfNum, groupAddr->addr.ipv4.s_addr, sourceAddr->addr.ipv4.s_addr, L7_FALSE);
   }

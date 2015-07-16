@@ -217,28 +217,122 @@ L7_RC_t ptin_to_fp_ip_notation(chmessage_ip_addr_t *ptinIpAddr, L7_inet_addr_t *
 }
 
 /* Reset Functions ************************************************************/
-
 /**
  * Reset to default configuration 
  *  
  * Actions: 
  *  - EVCs are destroyed (including counter, bw profiles, clientes, etc)
- *  - ERPS intances are destroyed
  */
-void ptin_msg_defaults_reset(L7_char8 mode)
+extern void ptin_msg_defaults_reset(msg_HwGenReq_t *msgPtr)
 {
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Resetting to default configuration (mode %x)", mode);
+  L7_uint8 mode;
 
-  /* Change switchdrvr state to BUSY */
-  ptin_state = PTIN_STATE_BUSY;
+  if (msgPtr == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Parameters: msgPtr:%p", msgPtr);
+    return;
+  }
+  mode = msgPtr->param;
+  
+  LOG_INFO(LOG_CTX_PTIN_CONTROL,"Executing a reset defaults with mode=%u", mode);
 
-  /* Pass to firmware reset defaults mode */
-  ptin_reset_defaults_mode = mode;
+  /*This Should be the First Module*/
+  /* Reset IGMP Module */
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on IGMP...");
+  ptin_igmp_default_reset();
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
 
-  /* Unblock reset defaults procedure */
+#ifdef __Y1731_802_1ag_OAM_ETH__
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on OAM...");
+  eth_srv_oam_msg_defaults_reset();
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
+#endif
+
+  /* Reset Routing Module*/
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on Routing...");
+  ptin_routing_intf_remove_all();
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
+
+  /* ERPS */
+#ifdef PTIN_ENABLE_ERPS
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on ERPS...");
+  ptin_erps_clear();
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on HAL...");
+  ptin_hal_erps_clear();
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
+#endif
+
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on ACL...");
+  ptin_aclCleanAll();
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
+
+  /* Reset EVC Module */
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on EVC...");
+  ptin_evc_destroy_all();
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
+
+  if (mode == DEFAULT_RESET_MODE_FULL)
+  {
+    ptin_NtwConnectivity_t ptinNtwConn;
+
+    /* Unconfig Connectivity */
+    memset(&ptinNtwConn, 0x00, sizeof(ptin_NtwConnectivity_t));
+    ptinNtwConn.mask = PTIN_NTWCONN_MASK_IPADDR;
+    LOG_INFO(LOG_CTX_PTIN_MSG, "(Re)Configure Inband...");
+    ptin_cfg_ntw_connectivity_set(&ptinNtwConn);
+    LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
+
+    /*This Should be the Last Module*/
+    LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on LAG...");
+    ptin_intf_Lag_delete_all();
+    LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
+  }
+}
+
+
+/**
+ * Routine to asynchronously handle message processing if a 
+ * given timeout is reached.
+ *  
+ * @param msgId   : Message Identifier 
+ * @param msgPtr  : Message Pointer 
+ * @param msgSize : Message Size
+ * @param timeOut : Time Out (milliseconds) 
+ *  
+ * @notes: timeOut supported values: 
+ *  - -1 (L7_WAIT_FOREVER)
+ *  -  0 (L7_NO_WAIT)
+ *  - >0 (wait for a short amount of period - typically less
+ *    then IPC_LIB timeout ~3 seconds)
+ *  
+ **/
+void ptin_msg_task_process(L7_uint32 msgId, void *msgPtr, L7_uint32 msgSize, L7_int32 timeOut)
+{
+  static L7_uint32 msgBuffer[IPCLIB_MAX_MSGSIZE] = {0};
+  L7_RC_t rc;
+  
+  LOG_INFO(LOG_CTX_PTIN_CONTROL,"Going to take ptin_ready_sem:%p waiting for it %d (ms)",ptin_ready_sem, timeOut);
+
+  /* Lock Ready State */
+  rc = osapiSemaTake(ptin_ready_sem, timeOut);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Failed to schedule a new task 0x%x within defined timeout:%d (ms)!", msgId, timeOut);
+    return;
+  }
+
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Scheduling a new task 0x%x to be handle within timeout:%d (ms)", msgId, timeOut);
+
+  ptin_task_msg_id = msgId;
+  memcpy(&msgBuffer, msgPtr, msgSize);
+  ptin_task_msg_buffer = &msgBuffer;
+ 
+  /* Unlock Busy State*/
   osapiSemaGive(ptin_busy_sem);
 
-  /* Only for non linecards: wait 3 seconds for fw to be ready again */
+#if 0
+    /* Only for non linecards: wait 3 seconds for fw to be ready again */
 #if (!PTIN_BOARD_IS_LINECARD)
   L7_int8 cycles_100ms = 30;
 
@@ -255,7 +349,21 @@ void ptin_msg_defaults_reset(L7_char8 mode)
   }
   LOG_INFO(LOG_CTX_PTIN_MSG, "Operation completed! Leaving %s function.", __FUNCTION__); 
 #else
-  LOG_INFO(LOG_CTX_PTIN_MSG, "I will not wait for completion. Leaving %s function.", __FUNCTION__); 
+  
+#endif
+#else
+  /* Lock Ready State */
+  rc = osapiSemaTake(ptin_ready_sem, timeOut);
+  if (rc)
+  {
+    LOG_INFO(LOG_CTX_PTIN_MSG, "Timeout %d (ms) expired. Message Still Being Processed: 0x%x", timeOut, msgId); 
+  }
+  else
+  {
+    /* Unlock Ready State */
+    osapiSemaGive(ptin_ready_sem);
+    LOG_INFO(LOG_CTX_PTIN_MSG, "Message Processed 0x%x Within TimeOut %d (ms) ", msgId, timeOut);         
+  }
 #endif
 }
 
@@ -9449,16 +9557,16 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
   snoopSyncRequest.serviceId    = snoopSyncReply[numberOfSnoopEntries-1].serviceId;
 
 #if PTIN_BOARD_IS_MATRIX    
-  if(ptin_fpga_mx_is_matrixactive())//If I'm a Active Matrix
+  if(ptin_fpga_mx_is_matrixactive_rt())//If I'm a Active Matrix
   {
     LOG_NOTICE(LOG_CTX_PTIN_MSG, "Not sending Another Snoop Sync Request Message to Sync the Remaining Snoop Entries. I'm a Active Matrix on slotId:%u",ptin_fpga_board_slot_get());
     return SUCCESS;
   }
 
   /* MX board IP address */
-  ipAddr = ptin_fpga_matrix_ipaddr_get(PTIN_FPGA_ACTIVE_MATRIX);
+  ipAddr = IPC_MX_PAIR_IPADDR;
   
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Sending Snoop Sync Request Message [groupAddr:%08X | serviceId:%u] to ipAddr:%08X to Sync the Remaining Snoop Entries", snoopSyncRequest.groupAddr, snoopSyncRequest.serviceId, ipAddr);         
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Sending Snoop Sync Request Message [groupAddr:%08X | serviceId:%u] to ipAddr:%08X (%u) to Sync the Remaining Snoop Entries", snoopSyncRequest.groupAddr, snoopSyncRequest.serviceId, MX_PAIR_SLOT_ID, ipAddr);         
 #else
   ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};     
 
@@ -12959,15 +13067,15 @@ void ptin_msg_protection_matrix_configuration_flush_end(void)
 
   { /*Trigger the Sync of the Snooping Table*/   
   #if PTIN_BOARD_IS_MATRIX    
-    if(!ptin_fpga_mx_is_matrixactive())//If I'm a Standby Matrix
-    {
+    if(!ptin_fpga_mx_is_matrixactive_rt())//If I'm a Standby Matrix
+    {         
       msg_SnoopSyncRequest_t   snoopSyncRequest = {0};
       L7_uint32                ipAddr; 
     
       /* IP address of Active Matrix*/
-      ipAddr = ptin_fpga_matrix_ipaddr_get(PTIN_FPGA_ACTIVE_MATRIX);
+      ipAddr = IPC_MX_PAIR_IPADDR;
 
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Sending a Snoop Sync Request Message to ipAddr:%08X", ipAddr);
+      LOG_INFO(LOG_CTX_PTIN_MSG, "Sending a Snoop Sync Request Message to ipAddr:%08X (%u)", ipAddr, MX_PAIR_SLOT_ID);
 
       /*Send the snoop sync request to the protection matrix */  
       if (send_ipc_message(IPC_HW_FASTPATH_PORT, ipAddr, CCMSG_MGMD_SNOOP_SYNC_REQUEST, (char *)(&snoopSyncRequest), NULL, sizeof(snoopSyncRequest), NULL) < 0)

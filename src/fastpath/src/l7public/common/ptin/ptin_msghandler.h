@@ -322,8 +322,8 @@
 
 typedef enum
 {
-  DEFATUL_RESET_MODE_FULL =     0x00,
-  DEFATUL_RESET_MODE_PARTIAL =  0xFF
+  DEFAULT_RESET_MODE_FULL =     0x00,
+  DEFAULT_RESET_MODE_PARTIAL =  0xFF
 } defaults_reset_mode_t;
 
 typedef struct {

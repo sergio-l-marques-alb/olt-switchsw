@@ -619,14 +619,16 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
                "Message received: CCMSG_DEFAULTS_RESET (0x%04X)", CCMSG_DEFAULTS_RESET);
 
       CHECK_INFO_SIZE(msg_HwGenReq_t);
-
+      #if 0
       msg_HwGenReq_t *config;
       config = (msg_HwGenReq_t *) inbuffer->info;
-
-      /* Execute command */
       ptin_msg_defaults_reset(config->param);
-
       SETIPCACKOK(outbuffer);
+      #else
+      /* Execute command */      
+      ptin_msg_task_process(inbuffer->msgId, (void*)(inbuffer->info), inbuffer->infoDim, 3000);
+      SETIPCACKOK(outbuffer);
+      #endif
 
       break;  /* CCMSG_DEFAULTS_RESET */
     }
@@ -5352,16 +5354,22 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     case CCMSG_PROTECTION_MATRIX_FLUSH_CONFIGURATION_END:
     {
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_MATRIX_FLUSH_CONFIGURATION_END (0x%04X)", inbuffer->msgId);
-      
+
+      #if 0
       /*Sending Ack*/  
-      SETIPCACKOK(outbuffer);
+      SETIPCACKOK(outbuffer);      
 
       /* Execute command */
       ptin_msg_protection_matrix_configuration_flush_end();      
-      
-    }
-    break;
+      #else
+      /* Execute command */
+      ptin_msg_task_process(inbuffer->msgId, (void*)(inbuffer->info), inbuffer->infoDim, 3000);
 
+      /*Sending Ack*/  
+      SETIPCACKOK(outbuffer);   
+      #endif
+      break;
+    }
     default:
     {
       LOG_WARNING(LOG_CTX_PTIN_MSGHANDLER,

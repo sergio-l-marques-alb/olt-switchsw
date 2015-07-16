@@ -41,8 +41,6 @@ L7_RC_t ptinCnfgrNoopProccess( L7_CNFGR_RESPONSE_t *pResponse,
 L7_RC_t ptinCnfgrUconfigPhase2( L7_CNFGR_RESPONSE_t *pResponse,
                                 L7_CNFGR_ERR_RC_t   *pReason );
 
-/* Reset defaults mode */
-extern L7_uint8 ptin_reset_defaults_mode;
 
 /* Semaphore to synchronize PTin task execution */
 extern void *ptin_ready_sem;

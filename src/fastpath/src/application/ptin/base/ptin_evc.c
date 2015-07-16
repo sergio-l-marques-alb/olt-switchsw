@@ -471,8 +471,14 @@ static L7_uint32 __intfIfnum = (L7_uint32) -1;
 
 static void __ptin_evc_l3_intf_sem_handle(L7_uint32 vlanId, L7_uint32 intfIfnum)
 {
-  LOG_TRACE(LOG_CTX_PTIN_EVC, "Take Sem vlanId:%u intfIfnum:%u", vlanId, intfIfnum);
-  osapiSemaTake(__ptin_evc_l3_intf_sem, L3_INTF_SEM_MAX_WAITING_PERIOD);
+  L7_RC_t rc;
+  LOG_INFO(LOG_CTX_PTIN_EVC, "Take Sem:%p vlanId:%u intfIfnum:%u", __ptin_evc_l3_intf_sem, vlanId, intfIfnum);
+  rc = osapiSemaTake(__ptin_evc_l3_intf_sem, L3_INTF_SEM_MAX_WAITING_PERIOD);
+
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Failed to Take Sem:%p vlanId:%u intfIfnum:%u", __ptin_evc_l3_intf_sem, vlanId, intfIfnum);
+  }
 
   /*Are we on a clean state?*/
   if ( __vlanId == (L7_uint32) -1 && __intfIfnum == (L7_uint32) -1)
@@ -489,12 +495,11 @@ static void __ptin_evc_l3_intf_sem_handle(L7_uint32 vlanId, L7_uint32 intfIfnum)
       __vlanId = (L7_uint32) -1;    
       __intfIfnum = (L7_uint32) -1; 
 
-      LOG_TRACE(LOG_CTX_PTIN_EVC, "Give Sem vlanId:%u intfIfnum:%u", vlanId, intfIfnum);
+      LOG_INFO(LOG_CTX_PTIN_EVC, "Give Sem %p vlanId:%u intfIfnum:%u", __ptin_evc_l3_intf_sem, vlanId, intfIfnum);
       /* SEM L3 Intf Down */
       osapiSemaGive(__ptin_evc_l3_intf_sem);
     }
   }
-
   return;
 }
 
@@ -502,7 +507,7 @@ void ptin_evc_l3_intf_sem_give(L7_uint32 vlanId, L7_uint32 intfIfnum)
 {  
   if ( __vlanId == vlanId && __intfIfnum == intfIfnum )
   {
-    LOG_TRACE(LOG_CTX_PTIN_EVC, "Give Sem vlanId:%u intfIfnum:%u", vlanId, intfIfnum);
+    LOG_INFO(LOG_CTX_PTIN_EVC, "Give Sem %p vlanId:%u intfIfnum:%u", __ptin_evc_l3_intf_sem, vlanId, intfIfnum);
     /* SEM L3 Intf Down */
     osapiSemaGive(__ptin_evc_l3_intf_sem);
   }
@@ -2806,6 +2811,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     else
     #endif
     {
+      #if 0
       if (iptv_enabled)
       {
         if (ptin_multicast_group_l3_create(&multicast_group)!=L7_SUCCESS)
@@ -2818,6 +2824,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
           LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Multicast group 0x%08x created", evc_id, multicast_group);
         }
       }
+      #endif
     }
 
     /* If no error, proceed to configure each interface */
@@ -8875,7 +8882,7 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
         return L7_FAILURE;
       }
       LOG_TRACE(LOG_CTX_PTIN_EVC, "Added L3 Leaf Interface [ptin_port:%u l3_intf_id:%d]", ptin_port, l3_intf.l3_intf_id);      
-
+      #if 0
       rc = ptin_multicast_l3_egress_port_add(intIfNum, evcs[evc_id].multicast_group, l3_intf.l3_intf_id);
       if (rc != L7_SUCCESS)
       {
@@ -8883,6 +8890,7 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
         return L7_FAILURE;
       }
       LOG_TRACE(LOG_CTX_PTIN_EVC, "Egress Port Added to Multicast Group [ptin_port:%u l3_intf_id:%d mc_group:0x%x]", ptin_port, l3_intf.l3_intf_id, evcs[evc_id].multicast_group);      
+      #endif
     }
   }
 
@@ -9115,6 +9123,7 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
         /*Copy L3 Intf Id*/
         l3_intf.l3_intf_id = evcs[evc_id].intf[ptin_port].l3_intf_id;
 
+        #if 0
         rc = ptin_multicast_l3_egress_port_remove(intIfNum, evcs[evc_id].multicast_group, l3_intf.l3_intf_id);
 
         if (rc != L7_SUCCESS)
@@ -9123,7 +9132,7 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
           return L7_FAILURE;
         }
         LOG_TRACE(LOG_CTX_PTIN_EVC, "Egress Port Removed from Multicast Group [ptin_port:%u l3_intf_id:%d mc_group:0x%x]", ptin_port, l3_intf.l3_intf_id, evcs[evc_id].multicast_group);    
-        
+        #endif
 
         /*Remove L3 Leaf Interface*/
         rc = dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_L3_INTF, DAPI_CMD_CLEAR, sizeof(ptin_dtl_l3_intf_t), &l3_intf);
