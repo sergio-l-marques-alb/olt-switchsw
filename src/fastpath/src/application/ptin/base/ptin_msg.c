@@ -3080,6 +3080,15 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
               qos_msg->egress.cos_dropmgmt[5].dp_thresholds[i].wred_minThreshold,
               qos_msg->egress.cos_dropmgmt[6].dp_thresholds[i].wred_minThreshold,
               qos_msg->egress.cos_dropmgmt[7].dp_thresholds[i].wred_minThreshold);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_dropmgmt->dp_threshold[%u]: WRED max.threshold = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
+              qos_msg->egress.cos_dropmgmt[0].dp_thresholds[i].wred_maxThreshold,
+              qos_msg->egress.cos_dropmgmt[1].dp_thresholds[i].wred_maxThreshold,
+              qos_msg->egress.cos_dropmgmt[2].dp_thresholds[i].wred_maxThreshold,
+              qos_msg->egress.cos_dropmgmt[3].dp_thresholds[i].wred_maxThreshold,
+              qos_msg->egress.cos_dropmgmt[4].dp_thresholds[i].wred_maxThreshold,
+              qos_msg->egress.cos_dropmgmt[5].dp_thresholds[i].wred_maxThreshold,
+              qos_msg->egress.cos_dropmgmt[6].dp_thresholds[i].wred_maxThreshold,
+              qos_msg->egress.cos_dropmgmt[7].dp_thresholds[i].wred_maxThreshold);
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_dropmgmt->dp_threshold[%u]: WRED drop prob.    = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
               qos_msg->egress.cos_dropmgmt[0].dp_thresholds[i].wred_dropProb,
               qos_msg->egress.cos_dropmgmt[1].dp_thresholds[i].wred_dropProb,
@@ -3346,6 +3355,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
           {
             qos_drop[i].dp[j].wred_min_threshold = qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].wred_minThreshold;
             qos_drop[i].dp[j].local_mask |= PTIN_QOS_COS_DP_WRED_THRESH_MIN_MASK;
+            qos_drop[i].mask |= PTIN_QOS_COS_WRED_THRESHOLDS_MASK;
             apply_conf = L7_TRUE;
           }
           /* WRED max threshold */
@@ -3353,6 +3363,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
           {
             qos_drop[i].dp[j].wred_max_threshold = qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].wred_maxThreshold;
             qos_drop[i].dp[j].local_mask |= PTIN_QOS_COS_DP_WRED_THRESH_MAX_MASK;
+            qos_drop[i].mask |= PTIN_QOS_COS_WRED_THRESHOLDS_MASK;
             apply_conf = L7_TRUE;
           }
           /* WRED drop probability */
@@ -3360,6 +3371,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
           {
             qos_drop[i].dp[j].wred_drop_prob = qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].wred_dropProb;
             qos_drop[i].dp[j].local_mask |= PTIN_QOS_COS_DP_WRED_DROP_PROB_MASK;
+            qos_drop[i].mask |= PTIN_QOS_COS_WRED_THRESHOLDS_MASK;
             apply_conf = L7_TRUE;
           }
         }
