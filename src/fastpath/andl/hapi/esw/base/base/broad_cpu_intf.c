@@ -2523,7 +2523,8 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
   if (hapiBroadGetSystemBoardFamily(&board_family) == L7_SUCCESS)
   {
      if ( (board_family == BCM_FAMILY_TRIUMPH) ||
-          (board_family == BCM_FAMILY_TRIUMPH2)
+          (board_family == BCM_FAMILY_TRIUMPH2) ||
+          (board_family == BCM_FAMILY_TRIDENT)
         ) /* Remove the inner tag if the frame is double tagged */
           /* Currently All the double tagged frames comes with
              inner inner TPID as 0x8100.*/
