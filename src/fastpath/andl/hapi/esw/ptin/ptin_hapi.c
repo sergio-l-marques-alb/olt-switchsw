@@ -4115,7 +4115,8 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
       //bcm_color_t bcm_color;
       int i, r;
     
-       r=bcm_switch_control_set (0, bcmSwitchColorSelect, BCM_COLOR_OUTER_CFI); LOG_INFO(LOG_CTX_PTIN_HAPI,"\tbcm_switch_control_set()=%d",r);
+       r=bcm_switch_control_set (0, bcmSwitchColorSelect, BCM_COLOR_OUTER_CFI);
+       LOG_INFO(LOG_CTX_PTIN_HAPI,"\tbcm_switch_control_set()=%d",r);
 
        for (i=0; i<ptin_sys_number_of_ports; i++) {
            // Get bcm_port format
@@ -4124,17 +4125,21 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
              continue;
            }
 
-           LOG_INFO(LOG_CTX_PTIN_HAPI,"i=%u\tbcm_port=%d\n", i, bcm_port);
+           LOG_INFO(LOG_CTX_PTIN_HAPI,"port=%u / bcm_port=%d", i, bcm_port);
            //INGRESS STAGE
-           r=bcm_port_cfi_color_set(0, bcm_port, 0, bcmColorGreen);   LOG_INFO(LOG_CTX_PTIN_HAPI,"\tbcm_port_cfi_color_set()=%d",r);
-           r=bcm_port_cfi_color_set(0, bcm_port, 1, bcmColorYellow);   LOG_INFO(LOG_CTX_PTIN_HAPI,"\tbcm_port_cfi_color_set()=%d",r);
+           r=bcm_port_cfi_color_set(0, bcm_port, 0, bcmColorGreen);
+           LOG_INFO(LOG_CTX_PTIN_HAPI,"\tbcm_port_cfi_color_set()=%d",r);
+           r=bcm_port_cfi_color_set(0, bcm_port, 1, bcmColorYellow);
+           LOG_INFO(LOG_CTX_PTIN_HAPI,"\tbcm_port_cfi_color_set()=%d",r);
            //EGRESS STAGE
            for (prio=0; prio<8; prio++) {
-               LOG_INFO(LOG_CTX_PTIN_HAPI,"\n\tpri=%d\n", prio);
-               r=bcm_port_vlan_priority_unmap_set(0, bcm_port, prio, bcmColorGreen, prio, 0);   LOG_INFO(LOG_CTX_PTIN_HAPI,"\tbcm_port_vlan_priority_unmap_set()=%d",r);
-               r=bcm_port_vlan_priority_unmap_set(0, bcm_port, prio, bcmColorYellow, prio, 1);   LOG_INFO(LOG_CTX_PTIN_HAPI,"\tbcm_port_vlan_priority_unmap_set()=%d",r);
+               r=bcm_port_vlan_priority_unmap_set(0, bcm_port, prio, bcmColorGreen, prio, 0);
+               LOG_DEBUG(LOG_CTX_PTIN_HAPI,"\tprio %d: bcm_port_vlan_priority_unmap_set()=%d",prio,r);
+               r=bcm_port_vlan_priority_unmap_set(0, bcm_port, prio, bcmColorYellow, prio, 1);
+               LOG_DEBUG(LOG_CTX_PTIN_HAPI,"\tprio %d: bcm_port_vlan_priority_unmap_set()=%d",prio,r);
            }
-           r=bcm_port_control_set(0, bcm_port, bcmPortControlEgressVlanPriUsesPktPri, 0);   LOG_INFO(LOG_CTX_PTIN_HAPI,"\tbcm_port_control_set()=%d",r);
+           r=bcm_port_control_set(0, bcm_port, bcmPortControlEgressVlanPriUsesPktPri, 0);
+           LOG_INFO(LOG_CTX_PTIN_HAPI,"\tbcm_port_control_set()=%d",r);
        }
   }
 #else
