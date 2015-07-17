@@ -93,8 +93,6 @@ L7_RC_t dtlFdbReceiveCallback(DAPI_USP_t *ddusp,
                                     DAPI_EVENT_t event,
                                     void *dapiEventInfo)
 {
-
-
   L7_RC_t mrc = L7_SUCCESS;
   L7_RC_t dr= L7_SUCCESS;
   DTL_MSG_t  dtl_msg;

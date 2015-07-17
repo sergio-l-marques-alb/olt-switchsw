@@ -182,6 +182,8 @@ void ptin_debug(void)
   printf("  cpu_tx_debug_enable <debug_level>                               - Print all packets transmited from processor (1:stdout, 0xX0:LOGs)\r\n");
   printf("  ptin_debug_trap_packets_dump <enable>                           - Print received packets content\r\n");
   printf("  ptin_debug_tx_packets_dump <enable>                             - Print transmited packets content (from CPU)\r\n");
+  printf("  dtlFamilyCallbacks_getAddr                                      - Get DTL Family Callbacks addresses (to be compared with familyCallbackListDebugShow)\r\n");
+  printf("  familyCallbackListDebugShow                                     - Show list of packet processing callbacks related to familyCallback's\r\n");
   printf("  sysNetInterceptDebugShow                                        - Show list of packet processing callbacks related to sysnetPduHooks\r\n");
   printf("  sysNetNotifyListDebugShow                                       - Show list of packet processing callbacks related to sysnetNotifyList\r\n");
   printf("\r\n");                                                          

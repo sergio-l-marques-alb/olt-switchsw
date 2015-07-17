@@ -521,6 +521,9 @@ L7_RC_t ipMapCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
     return ipMapRC;
   }
 
+  LOG_INFO(LOG_CTX_STARTUP,"Going to register ipMapArpRecvIP related to type=%u, protocol_type=%u: 0x%08x",
+           SYSNET_ETHERTYPE_ENTRY,  L7_ETYPE_ARP,  (L7_uint32) ipMapArpRecvIP);
+
   /* Register with SYSNET to receive ARP packets */
   memset((void *)&snEntry, 0, sizeof(sysnetNotifyEntry_t));
   strcpy(snEntry.funcName, "ipMapArpRecvIP");
@@ -535,6 +538,9 @@ L7_RC_t ipMapCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
 
     return ipMapRC;
   }
+
+  LOG_INFO(LOG_CTX_STARTUP,"Going to register ipMapRecvIP related to type=%u, protocol_type=%u: 0x%08x",
+           SYSNET_ETHERTYPE_ENTRY,  L7_ETYPE_IP,  (L7_uint32) ipMapRecvIP);
 
   /* Register with sysNET to receive IP packets */
   memset((void *)&snEntry, 0, sizeof(sysnetNotifyEntry_t));
@@ -622,6 +628,9 @@ L7_RC_t ipMapCnfgrRegisterCallbacks(L7_int which)
   /* Register with SYSNET to receive ARP packets */
   if (which == 1)
   {
+    LOG_INFO(LOG_CTX_STARTUP,"Going to register ipMapArpRecvIP related to type=%u, protocol_type=%u: 0x%08x",
+             SYSNET_ETHERTYPE_ENTRY,  L7_ETYPE_ARP,  (L7_uint32) ipMapArpRecvIP);
+
     memset((void *)&snEntry, 0, sizeof(sysnetNotifyEntry_t)); 
     strcpy(snEntry.funcName, "ipMapArpRecvIP");
     snEntry.notify_pdu_receive = ipMapArpRecvIP;
@@ -636,6 +645,9 @@ L7_RC_t ipMapCnfgrRegisterCallbacks(L7_int which)
   /* Register with sysNET to receive IP packets */
   if (which == 2)
   {
+    LOG_INFO(LOG_CTX_STARTUP,"Going to register ipMapRecvIP related to type=%u, protocol_type=%u: 0x%08x",
+             SYSNET_ETHERTYPE_ENTRY,  L7_ETYPE_IP,  (L7_uint32) ipMapRecvIP);
+
     memset((void *)&snEntry, 0, sizeof(sysnetNotifyEntry_t));
     strcpy(snEntry.funcName, "ipMapRecvIP");
     snEntry.notify_pdu_receive = ipMapRecvIP;

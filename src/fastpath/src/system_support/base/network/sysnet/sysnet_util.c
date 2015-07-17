@@ -1525,6 +1525,24 @@ L7_RC_t sysNetPduAFMapNextAvailGet(L7_uint32 *sysnetAFIndex)
 L7_RC_t sysNetNotifyListDebugShow()
 {
   L7_uint32 i;
+  extern L7_RC_t dot1sBpduReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *bpduInfo);
+  extern L7_RC_t dot1xPduReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo);
+  extern L7_RC_t dot3adPduReceive(L7_netBufHandle bufHandle,sysnet_pdu_info_t *pduInfo);
+  extern L7_RC_t dtlRecvIP6(L7_netBufHandle netBufHandle, sysnet_pdu_info_t *pduInfo);
+  extern L7_RC_t GarpRecvPkt(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo);
+  //extern L7_RC_t ipv6ProvRecvPkt(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo);
+  extern L7_RC_t isdpPduReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *PduInfo);
+  extern L7_RC_t lldpPduReceiveCallback(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo);
+  extern L7_RC_t sFlowPduReceive(L7_netBufHandle netBufHandle, sysnet_pdu_info_t *pduInfo);
+  extern L7_RC_t pppoePduReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo);
+  extern L7_RC_t ptinMacBcastRecv(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo);
+#ifdef PTIN_ENABLE_ERPS
+  extern L7_RC_t ptin_aps_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo);
+  extern L7_RC_t ptin_ccm_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo);
+#endif
+#ifdef COMMON_APS_CCM_CALLBACKS__ETYPE_REG
+  extern L7_RC_t common_aps_ccm_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo);
+#endif
 
   for (i = 0; i < FD_CNFGR_SYSNET_MAX_REGISTRATIONS; i++)
   {
@@ -1548,9 +1566,27 @@ L7_RC_t sysNetNotifyListDebugShow()
            sysnetNotifyList.sysnetNotifyEntries[i].u.rxReason);
     printf("  notify_pdu_receive callback = 0x%08x\r\n", (L7_uint32) sysnetNotifyList.sysnetNotifyEntries[i].notify_pdu_receive);
   }
-
-  printf("ipMapArpRecvIP = 0x%08x\r\n", (L7_uint32) ipMapArpRecvIP);
-  printf("ipMapRecvIP    = 0x%08x\r\n", (L7_uint32) ipMapRecvIP);
+  printf("\r\n");
+  printf("ipMapArpRecvIP          = 0x%08x\r\n", (L7_uint32) ipMapArpRecvIP);
+  printf("ipMapRecvIP             = 0x%08x\r\n", (L7_uint32) ipMapRecvIP);
+  printf("dot1sBpduReceive        = 0x%08x\r\n", (L7_uint32) dot1sBpduReceive);
+  printf("dot1xPduReceive         = 0x%08x\r\n", (L7_uint32) dot1xPduReceive);
+  printf("dot3adPduReceive        = 0x%08x\r\n", (L7_uint32) dot3adPduReceive);
+  printf("dtlRecvIP6              = 0x%08x\r\n", (L7_uint32) dtlRecvIP6);
+  printf("GarpRecvPkt             = 0x%08x\r\n", (L7_uint32) GarpRecvPkt);
+  //printf("ipv6ProvRecvPkt         = 0x%08x\r\n", (L7_uint32) ipv6ProvRecvPkt);
+  printf("isdpPduReceive          = 0x%08x\r\n", (L7_uint32) isdpPduReceive);
+  printf("lldpPduReceiveCallback  = 0x%08x\r\n", (L7_uint32) lldpPduReceiveCallback);
+  printf("sFlowPduReceive         = 0x%08x\r\n", (L7_uint32) sFlowPduReceive);
+  printf("pppoePduReceive         = 0x%08x\r\n", (L7_uint32) pppoePduReceive);
+  printf("ptinMacBcastRecv        = 0x%08x\r\n", (L7_uint32) ptinMacBcastRecv);
+#ifdef PTIN_ENABLE_ERPS
+  printf("ptin_aps_packetRx_callback      = 0x%08x\r\n", (L7_uint32) ptin_aps_packetRx_callback);
+  printf("ptin_ccm_packetRx_callback      = 0x%08x\r\n", (L7_uint32) ptin_ccm_packetRx_callback);
+#endif
+#ifdef COMMON_APS_CCM_CALLBACKS__ETYPE_REG
+  printf("common_aps_ccm_packetRx_callback= 0x%08x\r\n", (L7_uint32) common_aps_ccm_packetRx_callback);
+#endif
 
   return L7_SUCCESS;
 }

@@ -599,4 +599,26 @@ L7_RC_t dtlPduLoopback(L7_uint32 destIntf, L7_netBufHandle bufHandle)
     rc = L7_SUCCESS;
   return rc;
 }
+
+#include "dtl_l3_api.h"
+
+/* PTin added: debug */
+void dtlFamilyCallbacks_getAddr(void)
+{
+  printf("dtlLinkChangeCallback   related to DTL_FAMILY_INTF_MGMT  (%2u) -> DAPI_FAMILY_INTF_MGMT  (%2u) family: 0x%08x\r\n",
+          DTL_FAMILY_INTF_MGMT,  DAPI_FAMILY_INTF_MGMT,  (L7_uint32) dtlLinkChangeCallback);
+  printf("dtlPduReceiveCallback   related to DTL_FAMILY_FRAME      (%2u) -> DAPI_FAMILY_FRAME      (%2u) family: 0x%08x\r\n",
+          DTL_FAMILY_FRAME,      DAPI_FAMILY_FRAME,      (L7_uint32) dtlPduReceiveCallback);
+  printf("dtlGenericCallback      related to DTL_FAMILY_QVLAN_MGMT (%2u) -> DAPI_FAMILY_QVLAN_MGMT (%2u) family: 0x%08x\r\n",
+          DTL_FAMILY_QVLAN_MGMT, DAPI_FAMILY_QVLAN_MGMT, (L7_uint32) dtlGenericCallback);
+  printf("dtlGenericCallback      related to DTL_FAMILY_SERVICES   (%2u) -> DAPI_FAMILY_SERVICES   (%2u) family: 0x%08x\r\n",
+          DTL_FAMILY_SERVICES,   DAPI_FAMILY_SERVICES,   (L7_uint32) dtlGenericCallback);
+  printf("dtlFdbReceiveCallback   related to DTL_FAMILY_ADDR_MGMT  (%2u) -> DAPI_FAMILY_ADDR_MGMT  (%2u) family: 0x%08x\r\n",
+          DTL_FAMILY_ADDR_MGMT,  DAPI_FAMILY_ADDR_MGMT,  (L7_uint32) dtlFdbReceiveCallback);
+  printf("dtlIpv4ArpEntryCallback related to DTL_FAMILY_ROUTING_ARP_MGMT (%2u) -> DAPI_FAMILY_ROUTING_ARP_MGMT (%2u) family: 0x%08x\r\n",
+          DTL_FAMILY_ROUTING_ARP_MGMT, DAPI_FAMILY_ROUTING_ARP_MGMT, (L7_uint32) dtlIpv4ArpEntryCallback);
+
+  fflush(stdout);
+}
+
 #endif /*DTLCTRL_COMPONENT_LANDD*/

@@ -617,6 +617,9 @@ L7_RC_t dot3adLacpmInit(void)
   L7_RC_t rc;
   sysnetNotifyEntry_t snEntry;
 
+  LOG_INFO(LOG_CTX_STARTUP,"Going to register dot3adPduReceive related to type=%u: 0x%08x",
+           SYSNET_MAC_ENTRY, (L7_uint32) dot3adPduReceive);
+
   /*Register the pdu receive function with sysnet utility*/
   strcpy(snEntry.funcName, "dot3adPduReceive");
   snEntry.notify_pdu_receive = dot3adPduReceive;

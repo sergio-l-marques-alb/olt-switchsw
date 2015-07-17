@@ -1967,6 +1967,9 @@ L7_RC_t fdbPhaseTwoInit(void)
 
   eventMask = VLAN_ADD_NOTIFY | VLAN_DELETE_NOTIFY | VLAN_ADD_PORT_NOTIFY | VLAN_DELETE_PORT_NOTIFY;
 
+  LOG_INFO(LOG_CTX_STARTUP, "Going to register function 0x%08x to family DTL_FAMILY_ADDR_MGMT (%u)",
+           (L7_uint32) dtlFdbReceiveCallback, DTL_FAMILY_ADDR_MGMT);
+
   if ((rc = nvStoreRegister(notifyFunctionList)) != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_FDB_COMPONENT_ID,

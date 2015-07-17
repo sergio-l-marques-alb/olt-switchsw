@@ -363,6 +363,9 @@ L7_RC_t lldpCnfgrInitPhase2Process(L7_CNFGR_RESPONSE_t *pResponse,
     return L7_ERROR;
   }
 
+  LOG_INFO(LOG_CTX_STARTUP,"Going to register lldpPduReceiveCallback related to type=%u, protocol_type=%u: 0x%08x",
+           SYSNET_ETHERTYPE_ENTRY, L7_ETYPE_LLDP, (L7_uint32) lldpPduReceiveCallback);
+
   /* register with sysnet for LLDP packets, no packets
      will actually be sent to the application until
      we configure the driver to accept them on the

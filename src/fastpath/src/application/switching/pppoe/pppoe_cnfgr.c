@@ -415,8 +415,10 @@ L7_RC_t pppoeCnfgrInitPhase2Process(L7_CNFGR_RESPONSE_t *pResponse,
   *pResponse  = L7_CNFGR_CMD_COMPLETE;
   *pReason    = 0;
 
-  memset(&snEntry, 0x00, sizeof(snEntry));
+  LOG_INFO(LOG_CTX_STARTUP,"Going to register pppoePduReceive related to type=%u, protocol_type=%u: 0x%08x",
+           SYSNET_ETHERTYPE_ENTRY, L7_ETYPE_PPPOE, (L7_uint32) pppoePduReceive);
 
+  memset(&snEntry, 0x00, sizeof(snEntry));
   strcpy(snEntry.funcName, "pppoePduReceive");
   snEntry.notify_pdu_receive = pppoePduReceive;
   snEntry.type = SYSNET_ETHERTYPE_ENTRY;

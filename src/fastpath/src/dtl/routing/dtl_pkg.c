@@ -52,6 +52,9 @@ L7_RC_t dtlIpRegPkg()
 #ifndef L7_IPV6_PACKAGE
   sysnetNotifyEntry_t snEntry;
 
+  LOG_INFO(LOG_CTX_STARTUP,"Going to register dtlRecvIP6 related to type=%u, protocol_type=%u: 0x%08x",
+           SYSNET_ETHERTYPE_ENTRY, L7_ETYPE_IPV6, (L7_uint32) dtlRecvIP6);
+
   bzero((char *)&snEntry, sizeof(sysnetNotifyEntry_t));
   strcpy(snEntry.funcName, "dtlRecvIP6");
   snEntry.notify_pdu_receive = dtlRecvIP6;

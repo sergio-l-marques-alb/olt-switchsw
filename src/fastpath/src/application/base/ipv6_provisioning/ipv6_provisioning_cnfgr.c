@@ -311,6 +311,9 @@ L7_RC_t ipv6ProvCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
     return ipv6ProvRC;
   }
 
+  LOG_INFO(LOG_CTX_STARTUP,"Going to register ipv6ProvRecvPkt related to type=%u, protocol_type=%u: 0x%08x",
+           SYSNET_ETHERTYPE_ENTRY, L7_ETYPE_IPV6, (L7_uint32) ipv6ProvRecvPkt);
+
   strcpy(snEntry.funcName, "ipv6ProvRecvPkt");
   snEntry.notify_pdu_receive = ipv6ProvRecvPkt;
   snEntry.type = SYSNET_ETHERTYPE_ENTRY;

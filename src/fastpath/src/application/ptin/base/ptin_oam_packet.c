@@ -244,6 +244,10 @@ L7_RC_t ptin_aps_packet_init(L7_uint8 erps_idx)
   }
 
 #ifndef COMMON_APS_CCM_CALLBACKS__ETYPE_REG
+
+  LOG_INFO(LOG_CTX_STARTUP,"Going to register ptin_aps_packetRx_callback related to type=%u: 0x%08x",
+           SYSNET_MAC_ENTRY, (L7_uint32) ptin_aps_packetRx_callback);
+
   /* Register APS packets */
   strcpy(snEntry.funcName, "ptin_aps_packetRx_callback");
   snEntry.notify_pdu_receive = ptin_aps_packetRx_callback;
@@ -297,6 +301,10 @@ L7_RC_t ptin_ccm_packet_init(L7_long32 oam_level)
   if (nr_using_ETH_oam_lvl[oam_level]++) return L7_SUCCESS; //No need to register if already done. (Only need that on "nr_us..."'s transition 0->1.)
 
 #ifndef COMMON_APS_CCM_CALLBACKS__ETYPE_REG
+
+  LOG_INFO(LOG_CTX_STARTUP,"Going to register ptin_ccm_packetRx_callback related to type=%u: 0x%08x",
+           SYSNET_MAC_ENTRY, (L7_uint32) ptin_ccm_packetRx_callback);
+
   /* Register CCM packets */
   strcpy(snEntry.funcName, "ptin_ccm_packetRx_callback");
   snEntry.notify_pdu_receive = ptin_ccm_packetRx_callback;
@@ -668,8 +676,10 @@ L7_RC_t common_aps_ccm_packetRx_callback_register(void) {
 
   _1st_time=0;
 
-  memset(&snEntry, 0x00, sizeof(snEntry));
+  LOG_INFO(LOG_CTX_STARTUP,"Going to register common_aps_ccm_packetRx_callback related to type=%u, protocol_type=%u: 0x%08x",
+           SYSNET_ETHERTYPE_ENTRY, L7_ETYPE_CFM, (L7_uint32) common_aps_ccm_packetRx_callback);
 
+  memset(&snEntry, 0x00, sizeof(snEntry));
   strcpy(snEntry.funcName, "common_aps_ccm_packetRx_callback");
   snEntry.notify_pdu_receive = common_aps_ccm_packetRx_callback;
   snEntry.type = SYSNET_ETHERTYPE_ENTRY;
