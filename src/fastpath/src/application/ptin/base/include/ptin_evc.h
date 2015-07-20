@@ -966,25 +966,33 @@ extern L7_RC_t ptin_evc_ext2int(L7_uint32 evc_ext_id, L7_uint32 *evc_id);
 /**
  * Get L3 Intf Id of EVC Port
  * 
- * 
+ * @author melo (01/06/2015) 
+ *  
  * @param evc_ext_id 
  * @param intfNum 
  * @param l3_intf_id 
  * 
  * @return L7_RC_t 
+ *  
+ * @notes Disabled the creation of L3 egress ports on  Multicast
+ *        Services!!!
  */
 extern L7_RC_t ptin_evc_l3_intf_get(L7_uint32 evc_ext_id, L7_uint32 intfNum, L7_int *l3_intf_id);
 
 /**
- * Get L3 Multicast Group of an EVC 
+ * Get Multicast Replication Table of an EVC 
  * 
- * 
+ * @author melo (01/06/2015) 
+ *  
  * @param evc_ext_id 
  * @param multicast_group 
  * 
  * @return L7_RC_t 
+ *  
+ * @notes Disabled the creation of Multicast Replication tables 
+ *        on Multicast Services!!!
  */
-L7_RC_t ptin_evc_l3_multicast_group_get(L7_uint32 evc_ext_id, L7_int *multicast_group);
+extern L7_RC_t ptin_evc_l3_multicast_group_get(L7_uint32 evc_ext_id, L7_int *multicast_group);
 
 /**
  * Get L3 Intf Sem

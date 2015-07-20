@@ -8479,13 +8479,17 @@ static L7_RC_t ptin_evc_extEvcInfo_get(L7_uint32 evc_ext_id, ptinExtEvcIdInfoDat
 
 /**
  * Get L3 Intf Id of EVC Port
- * 
+ *  
+ * @author melo (01/06/2015) 
  * 
  * @param evc_ext_id 
  * @param intfNum 
  * @param l3_intf_id 
  * 
  * @return L7_RC_t 
+ *  
+ * @notes Disabled the creation of L3 egress ports on  Multicast
+ *        Services!!!
  */
 L7_RC_t ptin_evc_l3_intf_get(L7_uint32 evc_ext_id, L7_uint32 intfNum, L7_int *l3_intf_id)
 {
@@ -8545,13 +8549,17 @@ L7_RC_t ptin_evc_l3_intf_get(L7_uint32 evc_ext_id, L7_uint32 intfNum, L7_int *l3
 }
 
 /**
- * Get L3 Multicast Group of an EVC 
- * 
+ * Get Multicast Replication Table of an EVC 
+ *  
+ * @author melo (01/06/2015) 
  * 
  * @param evc_ext_id 
  * @param multicast_group 
  * 
  * @return L7_RC_t 
+ *  
+ * @notes Disabled the creation of Multicast Replication tables 
+ *        on Multicast Services!!!
  */
 L7_RC_t ptin_evc_l3_multicast_group_get(L7_uint32 evc_ext_id, L7_int *multicast_group)
 {
@@ -8720,7 +8728,9 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
   L7_uint16          root_vlan;
   ptin_intf_t        intf;
   L7_uint32          intIfNum;
+  #if 0 /*Disabled the creation/removal of L3 Interfaces on Multicast Services*/
   ptin_dtl_l3_intf_t l3_intf;
+  #endif
   L7_RC_t            rc = L7_SUCCESS;
 
   /* Correct params */
@@ -8842,7 +8852,8 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
         return L7_FAILURE;
       }
     }
-    
+        
+    #if 0/*Disabled the creation/removal of L3 Interfaces on Multicast Services*/
     if (iptv_flag)
     {
       L7_uint32 frameMax = 0;
@@ -8882,16 +8893,18 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
         return L7_FAILURE;
       }
       LOG_TRACE(LOG_CTX_PTIN_EVC, "Added L3 Leaf Interface [ptin_port:%u l3_intf_id:%d]", ptin_port, l3_intf.l3_intf_id);      
-      #if 0
+            
+      #if 0/*Disabled the direct creation/removal of l3 egress ports on multicast services*/
       rc = ptin_multicast_l3_egress_port_add(intIfNum, evcs[evc_id].multicast_group, l3_intf.l3_intf_id);
       if (rc != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_EVC, "Error adding Egress Port to Multicast Group [ptin_port:%u l3_intf_id:%d mc_group:0x%x rc:%d]",ptin_port, l3_intf.l3_intf_id, evcs[evc_id].multicast_group, rc);
         return L7_FAILURE;
       }
-      LOG_TRACE(LOG_CTX_PTIN_EVC, "Egress Port Added to Multicast Group [ptin_port:%u l3_intf_id:%d mc_group:0x%x]", ptin_port, l3_intf.l3_intf_id, evcs[evc_id].multicast_group);      
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "Egress Port Added to Multicast Group [ptin_port:%u l3_intf_id:%d mc_group:0x%x]", ptin_port, l3_intf.l3_intf_id, evcs[evc_id].multicast_group);            
       #endif
     }
+    #endif
   }
 
   /* Vlan mode configuration: Only for E-TREEs configuration */
@@ -8913,10 +8926,14 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
   evcs[evc_id].intf[ptin_port].type     = intf_cfg->mef_type;
   evcs[evc_id].intf[ptin_port].int_vlan = int_vlan;
 
+  #if 0/*Disabled the creation/removal of L3 Interfaces on Multicast Services*/
   if (iptv_flag)
     evcs[evc_id].intf[ptin_port].l3_intf_id = l3_intf.l3_intf_id;
   else
+  #else
     evcs[evc_id].intf[ptin_port].l3_intf_id = -1;
+  #endif
+
 
   #ifdef PTIN_ERPS_EVC
   evcs[evc_id].intf[ptin_port].portState = PTIN_EVC_PORT_FORWARDING;
@@ -9011,7 +9028,9 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
   L7_uint16          int_vlan;
   ptin_intf_t        intf;
   L7_uint32          intIfNum;
+  #if 0/*Disabled the creation/removal of L3 Interfaces on Multicast Services*/
   ptin_dtl_l3_intf_t l3_intf;
+  #endif
   L7_RC_t            rc;
 
   is_p2p     = (evcs[evc_id].flags & PTIN_EVC_MASK_P2P    ) == PTIN_EVC_MASK_P2P;
@@ -9109,7 +9128,8 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
       ptin_evc_matrix_vlan_free(int_vlan);
       #endif
     }
-
+    
+    #if 0/*Disabled the creation/removal of L3 Interfaces on Multicast Services*/
     if (iptv_flag)
     {
       if (evcs[evc_id].intf[ptin_port].l3_intf_id  != PTIN_HAPI_BROAD_INVALID_L3_INTF_ID)
@@ -9122,8 +9142,8 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
         l3_intf.flags |= PTIN_BCM_L3_WITH_ID;
         /*Copy L3 Intf Id*/
         l3_intf.l3_intf_id = evcs[evc_id].intf[ptin_port].l3_intf_id;
-
-        #if 0
+        
+        #if 0/*Disabled the direct creation/removal of l3 egress ports on multicast services*/
         rc = ptin_multicast_l3_egress_port_remove(intIfNum, evcs[evc_id].multicast_group, l3_intf.l3_intf_id);
 
         if (rc != L7_SUCCESS)
@@ -9150,6 +9170,7 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
       }
       evcs[evc_id].intf[ptin_port].l3_intf_id = PTIN_HAPI_BROAD_INVALID_L3_INTF_ID;
     }
+    #endif
   }
 
   /* Update snooping configuration */

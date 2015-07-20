@@ -318,6 +318,39 @@ L7_RC_t ptin_multicast_group_l3_create(L7_int *mcast_group)
 }
 
 /**
+ * Create a L2 multicast group
+ * 
+ * @param mcast_group   : Multicast group id to be returned. 
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+L7_RC_t ptin_multicast_group_l2_create(L7_int *mcast_group)
+{
+  L7_int  mcastGroup = -1;
+  L7_RC_t rc = L7_SUCCESS;
+
+  /* Validate arguments */
+  if ( mcast_group == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API, "Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  rc = ptin_multicast_group_create(&mcastGroup, BCM_MULTICAST_TYPE_L2);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API, "Failed to Create Multicast Group: rc=%d", rc);
+    return rc;
+  }
+
+  *mcast_group = mcastGroup;
+  
+  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d (new MC group=0x%08x)", rc, mcastGroup);
+
+  return rc;
+}
+
+/**
  * Create a VLAN multicast group
  * 
  * @param mcast_group   : Multicast group id to be returned. 
@@ -599,7 +632,7 @@ L7_RC_t ptin_multicast_l3_egress_port_remove(L7_uint32 intIfNum, L7_int mcast_gr
     if (!nElems)
     {
       LOG_WARNING(LOG_CTX_PTIN_API, "Number of  elements of lagIntIfNum:%u is equal to zero.", intIfNum);
-      return (ptin_multicast_egress_port_add(intIfNum, mcast_group, BCM_MULTICAST_TYPE_L3, l3_intf_id));
+      return (ptin_multicast_egress_port_remove(intIfNum, mcast_group, BCM_MULTICAST_TYPE_L3, l3_intf_id));
     }
     else
     {
@@ -610,6 +643,117 @@ L7_RC_t ptin_multicast_l3_egress_port_remove(L7_uint32 intIfNum, L7_int mcast_gr
   #endif
   {
     return (ptin_multicast_egress_port_remove(intIfNum, mcast_group, BCM_MULTICAST_TYPE_L3, l3_intf_id));
+  }
+}
+
+/**
+ * Add ports to Multicast egress
+ * 
+ * @param intIfNum    : interface to be added
+ * @param mcast_group : Multicast group id. 
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+extern L7_RC_t ptin_multicast_l2_egress_port_add(L7_uint32 intIfNum, L7_int mcast_group)
+{
+  /*Added to prevent issue OLTTS-16796: a switchover will turn off the (internal) lags (to the linecars) 
+    for a short amount of period on the standby matrix. This can cause problems on the multicast because it
+    will add the lag without members to the multicast replication table. To prevent it we'll directly add the
+    members of the lag to the replication table*/ 
+  #if PTIN_BOARD_IS_MATRIX
+  if (usmDbDot3adValidIntfCheck(0, intIfNum))
+  {
+    static L7_uint32 members_list[PTIN_SYSTEM_N_PORTS] = {0}; /* Internal interface numbers of portChannel members */      
+    L7_uint32        nElems = sizeof(members_list) / sizeof(members_list[0]);
+    L7_uint32        i;
+    L7_RC_t          rc = L7_FAILURE;
+
+    /* Get list of active ports */
+    if (usmDbDot3adMemberListGet(1, intIfNum, &nElems, members_list) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: error reading Active Members List", intIfNum);
+      return L7_FAILURE;
+    }
+
+    for (i=0; i<nElems; i++)
+    {
+      rc = ptin_multicast_egress_port_add(members_list[i], mcast_group, BCM_MULTICAST_TYPE_L2, -1);
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_API, "Failed to add L3 egress port: intIfNum=%u/lagIntIfNum=%u mcast_group:0x%x", members_list[i], intIfNum,  mcast_group);
+//      return rc;
+      }     
+    }
+    if (!nElems)
+    {
+      LOG_WARNING(LOG_CTX_PTIN_API, "Number of  elements of lagIntIfNum:%u is equal to zero.", intIfNum);
+      return (ptin_multicast_egress_port_add(intIfNum, mcast_group, BCM_MULTICAST_TYPE_L2, -1));
+    }
+    else
+    {
+      return rc;
+    }
+  }
+  else
+  #endif
+  {
+    return (ptin_multicast_egress_port_add(intIfNum, mcast_group, BCM_MULTICAST_TYPE_L2, -1));
+  }
+}
+
+/**
+ * Remove port from Multicast egress
+ * 
+ * @param intIfNum    : interface to be removed
+ * @param mcast_group : Multicast group id. 
+ * @param l3_intf_id  : L3 Intf Id
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+extern L7_RC_t ptin_multicast_l2_egress_port_remove(L7_uint32 intIfNum, L7_int mcast_group)
+{
+  /*Added to prevent issue OLTTS-16796: a switchover will turn off the (internal) lags (to the linecars) 
+    for a short amount of period on the standby matrix. This can cause problems on the multicast because it
+    will add the lag without members to the multicast replication table. To prevent it we'll directly add the
+    members of the lag to the replication table*/ 
+  #if PTIN_BOARD_IS_MATRIX
+  if (usmDbDot3adValidIntfCheck(0, intIfNum))
+  {
+    static L7_uint32 members_list[PTIN_SYSTEM_N_PORTS] = {0}; /* Internal interface numbers of portChannel members */      
+    L7_uint32        nElems = sizeof(members_list) / sizeof(members_list[0]);
+    L7_uint32        i;
+    L7_RC_t          rc = L7_FAILURE;
+
+    /* Get list of active ports */
+    if (usmDbDot3adMemberListGet(1, intIfNum, &nElems, members_list) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: error reading Active Members List", intIfNum);
+      return L7_FAILURE;
+    }
+
+    for (i=0; i<nElems; i++)
+    {
+      rc = ptin_multicast_egress_port_remove(members_list[i], mcast_group, BCM_MULTICAST_TYPE_L2, -1);
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_API, "Failed to remove L3 egress port: intIfNum=%u/intIfNum(Lag)=%u mcast_group:0x%x", members_list[i], intIfNum,  mcast_group);
+//      return rc;
+      }     
+    }
+    if (!nElems)
+    {
+      LOG_WARNING(LOG_CTX_PTIN_API, "Number of  elements of lagIntIfNum:%u is equal to zero.", intIfNum);
+      return (ptin_multicast_egress_port_remove(intIfNum, mcast_group, BCM_MULTICAST_TYPE_L2, -1));
+    }
+    else
+    {
+      return rc;
+    }
+  }
+  else
+  #endif
+  {
+    return (ptin_multicast_egress_port_remove(intIfNum, mcast_group, BCM_MULTICAST_TYPE_L2, -1));
   }
 }
 

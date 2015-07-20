@@ -63,6 +63,15 @@ extern L7_RC_t ptin_vlan_port_switch(L7_uint32 ptin_port_old, L7_uint32 ptin_por
 extern L7_RC_t ptin_multicast_group_l3_create(L7_int *mcast_group);
 
 /**
+ * Create a L2 multicast group
+ * 
+ * @param mcast_group   : Multicast group id to be returned. 
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+extern L7_RC_t ptin_multicast_group_l2_create(L7_int *mcast_group);
+
+/**
  * Create a VLAN multicast group
  * 
  * @param mcast_group   : Multicast group id to be returned. 
@@ -121,6 +130,27 @@ extern L7_RC_t ptin_multicast_l3_egress_port_add(L7_uint32 intIfNum, L7_int mcas
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
 extern L7_RC_t ptin_multicast_l3_egress_port_remove(L7_uint32 intIfNum, L7_int mcast_group, L7_int l3_intf_id);
+
+/**
+ * Add ports to Multicast egress
+ * 
+ * @param intIfNum    : interface to be added
+ * @param mcast_group : Multicast group id. 
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+extern L7_RC_t ptin_multicast_l2_egress_port_add(L7_uint32 intIfNum, L7_int mcast_group);
+
+/**
+ * Remove port from Multicast egress
+ * 
+ * @param intIfNum    : interface to be removed
+ * @param mcast_group : Multicast group id. 
+ * @param l3_intf_id  : L3 Intf Id
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+extern L7_RC_t ptin_multicast_l2_egress_port_remove(L7_uint32 intIfNum, L7_int mcast_group);
 
 /**
  * Clean Multicast egress entries

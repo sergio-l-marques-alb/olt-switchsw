@@ -2538,7 +2538,9 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
   ptin_dtl_ipmc_addr_t               dtl_ipmc;
   L7_uint32                          flags = 0x0;  
   L7_int                             multicast_group;  
+  #if 0//Disabled Using L3 Interfaces
   L7_int                             l3_intf_id;
+  #endif
   L7_BOOL                            newChannelEntry = L7_FALSE;
   L7_BOOL                            newChannelIntfMaskEntry = L7_FALSE;  
   L7_BOOL                            removeMulticastGroup  = L7_FALSE;
@@ -2571,8 +2573,10 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
 
   if (isStatic)
   {
-    flags |= SNOOP_CHANNEL_ENTRY_IS_STATIC;  
+    flags |= SNOOP_CHANNEL_ENTRY_IS_STATIC;
+    #if 0//Disabled this Optimization  
     ptin_evc_l3_multicast_group_get(serviceId, &multicast_group);  
+    #endif
   }
   else
   {
@@ -2772,21 +2776,35 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
     {
       /*Create L3 Multicast Group on the switch*/ 
       multicast_group = -1;
+      #if 1
       rc = ptin_multicast_group_l3_create(&multicast_group);
       if ( rc != L7_SUCCESS || multicast_group <= 0 )
       {
         LOG_ERR(LOG_CTX_PTIN_IGMP, "Error creating L3 multicast group: 0x%08x (rc:%u)", multicast_group, rc);      
         return L7_FAILURE;
       }
+      #else//Disabled Creating L2 Multicast Table
+      rc = ptin_multicast_group_l2_create(&multicast_group);
+      if ( rc != L7_SUCCESS || multicast_group <= 0 )
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "Error creating L2 multicast group: 0x%08x (rc:%u)", multicast_group, rc);      
+        return L7_FAILURE;
+      }
+      #endif
       else
       {
         if (ptin_debug_igmp_snooping)
+        #if 1
           LOG_DEBUG(LOG_CTX_PTIN_IGMP, "L3 Multicast group 0x%08x created", multicast_group);       
+        #else//Disabled Creating L2 Multicast Replication Table
+          LOG_DEBUG(LOG_CTX_PTIN_IGMP, "L2 Multicast group 0x%08x created", multicast_group);       
+        #endif
       }
 
       /*Channel Only Has one Interface*/
       if ( newChannelEntry == L7_TRUE )
-      {        
+      {
+        #if 0//Disabled Using L3 Interfaces        
         l3_intf_id = -1;
         if (ptin_evc_l3_intf_get(serviceId, intIfNum, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
         {
@@ -2802,6 +2820,15 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
           LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to add L3 Egress portId:%d to multicastGroup:0x%08x (rc%u)", l3_intf_id, multicast_group, rc);      
           return L7_FAILURE;
         }
+        #else
+        rc = ptin_multicast_l2_egress_port_add(intIfNum, multicast_group);
+        if ( rc != L7_SUCCESS )
+        {
+          LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to add L2 Egress intIfNum:%u to multicastGroup:0x%08x (rc%u)", intIfNum, multicast_group, rc);      
+          return L7_FAILURE;
+        }
+        #endif
+
       }
       else
       {
@@ -2818,6 +2845,7 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
 
           if (PTIN_IS_MASKBITSET(pChannelIntfMask->snoopChannelIntfMaskInfoDataKey.channelIntfMask, intf))
           {
+            #if 0//Disabled Using L3 Interfaces
             l3_intf_id = -1;
             if (ptin_evc_l3_intf_get(serviceId, intf, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
             {
@@ -2832,8 +2860,15 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
             {
               LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to add L3 Egress portId:%d to multicastGroup:0x%08x (rc%u)", l3_intf_id, multicast_group, rc);      
               return L7_FAILURE;
-            }           
-            
+            }
+            #else            
+            rc = ptin_multicast_l2_egress_port_add(intf, multicast_group);
+            if ( rc != L7_SUCCESS )
+            {
+              LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to add L2 Egress intIfNum:%u to multicastGroup:0x%08x (rc%u)", intf, multicast_group, rc);      
+              return L7_FAILURE;
+            }
+            #endif                       
             if (++noOfInterfacesFound >= pChannelIntfMask->noOfInterfaces)
               break;              
           }          
@@ -2851,7 +2886,7 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
 
       /*Use Existing Multicast Group*/
       removeMulticastGroup = L7_FALSE;
-
+      #if 0//Disabled Using L3 Interfaces
       l3_intf_id = -1;
       if (ptin_evc_l3_intf_get(serviceId, intIfNum, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
       {
@@ -2866,7 +2901,15 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
       {
         LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to add L3 Egress portId:%d to multicastGroup:0x%08x (rc%u)", l3_intf_id, multicast_group, rc);      
         return L7_FAILURE;
-      }           
+      }
+      #else
+      rc = ptin_multicast_l2_egress_port_add(intIfNum, multicast_group);
+      if ( rc != L7_SUCCESS )
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to add L2 Egress intIfNum:%u to multicastGroup:0x%08x (rc%u)", intIfNum, multicast_group, rc);      
+        return L7_FAILURE;
+      }
+      #endif           
     }
     pChannelIntfMask->multicastGroup = multicast_group;
   }
@@ -2925,6 +2968,7 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
 
       if (PTIN_IS_MASKBITSET(pChannelEntry->channelIntfMask, intf))
       {
+        #if 0//Disabled Using L3 Interfaces
         l3_intf_id = -1;
         if (ptin_evc_l3_intf_get(serviceId, intf, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
         {
@@ -2941,7 +2985,15 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
         {
           LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to remove egress portId:%d to multicastGroup:0x%08x (rc%u)", l3_intf_id, pChannelEntry->pChannelIntfMask->multicastGroup, rc);      
           return L7_FAILURE;
-        } 
+        }        
+        #else            
+        rc = ptin_multicast_l2_egress_port_add(intf, pChannelEntry->pChannelIntfMask->multicastGroup);
+        if ( rc != L7_SUCCESS )
+        {
+          LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to add L2 Egress intIfNum:%u to multicastGroup:0x%08x (rc%u)", intf, pChannelEntry->pChannelIntfMask->multicastGroup, rc);      
+          return L7_FAILURE;
+        }
+        #endif           
         
         if (++noOfInterfacesFound >= pChannelEntry->pChannelIntfMask->noOfInterfaces)
           break;              
@@ -3047,7 +3099,9 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
   ptin_dtl_ipmc_addr_t               dtl_ipmc;
   L7_uint32                          flags = 0x0;  
   L7_int                             multicast_group = -1;  
+  #if 0//Disabled Using L3 Interfaces
   L7_int                             l3_intf_id;  
+  #endif
   L7_BOOL                            newChannelIntfMaskEntry = L7_FALSE;
   L7_BOOL                            removeMulticastGroup = L7_FALSE;
   L7_BOOL                            removechannelIntfMask = L7_FALSE;
@@ -3209,6 +3263,7 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
     /*Is this channel the last entry of this interface mask?*/
     if ( --pChannelEntry->pChannelIntfMask->noOfChannelEntries == 0 )
     {
+      #if 0//Disabled Using L3 Interfaces
       /*Get L3 Interface Id*/
       l3_intf_id = -1;
       if (ptin_evc_l3_intf_get(serviceId, intIfNum, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
@@ -3228,6 +3283,14 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
         LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to remove egress portId:%d to multicastGroup:0x%08x (rc%u)", l3_intf_id, multicast_group, rc);      
         return L7_FAILURE;
       } 
+      #else
+      rc = ptin_multicast_l2_egress_port_remove(intIfNum, multicast_group);
+      if ( rc != L7_SUCCESS )
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to remove L2 Egress intIfNum:%u from multicastGroup:0x%08x (rc%u)", intIfNum, multicast_group, rc);      
+        return L7_FAILURE;
+      }
+      #endif
      
       /*Remove L3 Multicast Group*/
       rc = ptin_multicast_group_destroy(multicast_group);
@@ -3298,19 +3361,31 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
     newChannelIntfMaskEntry = L7_TRUE;
 
     if ( removeMulticastGroup == L7_FALSE )
-    {
-      /*Create L3 Multicast Group on the switch*/ 
+    {      
       multicast_group = -1;
+      #if 1/*Create L3 Multicast Replication Table on the switch*/ 
       rc = ptin_multicast_group_l3_create(&multicast_group);
       if ( rc != L7_SUCCESS || multicast_group <= 0 )
       {
         LOG_ERR(LOG_CTX_PTIN_IGMP, "Error creating L3 multicast group: 0x%08x (rc:%u)", multicast_group, rc);      
         return L7_FAILURE;
       }
+      #else//Disabled Creating L2 Multicast Replication Table
+      rc = ptin_multicast_group_l2_create(&multicast_group);
+      if ( rc != L7_SUCCESS || multicast_group <= 0 )
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "Error creating L2 multicast group: 0x%08x (rc:%u)", multicast_group, rc);      
+        return L7_FAILURE;
+      }
+      #endif
       else
       {
         if (ptin_debug_igmp_snooping)
+        #if 1
           LOG_DEBUG(LOG_CTX_PTIN_IGMP, "L3 Multicast group 0x%08x created", multicast_group);     
+        #else//Disabled Creating L2 Multicast Replication Table
+          LOG_DEBUG(LOG_CTX_PTIN_IGMP, "L2 Multicast group 0x%08x created", multicast_group);     
+        #endif
       }
 
       /* Add Egress Ports*/  
@@ -3329,7 +3404,7 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
           {
             LOG_ERR(LOG_CTX_PTIN_IGMP, "intf == intIfNum", intf, intIfNum);              
           }
-
+          #if 0//Disabled Using L3 Interfaces
           l3_intf_id = -1;
           if (ptin_evc_l3_intf_get(serviceId, intf, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
           {
@@ -3348,8 +3423,15 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
           {
             LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to add egress portId:%d to multicastGroup:0x%08x (rc%u)", l3_intf_id, multicast_group, rc);      
             return L7_FAILURE;
-          } 
-          
+          }
+          #else
+          rc = ptin_multicast_l2_egress_port_add(intf, multicast_group);
+          if ( rc != L7_SUCCESS )
+          {
+            LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to add L2 Egress intIfNum:%u to multicastGroup:0x%08x (rc%u)", intf, multicast_group, rc);      
+            return L7_FAILURE;
+          }
+          #endif
           
           if (++pChannelIntfMask->noOfInterfaces >= pChannelEntry->noOfInterfaces)
             break;              
@@ -3364,7 +3446,7 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
     {
       /*Use Existing Multicast Group*/
       removeMulticastGroup = L7_FALSE;
-
+      #if 0//Disabled Using L3 Interfaces
       l3_intf_id = -1;
       if (ptin_evc_l3_intf_get(serviceId, intIfNum, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
       {
@@ -3381,7 +3463,15 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
       {
         LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to remove egress portId:%d to multicastGroup:0x%08x (rc%u)", l3_intf_id, pChannelEntry->pChannelIntfMask->multicastGroup, rc);      
         return L7_FAILURE;
-      } 
+      }       
+      #else
+      rc = ptin_multicast_l2_egress_port_remove(intIfNum, pChannelEntry->pChannelIntfMask->multicastGroup);
+      if ( rc != L7_SUCCESS )
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to remove L2 Egress intIfNum:%u from multicastGroup:0x%08x (rc%u)", intIfNum, pChannelEntry->pChannelIntfMask->multicastGroup, rc);      
+        return L7_FAILURE;
+      }
+      #endif
     }
 
     /*Save Multicast Group Id*/
@@ -3439,6 +3529,7 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
 
       if (PTIN_IS_MASKBITSET(pChannelEntry->pChannelIntfMask->snoopChannelIntfMaskInfoDataKey.channelIntfMask, intf))
       {
+        #if 0//Disabled Using L3 Interfaces
         l3_intf_id = -1;
         if (ptin_evc_l3_intf_get(serviceId, intf, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
         {
@@ -3456,7 +3547,15 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
           LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to remove egress portId:%d to multicastGroup:0x%08x (rc%u)", l3_intf_id, pChannelEntry->pChannelIntfMask->multicastGroup, rc);      
           return L7_FAILURE;
         } 
-        
+        #else
+        rc = ptin_multicast_l2_egress_port_remove(intf, pChannelEntry->pChannelIntfMask->multicastGroup);
+        if ( rc != L7_SUCCESS )
+        {
+          LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to remove L2 Egress intIfNum:%u from multicastGroup:0x%08x (rc%u)", intf, pChannelEntry->pChannelIntfMask->multicastGroup, rc);      
+          return L7_FAILURE;
+        }
+        #endif
+                
         if (++noOfInterfacesFound >= pChannelEntry->pChannelIntfMask->noOfInterfaces)
           break;              
       }
