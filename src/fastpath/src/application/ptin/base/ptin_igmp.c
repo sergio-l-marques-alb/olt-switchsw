@@ -7498,9 +7498,7 @@ static L7_RC_t ptin_igmp_channel_get( L7_uint32 evc_mc,
 #if ( IGMPASSOC_CHANNEL_SOURCE_SUPPORTED )
   memcpy(&avl_key.channel_source, channel_source, sizeof(L7_inet_addr_t));
 #endif
-
-  
-  ptin_timer_start(77,"ptin_igmp_channel_get");
+ 
   #if 0//Future Use
   /* Lock Semaphore */
   if (osapiSemaTake(channelDB.channelAvlTree.semId, L7_WAIT_FOREVER) != L7_SUCCESS)
@@ -7510,15 +7508,15 @@ static L7_RC_t ptin_igmp_channel_get( L7_uint32 evc_mc,
     return L7_FAILURE;
   }
   #endif
+  ptin_timer_start(77,"ptin_igmp_channel_get");
   /* Search for this key */
   avl_infoData = (ptinIgmpChannelInfoData_t *) avlSearchLVL7( &(channelDB.channelAvlTree), (void *)&avl_key, AVL_EXACT);
+  ptin_timer_stop(77);
   #if 0//Future Use
   /* Give Semaphore */
   osapiSemaGive(channelDB.channelAvlTree.semId);
   #endif
-  ptin_timer_stop(77);
   
-
   if ( avl_infoData == L7_NULLPTR)
   {
    
@@ -7528,8 +7526,7 @@ static L7_RC_t ptin_igmp_channel_get( L7_uint32 evc_mc,
   }
 #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
   else
-  {
-    ptin_timer_stop(77);
+  {   
     if (ptin_igmp_proxy_bandwidth_control_get())
     {
       //Cache this Group and it's channelBandwidth
@@ -7537,7 +7534,7 @@ static L7_RC_t ptin_igmp_channel_get( L7_uint32 evc_mc,
     }
   }
 #else
-  ptin_timer_stop(77);
+  
 #endif
 
   /* Return AVL Tree Entry */

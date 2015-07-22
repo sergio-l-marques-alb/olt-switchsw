@@ -934,9 +934,11 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
   if ( portType == PTIN_MGMD_PORT_TYPE_ROOT )
   #endif
-  {  
+  { 
+    ptin_timer_start(31,"snoopPacketSend"); 
     //Send packet
     snoopPacketSend(portId, int_ovlan, int_ivlan, packet, packetLength, family, clientId);
+    ptin_timer_stop(31); 
   }
   #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
   else //To support sending one Membership Query Message per ONU 
@@ -983,8 +985,10 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
       }
       else//Client Id is provided
       {
+        ptin_timer_start(31,"snoopPacketSend"); 
         //Send packet
         snoopPacketSend(portId, int_ovlan, int_ivlan, packet, packetLength, family, clientId);
+        ptin_timer_stop(31);
       }
     }
     else //General Query
@@ -1078,8 +1082,10 @@ L7_RC_t ptin_mgmd_send_leaf_packet(uint32 portId, L7_uint16 int_ovlan, L7_uint16
     /* Only transmit, if IGMP flag is active */
     if (rc==L7_NOT_SUPPORTED || clientFlow.flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
     {
+      ptin_timer_start(31,"snoopPacketSend"); 
       //Send packet
       snoopPacketSend(portId, int_ovlan, int_ivlan, packet, packetLength, family, client_idx);
+      ptin_timer_stop(31);
     }
   } while (rc==L7_SUCCESS);   /* Next client? */  
   return rc;

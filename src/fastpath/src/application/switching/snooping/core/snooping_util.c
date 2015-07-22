@@ -1287,7 +1287,6 @@ void snoopPacketSend(L7_uint32 intIfNum,
   L7_uint16 extOVlan = vlanId;
   L7_uint16 extIVlan = 0;
 
-  ptin_timer_start(31,"snoopPacketSend-ptin_evc_extVlans_get_fromIntVlan");
   /* Extract external outer and inner vlan for this tx interface */
   if (ptin_igmp_extVlans_get(intIfNum, vlanId, innerVIDUntagged, client_idx, &extOVlan, &extIVlan) == L7_SUCCESS)
   {
@@ -1317,8 +1316,7 @@ void snoopPacketSend(L7_uint32 intIfNum,
       payload[19] = extIVlan & 0xff;
       //innerVlanId = extIVlan;
     }
-  }
-  ptin_timer_stop(31);
+  } 
   #endif
 
   ptin_timer_start(32,"snoopPacketSend-snoopFrameTransmit before");
