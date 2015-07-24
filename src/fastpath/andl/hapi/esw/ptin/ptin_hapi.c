@@ -4108,7 +4108,8 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
   /** COS & COLOR REMARKING **/
   /** EGRESS STAGE **/
 
-#if 1
+ //#if 1
+
   {
       L7_uint8  prio;
       bcm_port_t bcm_port;
@@ -4133,7 +4134,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
            LOG_INFO(LOG_CTX_PTIN_HAPI,"\tbcm_port_cfi_color_set()=%d",r);
            //EGRESS STAGE
            for (prio=0; prio<8; prio++) {
-               r=bcm_port_vlan_priority_unmap_set(0, bcm_port, prio, bcmColorGreen, prio, 0);
+              r=bcm_port_vlan_priority_unmap_set(0, bcm_port, prio, bcmColorGreen, prio, 0);
                LOG_DEBUG(LOG_CTX_PTIN_HAPI,"\tprio %d: bcm_port_vlan_priority_unmap_set()=%d",prio,r);
                r=bcm_port_vlan_priority_unmap_set(0, bcm_port, prio, bcmColorYellow, prio, 1);
                LOG_DEBUG(LOG_CTX_PTIN_HAPI,"\tprio %d: bcm_port_vlan_priority_unmap_set()=%d",prio,r);
@@ -4142,8 +4143,9 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
            LOG_INFO(LOG_CTX_PTIN_HAPI,"\tbcm_port_control_set()=%d",r);
        }
   }
-#else
 
+  #if (PTIN_BOARD_TG16G) // OLTTS - 17139
+//#else
   L7_uint8  prio, prio_mask  = 0x7;
   L7_uint8  vlanFormat_value = BROAD_VLAN_FORMAT_STAG | BROAD_VLAN_FORMAT_CTAG;
   L7_uint8  vlanFormat_mask  = 0xff;
@@ -4164,11 +4166,13 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
 
   /* Run all 8 priorities */
   for (prio = 0; prio < 8; prio++)
-  {
+  {  
+
     /* ----- SINGLE TAGGED PACKETS ----- */
     vlanFormat_value = BROAD_VLAN_FORMAT_STAG;
     vlanFormat_mask  = 0xff;
 
+    
     /* Priority higher than dot1p rules */
     rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_LOW);
     if (rc != L7_SUCCESS)  break;
@@ -4182,17 +4186,17 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
 
     /* Change outer tag priority to prio */
     rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_USERPRIO, prio, 0, 0);
-    if (rc != L7_SUCCESS)  break;
-
+    if (rc != L7_SUCCESS)  break;   
+          
     /* ----- INNER TAGGED PACKETS ----- */
     vlanFormat_value = BROAD_VLAN_FORMAT_CTAG;
     vlanFormat_mask  = 0xff;
 
-    /* Priority higher than dot1p rules */
+    //* Priority higher than dot1p rules */
     rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_LOW);
     if (rc != L7_SUCCESS)  break;
 
-    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_VLAN_FORMAT, (L7_uchar8 *) &vlanFormat_value, (L7_uchar8 *) &vlanFormat_mask);
+     rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_VLAN_FORMAT, (L7_uchar8 *) &vlanFormat_value, (L7_uchar8 *) &vlanFormat_mask);
     if (rc != L7_SUCCESS)  break;
 
     /* Priority */
@@ -4202,6 +4206,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
     /* Change inner tag priority to prio */
     rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_USERPRIO_INNERTAG, prio, 0, 0);
     if (rc != L7_SUCCESS)  break;
+
   }
   if (rc != L7_SUCCESS)
   {
