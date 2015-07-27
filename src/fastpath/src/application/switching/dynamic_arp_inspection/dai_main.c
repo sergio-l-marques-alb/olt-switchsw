@@ -1119,6 +1119,11 @@ SYSNET_PDU_RC_t daiArpRecv(L7_uint32 hookId,
     L7_ushort16    ethHdrLen = sysNetDataOffsetGet(data);
     L7_ether_arp_t *arp_pkt  = (L7_ether_arp_t*)(data + ethHdrLen);
 
+    /*To Support Little Endian Platforms*/    
+    arp_pkt->arp_hrd = osapiNtohs(arp_pkt->arp_hrd);
+    arp_pkt->arp_pro = osapiNtohs(arp_pkt->arp_pro);
+    arp_pkt->arp_op  = osapiNtohs(arp_pkt->arp_op);
+    
     nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
 
     if (daiCfgData->daiTraceFlags & DAI_TRACE_FRAME_RX)

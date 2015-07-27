@@ -548,7 +548,7 @@ void daiLogEthernetHeader(L7_enetHeader_t *ethHdr, daiTraceDest_t traceDest)
                 dstMacStr, srcMacStr, typeOrLen);
   if (traceDest == DAI_TRACE_LOG)
   {
-    L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DAI_COMPONENT_ID, traceBuf);
+    L7_LOGF(L7_LOG_SEVERITY_DEBUG, L7_DAI_COMPONENT_ID, traceBuf);
   }
   else
   {
@@ -598,7 +598,7 @@ void daiLogArpPacket(L7_uchar8 *frame, L7_ushort16 vlanId,
 
   if (traceDest == DAI_TRACE_LOG)
   {
-    L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DAI_COMPONENT_ID, traceBuf);
+    L7_LOGF(L7_LOG_SEVERITY_DEBUG, L7_DAI_COMPONENT_ID, traceBuf);
   }
   else
   {
@@ -652,7 +652,7 @@ void daiLogAndDropPacket(L7_uchar8 *frame, L7_ushort16 vlanId,
 
     nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
 
-    L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DAI_COMPONENT_ID,
+    L7_LOGF(L7_LOG_SEVERITY_DEBUG, L7_DAI_COMPONENT_ID,
             "DAI dropped ARP frame rcvd on i/f %s in vlan %d, due to - %s",
             ifName, vlanId, daiFailureNames[failure]);
     daiLogEthernetHeader((L7_enetHeader_t *)frame, DAI_TRACE_LOG);

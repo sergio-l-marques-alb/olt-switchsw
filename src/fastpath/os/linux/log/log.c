@@ -449,13 +449,13 @@ log_severity_t fp_to_ptin_logger_verbosity(L7_LOG_SEVERITY_t fp_verbosity)
   switch (fp_verbosity)
   {
   case L7_LOG_SEVERITY_EMERGENCY: return LOG_SEV_CRITICAL;
-  case L7_LOG_SEVERITY_ALERT: return LOG_SEV_CRITICAL;
-  case L7_LOG_SEVERITY_CRITICAL: return LOG_SEV_CRITICAL;
-  case L7_LOG_SEVERITY_ERROR: return LOG_SEV_ERROR;
-  case L7_LOG_SEVERITY_WARNING: return LOG_SEV_WARNING;
-  case L7_LOG_SEVERITY_NOTICE: return LOG_SEV_NOTICE;
-  case L7_LOG_SEVERITY_INFO:  return LOG_SEV_INFO;
-  case L7_LOG_SEVERITY_DEBUG: return LOG_SEV_DEBUG;
+  case L7_LOG_SEVERITY_ALERT:     return LOG_SEV_CRITICAL;
+  case L7_LOG_SEVERITY_CRITICAL:  return LOG_SEV_CRITICAL;
+  case L7_LOG_SEVERITY_ERROR:     return LOG_SEV_ERROR;
+  case L7_LOG_SEVERITY_WARNING:   return LOG_SEV_WARNING;
+  case L7_LOG_SEVERITY_NOTICE:    return LOG_SEV_NOTICE;
+  case L7_LOG_SEVERITY_INFO:      return LOG_SEV_INFO;
+  case L7_LOG_SEVERITY_DEBUG:     return LOG_SEV_DEBUG;
   default: return LOG_OFF;
   }
 }
@@ -466,7 +466,8 @@ log_context_t fp_to_ptin_component(L7_COMPONENT_IDS_t fp_component)
   switch (fp_component)
   {
   case L7_DHCP_SNOOPING_COMPONENT_ID: return LOG_CTX_PTIN_DHCP;
-  case L7_SNOOPING_COMPONENT_ID: return LOG_CTX_PTIN_IGMP;  
+  case L7_SNOOPING_COMPONENT_ID:      return LOG_CTX_PTIN_IGMP;  
+  case L7_DAI_COMPONENT_ID:           return LOG_CTX_DAI;
   default: return LOG_CTX_MISC;
   }
 }
