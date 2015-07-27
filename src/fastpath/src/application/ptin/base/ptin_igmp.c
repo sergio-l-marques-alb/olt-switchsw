@@ -2852,7 +2852,10 @@ L7_RC_t ptin_igmp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_i
   if (ptin_igmp_clientId_convert(evc_idx, &client)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid client id");
-    return L7_FAILURE;
+    if (addOrRemove)
+      return L7_NOT_EXIST;
+    else
+      return L7_FAILURE;
   }
 
   /* If uni vlans are not provided, but interface is, get uni vlans from EVC data */
