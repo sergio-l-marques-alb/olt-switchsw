@@ -7394,6 +7394,8 @@ void ptin_ta48ge_txdisable_control(L7_uint32 port, L7_uint8 state)
 
   base_addr  = port / 8;
   offset_addr= port % 8;
+
+  LOG_TRACE(LOG_CTX_PTIN_INTF, "port:%u state:%u base_addr:%u offset_addr:%u sfp_txdisable:%p", port, state, base_addr,offset_addr, fpga_map->reg.sfp_txdisable);
   
   if (state)
   {

@@ -189,7 +189,7 @@ typedef union
     L7_uint8  extPhy_reset;         /* 0xF080 (1 byte)  */
     L7_uint8  empty4[0xF140 - 0xF081];
     L7_uint8  sfp_los_port_0to7;        /* 0xF140 */
-    L7_uint8  empty5[0xF140 - 0xF081];
+    L7_uint8  empty5[0xF150 - 0xF141];
     L7_uint8  sfp_los_port_8to15;       /* 0xF150 */
     L7_uint8  empty6[0xF160 - 0xF151];
     L7_uint8  sfp_los_port_16to23;      /* 0xF160 */
