@@ -254,6 +254,10 @@
 #define CCMSG_ACL_UNAPPLY                   0x9193
 
 
+
+#define CCMSG_PTP_FLOW_SET                  0x919F
+
+
 /* 802.1X Configuration */
 
 #define CCMSG_WR_802_1X_ADMINMODE                   0x9180
@@ -2853,6 +2857,38 @@ typedef struct {
   msg_HwEthInterface_t intf;         // Interface 
   L7_uint8             onuId;        // ONU Identifier                                     
 } __attribute__((packed)) msg_multicast_service_t;
+
+
+
+
+//IEEE1588/PTP/TS
+typedef struct {
+     unsigned char SlotIndex;
+     unsigned char BoardType,
+                   board_port;               //0..N-1
+     unsigned char
+        domain,
+        add1_del0;
+     unsigned char
+        clk_mode;                   //0-BC1STEP 1-BC2STEP 2-TC1STEP 3-TC2STEP 4-DELAY_COMPENSATION
+     unsigned char
+        delaym_type;
+#define TS_PTP_DELAYM_E2E   1
+#define TS_PTP_DELAYM_P2P   2
+     unsigned char
+        encap;
+#define TS_ENCAP_ETH_PTP            1
+#define TS_ENCAP_ETH_IPv4_PTP       2
+#define TS_ENCAP_ETH_IPv6_PTP       3
+#define TS_ENCAP_ETH_MPLS_IPv4_PTP  4
+#define TS_ENCAP_ETH_MPLS_IPv6_PTP  5
+     unsigned short vid;
+     unsigned short dtl0vid;
+     unsigned char
+        DMAC[6],                     //If all 0s, matches any DMAC
+        IP[16],                      //If all 0s, matches any IP     //big Endian
+        IPmsk[16];
+} __attribute__((packed)) T_MSG_PTP_FLOW_SET;
 
 /***************************************************************************** 
  * Functions prototypes

@@ -40,6 +40,8 @@ L7_RC_t broad_ptin_l3_intf(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uin
 L7_RC_t broad_ptin_l3_ipmc(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_oam_sendlmm(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_oam_check_lm_counters(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
+L7_RC_t broad_ptin_time_interface(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
+
 L7_RC_t broadPtin_oam_tx( int unit, int flags, bcm_gport_t gport_dst, bcm_mac_t *mac_dst, bcm_mac_t *mac_src, bcm_oam_endpoint_info_t *endpoint_info);
 /* List of callbacks */
 broad_ptin_generic_f ptin_dtl_callbacks[PTIN_DTL_MSG_MAX] = {  
@@ -49,7 +51,8 @@ broad_ptin_generic_f ptin_dtl_callbacks[PTIN_DTL_MSG_MAX] = {
   broad_ptin_l3_intf, 
   broad_ptin_l3_ipmc,
   broad_ptin_oam_sendlmm,
-  broad_ptin_oam_check_lm_counters
+  broad_ptin_oam_check_lm_counters,
+  broad_ptin_time_interface
 };
 
 /**
@@ -2821,6 +2824,25 @@ L7_RC_t broadPtin_oam_tx(L7_int unit, L7_int flags, bcm_gport_t gport_dst, bcm_m
 
     return L7_SUCCESS;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+L7_RC_t broad_ptin_time_interface(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g) {
+    if (BCM_E_NONE!=time_interface_enable()) return L7_FAILURE;
+    return L7_SUCCESS;
+}//broad_ptin_time_interface
 
 
 

@@ -43,6 +43,7 @@ typedef enum
   PTIN_DTL_MSG_L3_IPMC,
   PTIN_DTL_MSG_LMM,
   PTIN_DTL_MSG_COUNTERS_LM,
+  PTIN_DTL_MSG_TIME_INTERFACE,
   PTIN_DTL_MSG_MAX
   
 } ptin_dtl_msg_enum;

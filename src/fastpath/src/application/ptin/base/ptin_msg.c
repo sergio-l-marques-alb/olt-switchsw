@@ -58,6 +58,8 @@
 
 #include <dtl_ptin.h>
 
+#include <ptin_ipdtl0_packet.h>
+
 #define CMD_MAX_LEN   200   /* Shell command maximum length */
 
 #define IS_FAILURE_ERROR(rc)  ((rc) != L7_NOT_EXIST          && \
@@ -14083,3 +14085,96 @@ L7_RC_t ptin_msg_igmp_multicast_service_remove(msg_multicast_service_t *msg, L7_
 }
 
 /****************************************End Multicast Package Feature**************************************************/
+
+
+
+
+
+
+
+
+
+extern L7_int dtlVlanIfAdd(L7_uint16 vlanId);//#include <os/linux/mgmt/dtl_net.h>
+
+int ptin_msg_PTP_flow_set(ipc_msg *inbuffer, ipc_msg *outbuffer) {
+T_MSG_PTP_FLOW_SET *ib;
+L7_uint32 ip, msk,
+          intIfNum;
+L7_uint16 internalVid;
+unsigned long i;
+char ifName[L7_NIM_IFNAME_SIZE], com[L7_NIM_IFNAME_SIZE+80];
+BOOL enable;
+L7_RC_t rc;
+
+        ib=(T_MSG_PTP_FLOW_SET *)inbuffer->info;
+        enable= ib->add1_del0?1:0;//CCMSG_PTP_FLOW_SET==inbuffer->msgId?1:0;
+
+        switch (ib->encap) {
+        default:    return ERROR_CODE_INVALIDPARAM;
+        case TS_ENCAP_ETH_IPv4_PTP:
+            if (L7_SUCCESS!=ptin_intf_port2intIfNum(ib->board_port, &intIfNum)) {
+                LOG_ERR(LOG_CTX_PTIN_MSG,"ptin_intf_port2intIfNum");
+                return ERROR_CODE_INVALIDPARAM;
+            }
+
+            if (L7_SUCCESS!=ptin_xlate_ingress_get(intIfNum, ib->vid, PTIN_XLATE_NOT_DEFINED, &internalVid, L7_NULLPTR)) {
+                LOG_ERR(LOG_CTX_PTIN_MSG,"ptin_xlate_ingress_get");
+                return ERROR_CODE_INVALIDPARAM;
+            }
+
+            sprintf(ifName, "%s.%d", "dtl0", ib->dtl0vid);
+            for (i=0, ip=0, msk=0; i<4; i++) {
+                ip<<=8;
+                ip|=ib->IP[i];
+                msk<<=8;
+                msk|=ib->IPmsk[i];
+            }
+
+            if (enable) {
+                if (L7_SUCCESS!=dtlVlanIfAdd(ib->dtl0vid)) {
+                    LOG_ERR(LOG_CTX_PTIN_MSG,"dtlVlanIfAdd");
+                    return ERROR_CODE_INVALIDPARAM;
+                }
+    
+                if (L7_SUCCESS!=osapiIfEnable(ifName)) {
+                    LOG_ERR(LOG_CTX_PTIN_MSG,"osapiIfEnable(ifName=%s)", ifName);
+                    return ERROR_CODE_INVALIDPARAM;
+                }
+                if (L7_SUCCESS!=osapiNetIfConfig(ifName, ip, msk)) {
+                    LOG_ERR(LOG_CTX_PTIN_MSG,"osapiNetIfConfig(ifName=%s, ip=0x%lx, msk=0x%lx)", ifName, ip, msk);
+                    return ERROR_CODE_INVALIDPARAM;
+                }
+                //sprintf(com, "ifconfig %s %d.%d.%d.%d netmask %d.%d.%d.%d up\n", ifName,
+                //                ib->IP[0], ib->IP[1], ib->IP[2], ib->IP[3],
+                //                ib->IPmsk[0], ib->IPmsk[1], ib->IPmsk[2], ib->IPmsk[3]);
+                //LOG_NOTICE(LOG_CTX_PTIN_MSG, com);
+                //system(com);
+            }
+
+            rc = ptin_ipdtl0_control(ib->dtl0vid, ib->vid, internalVid, intIfNum, PTIN_IPDTL0_ETH_IPv4_UDP_PTP, enable);
+            if (L7_SUCCESS!=rc) {
+                LOG_ERR(LOG_CTX_PTIN_MSG,"ptin_ipdtl0_control(ib->dtl0vid=%u, ib->vid=%u, internalVid=%u, intIfNum=%lu, PTIN_IPDTL0_ETH_IPv4_UDP_PTP, enable=%u)=%d",
+                                            ib->dtl0vid, ib->vid, internalVid, intIfNum, PTIN_IPDTL0_ETH_IPv4_UDP_PTP, enable, rc);
+                return ERROR_CODE_INVALIDPARAM;
+            }
+
+            if (!enable) {
+                sprintf(com, "vconfig rem %s\n", ifName);
+                LOG_NOTICE(LOG_CTX_PTIN_MSG, com);
+                system(com);
+            }
+
+#if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
+            //time_interface_enable();
+            rc = dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_TIME_INTERFACE, DAPI_CMD_GET, sizeof(T_MSG_PTP_FLOW_SET), ib);
+            if (rc != L7_SUCCESS) {
+              LOG_ERR(LOG_CTX_PTIN_MSG,"time_interface_enable()=%d", rc);
+              return ERROR_CODE_INVALIDPARAM;
+            }
+#endif
+            break;
+        }//switch (ib->encap)
+
+        return ERROR_CODE_OK;
+}//ptin_msg_PTP_flow_set
+

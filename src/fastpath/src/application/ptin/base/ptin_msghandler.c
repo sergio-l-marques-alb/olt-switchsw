@@ -4830,6 +4830,33 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
       break;
 
+
+
+
+    case CCMSG_PTP_FLOW_SET:
+      {
+          LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+                   "Message received: CCMSG_PTP_FLOW_SET (0x%04X)", inbuffer->msgId);
+
+          CHECK_INFO_SIZE_MOD(T_MSG_PTP_FLOW_SET);
+
+          rc=ptin_msg_PTP_flow_set(inbuffer, outbuffer);
+
+          if (L7_SUCCESS != rc)
+          {
+            LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+            res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, rc);
+            SetIPCNACK(outbuffer, res);
+            break;
+          }
+
+          SETIPCACKOK(outbuffer);
+      }
+      break;
+
+
+
+
     case CHMSG_RFC2819_MONITORING_CONFIG:      
       {
         LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
