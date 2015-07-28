@@ -6205,9 +6205,15 @@ L7_RC_t ptin_igmp_get_port_type(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint32
 static ptinIgmpGroupClientInfoData_t* deviceClientId2groupClientPtr(L7_uint32 ptin_port, L7_uint32 clientId)
 {
   /*Input Arguments Validation*/
-  if (ptin_port >= PTIN_SYSTEM_N_UPLINK_INTERF || clientId >= PTIN_IGMP_CLIENTIDX_MAX)
+  if (ptin_port >= PTIN_SYSTEM_N_UPLINK_INTERF || clientId >= PTIN_IGMP_CLIENTIDX_MAX )
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid Input Arguments: ptin_port:%u clientId:%u",ptin_port, clientId);
+    return L7_NULLPTR;
+  }
+
+  if (igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][clientId].client == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Input Arguments: ptin_port:%u clientId:%u client:%p",ptin_port, clientId, igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][clientId].client);
     return L7_NULLPTR;
   }
 
@@ -9588,6 +9594,16 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint ptin_port, L7_uint client_idx, L7_
     {
       /* Do not insert clients semaphore control here... calling functions already do that! */
 
+      #if PTIN_SNOOP_USE_MGMD
+      L7_uint32                   intIfNum;   
+
+      /*Remove this Client From MGMD*/
+      if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) == L7_SUCCESS)
+      {
+        ptin_igmp_mgmd_client_remove(intIfNum, client_idx);
+      }
+      #endif
+
       avl_key  = (ptinIgmpClientDataKey_t *) &clientInfo->igmpClientDataKey;
       avl_tree = &igmpDeviceClients.avlTree;
 
@@ -9602,16 +9618,6 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint ptin_port, L7_uint client_idx, L7_
       {
         igmp_clientDevice_remove(clientGroup, clientInfo);
       }
-
-#if PTIN_SNOOP_USE_MGMD
-      L7_uint32                   intIfNum;   
-
-      /*Remove this Client From MGMD*/
-      if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) == L7_SUCCESS)
-      {
-        ptin_igmp_mgmd_client_remove(intIfNum, client_idx);
-      }
-#endif
 
       /* Remove client from unified list of clients */
       igmp_clientIndex_unmark(ptin_port, client_idx);
@@ -13727,8 +13733,11 @@ extern L7_RC_t ptin_igmp_admission_control_verify_the_presence_of_other_clients(
 
   while ( (client_device = igmp_clientDevice_next(ptinIgmpClientGroupInfoData, client_device)) != L7_NULLPTR)
   {
-    if ( clientId == client_device->client->deviceClientId)
+
+    if ( client_device->client == L7_NULLPTR || clientId == client_device->client->deviceClientId)
     {
+      if ( client_device->client == L7_NULLPTR )
+        LOG_ERR(LOG_CTX_PTIN_IGMP, " ptin_port:%u clientId:%u: client_device->client:%p!!!", ptin_port, clientId, client_device->client);
       continue;
     }
 
