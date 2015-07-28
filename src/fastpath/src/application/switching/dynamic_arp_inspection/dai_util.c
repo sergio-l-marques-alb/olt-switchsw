@@ -593,7 +593,7 @@ void daiLogArpPacket(L7_uchar8 *frame, L7_ushort16 vlanId,
   osapiSnprintf(traceBuf, DAI_TRACE_LEN_MAX,
                 "DAI: ARP PKT- op %s, sender mac %s, sender ip %s, target mac %s,"
                 " target ip %s",
-                ((arp_pkt->arp_op == L7_ARPOP_REQUEST) ? "Request" : "Reply"),
+                ((arp_pkt->arp_op == osapiHtons(L7_ARPOP_REQUEST)) ? "Request" : "Reply"),
                 s_macaddr, s_ipaddr, t_macaddr, t_ipaddr);
 
   if (traceDest == DAI_TRACE_LOG)

@@ -1037,7 +1037,7 @@ L7_BOOL macIpAddrFilter(L7_uchar8 *data, L7_uint32 vlanId, L7_uint32 intIfNum)
    * the ARP body of ARP responses */
   if(daiCfgData->daiVerifyDMac)
   {
-    if((arp_pkt->arp_op == L7_ARPOP_REPLY) &&
+    if((arp_pkt->arp_op == osapiHtons(L7_ARPOP_REPLY)) &&
        (memcmp(&(eth_header->dest), arp_pkt->arp_tha, L7_ENET_MAC_ADDR_LEN) != 0))
     {
       daiLogAndDropPacket(data, vlanId, intIfNum, DEST_MAC_FAILURE);
@@ -1061,7 +1061,7 @@ L7_BOOL macIpAddrFilter(L7_uchar8 *data, L7_uint32 vlanId, L7_uint32 intIfNum)
         ((spa & L7_IP_LOOPBACK_ADDR_NETWORK) == L7_IP_LOOPBACK_ADDR_NETWORK) ||
     (L7_IP4_IN_MULTICAST(spa))) ||
 
-       ((arp_pkt->arp_op == L7_ARPOP_REPLY) &&
+       ((arp_pkt->arp_op == osapiHtons(L7_ARPOP_REPLY)) &&
         ((memcmp(arp_pkt->arp_tpa, nullIPAddr, L7_IP_ADDR_LEN) == 0) ||
          (memcmp(arp_pkt->arp_tpa, bcstIPAddr, L7_IP_ADDR_LEN) == 0) ||
          ((tpa & L7_CLASS_E_ADDR_MASK) == L7_CLASS_E_ADDR_MASK) ||
@@ -1118,11 +1118,6 @@ SYSNET_PDU_RC_t daiArpRecv(L7_uint32 hookId,
 
     L7_ushort16    ethHdrLen = sysNetDataOffsetGet(data);
     L7_ether_arp_t *arp_pkt  = (L7_ether_arp_t*)(data + ethHdrLen);
-
-    /*To Support Little Endian Platforms*/    
-    arp_pkt->arp_hrd = osapiNtohs(arp_pkt->arp_hrd);
-    arp_pkt->arp_pro = osapiNtohs(arp_pkt->arp_pro);
-    arp_pkt->arp_op  = osapiNtohs(arp_pkt->arp_op);
     
     nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
 
@@ -1130,7 +1125,7 @@ SYSNET_PDU_RC_t daiArpRecv(L7_uint32 hookId,
     {
       osapiSnprintf(daiTrace, DAI_MAX_TRACE_LEN,
                     "DAI Received ARP %s on interface %s in VLAN %u.",
-                    arpMsgTypeNames[arp_pkt->arp_op], ifName, vlanId);
+                    arpMsgTypeNames[osapiNtohs(arp_pkt->arp_op)], ifName, vlanId);
       daiTraceWrite(daiTrace);
     }
 
@@ -1138,7 +1133,7 @@ SYSNET_PDU_RC_t daiArpRecv(L7_uint32 hookId,
     {
       osapiSnprintf(daiTrace, DAI_MAX_TRACE_LEN,
                     "Detailed Pkt: DAI Received ARP %s on interface %s in VLAN %u.",
-                    arpMsgTypeNames[arp_pkt->arp_op], ifName, vlanId);
+                    arpMsgTypeNames[osapiNtohs(arp_pkt->arp_op)], ifName, vlanId);
       daiLogEthernetHeader((L7_enetHeader_t*) data, DAI_TRACE_CONSOLE);
       daiLogArpPacket(data, vlanId, intIfNum, DAI_TRACE_CONSOLE);
     }
@@ -1698,7 +1693,7 @@ L7_RC_t daiFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inne
      (routingEnabled == L7_ENABLE))
   {
     daiInfo->debugStats.pktsOnVlanRoutingIf++;
-    if(arp_pkt->arp_op == L7_ARPOP_REQUEST)
+    if(arp_pkt->arp_op == osapiHtons(L7_ARPOP_REQUEST))
     {
       /* Give a copy  of this ARP Request to ARP Appln */
       daiIpMapPacketHook(intIfNum, vlanId, frame, frameLen);
@@ -1709,7 +1704,7 @@ L7_RC_t daiFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inne
        * destined to VRRP MAC address (for which if we are VRRP master)
        * should be given to ARP Appln */
 
-      if(arp_pkt->arp_op == L7_ARPOP_REPLY)
+      if(arp_pkt->arp_op == osapiHtons(L7_ARPOP_REPLY))
       {
         if (nimGetIntfL3MacAddress(intIfNum, 0, intfMac) != L7_SUCCESS)
         {
@@ -1749,7 +1744,7 @@ L7_RC_t daiFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inne
     /* Forward only packets received on mgmt vlan to CPU */
     if(vlanId == simMgmtVlanIdGet())
     {
-      if(arp_pkt->arp_op == L7_ARPOP_REQUEST)
+      if(arp_pkt->arp_op == osapiHtons(L7_ARPOP_REQUEST))
       {
         /* ARP Request to bcast DA, give a copy of it to OS */
         dtlArpPacketHook(intIfNum, vlanId, frame, frameLen);
@@ -1763,7 +1758,7 @@ L7_RC_t daiFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inne
         else
           simGetSystemIPLocalAdminMac(systemMac);
 
-        if(arp_pkt->arp_op == L7_ARPOP_REPLY)
+        if(arp_pkt->arp_op == osapiHtons(L7_ARPOP_REPLY))
         {
           if(memcmp(systemMac, eth_header->dest.addr, 3 /*L7_ENET_MAC_ADDR_LEN*/) == 0)
           {
