@@ -397,6 +397,6 @@ extern L7_RC_t ptin_debug_trap_packets_show( L7_int bcm_port, bcm_pkt_t *bcm_pkt
  */
 extern L7_RC_t ptin_hapi_example(DAPI_USP_t *usp, ptin_dtl_example_t *example, DAPI_t *dapi_g);
 
-extern bcm_error_t time_interface_enable(void);
+extern bcm_error_t time_interface_enable(DAPI_USP_t *usp, void *stru, DAPI_t *dapi_g);
 #endif /*_PTIN_HAPI_H */
 

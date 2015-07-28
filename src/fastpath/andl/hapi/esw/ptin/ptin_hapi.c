@@ -5324,11 +5324,27 @@ L7_RC_t ptin_hapi_example(DAPI_USP_t *usp, ptin_dtl_example_t *example, DAPI_t *
 /** 
  * Enable timestamp function on ports 
 */
-bcm_error_t time_interface_enable(void)
-{
+bcm_error_t time_interface_enable(DAPI_USP_t *usp, void *stru, DAPI_t *dapi_g) {
+    //DAPI_PORT_t  *dapiPortPtr;
+    BROAD_PORT_t *hapiPortPtr;
+
+  LOG_INFO(LOG_CTX_PTIN_HAPI, "time_interface_enable usp {%d,%d,%d}", usp->unit, usp->slot, usp->port);
+
+  /* Validate dapiPort */
+  if (usp->unit<0 || usp->slot<0 || usp->port<0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid interface");
+    return BCM_E_PORT;
+  }
+
+  /* Get port pointers */
+  //dapiPortPtr = DAPI_PORT_GET( usp, dapi_g );
+  hapiPortPtr = HAPI_PORT_GET( usp, dapi_g );
+
+ {
   int unit=0;
-  int port_min=0;
-  int port_max=48;
+  int port_min=hapiPortPtr->bcm_port;//0;
+  int port_max=hapiPortPtr->bcm_port;//48;
   int port;
   int rv = BCM_E_NONE;
   
@@ -5352,5 +5368,6 @@ bcm_error_t time_interface_enable(void)
   printf("rv=%d\n", rv);
   
   return BCM_E_NONE;
+ }
 }
 

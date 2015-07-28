@@ -4833,14 +4833,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
 
 
-    case CCMSG_PTP_FLOW_SET:
+    case CCMSG_PTP_LNX_NET_IF_SET:
       {
           LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-                   "Message received: CCMSG_PTP_FLOW_SET (0x%04X)", inbuffer->msgId);
+                   "Message received: CCMSG_PTP_LNX_NET_IF_SET (0x%04X)", inbuffer->msgId);
 
-          CHECK_INFO_SIZE_MOD(T_MSG_PTP_FLOW_SET);
+          CHECK_INFO_SIZE_MOD(T_MSG_PTP_LNX_NET_IF_SET);
 
-          rc=ptin_msg_PTP_flow_set(inbuffer, outbuffer);
+          rc=ptin_msg_PTP_lnx_net_if_set(inbuffer, outbuffer);
 
           if (L7_SUCCESS != rc)
           {

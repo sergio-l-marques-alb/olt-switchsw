@@ -1714,6 +1714,6 @@ L7_RC_t ptin_msg_igmp_multicast_service_remove(msg_multicast_service_t *msg, L7_
 
 
 
-extern int ptin_msg_PTP_flow_set(ipc_msg *inbuffer, ipc_msg *outbuffer);
+extern int ptin_msg_PTP_lnx_net_if_set(ipc_msg *inbuffer, ipc_msg *outbuffer);
 #endif /* _PTIN_MSG_H */
 

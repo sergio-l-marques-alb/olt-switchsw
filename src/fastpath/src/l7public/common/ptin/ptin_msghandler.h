@@ -255,7 +255,7 @@
 
 
 
-#define CCMSG_PTP_FLOW_SET                  0x919F
+#define CCMSG_PTP_LNX_NET_IF_SET            0x919F
 
 
 /* 802.1X Configuration */
@@ -2867,12 +2867,9 @@ typedef struct {
      unsigned char BoardType,
                    board_port;               //0..N-1
      unsigned char
-        domain,
         add1_del0;
      unsigned char
         clk_mode;                   //0-BC1STEP 1-BC2STEP 2-TC1STEP 3-TC2STEP 4-DELAY_COMPENSATION
-     unsigned char
-        delaym_type;
 #define TS_PTP_DELAYM_E2E   1
 #define TS_PTP_DELAYM_P2P   2
      unsigned char
@@ -2888,7 +2885,7 @@ typedef struct {
         DMAC[6],                     //If all 0s, matches any DMAC
         IP[16],                      //If all 0s, matches any IP     //big Endian
         IPmsk[16];
-} __attribute__((packed)) T_MSG_PTP_FLOW_SET;
+} __attribute__((packed)) T_MSG_PTP_LNX_NET_IF_SET;
 
 /***************************************************************************** 
  * Functions prototypes
