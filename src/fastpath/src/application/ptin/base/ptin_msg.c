@@ -60,6 +60,8 @@
 
 #include <ptin_ipdtl0_packet.h>
 
+#include "sirerrors.h"
+
 #define CMD_MAX_LEN   200   /* Shell command maximum length */
 
 #define IS_FAILURE_ERROR(rc)  ((rc) != L7_NOT_EXIST          && \
