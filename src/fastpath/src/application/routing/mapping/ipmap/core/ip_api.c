@@ -5959,6 +5959,7 @@ ipMapIntfCheckpointDhcpAddrGet (L7_uint32 intIfNum,
 *********************************************************************/
 void ipMapDefaultRoutingVlanCreate (void)
 {
+#ifdef L7_ROUTING_PACKAGE
   L7_uint32 unit = 1;
   L7_uint32 defVlanId = FD_IP_DEFAULT_ROUTING_VLAN_ID;
   L7_uint32 intIfNum = 0;
@@ -5976,6 +5977,7 @@ void ipMapDefaultRoutingVlanCreate (void)
                   __FUNCTION__, __LINE__);
     }
   }
+#endif
   return;
 }
 

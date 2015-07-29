@@ -457,6 +457,7 @@ void buildTreeMaintenanceMode(void)
 #endif
 
   depth1 = ewsCliAddNode ( NULL, NULL, NULL, NULL, L7_NO_OPTIONAL_PARAMS);
+  depth2 = depth3 = depth4 = depth5 = depth6 = L7_NULLPTR;
 
   cliSetMode(L7_MAINTENANCE_MODE, depth1);
 

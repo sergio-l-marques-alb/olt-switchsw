@@ -270,10 +270,13 @@ L7_RC_t ospfMapOspfVendorInit(L7_uint32 p3InitTime)
   t_ospfMibCallbacks mibCallback;
   t_S_RouterCfg     rtrCfg;
   L7_RC_t           cfgRc;
-  L7_uint32         cfgData, trapFlags;
+  L7_uint32         cfgData;
   t_SysLabel        ospfSysLabel;
   t_IFO             ifo;
   t_RTO             *p_RTO;
+#ifdef L7_OSPF_PACKAGE
+  L7_uint32         trapFlags;
+#endif
 
   /* Cleanup data structures */
   bzero((char *)&ifo, sizeof(t_IFO));
@@ -299,8 +302,10 @@ L7_RC_t ospfMapOspfVendorInit(L7_uint32 p3InitTime)
 
   /* enable all RTO traps (see spcfg.h for bit flag definitions) */
   /*RTO_TrapControl(ospfMapCtrl_g.RTO_Id, 0x2808a);*/
+#ifdef L7_OSPF_PACKAGE
   if(trapMgrOspfTrapFlagsGet(&trapFlags) == L7_SUCCESS)
     RTO_TrapControl(ospfMapCtrl_g.RTO_Id, trapFlags);
+#endif
 
   /* configure OSPF callbacks */
   memset(&callback, 0, sizeof(t_S_Callbacks));

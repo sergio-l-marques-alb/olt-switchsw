@@ -58,7 +58,11 @@
 *********************************************************************/
 L7_RC_t vrrpMapTrapNewMasterTrap(L7_uint32 vrrpOperMasterIpAddr)
 {
+#ifdef L7_VRRP_PACKAGE
   return trapMgrVrrpTrapNewMasterTrap(vrrpOperMasterIpAddr);
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 /*********************************************************************
@@ -79,7 +83,11 @@ L7_RC_t vrrpMapTrapNewMasterTrap(L7_uint32 vrrpOperMasterIpAddr)
 *********************************************************************/
 L7_RC_t vrrpMapTrapAuthFailureTrap(L7_uint32 vrrpTrapPacketSrc, L7_int32 vrrpTrapAuthErrorType)
 {
+#ifdef L7_VRRP_PACKAGE
   return trapMgrVrrpTrapAuthFailureTrap( vrrpTrapPacketSrc, vrrpTrapAuthErrorType);
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 

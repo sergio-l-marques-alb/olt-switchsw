@@ -372,6 +372,8 @@ L7_RC_t hapiBroadL3PortVlanNotify(DAPI_USP_t  *usp,
 * @end
 *
 *********************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 void hapiBroadL3WarmStartRetryFailures(void);
+#endif
 
 #endif  /* BROAD_L3_H_INCLUDED */

@@ -32,6 +32,7 @@
 L7_RC_t
 snmpAgentIscsiEnableGet(L7_uint32 *val)
 {
+#ifdef L7_ISCSI_PACKAGE
   L7_RC_t rc;
   L7_uint32 temp_val;
 
@@ -54,11 +55,15 @@ snmpAgentIscsiEnableGet(L7_uint32 *val)
   }
 
   return rc;
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 L7_RC_t
 snmpAgentIscsiAgingTimeOutGet(L7_uint32 *val)
 {
+#ifdef L7_ISCSI_PACKAGE
   L7_RC_t rc;
   L7_uint32 temp_val;
 
@@ -70,11 +75,15 @@ snmpAgentIscsiAgingTimeOutGet(L7_uint32 *val)
   }
 
   return rc;
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 L7_RC_t
 snmpAgentIscsiQosTypeGet(L7_uint32 *val)
 {
+#ifdef L7_ISCSI_PACKAGE
   L7_RC_t rc;
   L7_QOS_COS_MAP_INTF_MODE_t temp_val;
 
@@ -97,11 +106,15 @@ snmpAgentIscsiQosTypeGet(L7_uint32 *val)
   }
 
   return rc;
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 L7_RC_t
 snmpAgentIscsiQosVptValueGet(L7_uint32 *val)
 {
+#ifdef L7_ISCSI_PACKAGE
   L7_RC_t rc;
   L7_uint32 temp_val;
 
@@ -113,11 +126,15 @@ snmpAgentIscsiQosVptValueGet(L7_uint32 *val)
   }
 
   return rc;
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 L7_RC_t
 snmpAgentIscsiQosDscpValueGet(L7_uint32 *val)
 {
+#ifdef L7_ISCSI_PACKAGE
   L7_RC_t rc;
   L7_uint32 temp_val;
 
@@ -129,11 +146,15 @@ snmpAgentIscsiQosDscpValueGet(L7_uint32 *val)
   }
 
   return rc;
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 L7_RC_t
 snmpAgentIscsiQosRemarkGet(L7_uint32 *val)
 {
+#ifdef L7_ISCSI_PACKAGE
   L7_RC_t rc;
   L7_uint32 temp_val;
 
@@ -156,11 +177,15 @@ snmpAgentIscsiQosRemarkGet(L7_uint32 *val)
   }
 
   return rc;
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 L7_RC_t
 snmpAgentIscsiEnableSet(L7_uint32 val)
 {
+#ifdef L7_ISCSI_PACKAGE
   L7_RC_t rc = L7_SUCCESS;
   L7_uint32 temp_val;
 
@@ -181,17 +206,25 @@ snmpAgentIscsiEnableSet(L7_uint32 val)
     rc = usmDbIscsiAdminModeSet(temp_val);
 
   return rc;
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 L7_RC_t
 snmpAgentIscsiAgingTimeOutSet(L7_uint32 val)
 {
+#ifdef L7_ISCSI_PACKAGE
   return(usmDbIscsiTimeOutIntervalSet(val));
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 L7_RC_t
 snmpAgentIscsiQosTypeSet(L7_uint32 val)
 {
+#ifdef L7_ISCSI_PACKAGE
   L7_RC_t rc = L7_SUCCESS;
   L7_QOS_COS_MAP_INTF_MODE_t temp_val;
 
@@ -212,24 +245,36 @@ snmpAgentIscsiQosTypeSet(L7_uint32 val)
     rc = usmDbIscsiTagFieldSet(temp_val);
 
   return rc;
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 
 L7_RC_t
 snmpAgentIscsiQosVptValueSet(L7_uint32 val)
 {
+#ifdef L7_ISCSI_PACKAGE
   return(usmDbIscsiVlanPrioritySet(val));
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 L7_RC_t
 snmpAgentIscsiQosDscpValueSet(L7_uint32 val)
 {
+#ifdef L7_ISCSI_PACKAGE
   return(usmDbIscsiDscpSet(val));
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 L7_RC_t
 snmpAgentIscsiQosRemarkSet(L7_uint32 val)
 {
+#ifdef L7_ISCSI_PACKAGE
   L7_RC_t rc = L7_SUCCESS;
   L7_uint32 temp_val;
 
@@ -250,6 +295,9 @@ snmpAgentIscsiQosRemarkSet(L7_uint32 val)
     rc = usmDbIscsiMarkingModeSet(temp_val);
 
   return rc;
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 L7_RC_t
@@ -257,6 +305,7 @@ snmpAgentIscsiTargetConfigEntryDataGet(agentIscsiFlowAccelerationTargetConfigEnt
                                        L7_int32 nominator,
                                        L7_int32 entryId)
 {
+#ifdef L7_ISCSI_PACKAGE
   L7_RC_t   rc = L7_FAILURE;
   L7_char8  snmp_buffer[SNMP_BUFFER_LEN];
 
@@ -289,12 +338,16 @@ snmpAgentIscsiTargetConfigEntryDataGet(agentIscsiFlowAccelerationTargetConfigEnt
   }
 
   return rc;
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 L7_RC_t
 snmpAgentIscsiTargetConfigEntryGet(agentIscsiFlowAccelerationTargetConfigEntry_t *agentIscsiFlowAccelerationTargetConfigEntryData, 
                                    L7_int32 nominator)
 {
+#ifdef L7_ISCSI_PACKAGE
   L7_RC_t rc = L7_FAILURE;
   L7_inet_addr_t ipAddr;
   L7_uint32 entryId;
@@ -313,11 +366,15 @@ snmpAgentIscsiTargetConfigEntryGet(agentIscsiFlowAccelerationTargetConfigEntry_t
   }
 
   return rc;
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 L7_RC_t
 snmpAgentIscsiTargetConfigEntryGetNext(agentIscsiFlowAccelerationTargetConfigEntry_t *agentIscsiFlowAccelerationTargetConfigEntryData, L7_int32 nominator)
 {
+#ifdef L7_ISCSI_PACKAGE
   L7_RC_t rc = L7_FAILURE;
   L7_inet_addr_t ipAddr;
   L7_uint32 entryId;
@@ -347,11 +404,15 @@ snmpAgentIscsiTargetConfigEntryGetNext(agentIscsiFlowAccelerationTargetConfigEnt
   }
 
   return rc;
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 L7_RC_t
 snmpAgentIscsiTargetConfigEntrySet(agentIscsiFlowAccelerationTargetConfigEntry_t *agentIscsiFlowAccelerationTargetConfigEntryData)
 {
+#ifdef L7_ISCSI_PACKAGE
   L7_inet_addr_t ipAddr;
   L7_char8  snmp_buffer[SNMP_BUFFER_LEN];
 
@@ -404,15 +465,17 @@ snmpAgentIscsiTargetConfigEntrySet(agentIscsiFlowAccelerationTargetConfigEntry_t
       }
   }
 
-
-
   return L7_ERROR;
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 L7_RC_t
 snmpAgentIscsiFlowAccelerationSessionEntryGet(agentIscsiFlowAccelerationSessionEntry_t *agentIscsiFlowAccelerationSessionEntryData, 
                                  L7_int32 nominator)
 {
+#ifdef L7_ISCSI_PACKAGE
   L7_RC_t   rc = L7_FAILURE;
   L7_uint32 val;
   L7_clocktime time, timeNow;
@@ -482,11 +545,15 @@ snmpAgentIscsiFlowAccelerationSessionEntryGet(agentIscsiFlowAccelerationSessionE
   }
 
   return rc;
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 L7_RC_t
 snmpAgentIscsiFlowAccelerationSessionEntryGetNext(agentIscsiFlowAccelerationSessionEntry_t *agentIscsiFlowAccelerationSessionEntryData, L7_int32 nominator)
 {
+#ifdef L7_ISCSI_PACKAGE
   L7_RC_t rc = L7_FAILURE;
 
   while (usmDbIscsiSessionNextByEntryIdGet(agentIscsiFlowAccelerationSessionEntryData->agentIscsiFlowAccelerationSessionIndex, 
@@ -500,6 +567,9 @@ snmpAgentIscsiFlowAccelerationSessionEntryGetNext(agentIscsiFlowAccelerationSess
   }
 
   return rc;
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 
@@ -507,6 +577,7 @@ L7_RC_t
 snmpAgentIscsiFlowAccelerationConnectionEntryGet(agentIscsiFlowAccelerationConnectionEntry_t *agentIscsiFlowAccelerationConnectionEntryData, 
                                                  L7_int32 nominator)
 {
+#ifdef L7_ISCSI_PACKAGE
   L7_RC_t   rc = L7_FAILURE;
   L7_uint32 val;
   L7_inet_addr_t ipAddr;
@@ -575,11 +646,15 @@ snmpAgentIscsiFlowAccelerationConnectionEntryGet(agentIscsiFlowAccelerationConne
   }
 
   return rc;
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 L7_RC_t
 snmpAgentIscsiFlowAccelerationConnectionEntryGetNext(agentIscsiFlowAccelerationConnectionEntry_t *agentIscsiFlowAccelerationConnectionEntryData, L7_int32 nominator)
 {
+#ifdef L7_ISCSI_PACKAGE
   L7_RC_t rc = L7_FAILURE;
 
   while (usmDbIscsiConnectionNextByEntryIdGet(agentIscsiFlowAccelerationConnectionEntryData->agentIscsiFlowAccelerationConnectionIndex, 
@@ -593,5 +668,8 @@ snmpAgentIscsiFlowAccelerationConnectionEntryGetNext(agentIscsiFlowAccelerationC
   }
 
   return rc;
+#else
+  return L7_SUCCESS;
+#endif
 }
 

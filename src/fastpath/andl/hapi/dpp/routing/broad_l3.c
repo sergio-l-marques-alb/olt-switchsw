@@ -191,7 +191,9 @@ static L7_RC_t hapiBroadL3TunnelHostMacLink (BROAD_L3_HOST_ENTRY_t *pHostEntry,
 static L7_RC_t hapiBroadL3TunnelHostMacUnlink (BROAD_L3_HOST_ENTRY_t *pHostEntry,
                                                BROAD_L3_MAC_ENTRY_t  *pMacEntry);
 
+#ifdef L7_ROUTING_PACKAGE
 static L7_RC_t hapiBroadL3Clear(void);
+#endif
 
 L7_RC_t hapiBroadL3IcmpRedirVlanConfig(L7_ushort16 vlanId, L7_int32 enable);
 
@@ -285,6 +287,7 @@ L7_RC_t hapiBroadL3Init(DAPI_t *dapi_g)
     HAPI_BROAD_L3_LOG_ERROR(0);
   }
 
+#ifdef L7_ROUTING_PACKAGE
   /* Create a queue to wait for ASYNC task to finish up work list processing
    * Mainly used to synchronize card removal with async processing
    */
@@ -301,6 +304,7 @@ L7_RC_t hapiBroadL3Init(DAPI_t *dapi_g)
   {
     HAPI_BROAD_L3_LOG_ERROR(0);
   }
+#endif
 
   return L7_SUCCESS;
 }
@@ -470,6 +474,7 @@ L7_RC_t hapiBroadL3CardInit(L7_ushort16 unitNum,
                             L7_ushort16 slotNum,
                             DAPI_t *dapi_g)
 {
+#ifdef L7_ROUTING_PACKAGE
   L7_int32                     rv;
   L7_RC_t                      result;
   DAPI_USP_t                   usp;
@@ -608,7 +613,7 @@ L7_RC_t hapiBroadL3CardInit(L7_ushort16 unitNum,
       }
     }
   }
-
+#endif
   return L7_SUCCESS;
 }
 
@@ -786,6 +791,7 @@ L7_RC_t hapiBroadL3RouterCardRemove(DAPI_USP_t *usp,
                                      void *data,
                                      DAPI_t *dapi_g)
 {
+#ifdef L7_ROUTING_PACKAGE
   L7_RC_t result;
 
   HAPI_BROAD_L3_DEBUG(broadL3Debug, "hapiBroadL3RouterCardRemove: Unit %d "
@@ -890,7 +896,7 @@ L7_RC_t hapiBroadL3RouterCardRemove(DAPI_USP_t *usp,
   }
 
   memset(&routedVlanMask, 0, sizeof(routedVlanMask));
-
+#endif
   return L7_SUCCESS;
 }
 
@@ -905,6 +911,7 @@ L7_RC_t hapiBroadL3RouterCardRemove(DAPI_USP_t *usp,
 * @end
 *
 ******************************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 static L7_RC_t hapiBroadL3Clear(void)
 {
   L7_ushort16 count = 0;
@@ -1050,6 +1057,7 @@ static L7_RC_t hapiBroadL3Clear(void)
   HAPI_BROAD_L3_SEMA_GIVE(hapiBroadL3Sema);
   return L7_SUCCESS;
 }
+#endif
 
 /******************************************************************************
 *
@@ -1348,6 +1356,7 @@ static L7_RC_t hapiBroadL3IntfCreate(DAPI_USP_t *usp,
                                      DAPI_t *dapi_g)
 {
   L7_RC_t result = L7_SUCCESS;
+#ifdef L7_ROUTING_PACKAGE
   DAPI_ROUTING_INTF_MGMT_CMD_t *dapiCmd = (DAPI_ROUTING_INTF_MGMT_CMD_t*)data;
   DAPI_PORT_t    *dapiPortPtr;
   DAPI_SYSTEM_t  *dapiSystemPtr = dapi_g->system;
@@ -1542,7 +1551,7 @@ static L7_RC_t hapiBroadL3IntfCreate(DAPI_USP_t *usp,
       hapiBroadL3IcmpRedirVlanConfig(vid, L7_TRUE);
     }
   }
-
+#endif
   return result;
 }
 
@@ -1642,6 +1651,7 @@ static L7_RC_t hapiBroadL3IntfDelete(DAPI_USP_t *usp,
                                      DAPI_t *dapi_g)
 {
   L7_RC_t result = L7_SUCCESS;
+#ifdef L7_ROUTING_PACKAGE
   DAPI_PORT_t *dapiPortPtr;
   BROAD_PORT_t *hapiPortPtr;
   bcm_vlan_t vid;
@@ -1795,7 +1805,7 @@ static L7_RC_t hapiBroadL3IntfDelete(DAPI_USP_t *usp,
   }
 
   dapiPortPtr->modeparm.router.routerIntfEnabled = L7_FALSE;
-
+#endif
   return result;
 }
 
@@ -5599,6 +5609,7 @@ static L7_RC_t hapiBroadL3IntfVRIDAdd(DAPI_USP_t *usp,
                                       DAPI_t *dapi_g)
 {
   L7_RC_t result = L7_SUCCESS;
+#ifdef L7_ROUTING_PACKAGE
   DAPI_ROUTING_INTF_MGMT_CMD_t *dapiCmd = (DAPI_ROUTING_INTF_MGMT_CMD_t*)data;
   DAPI_PORT_t *dapiPortPtr;
   BROAD_PORT_t *hapiPortPtr;
@@ -5660,7 +5671,7 @@ static L7_RC_t hapiBroadL3IntfVRIDAdd(DAPI_USP_t *usp,
     hapiBroadL3HostPolicyInstall (usp, (L7_uchar8 *)intfInfo.bcm_data.l3a_mac_addr, dapi_g);
     hapiPortPtr->vrrp_interface_id[vrid] = intfInfo.bcm_data.l3a_intf_id;
   }
-
+#endif
   return result;
 }
 
@@ -5687,6 +5698,7 @@ static L7_RC_t hapiBroadL3IntfVRIDDelete(DAPI_USP_t *usp,
                                          DAPI_t *dapi_g)
 {
   L7_RC_t result = L7_SUCCESS;
+#ifdef L7_ROUTING_PACKAGE
   DAPI_ROUTING_INTF_MGMT_CMD_t *dapiCmd = (DAPI_ROUTING_INTF_MGMT_CMD_t*)data;
   BROAD_PORT_t *hapiPortPtr;
   usl_bcm_l3_intf_t intfInfo;
@@ -5728,7 +5740,7 @@ static L7_RC_t hapiBroadL3IntfVRIDDelete(DAPI_USP_t *usp,
   memcpy(intfInfo.bcm_data.l3a_mac_addr, &(L7_ENET_VRRP_MAC_ADDR), sizeof(bcm_mac_t));
   intfInfo.bcm_data.l3a_mac_addr[5] = vrid;
   hapiBroadL3HostPolicyRemove (usp, (L7_uchar8 *)intfInfo.bcm_data.l3a_mac_addr, dapi_g);
-
+#endif
   return result;
 }
 

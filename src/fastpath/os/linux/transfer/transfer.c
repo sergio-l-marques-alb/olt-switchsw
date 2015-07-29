@@ -1328,9 +1328,9 @@ static void transfer_download(void)
    static char buf[0x200];
    L7_RC_t rc = L7_SUCCESS;
 
-#ifdef L7_CLI_PACKAGE
+//#ifdef L7_CLI_PACKAGE
    L7_uint32 file_size=0;
-#endif /* L7_CLI_PACKAGE */
+//#endif /* L7_CLI_PACKAGE */
 
    static char full_fname[0x80];
    L7_char8 tmpFileName[(L7_MAX_FILENAME > DIM_MAX_FILENAME_SIZE ? L7_MAX_FILENAME : DIM_MAX_FILENAME_SIZE) + 1];
@@ -2584,14 +2584,15 @@ L7_RC_t L7_http_process_transferred_file(L7_uint32 fileType)
 {
    L7_RC_t    rc;
    L7_uint32  unit;
-#ifdef L7_CLI_PACKAGE
+//#ifdef L7_CLI_PACKAGE
    L7_char8   buf[0x200];
    L7_uint32 file_size=0;
-#endif /* L7_CLI_PACKAGE */
+//#endif /* L7_CLI_PACKAGE */
 
    unit = usmDbThisUnitGet();
 
    memset (buf, 0x0, sizeof(buf));
+   file_size=0;
 
    rc = usmDbTransferFileNameLocalGet(unit, transfer_fname_local);
    transfer_ftype = fileType;

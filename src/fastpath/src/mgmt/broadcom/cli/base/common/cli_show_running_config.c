@@ -440,6 +440,7 @@ L7_RC_t cliRunningConfigSysDesc(EwsContext ewsContext, L7_uint32 unit)
 
 L7_RC_t cliRunningConfigSnmpInfo(EwsContext ewsContext, L7_uint32 unit)
 {
+#ifdef L7_SNMP_PACKAGE
   L7_ushort16 count, communityIndex;
   L7_uint32 val, val1, val2, status;
   L7_BOOL displayDefComm = L7_FALSE;
@@ -573,7 +574,7 @@ L7_RC_t cliRunningConfigSnmpInfo(EwsContext ewsContext, L7_uint32 unit)
       break;  /* Assuming default values are populated from first index in FD_snmpComm */
     }
   }
-
+#endif
   return L7_SUCCESS;
 }
 
@@ -593,6 +594,7 @@ L7_RC_t cliRunningConfigSnmpInfo(EwsContext ewsContext, L7_uint32 unit)
 
 L7_RC_t cliRunningConfigSnmpTrapInfo(EwsContext ewsContext, L7_uint32 unit)
 {
+#ifdef L7_SNMP_PACKAGE
   L7_ushort16 count;
   L7_uint32 val;
   L7_char8 stat[L7_CLI_MAX_STRING_LENGTH];
@@ -702,7 +704,7 @@ L7_RC_t cliRunningConfigSnmpTrapInfo(EwsContext ewsContext, L7_uint32 unit)
       }
     }
   } /* End of snmp get info for*/
-
+#endif
   return L7_SUCCESS;
 }
 /*********************************************************************

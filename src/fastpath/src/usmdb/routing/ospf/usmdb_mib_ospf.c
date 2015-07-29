@@ -4859,7 +4859,11 @@ L7_RC_t usmDbOspfAreaAggregateEffectSet ( L7_uint32 UnitIndex, L7_uint32 AreaID,
 *********************************************************************/
 L7_RC_t usmDbOspfTrapModeSet(L7_uint32 unitIndex, L7_uint32 mode, L7_uint32 trapType)
 {
+#ifdef L7_OSPF_PACKAGE
   return trapMgrOspfTrapModeSet(mode,trapType); 
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 /*********************************************************************
@@ -4880,7 +4884,11 @@ L7_RC_t usmDbOspfTrapModeSet(L7_uint32 unitIndex, L7_uint32 mode, L7_uint32 trap
 *********************************************************************/
 L7_RC_t usmDbOspfTrapModeGet(L7_uint32 unitIndex, L7_uint32 *mode, L7_uint32 trapType)
 {
+#ifdef L7_OSPF_PACKAGE
   return trapMgrOspfTrapModeGet(mode,trapType);
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 /*********************************************************************

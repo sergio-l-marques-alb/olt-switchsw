@@ -39,13 +39,16 @@ BROAD_L3_HW_STATS_t broadL3HwHostStats;
 BROAD_L3_HW_STATS_t broadL3HwNhopStats;
 BROAD_L3_HW_STATS_t broadL3HwEcmpStats;
 
+#ifdef L7_ROUTING_PACKAGE
 static L7_BOOL retryFailedRoutes = L7_FALSE;
 static L7_BOOL retryFailedHosts = L7_FALSE;
 static L7_BOOL retryFailedNhops = L7_FALSE;
 static L7_BOOL retryFailedEcmpNhops = L7_FALSE;
+#endif
 static L7_BOOL retryTimerExpired = L7_FALSE;
 
 /* Function prototypes */
+#ifdef L7_ROUTING_PACKAGE
 static void hapiBroadL3AsyncNhopWlistProcess (DAPI_t *dapi_g);
 static void hapiBroadL3AsyncEcmpWlistProcess (DAPI_t *dapi_g);
 static void hapiBroadL3AsyncHostWlistProcess (DAPI_t *dapi_g);
@@ -64,7 +67,7 @@ static void hapiBroadL3AsyncTunnelNhopResolve(BROAD_L3_NH_ENTRY_t *pNhop,
                                               DAPI_t *dapi_g);
 static void hapiBroadL3AsyncTunnelNhopDelete(BROAD_L3_NH_ENTRY_t *pTunNhop,
                                              DAPI_t  * dapi_g);
-
+#endif
 
 /*******************************************************************************
 *
@@ -94,6 +97,7 @@ void hapiBroadL3AsyncTask(L7_uint32 num_args, DAPI_t *dapi_g)
   memset(&broadL3HwNhopStats, 0, sizeof(broadL3HwNhopStats));
   memset(&broadL3HwEcmpStats, 0, sizeof(broadL3HwEcmpStats));
 
+#ifdef L7_ROUTING_PACKAGE
   while (1)
   {
     HAPI_BROAD_L3_ASYNC_WAIT;
@@ -122,6 +126,7 @@ void hapiBroadL3AsyncTask(L7_uint32 num_args, DAPI_t *dapi_g)
     /* Process the wait queue to see if anyone is waiting for async to finish up */
     hapiBroadL3AsyncWaitqProcess(dapi_g);
   }
+#endif
 }
 
 /*******************************************************************************
@@ -137,6 +142,7 @@ void hapiBroadL3AsyncTask(L7_uint32 num_args, DAPI_t *dapi_g)
 * @end
 *
 *******************************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 static void hapiBroadL3AsyncNhopWlistProcess (DAPI_t *dapi_g)
 {
   L7_uint32              flags = 0;
@@ -326,6 +332,7 @@ static void hapiBroadL3AsyncNhopWlistProcess (DAPI_t *dapi_g)
   /* We may have some egress objects cached. Commit them now */
   hapiBroadL3NhopCacheCommit();
 }
+#endif
 
 
 /*******************************************************************************
@@ -343,6 +350,7 @@ static void hapiBroadL3AsyncNhopWlistProcess (DAPI_t *dapi_g)
 * @end
 *
 *******************************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 static void hapiBroadL3AsyncEcmpWlistProcess (DAPI_t *dapi_g)
 {
   L7_int32               i, rv, intf_count = 0;
@@ -477,6 +485,7 @@ static void hapiBroadL3AsyncEcmpWlistProcess (DAPI_t *dapi_g)
 
   HAPI_BROAD_L3_SEMA_GIVE(hapiBroadL3Sema);
 }
+#endif
 
 /*******************************************************************************
 *
@@ -491,6 +500,7 @@ static void hapiBroadL3AsyncEcmpWlistProcess (DAPI_t *dapi_g)
 * @end
 *
 *******************************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 static void hapiBroadL3AsyncHostWlistProcess (DAPI_t *dapi_g)
 {
   L7_BOOL                v6LinkLocal;
@@ -727,8 +737,8 @@ static void hapiBroadL3AsyncHostWlistProcess (DAPI_t *dapi_g)
 
   /* We may have some host entries cached. Commit them now */
   hapiBroadL3HostCacheCommit();
-
 }
+#endif
 
 /*******************************************************************************
 *
@@ -815,6 +825,7 @@ L7_RC_t hapiBroadL3MacNhopUnlink (BROAD_L3_NH_ENTRY_t *pNhopEntry)
 * @end
 *
 *******************************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 static void hapiBroadL3AsyncRouteWlistProcess (DAPI_t *dapi_g)
 {
   L7_uint8               i;
@@ -1107,6 +1118,7 @@ static void hapiBroadL3AsyncRouteWlistProcess (DAPI_t *dapi_g)
   /* We may have some route entries cached. Commit them now */
   hapiBroadL3RouteCacheCommit();
 }
+#endif
 
 
 /*******************************************************************************
@@ -1122,6 +1134,7 @@ static void hapiBroadL3AsyncRouteWlistProcess (DAPI_t *dapi_g)
 * @end
 *
 *******************************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 static void hapiBroadL3AsyncTunnelWlistProcess (DAPI_t *dapi_g)
 {
   BROAD_L3_TUNNEL_ENTRY_t *pTunEntry;
@@ -1193,6 +1206,7 @@ static void hapiBroadL3AsyncTunnelWlistProcess (DAPI_t *dapi_g)
 
   HAPI_BROAD_L3_SEMA_GIVE(hapiBroadL3Sema);
 }
+#endif
 
 
 /*******************************************************************************
@@ -1210,6 +1224,7 @@ static void hapiBroadL3AsyncTunnelWlistProcess (DAPI_t *dapi_g)
 * @end
 *
 *******************************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 static void hapiBroadL3AsyncTunnelCreate (BROAD_L3_TUNNEL_ENTRY_t *pTunEntry,
                                           L7_BOOL replace,
                                           DAPI_t *dapi_g)
@@ -1401,6 +1416,7 @@ static void hapiBroadL3AsyncTunnelCreate (BROAD_L3_TUNNEL_ENTRY_t *pTunEntry,
                                 BROAD_L3_NH_CMD_MODIFY);
   }
 }
+#endif
 
 /*******************************************************************************
 *
@@ -1415,6 +1431,7 @@ static void hapiBroadL3AsyncTunnelCreate (BROAD_L3_TUNNEL_ENTRY_t *pTunEntry,
 * @end
 *
 *******************************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 static void hapiBroadL3AsyncTunnelModify (BROAD_L3_TUNNEL_ENTRY_t *pTunEntry)
 {
   L7_uint8                index = 0;
@@ -1493,6 +1510,7 @@ static void hapiBroadL3AsyncTunnelModify (BROAD_L3_TUNNEL_ENTRY_t *pTunEntry)
     }
   }
 }
+#endif
 
 
 /*******************************************************************************
@@ -1508,6 +1526,7 @@ static void hapiBroadL3AsyncTunnelModify (BROAD_L3_TUNNEL_ENTRY_t *pTunEntry)
 * @end
 *
 *******************************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 static void hapiBroadL3AsyncTunnelDelete (BROAD_L3_TUNNEL_ENTRY_t *pTunEntry)
 {
   L7_int32              rv;
@@ -1590,8 +1609,8 @@ static void hapiBroadL3AsyncTunnelDelete (BROAD_L3_TUNNEL_ENTRY_t *pTunEntry)
 
   HAPI_BROAD_L3_BCMX_DBG(rv, "Tunnel: usl_bcmx_l3_intf_delete returned (%s)\n", 
                          bcm_errmsg(rv));
-
 }
+#endif
 
 /*******************************************************************************
 *
@@ -1606,6 +1625,7 @@ static void hapiBroadL3AsyncTunnelDelete (BROAD_L3_TUNNEL_ENTRY_t *pTunEntry)
 * @end
 *
 *******************************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 static void hapiBroadL3AsyncTunnelNhopResolve(BROAD_L3_NH_ENTRY_t *pTunNhop, 
                                               BROAD_L3_MAC_ENTRY_t **pMac,
                                               DAPI_t *dapi_g)
@@ -1804,6 +1824,7 @@ static void hapiBroadL3AsyncTunnelNhopResolve(BROAD_L3_NH_ENTRY_t *pTunNhop,
      */
   }
 }
+#endif
 
 /*******************************************************************************
 *
@@ -1818,6 +1839,7 @@ static void hapiBroadL3AsyncTunnelNhopResolve(BROAD_L3_NH_ENTRY_t *pTunNhop,
 * @end
 *
 *******************************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 static void hapiBroadL3AsyncTunnelNhopDelete(BROAD_L3_NH_ENTRY_t *pTunNhop, 
                                              DAPI_t  * dapi_g)
 {
@@ -1872,6 +1894,7 @@ static void hapiBroadL3AsyncTunnelNhopDelete(BROAD_L3_NH_ENTRY_t *pTunNhop,
 
   hapiBroadL3NhopEntryUpdate(pTunNhop, BROAD_L3_NH_CMD_DELETE);
 }
+#endif
 
 /*******************************************************************************
 *
@@ -1886,6 +1909,7 @@ static void hapiBroadL3AsyncTunnelNhopDelete(BROAD_L3_NH_ENTRY_t *pTunNhop,
 * @end
 *
 *******************************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 static void hapiBroadL3AsyncWaitqProcess (DAPI_t *dapi_g)
 {
   L7_RC_t rc;
@@ -1938,6 +1962,7 @@ static void hapiBroadL3AsyncWaitqProcess (DAPI_t *dapi_g)
     HAPI_BROAD_L3_SEMA_GIVE(waitSema);
   }
 }
+#endif
 
 
 /*******************************************************************************
@@ -1954,6 +1979,7 @@ static void hapiBroadL3AsyncWaitqProcess (DAPI_t *dapi_g)
 * @end
 *
 *******************************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 static void hapiBroadL3AsyncZeroCountNhopDelete (DAPI_t *dapi_g)
 {
   BROAD_L3_NH_ENTRY_t   *pNhopEntry;
@@ -2046,6 +2072,7 @@ static void hapiBroadL3AsyncZeroCountNhopDelete (DAPI_t *dapi_g)
 
   HAPI_BROAD_L3_SEMA_GIVE(hapiBroadL3Sema);
 }
+#endif
 
 
 /*******************************************************************************
@@ -2063,6 +2090,7 @@ static void hapiBroadL3AsyncZeroCountNhopDelete (DAPI_t *dapi_g)
 * @end
 *
 *******************************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 static void hapiBroadL3AsyncRetryFailures (DAPI_t *dapi_g)
 {
   L7_BOOL wakeUpAsyncTask = L7_FALSE;
@@ -2257,6 +2285,7 @@ static void hapiBroadL3AsyncRetryFailures (DAPI_t *dapi_g)
     HAPI_BROAD_L3_WAKE_UP_ASYNC_TASK;
   }
 }
+#endif
 
 
 /*******************************************************************************
@@ -2402,6 +2431,7 @@ hapiBroadL3v6LinkLocalRouteAddDel(L7_BOOL install, DAPI_t *dapi_g)
 *******************************************************************************/
 void hapiBroadL3AsyncHostFailureCallback(void *data)
 {
+#ifdef L7_ROUTING_PACKAGE
   usl_bcm_l3_host_t     *bcm_data = data;
   BROAD_L3_HOST_ENTRY_t  host;
   BROAD_L3_HOST_ENTRY_t *pHostEntry;
@@ -2461,6 +2491,7 @@ void hapiBroadL3AsyncHostFailureCallback(void *data)
   {
     L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DRIVER_COMPONENT_ID, "Received async failure notification for unknown host from USL.");
   }
+#endif
 }
 
 
@@ -2482,6 +2513,7 @@ void hapiBroadL3AsyncHostFailureCallback(void *data)
 * @end
 *
 *********************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 void hapiBroadL3WarmStartRetryFailures(void)
 {
   if (broadL3HwNhopStats.total_add_failures > 0)
@@ -2498,3 +2530,5 @@ void hapiBroadL3WarmStartRetryFailures(void)
 
   return;
 }
+#endif
+

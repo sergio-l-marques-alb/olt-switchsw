@@ -236,6 +236,7 @@ L7_RC_t pbVlanGroupDelete(L7_uint32 groupId)
 *********************************************************************/
 L7_RC_t pbVlanGroupProtocolAdd(L7_uint32 groupId, L7_uint32 prtl, L7_uint32 ptype)
 {
+#ifdef L7_PBVLAN_PACKAGE
   L7_uint32 i;
   L7_uint32 index;
   L7_uint32 ports;
@@ -365,6 +366,9 @@ L7_RC_t pbVlanGroupProtocolAdd(L7_uint32 groupId, L7_uint32 prtl, L7_uint32 ptyp
       return rc;
     }
   } /* else */
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 /*********************************************************************
@@ -381,6 +385,7 @@ L7_RC_t pbVlanGroupProtocolAdd(L7_uint32 groupId, L7_uint32 prtl, L7_uint32 ptyp
 *********************************************************************/
 L7_RC_t pbVlanEtherProtocolAdd(L7_uint32 prtl, L7_uint32 ptype)
 {
+#ifdef L7_PBVLAN_PACKAGE
   L7_uint32 i = 0;
 
   for (i = 0; i < L7_PBVLAN_MAX_CONFIGURABLE_PROTOCOLS; i++)
@@ -400,8 +405,11 @@ L7_RC_t pbVlanEtherProtocolAdd(L7_uint32 prtl, L7_uint32 ptype)
         } 
     }
   }
- 
+
   return L7_TABLE_IS_FULL;
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 /*********************************************************************
@@ -423,6 +431,7 @@ L7_RC_t pbVlanEtherProtocolAdd(L7_uint32 prtl, L7_uint32 ptype)
 *********************************************************************/
 L7_RC_t pbVlanGroupProtocolDelete(L7_uint32 groupId, L7_uint32 prtl)
 {
+#ifdef L7_PBVLAN_PACKAGE
   L7_uint32 index;
   L7_uint32 i = 0;
   L7_uint32 list[L7_MAX_INTERFACE_COUNT + 1];
@@ -467,6 +476,9 @@ L7_RC_t pbVlanGroupProtocolDelete(L7_uint32 groupId, L7_uint32 prtl)
 
     return rc;
   }
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 /*********************************************************************
@@ -487,7 +499,7 @@ L7_RC_t pbVlanGroupProtocolDelete(L7_uint32 groupId, L7_uint32 prtl)
 *********************************************************************/
 L7_RC_t pbVlanEtherProtocolDelete(L7_uint32 groupId, L7_uint32 prtl)
 {
-
+#ifdef L7_PBVLAN_PACKAGE
   L7_uint32 i = 0;
   L7_uint32 index;
 
@@ -530,6 +542,9 @@ L7_RC_t pbVlanEtherProtocolDelete(L7_uint32 groupId, L7_uint32 prtl)
   {
     return L7_FAILURE;
   }
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 
@@ -552,6 +567,7 @@ L7_RC_t pbVlanEtherProtocolDelete(L7_uint32 groupId, L7_uint32 prtl)
 *********************************************************************/
 L7_RC_t pbVlanGroupVlanIDAdd(L7_uint32 groupId, L7_uint32 vid)
 {
+#ifdef L7_PBVLAN_PACKAGE
   L7_uint32 i;
   L7_uint32 j = 0;
   L7_uint32 list[L7_MAX_INTERFACE_COUNT + 1];
@@ -595,6 +611,9 @@ L7_RC_t pbVlanGroupVlanIDAdd(L7_uint32 groupId, L7_uint32 vid)
 
     return rc;
   }
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 /*********************************************************************
@@ -615,6 +634,7 @@ L7_RC_t pbVlanGroupVlanIDAdd(L7_uint32 groupId, L7_uint32 vid)
 *********************************************************************/
 L7_RC_t pbVlanGroupVlanIDDelete(L7_uint32 groupId, L7_uint32 vid)
 {
+#ifdef L7_PBVLAN_PACKAGE
   L7_uint32 i;
   L7_uint32 j = 0;
   L7_uint32 list[L7_MAX_INTERFACE_COUNT + 1];
@@ -663,6 +683,9 @@ L7_RC_t pbVlanGroupVlanIDDelete(L7_uint32 groupId, L7_uint32 vid)
 
     return rc;
   }
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 /*********************************************************************
@@ -686,6 +709,7 @@ L7_RC_t pbVlanGroupVlanIDDelete(L7_uint32 groupId, L7_uint32 vid)
 *********************************************************************/
 L7_RC_t pbVlanGroupPortAdd(L7_uint32 groupId, L7_uint32 intIfNum)
 {
+#ifdef L7_PBVLAN_PACKAGE
   L7_uint32 i;
   L7_uint32 j;
   L7_uint32 prot[L7_PBVLAN_MAX_CONFIGURABLE_PROTOCOLS];
@@ -773,6 +797,9 @@ L7_RC_t pbVlanGroupPortAdd(L7_uint32 groupId, L7_uint32 intIfNum)
   } /* else */
 
   return rc;
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 /*********************************************************************
@@ -794,6 +821,7 @@ L7_RC_t pbVlanGroupPortAdd(L7_uint32 groupId, L7_uint32 intIfNum)
 *********************************************************************/
 L7_RC_t pbVlanGroupPortDelete(L7_uint32 groupId, L7_uint32 intIfNum)
 {
+#ifdef L7_PBVLAN_PACKAGE
   L7_uint32 i;
   L7_RC_t rc = L7_FAILURE;
 
@@ -837,6 +865,9 @@ L7_RC_t pbVlanGroupPortDelete(L7_uint32 groupId, L7_uint32 intIfNum)
   } /* else */
 
   return rc;
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 /*********************************************************************

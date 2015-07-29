@@ -103,6 +103,8 @@ static L7_RC_t userMgrTacacsRequestSend(userMgrAuthRequest_t *request,
   L7_RC_t   rc     = L7_ERROR;
   L7_RC_t   status = L7_FAILURE;
 
+  status = L7_FAILURE;
+
 #ifdef L7_TACACS_PACKAGE
   L7_uint32 correlator = 0;   /* we only send one auth request at a time,
                                  so we can use the one correlator value */

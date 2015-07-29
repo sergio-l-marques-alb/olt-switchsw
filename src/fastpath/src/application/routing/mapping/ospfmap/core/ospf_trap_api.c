@@ -69,7 +69,11 @@
 L7_RC_t ospfMapTrapVirtIfStateChange(L7_uint32 routerId, L7_uint32 virtIfAreaId,
                                      L7_uint32 virtIfNeighbor, L7_uint32 virtIfState)
 {
+#ifdef L7_OSPF_PACKAGE
   return trapMgrVirtIfStateChange(routerId,virtIfAreaId,virtIfNeighbor,virtIfState);
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 /*********************************************************************
@@ -109,8 +113,12 @@ L7_RC_t ospfMapTrapNbrStateChange(L7_uint32 routerId, L7_uint32 nbrIpAddr,
                                   L7_uint32 intIfNum,
                                   L7_uint32 nbrRtrId, L7_uint32 nbrState)
 {
+#ifdef L7_OSPF_PACKAGE
   return trapMgrNbrStateChange(routerId,nbrIpAddr,intIfNum,
                                nbrRtrId,nbrState);
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 /*********************************************************************
@@ -141,7 +149,11 @@ L7_RC_t ospfMapTrapNbrStateChange(L7_uint32 routerId, L7_uint32 nbrIpAddr,
 L7_RC_t ospfMapTrapVirtNbrStateChange(L7_uint32 routerId, L7_uint32 virtNbrArea,
                                       L7_uint32 virtNbrRtrId, L7_uint32 virtNbrState)
 {
+#ifdef L7_OSPF_PACKAGE
   return trapMgrVirtNbrStateChange(routerId,virtNbrArea,virtNbrRtrId,virtNbrState);
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 /*********************************************************************
@@ -169,8 +181,12 @@ L7_RC_t ospfMapTrapIfConfigError(L7_uint32 routerId, L7_uint32 ifIpAddress,
                                  L7_uint32 intIfNum, L7_uint32 packetSrc,
                                  L7_uint32 configErrorType, L7_uint32 packetType)
 {
+#ifdef L7_OSPF_PACKAGE
   return trapMgrIfConfigError(routerId,ifIpAddress,intIfNum,packetSrc,
                               configErrorType,packetType);
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 /*********************************************************************
@@ -198,8 +214,12 @@ L7_RC_t ospfMapTrapVirtIfConfigError(L7_uint32 routerId, L7_uint32 virtIfAreaId,
                                      L7_uint32 configErrorType,
                                      L7_uint32 packetType)
 {
+#ifdef L7_OSPF_PACKAGE
   return trapMgrVirtIfConfigError(routerId,virtIfAreaId,virtIfNeighbor,
                                   configErrorType,packetType);
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 /*********************************************************************
@@ -227,8 +247,12 @@ L7_RC_t ospfMapTrapIfAuthFailure(L7_uint32 routerId, L7_uint32 ifIpAddress,
                                  L7_uint32 intIfNum, L7_uint32 packetSrc,
                                  L7_uint32 configErrorType, L7_uint32 packetType)
 {
+#ifdef L7_OSPF_PACKAGE
   return trapMgrIfAuthFailure(routerId,ifIpAddress,intIfNum,
                               packetSrc,configErrorType,packetType);
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 /*********************************************************************
@@ -256,8 +280,12 @@ L7_RC_t ospfMapTrapVirtIfAuthFailure(L7_uint32 routerId, L7_uint32 virtIfAreaId,
                                      L7_uint32 configErrorType,
                                      L7_uint32 packetType)
 {
+#ifdef L7_OSPF_PACKAGE
   return trapMgrVirtIfAuthFailure(routerId,virtIfAreaId,virtIfNeighbor,
                                   configErrorType,packetType);
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 /*********************************************************************
@@ -282,8 +310,12 @@ L7_RC_t ospfMapTrapIfRxBadPacket(L7_uint32 routerId, L7_uint32 ifIpAddress,
                                  L7_uint32 intIfNum, L7_uint32 packetSrc,
                                  L7_uint32 packetType)
 {
+#ifdef L7_OSPF_PACKAGE
   return trapMgrIfRxBadPacket(routerId,ifIpAddress,intIfNum,
                               packetSrc,packetType);
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 /*********************************************************************
@@ -306,7 +338,11 @@ L7_RC_t ospfMapTrapIfRxBadPacket(L7_uint32 routerId, L7_uint32 ifIpAddress,
 L7_RC_t ospfMapTrapVirtIfRxBadPacket(L7_uint32 routerId, L7_uint32 virtIfAreaId,
                                      L7_uint32 virtIfNeighbor, L7_uint32 packetType)
 {
+#ifdef L7_OSPF_PACKAGE
   return trapMgrVirtIfRxBadPacket(routerId,virtIfAreaId,virtIfNeighbor,packetType);
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 /*********************************************************************
@@ -337,8 +373,12 @@ L7_RC_t ospfMapTrapTxRetransmit(L7_uint32 routerId, L7_uint32 ifIpAddress,
                                 L7_uint32 packetType, L7_uint32 lsdbType,
                                 L7_uint32 lsdbLsid, L7_uint32 lsdbRouterId)
 {
+#ifdef L7_OSPF_PACKAGE
   return trapMgrTxRetransmit(routerId,ifIpAddress,intIfNum,nbrRtrId,
                              packetType,lsdbType,lsdbLsid,lsdbRouterId);
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 /*********************************************************************
@@ -368,8 +408,12 @@ L7_RC_t ospfMapTrapVirtTxRetransmit(L7_uint32 routerId, L7_uint32 virtIfAreaId,
                                     L7_uint32 lsdbType, L7_uint32 lsdbLsid,
                                     L7_uint32 lsdbRouterId)
 {
+#ifdef L7_OSPF_PACKAGE
   return trapMgrVirtTxRetransmit(routerId,virtIfAreaId,virtIfNeighbor,
                                  packetType,lsdbType,lsdbLsid,lsdbRouterId);
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 /*********************************************************************
@@ -399,8 +443,12 @@ L7_RC_t ospfMapTrapOriginateLsa(L7_uint32 routerId, L7_uint32 lsdbAreaId,
                                 L7_uint32 lsdbType, L7_uint32 lsdbLsid,
                                 L7_uint32 lsdbRouterId)
 {
+#ifdef L7_OSPF_PACKAGE
   return trapMgrOriginateLsa(routerId,lsdbAreaId,lsdbType,lsdbLsid,
                              lsdbRouterId);
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 /*********************************************************************
@@ -425,8 +473,12 @@ L7_RC_t ospfMapTrapMaxAgeLsa(L7_uint32 routerId, L7_uint32 lsdbAreaId,
                              L7_uint32 lsdbType, L7_uint32 lsdbLsid,
                              L7_uint32 lsdbRouterId)
 {
+#ifdef L7_OSPF_PACKAGE
   return trapMgrMaxAgeLsa(routerId,lsdbAreaId,lsdbType,lsdbLsid,
                           lsdbRouterId);
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 /*********************************************************************
@@ -446,7 +498,11 @@ L7_RC_t ospfMapTrapMaxAgeLsa(L7_uint32 routerId, L7_uint32 lsdbAreaId,
 *********************************************************************/
 L7_RC_t ospfMapTrapLsdbOverflow(L7_uint32 routerId, L7_uint32 extLsdbLimit)
 {
+#ifdef L7_OSPF_PACKAGE
   return trapMgrLsdbOverflow(routerId,extLsdbLimit);
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 /*********************************************************************
@@ -468,7 +524,11 @@ L7_RC_t ospfMapTrapLsdbOverflow(L7_uint32 routerId, L7_uint32 extLsdbLimit)
 L7_RC_t ospfMapTrapLsdbApproachingOverflow(L7_uint32 routerId,
                                        L7_uint32 extLsdbLimit)
 {
+#ifdef L7_OSPF_PACKAGE
   return trapMgrLsdbApproachingOverflow(routerId,extLsdbLimit);
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 /*********************************************************************
@@ -493,7 +553,11 @@ L7_RC_t ospfMapTrapLsdbApproachingOverflow(L7_uint32 routerId,
 L7_RC_t ospfMapTrapIfStateChange(L7_uint32 routerId, L7_uint32 ifIpAddress,
                                  L7_uint32 intIfNum, L7_uint32 ifState)
 {
+#ifdef L7_OSPF_PACKAGE
   return trapMgrIfStateChange(routerId,ifIpAddress,intIfNum,ifState);
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 /*********************************************************************
@@ -511,7 +575,11 @@ L7_RC_t ospfMapTrapIfStateChange(L7_uint32 routerId, L7_uint32 ifIpAddress,
 *********************************************************************/
 L7_RC_t ospfMapTrapIfRxPacket()
 {
+#ifdef L7_OSPF_PACKAGE
   return trapMgrIfRxPacket();
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 /*********************************************************************
@@ -529,6 +597,10 @@ L7_RC_t ospfMapTrapIfRxPacket()
 *********************************************************************/
 L7_RC_t ospfMapTrapRtbEntryInfo()
 {
+#ifdef L7_OSPF_PACKAGE
   return trapMgrRtbEntryInfo();
+#else
+  return L7_SUCCESS;
+#endif
 }
 

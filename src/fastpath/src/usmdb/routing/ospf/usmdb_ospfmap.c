@@ -2689,7 +2689,11 @@ L7_RC_t usmDbOspfRestore(L7_uint32 UnitIndex)
 *********************************************************************/
 L7_RC_t usmDbOspfTrapFlagsGet(L7_uint32 unitIndex, L7_uint32 *trapFlags)
 {
+#ifdef L7_OSPF_PACKAGE
   return trapMgrOspfTrapFlagsGet(trapFlags);
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 /*********************************************************************
