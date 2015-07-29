@@ -683,6 +683,7 @@ static L7_RC_t ptin_hapi_l3_intf_id_push(L7_int32 l3a_intf_id)
 *********************************************************************/
 L7_RC_t ptin_hapi_l3_intf_create (ptin_dtl_l3_intf_t *intf)
 {
+#ifdef L7_ROUTING_PACKAGE
   bcm_l3_intf_t     bcm_data; 
   int               rv = L7_SUCCESS;
 
@@ -766,7 +767,7 @@ L7_RC_t ptin_hapi_l3_intf_create (ptin_dtl_l3_intf_t *intf)
 
   /*Save L3 Interface Interface Id*/
   intf->l3_intf_id = bcm_data.l3a_intf_id;
-
+#endif
   return L7_SUCCESS;  
 }
 
@@ -810,6 +811,7 @@ int ptin_hapi_debug_bcm_l3_intf_create(L7_uint32 vid, L7_uint32 mac_addr, L7_uin
 *********************************************************************/
 L7_RC_t ptin_hapi_l3_intf_delete (ptin_dtl_l3_intf_t *intf)
 {
+#ifdef L7_ROUTING_PACKAGE
   bcm_l3_intf_t     bcm_data; 
   int               rv = L7_SUCCESS;
 
@@ -857,6 +859,7 @@ L7_RC_t ptin_hapi_l3_intf_delete (ptin_dtl_l3_intf_t *intf)
   }
 
   intf->l3_intf_id = -1;
+#endif
   return L7_SUCCESS;  
 }
 

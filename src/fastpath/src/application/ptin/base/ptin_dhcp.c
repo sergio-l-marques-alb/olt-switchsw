@@ -458,10 +458,12 @@ L7_RC_t ptin_dhcp_init(void)
     PT_LOG_ERR(LOG_CTX_DHCP,"Error with usmDbDsAdminModeSet");
     return L7_FAILURE;
   }
+#ifdef L7_DHCP_L2_RELAY_PACKAGE
   if (usmDbDsL2RelayAdminModeSet(L7_ENABLE)!=L7_SUCCESS)  {
     PT_LOG_ERR(LOG_CTX_DHCP,"Error with usmDbDsL2RelayAdminModeSet");
     return L7_FAILURE;
   }
+#endif
 #endif
 
   return L7_SUCCESS;
@@ -481,17 +483,21 @@ L7_RC_t ptin_dhcp_enable(L7_BOOL enable)
     PT_LOG_ERR(LOG_CTX_DHCP,"Error applying DHCP module enable=%u",enable);
     return L7_FAILURE;
   }
+#ifdef L7_DHCP_L2_RELAY_PACKAGE
   if (dsL2RelayAdminModeSet(enable)!=L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_DHCP,"Error applying DHCP Relay Agent enable=%u",enable);
     return L7_FAILURE;
   }
+#endif
   
   /* Global trap */
   if (ptin_dhcpPkts_global_trap(enable)!=L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_DHCP,"Error setting DHCP global enable to %u",enable);
+  #ifdef L7_DHCP_L2_RELAY_PACKAGE
     dsL2RelayAdminModeSet(!enable);
+  #endif
     usmDbDsAdminModeSet(!enable);
     return L7_FAILURE;
   }
@@ -506,7 +512,9 @@ L7_RC_t ptin_dhcp_enable(L7_BOOL enable)
     ptin_dhcpPkts_vlan_trap(PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN, !enable, L7_AF_INET6);
     ptin_dhcpPkts_vlan_trap(PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN, !enable, L7_AF_INET);
     ptin_dhcpPkts_global_trap(!enable);
+  #ifdef L7_DHCP_L2_RELAY_PACKAGE
     dsL2RelayAdminModeSet(!enable);
+  #endif
     usmDbDsAdminModeSet(!enable);
     return L7_FAILURE;
   }

@@ -428,11 +428,13 @@ L7_RC_t ptin_routing_init(void)
 
   /* Enable routing on Fastpath */
   PT_LOG_INFO(LOG_CTX_ROUTING, "Setting OLTSWITCH's routing admin mode to L7_ENABLE");
+#ifdef L7_ROUTING_PACKAGE
   if(usmDbIpRtrAdminModeSet(PTIN_ROUTING_USMDB_UNITINDEX, L7_ENABLE) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to set OLTSWITCH's routing admin mode to L7_ENABLE");
     return L7_FAILURE;
   }
+#endif
 
   return L7_SUCCESS;
 }
@@ -541,11 +543,13 @@ L7_RC_t ptin_routing_intf_create(ptin_intf_t* routingIntf, L7_uint16 internalVla
   
   /* Associate the new interface with the given vlanId in Fastpath's routing tables */
   PT_LOG_DEBUG(LOG_CTX_ROUTING, "Associating %s%u with vlan %u on OLTSWITCH's routing tables", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id, internalVlanId);
+#ifdef L7_ROUTING_PACKAGE
   if(usmDbIpVlanRoutingIntfCreate(PTIN_ROUTING_USMDB_UNITINDEX, internalVlanId, routingIntf->intf_id+1) != 0)
   {
     PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to associate %s%u with vlan %u on OLTSWITCH's routing tables", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id, internalVlanId);
     return L7_FAILURE;
   }
+#endif
 
 #if (PTIN_BOARD_IS_MATRIX  || PTIN_BOARD_IS_STANDALONE) //Required because of 'ptin_ipdtl0_control'
   /* Allow IP/ARP packets through dtl0 for this vlan */
@@ -735,11 +739,13 @@ L7_RC_t ptin_routing_intf_remove(ptin_intf_t* routingIntf)
 
   /* Delete vlan routing interface */
   PT_LOG_DEBUG(LOG_CTX_ROUTING, "Deleting routing interface associated with internal vlan %u", internalVlanId);
+#ifdef L7_ROUTING_PACKAGE
   if(usmDbIpVlanRoutingIntfDelete(PTIN_ROUTING_USMDB_UNITINDEX, internalVlanId) != 0)
   {
     PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to delete routing interface associated with internal vlan %u", internalVlanId);
     return L7_FAILURE;
   }
+#endif
 
 #if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_STANDALONE)
   /* Disable IP/ARP packets through dtl0 for this vlan */
@@ -817,6 +823,7 @@ void ptin_routing_intf_remove_all(void)
  */
 L7_RC_t ptin_routing_intf_ipaddress_set(ptin_intf_t* routingIntf, L7_uchar8 ipFamily, L7_uint32 ipAddr, L7_uint32 subnetMask)
 {
+#ifdef L7_ROUTING_PACKAGE
   char           ipAddrStr[IPV6_DISP_ADDR_LEN];
   char           ipSubnetStr[IPV6_DISP_ADDR_LEN];
   L7_inet_addr_t inetIpAddr;
@@ -845,6 +852,7 @@ L7_RC_t ptin_routing_intf_ipaddress_set(ptin_intf_t* routingIntf, L7_uchar8 ipFa
     PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to set routing interface %u IP address to %s/%s (rc = %u)", intfNum, inetAddrPrint(&inetIpAddr, ipAddrStr), inetAddrPrint(&inetIpSubnet, ipSubnetStr), rc);
     return L7_FAILURE;
   }
+#endif
 
   return L7_SUCCESS;
 }
@@ -859,6 +867,7 @@ L7_RC_t ptin_routing_intf_ipaddress_set(ptin_intf_t* routingIntf, L7_uchar8 ipFa
  */
 L7_RC_t ptin_routing_intf_mtu_set(ptin_intf_t* routingIntf, L7_uint32 mtu)
 {
+#ifdef L7_ROUTING_PACKAGE
   L7_uint32 intfNum;
   L7_RC_t   rc;
 
@@ -881,7 +890,7 @@ L7_RC_t ptin_routing_intf_mtu_set(ptin_intf_t* routingIntf, L7_uint32 mtu)
     PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to set routing interface %u MTU to %d (rc = %u)", intfNum, mtu, rc);
     return L7_FAILURE;
   }
-
+#endif
   return L7_SUCCESS;
 }
 
@@ -1026,7 +1035,9 @@ L7_RC_t ptin_routing_arpentry_purge(L7_uint32 intfNum, L7_uint32 ipAddr)
     intfNum = L7_INVALID_INTF;
   }
 
+#ifdef L7_ROUTING_PACKAGE
   usmDbIpArpEntryPurge(PTIN_ROUTING_USMDB_UNITINDEX, ipAddr, intfNum);
+#endif
 
   return L7_SUCCESS;
 }
@@ -1137,7 +1148,11 @@ L7_RC_t ptin_routing_staticroute_add(L7_uint32 dstIpAddr, L7_uint32 subnetMask, 
     routeFlags |= L7_RTF_REJECT;
   }
 
+#ifdef L7_ROUTING_PACKAGE
   return usmDbIpStaticRouteAdd(PTIN_ROUTING_USMDB_UNITINDEX, dstIpAddr, subnetMask, nextHopRtr, pref, L7_INVALID_INTF, routeFlags);
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 /**
@@ -1161,7 +1176,11 @@ L7_RC_t ptin_routing_staticroute_delete(L7_uint32 dstIpAddr, L7_uint32 subnetMas
     routeFlags |= L7_RTF_REJECT;
   }
 
+#ifdef L7_ROUTING_PACKAGE
   return usmDbIpStaticRouteDelete(PTIN_ROUTING_USMDB_UNITINDEX, dstIpAddr, subnetMask, nextHopRtr, L7_INVALID_INTF, routeFlags);
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 /**
@@ -1614,6 +1633,7 @@ L7_RC_t __ptin_routing_ICMPRedirects_set(L7_uint32 routingIntfNum, L7_BOOL enabl
   * and apply the ICMP redirect config only on that routed VLAN.
   */
 
+#ifdef L7_ROUTING_PACKAGE
   /* Enable/Disable ICMP Redirects on this routing interface. This fixes defect OLTTS-10058/OLTTS-10605 */
   PT_LOG_DEBUG(LOG_CTX_ROUTING, "Setting ICMP Redirects on intfIfNum %u to value %d", routingIntfNum, enable);
   if(usmDbIpMapIfICMPRedirectsModeSet(PTIN_ROUTING_USMDB_UNITINDEX, routingIntfNum, enable) != L7_SUCCESS)
@@ -1625,6 +1645,7 @@ L7_RC_t __ptin_routing_ICMPRedirects_set(L7_uint32 routingIntfNum, L7_BOOL enabl
   /* Enable/Disable ICMP Redirects on this Router */
   PT_LOG_DEBUG(LOG_CTX_ROUTING, "Setting ICMP Redirects on Router to value %d", routingIntfNum, enable);
   usmDbIpMapRtrICMPRedirectsModeSet(enable);
+#endif
 
   return L7_SUCCESS;
 }
@@ -2012,6 +2033,7 @@ static L7_RC_t __arptable_snapshot_init(void)
  */
 static void __arptable_snapshot_refresh(L7_uint32 intfNum)
 {
+#ifdef L7_ROUTING_PACKAGE
   L7_arpEntry_t            arpTablepEntry;
   ptin_routing_arptable_t *localSnapshotEntry;
   L7_uint32                insertedEntries = 0;
@@ -2069,6 +2091,7 @@ static void __arptable_snapshot_refresh(L7_uint32 intfNum)
     /* Add element to the local snapshot */
     dl_queue_add_tail(&__arptable_snapshot, (dl_queue_elem_t*)localSnapshotEntry);
   }
+#endif
 }
 
 /**
@@ -2117,6 +2140,7 @@ static L7_RC_t __routetable_snapshot_init(void)
  */
 static void __routetable_snapshot_refresh(L7_uint32 intfNum)
 {
+#ifdef L7_ROUTING_PACKAGE
   L7_routeEntry_t            routeTablepEntry;
   ptin_routing_routetable_t *localSnapshotEntry;
   L7_uint32                  currentTime;
@@ -2171,6 +2195,7 @@ static void __routetable_snapshot_refresh(L7_uint32 intfNum)
     /* Add element to the local snapshot */
     dl_queue_add_tail(&__routetable_snapshot, (dl_queue_elem_t*)localSnapshotEntry);
   }
+#endif
 }
 
 /**
