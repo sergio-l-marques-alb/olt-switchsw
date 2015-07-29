@@ -241,7 +241,7 @@ L7_RC_t ptin_hapi_maclimit_inc(bcmx_l2_addr_t *bcmx_l2_addr)
     /* Feature enabled? */
     if (macLearn_info_flow[vport_id].enable == L7_FALSE)
     {
-      LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Count %d in %d ", macLearn_info_flow[vport_id].mac_counter, vport_id);
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Count %d in %d ", macLearn_info_flow[vport_id].mac_counter, vport_id);
       macLearn_info_flow[vport_id].mac_counter++;
       macLearn_info_flow[vport_id].mac_total++;
       return L7_FAILURE;
@@ -493,7 +493,7 @@ L7_RC_t ptin_hapi_maclimit_dec(bcmx_l2_addr_t *bcmx_l2_addr)
     /* Feature enabled? */
     if (macLearn_info_flow[vport_id].enable == L7_FALSE)
     {
-      LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Count %d in %d ", macLearn_info_flow[vport_id].mac_counter, vport_id);
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Count %d in %d ", macLearn_info_flow[vport_id].mac_counter, vport_id);
       macLearn_info_flow[vport_id].mac_counter--;
       macLearn_info_flow[vport_id].mac_total--;
       return L7_FAILURE;
