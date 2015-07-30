@@ -122,7 +122,6 @@ extern const T_ETH_OAM_MAC OAM_MC_MAC;
 
 typedef struct {
     u16 mep_id;             //Monitored MEP. ">HIGHEST_MEP"   means empty entry
-    u16 rmep_id;
     u32 LOC_timer;          //RO    (ms)        RX; used to decide that a timeout ocurred
 #define LOC(LOC_timer, CCM_period)  ((LOC_timer)*2 >= (CCM_period)*7)
 

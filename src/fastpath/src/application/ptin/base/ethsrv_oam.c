@@ -542,7 +542,6 @@ T_LOOKUP_MEP *p_mep_lut;
 
  //Fill T_MEP table...
  _p_mep->ME[i_rmep].mep_id=        p_rmep->mep_id;
- _p_mep->ME[i_mep].rmep_id=        p_rmep->mep_id;
 
  return 0;
 }//wr_rmep
@@ -754,7 +753,7 @@ _proc_ethsrv_oam_CSF_function_end:
 
             #if(PTIN_BOARD == PTIN_BOARD_TA48GE)
 
-            ptin_send_lmm(_p_mep_lm->SMAC.byte, _p_mep_lm->DMAC.byte, intIfNum, (_p_mep->ME->rmep_id));
+            ptin_send_lmm(_p_mep_lm->SMAC.byte, _p_mep_lm->DMAC.byte, intIfNum, (_p_mep->ME[0].mep_id));
 
             #endif // (PTIN_BOARD == PTIN_BOARD_TA48GE)
 
