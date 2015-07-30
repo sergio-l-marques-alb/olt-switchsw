@@ -10686,6 +10686,7 @@ L7_RC_t ptin_msg_wr_RMEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
 
   if (r==S_OK)
   {
+    ethsrv_oam_register_connection_loss((u8*)&pi[i].bd.meg_id, p_oam->db[i_mep].mep.mep_id, pi[i].bd.mep_id, pi[i].bd.prt, pi[i].bd.vid);
     return L7_SUCCESS;
   }
   else
