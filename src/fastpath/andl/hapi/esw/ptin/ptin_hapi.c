@@ -3949,11 +3949,11 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
     /* Define qualifiers and actions */
     do
     {
-      rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
+      rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGHEST);
       if (rc != L7_SUCCESS)  break;
       rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *) &vlanId, (L7_uchar8 *) &vlanMask);
       if (rc != L7_SUCCESS)  break;
-      rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, 7, 0, 0);
+      rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, 8, 0, 0);
       if (rc != L7_SUCCESS)  break;
     } while (0);
 
@@ -3972,7 +3972,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
     }
     /* Save policy */
     bl2cpu_policyId[0] = policyId;
-    LOG_NOTICE(LOG_CTX_STARTUP,"BL2CPU rule added");
+    LOG_NOTICE(LOG_CTX_STARTUP,"BL2CPU rule added: ruleId:%u policyId:%u", ruleId, policyId);
 
 
     /* Exception rules to avoid packet drops */
@@ -3985,7 +3985,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
     /* Define qualifiers and actions */
     do
     {
-      rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
+      rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGHEST);
       if (rc != L7_SUCCESS)  break;
       rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *) &vlanId, (L7_uchar8 *) &vlanMask);
       if (rc != L7_SUCCESS)  break;
@@ -4015,7 +4015,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
     }
     bl2cpu_policyId[1] = policyId;
 
-    LOG_NOTICE(LOG_CTX_STARTUP,"BL2CPU exception rules added");
+    LOG_NOTICE(LOG_CTX_STARTUP,"BL2CPU exception rules added: ruleId:%u policyId:%u",ruleId, policyId);
   }
 #endif
 
