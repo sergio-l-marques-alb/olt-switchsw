@@ -572,12 +572,12 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
    {
      ptin_timer_start(74,"ptin_igmp_clientIndex_get");
      #if ( PTIN_BOARD_IS_MATRIX )     
-     rc = ptin_igmp_clientIndex_get(pduInfo->intIfNum,
+     rc = ptin_igmp_dynamic_client_find(pduInfo->intIfNum,
                                 L7_NULL, L7_NULL,
                                 L7_NULL,
                                 &client_idx);
      #else
-     rc =ptin_igmp_clientIndex_get(pduInfo->intIfNum,
+     rc =ptin_igmp_dynamic_client_find(pduInfo->intIfNum,
                               pduInfo->vlanId, pduInfo->innerVlanId,
                               &data[L7_MAC_ADDR_LEN],
                               &client_idx);
@@ -3586,7 +3586,7 @@ L7_RC_t snoopMgmdMembershipReportProcess(mgmdSnoopControlPkt_t *mcastPacket)
   if (rc==L7_SUCCESS)
   {
     /* Restart client timer */
-    ptin_igmp_client_timer_start(mcastPacket->intIfNum, mcastPacket->client_idx);
+    ptin_igmp_device_client_timer_start(mcastPacket->intIfNum, mcastPacket->client_idx);
 //  ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_JOINS_RECEIVED_SUCCESS);
   }
   else

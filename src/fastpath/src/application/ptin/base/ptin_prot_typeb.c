@@ -215,6 +215,10 @@ L7_RC_t ptin_prottypeb_intf_switch_notify(L7_uint32 intfNum, L7_uint8 status)
       if ( ptin_igmp_mgmd_port_remove((L7_uint32) -1, intfNum)!=L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to remove protection port from MGMD Control Plane");
+      }
+      else
+      {
+        LOG_TRACE(LOG_CTX_PTIN_EVC, "Removed Mgmd Port [intIfNum=%u]", intfNum);
       }     
     }
   }

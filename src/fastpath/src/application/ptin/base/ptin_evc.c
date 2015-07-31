@@ -3297,7 +3297,8 @@ L7_RC_t ptin_evc_port_remove(L7_uint32 evc_ext_id, ptin_HwEthMef10Intf_t *evc_in
 {
   L7_uint     evc_idx;
   L7_uint     ptin_port;
-  ptin_intf_t ptin_intf;
+  ptin_intf_t ptin_intf;  
+  L7_RC_t     rc;
 
   /* Validate arguments */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
@@ -3331,7 +3332,8 @@ L7_RC_t ptin_evc_port_remove(L7_uint32 evc_ext_id, ptin_HwEthMef10Intf_t *evc_in
   /* Validate port */
   ptin_intf.intf_type = evc_intf->intf_type;
   ptin_intf.intf_id   = evc_intf->intf_id;
-  if (ptin_intf_ptintf2port(&ptin_intf, &ptin_port) != L7_SUCCESS)
+  rc = ptin_intf_ptintf2port(&ptin_intf, &ptin_port);
+  if ( rc != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u / EVC %u: Invalid port %u/%u", evc_ext_id, evc_idx, ptin_intf.intf_type, ptin_intf.intf_id);
     return L7_FAILURE;
@@ -3343,7 +3345,6 @@ L7_RC_t ptin_evc_port_remove(L7_uint32 evc_ext_id, ptin_HwEthMef10Intf_t *evc_in
     /* Nothing to be done! */
     return L7_SUCCESS;
   }
-
   LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u / EVC %u: Removing port %u/%u...", evc_ext_id, evc_idx, ptin_intf.intf_type, ptin_intf.intf_id);
 
   /* Remove associated resources */
@@ -3369,11 +3370,15 @@ L7_RC_t ptin_evc_port_remove(L7_uint32 evc_ext_id, ptin_HwEthMef10Intf_t *evc_in
       clientId.ptin_intf.intf_type  = ptin_intf.intf_type;
       clientId.ptin_intf.intf_id    = ptin_intf.intf_id;
       clientId.outerVlan            = evcs[evc_idx].intf[ptin_port].int_vlan;
+      #if 0
       clientId.innerVlan            = evcs[evc_idx].intf[ptin_port].inner_vlan;
+      #else /*Modified Client Remove Api to Suppor Removing Unicast Unstacked Services*/
+      clientId.innerVlan            = (L7_uint16) -1;
+      #endif
       clientId.mask                 = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;    
 
       /* Remove client */
-      if ( (rc = ptin_igmp_group_client_remove(&clientId)) != L7_SUCCESS)
+      if ( (rc = ptin_igmp_api_client_remove(&clientId)) != L7_SUCCESS)
       {
         /*This is not an error if this routine is invoked after a reset defaults message*/
         if (rc == L7_NOT_EXIST)
@@ -4402,7 +4407,7 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
     clientId.mask                 = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;    
 
     /* Remove client */
-    if ( (rc = ptin_igmp_group_client_remove(&clientId)) != L7_SUCCESS)
+    if ( (rc = ptin_igmp_api_client_remove(&clientId)) != L7_SUCCESS)
     {
       /*This is not an error if this routine is invoked after a reset defaults message*/
       if (rc == L7_NOT_EXIST)
@@ -4939,7 +4944,7 @@ L7_RC_t ptin_evc_macbridge_client_packages_add(ptin_evc_macbridge_client_package
   clientId.mask                 = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
 
   /* Add client */
-  if ( (rc = ptin_igmp_group_client_add(&clientId, pflow->uni_ovid, pflow->uni_ivid, ecvFlow->onuId, 0x00, 0, 0, addOrRemove, ecvFlow->packageBmpList, ecvFlow->noOfPackages) != L7_SUCCESS) )
+  if ( (rc = ptin_igmp_api_client_add(&clientId, pflow->uni_ovid, pflow->uni_ivid, ecvFlow->onuId, 0x00, 0, 0, addOrRemove, ecvFlow->packageBmpList, ecvFlow->noOfPackages) != L7_SUCCESS) )
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding client to IGMP instance", evc_id);
     return rc;
@@ -5047,7 +5052,7 @@ L7_RC_t ptin_evc_macbridge_client_packages_remove(ptin_evc_macbridge_client_pack
   clientId.mask                 = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
 
   /* Add client */
-  if ( (rc = ptin_igmp_group_client_add(&clientId, pflow->uni_ovid, pflow->uni_ivid, ecvFlow->onuId, 0x0C, 0, 0, addOrRemove, ecvFlow->packageBmpList, ecvFlow->noOfPackages) != L7_SUCCESS) )
+  if ( (rc = ptin_igmp_api_client_add(&clientId, pflow->uni_ovid, pflow->uni_ivid, ecvFlow->onuId, 0x0C, 0, 0, addOrRemove, ecvFlow->packageBmpList, ecvFlow->noOfPackages) != L7_SUCCESS) )
   {
     LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: IGMP Client Not Found", evc_id);
     return SUCCESS;
@@ -5216,7 +5221,7 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
   if (evcFlow->flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
   {
     /* Add client */
-    if (ptin_igmp_group_client_add(&clientId, pflow->uni_ovid, pflow->uni_ivid, evcFlow->onuId, evcFlow->mask, evcFlow->maxBandwidth, evcFlow->maxChannels, L7_FALSE, evcFlow->packageBmpList, evcFlow->noOfPackages) != L7_SUCCESS)
+    if (ptin_igmp_api_client_add(&clientId, pflow->uni_ovid, pflow->uni_ivid, evcFlow->onuId, evcFlow->mask, evcFlow->maxBandwidth, evcFlow->maxChannels, L7_FALSE, evcFlow->packageBmpList, evcFlow->noOfPackages) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding client to IGMP instance", evc_id);
       return L7_FAILURE;
@@ -5229,7 +5234,7 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
   else if (evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
   {
     /* Remove client */
-    if (ptin_igmp_group_client_remove(&clientId) != L7_SUCCESS)
+    if (ptin_igmp_api_client_remove(&clientId) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing client from IGMP instance", evc_id);
       //rc = L7_FAILURE;    /* L7_NOT_EXIST is not an error */
@@ -5246,7 +5251,7 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
                            L7_FALSE /*Update*/, L7_TRUE /*Look to counters*/) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error configuring IGMP", evc_id);
-    ptin_igmp_group_client_remove(&clientId);
+    ptin_igmp_api_client_remove(&clientId);
     return L7_FAILURE;
   }
   else
@@ -5426,7 +5431,7 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
     clientId.mask                 = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
 
     /* Remove client */
-    if ( (rc = ptin_igmp_group_client_remove(&clientId)) != L7_SUCCESS)
+    if ( (rc = ptin_igmp_api_client_remove(&clientId)) != L7_SUCCESS)
     {
       /*This is not an error if this routine is invoked after a reset defaults message*/
       if (rc == L7_NOT_EXIST)
@@ -9080,6 +9085,10 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing Mgmd Port [extended_id=%u intIfNum=%u]",
                 evcs[evc_id].extended_id, intIfNum);
   //    return L7_FAILURE;
+      }
+      else
+      {
+        LOG_TRACE(LOG_CTX_PTIN_EVC, "Removed Mgmd Port [extended_id:%u intIfNum=%u]", evcs[evc_id].extended_id, intIfNum);
       }
     }
 

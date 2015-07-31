@@ -660,39 +660,6 @@ extern L7_RC_t ptin_igmp_evcs_reactivate(void);
 extern L7_RC_t ptin_igmp_evc_destroy(L7_uint32 evc_idx);
 
 /**
- * Add a new Multicast client
- * 
- * @param evc_idx      : evc id
- * @param client       : client identification parameters 
- * @param uni_ovid     : External Outer vlan 
- * @param uni_ivid     : External Inner vlan 
- * @param OnuId        : ONU Identifier 
- * @param mask         : To set the admission control parameters
- * @param maxBandwidth : [mask 0x01] Maximum allowed bandwidth 
- *                     for this client. Use (L7_uint64)-1 to
- *                     disable.
- * @param maxChannels  : [mask 0x02] Maximum number of channels 
- *                     for this client. Use (L7_uint64)-1 to
- *                     disable.
- * @param addOrRemove  : Add/Remove Packages
- * @param packagePtr   : Package Bitmap Pointer 
- * @param noOfPackages : Number of Packages
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-extern L7_RC_t ptin_igmp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_id, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint8 onuId, L7_uint8 mask, L7_uint64 maxBandwidth, L7_uint16 maxChannels, L7_BOOL addOrRemove, L7_uint32 *packagePtr, L7_uint32 noOfPackages);
-
-/**
- * Remove a Multicast client
- * 
- * @param evc_idx : evc id
- * @param client  : client identification parameters
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-extern L7_RC_t ptin_igmp_client_delete(L7_uint32 evc_idx, const ptin_client_id_t *client_id);
-
-/**
  * Remove all Multicast clients 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
@@ -904,7 +871,7 @@ extern L7_RC_t ptin_igmp_client_next(L7_uint32 intIfNum, L7_uint16 intVlan, L7_u
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_clientIndex_get(L7_uint32 intIfNum,
+extern L7_RC_t ptin_igmp_dynamic_client_find(L7_uint32 intIfNum,
                                          L7_uint16 intVlan, L7_uint16 innerVlan,
                                          L7_uchar8 *smac,
                                          L7_uint *client_index);
@@ -930,7 +897,7 @@ extern L7_RC_t ptin_igmp_client_type(L7_uint32 intIfNum,
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_client_timer_start(L7_uint32 intIfNum,
+L7_RC_t ptin_igmp_device_client_timer_start(L7_uint32 intIfNum,
                                      L7_uint32 client_idx);
 
 /**
@@ -944,6 +911,25 @@ L7_RC_t ptin_igmp_client_timer_start(L7_uint32 intIfNum,
  * @notes Not working properly!
  */
 L7_RC_t ptin_igmp_client_timer_update(L7_uint32 intIfNum, L7_uint32 client_idx);
+
+/**
+ * Add a new Multicast client group
+ * 
+ * @param client      : client group identification parameters 
+ * @param intVid      : Internal vlan
+ * @param uni_ovid    : External Outer vlan 
+ * @param uni_ivid    : External Inner vlan 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_igmp_clientGroupSnapshot_add(ptin_client_id_t *client);
+
+/**
+ * Remove all Multicast client groups
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_igmp_clientGroupSnapshot_clean(void);
 
 /**
  * Add a new Multicast client group
@@ -967,41 +953,18 @@ L7_RC_t ptin_igmp_client_timer_update(L7_uint32 intIfNum, L7_uint32 client_idx);
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint8 onuId, L7_uint8 mask, L7_uint64 maxAllowedBandwidth, L7_uint16 maxAllowedChannels, L7_BOOL addOrRemove, L7_uint32 *packagePtr, L7_uint32 noOfPackages);
-/**
- * Add a new Multicast client group
- * 
- * @param client      : client group identification parameters 
- * @param intVid      : Internal vlan
- * @param uni_ovid    : External Outer vlan 
- * @param uni_ivid    : External Inner vlan 
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-extern L7_RC_t ptin_igmp_clientGroupSnapshot_add(ptin_client_id_t *client);
+extern L7_RC_t ptin_igmp_api_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint8 onuId, L7_uint8 mask, L7_uint64 maxAllowedBandwidth, L7_uint16 maxAllowedChannels, L7_BOOL addOrRemove, L7_uint32 *packagePtr, L7_uint32 noOfPackages);
 
 /**
  * Remove a Multicast client group
  * 
- * @param client      : client group identification parameters
+ * @param client       : client group identification parameters 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_group_client_remove(ptin_client_id_t *client);
+extern L7_RC_t ptin_igmp_api_client_remove(ptin_client_id_t *client);
 
-/**
- * Remove all Multicast client groups
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-extern L7_RC_t ptin_igmp_group_client_clean(void);
-
-/**
- * Remove all Multicast client groups
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-extern L7_RC_t ptin_igmp_clientGroupSnapshot_clean(void);
+extern L7_RC_t ptin_igmp_clientId_convert(L7_uint32 evc_idx, ptin_client_id_t *client);
 
 /**
  * Add a dynamic client
@@ -1026,7 +989,7 @@ extern L7_RC_t ptin_igmp_dynamic_client_add(L7_uint32 intIfNum,
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_dynamic_client_flush(L7_uint32 intIfNum,
+extern L7_RC_t ptin_igmp_dynamic_client_remove(L7_uint32 intIfNum,
                                               L7_uint client_idx);
 
 /**
@@ -1034,7 +997,7 @@ extern L7_RC_t ptin_igmp_dynamic_client_flush(L7_uint32 intIfNum,
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_dynamic_all_clients_flush(void);
+extern L7_RC_t ptin_igmp_dynamic_client_remove_all(void);
 
 /**
  * Get client information from its index. 
