@@ -427,10 +427,12 @@ static CNFGR_COMPONENT_NAME_LIST_ENTRY_t cnfgrComponentNameList[] =
 */
 static CNFGR_COMPONENT_LIST_ENTRY_t cnfgrComponentList[] =
 
-{ /* cid                              mode                        pComponentCmdFunc               hwApplyPhases */
+{ 
+  /* cid                              mode                        pComponentCmdFunc               hwApplyPhases */
   /*-------------------------------------------------------------------------------------------------------------*/
   {L7_CNFGR_COMPONENT_ID,                L7_CNFGR_COMPONENT_ENABLE,  L7_NULLPTR,                    0},
-  {L7_SIM_COMPONENT_ID,                  L7_CNFGR_COMPONENT_ENABLE,  simApiCnfgrCommand,            0},
+
+  /*{L7_SIM_COMPONENT_ID,                  L7_CNFGR_COMPONENT_ENABLE,  simApiCnfgrCommand,            0},*/
   {L7_NIM_COMPONENT_ID,                  L7_CNFGR_COMPONENT_ENABLE,  nimApiCnfgrCommand,            0},
   /*
   Although OpenSSL is technically a "flex" package, its library is depended on by
@@ -440,13 +442,16 @@ static CNFGR_COMPONENT_LIST_ENTRY_t cnfgrComponentList[] =
   be started as early as possible, otherwise the dependent components will be
   forced to wait until OpenSSL has properly initialized the SSL libraries.
   */
+#if 0
 #ifdef L7_OPENSSL_PACKAGE
-  {L7_FLEX_OPENSSL_COMPONENT_ID,         L7_CNFGR_COMPONENT_ENABLE,  opensslApiCnfgrCommand,        0},
+  /*{L7_FLEX_OPENSSL_COMPONENT_ID,         L7_CNFGR_COMPONENT_ENABLE,  opensslApiCnfgrCommand,        0},*/
 #endif
-  {L7_USER_MGR_COMPONENT_ID,             L7_CNFGR_COMPONENT_ENABLE,  userMgrApiCnfgrCommand,        0},
+  /*{L7_USER_MGR_COMPONENT_ID,             L7_CNFGR_COMPONENT_ENABLE,  userMgrApiCnfgrCommand,        0},*/
+#endif
 #if defined (L7_CLI_PACKAGE) || defined (L7_XCLI_PACKAGE) || defined(L7_XWEB_PACKAGE)
-  {L7_CLI_WEB_COMPONENT_ID,              L7_CNFGR_COMPONENT_ENABLE,  cliWebApiCnfgrCommand,         0},
+  /*{L7_CLI_WEB_COMPONENT_ID,              L7_CNFGR_COMPONENT_ENABLE,  cliWebApiCnfgrCommand,         0},*/
 #endif
+#if 0
 #ifndef L7_PRODUCT_SMARTPATH
 #ifdef L7_XCLI_PACKAGE
   {L7_CMD_LOGGER_COMPONENT_ID,           L7_CNFGR_COMPONENT_DISABLE, cmdLoggerApiCnfgrCommand,      0},
@@ -454,8 +459,10 @@ static CNFGR_COMPONENT_LIST_ENTRY_t cnfgrComponentList[] =
   {L7_CMD_LOGGER_COMPONENT_ID,           L7_CNFGR_COMPONENT_ENABLE,  cmdLoggerApiCnfgrCommand,      0},
 #endif
 #endif
+#endif
   {L7_DTL_COMPONENT_ID,                  L7_CNFGR_COMPONENT_ENABLE,  dtlApiCnfgrCommand,            0},
   {L7_CARDMGR_COMPONENT_ID,              L7_CNFGR_COMPONENT_ENABLE,  cmgrApiCnfgrCommand,           0},
+#if 0
 #ifdef L7_TIMERANGES_PACKAGE
   {L7_TIMERANGES_COMPONENT_ID,            L7_CNFGR_COMPONENT_ENABLE,  timeRangeApiCnfgrCommand,      0},
 #endif  
@@ -517,7 +524,9 @@ static CNFGR_COMPONENT_LIST_ENTRY_t cnfgrComponentList[] =
   {L7_FLEX_METRO_DOT1AD_COMPONENT_ID,    L7_CNFGR_COMPONENT_ENABLE,  dot1adApiCnfgrCommand,         L7_CNFGR_HW_APPLY_CONFIG},
 #endif
 #endif
+#endif
   {L7_UNITMGR_COMPONENT_ID,              L7_CNFGR_COMPONENT_ENABLE,  unitMgrApiCnfgrCommand,        0},
+#if 0
   {L7_SNOOPING_COMPONENT_ID,             L7_CNFGR_COMPONENT_ENABLE,  snoopApiCnfgrCommand,          L7_CNFGR_HW_APPLY_CONFIG},
   {L7_DOT3AD_COMPONENT_ID,               L7_CNFGR_COMPONENT_ENABLE,  dot3adApiCnfgrCommand,         L7_CNFGR_HW_APPLY_CONFIG},
 #ifndef L7_PRODUCT_SMARTPATH
@@ -686,12 +695,12 @@ static CNFGR_COMPONENT_LIST_ENTRY_t cnfgrComponentList[] =
 #if defined(L7_IPV6_PACKAGE) || defined(L7_IPV6_MGMT_PACKAGE)
   {L7_DHCP6C_COMPONENT_ID,               L7_CNFGR_COMPONENT_ENABLE,  dhcp6cApiCnfgrCommand,         0},
 #endif
-
+#endif
+#endif
   /* PTin added: ptin module */  
   {L7_PTIN_COMPONENT_ID,                 L7_CNFGR_COMPONENT_ENABLE,  ptinApiCnfgrCommand,           0},
 
   {L7_LAST_COMPONENT_ID,                 L7_CNFGR_COMPONENT_ENABLE,  L7_NULLPTR,                    0}
-#endif
 };
 
 /* ===================================================================

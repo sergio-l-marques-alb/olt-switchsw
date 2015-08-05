@@ -3,14 +3,17 @@
 
 #include "feature.h"
 
-
+/* PTin removed: All features deactivated */
+#if 0
 /* ACL definitions */
 #ifndef _INCLUDE_ACL_COMPONENT_API_
 #define _INCLUDE_ACL_COMPONENT_API_
 #define L7_ACL_PACKAGE 1
 #define L7_QOS_FLEX_PACKAGE_ACL      1
 #endif
+#endif
 
+#if 1
 /* AUTO_INSTALL definitions */
 #ifndef _INCLUDE_AUTO_INSTALL_COMPONENT_API_
 #define _INCLUDE_AUTO_INSTALL_COMPONENT_API_
@@ -54,6 +57,7 @@
 #define L7_DVLAN_PACKAGE 1
 #endif
 
+#if 0
 /* DiffServ definitions */
 #ifndef _INCLUDE_DIFFSERV_COMPONENT_API_
 #define _INCLUDE_DIFFSERV_COMPONENT_API_
@@ -90,6 +94,7 @@
 #define _INCLUDE_LLPF_COMPONENT_API_
 #define L7_LLPF_PACKAGE 1
 #endif
+#endif
 
 /* MACLOCK definitions */
 #ifndef _INCLUDE_MACLOCK_COMPONENT_API_
@@ -103,6 +108,7 @@
 #define L7_MACVLAN_PACKAGE 1
 #endif
 
+#if 0
 /* NETWORKPORT definitions */
 #ifndef _INCLUDE_NETWORKPORT_COMPONENT_API_
 #define _INCLUDE_NETWORKPORT_COMPONENT_API_
@@ -206,6 +212,7 @@
 #define _INCLUDE_XUIBASE_COMPONENT_API_
 #define L7_XUIBASE_PACKAGE 1
 #endif
+#endif
 
 /* IP_MCAST definitions */
 #ifndef _INCLUDE_IP_MCAST_COMPONENT_API_
@@ -244,10 +251,12 @@
 #define L7_CLI_PACKAGE 1
 #endif
 
+#if 0
 /* SNMP definitions */
 #ifndef _INCLUDE_SNMP_COMPONENT_API_
 #define _INCLUDE_SNMP_COMPONENT_API_
 #define L7_SNMP_PACKAGE 1
+#endif
 #endif
 
 /* xWeb definitions */
@@ -263,8 +272,12 @@
 #define _INCLUDE_ROUTING_COMPONENT_API_
 #define L7_ROUTING_PACKAGE 1
 #endif
-#define CLI_WEB_PRESENT 1
-#define SNMP_PRESENT 1
 
+/*#define CLI_WEB_PRESENT 1*/
+/*#define SNMP_PRESENT 1*/
+
+#else
+#define L7_SWITCHING_PACKAGE 1
+#endif
 
 #endif /* FLEX_H */
