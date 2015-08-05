@@ -134,7 +134,7 @@ clean-platform: setsdk
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) clean-binds clean-plat_bsp clean-cpu_bsp clean-base
 	$(RM) -f $(TMP_FILE)
 
-clean-ptin clean-switching clean-routing clean-base clean-andl: setsdk
+clean-ptin clean-switching clean-routing clean-snmp clean-base clean-andl: setsdk
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
 	$(RM) -f $(TMP_FILE)
 

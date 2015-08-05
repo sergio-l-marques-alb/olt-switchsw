@@ -44,7 +44,7 @@ fi
 
 if [ $BOARD == "ta12xg" ]; then
  echo "Updating TA12XGE board...$1"
- cd output/FastPath-Ent-esw-dnx-e500-LR-CSxw-IQH_TA12XG
+ cd output/FastPath-Ent-dpp-dnx-e500-LR-CSxw-IQH_TA12XG
  cp -v ipl/switchdrvr ipl/devshell_symbols.gz target/*.ko ipl/fp.cli ipl/fp.shell ipl/mgmd.cli $MKBOARDS/TA12XG/rootfs/usr/local/ptin/sbin/
  cp -v ipl/libmgmd.so $MKBOARDS/TA12XG/rootfs/usr/local/ptin/lib/
  cd - > /dev/null 2>&1

@@ -14,6 +14,6 @@ OPTIMIZACAO = -O6
 
 LDFLAGS = -Wl,-Bdynamic
 
-TARGET_PATH=../fastpath/output/FastPath-Ent-esw-dnx-e500-LR-CSxw-IQH_TA12XG/ipl
+TARGET_PATH=../fastpath/output/FastPath-Ent-dpp-dnx-e500-LR-CSxw-IQH_TA12XG/ipl
 
 include fp.shell-common.make
