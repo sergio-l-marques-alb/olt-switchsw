@@ -378,6 +378,7 @@ L7_RC_t __ptin_routing_ICMPRedirects_set(L7_uint32 routingIntfNum, L7_BOOL enabl
  */
 L7_RC_t ptin_routing_init(void)
 {
+#ifdef L7_ROUTING_PACKAGE
   L7_uint32 minRoutingIntfId, maxRoutingIntfId;
 
   nimIntIfNumRangeGet(L7_LOGICAL_VLAN_INTF, &minRoutingIntfId, &maxRoutingIntfId);
@@ -428,7 +429,7 @@ L7_RC_t ptin_routing_init(void)
 
   /* Enable routing on Fastpath */
   PT_LOG_INFO(LOG_CTX_ROUTING, "Setting OLTSWITCH's routing admin mode to L7_ENABLE");
-#ifdef L7_ROUTING_PACKAGE
+
   if(usmDbIpRtrAdminModeSet(PTIN_ROUTING_USMDB_UNITINDEX, L7_ENABLE) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to set OLTSWITCH's routing admin mode to L7_ENABLE");

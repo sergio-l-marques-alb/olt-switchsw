@@ -557,7 +557,7 @@ L7_RC_t ptin_evc_init(void)
  */
 L7_RC_t ptin_evc_startup(void)
 {
-  #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+#if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
   L7_int  i;
   L7_RC_t rc;
   ptin_HwEthMef10Evc_t evcConf;
@@ -589,7 +589,7 @@ L7_RC_t ptin_evc_startup(void)
     PT_LOG_ERR(LOG_CTX_API, "Error creating EVC# %u for Broadlight management purposes", PTIN_EVC_BL2CPU);
     return rc;
   }
-  #endif
+#endif
 
   L7_uint32 intIfNum_vport;
 

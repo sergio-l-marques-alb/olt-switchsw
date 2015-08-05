@@ -276,11 +276,13 @@ L7_RC_t ptin_intf_init(void)
     #endif
 
     /* QoS initialization */
+    #if 0
     if (ptin_intf_QoS_init(&ptin_intf)!=L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_INTF, "Phy# %u: Error initializing QoS definitions",i);
       return L7_FAILURE;
     }
+    #endif
 
 //#if (PTIN_BOARD == PTIN_BOARD_TOLT8G)
 //    /* For TOLT8G, configure MAC learn priority with higher value on uplink interfaces */
@@ -297,12 +299,14 @@ L7_RC_t ptin_intf_init(void)
   }
 
   /* MEF Ext defaults */
+  #if 0
   if (ptin_intf_portExt_init()!=L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF, "Failed initializing MEF Ext parameters");
     return L7_FAILURE;
   }
   PT_LOG_NOTICE(LOG_CTX_INTF, "MEF Ext defaults applied");
+  #endif
 
   /* Initialize phy conf structure (must be run after default configurations!) */
   for (i=0; i<ptin_sys_number_of_ports; i++)
