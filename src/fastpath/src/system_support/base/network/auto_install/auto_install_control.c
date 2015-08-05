@@ -1282,7 +1282,9 @@ static void autoInstallApplyConfig(void *pContext)
 {
   EW_UNUSED(pContext);
 
+#if defined(L7_AUTO_INSTALL_PACKAGE) || defined(L7_TR069_PACKAGE)
   autoInstallGblErrorCode = cliAutoInstallConfigScriptApply(AUTO_INSTALL_TEMP_CONFIG_FILENAME);
+#endif
   osapiSemaGive(autoTxtCfgSyncSemaphore);  
 }
 
@@ -2070,7 +2072,9 @@ L7_RC_t autoInstallConfigFileViaTFTPGet(L7_inet_addr_t *inet_addr, L7_uchar8 *pC
   simSetTransferUnitNumber(L7_NULL);
   simSetTransferDownloadFileType(L7_FILE_TYPE_AUTO_INSTALL_SCRIPT);
   simSetTransferMode(L7_TRANSFER_TFTP);
+#ifdef L7_AUTO_INSTALL_PACKAGE
   simSetTransferFileNameLocal(AUTO_INSTALL_TEMP_SCRIPT_FILENAME);
+#endif
   simSetTransferFilePathRemote(remoteFilePath);
   simSetTransferFileNameRemote(remoteFileName);
   simSetTransferServerAddressType((L7_uint32)inet_addr->family);

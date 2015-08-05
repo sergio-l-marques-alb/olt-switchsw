@@ -22,7 +22,6 @@
 
 
 #include "l7_common.h"
-#ifdef L7_AUTO_INSTALL_PACKAGE
 
 /* Events specifying when the component registering with AutoInstall would need 
    to be notified.*/
@@ -39,6 +38,8 @@ typedef struct eventNotifyList_s
   L7_uint32           notifyEvent; /* this is mask from cases mentioned in autoInstallNotifyEvent_t*/
   L7_RC_t (*notifyChange)(void);
 }eventNotifyList_t;
+
+#ifdef L7_AUTO_INSTALL_PACKAGE
 
 /*********************************************************************
 *
