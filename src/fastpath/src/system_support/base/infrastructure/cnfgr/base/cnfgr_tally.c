@@ -40,6 +40,8 @@
 #include "cnfgr_include.h"
 #include "log.h"
 
+#include "logger.h"
+
 #if (CNFGR_MODULE_TALLY == CNFGR_PRESENT)
 
 /*
@@ -176,6 +178,9 @@ void cnfgrApiCallback( CNFGR_IN L7_CNFGR_CB_DATA_t *pCbData )
     pMsgData->msgType = CNFGR_MSG_CALLBACK;
     pMsgData->u.cbData.correlator = pCbData->correlator;
     rc = pMsgData->u.cbData.asyncResponse.rc = pCbData->asyncResponse.rc;
+
+    PT_LOG_INFO(LOG_CTX_STARTUP,"allo: rc=%u response=%u", rc, pCbData->asyncResponse.u.response);
+
     if (rc == L7_SUCCESS) 
     {
       pMsgData->u.cbData.asyncResponse.u.response = pCbData->asyncResponse.u.response;
@@ -397,6 +402,11 @@ L7_BOOL cnfgrTallyRemove(
         } /* endif correlator first in handle list */
     } /* endif valid handle */
     
+    if (cid == L7_PTIN_COMPONENT_ID)
+    {
+      PT_LOG_NOTICE(LOG_CTX_MISC, "One less (correlatorTable.used=%u pHandle->size=%u) pHandle->addComplete=%u", correlatorTable.used, pHandle->size, pHandle->addComplete);
+    }
+
     /* Free up the correlator */
     pCorrelator->free     = L7_TRUE;
     pCorrelator->next     = 0;
@@ -611,6 +621,10 @@ L7_RC_t cnfgrTallyAdd(
         correlatorTable.used++;
         pHandle->size++;
 
+        if (cid == L7_PTIN_COMPONENT_ID)
+        {
+          PT_LOG_NOTICE(LOG_CTX_MISC, "One plus (correlatorTable.used=%u pHandle->size=%u)", correlatorTable.used, pHandle->size);
+        }
         /* return value */
         ctRC = L7_SUCCESS;
         *pCorrelator = correlator;

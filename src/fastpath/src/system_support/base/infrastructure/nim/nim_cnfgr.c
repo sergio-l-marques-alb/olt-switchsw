@@ -1139,6 +1139,8 @@ L7_RC_t nimCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
 {
   L7_RC_t nimRC = L7_SUCCESS;
 
+  PT_LOG_INFO(LOG_CTX_STARTUP,"PHASE 1");
+
   nimRC = nimPhaseOneInit();
 
   if (nimRC != L7_SUCCESS)
@@ -1204,6 +1206,8 @@ L7_RC_t nimCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
 {
   L7_RC_t nimRC = L7_SUCCESS;
 
+  PT_LOG_INFO(LOG_CTX_STARTUP,"PHASE 2");
+
   nimRC = nimPhaseTwoInit();
 
   if (nimRC != L7_SUCCESS)
@@ -1267,6 +1271,8 @@ L7_RC_t nimCnfgrInitPhase3Process( L7_CNFGR_RESPONSE_t *pResponse,
                                    L7_CNFGR_ERR_RC_t   *pReason )
 {
   L7_RC_t nimRC = L7_SUCCESS;
+
+  PT_LOG_INFO(LOG_CTX_STARTUP,"PHASE 3");
 
   nimRC = nimPhaseThreeInit();
 

@@ -109,16 +109,20 @@ L7_RC_t unitMgrApiCnfgrCommand(L7_CNFGR_CMD_DATA_t *pCmdData)
         switch (pCmdData->u.rqstData.request)
         {
           case L7_CNFGR_RQST_I_PHASE1_START:
+            PT_LOG_INFO(LOG_CTX_STARTUP,"PHASE 1");
             /* nothing to do for this Configurator request */
             break;
 
           case L7_CNFGR_RQST_I_PHASE2_START:
+            PT_LOG_INFO(LOG_CTX_STARTUP,"PHASE 2");
             /* nothing to do for this Configurator request */
             break;
 
           case L7_CNFGR_RQST_I_WAIT_MGMT_UNIT:
             { 
               L7_enetMacAddr_t lastMgrKey;
+
+              PT_LOG_INFO(LOG_CTX_STARTUP,"WAIT");
 
               memset(&lastMgrKey, 0, sizeof(lastMgrKey));
 
@@ -136,6 +140,7 @@ L7_RC_t unitMgrApiCnfgrCommand(L7_CNFGR_CMD_DATA_t *pCmdData)
             break;
 
           case L7_CNFGR_RQST_I_PHASE3_START:
+            PT_LOG_INFO(LOG_CTX_STARTUP,"PHASE 3");
             /* nothing to do for this Configurator request */
             break;
 
@@ -146,6 +151,7 @@ L7_RC_t unitMgrApiCnfgrCommand(L7_CNFGR_CMD_DATA_t *pCmdData)
         }
         break;
       case L7_CNFGR_CMD_EXECUTE:
+        PT_LOG_INFO(LOG_CTX_STARTUP,"EXECUTE");
         switch (pCmdData->u.rqstData.request)
         {
           case L7_CNFGR_RQST_E_START:

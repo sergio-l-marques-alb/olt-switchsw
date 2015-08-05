@@ -110,18 +110,24 @@ void dtlApiCnfgrCommand( L7_CNFGR_CMD_DATA_t *pCmdData )
             switch ( request )
             {
               case L7_CNFGR_RQST_I_PHASE1_START:
+                PT_LOG_INFO(LOG_CTX_STARTUP,"PHASE 1");
                 if ((dtlRC = dtlCnfgrInitPhase1Process( &response, &reason )) != L7_SUCCESS)
                 {
+                  PT_LOG_INFO(LOG_CTX_STARTUP,"allo: rc=%u reason=%u response=%u", dtlRC, reason, response);
                   dtlCnfgrFiniPhase1Process();
                 }
+                PT_LOG_INFO(LOG_CTX_STARTUP,"allo: rc=%u reason=%u response=%u", dtlRC, reason, response);
                 break;
               case L7_CNFGR_RQST_I_PHASE2_START:
+                PT_LOG_INFO(LOG_CTX_STARTUP,"PHASE 2");
                 dtlRC = dtlCnfgrInitPhase2Process( &response, &reason );
-
+                PT_LOG_INFO(LOG_CTX_STARTUP,"allo: rc=%u reason=%u response=%u", dtlRC, reason, response);
                 break;
               case L7_CNFGR_RQST_I_PHASE3_START:  /* no configuration data to be read */
+                PT_LOG_INFO(LOG_CTX_STARTUP,"PHASE 3");
               case L7_CNFGR_RQST_I_WAIT_MGMT_UNIT:
                 dtlRC = dtlCnfgrNoopProccess( &response, &reason );
+                PT_LOG_INFO(LOG_CTX_STARTUP,"allo: rc=%u reason=%u response=%u", dtlRC, reason, response);
                 break;
               default:
                 /* invalid command/request pair */
@@ -134,6 +140,7 @@ void dtlApiCnfgrCommand( L7_CNFGR_CMD_DATA_t *pCmdData )
           case L7_CNFGR_CMD_TERMINATE:
           case L7_CNFGR_CMD_SUSPEND:
             dtlRC = dtlCnfgrNoopProccess( &response, &reason );
+            PT_LOG_INFO(LOG_CTX_STARTUP,"allo: rc=%u reason=%u response=%u", dtlRC, reason, response);
             break;
 
           default:
@@ -179,6 +186,9 @@ void dtlApiCnfgrCommand( L7_CNFGR_CMD_DATA_t *pCmdData )
   {
     cbData.asyncResponse.u.reason   = reason;
   }
+
+  PT_LOG_INFO(LOG_CTX_STARTUP,"allo: rc=%u reason=%u response=%u",
+              cbData.asyncResponse.rc, cbData.asyncResponse.u.reason, cbData.asyncResponse.u.response);
 
   cnfgrApiCallback(&cbData);
 
