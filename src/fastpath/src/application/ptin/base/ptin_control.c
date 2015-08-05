@@ -104,10 +104,13 @@ void ptinTask(L7_uint32 numArgs, void *unit)
 
   /* Wait for a signal indicating that all other modules
    * configurations were executed */
+#if 0
   PT_LOG_INFO(LOG_CTX_CONTROL, "PTin task waiting for other modules to boot up...");
   rc = osapiSemaTake(ptin_ready_sem, L7_WAIT_FOREVER);
+#endif
   PT_LOG_NOTICE(LOG_CTX_CONTROL, "PTin task will now start!");
 
+#if 0
   /* System StormControl no more supported */
   /* Initialize storm control */
   rc = ptin_stormControl_init();
@@ -133,7 +136,9 @@ void ptinTask(L7_uint32 numArgs, void *unit)
     PT_LOG_FATAL(LOG_CTX_CNFGR, "Error initializing PTin DTL module! CRASH!");
     PTIN_CRASH();
   }
+#endif
 
+#if 0
   /* Initialize xlate module in application layer */
   if (ptin_xlate_init()!=L7_SUCCESS)
   {
@@ -162,13 +167,16 @@ void ptinTask(L7_uint32 numArgs, void *unit)
     PT_LOG_CRITIC(LOG_CTX_CNFGR, "Error creating InBand bridge!");
   }
 #endif
+#endif
 
+#if 0
   /* Default EVCs */
   if (ptin_evc_startup() != L7_SUCCESS)
   {
     PT_LOG_FATAL(LOG_CTX_CNFGR, "Failed to create default EVCs!");
     PTIN_CRASH();
   }
+#endif
 
   /* Register a period timer */
   if (osapiPeriodicUserTimerRegister(PTIN_LOOP_TICK, &ptin_loop_handle) != L7_SUCCESS)
