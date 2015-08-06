@@ -351,14 +351,14 @@ L7_RC_t hapiBroadPtinInit(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *d
 {
   L7_RC_t rc;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "PTin HAPI Applying configs...");
+  PT_LOG_TRACE(LOG_CTX_STARTUP, "PTin HAPI Applying configs...");
 
   /* Initialize PTIN HAPI files */
   rc = hapi_ptin_config_init();
 
   //hapi_ptin_phy_config_init();
 
-  PT_LOG_INFO(LOG_CTX_HAPI, "PTin HAPI Configuration: %d",rc);
+  PT_LOG_INFO(LOG_CTX_STARTUP, "PTin HAPI Configuration: %d",rc);
 
   return rc;
 }
