@@ -783,6 +783,12 @@ L7_RC_t dot1qVlanIntfCreateInNim(L7_uint32 vlanId, L7_uint32 *pIntIfNum)
                                L7_INTF_PARM_MACADDR | L7_INTF_PARM_LINKTRAP |
                                L7_INTF_PARM_LOOPBACKMODE |
                                L7_INTF_PARM_MACROPORT | L7_INTF_PARM_ENCAPTYPE;
+
+    if (cnfgrBaseTechnologyTypeGet() == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_DNX)
+    {
+      intfDescr.settableParms &= ~(L7_uint32) L7_INTF_PARM_ENCAPTYPE;
+    }
+
     memcpy (&intfDescr.bcastMacAddr,  &DOT1Q_VLAN_INTF_BCAST_MAC_ADDR, sizeof(DOT1Q_VLAN_INTF_BCAST_MAC_ADDR));
     intfDescr.frameSize.largestFrameSize = DOT1Q_VLAN_INTF_MAX_FRAME_SIZE_LIMIT;
     intfDescr.ianaType       = L7_IANA_L2_VLAN;

@@ -2048,6 +2048,12 @@ L7_RC_t cmgrDoNotifyPortCreate(L7_uint32 unit,
     L7_INTF_PARM_MACADDR | L7_INTF_PARM_LINKTRAP |
     L7_INTF_PARM_LOOPBACKMODE |
     L7_INTF_PARM_MACROPORT | L7_INTF_PARM_ENCAPTYPE;
+
+  if (cnfgrBaseTechnologyTypeGet() == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_DNX)
+  {
+    pIntfDescr.settableParms &= ~(L7_uint32) L7_INTF_PARM_ENCAPTYPE;
+  }
+
   switch (pIntfIdInfo.type)
   {
     case L7_PHYSICAL_INTF:
@@ -3969,8 +3975,6 @@ void cmgrTask()
                              sizeof(cmgr_cmpdu_t), L7_WAIT_FOREVER);
     if (rc == L7_SUCCESS)
     {
-      PT_LOG_INFO(LOG_CTX_STARTUP,"cmpdu.cmgrPacketType=%u", cmpdu.cmgrPacketType);
-
       CMGR_TRACE_CMPDU_EVENT(cmpdu.cmgrPacketType,
                              L7_TRUE,
                              cmpdu.unit

@@ -2335,6 +2335,12 @@ L7_RC_t   nimCmgrNewIntfChangeCallback(L7_uint32 unit, L7_uint32 slot, L7_uint32
                               L7_INTF_PARM_MACADDR | L7_INTF_PARM_LINKTRAP |
                               L7_INTF_PARM_LOOPBACKMODE |
                               L7_INTF_PARM_MACROPORT | L7_INTF_PARM_ENCAPTYPE;
+
+  if (cnfgrBaseTechnologyTypeGet() == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_DNX)
+  {
+    pIntfDescr.settableParms &= ~(L7_uint32) L7_INTF_PARM_ENCAPTYPE;
+  }
+
   switch (pIntfIdInfo.type)
   {
     case L7_PHYSICAL_INTF:

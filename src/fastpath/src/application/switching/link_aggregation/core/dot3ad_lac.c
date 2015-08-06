@@ -4698,6 +4698,12 @@ L7_RC_t dot3adPrivateLagCreate(L7_uint32 lagId, L7_char8 *name, L7_uint32 member
                                L7_INTF_PARM_LINKTRAP | 
                                L7_INTF_PARM_LOOPBACKMODE |
                                L7_INTF_PARM_MACROPORT | L7_INTF_PARM_ENCAPTYPE;
+
+    if (cnfgrBaseTechnologyTypeGet() == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_DNX)
+    {
+      intfDescr.settableParms &= ~(L7_uint32) L7_INTF_PARM_ENCAPTYPE;
+    }
+
     memcpy (&intfDescr.bcastMacAddr,  &L7_ENET_BCAST_MAC_ADDR, 6);
     intfDescr.frameSize.largestFrameSize = 1522;
     intfDescr.ianaType       = L7_IANA_LAG_DESC;
