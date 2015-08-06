@@ -94,11 +94,6 @@ static L7_RC_t hapi_ptin_portMap_init(void);
 
 L7_RC_t hapi_ptin_egress_ports(L7_uint port_frontier);
 
-L7_RC_t ptin_hapi_phy_init_matrix(void);
-L7_RC_t ptin_hapi_phy_init_olt1t0(void);
-L7_RC_t ptin_hapi_phy_init_tolt8g_tg16g(void);
-L7_RC_t ptin_hapi_phy_init_ta48ge(void);
-
 L7_RC_t ptin_hapi_linkscan_execute(bcm_port_t bcm_port, L7_uint8 enable);
 
 /**
@@ -172,18 +167,6 @@ L7_RC_t hapi_ptin_config_init(void)
   if (ptin_hapi_bridge_init()!=L7_SUCCESS)
     rc = L7_FAILURE;
 
-  #if 0//Not Required. Already Performed by FP. 
-  /*Initialize L3 Module*/
-  if (bcm_init_selective(0, BCM_MODULE_L3) != L7_SUCCESS)
-    rc = L7_FAILURE;
-  #endif
-
-  #if 0//Not Required. Already Performed by FP
-  /*Initialize IPMC Table*/
-  if (bcm_ipmc_init(0) != L7_SUCCESS)
-    rc = L7_FAILURE;
-  #endif
-
   return rc;
 }
 
@@ -196,37 +179,7 @@ L7_RC_t hapi_ptin_config_init(void)
  */
 L7_RC_t ptin_hapi_switch_init(void)
 {
-  L7_RC_t    rc = L7_SUCCESS;
-
-  if (bcm_switch_control_set(0, bcmSwitchL2DstHitEnable, 0x00) != BCM_E_NONE)
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI,"Error setting bcmSwitchL2DstHitEnable switch_control to 0x00");
-    rc = L7_FAILURE;
-  }
-
-  if (bcm_switch_control_set(0, bcmSwitchClassBasedMoveFailPktDrop,0x01) != BCM_E_NONE)
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI,"Error setting bcmSwitchClassBasedMoveFailPktDrop switch_control to 0x01");
-    rc = L7_FAILURE;
-  }
-
-  /*Enable Forwarding L3 Multicast on the Same VLAN*/
-  if (bcm_switch_control_set(0, bcmSwitchIpmcSameVlanL3Route, 0x01) != BCM_E_NONE)
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI,"Error setting bcmSwitchIpmcSameVlanL3Route switch_control to 0x01");
-    rc = L7_FAILURE;
-  }
-
-#if (PTIN_BOARD_IS_GPON)
-  /* For Vports usage */
-  if (bcm_switch_control_set(0, bcmSwitchL3EgressMode, 1) != BCM_E_NONE)
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI,"Error setting bcmSwitchL3EgressMode switch_control to 1");
-    rc = L7_FAILURE;
-  }
-#endif
-
-  return rc;
+  return L7_SUCCESS;
 }
 
 /**
@@ -361,58 +314,6 @@ L7_RC_t ptin_hapi_hash_init(void)
  */
 L7_RC_t ptin_hapi_phy_init(void)
 {
-  /* SF boards */
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
-  if (ptin_hapi_phy_init_matrix() == L7_SUCCESS)
-  {
-    PT_LOG_INFO(LOG_CTX_HAPI, "Success initializing CXO640G/CXO160G phys");
-  }
-  else
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing CXO640G/CXO160G phys");
-  }
-
-  /* TA48GE */
-#elif (PTIN_BOARD == PTIN_BOARD_TA48GE)
-  if (ptin_hapi_phy_init_ta48ge() == L7_SUCCESS)
-  {
-    PT_LOG_INFO(LOG_CTX_HAPI, "Success initializing TA48GE phys");
-  }
-  else
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing TA48GE phys");
-  }
-
-  /* TOLT8G and TG16G boards */
-#elif (PTIN_BOARD == PTIN_BOARD_TOLT8G || PTIN_BOARD == PTIN_BOARD_TG16G)
-  if (ptin_hapi_phy_init_tolt8g_tg16g() == L7_SUCCESS)
-  {
-    PT_LOG_INFO(LOG_CTX_HAPI, "Success initializing TOLT8G/TG16G phys");
-  }
-  else
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing TOLT8G/TG16G phys");
-  }
-
-  /* OLT1T0 */
-#elif (PTIN_BOARD == PTIN_BOARD_OLT1T0)
-  if (ptin_hapi_phy_init_olt1t0() == L7_SUCCESS)
-  {
-    PT_LOG_INFO(LOG_CTX_HAPI, "Success initializing OLT1T0 phys");
-  }
-  else
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing OLT1T0 phys");
-  }
-#endif
-
-  /* Egress port configuration, only for PON boards */
-  if (hapi_ptin_egress_ports(max(PTIN_SYSTEM_N_PONS,PTIN_SYSTEM_N_ETH)) != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI,"Error initializing egress ports!");
-    return L7_FAILURE;
-  }
-
   return L7_SUCCESS;
 }
 
@@ -428,440 +329,6 @@ L7_RC_t ptin_hapi_phy_post_init(void)
   return L7_SUCCESS;
 }
 
-
-/**
- * Initialize PHYs for MATRIX boards
- * 
- * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
- */
-L7_RC_t ptin_hapi_phy_init_matrix(void)
-{
-  L7_RC_t rc = L7_SUCCESS;
-
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
-  int i, rv;
-  bcm_port_t bcm_port;
-  L7_uint32 preemphasis;
-
-  SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
-  DAPI_CARD_ENTRY_t            *dapiCardPtr;
-  HAPI_WC_PORT_MAP_t           *hapiWCMapPtr;
-
-  /* Get WC port map */
-  sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(0));
-  dapiCardPtr          = sysapiHpcCardInfoPtr->dapiCardInfo;
-  hapiWCMapPtr         = dapiCardPtr->wcPortMap;
-
-#if (PTIN_BOARD == PTIN_BOARD_CXO160G)
- #ifndef PTIN_LINKSCAN_CONTROL
-  /* Run all ports */
-  for (i=0; i<ptin_sys_number_of_ports; i++)
-  {
-    /* Get bcm_port format */
-    if (hapi_ptin_bcmPort_get(i, &bcm_port)!=BCM_E_NONE)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error obtaining bcm_port for port %u", i);
-      continue;
-    }
-    /* Activate hw linkscan */
-    if (bcm_linkscan_mode_set(0, bcm_port, BCM_LINKSCAN_MODE_HW) != BCM_E_NONE)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing HW linkscan mode to port %u (bcm_port %u)", i, bcm_port);
-      return L7_FAILURE;
-    }
-  }
-  PT_LOG_NOTICE(LOG_CTX_HAPI, "All ports working with HW linkscan");
- #endif
-#endif
-
-  /* Set linkscan interval to 10 ms */
-  if (bcm_linkscan_enable_set(0, 10000) != BCM_E_NONE)
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing linkscan interval");
-    return L7_FAILURE;
-  }
-
-#if (PTIN_BOARD == PTIN_BOARD_CXO160G)
- #if (PHY_RECOVERY_PROCEDURE)
-  for (i = PTIN_SYS_LC_SLOT_MIN; i <= PTIN_SYS_LC_SLOT_MAX; i++)
-  {
-    if (ptin_hapi_warpcore_reset(i) != L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error resetting warpcore of slot %u", i);
-      rc = L7_FAILURE;
-    }
-    else
-    {
-      PT_LOG_NOTICE(LOG_CTX_HAPI, "Warpcore of slot %u reseted!", i);
-    }
-  }
- #endif
-#endif
-
-  /* Run all ports */
-  for (i=0; i<ptin_sys_number_of_ports; i++)
-  {
-    /* Get bcm_port format */
-    if (hapi_ptin_bcmPort_get(i, &bcm_port)!=BCM_E_NONE)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error obtaining bcm_port for port %u", i);
-      continue;
-    }
-
-  #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
-    /* Local ports at 10G XAUI (Only applicable to CXO160G) */
-    if (hapiWCMapPtr[i].slotNum < 0 && hapiWCMapPtr[i].wcSpeedG == 10)
-    {
-      if (ptin_hapi_xaui_set(bcm_port) != L7_SUCCESS)
-      {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing port %u (bcm_port %u) at XAUI mode", i, bcm_port);
-        rc = L7_FAILURE;
-        continue;
-      }
-      PT_LOG_NOTICE(LOG_CTX_HAPI, "Port %u (bcm_port %u) at XAUI mode", i, bcm_port);
-    }
-    /* Backplane 10G ports: disable linkscan */
-    else
-  #endif
-    if (hapiWCMapPtr[i].slotNum >= 0 && hapiWCMapPtr[i].wcSpeedG == 10)
-    {
-    #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
-      /* Firmware mode 2 */
-      if (bcm_port_phy_control_set(0, bcm_port, BCM_PORT_PHY_CONTROL_FIRMWARE_MODE, 2) != BCM_E_NONE)
-      {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error applying Firmware mode 2 to port %u (bcm_port %u)", i, bcm_port);
-        rc = L7_FAILURE;
-        break;
-      }
-      PT_LOG_NOTICE(LOG_CTX_HAPI, "Success applying Firmware mode 2 to port %u (bcm_port %u)", i, bcm_port);
-    #endif
-
-      /* Use these settings for all slots */
-      preemphasis = PTIN_PHY_PREEMPHASIS_NEAREST_SLOTS;
-
-      rv = soc_phyctrl_control_set(0, bcm_port, SOC_PHY_CONTROL_PREEMPHASIS, preemphasis );
-
-      if (!SOC_SUCCESS(rv))
-      {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error setting preemphasis 0x%04X on port %u (bcm_port %u)", preemphasis, i, bcm_port);
-        rc = L7_FAILURE;
-        break;
-      }
-
-      #ifdef PTIN_LINKSCAN_CONTROL
-      /* Enable linkscan */
-      if (ptin_hapi_linkscan_execute(bcm_port, L7_DISABLE) != L7_SUCCESS)
-      {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error disabling linkscan for port %u (bcm_port %u)", i, bcm_port);
-        rc = L7_FAILURE;
-        break;
-      }
-      PT_LOG_INFO(LOG_CTX_HAPI, "Linkscan disabled for port %u (bcm_port %u)", i, bcm_port);
-      #endif
-    }
-    /* Init 40G ports at KR4 mode */
-    else if (hapiWCMapPtr[i].wcSpeedG == 40)
-    {
-      if (ptin_hapi_kr4_set(bcm_port)!=L7_SUCCESS)
-      {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing port %u (bcm_port %u) in KR4", i, bcm_port);
-        rc = L7_FAILURE;
-        continue;
-      }
-      PT_LOG_NOTICE(LOG_CTX_HAPI, "Port %u (bcm_port %u) in KR4", i, bcm_port);
-    }
-  }
-#endif
-
-  return rc;
-}
-
-/**
- * Initialize PHYs for TA48GE board
- * 
- * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
- */
-L7_RC_t ptin_hapi_phy_init_ta48ge(void)
-{
-  L7_RC_t rc = L7_SUCCESS;
-
-#if (PTIN_BOARD == PTIN_BOARD_TA48GE)
-  int i;
-  bcm_port_t bcm_port;
-
- #if (PHY_RECOVERY_PROCEDURE)
-  bcm_pbmp_t pbm, pbm_out;
-
-  /* A maior martelada da história: reset aos Cores dos PHYs (4 portas) para garantir que arrancam bem! */
-  /* Reset PHY cores */
-  for (bcm_port=1; bcm_port<=49; bcm_port+=4)
-  {
-    if (bcm_port==37)  bcm_port++;
-
-    PT_LOG_INFO(LOG_CTX_HAPI, "Resetting port bcm_port=%u", bcm_port);
-
-    BCM_PBMP_CLEAR(pbm);
-    for (i=0; i<4; i++)
-    {
-      BCM_PBMP_PORT_ADD(pbm, bcm_port+i);
-    }
-
-    /* Detach ports */
-    if (bcm_port_detach(0, pbm, &pbm_out) != BCM_E_NONE)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting default pbm for bcm_port=%u", bcm_port);
-      rc = L7_FAILURE;
-    }
-
-    /* Probe ports */
-    if (bcm_port_probe(0, pbm, &pbm_out) != BCM_E_NONE)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting probing pbm for bcm_port=%u", bcm_port);
-      rc = L7_FAILURE;
-    }
-
-    /* Disable ports */
-    for (i=0; i<4; i++)
-    {
-      if (bcm_port_stp_set(0, bcm_port+i, BCM_PORT_STP_FORWARD) != BCM_E_NONE)
-      {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error activating STP for bcm_port %u", bcm_port+i);
-        rc = L7_FAILURE;
-      }
-
-      if (bcm_port_enable_set(0, bcm_port+i, L7_DISABLE) != BCM_E_NONE)
-      {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error disabling bcm_port %u", bcm_port+i);
-        rc = L7_FAILURE;
-      }
-    }
-  }
-  if (rc == L7_SUCCESS)
-  {
-    PT_LOG_NOTICE(LOG_CTX_HAPI, "All ports reseted");
-  }
-
-  /* Wait 100ms */
-  osapiSleepMSec(100);
- #endif
-
-  for (i=PTIN_SYSTEM_N_ETH; i<PTIN_SYSTEM_N_PORTS; i++)
-  {
-    /* Get bcm_port format */
-    if (hapi_ptin_bcmPort_get(i, &bcm_port)!=BCM_E_NONE)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error obtaining bcm_port for port %u", i);
-      continue;
-    }
-
-    if (ptin_hapi_kr4_set(bcm_port)!=L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing port %u (bcm_port %u) in KR4", i, bcm_port);
-      rc = L7_FAILURE;
-    }
-
-    PT_LOG_NOTICE(LOG_CTX_HAPI, "Port %u (bcm_port %u) in KR4", i, bcm_port);
-  }
-
- #if (PHY_RECOVERY_PROCEDURE)
-  /* Outra martelada: set da velocidade de 1G para garantir que nenhuma fica em 2.5G (que supostamente não é suportada) */
-  for (i=0; i<PTIN_SYSTEM_N_ETH; i++)
-  {
-    /* Gefp.s t bcm_port format */
-    if (hapi_ptin_bcmPort_get(i, &bcm_port)!=BCM_E_NONE)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error obtaining bcm_port for port %u", i);
-      continue;
-    }
-
-    if (bcm_port_speed_set(0, bcm_port, 1000) != BCM_E_NONE)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting default 1G speed for port %u (bcm_port %u)", i, bcm_port);
-      rc = L7_FAILURE;
-    }
-  }
-  if (rc == L7_SUCCESS)
-  {
-    PT_LOG_NOTICE(LOG_CTX_HAPI, "All front ports were reinitialized to 1G speed");
-  }
- #endif
-#else
-  rc = L7_NOT_SUPPORTED;
-#endif
-
-  return rc;
-}
-
-/**
- * Initialize PHYs for TOLT8G and TG16G boards
- * 
- * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
- */
-L7_RC_t ptin_hapi_phy_init_tolt8g_tg16g(void)
-{
-  L7_RC_t rc = L7_SUCCESS;
-
-#if (PTIN_BOARD == PTIN_BOARD_TOLT8G || PTIN_BOARD == PTIN_BOARD_TG16G)
-  int i;
-  bcm_port_t bcm_port;
-
-  for (i=PTIN_SYSTEM_N_PONS; i<PTIN_SYSTEM_N_PORTS; i++)
-  {
-    /* Get bcm_port format */
-    if (hapi_ptin_bcmPort_get(i, &bcm_port)!=BCM_E_NONE)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error obtaining bcm_port for port %u", i);
-      continue;
-    }
-
-    /* Set XAUI mode */
-    if (ptin_hapi_xaui_set(bcm_port) != L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing port %u (bcm_port %u) at XAUI mode", i, bcm_port);
-      rc = L7_FAILURE;
-      continue;
-    }
-
-    PT_LOG_NOTICE(LOG_CTX_HAPI, "Port %u (bcm_port %u) at XAUI mode", i, bcm_port);
-  }
-#else
-  rc = L7_NOT_SUPPORTED;
-#endif
-
-  return rc;
-}
-
-/**
- * Initialize PHYs for OLT1T0
- * 
- * @return L7_RC_t 
- */
-L7_RC_t ptin_hapi_phy_init_olt1t0(void)
-{
-  L7_RC_t rc = L7_SUCCESS;
-
-#if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
-  L7_uint       port_index;
-  bcm_port_t    bcm_port;
-  L7_uint32     rval;
-
-  /* Inicialize polarity invertions (ge48 port) */
-  if (hapi_ptin_bcmPort_get(ptin_sys_number_of_ports-1, &bcm_port) == L7_SUCCESS)
-  {
-    if (bcm_port_phy_control_set(0, bcm_port, BCM_PORT_PHY_CONTROL_RX_POLARITY, 1) != BCM_E_NONE)
-    {
-      rc = L7_FAILURE;
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error inverting polarity for port %u (bcm_port %d)", ptin_sys_number_of_ports-1, bcm_port);
-    }
-    else
-    {
-      PT_LOG_INFO(LOG_CTX_HAPI, "Polarity inverted for port %u (bcm_port %d)", ptin_sys_number_of_ports-1, bcm_port);
-    }
-  }
-  else
-  {
-    rc = L7_FAILURE;
-    PT_LOG_ERR(LOG_CTX_HAPI, "Error obtaining bcm_port value for port %d", ptin_sys_number_of_ports-1);
-  }
-
-  /* Initialize clocks */
-  READ_TOP_MISC_CONTROL_1r(0, &rval);
-  soc_reg_field_set(0, TOP_MISC_CONTROL_1r, &rval, L1_RCVD_FREQ_SELf, 0x1);      /* Select 25MHz (1G) and 31.25MHz (10G) */
-  soc_reg_field_set(0, TOP_MISC_CONTROL_1r, &rval, L1_RCVD_BKUP_FREQ_SELf, 0x1); /* Select 25MHz (1G) and 31.25MHz (10G) */
-  soc_reg_field_set(0, TOP_MISC_CONTROL_1r, &rval, L1_RCVD_CLK_RSTNf, 0x1);      /* Output clock out of reset */
-  soc_reg_field_set(0, TOP_MISC_CONTROL_1r, &rval, L1_RCVD_CLK_BKUP_RSTNf, 0x1); /* Output clock out of reset */
-  WRITE_TOP_MISC_CONTROL_1r(0, rval);
-
-  /* Init default references */
-  if (bcm_switch_control_set(0, bcmSwitchSynchronousPortClockSource, 53) != L7_SUCCESS)
-  {
-    rc = L7_FAILURE;
-    PT_LOG_ERR(LOG_CTX_HAPI, "Error setting recovery clock from bcm_port=53");
-  }
-  if (bcm_switch_control_set(0, bcmSwitchSynchronousPortClockSourceBkup, 52) != L7_SUCCESS)
-  {
-    rc = L7_FAILURE;
-    PT_LOG_ERR(LOG_CTX_HAPI, "Error setting backup recovery clock from bcm_port=52");
-  }
-
-#if (1)
-    /* PTin added: Cancellation rule */
-    BROAD_POLICY_t      policyId;
-    BROAD_POLICY_RULE_t ruleId;
-    L7_uint16 vlanId_value = PTIN_VLAN_BL2CPU_EXT;
-    L7_uint16 vlanId_mask  = 0xFFF;
-
-    bcmx_lport_t  lport;
-
-    /* Create cancellation rule for VLANS 4092-4095 */
-    hapiBroadPolicyCreate(BROAD_POLICY_TYPE_IPSG);
-    hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_LOOKUP);
-    hapiBroadPolicyRuleAdd(&ruleId);
-    //hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
-    hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8*)&vlanId_value, (L7_uchar8*)&vlanId_mask);
-    hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_PERMIT, 0, 0, 0);
-    rc = hapiBroadPolicyCommit(&policyId);
-    if (L7_SUCCESS != rc)
-       return rc;
-
-    /* Apply this rule to PON ports */
-    for (port_index = 0; port_index < PTIN_SYSTEM_N_PONS; port_index++)
-    {
-      /* Get lport */
-      if (hapi_ptin_bcmPort_get(port_index, &bcm_port) != L7_SUCCESS)
-        return L7_FAILURE;
-      lport = bcmx_unit_port_to_lport(0, bcm_port);
-
-      rc = hapiBroadPolicyApplyToIface(policyId, lport);
-      if (L7_SUCCESS != rc)
-         return rc;
-      PT_LOG_TRACE(LOG_CTX_STARTUP, "Cancellation rule applied to port %u", port_index);
-    }
-
-    /* Apply this rule only to GE48 port */
-    if (hapi_ptin_bcmPort_get(port_index, &bcm_port) != L7_SUCCESS)
-      return L7_FAILURE;
-    lport = bcmx_unit_port_to_lport(0, bcm_port);
-
-    rc = hapiBroadPolicyApplyToIface(policyId, lport);
-    if (L7_SUCCESS != rc)
-       return rc;
-    PT_LOG_TRACE(LOG_CTX_STARTUP, "Cancellation rule applied to GE48 port", port_index);
-#endif
-
-  #if 0
-  /* SFI mode for 10G ports */
-  for (port_index = PTIN_SYSTEM_N_PONS; port_index < PTIN_SYSTEM_N_PORTS-1; port_index++)
-  {
-    /* Get bcm_port */
-    if (hapi_ptin_bcmPort_get(port_index, &bcm_port) != L7_SUCCESS)
-      return L7_FAILURE;
-
-    if ((1ULL << port_index) & PTIN_SYSTEM_10G_PORTS_MASK)
-    {
-      rc = bcm_port_speed_set(0, bcm_port, 10000);
-      if (L7_BCMX_OK(rc) != L7_TRUE)
-      {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcm_port %u at 10G speed", bcm_port);
-        return L7_FAILURE;
-      }
-      rc = bcm_port_interface_set(0, bcm_port, BCM_PORT_IF_SFI);
-      if (L7_BCMX_OK(rc) != L7_TRUE)
-      {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error setting bcm_port %u at SFI mode", bcm_port);
-        return L7_FAILURE;
-      }
-      PT_LOG_TRACE(LOG_CTX_STARTUP, "Port %u set to SFI mode", port_index);
-    }
-  }
-  #endif
-
-#else
-  rc = L7_NOT_SUPPORTED;
-#endif
-
-  return rc;
-}
 
 /**
  * Reset a warpcore
@@ -2222,12 +1689,17 @@ L7_RC_t hapi_ptin_egress_port_type_set(ptin_dapi_port_t *dapiPort, L7_int port_t
  */
 L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_enable, L7_int stationMove_enable, L7_int stationMove_prio, L7_int stationMove_samePrio)
 {
+#if 0
   L7_int    i, lclass;
   L7_uint32 flags;
   L7_BOOL   learn_class_move = L7_TRUE;
+#endif
   DAPI_PORT_t  *dapiPortPtr;
-  BROAD_PORT_t *hapiPortPtr, *hapiPortPtr_member;
+  BROAD_PORT_t *hapiPortPtr;
+#if 0
+  BROAD_PORT_t *hapiPortPtr_member;
   bcm_error_t rv = BCM_E_NONE;
+#endif
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "dapiPort={%d,%d,%d}",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
@@ -2249,6 +1721,7 @@ L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_e
     return L7_FAILURE;
   }
 
+#if 0
   /* MAC Learning enable */
   if (macLearn_enable>=0)
   {
@@ -2376,6 +1849,7 @@ L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_e
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "L2Learn parameters attributed correctly to port {%d,%d,%d} (rv=%d)",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, rv);
+#endif
 
   return L7_SUCCESS;
 }
@@ -2394,11 +1868,16 @@ L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_e
  */
 L7_RC_t hapi_ptin_l2learn_port_get(ptin_dapi_port_t *dapiPort, L7_int *macLearn_enable, L7_int *stationMove_enable, L7_int *stationMove_prio, L7_int *stationMove_samePrio)
 {
+#if 0
   L7_int  lclass;
   L7_int  i, enable, enable_global, prio;
   L7_uint32     flags;
+#endif
   DAPI_PORT_t  *dapiPortPtr;
-  BROAD_PORT_t *hapiPortPtr, *hapiPortPtr_member;
+  BROAD_PORT_t *hapiPortPtr;
+#if 0
+  BROAD_PORT_t *hapiPortPtr_member;
+#endif
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "dapiPort={%d,%d,%d}",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
@@ -2421,6 +1900,7 @@ L7_RC_t hapi_ptin_l2learn_port_get(ptin_dapi_port_t *dapiPort, L7_int *macLearn_
     return L7_FAILURE;
   }
 
+#if 0
   /* MAC Learning enable */
   if (macLearn_enable!=L7_NULLPTR)
   {
@@ -2552,6 +2032,7 @@ L7_RC_t hapi_ptin_l2learn_port_get(ptin_dapi_port_t *dapiPort, L7_int *macLearn_
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "L2Learn parameters read correctly from port {%d,%d,%d}",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+#endif
 
   return L7_SUCCESS;
 }

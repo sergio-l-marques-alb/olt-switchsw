@@ -70,6 +70,8 @@ L7_RC_t ptin_hapi_xlate_init(void)
       continue;
     }
 
+    /* Insert init code here! */
+    #if 0
     /* First key: First do a lookup for port + outerVlan + innerVlan.
        Second key: If failed do a second lookup for port + outerVlan */
     if ( (bcm_vlan_control_port_set( bcm_unit, bcm_port,bcmVlanPortTranslateKeyFirst, bcmVlanTranslateKeyPortDouble) != L7_SUCCESS) ||
@@ -91,6 +93,7 @@ L7_RC_t ptin_hapi_xlate_init(void)
       rc = L7_FAILURE;
       continue;
     }
+    #endif
   }
 
   /* Setting egress xlate class ids */
@@ -1625,6 +1628,8 @@ static L7_RC_t ptin_hapi_xlate_egress_portsGroup_init(void)
       continue;
     }
 
+    /* Insert init code here! */
+    #if 0
     /* Default class ids is port+1 */
     if (bcm_port_class_set(bcm_unit, bcm_port, bcmPortClassVlanTranslateEgress, port+1 ) != BCM_E_NONE)
     {
@@ -1640,6 +1645,7 @@ static L7_RC_t ptin_hapi_xlate_egress_portsGroup_init(void)
       rc = L7_FAILURE;
       continue;
     }
+    #endif
     #endif
   }
 
