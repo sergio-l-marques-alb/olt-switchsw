@@ -2948,7 +2948,7 @@ int main (int argc, char *argv[])
       // DHCP Bind table reading
       case 1240:
         {
-          msg_DHCPv4v6_bind_table_t *ptr;
+          msg_DHCP_bind_table_request_t *ptr;
 
           // Validate number of arguments (flow_id + 2 pairs port+svid)
           if (argc<3+1)  {
@@ -2957,10 +2957,10 @@ int main (int argc, char *argv[])
           }
 
           // Pointer to data array
-          ptr = (msg_DHCPv4v6_bind_table_t *) &(comando.info[0]);
-          memset(ptr,0,sizeof(msg_DHCPv4v6_bind_table_t));
+          ptr = (msg_DHCP_bind_table_request_t *) &(comando.info[0]);
+          memset(ptr,0,sizeof(msg_DHCP_bind_table_request_t));
 
-          ptr->SlotId = (uint8)-1;
+          ptr->slotId = (uint8)-1;
 
           // page
           if (StrToLongLong(argv[3+0],&valued)<0)  {
@@ -2968,9 +2968,10 @@ int main (int argc, char *argv[])
             exit(0);
           }
           ptr->page = valued;
+          ptr->mask = 0xff;
 
           comando.msgId = CCMSG_ETH_DHCP_BIND_TABLE_GET;
-          comando.infoDim = sizeof(msg_DHCPv4v6_bind_table_t);
+          comando.infoDim = sizeof(msg_DHCP_bind_table_request_t);
         }
         break;
 

@@ -1223,6 +1223,13 @@ typedef struct _st_ClientDhcpStatistics
   msg_DHCP_Statistics_t stats;    /* statistics */
 } __attribute__((packed)) msg_DhcpClientStatistics_t;
 
+/* Message used to request a specific page in the DHCP Binding table */
+typedef struct {
+  L7_uint8  slotId;     // Slot ID
+  L7_uint8  mask;       // Mask
+  L7_uint16 page;       // [mask = 0x01] Page index
+} __attribute__((packed)) msg_DHCP_bind_table_request_t;
+
 /* DHCP Binding Table */
 // Messages CCMSG_ETH_DHCP_BIND_TABLE_GET and CCMSG_ETH_DHCP_BIND_TABLE_REMOVE
 typedef struct {
