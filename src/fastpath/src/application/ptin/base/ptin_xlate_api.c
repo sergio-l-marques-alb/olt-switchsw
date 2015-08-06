@@ -1598,7 +1598,6 @@ L7_RC_t ptin_xlate_PVID_set(L7_uint32 intIfNum, L7_uint16 vlanId)
 {
   L7_uint32 unit = 0;
   L7_uint32 ptin_port;
-  L7_uint32 intIfNum_ref;
   L7_uint16 int_defVid, int_innerVid, pvid_original;
   L7_uint32 class_id;
   ptinXlateKey_t        avl_key;
@@ -1632,29 +1631,19 @@ L7_RC_t ptin_xlate_PVID_set(L7_uint32 intIfNum, L7_uint16 vlanId)
     return L7_SUCCESS;
   }
 
-  /* Verify if this interface belong to any lag, if so use it to obtain: int_defVid and int_innerVid*/
-  if (dot3adAggGet(intIfNum, &intIfNum_ref) == L7_SUCCESS)
-  {
-    LOG_NOTICE(LOG_CTX_PTIN_INTF, "This intIfNum:%u belong to intIfNum_ref:%u", intIfNum, intIfNum_ref);
-  }
-  else
-  {
-    intIfNum_ref = intIfNum;
-  }
-
   /* Default internal VLAN */
   int_defVid = 1;
 
   /* New VID: translation and verification */
-  if (ptin_xlate_ingress_get(intIfNum_ref, vlanId, PTIN_XLATE_NOT_DEFINED, &int_defVid, &int_innerVid) != L7_SUCCESS)
+  if (ptin_xlate_ingress_get(intIfNum, vlanId, PTIN_XLATE_NOT_DEFINED, &int_defVid, &int_innerVid) != L7_SUCCESS)
   {
     int_defVid = 1;
     if (ptin_debug_xlate)
-      LOG_WARNING(LOG_CTX_PTIN_INTF, "Could not acquire internal vlan associated to intIfNum_ref %u/vlan %u... Assuming 1", intIfNum_ref, vlanId);
+      LOG_WARNING(LOG_CTX_PTIN_INTF, "Could not acquire internal vlan associated to intIfNum_ref %u/vlan %u... Assuming 1", intIfNum, vlanId);
   }
   else
   {
-    LOG_TRACE(LOG_CTX_PTIN_INTF, "Converted VID %u to internal %u+%u (intIfNum_ref %u)", vlanId, int_defVid, int_innerVid, intIfNum_ref);
+    LOG_TRACE(LOG_CTX_PTIN_INTF, "Converted VID %u to internal %u+%u (intIfNum_ref %u)", vlanId, int_defVid, int_innerVid, intIfNum);
   }
 
   /* Configure defVID using a VCAP rule */
@@ -1694,7 +1683,7 @@ L7_RC_t ptin_xlate_PVID_set(L7_uint32 intIfNum, L7_uint16 vlanId)
   if (pvid_original >= 1 && pvid_original <= 4095)
   {
     /* ... get correspondent internal vlan... */
-    if (ptin_xlate_ingress_get(intIfNum_ref, pvid_original, PTIN_XLATE_NOT_DEFINED, &int_defVid, &int_innerVid) == L7_SUCCESS)
+    if (ptin_xlate_ingress_get(intIfNum, pvid_original, PTIN_XLATE_NOT_DEFINED, &int_defVid, &int_innerVid) == L7_SUCCESS)
     {
       /* ... and restore this interface to tagged */
       if (usmDbVlanTaggedSet(1, int_defVid, intIfNum, L7_DOT1Q_TAGGED) == L7_SUCCESS)
@@ -1709,7 +1698,7 @@ L7_RC_t ptin_xlate_PVID_set(L7_uint32 intIfNum, L7_uint16 vlanId)
     else
     {
       int_defVid = 1;
-      LOG_WARNING(LOG_CTX_PTIN_INTF, "Could not acquire internal vlan associated to intIfNum_ref %u/vlan %u... Assuming 1", intIfNum_ref, pvid_original);
+      LOG_WARNING(LOG_CTX_PTIN_INTF, "Could not acquire internal vlan associated to intIfNum_ref %u/vlan %u... Assuming 1", intIfNum, pvid_original);
     }
   }
   else
@@ -1718,7 +1707,7 @@ L7_RC_t ptin_xlate_PVID_set(L7_uint32 intIfNum, L7_uint16 vlanId)
   }
 
   /* Get class id, correspondent to intIfNum */
-  if (xlate_portgroup_from_intf(intIfNum_ref, &class_id) == L7_SUCCESS)
+  if (xlate_portgroup_from_intf(intIfNum, &class_id) == L7_SUCCESS)
   {
     /* Search for all EGRESS XLATE entries, with external outer vlan == PVID */
     memset(&avl_key, 0x00, sizeof(ptinXlateKey_t));
