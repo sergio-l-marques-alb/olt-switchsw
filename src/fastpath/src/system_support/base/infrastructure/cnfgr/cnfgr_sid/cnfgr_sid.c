@@ -451,13 +451,11 @@ static CNFGR_COMPONENT_LIST_ENTRY_t cnfgrComponentList[] =
 #if defined (L7_CLI_PACKAGE) || defined (L7_XCLI_PACKAGE) || defined(L7_XWEB_PACKAGE)
   /*{L7_CLI_WEB_COMPONENT_ID,              L7_CNFGR_COMPONENT_ENABLE,  cliWebApiCnfgrCommand,         0},*/
 #endif
-#if 0
 #ifndef L7_PRODUCT_SMARTPATH
 #ifdef L7_XCLI_PACKAGE
   {L7_CMD_LOGGER_COMPONENT_ID,           L7_CNFGR_COMPONENT_DISABLE, cmdLoggerApiCnfgrCommand,      0},
 #else
   {L7_CMD_LOGGER_COMPONENT_ID,           L7_CNFGR_COMPONENT_ENABLE,  cmdLoggerApiCnfgrCommand,      0},
-#endif
 #endif
 #endif
   {L7_DTL_COMPONENT_ID,                  L7_CNFGR_COMPONENT_ENABLE,  dtlApiCnfgrCommand,            0},
@@ -470,11 +468,13 @@ static CNFGR_COMPONENT_LIST_ENTRY_t cnfgrComponentList[] =
   {L7_POE_COMPONENT_ID,                  L7_CNFGR_COMPONENT_ENABLE,  poeApiCnfgrCommand,            0},
 #endif
   {L7_POLICY_COMPONENT_ID,               L7_CNFGR_COMPONENT_ENABLE,  policyApiCnfgrCommand,         L7_CNFGR_HW_APPLY_CONFIG},
+#endif
   {L7_PORT_MIRROR_COMPONENT_ID,          L7_CNFGR_COMPONENT_ENABLE,  mirrorApiCnfgrCommand,         L7_CNFGR_HW_APPLY_CONFIG},
   {L7_FDB_COMPONENT_ID,                  L7_CNFGR_COMPONENT_ENABLE,  fdbApiCnfgrCommand,            L7_CNFGR_HW_APPLY_CONFIG},
 #ifdef L7_MACLOCK_PACKAGE
   {L7_PORT_MACLOCK_COMPONENT_ID,         L7_CNFGR_COMPONENT_ENABLE,  pmlApiCnfgrCommand,            L7_CNFGR_HW_APPLY_CONFIG},
 #endif
+#if 0
 #ifdef L7_DHCP_FILTER_PACKAGE
   {L7_DHCP_FILTERING_COMPONENT_ID,       L7_CNFGR_COMPONENT_ENABLE,  dhcpFilterApiCnfgrCommand,     0},
 #endif
@@ -499,7 +499,9 @@ static CNFGR_COMPONENT_LIST_ENTRY_t cnfgrComponentList[] =
 #ifndef L7_PRODUCT_SMARTPATH
   {L7_EDB_COMPONENT_ID,                  L7_CNFGR_COMPONENT_ENABLE,  edbApiCnfgrCommand,            0},
 #endif
+#endif
   {L7_DOT1Q_COMPONENT_ID,                L7_CNFGR_COMPONENT_ENABLE,  dot1qApiCnfgrCommand,          L7_CNFGR_HW_APPLY_CONFIG},
+#if 0
 #ifdef L7_PBVLAN_PACKAGE
   {L7_PBVLAN_COMPONENT_ID,               L7_CNFGR_COMPONENT_ENABLE,  pbVlanApiCnfgrCommand,         L7_CNFGR_HW_APPLY_CONFIG},
 #endif
@@ -526,18 +528,20 @@ static CNFGR_COMPONENT_LIST_ENTRY_t cnfgrComponentList[] =
 #endif
 #endif
   {L7_UNITMGR_COMPONENT_ID,              L7_CNFGR_COMPONENT_ENABLE,  unitMgrApiCnfgrCommand,        0},
-#if 0
-  {L7_SNOOPING_COMPONENT_ID,             L7_CNFGR_COMPONENT_ENABLE,  snoopApiCnfgrCommand,          L7_CNFGR_HW_APPLY_CONFIG},
+  /*{L7_SNOOPING_COMPONENT_ID,             L7_CNFGR_COMPONENT_ENABLE,  snoopApiCnfgrCommand,          L7_CNFGR_HW_APPLY_CONFIG},*/
   {L7_DOT3AD_COMPONENT_ID,               L7_CNFGR_COMPONENT_ENABLE,  dot3adApiCnfgrCommand,         L7_CNFGR_HW_APPLY_CONFIG},
+#if 0
 #ifndef L7_PRODUCT_SMARTPATH
   {L7_TRAPMGR_COMPONENT_ID,              L7_CNFGR_COMPONENT_ENABLE,  trapMgrApiCnfgrCommand,        0},
 #endif
   /* NOTE: intentionally commented out but left for historical purposes
   {L7_IPV6_PROVISIONING_COMPONENT_ID,    L7_CNFGR_COMPONENT_ENABLE,  ipv6ProvApiCnfgrCommand,       L7_NULLPTR},
   */
+#endif
 #ifdef L7_DVLAN_PACKAGE
   {L7_DVLANTAG_COMPONENT_ID,             L7_CNFGR_COMPONENT_ENABLE,  dvlantagApiCnfgrCommand,       L7_CNFGR_HW_APPLY_CONFIG},
 #endif
+#if 0
 #ifdef L7_DHCPS_PACKAGE
   {L7_DHCPS_MAP_COMPONENT_ID,            L7_CNFGR_COMPONENT_ENABLE,  dhcpsApiCnfgrCommand,          0},
 #endif

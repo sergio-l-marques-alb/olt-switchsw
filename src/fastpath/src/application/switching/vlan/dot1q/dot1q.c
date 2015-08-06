@@ -609,21 +609,23 @@ L7_RC_t dot1qNimActivateStartup(void)
 L7_BOOL dot1qIntfAcquireFlagSet(L7_uint32 intIfNum)
 {
   L7_BOOL          isAcquired;
-  L7_uint32        routingEnabled;
+  //L7_uint32        routingEnabled;
 
   isAcquired = L7_FALSE;
 
+#if 0
   if(mirrorIsActiveProbePort(intIfNum) == L7_TRUE)
   {
       COMPONENT_ACQ_SETMASKBIT(dot1qQports[intIfNum].acquiredList, L7_PORT_MIRROR_COMPONENT_ID);
       isAcquired = L7_TRUE;
   }
+#endif
   if (dot3adIsLagActiveMember(intIfNum) == L7_TRUE)
   {
       COMPONENT_ACQ_SETMASKBIT(dot1qQports[intIfNum].acquiredList, L7_DOT3AD_COMPONENT_ID);
       isAcquired = L7_TRUE;
   }
-
+#if 0
   (void) ipMapRtrIntfModeGet(intIfNum, &routingEnabled);
   if (routingEnabled == L7_ENABLE)
   {
@@ -631,7 +633,6 @@ L7_BOOL dot1qIntfAcquireFlagSet(L7_uint32 intIfNum)
       isAcquired = L7_TRUE;
   }
 
-#if 0
   if (dot1xPortIsAuthorized(intIfNum) != L7_SUCCESS)
   {
       COMPONENT_ACQ_SETMASKBIT(dot1qQports[intIfNum].acquiredList,L7_DOT1X_COMPONENT_ID);
