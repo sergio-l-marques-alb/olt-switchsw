@@ -232,6 +232,7 @@ L7_RC_t ptin_intf_init(void)
 
     /* For internal ports (linecards only) */
   #if (PTIN_BOARD_IS_LINECARD)
+    #if (PTIN_BOARD != PTIN_BOARD_TA12XG)
     /* Internal interfaces of linecards, should always be trusted */
     if ((PTIN_SYSTEM_10G_PORTS_MASK >> i) & 1)
     {
@@ -242,6 +243,7 @@ L7_RC_t ptin_intf_init(void)
         return L7_FAILURE;
       }
     }
+    #endif
   #endif
 
     rc = usmDbDvlantagIntfModeSet(1, map_port2intIfNum[i], L7_ENABLE);

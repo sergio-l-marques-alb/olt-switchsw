@@ -151,6 +151,8 @@ L7_RC_t hapi_ptin_config_init(void)
 {
   L7_RC_t rc = L7_SUCCESS;
 
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"Starting config_init...");
+
   /* Switch initializations */
   if (ptin_hapi_switch_init()!=L7_SUCCESS)
     rc = L7_FAILURE;
@@ -166,6 +168,8 @@ L7_RC_t hapi_ptin_config_init(void)
   /* ptin_hapi_bridge initializations */
   if (ptin_hapi_bridge_init()!=L7_SUCCESS)
     rc = L7_FAILURE;
+
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"Config_init done! rc=%d", rc);
 
   return rc;
 }
@@ -314,6 +318,24 @@ L7_RC_t ptin_hapi_hash_init(void)
  */
 L7_RC_t ptin_hapi_phy_init(void)
 {
+  L7_uint i;
+  bcm_port_t bcm_port;
+
+  /* Run all ports */
+  for (i=0; i<ptin_sys_number_of_ports; i++)
+  {
+    /* Get bcm_port format */
+    if (hapi_ptin_bcmPort_get(i, &bcm_port)!=BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error obtaining bcm_port for port %u", i);
+      continue;
+    }
+
+    PT_LOG_INFO(LOG_CTX_STARTUP, "Initializing port %u -> bcm_port %u", i, bcm_port);
+  }
+
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"PHYs initialized!");
+
   return L7_SUCCESS;
 }
 
@@ -1545,8 +1567,8 @@ L7_RC_t hapi_ptin_egress_port_type_set(ptin_dapi_port_t *dapiPort, L7_int port_t
   BROAD_PORT_t *hapiPortPtr, *hapiPortPtr_member;
   bcm_port_t    bcm_unit, bcm_port;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "dapiPort={%d,%d,%d}",
-            dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+  PT_LOG_INFO(LOG_CTX_HAPI, "dapiPort={%d,%d,%d}",
+              dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
 
   /* Validate dapiPort */
   if (dapiPort->usp->unit<0 || dapiPort->usp->slot<0 || dapiPort->usp->port<0)
@@ -1689,17 +1711,13 @@ L7_RC_t hapi_ptin_egress_port_type_set(ptin_dapi_port_t *dapiPort, L7_int port_t
  */
 L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_enable, L7_int stationMove_enable, L7_int stationMove_prio, L7_int stationMove_samePrio)
 {
-#if 0
   L7_int    i, lclass;
   L7_uint32 flags;
   L7_BOOL   learn_class_move = L7_TRUE;
-#endif
   DAPI_PORT_t  *dapiPortPtr;
   BROAD_PORT_t *hapiPortPtr;
-#if 0
   BROAD_PORT_t *hapiPortPtr_member;
   bcm_error_t rv = BCM_E_NONE;
-#endif
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "dapiPort={%d,%d,%d}",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
@@ -1721,7 +1739,6 @@ L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_e
     return L7_FAILURE;
   }
 
-#if 0
   /* MAC Learning enable */
   if (macLearn_enable>=0)
   {
@@ -1849,7 +1866,6 @@ L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_e
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "L2Learn parameters attributed correctly to port {%d,%d,%d} (rv=%d)",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, rv);
-#endif
 
   return L7_SUCCESS;
 }
