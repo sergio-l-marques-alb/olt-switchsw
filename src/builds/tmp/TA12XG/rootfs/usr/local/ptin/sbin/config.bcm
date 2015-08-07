@@ -68,11 +68,20 @@ ucode_port_23=10GBase-R22
 ucode_port_24=10GBase-R23
 ucode_port_25=10GBase-R24
 ucode_port_26=10GBase-R25
+ucode_port_27=10GBase-R26
+ucode_port_28=10GBase-R27
 
 ucode_port_200.BCM88650=CPU.8
 ucode_port_201.BCM88650=CPU.16
 ucode_port_202.BCM88650=CPU.24
 ucode_port_203.BCM88650=CPU.32
+
+# Invert lanes
+xgxs_rx_lane_map_quad0=0x0123
+xgxs_rx_lane_map_quad1=0x0123
+xgxs_rx_lane_map_quad2=0x0123
+xgxs_rx_lane_map_quad3=0x0123
+xgxs_rx_lane_map_quad4=0x0123
 
 ##  Number of Internal ports
 # Enable the ERP port. Values: 0 / 1.
