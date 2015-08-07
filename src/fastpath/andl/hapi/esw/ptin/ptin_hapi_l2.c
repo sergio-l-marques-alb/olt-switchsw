@@ -238,6 +238,15 @@ L7_RC_t ptin_hapi_maclimit_inc(bcmx_l2_addr_t *bcmx_l2_addr)
       return L7_FAILURE;
     }
 
+    /* Feature enabled? */
+    if (macLearn_info_flow[vport_id].enable == L7_FALSE)
+    {
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Count %d in %d ", macLearn_info_flow[vport_id].mac_counter, vport_id);
+      macLearn_info_flow[vport_id].mac_counter++;
+      macLearn_info_flow[vport_id].mac_total++;
+      return L7_FAILURE;
+    }
+
     /* Do not accept more mac addresses, if maximum was reached */
     if (macLearn_info_flow[vport_id].mac_counter >= macLearn_info_flow[vport_id].mac_limit)
     {
@@ -481,6 +490,14 @@ L7_RC_t ptin_hapi_maclimit_dec(bcmx_l2_addr_t *bcmx_l2_addr)
       return L7_FAILURE;
     }
 
+    /* Feature enabled? */
+    if (macLearn_info_flow[vport_id].enable == L7_FALSE)
+    {
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Count %d in %d ", macLearn_info_flow[vport_id].mac_counter, vport_id);
+      macLearn_info_flow[vport_id].mac_counter--;
+      macLearn_info_flow[vport_id].mac_total--;
+      return L7_FAILURE;
+    }
 
     LOG_TRACE(LOG_CTX_PTIN_HAPI, "%s: MAC %02x:%02x:%02x:%02x:%02x:%02x on VID %d and GPORT 0x%x cleared (flags 0x%x)",
               __FUNCTION__, 
@@ -708,14 +725,14 @@ L7_RC_t ptin_hapi_vport_maclimit_reset(bcm_gport_t gport)
     LOG_TRACE(LOG_CTX_PTIN_HAPI, "Disabling Pending Mechanism (GPORT=0x%x)", gport);
 
     /* Disable the use of Pending Mechanism */
-    bcm_port_learn_set(0, gport, BCM_PORT_LEARN_FWD | /*BCM_PORT_LEARN_CPU |*/ BCM_PORT_LEARN_PENDING | BCM_PORT_LEARN_ARL );
+    bcm_port_learn_set(0, gport, BCM_PORT_LEARN_FWD | /*BCM_PORT_LEARN_CPU BCM_PORT_LEARN_PENDING |*/ BCM_PORT_LEARN_ARL );
 
     macLearn_info_flow[vport_id].mac_counter = 0;
     macLearn_info_flow[vport_id].mac_total = 0;
     macLearn_info_flow[vport_id].mac_limit = -1; /* no limit */
 
     LOG_NOTICE(LOG_CTX_PTIN_HAPI, "%u", macLearn_info_flow[vport_id].mac_limit );
-    //macLearn_info_flow[vport_id].enable = L7_FALSE;
+    macLearn_info_flow[vport_id].enable = L7_FALSE;
 
     /* Close the alarm */
     if (macLearn_info_flow[vport_id].trap_sent == L7_TRUE)
@@ -925,6 +942,7 @@ L7_RC_t ptin_hapi_vport_maclimit_setmax(bcm_gport_t gport, L7_uint8 mac_limit)
     mac_limit_old = macLearn_info_flow[vport_id].mac_limit;
     macLearn_info_flow[vport_id].mac_limit = mac_limit;
 
+    macLearn_info_flow[vport_id].enable = L7_TRUE;
 
     /* Check if maximum was reached */
     //if (macLearn_info_flow[vport_id].mac_counter >= macLearn_info_flow[vport_id].mac_limit)

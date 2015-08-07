@@ -3604,7 +3604,7 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
   else
   {
      /* PTin added: virtual ports */
-      //ptin_hapi_maclimit_inc(bcmx_l2_addr);
+      ptin_hapi_maclimit_inc(bcmx_l2_addr);
       /* PTin ended */
 
     rv = usl_bcmx_l2_addr_add(bcmx_l2_addr, L7_NULL);
