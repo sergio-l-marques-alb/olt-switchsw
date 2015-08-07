@@ -3358,7 +3358,7 @@ L7_RC_t hapiBroadStart(L7_LAST_STARTUP_REASON_t startupReason)
 {
   L7_RC_t rc;
 
-  rc = L7_SUCCESS; //hapiBroadPtinDataInit();
+  rc = hapiBroadPtinDataInit();
 
   return rc;
 }

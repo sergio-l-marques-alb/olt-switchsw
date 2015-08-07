@@ -43,7 +43,7 @@
 #define PTIN_IS_PORT_10G(p)           ((((unsigned long long)1 << p) & PTIN_SYSTEM_10G_PORTS_MASK) != 0)
 
 #define PTIN_TPID_OUTER_DEFAULT       0x8100
-//#define PTIN_TPID_INNER_DEFAULT       0x8100 NOT USED!
+#define PTIN_TPID_INNER_DEFAULT       0x8100
 
 #define PTIN_CPLD_MAP_SIZE            0x00FF
 #define PTIN_FPGA_MAP_SIZE            0xFFFF

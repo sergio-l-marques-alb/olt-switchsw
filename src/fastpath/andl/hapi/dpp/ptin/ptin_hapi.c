@@ -67,7 +67,7 @@ static DAPI_USP_t usp_map[PTIN_SYSTEM_N_PORTS];
 
 BROAD_POLICY_t inband_policyId = 0;
 
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
+#if (PTIN_BOARD_IS_MATRIX)
  int ptin_sys_slotport_to_intf_map[PTIN_SYS_SLOTS_MAX+1][PTIN_SYS_INTFS_PER_SLOT_MAX];
  int ptin_sys_intf_to_slot_map[PTIN_SYSTEM_N_PORTS];
  int ptin_sys_intf_to_port_map[PTIN_SYSTEM_N_PORTS];
@@ -120,25 +120,38 @@ L7_RC_t hapi_ptin_data_init(void)
   /* Port mapping initializations (PLD mapping must be ok first!) */
   rc = hapi_ptin_portMap_init();
   if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error: rc=%d", rc);
     return L7_FAILURE;
+  }
   
   /* Field processor initializations */
   rc = hapi_ptin_bwPolicer_init();
   if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error: rc=%d", rc);
     return L7_FAILURE;
+  }
 
   rc = hapi_ptin_fpCounters_init();
   if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error: rc=%d", rc);
     return L7_FAILURE;
+  }
 
   rc = ptin_hapi_maclimit_init();
   if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error: rc=%d", rc);
     return L7_FAILURE;
+  }
 #if 0
   rc = ptin_hapi_l3_intf_init();
   if (rc != L7_SUCCESS)
     return L7_FAILURE;
 #endif
+
   return rc;
 }
 
@@ -320,6 +333,8 @@ L7_RC_t ptin_hapi_phy_init(void)
 {
   L7_uint i;
   bcm_port_t bcm_port;
+  bcm_gport_t gport;
+  bcm_error_t rv;
 
   /* Run all ports */
   for (i=0; i<ptin_sys_number_of_ports; i++)
@@ -331,10 +346,83 @@ L7_RC_t ptin_hapi_phy_init(void)
       continue;
     }
 
-    PT_LOG_INFO(LOG_CTX_STARTUP, "Initializing port %u -> bcm_port %u", i, bcm_port);
+    BCM_GPORT_LOCAL_SET(gport, bcm_port);
+
+    PT_LOG_INFO(LOG_CTX_STARTUP, "Initializing port %u -> bcm_port %u / gport 0x%08x", i, bcm_port, gport);
+
+    /* TAG mode */
+    rv = bcm_port_dtag_mode_set(bcm_unit, bcm_port, BCM_PORT_DTAG_MODE_INTERNAL);
+    if (rv != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "error: bcm_port_dtag_mode_set for bcm_port %d: rv=%d (%s)", bcm_port, rv, bcm_errmsg(rv));
+      return rv;
+    }
+
+    /* Filtering */
+    rv = bcm_port_vlan_member_set(bcm_unit, bcm_port, BCM_PORT_VLAN_MEMBER_INGRESS | BCM_PORT_VLAN_MEMBER_EGRESS | BCM_PORT_VLAN_MEMBER_VP_VLAN_MEMBERSHIP);
+    if (rv != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "error: bcm_port_vlan_member_set for bcm_port %d: rv=%d (%s)", bcm_port, rv, bcm_errmsg(rv));
+      return rv;
+    }
+
+    #if 0
+    /* MAC learning */
+    rv = bcm_port_learn_set(bcm_unit, gport, BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD);
+    if (rv != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "error: bcm_port_tpid_set for gport 0x%x: rv=%d (%s)", gport, rv, bcm_errmsg(rv));
+      return rv;
+    }
+
+    /* Default VLAN */
+    rv = bcm_port_untagged_vlan_set(bcm_unit, bcm_port, 1);
+    if (rv != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "error: bcm_port_untagged_vlan_set for bcm_port %u: rv=%d (%s)", bcm_port, rv, bcm_errmsg(rv));
+      return rv;
+    }
+
+    /* Remove port from VLAN 1 */
+    BCM_PBMP_CLEAR(pbmp);
+    BCM_PBMP_PORT_ADD(pbmp, bcm_port);
+    rv = bcm_vlan_port_remove(bcm_unit, 1, pbmp);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_port_remove with vlan 1, bcm_port %d: rv=%d (%s)", bcm_port, rv, bcm_errmsg(rv));
+      return rv;
+    }
+    #endif
+
+    /* Egress Class set */
+    rv = bcm_port_class_set(bcm_unit, bcm_port, bcmPortClassId, bcm_port);
+    if (rv != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "error: bcm_port_class_set to bcm_port %d: rv=%d (%s)", bcm_port, rv, bcm_errmsg(rv));
+      return rv;
+    }
+
+    /* TPIDs */
+    rv = bcm_port_tpid_delete_all(bcm_unit, bcm_port);
+    if (rv != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "error: bcm_port_tpid_delete_all to bcm_port %d: rv=%d (%s)\n", bcm_port, rv, bcm_errmsg(rv));
+      return rv;
+    }
+    rv = bcm_port_tpid_set(bcm_unit, bcm_port, PTIN_TPID_OUTER_DEFAULT);
+    if (rv != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "error: bcm_port_tpid_set to bcm_port %d: rv=%d (%s)", bcm_port, rv, bcm_errmsg(rv));
+      return rv;
+    }
+    rv = bcm_port_inner_tpid_set(bcm_unit, bcm_port, PTIN_TPID_INNER_DEFAULT);
+    if (rv != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "error: bcm_port_inner_tpid_set for bcm_port %d: rv=%d (%s)", bcm_port, rv, bcm_errmsg(rv));
+      return rv;
+    }
   }
 
-  PT_LOG_TRACE(LOG_CTX_STARTUP,"PHYs initialized!");
+  PT_LOG_INFO(LOG_CTX_STARTUP,"All PHYs initialized!");
 
   return L7_SUCCESS;
 }
@@ -363,7 +451,7 @@ L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id)
 {
   L7_RC_t    rc = L7_SUCCESS;
 
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
+#if (PTIN_BOARD_IS_MATRIX)
   L7_uint    i;
   bcm_port_t bcm_port;
   bcm_pbmp_t pbm, pbm_out;
@@ -952,7 +1040,7 @@ L7_RC_t ptin_hapi_linkscan_set(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable)
   BROAD_PORT_t *hapiPortPtr;
   L7_int ptin_port;
 
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
+#if (PTIN_BOARD_IS_MATRIX)
   SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
   DAPI_CARD_ENTRY_t            *dapiCardPtr;
   HAPI_WC_PORT_MAP_t           *hapiWCMapPtr;
@@ -985,7 +1073,7 @@ L7_RC_t ptin_hapi_linkscan_set(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable)
     return L7_FAILURE;
   }
 
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
+#if (PTIN_BOARD_IS_MATRIX)
   /* Get WC port map */
   sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(0));
   dapiCardPtr          = sysapiHpcCardInfoPtr->dapiCardInfo;
@@ -1043,7 +1131,7 @@ L7_RC_t ptin_hapi_link_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 link, L7_
   bcm_pbmp_t pbmp;
   bcm_error_t rv;
 
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
+#if (PTIN_BOARD_IS_MATRIX)
   SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
   DAPI_CARD_ENTRY_t            *dapiCardPtr;
   HAPI_WC_PORT_MAP_t           *hapiWCMapPtr;
@@ -1075,7 +1163,7 @@ L7_RC_t ptin_hapi_link_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 link, L7_
     return L7_FAILURE;
   }
 
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
+#if (PTIN_BOARD_IS_MATRIX)
   /* Get WC port map */
   sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(0));
   dapiCardPtr          = sysapiHpcCardInfoPtr->dapiCardInfo;
@@ -3032,43 +3120,23 @@ static L7_RC_t hapi_ptin_portMap_init(void)
   SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
   DAPI_CARD_ENTRY_t            *dapiCardPtr;
   HAPI_CARD_SLOT_MAP_t         *hapiSlotMapPtr;
-  #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
+#if (PTIN_BOARD_IS_MATRIX)
   L7_uint32                     slot, lane;
   HAPI_WC_PORT_MAP_t           *hapiWCMapPtr;
-  #endif
+#endif
   L7_uint i;
   
   sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(0));
   dapiCardPtr          = sysapiHpcCardInfoPtr->dapiCardInfo;
   hapiSlotMapPtr       = dapiCardPtr->slotMap;
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
+#if (PTIN_BOARD_IS_MATRIX)
   hapiWCMapPtr         = dapiCardPtr->wcPortMap;
-#endif
-
-/* Not necessary for CXO640G: sysbrds.c is already inverting slots for the protection matrix */
-#if (PTIN_BOARD == PTIN_BOARD_CXP360G)
-#ifdef MAP_CPLD
-  const L7_uint32 portmap_work[] = PTIN_PORTMAP_SLOT_WORK;
-  const L7_uint32 portmap_prot[] = PTIN_PORTMAP_SLOT_PROT;
-
-  PT_LOG_INFO(LOG_CTX_HAPI, "Matrix board detected on %s slot",
-           cpld_map->map[CPLD_SLOT_ID_REG] == PTIN_SLOT_WORK ? "working" : "protection");
-
-  for (i = 0; i < min((sizeof(portmap_work)/portmap_work[0]), PTIN_SYSTEM_N_PORTS); i++)
-  {
-    /* Remap ports (only needed on protection slot) */
-    if (cpld_map->map[CPLD_SLOT_ID_REG] == PTIN_SLOT_WORK)
-      hapiSlotMapPtr[i].bcm_port = portmap_work[i];
-    else if (cpld_map->map[CPLD_SLOT_ID_REG] == PTIN_SLOT_PROT)
-      hapiSlotMapPtr[i].bcm_port = portmap_prot[i];
-  }
-#endif
 #endif
 
   /* Initialize USP map */
   memset(usp_map, 0xff, sizeof(usp_map));   /* -1 for all values */
 
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
+#if (PTIN_BOARD_IS_MATRIX)
   /* Initialize slot/lane map */
   memset(ptin_sys_slotport_to_intf_map, 0xff, sizeof(ptin_sys_slotport_to_intf_map));   /* -1 for all values */
   memset(ptin_sys_intf_to_slot_map, 0xff, sizeof(ptin_sys_intf_to_slot_map));
@@ -3076,7 +3144,7 @@ static L7_RC_t hapi_ptin_portMap_init(void)
   ptin_sys_number_of_ports = dapiCardPtr->numOfPortMapEntries;
 #endif
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "Port mapping:");
+  PT_LOG_INFO(LOG_CTX_HAPI, "Port mapping:");
   for (i = 0; i < ptin_sys_number_of_ports; i++)
   {
     /* Initialize port name */
@@ -3089,7 +3157,7 @@ static L7_RC_t hapi_ptin_portMap_init(void)
     usp_map[i].unit = hapiSlotMapPtr[i].bcm_cpuunit;
     usp_map[i].port = hapiSlotMapPtr[i].bcm_port;
 
-  #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
+  #if (PTIN_BOARD_IS_MATRIX)
     /* Only 10/140/100Gbps ports */
     if ( hapiWCMapPtr[i].slotNum >= 0 &&
          hapiWCMapPtr[i].wcLane >= 0 &&
@@ -3111,7 +3179,7 @@ static L7_RC_t hapi_ptin_portMap_init(void)
     PT_LOG_INFO(LOG_CTX_HAPI, " Port# %2u => Remapped# bcm_port=%2u (%s)", i, usp_map[i].port, hapiSlotMapPtr[i].portName);
   }
 
-  #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
+#if (PTIN_BOARD_IS_MATRIX)
   printf("Slot to intf mapping (%u interfaces):", ptin_sys_number_of_ports);
   for (slot=1; slot<=PTIN_SYS_SLOTS_MAX; slot++)
   {
@@ -3127,35 +3195,10 @@ static L7_RC_t hapi_ptin_portMap_init(void)
   {
     PT_LOG_INFO(LOG_CTX_HAPI," Port# %2u => slot=%d/%d", i, ptin_sys_intf_to_slot_map[i], ptin_sys_intf_to_port_map[i]);
   }
-  #endif
+#endif
 
   /* BCM unit is globally accessible */
   bcm_unit = usp_map[0].unit;
-
-  /* Initialize PTP interface port in XAUI mode (4 lanes) */
-#if ( PTIN_BOARD == PTIN_BOARD_CXP360G )
-  int ret;
-  ret = bcm_port_control_set(0, PTIN_PTP_PORT, bcmPortControlLanes, 4);
-  if (BCM_E_NONE != ret)
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI, "bcm_port_control_set(0, %d, bcmPortControlLanes, 4) = %s\n", PTIN_PTP_PORT, bcm_errmsg(ret));
-    return L7_FAILURE;
-  }
-  ret = bcm_port_autoneg_set(0, PTIN_PTP_PORT, FALSE);
-  if (BCM_E_NONE != ret)
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI, "bcm_port_autoneg_set(0, %d, FALSE) = %s\n", PTIN_PTP_PORT, bcm_errmsg(ret));
-    return L7_FAILURE;
-  }
-  ret = bcm_port_speed_set(0, PTIN_PTP_PORT, 10000);
-  if (BCM_E_NONE != ret)
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI, "bcm_port_autoneg_set(0, %d, 10000) = %s\n", PTIN_PTP_PORT, bcm_errmsg(ret));
-    return L7_FAILURE;
-  }
-
-  PT_LOG_TRACE(LOG_CTX_HAPI, "Port %d is now configured in XAUI mode (PTP interface)", PTIN_PTP_PORT);
-#endif
 
   return L7_SUCCESS;
 }
