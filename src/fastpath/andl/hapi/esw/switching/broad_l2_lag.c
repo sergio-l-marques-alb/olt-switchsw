@@ -2006,7 +2006,11 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
     lport = hapiLagMemberPortPtr->bcmx_lport;
 
     /* update port config maxFrameSize */
+    #if 1
+    maxFrameSize = hapiLagMemberPortPtr->max_frame_size;    /* PTin modified: maxFrameSize from physical port */
+    #else
     maxFrameSize = cmdLagPortDelete->cmdData.lagPortDelete.maxFrameSize;
+    #endif
     rc = usl_bcmx_port_frame_max_set(lport, maxFrameSize);
 
     LOG_INFO(LOG_CTX_PTIN_HAPI, "usp{%d,%d,%d}: maxFrameSize %u applied over lport=0x%x (bcm_port=%u): rc=%d",

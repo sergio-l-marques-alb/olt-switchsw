@@ -4672,17 +4672,21 @@ L7_RC_t hapiBroadIntfMaxFrameSizeConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
     {
       result = L7_FAILURE;
     }
+    /* PTin added: Save frame max size */
+    hapiPortPtr->max_frame_size = maxFrameSize;
   }
   else if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) == L7_TRUE)
   {
+    BROAD_PORT_t *hapiPortPtr_member;
+
     hapiBroadLagCritSecEnter ();
     for (index=0;index < L7_MAX_MEMBERS_PER_LAG; index++)
     {
       if (dapiPortPtr->modeparm.lag.memberSet[index].inUse == L7_TRUE)
       {
-        hapiPortPtr = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[index].usp, dapi_g);
+        hapiPortPtr_member = HAPI_PORT_GET(&dapiPortPtr->modeparm.lag.memberSet[index].usp, dapi_g);
 
-        rc = usl_bcmx_port_frame_max_set(hapiPortPtr->bcmx_lport, maxFrameSize);
+        rc = usl_bcmx_port_frame_max_set(hapiPortPtr_member->bcmx_lport, maxFrameSize);
         if ((L7_BCMX_OK(rc) != L7_TRUE) && (rc!=BCM_E_UNAVAIL))
         {
           result = L7_FAILURE;
@@ -4690,6 +4694,9 @@ L7_RC_t hapiBroadIntfMaxFrameSizeConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
       }
     }
     hapiBroadLagCritSecExit ();
+
+    /* PTin added: Save frame max size */
+    hapiPortPtr->max_frame_size = maxFrameSize;
   }
   else
   {
