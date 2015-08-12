@@ -20,8 +20,6 @@ extern L7_BOOL slots_to_be_reseted[PTIN_SYS_SLOTS_MAX];
 #endif
 #endif
 
-extern int suppress_alarms_in_disabled_ports(int init0_setsup1_setnosup2_read3, L7_uint32 port);
-
 /**
  * Initialize interface changes notifier
  * 
@@ -65,6 +63,27 @@ extern void ptinIntfTask(L7_uint32 numArgs, void *unit);
  * 
  */
 extern void ptin_alarms_init(void);
+
+/**
+ * Change suppressed alarm state
+ * 
+ * @author mruas (8/12/2015)
+ * 
+ * @param port : ptin_port format
+ * @param state : TRUE or FALSE
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_alarms_suppress(L7_uint32 port, L7_BOOL state);
+
+/**
+ * Get suppressed alarm state
+ * 
+ * @param port : ptin_port format
+ * 
+ * @return L7_BOOL : TRUE or FALSE
+ */
+extern L7_BOOL ptin_alarms_is_suppressed(L7_uint32 port);
 
 /**
  * Schedule Multicast machine reset
