@@ -4108,8 +4108,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
   /** COS & COLOR REMARKING **/
   /** EGRESS STAGE **/
 
- //#if 1
-
+  #if 1
   {
       L7_uint8  prio;
       bcm_port_t bcm_port;
@@ -4143,9 +4142,9 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
            LOG_INFO(LOG_CTX_PTIN_HAPI,"\tbcm_port_control_set()=%d",r);
        }
   }
+  #endif
 
   #if (PTIN_BOARD_TG16G) // OLTTS - 17139
-//#else
   L7_uint8  prio, prio_mask  = 0x7;
   L7_uint8  vlanFormat_value = BROAD_VLAN_FORMAT_STAG | BROAD_VLAN_FORMAT_CTAG;
   L7_uint8  vlanFormat_mask  = 0xff;

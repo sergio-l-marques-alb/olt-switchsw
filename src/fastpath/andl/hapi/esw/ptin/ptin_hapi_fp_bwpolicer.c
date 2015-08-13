@@ -278,6 +278,7 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
   ptin_hapi_intf_t     portDescriptor;
   pbmp_t               pbm, pbm_mask;
   BROAD_POLICY_STAGE_t stage = BROAD_POLICY_STAGE_INGRESS;
+  BROAD_POLICY_RULE_PRIORITY_t rule_priority = BROAD_POLICY_RULE_PRIORITY_DEFAULT;
   L7_RC_t rc;
 
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"Starting processing...");
@@ -366,10 +367,10 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
          ( policer_ptr->ddUsp_src.slot      != usp->slot      ) ||
          ( policer_ptr->ddUsp_src.port      != usp->port      ) ||
          /*( policer_ptr->outer_vlan_lookup   != profile->outer_vlan_lookup ) ||*/
-         ( policer_ptr->outer_vlan_ingress != profile->outer_vlan_ingress ) ||
-         ( policer_ptr->outer_vlan_egress      != profile->outer_vlan_egress      ) ||
-         ( policer_ptr->inner_vlan_ingress       != profile->inner_vlan_ingress       ) ||
-         ( policer_ptr->inner_vlan_egress      != profile->inner_vlan_egress      ) ||
+         ( policer_ptr->outer_vlan_ingress  != profile->outer_vlan_ingress ) ||
+         ( policer_ptr->outer_vlan_egress   != profile->outer_vlan_egress  ) ||
+         ( policer_ptr->inner_vlan_ingress  != profile->inner_vlan_ingress ) ||
+         ( policer_ptr->inner_vlan_egress   != profile->inner_vlan_egress  ) ||
          ( policer_ptr->cos  != profile->cos && policer_ptr->cos<L7_COS_INTF_QUEUE_MAX_COUNT && profile->cos<L7_COS_INTF_QUEUE_MAX_COUNT) ||
          ( policer_ptr->cos>=L7_COS_INTF_QUEUE_MAX_COUNT && profile->cos<L7_COS_INTF_QUEUE_MAX_COUNT) ||
          ( policer_ptr->cos<L7_COS_INTF_QUEUE_MAX_COUNT && profile->cos>=L7_COS_INTF_QUEUE_MAX_COUNT) ||
@@ -425,8 +426,6 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
   meterInfo.pbs       = ((meter->cbs + meter->ebs) * 8) / 1000;
   meterInfo.colorMode = BROAD_METER_COLOR_AWARE;
 
-
-
   if ((result=hapiBroadPolicyCreate(policyType))!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI,"Error creating new policy");
@@ -442,6 +441,18 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
   else
   {
     stage = BROAD_POLICY_STAGE_INGRESS;
+  }
+
+  /* If port is specified, but not VLANs, increase policy priority */
+  if (usp->unit>=0 && usp->slot>=0 && usp->port>=0 &&
+      profile->outer_vlan_ingress == 0 && profile->inner_vlan_ingress == 0 &&
+      profile->outer_vlan_egress  == 0 && profile->inner_vlan_egress  == 0)
+  {
+    rule_priority = BROAD_POLICY_RULE_PRIORITY_HIGH;
+  }
+  else
+  {
+    rule_priority = BROAD_POLICY_RULE_PRIORITY_DEFAULT;
   }
 
   result = L7_SUCCESS;
@@ -467,7 +478,7 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
     }
   }
 
-  if ((result=hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_DEFAULT))!=L7_SUCCESS)
+  if ((result=hapiBroadPolicyPriorityRuleAdd(&ruleId, rule_priority))!=L7_SUCCESS)
   {
     hapiBroadPolicyCreateCancel();
     LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyPriorityRuleAdd");
