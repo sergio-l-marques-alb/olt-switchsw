@@ -253,12 +253,14 @@ L7_RC_t ptin_intf_init(void)
       return L7_FAILURE;
     }
 
+    #if 0
     rc = usmDbDvlantagIntfEthertypeSet(1, map_port2intIfNum[i], PTIN_TPID_OUTER_DEFAULT, L7_TRUE);
     if ((rc != L7_SUCCESS) && (rc != L7_ALREADY_CONFIGURED))
     {
       PT_LOG_CRITIC(LOG_CTX_INTF, "Failed to configure default TPID 0x%04X on port# %u (rc = %d)", PTIN_TPID_OUTER_DEFAULT, i, rc);
       return L7_FAILURE;
     }
+    #endif
 
     mtu_size = ((PTIN_SYSTEM_PON_PORTS_MASK >> i) & 1) ? PTIN_SYSTEM_PON_MTU_SIZE : PTIN_SYSTEM_ETH_MTU_SIZE;
 
@@ -962,17 +964,20 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
     }
   }
 
-  /* Always clear counters after a reconfiguration */
-  portStats.Port = port;
-  portStats.Mask = 0xFF;
-  portStats.RxMask = 0xFFFFFFFF;
-  portStats.TxMask = 0xFFFFFFFF;
-  if (ptin_intf_counters_clear(&portStats) != L7_SUCCESS)
+  if (cnfgrBaseTechnologyTypeGet() != L7_BASE_TECHNOLOGY_TYPE_BROADCOM_DNX)
   {
-    PT_LOG_ERR(LOG_CTX_INTF, "Failed to clear counters on port# %u", port);
-    return L7_FAILURE;
+    /* Always clear counters after a reconfiguration */
+    portStats.Port = port;
+    portStats.Mask = 0xFF;
+    portStats.RxMask = 0xFFFFFFFF;
+    portStats.TxMask = 0xFFFFFFFF;
+    if (ptin_intf_counters_clear(&portStats) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "Failed to clear counters on port# %u", port);
+      return L7_FAILURE;
+    }
+    PT_LOG_TRACE(LOG_CTX_INTF, " Counters:    Cleared!");
   }
-  PT_LOG_TRACE(LOG_CTX_INTF, " Counters:    Cleared!");
 
   /* Wait for changes to be applied */
   while (!nimIntfRequestsDone())

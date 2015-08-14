@@ -1332,7 +1332,6 @@ void hpcHardwareDefaultConfigApply(void)
       L7_LOG_ERROR (rv);
     }
 
-
     if (!SOC_IS_SAND(i))
     {
       if (!SOC_IS_XGS_FABRIC(i))
@@ -1548,8 +1547,8 @@ void hpcHardwareDefaultConfigApply(void)
 
         }
 
-        /* Enable egress filtering on all the ports */
-        rv = bcm_port_vlan_member_set(i, port, BCM_PORT_VLAN_MEMBER_EGRESS);
+        /* Enable ingress+egress filtering on all the ports */
+        rv = bcm_port_vlan_member_set(i, port, BCM_PORT_VLAN_MEMBER_INGRESS | BCM_PORT_VLAN_MEMBER_EGRESS | BCM_PORT_VLAN_MEMBER_VP_VLAN_MEMBERSHIP);
         if (L7_BCMX_OK(rv) != L7_TRUE && rv != BCM_E_UNAVAIL)
         {
           L7_LOG_ERROR (rv);
@@ -2735,7 +2734,8 @@ L7_RC_t hpcBroadInit()
   const bcm_sys_board_t       *board_info;
   int                          rc, rv;
 
-  hpcConfigSet();
+  PT_LOG_NOTICE(LOG_CTX_STARTUP,"hpcConfigSet() skipped!");
+  //hpcConfigSet();
 
   total_bcom_units = bde->num_devices(BDE_SWITCH_DEVICES);
 
@@ -2904,6 +2904,10 @@ L7_RC_t hpcBroadInit()
     return(L7_FAILURE);
   }
 #endif
+
+  PT_LOG_INFO(LOG_CTX_STARTUP, "Sleeping...");
+
+  osapiSleep(5);
 
   return(L7_SUCCESS);
 }

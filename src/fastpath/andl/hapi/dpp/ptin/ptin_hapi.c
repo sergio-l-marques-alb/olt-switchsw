@@ -350,6 +350,7 @@ L7_RC_t ptin_hapi_phy_init(void)
 
     PT_LOG_INFO(LOG_CTX_STARTUP, "Initializing port %u -> bcm_port %u / gport 0x%08x", i, bcm_port, gport);
 
+    #if 0
     /* TAG mode */
     rv = bcm_port_dtag_mode_set(bcm_unit, bcm_port, BCM_PORT_DTAG_MODE_INTERNAL);
     if (rv != BCM_E_NONE)
@@ -366,7 +367,6 @@ L7_RC_t ptin_hapi_phy_init(void)
       return rv;
     }
 
-    #if 0
     /* MAC learning */
     rv = bcm_port_learn_set(bcm_unit, gport, BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD);
     if (rv != BCM_E_NONE)
@@ -392,14 +392,6 @@ L7_RC_t ptin_hapi_phy_init(void)
       return rv;
     }
     #endif
-
-    /* Egress Class set */
-    rv = bcm_port_class_set(bcm_unit, bcm_port, bcmPortClassId, bcm_port);
-    if (rv != BCM_E_NONE)
-    {
-      PT_LOG_ERR(LOG_CTX_STARTUP, "error: bcm_port_class_set to bcm_port %d: rv=%d (%s)", bcm_port, rv, bcm_errmsg(rv));
-      return rv;
-    }
 
     /* TPIDs */
     rv = bcm_port_tpid_delete_all(bcm_unit, bcm_port);

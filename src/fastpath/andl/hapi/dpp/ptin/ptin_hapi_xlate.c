@@ -71,29 +71,41 @@ L7_RC_t ptin_hapi_xlate_init(void)
     }
 
     /* Insert init code here! */
-    #if 0
-    /* First key: First do a lookup for port + outerVlan + innerVlan.
-       Second key: If failed do a second lookup for port + outerVlan */
-    if ( (bcm_vlan_control_port_set( bcm_unit, bcm_port,bcmVlanPortTranslateKeyFirst, bcmVlanTranslateKeyPortDouble) != L7_SUCCESS) ||
-         (bcm_vlan_control_port_set( bcm_unit, bcm_port,bcmVlanPortTranslateKeySecond, bcmVlanTranslateKeyPortOuter) != L7_SUCCESS) )
+    if (SOC_IS_SAND(bcm_unit))
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting translation keys");
-      rc = L7_FAILURE;
-      continue;
+      /* Egress Class set */
+      rc = bcm_port_class_set(bcm_unit, bcm_port, bcmPortClassId, bcm_port);
+      if (rc != BCM_E_NONE)
+      {
+        PT_LOG_ERR(LOG_CTX_STARTUP, "error: bcm_port_class_set to bcm_port %d: rv=%d (%s)", bcm_port, rc, bcm_errmsg(rc));
+        return rc;
+      }
+      PT_LOG_TRACE(LOG_CTX_STARTUP, "bcm_port_class_set to bcm_port %d defined", bcm_port);
     }
+    else
+    {
+      /* First key: First do a lookup for port + outerVlan + innerVlan.
+         Second key: If failed do a second lookup for port + outerVlan */
+      if ( (bcm_vlan_control_port_set( bcm_unit, bcm_port,bcmVlanPortTranslateKeyFirst, bcmVlanTranslateKeyPortDouble) != L7_SUCCESS) ||
+           (bcm_vlan_control_port_set( bcm_unit, bcm_port,bcmVlanPortTranslateKeySecond, bcmVlanTranslateKeyPortOuter) != L7_SUCCESS) )
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error setting translation keys");
+        rc = L7_FAILURE;
+        continue;
+      }
 
-    /* Enable ingress and egress translations.
-       Also, drop packets that do not fullfil any translation entry. */
-    if ((bcm_vlan_control_port_set( bcm_unit, bcm_port, bcmVlanTranslateIngressEnable,   L7_TRUE) != L7_SUCCESS) ||
-        (bcm_vlan_control_port_set( bcm_unit, bcm_port, bcmVlanTranslateIngressMissDrop, L7_TRUE) != L7_SUCCESS) ||
-        (bcm_vlan_control_port_set( bcm_unit, bcm_port, bcmVlanTranslateEgressEnable,    L7_TRUE) != L7_SUCCESS) ||
-        (bcm_vlan_control_port_set( bcm_unit, bcm_port, bcmVlanTranslateEgressMissDrop,  L7_TRUE) != L7_SUCCESS) )
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting translation enables");
-      rc = L7_FAILURE;
-      continue;
+      /* Enable ingress and egress translations.
+         Also, drop packets that do not fullfil any translation entry. */
+      if ((bcm_vlan_control_port_set( bcm_unit, bcm_port, bcmVlanTranslateIngressEnable,   L7_TRUE) != L7_SUCCESS) ||
+          (bcm_vlan_control_port_set( bcm_unit, bcm_port, bcmVlanTranslateIngressMissDrop, L7_TRUE) != L7_SUCCESS) ||
+          (bcm_vlan_control_port_set( bcm_unit, bcm_port, bcmVlanTranslateEgressEnable,    L7_TRUE) != L7_SUCCESS) ||
+          (bcm_vlan_control_port_set( bcm_unit, bcm_port, bcmVlanTranslateEgressMissDrop,  L7_TRUE) != L7_SUCCESS) )
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error setting translation enables");
+        rc = L7_FAILURE;
+        continue;
+      }
     }
-    #endif
   }
 
   /* Setting egress xlate class ids */

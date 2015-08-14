@@ -90,9 +90,6 @@ L7_RC_t dvlantagIntfModeApply(L7_uint32 intIfNum, L7_uint32 mode)
   DVLANTAG_INTF_CFG_t *pCfg;
   DVLANTAG_DTL_t dTag;
 
-  if (cnfgrBaseTechnologyTypeGet() == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_DNX)
-    return L7_SUCCESS;
-
   if (dvlantagIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
     return L7_SUCCESS;
 
@@ -235,9 +232,6 @@ L7_RC_t dvlantagIntfCustIdApply(L7_uint32 intIfNum, L7_uint32 custId)
   L7_RC_t        rc = L7_SUCCESS;
   DVLANTAG_INTF_CFG_t *pCfg;
   DVLANTAG_DTL_t dTag;
-
-  if (cnfgrBaseTechnologyTypeGet() == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_DNX)
-    return L7_SUCCESS;
 
   if (dvlantagIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
     return L7_SUCCESS;
@@ -500,9 +494,6 @@ L7_RC_t dvlantagConfigPortApply(L7_uint32 intIfNum,
 {
   L7_RC_t        rc = L7_FAILURE;
   DVLANTAG_DTL_t dTag;
-
-  if (cnfgrBaseTechnologyTypeGet() == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_DNX)
-    return L7_SUCCESS;
 
   dTag.mode = mode;
   dTag.custId = custId;

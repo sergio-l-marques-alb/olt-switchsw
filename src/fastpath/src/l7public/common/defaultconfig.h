@@ -1255,8 +1255,8 @@ extern L7_ushort16 dot1dUserPriorityRegenTable[8][8];
 #define FD_DVLANTAG_DEFAULT_CUSTID          1
 #define FD_DVLANTAG_MAX_CUSTID              4095
 #define FD_DVLANTAG_MIN_CUSTID              1
-#define FD_DVLANTAG_DEFAULT_PORT_MODE       L7_DISABLE
-#define FD_DVLANTAG_DEFAULT_MODE            L7_DOT1Q_UNTAGGED
+#define FD_DVLANTAG_DEFAULT_PORT_MODE       L7_ENABLE         /* PTin modified: For DNX switches */
+#define FD_DVLANTAG_DEFAULT_MODE            L7_DOT1Q_TAGGED
 /* End of dvlantag Component's Factory Defaults */
 
 /* Start of DHCP Server Component's Factory Defaults */

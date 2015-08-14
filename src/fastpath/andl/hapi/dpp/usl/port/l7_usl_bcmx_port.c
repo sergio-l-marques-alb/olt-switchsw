@@ -616,7 +616,7 @@ int usl_bcmx_port_dtag_mode_set(bcmx_lport_t port,
   if (L7_BCMX_OK(rv) != L7_TRUE)
   {
     USL_LOG_MSG(USL_E_LOG, 
-                "Failed to set dtag mode for gport %d, hwRv %d dbRv %d\n", 
+                "Failed to set dtag mode for gport 0x%x, hwRv %d dbRv %d\n", 
                 port, hwRv, dbRv);
   }
 
