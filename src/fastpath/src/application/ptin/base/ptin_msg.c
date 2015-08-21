@@ -9125,6 +9125,16 @@ L7_RC_t ptin_msg_static_channel_add(msg_MCStaticChannel_t *channel, L7_uint16 n_
     return L7_FAILURE;
   }    
 
+  /*Pre-Validate that all services are already created*/
+  for (i=0; i<n_channels; i++)
+  {
+    if( SUCCESS != ptin_evc_intRootVlan_get(channel[i].evc_id, L7_NULLPTR))
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to get mcastRootVlan from serviceId:%u", channel[i].evc_id);    
+      return L7_DEPENDENCY_NOT_MET;
+    } 
+  }
+
   for (i=0; i<n_channels; i++)
   {
     #ifdef IGMPASSOC_MULTI_MC_SUPPORTED//Add Static Channel to (WhiteList) Group List    
@@ -9204,6 +9214,16 @@ L7_RC_t ptin_msg_static_channel_remove(msg_MCStaticChannel_t *channel, L7_uint16
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid arguments");
     return L7_FAILURE;
+  }
+
+  /*Pre-Validate that all services are already created*/
+  for (i=0; i<n_channels; i++)
+  {
+    if( SUCCESS != ptin_evc_intRootVlan_get(channel[i].evc_id, L7_NULLPTR))
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to get mcastRootVlan from serviceId:%u", channel[i].evc_id);    
+      return L7_DEPENDENCY_NOT_MET;
+    } 
   }
 
   for (i=0; i<n_channels; i++)

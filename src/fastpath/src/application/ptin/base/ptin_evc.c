@@ -1455,7 +1455,7 @@ L7_RC_t ptin_evc_intRootVlan_get(L7_uint32 evc_ext_id, L7_uint16 *intRootVlan)
   }
 
   /* Return root vlan */
-  if (intRootVlan != L7_NULLPTR)
+  if (intRootVlan != L7_NULLPTR) /*Do Not Remove this validation!*/
     *intRootVlan = evcs[evc_id].rvlan;
 
   return L7_SUCCESS;
