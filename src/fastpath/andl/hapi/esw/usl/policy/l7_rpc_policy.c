@@ -409,7 +409,7 @@ int l7_rpc_client_policy_create(BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *pol
 
   if (L7_SUCCESS == rc)
   {
-    for (i = 0; i < L7_MAX_UNITS_PER_STACK+1; i++)
+    for (i = 0; i < L7_MAX_UNITS_PER_STACK; i++)
     {
       if (HPC_HW_RPC_OK == rpc_status[i])
       {
@@ -490,7 +490,7 @@ int l7_rpc_client_policy_create(BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *pol
 
       if (L7_SUCCESS == rc)
       {
-        for (i = 0; i < L7_MAX_UNITS_PER_STACK+1; i++)
+        for (i = 0; i < L7_MAX_UNITS_PER_STACK; i++)
         {
           if (HPC_HW_RPC_OK == rpc_status[i])
           {
