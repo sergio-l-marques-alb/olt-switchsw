@@ -3933,24 +3933,14 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
   /* For OLT1T0 */
 #if (PTIN_BOARD_IS_STANDALONE)
   {
-    L7_int       port;
-    bcmx_lport_t lport;
-    bcm_port_t   bcm_port;
-    L7_ushort16  vlanId, vlanMask;
+    L7_ushort16 vlanId, vlanMask;
 
     /* BroadLight packets should have high priority */
-    vlanId   = PTIN_VLAN_BL2CPU_EXT;
+    vlanId   = PTIN_VLAN_BL2CPU;
     vlanMask = 0xfff;
 
     /* Create policy to give more priority to BL packets */
-    rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_COSQ);
-    if (rc != L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
-      return L7_FAILURE;
-    }
-    /* Lookup stage */
-    rc = hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_LOOKUP);
+    rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
     if (rc != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
@@ -3959,13 +3949,11 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
     /* Define qualifiers and actions */
     do
     {
-      rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
+      rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGHEST);
       if (rc != L7_SUCCESS)  break;
       rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *) &vlanId, (L7_uchar8 *) &vlanMask);
       if (rc != L7_SUCCESS)  break;
       rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, 8, 0, 0);
-      if (rc != L7_SUCCESS)  break;
-      rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_CLASS_ID, 8, 0, 0);
       if (rc != L7_SUCCESS)  break;
     } while (0);
 
@@ -3981,33 +3969,6 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
     {
       LOG_ERR(LOG_CTX_STARTUP, "Error committing policy!");
       return L7_FAILURE;
-    }
-    /* Apply to all ports */
-    rc = hapiBroadPolicyRemoveFromAll(policyId);
-    if (L7_SUCCESS != rc)
-    {
-      LOG_ERR(LOG_CTX_STARTUP, "Error removing all interefaces!");
-      return L7_FAILURE;
-    }
-    /* Add only GPOn interfaces, and last CPU interface */
-    /* Add PON ports */
-    for (port = 0; port < ptin_sys_number_of_ports; port++)
-    {
-      if (hapi_ptin_bcmPort_get(port, &bcm_port) == L7_SUCCESS)
-      {
-        lport = bcmx_unit_port_to_lport(0, bcm_port);
-
-        if (((PTIN_SYSTEM_PON_PORTS_MASK >> port) & 1) || (port == PTIN_SYSTEM_N_PORTS-1))
-        {
-          if (hapiBroadPolicyApplyToIface(policyId, lport) != L7_SUCCESS)
-          {
-            LOG_ERR(LOG_CTX_STARTUP, "Error adding port %u", port);
-            hapiBroadPolicyDelete(policyId);
-            return L7_FAILURE;
-          }
-          LOG_TRACE(LOG_CTX_STARTUP, "Port %u / bcm_port %u / lport 0x%x added to Pbit=0 force rule", port, bcm_port, lport);
-        }
-      }
     }
     /* Save policy */
     bl2cpu_policyId[0] = policyId;
@@ -4147,7 +4108,8 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
   /** COS & COLOR REMARKING **/
   /** EGRESS STAGE **/
 
-  #if 1
+ //#if 1
+
   {
       L7_uint8  prio;
       bcm_port_t bcm_port;
@@ -4181,9 +4143,9 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
            LOG_INFO(LOG_CTX_PTIN_HAPI,"\tbcm_port_control_set()=%d",r);
        }
   }
-  #endif
 
   #if (PTIN_BOARD_TG16G) // OLTTS - 17139
+//#else
   L7_uint8  prio, prio_mask  = 0x7;
   L7_uint8  vlanFormat_value = BROAD_VLAN_FORMAT_STAG | BROAD_VLAN_FORMAT_CTAG;
   L7_uint8  vlanFormat_mask  = 0xff;
