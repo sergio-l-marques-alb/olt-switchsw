@@ -9425,8 +9425,8 @@ L7_RC_t ptin_msg_snoop_sync_request(msg_SnoopSyncRequest_t *snoopSyncRequest)
   LOG_DEBUG(LOG_CTX_PTIN_MSG," portId=%u",snoopSyncRequest->portId);
 #endif
   
-  if( snoopSyncRequest->serviceId != 0 &&  !inetIsAddressZero(&groupAddr) && !inetIsAddressZero(&sourceAddr)
-       && (L7_SUCCESS != (rc=ptin_evc_intRootVlan_get(snoopSyncRequest->serviceId, &mcastRootVlan))) )
+  if( snoopSyncRequest->serviceId != 0 
+      && (L7_SUCCESS != (rc=ptin_evc_intRootVlan_get(snoopSyncRequest->serviceId, &mcastRootVlan))) )
   {
     if( rc != L7_NOT_EXIST)
     {
@@ -9530,18 +9530,18 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
       numberOfActivePorts=0;
       if(snoopSyncReply[iterator].numberOfActivePorts>0)
       {
-        for (intIfNum=1;intIfNum<L7_MAX_INTERFACE_COUNT;intIfNum++)
+        for (intIfNum=1;intIfNum<PTIN_SYSTEM_MAXINTERFACES_PER_GROUP;intIfNum++)
         {   
           if (PTIN_IS_MASKBITSET(snoopSyncReply[iterator].intIfNum_mask,intIfNum))
           {
-            LOG_DEBUG(LOG_CTX_PTIN_PROTB, "Snoop Port Open :%u", intIfNum);
+            LOG_DEBUG(LOG_CTX_PTIN_MSG, "Snoop Port Open :%u", intIfNum);
             #if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
             if(snoopPortOpen(snoopSyncReply[iterator].serviceId, intIfNum, &groupAddr, &sourceAddr, snoopSyncReply[iterator].isStatic, isProtection)!=L7_SUCCESS)
             #else
             if(snooping_port_open(snoopSyncReply[iterator].serviceId, intIfNum, snoopSyncReply[iterator].groupAddr, sourceAddr, snoopSyncReply[iterator].isStatic)!=L7_SUCCESS)
             #endif
             {
-              LOG_ERR(LOG_CTX_PTIN_PROTB, "Failed to open port");
+              LOG_ERR(LOG_CTX_PTIN_MSG, "Failed to open port");
               return L7_FAILURE;
             }
 
@@ -9578,7 +9578,7 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
       if(snooping_port_open(snoopSyncReply[iterator].serviceId, snoopSyncReply[iterator].portId, snoopSyncReply[iterator].groupAddr, sourceAddr, snoopSyncReply[iterator].isStatic)!=L7_SUCCESS)
       #endif
       {
-        LOG_ERR(LOG_CTX_PTIN_PROTB, "Failed to open port");
+        LOG_ERR(LOG_CTX_PTIN_MSG, "Failed to open port");
         return L7_FAILURE;
       }
     }
@@ -9615,7 +9615,7 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
   /* MX board IP address */
   ipAddr = IPC_MX_PAIR_IPADDR;
   
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Sending Snoop Sync Request Message [groupAddr:%08X | serviceId:%u] to ipAddr:%08X (%u) to Sync the Remaining Snoop Entries", snoopSyncRequest.groupAddr, snoopSyncRequest.serviceId, MX_PAIR_SLOT_ID, ipAddr);         
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Sending Snoop Sync Request Message [groupAddr:%08X | serviceId:%u] to ipAddr:%08X (%u) to Sync the Remaining Snoop Entries", snoopSyncRequest.groupAddr, snoopSyncRequest.serviceId, ipAddr, MX_PAIR_SLOT_ID);         
 #else
   ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};     
 
