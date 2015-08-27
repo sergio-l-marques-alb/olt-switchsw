@@ -4905,7 +4905,7 @@ L7_RC_t ptin_msg_dai_stats_get(msg_dai_statistics_t *msg_stats, L7_uint nElems)
       item->stats.dropped         += stats.dropped;
       item->stats.dhcpDrops       += stats.dhcpDrops;
       item->stats.dhcpPermits     += stats.dhcpPermits;
-      item->stats.aclDrops        += stats.aclDrops;
+      item->stats.aclDrops        += stats.aclDrops + stats.sMacFailures + stats.dMacFailures + stats.ipValidFailures ;
       item->stats.aclPermits      += stats.aclPermits;
       item->stats.sMacFailures    += stats.sMacFailures;
       item->stats.dMacFailures    += stats.dMacFailures;
@@ -11829,6 +11829,7 @@ L7_RC_t ptin_msg_acl_rule_config(void *msgAcl, L7_uint msgId, L7_uint msgDim)
  * 
  * @return L7_RC_t 
  */
+
 L7_RC_t ptin_msg_acl_apply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation, L7_uint8 aclType)
 {
   ptin_acl_apply_t aclApply;
@@ -11888,7 +11889,7 @@ L7_RC_t ptin_msg_acl_apply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation, L
     aclApply.number_of_vlans = 4096;
     if (ptin_evc_get_intVlan_fromNNIvlan(msgAcl->vlanId, aclApply.vlanId, &aclApply.number_of_vlans) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Unable to get extEVCid from NNI VLAN %u", msgAcl->vlanId);
+      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Unable to get extEVCid from NNI VLAN %u", msgAcl->vlanId );
       return L7_NOT_EXIST;
     }
 
