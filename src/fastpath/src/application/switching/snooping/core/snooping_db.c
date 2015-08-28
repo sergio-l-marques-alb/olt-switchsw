@@ -2516,6 +2516,12 @@ L7_RC_t snoopGroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr
     return (snoopL2GroupIntfRemove(vlanId, groupAddr, intIfNum, isProtection));  
 }
 
+uint32 noOfL3SnoopEntries(void)
+{
+  snoop_eb_t* pSnoopEB = snoopEBGet();  
+  return pSnoopEB->snoopChannelAvlTree.count;
+}
+  
 /**
  * Add a channel and update Snoop Entry database.
  * 
@@ -2939,18 +2945,37 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
     }
   }
 
-  dtl_ipmc.group_index =  pChannelIntfMask->multicastGroup;   
-  memcpy(&dtl_ipmc.s_ip_addr, &pChannelEntry->snoopChannelInfoDataKey.sourceAddr, sizeof(dtl_ipmc.s_ip_addr));
-  memcpy(&dtl_ipmc.mc_ip_addr, &pChannelEntry->snoopChannelInfoDataKey.groupAddr, sizeof(dtl_ipmc.mc_ip_addr));
-  dtl_ipmc.vid = pChannelEntry->snoopChannelInfoDataKey.vlanId;
-  
-  rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_L3_IPMC, DAPI_CMD_SET, sizeof(ptin_dtl_ipmc_addr_t), &dtl_ipmc);
-  if (rc != L7_SUCCESS)
+  /*New Entry or Multicast Group Needs to be Replaced*/
+  if ( ( (dtl_ipmc.flags & PTIN_BCM_IPMC_REPLACE) == 0) || (removeMulticastGroup == L7_TRUE) )
   {    
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Add Channel to HW IPMC Table [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s multicast_group:0x%08x rc:%u]", serviceId, vlanId, intIfNum, 
-            inetAddrPrint(&dtl_ipmc.mc_ip_addr, groupAddrStr), inetAddrPrint(&dtl_ipmc.s_ip_addr, sourceAddrStr), dtl_ipmc.group_index, rc);      
-    //Do not abort here the operation!
-//  return rc;
+    dtl_ipmc.group_index =  pChannelIntfMask->multicastGroup;   
+    memcpy(&dtl_ipmc.s_ip_addr, &pChannelEntry->snoopChannelInfoDataKey.sourceAddr, sizeof(dtl_ipmc.s_ip_addr));
+    memcpy(&dtl_ipmc.mc_ip_addr, &pChannelEntry->snoopChannelInfoDataKey.groupAddr, sizeof(dtl_ipmc.mc_ip_addr));
+    dtl_ipmc.vid = pChannelEntry->snoopChannelInfoDataKey.vlanId;
+    
+    rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_L3_IPMC, DAPI_CMD_SET, sizeof(ptin_dtl_ipmc_addr_t), &dtl_ipmc);
+    if (rc != L7_SUCCESS)
+    {  
+      snoop_eb_t* pSnoopEB = snoopEBGet();    
+      if (rc == L7_ALREADY_CONFIGURED)
+      {
+        LOG_WARNING(LOG_CTX_PTIN_IGMP, "Channel already added to HW IPMC Table [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s multicast_group:0x%08x rc:%u noOfEntriesFW:%u]", serviceId, vlanId, intIfNum, 
+                inetAddrPrint(&dtl_ipmc.mc_ip_addr, groupAddrStr), inetAddrPrint(&dtl_ipmc.s_ip_addr, sourceAddrStr), dtl_ipmc.group_index, rc, pSnoopEB->snoopChannelAvlTree.count);      
+        flags |= SNOOP_CHANNEL_ENTRY_IS_IN_HARDWARE;
+      }
+      else
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Add Channel to HW IPMC Table [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s multicast_group:0x%08x rc:%u noOfEntriesFW:%u flags:0x%08x removeMulticastGroup:%u]", serviceId, vlanId, intIfNum, 
+                inetAddrPrint(&dtl_ipmc.mc_ip_addr, groupAddrStr), inetAddrPrint(&dtl_ipmc.s_ip_addr, sourceAddrStr), dtl_ipmc.group_index, rc, pSnoopEB->snoopChannelAvlTree.count, dtl_ipmc.flags, removeMulticastGroup);      
+        //Do not abort here the operation!
+    //  return rc;
+      }
+      rc = L7_SUCCESS;
+    }
+    else
+    {
+      flags |= SNOOP_CHANNEL_ENTRY_IS_IN_HARDWARE;
+    }
   }
 
   if ( removeMulticastGroup == L7_TRUE )
@@ -3005,7 +3030,8 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
     if ( rc != L7_SUCCESS )
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Error removing L3 multicast group: 0x%08x (rc:%u)", pChannelEntry->pChannelIntfMask->multicastGroup, rc);      
-      return L7_FAILURE;
+      //Do not abort here the operation!
+//    return L7_FAILURE;
     }              
     if (ptin_debug_igmp_snooping)
       LOG_DEBUG(LOG_CTX_PTIN_IGMP, "L3 Multicast group 0x%08x removed", pChannelEntry->pChannelIntfMask->multicastGroup);
@@ -3251,13 +3277,18 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
   /*Is it the last interface of this channel?*/
   if ( --pChannelEntry->noOfInterfaces == 0 )
   {
-    /*Remove Channel from IPMC Table*/
-    rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_L3_IPMC, DAPI_CMD_CLEAR, sizeof(ptin_dtl_ipmc_addr_t), &dtl_ipmc);
-    if (rc != L7_SUCCESS)
-    {    
-      LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Remove Channel from HW IPMC Table [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s multicast_group:0x%08x", serviceId, vlanId, intIfNum, 
-          inetAddrPrint(&dtl_ipmc.mc_ip_addr, groupAddrStr), inetAddrPrint(&dtl_ipmc.s_ip_addr, sourceAddrStr), dtl_ipmc.group_index);      
-//    return rc;
+    /*Only Remove Entries that are in HW*/
+    if ((pChannelEntry->flags & SNOOP_CHANNEL_ENTRY_IS_IN_HARDWARE) == SNOOP_CHANNEL_ENTRY_IS_IN_HARDWARE)
+    {
+      /*Remove Channel from IPMC Table*/
+      rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_L3_IPMC, DAPI_CMD_CLEAR, sizeof(ptin_dtl_ipmc_addr_t), &dtl_ipmc);
+      if (rc != L7_SUCCESS)
+      {    
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Remove Channel from HW IPMC Table [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s multicast_group:0x%08x", serviceId, vlanId, intIfNum, 
+            inetAddrPrint(&dtl_ipmc.mc_ip_addr, groupAddrStr), inetAddrPrint(&dtl_ipmc.s_ip_addr, sourceAddrStr), dtl_ipmc.group_index);      
+        //Do not abort here the operation!
+  //    return rc;
+      }
     }
 
     /*Is this channel the last entry of this interface mask?*/
@@ -3297,7 +3328,8 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
       if ( rc != L7_SUCCESS )
       {
         LOG_ERR(LOG_CTX_PTIN_IGMP, "Error removing L3 multicast group: 0x%08x (rc:%u)", multicast_group, rc);      
-        return L7_FAILURE;
+        //Do not abort here the operation!
+//      return L7_FAILURE;
       }     
       if (ptin_debug_igmp_snooping)
         LOG_DEBUG(LOG_CTX_PTIN_IGMP, "L3 Multicast group 0x%08x removed", multicast_group);
@@ -3501,20 +3533,36 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
         return rc;
       }
     }
-  } 
-  
-  dtl_ipmc.group_index = pChannelIntfMask->multicastGroup;
-  /*Update the IPMC Entry*/  
-  rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_L3_IPMC, DAPI_CMD_SET, sizeof(ptin_dtl_ipmc_addr_t), &dtl_ipmc);
-  if (rc != L7_SUCCESS)
-  {    
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Update Channel on the HW IPMC Table [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s multicast_group:0x%08x", serviceId, vlanId, intIfNum, 
-            inetAddrPrint(&dtl_ipmc.mc_ip_addr, groupAddrStr), sourceAddrStr, dtl_ipmc.group_index);      
-//  return rc;
   }
-
+      
   if ( removeMulticastGroup == L7_TRUE )
   {
+    dtl_ipmc.group_index = pChannelIntfMask->multicastGroup;
+    /*Update the IPMC Entry*/  
+    rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_L3_IPMC, DAPI_CMD_SET, sizeof(ptin_dtl_ipmc_addr_t), &dtl_ipmc);   
+    if (rc != L7_SUCCESS)
+    {
+      snoop_eb_t* pSnoopEB = snoopEBGet();     
+      if (rc == L7_ALREADY_CONFIGURED)
+      {
+        LOG_WARNING(LOG_CTX_PTIN_IGMP, "Channel already added to HW IPMC Table [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s multicast_group:0x%08x rc:%u noOfEntriesFW:%u]", serviceId, vlanId, intIfNum, 
+                inetAddrPrint(&dtl_ipmc.mc_ip_addr, groupAddrStr), inetAddrPrint(&dtl_ipmc.s_ip_addr, sourceAddrStr), dtl_ipmc.group_index, rc, pSnoopEB->snoopChannelAvlTree.count);      
+        flags |= SNOOP_CHANNEL_ENTRY_IS_IN_HARDWARE;
+      }
+      else
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Update Channel on the HW IPMC Table [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s multicast_group:0x%08x rc:%u noOfEntriesFW:%u]", serviceId, vlanId, intIfNum, 
+              inetAddrPrint(&dtl_ipmc.mc_ip_addr, groupAddrStr), sourceAddrStr, dtl_ipmc.group_index, rc, pSnoopEB->snoopChannelAvlTree.count);      
+        //Do not abort here the operation!
+    //  return rc;
+      }
+      rc = L7_SUCCESS;
+    }
+    else
+    {
+      flags |= SNOOP_CHANNEL_ENTRY_IS_IN_HARDWARE;
+    }   
+
     /* Remove Egress Ports*/  
     uint32 intf;
     uint32 noOfInterfacesFound = 0;
@@ -3570,7 +3618,8 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
     if ( rc != L7_SUCCESS )
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Error removing L3 multicast group: 0x%08x (rc:%u)", pChannelEntry->pChannelIntfMask->multicastGroup, rc);      
-      return L7_FAILURE;
+      //Do not abort here the operation!
+//    return L7_FAILURE;
     }              
     if (ptin_debug_igmp_snooping)
       LOG_DEBUG(LOG_CTX_PTIN_IGMP, "L3 Multicast group 0x%08x removed", pChannelEntry->pChannelIntfMask->multicastGroup);

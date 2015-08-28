@@ -421,6 +421,13 @@ L7_int32 ptin_debug_bcm_ipmc_add(L7_int ipmc_index, L7_uint32 vlanId, L7_uint32 
   return bcm_ipmc_add(0, &bcm_ipmc);        
 }
 
+static uint32 numberOfIpmcEntries = 0;
+
+uint32 ptin_hapi_l3_ipmc_number_of_entries_get(void)
+{
+  return numberOfIpmcEntries;
+}
+
 /*********************************************************************
 * @purpose  Add a IP Mcast entry
 *
@@ -441,8 +448,8 @@ L7_RC_t ptin_hapi_l3_ipmc_add(ptin_dtl_ipmc_addr_t *ptin_ipmc)
   /* Default flags */
   flags = BCM_MULTICAST_TYPE_L3;
         
-   /* Create group, by default */
-   create_group = L7_TRUE;
+  /* Create group, by default */
+  create_group = L7_TRUE;
 
   /* Check if provided group is valid */
   if ( ptin_ipmc->group_index > 0)
@@ -499,8 +506,12 @@ L7_RC_t ptin_hapi_l3_ipmc_add(ptin_dtl_ipmc_addr_t *ptin_ipmc)
 
   if (BCM_FAILURE(rv))
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI,"Error adding Channel to IPMC Table: group_index:0x%x rv:%d rv=\"%s\"", bcm_ipmc.group, rv, bcm_errmsg(rv));
+    LOG_ERR(LOG_CTX_PTIN_HAPI,"Error adding Channel to IPMC Table: group_index:0x%x rv:%d rv=\"%s\" numberOfIpmcEntries=%u", bcm_ipmc.group, rv, bcm_errmsg(rv), numberOfIpmcEntries);
     return ptin_bcm_to_fp_error_code(rv);
+  }
+  else
+  {
+    numberOfIpmcEntries++;
   }
 
   return L7_SUCCESS;
@@ -529,7 +540,7 @@ L7_RC_t ptin_hapi_l3_ipmc_remove(ptin_dtl_ipmc_addr_t *ptin_ipmc)
   }
 
   /*Always Remove Entry*/
-//bcm_ipmc.flags &= ~BCM_IPMC_KEEP_ENTRY;
+  bcm_ipmc.flags &= ~BCM_IPMC_KEEP_ENTRY;
 
 //bcm_ipmc.group = 0;
 
@@ -537,8 +548,12 @@ L7_RC_t ptin_hapi_l3_ipmc_remove(ptin_dtl_ipmc_addr_t *ptin_ipmc)
 
   if (BCM_FAILURE(rv))
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI,"Error removing Channel from IPMC Table: rv=\"%s\" ipmc_index:0x%x", bcm_errmsg(rv), ptin_ipmc->group_index);
+    LOG_ERR(LOG_CTX_PTIN_HAPI,"Error removing Channel from IPMC Table: rv=\"%s\" ipmc_index:0x%x numberOfIpmcEntries:%u", bcm_errmsg(rv), ptin_ipmc->group_index, numberOfIpmcEntries);
     return ptin_bcm_to_fp_error_code(rv);
+  }
+  else
+  {
+    numberOfIpmcEntries--;
   }
 
 
