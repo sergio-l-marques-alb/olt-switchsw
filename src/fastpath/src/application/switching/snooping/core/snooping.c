@@ -273,12 +273,6 @@ SYSNET_PDU_RC_t snoopIGMPPktIntercept(L7_uint32 hookId,
 
   if (*protPtr == IP_PROT_IGMP || *protPtr == IP_PROT_PIM)
   {
-    /*@mmelo: We do not support processing this packets*/
-    if (*protPtr == IP_PROT_PIM)
-    {     
-      return SYSNET_PDU_RC_DISCARD;  
-    }
-
     debug_pktTimer.pkt_intercept_counter++;
     hapiBroadReceice_igmp_count++;
 
@@ -286,17 +280,7 @@ SYSNET_PDU_RC_t snoopIGMPPktIntercept(L7_uint32 hookId,
     if (snoopPacketHandle(bufHandle, pduInfo, L7_AF_INET) == L7_SUCCESS)
     {
       ptin_timer_stop(72);
-      #if 0
-      return SYSNET_PDU_RC_COPIED;  
-      #else
-      /*Free the Buffer*/
-      SYSAPI_NET_MBUF_FREE(bufHandle);
-      return SYSNET_PDU_RC_CONSUMED;      
-      #endif
-    }
-    else
-    {
-      return SYSNET_PDU_RC_DISCARD;  
+      return SYSNET_PDU_RC_COPIED;
     }
     ptin_timer_stop(72);
   }
