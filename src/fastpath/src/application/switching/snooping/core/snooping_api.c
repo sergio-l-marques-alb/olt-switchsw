@@ -3985,6 +3985,7 @@ L7_RC_t snoopPortOpen(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *g
   pSnoopEB = snoopEBGet();
   if ((pSnoopCB = snoopCBGet(L7_AF_INET)) == L7_NULLPTR)
   {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "pSnoopCB:%p", pSnoopCB);
     return L7_FAILURE;
   }
 
@@ -4002,13 +4003,17 @@ L7_RC_t snoopPortOpen(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *g
   
   /* Send a Port_Open event to the FP */
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Sending request to FP to open a port on the switch");
-  if(L7_SUCCESS == (rc = osapiMessageSend(pSnoopCB->snoopExec->snoopIGMPQueue, &msg, SNOOP_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM)))
+  if(L7_SUCCESS == (rc = osapiMessageSend(pSnoopCB->snoopExec->snoopIGMPQueue, &msg, SNOOP_PDU_MSG_SIZE, L7_WAIT_FOREVER, L7_MSG_PRIORITY_NORM)))
   {
     if (osapiSemaGive(pSnoopEB->snoopMsgQSema) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to unlock snooping's queue semaphore");
       return L7_FAILURE;
     }
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to send request to FP to open a port on the switch");
   }
 
   /*
@@ -4044,13 +4049,17 @@ L7_RC_t snoopPortOpen(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *g
 
       /* Send a Port_Open event to the FP */
       LOG_TRACE(LOG_CTX_PTIN_IGMP, "Sending request to FP to open a protection port on the switch");
-      if(L7_SUCCESS == (rc = osapiMessageSend(pSnoopCB->snoopExec->snoopIGMPQueue, &msg, SNOOP_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM)))
+      if(L7_SUCCESS == (rc = osapiMessageSend(pSnoopCB->snoopExec->snoopIGMPQueue, &msg, SNOOP_PDU_MSG_SIZE, L7_WAIT_FOREVER, L7_MSG_PRIORITY_NORM)))
       {
         if (osapiSemaGive(pSnoopEB->snoopMsgQSema) != L7_SUCCESS)
         {
           LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to unlock snooping's queue semaphore");
           return L7_FAILURE;
         }
+      }
+      else
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to send request to FP to open a protection port on the switch");
       }
     }
 #else
@@ -4130,14 +4139,18 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
 
   /* Send a Port_Close event to the FP */
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Sending request to FP to close a port");
-  if(L7_SUCCESS == (rc = osapiMessageSend(pSnoopCB->snoopExec->snoopIGMPQueue, &msg, SNOOP_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM)))
+  if(L7_SUCCESS == (rc = osapiMessageSend(pSnoopCB->snoopExec->snoopIGMPQueue, &msg, SNOOP_PDU_MSG_SIZE, L7_WAIT_FOREVER, L7_MSG_PRIORITY_NORM)))
   {
     if (osapiSemaGive(pSnoopEB->snoopMsgQSema) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to unlock snooping's queue semaphore");
       return L7_FAILURE;
     }
-  }  
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to send request to FP to close a port on the switch");
+  }
 
 #if PTIN_BOARD_IS_MATRIX
   /* Sync the status of this switch port on the backup backup matrix, if it exists */
@@ -4160,13 +4173,17 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
 
     /* Send a Port_Close event to the FP */
     LOG_TRACE(LOG_CTX_PTIN_IGMP, "Sending request to FP to close a protection port on the switch");
-    if(L7_SUCCESS == (rc = osapiMessageSend(pSnoopCB->snoopExec->snoopIGMPQueue, &msg, SNOOP_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM)))
+    if(L7_SUCCESS == (rc = osapiMessageSend(pSnoopCB->snoopExec->snoopIGMPQueue, &msg, SNOOP_PDU_MSG_SIZE, L7_WAIT_FOREVER, L7_MSG_PRIORITY_NORM)))
     {
       if (osapiSemaGive(pSnoopEB->snoopMsgQSema) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to unlock snooping's queue semaphore");
         return L7_FAILURE;
       }
+    }
+    else
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to send request to FP to close a port on the switch");
     }
   }
 #else
