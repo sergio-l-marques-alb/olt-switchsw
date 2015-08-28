@@ -422,7 +422,9 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
                           sysnet_pdu_info_t *pduInfo,
                           L7_uchar8 family)
 {
+#ifndef PTIN_SNOOP_USE_MGMD
   snoopPDU_Msg_t     msg;
+#endif
   L7_uchar8         *data;
   L7_uint32          dataLength;
   L7_uint32          dot1qMode;
@@ -545,7 +547,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   if (pduInfo->vlanId == PTIN_VLAN_INBAND)
   {
     LOG_TRACE(LOG_CTX_PTIN_IGMP, "Packet Silently Ignored. Inband Vlan! [intIfNum:%u vlanId:%u]", pduInfo->intIfNum, pduInfo->vlanId);
-    return L7_SUCCESS;
+    return L7_NOT_SUPPORTED;
   }
 #endif
 
@@ -881,6 +883,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Packet intercepted at intIfNum=%u, oVlan=%u, iVlan=%u",
             pduInfo->intIfNum, mcastRootVlan, pduInfo->innerVlanId);
 
+  #ifndef PTIN_SNOOP_USE_MGMD
   /* Change Internal vlan with the MC root vlan inside message */
   if ((*(L7_ushort16 *)&data[12] == 0x8100) ||
       (*(L7_ushort16 *)&data[12] == 0x88A8) ||
@@ -891,8 +894,10 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     data[15]  =  msg.vlanId & 0xff;
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"vlan changed inside packet");
   }
+  #endif
 #endif
 
+#ifndef PTIN_SNOOP_USE_MGMD
   memset((L7_uchar8 *)&msg, 0, sizeof(msg));
   msg.msgId    = snoopPDUMsgRecv;
   msg.intIfNum = pduInfo->intIfNum;
@@ -900,7 +905,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   msg.vlanId   = /*osapiNtohl already done by hapiRx function*/(pduInfo->vlanId);
   msg.cbHandle = pSnoopCB;
   msg.client_idx = client_idx;          /* PTin added: IGMP snooping */
-
+  
   /* Put a copy of the incoming frame into one of Snooping's buffer pools.
    * This will allow other components to process the original MBUF
    */
@@ -957,15 +962,6 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   memcpy(msg.snoopBuffer, data, dataLength);
   msg.dataLength = dataLength;
 
-#if PTIN_SNOOP_USE_MGMD
-  /* Send packet to MGMD */
-  ptin_timer_start(34,"mgmdPacketSend");
-  if(L7_SUCCESS != (rc = mgmdPacketSend(mcastRootVlan, msg.intIfNum, client_idx, (void*) msg.snoopBuffer, msg.dataLength)))
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to send packet to MGMD");
-  }
-  ptin_timer_stop(34);
-#else
   if (pSnoopCB->family == L7_AF_INET)
   {
     rc = osapiMessageSend(pSnoopCB->snoopExec->snoopIGMPQueue,
@@ -988,12 +984,19 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     }
   }
   else
-  {
+  {    
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed to post a %s message to queue",pSnoopCB->family==L7_AF_INET?"IGMP":"MLD");
+    bufferPoolFree(msg.snoopBufferPoolId, msg.snoopBuffer);
   }
+#else
+  /* Send packet to MGMD */
+  ptin_timer_start(34,"mgmdPacketSend");
+  if(L7_SUCCESS != (rc = mgmdPacketSend(mcastRootVlan, pduInfo->intIfNum, client_idx, (void*) data, dataLength)))
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to send packet to MGMD");
+  }
+  ptin_timer_stop(34);
 #endif
-
-  bufferPoolFree(msg.snoopBufferPoolId, msg.snoopBuffer);
 
   if (ptin_debug_igmp_snooping)
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"}");
