@@ -626,12 +626,17 @@ static void monitor_alarms(void)
                                  TRAP_ALARM_STATUS_EVENT,0) == 0)
           {
             LOG_NOTICE(LOG_CTX_PTIN_CONTROL,"Alarm sent: port=%u, link=%u", port, link);
-
-            #if PTIN_BOARD_OLT1T0
-            ptin_intf_init();
-            #endif
           }
         }
+        #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+        if ( ((PTIN_SYSTEM_PON_PORTS_MASK >> intf) & 1) || ((PTIN_SYSTEM_BL_INBAND_PORT_MASK >> intf) & 1))
+        {          
+          if (usmDbIfAdminStateSet(1, intf, L7_ENABLE) != L7_SUCCESS)
+          {
+            LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to enable port# %u", intf);           
+          }
+        }        
+        #endif
       #endif
       LOG_INFO(LOG_CTX_PTIN_CONTROL,"Link state changed: port=%u, link=%u", port, link);
       linkStatus[port]=link;
