@@ -227,6 +227,32 @@ L7_RC_t ptin_intf_init(void)
         return L7_FAILURE;
       }
     }
+    #if PTIN_BOARD_OLT1T0
+    else
+    {
+      if ((PTIN_SYSTEM_PON_PORTS_MASK >> i) & 1)
+      {
+        rc = usmDbIfAdminStateSet(1, map_port2intIfNum[i], L7_ENABLE);
+        if (rc != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to disable port# %u", i);
+          return L7_FAILURE;
+        }
+      }
+      else
+      {
+        if ((PTIN_SYSTEM_BL_INBAND_PORT_MASK >> i) & 1)
+        {
+          rc = usmDbIfAdminStateSet(1, map_port2intIfNum[i], L7_ENABLE);
+          if (rc != L7_SUCCESS)
+          {
+            LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to disable port# %u", i);
+            return L7_FAILURE;
+          }
+        }
+      }
+    }
+    #endif
 
     /* For internal ports (linecards only) */
   #if (PTIN_BOARD_IS_LINECARD)

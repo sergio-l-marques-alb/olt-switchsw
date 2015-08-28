@@ -624,7 +624,13 @@ static void monitor_alarms(void)
           if (send_trap_intf_alarm(ptin_intf.intf_type, ptin_intf.intf_id,
                                  ((!link) ? TRAP_ALARM_LINK_DOWN_START : TRAP_ALARM_LINK_DOWN_END),
                                  TRAP_ALARM_STATUS_EVENT,0) == 0)
-          LOG_NOTICE(LOG_CTX_PTIN_CONTROL,"Alarm sent: port=%u, link=%u", port, link);
+          {
+            LOG_NOTICE(LOG_CTX_PTIN_CONTROL,"Alarm sent: port=%u, link=%u", port, link);
+
+            #if PTIN_BOARD_OLT1T0
+            ptin_intf_init();
+            #endif
+          }
         }
       #endif
       LOG_INFO(LOG_CTX_PTIN_CONTROL,"Link state changed: port=%u, link=%u", port, link);

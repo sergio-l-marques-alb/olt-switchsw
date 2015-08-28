@@ -36,10 +36,11 @@
 # define PTIN_SYSTEM_PON_PRIO          1    /* MAC Learning priority (station move is allowed over same prio) */
 # define PTIN_SYSTEM_UPLINK_PRIO       2    /* MAC Learning priority (station move is allowed over same prio) */
 
-# define PTIN_SYSTEM_PON_PORTS_MASK    0x000000FF
-# define PTIN_SYSTEM_ETH_PORTS_MASK    0x0000FF00
-# define PTIN_SYSTEM_10G_PORTS_MASK    0x0000F000
-# define PTIN_SYSTEM_PORTS_MASK        (PTIN_SYSTEM_PON_PORTS_MASK | PTIN_SYSTEM_ETH_PORTS_MASK | PTIN_SYSTEM_10G_PORTS_MASK)
+# define PTIN_SYSTEM_PON_PORTS_MASK         0x000000FF
+# define PTIN_SYSTEM_ETH_PORTS_MASK         0x0000FF00
+# define PTIN_SYSTEM_10G_PORTS_MASK         0x0000F000
+# define PTIN_SYSTEM_BL_INBAND_PORT_MASK    0x00010000
+# define PTIN_SYSTEM_PORTS_MASK             (PTIN_SYSTEM_PON_PORTS_MASK | PTIN_SYSTEM_ETH_PORTS_MASK | PTIN_SYSTEM_10G_PORTS_MASK)
 
 # define PTIN_SYSTEM_N_EVCS            4002  /* Maximum nr of EVCs allowed in this equipment */
 # define PTIN_SYSTEM_N_CLIENTS         8192  /* Maximum nr of clients allowed in this equipment */
