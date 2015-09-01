@@ -14,6 +14,8 @@
 #include <hpc_db.h>
 #include <soc/counter.h>
 
+#include <unistd.h>
+
 #include "ptin_globaldefs.h"
 #include "logger.h"
 #include "ptin_hapi.h"
@@ -754,6 +756,115 @@ L7_RC_t ptin_hapi_phy_init_olt1t0(void)
 #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
   bcm_port_t    bcm_port;
   L7_uint32     rval;
+
+  osapiSleep(2);
+
+  #if (PHY_RECOVERY_PROCEDURE)
+  bcm_pbmp_t pbm, pbm_out;
+  int i;
+
+  /* A maior martelada da história: reset aos Cores dos PHYs (4 portas) para garantir que arrancam bem! */
+  /* Reset PHY cores */
+  for (bcm_port=1; bcm_port<=49; bcm_port+=4)
+  {
+    if (bcm_port>=37 && bcm_port!=49)  bcm_port++;
+
+    LOG_INFO(LOG_CTX_PTIN_HAPI, "Resetting port bcm_port=%u", bcm_port);
+
+    BCM_PBMP_CLEAR(pbm);
+    for (i=0; i<4; i++)
+    {
+      BCM_PBMP_PORT_ADD(pbm, bcm_port+i);
+    }
+
+    /* Detach ports */
+    if (bcm_port_detach(0, pbm, &pbm_out) != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting default pbm for bcm_port=%u", bcm_port);
+      rc = L7_FAILURE;
+    }
+
+    /* Probe ports */
+    if (bcm_port_probe(0, pbm, &pbm_out) != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting probing pbm for bcm_port=%u", bcm_port);
+      rc = L7_FAILURE;
+    }
+
+    /* Enable ports */
+    for (i=0; i<4; i++)
+    {
+      if (bcm_port_stp_set(0, bcm_port+i, BCM_PORT_STP_FORWARD) != BCM_E_NONE)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error activating STP for bcm_port %u", bcm_port+i);
+        rc = L7_FAILURE;
+      }
+
+      if (bcm_port_enable_set(0, bcm_port+i, L7_ENABLE) != BCM_E_NONE)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error disabling bcm_port %u", bcm_port+i);
+        rc = L7_FAILURE;
+      }
+    }
+  }
+  osapiSleep(2);
+
+  /* Outra martelada: set da velocidade de 2.5G para garantir que nenhuma fica em 1G (que supostamente não é suportada) e  e set do max frame  */
+  for (i=0; i<PTIN_SYSTEM_N_PONS; i++)
+  {
+  /* Get bcm_port format */
+    if (hapi_ptin_bcmPort_get(i, &bcm_port)!=BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error obtaining bcm_port for port %u", i);
+      continue;
+    }
+
+    if (bcm_port_speed_set(0, bcm_port, 2500) != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting default 1G speed for port %u (bcm_port %u)", i, bcm_port);
+      rc = L7_FAILURE;
+    }
+    if (bcm_port_frame_max_set(0, bcm_port, 2048) != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting default 1G speed for port %u (bcm_port %u)", i, bcm_port);
+      rc = L7_FAILURE;
+    }
+    else
+    {
+      LOG_INFO(LOG_CTX_PTIN_HAPI, "Setting frame max %u (bcm_port %d)", ptin_sys_number_of_ports-1, bcm_port);
+    }
+  }
+
+  /* Fazer o set da velocidade a 1G para garantir que não arranque com outro velocidade e set do max frame */
+  if (hapi_ptin_bcmPort_get(ptin_sys_number_of_ports-1, &bcm_port) == L7_SUCCESS)
+  {
+    if (bcm_port_speed_set(0, bcm_port, 1000) != BCM_E_NONE)
+    {
+      rc = L7_FAILURE;
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting the speed port %u (bcm_port %d)", ptin_sys_number_of_ports-1, bcm_port);
+    }
+    else
+    {
+      LOG_INFO(LOG_CTX_PTIN_HAPI, "Speed change for port %u (bcm_port %d)", ptin_sys_number_of_ports-1, bcm_port);
+    }
+    if (bcm_port_frame_max_set(0, bcm_port, 9600) != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting default 1G speed for port %u (bcm_port %u)", i, bcm_port);
+      rc = L7_FAILURE;
+    }
+    else
+    {
+      LOG_INFO(LOG_CTX_PTIN_HAPI, "Stting frame max %u (bcm_port %d)", ptin_sys_number_of_ports-1, bcm_port);
+    }
+  }
+  else
+  {
+    rc = L7_FAILURE;
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error obtaining bcm_port value for port %d", ptin_sys_number_of_ports-1);
+  }
+
+
+  #endif // PHY_RECOVERY_PROCEDURE
 
   /* Inicialize polarity invertions (ge48 port) */
   if (hapi_ptin_bcmPort_get(ptin_sys_number_of_ports-1, &bcm_port) == L7_SUCCESS)
