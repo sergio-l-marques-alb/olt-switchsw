@@ -3831,6 +3831,10 @@ void hapiBroadAddrMacUpdateAge(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
                       __FILE__, __LINE__, __FUNCTION__, rv);
       }
     }
+    else
+    {
+      ptin_hapi_maclimit_dec(bcmx_l2_addr);
+    }
 
     macAddressInfo.cmdData.unsolAgedAddress.getOrSet        = DAPI_CMD_SET;
     macAddressInfo.cmdData.unsolAgedAddress.vlanID          = bcmx_l2_addr->vid;
@@ -3884,9 +3888,7 @@ void hapiBroadAddrMacUpdateAge(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
     /* keep up with the number of nonNativeAge messages */
     hapiMacStats.nonNativeAge++;
     }
-
   }
-
 }
 
 void hapiDebugMacStatsPrint()
