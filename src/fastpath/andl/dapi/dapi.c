@@ -118,7 +118,7 @@ L7_RC_t ptin_bcm_to_fp_error_code(ptin_bcm_error_t rv)
   case PTIN_BCM_E_NOT_FOUND   : return L7_NOT_EXIST;
   case PTIN_BCM_E_EXISTS      : return L7_ALREADY_CONFIGURED;
   case PTIN_BCM_E_TIMEOUT     : return L7_FAILURE;               //Use Default Error Code
-  case PTIN_BCM_E_BUSY        : return L7_FAILURE;               //Use Default Error Code
+  case PTIN_BCM_E_BUSY        : return L7_HARDWARE_ERROR;        //Use Default Error Code
   case PTIN_BCM_E_FAIL        : return L7_FAILURE;               //Use Default Error Code
   case PTIN_BCM_E_DISABLED    : return L7_FAILURE;               //Use Default Error Code
   case PTIN_BCM_E_BADID       : return L7_FAILURE;               //Use Default Error Code
@@ -915,7 +915,7 @@ L7_RC_t dapiCtl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data)
         LOG_TRACE(LOG_CTX_MISC, "Slot not valid: dapiUsp={%d,%d,%d}", dapiUsp.unit, dapiUsp.slot, dapiUsp.port);
 
         if (cmd == DAPI_CMD_FRAME_SEND) {
-          sysapiNetMbufFree(((DAPI_FRAME_CMD_t*)data)->cmdData.send.frameHdl);
+          SYSAPI_NET_MBUF_FREE(((DAPI_FRAME_CMD_t*)data)->cmdData.send.frameHdl);
         }
         result = L7_FAILURE;
       }
@@ -927,7 +927,7 @@ L7_RC_t dapiCtl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data)
         LOG_TRACE(LOG_CTX_MISC, "Card not present: dapiUsp={%d,%d,%d}", dapiUsp.unit, dapiUsp.slot, dapiUsp.port);
 
         if (cmd == DAPI_CMD_FRAME_SEND) {
-          sysapiNetMbufFree(((DAPI_FRAME_CMD_t*)data)->cmdData.send.frameHdl);
+          SYSAPI_NET_MBUF_FREE(((DAPI_FRAME_CMD_t*)data)->cmdData.send.frameHdl);
         }
         if ((bad_usp_count % 1000) == 0)
         {
@@ -943,7 +943,7 @@ L7_RC_t dapiCtl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data)
         LOG_TRACE(LOG_CTX_MISC, "USP {%d,%d,%d} not valid", dapiUsp.unit, dapiUsp.slot, dapiUsp.port);
 
         if (cmd == DAPI_CMD_FRAME_SEND) {
-          sysapiNetMbufFree(((DAPI_FRAME_CMD_t*)data)->cmdData.send.frameHdl);
+          SYSAPI_NET_MBUF_FREE(((DAPI_FRAME_CMD_t*)data)->cmdData.send.frameHdl);
         }
         /* Commands for invalid interfaces are silently ignored.
         */
@@ -2089,7 +2089,7 @@ L7_RC_t dapiCtlLagIntf(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data)
     {
       frameCmdData = (DAPI_FRAME_CMD_t*)data;
 
-      sysapiNetMbufFree(frameCmdData->cmdData.send.frameHdl);
+      SYSAPI_NET_MBUF_FREE(frameCmdData->cmdData.send.frameHdl);
       return L7_SUCCESS;
     }
   }

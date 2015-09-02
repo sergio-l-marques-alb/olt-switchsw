@@ -1339,7 +1339,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
         LOG_ERR(LOG_CTX_PTIN_HAPI,"Non valid usp={%d,%d,%d}", usp->unit, usp->slot, usp->port);
 
       /* Free the frame from the buffer */
-      sysapiNetMbufFree(cmdInfo->cmdData.send.frameHdl);
+      SYSAPI_NET_MBUF_FREE(cmdInfo->cmdData.send.frameHdl);
 
       return(L7_SUCCESS);
   }
@@ -1392,7 +1392,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
   if (bcm_pkt.pkt_data->data == NULL)
   {
     /* Free the frame from the buffer */
-    sysapiNetMbufFree(cmdInfo->cmdData.send.frameHdl);
+    SYSAPI_NET_MBUF_FREE(cmdInfo->cmdData.send.frameHdl);
 
     if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_LEVEL2)
       LOG_ERR(LOG_CTX_PTIN_HAPI,"sal_dma_alloc failed");
@@ -1428,7 +1428,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
                     __FILE__, __LINE__, __FUNCTION__);
 
       /* Free the frame from the buffer */
-      sysapiNetMbufFree(cmdInfo->cmdData.send.frameHdl);
+      SYSAPI_NET_MBUF_FREE(cmdInfo->cmdData.send.frameHdl);
       sal_dma_free(bcm_pkt.pkt_data->data);
 
       return(result);
@@ -1461,7 +1461,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
       if (isValidUsp(&destUsp, dapi_g) == L7_FALSE)
       {
         /* Free the frame from the buffer */
-        sysapiNetMbufFree(cmdInfo->cmdData.send.frameHdl);
+        SYSAPI_NET_MBUF_FREE(cmdInfo->cmdData.send.frameHdl);
         sal_dma_free(bcm_pkt.pkt_data->data);
         return L7_SUCCESS;
       }
@@ -1492,7 +1492,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
     if (i == L7_MAX_MEMBERS_PER_LAG)
     {
       /* Free the frame from the buffer */
-      sysapiNetMbufFree(cmdInfo->cmdData.send.frameHdl);
+      SYSAPI_NET_MBUF_FREE(cmdInfo->cmdData.send.frameHdl);
       sal_dma_free(bcm_pkt.pkt_data->data);
 
       return L7_SUCCESS;
@@ -1661,7 +1661,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
     hapiBroadWlanPortSend(&bcm_pkt, hapiPortPtr->bcmx_lport, BCMX_TX_F_CPU_TUNNEL, dapi_g);
 
     /* Free the frame from the buffer */
-    sysapiNetMbufFree(cmdInfo->cmdData.send.frameHdl);
+    SYSAPI_NET_MBUF_FREE(cmdInfo->cmdData.send.frameHdl);
     sal_dma_free(bcm_pkt.pkt_data->data);
     return L7_SUCCESS;
   }
@@ -1691,7 +1691,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
         LOG_ERR(LOG_CTX_PTIN_HAPI,"Failed transmission: etype_eapol=%u HAPI_DOT1X_PORT_IS_AUTHORIZED(hapiPortPtr)=%u",
                 etype_eapol, HAPI_DOT1X_PORT_IS_AUTHORIZED(hapiPortPtr));
       /* Don't send - free the frame from the buffer */
-      sysapiNetMbufFree(cmdInfo->cmdData.send.frameHdl);
+      SYSAPI_NET_MBUF_FREE(cmdInfo->cmdData.send.frameHdl);
       sal_dma_free(bcm_pkt.pkt_data->data);
       return L7_SUCCESS;
     }
@@ -1836,7 +1836,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
         LOG_ERR(LOG_CTX_PTIN_HAPI,"Failed transmission: etype_eapol=%u HAPI_DOT1X_PORT_IS_AUTHORIZED(hapiPortPtr)=%u",
                 etype_eapol, HAPI_DOT1X_PORT_IS_AUTHORIZED(hapiPortPtr));
       /* Don't send - free the frame from the buffer */
-      sysapiNetMbufFree(cmdInfo->cmdData.send.frameHdl);
+      SYSAPI_NET_MBUF_FREE(cmdInfo->cmdData.send.frameHdl);
       sal_dma_free(bcm_pkt.pkt_data->data);
       return L7_SUCCESS;
     }
@@ -1899,7 +1899,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
     {
       if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_LEVEL2)
         LOG_ERR(LOG_CTX_PTIN_HAPI,"Failed transmission: rv=%d", rv);
-      sysapiNetMbufFree(cmdInfo->cmdData.send.frameHdl);
+      SYSAPI_NET_MBUF_FREE(cmdInfo->cmdData.send.frameHdl);
       sal_dma_free(bcm_pkt.pkt_data->data);
       return L7_FAILURE;
     }
@@ -1909,7 +1909,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
     {
       if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_LEVEL2)
         LOG_ERR(LOG_CTX_PTIN_HAPI,"Failed transmission: rv=%d", rv);
-      sysapiNetMbufFree(cmdInfo->cmdData.send.frameHdl);
+      SYSAPI_NET_MBUF_FREE(cmdInfo->cmdData.send.frameHdl);
       sal_dma_free(bcm_pkt.pkt_data->data);
       bcmx_lplist_free(&mcastLplist);
       return L7_FAILURE;
@@ -1920,7 +1920,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
     {
       if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_LEVEL2)
         LOG_ERR(LOG_CTX_PTIN_HAPI,"Failed transmission: rv=%d", rv);
-      sysapiNetMbufFree(cmdInfo->cmdData.send.frameHdl);
+      SYSAPI_NET_MBUF_FREE(cmdInfo->cmdData.send.frameHdl);
       sal_dma_free(bcm_pkt.pkt_data->data);
       bcmx_lplist_free(&mcastLplist);
       bcmx_lplist_free(&taggedLplist);
@@ -1944,7 +1944,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
     {
       if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_LEVEL2)
         LOG_ERR(LOG_CTX_PTIN_HAPI,"Failed transmission");
-      sysapiNetMbufFree(cmdInfo->cmdData.send.frameHdl);
+      SYSAPI_NET_MBUF_FREE(cmdInfo->cmdData.send.frameHdl);
       sal_dma_free(bcm_pkt.pkt_data->data);
       bcmx_lplist_free(&mcastLplist);
       bcmx_lplist_free(&taggedLplist);
@@ -2003,7 +2003,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
     {
       if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_LEVEL2)
         LOG_ERR(LOG_CTX_PTIN_HAPI,"Failed transmission: rv=%d", rv);
-      sysapiNetMbufFree(cmdInfo->cmdData.send.frameHdl);
+      SYSAPI_NET_MBUF_FREE(cmdInfo->cmdData.send.frameHdl);
       sal_dma_free(bcm_pkt.pkt_data->data);
       return L7_FAILURE;
     }
@@ -2282,7 +2282,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
   fflush(stdout);
 
   /* Free the frame from the buffer */
-  sysapiNetMbufFree(cmdInfo->cmdData.send.frameHdl);
+  SYSAPI_NET_MBUF_FREE(cmdInfo->cmdData.send.frameHdl);
   sal_dma_free(bcm_pkt.pkt_data->data);
 
   if (bcmTxRv != BCM_E_NONE)
@@ -3034,7 +3034,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
   /* Get MBUF to carry the frame to DTL */
   if (bcm_pkt->cos >= HAPI_BROAD_INGRESS_BPDU_COS)
   {
-    frameHdl = sysapiRxNetMbufGet(L7_MBUF_RX_PRIORITY_HIGH,
+    SYSAPI_NET_RX_MBUF_GET(frameHdl, L7_MBUF_RX_PRIORITY_HIGH,
                                   L7_MBUF_FRAME_ALIGNED);
   }
   else
@@ -3085,12 +3085,12 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
 
       if (priority == L7_TRUE)
       {
-        frameHdl = sysapiRxNetMbufGet(L7_MBUF_RX_PRIORITY_MID0,
+        SYSAPI_NET_RX_MBUF_GET(frameHdl, L7_MBUF_RX_PRIORITY_MID0,
                                       L7_MBUF_FRAME_ALIGNED);
       }
       else
       {
-        frameHdl = sysapiRxNetMbufGet(L7_MBUF_RX_PRIORITY_MID1,
+        SYSAPI_NET_RX_MBUF_GET(frameHdl, L7_MBUF_RX_PRIORITY_MID1,
                                       L7_MBUF_FRAME_ALIGNED);
       }
     } 
@@ -3100,12 +3100,12 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
           (bcm_pkt->cos == HAPI_BROAD_INGRESS_LOW_PRIORITY_COS))
 
       {
-        frameHdl = sysapiRxNetMbufGet(L7_MBUF_RX_PRIORITY_MID2,
+        SYSAPI_NET_RX_MBUF_GET(frameHdl, L7_MBUF_RX_PRIORITY_MID2,
                                       L7_MBUF_FRAME_ALIGNED);
       } 
       else
       {
-        frameHdl = sysapiRxNetMbufGet(L7_MBUF_RX_PRIORITY_NORMAL,
+        SYSAPI_NET_RX_MBUF_GET(frameHdl, L7_MBUF_RX_PRIORITY_NORMAL,
                                       L7_MBUF_FRAME_ALIGNED);
       }
     }
@@ -3165,7 +3165,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
     }
     if (cmdInfo.cmdData.receive.vlanID > L7_MAX_VLAN_ID)
     {
-      sysapiNetMbufFree((L7_netBufHandle)frameHdl);
+      SYSAPI_NET_MBUF_FREE((L7_netBufHandle)frameHdl);
       return result;
     }
     cmdInfo.cmdData.receive.innerVlanId = 0;
@@ -3183,7 +3183,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
   if (osapiMessageSend(hapiRxQueue,(void *)&pktRxMsg,sizeof(BROAD_PKT_RX_MSG_t),L7_NO_WAIT, L7_MSG_PRIORITY_NORM) != L7_SUCCESS)
   {
     hapiRxQueueLostMsgs++;
-    sysapiNetMbufFree((L7_netBufHandle)frameHdl);
+    SYSAPI_NET_MBUF_FREE((L7_netBufHandle)frameHdl);
   }
 
   return BCM_RX_HANDLED;
@@ -3581,7 +3581,7 @@ void hapiBroadReceiveTask(L7_uint32 numArgs, DAPI_t *dapi_g)
     if (dropFrame == L7_TRUE) 
     {
       /* drop frame */
-      sysapiNetMbufFree((L7_netBufHandle)frameHdl);
+      SYSAPI_NET_MBUF_FREE((L7_netBufHandle)frameHdl);
       if ((pktRxMsg.cos >= 0) && (pktRxMsg.cos < 8))
       {
         hapiRxDebugCosCounters[pktRxMsg.cos].pktRxCosDrops++;
@@ -3629,7 +3629,7 @@ void hapiBroadReceiveTask(L7_uint32 numArgs, DAPI_t *dapi_g)
         SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
                        "%s %d: In %s call to 'dapiCallback'\n",
                        __FILE__, __LINE__, __FUNCTION__);
-        sysapiNetMbufFree((L7_netBufHandle)frameHdl);
+        SYSAPI_NET_MBUF_FREE((L7_netBufHandle)frameHdl);
       }
 
     }

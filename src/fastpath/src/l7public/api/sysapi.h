@@ -187,6 +187,15 @@ typedef enum
    }                                                            \
  }
 
+#define SYSAPI_NET_RX_MBUF_GET(netMbufHandle, priority, alignType)                      \
+{                                                              \
+ netMbufHandle = sysapiNetRxMbufGetTrack(__FILE__, __LINE__, priority, alignType);   \
+ if (netMbufHandle == L7_NULL)                                \
+ {                                                            \
+   L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SIM_COMPONENT_ID, "Out of system buffers.\n");                       \
+ }                                                            \
+}
+
 /* L7 NET MBUF MACRO: */
 /* Get a aligned NET MBUF - netMbufHandle output */
 
@@ -496,7 +505,7 @@ void sysapiWriteConfigToFlashStart();
 *
 * @purpose  Retrieve an mbuf to the caller
 *
-* @param    none.
+* @param    isRx if the mbuff is Rx 
 *
 * @returns  A ptr to an mbuf
 * @returns  L7_NULL if none are available
@@ -506,13 +515,15 @@ void sysapiWriteConfigToFlashStart();
 * @end
 *
 *************************************************************************/
-L7_uint32 *sysapiMbufGet( void );
+L7_uint32 *sysapiMbufGet(L7_BOOL isRx );
 
 /**************************************************************************
 *
 * @purpose  Return an mbuf to the mbuf pool
 *
 * @param    *mbuf ptr to the mbuf to return
+* @param    isRx if the mbuf is Rx
+*
 *
 * @returns  none.
 *
@@ -521,7 +532,7 @@ L7_uint32 *sysapiMbufGet( void );
 * @end
 *
 *************************************************************************/
-void      sysapiMbufFree( L7_uint32 *mbuf );
+void      sysapiMbufFree( L7_uint32 *mbuf, L7_BOOL isRx );
 
 /**************************************************************************
 *
@@ -718,6 +729,23 @@ typedef enum
   L7_MBUF_RX_PRIORITY_MID2 = 4,
   L7_MBUF_RX_PRIORITY_NORMAL = 5
 } L7_MBUF_RX_PRIORITY;
+
+/**************************************************************************
+*
+* @purpose  Retrieve a network rx mbuf to the caller (and track the caller)
+* 
+* @param    priority    @b{(input)}  Priority Indicator, for the mbuf
+* @param    alignType   @b{(input)}  Alignment indicator, for IP or frame
+*
+* @returns  A ptr to a network mbuf handle
+* @returns  0 if none are available
+*
+* @notes
+*
+* @end
+*
+*************************************************************************/
+L7_netBufHandle sysapiNetRxMbufGetTrack(L7_uchar8 *file, L7_uint32 line, L7_MBUF_RX_PRIORITY priority, L7_MBUF_ALIGNMENT  alignType);
 
 extern L7_netBufHandle sysapiRxNetMbufGet( L7_MBUF_RX_PRIORITY priority,
     L7_MBUF_ALIGNMENT  alignType);

@@ -338,6 +338,15 @@ L7_RC_t sysapiSystemInit(void)
     return(L7_ERROR);
   }
 
+  /***********************************************************************
+  * Create a binary semaphore that is initially full for controlling
+  * access to global mbuf vars. Tasks blocked on semaphore wait
+  * in priority order.
+  ***********************************************************************/
+  MbufSema = osapiSemaBCreate (OSAPI_SEM_Q_PRIORITY,
+     OSAPI_SEM_EMPTY);
+
+
   pMbufPool = osapiMalloc ( L7_SIM_COMPONENT_ID, L7_MAX_NETWORK_BUFF_PER_BOX * ( temp32 ) );
   if ( pMbufPool == L7_NULLPTR )
     return(L7_ERROR);
@@ -362,7 +371,7 @@ L7_RC_t sysapiSystemInit(void)
   MbufsFree = MbufsMaxFree;
   MbufsRxUsed = 0;
 
-  for ( i=0;i<(L7_int32)MbufsFree;i++ )
+  for ( i=0;i<MbufsMaxFree;i++ )
   {
     *MbufQHead = ( L7_uint32 ) ( (L7_uchar8 *)pMbufPool + i * ( temp32 ));
     MbufQHead++;
@@ -370,13 +379,6 @@ L7_RC_t sysapiSystemInit(void)
   pMbufQBot = --MbufQHead;            /* set bottom of queue ptr */
   MbufQHead = pMbufQTop;              /* reset head ptr to top */
 
-  /***********************************************************************
-   * Create a binary semaphore that is initially full for controlling
-   * access to global mbuf vars. Tasks blocked on semaphore wait
-   * in priority order.
-   ***********************************************************************/
-  MbufSema = osapiSemaBCreate (OSAPI_SEM_Q_PRIORITY,
-      OSAPI_SEM_FULL);
 
 #ifndef L7_TRACE_ENABLED
   /* Start the CPU Utilization monitor task, if tracing is not enabled. */
@@ -384,6 +386,8 @@ L7_RC_t sysapiSystemInit(void)
   /* clock while the CPU utilization is also using it.                  */
   sysapiCpuUtilTaskStart();
 #endif
+
+  osapiSemaGive(MbufSema);
 
   return(L7_SUCCESS);
 }

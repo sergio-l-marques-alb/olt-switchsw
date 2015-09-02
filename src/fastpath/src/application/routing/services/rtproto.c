@@ -493,7 +493,7 @@ rtInIPForwardArpTable (L7_uint32 dest_ip_addr, L7_uint32 netMask,
   ip = rtmtod(m, struct ip *);
   if (m->rtm_bufhandle == NULL)
   {
-    netMbufHandle = sysapiRxNetMbufGet(L7_MBUF_RX_PRIORITY_NORMAL,
+    SYSAPI_NET_RX_MBUF_GET(netMbufHandle, L7_MBUF_RX_PRIORITY_NORMAL,
                                        L7_MBUF_IP_ALIGNED);
     if (netMbufHandle == L7_NULL)
     {

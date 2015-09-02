@@ -92,7 +92,7 @@ struct rtmbuf *rtm_dup(struct rtmbuf *pBuf)
   rtcopyMbuf(pBuf, pDupBuf);
 
   /* Get a free Rx MBuf */
-  frameHdl = sysapiRxNetMbufGet(L7_MBUF_RX_PRIORITY_NORMAL, L7_MBUF_FRAME_ALIGNED);
+  SYSAPI_NET_RX_MBUF_GET(frameHdl, L7_MBUF_RX_PRIORITY_NORMAL, L7_MBUF_FRAME_ALIGNED);
   if (frameHdl == L7_NULL)
   {
     bufferPoolFree(bufferPoolId, bufferAddr);

@@ -291,9 +291,11 @@ void sysapiMbufDump(L7_int32 show_bufs)
 
       if (netMbufHandle->bufStart != L7_NULL)
       {
-        printf("Mbuf 0x%x at %s alloc by task 0x%x in %s:%u at %u secs\n",
+        printf("Mbuf 0x%x (inUse=%s) at %s alloc (rxBuffer=%s) by task 0x%x in %s:%u at %u secs\n",
                (L7_uint32)netMbufHandle,
+               netMbufHandle->in_use?"Yes":"False",
                mbufLocNames[netMbufHandle->mbufLoc],
+               netMbufHandle->rxBuffer?"True":"False",
                netMbufHandle->taskId,
                netMbufHandle->last_file,
                netMbufHandle->last_line,
@@ -323,7 +325,7 @@ void sysapiMbufDump(L7_int32 show_bufs)
 /**************************************************************************
 * @purpose  Retrieve an mbuf to the caller
 *
-* @param    none.
+* @param    isRx if the mbuff is Rx 
 *
 * @returns  A ptr to an mbuf
 * @returns  L7_NULL if none are available
@@ -332,7 +334,7 @@ void sysapiMbufDump(L7_int32 show_bufs)
 *
 * @end
 *************************************************************************/
-L7_uint32 *sysapiMbufGet( void )
+L7_uint32 *sysapiMbufGet(L7_BOOL isRx)
 {
   L7_uint32 buffer;
 
@@ -346,6 +348,9 @@ L7_uint32 *sysapiMbufGet( void )
     else
       MbufQHead++;        /* move the Q head ptr */
     MbufsFree--;         /* keep track...       */
+
+    if (isRx)
+      MbufsRxUsed++;
 
     ((SYSAPI_NET_MBUF_HEADER_t *)buffer)->in_use = L7_TRUE;
   }
@@ -363,6 +368,7 @@ L7_uint32 *sysapiMbufGet( void )
 * @purpose  Return an mbuf to the mbuf pool
 *
 * @param    *mbuf ptr to the mbuf to return
+* @param    isRx if the mbuf is Rx
 *
 * @returns  none.
 *
@@ -370,7 +376,7 @@ L7_uint32 *sysapiMbufGet( void )
 *
 * @end
 *************************************************************************/
-void sysapiMbufFree(  L7_uint32 *mbuf )
+void sysapiMbufFree(  L7_uint32 *mbuf, L7_BOOL isRx )
 {
   SYSAPI_MBUF_LOCK();
 
@@ -379,6 +385,20 @@ void sysapiMbufFree(  L7_uint32 *mbuf )
     MbufQTail = pMbufQTop;    /* wrap the Q tail ptr */
   else
     MbufQTail++;        /* move the Q tail ptr */
+  
+  if (isRx)
+  {
+    if (MbufsRxUsed)
+    {
+      MbufsRxUsed--;  
+    }
+    else
+    {      
+      /* If we have negative free rx buffers then somebody must have freed a buffer twice.*/      
+      sysapiMbufDump(1);
+      printf("\nsysapiMbufFree:The number of MbufsRxUsed (%u) is already equal to zero!\n", MbufsRxUsed);      
+    }
+  }
 
   MbufsFree++;         /* keep track...       */
 
@@ -444,6 +464,54 @@ L7_netBufHandle sysapiNetMbufGetTrack(L7_uchar8 *file, L7_uint32 line)
 }
 
 /**************************************************************************
+*
+* @purpose  Retrieve a network rx mbuf to the caller (and track the caller)
+*
+* @param    priority    @b{(input)}  Priority Indicator, for the mbuf
+* @param    alignType   @b{(input)}  Alignment indicator, for IP or frame
+*
+* @returns  A ptr to a network mbuf handle
+* @returns  0 if none are available
+*
+* @notes
+*
+* @end
+*
+*************************************************************************/
+L7_netBufHandle sysapiNetRxMbufGetTrack(L7_uchar8 *file, L7_uint32 line, L7_MBUF_RX_PRIORITY priority, L7_MBUF_ALIGNMENT  alignType)
+{
+  SYSAPI_NET_MBUF_HEADER_t *netMbufHandle = 0;
+
+  /* get the MBUF */
+  netMbufHandle = (SYSAPI_NET_MBUF_HEADER_t *)sysapiRxNetMbufGet(priority, alignType);
+
+  /* store tracking information */
+  if(netMbufHandle)
+  {
+    l7utilsFilenameStrip((L7_char8 **)&file);
+    osapiStrncpySafe(netMbufHandle->last_file, file, sizeof(netMbufHandle->last_file));
+    netMbufHandle->last_line = line;
+    netMbufHandle->mbufLoc = MBUF_LOC_ALLOC;
+
+#ifdef MBUF_HISTORY
+    osapiSemaTake(MbufSema, L7_WAIT_FOREVER);
+    if (mbufHistory)
+    {
+      mbufHistory[historyIndex].mbuf_ptr = (void*) netMbufHandle;
+      mbufHistory[historyIndex].mbufAction = MBUF_ALLOC;
+      mbufHistory[historyIndex].timestamp = osapiTimeMillisecondsGet();
+      osapiStrncpySafe(mbufHistory[historyIndex].alloc_file, file, MBUF_HISTORY_FILENAME_LEN);
+      mbufHistory[historyIndex].alloc_line = line;
+      mbufHistoryIndexInc();    /* increment with wrap */
+    }
+    osapiSemaGive(MbufSema);
+#endif
+  }
+
+  return((L7_uint32)netMbufHandle);
+}
+
+/**************************************************************************
 * @purpose  Retrieve a network mbuf to the caller
 *
 * @param    none.
@@ -458,10 +526,11 @@ L7_netBufHandle sysapiNetMbufGetTrack(L7_uchar8 *file, L7_uint32 line)
 L7_netBufHandle sysapiNetMbufGet( void )
 {
   SYSAPI_NET_MBUF_HEADER_t *netMbufHandle;
+  L7_BOOL isRx = L7_FALSE;
 
   mbuf_stats.alloc_tx_alloc_attempts++;
 
-  netMbufHandle = (SYSAPI_NET_MBUF_HEADER_t *)sysapiMbufGet();
+  netMbufHandle = (SYSAPI_NET_MBUF_HEADER_t *)sysapiMbufGet(isRx);
   if (netMbufHandle != L7_NULL)
   {
     netMbufHandle->bufStart  = (L7_uchar8 *)netMbufHandle + sizeof(SYSAPI_NET_MBUF_HEADER_t) +
@@ -514,20 +583,20 @@ L7_netBufHandle sysapiRxNetMbufGet( L7_MBUF_RX_PRIORITY priority,
   L7_uint32  rx_mid2_level;
   L7_uint32  rx_norm_level;
   L7_BOOL    rx_failed;
-
-  rx_high_level = L7_MBUF_RESERVED_TX_BUFFERS + MbufsRxUsed;
-  rx_mid0_level = L7_MBUF_RESERVED_RX_HI_PRIO_BUFFERS + rx_high_level;
-  rx_mid1_level = L7_MBUF_RESERVED_RX_MID0_PRIO_BUFFERS + rx_mid0_level;
-  rx_mid2_level = L7_MBUF_RESERVED_RX_MID1_PRIO_BUFFERS + rx_mid1_level;
-  rx_norm_level = L7_MBUF_RESERVED_RX_MID2_PRIO_BUFFERS + rx_mid2_level;
+  L7_BOOL    is_rx = L7_TRUE;
 
   if (MbufSema == L7_NULL)
   {
     return L7_NULL;
   }
 
-
   osapiSemaTake(MbufSema, L7_WAIT_FOREVER);
+
+  rx_high_level = L7_MBUF_RESERVED_TX_BUFFERS + MbufsRxUsed;
+  rx_mid0_level = L7_MBUF_RESERVED_RX_HI_PRIO_BUFFERS + rx_high_level;
+  rx_mid1_level = L7_MBUF_RESERVED_RX_MID0_PRIO_BUFFERS + rx_mid0_level;
+  rx_mid2_level = L7_MBUF_RESERVED_RX_MID1_PRIO_BUFFERS + rx_mid1_level;
+  rx_norm_level = L7_MBUF_RESERVED_RX_MID2_PRIO_BUFFERS + rx_mid2_level;
 
   rx_failed = L7_FALSE;
   switch (priority)
@@ -588,7 +657,7 @@ L7_netBufHandle sysapiRxNetMbufGet( L7_MBUF_RX_PRIORITY priority,
       return L7_NULL;
   }
 
-  mbufPtr = (SYSAPI_NET_MBUF_HEADER_t *)sysapiMbufGet();
+  mbufPtr = (SYSAPI_NET_MBUF_HEADER_t *)sysapiMbufGet(is_rx);
   if ( mbufPtr != L7_NULL)
   {
      mbufPtr->bufStart  = (L7_uchar8 *)mbufPtr + sizeof(SYSAPI_NET_MBUF_HEADER_t) + NET_MBUF_START_OFFSET;
@@ -605,19 +674,6 @@ L7_netBufHandle sysapiRxNetMbufGet( L7_MBUF_RX_PRIORITY priority,
      mbufPtr->timeStamp = osapiUpTimeRaw();
      mbufPtr->mbufLoc = MBUF_LOC_ALLOC;
      mbufPtr->rxBuffer = L7_TRUE;
-     MbufsRxUsed++;
-
-#ifdef MBUF_HISTORY
-     if (mbufHistory)
-     {
-       mbufHistory[historyIndex].mbuf_ptr = (void*) mbufPtr;
-       mbufHistory[historyIndex].mbufAction = MBUF_ALLOC;
-       mbufHistory[historyIndex].timestamp = osapiTimeMillisecondsGet();
-       osapiStrncpySafe(mbufHistory[historyIndex].alloc_file, "none", MBUF_HISTORY_FILENAME_LEN);
-       mbufHistory[historyIndex].alloc_line = 0;
-       mbufHistoryIndexInc();    /* increment with wrap */
-     }
-#endif
   }
 
   osapiSemaGive(MbufSema);
@@ -689,12 +745,16 @@ L7_netBufHandle sysapiNetMbufAlignGet(L7_uchar8 *file, L7_uint32 line,
 *************************************************************************/
 void sysapiNetMbufFree( L7_netBufHandle netMbufHandle )
 {
+  L7_BOOL isRx = L7_FALSE;
+
+  osapiSemaTake(MbufSema, L7_WAIT_FOREVER);
   if (netMbufHandle != L7_NULL)
   {
     if (((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->osBuffer != L7_NULL)
     {
       osapiNetMbufFree ((void *)((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->osBuffer);
     }
+    
     ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->bufStart  = L7_NULL;
     ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->bufLength = 0;
     ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->osBuffer  = L7_NULL;
@@ -705,15 +765,13 @@ void sysapiNetMbufFree( L7_netBufHandle netMbufHandle )
 
     if (((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->rxBuffer == L7_TRUE)
     {
+      isRx = L7_TRUE;     
       ((SYSAPI_NET_MBUF_HEADER_t *)netMbufHandle)->rxBuffer = L7_FALSE;
-
-      osapiSemaTake(MbufSema, L7_WAIT_FOREVER);
-      MbufsRxUsed--;
-      osapiSemaGive(MbufSema);
     }
-
-    sysapiMbufFree ((L7_uint32 *)netMbufHandle);
+    
+    sysapiMbufFree ((L7_uint32 *)netMbufHandle, isRx);
   }
+  osapiSemaGive(MbufSema);
 }
 
 /**************************************************************************

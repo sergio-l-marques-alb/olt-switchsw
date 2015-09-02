@@ -483,7 +483,7 @@ L7_RC_t mfcIpv6PktRecv(void  *pktMsg)
   recvBuf = (struct rtmbuf *)bufferAddr;
   memset(recvBuf, 0, sizeof(struct rtmbuf));
 
-  recvFrame= sysapiRxNetMbufGet(L7_MBUF_RX_PRIORITY_NORMAL, L7_MBUF_FRAME_ALIGNED);
+  SYSAPI_NET_RX_MBUF_GET(recvFrame, L7_MBUF_RX_PRIORITY_NORMAL, L7_MBUF_FRAME_ALIGNED);
   if (recvFrame== L7_NULL)
   {
     MFC_DEBUG(MFC_DEBUG_FAILURES,"\n Failed to get free MBuf ");
