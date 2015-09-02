@@ -26,6 +26,7 @@
 
 #include "dai_cfg.h"
 #include "dai_util.h"
+#include "ptin_intf.h"
 
 #define MAC_STR_LEN 17
 
@@ -1593,5 +1594,32 @@ L7_RC_t arpAclRuleInAclNextGet(L7_uchar8 *aclName, L7_uint32 ipAddrIn, L7_enetMa
                                ipAddrOut, macAddrOut->addr);
 
   osapiReadLockGive(daiCfgRWLock);
+  return rc;
+}
+
+/*********************************************************************
+* @purpose  API to restore DAI user config file to factory defaults
+*
+* @param    void
+*
+* @returns  L7_SUCCESS or L7_FAILURE
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_RC_t daiRestore(void)
+{
+  L7_RC_t rc = L7_FAILURE;
+
+  osapiWriteLockTake(daiCfgRWLock, L7_WAIT_FOREVER);
+  rc = daiRestoreProcess();
+  osapiWriteLockGive(daiCfgRWLock);
+
+  /*Restore Backplane Ports*/
+  #if (PTIN_BOARD_IS_LINECARD)
+  ptin_intf_dai_restore_defaults();
+  #endif
+
   return rc;
 }

@@ -1521,12 +1521,16 @@ daiFilterAction_t daiFrameARPAclFilter(L7_uint32 intIfNum, L7_ushort16 vlanId,
   if(osapiStrncmp(aclName, ARP_ACL_NULL, L7_ARP_ACL_NAME_LEN_MAX) == 0)
   {
     /* No ARP ACLs configured for check on this VLAN */
+    if (ptin_debug_dai_snooping)
+      LOG_DEBUG(LOG_CTX_DAI, "No ARP ACLs configured for check on this VLAN");    
     return DAI_FILTER_NONE;
   }
 
   if((acl = _arpAclEntryGet(aclName)) == L7_NULL)
   {
     /* Configured ARP ACL doesn't exist */
+    if (ptin_debug_dai_snooping)
+      LOG_DEBUG(LOG_CTX_DAI, "Configured ARP ACL doesn't exist");   
     return DAI_FILTER_NONE;
   }
 

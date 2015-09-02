@@ -746,4 +746,17 @@ L7_RC_t arpAclRuleNextGet(L7_uchar8 *aclNameIn, L7_uint32 ipAddrIn, L7_enetMacAd
 L7_RC_t arpAclRuleInAclNextGet(L7_uchar8 *aclName, L7_uint32 ipAddrIn, L7_enetMacAddr_t *macAddrIn,
                                L7_uint32 *ipAddrOut, L7_enetMacAddr_t *macAddrOut);
 
+/*********************************************************************
+* @purpose  Restores DAI user config file to factory defaults
+*
+* @param    void
+*
+* @returns  L7_SUCCESS or L7_FAILURE
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_RC_t daiRestore(void);
+
 #endif /* DAI_API_H */

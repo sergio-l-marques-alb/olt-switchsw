@@ -55,7 +55,7 @@
 
 #include "ptin_rfc2819_buffer.h"
 #include "ptin_rfc2819.h"
-
+#include "dai_api.h"
 #include <dtl_ptin.h>
 
 #include <ptin_ipdtl0_packet.h>
@@ -244,6 +244,11 @@ extern void ptin_msg_defaults_reset(msg_HwGenReq_t *msgPtr)
   /* Reset IGMP Module */
   LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on IGMP...");
   ptin_igmp_default_reset();
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
+
+   /* Reset DAI Module */
+  LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on DAI...");
+  daiRestore();
   LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
 
 #ifdef __Y1731_802_1ag_OAM_ETH__

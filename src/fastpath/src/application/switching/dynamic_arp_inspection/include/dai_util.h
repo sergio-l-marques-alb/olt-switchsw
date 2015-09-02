@@ -318,7 +318,6 @@ void _daiVlanArpAclClear(L7_uint32 vlanId);
 L7_BOOL _daiVlanArpAclGet(L7_uint32 vlanId, L7_uchar8 *aclName);
 void daiBuildDefaultConfigData(L7_uint32 ver);
 L7_RC_t daiSave(void);
-L7_RC_t daiRestore(void);
 L7_RC_t daiRestoreProcess(void);
 L7_BOOL daiHasDataChanged(void);
 void daiResetDataChanged(void);

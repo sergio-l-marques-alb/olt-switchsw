@@ -340,27 +340,6 @@ L7_RC_t daiSave(void)
 *
 * @returns  L7_SUCCESS or L7_FAILURE
 *
-* @notes    none
-*
-* @end
-*********************************************************************/
-L7_RC_t daiRestore(void)
-{
-  L7_RC_t rc = L7_FAILURE;
-
-  osapiWriteLockTake(daiCfgRWLock, L7_WAIT_FOREVER);
-  rc = daiRestoreProcess();
-  osapiWriteLockGive(daiCfgRWLock);
-  return rc;
-}
-
-/*********************************************************************
-* @purpose  Restores DAI user config file to factory defaults
-*
-* @param    void
-*
-* @returns  L7_SUCCESS or L7_FAILURE
-*
 * @notes    assuming semaphore already taken
 *
 * @end

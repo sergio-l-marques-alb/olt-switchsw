@@ -354,6 +354,35 @@ L7_RC_t ptin_intf_init(void)
 }
 
 
+/* For internal ports (linecards only) */
+#if (PTIN_BOARD_IS_LINECARD)
+/**
+ * Restore DAI Setting for Internal Interfaces
+ *  
+ * @param none
+ *  
+ * @return none
+ */
+void ptin_intf_dai_restore_defaults(void)
+{
+  L7_RC_t rc;
+  L7_uint32 i;
+  for (i=0; i<ptin_sys_number_of_ports; i++)
+  { 
+    /* Internal interfaces of linecards, should always be trusted */
+    if ((PTIN_SYSTEM_10G_PORTS_MASK >> i) & 1)
+    {
+      rc = usmDbDaiIntfTrustSet(map_port2intIfNum[i], L7_TRUE);
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to set DAI-trust mode for port# %u", i);      
+      }
+    }  
+  }
+  return;
+}
+#endif
+
 /****************************************************************************** 
  * PHY PORT FUNCTIONS
  ******************************************************************************/
