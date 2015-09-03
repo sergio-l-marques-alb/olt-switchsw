@@ -327,9 +327,12 @@ L7_RC_t ptin_hapi_maclimit_inc(bcmx_l2_addr_t *bcmx_l2_addr)
                 bcmx_l2_addr->mac[0], bcmx_l2_addr->mac[1], bcmx_l2_addr->mac[2], bcmx_l2_addr->mac[3], bcmx_l2_addr->mac[4], bcmx_l2_addr->mac[5], 
                 tgid, bcmx_l2_addr->lport, bcmx_l2_addr->flags);
 
-    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Increase MAC Learned in LAG %d", tgid);
-    macLearn_info_lag[tgid].mac_counter++;
-    macLearn_info_lag[tgid].mac_total++;
+    if (!(bcmx_l2_addr->flags & BCM_L2_MOVE))
+    {
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Increase MAC Learned in LAG %d", tgid);
+      macLearn_info_lag[tgid].mac_counter++;
+      macLearn_info_lag[tgid].mac_total++;
+    }
 
     if (macLearn_info_lag[tgid].mac_counter >= macLearn_info_lag[tgid].mac_limit)
     { 
