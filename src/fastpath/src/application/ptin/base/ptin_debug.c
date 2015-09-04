@@ -237,6 +237,7 @@ void ptin_debug(void)
   printf("  ptin_debug_oam_set <enable>                                     - Show more debugging logs for the OAM module\r\n");
   printf("  ptin_debug_lacp_set <enable>                                    - Show more debugging logs for the LACP module\r\n");
   printf("  ptin_debug_dtl_set <enable>                                     - Show more debugging logs for the DTL module\r\n");
+  printf("  ptin_debug_hapi_l2_enable <enable>                              - Show more debugging logs for the HAPI L2 module\r\n");
   printf("\r\n");
   printf("  log_help                                                        - displays logger help\r\n");
   printf("  log_sev_set   <ctx_mask> <severity>                             - use log_help for more info\r\n");

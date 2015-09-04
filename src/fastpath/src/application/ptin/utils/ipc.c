@@ -297,9 +297,6 @@ int send_trap_switch_event(unsigned char intfType, int interface, int code, int 
   ptin_intf.intf_type = intfType;
   ptin_intf.intf_id   = interface;
 
-  LOG_TRACE(LOG_CTX_IPC,"%d",intfType);
-  LOG_TRACE(LOG_CTX_IPC,"%d",interface);
-
   if (ptin_intf_ptintf2SlotPort(&ptin_intf, &slot_to_send, L7_NULLPTR, L7_NULLPTR)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_IPC,"Unable to determine slot to send trap (port=%u)", interface);
