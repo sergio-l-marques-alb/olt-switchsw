@@ -1514,7 +1514,7 @@ daiFilterAction_t daiFrameARPAclFilter(L7_uint32 intIfNum, L7_ushort16 vlanId,
   //L7_uchar8    mac_address[L7_ENET_MAC_ADDR_LEN];
   L7_ushort16 ethHdrLen = sysNetDataOffsetGet(frame);
   L7_ether_arp_t *arp_pkt = (L7_ether_arp_t*)(frame + ethHdrLen);
-
+  daiFilterAction_t daiFilterAction = DAI_FILTER_FAIL;
   L7_uchar8 *aclName = daiCfgData->aclName[vlanId];
   arpAclCfg_t *acl = L7_NULL;
 
@@ -1523,22 +1523,22 @@ daiFilterAction_t daiFrameARPAclFilter(L7_uint32 intIfNum, L7_ushort16 vlanId,
     /* No ARP ACLs configured for check on this VLAN */
     if (ptin_debug_dai_snooping)
       LOG_DEBUG(LOG_CTX_DAI, "No ARP ACLs configured for check on this VLAN");    
-    return DAI_FILTER_NONE;
+    daiFilterAction = DAI_FILTER_NONE;
   }
 
-  if((acl = _arpAclEntryGet(aclName)) == L7_NULL)
+  if ( (daiFilterAction == DAI_FILTER_FAIL) && ((acl = _arpAclEntryGet(aclName)) == L7_NULL)) 
   {
     /* Configured ARP ACL doesn't exist */
     if (ptin_debug_dai_snooping)
       LOG_DEBUG(LOG_CTX_DAI, "Configured ARP ACL doesn't exist");   
-    return DAI_FILTER_NONE;
+    daiFilterAction = DAI_FILTER_NONE;
   }
 
   senderIpAddr = GET_IP_FROM_PKT(arp_pkt->arp_spa);
 
   /* PTin modified: DAI */
   #if 1
-  if (_ptin_arpAclRuleFindIndex(acl, senderIpAddr, arp_pkt->arp_sha) >= 0)
+  if ( (daiFilterAction == DAI_FILTER_FAIL) && (_ptin_arpAclRuleFindIndex(acl, senderIpAddr, arp_pkt->arp_sha) >= 0) )
   {
     /* Match found, don't filter the packet */
     daiVlanInfo[vlanId].stats.aclPermits++;
