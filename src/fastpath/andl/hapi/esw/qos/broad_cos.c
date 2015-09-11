@@ -1335,6 +1335,7 @@ L7_RC_t hapiBroadQosCosIpDscpToTcMap(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data
     L7_RC_t                     result = L7_SUCCESS;
     DAPI_QOS_CMD_t             *cmdCos = (DAPI_QOS_CMD_t*)data;
     BROAD_PORT_t               *hapiPortPtr;
+    DAPI_PORT_t                *dapiPortPtr;
     HAPI_BROAD_QOS_PORT_t      *qosPortPtr;
     BROAD_SYSTEM_t             *hapiSystemPtr;
     HAPI_BROAD_QOS_t           *qos;
@@ -1354,6 +1355,7 @@ L7_RC_t hapiBroadQosCosIpDscpToTcMap(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data
     hapiBroadQosSemTake(dapi_g);
 
     hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
+    dapiPortPtr = DAPI_PORT_GET(usp, dapi_g);
     qosPortPtr  = (HAPI_BROAD_QOS_PORT_t*)hapiPortPtr->qos;
 
     hapiSystemPtr = (BROAD_SYSTEM_t *)(dapi_g->system->hapiSystem);
@@ -1372,9 +1374,33 @@ L7_RC_t hapiBroadQosCosIpDscpToTcMap(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data
 
     /* set dscp map table for L3 frames */
     #if 1
-    rv = bcmx_port_dscp_map_set(hapiPortPtr->bcmx_lport /*BCMX_LPORT_ETHER_ALL*/,
-                                dscp, dscp, qosPortPtr->cos.dscpMap[dscp]);
+    if (BROAD_PORT_IS_LAG(hapiPortPtr))
+    {
+        int               i;
+        DAPI_LAG_ENTRY_t *lagMemberSet;
+        BROAD_PORT_t     *lagMemberPtr;
 
+        lagMemberSet = dapiPortPtr->modeparm.lag.memberSet;
+
+        /* apply CoS config to each LAG member */
+        for (i = 0; i < L7_MAX_MEMBERS_PER_LAG; i++)
+        {
+            if (L7_TRUE == lagMemberSet[i].inUse)
+            {
+                lagMemberPtr = HAPI_PORT_GET(&lagMemberSet[i].usp, dapi_g);
+
+                rv = bcmx_port_dscp_map_set(lagMemberPtr->bcmx_lport,
+                                            dscp, dscp, qosPortPtr->cos.dscpMap[dscp]);
+                if (BCM_E_NONE != rv)
+                    break;
+            }
+        }
+    }
+    else
+    {
+      rv = bcmx_port_dscp_map_set(hapiPortPtr->bcmx_lport,
+                                  dscp, dscp, qosPortPtr->cos.dscpMap[dscp]);
+    }
     #else
     rv = bcmx_port_dscp_map_set(BCMX_LPORT_ETHER_ALL,
                                 dscp, dscp, qos->dscpMap[dscp]);
