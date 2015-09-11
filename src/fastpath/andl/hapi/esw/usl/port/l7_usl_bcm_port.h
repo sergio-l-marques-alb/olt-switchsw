@@ -126,9 +126,9 @@ typedef struct
   L7_uchar8   flags[L7_MAX_CFG_QUEUES_PER_PORT]; /* BCM_COSQ_DISCARD_CAP_AVERAGE only */
 
   /* The following three are percentages */
-  L7_uchar8   minThreshold[L7_MAX_CFG_QUEUES_PER_PORT][L7_MAX_CFG_DROP_PREC_LEVELS+1];
-  L7_uchar8   maxThreshold[L7_MAX_CFG_QUEUES_PER_PORT][L7_MAX_CFG_DROP_PREC_LEVELS+1];
-  L7_uchar8   dropProb[L7_MAX_CFG_QUEUES_PER_PORT][L7_MAX_CFG_DROP_PREC_LEVELS+1];
+  L7_uchar8   minThreshold[L7_MAX_CFG_QUEUES_PER_PORT][L7_MAX_CFG_DROP_PREC_LEVELS*2+1];  /* PTin modified: Allow 6 DP levels */
+  L7_uchar8   maxThreshold[L7_MAX_CFG_QUEUES_PER_PORT][L7_MAX_CFG_DROP_PREC_LEVELS*2+1];  /* PTin modified: Allow 6 DP levels */
+  L7_uchar8   dropProb[L7_MAX_CFG_QUEUES_PER_PORT][L7_MAX_CFG_DROP_PREC_LEVELS*2+1];      /* PTin modified: Allow 6 DP levels */
 } usl_bcm_port_wred_config_t;
 
 typedef struct

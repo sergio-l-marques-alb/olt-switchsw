@@ -80,10 +80,11 @@ typedef struct L7_qosCosQueueMgmtTypeList_s
 typedef struct L7_qosCosDropParmsPerQueue_s
 {
     L7_QOS_COS_QUEUE_MGMT_TYPE_t    mgmtType;
-    L7_uchar8                       minThreshold[L7_MAX_CFG_DROP_PREC_LEVELS+1]; /* WRED thresh, percentage (0-100) */
-    L7_uchar8                       wredMaxThreshold[L7_MAX_CFG_DROP_PREC_LEVELS+1]; /* WRED thresh, percentage (0-100) */
-    L7_uchar8                       dropProb[L7_MAX_CFG_DROP_PREC_LEVELS+1];     /* percentage (0-100) */
-    L7_uchar8                       tailDropMaxThreshold[L7_MAX_CFG_DROP_PREC_LEVELS+1]; /* percentage (0-100) */
+    /* PTin modified: Allow 6 DP levels */
+    L7_uchar8                       minThreshold[L7_MAX_CFG_DROP_PREC_LEVELS*2+1]; /* WRED thresh, percentage (0-100) */
+    L7_uchar8                       wredMaxThreshold[L7_MAX_CFG_DROP_PREC_LEVELS*2+1]; /* WRED thresh, percentage (0-100) */
+    L7_uchar8                       dropProb[L7_MAX_CFG_DROP_PREC_LEVELS*2+1];     /* percentage (0-100) */
+    L7_uchar8                       tailDropMaxThreshold[L7_MAX_CFG_DROP_PREC_LEVELS*2+1]; /* percentage (0-100) */
     L7_uchar8                       wred_decayExponent;                          /* PTin added: QoS */
 } L7_qosCosDropParmsPerQueue_t;
 

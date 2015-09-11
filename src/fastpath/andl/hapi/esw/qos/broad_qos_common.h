@@ -81,10 +81,11 @@ HAPI_BROAD_ACLDS_PORT_t;
 
 typedef struct
 {
-    L7_uchar8 wredMinThresh[L7_MAX_CFG_DROP_PREC_LEVELS+1];
-    L7_uchar8 wredMaxThresh[L7_MAX_CFG_DROP_PREC_LEVELS+1];
-    L7_uchar8 wredDropProb[L7_MAX_CFG_DROP_PREC_LEVELS+1];
-    L7_uchar8 taildropThresh[L7_MAX_CFG_DROP_PREC_LEVELS+1];
+    /* PTin modified: Allow 6 DP levels */
+    L7_uchar8 wredMinThresh[L7_MAX_CFG_DROP_PREC_LEVELS*2+1];
+    L7_uchar8 wredMaxThresh[L7_MAX_CFG_DROP_PREC_LEVELS*2+1];
+    L7_uchar8 wredDropProb[L7_MAX_CFG_DROP_PREC_LEVELS*2+1];
+    L7_uchar8 taildropThresh[L7_MAX_CFG_DROP_PREC_LEVELS*2+1];
 }
 HAPI_BROAD_COS_COLOR_PORT_t;
 

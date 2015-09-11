@@ -1341,7 +1341,7 @@ L7_RC_t hapiBroadQosCosIpDscpToTcMap(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data
     HAPI_BROAD_QOS_t           *qos;
     L7_uchar8                   dscp;
     L7_uchar8                   tc;
-    int                         rv;
+    int                         rv = BCM_E_NONE;
 
     if (cmdCos->cmdData.ipDscpToTcMap.getOrSet != DAPI_CMD_SET)
     {
@@ -1592,7 +1592,8 @@ static L7_RC_t hapiBroadQosCosWredApply(DAPI_USP_t *usp)
             /* PTin modified: QoS */
             parms.gain[cosIndex] = qosPortPtr->cos.wredExponent[cosIndex];
 
-            for(colorIndex = 0; colorIndex < (L7_MAX_CFG_DROP_PREC_LEVELS+1); colorIndex++) 
+            /* PTin modified: Allow 6 DP levels */
+            for(colorIndex = 0; colorIndex < (L7_MAX_CFG_DROP_PREC_LEVELS*2); colorIndex++) 
             {
                 parms.minThreshold[cosIndex][colorIndex] = 
                     qosPortPtr->cos.perColorParams[cosIndex].wredMinThresh[colorIndex];
@@ -1609,7 +1610,8 @@ static L7_RC_t hapiBroadQosCosWredApply(DAPI_USP_t *usp)
 	     add BCM_COSQ_DISCARD_ENABLE to the flags. */
             parms.flags[cosIndex] = 0; 
             parms.gain[cosIndex] = 0;
-            for(colorIndex = 0; colorIndex < (L7_MAX_CFG_DROP_PREC_LEVELS+1); colorIndex++) 
+            /* PTin modified: Allow 6 DP levels */
+            for(colorIndex = 0; colorIndex < (L7_MAX_CFG_DROP_PREC_LEVELS*2); colorIndex++) 
             {
                 parms.minThreshold[cosIndex][colorIndex] = 0;
                 parms.maxThreshold[cosIndex][colorIndex] = 
@@ -1622,7 +1624,8 @@ static L7_RC_t hapiBroadQosCosWredApply(DAPI_USP_t *usp)
             /* Something else, just disable chip WRED entirely */
             parms.flags[cosIndex] = 0;
             parms.gain[cosIndex] = 0;
-            for(colorIndex = 0; colorIndex < (L7_MAX_CFG_DROP_PREC_LEVELS+1); colorIndex++) 
+            /* PTin modified: Allow 6 DP levels */
+            for(colorIndex = 0; colorIndex < (L7_MAX_CFG_DROP_PREC_LEVELS*2); colorIndex++) 
             {
                 parms.minThreshold[cosIndex][colorIndex] = 0;
                 parms.maxThreshold[cosIndex][colorIndex] = 100;
@@ -1971,7 +1974,8 @@ L7_RC_t hapiBroadQosCosQueueDropConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *da
             /* PTin added: QoS */
             qosPortPtr->cos.wredExponent[queueId] = cmdCos->cmdData.queueDropConfig.parms[queueId].wred_decayExponent;
 
-            for(colorIndex=0; colorIndex<(L7_MAX_CFG_DROP_PREC_LEVELS+1); colorIndex++) 
+            /* PTin modified: allow 6 DP levels */
+            for(colorIndex=0; colorIndex<(L7_MAX_CFG_DROP_PREC_LEVELS*2); colorIndex++) 
             {
                 qosPortPtr->cos.perColorParams[queueId].wredDropProb[colorIndex] = cmdCos->cmdData.queueDropConfig.parms[queueId].dropProb[colorIndex];
                 qosPortPtr->cos.perColorParams[queueId].wredMinThresh[colorIndex] = cmdCos->cmdData.queueDropConfig.parms[queueId].minThreshold[colorIndex];
@@ -1980,7 +1984,8 @@ L7_RC_t hapiBroadQosCosQueueDropConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *da
         }
         else if (qosPortPtr->cos.dropType[queueId] == DAPI_QOS_COS_QUEUE_MGMT_TYPE_TAILDROP) 
         {
-            for(colorIndex=0; colorIndex<(L7_MAX_CFG_DROP_PREC_LEVELS+1); colorIndex++) 
+            /* PTin modified: allow 6 DP levels */
+            for(colorIndex=0; colorIndex<(L7_MAX_CFG_DROP_PREC_LEVELS*2); colorIndex++) 
             {
                 qosPortPtr->cos.perColorParams[queueId].taildropThresh[colorIndex] = cmdCos->cmdData.queueDropConfig.parms[queueId].maxThreshold[colorIndex];
             }

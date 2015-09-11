@@ -458,6 +458,26 @@ L7_RC_t dtlQosCosQueueDropConfigSet(L7_uint32 intIfNum,
         dapiCmd.cmdData.queueDropConfig.parms[queueIndex].dropProb[precIndex] = 
             pDropParms->queue[queueIndex].dropProb[precIndex];
       }
+      /* PTin added: Allow 6 DP levels */
+      #if 1
+      for (precIndex = (L7_MAX_CFG_DROP_PREC_LEVELS+1); precIndex < (L7_MAX_CFG_DROP_PREC_LEVELS*2); precIndex++)
+      {
+        dapiCmd.cmdData.queueDropConfig.parms[queueIndex].minThreshold[precIndex] = 
+            pDropParms->queue[queueIndex].minThreshold[L7_MAX_CFG_DROP_PREC_LEVELS];
+        if (pDropParms->queue[queueIndex].mgmtType == L7_QOS_COS_QUEUE_MGMT_TYPE_TAILDROP) 
+        {
+          dapiCmd.cmdData.queueDropConfig.parms[queueIndex].maxThreshold[precIndex] = 
+              pDropParms->queue[queueIndex].tailDropMaxThreshold[L7_MAX_CFG_DROP_PREC_LEVELS];            
+        }
+        else
+        {
+          dapiCmd.cmdData.queueDropConfig.parms[queueIndex].maxThreshold[precIndex] = 
+              pDropParms->queue[queueIndex].wredMaxThreshold[L7_MAX_CFG_DROP_PREC_LEVELS];
+        }
+        dapiCmd.cmdData.queueDropConfig.parms[queueIndex].dropProb[precIndex] = 
+            pDropParms->queue[queueIndex].dropProb[L7_MAX_CFG_DROP_PREC_LEVELS];
+      }
+      #endif
       /* PTin added: QoS */
       dapiCmd.cmdData.queueDropConfig.parms[queueIndex].wred_decayExponent = 
           pDropParms->queue[queueIndex].wred_decayExponent;

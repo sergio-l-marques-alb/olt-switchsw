@@ -1623,7 +1623,8 @@ int usl_bcm_port_wred_set(int unit, bcm_port_t port,
     for (queueIndex=0; queueIndex<L7_MAX_CFG_QUEUES_PER_PORT; queueIndex++) 
     {
       discardParams.gain = wredParams->gain[queueIndex];
-      for (precIndex=0; precIndex<(L7_MAX_CFG_DROP_PREC_LEVELS+1); precIndex++) 
+      /* PTin modified: Allow 6 DP levels */
+      for (precIndex=0; precIndex<(L7_MAX_CFG_DROP_PREC_LEVELS*2); precIndex++) 
       {
         discardParams.flags = BCM_COSQ_DISCARD_BYTES;
         if (wredParams->flags[queueIndex] & BCM_COSQ_DISCARD_CAP_AVERAGE) 
@@ -1640,22 +1641,58 @@ int usl_bcm_port_wred_set(int unit, bcm_port_t port,
         discardParams.max_thresh = 
          l7_port_wred_percent_to_bytes(unit, wredParams->maxThreshold[queueIndex][precIndex]);
 
-        switch (precIndex) 
+        /* PTin modified: Allow 6 DP levels for non Valkyrie2 devices */
+        if (SOC_IS_VALKYRIE2(unit)) 
         {
+          /* For Valkyrie 2, only 4 DP levels are defined */
+          if (precIndex >= (L7_MAX_CFG_DROP_PREC_LEVELS+1))
+            break;
+
+          /* Flags */
+          switch (precIndex) 
+          {
           case 0:
-            discardParams.flags |= BCM_COSQ_DISCARD_COLOR_GREEN;
-            break;
-          case 1:
-            discardParams.flags |= BCM_COSQ_DISCARD_COLOR_YELLOW;
-            break;
-          case 2:
-            discardParams.flags |= BCM_COSQ_DISCARD_COLOR_RED;
-             break;
-          case 3:
-            discardParams.flags |= BCM_COSQ_DISCARD_NONTCP;
-            break;
-          default:
-            return(BCM_E_PARAM);
+              discardParams.flags |= BCM_COSQ_DISCARD_COLOR_GREEN;
+              break;
+            case 1:
+              discardParams.flags |= BCM_COSQ_DISCARD_COLOR_YELLOW;
+              break;
+            case 2:
+              discardParams.flags |= BCM_COSQ_DISCARD_COLOR_RED;
+               break;
+            case 3:
+              discardParams.flags |= BCM_COSQ_DISCARD_NONTCP;
+              break;
+            default:
+              return(BCM_E_PARAM);
+          }
+        }
+        else
+        {
+          /* Flags */
+          switch (precIndex) 
+          {
+            case 0:
+              discardParams.flags |= (BCM_COSQ_DISCARD_COLOR_GREEN | BCM_COSQ_DISCARD_TCP);
+              break;
+            case 1:
+              discardParams.flags |= (BCM_COSQ_DISCARD_COLOR_YELLOW | BCM_COSQ_DISCARD_TCP);
+              break;
+            case 2:
+              discardParams.flags |= (BCM_COSQ_DISCARD_COLOR_RED | BCM_COSQ_DISCARD_TCP);
+               break;
+            case 3:
+              discardParams.flags |= (BCM_COSQ_DISCARD_COLOR_GREEN | BCM_COSQ_DISCARD_NONTCP);
+              break;
+            case 4:
+              discardParams.flags |= (BCM_COSQ_DISCARD_COLOR_YELLOW | BCM_COSQ_DISCARD_NONTCP);
+              break;
+            case 5:
+              discardParams.flags |= (BCM_COSQ_DISCARD_COLOR_RED | BCM_COSQ_DISCARD_NONTCP);
+               break;
+            default:
+              return(BCM_E_PARAM);
+          }
         }
 
         rv = bcm_cosq_gport_discard_set(unit, wredParams->bcm_gport, 

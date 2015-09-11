@@ -5137,7 +5137,8 @@ void usl_port_print_wred_config(USL_DB_TYPE_t dbType,
                      "Cos %d gain %d flags %d\n",
                      i, config->gain, config->flags);
 
-    for (j = 0; j < (L7_MAX_CFG_DROP_PREC_LEVELS+1); j++)
+    /* PTin modified: Allow 6 DP levels */
+    for (j = 0; j < (L7_MAX_CFG_DROP_PREC_LEVELS*2); j++)
     {
       osapiSnprintfcat(buffer, size,
                        "Drop probability %d minThrehold %d maxThreshold %d\n",

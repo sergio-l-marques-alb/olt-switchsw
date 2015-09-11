@@ -2673,10 +2673,10 @@ typedef enum
 typedef struct
 {
   DAPI_QOS_COS_QUEUE_MGMT_TYPE_t  dropType;
-  L7_uchar8                       minThreshold[L7_MAX_CFG_DROP_PREC_LEVELS+1];
+  L7_uchar8                       minThreshold[L7_MAX_CFG_DROP_PREC_LEVELS*2+1];  /* PTin modified: Allow 6 DP levels */
   /* Also queue size for tail-drop */
-  L7_uchar8                       maxThreshold[L7_MAX_CFG_DROP_PREC_LEVELS+1];
-  L7_uchar8                       dropProb[L7_MAX_CFG_DROP_PREC_LEVELS+1];
+  L7_uchar8                       maxThreshold[L7_MAX_CFG_DROP_PREC_LEVELS*2+1];  /* PTin modified: Allow 6 DP levels */
+  L7_uchar8                       dropProb[L7_MAX_CFG_DROP_PREC_LEVELS*2+1];      /* PTin modified: Allow 6 DP levels */
   
   L7_uint8                        wred_decayExponent;     /* PTin added: QoS */
 
