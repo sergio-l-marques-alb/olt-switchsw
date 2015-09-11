@@ -5188,7 +5188,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       if (L7_SUCCESS != rc)
       {       
        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
-       LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while adding Channels to Package [res:0x%x]", res);
+       LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while removing Channels from a Package [res:0x%x]", res);
        SetIPCNACK(outbuffer, res);
        break;
       }

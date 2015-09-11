@@ -13853,6 +13853,8 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_pac
         if ( rc != L7_SUCCESS )
         {
           LOG_ERR(LOG_CTX_PTIN_MSG, "Error converting clientId");
+          /*The client may not exist!*/
+          rc = L7_SUCCESS;
           continue;
         }
 
