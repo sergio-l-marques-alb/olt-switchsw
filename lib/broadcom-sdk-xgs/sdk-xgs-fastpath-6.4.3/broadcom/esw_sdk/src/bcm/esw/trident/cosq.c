@@ -4689,7 +4689,14 @@ bcm_td_cosq_mapping_set(int unit, bcm_port_t port, bcm_cos_t priority,
     * mcast 
     * There are only 5 MC QUEUES [0,4] attached to a port
     */
-    mc_cosq = (cosq > mc_cosq_max) ? mc_cosq_max : cosq;
+    //mc_cosq = (cosq > mc_cosq_max) ? mc_cosq_max : cosq;
+    {
+     int numq;
+    
+     bcm_td_cosq_config_get(unit,&numq);
+     mc_cosq = cosq * (mc_cosq_max+1) / numq;
+    }	
+
     BCM_IF_ERROR_RETURN(_bcm_td_cosq_mapping_set(unit, local_port,
         priority,
         BCM_COSQ_GPORT_UCAST_QUEUE_GROUP | BCM_COSQ_GPORT_MCAST_QUEUE_GROUP,
