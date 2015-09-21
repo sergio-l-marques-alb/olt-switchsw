@@ -9878,12 +9878,14 @@ static L7_RC_t ptin_shell_command_run(L7_char8 *tty, L7_char8 *type, L7_char8 *c
 {
   L7_RC_t   rc = L7_SUCCESS;
   //L7_char8 *prevtty = ttyname(1);
+  //extern L7_RC_t hapiBroadDebugShell(void *data);
 
   //ptin_PitHandler(tty);
 
   if (strcmp(type, "driv") == 0)
   {
     dtlDriverShell(cmd);
+    //hapiBroadDebugShell(cmd);
   }
   else if (strcmp(type, "dev") == 0)
   {

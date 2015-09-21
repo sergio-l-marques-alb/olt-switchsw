@@ -259,34 +259,6 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     return IPC_OK;
   }
 
-  /* PTin module is still loading or crashed ? */
-  if (ptin_state != PTIN_LOADED)
-  {
-    PT_LOG_WARN(LOG_CTX_MSGHANDLER, "IPC message cannot be processed! PTin state = %d (msgId=%u)", ptin_state, inbuffer->msgId);
-    res = SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_NOTALLOWED);
-    SetIPCNACK(outbuffer, res);
-    return IPC_OK;
-  }
-
-
-  if(ipc_msg_bytes_debug_enable(2))
-  {
-    L7_uint i;
-
-    if (inbuffer == NULL)
-    {
-        PT_LOG_WARN(LOG_CTX_MSGHANDLER, "NULL message received!");
-        return SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_EMPTYMSG);
-    }
-    printf("\n\rmsgId[%4.4x] inbuffer->info:",inbuffer->msgId);
-    for(i=0; i<inbuffer->infoDim; i++)
-    {
-        printf(" %2.2Xh",inbuffer->info[i]); 
-    }
-    printf("\n\r");  
-  }
-
-
   /* If reached here, means PTin module is loaded and ready to process messages */
   switch (inbuffer->msgId)
   {
@@ -319,7 +291,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
                "Message processed: response with %"
                "d bytes", outbuffer->infoDim);
 
-      break;  /* CCMSG_APP_CHANGE_STDOUT */
+      return IPC_OK;  /* CCMSG_APP_CHANGE_STDOUT */
     }
 
     case CCMSG_APP_LOGGER_OUTPUT:
@@ -370,7 +342,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       PT_LOG_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
-      break;  /* CCMSG_APP_CHANGE_STDOUT */
+      return IPC_OK;  /* CCMSG_APP_CHANGE_STDOUT */
     }
 
     /* CCMSG_APP_SHELL_CMD_RUN ************************************************/
@@ -399,10 +371,41 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       PT_LOG_INFO(LOG_CTX_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
-      break;  /* CCMSG_APP_SHELL_CMD_RUN */
+      return IPC_OK;  /* CCMSG_APP_SHELL_CMD_RUN */
     }
+  }
+
+  /* PTin module is still loading or crashed ? */
+  if (ptin_state != PTIN_LOADED)
+  {
+    PT_LOG_WARN(LOG_CTX_MSGHANDLER, "IPC message cannot be processed! PTin state = %d (msgId=%u)", ptin_state, inbuffer->msgId);
+    res = SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_NOTALLOWED);
+    SetIPCNACK(outbuffer, res);
+    return IPC_OK;
+  }
 
 
+  if(ipc_msg_bytes_debug_enable(2))
+  {
+    L7_uint i;
+
+    if (inbuffer == NULL)
+    {
+        PT_LOG_WARN(LOG_CTX_MSGHANDLER, "NULL message received!");
+        return SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_EMPTYMSG);
+    }
+    printf("\n\rmsgId[%4.4x] inbuffer->info:",inbuffer->msgId);
+    for(i=0; i<inbuffer->infoDim; i++)
+    {
+        printf(" %2.2Xh",inbuffer->info[i]); 
+    }
+    printf("\n\r");  
+  }
+
+
+  /* If reached here, means PTin module is loaded and ready to process messages */
+  switch (inbuffer->msgId)
+  {
     /************************************************************************** 
      * Misc Processing
      **************************************************************************/

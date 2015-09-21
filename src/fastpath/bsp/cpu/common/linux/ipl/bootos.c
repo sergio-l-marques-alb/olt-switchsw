@@ -433,6 +433,23 @@ int fp_main(int argc, char *argv[])
                    L7_DEFAULT_TASK_SLICE);
 #endif
 
+/* Test */
+#if 0
+  L7_CNFGR_RESPONSE_t response;
+  L7_CNFGR_ERR_RC_t reason;
+
+  extern L7_RC_t ptinCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
+                                             L7_CNFGR_ERR_RC_t   *pReason );
+  extern L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
+                                             L7_CNFGR_ERR_RC_t   *pReason );
+  extern L7_RC_t ptinCnfgrInitPhase3Process( L7_CNFGR_RESPONSE_t *pResponse,
+                                             L7_CNFGR_ERR_RC_t   *pReason );
+
+  //ptinCnfgrInitPhase1Process(&response, &reason);
+  //ptinCnfgrInitPhase2Process(&response, &reason);
+  ptinCnfgrInitPhase3Process(&response, &reason);
+#else
+
   osapiNetworkInit(); /* Initializes the IP Network */
 
   sysapiIfNetInit(); /* Initialize the sysapi network support layer */
@@ -463,6 +480,7 @@ int fp_main(int argc, char *argv[])
       printf(" Configurator did not initialized... exiting \n");
 
   } /* endif 1. initialize configurator */
+#endif
 
   /* kill startup status task */
   osapiTaskDelete(startupStatusTaskID);
