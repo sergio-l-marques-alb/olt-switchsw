@@ -1479,6 +1479,14 @@ void hpcHardwareDefaultConfigApply(void)
       }
     }
 
+    /* Remove Ethernet ports from VLAN 1 */
+    rv = bcm_vlan_port_remove(i, 1, PBMP_E_ALL(i));
+    if (rv < 0)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP,"bcm_vlan_port_remove failed unit %d\n", i);
+      L7_LOG_ERROR (rv);
+    }
+
     BCM_PBMP_CLEAR(ubmp);
 
     rv = bcm_vlan_create(i,HPC_STACKING_VLAN_ID);
@@ -1511,11 +1519,19 @@ void hpcHardwareDefaultConfigApply(void)
           ** up learning.
           */
 #ifndef L7_ROBO_SUPPORT
+/* PTin modified: MAC learning */
+#if 1
+          /* Enable the learning mode on all ports */
+          rv = bcm_port_learn_set (i,port, (BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD));
+#else
 #ifdef L7_MACLOCK_PACKAGE
+          PT_LOG_NOTICE(LOG_CTX_STARTUP,"I am here!");
           rv = bcm_port_learn_set (i,port,  0);
 #else 
+          PT_LOG_NOTICE(LOG_CTX_STARTUP,"I am here!");
           /* If PML component is not present, we have to enable the learning mode on all ports */
           rv = bcm_port_learn_set (i,port, (BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD));
+#endif
 #endif
 #endif
           if (rv != BCM_E_NONE)
@@ -2905,10 +2921,6 @@ L7_RC_t hpcBroadInit()
   }
 #endif
 
-  PT_LOG_INFO(LOG_CTX_STARTUP, "Sleeping...");
-
-  osapiSleep(5);
-
   return(L7_SUCCESS);
 }
 
@@ -3596,6 +3608,9 @@ void hapiBroadCmDefaults(void)
   hapiBroadCmSourceSet(bslSourceMim,    L7_TRUE);
   hapiBroadCmSourceSet(bslSourcePhy,    L7_TRUE);
   hapiBroadCmSourceSet(bslSourcePhymod, L7_TRUE);
+  hapiBroadCmSourceSet(bslSourceL2,     L7_TRUE);
+  hapiBroadCmSourceSet(bslSourceL2gre,  L7_TRUE);
+  hapiBroadCmSourceSet(bslSourceL2table,L7_TRUE);
 
   hapiBroadCmSeveritySet(bslSeverityInfo);
 }
@@ -3775,6 +3790,11 @@ int hapiBroadCmPrint(bsl_meta_t *meta_data, const char *format, va_list args)
     {
       sev = L7_LOG_SEVERITY_INFO;
       ptin_log_sev = LOG_SEV_INFO;
+    }
+    else if (meta_data->severity <= bslSeverityVerbose)
+    {
+      sev = L7_LOG_SEVERITY_INFO;
+      ptin_log_sev = LOG_SEV_VERBOSE;
     }
     else
     {

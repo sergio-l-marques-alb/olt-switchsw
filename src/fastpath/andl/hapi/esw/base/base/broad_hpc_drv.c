@@ -3582,6 +3582,9 @@ void hapiBroadCmDefaults(void)
   hapiBroadCmSourceSet(bslSourceMim,    L7_TRUE);
   hapiBroadCmSourceSet(bslSourcePhy,    L7_TRUE);
   hapiBroadCmSourceSet(bslSourcePhymod, L7_TRUE);
+  hapiBroadCmSourceSet(bslSourceL2,     L7_TRUE);
+  hapiBroadCmSourceSet(bslSourceL2gre,  L7_TRUE);
+  hapiBroadCmSourceSet(bslSourceL2table,L7_TRUE);
 
   hapiBroadCmSeveritySet(bslSeverityInfo);
 }
@@ -3761,6 +3764,11 @@ int hapiBroadCmPrint(bsl_meta_t *meta_data, const char *format, va_list args)
     {
       sev = L7_LOG_SEVERITY_INFO;
       ptin_log_sev = LOG_SEV_INFO;
+    }
+    else if (meta_data->severity <= bslSeverityVerbose)
+    {
+      sev = L7_LOG_SEVERITY_INFO;
+      ptin_log_sev = LOG_SEV_VERBOSE;
     }
     else
     {
