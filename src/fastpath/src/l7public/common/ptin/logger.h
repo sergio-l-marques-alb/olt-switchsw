@@ -107,6 +107,7 @@ typedef enum {
     LOG_SEV_WARNING,
     LOG_SEV_NOTICE,
     LOG_SEV_INFO,
+    LOG_SEV_VERBOSE,
     LOG_SEV_DEBUG,
     LOG_SEV_TRACE,
     /* Last element */
@@ -195,6 +196,9 @@ extern void logger_print(log_context_t ctx, log_severity_t sev, char const *file
     
 #define PT_LOG_DEBUG( ctx , fmt , args... ) \
         logger_print( ctx, LOG_SEV_DEBUG, NULL, __FUNCTION__, __LINE__, fmt, ##args )
+    
+#define PT_LOG_VERB( ctx , fmt , args... ) \
+        logger_print( ctx, LOG_SEV_VERBOSE, NULL, __FUNCTION__, __LINE__, fmt, ##args )
     
 #define PT_LOG_INFO( ctx , fmt , args... ) \
         logger_print( ctx, LOG_SEV_INFO, NULL, __FUNCTION__, __LINE__, fmt, ##args )

@@ -36,6 +36,7 @@ static const char *log_sev_str[LOG_SEV_LAST] = {
     "[WARNING] ",
     "[NOTICE]  ",
     "[INFO]    ",
+    "[VERBOSE] ",
     "[DEBUG]   ",
     "[TRACE]   ",
 };
@@ -84,6 +85,7 @@ static int log_sev_color[LOG_SEV_LAST] = {
     LOG_BRIGHT_YELLOW,  /* LOG_SEV_WARNING  */
     LOG_COLOR_YELLOW,   /* LOG_SEV_NOTICE   */
     LOG_BRIGHT_WHITE,   /* LOG_SEV_INFO     */
+    LOG_COLOR_DEFAULT,  /* LOG_SEV_VERBOSE  */
     LOG_COLOR_DEFAULT,  /* LOG_SEV_DEBUG    */
     LOG_COLOR_DEFAULT,  /* LOG_SEV_TRACE    */
 };
