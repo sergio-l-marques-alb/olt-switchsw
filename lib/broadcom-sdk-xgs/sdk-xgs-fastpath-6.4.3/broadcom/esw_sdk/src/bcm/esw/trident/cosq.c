@@ -4692,7 +4692,7 @@ bcm_td_cosq_mapping_set(int unit, bcm_port_t port, bcm_cos_t priority,
 /* PTin modified: */
     //mc_cosq = (cosq > mc_cosq_max) ? mc_cosq_max : cosq;
     {
-     int numq;
+     int numq=8;
     
      bcm_td_cosq_config_get(unit,&numq);
      mc_cosq = cosq * (mc_cosq_max+1) / numq;
