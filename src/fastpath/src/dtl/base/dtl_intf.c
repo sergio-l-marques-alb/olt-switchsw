@@ -130,7 +130,7 @@ L7_RC_t dtlIntfSpeedSet(L7_uint32 intIfNum,
         break;
 
       /* PTin added: Speed 40G */
-      case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+      case L7_PORTCTRL_PORTSPEED_FULL_40G:
         duplex = DAPI_PORT_DUPLEX_FULL;  speed = DAPI_PORT_SPEED_GE_40GBPS;
         break;
 
@@ -259,7 +259,7 @@ L7_RC_t dtlIntfSpeedGet(L7_uint32 intIfNum,
 
           /* PTin added: Speed 40G */
           case DAPI_PORT_SPEED_GE_40GBPS:
-            *intfSpeed = L7_PORTCTRL_PORTSPEED_FULL_40G_KR4;
+            *intfSpeed = L7_PORTCTRL_PORTSPEED_FULL_40G;
             break;
 
           /* PTin added: Speed 100G */

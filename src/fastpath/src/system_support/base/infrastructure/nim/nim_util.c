@@ -1989,7 +1989,7 @@ L7_RC_t nimConvertoOldSpeedvalue(L7_uint32 intIfNum, L7_uint32 newintfSpeed, L7_
     case L7_PORT_CAPABILITY_SPEED_40G:
          if (duplex == L7_PORT_CAPABILITY_DUPLEX_FULL && intftype == L7_IANA_40G_ETHERNET)
          {
-           *intfSpeed = L7_PORTCTRL_PORTSPEED_FULL_40G_KR4;
+           *intfSpeed = L7_PORTCTRL_PORTSPEED_FULL_40G;
          }
          break;
 

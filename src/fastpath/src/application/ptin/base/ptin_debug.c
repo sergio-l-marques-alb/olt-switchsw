@@ -682,7 +682,7 @@ void ptin_intf_dump(void)
         break;
 
       /* PTin added: Speed 40G */
-      case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+      case L7_PORTCTRL_PORTSPEED_FULL_40G:
         strcpy(speed, "40G");
         break;
 

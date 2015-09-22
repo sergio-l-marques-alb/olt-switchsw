@@ -489,8 +489,8 @@ void nimDebugCfgPort(nimCfgPort_t *configPort)
         sysapiPrintf("ifSpeed =  L7_PORTCTRL_PORTSPEED_FULL_10GSX\n");
         break;
       /* PTin added: Speed 40G */
-      case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
-        sysapiPrintf("ifSpeed =  L7_PORTCTRL_PORTSPEED_FULL_40G-KR4\n");
+      case L7_PORTCTRL_PORTSPEED_FULL_40G:
+        sysapiPrintf("ifSpeed =  L7_PORTCTRL_PORTSPEED_FULL_40G\n");
         break;
       /* PTin added: Speed 100G */
       case L7_PORTCTRL_PORTSPEED_FULL_100G_BKP:

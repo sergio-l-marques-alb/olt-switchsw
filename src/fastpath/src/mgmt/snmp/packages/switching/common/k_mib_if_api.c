@@ -68,7 +68,7 @@ snmpIfSpeedGet(L7_uint32 UnitIndex, L7_uint32 interface, SR_UINT32 *val)
       *val = SNMP_IFSPEEDMAX_MBPS; /* 4,294,967,295 bps (see MIB description) */
       break;
     /* PTin added: Speed 40G */
-    case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+    case L7_PORTCTRL_PORTSPEED_FULL_40G:
       *val = SNMP_IFSPEEDMAX_MBPS; /* 4,294,967,295 bps (see MIB description) */
       break;
     /* PTin added: Speed 100G */
@@ -141,7 +141,7 @@ snmpIfHighSpeedGet(L7_uint32 UnitIndex, L7_uint32 interface, L7_uint32 *val)
       *val = SNMP_TENTHOUSAND;  /* 10000 Mbps */
       break;
     /* PTin added: Speed 40G */
-    case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+    case L7_PORTCTRL_PORTSPEED_FULL_40G:
       *val = SNMP_40THOUSAND;   /* 40.000 Mbps */
       break;
     /* PTin added: Speed 100G */

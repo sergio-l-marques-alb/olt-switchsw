@@ -2980,7 +2980,7 @@ const L7_char8 *commandShowPortChannel(EwsContext ewsContext, L7_uint32 argc, co
                       osapiSnprintf(stat,sizeof(stat),"%-10.9s", pStrInfo_base_Speed10GigFull);
                       break;
                     /* PTin added: Speed 40G */
-                    case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+                    case L7_PORTCTRL_PORTSPEED_FULL_40G:
                       osapiSnprintf(stat,sizeof(stat),"%-10.9s", pStrInfo_base_Speed40GigFull);
                       break;
                     /* PTin added: Speed 100G */
@@ -3277,7 +3277,7 @@ const L7_char8 *commandShowPortChannel(EwsContext ewsContext, L7_uint32 argc, co
             osapiSnprintf(stat,sizeof(stat),"%-10.9s", pStrInfo_base_Speed10GigFull);
             break;
           /* PTin added: Speed 40G */
-          case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+          case L7_PORTCTRL_PORTSPEED_FULL_40G:
             osapiSnprintf(stat,sizeof(stat),"%-10.9s", pStrInfo_base_Speed40GigFull);
             break;
           /* PTin added: Speed 100G */
@@ -5311,7 +5311,7 @@ const L7_char8 *commandShowPort(EwsContext ewsContext, L7_uint32 argc, const L7_
                 osapiSnprintf(stat,sizeof(stat),"%-10s ", pStrInfo_base_Speed10GigFull);
                 break;
               /* PTin added: Speed 40G */
-              case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+              case L7_PORTCTRL_PORTSPEED_FULL_40G:
                 osapiSnprintf(stat,sizeof(stat),"%-10s ", pStrInfo_base_Speed40GigFull);
                 break;
               /* PTin added: Speed 100G */
@@ -5369,7 +5369,7 @@ const L7_char8 *commandShowPort(EwsContext ewsContext, L7_uint32 argc, const L7_
                     osapiSnprintf(stat,sizeof(stat),"%-10s ", pStrInfo_base_Speed10GigFull);
                     break;
                  /* PTin added: Speed 40G */
-                 case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+                 case L7_PORTCTRL_PORTSPEED_FULL_40G:
                    osapiSnprintf(stat,sizeof(stat),"%-10s ", pStrInfo_base_Speed40GigFull);
                    break;
                  /* PTin added: Speed 100G */
@@ -12253,7 +12253,7 @@ const L7_char8 *commandShowTechSupport(EwsContext ewsContext, L7_uint32 argc,
             break;
 
           /* PTin added: Speed 40G */
-          case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+          case L7_PORTCTRL_PORTSPEED_FULL_40G:
             speedCount40G++;
             break;
 
@@ -12647,7 +12647,7 @@ const L7_char8 *commandShowTechSupport(EwsContext ewsContext, L7_uint32 argc,
               osapiSnprintf(stat,sizeof(stat),"%-10s ", pStrInfo_base_Speed10GigFull);
             break;
           /* PTin added: Speed 40G */
-          case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+          case L7_PORTCTRL_PORTSPEED_FULL_40G:
               osapiSnprintf(stat,sizeof(stat),"%-10s ", pStrInfo_base_Speed40GigFull);
             break;
           /* PTin added: Speed 100G */
@@ -12704,7 +12704,7 @@ const L7_char8 *commandShowTechSupport(EwsContext ewsContext, L7_uint32 argc,
               osapiSnprintf(stat,sizeof(stat),"%-10s ", pStrInfo_base_Speed10GigFull);
               break;
             /* PTin added: Speed 40G */
-            case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+            case L7_PORTCTRL_PORTSPEED_FULL_40G:
               osapiSnprintf(stat,sizeof(stat),"%-10s ", pStrInfo_base_Speed40GigFull);
               break;
             /* PTin added: Speed 100G */

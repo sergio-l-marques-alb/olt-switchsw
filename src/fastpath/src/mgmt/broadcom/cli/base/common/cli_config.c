@@ -10455,7 +10455,7 @@ const L7_char8 *commandSpeed(EwsContext ewsContext, L7_uint32 argc, const L7_cha
         else if (strcmp(argv[index+argSpeed], pStrInfo_base_40g) == 0 && (strcmp(argv[index+argDuplex], pStrInfo_base_FullDuplex)) == 0  &&
             (portCapability & L7_PHY_CAP_PORTSPEED_FULL_40G))
         {
-          rc = usmDbIfSpeedSet(unit, interface, L7_PORTCTRL_PORTSPEED_FULL_40G_KR4);
+          rc = usmDbIfSpeedSet(unit, interface, L7_PORTCTRL_PORTSPEED_FULL_40G);
         }
         /* PTin added: Speed 100G */
         else if (strcmp(argv[index+argSpeed], pStrInfo_base_100g) == 0 && (strcmp(argv[index+argDuplex], pStrInfo_base_FullDuplex)) == 0  &&
@@ -10658,7 +10658,7 @@ const L7_char8 *commandSpeedAll(EwsContext ewsContext, L7_uint32 argc, const L7_
         /*******Check if the Flag is Set for Execution*************/
         if(ewsContext->scriptActionFlag==L7_EXECUTE_SCRIPT)
         {
-          rc = usmDbIfSpeedSet(unit, intIfnum, L7_PORTCTRL_PORTSPEED_FULL_40G_KR4);
+          rc = usmDbIfSpeedSet(unit, intIfnum, L7_PORTCTRL_PORTSPEED_FULL_40G);
         }
       }
       /* PTin added: Speed 100G */
