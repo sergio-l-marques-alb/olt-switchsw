@@ -54,7 +54,7 @@
   }
 }
 ,
-/* PTin added: new switch ARAD */
+/* PTin added: new switch ARAD 12+4 */
 {
   {
     CARD_BROAD_12_ETH_4_BCK_88360_REV_1_ID,   /* cardtypeID */
@@ -71,10 +71,27 @@
   }
 }
 ,
+/* PTin added: new switch ARAD 8+3 */
+{
+  {
+    CARD_BROAD_8_ETH_3_BCK_88360_REV_1_ID,   /* cardtypeID */
+    "DNX-ARAD-8ETH-3BCK",                    /* cardModel  */
+    "Broadcom DNX-ARAD - 8 Port ETH + 3 BCK Line Card",  /* cardDescription  */
+    SYSAPI_CARD_TYPE_LINE,            /* type       */
+    11,
+    SYSAPI_NO_CODE_LOAD,    /* codeLoadTargetId - What code to load on this device */
+    SYSAPI_NO_CONFIG_LOAD,  /* configLoadTargetId - What configuration to load on this device */
+    /* numOfNimPorts (computed from number of SYSAPI_PORT_DESCRIPTOR_t entries in table */
+    hpcPortInfoTable_CARD_BROAD_8_ETH_3_BCK_88650_REV_1,
+    /* portInfo, refers to table declared above for each card type */
+    &dapiBroadPhysicalCardEntry_CARD_BROAD_8_ETH_3_BCK_88650_REV_1 /* dapiCardInfo */
+  }
+}
+,
 { 
  /* Logical CPU Card */
   {
-    L7_LOGICAL_CARD_CPU_12_ETH_4_BCK_REV_1_ID,       /* cardtypeID */     
+    L7_LOGICAL_CARD_CPU_GENERIC_REV_1_ID,       /* cardtypeID */     
     "LVL7 Logical CPU Card",        /* cardModel  */
     "LVL7 Logical CPU Card",        /* cardDescription  */
     SYSAPI_CARD_TYPE_LOGICAL_CPU, /* type       */
@@ -83,7 +100,7 @@
     SYSAPI_NO_CONFIG_LOAD,  /* configLoadTargetId - What configuration to load on this device */
     /* numOfNimPorts (computed from number of SYSAPI_PORT_DESCRIPTOR_t entries in table */
     hpcPortInfoTable_CARD_CPU,    /* portInfo, refers to table declared above for each card type */
-    &dapiBroadCpuCardEntry_CARD_BROAD_12_ETH_4_BCK_REV_1  /* dapiCardInfo */
+    &dapiBroadCpuCardEntry_CARD_BROAD_GENERIC_REV_1  /* dapiCardInfo */
   }
 }
 ,

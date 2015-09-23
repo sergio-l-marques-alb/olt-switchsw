@@ -54,19 +54,22 @@
 #define PTIN_BOARD_OLT1T0                          0x0100
 #define PTIN_BOARD_CXO160G                         0x0200
 #define PTIN_BOARD_TA12XG                          0x0400
+#define PTIN_BOARD_TT08SXG                         0x0800
 
 /* PTin added: board groups definition */
 #define PTIN_BOARD_MATRIX_FAMILY      ( PTIN_BOARD_CXP360G | PTIN_BOARD_CXO640G | PTIN_BOARD_CXO160G )
-#define PTIN_BOARD_LINECARD_FAMILY    ( PTIN_BOARD_TOLT8G | PTIN_BOARD_TG16G | PTIN_BOARD_TA48GE | PTIN_BOARD_TA12XG)
+#define PTIN_BOARD_LINECARD_FAMILY    ( PTIN_BOARD_TOLT8G | PTIN_BOARD_TG16G | PTIN_BOARD_TA48GE | PTIN_BOARD_TA12XG | PTIN_BOARD_TT08SXG)
 #define PTIN_BOARD_STANDALONE_FAMILY  ( PTIN_BOARD_OLT7_8CH_B | PTIN_BOARD_OLT1T0 )
-#define PTIN_BOARD_GPON_FAMILY        ( PTIN_BOARD_TOLT8G | PTIN_BOARD_TG16G | PTIN_BOARD_OLT1T0 )
+#define PTIN_BOARD_GPON_FAMILY        ( PTIN_BOARD_TOLT8G | PTIN_BOARD_TG16G | PTIN_BOARD_OLT1T0 | PTIN_BOARD_TT08SXG)
 #define PTIN_BOARD_ACTIVETH_FAMILY    ( PTIN_BOARD_TA48GE | PTIN_BOARD_TA12XG)
+#define PTIN_BOARD_DNX_FAMILY         ( PTIN_BOARD_TA12XG | PTIN_BOARD_TT08SXG )
 
 #define PTIN_BOARD_IS_MATRIX          ( PTIN_BOARD & PTIN_BOARD_MATRIX_FAMILY )
 #define PTIN_BOARD_IS_LINECARD        ( PTIN_BOARD & PTIN_BOARD_LINECARD_FAMILY )
 #define PTIN_BOARD_IS_STANDALONE      ( PTIN_BOARD & PTIN_BOARD_STANDALONE_FAMILY )
 #define PTIN_BOARD_IS_GPON            ( PTIN_BOARD & PTIN_BOARD_GPON_FAMILY )
 #define PTIN_BOARD_IS_ACTIVETH        ( PTIN_BOARD & PTIN_BOARD_ACTIVETH_FAMILY )
+#define PTIN_BOARD_IS_DNX             ( PTIN_BOARD & PTIN_BOARD_DNX_FAMILY )
 
 #include "ptin_platform.h"                            /* PTin added: defines PLAT_BCM_CHIP and PTIN_BOARD */
 
@@ -91,12 +94,19 @@
 /*********************************************************************
 **  Start of  Base parameters
 **********************************************************************/
-/* PTin added: new switch 56340 (Helix4) */
+/* PTin added: new switch ARAD TA12XG */
 #if (PTIN_BOARD == PTIN_BOARD_TA12XG)
 #define L7_MAX_PHYSICAL_SLOTS_PER_UNIT           1
 #define L7_MAX_PORTS_PER_SLOT                    16
 #define L7_MAX_PHYSICAL_PORTS_PER_SLOT           16
 #define L7_MAX_PHYSICAL_PORTS_PER_UNIT           16
+
+/* PTin added: new switch ARAD TA12XG */
+#elif (PTIN_BOARD == PTIN_BOARD_TT08SXG)
+#define L7_MAX_PHYSICAL_SLOTS_PER_UNIT           1
+#define L7_MAX_PORTS_PER_SLOT                    11
+#define L7_MAX_PHYSICAL_PORTS_PER_SLOT           11
+#define L7_MAX_PHYSICAL_PORTS_PER_UNIT           11
 #endif
 
 /* Start of SNTP (really local clock) specific define statements */
