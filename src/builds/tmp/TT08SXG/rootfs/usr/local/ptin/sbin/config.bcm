@@ -1,0 +1,593 @@
+#########################################
+##cfg for BCM88650 - Arad
+#########################################
+
+### Device configuration ###
+
+## General
+# Set the FAP Device mode
+# Options: PP / TM / TDM_OPTIMIZED / TDM_STANDARD
+fap_device_mode=PP
+## Credit worth size (Bytes)
+credit_size=1024
+
+## Clock configurations
+# Core clock speed (MHz). Default- BCM88650: 600 MHz, BCM88670: 720 MHz
+core_clock_speed_khz=600000
+# System reference clock (MHz). Default- BCM88650: 600 MHz, BCM88670: 800 MHz
+system_ref_core_clock_khz=600000
+
+### Network Interface configuration ###
+## Use of the ucode_port_<Local-Port-Id>=<Interface-type>[<Interface-Id>][.<Channel-Id>]
+## Local port range: 0 - 255.
+## Interface types: XAUI/RXAUI/SGMII/ILKN/10GBase-R/XLGE/CGE/CPU/IGNORE
+
+# Map bcm local port to CPU[.channel] interfaces
+ucode_port_0=CPU.0
+
+# Map bcm local port to Network-Interface[.channel] interfaces - TBD
+custom_feature_nif_recovery_enable=0
+
+#Firmware mode:
+#0=DEFAULT
+#1=SFP_OPT_SR4     - optical short range
+#2=SFP_DAC         - direct attach copper
+#3=XLAUI           - 40G XLAUI mode
+#4=FORCE_OSDFE     - force over sample digital feedback equalization
+#5=FORCE_BRDFE     - force baud rate digital feedback equalization
+#6=SW_CL72         - software cl72 with AN on
+#7=CL72_WITHOUT_AN - cl72 without AN
+#For Negev2 chassis enable DFE is recommended
+serdes_firmware_mode=1
+serdes_firmware_mode_il=4
+serdes_firmware_mode_sfi=0
+
+ucode_port_1=10GBase-R0
+ucode_port_2=10GBase-R1
+ucode_port_3=10GBase-R2
+ucode_port_4=10GBase-R3
+ucode_port_5=10GBase-R4
+ucode_port_6=10GBase-R5
+ucode_port_7=10GBase-R6
+ucode_port_8=10GBase-R7
+ucode_port_9=10GBase-R8
+ucode_port_10=10GBase-R9
+ucode_port_11=10GBase-R10
+ucode_port_12=10GBase-R11
+ucode_port_13=10GBase-R12
+ucode_port_14=10GBase-R13
+ucode_port_15=10GBase-R14
+ucode_port_16=10GBase-R15
+
+#ucode_port_17=XLGE4
+#ucode_port_18=XLGE5
+#ucode_port_19=XLGE6
+
+ucode_port_17=10GBase-R16
+ucode_port_18=10GBase-R17
+ucode_port_19=10GBase-R18
+ucode_port_20=10GBase-R19
+ucode_port_21=10GBase-R20
+ucode_port_22=10GBase-R21
+ucode_port_23=10GBase-R22
+ucode_port_24=10GBase-R23
+ucode_port_25=10GBase-R24
+ucode_port_26=10GBase-R25
+ucode_port_27=10GBase-R26
+ucode_port_28=10GBase-R27
+
+ucode_port_200.BCM88650=CPU.8
+ucode_port_201.BCM88650=CPU.16
+ucode_port_202.BCM88650=CPU.24
+ucode_port_203.BCM88650=CPU.32
+
+# Invert TX/RX Quad lanes
+xgxs_rx_lane_map_quad0=0x0123
+xgxs_rx_lane_map_quad1=0x0123
+xgxs_rx_lane_map_quad2=0x0123
+xgxs_rx_lane_map_quad3=0x0123
+xgxs_rx_lane_map_quad4=0x0123
+xgxs_rx_lane_map_quad5=0x0123
+xgxs_rx_lane_map_quad6=0x0123
+
+#Invert polarities
+pb_serdes_lane_swap_polarity_tx_phy17=1
+pb_serdes_lane_swap_polarity_tx_phy18=1
+pb_serdes_lane_swap_polarity_tx_phy19=1
+pb_serdes_lane_swap_polarity_tx_phy20=1
+pb_serdes_lane_swap_polarity_tx_phy21=1
+pb_serdes_lane_swap_polarity_tx_phy22=1
+pb_serdes_lane_swap_polarity_tx_phy23=1
+pb_serdes_lane_swap_polarity_tx_phy24=1
+pb_serdes_lane_swap_polarity_tx_phy25=1
+pb_serdes_lane_swap_polarity_tx_phy26=1
+pb_serdes_lane_swap_polarity_tx_phy27=1
+pb_serdes_lane_swap_polarity_tx_phy28=1
+
+##  Number of Internal ports
+# Enable the ERP port. Values: 0 / 1.
+num_erp_tm_ports=1
+# Enable the OLP port. Values: 0 / 1.
+num_olp_tm_ports=1
+# Enable OAMP
+num_oamp_ports=0
+
+## Firmware Load Method
+load_firmware=0x102
+
+### Headers configuration ###
+
+## Use of the tm_port_header_type_<Local-Port-Id>=<Header-type>
+## Default header type is derived from fap_device_mode: If fap_device_mode is
+## PP, default header type is ETH. Otherwise, defualt header type is TM.
+## Header type per port can be overriden.
+## All options: ETH/RAW/TM/PROG/CPU/STACKING/TDM/TDM_RAW/UDH_ETH
+## Injected header types: if PTCH, INJECTED (local Port of type TM) or INJECTED_PP (PP)
+##                        if PTCH-2, INJECTED_2 (local Port of type TM) or INJECTED_2_PP (PP)
+
+# Set CPU to work with TM header (ITMH)
+#tm_port_header_type_0=TM
+
+tm_port_header_type_in_0=INJECTED_2
+tm_port_header_type_out_0=ETH
+
+tm_port_header_type_in_200=INJECTED_2_PP
+tm_port_header_type_out_200=ETH
+tm_port_header_type_in_201=INJECTED_2_PP
+tm_port_header_type_out_201=ETH
+tm_port_header_type_in_202=INJECTED_2_PP
+tm_port_header_type_out_202=ETH
+tm_port_header_type_in_203=INJECTED_2_PP
+tm_port_header_type_out_203=ETH
+
+# Set the recycling port processing to be raw (static forwarding)
+tm_port_header_type_rcy=RAW
+
+## Header extensions
+# Set if an FTMH Out-LIF extension is present to Unicast and Multicast packets
+# Options: NEVER / IF_MC (only Multicast packets) / ALWAYS
+fabric_ftmh_outlif_extension=IF_MC
+
+# Set the FTMH Load-Balancing Key extension mode
+# Options for 88660: ENABLED, FULL_HASH
+# Options for 88650: ENABLED
+# Options for 88640 compatible: DISABLED / 8B_LB_KEY_8B_STACKING_ROUTE_HISTORY / 16B_STACKING_ROUTE_HISTORY / STANDBY_MC_LB (av
+
+
+# Default: DISABLED
+system_ftmh_load_balancing_ext_mode=DISABLED
+
+## System RED
+# Set System-Red functionality.
+#system_red_enable=1
+
+### Trunk - LAG configuration ###
+# Set the number of LAGs: 1024, 512, 256, 128 or 64
+number_of_trunks=256
+# Using the lb-key's MSB in trunk resolutions.
+#0=use LSB (default)
+#1=use MSB
+trunk_resolve_use_lb_key_msb_stack=0
+trunk_resolve_use_lb_key_msb_smooth_division=0
+
+### Fabric configuration ###
+#0-LFEC 1-8b\10b 2-FEC 3-BEC
+#backplane_serdes_encoding=2
+#SFI speed rate
+port_init_speed_sfi=10312
+#CL72
+port_init_cl72_sfi=1
+#fabric_segmentation_enable=1
+
+## Fabric transmission mode
+# Set the Connect mode to the Fabric
+# Options: FE - presence of a Fabric device (single stage) / MULT_STAGE_FE -  Multi-stage /
+# SINGLE_FAP - stand-alone device / MESH - mesh / BACK2BACK - 2 devices in Mesh
+fabric_connect_mode=SINGLE_FAP
+
+### WRED ###
+
+# Set the maximum packet size for WRED tests. 0 - means ignore max packet size.
+discard_mtu_size=0
+
+### OCB (On-Chip Buffer) configuration ###
+# Enable the OCB
+# Enable MODES:
+#   0/FALSE        -->  OCB_DISABLED     --> No OCB use
+#   1/TRUE         -->  OCB_ENABLED      --> Like in Arad-A0/B0. Some packets may use both DRAM and OCB resources
+#   ONE_WAY_BYPASS -->  Depends on number of present drams (available only for AradPlus):
+#                      0 drams:   - OCB_ONLY
+#                      1 drams:   - OCB_ONLY_1_DRAM     -->  : OCB-only with 1 DRAM for the free pointers
+#                      2-8 drams: - OCB_DRAM_SEPARATE   -->  : OCB and DRAM coexist separately
+#   Default: TRUE.
+bcm886xx_ocb_enable=1
+
+# OCB Data Buffer size. Possible values: 128/256/512/1024. Default: 256.
+bcm886xx_ocb_databuffer_size=256
+# Repartition between Unicast and Full Multicast buffers.
+# 0: 80% Unicast and 20% Multicast, 1: Unicast-Only
+bcm886xx_ocb_repartition=0
+
+
+### PDM configuration ###
+# Set the PDM Mode.
+# 0: simple (default), 1: extended (mandatory for LLFC-VSQ, PFC-VSQ, or ST-VSQ)
+bcm886xx_pdm_mode=0
+
+### Multicast Number of DBuff mode ###
+# Set IQM FMC buffers-replication sizes
+# Options for 88650: ARAD_INIT_FMC_4K_REP_64K_DBUFF_MODE/ARAD_INIT_FMC_64_REP_128K_DBUFF_MODE
+# Default: ARAD_INIT_FMC_4K_REP_64K_DBUFF_MODE
+multicast_nbr_full_dbuff=ARAD_INIT_FMC_4K_REP_64K_DBUFF_MODE
+
+### Multicast configuration ###
+# Multicast egress vlan membership range. By default: 0-4095.
+egress_multicast_direct_bitmap_min=0
+egress_multicast_direct_bitmap_max=4095
+
+### VOQ - Flow configuration ###
+
+# Set the VOQ mapping mode:
+# DIRECT: More than 4K System Ports are supported. System-level WRED is not supported.
+# INDIRECT: similar to Petra-B. Up to 4K System Ports.
+voq_mapping_mode=INDIRECT
+
+# Set the Base Queue to be added to the packet flow-id
+# when the Flow-Id is set explicitely either by the ITMH
+# or by the Destination resolution in the Packet processing
+flow_mapping_queue_base=0
+
+# The allocation of the total per core resources between source and queue based reservation depends on one of two guarantee mod
+
+
+#ingress_congestion_management_guarantee_mode={STRICT,LOOSE} default: STRICT
+# Each DP has its own thresholds for source based (dynamic) and for queue based (pools 0,1 and headroom).
+#ingress_congestion_management_{source,queue,all}_threshold_percentage_color_[0-3]=[0-100] default: 100,85,75,0
+#ingress_congestion_management_{ocb_only,dram_mix}_{pool_{0,1},headroom}=size default: 0
+#ingress_congestion_management_min_resource_percentage_dynamic=[0-80] default: 20
+
+# Set the number of priorities supported at egress per Port
+# Options: 1 / 2 / 8
+port_priorities=8
+
+# Set the shared multicast resource mode: Strict / Discrete
+egress_shared_resources_mode=Strict
+
+# Define outgoing port rate mode in data rate or packet rate.
+# Options: DATA / PACKET
+otm_port_packet_rate=DATA
+
+# Set Port egress recycling scheduler configuration.
+# 0: Strict Priority Scheduler, 1: Round Robin Scheduler
+port_egress_recycling_scheduler_configuration=0
+
+### Meter engine configuration ###
+
+# Specify meter operation mode
+# 32 - Two meters per packet (32k total)
+# 64 - One meter per packet (64k total)
+# Options: 0, 32, 64
+policer_ingress_count=32
+
+# For meters in double 32k mode, determine the sharing mode
+# Options:
+# 0 - NONE (only for 64k mode)
+# 1 - SERIAL (only for 32k mode)
+# 2 - PARALLEL (only for 32k mode)
+policer_ingress_sharing_mode=1
+
+### Counter engine configuration ###
+
+# Set the Counter source
+# Options: INGRESS_FIELD / INGRESS_VOQ / INGRESS_VSQ
+# INGRESS_CNM / EGRESS_FIELD / EGRESS_VSI / EGRESS_OUT_LIF / EGRESS_TM (per queue) / EGRESS_TM_PORT (per port)
+# EGRESS_RECEIVE_VSI / EGRESS_RECEIVE_OUT_LIF / EGRESS_RECEIVE_TM (per queue) / EGRESS_RECEIVE_TM_PORT (per port)
+# INGRESS_OAM / EGRESS_OAM
+# 2 Counter-Pointers can be set (with _0 and _1) for
+# INGRESS_FIELD / EGRESS_VSI / EGRESS_OUT_LIF / EGRESS_TM / EGRESS_TM_PORT
+# Range extension can be set (with _LSB and _MSB) for
+# INGRESS_FIELD / EGRESS_VSI / EGRESS_OUT_LIF / EGRESS_TM / EGRESS_TM_PORT /EGRESS_RECEIVE_VSI /
+# EGRESS_RECEIVE_OUT_LIF / EGRESS_RECEIVE_TM / EGRESS_RECEIVE_TM_PORT
+counter_engine_source_0=INGRESS_FIELD
+counter_engine_source_1=INGRESS_FIELD_1
+counter_engine_source_2=INGRESS_VOQ
+counter_engine_source_3=EGRESS_FIELD
+
+# Set the Counter engine resolution
+#SIMPLE_COLOR=green, not green
+#SIMPLE_COLOR_FWD=fwd green, fwd not green (BCM88660_A0 only)
+#SIMPLE_COLOR_DROP=drop green, drop not green (BCM88660_A0 only)
+#FWD_DROP=forwarded, dropped
+#GREEN_NOT_GREEN=fwd grn, drop grn, fwd not grn, drop not grn
+#FULL_COLOR=fwd grn, drop grn, fwd not grn, drop yel, drop red
+#ALL=received
+#FWD=forwarded, DROP = droped (not supported by ARAD_A0)
+#CONFIGURABLE=defined by counter_engine_map_ SOC properties (BCM88660_A0 only)
+counter_engine_statistics_0=FULL_COLOR
+counter_engine_statistics_1=FULL_COLOR
+counter_engine_statistics_2=FULL_COLOR
+counter_engine_statistics_3=FULL_COLOR
+
+# Set the Counter format
+# Options: PACKETS_AND_BYTES / PACKETS / BYTES
+# / MAX_QUEUE_SIZE / PACKETS_AND_PACKETS(supported just in FWD_DROP statistic in BCM88660_A0)
+# If not PACKETS_AND_BYTES or PACKETS_AND_PACKETS, the HW Counter width is 59 bits, thus
+# no background SW operation is performed
+counter_engine_format_0=PACKETS_AND_BYTES
+counter_engine_format_1=PACKETS_AND_BYTES
+counter_engine_format_2=PACKETS_AND_BYTES
+counter_engine_format_3=PACKETS_AND_BYTES
+
+# #enable/disable counter processor background thread (default:1-enable)
+#counter_engine_sampling_interval=1
+
+dtm_flow_nof_remote_cores_region_1=1
+dtm_flow_nof_remote_cores_region_2=1
+dtm_flow_nof_remote_cores_region_3=1
+dtm_flow_nof_remote_cores_region_4=1
+dtm_flow_nof_remote_cores_region_5=1
+dtm_flow_nof_remote_cores_region_6=1
+dtm_flow_nof_remote_cores_region_7=1
+dtm_flow_nof_remote_cores_region_8=1
+dtm_flow_nof_remote_cores_region_9=1
+dtm_flow_nof_remote_cores_region_10=1
+dtm_flow_nof_remote_cores_region_11=1
+dtm_flow_nof_remote_cores_region_12=1
+dtm_flow_nof_remote_cores_region_13=1
+dtm_flow_nof_remote_cores_region_14=1
+dtm_flow_nof_remote_cores_region_15=1
+dtm_flow_nof_remote_cores_region_16=1
+dtm_flow_nof_remote_cores_region_17=1
+dtm_flow_nof_remote_cores_region_18=1
+dtm_flow_nof_remote_cores_region_19=1
+dtm_flow_nof_remote_cores_region_20=1
+dtm_flow_nof_remote_cores_region_21=1
+dtm_flow_nof_remote_cores_region_22=1
+dtm_flow_nof_remote_cores_region_23=1
+dtm_flow_nof_remote_cores_region_24=1
+dtm_flow_nof_remote_cores_region_25=1
+dtm_flow_nof_remote_cores_region_26=1
+dtm_flow_nof_remote_cores_region_27=1
+dtm_flow_nof_remote_cores_region_28=1
+dtm_flow_nof_remote_cores_region_29=1
+dtm_flow_nof_remote_cores_region_30=1
+dtm_flow_nof_remote_cores_region_31=1
+dtm_flow_nof_remote_cores_region_32=1
+dtm_flow_nof_remote_cores_region_33=1
+dtm_flow_nof_remote_cores_region_34=1
+dtm_flow_nof_remote_cores_region_35=1
+dtm_flow_nof_remote_cores_region_36=1
+dtm_flow_nof_remote_cores_region_37=1
+dtm_flow_nof_remote_cores_region_38=1
+dtm_flow_nof_remote_cores_region_39=1
+dtm_flow_nof_remote_cores_region_40=1
+dtm_flow_nof_remote_cores_region_41=1
+dtm_flow_nof_remote_cores_region_42=1
+dtm_flow_nof_remote_cores_region_43=1
+dtm_flow_nof_remote_cores_region_44=1
+dtm_flow_nof_remote_cores_region_45=1
+dtm_flow_nof_remote_cores_region_46=1
+dtm_flow_nof_remote_cores_region_47=1
+dtm_flow_nof_remote_cores_region_48=1
+dtm_flow_nof_remote_cores_region_49=1
+dtm_flow_nof_remote_cores_region_50=1
+dtm_flow_nof_remote_cores_region_51=1
+dtm_flow_nof_remote_cores_region_52=1
+dtm_flow_nof_remote_cores_region_53=1
+dtm_flow_nof_remote_cores_region_54=1
+dtm_flow_nof_remote_cores_region_55=1
+dtm_flow_nof_remote_cores_region_56=1
+dtm_flow_nof_remote_cores_region_57=1
+dtm_flow_nof_remote_cores_region_58=1
+dtm_flow_nof_remote_cores_region_59=1
+dtm_flow_nof_remote_cores_region_60=1
+
+##############################
+# Config variable below are only accessed from dune.soc, and are used to
+# configure BSP / example application / group of formal config variables.
+##############################
+
+## If set, always configures synthesizers, even if the configured rate is equal to
+## their nominal rate. Can be disabled to speedup bringup time (keep in mind that if
+## disabled, changing a synt to a non-nominal freq and than back to nominal will not
+## work
+#synt_over.BCM88650=1
+
+# Local variables for board synthesizers freq. Fabric, combo and nif also configure
+# the *_ref_clock soc properties for these frequencies. core, ddr and phy only
+# configures the synthesizer
+#synt_core=100000000
+#synt_ddr=125000000
+#synt_phy=156250000
+#synth_dram_freq=25
+
+#Configure the reference clock frequencies for NIF and Fabric SerDes
+# Options:  0 - 125MHZ, 1 - 156.25MHz
+serdes_nif_clk_freq=1
+serdes_fabric_clk_freq=1
+
+# Enable SA authentication
+#sa_auth_enabled=1
+
+# Bridge default logical interfaces allocation IDS
+#logical_port_l2_bridge=0
+#logical_port_drop=1
+
+### Interrupts ###
+## Set interrupts global parameters.
+# Options: 1 - Polling interrupt mode, 0 - Line/MSI interrupt mode. Default: 1.
+polled_irq_mode=0
+#  Set the delay in microsecond between the polling, relevant only to Polling mode.  Default: 0x0.
+polled_irq_delay=50000
+
+## CMIC interrupts:
+# Enable: Use interrupts completion instead of polling completion for the following operations.
+#         Options: 1 - Enable, 0 - Disable. Default: 0.
+# Timeout: delay in Microsecond between the polling, relevant only to Polling completion mode.
+# SCHAN:
+#schan_intr_enable.0=1
+schan_timeout_usec=300000
+# TDMA
+tdma_intr_enable=1
+tdma_timeout_usec=5000000
+# TSLAM
+tslam_intr_enable=1
+tslam_timeout_usec=5000000
+# MIIM
+#miim_intr_enable.0=1
+miim_timeout_usec.0=300000
+
+### DRAM configuration ###
+
+# DRAM buffer (Dbuff) size
+# Allowed values: 256/512/1024/2048.
+ext_ram_dbuff_size=1024
+
+# Number of external DRAMs.
+# Allowed values for 88650: 0/2/3/4/6/8.
+# Allowed values for 88660: 0/1/2/3/4/6/8. A value of 1 is permitted only in ONE WAY BYPASS ocb mode.
+# Allowed values for 88670: 0/2/3/41/42/6/8. '41' - configure 4 drams in Single Side mode (A, B, C, D).
+#                                            '42' - configure 4 drams in symmetric mode (A, C, F, H).
+# Value of 0 disables the DRAM.
+ext_ram_present=8
+
+### Dram Tuning (Shmoo)
+#2=Use Dram saved config Parameters, if no Parameters Perform Shmoo on init. Default option.
+#1=Perform Shmoo on init.
+#0=Use Dram saved config Parameters, if no Parameters do nothing.
+ddr3_auto_tune=2
+
+### Enable BIST
+# Run Dram BIST on initialization, if BIST fail the initialization will fail. Defult: 1.
+bist_enable_dram=1
+
+### Setting dram_type_DDR3_HYNIX_H5TQ2G63BFR_TEC_1066 Parameters as Default:
+## All other dram types parameter resides in arad.soc. choosing another Dram Type will override the following parameters.
+ext_ram_t_rrd=6000
+ext_ram_columns=1024
+ext_ram_banks=8
+ext_ram_ap_bit_pos=10
+ext_ram_burst_size=32
+ext_ram_t_ref=3900000
+ext_ram_t_wr=15000
+ext_ram_t_wtr=7500
+ext_ram_t_rtp=7500
+ext_ram_freq=1066
+ext_ram_rows=16384
+ext_ram_jedec=29
+ext_ram_t_rc=46090
+ext_ram_t_rcd_rd=13090
+ext_ram_t_rcd_wr=13090
+ext_ram_t_rp=13090
+ext_ram_t_rfc=160000
+ext_ram_t_ras=33000
+ext_ram_c_wr_latency=10
+ext_ram_t_faw=35000
+ext_ram_c_cas_latency=14
+ddr3_mem_grade=0x141414
+
+# DRAM pre-configurations according to config variables which defines
+# Dram Type. supports only DDR3.
+ext_ram_type=DDR3
+
+# Total Dram Size (MBytes)
+#For 8 drams interfaces, 2 channel each, Each channel 2Gbit Dram. the total DRAM size is 32GBits=4000MBytes.
+ext_ram_total_size=4000
+
+os=unix
+ddr3_tune_rd_dq_wl1_rp_ci8.0=0x81818181,0x81818181,0x84848484,0x84848484
+ddr3_tune_wr_dq_wl0_ci4.0=0x8e8e8e8e,0x8e8e8e8e,0x90909090,0x90909090
+ddr3_tune_vref_ci10.0=0x000007df
+ddr3_tune_wr_dq_wl1_ci2.0=0x8f8f8f8f,0x8f8f8f8f,0x90909090,0x90909090
+ddr3_tune_wr_dq_ci6.0=0x80808080
+ddr3_tune_rd_dq_wl0_rn_ci6.0=0x92929292,0x92929292,0x80808080,0x80808080
+ddr3_tune_rd_dq_wl1_rp_ci10.0=0x84848484,0x84848484,0x83838383,0x83838383
+ddr3_tune_rd_dqs_ci8.0=0x93939191,0x93939292
+ddr3_tune_vref_ci6.0=0x0000079e
+ddr3_tune_rd_dq_wl0_rp_ci14.0=0x83838383,0x83838383,0x81818181,0x81818181
+ddr3_tune_rd_en_ci10.0=0x008e8d8f,0x008d908a
+ddr3_tune_rd_data_dly_ci4.0=0x00000404
+ddr3_tune_addrc_ci8.0=0x000000ae
+ddr3_tune_rd_dq_wl0_rp_ci2.0=0x80808080,0x80808080,0x82828282,0x82828282
+ddr3_tune_rd_dqs_ci10.0=0x92929393,0x93939393
+ddr3_tune_rd_en_ci2.0=0x008d8c8f,0x008d9189
+ddr3_tune_wr_dq_wl0_ci12.0=0x8f8f8f8f,0x8f8f8f8f,0x8f8f8f8f,0x8f8f8f8f
+ddr3_tune_rd_dq_wl1_rn_ci4.0=0x84848484,0x84848484,0x89898989,0x89898989
+ddr3_tune_addrc_ci10.0=0x000000ab
+ddr3_tune_wr_dq_wl0_ci6.0=0x90909090,0x90909090,0x8e8e8e8e,0x8e8e8e8e
+ddr3_tune_vref_ci12.0=0x0000079e
+ddr3_tune_rd_dq_wl0_rn_ci10.0=0x82828282,0x82828282,0x83838383,0x83838383
+ddr3_tune_wr_dq_wl1_ci4.0=0x90909090,0x90909090,0x90909090,0x90909090
+ddr3_tune_wr_dq_ci8.0=0x80808080
+ddr3_tune_rd_dq_wl1_rp_ci0.0=0x82828282,0x82828282,0x8a8a8a8a,0x8a8a8a8a
+ddr3_tune_wr_dq_wl1_ci10.0=0x90909090,0x90909090,0x90909090,0x90909090
+ddr3_tune_rd_dq_wl0_rn_ci8.0=0x81818181,0x81818181,0x83838383,0x83838383
+ddr3_tune_rd_dq_wl1_rp_ci12.0=0x83838383,0x83838383,0x83838383,0x83838383
+ddr3_tune_wr_dq_ci10.0=0x80808080
+ddr3_tune_vref_ci8.0=0x00000820
+ddr3_tune_rd_en_ci12.0=0x008e908c,0x008d8d8d
+ddr3_tune_rd_data_dly_ci6.0=0x00000404
+ddr3_tune_rd_dq_wl0_rp_ci4.0=0x81818181,0x81818181,0x81818181,0x81818181
+ddr3_tune_rd_dqs_ci12.0=0x91919191,0x92929393
+ddr3_tune_rd_dqs_ci0.0=0x92929393,0x97979393
+ddr3_tune_rd_en_ci4.0=0x008d8e8c,0x008d8d8d
+ddr3_tune_rd_data_dly_ci10.0=0x00000404
+ddr3_tune_addrc_ci0.0=0x000000ab
+ddr3_tune_wr_dq_wl0_ci14.0=0x90909090,0x90909090,0x8d8d8d8d,0x8d8d8d8d
+ddr3_tune_rd_dq_wl1_rn_ci6.0=0x82828282,0x82828282,0x89898989,0x89898989
+ddr3_tune_addrc_ci12.0=0x000000ad
+ddr3_tune_wr_dq_wl0_ci8.0=0x8f8f8f8f,0x8f8f8f8f,0x8f8f8f8f,0x8f8f8f8f
+ddr3_tune_vref_ci14.0=0x000007df
+ddr3_tune_rd_dq_wl0_rn_ci12.0=0x80808080,0x80808080,0x82828282,0x82828282
+ddr3_tune_wr_dq_wl1_ci6.0=0x8f8f8f8f,0x8f8f8f8f,0x8f8f8f8f,0x8f8f8f8f
+ddr3_tune_rd_dq_wl1_rp_ci2.0=0x83838383,0x83838383,0x83838383,0x83838383
+ddr3_tune_wr_dq_wl1_ci12.0=0x8f8f8f8f,0x8f8f8f8f,0x90909090,0x90909090
+ddr3_tune_rd_dq_wl1_rp_ci14.0=0x83838383,0x83838383,0x83838383,0x83838383
+ddr3_tune_wr_dq_ci12.0=0x80808080
+ddr3_tune_wr_dq_ci0.0=0x80808080
+ddr3_tune_rd_en_ci14.0=0x00908f92,0x0090948d
+ddr3_tune_rd_dq_wl0_rn_ci0.0=0x83838383,0x83838383,0x82828282,0x82828282
+ddr3_tune_rd_data_dly_ci8.0=0x00000404
+ddr3_tune_rd_dq_wl0_rp_ci6.0=0x92929292,0x92929292,0x80808080,0x80808080
+ddr3_tune_rd_dqs_ci14.0=0x93939292,0x92929292
+ddr3_tune_rd_dqs_ci2.0=0x90909090,0x92929292
+ddr3_tune_rd_en_ci6.0=0x00909090,0x008e928a
+ddr3_tune_rd_data_dly_ci12.0=0x00000404
+ddr3_tune_vref_ci0.0=0x00000820
+ddr3_tune_addrc_ci2.0=0x000000aa
+ddr3_tune_rd_dq_wl1_rn_ci8.0=0x81818181,0x81818181,0x84848484,0x84848484
+ddr3_tune_addrc_ci14.0=0x000000a9
+ddr3_tune_rd_dq_wl1_rn_ci10.0=0x84848484,0x84848484,0x83838383,0x83838383
+ddr3_tune_rd_dq_wl0_rn_ci14.0=0x83838383,0x83838383,0x81818181,0x81818181
+ddr3_tune_wr_dq_wl1_ci8.0=0x90909090,0x90909090,0x8f8f8f8f,0x8f8f8f8f
+ddr3_tune_rd_dq_wl1_rp_ci4.0=0x84848484,0x84848484,0x89898989,0x89898989
+ddr3_tune_wr_dq_wl1_ci14.0=0x8f8f8f8f,0x8f8f8f8f,0x90909090,0x90909090
+ddr3_tune_wr_dq_wl0_ci0.0=0x8e8e8e8e,0x8e8e8e8e,0x8e8e8e8e,0x8e8e8e8e
+ddr3_tune_wr_dq_ci14.0=0x80808080
+ddr3_tune_wr_dq_ci2.0=0x80808080
+ddr3_tune_rd_dq_wl0_rn_ci2.0=0x80808080,0x80808080,0x82828282,0x82828282
+ddr3_tune_rd_dq_wl0_rp_ci8.0=0x81818181,0x81818181,0x83838383,0x83838383
+ddr3_tune_rd_dqs_ci4.0=0x92929292,0x97979494
+ddr3_tune_rd_en_ci8.0=0x008f918d,0x008f8f8f
+ddr3_tune_rd_data_dly_ci14.0=0x00000404
+ddr3_tune_vref_ci2.0=0x0000079e
+ddr3_tune_rd_dq_wl0_rp_ci10.0=0x82828282,0x82828282,0x83838383,0x83838383
+ddr3_tune_rd_data_dly_ci0.0=0x00000404
+ddr3_tune_addrc_ci4.0=0x000000ad
+ddr3_tune_rd_dq_wl1_rn_ci12.0=0x83838383,0x83838383,0x83838383,0x83838383
+ddr3_tune_rd_dq_wl1_rn_ci0.0=0x82828282,0x82828282,0x8a8a8a8a,0x8a8a8a8a
+ddr3_tune_rd_dq_wl1_rp_ci6.0=0x82828282,0x82828282,0x89898989,0x89898989
+ddr3_tune_wr_dq_wl0_ci2.0=0x90909090,0x90909090,0x8d8d8d8d,0x8d8d8d8d
+ddr3_tune_wr_dq_wl1_ci0.0=0x8f8f8f8f,0x8f8f8f8f,0x8e8e8e8e,0x8e8e8e8e
+ddr3_tune_wr_dq_ci4.0=0x80808080
+ddr3_tune_rd_dq_wl0_rn_ci4.0=0x81818181,0x81818181,0x81818181,0x81818181
+ddr3_tune_rd_dqs_ci6.0=0x9f9f9393,0x97979292
+ddr3_tune_vref_ci4.0=0x000007df
+ddr3_tune_rd_dq_wl0_rp_ci12.0=0x80808080,0x80808080,0x82828282,0x82828282
+ddr3_tune_rd_data_dly_ci2.0=0x00000404
+ddr3_tune_addrc_ci6.0=0x000000a7
+ddr3_tune_rd_dq_wl0_rp_ci0.0=0x83838383,0x83838383,0x82828282,0x82828282
+ddr3_tune_rd_dq_wl1_rn_ci14.0=0x83838383,0x83838383,0x83838383,0x83838383
+ddr3_tune_rd_en_ci0.0=0x008f908e,0x008e8f8d
+ddr3_tune_wr_dq_wl0_ci10.0=0x90909090,0x90909090,0x8f8f8f8f,0x8f8f8f8f
+ddr3_tune_rd_dq_wl1_rn_ci2.0=0x83838383,0x83838383,0x83838383,0x83838383
