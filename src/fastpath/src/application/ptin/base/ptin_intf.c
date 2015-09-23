@@ -232,7 +232,7 @@ L7_RC_t ptin_intf_init(void)
 
     /* For internal ports (linecards only) */
   #if (PTIN_BOARD_IS_LINECARD)
-    #if (PTIN_BOARD != PTIN_BOARD_TA12XG)
+    #if (!PTIN_BOARD_IS_DNX)
     /* Internal interfaces of linecards, should always be trusted */
     if ((PTIN_SYSTEM_10G_PORTS_MASK >> i) & 1)
     {
@@ -282,7 +282,7 @@ L7_RC_t ptin_intf_init(void)
     #endif
 
     /* QoS initialization */
-  #if (PTIN_BOARD != PTIN_BOARD_TA12XG)
+  #if (!PTIN_BOARD_IS_DNX)
     if (ptin_intf_QoS_init(&ptin_intf)!=L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_INTF, "Phy# %u: Error initializing QoS definitions",i);
@@ -921,7 +921,7 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
 
       /* PTin added: Speed 40G */
       case PHY_PORT_40_GBPS:
-        speed_mode = L7_PORTCTRL_PORTSPEED_FULL_40G_KR4;
+        speed_mode = L7_PORTCTRL_PORTSPEED_FULL_40G;
         strcpy(speedstr, "40G");
         break;
 
@@ -1100,7 +1100,7 @@ L7_RC_t ptin_intf_PhyState_read(ptin_HWEthPhyState_t *phyState)
         break;
 
       /* PTin added: Speed 40G */
-      case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+      case L7_PORTCTRL_PORTSPEED_FULL_40G:
         phyState->Speed = PHY_PORT_40_GBPS;
         PT_LOG_TRACE(LOG_CTX_INTF, " Speed:       40G");
         break;
@@ -5462,7 +5462,7 @@ static L7_RC_t ptin_intf_PhyConfig_read(ptin_HWEthPhyConf_t *phyConf)
         break;
 
       /* PTin added: Speed 40G */
-      case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+      case L7_PORTCTRL_PORTSPEED_FULL_40G:
         phyConf->Speed = PHY_PORT_40_GBPS;
         PT_LOG_TRACE(LOG_CTX_INTF, " Speed:       40G");
         break;
