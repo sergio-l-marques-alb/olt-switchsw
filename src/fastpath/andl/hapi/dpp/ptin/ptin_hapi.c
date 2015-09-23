@@ -146,6 +146,7 @@ L7_RC_t hapi_ptin_data_init(void)
     PT_LOG_ERR(LOG_CTX_HAPI, "Error: rc=%d", rc);
     return L7_FAILURE;
   }
+  /* PTin removed: Dune */
 #if 0
   rc = ptin_hapi_l3_intf_init();
   if (rc != L7_SUCCESS)
@@ -1383,6 +1384,8 @@ L7_RC_t ptin_hapi_clock_recovery_set(L7_int main_port, L7_int bckp_port, DAPI_t 
  */
 L7_RC_t ptin_hapi_frame_oversize_set(DAPI_USP_t *usp, L7_uint32 frame_size, DAPI_t *dapi_g)
 {
+  /* PTin removed: Dune */
+#if 0
   DAPI_PORT_t  *dapiPortPtr;
   BROAD_PORT_t *hapiPortPtr, *hapiPortPtr_member;
   L7_int        i;
@@ -1457,6 +1460,9 @@ L7_RC_t ptin_hapi_frame_oversize_set(DAPI_USP_t *usp, L7_uint32 frame_size, DAPI
   }
 
   return L7_SUCCESS;
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /**
@@ -1470,6 +1476,8 @@ L7_RC_t ptin_hapi_frame_oversize_set(DAPI_USP_t *usp, L7_uint32 frame_size, DAPI
  */
 L7_RC_t ptin_hapi_frame_oversize_get(DAPI_USP_t *usp, L7_uint32 *frame_size, DAPI_t *dapi_g)
 {
+  /* PTin removed: Dune */
+#if 0
   DAPI_PORT_t  *dapiPortPtr;
   BROAD_PORT_t *hapiPortPtr, *hapiPortPtr_member;
   L7_int        fsize_res = L7_MAX_FRAME_SIZE, fsize;
@@ -1565,6 +1573,9 @@ L7_RC_t ptin_hapi_frame_oversize_get(DAPI_USP_t *usp, L7_uint32 *frame_size, DAP
   }
 
   return L7_SUCCESS;
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -1996,6 +2007,7 @@ L7_RC_t hapi_ptin_l2learn_port_get(ptin_dapi_port_t *dapiPort, L7_int *macLearn_
     return L7_FAILURE;
   }
 
+  /* PTin removed: Dune */
 #if 0
   /* MAC Learning enable */
   if (macLearn_enable!=L7_NULLPTR)
@@ -2133,6 +2145,22 @@ L7_RC_t hapi_ptin_l2learn_port_get(ptin_dapi_port_t *dapiPort, L7_int *macLearn_
   return L7_SUCCESS;
 }
 
+#define REG_GET(unit, port, reg, reg_val)					   \
+    if (SOC_REG_IS_VALID(unit, reg) && SOC_REG_IS_COUNTER(unit, reg)) {	              \
+        int rv=0;                                                                     \
+        if (SOC_CONTROL(unit)->counter_interval == 0 /*counter thread is off*/) {     \
+            if ((rv=soc_reg_get(unit, reg, port, 0, &reg_val))<0)                     \
+              PT_LOG_ERR(LOG_CTX_HAPI,"Port %u: Error with soc_reg_get(%u, %u, %u, 0, &reg_val): rv=%d", port, unit, reg, port, rv);      \
+        } else {                                                                      \
+            if ((rv=soc_counter_get(unit, port, reg, 0, &reg_val))<0)                 \
+              PT_LOG_ERR(LOG_CTX_HAPI,"Port %u: Error with soc_counter_get(%u, %u, %u, 0, &reg_val): rv=%d", port, unit, port, reg, rv);  \
+        }                                                                             \
+    }                                                                                 \
+    else                                                                              \
+    {                                                                                 \
+      PT_LOG_ERR(LOG_CTX_HAPI,"Port %u: Register %u is invalid", port, reg);          \
+    }
+
 /**
  * Read counters (physical interfaces)
  *  
@@ -2145,7 +2173,7 @@ L7_RC_t hapi_ptin_l2learn_port_get(ptin_dapi_port_t *dapiPort, L7_int *macLearn_
 L7_RC_t hapi_ptin_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
 {
   ptin_HWEthRFC2819_StatisticsBlock_t *rx, *tx;
-  L7_uint64 tmp=0, tmp1=0, tmp2=0, tmp3=0;
+  //L7_uint64 tmp1=0, tmp2=0, tmp3=0;
   L7_uint64 mtuePkts=0;
   L7_uint64 pkts1519to2047, pkts2048to4095, pkts4096to9216, pkts9217to16383;
   L7_uint port, unit;
@@ -2162,243 +2190,77 @@ L7_RC_t hapi_ptin_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
   rx = &portStats->Rx;
   tx = &portStats->Tx;
 
-  /* Valkyrie */
-  if (SOC_IS_VALKYRIE2(unit))
+  /* Rx counters */
+  REG_GET(unit, port, RMTUEr, mtuePkts);                              /* Packets > MTU bytes (good and bad) */
+  //REG_GET(unit, port, RDROPr           , tmp1);
+  //REG_GET(unit, port, DROP_PKT_CNT_INGr, tmp2);
+  //rx->etherStatsDropEvents = tmp1 + tmp2;                                         /* Drop Events */
+  REG_GET(unit, port, RBYTr , rx->etherStatsOctets);
+  REG_GET(unit, port, RPKTr , rx->etherStatsPkts);                    /* Packets (>=64 bytes) */
+  REG_GET(unit, port, RBCAr , rx->etherStatsBroadcastPkts);           /* Broadcasts */
+  REG_GET(unit, port, RMCAr , rx->etherStatsMulticastPkts);           /* Muilticast */
+  REG_GET(unit, port, RFCSr , rx->etherStatsCRCAlignErrors);          /* FCS Errors (64-1518 bytes)*/
+  rx->etherStatsCollisions = 0;                                                   /* Collisions */
+  REG_GET(unit, port, RUNDr , rx->etherStatsUndersizePkts);           /* Undersize */
+  //REG_GET(unit, port, ROVRr,  tmp1);
+  //REG_GET(unit, port, RMGVr,  tmp2);
+  //rx->etherStatsOversizePkts = tmp1 + tmp2;                                       /* Oversize: 1519-MTU bytes */
+  REG_GET(unit, port, ROVRr , rx->etherStatsOversizePkts);            /* Oversize: 1523-MTU bytes */
+  rx->etherStatsOversizePkts += mtuePkts;                                         /* Oversize: >MTU bytes */
+  REG_GET(unit, port, RFRGr , rx->etherStatsFragments);               /* Fragments */
+  REG_GET(unit, port, RJBRr , rx->etherStatsJabbers);                 /* Jabbers */
+  REG_GET(unit, port, R64r  , rx->etherStatsPkts64Octets);            /* 64B packets */
+  REG_GET(unit, port, R127r , rx->etherStatsPkts65to127Octets);       /* 65-127B packets */
+  REG_GET(unit, port, R255r , rx->etherStatsPkts128to255Octets);      /* 128-255B packets */
+  REG_GET(unit, port, R511r , rx->etherStatsPkts256to511Octets);      /* 256-511B packets */
+  REG_GET(unit, port, R1023r, rx->etherStatsPkts512to1023Octets);     /* 512-1023B packets */
+  REG_GET(unit, port, R1518r, rx->etherStatsPkts1024to1518Octets);    /* 1024-1518B packets */
+
+  REG_GET(unit, port, R2047r, pkts1519to2047);                        /* 1519-2047 Bytes packets */
+  REG_GET(unit, port, R4095r, pkts2048to4095);                        /* 2048-4095 Bytes packets */
+  REG_GET(unit, port, R9216r, pkts4096to9216);                        /* 4096-9216 Bytes packets */
+  pkts9217to16383 = 0;
+  rx->etherStatsPkts1519toMaxOctets = pkts1519to2047 + pkts2048to4095 + pkts4096to9216 + pkts9217to16383;
+
+  if (soc_counter_get_rate(unit, port, RBYTr , 0, &rx->Throughput)<0)                   /* Throughput */
   {
-    /* 10G Ethernet port ? */
-    if (PTIN_IS_PORT_10G(portStats->Port))
-    {
-      // Rx counters
-      soc_counter_get(unit, port, IRMEGr , 0, &tmp1);
-      soc_counter_get(unit, port, IRMEBr , 0, &tmp2);
-      mtuePkts = tmp1 + tmp2;                                                         /* Packets > MTU bytes (good and bad) */
-      /* PTin modified: SDK 6.3.0 */
-      #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-      soc_counter_get(unit, port, DROP_PKT_CNT_INGr, 0, &tmp1);
-      tmp = tmp1;
-      #else
-      soc_counter_get(unit, port, IRDROPr          , 0, &tmp1);
-      soc_counter_get(unit, port, DROP_PKT_CNT_INGr, 0, &tmp2);
-      tmp = tmp1 + tmp2 + tmp3; //tmp3 is here 0 (init @ top of function)
-      #endif
-      //( tmp >= mtuePkts ) ? ( tmp -= mtuePkts ) : ( tmp = 0 );
-      rx->etherStatsDropEvents = tmp;// + mtuePkts;                                      /* Drop Events */
-      soc_counter_get(unit, port, IRBYTr , 0, &rx->etherStatsOctets);                 /* Octets */                   
-      soc_counter_get(unit, port, IRPKTr , 0, &rx->etherStatsPkts);                   /* Packets (>=64 bytes) */
-      soc_counter_get(unit, port, IRBCAr , 0, &rx->etherStatsBroadcastPkts);          /* Broadcasts */               
-      soc_counter_get(unit, port, IRMCAr , 0, &rx->etherStatsMulticastPkts);          /* Muilticast */               
-      soc_counter_get(unit, port, IRFCSr , 0, &rx->etherStatsCRCAlignErrors);         /* FCS Errors (64-1518 bytes)*/
-      rx->etherStatsCollisions = 0;                                                   /* Collisions */               
-      soc_counter_get(unit, port, IRUNDr , 0, &rx->etherStatsUndersizePkts);          /* Undersize */                
-      soc_counter_get(unit, port, IROVRr , 0, &rx->etherStatsOversizePkts);           /* Oversize: 1523-MTU bytes */ 
-      rx->etherStatsOversizePkts += mtuePkts;                                         /* Oversize: >MTU bytes */
-      soc_counter_get(unit, port, IRFRGr , 0, &rx->etherStatsFragments);              /* Fragments */
-      soc_counter_get(unit, port, IRJBRr , 0, &rx->etherStatsJabbers);                /* Jabbers */                  
-      soc_counter_get(unit, port, IR64r  , 0, &rx->etherStatsPkts64Octets);           /* 64B packets */              
-      soc_counter_get(unit, port, IR127r , 0, &rx->etherStatsPkts65to127Octets);      /* 65-127B packets */          
-      soc_counter_get(unit, port, IR255r , 0, &rx->etherStatsPkts128to255Octets);     /* 128-255B packets */         
-      soc_counter_get(unit, port, IR511r , 0, &rx->etherStatsPkts256to511Octets);     /* 256-511B packets */         
-      soc_counter_get(unit, port, IR1023r, 0, &rx->etherStatsPkts512to1023Octets);    /* 512-1023B packets */        
-      soc_counter_get(unit, port, IR1518r, 0, &rx->etherStatsPkts1024to1518Octets);   /* 1024-1518B packets */       
-
-      soc_counter_get(unit, port, IR2047r, 0, &pkts1519to2047);                       /* 1519-2047 Bytes packets */
-      soc_counter_get(unit, port, IR4095r, 0, &pkts2048to4095);                       /* 2048-4095 Bytes packets */
-      soc_counter_get(unit, port, IR9216r, 0, &pkts4096to9216);                       /* 4096-9216 Bytes packets */
-      soc_counter_get(unit, port, IR16383r,0, &pkts9217to16383);                      /* 9217-16383 Bytes packets */
-      rx->etherStatsPkts1519toMaxOctets = pkts1519to2047 + pkts2048to4095 + pkts4096to9216 + pkts9217to16383;
-
-      soc_counter_get_rate(unit, port, IRBYTr , 0, &rx->Throughput);                  /* Throughput */               
-
-      // Tx counters
-      soc_counter_get(unit, port, DROP_PKT_CNTr   , 0, &tmp1);
-      //soc_counter_get(unit, port, HOLDROP_PKT_CNTr, 0, &tmp2);
-      soc_counter_get(unit, port, EGRDROPPKTCOUNTr, 0, &tmp3);
-      tx->etherStatsDropEvents = tmp1 + /*tmp2 +*/ tmp3;                              /* Drop Events */
-      soc_counter_get(unit, port, ITBYTr , 0, &tx->etherStatsOctets);                 /* Octets */                   
-      soc_counter_get(unit, port, ITPKTr , 0, &tx->etherStatsPkts);                   /* Packets */                  
-      soc_counter_get(unit, port, ITBCAr , 0, &tx->etherStatsBroadcastPkts);          /* Broadcasts */               
-      soc_counter_get(unit, port, ITMCAr , 0, &tx->etherStatsMulticastPkts);          /* Muilticast */               
-      soc_counter_get(unit, port, ITFCSr , 0, &tx->etherStatsCRCAlignErrors);         /* FCS Errors (64-1518 bytes)*/
-      tx->etherStatsCollisions = 0;                                                   /* Collisions */               
-      tx->etherStatsUndersizePkts = 0;                                                /* Undersize */                
-      soc_counter_get(unit, port, ITOVRr,  0, &tx->etherStatsOversizePkts);           /* Oversize: 1523-MTU bytes */ 
-      soc_counter_get(unit, port, ITFRGr , 0, &tx->etherStatsFragments);              /* Fragments */                
-      tx->etherStatsJabbers       = 0;                                                /* Jabbers */                  
-      soc_counter_get(unit, port, IT64r  , 0, &tx->etherStatsPkts64Octets);           /* 64B packets */              
-      soc_counter_get(unit, port, IT127r , 0, &tx->etherStatsPkts65to127Octets);      /* 65-127B packets */          
-      soc_counter_get(unit, port, IT255r , 0, &tx->etherStatsPkts128to255Octets);     /* 128-255B packets */         
-      soc_counter_get(unit, port, IT511r , 0, &tx->etherStatsPkts256to511Octets);     /* 256-511B packets */         
-      soc_counter_get(unit, port, IT1023r, 0, &tx->etherStatsPkts512to1023Octets);    /* 512-1023B packets */        
-      soc_counter_get(unit, port, IT1518r, 0, &tx->etherStatsPkts1024to1518Octets);   /* 1024-1518B packets */       
-
-      soc_counter_get(unit, port, IT2047r, 0, &pkts1519to2047);                       /* 1519-2047 Bytes packets */
-      soc_counter_get(unit, port, IT4095r, 0, &pkts2048to4095);                       /* 2048-4095 Bytes packets */
-      soc_counter_get(unit, port, IT9216r, 0, &pkts4096to9216);                       /* 4096-9216 Bytes packets */
-      soc_counter_get(unit, port, IT16383r,0, &pkts9217to16383);                      /* 9217-16383 Bytes packets */
-      tx->etherStatsPkts1519toMaxOctets = pkts1519to2047 + pkts2048to4095 + pkts4096to9216 + pkts9217to16383;
-
-      soc_counter_get_rate(unit, port, ITBYTr , 0, &tx->Throughput);                  /* Throughput */
-    }
-    /* 1G or 2.5G Ethernet port ? */
-    else if (PTIN_IS_PORT_PON(portStats->Port) || PTIN_IS_PORT_ETH(portStats->Port))
-    {
-      // Rx counters
-      soc_counter_get(unit, port, GRMTUEr, 0, &mtuePkts);                             /* Packets > MTU bytes (good and bad) */
-      /* PTin modified: SDK 6.3.0 */
-      #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-      soc_counter_get(unit, port, DROP_PKT_CNT_INGr, 0, &tmp1);
-      rx->etherStatsDropEvents = tmp1;// + mtuePkts;                                     /* Drop Events */
-      #else
-      soc_counter_get(unit, port, GRDROPr          , 0, &tmp1);
-      soc_counter_get(unit, port, DROP_PKT_CNT_INGr, 0, &tmp2);
-      rx->etherStatsDropEvents = tmp1 + tmp2;// + mtuePkts;                              /* Drop Events */
-      #endif
-      soc_counter_get(unit, port, GRBYTr , 0, &tmp1);
-      soc_counter_get(unit, port, RRBYTr , 0, &tmp2);
-      rx->etherStatsOctets = tmp1 + tmp2;                                             /* Octets */
-      soc_counter_get(unit, port, GRPKTr , 0, &rx->etherStatsPkts);                   /* Packets (>=64 bytes) */
-      soc_counter_get(unit, port, GRBCAr , 0, &rx->etherStatsBroadcastPkts);          /* Broadcasts */
-      soc_counter_get(unit, port, GRMCAr , 0, &rx->etherStatsMulticastPkts);          /* Muilticast */
-      soc_counter_get(unit, port, GRFCSr , 0, &rx->etherStatsCRCAlignErrors);         /* FCS Errors (64-1518 bytes)*/
-      rx->etherStatsCollisions = 0;                                                   /* Collisions */
-      soc_counter_get(unit, port, GRUNDr , 0, &rx->etherStatsUndersizePkts);          /* Undersize */
-      //soc_counter_get(unit, port, GROVRr,  0, &tmp1);
-      //soc_counter_get(unit, port, GRMGVr,  0, &tmp2);
-      //rx->etherStatsOversizePkts = tmp1 + tmp2;                                       /* Oversize: 1519-MTU bytes */
-      soc_counter_get(unit, port, GROVRr,  0, &rx->etherStatsOversizePkts);           /* Oversize: 1523-MTU bytes */
-      rx->etherStatsOversizePkts += mtuePkts;                                         /* Oversize: >MTU bytes */
-      soc_counter_get(unit, port, GRFRGr , 0, &rx->etherStatsFragments);              /* Fragments */
-      soc_counter_get(unit, port, GRJBRr , 0, &rx->etherStatsJabbers);                /* Jabbers */
-      soc_counter_get(unit, port, GR64r  , 0, &rx->etherStatsPkts64Octets);           /* 64B packets */
-      soc_counter_get(unit, port, GR127r , 0, &rx->etherStatsPkts65to127Octets);      /* 65-127B packets */
-      soc_counter_get(unit, port, GR255r , 0, &rx->etherStatsPkts128to255Octets);     /* 128-255B packets */
-      soc_counter_get(unit, port, GR511r , 0, &rx->etherStatsPkts256to511Octets);     /* 256-511B packets */
-      soc_counter_get(unit, port, GR1023r, 0, &rx->etherStatsPkts512to1023Octets);    /* 512-1023B packets */
-      soc_counter_get(unit, port, GR1518r, 0, &rx->etherStatsPkts1024to1518Octets);   /* 1024-1518B packets */
-
-      soc_counter_get(unit, port, GR2047r, 0, &pkts1519to2047);                       /* 1519-2047 Bytes packets */
-      soc_counter_get(unit, port, GR4095r, 0, &pkts2048to4095);                       /* 2048-4095 Bytes packets */
-      soc_counter_get(unit, port, GR9216r, 0, &pkts4096to9216);                       /* 4096-9216 Bytes packets */
-      pkts9217to16383 = 0;
-      rx->etherStatsPkts1519toMaxOctets = pkts1519to2047 + pkts2048to4095 + pkts4096to9216 + pkts9217to16383;
-
-      soc_counter_get_rate(unit, port, GRBYTr , 0, &rx->Throughput);                  /* Throughput */
-
-      // Tx counters
-      soc_counter_get(unit, port, DROP_PKT_CNTr   , 0, &tmp1);
-      //soc_counter_get(unit, port, HOLDROP_PKT_CNTr, 0, &tmp2);
-      soc_counter_get(unit, port, EGRDROPPKTCOUNTr, 0, &tmp3);
-      tx->etherStatsDropEvents = tmp1 + /*tmp2 +*/ tmp3;                              /* Drop Events */
-      soc_counter_get(unit, port, GTBYTr , 0, &tx->etherStatsOctets);                 /* Octets */                   
-      soc_counter_get(unit, port, GTPKTr , 0, &tx->etherStatsPkts);                   /* Packets */                  
-      soc_counter_get(unit, port, GTBCAr , 0, &tx->etherStatsBroadcastPkts);          /* Broadcasts */               
-      soc_counter_get(unit, port, GTMCAr , 0, &tx->etherStatsMulticastPkts);          /* Muilticast */               
-      soc_counter_get(unit, port, GTFCSr , 0, &tx->etherStatsCRCAlignErrors);         /* FCS Errors (64-1518 bytes)*/
-      tx->etherStatsCollisions = 0;                                                   /* Collisions */               
-      tx->etherStatsUndersizePkts = 0;                                                /* Undersize */                
-      //soc_counter_get(unit, port, GTOVRr,  0, &tmp1);
-      //soc_counter_get(unit, port, GTMGVr,  0, &tmp2);
-      //tx->etherStatsOversizePkts = tmp1 + tmp2;                                       /* Oversize: 1519-MTU bytes */
-      soc_counter_get(unit, port, GTOVRr , 0, &tx->etherStatsOversizePkts);           /* Oversize: 1523-MTU bytes */               
-      soc_counter_get(unit, port, GTFRGr , 0, &tx->etherStatsFragments);              /* Fragments */               
-      soc_counter_get(unit, port, GTJBRr , 0, &tx->etherStatsJabbers);                /* Jabbers */                 
-      soc_counter_get(unit, port, GT64r  , 0, &tx->etherStatsPkts64Octets);           /* 64B packets */             
-      soc_counter_get(unit, port, GT127r , 0, &tx->etherStatsPkts65to127Octets);      /* 65-127B packets */         
-      soc_counter_get(unit, port, GT255r , 0, &tx->etherStatsPkts128to255Octets);     /* 128-255B packets */        
-      soc_counter_get(unit, port, GT511r , 0, &tx->etherStatsPkts256to511Octets);     /* 256-511B packets */        
-      soc_counter_get(unit, port, GT1023r, 0, &tx->etherStatsPkts512to1023Octets);    /* 512-1023B packets */       
-      soc_counter_get(unit, port, GT1518r, 0, &tx->etherStatsPkts1024to1518Octets);   /* 1024-1518B packets */
-
-      soc_counter_get(unit, port, GT2047r, 0, &pkts1519to2047);                       /* 1519-2047 Bytes packets */
-      soc_counter_get(unit, port, GT4095r, 0, &pkts2048to4095);                       /* 2048-4095 Bytes packets */
-      soc_counter_get(unit, port, GT9216r, 0, &pkts4096to9216);                       /* 4096-9216 Bytes packets */
-      pkts9217to16383 = 0;
-      tx->etherStatsPkts1519toMaxOctets = pkts1519to2047 + pkts2048to4095 + pkts4096to9216 + pkts9217to16383;
-
-      soc_counter_get_rate(unit, port, GTBYTr , 0, &tx->Throughput);                  /* Throughput */
-    }
-    else
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "PTin port# %u is neither GbE or 10G interface", portStats->Port);
-      return L7_FAILURE;
-    }
+    PT_LOG_ERR(LOG_CTX_HAPI,"Error getting RX rate!");
   }
-  else if (SOC_IS_TRIDENT(unit) || SOC_IS_TRIUMPH3(unit))
+
+  // Tx counters
+  //REG_GET(unit, port, DROP_PKT_CNTr, tmp1);
+  //REG_GET(unit, port, HOLDROP_PKT_CNTr, tmp2);
+  //REG_GET(unit, port, EGRDROPPKTCOUNTr, tmp3);
+  //tx->etherStatsDropEvents = tmp1 + /*tmp2 +*/ tmp3;                              /* Drop Events */
+  REG_GET(unit, port, TBYTr , tx->etherStatsOctets);                  /* Octets */                   
+  REG_GET(unit, port, TPKTr , tx->etherStatsPkts);                    /* Packets */                  
+  REG_GET(unit, port, TBCAr , tx->etherStatsBroadcastPkts);           /* Broadcasts */               
+  REG_GET(unit, port, TMCAr , tx->etherStatsMulticastPkts);           /* Muilticast */               
+  REG_GET(unit, port, TFCSr , tx->etherStatsCRCAlignErrors);          /* FCS Errors (64-1518 bytes)*/
+  tx->etherStatsCollisions = 0;                                                   /* Collisions */               
+  tx->etherStatsUndersizePkts = 0;                                                /* Undersize */                
+  //REG_GET(unit, port, TOVRr, tmp1);
+  //REG_GET(unit, port, TMGVr, tmp2);
+  //tx->etherStatsOversizePkts = tmp1 + tmp2;                                       /* Oversize: 1519-MTU bytes */
+  REG_GET(unit, port, TOVRr,  tx->etherStatsOversizePkts);            /* Oversize: 1523-MTU bytes */
+  REG_GET(unit, port, TFRGr , tx->etherStatsFragments);               /* Fragments */               
+  REG_GET(unit, port, TJBRr , tx->etherStatsJabbers);                 /* Jabbers */                 
+  REG_GET(unit, port, T64r  , tx->etherStatsPkts64Octets);            /* 64B packets */             
+  REG_GET(unit, port, T127r , tx->etherStatsPkts65to127Octets);       /* 65-127B packets */         
+  REG_GET(unit, port, T255r , tx->etherStatsPkts128to255Octets);      /* 128-255B packets */        
+  REG_GET(unit, port, T511r , tx->etherStatsPkts256to511Octets);      /* 256-511B packets */        
+  REG_GET(unit, port, T1023r, tx->etherStatsPkts512to1023Octets);     /* 512-1023B packets */       
+  REG_GET(unit, port, T1518r, tx->etherStatsPkts1024to1518Octets);    /* 1024-1518B packets */
+
+  REG_GET(unit, port, T2047r, pkts1519to2047);                        /* 1519-2047 Bytes packets */
+  REG_GET(unit, port, T4095r, pkts2048to4095);                        /* 2048-4095 Bytes packets */
+  REG_GET(unit, port, T9216r, pkts4096to9216);                        /* 4096-9216 Bytes packets */
+  pkts9217to16383 = 0;
+  tx->etherStatsPkts1519toMaxOctets = pkts1519to2047 + pkts2048to4095 + pkts4096to9216 + pkts9217to16383;
+
+  if (soc_counter_get_rate(unit, port, TBYTr , 0, &tx->Throughput)<0)                   /* Throughput */
   {
-    /* Rx counters */
-    soc_counter_get(unit, port, RMTUEr, 0, &mtuePkts);                              /* Packets > MTU bytes (good and bad) */
-    soc_counter_get(unit, port, RDROPr           , 0, &tmp1);
-    soc_counter_get(unit, port, DROP_PKT_CNT_INGr, 0, &tmp2);
-    rx->etherStatsDropEvents = tmp1 + tmp2;                                         /* Drop Events */
-    soc_counter_get(unit, port, RBYTr , 0, &rx->etherStatsOctets);
-    //soc_counter_get(unit, port, RBYTr , 0, &tmp1);
-    //soc_counter_get(unit, port, RBYTr , 0, &tmp2);
-    //rx->etherStatsOctets = tmp1 + tmp2;                                           /* Octets */
-    soc_counter_get(unit, port, RPKTr , 0, &rx->etherStatsPkts);                    /* Packets (>=64 bytes) */
-    soc_counter_get(unit, port, RBCAr , 0, &rx->etherStatsBroadcastPkts);           /* Broadcasts */
-    soc_counter_get(unit, port, RMCAr , 0, &rx->etherStatsMulticastPkts);           /* Muilticast */
-    soc_counter_get(unit, port, RFCSr , 0, &rx->etherStatsCRCAlignErrors);          /* FCS Errors (64-1518 bytes)*/
-    rx->etherStatsCollisions = 0;                                                   /* Collisions */
-    soc_counter_get(unit, port, RUNDr , 0, &rx->etherStatsUndersizePkts);           /* Undersize */
-    //soc_counter_get(unit, port, ROVRr,  0, &tmp1);
-    //soc_counter_get(unit, port, RMGVr,  0, &tmp2);
-    //rx->etherStatsOversizePkts = tmp1 + tmp2;                                       /* Oversize: 1519-MTU bytes */
-    soc_counter_get(unit, port, ROVRr,  0, &rx->etherStatsOversizePkts);            /* Oversize: 1523-MTU bytes */
-    rx->etherStatsOversizePkts += mtuePkts;                                         /* Oversize: >MTU bytes */
-    soc_counter_get(unit, port, RFRGr , 0, &rx->etherStatsFragments);               /* Fragments */
-    soc_counter_get(unit, port, RJBRr , 0, &rx->etherStatsJabbers);                 /* Jabbers */
-    soc_counter_get(unit, port, R64r  , 0, &rx->etherStatsPkts64Octets);            /* 64B packets */
-    soc_counter_get(unit, port, R127r , 0, &rx->etherStatsPkts65to127Octets);       /* 65-127B packets */
-    soc_counter_get(unit, port, R255r , 0, &rx->etherStatsPkts128to255Octets);      /* 128-255B packets */
-    soc_counter_get(unit, port, R511r , 0, &rx->etherStatsPkts256to511Octets);      /* 256-511B packets */
-    soc_counter_get(unit, port, R1023r, 0, &rx->etherStatsPkts512to1023Octets);     /* 512-1023B packets */
-    soc_counter_get(unit, port, R1518r, 0, &rx->etherStatsPkts1024to1518Octets);    /* 1024-1518B packets */
-
-    soc_counter_get(unit, port, R2047r, 0, &pkts1519to2047);                        /* 1519-2047 Bytes packets */
-    soc_counter_get(unit, port, R4095r, 0, &pkts2048to4095);                        /* 2048-4095 Bytes packets */
-    soc_counter_get(unit, port, R9216r, 0, &pkts4096to9216);                        /* 4096-9216 Bytes packets */
-    pkts9217to16383 = 0;
-    rx->etherStatsPkts1519toMaxOctets = pkts1519to2047 + pkts2048to4095 + pkts4096to9216 + pkts9217to16383;
-
-    soc_counter_get_rate(unit, port, RBYTr , 0, &rx->Throughput);                   /* Throughput */
-
-    // Tx counters
-    soc_counter_get(unit, port, DROP_PKT_CNTr   , 0, &tmp1);
-    //soc_counter_get(unit, port, HOLDROP_PKT_CNTr, 0, &tmp2);
-    soc_counter_get(unit, port, EGRDROPPKTCOUNTr, 0, &tmp3);
-    tx->etherStatsDropEvents = tmp1 + /*tmp2 +*/ tmp3;                              /* Drop Events */
-    soc_counter_get(unit, port, TBYTr , 0, &tx->etherStatsOctets);                  /* Octets */                   
-    soc_counter_get(unit, port, TPKTr , 0, &tx->etherStatsPkts);                    /* Packets */                  
-    soc_counter_get(unit, port, TBCAr , 0, &tx->etherStatsBroadcastPkts);           /* Broadcasts */               
-    soc_counter_get(unit, port, TMCAr , 0, &tx->etherStatsMulticastPkts);           /* Muilticast */               
-    soc_counter_get(unit, port, TFCSr , 0, &tx->etherStatsCRCAlignErrors);          /* FCS Errors (64-1518 bytes)*/
-    tx->etherStatsCollisions = 0;                                                   /* Collisions */               
-    tx->etherStatsUndersizePkts = 0;                                                /* Undersize */                
-    //soc_counter_get(unit, port, TOVRr,  0, &tmp1);
-    //soc_counter_get(unit, port, TMGVr,  0, &tmp2);
-    //tx->etherStatsOversizePkts = tmp1 + tmp2;                                       /* Oversize: 1519-MTU bytes */
-    soc_counter_get(unit, port, TOVRr,  0, &tx->etherStatsOversizePkts);            /* Oversize: 1523-MTU bytes */
-    soc_counter_get(unit, port, TFRGr , 0, &tx->etherStatsFragments);               /* Fragments */               
-    soc_counter_get(unit, port, TJBRr , 0, &tx->etherStatsJabbers);                 /* Jabbers */                 
-    soc_counter_get(unit, port, T64r  , 0, &tx->etherStatsPkts64Octets);            /* 64B packets */             
-    soc_counter_get(unit, port, T127r , 0, &tx->etherStatsPkts65to127Octets);       /* 65-127B packets */         
-    soc_counter_get(unit, port, T255r , 0, &tx->etherStatsPkts128to255Octets);      /* 128-255B packets */        
-    soc_counter_get(unit, port, T511r , 0, &tx->etherStatsPkts256to511Octets);      /* 256-511B packets */        
-    soc_counter_get(unit, port, T1023r, 0, &tx->etherStatsPkts512to1023Octets);     /* 512-1023B packets */       
-    soc_counter_get(unit, port, T1518r, 0, &tx->etherStatsPkts1024to1518Octets);    /* 1024-1518B packets */
-
-    soc_counter_get(unit, port, T2047r, 0, &pkts1519to2047);                        /* 1519-2047 Bytes packets */
-    soc_counter_get(unit, port, T4095r, 0, &pkts2048to4095);                        /* 2048-4095 Bytes packets */
-    soc_counter_get(unit, port, T9216r, 0, &pkts4096to9216);                        /* 4096-9216 Bytes packets */
-    pkts9217to16383 = 0;
-    tx->etherStatsPkts1519toMaxOctets = pkts1519to2047 + pkts2048to4095 + pkts4096to9216 + pkts9217to16383;
-
-    soc_counter_get_rate(unit, port, TBYTr , 0, &tx->Throughput);                   /* Throughput */
-  }
-  else
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Switch family not defined");
-    return L7_FAILURE;
+    PT_LOG_ERR(LOG_CTX_HAPI,"Error getting TX rate!");
   }
 
 /* PTin debug: drop events are not correctly read. Override with zero until this problem is solved! */
@@ -2439,139 +2301,45 @@ L7_RC_t hapi_ptin_counters_clear(L7_uint phyPort)
   port = usp_map[phyPort].port;
   unit = usp_map[phyPort].unit;
 
-  /* 1G or 2.5G Ethernet port ? */
-  if (SOC_IS_VALKYRIE2(unit))
-  {
-    /* 10G Ethernet port ? */
-    if (PTIN_IS_PORT_10G(phyPort))
-    {
-      /* Rx counters */
-      soc_counter_set(unit, port, IRBYTr , 0, 0);
-      soc_counter_set(unit, port, DROP_PKT_CNTr , 0, 0);
-      soc_counter_set(unit, port, IRPKTr , 0, 0);
-      soc_counter_set(unit, port, IRBCAr , 0, 0);
-      soc_counter_set(unit, port, IRMCAr , 0, 0);
-      soc_counter_set(unit, port, IRFCSr , 0, 0);
-      soc_counter_set(unit, port, IRUNDr , 0, 0);
-      soc_counter_set(unit, port, IROVRr , 0, 0);
-      soc_counter_set(unit, port, IRFRGr , 0, 0);
-      soc_counter_set(unit, port, IRJBRr , 0, 0);
-      soc_counter_set(unit, port, IR64r  , 0, 0);
-      soc_counter_set(unit, port, IR127r , 0, 0);
-      soc_counter_set(unit, port, IR255r , 0, 0);
-      soc_counter_set(unit, port, IR511r , 0, 0);
-      soc_counter_set(unit, port, IR1023r, 0, 0);
-      soc_counter_set(unit, port, IR1518r, 0, 0);
+  /* Rx counters */
+  soc_counter_set(unit, port, RMTUEr, 0, 0);
+  soc_counter_set(unit, port, RDROPr , 0, 0);
+  soc_counter_set(unit, port, DROP_PKT_CNTr , 0, 0);
+  soc_counter_set(unit, port, RBYTr , 0, 0);
+  soc_counter_set(unit, port, RPKTr , 0, 0);
+  soc_counter_set(unit, port, RBCAr , 0, 0);
+  soc_counter_set(unit, port, RMCAr , 0, 0);
+  soc_counter_set(unit, port, RFCSr , 0, 0);
+  soc_counter_set(unit, port, RUNDr , 0, 0);
+  soc_counter_set(unit, port, ROVRr , 0, 0);
+  soc_counter_set(unit, port, RFRGr , 0, 0);
+  soc_counter_set(unit, port, RJBRr , 0, 0);
+  soc_counter_set(unit, port, R64r  , 0, 0);
+  soc_counter_set(unit, port, R127r , 0, 0);
+  soc_counter_set(unit, port, R255r , 0, 0);
+  soc_counter_set(unit, port, R511r , 0, 0);
+  soc_counter_set(unit, port, R1023r, 0, 0);
+  soc_counter_set(unit, port, R1518r, 0, 0);
 
-      /* Tx counters */
-      soc_counter_set(unit, port, ITBYTr , 0, 0);
-      soc_counter_set(unit, port, HOLDr ,  0, 0);
-      soc_counter_set(unit, port, ITPKTr , 0, 0);
-      soc_counter_set(unit, port, ITBCAr , 0, 0);
-      soc_counter_set(unit, port, ITMCAr , 0, 0);
-      soc_counter_set(unit, port, ITFCSr , 0, 0);
-      //soc_counter_set(unit, port, ITXCLr , 0, 0);
-      soc_counter_set(unit, port, ITOVRr , 0, 0);
-      soc_counter_set(unit, port, ITFRGr , 0, 0);
-      //soc_counter_set(unit, port, ITJBRr , 0, 0);
-      soc_counter_set(unit, port, IT64r  , 0, 0);
-      soc_counter_set(unit, port, IT127r , 0, 0);
-      soc_counter_set(unit, port, IT255r , 0, 0);
-      soc_counter_set(unit, port, IT511r , 0, 0);
-      soc_counter_set(unit, port, IT1023r, 0, 0);
-      soc_counter_set(unit, port, IT1518r, 0, 0);
-    }
-    else if (PTIN_IS_PORT_PON(phyPort) || PTIN_IS_PORT_ETH(phyPort))
-    {
-      /* Rx counters */
-      soc_counter_set(unit, port, GRBYTr , 0, 0);
-      soc_counter_set(unit, port, DROP_PKT_CNTr , 0, 0);
-      soc_counter_set(unit, port, GRPKTr , 0, 0);
-      soc_counter_set(unit, port, GRBCAr , 0, 0);
-      soc_counter_set(unit, port, GRMCAr , 0, 0);
-      soc_counter_set(unit, port, GRFCSr , 0, 0);
-      soc_counter_set(unit, port, GRUNDr , 0, 0);
-      soc_counter_set(unit, port, GROVRr , 0, 0);
-      soc_counter_set(unit, port, GRFRGr , 0, 0);
-      soc_counter_set(unit, port, GRJBRr , 0, 0);
-      soc_counter_set(unit, port, GR64r  , 0, 0);
-      soc_counter_set(unit, port, GR127r , 0, 0);
-      soc_counter_set(unit, port, GR255r , 0, 0);
-      soc_counter_set(unit, port, GR511r , 0, 0);
-      soc_counter_set(unit, port, GR1023r, 0, 0);
-      soc_counter_set(unit, port, GR1518r, 0, 0);
-
-      /* Tx counters */
-      soc_counter_set(unit, port, GTBYTr , 0, 0);
-      soc_counter_set(unit, port, HOLDr ,  0, 0);
-      soc_counter_set(unit, port, GTPKTr , 0, 0);
-      soc_counter_set(unit, port, GTBCAr , 0, 0);
-      soc_counter_set(unit, port, GTMCAr , 0, 0);
-      soc_counter_set(unit, port, GTFCSr , 0, 0);
-      soc_counter_set(unit, port, GTXCLr , 0, 0);
-      soc_counter_set(unit, port, GTOVRr , 0, 0);
-      soc_counter_set(unit, port, GTFRGr , 0, 0);
-      soc_counter_set(unit, port, GTJBRr , 0, 0);
-      soc_counter_set(unit, port, GT64r  , 0, 0);
-      soc_counter_set(unit, port, GT127r , 0, 0);
-      soc_counter_set(unit, port, GT255r , 0, 0);
-      soc_counter_set(unit, port, GT511r , 0, 0);
-      soc_counter_set(unit, port, GT1023r, 0, 0);
-      soc_counter_set(unit, port, GT1518r, 0, 0);
-    }
-    else
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "PTin port# %u is neither GbE or 10G interface", phyPort);
-      return L7_FAILURE;
-    }
-  }
-  else if (SOC_IS_TRIDENT(unit) || SOC_IS_TRIUMPH3(unit))
-  {
-    /* Rx counters */
-    soc_counter_set(unit, port, RMTUEr, 0, 0);
-    soc_counter_set(unit, port, RDROPr , 0, 0);
-    soc_counter_set(unit, port, DROP_PKT_CNTr , 0, 0);
-    soc_counter_set(unit, port, RBYTr , 0, 0);
-    soc_counter_set(unit, port, RPKTr , 0, 0);
-    soc_counter_set(unit, port, RBCAr , 0, 0);
-    soc_counter_set(unit, port, RMCAr , 0, 0);
-    soc_counter_set(unit, port, RFCSr , 0, 0);
-    soc_counter_set(unit, port, RUNDr , 0, 0);
-    soc_counter_set(unit, port, ROVRr , 0, 0);
-    soc_counter_set(unit, port, RFRGr , 0, 0);
-    soc_counter_set(unit, port, RJBRr , 0, 0);
-    soc_counter_set(unit, port, R64r  , 0, 0);
-    soc_counter_set(unit, port, R127r , 0, 0);
-    soc_counter_set(unit, port, R255r , 0, 0);
-    soc_counter_set(unit, port, R511r , 0, 0);
-    soc_counter_set(unit, port, R1023r, 0, 0);
-    soc_counter_set(unit, port, R1518r, 0, 0);
-
-    /* Tx counters */
-    soc_counter_set(unit, port, DROP_PKT_CNTr,  0, 0);
-    soc_counter_set(unit, port, EGRDROPPKTCOUNTr,  0, 0);
-    //soc_counter_set(unit, port, HOLDr ,  0, 0);
-    soc_counter_set(unit, port, TBYTr , 0, 0);
-    soc_counter_set(unit, port, TPKTr , 0, 0);
-    soc_counter_set(unit, port, TBCAr , 0, 0);
-    soc_counter_set(unit, port, TMCAr , 0, 0);
-    soc_counter_set(unit, port, TFCSr , 0, 0);
-    //soc_counter_set(unit, port, TXCLr , 0, 0);
-    soc_counter_set(unit, port, TOVRr , 0, 0);
-    soc_counter_set(unit, port, TFRGr , 0, 0);
-    //soc_counter_set(unit, port, TJBRr , 0, 0);
-    soc_counter_set(unit, port, T64r  , 0, 0);
-    soc_counter_set(unit, port, T127r , 0, 0);
-    soc_counter_set(unit, port, T255r , 0, 0);
-    soc_counter_set(unit, port, T511r , 0, 0);
-    soc_counter_set(unit, port, T1023r, 0, 0);
-    soc_counter_set(unit, port, T1518r, 0, 0);
-  }
-  else
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Switch family not defined");
-    return L7_FAILURE;
-  }
+  /* Tx counters */
+  soc_counter_set(unit, port, DROP_PKT_CNTr,  0, 0);
+  soc_counter_set(unit, port, EGRDROPPKTCOUNTr,  0, 0);
+  //soc_counter_set(unit, port, HOLDr ,  0, 0);
+  soc_counter_set(unit, port, TBYTr , 0, 0);
+  soc_counter_set(unit, port, TPKTr , 0, 0);
+  soc_counter_set(unit, port, TBCAr , 0, 0);
+  soc_counter_set(unit, port, TMCAr , 0, 0);
+  soc_counter_set(unit, port, TFCSr , 0, 0);
+  //soc_counter_set(unit, port, TXCLr , 0, 0);
+  soc_counter_set(unit, port, TOVRr , 0, 0);
+  soc_counter_set(unit, port, TFRGr , 0, 0);
+  //soc_counter_set(unit, port, TJBRr , 0, 0);
+  soc_counter_set(unit, port, T64r  , 0, 0);
+  soc_counter_set(unit, port, T127r , 0, 0);
+  soc_counter_set(unit, port, T255r , 0, 0);
+  soc_counter_set(unit, port, T511r , 0, 0);
+  soc_counter_set(unit, port, T1023r, 0, 0);
+  soc_counter_set(unit, port, T1518r, 0, 0);
   
   PT_LOG_TRACE(LOG_CTX_HAPI, "Port# %u counters cleared", phyPort);
   return L7_SUCCESS;
@@ -2618,172 +2386,52 @@ L7_RC_t hapi_ptin_counters_activity_get(ptin_HWEth_PortsActivity_t *portsActivit
         portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_DROPPACKETS;
     }
 
-    if (SOC_IS_VALKYRIE2(unit))
-    {
-      /* 10G Ethernet port ? */
-      if (PTIN_IS_PORT_10G(port))
-      {
-        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) {
-          soc_counter_get_rate(unit, port_remap, IRBYTr , 0, &rate);
-          if (rate > 0)
-            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_ACTIVITY;
-        }
-
-        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_TX_ACTIVITY) {
-          soc_counter_get_rate(unit, port_remap, ITBYTr, 0, &rate);
-          if (rate > 0)
-            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_TX_ACTIVITY;
-        }
-
-        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_TX_COLLISIONS) {
-          #if 0
-          soc_counter_get_rate(unit, port_remap, ITXCLr , 0, &rate);
-          if (rate > 0)
-            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_TX_COLLISIONS;
-          #endif
-        }
-
-        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_CRC_ERRORS) {
-          soc_counter_get_rate(unit, port_remap, IRFCSr , 0, &rate);
-          if (rate > 0)
-            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_CRC_ERRORS;
-        }
-
-        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_JABBERS) {
-          soc_counter_get_rate(unit, port_remap, IRJBRr , 0, &rate);
-          if (rate > 0)
-            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_JABBERS;
-        }
-
-        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_FRAGMENTS) {
-          soc_counter_get_rate(unit, port_remap, IRFRGr , 0, &rate);
-          if (rate > 0)
-            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_FRAGMENTS;
-        }
-
-        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_OVERSIZEPACKETS) {
-          soc_counter_get_rate(unit, port_remap, IROVRr , 0, &rate);
-          if (rate > 0)
-            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_OVERSIZEPACKETS;
-        }
-
-        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_UNDERSIZEPACKETS) {
-          soc_counter_get_rate(unit, port_remap, IRUNDr , 0, &rate);
-          if (rate > 0)
-            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_UNDERSIZEPACKETS;
-        }
-      }
-      /* 1G or 2.5G Ethernet port ? */
-      else if (PTIN_IS_PORT_PON(port) || PTIN_IS_PORT_ETH(port))
-      {
-        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) {
-          soc_counter_get_rate(unit, port_remap, GRBYTr , 0, &rate);
-          if (rate > 0)
-            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_ACTIVITY;
-        }
-
-        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_TX_ACTIVITY) {
-          soc_counter_get_rate(unit, port_remap, GTBYTr, 0, &rate);
-          if (rate > 0)
-            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_TX_ACTIVITY;
-        }
-
-        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_TX_COLLISIONS) {
-          soc_counter_get_rate(unit, port_remap, GTXCLr , 0, &rate);
-          if (rate > 0)
-            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_TX_COLLISIONS;
-        }
-
-        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_CRC_ERRORS) {
-          soc_counter_get_rate(unit, port_remap, GRFCSr , 0, &rate);
-          if (rate > 0)
-            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_CRC_ERRORS;
-        }
-
-        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_JABBERS) {
-          soc_counter_get_rate(unit, port_remap, GRJBRr , 0, &rate);
-          if (rate > 0)
-            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_JABBERS;
-        }
-
-        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_FRAGMENTS) {
-          soc_counter_get_rate(unit, port_remap, GRFRGr , 0, &rate);
-          if (rate > 0)
-            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_FRAGMENTS;
-        }
-
-        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_OVERSIZEPACKETS) {
-          soc_counter_get_rate(unit, port_remap, GROVRr , 0, &rate);
-          if (rate > 0)
-            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_OVERSIZEPACKETS;
-        }
-
-        if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_UNDERSIZEPACKETS) {
-          soc_counter_get_rate(unit, port_remap, GRUNDr , 0, &rate);
-          if (rate > 0)
-            portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_UNDERSIZEPACKETS;
-        }
-      }
-      else
-      {
-        PT_LOG_ERR(LOG_CTX_HAPI, "PTin port# %u is neither GbE or 10G interface", port);
-        return L7_FAILURE;
-      }
+    if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) {
+      soc_counter_get_rate(unit, port_remap, RBYTr , 0, &rate);
+      if (rate > 0)
+        portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_ACTIVITY;
     }
-    else if (SOC_IS_TRIDENT(unit) || SOC_IS_TRIUMPH3(unit))
-    {
-      if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) {
-        soc_counter_get_rate(unit, port_remap, RBYTr , 0, &rate);
-        if (rate > 0)
-          portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_ACTIVITY;
-      }
 
-      if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_TX_ACTIVITY) {
-        soc_counter_get_rate(unit, port_remap, TBYTr, 0, &rate);
-        if (rate > 0)
-          portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_TX_ACTIVITY;
-      }
-
-      if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_TX_COLLISIONS) {
-        soc_counter_get_rate(unit, port_remap, TXCLr , 0, &rate);
-        if (rate > 0)
-          portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_TX_COLLISIONS;
-      }
-
-      if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_CRC_ERRORS) {
-        soc_counter_get_rate(unit, port_remap, RFCSr , 0, &rate);
-        if (rate > 0)
-          portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_CRC_ERRORS;
-      }
-
-      if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_JABBERS) {
-        soc_counter_get_rate(unit, port_remap, RJBRr , 0, &rate);
-        if (rate > 0)
-          portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_JABBERS;
-      }
-
-      if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_FRAGMENTS) {
-        soc_counter_get_rate(unit, port_remap, RFRGr , 0, &rate);
-        if (rate > 0)
-          portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_FRAGMENTS;
-      }
-
-      if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_OVERSIZEPACKETS) {
-        soc_counter_get_rate(unit, port_remap, ROVRr , 0, &rate);
-        if (rate > 0)
-          portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_OVERSIZEPACKETS;
-      }
-
-      if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_UNDERSIZEPACKETS) {
-        soc_counter_get_rate(unit, port_remap, RUNDr , 0, &rate);
-        if (rate > 0)
-          portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_UNDERSIZEPACKETS;
-      }
+    if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_TX_ACTIVITY) {
+      soc_counter_get_rate(unit, port_remap, TBYTr, 0, &rate);
+      if (rate > 0)
+        portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_TX_ACTIVITY;
     }
-    else
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Switch family not defined");
-      return L7_FAILURE;
+
+    if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_TX_COLLISIONS) {
+      soc_counter_get_rate(unit, port_remap, TXCLr , 0, &rate);
+      if (rate > 0)
+        portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_TX_COLLISIONS;
+    }
+
+    if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_CRC_ERRORS) {
+      soc_counter_get_rate(unit, port_remap, RFCSr , 0, &rate);
+      if (rate > 0)
+        portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_CRC_ERRORS;
+    }
+
+    if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_JABBERS) {
+      soc_counter_get_rate(unit, port_remap, RJBRr , 0, &rate);
+      if (rate > 0)
+        portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_JABBERS;
+    }
+
+    if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_FRAGMENTS) {
+      soc_counter_get_rate(unit, port_remap, RFRGr , 0, &rate);
+      if (rate > 0)
+        portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_FRAGMENTS;
+    }
+
+    if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_OVERSIZEPACKETS) {
+      soc_counter_get_rate(unit, port_remap, ROVRr , 0, &rate);
+      if (rate > 0)
+        portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_OVERSIZEPACKETS;
+    }
+
+    if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_UNDERSIZEPACKETS) {
+      soc_counter_get_rate(unit, port_remap, RUNDr , 0, &rate);
+      if (rate > 0)
+        portsActivity->activity_bmap[port] |= PTIN_PORTACTIVITY_MASK_RX_UNDERSIZEPACKETS;
     }
   }
 
@@ -3168,7 +2816,7 @@ static L7_RC_t hapi_ptin_portMap_init(void)
     }
   #endif
 
-    PT_LOG_INFO(LOG_CTX_HAPI, " Port# %2u => Remapped# bcm_port=%2u (%s)", i, usp_map[i].port, hapiSlotMapPtr[i].portName);
+    PT_LOG_INFO(LOG_CTX_HAPI, " Port# %2u => Remapped# unit=%u slot=%u bcm_port=%2u (%s)", i, usp_map[i].unit, usp_map[i].slot, usp_map[i].port, hapiSlotMapPtr[i].portName);
   }
 
 #if (PTIN_BOARD_IS_MATRIX)
