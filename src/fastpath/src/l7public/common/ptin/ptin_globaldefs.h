@@ -72,6 +72,7 @@ extern int ptin_sys_number_of_ports;
 #define PTIN_BOARD_TYPE_TA48GED   0x59
 #define PTIN_BOARD_TYPE_CXO160G   0x39
 #define PTIN_BOARD_TYPE_CXO640G   0x33
+#define PTIN_BOARD_TYPE_TT08SXG   0xFE
 #define PTIN_BOARD_TYPE_TA12XGE   0xFF
 
 #define PTIN_BOARD_IS_PRESENT(board)  ((board) != 0)
@@ -117,9 +118,13 @@ extern int ptin_sys_number_of_ports;
 #elif (PTIN_BOARD == PTIN_BOARD_CXO640G)
 #include "ptin_globaldefs_cxo640g.h"
 
-/* OLT1T3 Matrix card */
+/* TA12XG linecard */
 #elif (PTIN_BOARD == PTIN_BOARD_TA12XG)
 #include "ptin_globaldefs_ta12xg.h"
+
+/* TA12XG linecard */
+#elif (PTIN_BOARD == PTIN_BOARD_TT08SXG)
+#include "ptin_globaldefs_tt08sxg.h"
 
 #endif
 
