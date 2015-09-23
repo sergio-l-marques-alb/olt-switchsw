@@ -613,22 +613,29 @@ void ptin_intf_dump(void)
   L7_uint16 slot, sport;
   L7_uint32 intIfNum = -1;
   L7_uint32 speed_mode;
-  L7_uint32 frameOversize, frameMax;
+#if (!PTIN_BOARD_IS_DNX)
+  L7_uint32 frameOversize;
+#endif
+  L7_uint32 frameMax;
   L7_char8  speed[8];
   L7_char8  bcm_port_str[8];
   L7_char8  board_id_str[8];
   L7_int32  bcm_port;
   L7_uint   admin;
   L7_uint   link;
+#if (!PTIN_BOARD_IS_DNX)
   ptin_HWPortExt_t  portExt;
+#endif
   ptin_HWEthRFC2819_PortStatistics_t portStats;
 
   sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(0));
   dapiCardPtr = sysapiHpcCardInfoPtr->dapiCardInfo;
   hapiSlotMapPtr = dapiCardPtr->slotMap;
+
   printf("+-------+------+------+-----+----------+-----------+-----+------+-------+-----------+------------------------+------------------------+\r\n");
   printf("| Board | Slot | Port | IfN | bcm_port | MEF Ext.* | Ena | Link | Speed | FOvr/FMax |   RX:  bytes       bps |   TX:  bytes       bps |\r\n");
   printf("+-------+------+------+-----+----------+-----------+-----+------+-------+-----------+------------------------+------------------------+\r\n");
+
   for (port=0; port<ptin_sys_number_of_ports; port++)
   {
     /* Get intIfNum ID */
@@ -709,16 +716,18 @@ void ptin_intf_dump(void)
     }
 
     /* Get Oversize packets limit */
-    if (ptin_intf_frame_oversize_get(intIfNum, &frameOversize) != L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_INTF, "Failed to get Oversize frame limit of port# %d", port);
-      continue;
-    }
     if (usmDbIfConfigMaxFrameSizeGet(intIfNum, &frameMax) != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_INTF, "Failed to get max MTU of port# %d", port);
       continue;
     }
+#if (!PTIN_BOARD_IS_DNX)
+    if (ptin_intf_frame_oversize_get(intIfNum, &frameOversize) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "Failed to get Oversize frame limit of port# %d", port);
+      continue;
+    }
+#endif
 
     /* Link State */
     if (nimGetIntfLinkState(intIfNum, &link) != L7_SUCCESS)
@@ -733,25 +742,27 @@ void ptin_intf_dump(void)
 
     /* Get slot and port id */
     slot = sport = 0;
-#if (PTIN_BOARD_IS_MATRIX)
+  #if (PTIN_BOARD_IS_MATRIX)
     if (ptin_intf_port2SlotPort(port, &slot, &sport, L7_NULLPTR) != L7_SUCCESS)
     {
       slot  = 0;
       sport = port;
     }
-#endif
+  #endif
 
+  #if (!PTIN_BOARD_IS_DNX)
     /* Apply configuration */
     if (dtlPtinL2PortExtGet(intIfNum, &portExt) != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_INTF, "Error getting MEF Ext of port# %d", port);
       continue;
     }
+  #endif
 
     /* bcm_port_t */
     bcm_port = hapiSlotMapPtr[port].bcm_port;
 
-#if (PTIN_BOARD_IS_MATRIX)
+  #if (PTIN_BOARD_IS_MATRIX)
     L7_uint16 board_type;
 
     if (slot == 0)
@@ -790,7 +801,13 @@ void ptin_intf_dump(void)
         sprintf(board_id_str,"TA48GE");
         break;
       case PTIN_BOARD_TYPE_TA48GED:
-        sprintf(board_id_str,"TA48GD");
+        sprintf(board_id_str,"TA48GED");
+        break;
+      case PTIN_BOARD_TYPE_TA12XGE:
+        sprintf(board_id_str,"TA12XGE");
+        break;
+      case PTIN_BOARD_TYPE_TT08SXG:
+        sprintf(board_id_str,"TT08SXG");
         break;
       default:
         sprintf(board_id_str," 0x%02x", board_type);
@@ -798,7 +815,7 @@ void ptin_intf_dump(void)
       }
     }
     else
-#endif
+  #endif
     {
       sprintf(board_id_str," ---");
     }
@@ -806,7 +823,22 @@ void ptin_intf_dump(void)
     /* Switch port: ge/xe (indexes changed according to the board) */
     sprintf(bcm_port_str,"%.7s", hapiSlotMapPtr[port].portName);
 
-    printf("| %-6.6s| %2u/%-2u|  %2u  |  %2u | %2u (%-4.4s)| %-3.3s-%u/%u/%u | %-3.3s | %4.4s | %5.5s |%5u/%-5u|%s%12llu %9llu%s|%s%12llu %9llu%s|\r\n",
+  #if (PTIN_BOARD_IS_DNX)
+    printf("|%-7.7s| %2u/%-2u|  %2u  |  %2u | %2u (%-4.4s)|    ---    | %-3.3s | %4.4s | %5.5s |     %5u |%s%12llu %9llu%s|%s%12llu %9llu%s|\r\n",
+           board_id_str, slot, sport,
+           port,
+           intIfNum,
+           bcm_port, bcm_port_str,
+           admin ? "Ena" : "Dis",
+           link == L7_UP ? " Up " : "Down",
+           speed,
+           frameMax,
+           (portStats.Rx.etherStatsOctets >= 1000000000000ULL) ? "*" : " ", portStats.Rx.etherStatsOctets % 1000000000000ULL,
+           portStats.Rx.Throughput / ((portStats.Rx.Throughput>=1000000000ULL) ? 1000 : 1), (portStats.Rx.Throughput>=1000000000ULL) ? "K" : " ",
+           (portStats.Tx.etherStatsOctets >= 1000000000000ULL) ? "*" : " ", portStats.Tx.etherStatsOctets % 1000000000000ULL,
+           portStats.Tx.Throughput / ((portStats.Tx.Throughput>=1000000000ULL) ? 1000 : 1), (portStats.Tx.Throughput>=1000000000ULL) ? "K" : " ");
+  #else
+    printf("|%-7.7s| %2u/%-2u|  %2u  |  %2u | %2u (%-4.4s)| %-3.3s-%u/%u/%u | %-3.3s | %4.4s | %5.5s |%5u/%-5u|%s%12llu %9llu%s|%s%12llu %9llu%s|\r\n",
            board_id_str, slot, sport,
            port,
            intIfNum,
@@ -821,6 +853,7 @@ void ptin_intf_dump(void)
            portStats.Rx.Throughput / ((portStats.Rx.Throughput>=1000000000ULL) ? 1000 : 1), (portStats.Rx.Throughput>=1000000000ULL) ? "K" : " ",
            (portStats.Tx.etherStatsOctets >= 1000000000000ULL) ? "*" : " ", portStats.Tx.etherStatsOctets % 1000000000000ULL,
            portStats.Tx.Throughput / ((portStats.Tx.Throughput>=1000000000ULL) ? 1000 : 1), (portStats.Tx.Throughput>=1000000000ULL) ? "K" : " ");
+  #endif
   }
   printf("+-------+------+------+-----+----------+-----------+-----+------+-------+-----------+------------------------+------------------------+\r\n");
   printf("MEF Ext: MEF Extension attributes -> Port Type - MAC move enable / MAC move with same prio enable / MAC move prio\r\n");
