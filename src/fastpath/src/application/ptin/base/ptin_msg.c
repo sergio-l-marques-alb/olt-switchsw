@@ -523,7 +523,7 @@ L7_RC_t ptin_msg_typeBprotSwitch(msg_HwTypeBprot_t *msg)
   }
 #endif
 
-#if (0 /*PTIN_BOARD_IS_STANDALONE*/)
+#if (PTIN_BOARD_IS_STANDALONE)
   ptin_intf_t ptin_intf;
   L7_uint32 ptin_port;
 
