@@ -168,7 +168,7 @@ BROAD_POLICY_FIELD_t;
 #define BROAD_FIELD_NONE        0
 #define BROAD_FIELD_SPECIFIED   1
 
-
+/* PTin modified: More priorities */
 typedef unsigned char BROAD_POLICY_RULE_PRIORITY_t;
 #define BROAD_POLICY_RULE_PRIORITY_LOWEST  0
 #define BROAD_POLICY_RULE_PRIORITY_LOW     1

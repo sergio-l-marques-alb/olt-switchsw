@@ -4256,8 +4256,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
        }
   }
 
-  #if (PTIN_BOARD_TG16G) // OLTTS - 17139
-//#else
+#if (PTIN_BOARD == PTIN_BOARD_TG16G) // OLTTS - 17139
   L7_uint8  prio, prio_mask  = 0x7;
   L7_uint8  vlanFormat_value = BROAD_VLAN_FORMAT_STAG | BROAD_VLAN_FORMAT_CTAG;
   L7_uint8  vlanFormat_mask  = 0xff;
