@@ -1457,6 +1457,8 @@ L7_RC_t hapiBroadIntfSpeedConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
   }
   else
   {
+    /* PTin added: Return also enable configuration */
+    dapiCmd->cmdData.portSpeedConfig.isEnabled = hapiPortPtr->hapiModeparm.physical.admin_enabled;
     dapiCmd->cmdData.portSpeedConfig.isLinkUp = hapiPortPtr->link_up;
     dapiCmd->cmdData.portSpeedConfig.speed = hapiPortPtr->speed;
     dapiCmd->cmdData.portSpeedConfig.duplex = hapiPortPtr->duplex;

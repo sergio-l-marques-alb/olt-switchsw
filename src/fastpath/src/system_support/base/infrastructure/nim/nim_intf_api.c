@@ -1674,7 +1674,7 @@ L7_RC_t nimGetIntfAdminState(L7_uint32 intIfNum, L7_uint32 *adminState)
 *********************************************************************/
 L7_RC_t nimGetIntfLinkState(L7_uint32 intIfNum, L7_uint32 *linkState)
 {
-  L7_uint32 result;
+  L7_uint32 result, isEnabled;
   L7_RC_t rc = L7_FAILURE;
 
   if (nimPhaseStatusCheck() != L7_TRUE)
@@ -1689,7 +1689,6 @@ L7_RC_t nimGetIntfLinkState(L7_uint32 intIfNum, L7_uint32 *linkState)
 
     if (rc == L7_SUCCESS)
     {
-
       switch (nimCtlBlk_g->nimPorts[intIfNum].sysIntfType)
       {
         case L7_PHYSICAL_INTF:
@@ -1699,8 +1698,10 @@ L7_RC_t nimGetIntfLinkState(L7_uint32 intIfNum, L7_uint32 *linkState)
         case L7_TUNNEL_INTF:
         case L7_WIRELESS_INTF:
         case L7_CAPWAP_TUNNEL_INTF:
+          isEnabled = nimCtlBlk_g->nimPorts[intIfNum].configPort.cfgInfo.adminState;
           result = NIM_INTF_ISMASKBITSET(nimCtlBlk_g->linkStateMask, intIfNum);
-          if (result != L7_NIM_UNUSED_PARAMETER)
+
+          if (isEnabled && result != L7_NIM_UNUSED_PARAMETER)
           {
             *linkState = L7_UP;
           }

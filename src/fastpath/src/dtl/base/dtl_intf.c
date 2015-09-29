@@ -982,7 +982,8 @@ L7_RC_t dtlIntfLinkStateGet(L7_uint32 intIfNum, L7_BOOL *isLinkUp)
 
     if (dapiCtl(&ddUsp, DAPI_CMD_INTF_SPEED_CONFIG, &dapiCmd) == L7_SUCCESS)
     {
-      *isLinkUp = dapiCmd.cmdData.portSpeedConfig.isLinkUp;
+      *isLinkUp = dapiCmd.cmdData.portSpeedConfig.isEnabled &&  /* PTin added: consider also admin configuration */
+                  dapiCmd.cmdData.portSpeedConfig.isLinkUp;
       rc = L7_SUCCESS;
     }
     else

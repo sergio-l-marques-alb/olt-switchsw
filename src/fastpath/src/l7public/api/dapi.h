@@ -1204,6 +1204,7 @@ typedef struct
       DAPI_CMD_GET_SET_t          getOrSet;
       DAPI_PORT_SPEED_t           speed;
       DAPI_PORT_DUPLEX_t          duplex;
+      L7_BOOL                     isEnabled;       /* PTin added */
       L7_BOOL                     isLinkUp;
       L7_BOOL                     isSfpLinkUp;
       L7_BOOL                     isTxPauseAgreed; /* L7_TRUE if autonegotiation agreed on Tx pause with link partner - read-only */

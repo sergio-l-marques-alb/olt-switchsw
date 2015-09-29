@@ -651,6 +651,7 @@ L7_RC_t nimNotifyUserOfIntfChange(NIM_CORRELATOR_t correlator, NIM_EVENT_NOTIFY_
         switch (event)
         {
           case L7_ATTACH:
+            LOG_TRACE(LOG_CTX_PTIN_INTF, "Attaching intIfNum %u...", eventInfo.intIfNum);
             if (nimUtilIntfStateGet(eventInfo.intIfNum) != L7_INTF_CREATED)
             {
               NIM_LOG_MSG("NIM: L7_ATTACH out of order for Interface %s\n", ifName);
@@ -670,6 +671,7 @@ L7_RC_t nimNotifyUserOfIntfChange(NIM_CORRELATOR_t correlator, NIM_EVENT_NOTIFY_
             }
             break;
           case L7_DETACH:
+            LOG_TRACE(LOG_CTX_PTIN_INTF, "Detaching intIfNum %u...", eventInfo.intIfNum);
             if (nimUtilIntfStateGet(eventInfo.intIfNum) != L7_INTF_ATTACHED)
             {
               NIM_LOG_MSG("NIM: L7_DETACH out of order for Interface %s\n", ifName);
