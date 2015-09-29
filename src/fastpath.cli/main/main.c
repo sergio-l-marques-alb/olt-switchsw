@@ -50,7 +50,7 @@ void help_oltBuga(void)
         "m 1007 port1 port2 ... - Read number of PRBS errors\r\n"
         "m 1008 - Validate provided slot map configuration\r\n"
         "m 1009 - Apply new slot map configuration\r\n"
-        "m 1010 port(0-MAX) enable(0/1) speed(100M-2;1G-3;2.5G-4;10G-5;AN-6) fd(0/1) framemax(bytes) lb(0/1) macLearn(0/1) - switch port configuration\n\r"
+        "m 1010 p=<port(0-MAX> en=(0/1) speed=(100M-2/1G-3/2.5G-4/10G-5/AN-6) fd=(0/1) fm=<framemax(bytes)> lb=(0/1) macLearn=(0/1) - switch port configuration\n\r"
         "m 1011 port(0-MAX) - get switch port configuration\n\r"
         "m 1012 port(0-MAX) - Get Phy states\n\r"
         "m 1013 slot(2-19) - Apply linkscan procedure\n\r"
@@ -723,64 +723,123 @@ int main (int argc, char *argv[])
       // Switch Phy port configuration
       case 1010:
         {
+          int ret,index;
           msg_HWEthPhyConf_t *ptr;
+          char param[21], value[21];
 
           // Validate number of arguments
-          if (argc!=3+7)  {
+          if (argc<=3+1)  {
             help_oltBuga();
             exit(0);
           }
 
           // Pointer to data array
           ptr = (msg_HWEthPhyConf_t *) &(comando.info[0]);
+          memset(ptr, 0x00, sizeof(msg_HWEthPhyConf_t));
 
           // Slot id
           ptr->SlotId = (uint8)-1;
+          ptr->Port   = (uint8)-1;
 
-          // port
-          if (StrToLongLong(argv[3+0],&valued)<0)  {
-            help_oltBuga();
-            exit(0);
+          for (index=(3+0); index<argc; index++)
+          {
+            param[0]='\0';
+            value[0]='\0';
+            if ((ret=sscanf(argv[index],"%20[^ \t:=]=%20s",param,value))!=2)
+            {
+              printf("Invalid syntax: use <param1>=<value1> <param2>=<value2> ... (%d param=\"%s\" value=\"%s\")\r\n",ret,param,value);
+              exit(0);
+            }
+            /* Port */
+            if (strcmp(param,"port")==0)
+            {
+              if (StrToLongLong(value,&valued)<0)
+              {
+                printf("Invalid port\r\n");
+                exit(0);
+              }
+              ptr->Port = (uint8) valued;
+            }
+            /* Enable */
+            else if (strcmp(param,"en")==0)
+            {
+              if (StrToLongLong(value,&valued)<0)
+              {
+                printf("Invalid Enable\r\n");
+                exit(0);
+              }
+              ptr->PortEnable = (uint8) valued;
+              ptr->Mask |= 0x0020;
+            }
+            /* Speed */
+            else if (strcmp(param,"speed")==0)
+            {
+              if (StrToLongLong(value,&valued)<0)
+              {
+                printf("Invalid Speed\r\n");
+                exit(0);
+              }
+              ptr->Speed = (uint8) valued;
+              ptr->Mask = 0x0001;
+            }
+            /* Duplex */
+            else if (strcmp(param,"duplex")==0)
+            {
+              if (StrToLongLong(value,&valued)<0)
+              {
+                printf("Invalid Duplex mode\r\n");
+                exit(0);
+              }
+              ptr->Duplex = (uint8) valued;
+              ptr->Mask = 0x0004;
+            }
+            /* Max Frame */
+            else if (strcmp(param,"fm")==0)
+            {
+              if (StrToLongLong(value,&valued)<0)
+              {
+                printf("Invalid FrameMax\r\n");
+                exit(0);
+              }
+              ptr->MaxFrame = (uint16) valued;
+              ptr->Mask = 0x0040;
+            }
+            /* Loopback mode */
+            else if (strcmp(param,"lb")==0)
+            {
+              if (StrToLongLong(value,&valued)<0)
+              {
+                printf("Invalid Loopback mode\r\n");
+                exit(0);
+              }
+              ptr->LoopBack = (uint8) valued;
+              ptr->Mask = 0x0008;
+            }
+            /* MAC learning */
+            else if (strcmp(param,"macl")==0)
+            {
+              if (StrToLongLong(value,&valued)<0)
+              {
+                printf("Invalid MACLearning modr\r\n");
+                exit(0);
+              }
+              ptr->MacLearning = (uint8) valued;
+              ptr->Mask = 0x0100;
+            }
+            else
+            {
+              printf("Invalid param\r\n");
+              exit(0);
+            }
           }
-          ptr->Port = (uint8) valued;
-          // enable
-          if (StrToLongLong(argv[3+1],&valued)<0)  {
-            help_oltBuga();
-            exit(0);
-          }
-          ptr->PortEnable = (uint8) valued;
-          // speed
-          if (StrToLongLong(argv[3+2],&valued)<0)  {
-            help_oltBuga();
-            exit(0);
-          }
-          ptr->Speed = (uint8) valued;
-          // full_duplex
-          if (StrToLongLong(argv[3+3],&valued)<0)  {
-            help_oltBuga();
-            exit(0);
-          }
-          ptr->Duplex = (uint8) valued;
-          // frame_max length
-          if (StrToLongLong(argv[3+4],&valued)<0)  {
-            help_oltBuga();
-            exit(0);
-          }
-          ptr->MaxFrame = (uint16) valued;
-          // loopback
-          if (StrToLongLong(argv[3+5],&valued)<0)  {
-            help_oltBuga();
-            exit(0);
-          }
-          ptr->LoopBack = (uint8) valued;
-          // MAC learning
-          if (StrToLongLong(argv[3+6],&valued)<0)  {
-            help_oltBuga();
-            exit(0);
-          }
-          ptr->MacLearning = (uint8) valued;
 
-          ptr->Mask = 0xFFFF;
+          /* Mandatory parameters */
+          if (ptr->Port == (uint8)-1)
+          {
+            printf("ERROR: port parameter should be given!");
+            exit(0);
+          }
+
           comando.msgId = CCMSG_ETH_PHY_CONFIG_SET;
           comando.infoDim = sizeof(msg_HWEthPhyConf_t);
         }
@@ -2059,6 +2118,7 @@ int main (int argc, char *argv[])
           dp = (uint8) valued;
           if (dp==0 || dp>=5) {
             help_oltBuga();
+            printf("Wrong DP level: should be bewteen 1 and 4\r\n");
             exit(0);
           }
           dp--;
