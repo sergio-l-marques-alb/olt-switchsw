@@ -58,7 +58,7 @@ static L7_uint32 lagIdList[PTIN_SYSTEM_N_PORTS];          /* LAG id that belongs
 
 #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
 #if (PHY_RECOVERY_PROCEDURE)
-L7_BOOL slots_to_be_reseted[PTIN_SYS_SLOTS_MAX]={L7_FALSE, [1 ... (PTIN_SYS_SLOTS_MAX-2)]=L7_TRUE; L7_FALSE};
+L7_BOOL slots_to_be_reseted[PTIN_SYS_SLOTS_MAX]={L7_FALSE, [1 ... (PTIN_SYS_SLOTS_MAX-2)]=L7_TRUE, L7_FALSE};
 #endif
 #endif
 
