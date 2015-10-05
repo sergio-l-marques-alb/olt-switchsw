@@ -1077,7 +1077,17 @@ L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id)
       LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_stp_set to bcm_port %u", bcm_port);
       rc = L7_FAILURE;
     }
-    LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_port %u reconfigured", bcm_port);
+
+    /* For KR4 */
+    if (hapiWCMapPtr[i].wcSpeedG == 40)
+    {
+      LOG_INFO(LOG_CTX_PTIN_HAPI, "Resetting bcm_port %u...", bcm_port);
+      if (ptin_hapi_kr4_set(bcm_port) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error resetting bcm_port %u", bcm_port);
+      }
+    }
+    LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_port %u reconfigured", bcm_port); 
   }
 
   if (rc == L7_SUCCESS)

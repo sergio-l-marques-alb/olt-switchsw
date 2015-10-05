@@ -122,11 +122,11 @@ extern L7_RC_t ptin_intf_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portS
 /**
  * Clear counters
  * 
- * @param portStats portStats->Port must be defined
+ * @param ptin_port
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_intf_counters_clear(ptin_HWEthRFC2819_PortStatistics_t *portStats);
+extern L7_RC_t ptin_intf_counters_clear(L7_uint ptin_port);
 
 /**
  * Read counters activity (of physical ports)
@@ -783,10 +783,11 @@ extern L7_RC_t ptin_intf_linkscan_control(L7_uint port, L7_BOOL enable);
  * Reset warpcore associated to a specific slot 
  * 
  * @param slot_id 
+ * @param force_linkup 
  * 
  * @return L7_RC_t 
  */
-extern L7_RC_t ptin_intf_slot_reset(L7_int slot_id);
+extern L7_RC_t ptin_intf_slot_reset(L7_int slot_id, L7_BOOL force_linkup);
 
 /**
  * read linkscan status
