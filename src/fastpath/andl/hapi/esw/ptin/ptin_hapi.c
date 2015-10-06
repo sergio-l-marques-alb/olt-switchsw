@@ -976,7 +976,7 @@ L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id)
   L7_RC_t    rc = L7_SUCCESS;
 
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
-  L7_uint    i;
+  L7_int     i, wcSpeedG=-1;
   bcm_port_t bcm_port;
   bcm_pbmp_t pbm, pbm_out;
 
@@ -1010,6 +1010,8 @@ L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id)
     if (hapiWCMapPtr[i].slotNum == slot_id)
     {
       BCM_PBMP_PORT_ADD(pbm, bcm_port);
+      /* Save speed of this port */
+      wcSpeedG = hapiWCMapPtr[i].wcSpeedG;
       LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_port %u (port %u) added to list of ports to be reseted", bcm_port, i);
     }
   }
@@ -1046,32 +1048,13 @@ L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id)
       LOG_ERR(LOG_CTX_PTIN_HAPI, "Error disabling bcm_port %u", bcm_port);
       rc = L7_FAILURE;
     }
-    if (bcm_port_autoneg_set(0, bcm_port, L7_DISABLE) != BCM_E_NONE)
-    {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_autoneg_set to bcm_port %u", bcm_port);
-      rc = L7_FAILURE;
-    }
-    if (bcm_port_duplex_set(0, bcm_port, L7_ENABLE) != BCM_E_NONE)
-    {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_duplex_set to bcm_port %u", bcm_port);
-      rc = L7_FAILURE;
-    }
+    /* No Pause frames */
     if (bcm_port_pause_set(0, bcm_port, L7_DISABLE, L7_DISABLE) != BCM_E_NONE)
     {
       LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_pause_set to bcm_port %u", bcm_port);
       rc = L7_FAILURE;
     }
-    if (bcm_port_interface_set(0, bcm_port, BCM_PORT_IF_SFI) != BCM_E_NONE)
-    {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_interface_set to bcm_port %u", bcm_port);
-      rc = L7_FAILURE;
-    }
-    /* Reenable ports */
-    if (bcm_port_enable_set(0, bcm_port, L7_ENABLE) != BCM_E_NONE)
-    {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error reenabling bcm_port %u", bcm_port);
-      rc = L7_FAILURE;
-    }
+    /* STP in forward mode */
     if (bcm_port_stp_set(0, bcm_port, BCM_PORT_STP_FORWARD) != BCM_E_NONE)
     {
       LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_stp_set to bcm_port %u", bcm_port);
@@ -1079,15 +1062,33 @@ L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id)
     }
 
     /* For KR4 */
-    if (hapiWCMapPtr[i].wcSpeedG == 40)
+    if (wcSpeedG == 40)
     {
-      LOG_INFO(LOG_CTX_PTIN_HAPI, "Resetting bcm_port %u...", bcm_port);
+      LOG_INFO(LOG_CTX_PTIN_HAPI, "Setting bcm_port %u to KR4 mode...", bcm_port);
       if (ptin_hapi_kr4_set(bcm_port) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_HAPI, "Error resetting bcm_port %u", bcm_port);
       }
+      LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_port %u reconfigured to KR4 mode", bcm_port); 
     }
-    LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_port %u reconfigured", bcm_port); 
+    else if (wcSpeedG == 10)
+    {
+      LOG_INFO(LOG_CTX_PTIN_HAPI, "Setting bcm_port %u to SFI mode...", bcm_port);
+      if (ptin_hapi_sfi_set(bcm_port) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error resetting bcm_port %u", bcm_port);
+      }
+      LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_port %u reconfigured to SFI mode", bcm_port);
+    }
+    else
+    {
+      LOG_INFO(LOG_CTX_PTIN_HAPI, "Setting bcm_port %u to default mode...", bcm_port);
+      if (ptin_hapi_def_set(bcm_port) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error resetting bcm_port %u", bcm_port);
+      }
+      LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_port %u reconfigured to default mode", bcm_port);
+    }
   }
 
   if (rc == L7_SUCCESS)
@@ -3918,6 +3919,64 @@ L7_RC_t ptin_hapi_kr4_set(bcm_port_t bcm_port)
   return L7_SUCCESS;
 }
 
+/**
+ * Change a port interface type to SFI
+ * 
+ * @param port : ptin_port format
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_hapi_sfi_set(bcm_port_t bcm_port)
+{
+  bcm_error_t rc = BCM_E_NONE;
+
+  /* Disable port */
+  rc = bcm_port_enable_set(0, bcm_port, 0);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing bcm_port %u", bcm_port);
+    return rc;
+  }
+  /* Set 10G speed */
+  rc = bcm_port_speed_set(0, bcm_port, 10000);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting bcm_port %u to 10G speed", bcm_port);
+    return rc;
+  }
+  /* Disable Auto-neg */
+  rc = bcm_port_autoneg_set(0, bcm_port, L7_DISABLE);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_autoneg_set to bcm_port %u", bcm_port);
+    return L7_FAILURE;
+  }
+  /* Enable duplex */
+  rc = bcm_port_duplex_set(0, bcm_port, L7_ENABLE);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_duplex_set to bcm_port %u", bcm_port);
+    return L7_FAILURE;
+  }
+  /* SFI mode */
+  rc = bcm_port_interface_set(0, bcm_port, BCM_PORT_IF_SFI);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_interface_set to bcm_port %u", bcm_port);
+    return L7_FAILURE;
+  }
+  /* Reenable ports */
+  rc = bcm_port_enable_set(0, bcm_port, L7_ENABLE);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error reenabling bcm_port %u", bcm_port);
+    return L7_FAILURE;
+  }
+
+  LOG_INFO(LOG_CTX_PTIN_HAPI, "Success initializing bcm_port %u", bcm_port);
+
+  return L7_SUCCESS;
+}
 
 /**
  * Change a port interface type to XAUI
@@ -3930,10 +3989,96 @@ L7_RC_t ptin_hapi_xaui_set(bcm_port_t bcm_port)
 {
   bcm_error_t rc = BCM_E_NONE;
 
+#if 0
+  /* Disable port */
+  rc = bcm_port_enable_set(0, bcm_port, 0);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing bcm_port %u", bcm_port);
+    return rc;
+  }
+  /* Set 10G speed */
+  rc = bcm_port_speed_set(0, bcm_port, 10000);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting bcm_port %u to 10G speed", bcm_port);
+    return rc;
+  }
+  /* Disable Auto-neg */
+  rc = bcm_port_autoneg_set(0, bcm_port, L7_DISABLE);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_autoneg_set to bcm_port %u", bcm_port);
+    return L7_FAILURE;
+  }
+  /* Enable duplex */
+  rc = bcm_port_duplex_set(0, bcm_port, L7_ENABLE);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_duplex_set to bcm_port %u", bcm_port);
+    return L7_FAILURE;
+  }
+#endif
+
   rc = bcm_port_interface_set(0, bcm_port, BCM_PORT_IF_XAUI);
   if (L7_BCMX_OK(rc) != L7_TRUE)
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing bcm_port %u", bcm_port);
+    return L7_FAILURE;
+  }
+
+#if 0
+  /* Reenable ports */
+  rc = bcm_port_enable_set(0, bcm_port, L7_ENABLE);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error reenabling bcm_port %u", bcm_port);
+    return L7_FAILURE;
+  }
+#endif
+
+  LOG_INFO(LOG_CTX_PTIN_HAPI, "Success initializing bcm_port %u", bcm_port);
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Change a port interface type to default
+ * 
+ * @param port : ptin_port format
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_hapi_def_set(bcm_port_t bcm_port)
+{
+  bcm_error_t rc = BCM_E_NONE;
+
+  /* Disable port */
+  rc = bcm_port_enable_set(0, bcm_port, 0);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing bcm_port %u", bcm_port);
+    return rc;
+  }
+  /* Disable Auto-neg */
+  rc = bcm_port_autoneg_set(0, bcm_port, L7_DISABLE);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_autoneg_set to bcm_port %u", bcm_port);
+    return L7_FAILURE;
+  }
+  /* Enable duplex */
+  rc = bcm_port_duplex_set(0, bcm_port, L7_ENABLE);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_duplex_set to bcm_port %u", bcm_port);
+    return L7_FAILURE;
+  }
+  /* Reenable ports */
+  rc = bcm_port_enable_set(0, bcm_port, L7_ENABLE);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error reenabling bcm_port %u", bcm_port);
     return L7_FAILURE;
   }
 
