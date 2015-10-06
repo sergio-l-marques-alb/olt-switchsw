@@ -108,6 +108,13 @@ static void ipc_server_ipaddr_init(void);
         close_ipc(g_iInterfaceHW);
         return res;
       }
+      if ((res=open_ipc (IPC_HW_FP_CTRL_PORT2, INADDR_ANY, &CHMessageHandler, IPC_CH_TIMEOUT, &g_iInterfaceCX))!=S_OK)
+      {
+        LOG_CRITICAL(LOG_CTX_IPC,
+                     "Nao foi possivel abrir o canal de comunicacoes para atendimento de mensagens (%08X).", res);
+        close_ipc(g_iInterfaceHW);
+        return res;
+      }
 
       if ((res=open_ipc (0, 0, NULL, IPC_CM_TIMEOUT, &g_iInterfaceSW))!=S_OK)
       {

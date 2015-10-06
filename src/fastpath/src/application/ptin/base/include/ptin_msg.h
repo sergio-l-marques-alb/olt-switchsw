@@ -227,6 +227,17 @@ extern L7_RC_t ptin_msg_PhyCounters_clear(msg_HWEthRFC2819_PortStatistics_t *msg
 extern L7_RC_t ptin_msg_intfInfo_get(msg_HwIntfInfo_t *intf_info);
 
 /**
+ * Process linkStatus messages sent from linecards
+ * 
+ * @author mruas (10/1/2015)
+ * 
+ * @param inbuffer 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_msg_intfLinkStatus(ipc_msg *inbuffer);
+
+/**
  * Get slot mode configuration
  * 
  * @param slotMode 

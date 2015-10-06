@@ -1265,23 +1265,16 @@ L7_RC_t ptin_msg_PhyCounters_read(msg_HwGenReq_t *msgRequest, msg_HWEthRFC2819_P
  */
 L7_RC_t ptin_msg_PhyCounters_clear(msg_HWEthRFC2819_PortStatistics_t *msgPortStats)
 {
-  ptin_HWEthRFC2819_PortStatistics_t portStats;
-
   /* Clear statistics */
-  portStats.Port = msgPortStats->Port;
-  portStats.Mask = msgPortStats->Mask;
-  portStats.RxMask = msgPortStats->RxMask;
-  portStats.TxMask = msgPortStats->TxMask;
-
-  if (ptin_intf_counters_clear(&portStats) != L7_SUCCESS)
+  if (ptin_intf_counters_clear(msgPortStats->Port) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error clearing statistics of port# %u", portStats.Port);
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Error clearing statistics of port# %u", msgPortStats->Port);
     memset(msgPortStats, 0x00, sizeof(msg_HWEthRFC2819_PortStatistics_t));
 
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Port# %u counters cleared", portStats.Port);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Port# %u counters cleared", msgPortStats->Port);
 
   return L7_SUCCESS;
 }
@@ -1298,7 +1291,7 @@ L7_RC_t ptin_msg_PhyCounters_clear(msg_HWEthRFC2819_PortStatistics_t *msgPortSta
  */
 L7_RC_t ptin_msg_intfInfo_get(msg_HwIntfInfo_t *intf_info)
 {
-  #if (PTIN_BOARD_IS_MATRIX)
+#if (PTIN_BOARD_IS_MATRIX)
   L7_int ptin_port;
   ptin_intf_t ptin_intf;
   L7_uint16 admin, link, board_id;
@@ -1332,9 +1325,68 @@ L7_RC_t ptin_msg_intfInfo_get(msg_HwIntfInfo_t *intf_info)
     return L7_FAILURE;
   }
   #endif
-  #endif
+#endif
 
   return L7_SUCCESS;
+}
+
+/**
+ * Process linkStatus messages sent from linecards
+ * 
+ * @author mruas (10/1/2015)
+ * 
+ * @param inbuffer 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_intfLinkStatus(ipc_msg *inbuffer)
+{
+#if (PTIN_BOARD_IS_MATRIX)
+  msg_HwIntfStatus_t *linkStatus = (msg_HwIntfStatus_t *) inbuffer->info;
+  struct_rlink_status_t info;
+  L7_uint16 index;
+  L7_uint32 ptin_port;
+
+  /* Validate slot */
+  if (linkStatus->slot_id < PTIN_SYS_LC_SLOT_MIN || linkStatus->slot_id > PTIN_SYS_LC_SLOT_MAX)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid slot %u", linkStatus->slot_id);
+    return L7_FAILURE;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Received linkStatus report from slot %u", linkStatus->slot_id);
+
+  /* Run all given interfaces */
+  for (index=0; index<linkStatus->number_of_ports; index++)
+  {
+    /* Convert to matrix's local ptin_port */
+    if (ptin_intf_slotPort2port(linkStatus->slot_id, index, &ptin_port)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid slot=%u/port=%u", linkStatus->slot_id, index);
+      continue;
+    }
+
+    LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Updating linkStatus report of port %u", ptin_port);
+
+    /* Update remote linkStatus */
+    memset(&info, 0x00, sizeof(info)); 
+    info.updated    = L7_TRUE;
+    info.enable     = linkStatus->port[index].enable;
+    info.link       = linkStatus->port[index].link;
+    info.tx_packets = linkStatus->port[index].tx_packets;
+    info.rx_packets = linkStatus->port[index].rx_packets;
+    info.rx_error   = linkStatus->port[index].rx_error;
+
+    ptin_control_remoteLinkstatus_update(ptin_port, &info);
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_CONTROL, "linkStatus from slot %u updated!", linkStatus->slot_id);
+
+  return L7_SUCCESS;
+#else
+  LOG_ERR(LOG_CTX_PTIN_MSG, "This message is only supported by MATRIX board");
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /**

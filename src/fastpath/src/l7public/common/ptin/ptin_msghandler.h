@@ -105,6 +105,7 @@
 #define CCMSG_SLOT_MAP_MODE_VALIDATE        0x91E1  // struct msg_slotModeCfg_t
 #define CCMSG_SLOT_MAP_MODE_APPLY           0x91E2  // struct msg_slotModeCfg_t
 #define CCMSG_HW_INTF_INFO_GET              0x91E4  // struct msg_HwIntfInfo_t
+#define CCMSG_HW_INTF_STATUS                0x91E5  // struct msg_HwIntfStatus_t
 
 #define CCMSG_APP_CHANGE_STDOUT             0x91F0  // (To be used with fastpath.cli)
 #define CCMSG_APP_SHELL_CMD_RUN             0x91F1  // (To be used with fastpath.cli)
@@ -405,6 +406,22 @@ typedef struct {
     L7_uint8 link;
   } __attribute__((packed)) port[PTIN_SYSTEM_MAX_N_PORTS];
 } __attribute__((packed)) msg_HwIntfInfo_t;
+
+
+typedef struct {
+  L7_uint8  slot_id;          // Slot ID
+  L7_uint16 generic_id;       // ID used for any purpose (context of each message)
+  L7_uint8  number_of_ports;  // Number of used ports
+  struct                      // Information of each port
+  {
+    msg_HwEthInterface_t intf;
+    L7_uint8  enable;
+    L7_uint8  link;
+    L7_uint64 tx_packets;
+    L7_uint64 rx_packets;
+    L7_uint64 rx_error;
+  } __attribute__((packed)) port[PTIN_SYSTEM_MAX_N_PORTS];
+} __attribute__((packed)) msg_HwIntfStatus_t;
 
 
 /* Misc structs ***************************************************************/
