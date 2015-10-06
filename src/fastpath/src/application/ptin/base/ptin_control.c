@@ -32,7 +32,6 @@
 #include "ptin_fieldproc.h"
 #include "ptin_msghandler.h"
 #include "ptin_msg.h"
-
 #include "ptin_fpga_api.h"
 
 #if ( PTIN_BOARD_IS_STANDALONE )
@@ -46,6 +45,27 @@ volatile ptin_state_t ptin_state = PTIN_STATE_LOADING;
 
 volatile L7_uint32    ptin_task_msg_id     = (L7_uint32) -1;
 volatile void        *ptin_task_msg_buffer = L7_NULLPTR;
+
+#if (PTIN_BOARD_IS_MATRIX)
+/* Remote link status */
+struct_linkStatus_t remote_link_status[PTIN_SYSTEM_N_PORTS];
+struct_linkStatus_t local_link_status[PTIN_SYSTEM_N_PORTS];
+void *link_status_sem;  /* Semaphore to access this data structure */
+
+#define SLOTRESET_SAVE_LAST_EVENTS  10
+typedef struct
+{
+  L7_uint16 slot_id;
+  L7_uint16 board_id;
+  L7_uint16 mx_ptin_port;
+  struct_linkStatus_t local_linkStatus;
+  struct_linkStatus_t remote_linkStatus;
+  struct L7_localtime_t time;
+} struct_slotReset_record_t;
+
+struct_slotReset_record_t slotReset_record_last[SLOTRESET_SAVE_LAST_EVENTS];
+L7_uint16 slotReset_event_index = 0;
+#endif
 
 /* Traffic activity bits for external module access */
 L7_uint32 ptin_control_port_activity[PTIN_SYSTEM_N_PORTS];  /* maps each phy port */
@@ -71,11 +91,26 @@ static void monitor_throughput(void);
 static void monitor_alarms(void);
 static void monitor_matrix_commutation(void);
 
+#if (PTIN_BOARD_IS_LINECARD)
+static void ptin_control_linkstatus_report(void);
+#endif
+
 #if (PTIN_BOARD_IS_MATRIX)
 #ifdef PTIN_LINKSCAN_CONTROL
 void ptin_control_switchover_monitor(void);
+#endif /* PTIN_LINKSCAN_CONTROL */
+
+/* Only active for CXO160G board */
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+static L7_BOOL linkStatus_monitor_control = L7_TRUE;
+#else
+static L7_BOOL linkStatus_monitor_control = L7_FALSE;
 #endif
-#endif
+
+void ptin_control_linkStatus_monitor(void);
+void ptin_control_slot_reset(L7_uint ptin_port, L7_uint slot_id, L7_uint board_id,
+                                    struct_linkStatus_t linkStatus[2]);
+#endif /* PTIN_BOARD_IS_MATRIX */
 
 static void ptin_control_syncE(void);
 
@@ -192,10 +227,8 @@ void ptinTask(L7_uint32 numArgs, void *unit)
   }
 
   /* Unblock switchover monitor task */
-#if (PTIN_BOARD_IS_MATRIX)
   LOG_INFO(LOG_CTX_PTIN_CNFGR, "Unblocking switchover monitor task");
   osapiSemaGive(ptin_switchover_sem);
-#endif
 
 #if (PTIN_BOARD_IS_MATRIX)
 /*Added a 30 seconds delay to prevent abnormal behaviour on the HW L3_IPMC Table of the Standby Matrix. 
@@ -909,14 +942,7 @@ static void monitor_matrix_commutation(void)
 #endif
 }
 
-#if (PTIN_BOARD_IS_MATRIX)
-#ifdef PTIN_LINKSCAN_CONTROL
-
-#ifdef MAP_CPLD
-/* List of active interfaces */
-static L7_uint8 switchover_intf_active_h[PTIN_SYSTEM_MAX_N_PORTS];
-#endif
-
+#if (!PTIN_BOARD_IS_STANDALONE)
 /**
  * Task that checks for Matrix Switchovers
  * 
@@ -930,6 +956,16 @@ void ptinSwitchoverTask(L7_uint32 numArgs, void *unit)
   LOG_NOTICE(LOG_CTX_PTIN_CONTROL, "ptinSwitchover running!");
   rc = osapiTaskInitDone(L7_PTIN_SWITCHOVER_TASK_SYNC);
 
+#if (PTIN_BOARD_IS_MATRIX)
+  /* Initialize semaphore to access rlink status */
+  link_status_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
+  if (link_status_sem == L7_NULLPTR)
+  {
+    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to create rlink_status_sem semaphore!");
+    PTIN_CRASH();
+  }
+#endif
+
   /* Wait for a signal indicating that all other modules
    * configurations were executed */
   LOG_INFO(LOG_CTX_PTIN_CONTROL, "ptinSwitchover task waiting for other modules to boot up...");
@@ -938,14 +974,37 @@ void ptinSwitchoverTask(L7_uint32 numArgs, void *unit)
 
   while (1)
   {
+#if (PTIN_BOARD_IS_MATRIX)
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
+#ifdef PTIN_LINKSCAN_CONTROL
+    /* Switchover monitoring */
     ptin_control_switchover_monitor();
+#endif
+    /* Links monitoring, in case a WarpCore reset is necessary*/
+    ptin_control_linkStatus_monitor();
+#endif
+#endif
+
+#if (PTIN_BOARD_IS_LINECARD)
+    /* Monitor links and report them to matrix board */
+    ptin_control_linkstatus_report();
+#endif
 
     osapiSleep(10);
   }
 }
+#endif
+
+#if (PTIN_BOARD_IS_MATRIX)
+#ifdef PTIN_LINKSCAN_CONTROL
+
+#ifdef MAP_CPLD
+/* List of active interfaces */
+static L7_uint8 switchover_intf_active_h[PTIN_SYSTEM_MAX_N_PORTS];
+#endif
 
 /**
- * Monitor switchover process
+ * Monitor switchover process (10s period)
  * 
  * @author mruas (11/21/2013)
  * 
@@ -1075,7 +1134,9 @@ void ptin_control_switchover_monitor(void)
           if ( ptin_intf_boardid_get(port, &board_id) == L7_SUCCESS &&
               (!PTIN_BOARD_IS_PRESENT(board_id) || PTIN_BOARD_LS_CTRL(board_id)) &&
                ptin_intf_port2intIfNum(port, &intIfNum) == L7_SUCCESS)
+          {
             ptin_intf_linkscan_set(intIfNum, L7_DISABLE);
+          }
         }
 
         LOG_INFO(LOG_CTX_PTIN_CONTROL, "Linkscan disabled for all ports");
@@ -1168,7 +1229,7 @@ void ptin_control_switchover_monitor(void)
         if (ports_info.port[port].board_id == PTIN_BOARD_TYPE_TG16G)
         {
           LOG_INFO(LOG_CTX_PTIN_INTF, "Going to reset warpcore of slot %u", slot_id);
-          rc = ptin_intf_slot_reset(slot_id);
+          rc = ptin_intf_slot_reset(slot_id, L7_FALSE);
           if (rc == L7_SUCCESS)
           {
             LOG_INFO(LOG_CTX_PTIN_INTF, "Slot %d reseted", slot_id);
@@ -1296,8 +1357,644 @@ void ptin_control_switchover_monitor(void)
 
   #endif
 }
+#endif /*PTIN_LINKSCAN_CONTROL*/
+
+/**
+ * LinkStatus monitor (10s period)
+ * 
+ * @author mruas (10/1/2015)
+ */
+void ptin_control_linkStatus_monitor(void)
+{
+  L7_BOOL slot_in_error;
+  L7_int8 credits_to_loose;
+  L7_uint32 port, index;
+  L7_uint16 board_id, slot_id;
+  struct_linkStatus_t linkStatus_copy[2], info;
+  static L7_int slot_alert[PTIN_SYS_SLOTS_MAX]={[0 ... (PTIN_SYS_SLOTS_MAX-1)]=10};  /* Full credits */
+  static L7_int counter=18;
+
+  /* Check if link status monitor is enabled */
+  if (!linkStatus_monitor_control)
+  {
+    counter = 6;
+    return;
+  }
+
+  /* 60s period */
+  if ((--counter) > 0)
+  {
+    return;
+  }
+  counter = 6;
+
+  /* Wait for switch to be stable */
+  if (ptin_fpga_mx_is_matrixactive() != ptin_fpga_mx_is_matrixactive_rt())
+  {
+    return;
+  }
+
+  /* Do nothing for inactive matrix */
+  if (!ptin_fpga_mx_is_matrixactive())
+  {
+    return;
+  }
+
+  /* Update local interfaces status */
+  ptin_control_localLinkStatus_update();
+
+  LOG_TRACE(LOG_CTX_PTIN_CONTROL,"Monitoring linkStatus...");
+
+  /* Run all slots */
+  for (slot_id = PTIN_SYS_LC_SLOT_MIN; slot_id <= PTIN_SYS_LC_SLOT_MAX; slot_id++)
+  {
+    slot_in_error = L7_FALSE;
+    credits_to_loose = 0;
+
+    /* Skip non downlink boards */
+    if (ptin_slot_boardid_get(slot_id, &board_id)!=L7_SUCCESS || !PTIN_BOARD_IS_DOWNLINK(board_id))
+    {
+      continue;
+    }
+
+    /* Run all slot ports */
+    for (index = 0; index < PTIN_SYS_INTFS_PER_SLOT_MAX; index++)
+    {
+      /* Get ptin_port */
+      if (ptin_intf_slotPort2port(slot_id, index, &port)!=L7_SUCCESS || port>=ptin_sys_number_of_ports)
+      {
+        continue;
+      }
+
+      /* Going to access rlink data */
+      osapiSemaTake(link_status_sem, L7_WAIT_FOREVER);
+      /* Copy data */
+      linkStatus_copy[0] = local_link_status[port];   /* Local links */
+      linkStatus_copy[1] = remote_link_status[port];  /* Remote links */
+      /* Clear update flags */
+      local_link_status[port].updated = L7_FALSE;
+      remote_link_status[port].updated = L7_FALSE;
+      /* Release semaphore */
+      osapiSemaGive(link_status_sem);
+
+      LOG_TRACE(LOG_CTX_PTIN_CONTROL, "local linkStatus: Port %u -> upd=%u en=%u link=%u stats={tx:%llu rx:%llu er:%llu}",
+                port, linkStatus_copy[0].updated, linkStatus_copy[0].enable, linkStatus_copy[0].link, linkStatus_copy[0].tx_packets, linkStatus_copy[0].rx_packets, linkStatus_copy[0].rx_error);
+      LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Remot linkStatus: Port %u -> upd=%u en=%u link=%u stats={tx:%llu rx:%llu er:%llu}",
+                port, linkStatus_copy[1].updated, linkStatus_copy[1].enable, linkStatus_copy[1].link, linkStatus_copy[1].tx_packets, linkStatus_copy[1].rx_packets, linkStatus_copy[1].rx_error);
+
+      /* Calculate result information */
+
+      /* Clear info struct to save linkStatus data (combines local and remote data) */
+      memset(&info, 0x00, sizeof(info));
+
+      /* Initial values: OK situation */
+      info.updated    = 0;  /* To be ORed to*/
+      info.enable     = 1;  /* To be ANDed to */
+      info.link       = 1;  /* To be ANDed to */
+      info.tx_packets = 0;  /* To be sumed to */
+      info.rx_packets = 0;  /* To be sumed to */
+      info.rx_error   = 0;  /* To be sumed to */
+      /* Local data */
+      if (linkStatus_copy[0].updated)
+      {
+        info.updated    = L7_TRUE;
+        info.enable     &= linkStatus_copy[0].enable;
+        info.link       &= linkStatus_copy[0].link;
+        info.tx_packets += linkStatus_copy[0].tx_packets;
+        info.rx_packets += linkStatus_copy[0].rx_packets;
+        info.rx_error   += linkStatus_copy[0].rx_error;
+      }
+      /* Remote data */
+      if (linkStatus_copy[1].updated)
+      {
+        info.updated    = L7_TRUE;
+        info.enable     &= linkStatus_copy[1].enable;
+        info.link       &= linkStatus_copy[1].link;
+        info.tx_packets += linkStatus_copy[1].tx_packets;
+        info.rx_packets += linkStatus_copy[1].rx_packets;
+        info.rx_error   += linkStatus_copy[1].rx_error;
+      }
+
+      LOG_TRACE(LOG_CTX_PTIN_CONTROL, "linkStatus: Port %u -> upd=%u en=%u link=%u stats={tx:%llu rx:%llu er:%llu}",
+                port, info.updated, info.enable, info.link, info.tx_packets, info.rx_packets, info.rx_error);
+
+      /* Skip not updated or disabled interfaces */
+      if (!info.updated || !info.enable)
+      {
+        continue;
+      }
+
+      /* If link is down, take 5 credits */
+      if (!info.link)
+      {
+        slot_in_error = L7_TRUE;
+        credits_to_loose = max(credits_to_loose, 5);
+        LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Port %u has issues: link=%u", port, info.link);
+      }
+      /* Or have FCS errors (100 errors in 60 seconds), take only 2 credits */
+      else if (info.rx_error > 100)
+      {
+        slot_in_error = L7_TRUE;
+        credits_to_loose = max(credits_to_loose, 2);
+        LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Port %u has issues: tx=%llu rx=%llu er=%llu", port,
+                  info.tx_packets, info.rx_packets, info.rx_error);
+      }
+      /* Have FCS errors, but are very low... keep credits */
+      else if (info.rx_error > 10)
+      {
+        slot_in_error = L7_TRUE;
+        credits_to_loose = max(credits_to_loose, 0);
+        LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Port %u has issues: tx=%llu rx=%llu er=%llu", port,
+                  info.tx_packets, info.rx_packets, info.rx_error);
+      }
+    }
+
+    /* Decrement credits */
+    slot_alert[slot_id] -= credits_to_loose;
+
+    if (slot_in_error)
+    {
+      LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Slot %u has issues: credits=%u", slot_id, slot_alert[slot_id]);
+    }
+
+    /* If no credits are assigned to this port, reset slot */
+    if (slot_alert[slot_id] <= 0)
+    {
+      LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Credits exhausted: Going to reset slot %u", slot_id);
+
+      /* Clear alert */
+      slot_in_error = L7_FALSE;
+
+      /* Reset warpcore */
+      ptin_control_slot_reset(port, slot_id, board_id, linkStatus_copy);
+    }
+
+    /* If no error occured within all ports of a slot, full credits are given */
+    if (!slot_in_error)
+    {
+      if (slot_alert[slot_id] < 10)
+        LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Credits restored to slot %u", slot_id);
+      slot_alert[slot_id] = 10;
+    }
+  }
+}
+
+/**
+ * Procedures to be done when resetting a slot
+ * 
+ * @author mruas (10/2/2015)
+ * 
+ * @param ptin_port : Port responsible for this reset
+ * @param slot_id : Slot associated to this port
+ * @param board_id : Board id associated to this slot
+ * @param linkStatus : Link status information (Local + Remote)
+                                                                */
+void ptin_control_slot_reset(L7_uint ptin_port, L7_uint slot_id, L7_uint board_id,
+                                    struct_linkStatus_t linkStatus[2])
+{
+  L7_BOOL force_link;
+  struct timespec tm;
+  struct L7_localtime_t lt;
+
+  LOG_WARNING(LOG_CTX_PTIN_CONTROL, "Going to reset WC of port %u", ptin_port);
+
+#ifdef PTIN_LINKSCAN_CONTROL
+  force_link = (board_id == PTIN_BOARD_TYPE_TG16G);
+#else
+  force_link = L7_FALSE;
 #endif
+
+  /* Reset WarpCore */
+  ptin_intf_slot_reset(slot_id, force_link);
+
+  /* Get time */
+  clock_gettime(CLOCK_REALTIME, &tm);
+  osapiLocalTime(tm.tv_sec, &lt);
+  lt.L7_mon  += 1;
+  lt.L7_year += 1900;
+
+  /* Save detailed information about this event */
+  slotReset_record_last[slotReset_event_index].slot_id           = slot_id;
+  slotReset_record_last[slotReset_event_index].board_id          = board_id;
+  slotReset_record_last[slotReset_event_index].mx_ptin_port      = ptin_port;
+  slotReset_record_last[slotReset_event_index].local_linkStatus  = linkStatus[0];
+  slotReset_record_last[slotReset_event_index].remote_linkStatus = linkStatus[1];
+  slotReset_record_last[slotReset_event_index].time              = lt;
+
+  LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Saved record of this event:");
+  LOG_TRACE(LOG_CTX_PTIN_CONTROL, " slot_id      : %u", slotReset_record_last[slotReset_event_index].slot_id);
+  LOG_TRACE(LOG_CTX_PTIN_CONTROL, " board_id     : %u", slotReset_record_last[slotReset_event_index].board_id);
+  LOG_TRACE(LOG_CTX_PTIN_CONTROL, " mx_ptin_port : %u", slotReset_record_last[slotReset_event_index].mx_ptin_port);
+  LOG_TRACE(LOG_CTX_PTIN_CONTROL, " local_linkStatus  : upd=%u en=%u link=%u tx=%llu rx=%llu er=%llu",
+            slotReset_record_last[slotReset_event_index].local_linkStatus.updated,
+            slotReset_record_last[slotReset_event_index].local_linkStatus.enable,
+            slotReset_record_last[slotReset_event_index].local_linkStatus.link,
+            slotReset_record_last[slotReset_event_index].local_linkStatus.tx_packets,
+            slotReset_record_last[slotReset_event_index].local_linkStatus.rx_packets,
+            slotReset_record_last[slotReset_event_index].local_linkStatus.rx_error);
+  LOG_TRACE(LOG_CTX_PTIN_CONTROL, " remote_linkStatus : upd=%u en=%u link=%u tx=%llu rx=%llu er=%llu",
+            slotReset_record_last[slotReset_event_index].remote_linkStatus.updated,
+            slotReset_record_last[slotReset_event_index].remote_linkStatus.enable,
+            slotReset_record_last[slotReset_event_index].remote_linkStatus.link,
+            slotReset_record_last[slotReset_event_index].remote_linkStatus.tx_packets,
+            slotReset_record_last[slotReset_event_index].remote_linkStatus.rx_packets,
+            slotReset_record_last[slotReset_event_index].remote_linkStatus.rx_error);
+  LOG_TRACE(LOG_CTX_PTIN_CONTROL, " time = %u/%u/%u, %u:%u:%u",
+            slotReset_record_last[slotReset_event_index].time.L7_mday,
+            slotReset_record_last[slotReset_event_index].time.L7_mon,
+            slotReset_record_last[slotReset_event_index].time.L7_year,
+            slotReset_record_last[slotReset_event_index].time.L7_hour,
+            slotReset_record_last[slotReset_event_index].time.L7_min,
+            slotReset_record_last[slotReset_event_index].time.L7_sec);
+
+  slotReset_event_index = (slotReset_event_index + 1) % SLOTRESET_SAVE_LAST_EVENTS;
+}
+
+/**
+ * Reset linkStatus data
+ * 
+ * @param ptin_port 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_control_linkStatus_reset(L7_uint ptin_port)
+{
+  /* Validate port info */
+  if (ptin_port >= ptin_sys_number_of_ports)
+  {
+    return L7_FAILURE;
+  }
+
+  memset(&local_link_status[ptin_port], 0x00, sizeof(struct_linkStatus_t));
+  memset(&remote_link_status[ptin_port], 0x00, sizeof(struct_linkStatus_t));
+
+  LOG_TRACE(LOG_CTX_PTIN_CONTROL, "LinkStatus data reseted");
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Update local linkStatus data (for all interfaces)
+ */
+void ptin_control_localLinkStatus_update(void)
+{
+  L7_uint8  port;
+  L7_uint16 board_id;
+  ptin_HWEthPhyConf_t local_phyConfig;
+  ptin_HWEthRFC2819_PortStatistics_t local_counters;
+
+  LOG_TRACE(LOG_CTX_PTIN_CONTROL,"Updating local link status...");
+
+  /* Going to access rlink data */
+  osapiSemaTake(link_status_sem, L7_WAIT_FOREVER);
+
+  /* Get local ports configuration */
+  for (port=0; port<ptin_sys_number_of_ports; port++)
+  {
+    /* Clear updated flag */
+    local_link_status[port].updated = L7_FALSE;
+
+    /* Only consider ports where, there is a downlink board */
+    if (ptin_intf_boardid_get(port, &board_id)!=L7_SUCCESS || !PTIN_BOARD_IS_DOWNLINK(board_id))
+    {
+      osapiSemaGive(link_status_sem);
+      continue;
+    }
+
+    /* Skip not valid ports, or disabled ones */
+    memset(&local_phyConfig, 0x00, sizeof(local_phyConfig));
+    local_phyConfig.Port = port;
+    local_phyConfig.Mask = 0xffff;
+    if (ptin_intf_PhyConfig_get(&local_phyConfig)!=L7_SUCCESS)
+    {
+      osapiSemaGive(link_status_sem);
+      continue;
+    }
+
+    local_phyConfig.PortEnable = 1;   /* Undo */
+
+    /* Do not consider disabled interfaces */
+    if (!local_phyConfig.PortEnable)
+    {
+      osapiSemaGive(link_status_sem);
+      continue;
+    }
+
+    /* Port is enabled? */
+    local_link_status[port].enable = local_phyConfig.PortEnable;
+
+    /* Get local link status */
+    local_link_status[port].link = ptin_intf_link_get(port);
+
+    if (local_link_status[port].link)
+    {
+      /* Get local counters */
+      memset(&local_counters, 0x00, sizeof(local_counters));
+      local_counters.Port = port;
+      local_counters.Mask = 0xff;
+      local_counters.RxMask = 0xffff;
+      local_counters.TxMask = 0xffff;
+      if (ptin_intf_counters_read(&local_counters)==L7_SUCCESS)
+      {
+        /* local counters */
+        local_link_status[port].tx_packets = local_counters.Tx.etherStatsPkts - local_link_status[port].tx_packets;
+        local_link_status[port].rx_packets = local_counters.Rx.etherStatsPkts - local_link_status[port].rx_packets;
+        local_link_status[port].rx_error   = (local_counters.Rx.etherStatsCRCAlignErrors +
+                                              local_counters.Rx.etherStatsFragments +
+                                              local_counters.Rx.etherStatsJabbers) -
+                                             local_link_status[port].rx_error;
+      }
+    }
+
+    /* Set updated flag */
+    local_link_status[port].updated = L7_TRUE;
+
+    LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Local linkStatus updated: Port %u -> upd=%u en=%u link=%u stats={tx:%llu rx:%llu er:%llu}",
+              port, local_link_status[port].updated, local_link_status[port].enable, local_link_status[port].link,
+              local_link_status[port].tx_packets, local_link_status[port].rx_packets, local_link_status[port].rx_error);
+  }
+
+  /* Release semaphore */
+  osapiSemaGive(link_status_sem);
+
+  LOG_TRACE(LOG_CTX_PTIN_CONTROL,"Local link status updated!");
+}
+
+/**
+ * Update remote linkStatus for a particular interface
+ * 
+ * @param ptin_port 
+ * @param info 
+ */
+void ptin_control_remoteLinkstatus_update(L7_uint32 ptin_port, struct_linkStatus_t *info)
+{
+  L7_uint16 board_id;
+
+  /* Validate port info */
+  if (ptin_port >= ptin_sys_number_of_ports)
+  {
+    LOG_ERR(LOG_CTX_PTIN_CONTROL, "Invalid port %u", ptin_port);
+    return;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_CONTROL,"Received linkStatus report from linecard (ptin_port=%u)...", ptin_port);
+
+  /* Going to access rlink data */
+  osapiSemaTake(link_status_sem, L7_WAIT_FOREVER);
+
+  /* Clear updated flag */
+  remote_link_status[ptin_port].updated = L7_FALSE;
+
+  /* Validate board related to this port: only downlink boards */
+  if (ptin_intf_boardid_get(ptin_port, &board_id)!=L7_SUCCESS || !PTIN_BOARD_IS_DOWNLINK(board_id))
+  {
+    osapiSemaGive(link_status_sem);
+    return;
+  }
+
+  /* Do not consider disabled interfaces */
+  if (!info->enable)
+  {
+    osapiSemaGive(link_status_sem);
+    return;
+  }
+
+  /* Update structure (only for enabled interfaces) */
+  remote_link_status[ptin_port].enable = info->enable;
+  remote_link_status[ptin_port].link   = info->link;
+
+  /* Update stats (only for link up interfaces) */
+  if (info->link)
+  {
+    /* Get counters difference */
+    remote_link_status[ptin_port].tx_packets = info->tx_packets - remote_link_status[ptin_port].tx_packets;
+    remote_link_status[ptin_port].rx_packets = info->rx_packets - remote_link_status[ptin_port].rx_packets;
+    remote_link_status[ptin_port].rx_error   = info->rx_error   - remote_link_status[ptin_port].rx_error;
+  }
+
+  /* Set updated flag */
+  remote_link_status[ptin_port].updated = L7_TRUE;
+
+  /* Release semaphore */
+  osapiSemaGive(link_status_sem);
+
+  LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Remote linkStatus updated: Port %u -> upd=%u en=%u link=%u stats={tx:%llu rx:%llu er:%llu}",
+            ptin_port, remote_link_status[ptin_port].updated, remote_link_status[ptin_port].enable, remote_link_status[ptin_port].link,
+            remote_link_status[ptin_port].tx_packets, remote_link_status[ptin_port].rx_packets, remote_link_status[ptin_port].rx_error);
+}
+
+/**
+ * For dev shell commands 
+ * Resets local and remote link status of a port
+ * 
+ * @param port (-1 for all ports)
+ */
+void slot_monitor_reset(L7_int port)
+{
+  L7_uint i;
+
+  /* Going to access rlink data */
+  osapiSemaTake(link_status_sem, L7_WAIT_FOREVER);
+  for (i = 0; i < ptin_sys_number_of_ports; i++)
+  {
+    if (port >=0 && port != i)  continue;
+
+    memset(&local_link_status[i] , 0x00, sizeof(struct_linkStatus_t));
+    memset(&remote_link_status[i], 0x00, sizeof(struct_linkStatus_t));
+
+    printf("Port %u linkstatus reset!\r\n", i);
+  }
+  /* Release semaphore */
+  osapiSemaGive(link_status_sem);
+}
+
+/**
+ * Dev shell command 
+ * Enable or disable link status monitoring 
+ * 
+ * @param enable 
+ */
+void slot_monitor_enable(L7_BOOL enable)
+{
+  /* Reset static structures */
+  if (!linkStatus_monitor_control && enable)
+  {
+    slot_monitor_reset(-1);
+  }
+
+  linkStatus_monitor_control = enable & 1;
+
+  printf("Link status monitoring %s\r\n", (enable) ? "enabled" : "disabled");
+}
+
+/**
+ * Dev shell command 
+ * Dump all linkstatus data 
+ */
+void slot_monitor_dump(void)
+{
+  L7_uint i, event;
+
+  printf("Records of last Reset events:\r\n");
+
+  for (i=0; i<SLOTRESET_SAVE_LAST_EVENTS; i++)
+  {
+    event = (slotReset_event_index + i) % SLOTRESET_SAVE_LAST_EVENTS;
+
+    printf("Event n-%d:\r\n", SLOTRESET_SAVE_LAST_EVENTS-i);
+    printf("\tslot_id      : %u\r\n", slotReset_record_last[event].slot_id); 
+    printf("\tboard_id     : 0x%x\r\n", slotReset_record_last[event].board_id);
+    printf("\tmx_ptin_port : %u\r\n", slotReset_record_last[event].mx_ptin_port);
+    printf("\tlocal_linkStatus  : upd=%u en=%u link=%u tx=%llu rx=%llu er=%llu\r\n",
+           slotReset_record_last[event].local_linkStatus.updated,
+           slotReset_record_last[event].local_linkStatus.enable,
+           slotReset_record_last[event].local_linkStatus.link,
+           slotReset_record_last[event].local_linkStatus.tx_packets,
+           slotReset_record_last[event].local_linkStatus.rx_packets,
+           slotReset_record_last[event].local_linkStatus.rx_error);
+    printf("\tremote_linkStatus : upd=%u en=%u link=%u tx=%llu rx=%llu er=%llu\r\n",
+           slotReset_record_last[event].remote_linkStatus.updated,
+           slotReset_record_last[event].remote_linkStatus.enable,
+           slotReset_record_last[event].remote_linkStatus.link,
+           slotReset_record_last[event].remote_linkStatus.tx_packets,
+           slotReset_record_last[event].remote_linkStatus.rx_packets,
+           slotReset_record_last[event].remote_linkStatus.rx_error);
+    printf("\ttime = %u/%u/%u, %u:%u:%u\r\n",
+           slotReset_record_last[event].time.L7_mday,
+           slotReset_record_last[event].time.L7_mon,
+           slotReset_record_last[event].time.L7_year,
+           slotReset_record_last[event].time.L7_hour,
+           slotReset_record_last[event].time.L7_min,
+           slotReset_record_last[event].time.L7_sec);
+  }
+
+  printf("\r\nCurrent remote link status:\r\n");
+  /* Going to access rlink data */
+  osapiSemaTake(link_status_sem, L7_WAIT_FOREVER);
+  for (i = 0; i < ptin_sys_number_of_ports; i++)
+  {
+    if (remote_link_status[i].updated)
+    {
+      printf("Port %2u: enable=%u link=%u tx_packets=%llu rx_packets=%llu rx_errors=%llu\r\n", i,
+              remote_link_status[i].enable,
+              remote_link_status[i].link,
+              remote_link_status[i].tx_packets,
+              remote_link_status[i].rx_packets,
+              remote_link_status[i].rx_error);
+    }
+  }
+  /* Release semaphore */
+  osapiSemaGive(link_status_sem);
+}
+
+#endif /*PTIN_BOARD_IS_MATRIX*/
+
+#if (PTIN_BOARD_IS_LINECARD)
+/**
+ * This function is applied to linecards, and will report the 
+ * matrix board about its local link status 
+ * 
+ * @author mruas (9/28/2015)
+ */
+static void ptin_control_linkstatus_report(void)
+{
+  L7_uint8 active_matrix;
+  L7_int  base_port, number_of_ports, port, i;
+  ptin_HWEthRFC2819_PortStatistics_t portStats;
+  ptin_HWEthPhyConf_t phyConf;
+  msg_HwIntfStatus_t  msgLinkStatus;
+  static L7_int counter=12;
+
+  /* 60s period */
+  if ((--counter) > 0)
+  {
+    return;
+  }
+  counter = 6;
+
+  LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Going to send links report...");
+
+  /* Which matrix is active? */
+  active_matrix = ptin_fpga_mx_get_matrixactive();
+
+  /* Determine base port and number of ports */
+#if (PTIN_BOARD == PTIN_BOARD_TG16G)
+  base_port = PTIN_SYSTEM_N_PONS;
+  number_of_ports = 4;
+#elif (PTIN_BOARD == PTIN_BOARD_TA48GE)
+  base_port = (active_matrix == PTIN_SLOT_WORK) ? (PTIN_SYSTEM_N_ETH+1) : (PTIN_SYSTEM_N_ETH);
+  number_of_ports = 1;
+#else
+  return;
 #endif
+
+  /* Init struct */
+  memset(&msgLinkStatus, 0x00, sizeof(msgLinkStatus));
+  msgLinkStatus.slot_id    = ptin_fpga_board_slot_get();
+  msgLinkStatus.generic_id = 0;
+  msgLinkStatus.number_of_ports = number_of_ports;
+
+  /* Run all (active) backplane ports */
+  for (i = 0; i < number_of_ports; i++)
+  {
+    port = base_port + i;
+
+    /* Init struct */
+    msgLinkStatus.port[i].intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
+    msgLinkStatus.port[i].intf.intf_id   = port;
+
+    /* Get enable configuration */
+    memset(&phyConf, 0x00, sizeof(phyConf));
+    phyConf.Port = port;
+    phyConf.Mask = 0xffff;
+    if (ptin_intf_PhyConfig_get(&phyConf) == L7_SUCCESS)
+    {
+      msgLinkStatus.port[i].enable = phyConf.PortEnable;
+    }
+
+    /* Get link status */
+    msgLinkStatus.port[i].link = ptin_intf_link_get(port);
+
+    /* Only read stats, if link is up */
+    if (msgLinkStatus.port[i].link)
+    {
+      /* Get stats */
+      memset(&portStats, 0x00, sizeof(portStats));
+      portStats.Port = port;
+      portStats.Mask = 0xff;
+      portStats.RxMask = 0xffff;
+      portStats.TxMask = 0xffff;
+      if (ptin_intf_counters_read(&portStats) == L7_SUCCESS)
+      {
+        msgLinkStatus.port[i].tx_packets = portStats.Tx.etherStatsPkts;
+        msgLinkStatus.port[i].rx_packets = portStats.Rx.etherStatsPkts;
+        msgLinkStatus.port[i].rx_error   = portStats.Rx.etherStatsCRCAlignErrors +
+                                            portStats.Rx.etherStatsFragments +
+                                            portStats.Rx.etherStatsJabbers;
+      }
+    }
+
+    LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Link status: Port %u -> enable=%u link=%u stats={tx:%llu rx:%llu er:%llu}", 
+              port, msgLinkStatus.port[i].enable, msgLinkStatus.port[i].link,
+              msgLinkStatus.port[i].tx_packets, msgLinkStatus.port[i].rx_packets, msgLinkStatus.port[i].rx_error);
+  }
+
+  /* Send report to active matrix */
+  if (send_ipc_message(IPC_HW_FP_CTRL_PORT2,
+                       ptin_fpga_matrix_ipaddr_get(PTIN_FPGA_ACTIVE_MATRIX),
+                       CCMSG_HW_INTF_STATUS,
+                       (char *) &msgLinkStatus,
+                       L7_NULLPTR,
+                       sizeof(msg_HwIntfStatus_t),
+                       NULL) < 0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_CONTROL, "Failed to send interfaces report!");
+    return;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_CONTROL, "LinkStatus Report sent");
+}
+#endif /*PTIN_BOARD_IS_LINECARD*/
 
 /**
  * Task that checks for Interface changes

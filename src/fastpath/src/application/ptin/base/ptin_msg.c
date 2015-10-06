@@ -1343,7 +1343,7 @@ L7_RC_t ptin_msg_intfLinkStatus(ipc_msg *inbuffer)
 {
 #if (PTIN_BOARD_IS_MATRIX)
   msg_HwIntfStatus_t *linkStatus = (msg_HwIntfStatus_t *) inbuffer->info;
-  struct_rlink_status_t info;
+  struct_linkStatus_t info;
   L7_uint16 index;
   L7_uint32 ptin_port;
 
