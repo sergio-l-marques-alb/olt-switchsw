@@ -103,8 +103,10 @@ void ptin_control_switchover_monitor(void);
 /* Only active for CXO160G board */
 #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
 static L7_BOOL linkStatus_monitor_control = L7_TRUE;
+static L7_BOOL linkStatus_fcs_control = L7_FALSE;
 #else
 static L7_BOOL linkStatus_monitor_control = L7_FALSE;
+static L7_BOOL linkStatus_fcs_control = L7_FALSE;
 #endif
 
 void ptin_control_linkStatus_monitor(void);
@@ -1491,21 +1493,24 @@ void ptin_control_linkStatus_monitor(void)
         credits_to_loose = max(credits_to_loose, 5);
         LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Port %u has issues: link=%u", port, info.link);
       }
-      /* Or have FCS errors (100 errors in 60 seconds), take only 2 credits */
-      else if (info.rx_error > 100)
+      else if (linkStatus_fcs_control)
       {
-        slot_in_error = L7_TRUE;
-        credits_to_loose = max(credits_to_loose, 2);
-        LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Port %u has issues: tx=%llu rx=%llu er=%llu", port,
-                  info.tx_packets, info.rx_packets, info.rx_error);
-      }
-      /* Have FCS errors, but are very low... keep credits */
-      else if (info.rx_error > 10)
-      {
-        slot_in_error = L7_TRUE;
-        credits_to_loose = max(credits_to_loose, 0);
-        LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Port %u has issues: tx=%llu rx=%llu er=%llu", port,
-                  info.tx_packets, info.rx_packets, info.rx_error);
+        /* Or have FCS errors (100 errors in 60 seconds), take only 2 credits */
+        if (info.rx_error > 100)
+        {
+          slot_in_error = L7_TRUE;
+          credits_to_loose = max(credits_to_loose, 2);
+          LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Port %u has issues: tx=%llu rx=%llu er=%llu", port,
+                    info.tx_packets, info.rx_packets, info.rx_error);
+        }
+        /* Have FCS errors, but are very low... keep credits */
+        else if (info.rx_error > 10)
+        {
+          slot_in_error = L7_TRUE;
+          credits_to_loose = max(credits_to_loose, 0);
+          LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Port %u has issues: tx=%llu rx=%llu er=%llu", port,
+                    info.tx_packets, info.rx_packets, info.rx_error);
+        }
       }
     }
 
@@ -1814,17 +1819,18 @@ void slot_monitor_reset(L7_int port)
  * 
  * @param enable 
  */
-void slot_monitor_enable(L7_BOOL enable)
+void slot_monitor_enable(L7_BOOL monitor_enable, L7_BOOL fcs_enable)
 {
   /* Reset static structures */
-  if (!linkStatus_monitor_control && enable)
+  if (!linkStatus_monitor_control && monitor_enable)
   {
     slot_monitor_reset(-1);
   }
 
-  linkStatus_monitor_control = enable & 1;
+  linkStatus_monitor_control = monitor_enable & 1;
+  linkStatus_fcs_control     = fcs_enable & 1;
 
-  printf("Link status monitoring %s\r\n", (enable) ? "enabled" : "disabled");
+  printf("Link status monitoring %s / FCS control=%u\r\n", (monitor_enable) ? "enabled" : "disabled", fcs_enable);
 }
 
 /**
