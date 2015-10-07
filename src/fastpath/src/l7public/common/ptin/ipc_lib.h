@@ -37,7 +37,7 @@ Historico:  CL 2003.02.19 - Criacao do modulo V1.0.0.0
 #define SIR_IPCPROTOCOL_ID       1
 
 #define IPCLIB_MAX_PORTNUMBER	   65500    // 
-#define IPCLIB_MAX_CANAIS		   4        // Numero maximo de canais de comunicacao
+#define IPCLIB_MAX_CANAIS		   5        // Numero maximo de canais de comunicacao
 #define IPCLIB_CANAL_LIVRE		   0        // Estado do handler: livre
 #define IPCLIB_CANAL_OCUPADO	   1        // Estado do handler: ocupado
 
