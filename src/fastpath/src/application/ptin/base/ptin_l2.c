@@ -215,11 +215,19 @@ L7_RC_t ptin_l2_mac_table_load(void)
 
     memcpy(keyNext, fdbEntry.dot1dTpFdbAddress, L7_FDB_KEY_SIZE);
 
+    LOG_TRACE(LOG_CTX_PTIN_L2, "type=%u port=%u vp=0x%x fdbAddress=%02x:%02x/%02x:%02x:%02x:%02x:%02x:%02x",
+              fdbEntry.dot1dTpFdbEntryType,
+              fdbEntry.dot1dTpFdbPort,
+              fdbEntry.dot1dTpFdbVirtualPort,
+              fdbEntry.dot1dTpFdbAddress[0], fdbEntry.dot1dTpFdbAddress[1],
+              fdbEntry.dot1dTpFdbAddress[2], fdbEntry.dot1dTpFdbAddress[3], fdbEntry.dot1dTpFdbAddress[4], fdbEntry.dot1dTpFdbAddress[5], fdbEntry.dot1dTpFdbAddress[6], fdbEntry.dot1dTpFdbAddress[7]);
+
     /* Get interface type */
-    if (nimGetIntfType(fdbEntry.dot1dTpFdbPort,&intfType)!=L7_SUCCESS)
+    rc = nimGetIntfType(fdbEntry.dot1dTpFdbPort,&intfType);
+    if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_L2,"Error getting interface type of intIfNum=%u",fdbEntry.dot1dTpFdbPort);
-      rc = L7_FAILURE;
+      LOG_ERR(LOG_CTX_PTIN_L2,"Error getting interface type of intIfNum=%u (rc=%d)",fdbEntry.dot1dTpFdbPort, rc);
+      //rc = L7_FAILURE;
       continue;
     }
 
@@ -259,7 +267,7 @@ L7_RC_t ptin_l2_mac_table_load(void)
     vlan = osapiNtohs((L7_uint16) *((L7_uint16 *) &fdbEntry.dot1dTpFdbAddress[0]));
     if (vlan>4095) {
       LOG_ERR(LOG_CTX_PTIN_L2, "Invalid vlanid (%u) on index %u",vlan,index);
-      rc = L7_FAILURE;
+      //rc = L7_FAILURE;
       continue;
     }
 
@@ -275,7 +283,7 @@ L7_RC_t ptin_l2_mac_table_load(void)
     mac_table[index].static_entry = (fdbEntry.dot1dTpFdbEntryType==L7_FDB_ADDR_FLAG_STATIC);
     memcpy(mac_table[index].addr, &fdbEntry.dot1dTpFdbAddress[L7_FDB_IVL_ID_LEN], sizeof(L7_uchar8)*L7_FDB_MAC_ADDR_LEN);
 
-    LOG_TRACE(LOG_CTX_PTIN_L2, "index=%u evcId=%u vlan=%u intf=%u/%u gem=%u static=%u mac=%02u:%02u:%02u:%02u:%02u:%02u",
+    LOG_TRACE(LOG_CTX_PTIN_L2, "index=%u evcId=%u vlan=%u intf=%u/%u gem=%u static=%u mac=%02x:%02x:%02x:%02x:%02x:%02x",
               mac_table[index].entryId,
               mac_table[index].evcId,
               mac_table[index].vlanId,
