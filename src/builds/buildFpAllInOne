@@ -135,7 +135,15 @@ if  [ $scriptDebugCommands -eq 1 ]; then
 	echo sh ./fastpath-olt.build $oltVersion.$patchVersion
 fi
 sh ./fastpath-olt.build $oltVersion.$patchVersion compile
+if [ $? -ne 0 ]; then
+  echo "Error compiling boards!"
+  exit -1;
+fi
 sh ./fastpath-olt.build $oltVersion.$patchVersion build
+if [ $? -ne 0 ]; then
+  echo "Error transferring binaries!"
+  exit -1;
+fi
 
 if  [ $? -ne 0 ]; then
 	echo -e "
