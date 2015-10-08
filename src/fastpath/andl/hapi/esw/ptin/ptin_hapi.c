@@ -3937,6 +3937,18 @@ L7_RC_t ptin_hapi_sfi_set(bcm_port_t bcm_port)
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing bcm_port %u", bcm_port);
     return rc;
   }
+
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+  /* Reset Firmware mode */
+  rc = bcm_port_phy_control_set(0, bcm_port, BCM_PORT_PHY_CONTROL_FIRMWARE_MODE, 0);
+  if (rc != BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error applying Firmware mode 2 to bcm_port %u (rc=%d)", bcm_port, rc);
+    return rc;
+  }
+  LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Success applying Firmware mode 2 to bcm_port %u", bcm_port);
+#endif
+
   /* Set 10G speed */
   rc = bcm_port_speed_set(0, bcm_port, 10000);
   if (L7_BCMX_OK(rc) != L7_TRUE)
@@ -3949,22 +3961,42 @@ L7_RC_t ptin_hapi_sfi_set(bcm_port_t bcm_port)
   if (L7_BCMX_OK(rc) != L7_TRUE)
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_autoneg_set to bcm_port %u", bcm_port);
-    return L7_FAILURE;
+    return rc;
   }
   /* Enable duplex */
   rc = bcm_port_duplex_set(0, bcm_port, L7_ENABLE);
   if (L7_BCMX_OK(rc) != L7_TRUE)
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_duplex_set to bcm_port %u", bcm_port);
-    return L7_FAILURE;
+    return rc;
   }
   /* SFI mode */
   rc = bcm_port_interface_set(0, bcm_port, BCM_PORT_IF_SFI);
   if (L7_BCMX_OK(rc) != L7_TRUE)
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_interface_set to bcm_port %u", bcm_port);
-    return L7_FAILURE;
+    return rc;
   }
+
+  /* Reconfigure tap settings */
+  rc = soc_phyctrl_control_set(0, bcm_port, SOC_PHY_CONTROL_PREEMPHASIS, PTIN_PHY_PREEMPHASIS_NEAREST_SLOTS);
+  if (rc != BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting preemphasis on bcm_port %u (rc=%d)", bcm_port, rc);
+    return rc;
+  }
+
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+  /* Firmware mode 2 */
+  rc = bcm_port_phy_control_set(0, bcm_port, BCM_PORT_PHY_CONTROL_FIRMWARE_MODE, 2);
+  if (rc != BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error applying Firmware mode 2 to bcm_port %u (rc=%d)", bcm_port, rc);
+    return rc;
+  }
+  LOG_INFO(LOG_CTX_PTIN_HAPI, "Success applying Firmware mode 2 to bcm_port %u", bcm_port);
+#endif
+
   /* Reenable ports */
   rc = bcm_port_enable_set(0, bcm_port, L7_ENABLE);
   if (L7_BCMX_OK(rc) != L7_TRUE)
