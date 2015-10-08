@@ -228,9 +228,11 @@ void ptinTask(L7_uint32 numArgs, void *unit)
     PTIN_CRASH();
   }
 
+#if (!PTIN_BOARD_IS_STANDALONE)
   /* Unblock switchover monitor task */
   LOG_INFO(LOG_CTX_PTIN_CNFGR, "Unblocking switchover monitor task");
   osapiSemaGive(ptin_switchover_sem);
+#endif
 
 #if (PTIN_BOARD_IS_MATRIX)
 /*Added a 30 seconds delay to prevent abnormal behaviour on the HW L3_IPMC Table of the Standby Matrix. 
