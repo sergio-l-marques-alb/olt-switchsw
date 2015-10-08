@@ -5,38 +5,32 @@ scriptDebugCommands=0
 scriptVerbose=1
 ########End Debug Flags###########
 
-###############Input Arguments Validation#########################
-if [ $# -gt 1 ]; then
-   echo "Usage: sh ./builFpAllInOne [\$updateSvn]"   
-   exit -1
-fi
+###########OLT Version and Patch Version##################
+oltVersion=3.7
+patchVersion=0
 
-if [ $# -eq 1 ]; then
+###############Input Arguments Validation#########################
+echo "Usage: sh $0 [\$updateSvn] [version] [patch]"
+
+updateSvn=1
+if [ $# -ge 1 ]; then
 	updateSvn=$1
-	if  [ $updateSvn -ne 1 ]; then
-		if  [ $updateSvn -ne 0 ]; then
-			echo "Invalid Input Parameter: updateSvn=$updateSvn"
-			exit -1
-		fi
+	if  [ $updateSvn -ne 1 -a $updateSvn -ne 0 ]; then
+		echo "Invalid Input Parameter: updateSvn=$updateSvn"
+		exit -1
 	fi
-else
-	updateSvn=1
+elif [ $# -ge 2 ]; then
+	oltVersion=$2
+elif [ $# -ge 3 ]; then
+	patchVersion=$3
 fi
 
 if  [ $scriptDebugCommands -eq 1 ]; then
 	echo updateSvn=$updateSvn
-fi
-###############End Input Arguments Validation#########################
-
-###########OLT Version and Patch Version##################
-oltVersion=3.6
-patchVersion=0
-
-if  [ $scriptDebugCommands -eq 1 ]; then
 	echo "oltVersion=$oltVersion"
 	echo "patchVersion=$patchVersion"
 fi
-############End OLT Version and Patch Version##################
+###############End Input Arguments Validation#########################
 
 ###############Save Current Path#########
 currentPath=$(pwd)
