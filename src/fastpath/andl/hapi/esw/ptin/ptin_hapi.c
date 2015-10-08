@@ -3978,6 +3978,7 @@ L7_RC_t ptin_hapi_sfi_set(bcm_port_t bcm_port)
     return rc;
   }
 
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G || PTIN_BOARD == PTIN_BOARD_CXO640G)
   /* Reconfigure tap settings */
   rc = soc_phyctrl_control_set(0, bcm_port, SOC_PHY_CONTROL_PREEMPHASIS, PTIN_PHY_PREEMPHASIS_NEAREST_SLOTS);
   if (rc != BCM_E_NONE)
@@ -3985,7 +3986,7 @@ L7_RC_t ptin_hapi_sfi_set(bcm_port_t bcm_port)
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting preemphasis on bcm_port %u (rc=%d)", bcm_port, rc);
     return rc;
   }
-
+#endif
 #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
   /* Firmware mode 2 */
   rc = bcm_port_phy_control_set(0, bcm_port, BCM_PORT_PHY_CONTROL_FIRMWARE_MODE, 2);
