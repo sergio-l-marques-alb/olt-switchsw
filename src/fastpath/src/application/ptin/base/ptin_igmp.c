@@ -1667,7 +1667,8 @@ L7_RC_t ptin_igmp_proxy_config_set__snooping_old(ptin_IgmpProxyCfg_t *igmpProxy)
     /* Startup Query Interval */
     if (igmpProxy->querier.flags & PTIN_IGMP_QUERIER_MASK_AUTO_SQI)
     {
-      igmpProxyCfg.querier.startup_query_interval = PTIN_IGMP_AUTO_SQI(igmpProxyCfg.querier.query_interval);
+      /*OLTTS - 18870 : Avoid the automatic values in the admin down/up @ruif*/
+      //igmpProxyCfg.querier.startup_query_interval = igmpProxy->querier.startup_query_interval;
       LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Startup Query Interval (AUTO):         %u (s)", igmpProxyCfg.querier.startup_query_interval);
     }
     else if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_SQI
