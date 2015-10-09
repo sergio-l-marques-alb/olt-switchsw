@@ -536,7 +536,7 @@ L7_RC_t hapiBroadHwApply(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *da
   case PTIN_HWPROC_WARPCORE_RESET:
     if (hwproc->operation == DAPI_CMD_SET)
     {
-      rc = ptin_hapi_warpcore_reset(hwproc->param1);
+      rc = ptin_hapi_warpcore_reset(hwproc->param1, L7_TRUE);
     }
     else
     {

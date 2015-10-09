@@ -452,9 +452,8 @@ L7_RC_t ptin_hapi_phy_init_matrix(void)
   L7_RC_t rc = L7_SUCCESS;
 
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
-  int i, rv;
+  int i;
   bcm_port_t bcm_port;
-  L7_uint32 preemphasis;
 
   SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
   DAPI_CARD_ENTRY_t            *dapiCardPtr;
@@ -498,7 +497,7 @@ L7_RC_t ptin_hapi_phy_init_matrix(void)
  #if (PHY_RECOVERY_PROCEDURE)
   for (i = PTIN_SYS_LC_SLOT_MIN; i <= PTIN_SYS_LC_SLOT_MAX; i++)
   {
-    if (ptin_hapi_warpcore_reset(i) != L7_SUCCESS)
+    if (ptin_hapi_warpcore_reset(i, L7_FALSE) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_HAPI, "Error resetting warpcore of slot %u", i);
       rc = L7_FAILURE;
@@ -538,30 +537,16 @@ L7_RC_t ptin_hapi_phy_init_matrix(void)
   #endif
     if (hapiWCMapPtr[i].slotNum >= 0 && hapiWCMapPtr[i].wcSpeedG == 10)
     {
-    #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
-      /* Firmware mode 2 */
-      if (bcm_port_phy_control_set(0, bcm_port, BCM_PORT_PHY_CONTROL_FIRMWARE_MODE, 2) != BCM_E_NONE)
+      /* Init 10G ports at SFI mode */
+      if (ptin_hapi_sfi_set(bcm_port) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error applying Firmware mode 2 to port %u (bcm_port %u)", i, bcm_port);
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing port %u (bcm_port %u) at SFI", i, bcm_port);
         rc = L7_FAILURE;
-        break;
+        continue;
       }
-      LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Success applying Firmware mode 2 to port %u (bcm_port %u)", i, bcm_port);
-    #endif
+      LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Port %u (bcm_port %u) at SFI", i, bcm_port);
 
-      /* Use these settings for all slots */
-      preemphasis = PTIN_PHY_PREEMPHASIS_NEAREST_SLOTS;
-
-      rv = soc_phyctrl_control_set(0, bcm_port, SOC_PHY_CONTROL_PREEMPHASIS, preemphasis );
-
-      if (!SOC_SUCCESS(rv))
-      {
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting preemphasis 0x%04X on port %u (bcm_port %u)", preemphasis, i, bcm_port);
-        rc = L7_FAILURE;
-        break;
-      }
-
-      #ifdef PTIN_LINKSCAN_CONTROL
+    #ifdef PTIN_LINKSCAN_CONTROL
       /* Enable linkscan */
       if (ptin_hapi_linkscan_execute(bcm_port, L7_DISABLE) != L7_SUCCESS)
       {
@@ -570,18 +555,18 @@ L7_RC_t ptin_hapi_phy_init_matrix(void)
         break;
       }
       LOG_INFO(LOG_CTX_PTIN_HAPI, "Linkscan disabled for port %u (bcm_port %u)", i, bcm_port);
-      #endif
+    #endif
     }
     /* Init 40G ports at KR4 mode */
     else if (hapiWCMapPtr[i].wcSpeedG == 40)
     {
       if (ptin_hapi_kr4_set(bcm_port)!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing port %u (bcm_port %u) in KR4", i, bcm_port);
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing port %u (bcm_port %u) at KR4", i, bcm_port);
         rc = L7_FAILURE;
         continue;
       }
-      LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Port %u (bcm_port %u) in KR4", i, bcm_port);
+      LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Port %u (bcm_port %u) at KR4", i, bcm_port);
     }
   }
 #endif
@@ -971,7 +956,7 @@ L7_RC_t ptin_hapi_phy_init_olt1t0(void)
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id)
+L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id, L7_BOOL init)
 {
   L7_RC_t    rc = L7_SUCCESS;
 
@@ -1061,33 +1046,37 @@ L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id)
       rc = L7_FAILURE;
     }
 
-    /* For KR4 */
-    if (wcSpeedG == 40)
+    /* If init is allowed */
+    if (init)
     {
-      LOG_INFO(LOG_CTX_PTIN_HAPI, "Setting bcm_port %u to KR4 mode...", bcm_port);
-      if (ptin_hapi_kr4_set(bcm_port) != L7_SUCCESS)
+      /* For KR4 */
+      if (wcSpeedG == 40)
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error resetting bcm_port %u", bcm_port);
+        LOG_INFO(LOG_CTX_PTIN_HAPI, "Setting bcm_port %u to KR4 mode...", bcm_port);
+        if (ptin_hapi_kr4_set(bcm_port) != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_HAPI, "Error resetting bcm_port %u", bcm_port);
+        }
+        LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_port %u reconfigured to KR4 mode", bcm_port); 
       }
-      LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_port %u reconfigured to KR4 mode", bcm_port); 
-    }
-    else if (wcSpeedG == 10)
-    {
-      LOG_INFO(LOG_CTX_PTIN_HAPI, "Setting bcm_port %u to SFI mode...", bcm_port);
-      if (ptin_hapi_sfi_set(bcm_port) != L7_SUCCESS)
+      else if (wcSpeedG == 10)
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error resetting bcm_port %u", bcm_port);
+        LOG_INFO(LOG_CTX_PTIN_HAPI, "Setting bcm_port %u to SFI mode...", bcm_port);
+        if (ptin_hapi_sfi_set(bcm_port) != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_HAPI, "Error resetting bcm_port %u", bcm_port);
+        }
+        LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_port %u reconfigured to SFI mode", bcm_port);
       }
-      LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_port %u reconfigured to SFI mode", bcm_port);
-    }
-    else
-    {
-      LOG_INFO(LOG_CTX_PTIN_HAPI, "Setting bcm_port %u to default mode...", bcm_port);
-      if (ptin_hapi_def_set(bcm_port) != L7_SUCCESS)
+      else
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error resetting bcm_port %u", bcm_port);
+        LOG_INFO(LOG_CTX_PTIN_HAPI, "Setting bcm_port %u to default mode...", bcm_port);
+        if (ptin_hapi_def_set(bcm_port) != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_HAPI, "Error resetting bcm_port %u", bcm_port);
+        }
+        LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_port %u reconfigured to default mode", bcm_port);
       }
-      LOG_INFO(LOG_CTX_PTIN_HAPI, "bcm_port %u reconfigured to default mode", bcm_port);
     }
   }
 
@@ -3938,7 +3927,7 @@ L7_RC_t ptin_hapi_sfi_set(bcm_port_t bcm_port)
     return rc;
   }
 
-#if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G || PTIN_BOARD == PTIN_BOARD_CXO640G)
   /* Reset Firmware mode */
   rc = bcm_port_phy_control_set(0, bcm_port, BCM_PORT_PHY_CONTROL_FIRMWARE_MODE, 0);
   if (rc != BCM_E_NONE)
@@ -3948,6 +3937,14 @@ L7_RC_t ptin_hapi_sfi_set(bcm_port_t bcm_port)
   }
   LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Success applying Firmware mode 2 to bcm_port %u", bcm_port);
 #endif
+
+  /* SFI mode */
+  rc = bcm_port_interface_set(0, bcm_port, BCM_PORT_IF_SFI);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_interface_set to bcm_port %u", bcm_port);
+    return rc;
+  }
 
   /* Set 10G speed */
   rc = bcm_port_speed_set(0, bcm_port, 10000);
@@ -3970,24 +3967,8 @@ L7_RC_t ptin_hapi_sfi_set(bcm_port_t bcm_port)
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_duplex_set to bcm_port %u", bcm_port);
     return rc;
   }
-  /* SFI mode */
-  rc = bcm_port_interface_set(0, bcm_port, BCM_PORT_IF_SFI);
-  if (L7_BCMX_OK(rc) != L7_TRUE)
-  {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_interface_set to bcm_port %u", bcm_port);
-    return rc;
-  }
 
 #if (PTIN_BOARD == PTIN_BOARD_CXO160G || PTIN_BOARD == PTIN_BOARD_CXO640G)
-  /* Reconfigure tap settings */
-  rc = soc_phyctrl_control_set(0, bcm_port, SOC_PHY_CONTROL_PREEMPHASIS, PTIN_PHY_PREEMPHASIS_NEAREST_SLOTS);
-  if (rc != BCM_E_NONE)
-  {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting preemphasis on bcm_port %u (rc=%d)", bcm_port, rc);
-    return rc;
-  }
-#endif
-#if (PTIN_BOARD == PTIN_BOARD_CXO160G)
   /* Firmware mode 2 */
   rc = bcm_port_phy_control_set(0, bcm_port, BCM_PORT_PHY_CONTROL_FIRMWARE_MODE, 2);
   if (rc != BCM_E_NONE)
@@ -3996,6 +3977,14 @@ L7_RC_t ptin_hapi_sfi_set(bcm_port_t bcm_port)
     return rc;
   }
   LOG_INFO(LOG_CTX_PTIN_HAPI, "Success applying Firmware mode 2 to bcm_port %u", bcm_port);
+
+  /* Reconfigure tap settings */
+  rc = soc_phyctrl_control_set(0, bcm_port, SOC_PHY_CONTROL_PREEMPHASIS, PTIN_PHY_PREEMPHASIS_NEAREST_SLOTS);
+  if (rc != BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting preemphasis on bcm_port %u (rc=%d)", bcm_port, rc);
+    return rc;
+  }
 #endif
 
   /* Reenable ports */
@@ -4030,6 +4019,16 @@ L7_RC_t ptin_hapi_xaui_set(bcm_port_t bcm_port)
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing bcm_port %u", bcm_port);
     return rc;
   }
+#endif
+
+  rc = bcm_port_interface_set(0, bcm_port, BCM_PORT_IF_XAUI);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing bcm_port %u", bcm_port);
+    return L7_FAILURE;
+  }
+
+#if 0
   /* Set 10G speed */
   rc = bcm_port_speed_set(0, bcm_port, 10000);
   if (L7_BCMX_OK(rc) != L7_TRUE)
@@ -4051,16 +4050,6 @@ L7_RC_t ptin_hapi_xaui_set(bcm_port_t bcm_port)
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_duplex_set to bcm_port %u", bcm_port);
     return L7_FAILURE;
   }
-#endif
-
-  rc = bcm_port_interface_set(0, bcm_port, BCM_PORT_IF_XAUI);
-  if (L7_BCMX_OK(rc) != L7_TRUE)
-  {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing bcm_port %u", bcm_port);
-    return L7_FAILURE;
-  }
-
-#if 0
   /* Reenable ports */
   rc = bcm_port_enable_set(0, bcm_port, L7_ENABLE);
   if (L7_BCMX_OK(rc) != L7_TRUE)
