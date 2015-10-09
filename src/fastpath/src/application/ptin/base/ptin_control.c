@@ -47,6 +47,28 @@ volatile L7_uint32    ptin_task_msg_id     = (L7_uint32) -1;
 volatile void        *ptin_task_msg_buffer = L7_NULLPTR;
 
 #if (PTIN_BOARD_IS_MATRIX)
+#define LS_RESETS_MAX   6     /* Maximum tolerabled resets */
+#define LS_CREDITS_MAX  10    /* Maximum resets */
+typedef struct
+{
+  L7_int  credits;
+  L7_int  resets_counter;
+  L7_BOOL monitor_enable;
+  L7_uint fcs_threshold;
+} struct_linkStatus_monitor_t;
+
+/* Slot monitoring info */
+struct_linkStatus_monitor_t ls_monitor_info[PTIN_SYS_SLOTS_MAX+1]={
+  {0, 0, L7_FALSE, 0},   /* Dummy: no slot */
+  {0, 0, L7_FALSE, 0},
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+  [2 ... (PTIN_SYS_SLOTS_MAX-1)]={10, 0, L7_TRUE , 0},   /* Slot monitor enabled for CXO160G */
+#else
+  [2 ... (PTIN_SYS_SLOTS_MAX-1)]={10, 0, L7_FALSE, 0},   /* Slot monitor disabled for other SF boards */
+#endif
+  {0, 0, L7_FALSE, 0}
+};
+
 /* Remote link status */
 struct_linkStatus_t remote_link_status[PTIN_SYSTEM_N_PORTS];
 struct_linkStatus_t local_link_status[PTIN_SYSTEM_N_PORTS];
@@ -99,15 +121,6 @@ static void ptin_control_linkstatus_report(void);
 #ifdef PTIN_LINKSCAN_CONTROL
 void ptin_control_switchover_monitor(void);
 #endif /* PTIN_LINKSCAN_CONTROL */
-
-/* Only active for CXO160G board */
-#if (PTIN_BOARD == PTIN_BOARD_CXO160G)
-static L7_BOOL linkStatus_monitor_control = L7_TRUE;
-static L7_BOOL linkStatus_fcs_control = L7_FALSE;
-#else
-static L7_BOOL linkStatus_monitor_control = L7_FALSE;
-static L7_BOOL linkStatus_fcs_control = L7_FALSE;
-#endif
 
 void ptin_control_linkStatus_monitor(void);
 void ptin_control_slot_reset(L7_uint ptin_port, L7_uint slot_id, L7_uint board_id,
@@ -1375,15 +1388,7 @@ void ptin_control_linkStatus_monitor(void)
   L7_uint32 port, index;
   L7_uint16 board_id, slot_id;
   struct_linkStatus_t linkStatus_copy[2], info;
-  static L7_int slot_alert[PTIN_SYS_SLOTS_MAX]={[0 ... (PTIN_SYS_SLOTS_MAX-1)]=10};  /* Full credits */
   static L7_int counter=18;
-
-  /* Check if link status monitor is enabled */
-  if (!linkStatus_monitor_control)
-  {
-    counter = 6;
-    return;
-  }
 
   /* 60s period */
   if ((--counter) > 0)
@@ -1412,14 +1417,21 @@ void ptin_control_linkStatus_monitor(void)
   /* Run all slots */
   for (slot_id = PTIN_SYS_LC_SLOT_MIN; slot_id <= PTIN_SYS_LC_SLOT_MAX; slot_id++)
   {
-    slot_in_error = L7_FALSE;
-    credits_to_loose = 0;
+    /* If monitor disabled, skip slot */
+    if (!ls_monitor_info[slot_id].monitor_enable)
+    {
+      continue;
+    }
 
     /* Skip non downlink boards */
     if (ptin_slot_boardid_get(slot_id, &board_id)!=L7_SUCCESS || !PTIN_BOARD_IS_DOWNLINK(board_id))
     {
       continue;
     }
+
+    /* Initialize temp vars */
+    slot_in_error = L7_FALSE;
+    credits_to_loose = 0;
 
     /* Run all slot ports */
     for (index = 0; index < PTIN_SYS_INTFS_PER_SLOT_MAX; index++)
@@ -1495,16 +1507,17 @@ void ptin_control_linkStatus_monitor(void)
         credits_to_loose = max(credits_to_loose, 5);
         LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Port %u has issues: link=%u", port, info.link);
       }
-      else if (linkStatus_fcs_control)
+      else if (ls_monitor_info[slot_id].fcs_threshold > 0)
       {
         /* Or have FCS errors (100 errors in 60 seconds), take only 2 credits */
-        if (info.rx_error > 100)
+        if (info.rx_error >= ls_monitor_info[slot_id].fcs_threshold)
         {
           slot_in_error = L7_TRUE;
           credits_to_loose = max(credits_to_loose, 2);
           LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Port %u has issues: tx=%llu rx=%llu er=%llu", port,
                     info.tx_packets, info.rx_packets, info.rx_error);
         }
+        #if 0
         /* Have FCS errors, but are very low... keep credits */
         else if (info.rx_error > 10)
         {
@@ -1513,35 +1526,46 @@ void ptin_control_linkStatus_monitor(void)
           LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Port %u has issues: tx=%llu rx=%llu er=%llu", port,
                     info.tx_packets, info.rx_packets, info.rx_error);
         }
+        #endif
       }
     }
 
-    /* Decrement credits */
-    slot_alert[slot_id] -= credits_to_loose;
-
     if (slot_in_error)
     {
-      LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Slot %u has issues: credits=%u", slot_id, slot_alert[slot_id]);
-    }
+      /* Decrement credits */
+      ls_monitor_info[slot_id].credits -= credits_to_loose;
+      LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Slot %u has issues: credits=%u", slot_id, ls_monitor_info[slot_id].credits);
 
-    /* If no credits are assigned to this port, reset slot */
-    if (slot_alert[slot_id] <= 0)
-    {
-      LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Credits exhausted: Going to reset slot %u", slot_id);
+      /* If no credits are assigned to this port, reset slot */
+      if (ls_monitor_info[slot_id].credits <= 0)
+      {
+        LOG_WARNING(LOG_CTX_PTIN_CONTROL, "Credits exhausted: Going to reset slot %u", slot_id);
 
-      /* Clear alert */
-      slot_in_error = L7_FALSE;
+        /* Reset warpcore */
+        ptin_control_slot_reset(port, slot_id, board_id, linkStatus_copy);
 
-      /* Reset warpcore */
-      ptin_control_slot_reset(port, slot_id, board_id, linkStatus_copy);
-    }
+        /* One more reset */
+        ls_monitor_info[slot_id].resets_counter++;
 
-    /* If no error occured within all ports of a slot, full credits are given */
-    if (!slot_in_error)
-    {
-      if (slot_alert[slot_id] < 10)
+        /* If we have 6 consecutive WC resets, simply give up! */
+        if (ls_monitor_info[slot_id].resets_counter >= LS_RESETS_MAX)
+        {
+          ls_monitor_info[slot_id].monitor_enable = L7_FALSE;
+          ls_monitor_info[slot_id].resets_counter = 0;
+          LOG_WARNING(LOG_CTX_PTIN_CONTROL, "Slot %u will never be reset", slot_id);
+        }
+        /* Credits restored */
+        ls_monitor_info[slot_id].credits = LS_CREDITS_MAX;
         LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Credits restored to slot %u", slot_id);
-      slot_alert[slot_id] = 10;
+      }
+    }
+    /* If no error occured within all ports of a slot, full credits are given */
+    else
+    {
+      if (ls_monitor_info[slot_id].credits < LS_CREDITS_MAX)
+        LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Credits restored to slot %u", slot_id);
+      ls_monitor_info[slot_id].credits = LS_CREDITS_MAX;
+      ls_monitor_info[slot_id].resets_counter = 0;
     }
   }
 }
@@ -1677,8 +1701,6 @@ void ptin_control_localLinkStatus_update(void)
       osapiSemaGive(link_status_sem);
       continue;
     }
-
-    local_phyConfig.PortEnable = 1;   /* Undo */
 
     /* Do not consider disabled interfaces */
     if (!local_phyConfig.PortEnable)
@@ -1821,18 +1843,46 @@ void slot_monitor_reset(L7_int port)
  * 
  * @param enable 
  */
-void slot_monitor_enable(L7_BOOL monitor_enable, L7_BOOL fcs_enable)
+void slot_monitor_enable(L7_int slot, L7_BOOL monitor_enable, L7_uint fcs_enable)
 {
-  /* Reset static structures */
-  if (!linkStatus_monitor_control && monitor_enable)
+  L7_uint8  s, p;
+  L7_uint32 ptin_port;
+
+  /* Validate slot */
+  if (slot >= 0 && (slot < PTIN_SYS_LC_SLOT_MIN || slot > PTIN_SYS_LC_SLOT_MAX))
   {
-    slot_monitor_reset(-1);
+    printf("Invalid slot %u\r\n", slot);
+    return;
   }
 
-  linkStatus_monitor_control = monitor_enable & 1;
-  linkStatus_fcs_control     = fcs_enable & 1;
+  /* Run all slots... */
+  for (s = PTIN_SYS_LC_SLOT_MIN; s <= PTIN_SYS_LC_SLOT_MAX; s++)
+  {
+    /* ... but skip not requested ones */
+    if (slot>=0 && slot!=s)  continue;
+    
+    /* Reset static structures */
+    if (!ls_monitor_info[s].monitor_enable && monitor_enable)
+    {
+      /* Running all slot ports */
+      for (p = 0; p < PTIN_SYS_INTFS_PER_SLOT_MAX; p++)
+      {
+        /* Reset local end remote data */
+        if (ptin_intf_slotPort2port(s, p, &ptin_port) == L7_SUCCESS)
+        {
+          slot_monitor_reset(ptin_port);
+        }
+      } 
+    }
 
-  printf("Link status monitoring %s / FCS control=%u\r\n", (monitor_enable) ? "enabled" : "disabled", fcs_enable);
+    /* Reset local and remote link data */
+    ls_monitor_info[s].monitor_enable = monitor_enable & 1;
+    ls_monitor_info[s].fcs_threshold  = fcs_enable;
+    ls_monitor_info[s].credits        = LS_CREDITS_MAX;
+    ls_monitor_info[s].resets_counter = 0;
+
+    printf("Slot %u: Link status monitoring=%u / FCS control=%u\r\n", s, monitor_enable, fcs_enable);
+  }
 }
 
 /**
@@ -1893,6 +1943,16 @@ void slot_monitor_dump(void)
   }
   /* Release semaphore */
   osapiSemaGive(link_status_sem);
+
+  printf("\r\nSlot monitoring control info:\r\n");
+  for (i = PTIN_SYS_LC_SLOT_MIN; i <= PTIN_SYS_LC_SLOT_MAX; i++)
+  {
+    printf("Slot %2u:  monitor_enable=%u  fcs_threshold=%-5u  credits=%-2u  #resets=%-2u\r\n", i,
+            ls_monitor_info[i].monitor_enable,
+            ls_monitor_info[i].fcs_threshold,
+            ls_monitor_info[i].credits,
+            ls_monitor_info[i].resets_counter);
+  }
 }
 
 #endif /*PTIN_BOARD_IS_MATRIX*/
