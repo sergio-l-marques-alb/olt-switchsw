@@ -8733,7 +8733,7 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
   L7_uint16          root_vlan;
   ptin_intf_t        intf;
   L7_uint32          intIfNum;
-  #if 0 /*Disabled the creation/removal of L3 Interfaces on Multicast Services*/
+  #if defined IGMP_SMART_MC_EVC_SUPPORTED
   ptin_dtl_l3_intf_t l3_intf;
   #endif
   L7_RC_t            rc = L7_SUCCESS;
@@ -8858,7 +8858,7 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
       }
     }
         
-    #if 0/*Disabled the creation/removal of L3 Interfaces on Multicast Services*/
+    #if defined IGMP_SMART_MC_EVC_SUPPORTED
     if (iptv_flag)
     {
       L7_uint32 frameMax = 0;
@@ -8870,7 +8870,7 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
       if (usmDbIfConfigMaxFrameSizeGet(intIfNum, &frameMax) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to get max MTU of intIfNum %u", intIfNum);
-        return L7_FAILURE;                
+        return L7_FAILURE;
       }
       l3_intf.mtu = frameMax;
       l3_intf.mtu-= (18 /*Bytes for L2 Header*/ + 4  /*Bytes for VLAN Tagging*/);
@@ -8899,7 +8899,7 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
       }
       LOG_TRACE(LOG_CTX_PTIN_EVC, "Added L3 Leaf Interface [ptin_port:%u l3_intf_id:%d]", ptin_port, l3_intf.l3_intf_id);      
             
-      #if 0/*Disabled the direct creation/removal of l3 egress ports on multicast services*/
+      #if 0 /* IGMP_SMART_MC_EVC_SUPPORTED / SFR ?? */
       rc = ptin_multicast_l3_egress_port_add(intIfNum, evcs[evc_id].multicast_group, l3_intf.l3_intf_id);
       if (rc != L7_SUCCESS)
       {
@@ -8931,7 +8931,7 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
   evcs[evc_id].intf[ptin_port].type     = intf_cfg->mef_type;
   evcs[evc_id].intf[ptin_port].int_vlan = int_vlan;
 
-  #if 0/*Disabled the creation/removal of L3 Interfaces on Multicast Services*/
+  #if defined IGMP_SMART_MC_EVC_SUPPORTED
   if (iptv_flag)
     evcs[evc_id].intf[ptin_port].l3_intf_id = l3_intf.l3_intf_id;
   else
@@ -8939,19 +8939,23 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
     evcs[evc_id].intf[ptin_port].l3_intf_id = -1;
   #endif
 
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "...");
 
   #ifdef PTIN_ERPS_EVC
   evcs[evc_id].intf[ptin_port].portState = PTIN_EVC_PORT_FORWARDING;
   #endif
   #if ( !PTIN_BOARD_IS_MATRIX )
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "...");
   if (is_stacked && (intf_cfg->mef_type == PTIN_EVC_INTF_LEAF))
   {
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "vid %u -> 0xFFFF, vid_inner %u -> 0", intf_cfg->vid, intf_cfg->vid_inner);
     evcs[evc_id].intf[ptin_port].out_vlan   = 0xFFFF;  /* on stacked EVCs, leafs out.vid is defined per client and not per interface */
     evcs[evc_id].intf[ptin_port].inner_vlan = 0;
   }
   else
   #endif
   {
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "vid %u, vid_inner %u", intf_cfg->vid, intf_cfg->vid_inner);
     evcs[evc_id].intf[ptin_port].out_vlan   = intf_cfg->vid;
     evcs[evc_id].intf[ptin_port].inner_vlan = intf_cfg->vid_inner;
   }
@@ -9033,7 +9037,7 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
   L7_uint16          int_vlan;
   ptin_intf_t        intf;
   L7_uint32          intIfNum;
-  #if 0/*Disabled the creation/removal of L3 Interfaces on Multicast Services*/
+  #if defined IGMP_SMART_MC_EVC_SUPPORTED
   ptin_dtl_l3_intf_t l3_intf;
   #endif
   L7_RC_t            rc;
@@ -9138,7 +9142,7 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
       #endif
     }
     
-    #if 0/*Disabled the creation/removal of L3 Interfaces on Multicast Services*/
+    #if defined IGMP_SMART_MC_EVC_SUPPORTED
     if (iptv_flag)
     {
       if (evcs[evc_id].intf[ptin_port].l3_intf_id  != PTIN_HAPI_BROAD_INVALID_L3_INTF_ID)
@@ -9152,7 +9156,7 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
         /*Copy L3 Intf Id*/
         l3_intf.l3_intf_id = evcs[evc_id].intf[ptin_port].l3_intf_id;
         
-        #if 0/*Disabled the direct creation/removal of l3 egress ports on multicast services*/
+        #if 0 /* IGMP_SMART_MC_EVC_SUPPORTED / SFR ?? */
         rc = ptin_multicast_l3_egress_port_remove(intIfNum, evcs[evc_id].multicast_group, l3_intf.l3_intf_id);
 
         if (rc != L7_SUCCESS)
@@ -9916,7 +9920,7 @@ static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_id, L7_uint32 evc_f
     #endif
   }
   /* CPU port is on? */
-  else if ((evc_flags & PTIN_EVC_MASK_CPU_TRAPPING))
+  else if ((evc_flags & PTIN_EVC_MASK_CPU_TRAPPING) || (evc_flags & PTIN_EVC_MASK_MC_IPTV))
   {
     if (!(evc_flags & PTIN_EVC_MASK_MC_IPTV))
     {
@@ -12346,7 +12350,7 @@ void ptin_evc_dump(L7_uint32 evc_ext_id)
 
       printf("    MEF Type      = %s          ", evcs[evc_id].intf[i].type == PTIN_EVC_INTF_ROOT ? "Root":"Leaf");
       if (IS_EVC_IPTV(evc_id) && evcs[evc_id].intf[i].type == PTIN_EVC_INTF_LEAF)
-        printf(" l3IntfId = %u  ", evcs[evc_id].intf[i].l3_intf_id);
+        printf("l3IntfId = %u  ", evcs[evc_id].intf[i].l3_intf_id);
       printf("\r\n");
       printf("    Ext. VLAN     = %-5u+%-5u   Counter  = %s\n", evcs[evc_id].intf[i].out_vlan, evcs[evc_id].intf[i].inner_vlan, evcs[evc_id].intf[i].counter != NULL ? "Active":"Disabled");
       printf("    Internal VLAN = %-5u         BW Prof. = %s\n", evcs[evc_id].intf[i].int_vlan, evcs[evc_id].intf[i].bwprofile[0] != NULL ? "Active":"Disabled");

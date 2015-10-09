@@ -1180,6 +1180,20 @@ extern L7_RC_t ptin_igmp_extMcastVlan_get(L7_uint32 intIfNum, L7_uint16 intOVlan
 extern L7_RC_t ptin_igmp_extUcastVlan_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16 intIVlan, L7_uint16 *extUcastVlan, L7_uint16 *extIVlan);
 #endif
 
+#if defined IGMP_SMART_MC_EVC_SUPPORTED
+/**
+ * Get UC EVC ID from MC EVC ID
+ * 
+ * @author joaom (10/2/2015)
+ * 
+ * @param McastEvcId [IN] MC EVC ID
+ * @param UcastEvcId [OUT] UC EVC ID
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_igmp_UcastEvcId_get(L7_uint32 McastEvcId, L7_uint32 *UcastEvcId);
+#endif
+
 /**
  * Removes all groups related to this Service ID
  * 

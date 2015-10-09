@@ -6564,6 +6564,42 @@ L7_RC_t ptin_igmp_extUcastVlan_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_ui
 }
 #endif
 
+#if defined IGMP_SMART_MC_EVC_SUPPORTED
+/**
+ * Get UC EVC ID from MC EVC ID
+ * 
+ * @author joaom (10/2/2015)
+ * 
+ * @param McastEvcId [IN] MC EVC ID
+ * @param UcastEvcId [OUT] UC EVC ID
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_igmp_UcastEvcId_get(L7_uint32 McastEvcId, L7_uint32 *UcastEvcId)
+{
+  L7_uint igmp_idx;  
+
+  /* Get IGMP instance from McastEvcId */
+  if (ptin_igmp_instance_find_fromMcastEvcId(McastEvcId, &igmp_idx) != L7_SUCCESS)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"No IGMP instance associated to McastEvcId %u", McastEvcId);
+    return L7_FAILURE;
+  }
+
+  /* IGMP instance must be active */
+  if (!igmpInstances[igmp_idx].inUse)
+  {
+    LOG_NOTICE(LOG_CTX_PTIN_IGMP,"IGMP instance %u is not active", igmp_idx);
+    return L7_SUCCESS;
+  }
+
+  *UcastEvcId = igmpInstances[igmp_idx].UcastEvcId;
+
+  return L7_SUCCESS;
+}
+#endif
+
 /****************************************************************************** 
  * INTERNAL FUNCTIONS
  ******************************************************************************/
