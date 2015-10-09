@@ -180,11 +180,12 @@ extern L7_RC_t ptin_hapi_portDescriptor_get(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, p
 /**
  * Reset a warpcore
  * 
- * @param slot_id : backplane slot id
+ * @param slot_id : backplane slot id 
+ * @param init    : Initializes slot?
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id);
+L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id, L7_BOOL init);
 
 /**
  * get linkscan state
