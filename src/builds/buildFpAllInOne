@@ -54,8 +54,8 @@ currentUser=$(whoami)
 ############Paths Assignment & Validation#####################
 builderScriptPath=.
 srcPath=..
-buildPath=~/fastpath_builds
-mkBoardsPath=~/mkboards_$oltVersion
+buildPath=/home/olt/fastpath_builds
+mkBoardsPath=/home/olt/mkboards_$oltVersion
 
 if [ ! -d $srcPath ]; then
     echo "Path Not Found: $srcPath"
@@ -92,6 +92,7 @@ if  [ $updateSvn -eq 1 ]; then
 	sleep 1
 	cd $srcPath	
 	svn update 
+	cd -
 	
 	if  [ $? -ne 0 ]; then
 		echo -e "
@@ -101,10 +102,8 @@ if  [ $updateSvn -eq 1 ]; then
 
 		exit $?
 	fi
-	#svnRelease=$(svnversion $srcPath)
 	svnRelease=`svnversion $srcPath -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
 else	
-	#svnRelease=$(svnversion $srcPath)
 	svnRelease=`svnversion $srcPath -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
 	echo "I'm not updating $srcPath: Using current svn release:$svnRelease...press Ctrl+C to abort"
 	sleep 1

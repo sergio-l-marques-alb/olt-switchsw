@@ -17,7 +17,7 @@ MAIN_BIN=switchdrvr
 
 n_args=$#
 
-svn_rev=`svnversion ../fastpath -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
+svn_rev=`svnversion .. -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
 version=$1-r$svn_rev
 
 image_tgz=$MODULE.image-v$version.tgz
@@ -163,8 +163,8 @@ echo "Cleaning..."
 echo -en $colorReset
 rm ./$APPLICATION.ver ./$APPLICATION.releasenotes.txt
 
-echo -en $colorNotice
-echo "Transferring backup tarball to final destination..."
+#echo -en $colorNotice
+#echo "Transferring backup tarball to final destination..."
 #echo -en $colorReset
 #echo -en $colorReq
 #echo -en "What is your username on $DST_IPADDR machine?"
