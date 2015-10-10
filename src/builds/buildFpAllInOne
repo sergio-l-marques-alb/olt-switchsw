@@ -101,9 +101,11 @@ if  [ $updateSvn -eq 1 ]; then
 
 		exit $?
 	fi
-	svnRelease=$(svnversion $srcPath)
+	#svnRelease=$(svnversion $srcPath)
+	svnRelease=`svnversion ../fastpath -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
 else	
-	svnRelease=$(svnversion $srcPath)
+	#svnRelease=$(svnversion $srcPath)
+	svnRelease=`svnversion ../fastpath -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
 	echo "I'm not updating $srcPath: Using current svn release:$svnRelease...press Ctrl+C to abort"
 	sleep 1
 fi
@@ -130,11 +132,11 @@ cd $builderScriptPath
 if  [ $scriptDebugCommands -eq 1 ]; then
 	echo sh ./fastpath-olt.build $oltVersion.$patchVersion
 fi
-sh ./fastpath-olt.build $oltVersion.$patchVersion compile
-if [ $? -ne 0 ]; then
-  echo "Error compiling boards!"
-  exit -1;
-fi
+#sh ./fastpath-olt.build $oltVersion.$patchVersion compile
+#if [ $? -ne 0 ]; then
+#  echo "Error compiling boards!"
+#  exit -1;
+#fi
 sh ./fastpath-olt.build $oltVersion.$patchVersion install
 if [ $? -ne 0 ]; then
   echo "Error copying binaries!"
