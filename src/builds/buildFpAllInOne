@@ -102,10 +102,10 @@ if  [ $updateSvn -eq 1 ]; then
 		exit $?
 	fi
 	#svnRelease=$(svnversion $srcPath)
-	svnRelease=`svnversion ../fastpath -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
+	svnRelease=`svnversion $srcPath -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
 else	
 	#svnRelease=$(svnversion $srcPath)
-	svnRelease=`svnversion ../fastpath -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
+	svnRelease=`svnversion $srcPath -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
 	echo "I'm not updating $srcPath: Using current svn release:$svnRelease...press Ctrl+C to abort"
 	sleep 1
 fi
