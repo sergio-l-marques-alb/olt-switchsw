@@ -19,17 +19,19 @@ if [ $# -ge 1 ]; then
 		echo "Invalid Input Parameter: updateSvn=$updateSvn"
 		exit -1
 	fi
-elif [ $# -ge 2 ]; then
+fi
+if [ $# -ge 2 ]; then
 	oltVersion=$2
-elif [ $# -ge 3 ]; then
+fi
+if [ $# -ge 3 ]; then
 	patchVersion=$3
 fi
 
-if  [ $scriptDebugCommands -eq 1 ]; then
+#if  [ $scriptDebugCommands -eq 1 ]; then
 	echo updateSvn=$updateSvn
 	echo "oltVersion=$oltVersion"
 	echo "patchVersion=$patchVersion"
-fi
+#fi
 ###############End Input Arguments Validation#########################
 
 ###############Save Current Path#########
@@ -50,8 +52,8 @@ currentUser=$(whoami)
 ###############Validate Current User###################
 
 ############Paths Assignment & Validation#####################
-builderScriptPath=~/svnrepo/olt-switchsw/trunk/src/builds
-srcPath=~/svnrepo/olt-switchsw/trunk/src
+builderScriptPath=.
+srcPath=..
 buildPath=~/fastpath_builds
 mkBoardsPath=~/mkboards_$oltVersion
 
@@ -131,6 +133,11 @@ fi
 sh ./fastpath-olt.build $oltVersion.$patchVersion compile
 if [ $? -ne 0 ]; then
   echo "Error compiling boards!"
+  exit -1;
+fi
+sh ./fastpath-olt.build $oltVersion.$patchVersion install
+if [ $? -ne 0 ]; then
+  echo "Error copying binaries!"
   exit -1;
 fi
 sh ./fastpath-olt.build $oltVersion.$patchVersion build

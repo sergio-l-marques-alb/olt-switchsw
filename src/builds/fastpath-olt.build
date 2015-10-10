@@ -27,6 +27,11 @@ if [ "$operation" == "compile" -o "$operation" == "all" ]; then
     echo ERROR!!!
    exit 1;
   fi
+  echo "Done!"
+  echo
+fi
+
+if [ "$operation" == "install" -o "$operation" == "all" ]; then
   echo "Copying binaries to apps..."
   make -C ../fastpath install
   if [ $? -ne 0 ]; then
