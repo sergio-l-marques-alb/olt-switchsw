@@ -2161,6 +2161,22 @@ L7_RC_t hapi_ptin_l2learn_port_get(ptin_dapi_port_t *dapiPort, L7_int *macLearn_
       PT_LOG_ERR(LOG_CTX_HAPI,"Port %u: Register %u is invalid", port, reg);          \
     }
 
+#define REG_SET(unit, port, reg, reg_val)					   \
+    if (SOC_REG_IS_VALID(unit, reg) && SOC_REG_IS_COUNTER(unit, reg)) {	              \
+        int rv=0;                                                                     \
+        if (SOC_CONTROL(unit)->counter_interval == 0 /*counter thread is off*/) {     \
+            if ((rv=soc_reg_set(unit, reg, port, 0, reg_val))<0)                     \
+              PT_LOG_ERR(LOG_CTX_HAPI,"Port %u: Error with soc_reg_set(%u, %u, %u, 0, %u): rv=%d", port, unit, reg, port, reg_val, rv);     \
+        } else {                                                                      \
+            if ((rv=soc_counter_set(unit, port, reg, 0, reg_val))<0)                 \
+              PT_LOG_ERR(LOG_CTX_HAPI,"Port %u: Error with soc_counter_set(%u, %u, %u, 0, %u): rv=%d", port, unit, port, reg, reg_val, rv); \
+        }                                                                             \
+    }                                                                                 \
+    else                                                                              \
+    {                                                                                 \
+      PT_LOG_ERR(LOG_CTX_HAPI,"Port %u: Register %u is invalid", port, reg);          \
+    }
+
 /**
  * Read counters (physical interfaces)
  *  
@@ -2302,44 +2318,44 @@ L7_RC_t hapi_ptin_counters_clear(L7_uint phyPort)
   unit = usp_map[phyPort].unit;
 
   /* Rx counters */
-  soc_counter_set(unit, port, RMTUEr, 0, 0);
-  soc_counter_set(unit, port, RDROPr , 0, 0);
-  soc_counter_set(unit, port, DROP_PKT_CNTr , 0, 0);
-  soc_counter_set(unit, port, RBYTr , 0, 0);
-  soc_counter_set(unit, port, RPKTr , 0, 0);
-  soc_counter_set(unit, port, RBCAr , 0, 0);
-  soc_counter_set(unit, port, RMCAr , 0, 0);
-  soc_counter_set(unit, port, RFCSr , 0, 0);
-  soc_counter_set(unit, port, RUNDr , 0, 0);
-  soc_counter_set(unit, port, ROVRr , 0, 0);
-  soc_counter_set(unit, port, RFRGr , 0, 0);
-  soc_counter_set(unit, port, RJBRr , 0, 0);
-  soc_counter_set(unit, port, R64r  , 0, 0);
-  soc_counter_set(unit, port, R127r , 0, 0);
-  soc_counter_set(unit, port, R255r , 0, 0);
-  soc_counter_set(unit, port, R511r , 0, 0);
-  soc_counter_set(unit, port, R1023r, 0, 0);
-  soc_counter_set(unit, port, R1518r, 0, 0);
+  REG_SET(unit, port, RMTUEr, 0);
+  //REG_SET(unit, port, RDROPr, 0);
+  //REG_SET(unit, port, DROP_PKT_CNTr , 0);
+  REG_SET(unit, port, RBYTr , 0);
+  REG_SET(unit, port, RPKTr , 0);
+  REG_SET(unit, port, RBCAr , 0);
+  REG_SET(unit, port, RMCAr , 0);
+  REG_SET(unit, port, RFCSr , 0);
+  REG_SET(unit, port, RUNDr , 0);
+  REG_SET(unit, port, ROVRr , 0);
+  REG_SET(unit, port, RFRGr , 0);
+  REG_SET(unit, port, RJBRr , 0);
+  REG_SET(unit, port, R64r  , 0);
+  REG_SET(unit, port, R127r , 0);
+  REG_SET(unit, port, R255r , 0);
+  REG_SET(unit, port, R511r , 0);
+  REG_SET(unit, port, R1023r, 0);
+  REG_SET(unit, port, R1518r, 0);
 
   /* Tx counters */
-  soc_counter_set(unit, port, DROP_PKT_CNTr,  0, 0);
-  soc_counter_set(unit, port, EGRDROPPKTCOUNTr,  0, 0);
-  //soc_counter_set(unit, port, HOLDr ,  0, 0);
-  soc_counter_set(unit, port, TBYTr , 0, 0);
-  soc_counter_set(unit, port, TPKTr , 0, 0);
-  soc_counter_set(unit, port, TBCAr , 0, 0);
-  soc_counter_set(unit, port, TMCAr , 0, 0);
-  soc_counter_set(unit, port, TFCSr , 0, 0);
-  //soc_counter_set(unit, port, TXCLr , 0, 0);
-  soc_counter_set(unit, port, TOVRr , 0, 0);
-  soc_counter_set(unit, port, TFRGr , 0, 0);
-  //soc_counter_set(unit, port, TJBRr , 0, 0);
-  soc_counter_set(unit, port, T64r  , 0, 0);
-  soc_counter_set(unit, port, T127r , 0, 0);
-  soc_counter_set(unit, port, T255r , 0, 0);
-  soc_counter_set(unit, port, T511r , 0, 0);
-  soc_counter_set(unit, port, T1023r, 0, 0);
-  soc_counter_set(unit, port, T1518r, 0, 0);
+  //REG_SET(unit, port, DROP_PKT_CNTr, 0);
+  //REG_SET(unit, port, EGRDROPPKTCOUNTr, 0);
+  //REG_SET(unit, port, HOLDr,  0, 0);
+  REG_SET(unit, port, TBYTr , 0);
+  REG_SET(unit, port, TPKTr , 0);
+  REG_SET(unit, port, TBCAr , 0);
+  REG_SET(unit, port, TMCAr , 0);
+  REG_SET(unit, port, TFCSr , 0);
+  //REG_SETunit, port, TXCLr , 0);
+  REG_SET(unit, port, TOVRr , 0);
+  REG_SET(unit, port, TFRGr , 0);
+  //REG_SET(unit, port, TJBRr, 0);
+  REG_SET(unit, port, T64r  , 0);
+  REG_SET(unit, port, T127r , 0);
+  REG_SET(unit, port, T255r , 0);
+  REG_SET(unit, port, T511r , 0);
+  REG_SET(unit, port, T1023r, 0);
+  REG_SET(unit, port, T1518r, 0);
   
   PT_LOG_TRACE(LOG_CTX_HAPI, "Port# %u counters cleared", phyPort);
   return L7_SUCCESS;
