@@ -25,6 +25,140 @@
 #define CCMSG_ID_MIN  0x9000
 #define CCMSG_ID_MAX  0x91FF
 
+/* Callback for message processing */
+typedef L7_RC_t (*msg_function_t)(ipc_msg *inbuff, ipc_msg *outbuff);
+
+typedef enum
+{
+  MSG_SIZE_CHECK_NONE=0,
+  MSG_SIZE_CHECK_MIN,
+  MSG_SIZE_CHECK_MAX,
+  MSG_SIZE_CHECK_EXACT,
+  MSG_SIZE_CHECK_MULT,
+} msg_size_enum;
+
+/* Command descriptor */
+typedef struct
+{
+  L7_uint16       msgId;          /* Message ID */
+  L7_uint8        interval;       /* Interval of message ids (default is 1): this allows to use ranges */
+  L7_char8        name[81];       /* String associated to these messages */
+  msg_size_enum   size_check;     /* Size comparison type (none/min/max/exact/mod) */
+  L7_uint16       inbuff_size;    /* Info size to be used as reference (related to size_check) */
+  L7_BOOL         msg_get;        /* Is this a GET message? */
+  L7_int8         msg_reply;      /* After message processing, which value msg_proc should return? */
+  msg_function_t  function;       /* Callback */
+} struct_msg_descriptor_t;
+
+/* List of high priority commands */
+static struct_msg_descriptor_t messages_higprio[] = {
+  /* CCMSG_APP_CHANGE_STDOUT */
+  {
+    CCMSG_APP_CHANGE_STDOUT, 1,
+    "CCMSG_APP_CHANGE_STDOUT",
+    MSG_SIZE_CHECK_NONE,
+    0,
+    L7_FALSE, IPC_OK,
+    ptin_msg_redirect_stdout
+  },
+  /* CCMSG_APP_LOGGER_OUTPUT */
+  {
+    CCMSG_APP_LOGGER_OUTPUT, 1,
+    "CCMSG_APP_LOGGER_OUTPUT",
+    MSG_SIZE_CHECK_NONE,
+    0,
+    L7_FALSE, IPC_OK,
+    ptin_msg_logger_output
+  },
+  /* CCMSG_APPLICATION_IS_ALIVE */
+  {
+    CCMSG_APPLICATION_IS_ALIVE, 1,
+    "CCMSG_APPLICATION_IS_ALIVE",
+    MSG_SIZE_CHECK_NONE,
+    0,
+    L7_FALSE, IPC_OK,
+    ptin_msg_ping
+  },
+  /* CCMSG_APP_SHELL_CMD_RUN */
+  {
+    CCMSG_APP_SHELL_CMD_RUN, 1,
+    "CCMSG_APP_SHELL_CMD_RUN",
+    MSG_SIZE_CHECK_NONE,
+    0,
+    L7_FALSE, IPC_OK,
+    ptin_msg_shellCommand
+  },
+  /* CCMSG_BOARD_SHOW */
+  {
+    CCMSG_BOARD_SHOW, 1,
+    "CCMSG_BOARD_SHOW",
+    MSG_SIZE_CHECK_NONE,
+    0,
+    L7_TRUE, IPC_OK,
+    ptin_msg_board_show
+  },
+};
+
+/* List of low priority commands */
+static struct_msg_descriptor_t messages_defprio[] = {
+  /* CCMSG_ETH_PHY_CONFIG_SET */
+  {
+    CCMSG_ETH_PHY_CONFIG_SET, 1,
+    "CCMSG_ETH_PHY_CONFIG_SET",
+    MSG_SIZE_CHECK_MULT,
+    sizeof(msg_HWEthPhyConf_t),
+    L7_FALSE, IPC_OK,
+    ptin_msg_PhyConfig_set
+  },
+  /* CCMSG_ETH_PHY_CONFIG_GET */
+  {
+    CCMSG_ETH_PHY_CONFIG_GET, 1,
+    "CCMSG_ETH_PHY_CONFIG_GET",
+    MSG_SIZE_CHECK_EXACT,
+    sizeof(msg_HwGenReq_t),
+    L7_TRUE, IPC_OK,
+    ptin_msg_PhyConfig_get
+  },
+  /* CCMSG_ETH_PHY_STATUS_GET */
+  {
+    CCMSG_ETH_PHY_STATUS_GET, 1,
+    "CCMSG_ETH_PHY_STATUS_GET",
+    MSG_SIZE_CHECK_EXACT,
+    sizeof(msg_HWEthPhyStatus_t),
+    L7_TRUE, IPC_OK,
+    ptin_msg_PhyStatus_get
+  },
+  /* CCMSG_ETH_PHY_STATE_GET */
+  {
+    CCMSG_ETH_PHY_STATE_GET, 1,
+    "CCMSG_ETH_PHY_STATE_GET",
+    MSG_SIZE_CHECK_EXACT,
+    sizeof(msg_HwGenReq_t),
+    L7_TRUE, IPC_OK,
+    ptin_msg_PhyState_get
+  },
+  /* CCMSG_ETH_PHY_COUNTERS_GET */
+  {
+    CCMSG_ETH_PHY_COUNTERS_GET, 1,
+    "CCMSG_ETH_PHY_COUNTERS_GET",
+    MSG_SIZE_CHECK_EXACT,
+    sizeof(msg_HwGenReq_t),
+    L7_TRUE, IPC_OK,
+    ptin_msg_PhyCounters_read
+  },
+  /* CCMSG_ETH_PHY_COUNTERS_CLEAR */
+  {
+    CCMSG_ETH_PHY_COUNTERS_CLEAR, 1,
+    "CCMSG_ETH_PHY_COUNTERS_CLEAR",
+    MSG_SIZE_CHECK_MULT,
+    sizeof(msg_HWEthRFC2819_PortStatistics_t),
+    L7_FALSE, IPC_OK,
+    ptin_msg_PhyCounters_clear
+  },
+  /* Add commands here */
+};
+
+/* Timer for messages execution */
 typedef struct
 {
   uint32 number_of_calls;
@@ -39,13 +173,13 @@ static struct_runtime_t msg_runtime[CCMSG_ID_MAX-CCMSG_ID_MIN+1];
 
 static void CHMessage_runtime_meter_update(L7_uint msg_id, L7_uint32 time_delta);
 
-
 /* Macro to set ACK OK on output message */
 #define SETIPCACKOK(outbuf) {          \
   outbuf->infoDim = sizeof(L7_uint32); \
   *((L7_uint32 *) outbuf->info) = 0;   \
 }
 
+#if 0
 /* Macro to check infoDim consistency */
 #define CHECK_INFO_SIZE_ATLEAST(msg_st) {             \
   if (inbuffer->infoDim < sizeof(msg_st)) {  \
@@ -75,6 +209,7 @@ static void CHMessage_runtime_meter_update(L7_uint msg_id, L7_uint32 time_delta)
     break;                                    \
   }                                           \
 }
+#endif
 
 static L7_uint16 SIRerror_get(L7_RC_t error_code)
 {
@@ -108,17 +243,6 @@ static L7_uint16 SIRerror_get(L7_RC_t error_code)
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
 #ifdef __802_1x__
 static void seterror(ipc_msg *outbuff, const L7_ulong32 severity, const L7_ulong32 error) {
     outbuff->flags   = (IPCLIB_FLAGS_NACK);
@@ -126,14 +250,7 @@ static void seterror(ipc_msg *outbuff, const L7_ulong32 severity, const L7_ulong
     *(int *)outbuff->info = SIR_ERROR(ERROR_FAMILY_HARDWARE,severity,error);
 }
 
-
-
-
-
-
-
-
-
+#if 0
 //Function for generic message reading/writing n STRUCT_SIZE structs*************************************************
 //Uses the particular method for reading/writing each struct, "msg_generic_wrd_1struc"*******************************
 static int msg_generic_wrd(int (*msg_generic_wrd_1struct)(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i), ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 STRUCT_SIZE_IN, L7_ulong32 STRUCT_SIZE_OUT)
@@ -184,35 +301,83 @@ static int msg_generic_wrd(int (*msg_generic_wrd_1struct)(ipc_msg *inbuff, ipc_m
   PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuff->infoDim);
   return(0);
 }//msg_generic_wrd
+#endif
 #endif //__802_1x__
 
 
+/**
+ * Validate message size 
+ * 
+ * @param size_check  : Type of check
+ * @param inbuff_size : message size
+ * @param ref_size    : Reference size
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t CHMessageSizeCheck(msg_size_enum size_check, L7_uint16 inbuff_size, L7_uint16 ref_size)
+{
+  /* Check minimum size */
+  if (size_check == MSG_SIZE_CHECK_MIN)
+  {
+    if (inbuff_size < ref_size)
+    {
+      PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Data size inconsistent! Expecting at least %u bytes; Received %u bytes!",
+                 ref_size, inbuff_size);
+      return L7_FAILURE;
+    }
+  }
+  else if (size_check == MSG_SIZE_CHECK_MAX)
+  {
+    if (inbuff_size > ref_size)
+    {
+      PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Data size inconsistent! Expecting a maximum of %u bytes; Received %u bytes!",
+                 ref_size, inbuff_size);
+      return L7_FAILURE;
+    }
+  }
+  else if (size_check == MSG_SIZE_CHECK_EXACT)
+  {
+    if (inbuff_size != ref_size)
+    {
+      PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Data size inconsistent! Expecting exactly %u bytes; Received %u bytes!",
+                 ref_size, inbuff_size);
+      return L7_FAILURE;
+    }
+  }
+  else if (size_check == MSG_SIZE_CHECK_MULT)
+  {
+    if ((inbuff_size % ref_size) != 0)
+    {
+      PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Data size inconsistent! Expecting at least %u bytes; Received %u bytes!",
+                 ref_size, inbuff_size);
+      return L7_FAILURE;
+    }
+  }
 
-
-
-
-
-
-
-
-
-int ipc_msg_bytes_debug_enable(int disable0_enable1_read2) {
-static int enable=0;
-
- switch (disable0_enable1_read2) {
- case 0:
- case 1: enable=disable0_enable1_read2; break;
- }
-
- return enable;
+  return L7_SUCCESS;
 }
 
+/**
+ * Debug
+ * 
+ * @author mruas (9/24/2015)
+ * 
+ * @param disable0_enable1_read2 
+ * 
+ * @return int 
+ */
+int ipc_msg_bytes_debug_enable(int disable0_enable1_read2)
+{
+  static int enable=0;
 
+  switch (disable0_enable1_read2)
+  {
+    case 0:
+    case 1: enable=disable0_enable1_read2; break;
+  }
 
-
-
-
-
+  return enable;
+}
 
 
 
@@ -226,10 +391,12 @@ static int enable=0;
  */
 int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 {
-  int ret = IPC_OK, res = S_OK;
+  unsigned int i;
+  int res = S_OK;
   L7_RC_t rc = L7_SUCCESS;
   L7_uint64 time_start, time_end;
   L7_uint32 time_delta;
+  struct_msg_descriptor_t *cmd_ptr = L7_NULLPTR;
 
   if (inbuffer == NULL)
   {
@@ -243,6 +410,128 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
   /* Prepare message header */
   SwapIPCHeader (inbuffer, outbuffer);
 
+  /* Print message contents */
+  if(ipc_msg_bytes_debug_enable(2))
+  {
+    L7_uint i;
+
+    if (inbuffer == NULL)
+    {
+        PT_LOG_WARN(LOG_CTX_MSGHANDLER, "NULL message received!");
+        return SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_EMPTYMSG);
+    }
+    printf("\n\rmsgId[%4.4x] inbuffer->info:",inbuffer->msgId);
+    for(i=0; i<inbuffer->infoDim; i++)
+    {
+        printf(" %2.2Xh",inbuffer->info[i]); 
+    }
+    printf("\n\r");  
+  }
+
+  /* Search High Priority commands */
+  for (i=0; i<sizeof(messages_higprio)/sizeof(struct_msg_descriptor_t); i++)
+  {
+    /* Check message ID */
+    if (inbuffer->msgId >= messages_higprio[i].msgId &&
+        inbuffer->msgId < (messages_higprio[i].msgId + messages_higprio[i].interval))
+    {
+      /* Save command to be executed */
+      cmd_ptr = &messages_higprio[i];
+
+      PT_LOG_TRACE(LOG_CTX_MSGHANDLER, "Message received: %s (0x%04X)", cmd_ptr->name, cmd_ptr->msgId);
+      break;
+    }
+  }
+
+  /* If comand is a no priority command, check for system status */
+  if (cmd_ptr == L7_NULLPTR)
+  {
+    /* PTin module is still loading or crashed ? */
+    if (ptin_state != PTIN_LOADED)
+    {
+      PT_LOG_WARN(LOG_CTX_MSGHANDLER, "IPC message cannot be processed! PTin state = %d (msgId=%u)", ptin_state, inbuffer->msgId);
+      res = SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_NOTALLOWED);
+      SetIPCNACK(outbuffer, res);
+      return IPC_OK;
+    }
+
+    /* Run High Priority commands */
+    for (i=0; i<sizeof(messages_defprio)/sizeof(struct_msg_descriptor_t); i++)
+    {
+      /* Check message ID */
+      if (inbuffer->msgId >= messages_defprio[i].msgId &&
+          inbuffer->msgId < (messages_defprio[i].msgId + messages_defprio[i].interval))
+      {
+        /* Save command to be executed */
+        cmd_ptr = &messages_defprio[i];
+
+        PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: %s (0x%04X)", cmd_ptr->name, cmd_ptr->msgId);
+        break;
+      }
+    }
+  }
+
+  /* If no command was found, return error */
+  if (cmd_ptr == L7_NULLPTR)
+  {
+    PT_LOG_WARN(LOG_CTX_MSGHANDLER,
+                "Message received: UNKNOWN! (0x%04X)", inbuffer->msgId);
+    PT_LOG_WARN(LOG_CTX_MSGHANDLER,
+                "The received message is not supported!");
+    SetIPCNACK (outbuffer, SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_WARNING, ERROR_CODE_NOSUCHMSG));
+
+    return IPC_OK;
+  }
+
+  /* Verify Message size */
+  if (CHMessageSizeCheck(cmd_ptr->size_check, inbuffer->infoDim, cmd_ptr->inbuff_size) != L7_SUCCESS)
+  {
+    res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE);
+    SetIPCNACK(outbuffer, res);
+    return IPC_OK;
+  }
+
+  /* Reset output dim */
+  outbuffer->infoDim = 0;
+
+  /* Call related function */
+  rc = cmd_ptr->function(inbuffer, outbuffer);
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error executing %s command", cmd_ptr->name);
+    res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+    SetIPCNACK(outbuffer, res);
+    return (cmd_ptr->msg_reply);
+  }
+
+  /* Set response */
+  if (!cmd_ptr->msg_get)
+  {
+    SETIPCACKOK(outbuffer);
+  }
+
+  PT_LOG_INFO(LOG_CTX_MSGHANDLER,
+              "Message processed: response with %d bytes", outbuffer->infoDim);
+
+    /* Save final time */
+  time_end = osapiTimeMicrosecondsGet();
+  time_delta = time_end - time_start;
+
+  if (inbuffer->msgId != CCMSG_ETH_PHY_ACTIVITY_GET)
+    PT_LOG_INFO(LOG_CTX_MSGHANDLER,"Message 0x%04X was processed in %lu usec, with rc=%u (res=0x%08x)", inbuffer->msgId, time_delta, rc, res);
+  else
+    PT_LOG_TRACE(LOG_CTX_MSGHANDLER,"Message 0x%04X was processed in %lu usec, with rc=%u (res=0x%08x)", inbuffer->msgId, time_delta, rc, res);
+
+  /* Message Runtime Meter */
+  /* Only for successfull messages */
+  if (rc == L7_SUCCESS)
+  {
+    CHMessage_runtime_meter_update(inbuffer->msgId, time_delta);
+  }
+
+  return (cmd_ptr->msg_reply);
+
+#if 0
   /* If message is a ping, reply with PTin loading state, which can signal crash errors too */
   if (inbuffer->msgId == CCMSG_APPLICATION_IS_ALIVE)
   {
@@ -383,25 +672,6 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     SetIPCNACK(outbuffer, res);
     return IPC_OK;
   }
-
-
-  if(ipc_msg_bytes_debug_enable(2))
-  {
-    L7_uint i;
-
-    if (inbuffer == NULL)
-    {
-        PT_LOG_WARN(LOG_CTX_MSGHANDLER, "NULL message received!");
-        return SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_EMPTYMSG);
-    }
-    printf("\n\rmsgId[%4.4x] inbuffer->info:",inbuffer->msgId);
-    for(i=0; i<inbuffer->infoDim; i++)
-    {
-        printf(" %2.2Xh",inbuffer->info[i]); 
-    }
-    printf("\n\r");  
-  }
-
 
   /* If reached here, means PTin module is loaded and ready to process messages */
   switch (inbuffer->msgId)
@@ -5634,6 +5904,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
   }
 
   return ret;
+#endif
 }
 
 

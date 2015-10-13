@@ -39,6 +39,7 @@
 #include "usmdb_dot1q_api.h"
 #include "usmdb_dai_api.h"
 #include "ptin_xlate_api.h"
+#include "ptin_mgmd_api.h"
 
 #include "ptin_acl.h"
 #include "ptin_routing.h"
@@ -73,22 +74,702 @@
 /******************************************************** 
  * STATIC FUNCTIONS PROTOTYPES
  ********************************************************/
-static L7_RC_t ptin_msg_ptinPort_get(L7_uint8 intf_type, L7_uint8 intf_id, L7_int *ptin_port);
+//static L7_RC_t ptin_msg_ptinPort_get(L7_uint8 intf_type, L7_uint8 intf_id, L7_int *ptin_port);
 
 static L7_RC_t ptin_shell_command_run(L7_char8 *tty, L7_char8 *type, L7_char8 *cmd);
 
-static void ptin_msg_PortStats_convert(msg_HWEthRFC2819_PortStatistics_t  *msgPortStats,
-                                       ptin_HWEthRFC2819_PortStatistics_t *ptinPortStats);
-
+#if 0
 static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile, ptin_bw_profile_t *profile, ptin_bw_meter_t *meter);
 static L7_RC_t ptin_msg_evcStatsStruct_fill(msg_evcStats_t *msg_evcStats, ptin_evcStats_profile_t *evcStats_profile);
-
+#endif
 L7_RC_t fp_to_ptin_ip_notation(L7_inet_addr_t *fpIpAddr, chmessage_ip_addr_t *ptinIpAddr);
 L7_RC_t ptin_to_fp_ip_notation(chmessage_ip_addr_t *ptinIpAddr, L7_inet_addr_t *fpIpAddr);
-
 /******************************************************** 
  * EXTERNAL FUNCTIONS IMPLEMENTATION
  ********************************************************/
+
+/* HI Priority Functions **********************************************/
+
+/**
+ * Redirect output
+ */
+L7_RC_t ptin_msg_redirect_stdout(ipc_msg *inbuff, ipc_msg *outbuff)
+{
+  char *tty_name = (char *) inbuff->info;
+
+  PT_LOG_NOTICE(LOG_CTX_MSGHANDLER, "Redirecting stdout...");
+
+  /* Apply change */
+  ptin_PitHandler(tty_name);
+
+  PT_LOG_NOTICE(LOG_CTX_MSGHANDLER, "...Stdout redirected to here :-)");
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Redirect logger
+ */
+L7_RC_t ptin_msg_logger_output(ipc_msg *inbuff, ipc_msg *outbuff)
+{
+  L7_uint8 output = LOG_OUTOUT_STDOUT;
+  char *filename  = L7_NULLPTR;
+
+  /* Update file name */
+  if (inbuff->infoDim >= 2)
+  {
+    filename = &((char *) inbuff->info)[1];
+    filename[inbuff->infoDim-2] = '\0';
+  }
+  /* Update logger output file */
+  if (inbuff->infoDim >= 1)
+  {
+    output = LOG_OUTPUT_FILE + (L7_uint8) ((unsigned char *) inbuff->info)[0];
+  }
+
+  /* If infodim is null, use stdout */
+  if (output == LOG_OUTOUT_STDOUT)
+  {
+    PT_LOG_NOTICE(LOG_CTX_MSGHANDLER, "Redirecting logger output (0) to \"%s\"...", LOG_OUTPUT_FILE_DEFAULT);
+    logger_redirect(LOG_OUTPUT_FILE, LOG_OUTPUT_FILE_DEFAULT);
+    ptin_mgmd_logredirect(MGMD_LOG_FILE, LOG_OUTPUT_FILE_DEFAULT);
+    PT_LOG_NOTICE(LOG_CTX_MSGHANDLER, "...Logger output (0) redirected to \"%s\" :-)", LOG_OUTPUT_FILE_DEFAULT);
+  }
+  /* Otherwise, use the specified filename */
+  else if (filename == L7_NULLPTR || filename[0] == '\0')
+  {
+    PT_LOG_NOTICE(LOG_CTX_MSGHANDLER, "Redirecting logger output (%u) to \"%s\"...", output, LOG_OUTPUT_FILE_DEFAULT);
+    logger_redirect(output, LOG_OUTPUT_FILE_DEFAULT);
+    if (output == LOG_OUTPUT_FILE)
+    {
+      ptin_mgmd_logredirect(MGMD_LOG_FILE, LOG_OUTPUT_FILE_DEFAULT); 
+    }
+    PT_LOG_NOTICE(LOG_CTX_MSGHANDLER, "...Logger output (%u) redirected to \"%s\" :-)", output, LOG_OUTPUT_FILE_DEFAULT);
+  }
+  else
+  {
+    PT_LOG_NOTICE(LOG_CTX_MSGHANDLER, "Redirecting logger output (%u) to \"%s\"...", output, filename);
+    logger_redirect(output, filename);
+    if (output == LOG_OUTPUT_FILE)
+    {
+      ptin_mgmd_logredirect(MGMD_LOG_FILE, filename);
+    }
+    PT_LOG_NOTICE(LOG_CTX_MSGHANDLER, "...Logger output (%u) redirected to \"%s\" :-)", output, filename);
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Get application running state
+ */
+L7_RC_t ptin_msg_ping(ipc_msg *inbuff, ipc_msg *outbuff)
+{
+  PT_LOG_TRACE(LOG_CTX_MSGHANDLER, "PTin state: %d", ptin_state);
+
+  *((L7_uint32 *) outbuff->info) = ptin_state;
+  outbuff->infoDim = sizeof(L7_uint32);
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Execute Shell command
+ */
+L7_RC_t ptin_msg_shellCommand(ipc_msg *inbuff, ipc_msg *outbuff)
+{
+  L7_char8 *command = (L7_char8 *) inbuff->info;
+
+  /* Run command */
+  if (ptin_msg_ShellCommand_run(command) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_MSG, "Error on ptin_msg_ShellCommand()");
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Board show
+ */
+L7_RC_t ptin_msg_board_show(ipc_msg *inbuff, ipc_msg *outbuff)
+{
+  msg_FWFastpathInfo *fpInfo = (msg_FWFastpathInfo *) outbuff->info;
+
+  memset(fpInfo, 0x00, sizeof(msg_FWFastpathInfo));
+
+  fpInfo->SlotIndex    = ptin_fgpa_board_slot();
+  fpInfo->BoardPresent = (ptin_state == PTIN_LOADED);
+
+  osapiStrncpySafe(fpInfo->BoardSerialNumber, "OLTSWITCH 1.2.3.4", 20);
+
+  outbuff->infoDim = sizeof(msg_FWFastpathInfo);
+
+  return L7_SUCCESS;
+}
+
+
+
+/* Physical Interfaces Functions **********************************************/
+/**
+ * Set physical port configuration
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_PhyConfig_set(ipc_msg *inbuff, ipc_msg *outbuff)
+{
+  msg_HWEthPhyConf_t *msgPhyConf;
+  L7_uint16 i, n_structs = inbuff->infoDim/sizeof(msg_HWEthPhyConf_t);
+  ptin_HWEthPhyConf_t phyConf;
+
+  /* Run all structs */
+  for (i=0; i<n_structs; i++)
+  {
+    msgPhyConf = &((msg_HWEthPhyConf_t *) inbuff->info)[i];
+
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Port # %u",           msgPhyConf->Port); 
+    PT_LOG_DEBUG(LOG_CTX_MSG, " Enable        = %u", msgPhyConf->PortEnable );
+    PT_LOG_DEBUG(LOG_CTX_MSG, " Speed         = %u", msgPhyConf->Speed );
+    PT_LOG_DEBUG(LOG_CTX_MSG, " Duplex        = %u", msgPhyConf->Duplex );
+    PT_LOG_DEBUG(LOG_CTX_MSG, " Media         = %u", msgPhyConf->Media );
+    PT_LOG_DEBUG(LOG_CTX_MSG, " MaxFrame      = %u", msgPhyConf->MaxFrame );
+    PT_LOG_DEBUG(LOG_CTX_MSG, " Loopback      = %u", msgPhyConf->LoopBack );
+    PT_LOG_DEBUG(LOG_CTX_MSG, " MACLearn Prio = %u", msgPhyConf->MacLearning );
+    PT_LOG_DEBUG(LOG_CTX_MSG, " Mask          = 0x%04X", msgPhyConf->Mask );
+
+    memset(&phyConf, 0x00, sizeof(phyConf));
+
+    /* Copy the message data to a new structure (*/
+    phyConf.Port         = msgPhyConf->Port;
+    phyConf.Mask         = msgPhyConf->Mask;
+    phyConf.PortEnable   = msgPhyConf->PortEnable;
+    phyConf.Speed        = msgPhyConf->Speed;
+    phyConf.Duplex       = msgPhyConf->Duplex;
+    phyConf.Media        = msgPhyConf->Media;
+    phyConf.MaxFrame     = msgPhyConf->MaxFrame;
+    phyConf.LoopBack     = msgPhyConf->LoopBack;
+
+    /* Apply config */
+    if ( ptin_intf_PhyConfig_set(&phyConf) != L7_SUCCESS )
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Error applying configurations on port# %u", phyConf.Port);
+      return L7_FAILURE;
+    }
+  }
+
+  return L7_SUCCESS;
+}
+
+
+/**
+ * Get physical port configuration
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_PhyConfig_get(ipc_msg *inbuff, ipc_msg *outbuff)
+{
+  msg_HwGenReq_t *request = (msg_HwGenReq_t *) inbuff->info;
+  msg_HWEthPhyConf_t *msgPhyConf_out;
+  L7_uint port, index;
+
+  ptin_HWEthPhyConf_t phyConf;
+
+  for (index=0, port=0; port<ptin_sys_number_of_ports; port++)
+  {
+    if (request->generic_id < PTIN_SYSTEM_MAX_N_PORTS && request->generic_id != port)
+      continue;
+
+    msgPhyConf_out = &((msg_HWEthPhyConf_t *) outbuff->info)[index];
+
+    memset(&phyConf, 0x00, sizeof(phyConf)); 
+    phyConf.Port = port;
+    phyConf.Mask = 0xffff;
+
+    if (ptin_intf_PhyConfig_get(&phyConf) != L7_SUCCESS )
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Error getting configurations of port# %u", phyConf.Port);
+      return L7_FAILURE;
+    }
+
+    /* Clear output struct */
+    memset(msgPhyConf_out, 0x00, sizeof(msg_HWEthPhyConf_t));
+
+    /* Copy the message data to the msg structure (*/
+    msgPhyConf_out->Port        = phyConf.Port;
+    msgPhyConf_out->Mask        = phyConf.Mask;
+    msgPhyConf_out->PortEnable  = phyConf.PortEnable;
+    msgPhyConf_out->Speed       = phyConf.Speed;
+    msgPhyConf_out->Duplex      = phyConf.Duplex;
+    msgPhyConf_out->Media       = phyConf.Media;
+    msgPhyConf_out->MaxFrame    = phyConf.MaxFrame;
+    msgPhyConf_out->LoopBack    = phyConf.LoopBack;
+
+    /* One more port */
+    index++;
+
+    /* Output info read */
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Port # %u",           msgPhyConf_out->Port);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " Enable        = %u", msgPhyConf_out->PortEnable );
+    PT_LOG_DEBUG(LOG_CTX_MSG, " Speed         = %u", msgPhyConf_out->Speed );
+    PT_LOG_DEBUG(LOG_CTX_MSG, " Duplex        = %u", msgPhyConf_out->Duplex );
+    PT_LOG_DEBUG(LOG_CTX_MSG, " Media         = %u", msgPhyConf_out->Media );
+    PT_LOG_DEBUG(LOG_CTX_MSG, " MaxFrame      = %u", msgPhyConf_out->MaxFrame );
+    PT_LOG_DEBUG(LOG_CTX_MSG, " Loopback      = %u", msgPhyConf_out->LoopBack );
+    PT_LOG_DEBUG(LOG_CTX_MSG, " Mask          = 0x%04X", msgPhyConf_out->Mask );
+  }
+
+  /* Get function, return size */
+  outbuff->infoDim = sizeof(msg_HWEthPhyConf_t)*index;
+
+  return L7_SUCCESS;
+}
+
+
+/**
+ * Get physical port state
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_PhyState_get(ipc_msg *inbuff, ipc_msg *outbuff)
+{
+  msg_HwGenReq_t *request = (msg_HwGenReq_t *) inbuff->info;
+  msg_HWEthPhyState_t *msgPhyState_out;
+  ptin_HWEthPhyConf_t                 phyConf;
+  ptin_HWEthPhyState_t                phyState;
+  ptin_HWEthRFC2819_PortStatistics_t  portStats;
+  L7_uint port, index;
+
+  for (index=0, port=0; port<ptin_sys_number_of_ports; port++)
+  {
+    if (request->generic_id < PTIN_SYSTEM_MAX_N_PORTS && request->generic_id != port)
+      continue;
+
+    msgPhyState_out = &((msg_HWEthPhyState_t *) outbuff->info)[index];
+
+    /* Read some configurations: MaxFrame & Media */
+    memset(&phyConf, 0x00, sizeof(phyConf));
+    phyConf.Port = port;
+    phyConf.Mask = 0xFFFF;
+    if (ptin_intf_PhyConfig_get(&phyConf) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Error getting configurations of port# %u", phyConf.Port);
+      return L7_FAILURE;
+    }
+
+    /* Read some state parameters: Link-Up and AutoNeg-Complete */
+    memset(&phyState, 0x00, sizeof(phyState));
+    phyState.Port = port;
+    phyState.Mask = 0xFFFF;
+    if (ptin_intf_PhyState_read(&phyState))
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Error getting state of port# %u", phyState.Port);
+      return L7_FAILURE;
+    }
+
+    /* Read statistics */
+    memset(&portStats, 0x00, sizeof(portStats));
+    portStats.Port = port;
+    portStats.Mask = 0xFF;
+    portStats.RxMask = 0xFFFFFFFF;
+    portStats.TxMask = 0xFFFFFFFF;
+    if (ptin_intf_counters_read(&portStats) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Error getting statistics of port# %u", portStats.Port);
+      return L7_FAILURE;
+    }
+
+    /* Clear output structure */
+    memset(msgPhyState_out, 0x00, sizeof(msg_HWEthPhyState_t));
+    msgPhyState_out->Port = port;
+
+    /* Compose message with all the gathered data */
+    msgPhyState_out->Mask               = 0x1C7F;   /* Do not include TxFault, RemoteFault and LOS */
+    msgPhyState_out->Speed              = phyState.Speed;
+    msgPhyState_out->Duplex             = phyState.Duplex;
+    msgPhyState_out->LinkUp             = phyState.LinkUp;
+    msgPhyState_out->AutoNegComplete    = phyState.AutoNegComplete;
+
+    msgPhyState_out->Collisions         = portStats.Tx.etherStatsCollisions > 0;
+    msgPhyState_out->RxActivity         = portStats.Rx.Throughput > 0;
+    msgPhyState_out->TxActivity         = portStats.Tx.Throughput > 0;
+
+    msgPhyState_out->Media              = phyConf.Media;
+    msgPhyState_out->MTU_mismatch       = phyConf.MaxFrame > PHY_MAX_MAXFRAME;
+    msgPhyState_out->Supported_MaxFrame = PHY_MAX_MAXFRAME;
+
+  //msgPhyState->TxFault            = 0;    /* Always FALSE */
+  //msgPhyState->RemoteFault        = 0;    /* Always FALSE */
+  //msgPhyState->LOS                = 0;    /* Always FALSE */
+
+    /* One more port */
+    index++;
+
+    /* Output info read */
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Port # %u",                   msgPhyState_out->Port);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " Mask             = 0x%04X",  msgPhyState_out->Mask );
+    PT_LOG_DEBUG(LOG_CTX_MSG, " Speed            = %u",      msgPhyState_out->Speed );
+    PT_LOG_DEBUG(LOG_CTX_MSG, " Duplex           = %u",      msgPhyState_out->Duplex );
+    PT_LOG_DEBUG(LOG_CTX_MSG, " LinkUp           = %s",      msgPhyState_out->LinkUp?"Yes":"No" );
+    PT_LOG_DEBUG(LOG_CTX_MSG, " AutoNegComplete  = %s",      msgPhyState_out->AutoNegComplete?"Yes":"No" );
+    PT_LOG_DEBUG(LOG_CTX_MSG, " Collisions       = %s",      msgPhyState_out->Collisions?"Yes":"No" );
+    PT_LOG_DEBUG(LOG_CTX_MSG, " RxActivity       = %s",      msgPhyState_out->RxActivity?"Yes":"No" );
+    PT_LOG_DEBUG(LOG_CTX_MSG, " TxActivity       = %s",      msgPhyState_out->TxActivity?"Yes":"No" );
+  //PT_LOG_DEBUG(LOG_CTX_MSG, " TxFault          = %s",      msgPhyState_out->TxFault?"Yes":"No" );
+  //PT_LOG_DEBUG(LOG_CTX_MSG, " RemoteFault      = %s",      msgPhyState_out->RemoteFault?"Yes":"No" );
+  //PT_LOG_DEBUG(LOG_CTX_MSG, " LOS              = %s",      msgPhyState_out->LOS?"Yes":"No" );
+    PT_LOG_DEBUG(LOG_CTX_MSG, " Media            = %u",      msgPhyState_out->Media );
+    PT_LOG_DEBUG(LOG_CTX_MSG, " MTU_mismatch     = %s",      msgPhyState_out->MTU_mismatch?"Yes":"No" );
+    PT_LOG_DEBUG(LOG_CTX_MSG, " Support.MaxFrame = %u",      msgPhyState_out->Supported_MaxFrame );
+  }
+
+  /* Get function, return size */
+  outbuff->infoDim = sizeof(msg_HWEthPhyState_t)*index;
+
+  return L7_SUCCESS;
+}
+
+
+/**
+ * Get physical port activity
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_PhyActivity_get(ipc_msg *inbuff, ipc_msg *outbuff)
+{
+#if (PTIN_BOARD_IS_MATRIX)
+  msg_HWEthPhyActivity_t *msgPhyAct_in  = (msg_HWEthPhyActivity_t *) inbuff->info;
+  msg_HWEthPhyActivity_t *msgPhyAct_out = (msg_HWEthPhyActivity_t *) outbuff->info;
+  ptin_HWEthRFC2819_PortStatistics_t  portStats;
+  L7_uint port;
+
+  /* Get ptin port */
+  if (ptin_intf_slotPort2port(msgPhyAct_in->intf.slot, msgPhyAct_in->intf.port, &port) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_MSG, "Unknown interface (slot=%u/%u)", msgPhyAct->intf.slot, msgPhyAct->intf.port);
+    return L7_FAILURE;
+  }
+
+  /* Read statistics */
+  memset(&portStats, 0x00, sizeof(portStats));
+  portStats.Port = port;
+  portStats.Mask = 0xFF;
+  portStats.RxMask = 0xFFFFFFFF;
+  portStats.TxMask = 0xFFFFFFFF;
+  if (ptin_intf_counters_read(&portStats) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_MSG, "Error getting statistics of port# %u", portStats.Port);
+    return L7_FAILURE;
+  }
+
+  /* Clear output struct */
+  memset(msgPhyAct_out, 0x00, sizeof(msg_HWEthPhyActivity_t));
+
+  /* Compose message with all the gathered data */
+  msgPhyAct_out->SlotId    = msgPhyAct_in->SlotId;
+  msgPhyAct_out->intf.slot = msgPhyAct_in->intf.slot;
+  msgPhyAct_out->intf.port = msgPhyAct_in->intf.port;
+  msgPhyAct_out->Mask = 0xff;
+  msgPhyAct_out->RxActivity = (L7_uint32) portStats.Rx.Throughput;
+  msgPhyAct_out->TxActivity = (L7_uint32) portStats.Tx.Throughput;
+
+  /* Output info read */
+  PT_LOG_TRACE(LOG_CTX_MSG, "Slot/Port # %u/%u",           msgPhyAct_out->intf.slot, msgPhyAct->intf.port);
+  PT_LOG_TRACE(LOG_CTX_MSG, " Mask             = 0x%02x",  msgPhyAct_out->Mask );
+  PT_LOG_TRACE(LOG_CTX_MSG, " RX Activity      = %u",      msgPhyAct_out->RxActivity );
+  PT_LOG_TRACE(LOG_CTX_MSG, " TX Activity      = %u",      msgPhyAct_out->TxActivity );
+
+  /* Get function, return size */
+  outbuff->infoDim = sizeof(msg_HWEthPhyActivity_t)*nElems;
+
+  return L7_SUCCESS;
+#else
+  return L7_NOT_SUPPORTED;
+#endif
+}
+
+
+/**
+ * Get physical port state
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_PhyStatus_get(ipc_msg *inbuff, ipc_msg *outbuff)
+{
+  msg_HWEthPhyStatus_t *msgPhyStatus_in = (msg_HWEthPhyStatus_t *) inbuff->info;
+  msg_HWEthPhyStatus_t *msgPhyStatus_out;
+  ptin_HWEthPhyConf_t                 phyConf;
+  ptin_HWEthPhyState_t                phyState;
+  ptin_HWEthRFC2819_PortStatistics_t  portStats;
+  L7_uint port, index;
+
+  for (index=0, port=0; port<ptin_sys_number_of_ports; port++)
+  {
+    if (msgPhyStatus_in->Port < PTIN_SYSTEM_MAX_N_PORTS && msgPhyStatus_in->Port != port)
+      continue;
+
+    msgPhyStatus_out = &((msg_HWEthPhyStatus_t *) outbuff->info)[index];
+
+    /* Read some configurations: MaxFrame & Media */
+    memset(&phyConf, 0x00, sizeof(phyConf));
+    phyConf.Port = port;
+    phyConf.Mask = 0xFFFF;
+    if (ptin_intf_PhyConfig_get(&phyConf) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Error getting configurations of port# %u", phyConf.Port);
+      return L7_FAILURE;
+    }
+
+    /* Read statistics */
+    memset(&portStats, 0x00, sizeof(portStats));
+    portStats.Port = port;
+    portStats.Mask = 0xFF;
+    portStats.RxMask = 0xFFFFFFFF;
+    portStats.TxMask = 0xFFFFFFFF;
+    if (ptin_intf_counters_read(&portStats) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Error getting statistics of port# %u", portStats.Port);
+      return L7_FAILURE;
+    }
+
+    /* Read some state parameters: Link-Up and AutoNeg-Complete */
+    memset(&phyState, 0x00, sizeof(phyState));
+    phyState.Port = port;
+    phyState.Mask = 0xFFFF;
+    if (ptin_intf_PhyState_read(&phyState))
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Error getting state of port# %u", phyState.Port);
+      return L7_FAILURE;
+    }
+
+    /* Clear output structure */
+    memset(msgPhyStatus_out, 0x00, sizeof(msg_HWEthPhyStatus_t));
+    msgPhyStatus_out->Port = port;
+
+    /* Compose message with all the gathered data */
+    msgPhyStatus_out->phy.alarmes = 0;
+
+    /* Acquired speed */
+    if (phyState.Speed == PHY_PORT_100_MBPS)
+    {
+      msgPhyStatus_out->phy.alarmes |= HW_ETHERNET_STATUS_MASK_SPEED100_BIT;
+    }
+    if (phyState.Speed == PHY_PORT_1000_MBPS)
+    {
+      msgPhyStatus_out->phy.alarmes |= HW_ETHERNET_STATUS_MASK_SPEED1000_BIT;
+    }
+    if (phyState.Speed == PHY_PORT_10_GBPS)
+    {
+      msgPhyStatus_out->phy.alarmes |= HW_ETHERNET_STATUS_MASK_SPEED10G_BIT;
+    }
+
+    /* Traffic activity */
+    if (portStats.Tx.Throughput > 0)
+    {
+      msgPhyStatus_out->phy.alarmes |= HW_ETHERNET_STATUS_MASK_TX_BIT;
+    }
+    if (portStats.Rx.Throughput > 0)
+    {
+      msgPhyStatus_out->phy.alarmes |= HW_ETHERNET_STATUS_MASK_RX_BIT;
+    }
+    if (portStats.Tx.etherStatsCollisions > 0)
+    {
+      msgPhyStatus_out->phy.alarmes |= HW_ETHERNET_STATUS_MASK_COLLISION_BIT;
+    }
+
+    /* Link down alarm  */
+    if (!phyState.LinkUp)
+    {
+      msgPhyStatus_out->phy.alarmes |= HW_ETHERNET_STATUS_MASK_LINK_BIT;
+    }
+
+    /* Autoneg complete? */
+    if (phyState.AutoNegComplete)
+    {
+      msgPhyStatus_out->phy.alarmes |= HW_ETHERNET_STATUS_MASK_AUTONEG_BIT;
+    }
+
+    /* Other parameters */
+    if (phyState.Duplex)
+    {
+      msgPhyStatus_out->phy.alarmes |= HW_ETHERNET_STATUS_MASK_FULLDUPLEX_BIT;
+    }
+    if (phyConf.Media == PHY_PORT_MEDIA_OPTICAL)
+    {
+      msgPhyStatus_out->phy.alarmes |= HW_ETHERNET_STATUS_MASK_MEDIAX_BIT;
+    }
+
+    msgPhyStatus_out->phy.alarmes_mask =  HW_ETHERNET_STATUS_MASK_SPEED100_BIT | HW_ETHERNET_STATUS_MASK_TX_BIT | HW_ETHERNET_STATUS_MASK_RX_BIT | 
+                                          HW_ETHERNET_STATUS_MASK_COLLISION_BIT | HW_ETHERNET_STATUS_MASK_LINK_BIT | /* HW_ETHERNET_STATUS_MASK_AUTONEG_BIT | */
+                                          HW_ETHERNET_STATUS_MASK_FULLDUPLEX_BIT | HW_ETHERNET_STATUS_MASK_SPEED1000_BIT | HW_ETHERNET_STATUS_MASK_MEDIAX_BIT;
+
+    /* One more port */
+    index++;
+
+    /* Output info read */
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Port # %u",                   msgPhyStatus_out->Port);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " alarmes          = 0x%04X",  msgPhyStatus_out->phy.alarmes );
+    PT_LOG_DEBUG(LOG_CTX_MSG, " alarmes_mask     = 0x%04X",  msgPhyStatus_out->phy.alarmes_mask );
+  }
+
+  /* Get function, return size */
+  outbuff->infoDim = sizeof(msg_HWEthPhyStatus_t)*index;
+
+  return L7_SUCCESS;
+}
+
+
+/* Phy Counters Functions *****************************************************/
+/**
+ * Read PHY counters
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_PhyCounters_read(ipc_msg *inbuff, ipc_msg *outbuff)
+{
+  msg_HwGenReq_t                    *p_msgRequest = (msg_HwGenReq_t *) inbuff->info;
+  msg_HWEthRFC2819_PortStatistics_t *p_msgPortStats;
+  ptin_HWEthRFC2819_PortStatistics_t portStats;
+  L7_uint port, index;
+
+  for (index=0, port=0; port<ptin_sys_number_of_ports; port++)
+  {
+    if (p_msgRequest->generic_id < PTIN_SYSTEM_MAX_N_PORTS && p_msgRequest->generic_id != port)
+      continue;
+
+    p_msgPortStats = &((msg_HWEthRFC2819_PortStatistics_t *) outbuff->info)[index];   /* Pointer to output */
+
+    /* Clear output structure */
+    memset(p_msgPortStats, 0x00, sizeof(msg_HWEthRFC2819_PortStatistics_t));
+    /* Update slot_id and port_id */
+    p_msgPortStats->SlotId = p_msgRequest->slot_id;
+    p_msgPortStats->Port   = port;
+
+    /* Read statistics */
+    portStats.Port = port;
+    portStats.Mask = 0xFF;
+    portStats.RxMask = 0xFFFFFFFF;
+    portStats.TxMask = 0xFFFFFFFF;
+    if (ptin_intf_counters_read(&portStats) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Error getting statistics of port# %u", portStats.Port);
+      return L7_FAILURE;
+    }
+
+    /* Copy data from ptin to msg structure */
+    p_msgPortStats->Port                              = portStats.Port;
+    p_msgPortStats->Mask                              = portStats.Mask;
+    p_msgPortStats->RxMask                            = portStats.RxMask;
+    p_msgPortStats->TxMask                            = portStats.TxMask;
+    /* Rx */
+    p_msgPortStats->Rx.etherStatsDropEvents           = portStats.Rx.etherStatsDropEvents;
+    p_msgPortStats->Rx.etherStatsOctets               = portStats.Rx.etherStatsOctets;
+    p_msgPortStats->Rx.etherStatsPkts                 = portStats.Rx.etherStatsPkts;
+    p_msgPortStats->Rx.etherStatsBroadcastPkts        = portStats.Rx.etherStatsBroadcastPkts;
+    p_msgPortStats->Rx.etherStatsMulticastPkts        = portStats.Rx.etherStatsMulticastPkts;
+    p_msgPortStats->Rx.etherStatsCRCAlignErrors       = portStats.Rx.etherStatsCRCAlignErrors;
+    p_msgPortStats->Rx.etherStatsUndersizePkts        = portStats.Rx.etherStatsUndersizePkts;
+    p_msgPortStats->Rx.etherStatsOversizePkts         = portStats.Rx.etherStatsOversizePkts;
+    p_msgPortStats->Rx.etherStatsFragments            = portStats.Rx.etherStatsFragments;
+    p_msgPortStats->Rx.etherStatsJabbers              = portStats.Rx.etherStatsJabbers;
+    p_msgPortStats->Rx.etherStatsCollisions           = portStats.Rx.etherStatsCollisions;
+    p_msgPortStats->Rx.etherStatsPkts64Octets         = portStats.Rx.etherStatsPkts64Octets;
+    p_msgPortStats->Rx.etherStatsPkts65to127Octets    = portStats.Rx.etherStatsPkts65to127Octets;
+    p_msgPortStats->Rx.etherStatsPkts128to255Octets   = portStats.Rx.etherStatsPkts128to255Octets;
+    p_msgPortStats->Rx.etherStatsPkts256to511Octets   = portStats.Rx.etherStatsPkts256to511Octets;
+    p_msgPortStats->Rx.etherStatsPkts512to1023Octets  = portStats.Rx.etherStatsPkts512to1023Octets;
+    p_msgPortStats->Rx.etherStatsPkts1024to1518Octets = portStats.Rx.etherStatsPkts1024to1518Octets;
+    p_msgPortStats->Rx.etherStatsPkts1519toMaxOctets  = portStats.Rx.etherStatsPkts1519toMaxOctets;
+    p_msgPortStats->Rx.Throughput                     = portStats.Rx.Throughput;
+    /* Tx */
+    p_msgPortStats->Tx.etherStatsDropEvents           = portStats.Tx.etherStatsDropEvents;
+    p_msgPortStats->Tx.etherStatsOctets               = portStats.Tx.etherStatsOctets;
+    p_msgPortStats->Tx.etherStatsPkts                 = portStats.Tx.etherStatsPkts;
+    p_msgPortStats->Tx.etherStatsBroadcastPkts        = portStats.Tx.etherStatsBroadcastPkts;
+    p_msgPortStats->Tx.etherStatsMulticastPkts        = portStats.Tx.etherStatsMulticastPkts;
+    p_msgPortStats->Tx.etherStatsCRCAlignErrors       = portStats.Tx.etherStatsCRCAlignErrors;
+    p_msgPortStats->Tx.etherStatsUndersizePkts        = portStats.Tx.etherStatsUndersizePkts;
+    p_msgPortStats->Tx.etherStatsOversizePkts         = portStats.Tx.etherStatsOversizePkts;
+    p_msgPortStats->Tx.etherStatsFragments            = portStats.Tx.etherStatsFragments;
+    p_msgPortStats->Tx.etherStatsJabbers              = portStats.Tx.etherStatsJabbers;
+    p_msgPortStats->Tx.etherStatsCollisions           = portStats.Tx.etherStatsCollisions;
+    p_msgPortStats->Tx.etherStatsPkts64Octets         = portStats.Tx.etherStatsPkts64Octets;
+    p_msgPortStats->Tx.etherStatsPkts65to127Octets    = portStats.Tx.etherStatsPkts65to127Octets;
+    p_msgPortStats->Tx.etherStatsPkts128to255Octets   = portStats.Tx.etherStatsPkts128to255Octets;
+    p_msgPortStats->Tx.etherStatsPkts256to511Octets   = portStats.Tx.etherStatsPkts256to511Octets;
+    p_msgPortStats->Tx.etherStatsPkts512to1023Octets  = portStats.Tx.etherStatsPkts512to1023Octets;
+    p_msgPortStats->Tx.etherStatsPkts1024to1518Octets = portStats.Tx.etherStatsPkts1024to1518Octets;
+    p_msgPortStats->Tx.etherStatsPkts1519toMaxOctets  = portStats.Tx.etherStatsPkts1519toMaxOctets;
+    p_msgPortStats->Tx.Throughput                     = portStats.Tx.Throughput;
+
+    /* One more port */
+    index++;
+
+    /* Output info read */
+    PT_LOG_TRACE(LOG_CTX_MSG, "Slotid=%u, Port # %2u", p_msgPortStats->SlotId, p_msgPortStats->Port);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.DropEvents           = %15llu  | Tx.DropEvents           = %15llu", p_msgPortStats->Rx.etherStatsDropEvents,           p_msgPortStats->Tx.etherStatsDropEvents);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Octets               = %15llu  | Tx.Octets               = %15llu", p_msgPortStats->Rx.etherStatsOctets,               p_msgPortStats->Tx.etherStatsOctets);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts                 = %15llu  | Tx.Pkts                 = %15llu", p_msgPortStats->Rx.etherStatsPkts,                 p_msgPortStats->Tx.etherStatsPkts);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.BroadcastPkts        = %15llu  | Tx.BroadcastPkts        = %15llu", p_msgPortStats->Rx.etherStatsBroadcastPkts,        p_msgPortStats->Tx.etherStatsBroadcastPkts);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.MulticastPkts        = %15llu  | Tx.MulticastPkts        = %15llu", p_msgPortStats->Rx.etherStatsMulticastPkts,        p_msgPortStats->Tx.etherStatsMulticastPkts);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.CRCAlignErrors       = %15llu  | Tx.CRCAlignErrors       = %15llu", p_msgPortStats->Rx.etherStatsCRCAlignErrors,       p_msgPortStats->Tx.etherStatsCRCAlignErrors);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.UndersizePkts        = %15llu  | Tx.OversizePkts         = %15llu", p_msgPortStats->Rx.etherStatsUndersizePkts,        p_msgPortStats->Tx.etherStatsOversizePkts);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.OversizePkts         = %15llu  | Tx.Fragments            = %15llu", p_msgPortStats->Rx.etherStatsOversizePkts,         p_msgPortStats->Tx.etherStatsFragments);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Fragments            = %15llu  | Tx.Jabbers              = %15llu", p_msgPortStats->Rx.etherStatsFragments,            p_msgPortStats->Tx.etherStatsJabbers);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Jabbers              = %15llu  | Tx.Collisions           = %15llu", p_msgPortStats->Rx.etherStatsJabbers,              p_msgPortStats->Tx.etherStatsCollisions);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts64Octets         = %15llu  | Tx.Pkts64Octets         = %15llu", p_msgPortStats->Rx.etherStatsPkts64Octets,         p_msgPortStats->Tx.etherStatsPkts64Octets);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts65to127Octets    = %15llu  | Tx.Pkts65to127Octets    = %15llu", p_msgPortStats->Rx.etherStatsPkts65to127Octets,    p_msgPortStats->Tx.etherStatsPkts65to127Octets);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts128to255Octets   = %15llu  | Tx.Pkts128to255Octets   = %15llu", p_msgPortStats->Rx.etherStatsPkts128to255Octets,   p_msgPortStats->Tx.etherStatsPkts128to255Octets);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts256to511Octets   = %15llu  | Tx.Pkts256to511Octets   = %15llu", p_msgPortStats->Rx.etherStatsPkts256to511Octets,   p_msgPortStats->Tx.etherStatsPkts256to511Octets);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts512to1023Octets  = %15llu  | Tx.Pkts512to1023Octets  = %15llu", p_msgPortStats->Rx.etherStatsPkts512to1023Octets,  p_msgPortStats->Tx.etherStatsPkts512to1023Octets);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts1024to1518Octets = %15llu  | Tx.Pkts1024to1518Octets = %15llu", p_msgPortStats->Rx.etherStatsPkts1024to1518Octets, p_msgPortStats->Tx.etherStatsPkts1024to1518Octets);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts1519toMaxOctets  = %15llu  | Tx.Pkts1519toMaxOctets  = %15llu", p_msgPortStats->Rx.etherStatsPkts1519toMaxOctets,  p_msgPortStats->Tx.etherStatsPkts1519toMaxOctets);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Throughput (bps)     = %15llu  | Tx.Throughput (bps)     = %15llu", p_msgPortStats->Rx.Throughput,                     p_msgPortStats->Tx.Throughput);
+  }
+
+  /* Get function, return size */
+  outbuff->infoDim = sizeof(msg_HWEthRFC2819_PortStatistics_t)*index;
+
+  return L7_SUCCESS;
+}
+
+
+/**
+ * Clear PHY counters
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_PhyCounters_clear(ipc_msg *inbuff, ipc_msg *outbuff)
+{
+  L7_uint i, nElems = inbuff->infoDim/sizeof(msg_HWEthRFC2819_PortStatistics_t);
+  msg_HWEthRFC2819_PortStatistics_t *msgPortStats;
+  ptin_HWEthRFC2819_PortStatistics_t portStats;
+
+  for (i=0; i<nElems; i++)
+  {
+    msgPortStats = &((msg_HWEthRFC2819_PortStatistics_t *) inbuff->info)[i];
+
+    /* Clear statistics */
+    memset(&portStats, 0x00, sizeof(portStats));
+    portStats.Port = msgPortStats->Port;
+    portStats.Mask = msgPortStats->Mask;
+    portStats.RxMask = msgPortStats->RxMask;
+    portStats.TxMask = msgPortStats->TxMask;
+
+    if (ptin_intf_counters_clear(&portStats) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Error clearing statistics of port# %u", portStats.Port);
+      return L7_FAILURE;
+    }
+
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Port# %u counters cleared", portStats.Port);
+  }
+
+  return L7_SUCCESS;
+}
+
+
+
 
 /* FastPath Misc Functions ****************************************************/
 /**
@@ -218,6 +899,7 @@ L7_RC_t ptin_to_fp_ip_notation(chmessage_ip_addr_t *ptinIpAddr, L7_inet_addr_t *
    }   
 }
 
+#if 0
 /* Reset Functions ************************************************************/
 
 /**
@@ -707,469 +1389,6 @@ L7_RC_t ptin_msg_hw_resources_get(msg_ptin_policy_resources *msgResources)
       msgResources->cap[group_idx][stage_idx].count.slice_width = resources.cap[group_idx][stage_idx].count.slice_width;
     }
   }
-
-  return L7_SUCCESS;
-}
-
-
-/* Physical Interfaces Functions **********************************************/
-/**
- * Set physical port configuration
- * 
- * @param msgPhyConf Structure with the configuration to be set
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
- */
-L7_RC_t ptin_msg_PhyConfig_set(msg_HWEthPhyConf_t *msgPhyConf)
-{
-  ptin_HWEthPhyConf_t phyConf;
-
-  PT_LOG_DEBUG(LOG_CTX_MSG, "Port # %u",           msgPhyConf->Port);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Enable        = %u", msgPhyConf->PortEnable );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Speed         = %u", msgPhyConf->Speed );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Duplex        = %u", msgPhyConf->Duplex );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Media         = %u", msgPhyConf->Media );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " MaxFrame      = %u", msgPhyConf->MaxFrame );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Loopback      = %u", msgPhyConf->LoopBack );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " MACLearn Prio = %u", msgPhyConf->MacLearning );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Mask          = 0x%04X", msgPhyConf->Mask );
-
-  /* Copy the message data to a new structure (*/
-  phyConf.Port         = msgPhyConf->Port;
-  phyConf.Mask         = msgPhyConf->Mask;
-  phyConf.PortEnable   = msgPhyConf->PortEnable;
-  phyConf.Speed        = msgPhyConf->Speed;
-  phyConf.Duplex       = msgPhyConf->Duplex;
-  phyConf.Media        = msgPhyConf->Media;
-  phyConf.MaxFrame     = msgPhyConf->MaxFrame;
-  phyConf.LoopBack     = msgPhyConf->LoopBack;
-
-  /* Apply config */
-  if ( ptin_intf_PhyConfig_set(&phyConf) != L7_SUCCESS )
-  {
-    PT_LOG_ERR(LOG_CTX_MSG, "Error applying configurations on port# %u", phyConf.Port);
-
-    memset(msgPhyConf, 0x00, sizeof(msg_HWEthPhyConf_t));
-    msgPhyConf->Mask = phyConf.Mask;  /* Restore mask */
-    msgPhyConf->Port = phyConf.Port;
-
-    return L7_FAILURE;
-  }
-
-  return L7_SUCCESS;
-}
-
-
-/**
- * Get physical port configuration
- * 
- * @param msgPhyConf Structure to save port configuration (Port 
- * field MUST be set; Output mask bits reflect the updated fields)
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
- */
-L7_RC_t ptin_msg_PhyConfig_get(msg_HWEthPhyConf_t *msgPhyConf)
-{
-  ptin_HWEthPhyConf_t phyConf;
-
-  phyConf.Port = msgPhyConf->Port;
-  phyConf.Mask = msgPhyConf->Mask;
-
-  if (ptin_intf_PhyConfig_get(&phyConf) != L7_SUCCESS )
-  {
-    PT_LOG_ERR(LOG_CTX_MSG, "Error getting configurations of port# %u", phyConf.Port);
-    memset(msgPhyConf, 0x00, sizeof(msg_HWEthPhyConf_t));
-
-    return L7_FAILURE;
-  }
-
-  /* Copy the message data to the msg structure (*/
-  msgPhyConf->Port        = phyConf.Port;
-  msgPhyConf->Mask        = phyConf.Mask;
-  msgPhyConf->PortEnable  = phyConf.PortEnable;
-  msgPhyConf->Speed       = phyConf.Speed;
-  msgPhyConf->Duplex      = phyConf.Duplex;
-  msgPhyConf->Media       = phyConf.Media;
-  msgPhyConf->MaxFrame    = phyConf.MaxFrame;
-  msgPhyConf->LoopBack    = phyConf.LoopBack;
-
-  /* Output info read */
-  PT_LOG_DEBUG(LOG_CTX_MSG, "Port # %u",           msgPhyConf->Port);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Enable        = %u", msgPhyConf->PortEnable );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Speed         = %u", msgPhyConf->Speed );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Duplex        = %u", msgPhyConf->Duplex );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Media         = %u", msgPhyConf->Media );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " MaxFrame      = %u", msgPhyConf->MaxFrame );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Loopback      = %u", msgPhyConf->LoopBack );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Mask          = 0x%04X", msgPhyConf->Mask );
-
-  return L7_SUCCESS;
-}
-
-
-/**
- * Get physical port state
- * 
- * @param msgPhyState Structure to save port state (Port 
- * field MUST be set; Outut mask bits reflect the updated fields)
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
- */
-L7_RC_t ptin_msg_PhyState_get(msg_HWEthPhyState_t *msgPhyState)
-{
-  L7_uint port;
-  ptin_HWEthPhyConf_t                 phyConf;
-  ptin_HWEthPhyState_t                phyState;
-  ptin_HWEthRFC2819_PortStatistics_t  portStats;
-
-  port = msgPhyState->Port;
-
-  /* Clear structure */
-  memset(msgPhyState, 0x00, sizeof(msg_HWEthPhyState_t));
-  msgPhyState->Port = port;
-
-  /* Read some configurations: MaxFrame & Media */
-  phyConf.Port = port;
-  phyConf.Mask = 0xFFFF;
-  if (ptin_intf_PhyConfig_get(&phyConf) != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_MSG, "Error getting configurations of port# %u", phyConf.Port);
-    memset(msgPhyState, 0x00, sizeof(ptin_HWEthPhyState_t));
-
-    return L7_FAILURE;
-  }
-
-  /* Read some state parameters: Link-Up and AutoNeg-Complete */
-  phyState.Port = port;
-  phyState.Mask = 0xFFFF;
-  if (ptin_intf_PhyState_read(&phyState))
-  {
-    PT_LOG_ERR(LOG_CTX_MSG, "Error getting state of port# %u", phyState.Port);
-    memset(msgPhyState, 0x00, sizeof(msg_HWEthPhyState_t));
-
-    return L7_FAILURE;
-  }
-
-  /* Read statistics */
-  portStats.Port = port;
-  portStats.Mask = 0xFF;
-  portStats.RxMask = 0xFFFFFFFF;
-  portStats.TxMask = 0xFFFFFFFF;
-  if (ptin_intf_counters_read(&portStats) != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_MSG, "Error getting statistics of port# %u", portStats.Port);
-    memset(msgPhyState, 0x00, sizeof(msg_HWEthPhyState_t));
-
-    return L7_FAILURE;
-  }
-
-  /* Compose message with all the gathered data */
-  msgPhyState->Mask               = 0x1C7F;   /* Do not include TxFault, RemoteFault and LOS */
-  msgPhyState->Speed              = phyState.Speed;
-  msgPhyState->Duplex             = phyState.Duplex;
-  msgPhyState->LinkUp             = phyState.LinkUp;
-  msgPhyState->AutoNegComplete    = phyState.AutoNegComplete;
-
-  msgPhyState->Collisions         = portStats.Tx.etherStatsCollisions > 0;
-  msgPhyState->RxActivity         = portStats.Rx.Throughput > 0;
-  msgPhyState->TxActivity         = portStats.Tx.Throughput > 0;
-
-  msgPhyState->Media              = phyConf.Media;
-  msgPhyState->MTU_mismatch       = phyConf.MaxFrame > PHY_MAX_MAXFRAME;
-  msgPhyState->Supported_MaxFrame = PHY_MAX_MAXFRAME;
-
-//msgPhyState->TxFault            = 0;    /* Always FALSE */
-//msgPhyState->RemoteFault        = 0;    /* Always FALSE */
-//msgPhyState->LOS                = 0;    /* Always FALSE */
-
-  /* Output info read */
-  PT_LOG_DEBUG(LOG_CTX_MSG, "Port # %u",                   msgPhyState->Port);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Mask             = 0x%04X",  msgPhyState->Mask );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Speed            = %u",      msgPhyState->Speed );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Duplex           = %u",      msgPhyState->Duplex );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " LinkUp           = %s",      msgPhyState->LinkUp?"Yes":"No" );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " AutoNegComplete  = %s",      msgPhyState->AutoNegComplete?"Yes":"No" );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Collisions       = %s",      msgPhyState->Collisions?"Yes":"No" );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " RxActivity       = %s",      msgPhyState->RxActivity?"Yes":"No" );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " TxActivity       = %s",      msgPhyState->TxActivity?"Yes":"No" );
-//PT_LOG_DEBUG(LOG_CTX_MSG, " TxFault          = %s",      msgPhyState->TxFault?"Yes":"No" );
-//PT_LOG_DEBUG(LOG_CTX_MSG, " RemoteFault      = %s",      msgPhyState->RemoteFault?"Yes":"No" );
-//PT_LOG_DEBUG(LOG_CTX_MSG, " LOS              = %s",      msgPhyState->LOS?"Yes":"No" );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Media            = %u",      msgPhyState->Media );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " MTU_mismatch     = %s",      msgPhyState->MTU_mismatch?"Yes":"No" );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Support.MaxFrame = %u",      msgPhyState->Supported_MaxFrame );
-
-  return L7_SUCCESS;
-}
-
-
-/**
- * Get physical port activity
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
- */
-L7_RC_t ptin_msg_PhyActivity_get(msg_HWEthPhyActivity_t *msgPhyAct)
-{
-#if (PTIN_BOARD_IS_MATRIX)
-  L7_uint ptin_port;
-  ptin_HWEthRFC2819_PortStatistics_t  portStats;
-
-  /* Get ptin port */
-  if (ptin_intf_slotPort2port(msgPhyAct->intf.slot, msgPhyAct->intf.port, &ptin_port) != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_MSG, "Unknown interface (slot=%u/%u)", msgPhyAct->intf.slot, msgPhyAct->intf.port);
-    return L7_FAILURE;
-  }
-
-  /* Read statistics */
-  portStats.Port = ptin_port;
-  portStats.Mask = 0xFF;
-  portStats.RxMask = 0xFFFFFFFF;
-  portStats.TxMask = 0xFFFFFFFF;
-  if (ptin_intf_counters_read(&portStats) != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_MSG, "Error getting statistics of port# %u", portStats.Port);
-    return L7_FAILURE;
-  }
-
-  /* Compose message with all the gathered data */
-  msgPhyAct->Mask = 0xff;
-  msgPhyAct->RxActivity = (L7_uint32) portStats.Rx.Throughput;
-  msgPhyAct->TxActivity = (L7_uint32) portStats.Tx.Throughput;
-
-  /* Output info read */
-  PT_LOG_TRACE(LOG_CTX_MSG, "Slot/Port # %u/%u",           msgPhyAct->intf.slot, msgPhyAct->intf.port);
-  PT_LOG_TRACE(LOG_CTX_MSG, " Mask             = 0x%02x",  msgPhyAct->Mask );
-  PT_LOG_TRACE(LOG_CTX_MSG, " RX Activity      = %u",      msgPhyAct->RxActivity );
-  PT_LOG_TRACE(LOG_CTX_MSG, " TX Activity      = %u",      msgPhyAct->TxActivity );
-
-  return L7_SUCCESS;
-#else
-  return L7_NOT_SUPPORTED;
-#endif
-}
-
-
-/**
- * Get physical port state
- * 
- * @param msgPhyState Structure to save port state (Port 
- * field MUST be set; Outut mask bits reflect the updated fields)
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
- */
-L7_RC_t ptin_msg_PhyStatus_get(msg_HWEthPhyStatus_t *msgPhyStatus)
-{
-  L7_uint port;
-  ptin_HWEthPhyConf_t                 phyConf;
-  ptin_HWEthPhyState_t                phyState;
-  ptin_HWEthRFC2819_PortStatistics_t  portStats;
-
-  port = msgPhyStatus->Port;
-
-  /* Clear structure */
-  memset(msgPhyStatus, 0x00, sizeof(msg_HWEthPhyStatus_t));
-  msgPhyStatus->Port = port;
-
-  /* Read some configurations: MaxFrame & Media */
-  phyConf.Port = port;
-  phyConf.Mask = 0xFFFF;
-  if (ptin_intf_PhyConfig_get(&phyConf) != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_MSG, "Error getting configurations of port# %u", phyConf.Port);
-    memset(msgPhyStatus, 0x00, sizeof(msg_HWEthPhyStatus_t));
-
-    return L7_FAILURE;
-  }
-
-  /* Read statistics */
-  portStats.Port = port;
-  portStats.Mask = 0xFF;
-  portStats.RxMask = 0xFFFFFFFF;
-  portStats.TxMask = 0xFFFFFFFF;
-  if (ptin_intf_counters_read(&portStats) != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_MSG, "Error getting statistics of port# %u", portStats.Port);
-    memset(msgPhyStatus, 0x00, sizeof(msg_HWEthPhyStatus_t));
-
-    return L7_FAILURE;
-  }
-
-  /* Read some state parameters: Link-Up and AutoNeg-Complete */
-  phyState.Port = port;
-  phyState.Mask = 0xFFFF;
-  if (ptin_intf_PhyState_read(&phyState))
-  {
-    PT_LOG_ERR(LOG_CTX_MSG, "Error getting state of port# %u", phyState.Port);
-    memset(msgPhyStatus, 0x00, sizeof(msg_HWEthPhyStatus_t));
-
-    return L7_FAILURE;
-  }
-
-  /* Compose message with all the gathered data */
-  msgPhyStatus->phy.alarmes = 0;
-
-  /* Acquired speed */
-  if (phyState.Speed == PHY_PORT_100_MBPS)
-  {
-    msgPhyStatus->phy.alarmes |= HW_ETHERNET_STATUS_MASK_SPEED100_BIT;
-  }
-  if (phyState.Speed == PHY_PORT_1000_MBPS)
-  {
-    msgPhyStatus->phy.alarmes |= HW_ETHERNET_STATUS_MASK_SPEED1000_BIT;
-  }
-  if (phyState.Speed == PHY_PORT_10_GBPS)
-  {
-    msgPhyStatus->phy.alarmes |= HW_ETHERNET_STATUS_MASK_SPEED10G_BIT;
-  }
-
-  /* Traffic activity */
-  if (portStats.Tx.Throughput > 0)
-  {
-    msgPhyStatus->phy.alarmes |= HW_ETHERNET_STATUS_MASK_TX_BIT;
-  }
-  if (portStats.Rx.Throughput > 0)
-  {
-    msgPhyStatus->phy.alarmes |= HW_ETHERNET_STATUS_MASK_RX_BIT;
-  }
-  if (portStats.Tx.etherStatsCollisions > 0)
-  {
-    msgPhyStatus->phy.alarmes |= HW_ETHERNET_STATUS_MASK_COLLISION_BIT;
-  }
-
-  /* Link down alarm  */
-  if (!phyState.LinkUp)
-  {
-    msgPhyStatus->phy.alarmes |= HW_ETHERNET_STATUS_MASK_LINK_BIT;
-  }
-
-  /* Autoneg complete? */
-  if (phyState.AutoNegComplete)
-  {
-    msgPhyStatus->phy.alarmes |= HW_ETHERNET_STATUS_MASK_AUTONEG_BIT;
-  }
-
-  /* Other parameters */
-  if (phyState.Duplex)
-  {
-    msgPhyStatus->phy.alarmes |= HW_ETHERNET_STATUS_MASK_FULLDUPLEX_BIT;
-  }
-  if (phyConf.Media == PHY_PORT_MEDIA_OPTICAL)
-  {
-    msgPhyStatus->phy.alarmes |= HW_ETHERNET_STATUS_MASK_MEDIAX_BIT;
-  }
-
-  msgPhyStatus->phy.alarmes_mask =  HW_ETHERNET_STATUS_MASK_SPEED100_BIT | HW_ETHERNET_STATUS_MASK_TX_BIT | HW_ETHERNET_STATUS_MASK_RX_BIT | 
-                                    HW_ETHERNET_STATUS_MASK_COLLISION_BIT | HW_ETHERNET_STATUS_MASK_LINK_BIT | /* HW_ETHERNET_STATUS_MASK_AUTONEG_BIT | */
-                                    HW_ETHERNET_STATUS_MASK_FULLDUPLEX_BIT | HW_ETHERNET_STATUS_MASK_SPEED1000_BIT | HW_ETHERNET_STATUS_MASK_MEDIAX_BIT;
-
-  /* Output info read */
-  PT_LOG_DEBUG(LOG_CTX_MSG, "Port # %u",                   msgPhyStatus->Port);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " alarmes          = 0x%04X",  msgPhyStatus->phy.alarmes );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " alarmes_mask     = 0x%04X",  msgPhyStatus->phy.alarmes_mask );
-
-  return L7_SUCCESS;
-}
-
-
-/* Phy Counters Functions *****************************************************/
-/**
- * Read PHY counters
- * 
- * @param msgPortStats : Array of stats (one for each port) 
- * @param msgRequest   : Array of requests (one for each port) 
- * @param numElems     : Number of elements to be read
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
- */
-L7_RC_t ptin_msg_PhyCounters_read(msg_HwGenReq_t *msgRequest, msg_HWEthRFC2819_PortStatistics_t *msgPortStats, L7_uint nElems)
-{
-  L7_uint port, i;
-  msg_HwGenReq_t                    *p_msgRequest;
-  msg_HWEthRFC2819_PortStatistics_t *p_msgPortStats;
-  ptin_HWEthRFC2819_PortStatistics_t portStats;
-
-  for (i=0; i<nElems; i++)
-  {
-    p_msgRequest   = &msgRequest[i];    /* Pointer to request */
-    p_msgPortStats = &msgPortStats[i];  /* Pointer to output */
-
-    /* Port to be read */
-    port = p_msgRequest->generic_id;
-
-    /* Clear output structure */
-    memset(p_msgPortStats, 0x00, sizeof(msg_HWEthRFC2819_PortStatistics_t));
-    /* Update slot_id and port_id */
-    p_msgPortStats->SlotId = p_msgRequest->slot_id;
-    p_msgPortStats->Port   = port;
-
-    /* Read statistics */
-    portStats.Port = port;
-    portStats.Mask = 0xFF;
-    portStats.RxMask = 0xFFFFFFFF;
-    portStats.TxMask = 0xFFFFFFFF;
-    if (ptin_intf_counters_read(&portStats) != L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_MSG, "Error getting statistics of port# %u", portStats.Port);
-      memset(p_msgPortStats, 0x00, sizeof(msg_HWEthRFC2819_PortStatistics_t));
-      return L7_FAILURE;
-    }
-
-    /* Copy data from ptin to msg structure */
-    ptin_msg_PortStats_convert(p_msgPortStats, &portStats);
-
-    /* Output info read */
-    PT_LOG_TRACE(LOG_CTX_MSG, "Slotid=%u, Port # %2u", p_msgPortStats->SlotId, p_msgPortStats->Port);
-    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.DropEvents           = %15llu  | Tx.DropEvents           = %15llu", p_msgPortStats->Rx.etherStatsDropEvents,           msgPortStats->Tx.etherStatsDropEvents);
-    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Octets               = %15llu  | Tx.Octets               = %15llu", p_msgPortStats->Rx.etherStatsOctets,               msgPortStats->Tx.etherStatsOctets);
-    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts                 = %15llu  | Tx.Pkts                 = %15llu", p_msgPortStats->Rx.etherStatsPkts,                 msgPortStats->Tx.etherStatsPkts);
-    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.BroadcastPkts        = %15llu  | Tx.BroadcastPkts        = %15llu", p_msgPortStats->Rx.etherStatsBroadcastPkts,        msgPortStats->Tx.etherStatsBroadcastPkts);
-    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.MulticastPkts        = %15llu  | Tx.MulticastPkts        = %15llu", p_msgPortStats->Rx.etherStatsMulticastPkts,        msgPortStats->Tx.etherStatsMulticastPkts);
-    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.CRCAlignErrors       = %15llu  | Tx.CRCAlignErrors       = %15llu", p_msgPortStats->Rx.etherStatsCRCAlignErrors,       msgPortStats->Tx.etherStatsCRCAlignErrors);
-    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.UndersizePkts        = %15llu  | Tx.OversizePkts         = %15llu", p_msgPortStats->Rx.etherStatsUndersizePkts,        msgPortStats->Tx.etherStatsOversizePkts);
-    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.OversizePkts         = %15llu  | Tx.Fragments            = %15llu", p_msgPortStats->Rx.etherStatsOversizePkts,         msgPortStats->Tx.etherStatsFragments);
-    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Fragments            = %15llu  | Tx.Jabbers              = %15llu", p_msgPortStats->Rx.etherStatsFragments,            msgPortStats->Tx.etherStatsJabbers);
-    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Jabbers              = %15llu  | Tx.Collisions           = %15llu", p_msgPortStats->Rx.etherStatsJabbers,              msgPortStats->Tx.etherStatsCollisions);
-    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts64Octets         = %15llu  | Tx.Pkts64Octets         = %15llu", p_msgPortStats->Rx.etherStatsPkts64Octets,         msgPortStats->Tx.etherStatsPkts64Octets);
-    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts65to127Octets    = %15llu  | Tx.Pkts65to127Octets    = %15llu", p_msgPortStats->Rx.etherStatsPkts65to127Octets,    msgPortStats->Tx.etherStatsPkts65to127Octets);
-    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts128to255Octets   = %15llu  | Tx.Pkts128to255Octets   = %15llu", p_msgPortStats->Rx.etherStatsPkts128to255Octets,   msgPortStats->Tx.etherStatsPkts128to255Octets);
-    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts256to511Octets   = %15llu  | Tx.Pkts256to511Octets   = %15llu", p_msgPortStats->Rx.etherStatsPkts256to511Octets,   msgPortStats->Tx.etherStatsPkts256to511Octets);
-    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts512to1023Octets  = %15llu  | Tx.Pkts512to1023Octets  = %15llu", p_msgPortStats->Rx.etherStatsPkts512to1023Octets,  msgPortStats->Tx.etherStatsPkts512to1023Octets);
-    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts1024to1518Octets = %15llu  | Tx.Pkts1024to1518Octets = %15llu", p_msgPortStats->Rx.etherStatsPkts1024to1518Octets, msgPortStats->Tx.etherStatsPkts1024to1518Octets);
-    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts1519toMaxOctets  = %15llu  | Tx.Pkts1519toMaxOctets  = %15llu", p_msgPortStats->Rx.etherStatsPkts1519toMaxOctets,  msgPortStats->Tx.etherStatsPkts1519toMaxOctets);
-    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Throughput (bps)     = %15llu  | Tx.Throughput (bps)     = %15llu", p_msgPortStats->Rx.Throughput,                     msgPortStats->Tx.Throughput);
-  }
-
-  return L7_SUCCESS;
-}
-
-
-/**
- * Clear PHY counters
- * 
- * @param portStats portStats.Port must defined the port#
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
- */
-L7_RC_t ptin_msg_PhyCounters_clear(msg_HWEthRFC2819_PortStatistics_t *msgPortStats)
-{
-  ptin_HWEthRFC2819_PortStatistics_t portStats;
-
-  /* Clear statistics */
-  portStats.Port = msgPortStats->Port;
-  portStats.Mask = msgPortStats->Mask;
-  portStats.RxMask = msgPortStats->RxMask;
-  portStats.TxMask = msgPortStats->TxMask;
-
-  if (ptin_intf_counters_clear(&portStats) != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_MSG, "Error clearing statistics of port# %u", portStats.Port);
-    memset(msgPortStats, 0x00, sizeof(msg_HWEthRFC2819_PortStatistics_t));
-
-    return L7_FAILURE;
-  }
-
-  PT_LOG_DEBUG(LOG_CTX_MSG, "Port# %u counters cleared", portStats.Port);
 
   return L7_SUCCESS;
 }
@@ -4112,146 +4331,6 @@ L7_RC_t ptin_msg_l2_macTable_add(msg_switch_mac_table_entry_t *mac_table, L7_uin
       PT_LOG_DEBUG(LOG_CTX_MSG,"Success adding index entry %u",i);
     }
   }
-
-  return rc;
-}
-
-/**
- * Configure L2 MAC Learn limit
- * 
- * @param maclimit: Mac limiting structure
- * 
- * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
- */
-L7_RC_t ptin_msg_l2_maclimit_config(msg_l2_maclimit_config_t *maclimit)
-{
-  ptin_l2_maclimit_t entry;
-  L7_RC_t rc = L7_SUCCESS;
-
-  ptin_intf_t ptin_intf;
-  L7_uint32   intIfNum;
-
-  PT_LOG_DEBUG(LOG_CTX_MSG, "Message function '%s' being executed",__FUNCTION__);
-
-  /* Validate arguments */
-  if (maclimit==L7_NULLPTR)
-  {
-    PT_LOG_ERR(LOG_CTX_MSG,"Invalid argument");
-    return L7_FAILURE;
-  }
-
-  PT_LOG_DEBUG(LOG_CTX_MSG," slotId       = %u",      maclimit->slotId);
-  PT_LOG_DEBUG(LOG_CTX_MSG," interface    = %u/%u",   maclimit->intf.intf_type, maclimit->intf.intf_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG," mask         = 0x%.8X",  maclimit->mask);
-  PT_LOG_DEBUG(LOG_CTX_MSG," vid          = %u",      maclimit->vid);
-  PT_LOG_DEBUG(LOG_CTX_MSG," system       = %u",      maclimit->system);
-  PT_LOG_DEBUG(LOG_CTX_MSG," limit        = %u",      maclimit->limit);
-  PT_LOG_DEBUG(LOG_CTX_MSG," action       = %u",      maclimit->action);
-  PT_LOG_DEBUG(LOG_CTX_MSG," trap         = %u",      maclimit->send_trap);
-
-  memset(&entry, 0, sizeof(ptin_l2_maclimit_t));
-
-  if ((maclimit->mask & L2_MACLIMIT_MASK_SYSTEM) & (maclimit->system))
-  {
-    intIfNum = L7_ALL_INTERFACES;
-  }
-  else
-  {
-    /* Get intIfNum */
-    ptin_intf.intf_type = maclimit->intf.intf_type;
-    ptin_intf.intf_id = maclimit->intf.intf_id;
- 
-    if (ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum) != L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_EVC,"Invalid ptin_intf");
-      return L7_FAILURE;
-    }
-    
-    if (maclimit->mask & L2_MACLIMIT_MASK_ACTION)
-    {
-      entry.action = maclimit->action;
-    }
-    else
-    {
-      entry.action = -1;
-    }
-    if (maclimit->mask & L2_MACLIMIT_MASK_SEND_TRAP)
-    {
-      entry.send_trap = maclimit->send_trap;
-    }
-    else
-    {
-      entry.send_trap = -1;
-    }
-    if (maclimit->mask & L2_MACLIMIT_MASK_LIMIT)
-    {
-      entry.limit = maclimit->limit;
-
-      if (entry.limit == -1) /* case unlimited turn off Trap and Action*/
-      {
-         entry.send_trap = 0;
-         entry.action = 0;
-      }
-    }
-    else
-    {
-      entry.limit = 0;
-    }
-  }
-
-  dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_L2_MACLIMIT, DAPI_CMD_SET, sizeof(ptin_l2_maclimit_t), &entry);
-
-  return rc;
-}
-
-/**
- * Get L2 MAC Learn limit status
- * 
- * @param maclimit: Mac limiting structure
- * 
- * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
- */
-L7_RC_t ptin_msg_l2_maclimit_status(msg_l2_maclimit_status_t *maclimit_status)
-{
-  ptin_l2_maclimit_status_t entry;
-  L7_RC_t rc = L7_SUCCESS;
-
-  ptin_intf_t ptin_intf;
-  L7_uint32   intIfNum;
-  ptin_intf.intf_type = maclimit_status->intf.intf_type;
-  ptin_intf.intf_id = maclimit_status->intf.intf_id;
-
-  if (ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum) != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_EVC,"Invalid ptin_intf");
-    return L7_FAILURE;
-  }
-
-  PT_LOG_DEBUG(LOG_CTX_MSG, "Message function '%s' being executed",__FUNCTION__);
-
-  /* Validate arguments */
-  if (maclimit_status==L7_NULLPTR)
-  {
-    PT_LOG_ERR(LOG_CTX_MSG,"Invalid argument");
-    return L7_FAILURE;
-  }
-
-  PT_LOG_DEBUG(LOG_CTX_MSG," slotId       = %u",      maclimit_status->slotId);
-  PT_LOG_DEBUG(LOG_CTX_MSG," interface    = %u/%u",   maclimit_status->intf.intf_type, maclimit_status->intf.intf_id);
-
-  dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_L2_MACLIMIT_STATUS, DAPI_CMD_GET, sizeof(ptin_l2_maclimit_status_t), &entry);
-
-  maclimit_status->number_mac_learned = entry.number_mac_learned;
-  maclimit_status->status = entry.status;
-
-  maclimit_status->mask = 0x03;
-
-  PT_LOG_DEBUG(LOG_CTX_MSG," Status Response");
-  PT_LOG_DEBUG(LOG_CTX_MSG," slotId       = %u",      maclimit_status->slotId);
-  PT_LOG_DEBUG(LOG_CTX_MSG," interface    = %u/%u",   maclimit_status->intf.intf_type, maclimit_status->intf.intf_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG," MacLearned   = %u",      maclimit_status->number_mac_learned);
-  PT_LOG_DEBUG(LOG_CTX_MSG," Status       = %u",      maclimit_status->status);
-  PT_LOG_DEBUG(LOG_CTX_MSG," Mask         = %u",      maclimit_status->mask);
 
   return rc;
 }
@@ -9826,135 +9905,6 @@ L7_RC_t ptin_msg_prbs_status(msg_ptin_prbs_request *msg_in, msg_ptin_prbs_status
   return L7_SUCCESS;
 }
 
-/****************************************************************************** 
- * STATIC FUNCTIONS IMPLEMENTATION
- ******************************************************************************/
-
-/**
- * Convert manager interface representation to ptin_port
- * 
- * @param intf_type : interface type (0:physical, 1:Lag)
- * @param intf_id : Interface id 
- * @param ptin_port : ptin representation of port 
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE;
- */
-static L7_RC_t ptin_msg_ptinPort_get(L7_uint8 intf_type, L7_uint8 intf_id, L7_int *ptin_port)
-{
-  L7_int port = -1;
-
-  if (intf_type)
-  {
-    port = (L7_int) intf_id + PTIN_SYSTEM_N_PORTS;
-    if (port<PTIN_SYSTEM_N_PORTS || port>=PTIN_SYSTEM_N_INTERF)
-    {
-      return L7_FAILURE;
-    }
-  }
-  else
-  {
-    port = (L7_int) intf_id;
-    if (port>=PTIN_SYSTEM_N_PORTS)
-    {
-      return L7_FAILURE;
-    }
-  }
-
-  if (ptin_port!=L7_NULLPTR)  *ptin_port = port;
-
-  return L7_SUCCESS;
-}
-
-/**
- * Execute drivshell or devshell command
- * 
- * @param tty  tty caller
- * @param type is a driv or a devshell command?
- * @param cmd  command string
- * 
- * @return L7_RC_t Return code L7_SUCCESS/L7_FAILURE
- */
-static L7_RC_t ptin_shell_command_run(L7_char8 *tty, L7_char8 *type, L7_char8 *cmd)
-{
-  L7_RC_t   rc = L7_SUCCESS;
-  //L7_char8 *prevtty = ttyname(1);
-  //extern L7_RC_t hapiBroadDebugShell(void *data);
-
-  //ptin_PitHandler(tty);
-
-  if (strcmp(type, "driv") == 0)
-  {
-    dtlDriverShell(cmd);
-    //hapiBroadDebugShell(cmd);
-  }
-  else if (strcmp(type, "dev") == 0)
-  {
-    if (osapiDevShellExec(cmd) != 0)
-      rc = L7_FAILURE;
-  }
-
-  fflush(stdout);
-
-  //ptin_PitHandler(prevtty);
-
-  return rc;
-}
-
-
-/**
- * Copy ptin_HWEthRFC2819_PortStatistics_t (unpacked) to msg_HWEthRFC2819_PortStatistics_t (packed)
- * 
- * @param msgPortStats  Destination
- * @param ptinPortStats Source
- */
-static void ptin_msg_PortStats_convert(msg_HWEthRFC2819_PortStatistics_t  *msgPortStats,
-                                       ptin_HWEthRFC2819_PortStatistics_t *ptinPortStats)
-{
-  msgPortStats->Port                              = ptinPortStats->Port;
-  msgPortStats->Mask                              = ptinPortStats->Mask;
-  msgPortStats->RxMask                            = ptinPortStats->RxMask;
-  msgPortStats->TxMask                            = ptinPortStats->TxMask;
-  /* Rx */
-  msgPortStats->Rx.etherStatsDropEvents           = ptinPortStats->Rx.etherStatsDropEvents;
-  msgPortStats->Rx.etherStatsOctets               = ptinPortStats->Rx.etherStatsOctets;
-  msgPortStats->Rx.etherStatsPkts                 = ptinPortStats->Rx.etherStatsPkts;
-  msgPortStats->Rx.etherStatsBroadcastPkts        = ptinPortStats->Rx.etherStatsBroadcastPkts;
-  msgPortStats->Rx.etherStatsMulticastPkts        = ptinPortStats->Rx.etherStatsMulticastPkts;
-  msgPortStats->Rx.etherStatsCRCAlignErrors       = ptinPortStats->Rx.etherStatsCRCAlignErrors;
-  msgPortStats->Rx.etherStatsUndersizePkts        = ptinPortStats->Rx.etherStatsUndersizePkts;
-  msgPortStats->Rx.etherStatsOversizePkts         = ptinPortStats->Rx.etherStatsOversizePkts;
-  msgPortStats->Rx.etherStatsFragments            = ptinPortStats->Rx.etherStatsFragments;
-  msgPortStats->Rx.etherStatsJabbers              = ptinPortStats->Rx.etherStatsJabbers;
-  msgPortStats->Rx.etherStatsCollisions           = ptinPortStats->Rx.etherStatsCollisions;
-  msgPortStats->Rx.etherStatsPkts64Octets         = ptinPortStats->Rx.etherStatsPkts64Octets;
-  msgPortStats->Rx.etherStatsPkts65to127Octets    = ptinPortStats->Rx.etherStatsPkts65to127Octets;
-  msgPortStats->Rx.etherStatsPkts128to255Octets   = ptinPortStats->Rx.etherStatsPkts128to255Octets;
-  msgPortStats->Rx.etherStatsPkts256to511Octets   = ptinPortStats->Rx.etherStatsPkts256to511Octets;
-  msgPortStats->Rx.etherStatsPkts512to1023Octets  = ptinPortStats->Rx.etherStatsPkts512to1023Octets;
-  msgPortStats->Rx.etherStatsPkts1024to1518Octets = ptinPortStats->Rx.etherStatsPkts1024to1518Octets;
-  msgPortStats->Rx.etherStatsPkts1519toMaxOctets  = ptinPortStats->Rx.etherStatsPkts1519toMaxOctets;
-  msgPortStats->Rx.Throughput                     = ptinPortStats->Rx.Throughput;
-  /* Tx */
-  msgPortStats->Tx.etherStatsDropEvents           = ptinPortStats->Tx.etherStatsDropEvents;
-  msgPortStats->Tx.etherStatsOctets               = ptinPortStats->Tx.etherStatsOctets;
-  msgPortStats->Tx.etherStatsPkts                 = ptinPortStats->Tx.etherStatsPkts;
-  msgPortStats->Tx.etherStatsBroadcastPkts        = ptinPortStats->Tx.etherStatsBroadcastPkts;
-  msgPortStats->Tx.etherStatsMulticastPkts        = ptinPortStats->Tx.etherStatsMulticastPkts;
-  msgPortStats->Tx.etherStatsCRCAlignErrors       = ptinPortStats->Tx.etherStatsCRCAlignErrors;
-  msgPortStats->Tx.etherStatsUndersizePkts        = ptinPortStats->Tx.etherStatsUndersizePkts;
-  msgPortStats->Tx.etherStatsOversizePkts         = ptinPortStats->Tx.etherStatsOversizePkts;
-  msgPortStats->Tx.etherStatsFragments            = ptinPortStats->Tx.etherStatsFragments;
-  msgPortStats->Tx.etherStatsJabbers              = ptinPortStats->Tx.etherStatsJabbers;
-  msgPortStats->Tx.etherStatsCollisions           = ptinPortStats->Tx.etherStatsCollisions;
-  msgPortStats->Tx.etherStatsPkts64Octets         = ptinPortStats->Tx.etherStatsPkts64Octets;
-  msgPortStats->Tx.etherStatsPkts65to127Octets    = ptinPortStats->Tx.etherStatsPkts65to127Octets;
-  msgPortStats->Tx.etherStatsPkts128to255Octets   = ptinPortStats->Tx.etherStatsPkts128to255Octets;
-  msgPortStats->Tx.etherStatsPkts256to511Octets   = ptinPortStats->Tx.etherStatsPkts256to511Octets;
-  msgPortStats->Tx.etherStatsPkts512to1023Octets  = ptinPortStats->Tx.etherStatsPkts512to1023Octets;
-  msgPortStats->Tx.etherStatsPkts1024to1518Octets = ptinPortStats->Tx.etherStatsPkts1024to1518Octets;
-  msgPortStats->Tx.etherStatsPkts1519toMaxOctets  = ptinPortStats->Tx.etherStatsPkts1519toMaxOctets;
-  msgPortStats->Tx.Throughput                     = ptinPortStats->Tx.Throughput;
-}
 
 /**
  * Transfer data from msg_HwEthBwProfile_t structure to 
@@ -13679,3 +13629,221 @@ L7_RC_t ptin_msg_igmp_multicast_service_remove(msg_multicast_service_t *msg, L7_
 }
 
 /****************************************End Multicast Package Feature**************************************************/
+#endif
+
+/**
+ * Configure L2 MAC Learn limit
+ * 
+ * @param maclimit: Mac limiting structure
+ * 
+ * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_l2_maclimit_config(msg_l2_maclimit_config_t *maclimit)
+{
+  ptin_l2_maclimit_t entry;
+  L7_RC_t rc = L7_SUCCESS;
+
+  ptin_intf_t ptin_intf;
+  L7_uint32   intIfNum;
+
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Message function '%s' being executed",__FUNCTION__);
+
+  /* Validate arguments */
+  if (maclimit==L7_NULLPTR)
+  {
+    PT_LOG_ERR(LOG_CTX_MSG,"Invalid argument");
+    return L7_FAILURE;
+  }
+
+  PT_LOG_DEBUG(LOG_CTX_MSG," slotId       = %u",      maclimit->slotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG," interface    = %u/%u",   maclimit->intf.intf_type, maclimit->intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," mask         = 0x%.8X",  maclimit->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG," vid          = %u",      maclimit->vid);
+  PT_LOG_DEBUG(LOG_CTX_MSG," system       = %u",      maclimit->system);
+  PT_LOG_DEBUG(LOG_CTX_MSG," limit        = %u",      maclimit->limit);
+  PT_LOG_DEBUG(LOG_CTX_MSG," action       = %u",      maclimit->action);
+  PT_LOG_DEBUG(LOG_CTX_MSG," trap         = %u",      maclimit->send_trap);
+
+  memset(&entry, 0, sizeof(ptin_l2_maclimit_t));
+
+  if ((maclimit->mask & L2_MACLIMIT_MASK_SYSTEM) & (maclimit->system))
+  {
+    intIfNum = L7_ALL_INTERFACES;
+  }
+  else
+  {
+    /* Get intIfNum */
+    ptin_intf.intf_type = maclimit->intf.intf_type;
+    ptin_intf.intf_id = maclimit->intf.intf_id;
+ 
+    if (ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_EVC,"Invalid ptin_intf");
+      return L7_FAILURE;
+    }
+    
+    if (maclimit->mask & L2_MACLIMIT_MASK_ACTION)
+    {
+      entry.action = maclimit->action;
+    }
+    else
+    {
+      entry.action = -1;
+    }
+    if (maclimit->mask & L2_MACLIMIT_MASK_SEND_TRAP)
+    {
+      entry.send_trap = maclimit->send_trap;
+    }
+    else
+    {
+      entry.send_trap = -1;
+    }
+    if (maclimit->mask & L2_MACLIMIT_MASK_LIMIT)
+    {
+      entry.limit = maclimit->limit;
+
+      if (entry.limit == -1) /* case unlimited turn off Trap and Action*/
+      {
+         entry.send_trap = 0;
+         entry.action = 0;
+      }
+    }
+    else
+    {
+      entry.limit = 0;
+    }
+  }
+
+  dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_L2_MACLIMIT, DAPI_CMD_SET, sizeof(ptin_l2_maclimit_t), &entry);
+
+  return rc;
+}
+
+/**
+ * Get L2 MAC Learn limit status
+ * 
+ * @param maclimit: Mac limiting structure
+ * 
+ * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_l2_maclimit_status(msg_l2_maclimit_status_t *maclimit_status)
+{
+  ptin_l2_maclimit_status_t entry;
+  L7_RC_t rc = L7_SUCCESS;
+
+  ptin_intf_t ptin_intf;
+  L7_uint32   intIfNum;
+  ptin_intf.intf_type = maclimit_status->intf.intf_type;
+  ptin_intf.intf_id = maclimit_status->intf.intf_id;
+
+  if (ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_EVC,"Invalid ptin_intf");
+    return L7_FAILURE;
+  }
+
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Message function '%s' being executed",__FUNCTION__);
+
+  /* Validate arguments */
+  if (maclimit_status==L7_NULLPTR)
+  {
+    PT_LOG_ERR(LOG_CTX_MSG,"Invalid argument");
+    return L7_FAILURE;
+  }
+
+  PT_LOG_DEBUG(LOG_CTX_MSG," slotId       = %u",      maclimit_status->slotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG," interface    = %u/%u",   maclimit_status->intf.intf_type, maclimit_status->intf.intf_id);
+
+  dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_L2_MACLIMIT_STATUS, DAPI_CMD_GET, sizeof(ptin_l2_maclimit_status_t), &entry);
+
+  maclimit_status->number_mac_learned = entry.number_mac_learned;
+  maclimit_status->status = entry.status;
+
+  maclimit_status->mask = 0x03;
+
+  PT_LOG_DEBUG(LOG_CTX_MSG," Status Response");
+  PT_LOG_DEBUG(LOG_CTX_MSG," slotId       = %u",      maclimit_status->slotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG," interface    = %u/%u",   maclimit_status->intf.intf_type, maclimit_status->intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," MacLearned   = %u",      maclimit_status->number_mac_learned);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Status       = %u",      maclimit_status->status);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Mask         = %u",      maclimit_status->mask);
+
+  return rc;
+}
+
+/****************************************************************************** 
+ * STATIC FUNCTIONS IMPLEMENTATION
+ ******************************************************************************/
+
+#if 0
+/**
+ * Convert manager interface representation to ptin_port
+ * 
+ * @param intf_type : interface type (0:physical, 1:Lag)
+ * @param intf_id : Interface id 
+ * @param ptin_port : ptin representation of port 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE;
+ */
+static L7_RC_t ptin_msg_ptinPort_get(L7_uint8 intf_type, L7_uint8 intf_id, L7_int *ptin_port)
+{
+  L7_int port = -1;
+
+  if (intf_type)
+  {
+    port = (L7_int) intf_id + PTIN_SYSTEM_N_PORTS;
+    if (port<PTIN_SYSTEM_N_PORTS || port>=PTIN_SYSTEM_N_INTERF)
+    {
+      return L7_FAILURE;
+    }
+  }
+  else
+  {
+    port = (L7_int) intf_id;
+    if (port>=PTIN_SYSTEM_N_PORTS)
+    {
+      return L7_FAILURE;
+    }
+  }
+
+  if (ptin_port!=L7_NULLPTR)  *ptin_port = port;
+
+  return L7_SUCCESS;
+}
+#endif
+
+/**
+ * Execute drivshell or devshell command
+ * 
+ * @param tty  tty caller
+ * @param type is a driv or a devshell command?
+ * @param cmd  command string
+ * 
+ * @return L7_RC_t Return code L7_SUCCESS/L7_FAILURE
+ */
+static L7_RC_t ptin_shell_command_run(L7_char8 *tty, L7_char8 *type, L7_char8 *cmd)
+{
+  L7_RC_t   rc = L7_SUCCESS;
+  //L7_char8 *prevtty = ttyname(1);
+  //extern L7_RC_t hapiBroadDebugShell(void *data);
+
+  //ptin_PitHandler(tty);
+
+  if (strcmp(type, "driv") == 0)
+  {
+    dtlDriverShell(cmd);
+    //hapiBroadDebugShell(cmd);
+  }
+  else if (strcmp(type, "dev") == 0)
+  {
+    if (osapiDevShellExec(cmd) != 0)
+      rc = L7_FAILURE;
+  }
+
+  fflush(stdout);
+
+  //ptin_PitHandler(prevtty);
+
+  return rc;
+}
+

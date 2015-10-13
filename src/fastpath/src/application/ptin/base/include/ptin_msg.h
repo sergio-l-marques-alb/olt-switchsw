@@ -49,7 +49,92 @@ extern L7_RC_t ptin_msg_ShellCommand_run(L7_char8 *str);
  */
 extern L7_RC_t ptin_msg_FPInfo_get(msg_FWFastpathInfo *msgFPInfo);
 
+/* Message functions *********************************************************/
 
+/**
+ * Redirect output
+ */
+extern L7_RC_t ptin_msg_redirect_stdout(ipc_msg *inbuff, ipc_msg *outbuff);
+
+/**
+ * Redirect logger
+ */
+extern L7_RC_t ptin_msg_logger_output(ipc_msg *inbuff, ipc_msg *outbuff);
+
+/**
+ * Get application running state
+ */
+extern L7_RC_t ptin_msg_ping(ipc_msg *inbuff, ipc_msg *outbuff);
+
+/**
+ * Get application running state
+ */
+extern L7_RC_t ptin_msg_ping(ipc_msg *inbuff, ipc_msg *outbuff);
+
+/**
+ * Execute Shell command
+ */
+extern L7_RC_t ptin_msg_shellCommand(ipc_msg *inbuff, ipc_msg *outbuff);
+
+/**
+ * Board show
+ */
+extern L7_RC_t ptin_msg_board_show(ipc_msg *inbuff, ipc_msg *outbuff);
+
+
+/* Physical Interfaces Functions **********************************************/ 
+/**
+ * Set physical port configuration
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_PhyConfig_set(ipc_msg *inbuff, ipc_msg *outbuff);
+
+/**
+ * Get physical port configuration
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_PhyConfig_get(ipc_msg *inbuff, ipc_msg *outbuff);
+
+/**
+ * Get physical port state
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_PhyState_get(ipc_msg *inbuff, ipc_msg *outbuff);
+
+/**
+ * Get physical port activity
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_PhyActivity_get(ipc_msg *inbuff, ipc_msg *outbuff);
+
+/**
+ * Get physical port state
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_PhyStatus_get(ipc_msg *inbuff, ipc_msg *outbuff);
+
+/* Counters Manipulation Functions ********************************************/ 
+/**
+ * Read PHY counters
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_PhyCounters_read(ipc_msg *inbuff, ipc_msg *outbuff);
+
+/**
+ * Clear PHY counters
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_PhyCounters_clear(ipc_msg *inbuff, ipc_msg *outbuff);
+
+
+#if 0
 /* Reset Functions ************************************************************/
 /**
  * Reset to default configuration 
@@ -128,74 +213,6 @@ extern void ptin_msg_alarms_reset(void);
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE 
  */
 extern L7_RC_t ptin_msg_hw_resources_get(msg_ptin_policy_resources *msgResources);
-
-/* Physical Interfaces Functions **********************************************/ 
-/**
- * Set physical port configuration
- * 
- * @param msgPhyConf Structure with the configuration to be set
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
- */
-extern L7_RC_t ptin_msg_PhyConfig_set(msg_HWEthPhyConf_t *msgPhyConf);
-
-/**
- * Get physical port configuration
- * 
- * @param msgPhyConf Structure to save port configuration (Port 
- * field MUST be set; Output mask bits reflect the updated fields)
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
- */
-extern L7_RC_t ptin_msg_PhyConfig_get(msg_HWEthPhyConf_t *msgPhyConf);
-
-/**
- * Get physical port state
- * 
- * @param msgPhyState Structure to save port state (Port 
- * field MUST be set; Outut mask bits reflect the updated fields)
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
- */
-extern L7_RC_t ptin_msg_PhyState_get(msg_HWEthPhyState_t *msgPhyState);
-
-/**
- * Get physical port activity
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
- */
-extern L7_RC_t ptin_msg_PhyActivity_get(msg_HWEthPhyActivity_t *msgPhyAct);
-
-/**
- * Get physical port state
- * 
- * @param msgPhyState Structure to save port state (Port 
- * field MUST be set; Outut mask bits reflect the updated fields)
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
- */
-extern L7_RC_t ptin_msg_PhyStatus_get(msg_HWEthPhyStatus_t *msgPhyStatus);
-
-/* Counters Manipulation Functions ********************************************/ 
-/**
- * Read PHY counters
- * 
- * @param msgPortStats : Array of stats (one for each port) 
- * @param msgRequest   : Array of requests (one for each port) 
- * @param numElems     : Number of elements to be read
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
- */
-extern L7_RC_t ptin_msg_PhyCounters_read(msg_HwGenReq_t *msgRequest, msg_HWEthRFC2819_PortStatistics_t *msgPortStats, L7_uint nElems);
-
-/**
- * Clear PHY counters
- * 
- * @param portStats portStats.Port must defined the port#
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
- */
-extern L7_RC_t ptin_msg_PhyCounters_clear(msg_HWEthRFC2819_PortStatistics_t *msgPortStats);
 
 /* Slot mode configuration ****************************************************/
 
@@ -455,24 +472,6 @@ extern L7_RC_t ptin_msg_l2_macTable_remove(msg_switch_mac_table_entry_t *mac_tab
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_msg_l2_macTable_add(msg_switch_mac_table_entry_t *mac_table, L7_uint16 numEntries);
-
-/**
- * Configure L2 MAC Learn limit
- * 
- * @param maclimit: Mac limit structure
- * 
- * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
- */
-extern L7_RC_t ptin_msg_l2_maclimit_config(msg_l2_maclimit_config_t *maclimit);
-
-/**
- * Configure L2 MAC Limit status
- * 
- * @param maclimitStatus: Mac limit status structure
- * 
- * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
- */
-extern L7_RC_t ptin_msg_l2_maclimit_status(msg_l2_maclimit_status_t *maclimit_status);
 
 /* Dynamic ARP Inspection *****************************************************/
 
@@ -1690,6 +1689,25 @@ L7_RC_t ptin_msg_igmp_multicast_service_add(msg_multicast_service_t *msg, L7_uin
 L7_RC_t ptin_msg_igmp_multicast_service_remove(msg_multicast_service_t *msg, L7_uint32 noOfMessages);
 
 /****************************************End Multicast Package Feature**************************************************/
+#endif
+
+/**
+ * Configure L2 MAC Learn limit
+ * 
+ * @param maclimit: Mac limit structure
+ * 
+ * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_l2_maclimit_config(msg_l2_maclimit_config_t *maclimit);
+
+/**
+ * Configure L2 MAC Limit status
+ * 
+ * @param maclimitStatus: Mac limit status structure
+ * 
+ * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_l2_maclimit_status(msg_l2_maclimit_status_t *maclimit_status);
 
 #endif /* _PTIN_MSG_H */
 
