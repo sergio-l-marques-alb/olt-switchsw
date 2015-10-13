@@ -1274,7 +1274,7 @@ L7_RC_t ptin_hapi_maclimit_status(DAPI_USP_t *ddUsp, L7_uint32 *mac_learned, L7_
     *mac_learned = macLearn_info_lag[trunk_id].mac_counter;  
     LOG_TRACE(LOG_CTX_PTIN_HAPI,"Number of MAC Learned is %d in LAG %d (Limit %d, Total %d)", macLearn_info_lag[trunk_id].mac_counter, trunk_id, macLearn_info_lag[trunk_id].mac_limit,macLearn_info_lag[trunk_id].mac_total);
 
-    if (macLearn_info_lag[trunk_id].mac_counter >= macLearn_info_lag[trunk_id].mac_limit && (macLearn_info_lag[trunk_id].mac_limit!=0))
+    if (macLearn_info_lag[trunk_id].mac_counter > macLearn_info_lag[trunk_id].mac_limit && (macLearn_info_lag[trunk_id].mac_limit!=0))
     {
       *status = 1;
       if(ptin_hapi_l2_enable)
@@ -1297,7 +1297,7 @@ L7_RC_t ptin_hapi_maclimit_status(DAPI_USP_t *ddUsp, L7_uint32 *mac_learned, L7_
     *mac_learned = macLearn_info_physical[physical_port].mac_counter;  
     LOG_TRACE(LOG_CTX_PTIN_HAPI,"Number of MAC Learned is %d in physical port %d (Limit %d, Total %d)", macLearn_info_physical[physical_port].mac_counter, physical_port, macLearn_info_physical[physical_port].mac_limit,macLearn_info_physical[physical_port].mac_total);
 
-    if ((macLearn_info_physical[physical_port].mac_counter >= macLearn_info_physical[physical_port].mac_limit) && (macLearn_info_physical[physical_port].mac_limit!=0) )
+    if ((macLearn_info_physical[physical_port].mac_counter > macLearn_info_physical[physical_port].mac_limit) && (macLearn_info_physical[physical_port].mac_limit!=0) )
     {
       *status = 1;
       if(ptin_hapi_l2_enable)
