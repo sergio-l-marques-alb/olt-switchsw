@@ -855,7 +855,7 @@ void dtlNetInit(void)
   *Inidicate that this is a tap interface
   *and that we provide no additional packet information
   */
- ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
+ ifr.ifr_flags = IFF_TAP | IFF_NO_PI | IFF_ONE_QUEUE ;
  if(ioctl(dtl_net_fd,TUNSETIFF,&ifr) < 0)
  {
     SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Unable to create corresponding dtl net ifc\n");
