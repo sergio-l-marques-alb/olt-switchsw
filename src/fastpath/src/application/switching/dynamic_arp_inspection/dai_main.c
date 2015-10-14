@@ -1472,6 +1472,13 @@ void daiFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVl
           LOG_DEBUG(LOG_CTX_DAI, "ARP packet dropped after DHCP snooping validation");
         return;
       }
+      if (ptin_debug_dai_snooping)
+        LOG_DEBUG(LOG_CTX_DAI, "Valid ARP packet");
+    }
+    else
+    {
+      if (ptin_debug_dai_snooping)
+        LOG_DEBUG(LOG_CTX_DAI, "Valid ARP packet");
     }
     daiInfo->debugStats.pktsValidated++;
     /* If we reach here, the ARP packet is verified to be a genuine one. */
@@ -2004,7 +2011,7 @@ L7_RC_t daiFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVl
     ptin_HwEthEvcFlow_t vport_flow;
 
     /* Get list of vlans (outer+inner) to be flooded */
-    for (memset(&vport_flow, 0x00, sizeof(vport_id));
+    for (memset(&vport_flow, 0x00, sizeof(vport_flow));
          ptin_evc_vlan_client_next(vlanId, intIfNum, &vport_flow, &vport_flow) == L7_SUCCESS && number_of_vlans < 16;
          number_of_vlans++)
     {
