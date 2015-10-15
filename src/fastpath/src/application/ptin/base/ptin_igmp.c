@@ -3759,7 +3759,7 @@ L7_RC_t ptin_igmp_clientId_build(L7_uint32 intIfNum,
   /* Outer vlan reference */
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
   /* Validate outer vlan */
-  if (intVlan>=PTIN_VLAN_MIN && intVlan<=PTIN_VLAN_MAX)
+  if (intVlan >= PTIN_VLAN_MIN && intVlan <= PTIN_VLAN_MAX)
   {
     client->outerVlan = intVlan;
     client->mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
@@ -6191,8 +6191,10 @@ L7_RC_t ptin_igmp_mcast_evc_id_get(L7_uint16 intVlan, L7_uint32 intIfNum, L7_BOO
   st_IgmpInstCfg_t *igmpInst;
 
   /*Input Parameters Validation*/  
-  if ( intIfNum == 0 || intIfNum >= L7_MAX_INTERFACE_COUNT || (isLeafPort == L7_TRUE && clientId >= PTIN_IGMP_CLIENTIDX_MAX) || (isLeafPort == L7_FALSE && (intVlan <= PTIN_VLAN_MIN || intVlan>=PTIN_VLAN_MAX))
-       ||  groupAddr == L7_NULLPTR || sourceAddr == L7_NULLPTR || mcastEvcId == L7_NULLPTR)
+  if ( intIfNum == 0 || intIfNum >= L7_MAX_INTERFACE_COUNT
+       || (isLeafPort == L7_TRUE && clientId >= PTIN_IGMP_CLIENTIDX_MAX)
+       || (isLeafPort == L7_FALSE && (intVlan < PTIN_VLAN_MIN || intVlan > PTIN_VLAN_MAX))
+       || groupAddr == L7_NULLPTR || sourceAddr == L7_NULLPTR || mcastEvcId == L7_NULLPTR)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [isLeafPort:%u intVlan:%u intIfNum:%u client_idx:%u groupAddr:%p sourceAddr:%p mcastEvcId:%p]", isLeafPort, intVlan, intIfNum, clientId, groupAddr, sourceAddr, mcastEvcId);    
     return L7_FAILURE;
@@ -6244,7 +6246,9 @@ L7_RC_t ptin_igmp_McastRootVlan_get(L7_uint16 intVlan, L7_uint32 intIfNum, L7_BO
   st_IgmpInstCfg_t *igmpInst;
 
   /*Input Parameters Validation*/  
-  if ( intIfNum == 0 || intIfNum >= L7_MAX_INTERFACE_COUNT || (isLeafPort == L7_TRUE && clientId >= PTIN_IGMP_CLIENTIDX_MAX) || (isLeafPort == L7_FALSE && (intVlan <= PTIN_VLAN_MIN || intVlan>=PTIN_VLAN_MAX))
+  if ( intIfNum == 0 || intIfNum >= L7_MAX_INTERFACE_COUNT 
+       || (isLeafPort == L7_TRUE && clientId >= PTIN_IGMP_CLIENTIDX_MAX) 
+       || (isLeafPort == L7_FALSE && (intVlan < PTIN_VLAN_MIN || intVlan > PTIN_VLAN_MAX))
        ||  groupAddr == L7_NULLPTR || sourceAddr == L7_NULLPTR || mcastRootVlan == L7_NULLPTR)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [isLeafPort:%u intVlan:%u intIfNum:%u client_idx:%u groupAddr:%p sourceAddr:%p McastRootVlan:%p]", isLeafPort, intVlan, intIfNum, clientId, groupAddr, sourceAddr, mcastRootVlan);    
@@ -8384,20 +8388,22 @@ L7_RC_t ptin_igmp_evc_configure(L7_uint32 evc_idx, L7_BOOL enable, L7_BOOL set_t
 {
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
   /* IGMP instance management already deal with trp rules */
-  if (ptin_igmp_is_evc_used(evc_idx))
+  if (!ptin_igmp_is_evc_used(evc_idx))
+  {
+    if (set_trap)
+    {
+      /* Configure trap rule */
+      if (ptin_igmp_evc_trap_configure(evc_idx, enable) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP,"Evc index %u: Error configuring trap rule to %u",evc_idx,enable);
+        return L7_FAILURE;
+      }
+    }
+  }
+  else
   {
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"Evc index %u is already being used in an IGMP instance",evc_idx);
-    return L7_SUCCESS;
-  }
-
-  if (set_trap)
-  {
-    /* Configure trap rule */
-    if (ptin_igmp_evc_trap_configure(evc_idx, enable) != L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Evc index %u: Error configuring trap rule to %u",evc_idx,enable);
-      return L7_FAILURE;
-    }
+    //return L7_SUCCESS;
   }
 
   /* Only activate queriers if is allowed for UC services */
@@ -10630,7 +10636,7 @@ L7_RC_t ptin_igmp_clientId_convert(L7_uint32 evc_idx, ptin_client_id_t *client)
       client->mask & PTIN_CLIENT_MASK_FIELD_OUTERVLAN)
   {
     /* Validate outer vlan, only if provided */
-    if (client->outerVlan<PTIN_VLAN_MIN || client->outerVlan>PTIN_VLAN_MAX)
+    if (client->outerVlan < PTIN_VLAN_MIN || client->outerVlan > PTIN_VLAN_MAX)
     {
       /* Obtain intVlan */
       if (ptin_evc_intVlan_get(evc_idx, &client->ptin_intf, &intVlan)!=L7_SUCCESS)
@@ -10713,7 +10719,7 @@ static L7_RC_t ptin_igmp_clientId_restore(ptin_client_id_t *client)
     }
 
     /* Validate outer vlan */
-    if (client->outerVlan<PTIN_VLAN_MIN || client->outerVlan>PTIN_VLAN_MAX)
+    if (client->outerVlan < PTIN_VLAN_MIN || client->outerVlan > PTIN_VLAN_MAX)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid outer vlan (%u)",client->outerVlan);
       return L7_FAILURE;
@@ -11888,7 +11894,7 @@ L7_RC_t ptin_igmp_stat_reset_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32
 
 #if (!PTIN_IGMP_STATS_IN_EVCS)
   /* Get IGMP instance */
-  if (vlan>=PTIN_VLAN_MIN && vlan<=PTIN_VLAN_MAX)
+  if (vlan >= PTIN_VLAN_MIN && vlan <= PTIN_VLAN_MAX)
   {
     if (ptin_igmp_inst_get_fromIntVlan(vlan, &igmpInst, L7_NULLPTR)!=L7_SUCCESS)
     {
@@ -16285,7 +16291,7 @@ void ptin_igmp_querier_dump(L7_int evc_idx)
     }
 
     /* Validate vlan */
-    if (vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX)
+    if (vlanId < PTIN_VLAN_MIN || vlanId > PTIN_VLAN_MAX)
     {
       printf("Invalid vlan for EVC %u (%u)!\r\n",evc_idx,vlanId);
       continue;

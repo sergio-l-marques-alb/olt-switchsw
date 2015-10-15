@@ -5982,6 +5982,7 @@ L7_RC_t ptin_evc_update_igmp(L7_uint16 evc_id, L7_uint32 *flags_ref,
 
   evc_ext_id = evcs[evc_id].extended_id;
 
+  /* Check if IGMP configuration should be done */
   igmp_apply = ((*flags_ref & PTIN_EVC_MASK_IGMP_PROTOCOL)==PTIN_EVC_MASK_IGMP_PROTOCOL) != igmp_enabled;
 
   iptv_enabled = evcs[evc_id].flags & PTIN_EVC_MASK_MC_IPTV;
