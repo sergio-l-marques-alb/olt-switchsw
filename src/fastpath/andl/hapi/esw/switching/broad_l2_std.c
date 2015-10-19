@@ -3603,9 +3603,12 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
   }
   else
   {
-     /* PTin added: virtual ports */
+    /* PTin added: virtual ports */
+    if(!BCMX_LPORT_VALID(bcmx_l2_addr->lport))
+    {
       ptin_hapi_maclimit_inc(bcmx_l2_addr);
-      /* PTin ended */
+    }
+    /* PTin ended */
 
     rv = usl_bcmx_l2_addr_add(bcmx_l2_addr, L7_NULL);
     //printf("%s(%d) Yeah!\r\n",__FUNCTION__,__LINE__);
@@ -3888,6 +3891,11 @@ void hapiBroadAddrMacUpdateAge(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
     /* keep up with the number of nonNativeAge messages */
     hapiMacStats.nonNativeAge++;
     }
+  }
+
+  if (bcmx_l2_addr->flags & BCM_L2_TRUNK_MEMBER)
+  {
+    ptin_hapi_maclimit_dec(bcmx_l2_addr);
   }
 }
 
