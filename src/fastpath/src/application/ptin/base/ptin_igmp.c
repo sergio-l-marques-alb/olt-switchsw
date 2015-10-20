@@ -18249,9 +18249,9 @@ RC_t ptin_igmp_multicast_channel_service_get(L7_uint32 ptinPort, L7_uint32 devic
     inetAddressZeroSet(groupAddr->family, &defaultGroupAddr);
     inetAddressZeroSet(sourceAddr->family, &defaultSourceAddr);
 
-    /*Exit Here Multicast Service Found*/
+    /*Exit Here Multicast Service NOT Found*/
     if (ptin_debug_igmp_snooping)
-      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Entry Does Exist Going to Search for Default MC Service [ptinPort:%u deviceClientId:%u groupClientId:%u onuId:%u groupAddr:%s sourceAddr:%s serviceId:%u]",
+      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Entry Does NOT Exist Going to Search for Default MC Service [ptinPort:%u deviceClientId:%u groupClientId:%u onuId:%u groupAddr:%s sourceAddr:%s serviceId:%u]",
                 ptinPort, deviceClientId, groupClientId, onuId, inetAddrPrint(groupAddr, groupAddrStr), inetAddrPrint(sourceAddr, sourceAddrStr), *serviceId);
       
     return (ptin_igmp_multicast_channel_service_get(ptinPort, deviceClientId, &defaultGroupAddr, &defaultSourceAddr, serviceId));
