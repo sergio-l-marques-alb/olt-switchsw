@@ -629,7 +629,7 @@ L7_RC_t ptin_ccm_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t 
   msg.bufHandle   = bufHandle;
   msg.timestamp   = pduInfo->timestamp;
 
-  rc = osapiMessageSend(ptin_ccm_packetRx_queue, &msg, PTIN_CCM_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
+  rc = osapiMessageSend(ptin_ccm_packetRx_queue, &msg, PTIN_CCM_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_HI);
 
   if (rc != L7_SUCCESS) {
     if (ptin_oam_packet_debug_enable)

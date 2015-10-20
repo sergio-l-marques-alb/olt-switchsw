@@ -33,6 +33,10 @@ T_ETH_SRV_OAM oam;
 
 #define PTIN_ETH_OAM_TIMER_EVENT    0
 
+//#define OAM_ETH_TIMER_OPTION2
+#if defined(OAM_ETH_TIMER_OPTION1) || defined(OAM_ETH_TIMER_OPTION2)
+#include <sys/time.h>
+#endif
 /* *******************************************************************************/
 /*                                   FUNCTIONS                                   */
 /* *******************************************************************************/
@@ -478,6 +482,7 @@ static osapiTimerDescr_t   *ptin_eth_oamTimer             = L7_NULLPTR;
 
 void ptin_eth_oamTimerCallback(void)
 {
+#if !defined(OAM_ETH_TIMER_OPTION1) && !defined(OAM_ETH_TIMER_OPTION2)
   ptin_CCM_PDU_Msg_t msg;
   L7_RC_t rc;
 
@@ -487,7 +492,8 @@ void ptin_eth_oamTimerCallback(void)
   memset((void *)&msg, 0, PTIN_CCM_PDU_MSG_SIZE);
   msg.msgId = PTIN_ETH_OAM_TIMER_EVENT;
 
-  rc = osapiMessageSend(ptin_ccm_packetRx_queue, &msg, PTIN_CCM_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
+  rc = osapiMessageSend(ptin_ccm_packetRx_queue, &msg, PTIN_CCM_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_HI);
+#endif
 }
 
 
@@ -524,12 +530,74 @@ void ptin_oam_eth_task(void)
   L7_uint32 status;
   ptin_CCM_PDU_Msg_t msg;
 
+#if defined(OAM_ETH_TIMER_OPTION1)
+  static struct timeval tv0={0,0}, tv;
+  struct timeval tv;
+  struct timezone tz;//, tz0;
+  L7_uint32 dt, wait;
+
+      gettimeofday(&tv, &tz);
+      dt=   tv.tv_usec>=tv0.tv_usec? tv.tv_usec-tv0.tv_usec: tv.tv_usec-tv0.tv_usec+1000000UL;
+      if (dt>=(10)*1000) {
+          tv0=tv;//gettimeofday(&tv0, &tz);
+          //dt=(10)*1000;
+          wait=10;
+          //proc_ethsrv_oam(&oam, 10);    continue;
+          msg.msgId=PTIN_ETH_OAM_TIMER_EVENT;
+      }
+      else {
+          wait=(10)-dt/1000;
+          status = (L7_uint32) osapiMessageReceive(ptin_ccm_packetRx_queue,
+                                                   (void*) &msg,
+                                                   PTIN_CCM_PDU_MSG_SIZE,
+                                                   wait);
+          if (L7_SUCCESS!=status) continue;
+          if (PTIN_CCM_PACKET_MESSAGE_ID!=msg.msgId) continue;
+      }
+#elif defined(OAM_ETH_TIMER_OPTION2)
+      static struct timeval tv0={0,0};
+      struct timeval tv;
+      struct timezone tz;//, tz0;
+      L7_uint32 dt;
+      struct timespec delay, remains;
+
+          gettimeofday(&tv, &tz);
+          dt=   tv.tv_usec>=tv0.tv_usec? tv.tv_usec-tv0.tv_usec: tv.tv_usec-tv0.tv_usec+1000000UL;
+          if (dt>=(10)*1000) {
+              tv0=tv;//gettimeofday(&tv0, &tz);
+              //dt=(10)*1000;
+              //proc_ethsrv_oam(&oam, 10);    continue;
+              msg.msgId=PTIN_ETH_OAM_TIMER_EVENT;
+          }
+          else {
+              status = (L7_uint32) osapiMessageReceive(ptin_ccm_packetRx_queue,
+                                                       (void*) &msg,
+                                                       PTIN_CCM_PDU_MSG_SIZE,
+                                                       L7_NO_WAIT);
+              if (L7_SUCCESS!=status || PTIN_CCM_PACKET_MESSAGE_ID!=msg.msgId) {
+                  delay.tv_sec = 0;
+                  delay.tv_nsec = 2000000UL;
+//                  {
+//                   struct timeval tv1, tv2;
+//
+//                      gettimeofday(&tv1, &tz);
+                      nanosleep (&delay, &remains);//while (nanosleep (&delay, &remains) != 0) {delay = remains;}
+//                      gettimeofday(&tv2, &tz);
+//                      printf("\ntv2-tv1=%lu\ttv1sec=%lu\ttv2sec=%lu",
+//                             tv2.tv_usec>=tv1.tv_usec?  tv2.tv_usec-tv1.tv_usec:    tv2.tv_usec-tv1.tv_usec+1000000UL,
+//                             tv1.tv_sec, tv2.tv_sec);
+//                  }
+                  continue;
+              }
+          }
+#else   //OAM_ETH_TIMER_OLD_OPTION
       status = (L7_uint32) osapiMessageReceive(ptin_ccm_packetRx_queue,
                                                (void*) &msg,
                                                PTIN_CCM_PDU_MSG_SIZE,
                                                L7_WAIT_FOREVER);
 
       if (L7_SUCCESS!=status) LOG_ERR(LOG_CTX_OAM,"Failed packet reception from ptin_ccm_packet queue (status = %d)",status);
+#endif
 
       switch (msg.msgId) {
       case PTIN_CCM_PACKET_MESSAGE_ID:  //CCM Rx
@@ -569,7 +637,9 @@ _ptin_oam_eth_task1:;
           break;
       case PTIN_ETH_OAM_TIMER_EVENT:    //Timer
           proc_ethsrv_oam(&oam, 10);
+#if !defined(OAM_ETH_TIMER_OPTION1) && !defined(OAM_ETH_TIMER_OPTION2)
           osapiTimerAdd((void *)ptin_eth_oamTimerCallback, L7_NULL, L7_NULL, 10, &ptin_eth_oamTimer);
+#endif
           break;
       default:
           LOG_INFO(LOG_CTX_OAM,"ETH OAM packet received NOK");
