@@ -1013,6 +1013,7 @@ L7_BOOL macIpAddrFilter(L7_uchar8 *data, L7_uint32 vlanId, L7_uint32 intIfNum)
   L7_uint32 offset, spa, tpa;
   L7_enetHeader_t *eth_header;
   L7_ether_arp_t *arp_pkt;
+  L7_BOOL filter_packet = L7_FALSE;
 
   offset = sysNetDataOffsetGet(data);
   eth_header = (L7_enetHeader_t *)data;
@@ -1029,7 +1030,12 @@ L7_BOOL macIpAddrFilter(L7_uchar8 *data, L7_uint32 vlanId, L7_uint32 intIfNum)
     {
       daiLogAndDropPacket(data, vlanId, intIfNum, SOURCE_MAC_FAILURE);
       osapiReadLockGive(daiCfgRWLock);
-      return L7_TRUE;
+      if (ptin_debug_dai_snooping)
+        LOG_DEBUG(LOG_CTX_DAI, "Filtered ARP packet because of SMAC mismatch (intIfNum %u, vlan %u): SMAC=%02x:%02x:%02x:%02x:%02x:%02x SHA=%02x:%02x:%02x:%02x:%02x:%02x",
+                  intIfNum, vlanId,
+                  eth_header->src.addr[0], eth_header->src.addr[1], eth_header->src.addr[2], eth_header->src.addr[3], eth_header->src.addr[4], eth_header->src.addr[5],
+                  arp_pkt->arp_sha[0], arp_pkt->arp_sha[1], arp_pkt->arp_sha[2], arp_pkt->arp_sha[3], arp_pkt->arp_sha[4], arp_pkt->arp_sha[5]);
+      filter_packet = L7_TRUE;
     }
   }
 
@@ -1042,7 +1048,12 @@ L7_BOOL macIpAddrFilter(L7_uchar8 *data, L7_uint32 vlanId, L7_uint32 intIfNum)
     {
       daiLogAndDropPacket(data, vlanId, intIfNum, DEST_MAC_FAILURE);
       osapiReadLockGive(daiCfgRWLock);
-      return L7_TRUE;
+      if (ptin_debug_dai_snooping)
+        LOG_DEBUG(LOG_CTX_DAI, "Filtered ARP packet because of DMAC mismatch (intIfNum %u, vlan %u): DMAC=%02x:%02x:%02x:%02x:%02x:%02x THA=%02x:%02x:%02x:%02x:%02x:%02x",
+                  intIfNum, vlanId,
+                  eth_header->dest.addr[0], eth_header->dest.addr[1], eth_header->dest.addr[2], eth_header->dest.addr[3], eth_header->dest.addr[4], eth_header->dest.addr[5],
+                  arp_pkt->arp_tha[0], arp_pkt->arp_tha[1], arp_pkt->arp_tha[2], arp_pkt->arp_tha[3], arp_pkt->arp_tha[4], arp_pkt->arp_tha[5]);
+      filter_packet = L7_TRUE;
     }
   }
 
@@ -1070,12 +1081,18 @@ L7_BOOL macIpAddrFilter(L7_uchar8 *data, L7_uint32 vlanId, L7_uint32 intIfNum)
     {
       daiLogAndDropPacket(data, vlanId, intIfNum, IP_VALID_FAILURE);
       osapiReadLockGive(daiCfgRWLock);
-      return L7_TRUE;
+      if (ptin_debug_dai_snooping)
+        LOG_DEBUG(LOG_CTX_DAI, "Filtered ARP packet because of IPADDR mismatch (intIfNum %u, vlan %u): SPA=%u.%u.%u.%u DPA=%u.%u.%u.%u",
+                  intIfNum, vlanId,
+                  arp_pkt->arp_spa[0], arp_pkt->arp_spa[1], arp_pkt->arp_spa[2], arp_pkt->arp_spa[3],
+                  arp_pkt->arp_tpa[0], arp_pkt->arp_tpa[1], arp_pkt->arp_tpa[2], arp_pkt->arp_tpa[3]);
+      filter_packet = L7_TRUE;
     }
   }
 
   osapiReadLockGive(daiCfgRWLock);
-  return L7_FALSE;
+
+  return filter_packet;
 }
 
 /*********************************************************************
