@@ -4308,92 +4308,6 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
   }
 #endif
 
-#if (PTIN_BOARD_GPON_FAMILY)
-  /* For TG16G, IPTV traffic (downstream direction) is going to egress with an extra inner tag with the UNI-VLAN.
-     At egressing is important to guarantee PBIT value of outer vlan is null: Multicast GEM of OLTD only deals with pbit=0 */
-  {
-    /* Multicast services */
-    L7_int        port;
-    bcmx_lport_t  lport;
-    bcm_port_t    bcm_port;
-    L7_uint16     vlanId_value;
-    L7_uint16     vlanId_mask;
-
-    /** INGRESS STAGE **/
-
-    /* Multicast services */
-    vlanId_value = PTIN_SYSTEM_EVC_BCAST_VLAN_MIN;
-    vlanId_mask  = PTIN_SYSTEM_EVC_BCAST_VLAN_MASK;
-
-    /* Create Policy to clear outer pbit field for Multicast services (only for pon ports) */
-    rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM_PORT);
-    if (rc != L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
-      return L7_FAILURE;
-    }
-
-    do
-    {
-      /* Priority higher than dot1p rules */
-      rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_LOW);
-      if (rc != L7_SUCCESS)  break;
-
-      /* Multicast EVCs */
-      rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *) &vlanId_value, (L7_uchar8 *) &vlanId_mask);
-      if (rc != L7_SUCCESS)  break;
-
-      /* Set CoS to 0 */
-      rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, 0, 0, 0);
-      if (rc != L7_SUCCESS)  break;
-
-      /* Change packet priority to 0 */
-      //rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_USERPRIO, 0, 0, 0);
-      //if (rc != L7_SUCCESS)  break;
-    } while (0);
-
-    if (rc != L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_STARTUP, "Error configuring rule");
-      hapiBroadPolicyCreateCancel();
-      return L7_FAILURE;
-    }
-
-    LOG_TRACE(LOG_CTX_STARTUP, "I am here!", policyId);
-
-    /* Apply rules */
-    rc = hapiBroadPolicyCommit(&policyId);
-    if (rc != L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_STARTUP, "Error commiting policy");
-      hapiBroadPolicyCreateCancel();
-      return L7_FAILURE;
-    }
-
-    LOG_TRACE(LOG_CTX_STARTUP, "PolicyId=%u", policyId);
-
-    /* Add PON ports */
-    for (port = 0; port < ptin_sys_number_of_ports; port++)
-    {
-      if (hapi_ptin_bcmPort_get(port, &bcm_port) == L7_SUCCESS)
-      {
-        lport = bcmx_unit_port_to_lport(0, bcm_port);
-
-        if ((PTIN_SYSTEM_10G_PORTS_MASK >> port) & 1)
-        {
-          if (hapiBroadPolicyApplyToIface(policyId, lport) != L7_SUCCESS)
-          {
-            LOG_ERR(LOG_CTX_STARTUP, "Error adding port %u", port);
-            hapiBroadPolicyDelete(policyId);
-            return L7_FAILURE;
-          }
-          LOG_TRACE(LOG_CTX_STARTUP, "Port %u / bcm_port %u / lport 0x%x added to Pbit=0 force rule", port, bcm_port, lport);
-        }
-      }
-    }
-  }
-#endif
-
   /** COS & COLOR REMARKING **/
   /** EGRESS STAGE **/
 
@@ -4512,6 +4426,103 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
     return L7_FAILURE;
   }
 
+#if (PTIN_BOARD_GPON_FAMILY)
+  /* For TG16G, IPTV traffic (downstream direction) is going to egress with an extra inner tag with the UNI-VLAN.
+     At egressing is important to guarantee PBIT value of outer vlan is null: Multicast GEM of OLTD only deals with pbit=0 */
+  {
+    /* Multicast services */
+    L7_int        port;
+    bcmx_lport_t  lport;
+    bcm_port_t    bcm_port;
+    L7_uint32     ip_addr = 0xe0000000, ip_addr_mask=0xf0000000;
+    L7_uchar8     macAddr_iptv_value[6] = { 0x01, 0x00, 0x5e, 0x00, 0x00, 0x00 };
+    L7_uchar8     macAddr_iptv_mask[6]  = { 0xff, 0xff, 0xff, 0x00, 0x00, 0x00 };
+
+    /** EGRESS STAGE **/
+
+    /* Create Policy to clear outer pbit field for Multicast services (only for pon ports) */
+    //rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM_PORT);
+    rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_PTIN);
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
+      return L7_FAILURE;
+    }
+    /* Egress stage */
+    if (hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_EGRESS) != L7_SUCCESS)
+    {
+      printf("Error creating a egress policy\r\n");
+      hapiBroadPolicyCreateCancel();
+      return L7_FAILURE;
+    }
+
+    do
+    {
+      /* Priority higher than dot1p rules */
+      rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_DEFAULT);
+      if (rc != L7_SUCCESS)  break;
+
+      /* Multicast MAC addresses */
+      rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, macAddr_iptv_value, macAddr_iptv_mask);
+      if (rc != L7_SUCCESS)  break;
+
+      rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DIP, (L7_uchar8 *) &ip_addr, (L7_uchar8 *) &ip_addr_mask);
+      if (rc != L7_SUCCESS)  break;
+
+      /* Set CoS to 0 */
+      rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_USERPRIO, 0, 0, 0);
+      if (rc != L7_SUCCESS)  break;
+    } while (0);
+
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_STARTUP, "Error configuring rule");
+      hapiBroadPolicyCreateCancel();
+      return L7_FAILURE;
+    }
+
+    LOG_TRACE(LOG_CTX_STARTUP, "I am here!", policyId);
+
+    /* Apply rules */
+    rc = hapiBroadPolicyCommit(&policyId);
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_STARTUP, "Error commiting policy");
+      hapiBroadPolicyCreateCancel();
+      return L7_FAILURE;
+    }
+
+    LOG_TRACE(LOG_CTX_STARTUP, "PolicyId=%u", policyId);
+
+    /* First, remoe all ports */
+    if (hapiBroadPolicyRemoveFromAll(policyId) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_STARTUP, "Error removing all ports");
+      hapiBroadPolicyDelete(policyId);
+      return L7_FAILURE;
+    }
+    /* Add only PON ports */
+    for (port = 0; port < ptin_sys_number_of_ports; port++)
+    {
+      if (hapi_ptin_bcmPort_get(port, &bcm_port) == L7_SUCCESS)
+      {
+        lport = bcmx_unit_port_to_lport(0, bcm_port);
+
+        if ((PTIN_SYSTEM_PON_PORTS_MASK >> port) & 1)
+        {
+          if (hapiBroadPolicyApplyToIface(policyId, lport) != L7_SUCCESS)
+          {
+            LOG_ERR(LOG_CTX_STARTUP, "Error adding port %u", port);
+            hapiBroadPolicyDelete(policyId);
+            return L7_FAILURE;
+          }
+          LOG_TRACE(LOG_CTX_STARTUP, "Port %u / bcm_port %u / lport 0x%x added to Pbit=0 force rule", port, bcm_port, lport);
+        }
+      }
+    }
+  }
+#endif
+
 ///* Add all physical ports */
 //if (hapiBroadPolicyApplyToAll(policyId) != L7_SUCCESS)
 //{
@@ -4520,6 +4531,116 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
 //  return L7_FAILURE;
 //}
 #endif
+  return L7_SUCCESS;
+}
+
+L7_RC_t teste_case(void)
+{
+  BROAD_POLICY_t      policyId;
+  BROAD_POLICY_RULE_t ruleId;
+  L7_RC_t             rc = L7_SUCCESS;
+
+  /* Multicast services */
+//L7_int        port;
+//bcmx_lport_t  lport;
+//bcm_port_t    bcm_port;
+  //L7_uint8      ip_type = BROAD_IP_TYPE_IPV4, ip_type_mask = 0xff;
+  L7_uint16     ethertype = 0x0800, ethertype_mask = 0xffff;
+  L7_uint32     ip_addr = 0xe0000000, ip_addr_mask=0xf0000000;
+  L7_uchar8     macAddr_iptv_value[6] = { 0x01, 0x00, 0x5e, 0x00, 0x00, 0x00 };
+  L7_uchar8     macAddr_iptv_mask[6]  = { 0xff, 0xff, 0xff, 0x00, 0x00, 0x00 };
+
+  /** EGRESS STAGE **/
+
+  /* Create Policy to clear outer pbit field for Multicast services (only for pon ports) */
+  //rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM_PORT);
+  rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_PTIN);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
+    return L7_FAILURE;
+  }
+  /* Egress stage */
+  if (hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_EGRESS) != L7_SUCCESS)
+  {
+    printf("Error creating a egress policy\r\n");
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+
+  do
+  {
+    /* Priority higher than dot1p rules */
+    rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_DEFAULT);
+    if (rc != L7_SUCCESS)  break;
+
+    /* Multicast MAC addresses */
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, macAddr_iptv_value, macAddr_iptv_mask);
+    if (rc != L7_SUCCESS)  break;
+
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *) &ethertype, (L7_uchar8 *) &ethertype_mask);
+    if (rc != L7_SUCCESS)  break;
+
+//    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP_TYPE, (L7_uchar8 *) &ip_type, (L7_uchar8 *) &ip_type_mask);
+//    if (rc != L7_SUCCESS)  break;
+
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DIP, (L7_uchar8 *) &ip_addr, (L7_uchar8 *) &ip_addr_mask);
+    if (rc != L7_SUCCESS)  break;
+
+    /* Set CoS to 0 */
+    rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_USERPRIO, 0, 0, 0);
+    if (rc != L7_SUCCESS)  break;
+  } while (0);
+
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_STARTUP, "Error configuring rule");
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+
+  LOG_TRACE(LOG_CTX_STARTUP, "I am here!", policyId);
+
+  /* Apply rules */
+  rc = hapiBroadPolicyCommit(&policyId);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_STARTUP, "Error commiting policy");
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+
+  LOG_TRACE(LOG_CTX_STARTUP, "PolicyId=%u", policyId);
+
+#if 0
+  /* First, remoe all ports */
+  if (hapiBroadPolicyRemoveFromAll(policyId) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_STARTUP, "Error removing all ports");
+    hapiBroadPolicyDelete(policyId);
+    return L7_FAILURE;
+  }
+  /* Add only PON ports */
+  for (port = 0; port < ptin_sys_number_of_ports; port++)
+  {
+    if (hapi_ptin_bcmPort_get(port, &bcm_port) == L7_SUCCESS)
+    {
+      lport = bcmx_unit_port_to_lport(0, bcm_port);
+
+      if ((PTIN_SYSTEM_PON_PORTS_MASK >> port) & 1)
+      {
+        if (hapiBroadPolicyApplyToIface(policyId, lport) != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_STARTUP, "Error adding port %u", port);
+          hapiBroadPolicyDelete(policyId);
+          return L7_FAILURE;
+        }
+        LOG_TRACE(LOG_CTX_STARTUP, "Port %u / bcm_port %u / lport 0x%x added to Pbit=0 force rule", port, bcm_port, lport);
+      }
+    }
+  }
+#endif
+
   return L7_SUCCESS;
 }
 

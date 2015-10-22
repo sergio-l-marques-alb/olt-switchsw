@@ -596,6 +596,10 @@ L7_RC_t ptin_hapi_l3_ipmc_reset(void)
   return rv;
 }
   
+#include <bcm/qos.h>
+#undef BCM_IF_ERROR_RETURN
+#define BCM_IF_ERROR_RETURN(op) {bcm_error_t r; r=op; LOG_ERR(LOG_CTX_PTIN_HAPI,"error: %d", r); if (r) return r;}
+  
 /*********************************************************************
 * @purpose  Create an L3 Interface
 *
@@ -634,6 +638,37 @@ L7_RC_t ptin_hapi_l3_intf_create (ptin_dtl_l3_intf_t *intf)
   {
     intfInfo.bcm_data.l3a_intf_flags |= BCM_L3_ADD_TO_ARL;
   }
+
+#if 0
+  bcm_qos_map_t l2_map;
+  int l2_map_id;
+  L7_uint32 flags, pri;
+
+  /* Egress mapping profiles */
+  flags = BCM_QOS_MAP_INGRESS | BCM_QOS_MAP_L3;
+  BCM_IF_ERROR_RETURN(bcm_qos_map_create(0, flags, &l2_map_id));
+
+  for (pri = 0; pri < 8; pri++) {
+
+    bcm_qos_map_t_init(&l2_map);
+    /* In */
+    l2_map.color = bcmColorGreen;
+    l2_map.int_pri = 0;
+
+    /* Out */
+    l2_map.pkt_pri = pri;
+    /* If packet is not green, set the CFI bit. */
+    l2_map.pkt_cfi = 0;
+
+    BCM_IF_ERROR_RETURN(bcm_qos_map_add(0, flags, &l2_map, l2_map_id));
+  }
+
+  intfInfo.bcm_data.vlan_qos.flags = BCM_L3_INTF_QOS_OUTER_VLAN_PRI_SET;
+  intfInfo.bcm_data.vlan_qos.pri  = 0;
+  intfInfo.bcm_data.vlan_qos.cfi  = 0;
+  intfInfo.bcm_data.vlan_qos.dscp = 0;
+  intfInfo.bcm_data.vlan_qos.qos_map_id = l2_map_id;
+#endif
 
   rv = usl_bcmx_l3_intf_create(&intfInfo);
   if (BCM_FAILURE(rv) || intfInfo.bcm_data.l3a_intf_id == HAPI_BROAD_INVALID_L3_INTF_ID)
