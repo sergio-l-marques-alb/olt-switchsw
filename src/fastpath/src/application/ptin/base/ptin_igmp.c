@@ -1903,8 +1903,8 @@ L7_RC_t ptin_igmp_proxy_config_set(PTIN_MGMD_CTRL_MGMD_CONFIG_t *igmpProxy)
 
     if(ptin_debug_igmp_snooping)
     {
-      LOG_TRACE(LOG_CTX_PTIN_IGMP, "Igmp Proxy rc: %u", oldIgmpConfig.querier.startup_query_interval );
-      LOG_TRACE(LOG_CTX_PTIN_IGMP, "Igmp Proxy rc: %u", igmpProxy->querier.startupQueryInterval);
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "Igmp Old Proxy Start up query interval: %u", oldIgmpConfig.querier.startup_query_interval );
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "New Igmp Old Proxy Start up query interval: %u", igmpProxy->querier.startupQueryInterval);
     }
 
     if(igmpProxy->querier.startupQueryInterval != 0)
