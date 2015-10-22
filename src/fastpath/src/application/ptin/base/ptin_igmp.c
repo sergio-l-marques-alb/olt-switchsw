@@ -1668,8 +1668,9 @@ L7_RC_t ptin_igmp_proxy_config_set__snooping_old(ptin_IgmpProxyCfg_t *igmpProxy)
     if (igmpProxy->querier.flags & PTIN_IGMP_QUERIER_MASK_AUTO_SQI)
     {
       /*OLTTS - 18870 : Avoid the automatic values in the admin down/up @ruif*/
-      //igmpProxyCfg.querier.startup_query_interval = igmpProxy->querier.startup_query_interval;
+      igmpProxyCfg.querier.startup_query_interval = igmpProxy->querier.startup_query_interval;
       LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Startup Query Interval (AUTO):         %u (s)", igmpProxyCfg.querier.startup_query_interval);
+     
     }
     else if (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_SQI
              && igmpProxyCfg.querier.startup_query_interval != igmpProxy->querier.startup_query_interval)
@@ -1877,11 +1878,13 @@ L7_RC_t ptin_igmp_proxy_config_set(PTIN_MGMD_CTRL_MGMD_CONFIG_t *igmpProxy)
   LOG_DEBUG(LOG_CTX_PTIN_IGMP,  "  CTRL Msg Id  : %08X", ctrlResMsg.msgId);
   LOG_DEBUG(LOG_CTX_PTIN_IGMP,  "  CTRL Res     : %u",   ctrlResMsg.res);
 
+
+  ptin_IgmpProxyCfg_t oldIgmpConfig;
+  ptin_igmp_proxy_config_get__snooping_old(&oldIgmpConfig);
+
   /* If sucesseful, configure the old PTIN_IGMP struct, required for dynamic clients */
   if (0 == ctrlResMsg.res)
   {
-    ptin_IgmpProxyCfg_t oldIgmpConfig = {0};
-
     oldIgmpConfig.mask                                   = igmpProxy->mask;
     oldIgmpConfig.admin                                  = igmpProxy->admin;
     oldIgmpConfig.networkVersion                         = igmpProxy->networkVersion;
@@ -1897,7 +1900,22 @@ L7_RC_t ptin_igmp_proxy_config_set(PTIN_MGMD_CTRL_MGMD_CONFIG_t *igmpProxy)
     oldIgmpConfig.querier.query_response_interval        = igmpProxy->querier.queryResponseInterval;
     oldIgmpConfig.querier.group_membership_interval      = igmpProxy->querier.groupMembershipInterval;
     oldIgmpConfig.querier.other_querier_present_interval = igmpProxy->querier.otherQuerierPresentInterval;
-    oldIgmpConfig.querier.startup_query_interval         = igmpProxy->querier.startupQueryInterval;
+
+    if(ptin_debug_igmp_snooping)
+    {
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "Igmp Proxy rc: %u", oldIgmpConfig.querier.startup_query_interval );
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "Igmp Proxy rc: %u", igmpProxy->querier.startupQueryInterval);
+    }
+
+    if(igmpProxy->querier.startupQueryInterval != 0)
+    {
+      oldIgmpConfig.querier.startup_query_interval         = igmpProxy->querier.startupQueryInterval;
+    }
+    else
+    {
+      oldIgmpConfig.querier.startup_query_interval = oldIgmpConfig.querier.startup_query_interval;
+    }
+
     oldIgmpConfig.querier.startup_query_count            = igmpProxy->querier.startupQueryCount;
     oldIgmpConfig.querier.last_member_query_interval     = igmpProxy->querier.lastMemberQueryInterval;
     oldIgmpConfig.querier.last_member_query_count        = igmpProxy->querier.lastMemberQueryCount;
