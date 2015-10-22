@@ -4215,9 +4215,11 @@ L7_RC_t hapiBroadSystemInstallPtin_preInit(void)
  */
 L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
 {
+#if (PTIN_BOARD_IS_GPON)
   BROAD_POLICY_t      policyId;
   BROAD_POLICY_RULE_t ruleId;
   L7_RC_t             rc = L7_SUCCESS;
+#endif
 
   /* For OLT1T0 */
 #if (PTIN_BOARD_IS_STANDALONE)
@@ -4426,7 +4428,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
     return L7_FAILURE;
   }
 
-#if (PTIN_BOARD_GPON_FAMILY)
+#if (PTIN_BOARD_IS_GPON)
   /* For TG16G, IPTV traffic (downstream direction) is going to egress with an extra inner tag with the UNI-VLAN.
      At egressing is important to guarantee PBIT value of outer vlan is null: Multicast GEM of OLTD only deals with pbit=0 */
   {
