@@ -1956,17 +1956,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message received: CCMSG_ETH_EVC_ADD (0x%04X)", CCMSG_ETH_EVC_ADD);
 
-      CHECK_INFO_SIZE(msg_HwEthMef10Evc_t);
-
-      msg_HwEthMef10Evc_t *evcConf;
-      evcConf = (msg_HwEthMef10Evc_t *) inbuffer->info;
+      CHECK_INFO_SIZE_ATLEAST(msg_HwEthMef10Evc_t);
 
       /* Execute command */
-      rc = ptin_msg_EVC_create(evcConf);
+      rc = ptin_msg_EVC_create(inbuffer, outbuffer);
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while creating EVC# %u", evcConf->id);
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while creating EVC");
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
@@ -2084,6 +2081,27 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       break;  /* CCMSG_ETH_EVC_ADD */
     }
+
+    case CCMSG_ETH_EVC_QOS_SET:
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_EVC_QOS_SET (0x%04X)", CCMSG_ETH_EVC_QOS_SET);
+
+      CHECK_INFO_SIZE_MOD(msg_evc_qos_t);
+
+      /* Execute command */
+      rc = ptin_msg_evc_qos_set(inbuffer, outbuffer);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while configuring QoS");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+
+      break;  /* CCMSG_ETH_EVC_QOS_SET */
 
     /* CCMSG_ETH_EVC_BRIDGE_ADD ***********************************************/
     case CCMSG_ETH_EVC_BRIDGE_ADD:

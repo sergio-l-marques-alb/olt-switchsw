@@ -68,7 +68,7 @@ void help_oltBuga(void)
         "m 1025 port(0-MAX) - Read RFC2819 probe configuration\n\r"
         "m 1026 bufferType(0-15min, 1-24hours) - RFC2819 buffers status\n\r"
         "m 1027 MAC Limiting per interface - [slot] [system] [intf] [limit] [action] [send_trap]\n\r"
-        "--- QOS and L2 commands --------------------------------------------------------------------------------------------------------------\n\r"
+        "--- QOS and L2 commandsl --------------------------------------------------------------------------------------------------------------\n\r"
         "m 1030 intfType/intf# - Get QoS configuration\r\n"
         "m 1031 intfType/intf# trustMode(1-Untrust;2-802.1P;3-IPprec;4-DSCP) shapingRate(Mbps) cos_pr0(0-7) cos_pr1 ... cos_pr7 - Set general QoS configuration\r\n"
         "m 1032 intfType/intf# cos(0-7) scheduler(1:Strict;2:Weighted) min_bandwidth(Mbps) max_bandwidth(Mbps) - Set specific QoS configuration\r\n"
@@ -82,6 +82,7 @@ void help_oltBuga(void)
         "m 1041 vlan(1-4095) macAddr(xx:xx:xx:xx:xx:xx) intfType/intf# - Add a static entry to the MAC table\r\n"
         "m 1042 vlan(1-4095) macAddr(xx:xx:xx:xx:xx:xx) - Remove an entry from MAC table\r\n"
         "m 1043 - Flush all entries of MAC table\r\n"
+        "m 1044 EVC# dir(uplink:0/downlink:1) trustMode(0-None;1-Untrust;2-802.1P;3-IPprec;4-DSCP) cos_pr0(0-7) cos_pr1 ... cos_pr7 - Set QoS classification for an EVC\r\n"
         "--- Protocols ------------------------------------------------------------------------------------------------------------------------\n\r"
         "m 1220 EVC# intfType/intf# cvid(1-4095) - Read DHCPop82 profile\n\r"
         "m 1221 EVC# intfType/intf# cvid(1-4095) op82/op37/op18 <circuitId> <remoteId> - Define a DHCPop82 profile\n\r"
@@ -2422,6 +2423,93 @@ int main (int argc, char *argv[])
 
           comando.msgId = CCMSG_ETH_MAC_ENTRY_REMOVE;
           comando.infoDim = sizeof(msg_switch_mac_table_t);
+        }
+        break;
+
+      case 1044:
+        {
+          msg_evc_qos_t *ptr;
+          uint8 i, j, prio, dir;
+
+          // Validate number of arguments (flow_id + 2 pairs port+svid)
+          if (argc<3+3)  {
+            help_oltBuga();
+            exit(0);
+          }
+
+          // Pointer to data array
+          ptr = (msg_evc_qos_t *) &(comando.info[0]);
+          memset(ptr,0,sizeof(msg_evc_qos_t));
+
+          ptr->slot_id = (uint8)-1;
+
+          // EVC
+          if (StrToLongLong(argv[3+0],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->evc_id = (uint32) valued;
+
+          // Uplink?
+          if (StrToLongLong(argv[3+1],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          dir = (uint8) valued & 1;
+
+          /* Mask active */
+          ptr->qos[dir].mask = 0x01;
+
+          // Trust mode
+          if (StrToLongLong(argv[3+2],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->qos[dir].trust_mode = (uint8) valued;
+
+          /* CoS map */
+          if (ptr->qos[dir].trust_mode >= 2)
+          {
+            // Priorities map
+            for (i=0; i<8 && argc>=(3+4+i); i++)
+            {
+              if (StrToLongLong(argv[3+3+i],&valued)<0)
+              {
+                help_oltBuga();
+                exit(0);
+              }
+              /* 802.1p trust mode */
+              if (ptr->qos[dir].trust_mode == 2)
+              {
+                ptr->qos[dir].cos_classif.pcp_map.cos[i] = (uint32)valued;
+                ptr->qos[dir].cos_classif.pcp_map.prio_mask |= (1 << i);
+                printf("Configuring PCP prio %u: value=%u\r\n", i, ptr->qos[dir].cos_classif.pcp_map.cos[i]);
+              }
+              /* IP_PREC trust mode */
+              else if (ptr->qos[dir].trust_mode == 3)
+              {
+                ptr->qos[dir].cos_classif.ipprec_map.cos[i] = (uint32)valued;
+                ptr->qos[dir].cos_classif.ipprec_map.prio_mask |= (1 << i);
+                printf("Configuring IPPREC prio %u: value=%u\r\n", i, ptr->qos[dir].cos_classif.ipprec_map.cos[i]);
+              }
+              /* DSCP trust mode */
+              else if (ptr->qos[dir].trust_mode == 4)
+              {
+                for (j = 0; j < 8; j++)
+                {
+                  prio = (i*8)+j;
+
+                  ptr->qos[dir].cos_classif.dscp_map.cos[prio] = ((uint32)valued >> (4*j)) & 0xf;
+                  ptr->qos[dir].cos_classif.dscp_map.prio_mask[prio/32] |= (1 << (prio%32));
+
+                  printf("Configuring DSCP prio %u: value=%u\r\n", prio, ptr->qos[dir].cos_classif.dscp_map.cos[prio]);
+                }
+              }
+            }
+          }
+
+          comando.msgId = CCMSG_ETH_EVC_QOS_SET;
+          comando.infoDim = sizeof(msg_evc_qos_t);
         }
         break;
 

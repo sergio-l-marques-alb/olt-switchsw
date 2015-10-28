@@ -4698,7 +4698,7 @@ L7_RC_t ptin_msg_dai_vlan_config(msg_dai_vlan_settings_t *config, L7_uint nElems
     dai_maxVlans = 0;
 
     /* If EVC id is provided, get related VLAN */
-    if (item->service.id_type == MSG_ID_DEF_TYPE || item->service.id_type == MSG_ID_EVC_TYPE)
+    if (item->service.id_type == MSG_ID_EVC_TYPE)
     {
       /* Validate EVC id */
       if (item->service.id_val.evc_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
@@ -5039,31 +5039,226 @@ L7_RC_t ptin_msg_EVC_get(msg_HwEthMef10Evc_t *msgEvcConf)
 }
 
 /**
+ * Configure QoS at the VLAN level
+ * 
+ * @param evc_id 
+ * @param qos_config 
+ * 
+ * @return L7_RC_t 
+ */
+static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, msg_CoS_classification_t qos_config[2])
+{
+  L7_uint16 i, index, int_vlan;
+  msg_CoS_classification_t *qos;
+  L7_uint8  cos_map[64], cos_map_size;
+  L7_uint32 ptin_port[PTIN_SYSTEM_N_PORTS], number_of_ports;
+
+  /* Is this a valid EVC? */
+  if (!ptin_evc_is_in_use(evc_id))
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid EVC# %u", evc_id);
+    return L7_FAILURE;
+  }
+
+  /* Obtain internal vlan */
+  if (ptin_evc_intRootVlan_get(evc_id, &int_vlan) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Error obtaining internal VLAN of EVC# %u", evc_id);
+    return L7_FAILURE;
+  }
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to configure QoS for EVC %u / internalVlan %u", evc_id, int_vlan);
+
+  /* index=0: Uplink, 1: Downlink */
+  for (index = 0; index < 2; index++)
+  {
+    if (qos_config[index].mask == 0x00)
+    {
+      LOG_TRACE(LOG_CTX_PTIN_MSG, "Skipping index %u", index);
+      continue;
+    }
+
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Processing QoS data's index %u", index);
+
+    qos = &qos_config[index];
+
+    /* Determine list of ports */
+    number_of_ports = 0;
+#if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+    if (index == 0)   /* Uplink */
+    {
+      for (i = PTIN_SYSTEM_N_PONS; i < PTIN_SYSTEM_N_PONS+PTIN_SYSTEM_N_ETH; i++) 
+      {
+        ptin_port[number_of_ports++] = i; 
+      }
+    }
+    else              /* Downlink */
+    {
+      for (i = 0; i < PTIN_SYSTEM_N_PONS; i++)
+      {
+        ptin_port[number_of_ports++] = i; 
+      }
+    }
+#elif (PTIN_BOARD == PTIN_BOARD_TG16G)
+    if (index == 0)   /* Uplink */
+    {
+      for (i = PTIN_SYSTEM_N_PONS; i < PTIN_SYSTEM_N_PORTS; i++)
+      {
+        ptin_port[number_of_ports++] = i; 
+      }
+    }
+    else              /* Downlink */
+    {
+      for (i = 0; i < PTIN_SYSTEM_N_PONS; i++)
+      {
+        ptin_port[number_of_ports++] = i; 
+      }
+    }
+#elif (PTIN_BOARD == PTIN_BOARD_TA48GE)
+    if (index == 0)   /* Uplink */
+    {
+      for (i = PTIN_SYSTEM_N_ETH; i < PTIN_SYSTEM_N_PORTS; i++) 
+      {
+        ptin_port[number_of_ports++] = i; 
+      }
+    }
+    else              /* Downlink */
+    {
+      for (i = 0; i < PTIN_SYSTEM_N_ETH; i++)
+      {
+        ptin_port[number_of_ports++] = i; 
+      }
+    }
+#elif (PTIN_BOARD == PTIN_BOARD_CXO160G)
+    if (index == 0)   /* Uplink */
+    {
+      for (i = 0; i < PTIN_SYSTEM_N_LOCAL_PORTS; i++)
+      {
+        ptin_port[number_of_ports++] = i;
+      }
+    }
+    else              /* Downlink */
+    {
+      for (i = PTIN_SYSTEM_N_LOCAL_PORTS; i < ptin_sys_number_of_ports; i++)
+      {
+        ptin_port[number_of_ports++] = i;
+      }
+    }
+#elif (PTIN_BOARD == PTIN_BOARD_CXO640G)
+    for (i = 0; i < ptin_sys_number_of_ports; i++)
+    {
+      L7_uint16 board_id;
+
+      if (ptin_intf_boardid_get(i, &board_id) == L7_SUCCESS)
+      {
+        if ((index == 0 && PTIN_BOARD_IS_UPLINK(board_id)) ||   /* Uplink */
+            (index == 1 && PTIN_BOARD_IS_DOWNLINK(board_id)))   /* Downlink */
+        {
+          ptin_port[number_of_ports++] = i;
+        }
+      }
+    }
+#endif
+    /* Trust mode */
+    memset(cos_map, 0xff, sizeof(cos_map));
+    switch (qos->trust_mode)
+    {
+      case 0:
+        cos_map_size = 0;   /* No configuration will be done */
+        break;
+
+      case L7_QOS_COS_MAP_INTF_MODE_UNTRUSTED:
+        cos_map[0] = 0;     /* This is the default CoS (applied to all pbits) */
+        cos_map_size = 1;
+        break;
+
+      case L7_QOS_COS_MAP_INTF_MODE_TRUST_DOT1P:
+        for (i = 0; i < 8; i++)
+        {
+          if ((qos->cos_classif.pcp_map.prio_mask >> i) & 1)
+          {
+            cos_map[i] = qos->cos_classif.pcp_map.cos[i]; 
+          }
+        }
+        cos_map_size = 8;
+        break;
+      case L7_QOS_COS_MAP_INTF_MODE_TRUST_IPPREC:
+        for (i = 0; i < 8; i++)
+        {
+          if ((qos->cos_classif.ipprec_map.prio_mask >> i) & 1)
+          {
+            cos_map[i] = qos->cos_classif.ipprec_map.cos[i];
+          }
+        }
+        cos_map_size = 8;
+        break;
+
+      case L7_QOS_COS_MAP_INTF_MODE_TRUST_IPDSCP:
+        for (i = 0; i < 64; i++)
+        {
+          if ((qos->cos_classif.dscp_map.prio_mask[i/32] >> (i%32)) & 1)
+          {
+            cos_map[i] = qos->cos_classif.dscp_map.cos[i];
+          }
+        }
+        cos_map_size = 64;
+        break;
+
+      default:
+        LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid trust mode (%u)", qos->trust_mode);
+        return L7_FAILURE;
+    }
+
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "VLAN=%u, trust_mode=%u, Number of ports=%u, Number of CoS=%u",
+              int_vlan, qos->trust_mode, number_of_ports, cos_map_size);
+    for (i = 0; i < number_of_ports; i++)
+    {
+      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Port added: ptin_port=%u", ptin_port[i]);
+    }
+    for (i = 0; i < cos_map_size; i++)
+    {
+      LOG_DEBUG(LOG_CTX_PTIN_MSG, "CoS(%u)=%u", i, cos_map[i]);
+    }
+
+    if (ptin_qos_vlan_add(qos->trust_mode, cos_map, cos_map_size,
+                          int_vlan, ptin_port, number_of_ports) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring QoS");
+      return L7_FAILURE;
+    }
+  }
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "QoS configured successfully");
+
+  return L7_SUCCESS;
+}
+
+/**
  * Creates or reconfigures an EVC
  * 
  * @param msgEvcConf Pointer to the input struct
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_msg_EVC_create(msg_HwEthMef10Evc_t *msgEvcConf)
+L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
 {
-  L7_uint i;
+  L7_uint16 i;
   ptin_HwEthMef10Evc_t ptinEvcConf;
+  msg_HwEthMef10EvcQoS_t *msgEvcConf = (msg_HwEthMef10EvcQoS_t *) inbuffer->info;
 
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
-  if ((msgEvcConf->id == PTIN_EVC_INBAND) || (msgEvcConf->id >= PTIN_SYSTEM_N_EXTENDED_EVCS))
+  if ((msgEvcConf->evc.id == PTIN_EVC_INBAND) || (msgEvcConf->evc.id >= PTIN_SYSTEM_N_EXTENDED_EVCS))
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "EVC# %u is out of range [0..%u]", msgEvcConf->id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    LOG_ERR(LOG_CTX_PTIN_MSG, "EVC# %u is out of range [0..%u]", msgEvcConf->evc.id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
   /* Copy data to ptin struct */
-  ptinEvcConf.index    = msgEvcConf->id;
-  ptinEvcConf.flags    = msgEvcConf->flags;
-  ptinEvcConf.type     = msgEvcConf->type;
-  ptinEvcConf.mc_flood = msgEvcConf->mc_flood;
-  ptinEvcConf.n_intf   = msgEvcConf->n_intf;
-  memcpy(ptinEvcConf.ce_vid_bmp, msgEvcConf->ce_vid_bmp, sizeof(ptinEvcConf.ce_vid_bmp));
+  ptinEvcConf.index    = msgEvcConf->evc.id;
+  ptinEvcConf.flags    = msgEvcConf->evc.flags;
+  ptinEvcConf.type     = msgEvcConf->evc.type;
+  ptinEvcConf.mc_flood = msgEvcConf->evc.mc_flood;
+  ptinEvcConf.n_intf   = msgEvcConf->evc.n_intf;
+  memcpy(ptinEvcConf.ce_vid_bmp, msgEvcConf->evc.ce_vid_bmp, sizeof(ptinEvcConf.ce_vid_bmp));
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "EVC# %u",              ptinEvcConf.index);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Flags    = 0x%08X",  ptinEvcConf.flags);
@@ -5092,11 +5287,11 @@ L7_RC_t ptin_msg_EVC_create(msg_HwEthMef10Evc_t *msgEvcConf)
     ptinEvcConf.flags &= ~PTIN_EVC_MASK_MC_IPTV;     
     #endif
 
-    ptinEvcConf.intf[i].intf_id   = msgEvcConf->intf[i].intf_id;
-    ptinEvcConf.intf[i].intf_type = msgEvcConf->intf[i].intf_type;
-    ptinEvcConf.intf[i].mef_type  = msgEvcConf->intf[i].mef_type /*PTIN_EVC_INTF_ROOT*/;
-    ptinEvcConf.intf[i].vid       = msgEvcConf->intf[i].vid;
-    ptinEvcConf.intf[i].vid_inner = msgEvcConf->intf[i].inner_vid;
+    ptinEvcConf.intf[i].intf_id   = msgEvcConf->evc.intf[i].intf_id;
+    ptinEvcConf.intf[i].intf_type = msgEvcConf->evc.intf[i].intf_type;
+    ptinEvcConf.intf[i].mef_type  = msgEvcConf->evc.intf[i].mef_type /*PTIN_EVC_INTF_ROOT*/;
+    ptinEvcConf.intf[i].vid       = msgEvcConf->evc.intf[i].vid;
+    ptinEvcConf.intf[i].vid_inner = msgEvcConf->evc.intf[i].inner_vid;
 
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "   %s# %02u %s VID=%04u/%-04u",
              ptinEvcConf.intf[i].intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
@@ -5111,6 +5306,43 @@ L7_RC_t ptin_msg_EVC_create(msg_HwEthMef10Evc_t *msgEvcConf)
     return L7_FAILURE;
   }
 
+  /* Does this message contains QoS information? */
+  if (inbuffer->infoDim >= sizeof(msg_HwEthMef10EvcQoS_t))
+  {
+    if (ptin_msg_qosvlan_config(ptinEvcConf.index, msgEvcConf->qos) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring QoS for EVC %u", ptinEvcConf.index);
+      return L7_FAILURE;
+    }
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Configures QoS for an EVC
+ * 
+ * @param inbuffer 
+ * @param outbuffer 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_evc_qos_set(ipc_msg *inbuffer, ipc_msg *outbuffer)
+{
+  msg_evc_qos_t *msgEvcQoS = (msg_evc_qos_t *) inbuffer->info;
+  L7_uint16 i, size;
+
+  size = inbuffer->infoDim / sizeof(msg_evc_qos_t);
+
+  for (i = 0; i < size; i++)
+  {
+    if (ptin_msg_qosvlan_config(msgEvcQoS[i].evc_id, msgEvcQoS[i].qos) != L7_SUCCESS) 
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring QoS for EVC %u", msgEvcQoS[i].evc_id);
+      return L7_FAILURE;
+    }
+  }
+
   return L7_SUCCESS;
 }
 
@@ -5123,7 +5355,7 @@ L7_RC_t ptin_msg_EVC_create(msg_HwEthMef10Evc_t *msgEvcConf)
  */
 L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_structs)
 {
-  L7_uint16 i;
+  L7_uint16 i, int_vlan;
   L7_RC_t rc_global = L7_SUCCESS;
 
   if (msgEvcConf == L7_NULLPTR)
@@ -5140,6 +5372,23 @@ L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_s
       LOG_ERR(LOG_CTX_PTIN_MSG, "EVC# %u is out of range [0..%u]", msgEvcConf[i].id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
       rc_global = L7_FAILURE;
       continue;
+    }
+
+    /* Obtain internal vlan */
+    if (ptin_evc_intRootVlan_get(msgEvcConf[i].id, &int_vlan) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error obtaining internal VLAN of EVC# %u", msgEvcConf[i].id);
+      return L7_FAILURE;
+    }
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to unconfigure QoS for EVC %u / internalVlan %u", msgEvcConf[i].id, int_vlan);
+    if (ptin_qos_vlan_clear(int_vlan) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error deconfiguring QoS for EVC %u / internalVlan %u", msgEvcConf[i].id, int_vlan);
+      continue;
+    }
+    else
+    {
+      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Error deconfiguring QoS for EVC %u / internalVlan %u", msgEvcConf[i].id, int_vlan);
     }
 
     if (ptin_evc_delete(msgEvcConf[i].id) != L7_SUCCESS)
@@ -6600,8 +6849,7 @@ L7_RC_t ptin_msg_DHCP_evc_reconf(msg_DhcpEvcReconf_t *dhcpEvcInfo)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  DHCP Flag  = %u",      dhcpEvcInfo->dhcp_flag);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Options    = 0x%04X",  dhcpEvcInfo->options);
 
-  if (dhcpEvcInfo->idType == MSG_ID_DEF_TYPE ||
-      dhcpEvcInfo->idType == MSG_ID_EVC_TYPE)
+  if (dhcpEvcInfo->idType == MSG_ID_EVC_TYPE)
   {
     rc = ptin_dhcp_reconf_evc(dhcpEvcInfo->id, dhcpEvcInfo->dhcp_flag, dhcpEvcInfo->options);
     if (rc!=L7_SUCCESS)
@@ -6666,8 +6914,7 @@ L7_RC_t ptin_msg_DHCP_circuitid_set(msg_AccessNodeCircuitId_t *circuitid)
   /* TODO: To be reworked */
 
   /* Set circuit-id global data */
-  if (circuitid->id_ref.id_type == MSG_ID_DEF_TYPE ||
-      circuitid->id_ref.id_type == MSG_ID_EVC_TYPE)
+  if (circuitid->id_ref.id_type == MSG_ID_EVC_TYPE)
   {
     /* Circuit id */
     rc = ptin_dhcp_circuitid_set_evc(circuitid->id_ref.id_val.evc_id, circuitid->template_str, circuitid->mask_circuitid, circuitid->access_node_id, circuitid->chassis, circuitid->rack,
@@ -6748,8 +6995,7 @@ L7_RC_t ptin_msg_DHCP_circuitid_get(msg_AccessNodeCircuitId_t *circuitid)
   }
 
   /* Set circuit-id global data */
-  if (circuitid->id_ref.id_type == MSG_ID_DEF_TYPE ||
-      circuitid->id_ref.id_type == MSG_ID_EVC_TYPE)
+  if (circuitid->id_ref.id_type == MSG_ID_EVC_TYPE)
   {
     /* Circuit id */
     rc = ptin_dhcp_circuitid_get(circuitid->id_ref.id_val.evc_id, circuitid->template_str, &circuitid->mask_circuitid,

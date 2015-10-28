@@ -14,6 +14,8 @@
 #include "dtl_ptin.h"
 #include "ptin_intf.h"
 
+#include "usmdb_dot3ad_api.h"
+
 /**
  * BW POLICERS MANAGEMENT
  */
@@ -765,6 +767,565 @@ L7_RC_t ptin_stormControl_config(L7_BOOL enable, ptin_stormControl_t *stormContr
 
   return L7_SUCCESS;
 }
+
+#if 0
+typedef struct
+{
+  L7_uint8 cos_bitmap;    /* CoS occurrences in terms of bitmap (8 possible values) */
+  L7_uint8 mask;          /* Mask applied to this entry */
+  L7_uint8 value;         /* Value applied to this entry */
+} cos_bitmap_comb_t;
+
+/* Lookup table to optimize rules configuration:
+   It is important the be sorted in terms of considered bits (higher to lower) */
+cos_bitmap_comb_t cos_lookup[]={
+  {0xff, 0x0, 0x0},   /* 8 values: 1111 1111 - 0,1,2,3,4,5,6,7 */
+  {0x0f, 0x4, 0x0},   /* 4 values: 0000 1111 - 0,1,2,3 */
+  {0xf0, 0x4, 0x4},   /* 4 values: 1111 0000 - 4,5,6,7 */
+  {0x33, 0x2, 0x0},   /* 4 values: 0011 0011 - 0,1,4,5 */
+  {0xcc, 0x2, 0x2},   /* 4 values: 1100 1100 - 2,3,6,7 */
+  {0x55, 0x1, 0x0},   /* 4 values: 0101 0101 - 0,2,4,6 */
+  {0xaa, 0x1, 0x1},   /* 4 values: 1010 1010 - 1,3,5,7 */
+  {0x03, 0x6, 0x0},   /* 2 values: 0000 0011 - 0,1 */
+  {0xc0, 0x6, 0x2},   /* 2 values: 0000 1100 - 2,3 */
+  {0x30, 0x6, 0x4},   /* 2 values: 0011 0000 - 4,5 */
+  {0xc0, 0x6, 0x5},   /* 2 values: 1100 0000 - 6,7 */
+  {0x05, 0x5, 0x0},   /* 2 values: 0000 0101 - 0,2 */
+  {0x0a, 0x5, 0x1},   /* 2 values: 0000 1010 - 1,3 */
+  {0x50, 0x5, 0x4},   /* 2 values: 0101 0000 - 4,6 */
+  {0xa0, 0x5, 0x5},   /* 2 values: 1010 0000 - 5,7 */
+  {0x11, 0x3, 0x0},   /* 2 values: 0001 0001 - 0,4 */
+  {0x22, 0x3, 0x1},   /* 2 values: 0010 0010 - 1,5 */
+  {0x44, 0x3, 0x2},   /* 2 values: 0100 0100 - 2,6 */
+  {0x88, 0x3, 0x3},   /* 2 values: 1000 1000 - 3,7 */
+  {0x01, 0xf, 0x0},   /* 1 value : 0000 0001 - 0 */
+  {0x02, 0xf, 0x1},   /* 1 value : 0000 0010 - 1 */
+  {0x04, 0xf, 0x2},   /* 1 value : 0000 0100 - 2 */
+  {0x08, 0xf, 0x3},   /* 1 value : 0000 1000 - 3 */
+  {0x10, 0xf, 0x4},   /* 1 value : 0001 0000 - 4 */
+  {0x20, 0xf, 0x5},   /* 1 value : 0010 0000 - 5 */
+  {0x40, 0xf, 0x6},   /* 1 value : 0100 0000 - 6 */
+  {0x80, 0xf, 0x7},   /* 1 value : 1000 0000 - 7 */
+}
+#endif
+
+/* This is the Mask's list to be considered (already sorted from the widest to the most specific value) */
+L7_uint8 cos_mask_lookup_1bit[] = {
+  0x00, 0x01
+};
+
+L7_uint8 cos_mask_lookup_2bits[] = {
+  0x00, 0x02, 0x01, 0x03
+};
+
+L7_uint8 cos_mask_lookup_3bits[] = {
+  0x00, 0x04, 0x02, 0x01, 0x06, 0x05, 0x03, 0x07
+};
+
+L7_uint8 cos_mask_lookup_4bits[] = {
+  0x00, 0x08, 0x04, 0x02, 0x01, 0x0c, 0x0a, 0x09,
+  0x06, 0x05, 0x03, 0x0e, 0x0d, 0x0b, 0x07, 0x0f
+};
+
+L7_uint8 cos_mask_lookup_5bits[] = {
+  0x00, 0x10, 0x08, 0x04, 0x02, 0x01, 0x18, 0x14,
+  0x12, 0x11, 0x0c, 0x0a, 0x09, 0x06, 0x05, 0x03,
+  0x1c, 0x1a, 0x19, 0x16, 0x15, 0x13, 0x0e, 0x0d,
+  0x0b, 0x07, 0x1e, 0x1d, 0x1b, 0x17, 0x0f, 0x1f
+};
+
+L7_uint8 cos_mask_lookup_6bits[] = {
+  0x00, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01, 0x30,
+  0x28, 0x24, 0x22, 0x21, 0x18, 0x14, 0x12, 0x11,
+  0x0c, 0x0a, 0x09, 0x06, 0x05, 0x03, 0x38, 0x34,
+  0x32, 0x31, 0x2c, 0x2a, 0x29, 0x26, 0x25, 0x23,
+  0x1c, 0x1a, 0x19, 0x16, 0x15, 0x13, 0x0e, 0x0d,
+  0x0b, 0x07, 0x3c, 0x3a, 0x39, 0x36, 0x35, 0x33,
+  0x2e, 0x2d, 0x2b, 0x27, 0x1e, 0x1d, 0x1b, 0x17,
+  0x0f, 0x3e, 0x3d, 0x3b, 0x37, 0x2f, 0x1f, 0x3f
+};
+
+/**
+ * Clear all configuration for one particular VLAN
+ * 
+ * @param vlan 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_qos_vlan_clear(L7_uint16 vlan)
+{
+  ptin_dtl_qos_t qos_cfg;
+  L7_RC_t rc;
+
+  memset(&qos_cfg, 0x00, sizeof(ptin_dtl_qos_t));
+  qos_cfg.vlan_id = vlan;
+  qos_cfg.trust_mode = 0;
+  
+  rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_QOS, DAPI_CMD_CLEAR, sizeof(ptin_dtl_qos_t), &qos_cfg);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Error removing all rules of VLAN %u", vlan);
+    return L7_FAILURE;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_INTF, "All rules removed from VLAN %u", vlan);
+
+  return L7_SUCCESS;
+}
+
+/**
+ * VLAN CoS configuration into the HW
+ * 
+ * @param qos_cfg : Struct to be used for HW configuration
+ * @param cos_map : CoS(pbit)={a,b,c,d,e,f,g,h} 
+ * @param cos_map_size : cos_map's number of elements 
+ * @param n_prios : number of distinct priorities 
+ * @param n_cos : number of CoS 
+ * 
+ * @return L7_RC_t 
+ */
+static L7_RC_t cos_vlan_configure(ptin_dtl_qos_t *qos_cfg, L7_uint8 *cos_map, L7_uint8 cos_map_size,
+                                  L7_uint8 n_prios, L7_uint n_cos)
+{
+  L7_uint8 cos;
+  L7_RC_t rc;
+  L7_uint8 *cos_mask_lookup;
+  
+  /* Validate arguments */
+  if (qos_cfg == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  /* Remove configurations? */
+  if (n_prios == 0)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_INTF, "Going to remove all configurations of VLAN %u", qos_cfg->vlan_id);
+    /* Remove all configurations */
+    rc = ptin_qos_vlan_clear(qos_cfg->vlan_id);
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Error removing all rules");
+      return L7_FAILURE;
+    }
+    LOG_TRACE(LOG_CTX_PTIN_INTF, "All rules removed of VLAN %u", qos_cfg->vlan_id);
+    return L7_SUCCESS;
+  }
+
+  /* A CoS map should be provided */
+  if (cos_map == L7_NULLPTR || cos_map_size == 0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  if (n_prios < 2)
+  {
+    /* All priorities will be mapped into one single priority */
+    LOG_TRACE(LOG_CTX_PTIN_INTF, "All priorities will be mapped in a single int_prio");
+    qos_cfg->priority = 0;
+    qos_cfg->priority_mask = 0;
+    qos_cfg->int_priority = cos_map[0];
+    rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_QOS, DAPI_CMD_SET, sizeof(ptin_dtl_qos_t), qos_cfg);
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Error configuring rule");
+      return L7_FAILURE;
+    }
+    LOG_TRACE(LOG_CTX_PTIN_INTF, "All priorities were mapped to int_prio %u", qos_cfg->int_priority);
+    return L7_SUCCESS;
+  }
+  else if (n_prios < 4)
+  {
+    /* 2 CoS values (1 bit) */
+    n_prios = 2;
+    cos_mask_lookup = cos_mask_lookup_1bit;
+    LOG_TRACE(LOG_CTX_PTIN_API, "Assuming a 1 bit mask (2 distinct priorities)");
+  }
+  else if (n_prios < 8)
+  {
+    /* 4 CoS values (2 bits) */
+    n_prios = 4;
+    cos_mask_lookup = cos_mask_lookup_2bits;
+    LOG_TRACE(LOG_CTX_PTIN_API, "Assuming a 2 bit mask (4 distinct priorities)");
+  }
+  else if (n_prios < 16)
+  {
+    /* 8 CoS values (3 bits) */
+    n_prios = 8;
+    cos_mask_lookup = cos_mask_lookup_3bits;
+    LOG_TRACE(LOG_CTX_PTIN_API, "Assuming a 3 bit mask (8 distinct priorities)");
+  }
+  else if (n_prios < 32)
+  {
+    /* 16 CoS values (4 bits) */
+    n_prios = 16;
+    cos_mask_lookup = cos_mask_lookup_4bits;
+    LOG_TRACE(LOG_CTX_PTIN_API, "Assuming a 4 bit mask (16 distinct priorities)");
+  }
+  else if (n_prios < 64)
+  {
+    /* 32 CoS values (5 bits) */
+    n_prios = 32;
+    cos_mask_lookup = cos_mask_lookup_5bits;
+    LOG_TRACE(LOG_CTX_PTIN_API, "Assuming a 5 bit mask (32 distinct priorities)");
+  }
+  else
+  {
+    /* 64 CoS values (6 bits) */
+    n_prios = 64;
+    cos_mask_lookup = cos_mask_lookup_6bits;
+    LOG_TRACE(LOG_CTX_PTIN_API, "Assuming a 6 bit mask (64 distinct priorities)");
+  }
+
+  /* Limit size of cos_map to be considered */
+  if (cos_map_size > n_prios)
+  {
+    cos_map_size = n_prios;
+    LOG_WARNING(LOG_CTX_PTIN_API, "CoS map size limited to %u elements", cos_map_size);
+  }
+
+  /* Run all possible CoS values */
+  for (cos = 0; cos < n_cos; cos++)
+  {
+    L7_uint8 i, look;
+    L7_uint64 cos_bitmap, cos_bitmap_mask;
+
+    LOG_TRACE(LOG_CTX_PTIN_API,"Searching for CoS %u...", cos);
+
+    /* Calculate bitmap of 1s where this CoS occurs (input) */
+    cos_bitmap = 0;
+    cos_bitmap_mask = 0;
+    for (i = 0; i < cos_map_size; i++)
+    {
+      if (cos_map[i] == cos) 
+      {
+        cos_bitmap |= 1ULL<<i;
+      }
+      /* Start by looking to all bits os cos_bitmap (input) */
+      cos_bitmap_mask |= 1ULL<<i;
+    }
+
+    LOG_TRACE(LOG_CTX_PTIN_API,"Entries with CoS %u: 0x%llx", cos, cos_bitmap);
+
+    /* If this CoS is not used, go to next cos */
+    if (cos_bitmap == 0)
+    {
+      LOG_TRACE(LOG_CTX_PTIN_API,"No entries have CoS %u. Skipt it!", cos);
+      continue;
+    }
+
+    /* Run all given masks (sorted from the most wider to the most specific) */
+    for (look = 0; look < n_prios && cos_bitmap_mask != 0x00; look++)
+    {
+      L7_uint8 mask, value;
+      L7_uint8 value_and_mask[8];
+      L7_uint64 cos_bitmap_reference, values_excluded;
+
+      /* Mask to be considered for this lookup entry */
+      mask = cos_mask_lookup[look];
+
+      LOG_TRACE(LOG_CTX_PTIN_API,"Lookup entry %u: mask=0x%x", look, mask);
+
+      /* List of possible results from the AND operation between all values and this mask (some may be repeated) */
+      for (value = 0; value < n_prios; value++)
+      {
+        value_and_mask[value] = value & mask;
+      }
+
+      /* Bitmap of values to be excluded for processing (starting with none) */
+      values_excluded = 0x00;
+
+      /* Run all possible values for this mask */
+      for (value = 0; value < n_prios; value++)
+      {
+        /** The values_excluded variable is important to only use the
+         *  necessary values related to this mask */
+
+        /* Skip value if it's excluded */
+        if ((values_excluded >> value) & 1)
+        {
+          //LOG_TRACE(LOG_CTX_PTIN_API,"value %u skipped for being excluded in previous iterations.", value);
+          continue;
+        }
+
+        //LOG_TRACE(LOG_CTX_PTIN_API,"Processing value %u / mask 0x%x", value, mask);
+
+        /* CoS bitmap to be used as reference */
+        cos_bitmap_reference = 0x00;
+
+        /** The following Algorithm is destined to determine the
+         *  reference bitmap to be compared with the input bitmap */
+
+        /* Obtain CoS bitmap to be compared with */
+        for (i = value; i < n_prios; i++)
+        {
+          /* Skip value if excluded in previos iterations */
+          if ((values_excluded >> i) & 1)
+            continue;
+
+          /* Only proceed if AND result is the same: this is where the common result group is made */
+          if (value_and_mask[i] != value_and_mask[value])
+            continue;
+
+          /* Add this bit to CoS pattern to be matched */
+          cos_bitmap_reference |= 1ULL<<i;
+
+          /* Exclude this value to not be used in the following iterations for this particular mask */
+          values_excluded |= 1ULL << i;
+        }
+
+        /* If reference CoS bitmap is empty, skip to next value */
+        if (cos_bitmap_reference == 0x00)
+        {
+          //LOG_TRACE(LOG_CTX_PTIN_API,"CoS bitmap reference empty. Going to next Lookup entry");
+          continue;
+        }
+
+        LOG_TRACE(LOG_CTX_PTIN_API,"CoS bitmap reference: 0x%llx (Excluded values: 0x%llx)",
+                  cos_bitmap_reference, values_excluded);
+
+        /** The reference bitmap was already determined.
+         *  Now, is important to exclude older matched patterns to avoid
+         *  rules superposition */
+
+        /* Clear hidden bits (hidden by previous iterations, to avoid conflicting rules) */
+        cos_bitmap &= cos_bitmap_mask; 
+
+        LOG_TRACE(LOG_CTX_PTIN_API,"CoS bitmap to be used: 0x%llx (cos_bitmap_mask: 0x%llx)", cos_bitmap, cos_bitmap_mask);
+
+        /* If a matched pattern occurs, apply rule */
+        if ((cos_bitmap & cos_bitmap_reference) == cos_bitmap_reference)
+        {
+          /* Hide these bits, in order to not be considered next time */
+          cos_bitmap_mask &= ~cos_bitmap_reference;
+
+          LOG_TRACE(LOG_CTX_PTIN_API,"Pattern 0x%llx is present (0x%llx -> 0x%llx). Removing this to cos_bitmap_mask (0xllx)",
+                    cos_bitmap, cos_bitmap_reference, cos_bitmap_mask);
+
+          /* Rule configuration */
+          qos_cfg->priority = value;
+          qos_cfg->priority_mask = mask;
+          qos_cfg->int_priority = cos;
+          rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_QOS, DAPI_CMD_SET, sizeof(ptin_dtl_qos_t), qos_cfg);
+          if (rc != L7_SUCCESS)
+          {
+            LOG_ERR(LOG_CTX_PTIN_INTF, "Error configuring priorities %u/0x%x", qos_cfg->priority, qos_cfg->priority_mask);
+            return L7_FAILURE;
+          }
+          LOG_TRACE(LOG_CTX_PTIN_INTF, "Priorities %u/0x%x is mapped to int_prio %u", qos_cfg->priority, qos_cfg->priority_mask, qos_cfg->int_priority);
+        }
+        else
+        {
+          LOG_TRACE(LOG_CTX_PTIN_INTF, "Nothing done... next iteration");
+        }
+      }
+    }
+  }
+
+  return L7_SUCCESS;
+}
+
+//static L7_RC_t ptin_qos_vlan_add_recursive(ptin_dtl_qos_t *qos_cfg, L7_uint8 *cos_map, L7_uint8 prio_start, L7_uint8 prio_end);
+
+/**
+ * Configure QoS mapping rules for a particular VLAN
+ * 
+ * @param trust_mode : trust_mode
+ * @param cos_map : array of CoS values for each pbit value
+ * @param cos_map_size : cos_map's number of elements
+ * @param vlan_id : VLAN id
+ * @param ptin_port : List of ptin_ports
+ * @param number_of_ports : Number of ptin_ports
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_qos_vlan_add(L7_uint8 trust_mode, L7_uint8 *cos_map, L7_uint8 cos_map_size,
+                          L7_uint16 vlan_id, L7_uint32 *ptin_port, L7_uint8 number_of_ports)
+{
+  L7_uint i, j, n_prios;
+  L7_uint32 intIfNum, port;
+  L7_INTF_TYPES_t intfType;
+  L7_uint64 ptin_port_bmp;
+  ptin_dtl_qos_t qos_cfg;
+  L7_RC_t   rc;
+
+  /* Validate arguments */
+  if (vlan_id < PTIN_VLAN_MIN || vlan_id > PTIN_VLAN_MAX)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API, "Invalid vlan id: %u", vlan_id);
+    return L7_FAILURE;
+  }
+
+  /* Maximum number of CoS */
+  switch (trust_mode)
+  {
+    case 0:
+      n_prios = 0;  /* This value will remove any configuration */
+      break;
+    case L7_QOS_COS_MAP_INTF_MODE_UNTRUSTED:
+      n_prios = 1;  /* This value will configure one single rule */
+      break;
+    case L7_QOS_COS_MAP_INTF_MODE_TRUST_DOT1P:
+    case L7_QOS_COS_MAP_INTF_MODE_TRUST_IPPREC:
+      n_prios = 8;
+      break;
+    case L7_QOS_COS_MAP_INTF_MODE_TRUST_IPDSCP:
+      n_prios = 64;
+      break;
+    default:
+      LOG_ERR(LOG_CTX_PTIN_API, "Invalid trust mode: %u", trust_mode);
+      return L7_FAILURE;
+  }
+
+  /* Prepare list of ports */
+  ptin_port_bmp = 0;
+  for (i = 0; i < number_of_ports; i++)
+  {
+    /* Validate ptin_port */
+    if (ptin_port[i] >= PTIN_SYSTEM_N_INTERF)
+    {
+      LOG_ERR(LOG_CTX_PTIN_API, "Invalid ptin port %u", ptin_port[i]);
+      continue;
+    }
+    /* Convert to intIfNum */
+    if (ptin_intf_port2intIfNum(ptin_port[i], &intIfNum) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_API, "port %u does not exist", ptin_port[i]);
+      continue;
+    }
+    /* Get interface type */
+    if (nimGetIntfType(intIfNum, &intfType) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_L2,"Error getting interface type of intIfNum=%u", intIfNum);
+      continue;
+    }
+    /* Is it a LAG? If so, get its members */
+    if (intfType == L7_LAG_INTF)
+    {
+      L7_uint32 lag_members_list[PTIN_SYSTEM_N_PORTS], number_of_lag_members;
+
+      /* Get list of active ports */
+      number_of_lag_members = PTIN_SYSTEM_N_PORTS;
+      if (usmDbDot3adMemberListGet(1, intIfNum, &number_of_lag_members, lag_members_list) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_INTF, "Error reading Members List of intIfNum %u", intIfNum);
+        continue;
+      }
+      /* Run all members, and add them to the bitmap list */
+      for (j = 0; j < number_of_lag_members; j++)
+      {
+        if (ptin_intf_intIfNum2port(lag_members_list[j], &port) == L7_SUCCESS)
+        {
+          ptin_port_bmp |= 1ULL << port; 
+        }
+      }
+    }
+    /* Physical interface */
+    else if (intfType == L7_PHYSICAL_INTF)
+    {
+      ptin_port_bmp |= 1ULL << ptin_port[i];
+    }
+    /* Not recognized type */
+    else
+    {
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid intIfNum %u", intIfNum);
+      continue;
+    }
+  }
+  LOG_TRACE(LOG_CTX_PTIN_API, "VLAN %u, Bitmap ports: 0x%llx", vlan_id, ptin_port_bmp);
+
+  memset(&qos_cfg, 0x00, sizeof(qos_cfg));
+  qos_cfg.vlan_id = vlan_id;
+  qos_cfg.trust_mode = trust_mode;
+  qos_cfg.ptin_port_bmp = ptin_port_bmp;
+
+  /* Configure QoS */
+  rc = cos_vlan_configure(&qos_cfg, cos_map, cos_map_size, n_prios, 8);
+
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "QoS mapping failed");
+    return rc;
+  }
+
+  return L7_SUCCESS;
+}
+
+#if 0
+/**
+ * Recursive routive for ptin_qos_vlan_add
+ * 
+ * @param qos_cfg 
+ * @param cos_map 
+ * @param prio_start 
+ * @param prio_end 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_qos_vlan_add_recursive(ptin_dtl_qos_t *qos_cfg, L7_uint8 *cos_map, L7_uint8 prio_start, L7_uint8 prio_end)
+{
+  L7_uint8 i, mask;  
+  L7_RC_t rc;
+
+  if (prio_start > 7 || prio_end > 7 || prio_start > prio_end)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid prio range: %u - %u", prio_start, prio_end);
+    return L7_FAILURE;
+  }
+
+  /* Final configuration */
+  if (prio_start == prio_end)
+  {
+    qos_cfg->priority = prio_start;
+    qos_cfg->priority_mask = 7;
+    qos_cfg->int_priority = cos_map[prio_start];
+    rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_QOS, DAPI_CMD_SET, sizeof(ptin_dtl_qos_t), qos_cfg);
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Error configuring priority %u", prio_start);
+      return L7_FAILURE;
+    }
+    LOG_TRACE(LOG_CTX_PTIN_INTF, "Priority %u will be mapped to int_prio %u", prio_start, cos_map[prio_start]);
+
+    return L7_SUCCESS;
+  }
+
+  /* Check if all entries are equal */
+  mask = prio_start;
+  for (i = prio_start+1; i <= prio_end; i++)
+  {
+    if (cos_map[i] != cos_map[i-1])  break;
+    mask = ~(mask ^ i) & 0x7;
+  }
+  /* If all entries are equal, make configuration and leave */
+  if (i > prio_end)
+  {
+    qos_cfg->priority = prio_start;
+    qos_cfg->priority_mask = mask;
+    qos_cfg->int_priority = cos_map[prio_start];
+    rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_QOS, DAPI_CMD_SET, sizeof(ptin_dtl_qos_t), qos_cfg);
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Error configuring priority %u-%u", prio_start, prio_end);
+      return L7_FAILURE;
+    }
+    LOG_TRACE(LOG_CTX_PTIN_INTF, "Priorities %u-%u will be mapped to int_prio %u", prio_start, prio_end, cos_map[prio_start]);
+
+    return L7_SUCCESS;
+  }
+
+  /* No configuration done... split priority range in 2 halfs, and try to configure each one */
+  /* First half */
+  (void) ptin_qos_vlan_add_recursive(qos_cfg, cos_map, prio_start, (prio_end+1-prio_start)/2+prio_start-1);
+
+  /* Second half */
+  (void) ptin_qos_vlan_add_recursive(qos_cfg, cos_map, prio_start+(prio_end+1-prio_start)/2, prio_end);
+
+  return L7_SUCCESS;
+}
+#endif
 
 #if 0
 /**

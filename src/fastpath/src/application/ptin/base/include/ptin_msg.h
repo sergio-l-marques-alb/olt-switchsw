@@ -562,7 +562,17 @@ extern L7_RC_t ptin_msg_EVC_get(msg_HwEthMef10Evc_t *msgEvcConf);
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_msg_EVC_create(msg_HwEthMef10Evc_t *msgEvcConf);
+extern L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer);
+
+/**
+ * Configures QoS for an EVC
+ * 
+ * @param inbuffer 
+ * @param outbuffer 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_msg_evc_qos_set(ipc_msg *inbuffer, ipc_msg *outbuffer);
 
 /**
  * Deletes an EVC

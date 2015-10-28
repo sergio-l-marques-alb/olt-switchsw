@@ -65,7 +65,7 @@
 #define CCMSG_MGMD_SNOOP_SYNC_REPLY         0x902D  // struct msg_SnoopSyncReply_t
 
 #define CCMSG_ETH_EVC_GET                   0x9030  // struct msg_HwEthMef10Evc_t
-#define CCMSG_ETH_EVC_ADD                   0x9031  // struct msg_HwEthMef10Evc_t
+#define CCMSG_ETH_EVC_ADD                   0x9031  // struct msg_HwEthMef10EvcQoS_t
 #define CCMSG_ETH_EVC_REMOVE                0x9032  // struct msg_HwEthMef10EvcRemove_t
 #define CCMSG_ETH_EVC_BRIDGE_ADD            0x9033  // struct msg_HwEthEvcBridge_t
 #define CCMSG_ETH_EVC_BRIDGE_REMOVE         0x9034  // struct msg_HwEthEvcBridge_t
@@ -78,6 +78,7 @@
 #define CCMSG_ETH_EVC_PORT_ADD              0x903C  // struct msg_HWevcPort_t
 #define CCMSG_ETH_EVC_PORT_REMOVE           0x903D  // struct msg_HWevcPort_t
 #define CCMSG_ETH_EVC_OPTIONS_SET           0x903E  // struct msg_HwEthMef10EvcOptions_t
+#define CCMSG_ETH_EVC_QOS_SET               0x903F  // struct msg_evc_qos_t
 
 #define CCMSG_ETH_EVC_COUNTERS_GET          0x9040  // Consultar contadores a pedido: struct msg_evcStats_t
 #define CCMSG_ETH_EVC_COUNTERS_ADD          0x9041  // Activar contadores a pedido: struct msg_evcStats_t
@@ -356,7 +357,7 @@ typedef struct msg_in_addr_s
 } __attribute__((packed)) msg_in_addr_t;
 
 /* Struct used for reference valuue */
-#define MSG_ID_DEF_TYPE     0       /* Considered to be evc id */
+#define MSG_ID_NONE_TYPE    0       /* Considered to be evc id */
 #define MSG_ID_EVC_TYPE     1       /* Use evc id */
 #define MSG_ID_NNIVID_TYPE  2       /* Use NNI vlan */
 typedef struct
@@ -750,7 +751,9 @@ typedef struct
 typedef struct
 {
   L7_uint8 SlotId;                          // Slot id
-  msg_HwEthInterface_t intf;                // Interface
+
+  msg_id_t service;                         // Service id (type 0:none, 1:EVC, 2:NNI_VLAN)
+  msg_HwEthInterface_t  intf;               // Interface
 
   L7_uint8  main_mask;                      // Main Mask
 
@@ -1011,6 +1014,7 @@ typedef struct {
   L7_uint16 inner_vid;    // Inner VLAN id [1..4094]
 } __attribute__((packed)) msg_HwEthMef10Intf_t;
 
+
 /* EVC config */
 typedef struct {
   L7_uint8  SlotId;
@@ -1040,6 +1044,52 @@ typedef struct {
   /* IMPORTANT: interfaces must be in sequence (phy+lags) */
 
 } __attribute__((packed)) msg_HwEthMef10Evc_t;
+
+/* EVC Remove */
+// Messages CCMSG_ETH_EVC_REMOVE
+typedef struct {
+  L7_uint8  SlotId;
+  L7_uint32 id;           // EVC Id [1..PTIN_SYSTEM_N_EVCS]
+} __attribute__((packed)) msg_HwEthMef10EvcRemove_t;
+
+typedef struct
+{
+  L7_uint8  mask;
+  L7_uint8  trust_mode;                       // ingress_mask=0x01: 0-None, 1-Untrust markings, 2-802.1p marking, 3: IP-precedence mark; 4-DSCP mark (Default=2)
+
+  // Packet priority map
+  union {                                     // Union:
+    struct {                                      // Struct:
+      L7_uint8 prio_mask;                             //   pktpriority map mask: nth bit, tells to configure the nth priority (0 to 7)
+      L7_uint8 cos[8];                                //   Mapping: CoS from PCP: Default={0,1,2,3,4,5,6,7}
+    } __attribute__((packed)) pcp_map;            // PCP to CoS map
+
+    struct {                                      // Struct:
+      L7_uint8 prio_mask;                             //   pktpriority map mask: nth bit, tells to configure the nth priority (0 to 7)
+      L7_uint8 cos[8];                                //   Mapping: CoS from IP Prec: Default={0,1,2,3,4,5,6,7}
+    } __attribute__((packed)) ipprec_map;         // IP Prec to CoS map
+
+    struct {                                      // Struct:
+      L7_uint32 prio_mask[2];                         //   pktpriority map mask (nth bit, tells to configure the nth priority) - Low + High
+      L7_uint8  cos[64];                              //   Mapping: CoS(pcp): Default={0,1,2,3,4,5,6,7}
+    } __attribute__((packed)) dscp_map;           // DSCP to CoS map
+  } __attribute__((packed)) cos_classif;      // ingress_mask=0x04: Packet priority to CoS map (classification)
+} __attribute__((packed)) msg_CoS_classification_t;
+
+typedef struct
+{
+  msg_HwEthMef10Evc_t evc;                /* EVC struct */
+  msg_CoS_classification_t qos[2];        /* QoS for downstream/upstream */
+} __attribute__((packed)) msg_HwEthMef10EvcQoS_t;
+
+typedef struct
+{
+  L7_uint8 slot_id;
+
+  L7_uint32 evc_id;
+
+  msg_CoS_classification_t qos[2];
+} __attribute__((packed)) msg_evc_qos_t;
 
 /* EVC Options */
 typedef struct {
@@ -1088,13 +1138,6 @@ typedef struct {
   msg_HwEthInterface_t pairIntfId;
   L7_uint8             intfRole;
 } __attribute__((packed)) msg_HwTypeBProtIntfConfig_t;
-
-/* EVC Remove */
-// Messages CCMSG_ETH_EVC_REMOVE
-typedef struct {
-  L7_uint8  SlotId;
-  L7_uint32 id;           // EVC Id [1..PTIN_SYSTEM_N_EVCS]
-} __attribute__((packed)) msg_HwEthMef10EvcRemove_t;
 
 /* EVC stacked bridge */
 // Messages CCMSG_ETH_EVC_BRIDGE_ADD and CCMSG_ETH_EVC_BRIDGE_REMOVE

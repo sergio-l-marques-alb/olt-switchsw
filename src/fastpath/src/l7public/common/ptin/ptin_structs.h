@@ -41,6 +41,7 @@ typedef enum
   PTIN_DTL_MSG_L2_MACLIMIT_STATUS,
   PTIN_DTL_MSG_L3_INTF,
   PTIN_DTL_MSG_L3_IPMC,
+  PTIN_DTL_MSG_QOS,
   PTIN_DTL_MSG_LMM,
   PTIN_DTL_MSG_COUNTERS_LM,
   PTIN_DTL_MSG_TIME_INTERFACE,
@@ -64,6 +65,17 @@ typedef struct
   L7_uint32                   dataSize;
   L7_uint8                    data[PTIN_DTL_GENERICMSG_MAX_DATASIZE];
 } ptinDtlGenericMsg_t;
+
+typedef struct
+{
+  L7_uint64               ptin_port_bmp;  /* PTIN_PORT bitmap (zero to use specific port, or 0xff..ff to apply to all ports) */
+  L7_uint16               vlan_id;
+  L7_uint8                trust_mode;
+  L7_uint8                priority;
+  L7_uint8                priority_mask;
+
+  L7_uint8 int_priority;
+} ptin_dtl_qos_t;
 
 typedef struct
 {

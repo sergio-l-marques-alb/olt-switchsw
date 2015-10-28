@@ -247,6 +247,30 @@ extern L7_RC_t ptin_multicast_rateLimit(L7_BOOL enable, L7_uint16 vlanId);
 #endif
 
 /**
+ * Configure QoS mapping rules for a particular VLAN
+ * 
+ * @param trust_mode : trust_mode
+ * @param cos_map : array of CoS values for each pbit value
+ * @param cos_map_size : cos_map's number of elements
+ * @param vlan_id : VLAN id
+ * @param ptin_port : List of ptin_ports
+ * @param number_of_ports : Number of ptin_ports
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_qos_vlan_add(L7_uint8 trust_mode, L7_uint8 *cos_map, L7_uint8 cos_map_size,
+                                 L7_uint16 vlan_id, L7_uint32 *ptin_port, L7_uint8 number_of_ports);
+
+/**
+ * Clear all configuration for one particular VLAN
+ * 
+ * @param vlan 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_qos_vlan_clear(L7_uint16 vlan);
+
+/**
  * Consult hardware resources
  * 
  * @param resources : available resources
