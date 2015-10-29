@@ -315,7 +315,7 @@ unsigned int snooping_port_resources_available(unsigned int serviceId, unsigned 
     return L7_FALSE;
   }
 
-  if (L7_TRUE == ptin_igmp_proxy_bandwidth_control_get())
+  if (L7_TRUE == ptin_igmp_proxy_bandwidth_control_get() && sourceAddr != 0)
   {
     L7_inet_addr_t inetGroupAddr;
     L7_inet_addr_t inetSourceAddr;
@@ -506,7 +506,7 @@ unsigned int snooping_client_resources_available(unsigned int serviceId, unsigne
      ptin_timer_stop(70);
   }
 
-  if (L7_TRUE == ptin_igmp_proxy_bandwidth_control_get())
+  if (L7_TRUE == ptin_igmp_proxy_bandwidth_control_get() && sourceAddr != 0)
   {
     L7_inet_addr_t inetGroupAddr;
     L7_inet_addr_t inetSourceAddr;
