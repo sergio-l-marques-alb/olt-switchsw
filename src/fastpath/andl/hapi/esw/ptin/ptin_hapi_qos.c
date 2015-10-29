@@ -24,6 +24,7 @@
 typedef struct
 {
   L7_uint16   vlan_id;
+  L7_BOOL     leaf_side;
   L7_uint8    trust_mode;
 } ptin_hapi_qos_entry_key_t;
 
@@ -150,10 +151,11 @@ L7_RC_t ptin_hapi_qos_init(void)
  * @author mruas (10/27/2015)
  * 
  * @param vlan_id 
+ * @param leaf_side : Root or leaf interfaces? 
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_hapi_qos_vlan_remove(L7_uint16 vlan_id)
+L7_RC_t ptin_hapi_qos_vlan_remove(L7_uint16 vlan_id, L7_BOOL leaf_side)
 {
   ptin_dtl_qos_t qos_cfg;
 
@@ -161,7 +163,8 @@ L7_RC_t ptin_hapi_qos_vlan_remove(L7_uint16 vlan_id)
 
   memset(&qos_cfg, 0x00, sizeof(ptin_dtl_qos_t));
 
-  qos_cfg.vlan_id = vlan_id;
+  qos_cfg.vlan_id    = vlan_id;
+  qos_cfg.leaf_side  = leaf_side;
   qos_cfg.trust_mode = 0;
 
   return ptin_hapi_qos_entry_remove(&qos_cfg);
@@ -186,8 +189,8 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
   BROAD_POLICY_RULE_t ruleId;
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "VLAN %u, trust_mode, port_pbm=0x%llx, prio=%u/0x%x -> CoS=%u",
-            qos_cfg->vlan_id, qos_cfg->trust_mode, qos_cfg->ptin_port_bmp, qos_cfg->priority, qos_cfg->priority_mask, qos_cfg->int_priority);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "VLAN %u, leaf:%u, trust_mode, port_pbm=0x%llx, prio=%u/0x%x -> CoS=%u",
+            qos_cfg->vlan_id, qos_cfg->leaf_side, qos_cfg->trust_mode, qos_cfg->ptin_port_bmp, qos_cfg->priority, qos_cfg->priority_mask, qos_cfg->int_priority);
 
   /* Get pbm format of ports */
   if (ptin_hapi_port_bitmap_get(dapiPort, qos_cfg->ptin_port_bmp, &pbm, &pbm_mask) != L7_SUCCESS)
@@ -231,16 +234,20 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
   LOG_TRACE(LOG_CTX_PTIN_HAPI," VLAN=%u/0x%x trust_mode=%u max_rules=%u",
             qos_cfg->vlan_id, vlan_mask, qos_cfg->trust_mode, max_rules);
 
-  /* Removing all related entries */
-  rc = ptin_hapi_qos_entry_remove(qos_cfg);
-  if (rc != L7_SUCCESS)
+  /* If trust mode is provided, remove all related entries */
+  if (qos_cfg->trust_mode >= 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error removing entries!");
-    return L7_FAILURE;
+    rc = ptin_hapi_qos_entry_remove(qos_cfg); 
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error removing entries!");
+      return L7_FAILURE;
+    }
   }
 
   /* Search for this VLAN */
   free_entry = -1;
+  qos_entry = L7_NULLPTR;
   for (entry = 0; entry < PTIN_HAPI_QOS_TABLE_SIZE; entry++)
   {
     if (!hapi_qos_table[entry].entry_active)
@@ -250,11 +257,67 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
       continue; 
     }
 
-    if (qos_cfg->vlan_id == hapi_qos_table[entry].key.vlan_id)
+    if (qos_cfg->vlan_id    == hapi_qos_table[entry].key.vlan_id &&
+        qos_cfg->leaf_side  == hapi_qos_table[entry].key.leaf_side)
+    {
+      qos_entry = &hapi_qos_table[entry];
       break;
+    }
   }
-  /* If VLAN not found... */
-  if (entry >= PTIN_HAPI_QOS_TABLE_SIZE)
+
+  /* Reconfigure all rules with newer port bitmap */
+  if (qos_cfg->trust_mode < 0)
+  {
+    bcm_port_t    bcm_port;
+    bcmx_lport_t  bcmx_lport;
+    bcm_pbmp_t    pbmp_result;
+
+    /* To reconfigure an entry should be found */
+    if (qos_entry == L7_NULLPTR)
+    {
+      LOG_WARNING(LOG_CTX_PTIN_HAPI,"Entry not found... nothing to do");
+      return L7_SUCCESS;
+    }
+
+    LOG_TRACE(LOG_CTX_PTIN_HAPI,"Going to reconfigure ports bitmap of VLAN %u / leaf:%u", qos_cfg->vlan_id, qos_cfg->leaf_side);
+
+    /* Run all VLAN rules */
+    for (rule = 0; rule < max_rules; rule++)
+    {
+      if (qos_entry->rule[rule].in_use && qos_entry->rule[rule].policyId != BROAD_POLICY_INVALID)
+      {
+        /* Merge bitmaps */
+        BCM_PBMP_ASSIGN(pbmp_result, pbm);
+        BCM_PBMP_OR(pbmp_result, qos_entry->port_bmp);
+        /* Add new bitmap */
+        BCM_PBMP_ITER(pbmp_result, bcm_port)
+        {
+          bcmx_lport = bcmx_unit_port_to_lport(0, bcm_port);
+          if (BCM_PBMP_MEMBER(pbm, bcm_port) && !BCM_PBMP_MEMBER(qos_entry->port_bmp, bcm_port))
+          {
+            if (hapiBroadPolicyApplyToIface(qos_entry->rule[rule].policyId, bcmx_lport) != L7_SUCCESS) 
+            {
+              LOG_ERR(LOG_CTX_PTIN_HAPI, "Error adding bcm_port %u to entry %u, rule %u", bcm_port, entry, rule);
+              return L7_FAILURE;
+            }
+          }
+          else if (!BCM_PBMP_MEMBER(pbm, bcm_port) && BCM_PBMP_MEMBER(qos_entry->port_bmp, bcm_port))
+          {
+            if (hapiBroadPolicyRemoveFromIface(qos_entry->rule[rule].policyId, bcmx_lport) != L7_SUCCESS) 
+            {
+              LOG_ERR(LOG_CTX_PTIN_HAPI, "Error removing bcm_port %u from entry %u, rule %u", bcm_port, entry, rule);
+              return L7_FAILURE;
+            }
+          }
+        }
+      }
+    }
+    LOG_TRACE(LOG_CTX_PTIN_HAPI,"Ports bitmap of VLAN %u / leaf:%u updated", qos_cfg->vlan_id, qos_cfg->leaf_side);
+    return L7_SUCCESS;
+  }
+
+  /* If VLAN not found, use a free entry */
+  if (qos_entry == L7_NULLPTR)
   {
     LOG_TRACE(LOG_CTX_PTIN_HAPI,"Entry not found... searching for a free one");
 
@@ -264,67 +327,32 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
       LOG_ERR(LOG_CTX_PTIN_HAPI, "No free entries!");
       return L7_TABLE_IS_FULL;
     }
-    else
-    {
-      entry = free_entry;
-      memset(&hapi_qos_table[entry], 0x00, sizeof(ptin_hapi_qos_entry_t));
-      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Free entry index = %u", free_entry);
-    }
+
+    LOG_TRACE(LOG_CTX_PTIN_HAPI,"Free entry index = %u", free_entry);
+
+    entry = free_entry;
+    qos_entry = &hapi_qos_table[entry];
+    memset(qos_entry, 0x00, sizeof(ptin_hapi_qos_entry_t));
   }
+
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"Assuming entry index = %u", entry);
-  qos_entry = &hapi_qos_table[entry];
 
   if (qos_entry->entry_active)
   {
     LOG_TRACE(LOG_CTX_PTIN_HAPI,"Entry is in use");
-
-    /* Reconfigure all rules with newer port bitmap */
-    if (qos_cfg->trust_mode < 0)
-    {
-      bcm_port_t    bcm_port;
-      bcmx_lport_t  bcmx_lport;
-
-      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Going to reconfigure ports bitmap of VLAN %u", qos_cfg->vlan_id);
-
-      /* Run all VLAN rules */
-      for (rule = 0; rule < max_rules; rule++)
-      {
-        if (qos_entry->rule[rule].in_use && qos_entry->rule[rule].policyId != BROAD_POLICY_INVALID)
-        {
-          /* Update ports bitmap */
-          if (hapiBroadPolicyRemoveFromAll(qos_entry->rule[rule].policyId) != L7_SUCCESS)
-          {
-            LOG_ERR(LOG_CTX_PTIN_HAPI, "Error removing all ports from entry %u, rule %u", entry, rule);
-            return L7_FAILURE;
-          }
-          /* Add new bitmap */
-          PBMP_ITER(pbm, bcm_port)
-          {
-            bcmx_lport = bcmx_unit_port_to_lport(0, bcm_port);
-            if (hapiBroadPolicyApplyToIface(qos_entry->rule[rule].policyId, bcmx_lport) != L7_SUCCESS)
-            {
-              LOG_ERR(LOG_CTX_PTIN_HAPI, "Error adding bcm_port %u to entry %u, rule %u", bcm_port, entry, rule);
-              return L7_FAILURE;
-            }
-          }
-        }
-      }
-      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Ports bitmap of VLAN %u updated", qos_cfg->vlan_id);
-      return L7_SUCCESS;
-    }
 
     /* If trust mode is different, clear all entry */
     if (qos_cfg->trust_mode != qos_entry->key.trust_mode)
     {
       LOG_TRACE(LOG_CTX_PTIN_HAPI,"Trust mode is different (old value %u). Going to clear VLAN.", qos_entry->key.trust_mode);
 
-      rc = ptin_hapi_qos_vlan_remove(qos_cfg->vlan_id);
+      rc = ptin_hapi_qos_vlan_remove(qos_cfg->vlan_id, qos_cfg->leaf_side);
       if (rc != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_HAPI, "Error clearing VLAN entry!");
         return L7_FAILURE;
       }
-      LOG_TRACE(LOG_CTX_PTIN_HAPI,"VLAN %u cleared.", qos_cfg->vlan_id);
+      LOG_TRACE(LOG_CTX_PTIN_HAPI,"VLAN %u / leaf:%u cleared.", qos_cfg->vlan_id, qos_cfg->leaf_side);
     }
   }
 
@@ -494,6 +522,7 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
   /* Save entry */
   qos_entry->entry_active       = L7_TRUE;
   qos_entry->key.vlan_id        = qos_cfg->vlan_id;
+  qos_entry->key.leaf_side      = qos_cfg->leaf_side;
   qos_entry->key.trust_mode     = qos_cfg->trust_mode;
   BCM_PBMP_ASSIGN(qos_entry->port_bmp, pbm);
 
@@ -535,7 +564,8 @@ L7_RC_t ptin_hapi_qos_entry_remove(ptin_dtl_qos_t *qos_cfg)
       continue;
 
     /* Skip non included entries */
-    if (qos_cfg->vlan_id != qos_entry->key.vlan_id)
+    if ((qos_cfg->vlan_id != qos_entry->key.vlan_id) ||
+        (qos_cfg->leaf_side >= 0 && qos_cfg->leaf_side != qos_entry->key.leaf_side))
       continue;
 
     /* Run all rules belonging to this VLAN */
@@ -557,8 +587,8 @@ L7_RC_t ptin_hapi_qos_entry_remove(ptin_dtl_qos_t *qos_cfg)
           continue;
       }
 
-      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Going to remove entry %u, rule %u: vlan=%u trust_mode=%u prio=%u/0x%x (policyId=%d)",
-                entry, rule, qos_entry->key.vlan_id, qos_entry->key.trust_mode,
+      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Going to remove entry %u, rule %u: vlan=%u/leaf:%u trust_mode=%u prio=%u/0x%x (policyId=%d)",
+                entry, rule, qos_entry->key.vlan_id, qos_entry->key.leaf_side, qos_entry->key.trust_mode,
                 qos_entry->rule[rule].priority, qos_entry->rule[rule].priority_mask, qos_entry->rule[rule].policyId);
 
       /* Delete rule */
@@ -589,7 +619,7 @@ L7_RC_t ptin_hapi_qos_entry_remove(ptin_dtl_qos_t *qos_cfg)
       /* Clear entry */
       memset(qos_entry, 0x00, sizeof(ptin_hapi_qos_entry_t));
       qos_entry->entry_active = L7_FALSE;
-      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Entry belonging to VLAN %u was cleared!", qos_cfg->vlan_id);
+      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Entry belonging to VLAN %u / leaf:%u was cleared!", qos_cfg->vlan_id, qos_cfg->leaf_side);
     }
   }
 
@@ -668,8 +698,10 @@ L7_RC_t ptin_hapi_qos_dump(void)
     if (!qos_entry->entry_active)
       continue;
 
-    printf("Entry %-2u:  VlanID=%-4u  TrustMode=%u  Pbmp = 0x", entry,
-           qos_entry->key.vlan_id, qos_entry->key.trust_mode);
+    printf("Entry %-2u:  VlanID=%-4u (%s)  TrustMode=%u  Pbmp = 0x", entry,
+           qos_entry->key.vlan_id,
+           ((qos_entry->key.leaf_side) ? "LEAF" : "ROOT"),
+           qos_entry->key.trust_mode);
     for (j = 0; j < _SHR_PBMP_WORD_MAX; j++)
     {
       printf("%08x ", qos_entry->port_bmp.pbits[j]);

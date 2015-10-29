@@ -849,26 +849,28 @@ L7_uint8 cos_mask_lookup_6bits[] = {
  * Clear all configuration for one particular VLAN
  * 
  * @param vlan 
+ * @param leaf_side : LEAF ports? (-1 for all)
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_qos_vlan_clear(L7_uint16 vlan)
+L7_RC_t ptin_qos_vlan_clear(L7_uint16 vlan, L7_int8 leaf_side)
 {
   ptin_dtl_qos_t qos_cfg;
   L7_RC_t rc;
 
   memset(&qos_cfg, 0x00, sizeof(ptin_dtl_qos_t));
-  qos_cfg.vlan_id = vlan;
+  qos_cfg.vlan_id    = vlan;
+  qos_cfg.leaf_side  = leaf_side;
   qos_cfg.trust_mode = 0;
   
   rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_QOS, DAPI_CMD_CLEAR, sizeof(ptin_dtl_qos_t), &qos_cfg);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error removing all rules of VLAN %u", vlan);
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Error removing all rules of VLAN %u / leaf:%d", vlan, leaf_side);
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_INTF, "All rules removed from VLAN %u", vlan);
+  LOG_TRACE(LOG_CTX_PTIN_INTF, "All rules removed from VLAN %u / leaf:%u", vlan, leaf_side);
 
   return L7_SUCCESS;
 }
@@ -879,13 +881,14 @@ L7_RC_t ptin_qos_vlan_clear(L7_uint16 vlan)
  * @param qos_cfg : Struct to be used for HW configuration
  * @param cos_map : CoS(pbit)={a,b,c,d,e,f,g,h} 
  * @param cos_map_size : cos_map's number of elements 
- * @param n_prios : number of distinct priorities 
+ * @param n_prios : number of distinct priorities (-1 to 
+ *                reconfigure ports, 0 to delete rules, ...)
  * @param n_cos : number of CoS 
  * 
  * @return L7_RC_t 
  */
 static L7_RC_t cos_vlan_configure(ptin_dtl_qos_t *qos_cfg, L7_uint8 *cos_map, L7_uint8 cos_map_size,
-                                  L7_uint8 n_prios, L7_uint n_cos)
+                                  L7_int8 n_prios, L7_int8 n_cos)
 {
   L7_uint8 cos;
   L7_RC_t rc;
@@ -898,18 +901,34 @@ static L7_RC_t cos_vlan_configure(ptin_dtl_qos_t *qos_cfg, L7_uint8 *cos_map, L7
     return L7_FAILURE;
   }
 
+  /* Only update port information */
+  if (n_prios < 0)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_INTF, "Going to port data of VLAN %u", qos_cfg->vlan_id);
+
+    qos_cfg->trust_mode = -1;
+    rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_QOS, DAPI_CMD_SET, sizeof(ptin_dtl_qos_t), qos_cfg);
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Error reconfiguring rules");
+      return L7_FAILURE;
+    }
+    LOG_TRACE(LOG_CTX_PTIN_INTF, "All rules were reconfigured");
+    return L7_SUCCESS;
+  }
+
   /* Remove configurations? */
   if (n_prios == 0)
   {
-    LOG_TRACE(LOG_CTX_PTIN_INTF, "Going to remove all configurations of VLAN %u", qos_cfg->vlan_id);
+    LOG_TRACE(LOG_CTX_PTIN_INTF, "Going to remove all configurations of VLAN %u / leaf:%u", qos_cfg->vlan_id, qos_cfg->leaf_side);
     /* Remove all configurations */
-    rc = ptin_qos_vlan_clear(qos_cfg->vlan_id);
+    rc = ptin_qos_vlan_clear(qos_cfg->vlan_id, qos_cfg->leaf_side);
     if (rc != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_INTF, "Error removing all rules");
       return L7_FAILURE;
     }
-    LOG_TRACE(LOG_CTX_PTIN_INTF, "All rules removed of VLAN %u", qos_cfg->vlan_id);
+    LOG_TRACE(LOG_CTX_PTIN_INTF, "All rules removed of VLAN %u / leaf:%u", qos_cfg->vlan_id, qos_cfg->leaf_side);
     return L7_SUCCESS;
   }
 
@@ -1130,23 +1149,131 @@ static L7_RC_t cos_vlan_configure(ptin_dtl_qos_t *qos_cfg, L7_uint8 *cos_map, L7
 //static L7_RC_t ptin_qos_vlan_add_recursive(ptin_dtl_qos_t *qos_cfg, L7_uint8 *cos_map, L7_uint8 prio_start, L7_uint8 prio_end);
 
 /**
+ * Get port bitmap from list of ports
+ * 
+ * @param ptin_port 
+ * @param number_of_ports 
+ * @param ptin_port_bmp 
+ * 
+ * @return L7_RC_t 
+ */
+static L7_RC_t ptin_qos_port_bitmap_get(L7_uint32 *ptin_port, L7_uint8 number_of_ports, L7_uint64 *ptin_port_bmp)
+{
+  L7_int    i, j;
+  L7_uint32 intIfNum, port;
+  L7_INTF_TYPES_t intfType;
+  L7_uint64 pbmp;
+  L7_uint32 lag_members_list[PTIN_SYSTEM_N_PORTS], number_of_lag_members;
+  L7_RC_t rc = L7_SUCCESS;
+
+    /* Prepare list of ports */
+  pbmp = 0;
+  for (i = 0; i < number_of_ports; i++)
+  {
+    /* Validate ptin_port */
+    if (ptin_port[i] >= PTIN_SYSTEM_N_INTERF)
+    {
+      LOG_ERR(LOG_CTX_PTIN_API, "Invalid ptin port %u", ptin_port[i]);
+      rc = L7_FAILURE;
+      continue;
+    }
+    /* Convert to intIfNum */
+    if (ptin_intf_port2intIfNum(ptin_port[i], &intIfNum) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_API, "port %u does not exist", ptin_port[i]);
+      rc = L7_FAILURE;
+      continue;
+    }
+    /* Get interface type */
+    if (nimGetIntfType(intIfNum, &intfType) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_L2,"Error getting interface type of intIfNum=%u", intIfNum);
+      rc = L7_FAILURE;
+      continue;
+    }
+    /* Is it a LAG? If so, get its members */
+    if (intfType == L7_LAG_INTF)
+    {
+      /* Get list of active ports */
+      number_of_lag_members = PTIN_SYSTEM_N_PORTS;
+      if (usmDbDot3adMemberListGet(1, intIfNum, &number_of_lag_members, lag_members_list) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_INTF, "Error reading Members List of intIfNum %u", intIfNum);
+        rc = L7_FAILURE;
+        continue;
+      }
+      /* Run all members, and add them to the bitmap list */
+      for (j = 0; j < number_of_lag_members; j++)
+      {
+        if (ptin_intf_intIfNum2port(lag_members_list[j], &port) == L7_SUCCESS)
+        {
+          pbmp |= 1ULL << port; 
+        }
+        else
+        {
+          LOG_ERR(LOG_CTX_PTIN_INTF, "Error adding LAG member intIfNum %u", lag_members_list[j]);
+          rc = L7_FAILURE;
+        }
+      }
+    }
+    /* Physical interface */
+    else if (intfType == L7_PHYSICAL_INTF)
+    {
+      pbmp |= 1ULL << ptin_port[i];
+    }
+    /* Not recognized type */
+    else
+    {
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid intIfNum %u", intIfNum);
+      rc = L7_FAILURE;
+      continue;
+    }
+  }
+  LOG_TRACE(LOG_CTX_PTIN_API, "Bitmap ports: 0x%llx", pbmp);
+
+  if (ptin_port_bmp != L7_NULLPTR)
+  {
+    *ptin_port_bmp = pbmp;
+  }
+
+  return rc;
+}
+
+
+/**
+ * Update list of ports of QoS configuration
+ * 
+ * @param vlan_id 
+ * @param leaf_side : Ports list are leafs?  
+ * @param ptin_port 
+ * @param number_of_ports 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_qos_vlan_ports_update(L7_uint16 vlan_id, L7_BOOL leaf_side,
+                                   L7_uint32 *ptin_port, L7_uint8 number_of_ports)
+{
+  return ptin_qos_vlan_add(-1, L7_NULLPTR, 0, vlan_id, leaf_side, ptin_port, number_of_ports);
+}
+
+/**
  * Configure QoS mapping rules for a particular VLAN
  * 
- * @param trust_mode : trust_mode
+ * @param trust_mode : trust_mode (-1 to reconfigure ports)
  * @param cos_map : array of CoS values for each pbit value
  * @param cos_map_size : cos_map's number of elements
- * @param vlan_id : VLAN id
+ * @param vlan_id : VLAN id 
+ * @param leaf_side : Ports list are leafs? 
  * @param ptin_port : List of ptin_ports
  * @param number_of_ports : Number of ptin_ports
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_qos_vlan_add(L7_uint8 trust_mode, L7_uint8 *cos_map, L7_uint8 cos_map_size,
-                          L7_uint16 vlan_id, L7_uint32 *ptin_port, L7_uint8 number_of_ports)
+L7_RC_t ptin_qos_vlan_add(L7_int8 trust_mode, L7_uint8 *cos_map, L7_uint8 cos_map_size,
+                          L7_uint16 vlan_id, L7_BOOL leaf_side,
+                          L7_uint32 *ptin_port, L7_uint8 number_of_ports)
 {
-  L7_uint i, j, n_prios;
-  L7_uint32 intIfNum, port;
-  L7_INTF_TYPES_t intfType;
+  L7_int    n_prios;
   L7_uint64 ptin_port_bmp;
   ptin_dtl_qos_t qos_cfg;
   L7_RC_t   rc;
@@ -1155,6 +1282,13 @@ L7_RC_t ptin_qos_vlan_add(L7_uint8 trust_mode, L7_uint8 *cos_map, L7_uint8 cos_m
   if (vlan_id < PTIN_VLAN_MIN || vlan_id > PTIN_VLAN_MAX)
   {
     LOG_ERR(LOG_CTX_PTIN_API, "Invalid vlan id: %u", vlan_id);
+    return L7_FAILURE;
+  }
+
+  /* Validate trust mode */
+  if (trust_mode > L7_QOS_COS_MAP_INTF_MODE_TRUST_IPDSCP)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API, "Invalid trust mode: %u", trust_mode);
     return L7_FAILURE;
   }
 
@@ -1175,8 +1309,8 @@ L7_RC_t ptin_qos_vlan_add(L7_uint8 trust_mode, L7_uint8 *cos_map, L7_uint8 cos_m
       n_prios = 64;
       break;
     default:
-      LOG_ERR(LOG_CTX_PTIN_API, "Invalid trust mode: %u", trust_mode);
-      return L7_FAILURE;
+      n_prios = -1;
+      break;
   }
 
   /* Validate ports */
@@ -1186,66 +1320,18 @@ L7_RC_t ptin_qos_vlan_add(L7_uint8 trust_mode, L7_uint8 *cos_map, L7_uint8 cos_m
     return L7_SUCCESS;
   }
 
-  /* Prepare list of ports */
-  ptin_port_bmp = 0;
-  for (i = 0; i < number_of_ports; i++)
+  /* Get bitmap of ports */
+  if (ptin_qos_port_bitmap_get(ptin_port, number_of_ports, &ptin_port_bmp) != L7_SUCCESS)
   {
-    /* Validate ptin_port */
-    if (ptin_port[i] >= PTIN_SYSTEM_N_INTERF)
-    {
-      LOG_ERR(LOG_CTX_PTIN_API, "Invalid ptin port %u", ptin_port[i]);
-      continue;
-    }
-    /* Convert to intIfNum */
-    if (ptin_intf_port2intIfNum(ptin_port[i], &intIfNum) != L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_API, "port %u does not exist", ptin_port[i]);
-      continue;
-    }
-    /* Get interface type */
-    if (nimGetIntfType(intIfNum, &intfType) != L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_L2,"Error getting interface type of intIfNum=%u", intIfNum);
-      continue;
-    }
-    /* Is it a LAG? If so, get its members */
-    if (intfType == L7_LAG_INTF)
-    {
-      L7_uint32 lag_members_list[PTIN_SYSTEM_N_PORTS], number_of_lag_members;
-
-      /* Get list of active ports */
-      number_of_lag_members = PTIN_SYSTEM_N_PORTS;
-      if (usmDbDot3adMemberListGet(1, intIfNum, &number_of_lag_members, lag_members_list) != L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_INTF, "Error reading Members List of intIfNum %u", intIfNum);
-        continue;
-      }
-      /* Run all members, and add them to the bitmap list */
-      for (j = 0; j < number_of_lag_members; j++)
-      {
-        if (ptin_intf_intIfNum2port(lag_members_list[j], &port) == L7_SUCCESS)
-        {
-          ptin_port_bmp |= 1ULL << port; 
-        }
-      }
-    }
-    /* Physical interface */
-    else if (intfType == L7_PHYSICAL_INTF)
-    {
-      ptin_port_bmp |= 1ULL << ptin_port[i];
-    }
-    /* Not recognized type */
-    else
-    {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid intIfNum %u", intIfNum);
-      continue;
-    }
+    LOG_WARNING(LOG_CTX_PTIN_API, "Error getting bitmap of ports");
+    return L7_FAILURE;
   }
   LOG_TRACE(LOG_CTX_PTIN_API, "VLAN %u, Bitmap ports: 0x%llx", vlan_id, ptin_port_bmp);
 
   memset(&qos_cfg, 0x00, sizeof(qos_cfg));
-  qos_cfg.vlan_id = vlan_id;
-  qos_cfg.trust_mode = trust_mode;
+  qos_cfg.vlan_id       = vlan_id;
+  qos_cfg.leaf_side     = leaf_side;
+  qos_cfg.trust_mode    = trust_mode;
   qos_cfg.ptin_port_bmp = ptin_port_bmp;
 
   /* Configure QoS */

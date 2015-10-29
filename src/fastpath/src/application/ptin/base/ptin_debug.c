@@ -203,6 +203,7 @@ void ptin_debug(void)
   printf("  ptin_bwpolicer_flush_debug                                      - Flush configured EVC/client policers (at request)\r\n");
   printf("  ptin_debug_intf_cos_policer_set   <intf_type> <intf_id> <cos> <cir> <eir> <cbs> <ebs> - Create Interface/COS policer\r\n");
   printf("  ptin_debug_intf_cos_policer_clear <intf_type> <intf_id> <cos>   - Remove Interface/COS policer\r\n");
+  printf("  ptin_hapi_qos_dump                                              - Dump VLAN-QoS rules\r\n");
   printf("  ptin_fpcounters_dump_debug                                      - Dump configured EVC/client counters (at request)\r\n");
   printf("  ptin_fpcounters_flush_debug                                     - Flush configured EVC/client counters (at request)\r\n");
   printf("  ptin_vcap_defvid_dump                                           - Flush configured VCAP rules associated to defVID\r\n");
