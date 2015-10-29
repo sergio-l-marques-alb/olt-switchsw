@@ -5090,13 +5090,15 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, msg_CoS_classification_
       for (i = PTIN_SYSTEM_N_PONS; i < PTIN_SYSTEM_N_PONS+PTIN_SYSTEM_N_ETH; i++) 
       {
         ptin_port[number_of_ports++] = i; 
+        LOG_DEBUG(LOG_CTX_PTIN_MSG, "Port %u added", i);
       }
     }
     else              /* Downlink */
     {
       for (i = 0; i < PTIN_SYSTEM_N_PONS; i++)
       {
-        ptin_port[number_of_ports++] = i; 
+        ptin_port[number_of_ports++] = i;
+        LOG_DEBUG(LOG_CTX_PTIN_MSG, "Port %u added", i);
       }
     }
 #elif (PTIN_BOARD == PTIN_BOARD_TG16G)
@@ -5104,14 +5106,16 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, msg_CoS_classification_
     {
       for (i = PTIN_SYSTEM_N_PONS; i < PTIN_SYSTEM_N_PORTS; i++)
       {
-        ptin_port[number_of_ports++] = i; 
+        ptin_port[number_of_ports++] = i;
+        LOG_DEBUG(LOG_CTX_PTIN_MSG, "Port %u added", i);
       }
     }
     else              /* Downlink */
     {
       for (i = 0; i < PTIN_SYSTEM_N_PONS; i++)
       {
-        ptin_port[number_of_ports++] = i; 
+        ptin_port[number_of_ports++] = i;
+        LOG_DEBUG(LOG_CTX_PTIN_MSG, "Port %u added", i);
       }
     }
 #elif (PTIN_BOARD == PTIN_BOARD_TA48GE)
@@ -5119,14 +5123,16 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, msg_CoS_classification_
     {
       for (i = PTIN_SYSTEM_N_ETH; i < PTIN_SYSTEM_N_PORTS; i++) 
       {
-        ptin_port[number_of_ports++] = i; 
+        ptin_port[number_of_ports++] = i;
+        LOG_DEBUG(LOG_CTX_PTIN_MSG, "Port %u added", i);
       }
     }
     else              /* Downlink */
     {
       for (i = 0; i < PTIN_SYSTEM_N_ETH; i++)
       {
-        ptin_port[number_of_ports++] = i; 
+        ptin_port[number_of_ports++] = i;
+        LOG_DEBUG(LOG_CTX_PTIN_MSG, "Port %u added", i);
       }
     }
 #elif (PTIN_BOARD == PTIN_BOARD_CXO160G)
@@ -5135,6 +5141,7 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, msg_CoS_classification_
       for (i = 0; i < PTIN_SYSTEM_N_LOCAL_PORTS; i++)
       {
         ptin_port[number_of_ports++] = i;
+        LOG_DEBUG(LOG_CTX_PTIN_MSG, "Port %u added", i);
       }
     }
     else              /* Downlink */
@@ -5142,9 +5149,44 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, msg_CoS_classification_
       for (i = PTIN_SYSTEM_N_LOCAL_PORTS; i < ptin_sys_number_of_ports; i++)
       {
         ptin_port[number_of_ports++] = i;
+        LOG_DEBUG(LOG_CTX_PTIN_MSG, "Port %u added", i);
       }
     }
 #elif (PTIN_BOARD == PTIN_BOARD_CXO640G)
+  #if 1
+    /* Only look to downlink information */
+    if (index != 0)
+    {
+      L7_uint32 port;
+      ptin_HwEthMef10Evc_t evcConf;
+
+      /* Get EVC data */
+      memset(&evcConf, 0x00, sizeof(ptin_HwEthMef10Evc_t));
+      evcConf.index = evc_id;
+      if (ptin_evc_get(&evcConf) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "Error obtaining EVC data");
+        return L7_SUCCESS;
+      }
+      /* Add leaf ports */
+      for (i = 0; i < evcConf.n_intf; i++)
+      {
+        if (evcConf.intf[i].mef_type == PTIN_EVC_INTF_LEAF)
+        {
+          if (ptin_intf_typeId2port(evcConf.intf[i].intf_type, evcConf.intf[i].intf_id, &port) == L7_SUCCESS)
+          {
+            ptin_port[number_of_ports++] = port;
+            LOG_DEBUG(LOG_CTX_PTIN_MSG, "Port %u added", port);
+          }
+          else
+          {
+            LOG_ERR(LOG_CTX_PTIN_MSG, "Intf %u/%u does not have ptin_port format",
+                    evcConf.intf[i].intf_type, evcConf.intf[i].intf_id);
+          }
+        }
+      }
+    }
+#else
     for (i = 0; i < ptin_sys_number_of_ports; i++)
     {
       L7_uint16 board_id;
@@ -5155,9 +5197,11 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, msg_CoS_classification_
             (index == 1 && PTIN_BOARD_IS_DOWNLINK(board_id)))   /* Downlink */
         {
           ptin_port[number_of_ports++] = i;
+          LOG_DEBUG(LOG_CTX_PTIN_MSG, "Port %u added", i);
         }
       }
     }
+  #endif
 #endif
     /* Trust mode */
     memset(cos_map, 0xff, sizeof(cos_map));

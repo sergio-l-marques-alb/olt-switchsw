@@ -23,6 +23,7 @@
 #include "ptin_hapi_xconnect.h"
 #include "ptin_hapi_l2.h"
 #include "ptin_hapi_l3.h"
+#include "ptin_hapi_qos.h"
 #include "ptin_hapi_fp_bwpolicer.h"
 #include "ptin_hapi_fp_counters.h"
 #include "broad_policy.h"
@@ -147,6 +148,11 @@ L7_RC_t hapi_ptin_data_init(void)
   if (rc != L7_SUCCESS)
     return L7_FAILURE;
 #endif
+
+  rc = ptin_hapi_qos_init();
+  if (rc != L7_SUCCESS)
+    return L7_FAILURE;
+
   return rc;
 }
 

@@ -4,6 +4,13 @@
 #include "ptin_hapi.h"
 
 /**
+ * Init QoS
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_hapi_qos_init(void);
+
+/**
  * Add a QoS entry
  * 
  * @param dapiPort 

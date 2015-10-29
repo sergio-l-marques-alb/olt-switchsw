@@ -70,7 +70,7 @@ typedef struct
 {
   L7_uint64               ptin_port_bmp;  /* PTIN_PORT bitmap (zero to use specific port, or 0xff..ff to apply to all ports) */
   L7_uint16               vlan_id;
-  L7_uint8                trust_mode;
+  L7_int8                 trust_mode;     /* -1 to not be used */
   L7_uint8                priority;
   L7_uint8                priority_mask;
 

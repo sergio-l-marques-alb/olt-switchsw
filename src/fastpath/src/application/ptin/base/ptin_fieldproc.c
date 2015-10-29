@@ -1179,6 +1179,13 @@ L7_RC_t ptin_qos_vlan_add(L7_uint8 trust_mode, L7_uint8 *cos_map, L7_uint8 cos_m
       return L7_FAILURE;
   }
 
+  /* Validate ports */
+  if (ptin_port == L7_NULLPTR || number_of_ports == 0)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_API, "No ports provided (ports=%u)... ignoring", number_of_ports);
+    return L7_SUCCESS;
+  }
+
   /* Prepare list of ports */
   ptin_port_bmp = 0;
   for (i = 0; i < number_of_ports; i++)

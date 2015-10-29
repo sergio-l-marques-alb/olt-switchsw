@@ -752,7 +752,6 @@ typedef struct
 {
   L7_uint8 SlotId;                          // Slot id
 
-  msg_id_t service;                         // Service id (type 0:none, 1:EVC, 2:NNI_VLAN)
   msg_HwEthInterface_t  intf;               // Interface
 
   L7_uint8  main_mask;                      // Main Mask

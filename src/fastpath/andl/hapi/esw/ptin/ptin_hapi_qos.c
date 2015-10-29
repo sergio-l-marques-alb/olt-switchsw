@@ -50,6 +50,100 @@ typedef struct
 L7_uint16 hw_rules_total = 0;
 ptin_hapi_qos_entry_t hapi_qos_table[PTIN_HAPI_QOS_TABLE_SIZE];
 
+
+/**
+ * Get pbm format por ports
+ * 
+ * @param dapiPort 
+ * @param ptin_port_bmp 
+ * @param pbm 
+ * @param pbm_mask 
+ * 
+ * @return L7_RC_t 
+ */
+static L7_RC_t ptin_hapi_port_bitmap_get(ptin_dapi_port_t *dapiPort, L7_uint64 ptin_port_bmp,
+                                         bcm_pbmp_t *pbm, bcm_pbmp_t *pbm_mask)
+{
+  L7_int i;
+  DAPI_PORT_t  *dapiPortPtr = L7_NULLPTR;
+  BROAD_PORT_t *hapiPortPtr = L7_NULLPTR;
+
+  /* TODO: configure rule */
+  BCM_PBMP_CLEAR(*pbm);
+
+  if (ptin_port_bmp != 0)
+  {
+    if (hapi_ptin_bcmPbmPort_get(ptin_port_bmp, pbm) != L7_SUCCESS) 
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error converting port bitmap to pbmp format");;
+      return L7_FAILURE;
+    }
+  }
+  else if (dapiPort->usp->port >= 0 && dapiPort->usp->slot >= 0 && dapiPort->usp->port >= 0)
+  {
+    BROAD_PORT_t *hapiPortPtr_member;
+
+    dapiPortPtr = DAPI_PORT_GET( dapiPort->usp, dapiPort->dapi_g );
+    hapiPortPtr = HAPI_PORT_GET( dapiPort->usp, dapiPort->dapi_g );
+
+    /* Extract Trunk id */
+    if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr))
+    {
+      /* Apply to all member ports */
+      for (i=0; i<L7_MAX_MEMBERS_PER_LAG; i++)
+      {
+        if (!dapiPortPtr->modeparm.lag.memberSet[i].inUse)  continue;
+
+        hapiPortPtr_member = HAPI_PORT_GET( &dapiPortPtr->modeparm.lag.memberSet[i].usp, dapiPort->dapi_g);
+        if (hapiPortPtr_member==L7_NULLPTR)
+        {
+          LOG_ERR(LOG_CTX_PTIN_HAPI, "Error getting HAPI_PORT_GET for usp={%d,%d,%d}",
+                  dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
+                  dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
+                  dapiPortPtr->modeparm.lag.memberSet[i].usp.port);
+          return L7_FAILURE;
+        }
+
+        /* Add this physical port to bitmap */
+        BCM_PBMP_PORT_ADD(*pbm, hapiPortPtr_member->bcm_port);
+        LOG_TRACE(LOG_CTX_PTIN_HAPI,"bcm_port %d added", hapiPortPtr_member->bcm_port);
+      }
+    }
+    /* Extract Physical port */
+    else if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
+    {
+      BCM_PBMP_PORT_ADD(*pbm, hapiPortPtr->bcm_port);
+      LOG_TRACE(LOG_CTX_PTIN_HAPI,"bcm_port %d considered", hapiPortPtr->bcm_port);
+    }
+    /* Not valid type */
+    else
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI,"Interface has a not valid type: error!");
+      return L7_FAILURE;
+    }
+  }
+
+  /* PBM mask: all ports */
+  BCM_PBMP_CLEAR(*pbm_mask);
+  if (hapi_ptin_bcmPbmPort_get((L7_uint64)-1, pbm_mask) != L7_SUCCESS) 
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error converting port bitmap to pbmp format");
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Init QoS
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_hapi_qos_init(void)
+{
+  return L7_SUCCESS;
+}
+
 /**
  * Removes all entries belonging to a VLAN
  * 
@@ -83,12 +177,10 @@ L7_RC_t ptin_hapi_qos_vlan_remove(L7_uint16 vlan_id)
  */
 L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_cfg)
 {
-  L7_int      i, entry, free_entry, rule, max_rules;
+  L7_int      entry, free_entry, rule, max_rules;
   L7_uint16   vlan_mask = 0xfff;
   bcm_pbmp_t  pbm, pbm_mask;
   ptin_hapi_qos_entry_t *qos_entry;
-  DAPI_PORT_t  *dapiPortPtr = L7_NULLPTR;
-  BROAD_PORT_t *hapiPortPtr = L7_NULLPTR;
   L7_uchar8 exact_mask[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
   BROAD_POLICY_t      policyId;
   BROAD_POLICY_RULE_t ruleId;
@@ -97,66 +189,17 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "VLAN %u, trust_mode, port_pbm=0x%llx, prio=%u/0x%x -> CoS=%u",
             qos_cfg->vlan_id, qos_cfg->trust_mode, qos_cfg->ptin_port_bmp, qos_cfg->priority, qos_cfg->priority_mask, qos_cfg->int_priority);
 
-  /* TODO: configure rule */
-  BCM_PBMP_CLEAR(pbm);
-
-  if (qos_cfg->ptin_port_bmp != 0)
+  /* Get pbm format of ports */
+  if (ptin_hapi_port_bitmap_get(dapiPort, qos_cfg->ptin_port_bmp, &pbm, &pbm_mask) != L7_SUCCESS)
   {
-    if (hapi_ptin_bcmPbmPort_get(qos_cfg->ptin_port_bmp, &pbm) != L7_SUCCESS) 
-    {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error converting port bitmap to pbmp format");;
-      return L7_FAILURE;
-    }
-  }
-  else if (dapiPort->usp->port >= 0 && dapiPort->usp->slot >= 0 && dapiPort->usp->port >= 0)
-  {
-    BROAD_PORT_t *hapiPortPtr_member;
-
-    dapiPortPtr = DAPI_PORT_GET( dapiPort->usp, dapiPort->dapi_g );
-    hapiPortPtr = HAPI_PORT_GET( dapiPort->usp, dapiPort->dapi_g );
-
-    /* Extract Trunk id */
-    if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr))
-    {
-      /* Apply to all member ports */
-      for (i=0; i<L7_MAX_MEMBERS_PER_LAG; i++)
-      {
-        if (!dapiPortPtr->modeparm.lag.memberSet[i].inUse)  continue;
-
-        hapiPortPtr_member = HAPI_PORT_GET( &dapiPortPtr->modeparm.lag.memberSet[i].usp, dapiPort->dapi_g);
-        if (hapiPortPtr_member==L7_NULLPTR)
-        {
-          LOG_ERR(LOG_CTX_PTIN_HAPI, "Error getting HAPI_PORT_GET for usp={%d,%d,%d}",
-                  dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
-                  dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
-                  dapiPortPtr->modeparm.lag.memberSet[i].usp.port);
-          return L7_FAILURE;
-        }
-
-        /* Add this physical port to bitmap */
-        BCM_PBMP_PORT_ADD(pbm, hapiPortPtr_member->bcm_port);
-        LOG_TRACE(LOG_CTX_PTIN_HAPI,"bcm_port %d added", hapiPortPtr_member->bcm_port);
-      }
-    }
-    /* Extract Physical port */
-    else if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
-    {
-      BCM_PBMP_PORT_ADD(pbm, hapiPortPtr->bcm_port);
-      LOG_TRACE(LOG_CTX_PTIN_HAPI,"bcm_port %d considered", hapiPortPtr->bcm_port);
-    }
-    /* Not valid type */
-    else
-    {
-      LOG_ERR(LOG_CTX_PTIN_HAPI,"Interface has a not valid type: error!");
-      return L7_FAILURE;
-    }
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error converting port bitmap to pbmp format");
+    return L7_FAILURE;
   }
 
-  /* PBM mask: all ports */
-  BCM_PBMP_CLEAR(pbm_mask);
-  if (hapi_ptin_bcmPbmPort_get((L7_uint64)-1, &pbm_mask) != L7_SUCCESS) 
+  /* Validate trust mode */
+  if (qos_cfg->trust_mode > L7_QOS_COS_MAP_INTF_MODE_TRUST_IPDSCP)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error converting port bitmap to pbmp format");;
+    LOG_WARNING(LOG_CTX_STARTUP, "Invalid trust mode %u",  qos_cfg->trust_mode);
     return L7_FAILURE;
   }
 
@@ -177,8 +220,8 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
     max_rules = PTIN_HAPI_QOS_VLAN_ENTRIES;
     break;
   default:
-    LOG_ERR(LOG_CTX_STARTUP, "Invalid Trust mode: %u", qos_cfg->trust_mode);
-    return L7_FAILURE;
+    max_rules = PTIN_HAPI_QOS_VLAN_ENTRIES;
+    break;
   }
 
   /* Get VLAN mask */
@@ -234,6 +277,41 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
   if (qos_entry->entry_active)
   {
     LOG_TRACE(LOG_CTX_PTIN_HAPI,"Entry is in use");
+
+    /* Reconfigure all rules with newer port bitmap */
+    if (qos_cfg->trust_mode < 0)
+    {
+      bcm_port_t    bcm_port;
+      bcmx_lport_t  bcmx_lport;
+
+      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Going to reconfigure ports bitmap of VLAN %u", qos_cfg->vlan_id);
+
+      /* Run all VLAN rules */
+      for (rule = 0; rule < max_rules; rule++)
+      {
+        if (qos_entry->rule[rule].in_use && qos_entry->rule[rule].policyId != BROAD_POLICY_INVALID)
+        {
+          /* Update ports bitmap */
+          if (hapiBroadPolicyRemoveFromAll(qos_entry->rule[rule].policyId) != L7_SUCCESS)
+          {
+            LOG_ERR(LOG_CTX_PTIN_HAPI, "Error removing all ports from entry %u, rule %u", entry, rule);
+            return L7_FAILURE;
+          }
+          /* Add new bitmap */
+          PBMP_ITER(pbm, bcm_port)
+          {
+            bcmx_lport = bcmx_unit_port_to_lport(0, bcm_port);
+            if (hapiBroadPolicyApplyToIface(qos_entry->rule[rule].policyId, bcmx_lport) != L7_SUCCESS)
+            {
+              LOG_ERR(LOG_CTX_PTIN_HAPI, "Error adding bcm_port %u to entry %u, rule %u", bcm_port, entry, rule);
+              return L7_FAILURE;
+            }
+          }
+        }
+      }
+      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Ports bitmap of VLAN %u updated", qos_cfg->vlan_id);
+      return L7_SUCCESS;
+    }
 
     /* If trust mode is different, clear all entry */
     if (qos_cfg->trust_mode != qos_entry->key.trust_mode)
@@ -443,7 +521,8 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
  */
 L7_RC_t ptin_hapi_qos_entry_remove(ptin_dtl_qos_t *qos_cfg)
 {
-  L7_uint entry, rule;
+  L7_uint8  mask;
+  L7_uint   entry, rule;
   ptin_hapi_qos_entry_t *qos_entry;
 
   /* Search all related entries */
@@ -465,14 +544,16 @@ L7_RC_t ptin_hapi_qos_entry_remove(ptin_dtl_qos_t *qos_cfg)
       if (!qos_entry->rule[rule].in_use)
         continue;
 
+      /* Common mask for comparison */
+      mask = qos_cfg->priority_mask & qos_entry->rule[rule].priority_mask;
+
       /* Only look to trustmode, priority and mask, if trust_mode is not null */
       if (qos_cfg->trust_mode != 0)
       {
         if (qos_cfg->trust_mode != qos_entry->key.trust_mode) 
           continue;
 
-        if ((qos_cfg->priority & qos_cfg->priority_mask & qos_entry->rule[rule].priority_mask) !=
-              (qos_entry->rule[rule].priority & qos_entry->rule[rule].priority_mask))
+        if ((qos_cfg->priority & mask) != (qos_entry->rule[rule].priority & mask))
           continue;
       }
 
