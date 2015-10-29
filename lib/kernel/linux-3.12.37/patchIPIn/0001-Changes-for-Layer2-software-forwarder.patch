@@ -1,0 +1,521 @@
+diff -rupN linux-3.12.old/include/linux/gfp.h linux-3.12.new/include/linux/gfp.h
+--- linux-3.12.old/include/linux/gfp.h	2015-10-23 12:34:47.000000000 +0100
++++ linux-3.12.new/include/linux/gfp.h	2015-10-26 13:06:47.000000000 +0000
+@@ -7,6 +7,8 @@
+ #include <linux/topology.h>
+ #include <linux/mmdebug.h>
+ 
++#include <linux/kconfig.h>
++
+ struct vm_area_struct;
+ 
+ /* Plain integer GFP bitmasks. Do not use this directly. */
+diff -rupN linux-3.12.old/include/linux/netdevice.h linux-3.12.new/include/linux/netdevice.h
+--- linux-3.12.old/include/linux/netdevice.h	2015-10-26 13:01:41.000000000 +0000
++++ linux-3.12.new/include/linux/netdevice.h	2015-10-26 13:06:09.000000000 +0000
+@@ -51,6 +51,17 @@
+ #include <linux/neighbour.h>
+ #include <uapi/linux/netdevice.h>
+ 
++#if defined (CONFIG_IPIFWD) || defined (CONFIG_IPIFWD_MODULE)
++extern void register_ipi_handle_frame_hook(int (*func)(struct sk_buff *skb));
++extern void unregister_ipi_handle_frame_hook(void);
++#endif /* CONFIG_IPIFWD || CONFIG_IPIFWD_MODULE */
++
++#if defined (CONFIG_LACP) || defined (CONFIG_LACP_MODULE)
++extern void register_lacp_handle_frame_hook(void (*func)(struct sk_buff *skb));
++extern void unregister_lacp_handle_frame_hook(void);
++#endif /* CONFIG_LACP || CONFIG_LACP_MODULE */
++
++
+ struct netpoll_info;
+ struct device;
+ struct phy_device;
+@@ -1356,15 +1367,23 @@ struct net_device {
+ 
+ 	/* Called from unregister, can be used to call free_netdev */
+ 	void (*destructor)(struct net_device *dev);
++	int (*rx_hook)(struct sk_buff *skb);
+ 
+ #ifdef CONFIG_NETPOLL
+ 	struct netpoll_info __rcu	*npinfo;
+ #endif
+-
+-#ifdef CONFIG_NET_NS
+-	/* Network namespace this network device is inside */
+-	struct net		*nd_net;
+-#endif
++	#if defined (CONFIG_IPIFWD) || defined (CONFIG_IPIFWD_MODULE)
++		void *ipi_fwd_port;
++	#endif /* CONFIG_IPIFWD || CONFIG_IPIFWD_MODULE */
++
++	#if defined (CONFIG_LACP) || defined (CONFIG_LACP_MODULE)
++		struct net_device *agg_dev;
++	#endif /* CONFIG_LACP || CONFIG_LACP_MODULE */
++
++	#ifdef CONFIG_NET_NS
++		/* Network namespace this network device is inside */
++		struct net		*nd_net;
++	#endif
+ 
+ 	/* mid-layer private */
+ 	union {
+diff -rupN linux-3.12.old/include/linux/socket.h linux-3.12.new/include/linux/socket.h
+--- linux-3.12.old/include/linux/socket.h	2015-10-26 13:01:41.000000000 +0000
++++ linux-3.12.new/include/linux/socket.h	2015-10-26 13:06:09.000000000 +0000
+@@ -179,8 +179,21 @@ struct ucred {
+ #define AF_CAIF		37	/* CAIF sockets			*/
+ #define AF_ALG		38	/* Algorithm sockets		*/
+ #define AF_NFC		39	/* NFC sockets			*/
+-#define AF_VSOCK	40	/* vSockets			*/
+-#define AF_MAX		41	/* For now.. */
++#define AF_LACP         40      /* IPI 802.3 LACP              */
++#define AF_EAPOL        41      /* IPI 802.1x PAE               */
++#define AF_STP          42      /* IPI 802.1D STP               */
++#define AF_HAL          43      /* IPI 802.1D HAL               */
++#define AF_GARP         44      /* IPI 802.1D GARP              */
++#define AF_IGMP_SNOOP   45      /* IPI IGMP SNOOPING            */
++#define AF_LLDP         47      /* IPI IEEE 802.1AB 2005 LLDP   */
++#define AF_CFM          49      /* IPI IEEE802-1ag-d6-0         */
++#define AF_EFM          50      /* IPI IEEE802.3ah EFM OAM      */
++#define AF_ELMI         51      /* IPI MEF-16                   */
++#define AF_TRILL        52      /* IPI TRILL                    */
++#define AF_PTP          53      /* IPI PTP                      */
++#define AF_SYNCE        54      /* IPI SYNCE                    */
++#define AF_VSOCK 	55      /* vSockets                     */
++#define AF_MAX          64      /* For now.. */
+ 
+ /* Protocol families, same as address families. */
+ #define PF_UNSPEC	AF_UNSPEC
+@@ -224,6 +237,19 @@ struct ucred {
+ #define PF_CAIF		AF_CAIF
+ #define PF_ALG		AF_ALG
+ #define PF_NFC		AF_NFC
++#define PF_LACP         AF_LACP
++#define PF_EAPOL        AF_EAPOL
++#define PF_STP          AF_STP
++#define PF_HAL          AF_HAL
++#define PF_GARP         AF_GARP
++#define PF_IGMP_SNOOP   AF_IGMP_SNOOP
++#define PF_LLDP         AF_LLDP
++#define PF_EFM          AF_EFM
++#define PF_CFM          AF_CFM
++#define PF_ELMI         AF_ELMI
++#define PF_PTP          AF_PTP
++#define PF_TRILL        AF_TRILL
++#define PF_SYNCE        AF_SYNCE
+ #define PF_VSOCK	AF_VSOCK
+ #define PF_MAX		AF_MAX
+ 
+diff -rupN linux-3.12.old/include/uapi/linux/if_ether.h linux-3.12.new/include/uapi/linux/if_ether.h
+--- linux-3.12.old/include/uapi/linux/if_ether.h	2015-10-26 13:01:41.000000000 +0000
++++ linux-3.12.new/include/uapi/linux/if_ether.h	2015-10-26 13:06:09.000000000 +0000
+@@ -66,8 +66,11 @@
+ #define ETH_P_IPV6	0x86DD		/* IPv6 over bluebook		*/
+ #define ETH_P_PAUSE	0x8808		/* IEEE Pause frames. See 802.3 31B */
+ #define ETH_P_SLOW	0x8809		/* Slow Protocol. See 802.3ad 43B */
++#define ETH_P_SPT       0x8809          /* Slow Protocol */
+ #define ETH_P_WCCP	0x883E		/* Web-cache coordination protocol
+-					 * defined in draft-wilson-wrec-wccp-v2-00.txt */
++					 * defined in 
++					 * draft-wilson-wrec-wccp-v2-00.txt 
++					 */
+ #define ETH_P_PPP_DISC	0x8863		/* PPPoE discovery messages     */
+ #define ETH_P_PPP_SES	0x8864		/* PPPoE session messages	*/
+ #define ETH_P_MPLS_UC	0x8847		/* MPLS Unicast traffic		*/
+@@ -82,6 +85,8 @@
+ #define ETH_P_8021AD	0x88A8          /* 802.1ad Service VLAN		*/
+ #define ETH_P_802_EX1	0x88B5		/* 802.1 Local Experimental 1.  */
+ #define ETH_P_TIPC	0x88CA		/* TIPC 			*/
++#define ETH_P_PAE       0x888E          /* Slow Protocol Types          */
++#define ETH_P_LLDP      0x88cc          /* LLDP Protocol Type           */
+ #define ETH_P_8021AH	0x88E7          /* 802.1ah Backbone Service Tag */
+ #define ETH_P_MVRP	0x88F5          /* 802.1Q MVRP                  */
+ #define ETH_P_1588	0x88F7		/* IEEE 1588 Timesync */
+diff -rupN linux-3.12.old/include/uapi/linux/net.h linux-3.12.new/include/uapi/linux/net.h
+--- linux-3.12.old/include/uapi/linux/net.h	2015-10-26 13:01:41.000000000 +0000
++++ linux-3.12.new/include/uapi/linux/net.h	2015-10-26 13:06:09.000000000 +0000
+@@ -21,7 +21,7 @@
+ #include <linux/socket.h>
+ #include <asm/socket.h>
+ 
+-#define NPROTO		AF_MAX
++#define NPROTO		PF_MAX
+ 
+ #define SYS_SOCKET	1		/* sys_socket(2)		*/
+ #define SYS_BIND	2		/* sys_bind(2)			*/
+diff -rupN linux-3.12.old/net/core/dev.c linux-3.12.new/net/core/dev.c
+--- linux-3.12.old/net/core/dev.c	2015-10-26 13:01:41.000000000 +0000
++++ linux-3.12.new/net/core/dev.c	2015-10-26 13:06:09.000000000 +0000
+@@ -73,6 +73,7 @@
+  */
+ 
+ #include <asm/uaccess.h>
++#include <linux/version.h>
+ #include <linux/bitops.h>
+ #include <linux/capability.h>
+ #include <linux/cpu.h>
+@@ -3219,6 +3220,14 @@ static int enqueue_to_backlog(struct sk_
+ 
+ 	local_irq_save(flags);
+ 
++        if (unlikely(skb->dev->rx_hook != NULL)) {
++                int ret;
++
++                ret = skb->dev->rx_hook(skb);
++                if (ret == NET_RX_DROP)
++                        goto drop;
++        }
++
+ 	rps_lock(sd);
+ 	qlen = skb_queue_len(&sd->input_pkt_queue);
+ 	if (qlen <= netdev_max_backlog && !skb_flow_limit(skb, qlen)) {
+@@ -3231,6 +3240,13 @@ enqueue:
+ 			return NET_RX_SUCCESS;
+ 		}
+ 
++        if (unlikely(skb->dev->rx_hook != NULL)) {
++         int ret;
++         ret = skb->dev->rx_hook(skb);
++         if (ret == NET_RX_DROP)
++           goto drop;
++        }
++
+ 		/* Schedule NAPI for backlog device
+ 		 * We can use non atomic operation since we own the queue lock
+ 		 */
+@@ -3244,6 +3260,7 @@ enqueue:
+ 	sd->dropped++;
+ 	rps_unlock(sd);
+ 
++drop:
+ 	local_irq_restore(flags);
+ 	preempt_check_resched_rt();
+ 
+@@ -3347,6 +3364,54 @@ static inline int take_root_lock(spinloc
+ }
+ #endif
+ 
++/* Deliver skb to an old protocol, which is not threaded well
++   or which do not understand shared skbs.
++*/
++static int deliver_to_old_ones(struct packet_type *pt, struct sk_buff *skb, int last, struct net_device *dev)
++{
++#if (LINUX_VERSION_CODE < KERNEL_VERSION (3,0,0))
++        static spinlock_t net_bh_lock = SPIN_LOCK_UNLOCKED;
++#else
++        static DEFINE_SPINLOCK(net_bh_lock);
++#endif /* (LINUX_VERSION_CODE < KERNEL_VERSION (3,0,0)) */
++        int ret = NET_RX_DROP;
++
++
++        if (!last) {
++                skb = skb_clone(skb, GFP_ATOMIC);
++                if (skb == NULL)
++                        return ret;
++        }
++        if (skb_is_nonlinear(skb) && skb_linearize(skb) != 0) {
++                kfree_skb(skb);
++                return ret;
++        }
++
++        /* The assumption (correct one) is that old protocols
++           did not depened on BHs different of NET_BH and TIMER_BH.
++         */
++
++        /* Emulate NET_BH with special spinlock */
++        spin_lock(&net_bh_lock);
++
++        /* Disable timers and wait for all timers completion */
++        /*
++        tasklet_disable(bh_task_vec+TIMER_BH);
++        */
++
++        ret = pt->func(skb, skb->dev, pt, dev);
++
++        /*
++        tasklet_hi_enable(bh_task_vec+TIMER_BH);
++        */
++
++        spin_unlock(&net_bh_lock);
++
++/* printk ("net_bh_locknet_bh_locknet_bh_locknet_bh_locknet_bh_lock\n"); */
++
++        return ret;
++}
++
+ static void net_tx_action(struct softirq_action *h)
+ {
+ 	struct softnet_data *sd = &__get_cpu_var(softnet_data);
+@@ -3413,6 +3478,79 @@ int (*br_fdb_test_addr_hook)(struct net_
+ EXPORT_SYMBOL_GPL(br_fdb_test_addr_hook);
+ #endif
+ 
++#if defined(CONFIG_IPIFWD) || defined(CONFIG_IPIFWD_MODULE)
++int (*ipi_handle_frame_hook)(struct sk_buff *skb) = NULL;
++
++void register_ipi_handle_frame_hook(int (*func)(struct sk_buff *skb))
++{
++  if (func)
++    ipi_handle_frame_hook = func;
++}
++
++void unregister_ipi_handle_frame_hook(void)
++{
++  ipi_handle_frame_hook = NULL;
++}
++
++EXPORT_SYMBOL(register_ipi_handle_frame_hook);
++EXPORT_SYMBOL(unregister_ipi_handle_frame_hook);
++#endif /* CONFIG_IPIFWD || CONFIG_IPIFWD_MODULE */
++
++#if defined(CONFIG_LACP) || defined(CONFIG_LACP_MODULE)
++void (*lacp_handle_frame_hook)(struct sk_buff *skb) = NULL;
++
++void register_lacp_handle_frame_hook(void (*func)(struct sk_buff *skb))
++{
++  if (func)
++    lacp_handle_frame_hook = func;
++}
++
++void unregister_lacp_handle_frame_hook(void)
++{
++  lacp_handle_frame_hook = NULL;
++}
++
++EXPORT_SYMBOL(register_lacp_handle_frame_hook);
++EXPORT_SYMBOL(unregister_lacp_handle_frame_hook);
++#endif /* CONFIG_LACP || CONFIG_LACP_MODULE */
++
++#if defined(CONFIG_LLDP) || defined(CONFIG_LLDP_MODULE)
++void (*lldp_handle_frame_hook)(struct sk_buff *skb) = NULL;
++
++void register_lldp_handle_frame_hook(void (*func)(struct sk_buff *skb))
++{
++  if (func)
++    lldp_handle_frame_hook = func;
++}
++
++void unregister_lldp_handle_frame_hook(void)
++{
++  lldp_handle_frame_hook = NULL;
++}
++
++EXPORT_SYMBOL(register_lldp_handle_frame_hook);
++EXPORT_SYMBOL(unregister_lldp_handle_frame_hook);
++#endif /* CONFIG_LLDP || CONFIG_LLDP_MODULE */
++
++static __inline__ int ipi_handle_bridge_frame (struct sk_buff *skb,
++                                     struct packet_type *pt_prev,
++                                     struct net_device *dev)
++{
++        int ret = NET_RX_DROP;
++
++        if (pt_prev) {
++                if (!pt_prev->af_packet_priv)
++                        ret = deliver_to_old_ones(pt_prev, skb, 0, dev);
++                else {
++                        atomic_inc(&skb->users); 
++                        ret = pt_prev->func(skb, skb->dev, pt_prev, dev);
++                }
++        }
++
++        ret = ipi_handle_frame_hook(skb);
++        return ret;
++}
++
+ #ifdef CONFIG_NET_CLS_ACT
+ /* TODO: Maybe we should just force sch_ingress to be compiled in
+  * when CONFIG_NET_CLS_ACT is? otherwise some useless instructions
+@@ -3557,10 +3695,26 @@ static int __netif_receive_skb_core(stru
+ 	int ret = NET_RX_DROP;
+ 	__be16 type;
+ 
++        struct ethhdr * ethhdr = (struct ethhdr *)skb_mac_header(skb);
++        unsigned char *dest_addr = (unsigned char *)(ethhdr->h_dest);
++        const unsigned char eapol_addr[6] = { 0x01, 0x80, 0xc2,
++                                              0x00, 0x00, 0x03 };
++        const unsigned char lldp_addr[3][6] = 
++	    { { 0x01, 0x80, 0xC2, 0x00, 0x00, 0x0E },
++	      { 0x01, 0x80, 0xC2, 0x00, 0x00, 0x03 },
++	      { 0x01, 0x80, 0xC2, 0x00, 0x00, 0x00 }
++	    };
++
+ 	net_timestamp_check(!netdev_tstamp_prequeue, skb);
+ 
+ 	trace_netif_receive_skb(skb);
+ 
++        if (unlikely(skb->dev->rx_hook != NULL)) {
++          ret = skb->dev->rx_hook(skb);
++          if (ret == NET_RX_DROP)
++            goto out;
++        }
++
+ 	/* if we've gotten here through NAPI, check netpoll */
+ 	if (netpoll_receive_skb(skb))
+ 		goto out;
+@@ -3572,6 +3726,35 @@ static int __netif_receive_skb_core(stru
+ 		skb_reset_transport_header(skb);
+ 	skb_reset_mac_len(skb);
+ 
++        type = skb->protocol;
++
++#if defined(CONFIG_LLDP) || defined (CONFIG_LLDP_MODULE)
++	if ((type == __constant_htons (ETH_P_LLDP)) &&
++	    ((!memcmp (dest_addr, lldp_addr[0], 6))||
++	     (!memcmp (dest_addr, lldp_addr[1], 6))||
++	     (!memcmp (dest_addr, lldp_addr[2], 6))))
++	  {
++	    lldp_handle_frame_hook (skb);
++	  }
++
++#endif /* CONFIG_LLDP || CONFIG_LLDP_MODULE */
++
++#if defined(CONFIG_LACP) || defined (CONFIG_LACP_MODULE)
++  if (skb->dev->agg_dev && type != __constant_htons (ETH_P_SPT))
++    {
++      /* Slow protocol types currently handled by agg_dev.
++         Currently defined Slow protocol subtypes are LACP and
++         Link Aggregation - Marker Protocol */
++      skb->dev = skb->dev->agg_dev;
++      lacp_handle_frame_hook (skb);
++
++      if (skb->pkt_type == PACKET_OTHERHOST &&
++          memcmp (ethhdr->h_dest, skb->dev->dev_addr,
++          skb->dev->addr_len) == 0)
++        skb->pkt_type = PACKET_HOST;
++    }
++#endif
++
+ 	pt_prev = NULL;
+ 
+ 	rcu_read_lock();
+@@ -3600,11 +3783,47 @@ another_round:
+ 
+ 	list_for_each_entry_rcu(ptype, &ptype_all, list) {
+ 		if (!ptype->dev || ptype->dev == skb->dev) {
+-			if (pt_prev)
+-				ret = deliver_skb(skb, pt_prev, orig_dev);
+-			pt_prev = ptype;
+-		}
+-	}
++                   if (pt_prev) {
++                     if (!pt_prev->af_packet_priv) {
++                       ret = deliver_to_old_ones
++                       (pt_prev, skb, 0, orig_dev);
++                     } else {
++                         atomic_inc(&skb->users);
++                         ret = pt_prev->func
++                         (skb, skb->dev,
++                          pt_prev, orig_dev);
++                       }
++                   }
++                       pt_prev = ptype;
++		}
++	}
++#if defined(CONFIG_IPIFWD) || defined(CONFIG_IPIFWD_MODULE)
++        if ((rcu_dereference (skb->dev->ipi_fwd_port)) != NULL &&
++#if defined(CONFIG_LACP) || defined (CONFIG_LACP_MODULE)
++            type != __constant_htons (ETH_P_SPT) &&
++#endif
++#if defined(CONFIG_8021X) || defined (CONFIG_8021X_MODULE)
++            type != __constant_htons (ETH_P_PAE) &&
++/* If received type is 8021Q but destined for 8021X group address handle it*/
++          ( !((type == __constant_htons (ETH_P_8021Q)) &&
++             (!memcmp (dest_addr, eapol_addr, 6))))&&
++#endif
++            ipi_handle_frame_hook != NULL)
++          {
++           rcu_read_unlock();
++             ret = ipi_handle_bridge_frame(skb, pt_prev, orig_dev);
++             return ret;
++          }
++#endif
++
++#if defined(CONFIG_8021X) || defined (CONFIG_8021X_MODULE)
++ /* If 8021Q frame received but for 8021X group address change the type */
++       if ((type == __constant_htons (ETH_P_8021Q)) &&
++             (!memcmp (dest_addr, eapol_addr, 6)))
++         {
++             type = __constant_htons (ETH_P_PAE);
++         }
++#endif
+ 
+ skip_taps:
+ #ifdef CONFIG_NET_CLS_ACT
+@@ -3668,8 +3887,18 @@ ncls:
+ 		if (ptype->type == type &&
+ 		    (ptype->dev == null_or_dev || ptype->dev == skb->dev ||
+ 		     ptype->dev == orig_dev)) {
+-			if (pt_prev)
+-				ret = deliver_skb(skb, pt_prev, orig_dev);
++                 if (pt_prev) {
++                   if (!pt_prev->af_packet_priv) {
++                     ret = deliver_to_old_ones
++                       (pt_prev, skb, 0, orig_dev);
++                   } else {
++                     atomic_inc(&skb->users);
++                     ret = pt_prev->func
++                       (skb, skb->dev,
++                        pt_prev, orig_dev);
++                   }   
++                 }
++
+ 			pt_prev = ptype;
+ 		}
+ 	}
+diff -rupN linux-3.12.old/net/ipv4/ip_input.c linux-3.12.new/net/ipv4/ip_input.c
+--- linux-3.12.old/net/ipv4/ip_input.c	2015-10-26 13:01:41.000000000 +0000
++++ linux-3.12.new/net/ipv4/ip_input.c	2015-10-26 13:06:09.000000000 +0000
+@@ -381,9 +381,18 @@ int ip_rcv(struct sk_buff *skb, struct n
+ 
+ 	/* When the interface is in promisc. mode, drop all the crap
+ 	 * that it receives, do not try to analyse it.
+-	 */
+-	if (skb->pkt_type == PACKET_OTHERHOST)
+-		goto drop;
++         * Exception to the above:
++         * Accept packet if the dest MAC is on the device MAC alias list.
++         */
++        if (skb->pkt_type == PACKET_OTHERHOST) {
++                if (! dev_ma_list_lookup(dev, eth_hdr(skb)->h_dest,
++                                         dev->addr_len)) {
++                        skb->pkt_type = PACKET_HOST;
++                }
++                else {
++                        goto drop;
++                }
++        }
+ 
+ 
+ 	IP_UPD_PO_STATS_BH(dev_net(dev), IPSTATS_MIB_IN, skb->len);
+diff -rupN linux-3.12.old/net/Kconfig linux-3.12.new/net/Kconfig
+--- linux-3.12.old/net/Kconfig	2015-10-26 13:01:41.000000000 +0000
++++ linux-3.12.new/net/Kconfig	2015-10-26 13:06:09.000000000 +0000
+@@ -46,6 +46,26 @@ config COMPAT_NETLINK_MESSAGES
+ 
+ menu "Networking options"
+ 
++config IPIFWD
++        tristate "IPInfusion Vlan-Aware Bridge Forwarder"
++       default m
++        help 
++
++config 8021X
++        tristate "IPInfusion 802.1x Port Authentication Entity"
++       default m
++        help
++
++config LACP
++        tristate "IPInfusion Link Aggregation Control Protocol"
++       default m
++        help
++
++config LLDP
++        tristate "IPI Link Layer Discovery Protocol"
++       default m
++        help
++
+ source "net/packet/Kconfig"
+ source "net/unix/Kconfig"
+ source "net/xfrm/Kconfig"

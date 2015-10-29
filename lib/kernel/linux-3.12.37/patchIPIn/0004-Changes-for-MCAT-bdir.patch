@@ -1,0 +1,61 @@
+diff -rupN linux-3.12.old/net/ipv4/ipmr.c linux-3.12.new/net/ipv4/ipmr.c
+--- linux-3.12.old/net/ipv4/ipmr.c	2015-10-27 12:44:27.000000000 +0000
++++ linux-3.12.new/net/ipv4/ipmr.c	2015-10-27 12:51:18.000000000 +0000
+@@ -847,12 +847,30 @@ static struct mfc_cache *ipmr_cache_find
+ 	return NULL;
+ }
+ 
++#if 0
++/* Look for a (*,*,oif) entry */
++static struct mfc_cache *ipmr_cache_find_any_parent(struct mr_table *mrt,
++						    int vifi)
++{
++	int line = MFC_HASH(htonl(INADDR_ANY), htonl(INADDR_ANY));
++	struct mfc_cache *c;
++
++	list_for_each_entry_rcu(c, &mrt->mfc_cache_array[line], list)
++		if (c->mfc_origin == htonl(INADDR_ANY) &&
++		    c->mfc_mcastgrp == htonl(INADDR_ANY) &&
++		    c->mfc_un.res.ttls[vifi] < 255)
++			return c;
++
++	return NULL;
++}
++#endif
++
+ /* Look for a (*,G) entry */
+ static struct mfc_cache *ipmr_cache_find_any(struct mr_table *mrt,
+ 					     __be32 mcastgrp, int vifi)
+ {
+ 	int line = MFC_HASH(mcastgrp, htonl(INADDR_ANY));
+-	struct mfc_cache *c, *proxy;
++	struct mfc_cache *c; /* , *proxy;*/
+ 
+ 	if (mcastgrp == htonl(INADDR_ANY))
+ 		goto skip;
+@@ -860,18 +878,24 @@ static struct mfc_cache *ipmr_cache_find
+ 	list_for_each_entry_rcu(c, &mrt->mfc_cache_array[line], list)
+ 		if (c->mfc_origin == htonl(INADDR_ANY) &&
+ 		    c->mfc_mcastgrp == mcastgrp) {
++#if 0
++                        /* ZebOS-BIDIR : Incoming interface will fail this */
+ 			if (c->mfc_un.res.ttls[vifi] < 255)
++#endif
+ 				return c;
++#if 0
+ 
+ 			/* It's ok if the vifi is part of the static tree */
+ 			proxy = ipmr_cache_find_any_parent(mrt,
+ 							   c->mfc_parent);
+ 			if (proxy && proxy->mfc_un.res.ttls[vifi] < 255)
+ 				return c;
++#endif
+ 		}
+ 
+ skip:
+-	return ipmr_cache_find_any_parent(mrt, vifi);
++        /* ZebOS-BIDIR removed a line */
++	return NULL;
+ }
+ 
+ /*

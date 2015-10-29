@@ -1,0 +1,21 @@
+diff -rupN linux-3.12.old/include/linux/socket.h linux-3.12.new/include/linux/socket.h
+--- linux-3.12.old/include/linux/socket.h	2015-10-26 13:07:43.000000000 +0000
++++ linux-3.12.new/include/linux/socket.h	2015-10-26 16:01:56.000000000 +0000
+@@ -192,7 +192,8 @@ struct ucred {
+ #define AF_TRILL        52      /* IPI TRILL                    */
+ #define AF_PTP          53      /* IPI PTP                      */
+ #define AF_SYNCE        54      /* IPI SYNCE                    */
+-#define AF_VSOCK 	55      /* vSockets                     */
++#define AF_OAM          55      /* IPI OAMD                     */
++#define AF_VSOCK 	56      /* vSockets                     */
+ #define AF_MAX          64      /* For now.. */
+ 
+ /* Protocol families, same as address families. */
+@@ -250,6 +251,7 @@ struct ucred {
+ #define PF_PTP          AF_PTP
+ #define PF_TRILL        AF_TRILL
+ #define PF_SYNCE        AF_SYNCE
++#define PF_OAM          AF_OAM
+ #define PF_VSOCK	AF_VSOCK
+ #define PF_MAX		AF_MAX
+ 

@@ -1,0 +1,125 @@
+diff -rupN linux-3.12.old/include/linux/netdevice.h linux-3.12.new/include/linux/netdevice.h
+--- linux-3.12.old/include/linux/netdevice.h	2015-10-26 13:10:22.000000000 +0000
++++ linux-3.12.new/include/linux/netdevice.h	2015-10-26 16:11:22.000000000 +0000
+@@ -61,6 +61,10 @@ extern void register_lacp_handle_frame_h
+ extern void unregister_lacp_handle_frame_hook(void);
+ #endif /* CONFIG_LACP || CONFIG_LACP_MODULE */
+ 
++#if defined (CONFIG_DRNI) || defined (CONFIG_DRNI_MODULE)
++extern void register_mlag_handle_frame_hook(void (*func)(struct sk_buff *skb));
++extern void unregister_mlag_handle_frame_hook(void);
++#endif /* CONFIG_DRNI || CONFIG_DRNI_MODULE */
+ 
+ struct netpoll_info;
+ struct device;
+@@ -1389,6 +1393,10 @@ struct net_device {
+ 		struct net_device *agg_dev;
+ 	#endif /* CONFIG_LACP || CONFIG_LACP_MODULE */
+ 
++	#if defined (CONFIG_DRNI) || defined (CONFIG_DRNI_MODULE)
++		struct net_device *mlag_dev;
++	#endif /* CONFIG_DRNI || CONFIG_DRNI_MODULE */
++
+ 	#ifdef CONFIG_NET_NS
+ 		/* Network namespace this network device is inside */
+ 		struct net		*nd_net;
+diff -rupN linux-3.12.old/include/linux/socket.h linux-3.12.new/include/linux/socket.h
+--- linux-3.12.old/include/linux/socket.h	2015-10-26 16:05:35.000000000 +0000
++++ linux-3.12.new/include/linux/socket.h	2015-10-26 16:12:42.000000000 +0000
+@@ -193,7 +193,8 @@ struct ucred {
+ #define AF_PTP          53      /* IPI PTP                      */
+ #define AF_SYNCE        54      /* IPI SYNCE                    */
+ #define AF_OAM          55      /* IPI OAMD                     */
+-#define AF_VSOCK 	56      /* vSockets                     */
++#define AF_DRNI         56      /* IPI 802.1AX-D3.02 MLAG       */
++#define AF_VSOCK 	57      /* vSockets                     */
+ #define AF_MAX          64      /* For now.. */
+ 
+ /* Protocol families, same as address families. */
+@@ -252,6 +253,7 @@ struct ucred {
+ #define PF_TRILL        AF_TRILL
+ #define PF_SYNCE        AF_SYNCE
+ #define PF_OAM          AF_OAM
++#define PF_DRNI         AF_DRNI
+ #define PF_VSOCK	AF_VSOCK
+ #define PF_MAX		AF_MAX
+ 
+diff -rupN linux-3.12.old/include/uapi/linux/if_ether.h linux-3.12.new/include/uapi/linux/if_ether.h
+--- linux-3.12.old/include/uapi/linux/if_ether.h	2015-10-26 13:07:43.000000000 +0000
++++ linux-3.12.new/include/uapi/linux/if_ether.h	2015-10-26 16:08:58.000000000 +0000
+@@ -67,6 +67,7 @@
+ #define ETH_P_PAUSE	0x8808		/* IEEE Pause frames. See 802.3 31B */
+ #define ETH_P_SLOW	0x8809		/* Slow Protocol. See 802.3ad 43B */
+ #define ETH_P_SPT       0x8809          /* Slow Protocol */
++#define ETH_P_DRNI      0x88cb          /* DRNI . See 802.1AX-REV-d3-2*/
+ #define ETH_P_WCCP	0x883E		/* Web-cache coordination protocol
+ 					 * defined in 
+ 					 * draft-wilson-wrec-wccp-v2-00.txt 
+diff -rupN linux-3.12.old/net/core/dev.c linux-3.12.new/net/core/dev.c
+--- linux-3.12.old/net/core/dev.c	2015-10-26 13:10:22.000000000 +0000
++++ linux-3.12.new/net/core/dev.c	2015-10-26 16:06:23.000000000 +0000
+@@ -3514,6 +3514,24 @@ EXPORT_SYMBOL(register_lacp_handle_frame
+ EXPORT_SYMBOL(unregister_lacp_handle_frame_hook);
+ #endif /* CONFIG_LACP || CONFIG_LACP_MODULE */
+ 
++#if defined (CONFIG_DRNI) || defined (CONFIG_DRNI_MODULE)
++void (*mlag_handle_frame_hook)(struct sk_buff *skb) = NULL;
++
++void register_mlag_handle_frame_hook(void (*func)(struct sk_buff *skb))
++{
++  if (func)
++    mlag_handle_frame_hook = func;
++}
++
++void unregister_mlag_handle_frame_hook(void)
++{
++  mlag_handle_frame_hook = NULL;
++}
++
++EXPORT_SYMBOL(register_mlag_handle_frame_hook);
++EXPORT_SYMBOL(unregister_mlag_handle_frame_hook);
++#endif /* CONFIG_DRNI || CONFIG_DRNI_MODULE */
++
+ #if defined(CONFIG_LLDP) || defined(CONFIG_LLDP_MODULE)
+ void (*lldp_handle_frame_hook)(struct sk_buff *skb) = NULL;
+ 
+@@ -3740,7 +3758,8 @@ static int __netif_receive_skb_core(stru
+ #endif /* CONFIG_LLDP || CONFIG_LLDP_MODULE */
+ 
+ #if defined(CONFIG_LACP) || defined (CONFIG_LACP_MODULE)
+-  if (skb->dev->agg_dev && type != __constant_htons (ETH_P_SPT))
++   if (skb->dev->agg_dev && (type != __constant_htons (ETH_P_SPT) &&
++                           (type != __constant_htons (ETH_P_DRNI))))
+     {
+       /* Slow protocol types currently handled by agg_dev.
+          Currently defined Slow protocol subtypes are LACP and
+@@ -3748,6 +3767,14 @@ static int __netif_receive_skb_core(stru
+       skb->dev = skb->dev->agg_dev;
+       lacp_handle_frame_hook (skb);
+ 
++#if defined (CONFIG_DRNI) || defined (CONFIG_DRNI_MODULE)
++      if ((skb->dev->mlag_dev) && (type != __constant_htons (ETH_P_DRNI)))
++        {
++          skb->dev = skb->dev->mlag_dev;
++          mlag_handle_frame_hook (skb);
++        }
++#endif /* CONFIG_DRNI || CONFIG_DRNI_MODULE */
++
+       if (skb->pkt_type == PACKET_OTHERHOST &&
+           memcmp (ethhdr->h_dest, skb->dev->dev_addr,
+           skb->dev->addr_len) == 0)
+diff -rupN linux-3.12.old/net/Kconfig linux-3.12.new/net/Kconfig
+--- linux-3.12.old/net/Kconfig	2015-10-26 13:07:43.000000000 +0000
++++ linux-3.12.new/net/Kconfig	2015-10-26 16:06:23.000000000 +0000
+@@ -61,6 +61,11 @@ config LACP
+        default m
+         help
+ 
++config DRNI
++        tristate "IPInfusion MLAG [DRNI]"
++       default m
++        help
++
+ config LLDP
+         tristate "IPI Link Layer Discovery Protocol"
+        default m

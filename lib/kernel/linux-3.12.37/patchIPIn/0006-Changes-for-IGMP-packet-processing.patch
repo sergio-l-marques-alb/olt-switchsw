@@ -1,0 +1,40 @@
+diff -rupN linux-3.12.old/net/ipv4/ipmr.c linux-3.12.new/net/ipv4/ipmr.c
+--- linux-3.12.old/net/ipv4/ipmr.c	2015-10-27 12:58:21.000000000 +0000
++++ linux-3.12.new/net/ipv4/ipmr.c	2015-10-27 12:57:57.000000000 +0000
+@@ -1974,7 +1974,7 @@ int ip_mr_input(struct sk_buff *skb)
+ 	struct net *net = dev_net(skb->dev);
+ 	int local = skb_rtable(skb)->rt_flags & RTCF_LOCAL;
+ 	struct mr_table *mrt;
+-
++  
+ 	/* Packet is looped back after forward, it should not be
+ 	 * forwarded second time, but still can be delivered locally.
+ 	 */
+@@ -1990,7 +1990,7 @@ int ip_mr_input(struct sk_buff *skb)
+ 		if (IPCB(skb)->opt.router_alert) {
+ 			if (ip_call_ra_chain(skb))
+ 				return 0;
+-		} else if (ip_hdr(skb)->protocol == IPPROTO_IGMP) {
++	  } else if (ip_hdr(skb)->protocol == IPPROTO_IGMP) {
+ 			/* IGMPv1 (and broken IGMPv2 implementations sort of
+ 			 * Cisco IOS <= 11.2(8)) do not put router alert
+ 			 * option to IGMP packets destined to routable
+@@ -2005,9 +2005,15 @@ int ip_mr_input(struct sk_buff *skb)
+ 				raw_rcv(mroute_sk, skb);
+ 				return 0;
+ 			}
+-		    }
+-	}
+-
++		 }
++		}
++    else if ((ip_hdr(skb)->protocol == IPPROTO_IGMP) && (IPCB(skb)->opt.router_alert))
++    {
++      if (ip_call_ra_chain(skb))
++      {
++        return 0;
++      }
++    }
+ 	/* already under rcu_read_lock() */
+ 	cache = ipmr_cache_find(mrt, ip_hdr(skb)->saddr, ip_hdr(skb)->daddr);
+ 	if (cache == NULL) {
