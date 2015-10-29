@@ -14512,6 +14512,7 @@ L7_RC_t ptin_msg_igmp_multicast_service_remove(msg_multicast_service_t *msg, L7_
 
 
 
+#define DTL0_STRING "dtl0"
 extern L7_int dtlVlanIfAdd(L7_uint16 vlanId);//#include <os/linux/mgmt/dtl_net.h>
 
 int ptin_msg_PTP_lnx_net_if_set(ipc_msg *inbuffer, ipc_msg *outbuffer) {
@@ -14540,7 +14541,7 @@ L7_RC_t rc;
                 return ERROR_CODE_INVALIDPARAM;
             }
 
-            sprintf(ifName, "%s.%d", "dtl0", ib->dtl0vid);
+            sprintf(ifName, "%s.%d", DTL0_STRING, ib->dtl0vid);
             for (i=0, ip=0, msk=0; i<4; i++) {
                 ip<<=8;
                 ip|=ib->IP[i];
@@ -14553,7 +14554,10 @@ L7_RC_t rc;
                     LOG_ERR(LOG_CTX_PTIN_MSG,"dtlVlanIfAdd");
                     return ERROR_CODE_INVALIDPARAM;
                 }
-    
+                if (L7_SUCCESS!=osapiIfEnable(DTL0_STRING)) {
+                    LOG_ERR(LOG_CTX_PTIN_MSG,"osapiIfEnable(ifName=%s)", ifName);
+                    return ERROR_CODE_INVALIDPARAM;
+                }
                 if (L7_SUCCESS!=osapiIfEnable(ifName)) {
                     LOG_ERR(LOG_CTX_PTIN_MSG,"osapiIfEnable(ifName=%s)", ifName);
                     return ERROR_CODE_INVALIDPARAM;
