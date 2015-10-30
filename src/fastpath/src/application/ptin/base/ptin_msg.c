@@ -5108,9 +5108,13 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_BOOL downlink, msg_C
   /* Configure QoS? */
   if (qos != L7_NULLPTR)
   {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Ingress: %s", (downlink) ? "Downlink" : "Uplink");
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Mask      = 0x%02x", qos->mask);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "TrustMode = %u", qos->trust_mode);
+
     if (qos->mask == 0x00) 
     {
-      LOG_TRACE(LOG_CTX_PTIN_MSG, "No configurations to be done");
+      LOG_DEBUG(LOG_CTX_PTIN_MSG, "No configurations to be done");
       return L7_SUCCESS;
     }
 
@@ -5272,6 +5276,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
   }
 
   /* Does this message contains QoS information? */
+  /* Uplink QoS */
   if (inbuffer->infoDim >= sizeof(msg_HwEthMef10Evc_t) + sizeof(msg_CoS_classification_t))
   {
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to configure uplink QoS for EVC %u", ptinEvcConf.index);
@@ -5282,7 +5287,8 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
       return L7_FAILURE;
     }
   }
-  else if (inbuffer->infoDim >= sizeof(msg_HwEthMef10EvcQoS_t))
+  /* Downlink QoS */
+  if (inbuffer->infoDim >= sizeof(msg_HwEthMef10EvcQoS_t))
   {
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to configure downlink QoS for EVC %u", ptinEvcConf.index);
     /* Uplink QoS */
@@ -5475,6 +5481,7 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
       rc_global = L7_FAILURE;
     }
 
+#if 0
     /* Update VLAN-QoS ports */
     if (rc_global_failure == L7_SUCCESS)
     {
@@ -5485,6 +5492,7 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
       }
       LOG_DEBUG(LOG_CTX_PTIN_MSG, "QoS for EVC %u reconfigured", msgEvcPort[i].evcId);
     }
+#endif
   }
 
   if (rc_global_failure != L7_SUCCESS)
