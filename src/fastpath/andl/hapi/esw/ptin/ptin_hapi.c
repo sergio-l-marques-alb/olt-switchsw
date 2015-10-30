@@ -4319,43 +4319,9 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
   /** COS & COLOR REMARKING **/
   /** EGRESS STAGE **/
 
- //#if 1
+// OLTTS - 17139
+#if (PTIN_BOARD == PTIN_BOARD_TG16G)
 
-  {
-      L7_uint8  prio;
-      bcm_port_t bcm_port;
-      //bcm_color_t bcm_color;
-      int i, r;
-    
-       r=bcm_switch_control_set (0, bcmSwitchColorSelect, BCM_COLOR_OUTER_CFI);
-       LOG_INFO(LOG_CTX_PTIN_HAPI,"\tbcm_switch_control_set()=%d",r);
-
-       for (i=0; i<ptin_sys_number_of_ports; i++) {
-           // Get bcm_port format
-           if (hapi_ptin_bcmPort_get(i, &bcm_port)!=BCM_E_NONE) {
-             LOG_ERR(LOG_CTX_PTIN_HAPI, "Error obtaining bcm_port for port %u", i);
-             continue;
-           }
-
-           LOG_INFO(LOG_CTX_PTIN_HAPI,"port=%u / bcm_port=%d", i, bcm_port);
-           //INGRESS STAGE
-           r=bcm_port_cfi_color_set(0, bcm_port, 0, bcmColorGreen);
-           LOG_INFO(LOG_CTX_PTIN_HAPI,"\tbcm_port_cfi_color_set()=%d",r);
-           r=bcm_port_cfi_color_set(0, bcm_port, 1, bcmColorYellow);
-           LOG_INFO(LOG_CTX_PTIN_HAPI,"\tbcm_port_cfi_color_set()=%d",r);
-           //EGRESS STAGE
-           for (prio=0; prio<8; prio++) {
-              r=bcm_port_vlan_priority_unmap_set(0, bcm_port, prio, bcmColorGreen, prio, 0);
-               LOG_DEBUG(LOG_CTX_PTIN_HAPI,"\tprio %d: bcm_port_vlan_priority_unmap_set()=%d",prio,r);
-               r=bcm_port_vlan_priority_unmap_set(0, bcm_port, prio, bcmColorYellow, prio, 1);
-               LOG_DEBUG(LOG_CTX_PTIN_HAPI,"\tprio %d: bcm_port_vlan_priority_unmap_set()=%d",prio,r);
-           }
-           r=bcm_port_control_set(0, bcm_port, bcmPortControlEgressVlanPriUsesPktPri, 0);
-           LOG_INFO(LOG_CTX_PTIN_HAPI,"\tbcm_port_control_set()=%d",r);
-       }
-  }
-
-#if (PTIN_BOARD == PTIN_BOARD_TG16G) // OLTTS - 17139
   L7_uint8  prio, prio_mask  = 0x7;
   L7_uint8  vlanFormat_value = BROAD_VLAN_FORMAT_STAG | BROAD_VLAN_FORMAT_CTAG;
   L7_uint8  vlanFormat_mask  = 0xff;
@@ -4433,6 +4399,79 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
     hapiBroadPolicyCreateCancel();
     return L7_FAILURE;
   }
+#else
+  {
+    L7_uint8  prio;
+    bcm_port_t bcm_port;
+    //bcm_color_t bcm_color;
+    int i, rv;
+
+    LOG_INFO(LOG_CTX_PTIN_HAPI, "Configuring PCP/DEI unmapping");
+
+    rv = bcm_switch_control_set (0, bcmSwitchColorSelect, BCM_COLOR_OUTER_CFI);
+    if (rv != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_switch_control_set: %u", rv);
+      return L7_FAILURE; 
+    }
+
+    for (i=0; i<ptin_sys_number_of_ports; i++) {
+      // Get bcm_port format
+      if (hapi_ptin_bcmPort_get(i, &bcm_port)!=BCM_E_NONE) 
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error obtaining bcm_port for port %u", i);
+        continue;
+      }
+
+      // This will make egress packets to be PCP remarked, using the internal priority value
+      rv = bcm_port_control_set(0, bcm_port, bcmPortControlEgressVlanPriUsesPktPri, 0);
+      if (rv != BCM_E_NONE)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_control_set: %u", rv);
+        return L7_FAILURE; 
+      }
+    #if 0
+      rv = bcm_port_control_set(0, bcm_port, bcmPortControlPreservePacketPriority, 1);
+      if (rv != BCM_E_NONE)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_control_set: %u", rv);
+        return L7_FAILURE; 
+      }
+    #endif
+
+      //INGRESS STAGE
+      rv = bcm_port_cfi_color_set(0, bcm_port, 0, bcmColorGreen);
+      if (rv != BCM_E_NONE)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_cfi_color_set(GREEN): %u", rv);
+        return L7_FAILURE; 
+      }
+      rv = bcm_port_cfi_color_set(0, bcm_port, 1, bcmColorYellow);
+      if (rv != BCM_E_NONE)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_cfi_color_set(YELLOW): %u", rv);
+        return L7_FAILURE; 
+      }
+
+      //EGRESS STAGE
+      for (prio=0; prio<8; prio++)
+      {
+        rv = bcm_port_vlan_priority_unmap_set(0, bcm_port, prio, bcmColorGreen, prio, 0);
+        if (rv != BCM_E_NONE)
+        {
+          LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_vlan_priority_unmap_set(GREEN): %u", rv);
+          return L7_FAILURE; 
+        }
+        rv = bcm_port_vlan_priority_unmap_set(0, bcm_port, prio, bcmColorYellow, prio, 1);
+        if (rv != BCM_E_NONE)
+        {
+          LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_vlan_priority_unmap_set(YELLOW): %u", rv);
+          return L7_FAILURE; 
+        }
+      }
+    }
+  }
+#endif
 
 #if (PTIN_BOARD_IS_GPON)
   /* For TG16G, IPTV traffic (downstream direction) is going to egress with an extra inner tag with the UNI-VLAN.
@@ -4531,14 +4570,6 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
   }
 #endif
 
-///* Add all physical ports */
-//if (hapiBroadPolicyApplyToAll(policyId) != L7_SUCCESS)
-//{
-//  LOG_ERR(LOG_CTX_STARTUP, "Error adding all ports");
-//  hapiBroadPolicyDelete(policyId);
-//  return L7_FAILURE;
-//}
-#endif
   return L7_SUCCESS;
 }
 
