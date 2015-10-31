@@ -366,6 +366,38 @@ static L7_RC_t hapiBroadPolicyActionAdd(BROAD_POLICY_RULE_ENTRY_t  *rulePtr,
       }
       break;
 
+    /* PTin added: FP */
+    case BROAD_ACTION_SET_OUTER_CFI:
+      if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
+      {
+        actionPtr->u.vfp_parms.set_outer_cfi[action_scope] = param0;
+      }
+      else if (policyStage == BROAD_POLICY_STAGE_EGRESS)
+      {
+        actionPtr->u.efp_parms.set_outer_cfi[action_scope] = param0;
+      }
+      else
+      {
+        actionPtr->u.ifp_parms.set_outer_cfi[action_scope] = param0;
+      }
+      break;
+
+    /* PTin added: FP */
+    case BROAD_ACTION_SET_INNER_CFI:
+      if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
+      {
+        actionPtr->u.vfp_parms.set_inner_cfi[action_scope] = param0;
+      }
+      else if (policyStage == BROAD_POLICY_STAGE_EGRESS)
+      {
+        actionPtr->u.efp_parms.set_inner_cfi[action_scope] = param0;
+      }
+      else
+      {
+        actionPtr->u.ifp_parms.set_inner_cfi[action_scope] = param0;
+      }
+      break;
+
     case BROAD_ACTION_SET_REASON_CODE:
       if (action_scope != BROAD_POLICY_ACTION_CONFORMING)
       {
@@ -2485,6 +2517,8 @@ void hapiBroadPolicyDebugAction(BROAD_ACTION_ENTRY_t       *actionPtr,
   case BROAD_ACTION_ADD_INNER_VID:
   case BROAD_ACTION_SET_CLASS_ID:
   case BROAD_ACTION_SET_SRC_CLASS_ID:       /* PTin added: FP */
+  case BROAD_ACTION_SET_OUTER_CFI:          /* PTin added: FP */
+  case BROAD_ACTION_SET_INNER_CFI:          /* PTin added: FP */
   case BROAD_ACTION_SET_REASON_CODE:
     sysapiPrintf("{%02x}\n", param0);
     break;

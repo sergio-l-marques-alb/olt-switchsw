@@ -104,7 +104,8 @@ static bcm_field_qualify_t field_map[BROAD_FIELD_LAST] =
     bcmFieldQualifyDrop,           /* Drop, PTin added: FP */
     bcmFieldQualifyL2SrcHit,       /* L2 Source hit, PTin added: FP */
     bcmFieldQualifyL2DestHit,      /* L2 Destination hit, PTin added: FP */
-    bcmFieldQualifyIntPriority     /* Internal priority, PTin added: FP */
+    bcmFieldQualifyIntPriority,    /* Internal priority, PTin added: FP */
+    bcmFieldQualifyColor           /* Packet color, PTin added: FP */
 };
 
 /* Action Map */
@@ -315,9 +316,21 @@ static action_map_entry_t ingress_action_map[BROAD_ACTION_LAST] =
     },
     /* SET_USERPRIO_AS_INNER_DOT1P*/
     {
-        { bcmFieldActionPrioPktCopy, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
+        { bcmFieldActionPrioPktCopy, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+    },
+    /* BROAD_ACTION_SET_OUTER_CFI */
+    {
+        { bcmFieldActionGpOuterVlanCfiNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
+        { bcmFieldActionYpOuterVlanCfiNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
+        { bcmFieldActionRpOuterVlanCfiNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE}
+    },
+    /* BROAD_ACTION_SET_INNER_CFI */
+    {
+        { bcmFieldActionGpInnerVlanCfiNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
+        { bcmFieldActionYpInnerVlanCfiNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
+        { bcmFieldActionRpInnerVlanCfiNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE}
     },
 };
 
@@ -373,7 +386,8 @@ static action_map_entry_t lookup_action_map[BROAD_ACTION_LAST] =
     },
     /* SET_COSQ */
     {
-        { bcmFieldActionPrioIntNew, PROFILE_ACTION_NONE,  PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE   },
+        /* Also remark PCP bits at VCAP */
+        { bcmFieldActionPrioPktAndIntNew /*bcmFieldActionPrioIntNew*/, PROFILE_ACTION_NONE,  PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE   },
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
@@ -481,7 +495,18 @@ static action_map_entry_t lookup_action_map[BROAD_ACTION_LAST] =
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
-
+    /* BROAD_ACTION_SET_OUTER_CFI */
+    {
+        { bcmFieldActionOuterVlanCfiNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+    },
+    /* BROAD_ACTION_SET_INNER_CFI */
+    {
+        { bcmFieldActionInnerVlanCfiNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+    },
 };
 
 static action_map_entry_t egress_action_map[BROAD_ACTION_LAST] =
@@ -626,7 +651,18 @@ static action_map_entry_t egress_action_map[BROAD_ACTION_LAST] =
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
-
+    /* BROAD_ACTION_SET_OUTER_CFI */
+    {
+        { bcmFieldActionGpOuterVlanCfiNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
+        { bcmFieldActionYpOuterVlanCfiNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
+        { bcmFieldActionRpOuterVlanCfiNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE}
+    },
+    /* BROAD_ACTION_SET_INNER_CFI */
+    {
+        { bcmFieldActionGpInnerVlanCfiNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
+        { bcmFieldActionYpInnerVlanCfiNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
+        { bcmFieldActionRpInnerVlanCfiNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE}
+    },
 };
 
 /* Drop Precedence (Color) Map */
@@ -1562,9 +1598,10 @@ static int _policy_super_qset_init_ifp(int unit)
         rv = _policy_super_qset_add(unit, &l2l3l4ClassIdQsetDef, applicable_policy_types);
         LOG_TRACE(LOG_CTX_STARTUP,"Adding l2l3l4ClassIdQsetDef qset: rv=%d", rv);
       }
+      _policy_super_qset_add(unit, &ipv6L3L4ClassIdQsetDef,  applicable_policy_types);
+      LOG_TRACE(LOG_CTX_STARTUP,"Adding ipv6L3L4ClassIdQsetDef qset: rv=%d", rv);
       /* PTin removed: Qset not necessary */
       #if 0
-      _policy_super_qset_add(unit, &ipv6L3L4ClassIdQsetDef,  applicable_policy_types);
       _policy_super_qset_add(unit, &ipv6SrcL4ClassIdQsetDef, applicable_policy_types);
       _policy_super_qset_add(unit, &ipv6DstL4ClassIdQsetDef, applicable_policy_types);
       #endif
@@ -3292,6 +3329,9 @@ static int _policy_group_add_std_field(int                   unit,
     case BROAD_FIELD_INT_PRIO:
         rv = bcm_field_qualify_IntPriority(unit,eid,*((uint8*)value), *((uint8*)mask));
         break;
+    case BROAD_FIELD_COLOR:
+        rv = bcm_field_qualify_Color(unit,eid,*((uint8*)value));
+        break;
     // PTin end
     default:
         rv = BCM_E_PARAM;
@@ -3647,6 +3687,9 @@ static int _policy_group_add_actions(int                   unit,
           /* Action is not specified. */
           continue;
         }
+
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+          sysapiPrintf("%s(%d) action %u index %u scope %u\n",__FUNCTION__,__LINE__,action,i,action_scope);
 
         /* handle case of redirect to invalid port, e.g. LAG with no members */
         if ((BROAD_ACTION_REDIRECT == action) || (BROAD_ACTION_MIRROR == action))
@@ -4270,24 +4313,24 @@ static int _policy_group_alloc_init(int unit, BROAD_POLICY_STAGE_t policyStage, 
             group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].highPrio--;
           }
 
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].lowPrio  = lowPrioGroup;
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio = lowPrioGroup + 1;   /* PTin modified: policer */
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].lowPrio  = lowPrioGroup + 0;
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio = lowPrioGroup + 3;   /* PTin modified: policer */
 
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio    = lowPrioGroup;
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio   = lowPrioGroup + 1;   /* PTin modified: policer */
-
-          /* PTin added: policer */
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio    = lowPrioGroup + 4;
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].highPrio   = groups - 1;
-          /* PTin end */
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio    = lowPrioGroup + 0;
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio   = lowPrioGroup + 3;   /* PTin modified: policer */
 
           /* PTin added: client stats: groups 0-6 [ 7 * 256/(4*2) = 224 clients ] */
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].lowPrio  = lowPrioGroup + 2;
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].highPrio = lowPrioGroup + 4 - 1;
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].lowPrio  = lowPrioGroup + 4;
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].highPrio = lowPrioGroup + 5;
 
           /* PTin added: EVC stats: groups 7-7 [ 1 * 256/4 = 64 service/port counters ] */
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].lowPrio     = lowPrioGroup + 4;
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].lowPrio     = lowPrioGroup + 6;
           group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].highPrio    = groups - 1;
+
+          /* PTin added: policer */
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio    = lowPrioGroup + 6;
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].highPrio   = groups - 1;
+          /* PTin end */
         }
         else
         {
@@ -4299,24 +4342,24 @@ static int _policy_group_alloc_init(int unit, BROAD_POLICY_STAGE_t policyStage, 
             group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].highPrio--;
           }
 
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].lowPrio  = lowPrioGroup;
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio = lowPrioGroup + 1; //groups/2 - 3;   /*groups - 1;*/     /* PTin modified: policer */
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].lowPrio  = lowPrioGroup + 0;
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio = lowPrioGroup + 3;
 
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio    = lowPrioGroup; //groups/2 - 2;
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio   = lowPrioGroup + 1; //groups/2 - 1;   /*groups - 1;*/     /* PTin modified: policer */
-
-          /* PTin added: policer */
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio    = lowPrioGroup + 6;
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].highPrio   = groups - 1;
-          /* PTin end */
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio    = lowPrioGroup + 4;
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio   = lowPrioGroup + 5; //groups/2 - 1;   /*groups - 1;*/     /* PTin modified: policer */
 
           /* PTin added: client stats: groups 0-6 [ 7 * 256/(4*2) = 224 clients ] */
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].lowPrio  = lowPrioGroup + 2;
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].highPrio = lowPrioGroup + 4 - 1; //groups/2 - 3;
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].lowPrio  = lowPrioGroup + 6;
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].highPrio = lowPrioGroup + 7;
 
           /* PTin added: EVC stats: groups 7-7 [ 1 * 256/4 = 64 service/port counters ] */
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].lowPrio     = lowPrioGroup + 4; //groups/2 - 2;
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].highPrio    = lowPrioGroup + 6 - 1; //groups/2 - 1;
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].lowPrio     = lowPrioGroup + 8;
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].highPrio    = lowPrioGroup + 9;
+
+          /* PTin added: policer */
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio    = lowPrioGroup + 10;
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].highPrio   = groups - 1;
+          /* PTin end */
         }
         /* PTin end */
       }

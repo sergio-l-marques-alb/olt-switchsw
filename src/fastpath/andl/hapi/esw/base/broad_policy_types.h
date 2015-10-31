@@ -156,6 +156,7 @@ typedef enum
     BROAD_FIELD_L2_SRCHIT,        /* PTin added: FP */
     BROAD_FIELD_L2_DSTHIT,        /* PTin added: FP */
     BROAD_FIELD_INT_PRIO,         /* PTin added: FP */
+    BROAD_FIELD_COLOR,            /* PTin added: FP */
     BROAD_FIELD_LAST,
 
     /* special bit fields */
@@ -204,6 +205,8 @@ typedef enum
     BROAD_ACTION_SET_SRC_CLASS_ID,        /* class id  n/a     n/a      set a class ID to be used by IFP (LOOKUP only) - PTin added: FP */
     BROAD_ACTION_SET_REASON_CODE,         /* reason    n/a     n/a      set a reason for RX */
     BROAD_ACTION_SET_USERPRIO_AS_COS2,    /* n/a n/a n/a Copy inner TAG priority as dot1p priority in outgoing L2 frame */
+    BROAD_ACTION_SET_OUTER_CFI,           /* cfi       n/a     n/a      set outer tag cfi */
+    BROAD_ACTION_SET_INNER_CFI,           /* cfi       n/a     n/a      set inner tag cfi */
  /* etc... */
     BROAD_ACTION_LAST
 
@@ -248,6 +251,8 @@ typedef struct
         L7_uint32   set_src_class_id;                     /* PTin added: FP */
         L7_uchar8   set_cosq[BROAD_POLICY_ACTION_LAST];   /* PTin added: COS */
         L7_uchar8   cpu_cosq;
+        L7_uint8    set_outer_cfi[BROAD_POLICY_ACTION_LAST];  /* PTin added: CFI */
+        L7_uint8    set_inner_cfi[BROAD_POLICY_ACTION_LAST];  /* PTin added: CFI */
       } vfp_parms;
 
       struct
@@ -272,6 +277,8 @@ typedef struct
         L7_uint32   set_class_id;       /* Ptin modified: FP */
         L7_uint32   set_src_class_id;   /* PTin added: FP */
         L7_uchar8   set_reason;
+        L7_uint8    set_outer_cfi[BROAD_POLICY_ACTION_LAST];  /* PTin added: CFI */
+        L7_uint8    set_inner_cfi[BROAD_POLICY_ACTION_LAST];  /* PTin added: CFI */
       } ifp_parms;
 
       struct
@@ -282,6 +289,8 @@ typedef struct
 
         L7_ushort16 set_ovid;
         L7_ushort16 set_ivid;
+        L7_uint8    set_outer_cfi[BROAD_POLICY_ACTION_LAST];  /* PTin added: CFI */
+        L7_uint8    set_inner_cfi[BROAD_POLICY_ACTION_LAST];  /* PTin added: CFI */
       } efp_parms;
     } u;
 }
@@ -394,6 +403,7 @@ BROAD_POLICY_STATS_t;
 #define BROAD_FIELD_L2_SRCHIT_SIZE                 1                    /* PTin added: FP */
 #define BROAD_FIELD_L2_DSTHIT_SIZE                 1                    /* PTin added: FP */
 #define BROAD_FIELD_INT_PRIO_SIZE                  1                    /* PTin added: FP */
+#define BROAD_FIELD_COLOR_SIZE                     1                    /* PTin added: FP */
 
 typedef struct 
 {
@@ -640,6 +650,11 @@ typedef struct
     L7_uchar8  value[BROAD_FIELD_INT_PRIO_SIZE];
     L7_uchar8  mask[BROAD_FIELD_INT_PRIO_SIZE];
   } fieldIntPrio;
+
+  struct
+  {
+    L7_uchar8  value[BROAD_FIELD_COLOR_SIZE];
+  } fieldColor;
   // PTin end
 
 } BROAD_FIELD_ENTRY_t;

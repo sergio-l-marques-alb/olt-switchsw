@@ -249,7 +249,7 @@ bcm_field_qualify_t l2l3l4Xgs4ClassIdQset[] =    /* l2/l3/l4 */
 #endif
 
   /* PTin added */
-#if (PTIN_BOARD != PTIN_BOARD_CXO640G)
+#if (0 /*PTIN_BOARD != PTIN_BOARD_CXO640G*/)
   bcmFieldQualifySrcIp6,
   bcmFieldQualifyDstIp6,
   bcmFieldQualifyIp6TrafficClass,

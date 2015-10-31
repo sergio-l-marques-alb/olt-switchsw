@@ -99,7 +99,8 @@ static bcm_field_qualify_t field_map[BROAD_FIELD_LAST] =
     bcmFieldQualifyDrop,           /* Drop, PTin added: FP */
     bcmFieldQualifyL2SrcHit,       /* L2 Source hit, PTin added: FP */
     bcmFieldQualifyL2DestHit,      /* L2 Destination hit, PTin added: FP */
-    bcmFieldQualifyIntPriority     /* Internal priority, PTin added: FP */
+    bcmFieldQualifyIntPriority,    /* Internal priority, PTin added: FP */
+    bcmFieldQualifyColor           /* Packet color, PTin added: FP */
 };
 
 typedef struct custom_field_qset_t {
@@ -279,7 +280,18 @@ static action_map_entry_t ingress_action_map[BROAD_ACTION_LAST] =
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
-
+    /* BROAD_ACTION_SET_OUTER_CFI */
+    {
+        { bcmFieldActionGpOuterVlanCfiNew, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { bcmFieldActionYpOuterVlanCfiNew, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { bcmFieldActionRpOuterVlanCfiNew, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+    },
+    /* BROAD_ACTION_SET_INNER_CFI */
+    {
+        { bcmFieldActionGpInnerVlanCfiNew, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { bcmFieldActionYpInnerVlanCfiNew, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { bcmFieldActionRpInnerVlanCfiNew, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+    },
 };
 
 static action_map_entry_t lookup_action_map[BROAD_ACTION_LAST] =
@@ -415,6 +427,18 @@ static action_map_entry_t lookup_action_map[BROAD_ACTION_LAST] =
     /* SET_USERPRIO_AS_INNER_DOT1P*/
     {
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+    },
+    /* BROAD_ACTION_SET_OUTER_CFI */
+    {
+        { bcmFieldActionOuterVlanCfiNew, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+    },
+    /* BROAD_ACTION_SET_INNER_CFI */
+    {
+        { bcmFieldActionInnerVlanCfiNew, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
@@ -556,7 +580,18 @@ static action_map_entry_t egress_action_map[BROAD_ACTION_LAST] =
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
-
+    /* BROAD_ACTION_SET_OUTER_CFI */
+    {
+        { bcmFieldActionGpOuterVlanCfiNew, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { bcmFieldActionYpOuterVlanCfiNew, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { bcmFieldActionRpOuterVlanCfiNew, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+    },
+    /* BROAD_ACTION_SET_INNER_CFI */
+    {
+        { bcmFieldActionGpInnerVlanCfiNew, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { bcmFieldActionYpInnerVlanCfiNew, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { bcmFieldActionRpInnerVlanCfiNew, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+    },
 };
 
 /* Drop Precedence (Color) Map */
@@ -1846,6 +1881,9 @@ static int _policy_group_add_std_field(int                   unit,
         break;
     case BROAD_FIELD_INT_PRIO:
         rv = bcm_field_qualify_IntPriority(unit,eid,*((uint8*)value), *((uint8*)mask));
+        break;
+    case BROAD_FIELD_COLOR:
+        rv = bcm_field_qualify_Color(unit,eid,*((uint8*)value));
         break;
     // PTin end
     default:

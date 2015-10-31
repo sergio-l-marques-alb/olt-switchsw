@@ -61,7 +61,8 @@ static int broadFieldMapTable[BROAD_FIELD_LAST] =
   BROAD_FIELD_DROP_SIZE,            /* PTin added: FP */
   BROAD_FIELD_L2_SRCHIT_SIZE,       /* PTin added: FP */
   BROAD_FIELD_L2_DSTHIT_SIZE,       /* PTin added: FP */
-  BROAD_FIELD_INT_PRIO_SIZE         /* PTin added: FP */
+  BROAD_FIELD_INT_PRIO_SIZE,        /* PTin added: FP */
+  BROAD_FIELD_COLOR_SIZE            /* PTin added: FP */
 };
 
 static char *broadFieldNameTable[BROAD_FIELD_LAST] =
@@ -102,7 +103,8 @@ static char *broadFieldNameTable[BROAD_FIELD_LAST] =
     "DROP_PACKET",      /* PTin added: FP */
     "L2_SRCHIT",        /* PTin added: FP */
     "L2_DSTHIT",        /* PTin added: FP */
-    "INT_PRIO"          /* PTin added: FP */
+    "INT_PRIO",         /* PTin added: FP */
+    "COLOR"             /* PTin added: FP */
 };
 
 static char *broadActionNameTable[BROAD_ACTION_LAST] =
@@ -130,6 +132,8 @@ static char *broadActionNameTable[BROAD_ACTION_LAST] =
     "SETSRCCLASS",    /* PTin added: FP */
     "SETREASON",
     "COPYUSERPFROMINNERTAG",
+    "SET_OUTER_CFI",
+    "SET_INNER_CFI",
 };
 
 static char* broadTypeNameTable[BROAD_POLICY_TYPE_LAST] =
@@ -336,6 +340,9 @@ L7_uchar8 *hapiBroadPolicyFieldValuePtr(BROAD_FIELD_ENTRY_t *fieldInfo, BROAD_PO
   case BROAD_FIELD_INT_PRIO:
     ptr = fieldInfo->fieldIntPrio.value;
     break;
+  case BROAD_FIELD_COLOR:
+    ptr = fieldInfo->fieldColor.value;
+    break;
   // PTin end
   default:
     LOG_ERROR(field);
@@ -457,6 +464,8 @@ L7_uchar8 *hapiBroadPolicyFieldMaskPtr(BROAD_FIELD_ENTRY_t *fieldInfo, BROAD_POL
     break;
   case BROAD_FIELD_INT_PRIO:        /* PTin added: FP */
     ptr = fieldInfo->fieldIntPrio.mask;
+    break;
+  case BROAD_FIELD_COLOR:           /* PTin added: FP */
     break;
 
   default:
@@ -609,6 +618,38 @@ void hapiBroadPolicyActionParmsGet(BROAD_ACTION_ENTRY_t       *actionPtr,
     else
     {
       *param0 = actionPtr->u.ifp_parms.set_src_class_id;
+    }
+    break;
+
+  /* PTin added: FP */
+  case BROAD_ACTION_SET_OUTER_CFI:
+    if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
+    {
+      *param0 = actionPtr->u.vfp_parms.set_outer_cfi[action_scope];
+    }
+    else if (policyStage == BROAD_POLICY_STAGE_EGRESS)
+    {
+      *param0 = actionPtr->u.efp_parms.set_outer_cfi[action_scope];
+    }
+    else
+    {
+      *param0 = actionPtr->u.ifp_parms.set_outer_cfi[action_scope];
+    }
+    break;
+
+  /* PTin added: FP */
+  case BROAD_ACTION_SET_INNER_CFI:
+    if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
+    {
+      *param0 = actionPtr->u.vfp_parms.set_inner_cfi[action_scope];
+    }
+    else if (policyStage == BROAD_POLICY_STAGE_EGRESS)
+    {
+      *param0 = actionPtr->u.efp_parms.set_inner_cfi[action_scope];
+    }
+    else
+    {
+      *param0 = actionPtr->u.ifp_parms.set_inner_cfi[action_scope];
     }
     break;
 
