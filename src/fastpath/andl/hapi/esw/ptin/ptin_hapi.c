@@ -4321,7 +4321,6 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
 
 // OLTTS - 17139
 #if (PTIN_BOARD == PTIN_BOARD_TG16G)
-
   L7_uint8  prio, prio_mask  = 0x7;
   L7_uint8  vlanFormat_value = BROAD_VLAN_FORMAT_STAG | BROAD_VLAN_FORMAT_CTAG;
   L7_uint8  vlanFormat_mask  = 0xff;
@@ -4343,12 +4342,12 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
   /* Run all 8 priorities */
   for (prio = 0; prio < 8; prio++)
   {  
-
+  #if 0
     /* ----- SINGLE TAGGED PACKETS ----- */
     vlanFormat_value = BROAD_VLAN_FORMAT_STAG;
     vlanFormat_mask  = 0xff;
 
-    
+    /* Do not remark Outer Pbits at egress */
     /* Priority higher than dot1p rules */
     rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_LOW);
     if (rc != L7_SUCCESS)  break;
@@ -4362,8 +4361,10 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
 
     /* Change outer tag priority to prio */
     rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_USERPRIO, prio, 0, 0);
-    if (rc != L7_SUCCESS)  break;   
-          
+    if (rc != L7_SUCCESS)  break;
+  #endif   
+    
+    /* PCP value should be copied from outer to inner VLAN */
     /* ----- INNER TAGGED PACKETS ----- */
     vlanFormat_value = BROAD_VLAN_FORMAT_CTAG;
     vlanFormat_mask  = 0xff;
@@ -4375,8 +4376,8 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
      rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_VLAN_FORMAT, (L7_uchar8 *) &vlanFormat_value, (L7_uchar8 *) &vlanFormat_mask);
     if (rc != L7_SUCCESS)  break;
 
-    /* Priority */
-    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INT_PRIO, (L7_uchar8 *) &prio, (L7_uchar8 *) &prio_mask);
+    /* Priority (Copy outer PCP) */
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OCOS /*BROAD_FIELD_INT_PRIO*/, (L7_uchar8 *) &prio, (L7_uchar8 *) &prio_mask);
     if (rc != L7_SUCCESS)  break;
 
     /* Change inner tag priority to prio */
@@ -4384,9 +4385,10 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
     if (rc != L7_SUCCESS)  break;
 
   }
+
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_STARTUP, "Error configuring rule for priority %u", prio);
+    LOG_ERR(LOG_CTX_STARTUP, "Error configuring rule");
     hapiBroadPolicyCreateCancel();
     return L7_FAILURE;
   }
@@ -4399,6 +4401,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
     hapiBroadPolicyCreateCancel();
     return L7_FAILURE;
   }
+/* Non Valkyrie2 boards */
 #else
   {
     L7_uint8  prio;
@@ -4423,8 +4426,8 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
         continue;
       }
 
-      // This will make egress packets to be PCP remarked, using the internal priority value
-      rv = bcm_port_control_set(0, bcm_port, bcmPortControlEgressVlanPriUsesPktPri, 0);
+      // This will make egress packets to NOT be PCP remarked (from the internal priority value)
+      rv = bcm_port_control_set(0, bcm_port, bcmPortControlEgressVlanPriUsesPktPri, 1);
       if (rv != BCM_E_NONE)
       {
         LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_control_set: %u", rv);
@@ -4569,6 +4572,139 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
     }
   }
 #endif
+
+  return L7_SUCCESS;
+}
+
+L7_RC_t teste_case2(void)
+{
+  BROAD_POLICY_t      policyId;
+  BROAD_POLICY_RULE_t ruleId;
+  L7_RC_t             rc = L7_SUCCESS;
+  L7_uint8  prio, prio_mask  = 0x7;
+  L7_uint8  vlanFormat_value = BROAD_VLAN_FORMAT_STAG | BROAD_VLAN_FORMAT_CTAG;
+  L7_uint8  vlanFormat_mask  = 0xff;
+  L7_uint8  color=bcmColorYellow, color_mask=0xf;
+
+  /* Create Policy for VLAN dot1p marking */
+  rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_PTIN);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
+    return L7_FAILURE;
+  }
+  rc = hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_EGRESS);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
+    return L7_FAILURE;
+  }
+
+  do
+  {
+    /* ----- OUTER TAGGED PACKETS ----- */
+    vlanFormat_value = BROAD_VLAN_FORMAT_STAG;
+    vlanFormat_mask  = 0xff;
+
+    /* Priority higher than dot1p rules */
+    rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_LOW);
+    if (rc != L7_SUCCESS)  break;
+
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_VLAN_FORMAT, (L7_uchar8 *) &vlanFormat_value, (L7_uchar8 *) &vlanFormat_mask);
+    if (rc != L7_SUCCESS)  break;
+
+    /* Priority */
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_COLOR, (L7_uchar8 *) &color, (L7_uchar8 *) &color_mask);
+    if (rc != L7_SUCCESS)  break;
+
+    /* Change outer tag priority to prio */
+    rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_OUTER_CFI, 1, 0, 0);
+    if (rc != L7_SUCCESS)  break;
+
+    /* ----- INNER TAGGED PACKETS ----- */
+    vlanFormat_value = BROAD_VLAN_FORMAT_CTAG;
+    vlanFormat_mask  = 0xff;
+
+    /* Priority higher than dot1p rules */
+    rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_LOW);
+    if (rc != L7_SUCCESS)  break;
+
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_VLAN_FORMAT, (L7_uchar8 *) &vlanFormat_value, (L7_uchar8 *) &vlanFormat_mask);
+    if (rc != L7_SUCCESS)  break;
+
+    /* Priority */
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_COLOR, (L7_uchar8 *) &color, (L7_uchar8 *) &color_mask);
+    if (rc != L7_SUCCESS)  break;
+
+    /* Change outer tag priority to prio */
+    rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_INNER_CFI, 1, 0, 0);
+    if (rc != L7_SUCCESS)  break;
+
+    /* Run all 8 priorities */
+    for (prio = 0; prio < 8; prio++)
+    {  
+
+      /* ----- SINGLE TAGGED PACKETS ----- */
+      vlanFormat_value = BROAD_VLAN_FORMAT_STAG;
+      vlanFormat_mask  = 0xff;
+
+      /* Do not remark Outer Pbits at egress */
+    #if 0
+      /* Priority higher than dot1p rules */
+      rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_LOW);
+      if (rc != L7_SUCCESS)  break;
+
+      rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_VLAN_FORMAT, (L7_uchar8 *) &vlanFormat_value, (L7_uchar8 *) &vlanFormat_mask);
+      if (rc != L7_SUCCESS)  break;
+
+      /* Priority */
+      rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INT_PRIO, (L7_uchar8 *) &prio, (L7_uchar8 *) &prio_mask);
+      if (rc != L7_SUCCESS)  break;
+
+      /* Change outer tag priority to prio */
+      rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_USERPRIO, prio, 0, 0);
+      if (rc != L7_SUCCESS)  break;
+    #endif   
+
+      /* PCP value should be copied from outer to inner VLAN */
+      /* ----- INNER TAGGED PACKETS ----- */
+      vlanFormat_value = BROAD_VLAN_FORMAT_CTAG;
+      vlanFormat_mask  = 0xff;
+
+      //* Priority higher than dot1p rules */
+      rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_LOW);
+      if (rc != L7_SUCCESS)  break;
+
+       rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_VLAN_FORMAT, (L7_uchar8 *) &vlanFormat_value, (L7_uchar8 *) &vlanFormat_mask);
+      if (rc != L7_SUCCESS)  break;
+
+      /* Priority (Copy outer PCP) */
+      rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OCOS /*BROAD_FIELD_INT_PRIO*/, (L7_uchar8 *) &prio, (L7_uchar8 *) &prio_mask);
+      if (rc != L7_SUCCESS)  break;
+
+      /* Change inner tag priority to prio */
+      rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_USERPRIO_INNERTAG, prio, 0, 0);
+      if (rc != L7_SUCCESS)  break;
+
+    }
+  }
+  while (0);
+
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_STARTUP, "Error configuring rule");
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+
+  /* Apply rules */
+  rc = hapiBroadPolicyCommit(&policyId);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_STARTUP, "Error commiting policy");
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
 
   return L7_SUCCESS;
 }
