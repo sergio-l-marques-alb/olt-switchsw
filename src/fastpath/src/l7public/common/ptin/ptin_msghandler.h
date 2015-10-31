@@ -1054,6 +1054,7 @@ typedef struct {
 typedef struct
 {
   L7_uint8  mask;
+  L7_uint8  pbits_remark;                     // 0-false, 1-true
   L7_uint8  trust_mode;                       // ingress_mask=0x01: 0-None, 1-Untrust markings, 2-802.1p marking, 3: IP-precedence mark; 4-DSCP mark (Default=2)
 
   // Packet priority map
