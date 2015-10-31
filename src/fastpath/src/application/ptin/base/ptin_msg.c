@@ -5372,14 +5372,22 @@ L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_s
       return L7_FAILURE;
     }
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to unconfigure QoS for EVC %u / internalVlan %u", msgEvcConf[i].id, int_vlan);
-    if (ptin_qos_vlan_clear(int_vlan, -1) != L7_SUCCESS)
+    /* As long as a single QoS-VLAN map is applied to all stacked MAC-Bridge services, do not allow its deletion */
+    if (PTIN_VLAN_IS_QUATTRO(int_vlan))
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error deconfiguring QoS for EVC %u / internalVlan %u", msgEvcConf[i].id, int_vlan);
-      continue;
+      if (ptin_qos_vlan_clear(int_vlan, -1) != L7_SUCCESS) 
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "Error deconfiguring QoS for EVC %u / internalVlan %u", msgEvcConf[i].id, int_vlan);
+        continue;
+      }
+      else
+      {
+        LOG_DEBUG(LOG_CTX_PTIN_MSG, "Error deconfiguring QoS for EVC %u / internalVlan %u", msgEvcConf[i].id, int_vlan);
+      }
     }
     else
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Error deconfiguring QoS for EVC %u / internalVlan %u", msgEvcConf[i].id, int_vlan);
+      LOG_WARNING(LOG_CTX_PTIN_MSG, "VLAN-QoS will never be removed from stacked MAC-Bridge services (EVC=%u, internalVlan %u)", msgEvcConf[i].id, int_vlan);
     }
 
     if (ptin_evc_delete(msgEvcConf[i].id) != L7_SUCCESS)
