@@ -3604,7 +3604,8 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
   else
   {
     /* PTin added: virtual ports */
-    if(!BCMX_LPORT_VALID(bcmx_l2_addr->lport))
+    if( !BCMX_LPORT_VALID(bcmx_l2_addr->lport) /* Not a Physical Ports */
+      && !((bcmx_l2_addr->tgid > 0)&&((bcmx_l2_addr->tgid < PTIN_SYSTEM_N_LAGS))) ) /* Not a LAG */
     {
       ptin_hapi_maclimit_inc(bcmx_l2_addr);
     }
