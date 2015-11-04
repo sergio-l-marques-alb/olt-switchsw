@@ -368,7 +368,7 @@ L7_RC_t pppoePacketQueue(L7_uchar8 *frame, L7_uint32 dataLen,
    * NOTE: the frame length includes padding for packets <64 bytes
    * Moreover, when inner VLAN is removed automatically on lower level APIs, the
    * frame size is reduced to 60 bytes only (including zero paddind) */ 
-  if ((dataLen > 64) && (dataLen != (ethHdrLen + sizeof(L7_pppoe_header_t) + osapiNtohs(pppoeHeader->length))))
+  if (dataLen < (ethHdrLen + sizeof(L7_pppoe_header_t) + osapiNtohs(pppoeHeader->length)))
   {
     if (ptin_debug_pppoe_snooping)
       LOG_ERR(LOG_CTX_PTIN_PPPOE, "PPPoE malformed packet: invalid frame length (pktLen=%u ethHdrLen=%u pppoeHdrLen=%u pppoeDataLen=%u",
