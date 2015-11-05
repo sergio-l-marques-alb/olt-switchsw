@@ -82,7 +82,7 @@ void help_oltBuga(void)
         "m 1041 vlan(1-4095) macAddr(xx:xx:xx:xx:xx:xx) intfType/intf# - Add a static entry to the MAC table\r\n"
         "m 1042 vlan(1-4095) macAddr(xx:xx:xx:xx:xx:xx) - Remove an entry from MAC table\r\n"
         "m 1043 - Flush all entries of MAC table\r\n"
-        "m 1044 EVC# dir(uplink:0/downlink:1) trustMode(0-None;1-Untrust;2-802.1P;3-IPprec;4-DSCP) cos_pr0(0-7) cos_pr1 ... cos_pr7 - Set QoS classification for an EVC\r\n"
+        "m 1044 EVC# dir(uplink:0/downlink:1) remark(0/1) trustMode(0-None;1-Untrust;2-802.1P;3-IPprec;4-DSCP) cos_pr0(0-7) cos_pr1 ... cos_pr7 - Set QoS classification for an EVC\r\n"
         "--- Protocols ------------------------------------------------------------------------------------------------------------------------\n\r"
         "m 1220 EVC# intfType/intf# cvid(1-4095) - Read DHCPop82 profile\n\r"
         "m 1221 EVC# intfType/intf# cvid(1-4095) op82/op37/op18 <circuitId> <remoteId> - Define a DHCPop82 profile\n\r"
@@ -2432,7 +2432,7 @@ int main (int argc, char *argv[])
           uint8 i, j, prio, dir;
 
           // Validate number of arguments (flow_id + 2 pairs port+svid)
-          if (argc<3+3)  {
+          if (argc<3+4)  {
             help_oltBuga();
             exit(0);
           }
@@ -2461,8 +2461,15 @@ int main (int argc, char *argv[])
           /* Mask active */
           ptr->qos[dir].mask = 0x01;
 
-          // Trust mode
+          // Remark pbits
           if (StrToLongLong(argv[3+2],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->qos[dir].pbits_remark = (uint8) valued & 1;
+
+          // Trust mode
+          if (StrToLongLong(argv[3+3],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
@@ -2472,9 +2479,9 @@ int main (int argc, char *argv[])
           if (ptr->qos[dir].trust_mode >= 2)
           {
             // Priorities map
-            for (i=0; i<8 && argc>=(3+4+i); i++)
+            for (i=0; i<8 && argc>=(3+5+i); i++)
             {
-              if (StrToLongLong(argv[3+3+i],&valued)<0)
+              if (StrToLongLong(argv[3+4+i],&valued)<0)
               {
                 help_oltBuga();
                 exit(0);
