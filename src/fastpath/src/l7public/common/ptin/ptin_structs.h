@@ -41,7 +41,8 @@ typedef enum
   PTIN_DTL_MSG_L2_MACLIMIT_STATUS,
   PTIN_DTL_MSG_L3_INTF,
   PTIN_DTL_MSG_L3_IPMC,
-  PTIN_DTL_MSG_QOS,
+  PTIN_DTL_MSG_QOS_CLASSIFY,
+  PTIN_DTL_MSG_QOS_REMARK,
   PTIN_DTL_MSG_LMM,
   PTIN_DTL_MSG_COUNTERS_LM,
   PTIN_DTL_MSG_TIME_INTERFACE,
@@ -69,7 +70,8 @@ typedef struct
 typedef struct
 {
   L7_uint64               ptin_port_bmp;  /* PTIN_PORT bitmap (zero to use specific port, or 0xff..ff to apply to all ports) */
-  L7_uint16               vlan_id;
+  L7_uint16               ext_vlan;       /* Used to configure VCAP+ICAP */
+  L7_uint16               int_vlan;       /* Used to configure only the ICAP */
   L7_int8                 leaf_side;      /* -1 for all */
   L7_int8                 trust_mode;     /* -1 to not be used */
   L7_uint8                priority;

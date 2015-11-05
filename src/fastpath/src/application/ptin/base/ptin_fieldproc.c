@@ -848,29 +848,33 @@ L7_uint8 cos_mask_lookup_6bits[] = {
 /**
  * Clear all configuration for one particular VLAN
  * 
- * @param vlan 
+ * @param nni_vlan : NNI VLAN id  
+ * @param int_vlan : Internal VLAN id 
  * @param leaf_side : LEAF ports? (-1 for all)
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_qos_vlan_clear(L7_uint16 vlan, L7_int8 leaf_side)
+L7_RC_t ptin_qos_vlan_clear(L7_uint16 nni_vlan, L7_uint16 int_vlan, L7_int8 leaf_side)
 {
   ptin_dtl_qos_t qos_cfg;
   L7_RC_t rc;
 
   memset(&qos_cfg, 0x00, sizeof(ptin_dtl_qos_t));
-  qos_cfg.vlan_id    = vlan;
+  qos_cfg.ext_vlan   = nni_vlan;
+  qos_cfg.int_vlan   = int_vlan;
   qos_cfg.leaf_side  = leaf_side;
   qos_cfg.trust_mode = 0;
   
-  rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_QOS, DAPI_CMD_CLEAR, sizeof(ptin_dtl_qos_t), &qos_cfg);
+  rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_QOS_CLASSIFY, DAPI_CMD_CLEAR, sizeof(ptin_dtl_qos_t), &qos_cfg);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error removing all rules of VLAN %u / leaf:%d", vlan, leaf_side);
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Error removing all rules of intVLAN %u / NNIVlan %u / leaf:%d",
+            int_vlan, nni_vlan, leaf_side);
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_INTF, "All rules removed from VLAN %u / leaf:%u", vlan, leaf_side);
+  LOG_TRACE(LOG_CTX_PTIN_INTF, "All rules removed from intVLAN %u / NNIVlan %u / leaf:%u",
+            int_vlan, nni_vlan, leaf_side);
 
   return L7_SUCCESS;
 }
@@ -904,13 +908,15 @@ static L7_RC_t cos_vlan_configure(ptin_dtl_qos_t *qos_cfg, L7_uint8 *cos_map, L7
   /* Only update port information */
   if (n_prios < 0)
   {
-    LOG_TRACE(LOG_CTX_PTIN_INTF, "Going to port data of VLAN %u", qos_cfg->vlan_id);
+    LOG_TRACE(LOG_CTX_PTIN_INTF, "Going to port data of intVLAN %u / NNIVlan %u",
+              qos_cfg->int_vlan, qos_cfg->ext_vlan);
 
     qos_cfg->trust_mode = -1;
-    rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_QOS, DAPI_CMD_SET, sizeof(ptin_dtl_qos_t), qos_cfg);
+    rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_QOS_CLASSIFY, DAPI_CMD_SET, sizeof(ptin_dtl_qos_t), qos_cfg);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Error reconfiguring rules");
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Error reconfiguring rules of intVLAN %u / NNIVlan %u",
+              qos_cfg->int_vlan, qos_cfg->ext_vlan);
       return L7_FAILURE;
     }
     LOG_TRACE(LOG_CTX_PTIN_INTF, "All rules were reconfigured");
@@ -920,15 +926,19 @@ static L7_RC_t cos_vlan_configure(ptin_dtl_qos_t *qos_cfg, L7_uint8 *cos_map, L7
   /* Remove configurations? */
   if (n_prios == 0)
   {
-    LOG_TRACE(LOG_CTX_PTIN_INTF, "Going to remove all configurations of VLAN %u / leaf:%u", qos_cfg->vlan_id, qos_cfg->leaf_side);
+    LOG_TRACE(LOG_CTX_PTIN_INTF, "Going to remove all configurations of intVLAN %u / NNIVlan %u / leaf:%u",
+              qos_cfg->int_vlan, qos_cfg->ext_vlan, qos_cfg->leaf_side);
     /* Remove all configurations */
-    rc = ptin_qos_vlan_clear(qos_cfg->vlan_id, qos_cfg->leaf_side);
+    rc = ptin_qos_vlan_clear(qos_cfg->ext_vlan, qos_cfg->int_vlan, qos_cfg->leaf_side);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Error removing all rules");
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Error removing all rules of intVLAN %u / NNIVlan %u / leaf:%u",
+              qos_cfg->int_vlan, qos_cfg->ext_vlan, qos_cfg->leaf_side);
       return L7_FAILURE;
     }
-    LOG_TRACE(LOG_CTX_PTIN_INTF, "All rules removed of VLAN %u / leaf:%u", qos_cfg->vlan_id, qos_cfg->leaf_side);
+    LOG_TRACE(LOG_CTX_PTIN_INTF, "All rules removed of intVLAN %u / NNIVlan %u / leaf:%u",
+              qos_cfg->int_vlan, qos_cfg->ext_vlan, qos_cfg->leaf_side);
+
     return L7_SUCCESS;
   }
 
@@ -946,7 +956,7 @@ static L7_RC_t cos_vlan_configure(ptin_dtl_qos_t *qos_cfg, L7_uint8 *cos_map, L7
     qos_cfg->priority = 0;
     qos_cfg->priority_mask = 0;
     qos_cfg->int_priority = cos_map[0];
-    rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_QOS, DAPI_CMD_SET, sizeof(ptin_dtl_qos_t), qos_cfg);
+    rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_QOS_CLASSIFY, DAPI_CMD_SET, sizeof(ptin_dtl_qos_t), qos_cfg);
     if (rc != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_INTF, "Error configuring rule");
@@ -1127,7 +1137,7 @@ static L7_RC_t cos_vlan_configure(ptin_dtl_qos_t *qos_cfg, L7_uint8 *cos_map, L7
           qos_cfg->priority = value;
           qos_cfg->priority_mask = mask;
           qos_cfg->int_priority = cos;
-          rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_QOS, DAPI_CMD_SET, sizeof(ptin_dtl_qos_t), qos_cfg);
+          rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_QOS_CLASSIFY, DAPI_CMD_SET, sizeof(ptin_dtl_qos_t), qos_cfg);
           if (rc != L7_SUCCESS)
           {
             LOG_ERR(LOG_CTX_PTIN_INTF, "Error configuring priorities %u/0x%x", qos_cfg->priority, qos_cfg->priority_mask);
@@ -1243,17 +1253,44 @@ static L7_RC_t ptin_qos_port_bitmap_get(L7_uint32 *ptin_port, L7_uint8 number_of
 /**
  * Update list of ports of QoS configuration
  * 
- * @param vlan_id 
+ * @param nni_vlan : NNI VLAN id  
+ * @param int_vlan : Internal VLAN id 
  * @param leaf_side : Ports list are leafs?  
  * @param ptin_port 
  * @param number_of_ports 
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_qos_vlan_ports_update(L7_uint16 vlan_id, L7_BOOL leaf_side,
+L7_RC_t ptin_qos_vlan_ports_update(L7_uint16 nni_vlan, L7_uint16 int_vlan, L7_BOOL leaf_side,
                                    L7_uint32 *ptin_port, L7_uint8 number_of_ports)
 {
-  return ptin_qos_vlan_add(-1, L7_NULLPTR, 0, vlan_id, leaf_side, ptin_port, number_of_ports);
+  return ptin_qos_vlan_add(-1, L7_NULLPTR, 0, nni_vlan, int_vlan, leaf_side, ptin_port, number_of_ports);
+}
+
+/**
+ * Control QoS egress remarking
+ * 
+ * @param intIfNum 
+ * @param enable 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_qos_egress_remark(L7_uint32 intIfNum, L7_BOOL enable)
+{
+  L7_uint32 remark_enable;
+  L7_RC_t rc;
+
+  remark_enable = enable;
+
+  rc = dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_QOS_REMARK, DAPI_CMD_SET, sizeof(L7_uint32), (void *) &remark_enable);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Error setting remarking for intIfNum %u: rc=%d", intIfNum, rc);
+    return L7_FAILURE;
+  }
+  LOG_TRACE(LOG_CTX_PTIN_INTF, "QoS remark set to %u at intIfNum %u", remark_enable, intIfNum);
+
+  return L7_SUCCESS;
 }
 
 /**
@@ -1261,8 +1298,9 @@ L7_RC_t ptin_qos_vlan_ports_update(L7_uint16 vlan_id, L7_BOOL leaf_side,
  * 
  * @param trust_mode : trust_mode (-1 to reconfigure ports)
  * @param cos_map : array of CoS values for each pbit value
- * @param cos_map_size : cos_map's number of elements
- * @param vlan_id : VLAN id 
+ * @param cos_map_size : cos_map's number of elements 
+ * @param nni_vlan : NNI VLAN id  
+ * @param int_vlan : Internal VLAN id 
  * @param leaf_side : Ports list are leafs? 
  * @param ptin_port : List of ptin_ports
  * @param number_of_ports : Number of ptin_ports
@@ -1270,7 +1308,7 @@ L7_RC_t ptin_qos_vlan_ports_update(L7_uint16 vlan_id, L7_BOOL leaf_side,
  * @return L7_RC_t 
  */
 L7_RC_t ptin_qos_vlan_add(L7_int8 trust_mode, L7_uint8 *cos_map, L7_uint8 cos_map_size,
-                          L7_uint16 vlan_id, L7_BOOL leaf_side,
+                          L7_uint16 nni_vlan, L7_uint16 int_vlan, L7_BOOL leaf_side,
                           L7_uint32 *ptin_port, L7_uint8 number_of_ports)
 {
   L7_int    n_prios;
@@ -1279,9 +1317,9 @@ L7_RC_t ptin_qos_vlan_add(L7_int8 trust_mode, L7_uint8 *cos_map, L7_uint8 cos_ma
   L7_RC_t   rc;
 
   /* Validate arguments */
-  if (vlan_id < PTIN_VLAN_MIN || vlan_id > PTIN_VLAN_MAX)
+  if (int_vlan > PTIN_VLAN_MAX || nni_vlan > PTIN_VLAN_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, "Invalid vlan id: %u", vlan_id);
+    LOG_ERR(LOG_CTX_PTIN_API, "Invalid vlan id: int_vlan=%u nni_vlan=%u", int_vlan, nni_vlan);
     return L7_FAILURE;
   }
 
@@ -1326,10 +1364,11 @@ L7_RC_t ptin_qos_vlan_add(L7_int8 trust_mode, L7_uint8 *cos_map, L7_uint8 cos_ma
     LOG_WARNING(LOG_CTX_PTIN_API, "Error getting bitmap of ports");
     return L7_FAILURE;
   }
-  LOG_TRACE(LOG_CTX_PTIN_API, "VLAN %u, Bitmap ports: 0x%llx", vlan_id, ptin_port_bmp);
+  LOG_TRACE(LOG_CTX_PTIN_API, "VLAN %u, Bitmap ports: 0x%llx", int_vlan, ptin_port_bmp);
 
   memset(&qos_cfg, 0x00, sizeof(qos_cfg));
-  qos_cfg.vlan_id       = vlan_id;
+  qos_cfg.ext_vlan      = nni_vlan;
+  qos_cfg.int_vlan      = int_vlan;
   qos_cfg.leaf_side     = leaf_side;
   qos_cfg.trust_mode    = trust_mode;
   qos_cfg.ptin_port_bmp = ptin_port_bmp;

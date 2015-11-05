@@ -39,7 +39,8 @@ L7_RC_t broad_ptin_l2_maclimit(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7
 L7_RC_t broad_ptin_l2_maclimit_status(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_l3_intf(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_l3_ipmc(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
-L7_RC_t broad_ptin_qos(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
+L7_RC_t broad_ptin_qos_classify(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
+L7_RC_t broad_ptin_qos_remark(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_oam_sendlmm(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_oam_check_lm_counters(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_time_interface(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
@@ -52,7 +53,8 @@ broad_ptin_generic_f ptin_dtl_callbacks[PTIN_DTL_MSG_MAX] = {
   broad_ptin_l2_maclimit_status,
   broad_ptin_l3_intf, 
   broad_ptin_l3_ipmc,
-  broad_ptin_qos,
+  broad_ptin_qos_classify,
+  broad_ptin_qos_remark,
   broad_ptin_oam_sendlmm,
   broad_ptin_oam_check_lm_counters,
   broad_ptin_time_interface
@@ -278,7 +280,7 @@ L7_RC_t broad_ptin_l3_ipmc(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uin
   return rc;  
 }
 
-L7_RC_t broad_ptin_qos(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g)
+L7_RC_t broad_ptin_qos_classify(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g)
 {
   ptin_dapi_port_t dapiPort;
   ptin_dtl_qos_t  *qos_cfg = (ptin_dtl_qos_t *) data;
@@ -300,8 +302,8 @@ L7_RC_t broad_ptin_qos(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Input Parameters [port_bmp=0x%016llx vlan_id=%u trust_mode=%u priority=%u/0x%x -> int_prio=%u",
-            qos_cfg->ptin_port_bmp, qos_cfg->vlan_id, qos_cfg->trust_mode, qos_cfg->priority, qos_cfg->priority_mask, qos_cfg->int_priority);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Input Parameters [port_bmp=0x%016llx intVlan=%u NNIVlan=%u trust_mode=%u priority=%u/0x%x -> int_prio=%u",
+            qos_cfg->ptin_port_bmp, qos_cfg->int_vlan, qos_cfg->ext_vlan, qos_cfg->trust_mode, qos_cfg->priority, qos_cfg->priority_mask, qos_cfg->int_priority);
 
   dapiPort.usp = usp;
   dapiPort.dapi_g = dapi_g;
@@ -317,6 +319,46 @@ L7_RC_t broad_ptin_qos(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 
       break;
     case DAPI_CMD_CLEAR_ALL:
       rc = ptin_hapi_qos_table_flush(&dapiPort, qos_cfg);
+      break;
+
+    default:
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Not recognized operation (%u)!", operation);
+      return L7_FAILURE;
+  }
+  return rc;  
+}
+
+L7_RC_t broad_ptin_qos_remark(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g)
+{
+  ptin_dapi_port_t dapiPort;
+  L7_uint32 *remark_enable = (L7_uint32 *) data;
+  L7_RC_t    rc = L7_SUCCESS;
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "usp={%d,%d,%d} operation=%u dataSize=%u", usp->unit, usp->slot, usp->port, operation, dataSize);
+
+  /* Validate data pointer */
+  if (remark_enable == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid Arguments: intf=0x%08x", (L7_uint32) remark_enable);
+    return L7_FAILURE;
+  }
+
+  /* Validate data size */
+  if (dataSize != sizeof(L7_uint32))
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid data size (%u VS %u)", dataSize, sizeof(L7_uint32));
+    return L7_FAILURE;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Input Parameters [Remark enable: %u]", *remark_enable);
+
+  dapiPort.usp = usp;
+  dapiPort.dapi_g = dapi_g;
+
+  switch (operation)
+  {
+    case DAPI_CMD_SET:      
+      rc = ptin_hapi_qos_egress_pbits_remark(&dapiPort, *remark_enable);
       break;
 
     default:

@@ -5013,7 +5013,7 @@ L7_RC_t ptin_msg_EVC_get(msg_HwEthMef10Evc_t *msgEvcConf)
   msgEvcConf->type     = ptinEvcConf.type;
   msgEvcConf->mc_flood = ptinEvcConf.mc_flood;
   msgEvcConf->n_intf   = ptinEvcConf.n_intf;
-  memcpy(msgEvcConf->ce_vid_bmp, ptinEvcConf.ce_vid_bmp, sizeof(msgEvcConf->ce_vid_bmp));
+  //memcpy(msgEvcConf->ce_vid_bmp, ptinEvcConf.ce_vid_bmp, sizeof(msgEvcConf->ce_vid_bmp));
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "EVC# %u",              msgEvcConf->id);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Flags    = 0x%08X",  msgEvcConf->flags);
@@ -5047,60 +5047,108 @@ L7_RC_t ptin_msg_EVC_get(msg_HwEthMef10Evc_t *msgEvcConf)
  * 
  * @return L7_RC_t 
  */
-static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_BOOL downlink, msg_CoS_classification_t *qos)
+static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_uint16 nni_vlan, L7_BOOL downlink,
+                                       msg_CoS_classification_t *qos)
 {
-  L7_uint16 i, int_vlan;
+  L7_uint16 i;
   L7_uint32 port;
+  L7_uint16 int_vlan = 0;
   ptin_HwEthMef10Evc_t evcConf;
   L7_uint8  cos_map[64], cos_map_size;
   L7_uint32 ptin_port[PTIN_SYSTEM_N_PORTS], number_of_ports;
 
-  /* Is this a valid EVC? */
-  if (!ptin_evc_is_in_use(evc_id))
-  {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid EVC# %u", evc_id);
-    return L7_FAILURE;
-  }
-
-  /* Obtain internal vlan */
-  if (ptin_evc_intRootVlan_get(evc_id, &int_vlan) != L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error obtaining internal VLAN of EVC# %u", evc_id);
-    return L7_FAILURE;
-  }
-
-    /* Determine list of ports */
+  /* Determine list of ports */
   number_of_ports = 0;
 
-  /* Get list of ports */
-  memset(&evcConf, 0x00, sizeof(ptin_HwEthMef10Evc_t));
-  evcConf.index = evc_id;
-  if (ptin_evc_get(&evcConf) != L7_SUCCESS)
+  /* Only if valid EVC id is provided, get list of ports from it */
+  if (evc_id < PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error obtaining EVC data");
-    return L7_SUCCESS;
-  }
-  /* Add ports */
-  for (i = 0; i < evcConf.n_intf; i++)
-  {
-    if ((!downlink && evcConf.intf[i].mef_type == PTIN_EVC_INTF_ROOT) ||   /* Uplink interface */
-        ( downlink && evcConf.intf[i].mef_type == PTIN_EVC_INTF_LEAF))     /* Downlink interface */
+    /* No NNI VLAN will be used */
+    nni_vlan = 0;
+
+    /* Get internal VLAN */
+    if (ptin_evc_intRootVlan_get(evc_id, &int_vlan) != L7_SUCCESS)
     {
-      if (ptin_intf_typeId2port(evcConf.intf[i].intf_type, evcConf.intf[i].intf_id, &port) == L7_SUCCESS)
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error obtaining internal VLAN from eEVC %u", evc_id);
+      return L7_FAILURE;
+    }
+
+    /* Get list of ports */
+    memset(&evcConf, 0x00, sizeof(ptin_HwEthMef10Evc_t));
+    evcConf.index = evc_id;
+    if (ptin_evc_get(&evcConf) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error obtaining EVC data");
+      return L7_FAILURE;
+    }
+    /* Add ports */
+    for (i = 0; i < evcConf.n_intf; i++)
+    {
+      if ((!downlink && evcConf.intf[i].mef_type == PTIN_EVC_INTF_ROOT) ||   /* Uplink interface */
+          ( downlink && evcConf.intf[i].mef_type == PTIN_EVC_INTF_LEAF))     /* Downlink interface */
       {
-        ptin_port[number_of_ports++] = port;
-        LOG_DEBUG(LOG_CTX_PTIN_MSG, "Port %u added", port);
-      }
-      else
-      {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Intf %u/%u does not have ptin_port format",
-                evcConf.intf[i].intf_type, evcConf.intf[i].intf_id);
+        if (ptin_intf_typeId2port(evcConf.intf[i].intf_type, evcConf.intf[i].intf_id, &port) == L7_SUCCESS)
+        {
+          ptin_port[number_of_ports++] = port;
+          LOG_DEBUG(LOG_CTX_PTIN_MSG, "Port %u added", port);
+        }
+        else
+        {
+          LOG_ERR(LOG_CTX_PTIN_MSG, "Intf %u/%u does not have ptin_port format",
+                  evcConf.intf[i].intf_type, evcConf.intf[i].intf_id);
+        }
       }
     }
+    for (i = 0; i < number_of_ports; i++)
+    {
+      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Port added: ptin_port=%u", ptin_port[i]);
+    }
   }
-  for (i = 0; i < number_of_ports; i++)
+  /* Use NNI VLAN */
+  else if (nni_vlan >= 1 && nni_vlan <= 4095)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Port added: ptin_port=%u", ptin_port[i]);
+    /* No internal VLAN will be used */
+    int_vlan = 0;
+
+    /* Validate NNI VLAN */
+    if (ptin_evc_get_intVlan_fromNNIvlan(nni_vlan, L7_NULLPTR, L7_NULLPTR) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "NNI Vlan %u not valid!", nni_vlan);
+      return L7_FAILURE;
+    }
+
+  #if (PTIN_BOARD_IS_LINECARD)
+    if (!downlink)
+    {
+    #if (PTIN_BOARD == PTIN_BOARD_TG16G)
+      for (port=PTIN_SYSTEM_N_PONS; port<PTIN_SYSTEM_N_PORTS; port++)
+      {
+        ptin_port[number_of_ports++] = port;
+      }
+    #elif (PTIN_BOARD == PTIN_BOARD_TA48GE)
+      for (port=PTIN_SYSTEM_N_ETH; port<PTIN_SYSTEM_N_PORTS; port++)
+      {
+        ptin_port[number_of_ports++] = port;
+      }
+    #else
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Cannot use NNI VLAN for this board!");
+      return L7_FAILURE;
+    #endif
+    }
+    else
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Cannot use NNI VLAN for downlink interfaces!");
+      return L7_FAILURE;
+    }
+  #else
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Cannot use NNI VLAN for non LC cards!");
+    return L7_FAILURE;
+  #endif
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "No inputs provided: eEVC %u, NNIVlan %u", evc_id, nni_vlan);
+    return L7_FAILURE;
   }
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to configure QoS for EVC %u / internalVlan %u", evc_id, int_vlan);
@@ -5176,13 +5224,15 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_BOOL downlink, msg_C
 
     /* Apply configuration */
     if (ptin_qos_vlan_add(qos->trust_mode, cos_map, cos_map_size,
-                          int_vlan, downlink, ptin_port, number_of_ports) != L7_SUCCESS)
+                          nni_vlan, int_vlan, downlink, ptin_port, number_of_ports) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring QoS");
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring QoS of intVlan %u / NNIVlan %u / leaf:%u",
+              int_vlan, nni_vlan, downlink);
       return L7_FAILURE;
     }
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "QoS configured successfully");
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "QoS configured successfully of intVlan %u / NNIVlan %u / leaf:%u",
+              int_vlan, nni_vlan, downlink);
   }
   /* Only update list of ports */
   else
@@ -5190,7 +5240,7 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_BOOL downlink, msg_C
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "Updating list of ports");
 
     /* Apply configuration */
-    if (ptin_qos_vlan_ports_update(int_vlan, downlink, ptin_port, number_of_ports) != L7_SUCCESS)
+    if (ptin_qos_vlan_ports_update(nni_vlan, int_vlan, downlink, ptin_port, number_of_ports) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error reconfiguring list ports");
       return L7_FAILURE;
@@ -5211,6 +5261,8 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_BOOL downlink, msg_C
 L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
 {
   L7_uint16 i;
+  L7_uint32 evc_id, flags;
+  L7_uint16 nni_vlan;
   ptin_HwEthMef10Evc_t ptinEvcConf;
   msg_HwEthMef10EvcQoS_t *msgEvcConf = (msg_HwEthMef10EvcQoS_t *) inbuffer->info;
 
@@ -5227,7 +5279,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
   ptinEvcConf.type     = msgEvcConf->evc.type;
   ptinEvcConf.mc_flood = msgEvcConf->evc.mc_flood;
   ptinEvcConf.n_intf   = msgEvcConf->evc.n_intf;
-  memcpy(ptinEvcConf.ce_vid_bmp, msgEvcConf->evc.ce_vid_bmp, sizeof(ptinEvcConf.ce_vid_bmp));
+  //memcpy(ptinEvcConf.ce_vid_bmp, msgEvcConf->evc.ce_vid_bmp, sizeof(ptinEvcConf.ce_vid_bmp));
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "EVC# %u",              ptinEvcConf.index);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Flags    = 0x%08X",  ptinEvcConf.flags);
@@ -5275,26 +5327,55 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
     return L7_FAILURE;
   }
 
+  /* Get EVC flags */
+  if (ptin_evc_flags_get(ptinEvcConf.index, &flags, L7_NULLPTR) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Error obtaining flags for EVC %u", ptinEvcConf.index);
+    return L7_FAILURE;
+  }
+
   /* Does this message contains QoS information? */
   /* Uplink QoS */
   if (inbuffer->infoDim >= sizeof(msg_HwEthMef10Evc_t) + sizeof(msg_CoS_classification_t))
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to configure uplink QoS for EVC %u", ptinEvcConf.index);
-    /* Uplink QoS */
-    if (ptin_msg_qosvlan_config(ptinEvcConf.index, L7_FALSE, &msgEvcConf->qos[0]) != L7_SUCCESS)
+    evc_id = ptinEvcConf.index;
+    nni_vlan = 0;
+
+    /* Only obtain NNI vlan for linecard uplink ports */
+  #if (PTIN_BOARD_IS_LINECARD)
+    if ((flags & PTIN_EVC_MASK_QUATTRO) && (flags & PTIN_EVC_MASK_STACKED))
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring uplink QoS for EVC %u", ptinEvcConf.index);
+      /* Get NNI VLAN */
+      if (ptin_evc_get_NNIvlan_fromEvcId(ptinEvcConf.index, &nni_vlan) == L7_SUCCESS)
+      {
+        evc_id = (L7_uint32)-1;   /* Use NNI VLAN, instead of EVC id */
+      }
+      else
+      {
+        LOG_WARNING(LOG_CTX_PTIN_MSG, "Error obtaining NNI VLAN from eEVC %u", ptinEvcConf.index);
+        nni_vlan = 0;
+      }
+    }
+  #endif
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to configure uplink QoS for EVC %u / NNI VLAN %u", evc_id, nni_vlan);
+    /* Uplink QoS */
+    if (ptin_msg_qosvlan_config(evc_id, nni_vlan, L7_FALSE, &msgEvcConf->qos[0]) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring uplink QoS for EVC %u / NNI VLAN %u", evc_id, nni_vlan);
       return L7_FAILURE;
     }
   }
   /* Downlink QoS */
   if (inbuffer->infoDim >= sizeof(msg_HwEthMef10EvcQoS_t))
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to configure downlink QoS for EVC %u", ptinEvcConf.index);
+    evc_id = ptinEvcConf.index;
+    nni_vlan = 0;
+
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to configure downlink QoS for EVC %u / NNI VLAN %u", evc_id, nni_vlan);
     /* Uplink QoS */
-    if (ptin_msg_qosvlan_config(ptinEvcConf.index, L7_TRUE, &msgEvcConf->qos[1]) != L7_SUCCESS)
+    if (ptin_msg_qosvlan_config(evc_id, nni_vlan, L7_TRUE, &msgEvcConf->qos[1]) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring downlink QoS for EVC %u", ptinEvcConf.index);
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring downlink QoS for EVC %u / NNI VLAN %u", evc_id, nni_vlan);
       return L7_FAILURE;
     }
   }
@@ -5312,24 +5393,71 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
  */
 L7_RC_t ptin_msg_evc_qos_set(ipc_msg *inbuffer, ipc_msg *outbuffer)
 {
+  L7_uint16 nni_vlan;
+  L7_uint32 evc_id, number_of_evcs, flags;
   msg_evc_qos_t *msgEvcQoS = (msg_evc_qos_t *) inbuffer->info;
   L7_uint16 i, size;
+  L7_RC_t rc;
 
   size = inbuffer->infoDim / sizeof(msg_evc_qos_t);
 
   for (i = 0; i < size; i++)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to configure uplink QoS for EVC %u", msgEvcQoS[i].evc_id);
-    if (ptin_msg_qosvlan_config(msgEvcQoS[i].evc_id, L7_FALSE, &msgEvcQoS[i].qos[0]) != L7_SUCCESS) 
+    evc_id = (L7_uint32)-1;
+    nni_vlan = 0;
+
+    /* Get NNI VLAN */
+    if (msgEvcQoS[i].id.id_type == MSG_ID_NNIVID_TYPE)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring uplink QoS for EVC %u", msgEvcQoS[i].evc_id);
+      nni_vlan = msgEvcQoS[i].id.id_val.nni_vid;
+
+      number_of_evcs = 1;
+      if (ptin_evc_get_evcId_fromNNIvlan(nni_vlan, &evc_id, &number_of_evcs) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "Error obtaining EVC %u from NNI_VLAN %u", nni_vlan);
+        return L7_FAILURE;
+      }
+    }
+    else
+    {
+      evc_id = msgEvcQoS[i].id.id_val.evc_id;
+      if (ptin_evc_get_NNIvlan_fromEvcId(evc_id, &nni_vlan) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "Error obtaining NNI_VLAN %u from EVC %u", evc_id);
+        return L7_FAILURE;
+      }
+    }
+
+    /* Get EVC flags */
+    if (ptin_evc_flags_get(evc_id, &flags, L7_NULLPTR) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error obtaining flags for EVC %u / NNI_VLAN %u", evc_id, nni_vlan);
       return L7_FAILURE;
     }
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to configure downlink QoS for EVC %u", msgEvcQoS[i].evc_id);
-    if (ptin_msg_qosvlan_config(msgEvcQoS[i].evc_id, L7_TRUE, &msgEvcQoS[i].qos[1]) != L7_SUCCESS) 
+  #if (PTIN_BOARD_IS_LINECARD)
+    if ((flags & PTIN_EVC_MASK_QUATTRO) && (flags & PTIN_EVC_MASK_STACKED))
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring downlink QoS for EVC %u", msgEvcQoS[i].evc_id);
+      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to configure uplink QoS for NNI_VLAN %u", nni_vlan);
+      rc = ptin_msg_qosvlan_config((L7_uint32) -1, nni_vlan, L7_FALSE, &msgEvcQoS[i].qos[0]);
+    }
+    else
+  #endif
+    {
+      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to configure uplink QoS for EVC %u", evc_id);
+      rc = ptin_msg_qosvlan_config(evc_id, 0, L7_FALSE, &msgEvcQoS[i].qos[0]);
+    }
+    if (rc != L7_SUCCESS) 
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring uplink QoS for EVC %u / NNI_VLAN %u", evc_id, nni_vlan);
+      return L7_FAILURE;
+    }
+
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to configure downlink QoS for EVC %u / NNI VLAN %u", evc_id, nni_vlan);
+    rc = ptin_msg_qosvlan_config(evc_id, 0, L7_TRUE, &msgEvcQoS[i].qos[1]);
+    if (rc != L7_SUCCESS) 
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring downlink QoS for EVC %u / NNI_VLAN %u", evc_id, nni_vlan);
       return L7_FAILURE;
     }
   }
@@ -5369,25 +5497,26 @@ L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_s
     if (ptin_evc_intRootVlan_get(msgEvcConf[i].id, &int_vlan) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error obtaining internal VLAN of EVC# %u", msgEvcConf[i].id);
-      return L7_FAILURE;
+      int_vlan = 0;
     }
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to unconfigure QoS for EVC %u / internalVlan %u", msgEvcConf[i].id, int_vlan);
-    /* As long as a single QoS-VLAN map is applied to all stacked MAC-Bridge services, do not allow its deletion */
-    if (PTIN_VLAN_IS_QUATTRO(int_vlan))
+    if (!PTIN_VLAN_IS_QUATTRO(int_vlan))
     {
-      if (ptin_qos_vlan_clear(int_vlan, -1) != L7_SUCCESS) 
+      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to unconfigure QoS for EVC %u / intVlan %u", msgEvcConf[i].id, int_vlan);
+
+      /* As long as a single QoS-VLAN map is applied to all stacked MAC-Bridge services, do not allow its deletion */
+      if (ptin_qos_vlan_clear(0, int_vlan, -1) != L7_SUCCESS) 
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error deconfiguring QoS for EVC %u / internalVlan %u", msgEvcConf[i].id, int_vlan);
+        LOG_ERR(LOG_CTX_PTIN_MSG, "Error deconfiguring QoS for EVC %u / intVlan %u", msgEvcConf[i].id, int_vlan);
         continue;
       }
       else
       {
-        LOG_DEBUG(LOG_CTX_PTIN_MSG, "Error deconfiguring QoS for EVC %u / internalVlan %u", msgEvcConf[i].id, int_vlan);
+        LOG_DEBUG(LOG_CTX_PTIN_MSG, "Error deconfiguring QoS for EVC %u / intVlan %u", msgEvcConf[i].id, int_vlan);
       }
     }
     else
     {
-      LOG_WARNING(LOG_CTX_PTIN_MSG, "VLAN-QoS will never be removed from stacked MAC-Bridge services (EVC=%u, internalVlan %u)", msgEvcConf[i].id, int_vlan);
+      LOG_WARNING(LOG_CTX_PTIN_MSG, "EVC# %u is QUATTRO type... do nothing");
     }
 
     if (ptin_evc_delete(msgEvcConf[i].id) != L7_SUCCESS)
