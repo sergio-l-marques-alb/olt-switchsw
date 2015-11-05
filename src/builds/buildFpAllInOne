@@ -13,6 +13,7 @@ patchVersion=0
 echo "Usage: sh $0 [\$updateSvn] [version] [patch]"
 
 updateSvn=1
+password=olttera
 if [ $# -ge 1 ]; then
 	updateSvn=$1
 	if  [ $updateSvn -ne 1 -a $updateSvn -ne 0 ]; then
@@ -172,7 +173,7 @@ fi
 if  [ $scriptDebugCommands -eq 1 ]; then
 	echo "sudo sh image_update.sh  ./fastpath/fastpath-olt.image-v$oltVersion.$patchVersion-r$svnRelease.tgz $mkBoardsPath"
 fi
-sudo sh image_update.sh  fastpath/fastpath-olt.image-v$oltVersion.$patchVersion-r$svnRelease.tgz $mkBoardsPath
+echo $password | sudo -S sh image_update.sh fastpath/fastpath-olt.image-v$oltVersion.$patchVersion-r$svnRelease.tgz $mkBoardsPath
 
 if  [ $? -ne 0 ]; then
 	echo -e "
@@ -191,7 +192,7 @@ cd $mkBoardsPath/CXOLT1T0
 if  [ $scriptDebugCommands -eq 1 ]; then
 	echo "sudo sh fastpath_olt1t0.sh"
 fi
-sudo sh fastpath_olt1t0.sh 
+echo $password | sudo -S sh fastpath_olt1t0.sh 
 
 if  [ $? -ne 0 ]; then
 	echo -e "
@@ -210,7 +211,7 @@ if  [ $scriptDebugCommands -eq 1 ]; then
 	echo "sudo sh fastpath_cxo160g.sh"
 fi
 cd ../CXO160G 
-sudo sh fastpath_cxo160g.sh 
+echo $password | sudo -S sh fastpath_cxo160g.sh 
 
 if  [ $? -ne 0 ]; then
 	echo -e "
