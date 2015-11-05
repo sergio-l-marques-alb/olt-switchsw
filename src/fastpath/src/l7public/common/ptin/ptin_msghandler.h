@@ -2509,6 +2509,7 @@ typedef enum
 {
   ACL_ACTION_DENY      = 0,
   ACL_ACTION_PERMIT    = 1,
+  ACL_ACTION_CAPTURE   = 2,
   ACL_ACTION_MAX
 } ACL_ACTION_t;
 

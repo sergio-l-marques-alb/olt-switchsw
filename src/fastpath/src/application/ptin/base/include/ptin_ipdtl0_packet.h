@@ -50,6 +50,7 @@ typedef struct ptin_IPDTL0_PDU_Msg_s {
 
 /* Message ID used in queue */
 #define PTIN_IPDTL0_PACKET_MESSAGE_ID       1
+#define PTIN_IPDTL0_MIRRORPKT_MESSAGE_ID    2
 
 #define PTIN_IPDTL0_UNUSED_VLAN_ENTRY       0
 
@@ -77,6 +78,23 @@ L7_RC_t ptin_ipdtl0_init(void);
  * @return L7_RC_t 
  */
 L7_RC_t ptin_ipdtl0_deinit(void);
+
+/*********************************************************************
+* @purpose  Receives sampled packet
+*
+* @param    netBufHandle    @b{(input)} Handle to buffer
+* @param    sysnet_pdu_info_t *pduInfo   pointer to pdu info structure
+*                                        which stores intIfNum and vlanId
+*
+*
+* @returns  L7_SUCCESS  - Frame has been consumed.
+* @returns  L7_FAILURE  - Frame has not been consumed.
+* @returns  L7_ERROR  - Frame has not been consumed.
+*
+* @end
+*********************************************************************/
+L7_RC_t ptin_ipdtl0_mirrorPacketCapture(L7_netBufHandle netBufHandle,
+                                        sysnet_pdu_info_t *pduInfo);
 
 /**
  * Enables/Disables IP/ARP packets through dtl0

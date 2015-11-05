@@ -410,7 +410,7 @@ void dtlGlobalInit (void)
 
 
 /* PTin added */
-L7_RC_t dtlIPProtoRecvAny(L7_netBufHandle bufHandle, char *data, L7_uint32 nbytes, sysnet_pdu_info_t *pduInfo)
+L7_RC_t dtlIPProtoRecvAny(L7_netBufHandle bufHandle, char *data, L7_uint32 nbytes, sysnet_pdu_info_t *pduInfo, L7_BOOL mac_learn)
 {
   L7_ushort16 etype = 0;
   L7_ushort16 dtl0Vid = 0;
@@ -562,8 +562,11 @@ L7_RC_t dtlIPProtoRecvAny(L7_netBufHandle bufHandle, char *data, L7_uint32 nbyte
       #endif
     }
 
-    /* Always update the physical interface for a MAC addr in the network port fdb. */
-    dtlInsert ( data+6, pduInfo->intIfNum );
+    if (mac_learn == L7_TRUE)
+    {
+      /* Always update the physical interface for a MAC addr in the network port fdb. */
+      dtlInsert ( data+6, pduInfo->intIfNum );
+    }
 
     if (0 > write(dtl_net_fd,data,nbytes)) { if (dtlNetPtinDebug & DTLNET_PTINDEBUG_RX_LEVEL1) SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlIPProtoRecvAny (%d) Unknown ERROR!!!\n\r", __LINE__); }
   }

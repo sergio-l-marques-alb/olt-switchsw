@@ -1199,9 +1199,12 @@ static L7_RC_t hapiBroadQosAclInstAdd(DAPI_USP_t               *usp,
                 {
                     DAPI_USP_t mirrorUsp;
 
-                    mirrorUsp.unit = osapiNtohl(*(L7_int32*)GET_VALUE_PTR(pMatchTLV,0));
-                    mirrorUsp.slot = osapiNtohl(*(L7_int32*)GET_VALUE_PTR(pMatchTLV,4));
-                    mirrorUsp.port = osapiNtohl(*(L7_int32*)GET_VALUE_PTR(pMatchTLV,8));
+//                  mirrorUsp.unit = osapiNtohl(*(L7_int32*)GET_VALUE_PTR(pMatchTLV,0));
+//                  mirrorUsp.slot = osapiNtohl(*(L7_int32*)GET_VALUE_PTR(pMatchTLV,4));
+//                  mirrorUsp.port = osapiNtohl(*(L7_int32*)GET_VALUE_PTR(pMatchTLV,8));
+                    mirrorUsp.unit = 0;
+                    mirrorUsp.slot = L7_CPU_SLOT_NUM;
+                    mirrorUsp.port = 0;
 
                     result = hapiBroadPolicyRuleActionAdd(ruleId,
                                                           BROAD_ACTION_MIRROR,

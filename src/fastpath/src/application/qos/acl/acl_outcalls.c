@@ -103,6 +103,10 @@ L7_BOOL aclIsValidIntfType(L7_uint32 sysIntfType)
                                  L7_ACL_INTF_LAG_SUPPORT_FEATURE_ID);
       break;
 
+    case L7_CPU_INTF:
+      rc = L7_TRUE;
+      break;
+
     default:
       break;
 

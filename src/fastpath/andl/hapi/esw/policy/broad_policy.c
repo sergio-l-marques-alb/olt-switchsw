@@ -107,6 +107,12 @@ static L7_RC_t hapiBroadPolicyPortSelect(DAPI_USP_t *usp, bcmx_lport_t *lport)
 
     *lport = BCMX_LPORT_INVALID;
 
+    if (usp->slot == L7_CPU_SLOT_NUM)
+    {
+      result = bcmx_lport_local_cpu_get(0, lport);
+      return result;
+    }
+
     hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
 
     if (L7_TRUE == hapiPortPtr->port_is_lag)

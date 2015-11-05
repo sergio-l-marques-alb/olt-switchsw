@@ -26,6 +26,17 @@ typedef struct {
   L7_uint8      direction;        /* ACL_DIRECTION_t: Only ACL_DIRECTION_IN is supported */
 } ptin_acl_apply_t;
 
+
+/**
+ * 
+ * 
+ * @author alex (5/7/2015)
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_acl_init(void);
+
+
 /**
  * Clean All ACL
  * 

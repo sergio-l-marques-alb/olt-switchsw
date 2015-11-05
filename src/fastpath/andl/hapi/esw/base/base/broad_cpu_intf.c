@@ -2378,9 +2378,17 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
   // PTin
   if (cpu_intercept_debug & CPU_INTERCEPT_DEBUG_STDOUT)
   {
-    printf("%s(%d) Lowest level reception: (reason=%u [%u,%u,%u]) %u rxport:%u, srcport=%u, vid=%u, length=%d\n", __FUNCTION__, __LINE__,
-           bcm_pkt->rx_reason,bcm_pkt->rx_reasons.pbits[0],bcm_pkt->rx_reasons.pbits[1],bcm_pkt->rx_reasons.pbits[2],bcm_pkt->cos,
-           bcm_pkt->rx_port,bcm_pkt->src_port,bcm_pkt->vlan, bcm_pkt->pkt_len);
+    printf("%s(%d) Lowest level reception: (reason=%u [%u,%u,%u,%u,%u]) %u rxport:%u, srcport=%u, vid=%u\n", __FUNCTION__, __LINE__,
+           bcm_pkt->rx_reason,
+           bcm_pkt->rx_reasons.pbits[0],
+           bcm_pkt->rx_reasons.pbits[1],
+           bcm_pkt->rx_reasons.pbits[2],
+           bcm_pkt->rx_reasons.pbits[3],
+           bcm_pkt->rx_reasons.pbits[4],
+           bcm_pkt->cos,
+           bcm_pkt->rx_port,
+           bcm_pkt->src_port,
+           bcm_pkt->vlan);
 
     printf("rx_timestamp %u, rx_timestamp_upper %u, timestamp_flags 0X%X\n\r", bcm_pkt->rx_timestamp, bcm_pkt->rx_timestamp_upper, bcm_pkt->timestamp_flags);
     fflush(stdout);
@@ -3670,6 +3678,8 @@ static void hapiBroadRxReasonCodeSet(BROAD_PKT_RX_MSG_t *pktRxMsg)
     rxCode |= L7_MBUF_RX_SAMPLE_SOURCE;
   if (BCM_RX_REASON_GET(pktRxMsg->reasons, bcmRxReasonSampleDest))
     rxCode |= L7_MBUF_RX_SAMPLE_DEST;
+  if (BCM_RX_REASON_GET(pktRxMsg->reasons, bcmRxReasonMirror))
+    rxCode |= L7_MBUF_RX_MIRROR;
 
   sysapiNetMbufSetRxReasonCode(frameHdl, rxCode);
 }
@@ -5631,7 +5641,8 @@ L7_BOOL hapiBroadMacDaCheck(BROAD_PKT_RX_MSG_t *pktRxMsg,
 #else
   /* Send sFlow sampled pkts to CPU */
   if (BCM_RX_REASON_GET(pktRxMsg->reasons, bcmRxReasonSampleSource) || 
-      BCM_RX_REASON_GET(pktRxMsg->reasons, bcmRxReasonSampleDest))
+      BCM_RX_REASON_GET(pktRxMsg->reasons, bcmRxReasonSampleDest) ||
+      BCM_RX_REASON_GET(pktRxMsg->reasons, bcmRxReasonMirror))
   {
     return L7_TRUE;
   }

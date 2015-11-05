@@ -24,7 +24,7 @@
 
 #include "sysnet_api_ipv4.h"
 
-#define _PAYLOAD_DEBUG_
+//#define _PAYLOAD_DEBUG_
 
 /***************************************
  * GLOBAL VARIABLES
@@ -53,7 +53,6 @@ ptin_ipdtl0_intVidInfo_t ptin_ipdtl0_intVid_info[4096];
 
 /* Reference of used dtl0 VLAN IDs */
 ptin_ipdtl0_dtl0Info_t ptin_ipdtl0_dtl0Vid_info[4096];
-
 
 /***************************************
  * DEBUG ROUTINES
@@ -107,6 +106,21 @@ static void ptin_ipdtl0_task(void)
 
         if (rc == L7_SUCCESS)
         {
+            #ifdef _PAYLOAD_DEBUG_
+            int i;
+            for (i=0; i<msg.payloadLen; i++)
+            {
+                if (i%16==0)
+                {
+                    if (i!=0)
+                        printf("\r\n");
+                    printf(" 0x%04x:",i);
+                }
+                printf(" %02x", msg.payload[i]);
+            }
+            printf("\r\n");
+            #endif
+
             if (msg.msgId == PTIN_IPDTL0_PACKET_MESSAGE_ID)
             {
                 if (ptin_ipdtl0_debug_enable)
@@ -149,9 +163,26 @@ static void ptin_ipdtl0_task(void)
                     LOG_TRACE(LOG_CTX_PTIN_API, "Converting Internal VLAN ID (%d) to dtl0 VLAN ID (%d)\n\r", msg.vlanId, ptin_ipdtl0_intVid_info[msg.vlanId].dtl0Vid);
                 }
 
-                dtlIPProtoRecvAny(msg.bufHandle, msg.payload, msg.payloadLen, &pduInfo);
+                dtlIPProtoRecvAny(msg.bufHandle, msg.payload, msg.payloadLen, &pduInfo, L7_TRUE);
             }
-            else
+            else if (msg.msgId == PTIN_IPDTL0_MIRRORPKT_MESSAGE_ID)
+            {
+                sysnet_pdu_info_t       pduInfo;
+
+                bzero((char *)&pduInfo, sizeof(sysnet_pdu_info_t));
+                pduInfo.intIfNum = msg.intIfNum;
+                pduInfo.rxPort = msg.intIfNum;
+                pduInfo.vlanId = msg.vlanId;
+
+                /* Convert Internal VLAN ID to dtl0 VLAN ID */
+                msg.payload[14] = 0x00;
+                msg.payload[15] = 0x01;
+
+                LOG_TRACE(LOG_CTX_PTIN_API, "Converting Internal VLAN ID (%d) to dtl0 VLAN ID 1\n", msg.vlanId);
+
+                dtlIPProtoRecvAny(msg.bufHandle, msg.payload, msg.payloadLen, &pduInfo, L7_FALSE);
+            }
+            else 
             {
                 LOG_TRACE(LOG_CTX_PTIN_API, "Packet received with Unknown ID");
             }
@@ -549,6 +580,72 @@ L7_RC_t ptin_ipdtl0_control(L7_uint16 dtl0Vid, L7_uint16 outerVid, L7_uint16 int
 
     return rc;
 }
+
+/*********************************************************************
+* @purpose  Receives sampled packet
+*
+* @param    netBufHandle    @b{(input)} Handle to buffer
+* @param    sysnet_pdu_info_t *pduInfo   pointer to pdu info structure
+*                                        which stores intIfNum and vlanId
+*
+*
+* @returns  L7_SUCCESS  - Frame has been consumed.
+* @returns  L7_FAILURE  - Frame has not been consumed.
+* @returns  L7_ERROR  - Frame has not been consumed.
+*
+* @end
+*********************************************************************/
+L7_RC_t ptin_ipdtl0_mirrorPacketCapture(L7_netBufHandle netBufHandle,
+                                        sysnet_pdu_info_t *pduInfo)
+{
+  L7_uchar8 *data;
+  L7_uint32 dataLength;
+  L7_RC_t   rc = L7_SUCCESS;
+//L7_int    i;
+  ptin_IPDTL0_PDU_Msg_t     msg;
+
+
+  LOG_TRACE(LOG_CTX_PTIN_API,
+            "Packet intercepted vlan %d, innerVlan=%u, intIfNum %d, rx_port=%d",
+            pduInfo->vlanId, pduInfo->innerVlanId, pduInfo->intIfNum, pduInfo->rxPort);
+
+  /* Get start and length of incoming frame */
+  SYSAPI_NET_MBUF_GET_DATASTART(netBufHandle, data);
+  SYSAPI_NET_MBUF_GET_DATALENGTH(netBufHandle, dataLength);
+
+//for (i=0; i<dataLength; i++)
+//{
+//  if (i%16==0)
+//  {
+//      if (i!=0)
+//          printf("\r\n");
+//      printf(" 0x%02x:",i);
+//  }
+//  printf(" %02x", data[i]);
+//}
+//printf("\r\n");
+
+  memset(&msg, 0x00, sizeof(msg));
+  msg.msgId       = PTIN_IPDTL0_MIRRORPKT_MESSAGE_ID;
+  msg.intIfNum    = pduInfo->intIfNum;
+  msg.vlanId      = pduInfo->vlanId;
+  msg.innerVlanId = pduInfo->innerVlanId;
+  msg.bufHandle   = netBufHandle;
+  msg.payloadLen  = dataLength;
+  msg.payload     = data;
+
+  /* Send packet to queue */
+  rc = osapiMessageSend(ptin_ipdtl0_packetRx_queue, &msg, PTIN_IPDTL0_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
+
+  /* If any error, packet will be dropped */
+  if (rc!=L7_SUCCESS)
+  {
+      LOG_TRACE(LOG_CTX_PTIN_API, "If any error, packet will be dropped");
+  }
+
+  return rc;
+}
+
 
 /**
  * Enables/Disables IP/ARP packets through dtl0

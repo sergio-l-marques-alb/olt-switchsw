@@ -85,6 +85,15 @@ static L7_RC_t ptin_msg_evcStatsStruct_fill(msg_evcStats_t *msg_evcStats, ptin_e
 
 L7_RC_t ptin_to_fp_ip_notation(chmessage_ip_addr_t *ptinIpAddr, L7_inet_addr_t *fpIpAddr);
 
+
+static L7_uint force_capture = L7_FALSE;
+
+void ptin_force_capture(L7_BOOL force)
+{
+  force_capture = force;
+}
+
+
 /******************************************************** 
  * EXTERNAL FUNCTIONS IMPLEMENTATION
  ********************************************************/
@@ -11887,7 +11896,7 @@ L7_RC_t ptin_msg_arp_acl_rule_config(msg_arp_acl_t *msgArpAcl, ACL_OPERATION_t o
 L7_RC_t ptin_msg_mac_acl_rule_config(msg_mac_acl_t *msgMacAcl, ACL_OPERATION_t operation)
 {
   L7_uint8  *aclTypeStr[] = {"MAC", "IP STANDARD", "IP EXTENDED", "IP NAMED", "IPv6 EXTENDED"};
-  L7_uint8  *actionStr[] =  {"DENY", "PERMIT"};
+  L7_uint8  *actionStr[] =  {"DENY", "PERMIT", "CAPTURE"};
   L7_uint8  *operationStr[] =  {"CREATE RULE", "REMOVE RULE"};
 
   L7_RC_t rc = L7_FAILURE;
@@ -11910,12 +11919,17 @@ L7_RC_t ptin_msg_mac_acl_rule_config(msg_mac_acl_t *msgMacAcl, ACL_OPERATION_t o
     return L7_FAILURE;
   }
 
-  if (msgMacAcl->action > ACL_ACTION_PERMIT)
+  if (msgMacAcl->action >= ACL_ACTION_MAX)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "action Invalid (%d)", msgMacAcl->action);
     return L7_FAILURE;
   }
   
+  if (force_capture)
+  {
+    msgMacAcl->action = ACL_ACTION_CAPTURE;
+    force_capture = 0;
+  }
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Slot Id        %d",                              msgMacAcl->slotId);
@@ -11984,9 +11998,9 @@ L7_RC_t ptin_msg_mac_acl_rule_config(msg_mac_acl_t *msgMacAcl, ACL_OPERATION_t o
  */
 L7_RC_t ptin_msg_ip_acl_rule_config(msg_ip_acl_t *msgIpAcl, ACL_OPERATION_t operation)
 {
-  L7_uint8 *aclTypeStr[] = {"MAC", "IP STANDARD", "IP EXTENDED", "IP NAMED", "IPv6 EXTENDED"};
-  L7_uint8 *actionStr[] =  {"DENY", "PERMIT"};
-  L7_uint8 *operationStr[] =  {"CREATE RULE", "REMOVE RULE"};
+  L7_uint8  *aclTypeStr[] = {"MAC", "IP STANDARD", "IP EXTENDED", "IP NAMED", "IPv6 EXTENDED"};
+  L7_uint8  *actionStr[] =  {"DENY", "PERMIT", "CAPTURE"};
+  L7_uint8  *operationStr[] =  {"CREATE RULE", "REMOVE RULE"};
   L7_uint8 ipAddr[] = "255.255.255.255";
 
   L7_RC_t rc = L7_FAILURE;
@@ -12020,12 +12034,17 @@ L7_RC_t ptin_msg_ip_acl_rule_config(msg_ip_acl_t *msgIpAcl, ACL_OPERATION_t oper
     return L7_FAILURE;
   }
 
-  if (msgIpAcl->action > ACL_ACTION_PERMIT)
+  if (msgIpAcl->action >= ACL_ACTION_MAX)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "action Invalid (%d)", msgIpAcl->action);
     return L7_FAILURE;
   }
 
+  if (force_capture)
+  {
+    msgIpAcl->action = ACL_ACTION_CAPTURE;
+    force_capture = 0;
+  }
   
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Slot Id        %d",                              msgIpAcl->slotId);
@@ -12119,12 +12138,17 @@ L7_RC_t ptin_msg_ipv6_acl_rule_config(msg_ipv6_acl_t *msgIpv6Acl, ACL_OPERATION_
     return L7_FAILURE;
   }
 
-  if (msgIpv6Acl->action > ACL_ACTION_PERMIT)
+  if (msgIpv6Acl->action >= ACL_ACTION_MAX)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "action Invalid (%d)", msgIpv6Acl->action);
     return L7_FAILURE;
   }
 
+  if (force_capture)
+  {
+    msgIpv6Acl->action = ACL_ACTION_CAPTURE;
+    force_capture = 0;
+  }
   
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Slot Id        %d",                              msgIpv6Acl->slotId);

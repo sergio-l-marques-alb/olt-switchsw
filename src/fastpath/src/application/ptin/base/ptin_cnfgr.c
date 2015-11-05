@@ -36,6 +36,8 @@
 #include "ptin_prot_erps.h"
 #include "ptin_ipdtl0_packet.h"
 #include "ptin_rfc2819.h"
+#include "ptin_ipdtl0_packet.h"
+#include "ptin_acl.h"
 #include <ptin_prot_oam_eth.h>
 #include <ptin_oam_packet.h>
 
@@ -471,6 +473,15 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
     return L7_FAILURE;
   }
 #endif
+
+  if (ptin_acl_init() != L7_SUCCESS)
+  {
+    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "ptin_acl_init() failed!");
+
+    *pResponse  = 0;
+    *pReason    = L7_CNFGR_ERR_RC_FATAL;
+    return L7_FAILURE;
+  }
 
   /* Initialize IGMP data structures (includes semaphores) */
   ptin_igmp_proxy_init();

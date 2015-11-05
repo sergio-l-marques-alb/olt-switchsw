@@ -1648,6 +1648,7 @@ void sysapiDebugDriverShell(const L7_uchar8 str[]);
 #define  L7_MBUF_RX_REASON_L3_MISS  0x2    /* IP packet failed L3 lookup */
 #define  L7_MBUF_RX_SAMPLE_SOURCE  0x4     /* packet ingress sampled to the CPU */
 #define  L7_MBUF_RX_SAMPLE_DEST    0x8     /* packet ingress sampled to the CPU */
+#define  L7_MBUF_RX_MIRROR         0x10    /* packet mirrored to the CPU */
 
 /**************************************************************************
 * @purpose  Retrieve the receive reason code(s) of network mbuf

@@ -8,6 +8,7 @@
 
 #include "ptin_acl.h"
 #include "ptin_evc.h"
+#include "ptin_ipdtl0_packet.h"
 #include "dot1q_api.h"
 #include "dai_api.h"
 #include "ptin_intf.h"
@@ -44,10 +45,45 @@ struct {
 } ptin_aclIpv6Db[L7_MAX_ACL_LISTS];                         /* IPv6 [1..99] */
 
 
+L7_uint32 ptin_mirror_intfnum = 1; //FD_CNFGR_NIM_MIN_CPU_INTF_NUM;
+
+void ptin_force_intfnum(L7_uint32 intfnum)
+{
+  ptin_mirror_intfnum = intfnum;
+  printf("ptin_mirror_intfnum = %d\n", intfnum);
+}
 
 /********************************************************************************** 
  *                             MAC/IP/IPv6 ACL Clean                              *
  **********************************************************************************/
+
+
+/**
+ * 
+ * 
+ * @author alex (5/7/2015)
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_acl_init(void)
+{
+  sysnetNotifyEntry_t   snEntry;
+
+  /* register with sysnet for sampled packets */
+  bzero((char *)&snEntry, sizeof(sysnetNotifyEntry_t));
+  strncpy(snEntry.funcName, "ptin_ipdtl0_mirrorPacketCapture", sizeof(snEntry.funcName));
+  snEntry.notify_pdu_receive = ptin_ipdtl0_mirrorPacketCapture;
+  snEntry.type = SYSNET_PKT_RX_REASON;
+  snEntry.u.rxReason = L7_MBUF_RX_MIRROR;
+  if (sysNetRegisterPduReceive(&snEntry) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API, "Failure on sysNetRegisterPduReceive(ptinPacketCapture)");
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
 
 /**
  * Clean an IP ACL
@@ -292,6 +328,7 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
   L7_int32 precVal = -1;
   L7_int32 tosVal =-1;
   L7_int32 dscpVal = -1;
+  L7_int32 mirrorVal = -1;
   L7_uint32 tosMask = 0;
   L7_BOOL matchEvery= L7_FALSE;
   L7_BOOL matchSrc = L7_FALSE;
@@ -329,6 +366,11 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
   else if (msgAcl->action == ACL_ACTION_DENY)
   {
     actionType = L7_ACL_DENY;
+  }
+  else if (msgAcl->action == ACL_ACTION_CAPTURE)
+  {
+    actionType = L7_ACL_PERMIT;
+    mirrorVal = ptin_mirror_intfnum;
   }
   else
   {
@@ -781,6 +823,20 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
       LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleEveryAdd return L7_REQUEST_DENIED");
       return L7_FAILURE;
     }
+
+    /* Mirror */
+    if (mirrorVal > -1)
+    {
+      printf("%s(%d) usmDbQosAclRuleMirrorIntfAdd() mirrorVal=%d\n", __FUNCTION__, __LINE__, mirrorVal);
+      rc = usmDbQosAclRuleMirrorIntfAdd(unit, aclId, aclRuleNum, mirrorVal);
+      if (rc != L7_SUCCESS)
+      {
+        ptin_aclIpClean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
+        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleMirrorIntfAdd return L7_REQUEST_DENIED");
+        return L7_FAILURE;
+      }
+    }
+
   }
   else
   {
@@ -899,6 +955,19 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
           LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleIPDscpAdd return (rc=%d)", rc);
           return L7_FAILURE;
         }
+      }
+    }
+
+    /* Mirror */
+    if (mirrorVal > -1)
+    {
+      printf("%s(%d) usmDbQosAclRuleMirrorIntfAdd() mirrorVal=%d\n", __FUNCTION__, __LINE__, mirrorVal);
+      rc = usmDbQosAclRuleMirrorIntfAdd(unit, aclId, aclRuleNum, mirrorVal);
+      if (rc != L7_SUCCESS)
+      {
+        ptin_aclIpClean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
+        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleMirrorIntfAdd return (rc=%d)", rc);
+        return L7_FAILURE;
       }
     }
   }
@@ -1135,6 +1204,7 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
   L7_int32 dstStartPort = -1;
   L7_int32 dstEndPort = -1;
   L7_int32 dscpVal = -1;
+  L7_int32 mirrorVal = -1;
   L7_int32 flowLabelVal = -1;
   L7_BOOL matchEvery = L7_FALSE;
   L7_BOOL matchSrc = L7_FALSE;
@@ -1171,6 +1241,11 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
   else if (msgAcl->action == ACL_ACTION_DENY)
   {
     actionType = L7_ACL_DENY;
+  }
+  else if (msgAcl->action == ACL_ACTION_CAPTURE)
+  {
+    actionType = L7_ACL_PERMIT;
+    mirrorVal = ptin_mirror_intfnum;
   }
   else
   {
@@ -1821,6 +1896,7 @@ L7_RC_t ptin_aclMacRuleConfig(msg_mac_acl_t *msgAcl, ACL_OPERATION_t operation)
   L7_int32 endVlanVal = -1;
   
   L7_int32 cosVal = -1;
+  L7_int32 mirrorVal = -1;
   
   L7_char8 macAccessListName[L7_CLI_MAX_STRING_LENGTH];
   L7_BOOL matchSrc = L7_FALSE;
@@ -1857,6 +1933,11 @@ L7_RC_t ptin_aclMacRuleConfig(msg_mac_acl_t *msgAcl, ACL_OPERATION_t operation)
   else if (msgAcl->action == ACL_ACTION_DENY)
   {
     actionType = L7_ACL_DENY;
+  }
+  else if (msgAcl->action == ACL_ACTION_CAPTURE)
+  {
+    actionType = L7_ACL_PERMIT;
+    mirrorVal = ptin_mirror_intfnum;
   }
   else
   {
@@ -2085,6 +2166,19 @@ L7_RC_t ptin_aclMacRuleConfig(msg_mac_acl_t *msgAcl, ACL_OPERATION_t operation)
       LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclMacRuleEveryAdd return L7_REQUEST_DENIED");
       return L7_FAILURE;
     }
+
+    /* Mirror */
+    if (mirrorVal > -1)
+    {
+      printf("%s(%d) usmDbQosAclMacRuleMirrorIntfAdd() mirrorVal=%d\n", __FUNCTION__, __LINE__, mirrorVal);
+      rc = usmDbQosAclMacRuleMirrorIntfAdd(unit, aclId, aclRuleNum, mirrorVal);
+      if (rc != L7_SUCCESS)
+      {
+        ptin_aclMacClean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
+        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleMirrorIntfAdd return (rc=%d)", rc);
+        return L7_FAILURE;
+      }
+    }
   }
   else
   {
@@ -2164,6 +2258,18 @@ L7_RC_t ptin_aclMacRuleConfig(msg_mac_acl_t *msgAcl, ACL_OPERATION_t operation)
       }
     }
 
+    /* Mirror */
+    if (mirrorVal > -1)
+    {
+      printf("%s(%d) usmDbQosAclMacRuleMirrorIntfAdd() mirrorVal=%d\n", __FUNCTION__, __LINE__, mirrorVal);
+      rc = usmDbQosAclMacRuleMirrorIntfAdd(unit, aclId, aclRuleNum, mirrorVal);
+      if (rc != L7_SUCCESS)
+      {
+        ptin_aclMacClean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
+        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleMirrorIntfAdd return (rc=%d)", rc);
+        return L7_FAILURE;
+      }
+    }
   }
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Rule Applied!");

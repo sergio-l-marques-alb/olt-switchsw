@@ -37,6 +37,15 @@ if [ $BOARD == "cxo640g" ]; then
  echo "OK!"
 fi
 
+if [ $BOARD == "cxo160g" ]; then
+ echo -n "Updating CXO160G board...$1"
+ cd output/FastPath-Ent-esw-xgs4-e500mc-LR-CSxw-IQH_CXO160G
+ cp -v ipl/switchdrvr ipl/devshell_symbols.gz target/*.ko ipl/fp.cli ipl/fp.shell ipl/mgmd.cli $MKBOARDS/CXO160G/rootfs/usr/local/ptin/sbin/
+ cp -v ipl/libmgmd.so $MKBOARDS/CXO160G/rootfs/usr/local/ptin/lib/
+ cd - > /dev/null 2>&1
+ echo "OK!"
+fi
+
 if [ $BOARD == "ta48ge" ]; then
  echo -n "Updating TA48GE board...$1"
  cd output/FastPath-Ent-esw-xgs4-e500-LR-CSxw-IQH_TA48GE
