@@ -92,6 +92,7 @@ static bcm_field_qualify_t field_map[BROAD_FIELD_LAST] =
     bcmFieldQualifyTcpControl,
     bcmFieldQualifyVlanFormat,     /* VLAN Format */
     bcmFieldQualifyIpType,         /* IP Type */
+    bcmFieldQualifyInPort,         /* InPort, PTin added: FP */
     bcmFieldQualifyInPorts,        /* InPorts, PTin added: FP */
     bcmFieldQualifyOutPorts,       /* OutPorts, PTin added: FP */
     bcmFieldQualifySrcTrunk,       /* SrcTrunk, PTin added: FP */
@@ -1750,15 +1751,15 @@ static int _policy_group_add_std_field(int                   unit,
 #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
     /* PTin added: FP */
     case BROAD_FIELD_CLASS_ID:
-        rv = bcm_field_qualify_DstClassField(unit, eid, *((uint8*)value), *((uint8*)mask));
+        rv = bcm_field_qualify_DstClassField(unit, eid, *((uint32*)value), *((uint32*)mask));
         break;
     case BROAD_FIELD_SRC_CLASS_ID:
-        rv = bcm_field_qualify_SrcClassField(unit, eid, *((uint8*)value), *((uint8*)mask));
+        rv = bcm_field_qualify_SrcClassField(unit, eid, *((uint32*)value), *((uint32*)mask));
         break;
 #else
     case BROAD_FIELD_CLASS_ID:
     case BROAD_FIELD_SRC_CLASS_ID:
-        rv = bcm_field_qualify_LookupClass0(unit, eid, *((uint8*)value), 0xF);
+        rv = bcm_field_qualify_LookupClass0(unit, eid, *((uint32*)value), 0xF);
         break;
 #endif
     case BROAD_FIELD_L2_CLASS_ID:
@@ -1858,6 +1859,9 @@ static int _policy_group_add_std_field(int                   unit,
         }
         break;
     // PTin added: FP
+    case BROAD_FIELD_INPORT:
+        rv = bcm_field_qualify_InPort(unit, eid, *((bcm_port_t*)value), *((bcm_port_t*)mask));
+        break;
     case BROAD_FIELD_INPORTS:
         rv = bcm_field_qualify_InPorts(unit, eid, *((bcm_pbmp_t*)value), *((bcm_pbmp_t*)mask));
         break;

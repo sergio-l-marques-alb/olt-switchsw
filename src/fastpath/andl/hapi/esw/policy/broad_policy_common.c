@@ -54,6 +54,7 @@ static int broadFieldMapTable[BROAD_FIELD_LAST] =
   BROAD_FIELD_L2_FORMAT_SIZE,
   BROAD_FIELD_SNAP_SIZE,
   BROAD_FIELD_IP_TYPE_SIZE,
+  BROAD_FIELD_INPORT_SIZE,          /* PTin added: FP */
   BROAD_FIELD_INPORTS_SIZE,         /* PTin added: FP */
   BROAD_FIELD_OUTPORT_SIZE,         /* PTin added: FP */
   BROAD_FIELD_SRCTRUNK_SIZE,        /* PTin added: FP */
@@ -96,6 +97,7 @@ static char *broadFieldNameTable[BROAD_FIELD_LAST] =
     "L2_FORMAT",
     "SNAP",
     "IP_TYPE",
+    "INPORT",           /* PTin added: FP */
     "INPORTS",          /* PTin added: FP */
     "OUTPORT" ,         /* PTin added: FP */
     "SRCTRUNK",         /* PTin added: FP */
@@ -316,6 +318,9 @@ L7_uchar8 *hapiBroadPolicyFieldValuePtr(BROAD_FIELD_ENTRY_t *fieldInfo, BROAD_PO
     ptr = fieldInfo->fieldIpType.value;
     break;
   // PTin added: FP
+  case BROAD_FIELD_INPORT:
+    ptr = fieldInfo->fieldInport.value;
+    break;
   case BROAD_FIELD_INPORTS:
     ptr = fieldInfo->fieldInports.value;
     break;
@@ -431,6 +436,9 @@ L7_uchar8 *hapiBroadPolicyFieldMaskPtr(BROAD_FIELD_ENTRY_t *fieldInfo, BROAD_POL
     ptr = fieldInfo->fieldSnap.mask;
     break;
   // PTin added: FP
+  case BROAD_FIELD_INPORT:
+    ptr = fieldInfo->fieldInport.mask;
+    break;
   case BROAD_FIELD_INPORTS:
     ptr = fieldInfo->fieldInports.mask;
     break;

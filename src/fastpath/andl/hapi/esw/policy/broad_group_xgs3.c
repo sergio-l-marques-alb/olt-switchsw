@@ -92,6 +92,7 @@ static bcm_field_qualify_t field_map[BROAD_FIELD_LAST] =
     bcmFieldQualifyL2Format,       /* L2 Header Format */
     bcmFieldQualifySnap,           /* SNAP Header */ 
     bcmFieldQualifyIpType,         /* IP Type */
+    bcmFieldQualifyInPort,         /* InPort, PTin added: FP */
     bcmFieldQualifyInPorts,        /* InPorts, PTin added: FP */
     bcmFieldQualifyOutPort,        /* OutPort, PTin added: FP */
     bcmFieldQualifySrcTrunk,       /* SrcTrunk, PTin added: FP */
@@ -586,9 +587,9 @@ static action_map_entry_t egress_action_map[BROAD_ACTION_LAST] =
     /* PTin added */
     /* SET_USERPRIO_INNERTAG */
     {
-        { bcmFieldActionGpInnerVlanPrioNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { bcmFieldActionYpInnerVlanPrioNew, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { bcmFieldActionRpInnerVlanPrioNew, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+        { bcmFieldActionGpInnerVlanPrioNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
+        { bcmFieldActionYpInnerVlanPrioNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
+        { bcmFieldActionRpInnerVlanPrioNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE}
     },
     /* SET_DROPPREC */
     {
@@ -1540,6 +1541,7 @@ static int _policy_super_qset_init_vfp(int unit)
 
     memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
     applicable_policy_types[BROAD_POLICY_TYPE_PORT] = L7_TRUE;
+    applicable_policy_types[BROAD_POLICY_TYPE_VLAN] = L7_TRUE;
     //applicable_policy_types[BROAD_POLICY_TYPE_IPSG] = L7_TRUE;    /* PTin removed: IPSG */
     applicable_policy_types[BROAD_POLICY_TYPE_COSQ] = L7_TRUE;
     //applicable_policy_types[BROAD_POLICY_TYPE_PTIN]         = L7_TRUE;
@@ -1550,8 +1552,10 @@ static int _policy_super_qset_init_vfp(int unit)
       sysapiPrintf("Adding qset l2l3l4QsetLookup\r\n");
 
     /* The following qsets use intra-slice doublewide mode, so the number of rules is cut in half. */
-    rv = _policy_super_qset_add(unit, &l2l3l4QsetLookupDef, applicable_policy_types);
-    LOG_TRACE(LOG_CTX_STARTUP,"Adding l2l3l4QsetLookupDef qset: rv=%d", rv);
+    //rv = _policy_super_qset_add(unit, &l2l3l4QsetLookupDef, applicable_policy_types);
+    //LOG_TRACE(LOG_CTX_STARTUP,"Adding l2l3l4QsetLookupDef qset: rv=%d", rv);
+    rv = _policy_super_qset_add(unit, &portVlanQsetLookupDef, applicable_policy_types);
+    LOG_TRACE(LOG_CTX_STARTUP,"Adding portVlanQsetLookupDef qset: rv=%d", rv);
 
     /* PTin removed: IPSG */
     //rv = _policy_super_qset_add(unit, &ipv6L3L4QsetLookupDef, applicable_policy_types);
@@ -1674,15 +1678,24 @@ static int _policy_super_qset_init_ifp(int unit)
     #if 1
     memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
     applicable_policy_types[BROAD_POLICY_TYPE_PTIN]        = L7_TRUE;
-    applicable_policy_types[BROAD_POLICY_TYPE_STAT_EVC]    = L7_TRUE;
-    applicable_policy_types[BROAD_POLICY_TYPE_STAT_CLIENT] = L7_TRUE;
 
     if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
       sysapiPrintf("Adding qset systemQsetPTin\r\n");
 
-    /* Doublewide mode. */
+    /* Singlewide mode. */
     rv = _policy_super_qset_add(unit, &systemQsetPTinDef, applicable_policy_types);
     LOG_TRACE(LOG_CTX_STARTUP,"Adding systemQsetPTinDef qset: rv=%d", rv);
+
+    memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
+    applicable_policy_types[BROAD_POLICY_TYPE_STAT_EVC]    = L7_TRUE;
+    applicable_policy_types[BROAD_POLICY_TYPE_STAT_CLIENT] = L7_TRUE;
+
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+      sysapiPrintf("Adding qset systemQsetStats\r\n");
+
+    /* Doublewide mode. */
+    rv = _policy_super_qset_add(unit, &systemQsetPTinDef, applicable_policy_types);
+    LOG_TRACE(LOG_CTX_STARTUP,"Adding systemQsetStatsDef qset: rv=%d", rv);
     #endif
   }
   else if (SOC_IS_SCORPION(unit))
@@ -1785,9 +1798,14 @@ static int _policy_super_qset_init_efp(int unit)
   {
     memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
     applicable_policy_types[BROAD_POLICY_TYPE_SYSTEM]      = L7_TRUE;
+    applicable_policy_types[BROAD_POLICY_TYPE_PTIN]        = L7_TRUE;   /* PTin added: policer */
+
+    rv = _policy_super_qset_add(unit, &ptinQsetEgressDef, applicable_policy_types);
+    LOG_TRACE(LOG_CTX_STARTUP,"Adding ptinQsetEgressDef qset: rv=%d", rv);
+
+    memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
     applicable_policy_types[BROAD_POLICY_TYPE_PORT]        = L7_TRUE;
     applicable_policy_types[BROAD_POLICY_TYPE_VLAN]        = L7_TRUE;
-    applicable_policy_types[BROAD_POLICY_TYPE_PTIN]        = L7_TRUE;   /* PTin added: policer */
     applicable_policy_types[BROAD_POLICY_TYPE_STAT_EVC]    = L7_TRUE;   /* PTin added: stats */
     applicable_policy_types[BROAD_POLICY_TYPE_STAT_CLIENT] = L7_TRUE;   /* PTin added: stats */
 
@@ -1906,7 +1924,7 @@ void _policy_group_alloc_type(BROAD_POLICY_TYPE_t type, group_alloc_block_t *blo
         break;
     /* PTin end */
     case BROAD_POLICY_TYPE_COSQ:
-        *block = ALLOC_BLOCK_MEDIUM;
+        *block = ALLOC_BLOCK_HIGH;
         *dir   = ALLOC_LOW_TO_HIGH;
         break;
     default:
@@ -3194,15 +3212,15 @@ static int _policy_group_add_std_field(int                   unit,
 #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
     /* PTin added: FP */
     case BROAD_FIELD_CLASS_ID:
-        rv = bcm_field_qualify_DstClassField(unit, eid, *((uint8*)value), *((uint8*)mask));
+        rv = bcm_field_qualify_DstClassField(unit, eid, *((uint32*)value), *((uint32*)mask));
         break;
     case BROAD_FIELD_SRC_CLASS_ID:
-        rv = bcm_field_qualify_SrcClassField(unit, eid, *((uint8*)value), *((uint8*)mask));
+        rv = bcm_field_qualify_SrcClassField(unit, eid, *((uint32*)value), *((uint32*)mask));
         break;
 #else
     case BROAD_FIELD_CLASS_ID:
     case BROAD_FIELD_SRC_CLASS_ID:
-        rv = bcm_field_qualify_LookupClass0(unit, eid, *((uint8*)value), 0xF);
+        rv = bcm_field_qualify_LookupClass0(unit, eid, *((uint32*)value), 0xF);
         break;
 #endif
     case BROAD_FIELD_L2_CLASS_ID:
@@ -3300,6 +3318,9 @@ static int _policy_group_add_std_field(int                   unit,
         }
         break;
     // PTin added: FP
+    case BROAD_FIELD_INPORT:
+        rv = bcm_field_qualify_InPort(unit, eid, *((bcm_port_t *) value), *((bcm_port_t *) mask));
+        break;
     case BROAD_FIELD_INPORTS:
         rv = bcm_field_qualify_InPorts(unit, eid, *((bcm_pbmp_t *) value), *((bcm_pbmp_t *) mask));
         break;
@@ -4219,10 +4240,10 @@ static int _policy_group_alloc_init(int unit, BROAD_POLICY_STAGE_t policyStage, 
       group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].highPrio    = lowPrioGroup - 1;
 
       group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].lowPrio  = lowPrioGroup;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio = groups - 1;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio = lowPrioGroup;
 
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio    = lowPrioGroup;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio   = groups - 1;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio    = lowPrioGroup + 1;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio   = lowPrioGroup + 1;
 
       /* PTin added: policer */
       group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio    = lowPrioGroup + 1;
@@ -4241,17 +4262,17 @@ static int _policy_group_alloc_init(int unit, BROAD_POLICY_STAGE_t policyStage, 
     case BROAD_POLICY_STAGE_EGRESS:
       /* low priority group starts at 0 and goes for 4 */
       group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].lowPrio     = 0;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].highPrio    = lowPrioGroup - 1;
-
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].lowPrio  = 0;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio = lowPrioGroup - 1;
-
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio    = 0;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio   = lowPrioGroup - 1;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].highPrio    = 0;
 
       /* PTin added: policer */
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio    = 0;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio    = 1;
       group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].highPrio   = 1;
+
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].lowPrio  = groups-2;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio = groups-3;
+
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio    = groups-2;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio   = groups-3;
 
       /* PTin added: EVC stats: groups 3 [ 1 * 128/(4*2) = 16 services/ports counters ] */
       group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].lowPrio     = groups-2;

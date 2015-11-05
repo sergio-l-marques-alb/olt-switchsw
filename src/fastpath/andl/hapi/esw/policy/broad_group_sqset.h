@@ -72,15 +72,18 @@ extern super_qset_definition_t systemQsetDoubleDef;
 extern super_qset_definition_t systemQsetDef;
 extern super_qset_definition_t systemQsetTriumph2Def;
 extern super_qset_definition_t systemQsetPTinDef;     /* PTin added: ICAP */
+extern super_qset_definition_t systemQsetStatsDef;    /* PTin added: ICAP */
 extern super_qset_definition_t iscsiQsetDef;
 extern super_qset_definition_t ipv6NdQsetScorpionDef;
 extern super_qset_definition_t ipv6NdQsetDef;
 extern super_qset_definition_t ipv6L3L4QsetDef;
 extern super_qset_definition_t ipv6L3L4ClassIdQsetDef;
+extern super_qset_definition_t ptinQsetEgressDef;     /* PTin added: ECAP */
 extern super_qset_definition_t l2QsetEgressDef;
 extern super_qset_definition_t l3l4QsetEgressDef;
 extern super_qset_definition_t ipv6L3L4QsetEgressDef;
 extern super_qset_definition_t l2l3l4QsetLookupDef;
+extern super_qset_definition_t portVlanQsetLookupDef; /* PTin added: VCAP */
 extern super_qset_definition_t dot1adQsetLookupDef;
 extern super_qset_definition_t llpfQsetLookupDef;
 extern super_qset_definition_t ipv6L3L4QsetLookupDef;

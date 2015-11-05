@@ -148,6 +148,7 @@ typedef enum
     BROAD_FIELD_SNAP,
     BROAD_FIELD_IP_TYPE,
  /* ... add new fields here ... */
+    BROAD_FIELD_INPORT,           /* PTin added: FP */
     BROAD_FIELD_INPORTS,          /* PTin added: FP */
     BROAD_FIELD_OUTPORT,          /* PTin added: FP */
     BROAD_FIELD_SRCTRUNK,         /* PTin added: FP */
@@ -395,6 +396,7 @@ BROAD_POLICY_STATS_t;
 #define BROAD_FIELD_L2_FORMAT_SIZE                 1
 #define BROAD_FIELD_SNAP_SIZE                      6
 #define BROAD_FIELD_IP_TYPE_SIZE                   1
+#define BROAD_FIELD_INPORT_SIZE                    sizeof(bcm_port_t)   /* PTin added: FP */
 #define BROAD_FIELD_INPORTS_SIZE                   sizeof(bcm_pbmp_t)   /* PTin added: FP */
 #define BROAD_FIELD_OUTPORT_SIZE                   sizeof(bcm_port_t)   /* PTin added: FP */
 #define BROAD_FIELD_SRCTRUNK_SIZE                  sizeof(bcm_trunk_t)  /* PTin added: FP */
@@ -604,6 +606,13 @@ typedef struct
   {
     L7_uchar8  value[BROAD_FIELD_IP_TYPE_SIZE];
   } fieldIpType;
+
+  // PTin added
+  struct 
+  {
+    L7_uchar8  value[BROAD_FIELD_INPORT_SIZE];
+    L7_uchar8  mask[BROAD_FIELD_INPORT_SIZE];
+  } fieldInport;
 
   // PTin added
   struct 

@@ -1142,7 +1142,9 @@ int l7_bcm_policy_create(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *
                                      (ENTRY_DENY_ISMASKBITSET(policyPtr, i)) ? policyPtr->pbm : tmpPbm, 
                                      BROAD_POLICY_EPBM_CMD_ASSIGN);
         }
-        else if ( !( ( rulePtr->fieldInfo.flags >> BROAD_FIELD_INPORTS) & 1) )
+        else if ( !( ( rulePtr->fieldInfo.flags >> BROAD_FIELD_INPORTS) & 1) &&
+                  !( ( rulePtr->fieldInfo.flags >> BROAD_FIELD_INPORT) & 1) &&      /* PTin added: ICAP */
+                  !( ( rulePtr->fieldInfo.flags >> BROAD_FIELD_SRCTRUNK) & 1) )     /* PTin added: ICAP */
         {
           rv = policy_group_set_pbm(unit, policyPtr->policyStage, group, entry, policyPtr->pbm);
           if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
