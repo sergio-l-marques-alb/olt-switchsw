@@ -276,7 +276,7 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
   DAPI_PORT_t         *dapiPortPtr;
   BROAD_PORT_t        *hapiPortPtr;
   ptin_hapi_intf_t     portDescriptor;
-  pbmp_t               pbm, pbm_mask;
+  pbmp_t               pbm, pbm_uplink, pbm_mask;
   BROAD_POLICY_STAGE_t stage = BROAD_POLICY_STAGE_INGRESS;
   L7_RC_t rc;
 
@@ -478,6 +478,10 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
   /* Init interfaces mask (for inports field) */
   hapi_ptin_allportsbmp_get(&pbm_mask);
 
+  /* Port bitmap of uplink interfaces */
+  BCM_PBMP_CLEAR(pbm_uplink);
+  hapi_ptin_bcmPbmPort_get(PTIN_SYSTEM_10G_PORTS_MASK, &pbm_uplink);
+
   BCM_PBMP_CLEAR(pbm);
   portDescriptor.lport    = -1;
   portDescriptor.bcm_port = -1;
@@ -496,12 +500,14 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
       }
       LOG_TRACE(LOG_CTX_PTIN_HAPI,"trunk_id=%d bcm_port=%d xlate_class_port=%d",
                 portDescriptor.trunk_id, portDescriptor.bcm_port, portDescriptor.xlate_class_port);
-    }
-    /* All uplink ports */
-    else
-    {
-      /* If USP is not valid, allocate profile to uplink ports */
-      hapi_ptin_bcmPbmPort_get((PTIN_SYSTEM_ETH_PORTS_MASK & PTIN_SYSTEM_10G_PORTS_MASK), &pbm);
+
+      /* For TG16G board, if a trunk was provided, use the uplink ports */
+    #if (PTIN_BOARD == PTIN_BOARD_TG16G)
+      if (portDescriptor.trunk_id >= 0)
+      {
+        BCM_PBMP_ASSIGN(pbm, pbm_uplink);
+      }
+    #endif
     }
 
     /* Trunk qualifier is not supported for TG16G boards (to allow using single-wide rules) */
@@ -521,12 +527,6 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
   #endif
     if (!BCM_PBMP_IS_NULL(pbm))
     {
-      #if 0
-      printf("%s(%d) value = %08X %08X %08X\r\n",__FUNCTION__,__LINE__,
-             pbm.pbits[0],pbm.pbits[1],pbm.pbits[2]);
-      printf("%s(%d) mask  = %08X %08X %08X\r\n",__FUNCTION__,__LINE__,
-             pbm_mask.pbits[0],pbm_mask.pbits[1],pbm_mask.pbits[2]);
-      #endif
       if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INPORTS, (L7_uint8 *)&pbm, (L7_uint8 *)&pbm_mask))!=L7_SUCCESS)
       {
         hapiBroadPolicyCreateCancel();
@@ -534,6 +534,16 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
         return result;
       }
       LOG_TRACE(LOG_CTX_PTIN_HAPI,"InPorts qualifier added");
+    }
+    else if (!BCM_PBMP_IS_NULL(pbm_uplink))
+    {
+      if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INPORTS, (L7_uint8 *)&pbm_uplink, (L7_uint8 *)&pbm_mask))!=L7_SUCCESS)
+      {
+        hapiBroadPolicyCreateCancel();
+        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(INPORTS)");
+        return result;
+      }
+      LOG_TRACE(LOG_CTX_PTIN_HAPI,"(Uplink) InPorts qualifier added");
     }
 
     /* Internal vlans */
