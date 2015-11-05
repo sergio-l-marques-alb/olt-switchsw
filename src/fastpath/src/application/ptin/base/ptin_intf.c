@@ -6318,6 +6318,39 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
     return L7_FAILURE;
   }
 
+  /* Execute some configs for this new board */
+  for (port_idx = 0; port_idx < PTIN_SYS_INTFS_PER_SLOT_MAX; port_idx++)
+  {
+    ptin_port = ptin_sys_slotport_to_intf_map[slot_id][port_idx];
+
+    /* If not used, skip */
+    if (ptin_port < 0)
+      continue;
+
+    /* Validate port */
+    if (ptin_port >= ptin_sys_number_of_ports ||
+        ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
+    {
+      rc_global = max(L7_FAILURE, rc_global);
+      LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid ptin_port %d", ptin_port);
+      continue;
+    }
+
+  #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+    /* If board is downlink, activate QoS egress remarking */
+    rc = ptin_qos_egress_remark(intIfNum, PTIN_BOARD_IS_DOWNLINK(board_id));
+    if (rc != L7_SUCCESS)
+    {
+      rc_global = max(rc, rc_global);
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Error configuring egress remark for port %u (%d)", ptin_port, rc);
+    }
+    else
+    {
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Egress remark for port %u set to %u", ptin_port, PTIN_BOARD_IS_DOWNLINK(board_id));
+    }
+  #endif
+  }
+
   /* For CXO160G reset warpcore associated to this slot (only applied to 10G-SFI ports) */
 #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
   /* Mark this slot to be reseted */
