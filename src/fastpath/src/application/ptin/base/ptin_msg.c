@@ -5052,7 +5052,7 @@ L7_RC_t ptin_msg_EVC_get(msg_HwEthMef10Evc_t *msgEvcConf)
  * 
  * @param evc_id 
  * @param downlink : Is this a downlink configuration? 
- * @param qos_config : Null to only update ports
+ * @param qos : Null to only update ports
  * 
  * @return L7_RC_t 
  */
@@ -5060,11 +5060,12 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_uint16 nni_vlan, L7_
                                        msg_CoS_classification_t *qos)
 {
   L7_uint16 i;
-  L7_uint32 port;
+  L7_uint32 port, number_of_ports;
   L7_uint16 int_vlan = 0;
-  ptin_HwEthMef10Evc_t evcConf;
-  L7_uint8  cos_map[64], cos_map_size;
-  L7_uint32 ptin_port[PTIN_SYSTEM_N_PORTS], number_of_ports;
+  ptin_HwEthMef10Evc_t  evcConf;
+  ptin_qos_vlan_t       qos_apply;
+
+  memset(&qos_apply, 0x00, sizeof(ptin_qos_vlan_t));
 
   /* Determine list of ports */
   number_of_ports = 0;
@@ -5098,7 +5099,7 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_uint16 nni_vlan, L7_
       {
         if (ptin_intf_typeId2port(evcConf.intf[i].intf_type, evcConf.intf[i].intf_id, &port) == L7_SUCCESS)
         {
-          ptin_port[number_of_ports++] = port;
+          qos_apply.ptin_port[number_of_ports++] = port;
           LOG_DEBUG(LOG_CTX_PTIN_MSG, "Port %u added", port);
         }
         else
@@ -5110,7 +5111,7 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_uint16 nni_vlan, L7_
     }
     for (i = 0; i < number_of_ports; i++)
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Port added: ptin_port=%u", ptin_port[i]);
+      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Port added: ptin_port=%u", qos_apply.ptin_port[i]);
     }
   }
   /* Use NNI VLAN */
@@ -5132,12 +5133,12 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_uint16 nni_vlan, L7_
     #if (PTIN_BOARD == PTIN_BOARD_TG16G)
       for (port=PTIN_SYSTEM_N_PONS; port<PTIN_SYSTEM_N_PORTS; port++)
       {
-        ptin_port[number_of_ports++] = port;
+        qos_apply.ptin_port[number_of_ports++] = port;
       }
     #elif (PTIN_BOARD == PTIN_BOARD_TA48GE)
       for (port=PTIN_SYSTEM_N_ETH; port<PTIN_SYSTEM_N_PORTS; port++)
       {
-        ptin_port[number_of_ports++] = port;
+        qos_apply.ptin_port[number_of_ports++] = port;
       }
     #else
       LOG_ERR(LOG_CTX_PTIN_MSG, "Cannot use NNI VLAN for this board!");
@@ -5160,6 +5161,12 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_uint16 nni_vlan, L7_
     return L7_FAILURE;
   }
 
+  /* Update number of ports and other information */
+  qos_apply.number_of_ports = number_of_ports;
+  qos_apply.nni_vlan        = nni_vlan;
+  qos_apply.int_vlan        = int_vlan;
+  qos_apply.leaf_side       = downlink;
+
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to configure QoS for EVC %u / internalVlan %u", evc_id, int_vlan);
 
   /* Configure QoS? */
@@ -5178,12 +5185,15 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_uint16 nni_vlan, L7_
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "Processing QoS data");
 
     /* Trust mode */
-    memset(cos_map, 0xff, sizeof(cos_map));
+    qos_apply.trust_mode   = qos->trust_mode;
+    qos_apply.pbits_remark = qos->pbits_remark;
+    memset(qos_apply.cos_map, 0xff, sizeof(qos_apply.cos_map));
+
     switch (qos->trust_mode)
     {
       case L7_QOS_COS_MAP_INTF_MODE_UNTRUSTED:
-        cos_map[0] = 0;     /* This is the default CoS (applied to all pbits) */
-        cos_map_size = 1;
+        qos_apply.cos_map[0] = 0;     /* This is the default CoS (applied to all pbits) */
+        qos_apply.cos_map_size = 1;
         break;
 
       case L7_QOS_COS_MAP_INTF_MODE_TRUST_DOT1P:
@@ -5191,20 +5201,20 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_uint16 nni_vlan, L7_
         {
           if ((qos->cos_classif.pcp_map.prio_mask >> i) & 1)
           {
-            cos_map[i] = qos->cos_classif.pcp_map.cos[i]; 
+            qos_apply.cos_map[i] = qos->cos_classif.pcp_map.cos[i]; 
           }
         }
-        cos_map_size = 8;
+        qos_apply.cos_map_size = 8;
         break;
       case L7_QOS_COS_MAP_INTF_MODE_TRUST_IPPREC:
         for (i = 0; i < 8; i++)
         {
           if ((qos->cos_classif.ipprec_map.prio_mask >> i) & 1)
           {
-            cos_map[i] = qos->cos_classif.ipprec_map.cos[i];
+            qos_apply.cos_map[i] = qos->cos_classif.ipprec_map.cos[i];
           }
         }
-        cos_map_size = 8;
+        qos_apply.cos_map_size = 8;
         break;
 
       case L7_QOS_COS_MAP_INTF_MODE_TRUST_IPDSCP:
@@ -5212,36 +5222,35 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_uint16 nni_vlan, L7_
         {
           if ((qos->cos_classif.dscp_map.prio_mask[i/32] >> (i%32)) & 1)
           {
-            cos_map[i] = qos->cos_classif.dscp_map.cos[i];
+            qos_apply.cos_map[i] = qos->cos_classif.dscp_map.cos[i];
           }
         }
-        cos_map_size = 64;
+        qos_apply.cos_map_size = 64;
         break;
 
       default:
-        cos_map_size = 0;
+        qos_apply.cos_map_size = 0;
         break;
     }
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "VLAN=%u, trust_mode=%u, Number of ports=%u, Number of CoS=%u",
-              int_vlan, qos->trust_mode, number_of_ports, cos_map_size);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "NNIVlan=%u, intVlan=%u, trust_mode=%u, remark=%u, Number of ports=%u, Number of CoS=%u",
+              qos_apply.nni_vlan, qos_apply.int_vlan, qos_apply.trust_mode, qos_apply.pbits_remark, qos_apply.number_of_ports, qos_apply.cos_map_size);
 
-    for (i = 0; i < cos_map_size; i++)
+    for (i = 0; i < qos_apply.cos_map_size; i++)
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "CoS(%u)=%u", i, cos_map[i]);
+      LOG_DEBUG(LOG_CTX_PTIN_MSG, "CoS(%u)=%u", i, qos_apply.cos_map[i]);
     }
 
     /* Apply configuration */
-    if (ptin_qos_vlan_add(qos->trust_mode, cos_map, cos_map_size,
-                          nni_vlan, int_vlan, downlink, ptin_port, number_of_ports) != L7_SUCCESS)
+    if (ptin_qos_vlan_add(&qos_apply) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring QoS of intVlan %u / NNIVlan %u / leaf:%u",
-              int_vlan, nni_vlan, downlink);
+              qos_apply.int_vlan, qos_apply.nni_vlan, qos_apply.leaf_side);
       return L7_FAILURE;
     }
 
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "QoS configured successfully of intVlan %u / NNIVlan %u / leaf:%u",
-              int_vlan, nni_vlan, downlink);
+              qos_apply.int_vlan, qos_apply.nni_vlan, qos_apply.leaf_side);
   }
   /* Only update list of ports */
   else
@@ -5249,7 +5258,7 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_uint16 nni_vlan, L7_
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "Updating list of ports");
 
     /* Apply configuration */
-    if (ptin_qos_vlan_ports_update(nni_vlan, int_vlan, downlink, ptin_port, number_of_ports) != L7_SUCCESS)
+    if (ptin_qos_vlan_ports_update(&qos_apply) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error reconfiguring list ports");
       return L7_FAILURE;
@@ -5423,8 +5432,8 @@ L7_RC_t ptin_msg_evc_qos_set(ipc_msg *inbuffer, ipc_msg *outbuffer)
       number_of_evcs = 1;
       if (ptin_evc_get_evcId_fromNNIvlan(nni_vlan, &evc_id, &number_of_evcs) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error obtaining EVC %u from NNI_VLAN %u", nni_vlan);
-        return L7_FAILURE;
+        LOG_ERR(LOG_CTX_PTIN_MSG, "Error obtaining EVC id from NNI_VLAN %u", nni_vlan);
+        return L7_NOT_EXIST;
       }
     }
     else
@@ -5433,7 +5442,7 @@ L7_RC_t ptin_msg_evc_qos_set(ipc_msg *inbuffer, ipc_msg *outbuffer)
       if (ptin_evc_get_NNIvlan_fromEvcId(evc_id, &nni_vlan) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_MSG, "Error obtaining NNI_VLAN %u from EVC %u", evc_id);
-        return L7_FAILURE;
+        return L7_NOT_EXIST;
       }
     }
 
@@ -5510,10 +5519,18 @@ L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_s
     }
     if (!PTIN_VLAN_IS_QUATTRO(int_vlan))
     {
+      ptin_qos_vlan_t qos_apply;
+
+      memset(&qos_apply, 0x00, sizeof(ptin_qos_vlan_t));
+      qos_apply.nni_vlan   = 0;
+      qos_apply.int_vlan   = int_vlan;
+      qos_apply.leaf_side  = -1;  /* All sides */
+      qos_apply.trust_mode = 0;   /* Ignore */
+
       LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to unconfigure QoS for EVC %u / intVlan %u", msgEvcConf[i].id, int_vlan);
 
       /* As long as a single QoS-VLAN map is applied to all stacked MAC-Bridge services, do not allow its deletion */
-      if (ptin_qos_vlan_clear(0, int_vlan, -1) != L7_SUCCESS) 
+      if (ptin_qos_vlan_clear(&qos_apply) != L7_SUCCESS) 
       {
         LOG_ERR(LOG_CTX_PTIN_MSG, "Error deconfiguring QoS for EVC %u / intVlan %u", msgEvcConf[i].id, int_vlan);
         continue;

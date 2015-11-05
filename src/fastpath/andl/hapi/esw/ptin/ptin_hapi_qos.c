@@ -45,6 +45,7 @@ typedef struct
 
   ptin_hapi_qos_entry_key_t key;
 
+  L7_BOOL         pbits_remark;
   bcm_pbmp_t      port_bmp;
   L7_int32        classId;
 
@@ -762,8 +763,10 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
   BROAD_POLICY_RULE_t ruleId;
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "intVLAN %u, extVlan %u, leaf:%u, trust_mode, port_pbm=0x%llx, prio=%u/0x%x -> CoS=%u",
-            qos_cfg->int_vlan, qos_cfg->ext_vlan, qos_cfg->leaf_side, qos_cfg->trust_mode, qos_cfg->ptin_port_bmp, qos_cfg->priority, qos_cfg->priority_mask, qos_cfg->int_priority);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "intVLAN %u, extVlan %u, leaf:%u, port_pbm=0x%llx, trust_mode=%u, remark=%u, prio=%u/0x%x -> CoS=%u",
+            qos_cfg->int_vlan, qos_cfg->ext_vlan, qos_cfg->leaf_side,
+            qos_cfg->ptin_port_bmp, qos_cfg->trust_mode, qos_cfg->pbits_remark,
+            qos_cfg->priority, qos_cfg->priority_mask, qos_cfg->int_priority);
 
   /* Get pbm format of ports */
   if (ptin_hapi_port_bitmap_get(dapiPort, qos_cfg->ptin_port_bmp, &pbm, &pbm_mask) != L7_SUCCESS)
@@ -917,7 +920,8 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
 
     /* Found exact match rule: nothing to do if found */
     if (qos_cfg->priority == qos_entry->rule[rule].priority &&
-        qos_cfg->priority_mask == qos_entry->rule[rule].priority_mask)
+        qos_cfg->priority_mask == qos_entry->rule[rule].priority_mask &&
+        qos_cfg->pbits_remark == qos_entry->pbits_remark)   /* If remarking is different, rules must be reconfigured */
     {
       LOG_TRACE(LOG_CTX_PTIN_HAPI,"Exact matched rule %u found! Nothing to do... exit!", rule);
       return L7_SUCCESS;
@@ -1141,6 +1145,19 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
     }
     LOG_TRACE(LOG_CTX_PTIN_HAPI,"COSQ action added (%u)", qos_cfg->int_priority);
 
+    /* Set new PCP */
+    if (qos_cfg->pbits_remark)
+    {
+      if (hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_USERPRIO, qos_cfg->int_priority & 0x7, 0, 0) != L7_SUCCESS ||
+          hapiBroadPolicyRuleExceedActionAdd(ruleId, BROAD_ACTION_SET_USERPRIO, qos_cfg->int_priority & 0x7, 0, 0) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_STARTUP, "Error adding SET_COSQ action");
+        hapiBroadPolicyCreateCancel();
+        break;
+      }
+      LOG_TRACE(LOG_CTX_PTIN_HAPI,"COSQ action added (%u)", qos_cfg->int_priority);
+    }
+
     /* Apply policy */
     if ((rc=hapiBroadPolicyCommit(&policyId_icap)) != L7_SUCCESS)
     {
@@ -1172,6 +1189,7 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
   qos_entry->key.int_vlan       = qos_cfg->int_vlan;
   qos_entry->key.leaf_side      = qos_cfg->leaf_side;
   qos_entry->key.trust_mode     = qos_cfg->trust_mode;
+  qos_entry->pbits_remark       = qos_cfg->pbits_remark;
   BCM_PBMP_ASSIGN(qos_entry->port_bmp, pbm);
 
   qos_entry->rule[rule].priority      = qos_cfg->priority;
@@ -1346,10 +1364,10 @@ L7_RC_t ptin_hapi_qos_dump(void)
     if (!qos_entry->entry_active)
       continue;
 
-    printf("Entry %-2u: intVlan=%u extVlan=%u (classId=%d) [%s]  TrustMode=%u  Pbmp = 0x", entry,
+    printf("Entry %-2u: intVlan=%u extVlan=%u (classId=%d) [%s] TrustMode=%u Remark=%u Pbmp = 0x", entry,
            qos_entry->key.int_vlan, qos_entry->key.ext_vlan, qos_entry->classId,
            ((qos_entry->key.leaf_side) ? "LEAF" : "ROOT"),
-           qos_entry->key.trust_mode);
+           qos_entry->key.trust_mode, qos_entry->pbits_remark);
     for (j = 0; j < _SHR_PBMP_WORD_MAX; j++)
     {
       printf("%08x ", qos_entry->port_bmp.pbits[j]);

@@ -247,20 +247,6 @@ extern L7_RC_t ptin_multicast_rateLimit(L7_BOOL enable, L7_uint16 vlanId);
 #endif
 
 /**
- * Update list of ports of QoS configuration
- * 
- * @param nni_vlan : NNI VLAN id  
- * @param int_vlan : Internal VLAN id 
- * @param leaf_side : Ports list are leafs?  
- * @param ptin_port 
- * @param number_of_ports 
- * 
- * @return L7_RC_t 
- */
-extern L7_RC_t ptin_qos_vlan_ports_update(L7_uint16 nni_vlan, L7_uint16 vlan_id, L7_BOOL leaf_side,
-                                          L7_uint32 *ptin_port, L7_uint8 number_of_ports);
-
-/**
  * Control QoS egress remarking
  * 
  * @param intIfNum 
@@ -270,34 +256,45 @@ extern L7_RC_t ptin_qos_vlan_ports_update(L7_uint16 nni_vlan, L7_uint16 vlan_id,
  */
 extern L7_RC_t ptin_qos_egress_remark(L7_uint32 intIfNum, L7_BOOL enable);
 
+typedef struct
+{
+  L7_uint16 nni_vlan;
+  L7_uint16 int_vlan;
+  L7_int8   leaf_side;
+  L7_int8   trust_mode;
+  L7_uint8  cos_map[64];
+  L7_uint8  cos_map_size;
+  L7_BOOL   pbits_remark;
+  L7_uint8  number_of_ports;
+  L7_uint32 ptin_port[PTIN_SYSTEM_N_INTERF];
+} ptin_qos_vlan_t;
+
 /**
  * Configure QoS mapping rules for a particular VLAN
  * 
- * @param trust_mode : trust_mode (-1 to reconfigure ports)
- * @param cos_map : array of CoS values for each pbit value
- * @param cos_map_size : cos_map's number of elements
- * @param nni_vlan : NNI VLAN id  
- * @param int_vlan : Internal VLAN id 
- * @param leaf_side : Ports list are leafs? 
- * @param ptin_port : List of ptin_ports
- * @param number_of_ports : Number of ptin_ports
+ * @param qos : QoS info
  * 
  * @return L7_RC_t 
  */
-extern L7_RC_t ptin_qos_vlan_add(L7_int8 trust_mode, L7_uint8 *cos_map, L7_uint8 cos_map_size,
-                                 L7_uint16 nni_vlan, L7_uint16 int_vlan, L7_BOOL leaf_side,
-                                 L7_uint32 *ptin_port, L7_uint8 number_of_ports);
+extern L7_RC_t ptin_qos_vlan_add(ptin_qos_vlan_t *qos);
 
 /**
  * Clear all configuration for one particular VLAN
  * 
- * @param nni_vlan : NNI VLAN id  
- * @param int_vlan : Internal VLAN id 
- * @param leaf_side : LEAF ports? (-1 for all)
+ * @param qos : QoS info
  * 
  * @return L7_RC_t 
  */
-extern L7_RC_t ptin_qos_vlan_clear(L7_uint16 nni_vlan, L7_uint16 int_vlan, L7_int8 leaf_side);
+extern L7_RC_t ptin_qos_vlan_clear(ptin_qos_vlan_t *qos);
+
+/**
+ * Update list of ports of QoS configuration
+ * 
+ * @param qos : QoS info 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_qos_vlan_ports_update(ptin_qos_vlan_t *qos);
 
 /**
  * Consult hardware resources

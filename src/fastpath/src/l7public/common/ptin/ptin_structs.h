@@ -69,15 +69,16 @@ typedef struct
 
 typedef struct
 {
-  L7_uint64               ptin_port_bmp;  /* PTIN_PORT bitmap (zero to use specific port, or 0xff..ff to apply to all ports) */
-  L7_uint16               ext_vlan;       /* Used to configure VCAP+ICAP */
-  L7_uint16               int_vlan;       /* Used to configure only the ICAP */
-  L7_int8                 leaf_side;      /* -1 for all */
-  L7_int8                 trust_mode;     /* -1 to not be used */
-  L7_uint8                priority;
-  L7_uint8                priority_mask;
+  L7_uint64 ptin_port_bmp;  /* PTIN_PORT bitmap (zero to use specific port, or 0xff..ff to apply to all ports) */
+  L7_uint16 ext_vlan;       /* Used to configure VCAP+ICAP */
+  L7_uint16 int_vlan;       /* Used to configure only the ICAP */
+  L7_int8   leaf_side;      /* -1 for all */
+  L7_int8   trust_mode;     /* -1 to not be used */
+  L7_uint8  priority;
+  L7_uint8  priority_mask;
 
-  L7_uint8 int_priority;
+  L7_BOOL   pbits_remark;
+  L7_uint8  int_priority;
 } ptin_dtl_qos_t;
 
 typedef struct
