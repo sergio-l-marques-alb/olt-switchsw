@@ -175,8 +175,8 @@ static void ptin_ipdtl0_task(void)
                 pduInfo.vlanId = msg.vlanId;
 
                 /* Convert Internal VLAN ID to dtl0 VLAN ID */
-                msg.payload[14] = (PTIN_VLAN_PCAP >> 8) & 0xFF;;
-                msg.payload[15] = (PTIN_VLAN_PCAP)      & 0xFF;;
+                msg.payload[14] = (PTIN_VLAN_PCAP_EXT >> 8) & 0xFF;;
+                msg.payload[15] = (PTIN_VLAN_PCAP_EXT)      & 0xFF;;
 
                 LOG_TRACE(LOG_CTX_PTIN_API, "Converting Internal VLAN ID (%d) to dtl0 VLAN ID 1\n", msg.vlanId);
 
