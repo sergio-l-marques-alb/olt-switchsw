@@ -504,6 +504,8 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
       hapi_ptin_bcmPbmPort_get((PTIN_SYSTEM_ETH_PORTS_MASK & PTIN_SYSTEM_10G_PORTS_MASK), &pbm);
     }
 
+    /* Trunk qualifier is not supported for TG16G boards (to allow using single-wide rules) */
+  #if (PTIN_BOARD != PTIN_BOARD_TG16G)
     /* Trunk id field */
     if (portDescriptor.trunk_id >= 0)
     {
@@ -515,7 +517,9 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
       }
       LOG_TRACE(LOG_CTX_PTIN_HAPI,"TrunkId qualifier added");
     }
-    else if (!BCM_PBMP_IS_NULL(pbm))
+    else
+  #endif
+    if (!BCM_PBMP_IS_NULL(pbm))
     {
       #if 0
       printf("%s(%d) value = %08X %08X %08X\r\n",__FUNCTION__,__LINE__,
@@ -591,13 +595,16 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
     LOG_TRACE(LOG_CTX_PTIN_HAPI,"BROAD_FIELD_MACDA qualifier added");
   }
 
-  if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DROP, (L7_uint8 *)&drop, (L7_uint8 *) mask))!=L7_SUCCESS)
+  if (stage != BROAD_POLICY_STAGE_EGRESS)
   {
-    hapiBroadPolicyCreateCancel();
-    LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(DROP)");
-    return result;
+    if ((result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DROP, (L7_uint8 * ) & drop, (L7_uint8 * )mask)) != L7_SUCCESS) 
+    {
+      hapiBroadPolicyCreateCancel();
+      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(DROP)");
+      return result;
+    }
+    LOG_TRACE(LOG_CTX_PTIN_HAPI,"Drop qualifier added");
   }
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"Drop qualifier added");
 
   /* Drop red packets */
   result = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
