@@ -74,13 +74,13 @@ extern int canal_buga;
 #define CCMSG_ETH_EVC_REMOVE                0x9032  // struct msg_HwEthMef10EvcRemove_t
 #define CCMSG_ETH_EVC_BRIDGE_ADD            0x9033  // struct msg_HwEthEvcBridge_t
 #define CCMSG_ETH_EVC_BRIDGE_REMOVE         0x9034  // struct msg_HwEthEvcBridge_t
+#define CCMSG_ETH_EVC_QOS_SET               0x9035  // struct msg_evc_qos_t
 #define CCMSG_ETH_EVC_FLOW_GET              0x9039  // struct msg_HwEthEvcFlow_t
 #define CCMSG_ETH_EVC_FLOW_ADD              0x903A  // struct msg_HwEthEvcFlow_t
 #define CCMSG_ETH_EVC_FLOW_REMOVE           0x903B  // struct msg_HwEthEvcFlow_t
 #define CCMSG_ETH_EVC_PORT_ADD              0x903C  // struct msg_HWevcPort_t
 #define CCMSG_ETH_EVC_PORT_REMOVE           0x903D  // struct msg_HWevcPort_t
 #define CCMSG_ETH_EVC_OPTIONS_SET           0x903E  // struct msg_HwEthMef10EvcOptions_t
-#define CCMSG_ETH_EVC_QOS_SET               0x903F  // struct msg_evc_qos_t
 
 #define CCMSG_ETH_EVC_COUNTERS_GET          0x9040  // struct msg_evcStats_t
 #define CCMSG_ETH_EVC_COUNTERS_ADD          0x9041  // struct msg_evcStats_t
@@ -955,7 +955,7 @@ typedef struct {
                           // 0x0100 - DHCP protocol (PTin custom field)
   L7_uint8  type;         // (not used) { 0 - p2p, 1 - mp2mp, 2 - rooted mp }
   L7_uint8  mc_flood;     // MC flood type {0-All, 1-Unknown, 2-None} (PTin custom field)
-  L7_uint8  ce_vid_bmp[(1<<12)/(sizeof(L7_uint8)*8)];   // VLANs mapping (ONLY for bundling) ((bmp[i/8] >> i%8) & 0x01)
+  //L7_uint8  ce_vid_bmp[(1<<12)/(sizeof(L7_uint8)*8)];   // VLANs mapping (ONLY for bundling) ((bmp[i/8] >> i%8) & 0x01)
   
   L7_uint8  n_intf;       // Number of interfaces present on intf array
   msg_HwEthMef10Intf_t intf[max(PTIN_SYSTEM_MAX_N_PORTS, PTIN_SYSTEM_MAX_N_LAGS)];
@@ -1007,11 +1007,12 @@ typedef struct
   msg_CoS_classification_t qos[2];        /* QoS for downstream/upstream */
 } __attribute__((packed)) msg_HwEthMef10EvcQoS_t;
 
+/* Message CCMSG_ETH_EVC_QOS_SET */
 typedef struct
 {
   L7_uint8 slot_id;
-  L7_uint32 evc_id;
-  msg_CoS_classification_t qos[2];
+  msg_id_t id;                            /* EVC id / NNI VLAN */
+  msg_CoS_classification_t qos[2];        /* pbits->CoS mapping: index 0-Uplink; 1-Downlink*/
 } __attribute__((packed)) msg_evc_qos_t;
 
 #define PTIN_EVC_OPTIONS_MASK_FLAGS   0x0001

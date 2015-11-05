@@ -1,4 +1,4 @@
- // Project olt7_8ch 
+// Project olt7_8ch 
 // This software will run on the stand-alone olt boxes of PT Inovacao
 // Development started on 20/Aug/2008 
 // nuno-f-monteiro@ptinovacao.pt
@@ -2448,7 +2448,8 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->evc_id = (uint32) valued;
+          ptr->id.id_type = 1;
+          ptr->id.id_val.evc_id = (uint32) valued;
 
           // Uplink?
           if (StrToLongLong(argv[3+1],&valued)<0)  {
