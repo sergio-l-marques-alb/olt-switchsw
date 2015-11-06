@@ -1,1 +1,12 @@
-fp.cli m 1000
+dest=/var/log/output.txt
+echo "File cleared at `date`" > $dest
+
+# If argument was provided, use that as destination
+if [ $# -ne 0 ]; then
+  echo "Redirecting console to $1"
+  fp.cli m 1000 $1
+else
+  echo "Redirecting console to $dest file"
+  fp.cli m 1000 $dest
+  tail -F -s 1 $dest &
+fi

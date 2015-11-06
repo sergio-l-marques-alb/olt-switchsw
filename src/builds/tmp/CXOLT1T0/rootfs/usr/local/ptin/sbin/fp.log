@@ -6,4 +6,4 @@ if [ $# -ge 1 ]; then
   exit 0
 fi
 
-tail -f $LOG_FILE
+tail -F -s 1 $LOG_FILE
