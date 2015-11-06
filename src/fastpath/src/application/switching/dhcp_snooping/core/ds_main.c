@@ -37,6 +37,7 @@
 #include "dhcp_snooping_api.h"
 #include "dhcp_snooping_exports.h"
 #include "ptin_dhcp.h"
+#include "ptin_packet.h"
 
 #include "dot1q_api.h"
 #include "dot3ad_api.h"
@@ -758,8 +759,12 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
     {
       #if 1
       if (ptin_debug_dhcp_snooping)
-        LOG_ERR(LOG_CTX_PTIN_DHCP, "VLAN %u / intIfNum %u not valid", pduInfo->vlanId, pduInfo->intIfNum); 
-      return SYSNET_PDU_RC_IGNORED;
+        LOG_ERR(LOG_CTX_PTIN_DHCP, "VLAN %u / intIfNum %u not valid", pduInfo->vlanId, pduInfo->intIfNum);
+      
+      /* L2 switch packet */
+      ptin_packet_frame_l2forward(pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId, data, len);
+      SYSAPI_NET_MBUF_FREE(bufHandle);
+      return SYSNET_PDU_RC_CONSUMED;
       #else
       #ifdef L7_DHCP_L2_RELAY_PACKAGE
       if ( _dsVlanIntfL2RelayGet(pduInfo->vlanId,pduInfo->intIfNum) /*_dsIntfL2RelayGet(pduInfo->intIfNum)*/ == L7_FALSE) /* PTin modified: DHCP snooping */
@@ -1112,8 +1117,12 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
     {
       #if 1
       if (ptin_debug_dhcp_snooping)
-        LOG_ERR(LOG_CTX_PTIN_DHCP, "VLAN %u / intIfNum %u not valid", pduInfo->vlanId, pduInfo->intIfNum); 
-      return SYSNET_PDU_RC_IGNORED;
+        LOG_ERR(LOG_CTX_PTIN_DHCP, "VLAN %u / intIfNum %u not valid", pduInfo->vlanId, pduInfo->intIfNum);
+
+      /* L2 switch packet */
+      ptin_packet_frame_l2forward(pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId, data, len);
+      SYSAPI_NET_MBUF_FREE(bufHandle); 
+      return SYSNET_PDU_RC_CONSUMED;
       #else
       #ifdef L7_DHCP_L2_RELAY_PACKAGE
       if ( _dsVlanIntfL2RelayGet(pduInfo->vlanId,pduInfo->intIfNum) /*_dsIntfL2RelayGet(pduInfo->intIfNum)*/ == L7_FALSE) /* PTin modified: DHCP snooping */

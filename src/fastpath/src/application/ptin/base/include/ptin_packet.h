@@ -60,4 +60,23 @@ extern void ptin_packet_send(L7_uint32 intIfNum,
                       L7_uchar8 *payload,
                       L7_uint32 payloadLen);
 
+
+/*********************************************************************
+* @purpose  Forward a packet (L2 switching).
+*
+* @param    intIfNum    @b{(input)} receive interface
+* @param    vlanId      @b{(input)} VLAN ID
+* @param    innerVlanId @b{(input)} Inner VLAN ID
+* @param    frame       @b{(input)} ethernet frame
+* @param    frameLen    @b{(input)} ethernet frame length, incl eth header (bytes)
+*
+* @returns  L7_SUCCESS or L7_FAILURE
+*
+* @notes
+*
+* @end
+*********************************************************************/
+extern L7_RC_t ptin_packet_frame_l2forward(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId,
+                                           L7_uchar8 *frame, L7_ushort16 frameLen);
+
 #endif  /* _PTIN_PACKET_H */

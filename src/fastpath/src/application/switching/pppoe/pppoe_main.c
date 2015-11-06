@@ -33,6 +33,7 @@
 #include "ptin_evc.h"
 #include "ptin_pppoe.h"
 #include "ptin_intf.h"
+#include "ptin_packet.h"
 
 #include "dot1q_api.h"
 #include "dot3ad_api.h"
@@ -232,7 +233,11 @@ L7_RC_t pppoePduReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
   {
      if (ptin_debug_pppoe_snooping)
        LOG_NOTICE(LOG_CTX_PTIN_PPPOE,"No PPPoE instance found for intVlanId %u. Ignored", vlanId);
-     return L7_FAILURE;
+
+     /* L2 switch packet */
+     ptin_packet_frame_l2forward(pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId, data, len);
+     SYSAPI_NET_MBUF_FREE(bufHandle);
+     return L7_SUCCESS;
   }
 
   /* This is used only when the packet comes double tagged.*/
