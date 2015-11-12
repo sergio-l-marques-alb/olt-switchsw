@@ -516,6 +516,7 @@ L7_RC_t ptin_hapi_maclimit_dec(bcmx_l2_addr_t *bcmx_l2_addr)
     {
       if(ptin_hapi_l2_enable)
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Count %d in %d ", macLearn_info_flow[vport_id].mac_counter, vport_id);
+
       macLearn_info_flow[vport_id].mac_counter--;
       macLearn_info_flow[vport_id].mac_total--;
       return L7_FAILURE;
@@ -1140,6 +1141,7 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, L7_uint3
   old_limit     =  macLearn_info_ptr->old_limit;
   old_send_trap =  macLearn_info_ptr->send_trap;
 
+
   /*Disable Mac Limit*/
   if (mac_limit == (L7_uint32) -1 )
   {
@@ -1179,7 +1181,15 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, L7_uint3
     }
 
     /* Update structure */
-    macLearn_info_ptr->old_limit =   macLearn_info_ptr->mac_limit;
+    if(macLearn_info_ptr->mac_limit != 0)
+    {
+      macLearn_info_ptr->old_limit =   macLearn_info_ptr->mac_limit;
+    }
+    else
+    {
+      macLearn_info_ptr->old_limit = macLearn_info_ptr->old_limit;
+    }
+
     macLearn_info_ptr->mac_limit  =  mac_limit;
     macLearn_info_ptr->mask       =  l2_learn_limit.flags;
     macLearn_info_ptr->enable     =  L7_ENABLE;
