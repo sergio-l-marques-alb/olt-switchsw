@@ -2,6 +2,7 @@
 
 version=3.7
 patch=0
+svnUpdate=1
 
 if [ $# -ge 1 ]; then
   # Show help 
@@ -15,19 +16,23 @@ if [ $# -ge 1 ]; then
     echo "First parameter indicates if SVN should be updated: valid values are 0 or 1. Type 'h' or 'help' for more information."
     exit 1;
   fi
-
-  if [ $1 -eq 1 ]; then
-    echo "Updating svn..."
-    cd ..
-    svn update
-    cd -
+  if [ $1 -eq 0 -o $1 -eq 1 ]; then
+    svnUpdate=$1
   fi
 fi
 if [ $# -ge 2 ]; then
   version=$2
 fi
 if [ $# -ge 3 ]; then
-  patch=$4
+  patch=$3
+fi
+
+# Update SVN
+if [ $svnUpdate -eq 1 ]; then
+  echo "Updating svn..."
+  cd ..
+  svn update
+  cd -
 fi
 
 echo "Preparing build version $version.$patch in background..."
