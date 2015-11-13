@@ -4780,9 +4780,90 @@ print bcm_l2_ring_replace(0, &l2r);
 /* ARAD test functions */
 
 #if 1
-/* Dependencies: port.c */
-
 int unit = 0;
+
+void simple_xlate_add(int port, int ovlan, int ivlan, int new_ovlan, int new_ivlan)
+{
+  bcm_error_t rv;
+  bcm_vlan_action_set_t action;
+
+  bcm_vlan_action_set_t_init(&action);
+  action.ut_outer = bcmVlanActionAdd;
+  action.ut_inner = bcmVlanActionNone;
+  action.ot_outer = bcmVlanActionReplace;
+  action.ot_inner = bcmVlanActionNone;
+  action.dt_outer = bcmVlanActionReplace;
+  action.dt_inner = bcmVlanActionNone;
+  action.outer_tpid = 0x8100;
+  action.inner_tpid = 0x8100;
+  action.new_outer_vlan = new_ovlan;
+  action.new_inner_vlan = new_ivlan;
+  rv = bcm_vlan_translate_action_add(unit, port, bcmVlanTranslateKeyOuter, ovlan, ivlan, &action);
+  if (rv != BCM_E_NONE)
+  {
+    printf("Error, bcm_vlan_translate_action_add: rv=%d\r\n", rv);
+    return;
+  }
+  printf("Created new xlate action\r\n");
+}
+
+void simple_xlate_remove(int port, int ovlan, int ivlan)
+{
+  bcm_error_t rv;
+
+  rv = bcm_vlan_translate_action_delete(unit, port, bcmVlanTranslateKeyOuter, ovlan, ivlan);
+  if (rv != BCM_E_NONE)
+  {
+    printf("Error, bcm_vlan_translate_action_delete: rv=%d\r\n", rv);
+    return;
+  }
+  printf("Removed xlate action\r\n");
+}
+
+int adv_xlate_vep(unsigned int gport, int new_vid, int new_inner_vid, int edit_class_id, int is_ingress)
+{
+ bcm_vlan_port_translation_t port_xlate;
+ int rv;
+
+ bcm_vlan_port_translation_t_init(&port_xlate);
+ port_xlate.new_outer_vlan = new_vid;
+ port_xlate.new_inner_vlan = new_inner_vid;
+ port_xlate.gport = gport;
+ port_xlate.flags = (is_ingress) ? BCM_VLAN_ACTION_SET_INGRESS : BCM_VLAN_ACTION_SET_EGRESS;
+ port_xlate.vlan_edit_class_id = edit_class_id;
+
+ rv = bcm_vlan_port_translation_set(unit, &port_xlate);
+ if (rv != BCM_E_NONE) {
+  printf("Error, bcm_vlan_port_translate_set: rv=%d\n", rv);
+  return rv;
+ }
+
+ printf("Created new VLAN Edit Profile with vlan_edit_class_id=%u\n", port_xlate.vlan_edit_class_id);
+
+ return 0;
+}
+
+int adv_xlate_action_set(int tag_class_id, int edit_class_id, int action_id, int is_ingress)
+{
+ bcm_vlan_translate_action_class_t action_class;
+ int rv;
+
+ bcm_vlan_translate_action_class_t_init(&action_class);
+ action_class.tag_format_class_id = tag_class_id;
+ action_class.vlan_edit_class_id = edit_class_id;
+ action_class.vlan_translation_action_id = action_id;
+ action_class.flags = (is_ingress) ? BCM_VLAN_ACTION_SET_INGRESS : BCM_VLAN_ACTION_SET_EGRESS;
+
+ rv = bcm_vlan_translate_action_class_set(unit, &action_class);
+ if (rv != BCM_E_NONE) {
+  printf("Error, bcm_vlan_translate_action_class_set: rv=%d\n", rv);
+  return rv;
+ }
+
+ printf("Created %s XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u\n", ((is_ingress) ? "INGRESS" : "EGRESS"), tag_class_id, edit_class_id, action_id);
+
+ return 0;
+}
 
 /* Dependencies: port.c */
 
