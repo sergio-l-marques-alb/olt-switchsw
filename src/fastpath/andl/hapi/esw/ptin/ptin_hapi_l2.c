@@ -1180,6 +1180,8 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, L7_uint3
       l2_learn_limit.flags |= BCM_L2_LEARN_LIMIT_ACTION_DROP; // BCM_L2_LEARN_LIMIT_ACTION_CPU
     }
 
+    macLearn_info_ptr->mac_limit  =  mac_limit;
+
     /* Update structure */
     if(macLearn_info_ptr->mac_limit != 0)
     {
@@ -1190,7 +1192,6 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, L7_uint3
       macLearn_info_ptr->old_limit = macLearn_info_ptr->old_limit;
     }
 
-    macLearn_info_ptr->mac_limit  =  mac_limit;
     macLearn_info_ptr->mask       =  l2_learn_limit.flags;
     macLearn_info_ptr->enable     =  L7_ENABLE;
 
