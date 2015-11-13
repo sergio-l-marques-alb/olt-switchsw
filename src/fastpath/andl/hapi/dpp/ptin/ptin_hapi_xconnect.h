@@ -67,7 +67,23 @@ extern L7_RC_t ptin_hapi_bridgeVlan_multicast_set(L7_uint16 vlanId, L7_int *mcas
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_hapi_bridgeVlan_multicast_reset(L7_uint16 vlanId, L7_int mcast_group, L7_uint32 multicast_flag, L7_BOOL destroy_mcgroup);
+extern L7_RC_t ptin_hapi_bridgeVlan_multicast_reset(L7_uint16 vlanId, L7_int mcast_group);
+
+/**
+ * Define flooding settings 
+ *  
+ * @param lif_id :    LIF id 
+ * @param vlanId :    vlan to be configured
+ * @param mcast_group : MC group id (if invalid, create a new 
+ *                    one, and return it)
+ * @param mcgroup_flood_unkn_uc : flood unknown Unicast 
+ * @param mcgroup_flood_unkn_mc : flood unknown Multicast 
+ * @param mcgroup_flood_bc : flood Broadcast 
+ * 
+ * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_hapi_bridgeVlan_flood_set(L7_uint32 lif_id, L7_uint16 vlanId,
+                                              L7_int mcgroup_flood_unkn_uc, L7_int mcgroup_flood_unkn_mc, L7_int mcgroup_flood_bc);
 
 /**
  * Define the outer tpid of a specific vlan, for bridging 
@@ -130,9 +146,50 @@ extern L7_RC_t ptin_hapi_bridge_crossconnect_delete(L7_uint16 outerVlanId, L7_ui
 extern L7_RC_t ptin_hapi_bridge_crossconnect_delete_all(void);
 
 /**
+ * Create VSI (Virtual Switch Instance)
+ * 
+ * @param vsi 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_hapi_vsi_create(L7_int unit, L7_uint16 vsi);
+
+/**
+ * Destroy VSI (Virtual Switch Instance)
+ * 
+ * @param vsi 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_hapi_vsi_destroy(L7_int unit, L7_uint16 vsi);
+
+/**
+ * Add a LIF to a VSI
+ * 
+ * @param unit 
+ * @param vsi 
+ * @param vlan_port_id 
+ * 
+ * @return int 
+ */
+extern L7_RC_t ptin_hapi_vsi_add(L7_int unit, L7_uint16 vsi, L7_uint32 vlan_port_id);
+
+/**
+ * Remove a LIF from a VSI
+ * 
+ * @param unit 
+ * @param vsi 
+ * @param vlan_port_id 
+ * 
+ * @return int 
+ */
+extern L7_RC_t ptin_hapi_vsi_remove(L7_int unit, L7_uint16 vsi, L7_uint32 vlan_port_id);
+
+/**
  * Create Virtual port
  * 
- * @param dapiPort      : PON port
+ * @param dapiPort      : PON port 
+ * @param vsi           : VSI 
  * @param match_ovid    : external outer vlan (GEMid)
  * @param match_ivid    : external inner vlan (UNIVLAN)
  * @param egress_ovid   : outer vlan inside switch
@@ -142,9 +199,9 @@ extern L7_RC_t ptin_hapi_bridge_crossconnect_delete_all(void);
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
+extern L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort, L7_uint16 vsi,
                                    L7_uint16 match_ovid, L7_uint16 match_ivid, L7_uint16 egress_ovid, L7_uint16 egress_ivid,
-                                   L7_int *mcast_group,
+                                   L7_int mcast_group,
                                    L7_int *virtual_gport);
 
 /**
@@ -159,7 +216,6 @@ extern L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
 L7_RC_t ptin_hapi_vp_remove(ptin_dapi_port_t *dapiPort,
-                            L7_uint16 match_ovid, L7_uint16 match_ivid,
                             L7_int virtual_gport,
                             L7_int mcast_group);
 

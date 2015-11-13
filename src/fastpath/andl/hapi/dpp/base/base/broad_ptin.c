@@ -34,6 +34,8 @@ L7_RC_t broad_ptin_l2_maclimit(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7
 L7_RC_t broad_ptin_l2_maclimit_status(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_l3_intf(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_l3_ipmc(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
+L7_RC_t broad_ptin_vsi(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
+L7_RC_t broad_ptin_vsi_member(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 
 /* List of callbacks */
 broad_ptin_generic_f ptin_dtl_callbacks[PTIN_DTL_MSG_MAX] = {  
@@ -41,7 +43,9 @@ broad_ptin_generic_f ptin_dtl_callbacks[PTIN_DTL_MSG_MAX] = {
   broad_ptin_l2_maclimit,
   broad_ptin_l2_maclimit_status,
   broad_ptin_l3_intf, 
-  broad_ptin_l3_ipmc
+  broad_ptin_l3_ipmc,
+  broad_ptin_vsi,
+  broad_ptin_vsi_member,
 };
 
 /**
@@ -250,6 +254,127 @@ L7_RC_t broad_ptin_l3_ipmc(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uin
 
     case DAPI_CMD_CLEAR:      
       rc = ptin_hapi_l3_ipmc_remove(ipmc);      
+      break;
+
+    default:
+      PT_LOG_ERR(LOG_CTX_HAPI, "Not recognized operation (%u)!", operation);
+      return L7_FAILURE;
+  }
+  return rc;  
+}
+
+/**
+ * Handle VSI instances
+ * 
+ * @param usp 
+ * @param operation 
+ * @param dataSize 
+ * @param data 
+ * @param dapi_g 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t broad_ptin_vsi(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g)
+{
+  ptinDtlVSI_t *vsi_data = (ptinDtlVSI_t *) data;
+  DAPI_QVLAN_MGMT_CMD_t cmdVlanCreate, cmdVlanPurge;
+  L7_RC_t rc = L7_SUCCESS;
+
+  PT_LOG_TRACE(LOG_CTX_HAPI, "usp={%d,%d,%d} operation=%u dataSize=%u", usp->unit, usp->slot, usp->port, operation, dataSize);
+
+  /* Validate data pointer */
+  if (vsi_data == L7_NULLPTR)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid Arguments");
+    return L7_FAILURE;
+  }
+
+  /* Validate data size */
+  if (dataSize != sizeof(ptinDtlVSI_t))
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid data size (%u VS %u)", dataSize, sizeof(ptinDtlVSI_t));
+    return L7_FAILURE;
+  }
+
+  PT_LOG_TRACE(LOG_CTX_HAPI, "VSI=%u", vsi_data->vsi);
+
+  switch (operation)
+  {
+    case DAPI_CMD_SET:
+      if (vsi_data->vsi <= 4095)
+      {
+        cmdVlanCreate.cmdData.vlanCreate.getOrSet = DAPI_CMD_SET;
+        cmdVlanCreate.cmdData.vlanCreate.vlanID = vsi_data->vsi;
+        rc = hapiBroadQvlanVlanCreate(usp, DAPI_CMD_QVLAN_VLAN_CREATE, (void *) &cmdVlanCreate, dapi_g);
+      }
+      else
+      {
+        rc = ptin_hapi_vsi_create(bcm_unit, vsi_data->vsi); 
+      }
+      break;
+
+    case DAPI_CMD_CLEAR:      
+      if (vsi_data->vsi <= 4095)
+      {
+        cmdVlanPurge.cmdData.vlanPurge.getOrSet = DAPI_CMD_SET;
+        cmdVlanPurge.cmdData.vlanPurge.vlanID = vsi_data->vsi;
+        rc = hapiBroadQvlanVlanPurge(usp, DAPI_CMD_QVLAN_VLAN_PURGE, (void *) &cmdVlanPurge, dapi_g);
+      }
+      else
+      {
+        rc = ptin_hapi_vsi_destroy(bcm_unit, vsi_data->vsi);
+      }
+      break;
+
+    default:
+      PT_LOG_ERR(LOG_CTX_HAPI, "Not recognized operation (%u)!", operation);
+      return L7_FAILURE;
+  }
+  return rc;  
+}
+
+/**
+ * Handle VSI instances
+ * 
+ * @param usp 
+ * @param operation 
+ * @param dataSize 
+ * @param data 
+ * @param dapi_g 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t broad_ptin_vsi_member(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g)
+{
+  ptinDtlVSI_t *vsi_data = (ptinDtlVSI_t *) data;
+  L7_RC_t rc = L7_SUCCESS;
+
+  PT_LOG_TRACE(LOG_CTX_HAPI, "usp={%d,%d,%d} operation=%u dataSize=%u", usp->unit, usp->slot, usp->port, operation, dataSize);
+
+  /* Validate data pointer */
+  if (vsi_data == L7_NULLPTR)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid Arguments");
+    return L7_FAILURE;
+  }
+
+  /* Validate data size */
+  if (dataSize != sizeof(ptinDtlVSI_t))
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid data size (%u VS %u)", dataSize, sizeof(ptinDtlVSI_t));
+    return L7_FAILURE;
+  }
+
+  PT_LOG_TRACE(LOG_CTX_HAPI, "VSI=%u, vlan_port_id=0x%x", vsi_data->vsi, vsi_data->vlan_port_id);
+
+  switch (operation)
+  {
+    case DAPI_CMD_SET:
+      rc = ptin_hapi_vsi_add(bcm_unit, vsi_data->vsi, vsi_data->vlan_port_id); 
+      break;
+
+    case DAPI_CMD_CLEAR:      
+      rc = ptin_hapi_vsi_remove(bcm_unit, vsi_data->vsi, vsi_data->vlan_port_id);
       break;
 
     default:
@@ -786,15 +911,13 @@ L7_RC_t hapiBroadPtinVlanTranslate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
   DAPIPORT_SET(&dapiPort,usp,dapi_g);
 
   /* Copy vlan and action information */
-  hapi_xlate.outerVlanId      = xlate->outerVlan;
-  hapi_xlate.innerVlanId      = xlate->innerVlan;
+  hapi_xlate.lif_id           = xlate->lif;
+
   hapi_xlate.newOuterVlanId   = xlate->outerVlan_new;
   hapi_xlate.newInnerVlanId   = xlate->innerVlan_new;
   hapi_xlate.outerVlanAction  = (xlate->remove_VLANs) ? PTIN_XLATE_ACTION_DELETE : xlate->outerVlanAction;
   hapi_xlate.innerVlanAction  = (xlate->remove_VLANs) ? PTIN_XLATE_ACTION_DELETE : xlate->innerVlanAction;
 
-  hapi_xlate.outerPrio        = xlate->outerPrio;
-  hapi_xlate.innerPrio        = xlate->innerPrio;
   hapi_xlate.newOuterPrio     = xlate->outerPrio_new;
   hapi_xlate.newInnerPrio     = xlate->innerPrio_new;
   hapi_xlate.outerPrioAction  = xlate->outerPrioAction;
@@ -802,53 +925,47 @@ L7_RC_t hapiBroadPtinVlanTranslate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
 
   switch ((L7_int) xlate->stage)
   {
+#if 0
   case PTIN_XLATE_STAGE_INGRESS:
 
     if ( xlate->oper == DAPI_CMD_GET )
     {
       rc = ptin_hapi_xlate_ingress_get(&dapiPort, &hapi_xlate);
-      //rc = ptin_hapi_xlate_ingress_action_get(&dapiPort, xlate->outerVlan, xlate->innerVlan, &(xlate->outerVlan_new));
     }
     else if ( xlate->oper == DAPI_CMD_SET )
     {
       rc = ptin_hapi_xlate_ingress_add(&dapiPort, &hapi_xlate);
-      //rc = ptin_hapi_xlate_ingress_action_add(&dapiPort, xlate->outerVlan, xlate->innerVlan, xlate->outerVlan_new);
     }
     else if ( xlate->oper == DAPI_CMD_CLEAR )
     {
       rc = ptin_hapi_xlate_ingress_delete(&dapiPort, &hapi_xlate);
-      //rc = ptin_hapi_xlate_ingress_action_delete(&dapiPort, xlate->outerVlan, xlate->innerVlan);
     }
     else if ( xlate->oper == DAPI_CMD_CLEAR_ALL )
     {
       rc = ptin_hapi_xlate_ingress_delete_all();
-      //rc = ptin_hapi_xlate_ingress_action_delete_all();
     }
     break;
-
+#endif
   case PTIN_XLATE_STAGE_EGRESS:
     if ( xlate->oper == DAPI_CMD_GET )
     {
       rc = ptin_hapi_xlate_egress_get(xlate->portgroup, &hapi_xlate);
-      //rc = ptin_hapi_xlate_egress_action_get(xlate->portgroup, xlate->outerVlan, xlate->innerVlan, &(xlate->outerVlan_new));
     }
     else if ( xlate->oper == DAPI_CMD_SET )
     {
-      rc = ptin_hapi_xlate_egress_add(xlate->portgroup, &hapi_xlate);
-      //rc = ptin_hapi_xlate_egress_action_add(xlate->portgroup, xlate->outerVlan, xlate->innerVlan, xlate->outerVlan_new);
+      rc = ptin_hapi_xlate_egress_add(&dapiPort, &hapi_xlate);
     }
     else if ( xlate->oper == DAPI_CMD_CLEAR )
     {
-      rc = ptin_hapi_xlate_egress_delete(xlate->portgroup, &hapi_xlate);
-      //rc = ptin_hapi_xlate_egress_action_delete(xlate->portgroup, xlate->outerVlan, xlate->innerVlan);
+      rc = ptin_hapi_xlate_egress_delete(&dapiPort, &hapi_xlate);
     }
     else if ( xlate->oper == DAPI_CMD_CLEAR_ALL )
     {
       rc = ptin_hapi_xlate_egress_delete_all();
-      //rc = ptin_hapi_xlate_egress_action_delete_all();
     }
     break;
 
+#if 0
   case PTIN_XLATE_STAGE_ALL:
     if ( xlate->oper == DAPI_CMD_CLEAR )
     {
@@ -857,11 +974,9 @@ L7_RC_t hapiBroadPtinVlanTranslate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
       if ( (ptin_hapi_xlate_ingress_delete_all() != L7_SUCCESS) ||
            (ptin_hapi_xlate_egress_delete_all() != L7_SUCCESS) )
         rc = L7_FAILURE;
-//    if ( (ptin_hapi_xlate_ingress_action_delete_all() != L7_SUCCESS) ||
-//         (ptin_hapi_xlate_egress_action_delete_all() != L7_SUCCESS) )
-//      rc = L7_FAILURE;
     }
     break;
+#endif
   }
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "Finished: rc=%d", rc);
@@ -893,6 +1008,9 @@ L7_RC_t hapiBroadPtinVlanTranslatePortGroups(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
     PT_LOG_ERR(LOG_CTX_HAPI, "Invalid usp");
     return L7_FAILURE;
   }
+
+  /* TODO */
+  return L7_SUCCESS;
 
   switch ((L7_int) classSt->oper)
   {
@@ -988,13 +1106,6 @@ L7_RC_t hapiBroadPtinBridgeVlanModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *da
   PT_LOG_TRACE(LOG_CTX_HAPI,"vlanId=%u, mask=0x%02X, fwdVlan=%u, outerTPID=0x%04X, mac_learn=%u, crossc=%u",
             mode->vlanId, mode->mask, mode->fwdVlanId, mode->outer_tpid, mode->learn_enable, mode->cross_connects_enable);
 
-  /* Validate vlan */
-  if (mode->vlanId==0 || mode->vlanId>4095)
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI,"Invalid vlan (%d)", mode->vlanId);
-    return L7_FAILURE;
-  }
-
   /* If mask is empty there is nothing to be done */
   if (mode->mask==PTIN_BRIDGE_VLAN_MODE_MASK_NONE)
   {
@@ -1013,6 +1124,14 @@ L7_RC_t hapiBroadPtinBridgeVlanModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *da
   if (mode->mask & PTIN_BRIDGE_VLAN_MODE_MASK_MC_GROUP)
   {    
     if (ptin_hapi_bridgeVlan_multicast_set(mode->vlanId, &mode->multicast_group, mode->multicast_flag)!=L7_SUCCESS)
+      rc = L7_FAILURE;
+  }
+
+  /* Flooding configuration */
+  if (mode->mask & PTIN_BRIDGE_VLAN_MODE_MASK_FLOOD)
+  {    
+    if (ptin_hapi_bridgeVlan_flood_set(mode->lif_id, mode->vlanId,
+                                       mode->mcgroup_flood_unkn_uc, mode->mcgroup_flood_unkn_mc, mode->mcgroup_flood_bc) != L7_SUCCESS)
       rc = L7_FAILURE;
   }
 
@@ -1313,10 +1432,10 @@ L7_RC_t hapiBroadPtinBridgeVlanMulticastSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, voi
     rc = ptin_hapi_bridgeVlan_multicast_set(mode->vlanId, &mode->multicast_group, mode->multicast_flag);
     break;
   case DAPI_CMD_CLEAR:
-    rc = ptin_hapi_bridgeVlan_multicast_reset(mode->vlanId, mode->multicast_group, mode->multicast_flag, mode->destroy_on_clear);
+    rc = ptin_hapi_bridgeVlan_multicast_reset(mode->vlanId, mode->multicast_group);
     break;
   case DAPI_CMD_CLEAR_ALL:
-    rc = ptin_hapi_bridgeVlan_multicast_reset(mode->vlanId, mode->multicast_group, mode->multicast_flag, mode->destroy_on_clear);
+    rc = ptin_hapi_bridgeVlan_multicast_reset(mode->vlanId, mode->multicast_group);
     break;
   default:
     rc = L7_FAILURE;
@@ -1386,10 +1505,10 @@ L7_RC_t hapiBroadPtinVirtualPortSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
   case DAPI_CMD_SET:
     if (vport->cmd == PTIN_VPORT_CMD_VP_OPER)
     {
-      rc = ptin_hapi_vp_create(&dapiPort, 
+      rc = ptin_hapi_vp_create(&dapiPort, vport->vsi,
                                vport->ext_ovid, vport->ext_ivid,
                                vport->int_ovid, vport->int_ivid,
-                               &vport->multicast_group,
+                               vport->multicast_group,
                                &vport->virtual_gport);
 
       if (rc == L7_SUCCESS)
@@ -1407,7 +1526,7 @@ L7_RC_t hapiBroadPtinVirtualPortSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
   case DAPI_CMD_CLEAR_ALL:
     if (vport->cmd == PTIN_VPORT_CMD_VP_OPER)
     {
-      rc = ptin_hapi_vp_remove(&dapiPort, vport->ext_ovid, vport->ext_ivid, vport->virtual_gport, vport->multicast_group);
+      rc = ptin_hapi_vp_remove(&dapiPort, vport->virtual_gport, vport->multicast_group);
 
       if (rc == L7_SUCCESS)
       {
@@ -1448,6 +1567,9 @@ L7_RC_t hapiBroadPtinBridgeCrossconnect(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
             usp->unit, usp->slot, usp->port,
             crossc->dstUsp.unit, crossc->dstUsp.slot, crossc->dstUsp.port,
             crossc->outerVlanId, crossc->innerVlanId);
+
+  /* TODO */
+  return L7_SUCCESS;
 
   /* Prepare dapiPortx structures */
   DAPIPORT_SET(&dapiPort1, usp, dapi_g);
