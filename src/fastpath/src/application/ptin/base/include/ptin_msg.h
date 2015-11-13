@@ -524,36 +524,37 @@ L7_RC_t ptin_msg_dai_stats_get(msg_dai_statistics_t *stats, L7_uint nElems);
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_msg_EVC_get(msg_HwEthMef10Evc_t *msgEvcConf);
+#endif
 
 /**
  * Creates or reconfigures an EVC
  * 
- * @param msgEvcConf Pointer to the input struct
- * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_msg_EVC_create(msg_HwEthMef10Evc_t *msgEvcConf);
+extern L7_RC_t ptin_msg_evc_create(ipc_msg *inbuff, ipc_msg *outbuff);
 
 /**
  * Deletes an EVC
  * 
- * @param msgEvcConf Pointer to the input struct (index field must be set)
- * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_structs);
+extern L7_RC_t ptin_msg_evc_delete(ipc_msg *inbuff, ipc_msg *outbuff);
 
 /**
- * Add/remove port to/from an EVC
- * 
- * @param msgEvcPort : Pointer to the input struct 
- * @param n_size     : Number of structures 
- * @param oper       : Operation type
+ * Add port to an EVC
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_msg_oper_t oper);
+extern L7_RC_t ptin_msg_evc_port_add(ipc_msg *inbuff, ipc_msg *outbuff);
 
+/**
+ * Remove port from an EVC
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_evc_port_remove(ipc_msg *inbuff, ipc_msg *outbuff);
+
+#if 0
 /**
  * Reconfigure EVC
  * 
