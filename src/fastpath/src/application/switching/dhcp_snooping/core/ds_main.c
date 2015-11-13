@@ -760,7 +760,15 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
       #if 1
       if (ptin_debug_dhcp_snooping)
         LOG_ERR(LOG_CTX_PTIN_DHCP, "VLAN %u / intIfNum %u not valid", pduInfo->vlanId, pduInfo->intIfNum);
-      
+
+      /* Ignore inband packets */
+      if (pduInfo->vlanId == PTIN_VLAN_INBAND)
+      {
+        if (ptin_debug_dhcp_snooping)
+          LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet ignored (vlan=%u)", pduInfo->vlanId);
+        return SYSNET_PDU_RC_IGNORED;
+      }
+
       /* L2 switch packet */
       ptin_packet_frame_l2forward(pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId, data, len);
       SYSAPI_NET_MBUF_FREE(bufHandle);
@@ -1118,6 +1126,14 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
       #if 1
       if (ptin_debug_dhcp_snooping)
         LOG_ERR(LOG_CTX_PTIN_DHCP, "VLAN %u / intIfNum %u not valid", pduInfo->vlanId, pduInfo->intIfNum);
+
+      /* Ignore inband packets */
+      if (pduInfo->vlanId == PTIN_VLAN_INBAND)
+      {
+        if (ptin_debug_dhcp_snooping)
+          LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet ignored (vlan=%u)", pduInfo->vlanId);
+        return SYSNET_PDU_RC_IGNORED;
+      }
 
       /* L2 switch packet */
       ptin_packet_frame_l2forward(pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId, data, len);
