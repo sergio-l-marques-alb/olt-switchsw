@@ -4,6 +4,9 @@
 
 ### Device configuration ###
 
+# Advanced translations
+bcm886xx_vlan_translate_mode=1
+
 ## General
 # Set the FAP Device mode
 # Options: PP / TM / TDM_OPTIMIZED / TDM_STANDARD
