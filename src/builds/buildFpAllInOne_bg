@@ -1,5 +1,44 @@
 #!/bin/bash
 
-echo "Preparing build in background..."
-sh buildFpAllInOne 0 $1 $2 > output.txt &
+version=3.7
+patch=0
+
+if [ $# -ge 1 ]; then
+  # Show help 
+  if [ $1 == "h" -o $1 == "help" ]; then
+    echo "Syntax: $0 [update_svn(0/1)] [version] [patch]"
+    exit 0;
+  fi
+
+  # Validate first parameter
+  if [ $1 != "0" -a $1 != "1" ]; then
+    echo "First parameter indicates if SVN should be updated: valid values are 0 or 1. Type 'h' or 'help' for more information."
+    exit 1;
+  fi
+
+  if [ $1 -eq 1 ]; then
+    echo "Updating svn..."
+    cd ..
+    svn update
+    cd -
+  fi
+fi
+if [ $# -ge 2 ]; then
+  version=$2
+fi
+if [ $# -ge 3 ]; then
+  patch=$4
+fi
+
+echo "Preparing build version $version.$patch in background..."
+#echo "Do you wish to proceed? (type 'yes' to continue) "
+read -p "Do you wish to proceed? (type 'yes' to continue) " answer
+if [ $answer != 'yes' ]; then
+  echo "Aborting procedure. Good bye!"
+  exit 0;
+fi
+
+echo "Build procedure have started..."
+sh buildFpAllInOne 0 $version $patch > output.txt &
 echo "You can monitor the results at 'output.txt'. See you."
+

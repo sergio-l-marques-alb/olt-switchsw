@@ -13,7 +13,7 @@ patchVersion=0
 echo "Usage: sh $0 [\$updateSvn] [version] [patch]"
 
 updateSvn=1
-password=olttera
+
 if [ $# -ge 1 ]; then
 	updateSvn=$1
 	if  [ $updateSvn -ne 1 -a $updateSvn -ne 0 ]; then
@@ -44,12 +44,13 @@ fi
 
 ###########Validate Current User####################
 builderUser=olt
+password=olttera
 currentUser=$(whoami)
 
-#if  [ "$builderUser"!="$currentUser" ]; then
-#	echo "Current user: $currentUser is not the olt user"
-#	exit -1
-#fi
+if [ "$builderUser" != "$currentUser" ]; then
+	echo "Current user: \"$currentUser\" is not the \"$buildUser\" user"
+	exit -1
+fi
 ###############Validate Current User###################
 
 ############Paths Assignment & Validation#####################
