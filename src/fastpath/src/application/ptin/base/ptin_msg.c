@@ -4916,6 +4916,7 @@ L7_RC_t ptin_msg_EVC_get(msg_HwEthMef10Evc_t *msgEvcConf)
 
   return L7_SUCCESS;
 }
+#endif
 
 /**
  * Creates or reconfigures an EVC
@@ -4924,10 +4925,11 @@ L7_RC_t ptin_msg_EVC_get(msg_HwEthMef10Evc_t *msgEvcConf)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_msg_EVC_create(msg_HwEthMef10Evc_t *msgEvcConf)
+L7_RC_t ptin_msg_evc_create(ipc_msg *inbuff, ipc_msg *outbuff)
 {
   L7_uint i;
   ptin_HwEthMef10Evc_t ptinEvcConf;
+  msg_HwEthMef10Evc_t *msgEvcConf = (msg_HwEthMef10Evc_t *) inbuff->info;
 
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
   if ((msgEvcConf->id == PTIN_EVC_INBAND) || (msgEvcConf->id >= PTIN_SYSTEM_N_EXTENDED_EVCS))
@@ -5000,16 +5002,15 @@ L7_RC_t ptin_msg_EVC_create(msg_HwEthMef10Evc_t *msgEvcConf)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_structs)
+L7_RC_t ptin_msg_evc_delete(ipc_msg *inbuff, ipc_msg *outbuff)
 {
   L7_uint16 i;
   L7_RC_t rc_global = L7_SUCCESS;
+  msg_HwEthMef10EvcRemove_t *msgEvcConf = (msg_HwEthMef10EvcRemove_t *) inbuff->info;
+  L7_uint16 n_structs;
 
-  if (msgEvcConf == L7_NULLPTR)
-  {
-    PT_LOG_ERR(LOG_CTX_MSG, "Invalid argument");
-    return L7_FAILURE;
-  }
+  /* Number of structures */
+  n_structs = inbuff->infoDim / sizeof(msg_HwEthMef10EvcRemove_t);
 
   for (i=0; i<n_structs; i++)
   {
@@ -5035,26 +5036,20 @@ L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_s
 }
 
 /**
- * Add/remove port to/from an EVC
- * 
- * @param msgEvcPort : Pointer to the input struct 
- * @param n_size     : Number of structures 
- * @param oper       : Operation type
+ * Add port to an EVC
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_msg_oper_t oper)
+L7_RC_t ptin_msg_evc_port_add(ipc_msg *inbuff, ipc_msg *outbuff)
 {
   L7_uint i;
   ptin_HwEthMef10Intf_t ptinEvcPort;
+  msg_HWevcPort_t *msgEvcPort = (msg_HWevcPort_t *) inbuff->info;
+  L7_uint16 n_size;
   L7_RC_t rc, rc_global = L7_SUCCESS, rc_global_failure = L7_SUCCESS;
 
-  /* Validate arguments */
-  if (msgEvcPort == L7_NULLPTR)
-  {
-    PT_LOG_ERR(LOG_CTX_MSG, "No data provided");
-    return L7_FAILURE;
-  }
+  /* Number of structures */
+  n_size = inbuff->infoDim / sizeof(msg_HWevcPort_t);
 
   /* Run all structures */
   for (i=0; i<n_size; i++)
@@ -5073,51 +5068,28 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
     ptinEvcPort.vid       = msgEvcPort[i].intf.vid;
     ptinEvcPort.vid_inner = msgEvcPort[i].intf.inner_vid;
 
-    PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u - oper %s",     msgEvcPort[i].evcId,
-              ((oper==PTIN_MSG_OPER_ADD) ? "ADD" : ((oper==PTIN_MSG_OPER_REMOVE) ? "REMOVE" : "UNKNOWN")));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u", msgEvcPort[i].evcId);
     PT_LOG_DEBUG(LOG_CTX_MSG, " .Intf      = %u/%u",   ptinEvcPort.intf_type, ptinEvcPort.intf_id);
     PT_LOG_DEBUG(LOG_CTX_MSG, " .IntfType  = %s",     (ptinEvcPort.mef_type == PTIN_EVC_INTF_LEAF) ? "LEAF" : "ROOT");
     PT_LOG_DEBUG(LOG_CTX_MSG, " .OuterVlan = %u",      ptinEvcPort.vid);
     PT_LOG_DEBUG(LOG_CTX_MSG, " .InnerVlan = %u",      ptinEvcPort.vid_inner);
 
-    /* Add/remove port */
-    switch (oper)
+    if ((rc=ptin_evc_port_add(msgEvcPort[i].evcId, &ptinEvcPort)) != L7_SUCCESS)
+    {        
+      rc_global = rc;
+      if (IS_FAILURE_ERROR(rc))
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "Error adding port %u/%u to EVC# %u (rc:%u)", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId, rc);
+        rc_global_failure = rc;
+      }
+      else
+      {
+        //Notice Already Logged
+      }
+    }
+    else
     {
-    case PTIN_MSG_OPER_ADD:
-      if ((rc=ptin_evc_port_add(msgEvcPort[i].evcId, &ptinEvcPort)) != L7_SUCCESS)
-      {        
-        rc_global = rc;
-        if (IS_FAILURE_ERROR(rc))
-        {
-          PT_LOG_ERR(LOG_CTX_MSG, "Error adding port %u/%u to EVC# %u (rc:%u)", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId, rc);
-          rc_global_failure = rc;
-        }
-        else
-        {
-          //Notice Already Logged
-        }
-      }
-      else
-      {
-        PT_LOG_TRACE(LOG_CTX_MSG, "Added port %u/%u to EVC# %u", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId);
-      }
-      break;
-    case PTIN_MSG_OPER_REMOVE:
-      if ((rc=ptin_evc_port_remove(msgEvcPort[i].evcId, &ptinEvcPort)) != L7_SUCCESS)
-      {
-        PT_LOG_ERR(LOG_CTX_MSG, "Error removing port %u/%u to EVC# %u", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId);
-        rc_global = rc;
-        if (IS_FAILURE_ERROR(rc))
-          rc_global_failure = rc;
-      }
-      else
-      {
-        PT_LOG_TRACE(LOG_CTX_MSG, "Removed port %u/%u from EVC# %u", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId);
-      }
-      break;
-    default:
-      PT_LOG_ERR(LOG_CTX_MSG, "Unknown operation %u", oper);
-      rc_global = L7_FAILURE;
+      PT_LOG_TRACE(LOG_CTX_MSG, "Added port %u/%u to EVC# %u", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId);
     }
   }
 
@@ -5127,6 +5099,65 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
   return rc_global;
 }
 
+/**
+ * Remove port from an EVC
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_evc_port_remove(ipc_msg *inbuff, ipc_msg *outbuff)
+{
+  L7_uint i;
+  ptin_HwEthMef10Intf_t ptinEvcPort;
+  msg_HWevcPort_t *msgEvcPort = (msg_HWevcPort_t *) inbuff->info;
+  L7_uint16 n_size;
+  L7_RC_t rc, rc_global = L7_SUCCESS, rc_global_failure = L7_SUCCESS;
+
+  /* Number of structures */
+  n_size = inbuff->infoDim / sizeof(msg_HWevcPort_t);
+
+  /* Run all structures */
+  for (i=0; i<n_size; i++)
+  {
+    /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
+    if (/*(msgEvcPort[i].evcId == PTIN_EVC_INBAND) ||*/ (msgEvcPort[i].evcId >= PTIN_SYSTEM_N_EXTENDED_EVCS))
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "EVC# %u is out of range [0..%u]", msgEvcPort[i].evcId, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+      return L7_FAILURE;
+    }
+
+    /* Copy data to ptin struct */
+    ptinEvcPort.intf_type = msgEvcPort[i].intf.intf_type;
+    ptinEvcPort.intf_id   = msgEvcPort[i].intf.intf_id;
+    ptinEvcPort.mef_type  = msgEvcPort[i].intf.mef_type;
+    ptinEvcPort.vid       = msgEvcPort[i].intf.vid;
+    ptinEvcPort.vid_inner = msgEvcPort[i].intf.inner_vid;
+
+    PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u", msgEvcPort[i].evcId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .Intf      = %u/%u",   ptinEvcPort.intf_type, ptinEvcPort.intf_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .IntfType  = %s",     (ptinEvcPort.mef_type == PTIN_EVC_INTF_LEAF) ? "LEAF" : "ROOT");
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .OuterVlan = %u",      ptinEvcPort.vid);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .InnerVlan = %u",      ptinEvcPort.vid_inner);
+
+    if ((rc=ptin_evc_port_remove(msgEvcPort[i].evcId, &ptinEvcPort)) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Error removing port %u/%u to EVC# %u", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId);
+      rc_global = rc;
+      if (IS_FAILURE_ERROR(rc))
+        rc_global_failure = rc;
+    }
+    else
+    {
+      PT_LOG_TRACE(LOG_CTX_MSG, "Removed port %u/%u from EVC# %u", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId);
+    }
+  }
+
+  if (rc_global_failure != L7_SUCCESS)
+    return rc_global_failure;
+
+  return rc_global;
+}
+
+#if 0
 /**
  * Reconfigure EVC
  * 

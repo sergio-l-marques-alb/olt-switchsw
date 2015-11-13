@@ -155,6 +155,42 @@ static struct_msg_descriptor_t messages_defprio[] = {
     L7_FALSE, IPC_OK,
     ptin_msg_PhyCounters_clear
   },
+  /* CCMSG_ETH_EVC_ADD */
+  {
+    CCMSG_ETH_EVC_ADD, 1,
+    "CCMSG_ETH_EVC_ADD",
+    MSG_SIZE_CHECK_MULT,
+    sizeof(msg_HwEthMef10Evc_t),
+    L7_FALSE, IPC_OK,
+    ptin_msg_evc_create
+  },
+  /* CCMSG_ETH_EVC_REMOVE */
+  {
+    CCMSG_ETH_EVC_REMOVE, 1,
+    "CCMSG_ETH_EVC_REMOVE",
+    MSG_SIZE_CHECK_MULT,
+    sizeof(msg_HwEthMef10EvcRemove_t),
+    L7_FALSE, IPC_OK,
+    ptin_msg_evc_delete
+  },
+  /* CCMSG_ETH_EVC_PORT_ADD */
+  {
+    CCMSG_ETH_EVC_PORT_ADD, 1,
+    "CCMSG_ETH_EVC_PORT_ADD",
+    MSG_SIZE_CHECK_MULT,
+    sizeof(msg_HWevcPort_t),
+    L7_FALSE, IPC_OK,
+    ptin_msg_evc_port_add
+  },
+  /* CCMSG_ETH_EVC_PORT_REMOVE */
+  {
+    CCMSG_ETH_EVC_PORT_REMOVE, 1,
+    "CCMSG_ETH_EVC_PORT_REMOVE",
+    MSG_SIZE_CHECK_MULT,
+    sizeof(msg_HWevcPort_t),
+    L7_FALSE, IPC_OK,
+    ptin_msg_evc_port_remove
+  },
   /* Add commands here */
 };
 
