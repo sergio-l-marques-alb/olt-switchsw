@@ -511,9 +511,11 @@ static CNFGR_COMPONENT_LIST_ENTRY_t cnfgrComponentList[] =
   {L7_DOT1S_COMPONENT_ID,                L7_CNFGR_COMPONENT_ENABLE,  dot1sApiCnfgrCommand,          L7_CNFGR_HW_APPLY_CONFIG},
   {L7_DOT1X_COMPONENT_ID,                L7_CNFGR_COMPONENT_ENABLE,  dot1xApiCnfgrCommand,          L7_CNFGR_HW_APPLY_CONFIG},
   {L7_MFDB_COMPONENT_ID,                 L7_CNFGR_COMPONENT_ENABLE,  mfdbApiCnfgrCommand,           0},
+#endif
 #ifdef L7_STATIC_FILTERING_PACKAGE
   {L7_FILTER_COMPONENT_ID,               L7_CNFGR_COMPONENT_ENABLE,  filterApiCnfgrCommand,         L7_CNFGR_HW_APPLY_CONFIG},
 #endif
+#if 0
   {L7_RADIUS_COMPONENT_ID,               L7_CNFGR_COMPONENT_DISABLE,  radiusApiCnfgrCommand,         0},
   {L7_MGMT_ACAL_COMPONENT_ID,            L7_CNFGR_COMPONENT_ENABLE,  macalApiCnfgrCommand,          0},
 #ifndef L7_PRODUCT_SMARTPATH

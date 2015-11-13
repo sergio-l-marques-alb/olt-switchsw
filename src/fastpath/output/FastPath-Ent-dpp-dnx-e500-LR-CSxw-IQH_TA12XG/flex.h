@@ -162,6 +162,7 @@
 #define _INCLUDE_SFLOW_COMPONENT_API_
 #define L7_SFLOW_PACKAGE 1
 #endif
+#endif
 
 /* STATIC_FILTERING definitions */
 #ifndef _INCLUDE_STATIC_FILTERING_COMPONENT_API_
@@ -169,6 +170,7 @@
 #define L7_STATIC_FILTERING_PACKAGE 1
 #endif
 
+#if 0
 /* TACACS definitions */
 #ifndef _INCLUDE_TACACS_COMPONENT_API_
 #define _INCLUDE_TACACS_COMPONENT_API_
