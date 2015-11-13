@@ -107,6 +107,7 @@ extern L7_RC_t ptin_evc_destroy(L7_uint32 evc_ext_id);
  */
 extern L7_RC_t ptin_evc_destroy_all(void);
 
+#if (!PTIN_BOARD_IS_DNX)
 /**
  * Adds a bridge to a stacked EVC between the root and a particular interface
  * 
@@ -126,6 +127,7 @@ extern L7_RC_t ptin_evc_p2p_bridge_add(ptin_HwEthEvcBridge_t *evcBridge);
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge);
+#endif /* !PTIN_BOARD_IS_DNX */
 
 /**
  * Adds a flooding vlan

@@ -64,31 +64,37 @@ extern L7_RC_t ptin_multicast_group_l3_create(L7_int *mcast_group);
 
 /**
  * Create a VLAN multicast group
- * 
+ *  
+ * @param vlanId : VLAN to be associated with.   
  * @param mcast_group   : Multicast group id to be returned. 
+ * @param flags : Flags  
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-extern L7_RC_t ptin_multicast_group_vlan_create(L7_int *mcast_group);
+extern L7_RC_t ptin_multicast_group_vlan_create(L7_uint16 vlanId, L7_int *mcast_group, L7_uint32 flags);
 
 /**
  * Destroy a multicast group
  * 
- * @param mcast_group : Multicast group id to be destroyed.
+ * @param mcast_group : Multicast group id to be destroyed. 
+ * @param flags : Flags   
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-extern L7_RC_t ptin_multicast_group_destroy(L7_int mcast_group);
+extern L7_RC_t ptin_multicast_group_destroy(L7_int mcast_group, L7_uint flags);
 
 /**
- * Associate a multicast group to a vlan
- * 
+ * Configure flooding settings
+ *  
+ * @param lif    : LIF id  
  * @param vlanId : Vlan id
- * @param mcast_group : Multicast group id.
+ * @param mcgroup_unkn_uc : Unknown UC group id. 
+ * @param mcgroup_unkn_mc : Unknown MC group id. 
+ * @param mcgroup_bc : Broadcast group id. 
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-extern L7_RC_t ptin_vlanBridge_multicast_set(L7_uint16 vlanId, L7_int mcast_group);
+extern L7_RC_t ptin_vlanBridge_flood_set(L7_uint32 lif, L7_uint16 vlanId, L7_int mcgroup_unkn_uc, L7_int mcgroup_unkn_mc, L7_int mcgroup_bc);
 
 /**
  * Remove multicast group association to vlan
@@ -132,6 +138,46 @@ extern L7_RC_t ptin_multicast_l3_egress_port_remove(L7_uint32 intIfNum, L7_int m
  */
 extern L7_RC_t ptin_multicast_egress_clean(L7_int mcast_group);
 
+#if (PTIN_BOARD_IS_DNX)
+/**
+ * Create VSI
+ * 
+ * @param vsi 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_vsi_create(L7_uint16 vsi);
+
+/**
+ * Remove VSI
+ * 
+ * @param vsi 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_vsi_destroy(L7_uint16 vsi);
+
+/**
+ * Add VLAN port to VSI
+ * 
+ * @param vsi 
+ * @param vlan_port_id 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_vsi_member_add(L7_uint16 vsi, L7_uint32 vlan_port_id);
+
+/**
+ * Remove VLAN PORT from VSI
+ * 
+ * @param vsi 
+ * @param vlan_port_id 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_vsi_member_remove(L7_uint16 vsi, L7_uint32 vlan_port_id);
+#endif
+
 /**
  * Create Virtual port
  * 
@@ -173,18 +219,6 @@ extern L7_RC_t ptin_virtual_macLearnMax_set(L7_uint32 intIfNum, L7_int vport_id,
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
 extern L7_RC_t ptin_virtual_port_remove(L7_uint32 intIfNum, L7_int virtual_gport, L7_int mcast_group);
-
-/**
- * Remove Virtual port from vlans info
- * 
- * @param intIfNum    : interface to be removed
- * @param ext_ovid    : External outer vlan 
- * @param ext_ivid    : External inner vlan 
- * @param mcast_group : Multicast group id.
- * 
- * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
- */
-extern L7_RC_t ptin_virtual_port_remove_from_vlans(L7_uint32 intIfNum, L7_int ext_ovid, L7_int ext_ivid, L7_int mcast_group);
 
 /**
  * Define MAC Learning for a particular Vlan, and its forwarding 

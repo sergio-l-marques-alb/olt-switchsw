@@ -18,12 +18,13 @@
  /**
  * Create a multicast group
  * 
+ * @param vlanId : VLAN to be associated with 
+ * @param multicast_flag: Multicast flags   
  * @param mcast_group   : Multicast group id to be returned. 
- * @param multicast_flag: Multicast flags  
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-static L7_RC_t ptin_multicast_group_create(L7_int *mcast_group, L7_uint32 multicast_flag);
+static L7_RC_t ptin_multicast_group_create(L7_uint16 vlanId, L7_uint32 multicast_flag, L7_int *mcast_group);
 
 /**
  * Remove port from Multicast egress
@@ -202,38 +203,42 @@ L7_RC_t ptin_vlan_port_switch(L7_uint32 ptin_port_old, L7_uint32 ptin_port_new, 
 }
 
 /**
- * Associate a multicast group to a vlan
- * 
+ * Configure flooding settings
+ *  
+ * @param lif    : LIF id 
  * @param vlanId : Vlan id
- * @param mcast_group : Multicast group id.
+ * @param mcgroup_unkn_uc : Unknown UC group id. 
+ * @param mcgroup_unkn_mc : Unknown MC group id. 
+ * @param mcgroup_bc : Broadcast group id. 
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t ptin_vlanBridge_multicast_set(L7_uint16 vlanId, L7_int mcast_group)
+L7_RC_t ptin_vlanBridge_flood_set(L7_uint32 lif, L7_uint16 vlanId, L7_int mcgroup_unkn_uc, L7_int mcgroup_unkn_mc, L7_int mcgroup_bc)
 {
-  ptin_bridge_vlan_multicast_t mode;
+  ptin_bridge_vlan_mode_t mode;
   L7_RC_t rc = L7_SUCCESS;
 
-  /* Validate arguments */
-  if ( vlanId == 0 || vlanId > 4095 || mcast_group <= 0)
-  {
-    PT_LOG_ERR(LOG_CTX_API, "Invalid arguments (vlanId=%u)",vlanId);
-    return L7_FAILURE;
-  }
-
-  PT_LOG_TRACE(LOG_CTX_API, "vlanId=%u, mcast_group=%u", vlanId, mcast_group);
+  PT_LOG_TRACE(LOG_CTX_API, "lif=0x%x, vlanId=%u, mcgroup_unkn_uc=%d mcgroup_unkn_mc=%d mcgroup_bc=%d", lif, vlanId,
+               mcgroup_unkn_uc, mcgroup_unkn_mc, mcgroup_bc);
 
   /* Fill structure */
-  mode.oper             = DAPI_CMD_SET;
-  mode.vlanId           = vlanId;
-  mode.multicast_group  = mcast_group;
-  mode.destroy_on_clear = L7_FALSE;
-  mode.multicast_flag   = BCM_MULTICAST_TYPE_VLAN;
+  memset(&mode, 0x00, sizeof(mode));
+  mode.lif_id = lif;
+  mode.vlanId = vlanId;
+  mode.multicast_group       = mcgroup_unkn_uc;
+  mode.mcgroup_flood_unkn_uc = mcgroup_unkn_uc;
+  mode.mcgroup_flood_unkn_mc = mcgroup_unkn_mc;
+  mode.mcgroup_flood_bc      = mcgroup_bc;
+  mode.mask   = PTIN_BRIDGE_VLAN_MODE_MASK_FLOOD;
+  if (vlanId != 0)
+  {
+    mode.mask |= PTIN_BRIDGE_VLAN_MODE_MASK_MC_GROUP;
+  }
 
   /* DTL call */
-  rc = dtlPtinVlanBridgeMulticast(&mode);
+  rc = dtlPtinVlanDefinitions(&mode);
 
-  PT_LOG_TRACE(LOG_CTX_API, "Finished: rc=%d (new MC group=%d)", rc, mode.multicast_group);
+  PT_LOG_TRACE(LOG_CTX_API, "Finished: rc=%d", rc);
 
   return rc;
 }
@@ -248,11 +253,12 @@ L7_RC_t ptin_vlanBridge_multicast_set(L7_uint16 vlanId, L7_int mcast_group)
  */
 L7_RC_t ptin_vlanBridge_multicast_clear(L7_uint16 vlanId, L7_int mcast_group)
 {
+  L7_uint32 flags = 0;
   ptin_bridge_vlan_multicast_t mode;
   L7_RC_t rc = L7_SUCCESS;
 
   /* Validate arguments */
-  if ( vlanId == 0 || vlanId > 4095 || mcast_group <= 0)
+  if ( vlanId == 0 || mcast_group <= 0)
   {
     PT_LOG_ERR(LOG_CTX_API, "Invalid arguments (vlanId=%u, mcast_group=%d)",vlanId,mcast_group);
     return L7_FAILURE;
@@ -260,12 +266,18 @@ L7_RC_t ptin_vlanBridge_multicast_clear(L7_uint16 vlanId, L7_int mcast_group)
 
   PT_LOG_TRACE(LOG_CTX_API, "vlanId=%u, mcast_group=%u", vlanId, mcast_group);
 
+  #if (PTIN_BOARD_IS_DNX)
+  flags |= BCM_MULTICAST_TYPE_L2;
+  #else
+  flags |= BCM_MULTICAST_TYPE_VLAN;
+  #endif
+
   /* Fill structure */
   mode.oper             = DAPI_CMD_CLEAR;
   mode.vlanId           = vlanId;
   mode.multicast_group  = mcast_group;
   mode.destroy_on_clear = L7_FALSE;
-  mode.multicast_flag   = BCM_MULTICAST_TYPE_VLAN;
+  mode.multicast_flag   = flags;
 
   /* DTL call */
   rc = dtlPtinVlanBridgeMulticast(&mode);
@@ -278,7 +290,7 @@ L7_RC_t ptin_vlanBridge_multicast_clear(L7_uint16 vlanId, L7_int mcast_group)
 L7_int ptin_debug_multicast_group_l3_create(void)
 {
   L7_int  mcastGroup = -1;
-  ptin_multicast_group_create(&mcastGroup, BCM_MULTICAST_TYPE_L3);
+  ptin_multicast_group_create((L7_uint16) -1, BCM_MULTICAST_TYPE_L3, &mcastGroup);
   return mcastGroup;
 }
 
@@ -301,7 +313,7 @@ L7_RC_t ptin_multicast_group_l3_create(L7_int *mcast_group)
     return L7_FAILURE;
   }
 
-  rc = ptin_multicast_group_create(&mcastGroup, BCM_MULTICAST_TYPE_L3);
+  rc = ptin_multicast_group_create((L7_uint16) -1, BCM_MULTICAST_TYPE_L3, &mcastGroup);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_API, "Failed to Create Multicast Group: rc=%d", rc);
@@ -317,14 +329,16 @@ L7_RC_t ptin_multicast_group_l3_create(L7_int *mcast_group)
 
 /**
  * Create a VLAN multicast group
- * 
+ *  
+ * @param vlanId : VLAN to be associated with.  
  * @param mcast_group   : Multicast group id to be returned. 
+ * @param flags : Flags 
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t ptin_multicast_group_vlan_create(L7_int *mcast_group)
+L7_RC_t ptin_multicast_group_vlan_create(L7_uint16 vlanId, L7_int *mcast_group, L7_uint32 flags)
 {
-  L7_int  mcastGroup = -1;
+  L7_int    mcastGroup = -1;
   L7_RC_t rc = L7_SUCCESS;
 
   /* Validate arguments */
@@ -334,7 +348,13 @@ L7_RC_t ptin_multicast_group_vlan_create(L7_int *mcast_group)
     return L7_FAILURE;
   }
 
-  rc = ptin_multicast_group_create(&mcastGroup, BCM_MULTICAST_TYPE_VLAN);
+  #if (PTIN_BOARD_IS_DNX)
+  flags |= BCM_MULTICAST_TYPE_L2;
+  #else
+  flags |= BCM_MULTICAST_TYPE_VLAN;
+  #endif
+
+  rc = ptin_multicast_group_create(vlanId, flags, &mcastGroup);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_API, "Failed to Create Multicast Group: rc=%d", rc);
@@ -350,13 +370,14 @@ L7_RC_t ptin_multicast_group_vlan_create(L7_int *mcast_group)
 
 /**
  * Create a multicast group
- * 
+ *  
+ * @param vlanId : VLAN to be associated with 
+ * @param multicast_flag: Multicast flags   
  * @param mcast_group   : Multicast group id to be returned. 
- * @param multicast_flag: Multicast flags  
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-static L7_RC_t ptin_multicast_group_create(L7_int *mcast_group, L7_uint32 multicast_flag)
+static L7_RC_t ptin_multicast_group_create(L7_uint16 vlanId, L7_uint32 multicast_flag, L7_int *mcast_group)
 {
   ptin_bridge_vlan_multicast_t mode;
   L7_RC_t rc = L7_SUCCESS;
@@ -370,7 +391,7 @@ static L7_RC_t ptin_multicast_group_create(L7_int *mcast_group, L7_uint32 multic
 
   /* Fill structure */
   mode.oper             = DAPI_CMD_SET;
-  mode.vlanId           = -1;
+  mode.vlanId           = vlanId;
   mode.multicast_group  = *mcast_group;
   mode.destroy_on_clear = L7_FALSE;
   mode.multicast_flag   = multicast_flag;
@@ -392,11 +413,12 @@ static L7_RC_t ptin_multicast_group_create(L7_int *mcast_group, L7_uint32 multic
 /**
  * Destroy a multicast group
  * 
- * @param mcast_group : Multicast group id to be destroyed.
+ * @param mcast_group : Multicast group id to be destroyed. 
+ * @param flags : Flags   
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t ptin_multicast_group_destroy(L7_int mcast_group)
+L7_RC_t ptin_multicast_group_destroy(L7_int mcast_group, L7_uint flags)
 {
   ptin_bridge_vlan_multicast_t mode;
   L7_RC_t rc = L7_SUCCESS;
@@ -408,17 +430,23 @@ L7_RC_t ptin_multicast_group_destroy(L7_int mcast_group)
     return L7_FAILURE;
   }
 
+  #if (PTIN_BOARD_IS_DNX)
+  flags |= BCM_MULTICAST_TYPE_L2;
+  #else
+  flags |= BCM_MULTICAST_TYPE_VLAN;
+  #endif
+
   /* Fill structure */
   mode.oper             = DAPI_CMD_CLEAR;
-  mode.vlanId           = -1;
+  mode.vlanId           = 0;
   mode.multicast_group  = mcast_group;
   mode.destroy_on_clear = L7_TRUE;
-  mode.multicast_flag   = (BCM_MULTICAST_TYPE_VLAN | BCM_MULTICAST_TYPE_L3);
+  mode.multicast_flag   = flags;
 
   /* DTL call */
   rc = dtlPtinVlanBridgeMulticast(&mode);
 
-  PT_LOG_TRACE(LOG_CTX_API, "Finished: rc=%d (new MC group=%d)", rc, mode.multicast_group);
+  PT_LOG_TRACE(LOG_CTX_API, "Finished: rc=%d (MC group=%d)", rc, mode.multicast_group);
 
   return rc;
 }
@@ -562,6 +590,140 @@ L7_RC_t ptin_multicast_egress_clean(L7_int mcast_group)
   return rc;
 }
 
+#if (PTIN_BOARD_IS_DNX)
+/**
+ * Create VSI
+ * 
+ * @param vsi 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_vsi_create(L7_uint16 vsi)
+{
+  L7_RC_t rc;
+  ptinDtlVSI_t vsi_data;
+
+  memset(&vsi_data, 0x00, sizeof(vsi_data));
+
+  vsi_data.vsi = vsi;
+
+  PT_LOG_TRACE(LOG_CTX_API, "Going to create vsi %u", vsi);
+
+  rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_VSI, DAPI_CMD_SET, sizeof(ptinDtlVSI_t), &vsi_data);
+
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_API, "Error creating VSI %u: error %d", vsi, rc); 
+  }
+  else
+  {
+    PT_LOG_TRACE(LOG_CTX_API, "VSI %u created", vsi); 
+  }
+  
+  return rc;
+}
+
+/**
+ * Remove VSI
+ * 
+ * @param vsi 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_vsi_destroy(L7_uint16 vsi)
+{
+  L7_RC_t rc;
+  ptinDtlVSI_t vsi_data;
+
+  memset(&vsi_data, 0x00, sizeof(vsi_data));
+
+  vsi_data.vsi = vsi;
+
+  PT_LOG_TRACE(LOG_CTX_API, "Going to destroy vsi %u", vsi);
+
+  rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_VSI, DAPI_CMD_CLEAR, sizeof(ptinDtlVSI_t), &vsi_data);
+
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_API, "Error destroying VSI %u: error %d", vsi, rc); 
+  }
+  else
+  {
+    PT_LOG_TRACE(LOG_CTX_API, "VSI %u destroyed", vsi); 
+  }
+  
+  return rc;
+}
+
+/**
+ * Add VLAN port to VSI
+ * 
+ * @param vsi 
+ * @param vlan_port_id 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_vsi_member_add(L7_uint16 vsi, L7_uint32 vlan_port_id)
+{
+  L7_RC_t rc;
+  ptinDtlVSI_t vsi_data;
+
+  memset(&vsi_data, 0x00, sizeof(vsi_data));
+
+  vsi_data.vsi = vsi;
+  vsi_data.vlan_port_id = vlan_port_id;
+
+  PT_LOG_TRACE(LOG_CTX_API, "Going to add virtual port 0x%x to vsi %u", vlan_port_id, vsi);
+
+  rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_VSI_MEMBER, DAPI_CMD_SET, sizeof(ptinDtlVSI_t), &vsi_data);
+
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_API, "Error adding vlan port 0x%x to VSI %u: error %d", vlan_port_id, vsi, rc); 
+  }
+  else
+  {
+    PT_LOG_TRACE(LOG_CTX_API, "Vlan port 0x%x added to VSI %u", vlan_port_id, vsi); 
+  }
+  
+  return rc;
+}
+
+/**
+ * Remove VLAN PORT from VSI
+ * 
+ * @param vsi 
+ * @param vlan_port_id 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_vsi_member_remove(L7_uint16 vsi, L7_uint32 vlan_port_id)
+{
+  L7_RC_t rc;
+  ptinDtlVSI_t vsi_data;
+
+  memset(&vsi_data, 0x00, sizeof(vsi_data));
+
+  vsi_data.vsi = vsi;
+  vsi_data.vlan_port_id = vlan_port_id;
+
+  PT_LOG_TRACE(LOG_CTX_API, "Going to remove vlan port 0x%x to vsi %u", vlan_port_id, vsi);
+
+  rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_VSI_MEMBER, DAPI_CMD_CLEAR, sizeof(ptinDtlVSI_t), &vsi_data);
+
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_API, "Error removing vlan port 0x%x to VSI %u: error %d", vlan_port_id, vsi, rc); 
+  }
+  else
+  {
+    PT_LOG_TRACE(LOG_CTX_API, "Vlan port 0x%x remved from VSI %u", vlan_port_id, vsi); 
+  }
+  
+  return rc;
+}
+#endif
+
 /**
  * Create Virtual port
  * 
@@ -587,10 +749,10 @@ L7_RC_t ptin_virtual_port_add(L7_uint32 intIfNum,
   L7_RC_t rc = L7_SUCCESS;
 
   /* Validate arguments */
-  if ( intIfNum == 0 || intIfNum >= L7_ALL_INTERFACES || 
-       int_ovid <= 0 || int_ovid >= 4095 ||
-       ext_ovid <= 0 || ext_ovid >= 4095 ||
-       mcast_group <= 0)
+  if ( intIfNum == 0 || intIfNum >= L7_ALL_INTERFACES
+       /*|| int_ovid <= 0 || int_ovid >= 4095
+       || ext_ovid <= 0 || ext_ovid >= 4095 
+       || mcast_group <= 0*/)
   {
     PT_LOG_ERR(LOG_CTX_API, "Invalid arguments");
     return L7_FAILURE;
@@ -599,6 +761,7 @@ L7_RC_t ptin_virtual_port_add(L7_uint32 intIfNum,
             intIfNum, int_ovid, int_ivid, ext_ovid, ext_ivid, mcast_group, macLearnMax);
 
   /* Fill structure */
+  memset(&vport, 0x00, sizeof(vport));
   vport.oper             = DAPI_CMD_SET;
   vport.cmd              = PTIN_VPORT_CMD_VP_OPER;
   vport.int_ovid         = int_ovid;
@@ -608,6 +771,7 @@ L7_RC_t ptin_virtual_port_add(L7_uint32 intIfNum,
   vport.virtual_gport    = -1;
   vport.multicast_group  = mcast_group;
   vport.macLearnMax      = macLearnMax;
+  vport.vsi              = 0;
 
   /* DTL call */
   rc = dtlPtinVirtualPort(intIfNum, &vport);
@@ -683,7 +847,7 @@ L7_RC_t ptin_virtual_port_remove(L7_uint32 intIfNum, L7_int virtual_gport, L7_in
 
   /* Validate arguments */
   if ( intIfNum == 0 || intIfNum >= L7_ALL_INTERFACES ||
-       virtual_gport <= 0 || mcast_group <= 0)
+       virtual_gport <= 0 /*|| mcast_group <= 0*/)
   {
     PT_LOG_ERR(LOG_CTX_API, "Invalid arguments");
     return L7_FAILURE;
@@ -711,49 +875,6 @@ L7_RC_t ptin_virtual_port_remove(L7_uint32 intIfNum, L7_int virtual_gport, L7_in
 }
 
 /**
- * Remove Virtual port from vlans info
- * 
- * @param intIfNum    : interface to be removed
- * @param ext_ovid    : External outer vlan 
- * @param ext_ivid    : External inner vlan 
- * @param mcast_group : Multicast group id.
- * 
- * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
- */
-L7_RC_t ptin_virtual_port_remove_from_vlans(L7_uint32 intIfNum, L7_int ext_ovid, L7_int ext_ivid, L7_int mcast_group)
-{
-  ptin_vport_t vport;
-  L7_RC_t rc = L7_SUCCESS;
-
-  /* Validate arguments */
-  if ( intIfNum == 0 || intIfNum >= L7_ALL_INTERFACES || 
-       ext_ovid <= 0 || ext_ovid >= 4095 ||
-       mcast_group <= 0)
-  {
-    PT_LOG_ERR(LOG_CTX_API, "Invalid arguments");
-    return L7_FAILURE;
-  }
-  PT_LOG_TRACE(LOG_CTX_API, "intIfNum=%u, ext_ovid=%d, ext_ivid=%d, mcast_group=%u",
-            intIfNum, ext_ovid, ext_ivid, mcast_group);
-
-  /* Fill structure */
-  vport.oper             = DAPI_CMD_CLEAR;
-  vport.int_ovid         = -1;
-  vport.int_ivid         = -1;
-  vport.ext_ovid         = ext_ovid;
-  vport.ext_ivid         = ext_ivid;
-  vport.virtual_gport    = -1;
-  vport.multicast_group  = mcast_group;
-
-  /* DTL call */
-  rc = dtlPtinVirtualPort(intIfNum, &vport);
-
-  PT_LOG_TRACE(LOG_CTX_API, "Finished: rc=%d", rc);
-
-  return rc;
-}
-
-/**
  * Define MAC Learning for a particular Vlan, and its forwarding 
  * vlan 
  * 
@@ -771,14 +892,14 @@ L7_RC_t ptin_crossconnect_vlan_learn(L7_uint16 vlanId, L7_uint16 fwdVlanId, L7_i
 
   PT_LOG_TRACE(LOG_CTX_API, "vlanId=%u, fwdVlanId=%u, macLearn=%u", vlanId, fwdVlanId, macLearn);
   /* Validate arguments */
-  if ( (vlanId == 0 || vlanId > 4095) ||
-       (fwdVlanId == 0 || fwdVlanId > 4095) )
+  if (vlanId == 0 || fwdVlanId == 0)
   {
     PT_LOG_ERR(LOG_CTX_API, "Invalid arguments");
     return L7_FAILURE;
   }
 
   /* Fill structure */
+  memset(&mode, 0x00, sizeof(mode));
   mode.vlanId          = vlanId;
   mode.fwdVlanId       = fwdVlanId;
   mode.learn_enable    = macLearn & 1;
@@ -813,13 +934,14 @@ L7_RC_t ptin_crossconnect_enable(L7_uint16 vlanId, L7_BOOL crossconnect_apply, L
 
   PT_LOG_TRACE(LOG_CTX_API, "vlanId=%u, crossconnect=%u", vlanId, crossconnect_apply);
   /* Validate arguments */
-  if ( vlanId == 0 || vlanId > 4095 )
+  if ( vlanId == 0 )
   {
     PT_LOG_ERR(LOG_CTX_API, "Invalid arguments");
     return L7_FAILURE;
   }
 
   /* Fill structure */
+  memset(&mode, 0x00, sizeof(mode));
   mode.vlanId                 = vlanId;
   mode.double_tag             = double_tag;
   mode.cross_connects_enable  = crossconnect_apply & 1;

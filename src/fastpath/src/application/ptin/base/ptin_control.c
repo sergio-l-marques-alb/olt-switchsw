@@ -140,7 +140,6 @@ void ptinTask(L7_uint32 numArgs, void *unit)
     PTIN_CRASH();
   }
 
-#if 0
   /* Initialize xlate module in application layer */
   if (ptin_xlate_init()!=L7_SUCCESS)
   {
@@ -148,6 +147,7 @@ void ptinTask(L7_uint32 numArgs, void *unit)
     PTIN_CRASH();
   }
 
+#if 0
   /* By default enable global DHCP trapping */
   if (ptin_dhcp_enable(L7_ENABLE) != L7_SUCCESS)
   {
@@ -169,9 +169,7 @@ void ptinTask(L7_uint32 numArgs, void *unit)
     PT_LOG_CRITIC(LOG_CTX_CNFGR, "Error creating InBand bridge!");
   }
 #endif
-#endif
 
-#if 0
   /* Default EVCs */
   if (ptin_evc_startup() != L7_SUCCESS)
   {
