@@ -163,7 +163,7 @@ static void ptin_ipdtl0_task(void)
                     LOG_TRACE(LOG_CTX_PTIN_API, "Converting Internal VLAN ID (%d) to dtl0 VLAN ID (%d)\n\r", msg.vlanId, ptin_ipdtl0_intVid_info[msg.vlanId].dtl0Vid);
                 }
 
-                dtlIPProtoRecvAny(msg.bufHandle, msg.payload, msg.payloadLen, &pduInfo, L7_TRUE);
+                dtlIPProtoRecvAny(msg.payload, msg.payloadLen, &pduInfo, L7_TRUE);
             }
             else if (msg.msgId == PTIN_IPDTL0_MIRRORPKT_MESSAGE_ID)
             {
@@ -180,7 +180,7 @@ static void ptin_ipdtl0_task(void)
 
                 LOG_TRACE(LOG_CTX_PTIN_API, "Converting Internal VLAN ID (%d) to dtl0 VLAN ID 1\n", msg.vlanId);
 
-                dtlIPProtoRecvAny(msg.bufHandle, msg.payload, msg.payloadLen, &pduInfo, L7_FALSE);
+                dtlIPProtoRecvAny(msg.payload, msg.payloadLen, &pduInfo, L7_FALSE);
             }
             else 
             {
@@ -263,9 +263,13 @@ static  L7_RC_t ptin_ipdtl0_packetHandle(L7_netBufHandle netBufHandle, sysnet_pd
     if (rc!=L7_SUCCESS)
     {
         LOG_TRACE(LOG_CTX_PTIN_API, "If any error, packet will be dropped");
+        return SYSNET_PDU_RC_IGNORED;
     }
 
-    return rc;
+    /* Release buffer */
+    SYSAPI_NET_MBUF_FREE(netBufHandle);
+
+    return SYSNET_PDU_RC_CONSUMED;
 }
 
 /**
