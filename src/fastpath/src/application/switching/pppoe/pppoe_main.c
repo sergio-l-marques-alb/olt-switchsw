@@ -233,19 +233,23 @@ L7_RC_t pppoePduReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
   {
     if (ptin_debug_pppoe_snooping)
       LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet ignored (vlan=%u)", pduInfo->vlanId);
-    return SYSNET_PDU_RC_IGNORED;
+    return L7_FAILURE;
   }
 
   /* If no PPPoE instance is configured for this internal vlan, ignore the packet */
-  if(L7_TRUE != ptin_pppoe_vlan_validate(pduInfo->vlanId))
+  if(L7_TRUE != ptin_pppoe_vlan_validate(vlanId))
   {
+    /* Make software L2 forwarding */
     if (ptin_debug_pppoe_snooping)
-      LOG_NOTICE(LOG_CTX_PTIN_PPPOE,"No PPPoE instance found for intVlanId %u. Ignored", pduInfo->vlanId);
-
-    /* L2 switch packet */
-    ptin_packet_frame_l2forward(pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId, data, len);
+      LOG_ERR(LOG_CTX_PTIN_PPPOE, "Going to L2 forward packet from VLAN %u / intIfNum %u", pduInfo->vlanId, pduInfo->intIfNum);
+    /* L2 forward */
+    ptin_packet_frame_l2forward_nonblocking(pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId, data, len);
     SYSAPI_NET_MBUF_FREE(bufHandle);
-    return SYSNET_PDU_RC_CONSUMED;
+    return L7_SUCCESS;
+
+    //if (ptin_debug_pppoe_snooping)
+    //  LOG_NOTICE(LOG_CTX_PTIN_PPPOE,"No PPPoE instance found for intVlanId %u. Ignored", vlanId);
+    //return L7_FAILURE;
   }
 
   /* This is used only when the packet comes double tagged.*/
@@ -341,7 +345,7 @@ L7_RC_t pppoePduReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
 
   }
 
-  return SYSNET_PDU_RC_CONSUMED;
+  return L7_SUCCESS;
 }
 
 

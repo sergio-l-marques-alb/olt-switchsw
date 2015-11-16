@@ -692,6 +692,7 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
 #if defined(L7_ROUTING_PACKAGE) || defined(L7_DHCPS_PACKAGE)
   L7_uint32 mode;
 #endif
+  L7_BOOL l2_forward = L7_FALSE;
   L7_uint client_idx = (L7_uint)-1;   /* PTin added: DHCP snooping */
 
   if (ptin_debug_dhcp_snooping)
@@ -765,15 +766,12 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
        rx interface, ignore packet. */
     if (dsVlanIntfIsSnooping(pduInfo->vlanId,pduInfo->intIfNum) /*dsIntfIsSnooping(pduInfo->intIfNum)*/ == L7_FALSE )   /* PTin modified: DHCP snooping */
     {
-      #if 1
-      if (ptin_debug_dhcp_snooping)
-        LOG_ERR(LOG_CTX_PTIN_DHCP, "VLAN %u / intIfNum %u not valid", pduInfo->vlanId, pduInfo->intIfNum);
-
-      /* L2 switch packet */
-      ptin_packet_frame_l2forward(pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId, data, len);
-      SYSAPI_NET_MBUF_FREE(bufHandle);
-      return SYSNET_PDU_RC_CONSUMED;
-      #else
+    #if 1
+      l2_forward = L7_TRUE;
+      //if (ptin_debug_dhcp_snooping)
+      //  LOG_ERR(LOG_CTX_PTIN_DHCP, "VLAN %u / intIfNum %u not valid", pduInfo->vlanId, pduInfo->intIfNum);
+      //return SYSNET_PDU_RC_IGNORED;
+    #else
       #ifdef L7_DHCP_L2_RELAY_PACKAGE
       if ( _dsVlanIntfL2RelayGet(pduInfo->vlanId,pduInfo->intIfNum) /*_dsIntfL2RelayGet(pduInfo->intIfNum)*/ == L7_FALSE) /* PTin modified: DHCP snooping */
       {
@@ -793,22 +791,35 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
         LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet ignored");
       return SYSNET_PDU_RC_IGNORED;
       #endif
-      #endif
+    #endif
     }
 
     /* Check if IPV6 is enabled for this VLAN */
     L7_uint32 evc_flags;
     if (ptin_dhcp_flags_get(pduInfo->vlanId, L7_NULLPTR, &evc_flags) != L7_SUCCESS)
     {
-      if (ptin_debug_dhcp_snooping)
-        LOG_ERR(LOG_CTX_PTIN_DHCP, "Error calling ptin_dhcp_flags_get");
-      return SYSNET_PDU_RC_IGNORED;
+      l2_forward = L7_TRUE;
+      //if (ptin_debug_dhcp_snooping)
+      //  LOG_ERR(LOG_CTX_PTIN_DHCP, "Error calling ptin_dhcp_flags_get");
+      //return SYSNET_PDU_RC_IGNORED;
     }
-    if (!(evc_flags & PTIN_EVC_MASK_DHCPV4_PROTOCOL))
+    else if (!(evc_flags & PTIN_EVC_MASK_DHCPV4_PROTOCOL))
     {
-      if (ptin_debug_dhcp_snooping)
-        LOG_ERR(LOG_CTX_PTIN_DHCP, "VLAN %u does not have DHCPv4 enabled!", pduInfo->vlanId);
-      return SYSNET_PDU_RC_IGNORED;
+      l2_forward = L7_TRUE;
+      //if (ptin_debug_dhcp_snooping)
+      //  LOG_ERR(LOG_CTX_PTIN_DHCP, "VLAN %u does not have DHCPv4 enabled!", pduInfo->vlanId);
+      //return SYSNET_PDU_RC_IGNORED;
+    }
+
+    /* Make software L2 forwarding? */
+    if (l2_forward)
+    {
+      if (ptin_debug_dhcp_snooping) 
+        LOG_ERR(LOG_CTX_PTIN_DHCP, "Going to L2 forward packet from VLAN %u / intIfNum %u", pduInfo->vlanId, pduInfo->intIfNum);
+      /* L2 forward */
+      ptin_packet_frame_l2forward_nonblocking(pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId, data, len);
+      SYSAPI_NET_MBUF_FREE(bufHandle);
+      return SYSNET_PDU_RC_CONSUMED;
     }
 
     if (((osapiNtohl(ipHeader->iph_src) & L7_CLASS_D_ADDR_NETWORK) == L7_CLASS_D_ADDR_NETWORK) ||
@@ -1063,6 +1074,7 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
 #if defined(L7_ROUTING_PACKAGE) || defined(L7_DHCPS_PACKAGE)
   L7_uint32 mode;
 #endif
+  L7_BOOL l2_forward = L7_FALSE;
   L7_uint client_idx = (L7_uint)-1;   /* PTin added: DHCP snooping */
 
   if (ptin_debug_dhcp_snooping)
@@ -1131,15 +1143,12 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
        rx interface, ignore packet. */
     if (dsVlanIntfIsSnooping(pduInfo->vlanId,pduInfo->intIfNum) /*dsIntfIsSnooping(pduInfo->intIfNum)*/ == L7_FALSE )   /* PTin modified: DHCP snooping */
     {
-      #if 1
-      if (ptin_debug_dhcp_snooping)
-        LOG_ERR(LOG_CTX_PTIN_DHCP, "VLAN %u / intIfNum %u not valid", pduInfo->vlanId, pduInfo->intIfNum);
-
-      /* L2 switch packet */
-      ptin_packet_frame_l2forward(pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId, data, len);
-      SYSAPI_NET_MBUF_FREE(bufHandle); 
-      return SYSNET_PDU_RC_CONSUMED;
-      #else
+    #if 1
+      l2_forward = L7_TRUE;
+      //if (ptin_debug_dhcp_snooping)
+      //  LOG_ERR(LOG_CTX_PTIN_DHCP, "VLAN %u / intIfNum %u not valid", pduInfo->vlanId, pduInfo->intIfNum); 
+      //return SYSNET_PDU_RC_IGNORED;
+    #else
       #ifdef L7_DHCP_L2_RELAY_PACKAGE
       if ( _dsVlanIntfL2RelayGet(pduInfo->vlanId,pduInfo->intIfNum) /*_dsIntfL2RelayGet(pduInfo->intIfNum)*/ == L7_FALSE) /* PTin modified: DHCP snooping */
       {
@@ -1157,22 +1166,35 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
       #else
       return SYSNET_PDU_RC_IGNORED;
       #endif
-      #endif
+    #endif
     }
 
     /* Check if IPV6 is enabled for this VLAN */
     L7_uint32 evc_flags;
     if (ptin_dhcp_flags_get(pduInfo->vlanId, L7_NULLPTR, &evc_flags) != L7_SUCCESS)
     {
-      if (ptin_debug_dhcp_snooping)
-        LOG_ERR(LOG_CTX_PTIN_DHCP, "Error calling ptin_dhcp_flags_get");
-      return SYSNET_PDU_RC_IGNORED;
+      l2_forward = L7_TRUE;
+      //if (ptin_debug_dhcp_snooping)
+      //  LOG_ERR(LOG_CTX_PTIN_DHCP, "Error calling ptin_dhcp_flags_get");
+      //return SYSNET_PDU_RC_IGNORED;
     }
-    if (!(evc_flags & PTIN_EVC_MASK_DHCPV6_PROTOCOL))
+    else if (!(evc_flags & PTIN_EVC_MASK_DHCPV6_PROTOCOL))
     {
-      if (ptin_debug_dhcp_snooping)
-        LOG_ERR(LOG_CTX_PTIN_DHCP, "VLAN %u does not have DHCPv6 enabled!", pduInfo->vlanId);
-      return SYSNET_PDU_RC_IGNORED;
+      l2_forward = L7_TRUE;
+      //if (ptin_debug_dhcp_snooping)
+      //  LOG_ERR(LOG_CTX_PTIN_DHCP, "VLAN %u does not have DHCPv6 enabled!", pduInfo->vlanId);
+      //return SYSNET_PDU_RC_IGNORED;
+    }
+
+    /* Make software L2 forwarding? */
+    if (l2_forward)
+    {
+      if (ptin_debug_dhcp_snooping) 
+        LOG_ERR(LOG_CTX_PTIN_DHCP, "Going to L2 forward packet from VLAN %u / intIfNum %u", pduInfo->vlanId, pduInfo->intIfNum);
+      /* L2 forward */
+      ptin_packet_frame_l2forward_nonblocking(pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId, data, len);
+      SYSAPI_NET_MBUF_FREE(bufHandle);
+      return SYSNET_PDU_RC_CONSUMED;
     }
 
     udpHeader = (L7_udp_header_t *)((L7_char8 *)ipv6Header + L7_IP6_HEADER_LEN);
