@@ -369,14 +369,14 @@ static L7_RC_t ptin_hapi_classid_allocate(L7_uint16 ext_vlan, L7_uint16 mask, L7
     rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_VLAN);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_STARTUP, "Cannot create trap policy");
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Cannot create trap policy");
       break;
     }
     /* Ingress stage */
     rc = hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_LOOKUP);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_STARTUP, "Error creating a lookup policy");
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error creating a lookup policy");
       hapiBroadPolicyCreateCancel();
       break;
     }
@@ -384,7 +384,7 @@ static L7_RC_t ptin_hapi_classid_allocate(L7_uint16 ext_vlan, L7_uint16 mask, L7
     rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_DEFAULT);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_STARTUP, "Error adding rule");
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error adding rule");
       hapiBroadPolicyCreateCancel();
       break;
     }
@@ -392,7 +392,7 @@ static L7_RC_t ptin_hapi_classid_allocate(L7_uint16 ext_vlan, L7_uint16 mask, L7
     rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&ext_vlan, exact_mask);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_STARTUP, "Error adding OVID qualifier (%u)", ext_vlan);
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error adding OVID qualifier (%u)", ext_vlan);
       hapiBroadPolicyCreateCancel();
       break;
     }
@@ -401,7 +401,7 @@ static L7_RC_t ptin_hapi_classid_allocate(L7_uint16 ext_vlan, L7_uint16 mask, L7
     /* Set src class id */
     if (hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_SRC_CLASS_ID, (L7_uint32) classId, 0, 0) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_STARTUP, "Error adding SET_SRC_CLASS_ID action");
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error adding SET_SRC_CLASS_ID action");
       hapiBroadPolicyCreateCancel();
       break;
     }
@@ -410,11 +410,11 @@ static L7_RC_t ptin_hapi_classid_allocate(L7_uint16 ext_vlan, L7_uint16 mask, L7
     /* Apply policy */
     if ((rc=hapiBroadPolicyCommit(&policyId_vcap)) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_STARTUP, "Error commiting trap policy");
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error commiting trap policy");
       hapiBroadPolicyCreateCancel();
       break;
     }
-    LOG_TRACE(LOG_CTX_STARTUP, "Trap policy commited successfully (policyId_vcap=%u)",policyId_vcap);
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Trap policy commited successfully (policyId_vcap=%u)",policyId_vcap);
   }
   while (0);
 
@@ -425,14 +425,14 @@ static L7_RC_t ptin_hapi_classid_allocate(L7_uint16 ext_vlan, L7_uint16 mask, L7
     if (policyId_vcap != BROAD_POLICY_INVALID)
     {
       hapiBroadPolicyDelete(policyId_vcap);
-      LOG_TRACE(LOG_CTX_STARTUP, "Removing policyId_vcap %u", policyId_vcap);
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Removing policyId_vcap %u", policyId_vcap);
     }
 
     /* Restore ClassID */
     dl_queue_add_head(&queue_free_classIds, (dl_queue_elem_t*) &classId_pool[classId]);
-    LOG_TRACE(LOG_CTX_STARTUP, "Adding again classId %u to free queue", classId);
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Adding again classId %u to free queue", classId);
 
-    LOG_ERR(LOG_CTX_STARTUP, "Error while creating VCAP rule");
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error while creating VCAP rule");
     return rc;
   }
 
@@ -778,7 +778,7 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
   /* Validate trust mode */
   if (qos_cfg->trust_mode > L7_QOS_COS_MAP_INTF_MODE_TRUST_IPDSCP)
   {
-    LOG_WARNING(LOG_CTX_STARTUP, "Invalid trust mode %u",  qos_cfg->trust_mode);
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid trust mode %u",  qos_cfg->trust_mode);
     return L7_FAILURE;
   }
 
@@ -952,8 +952,8 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
       ((qos_cfg->trust_mode == L7_QOS_COS_MAP_INTF_MODE_TRUST_DOT1P) &&
         (qos_cfg->priority_mask & 0x7) == 0x7 && qos_cfg->priority == qos_cfg->int_priority))
   {
-    LOG_WARNING(LOG_CTX_STARTUP, "Redundant rule for trust_mode %u and prio %u/0x%x! Leaving...",
-                qos_cfg->trust_mode, qos_cfg->priority, qos_cfg->priority_mask);
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Redundant rule for trust_mode %u and prio %u/0x%x! Leaving...",
+              qos_cfg->trust_mode, qos_cfg->priority, qos_cfg->priority_mask);
     return L7_SUCCESS;
   }
 
@@ -1003,14 +1003,14 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
     rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_VLAN);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_STARTUP, "Cannot create trap policy");
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Cannot create trap policy");
       break;
     }
     /* Ingress stage */
     rc = hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_INGRESS);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_STARTUP, "Error creating an ingress policy");
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error creating an ingress policy");
       hapiBroadPolicyCreateCancel();
       break;
     }
@@ -1018,7 +1018,7 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
     rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_DEFAULT);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_STARTUP, "Error adding rule");
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error adding rule");
       hapiBroadPolicyCreateCancel();
       break;
     }
@@ -1026,7 +1026,7 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
     rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INPORTS, (L7_uchar8 *)&pbm, (L7_uchar8 *)&pbm_mask);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_STARTUP, "Error adding INPORTS qualifier");
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error adding INPORTS qualifier");
       hapiBroadPolicyCreateCancel();
       break;
     }
@@ -1038,7 +1038,7 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
       rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_SRC_CLASS_ID, (L7_uchar8 *)&classId, exact_mask);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_STARTUP, "Error adding SRC_CLASS_ID qualifier (%d)", classId);
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error adding SRC_CLASS_ID qualifier (%d)", classId);
         hapiBroadPolicyCreateCancel();
         break;
       }
@@ -1051,7 +1051,7 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
       rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&qos_cfg->int_vlan, (L7_uint8 *) &vlan_mask);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_STARTUP, "Error adding OVID qualifier (%u)", qos_cfg->int_vlan);
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error adding OVID qualifier (%u)", qos_cfg->int_vlan);
         hapiBroadPolicyCreateCancel();
         break;
       }
@@ -1067,7 +1067,7 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
         rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OCOS, (L7_uchar8 *)&qos_cfg->priority, (L7_uchar8 *)&qos_cfg->priority_mask);
         if (rc != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_STARTUP, "Error adding OCOS qualifier (%u/0x%x)", qos_cfg->priority, qos_cfg->priority_mask);
+          LOG_ERR(LOG_CTX_PTIN_HAPI, "Error adding OCOS qualifier (%u/0x%x)", qos_cfg->priority, qos_cfg->priority_mask);
           hapiBroadPolicyCreateCancel();
           break;
         }
@@ -1085,7 +1085,7 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
       rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ethertype_ipv4, exact_mask);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_STARTUP, "Error adding ETHTYPE qualifier (0x%04x)", ethertype_ipv4);
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error adding ETHTYPE qualifier (0x%04x)", ethertype_ipv4);
         hapiBroadPolicyCreateCancel();
         break;
       }
@@ -1097,7 +1097,7 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
         rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DSCP, (L7_uchar8 *)&dscp_value, (L7_uchar8 *)&dscp_mask);
         if (rc != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_STARTUP, "Error adding DSCP qualifier (%u/0x%x)", dscp_value, dscp_mask);
+          LOG_ERR(LOG_CTX_PTIN_HAPI, "Error adding DSCP qualifier (%u/0x%x)", dscp_value, dscp_mask);
           hapiBroadPolicyCreateCancel();
           break;
         }
@@ -1115,7 +1115,7 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
       rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ethertype_ipv4, exact_mask);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_STARTUP, "Error adding ETHTYPE qualifier (0x%04x)", ethertype_ipv4);
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error adding ETHTYPE qualifier (0x%04x)", ethertype_ipv4);
         hapiBroadPolicyCreateCancel();
         break;
       }
@@ -1127,7 +1127,7 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
         rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DSCP, (L7_uchar8 *)&dscp_value, (L7_uchar8 *)&dscp_mask);
         if (rc != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_STARTUP, "Error adding DSCP qualifier (%u/0x%x)", dscp_value, dscp_mask);
+          LOG_ERR(LOG_CTX_PTIN_HAPI, "Error adding DSCP qualifier (%u/0x%x)", dscp_value, dscp_mask);
           hapiBroadPolicyCreateCancel();
           break;
         }
@@ -1139,7 +1139,7 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
     if (hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, qos_cfg->int_priority, 0, 0) != L7_SUCCESS ||
         hapiBroadPolicyRuleExceedActionAdd(ruleId, BROAD_ACTION_SET_COSQ, qos_cfg->int_priority, 0, 0) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_STARTUP, "Error adding SET_COSQ action");
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error adding SET_COSQ action");
       hapiBroadPolicyCreateCancel();
       break;
     }
@@ -1151,7 +1151,7 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
       if (hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_USERPRIO, qos_cfg->int_priority & 0x7, 0, 0) != L7_SUCCESS ||
           hapiBroadPolicyRuleExceedActionAdd(ruleId, BROAD_ACTION_SET_USERPRIO, qos_cfg->int_priority & 0x7, 0, 0) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_STARTUP, "Error adding SET_COSQ action");
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error adding SET_COSQ action");
         hapiBroadPolicyCreateCancel();
         break;
       }
@@ -1161,11 +1161,11 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
     /* Apply policy */
     if ((rc=hapiBroadPolicyCommit(&policyId_icap)) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_STARTUP, "Error commiting trap policy");
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error commiting trap policy");
       hapiBroadPolicyCreateCancel();
       break;
     }
-    LOG_TRACE(LOG_CTX_STARTUP, "Trap policy commited successfully (policyId_icap=%u)", policyId_icap);
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Trap policy commited successfully (policyId_icap=%u)", policyId_icap);
   } while (0);
 
   /* Have occurred any error? */
@@ -1175,9 +1175,9 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
     if (policyId_icap != BROAD_POLICY_INVALID)
     {
       hapiBroadPolicyDelete(policyId_icap);
-      LOG_TRACE(LOG_CTX_STARTUP, "Removing policyId_icap %u", policyId_icap);
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Removing policyId_icap %u", policyId_icap);
     }
-    LOG_ERR(LOG_CTX_STARTUP, "Error while creating ICAP rule");
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error while creating ICAP rule");
     return rc;
   }
 
