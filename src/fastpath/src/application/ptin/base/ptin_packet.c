@@ -25,8 +25,8 @@
 #define PTIN_PACKET_MAX_MESSAGES  2048
 
 /* Message id used in queue */
-#define PTIN_PACKET_MESSAGE_ID  1
-
+#define PTIN_PACKET_RECEIVE     1
+#define PTIN_PACKET_TRANSMIT    2
 
 /* PDU Message format */
 typedef struct ptin_PDU_Msg_s
@@ -240,7 +240,7 @@ L7_RC_t ptinMacBcastRecv(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
 
   /* Send packet to queue */
   memset(&msg, 0x00, sizeof(msg));
-  msg.msgId       = PTIN_PACKET_MESSAGE_ID;
+  msg.msgId       = PTIN_PACKET_RECEIVE;
   msg.intIfNum    = pduInfo->intIfNum;
   msg.vlanId      = pduInfo->vlanId;
   msg.innerVlanId = pduInfo->innerVlanId;
@@ -291,9 +291,17 @@ void ptin_packet_task(void)
     /* TODO: Process message */
     if (status == L7_SUCCESS)
     {
-      if ( msg.msgId == PTIN_PACKET_MESSAGE_ID )
+      if ( msg.msgId == PTIN_PACKET_RECEIVE )
       {
         if (ptinMacBcastProcess(&msg)!=L7_SUCCESS)
+        {
+          if (ptin_packet_debug_enable)
+            LOG_ERR(LOG_CTX_PTIN_PACKET,"Error processing message");
+        }
+      }
+      else if ( msg.msgId == PTIN_PACKET_TRANSMIT )
+      {
+        if (ptin_packet_frame_l2forward(msg.intIfNum, msg.vlanId, msg.innerVlanId, msg.payload, msg.payloadLen) != L7_SUCCESS)
         {
           if (ptin_packet_debug_enable)
             LOG_ERR(LOG_CTX_PTIN_PACKET,"Error processing message");
@@ -502,6 +510,32 @@ L7_RC_t ptin_packet_frame_l2forward(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_u
   return ptin_packet_frame_flood(intIfNum, vlanId, innerVlanId, frame, frameLen);
 }
 
+L7_RC_t ptin_packet_frame_l2forward_nonblocking(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId,
+                                                L7_uchar8 *frame, L7_ushort16 frameLen)
+{
+  ptin_PDU_Msg_t msg;
+  L7_RC_t rc;
+
+  memset(&msg, 0x00, sizeof(ptin_PDU_Msg_t));
+  msg.msgId       = PTIN_PACKET_TRANSMIT;
+  msg.intIfNum    = intIfNum;
+  msg.vlanId      = vlanId;
+  msg.innerVlanId = innerVlanId;
+  msg.payload     = frame;
+  msg.payloadLen  = frameLen;
+
+  rc = osapiMessageSend(ptin_packet_queue, &msg, sizeof(ptin_PDU_Msg_t), L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
+
+  if (rc != L7_SUCCESS)
+  {
+    if (ptin_packet_debug_enable)
+      LOG_ERR(LOG_CTX_PTIN_PACKET,"Error scheduling a transmission based on src intIfNum %u, vlanId %u, innerVlanId %u",
+              intIfNum, vlanId, innerVlanId);
+  }
+
+  return rc;
+}
+
 /***********************************************************************
 * @purpose Unicast transmission
 *
@@ -543,11 +577,13 @@ static L7_RC_t ptin_packet_frame_unicast(L7_uint32 outgoingIf,
       {
         return L7_SUCCESS;
       }
-      LOG_ERR(LOG_CTX_PTIN_PACKET, "Failure to transmit packet on intIfNum %u in VLAN %d", outgoingIf, vlanId);
+      if (ptin_packet_debug_enable)
+        LOG_ERR(LOG_CTX_PTIN_PACKET, "Failure to transmit packet on intIfNum %u in VLAN %d", outgoingIf, vlanId);
     }
     else
     {
-      LOG_ERR(LOG_CTX_PTIN_PACKET, "Outgoing intIfNum %u is not member of VLAN %d", outgoingIf, vlanId);
+      if (ptin_packet_debug_enable)
+        LOG_ERR(LOG_CTX_PTIN_PACKET, "Outgoing intIfNum %u is not member of VLAN %d", outgoingIf, vlanId);
     }
   }
 
@@ -596,8 +632,9 @@ static L7_RC_t ptin_packet_frame_flood(L7_uint32 intIfNum, L7_ushort16 vlanId, L
             /* Send on an interface that is link up and in forwarding state */
             if (ptin_packet_frame_send(i, vlanId, innerVlanId, 0, frame, frameLen) != L7_SUCCESS)
             {
-              LOG_ERR(LOG_CTX_PTIN_PACKET, "Error transmitting packet to intIfNum %u (vlanId=%u, innerVlanId=%u)",
-                      i, vlanId, innerVlanId);
+              if (ptin_packet_debug_enable)
+                LOG_ERR(LOG_CTX_PTIN_PACKET, "Error transmitting packet to intIfNum %u (vlanId=%u, innerVlanId=%u)",
+                        i, vlanId, innerVlanId);
               rc = L7_FAILURE;
             }
           }

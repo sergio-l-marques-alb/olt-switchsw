@@ -79,4 +79,7 @@ extern void ptin_packet_send(L7_uint32 intIfNum,
 extern L7_RC_t ptin_packet_frame_l2forward(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId,
                                            L7_uchar8 *frame, L7_ushort16 frameLen);
 
+extern L7_RC_t ptin_packet_frame_l2forward_nonblocking(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId,
+                                                       L7_uchar8 *frame, L7_ushort16 frameLen);
+
 #endif  /* _PTIN_PACKET_H */
