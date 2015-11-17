@@ -1,0 +1,106 @@
+# $Id: bcm88750_board.soc,v 1.18 Broadcom SDK $
+# $Copyright: Copyright 2015 Broadcom Corporation.
+# This program is the proprietary software of Broadcom Corporation
+# and/or its licensors, and may only be used, duplicated, modified
+# or distributed pursuant to the terms and conditions of a separate,
+# written license agreement executed between you and Broadcom
+# (an "Authorized License").  Except as set forth in an Authorized
+# License, Broadcom grants no license (express or implied), right
+# to use, or waiver of any kind with respect to the Software, and
+# Broadcom expressly reserves all rights in and to the Software
+# and all intellectual property rights therein.  IF YOU HAVE
+# NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+# IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+# ALL USE OF THE SOFTWARE.  
+#  
+# Except as expressly set forth in the Authorized License,
+#  
+# 1.     This program, including its structure, sequence and organization,
+# constitutes the valuable trade secrets of Broadcom, and you shall use
+# all reasonable efforts to protect the confidentiality thereof,
+# and to use this information only in connection with your use of
+# Broadcom integrated circuit products.
+#  
+# 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+# PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+# REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+# OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+# DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+# NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+# ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+# CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+# OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+# 
+# 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+# BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+# INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+# ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+# TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+# THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+# WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+# ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+#
+
+#Polarity configuration required for Broadcom BCM88750 board
+config add pb_serdes_lane_swap_polarity_rx_10=1 
+config add pb_serdes_lane_swap_polarity_rx_29=1
+config add pb_serdes_lane_swap_polarity_rx_31=1
+config add pb_serdes_lane_swap_polarity_rx_45=1
+config add pb_serdes_lane_swap_polarity_rx_47=1
+config add pb_serdes_lane_swap_polarity_rx_61=1
+config add pb_serdes_lane_swap_polarity_rx_63=1
+config add pb_serdes_lane_swap_polarity_tx_0=1
+config add pb_serdes_lane_swap_polarity_tx_1=1
+config add pb_serdes_lane_swap_polarity_tx_2=1
+config add pb_serdes_lane_swap_polarity_tx_3=1
+config add pb_serdes_lane_swap_polarity_tx_4=1
+config add pb_serdes_lane_swap_polarity_tx_6=1
+config add pb_serdes_lane_swap_polarity_tx_7=1
+config add pb_serdes_lane_swap_polarity_tx_8=1
+config add pb_serdes_lane_swap_polarity_tx_10=1
+config add pb_serdes_lane_swap_polarity_tx_11=1
+config add pb_serdes_lane_swap_polarity_tx_16=1
+config add pb_serdes_lane_swap_polarity_tx_17=1
+config add pb_serdes_lane_swap_polarity_tx_18=1
+config add pb_serdes_lane_swap_polarity_tx_19=1
+config add pb_serdes_lane_swap_polarity_tx_20=1
+config add pb_serdes_lane_swap_polarity_tx_21=1
+config add pb_serdes_lane_swap_polarity_tx_22=1
+config add pb_serdes_lane_swap_polarity_tx_23=1
+config add pb_serdes_lane_swap_polarity_tx_24=1
+config add pb_serdes_lane_swap_polarity_tx_25=1
+config add pb_serdes_lane_swap_polarity_tx_26=1
+config add pb_serdes_lane_swap_polarity_tx_27=1
+config add pb_serdes_lane_swap_polarity_tx_32=1
+config add pb_serdes_lane_swap_polarity_tx_33=1
+config add pb_serdes_lane_swap_polarity_tx_35=1
+config add pb_serdes_lane_swap_polarity_tx_36=1
+config add pb_serdes_lane_swap_polarity_tx_37=1
+config add pb_serdes_lane_swap_polarity_tx_38=1
+config add pb_serdes_lane_swap_polarity_tx_39=1
+config add pb_serdes_lane_swap_polarity_tx_40=1
+config add pb_serdes_lane_swap_polarity_tx_41=1
+config add pb_serdes_lane_swap_polarity_tx_43=1
+config add pb_serdes_lane_swap_polarity_tx_46=1
+config add pb_serdes_lane_swap_polarity_tx_48=1
+config add pb_serdes_lane_swap_polarity_tx_49=1
+config add pb_serdes_lane_swap_polarity_tx_50=1
+config add pb_serdes_lane_swap_polarity_tx_51=1
+config add pb_serdes_lane_swap_polarity_tx_52=1
+config add pb_serdes_lane_swap_polarity_tx_53=1
+config add pb_serdes_lane_swap_polarity_tx_54=1
+config add pb_serdes_lane_swap_polarity_tx_55=1
+config add pb_serdes_lane_swap_polarity_tx_56=1
+config add pb_serdes_lane_swap_polarity_tx_57=1
+config add pb_serdes_lane_swap_polarity_tx_58=1
+config add pb_serdes_lane_swap_polarity_tx_59=1
+config add pb_serdes_lane_swap_polarity_tx_72=1
+config add pb_serdes_lane_swap_polarity_tx_73=1
+config add pb_serdes_lane_swap_polarity_tx_74=1
+config add pb_serdes_lane_swap_polarity_tx_75=1
+config add pb_serdes_lane_swap_polarity_tx_104=1
+config add pb_serdes_lane_swap_polarity_tx_105=1
+config add pb_serdes_lane_swap_polarity_tx_106=1
+config add pb_serdes_lane_swap_polarity_tx_107=1
+

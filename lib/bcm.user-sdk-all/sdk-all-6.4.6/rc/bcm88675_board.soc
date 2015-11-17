@@ -1,0 +1,387 @@
+# $Id: bcm88675_board.soc,v 1.0 Broadcom SDK $
+# $Copyright: Copyright 2015 Broadcom Corporation.
+# This program is the proprietary software of Broadcom Corporation
+# and/or its licensors, and may only be used, duplicated, modified
+# or distributed pursuant to the terms and conditions of a separate,
+# written license agreement executed between you and Broadcom
+# (an "Authorized License").  Except as set forth in an Authorized
+# License, Broadcom grants no license (express or implied), right
+# to use, or waiver of any kind with respect to the Software, and
+# Broadcom expressly reserves all rights in and to the Software
+# and all intellectual property rights therein.  IF YOU HAVE
+# NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+# IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+# ALL USE OF THE SOFTWARE.  
+#  
+# Except as expressly set forth in the Authorized License,
+#  
+# 1.     This program, including its structure, sequence and organization,
+# constitutes the valuable trade secrets of Broadcom, and you shall use
+# all reasonable efforts to protect the confidentiality thereof,
+# and to use this information only in connection with your use of
+# Broadcom integrated circuit products.
+#  
+# 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+# PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+# REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+# OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+# DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+# NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+# ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+# CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+# OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+# 
+# 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+# BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+# INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+# ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+# TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+# THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+# WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+# ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+#
+
+# Dram dq swaps for BCM88675_A0
+
+config add ext_ram_dq_swap_dram0_byte0_bit0.BCM88675_A0=4
+config add ext_ram_dq_swap_dram0_byte0_bit1.BCM88675_A0=6
+config add ext_ram_dq_swap_dram0_byte0_bit2.BCM88675_A0=0
+config add ext_ram_dq_swap_dram0_byte0_bit3.BCM88675_A0=7
+config add ext_ram_dq_swap_dram0_byte0_bit4.BCM88675_A0=5
+config add ext_ram_dq_swap_dram0_byte0_bit5.BCM88675_A0=2
+config add ext_ram_dq_swap_dram0_byte0_bit6.BCM88675_A0=1
+config add ext_ram_dq_swap_dram0_byte0_bit7.BCM88675_A0=3
+config add ext_ram_dq_swap_dram0_byte1_bit0.BCM88675_A0=0
+config add ext_ram_dq_swap_dram0_byte1_bit1.BCM88675_A0=2
+config add ext_ram_dq_swap_dram0_byte1_bit2.BCM88675_A0=1
+config add ext_ram_dq_swap_dram0_byte1_bit3.BCM88675_A0=4
+config add ext_ram_dq_swap_dram0_byte1_bit4.BCM88675_A0=3
+config add ext_ram_dq_swap_dram0_byte1_bit5.BCM88675_A0=5
+config add ext_ram_dq_swap_dram0_byte1_bit6.BCM88675_A0=7
+config add ext_ram_dq_swap_dram0_byte1_bit7.BCM88675_A0=6
+config add ext_ram_dq_swap_dram0_byte2_bit0.BCM88675_A0=4
+config add ext_ram_dq_swap_dram0_byte2_bit1.BCM88675_A0=0
+config add ext_ram_dq_swap_dram0_byte2_bit2.BCM88675_A0=2
+config add ext_ram_dq_swap_dram0_byte2_bit3.BCM88675_A0=6
+config add ext_ram_dq_swap_dram0_byte2_bit4.BCM88675_A0=5
+config add ext_ram_dq_swap_dram0_byte2_bit5.BCM88675_A0=7
+config add ext_ram_dq_swap_dram0_byte2_bit6.BCM88675_A0=3
+config add ext_ram_dq_swap_dram0_byte2_bit7.BCM88675_A0=1
+config add ext_ram_dq_swap_dram0_byte3_bit0.BCM88675_A0=0
+config add ext_ram_dq_swap_dram0_byte3_bit1.BCM88675_A0=5
+config add ext_ram_dq_swap_dram0_byte3_bit2.BCM88675_A0=4
+config add ext_ram_dq_swap_dram0_byte3_bit3.BCM88675_A0=1
+config add ext_ram_dq_swap_dram0_byte3_bit4.BCM88675_A0=3
+config add ext_ram_dq_swap_dram0_byte3_bit5.BCM88675_A0=7
+config add ext_ram_dq_swap_dram0_byte3_bit6.BCM88675_A0=6
+config add ext_ram_dq_swap_dram0_byte3_bit7.BCM88675_A0=2
+config add ext_ram_dq_swap_dram1_byte0_bit0.BCM88675_A0=3
+config add ext_ram_dq_swap_dram1_byte0_bit1.BCM88675_A0=4
+config add ext_ram_dq_swap_dram1_byte0_bit2.BCM88675_A0=0
+config add ext_ram_dq_swap_dram1_byte0_bit3.BCM88675_A0=1
+config add ext_ram_dq_swap_dram1_byte0_bit4.BCM88675_A0=7
+config add ext_ram_dq_swap_dram1_byte0_bit5.BCM88675_A0=2
+config add ext_ram_dq_swap_dram1_byte0_bit6.BCM88675_A0=6
+config add ext_ram_dq_swap_dram1_byte0_bit7.BCM88675_A0=5
+config add ext_ram_dq_swap_dram1_byte1_bit0.BCM88675_A0=0
+config add ext_ram_dq_swap_dram1_byte1_bit1.BCM88675_A0=2
+config add ext_ram_dq_swap_dram1_byte1_bit2.BCM88675_A0=6
+config add ext_ram_dq_swap_dram1_byte1_bit3.BCM88675_A0=4
+config add ext_ram_dq_swap_dram1_byte1_bit4.BCM88675_A0=5
+config add ext_ram_dq_swap_dram1_byte1_bit5.BCM88675_A0=7
+config add ext_ram_dq_swap_dram1_byte1_bit6.BCM88675_A0=1
+config add ext_ram_dq_swap_dram1_byte1_bit7.BCM88675_A0=3
+config add ext_ram_dq_swap_dram1_byte2_bit0.BCM88675_A0=3
+config add ext_ram_dq_swap_dram1_byte2_bit1.BCM88675_A0=1
+config add ext_ram_dq_swap_dram1_byte2_bit2.BCM88675_A0=4
+config add ext_ram_dq_swap_dram1_byte2_bit3.BCM88675_A0=2
+config add ext_ram_dq_swap_dram1_byte2_bit4.BCM88675_A0=0
+config add ext_ram_dq_swap_dram1_byte2_bit5.BCM88675_A0=6
+config add ext_ram_dq_swap_dram1_byte2_bit6.BCM88675_A0=5
+config add ext_ram_dq_swap_dram1_byte2_bit7.BCM88675_A0=7
+config add ext_ram_dq_swap_dram1_byte3_bit0.BCM88675_A0=0
+config add ext_ram_dq_swap_dram1_byte3_bit1.BCM88675_A0=1
+config add ext_ram_dq_swap_dram1_byte3_bit2.BCM88675_A0=6
+config add ext_ram_dq_swap_dram1_byte3_bit3.BCM88675_A0=3
+config add ext_ram_dq_swap_dram1_byte3_bit4.BCM88675_A0=2
+config add ext_ram_dq_swap_dram1_byte3_bit5.BCM88675_A0=7
+config add ext_ram_dq_swap_dram1_byte3_bit6.BCM88675_A0=5
+config add ext_ram_dq_swap_dram1_byte3_bit7.BCM88675_A0=4
+config add ext_ram_dq_swap_dram2_byte0_bit0.BCM88675_A0=3
+config add ext_ram_dq_swap_dram2_byte0_bit1.BCM88675_A0=0
+config add ext_ram_dq_swap_dram2_byte0_bit2.BCM88675_A0=5
+config add ext_ram_dq_swap_dram2_byte0_bit3.BCM88675_A0=6
+config add ext_ram_dq_swap_dram2_byte0_bit4.BCM88675_A0=7
+config add ext_ram_dq_swap_dram2_byte0_bit5.BCM88675_A0=2
+config add ext_ram_dq_swap_dram2_byte0_bit6.BCM88675_A0=4
+config add ext_ram_dq_swap_dram2_byte0_bit7.BCM88675_A0=1
+config add ext_ram_dq_swap_dram2_byte1_bit0.BCM88675_A0=6
+config add ext_ram_dq_swap_dram2_byte1_bit1.BCM88675_A0=4
+config add ext_ram_dq_swap_dram2_byte1_bit2.BCM88675_A0=0
+config add ext_ram_dq_swap_dram2_byte1_bit3.BCM88675_A0=2
+config add ext_ram_dq_swap_dram2_byte1_bit4.BCM88675_A0=7
+config add ext_ram_dq_swap_dram2_byte1_bit5.BCM88675_A0=5
+config add ext_ram_dq_swap_dram2_byte1_bit6.BCM88675_A0=1
+config add ext_ram_dq_swap_dram2_byte1_bit7.BCM88675_A0=3
+config add ext_ram_dq_swap_dram2_byte2_bit0.BCM88675_A0=0
+config add ext_ram_dq_swap_dram2_byte2_bit1.BCM88675_A0=2
+config add ext_ram_dq_swap_dram2_byte2_bit2.BCM88675_A0=7
+config add ext_ram_dq_swap_dram2_byte2_bit3.BCM88675_A0=5
+config add ext_ram_dq_swap_dram2_byte2_bit4.BCM88675_A0=1
+config add ext_ram_dq_swap_dram2_byte2_bit5.BCM88675_A0=3
+config add ext_ram_dq_swap_dram2_byte2_bit6.BCM88675_A0=4
+config add ext_ram_dq_swap_dram2_byte2_bit7.BCM88675_A0=6
+config add ext_ram_dq_swap_dram2_byte3_bit0.BCM88675_A0=6
+config add ext_ram_dq_swap_dram2_byte3_bit1.BCM88675_A0=4
+config add ext_ram_dq_swap_dram2_byte3_bit2.BCM88675_A0=7
+config add ext_ram_dq_swap_dram2_byte3_bit3.BCM88675_A0=2
+config add ext_ram_dq_swap_dram2_byte3_bit4.BCM88675_A0=1
+config add ext_ram_dq_swap_dram2_byte3_bit5.BCM88675_A0=5
+config add ext_ram_dq_swap_dram2_byte3_bit6.BCM88675_A0=0
+config add ext_ram_dq_swap_dram2_byte3_bit7.BCM88675_A0=3
+config add ext_ram_dq_swap_dram3_byte0_bit0.BCM88675_A0=4
+config add ext_ram_dq_swap_dram3_byte0_bit1.BCM88675_A0=7
+config add ext_ram_dq_swap_dram3_byte0_bit2.BCM88675_A0=5
+config add ext_ram_dq_swap_dram3_byte0_bit3.BCM88675_A0=3
+config add ext_ram_dq_swap_dram3_byte0_bit4.BCM88675_A0=6
+config add ext_ram_dq_swap_dram3_byte0_bit5.BCM88675_A0=2
+config add ext_ram_dq_swap_dram3_byte0_bit6.BCM88675_A0=1
+config add ext_ram_dq_swap_dram3_byte0_bit7.BCM88675_A0=0
+config add ext_ram_dq_swap_dram3_byte1_bit0.BCM88675_A0=7
+config add ext_ram_dq_swap_dram3_byte1_bit1.BCM88675_A0=6
+config add ext_ram_dq_swap_dram3_byte1_bit2.BCM88675_A0=2
+config add ext_ram_dq_swap_dram3_byte1_bit3.BCM88675_A0=4
+config add ext_ram_dq_swap_dram3_byte1_bit4.BCM88675_A0=3
+config add ext_ram_dq_swap_dram3_byte1_bit5.BCM88675_A0=1
+config add ext_ram_dq_swap_dram3_byte1_bit6.BCM88675_A0=0
+config add ext_ram_dq_swap_dram3_byte1_bit7.BCM88675_A0=5
+config add ext_ram_dq_swap_dram3_byte2_bit0.BCM88675_A0=0
+config add ext_ram_dq_swap_dram3_byte2_bit1.BCM88675_A0=2
+config add ext_ram_dq_swap_dram3_byte2_bit2.BCM88675_A0=1
+config add ext_ram_dq_swap_dram3_byte2_bit3.BCM88675_A0=6
+config add ext_ram_dq_swap_dram3_byte2_bit4.BCM88675_A0=4
+config add ext_ram_dq_swap_dram3_byte2_bit5.BCM88675_A0=5
+config add ext_ram_dq_swap_dram3_byte2_bit6.BCM88675_A0=7
+config add ext_ram_dq_swap_dram3_byte2_bit7.BCM88675_A0=3
+config add ext_ram_dq_swap_dram3_byte3_bit0.BCM88675_A0=0
+config add ext_ram_dq_swap_dram3_byte3_bit1.BCM88675_A0=7
+config add ext_ram_dq_swap_dram3_byte3_bit2.BCM88675_A0=4
+config add ext_ram_dq_swap_dram3_byte3_bit3.BCM88675_A0=2
+config add ext_ram_dq_swap_dram3_byte3_bit4.BCM88675_A0=5
+config add ext_ram_dq_swap_dram3_byte3_bit5.BCM88675_A0=6
+config add ext_ram_dq_swap_dram3_byte3_bit6.BCM88675_A0=3
+config add ext_ram_dq_swap_dram3_byte3_bit7.BCM88675_A0=1
+config add ext_ram_dq_swap_dram4_byte0_bit0.BCM88675_A0=6
+config add ext_ram_dq_swap_dram4_byte0_bit1.BCM88675_A0=4
+config add ext_ram_dq_swap_dram4_byte0_bit2.BCM88675_A0=2
+config add ext_ram_dq_swap_dram4_byte0_bit3.BCM88675_A0=7
+config add ext_ram_dq_swap_dram4_byte0_bit4.BCM88675_A0=5
+config add ext_ram_dq_swap_dram4_byte0_bit5.BCM88675_A0=1
+config add ext_ram_dq_swap_dram4_byte0_bit6.BCM88675_A0=3
+config add ext_ram_dq_swap_dram4_byte0_bit7.BCM88675_A0=0
+config add ext_ram_dq_swap_dram4_byte1_bit0.BCM88675_A0=7
+config add ext_ram_dq_swap_dram4_byte1_bit1.BCM88675_A0=6
+config add ext_ram_dq_swap_dram4_byte1_bit2.BCM88675_A0=5
+config add ext_ram_dq_swap_dram4_byte1_bit3.BCM88675_A0=4
+config add ext_ram_dq_swap_dram4_byte1_bit4.BCM88675_A0=1
+config add ext_ram_dq_swap_dram4_byte1_bit5.BCM88675_A0=3
+config add ext_ram_dq_swap_dram4_byte1_bit6.BCM88675_A0=2
+config add ext_ram_dq_swap_dram4_byte1_bit7.BCM88675_A0=0
+config add ext_ram_dq_swap_dram4_byte2_bit0.BCM88675_A0=6
+config add ext_ram_dq_swap_dram4_byte2_bit1.BCM88675_A0=4
+config add ext_ram_dq_swap_dram4_byte2_bit2.BCM88675_A0=7
+config add ext_ram_dq_swap_dram4_byte2_bit3.BCM88675_A0=1
+config add ext_ram_dq_swap_dram4_byte2_bit4.BCM88675_A0=5
+config add ext_ram_dq_swap_dram4_byte2_bit5.BCM88675_A0=2
+config add ext_ram_dq_swap_dram4_byte2_bit6.BCM88675_A0=3
+config add ext_ram_dq_swap_dram4_byte2_bit7.BCM88675_A0=0
+config add ext_ram_dq_swap_dram4_byte3_bit0.BCM88675_A0=4
+config add ext_ram_dq_swap_dram4_byte3_bit1.BCM88675_A0=2
+config add ext_ram_dq_swap_dram4_byte3_bit2.BCM88675_A0=6
+config add ext_ram_dq_swap_dram4_byte3_bit3.BCM88675_A0=5
+config add ext_ram_dq_swap_dram4_byte3_bit4.BCM88675_A0=3
+config add ext_ram_dq_swap_dram4_byte3_bit5.BCM88675_A0=7
+config add ext_ram_dq_swap_dram4_byte3_bit6.BCM88675_A0=1
+config add ext_ram_dq_swap_dram4_byte3_bit7.BCM88675_A0=0
+config add ext_ram_dq_swap_dram5_byte0_bit0.BCM88675_A0=6
+config add ext_ram_dq_swap_dram5_byte0_bit1.BCM88675_A0=7
+config add ext_ram_dq_swap_dram5_byte0_bit2.BCM88675_A0=5
+config add ext_ram_dq_swap_dram5_byte0_bit3.BCM88675_A0=4
+config add ext_ram_dq_swap_dram5_byte0_bit4.BCM88675_A0=3
+config add ext_ram_dq_swap_dram5_byte0_bit5.BCM88675_A0=1
+config add ext_ram_dq_swap_dram5_byte0_bit6.BCM88675_A0=2
+config add ext_ram_dq_swap_dram5_byte0_bit7.BCM88675_A0=0
+config add ext_ram_dq_swap_dram5_byte1_bit0.BCM88675_A0=5
+config add ext_ram_dq_swap_dram5_byte1_bit1.BCM88675_A0=7
+config add ext_ram_dq_swap_dram5_byte1_bit2.BCM88675_A0=1
+config add ext_ram_dq_swap_dram5_byte1_bit3.BCM88675_A0=3
+config add ext_ram_dq_swap_dram5_byte1_bit4.BCM88675_A0=4
+config add ext_ram_dq_swap_dram5_byte1_bit5.BCM88675_A0=0
+config add ext_ram_dq_swap_dram5_byte1_bit6.BCM88675_A0=6
+config add ext_ram_dq_swap_dram5_byte1_bit7.BCM88675_A0=2
+config add ext_ram_dq_swap_dram5_byte2_bit0.BCM88675_A0=3
+config add ext_ram_dq_swap_dram5_byte2_bit1.BCM88675_A0=7
+config add ext_ram_dq_swap_dram5_byte2_bit2.BCM88675_A0=2
+config add ext_ram_dq_swap_dram5_byte2_bit3.BCM88675_A0=1
+config add ext_ram_dq_swap_dram5_byte2_bit4.BCM88675_A0=5
+config add ext_ram_dq_swap_dram5_byte2_bit5.BCM88675_A0=4
+config add ext_ram_dq_swap_dram5_byte2_bit6.BCM88675_A0=6
+config add ext_ram_dq_swap_dram5_byte2_bit7.BCM88675_A0=0
+config add ext_ram_dq_swap_dram5_byte3_bit0.BCM88675_A0=6
+config add ext_ram_dq_swap_dram5_byte3_bit1.BCM88675_A0=4
+config add ext_ram_dq_swap_dram5_byte3_bit2.BCM88675_A0=5
+config add ext_ram_dq_swap_dram5_byte3_bit3.BCM88675_A0=7
+config add ext_ram_dq_swap_dram5_byte3_bit4.BCM88675_A0=2
+config add ext_ram_dq_swap_dram5_byte3_bit5.BCM88675_A0=0
+config add ext_ram_dq_swap_dram5_byte3_bit6.BCM88675_A0=1
+config add ext_ram_dq_swap_dram5_byte3_bit7.BCM88675_A0=3
+config add ext_ram_dq_swap_dram6_byte0_bit0.BCM88675_A0=6
+config add ext_ram_dq_swap_dram6_byte0_bit1.BCM88675_A0=4
+config add ext_ram_dq_swap_dram6_byte0_bit2.BCM88675_A0=0
+config add ext_ram_dq_swap_dram6_byte0_bit3.BCM88675_A0=7
+config add ext_ram_dq_swap_dram6_byte0_bit4.BCM88675_A0=3
+config add ext_ram_dq_swap_dram6_byte0_bit5.BCM88675_A0=2
+config add ext_ram_dq_swap_dram6_byte0_bit6.BCM88675_A0=5
+config add ext_ram_dq_swap_dram6_byte0_bit7.BCM88675_A0=1
+config add ext_ram_dq_swap_dram6_byte1_bit0.BCM88675_A0=5
+config add ext_ram_dq_swap_dram6_byte1_bit1.BCM88675_A0=7
+config add ext_ram_dq_swap_dram6_byte1_bit2.BCM88675_A0=3
+config add ext_ram_dq_swap_dram6_byte1_bit3.BCM88675_A0=1
+config add ext_ram_dq_swap_dram6_byte1_bit4.BCM88675_A0=4
+config add ext_ram_dq_swap_dram6_byte1_bit5.BCM88675_A0=6
+config add ext_ram_dq_swap_dram6_byte1_bit6.BCM88675_A0=2
+config add ext_ram_dq_swap_dram6_byte1_bit7.BCM88675_A0=0
+config add ext_ram_dq_swap_dram6_byte2_bit0.BCM88675_A0=1
+config add ext_ram_dq_swap_dram6_byte2_bit1.BCM88675_A0=6
+config add ext_ram_dq_swap_dram6_byte2_bit2.BCM88675_A0=5
+config add ext_ram_dq_swap_dram6_byte2_bit3.BCM88675_A0=4
+config add ext_ram_dq_swap_dram6_byte2_bit4.BCM88675_A0=3
+config add ext_ram_dq_swap_dram6_byte2_bit5.BCM88675_A0=7
+config add ext_ram_dq_swap_dram6_byte2_bit6.BCM88675_A0=2
+config add ext_ram_dq_swap_dram6_byte2_bit7.BCM88675_A0=0
+config add ext_ram_dq_swap_dram6_byte3_bit0.BCM88675_A0=3
+config add ext_ram_dq_swap_dram6_byte3_bit1.BCM88675_A0=7
+config add ext_ram_dq_swap_dram6_byte3_bit2.BCM88675_A0=4
+config add ext_ram_dq_swap_dram6_byte3_bit3.BCM88675_A0=0
+config add ext_ram_dq_swap_dram6_byte3_bit4.BCM88675_A0=5
+config add ext_ram_dq_swap_dram6_byte3_bit5.BCM88675_A0=2
+config add ext_ram_dq_swap_dram6_byte3_bit6.BCM88675_A0=1
+config add ext_ram_dq_swap_dram6_byte3_bit7.BCM88675_A0=6
+config add ext_ram_dq_swap_dram7_byte0_bit0.BCM88675_A0=3
+config add ext_ram_dq_swap_dram7_byte0_bit1.BCM88675_A0=7
+config add ext_ram_dq_swap_dram7_byte0_bit2.BCM88675_A0=5
+config add ext_ram_dq_swap_dram7_byte0_bit3.BCM88675_A0=4
+config add ext_ram_dq_swap_dram7_byte0_bit4.BCM88675_A0=2
+config add ext_ram_dq_swap_dram7_byte0_bit5.BCM88675_A0=0
+config add ext_ram_dq_swap_dram7_byte0_bit6.BCM88675_A0=1
+config add ext_ram_dq_swap_dram7_byte0_bit7.BCM88675_A0=6
+config add ext_ram_dq_swap_dram7_byte1_bit0.BCM88675_A0=7
+config add ext_ram_dq_swap_dram7_byte1_bit1.BCM88675_A0=3
+config add ext_ram_dq_swap_dram7_byte1_bit2.BCM88675_A0=2
+config add ext_ram_dq_swap_dram7_byte1_bit3.BCM88675_A0=0
+config add ext_ram_dq_swap_dram7_byte1_bit4.BCM88675_A0=5
+config add ext_ram_dq_swap_dram7_byte1_bit5.BCM88675_A0=1
+config add ext_ram_dq_swap_dram7_byte1_bit6.BCM88675_A0=4
+config add ext_ram_dq_swap_dram7_byte1_bit7.BCM88675_A0=6
+config add ext_ram_dq_swap_dram7_byte2_bit0.BCM88675_A0=2
+config add ext_ram_dq_swap_dram7_byte2_bit1.BCM88675_A0=3
+config add ext_ram_dq_swap_dram7_byte2_bit2.BCM88675_A0=0
+config add ext_ram_dq_swap_dram7_byte2_bit3.BCM88675_A0=6
+config add ext_ram_dq_swap_dram7_byte2_bit4.BCM88675_A0=1
+config add ext_ram_dq_swap_dram7_byte2_bit5.BCM88675_A0=7
+config add ext_ram_dq_swap_dram7_byte2_bit6.BCM88675_A0=5
+config add ext_ram_dq_swap_dram7_byte2_bit7.BCM88675_A0=4
+config add ext_ram_dq_swap_dram7_byte3_bit0.BCM88675_A0=1
+config add ext_ram_dq_swap_dram7_byte3_bit1.BCM88675_A0=0
+config add ext_ram_dq_swap_dram7_byte3_bit2.BCM88675_A0=4
+config add ext_ram_dq_swap_dram7_byte3_bit3.BCM88675_A0=6
+config add ext_ram_dq_swap_dram7_byte3_bit4.BCM88675_A0=5
+config add ext_ram_dq_swap_dram7_byte3_bit5.BCM88675_A0=7
+config add ext_ram_dq_swap_dram7_byte3_bit6.BCM88675_A0=2
+config add ext_ram_dq_swap_dram7_byte3_bit7.BCM88675_A0=3
+
+#RX polarity
+config add phy_rx_polarity_flip.BCM88675_A0=0
+config add phy_rx_polarity_flip_phy1.BCM88675_A0=1
+config add phy_rx_polarity_flip_phy2.BCM88675_A0=1
+config add phy_rx_polarity_flip_phy3.BCM88675_A0=1
+config add phy_rx_polarity_flip_phy4.BCM88675_A0=1
+config add phy_rx_polarity_flip_phy6.BCM88675_A0=1
+config add phy_rx_polarity_flip_phy8.BCM88675_A0=1
+config add phy_rx_polarity_flip_phy9.BCM88675_A0=1
+config add phy_rx_polarity_flip_phy10.BCM88675_A0=1
+config add phy_rx_polarity_flip_phy11.BCM88675_A0=1
+config add phy_rx_polarity_flip_phy12.BCM88675_A0=1
+config add phy_rx_polarity_flip_phy13.BCM88675_A0=1
+config add phy_rx_polarity_flip_phy14.BCM88675_A0=1
+config add phy_rx_polarity_flip_phy18.BCM88675_A0=1
+config add phy_rx_polarity_flip_phy19.BCM88675_A0=1
+config add phy_rx_polarity_flip_phy20.BCM88675_A0=1
+config add phy_rx_polarity_flip_phy23.BCM88675_A0=1
+config add phy_rx_polarity_flip_phy26.BCM88675_A0=1
+config add phy_rx_polarity_flip_phy35.BCM88675_A0=1
+config add phy_rx_polarity_flip_phy37.BCM88675_A0=1
+config add phy_rx_polarity_flip_phy38.BCM88675_A0=1
+config add phy_rx_polarity_flip_phy40.BCM88675_A0=1
+config add phy_rx_polarity_flip_phy41.BCM88675_A0=1
+config add phy_rx_polarity_flip_phy42.BCM88675_A0=1
+config add phy_rx_polarity_flip_phy43.BCM88675_A0=1
+config add phy_rx_polarity_flip_phy44.BCM88675_A0=1
+config add phy_rx_polarity_flip_phy45.BCM88675_A0=1
+
+#TX polarity
+config add phy_tx_polarity_flip.BCM88675_A0=0
+config add phy_tx_polarity_flip_phy2.BCM88675_A0=1
+config add phy_tx_polarity_flip_phy6.BCM88675_A0=1
+config add phy_tx_polarity_flip_phy10.BCM88675_A0=1
+config add phy_tx_polarity_flip_phy16.BCM88675_A0=1
+config add phy_tx_polarity_flip_phy18.BCM88675_A0=1
+config add phy_tx_polarity_flip_phy23.BCM88675_A0=1
+config add phy_tx_polarity_flip_phy26.BCM88675_A0=1
+config add phy_tx_polarity_flip_phy28.BCM88675_A0=1
+config add phy_tx_polarity_flip_phy34.BCM88675_A0=1
+config add phy_tx_polarity_flip_phy39.BCM88675_A0=1
+config add phy_tx_polarity_flip_phy48.BCM88675_A0=1
+config add phy_tx_polarity_flip_phy62.BCM88675_A0=1
+config add phy_tx_polarity_flip_phy65.BCM88675_A0=1
+config add phy_tx_polarity_flip_phy69.BCM88675_A0=1
+
+#rx lane swap
+config add phy_rx_lane_map.BCM88675_A0=0x3210
+config add phy_rx_lane_map_quad0.BCM88675_A0=0x3210
+config add phy_rx_lane_map_quad1.BCM88675_A0=0x3210
+config add phy_rx_lane_map_quad2.BCM88675_A0=0x3210
+config add phy_rx_lane_map_quad3.BCM88675_A0=0x3210
+config add phy_rx_lane_map_quad4.BCM88675_A0=0x3210
+config add phy_rx_lane_map_quad5.BCM88675_A0=0x3210
+config add phy_rx_lane_map_quad6.BCM88675_A0=0x3102
+config add phy_rx_lane_map_quad7.BCM88675_A0=0x3120
+config add phy_rx_lane_map_quad8.BCM88675_A0=0x2301
+config add phy_rx_lane_map_quad9.BCM88675_A0=0x0213
+config add phy_rx_lane_map_quad10.BCM88675_A0=0x0213
+config add phy_rx_lane_map_quad11.BCM88675_A0=0x3210
+config add phy_rx_lane_map_quad15.BCM88675_A0=0x3210
+config add phy_rx_lane_map_quad16.BCM88675_A0=0x3210
+config add phy_rx_lane_map_quad17.BCM88675_A0=0x3210
+
+#tx lane swap
+config add phy_tx_lane_map.BCM88675_A0=0x3210
+config add phy_tx_lane_map_quad0.BCM88675_A0=0x3012
+config add phy_tx_lane_map_quad1.BCM88675_A0=0x3210
+config add phy_tx_lane_map_quad2.BCM88675_A0=0x3210
+config add phy_tx_lane_map_quad3.BCM88675_A0=0x3210
+config add phy_tx_lane_map_quad4.BCM88675_A0=0x3210
+config add phy_tx_lane_map_quad5.BCM88675_A0=0x3210
+config add phy_tx_lane_map_quad6.BCM88675_A0=0x0213
+config add phy_tx_lane_map_quad7.BCM88675_A0=0x2013
+config add phy_tx_lane_map_quad8.BCM88675_A0=0x1032
+config add phy_tx_lane_map_quad9.BCM88675_A0=0x3210
+config add phy_tx_lane_map_quad10.BCM88675_A0=0x3210
+config add phy_tx_lane_map_quad11.BCM88675_A0=0x3210
+config add phy_tx_lane_map_quad15.BCM88675_A0=0x1302
+config add phy_tx_lane_map_quad16.BCM88675_A0=0x2310
+config add phy_tx_lane_map_quad17.BCM88675_A0=0x3210
+
+#fabric interface polarity
+config add phy_tx_polarity_flip_fabric17.BCM88675_A0=1
