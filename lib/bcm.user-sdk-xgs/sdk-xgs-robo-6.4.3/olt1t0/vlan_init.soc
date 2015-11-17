@@ -1,0 +1,2 @@
+vlan create 100
+vlan add 100 pbm=xe2,xe3
