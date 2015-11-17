@@ -1,0 +1,744 @@
+
+/*
+ * $Id: ddr.c,v 1.14 Broadcom SDK $
+ * 
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ *
+ */
+
+
+
+#include <shared/bsl.h>
+
+#include <appl/diag/system.h>
+#include <appl/diag/parse.h>
+#include <bcm/error.h>
+#include <sal/appl/sal.h>
+#include <sal/appl/config.h>
+
+#ifdef BCM_ARAD_SUPPORT
+#include <soc/dpp/drv.h>
+#include <soc/dpp/error.h>
+#include <soc/dpp/ARAD/arad_dram.h>
+#include <soc/dpp/ARAD/arad_api_dram.h>
+
+#ifdef BCM_DDR3_SUPPORT
+#include <soc/shmoo_ddr40.h>
+#include <soc/phy/ddr40.h>
+#endif
+
+#include <bcm_int/dpp/error.h>
+
+char cmd_arad_ddr_phy_regs_usage[] =
+    "\n\tRead/Write By Rbus to DDR Phy\n\t"
+    "Usages:\n\t"
+    "ddrphyregs write       <dram_ndx>          <reg_address> <value>\n\t"
+    "ddrphyregs writebr     <last_dram_ndx>     <reg_address> <value>\n\t"
+    "ddrphyregs read        <dram_ndx>          <reg_address>\n\t"
+    "ddrphyregs modify      <dram_ndx>          <reg_address> <value> <mask>\n"
+    ;
+
+cmd_result_t
+cmd_arad_ddr_phy_regs(int unit, args_t* a)
+{
+    char *function, *dram_ndx, *addr, *value, *mask;
+    uint32 int_dram_ndx, int_addr, int_value, int_mask;
+
+    if(!SOC_IS_ARAD(unit)) {
+        cli_out("This function is not available in this device.\n");
+        return CMD_FAIL;
+    }
+
+    function = ARG_GET(a);
+    dram_ndx = ARG_GET(a);
+    addr = ARG_GET(a);
+    if ((!function) || (!dram_ndx) || (!addr)) {
+        return CMD_USAGE;
+    }
+    int_dram_ndx = sal_ctoi(dram_ndx, 0);
+    if (int_dram_ndx >= SOC_DPP_DEFS_GET(unit, hw_dram_interfaces_max)) {
+        cli_out("Dram index is above max in device(%d)\n", SOC_DPP_DEFS_GET(unit, hw_dram_interfaces_max));
+        return CMD_FAIL;
+    }
+    if (!sal_strncasecmp(function, "write", strlen(function)) || !sal_strncasecmp(function, "w", strlen(function))) {
+        int_addr = sal_ctoi(addr, 0);
+       
+        value = ARG_GET(a);
+        if (!value) {
+            return CMD_USAGE;
+        }
+        int_value = sal_ctoi(value, 0);
+        
+        if (SOC_IS_DPP_DRC_COMBO28(unit)) {
+            if(SOC_SAND_FAILURE(soc_dpp_drc_combo28_phy_reg_write(unit, int_dram_ndx, int_addr, int_value))) {
+                return CMD_FAIL;
+            }
+        } else {
+            if(SOC_SAND_FAILURE(arad_dram_rbus_write(unit, int_dram_ndx, int_addr, int_value))) {
+                return CMD_FAIL;
+            }
+        }
+
+    } else if (!sal_strncasecmp(function, "writebr", strlen(function)) || !sal_strncasecmp(function, "wbr", strlen(function))) {
+        if (SOC_IS_DPP_DRC_COMBO28(unit)) {
+            cli_out("invalid function 'writebr' for drc_combo28\n");
+            return CMD_NFND;
+        }
+        int_addr = sal_ctoi(addr, 0);
+           
+        value = ARG_GET(a);
+        if (!value) {
+            return CMD_USAGE;
+        }
+        int_value = sal_ctoi(value, 0);
+            
+        if(SOC_SAND_FAILURE(arad_dram_rbus_write_br(unit, int_dram_ndx, int_addr, int_value))) {
+                return CMD_FAIL;
+        }
+    } else if (!sal_strncasecmp(function, "read", strlen(function)) || !sal_strncasecmp(function, "r", strlen(function))) {
+
+        int_addr = sal_ctoi(addr, 0);
+
+        if (SOC_IS_DPP_DRC_COMBO28(unit)) {
+            if(SOC_SAND_FAILURE(soc_dpp_drc_combo28_phy_reg_read(unit, int_dram_ndx, int_addr, &int_value))) {
+                return CMD_FAIL;
+            }
+        } else {
+        if(SOC_SAND_FAILURE(arad_dram_rbus_read(unit, int_dram_ndx, int_addr, &int_value))) {
+                return CMD_FAIL;
+            }
+        }
+        cli_out("data=0x%x\n", int_value);
+    } else if (!sal_strncasecmp(function, "modify", strlen(function)) || !sal_strncasecmp(function, "m", strlen(function))) {
+
+        int_addr = sal_ctoi(addr, 0);
+
+        value = ARG_GET(a);
+        if (!value) {
+            return CMD_USAGE;
+        }
+        int_value = sal_ctoi(value, 0);
+
+        mask = ARG_GET(a);
+        if (!mask) {
+            return CMD_USAGE;
+        }
+        int_mask = sal_ctoi(mask, 0);
+
+        if (SOC_IS_DPP_DRC_COMBO28(unit)){
+            if(SOC_SAND_FAILURE(soc_dpp_drc_combo28_phy_reg_modify(unit, int_dram_ndx, int_addr, int_value, int_mask))) {
+               return CMD_FAIL;
+            }
+        } else {
+            if(SOC_SAND_FAILURE(arad_dram_rbus_modify(unit, int_dram_ndx, int_addr, int_value, int_mask))) {
+               return CMD_FAIL;
+            }
+        }
+    } 
+
+    return CMD_OK;
+}
+
+#ifdef BCM_DDR3_SUPPORT
+char cmd_arad_ddr_phy_tune_usage[] = "\n"  
+"  DDRPhyTune <drc_ndx>\n"  
+#ifdef COMPILER_STRING_CONST_LIMIT
+    "\nFull documentation cannot be displayed with -pendantic compiler\n";
+#else
+"  Usage options:\n"
+"  \t<drc_ndx>              Decimal number will be taken as index, and hexadecimal as bit map of indexes.\n"
+"  \t                           for example: dram_ndx =\"0x3,7\" - will tune 0,1 and 7\n"  
+"  \tCtlType=<value>        Specify a control selector for the DRAM PHY tuning procedure. Relevant only for ddr40. \n"
+"  \tPhyType=<value>        Relevant only for ddr40\n"
+"  \tShmooType=<value>      Selects Shmoo sub-section to be performs. Set '-1' for full Shmoo. Default: '-1'.\n"
+"  \t                           Relevant only for drc_combo28. \n"
+"  \tStat=<value>           Execute statistics only. Default: '0'. Relevant only for ddr40.\n"
+"  \tPlot=<value>           Plot tune results. Default: '0'.\n"
+"  \tSaveCfg=<value>        Relevant only for ddr40\n"
+"  \tRestoreCfg=<value>     Relevant only for ddr40\n"
+"  \tAction=<value>         Relevant only for drc_combo28. Select the Run/Save/restore action functionality. Default: '1'. Options:\n"
+"  \t                           0 - Restore tuning parameters from saved parameters.\n"
+"  \t                           1 - Run tuning. Default Action.\n"
+"  \t                           2 - Run tuning and save tuning parameters.\n"
+"  \t                           3 - Save tuning parameters.\n"
+"\n"
+"  \tExamples: 'DDRPhyTune 0 PhyType=2 Plot=1'\n"
+"              'DDRPhyTune 0x3,6 ShmooType=2 Plot=1'\n";
+#endif /* COMPILER_STRING_CONST_LIMIT */   
+
+/*
+ * Function:
+ *      soc_combo28_shmoo_ctl
+ * Purpose:
+ *      Perform shmoo (PHY calibration) on specific DRC index.
+ * Parameters:
+ *      unit                - unit number
+ *      drc_ndx             - DRC index to perform shmoo on.
+ *      shmoo_type          - Selects shmoo sub-section to be performs (-1 for full shmoo)
+ *      stat                - RFU
+ *      plot                - Plot shmoo results when not equal to 0
+ *      action              - Save/restore functionality
+ *      *config_param       - PHY configuration saved/restored
+ * Returns:
+ *      SOC_E_XXX
+ *      This routine may be called after a device is attached
+ *      or whenever a chip reset is required.
+ */
+
+cmd_result_t
+cmd_arad_ddr_phy_tune(int unit, args_t *a)
+{
+    parse_table_t pt;
+    int rv;
+    char  *c;
+    uint32 ci_ndx, i;
+    soc_pbmp_t ci_pbm;
+    combo28_shmoo_config_param_t *config_param;
+
+    int phyType = 0;
+    int shmoo_type = -1;
+    int ctlType = 1;
+    int stat    = 0;
+    int plot    = 0;
+    int save    = 0;
+    int restore = 0;
+    int action  = 0;
+    char print_buf[256];
+
+    if(!SOC_IS_ARAD(unit)) {
+        cli_out("This function is not available in this device.\n");
+        return CMD_FAIL;
+    }
+
+    if (((c = ARG_GET(a)) == NULL) || (parse_small_integers(unit, c, &ci_pbm) < 0)) {
+        return CMD_USAGE;
+    } 
+
+    if (ARG_CNT(a) > 0) {
+        parse_table_init(0,&pt);
+        parse_table_add(&pt,"CtlType",PQ_INT, (void *) (SHMOO_COMBO28_CTL_TYPE_1), &ctlType, NULL);
+        parse_table_add(&pt,"ShmooType",PQ_INT,(void *) (-1), &shmoo_type, NULL); 
+        parse_table_add(&pt,"PhyType",PQ_INT,(void *) (0), &phyType, NULL);
+        parse_table_add(&pt,"Stat",PQ_INT, (void *) (0), &stat, NULL);
+        parse_table_add(&pt,"Plot", PQ_BOOL|PQ_DFL, 0, &plot, NULL);
+        parse_table_add(&pt,"SaveCfg", PQ_BOOL|PQ_DFL, 0, &save, NULL);
+        parse_table_add(&pt,"RestoreCfg", PQ_BOOL|PQ_DFL, 0, &restore, NULL);
+        parse_table_add(&pt,"Action",PQ_INT, (void *) (SHMOO_COMBO28_ACTION_RUN), &action, NULL);
+        if (!parseEndOk(a,&pt,&rv)) {
+            return rv;
+        }
+    }
+
+    _shr_pbmp_format(ci_pbm, print_buf);
+    cli_out("%s(): shmoo_type=%d, Stat=%d, Plot=%d, Action=%d, ci_pbm=%s\n", FUNCTION_NAME(), shmoo_type, stat, plot, action, print_buf);
+
+    SOC_PBMP_ITER(ci_pbm, i) {
+
+        if (SOC_IS_DPP_DRC_COMBO28(unit)) {
+        
+            config_param = &(SOC_DPP_CONFIG(unit)->arad->init.drc_info.shmoo_config_param[i]);
+             
+            cli_out("%s(): DRC_COMBO28. drc_ndx=%d\n", FUNCTION_NAME(), i);
+            if(soc_combo28_shmoo_ctl(unit, i, shmoo_type, stat, plot, action, config_param)){
+                cli_out("soc_combo28_shmoo_ctl() error: Cfg dram_ndx:%d failed\n", i);
+                return CMD_FAIL;
+            }
+            
+            if ((action == SHMOO_COMBO28_ACTION_SAVE) || (action == SHMOO_COMBO28_ACTION_RUN_AND_SAVE)) {
+                if(soc_dpp_drc_combo28_shmoo_cfg_set(unit, i, config_param)){
+                    cli_out("soc_combo28_shmoo_ctl() error: Cfg dram_ndx:%d failed\n", i);
+                    return CMD_FAIL;
+                }   
+            }
+
+        } else {
+            ci_ndx = 2*i;
+            cli_out("%s(): CtlType=%d, PhyType=%d, SaveCfg=%d\n", FUNCTION_NAME(), ctlType, phyType, save);
+            if (restore) {
+                if (soc_ddr40_shmoo_restorecfg(unit, ci_ndx)) {
+                    cli_out(" RestoreCfg dram_ndx:%d failed\n", ci_ndx);
+                    return CMD_FAIL;
+                }
+            } else {
+                if(soc_ddr40_shmoo_ctl(unit, ci_ndx, phyType, ctlType, stat , plot)) {
+                    cli_out(" ci_ndx=%d failed\n", ci_ndx);
+                    return CMD_FAIL;
+                }
+                if (save) {
+                    if (soc_ddr40_shmoo_savecfg(unit, ci_ndx)) {
+                        cli_out(" SaveCfg ci_ndx:%d failed\n", ci_ndx);
+                    }
+                }
+        
+            }
+        }
+    }
+
+    return CMD_OK;
+}
+
+char cmd_arad_ddr_phy_cdr_usage[] = "\n"  
+"  DDRPhyCDR <drc_ndx>\n"  
+"  Usage options:\n"
+"  \t<drc_ndx> - decimal number will be taken as index, and hexadecimal as bit map of indexes.\n"
+"  \t            for example: dram_ndx =\"0x3,7\" - will tune 0,1 and 7\n"
+"  \tStat=<value>                   Read current configuration; otherwise skip\n"
+"  \tByte=<value>                   Skip for all bytes\n"
+"  \tResetN=<value>                 Skip to keep present value\n"
+#ifdef COMPILER_STRING_CONST_LIMIT
+    "\nFull documentation cannot be displayed with -pendantic compiler\n";
+#else
+"  \tEnable=<value>                 Skip to keep present value\n"
+"  \tP=<value>                      Skip to keep present value\n"
+"  \tN=<value>                      Skip to keep present value\n"
+"  \tI=<value>                      Skip to keep present value\n"
+"  \tQ=<value>                      Skip to keep present value\n"
+"  \tIB=<value>                     Skip to keep present value\n"
+"  \tDataSource=<value>             Skip to keep present value\n"
+"  \tInitLockTransition=<value>     Skip to keep present value\n"
+"  \tAccuPosThreshold=<value>       Skip to keep present value\n"
+"  \tUpdateGap=<value>              Skip to keep present value\n"
+"  \tUpdateMode=<value>             Skip to keep present value\n"
+"  \tAutoCopy=<value>               Default=0\n"
+"  eg.  DDRPhyCDR 0 Enable=1\n"
+"       DDRPhyCDR 0x3,6 Stat=1\n";
+#endif /* COMPILER_STRING_CONST_LIMIT */
+
+
+/*
+ * Function:
+ *      soc_combo28_cdr_ctl
+ * Purpose:
+ *      Control DDR CDR.
+ * Parameters:
+ *      unit                - unit number
+ *      drc_ndx             - DRC index to perform shmoo on.
+ *      stat                - RFU
+ *      *config_param       - PHY configuration saved/restored
+ * Returns:
+ *      SOC_E_XXX
+ *      This routine may be called after soc_combo28_shmoo_ctl has run.
+ */
+
+cmd_result_t
+cmd_arad_ddr_phy_cdr(int unit, args_t *a)
+{
+    parse_table_t pt;
+    int rv;
+    char  *c;
+    uint32 i;
+    soc_pbmp_t ci_pbm;
+    combo28_cdr_config_param_t config_param;
+    
+    int stat    = 0;
+/*    char print_buf[256]; */
+
+    if (((c = ARG_GET(a)) == NULL) || (parse_small_integers(unit, c, &ci_pbm) < 0)) {
+        return CMD_USAGE;
+    } 
+
+    if (ARG_CNT(a) > 0) {
+        parse_table_init(0,&pt);
+        parse_table_add(&pt, "Byte", PQ_INT, (void *) (-1), &(config_param.byte), NULL);
+        parse_table_add(&pt, "ResetN", PQ_INT, (void *) (SHMOO_COMBO28_CDR_UNDEFINED_VALUE), &(config_param.reset_n), NULL);
+        parse_table_add(&pt, "Enable", PQ_INT, (void *) (SHMOO_COMBO28_CDR_UNDEFINED_VALUE), &(config_param.enable), NULL);
+        parse_table_add(&pt, "Stat", PQ_INT, (void *) (0), &stat, NULL);
+        parse_table_add(&pt, "P", PQ_INT, (void *) (SHMOO_COMBO28_CDR_UNDEFINED_VALUE), &(config_param.p), NULL);
+        parse_table_add(&pt, "N", PQ_INT, (void *) (SHMOO_COMBO28_CDR_UNDEFINED_VALUE), &(config_param.n), NULL);
+        parse_table_add(&pt, "I", PQ_INT, (void *) (SHMOO_COMBO28_CDR_UNDEFINED_VALUE), &(config_param.i), NULL);
+        parse_table_add(&pt, "Q", PQ_INT, (void *) (SHMOO_COMBO28_CDR_UNDEFINED_VALUE), &(config_param.q), NULL);
+        parse_table_add(&pt, "IB", PQ_INT, (void *) (SHMOO_COMBO28_CDR_UNDEFINED_VALUE), &(config_param.ib), NULL);
+        parse_table_add(&pt, "DataSource", PQ_INT, (void *) (SHMOO_COMBO28_CDR_UNDEFINED_VALUE), &(config_param.data_source), NULL);
+        parse_table_add(&pt, "InitLockTransition", PQ_INT, (void *) (SHMOO_COMBO28_CDR_UNDEFINED_VALUE), &(config_param.init_lock_transition), NULL);
+        parse_table_add(&pt, "AccuPosThreshold", PQ_INT, (void *) (SHMOO_COMBO28_CDR_UNDEFINED_VALUE), &(config_param.accu_pos_threshold), NULL);
+        parse_table_add(&pt, "UpdateGap", PQ_INT, (void *) (SHMOO_COMBO28_CDR_UNDEFINED_VALUE), &(config_param.update_gap), NULL);
+        parse_table_add(&pt, "UpdateMode", PQ_INT, (void *) (SHMOO_COMBO28_CDR_UNDEFINED_VALUE), &(config_param.update_mode), NULL);
+        parse_table_add(&pt, "AutoCopy", PQ_INT, (void *) (0), &(config_param.auto_copy), NULL);
+        if (!parseEndOk(a,&pt,&rv)) {
+            return rv;
+        }
+    }
+
+    SOC_PBMP_ITER(ci_pbm, i) {
+        if(soc_combo28_cdr_ctl(unit, i, stat, &config_param)){
+            return CMD_FAIL;
+        }
+    }
+
+    return CMD_OK;
+}
+
+char cmd_arad_dram_buf_usage[] =
+    "Usage:\n"
+    "\tDRAMBuf [options]\n" 
+    "Usage options:\n"
+#ifdef COMPILER_STRING_CONST_LIMIT
+    "\nFull documentation cannot be displayed with -pendantic compiler\n";
+#else
+    "\tcrc_del_enable <max_error> -        Enable/Disable quarantine of fault DRAM buffers (both MMU and IPT CRC).\n"
+    "\t                                    max_error - max num of error allowed per DRAM buffer,\n"
+    "\t                                    if max_error == 0 quarantine of fault DRAM buffers is disabled.\n"
+    "\tread_del_fifo -                     Print details on the buffers in the CRC deleted buffers FIFO.\n"
+    "\tlist_err_cntr -                     List all buffers that was detected with error.\n"
+    "\tinit_err_cntr <buf> -               Zero the error counter of a buffer (Use buf=-1 to Zero all the error counters).\n"
+    "\ttest_buf <buf> -                    Perform test on deleted buffer (doesn't supported under traffic).\n"
+    "\tdelete_buf <buf> -                  Delete  buffer.\n"
+    "\trelease_buf <buf> -                 Release  buffer (if it was quarantined).\n"
+    ; 
+#endif   /*COMPILER_STRING_CONST_LIMIT*/
+
+
+
+cmd_result_t
+cmd_arad_dram_buf(int unit, args_t *a)
+{
+    char *param, *func;
+
+
+    if(!SOC_IS_ARAD(unit)) {
+        cli_out("This function is not available in this device.\n");
+        return CMD_FAIL;
+    }
+
+    if(!SOC_IS_ARAD(unit)) {
+        cli_out("This function is not available in this device.\n");
+        return CMD_FAIL;
+    }
+
+    if (!(func = ARG_GET(a))) {    /* Nothing to do    */
+        return(CMD_USAGE);      /* Print usage line */
+    }
+    
+    
+
+    if(!sal_strcasecmp(func, "crc_del_enable")) {
+
+        uint32 max_err;
+
+        if (!(param = ARG_GET(a))) {    /* Nothing to do    */
+            return(CMD_USAGE);      /* Print usage line */
+        }
+
+        max_err = (uint32)sal_ctoi(param, NULL);
+        /* set num of max error */
+        if(SOC_SAND_FAILURE(arad_dram_crc_del_buffer_max_reclaims_set(unit, max_err))) {
+            cli_out("Error: arad_dram_crc_del_buffer_max_reclaims_set(%d, 1 )\n", unit);
+            return CMD_FAIL;
+        }
+        /* enable/disable DRAM crc delete buffers */
+        if(max_err != 0) {
+            if(SOC_SAND_FAILURE(arad_dram_crc_delete_buffer_enable(unit, 1))) {
+                cli_out("Error: arad_dram_crc_delete_buffer_enable(%d, 1 )\n", unit);
+                return CMD_FAIL;
+            }
+        } else {
+            if(SOC_SAND_FAILURE(arad_dram_crc_delete_buffer_enable(unit, 0))) {
+                cli_out("Error: arad_dram_crc_delete_buffer_enable(%d, 0 )\n", unit);
+                return CMD_FAIL;
+            }
+        }
+
+    } else if (!sal_strcasecmp(func, "read_del_fifo")){ 
+        
+        int i;
+        uint32 del_buf[16];
+        uint32 del_buf_count;
+
+        if (SOC_SAND_FAILURE(arad_dram_delete_buffer_read_fifo(unit, 16, del_buf, &del_buf_count))) {
+            cli_out("Error: arad_dram_delete_buffer_read_fifo(%d, 16, &del_buf, &del_buf_count) failed\n", unit);
+            return CMD_FAIL;    
+        }
+
+        cli_out("read from CRC dram del buffers FIFO:\n");
+        if ( del_buf_count == 0 ) {
+            cli_out("The FIFO is empty\n");
+        }
+
+        for(i=0; i<del_buf_count; ++i) {
+            cli_out("\tbuffer: %u\n", del_buf[i]);
+        }
+
+    } else if (!sal_strcasecmp(func, "list_err_cntr")){  
+        
+        int i;
+        uint32 is_buf, buf;
+        arad_dram_buffer_info_t buf_info;
+        
+        for(i=0; i<ARAD_DRAM_MAX_BUFFERS_IN_ERROR_CNTR; ++i) {
+            
+            if (SOC_SAND_FAILURE(arad_dram_get_buffer_error_cntr_in_list_index(unit, i, &is_buf, &buf))) {
+   
+                cli_out("Error: arad_dram_get_buffer_error_cntr_in_list_index(%d, %d, &is_buf, &buf) failed\n", unit, i);
+                return CMD_FAIL;
+                   
+            } else if (is_buf){
+                if(SOC_SAND_FAILURE(arad_dram_buffer_get_info(unit, buf, &buf_info))) {
+                    cli_out("Error:  arad_dram_buffer_get_info(%d, %u, &buf_info)", unit, buf);
+                    return CMD_FAIL;
+                }
+
+                cli_out("Buf: %u\n"
+                        "\tbuf num: %u ,bank: %u, channel: %c, err cntr: %u, is deleted: %u\n" , buf, buf_info.buf_num, buf_info.bank, buf_info.channel, buf_info.err_cntr, buf_info.is_deleted);
+
+            }
+            
+        }
+
+    } else if ((param = ARG_GET(a))){
+            
+            int buf;
+            buf =  sal_ctoi(param, NULL); 
+
+            if(!sal_strcasecmp(func, "test_buf")){
+
+                uint32 is_pass;
+
+                if(SOC_SAND_FAILURE(arad_dram_delete_buffer_test(unit, buf, &is_pass))) { 
+                    cli_out("Error: arad_dram_delete_buffer_test(%d, %u, &is_pass)", unit, buf);
+                    return CMD_FAIL;
+                } else {
+                    cli_out("is_pass = %u\n", is_pass);
+                }
+
+            } else if(!sal_strcasecmp(func, "delete_buf")){
+
+                if(SOC_SAND_FAILURE(arad_dram_delete_buffer_action(unit, buf, 1))) { 
+                    cli_out("Error: arad_dram_delete_buffer_action(%d, %u, 1)", unit, buf);
+                    return CMD_FAIL;
+                }
+
+            }  else if(!sal_strcasecmp(func, "release_buf")){
+
+                if(SOC_SAND_FAILURE(arad_dram_delete_buffer_action(unit, buf, 0))) { 
+                    cli_out("Error: arad_dram_delete_buffer_action(%d, %u, 0)", unit, buf);
+                    return CMD_FAIL;
+                }
+
+            } else if (!sal_strcasecmp(func, "init_err_cntr")){
+
+                 if(SOC_SAND_FAILURE(arad_dram_init_buffer_error_cntr(unit, (uint32)buf))) { 
+                    cli_out("Error: arad_dram_init_buffer_error_cntr(%d, %u)", unit, buf);
+                    return CMD_FAIL;
+                }
+
+            } else {
+                return(CMD_USAGE);      /* Print usage line */
+            } 
+        
+    } else {
+        return(CMD_USAGE);      /* Print usage line */
+    }
+    return (CMD_OK);
+
+}
+
+char cmd_arad_dram_mmu_ind_access_usage[] =
+    "Usage:\n"
+    "\tDramMmuIndAccess read/write <Options>- mmu indirect read/write\n"
+    "Usage options:\n"
+#ifdef COMPILER_STRING_CONST_LIMIT
+    "\nFull documentation cannot be displayed with -pendantic compiler\n";
+#else
+    "\t<LogicalMod> -               Determine access method Logical/Physical\n"
+    "\t<ADdr> -                     Physical address (Physical mode)\n"
+    "\t<INDex> -                    Index of the 64 bytes of the buffer, Index=-1 will read/write entire buffer (Logical mode).\n"
+    "\t<BufNum> -                   Buff number (Logical mode).\n"
+    "\t<Data0>, <Data1>, <Data15> -  User configures Data Pattern. By default data will be zero (Used when patternMod=0)\n"
+    "\t<PatternMod> -                              Pattern mode (Default Value '0').\n"
+    "\t       PatternMod=0 -                Use Data parameter (given by user)\n"
+    "\t       PatternMod=1 -                Fill data with 0101.. Pattern to all the buffer\n"
+    "\t       PatternMod=2 -                Fill data with 1111.. Pattern to all the buffer\n"
+    "\t       PatternMod=3 -                Fill data with 0000.. Pattern to all the buffer\n"
+    "\t       PatternMod=4 -                Fill data with 0x1, 0x2... 0xf Pattern to all the buffer\n"
+    "Examples:\n"
+    "\tDramMmuIndAccess read   LogicalMod=0  ADdr=0x1268389\n"
+    "\tDramMmuIndAccess read   LogicalMod=1 INDex=-1 BufNum=134862\n"
+    "\tDramMmuIndAccess write  PatternMod=0 LogicalMod=0  ADdr=0x10 Data0=0x1 Data1=0x77 Data2=0x1 Data3=0x2\n"
+    "\tDramMmuIndAccess write  PatternMod=0 LogicalMod=1  INDex=0 BufNum=134862 Data0=0x1 Data1=0x2 Data2=0x3\n"
+    "\tDramMmuIndAccess write  PatternMod=1 LogicalMod=1  INDex=0 BufNum=134862\n"
+    ;
+#endif   /*COMPILER_STRING_CONST_LIMIT*/
+
+cmd_result_t
+cmd_arad_dram_mmu_ind_access(int unit, args_t *a)
+{
+    char *func;
+    uint32  i, addr=0, logical_mod=0, index=0, buf_num=0, pattern_mod=0, addr_full;
+    soc_reg_above_64_val_t data;
+    parse_table_t pt;   
+    int rv, max_index = SOC_DPP_CONFIG(unit)->arad->init.dram.dbuff_size / 64;
+
+    if(!SOC_IS_ARAD(unit)) {
+        cli_out("This function is not available in this device.\n");
+        return CMD_FAIL;
+    }
+
+    if (!(func = ARG_GET(a))) {    /* Nothing to do    */
+        return(CMD_USAGE);      /* Print usage line */
+    }
+
+    sal_memset(data,0x0, sizeof(soc_reg_above_64_val_t));
+
+    if (ARG_CNT(a) > 0) {
+        parse_table_init(0,&pt);
+        parse_table_add(&pt,"LogicalMod",PQ_INT , (void *) (0), &logical_mod, NULL);
+        parse_table_add(&pt,"ADdr",PQ_INT , (void *) (0), &addr, NULL);
+        parse_table_add(&pt,"INDex",PQ_INT , (void *) (0), &index, NULL);
+        parse_table_add(&pt,"BufNum",PQ_INT , (void *) (0), &buf_num, NULL);
+        parse_table_add(&pt,"PatternMod",PQ_INT , (void *) (0), &pattern_mod, NULL);
+        parse_table_add(&pt,"Data0",PQ_INT , (void *) (0), &data[0], NULL);
+        parse_table_add(&pt,"Data1",PQ_INT , (void *) (0), &data[1], NULL); 
+        parse_table_add(&pt,"Data2",PQ_INT , (void *) (0), &data[2], NULL); 
+        parse_table_add(&pt,"Data3",PQ_INT , (void *) (0), &data[3], NULL); 
+        parse_table_add(&pt,"Data4",PQ_INT , (void *) (0), &data[4], NULL); 
+        parse_table_add(&pt,"Data5",PQ_INT , (void *) (0), &data[5], NULL); 
+        parse_table_add(&pt,"Data6",PQ_INT , (void *) (0), &data[6], NULL); 
+        parse_table_add(&pt,"Data7",PQ_INT , (void *) (0), &data[7], NULL); 
+        parse_table_add(&pt,"Data8",PQ_INT , (void *) (0), &data[8], NULL); 
+        parse_table_add(&pt,"Data9",PQ_INT , (void *) (0), &data[9], NULL); 
+        parse_table_add(&pt,"Data10",PQ_INT , (void *) (0), &data[10], NULL); 
+        parse_table_add(&pt,"Data11",PQ_INT , (void *) (0), &data[11], NULL); 
+        parse_table_add(&pt,"Data12",PQ_INT , (void *) (0), &data[12], NULL); 
+        parse_table_add(&pt,"Data13",PQ_INT , (void *) (0), &data[13], NULL); 
+        parse_table_add(&pt,"Data14",PQ_INT , (void *) (0), &data[14], NULL); 
+        parse_table_add(&pt,"Data15",PQ_INT , (void *) (0), &data[15], NULL);       
+        if (!parseEndOk(a,&pt,&rv)) {
+            return rv;
+        }
+    }
+    /* check usage */
+    if((buf_num && addr) ||
+       (buf_num && !logical_mod) ||
+       (addr && logical_mod) || 
+       (!sal_strcasecmp(func, "read") && pattern_mod) ){
+      
+        return(CMD_USAGE);      /* Print usage line */ 
+    }
+
+    if(!sal_strcasecmp(func, "read")) {
+                          
+        /* read all buffer */  
+        
+        for(i=0; i<max_index; ++i) {
+       
+            if( (i==index) || (index==-1) ) {
+            
+                 /* set addr_full */
+                if(logical_mod) {
+                    if(SOC_SAND_FAILURE(arad_dram_mmu_indirect_get_logical_address_full(unit,buf_num, i, &addr_full))) {
+                        cli_out("Error:  arad_dram_mmu_indirect_get_logical_address_full(%d, %u, %d, &addr)", unit, buf_num, index);
+                        return CMD_FAIL;
+                    } 
+                }else {
+                    addr_full = addr;
+                }
+                  
+                if(SOC_SAND_FAILURE(arad_dram_mmu_indirect_read(unit, logical_mod, addr_full, data))) {
+                    cli_out("Error: arad_dram_mmu_indirect_read(%d, 1, %u, &date)", unit, addr);
+                    return CMD_FAIL;
+                } else {
+                    cli_out("%d: 0x%08x 0x%08x 0x%08x 0x%08x 0x%08x 0x%08x 0x%08x 0x%08x 0x%08x 0x%08x 0x%08x 0x%08x 0x%08x 0x%08x 0x%08x 0x%08x\n", 
+                            i, data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], 
+                            data[9], data[10], data[11], data[12], data[13], data[14], data[15]);
+                }
+            }
+        }
+                                   
+    } else if(!sal_strcasecmp(func, "write")) {
+    
+        /* set pattern to write */
+        switch(pattern_mod) {
+        
+            case 0:
+                break;
+            case 1:
+                sal_memset(data, 0x01, sizeof(soc_reg_above_64_val_t));
+                break;
+            case 2:
+                sal_memset(data, 0x11, sizeof(soc_reg_above_64_val_t));
+                break; 
+            case 3:
+                sal_memset(data, 0x0, sizeof(soc_reg_above_64_val_t));
+                break;
+            case 4:
+                for(i=0; i<16; ++i){
+                    data[i]=i;
+                }            
+                break;          
+        default:
+              return(CMD_USAGE);      /* Print usage line */                
+        
+        }
+   
+
+        for(i=0; i<max_index; ++i) {
+
+            if( (i==index) || (index==-1) ) {
+            
+                if(logical_mod) {
+                    if(SOC_SAND_FAILURE(arad_dram_mmu_indirect_get_logical_address_full(unit,buf_num, i, &addr_full))) {
+                        cli_out("Error:  arad_dram_mmu_indirect_get_logical_address_full(%d, %u, %d, &addr)", unit, buf_num, index);
+                        return CMD_FAIL;
+                    } 
+                }else {
+                    addr_full = addr;
+                }
+
+                 if(SOC_SAND_FAILURE(arad_dram_mmu_indirect_write(unit, logical_mod, addr_full, data))) {
+                     cli_out("Error: arad_dram_mmu_indirect_write(%d, 1, %u, &date)", unit, addr);
+                     return CMD_FAIL;
+                 } 
+           }
+      }
+                
+    } else {
+        return(CMD_USAGE);      /* Print usage line */
+    } 
+           
+    return (CMD_OK);
+
+}
+
+
+#endif /* BCM_DDR3_SUPPORT */
+#endif /* BCM_ARAD_SUPPORT */

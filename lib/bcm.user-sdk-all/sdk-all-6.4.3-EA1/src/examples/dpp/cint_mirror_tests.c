@@ -1,0 +1,1204 @@
+/*
+ * $Id: cint_mirror_tests.c,v 1.4 Broadcom SDK $
+ *
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ *
+ * File: cint_mirror_tests.c
+ * Purpose: Examples of Mirror tests and usage
+ */
+
+
+/* Mirroring destinations traverse callback, returns non zero value on error
+ *
+ *   The Mirror destination traverse callback might be used to traverse all
+ *   created mirror destinations and add them to an array.
+ */
+int bcm_mirror_destination_list_id(
+    int unit, 
+    bcm_mirror_destination_t *mirror_dest, /* we get this information from the traverse function */
+    void *user_data) { /* user data, in our case bcm_gport_t** - a ponter to the pointer with the current location in the output array */
+    bcm_gport_t** cur_pointer = user_data;
+    if (!mirror_dest || !cur_pointer) {
+        printf("Callback received a null pointer\n");
+        return BCM_E_PARAM;
+    }
+    **cur_pointer = mirror_dest->mirror_dest_id;
+    /* printf("callback handling destination %u\n", BCM_GPORT_MIRROR_GET(**cur_pointer)); */
+    ++*cur_pointer;
+    return BCM_E_NONE;
+}
+
+/* This function just wraps bcm_mirror_destination_traverse.
+ * It is needed due to a cint implementation bug: When returning from bcm_mirror_destination_traverse,
+ * the calling function also exists immediately, if the callback was called at least once.
+ */
+int bcm_mirror_destination_traverse_wrap(int unit,
+                                         bcm_mirror_destination_traverse_cb cb,
+                                         void *user_data) {
+  int res;
+  res = bcm_mirror_destination_traverse(unit, cb, user_data);
+  /* this code is not reached in case a callback was called, due to a cint bug */
+  return res;
+}
+
+/* Delete all existing mirror destinations */
+int delete_all_mirror_destinations(int unit) {
+    int rv, i, size;
+    bcm_gport_t mirr_dest_ids[1024]; /* This should be big enouph to hold all possible destinations, which is 15 in Arad */
+    bcm_gport_t* mirr_dest_ids_current_location = mirr_dest_ids;
+
+    /* Get the created destinations by traversing over the destinations.
+       This could have been done by attempting bcm_mirror_destination_traverse on all possible destinations */
+    if (rv = bcm_mirror_destination_traverse_wrap(unit, bcm_mirror_destination_list_id, &mirr_dest_ids_current_location)) {
+        printf("could not delete all mirror destinations - traversal failed with value %d\n", rv);
+        return rv;
+    }
+    size = mirr_dest_ids_current_location - mirr_dest_ids; /* number of destinations traversed */
+ 
+    /* Destroy each found destination */
+    for (i = 0; i < size; ++i) {
+        if (rv = bcm_mirror_destination_destroy(unit, mirr_dest_ids[i])) {
+            printf("could not delete all mirror destinations - failed to destroy mirror destination %u, return value %d\n",
+                   BCM_GPORT_MIRROR_GET(mirr_dest_ids[i]), rv);
+            return rv;
+        }
+    }
+    return BCM_E_NONE;
+}
+
+/* get the (sorted) ids of up to port_num ports, return 0 on success */
+int get_n_ports(int unit, int port_num, int *out_ports, int *out_port_num) {
+    bcm_error_t rv;
+    bcm_port_config_t c;
+    bcm_port_t p;
+
+    if (!out_ports || !out_port_num || port_num <= 0) {
+        printf("Error, illegal arguments\n");
+        return BCM_E_PARAM;
+    }
+    rv = bcm_port_config_get(unit, &c);
+    if (rv != BCM_E_NONE) {
+        printf("Error, failed to get the ports of unit %d bcm_port_config_get\n", unit);
+        return rv;
+    }
+    *out_port_num = 0;
+    BCM_PBMP_ITER(c.all, p) {
+        if (p >= 0 && p < 255) {
+            out_ports[*out_port_num] = p;
+            ++*out_port_num;
+            if (*out_port_num >= port_num) { break; }
+        }
+    }
+    return 0;
+}
+
+/* get the (sorted) ids of up to port_num ethernet ports, return 0 on success */
+int get_n_ethernet_ports(int unit, int port_num, int *out_ports, int *out_port_num) {
+    bcm_error_t rv;
+    bcm_port_config_t c;
+    bcm_port_t p;
+
+    if (!out_ports || !out_port_num || port_num <= 0) {
+        printf("Error, illegal arguments\n");
+        return BCM_E_PARAM;
+    }
+    rv = bcm_port_config_get(unit, &c);
+    if (rv != BCM_E_NONE) {
+        printf("Error, failed to get the ports of unit %d bcm_port_config_get\n", unit);
+        return rv;
+    }
+    *out_port_num = 0;
+    BCM_PBMP_ITER(c.e, p) {
+        if (p > 0 && p < 255) {
+            out_ports[*out_port_num] = p;
+            ++*out_port_num;
+            if (*out_port_num >= port_num) { break; }
+        }
+    }
+    return 0;
+}
+
+
+/* This function tests all the mirror destination handling APIs (bcm_mirror_destination_*).
+ * It assumes the device is Arad, in the mirror IDs available.
+ */
+int mirror_destinations_arad_test_1(int unit) {
+    int rv, i, size, modid;
+    int min_dest_id = 1, max_dest_id = 15;
+    int found_ports_num, found_ports[8];
+    bcm_gport_t dest_id;
+    bcm_mirror_destination_t dest = {0};
+    bcm_gport_t mirr_dest_ids[max_dest_id - min_dest_id + 1]; /* will contain gport represantation of mirror destinations */
+    int dest_ids[max_dest_id - min_dest_id + 1]; /* will contain mirror destination IDs for processing traversal output */
+    bcm_gport_t mirr_dests[max_dest_id - min_dest_id + 1];
+    bcm_gport_t* mirr_dest_ids_current_location = mirr_dest_ids;
+    bcm_multicast_t mc_id1 = 4096;
+    bcm_multicast_t mc_id2 = 8123;
+    bcm_multicast_t mc_id3 = 64000;
+    bcm_multicast_t mc_id4 = 23123;
+    bcm_multicast_t mc_id5 = 35777;
+    bcm_multicast_t mc_id6 = 5000;
+
+    rv = get_n_ports(unit, 8, found_ports, &found_ports_num);
+    if (rv) {
+        printf("failed to get ports for the test\n");
+        return rv;
+    } else if (found_ports_num < 4) {
+        printf("found only %d ports for the test which is not enough\n", found_ports_num);
+        return BCM_E_FAIL;
+    }
+
+    rv = bcm_stk_modid_get(unit, &modid);
+    if (rv) {
+        printf("failed to get modid\n");
+        return rv;
+    }
+
+    /* Get the created destinations by traversing over the destinations.
+       This could have been done by attempting bcm_mirror_destination_traverse on all possible destinations */
+    rv = bcm_mirror_destination_traverse_wrap(unit, bcm_mirror_destination_list_id, &mirr_dest_ids_current_location);
+    if (rv) {
+        printf("bcm_mirror_destination_traverse failed with value %d\n", rv);
+        return rv;
+    }
+    size = mirr_dest_ids_current_location - mirr_dest_ids; /* number of destinations traversed */
+ 
+    /* Destroy each found destination */
+    for (i = 0; i < size; ++i) {
+        printf("destroying previously created mirror destination %u\n", BCM_GPORT_MIRROR_GET(mirr_dest_ids[i]));
+        if (rv = bcm_mirror_destination_destroy(unit, mirr_dest_ids[i])) {
+            printf("initial bcm_mirror_destination_destroy failed with value %d\n", rv);
+            return rv;
+        }
+    }
+
+    BCM_GPORT_LOCAL_SET(mirr_dests[0], found_ports[1]);
+    BCM_GPORT_LOCAL_SET(mirr_dests[1], found_ports[3]);
+    BCM_GPORT_LOCAL_SET(mirr_dests[2], found_ports[2]);
+    BCM_GPORT_MCAST_SET(mirr_dests[3], mc_id1);
+    BCM_GPORT_MCAST_SET(mirr_dests[4], mc_id2);
+    BCM_GPORT_MCAST_SET(mirr_dests[5], mc_id3);
+    BCM_GPORT_MCAST_SET(mirr_dests[6], mc_id4);
+    BCM_GPORT_MCAST_SET(mirr_dests[7], mc_id5);
+    BCM_GPORT_MCAST_SET(mirr_dests[8], mc_id6);
+    BCM_GPORT_MCAST_SET(mirr_dests[9], mc_id2);
+    BCM_GPORT_MCAST_SET(mirr_dests[10], mc_id1);
+    BCM_GPORT_LOCAL_SET(mirr_dests[11], mirr_dests[0]);
+    BCM_GPORT_LOCAL_SET(mirr_dests[12], found_ports[1]);
+    BCM_GPORT_MODPORT_SET(mirr_dests[13], modid, found_ports[2]);
+    BCM_GPORT_LOCAL_SET(mirr_dests[14], found_ports[3]);
+    /* create destinations without selected the destination id */
+    for (i = min_dest_id ; i <= max_dest_id; ++i) { /* init dest_ids to 0 */
+        dest_ids[i - min_dest_id] = -1;
+    }
+    for (i = min_dest_id ; i <= max_dest_id; ++i) {
+        bcm_mirror_destination_t_init(&dest);
+        dest.gport = mirr_dests[i - min_dest_id];
+        dest.flags = 0;
+        dest.sample_rate_dividend = (0x10000 * i) / max_dest_id;
+        dest.sample_rate_divisor = 0x10000;
+        if (rv = bcm_mirror_destination_create(unit, &dest)) {
+            printf("failed to create mirror destination that should have been number %d, return value %d\n", i, rv);
+            return rv;
+        }
+        /* check that destinations are not allocated twice, and store mapping to the creation loop index */
+        unsigned id = BCM_GPORT_MIRROR_GET(dest.mirror_dest_id);
+        if (id < min_dest_id || id > max_dest_id ) {
+            printf("created mirror destination ID %u, is out of range\n", id);
+            return BCM_E_FAIL;
+        } else if (dest_ids[id - min_dest_id] != -1) {
+            printf("mirror destination created destination a second time with ID %u\n", id);
+            return BCM_E_FAIL;
+        }
+        dest_ids[id - min_dest_id] = i;
+    }
+    /* get destinations information, compare to the expected information, and destroy the destinations */
+    for (i = min_dest_id ; i <= max_dest_id; ++i) {
+        BCM_GPORT_MIRROR_SET(dest_id, i);
+        bcm_mirror_destination_t_init(&dest);
+        if (rv = bcm_mirror_destination_get(unit, dest_id, &dest)) {
+            printf("failed to get mirror destination information, destination id %d, return value %d\n", i, rv);
+            return rv;
+        }
+        /* check that destinations are allocated in order. This is Arad implementation specific */
+        if (BCM_GPORT_MIRROR_GET(dest.mirror_dest_id) != i) {
+            printf("Retrieved mirror destination id %d, should have been %d\n", BCM_GPORT_MIRROR_GET(dest.mirror_dest_id), i);
+            return BCM_E_FAIL;
+        }
+        bcm_gport_t expected = mirr_dests[dest_ids[i - min_dest_id] - min_dest_id];
+        if (BCM_GPORT_IS_LOCAL(expected)) {
+            BCM_GPORT_MODPORT_SET(expected, modid, BCM_GPORT_LOCAL_GET(expected));
+        }
+        if (dest.gport != expected) {
+            printf("In mirror destination %d, retrieved gport 0x%lx, should have been 0x%lx\n", i, dest.gport, expected);
+            return BCM_E_FAIL;
+        }
+        if (dest.sample_rate_dividend != (0x10000 * i) / max_dest_id || dest.sample_rate_divisor != 1<<16) {
+            printf("Wrong mirror probability in %d:  %u / %u\n", i, dest.sample_rate_dividend, dest.sample_rate_divisor);
+            return BCM_E_FAIL;
+        }
+        dest.sample_rate_dividend = (0x10000 * i) / max_dest_id;
+        dest.sample_rate_divisor = 0x10000;
+        if (rv = bcm_mirror_destination_destroy(unit, dest_id)) {
+            printf("Failed to destroy created mirror destination with ID %d, return value %d\n", i, rv);
+            return rv;
+        }
+    }
+    bcm_mirror_destination_t_init(&dest);
+
+    /* traverse and check that no destinations exist */
+    mirr_dest_ids_current_location = mirr_dest_ids;
+    if (rv = bcm_mirror_destination_traverse_wrap(unit, bcm_mirror_destination_list_id, &mirr_dest_ids_current_location)) {
+        printf("Traversal of no destinations failed with value %d\n", rv);
+        return rv;
+    }
+    if (mirr_dest_ids_current_location != mirr_dest_ids) {
+        printf("Destinations were found when they should not have. The first one found is %u\n", BCM_GPORT_MIRROR_GET(mirr_dest_ids[0]));
+        return BCM_E_FAIL;
+    }
+
+    /* create destinations with selected id */
+    for (i = max_dest_id ; i >= min_dest_id; --i) {
+        dest.gport = mirr_dests[i - min_dest_id];
+        dest.flags = BCM_MIRROR_DEST_WITH_ID;
+        BCM_GPORT_MIRROR_SET(dest.mirror_dest_id, i);
+        if (rv = bcm_mirror_destination_create(unit, &dest)) {
+            printf("failed to create mirror destination number %d, return value %d\n", i, rv);
+            return rv;
+        }
+        /* check that destinations are allocated in order. This is Arad implementation specific */
+        if (BCM_GPORT_MIRROR_GET(dest.mirror_dest_id) != i) {
+            printf("mirror destination created destination number %d, and not the given %d\n", BCM_GPORT_MIRROR_GET(dest.mirror_dest_id), i);
+            return BCM_E_FAIL;
+        }
+    }
+    /* get destinations information, compare to the expected information */
+    for (i = min_dest_id ; i <= max_dest_id; ++i) {
+        BCM_GPORT_MIRROR_SET(dest_id, i);
+        if (rv = bcm_mirror_destination_get(unit, dest_id, &dest)) {
+            printf("failed to get mirror destination information, destination %d, return value %d\n", i, rv);
+            return rv;
+        }
+        if (BCM_GPORT_MIRROR_GET(dest.mirror_dest_id) != i) {
+            printf("Retrieved mirror destination %d, should have been %d\n", BCM_GPORT_MIRROR_GET(dest.mirror_dest_id), i);
+            return BCM_E_FAIL;
+        }
+        bcm_gport_t expected = mirr_dests[i - min_dest_id];
+        if (BCM_GPORT_IS_LOCAL(expected)) {
+            BCM_GPORT_MODPORT_SET(expected, modid, BCM_GPORT_LOCAL_GET(expected));
+        }
+        if (dest.gport != expected) {
+            printf("In mirror destination %d, gport 0x%lx, should have been 0x%lx\n", i, dest.gport, expected);
+            return BCM_E_FAIL;
+        }
+    }
+
+    /* Recreate destinations with selected id, and different information */
+    for (i = max_dest_id ; i >= min_dest_id; --i) {
+        dest.gport = mirr_dests[max_dest_id - i];
+        dest.flags = BCM_MIRROR_DEST_WITH_ID | BCM_MIRROR_DEST_REPLACE;
+        BCM_GPORT_MIRROR_SET(dest.mirror_dest_id, i);
+        if (rv = bcm_mirror_destination_create(unit, &dest)) {
+            printf("failed to recreate mirror destination number %d, return value %d\n", i, rv);
+            return rv;
+        }
+        /* check that destinations are allocated in order. This is Arad implementation specific */
+        if (BCM_GPORT_MIRROR_GET(dest.mirror_dest_id) != i) {
+            printf("mirror destination recreated destination number %d, and not the given %d\n", BCM_GPORT_MIRROR_GET(dest.mirror_dest_id), i);
+            return BCM_E_FAIL;
+        }
+    }
+
+    /* Get the destinations by traversing over the destinations. */
+    mirr_dest_ids_current_location = mirr_dest_ids;
+    if (rv = bcm_mirror_destination_traverse_wrap(unit, bcm_mirror_destination_list_id, &mirr_dest_ids_current_location)) {
+        printf("Failed traversing all the destinations, return value %d\n", rv);
+        return rv;
+    }
+    size = mirr_dest_ids_current_location - mirr_dest_ids; /* number of destinations traversed */
+    if (size != max_dest_id - min_dest_id + 1) {
+        printf("Expected to traverse %d destinations, but traversed only %d\n", max_dest_id - min_dest_id + 1, size);
+        return BCM_E_FAIL;
+    }
+    for (i = min_dest_id ; i <= max_dest_id; ++i) { /* init dest_ids to 0 */
+        dest_ids[i - min_dest_id] = -1;
+    }
+    for (i = min_dest_id ; i <= max_dest_id; ++i) { /* test that each destination appears once */
+        unsigned id = BCM_GPORT_MIRROR_GET(mirr_dest_ids[i - min_dest_id]);
+        if (id < min_dest_id || id > max_dest_id ) {
+            printf("mirror destination ID %u retrieved in traverse, is out of range\n", id);
+            return BCM_E_FAIL;
+        } else if (dest_ids[id - min_dest_id] != -1) {
+            printf("mirror destination created destination a second time with ID %u\n", id);
+            return BCM_E_FAIL;
+        }
+        dest_ids[id - min_dest_id] = i;
+    }
+
+    /* get destinations information, compare to the expected information, and destroy the destinations */
+    for (i = min_dest_id ; i <= max_dest_id; ++i) {
+        BCM_GPORT_MIRROR_SET(dest_id, i);
+        if (rv = bcm_mirror_destination_get(unit, dest_id, &dest)) {
+            printf("failed to get recreated mirror destination information, destination id %d, return value %d\n", i, rv);
+            return rv;
+        }
+        /* check that destinations are allocated in order. This is Arad implementation specific */
+        if (BCM_GPORT_MIRROR_GET(dest.mirror_dest_id) != i) {
+            printf("Retrieved recreated mirror destination id %d, should have been %d\n", BCM_GPORT_MIRROR_GET(dest.mirror_dest_id), i);
+            return BCM_E_FAIL;
+        }
+        bcm_gport_t expected = mirr_dests[max_dest_id - i];
+        if (BCM_GPORT_IS_LOCAL(expected)) {
+            BCM_GPORT_MODPORT_SET(expected, modid, BCM_GPORT_LOCAL_GET(expected));
+        }
+        if (dest.gport != expected) {
+            printf("In recreated mirror destination %d, retrieved gport 0x%lx, should have been 0x%lx\n", i, dest.gport, expected);
+            return BCM_E_FAIL;
+        }
+        if (rv = bcm_mirror_destination_destroy(unit, dest_id)) {
+            printf("Failed to destroy recreated mirror destination with ID %d, return value %d\n", i, rv);
+            return rv;
+        }
+    }
+
+    printf ("==> Test finished successfully\n");
+    /* return with no existing mirror destinations */
+    return BCM_E_NONE;
+}
+
+
+
+/* This function tests all the Arad inbound & outbound mirror port and port+vlan apis:
+ * bcm_mirror_port_dest_add
+ * bcm_mirror_port_dest_delete
+ * bcm_mirror_port_dest_delete_all
+ * bcm_mirror_port_dest_get
+ * bcm_mirror_port_vlan_dest_add
+ * bcm_mirror_port_vlan_dest_delete
+ * bcm_mirror_port_vlan_dest_delete_all
+ * bcm_mirror_port_vlan_dest_get
+ * 
+ * In arad only one destination may be added to a port and to a port+vlan.
+ */
+int mirror_ports_arad_test_1(int unit) {
+    int rv, i, modid;
+    int found_ports_num, found_ports[8];
+    bcm_gport_t mirr_dest1, mirr_dest2;
+    bcm_mirror_destination_t dest = {0};
+    bcm_gport_t port1, port2, port3, out_gport;
+    int out_count;
+    bcm_vlan_t vlan1 = 100, vlan2 = 999, vlan3 = 432;
+
+    rv = get_n_ports(unit, 8, found_ports, &found_ports_num);
+    if (rv) {
+        printf("failed to get ports for the test\n");
+        return rv;
+    } else if (found_ports_num < 4) {
+        printf("found only %d ports for the test which is not enough\n", found_ports_num);
+        return BCM_E_FAIL;
+    }
+
+    rv = bcm_stk_modid_get(unit, &modid);
+    if (rv) {
+        printf("failed to get modid\n");
+        return rv;
+    }
+    
+    BCM_GPORT_LOCAL_SET(port1, found_ports[0]);
+    BCM_GPORT_MODPORT_SET(port2, modid, found_ports[2]);
+    BCM_GPORT_LOCAL_SET(port3, found_ports[3]);
+
+    if (rv = delete_all_mirror_destinations(unit)) {
+        return rv;
+    }
+    /* remove previous mirrors on the ports & vlans we use, if they exist. The APIs will gail if these were not added */
+    bcm_mirror_port_dest_delete_all(unit, port1, BCM_MIRROR_PORT_INGRESS);
+    bcm_mirror_port_dest_delete_all(unit, port2, BCM_MIRROR_PORT_INGRESS | BCM_MIRROR_PORT_EGRESS);
+    bcm_mirror_port_dest_delete_all(unit, port3, BCM_MIRROR_PORT_EGRESS);
+    bcm_mirror_port_vlan_dest_delete_all(unit, port1, vlan1, BCM_MIRROR_PORT_INGRESS);
+    bcm_mirror_port_vlan_dest_delete_all(unit, port2, vlan2, BCM_MIRROR_PORT_INGRESS | BCM_MIRROR_PORT_EGRESS);
+    bcm_mirror_port_vlan_dest_delete_all(unit, port3, vlan3, BCM_MIRROR_PORT_EGRESS);
+    printf ("==> Above (up to 6) failures of bcm_mirror_port_dest_delete_all and bcm_mirror_port_vlan_dest_delete_all are expected\n");
+
+    /* create two mirror destinations */
+    BCM_GPORT_LOCAL_SET(dest.gport, found_ports[1]);
+    dest.flags = 0;
+    if (rv = bcm_mirror_destination_create(unit, &dest)) {
+        printf("failed to create mirror destination 1, return value %d\n", rv);
+        return rv;
+    }
+    mirr_dest1 = dest.mirror_dest_id;
+
+    BCM_GPORT_LOCAL_SET(dest.gport, found_ports[found_ports_num > 4 ? 4 : 2]);
+    dest.flags = 0;
+    if (rv = bcm_mirror_destination_create(unit, &dest)) {
+        printf("failed to create mirror destination 2, return value %d\n", rv);
+        return rv;
+    }
+    mirr_dest2 = dest.mirror_dest_id;
+
+    /* mirror inbound/outbound ports and ports+vlans to destinations */
+    if (rv = bcm_mirror_port_dest_add(unit, port1, BCM_MIRROR_PORT_INGRESS, mirr_dest1)) {
+        printf("failed to add inbound port1 to be mirrored to mirr_dest1, return value %d\n", rv);
+        return rv;
+    }
+    if (rv = bcm_mirror_port_dest_add(unit, port2, BCM_MIRROR_PORT_INGRESS | BCM_MIRROR_PORT_EGRESS, mirr_dest2)) {
+        printf("failed to add inbound+outbound port2 to be mirrored to mirr_dest2, return value %d\n", rv);
+        return rv;
+    }
+    if (rv = bcm_mirror_port_dest_add(unit, port3, BCM_MIRROR_PORT_EGRESS, mirr_dest1)) {
+        printf("failed to add outbound port2 to be mirrored to mirr_dest1, return value %d\n", rv);
+        return rv;
+    }
+
+    if (rv = bcm_mirror_port_vlan_dest_add(unit, port1, vlan1, BCM_MIRROR_PORT_INGRESS, mirr_dest2)) {
+        printf("failed to add inbound port1+vlan1 to be mirrored to mirr_dest2, return value %d\n", rv);
+        return rv;
+    }
+    if (rv = bcm_mirror_port_vlan_dest_add(unit, port2, vlan2, BCM_MIRROR_PORT_INGRESS | BCM_MIRROR_PORT_EGRESS, mirr_dest1)) {
+        printf("failed to add inbound+outbound port1+vlan1 to be mirrored to mirr_dest1, return value %d\n", rv);
+        return rv;
+    }
+    if (rv = bcm_mirror_port_vlan_dest_add(unit, port3, vlan3, BCM_MIRROR_PORT_EGRESS, mirr_dest2)) {
+        printf("failed to add outbound port1+vlan1 to be mirrored to mirr_dest2, return value %d\n", rv);
+        return rv;
+    }
+
+    /* Get and verify the information that we added */
+    if (rv = bcm_mirror_port_dest_get(unit, port1, BCM_MIRROR_PORT_INGRESS, 1, &out_gport, &out_count)) {
+        printf("failed to get inbound port1 mirror destination, return value %d\n", rv);
+        return rv;
+    } else if (out_count != 1) {
+        printf("Output destination count of inbound port1 was %d instead of 1\n", out_count);
+        return BCM_E_FAIL;
+    } else if (out_gport != mirr_dest1) {
+        printf("mirror destination of inbound port1 was %lx and not the expected %lx\n", out_gport, mirr_dest1);
+        return BCM_E_FAIL;
+    }
+    if (rv = bcm_mirror_port_dest_get(unit, port2, BCM_MIRROR_PORT_INGRESS, 1, &out_gport, &out_count)) {
+        printf("failed to get inbound port2 mirror destination, return value %d\n", rv);
+        return rv;
+    } else if (out_count != 1) {
+        printf("Output destination count of inbound port2 was %d instead of 1\n", out_count);
+        return BCM_E_FAIL;
+    } else if (out_gport != mirr_dest2) {
+        printf("mirror destination of inbound port2 was %lx and not the expected %lx\n", out_gport, mirr_dest2);
+        return BCM_E_FAIL;
+    }
+    if (rv = bcm_mirror_port_dest_get(unit, port2, BCM_MIRROR_PORT_EGRESS, 1, &out_gport, &out_count)) {
+        printf("failed to get outbound port2 mirror destination, return value %d\n", rv);
+        return rv;
+    } else if (out_count != 1) {
+        printf("Output destination count of outbound port2 was %d instead of 1\n", out_count);
+        return BCM_E_FAIL;
+    } else if (out_gport != mirr_dest2) {
+        printf("mirror destination of outbound port2 was %lx and not the expected %lx\n", out_gport, mirr_dest2);
+        return BCM_E_FAIL;
+    }
+    if (rv = bcm_mirror_port_dest_get(unit, port3, BCM_MIRROR_PORT_EGRESS, 1, &out_gport, &out_count)) {
+        printf("failed to get outbound port3 mirror destination, return value %d\n", rv);
+        return rv;
+    } else if (out_count != 1) {
+        printf("Output destination count of outbound port2 was %d instead of 1\n", out_count);
+        return BCM_E_FAIL;
+    } else if (out_gport != mirr_dest1) {
+        printf("mirror destination of outbound port3 was %lx and not the expected %lx\n", out_gport, mirr_dest1);
+        return BCM_E_FAIL;
+    }
+
+    if (rv = bcm_mirror_port_vlan_dest_get(unit, port1, vlan1, BCM_MIRROR_PORT_INGRESS, 1, &out_gport, &out_count)) {
+        printf("failed to get inbound port1+vlan1 mirror destination, return value %d\n", rv);
+        return rv;
+    } else if (out_count != 1) {
+        printf("Output destination count of inbound port1+vlan1 was %d instead of 1\n", out_count);
+        return BCM_E_FAIL;
+    } else if (out_gport != mirr_dest2) {
+        printf("mirror destination of inbound port1+vlan1 was %lx and not the expected %lx\n", out_gport, mirr_dest2);
+        return BCM_E_FAIL;
+    }
+    if (rv = bcm_mirror_port_vlan_dest_get(unit, port2, vlan2, BCM_MIRROR_PORT_INGRESS, 1, &out_gport, &out_count)) {
+        printf("failed to get inbound port2+vlan2 mirror destination, return value %d\n", rv);
+        return rv;
+    } else if (out_count != 1) {
+        printf("Output destination count of inbound port2+vlan2 was %d instead of 1\n", out_count);
+        return BCM_E_FAIL;
+    } else if (out_gport != mirr_dest1) {
+        printf("mirror destination of inbound port2+vlan2 was %lx and not the expected %lx\n", out_gport, mirr_dest1);
+        return BCM_E_FAIL;
+    }
+    if (rv = bcm_mirror_port_vlan_dest_get(unit, port2, vlan2, BCM_MIRROR_PORT_EGRESS, 1, &out_gport, &out_count)) {
+        printf("failed to get outbound port2+vlan2 mirror destination, return value %d\n", rv);
+        return rv;
+    } else if (out_count != 1) {
+        printf("Output destination count of outbound port2+vlan2 was %d instead of 1\n", out_count);
+        return BCM_E_FAIL;
+    } else if (out_gport != mirr_dest1) {
+        printf("mirror destination of outbound port2+vlan2 was %lx and not the expected %lx\n", out_gport, mirr_dest1);
+        return BCM_E_FAIL;
+    }
+    if (rv = bcm_mirror_port_vlan_dest_get(unit, port3, vlan3, BCM_MIRROR_PORT_EGRESS, 1, &out_gport, &out_count)) {
+        printf("failed to get outbound port3+vlan3 mirror destination, return value %d\n", rv);
+        return rv;
+    } else if (out_count != 1) {
+        printf("Output destination count of outbound port3+vlan3 was %d instead of 1\n", out_count);
+        return BCM_E_FAIL;
+    } else if (out_gport != mirr_dest2) {
+        printf("mirror destination of outbound port3+vlan3 was %lx and not the expected %lx\n", out_gport, mirr_dest2);
+        return BCM_E_FAIL;
+    }
+
+
+    /* test deletions for a specific destination */
+    if (rv = bcm_mirror_port_dest_delete(unit, port1, BCM_MIRROR_PORT_INGRESS, mirr_dest1)) {
+        printf("failed to delete inbound port1 mirror to mirr_dest1, return value %d\n", rv);
+        return rv;
+    }
+    if (rv = bcm_mirror_port_dest_delete(unit, port2, BCM_MIRROR_PORT_INGRESS | BCM_MIRROR_PORT_EGRESS, mirr_dest2)) {
+        printf("failed to delete inbound+outbound port2 mirror to mirr_dest2, return value %d\n", rv);
+        return rv;
+    }
+    if (rv = bcm_mirror_port_dest_delete(unit, port3, BCM_MIRROR_PORT_EGRESS, mirr_dest1)) {
+        printf("failed to delete outbound port3 mirror to mirr_dest1, return value %d\n", rv);
+        return rv;
+    }
+    if (rv = bcm_mirror_port_vlan_dest_delete(unit, port1, vlan1, BCM_MIRROR_PORT_INGRESS, mirr_dest2)) {
+        printf("failed to delete inbound port1+vlan1 mirror to mirr_dest2, return value %d\n", rv);
+        return rv;
+    }
+    if (rv = bcm_mirror_port_vlan_dest_delete(unit, port2, vlan2, BCM_MIRROR_PORT_INGRESS | BCM_MIRROR_PORT_EGRESS, mirr_dest1)) {
+        printf("failed to delete inbound+outbound port2+vlan2 mirror to mirr_dest1, return value %d\n", rv);
+        return rv;
+    }
+    if (rv = bcm_mirror_port_vlan_dest_delete(unit, port3, vlan3, BCM_MIRROR_PORT_EGRESS, mirr_dest2)) {
+        printf("failed to delete outbound port3+vlan3 mirror to mirr_dest2, return value %d\n", rv);
+        return rv;
+    }
+
+    /* Verify that they do not exist */
+    printf ("==> Below prints of eight failures of bcm_mirror_port_dest_get and bcm_mirror_port_vlan_dest_get are expected\n");
+    if ((rv = bcm_mirror_port_dest_get(unit, port1, BCM_MIRROR_PORT_INGRESS, 1, &out_gport, &out_count)) != BCM_E_PARAM) {
+        printf("Getting inbound port1 mirror destination should have returned BCM_E_PARAM, but return value %d\n", rv);
+        return BCM_E_FAIL;
+    }
+    if ((rv = bcm_mirror_port_dest_get(unit, port2, BCM_MIRROR_PORT_INGRESS, 1, &out_gport, &out_count)) != BCM_E_PARAM) {
+        printf("Getting inbound port2 mirror destination should have returned BCM_E_PARAM, but return value %d\n", rv);
+        return BCM_E_FAIL;
+    }
+    if ((rv = bcm_mirror_port_dest_get(unit, port2, BCM_MIRROR_PORT_EGRESS, 1, &out_gport, &out_count)) != BCM_E_PARAM) {
+        printf("Getting outbound port2 mirror destination should have returned BCM_E_PARAM, but return value %d\n", rv);
+        return BCM_E_FAIL;
+    }
+    if ((rv = bcm_mirror_port_dest_get(unit, port3, BCM_MIRROR_PORT_EGRESS, 1, &out_gport, &out_count)) != BCM_E_PARAM) {
+        printf("Getting outbound port3 mirror destination should have returned BCM_E_PARAM, but return value %d\n", rv);
+        return BCM_E_FAIL;
+    }
+
+    if ((rv = bcm_mirror_port_vlan_dest_get(unit, port1, vlan1, BCM_MIRROR_PORT_INGRESS, 1, &out_gport, &out_count)) != BCM_E_PARAM) {
+        printf("Getting inbound port1+vlan1 mirror destination should have returned BCM_E_PARAM, but return value %d\n", rv);
+        return BCM_E_FAIL;
+    }
+    if ((rv = bcm_mirror_port_vlan_dest_get(unit, port2, vlan2, BCM_MIRROR_PORT_INGRESS, 1, &out_gport, &out_count)) != BCM_E_PARAM) {
+        printf("Getting inbound port2+vlan2 mirror destination should have returned BCM_E_PARAM, but return value %d\n", rv);
+        return BCM_E_FAIL;
+    }
+    if ((rv = bcm_mirror_port_vlan_dest_get(unit, port2, vlan2, BCM_MIRROR_PORT_EGRESS, 1, &out_gport, &out_count)) != BCM_E_PARAM) {
+        printf("Getting outbound port2+vlan2 mirror destination should have returned BCM_E_PARAM, but return value %d\n", rv);
+        return BCM_E_FAIL;
+    }
+    if ((rv = bcm_mirror_port_vlan_dest_get(unit, port3, vlan3, BCM_MIRROR_PORT_EGRESS, 1, &out_gport, &out_count)) != BCM_E_PARAM) {
+        printf("Getting outbound port3+vlan3 mirror destination should have returned BCM_E_PARAM, but return value %d\n", rv);
+        return BCM_E_FAIL;
+    }
+
+    /* mirror inbound/outbound ports and ports+vlans to destinations again so that they can be deleted again */
+    if (rv = bcm_mirror_port_dest_add(unit, port1, BCM_MIRROR_PORT_INGRESS, mirr_dest1)) {
+        printf("failed to add inbound port1 to be mirrored to mirr_dest1, return value %d\n", rv);
+        return rv;
+    }
+    if (rv = bcm_mirror_port_dest_add(unit, port2, BCM_MIRROR_PORT_INGRESS | BCM_MIRROR_PORT_EGRESS, mirr_dest2)) {
+        printf("failed to add inbound+outbound port2 to be mirrored to mirr_dest2, return value %d\n", rv);
+        return rv;
+    }
+    if (rv = bcm_mirror_port_dest_add(unit, port3, BCM_MIRROR_PORT_EGRESS, mirr_dest1)) {
+        printf("failed to add outbound port2 to be mirrored to mirr_dest1, return value %d\n", rv);
+        return rv;
+    }
+
+    if (rv = bcm_mirror_port_vlan_dest_add(unit, port1, vlan1, BCM_MIRROR_PORT_INGRESS, mirr_dest2)) {
+        printf("failed to add inbound port1+vlan1 to be mirrored to mirr_dest2, return value %d\n", rv);
+        return rv;
+    }
+    if (rv = bcm_mirror_port_vlan_dest_add(unit, port2, vlan2, BCM_MIRROR_PORT_INGRESS | BCM_MIRROR_PORT_EGRESS, mirr_dest1)) {
+        printf("failed to add inbound+outbound port1+vlan1 to be mirrored to mirr_dest1, return value %d\n", rv);
+        return rv;
+    }
+    if (rv = bcm_mirror_port_vlan_dest_add(unit, port3, vlan3, BCM_MIRROR_PORT_EGRESS, mirr_dest2)) {
+        printf("failed to add outbound port1+vlan1 to be mirrored to mirr_dest2, return value %d\n", rv);
+        return rv;
+    }
+
+
+    /* test deletions for all destination */
+    if (rv = bcm_mirror_port_dest_delete_all(unit, port1, BCM_MIRROR_PORT_INGRESS)) {
+        printf("failed to delete inbound port1 mirror, return value %d\n", rv);
+        return rv;
+    }
+    if (rv = bcm_mirror_port_dest_delete_all(unit, port2, BCM_MIRROR_PORT_INGRESS | BCM_MIRROR_PORT_EGRESS)) {
+        printf("failed to delete inbound port2 mirror, return value %d\n", rv);
+        return rv;
+    }
+    if (rv = bcm_mirror_port_dest_delete_all(unit, port3, BCM_MIRROR_PORT_EGRESS)) {
+        printf("failed to delete inbound port3 mirror, return value %d\n", rv);
+        return rv;
+    }
+    if (rv = bcm_mirror_port_vlan_dest_delete_all(unit, port1, vlan1, BCM_MIRROR_PORT_INGRESS)) {
+        printf("failed to delete inbound port1+vlan1 mirror, return value %d\n", rv);
+        return rv;
+    }
+    if (rv = bcm_mirror_port_vlan_dest_delete_all(unit, port2, vlan2, BCM_MIRROR_PORT_INGRESS | BCM_MIRROR_PORT_EGRESS)) {
+        printf("failed to delete inbound port2+vlan2 mirror, return value %d\n", rv);
+        return rv;
+    }
+    if (rv = bcm_mirror_port_vlan_dest_delete_all(unit, port3, vlan3, BCM_MIRROR_PORT_EGRESS)) {
+        printf("failed to delete inbound port3+vlan3 mirror, return value %d\n", rv);
+        return rv;
+    }
+
+    /* Verify that they do not exist */
+    printf ("==> Below prints of eight failures of bcm_mirror_port_dest_get and bcm_mirror_port_vlan_dest_get are expected\n");
+    if ((rv = bcm_mirror_port_dest_get(unit, port1, BCM_MIRROR_PORT_INGRESS, 1, &out_gport, &out_count)) != BCM_E_PARAM) {
+        printf("Getting inbound port1 mirror destination should have returned BCM_E_PARAM, but return value %d\n", rv);
+        return BCM_E_FAIL;
+    }
+    if ((rv = bcm_mirror_port_dest_get(unit, port2, BCM_MIRROR_PORT_INGRESS, 1, &out_gport, &out_count)) != BCM_E_PARAM) {
+        printf("Getting inbound port2 mirror destination should have returned BCM_E_PARAM, but return value %d\n", rv);
+        return BCM_E_FAIL;
+    }
+    if ((rv = bcm_mirror_port_dest_get(unit, port2, BCM_MIRROR_PORT_EGRESS, 1, &out_gport, &out_count)) != BCM_E_PARAM) {
+        printf("Getting outbound port2 mirror destination should have returned BCM_E_PARAM, but return value %d\n", rv);
+        return BCM_E_FAIL;
+    }
+    if ((rv = bcm_mirror_port_dest_get(unit, port3, BCM_MIRROR_PORT_EGRESS, 1, &out_gport, &out_count)) != BCM_E_PARAM) {
+        printf("Getting outbound port3 mirror destination should have returned BCM_E_PARAM, but return value %d\n", rv);
+        return BCM_E_FAIL;
+    }
+
+    if ((rv = bcm_mirror_port_vlan_dest_get(unit, port1, vlan1, BCM_MIRROR_PORT_INGRESS, 1, &out_gport, &out_count)) != BCM_E_PARAM) {
+        printf("Getting inbound port1+vlan1 mirror destination should have returned BCM_E_PARAM, but return value %d\n", rv);
+        return BCM_E_FAIL;
+    }
+    if ((rv = bcm_mirror_port_vlan_dest_get(unit, port2, vlan2, BCM_MIRROR_PORT_INGRESS, 1, &out_gport, &out_count)) != BCM_E_PARAM) {
+        printf("Getting inbound port2+vlan2 mirror destination should have returned BCM_E_PARAM, but return value %d\n", rv);
+        return BCM_E_FAIL;
+    }
+    if ((rv = bcm_mirror_port_vlan_dest_get(unit, port2, vlan2, BCM_MIRROR_PORT_EGRESS, 1, &out_gport, &out_count)) != BCM_E_PARAM) {
+        printf("Getting outbound port2+vlan2 mirror destination should have returned BCM_E_PARAM, but return value %d\n", rv);
+        return BCM_E_FAIL;
+    }
+    if ((rv = bcm_mirror_port_vlan_dest_get(unit, port3, vlan3, BCM_MIRROR_PORT_EGRESS, 1, &out_gport, &out_count)) != BCM_E_PARAM) {
+        printf("Getting outbound port3+vlan3 mirror destination should have returned BCM_E_PARAM, but return value %d\n", rv);
+        return BCM_E_FAIL;
+    }
+
+    /* cleanup - delete the created mirror destinations */
+    if (rv = bcm_mirror_destination_destroy(unit, mirr_dest1)) {
+        printf("could not destroy mirr_dest1, return value %d\n", rv);
+        return rv;
+    }
+    if (rv = bcm_mirror_destination_destroy(unit, mirr_dest2)) {
+        printf("could not destroy mirr_dest2, return value %d\n", rv);
+        return rv;
+    }
+
+    /* test reserving mirroring resources (reassembly context and recycle channel) for ports */
+
+    BCM_GPORT_MIRROR_SET(mirr_dest1, 0);
+    for (i = 0; i < found_ports_num; ++i ) {
+        if (i & 1 ) {
+            BCM_GPORT_LOCAL_SET(port1, found_ports[i]);
+        } else {
+            BCM_GPORT_MODPORT_SET(port1, modid, found_ports[i]);
+        }
+        bcm_mirror_port_dest_delete_all(unit, port1, BCM_MIRROR_PORT_EGRESS_ACL); /* do not check failure */
+        if ((rv = bcm_mirror_port_dest_get(unit, port1, BCM_MIRROR_PORT_EGRESS_ACL, 1, &out_gport, &out_count)) != BCM_E_NONE || out_count) {
+            printf("failed making sure that mirroring resources for port %d are not initially reserved\n", found_ports[i]);
+            return BCM_E_FAIL;
+        }
+    }
+    for (i = 0; i < found_ports_num; ++i ) {
+        if (i & 1 ) {
+            BCM_GPORT_MODPORT_SET(port1, modid, found_ports[i]);
+        } else {
+            BCM_GPORT_LOCAL_SET(port1, found_ports[i]);
+        }
+        if ((rv = bcm_mirror_port_dest_add(unit, port1, BCM_MIRROR_PORT_EGRESS_ACL, i)) != BCM_E_NONE) {
+            printf("failed reserving mirroring resources for port %d\n", found_ports[i]);
+            return rv;
+        } else if ((rv = bcm_mirror_port_dest_get(unit, port1, BCM_MIRROR_PORT_EGRESS_ACL, 1, &out_gport, &out_count))
+                   != BCM_E_NONE || out_count != 1 || out_gport != mirr_dest1) {
+            printf("failed making sure that mirroring resources for port %d are reserved\n", found_ports[i]);
+            return BCM_E_FAIL;
+        }
+    }
+    for (i = 0; i < found_ports_num; ++i ) {
+        if (i & 1 ) {
+            BCM_GPORT_LOCAL_SET(port1, found_ports[i]);
+        } else {
+            BCM_GPORT_MODPORT_SET(port1, modid, found_ports[i]);
+        }
+        if ((rv = bcm_mirror_port_dest_delete(unit, port1, BCM_MIRROR_PORT_EGRESS_ACL, found_ports_num-i)) != BCM_E_NONE) {
+            printf("failed un-reserving mirroring resources for port %d\n", found_ports[i]);
+            return rv;
+        } else if ((rv = bcm_mirror_port_dest_get(unit, port1, BCM_MIRROR_PORT_EGRESS_ACL, 1, &out_gport, &out_count))
+                   != BCM_E_NONE || out_count) {
+            printf("failed making sure that mirroring resources for port %d were un-reserved\n", found_ports[i]);
+            return BCM_E_FAIL;
+        } else if ((rv = bcm_mirror_port_dest_add(unit, port1, BCM_MIRROR_PORT_EGRESS_ACL, port1+i)) != BCM_E_NONE) {
+            printf("failed reserving (again) mirroring resources for port %d\n", found_ports[i]);
+            return rv;
+        } else if ((rv = bcm_mirror_port_dest_get(unit, port1, BCM_MIRROR_PORT_EGRESS_ACL, 1, &out_gport, &out_count))
+                   != BCM_E_NONE || out_count != 1 || out_gport != mirr_dest1) {
+            printf("failed making sure (again) that mirroring resources for port %d are reserved\n", found_ports[i]);
+            return BCM_E_FAIL;
+        } else if ((rv = bcm_mirror_port_dest_delete_all(unit, port1, BCM_MIRROR_PORT_EGRESS_ACL)) != BCM_E_NONE) {
+            printf("failed un-reserving (again) mirroring resources for port %d\n", found_ports[i]);
+            return rv;
+        } else if ((rv = bcm_mirror_port_dest_get(unit, port1, BCM_MIRROR_PORT_EGRESS_ACL, 1, &out_gport, &out_count))
+                   != BCM_E_NONE || out_count) {
+            printf("failed making sure that mirroring resources for port %d were un-reserved\n", found_ports[i]);
+            return BCM_E_FAIL;
+        }
+    }
+
+    return BCM_E_NONE;
+}
+
+
+
+/**
+ * 
+ * 
+ * @author sinai (04/05/2014)
+ * 
+ * @param unit 
+ * @param seed - used for randomization 
+ * 
+ * @return int 
+ */
+int mirror_destinations_arad_test_erspan(int unit, int seed) {
+    bcm_mirror_destination_t dest = {0};
+    int found_ports_num, found_ports[4];
+    int intf_id;
+    bcm_gport_t tunnel_gport;
+    int rv;
+    bcm_tunnel_initiator_t erspan_tunnel;
+    bcm_l3_intf_t intf;
+    bcm_mac_t next_hop_mac  = {0x00, 0x00, 0x00, 0x00, 0xcd, 0x1d}; /* next_hop_mac1 */
+    int span_id;
+    int mirror_dest_id;
+    int mirror_gport;
+    int tunnel_id;
+
+
+    sal_srand(seed);
+    printf("Randomizing with seed %d\n",seed);
+
+    rv = get_n_ports(unit, 4, found_ports, &found_ports_num);
+    if (rv) {
+        printf("failed to get ports for the test\n");
+        return rv;
+    } else if (found_ports_num < 2) {
+        printf("found only %d ports for the test which is not enough\n", found_ports_num);
+        return BCM_E_FAIL;
+    }
+
+    rv = ipv4_tunnel_build_tunnels_erspan(unit, found_ports[2], &intf_id, &tunnel_gport, next_hop_mac);
+    if (rv != BCM_E_NONE) {
+        printf("Error, ipv4_tunnel_add_routes, in_port=%d, \n", in_port);
+    }
+
+    int in_vlan = sal_rand() % 4095 +1;
+    rv = l2_open_vlan_with_port(unit, in_vlan, found_ports[0]);
+    if(rv != BCM_E_NONE){
+            printf("failed to add inbound in_port+vlan1 to be mirrored to mirr_dest2, return value %d\n", rv);
+       return rv;
+   }
+
+
+    rv = l2_open_vlan_with_port(unit, in_vlan,  found_ports[1]);
+    if(rv != BCM_E_NONE){
+            printf("failed to add inbound out_port+vlan1 to be mirrored to mirr_dest2, return value %d\n", rv);
+       return rv;
+   }  
+
+
+
+    /* Step 1: build ERSPAN tunnel */
+    bcm_tunnel_initiator_t_init(&erspan_tunnel);
+    bcm_l3_intf_t_init(&intf);
+    /* span info */
+    erspan_tunnel.type       = bcmTunnelTypeErspan;
+    span_id = sal_rand() % 0x400; /*span ID is a 10 bit field */
+    erspan_tunnel.span_id    = span_id;
+    erspan_tunnel.l3_intf_id = intf_id;/* points to ip tunnel */
+    /* set tunnel_idto control which outlif to set the span tunnel
+       BCM_GPORT_TUNNEL_ID_SET(erspan_tunnel.tunnel_id,0x5000);
+    */
+    rv = bcm_tunnel_initiator_create(unit, &intf, &erspan_tunnel);
+    if(rv != BCM_E_NONE) {
+        printf("Error, create tunnel initiator \n");
+        return rv;
+    }
+
+
+    /* if mirror desination is Multicast:
+     * then set dest.gport using BCM_GPORT_MCAST_SET 
+     * and that's all. 
+     *  
+     * if mirror destination is Unicast, set encap-id 
+     */
+    /*  */
+    dest.flags = BCM_MIRROR_DEST_TUNNEL_WITH_ENCAP_ID;
+    tunnel_id = erspan_tunnel.tunnel_id;
+    dest.encap_id = BCM_GPORT_TUNNEL_ID_GET(erspan_tunnel.tunnel_id); 
+
+    /* Step 2: set Mirror destination */
+    dest.gport = found_ports[2]; /* dest port*/
+
+     if (rv = bcm_mirror_destination_create(unit, &dest)) {
+        printf("failed to create mirror destination 1, return value %d\n", rv);
+        return rv;
+    }
+
+     /* Step 3: Get the tunnel*/
+     bcm_tunnel_initiator_t_init(&erspan_tunnel);
+     bcm_l3_intf_t_init(&intf);
+     /* span info */
+     intf.l3a_tunnel_idx = dest.encap_id;
+     rv = bcm_tunnel_initiator_get(unit,&intf,&erspan_tunnel);
+     if (rv != BCM_E_NONE) {
+         printf("failed bcm_tunnel_initiator_get %d\n", rv);
+         return rv;
+     }
+
+     if (erspan_tunnel.type != bcmTunnelTypeErspan) {
+         printf("bcm_tunnel_initiator_get did not return correct type");
+         return 1;
+     }
+
+     if (erspan_tunnel.span_id != span_id) {
+         printf("bcm_tunnel_initiator_get did not return correct span_id. Got: %d, expected %d\n", erspan_tunnel.span_id , span_id);
+         return 1;
+     }
+
+     mirror_dest_id = dest.mirror_dest_id;
+     mirror_gport = dest.gport;
+     bcm_mirror_destination_t_init(&dest);
+     if (rv = bcm_mirror_destination_get(unit, mirror_dest_id, &dest)) {
+         printf("failed to get mirror destination information, destination id %d, return value %d\n", i, rv);
+         return rv;
+     }
+
+     /* Step 4: update*/
+     bcm_tunnel_initiator_t_init(&erspan_tunnel);
+     bcm_l3_intf_t_init(&intf);
+     erspan_tunnel.type       = bcmTunnelTypeErspan;
+     span_id = sal_rand() % 0x400; /*span ID is a 10 bit field */
+     erspan_tunnel.span_id    = span_id; /*presumably this gives us a different ID */
+     erspan_tunnel.l3_intf_id = intf_id;/* points to ip tunnel */
+     erspan_tunnel.flags = BCM_TUNNEL_REPLACE |BCM_TUNNEL_WITH_ID;
+     erspan_tunnel.tunnel_id = tunnel_id;
+     /* Update the tunnel*/
+     rv = bcm_tunnel_initiator_create(unit, &intf, &erspan_tunnel);
+     if(rv != BCM_E_NONE) {
+         printf("Error, create tunnel initiator \n");
+         return rv;
+     }
+
+     /* Now the mirror*/
+    dest.flags = BCM_MIRROR_DEST_TUNNEL_WITH_ENCAP_ID | BCM_MIRROR_DEST_REPLACE | BCM_MIRROR_DEST_WITH_ID;
+    dest.encap_id = BCM_GPORT_TUNNEL_ID_GET(erspan_tunnel.tunnel_id); 
+    mirror_gport = dest.gport;
+    BCM_GPORT_MIRROR_SET(dest.mirror_dest_id, mirror_dest_id);
+    if (rv = bcm_mirror_destination_create(unit, &dest)) {
+       printf("failed to create mirror destination 1, return value %d\n", rv);
+       return rv;
+   }
+
+
+     /* Step 5: destroy the mirror then the tunnel*/
+    if (rv = bcm_mirror_destination_destroy(unit, mirror_dest_id)) {
+        printf("could not destroy mirror, return value %d\n", rv);
+        return rv;
+    }
+
+
+    intf.l3a_tunnel_idx =  erspan_tunnel.tunnel_id;
+    if (rv = bcm_tunnel_initiator_clear(unit,&intf)) {
+        printf("could not destroy mirror, return value %d\n", rv);
+        return rv;
+    }
+
+
+    /* Step 6: Create again WITH_ID to verify that the tunnel has been freed.*/
+    bcm_tunnel_initiator_t_init(&erspan_tunnel);
+    bcm_l3_intf_t_init(&intf);
+    /* span info */
+    erspan_tunnel.type       = bcmTunnelTypeErspan;
+    span_id = sal_rand() % 0x400; /*span ID is a 10 bit field*/
+    erspan_tunnel.span_id    = span_id;
+    erspan_tunnel.l3_intf_id = intf_id;/* points to ip tunnel */
+    /* set tunnel_idto control which outlif to set the span tunnel
+       BCM_GPORT_TUNNEL_ID_SET(erspan_tunnel.tunnel_id,0x5000);
+    */
+    erspan_tunnel.flags = BCM_TUNNEL_WITH_ID;
+    erspan_tunnel.tunnel_id = tunnel_id;
+    rv = bcm_tunnel_initiator_create(unit, &intf, &erspan_tunnel);
+    if(rv != BCM_E_NONE) {
+        printf("Error, create tunnel initiator \n");
+        return rv;
+    }
+
+    return BCM_E_NONE;
+}
+
+
+/**
+ * 
+ * 
+ * @author sinai (04/05/2014)
+ * 
+ * @param unit 
+ * @param seed 
+ * 
+ * @return int 
+ */
+int mirror_destinations_arad_test_rspan(int unit, int seed) {
+    bcm_mirror_destination_t dest = {0};
+    int found_ports_num, found_ports[4];
+    int intf_id;
+    bcm_gport_t tunnel_gport;
+    int rv;
+    bcm_tunnel_initiator_t rspan_tunnel;
+    bcm_mac_t dummy_mac_address  = {0x00, 0x00, 0x00, 0x00, 0xcd, 0x1d}; /* next_hop_mac1 */
+    int span_id;
+    int mirror_dest_id;
+    int interf;
+    int mirror_gport, tunnel_id;
+    int new_vlan;
+    bcm_l3_intf_t intf;
+    int tpid,pkt_pri;
+
+
+    sal_srand(seed);
+    printf("Randomizing with seed %d\n",seed);
+
+    rv = get_n_ports(unit, 4, found_ports, &found_ports_num);
+    if (rv) {
+        printf("failed to get ports for the test\n");
+        return rv;
+    } else if (found_ports_num < 2) {
+        printf("found only %d ports for the test which is not enough\n", found_ports_num);
+        return BCM_E_FAIL;
+    }
+
+    /* open in_vlan and attach in_port to it */
+    int in_vlan = sal_rand() % 4095 +1;
+
+     rv = l2_open_vlan_with_port(unit, in_vlan, found_ports[0]);
+     if(rv != BCM_E_NONE){
+             printf("failed to add inbound in_port+in_vlan to be mirrored to mirr_dest2, return value %d\n", rv);
+        return rv;
+    }
+
+    rv = l2_open_vlan_with_port(unit, in_vlan, found_ports[1]);
+     if(rv != BCM_E_NONE){
+             printf("failed to add inbound in_port+in_vlan to be mirrored to mirr_dest2, return value %d\n", rv);
+        return rv;
+    }
+
+     new_vlan = sal_rand() % 4095 +1;
+    /* build interface with new-vlan (RSPAN-vlan) */
+     rv = create_l3_intf(unit,0/*flags*/,1/*open-vlan*/,found_ports[3],new_vlan,0,dummy_mac_address, &interf); 
+     if(rv != BCM_E_NONE){
+             printf("failed to open RIF %d\n", rv);
+        return rv;
+    }
+
+     bcm_tunnel_initiator_t_init(&rspan_tunnel);
+
+     rspan_tunnel.type       = bcmTunnelTypeRspan;
+    tpid = sal_rand() % 0xff;
+    pkt_pri = sal_rand() % 0x7; 
+    rspan_tunnel.vlan = new_vlan;
+    rspan_tunnel.tpid = tpid;
+    rspan_tunnel.pkt_pri = pkt_pri;
+
+     /* set tunnel_id to control which outlif to set the span tunnel
+        BCM_GPORT_TUNNEL_ID_SET(rspan_tunnel.tunnel_id,0x5000);
+     */
+     rv = bcm_tunnel_initiator_create(unit, &intf, &rspan_tunnel);
+     if(rv != BCM_E_NONE){
+             printf("failed to open RIF %d\n", rv);
+        return rv;
+    }
+
+     tunnel_id = rspan_tunnel.tunnel_id;
+
+     /*
+       * if mirror destination is Unicast, set encap-id 
+       */
+     dest.flags = BCM_MIRROR_DEST_TUNNEL_WITH_ENCAP_ID;
+     dest.encap_id = BCM_GPORT_TUNNEL_ID_GET(rspan_tunnel.tunnel_id);
+
+     /* 2. set Mirror destination */
+     dest.gport = found_ports[2]; /* dest port*/
+
+  /* create the destination */
+    if (rv = bcm_mirror_destination_create(unit, &dest)) {
+        printf("failed to create mirror destination 1, return value %d\n", rv);
+        return rv;
+    }
+    mirror_dest_id = dest.mirror_dest_id;
+
+
+    bcm_tunnel_initiator_t_init(&rspan_tunnel);
+    bcm_l3_intf_t_init(&intf);
+    /* span info */
+    intf.l3a_tunnel_idx = dest.encap_id;
+    rv = bcm_tunnel_initiator_get(unit,&intf,&rspan_tunnel);
+    if (rv != BCM_E_NONE) {
+        printf("failed bcm_tunnel_initiator_get %d\n", rv);
+        return rv;
+    }
+
+    if (rspan_tunnel.type != bcmTunnelTypeRspan) {
+        printf("bcm_tunnel_initiator_get did not return correct type");
+        return 1;
+    }
+
+    if (rspan_tunnel.vlan != new_vlan) {
+        printf("bcm_tunnel_initiator_get did not return correct vlan. Got: %d, expected %d\n", rspan_tunnel.vlan ,new_vlan);
+        return 1;
+    }
+
+    if (rspan_tunnel.tpid != tpid) {
+        printf("bcm_tunnel_initiator_get did not return correct tpid. Got: %d, expected %d\n", rspan_tunnel.tpid, tpid);
+        return 1;
+    }
+
+    if (rspan_tunnel.pkt_pri != pkt_pri) {
+        printf("bcm_tunnel_initiator_get did not return correct pkt_pri. Got: %d, expected %d\n", rspan_tunnel.pkt_pri, pkt_pri);
+        return 1;
+    }
+
+    /* 3. Update the tunnel, mirror*/
+    bcm_tunnel_initiator_t_init(&rspan_tunnel);
+    bcm_l3_intf_t_init(&intf);
+    rspan_tunnel.type       = bcmTunnelTypeRspan;
+    rspan_tunnel.flags = BCM_TUNNEL_REPLACE | BCM_TUNNEL_WITH_ID;
+    rspan_tunnel.tunnel_id = tunnel_id;
+    tpid = sal_rand() % 0xff;
+    pkt_pri = sal_rand() % 0xe;
+    rspan_tunnel.vlan = new_vlan;
+    rspan_tunnel.tpid = tpid;
+    rspan_tunnel.pkt_pri = pkt_pri; 
+
+    /* Update the tunnel*/
+    rv = bcm_tunnel_initiator_create(unit, &intf, &rspan_tunnel);
+    if(rv != BCM_E_NONE) {
+        printf("Error, create tunnel initiator \n");
+        return rv;
+    }
+
+    /* Now the mirror*/
+   dest.flags = BCM_MIRROR_DEST_TUNNEL_WITH_ENCAP_ID | BCM_MIRROR_DEST_REPLACE | BCM_MIRROR_DEST_WITH_ID;
+   dest.encap_id = BCM_GPORT_TUNNEL_ID_GET(rspan_tunnel.tunnel_id); 
+   mirror_gport = dest.gport;
+   BCM_GPORT_MIRROR_SET(dest.mirror_dest_id, mirror_dest_id);
+   if (rv = bcm_mirror_destination_create(unit, &dest)) {
+      printf("failed to create mirror destination 1, return value %d\n", rv);
+      return rv;
+  }
+
+
+    /* Delete the mirror*/
+    if (rv = bcm_mirror_destination_destroy(unit, mirror_dest_id)) {
+        printf("could not destroy mirror, return value %d\n", rv);
+        return rv;
+    }
+
+    intf.l3a_tunnel_idx =  rspan_tunnel.tunnel_id;
+    if (rv = bcm_tunnel_initiator_clear(unit,&intf)) {
+        printf("could not destroy mirror, return value %d\n", rv);
+        return rv;
+    }
+
+    /* Create teh tunnel again to verify that it was correctly freed*/
+    bcm_tunnel_initiator_t_init(&rspan_tunnel);
+    bcm_l3_intf_t_init(&intf);
+    /* span info */
+    rspan_tunnel.type       = bcmTunnelTypeRspan;
+    rspan_tunnel.flags = BCM_TUNNEL_WITH_ID;
+    rspan_tunnel.tunnel_id = tunnel_id;
+    rspan_tunnel.vlan = new_vlan;
+    rspan_tunnel.tpid = tpid;
+    rspan_tunnel.pkt_pri = pkt_pri; 
+
+
+    rv = bcm_tunnel_initiator_create(unit, &intf, &rspan_tunnel);
+    if(rv != BCM_E_NONE) {
+        printf("Error, create tunnel initiator \n");
+        return rv;
+    }
+
+
+    /* clear and go home!*/
+    intf.l3a_tunnel_idx = rspan_tunnel.tunnel_id;
+    if (rv = bcm_tunnel_initiator_clear(unit,&intf)) {
+        printf("could not destroy mirror, return value %d\n", rv);
+        return rv;
+    }
+
+    return BCM_E_NONE;
+}

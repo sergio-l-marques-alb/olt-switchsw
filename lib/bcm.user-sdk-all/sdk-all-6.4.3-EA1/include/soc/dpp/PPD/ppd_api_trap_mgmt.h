@@ -1,0 +1,963 @@
+/* $Id: ppd_api_trap_mgmt.h,v 1.24 Broadcom SDK $
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+*/
+/******************************************************************
+*
+* FILENAME:       DuneDriver/ppd/include/soc_ppd_api_trap_mgmt.h
+*
+* MODULE PREFIX:  soc_ppd_api_trap_mgmt
+*
+* FILE DESCRIPTION:
+*
+* REMARKS:
+* SW License Agreement: Dune Networks (c). CONFIDENTIAL PROPRIETARY INFORMATION.
+* Any use of this Software is subject to Software License Agreement
+* included in the Driver User Manual of this device.
+* Any use of this Software constitutes an agreement to the terms
+* of the above Software License Agreement.
+******************************************************************/
+
+#ifndef __SOC_PPD_API_TRAP_MGMT_INCLUDED__
+/* { */
+#define __SOC_PPD_API_TRAP_MGMT_INCLUDED__
+
+/*************
+ * INCLUDES  *
+ *************/
+/* { */
+
+#include <soc/dpp/SAND/Utils/sand_header.h>
+
+#include <soc/dpp/SAND/Management/sand_general_macros.h>
+#include <soc/dpp/SAND/Management/sand_error_code.h>
+
+#include <soc/dpp/PPD/ppd_api_framework.h>
+#include <soc/dpp/PPC/ppc_api_trap_mgmt.h>
+
+
+#include <soc/dpp/PPD/ppd_api_general.h>
+#include <soc/dpp/PPD/ppd_api_frwrd_mact.h>
+
+/* } */
+/*************
+ * DEFINES   *
+ *************/
+/* { */
+/*     Value used to assign discard action to trapped packet.
+ *     Use as detailed in the APIs refering to this definition. */
+#define  SOC_PPD_TRAP_ACTION_PKT_DISCARD_ID (SOC_PPC_TRAP_ACTION_PKT_DISCARD_ID)
+
+/*     Value used to disable egress trap.
+ *     Use as detailed in the APIs refering to this definition. */
+#define  SOC_PPD_TRAP_EG_NO_ACTION       (SOC_PPC_TRAP_EG_NO_ACTION)
+
+/* Maximum buffer size for events. */
+#define  SOC_PPD_TRAP_EVENT_BUFF_MAX_SIZE       (SOC_PPC_TRAP_EVENT_BUFF_MAX_SIZE)
+
+
+
+/* } */
+/*************
+ * MACROS    *
+ *************/
+/* { */
+
+/* } */
+/*************
+ * TYPE DEFS *
+ *************/
+/* { */
+typedef enum
+{
+  /*
+   * Auto generated. Do not edit following section {
+   */
+  SOC_PPD_TRAP_FRWRD_PROFILE_INFO_SET = SOC_PPD_PROC_DESC_BASE_TRAP_MGMT_FIRST,
+  SOC_PPD_TRAP_FRWRD_PROFILE_INFO_SET_PRINT,
+  SOC_PPD_TRAP_FRWRD_PROFILE_INFO_GET,
+  SOC_PPD_TRAP_FRWRD_PROFILE_INFO_GET_PRINT,
+  SOC_PPD_TRAP_SNOOP_PROFILE_INFO_SET,
+  SOC_PPD_TRAP_SNOOP_PROFILE_INFO_SET_PRINT,
+  SOC_PPD_TRAP_SNOOP_PROFILE_INFO_GET,
+  SOC_PPD_TRAP_SNOOP_PROFILE_INFO_GET_PRINT,
+  SOC_PPD_TRAP_TO_EG_ACTION_MAP_SET,
+  SOC_PPD_TRAP_TO_EG_ACTION_MAP_SET_PRINT,
+  SOC_PPD_TRAP_TO_EG_ACTION_MAP_GET,
+  SOC_PPD_TRAP_TO_EG_ACTION_MAP_GET_PRINT,
+  SOC_PPD_TRAP_EG_PROFILE_INFO_SET,
+  SOC_PPD_TRAP_EG_PROFILE_INFO_SET_PRINT,
+  SOC_PPD_TRAP_EG_PROFILE_INFO_GET,
+  SOC_PPD_TRAP_EG_PROFILE_INFO_GET_PRINT,
+  SOC_PPD_TRAP_MACT_EVENT_GET,
+  SOC_PPD_TRAP_MACT_EVENT_GET_PRINT,
+  SOC_PPD_TRAP_MACT_EVENT_PARSE,
+  SOC_PPD_TRAP_MACT_EVENT_PARSE_PRINT,
+  SOC_PPD_TRAP_PACKET_PARSE,
+  SOC_PPD_TRAP_PACKET_PARSE_PRINT,
+  SOC_PPD_TRAP_MGMT_GET_PROCS_PTR,
+  /*
+   * } Auto generated. Do not edit previous section.
+   */
+  /*
+   * Last element. Do no touch.
+   */
+  SOC_PPD_TRAP_MGMT_PROCEDURE_DESC_LAST
+} SOC_PPD_TRAP_MGMT_PROCEDURE_DESC;
+
+#define SOC_PPD_TRAP_SNOOP_ACTION_SIZE_64B                     SOC_PPC_TRAP_SNOOP_ACTION_SIZE_64B
+#define SOC_PPD_TRAP_SNOOP_ACTION_SIZE_128B                    SOC_PPC_TRAP_SNOOP_ACTION_SIZE_128B
+#define SOC_PPD_TRAP_SNOOP_ACTION_SIZE_FULL_PACKET             SOC_PPC_TRAP_SNOOP_ACTION_SIZE_FULL_PACKET
+typedef SOC_PPC_TRAP_SNOOP_ACTION_SIZE                         SOC_PPD_TRAP_SNOOP_ACTION_SIZE;
+
+#define SOC_PPD_TRAP_ACTION_PROFILE_OVERWRITE_NONE             SOC_PPC_TRAP_ACTION_PROFILE_OVERWRITE_NONE
+#define SOC_PPD_TRAP_ACTION_PROFILE_OVERWRITE_DEST             SOC_PPC_TRAP_ACTION_PROFILE_OVERWRITE_DEST
+#define SOC_PPD_TRAP_ACTION_PROFILE_OVERWRITE_TC               SOC_PPC_TRAP_ACTION_PROFILE_OVERWRITE_TC
+#define SOC_PPD_TRAP_ACTION_PROFILE_OVERWRITE_DP               SOC_PPC_TRAP_ACTION_PROFILE_OVERWRITE_DP
+#define SOC_PPD_TRAP_ACTION_PROFILE_OVERWRITE_POLICER          SOC_PPC_TRAP_ACTION_PROFILE_OVERWRITE_POLICER
+#define SOC_PPD_TRAP_ACTION_PROFILE_OVERWRITE_FRWRD_OFFSET     SOC_PPC_TRAP_ACTION_PROFILE_OVERWRITE_FRWRD_OFFSET
+#define SOC_PPD_TRAP_ACTION_PROFILE_OVERWRITE_CUD              SOC_PPC_TRAP_ACTION_PROFILE_OVERWRITE_CUD
+#define SOC_PPD_TRAP_ACTION_PROFILE_OVERWRITE_DP_METER_CMD     SOC_PPC_TRAP_ACTION_PROFILE_OVERWRITE_DP_METER_CMD
+#define SOC_PPD_TRAP_ACTION_PROFILE_OVERWRITE_ALL              SOC_PPC_TRAP_ACTION_PROFILE_OVERWRITE_ALL
+typedef SOC_PPC_TRAP_ACTION_PROFILE_OVERWRITE                  SOC_PPD_TRAP_ACTION_PROFILE_OVERWRITE;
+
+#define SOC_PPD_TRAP_MACT_EVENT_TYPE_NONE                      SOC_PPC_TRAP_MACT_EVENT_TYPE_NONE
+#define SOC_PPD_TRAP_MACT_EVENT_TYPE_AGED_OUT                  SOC_PPC_TRAP_MACT_EVENT_TYPE_AGED_OUT
+#define SOC_PPD_TRAP_MACT_EVENT_TYPE_LEARN                     SOC_PPC_TRAP_MACT_EVENT_TYPE_LEARN
+#define SOC_PPD_TRAP_MACT_EVENT_TYPE_TRANSPLANT                SOC_PPC_TRAP_MACT_EVENT_TYPE_TRANSPLANT
+#define SOC_PPD_TRAP_MACT_EVENT_TYPE_REFRESH                   SOC_PPC_TRAP_MACT_EVENT_TYPE_REFRESH
+#define SOC_PPD_TRAP_MACT_EVENT_TYPE_ACK                       SOC_PPC_TRAP_MACT_EVENT_TYPE_ACK
+#define SOC_PPD_TRAP_MACT_EVENT_TYPE_RETRIEVE                  SOC_PPC_TRAP_MACT_EVENT_TYPE_RETRIEVE
+#define SOC_PPD_TRAP_MACT_EVENT_TYPE_LIMIT_EXCEED              SOC_PPC_TRAP_MACT_EVENT_TYPE_LIMIT_EXCEED
+#define SOC_PPD_TRAP_MACT_EVENT_TYPE_CPU_REQ_FAIL              SOC_PPC_TRAP_MACT_EVENT_TYPE_CPU_REQ_FAIL
+typedef SOC_PPC_TRAP_MACT_EVENT_TYPE                           SOC_PPD_TRAP_MACT_EVENT_TYPE;
+
+#define SOC_PPD_TRAP_CODE_PBP_SA_DROP_0                        SOC_PPC_TRAP_CODE_PBP_SA_DROP_0
+#define SOC_PPD_TRAP_CODE_PBP_SA_DROP_1                        SOC_PPC_TRAP_CODE_PBP_SA_DROP_1
+#define SOC_PPD_TRAP_CODE_PBP_SA_DROP_2                        SOC_PPC_TRAP_CODE_PBP_SA_DROP_2
+#define SOC_PPD_TRAP_CODE_PBP_SA_DROP_3                        SOC_PPC_TRAP_CODE_PBP_SA_DROP_3
+#define SOC_PPD_TRAP_CODE_PBP_TE_TRANSPLANT                    SOC_PPC_TRAP_CODE_PBP_TE_TRANSPLANT
+#define SOC_PPD_TRAP_CODE_PBP_TE_UNKNOWN_TUNNEL                SOC_PPC_TRAP_CODE_PBP_TE_UNKNOWN_TUNNEL
+#define SOC_PPD_TRAP_CODE_PBP_TRANSPLANT                       SOC_PPC_TRAP_CODE_PBP_TRANSPLANT
+#define SOC_PPD_TRAP_CODE_PBP_LEARN_SNOOP                      SOC_PPC_TRAP_CODE_PBP_LEARN_SNOOP
+#define SOC_PPD_TRAP_CODE_SA_AUTHENTICATION_FAILED             SOC_PPC_TRAP_CODE_SA_AUTHENTICATION_FAILED
+#define SOC_PPD_TRAP_CODE_PORT_NOT_PERMITTED                   SOC_PPC_TRAP_CODE_PORT_NOT_PERMITTED
+#define SOC_PPD_TRAP_CODE_UNEXPECTED_VID                       SOC_PPC_TRAP_CODE_UNEXPECTED_VID
+#define SOC_PPD_TRAP_CODE_SA_MULTICAST                         SOC_PPC_TRAP_CODE_SA_MULTICAST
+#define SOC_PPD_TRAP_CODE_SA_EQUALS_DA                         SOC_PPC_TRAP_CODE_SA_EQUALS_DA
+#define SOC_PPD_TRAP_CODE_8021X                                SOC_PPC_TRAP_CODE_8021X
+#define SOC_PPD_TRAP_CODE_ACCEPTABLE_FRAME_TYPE_DROP           SOC_PPC_TRAP_CODE_ACCEPTABLE_FRAME_TYPE_DROP
+#define SOC_PPD_TRAP_CODE_ACCEPTABLE_FRAME_TYPE_ACCEPT         SOC_PPC_TRAP_CODE_ACCEPTABLE_FRAME_TYPE_ACCEPT
+#define SOC_PPD_TRAP_CODE_MY_ARP                               SOC_PPC_TRAP_CODE_MY_ARP
+#define SOC_PPD_TRAP_CODE_ARP                                  SOC_PPC_TRAP_CODE_ARP
+#define SOC_PPD_TRAP_CODE_IGMP_MEMBERSHIP_QUERY                SOC_PPC_TRAP_CODE_IGMP_MEMBERSHIP_QUERY
+#define SOC_PPD_TRAP_CODE_IGMP_REPORT_LEAVE_MSG                SOC_PPC_TRAP_CODE_IGMP_REPORT_LEAVE_MSG
+#define SOC_PPD_TRAP_CODE_IGMP_UNDEFINED                       SOC_PPC_TRAP_CODE_IGMP_UNDEFINED
+#define SOC_PPD_TRAP_CODE_ICMPV6_MLD_MC_LISTENER_QUERY         SOC_PPC_TRAP_CODE_ICMPV6_MLD_MC_LISTENER_QUERY
+#define SOC_PPD_TRAP_CODE_RESERVED_MC_0                        SOC_PPC_TRAP_CODE_RESERVED_MC_0
+#define SOC_PPD_TRAP_CODE_RESERVED_MC_7                        SOC_PPC_TRAP_CODE_RESERVED_MC_7
+#define SOC_PPD_TRAP_CODE_ICMPV6_MLD_REPORT_DONE_MSG           SOC_PPC_TRAP_CODE_ICMPV6_MLD_REPORT_DONE_MSG
+#define SOC_PPD_TRAP_CODE_ICMPV6_MLD_UNDEFINED                 SOC_PPC_TRAP_CODE_ICMPV6_MLD_UNDEFINED
+#define SOC_PPD_TRAP_CODE_DHCP_SERVER                          SOC_PPC_TRAP_CODE_DHCP_SERVER
+#define SOC_PPD_TRAP_CODE_DHCP_CLIENT                          SOC_PPC_TRAP_CODE_DHCP_CLIENT
+#define SOC_PPD_TRAP_CODE_DHCPV6_SERVER                        SOC_PPC_TRAP_CODE_DHCPV6_SERVER
+#define SOC_PPD_TRAP_CODE_DHCPV6_CLIENT                        SOC_PPC_TRAP_CODE_DHCPV6_CLIENT
+#define SOC_PPD_TRAP_CODE_PROG_TRAP_0                          SOC_PPC_TRAP_CODE_PROG_TRAP_0
+#define SOC_PPD_TRAP_CODE_PROG_TRAP_3                          SOC_PPC_TRAP_CODE_PROG_TRAP_3
+#define SOC_PPD_TRAP_CODE_PORT_NOT_VLAN_MEMBER                 SOC_PPC_TRAP_CODE_PORT_NOT_VLAN_MEMBER
+#define SOC_PPD_TRAP_CODE_HEADER_SIZE_ERR                      SOC_PPC_TRAP_CODE_HEADER_SIZE_ERR
+#define SOC_PPD_TRAP_CODE_MY_B_MAC_AND_LEARN_NULL              SOC_PPC_TRAP_CODE_MY_B_MAC_AND_LEARN_NULL
+#define SOC_PPD_TRAP_CODE_MY_B_DA_UNKNOWN_I_SID                SOC_PPC_TRAP_CODE_MY_B_DA_UNKNOWN_I_SID
+#define SOC_PPD_TRAP_CODE_STP_STATE_BLOCK                      SOC_PPC_TRAP_CODE_STP_STATE_BLOCK
+#define SOC_PPD_TRAP_CODE_STP_STATE_LEARN                      SOC_PPC_TRAP_CODE_STP_STATE_LEARN
+#define SOC_PPD_TRAP_CODE_IP_COMP_MC_INVALID_IP                SOC_PPC_TRAP_CODE_IP_COMP_MC_INVALID_IP
+#define SOC_PPD_TRAP_CODE_MY_MAC_AND_IP_DISABLE                SOC_PPC_TRAP_CODE_MY_MAC_AND_IP_DISABLE
+#define SOC_PPD_TRAP_CODE_TRILL_VERSION                        SOC_PPC_TRAP_CODE_TRILL_VERSION
+#define SOC_PPD_TRAP_CODE_TRILL_INVALID_TTL                    SOC_PPC_TRAP_CODE_TRILL_INVALID_TTL
+#define SOC_PPD_TRAP_CODE_TRILL_CHBH                           SOC_PPC_TRAP_CODE_TRILL_CHBH
+#define SOC_PPD_TRAP_CODE_TRILL_NO_REVERSE_FEC                 SOC_PPC_TRAP_CODE_TRILL_NO_REVERSE_FEC
+#define SOC_PPD_TRAP_CODE_TRILL_CITE                           SOC_PPC_TRAP_CODE_TRILL_CITE
+#define SOC_PPD_TRAP_CODE_TRILL_ILLEGAL_INNER_MC               SOC_PPC_TRAP_CODE_TRILL_ILLEGAL_INNER_MC
+#define SOC_PPD_TRAP_CODE_MY_MAC_AND_MPLS_DISABLE              SOC_PPC_TRAP_CODE_MY_MAC_AND_MPLS_DISABLE
+#define SOC_PPD_TRAP_CODE_MY_MAC_AND_ARP                       SOC_PPC_TRAP_CODE_MY_MAC_AND_ARP
+#define SOC_PPD_TRAP_CODE_MY_MAC_AND_UNKNOWN_L3                SOC_PPC_TRAP_CODE_MY_MAC_AND_UNKNOWN_L3
+#define SOC_PPD_TRAP_CODE_MPLS_LABEL_VALUE_0                   SOC_PPC_TRAP_CODE_MPLS_LABEL_VALUE_0
+#define SOC_PPD_TRAP_CODE_MPLS_LABEL_VALUE_1                   SOC_PPC_TRAP_CODE_MPLS_LABEL_VALUE_1
+#define SOC_PPD_TRAP_CODE_MPLS_LABEL_VALUE_2                   SOC_PPC_TRAP_CODE_MPLS_LABEL_VALUE_2
+#define SOC_PPD_TRAP_CODE_MPLS_LABEL_VALUE_3                   SOC_PPC_TRAP_CODE_MPLS_LABEL_VALUE_3
+#define SOC_PPD_TRAP_CODE_MPLS_NO_RESOURCES                    SOC_PPC_TRAP_CODE_MPLS_NO_RESOURCES
+#define SOC_PPD_TRAP_CODE_MPLS_LSP_BOS                         SOC_PPC_TRAP_CODE_MPLS_LSP_BOS
+#define SOC_PPD_TRAP_CODE_MPLS_PWE_NO_BOS_LABEL_14             SOC_PPC_TRAP_CODE_MPLS_PWE_NO_BOS_LABEL_14
+#define SOC_PPD_TRAP_CODE_MPLS_PWE_NO_BOS                      SOC_PPC_TRAP_CODE_MPLS_PWE_NO_BOS
+#define SOC_PPD_TRAP_CODE_MPLS_VRF_NO_BOS                      SOC_PPC_TRAP_CODE_MPLS_VRF_NO_BOS
+#define SOC_PPD_TRAP_CODE_MPLS_TERM_TTL_0                      SOC_PPC_TRAP_CODE_MPLS_TERM_TTL_0
+#define SOC_PPD_TRAP_CODE_MPLS_TERM_CONTROL_WORD_TRAP          SOC_PPC_TRAP_CODE_MPLS_TERM_CONTROL_WORD_TRAP
+#define SOC_PPD_TRAP_CODE_MPLS_TERM_CONTROL_WORD_DROP          SOC_PPC_TRAP_CODE_MPLS_TERM_CONTROL_WORD_DROP
+#define SOC_PPD_TRAP_CODE_IPV4_TERM_SIP_EQUAL_DIP              SOC_PPC_TRAP_CODE_IPV4_TERM_SIP_EQUAL_DIP
+#define SOC_PPD_TRAP_CODE_IPV4_TERM_DIP_ZERO                   SOC_PPC_TRAP_CODE_IPV4_TERM_DIP_ZERO
+#define SOC_PPD_TRAP_CODE_IPV4_TERM_SIP_IS_MC                  SOC_PPC_TRAP_CODE_IPV4_TERM_SIP_IS_MC
+#define SOC_PPD_TRAP_CODE_CFM_ACCELERATED_INGRESS              SOC_PPC_TRAP_CODE_CFM_ACCELERATED_INGRESS
+#define SOC_PPD_TRAP_CODE_ILLEGEL_PFC                          SOC_PPC_TRAP_CODE_ILLEGEL_PFC
+#define SOC_PPD_TRAP_CODE_SA_DROP_0                            SOC_PPC_TRAP_CODE_SA_DROP_0
+#define SOC_PPD_TRAP_CODE_SA_DROP_1                            SOC_PPC_TRAP_CODE_SA_DROP_1
+#define SOC_PPD_TRAP_CODE_SA_DROP_2                            SOC_PPC_TRAP_CODE_SA_DROP_2
+#define SOC_PPD_TRAP_CODE_SA_DROP_3                            SOC_PPC_TRAP_CODE_SA_DROP_3
+#define SOC_PPD_TRAP_CODE_SA_NOT_FOUND_0                       SOC_PPC_TRAP_CODE_SA_NOT_FOUND_0
+#define SOC_PPD_TRAP_CODE_SA_NOT_FOUND_1                       SOC_PPC_TRAP_CODE_SA_NOT_FOUND_1
+#define SOC_PPD_TRAP_CODE_SA_NOT_FOUND_2                       SOC_PPC_TRAP_CODE_SA_NOT_FOUND_2
+#define SOC_PPD_TRAP_CODE_SA_NOT_FOUND_3                       SOC_PPC_TRAP_CODE_SA_NOT_FOUND_3
+#define SOC_PPD_TRAP_CODE_UNKNOWN_DA_0                         SOC_PPC_TRAP_CODE_UNKNOWN_DA_0
+#define SOC_PPD_TRAP_CODE_UNKNOWN_DA_1                         SOC_PPC_TRAP_CODE_UNKNOWN_DA_1
+#define SOC_PPD_TRAP_CODE_UNKNOWN_DA_2                         SOC_PPC_TRAP_CODE_UNKNOWN_DA_2
+#define SOC_PPD_TRAP_CODE_UNKNOWN_DA_3                         SOC_PPC_TRAP_CODE_UNKNOWN_DA_3
+#define SOC_PPD_TRAP_CODE_UNKNOWN_DA_4                         SOC_PPC_TRAP_CODE_UNKNOWN_DA_4
+#define SOC_PPD_TRAP_CODE_UNKNOWN_DA_5                         SOC_PPC_TRAP_CODE_UNKNOWN_DA_5
+#define SOC_PPD_TRAP_CODE_UNKNOWN_DA_6                         SOC_PPC_TRAP_CODE_UNKNOWN_DA_6
+#define SOC_PPD_TRAP_CODE_UNKNOWN_DA_7                         SOC_PPC_TRAP_CODE_UNKNOWN_DA_7
+#define SOC_PPD_TRAP_CODE_ELK_ERROR                            SOC_PPC_TRAP_CODE_ELK_ERROR
+#define SOC_PPD_TRAP_CODE_DA_NOT_FOUND_0                       SOC_PPC_TRAP_CODE_DA_NOT_FOUND_0
+#define SOC_PPD_TRAP_CODE_DA_NOT_FOUND_1                       SOC_PPC_TRAP_CODE_DA_NOT_FOUND_1
+#define SOC_PPD_TRAP_CODE_DA_NOT_FOUND_2                       SOC_PPC_TRAP_CODE_DA_NOT_FOUND_2
+#define SOC_PPD_TRAP_CODE_DA_NOT_FOUND_3                       SOC_PPC_TRAP_CODE_DA_NOT_FOUND_3
+#define SOC_PPD_TRAP_CODE_P2P_MISCONFIGURATION                 SOC_PPC_TRAP_CODE_P2P_MISCONFIGURATION
+#define SOC_PPD_TRAP_CODE_SAME_INTERFACE                       SOC_PPC_TRAP_CODE_SAME_INTERFACE
+#define SOC_PPD_TRAP_CODE_TRILL_UNKNOWN_UC                     SOC_PPC_TRAP_CODE_TRILL_UNKNOWN_UC
+#define SOC_PPD_TRAP_CODE_TRILL_UNKNOWN_MC                     SOC_PPC_TRAP_CODE_TRILL_UNKNOWN_MC
+#define SOC_PPD_TRAP_CODE_UC_LOOSE_RPF_FAIL                    SOC_PPC_TRAP_CODE_UC_LOOSE_RPF_FAIL
+#define SOC_PPD_TRAP_CODE_DEFAULT_UCV6                         SOC_PPC_TRAP_CODE_DEFAULT_UCV6
+#define SOC_PPD_TRAP_CODE_DEFAULT_MCV6                         SOC_PPC_TRAP_CODE_DEFAULT_MCV6
+#define SOC_PPD_TRAP_CODE_MPLS_P2P_NO_BOS                      SOC_PPC_TRAP_CODE_MPLS_P2P_NO_BOS
+#define SOC_PPD_TRAP_CODE_MPLS_CONTROL_WORD_TRAP               SOC_PPC_TRAP_CODE_MPLS_CONTROL_WORD_TRAP
+#define SOC_PPD_TRAP_CODE_MPLS_CONTROL_WORD_DROP               SOC_PPC_TRAP_CODE_MPLS_CONTROL_WORD_DROP
+#define SOC_PPD_TRAP_CODE_MPLS_UNKNOWN_LABEL                   SOC_PPC_TRAP_CODE_MPLS_UNKNOWN_LABEL
+#define SOC_PPD_TRAP_CODE_MPLS_P2P_MPLSX4                      SOC_PPC_TRAP_CODE_MPLS_P2P_MPLSX4
+#define SOC_PPD_TRAP_CODE_ETH_L2CP_PEER                        SOC_PPC_TRAP_CODE_ETH_L2CP_PEER
+#define SOC_PPD_TRAP_CODE_ETH_L2CP_DROP                        SOC_PPC_TRAP_CODE_ETH_L2CP_DROP
+#define SOC_PPD_TRAP_CODE_ETH_FL_IGMP_MEMBERSHIP_QUERY         SOC_PPC_TRAP_CODE_ETH_FL_IGMP_MEMBERSHIP_QUERY
+#define SOC_PPD_TRAP_CODE_ETH_FL_IGMP_REPORT_LEAVE_MSG         SOC_PPC_TRAP_CODE_ETH_FL_IGMP_REPORT_LEAVE_MSG
+#define SOC_PPD_TRAP_CODE_ETH_FL_IGMP_UNDEFINED                SOC_PPC_TRAP_CODE_ETH_FL_IGMP_UNDEFINED
+#define SOC_PPD_TRAP_CODE_ETH_FL_ICMPV6_MLD_MC_LISTENER_QUERY  SOC_PPC_TRAP_CODE_ETH_FL_ICMPV6_MLD_MC_LISTENER_QUERY
+#define SOC_PPD_TRAP_CODE_ETH_FL_ICMPV6_MLD_REPORT_DONE        SOC_PPC_TRAP_CODE_ETH_FL_ICMPV6_MLD_REPORT_DONE
+#define SOC_PPD_TRAP_CODE_ETH_FL_ICMPV6_MLD_UNDEFINED          SOC_PPC_TRAP_CODE_ETH_FL_ICMPV6_MLD_UNDEFINED
+#define SOC_PPD_TRAP_CODE_IPV4_VERSION_ERROR                   SOC_PPC_TRAP_CODE_IPV4_VERSION_ERROR
+#define SOC_PPD_TRAP_CODE_IPV4_CHECKSUM_ERROR                  SOC_PPC_TRAP_CODE_IPV4_CHECKSUM_ERROR
+#define SOC_PPD_TRAP_CODE_IPV4_HEADER_LENGTH_ERROR             SOC_PPC_TRAP_CODE_IPV4_HEADER_LENGTH_ERROR
+#define SOC_PPD_TRAP_CODE_IPV4_TOTAL_LENGTH_ERROR              SOC_PPC_TRAP_CODE_IPV4_TOTAL_LENGTH_ERROR
+#define SOC_PPD_TRAP_CODE_IPV4_TTL0                            SOC_PPC_TRAP_CODE_IPV4_TTL0
+#define SOC_PPD_TRAP_CODE_IPV4_HAS_OPTIONS                     SOC_PPC_TRAP_CODE_IPV4_HAS_OPTIONS
+#define SOC_PPD_TRAP_CODE_IPV4_TTL1                            SOC_PPC_TRAP_CODE_IPV4_TTL1
+#define SOC_PPD_TRAP_CODE_IPV4_SIP_EQUAL_DIP                   SOC_PPC_TRAP_CODE_IPV4_SIP_EQUAL_DIP
+#define SOC_PPD_TRAP_CODE_IPV4_DIP_ZERO                        SOC_PPC_TRAP_CODE_IPV4_DIP_ZERO
+#define SOC_PPD_TRAP_CODE_IPV4_SIP_IS_MC                       SOC_PPC_TRAP_CODE_IPV4_SIP_IS_MC
+#define SOC_PPD_TRAP_CODE_IPV4_TUNNEL_TERMINATION_AND_FRAGMENTED SOC_PPC_TRAP_CODE_IPV4_TUNNEL_TERMINATION_AND_FRAGMENTED
+#define SOC_PPD_TRAP_CODE_IPV6_VERSION_ERROR                   SOC_PPC_TRAP_CODE_IPV6_VERSION_ERROR
+#define SOC_PPD_TRAP_CODE_IPV6_HOP_COUNT0                      SOC_PPC_TRAP_CODE_IPV6_HOP_COUNT0
+#define SOC_PPD_TRAP_CODE_IPV6_HOP_COUNT1                      SOC_PPC_TRAP_CODE_IPV6_HOP_COUNT1
+#define SOC_PPD_TRAP_CODE_IPV6_UNSPECIFIED_DESTINATION         SOC_PPC_TRAP_CODE_IPV6_UNSPECIFIED_DESTINATION
+#define SOC_PPD_TRAP_CODE_IPV6_LOOPBACK_ADDRESS                SOC_PPC_TRAP_CODE_IPV6_LOOPBACK_ADDRESS
+#define SOC_PPD_TRAP_CODE_IPV6_MULTICAST_SOURCE                SOC_PPC_TRAP_CODE_IPV6_MULTICAST_SOURCE
+#define SOC_PPD_TRAP_CODE_IPV6_NEXT_HEADER_NULL                SOC_PPC_TRAP_CODE_IPV6_NEXT_HEADER_NULL
+#define SOC_PPD_TRAP_CODE_IPV6_UNSPECIFIED_SOURCE              SOC_PPC_TRAP_CODE_IPV6_UNSPECIFIED_SOURCE
+#define SOC_PPD_TRAP_CODE_IPV6_LOCAL_LINK_DESTINATION          SOC_PPC_TRAP_CODE_IPV6_LOCAL_LINK_DESTINATION
+#define SOC_PPD_TRAP_CODE_IPV6_LOCAL_SITE_DESTINATION          SOC_PPC_TRAP_CODE_IPV6_LOCAL_SITE_DESTINATION
+#define SOC_PPD_TRAP_CODE_IPV6_LOCAL_LINK_SOURCE               SOC_PPC_TRAP_CODE_IPV6_LOCAL_LINK_SOURCE
+#define SOC_PPD_TRAP_CODE_IPV6_LOCAL_SITE_SOURCE               SOC_PPC_TRAP_CODE_IPV6_LOCAL_SITE_SOURCE
+#define SOC_PPD_TRAP_CODE_IPV6_IPV4_COMPATIBLE_DESTINATION     SOC_PPC_TRAP_CODE_IPV6_IPV4_COMPATIBLE_DESTINATION
+#define SOC_PPD_TRAP_CODE_IPV6_IPV4_MAPPED_DESTINATION         SOC_PPC_TRAP_CODE_IPV6_IPV4_MAPPED_DESTINATION
+#define SOC_PPD_TRAP_CODE_IPV6_MULTICAST_DESTINATION           SOC_PPC_TRAP_CODE_IPV6_MULTICAST_DESTINATION
+#define SOC_PPD_TRAP_CODE_MPLS_TTL0                            SOC_PPC_TRAP_CODE_MPLS_TTL0
+#define SOC_PPD_TRAP_CODE_MPLS_TTL1                            SOC_PPC_TRAP_CODE_MPLS_TTL1
+#define SOC_PPD_TRAP_CODE_TCP_SN_FLAGS_ZERO                    SOC_PPC_TRAP_CODE_TCP_SN_FLAGS_ZERO
+#define SOC_PPD_TRAP_CODE_TCP_SN_ZERO_FLAGS_SET                SOC_PPC_TRAP_CODE_TCP_SN_ZERO_FLAGS_SET
+#define SOC_PPD_TRAP_CODE_TCP_SYN_FIN                          SOC_PPC_TRAP_CODE_TCP_SYN_FIN
+#define SOC_PPD_TRAP_CODE_TCP_EQUAL_PORTS                      SOC_PPC_TRAP_CODE_TCP_EQUAL_PORTS
+#define SOC_PPD_TRAP_CODE_TCP_FRAGMENT_INCOMPLETE_HEADER       SOC_PPC_TRAP_CODE_TCP_FRAGMENT_INCOMPLETE_HEADER
+#define SOC_PPD_TRAP_CODE_TCP_FRAGMENT_OFFSET_LT8              SOC_PPC_TRAP_CODE_TCP_FRAGMENT_OFFSET_LT8
+#define SOC_PPD_TRAP_CODE_UDP_EQUAL_PORTS                      SOC_PPC_TRAP_CODE_UDP_EQUAL_PORTS
+#define SOC_PPD_TRAP_CODE_ICMP_DATA_GT_576                     SOC_PPC_TRAP_CODE_ICMP_DATA_GT_576
+#define SOC_PPD_TRAP_CODE_ICMP_FRAGMENTED                      SOC_PPC_TRAP_CODE_ICMP_FRAGMENTED
+#define SOC_PPD_TRAP_CODE_FACILITY_INVALID                     SOC_PPC_TRAP_CODE_FACILITY_INVALID
+#define SOC_PPD_TRAP_CODE_FEC_ENTRY_ACCESSED                   SOC_PPC_TRAP_CODE_FEC_ENTRY_ACCESSED
+#define SOC_PPD_TRAP_CODE_UC_STRICT_RPF_FAIL                   SOC_PPC_TRAP_CODE_UC_STRICT_RPF_FAIL
+#define SOC_PPD_TRAP_CODE_MC_EXPLICIT_RPF_FAIL                 SOC_PPC_TRAP_CODE_MC_EXPLICIT_RPF_FAIL
+#define SOC_PPD_TRAP_CODE_MC_USE_SIP_AS_IS_RPF_FAIL            SOC_PPC_TRAP_CODE_MC_USE_SIP_AS_IS_RPF_FAIL
+#define SOC_PPD_TRAP_CODE_MC_USE_SIP_RPF_FAIL                  SOC_PPC_TRAP_CODE_MC_USE_SIP_RPF_FAIL
+#define SOC_PPD_TRAP_CODE_MC_USE_SIP_ECMP                      SOC_PPC_TRAP_CODE_MC_USE_SIP_ECMP
+#define SOC_PPD_TRAP_CODE_ICMP_REDIRECT                        SOC_PPC_TRAP_CODE_ICMP_REDIRECT
+#define SOC_PPD_TRAP_CODE_USER_OAMP                            SOC_PPC_TRAP_CODE_USER_OAMP
+#define SOC_PPD_TRAP_CODE_USER_MPLS_OAM_ACCELERATED            SOC_PPC_TRAP_CODE_USER_MPLS_OAM_ACCELERATED
+#define SOC_PPD_TRAP_CODE_USER_BFD_IP_OAM_TUNNEL_ACCELERATED   SOC_PPC_TRAP_CODE_USER_BFD_IP_OAM_TUNNEL_ACCELERATED
+#define SOC_PPD_TRAP_CODE_USER_BFD_PWE_OAM_ACCELERATED         SOC_PPC_TRAP_CODE_USER_BFD_PWE_OAM_ACCELERATED
+#define SOC_PPD_TRAP_CODE_USER_ETH_OAM_UP_ACCELERATED          SOC_PPC_TRAP_CODE_USER_ETH_OAM_UP_ACCELERATED
+/* arad only {*/
+#define SOC_PPD_TRAP_CODE_ETHER_IP_VERSION_ERROR                      SOC_PPC_TRAP_CODE_ETHER_IP_VERSION_ERROR
+#define SOC_PPD_TRAP_CODE_LIF_PROTECT_PATH_INVALID                    SOC_PPC_TRAP_CODE_LIF_PROTECT_PATH_INVALID
+#define SOC_PPD_TRAP_CODE_TRILL_NO_ADJACENT                           SOC_PPC_TRAP_CODE_TRILL_NO_ADJACENT
+#define SOC_PPD_TRAP_CODE_MPLS_UNEXPECTED_NO_BOS                      SOC_PPC_TRAP_CODE_MPLS_UNEXPECTED_NO_BOS
+#define SOC_PPD_TRAP_CODE_MPLS_UNEXPECTED_BOS                         SOC_PPC_TRAP_CODE_MPLS_UNEXPECTED_BOS
+#define SOC_PPD_TRAP_CODE_MPLS_TERM_TTL_1                             SOC_PPC_TRAP_CODE_MPLS_TERM_TTL_1
+#define SOC_PPD_TRAP_CODE_MY_B_MAC_MC_CONTINUE                        SOC_PPC_TRAP_CODE_MY_B_MAC_MC_CONTINUE
+#define SOC_PPD_TRAP_CODE_1588_PACKET_0                               SOC_PPC_TRAP_CODE_1588_PACKET_0
+#define SOC_PPD_TRAP_CODE_1588_PACKET_1                               SOC_PPC_TRAP_CODE_1588_PACKET_1
+#define SOC_PPD_TRAP_CODE_FCOE_SRC_SA_MISMATCH                        SOC_PPC_TRAP_CODE_FCOE_SRC_SA_MISMATCH
+#define SOC_PPD_TRAP_CODE_TRILL_DISABLE_BRIDGE_IF_DESIGNATED          SOC_PPC_TRAP_CODE_TRILL_DISABLE_BRIDGE_IF_DESIGNATED
+#define SOC_PPD_TRAP_CODE_TRAP_ETH_OAM                                SOC_PPC_TRAP_CODE_TRAP_ETH_OAM
+#define SOC_PPD_TRAP_CODE_TRAP_Y1731_O_MPLS_TP                        SOC_PPC_TRAP_CODE_TRAP_Y1731_O_MPLS_TP
+#define SOC_PPD_TRAP_CODE_TRAP_Y1731_O_PWE                            SOC_PPC_TRAP_CODE_TRAP_Y1731_O_PWE
+#define SOC_PPD_TRAP_CODE_TRAP_BFD_O_IPV4                             SOC_PPC_TRAP_CODE_TRAP_BFD_O_IPV4
+#define SOC_PPD_TRAP_CODE_TRAP_BFD_O_MPLS                             SOC_PPC_TRAP_CODE_TRAP_BFD_O_MPLS
+#define SOC_PPD_TRAP_CODE_TRAP_BFD_O_PWE                              SOC_PPC_TRAP_CODE_TRAP_BFD_O_PWE
+#define SOC_PPD_TRAP_CODE_TRAP_BFDCC_O_MPLS_TP                        SOC_PPC_TRAP_CODE_TRAP_BFDCC_O_MPLS_TP
+#define SOC_PPD_TRAP_CODE_TRAP_BFDCV_O_MPLS_TP                        SOC_PPC_TRAP_CODE_TRAP_BFDCV_O_MPLS_TP
+#define SOC_PPD_TRAP_CODE_OAM_LEVEL                                   SOC_PPC_TRAP_CODE_OAM_LEVEL
+#define SOC_PPD_TRAP_CODE_OAM_PASSIVE                                 SOC_PPC_TRAP_CODE_OAM_PASSIVE
+#define SOC_PPD_TRAP_CODE_ARP_FLP_FAIL                                SOC_PPC_TRAP_CODE_ARP_FLP_FAIL
+#define SOC_PPD_TRAP_CODE_FCOE_FCF_FLP_LOOKUP_FAIL                    SOC_PPC_TRAP_CODE_FCOE_FCF_FLP_LOOKUP_FAIL
+
+
+/* Reserved for OAM user defined Trap Codes */
+#define SOC_PPD_TRAP_CODE_OAM_CPU								      SOC_PPC_TRAP_CODE_OAM_CPU 
+#define SOC_PPD_TRAP_CODE_OAM_CPU_UP								  SOC_PPC_TRAP_CODE_OAM_CPU_UP
+#define SOC_PPD_TRAP_CODE_OAM_CPU_SNOOP    							  SOC_PPC_TRAP_CODE_OAM_CPU_SNOOP
+#define SOC_PPD_TRAP_CODE_OAM_RECYCLE    							  SOC_PPC_TRAP_CODE_OAM_RECYCLE
+#define SOC_PPD_TRAP_CODE_OAM_CPU_MIRROR							  SOC_PPC_TRAP_CODE_OAM_CPU_MIRROR
+#define SOC_PPD_TRAP_CODE_OAM_OAMP_MIRROR							  SOC_PPC_TRAP_CODE_OAM_OAMP_MIRROR
+#define SOC_PPD_TRAP_CODE_OAM_FTMH_MIRROR_TRAP_CODES_FIRST			  SOC_PPC_TRAP_CODE_OAM_FTMH_MIRROR_TRAP_CODES_FIRST
+#define SOC_PPD_TRAP_CODE_OAM_FTMH_MIRROR_TRAP_CODES_NUM	          SOC_PPC_TRAP_CODE_OAM_FTMH_MIRROR_TRAP_CODES_NUM
+#define SOC_PPD_TRAP_CODE_OAM_MIP_EGRESS_SNOOP_WITH_FTMH                           SOC_PPC_TRAP_CODE_OAM_MIP_EGRESS_SNOOP_WITH_FTMH
+
+/*return true iff given trap code is one of the FTMH_MIRROR_TRAP_CODEs*/
+#define SOC_PPD_TRAP_CODE_OAM_IS_FTMH_MIRROR      SOC_PPC_TRAP_CODE_OAM_IS_FTMH_MIRROR
+
+#define SOC_PPD_TRAP_CODE_OAM_RECYCLE_MIRROR						  SOC_PPC_TRAP_CODE_OAM_RECYCLE_MIRROR
+
+/* } */
+#define SOC_PPD_TRAP_CODE_USER_DEFINED_0                       SOC_PPC_TRAP_CODE_USER_DEFINED_0
+#define SOC_PPD_NOF_TRAP_CODES                                 SOC_PPC_NOF_TRAP_CODES
+typedef SOC_PPC_TRAP_CODE                                      SOC_PPD_TRAP_CODE;
+
+#define SOC_PPD_TRAP_EG_TYPE_NONE                              SOC_PPC_TRAP_EG_TYPE_NONE
+#define SOC_PPD_TRAP_EG_TYPE_NO_VSI_TRANSLATION                SOC_PPC_TRAP_EG_TYPE_NO_VSI_TRANSLATION
+#define SOC_PPD_TRAP_EG_TYPE_VSI_MEMBERSHIP                    SOC_PPC_TRAP_EG_TYPE_VSI_MEMBERSHIP
+#define SOC_PPD_TRAP_EG_TYPE_ACC_FRM                           SOC_PPC_TRAP_EG_TYPE_ACC_FRM
+#define SOC_PPD_TRAP_EG_TYPE_HAIR_PIN                          SOC_PPC_TRAP_EG_TYPE_HAIR_PIN
+#define SOC_PPD_TRAP_EG_TYPE_UNKNOWN_DA                        SOC_PPC_TRAP_EG_TYPE_UNKNOWN_DA
+#define SOC_PPD_TRAP_EG_TYPE_SPLIT_HORIZON                     SOC_PPC_TRAP_EG_TYPE_SPLIT_HORIZON
+#define SOC_PPD_TRAP_EG_TYPE_PRIVATE_VLAN                      SOC_PPC_TRAP_EG_TYPE_PRIVATE_VLAN
+#define SOC_PPD_TRAP_EG_TYPE_TTL_SCOPE                         SOC_PPC_TRAP_EG_TYPE_TTL_SCOPE
+#define SOC_PPD_TRAP_EG_TYPE_MTU_VIOLATION                     SOC_PPC_TRAP_EG_TYPE_MTU_VIOLATION
+#define SOC_PPD_TRAP_EG_TYPE_TRILL_TTL_0                       SOC_PPC_TRAP_EG_TYPE_TRILL_TTL_0
+#define SOC_PPD_TRAP_EG_TYPE_TRILL_SAME_INTERFACE              SOC_PPC_TRAP_EG_TYPE_TRILL_SAME_INTERFACE
+#define SOC_PPD_TRAP_EG_TYPE_TRILL_BOUNCE_BACK                 SOC_PPC_TRAP_EG_TYPE_TRILL_BOUNCE_BACK
+#define SOC_PPD_TRAP_EG_TYPE_DSS_STACKING                      SOC_PPC_TRAP_EG_TYPE_DSS_STACKING
+#define SOC_PPD_TRAP_EG_TYPE_LAG_MULTICAST                     SOC_PPC_TRAP_EG_TYPE_LAG_MULTICAST
+#define SOC_PPD_TRAP_EG_TYPE_EXCLUDE_SRC                       SOC_PPC_TRAP_EG_TYPE_EXCLUDE_SRC
+#define SOC_PPD_TRAP_EG_TYPE_CFM_TRAP                          SOC_PPC_TRAP_EG_TYPE_CFM_TRAP
+#define SOC_PPD_TRAP_EG_TYPE_ALL                               SOC_PPC_TRAP_EG_TYPE_ALL
+#define SOC_PPD_TRAP_EG_TYPE_INVALID_OUT_PORT                      SOC_PPC_TRAP_EG_TYPE_INVALID_OUT_PORT
+#define SOC_PPD_TRAP_EG_TYPE_CNM_PACKET                            SOC_PPC_TRAP_EG_TYPE_CNM_PACKET
+#define SOC_PPD_TRAP_EG_TYPE_IPV4_VERSION_ERROR                    SOC_PPC_TRAP_EG_TYPE_IPV4_VERSION_ERROR
+#define SOC_PPD_TRAP_EG_TYPE_IPV4_CHECKSUM_ERROR                   SOC_PPC_TRAP_EG_TYPE_IPV4_CHECKSUM_ERROR
+#define SOC_PPD_TRAP_EG_TYPE_IPV4_HEADER_LENGTH_ERROR              SOC_PPC_TRAP_EG_TYPE_IPV4_HEADER_LENGTH_ERROR
+#define SOC_PPD_TRAP_EG_TYPE_IPV4_TOTAL_LENGTH_ERROR               SOC_PPC_TRAP_EG_TYPE_IPV4_TOTAL_LENGTH_ERROR
+#define SOC_PPD_TRAP_EG_TYPE_IP_TTL0                               SOC_PPC_TRAP_EG_TYPE_IP_TTL0
+#define SOC_PPD_TRAP_EG_TYPE_IP_HAS_OPTIONS                        SOC_PPC_TRAP_EG_TYPE_IP_HAS_OPTIONS
+#define SOC_PPD_TRAP_EG_TYPE_IP_TTL1                               SOC_PPC_TRAP_EG_TYPE_IP_TTL1
+#define SOC_PPD_TRAP_EG_TYPE_IPV4_SIP_EQUAL_DIP                    SOC_PPC_TRAP_EG_TYPE_IPV4_SIP_EQUAL_DIP
+#define SOC_PPD_TRAP_EG_TYPE_IPV4_DIP_ZERO                         SOC_PPC_TRAP_EG_TYPE_IPV4_DIP_ZERO
+#define SOC_PPD_TRAP_EG_TYPE_IPV4_SIP_IS_MC                        SOC_PPC_TRAP_EG_TYPE_IPV4_SIP_IS_MC
+#define SOC_PPD_TRAP_EG_TYPE_IPV6_UNSPECIFIED_DESTINATION          SOC_PPC_TRAP_EG_TYPE_IPV6_UNSPECIFIED_DESTINATION
+#define SOC_PPD_TRAP_EG_TYPE_IPV6_LOOPBACK_ADDRESS                 SOC_PPC_TRAP_EG_TYPE_IPV6_LOOPBACK_ADDRESS
+#define SOC_PPD_TRAP_EG_TYPE_IPV6_MULTICAST_SOURCE                 SOC_PPC_TRAP_EG_TYPE_IPV6_MULTICAST_SOURCE
+#define SOC_PPD_TRAP_EG_TYPE_IPV6_UNSPECIFIED_SOURCE               SOC_PPC_TRAP_EG_TYPE_IPV6_UNSPECIFIED_SOURCE
+#define SOC_PPD_TRAP_EG_TYPE_IPV6_LOCAL_LINK_DESTINATION           SOC_PPC_TRAP_EG_TYPE_IPV6_LOCAL_LINK_DESTINATION
+#define SOC_PPD_TRAP_EG_TYPE_IPV6_LOCAL_SITE_DESTINATION           SOC_PPC_TRAP_EG_TYPE_IPV6_LOCAL_SITE_DESTINATION
+#define SOC_PPD_TRAP_EG_TYPE_IPV6_LOCAL_LINK_SOURCE                SOC_PPC_TRAP_EG_TYPE_IPV6_LOCAL_LINK_SOURCE
+#define SOC_PPD_TRAP_EG_TYPE_IPV6_LOCAL_SITE_SOURCE                SOC_PPC_TRAP_EG_TYPE_IPV6_LOCAL_SITE_SOURCE
+#define SOC_PPD_TRAP_EG_TYPE_IPV6_IPV4_COMPATIBLE_DESTINATION      SOC_PPC_TRAP_EG_TYPE_IPV6_IPV4_COMPATIBLE_DESTINATION
+#define SOC_PPD_TRAP_EG_TYPE_IPV6_IPV4_MAPPED_DESTINATION          SOC_PPC_TRAP_EG_TYPE_IPV6_IPV4_MAPPED_DESTINATION
+#define SOC_PPD_TRAP_EG_TYPE_IPV6_MULTICAST_DESTINATION            SOC_PPC_TRAP_EG_TYPE_IPV6_MULTICAST_DESTINATION
+#define SOC_PPD_TRAP_EG_TYPE_IPV6_HOP_BY_HOP                       SOC_PPC_TRAP_EG_TYPE_IPV6_HOP_BY_HOP
+#define SOC_PPD_NOF_TRAP_EG_TYPES                                  SOC_PPC_NOF_TRAP_EG_TYPES_ARAD
+typedef SOC_PPC_TRAP_EG_TYPE                                   SOC_PPD_TRAP_EG_TYPE;
+
+
+#define SOC_PPD_TRAP_MGMT_FTMH_DEST_EXT_MODE_MC                SOC_PPC_TRAP_MGMT_FTMH_DEST_EXT_MODE_MC
+#define SOC_PPD_TRAP_MGMT_FTMH_DEST_EXT_MODE_ALWAYS            SOC_PPC_TRAP_MGMT_FTMH_DEST_EXT_MODE_ALWAYS
+typedef SOC_PPC_TRAP_MGMT_FTMH_DEST_EXT_MODE                   SOC_PPD_TRAP_MGMT_FTMH_DEST_EXT_MODE;
+
+#define SOC_PPD_TRAP_MGMT_PKT_FRWRD_TYPE_NORMAL                SOC_PPC_TRAP_MGMT_PKT_FRWRD_TYPE_NORMAL
+#define SOC_PPD_TRAP_MGMT_PKT_FRWRD_TYPE_TRAP                  SOC_PPC_TRAP_MGMT_PKT_FRWRD_TYPE_TRAP
+#define SOC_PPD_TRAP_MGMT_PKT_FRWRD_TYPE_SNOOP                 SOC_PPC_TRAP_MGMT_PKT_FRWRD_TYPE_SNOOP
+#define SOC_PPD_TRAP_MGMT_PKT_FRWRD_TYPE_IN_MIRROR             SOC_PPC_TRAP_MGMT_PKT_FRWRD_TYPE_IN_MIRROR
+typedef SOC_PPC_TRAP_MGMT_PKT_FRWRD_TYPE                       SOC_PPD_TRAP_MGMT_PKT_FRWRD_TYPE;
+
+typedef SOC_PPC_TRAP_MGMT_PACKET_PARSE_INFO                    SOC_PPD_TRAP_MGMT_PACKET_PARSE_INFO;
+typedef SOC_PPC_TRAP_ACTION_PROFILE_DEST_INFO                  SOC_PPD_TRAP_ACTION_PROFILE_DEST_INFO;
+typedef SOC_PPC_TRAP_ACTION_PROFILE_COUNT_INFO                 SOC_PPD_TRAP_ACTION_PROFILE_COUNT_INFO;
+typedef SOC_PPC_TRAP_ACTION_PROFILE_METER_INFO                 SOC_PPD_TRAP_ACTION_PROFILE_METER_INFO;
+typedef SOC_PPC_TRAP_ACTION_PROFILE_POLICE_INFO                SOC_PPD_TRAP_ACTION_PROFILE_POLICE_INFO;
+typedef SOC_PPC_TRAP_ACTION_PROFILE_COS_INFO                   SOC_PPD_TRAP_ACTION_PROFILE_COS_INFO;
+typedef SOC_PPC_TRAP_ACTION_PROFILE_PROCESS_INFO               SOC_PPD_TRAP_ACTION_PROFILE_PROCESS_INFO;
+typedef SOC_PPC_TRAP_FRWRD_ACTION_PROFILE_INFO                 SOC_PPD_TRAP_FRWRD_ACTION_PROFILE_INFO;
+typedef SOC_PPC_TRAP_SNOOP_ACTION_PROFILE_INFO                 SOC_PPD_TRAP_SNOOP_ACTION_PROFILE_INFO;
+typedef SOC_PPC_TRAP_EG_ACTION_PROFILE_INFO                    SOC_PPD_TRAP_EG_ACTION_PROFILE_INFO;
+typedef SOC_PPC_TRAP_MACT_EVENT_INFO                           SOC_PPD_TRAP_MACT_EVENT_INFO;
+typedef SOC_PPC_TRAP_PACKET_INFO                               SOC_PPD_TRAP_PACKET_INFO;
+
+/* } */
+/*************
+ * GLOBALS   *
+ *************/
+/* { */
+
+/* } */
+/*************
+ * FUNCTIONS *
+ *************/
+/* { */
+
+/*********************************************************************
+* NAME:
+ *   soc_ppd_trap_frwrd_profile_info_set
+ * TYPE:
+ *   PROC
+ * FUNCTION:
+ *   Set forwarding action profile information.
+ * INPUT:
+ *   SOC_SAND_IN  int                               unit -
+ *     Identifier of the device to access.
+ *   SOC_SAND_IN  SOC_PPD_TRAP_CODE                           trap_code_ndx -
+ *     Trap code. Soc_petraB range: 0-255. T20E range: 0-255, only
+ *     enumarators mentioned as supported in T20e.user can use
+ *     values not in the enum for used defined values.
+ *   SOC_SAND_IN  SOC_PPD_TRAP_FRWRD_ACTION_PROFILE_INFO      *profile_info -
+ *     Information to set to the forwarding profile.
+ * REMARKS:
+ *   None.
+ * RETURNS:
+ *   OK or ERROR indication.
+*********************************************************************/
+uint32
+  soc_ppd_trap_frwrd_profile_info_set(
+    SOC_SAND_IN  int                               unit,
+    SOC_SAND_IN  SOC_PPD_TRAP_CODE                           trap_code_ndx,
+    SOC_SAND_IN  SOC_PPD_TRAP_FRWRD_ACTION_PROFILE_INFO      *profile_info
+  );
+
+/*********************************************************************
+*     Gets the configuration set by the
+ *     "soc_ppd_trap_frwrd_profile_info_set" API.
+ *     Refer to "soc_ppd_trap_frwrd_profile_info_set" API for
+ *     details.
+*********************************************************************/
+uint32
+  soc_ppd_trap_frwrd_profile_info_get(
+    SOC_SAND_IN  int                               unit,
+    SOC_SAND_IN  SOC_PPD_TRAP_CODE                           trap_code_ndx,
+    SOC_SAND_OUT SOC_PPD_TRAP_FRWRD_ACTION_PROFILE_INFO      *profile_info
+  );
+
+/*********************************************************************
+* NAME:
+ *   soc_ppd_trap_snoop_profile_info_set
+ * TYPE:
+ *   PROC
+ * FUNCTION:
+ *   Set snoop action profile information.
+ * INPUT:
+ *   SOC_SAND_IN  int                               unit -
+ *     Identifier of the device to access.
+ *   SOC_SAND_IN  SOC_PPD_TRAP_CODE                           trap_code_ndx -
+ *     Trap code. Soc_petraB range: 0-255. T20E range: 0-255, only
+ *     enumarators mentioned as supported in T20E.user can use
+ *     values not in the enum for used defined values.
+ *   SOC_SAND_IN  SOC_PPD_TRAP_SNOOP_ACTION_PROFILE_INFO      *profile_info -
+ *     Information to set to the snoop profile.
+ * REMARKS:
+ *   None.
+ * RETURNS:
+ *   OK or ERROR indication.
+*********************************************************************/
+uint32
+  soc_ppd_trap_snoop_profile_info_set(
+    SOC_SAND_IN  int                               unit,
+    SOC_SAND_IN  SOC_PPD_TRAP_CODE                           trap_code_ndx,
+    SOC_SAND_IN  SOC_PPD_TRAP_SNOOP_ACTION_PROFILE_INFO      *profile_info
+  );
+
+/*********************************************************************
+*     Gets the configuration set by the
+ *     "soc_ppd_trap_snoop_profile_info_set" API.
+ *     Refer to "soc_ppd_trap_snoop_profile_info_set" API for
+ *     details.
+*********************************************************************/
+uint32
+  soc_ppd_trap_snoop_profile_info_get(
+    SOC_SAND_IN  int                               unit,
+    SOC_SAND_IN  SOC_PPD_TRAP_CODE                           trap_code_ndx,
+    SOC_SAND_OUT SOC_PPD_TRAP_SNOOP_ACTION_PROFILE_INFO      *profile_info
+  );
+
+/*********************************************************************
+* NAME:
+ *   soc_ppd_trap_to_eg_action_map_set
+ * TYPE:
+ *   PROC
+ * FUNCTION:
+ *   Maps egress trap type to egress action profile.
+ * INPUT:
+ *   SOC_SAND_IN  int                               unit -
+ *     Identifier of the device to access.
+ *   SOC_SAND_IN  uint32                                      trap_type_bitmap_ndx -
+ *     Trap Type bitmap, the cause for trapping/filtering the packets
+ *     (for example MTU). Use SOC_PB_PP_TRAP_EG_TYPE for bit offsets.
+ *   SOC_SAND_IN  uint32                                eg_action_profile -
+ *     Egress action profile, to process/forward the packet
+ *     according. To set the action pointed by this parameter
+ *     use soc_ppd_trap_eg_profile_info_set(). Use
+ *     SOC_PPD_TRAP_EG_NO_ACTION in order to bypass this trapping
+ *     and then the packet will be processed/forwarded normal
+ *     (as no trap was identified).
+ *     Soc_petra-B: Range: 1 - 7.
+ * REMARKS:
+ *   - Soc_petra-B only. Error is returned if called for T20E.-
+ *   In T20E: use soc_ppd_trap_snoop_profile_info_set() and
+ *   soc_ppd_trap_frwrd_profile_info_set() to set action for Trap
+ *   occurs in the T20E egress.- For part of the
+ *   filters/traps (see SOC_PPD_EG_FILTER_PORT_ENABLE) user can
+ *   set whether to perform the filter/trap per port. See
+ *   soc_ppd_eg_filter_port_info_set()
+ * RETURNS:
+ *   OK or ERROR indication.
+*********************************************************************/
+uint32
+  soc_ppd_trap_to_eg_action_map_set(
+    SOC_SAND_IN  int                               unit,
+    SOC_SAND_IN  uint32                                trap_type_bitmap_ndx,
+    SOC_SAND_IN  uint32                                eg_action_profile
+  );
+
+/*********************************************************************
+*     Gets the configuration set by the
+ *     "soc_ppd_trap_to_eg_action_map_set" API.
+ *     Refer to "soc_ppd_trap_to_eg_action_map_set" API for
+ *     details.
+*********************************************************************/
+uint32
+  soc_ppd_trap_to_eg_action_map_get(
+    SOC_SAND_IN  int                               unit,
+    SOC_SAND_IN  uint32                                trap_type_bitmap_ndx,
+    SOC_SAND_OUT uint32                                *eg_action_profile
+  );
+
+/*********************************************************************
+* NAME:
+ *   soc_ppd_trap_eg_profile_info_set
+ * TYPE:
+ *   PROC
+ * FUNCTION:
+ *   Set egress action profile information.
+ * INPUT:
+ *   SOC_SAND_IN  int                               unit -
+ *     Identifier of the device to access.
+ *   SOC_SAND_IN  uint32                                profile_ndx -
+ *     Egress action profile. Range: 1 - 7.
+ *   SOC_SAND_IN  SOC_PPD_TRAP_EG_ACTION_PROFILE_INFO         *profile_info -
+ *     Information to set to the egress profile.
+ * REMARKS:
+ *   - Soc_petra-B only. Error is returned if called for T20E.-
+ *   In T20E: use soc_ppd_trap_snoop_profile_info_set() and
+ *   soc_ppd_trap_frwrd_profile_info_set() to set action for Trap
+ *   occurs in the T20E egress.- Use
+ *   soc_ppd_trap_to_eg_action_map_set() to map trap (reason) to
+ *   action profile
+ * RETURNS:
+ *   OK or ERROR indication.
+*********************************************************************/
+uint32
+  soc_ppd_trap_eg_profile_info_set(
+    SOC_SAND_IN  int                               unit,
+    SOC_SAND_IN  uint32                                profile_ndx,
+    SOC_SAND_IN  SOC_PPD_TRAP_EG_ACTION_PROFILE_INFO         *profile_info
+  );
+
+/*********************************************************************
+*     Gets the configuration set by the
+ *     "soc_ppd_trap_eg_profile_info_set" API.
+ *     Refer to "soc_ppd_trap_eg_profile_info_set" API for details.
+*********************************************************************/
+uint32
+  soc_ppd_trap_eg_profile_info_get(
+    SOC_SAND_IN  int                               unit,
+    SOC_SAND_IN  uint32                                profile_ndx,
+    SOC_SAND_OUT SOC_PPD_TRAP_EG_ACTION_PROFILE_INFO         *profile_info
+  );
+
+/*********************************************************************
+* NAME:
+ *   soc_ppd_trap_mact_event_get
+ * TYPE:
+ *   PROC
+ * FUNCTION:
+ *   Read MACT event from the events FIFO into buffer.
+ * INPUT:
+ *   SOC_SAND_IN  int                               unit -
+ *     Identifier of the device to access.
+ *   SOC_SAND_OUT uint32                                buff -
+ *     SOC_PPD_TRAP_EVENT_BUFF_MAX_SIZE]- Buffer to copy the Event
+ *     to. Event is copied to buff starting from buff[0] lsb.
+ *   SOC_SAND_OUT uint32                                *buff_len -
+ *     the actual length of the returned buffer (in longs)
+ * REMARKS:
+ *   None.
+ * RETURNS:
+ *   OK or ERROR indication.
+*********************************************************************/
+uint32
+  soc_ppd_trap_mact_event_get(
+    SOC_SAND_IN  int                               unit,
+    SOC_SAND_OUT uint32                                buff[SOC_PPD_TRAP_EVENT_BUFF_MAX_SIZE],
+    SOC_SAND_OUT uint32                                *buff_len
+  );
+
+/*********************************************************************
+* NAME:
+ *   soc_ppd_trap_mact_event_parse
+ * TYPE:
+ *   PROC
+ * FUNCTION:
+ *   The MACT may report different events using the event
+ *   FIFO (e.g., learn, age, transplant, and retrieve). This
+ *   API Parses the event buffer into a meaningful structure.
+ * INPUT:
+ *   SOC_SAND_IN  int                               unit -
+ *     Identifier of the device to access.
+ *   SOC_SAND_IN  uint32                                buff -
+ *     SOC_PPD_TRAP_EVENT_BUFF_MAX_SIZE]- Buffer includes MACT
+ *     event
+ *   SOC_SAND_IN  uint32                                buff_len -
+ *     the actual length of the given buffer (in longs)
+ *   SOC_SAND_OUT SOC_PPD_TRAP_MACT_EVENT_INFO                *mact_event -
+ *     MACT Event parsed into structure
+ * REMARKS:
+ *   None.
+ * RETURNS:
+ *   OK or ERROR indication.
+*********************************************************************/
+uint32
+  soc_ppd_trap_mact_event_parse(
+    SOC_SAND_IN  int                               unit,
+    SOC_SAND_IN  uint32                                buff[SOC_PPD_TRAP_EVENT_BUFF_MAX_SIZE],
+    SOC_SAND_IN  uint32                                buff_len,
+    SOC_SAND_OUT SOC_PPD_TRAP_MACT_EVENT_INFO                *mact_event
+  );
+
+/*********************************************************************
+* NAME:
+ *   soc_ppd_trap_packet_parse
+ * TYPE:
+ *   PROC
+ * FUNCTION:
+ *   Parse a packet received as buffer, identifying the
+ *   reason of trapping (if any), the source system port, and
+ *   pointer to the packet payload and additional
+ *   information.
+ * INPUT:
+ *   SOC_SAND_IN  int                               unit -
+ *     Identifier of the device to access.
+ *   SOC_SAND_IN  uint8                                 *buff -
+ *     buffer includes the packet
+ *   SOC_SAND_IN  uint32                                buff_len -
+ *     The size of supplied 'buff' In longs
+ *   SOC_SAND_OUT SOC_PPD_TRAP_PACKET_INFO                    *packet_info -
+ *     Information retrieved by parsing the packet.
+ * REMARKS:
+ *   None.
+ * RETURNS:
+ *   OK or ERROR indication.
+*********************************************************************/
+uint32
+  soc_ppd_trap_packet_parse(
+    SOC_SAND_IN  int                               unit,
+    SOC_SAND_IN  uint8                                 *buff,
+    SOC_SAND_IN  uint32                                buff_len,
+    SOC_SAND_OUT SOC_PPD_TRAP_PACKET_INFO                    *packet_info
+  );
+
+/*********************************************************************
+* NAME:
+ *   soc_ppd_trap_mgmt_get_procs_ptr
+ * TYPE:
+ *   PROC
+ * FUNCTION:
+ *   Get the pointer to the list of procedures of the
+ *   soc_ppd_api_trap_mgmt module.
+ * INPUT:
+ * REMARKS:
+ *
+ * RETURNS:
+ *   OK or ERROR indication.
+*********************************************************************/
+CONST SOC_PROCEDURE_DESC_ELEMENT*
+  soc_ppd_trap_mgmt_get_procs_ptr(void);
+
+void
+  SOC_PPD_TRAP_ACTION_PROFILE_DEST_INFO_clear(
+    SOC_SAND_OUT SOC_PPD_TRAP_ACTION_PROFILE_DEST_INFO *info
+  );
+
+void
+  SOC_PPD_TRAP_ACTION_PROFILE_COUNT_INFO_clear(
+    SOC_SAND_OUT SOC_PPD_TRAP_ACTION_PROFILE_COUNT_INFO *info
+  );
+
+void
+  SOC_PPD_TRAP_ACTION_PROFILE_METER_INFO_clear(
+    SOC_SAND_OUT SOC_PPD_TRAP_ACTION_PROFILE_METER_INFO *info
+  );
+
+void
+  SOC_PPD_TRAP_ACTION_PROFILE_POLICE_INFO_clear(
+    SOC_SAND_OUT SOC_PPD_TRAP_ACTION_PROFILE_POLICE_INFO *info
+  );
+
+void
+  SOC_PPD_TRAP_ACTION_PROFILE_COS_INFO_clear(
+    SOC_SAND_OUT SOC_PPD_TRAP_ACTION_PROFILE_COS_INFO *info
+  );
+
+void
+  SOC_PPD_TRAP_ACTION_PROFILE_PROCESS_INFO_clear(
+    SOC_SAND_OUT SOC_PPD_TRAP_ACTION_PROFILE_PROCESS_INFO *info
+  );
+
+void
+  SOC_PPD_TRAP_FRWRD_ACTION_PROFILE_INFO_clear(
+    SOC_SAND_OUT SOC_PPD_TRAP_FRWRD_ACTION_PROFILE_INFO *info
+  );
+
+void
+  SOC_PPD_TRAP_SNOOP_ACTION_PROFILE_INFO_clear(
+    SOC_SAND_OUT SOC_PPD_TRAP_SNOOP_ACTION_PROFILE_INFO *info
+  );
+
+void
+  SOC_PPD_TRAP_EG_ACTION_PROFILE_INFO_clear(
+    SOC_SAND_OUT SOC_PPD_TRAP_EG_ACTION_PROFILE_INFO *info
+  );
+
+void
+  SOC_PPD_TRAP_MACT_EVENT_INFO_clear(
+    SOC_SAND_OUT SOC_PPD_TRAP_MACT_EVENT_INFO *info
+  );
+
+void
+  SOC_PPD_TRAP_PACKET_INFO_clear(
+    SOC_SAND_OUT SOC_PPD_TRAP_PACKET_INFO *info
+  );
+
+#if SOC_PPD_DEBUG_IS_LVL1
+
+const char*
+  SOC_PPD_TRAP_SNOOP_ACTION_SIZE_to_string(
+    SOC_SAND_IN  SOC_PPD_TRAP_SNOOP_ACTION_SIZE enum_val
+  );
+
+const char*
+  SOC_PPD_TRAP_ACTION_PROFILE_OVERWRITE_to_string(
+    SOC_SAND_IN  SOC_PPD_TRAP_ACTION_PROFILE_OVERWRITE enum_val
+  );
+
+const char*
+  SOC_PPD_TRAP_MACT_EVENT_TYPE_to_string(
+    SOC_SAND_IN  SOC_PPD_TRAP_MACT_EVENT_TYPE enum_val
+  );
+
+const char*
+  SOC_PPD_TRAP_CODE_to_string(
+    SOC_SAND_IN  SOC_PPD_TRAP_CODE enum_val
+  );
+
+const char*
+  SOC_PPD_TRAP_EG_TYPE_to_string(
+    SOC_SAND_IN  SOC_PPD_TRAP_EG_TYPE enum_val
+  );
+
+void
+  SOC_PPD_TRAP_ACTION_PROFILE_DEST_INFO_print(
+    SOC_SAND_IN  SOC_PPD_TRAP_ACTION_PROFILE_DEST_INFO *info
+  );
+
+void
+  SOC_PPD_TRAP_ACTION_PROFILE_COUNT_INFO_print(
+    SOC_SAND_IN  SOC_PPD_TRAP_ACTION_PROFILE_COUNT_INFO *info
+  );
+
+void
+  SOC_PPD_TRAP_ACTION_PROFILE_METER_INFO_print(
+    SOC_SAND_IN  SOC_PPD_TRAP_ACTION_PROFILE_METER_INFO *info
+  );
+
+void
+  SOC_PPD_TRAP_ACTION_PROFILE_POLICE_INFO_print(
+    SOC_SAND_IN  SOC_PPD_TRAP_ACTION_PROFILE_POLICE_INFO *info
+  );
+
+void
+  SOC_PPD_TRAP_ACTION_PROFILE_COS_INFO_print(
+    SOC_SAND_IN  SOC_PPD_TRAP_ACTION_PROFILE_COS_INFO *info
+  );
+
+void
+  SOC_PPD_TRAP_ACTION_PROFILE_PROCESS_INFO_print(
+    SOC_SAND_IN  SOC_PPD_TRAP_ACTION_PROFILE_PROCESS_INFO *info
+  );
+
+void
+  SOC_PPD_TRAP_FRWRD_ACTION_PROFILE_INFO_print(
+    SOC_SAND_IN  SOC_PPD_TRAP_FRWRD_ACTION_PROFILE_INFO *info
+  );
+
+void
+  SOC_PPD_TRAP_SNOOP_ACTION_PROFILE_INFO_print(
+    SOC_SAND_IN  SOC_PPD_TRAP_SNOOP_ACTION_PROFILE_INFO *info
+  );
+
+void
+  SOC_PPD_TRAP_EG_ACTION_PROFILE_INFO_print(
+    SOC_SAND_IN  SOC_PPD_TRAP_EG_ACTION_PROFILE_INFO *info
+  );
+
+void
+  SOC_PPD_TRAP_MACT_EVENT_INFO_print(
+    SOC_SAND_IN  SOC_PPD_TRAP_MACT_EVENT_INFO *info
+  );
+
+void
+  SOC_PPD_TRAP_PACKET_INFO_print(
+    SOC_SAND_IN  SOC_PPD_TRAP_PACKET_INFO *info
+  );
+
+#endif /* SOC_PPD_DEBUG_IS_LVL1 */
+
+#if SOC_PPD_DEBUG_IS_LVL3
+
+void
+  soc_ppd_trap_frwrd_profile_info_set_print(
+    SOC_SAND_IN  int                               unit,
+    SOC_SAND_IN  SOC_PPD_TRAP_CODE                           trap_code_ndx,
+    SOC_SAND_IN  SOC_PPD_TRAP_FRWRD_ACTION_PROFILE_INFO      *profile_info
+  );
+
+void
+  soc_ppd_trap_frwrd_profile_info_get_print(
+    SOC_SAND_IN  int                               unit,
+    SOC_SAND_IN  SOC_PPD_TRAP_CODE                           trap_code_ndx
+  );
+
+void
+  soc_ppd_trap_snoop_profile_info_set_print(
+    SOC_SAND_IN  int                               unit,
+    SOC_SAND_IN  SOC_PPD_TRAP_CODE                           trap_code_ndx,
+    SOC_SAND_IN  SOC_PPD_TRAP_SNOOP_ACTION_PROFILE_INFO      *profile_info
+  );
+
+void
+  soc_ppd_trap_snoop_profile_info_get_print(
+    SOC_SAND_IN  int                               unit,
+    SOC_SAND_IN  SOC_PPD_TRAP_CODE                           trap_code_ndx
+  );
+
+void
+  soc_ppd_trap_to_eg_action_map_set_print(
+    SOC_SAND_IN  int                               unit,
+    SOC_SAND_IN  uint32                                trap_type_bitmap_ndx,
+    SOC_SAND_IN  uint32                                eg_action_profile
+  );
+
+void
+  soc_ppd_trap_to_eg_action_map_get_print(
+    SOC_SAND_IN  int                               unit,
+    SOC_SAND_IN  uint32                                trap_type_bitmap_ndx
+  );
+
+void
+  soc_ppd_trap_eg_profile_info_set_print(
+    SOC_SAND_IN  int                               unit,
+    SOC_SAND_IN  uint32                                profile_ndx,
+    SOC_SAND_IN  SOC_PPD_TRAP_EG_ACTION_PROFILE_INFO         *profile_info
+  );
+
+void
+  soc_ppd_trap_eg_profile_info_get_print(
+    SOC_SAND_IN  int                               unit,
+    SOC_SAND_IN  uint32                                profile_ndx
+  );
+
+void
+  soc_ppd_trap_mact_event_get_print(
+    SOC_SAND_IN  int                               unit
+  );
+
+void
+  soc_ppd_trap_mact_event_parse_print(
+    SOC_SAND_IN  int                               unit,
+    SOC_SAND_IN  uint32                                buff[SOC_PPD_TRAP_EVENT_BUFF_MAX_SIZE],
+    SOC_SAND_IN  uint32                                buff_len
+  );
+
+void
+  soc_ppd_trap_packet_parse_print(
+    SOC_SAND_IN  int                               unit,
+    SOC_SAND_IN  uint8                                 *buff,
+    SOC_SAND_IN  uint32                                buff_len
+  );
+
+#endif /* SOC_PPD_DEBUG_IS_LVL3 */
+/* } */
+
+#include <soc/dpp/SAND/Utils/sand_footer.h>
+
+/* } __SOC_PPD_API_TRAP_MGMT_INCLUDED__*/
+#endif
+

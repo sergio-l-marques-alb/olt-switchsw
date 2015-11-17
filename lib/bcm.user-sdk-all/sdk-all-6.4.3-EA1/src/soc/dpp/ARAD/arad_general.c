@@ -1,0 +1,288 @@
+#include <soc/mcm/memregs.h>
+#if defined(BCM_88650_A0)
+/* $Id: arad_general.c,v 1.8 Broadcom SDK $
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+*/
+
+
+#ifdef _ERR_MSG_MODULE_NAME
+  #error "_ERR_MSG_MODULE_NAME redefined"
+#endif
+
+#define _ERR_MSG_MODULE_NAME BSL_SOC_COMMON
+
+/*************
+ * INCLUDES  *
+ *************/
+/* { */
+#include <shared/bsl.h>
+#include <soc/dcmn/error.h>
+#include <soc/dpp/dpp_config_defs.h>
+#include <soc/dpp/drv.h>
+#include <soc/dpp/SAND/Utils/sand_header.h>
+#include <soc/dpp/ARAD/arad_api_general.h>
+#include <soc/dpp/ARAD/arad_general.h>
+#include <soc/dpp/ARAD/arad_api_framework.h>
+#include <soc/dpp/ARAD/arad_chip_defines.h>
+#include <soc/dpp/ARAD/arad_chip_regs.h>
+#include <soc/dpp/ARAD/arad_chip_tbls.h>
+#include <soc/dpp/ARAD/arad_reg_access.h>
+#include <soc/dpp/ARAD/arad_mgmt.h>
+
+#include <soc/dpp/SAND/Management/sand_error_code.h>
+#include <soc/dpp/SAND/Management/sand_chip_descriptors.h>
+#include <soc/dpp/SAND/Management/sand_device_management.h>
+#include <soc/dpp/SAND/Management/sand_low_level.h>
+#include <soc/dpp/SAND/Utils/sand_os_interface.h>
+#include <soc/dpp/SAND/Utils/sand_bitstream.h>
+#include <soc/dpp/SAND/SAND_FM/sand_mem_access.h>
+#include <soc/dpp/SAND/Utils/sand_conv.h>
+#include <soc/dpp/SAND/Management/sand_low_level.h>
+
+/* } */
+
+/*************
+ * DEFINES   *
+ *************/
+/* { */
+
+/*
+ * Numeric correction used in Fabric Multicast rate calculation
+ */
+#define ARAD_PA_FMC_RATE_DELTA_CONST(is_for_ips)               (102) /* Both for IPS and FMC */
+
+  /* The constant is 7 only for Arad-B and for FMC, otherwise 102 */
+#define ARAD_FMC_RATE_DELTA_CONST(is_for_ips)             ((is_for_ips == TRUE)? ARAD_PA_FMC_RATE_DELTA_CONST(is_for_ips) : 7)
+
+/* } */
+
+/*************
+ *  MACROS   *
+ *************/
+/* { */
+
+/* } */
+
+/*************
+ * TYPE DEFS *
+ *************/
+/* { */
+
+typedef SOC_SAND_RET (*ARAD_SEND_MESSAGE_TO_QUEUE_FUNC)(SOC_SAND_IN  uint32 msg);
+
+/* } */
+
+/*************
+ * GLOBALS   *
+ *************/
+/* { */
+
+
+/* } */
+
+/*************
+ * FUNCTIONS *
+ *************/
+/* { */
+
+
+uint8
+  arad_is_multicast_id_valid(
+    SOC_SAND_IN  int                unit,
+    SOC_SAND_IN  uint32                multicast_id
+  )
+{
+  if (multicast_id < ARAD_MULT_NOF_MULTICAST_GROUPS)
+  {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+uint8
+  arad_is_queue_valid(
+    SOC_SAND_IN  int                unit,
+    SOC_SAND_IN  uint32                queue
+  )
+{
+/*
+  uint32
+    queue_max;
+*/
+  /*
+  arad_mgmt_nof_queues_get(unit, &queue_max);
+  */
+  if (queue < SOC_DPP_DEFS_GET(unit, nof_queues))
+  {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+uint8
+  arad_is_flow_valid(
+    SOC_SAND_IN  int                unit,
+    SOC_SAND_IN  uint32                flow
+  )
+{
+  uint8
+    is_in_range;
+
+  is_in_range = flow < (SOC_DPP_DEFS_GET(unit, nof_flows));
+
+  return is_in_range;
+}
+
+/*
+ *  Internal Rate to clock conversion.
+ *  Used for rate configuration, e.g. IPS (IssMaxCrRate),
+ *  FMC (FmcMaxCrRate), Guaranteed/Best Effort FMC (GfmcMaxCrRate/BfmcMaxCrRate)
+ */
+uint32
+  arad_intern_rate2clock(
+    SOC_SAND_IN  int unit,
+    SOC_SAND_IN  uint32  rate_kbps,
+    SOC_SAND_IN  uint8 is_for_ips,
+    SOC_SAND_OUT uint32  *clk_interval
+  )
+{
+  uint32
+    res;
+  SOC_SAND_RET
+    ret = SOC_SAND_OK;
+  uint32
+    cr_size = 0,
+    ticks_per_sec = 0,
+    interval = 0;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_INTERN_RATE2CLOCK);
+
+  res = arad_mgmt_credit_worth_get(
+          unit,
+          &cr_size
+        );
+  SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+
+  ticks_per_sec = arad_chip_ticks_per_sec_get(unit);
+
+  if (rate_kbps == 0)
+  {
+    *clk_interval = 0;
+  }
+  else
+  {
+    ret = soc_sand_kbits_per_sec_to_clocks(
+            rate_kbps,
+            cr_size  * 8 /*clock resolution is 1/8*/,
+            ticks_per_sec,
+            &interval
+          );
+    SOC_SAND_CHECK_FUNC_RESULT(ret, 20, exit);
+
+    *clk_interval = interval - ARAD_FMC_RATE_DELTA_CONST(is_for_ips);
+  }
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in arad_intern_rate2clock()",0,0);
+}
+
+/*
+ *  Internal Rate to clock conversion.
+ *  Used for rate configuration, e.g. IPS (IssMaxCrRate),
+ *  FMC (FmcMaxCrRate), Guaranteed/Best Effort FMC (GfmcMaxCrRate/BfmcMaxCrRate)
+ */
+uint32
+  arad_intern_clock2rate(
+    SOC_SAND_IN  int unit,
+    SOC_SAND_IN  uint32  clk_interval,
+    SOC_SAND_IN  uint8 is_for_ips,
+    SOC_SAND_OUT uint32  *rate_kbps
+  )
+{
+  uint32
+    res;
+  SOC_SAND_RET
+    ret = SOC_SAND_OK;
+  uint32
+    cr_size = 0,
+    ticks_per_sec = 0,
+    interval = 0;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_INTERN_CLOCK2RATE);
+
+  res = arad_mgmt_credit_worth_get(
+        unit,
+        &cr_size
+      );
+  SOC_SAND_CHECK_FUNC_RESULT(res, 15, exit);
+
+  ticks_per_sec = arad_chip_ticks_per_sec_get(unit);
+
+  if (clk_interval == 0)
+  {
+    *rate_kbps = 0;
+  }
+  else
+  {
+    interval = (clk_interval + ARAD_FMC_RATE_DELTA_CONST(is_for_ips));
+
+    ret = soc_sand_clocks_to_kbits_per_sec(
+            interval,
+            cr_size * 8 /*clock resolution is 1/8*/,
+            ticks_per_sec,
+            rate_kbps
+          );
+    SOC_SAND_CHECK_FUNC_RESULT(ret, 20, exit);
+  }
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in arad_intern_clock2rate()",0,0);
+}
+
+
+
+/* } */
+
+#include <soc/dpp/SAND/Utils/sand_footer.h>
+
+#endif /* of #if defined(BCM_88650_A0) */

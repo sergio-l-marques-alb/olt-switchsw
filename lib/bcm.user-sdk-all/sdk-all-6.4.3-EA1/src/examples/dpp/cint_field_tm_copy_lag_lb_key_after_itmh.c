@@ -1,0 +1,282 @@
+
+/* $Id: cint_fid_demo.c,v 1.7 Broadcom SDK $
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+*/
+
+/*
+ *  For TM packets (ITMH header), extract the LAG Load-Balancing Key after the ITMH
+ *  Indicate also how many bytes to remove
+ *  
+ *  Sequence:
+ *  1. Create a TM preselector
+ *  2. Create a Direct Extraction (also known as Direct Mapping) Field group for the
+ *  TM packets. Define the location of the Load-Balancing Key (and of
+ *  the Bytes-To-Remove field) and extract it
+ *  
+ *  Besides, the user can set a different header length to remove (bytes-to-remove field)
+ *  from the end of ITMH. In this case, the post_headers_size_<port-id> indicates
+ *  the number of bytes to remove. Besides, PMF-Extension-Headers destinated to specific headers
+ *  (e.g. below the LAG-LB-Key Field group is only for Port 0) can be set with
+ *  specific preselectors. All the used ports must use a TM header type (ITMH expected).
+ */
+
+
+/*
+ *  Set the Direct mapping Field group that maps the LAG-LB-Key
+ */
+int tm_field_group_set(/* in */ int unit,
+                        /* in */ int group_priority,
+                        /* in */ int is_lag_lb,
+                        /* in */ int is_for_port_0,
+                        /* out */ bcm_field_group_t *group) 
+{
+  int result;
+  int auxRes;
+  bcm_field_group_config_t grp;
+  bcm_field_aset_t aset;
+  bcm_field_presel_t            presel;
+  bcm_field_presel_set_t        presel_set;
+  bcm_field_data_qualifier_t    data_qual;
+
+
+  if (NULL == group) {
+    printf("Pointer to group ID must not be NULL\n");
+    return BCM_E_PARAM;
+  }
+  /* 
+   * Create a preselector according to Forwading-Type = TM
+   */
+  result = bcm_field_presel_create(unit, &presel);
+  if (BCM_E_NONE != result) {
+      printf("Error in bcm_field_presel_create\n");
+      auxRes = bcm_field_presel_destroy(unit, presel);
+    return result;
+  }
+
+  result = bcm_field_qualify_ForwardingType(unit, presel | BCM_FIELD_QUALIFY_PRESEL, bcmFieldForwardingTypeTrafficManagement);
+  if (BCM_E_NONE != result) {
+      printf("Error in bcm_field_qualify_ForwardingType\n");
+      auxRes = bcm_field_presel_destroy(unit, presel);
+    return result;
+  }
+  if (is_for_port_0) {
+      result = bcm_field_qualify_InPort(unit, presel | BCM_FIELD_QUALIFY_PRESEL, 0, (~0));
+      if (BCM_E_NONE != result) {
+          printf("Error in bcm_field_qualify_ForwardingType\n");
+          auxRes = bcm_field_presel_destroy(unit, presel);
+        return result;
+      }
+  }
+
+  /* Create the Preslector-set with a single preselector */
+  BCM_FIELD_PRESEL_INIT(presel_set);
+  BCM_FIELD_PRESEL_ADD(presel_set, presel);
+
+  /*
+   *  The Field group is done at the ingress stage
+   *  The Field group qualifier is a Data Qualifier with:
+   *  - Base Header = Post-Forwarding
+   *  - Exact location of the LAG-LB-Key / Bytes-to-remove.
+   *  Prefer defining it at a byte resolution
+   *  
+   *  Following format:
+   *  ITMH | 4'b0 | LAG-LB-Key[19:0] | Bytes-To-Remove[7:0] | Payload
+   *  
+   *  Encoding of the Bytes-To-Remove field:
+   *  [Header-index (2 bits) | Local-Offset in bytes (6b)], where
+   *  header-index encoding is: 0 - Start-of-Packet, 
+   *  2 - Start-of-ITMH, 3 - End of ITMH
+   *  For example, to remove here up to payload, use the value:
+   *  [End-of-ITMH = 3 | Remove 4 Bytes] = 0xC4
+   *  
+   *  Note: if the bit after ITMH is bit 159, and 160 bits are
+   *  copied to the Key, the entire field must be located in
+   *  the following zones:
+   *  [159-128], [143-112], [127-96], [111-80],
+   *  [79-48], [63-32], [47-16], [31-0]  
+   */
+  bcm_field_data_qualifier_t_init(&data_qual);
+  data_qual.offset_base = bcmFieldDataOffsetBaseNextForwardingHeader;
+  if (is_lag_lb) {
+      data_qual.offset = 0;
+      data_qual.length = 3; /* The LAG-LB-Key is 20 bits, so take 3 bytes after ITMH */
+  }
+  else {
+      data_qual.offset = 3;
+      data_qual.length = 1; 
+  }
+  result = bcm_field_data_qualifier_create(unit, &data_qual);
+  if (BCM_E_NONE != result) {
+      printf("Error in bcm_field_data_qualifier_create\n");
+      auxRes = bcm_field_presel_destroy(unit, presel);
+      auxRes = bcm_field_data_qualifier_destroy(unit, data_qual.qual_id);
+      return result;
+  }
+
+
+
+  /* 
+   * Create the TM Field Group
+   */
+  bcm_field_group_config_t_init(&grp);
+  grp.group = -1;
+
+
+  /* Define the QSET */
+  BCM_FIELD_QSET_INIT(grp.qset);
+  BCM_FIELD_QSET_ADD(grp.qset, bcmFieldQualifyStageIngress);
+  result = bcm_field_qset_data_qualifier_add(unit, &grp.qset, data_qual.qual_id);
+  if (BCM_E_NONE != result) {
+      printf("Error in bcm_field_qset_data_qualifier_add\n");
+      auxRes = bcm_field_presel_destroy(unit, presel);
+      auxRes = bcm_field_data_qualifier_destroy(unit, data_qual.qual_id);
+      return result;
+  }
+
+  /*
+   *  This Field Group can change the DSCP
+   */
+  BCM_FIELD_ASET_INIT(aset);
+  if (is_lag_lb) {
+      BCM_FIELD_ASET_ADD(aset, bcmFieldActionTrunkHashKeySet);
+  }
+  else {
+      BCM_FIELD_ASET_ADD(aset, bcmFieldActionStartPacketStrip);
+  }
+
+  /*  Create the Field group */
+  grp.priority = group_priority;
+  grp.flags = BCM_FIELD_GROUP_CREATE_WITH_MODE;
+  grp.mode = bcmFieldGroupModeDirectExtraction;
+  result = bcm_field_group_config_create(unit, &grp);
+  if (BCM_E_NONE != result) {
+      printf("Error in bcm_field_group_create\n");
+      auxRes = bcm_field_group_destroy(unit, grp.group);
+      auxRes = bcm_field_presel_destroy(unit, presel);
+      auxRes = bcm_field_data_qualifier_destroy(unit, data_qual.qual_id);
+      return result;
+  }
+
+  /* Attach the Preselector-Set */
+  result = bcm_field_group_presel_set(unit, grp.group, &presel_set);
+  if (BCM_E_NONE != result) {
+      printf("Error in bcm_field_group_presel_set\n");
+    auxRes = bcm_field_group_destroy(unit, grp.group);
+    auxRes = bcm_field_presel_destroy(unit, presel);
+    auxRes = bcm_field_data_qualifier_destroy(unit, data_qual.qual_id);
+    return result;
+  }
+
+  /*  Attach the action set */
+  result = bcm_field_group_action_set(unit, grp.group, aset);
+  if (BCM_E_NONE != result) {
+      printf("Error in bcm_field_group_action_set\n");
+    auxRes = bcm_field_group_destroy(unit, grp.group);
+    auxRes = bcm_field_presel_destroy(unit, presel);
+    auxRes = bcm_field_data_qualifier_destroy(unit, data_qual.qual_id);
+    return result;
+  }
+
+  /*
+   *  Everything went well; return the group ID that we allocated earlier.
+   */
+  *group = grp.group; 
+
+  return result;
+}
+
+
+
+/*
+ *  Set the previous configurations for an example configuration
+ *  If match by a Field entry, snoop the packet to port 1
+ */
+int tm_lag_lb_field_group_example(int unit) 
+{
+  int result;
+  int group_priority = 1;
+  bcm_field_group_t group;
+
+
+ result = tm_field_group_set(unit, group_priority, TRUE, TRUE, &group);
+  if (BCM_E_NONE != result) {
+      printf("Error in tm_lag_lb_field_group_set\n");
+      return result;
+  }
+
+  return result;
+}
+
+int tm_bytes_to_remove_field_group_example(int unit) 
+{
+  int result;
+  int group_priority = 2;
+  bcm_field_group_t group;
+
+
+ result = tm_field_group_set(unit, group_priority, FALSE, FALSE, &group);
+  if (BCM_E_NONE != result) {
+      printf("Error in tm_lag_lb_field_group_set\n");
+      return result;
+  }
+
+  return result;
+}
+
+int tm_lag_lb_field_group_set_teardown(/* in */ int unit,
+                        /* in */ bcm_field_group_t group) 
+{
+  int result;
+  int auxRes;
+
+  /* Destroy the Field group (and all its entries) */  
+  result = bcm_field_group_destroy(unit, group);
+  if (BCM_E_NONE != result) {
+      printf("Error in bcm_field_group_destroy\n");
+      return result;
+  }
+
+  return result;
+}
+
+

@@ -1,0 +1,3777 @@
+/* 
+ * $Id: init.c,v 1.63 Broadcom SDK $
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ *
+ * File:        init.c
+ * Purpose:     Device initialization commands.
+ *
+ * DPP diag init code using bcm API. The code in here is intended to 
+ * configure the system for simple packet flows.
+ */
+
+#include <shared/bsl.h>
+
+#if defined(__DUNE_GTO_BCM_CPU__) && (defined(LINUX) || defined(UNIX)) && (defined(DCMN_INIT_DMA_DEBUG))
+/* Debug - DMA */
+#include <fcntl.h> /* open */
+#include <sys/ioctl.h> /* ioctl */
+#endif
+
+#if defined(__DUNE_GTO_BCM_CPU__) && (defined(LINUX) || defined(UNIX)) && !defined(__KERNEL__)
+#include <stdlib.h>
+#endif
+
+#include <ibde.h>
+#include <soc/drv.h>
+#include <bcm/error.h>
+#include <bcm/cosq.h>
+#include <bcm/port.h>
+#include <bcm/stack.h>
+#include <bcm/switch.h>
+#include <bcm/types.h>
+#include <appl/diag/diag.h>
+
+#ifdef BCM_CMICM_SUPPORT
+#include <soc/uc_msg.h>
+#include <soc/shared/llm_msg.h>
+#include <soc/shared/llm_pack.h>
+#include <soc/shared/llm_appl.h>
+#endif
+
+#include <soc/dcmn/utils_fpga.h>
+#include <soc/dcmn/dcmn_utils_eeprom.h>
+
+#ifdef BCM_DPP_SUPPORT
+#include <soc/dpp/drv.h>
+#include <soc/dpp/SAND/Utils/sand_framework.h>
+#include <soc/dpp/SAND/Management/sand_low_level.h>
+#endif
+
+#ifdef BCM_DFE_SUPPORT
+#include <soc/dfe/cmn/dfe_drv.h>
+#endif
+
+#include <soc/i2c.h>
+
+#if defined(INCLUDE_DUNE_UI)
+#include <appl/dpp/UserInterface/ui_pure_defi.h>
+#endif
+
+#include <appl/diag/dcmn/bsp_cards_consts.h>
+#include <appl/diag/dcmn/init.h>
+#include <appl/diag/dcmn/utils_board_general.h>
+#include <appl/diag/system.h>  
+
+#ifdef BCM_DPP_SUPPORT
+#include <appl/diag/dpp/utils_line_gfa_petra.h>
+#include <appl/diag/dpp/utils_line_gfa_bi.h>
+#include <appl/diag/dpp/utils_arad_card.h>
+#endif
+
+#ifdef BCM_DFE_SUPPORT
+#include <appl/diag/dfe/utils_fe1600_card.h>
+#endif
+
+
+#ifdef BCM_DPP_SUPPORT
+#include <appl/dpp/sweep/PCP/sweep_pcp_app.h>
+#include <appl/dpp/sweep/PCP/sweep_pcp_bsp_interface.h>
+#include <soc/dpp/PCP/pcp_mgmt.h>
+#include <soc/dpp/SAND/Management/sand_device_management.h>
+#include <soc/dpp/SAND/Utils/sand_bitstream.h>
+
+#include <bcm_int/dpp/cosq.h>
+#include <bcm_int/dpp/stack.h>
+#endif
+
+#include <sal/appl/sal.h>
+#include <appl/diag/dcmn/init_deinit.h>
+#include <soc/dpp/port_sw_db.h>
+
+#ifdef BCM_ARAD_SUPPORT
+#include <soc/dpp/ARAD/arad_mgmt.h>
+#endif /* BCM_ARAD_SUPPORT */
+
+#ifdef PLISIM
+#include <../systems/sim/dpp/ChipSim/chip_sim.h>
+#endif /* PLISIM */
+#if (defined(BCM_PETRA_SUPPORT) || defined(BCM_DFE_SUPPORT)) && (defined(__DUNE_GTO_BCM_CPU__) || defined(__DUNE_WRX_BCM_CPU__))
+extern int _cpu_write(int d, uint32 addr, uint32 *buf);
+extern int _cpu_read(int d, uint32 addr, uint32 *buf);
+extern int _cpu_pci_register(int d);
+#endif
+
+
+#define PCP_DEVICE_ID (SOC_SAND_MAX_DEVICE-1)
+
+#define MAX_NUM_DEVICES (SOC_SAND_MAX_DEVICE)
+#define MAX_COS         (8)
+
+#ifdef BCM_DPP_SUPPORT
+typedef struct appl_dpp_diag_init_s {
+    int         my_modid;
+    int         my_modid_idx;
+    int         base_modid;
+    int         nof_devices;
+    int         num_ports;
+    int         num_cos;
+    int         cpu_sys_port;
+    int         internal_ports[MAX_NUM_DEVICES][SOC_MAX_NUM_PORTS];
+    int         num_internal_ports;
+    int         offset_start_of_internal_ports;
+    int         offset_start_of_sys_port;
+    int         offset_start_of_voq;
+    int         offset_start_of_voq_connector;
+    bcm_gport_t dest_local_gport[SOC_MAX_NUM_PORTS];   
+    bcm_gport_t dest_local_gport_nof_priorities[SOC_MAX_NUM_PORTS];   /* number of priorities per port */ 
+    bcm_gport_t gport_ucast_voq_connector_group[MAX_NUM_DEVICES][SOC_MAX_NUM_PORTS];
+    bcm_gport_t gport_ucast_queue_group[MAX_NUM_DEVICES][SOC_MAX_NUM_PORTS];
+    bcm_gport_t gport_ucast_scheduler[SOC_MAX_NUM_PORTS][MAX_COS];    
+}appl_dpp_diag_init_t;
+
+static appl_dpp_diag_init_t   g_dii; /* global diag init info */
+
+static int  g_base_modid; /* global base_modid */
+
+/* 
+ * Utils function: Converting between IDs
+ */
+/* return the index for the internal port stored in the internal_ports[] array */
+STATIC int
+appl_dpp_port_internal_id_get(int modid_idx, int port)
+{
+    int port_i;
+    for (port_i=0; port_i<g_dii.num_internal_ports; port_i++) {
+    if (g_dii.internal_ports[modid_idx][port_i] == port) {
+        return port_i;
+    }
+    }
+    return -1;
+}
+
+/* Convert (mod,port) id to sysport id */
+STATIC int
+appl_dpp_convert_modport_to_sysport_id(int modid_idx,int port)
+{
+    int internal_port_idx;
+
+    /* Petra-B ITMH cannot be sent to system port 0, so we're using system port
+               different than 0 instead (for CPU). ARAD can use system port 0 but we will do the same as Petra-B */
+    if (port == 0) {
+        port = g_dii.cpu_sys_port;
+    }
+
+    internal_port_idx = appl_dpp_port_internal_id_get(modid_idx, port);
+    if (internal_port_idx != -1) {
+    return (g_dii.offset_start_of_sys_port * modid_idx + internal_port_idx 
+        + g_dii.offset_start_of_internal_ports);
+    }
+
+    return g_dii.offset_start_of_sys_port * modid_idx + port;
+}
+
+/* Convert sysport to base VOQ id */
+STATIC int
+appl_dpp_convert_sysport_id_to_base_voq_id(int sysport)
+{
+    /* Assume, no system port 0 */
+    if (sysport == 0) {
+        return -1;
+    }
+    return g_dii.offset_start_of_voq + (sysport-1)*g_dii.num_cos;
+}
+
+/* Convert (local port,ingress_modid) to VOQ connector base */
+STATIC int
+appl_dpp_convert_modport_to_base_voq_connector(int local_port,int ingress_modid)
+{
+    /* In case of internal ports (higher than 255) have a port of max + (local_port - 255) */
+    if (local_port > 255) {
+        local_port = 256 + (local_port % 256);
+    }
+    return g_dii.offset_start_of_voq_connector + local_port*(g_dii.nof_devices + g_dii.base_modid)*MAX_COS
+        + ingress_modid*MAX_COS;
+}
+
+/* 
+ * Convert local port to an example of Remote XGS port and XGS Modid 
+ * See convert details in function 
+ */
+STATIC void
+appl_dpp_convert_port_to_remote_modid_port(int unit, int local_port, int* remote_modid, int* remote_port)
+{
+    /* 
+     * Remote Modid 0 <=> local_port 0-63
+     * Remote Modid 1 <=> local_port 64-127
+     * Remote Modid 2 <=> local_port 128-191
+     * Remote Modid 3 <=> local_port 192-255
+     */
+    *remote_modid = (local_port >> 6);
+
+    /* Remote Port = local_port first 6 bits */
+    *remote_port =  (local_port & 0x3F);    
+}
+
+STATIC int
+appl_dpp_is_xgs_mac_extender_port(int unit, int local_port)
+{
+    char *propkey, *propval;
+
+    propkey = spn_TM_PORT_HEADER_TYPE;
+    propval = soc_property_port_suffix_num_get_str(unit, local_port, 0, propkey, "in");
+
+    if (propval) {
+      if (sal_strcmp(propval, "XGS_MAC_EXT") == 0) {
+        return 1;
+      }
+    }
+
+    return 0;
+}
+
+/* 
+ * Purpose: Initializes Looks at current configuration and populates
+ *          g_dii based on that
+ */
+STATIC int
+appl_dpp_misc_diag_init (int unit, int mymodid, int base_modid, int nof_devices)
+{
+    int         rv = BCM_E_NONE;
+    int         port_i = 0;
+    int         modid_idx = 0;
+
+    g_dii.num_cos = NUM_COS(unit);
+    LOG_VERBOSE(BSL_LS_APPL_COMMON,
+                (BSL_META_U(unit,
+                            "g_dii.num_cos is %d \n"),
+                 g_dii.num_cos));
+
+    /* Assuming modid is between base_modid-(base_modid+nof_devices-1) */
+    g_dii.my_modid = mymodid;
+    g_dii.nof_devices = nof_devices;
+    if (base_modid != -1) {
+        g_base_modid = base_modid;  /* Range configuration between base_modid-(base_modid + nof_devices - 1) */
+    }
+    g_dii.base_modid = g_base_modid;
+    g_dii.my_modid_idx = mymodid - g_dii.base_modid;
+    
+    if (mymodid >= (g_dii.nof_devices + g_dii.base_modid) || mymodid < g_dii.base_modid) {
+        LOG_ERROR(BSL_LS_APPL_COMMON,
+                  (BSL_META_U(unit,
+                              "appl_dpp_misc_diag_init failed. "
+                               "Diag application assumes a valid range of modids"
+                               " between base_modid and (base_modid+nof_devices-1).\n")));
+        return BCM_E_PARAM;
+    }
+
+    g_dii.cpu_sys_port = 255;
+
+    /* Offset sysport per device */
+    g_dii.offset_start_of_sys_port = 256;
+    /* Offset VOQ */
+    g_dii.offset_start_of_voq = 32;
+    /* Offset VOQ connector */
+    g_dii.offset_start_of_voq_connector = 32;
+
+    /* on local device internal ports will start at 240 */
+    g_dii.offset_start_of_internal_ports = 240;
+    g_dii.num_internal_ports = 0;
+
+    for (modid_idx = 0; modid_idx < nof_devices; modid_idx++) {
+        for (port_i=0; port_i<SOC_MAX_NUM_PORTS; port_i++) {
+            g_dii.internal_ports[modid_idx][port_i] = -1;
+        }
+    }    
+    
+
+    return rv;
+}
+
+int
+appl_dpp_stk_diag_init(int unit)
+{
+    int rv = BCM_E_NONE;
+    int idx, index, port, sys_port, modid_idx;
+    bcm_gport_t internal_gport[SOC_MAX_NUM_PORTS];
+    bcm_gport_t modport_gport,sysport_gport;
+    int int_flags;
+    bcm_port_config_t port_config;
+    bcm_pbmp_t pbmp;
+    int remote_modid = 0;
+    int remote_port  = 0;
+    bcm_port_interface_info_t interface_info;
+    bcm_port_mapping_info_t   mapping_info;
+
+
+    /* Set modid */
+    rv = bcm_stk_my_modid_set(unit, g_dii.my_modid);
+    if (BCM_FAILURE(rv)) {
+        LOG_ERROR(BSL_LS_APPL_COMMON,
+                  (BSL_META_U(unit,
+                              "bcm_stk_my_modid_set failed. Error:%d (%s)\n"),  
+                   rv, bcm_errmsg(rv)));
+        return rv;
+    }
+
+
+    rv = bcm_port_config_get(unit, &port_config);
+    if (BCM_FAILURE(rv)) {
+        LOG_ERROR(BSL_LS_APPL_COMMON,
+                  (BSL_META_U(unit,
+                              "bcm_port_config_get failed. Error:%d (%s)\n"),  
+                   rv, bcm_errmsg(rv)));
+        return rv;
+    }
+
+    /* Internal ports are not part of the pbmp */
+
+    BCM_PBMP_CLEAR(pbmp);
+    BCM_PBMP_OR(pbmp, port_config.all);
+    BCM_PBMP_REMOVE(pbmp, port_config.sfi);
+
+    BCM_PBMP_COUNT(pbmp, g_dii.num_ports);
+
+    /* 
+     * Have XGS MAC extender default mappings example.
+     * Map (HG.Modid, HG.Port) to local_port. 
+     * In example we have convert function between ARAD local port to HG.Port and HG.Modid. 
+     * Note: XGS MAC extender ports: the first port interface channel 0 (ucode_port_x=INTF.0) must be between 0-15.
+     */
+    BCM_PBMP_ITER(pbmp, port) {
+        if (appl_dpp_is_xgs_mac_extender_port(unit, port)) {
+            appl_dpp_convert_port_to_remote_modid_port(unit, port, &remote_modid, &remote_port);
+
+#ifdef DEBUG_PORTS
+            cli_out("XGS MAC extender: ARAD port(%d) remote modid(%d) remote port(%d\n", 
+                    (port), remote_modid, remote_port);
+#endif  
+            rv = bcm_stk_modport_remote_map_set(unit, port, 0,
+                                           remote_modid, remote_port);
+            if (BCM_FAILURE(rv)) {
+                LOG_ERROR(BSL_LS_APPL_COMMON,
+                          (BSL_META_U(unit,
+                                      "bcm_stk_modport_remote_map_get(%d, %d) failed. "
+                                       "Error:%d (%s)\n"), unit, port, 
+                           rv, bcm_errmsg(rv)));
+                return rv;
+            }
+        }
+
+    }
+
+    idx = 0;
+    BCM_PBMP_ITER(pbmp, port) {
+        
+        /* initialize local ports array */
+        BCM_GPORT_LOCAL_SET(g_dii.dest_local_gport[idx],port);
+
+        /* per local port, indicate port number of priorities */
+
+        rv = bcm_port_get(unit, port, &interface_info, &mapping_info);
+        if (BCM_FAILURE(rv)) {
+            LOG_ERROR(BSL_LS_APPL_COMMON,
+                      (BSL_META_U(unit,
+                                  "bcm_port_get failed. Error:%d (%s)\n"),  
+                       rv, bcm_errmsg(rv)));
+            return rv;
+        }
+
+        g_dii.dest_local_gport_nof_priorities[idx] = mapping_info.num_priorities;
+
+        idx++;
+
+    }
+
+    /* 
+     * Creation of system ports in the system 
+     * Iterate over port + internal ports. After the iteration, num_ports will
+     *  be incremented by internal_num_ports 
+     * Assuming each device has the same num ports + internal ports  
+     */    
+    for (modid_idx = 0; modid_idx < g_dii.nof_devices; modid_idx++) {       
+        
+        BCM_PBMP_ITER(pbmp, port) {                
+            /* System port id depends on modid + port id */ 
+            sys_port = appl_dpp_convert_modport_to_sysport_id(modid_idx, port);    
+            
+            BCM_GPORT_MODPORT_SET(modport_gport, modid_idx + g_dii.base_modid, port);
+            BCM_GPORT_SYSTEM_PORT_ID_SET(sysport_gport, sys_port);
+                
+            rv = bcm_stk_sysport_gport_set(unit, sysport_gport, modport_gport);
+            if (BCM_FAILURE(rv)) {
+                LOG_ERROR(BSL_LS_APPL_COMMON,
+                          (BSL_META_U(unit,
+                                      "bcm_stk_sysport_gport_set(%d, %d, %d) failed. "
+                                       "Error:%d (%s)\n"), unit, sysport_gport, 
+                           modport_gport, rv, bcm_errmsg(rv)));
+                return rv;
+            }
+        }
+
+
+    /* Now set up internal ports ERP/OLP/OAMP */
+    /* Get number of internal ports */
+    /* Assuming all devices have the same amount internal ports */    
+    int_flags =
+        BCM_PORT_INTERNAL_EGRESS_REPLICATION |
+        BCM_PORT_INTERNAL_OAMP |
+        BCM_PORT_INTERNAL_OLP;
+    rv = bcm_port_internal_get(unit, int_flags, SOC_MAX_NUM_PORTS,
+                   internal_gport, &g_dii.num_internal_ports);
+    if (BCM_FAILURE(rv)) {
+        LOG_ERROR(BSL_LS_APPL_COMMON,
+                  (BSL_META_U(unit,
+                              "bcm_port_internal_get failed. Error:%d (%s)\n"),  
+                   rv, bcm_errmsg(rv)));
+        return rv;
+    }
+    
+    for (index = 0; index < g_dii.num_internal_ports; ++index) {
+        
+        if (BCM_GPORT_IS_LOCAL(internal_gport[index])) {
+        port = BCM_GPORT_LOCAL_GET(internal_gport[index]);
+        g_dii.internal_ports[modid_idx][index] = port;
+        } else if (BCM_GPORT_IS_MODPORT(internal_gport[index])) {
+        port = BCM_GPORT_MODPORT_PORT_GET(internal_gport[index]);
+        g_dii.internal_ports[modid_idx][index] = port;
+        } else {
+        LOG_ERROR(BSL_LS_APPL_COMMON,
+                  (BSL_META_U(unit,
+                              "bcm_port_internal_get internal gport type unsupported gport(0x%08x). "
+                               "Error:%d (%s)\n"),internal_gport[index],rv, bcm_errmsg(rv)));
+        return rv;
+        }
+
+        BCM_GPORT_LOCAL_SET(g_dii.dest_local_gport[idx], port);
+
+        rv = bcm_port_get(unit, port, &interface_info, &mapping_info);
+        if (BCM_FAILURE(rv)) {
+            LOG_ERROR(BSL_LS_APPL_COMMON,
+                      (BSL_META_U(unit,
+                                  "bcm_port_get failed. Error:%d (%s)\n"),  
+                       rv, bcm_errmsg(rv)));
+            return rv;
+        }
+         
+        g_dii.dest_local_gport_nof_priorities[idx] = mapping_info.num_priorities;
+
+        /* System port id depends on modid + port id */ 
+        sys_port = appl_dpp_convert_modport_to_sysport_id(modid_idx, port);                                  
+        BCM_GPORT_MODPORT_SET(modport_gport, modid_idx + g_dii.base_modid, port);
+        BCM_GPORT_SYSTEM_PORT_ID_SET(sysport_gport, sys_port);
+#ifdef DEBUG_PORTS            
+        cli_out("idx(%d) modid_idx(%d) port(%d) sysport(%d) dest_local(0x%08x) internal\n", 
+                (idx), modid_idx, port, sys_port, g_dii.dest_local_gport[idx]);
+#endif        
+        rv = bcm_stk_sysport_gport_set(unit, sysport_gport, 
+                       modport_gport);
+        if (BCM_FAILURE(rv)) {
+            LOG_ERROR(BSL_LS_APPL_COMMON,
+                      (BSL_META_U(unit,
+                                  "bcm_stk_sysport_gport_set(%d, %d, %d) failed. "
+                                   "Error:%d (%s)\n"), unit, sysport_gport, 
+                       modport_gport, rv, bcm_errmsg(rv)));
+            return rv;
+        }
+        idx++;
+    }
+
+    if (g_dii.num_internal_ports > 0) {
+        LOG_VERBOSE(BSL_LS_APPL_COMMON,
+                    (BSL_META_U(unit,
+                                "appl_dpp_stk_diag_init: Adding %d internal ports modid_idx(%d)\n"),
+                     g_dii.num_internal_ports, modid_idx));
+    }
+    }
+
+    g_dii.num_ports += g_dii.num_internal_ports;
+
+    LOG_VERBOSE(BSL_LS_APPL_COMMON,
+                (BSL_META_U(unit,
+                            "g_dii.num_ports is %d \n"),
+                 g_dii.num_ports));
+    
+    return rv;
+}
+
+int
+appl_dpp_cosq_diag_init(int unit)
+{
+    int                         rv = BCM_E_NONE;
+    int                         idx, cos, port;
+    uint32                      flags;
+    bcm_cosq_gport_connection_t connection;
+    int queue_range = 0;
+    int modid_idx, sysport_id, voq_base_id, voq_connector_id;
+    bcm_gport_t voq_connector_gport, sysport_gport, modport_gport, voq_base_gport, e2e_gport;
+    bcm_cos_t tc_i;
+    bcm_cos_queue_t to_cosq;
+    bcm_gport_t src_gport;
+    int int_flags;
+    int local_erp_port = -1;
+    int num_erp_ports = 0;
+    bcm_gport_t egress_q_gport;          
+    bcm_port_config_t port_config;
+    int egress_port, my_domain, domain;
+    bcm_cosq_gport_info_t gport_info;
+
+    
+    if(!SOC_IS_JERICHO(unit)){        
+        rv = bcm_petra_stk_domain_modid_get(unit, g_dii.my_modid, &my_domain);
+        if (BCM_FAILURE(rv)) {
+            LOG_ERROR(BSL_LS_APPL_COMMON,
+                      (BSL_META_U(unit,
+                                  "bcm_petra_stk_domain_modid_get failed. "
+                                   "Error:%d (%s)\n"), rv, bcm_errmsg(rv)));
+                return rv;
+        }
+        
+        /* 
+         * Before creating VOQs, User must specify the range of the FMQs in
+         * the device.
+         * In most cases, where fabric multicast is only defined by packet tc,
+         * range should set between 0-3. 
+         * Set range that is different than 0-3, need to change fabric scheduler
+         * mode. 
+         * Please see more details in the UM, Cint example: 
+         * cint_enhance_application.c 
+         * and API: 
+         * bcm_fabric_control_set type: bcmFabricMulticastSchedulerMode. 
+         */
+        queue_range = 0;
+        rv = bcm_fabric_control_set(unit,bcmFabricMulticastQueueMin,queue_range);
+        if (BCM_FAILURE(rv)) {
+            LOG_ERROR(BSL_LS_APPL_COMMON,
+                      (BSL_META_U(unit,
+                                  "bcm_fabric_control_set queue_id :%d failed. "
+                                   "Error:%d (%s)\n"), queue_range, rv, bcm_errmsg(rv)));
+                return rv;
+        }
+        queue_range = 3;
+        rv = bcm_fabric_control_set(unit,bcmFabricMulticastQueueMax,queue_range);
+        if (BCM_FAILURE(rv)) {
+            LOG_ERROR(BSL_LS_APPL_COMMON,
+                      (BSL_META_U(unit,
+                                  "bcm_fabric_control_set queue_id :%d failed. "
+                                   "Error:%d (%s)\n"), queue_range, rv, bcm_errmsg(rv)));
+            return rv;
+        }
+        
+        /* Get ERP port */
+        int_flags =
+        BCM_PORT_INTERNAL_EGRESS_REPLICATION;
+        rv = bcm_port_internal_get(unit, int_flags, 1,
+                       &local_erp_port, &num_erp_ports);
+        if (BCM_FAILURE(rv)) {
+        LOG_ERROR(BSL_LS_APPL_COMMON,
+                  (BSL_META_U(unit,
+                              "bcm_port_internal_get failed. Error:%d (%s)\n"),  
+                   rv, bcm_errmsg(rv)));
+        return rv;
+        }
+
+
+        /* 
+         * Creating Scheduling Scheme 
+         * This is done with the following stages: 
+         * 1. Egress: Create for each local port: following FQs, VOQ connectors. 
+         * 2. Ingress: Create VOQs for each system port. 
+         * 3. Connect Ingress VOQs <=> Egress VOQ connectors. 
+         * Pay attention the scheduling scheme assumes static IDs for VOQ connectors,VOQs. 
+         * This is depended by the local and system ports in the system.
+         * Conversion is done static using utils functions. 
+         */             
+
+        /* Stage I: Egress Create FQs */
+        for (idx = 0; idx < g_dii.num_ports; idx++) {
+            /* Replace HR mode to enhance */
+            flags = (BCM_COSQ_GPORT_SCHEDULER |
+                    BCM_COSQ_GPORT_SCHEDULER_HR_ENHANCED |
+                     BCM_COSQ_GPORT_REPLACE);
+            
+            /* e2e gport */
+            BCM_COSQ_GPORT_E2E_PORT_SET(e2e_gport, BCM_GPORT_LOCAL_GET(g_dii.dest_local_gport[idx]));        
+            rv = bcm_cosq_gport_add(unit, g_dii.dest_local_gport[idx], 1, flags, 
+                                    &e2e_gport);
+
+            if (BCM_FAILURE(rv)) {
+                LOG_ERROR(BSL_LS_APPL_COMMON,
+                          (BSL_META_U(unit,
+                                      "bcm_cosq_gport_add replace hr scheduler idx:%d failed. "
+                                       "Error:%d (%s)\n"), idx, rv, bcm_errmsg(rv)));
+                return rv;
+            }
+
+            /* Create FQ per traffic class i, attach it to HR SPi */
+            for (cos = 0; cos < g_dii.num_cos; cos++) 
+            {
+                BCM_COSQ_GPORT_E2E_PORT_TC_SET(gport_info.in_gport, g_dii.dest_local_gport[idx]);
+                gport_info.cosq = (g_dii.dest_local_gport_nof_priorities[idx] == 8 ? cos : 0);
+                rv = bcm_cosq_gport_handle_get(unit, bcmCosqGportTypeSched, &gport_info);     
+                if (BCM_FAILURE(rv)) {
+                    LOG_ERROR(BSL_LS_APPL_COMMON,
+                              (BSL_META_U(unit,
+                                          "bcm_cosq_gport_handle_get failed %d. "
+                                           "Error:%d (%s)\n"), gport_info.in_gport, rv, bcm_errmsg(rv)));
+                    return rv;
+                }                
+
+                flags = (BCM_COSQ_GPORT_SCHEDULER | 
+                    BCM_COSQ_GPORT_SCHEDULER_FQ);
+
+                rv = bcm_cosq_gport_add(unit, e2e_gport, 1, flags, 
+                                        &g_dii.gport_ucast_scheduler[idx][cos]);
+                if (BCM_FAILURE(rv)) {
+                    LOG_ERROR(BSL_LS_APPL_COMMON,
+                              (BSL_META_U(unit,
+                                          "bcm_cosq_gport_add fq scheduler idx:%d cos: %d failed. "
+                                           "Error:%d (%s)\n"), idx, cos, rv, bcm_errmsg(rv)));
+                    return rv;
+                }
+
+                rv = bcm_cosq_gport_sched_set(unit, 
+                             g_dii.gport_ucast_scheduler[idx][cos], 0, 
+                             BCM_COSQ_SP0, 0);
+
+
+                /* attach hr scheduler to fq */
+                rv = bcm_cosq_gport_attach(unit, gport_info.out_gport,
+                                 g_dii.gport_ucast_scheduler[idx][cos], 0);
+
+                if (BCM_FAILURE(rv)) {
+                    LOG_ERROR(BSL_LS_APPL_COMMON,
+                              (BSL_META_U(unit,
+                                          "bcm_cosq_gport_attach hr scheduler-fq idx:%d "
+                                           "cos:%d failed. Error:%d (%s)\n"), 
+                               idx, cos, rv, bcm_errmsg(rv)));
+                    return rv;
+                }
+            }        
+        }
+        
+        /* Stage I: Egress Create VOQ connectors */
+        for (modid_idx = 0; modid_idx < g_dii.nof_devices; modid_idx++) {
+            for (idx = 0; idx < g_dii.num_ports; idx++) {
+
+                /* create voq connector */
+				if (g_dii.base_modid == 0) {
+					flags = BCM_COSQ_GPORT_VOQ_CONNECTOR | BCM_COSQ_GPORT_WITH_ID;
+				} else {         
+                    flags = BCM_COSQ_GPORT_VOQ_CONNECTOR; 
+			    }
+
+                port = BCM_GPORT_LOCAL_GET(g_dii.dest_local_gport[idx]);
+
+                /* Skip ERP port if not local on egress */
+                if ((local_erp_port == port) && (modid_idx != g_dii.my_modid_idx)) {
+                    continue;
+                }
+
+				if (g_dii.base_modid == 0) {
+					voq_connector_id  = 
+                    	appl_dpp_convert_modport_to_base_voq_connector(port,modid_idx);
+						BCM_COSQ_GPORT_VOQ_CONNECTOR_SET(g_dii.gport_ucast_voq_connector_group[modid_idx][idx],voq_connector_id);
+				}
+				
+                BCM_GPORT_MODPORT_SET(src_gport, modid_idx + g_dii.base_modid, 0);
+
+                rv = bcm_cosq_gport_add(unit, src_gport, g_dii.num_cos, 
+                                  flags, &g_dii.gport_ucast_voq_connector_group[modid_idx][idx]);
+        
+                if (BCM_FAILURE(rv)) {
+                    LOG_ERROR(BSL_LS_APPL_COMMON,
+                              (BSL_META_U(unit,
+                                          "bcm_cosq_gport_add connector idx:%d failed. "
+                                           "Error %d (%s)\n"), idx, rv, bcm_errmsg(rv)));
+                    return rv;
+                }
+        
+                for (cos = 0; cos < g_dii.num_cos; cos++) {
+                    /* Each VOQ connector attach suitable FQ traffic class */
+                    rv = bcm_cosq_gport_sched_set(unit, 
+                                 g_dii.gport_ucast_voq_connector_group[modid_idx][idx], cos, 
+                                 BCM_COSQ_SP0,0);
+                    if (BCM_FAILURE(rv)) {
+                        LOG_ERROR(BSL_LS_APPL_COMMON,
+                                  (BSL_META_U(unit,
+                                              "bcm_cosq_gport_sched_set connector idx:%d cos:%d "
+                                               "failed. Error:%d(%s)\n"), 
+                                   idx, cos, rv, bcm_errmsg(rv)));
+                        return rv;
+                    }
+                    /* attach fq scheduler to connecter */
+                    rv = bcm_cosq_gport_attach(unit, g_dii.gport_ucast_scheduler[idx][cos],
+                                     g_dii.gport_ucast_voq_connector_group[modid_idx][idx], cos);
+                    if (BCM_FAILURE(rv)) {
+                        LOG_ERROR(BSL_LS_APPL_COMMON,
+                                  (BSL_META_U(unit,
+                                              "bcm_cosq_gport_attach fq scheduler-connector idx:%d "
+                                               "cos:%d failed. Error:%d (%s)\n"), 
+                                   idx, cos, rv, bcm_errmsg(rv)));
+                        return rv;
+                    }
+                }
+            }
+        }
+    }
+
+    /* Stage 2: Ingress: Create VOQs for each system port. */
+    for (modid_idx = 0; modid_idx < g_dii.nof_devices; modid_idx++) {
+        for (idx = 0; idx < g_dii.num_ports; idx++) {
+
+            flags = BCM_COSQ_GPORT_UCAST_QUEUE_GROUP | BCM_COSQ_GPORT_WITH_ID;
+
+        port = BCM_GPORT_LOCAL_GET(g_dii.dest_local_gport[idx]);
+
+
+        /* Skip ERP port if not far end on ingress */
+        if ((local_erp_port == port) && (modid_idx == g_dii.my_modid_idx)) {
+        continue;
+        }
+            
+            BCM_GPORT_MODPORT_SET(modport_gport, modid_idx + g_dii.base_modid, BCM_GPORT_LOCAL_GET(g_dii.dest_local_gport[idx]));
+
+            rv = bcm_stk_gport_sysport_get(unit,modport_gport,&sysport_gport);
+            if (BCM_FAILURE(rv)) {
+                LOG_ERROR(BSL_LS_APPL_COMMON,
+                          (BSL_META_U(unit,
+                                      "bcm_stk_gport_sysport_get get sys port failed. Error:%d (%s) \n"), 
+                           rv, bcm_errmsg(rv)));
+               return rv;
+            }
+
+
+            sysport_id = BCM_GPORT_SYSTEM_PORT_ID_GET(sysport_gport);
+            voq_base_id = appl_dpp_convert_sysport_id_to_base_voq_id(sysport_id);
+                       
+             
+            BCM_GPORT_UNICAST_QUEUE_GROUP_SET(g_dii.gport_ucast_queue_group[modid_idx][idx],voq_base_id);            
+
+            /* Map sysport_gport to voq_base_id. Could have used sysport_gport instead of modport_gport in the function call below */
+            rv = bcm_cosq_gport_add(unit, modport_gport, g_dii.num_cos, 
+                                    flags, &g_dii.gport_ucast_queue_group[modid_idx][idx]);
+            if (BCM_FAILURE(rv)) {
+                LOG_ERROR(BSL_LS_APPL_COMMON,
+                          (BSL_META_U(unit,
+                                      "bcm_cosq_gport_add UC queue failed. Error:%d (%s) \n"), 
+                           rv, bcm_errmsg(rv)));
+               return rv;
+            }
+            LOG_VERBOSE(BSL_LS_APPL_COMMON,
+                        (BSL_META_U(unit,
+                                    "ucast gport(0x%08x)\n"),
+                         g_dii.gport_ucast_queue_group[modid_idx][idx]));
+            
+            if(!SOC_IS_JERICHO(unit)){
+
+                /*Set compensation at ingress to +2*/
+                rv = bcm_petra_stk_domain_modid_get(unit, modid_idx + g_dii.base_modid, &domain);
+                if (BCM_FAILURE(rv)) {
+                LOG_ERROR(BSL_LS_APPL_COMMON,
+                          (BSL_META_U(unit,
+                                      "bcm_petra_stk_domain_modid_get failed. "
+                                       "Error:%d (%s)\n"), rv, bcm_errmsg(rv)));
+                    return rv;
+                }
+                if(domain == my_domain) {
+                    rv = bcm_cosq_control_set(unit, g_dii.gport_ucast_queue_group[modid_idx][idx], 0, bcmCosqControlPacketLengthAdjust, 2);
+                    if (BCM_FAILURE(rv)) {
+                        LOG_ERROR(BSL_LS_APPL_COMMON,
+                                  (BSL_META_U(unit,
+                                              "bcm_cosq_control_set failed in setting compensation. Error:%d (%s) \n"), 
+                                   rv, bcm_errmsg(rv)));
+                       return rv;
+                    }
+                }
+            }
+        }
+    }
+    
+    if(!SOC_IS_JERICHO(unit)){
+
+        /* Stage 3: Connect Ingress VOQs <=> Egress VOQ connectors. */
+        /* Ingress: connect voqs to voq connectors */
+        for (modid_idx = 0; modid_idx < g_dii.nof_devices; modid_idx++) {
+            for (idx = 0; idx < g_dii.num_ports; idx++) {
+                connection.flags = BCM_COSQ_GPORT_CONNECTION_INGRESS;
+                connection.remote_modid = modid_idx + g_dii.base_modid;
+                connection.voq = g_dii.gport_ucast_queue_group[modid_idx][idx];
+
+                port = BCM_GPORT_LOCAL_GET(g_dii.dest_local_gport[idx]);
+
+                /* Skip ERP port if not far end on ingress */
+                if ((local_erp_port == port) && (modid_idx == g_dii.my_modid_idx)) {
+                    continue;
+                }
+
+				if (g_dii.base_modid == 0) {
+					voq_connector_id = appl_dpp_convert_modport_to_base_voq_connector(port,g_dii.my_modid);
+                	BCM_COSQ_GPORT_VOQ_CONNECTOR_SET(voq_connector_gport,voq_connector_id);
+
+                	connection.voq_connector = voq_connector_gport;
+				} else {
+	                connection.voq_connector = g_dii.gport_ucast_voq_connector_group[g_dii.my_modid_idx][idx];
+				}
+                
+                rv = bcm_cosq_gport_connection_set(unit, &connection);
+                if (BCM_FAILURE(rv)) {
+                    LOG_ERROR(BSL_LS_APPL_COMMON,
+                              (BSL_META_U(unit,
+                                          "bcm_cosq_gport_connection_set ingress modid_idx: %d, idx:%d failed. "
+                                           "Error:%d (%s)\n"), modid_idx, idx, rv, bcm_errmsg(rv)));
+                    return rv;
+                }
+            }
+        }            
+
+        /* Egress: connect voq connectors to voqs */
+        for (modid_idx = 0; modid_idx < g_dii.nof_devices; modid_idx++) {
+            for (idx = 0; idx < g_dii.num_ports; idx++) {
+                connection.flags = BCM_COSQ_GPORT_CONNECTION_EGRESS;
+                connection.remote_modid = modid_idx + g_dii.base_modid;
+                connection.voq_connector = g_dii.gport_ucast_voq_connector_group[modid_idx][idx];
+                
+                port = BCM_GPORT_LOCAL_GET(g_dii.dest_local_gport[idx]);
+
+
+            /* Skip ERP port if not local on egress */
+            if ((local_erp_port == port) && (modid_idx != g_dii.my_modid_idx)) {
+            continue;
+            }
+
+                BCM_GPORT_MODPORT_SET(modport_gport,g_dii.my_modid,port);
+                rv = bcm_stk_gport_sysport_get(unit,modport_gport,&sysport_gport);
+                if (BCM_FAILURE(rv)) {
+                    LOG_ERROR(BSL_LS_APPL_COMMON,
+                              (BSL_META_U(unit,
+                                          "bcm_stk_gport_sysport_get get sys port failed. Error:%d (%s) \n"), 
+                               rv, bcm_errmsg(rv)));
+                   return rv;
+                }
+
+                sysport_id = BCM_GPORT_SYSTEM_PORT_ID_GET(sysport_gport);
+                voq_base_id = appl_dpp_convert_sysport_id_to_base_voq_id(sysport_id);
+                BCM_GPORT_UNICAST_QUEUE_GROUP_SET(voq_base_gport,voq_base_id);
+
+                connection.voq = voq_base_gport;
+                
+                rv = bcm_cosq_gport_connection_set(unit, &connection);
+                if (BCM_FAILURE(rv)) {
+                    LOG_ERROR(BSL_LS_APPL_COMMON,
+                              (BSL_META_U(unit,
+                                          "bcm_cosq_gport_connection_set egress modid_idx: %d, idx:%d failed. "
+                                           "Error:%d (%s)\n"), modid_idx, idx, rv, bcm_errmsg(rv)));
+                    return rv;
+                }
+            }
+        }
+
+        if (g_dii.num_cos == 4) {
+            to_cosq = 3;
+            LOG_WARN(BSL_LS_APPL_COMMON,
+                     (BSL_META_U(unit,
+                                 "appl_dpp_cosq_diag_init: num_cos=4. Mapping TCs 4-7 to 3\n")));
+            for (tc_i = 4; tc_i < 8; ++tc_i) {
+                rv = bcm_cosq_mapping_set(unit, tc_i, to_cosq);
+                if (BCM_FAILURE(rv)) {
+                    LOG_ERROR(BSL_LS_APPL_COMMON,
+                              (BSL_META_U(unit,
+                                          "bcm_cosq_mapping_set tc: %d, cosq:%d failed. "
+                                           "Error:%d (%s)\n"), tc_i, to_cosq, rv, bcm_errmsg(rv)));
+                    return rv;
+                }
+            }
+        }
+
+        /*Configure egress compensation to -2*/
+        rv = bcm_port_config_get(unit, &port_config);
+        if (BCM_FAILURE(rv)) {
+            LOG_ERROR(BSL_LS_APPL_COMMON,
+                      (BSL_META_U(unit,
+                                  "bcm_port_config_get failed")));
+            return rv;
+        }
+
+        BCM_PBMP_ITER(port_config.all, egress_port) {
+            if(!BCM_PBMP_MEMBER(port_config.sfi, egress_port)) {
+                BCM_COSQ_GPORT_UCAST_EGRESS_QUEUE_SET(egress_q_gport, egress_port);
+                rv = bcm_cosq_control_set(unit, egress_q_gport, 0, bcmCosqControlPacketLengthAdjust, -2);
+                if (BCM_FAILURE(rv)) {
+                    LOG_ERROR(BSL_LS_APPL_COMMON,
+                              (BSL_META_U(unit,
+                                          "bcm_cosq_control_set failed")));
+                    return rv;
+                }
+            }
+        }
+    }
+    return rv;
+}
+
+STATIC int
+appl_dpp_tpid_diag_init(int unit)
+{
+    int rv = BCM_E_NONE;
+    bcm_port_config_t port_config;
+    bcm_gport_t gport;
+    bcm_port_tpid_class_t
+        port_tpid_class;
+    int port;
+
+    int parse_advance_mode;
+    parse_advance_mode = SOC_DPP_IS_VLAN_TRANSLATE_MODE_ADVANCED((unit));
+
+    rv = bcm_port_config_get(unit, &port_config);
+    if (BCM_FAILURE(rv)) {
+        LOG_ERROR(BSL_LS_APPL_COMMON,
+                  (BSL_META_U(unit,
+                              "bcm_port_config_get failed. Error:%d (%s)\n"),  
+                   rv, bcm_errmsg(rv)));
+        return rv;
+    }
+
+    BCM_PBMP_ITER(port_config.e, port) {                
+        BCM_GPORT_LOCAL_SET(gport,port);
+
+        if (!parse_advance_mode) {
+            rv = bcm_port_tpid_set(unit, gport, 0x8100);
+            if (BCM_FAILURE(rv)) {
+                LOG_ERROR(BSL_LS_APPL_COMMON,
+                          (BSL_META_U(unit,
+                                      "bcm_port_tpid_set on port:%d failed. Error:%d (%s)\n"), 
+                           port, rv, bcm_errmsg(rv)));
+                return rv;
+            }
+            
+            rv = bcm_port_discard_set(unit, gport, BCM_PORT_DISCARD_NONE);
+            if (BCM_FAILURE(rv)) {
+                LOG_ERROR(BSL_LS_APPL_COMMON,
+                          (BSL_META_U(unit,
+                                      "bcm_port_discard_set on port:%d failed. Error:%d (%s)\n"), 
+                           port, rv, bcm_errmsg(rv)));
+                return rv;
+            }
+        }
+        else{ /* advance omde */
+            rv = bcm_port_tpid_add(unit, gport, 0x8100,0);
+            if (BCM_FAILURE(rv)) {
+                LOG_ERROR(BSL_LS_APPL_COMMON,
+                          (BSL_META_U(unit,
+                                      "bcm_port_tpid_add on port:%d failed. Error:%d (%s)\n"), 
+                           port, rv, bcm_errmsg(rv)));
+                return rv;
+            }
+
+            bcm_port_tpid_class_t_init(&port_tpid_class);
+            port_tpid_class.port = gport;
+            port_tpid_class.tpid1 = 0x8100;
+            port_tpid_class.tpid2 = BCM_PORT_TPID_CLASS_TPID_ANY;
+            port_tpid_class.tag_format_class_id = 2;
+            port_tpid_class.vlan_translation_qos_map_id = 0;
+            port_tpid_class.flags = 0;
+            port_tpid_class.vlan_translation_action_id = 0;
+            rv = bcm_port_tpid_class_set(unit, &port_tpid_class);
+            if (BCM_FAILURE(rv)) {
+                LOG_ERROR(BSL_LS_APPL_COMMON,
+                          (BSL_META_U(unit,
+                                      "bcm_port_tpid_class_set on port:%d failed. Error:%d (%s)\n"), 
+                           port_tpid_class.port, rv, bcm_errmsg(rv)));
+                return rv;
+            }
+        }
+    }
+
+    return rv;
+}
+
+/*
+ * Purpose: Initialize basic components of Petra-B on GFA-BI card.
+ * Note:    This is intended to configure only using BCM API.
+ */
+int
+appl_dpp_bcm_diag_init(int unit, appl_dcmn_init_param_t* init_param)
+{
+    int rv = BCM_E_NONE;
+    char *prop;
+    int module_enable = 0x1;
+
+    if (init_param->warmboot) {
+        /*exit after rx activation if warm reboot*/
+        return rv;
+    }
+
+
+    /* misc init should be called first */
+    rv = appl_dpp_misc_diag_init(unit, init_param->modid, init_param->base_modid, init_param->nof_devices);
+    if (BCM_FAILURE(rv)) {
+        LOG_ERROR(BSL_LS_APPL_COMMON,
+                  (BSL_META_U(unit,
+                              "appl_dpp_misc_diag_init: failed. Error:%d (%s) \n"), 
+                   rv, bcm_errmsg(rv)));
+        return rv;
+    }
+
+    if (!init_param->no_appl_stk) {
+        LOG_INFO(BSL_LS_BCM_INIT,
+                 (BSL_META_U(unit,
+                             "%d: Init Stk Appl.\n"), unit));
+        rv = appl_dpp_stk_diag_init(unit); 
+        if (BCM_FAILURE(rv)) {
+            LOG_ERROR(BSL_LS_APPL_COMMON,
+                      (BSL_META_U(unit,
+                                  "appl_dpp_stk_diag_init: failed. Error:%d (%s) \n"), 
+                       rv, bcm_errmsg(rv)));
+            return rv;
+        }
+    }
+
+    
+    if(!SOC_IS_JERICHO(unit)){
+        module_enable = soc_property_get(unit, spn_STACK_ENABLE, module_enable);
+        if ( (module_enable) && (init_param->appl_traffic_enable_stage == TRAFFIC_EN_STAGE_AFTER_STK) ) {
+            rv = bcm_stk_module_enable(unit, g_dii.my_modid, g_dii.num_ports, 1);
+            if (BCM_FAILURE(rv)) {
+                LOG_ERROR(BSL_LS_APPL_COMMON,
+                          (BSL_META_U(unit,
+                                      "bcm_petra_stk_module_enable failed. Error:%d (%s)\n"),  
+                           rv, bcm_errmsg(rv)));
+                return rv;
+            }
+        }
+    }
+
+    if (init_param->cosq_disable == 0) {    
+        LOG_INFO(BSL_LS_BCM_INIT,
+                 (BSL_META_U(unit,
+                             "%d: Init Cosq Appl.\n"), unit));
+        rv = appl_dpp_cosq_diag_init(unit);
+        if (BCM_FAILURE(rv)) {
+            LOG_ERROR(BSL_LS_APPL_COMMON,
+                      (BSL_META_U(unit,
+                                  "appl_dpp_cosq_diag_init: failed. Error:%d (%s) \n"), 
+                       rv, bcm_errmsg(rv)));
+            return rv;
+        }
+    }
+
+    prop = soc_property_get_str(unit, spn_FAP_DEVICE_MODE);
+
+    if (prop != NULL && !sal_strcmp(prop, "PP")) {
+        /* Configure TPID only if PP is enabled */
+        LOG_INFO(BSL_LS_BCM_INIT,
+                 (BSL_META_U(unit,
+                             "%d: Init TPID Appl.\n"), unit));
+        rv = appl_dpp_tpid_diag_init(unit);
+        if (BCM_FAILURE(rv)) {
+            LOG_ERROR(BSL_LS_APPL_COMMON,
+                      (BSL_META_U(unit,
+                                  "appl_dpp_tpid_diag_init: failed. Error:%d (%s) \n"), 
+                       rv, bcm_errmsg(rv)));
+            return rv;
+        }
+    }
+
+    return rv;
+}
+#endif /* BCM_DPP_SUPPORT */
+
+#if defined(__DUNE_GTO_BCM_CPU__) && defined (BCM_PETRAB_SUPPORT)
+STATIC void
+swp_pcp(void)
+{
+    int pcp_unit = PCP_DEVICE_ID;
+
+    soc_sand_device_register_with_id(TRUE);
+
+    sweep_pcp_app_init(FALSE,   /* is_hot_start, */
+                       FALSE,   /* silent */
+                       &pcp_unit);
+}
+
+STATIC void
+soc_petra_in_reset(void)
+{
+    gfa_petra_hw_reset(TRUE);
+    gfa_petra_core_pll_reset(TRUE);
+  
+    /* wait for pll*/
+    sal_usleep(1000*50);
+  
+    pcp_general_puc_enable_set(PCP_DEVICE_ID, TRUE);
+}
+
+STATIC void
+soc_petra_out_of_reset(void)
+{
+    /* wait for puc */
+    sal_usleep(1000*50);
+
+    /* take petra out of reset */
+    gfa_petra_core_pll_reset(FALSE); 
+  
+    /* wait for pll*/
+    sal_usleep(1000*100);
+    gfa_petra_hw_reset(FALSE);
+  
+    pcp_general_puc_enable_set(PCP_DEVICE_ID, FALSE);
+}
+#endif /* __DUNE_GTO_BCM_CPU__ */
+
+#if (defined(__DUNE_GTO_BCM_CPU__) || defined(__DUNE_WRX_BCM_CPU__)) && defined(BCM_DFE_SUPPORT)
+char cmd_dpp_fe1600_card_usage[] =
+#ifdef COMPILER_STRING_CONST_LIMIT
+    "Full documentation cannot be displayed with -pendantic compiler\n";
+#else
+    "\n\tFE1600 card board specific commands\n\t"
+    "Usages:\n\t"
+    "fe1600 [OPTION] <parameters> ...\n\t"
+    "\n\t"
+    "OPTION can be:\n\t"
+    "device_init - perform fe1600 device init, (set new PUC)."
+    "board_init - perform init host board, which include rbf load and config, "
+    "board struct init\n\t"
+    "board_init parameters can be:\n\t"
+    "\tio_agent - load only io_agent rbf\n\t"
+    "utils parameters can be:\n\t"
+    "\t\tsynt_set - set board syntisizers by <synt_num> <freq>.\n\t"
+    "\t\t\tsynt_num: 0 = serdes 0, 1 = srdes  1, 2 = serdes 2, 3 = serdes 3, 4  = core\n\t"
+    "\t\ttemp - read board temprature sensor by \"temp\".\n\t"
+    "\t\tpower - read board Voltage/curret monitorby \"power\".\n\t"
+    "\n\t"
+    "Examples:\n\t"
+    "fe1600 device_init 0xa188\n\t"
+    "fe1600 utils synt_set 1 250000000\n\t"
+    "fe1600 utils temp\n\t"
+    "fe1600 utils power\n\t"
+    "fe1600 utils fpga_burn pcp.rbf\n"
+    ;
+#endif /* COMPILER_STRING_CONST_LIMIT */
+
+cmd_result_t
+cmd_dpp_fe1600_card(int unit, args_t* a)
+{
+#ifndef __KERNEL__
+    char      *function, *option;
+    SOC_BSP_CARDS_DEFINES card_type;
+
+    /* synt set configuration */
+    char *synt, *targetfreq, *force;
+    uint32 ret = 0, int_synt, int_targetfreq, int_force, nominal_freq = 0;
+
+    /* Fpga download and burn */
+    char *file_name;
+
+#if (defined(LINUX) || defined(UNIX)) 
+    int int_value = 0;
+#endif
+
+    host_board_type_from_nv(&card_type);
+    if (card_type != FABRIC_CARD_FE1600 && card_type != FABRIC_CARD_FE1600_BCM88754) {
+        cli_out("%s(): ERROR: Using fe1600 utility on wrong card type (0x%x) !!!\n", FUNCTION_NAME(), card_type);
+        return SOC_SAND_ERR;
+    }
+    
+    function = ARG_GET(a);
+    if (! function ) {
+        return CMD_USAGE;
+    } else if (! sal_strncasecmp(function, "device_init", strlen(function))){
+
+        char *puc;
+        uint32 int_puc;
+
+        /* Turn off all writes to pcie */
+        /* Stop counter proc */
+        ret = soc_counter_stop(unit);
+        if (ret < 0) {
+            cli_out("%s: Error: Could not set counter mode: stop\n", FUNCTION_NAME());
+            return CMD_FAIL;
+        }
+
+        /* Stop linkscan */ /*
+        ret = bcm_common_linkscan_enable_set(unit, 0);
+        if (ret < 0) {
+            cli_out("%s: Error: Could not set disable linkscan\n", FUNCTION_NAME());
+            return CMD_FAIL;
+        }
+        */
+
+        /* FE1600 - Reset  */
+        cli_out("%s: FE1600 - Reset\n", FUNCTION_NAME());
+         cpu_i2c_write(0x40, 0xe, CPU_I2C_ALEN_LONG_DLEN_LONG, 0x6);
+
+         /* Configure PUC*/
+        puc = ARG_GET(a);
+        if (!puc) {
+             cli_out("%s: Use old PUC\n", FUNCTION_NAME());
+        } else {
+            int_puc = sal_ctoi(puc, 0);
+
+             cli_out("%s: Use PUC=0x%x\n", FUNCTION_NAME(), int_puc);
+            cpu_i2c_write(0x40, 0x2, CPU_I2C_ALEN_LONG_DLEN_LONG, (int_puc &0xff));
+            cpu_i2c_write(0x40, 0x3, CPU_I2C_ALEN_LONG_DLEN_LONG, ((int_puc >> 8) & 0xff));
+        }
+
+         /* FE1600 - Out of resert */
+         cli_out("%s: FE1600 - Out of resert\n", FUNCTION_NAME());
+         cpu_i2c_write(0x40, 0xe, CPU_I2C_ALEN_LONG_DLEN_LONG, 0x7);
+
+         sal_usleep(100000);
+
+         /* bring up PCIE */
+         cli_out("%s: bring up PCIE\n", FUNCTION_NAME());
+#if (defined(BCM_PETRA_SUPPORT) || defined(BCM_DFE_SUPPORT)) && (defined(LINUX) || defined(UNIX))
+         _cpu_pci_register(0);
+#endif
+
+         cli_out("%s: Rerun dfe.soc\n", FUNCTION_NAME());
+
+    } else if (! sal_strncasecmp(function, "board_init", strlen(function)) ){
+
+        option = ARG_GET(a);
+        if (! option ) {
+    
+          cli_out("%s(): init fe1600 card\n", FUNCTION_NAME());
+#if (defined(LINUX) || defined(UNIX))
+          fe1600_card_init_host_board(
+            card_type                          /* card_type, */
+          );
+#endif
+        } else {
+            return CMD_USAGE;
+        }
+    } else if (! sal_strncasecmp(function, "utils", strlen(function)) ){
+
+#if (defined(LINUX) || defined(UNIX))
+        if (fe1600_card_fpga_io_regs_init()) {
+            cli_out("%s(): ERROR: fe1600_card_fpga_io_regs_init(). FAILED !!!\n", FUNCTION_NAME());
+            return SOC_SAND_ERR;
+        }
+
+        if (fe1600_BOARD_SPECIFICATIONS_clear(card_type)) {
+            cli_out("%s(): ERROR: fe1600_BOARD_SPECIFICATIONS_clear(). FAILED !!!\n", FUNCTION_NAME());
+            return SOC_SAND_ERR;
+        }
+#endif
+
+        option = ARG_GET(a);
+        if (! option ) {
+            return CMD_USAGE; 
+        } else if (! sal_strncasecmp(option, "synt_set", strlen(option)) ){ 
+
+            synt = ARG_GET(a);
+            targetfreq = ARG_GET(a);
+            if ((! synt ) || (! targetfreq)){
+                return CMD_USAGE;
+            } else {
+                int_synt = sal_ctoi(synt, 0);
+                int_targetfreq = sal_ctoi(targetfreq, 0);
+
+                force = ARG_GET(a);                
+
+                if (force) {
+                    int_force = sal_ctoi(force, 0);
+                } else {
+                    int_force = 0;
+                }
+ 
+#if (defined(LINUX) || defined(UNIX))      
+                if (!int_force) {
+                    nominal_freq = fe1600_card_board_synt_nominal_freq_get(int_synt);
+                }
+#endif
+
+                if ((int_force) || (int_targetfreq != nominal_freq)) {
+#if (defined(LINUX) || defined(UNIX)) 
+                    ret = fe1600_card_board_synt_set(int_synt, int_targetfreq, FALSE);
+#endif
+                    if (ret) {
+                        cli_out("Error in %s(): fe1600_card_board_synt_set(). "
+                                "FAILED !!!\n", FUNCTION_NAME());
+                    }
+                }
+            }
+        } else if (! sal_strncasecmp(option, "temp", strlen(option)) ){ 
+#if (defined(LINUX) || defined(UNIX)) 
+            /* Set i2c mux */
+            cpu_i2c_write(0x70, 0x0, CPU_I2C_ALEN_NONE_DLEN_BYTE, 0x80);
+
+            /* Read Temperature */
+            cpu_i2c_read(0x4c, 0x0, CPU_I2C_ALEN_BYTE_DLEN_BYTE, &int_value);
+            cli_out("%s(): Ambient temperature %d (0x%x)\n", FUNCTION_NAME(), int_value, int_value);
+
+            cpu_i2c_read(0x4c, 0x1, CPU_I2C_ALEN_BYTE_DLEN_BYTE, &int_value);
+            cli_out("%s(): chip temperature %d (0x%x).\n", FUNCTION_NAME(), int_value, int_value);
+#endif
+        } else if (! sal_strncasecmp(option, "power", strlen(option)) ){
+
+            char *param;
+            int int_param = 0;
+
+            param = ARG_GET(a);
+            if (!param) {
+                int_param = 0x1;
+            } else {
+                int_param = sal_ctoi(param, 0);
+            }
+#if (defined(LINUX) || defined(UNIX)) 
+            fe1600_card_power_monitor(int_param);
+#endif
+        } else if (! sal_strncasecmp(option, "fpga_burn", strlen(option)) ){ 
+            
+            file_name = ARG_GET(a);
+            if (! file_name ) {
+                return CMD_USAGE;
+            } 
+            
+            cli_out("%s(): Download and Burn %s\n", FUNCTION_NAME(), file_name);
+#if (defined(BCM_PETRA_SUPPORT) || defined(BCM_DFE_SUPPORT)) && (defined(LINUX) || defined(UNIX))
+            soc_dpp_fpga_load(unit, file_name);         
+#endif
+        } else {
+            return CMD_USAGE;
+        }
+    } else {
+        return CMD_USAGE;
+    }
+
+    return CMD_OK;
+#endif /* __KERNEL__ */
+    cli_out("This function is unavailable in Kernel mode\n");
+    return CMD_USAGE;
+}
+
+char cmd_dpp_fe3200_card_usage[] =
+#ifdef COMPILER_STRING_CONST_LIMIT
+    "Full documentation cannot be displayed with -pendantic compiler\n";
+#else
+    "\n\tFE3200 card board specific commands\n\t"
+    "Usages:\n\t"
+    "fe1600 [OPTION] <parameters> ...\n\t"
+    "\n\t"
+    "OPTION can be:\n\t"
+    "utils parameters can be:\n\t"
+    "\t\tfpga_burn - download and burn fpga by <file_name>\n\t"
+    "\t\tpower - read board Voltage/curret monitorby \"power\".\n\t"
+    "\t\tsynt_set - set board syntisizers by <target freq> <nominal freq>.\n\t"
+    "\n\t"
+    "Examples:\n\t"
+    "fe3200 utils fe1600_card_io_agent.rbf\n\t"
+    "fe3200 utils power\n\t"
+    "fe3200 utils temp\n\t"
+    "fe3200 utils synt_set 250000000 156250000\n"
+    ;
+#endif /* COMPILER_STRING_CONST_LIMIT */
+
+cmd_result_t
+cmd_dpp_fe3200_card(int unit, args_t* a)
+{
+#ifndef __KERNEL__
+    char      *function, *option;
+    SOC_BSP_CARDS_DEFINES card_type;
+
+    /* synt set configuration */
+    char *target_freq, *nominal_freq;
+    uint32 int_target_freq, int_nominal_freq;
+
+    /* Fpga download and burn */
+    char *file_name;
+
+    host_board_type_from_nv(&card_type);
+    LOG_ERROR(BSL_LS_APPL_COMMON, (BSL_META_U(unit, "card_type=0x%x\n"), card_type));
+      
+    function = ARG_GET(a);
+    if (! function ) {
+        return CMD_USAGE;
+    } else if (! sal_strncasecmp(function, "utils", strlen(function)) ){
+
+        option = ARG_GET(a);
+        if (! option ) {
+            return CMD_USAGE; 
+        } else if (! sal_strncasecmp(option, "fpga_burn", strlen(option)) ){ 
+            
+            file_name = ARG_GET(a);
+            if (! file_name ) {
+                return CMD_USAGE;
+            } 
+            
+            LOG_ERROR(BSL_LS_APPL_COMMON, (BSL_META_U(unit, "Download and Burn %s\n"), file_name));
+
+#if (defined(BCM_PETRA_SUPPORT) || defined(BCM_DFE_SUPPORT)) && (defined(LINUX) || defined(UNIX))
+            soc_dpp_fpga_load(unit, file_name);         
+#endif
+        } else if (! sal_strncasecmp(option, "power", strlen(option)) ){
+
+            char *param;
+            int int_param = 0;
+
+            param = ARG_GET(a);
+            if (!param) {
+                int_param = 0x1;
+            } else {
+                int_param = sal_ctoi(param, 0);
+            }
+#if (defined(LINUX) || defined(UNIX)) 
+            fe3200_card_power_monitor(int_param);
+#endif
+        }  else if (! sal_strncasecmp(option, "temp", strlen(option)) ){ 
+#if (defined(LINUX) || defined(UNIX))
+            int int_value = 0;
+                
+            /* Set i2c mux */
+            cpu_i2c_write(0x70, 0x0, CPU_I2C_ALEN_NONE_DLEN_BYTE, 0x80);
+
+            /* Read Temperature */
+            cpu_i2c_read(0x4c, 0x0, CPU_I2C_ALEN_BYTE_DLEN_BYTE, &int_value);
+            cli_out("%s(): Ambient temperature %d (0x%x)\n", FUNCTION_NAME(), int_value, int_value);
+
+            cpu_i2c_read(0x4c, 0x1, CPU_I2C_ALEN_BYTE_DLEN_BYTE, &int_value);
+            cli_out("%s(): chip temperature %d (0x%x).\n", FUNCTION_NAME(), int_value, int_value);
+#endif
+        } else if (! sal_strncasecmp(option, "synt_set", strlen(option))) { 
+
+            target_freq = ARG_GET(a);
+            nominal_freq = ARG_GET(a);
+            if ((!target_freq ) || (!nominal_freq)) {
+                return CMD_USAGE;
+            } else {
+                int_nominal_freq = sal_ctoi(nominal_freq, 0);
+                int_target_freq = sal_ctoi(target_freq, 0);
+
+#if (defined(LINUX) || defined(UNIX)) 
+                fe3200_card_board_synt_set(int_target_freq, int_nominal_freq);
+#endif
+            }
+        } else {
+            return CMD_USAGE;
+        }
+    } else {
+        return CMD_USAGE;
+    }
+
+    return CMD_OK;
+#endif /* __KERNEL__ */
+    cli_out("This function is unavailable in Kernel mode\n");
+    return CMD_USAGE;
+}
+#endif /* (defined(__DUNE_GTO_BCM_CPU__) || defined(__DUNE_WRX_BCM_CPU__)) && defined(BCM_DFE_SUPPORT) */
+
+#if (defined(__DUNE_GTO_BCM_CPU__) || defined(__DUNE_WRX_BCM_CPU__)) && defined(BCM_88650_A0)
+
+char cmd_dpp_time_measure_usage[] =
+#ifdef COMPILER_STRING_CONST_LIMIT
+    "Full documentation cannot be displayed with -pendantic compiler\n";
+#else
+    "\n\tPerform Time Measurement for: PCIE, Register access ...\n\t"
+    "Usages:\n\t"
+    "TimeMeasurement <Parameters> ...\n\t"
+    "\n\t"
+    "Parameters:\n\t"
+    "count - Number of loops. Default: 100000."
+    "\n\t"
+    "Examples:\n\t"
+    "TimeMeasurement count=100000\n"
+
+    ;
+#endif /* COMPILER_STRING_CONST_LIMIT */
+
+cmd_result_t cmd_dpp_time_measure(int unit, args_t *a)
+{
+    int i;
+    /* 
+    int blk = 0x0;
+    uint8 acc = 0x0; 
+    */ 
+    int             count = 100000;
+    uint32          data = 0x1, addr = 0x1103C;
+    parse_table_t   pt;
+    cmd_result_t    rv = CMD_OK;
+    ibde_dev_t *dev = (ibde_dev_t*)bde->get_dev(unit);
+
+    /* uint32 cpu_regs_addr, cpu_regs_value; */
+
+    if (ARG_CNT(a) > 0) {
+        parse_table_init(0,&pt);
+
+        parse_table_add(&pt,"count"          ,PQ_INT , (void *) (100000)            , &count            , NULL);
+        parse_table_add(&pt,"data"          ,PQ_INT , (void *) (1)            , &data            , NULL);
+        parse_table_add(&pt,"addr"          ,PQ_INT , (void *) (0x1103C)            , &addr            , NULL);
+        if (parse_arg_eq(a, &pt) < 0) {
+            cli_out("%s: Invalid option: %s\n",
+                    ARG_CMD(a), ARG_CUR(a));
+            return CMD_USAGE;
+        }
+    }
+    
+    cli_out("count=0x%x,%d, data=0x%x, addr=0x%x.\n", count, count, data, addr);
+
+    soc_sand_ll_timer_clear();
+
+    soc_sand_ll_timer_set("pci read", 1);
+    for(i=0 ; i<count ; i++) {
+        soc_pci_read(unit, 0x1103C /*CMIC_MIIM_SCAN_PORTS_0*/);
+    }
+    soc_sand_ll_timer_stop(1);
+
+
+    soc_sand_ll_timer_set("pci write", 2);
+    for(i=0 ; i<count ; i++) {
+        soc_pci_write(unit, 0x1103C /*CMIC_MIIM_SCAN_PORTS_0*/, data);
+    }
+    soc_sand_ll_timer_stop(2);
+
+    /* 
+    soc_sand_ll_timer_set("addr get", 3);
+    for(i=0 ; i<count ; i++) {
+        soc_reg_addr_get(unit, ECI_VERSION_REGISTERr, REG_PORT_ANY, 0, &blk, &acc);
+    }
+    soc_sand_ll_timer_stop(3); 
+    */ 
+
+    soc_sand_ll_timer_set("vbase write", 4);
+    for(i=0 ; i<count ; i++) {
+        ((uint32 *)(dev->base_address))[0x1103C/sizeof(uint32)] = data;
+    }
+    soc_sand_ll_timer_stop(4);
+
+    soc_sand_ll_timer_set("vbase read", 5);
+    for(i=0 ; i<count ; i++) {
+        data = ((uint32 *)(dev->base_address))[0x1103C/sizeof(uint32)];
+    }
+    soc_sand_ll_timer_stop(5);
+
+    soc_sand_ll_timer_set("vbase write + read + cmp", 6);
+    for(i=0 ; i<count ; i++) {
+        ((uint32 *)(dev->base_address))[0x1103C/sizeof(uint32)] = i % 32;
+        data = ((uint32 *)(dev->base_address))[0x1103C/sizeof(uint32)];
+        if (data != (i % 32)) {
+            cli_out("%s(): ERROR: data=0x%x != (i  32)=0x%x !!!\n", FUNCTION_NAME(), data, (i % 32));
+            return CMD_USAGE;
+        }
+    }
+    soc_sand_ll_timer_stop(6);
+
+#if (defined(BCM_DPP_SUPPORT) || defined(BCM_DFE_SUPPORT)) && (defined(LINUX) || defined(UNIX))
+/*
+    soc_sand_ll_timer_set("kernel write", 6);
+    cpu_regs_addr = 0x6;
+    _cpu_write(unit, cpu_regs_addr, &cpu_regs_value);
+    soc_sand_ll_timer_stop(6);
+
+    soc_sand_ll_timer_set("kernel read", 7);
+    cpu_regs_addr = 0x7;
+    _cpu_read(unit, cpu_regs_addr, &cpu_regs_value);
+    soc_sand_ll_timer_stop(7);  
+
+    soc_sand_ll_timer_set("kernel write single", 8);
+    cpu_regs_addr = 0x8;
+    _cpu_write(unit, cpu_regs_addr, &cpu_regs_value);
+    soc_sand_ll_timer_stop(8);
+
+    soc_sand_ll_timer_set("kernel read single", 9);
+    cpu_regs_addr = 0x9;
+    _cpu_read(unit, cpu_regs_addr, &cpu_regs_value);
+    soc_sand_ll_timer_stop(9);  
+*/
+#endif
+
+    soc_sand_ll_timer_stop_all();
+    soc_sand_ll_timer_print_all();
+    soc_sand_ll_timer_clear();
+
+    return rv;
+}
+
+char cmd_dpp_arad_card_usage[] =
+#ifdef COMPILER_STRING_CONST_LIMIT
+    "Full documentation cannot be displayed with -pendantic compiler\n";
+#else
+    "\n\tARAD card board specific commands\n\t"
+    "Usages:\n\t"
+    "arad [OPTION] <parameters> ...\n\t"
+    "\n\t"
+    "OPTION can be:\n\t"
+    "device_init - perform arad device init (set new PUC)."
+    "acp_device_init - perform ACP device init (buring up PCIE)."
+    "board_init - perform init host board, which include rbf load and config, board struct init\n\t"
+    "pcie test - perform PCIE time measurment test\n\t"
+    "board_init parameters can be:\n\t"
+    "\tio_agent - load only io_agent rbf\n\t"
+    "utils parameters can be:\n\t"
+    "\t\tsynt_set - set board syntisizers by <synt_num> <freq>.\n\t"
+    "\t\t\tsynt_num: 0 = fabric, 1 = nif, 2 = dram, 3 = core\n\t"
+    "\t\ttemp - read board temprature sensor by \"temp\".\n\t"
+    "\t\tpower - read board Voltage/curret monitorby \"power\".\n\t"
+    "\t\tport_speed_set - set port speed by <port> <speed>\n\t"
+    "\n\t"
+    "Examples:\n\t"
+    "arad device_init 0xa188\n\t"
+    "arad acp_device_init\n\t"
+    "arad utils synt_set 1 250000000\n\t"
+    "arad utils temp\n\t"
+    "arad utils power\n\t"
+    "arad utils fpga_burn io_agent.rbf\n"
+    "arad pcie_test count=100000\n"
+    "arad utile port_speed_set 13 10000\n"
+    ;
+#endif /* COMPILER_STRING_CONST_LIMIT */
+
+cmd_result_t
+cmd_dpp_arad_card(int unit, args_t* a)
+{
+#ifndef __KERNEL__
+    char      *function, *option;
+    SOC_BSP_CARDS_DEFINES card_type;
+#if (defined(LINUX) || defined(UNIX)) 
+    int int_value = 0;
+#endif
+
+    /* synt set configuration */
+    char *synt, *targetfreq, *force;
+    uint32 ret = 0, int_synt, int_targetfreq, int_force, nominal_freq = 0;
+
+    /* Fpga download and burn */
+    char *file_name;
+
+    host_board_type_from_nv(&card_type);
+    if ((card_type != LINE_CARD_ARAD) && (card_type != LINE_CARD_ARAD_DVT) && (card_type != LINE_CARD_ARAD_NOACP)) {
+        cli_out("%s(): ERROR: Using arad utility on wrong card type (0x%x) !!!\n", FUNCTION_NAME(), card_type);
+        return SOC_SAND_ERR;
+    }
+    
+    function = ARG_GET(a);
+    if (! function ) {
+        return CMD_USAGE;
+    } else if (! sal_strncasecmp(function, "device_init", strlen(function))){
+
+        char *puc;
+        uint32 int_puc;
+
+        /* Turn off all writes to pcie */
+        /* Stop counter proc */
+        ret = soc_counter_stop(unit);
+        if (ret < 0) {
+            cli_out("%s: Error: Could not set counter mode: stop\n", FUNCTION_NAME());
+            return CMD_FAIL;
+        }
+
+        /* Stop linkscan */ /*
+        ret = bcm_common_linkscan_enable_set(unit, 0);
+        if (ret < 0) {
+            cli_out("%s: Error: Could not set disable linkscan\n", FUNCTION_NAME());
+            return CMD_FAIL;
+        }
+        */
+
+        /* ARAD - Reset  */
+        cli_out("%s: Arad - Reset\n", FUNCTION_NAME());
+         cpu_i2c_write(0x40, 0x6, CPU_I2C_ALEN_LONG_DLEN_LONG, 0x33);
+
+         /* Configure PUC*/
+        puc = ARG_GET(a);
+        if (!puc) {
+             cli_out("%s: Use old PUC\n", FUNCTION_NAME());
+        } else {
+            int_puc = sal_ctoi(puc, 0);
+
+            int_puc = int_puc << 1;
+             cli_out("%s: Use PUC=0x%x\n", FUNCTION_NAME(), int_puc);
+            cpu_i2c_write(0x40, 0x9, CPU_I2C_ALEN_LONG_DLEN_LONG, (int_puc &0xff));
+            cpu_i2c_write(0x40, 0xa, CPU_I2C_ALEN_LONG_DLEN_LONG, ((int_puc >> 8) & 0xff));
+            cpu_i2c_write(0x40, 0xb, CPU_I2C_ALEN_LONG_DLEN_LONG, ((int_puc >> 16) & 0xff));
+            cpu_i2c_write(0x40, 0xc, CPU_I2C_ALEN_LONG_DLEN_LONG, ((int_puc >> 24) & 0xff));
+        }
+
+          /* ARAD - Out of resert */
+         cli_out("%s: Arad - Out of resert\n", FUNCTION_NAME());
+         cpu_i2c_write(0x40, 0x6, CPU_I2C_ALEN_LONG_DLEN_LONG, 0x37);
+
+         sal_usleep(100000);
+
+         /* bring up PCIE */
+         cli_out("%s: bring up PCIE\n", FUNCTION_NAME());
+#if (defined(BCM_DPP_SUPPORT) || defined(BCM_DFE_SUPPORT)) && (defined(LINUX) || defined(UNIX))
+         _cpu_pci_register(0);
+#endif
+
+         cli_out("%s: Rerun arad.soc\n", FUNCTION_NAME());
+
+    } else if (! sal_strncasecmp(function, "acp_device_init", strlen(function))){
+
+         /* bring up PCIE */
+         cli_out("%s: bring up PCIE\n", FUNCTION_NAME());
+#if defined (BCM_DPP_SUPPORT) && (defined(LINUX) || defined(UNIX))
+         _cpu_pci_register(0);
+#endif
+
+    }else if (! sal_strncasecmp(function, "board_init", strlen(function)) ){
+        cli_out("%s(): Not implemented!!!\n", FUNCTION_NAME());
+
+    } else if (! sal_strncasecmp(function, "utils", strlen(function)) ){
+
+#if (defined(LINUX) || defined(UNIX))
+        if (arad_card_fpga_io_regs_init()) {
+            cli_out("%s(): ERROR: arad_card_fpga_io_regs_init(). FAILED !!!\n", FUNCTION_NAME());
+            return SOC_SAND_ERR;
+        }
+
+        if (arad_BOARD_SPECIFICATIONS_clear(card_type)) {
+            cli_out("%s(): ERROR: arad_BOARD_SPECIFICATIONS_clear(). FAILED !!!\n", FUNCTION_NAME());
+            return SOC_SAND_ERR;
+        }
+#endif
+
+        option = ARG_GET(a);
+        if (! option ) {
+            return CMD_USAGE; 
+        } else if (! sal_strncasecmp(option, "synt_set", strlen(option)) ){ 
+
+            synt = ARG_GET(a);
+            targetfreq = ARG_GET(a);
+            if ((! synt ) || (! targetfreq)){
+                return CMD_USAGE;
+            } else {
+                int_synt = sal_ctoi(synt, 0);
+                int_targetfreq = sal_ctoi(targetfreq, 0);
+
+                force = ARG_GET(a);                
+
+                if (force) {
+                    int_force = sal_ctoi(force, 0);
+                } else {
+                    int_force = 0;
+                }
+ 
+#if (defined(LINUX) || defined(UNIX))      
+                if (!int_force) {
+                    nominal_freq = arad_card_board_synt_nominal_freq_get(int_synt);
+                }
+#endif
+
+                if ((int_force) || (int_targetfreq != nominal_freq)) {
+#if (defined(LINUX) || defined(UNIX)) 
+                    ret = arad_card_board_synt_set(int_synt, int_targetfreq, FALSE);
+#endif
+                    if (ret) {
+                        cli_out("Error in %s(): arad_card_board_synt_set(). "
+                                "FAILED !!!\n", FUNCTION_NAME());
+                    }
+                }
+            }
+        } else if (! sal_strncasecmp(option, "fpga_burn", strlen(option)) ){ 
+            
+            file_name = ARG_GET(a);
+            if (! file_name ) {
+                return CMD_USAGE;
+            } 
+            
+            cli_out("%s(): Download and Burn %s\n", FUNCTION_NAME(), file_name);
+#if (defined(BCM_DPP_SUPPORT) || defined(BCM_DFE_SUPPORT)) && (defined(LINUX) || defined(UNIX))
+            soc_dpp_fpga_load(unit, file_name);         
+#endif
+        } else if (! sal_strncasecmp(option, "temp", strlen(option)) ){ 
+#if (defined(LINUX) || defined(UNIX)) 
+            /* Set i2c mux */
+            cpu_i2c_write(0x70, 0x0, CPU_I2C_ALEN_NONE_DLEN_BYTE, 0x80);
+
+            /* Read Temperature */
+            cpu_i2c_read(0x4c, 0x0, CPU_I2C_ALEN_BYTE_DLEN_BYTE, &int_value);
+            cli_out("%s(): Ambient temperature %d Cel (0x%x - 0x%x)\n", FUNCTION_NAME(), int_value - 64, int_value, 64);
+
+            cpu_i2c_read(0x4c, 0x1, CPU_I2C_ALEN_BYTE_DLEN_BYTE, &int_value);
+            cli_out("%s(): chip temperature %d Cel (0x%x - 0x%x).\n", FUNCTION_NAME(), int_value - 64, int_value, 64);
+#endif
+        } else if (! sal_strncasecmp(option, "power", strlen(option)) ){
+
+            char *param;
+            int int_param = 0;
+
+            param = ARG_GET(a);
+            if (!param) {
+                int_param = 0x1;
+            } else {
+                int_param = sal_ctoi(param, 0);
+            }
+#if (defined(LINUX) || defined(UNIX)) 
+            arad_card_power_monitor(int_param);
+#endif
+        } else if (! sal_strncasecmp(option, "port_speed_set", strlen(option)) ){
+
+            char *param;
+            bcm_port_t port = 0;
+            int speed = 0;
+            bcm_port_config_t config;
+            
+            param = ARG_GET(a);
+            if (!param) {
+                return CMD_USAGE;
+            } else {
+                port = sal_ctoi(param, 0);
+            }
+            param = ARG_GET(a);
+            if (!param) {
+                return CMD_USAGE;
+            } else {
+                speed = sal_ctoi(param, 0);
+            }
+            ret = bcm_port_speed_set(unit, port, speed);
+            if (ret < 0) {
+                cli_out("%s: Error: %d could not change port speed\n", FUNCTION_NAME(), ret);
+                return CMD_FAIL;
+            }
+            ret = bcm_port_config_get(unit, &config);
+            if (ret < 0) {
+                cli_out("%s: Error: %d could not get ports config\n", FUNCTION_NAME(), ret);
+                return CMD_FAIL;
+            }
+            if((!BCM_PBMP_MEMBER(config.sfi, port)) && (speed == 12500)){
+                ret = bcm_port_phy_control_set(unit, port ,BCM_PORT_PHY_CONTROL_PREEMPHASIS, 0x4278); 
+                if (ret < 0) {
+                    cli_out("%s: Error: %d could not set port control\n", FUNCTION_NAME(), ret);
+                    return CMD_FAIL;
+                }
+            }
+        } else {
+            return CMD_USAGE;
+        }
+    } else if (! sal_strncasecmp(function, "set_device", strlen(function))){
+    
+        char *param;
+        uint32 dev_id;
+        uint32 rev_id;
+        ibde_dev_t *dev = (ibde_dev_t*)bde->get_dev(unit);        
+        /* get dev id */ 
+        param = ARG_GET(a);
+        if (!param) {
+            return CMD_USAGE;
+        } else {
+            dev_id = sal_ctoi(param, 0);
+        } 
+        
+        /* get rev id */ 
+        param = ARG_GET(a);
+        if (!param) {            
+            rev_id= ARAD_B1_REV_ID;
+        } else {
+            rev_id = sal_ctoi(param, 0);
+        } 
+        CMDEV(unit).dev.dev_id = dev_id;
+        CMDEV(unit).dev.rev_id = rev_id;
+        
+        dev->device = dev_id;
+        dev->rev = rev_id;
+        
+    } else {
+        return CMD_USAGE;
+   } 
+
+    return CMD_OK;
+#endif /* __KERNEL__ */
+    cli_out("This function is unavailable in Kernel mode\n");
+    return CMD_USAGE;
+}
+#endif /* (defined(__DUNE_GTO_BCM_CPU__) || defined(__DUNE_WRX_BCM_CPU__)) */
+
+#ifdef BCM_DPP_SUPPORT
+#ifdef BCM_PETRAB_SUPPORT
+char cmd_dpp_gfa_bi_usage[] =
+#ifdef COMPILER_STRING_CONST_LIMIT
+    "\n\tGfa-Bi board specific commands\n\t"
+    "Usages:\n\t"
+    "gfa_bi [OPTION] <parameters> ...\n\t"
+    "\n\t"
+    "Full documentation cannot be displayed with -pendantic compiler\n";
+#else
+    "\n\tGfa-Bi board specific commands\n\t"
+    "Usages:\n\t"
+    "gfa_bi [OPTION] <parameters> ...\n\t"
+    "\n\t"
+    "OPTION can be:\n\t"
+    "full_init - perform full board init, load rbfs, run sweeps and load "
+    "dune UI\n\t"
+    "board_init - perform init host board, which include rbf load and config, "
+    "board struct init\n\t"
+    "board_init parameters can be:\n\t"
+    "\tio_agent - load only io_agent rbf\n\t"
+    "hotswap - Power on/off board Hotswap\n\t"
+    "hotswap parameters can be:\n\t"
+    "\t\tenable - Power on board Hotswap\n\t"
+    "\t\tdisable - Power off board Hotswap\n\t"
+    "utils parameters can be:\n\t"
+    "\t\tsynt_set - set board syntisizers by <synt_num> <freq>.\n\t"
+    "\t\t  synt_num: fabric=1,combo=2,nif=3,core=4,ddr=5,qdr=6,synce=7,\n\t"
+    "\t\t            pcp_core=8,pcp_elk=9,phy=10.\n\t"
+    "\t\tfpga_burn - download and burn fpga by <file_name>\n\t"    
+    "\t\tpetra_reset <0/1> - petra in (1)/out of reset (0) sequence\n\t"
+    "\t\tphys - initialize the phys\n\t"
+    "elk_init - initialize the ELk interface with PCP\n\t"
+    "dma_init - initialize the DMA: insmod dma kernel module, configure flow control in petra\n\t"
+    "\n\t"
+    "Examples:\n\t"
+    "gfa_bi full_init\n\t"
+    "gfa_bi utils synt_set 1 250000000\n\t"
+    "gfa_bi utils fpga_burn pcp.rbf\n"
+    ;
+#endif
+
+#if defined(__DUNE_GTO_BCM_CPU__) && (defined(LINUX) || defined(UNIX))
+/* Debug - DMA */
+#define DK_KLIF_IOCTL_PKT_TX_RAW       _IOR(234, 1, char*)
+#define DK_KLIF_IOCTL_MEM_READ       _IOR(234, 2, char*)
+#endif
+
+cmd_result_t
+cmd_dpp_gfa_bi(int unit, args_t* a)
+{
+    char      *function;    
+#if defined(__DUNE_GTO_BCM_CPU__)
+    uint32    chip_ver;    
+    char      *option;
+    SOC_BSP_CARDS_DEFINES card_type;
+
+#if defined(INCLUDE_DUNE_UI)
+    /* Dune ui setup */
+    uint32 dev_ids[SOC_SAND_MAX_DEVICE];
+    uint32 nof_devices;
+#endif /* INCLUDE_DUNE_UI */
+
+    /* synt set configuration */
+    char *synt, *targetfreq, *force;
+    uint32 ret = 0, int_synt, int_targetfreq, int_force, nominal_freq = 0;
+
+    /* Fpga download and burn */
+    char *file_name;
+
+#if defined(__DUNE_GTO_BCM_CPU__) && (defined(LINUX) || defined(UNIX)) && (defined(DCMN_INIT_DMA_DEBUG))
+  /* Debug - DMA */
+  unsigned int file_desc;
+  unsigned int tx_info;
+#endif
+
+    host_board_type_from_nv(&card_type);
+    
+#endif /* __DUNE_GTO_BCM_CPU__ */
+    function = ARG_GET(a);
+    if (! function ) {
+        return CMD_USAGE;
+#if defined(__DUNE_GTO_BCM_CPU__)
+    } else if (! sal_strncasecmp(function, "full_init", strlen(function)) ){
+
+        cli_out("%s(): init gfa_bi board()\n", FUNCTION_NAME());
+        gfa_bi_init_host_board(
+            "gfa-bi",                           /* board_version, */
+            1,                                  /* host_board_serial_number, */
+            card_type,                          /* card_type, */
+            &chip_ver
+        );
+
+        cli_out("%s(): run Pcp sweep\n", FUNCTION_NAME());
+        swp_pcp();
+
+#if defined(INCLUDE_DUNE_UI)
+        cli_out("%s(): run dune ui\n", FUNCTION_NAME());
+        init_ui_module();
+        dev_ids[0]=0;
+        nof_devices=1;
+        soc_petra_set_default_units(dev_ids, nof_devices);
+        ui_proc(); 
+#endif /* INCLUDE_DUNE_UI */
+    } else if (! sal_strncasecmp(function, "board_init", strlen(function)) ){
+
+        option = ARG_GET(a);
+        if (! option ) {
+    
+            cli_out("%s(): init gfa_bi board()\n", FUNCTION_NAME());
+            gfa_bi_init_host_board(
+                "gfa-bi",                         /* board_version */
+                1,                                /* host_board_serial_number */
+                card_type, /* card_type */
+                &chip_ver
+            );
+
+        } else if (! sal_strncasecmp(option, "io_agent", strlen(option)) ){
+
+            if (gfa_petra_fpga_io_regs_init()) {
+                cli_out("Error in %s(): gfa_petra_fpga_io_regs_init(). "
+                        "FAILED !!!\n", FUNCTION_NAME());
+                return CMD_FAIL;
+            }
+            if (gfa_bi_fpga_io_regs_init()) {
+                cli_out("Error in %s(): gfa_bi_fpga_io_regs_init(). "
+                        "FAILED !!!\n", FUNCTION_NAME());
+                return CMD_FAIL;
+            }
+            if (Gfa_petra_GFA_PETRA_BOARD_SPECIFICATIONS_clear(card_type)) {
+                cli_out("Error in %s(): "
+                        "Gfa_petra_GFA_PETRA_BOARD_SPECIFICATIONS_clear(). "
+                        "FAILED !!!\n", FUNCTION_NAME());
+                return CMD_FAIL;
+            }
+            if (gfa_bi_utils_hot_swap_enable(FALSE,1)) {
+                cli_out("Error in %s(): gfa_bi_utils_hot_swap_enable(). "
+                        "FAILED !!!\n", FUNCTION_NAME());
+                return CMD_FAIL;
+            }
+            if (gfa_bi_init_i2c_devices(card_type)) {
+                cli_out("Error in %s(): gfa_bi_init_i2c_devices(). "
+                        "FAILED !!!\n", FUNCTION_NAME());
+                return CMD_FAIL;
+            }
+
+            /* burn io_agent */
+#if (defined(LINUX) || defined(UNIX))
+            /* for VxWorks, skip FPGA loads */
+            soc_dpp_fpga_load(unit, GFA_BI_IO_AGENT_FPGA_FILE_NAME);
+#endif
+            if (gfa_bi_fpga_io_agent_start(card_type)) {
+                cli_out("Error in %s(): gfa_bi_fpga_io_agent_start(). "
+                        "FAILED !!!\n", FUNCTION_NAME());
+                return CMD_FAIL;
+            }
+        } else {
+            return CMD_USAGE;
+        }
+    } else if (! sal_strncasecmp(function, "hotswap", strlen(function)) ){
+
+        option = ARG_GET(a);
+        if (! option ) {
+            return CMD_USAGE;
+        } else if (! sal_strncasecmp(option, "disable", strlen(option)) ){
+
+            cli_out("%s(): Disable HotSwap\n", FUNCTION_NAME());
+            if (gfa_bi_utils_hot_swap_enable(FALSE,0)) {
+                cli_out("Error in %s(): gfa_bi_utils_hot_swap_enable(). "
+                        "FAILED !!!\n", FUNCTION_NAME());
+                return CMD_FAIL;
+            }
+
+        } else if (! sal_strncasecmp(function, "enable", strlen(function)) ){
+
+            cli_out("%s(): Enable HotSwap\n", FUNCTION_NAME());
+            if (gfa_bi_utils_hot_swap_enable(FALSE,1)) {
+                cli_out("Error in %s(): gfa_bi_utils_hot_swap_enable(). "
+                        "FAILED !!!\n", FUNCTION_NAME());
+                return CMD_FAIL;
+            }
+
+        }
+    } else if (! sal_strncasecmp(function, "utils", strlen(function)) ){        
+        option = ARG_GET(a);
+        if (! option ) {
+            return CMD_USAGE; 
+        } else if (! sal_strncasecmp(option, "synt_set", strlen(option)) ){ 
+
+            synt = ARG_GET(a);
+            targetfreq = ARG_GET(a);
+            if ((! synt ) || (! targetfreq)){
+                return CMD_USAGE;
+            } else {
+                int_synt = sal_ctoi(synt, 0);
+                int_targetfreq = sal_ctoi(targetfreq, 0);
+
+                force = ARG_GET(a);                
+
+                if (force) {
+                    int_force = sal_ctoi(force, 0);
+                } else {
+                    int_force = 0;
+                }
+            
+                if (!int_force) {
+                    nominal_freq = gfa_petra_board_synt_nominal_freq_get(int_synt);
+                }
+
+                if ((int_force) || (int_targetfreq != nominal_freq)) {
+                    ret = gfa_petra_board_synt_set(int_synt, int_targetfreq, FALSE);
+                    if (ret) {
+                        cli_out("Error in %s(): gfa_petra_board_synt_set(). "
+                                "FAILED !!!\n", FUNCTION_NAME());
+                    }
+                }
+            }
+
+        } else if (! sal_strncasecmp(option, "fpga_burn", strlen(option)) ){   
+
+            file_name = ARG_GET(a);
+            if (! file_name ) {
+                return CMD_USAGE;
+            } 
+           
+#if (defined(LINUX) || defined(UNIX))
+            /* For VxWorks skip FPGA loads */
+            cli_out("%s(): Download and Burn %s\n", FUNCTION_NAME(), file_name);
+            soc_dpp_fpga_load(unit, file_name);
+#endif
+        } else if (! sal_strncasecmp(option, "petra_reset", strlen(option)) ){
+          option = ARG_GET(a);
+          if (! option ) {
+              return CMD_USAGE; 
+          } else {
+            if (sal_ctoi(option, 0) == 0) {
+              cli_out("%s(): Petra out of reset\n", FUNCTION_NAME());
+              soc_petra_out_of_reset();  
+            } else {
+              cli_out("%s(): Petra in reset\n", FUNCTION_NAME());
+              soc_petra_in_reset();
+            }
+          }
+        } else if (! sal_strncasecmp(option, "phys", strlen(option)) ){
+          /* Assumes PCP device ID is 7, and petra device id is 0 */
+          unit = 0x0;
+
+          if (card_type == LINE_CARD_GFA_PETRA_B_INTERLAKEN) {
+
+              if (gfa_bi_phy_single_aeluros_init(unit, 0x4)) {
+                cli_out("/diag/dpp/cmdlist.c, cmd_dpp_board_init(): "
+                        "init aeluros phy (0x4). falied!!!\n");
+                return CMD_FAIL;
+              }
+              
+              if (gfa_bi_phy_single_nlp1042_init(unit, 0x0)) {
+                cli_out("/diag/dpp/cmdlist.c, cmd_dpp_board_init(): "
+                        "init nlp1042 phy (0x0). falied!!!\n");
+                return CMD_FAIL;
+              }
+              
+              if (gfa_bi_phy_single_nlp1042_init(unit, 0x1)) {
+                cli_out("/diag/dpp/cmdlist.c, cmd_dpp_board_init(): "
+                        "init nlp1042 phy (0x1). falied!!!\n");
+                return CMD_FAIL;
+              }
+          } else if (card_type == LINE_CARD_GFA_PETRA_B_INTERLAKEN_2) {
+
+              if (gfa_bi_phy_single_nlp1042_init(unit, 0x0)) {
+                cli_out("/diag/dpp/cmdlist.c, cmd_dpp_board_init(): init nlp1042 phy (0x0). falied!!!\n");
+                return CMD_FAIL;
+              }
+              if (gfa_bi_phy_single_nlp1042_init(unit, 0x1)) {
+                cli_out("/diag/dpp/cmdlist.c, cmd_dpp_board_init(): init nlp1042 phy (0x1). falied!!!\n");
+                return CMD_FAIL;
+              }
+              if (gfa_bi_phy_single_nlp1042_init(unit, 0x2)) {
+                cli_out("/diag/dpp/cmdlist.c, cmd_dpp_board_init(): init nlp1042 phy (0x2). falied!!!\n");
+                return CMD_FAIL;
+              }
+              if (gfa_bi_phy_single_nlp1042_init(unit, 0x3)) {
+                cli_out("/diag/dpp/cmdlist.c, cmd_dpp_board_init(): init nlp1042 phy (0x3). falied!!!\n");
+                return CMD_FAIL;
+              }
+              if (gfa_bi_phy_single_nlp1042_init(unit, 0x4)) {
+                cli_out("/diag/dpp/cmdlist.c, cmd_dpp_board_init(): init nlp1042 phy (0x4). falied!!!\n");
+                return CMD_FAIL;
+              }
+              if (gfa_bi_phy_single_nlp1042_init(unit, 0x5)) {
+                cli_out("/diag/dpp/cmdlist.c, cmd_dpp_board_init(): init nlp1042 phy (0x5). falied!!!\n");
+                return CMD_FAIL;
+              }
+              if (gfa_bi_phy_single_nlp1042_init(unit, 0x6)) {
+                cli_out("/diag/dpp/cmdlist.c, cmd_dpp_board_init(): init nlp1042 phy (0x6). falied!!!\n");
+                return CMD_FAIL;
+              }
+              if (gfa_bi_phy_single_nlp1042_init(unit, 0x7)) {
+                cli_out("/diag/dpp/cmdlist.c, cmd_dpp_board_init(): init nlp1042 phy (0x7). falied!!!\n");
+                return CMD_FAIL;
+              }
+              if (gfa_bi_phy_single_nlp1042_init(unit, 0x8)) {
+                cli_out("/diag/dpp/cmdlist.c, cmd_dpp_board_init(): init nlp1042 phy (0x8). falied!!!\n");
+                return CMD_FAIL;
+              }
+              if (gfa_bi_phy_single_nlp1042_init(unit, 0x9)) {
+                cli_out("/diag/dpp/cmdlist.c, cmd_dpp_board_init(): init nlp1042 phy (0x9). falied!!!\n");
+                return CMD_FAIL;
+              }
+              if (gfa_bi_phy_single_nlp1042_init(unit, 0xa)) {
+                cli_out("/diag/dpp/cmdlist.c, cmd_dpp_board_init(): init nlp1042 phy (0xa). falied!!!\n");
+                return CMD_FAIL;
+              }
+              if (gfa_bi_phy_single_nlp1042_init(unit, 0xb)) {
+                cli_out("/diag/dpp/cmdlist.c, cmd_dpp_board_init(): init nlp1042 phy (0xb). falied!!!\n");
+                return CMD_FAIL;
+              }
+
+          } else {
+              cli_out("%s(): Error: Unknown card_type=0x%x \n",FUNCTION_NAME(), card_type);
+              return CMD_FAIL;
+          }
+        } else {
+            return CMD_USAGE;
+        }
+
+#endif /* __DUNE_GTO_BCM_CPU__ */
+
+#if defined(__DUNE_GTO_BCM_CPU__) && (defined(LINUX) || defined(UNIX))
+        } else if (!sal_strncasecmp(function, "elk_init", strlen(function)) ){
+
+            unsigned int int_value;
+
+            cli_out("Set the SERDES MUX of Combo-B to ELK\n");
+            cpu_i2c_write(0x41, 0x44, CPU_I2C_ALEN_LONG_DLEN_LONG, 0x03);
+
+            cli_out("reset release for PCP SerDes PHY & MAC\n");
+            CMVEC(unit).write(&CMDEV(unit).dev, 0x80158, 0x0);
+
+            sal_usleep(1000000);
+
+            int_value = CMVEC(unit).read(&CMDEV(unit).dev, 0x80158);
+            if (int_value == 0x60) {
+                cli_out("PCP EIF Debug Reg indicate serdes and pll locked (0x60)\n");
+            } else {
+                cli_out("ERROR: PCP EIF Debug Reg indicate serdes and pll unlocked!!! value=0x%x\n",int_value);
+                return CMD_FAIL;
+            }
+
+            int_value = CMVEC(unit).read(&CMDEV(unit).dev, 0x80154);
+            if (int_value == 0x28) {
+                cli_out("PCP EIF Mac Ctrl register Eif Link OK (0x28)\n");
+            } else {
+                cli_out("ERROR: PCP EIF Mac Ctrl register Eif Link NOT OK!!! value=0x%x\n",int_value);
+                return CMD_FAIL;
+            }
+
+            cli_out("Enable ELK MAC\n");
+            CMVEC(unit).write(&CMDEV(unit).dev, 0x80154, 0x23);
+    } else if (!sal_strncasecmp(function, "dma_init", strlen(function)) ){
+                /* Gfa-bi DMA init*/
+#if defined(__DUNE_LINUX_BCM_CPU_PCP_DMA__)
+                SOC_PB_FC_CAL_MODE
+                    cal_mode_ndx;
+                SOC_PB_FC_OOB_ID
+                    if_ndx;
+                SOC_PB_FC_CAL_IF_INFO
+                    cal_conf;
+                SOC_PB_FC_REC_CALENDAR
+                    cal_buff[10];
+                uint32
+                    cpu_ports[7] = {0, 73, 74, 75, 76, 77, 78},
+                    cpu_port_i;
+                SOC_PETRA_EGR_FC_OFP_THRESH 
+                    thresh, exact_thresh;
+                SOC_PB_FC_PHY_PARAMS_INFO
+                    phy_params;
+                
+                cli_out("PCP DMA Enabled - Bring up PCP DMA mechanizem - insmod BCM_PCP_DMA kernel module\n");
+#ifndef __KERNEL__
+                system("/sbin/rmmod bcm-pcp-dma");
+                system("/sbin/insmod bcm-pcp-dma.ko");
+#endif
+                unit = 0;
+
+                cli_out("PCP DMA Enabled - configure Petra Flow control\n");
+                cal_mode_ndx = SOC_TMC_FC_CAL_MODE_SPI_OOB;
+                if_ndx  = SOC_TMC_FC_OOB_ID_A;
+
+                SOC_PB_FC_CAL_IF_INFO_clear(&cal_conf);
+                cal_conf.cal_len = 7;
+                cal_conf.enable = TRUE;
+                cal_conf.cal_reps = 1;
+
+                for (cpu_port_i = 0; cpu_port_i < cal_conf.cal_len; ++cpu_port_i) {
+                    SOC_PB_FC_REC_CALENDAR_clear(&cal_buff[cpu_port_i]);
+                    cal_buff[cpu_port_i].destination = SOC_PB_FC_REC_CAL_DEST_OFP_EGQ_HP;
+                    cal_buff[cpu_port_i].id                = cpu_ports[cpu_port_i];
+                }
+                soc_pb_fc_rec_cal_set(unit, cal_mode_ndx, if_ndx, &cal_conf, cal_buff);
+
+                soc_petra_PETRA_EGR_FC_OFP_THRESH_clear(&thresh);
+                thresh.words = 50;
+                soc_petra_egr_ofp_fc_set(unit, SOC_PETRA_EGR_Q_PRIO_HIGH, SOC_PETRA_EGR_PORT_THRESH_TYPE_0, &thresh, &exact_thresh);
+                soc_petra_egr_ofp_fc_set(unit, SOC_PETRA_EGR_Q_PRIO_HIGH, SOC_PETRA_EGR_PORT_THRESH_TYPE_1, &thresh, &exact_thresh);
+                soc_petra_egr_ofp_fc_set(unit, SOC_PETRA_EGR_Q_PRIO_HIGH, SOC_PETRA_EGR_PORT_THRESH_TYPE_2, &thresh, &exact_thresh);
+                soc_petra_egr_ofp_fc_set(unit, SOC_PETRA_EGR_Q_PRIO_HIGH, SOC_PETRA_EGR_PORT_THRESH_TYPE_3, &thresh, &exact_thresh);
+                soc_petra_egr_ofp_fc_set(unit, SOC_PETRA_EGR_Q_PRIO_LOW, SOC_PETRA_EGR_PORT_THRESH_TYPE_0, &thresh, &exact_thresh);
+                soc_petra_egr_ofp_fc_set(unit, SOC_PETRA_EGR_Q_PRIO_LOW, SOC_PETRA_EGR_PORT_THRESH_TYPE_1, &thresh, &exact_thresh);
+                soc_petra_egr_ofp_fc_set(unit, SOC_PETRA_EGR_Q_PRIO_LOW, SOC_PETRA_EGR_PORT_THRESH_TYPE_2, &thresh, &exact_thresh);
+                soc_petra_egr_ofp_fc_set(unit, SOC_PETRA_EGR_Q_PRIO_LOW, SOC_PETRA_EGR_PORT_THRESH_TYPE_3, &thresh, &exact_thresh);
+
+                SOC_PB_FC_PHY_PARAMS_INFO_clear(&phy_params);
+                phy_params.is_sampled_rising_edge = TRUE;
+                phy_params.is_on_if_oof = TRUE;
+                soc_pb_fc_oob_phy_params_set(unit, 0, &phy_params);
+#else
+                cli_out("PCP DMA Enabled - but __DUNE_LINUX_BCM_CPU_PCP_DMA__ flag is off");
+#endif /* defined(__DUNE_LINUX_BCM_CPU_PCP_DMA__) */
+#endif /* defined(__DUNE_GTO_BCM_CPU__) && (defined(LINUX) || defined(UNIX)) */
+#if defined(__DUNE_GTO_BCM_CPU__) && (defined(LINUX) || defined(UNIX)) && defined(DCMN_INIT_DMA_DEBUG)
+                /* Debug - DMA */
+    } else if (!sal_strncasecmp(function, "debug", strlen(function)) ){
+        option = ARG_GET(a);
+        if (! option ) {
+            return CMD_USAGE; 
+        } else if (! sal_strncasecmp(option, "dma_send", strlen(option)) ){
+            file_desc = open("/dev/d_ssf_klif_chdev", 0);
+            if (file_desc <= 0) {
+                cli_out("Error: failed to open()  /dev/d_ssf_klif_chdev\n");
+                return CMD_FAIL;
+            }
+
+            tx_info = 0;
+            if (ioctl(file_desc, DK_KLIF_IOCTL_PKT_TX_RAW, &tx_info) < 0)
+            {
+              cli_out("ioctl DK_KLIF_IOCTL_PKT_TX_RAW failed!\n");
+              return CMD_FAIL;
+            }
+        } else if (! sal_strncasecmp(option, "mem_read", strlen(option)) ){
+            file_desc = open("/dev/d_ssf_klif_chdev", 0);
+            if (file_desc <= 0) {
+                cli_out("Error: failed to open()  /dev/d_ssf_klif_chdev\n");
+                return CMD_FAIL;
+            }
+
+            tx_info = 0;
+            if (ioctl(file_desc, DK_KLIF_IOCTL_MEM_READ, &tx_info) < 0)
+            {
+              cli_out("ioctl DK_KLIF_IOCTL_MEM_READ failed!\n");
+              return CMD_FAIL;
+            }
+        }
+#endif /* defined(__DUNE_GTO_BCM_CPU__) && (defined(LINUX) || defined(UNIX))  && defined(DCMN_INIT_DMA_DEBUG) */
+    } else {
+        return CMD_USAGE;
+    } 
+
+    return CMD_OK;
+}
+#endif /* BCM_PETRAB_SUPPORT */
+
+#if defined(__DUNE_GTO_BCM_CPU__)
+char cmd_dcmn_negev_chassis_usage[] =
+#ifdef COMPILER_STRING_CONST_LIMIT
+    "Full documentation cannot be displayed with -pendantic compiler\n";
+#else
+    "\nNegev Chassis specific commands\n"
+    "Usage:\n"
+    "\tnegev [OPTION] <parameters> ...\n"
+    "\n"
+    "OPTION can be:\n"
+    "\teeprom - read/write data from/to gfa_bi eeprom by: <read/write> <address/param> <val>. \n"
+    "\t\tparam: board_type, board_sn, pcb_ver, assembly_ver, board_desc, address\n"
+    "\t\tboard_desc - up to 30 bytes tring\n"
+    "\tread_all - read all the information."
+    "\tfan_speed - read the speed of the fans."
+    "\ti2c_mux_set - set the mux on one of the cards if exist\n."
+    "\t\tparam: lc0, lc1, fc, mng\n"
+    "\n"
+    "Examples:\n"
+    "\tnegev eeprom read board_type\n"
+    "\tnegev eeprom read board_desc\n"
+    "\tnegev eeprom read address 0x77\n"
+    "\tnegev eeprom read_all\n"
+    "\tnegev eeprom write board_desc Arad SVK Board\n"
+    "\tnegev fan_speed\n"
+    "\tnegev i2c_mux_set lc1\n"
+    ;
+#endif /* COMPILER_STRING_CONST_LIMIT */
+
+int
+cmd_dcmn_negev_chassis_eeprom_read_all(int unit)
+{
+    uint32 ret = 0;
+    int int_value=0;
+    char eeprom_str[NEGEV_CHASSIS_EEPROM_BYTE_SIZE_ADRESS_BOARD_DESC + 1]; /* for eeprom_str*/
+     
+    sal_memset(eeprom_str, 0x0, (NEGEV_CHASSIS_EEPROM_BYTE_SIZE_ADRESS_BOARD_DESC + 1) * sizeof(char));
+    
+    /* print board type */
+    ret = eeprom_read(NEGEV_CHASSIS_CARD_TYPE, NEGEV_CHASSIS_EEPROM_ADRESS_BOARD_TYPE, 4, &int_value);
+    if (ret != 0) {         
+        cli_out("Error in %s(): eeprom_read(). FAILED !!!\n", FUNCTION_NAME());
+        return ret;
+    }
+    cli_out("board type:        0x%x = %d" , int_value, int_value); 
+
+#if (defined(LINUX) || defined(UNIX))
+
+    cli_out("   %s", bsp_card_enum_to_str((SOC_BSP_CARDS_DEFINES)int_value));
+   
+#endif
+
+    cli_out("\n");
+          
+     /* print board sn */
+    ret = eeprom_read(NEGEV_CHASSIS_CARD_TYPE, NEGEV_CHASSIS_EEPROM_ADRESS_BOARD_SN, 4, &int_value);
+    if (ret != 0) {
+           cli_out("Error in %s(): eeprom_read(). FAILED !!!\n", FUNCTION_NAME());
+           return ret;
+    }
+    cli_out("board sn:          0x%x = %d\n", int_value, int_value); 
+     
+     /* print pcb version */
+    ret = eeprom_read(NEGEV_CHASSIS_CARD_TYPE, NEGEV_CHASSIS_EEPROM_ADRESS_PCB_VERSION, 4, &int_value);
+    if (ret != 0) {
+        cli_out("Error in %s(): eeprom_read(). FAILED !!!\n", FUNCTION_NAME());
+        return ret;
+    }
+    cli_out("pcb version:       0x%x \n", int_value); 
+     
+    /* print assembly version */
+    ret = eeprom_read(NEGEV_CHASSIS_CARD_TYPE, NEGEV_CHASSIS_EEPROM_ADRESS_ASSEMBLY_VERSION, 4, &int_value);
+    if (ret != 0) {
+        cli_out("Error in %s(): eeprom_read(). FAILED !!!\n", FUNCTION_NAME());
+        return ret;
+    }
+    cli_out("assmbly version:   0x%x \n", int_value); 
+
+    /* print eeprom_str */
+    ret = eeprom_read_str(NEGEV_CHASSIS_CARD_TYPE, NEGEV_CHASSIS_EEPROM_ADRESS_BOARD_DESC, NEGEV_CHASSIS_EEPROM_BYTE_SIZE_ADRESS_BOARD_DESC, eeprom_str);
+    if (ret != 0) {
+        cli_out("Error in %s(): eeprom_read(). FAILED !!!\n", FUNCTION_NAME());
+        return ret;
+    }
+    cli_out("board desc:        %s\n", eeprom_str);
+    
+    return 0;
+}
+
+int cmd_dcmn_negev_chassis_read_fan_speed(int unit, int fan_num, int* fun_speed)
+{
+#ifndef __KERNEL__
+    int ret;
+    /* read the speed */
+    ret = cpu_i2c_write(0x42, 0x20, CPU_I2C_ALEN_LONG_DLEN_LONG, fan_num);
+    if( ret != SOC_E_NONE){
+        cli_out("Error in %s(): cpu_i2c_write(). FAILED !!!\n", FUNCTION_NAME());
+        return ret;
+    }
+
+    ret = cpu_i2c_write(0x42, 0x20, CPU_I2C_ALEN_LONG_DLEN_LONG, fan_num + 0x10);
+    if( ret != SOC_E_NONE){
+        cli_out("Error in %s(): cpu_i2c_write(). FAILED !!!\n", FUNCTION_NAME());
+        return ret;
+    }
+
+    sal_usleep(250000);
+
+    ret = cpu_i2c_read(0x42, 0x21, CPU_I2C_ALEN_LONG_DLEN_LONG, fun_speed);
+    if( ret != SOC_E_NONE){
+        cli_out("Error in %s(): cpu_i2c_read(). FAILED !!!\n", FUNCTION_NAME());
+        return ret;
+    }
+
+    return 0;
+#endif /* __KERNEL__ */
+    cli_out("This function is unavailable in Kernel mode\n");
+    return SOC_E_UNAVAIL;
+}
+
+int convert_fan_speed_to_rmp_unit(int fan_speed)
+{
+    int res1, res2;
+
+    if( fan_speed <= 4 ) {
+        return 0;
+    }
+
+    res1 = (160000000/fan_speed);/* ((60*40/15)*10^7)/fan_speed */
+    res2 = ((160000000 - res1*fan_speed)*100)/fan_speed; /* add the remainer from 160000000/fan_speed */
+    res1 *= 100;/* *10^2 */
+
+    return res1 + res2;
+}
+
+cmd_result_t
+cmd_dcmn_negev_chassis(int unit, args_t* a)
+{
+#ifndef __KERNEL__
+    char      *function;
+    uint32 ret = 0;
+    /* parse_table_t pt; */
+
+    function = ARG_GET(a);
+    if (! function ) {
+        return CMD_USAGE;
+    } else if (!sal_strncasecmp(function, "eeprom", strlen(function)) ) {
+
+        char *function, *param, *value;
+        int int_data_addr, int_value = 0, eeprom_access_size = 1;
+
+        function = ARG_GET(a);
+        if (!function) {
+            return CMD_USAGE;
+        } else if (!sal_strncasecmp(function, "write", strlen(function))) {
+
+            param = ARG_GET(a);
+            if (!param) {
+                return CMD_USAGE;
+            } else if (!sal_strncasecmp(param, "board_desc", strlen(param))) {
+
+                char eeprom_str[NEGEV_CHASSIS_EEPROM_BYTE_SIZE_ADRESS_BOARD_DESC + 2];
+                char *str;
+                int str_len;
+
+                sal_memset(eeprom_str, 0x0, (NEGEV_CHASSIS_EEPROM_BYTE_SIZE_ADRESS_BOARD_DESC + 2) * sizeof(char));
+                eeprom_str[0] = '\0';
+
+                int_data_addr = NEGEV_CHASSIS_EEPROM_ADRESS_BOARD_DESC;
+                eeprom_access_size = NEGEV_CHASSIS_EEPROM_BYTE_SIZE_ADRESS_BOARD_DESC;
+
+                str = ARG_GET(a);
+                while (str) {
+
+                    if ((sal_strlen(eeprom_str) + sal_strlen(str)) > NEGEV_CHASSIS_EEPROM_BYTE_SIZE_ADRESS_BOARD_DESC) {
+                        return CMD_USAGE;
+                    }
+
+                    sal_memcpy(eeprom_str + sal_strlen(eeprom_str), str, sal_strlen(str));
+                    str_len = sal_strlen(eeprom_str);
+
+                    eeprom_str[str_len] = ' ';
+                    eeprom_str[str_len + 1] = '\0';
+                    
+                    str = ARG_GET(a);
+                }
+
+                cli_out("eeprom_str=%s\n", eeprom_str);
+
+                ret = eeprom_write_str(NEGEV_CHASSIS_CARD_TYPE, int_data_addr, eeprom_access_size, eeprom_str);
+                    if (ret != 0) {
+                        cli_out("Error in %s(): eeprom_write_str(). FAILED !!!\n", FUNCTION_NAME());
+                        return CMD_USAGE;
+                    }
+                
+            } else {
+
+                 if (!sal_strncasecmp(param, "board_type", strlen(param))) {
+                    int_data_addr = NEGEV_CHASSIS_EEPROM_ADRESS_BOARD_TYPE;
+                    eeprom_access_size = 4;
+                } else if (!sal_strncasecmp(param, "board_sn", strlen(param))) {
+                    int_data_addr = NEGEV_CHASSIS_EEPROM_ADRESS_BOARD_SN;
+                    eeprom_access_size = 4;
+                } else if (!sal_strncasecmp(param, "pcb_version", strlen(param))) {
+                    int_data_addr = NEGEV_CHASSIS_EEPROM_ADRESS_PCB_VERSION;
+                    eeprom_access_size = 4;
+                } else if (!sal_strncasecmp(param, "assembly_version", strlen(param))) {
+                    int_data_addr = NEGEV_CHASSIS_EEPROM_ADRESS_ASSEMBLY_VERSION;
+                    eeprom_access_size = 4;
+                } else if (!sal_strncasecmp(param, "address", strlen(param))) {
+
+                    char* addr = ARG_GET(a);
+                    if(!addr) {
+                        return CMD_USAGE;
+                    }
+
+                    int_data_addr = sal_ctoi(addr, 0);
+                    eeprom_access_size = 1;
+
+                } else {
+                    return CMD_USAGE;
+                }
+
+                value = ARG_GET(a);
+                if (!value) {
+                    return CMD_USAGE;
+                }
+                int_value = sal_ctoi(value, 0);
+
+                ret = eeprom_write(NEGEV_CHASSIS_CARD_TYPE, int_data_addr, eeprom_access_size, int_value);
+                if (ret != 0) {
+                    cli_out("Error in %s(): eeprom_write(). FAILED !!!\n", FUNCTION_NAME());
+                    return CMD_FAIL;
+                }
+            }
+        } else if (!sal_strncasecmp(function, "read", strlen(function)) ){
+
+            param = ARG_GET(a);
+            if (!param) {
+                return CMD_USAGE;
+            } else if (!sal_strncasecmp(param, "board_desc", strlen(param))) {
+
+                char eeprom_str[NEGEV_CHASSIS_EEPROM_BYTE_SIZE_ADRESS_BOARD_DESC + 1];
+
+                sal_memset(eeprom_str, 0x0, NEGEV_CHASSIS_EEPROM_BYTE_SIZE_ADRESS_BOARD_DESC * sizeof(char));
+                eeprom_str[NEGEV_CHASSIS_EEPROM_BYTE_SIZE_ADRESS_BOARD_DESC] = '\0';
+
+                int_data_addr = NEGEV_CHASSIS_EEPROM_ADRESS_BOARD_DESC;
+                eeprom_access_size = NEGEV_CHASSIS_EEPROM_BYTE_SIZE_ADRESS_BOARD_DESC;
+
+                ret = eeprom_read_str(NEGEV_CHASSIS_CARD_TYPE, int_data_addr, eeprom_access_size, eeprom_str);
+                if (ret != 0) {
+                    cli_out("Error in %s(): eeprom_read(). FAILED !!!\n", FUNCTION_NAME());
+                    return CMD_FAIL;
+                }
+                cli_out("eeprom_str=%s\n", eeprom_str);
+                
+
+            } else {
+
+                if (!sal_strncasecmp(param, "board_type", strlen(param))) {
+                    int_data_addr = NEGEV_CHASSIS_EEPROM_ADRESS_BOARD_TYPE;
+                    eeprom_access_size = 4;
+                } else if (!sal_strncasecmp(param, "board_sn", strlen(param))) {
+                
+                    int_data_addr = NEGEV_CHASSIS_EEPROM_ADRESS_BOARD_SN;
+                    eeprom_access_size = 4;
+                } else if (!sal_strncasecmp(param, "pcb_version", strlen(param))) {
+                    int_data_addr = NEGEV_CHASSIS_EEPROM_ADRESS_PCB_VERSION;
+                    eeprom_access_size = 4;
+                } else if (!sal_strncasecmp(param, "assembly_version", strlen(param))) {
+                    int_data_addr = NEGEV_CHASSIS_EEPROM_ADRESS_ASSEMBLY_VERSION;
+                    eeprom_access_size = 4;
+                } else if (!sal_strncasecmp(param, "address", strlen(param))) {
+
+                    char* addr = ARG_GET(a);
+                    if(!addr) {
+                        return CMD_USAGE;
+                    }
+
+                    int_data_addr = sal_ctoi(addr, 0);
+                    eeprom_access_size = 1;
+                } else {
+                    return CMD_USAGE;
+                }
+
+                ret = eeprom_read(NEGEV_CHASSIS_CARD_TYPE, int_data_addr, eeprom_access_size, &int_value);
+                if (ret != 0) {
+                    cli_out("Error in %s(): eeprom_read(). FAILED !!!\n", FUNCTION_NAME());
+                    return CMD_FAIL;
+                }
+
+                cli_out("data=0x%x,%d\n", int_value, int_value);
+#if (defined(LINUX) || defined(UNIX))
+                if (int_data_addr == NEGEV_CHASSIS_EEPROM_ADRESS_BOARD_TYPE) {
+                    cli_out("%s(): board type: %s\n", FUNCTION_NAME(), bsp_card_enum_to_str((SOC_BSP_CARDS_DEFINES)int_value));
+                }
+#endif
+            }   
+
+        } else if (!sal_strncasecmp(function, "read_all", strlen(function)) ) {
+
+            if(!sys_board_type_mng_get()) {
+
+            cli_out(" Negev - eeprom read \n"    
+                    "=====================\n");
+
+            ret = cmd_dcmn_negev_chassis_eeprom_read_all(unit);
+            if(ret!=0) {
+                return CMD_FAIL;
+            }
+            } else {
+
+                int mng_card_io_agent_status_reg = 0;
+
+                /* read the card status to see witch card exist */
+                cpu_i2c_read(0x42, 0x10, CPU_I2C_ALEN_LONG_DLEN_LONG, &mng_card_io_agent_status_reg);
+
+                cli_out(" Negev - eeprom read mng\n"    
+                        "=========================\n"); 
+                   
+                /* read from mng card */
+                cli_out("\nManagement card:\n"    
+                        "----------------\n");
+
+                cpu_i2c_write(0x77, 0x0, CPU_I2C_ALEN_BYTE_DLEN_BYTE, 0x0);
+
+                cpu_i2c_read(0x42, 0xf, CPU_I2C_ALEN_LONG_DLEN_LONG, &int_value);  /* turn on bit 6*/
+                cpu_i2c_write(0x42, 0xf, CPU_I2C_ALEN_LONG_DLEN_LONG, int_value| 0x40 );
+
+                ret = cmd_dcmn_negev_chassis_eeprom_read_all(unit);
+                if(ret!=0) {
+                    return CMD_FAIL;
+                }
+
+                cpu_i2c_write(0x42, 0xf, CPU_I2C_ALEN_LONG_DLEN_LONG, int_value); /* turn off bit 6 */
+
+                /* read from arad 1 */
+                if (mng_card_io_agent_status_reg & 0x1){
+                
+                    cli_out("\nArad 1:\n"    
+                            "-------\n");  
+                      
+                    cpu_i2c_write(0x77, 0x0, CPU_I2C_ALEN_BYTE_DLEN_BYTE, 0x1);
+
+                    ret = cmd_dcmn_negev_chassis_eeprom_read_all(unit);
+                    if(ret!=0) {
+                        return CMD_FAIL;
+                    }
+                }
+
+               /* read from arad 2 */
+                if (mng_card_io_agent_status_reg & 0x2){
+
+                    cli_out("\nArad 2:\n"    
+                            "-------\n");   
+                     
+                    cpu_i2c_write(0x77, 0x0, CPU_I2C_ALEN_BYTE_DLEN_BYTE, 0x2);
+
+                    ret = cmd_dcmn_negev_chassis_eeprom_read_all(unit);
+                    if(ret!=0) {
+                        return CMD_FAIL;
+                    }
+                 }
+
+                /* read from fabric */
+                if (mng_card_io_agent_status_reg & 0x4){
+                  
+                    cli_out("\nFabric:\n"    
+                            "-------\n"); 
+                       
+                    cpu_i2c_write(0x77, 0x0, CPU_I2C_ALEN_BYTE_DLEN_BYTE, 0x4);
+                    
+                    ret = cmd_dcmn_negev_chassis_eeprom_read_all(unit);
+                    if(ret!=0) {
+                        return CMD_FAIL;
+                    }
+                }
+            }
+            } else {
+
+                return CMD_USAGE;                
+            }
+
+        } else if (!sal_strncasecmp(function, "fan_speed", strlen(function))) {
+
+                int int_value;
+
+                if(sys_board_type_mng_get()) {
+                cli_out("fans speed:\n"
+                        "-----------\n");
+
+                ret = cmd_dcmn_negev_chassis_read_fan_speed(unit, 0x1, &int_value);
+                if(ret != 0) {
+                    return CMD_FAIL;
+                }
+                cli_out("Line Card Fan Side Right Close to MP:        0x%x - %drpm\n", int_value, convert_fan_speed_to_rmp_unit(int_value));
+              
+
+                ret = cmd_dcmn_negev_chassis_read_fan_speed(unit, 0x3, &int_value);
+                if(ret != 0) {
+                    return CMD_FAIL;
+                }
+                cli_out("Line Card Fan Side Right Far from MP:        0x%x - %drpm\n", int_value, convert_fan_speed_to_rmp_unit(int_value));
+
+                ret = cmd_dcmn_negev_chassis_read_fan_speed(unit, 0x5, &int_value);
+                if(ret != 0) {
+                    return CMD_FAIL;
+                }
+                cli_out("Line Card Fan Side Left Close to MP:         0x%x - %drpm\n", int_value, convert_fan_speed_to_rmp_unit(int_value));
+               
+                ret = cmd_dcmn_negev_chassis_read_fan_speed(unit, 0x7, &int_value);
+                if(ret != 0) {
+                    return CMD_FAIL;
+                }
+                cli_out("Line Card Fan Side Left Far from MP:         0x%x - %drpm\n", int_value, convert_fan_speed_to_rmp_unit(int_value));
+              
+                ret = cmd_dcmn_negev_chassis_read_fan_speed(unit, 0x8, &int_value);
+                if(ret != 0) {
+                    return CMD_FAIL;
+                }
+                cli_out("Fabric Card Fan Side Right Close to MP:      0x%x - %drpm\n", int_value, convert_fan_speed_to_rmp_unit(int_value));
+          
+                ret = cmd_dcmn_negev_chassis_read_fan_speed(unit, 0x9, &int_value);
+                if(ret != 0) {
+                    return CMD_FAIL;
+                }
+                cli_out("Fabric Card Fan Side Right Far from MP:      0x%x - %drpm\n", int_value, convert_fan_speed_to_rmp_unit(int_value));
+               
+                ret = cmd_dcmn_negev_chassis_read_fan_speed(unit, 0xa, &int_value);
+                if(ret != 0) {
+                    return CMD_FAIL;
+                }
+                cli_out("Fabric Card Fan Side Left Close to MP:       0x%x - %drpm\n", int_value, convert_fan_speed_to_rmp_unit(int_value));
+              
+                ret = cmd_dcmn_negev_chassis_read_fan_speed(unit, 0xb, &int_value);
+                if(ret != 0) {
+                    return CMD_FAIL;
+                }
+                cli_out("Fabric Card Fan Side Left Far from MP:       0x%x - %drpm\n", int_value, convert_fan_speed_to_rmp_unit(int_value));
+
+                }else {
+                    cli_out("disable to read fans speed (probably because there is no mng card)\n");    
+                }
+            } else if (!sal_strncasecmp(function, "i2c_mux_set", strlen(function))){
+
+                char* param;
+                int set_num, mng_card_io_agent_status_reg = 0, int_value/*, int_value*/;
+
+                param = ARG_GET(a);
+                if (! param ) {
+                    return CMD_USAGE;
+                } 
+
+                 /* check if there is mng card */
+                if(!sys_board_type_mng_get()) {
+                    cli_out("Error: there is no mng card in the system\n");
+                    return CMD_FAIL;    
+                }
+
+                /* check param */
+                if (!sal_strncasecmp(param, "lc0", strlen(param))) {
+                    set_num = 0x1;
+                } else  if (!sal_strncasecmp(param, "lc1", strlen(param))) {
+                    set_num = 0x2;
+                } else  if (!sal_strncasecmp(param, "fc", strlen(param))) {
+                    set_num = 0x4;
+                } else  if (!sal_strncasecmp(param, "mng", strlen(param))) {
+                    set_num = 0x0;
+                } else {
+                    return CMD_USAGE;
+                }
+                /* disconnect the Management's EEPROM from the main I2C bus.*/ 
+                cpu_i2c_write(0x77, 0x0, CPU_I2C_ALEN_BYTE_DLEN_BYTE, 0x0);
+                cpu_i2c_read(0x42, 0xf, CPU_I2C_ALEN_LONG_DLEN_LONG, &int_value);  /* turn on bit 6*/
+                cpu_i2c_write(0x42, 0xf, CPU_I2C_ALEN_LONG_DLEN_LONG, int_value| 0x40 );
+
+                /* read the card status to see witch card exist */
+                cpu_i2c_read(0x42, 0x10, CPU_I2C_ALEN_LONG_DLEN_LONG, &mng_card_io_agent_status_reg);
+                if( set_num && (!(mng_card_io_agent_status_reg & set_num))) {
+                    cli_out("there is no card %s in the system\n", param);
+                    return CMD_FAIL;
+                }
+  
+                cpu_i2c_write(0x77, 0x0, CPU_I2C_ALEN_BYTE_DLEN_BYTE, set_num);
+
+            }  else {
+                return CMD_USAGE;
+            } 
+            
+
+    return CMD_OK;
+#endif /* __KERNEL__ */
+    cli_out("This function is unavailable in Kernel mode\n");
+    return CMD_USAGE;
+}
+
+
+#ifdef BCM_CMICM_SUPPORT
+
+static char* shr_llm_msg_notification_type_name[LLM_EVENT_MAX+1] = { SHR_LLM_MSG_NOTIFICATION_TYPE_NAME};
+
+char cmd_dpp_llm_usage[] =
+#ifdef COMPILER_STRING_CONST_LIMIT
+    "Full documentation cannot be displayed with -pendantic compiler\n";
+#else
+    "\nLLM Application  commands\n"
+    "Usage:\n"
+    "\tLLm [OPTION] <parameters> ...\n"
+    "\n"
+    "OPTION:\n"
+    "\tinit   - ARM uKernel Application init, DMA allocations\n"
+    "\tstop  - Stop all threads related to LLM connectivity\n"
+    "\tstart  - Start ARM uKernel LLM application\n"
+    "\tParameters:\n"
+    "\t\tDspEthType     - Ethernet Destination Type. Default: 0x0\n"
+    "\t\tVoqMapMode     - Voq Mapping mode. Default: 0x0\n"
+    "\t\tDirTableBank   - Direct table Bank. Default: 0xa\n"
+    "\t\tDirTableOffset - Direct table offset. Default: 0x0\n"
+    "\t\tEEDBFirstIndex - First index of the EEDB. Default: 0x0\n"
+    "\t\tEEDBSize       - The size of the database(upto 8k). Default: 8,192\n"
+    "\tpon_att - Start ARM uKernel LLM application\n"
+    "\tParameters:\n"
+    "\t\tmac_bitmap_set port=<port_num> tunnel=<tunnel_num> tunnel_count=<tunnel_count> bitmap=<bitmap> type=<type> - Set MAC bitmap configuration.\n"
+    "\t\tmac_bitmap_get port=<port_num> tunnel=<tunnel_num>                 - Get MAC bitmap configuration.\n"
+    "\t\tservice read_reply_fifo=<enable> limit_enable=<enable> type=<type> - Enable/disable read reply FIFO and MAC limit function.\n"
+    "\tinfo     - Retrieve  Application  info.\n"
+    "\tParameters:\n"
+    "\t\tappl_info      - General application info.\n"
+    "\t\tpon_id_info port=<port_num>   - All information regarding PON port.\n"
+    "\t\teedb_info      - Info of the EEDB pointer database status.\n"
+    "\n"
+    ;
+#endif /* COMPILER_STRING_CONST_LIMIT */
+
+/*
+ * Function:
+ *      _bcm_llm_callback_thread
+ * Purpose:
+ *      Thread to listen for event messages from uController.
+ * Parameters:
+ *      param - Pointer to BFD info structure.
+ * Returns:
+ *      None
+ */
+STATIC void
+_bcm_llm_callback_thread(int unit)
+{
+    int rv;
+    llm_appl_info_t *llm_info = shr_llm_appl_info(unit);      
+    llm_msg_event_t event_msg;
+    llm_info->event_thread_id   = sal_thread_self();
+    llm_info->event_thread_kill = 0;
+
+    while (1) {
+        /* Wait on notifications from uController */
+        rv = soc_cmic_uc_msg_receive(unit, llm_info->uc_num,
+                                     MOS_MSG_CLASS_LLM_EVENT, &event_msg,
+                                     sal_sem_FOREVER);
+
+        if (BCM_FAILURE(rv) || (llm_info->event_thread_kill)) {
+            cli_out("Event reiceved failed. Thread will exit");
+            break;   /* Thread exit */
+        }
+        if (event_msg.s.len <LLM_EVENT_MAX)
+        {
+            cli_out("EVENT REICEVED: type = [%d][%s]; Data = [%d]\n", event_msg.s.len,shr_llm_msg_notification_type_name[event_msg.s.len],event_msg.s.data);
+        }
+        else
+        {
+             cli_out("EVENT REICEVED: type = [%d][NOT_DEFINED]; Data = [%d]\n", event_msg.s.len,event_msg.s.data);
+        }
+        
+
+     }
+
+    llm_info->event_thread_kill = 0;
+    llm_info->event_thread_id   = NULL;
+    sal_thread_exit(0);
+}
+
+STATIC int
+_bcm_en_llm_msg_send_receive(int unit, uint8 s_subclass, uint16 s_len, uint32 s_data, uint8 r_subclass, uint16 *r_len)
+{
+    int rv = BCM_E_NONE;
+    mos_msg_data_t send, reply;
+    uint8 *dma_buffer;
+    int dma_buffer_len;
+    uint32 uc_rv;
+    llm_appl_info_t *llm_info = shr_llm_appl_info(unit);
+
+    sal_memset(&send, 0, sizeof(send));
+    sal_memset(&reply, 0, sizeof(reply));
+    send.s.mclass = MOS_MSG_CLASS_LLM;
+    send.s.subclass = s_subclass;
+    send.s.len = bcm_htons(s_len);
+
+    /*
+     * Set 'data' to DMA buffer address if a DMA operation is
+     * required for send or receive.
+     */
+    dma_buffer = llm_info->dma_buffer;
+    dma_buffer_len = llm_info->dma_buffer_len;
+    if (MOS_MSG_DMA_MSG(s_subclass) ||
+        MOS_MSG_DMA_MSG(r_subclass)) {
+        send.s.data = bcm_htonl(soc_cm_l2p(unit, dma_buffer));
+    } else {
+        send.s.data = bcm_htonl(s_data);
+    }
+
+    /* Flush DMA memory */
+    if (MOS_MSG_DMA_MSG(s_subclass)) {
+        soc_cm_sflush(unit, dma_buffer, s_len);
+    }
+
+    /* Invalidate DMA memory to read */
+    if (MOS_MSG_DMA_MSG(r_subclass)) {
+        soc_cm_sinval(unit, dma_buffer, dma_buffer_len);
+    }
+
+    rv = soc_cmic_uc_msg_send_receive(unit, llm_info->uc_num,
+                                      &send, &reply,
+                                      SHR_LLM_UC_MSG_TIMEOUT_USECS);
+
+    /* Check reply class, subclass */
+    if ((rv != SOC_E_NONE) ||
+        (reply.s.mclass != MOS_MSG_CLASS_LLM) ||
+        (reply.s.subclass != r_subclass)) {
+        return BCM_E_INTERNAL;
+    }
+
+    /* Convert BHH uController error code to BCM */
+    rv = uc_rv = bcm_ntohl(reply.s.data);
+       
+    *r_len = bcm_ntohs(reply.s.len);
+
+    return rv;
+}
+
+cmd_result_t
+cmd_dpp_llm(int unit, args_t* a)
+{
+    char      *function, *option;
+    uint32 ret = 0;
+    llm_appl_info_t *llm_info = shr_llm_appl_info(unit);
+    /* parse_table_t pt; */
+
+    function = ARG_GET(a);
+    if (! function ) {
+        return CMD_USAGE;
+    } else if (!sal_strncasecmp(function, "init", strlen(function))) {
+
+        int uc = 0;
+        int size = 0
+            ;
+        ret = soc_cmic_uc_appl_init(unit, uc, MOS_MSG_CLASS_LLM, SHR_LLM_UC_MSG_TIMEOUT_USECS, SHR_LLM_SDK_VERSION, SHR_LLM_UC_MIN_VERSION);
+        if (ret != SOC_E_NONE) {
+            cli_out("Error in %s(): FAILED !!!\n", FUNCTION_NAME());
+            return CMD_USAGE;
+        }
+        llm_info->uc_num = uc;
+        
+        /*
+         * Allocate DMA buffers
+         *
+         * DMA buffer will be used to send and receive 'long' messages
+         * between SDK Host and uController (BTE).
+         */
+        size = shr_max_buffer_get();
+        
+
+        llm_info->dma_buffer_len = size;
+        llm_info->dma_buffer = soc_cm_salloc(unit, llm_info->dma_buffer_len,"LLM DMA buffer");
+        if (!llm_info->dma_buffer) {
+            cli_out("Error in %s(): DMA buffer allocation FAILED !!!\n", FUNCTION_NAME());
+            return CMD_USAGE;
+        }
+        sal_memset(llm_info->dma_buffer, 0, llm_info->dma_buffer_len);
+
+        llm_info->dmabuf_reply = soc_cm_salloc(unit, size, "LLM uC reply");
+        if (!llm_info->dmabuf_reply) {
+            cli_out("Error in %s(): DMA buffer allocation FAILED !!!\n", FUNCTION_NAME());
+            return CMD_USAGE;
+        }
+        sal_memset(llm_info->dmabuf_reply, 0, size);
+
+    } else if (!sal_strncasecmp(function, "stop", strlen(function))) {
+        llm_info->event_thread_kill=0;/*indicates to task to stop*/
+        soc_cmic_uc_msg_receive_cancel(unit, llm_info->uc_num,MOS_MSG_CLASS_LLM_EVENT); /*release the task from waiting*/
+        sal_usleep(1000000);/*give it a chanse*/
+        if (0 != llm_info->event_thread_kill)/*check that task cleared the bit*/
+        {
+            cli_out("Error in %s(): Unable to stop the tread. Indication[%d]\n", FUNCTION_NAME(),llm_info->event_thread_kill);
+        }
+    }
+
+    else if (!sal_strncasecmp(function, "start", strlen(function))) {
+
+        parse_table_t  pt;
+        cmd_result_t rv = CMD_OK;
+        shr_llm_msg_ctrl_init_t msg;
+        uint8 *buffer, *buffer_ptr;
+        uint16 buffer_len, reply_len;
+
+        /* Set control message data */
+        sal_memset(&msg, 0x0, sizeof(msg));
+        msg.direct_table_bank = 2;
+        msg.eedb_pointer_database_size = 8192;
+        msg.eedb_pointer_database_offset = 8192;
+        if (ARG_CNT(a) > 0) {
+            parse_table_init(unit, &pt);
+            parse_table_add(&pt, "DspEthType", PQ_INT, (void *) 0, &(msg.dsp_eth_type),  NULL);
+            parse_table_add(&pt, "VoqMapMode", PQ_INT, (void *) 0, &(msg.voq_mapping_mode),  NULL);
+            parse_table_add(&pt, "DirTableBank", PQ_INT, (void *) 2, &(msg.direct_table_bank),  NULL);
+            parse_table_add(&pt, "DirTableOffset", PQ_INT, (void *) 0, &(msg.direct_table_offset),  NULL);
+            parse_table_add(&pt, "EEDBFirstIndex", PQ_INT, (void *) 8192, &(msg.eedb_pointer_database_offset),  NULL);
+            parse_table_add(&pt, "EEDBSize", PQ_INT, (void *) 8192, &(msg.eedb_pointer_database_size),  NULL);
+            if (!parseEndOk(a, &pt, &rv)) {
+                if (CMD_OK != rv) {
+                    return CMD_USAGE;
+                }
+            }
+        }
+
+        /* Pack control message data into DMA buffer */
+        buffer     = llm_info->dma_buffer;
+        buffer_ptr = shr_llm_msg_ctrl_init_pack(buffer, &msg);
+        buffer_len = sizeof(shr_llm_msg_ctrl_init_t);
+
+        /* Send LMM Start message to uC */
+        ret = _bcm_en_llm_msg_send_receive(unit, MOS_MSG_SUBCLASS_LLM_INIT, buffer_len, 0, MOS_MSG_SUBCLASS_LLM_INIT_REPLY, &reply_len);
+        if (ret != SOC_E_NONE) {
+            cli_out("Error in %s(): _bcm_en_llm_msg_send_receive() FAILED !!!\n", FUNCTION_NAME());
+            return CMD_USAGE;
+        }
+
+        llm_info->event_thread_kill = 0;
+        if (llm_info->event_thread_id == NULL) {
+            if (sal_thread_create("bcmLLM", SAL_THREAD_STKSZ, 
+                                  SHR_LLM_EVENT_THREAD_PRIORTY,
+                                  (void (*)(void*))_bcm_llm_callback_thread,
+                                  INT_TO_PTR(unit)) == SAL_THREAD_ERROR) {
+                if (SAL_BOOT_QUICKTURN) {
+                    /* If emulation, then wait */
+                    sal_usleep(1000000);
+                }
+
+                if (llm_info->event_thread_id == NULL) {
+                    cli_out("Error in %s(): _bcm_llm_callback_thread() FAILED !!!\n", FUNCTION_NAME());
+                    return BCM_E_MEMORY;
+                }
+            }
+        }
+        
+
+
+    } else if (!sal_strncasecmp(function, "pon_att", strlen(function))) {
+
+        option = ARG_GET(a);
+        if (! option ) {
+            return CMD_USAGE;
+        } else if (!sal_strncasecmp(option, "service", strlen(option))) {
+
+            parse_table_t  pt;
+            cmd_result_t rv = CMD_OK;
+            shr_llm_msg_pon_att_enable_t msg;
+            uint8  limit_enable = 0;
+            uint8  read_reply_fifo = 0;
+            uint8 *buffer, *buffer_ptr;
+            uint16 buffer_len, reply_len;
+
+            /* Set control message data */
+            sal_memset(&msg, 0x0, sizeof(msg));
+            if (ARG_CNT(a) > 0) {
+                parse_table_init(unit, &pt);
+                parse_table_add(&pt, "read_reply_fifo", PQ_INT, (void *) 0, &(read_reply_fifo),  NULL);
+                parse_table_add(&pt, "limit_enable", PQ_INT, (void *) 1, &(limit_enable),  NULL);
+                parse_table_add(&pt, "type", PQ_INT, (void *) 1, &(msg.type_of_service),  NULL);
+                if (!parseEndOk(a, &pt, &rv)) {
+                    if (CMD_OK != rv) {
+                        return CMD_USAGE;
+                    }
+                }
+            }
+            soc_sand_bitstream_set_field(&msg.att_val, 
+                                         SHR_LLM_MSG_PON_ATT_MAC_LIMIT_ENABLE_TYPE_LSB,
+                                         SHR_LLM_MSG_PON_ATT_MAC_LIMIT_ENABLE_TYPE_NOF_BITS,
+                                         SHR_LLM_MSG_PON_ATT_MAC_LIMIT_ENABLE_GLOBAL);
+            soc_sand_bitstream_set(&msg.att_val, 
+                                   SHR_LLM_MSG_PON_ATT_MAC_LIMIT_ENABLE_BIT,
+                                   limit_enable);
+            soc_sand_bitstream_set(&msg.att_val, 
+                                   SHR_LLM_MSG_PON_ATT_MAC_LIMIT_ENABLE_MASK,
+                                   TRUE);
+            soc_sand_bitstream_set(&msg.att_val, 
+                                   SHR_LLM_MSG_PON_ATT_REPLY_FIFO_ENABLE_BIT,
+                                   read_reply_fifo);
+            soc_sand_bitstream_set(&msg.att_val, 
+                                   SHR_LLM_MSG_PON_ATT_REPLY_FIFO_ENABLE_MASK,
+                                   TRUE);
+
+            /* Pack control message data into DMA buffer */
+            buffer     = llm_info->dma_buffer;
+            buffer_ptr = shr_llm_msg_pon_att_enable_pack(buffer, &msg);
+            buffer_len = sizeof(shr_llm_msg_pon_att_enable_t);
+
+            /* Send LMM Start message to uC */
+            ret = _bcm_en_llm_msg_send_receive(unit, MOS_MSG_SUBCLASS_LLM_PON_ATT_SERVICE_ENABLE, buffer_len, 0, MOS_MSG_SUBCLASS_LLM_PON_ATT_SERVICE_ENABLE_REPLY, &reply_len);
+            if (ret != SOC_E_NONE) {
+                cli_out("Error in %s(): _bcm_en_llm_msg_send_receive() FAILED !!!\n", FUNCTION_NAME());
+                return CMD_USAGE;
+            }
+        } else if (!sal_strncasecmp(option, "mac_bitmap_set", strlen(option))) {
+
+            parse_table_t  pt;
+            cmd_result_t rv = CMD_OK;
+            shr_llm_msg_pon_att_t msg;
+            uint8 *buffer, *buffer_ptr;
+            uint16 buffer_len, reply_len;
+
+            /* Set control message data */
+            sal_memset(&msg, 0x0, sizeof(msg));
+            if (ARG_CNT(a) > 0) {
+                parse_table_init(unit, &pt);
+                parse_table_add(&pt, "port", PQ_INT, (void *) 0, &(msg.port),  NULL);
+                parse_table_add(&pt, "tunnel", PQ_INT, (void *) 0, &(msg.tunnel),  NULL);
+                parse_table_add(&pt, "tunnel_count", PQ_INT, (void *) 1, &(msg.tunnel_count),  NULL);
+                parse_table_add(&pt, "bitmap", PQ_INT, (void *) 0, &(msg.bitmap),  NULL);
+                parse_table_add(&pt, "type", PQ_INT, (void *) 1, &(msg.type_of_service),  NULL);
+                if (!parseEndOk(a, &pt, &rv)) {
+                    if (CMD_OK != rv) {
+                        return CMD_USAGE;
+                    }
+                }
+            }
+
+            /* Pack control message data into DMA buffer */
+            buffer     = llm_info->dma_buffer;
+            buffer_ptr = shr_llm_msg_pon_att_pack(buffer, &msg);
+            buffer_len = sizeof(shr_llm_msg_pon_att_t);
+
+            /* Send LMM Start message to uC */
+            ret = _bcm_en_llm_msg_send_receive(unit, MOS_MSG_SUBCLASS_LLM_PON_ATT_MAC_BITMAP_SET, buffer_len, 0, MOS_MSG_SUBCLASS_LLM_PON_ATT_MAC_BITMAP_SET_REPLY, &reply_len);
+            if (ret != SOC_E_NONE) {
+                cli_out("Error in %s(): _bcm_en_llm_msg_send_receive() FAILED !!!\n", FUNCTION_NAME());
+                return CMD_USAGE;
+            }
+        }else if (!sal_strncasecmp(option, "mac_bitmap_increase", strlen(option))) {
+        
+          parse_table_t  pt;
+          cmd_result_t rv = CMD_OK;
+          shr_llm_msg_pon_att_t msg;
+          uint8 *buffer, *buffer_ptr;
+          uint16 buffer_len, reply_len;
+
+          /* Set control message data */
+          sal_memset(&msg, 0x0, sizeof(msg));
+          if (ARG_CNT(a) > 0) {
+              parse_table_init(unit, &pt);
+              parse_table_add(&pt, "port", PQ_INT, (void *) 0, &(msg.port),  NULL);
+              parse_table_add(&pt, "tunnel", PQ_INT, (void *) 0, &(msg.tunnel),  NULL);
+              parse_table_add(&pt, "tunnel_count", PQ_INT, (void *) 1, &(msg.tunnel_count),  NULL);
+              parse_table_add(&pt, "bitmap", PQ_INT, (void *) 0, &(msg.bitmap),  NULL);
+              parse_table_add(&pt, "type", PQ_INT, (void *) 1, &(msg.type_of_service),  NULL);
+              if (!parseEndOk(a, &pt, &rv)) {
+                  if (CMD_OK != rv) {
+                      return CMD_USAGE;
+                  }
+              }
+          }
+
+          /* Pack control message data into DMA buffer */
+          buffer     = llm_info->dma_buffer;
+          buffer_ptr = shr_llm_msg_pon_att_pack(buffer, &msg);
+          buffer_len = sizeof(shr_llm_msg_pon_att_t);
+
+          /* Send LMM Start message to uC */
+          ret = _bcm_en_llm_msg_send_receive(unit, MOS_MSG_SUBCLASS_LLM_PON_ATT_MAC_BITMAP_INCREASE, buffer_len, 0, MOS_MSG_SUBCLASS_LLM_PON_ATT_MAC_BITMAP_INCREASE_REPLY, &reply_len);
+          if (ret != SOC_E_NONE) {
+              cli_out("Error in %s(): _bcm_en_llm_msg_send_receive() FAILED !!!\n", FUNCTION_NAME());
+              return CMD_USAGE;
+          }
+        } else if (!sal_strncasecmp(option, "mac_bitmap_decrease", strlen(option))) {
+        
+          parse_table_t  pt;
+          cmd_result_t rv = CMD_OK;
+          shr_llm_msg_pon_att_t msg;
+          uint8 *buffer, *buffer_ptr;
+          uint16 buffer_len, reply_len;
+      
+          /* Set control message data */
+          sal_memset(&msg, 0x0, sizeof(msg));
+          if (ARG_CNT(a) > 0) {
+              parse_table_init(unit, &pt);
+              parse_table_add(&pt, "port", PQ_INT, (void *) 0, &(msg.port),  NULL);
+              parse_table_add(&pt, "tunnel", PQ_INT, (void *) 0, &(msg.tunnel),  NULL);
+              parse_table_add(&pt, "tunnel_count", PQ_INT, (void *) 1, &(msg.tunnel_count),  NULL);
+              parse_table_add(&pt, "bitmap", PQ_INT, (void *) 0, &(msg.bitmap),  NULL);
+              parse_table_add(&pt, "type", PQ_INT, (void *) 1, &(msg.type_of_service),  NULL);
+              if (!parseEndOk(a, &pt, &rv)) {
+                  if (CMD_OK != rv) {
+                      return CMD_USAGE;
+                  }
+              }
+          }
+      
+          /* Pack control message data into DMA buffer */
+          buffer     = llm_info->dma_buffer;
+          buffer_ptr = shr_llm_msg_pon_att_pack(buffer, &msg);
+          buffer_len = sizeof(shr_llm_msg_pon_att_t);
+      
+          /* Send LMM Start message to uC */
+          ret = _bcm_en_llm_msg_send_receive(unit, MOS_MSG_SUBCLASS_LLM_PON_ATT_MAC_BITMAP_DECREASE, buffer_len, 0, MOS_MSG_SUBCLASS_LLM_PON_ATT_MAC_BITMAP_DECREASE_REPLY, &reply_len);
+          if (ret != SOC_E_NONE) {
+              cli_out("Error in %s(): _bcm_en_llm_msg_send_receive() FAILED !!!\n", FUNCTION_NAME());
+              return CMD_USAGE;
+          }
+      } else if (!sal_strncasecmp(option, "mac_bitmap_get", strlen(option))) {
+
+            parse_table_t  pt;
+            cmd_result_t rv = CMD_OK;
+            shr_llm_msg_pon_att_t msg;
+            uint8 *buffer, *buffer_ptr;
+            uint16 buffer_len, reply_len;
+
+            /* Set control message data */
+            sal_memset(&msg, 0x0, sizeof(msg));
+            if (ARG_CNT(a) > 0) {
+                parse_table_init(unit, &pt);
+                parse_table_add(&pt, "port", PQ_INT, (void *) 0, &(msg.port),  NULL);
+                parse_table_add(&pt, "tunnel", PQ_INT, (void *) 0, &(msg.tunnel),  NULL);
+                if (!parseEndOk(a, &pt, &rv)) {
+                    if (CMD_OK != rv) {
+                        return CMD_USAGE;
+                    }
+                }
+            }
+
+            /* Pack control message data into DMA buffer */
+            buffer     = llm_info->dma_buffer;
+            buffer_ptr = shr_llm_msg_pon_att_pack(buffer, &msg);
+            buffer_len = sizeof(shr_llm_msg_pon_att_t);
+
+            /* Send LMM Start message to uC */
+            ret = _bcm_en_llm_msg_send_receive(unit, MOS_MSG_SUBCLASS_LLM_PON_ATT_MAC_BITMAP_GET, buffer_len, 0, MOS_MSG_SUBCLASS_LLM_PON_ATT_MAC_BITMAP_GET_REPLY, &reply_len);
+            if (ret != SOC_E_NONE) {
+                cli_out("Error in %s(): _bcm_en_llm_msg_send_receive() FAILED !!!\n", FUNCTION_NAME());
+                return CMD_USAGE;
+            }
+
+            /* Pack control message data into DMA buffer */
+            sal_memset(&msg, 0x0, sizeof(msg));
+            buffer     = llm_info->dma_buffer;
+            buffer_ptr = shr_llm_msg_pon_att_unpack(buffer, &msg);
+            buffer_len = buffer_ptr - buffer;
+            cli_out("%s(): PON_ATT_MAC_BITMAP_GET(). msg.port=%d, msg.tunnel=%d, msg.bitmap=0x%x msg.type=0x%x\n", FUNCTION_NAME(), msg.port, msg.tunnel, msg.bitmap, msg.type_of_service);
+
+        } else {
+            return CMD_USAGE;
+        }
+    } else if (!sal_strncasecmp(function, "info", strlen(function))) {
+        option = ARG_GET(a);
+        if (! option ) {
+            return CMD_USAGE;
+        } else if (!sal_strncasecmp(option, "appl_info", strlen(option))) {
+            shr_llm_msg_app_info_get_t msg;
+            uint8 *buffer, *buffer_ptr;
+            uint16 buffer_len, reply_len;
+
+            /* Set control message data */
+            sal_memset(&msg, 0x0, sizeof(msg));
+
+            /* Pack control message data into DMA buffer */
+            buffer     = llm_info->dma_buffer;
+            buffer_ptr = shr_llm_msg_app_info_get_pack(buffer, &msg);
+            buffer_len = sizeof(shr_llm_msg_pon_att_t);
+
+            /* Send LMM Start message to uC */
+            ret = _bcm_en_llm_msg_send_receive(unit, MOS_MSG_SUBCLASS_LLM_APP_INFO_GET, buffer_len, 0, MOS_MSG_SUBCLASS_LLM_APP_INFO_GET_REPLY, &reply_len);
+            if (ret != SOC_E_NONE) {
+                cli_out("Error in %s(): _bcm_en_llm_msg_send_receive() FAILED !!!\n", FUNCTION_NAME());
+                return CMD_USAGE;
+            }
+
+            /* Pack control message data into DMA buffer */
+            sal_memset(&msg, 0x0, sizeof(msg));
+            buffer     = llm_info->dma_buffer;
+            buffer_ptr = shr_llm_msg_app_info_get_unpack(buffer, &msg);
+            buffer_len = buffer_ptr - buffer;
+            cli_out("%s(): Total: counterEvents=%d, Learn=%d, Delete=%d, Transp=%d, Unknown=%d\n", 
+                    FUNCTION_NAME(), msg.counterEvents , msg.counterEventsLearn, msg.counterEventsDelete, msg.counterEventsTransp, msg.counterEventsUnKnown);
+            cli_out("%s(): Success: Learn=%d, Delete=%d, Transp=%d,\n", 
+                    FUNCTION_NAME(), msg.suc_counterEventsLearn, msg.suc_counterEventsDelete, msg.suc_counterEventsTransp);
+            cli_out("%s(): num_of_activation=%d, time_of_activation=0x%x\n", 
+                    FUNCTION_NAME(), msg.num_of_activation, msg.time_of_activation);
+
+        }
+        else if (!sal_strncasecmp(option, "pon_id_info", strlen(option))) 
+        {
+            shr_llm_PON_ID_attributes_t msg;
+            uint8 *buffer, *buffer_ptr;
+            uint16 buffer_len, reply_len;
+            parse_table_t  pt;
+            cmd_result_t rv = CMD_OK;
+            uint16 port;
+
+            /* Set control message data */
+            sal_memset(&msg, 0x0, sizeof(msg));
+            if (ARG_CNT(a) > 0) {
+                parse_table_init(unit, &pt);
+                parse_table_add(&pt, "port", PQ_INT, (void *) 0, &(msg.port),  NULL);
+                if (!parseEndOk(a, &pt, &rv)) {
+                    if (CMD_OK != rv) {
+                        return CMD_USAGE;
+                    }
+                }
+            }
+            port=msg.port;
+            /* Pack control message data into DMA buffer */
+            buffer     = llm_info->dma_buffer;
+            buffer_ptr = shr_llm_msg_pon_db_pack(buffer, &msg);
+            buffer_len = sizeof(msg)-1;
+
+            /* Send LMM Start message to uC */
+            ret = _bcm_en_llm_msg_send_receive(unit, MOS_MSG_SUBCLASS_LLM_PON_ID_DB_GET, buffer_len, 0, MOS_MSG_SUBCLASS_LLM_PON_ID_DB_GET_REPLY, &reply_len);
+            if (ret != SOC_E_NONE) {
+                cli_out("Error in %s(): _bcm_en_llm_msg_send_receive() FAILED !!!\n", FUNCTION_NAME());
+                return CMD_USAGE;
+            }
+
+            /* Pack control message data into DMA buffer */
+            sal_memset(&msg, 0x0, sizeof(msg));
+            buffer     = llm_info->dma_buffer;
+            buffer_ptr = shr_llm_msg_pon_db_unpack(buffer, &msg);
+            buffer_len = buffer_ptr - buffer;
+            {
+                int i;
+                cli_out("|Port | Tunnel ID | PON ID | Thr/bitmap |Srv|Rprt|\n");
+                cli_out("+-----+-----------+--------+------------+---+----+\n");    
+                for (i=0;i<SHR_LLM_MAX_TUNNEL_INDEX;i++)
+                {
+                    if (0 == msg.entries[i])
+                    {
+                        continue;
+                    }
+                    /*typedef union {
+   struct {
+       uint16_t word1;
+       uint8_t  word2;       
+   };
+   struct {
+       union {
+           uint16_t  status;                
+           uint16_t  LLID_MAC_indx_bitmap;  
+       };
+       uint8_t   Limit_Reported:1;       
+       uint8_t   type:2;      
+       uint8_t   reserved:5;       
+   };
+} llm_PON_ID_attributes_t;
+*/                  if (((msg.entries[i]>>17) & 0x3)==2)  
+                    {                                   /*HEX for VMAC*/
+                    cli_out("|%5d|   %04d    | 0x%04x | 0x%04x     | %d | %s  |\n",
+                            port,/*port*/
+                            i,/*tunnnel id*/
+                            ((port ) << 11) | (i),/*pon id*/
+                            msg.entries[i] & 0xffff,/*bitmap*/
+                            (msg.entries[i]>>17) & 0x3 ,/*type Vmac/MACT limit*/
+                            1==((msg.entries[i]>>16) & 0x1) ?"V":" ");  /*is limit reached reported*/  
+                    }
+                    else
+                    {                                   /*DEC  for MACT*/
+                        cli_out("|%5d|   %04d    | 0x%04x | %06d     | %d | %s  |\n",
+                                port,/*port*/
+                                i,/*tunnnel id*/
+                                ((port ) << 11) | (i),/*pon id*/
+                                msg.entries[i] & 0xffff,/*bitmap*/
+                                (msg.entries[i]>>17) & 0x3 ,/*type Vmac/MACT limit*/
+                                1==((msg.entries[i]>>16) & 0x1) ?"V":" ");  /*is limit reached reported*/  
+                    }
+
+
+
+                    cli_out("+-----+-----------+--------+------------+---+----+\n");    
+                }
+            }
+
+            /*cli_out("%s(): Total: counterEvents=%d, Learn=%d, Delete=%d, Transp=%d, Unknown=%d\n", 
+                      FUNCTION_NAME(), msg.counterEvents , msg.counterEventsLearn, msg.counterEventsDelete, msg.counterEventsTransp, msg.counterEventsUnKnown);
+            cli_out("%s(): Success: Learn=%d, Delete=%d, Transp=%d,\n", 
+                    FUNCTION_NAME(), msg.suc_counterEventsLearn, msg.suc_counterEventsDelete, msg.suc_counterEventsTransp);
+            cli_out("%s(): num_of_activation=%d, time_of_activation=0x%x\n", 
+                    FUNCTION_NAME(), msg.num_of_activation, msg.time_of_activation);*/
+
+        }
+        else if (!sal_strncasecmp(option, "eedb_info", strlen(option))) 
+        {
+            shr_llm_pointer_pool_t msg;
+            uint8 *buffer, *buffer_ptr;
+            uint16 buffer_len, reply_len;
+
+            /* Set control message data */
+            sal_memset(&msg, 0x0, sizeof(msg));
+
+            /* Pack control message data into DMA buffer */
+            buffer     = llm_info->dma_buffer;
+            buffer_ptr = shr_llm_msg_pointer_pool_pack(buffer, &msg);
+            buffer_len = sizeof(msg);
+
+            /* Send LMM Start message to uC */
+            ret = _bcm_en_llm_msg_send_receive(unit, MOS_MSG_SUBCLASS_LLM_POINTER_DB_INFO_GET, buffer_len, 0, MOS_MSG_SUBCLASS_LLM_POINTER_DB_INFO_GET_REPLY, &reply_len);
+            if (ret != SOC_E_NONE) {
+                cli_out("Error in %s(): _bcm_en_llm_msg_send_receive() FAILED %d!!!\n", FUNCTION_NAME(),ret);
+                return CMD_USAGE;
+            }
+
+            /* Pack control message data into DMA buffer */
+            sal_memset(&msg, 0x0, sizeof(msg));
+            buffer     = llm_info->dma_buffer;
+            buffer_ptr = shr_llm_msg_pointer_pool_unpack(buffer, &msg);
+            buffer_len = buffer_ptr - buffer;
+            {
+                int i;
+                cli_out("Size                %d\n",msg.size);
+                cli_out("Reserved            %d\n",msg.numOfReservedIndexes);
+                cli_out("Free                %d\n",msg.numOfFreeIndexes);
+                cli_out("First index offset  %d\n",msg.firstIndexOffset);
+                cli_out("Recent entry index  %d\n",msg.recentEntry);
+                cli_out("Recent entry value  0x%08x\n",msg.entries[msg.recentEntry]);
+                cli_out("Line/Row  |");
+                for (i=0;i<16;i++)
+                {
+                    cli_out("   %x    |",i);
+                }
+                for(i=0;i<SHR_LLM_PULL_MAX_SIZE;i++)
+                {
+                    if (i%16 == 0)
+                    {
+                        cli_out("\n    %03d   |",i>>4);
+                    }
+                    if (msg.entries[i]==0)
+                    {
+                        cli_out("---0----|");
+                    }
+                    else
+                    {
+                        cli_out("%08x|",msg.entries[i]);
+                    }
+                }
+                cli_out("\n");
+
+            }
+
+        }
+
+    } else {
+        return CMD_USAGE;
+    }
+
+    return CMD_OK;
+}
+#endif /* BCM_CMICM_SUPPORT */
+#endif
+
+#ifdef BCM_PETRAB_SUPPORT
+char cmd_dpp_sweep_usage[] =
+    "Parameters: <pcp/petra> [<fap_id>]\n\t"
+    "pcp - Run pcp sweep\n\t"
+    "petra - Run petra sweep\n\t"
+    "fap_id - Fap id (relevant only for petra sweep)\n\t"
+    "\n\t"
+    "Examples:\n\t"
+    "sweep\n\t"
+    "sweep pcp\n\t"
+    "sweep petra\n\t"
+    "sweep petra 1\n"
+    ;
+
+cmd_result_t
+cmd_dpp_sweep(int unit, args_t* a)
+{
+    char *option;
+#if defined(PLISIM) && defined(LINK_PB_PP_LIBRARIES)
+#else /* PLISIM */
+#if defined(__DUNE_GTO_BCM_CPU__)
+    uint32 cpu_regs_addr, cpu_regs_value;
+#endif
+#endif /* PLISIM */
+    SOC_BSP_CARDS_DEFINES card_type;
+  
+    host_board_type_from_nv(&card_type);
+
+    /* If running on actual board - init gfa related stuff */
+#if defined(__DUNE_GTO_BCM_CPU__)
+    cli_out("%s(): run sweep pre configuration\n", FUNCTION_NAME());
+  
+    /* increase i2c freq */
+    cpu_regs_addr  = 0x3104;
+    cpu_regs_value = 0x06060606;
+
+#if (defined(BCM_PETRA_SUPPORT) || defined(BCM_DFE_SUPPORT)) && defined(__DUNE_GTO_BCM_CPU__)
+    _cpu_write(unit, cpu_regs_addr, &cpu_regs_value);
+#endif
+
+    if (gfa_petra_fpga_io_regs_init()) {
+        cli_out("Error in %s(): gfa_petra_fpga_io_regs_init(). FAILED !!!\n",
+                FUNCTION_NAME());
+        return CMD_FAIL;
+    }
+    if (gfa_bi_fpga_io_regs_init()) {
+        cli_out("Error in %s(): gfa_bi_fpga_io_regs_init(). FAILED !!!\n",
+                FUNCTION_NAME());
+        return CMD_FAIL;
+    }
+    if (Gfa_petra_GFA_PETRA_BOARD_SPECIFICATIONS_clear(card_type)) {
+        cli_out("Error in %s(): "
+                "Gfa_petra_GFA_PETRA_BOARD_SPECIFICATIONS_clear(). FAILED !!!\n",
+                FUNCTION_NAME());
+        return CMD_FAIL;
+    }
+  
+    /* configure io_agent */
+    if (gfa_bi_fpga_io_agent_start(card_type)) {
+        cli_out("Error in %s(): gfa_bi_fpga_io_agent_start(). FAILED !!!\n",
+                FUNCTION_NAME());
+        return CMD_FAIL;
+    }
+#endif /* __DUNE_GTO_BCM_CPU__ */
+
+    option = ARG_GET(a);
+    if (! option ) {
+        return CMD_USAGE;
+#if defined(__DUNE_GTO_BCM_CPU__)
+    } else if (!sal_strncasecmp(option, "pcp", strlen(option))) {
+        cli_out("%s(): run Pcp sweep\n", FUNCTION_NAME());
+        swp_pcp();
+#endif /*#if defined(__DUNE_GTO_BCM_CPU__) */
+    } else {
+        return CMD_USAGE;
+    }
+
+    return CMD_OK;
+}
+#endif /* BCM_DPP_SUPPORT */
+#endif /* BCM_PETRAB_SUPPORT */
+
+char cmd_pcic_access_usage[] = {
+    "pcic command access to PCI configuration space.\n"
+    "Usage:\n"
+    "\tPCIC read/write <options>\n"
+    "Usage options:\n"
+    "\t<addr>      - offset for read/write functions, needs to be product of 4.\n"
+    "\t<all>       - read the whole PCI configuration space.\n"
+    "\t<reverse>   - print the data in reverse.\n"
+    "\t<data>  - data to write, in size of 4 byte unsigned integer.\n"
+     "Examples:\n"
+     "\t pcic read  all=1\n"
+     "\t pcic read  addr=4\n"
+     "\t pcic read  addr=4 reverse=1\n"
+     "\t pcic write addr=4 data=0x777\n"
+
+};
+
+cmd_result_t
+    cmd_pcic_access(int unit, args_t* a)
+{
+    uint32 data, offset=0, i;
+    int rv, is_all=0, addr, is_reverse=0;
+    parse_table_t pt;
+    
+
+    char* func = ARG_GET(a);
+
+    if (!(func)) {    /* Nothing to do    */
+        return(CMD_USAGE);      /* Print usage line */
+    }
+
+    if (ARG_CNT(a) > 0) {
+        parse_table_init(0,&pt);
+        parse_table_add(&pt,"addr",PQ_INT, (void *)(0x0), &addr, NULL);
+        parse_table_add(&pt,"all",PQ_INT,(void *) (0), &is_all, NULL);
+        parse_table_add(&pt,"reverse",PQ_INT,(void *) (0), &is_reverse, NULL);
+        parse_table_add(&pt,"data",PQ_INT,(void *) (0), &data, NULL);
+        if (!parseEndOk(a,&pt,&rv)) {
+            return CMD_FAIL;
+        }
+    } else {
+        /* read all by default (pcic read) */
+        addr = 0xffffffff;
+    }
+    
+    /* validate addr */
+   if(addr%4 != 0 && addr != -1) {
+        cli_out("addr parameter should be a product of 4\n");
+        return CMD_FAIL;
+    }
+
+
+    /* validate parameters */
+
+    if(!sal_strcasecmp(func, "read")) {
+         
+        for(i=0; i<16; ++i) {
+            
+            if(is_reverse == 0) {
+                if(is_all != 0 || addr == 0xffffffff) {
+                    cli_out("%02x: ", i*0x10);
+                }
+            }
+            
+            for(offset = 0;  offset < 16 ; offset += 4) {
+                /*_pci_config_put32*/
+                if(offset + i*16 == addr || is_all != 0 || addr == 0xffffffff) {
+                    
+                    if (is_reverse == 0) {
+                        data = CMVEC(unit).pci_conf_read(&CMDEV(unit).dev, offset + i*16);
+                        cli_out("%02x %02x %02x %02x ", (data >> 8*0)& 0xff,(data >> 8*1)& 0xff, (data >> 8*2)& 0xff, (data >> 8*3)& 0xff );
+                    } else {
+                        data = CMVEC(unit).pci_conf_read(&CMDEV(unit).dev, (12 - offset) + i*16);
+                        cli_out("%02x %02x %02x %02x ", (data >> 8*3)& 0xff, (data >> 8*2)& 0xff, (data >> 8*1)& 0xff, (data >> 8*0)& 0xff );
+                    }
+                }
+            }  
+
+            if(is_reverse != 0) {
+                if(is_all != 0 || addr == -1) {
+                    cli_out(": %02x", i*0x10);
+                }
+            }
+            
+            if(is_all != 0 || addr == -1){
+                cli_out("\n");             
+            }
+       }
+
+       cli_out("\n");
+    } else if (!sal_strcasecmp(func, "write")) {
+        /* check for usage error */ 
+        if(is_all != 0 || is_reverse != 0 || addr == 0xffffffff) {
+            return(CMD_USAGE);      /* Print usage line */
+        }
+
+        data = bde->pci_conf_write(unit, addr, data);
+
+    } else {
+         return(CMD_USAGE);      /* Print usage line */
+    }
+             
+
+
+    return CMD_OK;
+}
+
+
+char cmd_avs_usage[] = {
+    "AVS value - Adjustable Voltage Scaling .\n"
+    "Usage:\n"
+    "\tAVS read - read the AVS value\n"
+};
+
+cmd_result_t
+    cmd_avs(int unit, args_t* a)
+{
+    uint32 avs_val;
+    char* func = ARG_GET(a);
+
+    if (func == NULL) {    /* Nothing to do    */
+        return CMD_USAGE;      /* Print usage line */
+    }
+
+    if(!sal_strcasecmp(func, "read")) {
+    
+#ifdef BCM_ARAD_SUPPORT
+        if (SOC_IS_ARAD(unit)) {  
+            if(soc_dpp_avs_value_get(unit, &avs_val) != 0) {
+                return CMD_FAIL;
+            }
+        } else 
+#endif  /* BCM_ARAD_SUPPORT */
+#ifdef BCM_DFE_SUPPORT        
+        if (SOC_IS_DFE(unit)) {
+            if(soc_dfe_avs_value_get(unit, &avs_val) != 0) {
+                return CMD_FAIL;
+            }
+        }
+        else
+#endif /* BCM_DFE_SUPPORT*/
+        {
+            cli_out("Unit doesn't support AVS reading\n");
+            return CMD_FAIL;
+        }
+
+    } else {
+         return CMD_USAGE;      /* Print usage line */
+    }
+
+    cli_out("AVS val = 0x%x\n", avs_val);
+
+    return CMD_OK;
+}
+
+
+

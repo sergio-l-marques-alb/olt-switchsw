@@ -1,0 +1,607 @@
+/*
+ * $Id: tomahawk.h,v 1.1.10.3 Broadcom SDK $
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ *
+ * File:        tomahawk.h
+ */
+
+#ifndef _SOC_TOMAHAWK_H_
+#define _SOC_TOMAHAWK_H_
+
+#include <soc/drv.h>
+#include <soc/trident2.h>
+
+extern soc_functions_t soc_tomahawk_drv_funs;
+extern int soc_tomahawk_tcam_ser_init(int unit);
+extern int soc_tomahawk_ser_enable_all(int unit, int enable);
+extern void soc_tomahawk_ser_fail(int unit);
+extern void soc_tomahawk_ser_error(void *unit_vp, void *d1, void *d2,
+                                   void *d3, void *d4);
+extern int soc_tomahawk_mem_ser_control(int unit, soc_mem_t mem,
+                                        int copyno, int enable);
+extern int soc_tomahawk_mem_cpu_write_control(int unit, soc_mem_t mem, int copyno,
+                                              int enable, int *orig_enable);
+extern int soc_tomahawk_reg_cpu_write_control(int unit, int enable);
+extern int soc_tomahawk_ser_mem_clear(int unit, soc_mem_t mem);
+extern void soc_tomahawk_ser_register(int unit);
+extern int soc_tomahawk_mem_config(int unit);
+extern int soc_tomahawk_pipe_select(int unit, int egress, int pipe);
+extern int soc_tomahawk_num_cosq_init(int unit);
+extern int soc_tomahawk_port_config_init(int unit, uint16 dev_id);
+extern int soc_tomahawk_chip_reset(int unit);
+extern int soc_tomahawk_port_reset(int unit);
+extern int soc_tomahawk_xpe_base_index_check(int unit, int base_type, int xpe,
+                                             int base_index, char *msg);
+extern int soc_tomahawk_xpe_reg32_set(int unit, soc_reg_t reg, int xpe,
+                                      int base_index, int index, uint32 data);
+extern int soc_tomahawk_xpe_reg32_get(int unit, soc_reg_t reg, int xpe,
+                                      int base_index, int index, uint32 *data);
+extern int soc_tomahawk_xpe_reg_set(int unit, soc_reg_t reg, int xpe,
+                                    int base_index, int index, uint64 data);
+extern int soc_tomahawk_xpe_reg_get(int unit, soc_reg_t reg, int xpe,
+                                    int base_index, int index, uint64 *data);
+#if 0
+extern int soc_tomahawk_xpe_mem_write(int unit, soc_mem_t mem, int xpe,
+                                      int base_index, int copyno,
+                                      int offset_in_section, void *entry_data);
+extern int soc_tomahawk_xpe_mem_read(int unit, soc_mem_t mem, int xpe,
+                                     int base_index, int copyno,
+                                     int offset_in_section, void *entry_data);
+#endif
+extern int soc_tomahawk_mem_xpe_pipe_check(int unit, soc_mem_t mem,
+                                           int xpe, int pipe);
+extern int soc_tomahawk_mem_basetype_get(int unit, soc_mem_t mem);
+extern int soc_tomahawk_mem_is_xpe(int unit, soc_mem_t mem);
+extern int soc_tomahawk_sc_base_index_check(int unit, int base_type, int sc,
+                                            int base_index, char *msg);
+extern int soc_tomahawk_sc_reg32_set(int unit, soc_reg_t reg, int sc,
+                                     int base_index, int index, uint32 data);
+extern int soc_tomahawk_sc_reg32_get(int unit, soc_reg_t reg, int sc,
+                                     int base_index, int index, uint32 *data);
+extern int soc_tomahawk_sc_reg_set(int unit, soc_reg_t reg, int sc,
+                                   int base_index, int index, uint64 data);
+extern int soc_tomahawk_sc_reg_get(int unit, soc_reg_t reg, int sc,
+                                   int base_index, int index, uint64 *data);
+#if 0
+extern int soc_tomahawk_sc_mem_write(int unit, soc_mem_t mem, int sc,
+                                     int base_index, int copyno,
+                                     int offset_in_section, void *entry_data);
+extern int soc_tomahawk_sc_mem_read(int unit, soc_mem_t mem, int sc,
+                                     int base_index, int copyno,
+                                     int offset_in_section, void *entry_data);
+#endif
+extern uint32 _soc_th_piped_mem_index(int unit, soc_port_t port,
+                                      soc_mem_t mem, int arr_off);
+
+extern int soc_th_l2_bulk_age_start(int unit, int interval);
+extern int soc_th_l2_bulk_age_stop(int unit);
+
+/* Counter */
+extern int soc_counter_tomahawk_status_enable(int unit, int enable);
+extern int soc_counter_tomahawk_non_dma_init(int unit, int nports,
+                                             int non_dma_start_index,
+                                             int *non_dma_entries);
+extern int soc_counter_tomahawk_get_info(int unit, soc_port_t port,
+                                         soc_reg_t id, int *base_index,
+                                         int *num_entries);
+extern int soc_counter_tomahawk_eviction_enable(int unit, int enable);
+extern void soc_counter_tomahawk_eviction_flags_update(int unit,
+                                                       uint32 flags,
+                                                       int enable);
+extern int soc_counter_tomahawk_generic_get_info(int unit,  soc_ctr_control_info_t ctrl_info,
+                                            soc_reg_t id, int *base_index, int *num_entries);
+
+typedef struct soc_th_port_lanes_s {
+    int port_base;      /* Base port number */
+    int lanes;          /* New number of lanes */
+    int cur_lanes;      /* Current number of lanes */
+    int mode;           /* New mode */
+    int cur_mode;       /* Current mode */
+    int class;          /* Speed class for new group */
+    int cur_class;      /* Speed class for current group */
+    int idb_group;      /* New IDB oversub group number */
+    int cur_idb_group;  /* Current IDB oversub group number */
+    int idb_slots[4];   /* New IDB oversub group slot number */
+    int cur_idb_slots[4]; /* Current IDB oversub group slot number */
+    int cur_idb_empty;  /* Current IDB oversub group become empty after flex */
+    int mmu_group;      /* New MMU oversub group number */
+    int cur_mmu_group;  /* Current MMU oversub group number */
+    int mmu_slots[4];   /* New MMU oversub group slot number */
+    int cur_mmu_slots[4]; /* Current MMU oversub group slot number */
+    int cur_mmu_empty;  /* Current MMU oversub group become empty after flex */
+    int bindex;         /* Base port subport index */
+    int oversub;        /* Oversub status for the ports */
+    int phy_ports_len;  /* Length of valid entries in phy_ports array */
+    int phy_ports[3];   /* Array of added/removed physical port number */
+} soc_th_port_lanes_t;
+extern int soc_tomahawk_port_lanes_validate(int unit,
+                                            soc_th_port_lanes_t *lanes_ctrl);
+extern int soc_tomahawk_port_lanes_set(int unit,
+                                       soc_th_port_lanes_t *lanes_ctrl);
+extern int soc_tomahawk_port_lanes_get(int unit, soc_port_t port_base,
+                                       int *cur_lanes);
+extern int soc_tomahawk_port_speed_update(int unit, soc_port_t port, int speed);
+
+#if !defined(BCM_TH_ASF_EXCLUDE)
+extern int
+soc_th_port_oversub_ratio_get(
+    int          unit,
+    soc_port_t   port,
+    int* const   ratio);
+#endif
+
+#define SOC_TH_MMU_PORT(u, p)  _soc_th_mmu_port((u),(p))
+#define SOC_TH_MMU_PIPED_MEM_INDEX(u,p,m,off) \
+                    _soc_th_piped_mem_index((u),(p),(m),(off))
+
+enum soc_th_port_ratio_e {
+    SOC_TH_PORT_RATIO_SINGLE,
+    SOC_TH_PORT_RATIO_DUAL_1_1,
+    SOC_TH_PORT_RATIO_DUAL_2_1,
+    SOC_TH_PORT_RATIO_DUAL_1_2,
+    SOC_TH_PORT_RATIO_TRI_023_2_1_1,
+    SOC_TH_PORT_RATIO_TRI_023_4_1_1,
+    SOC_TH_PORT_RATIO_TRI_012_1_1_2,
+    SOC_TH_PORT_RATIO_TRI_012_1_1_4,
+    SOC_TH_PORT_RATIO_QUAD,
+    SOC_TH_PORT_RATIO_COUNT
+};
+
+enum soc_th_port_mode_e {
+    /* WARNING: values given match hardware register; do not modify */
+    SOC_TH_PORT_MODE_QUAD = 0,
+    SOC_TH_PORT_MODE_TRI_012 = 1,
+    SOC_TH_PORT_MODE_TRI_023 = 2,
+    SOC_TH_PORT_MODE_DUAL = 3,
+    SOC_TH_PORT_MODE_SINGLE = 4
+};
+
+enum th_l2_hash_key_type_e {
+    /* WARNING: values given match hardware register; do not modify */
+    TH_L2_HASH_KEY_TYPE_BRIDGE = 0,
+    TH_L2_HASH_KEY_TYPE_SINGLE_CROSS_CONNECT = 1,
+    TH_L2_HASH_KEY_TYPE_DOUBLE_CROSS_CONNECT = 2,
+    TH_L2_HASH_KEY_TYPE_VFI = 3,
+    TH_L2_HASH_KEY_TYPE_VIF = 4,
+    TH_L2_HASH_KEY_TYPE_TRILL_NONUC_ACCESS = 5,
+    TH_L2_HASH_KEY_TYPE_TRILL_NONUC_NETWORK_LONG = 6,
+    TH_L2_HASH_KEY_TYPE_TRILL_NONUC_NETWORK_SHORT = 7,
+    TH_L2_HASH_KEY_TYPE_BFD = 8,
+    TH_L2_HASH_KEY_TYPE_PE_VID = 9,
+    TH_L2_HASH_KEY_TYPE_COUNT
+};
+
+enum th_l3_hash_key_type_e {
+    /* WARNING: values given match hardware register; do not modify */
+    TH_L3_HASH_KEY_TYPE_V4UC = 0,
+    TH_L3_HASH_KEY_TYPE_V4UC_EXT = 1,
+    TH_L3_HASH_KEY_TYPE_V6UC = 2,
+    TH_L3_HASH_KEY_TYPE_V6UC_EXT = 3,
+    TH_L3_HASH_KEY_TYPE_V4MC = 4,
+    TH_L3_HASH_KEY_TYPE_V6MC = 5,
+    /* 6 to 7 are not used */
+    TH_L3_HASH_KEY_TYPE_TRILL = 8,
+    /* 9 to 17 are not used */
+    TH_L3_HASH_KEY_TYPE_DST_NAT = 18,
+    TH_L3_HASH_KEY_TYPE_DST_NAPT = 19,
+    TH_L3_HASH_KEY_TYPE_COUNT
+};
+
+enum th_fpem_hash_key_type_e {
+    /* WARNING: values given match hardware register; do not modify */
+    TH_FPEM_HASH_KEY_TYPE_128B = 0,
+    TH_FPEM_HASH_KEY_TYPE_160B = 1,
+    TH_FPEM_HASH_KEY_TYPE_320B = 2,
+    TH_FPEM_HASH_KEY_TYPE_COUNT
+};
+
+enum th_mpls_hash_key_type_e {
+    /* WARNING: values given match hardware register; do not modify */
+    TH_MPLS_HASH_KEY_TYPE_MPLS = 0,
+    TH_MPLS_HASH_KEY_TYPE_MIM_NVP = 1,
+    TH_MPLS_HASH_KEY_TYPE_MIM_ISID = 2,
+    TH_MPLS_HASH_KEY_TYPE_MIM_ISID_SVP = 3,
+    TH_MPLS_HASH_KEY_TYPE_L2GRE_VPNID_SIP = 4,
+    TH_MPLS_HASH_KEY_TYPE_TRILL = 5,
+    TH_MPLS_HASH_KEY_TYPE_L2GRE_SIP = 6,
+    TH_MPLS_HASH_KEY_TYPE_L2GRE_VPNID = 7,
+    TH_MPLS_HASH_KEY_TYPE_VXLAN_SIP = 8,
+    TH_MPLS_HASH_KEY_TYPE_VXLAN_VPNID = 9,
+    TH_MPLS_HASH_KEY_TYPE_VXLAN_VPNID_SIP = 10,
+    TH_MPLS_HASH_KEY_TYPE_COUNT
+};
+
+enum th_vlxlt_hash_key_type_e {
+    /* WARNING: values given match hardware register; do not modify */
+    TH_VLXLT_HASH_KEY_TYPE_IVID_OVID = 0,
+    TH_VLXLT_HASH_KEY_TYPE_OTAG = 1,
+    TH_VLXLT_HASH_KEY_TYPE_ITAG = 2,
+    TH_VLXLT_HASH_KEY_TYPE_VLAN_MAC = 3,
+    TH_VLXLT_HASH_KEY_TYPE_OVID = 4,
+    TH_VLXLT_HASH_KEY_TYPE_IVID = 5,
+    TH_VLXLT_HASH_KEY_TYPE_PRI_CFI = 6,
+    TH_VLXLT_HASH_KEY_TYPE_HPAE = 7,
+    TH_VLXLT_HASH_KEY_TYPE_VIF = 8,
+    TH_VLXLT_HASH_KEY_TYPE_VIF_VLAN = 9,
+    TH_VLXLT_HASH_KEY_TYPE_VIF_CVLAN = 10,
+    TH_VLXLT_HASH_KEY_TYPE_VIF_OTAG = 11,
+    TH_VLXLT_HASH_KEY_TYPE_VIF_ITAG = 12,
+    TH_VLXLT_HASH_KEY_TYPE_L2GRE_DIP = 13,
+    TH_VLXLT_HASH_KEY_TYPE_VLAN_MAC_PORT = 14,
+    /* 15 to 17 are not used */
+    TH_VLXLT_HASH_KEY_TYPE_VXLAN_DIP = 18,
+    TH_VLXLT_HASH_KEY_TYPE_COUNT
+};
+
+enum th_evlxlt_hash_key_type_e {
+    /* WARNING: values given match hardware register; do not modify */
+    TH_EVLXLT_HASH_KEY_TYPE_VLAN_XLATE = 0,
+    TH_EVLXLT_HASH_KEY_TYPE_VLAN_XLATE_DVP = 1,
+    /* 2 is not used */
+    TH_EVLXLT_HASH_KEY_TYPE_ISID_XLATE = 3,
+    TH_EVLXLT_HASH_KEY_TYPE_ISID_DVP_XLATE = 4,
+    TH_EVLXLT_HASH_KEY_TYPE_L2GRE_VFI = 5,
+    TH_EVLXLT_HASH_KEY_TYPE_L2GRE_VFI_DVP = 6,
+    /* 7 is not used */
+    TH_EVLXLT_HASH_KEY_TYPE_VXLAN_VFI = 8,
+    TH_EVLXLT_HASH_KEY_TYPE_VXLAN_VFI_DVP = 9,
+    TH_VELXLT_HASH_KEY_TYPE_COUNT
+};
+
+extern int      soc_tomahawk_hash_bank_count_get(int unit, soc_mem_t mem,
+                                                 int *num_banks);
+extern int      soc_tomahawk_hash_bank_bitmap_get(int unit, soc_mem_t mem,
+                                                  uint32 *bitmap);
+extern int      soc_tomahawk_hash_bank_number_get(int unit, soc_mem_t mem,
+                                                  int seq_num, int *bank_num);
+extern int      soc_tomahawk_hash_bank_info_get(int unit, soc_mem_t mem,
+                                                int bank,
+                                                int *entries_per_bank,
+                                                int *entries_per_row,
+                                                int *entries_per_bucket,
+                                                int *bank_base,
+                                                int *bucket_offset);
+extern int      soc_th_hash_offset_get(int unit, soc_mem_t mem, int bank,
+                                       int *hash_offset, int *use_lsb);
+extern uint32   soc_th_l2x_hash(int unit, int bank, int hash_offset,
+                                int use_lsb, int key_nbits, void *base_entry,
+                                uint8 *key);
+extern int      soc_th_l2x_base_entry_to_key(int unit, uint32 *entry,
+                                             uint8 *key);
+extern uint32   soc_th_l2x_entry_hash(int unit, int bank, int hash_offset,
+                                      int use_lsb, uint32 *entry);
+extern uint32   soc_th_l2x_bank_entry_hash(int unit, int bank, uint32 *entry);
+extern uint32   soc_th_l3x_hash(int unit, int bank, int hash_offset,
+                                int use_lsb, int key_nbits, void *base_entry,
+                                uint8 *key);
+extern int      soc_th_l3x_base_entry_to_key(int unit, uint32 *entry,
+                                             uint8 *key);
+extern uint32   soc_th_l3x_entry_hash(int unit, int bank, int hash_offset,
+                                      int use_lsb, uint32 *entry);
+extern uint32   soc_th_l3x_bank_entry_hash(int unit, int bank, uint32 *entry);
+extern uint32   soc_th_exact_match_hash(int unit, int bank, int hash_offset,
+                                        int use_lsb, int key_nbits,
+                                        void *base_entry, uint8 *key);
+extern int      soc_th_exact_match_base_entry_to_key(int unit, uint32 *entry,
+                                                     uint8 *key);
+extern uint32   soc_th_exact_match_entry_hash(int unit, int bank,
+                                              int hash_offset, int use_lsb,
+                                              uint32 *entry);
+extern uint32   soc_th_exact_match_bank_entry_hash(int unit, int bank,
+                                                   uint32 *entry);
+extern uint32   soc_th_mpls_hash(int unit, int hash_sel, int key_nbits,
+                                 void *base_entry, uint8 *key);
+extern int      soc_th_mpls_base_entry_to_key(int unit, void *entry,
+                                              uint8 *key);
+extern uint32   soc_th_mpls_entry_hash(int unit, int hash_sel, uint32 *entry);
+extern uint32   soc_th_mpls_bank_entry_hash(int unit, int bank, uint32 *entry);
+extern uint32   soc_th_vlan_xlate_hash(int unit, int hash_sel, int key_nbits,
+                                       void *base_entry, uint8 *key);
+extern int      soc_th_vlan_xlate_base_entry_to_key(int unit, void *entry,
+                                                    uint8 *key);
+extern uint32   soc_th_vlan_xlate_entry_hash(int unit, int hash_sel,
+                                             uint32 *entry);
+extern uint32   soc_th_vlan_xlate_bank_entry_hash(int unit, int bank,
+                                                  uint32 *entry);
+extern uint32   soc_th_egr_vlan_xlate_hash(int unit, int hash_sel,
+                                           int key_nbits, void *base_entry,
+                                            uint8 *key);
+extern int      soc_th_egr_vlan_xlate_base_entry_to_key(int unit, void *entry,
+                                                        uint8 *key);
+extern uint32   soc_th_egr_vlan_xlate_entry_hash(int unit, int hash_sel,
+                                                 uint32 *entry);
+extern uint32   soc_th_egr_vlan_xlate_bank_entry_hash(int unit, int bank,
+                                                      uint32 *entry);
+extern uint32   soc_th_ing_vp_vlan_member_hash(int unit, int hash_sel,
+                                               int key_nbits, void *base_entry,
+                                               uint8 *key);
+extern int      soc_th_ing_vp_vlan_member_base_entry_to_key(int unit,
+                                                            void *entry,
+                                                            uint8 *key);
+extern uint32   soc_th_ing_vp_vlan_member_entry_hash(int unit, int hash_sel,
+                                                     uint32 *entry);
+extern uint32   soc_th_egr_vp_vlan_member_hash(int unit, int hash_sel,
+                                               int key_nbits, void *base_entry,
+                                               uint8 *key);
+extern int      soc_th_egr_vp_vlan_member_base_entry_to_key(int unit,
+                                                            void *entry,
+                                                            uint8 *key);
+extern uint32   soc_th_egr_vp_vlan_member_entry_hash(int unit, int hash_sel,
+                                                     uint32 *entry);
+extern uint32   soc_th_ing_dnat_address_type_hash(int unit, int hash_sel,
+                                                  int key_nbits,
+                                                  void *base_entry,
+                                                  uint8 *key);
+extern int      soc_th_ing_dnat_address_type_base_entry_to_key(int unit,
+                                                               void *entry,
+                                                               uint8 *key);
+extern uint32   soc_th_ing_dnat_address_type_entry_hash(int unit,
+                                                        int hash_sel,
+                                                        uint32 *entry);
+
+/* Special port number used by H/W */
+#define _SOC_TH_TDM_OVERSUB_TOKEN    0x22
+#define _SOC_TH_TDM_NULL_TOKEN       0x23
+#define _SOC_TH_TDM_IDL1_TOKEN       0x24
+#define _SOC_TH_TDM_IDL2_TOKEN       0x25
+#define _SOC_TH_TDM_UNUSED_TOKEN     0x3f
+
+typedef enum {
+    SOC_TH_SCHED_MODE_UNKNOWN = 0,
+    SOC_TH_SCHED_MODE_STRICT,
+    SOC_TH_SCHED_MODE_WRR,
+    SOC_TH_SCHED_MODE_WERR
+} soc_th_sched_mode_e;
+
+typedef enum {
+    SOC_TH_NODE_LVL_ROOT = 0,
+    SOC_TH_NODE_LVL_L0,
+    SOC_TH_NODE_LVL_L1,
+    SOC_TH_NODE_LVL_L2,
+    SOC_TH_NODE_LVL_MAX
+} soc_th_node_lvl_e;
+
+typedef enum {
+    _SOC_TH_INDEX_STYLE_BUCKET,
+    _SOC_TH_INDEX_STYLE_BUCKET_MODE,
+    _SOC_TH_INDEX_STYLE_WRED,
+    _SOC_TH_INDEX_STYLE_WRED_DROP_THRESH,
+    _SOC_TH_INDEX_STYLE_SCHEDULER,
+    _SOC_TH_INDEX_STYLE_PERQ_XMT,
+    _SOC_TH_INDEX_STYLE_UCAST_DROP,
+    _SOC_TH_INDEX_STYLE_UCAST_QUEUE,
+    _SOC_TH_INDEX_STYLE_MCAST_QUEUE,
+    _SOC_TH_INDEX_STYLE_EXT_UCAST_QUEUE,
+    _SOC_TH_INDEX_STYLE_EGR_POOL,
+    _SOC_TH_INDEX_STYLE_COUNT
+} soc_th_index_style_t;
+
+#define _TH_PORTS_PER_PBLK             4
+#define _TH_PBLKS_PER_PIPE             8
+#define _TH_PIPES_PER_DEV              4
+#define _TH_XPES_PER_DEV               4
+
+#define _TH_PBLKS_PER_DEV              (_TH_PBLKS_PER_PIPE * _TH_PIPES_PER_DEV)
+
+#define _TH_PORTS_PER_PIPE             (_TH_PORTS_PER_PBLK * _TH_PBLKS_PER_PIPE)
+#define _TH_PORTS_PER_DEV              (_TH_PORTS_PER_PIPE * _TH_PIPES_PER_DEV)
+
+#define _TH_SECTION_SIZE                32768
+
+#define _TH_MMU_MAX_PACKET_BYTES        9416  /* bytes */
+#define _TH_MMU_PACKET_HEADER_BYTES     64    /* bytes */
+#define _TH_MMU_JUMBO_FRAME_BYTES       9216  /* bytes */
+#define _TH_MMU_DEFAULT_MTU_BYTES       1536  /* bytes */
+
+#define _TH_MMU_PHYSICAL_CELLS_PER_XPE  23040 /* Total Physical cells per XPE */
+#define _TH_MMU_TOTAL_CELLS_PER_XPE     20165 /* 4MB/XPE = 20165 cells/XPE */
+#define _TH_MMU_RSVD_CELLS_CFAP_PER_XPE 1080  /* Reserved CFAP cells per XPE */
+
+#define _TH_MMU_TOTAL_CELLS             (_TH_MMU_TOTAL_CELLS_PER_XPE * _TH_XPES_PER_DEV)
+#define _TH_MMU_PHYSICAL_CELLS          (_TH_MMU_PHYSICAL_CELLS_PER_XPE * _TH_XPES_PER_DEV)
+
+#define _TH_MMU_BYTES_PER_CELL          208   /* bytes (1664 bits) */
+#define _TH_MMU_NUM_PG                  8
+#define _TH_MMU_NUM_POOL                4
+#define _TH_MMU_NUM_RQE_QUEUES          11
+
+#define SOC_TH_MMU_CFG_QGROUP_MAX       36
+
+#define SOC_TH_MMU_PORT_STRIDE          64 /* MMU Port number space per pipe */
+
+#define SOC_TH_MMU_MCQ_ENTRY_PER_XPE    8192
+#define SOC_TH_MMU_RQE_ENTRY_PER_XPE    1024
+
+#define _TH_MMU_TOTAL_MCQ_ENTRY(unit)   SOC_TH_MMU_MCQ_ENTRY_PER_XPE
+#define _TH_MMU_TOTAL_RQE_ENTRY(unit)   SOC_TH_MMU_RQE_ENTRY_PER_XPE
+
+#define SOC_TH_STAT_ING_FLEX_POOL_MAX   20
+
+extern int
+soc_th_cosq_sched_mode_set(int unit, soc_port_t port, int level, int index,
+                           soc_th_sched_mode_e mode, int weight);
+extern int
+soc_th_cosq_sched_mode_get(int unit, soc_port_t port, int level, int index,
+                           soc_th_sched_mode_e *mode, int *weight);
+
+extern int
+soc_tomahawk_mem_sram_info_get(int unit, soc_mem_t mem, int index,
+                               _soc_ser_sram_info_t *sram_info);
+
+#define SOC_TH_NUM_EL_VLAN_XLATE                     4
+
+#define SOC_TH_NUM_EL_EGR_VLAN_XLATE                 4
+
+#define SOC_TH_NUM_EL_ING_L3_NEXT_HOP                4
+#define SOC_TH_RAM_OFFSET_ING_L3_NEXT_HOP            8192
+
+#define SOC_TH_NUM_ENTRIES_L2_BANK                   8192
+#define SOC_TH_NUM_ENTRIES_L3_BANK                   8192
+
+#define SOC_TH_NUM_EL_SHARED                         4
+#define SOC_TH_NUM_ENTRIES_XOR_BANK                  8192
+#define SOC_TH_LP_ENTRIES_IN_XOR_BANK                2048
+#define SOC_TH_LP_ENTRIES_IN_UFT_BANK                8192
+
+
+#define SOC_TH_ALPM_BKT_MASK                         0x1FFF
+#define SOC_TH_ALPM_BKT_OFFFSET                      2048
+#define SOC_TH_ALPM_MODE0_BKT_MASK                   0x38003
+#define SOC_TH_ALPM_MODE1_BKT_MASK                   SOC_TH_ALPM_MODE0_BKT_MASK >> 1
+
+extern int
+soc_tomahawk_temperature_monitor_get(int unit, int temperature_max,
+    soc_switch_temperature_monitor_t *temperature_array,
+    int *temperature_count);
+extern void
+soc_tomahawk_temperature_intr(void *unit_vp, void *d1, void *d2,
+                              void *d3, void *d4);
+
+#if !defined(BCM_TH_ASF_EXCLUDE)
+/*
+  =============================
+   TH ASF (cut-thru forwarding)
+  =============================
+*/
+#define OUT
+#define IN_OUT
+
+/* ASF Modes */
+typedef enum {
+    _SOC_TH_ASF_MODE_SAF          = 0,  /* store-and-forward */
+    _SOC_TH_ASF_MODE_SAME_SPEED   = 1,  /* same speed CT  */
+    _SOC_TH_ASF_MODE_SLOW_TO_FAST = 2,  /* slow to fast CT   */
+    _SOC_TH_ASF_MODE_FAST_TO_SLOW = 3,  /* fast to slow CT   */
+    _SOC_TH_ASF_MODE_CFG_UPDATE   = 4,  /* internal cfg updates */
+    _SOC_TH_ASF_MODE_UNSUPPORTED  = 5
+} soc_th_asf_mode_e;
+
+/* ASF MMU Cell Buffer Allocation Profiles */
+typedef enum {
+    _SOC_TH_ASF_MEM_PROFILE_NONE      = 0,  /* No cut-through support */
+    _SOC_TH_ASF_MEM_PROFILE_SIMILAR   = 1,  /* Similar Speed Alloc Profile  */
+    _SOC_TH_ASF_MEM_PROFILE_EXTREME   = 2   /* Extreme Speed Alloc Profile */
+} soc_th_asf_mem_profile_e;
+
+/* Latency modes */
+typedef enum {
+    _SOC_TH_L2_LATENCY   = 0,
+    _SOC_TH_L3_LATENCY   = 1,
+    _SOC_TH_FULL_LATENCY = 2
+} _soc_th_latency_mode_e;
+
+extern int
+soc_th_asf_init_start(int unit);
+
+extern int
+soc_th_asf_init_done(int unit);
+
+extern int
+soc_th_port_asf_init(
+    int                 unit,
+    soc_port_t          port,
+    int                 port_speed,
+    soc_th_asf_mode_e   mode);
+
+extern int
+soc_th_asf_deinit(int unit);
+
+extern int
+soc_th_port_asf_xmit_start_count_set(
+    int                  unit,
+    soc_port_t           port,
+    int                  port_speed,
+    soc_th_asf_mode_e    mode,
+    uint8                extra_cells);
+
+extern int
+soc_th_port_asf_mode_get(
+    int                            unit,
+    soc_port_t                     port,
+    int                            port_speed,
+    OUT soc_th_asf_mode_e* const   mode);
+
+extern int
+soc_th_port_asf_mode_set(
+    int                 unit,
+    soc_port_t          port,
+    int                 port_speed,
+    soc_th_asf_mode_e   mode);
+
+#ifdef BCM_WARM_BOOT_SUPPORT
+extern int
+soc_th_asf_wb_memsz_get(
+    int unit,
+    OUT uint32* const wb_mem_sz);
+
+extern int
+soc_th_asf_wb_sync(
+    int    unit,
+    IN_OUT uint8* const wb_data);
+
+extern int
+soc_th_asf_wb_recover(
+    int unit,
+    uint8* const wb_data);
+#endif
+
+extern int
+soc_th_asf_pbmp_get(int unit);
+
+extern int
+soc_th_port_asf_show(
+    int          unit,
+    soc_port_t   port,
+    int          port_speed);
+
+extern int
+soc_th_asf_config_dump(int unit);
+
+extern int
+soc_th_port_asf_config_dump(
+	int          unit,
+	soc_port_t   port,
+	int          port_speed);
+#endif
+
+#endif /* !_SOC_TOMAHAWK_H_ */
