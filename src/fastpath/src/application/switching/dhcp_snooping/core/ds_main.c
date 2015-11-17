@@ -793,33 +793,51 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
       #endif
     #endif
     }
-
-    /* Check if IPV6 is enabled for this VLAN */
-    L7_uint32 evc_flags;
-    if (ptin_dhcp_flags_get(pduInfo->vlanId, L7_NULLPTR, &evc_flags) != L7_SUCCESS)
+    else
     {
-      l2_forward = L7_TRUE;
-      //if (ptin_debug_dhcp_snooping)
-      //  LOG_ERR(LOG_CTX_PTIN_DHCP, "Error calling ptin_dhcp_flags_get");
-      //return SYSNET_PDU_RC_IGNORED;
-    }
-    else if (!(evc_flags & PTIN_EVC_MASK_DHCPV4_PROTOCOL))
-    {
-      l2_forward = L7_TRUE;
-      //if (ptin_debug_dhcp_snooping)
-      //  LOG_ERR(LOG_CTX_PTIN_DHCP, "VLAN %u does not have DHCPv4 enabled!", pduInfo->vlanId);
-      //return SYSNET_PDU_RC_IGNORED;
+      /* VLAN is active for DHCP processing */
+      /* Check if IPV6 is enabled for this VLAN */
+      L7_uint32 evc_flags;
+      if (ptin_dhcp_flags_get(pduInfo->vlanId, L7_NULLPTR, &evc_flags) != L7_SUCCESS)
+      {
+        l2_forward = L7_TRUE;
+        //if (ptin_debug_dhcp_snooping)
+        //  LOG_ERR(LOG_CTX_PTIN_DHCP, "Error calling ptin_dhcp_flags_get");
+        //return SYSNET_PDU_RC_IGNORED;
+      }
+      else if (!(evc_flags & PTIN_EVC_MASK_DHCPV4_PROTOCOL))
+      {
+        l2_forward = L7_TRUE;
+        //if (ptin_debug_dhcp_snooping)
+        //  LOG_ERR(LOG_CTX_PTIN_DHCP, "VLAN %u does not have DHCPv4 enabled!", pduInfo->vlanId);
+        //return SYSNET_PDU_RC_IGNORED;
+      }
     }
 
     /* Make software L2 forwarding? */
     if (l2_forward)
     {
+      /* For MX board, ignore DHCP packet */
+    #if (PTIN_BOARD_IS_MATRIX)
+      if (ptin_debug_dhcp_snooping) 
+        LOG_ERR(LOG_CTX_PTIN_DHCP, "Packet will be ignored (VLAN %u / intIfNum %u)", pduInfo->vlanId, pduInfo->intIfNum);
+      return SYSNET_PDU_RC_IGNORED;
+    #else
       if (ptin_debug_dhcp_snooping) 
         LOG_ERR(LOG_CTX_PTIN_DHCP, "Going to L2 forward packet from VLAN %u / intIfNum %u", pduInfo->vlanId, pduInfo->intIfNum);
       /* L2 forward */
-      ptin_packet_frame_l2forward_nonblocking(pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId, data, len);
-      SYSAPI_NET_MBUF_FREE(bufHandle);
-      return SYSNET_PDU_RC_CONSUMED;
+      if (ptin_packet_frame_l2forward_nonblocking(pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId, data, len) == L7_SUCCESS)
+      {
+        SYSAPI_NET_MBUF_FREE(bufHandle);
+        return SYSNET_PDU_RC_CONSUMED;
+      }
+      else
+      {
+        if (ptin_debug_dhcp_snooping)
+          LOG_ERR(LOG_CTX_PTIN_PPPOE, "Error trying to L2 forward packet");
+        return SYSNET_PDU_RC_IGNORED;
+      }
+    #endif
     }
 
     if (((osapiNtohl(ipHeader->iph_src) & L7_CLASS_D_ADDR_NETWORK) == L7_CLASS_D_ADDR_NETWORK) ||
@@ -1168,33 +1186,51 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
       #endif
     #endif
     }
-
-    /* Check if IPV6 is enabled for this VLAN */
-    L7_uint32 evc_flags;
-    if (ptin_dhcp_flags_get(pduInfo->vlanId, L7_NULLPTR, &evc_flags) != L7_SUCCESS)
+    else
     {
-      l2_forward = L7_TRUE;
-      //if (ptin_debug_dhcp_snooping)
-      //  LOG_ERR(LOG_CTX_PTIN_DHCP, "Error calling ptin_dhcp_flags_get");
-      //return SYSNET_PDU_RC_IGNORED;
-    }
-    else if (!(evc_flags & PTIN_EVC_MASK_DHCPV6_PROTOCOL))
-    {
-      l2_forward = L7_TRUE;
-      //if (ptin_debug_dhcp_snooping)
-      //  LOG_ERR(LOG_CTX_PTIN_DHCP, "VLAN %u does not have DHCPv6 enabled!", pduInfo->vlanId);
-      //return SYSNET_PDU_RC_IGNORED;
+      /* VLAN is active for DHCP processing */
+      /* Check if IPV6 is enabled for this VLAN */
+      L7_uint32 evc_flags;
+      if (ptin_dhcp_flags_get(pduInfo->vlanId, L7_NULLPTR, &evc_flags) != L7_SUCCESS)
+      {
+        l2_forward = L7_TRUE;
+        //if (ptin_debug_dhcp_snooping)
+        //  LOG_ERR(LOG_CTX_PTIN_DHCP, "Error calling ptin_dhcp_flags_get");
+        //return SYSNET_PDU_RC_IGNORED;
+      }
+      else if (!(evc_flags & PTIN_EVC_MASK_DHCPV6_PROTOCOL))
+      {
+        l2_forward = L7_TRUE;
+        //if (ptin_debug_dhcp_snooping)
+        //  LOG_ERR(LOG_CTX_PTIN_DHCP, "VLAN %u does not have DHCPv6 enabled!", pduInfo->vlanId);
+        //return SYSNET_PDU_RC_IGNORED;
+      }
     }
 
     /* Make software L2 forwarding? */
     if (l2_forward)
     {
+      /* For MX board, ignore DHCP packet */
+    #if (PTIN_BOARD_IS_MATRIX)
+      if (ptin_debug_dhcp_snooping) 
+        LOG_ERR(LOG_CTX_PTIN_DHCP, "Packet will be ignored (VLAN %u / intIfNum %u)", pduInfo->vlanId, pduInfo->intIfNum);
+      return SYSNET_PDU_RC_IGNORED;
+    #else
       if (ptin_debug_dhcp_snooping) 
         LOG_ERR(LOG_CTX_PTIN_DHCP, "Going to L2 forward packet from VLAN %u / intIfNum %u", pduInfo->vlanId, pduInfo->intIfNum);
       /* L2 forward */
-      ptin_packet_frame_l2forward_nonblocking(pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId, data, len);
-      SYSAPI_NET_MBUF_FREE(bufHandle);
-      return SYSNET_PDU_RC_CONSUMED;
+      if (ptin_packet_frame_l2forward_nonblocking(pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId, data, len) == L7_SUCCESS)
+      {
+        SYSAPI_NET_MBUF_FREE(bufHandle);
+        return SYSNET_PDU_RC_CONSUMED;
+      }
+      else
+      {
+        if (ptin_debug_dhcp_snooping)
+          LOG_ERR(LOG_CTX_PTIN_PPPOE, "Error trying to L2 forward packet");
+        return SYSNET_PDU_RC_IGNORED;
+      }
+    #endif
     }
 
     udpHeader = (L7_udp_header_t *)((L7_char8 *)ipv6Header + L7_IP6_HEADER_LEN);

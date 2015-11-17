@@ -239,14 +239,28 @@ L7_RC_t pppoePduReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
   /* If no PPPoE instance is configured for this internal vlan, ignore the packet */
   if(L7_TRUE != ptin_pppoe_vlan_validate(vlanId))
   {
+    /* For MX board, ignore DHCP packet */
+  #if (PTIN_BOARD_IS_MATRIX)
+    if (ptin_debug_pppoe_snooping)
+      LOG_ERR(LOG_CTX_PTIN_DHCP, "Packet will be ignored (VLAN %u / intIfNum %u)", pduInfo->vlanId, pduInfo->intIfNum);
+    return L7_FAILURE;
+  #else
     /* Make software L2 forwarding */
     if (ptin_debug_pppoe_snooping)
       LOG_ERR(LOG_CTX_PTIN_PPPOE, "Going to L2 forward packet from VLAN %u / intIfNum %u", pduInfo->vlanId, pduInfo->intIfNum);
     /* L2 forward */
-    ptin_packet_frame_l2forward_nonblocking(pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId, data, len);
-    SYSAPI_NET_MBUF_FREE(bufHandle);
-    return L7_SUCCESS;
-
+    if (ptin_packet_frame_l2forward_nonblocking(pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId, data, len) == L7_SUCCESS)
+    {
+      SYSAPI_NET_MBUF_FREE(bufHandle);
+      return L7_SUCCESS;
+    }
+    else
+    {
+      if (ptin_debug_pppoe_snooping)
+        LOG_ERR(LOG_CTX_PTIN_PPPOE, "Error trying to L2 forward packet");
+      return L7_FAILURE;
+    }
+  #endif
     //if (ptin_debug_pppoe_snooping)
     //  LOG_NOTICE(LOG_CTX_PTIN_PPPOE,"No PPPoE instance found for intVlanId %u. Ignored", vlanId);
     //return L7_FAILURE;

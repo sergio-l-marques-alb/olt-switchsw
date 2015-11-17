@@ -516,6 +516,13 @@ L7_RC_t ptin_packet_frame_l2forward_nonblocking(L7_uint32 intIfNum, L7_ushort16 
   ptin_PDU_Msg_t msg;
   L7_RC_t rc;
 
+  /* Check if initializations were properly done! */
+  if (ptin_packet_TaskId == L7_ERROR || ptin_packet_queue == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_PACKET,"Task or Queue not initialized!");
+    return L7_FAILURE;
+  }
+
   memset(&msg, 0x00, sizeof(ptin_PDU_Msg_t));
   msg.msgId       = PTIN_PACKET_TRANSMIT;
   msg.intIfNum    = intIfNum;
