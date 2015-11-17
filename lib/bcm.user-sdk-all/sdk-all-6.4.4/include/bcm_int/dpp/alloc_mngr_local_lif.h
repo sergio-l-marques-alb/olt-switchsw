@@ -1,0 +1,234 @@
+/*
+ * $Id: alloc_mngr_lif.h,v 1.45 Broadcom SDK $
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ *
+ * File:        alloc_mngr_lif.h
+ * Purpose:     Resource allocation for lif.
+ *
+ */
+
+#ifndef  INCLUDE_ALLOC_MNGR_LOCAL_LIF_H
+#define  INCLUDE_ALLOC_MNGR_LOCAL_LIF_H
+
+/*************
+* INCLUDES  *
+ *************/
+/* { */
+#include <soc/dpp/mbcm.h>
+#include <soc/dpp/mbcm_pp.h>
+#include <bcm_int/dpp/alloc_mngr_lif.h>	 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_eg_encap.h>
+/* } */
+/*************
+ * DEFINES   *
+*************/
+
+#define BCM_DPP_AM_IN_LIF_FLAG_COMMON          (1<<0)
+#define BCM_DPP_AM_IN_LIF_FLAG_WIDE            (1<<1)
+#define BCM_DPP_AM_IN_LIF_FLAG_ALLOC_WITH_ID   (1<<2)
+ 
+#define BCM_DPP_AM_OUT_LIF_FLAG_DIRECT         (1<<0)
+#define BCM_DPP_AM_OUT_LIF_FLAG_COUPLED        (1<<1)
+#define BCM_DPP_AM_OUT_LIF_FLAG_WIDE            (1<<2)
+
+#define _BCM_DPP_AM_INGRESS_LIF_NOF_BANKS (4)
+
+#define _BCM_DPP_AM_LOCAL_LIF_NOF_INLIF_ENTRIES_PER_BANK (32 * 1024) 
+
+#define _BCM_DPP_AM_LOCAL_LIF_NOF_INLIF_HALF_ENTRIES_PER_BANK (2 * _BCM_DPP_AM_LOCAL_LIF_NOF_INLIF_ENTRIES_PER_BANK)
+
+#define _BCM_DPP_AM_INGRESS_LIF_NOF_INLIF_IDS        (_BCM_DPP_AM_INGRESS_LIF_NOF_BANKS * _BCM_DPP_AM_LOCAL_LIF_NOF_INLIF_HALF_ENTRIES_PER_BANK)
+
+#define _BCM_DPP_AM_INGRESS_LIF_NOF_OUTLIF_IDS        (192 * 1024) /* 192K Out-lif*/
+#define _BCM_DPP_AM_EGRESS_LIF_NOF_EEDB_BANKS         (24)
+#define _BCM_DPP_AM_EGRESS_LIF_NOF_EEDB_HALF_BANKS    (_BCM_DPP_AM_EGRESS_LIF_NOF_EEDB_BANKS * 2)
+#define _BCM_DPP_AM_EGRESS_LIF_NOF_EEDB_REGULAR_BANKS (22)
+#define _BCM_DPP_AM_EGRESS_LIF_NOF_TOP_BANKS          (8)
+#define _BCM_DPP_AM_EGRESS_LIF_NOF_ENTRIES_BLOCKS     (256)
+#define _BCM_DPP_AM_EGRESS_LIF_NOF_ENTRIES_PER_BANK   (8 * 1024)
+#define _BCM_DPP_AM_EGRESS_LIF_NOF_ENTRIES_PER_HALF_BANK (_BCM_DPP_AM_EGRESS_LIF_NOF_ENTRIES_PER_BANK /2)
+#define _BCM_DPP_AM_EGRESS_LIF_NOF_TOP_BANKS_PER_HALF_BANK (2)
+#define _BCM_DPP_AM_EGRESS_LIF_NOF_TOP_BANKS_PER_TOP_BANK (_BCM_DPP_AM_EGRESS_LIF_NOF_ENTRIES_PER_HALF_BANK /_BCM_DPP_AM_EGRESS_LIF_NOF_TOP_BANKS_PER_HALF_BANK)
+
+#define BCM_DPP_AM_LOCAL_OUT_LIF_BANK_FLAG_FORCE_TYPE      (1<<0)
+#define BCM_DPP_AM_LOCAL_OUT_LIF_BANK_FLAG_FORCE_EXTENSION (1<<1)
+#define BCM_DPP_AM_LOCAL_OUT_LIF_BANK_FLAG_FORCE_PHASE     (1<<2)
+
+#define _BCM_DPP_AM_EEDB_BANK_UNASSIGNED                   (0xFF)
+#define _BCM_DPP_AM_LOCAL_LIF_ID_UNASSIGNED                (0xFFFFFFFF)
+
+
+#define BCM_DPP_AM_LOCAL_OUT_LIF_BANK_IN_RANGE(bank_id) (bank_id<_BCM_DPP_AM_EGRESS_LIF_NOF_EEDB_BANKS)
+#define BCM_DPP_AM_LOCAL_OUT_LIF_REGULAR_BANK_IN_RANGE(bank_id) (bank_id<_BCM_DPP_AM_EGRESS_LIF_NOF_EEDB_REGULAR_BANKS)
+#define BCM_DPP_AM_LOCAL_OUT_LIF_TOP_BANK_IN_RANGE(top_bank_id) (bank_id >= 0 && bank_id<_BCM_DPP_AM_EGRESS_LIF_NOF_TOP_BANKS)
+
+
+#define _BCM_DPP_AM_INGRESS_LOCAL_COMMON_LIF_POOL_ID_START (dpp_am_res_local_inlif_common)
+
+#define _BCM_DPP_AM_INGRESS_LOCAL_COMMON_LIF_POOL_ID_END (_BCM_DPP_AM_INGRESS_LOCAL_COMMON_LIF_POOL_ID_START + _BCM_DPP_AM_INGRESS_LIF_NOF_BANKS)
+
+#define _BCM_DPP_AM_INGRESS_LOCAL_WIDE_LIF_POOL_ID_START (_BCM_DPP_AM_INGRESS_LOCAL_COMMON_LIF_POOL_ID_END)
+
+#define _BCM_DPP_AM_INGRESS_LOCAL_WIDE_LIF_POOL_ID_END (_BCM_DPP_AM_INGRESS_LOCAL_WIDE_LIF_POOL_ID_START + _BCM_DPP_AM_INGRESS_LIF_NOF_BANKS)
+
+	 
+/* } */
+/*************
+* MACROS    *
+ *************/
+/* { */
+#define BCM_DPP_AM_LOCAL_INLIF_HANDLE_TO_BASE_LIF_ID(lif_handle)       ( (lif_handle%2==0) ? (lif_handle/2) :  (lif_handle/2 + 1) )
+#define BCM_DPP_AM_LOCAL_INLIF_HANDLE_TO_ADDITIONAL_LIF_ID(lif_handle)  ( (lif_handle%2==0) ? (lif_handle/2  + 1) :  (lif_handle/2) )
+#define BCM_DPP_AM_LOCAL_INLIF_HANDLE_TO_SEM_RESULT_ID(lif_handle)      (lif_handle/2 )
+
+#define BCM_DPP_AM_LOCAL_OUTLIF_TO_BASE_BANK_ID(lif_id)                  ( lif_id /_BCM_DPP_AM_EGRESS_LIF_NOF_ENTRIES_PER_BANK)
+#define BCM_DPP_AM_LOCAL_OUTLIF_TO_BASE_ENTRY_ID(lif_id)                 ( lif_id %_BCM_DPP_AM_EGRESS_LIF_NOF_ENTRIES_PER_BANK)
+
+
+
+/* } */
+/*************
+* TYPE DEFS *
+*************/
+/*The following structure defines an entry in the Ingress Local LIF table*/
+typedef struct bcm_dpp_am_local_inlif_info_s
+{
+    bcm_dpp_am_ingress_lif_app_t app_type;
+    int local_lif_flags;
+    int base_lif_id;
+    int ext_lif_id;
+    int glif;
+    uint8 valid;
+} bcm_dpp_am_local_inlif_info_t;
+ 
+typedef struct bcm_dpp_am_local_inlif_six_packs_info_s
+{
+    uint8 is_used;
+    uint8 lif_type;
+} bcm_dpp_am_local_inlif_six_packs_info_t;
+
+
+typedef struct bcm_dpp_am_local_inlif_table_bank_info_s
+{
+    uint8  valid;
+    uint32 phase_bmp;
+    bcm_dpp_am_local_inlif_six_packs_info_t packs_info[_BCM_DPP_AM_LOCAL_LIF_NOF_INLIF_ENTRIES_PER_BANK/6];
+
+} bcm_dpp_am_local_inlif_table_bank_info_t;
+
+
+typedef struct bcm_dpp_am_local_inlif_application_type_info_s
+{
+    uint8 banks_bmp;
+} bcm_dpp_am_local_inlif_application_type_info_t;
+
+
+
+
+
+typedef struct bcm_dpp_am_local_out_lif_info_s
+{
+    bcm_dpp_am_egress_encap_alloc_info_t app_alloc_info;
+    int local_lif_flags;
+    int glif;
+    int failover_id; /*device mode */
+    int base_lif_id;
+    int ext_lif_id;
+} bcm_dpp_am_local_out_lif_info_t;
+
+
+ 
+/* } */
+/*************
+* GLOBALS   *
+*************/
+/* { */
+	 
+/* } */
+/*************
+* FUNCTIONS *
+*************/
+uint32
+_bcm_dpp_am_local_inlif_init(int unit);
+
+uint32
+_bcm_dpp_am_local_inlif_deinit(int unit);
+
+uint32
+_bcm_dpp_am_local_inlif_alloc(int unit, int flags, bcm_dpp_am_local_inlif_info_t *lif_info);
+
+uint32
+_bcm_dpp_am_local_inlif_dealloc(int unit, int lif_index);
+
+uint32
+_bcm_dpp_am_local_inlif_is_alloc(int unit, int lif_index);
+
+uint32
+_bcm_dpp_am_local_outlif_init(int unit);
+
+uint32
+_bcm_dpp_am_local_outlif_deinit(int unit);
+
+uint32
+_bcm_dpp_am_local_outlif_alloc(int unit, int flags, bcm_dpp_am_local_out_lif_info_t *lif_info);
+
+uint32
+_bcm_dpp_am_local_outlif_dealloc(int unit, int lif_index);
+
+uint32
+_bcm_dpp_am_local_outlif_is_alloc(int unit, int lif_index);
+
+uint32
+_bcm_dpp_am_local_outlif_extension_bank_alloc(int unit, int bank_id, int *ext_bank_id, uint8 *bank_found);
+
+uint32
+_bcm_dpp_am_local_outlif_extension_bank_dealloc(int unit, int bank_id);
+
+uint32
+  _bcm_dpp_am_local_outlif_bank_phase_set(int unit, int bank_id,  int phase);
+
+uint32
+_bcm_dpp_local_lif_is_wide_entry(int unit, int local_lif, int is_ingress, int *is_wide_entry);
+
+#endif /*INCLUDE_ALLOC_MNGR_LOCAL_LIF_H*/
+
