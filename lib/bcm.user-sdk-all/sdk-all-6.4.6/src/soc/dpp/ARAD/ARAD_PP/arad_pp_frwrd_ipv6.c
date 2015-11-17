@@ -1,0 +1,3957 @@
+#include <soc/mcm/memregs.h>
+#if defined(BCM_88650_A0)
+/* $Id: arad_pp_frwrd_ipv6.c,v 1.33 Broadcom SDK $
+ * $Copyright: Copyright 2015 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ * $
+*/
+
+#ifdef _ERR_MSG_MODULE_NAME
+  #error "_ERR_MSG_MODULE_NAME redefined"
+#endif
+
+#define _ERR_MSG_MODULE_NAME BSL_SOC_FORWARD
+
+/*************
+ * INCLUDES  *
+ *************/
+/* { */
+#include <shared/bsl.h>
+#include <soc/dcmn/error.h>
+#include <soc/dpp/SAND/Utils/sand_header.h>
+
+#include <soc/dpp/SAND/Management/sand_general_macros.h>
+#include <soc/dpp/SAND/Management/sand_error_code.h>
+#include <soc/dpp/SAND/Utils/sand_os_interface.h>
+#include <soc/dpp/SAND/Utils/sand_multi_set.h>
+
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_framework.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_frwrd_ipv6.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_frwrd_ip_tcam.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_frwrd_ipv6.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_frwrd_ipv4.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_general.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_sw_db.h>
+#include <soc/dpp/PPD/ppd_api_trap_mgmt.h>
+
+#if defined(INCLUDE_KBP) && !defined(BCM_88030)
+#include <soc/dpp/ARAD/arad_kbp.h>
+#include <soc/dpp/drv.h>
+#include <soc/dpp/JER/JER_PP/jer_pp_kaps.h>
+#include <soc/dpp/JER/JER_PP/jer_pp_kaps_entry_mgmt.h>
+#endif
+/* } */
+/*************
+ * DEFINES   *
+ *************/
+/* { */
+
+#define ARAD_PP_FRWRD_IPV6_TYPE_MAX                              (ARAD_PP_NOF_FRWRD_IPV6_ROUTER_DEFAULT_ACTION_TYPES-1)
+
+
+/* } */
+/*************
+ * MACROS    *
+ *************/
+/* { */
+
+/* } */
+/*************
+ * TYPE DEFS *
+ *************/
+/* { */
+
+/* } */
+/*************
+ * GLOBALS   *
+ *************/
+/* { */
+
+CONST STATIC SOC_PROCEDURE_DESC_ELEMENT
+  Arad_pp_procedure_desc_element_frwrd_ipv6[] =
+{
+  /*
+   * Auto generated. Do not edit following section {
+   */
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_GLBL_INFO_SET),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_GLBL_INFO_SET_PRINT),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_GLBL_INFO_SET_UNSAFE),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_GLBL_INFO_SET_VERIFY),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_GLBL_INFO_GET),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_GLBL_INFO_GET_PRINT),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_GLBL_INFO_GET_VERIFY),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_GLBL_INFO_GET_UNSAFE),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_UC_ROUTE_ADD),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_UC_ROUTE_ADD_PRINT),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_UC_ROUTE_ADD_UNSAFE),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_UC_ROUTE_ADD_VERIFY),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_UC_ROUTE_GET),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_UC_ROUTE_GET_PRINT),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_UC_ROUTE_GET_UNSAFE),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_UC_ROUTE_GET_VERIFY),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_UC_ROUTE_GET_BLOCK),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_UC_ROUTE_GET_BLOCK_PRINT),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_UC_ROUTE_GET_BLOCK_UNSAFE),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_UC_ROUTE_GET_BLOCK_VERIFY),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_UC_ROUTE_REMOVE),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_UC_ROUTE_REMOVE_PRINT),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_UC_ROUTE_REMOVE_UNSAFE),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_UC_ROUTE_REMOVE_VERIFY),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_UC_ROUTING_TABLE_CLEAR),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_UC_ROUTING_TABLE_CLEAR_PRINT),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_UC_ROUTING_TABLE_CLEAR_UNSAFE),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_UC_ROUTING_TABLE_CLEAR_VERIFY),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_MC_ROUTE_ADD),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_MC_ROUTE_ADD_PRINT),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_MC_ROUTE_ADD_UNSAFE),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_MC_ROUTE_ADD_VERIFY),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_MC_ROUTE_GET),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_MC_ROUTE_GET_PRINT),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_MC_ROUTE_GET_UNSAFE),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_MC_ROUTE_GET_VERIFY),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_MC_ROUTE_GET_BLOCK),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_MC_ROUTE_GET_BLOCK_PRINT),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_MC_ROUTE_GET_BLOCK_UNSAFE),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_MC_ROUTE_GET_BLOCK_VERIFY),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_MC_ROUTE_REMOVE),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_MC_ROUTE_REMOVE_PRINT),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_MC_ROUTE_REMOVE_UNSAFE),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_MC_ROUTE_REMOVE_VERIFY),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_MC_ROUTING_TABLE_CLEAR),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_MC_ROUTING_TABLE_CLEAR_PRINT),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_MC_ROUTING_TABLE_CLEAR_UNSAFE),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_MC_ROUTING_TABLE_CLEAR_VERIFY),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_VRF_INFO_SET),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_VRF_INFO_SET_PRINT),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_VRF_INFO_SET_UNSAFE),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_VRF_INFO_SET_VERIFY),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_VRF_INFO_GET),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_VRF_INFO_GET_PRINT),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_VRF_INFO_GET_VERIFY),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_VRF_INFO_GET_UNSAFE),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_VRF_ROUTE_ADD),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_VRF_ROUTE_ADD_PRINT),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_VRF_ROUTE_ADD_UNSAFE),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_VRF_ROUTE_ADD_VERIFY),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_VRF_ROUTE_GET),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_VRF_ROUTE_GET_PRINT),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_VRF_ROUTE_GET_UNSAFE),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_VRF_ROUTE_GET_VERIFY),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_VRF_ROUTE_GET_BLOCK),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_VRF_ROUTE_GET_BLOCK_PRINT),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_VRF_ROUTE_GET_BLOCK_UNSAFE),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_VRF_ROUTE_GET_BLOCK_VERIFY),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_VRF_ROUTE_REMOVE),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_VRF_ROUTE_REMOVE_PRINT),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_VRF_ROUTE_REMOVE_UNSAFE),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_VRF_ROUTE_REMOVE_VERIFY),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_VRF_ROUTING_TABLE_CLEAR),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_VRF_ROUTING_TABLE_CLEAR_PRINT),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_VRF_ROUTING_TABLE_CLEAR_UNSAFE),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_VRF_ROUTING_TABLE_CLEAR_VERIFY),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_VRF_ALL_ROUTING_TABLES_CLEAR),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_VRF_ALL_ROUTING_TABLES_CLEAR_PRINT),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_VRF_ALL_ROUTING_TABLES_CLEAR_UNSAFE),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_VRF_ALL_ROUTING_TABLES_CLEAR_VERIFY),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_GET_PROCS_PTR),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IPV6_GET_ERRS_PTR),
+  /*
+   * } Auto generated. Do not edit previous section.
+   */
+
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IP_TCAM_ROUTE_ADD_UNSAFE),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IP_TCAM_ROUTE_GET_UNSAFE),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IP_TCAM_ROUTE_GET_BLOCK_UNSAFE),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IP_TCAM_ROUTE_REMOVE_UNSAFE),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_FRWRD_IP_TCAM_ROUTING_TABLE_CLEAR_UNSAFE),
+
+  /*
+   * Last element. Do no touch.
+   */
+  SOC_PROCEDURE_DESC_ELEMENT_DEF_LAST
+};
+
+CONST STATIC SOC_ERROR_DESC_ELEMENT
+  Arad_pp_error_desc_element_frwrd_ipv6[] =
+{
+  /*
+   * Auto generated. Do not edit following section {
+   */
+  {
+    ARAD_PP_FRWRD_IPV6_SUCCESS_OUT_OF_RANGE_ERR,
+    "ARAD_PP_FRWRD_IPV6_SUCCESS_OUT_OF_RANGE_ERR",
+    "The parameter 'success' is out of range. \n\r "
+    "The range is: 0 - SOC_SAND_NOF_SUCCESS_FAILURES-1.\n\r ",
+    SOC_SAND_SVR_ERR,
+    FALSE
+  },
+  {
+    ARAD_PP_FRWRD_IPV6_ROUTE_STATUS_OUT_OF_RANGE_ERR,
+    "ARAD_PP_FRWRD_IPV6_ROUTE_STATUS_OUT_OF_RANGE_ERR",
+    "The parameter 'route_status' is out of range. \n\r "
+    "The range is: 0 - ARAD_PP_NOF_FRWRD_IP_ROUTE_STATUSS-1.\n\r ",
+    SOC_SAND_SVR_ERR,
+    FALSE
+  },
+  {
+    ARAD_PP_FRWRD_IPV6_LOCATION_OUT_OF_RANGE_ERR,
+    "ARAD_PP_FRWRD_IPV6_LOCATION_OUT_OF_RANGE_ERR",
+    "The parameter 'location' is out of range. \n\r "
+    "The range is: 0 - ARAD_PP_NOF_FRWRD_IP_ROUTE_LOCATIONS-1.\n\r ",
+    SOC_SAND_SVR_ERR,
+    FALSE
+  },
+  {
+    ARAD_PP_FRWRD_IPV6_FOUND_OUT_OF_RANGE_ERR,
+    "ARAD_PP_FRWRD_IPV6_FOUND_OUT_OF_RANGE_ERR",
+    "The parameter 'found' is out of range. \n\r "
+    "The range is: 0 - ARAD_PP_NOF_FRWRD_IP_ROUTE_LOCATIONS-1.\n\r ",
+    SOC_SAND_SVR_ERR,
+    FALSE
+  },
+  {
+    ARAD_PP_FRWRD_IPV6_ROUTES_STATUS_OUT_OF_RANGE_ERR,
+    "ARAD_PP_FRWRD_IPV6_ROUTES_STATUS_OUT_OF_RANGE_ERR",
+    "The parameter 'routes_status' is out of range. \n\r "
+    "The range is: 0 - ARAD_PP_NOF_FRWRD_IP_ROUTE_STATUSS-1.\n\r ",
+    SOC_SAND_SVR_ERR,
+    FALSE
+  },
+  {
+    ARAD_PP_FRWRD_IPV6_ROUTES_LOCATION_OUT_OF_RANGE_ERR,
+    "ARAD_PP_FRWRD_IPV6_ROUTES_LOCATION_OUT_OF_RANGE_ERR",
+    "The parameter 'routes_location' is out of range. \n\r "
+    "The range is: 0 - ARAD_PP_NOF_FRWRD_IP_ROUTE_LOCATIONS-1.\n\r ",
+    SOC_SAND_SVR_ERR,
+    FALSE
+  },
+  {
+    ARAD_PP_FRWRD_IPV6_NOF_ENTRIES_OUT_OF_RANGE_ERR,
+    "ARAD_PP_FRWRD_IPV6_NOF_ENTRIES_OUT_OF_RANGE_ERR",
+    "The parameter 'nof_entries' is out of range. \n\r "
+    "The range is: 0 - ARAD_PP_NOF_FRWRD_IP_ROUTE_LOCATIONS-1.\n\r ",
+    SOC_SAND_SVR_ERR,
+    FALSE
+  },
+  {
+    ARAD_PP_FRWRD_IPV6_EXACT_MATCH_OUT_OF_RANGE_ERR,
+    "ARAD_PP_FRWRD_IPV6_EXACT_MATCH_OUT_OF_RANGE_ERR",
+    "The parameter 'exact_match' is out of range. \n\r "
+    "The range is: 1 - 255.\n\r ",
+    SOC_SAND_SVR_ERR,
+    FALSE
+  },
+  {
+    ARAD_PP_FRWRD_IPV6_TYPE_OUT_OF_RANGE_ERR,
+    "ARAD_PP_FRWRD_IPV6_TYPE_OUT_OF_RANGE_ERR",
+    "The parameter 'type' is out of range. \n\r "
+    "The range is: 0 - ARAD_PP_NOF_FRWRD_IPV6_ROUTER_DEFAULT_ACTION_TYPES-1.\n\r ",
+    SOC_SAND_SVR_ERR,
+    FALSE
+  },
+  /*
+   * } Auto generated. Do not edit previous section.
+   */
+
+  {
+    ARAD_PP_IPV6_DEFAULT_ACTION_TYPE_NOT_SUPPORTED_ERR  ,
+    "ARAD_PP_IPV6_DEFAULT_ACTION_TYPE_NOT_SUPPORTED_ERR  ",
+    "IPv6 default action type is not supported \n\r ",
+    SOC_SAND_SVR_ERR,
+    FALSE
+  },
+  {
+    ARAD_PP_IPV6_DEFAULT_ACTION_WRONG_TRAP_CODE_ERR  ,
+    "ARAD_PP_IPV6_DEFAULT_ACTION_WRONG_TRAP_CODE_ERR  ",
+    "Trap code of IPv6 default action is wrong. \n\r ",
+    SOC_SAND_SVR_ERR,
+    FALSE
+  },
+  {
+    ARAD_PP_FRWRD_IPV6_MC_ILLEGAL_DEST_TYPE_ERR,
+    "ARAD_PP_FRWRD_IPV4_MC_ILLEGAL_DEST_TYPE_ERR",
+    "Destination in IPv4 MC routing info can be \n\r"
+    "FEC-ptr or MC-group only\n\r",
+    SOC_SAND_SVR_ERR,
+    FALSE
+  },
+  {
+    ARAD_PP_FRWRD_IP_TCAM_ENTRY_DOESNT_EXIST_ERR,
+    "ARAD_PP_FRWRD_IP_TCAM_ENTRY_DOESNT_EXIST_ERR",
+    "No entry matching the routing key was found.\n\r",
+    SOC_SAND_SVR_ERR,
+    FALSE
+  },
+
+  /*
+   * Last element. Do no touch.
+   */
+SOC_ERR_DESC_ELEMENT_DEF_LAST
+};
+
+/* } */
+/*************
+ * FUNCTIONS *
+ *************/
+/* { */
+
+uint32
+  arad_pp_frwrd_ipv6_init_unsafe(
+    SOC_SAND_IN  int                                 unit
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+
+  SOC_SAND_TODO_IMPLEMENT_WARNING;
+  ARAD_PP_DO_NOTHING_AND_EXIT;
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_frwrd_ipv6_init_unsafe()", 0, 0);
+}
+
+/*********************************************************************
+*     Setting global information of the IP routing (including
+ *     resources to use)
+ *     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  arad_pp_frwrd_ipv6_glbl_info_set_unsafe(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_GLBL_INFO           *glbl_info
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+  uint32
+    reg_val1;
+   
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_GLBL_INFO_SET_UNSAFE);
+  SOC_SAND_CHECK_NULL_INPUT(glbl_info);
+
+  res = READ_IHP_IPV6_ACTION_PROFILES_1r(unit, 0, &reg_val1);
+  SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_frwrd_ipv6_glbl_info_set_unsafe()", 0, 0);
+}
+
+uint32
+  arad_pp_frwrd_ipv6_glbl_info_set_verify(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_GLBL_INFO           *glbl_info
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_GLBL_INFO_SET_VERIFY);
+
+  res = ARAD_PP_FRWRD_IPV6_GLBL_INFO_verify(unit, glbl_info);
+  SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+
+  SOC_SAND_ERR_IF_ABOVE_MAX(glbl_info->router_info.uc_default_action.value.action_profile.frwrd_action_strength, ARAD_PP_ACTION_PROFILE_FRWRD_ACTION_STRENGTH_MAX, ARAD_PP_FRWRD_DEST_TRAP_FWD_OUT_OF_RANGE_ERR, 20, exit);
+  SOC_SAND_ERR_IF_ABOVE_MAX(glbl_info->router_info.uc_default_action.value.action_profile.snoop_action_strength, ARAD_PP_ACTION_PROFILE_SNOOP_ACTION_STRENGTH_MAX, ARAD_PP_FRWRD_DEST_TRAP_SNOOP_OUT_OF_RANGE_ERR, 30, exit);
+  SOC_SAND_ERR_IF_ABOVE_MAX(glbl_info->router_info.mc_default_action.value.action_profile.frwrd_action_strength, ARAD_PP_ACTION_PROFILE_FRWRD_ACTION_STRENGTH_MAX, ARAD_PP_FRWRD_DEST_TRAP_FWD_OUT_OF_RANGE_ERR, 40, exit);
+  SOC_SAND_ERR_IF_ABOVE_MAX(glbl_info->router_info.mc_default_action.value.action_profile.snoop_action_strength, ARAD_PP_ACTION_PROFILE_SNOOP_ACTION_STRENGTH_MAX, ARAD_PP_FRWRD_DEST_TRAP_SNOOP_OUT_OF_RANGE_ERR, 50, exit);
+
+  if(glbl_info->router_info.uc_default_action.type != ARAD_PP_FRWRD_IPV6_ROUTER_DEFAULT_ACTION_TYPE_ACTION_PROFILE)
+  {
+    SOC_SAND_SET_ERROR_CODE(ARAD_PP_IPV6_DEFAULT_ACTION_TYPE_NOT_SUPPORTED_ERR, 60, exit);
+  }
+  if(glbl_info->router_info.uc_default_action.value.action_profile.trap_code != ARAD_PP_TRAP_CODE_DEFAULT_UCV6)
+  {
+    SOC_SAND_SET_ERROR_CODE(ARAD_PP_IPV6_DEFAULT_ACTION_WRONG_TRAP_CODE_ERR, 70, exit);
+  }
+
+  if(glbl_info->router_info.mc_default_action.type != ARAD_PP_FRWRD_IPV6_ROUTER_DEFAULT_ACTION_TYPE_ACTION_PROFILE)
+  {
+    SOC_SAND_SET_ERROR_CODE(ARAD_PP_IPV6_DEFAULT_ACTION_TYPE_NOT_SUPPORTED_ERR, 80, exit);
+  }
+  if(glbl_info->router_info.mc_default_action.value.action_profile.trap_code != ARAD_PP_TRAP_CODE_DEFAULT_MCV6)
+  {
+    SOC_SAND_SET_ERROR_CODE(ARAD_PP_IPV6_DEFAULT_ACTION_WRONG_TRAP_CODE_ERR, 90, exit);
+  }
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_frwrd_ipv6_glbl_info_set_verify()", 0, 0);
+}
+
+uint32
+  arad_pp_frwrd_ipv6_glbl_info_get_verify(
+    SOC_SAND_IN  int                                 unit
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_GLBL_INFO_GET_VERIFY);
+
+  ARAD_PP_DO_NOTHING_AND_EXIT;
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_frwrd_ipv6_glbl_info_get_verify()", 0, 0);
+}
+
+/*********************************************************************
+*     Setting global information of the IP routing (including
+ *     resources to use)
+ *     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  arad_pp_frwrd_ipv6_glbl_info_get_unsafe(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_OUT ARAD_PP_FRWRD_IPV6_GLBL_INFO           *glbl_info
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+  uint32
+    reg_val1;
+   
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_GLBL_INFO_GET_UNSAFE);
+  SOC_SAND_CHECK_NULL_INPUT(glbl_info);
+
+  ARAD_PP_FRWRD_IPV6_GLBL_INFO_clear(glbl_info);
+
+  glbl_info->router_info.mc_default_action.type = ARAD_PP_FRWRD_IPV6_ROUTER_DEFAULT_ACTION_TYPE_ACTION_PROFILE;
+  glbl_info->router_info.uc_default_action.type = ARAD_PP_FRWRD_IPV6_ROUTER_DEFAULT_ACTION_TYPE_ACTION_PROFILE;
+
+  res = READ_IHP_IPV6_ACTION_PROFILES_1r(unit, 0, &reg_val1);
+  SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_frwrd_ipv6_glbl_info_get_unsafe()", 0, 0);
+}
+
+#if defined(INCLUDE_KBP) && !defined(BCM_88030)
+
+STATIC
+  uint32
+    arad_pp_frwrd_ipv6_uc_or_vpn_kbp_key_mask_encode(
+      SOC_SAND_IN  int                   unit,
+      SOC_SAND_IN  ARAD_KBP_FRWRD_IP_TBL_ID   frwrd_table_id,
+      SOC_SAND_IN  uint32                   vrf_ndx,
+      SOC_SAND_IN  SOC_SAND_PP_IPV6_SUBNET  *route_key,
+      SOC_SAND_OUT ARAD_PP_LEM_ACCESS_KEY       *data,
+      SOC_SAND_OUT ARAD_PP_LEM_ACCESS_KEY       *mask
+    )
+{
+    uint32
+        res,
+        mask_full = SOC_SAND_U32_MAX,
+        mask_void = 0;
+    SOC_SAND_PP_IPV6_ADDRESS
+        route_key_mask;
+    
+
+    SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+
+    ARAD_PP_LEM_ACCESS_KEY_clear(data);
+    ARAD_PP_LEM_ACCESS_KEY_clear(mask);
+    sal_memset(&route_key_mask, 0x0, sizeof(SOC_SAND_PP_IPV6_ADDRESS));
+
+
+    /* Build the logical IPv6 address Mask */
+    SHR_BITSET_RANGE(route_key_mask.address, 
+                     SOC_SAND_PP_IPV6_ADDRESS_NOF_BITS-route_key->prefix_len, 
+                     route_key->prefix_len);
+    
+    /* Encode Key into buffer according to the following format:
+     *  
+     * {VRF(11:0) in 139:128, IPv6 address(127:0) in 127:0}  
+     */
+
+    /* Param 0  - IPv6 address */
+    ARAD_PP_FRWRD_IP_TCAM_LEM_KEY_ENCODE(unit, frwrd_table_id, 0, 0 /* Copy the bits after */, data);
+    SHR_BITCOPY_RANGE(data->param[0].value, 0 /* LSB */, route_key->ipv6_address.address, 0 /* LSB */, data->param[0].nof_bits);
+
+    ARAD_PP_FRWRD_IP_TCAM_LEM_KEY_ENCODE(unit, frwrd_table_id, 0, 0 /* Copy the bits after */, mask);
+    SHR_BITCOPY_RANGE(mask->param[0].value, 0 /* LSB */, route_key_mask.address, 0 /* LSB */, mask->param[0].nof_bits);
+
+    /* Param 1  - VRF */
+    ARAD_PP_FRWRD_IP_TCAM_LEM_KEY_ENCODE(unit, frwrd_table_id, 1, vrf_ndx, data);
+    ARAD_PP_FRWRD_IP_TCAM_LEM_KEY_ENCODE(unit, frwrd_table_id, 1, ((vrf_ndx == 0)? mask_void: mask_full), mask);
+
+    ARAD_DO_NOTHING_AND_EXIT;
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in arad_pp_frwrd_ipv6_uc_or_vpn_kbp_key_mask_encode()",0,0);
+}
+
+STATIC
+  uint32
+    arad_pp_frwrd_ipv6_uc_or_vpn_kbp_key_mask_decode(
+      SOC_SAND_IN  int                   unit,
+      SOC_SAND_IN  ARAD_KBP_FRWRD_IP_TBL_ID   frwrd_table_id,
+      SOC_SAND_IN ARAD_PP_LEM_ACCESS_KEY       *data,
+      SOC_SAND_IN ARAD_PP_LEM_ACCESS_KEY       *mask,
+      SOC_SAND_OUT  uint32                   *vrf_ndx,
+      SOC_SAND_OUT  SOC_SAND_PP_IPV6_SUBNET  *route_key
+    )
+{
+    uint32
+        bit_ndx;
+    
+
+    SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+
+    SOC_SAND_CHECK_NULL_INPUT(data);
+    SOC_SAND_CHECK_NULL_INPUT(mask);
+    SOC_SAND_CHECK_NULL_INPUT(vrf_ndx);
+    SOC_SAND_CHECK_NULL_INPUT(route_key);
+
+    soc_sand_SAND_PP_IPV6_SUBNET_clear(route_key);
+    *vrf_ndx = 0;
+
+    /* Encode Key into buffer according to the following format:
+     *  
+     * {VRF(11:0) in 139:128, IPv6 address(127:0) in 127:0}  
+     */
+
+    /* Param 0  - IPv6 address */
+    ARAD_PP_FRWRD_IP_TCAM_LEM_KEY_DECODE(unit, frwrd_table_id, 0, route_key->ipv6_address.address, data, mask);
+
+    /* Find the prefix length according to the first bit set in the mask LSBs */
+    route_key->prefix_len = 0;
+    for (bit_ndx = 0; bit_ndx < SOC_SAND_PP_IPV6_ADDRESS_NOF_BITS; bit_ndx++) {
+        if (SHR_BITGET(mask->param[0].value, bit_ndx)) {
+            route_key->prefix_len = SOC_SAND_PP_IPV6_ADDRESS_NOF_BITS - bit_ndx;
+            break;
+        }
+    }
+
+    /* Param 1  - VRF */
+    ARAD_PP_FRWRD_IP_TCAM_LEM_KEY_DECODE(unit, frwrd_table_id, 1, vrf_ndx, data, mask);
+
+    ARAD_DO_NOTHING_AND_EXIT;
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in arad_pp_frwrd_ipv6_uc_or_vpn_kbp_key_mask_decode()",0,0);
+}
+
+
+STATIC
+  int
+    arad_pp_frwrd_ipv6_uc_or_vpn_kbp_result_encode(
+      SOC_SAND_IN  int                       unit,
+      SOC_SAND_IN  uint32                       frwrd_table_id,
+      SOC_SAND_IN  ARAD_PP_FRWRD_DECISION_INFO  *route_info,
+      SOC_SAND_OUT ARAD_PP_LEM_ACCESS_PAYLOAD    *payload
+    )
+{
+    uint32
+        res;
+
+    SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+
+    /* Encode Result */
+    ARAD_PP_LEM_ACCESS_PAYLOAD_clear(payload);
+    res = arad_pp_fwd_decision_in_buffer_build(
+            unit,
+            ARAD_PP_FRWRD_DECISION_APPLICATION_TYPE_DFLT,
+            route_info,
+            &payload->dest,
+            &payload->asd
+          );
+    SOC_SAND_CHECK_FUNC_RESULT(res, 5, exit);
+    if (frwrd_table_id == ARAD_KBP_FRWRD_TBL_ID_IPV6_UC_RPF_0) 
+    {
+        if(route_info->additional_info.outlif.type != ARAD_PP_OUTLIF_ENCODE_TYPE_NONE) {
+            payload->flags = ARAD_PP_LEM_ACCESS_ASD_OUTLIF;
+        }
+        else if(route_info->additional_info.eei.type != ARAD_PP_EEI_TYPE_EMPTY) {
+            payload->flags = ARAD_PP_LEM_ACCESS_ASD_EEI;
+        }
+        else{
+            payload->flags = ARAD_PP_LEM_ACCESS_ASD_NONE;
+        }
+    }
+    
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in arad_pp_frwrd_ipv6_uc_or_vpn_kbp_result_encode()",0,0);
+}
+
+STATIC
+  void
+    arad_pp_frwrd_ipv6_prefix_to_mask(
+      SOC_SAND_IN  uint32 prefix,
+      SOC_SAND_OUT uint32 mask[SOC_SAND_PP_IPV6_ADDRESS_NOF_UINT32S]
+    )
+{
+    int32
+        counter = prefix,
+        word = SOC_SAND_PP_IPV6_ADDRESS_NOF_UINT32S - 1,
+        i;
+
+    for (i=0; i<SOC_SAND_PP_IPV6_ADDRESS_NOF_UINT32S; i++) {
+        mask[i] = 0;
+    }
+
+    while (counter >= SOC_SAND_NOF_BITS_IN_UINT32)
+    {
+        mask[word--] = SOC_SAND_U32_MAX;
+        counter -= SOC_SAND_NOF_BITS_IN_UINT32;
+    }
+    if (counter > 0)
+    {
+        mask[word] = SOC_SAND_BITS_MASK(SOC_SAND_REG_MAX_BIT, SOC_SAND_NOF_BITS_IN_UINT32 - counter);
+    }
+}
+
+STATIC
+  uint32
+    arad_pp_frwrd_ipv6_uc_or_vpn_kaps_dbal_route_add(
+      SOC_SAND_IN  int                           unit,
+      SOC_SAND_IN  uint32                        vrf_ndx,
+      SOC_SAND_IN  SOC_SAND_PP_IPV6_SUBNET      *route_key,
+      SOC_SAND_IN  ARAD_PP_FRWRD_DECISION_INFO  *route_info,
+      SOC_SAND_OUT SOC_SAND_SUCCESS_FAILURE     *success
+    )
+{
+    uint32 payload, res;
+
+    ARAD_PP_FP_QUAL_VAL qual_vals[SOC_PPC_FP_NOF_QUALS_PER_DB_MAX];
+    uint32 mask[SOC_SAND_PP_IPV6_ADDRESS_NOF_UINT32S];
+    SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+
+
+    arad_pp_frwrd_ipv6_prefix_to_mask(route_key->prefix_len, mask);
+
+    DBAL_QUAL_VALS_CLEAR(qual_vals);
+    DBAL_QUAL_VAL_ENCODE_VRF(&qual_vals[0], vrf_ndx);
+    DBAL_QUAL_VAL_ENCODE_IPV6_DIP_LOW(unit, &qual_vals[1], route_key->ipv6_address.address, mask);
+    DBAL_QUAL_VAL_ENCODE_IPV6_DIP_HIGH(unit, &qual_vals[2], route_key->ipv6_address.address, mask);
+
+    payload = (route_info->dest_id + (1 << 17)) << (32 - JER_KAPS_AD_WIDTH_IN_BITS); /* FEC encoding in PP destination */
+
+    res = jer_pp_kaps_db_enabled(unit, vrf_ndx);
+    SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+
+    res = arad_pp_dbal_entry_add(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV6UC_KAPS, qual_vals, 0/*priority*/,  &payload, success);
+    SOC_SAND_CHECK_FUNC_RESULT(res, 30, exit);
+          
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in arad_pp_frwrd_ipv4_uc_rpf_kaps_route_add()",0,0);
+}
+
+STATIC
+  uint32
+    arad_pp_frwrd_ipv6_uc_or_vpn_kaps_dbal_route_remove(
+      SOC_SAND_IN  int                        unit,
+      SOC_SAND_IN  uint32                     vrf_ndx,
+      SOC_SAND_IN  SOC_SAND_PP_IPV6_SUBNET   *route_key
+    )
+{
+    uint32 res;
+
+    ARAD_PP_FP_QUAL_VAL          qual_vals[SOC_PPC_FP_NOF_QUALS_PER_DB_MAX];
+    uint32 mask[SOC_SAND_PP_IPV6_ADDRESS_NOF_UINT32S];
+    SOC_SAND_SUCCESS_FAILURE     success;
+
+    SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+
+
+    arad_pp_frwrd_ipv6_prefix_to_mask(route_key->prefix_len, mask);
+
+    DBAL_QUAL_VALS_CLEAR(qual_vals);
+    DBAL_QUAL_VAL_ENCODE_VRF(&qual_vals[0], vrf_ndx);
+    DBAL_QUAL_VAL_ENCODE_IPV6_DIP_LOW(unit, &qual_vals[1], route_key->ipv6_address.address, mask);
+    DBAL_QUAL_VAL_ENCODE_IPV6_DIP_HIGH(unit, &qual_vals[2], route_key->ipv6_address.address, mask);
+
+    res = jer_pp_kaps_db_enabled(unit, vrf_ndx);
+    SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+
+    res = arad_pp_dbal_entry_delete(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV6UC_KAPS, qual_vals, &success);
+    SOC_SAND_CHECK_FUNC_RESULT(res, 30, exit);
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in arad_pp_frwrd_ipv4_uc_rpf_kaps_route_add()",0,0);
+}
+
+STATIC
+  uint32
+    arad_pp_frwrd_ipv6_uc_or_vpn_kaps_dbal_route_get(
+      SOC_SAND_IN  int                           unit,
+      SOC_SAND_IN  uint32                        vrf_ndx,
+      SOC_SAND_IN  SOC_SAND_PP_IPV6_SUBNET      *route_key,
+      SOC_SAND_OUT ARAD_PP_FRWRD_DECISION_INFO  *route_info,
+      SOC_SAND_OUT uint8                        *found
+    )
+{
+    uint32 payload, res;
+
+    ARAD_PP_FP_QUAL_VAL qual_vals[SOC_PPC_FP_NOF_QUALS_PER_DB_MAX];
+    uint32 mask[SOC_SAND_PP_IPV6_ADDRESS_NOF_UINT32S];
+    SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+
+    arad_pp_frwrd_ipv6_prefix_to_mask(route_key->prefix_len, mask);
+
+    DBAL_QUAL_VALS_CLEAR(qual_vals);
+    DBAL_QUAL_VAL_ENCODE_VRF(&qual_vals[0], vrf_ndx);
+    DBAL_QUAL_VAL_ENCODE_IPV6_DIP_LOW(unit, &qual_vals[1], route_key->ipv6_address.address, mask);
+    DBAL_QUAL_VAL_ENCODE_IPV6_DIP_HIGH(unit, &qual_vals[2], route_key->ipv6_address.address, mask);
+
+    res = jer_pp_kaps_db_enabled(unit, vrf_ndx);
+    SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+
+    res = arad_pp_dbal_entry_get(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV6UC_KAPS, qual_vals, &payload, 0/*priority*/, NULL/*hit_bit*/, found);
+    SOC_SAND_CHECK_FUNC_RESULT(res, 30, exit);
+
+    if (*found) {
+        res = jer_pp_kaps_payload_to_uc_fec_id(unit, payload, &route_info->dest_id);
+        SOC_SAND_CHECK_FUNC_RESULT(res, 40, exit);
+    }
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in arad_pp_frwrd_ipv4_uc_rpf_kaps_route_get()",0,0);
+
+}
+
+STATIC
+  uint32
+    arad_pp_frwrd_ipv6_mc_kaps_dbal_route_add(
+      SOC_SAND_IN  int                               unit,
+      SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_MC_ROUTE_KEY      *route_key,
+      SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_MC_ROUTE_INFO     *route_info,
+      SOC_SAND_OUT SOC_SAND_SUCCESS_FAILURE             *success
+    )
+{
+    uint32 payload, dest_val, res;
+
+    ARAD_PP_FP_QUAL_VAL qual_vals[SOC_PPC_FP_NOF_QUALS_PER_DB_MAX];
+    uint32 mask[SOC_SAND_PP_IPV6_ADDRESS_NOF_UINT32S];
+
+    SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+
+    arad_pp_frwrd_ipv6_prefix_to_mask(SOC_SAND_PP_IPV6_ADDRESS_NOF_BITS, mask);
+
+    DBAL_QUAL_VALS_CLEAR(qual_vals);
+    DBAL_QUAL_VAL_ENCODE_VRF(&qual_vals[0], route_key->vrf_ndx);
+    DBAL_QUAL_VAL_ENCODE_IPV6_DIP_LOW(unit, &qual_vals[1], route_key->group.address, mask);
+    DBAL_QUAL_VAL_ENCODE_IPV6_DIP_HIGH(unit, &qual_vals[2], route_key->group.address, mask);
+    DBAL_QUAL_VAL_ENCODE_IN_RIF(&qual_vals[4], route_key->inrif.val);
+
+    dest_val = route_info->dest_id.dest_val;
+    if (route_info->dest_id.dest_type == SOC_SAND_PP_DEST_MULTICAST) {
+        payload = (dest_val + (1 << 18)) << (32 - JER_KAPS_AD_WIDTH_IN_BITS); /* MC encoding in PP destination */
+    }
+    else if (route_info->dest_id.dest_type == SOC_SAND_PP_DEST_FEC) {
+        payload = (dest_val + (1 << 17)) << (32 - JER_KAPS_AD_WIDTH_IN_BITS); /* FEC encoding in PP destination */
+    }
+
+    res = jer_pp_kaps_db_enabled(unit, route_key->vrf_ndx);
+    SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+
+    res = arad_pp_dbal_entry_add(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV6MC_KAPS, qual_vals, 0/*priority*/,  &payload, success);
+    SOC_SAND_CHECK_FUNC_RESULT(res, 30, exit);
+          
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in arad_pp_frwrd_ipv6_mc_kaps_dbal_route_add()",0,0);
+}
+
+STATIC
+  uint32
+    arad_pp_frwrd_ipv6_mc_kaps_dbal_route_remove(
+       SOC_SAND_IN  int                               unit,
+       SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_MC_ROUTE_KEY      *route_key
+    )
+{
+    uint32 res;
+
+    ARAD_PP_FP_QUAL_VAL qual_vals[SOC_PPC_FP_NOF_QUALS_PER_DB_MAX];
+    uint32 mask[SOC_SAND_PP_IPV6_ADDRESS_NOF_UINT32S];
+    SOC_SAND_SUCCESS_FAILURE     success;
+
+    SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+
+    arad_pp_frwrd_ipv6_prefix_to_mask(SOC_SAND_PP_IPV6_ADDRESS_NOF_BITS, mask);
+
+    DBAL_QUAL_VALS_CLEAR(qual_vals);
+    DBAL_QUAL_VAL_ENCODE_VRF(&qual_vals[0], route_key->vrf_ndx);
+    DBAL_QUAL_VAL_ENCODE_IPV6_DIP_LOW(unit, &qual_vals[1], route_key->group.address, mask);
+    DBAL_QUAL_VAL_ENCODE_IPV6_DIP_HIGH(unit, &qual_vals[2], route_key->group.address, mask);
+    DBAL_QUAL_VAL_ENCODE_IN_RIF(&qual_vals[4], route_key->inrif.val);
+
+    res = jer_pp_kaps_db_enabled(unit, route_key->vrf_ndx);
+    SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+
+    res = arad_pp_dbal_entry_delete(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV6MC_KAPS, qual_vals, &success);
+    SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+    
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in arad_pp_frwrd_ipv6_mc_kaps_dbal_route_remove()",0,0);
+
+}
+
+STATIC
+  uint32
+    arad_pp_frwrd_ipv6_mc_kaps_dbal_route_get(
+      SOC_SAND_IN  int                               unit,
+      SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_MC_ROUTE_KEY      *route_key,
+      SOC_SAND_OUT ARAD_PP_FRWRD_IPV6_MC_ROUTE_INFO     *route_info,
+      SOC_SAND_OUT uint8                                *found
+    )
+{
+    uint32 payload, res;
+    uint32 mask[SOC_SAND_PP_IPV6_ADDRESS_NOF_UINT32S];
+
+    ARAD_PP_FP_QUAL_VAL qual_vals[SOC_PPC_FP_NOF_QUALS_PER_DB_MAX];
+
+    SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+
+    arad_pp_frwrd_ipv6_prefix_to_mask(SOC_SAND_PP_IPV6_ADDRESS_NOF_BITS, mask);
+
+    DBAL_QUAL_VALS_CLEAR(qual_vals);
+    DBAL_QUAL_VAL_ENCODE_VRF(&qual_vals[0], route_key->vrf_ndx);
+    DBAL_QUAL_VAL_ENCODE_IPV6_DIP_LOW(unit, &qual_vals[1], route_key->group.address, mask);
+    DBAL_QUAL_VAL_ENCODE_IPV6_DIP_HIGH(unit, &qual_vals[2], route_key->group.address, mask);
+    DBAL_QUAL_VAL_ENCODE_IN_RIF(&qual_vals[4], route_key->inrif.val);
+
+    res = jer_pp_kaps_db_enabled(unit, route_key->vrf_ndx);
+    SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+
+    res = arad_pp_dbal_entry_get(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV6MC_KAPS, qual_vals, &payload, 0/*priority*/, NULL/*hit_bit*/, found);
+    SOC_SAND_CHECK_FUNC_RESULT(res, 30, exit);
+
+    if (*found) {
+        res = jer_pp_kaps_payload_to_mc_dest_id(unit, payload, &route_info->dest_id);
+        SOC_SAND_CHECK_FUNC_RESULT(res, 40, exit);
+    }
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in arad_pp_frwrd_ipv6_mc_kaps_dbal_route_get()",0,0);
+}
+
+STATIC
+  uint32
+    arad_pp_frwrd_ipv6_uc_or_vpn_kbp_route_add(
+      SOC_SAND_IN  int                       unit,
+      SOC_SAND_IN  uint32                       vrf_ndx,
+      SOC_SAND_IN  SOC_SAND_PP_IPV6_SUBNET      *route_key,
+      SOC_SAND_IN  ARAD_PP_FRWRD_DECISION_INFO  *route_info,
+      SOC_SAND_OUT SOC_SAND_SUCCESS_FAILURE     *success
+    )
+{
+    uint32
+        priority,
+        table_ndx,
+        nof_tables,
+        res;
+    ARAD_TCAM_ACTION                                
+        action;
+    ARAD_PP_LEM_ACCESS_KEY       
+        data,
+        mask;
+    ARAD_PP_LEM_ACCESS_PAYLOAD
+      payload;
+    ARAD_KBP_FRWRD_IP_TBL_ID
+        frwrd_table_id, frwrd_table_id_base;
+
+    SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+
+    /* The priority is derived from the prefix length,
+     * longest prefix first */
+    priority = SOC_SAND_PP_IPV6_ADDRESS_NOF_BITS - route_key->prefix_len; 
+
+#ifdef ARAD_KBP_IPV6_INSERT_SIP_IN_MASTER_KEY_FOR_VRF
+#ifdef BCM_88660_A0
+    if (SOC_IS_ARADPLUS(unit)
+		    && (soc_property_suffix_num_get(unit, -1, spn_CUSTOM_FEATURE, "ext_rpf_fwd_parallel", 0) == 0)){
+      nof_tables = 1;
+    }
+    else
+#endif /* BCM_88660 */
+    {
+      nof_tables = 2;
+    }
+#else /* ARAD_KBP_IPV6_INSERT_SIP_IN_MASTER_KEY_FOR_VRF */
+    nof_tables = 1;
+#endif /* ARAD_KBP_IPV6_INSERT_SIP_IN_MASTER_KEY_FOR_VRF */
+
+    if (ARAD_KBP_ENABLE_IPV6_EXTENDED) {
+        frwrd_table_id_base = ARAD_KBP_FRWRD_TBL_ID_IPV6_UC_RPF_1;
+    } else{
+        frwrd_table_id_base = ARAD_KBP_FRWRD_TBL_ID_IPV6_UC_RPF_0;
+    }    
+
+    for(table_ndx = 0; table_ndx < nof_tables; table_ndx++)
+    {
+        frwrd_table_id = frwrd_table_id_base + table_ndx;
+        
+        soc_sand_os_memset(&action, 0x0, sizeof(action));
+
+        /* Encode Key */
+        res = arad_pp_frwrd_ipv6_uc_or_vpn_kbp_key_mask_encode(
+               unit,
+               frwrd_table_id,
+               vrf_ndx, 
+               route_key, 
+               &data,
+               &mask
+            );
+        SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit); 
+
+        /* Encode Result */
+        res = arad_pp_frwrd_ipv6_uc_or_vpn_kbp_result_encode(
+                unit, 
+                frwrd_table_id,
+                route_info, 
+                &payload
+              );
+        SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit); 
+
+        /* Add record */
+        res = arad_pp_frwrd_ip_tcam_route_kbp_add_unsafe(
+                unit,
+                frwrd_table_id,
+                &data,
+                &mask,
+                priority,
+                &payload,
+                success
+              );
+        SOC_SAND_CHECK_FUNC_RESULT(res, 30, exit); 
+    }
+    
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in arad_pp_frwrd_ipv6_uc_or_vpn_kbp_route_add()",0,0);
+}
+
+
+STATIC
+  uint32
+    arad_pp_frwrd_ipv6_uc_or_vpn_kbp_route_remove(
+      SOC_SAND_IN  int                    unit,
+      SOC_SAND_IN  uint32                    vrf_ndx,
+      SOC_SAND_IN  SOC_SAND_PP_IPV6_SUBNET   *route_key
+    )
+{
+    uint32
+        table_ndx,
+        nof_tables,
+        res;
+    ARAD_PP_LEM_ACCESS_KEY       
+        data,
+        mask;
+    ARAD_KBP_FRWRD_IP_TBL_ID
+        frwrd_table_id, frwrd_table_id_base;
+
+    SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+
+#ifdef ARAD_KBP_IPV6_INSERT_SIP_IN_MASTER_KEY_FOR_VRF
+#ifdef BCM_88660_A0
+    if (SOC_IS_ARADPLUS(unit)
+		    && (soc_property_suffix_num_get(unit, -1, spn_CUSTOM_FEATURE, "ext_rpf_fwd_parallel", 0) == 0)){
+      nof_tables = 1;
+    }
+    else
+#endif /* BCM_88660 */
+    {
+      nof_tables = 2;
+    }
+#else /* ARAD_KBP_IPV6_INSERT_SIP_IN_MASTER_KEY_FOR_VRF */
+    nof_tables = 1;
+#endif /* ARAD_KBP_IPV6_INSERT_SIP_IN_MASTER_KEY_FOR_VRF */
+
+    if (ARAD_KBP_ENABLE_IPV6_EXTENDED) {
+        frwrd_table_id_base = ARAD_KBP_FRWRD_TBL_ID_IPV6_UC_RPF_1;
+    } else{
+        frwrd_table_id_base = ARAD_KBP_FRWRD_TBL_ID_IPV6_UC_RPF_0;
+    }    
+
+    for(table_ndx = 0; table_ndx < nof_tables; table_ndx++)
+    {
+        frwrd_table_id = frwrd_table_id_base + table_ndx;
+
+        /* Encode Key */
+        res = arad_pp_frwrd_ipv6_uc_or_vpn_kbp_key_mask_encode(
+               unit,
+               frwrd_table_id,
+               vrf_ndx, 
+               route_key, 
+               &data,
+               &mask
+            );
+        SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit); 
+
+        /* Remove Record */
+        res = arad_pp_frwrd_ip_tcam_route_kbp_remove_unsafe(
+                unit,
+                frwrd_table_id,
+                &data,
+                &mask
+              );
+        SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit); 
+    }
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in arad_pp_frwrd_ipv6_uc_or_vpn_kbp_route_remove()",0,0);
+}
+
+STATIC
+  uint32
+    arad_pp_frwrd_ipv6_uc_or_vpn_kbp_route_get(
+      SOC_SAND_IN  int                       unit,
+      SOC_SAND_IN  uint32                       vrf_ndx,
+      SOC_SAND_IN  SOC_SAND_PP_IPV6_SUBNET      *route_key,
+      SOC_SAND_OUT ARAD_PP_FRWRD_DECISION_INFO  *route_info,
+      SOC_SAND_OUT uint8                        *found
+    )
+{
+    uint32
+        priority,
+        res;
+    ARAD_PP_LEM_ACCESS_PAYLOAD
+        payload;
+    ARAD_PP_LEM_ACCESS_KEY       
+        data,
+        mask;
+    ARAD_KBP_FRWRD_IP_TBL_ID
+        frwrd_table_id;
+    ARAD_PP_FRWRD_IPV4_HOST_ROUTE_INFO 
+        host_route_info;
+
+    SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+
+    if (ARAD_KBP_ENABLE_IPV6_EXTENDED) {
+        frwrd_table_id = ARAD_KBP_FRWRD_TBL_ID_IPV6_UC_RPF_1;
+    } else{
+        frwrd_table_id = ARAD_KBP_FRWRD_TBL_ID_IPV6_UC_RPF_0;
+    }
+
+    /* Encode Key */
+    res = arad_pp_frwrd_ipv6_uc_or_vpn_kbp_key_mask_encode(
+           unit,
+           frwrd_table_id,
+           vrf_ndx, 
+           route_key, 
+           &data,
+           &mask
+        );
+    SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit); 
+
+    /* get record */
+    res = arad_pp_frwrd_ip_tcam_route_kbp_get_unsafe(
+            unit,
+            frwrd_table_id,
+            &data,
+            &mask,
+            &priority,
+            &payload,
+            found
+          );
+    SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit); 
+
+    if (*found) 
+    {
+        ARAD_PP_FRWRD_IPV4_HOST_ROUTE_INFO_clear(&host_route_info);
+        res = arad_pp_frwrd_em_dest_to_fec(
+                unit, 
+                &payload, 
+                &host_route_info
+              );
+        SOC_SAND_CHECK_FUNC_RESULT(res, 40, exit);
+
+        sal_memcpy(route_info, &host_route_info.frwrd_decision, sizeof(ARAD_PP_FRWRD_DECISION_INFO));
+    }
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in arad_pp_frwrd_ipv6_uc_or_vpn_kbp_route_get()",0,0);
+}
+
+
+STATIC
+  uint32
+    arad_pp_frwrd_ipv6_mc_kbp_key_mask_encode(
+      SOC_SAND_IN  int                           unit,
+      SOC_SAND_IN  ARAD_KBP_FRWRD_IP_TBL_ID     frwrd_table_id,
+      SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_MC_ROUTE_KEY  *route_key,
+      SOC_SAND_OUT ARAD_PP_LEM_ACCESS_KEY       *data,
+      SOC_SAND_OUT ARAD_PP_LEM_ACCESS_KEY       *mask
+    )
+{
+    uint32
+        res;
+    SOC_SAND_PP_IPV6_ADDRESS
+        route_key_mask;
+
+    SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+
+    ARAD_PP_LEM_ACCESS_KEY_clear(data);
+    ARAD_PP_LEM_ACCESS_KEY_clear(mask);
+
+    /* Build the logical IPv6 address full Mask */
+    SHR_BITSET_RANGE(route_key_mask.address, 0, SOC_SAND_PP_IPV6_ADDRESS_NOF_BITS);
+
+    /* Encode Key into buffer according to the following format:
+     *  
+#ifdef ARAD_KBP_IPV6_INSERT_SIP_IN_MASTER_KEY_FOR_VRF 
+    * {In-RIF(11:0) in 259:248, IP-MC-address(119:0) 247:120, Source-IP(119:0) in 119:0} 
+#else 
+    * {In-RIF(11:0) in 131:120, IP-MC-address(119:0) in 119:0} 
+#endif
+     *  
+     */
+
+#ifdef ARAD_KBP_IPV6_INSERT_SIP_IN_MASTER_KEY_FOR_VRF
+    /* Param 0  - SIP address */
+    ARAD_PP_FRWRD_IP_TCAM_LEM_KEY_ENCODE(unit, frwrd_table_id, 0, 0, data);
+    SHR_BITCOPY_RANGE(data->param[0].value, 0 /* LSB */, route_key->source.ipv6_address.address, 0 /* LSB */, data->param[0].nof_bits);
+    ARAD_PP_FRWRD_IP_TCAM_LEM_KEY_ENCODE(unit, frwrd_table_id, 0, 0 /* Copy the bits after */, mask);
+    /* Build the logical IPv6 address full Mask */
+    if (route_key->source.prefix_len) {
+        SHR_BITSET_RANGE(mask->param[0].value, SOC_SAND_PP_IPV6_ADDRESS_NOF_BITS - route_key->source.prefix_len, route_key->source.prefix_len);
+    }
+
+    /* Param 1  - IPv6 address */
+    ARAD_PP_FRWRD_IP_TCAM_LEM_KEY_ENCODE(unit, frwrd_table_id, 1, 0 /* Copy the bits after */, data);
+    SHR_BITCOPY_RANGE(data->param[1].value, 0 /* LSB */, route_key->group.address, 0 /* LSB */, data->param[1].nof_bits);
+
+    ARAD_PP_FRWRD_IP_TCAM_LEM_KEY_ENCODE(unit, frwrd_table_id, 0, 0 /* Copy the bits after */, mask);
+    SHR_BITCOPY_RANGE(mask->param[1].value, 0 /* LSB */, route_key_mask.address, 0 /* LSB */, mask->param[1].nof_bits);
+
+    /* Param 2 - In-RIF */
+    ARAD_PP_FRWRD_IP_TCAM_LEM_KEY_ENCODE(unit, frwrd_table_id, 2, route_key->inrif.val, data);
+    ARAD_PP_FRWRD_IP_TCAM_LEM_KEY_ENCODE(unit, frwrd_table_id, 2, route_key->inrif.mask, mask);
+#else
+
+    /* Param 0  - IPv6 address */
+    ARAD_PP_FRWRD_IP_TCAM_LEM_KEY_ENCODE(unit, frwrd_table_id, 0, 0 /* Copy the bits after */, data);
+    SHR_BITCOPY_RANGE(data->param[0].value, 0 /* LSB */, route_key->group.address, 0 /* LSB */, data->param[0].nof_bits);
+
+    ARAD_PP_FRWRD_IP_TCAM_LEM_KEY_ENCODE(unit, frwrd_table_id, 0, 0 /* Copy the bits after */, mask);
+    SHR_BITCOPY_RANGE(mask->param[0].value, 0 /* LSB */, route_key_mask.address, 0 /* LSB */, mask->param[0].nof_bits);
+
+    /* Param 1  - In-RIF */
+    ARAD_PP_FRWRD_IP_TCAM_LEM_KEY_ENCODE(unit, frwrd_table_id, 1, route_key->inrif.val, data);
+    ARAD_PP_FRWRD_IP_TCAM_LEM_KEY_ENCODE(unit, frwrd_table_id, 1, route_key->inrif.mask, mask);
+#endif /* ARAD_KBP_IPV6_INSERT_SIP_IN_MASTER_KEY_FOR_VRF */
+
+
+    ARAD_DO_NOTHING_AND_EXIT;
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in arad_pp_frwrd_ipv6_mc_kbp_key_mask_encode()",0,0);
+}
+
+
+STATIC
+  uint32
+    arad_pp_frwrd_ipv6_mc_kbp_key_mask_decode(
+      SOC_SAND_IN  int                           unit,
+      SOC_SAND_IN  ARAD_KBP_FRWRD_IP_TBL_ID     frwrd_table_id,
+      SOC_SAND_IN  ARAD_PP_LEM_ACCESS_KEY       *data,
+      SOC_SAND_IN  ARAD_PP_LEM_ACCESS_KEY       *mask,
+      SOC_SAND_OUT ARAD_PP_FRWRD_IPV6_MC_ROUTE_KEY  *route_key
+    )
+{
+    SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+
+    SOC_SAND_CHECK_NULL_INPUT(data);
+    SOC_SAND_CHECK_NULL_INPUT(mask);
+
+    ARAD_PP_FRWRD_IPV6_MC_ROUTE_KEY_clear(route_key);
+
+    /* Encode Key into buffer according to the following format:
+     *  
+#ifdef ARAD_KBP_IPV6_INSERT_SIP_IN_MASTER_KEY_FOR_VRF 
+     * {In-RIF(11:0) in 259:248, IP-MC-address(119:0) 247:120, Source-IP(119:0) in 119:0} 
+#else 
+     * {In-RIF(11:0) in 131:120, IP-MC-address(119:0) in 119:0} 
+#endif
+     *  
+     */
+
+
+#ifdef ARAD_KBP_IPV6_INSERT_SIP_IN_MASTER_KEY_FOR_VRF
+    {
+        uint32
+          bit_ndx;
+
+        /* Param 0  - SIP address */
+        ARAD_PP_FRWRD_IP_TCAM_LEM_KEY_DECODE(unit, frwrd_table_id, 0, route_key->source.ipv6_address.address, data, mask);
+        route_key->source.prefix_len = 0;
+        for (bit_ndx = 0; bit_ndx < SOC_SAND_PP_IPV6_ADDRESS_NOF_BITS; bit_ndx++) {
+            if (SHR_BITGET(mask->param[0].value, bit_ndx)) {
+                route_key->source.prefix_len = SOC_SAND_PP_IPV6_ADDRESS_NOF_BITS - bit_ndx;
+                break;
+            }
+        }
+
+        /* Param 1  - IPv6 address */
+        ARAD_PP_FRWRD_IP_TCAM_LEM_KEY_DECODE(unit, frwrd_table_id, 1, route_key->group.address, data, mask);
+
+        /* Param 2  - In-RIF */
+        ARAD_PP_FRWRD_IP_TCAM_LEM_KEY_DECODE(unit, frwrd_table_id, 2, &route_key->inrif.val, data, mask);
+        ARAD_PP_FRWRD_IP_TCAM_LEM_KEY_DECODE(unit, frwrd_table_id, 2, &route_key->inrif.mask, mask, mask); /* get also the mask */
+    }
+#else /* ARAD_KBP_IPV6_INSERT_SIP_IN_MASTER_KEY_FOR_VRF */
+
+    /* Param 0  - IPv6 address */
+    ARAD_PP_FRWRD_IP_TCAM_LEM_KEY_DECODE(unit, frwrd_table_id, 0, route_key->group.address, data, mask);
+
+    /* Param 1  - In-RIF */
+    ARAD_PP_FRWRD_IP_TCAM_LEM_KEY_DECODE(unit, frwrd_table_id, 1, &route_key->inrif.val, data, mask);
+    ARAD_PP_FRWRD_IP_TCAM_LEM_KEY_DECODE(unit, frwrd_table_id, 1, &route_key->inrif.mask, mask, mask); /* get also the mask */
+#endif /* ARAD_KBP_IPV6_INSERT_SIP_IN_MASTER_KEY_FOR_VRF */
+
+    ARAD_DO_NOTHING_AND_EXIT;
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in arad_pp_frwrd_ipv6_mc_kbp_key_mask_decode()",0,0);
+}
+
+STATIC
+  uint32
+    arad_pp_frwrd_ipv6_mc_kbp_route_add(
+      SOC_SAND_IN  int                               unit,
+      SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_MC_ROUTE_KEY      *route_key,
+      SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_MC_ROUTE_INFO     *route_info,
+      SOC_SAND_OUT SOC_SAND_SUCCESS_FAILURE             *success
+    )
+{
+    uint32
+        priority,
+        res;
+    ARAD_TCAM_ACTION                                
+        action;
+    ARAD_PP_LEM_ACCESS_KEY       
+        data,
+        mask;
+    ARAD_PP_LEM_ACCESS_PAYLOAD
+      payload;
+    ARAD_KBP_FRWRD_IP_TBL_ID
+        frwrd_table_id;
+    ARAD_PP_FRWRD_DECISION_INFO 
+        em_dest;
+
+    SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+
+    soc_sand_os_memset(&action, 0x0, sizeof(action));
+
+    frwrd_table_id = ARAD_KBP_FRWRD_TBL_ID_IPV6_MC;
+
+    priority = 0; 
+
+    /* Encode Key */
+    res = arad_pp_frwrd_ipv6_mc_kbp_key_mask_encode(
+            unit,
+            frwrd_table_id,
+            route_key,
+            &data,
+            &mask
+          );
+    SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit); 
+
+    /* Encode Result - same as Unicast logic */
+    res = arad_pp_frwrd_ipv4_sand_dest_to_fwd_decision(
+            unit,
+            &(route_info->dest_id),
+            &em_dest
+          );
+    SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+    res = arad_pp_frwrd_ipv6_uc_or_vpn_kbp_result_encode(
+            unit, 
+            frwrd_table_id,
+            &em_dest, 
+            &payload
+          );
+    SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit); 
+
+    /* Add record */
+    res = arad_pp_frwrd_ip_tcam_route_kbp_add_unsafe(
+            unit,
+            frwrd_table_id,
+            &data,
+            &mask,
+            priority,
+            &payload,
+            success
+          );
+    SOC_SAND_CHECK_FUNC_RESULT(res, 30, exit); 
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in arad_pp_frwrd_ipv6_mc_kbp_route_add()",0,0);
+}
+
+
+STATIC
+  uint32
+    arad_pp_frwrd_ipv6_mc_kbp_route_remove(
+       SOC_SAND_IN  int                               unit,
+       SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_MC_ROUTE_KEY      *route_key
+    )
+{
+    uint32
+        res;
+    ARAD_PP_LEM_ACCESS_KEY       
+        data,
+        mask;
+    ARAD_KBP_FRWRD_IP_TBL_ID
+        frwrd_table_id;
+
+    SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+
+    frwrd_table_id = ARAD_KBP_FRWRD_TBL_ID_IPV6_MC;
+
+    /* Encode Key */
+    res = arad_pp_frwrd_ipv6_mc_kbp_key_mask_encode(
+            unit,
+            frwrd_table_id,
+            route_key,
+            &data,
+            &mask
+          );
+    SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit); 
+
+
+    /* Remove Record */
+    res = arad_pp_frwrd_ip_tcam_route_kbp_remove_unsafe(
+            unit,
+            frwrd_table_id,
+            &data,
+            &mask
+          );
+    SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit); 
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in arad_pp_frwrd_ipv6_mc_kbp_route_remove()",0,0);
+}
+
+STATIC
+  uint32
+    arad_pp_frwrd_ipv6_mc_kbp_route_get(
+      SOC_SAND_IN  int                               unit,
+      SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_MC_ROUTE_KEY      *route_key,
+      SOC_SAND_OUT ARAD_PP_FRWRD_IPV6_MC_ROUTE_INFO     *route_info,
+      SOC_SAND_OUT uint8                                *found
+    )
+{
+    uint32
+        priority,
+        res;
+    ARAD_PP_LEM_ACCESS_PAYLOAD
+        payload;
+    ARAD_PP_LEM_ACCESS_KEY       
+        data,
+        mask;
+    ARAD_KBP_FRWRD_IP_TBL_ID
+        frwrd_table_id;
+    uint32                    
+        payload_data[ARAD_PP_LEM_ACCESS_PAYLOAD_NOF_UINT32S];
+
+    SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+
+    frwrd_table_id = ARAD_KBP_FRWRD_TBL_ID_IPV6_MC;
+
+    /* Encode Key */
+    res = arad_pp_frwrd_ipv6_mc_kbp_key_mask_encode(
+            unit,
+            frwrd_table_id,
+            route_key,
+            &data,
+            &mask
+          );
+    SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit); 
+
+    /* get record */
+    res = arad_pp_frwrd_ip_tcam_route_kbp_get_unsafe(
+            unit,
+            frwrd_table_id,
+            &data,
+            &mask,
+            &priority,
+            &payload,
+            found
+          );
+    SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit); 
+
+    if (*found) {
+        sal_memset(&payload_data, 0x0, ARAD_PP_LEM_ACCESS_PAYLOAD_NOF_UINT32S * sizeof(uint32));
+
+        /* Decode Result */
+        res = arad_pp_lem_access_payload_build(
+                unit,
+                &payload,
+                payload_data
+              );
+        SOC_SAND_CHECK_FUNC_RESULT(res, 30, exit);
+
+        res = arad_pp_frwrd_ipv4_em_dest_to_sand_dest(
+                unit,
+                payload_data[0], /* Get only the destination part */
+                &(route_info->dest_id)
+              );
+        SOC_SAND_CHECK_FUNC_RESULT(res, 40, exit);
+    }
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in arad_pp_frwrd_ipv6_mc_kbp_route_get()",0,0);
+}
+
+STATIC
+  uint32
+    arad_pp_frwrd_ipv6_uc_kbp_table_clear(
+      SOC_SAND_IN  int   unit
+    )
+{
+    uint32
+        table_ndx,
+        nof_tables,
+        frwrd_table_id,
+        res;
+
+    SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+
+    if (ARAD_KBP_ENABLE_IPV6_EXTENDED) { /* both tables should be cleared */
+        frwrd_table_id = ARAD_KBP_FRWRD_TBL_ID_EXTENDED_IPV6;
+
+        /* Clear Table */
+        res = arad_pp_frwrd_ip_tcam_kbp_table_clear(
+                unit,
+                frwrd_table_id
+              );
+        SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+
+        frwrd_table_id = ARAD_KBP_FRWRD_TBL_ID_IPV6_UC_RPF_1;
+
+        /* Clear Table */
+        res = arad_pp_frwrd_ip_tcam_kbp_table_clear(
+                unit,
+                frwrd_table_id
+              );
+        SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+
+    } else {
+
+#ifdef ARAD_KBP_IPV6_INSERT_SIP_IN_MASTER_KEY_FOR_VRF
+#ifdef BCM_88660_A0
+        if (SOC_IS_ARADPLUS(unit)
+            && (soc_property_suffix_num_get(unit, -1, spn_CUSTOM_FEATURE, "ext_rpf_fwd_parallel", 0) == 0)) {
+            nof_tables = 1;
+        } else
+#endif /* BCM_88660 */
+        {
+            nof_tables = 2;
+        }
+#else /* ARAD_KBP_IPV6_INSERT_SIP_IN_MASTER_KEY_FOR_VRF */
+        nof_tables = 1;
+#endif /* ARAD_KBP_IPV6_INSERT_SIP_IN_MASTER_KEY_FOR_VRF */
+        for (table_ndx = 0; table_ndx < nof_tables; table_ndx++) {
+            frwrd_table_id = ARAD_KBP_FRWRD_TBL_ID_IPV6_UC_RPF_0 + table_ndx;
+
+            /* Clear Table */
+            res = arad_pp_frwrd_ip_tcam_kbp_table_clear(
+               unit,
+               frwrd_table_id
+               );
+            SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+        }
+    }
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in arad_pp_frwrd_ipv6_uc_kbp_table_clear()",0,0);
+}
+
+STATIC
+  uint32
+    arad_pp_frwrd_ipv6_mc_kbp_table_clear(
+      SOC_SAND_IN  int   unit
+    )
+{
+    uint32
+        frwrd_table_id,
+        res;
+
+    SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+
+    frwrd_table_id = ARAD_KBP_FRWRD_TBL_ID_IPV6_MC;
+
+    /* Clear Table */
+    res = arad_pp_frwrd_ip_tcam_kbp_table_clear(
+            unit,
+            frwrd_table_id
+          );
+    SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit); 
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in arad_pp_frwrd_ipv6_mc_kbp_table_clear()",0,0);
+}
+
+STATIC
+ uint32
+  arad_pp_frwrd_ipv6_kaps_dbal_route_get_block(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  SOC_DPP_DBAL_SW_TABLE_IDS              frwrd_table_id,
+    SOC_SAND_IN  uint32                                 vrf_ndx,
+    SOC_SAND_INOUT ARAD_PP_IP_ROUTING_TABLE_RANGE       *block_range_key,
+    SOC_SAND_OUT ARAD_PP_FRWRD_IPV6_UC_ROUTE_KEY        *route_keys_uc,
+    SOC_SAND_OUT ARAD_PP_FRWRD_IPV6_MC_ROUTE_KEY        *route_keys_mc,
+    SOC_SAND_OUT ARAD_PP_FRWRD_DECISION_INFO            *route_infos_uc,
+    SOC_SAND_OUT ARAD_PP_FRWRD_IPV6_MC_ROUTE_INFO       *route_infos_mc,
+    SOC_SAND_OUT ARAD_PP_FRWRD_IP_ROUTE_STATUS          *routes_status,
+    SOC_SAND_OUT ARAD_PP_FRWRD_IP_ROUTE_LOCATION        *routes_location,
+    SOC_SAND_OUT uint32                                 *nof_entries
+  )
+{
+  uint32
+      res = SOC_SAND_OK,
+      nof_entries_lcl,
+      *payload = NULL,
+      i,
+      route_ndx,
+      indx;
+
+  ARAD_PP_FP_QUAL_VAL
+      *qual_vals_array = NULL;
+
+  SOC_PPC_FP_QUAL_TYPE qual_type;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+
+  SOC_SAND_CHECK_NULL_INPUT(block_range_key);
+  SOC_SAND_CHECK_NULL_INPUT(nof_entries);
+  if (frwrd_table_id == SOC_DPP_DBAL_SW_TABLE_ID_IPV6MC_KAPS) {
+      SOC_SAND_CHECK_NULL_INPUT(route_keys_mc);
+      SOC_SAND_CHECK_NULL_INPUT(route_infos_mc);
+  }
+  else {
+      SOC_SAND_CHECK_NULL_INPUT(route_keys_uc);
+      SOC_SAND_CHECK_NULL_INPUT(route_infos_uc);
+  }
+
+  if(block_range_key->entries_to_act == 0)
+  {
+    *nof_entries = 0;
+    goto exit;
+  }
+
+  /*allocate and initialize qual_vals and payload arrays*/
+  qual_vals_array = soc_sand_os_malloc_any_size(sizeof(ARAD_PP_FP_QUAL_VAL) * SOC_PPC_FP_NOF_QUALS_PER_DB_MAX * block_range_key->entries_to_act,"qual_vals_array");
+  payload = soc_sand_os_malloc_any_size(sizeof(uint32) * BYTES2WORDS(JER_KAPS_AD_BUFFER_NOF_BYTES) * block_range_key->entries_to_act,"payload");
+
+  for (i=0; i < block_range_key->entries_to_act; i++) {
+      DBAL_QUAL_VALS_CLEAR(qual_vals_array + i * SOC_PPC_FP_NOF_QUALS_PER_DB_MAX);
+  }
+  res = soc_sand_os_memset(payload, 0x0, sizeof(uint32) * BYTES2WORDS(JER_KAPS_AD_BUFFER_NOF_BYTES) * block_range_key->entries_to_act);
+  SOC_SAND_CHECK_FUNC_RESULT(res, 19, exit);
+
+  qual_vals_array[0].type = SOC_PPC_FP_QUAL_IRPP_VRF;
+  qual_vals_array[0].val.arr[0] = vrf_ndx;
+  qual_vals_array[0].is_valid.arr[0] = SOC_SAND_U32_MAX;
+
+  /* Get the entries */
+  res = arad_pp_dbal_block_get(unit, block_range_key, frwrd_table_id, qual_vals_array, payload,  &nof_entries_lcl);
+  SOC_SAND_CHECK_FUNC_RESULT(res, 25, exit);
+
+  /* Decode the entries: content and payload */
+  route_ndx = 0;
+  for(indx = 0; indx < nof_entries_lcl; indx++)
+  {
+      /* Decode the key */
+      for (i = 0; i < SOC_PPC_FP_NOF_QUALS_PER_DB_MAX; i++) {
+          qual_type = qual_vals_array[indx * SOC_PPC_FP_NOF_QUALS_PER_DB_MAX + i].type;
+          if (qual_type == SOC_PPC_NOF_FP_QUAL_TYPES) {
+              break;
+          }
+          if (frwrd_table_id == SOC_DPP_DBAL_SW_TABLE_ID_IPV6MC_KAPS) {
+              if (qual_type == SOC_PPC_FP_QUAL_HDR_FWD_IPV6_DIP_LOW) {
+                  route_keys_mc[route_ndx].group.address[0] = qual_vals_array[indx * SOC_PPC_FP_NOF_QUALS_PER_DB_MAX + i].val.arr[0];
+                  route_keys_mc[route_ndx].group.address[1] = qual_vals_array[indx * SOC_PPC_FP_NOF_QUALS_PER_DB_MAX + i].val.arr[1];
+              }
+              if (qual_type == SOC_PPC_FP_QUAL_HDR_FWD_IPV6_DIP_HIGH) {
+                  route_keys_mc[route_ndx].group.address[2] = qual_vals_array[indx * SOC_PPC_FP_NOF_QUALS_PER_DB_MAX + i].val.arr[0];
+                  route_keys_mc[route_ndx].group.address[3] = qual_vals_array[indx * SOC_PPC_FP_NOF_QUALS_PER_DB_MAX + i].val.arr[1];
+              }
+              if (qual_type == SOC_PPC_FP_QUAL_IRPP_IN_RIF) {
+                  route_keys_mc[route_ndx].inrif.val = qual_vals_array[indx * SOC_PPC_FP_NOF_QUALS_PER_DB_MAX + i].val.arr[0];
+                  route_keys_mc[route_ndx].inrif.mask = qual_vals_array[indx * SOC_PPC_FP_NOF_QUALS_PER_DB_MAX + i].is_valid.arr[0];
+              }
+          } else if (frwrd_table_id == SOC_DPP_DBAL_SW_TABLE_ID_IPV6UC_KAPS) {
+              if (qual_type == SOC_PPC_FP_QUAL_HDR_FWD_IPV6_DIP_LOW) {
+                  route_keys_uc[route_ndx].subnet.ipv6_address.address[0] = qual_vals_array[indx * SOC_PPC_FP_NOF_QUALS_PER_DB_MAX + i].val.arr[0];
+                  route_keys_uc[route_ndx].subnet.ipv6_address.address[1] = qual_vals_array[indx * SOC_PPC_FP_NOF_QUALS_PER_DB_MAX + i].val.arr[1];
+                  route_keys_uc[route_ndx].subnet.prefix_len += _shr_ip_mask_length(qual_vals_array[indx * SOC_PPC_FP_NOF_QUALS_PER_DB_MAX + i].is_valid.arr[0]) +
+                                                                _shr_ip_mask_length(qual_vals_array[indx * SOC_PPC_FP_NOF_QUALS_PER_DB_MAX + i].is_valid.arr[1]);
+              }
+              if (qual_type == SOC_PPC_FP_QUAL_HDR_FWD_IPV6_DIP_HIGH) {
+                  route_keys_uc[route_ndx].subnet.ipv6_address.address[2] = qual_vals_array[indx * SOC_PPC_FP_NOF_QUALS_PER_DB_MAX + i].val.arr[0];
+                  route_keys_uc[route_ndx].subnet.ipv6_address.address[3] = qual_vals_array[indx * SOC_PPC_FP_NOF_QUALS_PER_DB_MAX + i].val.arr[1];
+                  route_keys_uc[route_ndx].subnet.prefix_len += _shr_ip_mask_length(qual_vals_array[indx * SOC_PPC_FP_NOF_QUALS_PER_DB_MAX + i].is_valid.arr[0]) +
+                                                                _shr_ip_mask_length(qual_vals_array[indx * SOC_PPC_FP_NOF_QUALS_PER_DB_MAX + i].is_valid.arr[1]);
+              }
+          }
+      }
+
+      if (frwrd_table_id == SOC_DPP_DBAL_SW_TABLE_ID_IPV6MC_KAPS) {
+          res = jer_pp_kaps_payload_to_mc_dest_id(unit, payload[indx], &route_infos_mc[route_ndx].dest_id);
+          SOC_SAND_CHECK_FUNC_RESULT(res, 35, exit);
+      }
+
+      if (frwrd_table_id == SOC_DPP_DBAL_SW_TABLE_ID_IPV6UC_KAPS) {
+          res = jer_pp_kaps_payload_to_uc_fec_id(unit, payload[indx], &route_infos_uc[route_ndx].dest_id);
+          SOC_SAND_CHECK_FUNC_RESULT(res, 40, exit);
+      }
+
+      if(routes_location)
+      {
+        routes_location[route_ndx] = ARAD_PP_FRWRD_IP_ROUTE_LOCATION_TCAM;
+      }
+      if(routes_status)
+      {
+        routes_status[route_ndx] = ARAD_PP_FRWRD_IP_ROUTE_STATUS_COMMITED;
+      }
+      route_ndx++;
+  }
+  *nof_entries = route_ndx;
+
+exit:
+  if (qual_vals_array)
+  {
+    soc_sand_os_free_any_size(qual_vals_array);
+  }
+  if (payload)
+  {
+    soc_sand_os_free_any_size(payload);
+  }
+
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_frwrd_ipv6_kaps_dbal_route_get_block()", 0, 0);
+}
+
+STATIC
+ uint32
+  arad_pp_frwrd_ipv6_kbp_route_get_block_unsafe(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  ARAD_KBP_FRWRD_IP_TBL_ID               frwrd_table_id,
+    SOC_SAND_IN  uint32                                 vrf_ndx,
+    SOC_SAND_INOUT ARAD_PP_IP_ROUTING_TABLE_RANGE       *block_range_key,
+    SOC_SAND_OUT ARAD_PP_FRWRD_IPV6_UC_ROUTE_KEY        *route_keys_uc,
+    SOC_SAND_OUT ARAD_PP_FRWRD_IPV6_MC_ROUTE_KEY        *route_keys_mc,
+    SOC_SAND_OUT ARAD_PP_FRWRD_DECISION_INFO            *route_infos_uc,
+    SOC_SAND_OUT ARAD_PP_FRWRD_IPV6_MC_ROUTE_INFO       *route_infos_mc,
+    SOC_SAND_OUT ARAD_PP_FRWRD_IP_ROUTE_STATUS          *routes_status,
+    SOC_SAND_OUT ARAD_PP_FRWRD_IP_ROUTE_LOCATION        *routes_location,
+    SOC_SAND_OUT uint32                                 *nof_entries
+  )
+{
+  uint32
+    res = SOC_SAND_OK,
+      nof_entries_lcl,
+      route_ndx,
+    indx;
+  uint32                    
+    payload_data[ARAD_PP_LEM_ACCESS_PAYLOAD_NOF_UINT32S] = {0};
+  ARAD_PP_LEM_ACCESS_KEY
+      *read_keys = NULL,
+      *read_keys_mask = NULL;
+  ARAD_PP_LEM_ACCESS_PAYLOAD
+      *read_vals = NULL;
+  uint32                   
+      vrf_ndx_lcl;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+
+  SOC_SAND_CHECK_NULL_INPUT(block_range_key);
+  SOC_SAND_CHECK_NULL_INPUT(nof_entries);
+  if (frwrd_table_id == ARAD_KBP_FRWRD_TBL_ID_IPV6_MC) {
+      SOC_SAND_CHECK_NULL_INPUT(route_keys_mc);
+      SOC_SAND_CHECK_NULL_INPUT(route_infos_mc);
+  }
+  else {
+      SOC_SAND_CHECK_NULL_INPUT(route_keys_uc);
+      SOC_SAND_CHECK_NULL_INPUT(route_infos_uc);
+  }
+
+  if(block_range_key->entries_to_act == 0)
+  {
+    *nof_entries = 0;
+    goto exit;
+  }
+
+  /* Initialize read_keys_mask */
+  read_keys_mask = soc_sand_os_malloc_any_size(sizeof(ARAD_PP_LEM_ACCESS_KEY) * block_range_key->entries_to_act,"read_keys");
+  read_keys = soc_sand_os_malloc_any_size(sizeof(ARAD_PP_LEM_ACCESS_KEY) * block_range_key->entries_to_act,"read_keys");
+  read_vals = soc_sand_os_malloc_any_size(sizeof(ARAD_PP_LEM_ACCESS_PAYLOAD) * block_range_key->entries_to_act,"read_vals");
+  res = soc_sand_os_memset(read_keys, 0x0, sizeof(ARAD_PP_LEM_ACCESS_KEY) * block_range_key->entries_to_act);
+  SOC_SAND_CHECK_FUNC_RESULT(res, 13, exit);
+  res = soc_sand_os_memset(read_keys_mask, 0x0, sizeof(ARAD_PP_LEM_ACCESS_KEY) * block_range_key->entries_to_act);
+  SOC_SAND_CHECK_FUNC_RESULT(res, 15, exit);
+  res = soc_sand_os_memset(read_vals, 0x0, sizeof(ARAD_PP_LEM_ACCESS_PAYLOAD) * block_range_key->entries_to_act);
+  SOC_SAND_CHECK_FUNC_RESULT(res, 17, exit);
+
+  /* Get the entries */
+  res = arad_pp_frwrd_ip_tcam_route_kbp_get_block_unsafe(
+            unit,
+            frwrd_table_id,
+            block_range_key,
+            read_keys,
+            read_keys_mask,
+            read_vals,
+            &nof_entries_lcl
+          );
+  SOC_SAND_CHECK_FUNC_RESULT(res, 12, exit);
+
+  /* Decode the entries: content and payload */
+  route_ndx = 0;
+  for(indx = 0; indx < nof_entries_lcl; ++indx)
+  {
+      /* Decode the key */
+      if (frwrd_table_id == ARAD_KBP_FRWRD_TBL_ID_IPV6_MC) {
+          res = arad_pp_frwrd_ipv6_mc_kbp_key_mask_decode(
+                    unit,
+                    frwrd_table_id,
+                    &read_keys[indx],
+                    &read_keys_mask[route_ndx],
+                    &route_keys_mc[route_ndx]
+                  );
+          SOC_SAND_CHECK_FUNC_RESULT(res, 14, exit);
+
+          /* Decode Result */
+          sal_memset(&payload_data, 0x0, ARAD_PP_LEM_ACCESS_PAYLOAD_NOF_UINT32S * sizeof(uint32));
+          res = arad_pp_lem_access_payload_build(
+                  unit,
+                  &read_vals[indx],
+                  payload_data
+                );
+          SOC_SAND_CHECK_FUNC_RESULT(res, 30, exit);
+
+          res = arad_pp_frwrd_ipv4_em_dest_to_sand_dest(
+                  unit,
+                  payload_data[0], /* Get only the destination part */
+                  &(route_infos_mc[route_ndx].dest_id)
+                );
+          SOC_SAND_CHECK_FUNC_RESULT(res, 40, exit);
+
+      }
+      else {
+          ARAD_PP_FRWRD_IPV6_UC_ROUTE_KEY_clear(&route_keys_uc[indx]);
+          res = arad_pp_frwrd_ipv6_uc_or_vpn_kbp_key_mask_decode(
+                    unit,
+                    frwrd_table_id,
+                    &read_keys[indx],
+                    &read_keys_mask[indx],
+                    &vrf_ndx_lcl,
+                    &(route_keys_uc[route_ndx].subnet)
+                  );
+          SOC_SAND_CHECK_FUNC_RESULT(res, 14, exit);
+
+          /* For IPv6 Unicast, verify VRFs are equal */
+          if (vrf_ndx_lcl != vrf_ndx) {
+              continue;
+          }
+
+          res = arad_pp_fwd_decision_in_buffer_parse(
+                unit,
+                ARAD_PP_FRWRD_DECISION_APPLICATION_TYPE_DFLT,
+                read_vals[indx].dest,
+                read_vals[indx].asd,
+                ARAD_PP_FWD_DECISION_PARSE_LEGACY | ARAD_PP_FWD_DECISION_PARSE_DEST,
+                &(route_infos_uc[route_ndx])
+            );
+          SOC_SAND_CHECK_FUNC_RESULT(res, 16, exit);
+      }
+
+      if(routes_location)
+      {
+        routes_location[route_ndx] = ARAD_PP_FRWRD_IP_ROUTE_LOCATION_TCAM;
+      }
+      if(routes_status)
+      {
+        routes_status[route_ndx] = ARAD_PP_FRWRD_IP_ROUTE_STATUS_COMMITED;
+      }
+      route_ndx ++;
+  }
+  *nof_entries = route_ndx;
+
+exit:
+  if (read_keys)
+  {
+    soc_sand_os_free_any_size(read_keys);
+  }
+  if (read_keys_mask)
+  {
+    soc_sand_os_free_any_size(read_keys_mask);
+  }
+  if (read_vals)
+  {
+    soc_sand_os_free_any_size(read_vals);
+  }
+
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_frwrd_ipv6_kbp_route_get_block_unsafe()", 0, 0);
+}
+
+
+
+#endif
+
+/*********************************************************************
+*     Add IPv6 route entry to the routing table. Binds between
+ *     Ipv6 Unicast route key (IPv6-address/prefix) and a FEC
+ *     entry identified by fec_id for a given virtual router.
+ *     As a result of this operation, Unicast Ipv6 packets
+ *     designated to IP address matching the given key (as long
+ *     there is no more-specific route key) will be routed
+ *     according to the information in the FEC entry identified
+ *     by fec_id.
+ *     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  arad_pp_frwrd_ipv6_uc_route_add_unsafe(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_UC_ROUTE_KEY        *route_key,
+    SOC_SAND_IN  ARAD_PP_FRWRD_DECISION_INFO            *route_info,
+    SOC_SAND_OUT SOC_SAND_SUCCESS_FAILURE               *success
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+  ARAD_PP_IP_TCAM_ENTRY_KEY
+    key;
+  ARAD_TCAM_ACTION
+    action;
+  ARAD_PP_LEM_ACCESS_PAYLOAD
+    payload;
+  uint32                    
+    payload_data[ARAD_PP_LEM_ACCESS_PAYLOAD_NOF_UINT32S] = {0};
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_UC_ROUTE_ADD_UNSAFE);
+  SOC_SAND_CHECK_DRIVER_AND_DEVICE;
+
+  SOC_SAND_CHECK_NULL_INPUT(route_key);
+  SOC_SAND_CHECK_NULL_INPUT(success);
+
+#if defined(INCLUDE_KBP) && !defined(BCM_88030)
+  if(ARAD_KBP_ENABLE_IPV6_UC || ARAD_KBP_ENABLE_IPV6_EXTENDED) 
+  {
+      res = arad_pp_frwrd_ipv6_uc_or_vpn_kbp_route_add(
+                unit,
+                0, /* vrf ndx */
+                &(route_key->subnet),
+                route_info,
+                success);
+      SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit); 
+  }
+  else if (JER_KAPS_ENABLE(unit))
+  {
+      res = arad_pp_frwrd_ipv6_uc_or_vpn_kaps_dbal_route_add(
+                unit,
+                0, /* vrf ndx */
+                &(route_key->subnet),
+                route_info,
+                success);
+      SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit); 
+  }
+  else 
+#endif
+  {
+      ARAD_TCAM_ACTION_clear(&action);
+
+      key.type = ARAD_IP_TCAM_ENTRY_TYPE_IPV6_UC;
+      key.key.ipv6_uc = *route_key;
+      key.vrf_ndx = 0;
+
+      ARAD_PP_LEM_ACCESS_PAYLOAD_clear(&payload);
+      res = arad_pp_fwd_decision_in_buffer_build(
+              unit,
+              ARAD_PP_FRWRD_DECISION_APPLICATION_TYPE_DFLT,
+              route_info,
+              &payload.dest,
+              &payload.asd
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 5, exit);
+
+      if (route_info->additional_info.outlif.type != ARAD_PP_OUTLIF_ENCODE_TYPE_NONE) {
+          payload.flags = ARAD_PP_LEM_ACCESS_ASD_OUTLIF;
+      }
+      else if (route_info->additional_info.eei.type != ARAD_PP_EEI_TYPE_EMPTY) {
+          payload.flags = ARAD_PP_LEM_ACCESS_ASD_EEI;
+      }
+      else {
+          payload.flags = ARAD_PP_LEM_ACCESS_ASD_NONE;
+      }
+
+      /* FEC + OutLif action is similar to LEM payload, only without 2 MSBs (40 bits) */
+      res = arad_pp_lem_access_payload_build(
+          unit,
+          &payload,
+          payload_data);
+      SOC_SAND_CHECK_FUNC_RESULT(res, 47, exit);
+
+      action.value[0] = payload_data[0];
+      action.value[1] = (payload_data[1] & 0xff);
+
+      res = arad_pp_frwrd_ip_tcam_route_add_unsafe(
+              unit,
+              &key,
+              &action,
+              success
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 60, exit);
+  }
+  
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in arad_pp_ipv6_uc_route_add_unsafe()",0,0);
+}
+
+uint32
+  arad_pp_frwrd_ipv6_uc_route_add_verify(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_UC_ROUTE_KEY        *route_key,
+    SOC_SAND_IN  ARAD_PP_FRWRD_DECISION_INFO            *route_info
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_UC_ROUTE_ADD_VERIFY);
+
+  ARAD_PP_STRUCT_VERIFY(ARAD_PP_FRWRD_IPV6_UC_ROUTE_KEY, route_key, 10, exit);
+  ARAD_PP_STRUCT_VERIFY(ARAD_PP_FRWRD_DECISION_INFO, route_info, 20, exit);
+  SOC_SAND_ERR_IF_ABOVE_NOF(route_info->dest_id, SOC_DPP_DEFS_GET(unit, nof_fecs), ARAD_PP_FEC_ID_OUT_OF_RANGE_ERR, 30, exit);
+
+  ARAD_PP_DO_NOTHING_AND_EXIT;
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_frwrd_ipv6_uc_route_add_verify()", 0, 0);
+}
+
+/*********************************************************************
+*     Gets the routing information (system-fec-id) associated
+ *     with the given route key.
+ *     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  arad_pp_frwrd_ipv6_uc_route_get_unsafe(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_UC_ROUTE_KEY        *route_key,
+    SOC_SAND_IN  uint8                                  exact_match,
+    SOC_SAND_OUT ARAD_PP_FRWRD_DECISION_INFO            *route_info,
+    SOC_SAND_OUT ARAD_PP_FRWRD_IP_ROUTE_STATUS          *route_status,
+    SOC_SAND_OUT ARAD_PP_FRWRD_IP_ROUTE_LOCATION        *location,
+    SOC_SAND_OUT uint8                                  *found
+  )
+{
+  uint32
+    res;
+  ARAD_PP_IP_TCAM_ENTRY_KEY
+    key;
+  ARAD_TCAM_ACTION
+    action;
+  uint8
+    hit_bit;
+  ARAD_PP_LEM_ACCESS_PAYLOAD
+    payload;
+  uint32                    
+    payload_data[ARAD_PP_LEM_ACCESS_PAYLOAD_NOF_UINT32S] = {0};
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_UC_ROUTE_GET_UNSAFE);
+  SOC_SAND_CHECK_DRIVER_AND_DEVICE;
+
+  SOC_SAND_CHECK_NULL_INPUT(route_key);
+  SOC_SAND_CHECK_NULL_INPUT(route_info);
+  SOC_SAND_CHECK_NULL_INPUT(found);
+
+#if defined(INCLUDE_KBP) && !defined(BCM_88030)
+  if(ARAD_KBP_ENABLE_IPV6_UC || ARAD_KBP_ENABLE_IPV6_EXTENDED) 
+  {
+      res = arad_pp_frwrd_ipv6_uc_or_vpn_kbp_route_get(
+                unit,
+                0, /* vrf ndx */
+                &(route_key->subnet),
+                route_info,
+                found);
+      SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit); 
+
+      *route_status = ARAD_PP_FRWRD_IP_ROUTE_STATUS_COMMITED;
+      *location = ARAD_PP_FRWRD_IP_ROUTE_LOCATION_TCAM;
+  }
+  else if (JER_KAPS_ENABLE(unit))
+  {
+      res = arad_pp_frwrd_ipv6_uc_or_vpn_kaps_dbal_route_get(
+                unit,
+                0, /* vrf ndx */
+                &(route_key->subnet),
+                route_info,
+                found);
+      SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit); 
+
+      *route_status = ARAD_PP_FRWRD_IP_ROUTE_STATUS_COMMITED;
+      *location = SOC_PPC_FRWRD_IP_ROUTE_LOCATION_LPM;
+  }
+  else 
+#endif
+  {
+      if(route_status != NULL)
+      {
+          *route_status = ARAD_PP_FRWRD_IP_ROUTE_STATUS_COMMITED;
+      }
+
+      key.type = ARAD_IP_TCAM_ENTRY_TYPE_IPV6_UC;
+      key.key.ipv6_uc = *route_key;
+      key.vrf_ndx = 0;
+
+      res = arad_pp_frwrd_ip_tcam_route_get_unsafe(
+              unit,
+              &key,
+              exact_match,
+              &action,
+              found,
+              &hit_bit
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 60, exit);
+
+      if (*found)
+      {
+          /* convert action to FEC pointer */
+          /* FEC + OutLif action is similar to LEM payload, only without 2 MSBs (40 bits) */
+          ARAD_PP_LEM_ACCESS_PAYLOAD_clear(&payload);
+          ARAD_PP_FRWRD_DECISION_INFO_clear(route_info);
+
+          payload_data[0] = action.value[0];
+          payload_data[1] = (action.value[1] & 0xff);
+
+          res = arad_pp_lem_access_payload_parse(
+              unit,
+              ARAD_PP_LEM_ENTRY_TYPE_UNKNOWN,
+              payload_data,
+              &payload);
+          SOC_SAND_CHECK_FUNC_RESULT(res, 47, exit);
+
+          res = arad_pp_fwd_decision_in_buffer_parse(
+              unit,
+              ARAD_PP_FRWRD_DECISION_APPLICATION_TYPE_DFLT,
+              payload.dest,
+              payload.asd,
+              ARAD_PP_FWD_DECISION_PARSE_LEGACY | ARAD_PP_FWD_DECISION_PARSE_DEST,
+              route_info
+            );
+          SOC_SAND_CHECK_FUNC_RESULT(res, 5, exit);
+
+          if (hit_bit && route_status != NULL) {
+              *route_status |= ARAD_PP_FRWRD_IP_ROUTE_STATUS_ACCESSED;
+          }
+      }
+      if(location)
+      {
+          *location = ARAD_PP_FRWRD_IP_ROUTE_LOCATION_TCAM;
+      }
+  }
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in arad_pp_ipv6_route_get_unsafe()",0,0);
+}
+
+
+uint32
+  arad_pp_frwrd_ipv6_uc_route_get_verify(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_UC_ROUTE_KEY        *route_key,
+    SOC_SAND_IN  uint8                                  exact_match
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_UC_ROUTE_GET_VERIFY);
+
+  ARAD_PP_STRUCT_VERIFY(ARAD_PP_FRWRD_IPV6_UC_ROUTE_KEY, route_key, 10, exit);
+
+  SOC_SAND_TODO_IMPLEMENT_WARNING;
+  ARAD_PP_DO_NOTHING_AND_EXIT;
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_frwrd_ipv6_uc_route_get_verify()", 0, 0);
+}
+
+/*********************************************************************
+*     Gets the Ipv6 UC routing table.
+ *     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  arad_pp_frwrd_ipv6_uc_route_get_block_unsafe(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_INOUT ARAD_PP_IP_ROUTING_TABLE_RANGE       *block_range_key,
+    SOC_SAND_OUT ARAD_PP_FRWRD_IPV6_UC_ROUTE_KEY        *route_keys,
+    SOC_SAND_OUT ARAD_PP_FRWRD_DECISION_INFO            *route_infos,
+    SOC_SAND_OUT ARAD_PP_FRWRD_IP_ROUTE_STATUS          *routes_status,
+    SOC_SAND_OUT ARAD_PP_FRWRD_IP_ROUTE_LOCATION        *routes_location,
+    SOC_SAND_OUT uint32                                 *nof_entries
+  )
+{
+  uint32
+    res = SOC_SAND_OK,
+    indx;
+  ARAD_PP_IP_TCAM_ENTRY_KEY
+    *keys = NULL;
+  ARAD_TCAM_ACTION
+    *actions = NULL;
+  ARAD_PP_LEM_ACCESS_PAYLOAD
+    payload;
+  uint32                    
+    payload_data[ARAD_PP_LEM_ACCESS_PAYLOAD_NOF_UINT32S] = {0};
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_UC_ROUTE_GET_BLOCK_UNSAFE);
+
+  SOC_SAND_CHECK_NULL_INPUT(block_range_key);
+  SOC_SAND_CHECK_NULL_INPUT(route_keys);
+  SOC_SAND_CHECK_NULL_INPUT(route_infos);
+  SOC_SAND_CHECK_NULL_INPUT(nof_entries);
+
+  if(block_range_key->entries_to_act == 0)
+  {
+    *nof_entries = 0;
+    goto exit;
+  }
+
+  ARAD_ALLOC_ANY_SIZE(keys,ARAD_PP_IP_TCAM_ENTRY_KEY,block_range_key->entries_to_act,"keys frwrd_ipv6_uc_route_get_block");
+  ARAD_ALLOC_ANY_SIZE(actions,ARAD_TCAM_ACTION,block_range_key->entries_to_act,"actions frwrd_ipv6_uc_route_get_block");
+
+#if defined(INCLUDE_KBP) && !defined(BCM_88030)
+  if(ARAD_KBP_ENABLE_IPV6_UC || ARAD_KBP_ENABLE_IPV6_EXTENDED) 
+  {
+      res = arad_pp_frwrd_ipv6_kbp_route_get_block_unsafe(
+                unit,
+                ARAD_KBP_FRWRD_TBL_ID_IPV6_UC_RPF_0,
+                0 /* vrf_ndx */,
+                block_range_key,
+                route_keys,
+                NULL,
+                route_infos,
+                NULL,
+                routes_status,
+                routes_location,
+                nof_entries
+              );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+  } else if (JER_KAPS_ENABLE(unit)) {
+      res = arad_pp_frwrd_ipv6_kaps_dbal_route_get_block(
+                unit,
+                SOC_DPP_DBAL_SW_TABLE_ID_IPV6UC_KAPS,
+                0 /* vrf_ndx */,
+                block_range_key,
+                route_keys,
+                NULL,
+                route_infos,
+                NULL,
+                routes_status,
+                routes_location,
+                nof_entries
+              );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 30, exit);
+  } else
+#endif /* defined(INCLUDE_KBP) && !defined(BCM_88030) */
+  {
+      for(indx = 0; indx < block_range_key->entries_to_act; ++indx)
+      {
+        keys[indx].type = ARAD_IP_TCAM_ENTRY_TYPE_IPV6_UC;
+        keys[indx].key.ipv6_uc = route_keys[indx];
+        keys[indx].vrf_ndx = 0;
+      }
+      res = arad_pp_frwrd_ip_tcam_route_get_block_unsafe(
+               unit,
+               block_range_key,
+               keys,
+               actions,
+               nof_entries
+             );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 60, exit);
+
+      for(indx = 0; indx < *nof_entries; ++indx)
+      {
+        route_keys[indx] = keys[indx].key.ipv6_uc;
+
+        /* convert action to FEC pointer */
+        /* FEC + OutLif action is similar to LEM payload, only without 2 MSBs (40 bits) */
+        ARAD_PP_FRWRD_DECISION_INFO_clear(&(route_infos[indx]));
+        ARAD_PP_LEM_ACCESS_PAYLOAD_clear(&payload);
+
+        payload_data[0] = actions[indx].value[0];
+        payload_data[1] = (actions[indx].value[1] & 0xff);
+
+        res = arad_pp_lem_access_payload_parse(
+              unit,
+              ARAD_PP_LEM_ENTRY_TYPE_UNKNOWN,
+              payload_data,
+              &payload);
+        SOC_SAND_CHECK_FUNC_RESULT(res, 47, exit);
+
+        
+        res = arad_pp_fwd_decision_in_buffer_parse(
+              unit,
+              ARAD_PP_FRWRD_DECISION_APPLICATION_TYPE_DFLT,
+              payload.dest,
+              payload.asd,
+              ARAD_PP_FWD_DECISION_PARSE_LEGACY | ARAD_PP_FWD_DECISION_PARSE_DEST,
+              &(route_infos[indx])
+          );
+        SOC_SAND_CHECK_FUNC_RESULT(res, 5, exit);
+
+        if(routes_location)
+        {
+          routes_location[indx] = ARAD_PP_FRWRD_IP_ROUTE_LOCATION_TCAM;
+        }
+        if(routes_status)
+        {
+          routes_status[indx] = ARAD_PP_FRWRD_IP_ROUTE_STATUS_COMMITED;
+        }
+      }
+  }
+exit:
+  if(keys != NULL)
+  {
+    soc_sand_os_free(keys);
+  }
+  if(actions != NULL)
+  {
+    ARAD_FREE_ANY_SIZE(actions);
+  }
+
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_frwrd_ipv6_uc_route_get_block_unsafe()", 0, 0);
+}
+
+uint32
+  arad_pp_frwrd_ipv6_uc_route_get_block_verify(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_INOUT ARAD_PP_IP_ROUTING_TABLE_RANGE       *block_range_key
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_UC_ROUTE_GET_BLOCK_VERIFY);
+
+  ARAD_PP_STRUCT_VERIFY(ARAD_PP_IP_ROUTING_TABLE_RANGE, block_range_key, 10, exit);
+
+  SOC_SAND_TODO_IMPLEMENT_WARNING;
+  ARAD_PP_DO_NOTHING_AND_EXIT;
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_frwrd_ipv6_uc_route_get_block_verify()", 0, 0);
+}
+
+/*********************************************************************
+*     Remove IPv6 route entry from the routing table.
+ *     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  arad_pp_frwrd_ipv6_uc_route_remove_unsafe(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_UC_ROUTE_KEY        *route_key,
+    SOC_SAND_OUT SOC_SAND_SUCCESS_FAILURE               *success
+  )
+{
+  uint32
+    res;
+  ARAD_PP_IP_TCAM_ENTRY_KEY
+    key;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_UC_ROUTE_REMOVE_UNSAFE);
+  SOC_SAND_CHECK_DRIVER_AND_DEVICE;
+
+  SOC_SAND_CHECK_NULL_INPUT(route_key);
+  SOC_SAND_CHECK_NULL_INPUT(success);
+
+#if defined(INCLUDE_KBP) && !defined(BCM_88030)
+  if(ARAD_KBP_ENABLE_IPV6_UC || ARAD_KBP_ENABLE_IPV6_EXTENDED) 
+  {
+      res = arad_pp_frwrd_ipv6_uc_or_vpn_kbp_route_remove(
+                unit,
+                0, /* vrf ndx */
+                &(route_key->subnet));
+      SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit); 
+      *success = SOC_SAND_SUCCESS;
+  }
+  else if (JER_KAPS_ENABLE(unit))
+  {
+      res = arad_pp_frwrd_ipv6_uc_or_vpn_kaps_dbal_route_remove(
+                unit,
+                0, /* vrf ndx */
+                &(route_key->subnet));
+      SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit); 
+      *success = SOC_SAND_SUCCESS;
+  }
+  else 
+#endif
+  {
+      key.type = ARAD_IP_TCAM_ENTRY_TYPE_IPV6_UC;
+      key.key.ipv6_uc = *route_key;
+      key.vrf_ndx = 0;
+
+      res = arad_pp_frwrd_ip_tcam_route_remove_unsafe(
+              unit,
+              &key
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 60, exit);
+
+      *success = SOC_SAND_SUCCESS;
+  }
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in arad_pp_ipv6_route_remove_unsafe()",0,0);
+}
+
+uint32
+  arad_pp_frwrd_ipv6_uc_route_remove_verify(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_UC_ROUTE_KEY        *route_key
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_UC_ROUTE_REMOVE_VERIFY);
+
+  ARAD_PP_STRUCT_VERIFY(ARAD_PP_FRWRD_IPV6_UC_ROUTE_KEY, route_key, 10, exit);
+
+  SOC_SAND_TODO_IMPLEMENT_WARNING;
+  ARAD_PP_DO_NOTHING_AND_EXIT;
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_frwrd_ipv6_uc_route_remove_verify()", 0, 0);
+}
+
+/*********************************************************************
+*     Clear the IPv6 UC routing table.
+ *     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  arad_pp_frwrd_ipv6_uc_routing_table_clear_unsafe(
+    SOC_SAND_IN  int                                 unit
+  )
+{
+  uint32
+    res;
+  ARAD_PP_IP_TCAM_ENTRY_KEY
+    key;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_UC_ROUTING_TABLE_CLEAR_UNSAFE);
+  SOC_SAND_CHECK_DRIVER_AND_DEVICE;
+
+#if defined(INCLUDE_KBP) && !defined(BCM_88030)
+  /* Check if Exteral Lookup device is used */
+  if(ARAD_KBP_ENABLE_IPV6_UC || ARAD_KBP_ENABLE_IPV6_EXTENDED) 
+  {
+      res = arad_pp_frwrd_ipv6_uc_kbp_table_clear(
+                unit
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+  }
+  else if (JER_KAPS_ENABLE(unit))
+  {
+      res = arad_pp_dbal_table_clear(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV6UC_KAPS);
+      SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit); 
+  }
+  else
+#endif
+  {
+      key.type = ARAD_IP_TCAM_ENTRY_TYPE_IPV6_UC;
+      key.vrf_ndx = 0;
+
+      res = arad_pp_frwrd_ip_tcam_routing_table_clear_unsafe(
+              unit,
+              &key,
+              FALSE
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 60, exit);
+  }
+  
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in arad_pp_ipv6_uc_route_clear_unsafe()",0,0);
+}
+
+uint32
+  arad_pp_frwrd_ipv6_uc_routing_table_clear_verify(
+    SOC_SAND_IN  int                                 unit
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_UC_ROUTING_TABLE_CLEAR_VERIFY);
+
+  ARAD_PP_DO_NOTHING_AND_EXIT;
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_frwrd_ipv6_uc_routing_table_clear_verify()", 0, 0);
+}
+
+/*********************************************************************
+*     Add IPv6 MC route entry to the routing table. Binds
+ *     between Ipv6 Unicast route key (IPv6-address/prefix) and
+ *     a FEC entry identified by fec_id for a given virtual
+ *     router. As a result of this operation, Unicast Ipv6
+ *     packets designated to IP address matching the given key
+ *     (as long there is no more-specific route key) will be
+ *     routed according to the information in the FEC entry
+ *     identified by fec_id.
+ *     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  arad_pp_frwrd_ipv6_mc_route_add_unsafe(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_MC_ROUTE_KEY        *route_key,
+    SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_MC_ROUTE_INFO       *route_info,
+    SOC_SAND_OUT SOC_SAND_SUCCESS_FAILURE               *success
+  )
+{
+  uint32
+    res;
+  ARAD_PP_IP_TCAM_ENTRY_KEY
+    key;
+  ARAD_TCAM_ACTION
+    action;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_MC_ROUTE_ADD_UNSAFE);
+  SOC_SAND_CHECK_DRIVER_AND_DEVICE;
+
+  SOC_SAND_CHECK_NULL_INPUT(route_key);
+  SOC_SAND_CHECK_NULL_INPUT(route_info);
+  SOC_SAND_CHECK_NULL_INPUT(success);
+
+#if defined(INCLUDE_KBP) && !defined(BCM_88030)
+  if(ARAD_KBP_ENABLE_IPV6_MC) 
+  {
+      res = arad_pp_frwrd_ipv6_mc_kbp_route_add(
+                unit,
+                route_key,
+                route_info,
+                success);
+      SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit); 
+  }
+  else if (JER_KAPS_ENABLE(unit))
+  {
+      res = arad_pp_frwrd_ipv6_mc_kaps_dbal_route_add(
+                unit,
+                route_key,
+                route_info,
+                success);
+      SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit); 
+  }
+  else 
+#endif
+  {
+      ARAD_TCAM_ACTION_clear(&action);
+
+      key.type = ARAD_IP_TCAM_ENTRY_TYPE_IPV6_MC;
+      key.key.ipv6_mc = *route_key;
+
+      /* build dest value */
+      res = arad_pp_frwrd_ipv4_sand_dest_to_em_dest(
+              unit,
+              &(route_info->dest_id),
+              &(action.value[0])
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 30, exit);
+
+      res = arad_pp_frwrd_ip_tcam_route_add_unsafe(
+              unit,
+              &key,
+              &action,
+              success
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 60, exit);
+  }
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in arad_pp_ipv6_mc_route_add_unsafe()",0,0);
+}
+
+uint32
+  arad_pp_frwrd_ipv6_mc_route_add_verify(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_MC_ROUTE_KEY        *route_key,
+    SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_MC_ROUTE_INFO       *route_info
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_MC_ROUTE_ADD_VERIFY);
+
+  res = ARAD_PP_FRWRD_IPV6_MC_ROUTE_KEY_verify(unit, route_key);
+  SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+  res = ARAD_PP_FRWRD_IPV6_MC_ROUTE_INFO_verify(unit, route_info);
+  SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+
+  ARAD_PP_DO_NOTHING_AND_EXIT;
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_frwrd_ipv6_mc_route_add_verify()", 0, 0);
+}
+
+/*********************************************************************
+*     Gets the routing information (system-fec-id) associated
+ *     with the given route key.
+ *     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  arad_pp_frwrd_ipv6_mc_route_get_unsafe(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_MC_ROUTE_KEY        *route_key,
+    SOC_SAND_IN  uint8                                  exact_match,
+    SOC_SAND_OUT ARAD_PP_FRWRD_IPV6_MC_ROUTE_INFO       *route_info,
+    SOC_SAND_OUT ARAD_PP_FRWRD_IP_ROUTE_STATUS          *route_status,
+    SOC_SAND_OUT ARAD_PP_FRWRD_IP_ROUTE_LOCATION        *location,
+    SOC_SAND_OUT uint8                                  *found
+  )
+{
+  uint32
+    res;
+  ARAD_PP_IP_TCAM_ENTRY_KEY
+    key;
+  ARAD_TCAM_ACTION
+    action;
+  uint8
+    hit_bit;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_MC_ROUTE_GET_UNSAFE);
+  SOC_SAND_CHECK_DRIVER_AND_DEVICE;
+
+  SOC_SAND_CHECK_NULL_INPUT(route_key);
+  SOC_SAND_CHECK_NULL_INPUT(route_info);
+  SOC_SAND_CHECK_NULL_INPUT(found);
+
+#if defined(INCLUDE_KBP) && !defined(BCM_88030)
+  if(ARAD_KBP_ENABLE_IPV6_MC) 
+  {
+      res = arad_pp_frwrd_ipv6_mc_kbp_route_get(
+                unit,
+                route_key,
+                route_info,
+                found
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit); 
+
+      *route_status = ARAD_PP_FRWRD_IP_ROUTE_STATUS_COMMITED;
+      *location = ARAD_PP_FRWRD_IP_ROUTE_LOCATION_TCAM;
+  }
+  else if (JER_KAPS_ENABLE(unit))
+  {
+      res = arad_pp_frwrd_ipv6_mc_kaps_dbal_route_get(
+                unit,
+                route_key,
+                route_info,
+                found
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit); 
+
+      *route_status = ARAD_PP_FRWRD_IP_ROUTE_STATUS_COMMITED;
+      *location = SOC_PPC_FRWRD_IP_ROUTE_LOCATION_LPM;
+  }
+  else 
+#endif
+  {
+      if(route_status != NULL)
+      {
+          *route_status = ARAD_PP_FRWRD_IP_ROUTE_STATUS_COMMITED;
+      }
+
+      key.type = ARAD_IP_TCAM_ENTRY_TYPE_IPV6_MC;
+      key.key.ipv6_mc = *route_key;
+
+      res = arad_pp_frwrd_ip_tcam_route_get_unsafe(
+              unit,
+              &key,
+              exact_match,
+              &action,
+              found,
+              &hit_bit
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 60, exit);
+
+      if (*found)
+      {
+        /* parse dest value */
+        res = arad_pp_frwrd_ipv4_em_dest_to_sand_dest(
+                unit,
+                action.value[0],
+                &(route_info->dest_id)
+              );
+        SOC_SAND_CHECK_FUNC_RESULT(res, 30, exit);
+
+        if (hit_bit && route_status != NULL) {
+            *route_status |= ARAD_PP_FRWRD_IP_ROUTE_STATUS_ACCESSED;
+        }
+
+      }
+
+      if(location)
+      {
+        *location = ARAD_PP_FRWRD_IP_ROUTE_LOCATION_TCAM;
+      }
+  }
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in arad_pp_ipv6_mc_route_get_unsafe()",0,0);
+}
+
+uint32
+  arad_pp_frwrd_ipv6_mc_route_get_verify(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_MC_ROUTE_KEY        *route_key,
+    SOC_SAND_IN  uint8                                  exact_match
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_MC_ROUTE_GET_VERIFY);
+
+  res = ARAD_PP_FRWRD_IPV6_MC_ROUTE_KEY_verify(unit, route_key);
+  SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+
+  ARAD_PP_DO_NOTHING_AND_EXIT;
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_frwrd_ipv6_mc_route_get_verify()", 0, 0);
+}
+
+/*********************************************************************
+*     Gets the Ipv6 MC routing table.
+ *     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  arad_pp_frwrd_ipv6_mc_route_get_block_unsafe(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_INOUT ARAD_PP_IP_ROUTING_TABLE_RANGE       *block_range_key,
+    SOC_SAND_OUT ARAD_PP_FRWRD_IPV6_MC_ROUTE_KEY        *route_key,
+    SOC_SAND_OUT ARAD_PP_FRWRD_IPV6_MC_ROUTE_INFO       *routes_info,
+    SOC_SAND_OUT ARAD_PP_FRWRD_IP_ROUTE_STATUS          *routes_status,
+    SOC_SAND_OUT ARAD_PP_FRWRD_IP_ROUTE_LOCATION        *routes_location,
+    SOC_SAND_OUT uint32                                 *nof_entries
+  )
+{
+  uint32
+    res = SOC_SAND_OK,
+    indx;
+  ARAD_PP_IP_TCAM_ENTRY_KEY
+    *keys = NULL;
+  ARAD_TCAM_ACTION
+    *actions = NULL;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_MC_ROUTE_GET_BLOCK_UNSAFE);
+
+  SOC_SAND_CHECK_NULL_INPUT(block_range_key);
+  SOC_SAND_CHECK_NULL_INPUT(route_key);
+  SOC_SAND_CHECK_NULL_INPUT(routes_info);
+  SOC_SAND_CHECK_NULL_INPUT(nof_entries);
+
+  if(block_range_key->entries_to_act == 0)
+  {
+    *nof_entries = 0;
+    goto exit;
+  }
+
+#if defined(INCLUDE_KBP) && !defined(BCM_88030)
+  if(ARAD_KBP_ENABLE_IPV6_UC || ARAD_KBP_ENABLE_IPV6_EXTENDED) 
+  {
+      res = arad_pp_frwrd_ipv6_kbp_route_get_block_unsafe(
+                unit,
+                ARAD_KBP_FRWRD_TBL_ID_IPV6_MC,
+                0 /* vrf_ndx */,
+                block_range_key,
+                NULL,
+                route_key,
+                NULL,
+                routes_info,
+                routes_status,
+                routes_location,
+                nof_entries
+              );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+  } else if (JER_KAPS_ENABLE(unit)) {
+      res = arad_pp_frwrd_ipv6_kaps_dbal_route_get_block(
+                unit,
+                SOC_DPP_DBAL_SW_TABLE_ID_IPV6MC_KAPS,
+                0 /* vrf_ndx */,
+                block_range_key,
+                NULL,
+                route_key,
+                NULL,
+                routes_info,
+                routes_status,
+                routes_location,
+                nof_entries
+              );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 30, exit);
+  } else
+#endif /* defined(INCLUDE_KBP) && !defined(BCM_88030) */
+  {
+      ARAD_ALLOC_ANY_SIZE(keys,ARAD_PP_IP_TCAM_ENTRY_KEY,block_range_key->entries_to_act,"keys ipv6_mc_route_get_block");
+      ARAD_ALLOC_ANY_SIZE(actions,ARAD_TCAM_ACTION,block_range_key->entries_to_act,"actions ipv6_mc_route_get_block");
+
+      for(indx = 0; indx < block_range_key->entries_to_act; ++indx)
+      {
+        keys[indx].type = ARAD_IP_TCAM_ENTRY_TYPE_IPV6_MC;
+        keys[indx].key.ipv6_mc = route_key[indx];
+      }
+
+      res = arad_pp_frwrd_ip_tcam_route_get_block_unsafe(
+               unit,
+               block_range_key,
+               keys,
+               actions,
+               nof_entries
+             );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 60, exit);
+
+      for(indx = 0; indx < *nof_entries; ++indx)
+      {
+        route_key[indx] = keys[indx].key.ipv6_mc;
+
+        /* parse dest value */
+        res = arad_pp_frwrd_ipv4_em_dest_to_sand_dest(
+                unit,
+                actions[indx].value[0],
+                &(routes_info[indx].dest_id)
+              );
+        SOC_SAND_CHECK_FUNC_RESULT(res, 30, exit);
+
+        if(routes_location)
+        {
+          routes_location[indx] = ARAD_PP_FRWRD_IP_ROUTE_LOCATION_TCAM;
+        }
+        if(routes_status)
+        {
+          routes_status[indx] = ARAD_PP_FRWRD_IP_ROUTE_STATUS_COMMITED;
+        }
+      }
+  }
+exit:
+  if(keys != NULL)
+  {
+    soc_sand_os_free(keys);
+  }
+  if(actions != NULL)
+  {
+    ARAD_FREE_ANY_SIZE(actions);
+  }
+
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_frwrd_ipv6_mc_route_get_block_unsafe()", 0, 0);
+}
+
+uint32
+  arad_pp_frwrd_ipv6_mc_route_get_block_verify(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_INOUT ARAD_PP_IP_ROUTING_TABLE_RANGE       *block_range_key
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_MC_ROUTE_GET_BLOCK_VERIFY);
+
+  ARAD_PP_STRUCT_VERIFY(ARAD_PP_IP_ROUTING_TABLE_RANGE, block_range_key, 10, exit);
+
+  ARAD_PP_DO_NOTHING_AND_EXIT;
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_frwrd_ipv6_mc_route_get_block_verify()", 0, 0);
+}
+
+/*********************************************************************
+*     Remove IPv6 route entry from the routing table.
+ *     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  arad_pp_frwrd_ipv6_mc_route_remove_unsafe(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_MC_ROUTE_KEY        *route_key,
+    SOC_SAND_OUT SOC_SAND_SUCCESS_FAILURE               *success
+  )
+{
+  uint32
+    res;
+  ARAD_PP_IP_TCAM_ENTRY_KEY
+    key;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_MC_ROUTE_REMOVE_UNSAFE);
+  SOC_SAND_CHECK_DRIVER_AND_DEVICE;
+
+  SOC_SAND_CHECK_NULL_INPUT(route_key);
+  SOC_SAND_CHECK_NULL_INPUT(success);
+
+#if defined(INCLUDE_KBP) && !defined(BCM_88030)
+  if(ARAD_KBP_ENABLE_IPV6_MC) 
+  {
+      res = arad_pp_frwrd_ipv6_mc_kbp_route_remove(
+                unit,
+                route_key);
+      SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit); 
+      *success = SOC_SAND_SUCCESS;
+  }
+  else if (JER_KAPS_ENABLE(unit))
+  {
+      res = arad_pp_frwrd_ipv6_mc_kaps_dbal_route_remove(
+                unit,
+                route_key);
+      SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit); 
+      *success = SOC_SAND_SUCCESS;
+  }
+  else 
+#endif
+  {
+      key.type = ARAD_IP_TCAM_ENTRY_TYPE_IPV6_MC;
+      key.key.ipv6_mc = *route_key;
+
+      res = arad_pp_frwrd_ip_tcam_route_remove_unsafe(
+              unit,
+              &key
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 60, exit);
+
+      *success = SOC_SAND_SUCCESS;
+  }
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in arad_pp_ipv6_mc_route_remove_unsafe()",0,0);
+}
+
+uint32
+  arad_pp_frwrd_ipv6_mc_route_remove_verify(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_MC_ROUTE_KEY        *route_key
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_MC_ROUTE_REMOVE_VERIFY);
+
+  res = ARAD_PP_FRWRD_IPV6_MC_ROUTE_KEY_verify(unit, route_key);
+  SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+
+  ARAD_PP_DO_NOTHING_AND_EXIT;
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_frwrd_ipv6_mc_route_remove_verify()", 0, 0);
+}
+
+/*********************************************************************
+*     Clear the IPv6 MC routing table.
+ *     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  arad_pp_frwrd_ipv6_mc_routing_table_clear_unsafe(
+    SOC_SAND_IN  int                                 unit
+  )
+{
+  uint32
+    res;
+  ARAD_PP_IP_TCAM_ENTRY_KEY
+    key;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_MC_ROUTING_TABLE_CLEAR_UNSAFE);
+  SOC_SAND_CHECK_DRIVER_AND_DEVICE;
+
+#if defined(INCLUDE_KBP) && !defined(BCM_88030)
+  /* Check if Exteral Lookup device is used */
+  if(ARAD_KBP_ENABLE_IPV6_MC) 
+  {
+      res = arad_pp_frwrd_ipv6_mc_kbp_table_clear(
+                unit
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+  }
+  else if (JER_KAPS_ENABLE(unit))
+  {
+      res = arad_pp_dbal_table_clear(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV6MC_KAPS);
+      SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit); 
+  }
+  else
+#endif
+  {
+      key.type = ARAD_IP_TCAM_ENTRY_TYPE_IPV6_MC;
+
+      res = arad_pp_frwrd_ip_tcam_routing_table_clear_unsafe(
+              unit,
+              &key,
+              FALSE
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 60, exit);
+  }
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in arad_pp_ipv6_mc_route_clear_unsafe()",0,0);
+}
+uint32
+  arad_pp_frwrd_ipv6_mc_routing_table_clear_verify(
+    SOC_SAND_IN  int                                 unit
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_MC_ROUTING_TABLE_CLEAR_VERIFY);
+
+  ARAD_PP_DO_NOTHING_AND_EXIT;
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_frwrd_ipv6_mc_routing_table_clear_verify()", 0, 0);
+}
+
+/*********************************************************************
+*     Setting global information of the VRF including
+ *     (defaults forwarding).
+ *     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  arad_pp_frwrd_ipv6_vrf_info_set_unsafe(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  ARAD_PP_VRF_ID                         vrf_ndx,
+    SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_VRF_INFO            *vrf_info
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+  ARAD_PP_FRWRD_IPV6_VPN_ROUTE_KEY
+    route_key;
+  SOC_SAND_SUCCESS_FAILURE
+    success;
+  ARAD_PP_FRWRD_DECISION_INFO            
+    route_info;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_VRF_INFO_SET_UNSAFE);
+
+  SOC_SAND_CHECK_NULL_INPUT(vrf_info);
+
+  ARAD_PP_FRWRD_IPV6_VPN_ROUTE_KEY_clear(&route_key);
+  ARAD_PP_FRWRD_DECISION_INFO_clear(&route_info);
+
+  /*
+   *  Enter a unicast catch-all route
+   */
+  route_key.subnet.prefix_len = 0;
+
+  route_info.type = SOC_PPC_FRWRD_DECISION_TYPE_FEC;
+  route_info.dest_id = vrf_info->router_info.uc_default_action.value.fec_id;
+
+  res = arad_pp_frwrd_ipv6_vrf_route_add_unsafe(
+          unit,
+          vrf_ndx,
+          &route_key,
+          &route_info,
+          &success
+        );
+  SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_frwrd_ipv6_vrf_info_set_unsafe()", vrf_ndx, 0);
+}
+
+uint32
+  arad_pp_frwrd_ipv6_vrf_info_set_verify(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  ARAD_PP_VRF_ID                         vrf_ndx,
+    SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_VRF_INFO            *vrf_info
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_VRF_INFO_SET_VERIFY);
+
+  SOC_SAND_ERR_IF_OUT_OF_RANGE(vrf_ndx, ARAD_PP_VRF_ID_MIN, SOC_DPP_DEFS_GET(unit, nof_vrfs) - 1, ARAD_PP_VRF_ID_OUT_OF_RANGE_ERR, 10, exit);
+  res = ARAD_PP_FRWRD_IPV6_VRF_INFO_verify(unit, vrf_info);
+  SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+  if (vrf_info->router_info.uc_default_action.type != ARAD_PP_FRWRD_IPV6_ROUTER_DEFAULT_ACTION_TYPE_FEC)
+  {
+    SOC_SAND_SET_ERROR_CODE(ARAD_PP_IPV6_DEFAULT_ACTION_TYPE_NOT_SUPPORTED_ERR, 30, exit);
+  }
+
+  ARAD_PP_DO_NOTHING_AND_EXIT;
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_frwrd_ipv6_vrf_info_set_verify()", vrf_ndx, 0);
+}
+
+uint32
+  arad_pp_frwrd_ipv6_vrf_info_get_verify(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  ARAD_PP_VRF_ID                         vrf_ndx
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_VRF_INFO_GET_VERIFY);
+
+  SOC_SAND_ERR_IF_OUT_OF_RANGE(vrf_ndx, ARAD_PP_VRF_ID_MIN, SOC_DPP_DEFS_GET(unit, nof_vrfs) - 1, ARAD_PP_VRF_ID_OUT_OF_RANGE_ERR, 10, exit);
+
+  ARAD_PP_DO_NOTHING_AND_EXIT;
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_frwrd_ipv6_vrf_info_get_verify()", vrf_ndx, 0);
+}
+
+/*********************************************************************
+*     Setting global information of the VRF including
+ *     (defaults forwarding).
+ *     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  arad_pp_frwrd_ipv6_vrf_info_get_unsafe(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  ARAD_PP_VRF_ID                         vrf_ndx,
+    SOC_SAND_OUT ARAD_PP_FRWRD_IPV6_VRF_INFO            *vrf_info
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+  ARAD_PP_FRWRD_IPV6_VPN_ROUTE_KEY
+    route_key;
+  ARAD_PP_FRWRD_IP_ROUTE_STATUS
+    route_status;
+  ARAD_PP_FRWRD_IP_ROUTE_LOCATION
+    location;
+  uint8
+    found;
+  ARAD_PP_FRWRD_DECISION_INFO
+    route_info;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_VRF_INFO_GET_UNSAFE);
+
+  SOC_SAND_CHECK_NULL_INPUT(vrf_info);
+
+  ARAD_PP_FRWRD_IPV6_VRF_INFO_clear(vrf_info);
+  ARAD_PP_FRWRD_IPV6_VPN_ROUTE_KEY_clear(&route_key);
+
+  vrf_info->router_info.uc_default_action.type = SOC_PPC_FRWRD_IPV6_ROUTER_DEFAULT_ACTION_TYPE_FEC;
+
+  /*
+   *  Get the unicast catch-all route
+   */
+  route_key.subnet.prefix_len = 0;
+
+  res = arad_pp_frwrd_ipv6_vrf_route_get_unsafe(
+          unit,
+          vrf_ndx,
+          &route_key,
+          TRUE,
+          &route_info,
+          &route_status,
+          &location,
+          &found
+        );
+  SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+
+  vrf_info->router_info.uc_default_action.value.fec_id = route_info.dest_id;
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_frwrd_ipv6_vrf_info_get_unsafe()", vrf_ndx, 0);
+}
+
+/*********************************************************************
+*     Add IPv6 route entry to the virtual routing table (VRF).
+ *     Binds between Ipv6 route key (UC/MC IPv6-address\prefix)
+ *     and a FEC entry identified by fec_id for a given virtual
+ *     router. As a result of this operation, Unicast Ipv6
+ *     packets designated to IP address matching the given key
+ *     (as long there is no more-specific route key) will be
+ *     routed according to the information in the FEC entry
+ *     identified by fec_id.
+ *     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  arad_pp_frwrd_ipv6_vrf_route_add_unsafe(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  ARAD_PP_VRF_ID                         vrf_ndx,
+    SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_VPN_ROUTE_KEY       *route_key,
+    SOC_SAND_IN  ARAD_PP_FRWRD_DECISION_INFO            *route_info,
+    SOC_SAND_OUT SOC_SAND_SUCCESS_FAILURE               *success
+  )
+{
+  uint32
+    res;
+  ARAD_PP_IP_TCAM_ENTRY_KEY
+    key;
+  ARAD_TCAM_ACTION
+    action;
+  ARAD_PP_LEM_ACCESS_PAYLOAD
+    payload;
+  uint32                    
+    payload_data[ARAD_PP_LEM_ACCESS_PAYLOAD_NOF_UINT32S] = {0};
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_VRF_ROUTE_ADD_UNSAFE);
+  SOC_SAND_CHECK_DRIVER_AND_DEVICE;
+
+  SOC_SAND_CHECK_NULL_INPUT(route_key);
+  SOC_SAND_CHECK_NULL_INPUT(success);
+
+#if defined(INCLUDE_KBP) && !defined(BCM_88030)
+  if(ARAD_KBP_ENABLE_IPV6_UC || ARAD_KBP_ENABLE_IPV6_EXTENDED) 
+  {
+      res = arad_pp_frwrd_ipv6_uc_or_vpn_kbp_route_add(
+                unit,
+                vrf_ndx,
+                &(route_key->subnet),
+                route_info,
+                success);
+      SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+  }
+  else if (JER_KAPS_ENABLE(unit))
+  {
+      res = arad_pp_frwrd_ipv6_uc_or_vpn_kaps_dbal_route_add(
+                unit,
+                vrf_ndx,
+                &(route_key->subnet),
+                route_info,
+                success);
+      SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit); 
+  }
+  else 
+#endif
+  {
+      ARAD_TCAM_ACTION_clear(&action);
+
+      key.type = ARAD_IP_TCAM_ENTRY_TYPE_IPV6_VPN;
+      key.key.ipv6_vpn = *route_key;
+      key.vrf_ndx = vrf_ndx;
+
+      ARAD_PP_LEM_ACCESS_PAYLOAD_clear(&payload);
+      res = arad_pp_fwd_decision_in_buffer_build(
+              unit,
+              ARAD_PP_FRWRD_DECISION_APPLICATION_TYPE_DFLT,
+              route_info,
+              &payload.dest,
+              &payload.asd
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 5, exit);
+
+      if (route_info->additional_info.outlif.type != ARAD_PP_OUTLIF_ENCODE_TYPE_NONE) {
+          payload.flags = ARAD_PP_LEM_ACCESS_ASD_OUTLIF;
+      }
+      else if (route_info->additional_info.eei.type != ARAD_PP_EEI_TYPE_EMPTY) {
+          payload.flags = ARAD_PP_LEM_ACCESS_ASD_EEI;
+      }
+      else {
+          payload.flags = ARAD_PP_LEM_ACCESS_ASD_NONE;
+      }
+
+      /* FEC + OutLif action is similar to LEM payload, only without 2 MSBs (40 bits) */
+      res = arad_pp_lem_access_payload_build(
+          unit,
+          &payload,
+          payload_data);
+      SOC_SAND_CHECK_FUNC_RESULT(res, 47, exit);
+
+      action.value[0] = payload_data[0];
+      action.value[1] = (payload_data[1] & 0xff);
+
+
+      res = arad_pp_frwrd_ip_tcam_route_add_unsafe(
+              unit,
+              &key,
+              &action,
+              success
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 60, exit);
+  }
+  
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in arad_pp_frwrd_ipv6_vrf_route_add_unsafe()",0,0);
+}
+
+uint32
+  arad_pp_frwrd_ipv6_vrf_route_add_verify(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  ARAD_PP_VRF_ID                         vrf_ndx,
+    SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_VPN_ROUTE_KEY       *route_key,
+    SOC_SAND_IN  ARAD_PP_FRWRD_DECISION_INFO            *route_info
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_VRF_ROUTE_ADD_VERIFY);
+
+  SOC_SAND_ERR_IF_OUT_OF_RANGE(vrf_ndx, ARAD_PP_VRF_ID_MIN, SOC_DPP_DEFS_GET(unit, nof_vrfs) - 1, ARAD_PP_VRF_ID_OUT_OF_RANGE_ERR, 10, exit);
+  ARAD_PP_STRUCT_VERIFY(ARAD_PP_FRWRD_IPV6_VPN_ROUTE_KEY, route_key, 20, exit);
+  ARAD_PP_STRUCT_VERIFY(ARAD_PP_FRWRD_DECISION_INFO, route_info, 30, exit);
+  SOC_SAND_ERR_IF_ABOVE_NOF(route_info->dest_id, SOC_DPP_DEFS_GET(unit, nof_fecs), ARAD_PP_FEC_ID_OUT_OF_RANGE_ERR, 40, exit);
+
+  SOC_SAND_TODO_IMPLEMENT_WARNING;
+  ARAD_PP_DO_NOTHING_AND_EXIT;
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_frwrd_ipv6_vrf_route_add_verify()", vrf_ndx, 0);
+}
+
+/*********************************************************************
+*     Gets the routing information (system-fec-id) associated
+ *     with the given route key on VRF.
+ *     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  arad_pp_frwrd_ipv6_vrf_route_get_unsafe(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  ARAD_PP_VRF_ID                         vrf_ndx,
+    SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_VPN_ROUTE_KEY       *route_key,
+    SOC_SAND_IN  uint8                                  exact_match,
+    SOC_SAND_OUT ARAD_PP_FRWRD_DECISION_INFO            *route_info,
+    SOC_SAND_OUT ARAD_PP_FRWRD_IP_ROUTE_STATUS          *route_status,
+    SOC_SAND_OUT ARAD_PP_FRWRD_IP_ROUTE_LOCATION        *location,
+    SOC_SAND_OUT uint8                                  *found
+  )
+{
+  uint32
+    res;
+  ARAD_PP_IP_TCAM_ENTRY_KEY
+    key;
+  ARAD_TCAM_ACTION
+    action;
+  uint8
+    hit_bit;
+  ARAD_PP_LEM_ACCESS_PAYLOAD
+    payload;
+  uint32                    
+    payload_data[ARAD_PP_LEM_ACCESS_PAYLOAD_NOF_UINT32S] = {0};
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_VRF_ROUTE_GET_UNSAFE);
+  SOC_SAND_CHECK_DRIVER_AND_DEVICE;
+
+  SOC_SAND_CHECK_NULL_INPUT(route_key);
+  SOC_SAND_CHECK_NULL_INPUT(route_info);
+  SOC_SAND_CHECK_NULL_INPUT(found);
+
+#if defined(INCLUDE_KBP) && !defined(BCM_88030)
+  if(ARAD_KBP_ENABLE_IPV6_UC || ARAD_KBP_ENABLE_IPV6_EXTENDED) 
+  {
+      res = arad_pp_frwrd_ipv6_uc_or_vpn_kbp_route_get(
+                unit,
+                vrf_ndx, 
+                &(route_key->subnet),
+                route_info,
+                found);
+      SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit); 
+
+      *route_status = ARAD_PP_FRWRD_IP_ROUTE_STATUS_COMMITED;
+      *location = ARAD_PP_FRWRD_IP_ROUTE_LOCATION_TCAM;
+  }
+  else if (JER_KAPS_ENABLE(unit))
+  {
+      res = arad_pp_frwrd_ipv6_uc_or_vpn_kaps_dbal_route_get(
+                unit,
+                vrf_ndx, 
+                &(route_key->subnet),
+                route_info,
+                found);
+      SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit); 
+
+      *route_status = ARAD_PP_FRWRD_IP_ROUTE_STATUS_COMMITED;
+      *location = SOC_PPC_FRWRD_IP_ROUTE_LOCATION_LPM;
+  }
+  else 
+#endif
+  {
+      if(route_status)
+      {
+        *route_status = ARAD_PP_FRWRD_IP_ROUTE_STATUS_COMMITED;
+      }
+
+      key.type = ARAD_IP_TCAM_ENTRY_TYPE_IPV6_VPN;
+      key.key.ipv6_vpn = *route_key;
+      key.vrf_ndx = vrf_ndx;
+
+      res = arad_pp_frwrd_ip_tcam_route_get_unsafe(
+              unit,
+              &key,
+              exact_match,
+              &action,
+              found,
+              &hit_bit
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 60, exit);
+
+      if (*found) {
+          /* Convert action to FEC pointer */
+          ARAD_PP_FRWRD_DECISION_INFO_clear(route_info);
+          ARAD_PP_LEM_ACCESS_PAYLOAD_clear(&payload);
+
+          payload_data[0] = action.value[0];
+          payload_data[1] = (action.value[1] & 0xff);
+
+          res = arad_pp_lem_access_payload_parse(
+              unit,
+              ARAD_PP_LEM_ENTRY_TYPE_UNKNOWN,
+              payload_data,
+              &payload);
+          SOC_SAND_CHECK_FUNC_RESULT(res, 47, exit);
+
+          res = arad_pp_fwd_decision_in_buffer_parse(
+              unit,
+              ARAD_PP_FRWRD_DECISION_APPLICATION_TYPE_DFLT,
+              payload.dest,
+              payload.asd,
+              ARAD_PP_FWD_DECISION_PARSE_LEGACY | ARAD_PP_FWD_DECISION_PARSE_DEST,
+              route_info
+            );
+          SOC_SAND_CHECK_FUNC_RESULT(res, 5, exit);
+
+          if (hit_bit && route_status != NULL) {
+              *route_status |= ARAD_PP_FRWRD_IP_ROUTE_STATUS_ACCESSED;
+          }
+      }
+
+      if(location)
+      {
+        *location = ARAD_PP_FRWRD_IP_ROUTE_LOCATION_TCAM;
+      }
+  }
+  
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in arad_pp_ipv6_vrf_route_get_unsafe()",0,0);
+}
+
+uint32
+  arad_pp_frwrd_ipv6_vrf_route_get_verify(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  ARAD_PP_VRF_ID                         vrf_ndx,
+    SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_VPN_ROUTE_KEY       *route_key,
+    SOC_SAND_IN  uint8                                  exact_match
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_VRF_ROUTE_GET_VERIFY);
+
+  SOC_SAND_ERR_IF_OUT_OF_RANGE(vrf_ndx, ARAD_PP_VRF_ID_MIN, SOC_DPP_DEFS_GET(unit, nof_vrfs) - 1, ARAD_PP_VRF_ID_OUT_OF_RANGE_ERR, 10, exit);
+  ARAD_PP_STRUCT_VERIFY(ARAD_PP_FRWRD_IPV6_VPN_ROUTE_KEY, route_key, 20, exit);
+
+  ARAD_PP_DO_NOTHING_AND_EXIT;
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_frwrd_ipv6_vrf_route_get_verify()", vrf_ndx, 0);
+}
+
+/*********************************************************************
+*     Gets the routing table of a virtual router (VRF).
+ *     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  arad_pp_frwrd_ipv6_vrf_route_get_block_unsafe(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  ARAD_PP_VRF_ID                         vrf_ndx,
+    SOC_SAND_INOUT ARAD_PP_IP_ROUTING_TABLE_RANGE       *block_range_key,
+    SOC_SAND_OUT ARAD_PP_FRWRD_IPV6_VPN_ROUTE_KEY       *route_keys,
+    SOC_SAND_OUT ARAD_PP_FRWRD_DECISION_INFO            *route_infos,
+    SOC_SAND_OUT ARAD_PP_FRWRD_IP_ROUTE_STATUS          *routes_status,
+    SOC_SAND_OUT ARAD_PP_FRWRD_IP_ROUTE_LOCATION        *routes_location,
+    SOC_SAND_OUT uint32                                 *nof_entries
+  )
+{
+  uint32
+    res = SOC_SAND_OK,
+    indx;
+  ARAD_PP_IP_TCAM_ENTRY_KEY
+    *keys = NULL;
+  ARAD_TCAM_ACTION
+    *actions = NULL;
+  ARAD_PP_LEM_ACCESS_PAYLOAD
+    payload;
+  uint32                    
+    payload_data[ARAD_PP_LEM_ACCESS_PAYLOAD_NOF_UINT32S] = {0};
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_VRF_ROUTE_GET_BLOCK_UNSAFE);
+
+  SOC_SAND_CHECK_NULL_INPUT(block_range_key);
+  SOC_SAND_CHECK_NULL_INPUT(route_keys);
+  SOC_SAND_CHECK_NULL_INPUT(route_infos);
+  SOC_SAND_CHECK_NULL_INPUT(nof_entries);
+
+  if(block_range_key->entries_to_act == 0)
+  {
+    *nof_entries = 0;
+    goto exit;
+  }
+
+#if defined(INCLUDE_KBP) && !defined(BCM_88030)
+  if(ARAD_KBP_ENABLE_IPV6_UC || ARAD_KBP_ENABLE_IPV6_EXTENDED) 
+  {
+      res = arad_pp_frwrd_ipv6_kbp_route_get_block_unsafe(
+                unit,
+                ARAD_KBP_FRWRD_TBL_ID_IPV6_UC_RPF_0,
+                vrf_ndx,
+                block_range_key,
+                route_keys,
+                NULL,
+                route_infos,
+                NULL,
+                routes_status,
+                routes_location,
+                nof_entries
+              );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+  } else if (JER_KAPS_ENABLE(unit)) {
+      res = arad_pp_frwrd_ipv6_kaps_dbal_route_get_block(
+                unit,
+                SOC_DPP_DBAL_SW_TABLE_ID_IPV6UC_KAPS,
+                vrf_ndx,
+                block_range_key,
+                route_keys,
+                NULL,
+                route_infos,
+                NULL,
+                routes_status,
+                routes_location,
+                nof_entries
+              );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 30, exit);
+  } else
+#endif /* defined(INCLUDE_KBP) && !defined(BCM_88030) */
+  {
+      ARAD_ALLOC_ANY_SIZE(keys,ARAD_PP_IP_TCAM_ENTRY_KEY,block_range_key->entries_to_act,"keys frwrd_ipv6_vrf_route_get_block");
+      ARAD_ALLOC_ANY_SIZE(actions,ARAD_TCAM_ACTION,block_range_key->entries_to_act,"actions frwrd_ipv6_vrf_route_get_block");
+
+      for(indx = 0; indx < block_range_key->entries_to_act; ++indx)
+      {
+        keys[indx].type = ARAD_IP_TCAM_ENTRY_TYPE_IPV6_VPN;
+        keys[indx].key.ipv6_vpn = route_keys[indx];
+        keys[indx].vrf_ndx = vrf_ndx;
+      }
+
+      res = arad_pp_frwrd_ip_tcam_route_get_block_unsafe(
+               unit,
+               block_range_key,
+               keys,
+               actions,
+               nof_entries
+             );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 60, exit);
+
+      for(indx = 0; indx < *nof_entries; ++indx)
+      {
+        route_keys[indx] = keys[indx].key.ipv6_vpn;
+
+        /* convert action to FEC pointer */
+        /* FEC + OutLif action is similar to LEM payload, only without 2 MSBs (40 bits) */
+        ARAD_PP_FRWRD_DECISION_INFO_clear(&(route_infos[indx]));
+        ARAD_PP_LEM_ACCESS_PAYLOAD_clear(&payload);
+
+        payload_data[0] = actions[indx].value[0];
+        payload_data[1] = (actions[indx].value[1] & 0xff);
+
+        res = arad_pp_lem_access_payload_parse(
+              unit,
+              ARAD_PP_LEM_ENTRY_TYPE_UNKNOWN,
+              payload_data,
+              &payload);
+        SOC_SAND_CHECK_FUNC_RESULT(res, 47, exit);
+
+        res = arad_pp_fwd_decision_in_buffer_parse(
+              unit,
+              ARAD_PP_FRWRD_DECISION_APPLICATION_TYPE_DFLT,
+              payload.dest,
+              payload.asd,
+              ARAD_PP_FWD_DECISION_PARSE_LEGACY | ARAD_PP_FWD_DECISION_PARSE_DEST,
+              &(route_infos[indx])
+          );
+        SOC_SAND_CHECK_FUNC_RESULT(res, 5, exit);
+
+        if(routes_location)
+        {
+          routes_location[indx] = ARAD_PP_FRWRD_IP_ROUTE_LOCATION_TCAM;
+        }
+        if(routes_status)
+        {
+          routes_status[indx] = ARAD_PP_FRWRD_IP_ROUTE_STATUS_COMMITED;
+        }
+      }
+  }
+exit:
+  if(keys != NULL)
+  {
+    soc_sand_os_free(keys);
+  }
+  if(actions != NULL)
+  {
+    soc_sand_os_free(actions);
+  }
+
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_frwrd_ipv6_vrf_route_get_block_unsafe()", 0, 0);
+}
+
+uint32
+  arad_pp_frwrd_ipv6_vrf_route_get_block_verify(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  ARAD_PP_VRF_ID                         vrf_ndx,
+    SOC_SAND_INOUT ARAD_PP_IP_ROUTING_TABLE_RANGE       *block_range_key
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_VRF_ROUTE_GET_BLOCK_VERIFY);
+
+  SOC_SAND_ERR_IF_OUT_OF_RANGE(vrf_ndx, ARAD_PP_VRF_ID_MIN, SOC_DPP_DEFS_GET(unit, nof_vrfs) - 1, ARAD_PP_VRF_ID_OUT_OF_RANGE_ERR, 10, exit);
+  ARAD_PP_STRUCT_VERIFY(ARAD_PP_IP_ROUTING_TABLE_RANGE, block_range_key, 20, exit);
+
+  ARAD_PP_DO_NOTHING_AND_EXIT;
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_frwrd_ipv6_vrf_route_get_block_verify()", vrf_ndx, 0);
+}
+
+/*********************************************************************
+*     Remove IPv6 route entry from the routing table of a
+ *     virtual router (VRF).
+ *     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  arad_pp_frwrd_ipv6_vrf_route_remove_unsafe(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  ARAD_PP_VRF_ID                         vrf_ndx,
+    SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_VPN_ROUTE_KEY       *route_key,
+    SOC_SAND_OUT SOC_SAND_SUCCESS_FAILURE               *success
+  )
+{
+  uint32
+    res;
+  ARAD_PP_IP_TCAM_ENTRY_KEY
+    key;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_VRF_ROUTE_REMOVE_UNSAFE);
+  SOC_SAND_CHECK_DRIVER_AND_DEVICE;
+
+  SOC_SAND_CHECK_NULL_INPUT(route_key);
+  
+#if defined(INCLUDE_KBP) && !defined(BCM_88030)
+  if(ARAD_KBP_ENABLE_IPV6_UC || ARAD_KBP_ENABLE_IPV6_EXTENDED) 
+  {
+      res = arad_pp_frwrd_ipv6_uc_or_vpn_kbp_route_remove(
+                unit,
+                vrf_ndx,
+                &(route_key->subnet));
+      SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit); 
+      *success = SOC_SAND_SUCCESS;
+  }
+  else if (JER_KAPS_ENABLE(unit))
+  {
+      res = arad_pp_frwrd_ipv6_uc_or_vpn_kaps_dbal_route_remove(
+                unit,
+                vrf_ndx,
+                &(route_key->subnet));
+      SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit); 
+      *success = SOC_SAND_SUCCESS;
+  }
+  else 
+#endif
+  {
+      key.type = ARAD_IP_TCAM_ENTRY_TYPE_IPV6_VPN;
+      key.key.ipv6_vpn = *route_key;
+      key.vrf_ndx = vrf_ndx;
+      res = arad_pp_frwrd_ip_tcam_route_remove_unsafe(
+              unit,
+              &key
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 60, exit);
+      *success = SOC_SAND_SUCCESS;
+  }
+  
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in arad_pp_ipv6_vrf_route_remove_unsafe()",0,0);
+}
+
+uint32
+  arad_pp_frwrd_ipv6_vrf_route_remove_verify(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  ARAD_PP_VRF_ID                         vrf_ndx,
+    SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_VPN_ROUTE_KEY       *route_key
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_VRF_ROUTE_REMOVE_VERIFY);
+
+  SOC_SAND_ERR_IF_OUT_OF_RANGE(vrf_ndx, ARAD_PP_VRF_ID_MIN, SOC_DPP_DEFS_GET(unit, nof_vrfs) - 1, ARAD_PP_VRF_ID_OUT_OF_RANGE_ERR, 10, exit);
+  ARAD_PP_STRUCT_VERIFY(ARAD_PP_FRWRD_IPV6_VPN_ROUTE_KEY, route_key, 20, exit);
+
+  ARAD_PP_DO_NOTHING_AND_EXIT;
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_frwrd_ipv6_vrf_route_remove_verify()", vrf_ndx, 0);
+}
+
+/*********************************************************************
+*     Clear IPv6 routing table of VRF
+ *     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  arad_pp_frwrd_ipv6_vrf_routing_table_clear_unsafe(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  ARAD_PP_VRF_ID                         vrf_ndx
+  )
+{
+  uint32
+    res;
+  ARAD_PP_IP_TCAM_ENTRY_KEY
+    key;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_VRF_ROUTING_TABLE_CLEAR_UNSAFE);
+  SOC_SAND_CHECK_DRIVER_AND_DEVICE;
+
+#if defined(INCLUDE_KBP) && !defined(BCM_88030)
+  /* Check if Exteral Lookup device is used */
+  if(ARAD_KBP_ENABLE_IPV6_UC || ARAD_KBP_ENABLE_IPV6_EXTENDED) 
+  {
+      res = arad_pp_frwrd_ipv6_uc_kbp_table_clear(
+                unit
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+  }
+  else if (JER_KAPS_ENABLE(unit))
+  {
+      res = arad_pp_dbal_table_clear(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV6UC_KAPS);
+      SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit); 
+  }
+  else
+#endif
+  {
+      key.type = ARAD_IP_TCAM_ENTRY_TYPE_IPV6_VPN;
+      key.vrf_ndx = vrf_ndx;
+
+      res = arad_pp_frwrd_ip_tcam_routing_table_clear_unsafe(
+              unit,
+              &key,
+              FALSE
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 60, exit);
+  }
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in arad_pp_ipv6_vrf_route_clear_unsafe()",0,0);
+}
+
+uint32
+  arad_pp_frwrd_ipv6_vrf_routing_table_clear_verify(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  ARAD_PP_VRF_ID                         vrf_ndx
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_VRF_ROUTING_TABLE_CLEAR_VERIFY);
+
+  SOC_SAND_ERR_IF_OUT_OF_RANGE(vrf_ndx, ARAD_PP_VRF_ID_MIN, SOC_DPP_DEFS_GET(unit, nof_vrfs) - 1, ARAD_PP_VRF_ID_OUT_OF_RANGE_ERR, 10, exit);
+
+  ARAD_PP_DO_NOTHING_AND_EXIT;
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_frwrd_ipv6_vrf_routing_table_clear_verify()", vrf_ndx, 0);
+}
+
+/*********************************************************************
+*     Clear IPv6 routing tables for all VRFs.
+ *     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  arad_pp_frwrd_ipv6_vrf_all_routing_tables_clear_unsafe(
+    SOC_SAND_IN  int                                 unit
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+  ARAD_PP_IP_TCAM_ENTRY_KEY
+    key;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_VRF_ALL_ROUTING_TABLES_CLEAR_UNSAFE);
+
+#if defined(INCLUDE_KBP) && !defined(BCM_88030)
+  /* Check if Exteral Lookup device is used */
+  if(ARAD_KBP_ENABLE_IPV6_UC || ARAD_KBP_ENABLE_IPV6_EXTENDED) 
+  {
+      res = arad_pp_frwrd_ipv6_uc_kbp_table_clear(
+                unit
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+  }
+  else if (JER_KAPS_ENABLE(unit))
+  {
+      res = arad_pp_dbal_table_clear(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV6UC_KAPS);
+      SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit); 
+  }
+  else
+#endif
+  {
+      key.type = ARAD_IP_TCAM_ENTRY_TYPE_IPV6_VPN;
+
+      res = arad_pp_frwrd_ip_tcam_routing_table_clear_unsafe(
+              unit,
+              &key,
+              TRUE
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+  }
+  
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_frwrd_ipv6_vrf_all_routing_tables_clear_unsafe()", 0, 0);
+}
+
+uint32
+  arad_pp_frwrd_ipv6_vrf_all_routing_tables_clear_verify(
+    SOC_SAND_IN  int                                 unit
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_FRWRD_IPV6_VRF_ALL_ROUTING_TABLES_CLEAR_VERIFY);
+
+  ARAD_PP_DO_NOTHING_AND_EXIT;
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_frwrd_ipv6_vrf_all_routing_tables_clear_verify()", 0, 0);
+}
+
+/*********************************************************************
+*     Get the pointer to the list of procedures of the
+ *     arad_pp_api_frwrd_ipv6 module.
+ *     Details: in the H file. (search for prototype)
+*********************************************************************/
+CONST SOC_PROCEDURE_DESC_ELEMENT*
+  arad_pp_frwrd_ipv6_get_procs_ptr(void)
+{
+  return Arad_pp_procedure_desc_element_frwrd_ipv6;
+}
+/*********************************************************************
+*     Get the pointer to the list of errors of the
+ *     arad_pp_api_frwrd_ipv6 module.
+ *     Details: in the H file. (search for prototype)
+*********************************************************************/
+CONST SOC_ERROR_DESC_ELEMENT*
+  arad_pp_frwrd_ipv6_get_errs_ptr(void)
+{
+  return Arad_pp_error_desc_element_frwrd_ipv6;
+}
+
+uint32
+  ARAD_PP_FRWRD_IPV6_ROUTER_DEFAULT_ACTION_VAL_verify(
+    SOC_SAND_IN  int                                          unit,
+    SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_ROUTER_DEFAULT_ACTION_VAL *info
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+  SOC_SAND_CHECK_NULL_INPUT(info);
+
+  SOC_SAND_ERR_IF_ABOVE_NOF(info->fec_id, SOC_DPP_DEFS_GET(unit, nof_fecs), ARAD_PP_FEC_ID_OUT_OF_RANGE_ERR, 10, exit);
+  ARAD_PP_STRUCT_VERIFY(ARAD_PP_ACTION_PROFILE, &(info->action_profile), 11, exit);
+
+  SOC_SAND_MAGIC_NUM_VERIFY(info);
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in ARAD_PP_FRWRD_IPV6_ROUTER_DEFAULT_ACTION_VAL_verify()",0,0);
+}
+
+uint32
+  ARAD_PP_FRWRD_IPV6_ROUTER_DEFAULT_ACTION_verify(
+    SOC_SAND_IN  int                                      unit,
+    SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_ROUTER_DEFAULT_ACTION *info
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+  SOC_SAND_CHECK_NULL_INPUT(info);
+
+  SOC_SAND_ERR_IF_ABOVE_MAX(info->type, ARAD_PP_FRWRD_IPV6_TYPE_MAX, ARAD_PP_FRWRD_IPV6_TYPE_OUT_OF_RANGE_ERR, 10, exit);
+  res = ARAD_PP_FRWRD_IPV6_ROUTER_DEFAULT_ACTION_VAL_verify(unit, &(info->value));
+  SOC_SAND_CHECK_FUNC_RESULT(res, 11, exit);
+
+  SOC_SAND_MAGIC_NUM_VERIFY(info);
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in ARAD_PP_FRWRD_IPV6_ROUTER_DEFAULT_ACTION_verify()",0,0);
+}
+
+uint32
+  ARAD_PP_FRWRD_IPV6_ROUTER_INFO_verify(
+    SOC_SAND_IN  int                            unit,
+    SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_ROUTER_INFO *info
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+  SOC_SAND_CHECK_NULL_INPUT(info);
+
+  res = ARAD_PP_FRWRD_IPV6_ROUTER_DEFAULT_ACTION_verify(unit, &(info->uc_default_action));
+  SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+  res = ARAD_PP_FRWRD_IPV6_ROUTER_DEFAULT_ACTION_verify(unit, &(info->mc_default_action));
+  SOC_SAND_CHECK_FUNC_RESULT(res, 11, exit);
+
+  SOC_SAND_MAGIC_NUM_VERIFY(info);
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in ARAD_PP_FRWRD_IPV6_ROUTER_INFO_verify()",0,0);
+}
+
+uint32
+  ARAD_PP_FRWRD_IPV6_GLBL_INFO_verify(
+    SOC_SAND_IN  int                          unit,
+    SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_GLBL_INFO *info
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+  SOC_SAND_CHECK_NULL_INPUT(info);
+
+  res = ARAD_PP_FRWRD_IPV6_ROUTER_INFO_verify(unit, &(info->router_info));
+  SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+
+  SOC_SAND_MAGIC_NUM_VERIFY(info);
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in ARAD_PP_FRWRD_IPV6_GLBL_INFO_verify()",0,0);
+}
+
+uint32
+  ARAD_PP_FRWRD_IPV6_VRF_INFO_verify(
+    SOC_SAND_IN  int                          unit,
+    SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_VRF_INFO *info
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+  SOC_SAND_CHECK_NULL_INPUT(info);
+
+  res = ARAD_PP_FRWRD_IPV6_ROUTER_INFO_verify(unit, &(info->router_info));
+  SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+
+  SOC_SAND_MAGIC_NUM_VERIFY(info);
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in ARAD_PP_FRWRD_IPV6_VRF_INFO_verify()",0,0);
+}
+
+uint32
+  ARAD_PP_FRWRD_IPV6_UC_ROUTE_KEY_verify(
+    SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_UC_ROUTE_KEY *info
+  )
+{
+  SOC_SAND_INIT_ERROR_DEFINITIONS_NO_DEVID(0);
+  SOC_SAND_CHECK_NULL_INPUT(info);
+
+  
+
+  SOC_SAND_MAGIC_NUM_VERIFY(info);
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in ARAD_PP_FRWRD_IPV6_UC_ROUTE_KEY_verify()",0,0);
+}
+
+uint32
+  ARAD_PP_FRWRD_IPV6_MC_ROUTE_KEY_verify(
+      SOC_SAND_IN  int                                 unit,
+      SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_MC_ROUTE_KEY *info
+  )
+{
+  SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+  SOC_SAND_CHECK_NULL_INPUT(info);
+
+  
+  if (info->source.prefix_len) {
+#if defined(INCLUDE_KBP) && !defined(BCM_88030)
+      if(ARAD_KBP_ENABLE_IPV6_MC) 
+      {
+          /* Allow non-zero Source-IP addresses */
+      }
+      else 
+#endif
+      {
+          SOC_SAND_SET_ERROR_CODE(ARAD_PP_FRWRD_IPV4_MC_ILLEGAL_DEST_TYPE_ERR,10,exit);
+      }
+  }
+
+  SOC_SAND_MAGIC_NUM_VERIFY(info);
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in ARAD_PP_FRWRD_IPV6_MC_ROUTE_KEY_verify()",0,0);
+}
+
+uint32
+  ARAD_PP_FRWRD_IPV6_VPN_ROUTE_KEY_verify(
+    SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_VPN_ROUTE_KEY *info
+  )
+{
+  SOC_SAND_INIT_ERROR_DEFINITIONS_NO_DEVID(0);
+  SOC_SAND_CHECK_NULL_INPUT(info);
+
+  
+
+  SOC_SAND_MAGIC_NUM_VERIFY(info);
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in ARAD_PP_FRWRD_IPV6_VPN_ROUTE_KEY_verify()",0,0);
+}
+
+uint32
+  ARAD_PP_FRWRD_IPV6_MC_ROUTE_INFO_verify(
+    SOC_SAND_IN int                               unit,
+    SOC_SAND_IN  ARAD_PP_FRWRD_IPV6_MC_ROUTE_INFO *info
+  )
+{
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+  SOC_SAND_CHECK_NULL_INPUT(info);
+
+  if (info->dest_id.dest_type != SOC_SAND_PP_DEST_MULTICAST && info->dest_id.dest_type != SOC_SAND_PP_DEST_FEC)
+  {
+    SOC_SAND_SET_ERROR_CODE(ARAD_PP_FRWRD_IPV4_MC_ILLEGAL_DEST_TYPE_ERR,10,exit);
+  }
+  if (info->dest_id.dest_type == SOC_SAND_PP_DEST_FEC)
+  {
+    SOC_SAND_ERR_IF_ABOVE_NOF(info->dest_id.dest_val, SOC_DPP_DEFS_GET(unit, nof_fecs), ARAD_PP_FEC_ID_OUT_OF_RANGE_ERR, 20, exit);
+  }
+  if (info->dest_id.dest_type == SOC_SAND_PP_DEST_MULTICAST)
+  {
+    SOC_SAND_ERR_IF_ABOVE_MAX(info->dest_id.dest_val, ARAD_MULT_NOF_MULTICAST_GROUPS-1,ARAD_MULT_MC_ID_OUT_OF_RANGE_ERR,30,exit);
+  }
+
+  SOC_SAND_MAGIC_NUM_VERIFY(info);
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in ARAD_PP_FRWRD_IPV6_MC_ROUTE_INFO_verify()",0,0);
+}
+
+/* } */
+
+#include <soc/dpp/SAND/Utils/sand_footer.h>
+
+#endif /* of #if defined(BCM_88650_A0) */
+
+
+
