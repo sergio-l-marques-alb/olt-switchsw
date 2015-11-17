@@ -1,0 +1,400 @@
+/* $Id: jer_pp_mymac.c,v 1.29 Broadcom SDK $
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+*/
+
+#ifdef _ERR_MSG_MODULE_NAME
+  #error "_ERR_MSG_MODULE_NAME redefined"
+#endif
+
+#define _ERR_MSG_MODULE_NAME BSL_SOC_L3
+
+
+/*************
+ * INCLUDES  *
+ *************/
+/* { */
+#include <shared/bsl.h>
+#include <soc/dcmn/error.h>
+#include <soc/dpp/SAND/Utils/sand_header.h>
+#include <soc/dpp/PPC/ppc_api_mymac.h>
+
+#include <soc/mcm/memregs.h>
+#include <soc/mcm/memacc.h>
+#include <soc/mem.h>
+
+/* } */
+/*************
+ * DEFINES   *
+ *************/
+/* { */
+
+#define JER_PP_VRID_TO_IP_VERSION_PROTOCOL_MASK    (3)
+#define JER_PP_VRID_TO_IP_VERSION_MASK_NOF_BITS    (2)
+#define JER_PP_VRID_TO_IP_VERSION_LOWEST_INDEX     (16)
+#define JER_PP_VRID_TO_IP_VERSION_HIGHEST_INDEX    (30)
+
+/* } */
+/*************
+ * MACROS    *
+ *************/
+/* { */
+
+/* Creates a mask for the bits that represent the protocol at the given index shift. */
+#define JER_PP_VRID_TO_IP_VERSION_PROTOCOL_MASK_CREATE(_index_shift) \
+            (JER_PP_VRID_TO_IP_VERSION_PROTOCOL_MASK << (_index_shift))
+
+/* Traverses over all protocols of the vrid_to_ip_version register. A block should be placed after this macro. */
+#define JER_PP_VRID_TO_IP_VERSION_TRAVERSE(_index_shift)                                       \
+    for (_index_shift = JER_PP_VRID_TO_IP_VERSION_LOWEST_INDEX ;                               \
+                _index_shift <= JER_PP_VRID_TO_IP_VERSION_HIGHEST_INDEX ;                      \
+                            _index_shift += JER_PP_VRID_TO_IP_VERSION_MASK_NOF_BITS)  
+
+/* Returns TRUE if the protocol at index shift is in the given group. */
+#define JER_PP_VRID_TO_IP_VERSION_INDEX_IS_IN_GROUP(_reg_val, _index_shift, _group)                  \
+            (JER_PP_VRID_TO_IP_VERSION_GET_GROUP_BY_INDEX((_reg_val), (_index_shift)) == (_group))
+
+/* Returns the group to which the protocol at index shift belongs. */
+#define JER_PP_VRID_TO_IP_VERSION_GET_GROUP_BY_INDEX(_reg_val, _index_shift)                           \
+            ((_reg_val & JER_PP_VRID_TO_IP_VERSION_PROTOCOL_MASK_CREATE(_index_shift)) >> _index_shift)
+
+/* Resets protocol at index shift back to group 0. */
+#define JER_PP_VRID_TO_IP_VERSION_RESET_PROTOCOL(_reg_val, _index_shift)                      \
+            ((_reg_val) &= ~JER_PP_VRID_TO_IP_VERSION_PROTOCOL_MASK_CREATE(_index_shift));
+
+/* Translates the index shift of vrid_to_ip_version register to the parsed_l2_next_protocol it represents. */
+#define MYMAC_VRID_TO_IP_VERSION_INDEX_TO_PARSED_L2_NEXT_PROTOCOL(_index_shift) \
+            ((_index_shift) / JER_PP_VRID_TO_IP_VERSION_MASK_NOF_BITS)
+
+/* If the index shift is divisable by the number of bits, it's a legal index shift. */
+#define MYMAC_VRID_TO_IP_VERSION_INDEX_TO_PROTOCOL_FLAG(_index_shift) \
+    ((_index_shift % JER_PP_VRID_TO_IP_VERSION_MASK_NOF_BITS == 0) ?    \
+    SOC_PPC_PARSED_L2_NEXT_PROTOCOL_TO_L3_PROTOCOL_FLAG(MYMAC_VRID_TO_IP_VERSION_INDEX_TO_PARSED_L2_NEXT_PROTOCOL(_index_shift))    \
+    :0)
+
+/* } */
+/*************
+ * TYPE DEFS *
+ *************/
+/* { */
+
+/* } */
+/*************
+ * GLOBALS   *
+ *************/
+/* { */
+
+/* } */
+/*************
+ * FUNCTIONS *
+ *************/
+/* { */
+
+
+/*********************************************************************
+* NAME:
+ *   soc_jer_mymac_protocol_group_set
+ * TYPE:
+ *   PROC
+ * FUNCTION:
+ *   Given a set of l3 protocols and a group id, clears all members of the group (assigns them to group 0) and assigns the protocols to the
+ *   selected group id.
+ * INPUT:
+ *   int            unit        - (IN) Identifier of the device to access.
+ *   uint32         protocols   - (IN) Flags of the protocols to be assigned to the group (SOC_PPC_L3_VRRP_PROTOCOL_GROUP_...)
+ *   uint8          group       - (IN) Group id of the group to which the protocols will be assigned.
+ * REMARKS:
+ *   Note that an empty protocol group will just empty the group.
+ * RETURNS:
+ *   SOC_E_PARAM If group_id > NOF_PROTOCOL_GROUPS
+ *   SOC_E_***   If there was a problem reading / writing the register
+ *   SOC_E_NONE  Otherwise.
+*********************************************************************/
+soc_error_t 
+soc_jer_mymac_protocol_group_set(int unit, uint32 protocols, uint32 group){
+    int rv;
+    uint32 reg_val;
+    int index_shift;
+    SOCDNX_INIT_FUNC_DEFS;
+
+    /* Validate input */
+    if (group >= SOC_PPC_L3_NOF_PROTOCOL_GROUPS(unit)) {
+        SOCDNX_EXIT_WITH_ERR(SOC_E_PARAM, (_BSL_SOCDNX_MSG("Given protocol group too high")));
+    }
+
+    /* Read the register */
+    rv = READ_IHP_MAP_VRID_TO_IP_VERSIONr(unit, SOC_CORE_ALL, &reg_val);
+    SOCDNX_IF_ERR_EXIT(rv);
+    
+    /* For each legal protocol, if it's in the group, set it to 0. Then, if it should be in the group, add it. */
+    JER_PP_VRID_TO_IP_VERSION_TRAVERSE(index_shift) {
+
+        /* If this protocol is in the set, remove it */
+        if (JER_PP_VRID_TO_IP_VERSION_INDEX_IS_IN_GROUP(reg_val, index_shift, group)) {
+            JER_PP_VRID_TO_IP_VERSION_RESET_PROTOCOL(reg_val, index_shift);
+        }
+
+        /* If this protocol should be in the set, reset it, then add it. */
+        if (MYMAC_VRID_TO_IP_VERSION_INDEX_TO_PROTOCOL_FLAG(index_shift) & protocols) {
+            JER_PP_VRID_TO_IP_VERSION_RESET_PROTOCOL(reg_val, index_shift);
+            reg_val |= group << index_shift;
+        }
+    }
+
+    /* Write the modified register. */
+    rv = WRITE_IHP_MAP_VRID_TO_IP_VERSIONr(unit, SOC_CORE_ALL, reg_val);
+    SOCDNX_IF_ERR_EXIT(rv);
+
+    SOC_EXIT;
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+
+/*********************************************************************
+* NAME:
+ *   soc_jer_mymac_protocol_group_get_protocol_by_group
+ * TYPE:
+ *   PROC
+ * FUNCTION:
+ *   Given a group id, returns all protocols assigned to this group.
+ * INPUT:
+ *   int            unit        - (IN) Identifier of the device to access.
+ *   uint8          group       - (IN) Group id of the group to which the protocols are assigned.
+ *   uint32         protocols   - (OUT) Flags of the protocols assigned to the group (SOC_PPC_L3_VRRP_PROTOCOL_GROUP_...)
+ * REMARKS:
+ *   This function is not actually in use, since the data can be obtained from the SW DB. 
+ * RETURNS:
+ *   SOC_E_PARAM If group_id > NOF_PROTOCOL_GROUPS
+ *   SOC_E_***   If there was a problem reading the register
+ *   SOC_E_NONE  Otherwise.
+*********************************************************************/
+soc_error_t 
+soc_jer_mymac_protocol_group_get_protocol_by_group(int unit, uint32 group, uint32 *protocols){
+    int rv;
+    uint32 reg_val;
+    int index_shift;
+    SOCDNX_INIT_FUNC_DEFS;
+
+    /* Validate input */
+    if (group >= SOC_PPC_L3_NOF_PROTOCOL_GROUPS(unit)) {
+        SOCDNX_EXIT_WITH_ERR(SOC_E_PARAM, (_BSL_SOCDNX_MSG("Given protocol group too high")));
+    }
+
+    SOCDNX_NULL_CHECK(protocols);
+
+
+    /* Read the register */
+    rv = READ_IHP_MAP_VRID_TO_IP_VERSIONr(unit, SOC_CORE_ALL, &reg_val);
+    SOCDNX_IF_ERR_EXIT(rv);
+
+
+    /* Traverse the protocols. If they're in the set, return them. */
+    JER_PP_VRID_TO_IP_VERSION_TRAVERSE(index_shift) {
+
+        /* If this protocol is in the set, add it to the return value */
+        if (JER_PP_VRID_TO_IP_VERSION_INDEX_IS_IN_GROUP(reg_val, index_shift, group)) {
+            *protocols |= MYMAC_VRID_TO_IP_VERSION_INDEX_TO_PROTOCOL_FLAG(index_shift);
+        }
+    }
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+/*********************************************************************
+* NAME:
+ *   soc_jer_mymac_protocol_group_get_group_by_protocols
+ * TYPE:
+ *   PROC
+ * FUNCTION:
+ *   Given a list of protocols, returns the group to which the protocols are assigned.
+ * INPUT:
+ *   int            unit        - (IN) Identifier of the device to access.
+ *   uint32         protocols   - (IN) Flags of the protocols whose group is inquired. (SOC_PPC_L3_VRRP_PROTOCOL_GROUP_...)
+ *   uint8          group       - (OUT) Group id of the group to which the protocols are assigned.
+ * REMARKS:
+ *   This function is not actually in use, since the data can be obtained from the SW DB. 
+ *   
+ * RETURNS:
+ *   SOC_E_PARAM            If no protocols were given
+ *   SOC_E_NOT_FOUND        If the prtocols are in more than one group
+ *   SOC_E_***              If there was a problem reading the register
+ *   SOC_E_NONE             Otherwise.
+*********************************************************************/
+soc_error_t 
+soc_jer_mymac_protocol_group_get_group_by_protocols(int unit, uint32 protocols, uint32 *group){
+    int rv;
+    uint32 reg_val;
+    uint32 curr_group;
+    int index_shift;
+    SOCDNX_INIT_FUNC_DEFS;
+
+    /* Validate input */
+    if (protocols == 0) {
+        SOCDNX_EXIT_WITH_ERR(SOC_E_PARAM, (_BSL_SOCDNX_MSG("No protocols given")));
+    }
+
+    SOCDNX_NULL_CHECK(group);
+
+
+    /* Read the register */
+    rv = READ_IHP_MAP_VRID_TO_IP_VERSIONr(unit, SOC_CORE_ALL, &reg_val);
+    SOCDNX_IF_ERR_EXIT(rv);
+
+    /* Reset protocol group */
+    *group = SOC_PPC_L3_VRRP_PROTOCOL_GROUP_INVALID;
+
+    /* Traverse the protocols. When encountering a protocol, save its group. If two protocols are in different groups, return error. */
+    JER_PP_VRID_TO_IP_VERSION_TRAVERSE(index_shift) {
+
+        /* If this is a requested protocol, test it */
+        if (MYMAC_VRID_TO_IP_VERSION_INDEX_TO_PROTOCOL_FLAG(index_shift) & protocols) {
+            curr_group = JER_PP_VRID_TO_IP_VERSION_GET_GROUP_BY_INDEX(reg_val,index_shift);
+
+            /* If a group has already been found (*group is not invalid) then make sure it's the same group.
+               If a group hasn't been found, save it.*/
+            if (*group < SOC_PPC_L3_NOF_PROTOCOL_GROUPS(unit) && curr_group != *group) {
+                SOCDNX_EXIT_WITH_ERR(SOC_E_NOT_FOUND, (_BSL_SOCDNX_MSG("Given protocols are in more than one group")));
+            } else {
+                *group = curr_group;
+            }
+        }
+    }
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+/*********************************************************************
+* NAME:
+ *   soc_jer_mymac_vrrp_tcam_info_set
+ * TYPE:
+ *   PROC
+ * FUNCTION:
+ *   Given a tcam index, and a key built of mac address, mac address mask, protocol group and protocol group mask,
+ *   Fills table with the key in the relevant index.
+ * INPUT:
+ *   int                    unit                        - (IN) Identifier of the device to access.
+ *  SOC_PPC_VRRP_CAM_INFO*  info                        - (IN)
+ *                              -mac_addr               - (IN) Mac address for the entry.
+ *                              -mac_mask               - (IN) Mac mask for the entry.
+ *                              -protocol_group         - (IN) Protocol group for the entry.
+ *                              -protocol_group_mask    - (IN) Protocol group mask for the entry.
+ *                              -vrrp_cam_index         - (IN) Index of the entry.
+ * REMARKS:
+ *     
+ * RETURNS:
+ *   SOC_E_***              If there was a problem reading the register
+ *   SOC_E_NONE             Otherwise.
+*********************************************************************/
+soc_error_t
+soc_jer_mymac_vrrp_tcam_info_set(int unit, SOC_PPC_VRRP_CAM_INFO *info){
+    int rv;
+    uint32
+      mac_in_longs[SOC_SAND_PP_MAC_ADDRESS_NOF_UINT32S] = {0},
+      data[4] = {0},
+      entry_offset = info->vrrp_cam_index;
+    SOCDNX_INIT_FUNC_DEFS;
+
+    SOCDNX_NULL_CHECK(info);
+
+    /* Write the key (mac address and protocol group). */
+    rv = soc_sand_pp_mac_address_struct_to_long(&info->mac_addr, mac_in_longs);
+    SOCDNX_IF_ERR_EXIT(rv);
+
+    soc_IHP_VRID_MY_MAC_TCAMm_field_set(unit, data, DAf, mac_in_longs);
+    soc_IHP_VRID_MY_MAC_TCAMm_field32_set(unit, data, IP_VERSIONf, info->protocol_group);
+
+    /* Write the key mask. */
+    rv = soc_sand_pp_mac_address_struct_to_long(&info->mac_mask, mac_in_longs);
+    SOCDNX_IF_ERR_EXIT(rv);
+
+    soc_IHP_VRID_MY_MAC_TCAMm_field_set(unit, data, DA_MASKf, mac_in_longs);
+    soc_IHP_VRID_MY_MAC_TCAMm_field32_set(unit, data, IP_VERSION_MASKf, info->protocol_group); 
+
+    /* Set entry to valid */
+    soc_IHP_VRID_MY_MAC_TCAMm_field32_set(unit, data, VALIDf, 1);      
+
+    /* Write the register. */
+    rv = WRITE_IHP_VRID_MY_MAC_TCAMm(unit, MEM_BLOCK_ANY, entry_offset, data);
+    SOCDNX_IF_ERR_EXIT(rv);
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+/*********************************************************************
+* NAME:
+ *   soc_jer_mymac_vrrp_tcam_info_delete
+ * TYPE:
+ *   PROC
+ * FUNCTION:
+ *   Given a tcam index, deletes the entry from the table. 
+ * INPUT:
+ *   int                    unit                   - (IN) Identifier of the device to access.
+ *   uint8                  vrrp_cam_index         - (IN) Index of the entry.
+ * REMARKS:
+ *     
+ * RETURNS:
+ *   SOC_E_***              If there was a problem reading the register
+ *   SOC_E_NONE             Otherwise.
+*********************************************************************/
+soc_error_t
+soc_jer_mymac_vrrp_tcam_info_delete(int unit, uint8 cam_index){
+    int rv;
+    uint32
+      empty_data[4] = {0},
+      entry_offset = cam_index;
+    SOCDNX_INIT_FUNC_DEFS;
+
+    /* Write an empty register into the field */
+    rv = WRITE_IHP_VRID_MY_MAC_TCAMm(unit, MEM_BLOCK_ANY, entry_offset, empty_data);
+    SOCDNX_IF_ERR_EXIT(rv);
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+
+/* } */
+

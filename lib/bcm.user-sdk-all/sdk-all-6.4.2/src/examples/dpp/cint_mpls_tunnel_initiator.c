@@ -1,0 +1,764 @@
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~MPLS LSR~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+
+/* $Id$
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ *
+ * File: cint_mpls_tunnel_initator.c
+ * Purpose: Example of different paths using the mpls tunnel initator.
+ * 
+ * Explanation:
+ *    For incoming packet, the Ethernet header is terminated.
+ *    Labels are swapped and forwarded to egress port with new label/labels and Ethernet encapsulations.
+ *
+ * Calling Sequence:
+ *     Port TPIDs setting
+ *         Assuming default TPID setting, that is, all ports configured with TPID 0x8100.
+ *     Create MPLS L3 interface.
+ *         Set interface with my-MAC 00:00:00:00:00:11 and VID 200. 
+ *         Packet tunneled/routed to this L3 interface will be set with this MAC. 
+ *         Calls bcm_l3_intf_create().
+ *     Create MPLS Tunnel initator objects.
+ *         Set MPLS tunnels on MPLS L3 interface. 
+ *         Calls mpls_tunnel_initiator_run_with_defaults(). 
+ *     Create egress object points to the above MPLS tunnel interface.
+ *         Packet routed to this egress-object will be forwarded to egress port and encapsulated tunnel and 
+ *          with Ethernet Header.
+ *             DA: next-hop-DA.
+ *             SA/VID: according to interface definition.
+ *         Calls bcm_l3_egress_create().
+ *    Add ILM (ingress label mapping) entry (refer to mpls_add_switch_entry).
+ *         Maps incoming label (5000) to egress label (8000) and points to egress object created above.
+ *         Flags.
+ *             BCM_MPLS_SWITCH_OUTER_TTL|BCM_MPLS_SWITCH_OUTER_EXP: both have to be present or     
+ *              absent; indicates Pipe/uniform models.
+ *             BCM_MPLS_SWITCH_TTL_DECREMENT has to be present.
+ *             BCM_MPLS_SWITCH_ACTION_SWAP: for LSR functionality.
+ *         Calls bcm_mpls_tunnel_switch_add().
+ *
+ * To Activate Above Settings Run:
+ *      BCM> cint cint_qos.c
+ *      BCM> cint cint_mpls_lsr.c
+ *      BCM> cint cint_mpls_tunnel_initator.c 
+ *      BCM> cint
+ *      cint> int rv;
+ *      cint> rv = mpls_tunnel_initator_run_with_defaults(unit, second_unit, outP);
+ * 
+ *
+ * Remarks:  
+ *     (To run a two-device system call with second_unit >= 0.) Two device systems are currently not supported
+ *  
+ * Script adjustment:
+ *  You can adjust the following attributes of the application: 
+ *    tunnel_label1:   MPLS label A
+ *    tunnel_label2:   MPLS labels B
+ *    num_tunnel_label2:  number of MPLS labels B
+ *    tunnel_label3:   MPLS label C
+ *  
+ */
+struct mpls_tunnel_initiator_info_s {
+    
+    /* egress -attributes */
+    int tunnel_label1; /* egress label A */
+    int tunnel_label1_id;
+
+    int tunnel_label2[4]; /* egress labels B<1,2,3,4> that could point to A */
+    int tunnel_label2_ids[4];
+    int num_tunnel_label2;
+
+    int tunnel_label3; /* egress labels C that could point to (B1,A) */
+    int tunnel_label3_id;    
+};
+
+mpls_tunnel_initiator_info_s mpls_tunnel_initiator_info_1;
+
+int mpls_tunnel_initiator_ttl = 20;
+
+int is_arad_plus(int unit, int *yesno)
+{
+    bcm_info_t info;
+
+    int rv = bcm_info_get(unit, &info);
+    if (rv != BCM_E_NONE) {
+        printf("Error in bcm_info_get\n");
+        print rv;
+        return rv;
+    }
+
+    *yesno = (((info.device == 0x8660) || (info.device == 0x8670)) ? 1 : 0);
+
+    return rv;
+}
+
+void
+mpls_tunnel_initiator_init(int tunnel_label1, int* tunnel_label2, int num_tunnel_label2, int tunnel_label3) {
+
+    int index = 0;
+    mpls_tunnel_initiator_info_1.tunnel_label1 = tunnel_label1;
+    mpls_tunnel_initiator_info_1.tunnel_label1_id = 0;
+
+    if (num_tunnel_label2 > 4) {
+      printf("number of tunnels that are defined for label2 are at most 4 in this cint\n",num_tunnel_label2);
+      num_tunnel_label2 = 4;
+    }
+
+    for (index = 0; index < num_tunnel_label2; index++) {
+      mpls_tunnel_initiator_info_1.tunnel_label2[index] = tunnel_label2[index];
+      mpls_tunnel_initiator_info_1.tunnel_label2_ids[index] = 0;
+    }
+    mpls_tunnel_initiator_info_1.num_tunnel_label2 = num_tunnel_label2;
+
+    mpls_tunnel_initiator_info_1.tunnel_label3 = tunnel_label3;
+    mpls_tunnel_initiator_info_1.tunnel_label3_id = 0;
+    
+}
+
+/* 
+ *  Configuration to set WITH_ID on tunnel IDs.
+ *  Assumed mpls_tunnel_initiator_init being called first
+ */
+void
+mpls_tunnel_initiator_init_with_id(int tunnel_label1_id, int* tunnel_label2_id, int tunnel_label3_id) {
+    int index = 0;
+    mpls_tunnel_initiator_info_1.tunnel_label1_id = tunnel_label1_id;
+
+    for (index = 0; index < mpls_tunnel_initiator_info_1.num_tunnel_label2; index++) {      
+      mpls_tunnel_initiator_info_1.tunnel_label2_ids[index] = tunnel_label2_id[index];
+    }
+    mpls_tunnel_initiator_info_1.tunnel_label3_id = tunnel_label3_id;
+    
+}
+
+
+/* set tunnel over this l3 interface, so packet forwarded to this interface will be tunneled.
+   Update L3 interface accordingly */
+/* Example of Pipe model */
+int 
+create_tunnel_initiator(int unit, int* outgoing_intf) {
+    bcm_mpls_egress_label_t label_array[4];
+    int num_labels, tunnel_A, tunnelA_index, tunnelB_index, tunnelC_index, index;
+    int rv;
+    int ttl = 20;
+    int is_arad_plus;
+
+    rv = is_arad_plus(unit, &is_arad_plus);
+    if (rv < 0) {
+        printf("Error checking whether the device is arad+.\n");
+        print rv;
+        return rv;
+    }
+
+    for (index = 0; index < 4; index++) {
+        bcm_mpls_egress_label_t_init(&label_array[index]);
+    }
+    
+    /* 
+     * Tunnel initator application is decided upon number of B labels
+     * In case no B labels (num_tunnel_label2=0), just create one tunnel (A). 
+     * In case one B label (num_tunnel_label2=1), create a bind tunnels (to reserve space) (B,A) 
+     * In case more than one B labels (num_tunnel_label2 > 1), create one tunnel (A), and several tunnels B such that B1=>A, B2=>A, B3=>A.. 
+     */
+    tunnelA_index = (mpls_tunnel_initiator_info_1.num_tunnel_label2 != 1) ? 0:1;
+    
+    /* Tunnel A */
+    label_array[tunnelA_index].exp = exp; 
+    label_array[tunnelA_index].flags = (BCM_MPLS_EGRESS_LABEL_TTL_SET|BCM_MPLS_EGRESS_LABEL_TTL_DECREMENT);  
+    if (!is_arad_plus || pipe_mode_exp_set) {
+        label_array[tunnelA_index].flags |= BCM_MPLS_EGRESS_LABEL_EXP_SET;
+    } else {
+        label_array[tunnelA_index].flags |= BCM_MPLS_EGRESS_LABEL_EXP_COPY;
+    }
+    label_array[tunnelA_index].label = mpls_tunnel_initiator_info_1.tunnel_label1;
+    label_array[tunnelA_index].ttl = ttl++;
+    label_array[tunnelA_index].tunnel_id = mpls_tunnel_initiator_info_1.tunnel_label1_id;
+    label_array[tunnelA_index].l3_intf_id = *outgoing_intf; /* Point to L3 interface MPLS */
+    num_labels = 1;
+
+    /* Tunnel B is in bind entry with tunnel A only if number of tunnels that points to A is one */
+    if (mpls_tunnel_initiator_info_1.num_tunnel_label2 == 1) {
+        tunnelB_index = 0;
+        label_array[tunnelB_index].exp = exp; 
+        label_array[tunnelB_index].flags = (BCM_MPLS_EGRESS_LABEL_TTL_SET|BCM_MPLS_EGRESS_LABEL_TTL_DECREMENT);  
+        if (!is_arad_plus || pipe_mode_exp_set) {
+            label_array[tunnelB_index].flags |= BCM_MPLS_EGRESS_LABEL_EXP_SET;
+        } else {
+            label_array[tunnelB_index].flags |= BCM_MPLS_EGRESS_LABEL_EXP_COPY;
+        }
+        label_array[tunnelB_index].label = mpls_tunnel_initiator_info_1.tunnel_label2[0];
+        label_array[tunnelB_index].tunnel_id = mpls_tunnel_initiator_info_1.tunnel_label2_ids[0];
+        label_array[tunnelB_index].ttl = ttl++;
+        num_labels = 2;
+    }
+
+    rv = bcm_mpls_tunnel_initiator_create(unit,0,num_labels,label_array);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in bcm_mpls_tunnel_initiator_create\n");
+        return rv;
+    }
+
+    *outgoing_intf = label_array[0].tunnel_id; /* updated outgoing intf to be tunnel interface */
+
+    /* In case there is more than one tunnel B that points to A, then create tunnel initiator for each such B */
+    if (mpls_tunnel_initiator_info_1.num_tunnel_label2 > 1) {
+        tunnel_A = *outgoing_intf;
+        for (index = 0; index < mpls_tunnel_initiator_info_1.num_tunnel_label2; index++) {
+            tunnelB_index = 0;
+            bcm_mpls_egress_label_t_init(&label_array[tunnelB_index]);
+            label_array[tunnelB_index].exp = exp; 
+            label_array[tunnelB_index].flags = (BCM_MPLS_EGRESS_LABEL_TTL_SET|BCM_MPLS_EGRESS_LABEL_TTL_DECREMENT);  
+            if (!is_arad_plus || pipe_mode_exp_set) {
+                label_array[tunnelB_index].flags |= BCM_MPLS_EGRESS_LABEL_EXP_SET;
+            } else {
+                label_array[tunnelB_index].flags |= BCM_MPLS_EGRESS_LABEL_EXP_COPY;
+            }
+
+            label_array[tunnelB_index].label = mpls_tunnel_initiator_info_1.tunnel_label2[index];
+            label_array[tunnelB_index].ttl = ttl++;
+            label_array[tunnelB_index].tunnel_id = mpls_tunnel_initiator_info_1.tunnel_label2_ids[index];
+            label_array[tunnelB_index].l3_intf_id = tunnel_A; /* Point to Tunnel A */
+            num_labels = 1;
+
+            rv = bcm_mpls_tunnel_initiator_create(unit,0,num_labels,label_array);
+            if (rv != BCM_E_NONE) {
+                printf("Error, in bcm_mpls_tunnel_initiator_create\n");
+                return rv;
+            }
+
+            outgoing_intf[index] = label_array[0].tunnel_id; /* updated outgoing intf to be last defined tunnel B interface */
+        }
+    }
+
+    /* Extend example. Also have C or C,D  */
+    if (mpls_tunnel_initiator_info_1.tunnel_label3 != 0) {
+    
+        /* In case there is C or C,D tunnels create also tunnel initiator for them */
+        /* only used when (B,A) are bind toughter */
+        if (mpls_tunnel_initiator_info_1.num_tunnel_label2 > 1 && mpls_tunnel_initiator_info_1.tunnel_label3 != 0) {
+            printf("Cant set more 3 entries of tunnels");
+            return BCM_E_PARAM;
+        }
+
+
+        tunnelC_index = 0;
+
+        if (mpls_tunnel_initiator_info_1.tunnel_label3 != 0) { /* C */
+            bcm_mpls_egress_label_t_init(&label_array[tunnelC_index]);
+            label_array[tunnelC_index].exp = exp; 
+            label_array[tunnelC_index].flags = (BCM_MPLS_EGRESS_LABEL_TTL_SET|BCM_MPLS_EGRESS_LABEL_TTL_DECREMENT);  
+            if (!is_arad_plus || pipe_mode_exp_set) {
+                label_array[tunnelC_index].flags |= BCM_MPLS_EGRESS_LABEL_EXP_SET;
+            } else {
+                label_array[tunnelC_index].flags |= BCM_MPLS_EGRESS_LABEL_EXP_COPY;
+            }
+            label_array[tunnelC_index].label = mpls_tunnel_initiator_info_1.tunnel_label3;
+            label_array[tunnelC_index].ttl = ttl++;
+            label_array[tunnelC_index].tunnel_id = mpls_tunnel_initiator_info_1.tunnel_label3_id;
+            label_array[tunnelC_index].l3_intf_id = *outgoing_intf; /* Point to Tunnel B */
+            num_labels = 1;
+        }
+        
+        rv = bcm_mpls_tunnel_initiator_create(unit,0,num_labels,label_array);
+        if (rv != BCM_E_NONE) {
+            printf("Error, in bcm_mpls_tunnel_initiator_create\n");
+            return rv;
+        }
+
+        *outgoing_intf = label_array[0].tunnel_id;
+    }
+
+    return rv;
+}
+
+
+/* to run a two-device system call with second_unit >= 0 */
+int
+mpls_tunnel_initiator_config(int unit, int second_unit){
+
+    int CINT_NO_FLAGS = 0;
+    int ingress_intf[4];
+    int egress_intf;
+    int encap_id;
+    int rv;
+    int num_labels;
+    bcm_pbmp_t pbmp;
+    int index, number_of_lsrs;
+
+    number_of_lsrs = (mpls_tunnel_initiator_info_1.num_tunnel_label2 > 1) ? mpls_tunnel_initiator_info_1.num_tunnel_label2:1;
+
+    /* Incoming L2 settings */
+    BCM_PBMP_CLEAR(pbmp);
+    BCM_PBMP_PORT_ADD(pbmp, mpls_lsr_info_1.in_port);
+        
+    rv = bcm_vlan_destroy(unit,mpls_lsr_info_1.in_vid);
+    rv = bcm_vlan_create(unit,mpls_lsr_info_1.in_vid);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in bcm_vlan_create\n");
+        return rv;
+    }
+    rv = bcm_vlan_port_add(unit, mpls_lsr_info_1.in_vid, pbmp, pbmp);
+    if (BCM_FAILURE(rv)) {
+        printf("BCM FAIL %d: %s\n", rv, bcm_errmsg(rv));
+        return CMD_FAIL;
+    }
+
+    /* Outgoing L2 settings */
+    if (second_unit >= 0)
+    {
+        rv = bcm_vlan_create(second_unit,mpls_lsr_info_1.eg_vid);
+        if (rv != BCM_E_NONE) {
+            printf("Error, in bcm_vlan_create\n");
+            return rv;
+        }
+        
+        BCM_PBMP_CLEAR(pbmp);
+        BCM_PBMP_PORT_ADD(pbmp, BCM_GPORT_MODPORT_PORT_GET(mpls_lsr_info_1.eg_port));
+        
+        rv = bcm_vlan_port_add(second_unit, mpls_lsr_info_1.eg_vid, pbmp, pbmp);
+        if (BCM_FAILURE(rv)) {
+            printf("BCM FAIL %d: %s\n", rv, bcm_errmsg(rv));
+            return CMD_FAIL;
+        }
+    } else {
+        rv = bcm_vlan_create(unit,mpls_lsr_info_1.eg_vid);
+        if (rv != BCM_E_NONE) {
+            printf("Error, in bcm_vlan_create\n");
+            return rv;
+        }
+        BCM_PBMP_CLEAR(pbmp);
+        BCM_PBMP_PORT_ADD(pbmp, mpls_lsr_info_1.eg_port);  
+        
+        rv = bcm_vlan_port_add(unit, mpls_lsr_info_1.eg_vid, pbmp, pbmp);
+        if (BCM_FAILURE(rv)) {
+            printf("BCM FAIL %d: %s\n", rv, bcm_errmsg(rv));
+            return CMD_FAIL;
+        }
+    }
+ 
+    /* L3 interface for incoming mpls rounting */
+    rv = create_l3_intf(unit, CINT_NO_FLAGS, mpls_lsr_info_1.in_port, mpls_lsr_info_1.in_vid, mpls_lsr_info_1.my_mac, ingress_intf);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in create_l3_intf\n");
+        return rv;
+    }
+     
+    /* L3 interface for outgoing mpls routing */
+    if (second_unit >= 0) {
+        rv = create_l3_intf(second_unit, CINT_NO_FLAGS, mpls_lsr_info_1.eg_port, mpls_lsr_info_1.eg_vid, mpls_lsr_info_1.my_mac, ingress_intf);
+        if (rv != BCM_E_NONE) {
+            printf("Error, in create_l3_intf\n");
+            return rv;
+        }
+    } else {
+        rv = create_l3_intf(unit, CINT_NO_FLAGS, mpls_lsr_info_1.eg_port, mpls_lsr_info_1.eg_vid, mpls_lsr_info_1.my_mac, ingress_intf);
+        if (rv != BCM_E_NONE) {
+           printf("Error, in create_l3_intf\n");
+           return rv;
+        }
+    }
+
+    /* Egress Tunnel initator settings */
+    if (second_unit >= 0) {
+        rv = create_tunnel_initiator(second_unit, ingress_intf);
+        if (rv != BCM_E_NONE) {
+           printf("Error, in create_tunnel_initiator\n");
+           return rv;
+        }
+    } else {
+        rv = create_tunnel_initiator(unit, ingress_intf);
+        if (rv != BCM_E_NONE) {
+           printf("Error, in create_tunnel_initiator\n");
+           return rv;
+        }
+    }
+
+    for (index = 0; index < number_of_lsrs; index++) {
+      /* Egress object settings */
+      if (second_unit >= 0) {
+          /* set Flag to indicate not to allocate or update FEC entry */
+          flags |= BCM_L3_EGRESS_ONLY;
+          rv = create_l3_egress(second_unit, 0, mpls_lsr_info_1.eg_port, mpls_lsr_info_1.eg_vid, ingress_intf[index], mpls_lsr_info_1.next_hop_mac, egress_intf, &encap_id);
+          if (rv != BCM_E_NONE) {
+              printf("Error, in create_l3_egress\n");
+              return rv;
+          }
+      }
+
+      /* Allocate number of Egress objects (FEC) according to Number of Outgoing Tunnels */
+      rv = create_l3_egress(unit,0,mpls_lsr_info_1.eg_port, mpls_lsr_info_1.eg_vid, ingress_intf[index], mpls_lsr_info_1.next_hop_mac, egress_intf, &encap_id); 
+      if (rv != BCM_E_NONE) {
+          printf("Error, create egress object\n");
+          return rv;
+      }
+     
+      /* add switch entry to perform LSR */
+      /* swap, in-label, with egress label, and point to egress object */
+      rv = mpls_add_switch_entry(unit,mpls_lsr_info_1.in_label++, mpls_lsr_info_1.eg_label++, egress_intf);
+      if (rv != BCM_E_NONE) {
+          printf("Error, in mpls_add_switch_entry\n");
+          return rv;
+      }     
+    }
+    
+    return rv;
+}
+
+int
+mpls_tunnel_initiator_run_with_defaults_aux(int unit, int second_unit, int in_port, int out_port, int pipe_mode_exp, int expected){
+
+    pipe_mode_exp_set = pipe_mode_exp;
+
+    exp = expected;
+
+    return mpls_tunnel_initiator_run_with_defaults(unit,second_unit,in_port,out_port);
+}
+
+/* 
+ *  Default Example, Set MPLS LSR to Outgoing Tunnels B (1001) ,A (1000)
+ *  Send Packet:
+ *  DA = {0x00, 0x00, 0x00, 0x00, 0x00, 0x33}
+ *  VID = 200 
+ *  MPLS label 6000
+ *  Expected Packet:
+ *  DA = {0x00, 0x00, 0x00, 0x00, 0x00, 0x44}
+ *  SA = {0x00, 0x00, 0x00, 0x00, 0x00, 0x33}
+ *  MPLS label 9000, MPLS label 1001, MPLS label 1000
+ */
+int
+mpls_tunnel_initiator_run_with_defaults(int unit, int second_unit, int in_port, int out_port){
+    int tunnel_label2[1] = {1001};
+    int rv = BCM_E_NONE;  
+
+    rv = mpls_pipe_mode_exp_set(unit);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in mpls_pipe_mode_exp_set\n");
+        return rv;
+    }
+
+    mpls_lsr_init(in_port, out_port, 0x33, 0x44, 6000, 9000, 200,400,0);
+    mpls_tunnel_initiator_init(1000, tunnel_label2, 1, 0);
+    return mpls_tunnel_initiator_config(unit,second_unit);
+}
+
+/* Example of Multiple Tunnels B. In this example we have two tunnel Bs (1001,1002) that point to tunnel A (1000)
+ * We create here two swap labels where first swap points out to Tunnel B1, and second swap points to tunnel B2
+ * 
+ *  Send Packet 1:
+ *  DA = {0x00, 0x00, 0x00, 0x00, 0x00, 0x33}
+ *  VID = 200 
+ *  MPLS label 6000
+ *  Expected Packet:
+ *  DA = {0x00, 0x00, 0x00, 0x00, 0x00, 0x44}
+ *  SA = {0x00, 0x00, 0x00, 0x00, 0x00, 0x33}
+ *  MPLS label 9000, MPLS label 1001, MPLS label 1000
+ *  
+ *  Send Packet 2:
+ *  DA = {0x00, 0x00, 0x00, 0x00, 0x00, 0x33}
+ *  VID = 200 
+ *  MPLS label 6001
+ *  Expected Packet 2:
+ *  DA = {0x00, 0x00, 0x00, 0x00, 0x00, 0x44}
+ *  SA = {0x00, 0x00, 0x00, 0x00, 0x00, 0x33}
+ *  MPLS label 9001, MPLS label 1002, MPLS label 1000
+ */
+int
+mpls_tunnel_initiator_example_of_multiple_B(int unit, int second_unit, int in_port, int out_port){
+    int tunnel_label2[2] = {1001,1002};  
+    int rv;
+
+    rv = mpls_pipe_mode_exp_set(unit);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in mpls_pipe_mode_exp_set\n");
+        return rv;
+    }
+
+    mpls_lsr_init(in_port, out_port, 0x33, 0x44, 6000, 9000, 200,400,0);
+    mpls_tunnel_initiator_init(1000, tunnel_label2, 2, 0);
+    rv = mpls_tunnel_initiator_config(unit,second_unit);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in mpls_tunnel_initiator_config\n");
+        return rv;
+    }
+
+    return rv;
+}
+
+/* Example of Multiple Tunnels B. In this example we have two tunnel Bs (1010,1020) that point to tunnel A (1005) */
+/* We create here two swap labels where first swap points out to Tunnel B1, and second swap points to tunnel B2*/
+int
+mpls_tunnel_initiator_example_of_multiple_B_with_ID(int unit, int second_unit, int in_port, int out_port){
+    int tunnel_label2[2] = {1001,1002};  
+    int tunnel_label2_ids[2] = {12288, 12290};
+    int tunnel_label1_id = 8192;
+    int rv;
+
+    rv = mpls_pipe_mode_exp_set(unit);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in mpls_pipe_mode_exp_set\n");
+        return rv;
+    }
+
+    mpls_lsr_init(in_port, out_port, 0x33, 0x44, 6000, 9000, 200,400,0);
+    mpls_tunnel_initiator_init(1000, tunnel_label2, 2, 0);
+    mpls_tunnel_initiator_init_with_id(tunnel_label1_id, tunnel_label2_ids, 0);
+    rv = mpls_tunnel_initiator_config(unit,second_unit);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in mpls_tunnel_initiator_config\n");
+        return rv;
+    }
+
+    return rv;
+}
+
+/* Runs mpls_tunnel_switch_push_example. In case we wish to perform egress tunnel push,
+   we should pass an eedb index to mpls_tunnel_switch_push_example (this is the allocated egress tunnel)
+   In this case, we pass an eedb index that is extracted from cint_vswitch_cross_connect_p2p.c */
+int run_tunnel_switch_push_example(int unit, int second_unit, int in_port, int out_port, int is_ingress_push){
+
+    int rv = BCM_E_NONE, eedb_index = 0;
+
+    if (!is_ingress_push) {
+        eedb_index = get_vswitch_p2p_encap_id();
+        printf("eedb_index : %d\n\n", eedb_index);
+    }
+
+    rv = mpls_tunnel_switch_push_example(unit, second_unit, in_port, out_port, is_ingress_push, eedb_index);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in mpls_tunnel_switch_push_example\n");
+        return rv;
+    }
+
+
+    return rv;
+}
+
+/* 
+ * Example of MPLS tunnel action from the Tunnel Switch LSR. 
+ * push can be performed either in: 
+ * 1) ingress (set is_ingress_push = 1). In this case, tunnel switch will result with action PUSH.
+ * or : 
+ * 2) egress (set is_ingress_push = 0 and pass an eedb_index according to which the label entry will be allocated). 
+ * In this case,  tunnel switch will result with action NOP. PUSH will be done in egress.
+ * If PUSH action is done at the ingress we don't use additional resources of label from EEDB. 
+ * Traffic example: 
+ * Send traffic from incoming port 
+ * ETH: DA 0x33 
+ * MPLS: Incoming Label 6123 
+ * Capture from the outoging port 
+ * ETH: DA 0x44, SA 0x33
+ * MPLS: Labels: 
+ * Label 1: 6123 TTL not decrement, 
+ * Label 2: 7000 EXP 2 TTL 20
+ */
+int
+mpls_tunnel_switch_push_example(int unit, int second_unit, int in_port, int out_port, int is_ingress_push, int eedb_index) {
+    int CINT_NO_FLAGS = 0;
+    int ingress_intf;
+    int egress_intf;
+    int encap_id;
+    int rv;
+    int num_labels;
+    bcm_pbmp_t pbmp;
+
+    rv = mpls_pipe_mode_exp_set(unit);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in mpls_pipe_mode_exp_set\n");
+        return rv;
+    }
+
+    mpls_lsr_init(in_port, out_port, 0x33, 0x44, 6123, 7000, 300,500,0);    
+    
+    /* Incoming L2 settings */
+    BCM_PBMP_CLEAR(pbmp);
+    BCM_PBMP_PORT_ADD(pbmp, mpls_lsr_info_1.in_port);
+        
+    rv = bcm_vlan_destroy(unit,mpls_lsr_info_1.in_vid);
+    rv = bcm_vlan_create(unit,mpls_lsr_info_1.in_vid);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in bcm_vlan_create\n");
+        return rv;
+    }
+    rv = bcm_vlan_port_add(unit, mpls_lsr_info_1.in_vid, pbmp, pbmp);
+    if (BCM_FAILURE(rv)) {
+        printf("BCM FAIL %d: %s\n", rv, bcm_errmsg(rv));
+        return CMD_FAIL;
+    }
+
+    /* Outgoing L2 settings */
+    if (second_unit >= 0)
+    {
+        rv = bcm_vlan_create(second_unit,mpls_lsr_info_1.eg_vid);
+        if (rv != BCM_E_NONE) {
+            printf("Error, in bcm_vlan_create\n");
+            return rv;
+        }
+        
+        BCM_PBMP_CLEAR(pbmp);
+        BCM_PBMP_PORT_ADD(pbmp, BCM_GPORT_MODPORT_PORT_GET(mpls_lsr_info_1.eg_port));
+        
+        rv = bcm_vlan_port_add(second_unit, mpls_lsr_info_1.eg_vid, pbmp, pbmp);
+        if (BCM_FAILURE(rv)) {
+            printf("BCM FAIL %d: %s\n", rv, bcm_errmsg(rv));
+            return CMD_FAIL;
+        }
+    } else {
+        rv = bcm_vlan_create(unit,mpls_lsr_info_1.eg_vid);
+        if (rv != BCM_E_NONE) {
+            printf("Error, in bcm_vlan_create\n");
+            return rv;
+        }
+        BCM_PBMP_CLEAR(pbmp);
+        BCM_PBMP_PORT_ADD(pbmp, mpls_lsr_info_1.eg_port);  
+        
+        rv = bcm_vlan_port_add(unit, mpls_lsr_info_1.eg_vid, pbmp, pbmp);
+        if (BCM_FAILURE(rv)) {
+            printf("BCM FAIL %d: %s\n", rv, bcm_errmsg(rv));
+            return CMD_FAIL;
+        }
+    }
+ 
+    /* L3 interface for incoming mpls rounting */
+    rv = create_l3_intf(unit, CINT_NO_FLAGS, mpls_lsr_info_1.in_port, mpls_lsr_info_1.in_vid, mpls_lsr_info_1.my_mac, ingress_intf);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in create_l3_intf\n");
+        return rv;
+    }
+     
+    /* L3 interface for outgoing mpls routing */
+    if (second_unit >= 0) {
+        rv = create_l3_intf(second_unit, CINT_NO_FLAGS, mpls_lsr_info_1.eg_port, mpls_lsr_info_1.eg_vid, mpls_lsr_info_1.my_mac, ingress_intf);
+        if (rv != BCM_E_NONE) {
+            printf("Error, in create_l3_intf\n");
+            return rv;
+        }
+    } else {
+        rv = create_l3_intf(unit, CINT_NO_FLAGS, mpls_lsr_info_1.eg_port, mpls_lsr_info_1.eg_vid, mpls_lsr_info_1.my_mac, ingress_intf);
+        if (rv != BCM_E_NONE) {
+           printf("Error, in create_l3_intf\n");
+           return rv;
+        }
+    }
+
+    /* Egress Tunnel PUSH settings */
+    /* Egress object settings */
+    if (second_unit >= 0) {
+          /* set Flag to indicate not to allocate or update FEC entry */
+          flags |= BCM_L3_EGRESS_ONLY;
+          rv = create_l3_egress(second_unit, 0, mpls_lsr_info_1.eg_port, mpls_lsr_info_1.eg_vid, ingress_intf, mpls_lsr_info_1.next_hop_mac, egress_intf, &encap_id);
+          if (rv != BCM_E_NONE) {
+              printf("Error, in create_l3_egress\n");
+              return rv;
+          }
+    }
+
+    /* In this case, we perform egress tunnel push, and convert the eedb index to encap format*/
+    if (!is_ingress_push) {
+        rv = mpls_egress_tunnel_config(unit, eedb_index, 7000, ingress_intf);
+        if (rv != BCM_E_NONE) {
+            printf("Error, in mpls_egress_tunnel_config\n");
+            return rv;
+        }
+        ingress_intf = eedb_index | (1<<30);
+    }
+    
+
+    /* Allocate Egress objects (FEC) */
+    rv = create_l3_egress(unit,0,mpls_lsr_info_1.eg_port, mpls_lsr_info_1.eg_vid, ingress_intf, mpls_lsr_info_1.next_hop_mac, egress_intf, &encap_id); 
+    if (rv != BCM_E_NONE) {
+        printf("Error, create egress object\n");
+        return rv;
+    }
+     
+    /* add switch entry to perform LSR */
+    /* PUSH, egress label, and point to egress object */
+    rv = mpls_add_switch_push_entry(unit,mpls_lsr_info_1.in_label, mpls_lsr_info_1.eg_label, egress_intf, is_ingress_push);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in mpls_add_switch_entry\n");
+        return rv;
+    }     
+    return rv;
+}
+
+int mpls_egress_tunnel_config(
+    int unit,
+    int encap_id ,
+    int received_label,
+    int ingress_intf){
+
+    int rv;
+    int is_arad_plus;
+    bcm_mpls_egress_label_t label_array[1];
+    
+    rv = is_arad_plus(unit, &is_arad_plus);
+    if (rv < 0) {
+        printf("Error checking whether the device is arad+.\n");
+        print rv;
+        return rv;
+    }
+   
+    bcm_mpls_egress_label_t_init(&label_array[0]);
+
+
+    label_array[0].exp = 0; /* Set it statically 0*/ 
+    label_array[0].flags = (BCM_MPLS_EGRESS_LABEL_TTL_SET|BCM_MPLS_EGRESS_LABEL_TTL_DECREMENT|BCM_MPLS_EGRESS_LABEL_WITH_ID);  
+
+    if (!is_arad_plus || pipe_mode_exp_set) {
+        label_array[0].flags |= BCM_MPLS_EGRESS_LABEL_EXP_SET;
+    } else {
+        label_array[0].flags |= BCM_MPLS_EGRESS_LABEL_EXP_COPY;
+    }
+    label_array[0].label = received_label;
+    label_array[0].ttl = mpls_tunnel_initiator_ttl;
+    label_array[0].tunnel_id = encap_id;
+    label_array[0].action = BCM_MPLS_EGRESS_ACTION_PUSH;
+    label_array[0].l3_intf_id = ingress_intf;  
+
+
+    rv = bcm_mpls_tunnel_initiator_create(unit,0,1,label_array);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in bcm_mpls_tunnel_initiator_create\n");
+        print rv;
+        return rv;
+    }
+
+  
+    return rv;
+}

@@ -1,0 +1,11128 @@
+/*
+ * $Id$
+ *
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ * 
+ * 
+ * 
+ * 
+ */
+
+
+#define REMOVE_UNTIL_COMPILE 0
+#define SW_DUMP_DISPLAY_NON_RETRIEVED_STATE 0
+
+#include <shared/bsl.h>
+
+
+#include <soc/defs.h>
+#include <sal/appl/io.h> 
+#include <bcm/error.h>
+#include <bcm/debug.h>
+
+#if defined BCM_ARAD_SUPPORT  && !(defined __KERNEL__)
+#include <appl/diag/dpp/sw_state_dump.h>
+
+
+#include <sal/appl/editline/editline.h>
+
+#include <appl/diag/dpp/bits_bytes_macros.h> 
+/* #include <appl/diag/dpp/bsp_drv_error_defs.h>                */
+/* #include <appl/diag/dpp/bsp_drv_flash28f.h>                  */
+/* #include <appl/diag/dpp/bsp_info_access.h>                   */
+/* #include <appl/diag/dpp/dune_chips.h>                        */
+/* #include <appl/diag/dpp/gsa_framework.h>                     */
+/* #include <appl/diag/dpp/ref_design_petra_starter.h>          */
+/* #include <appl/diag/dpp/ref_design_starter.h>                */
+/* #include <appl/diag/dpp/ref_sys.h>                           */
+/* #include <appl/diag/dpp/tasks_info.h>                        */ 
+/* #include <appl/diag/dpp/ui_defx.h>                           */
+/* #include <appl/diag/dpp/utils_arad_card.h>                   */
+/* #include <appl/diag/dpp/utils_char_queue.h>                  */
+/* #include <appl/diag/dpp/utils_defi.h>                        */
+/* #include <appl/diag/dpp/utils_defx.h>                        */
+/* #include <appl/diag/dpp/utils_dffs_cpu_mez.h>                */
+/* #include <appl/diag/dpp/utils_dune_fpga_download.h>          */
+/* #include <appl/diag/dpp/utils_error_defs.h>                  */
+/* #include <appl/diag/dpp/utils_front_end_host_card.h>         */
+/* #include <appl/diag/dpp/utils_host_board.h>                  */
+/* #include <appl/diag/dpp/utils_i2c_mem.h>                     */
+/* #include <appl/diag/dpp/utils_line_PTG.h>                    */
+/* #include <appl/diag/dpp/utils_line_gfa_bi.h>                 */
+/* #include <appl/diag/dpp/utils_line_gfa_petra.h>              */
+/* #include <appl/diag/dpp/utils_memory.h>                      */
+/* #include <appl/diag/dpp/utils_nvram_configuration.h>         */
+/* #include <appl/diag/dpp/utils_pure_defi.h>                   */
+/* #include <appl/diag/dpp/utils_string.h>                      */
+
+#include <soc/dpp/ARAD/arad_api_ingress_scheduler.h> 
+#include <soc/dpp/ARAD/arad_scheduler_elements.h> 
+
+#include <appl/dpp/interrupts/interrupt_handler.h> 
+#include <appl/dpp/interrupts/interrupt_handler_cb_func.h> 
+#include <appl/dpp/interrupts/interrupt_handler_corr_act_func.h> 
+
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_oam.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_port.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_ptp.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_rif.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_sw_db.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_trap_mgmt.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_vsi.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_oamp_pe.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_diag.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_eg_ac.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_eg_encap.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_eg_filter.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_eg_mirror.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_eg_qos.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_eg_vlan_edit.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_fp.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_framework.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_frwrd_bmact.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_frwrd_extend_p2p.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_frwrd_fcf.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_frwrd_fec.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_frwrd_ilm.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_frwrd_ipv4.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_frwrd_ipv6.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_frwrd_mact.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_frwrd_mact_mgmt.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_frwrd_trill.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_general.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_init.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_l3_src_bind.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_lag.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_lif.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_lif_cos.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_lif_ing_vlan_edit.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_lif_table.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_llp_cos.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_llp_filter.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_llp_mirror.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_llp_parse.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_llp_sa_auth.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_llp_trap.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_llp_vid_assign.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_metering.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_mgmt.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_mpls_term.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_mymac.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_oam.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_port.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_ptp.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_rif.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_trap_mgmt.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_vsi.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_array_memory_allocator.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_ce_instruction.h> 
+/* #include <soc/dpp/ARAD/ARAD_PP/arad_pp_chip_regs.h> */
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_diag.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_eg_ac.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_eg_encap.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_eg_encap_access.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_eg_filter.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_eg_mirror.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_eg_qos.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_eg_vlan_edit.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_esem_access.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_flp_init.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_fp.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_fp_fem.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_fp_key.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_framework.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_frwrd_bmact.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_frwrd_extend_p2p.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_frwrd_fcf.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_frwrd_fec.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_frwrd_ilm.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_frwrd_ip_tcam.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_frwrd_ipv4.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_frwrd_ipv4_lpm_mngr.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_frwrd_ipv4_test.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_frwrd_ipv6.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_frwrd_mact.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_frwrd_mact_mgmt.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_frwrd_trill.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_general.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_init.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_isem_access.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_l3_src_bind.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_lag.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_lem_access.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_lif.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_lif_cos.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_lif_ing_vlan_edit.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_lif_table.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_llp_cos.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_llp_filter.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_llp_mirror.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_llp_parse.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_llp_sa_auth.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_llp_trap.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_llp_vid_assign.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_metering.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_mgmt.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_mpls_term.h> 
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_mymac.h> 
+#include <soc/dpp/ARAD/arad_action_cmd.h> 
+#include <soc/dpp/ARAD/arad_api_action_cmd.h> 
+#include <soc/dpp/ARAD/arad_api_cnm.h> 
+#include <soc/dpp/ARAD/arad_api_cnt.h> 
+#include <soc/dpp/ARAD/arad_api_debug.h> 
+#include <soc/dpp/ARAD/arad_api_diagnostics.h> 
+#include <soc/dpp/ARAD/arad_api_dram.h> 
+#include <soc/dpp/ARAD/arad_api_egr_queuing.h> 
+#include <soc/dpp/ARAD/arad_api_end2end_scheduler.h> 
+#include <soc/dpp/ARAD/arad_api_fabric.h> 
+#include <soc/dpp/ARAD/arad_api_flow_control.h> 
+#include <soc/dpp/ARAD/arad_api_framework.h> 
+#include <soc/dpp/ARAD/arad_api_general.h> 
+#include <soc/dpp/ARAD/arad_api_ingress_packet_queuing.h> 
+#include <soc/dpp/ARAD/arad_api_ingress_traffic_mgmt.h> 
+#include <soc/dpp/ARAD/arad_api_mgmt.h> 
+#include <soc/dpp/ARAD/arad_api_multicast_fabric.h> 
+#include <soc/dpp/ARAD/arad_api_nif.h> 
+#include <soc/dpp/ARAD/arad_api_ofp_rates.h> 
+#include <soc/dpp/ARAD/arad_api_ports.h> 
+#include <soc/dpp/ARAD/arad_api_stat_if.h> 
+#include <soc/dpp/ARAD/arad_api_tdm.h> 
+#include <soc/dpp/ARAD/arad_cell.h> 
+#include <soc/dpp/ARAD/arad_chip_defines.h> 
+#include <soc/dpp/ARAD/arad_chip_regs.h> 
+#include <soc/dpp/ARAD/arad_chip_tbls.h> 
+#include <soc/dpp/ARAD/arad_cnm.h> 
+#include <soc/dpp/ARAD/arad_cnt.h> 
+#include <soc/dpp/ARAD/arad_debug.h> 
+#include <soc/dpp/ARAD/arad_defs.h> 
+#include <soc/dpp/ARAD/arad_diagnostics.h> 
+#include <soc/dpp/ARAD/arad_dram.h> 
+#include <soc/dpp/ARAD/arad_egr_prog_editor.h> 
+#include <soc/dpp/ARAD/arad_egr_queuing.h> 
+#include <soc/dpp/ARAD/arad_fabric.h> 
+#include <soc/dpp/ARAD/arad_fabric_cell.h> 
+#include <soc/dpp/ARAD/arad_flow_control.h> 
+#include <soc/dpp/ARAD/arad_framework.h> 
+#include <soc/dpp/ARAD/arad_general.h> 
+#include <soc/dpp/ARAD/arad_header_parsing_utils.h> 
+#include <soc/dpp/ARAD/arad_ingress_packet_queuing.h> 
+#include <soc/dpp/ARAD/arad_ingress_scheduler.h> 
+#include <soc/dpp/ARAD/arad_ingress_traffic_mgmt.h> 
+#include <soc/dpp/ARAD/arad_init.h> 
+#include <soc/dpp/ARAD/arad_interrupts.h> 
+/* #include <soc/dpp/ARAD/arad_kbp.h>       */
+/* #include <soc/dpp/ARAD/arad_kbp_rop.h>   */
+/* #include <soc/dpp/ARAD/arad_kbp_xpt.h>   */
+#include <soc/dpp/ARAD/arad_link.h> 
+#include <soc/dpp/ARAD/arad_mgmt.h> 
+#include <soc/dpp/ARAD/arad_multicast_fabric.h> 
+#include <soc/dpp/ARAD/arad_nif.h> 
+#include <soc/dpp/ARAD/arad_ofp_rates.h> 
+#include <soc/dpp/ARAD/arad_parser.h> 
+#include <soc/dpp/ARAD/arad_pmf_low_level.h> 
+#include <soc/dpp/ARAD/arad_pmf_low_level_ce.h> 
+#include <soc/dpp/ARAD/arad_pmf_low_level_db.h> 
+#include <soc/dpp/ARAD/arad_pmf_low_level_fem_tag.h> 
+#include <soc/dpp/ARAD/arad_pmf_low_level_pgm.h> 
+#include <soc/dpp/ARAD/arad_pmf_pgm_mgmt.h> 
+#include <soc/dpp/ARAD/arad_pmf_prog_select.h> 
+#include <soc/dpp/ARAD/arad_ports.h> 
+#include <soc/dpp/ARAD/arad_reg_access.h> 
+#include <soc/dpp/ARAD/arad_scheduler_device.h> 
+#include <soc/dpp/ARAD/arad_scheduler_element_converts.h> 
+#include <soc/dpp/ARAD/arad_scheduler_end2end.h> 
+#include <soc/dpp/ARAD/arad_scheduler_flow_converts.h> 
+#include <soc/dpp/ARAD/arad_scheduler_flows.h> 
+#include <soc/dpp/ARAD/arad_scheduler_ports.h> 
+#include <soc/dpp/ARAD/arad_serdes.h> 
+#include <soc/dpp/ARAD/arad_stat.h> 
+#include <soc/dpp/ARAD/arad_stat_if.h> 
+#include <soc/dpp/ARAD/arad_sw_db.h> 
+#include <soc/dpp/ARAD/arad_sw_db_tcam_mgmt.h> 
+#include <soc/dpp/ARAD/arad_tbl_access.h> 
+#include <soc/dpp/ARAD/arad_tcam.h> 
+#include <soc/dpp/ARAD/arad_tcam_key.h> 
+#include <soc/dpp/ARAD/arad_tcam_mgmt.h> 
+#include <soc/dpp/ARAD/arad_tdm.h> 
+#include <soc/dpp/ARAD/arad_wb_db.h> 
+#include <soc/dpp/cosq.h> 
+#include <soc/dpp/debug.h> 
+#include <soc/dpp/dpp_defs.h> 
+#include <soc/dpp/dpp_fabric_cell.h> 
+#include <soc/dpp/dpp_wb_engine.h> 
+#include <soc/dpp/drv.h> 
+#include <soc/dpp/fabric.h> 
+#include <soc/dpp/headers.h> 
+#include <soc/dpp/mbcm.h> 
+#include <soc/dpp/pkt.h> 
+#include <soc/dpp/port_map.h>
+#include <soc/dpp/soc_dpp_i2c.h> 
+#include <soc/dpp/soc_sw_db.h> 
+#include <soc/dpp/wb_db_hash_tbl.h> 
+#include <soc/dpp/ARAD/NIF/common_drv.h> 
+#include <soc/dpp/ARAD/NIF/ilkn_drv.h> 
+#include <soc/dpp/port_sw_db.h> 
+#include <soc/dpp/ARAD/NIF/ports_manager.h> 
+/* #include <soc/dpp/PCP/pcp_api_diagnostics.h>            */
+/* #include <soc/dpp/PCP/pcp_api_framework.h>              */
+/* #include <soc/dpp/PCP/pcp_api_frwrd_ilm.h>              */
+/* #include <soc/dpp/PCP/pcp_api_frwrd_ipv4.h>             */
+/* #include <soc/dpp/PCP/pcp_api_frwrd_mact.h>             */
+/* #include <soc/dpp/PCP/pcp_api_frwrd_mact_mgmt.h>        */
+/* #include <soc/dpp/PCP/pcp_api_mgmt.h>                   */
+/* #include <soc/dpp/PCP/pcp_api_statistics.h>             */
+/* #include <soc/dpp/PCP/pcp_api_tbl_access.h>             */
+/* #include <soc/dpp/PCP/pcp_array_memory_allocator.h>     */
+/* #include <soc/dpp/PCP/pcp_chip_defines.h>               */
+/* #include <soc/dpp/PCP/pcp_chip_regs.h>                  */
+/* #include <soc/dpp/PCP/pcp_chip_tbls.h>                  */
+/* #include <soc/dpp/PCP/pcp_diagnostics.h>                */
+/* #include <soc/dpp/PCP/pcp_framework.h>                  */
+/* #include <soc/dpp/PCP/pcp_frwrd_ilm.h>                  */
+/* #include <soc/dpp/PCP/pcp_frwrd_ipv4.h>                 */
+/* #include <soc/dpp/PCP/pcp_frwrd_ipv4_lpm_mngr.h>        */
+/* #include <soc/dpp/PCP/pcp_frwrd_ipv4_test.h>            */
+/* #include <soc/dpp/PCP/pcp_frwrd_mact.h>                 */
+/* #include <soc/dpp/PCP/pcp_frwrd_mact_mgmt.h>            */
+/* #include <soc/dpp/PCP/pcp_general.h>                    */
+/* #include <soc/dpp/PCP/pcp_init.h>                       */
+/* #include <soc/dpp/PCP/pcp_lem_access.h>                 */
+/* #include <soc/dpp/PCP/pcp_mgmt.h>                       */
+/* #include <soc/dpp/PCP/pcp_oam_api_bfd.h>                */
+/* #include <soc/dpp/PCP/pcp_oam_api_eth.h>                */
+/* #include <soc/dpp/PCP/pcp_oam_api_general.h>            */
+/* #include <soc/dpp/PCP/pcp_oam_api_mpls.h>               */
+/* #include <soc/dpp/PCP/pcp_oam_bfd.h>                    */
+/* #include <soc/dpp/PCP/pcp_oam_eth.h>                    */
+/* #include <soc/dpp/PCP/pcp_oam_general.h>                */
+/* #include <soc/dpp/PCP/pcp_oam_mpls.h>                   */
+/* #include <soc/dpp/PCP/pcp_reg_access.h>                 */
+/* #include <soc/dpp/PCP/pcp_statistics.h>                 */
+/* #include <soc/dpp/PCP/pcp_sw_db.h>                      */
+/* #include <soc/dpp/PCP/pcp_tbl_access.h>                 */
+#include <soc/dpp/PPC/ppc_api_acl.h> 
+#include <soc/dpp/PPC/ppc_api_counting.h> 
+#include <soc/dpp/PPC/ppc_api_diag.h> 
+#include <soc/dpp/PPC/ppc_api_eg_ac.h> 
+#include <soc/dpp/PPC/ppc_api_eg_encap.h> 
+#include <soc/dpp/PPC/ppc_api_eg_filter.h> 
+#include <soc/dpp/PPC/ppc_api_eg_mirror.h> 
+#include <soc/dpp/PPC/ppc_api_eg_qos.h> 
+#include <soc/dpp/PPC/ppc_api_eg_vlan_edit.h> 
+#include <soc/dpp/PPC/ppc_api_fp.h> 
+#include <soc/dpp/PPC/ppc_api_fp_egr.h> 
+#include <soc/dpp/PPC/ppc_api_fp_fem.h> 
+#include <soc/dpp/PPC/ppc_api_frwrd_bmact.h> 
+#include <soc/dpp/PPC/ppc_api_frwrd_extend_p2p.h> 
+#include <soc/dpp/PPC/ppc_api_frwrd_fcf.h> 
+#include <soc/dpp/PPC/ppc_api_frwrd_fec.h> 
+#include <soc/dpp/PPC/ppc_api_frwrd_ilm.h> 
+#include <soc/dpp/PPC/ppc_api_frwrd_ipv4.h> 
+#include <soc/dpp/PPC/ppc_api_frwrd_ipv6.h> 
+#include <soc/dpp/PPC/ppc_api_frwrd_mact.h> 
+#include <soc/dpp/PPC/ppc_api_frwrd_mact_mgmt.h> 
+#include <soc/dpp/PPC/ppc_api_frwrd_trill.h> 
+#include <soc/dpp/PPC/ppc_api_general.h> 
+#include <soc/dpp/PPC/ppc_api_l3_src_bind.h> 
+#include <soc/dpp/PPC/ppc_api_lag.h> 
+#include <soc/dpp/PPC/ppc_api_lif.h> 
+#include <soc/dpp/PPC/ppc_api_lif_cos.h> 
+#include <soc/dpp/PPC/ppc_api_lif_ing_vlan_edit.h> 
+#include <soc/dpp/PPC/ppc_api_lif_table.h> 
+#include <soc/dpp/PPC/ppc_api_llp_cos.h> 
+#include <soc/dpp/PPC/ppc_api_llp_filter.h> 
+#include <soc/dpp/PPC/ppc_api_llp_mirror.h> 
+#include <soc/dpp/PPC/ppc_api_llp_parse.h> 
+#include <soc/dpp/PPC/ppc_api_llp_sa_auth.h> 
+#include <soc/dpp/PPC/ppc_api_llp_trap.h> 
+#include <soc/dpp/PPC/ppc_api_llp_vid_assign.h> 
+#include <soc/dpp/PPC/ppc_api_metering.h> 
+#include <soc/dpp/PPC/ppc_api_mpls_term.h> 
+#include <soc/dpp/PPC/ppc_api_mymac.h> 
+#include <soc/dpp/PPC/ppc_api_oam.h> 
+#include <soc/dpp/PPC/ppc_api_port.h> 
+#include <soc/dpp/PPC/ppc_api_ptp.h> 
+#include <soc/dpp/PPC/ppc_api_rif.h> 
+#include <soc/dpp/PPC/ppc_api_trap_mgmt.h> 
+#include <soc/dpp/PPC/ppc_api_vsi.h> 
+#include <soc/dpp/PPD/ppd_api_acl.h> 
+#include <soc/dpp/PPD/ppd_api_counting.h> 
+#include <soc/dpp/PPD/ppd_api_diag.h> 
+#include <soc/dpp/PPD/ppd_api_eg_ac.h> 
+#include <soc/dpp/PPD/ppd_api_eg_encap.h> 
+#include <soc/dpp/PPD/ppd_api_eg_filter.h> 
+#include <soc/dpp/PPD/ppd_api_eg_mirror.h> 
+#include <soc/dpp/PPD/ppd_api_eg_qos.h> 
+#include <soc/dpp/PPD/ppd_api_eg_vlan_edit.h> 
+#include <soc/dpp/PPD/ppd_api_fp.h> 
+#include <soc/dpp/PPD/ppd_api_framework.h> 
+#include <soc/dpp/PPD/ppd_api_frwrd_bmact.h> 
+#include <soc/dpp/PPD/ppd_api_frwrd_extend_p2p.h> 
+#include <soc/dpp/PPD/ppd_api_frwrd_fcf.h> 
+#include <soc/dpp/PPD/ppd_api_frwrd_fec.h> 
+#include <soc/dpp/PPD/ppd_api_frwrd_ilm.h> 
+#include <soc/dpp/PPD/ppd_api_frwrd_ipv4.h> 
+#include <soc/dpp/PPD/ppd_api_frwrd_ipv6.h> 
+#include <soc/dpp/PPD/ppd_api_frwrd_mact.h> 
+#include <soc/dpp/PPD/ppd_api_frwrd_mact_mgmt.h> 
+#include <soc/dpp/PPD/ppd_api_frwrd_trill.h> 
+#include <soc/dpp/PPD/ppd_api_general.h> 
+#include <soc/dpp/PPD/ppd_api_l3_src_bind.h> 
+#include <soc/dpp/PPD/ppd_api_lag.h> 
+#include <soc/dpp/PPD/ppd_api_lif.h> 
+#include <soc/dpp/PPD/ppd_api_lif_cos.h> 
+#include <soc/dpp/PPD/ppd_api_lif_ing_vlan_edit.h> 
+#include <soc/dpp/PPD/ppd_api_lif_table.h> 
+#include <soc/dpp/PPD/ppd_api_llp_cos.h> 
+#include <soc/dpp/PPD/ppd_api_llp_filter.h> 
+#include <soc/dpp/PPD/ppd_api_llp_mirror.h> 
+#include <soc/dpp/PPD/ppd_api_llp_parse.h> 
+#include <soc/dpp/PPD/ppd_api_llp_sa_auth.h> 
+#include <soc/dpp/PPD/ppd_api_llp_trap.h> 
+#include <soc/dpp/PPD/ppd_api_llp_vid_assign.h> 
+#include <soc/dpp/PPD/ppd_api_metering.h> 
+#include <soc/dpp/PPD/ppd_api_mpls_term.h> 
+#include <soc/dpp/PPD/ppd_api_mymac.h> 
+#include <soc/dpp/PPD/ppd_api_oam.h> 
+#include <soc/dpp/PPD/ppd_api_port.h> 
+#include <soc/dpp/PPD/ppd_api_ptp.h> 
+#include <soc/dpp/PPD/ppd_api_rif.h> 
+#include <soc/dpp/PPD/ppd_api_trap_mgmt.h> 
+#include <soc/dpp/PPD/ppd_api_vsi.h> 
+/* #include <soc/dpp/Petra/petra_api_ingress_scheduler.h>                       */
+/* #include <soc/dpp/Petra/petra_api_ingress_traffic_mgmt.h>                    */
+/* #include <soc/dpp/Petra/petra_bitstream.h>                                   */
+/* #include <soc/dpp/Petra/petra_callback.h>                                    */
+/* #include <soc/dpp/Petra/petra_cell.h>                                        */
+/* #include <soc/dpp/Petra/petra_chip_defines.h>                                */
+/* #include <soc/dpp/Petra/petra_scheduler_elements.h>                          */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_diag.h>                              */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_eg_ac.h>                             */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_eg_encap.h>                          */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_eg_filter.h>                         */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_eg_mirror.h>                         */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_eg_qos.h>                            */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_eg_vlan_edit.h>                      */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_fp.h>                                */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_framework.h>                         */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_frwrd_bmact.h>                       */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_frwrd_extend_p2p.h>                  */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_frwrd_fec.h>                         */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_frwrd_ilm.h>                         */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_frwrd_ipv4.h>                        */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_frwrd_ipv6.h>                        */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_frwrd_mact.h>                        */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_frwrd_mact_mgmt.h>                   */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_frwrd_trill.h>                       */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_general.h>                           */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_init.h>                              */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_lag.h>                               */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_lif.h>                               */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_lif_cos.h>                           */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_lif_ing_vlan_edit.h>                 */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_lif_table.h>                         */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_llp_cos.h>                           */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_llp_filter.h>                        */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_llp_mirror.h>                        */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_llp_parse.h>                         */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_llp_sa_auth.h>                       */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_llp_trap.h>                          */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_llp_vid_assign.h>                    */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_metering.h>                          */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_mgmt.h>                              */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_mpls_term.h>                         */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_mymac.h>                             */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_port.h>                              */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_rif.h>                               */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_ssr.h>                               */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_trap_mgmt.h>                         */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_api_vsi.h>                               */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_diag.h>                                  */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_eg_ac.h>                                 */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_eg_encap.h>                              */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_eg_filter.h>                             */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_eg_mirror.h>                             */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_eg_qos.h>                                */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_eg_vlan_edit.h>                          */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_esem_access.h>                           */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_fp.h>                                    */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_fp_egr.h>                                */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_fp_fem.h>                                */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_fp_key.h>                                */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_framework.h>                             */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_frwrd_bmact.h>                           */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_frwrd_extend_p2p.h>                      */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_frwrd_fec.h>                             */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_frwrd_ilm.h>                             */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_frwrd_ip_tcam.h>                         */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_frwrd_ipv4.h>                            */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_frwrd_ipv4_lpm_mngr.h>                   */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_frwrd_ipv4_test.h>                       */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_frwrd_ipv6.h>                            */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_frwrd_mact.h>                            */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_frwrd_mact_mgmt.h>                       */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_frwrd_trill.h>                           */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_general.h>                               */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_init.h>                                  */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_isem_access.h>                           */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_lag.h>                                   */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_lem_access.h>                            */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_lif.h>                                   */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_lif_cos.h>                               */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_lif_ing_vlan_edit.h>                     */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_lif_table.h>                             */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_llp_cos.h>                               */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_llp_filter.h>                            */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_llp_mirror.h>                            */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_llp_parse.h>                             */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_llp_sa_auth.h>                           */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_llp_trap.h>                              */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_llp_vid_assign.h>                        */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_metering.h>                              */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_mgmt.h>                                  */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_mpls_term.h>                             */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_mymac.h>                                 */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_port.h>                                  */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_rif.h>                                   */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_ssr.h>                                   */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_svem_access.h>                           */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_sw_db.h>                                 */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_trap_mgmt.h>                             */
+/* #include <soc/dpp/Petra/PB_PP/pb_pp_vsi.h>                                   */
+/* #include <soc/dpp/Petra/PB_PP/sand_pp_ipv4_lpm_mngr.h>                       */
+/* #include <soc/dpp/Petra/petra_a_chip_tbls.h>                                 */
+/* #include <soc/dpp/Petra/petra_api_auto_queue_flow_mgmt.h>                    */
+/* #include <soc/dpp/Petra/petra_api_callback.h>                                */
+/* #include <soc/dpp/Petra/petra_api_cell.h>                                    */
+/* #include <soc/dpp/Petra/petra_api_debug.h>                                   */
+/* #include <soc/dpp/Petra/petra_api_diagnostics.h>                             */
+/* #include <soc/dpp/Petra/petra_api_dram.h>                                    */
+/* #include <soc/dpp/Petra/petra_api_egr_queuing.h>                             */
+/* #include <soc/dpp/Petra/petra_api_end2end_scheduler.h>                       */
+/* #include <soc/dpp/Petra/petra_api_fabric.h>                                  */
+/* #include <soc/dpp/Petra/petra_api_flow_control.h>                            */
+/* #include <soc/dpp/Petra/petra_api_framework.h>                               */
+/* #include <soc/dpp/Petra/petra_api_general.h>                                 */
+/* #include <soc/dpp/Petra/petra_api_ingress_header_parsing.h>                  */
+/* #include <soc/dpp/Petra/petra_api_ingress_packet_queuing.h>                  */
+/* #include <soc/dpp/Petra/petra_api_interrupt_service.h>                       */
+/* #include <soc/dpp/Petra/petra_api_mgmt.h>                                    */
+/* #include <soc/dpp/Petra/petra_api_multicast_egress.h>                        */
+/* #include <soc/dpp/Petra/petra_api_multicast_fabric.h>                        */
+/* #include <soc/dpp/Petra/petra_api_multicast_ingress.h>                       */
+/* #include <soc/dpp/Petra/petra_api_nif.h>                                     */
+/* #include <soc/dpp/Petra/petra_api_ofp_rates.h>                               */
+/* #include <soc/dpp/Petra/petra_api_packet.h>                                  */
+/* #include <soc/dpp/Petra/petra_api_ports.h>                                   */
+/* #include <soc/dpp/Petra/petra_api_reg_access.h>                              */
+/* #include <soc/dpp/Petra/petra_api_serdes.h>                                  */
+/* #include <soc/dpp/Petra/petra_api_serdes_utils.h>                            */
+/* #include <soc/dpp/Petra/petra_api_ssr.h>                                     */
+/* #include <soc/dpp/Petra/petra_api_stat_if.h>                                 */
+/* #include <soc/dpp/Petra/petra_api_statistics.h>                              */
+/* #include <soc/dpp/Petra/petra_auto_queue_flow_mgmt.h>                        */
+/* #include <soc/dpp/Petra/petra_auto_queue_flow_mgmt_aggregate.h>              */
+/* #include <soc/dpp/Petra/petra_auto_queue_flow_mgmt_flow.h>                   */
+/* #include <soc/dpp/Petra/petra_auto_queue_flow_mgmt_port.h>                   */
+/* #include <soc/dpp/Petra/petra_auto_queue_flow_mgmt_queue.h>                  */
+/* #include <soc/dpp/Petra/petra_chip_regs.h>                                   */
+/* #include <soc/dpp/Petra/petra_chip_tbls.h>                                   */
+/* #include <soc/dpp/Petra/petra_debug.h>                                       */
+/* #include <soc/dpp/Petra/petra_diagnostics.h>                                 */
+/* #include <soc/dpp/Petra/petra_dram.h>                                        */
+/* #include <soc/dpp/Petra/petra_egr_queuing.h>                                 */
+/* #include <soc/dpp/Petra/petra_fabric.h>                                      */
+/* #include <soc/dpp/Petra/petra_flow_control.h>                                */
+/* #include <soc/dpp/Petra/petra_framework.h>                                   */
+/* #include <soc/dpp/Petra/petra_general.h>                                     */
+/* #include <soc/dpp/Petra/petra_header_parsing_utils.h>                        */
+/* #include <soc/dpp/Petra/petra_ingress_header_parsing.h>                      */
+/* #include <soc/dpp/Petra/petra_ingress_packet_queuing.h>                      */
+/* #include <soc/dpp/Petra/petra_ingress_scheduler.h>                           */
+/* #include <soc/dpp/Petra/petra_ingress_traffic_mgmt.h>                        */
+/* #include <soc/dpp/Petra/petra_init.h>                                        */
+/* #include <soc/dpp/Petra/petra_interrupt_service.h>                           */
+/* #include <soc/dpp/Petra/petra_link.h>                                        */
+/* #include <soc/dpp/Petra/petra_mgmt.h>                                        */
+/* #include <soc/dpp/Petra/petra_multicast_egress.h>                            */
+/* #include <soc/dpp/Petra/petra_multicast_fabric.h>                            */
+/* #include <soc/dpp/Petra/petra_multicast_ingress.h>                           */
+/* #include <soc/dpp/Petra/petra_multicast_linked_list.h>                       */
+/* #include <soc/dpp/Petra/petra_multicast_tests.h>                             */
+/* #include <soc/dpp/Petra/petra_nif.h>                                         */
+/* #include <soc/dpp/Petra/petra_ofp_rates.h>                                   */
+/* #include <soc/dpp/Petra/petra_packet.h>                                      */
+/* #include <soc/dpp/Petra/petra_ports.h>                                       */
+/* #include <soc/dpp/Petra/petra_reg_access.h>                                  */
+/* #include <soc/dpp/Petra/petra_scheduler_device.h>                            */
+/* #include <soc/dpp/Petra/petra_scheduler_element_converts.h>                  */
+/* #include <soc/dpp/Petra/petra_scheduler_end2end.h>                           */
+/* #include <soc/dpp/Petra/petra_scheduler_flow_converts.h>                     */
+/* #include <soc/dpp/Petra/petra_scheduler_flows.h>                             */
+/* #include <soc/dpp/Petra/petra_scheduler_ports.h>                             */
+/* #include <soc/dpp/Petra/petra_serdes.h>                                      */
+/* #include <soc/dpp/Petra/petra_serdes_low_level_access.h>                     */
+/* #include <soc/dpp/Petra/petra_serdes_regs.h>                                 */
+/* #include <soc/dpp/Petra/petra_serdes_utils.h>                                */
+/* #include <soc/dpp/Petra/petra_shadow.h>                                      */
+/* #include <soc/dpp/Petra/petra_ssr.h>                                         */
+/* #include <soc/dpp/Petra/petra_stat_if.h>                                     */
+/* #include <soc/dpp/Petra/petra_statistics.h>                                  */
+/* #include <soc/dpp/Petra/petra_sw_db.h>                                       */
+/* #include <soc/dpp/Petra/petra_tbl_access.h>                                  */
+/* #include <soc/dpp/Petra/PB_TM/pb_action_cmd.h>                               */
+/* #include <soc/dpp/Petra/PB_TM/pb_api_action_cmd.h>                           */
+/* #include <soc/dpp/Petra/PB_TM/pb_api_callback.h>                             */
+/* #include <soc/dpp/Petra/PB_TM/pb_api_cnm.h>                                  */
+/* #include <soc/dpp/Petra/PB_TM/pb_api_cnt.h>                                  */
+/* #include <soc/dpp/Petra/PB_TM/pb_api_diagnostics.h>                          */
+/* #include <soc/dpp/Petra/PB_TM/pb_api_egr_queuing.h>                          */
+/* #include <soc/dpp/Petra/PB_TM/pb_api_fabric.h>                               */
+/* #include <soc/dpp/Petra/PB_TM/pb_api_flow_control.h>                         */
+/* #include <soc/dpp/Petra/PB_TM/pb_api_framework.h>                            */
+/* #include <soc/dpp/Petra/PB_TM/pb_api_general.h>                              */
+/* #include <soc/dpp/Petra/PB_TM/pb_api_ingress_traffic_mgmt.h>                 */
+/* #include <soc/dpp/Petra/PB_TM/pb_api_interrupt_service.h>                    */
+/* #include <soc/dpp/Petra/PB_TM/pb_api_mgmt.h>                                 */
+/* #include <soc/dpp/Petra/PB_TM/pb_api_nif.h>                                  */
+/* #include <soc/dpp/Petra/PB_TM/pb_api_ports.h>                                */
+/* #include <soc/dpp/Petra/PB_TM/pb_api_ssr.h>                                  */
+/* #include <soc/dpp/Petra/PB_TM/pb_api_stack.h>                                */
+/* #include <soc/dpp/Petra/PB_TM/pb_api_stat_if.h>                              */
+/* #include <soc/dpp/Petra/PB_TM/pb_api_tdm.h>                                  */
+/* #include <soc/dpp/Petra/PB_TM/pb_callback.h>                                 */
+/* #include <soc/dpp/Petra/PB_TM/pb_chip_regs.h>                                */
+/* #include <soc/dpp/Petra/PB_TM/pb_chip_tbls.h>                                */
+/* #include <soc/dpp/Petra/PB_TM/pb_cnm.h>                                      */
+/* #include <soc/dpp/Petra/PB_TM/pb_cnt.h>                                      */
+/* #include <soc/dpp/Petra/PB_TM/pb_diagnostics.h>                              */
+/* #include <soc/dpp/Petra/PB_TM/pb_egr_acl.h>                                  */
+/* #include <soc/dpp/Petra/PB_TM/pb_egr_prog_editor.h>                          */
+/* #include <soc/dpp/Petra/PB_TM/pb_egr_queuing.h>                              */
+/* #include <soc/dpp/Petra/PB_TM/pb_fabric.h>                                   */
+/* #include <soc/dpp/Petra/PB_TM/pb_flow_control.h>                             */
+/* #include <soc/dpp/Petra/PB_TM/pb_framework.h>                                */
+/* #include <soc/dpp/Petra/PB_TM/pb_general.h>                                  */
+/* #include <soc/dpp/Petra/PB_TM/pb_ingress_packet_queuing.h>                   */
+/* #include <soc/dpp/Petra/PB_TM/pb_ingress_scheduler.h>                        */
+/* #include <soc/dpp/Petra/PB_TM/pb_ingress_traffic_mgmt.h>                     */
+/* #include <soc/dpp/Petra/PB_TM/pb_init.h>                                     */
+/* #include <soc/dpp/Petra/PB_TM/pb_interrupt_service.h>                        */
+/* #include <soc/dpp/Petra/PB_TM/pb_mgmt.h>                                     */
+/* #include <soc/dpp/Petra/PB_TM/pb_multicast_egress.h>                         */
+/* #include <soc/dpp/Petra/PB_TM/pb_multicast_fabric.h>                         */
+/* #include <soc/dpp/Petra/PB_TM/pb_nif.h>                                      */
+/* #include <soc/dpp/Petra/PB_TM/pb_ofp_rates.h>                                */
+/* #include <soc/dpp/Petra/PB_TM/pb_parser.h>                                   */
+/* #include <soc/dpp/Petra/PB_TM/pb_pmf_low_level.h>                            */
+/* #include <soc/dpp/Petra/PB_TM/pb_pmf_low_level_ce.h>                         */
+/* #include <soc/dpp/Petra/PB_TM/pb_pmf_low_level_db.h>                         */
+/* #include <soc/dpp/Petra/PB_TM/pb_pmf_low_level_diag.h>                       */
+/* #include <soc/dpp/Petra/PB_TM/pb_pmf_low_level_diag_intern.h>                */
+/* #include <soc/dpp/Petra/PB_TM/pb_pmf_low_level_fem_tag.h>                    */
+/* #include <soc/dpp/Petra/PB_TM/pb_pmf_low_level_pgm.h>                        */
+/* #include <soc/dpp/Petra/PB_TM/pb_pmf_pgm_mgmt.h>                             */
+/* #include <soc/dpp/Petra/PB_TM/pb_ports.h>                                    */
+/* #include <soc/dpp/Petra/PB_TM/pb_pp_chip_regs.h>                             */
+/* #include <soc/dpp/Petra/PB_TM/pb_pp_chip_tbls.h>                             */
+/* #include <soc/dpp/Petra/PB_TM/pb_pp_init_tbl.h>                              */
+/* #include <soc/dpp/Petra/PB_TM/pb_pp_reg_access.h>                            */
+/* #include <soc/dpp/Petra/PB_TM/pb_pp_tbl_access.h>                            */
+/* #include <soc/dpp/Petra/PB_TM/pb_profile.h>                                  */
+/* #include <soc/dpp/Petra/PB_TM/pb_reg_access.h>                               */
+/* #include <soc/dpp/Petra/PB_TM/pb_scheduler_device.h>                         */
+/* #include <soc/dpp/Petra/PB_TM/pb_ssr.h>                                      */
+/* #include <soc/dpp/Petra/PB_TM/pb_stack.h>                                    */
+/* #include <soc/dpp/Petra/PB_TM/pb_stat_if.h>                                  */
+/* #include <soc/dpp/Petra/PB_TM/pb_sw_db_tcam_mgmt.h>                          */
+/* #include <soc/dpp/Petra/PB_TM/pb_tbl_access.h>                               */
+/* #include <soc/dpp/Petra/PB_TM/pb_tcam.h>                                     */
+/* #include <soc/dpp/Petra/PB_TM/pb_tcam_key.h>                                 */
+/* #include <soc/dpp/Petra/PB_TM/pb_tcam_mgmt.h>                                */
+/* #include <soc/dpp/Petra/PB_TM/pb_tdm.h>                                      */
+#include <soc/dpp/SAND/Management/sand_api_ssr.h> 
+#include <soc/dpp/SAND/Management/sand_callback_handles.h> 
+#include <soc/dpp/SAND/Management/sand_chip_consts.h> 
+#include <soc/dpp/SAND/Management/sand_chip_descriptors.h> 
+#include <soc/dpp/SAND/Management/sand_device_management.h> 
+#include <soc/dpp/SAND/Management/sand_error_code.h> 
+#include <soc/dpp/SAND/Management/sand_general_macros.h> 
+#include <soc/dpp/SAND/Management/sand_general_params.h> 
+#include <soc/dpp/SAND/Management/sand_low_level.h> 
+#include <soc/dpp/SAND/Management/sand_module_management.h> 
+#include <soc/dpp/SAND/Management/sand_ssr.h> 
+#include <soc/dpp/SAND/SAND_FM/sand_cell.h> 
+#include <soc/dpp/SAND/SAND_FM/sand_chip_defines.h> 
+#include <soc/dpp/SAND/SAND_FM/sand_indirect_access.h> 
+#include <soc/dpp/SAND/SAND_FM/sand_link.h> 
+#include <soc/dpp/SAND/SAND_FM/sand_mem_access.h> 
+#include <soc/dpp/SAND/SAND_FM/sand_mem_access_callback.h> 
+#include <soc/dpp/SAND/SAND_FM/sand_pp_general.h> 
+#include <soc/dpp/SAND/SAND_FM/sand_trigger.h> 
+#include <soc/dpp/SAND/SAND_FM/sand_user_callback.h> 
+#include <soc/dpp/SAND/Utils/sand_64cnt.h> 
+#include <soc/dpp/SAND/Utils/sand_array_memory_allocator.h> 
+#include <soc/dpp/SAND/Utils/sand_code_hamming.h> 
+#include <soc/dpp/SAND/Utils/sand_conv.h> 
+#include <soc/dpp/SAND/Utils/sand_delta_list.h> 
+#include <soc/dpp/SAND/Utils/sand_exact_match.h> 
+#include <soc/dpp/SAND/Utils/sand_exact_match_hash.h> 
+#include <soc/dpp/SAND/Utils/sand_footer.h> 
+#include <soc/dpp/SAND/Utils/sand_framework.h> 
+#include <soc/dpp/SAND/Utils/sand_group_member_list.h> 
+#include <soc/dpp/SAND/Utils/sand_hashtable.h> 
+#include <soc/dpp/SAND/Utils/sand_header.h> 
+#include <soc/dpp/SAND/Utils/sand_integer_arithmetic.h> 
+#include <soc/dpp/SAND/Utils/sand_multi_set.h> 
+#include <soc/dpp/SAND/Utils/sand_occupation_bitmap.h> 
+#include <soc/dpp/SAND/Utils/sand_os_interface.h> 
+#include <soc/dpp/SAND/Utils/sand_pat_tree.h> 
+#include <soc/dpp/SAND/Utils/sand_pp_mac.h> 
+#include <soc/dpp/SAND/Utils/sand_rand.h> 
+#include <soc/dpp/SAND/Utils/sand_sorted_list.h> 
+#include <soc/dpp/SAND/Utils/sand_tcm.h> 
+#include <soc/dpp/SAND/Utils/sand_trace.h> 
+#include <soc/dpp/SAND/Utils/sand_u64.h> 
+#include <soc/dpp/SAND/Utils/sand_workload_status.h> 
+#include <soc/dpp/TMC/tmc_api_action_cmd.h> 
+#include <soc/dpp/TMC/tmc_api_callback.h> 
+#include <soc/dpp/TMC/tmc_api_cell.h> 
+#include <soc/dpp/TMC/tmc_api_cnm.h> 
+#include <soc/dpp/TMC/tmc_api_cnt.h> 
+#include <soc/dpp/TMC/tmc_api_debug.h> 
+#include <soc/dpp/TMC/tmc_api_default_section.h> 
+#include <soc/dpp/TMC/tmc_api_diagnostics.h> 
+#include <soc/dpp/TMC/tmc_api_dram.h> 
+#include <soc/dpp/TMC/tmc_api_egr_acl.h> 
+#include <soc/dpp/TMC/tmc_api_egr_queuing.h> 
+#include <soc/dpp/TMC/tmc_api_end2end_scheduler.h> 
+#include <soc/dpp/TMC/tmc_api_fabric.h> 
+#include <soc/dpp/TMC/tmc_api_flow_control.h> 
+#include <soc/dpp/TMC/tmc_api_framework.h> 
+#include <soc/dpp/TMC/tmc_api_general.h> 
+#include <soc/dpp/TMC/tmc_api_header_parsing_utils.h> 
+#include <soc/dpp/TMC/tmc_api_ingress_packet_queuing.h> 
+#include <soc/dpp/TMC/tmc_api_ingress_scheduler.h> 
+#include <soc/dpp/TMC/tmc_api_ingress_traffic_mgmt.h> 
+#include <soc/dpp/TMC/tmc_api_mgmt.h> 
+#include <soc/dpp/TMC/tmc_api_multicast_egress.h> 
+#include <soc/dpp/TMC/tmc_api_multicast_fabric.h> 
+#include <soc/dpp/TMC/tmc_api_multicast_ingress.h> 
+#include <soc/dpp/TMC/tmc_api_ofp_rates.h> 
+#include <soc/dpp/TMC/tmc_api_packet.h> 
+#include <soc/dpp/TMC/tmc_api_pmf_low_level_ce.h> 
+#include <soc/dpp/TMC/tmc_api_pmf_low_level_db.h> 
+#include <soc/dpp/TMC/tmc_api_pmf_low_level_fem_tag.h> 
+#include <soc/dpp/TMC/tmc_api_pmf_low_level_pgm.h> 
+#include <soc/dpp/TMC/tmc_api_ports.h> 
+#include <soc/dpp/TMC/tmc_api_reg_access.h> 
+#include <soc/dpp/TMC/tmc_api_ssr.h> 
+#include <soc/dpp/TMC/tmc_api_stack.h> 
+#include <soc/dpp/TMC/tmc_api_stat_if.h> 
+#include <soc/dpp/TMC/tmc_api_statistics.h> 
+#include <soc/dpp/TMC/tmc_api_tcam.h> 
+#include <soc/dpp/TMC/tmc_api_tcam_key.h> 
+#include <soc/dpp/TMC/tmc_api_tdm.h> 
+#include <soc/dpp/TMC/tmc_pmf_pgm_mgmt.h> 
+#include <soc/dpp/wb_utils.h> 
+/* #include <appl/dfe/interrupts/interrupt_handler.h> 
+#include <appl/dfe/interrupts/interrupt_handler_cb_func.h> 
+#include <appl/dfe/interrupts/interrupt_handler_corr_act_func.h> 
+#include <appl/diag/dfe/utils_fe1600_card.h> 
+#include <soc/dfe/cmn/dfe_defs.h> 
+#include <soc/dfe/cmn/dfe_drv.h> 
+#include <soc/dfe/cmn/dfe_fabric.h> 
+#include <soc/dfe/cmn/dfe_fabric_cell.h> 
+#include <soc/dfe/cmn/dfe_fabric_cell_snake_test.h> 
+#include <soc/dfe/cmn/dfe_fabric_source_routed_cell.h> 
+#include <soc/dfe/cmn/dfe_interrupt.h> 
+#include <soc/dfe/cmn/dfe_multicast.h> 
+#include <soc/dfe/cmn/dfe_port.h> 
+#include <soc/dfe/cmn/dfe_stack.h> 
+#include <soc/dfe/cmn/dfe_stat.h> 
+#include <soc/dfe/cmn/mbcm.h> 
+#include <soc/dfe/cmn/dfe_diag.h> 
+#include <soc/dfe/fe1600/fe1600_defs.h> 
+#include <soc/dfe/fe1600/fe1600_drv.h> 
+#include <soc/dfe/fe1600/fe1600_fabric_cell.h> 
+#include <soc/dfe/fe1600/fe1600_fabric_cell_snake_test.h> 
+#include <soc/dfe/fe1600/fe1600_fabric_flow_control.h> 
+#include <soc/dfe/fe1600/fe1600_fabric_links.h> 
+#include <soc/dfe/fe1600/fe1600_fabric_multicast.h> 
+#include <soc/dfe/fe1600/fe1600_fabric_status.h> 
+#include <soc/dfe/fe1600/fe1600_fabric_topology.h> 
+#include <soc/dfe/fe1600/fe1600_interrupts.h> 
+#include <soc/dfe/fe1600/fe1600_link.h> 
+#include <soc/dfe/fe1600/fe1600_multicast.h> 
+#include <soc/dfe/fe1600/fe1600_port.h> 
+#include <soc/dfe/fe1600/fe1600_stack.h> 
+#include <soc/dfe/fe1600/fe1600_stat.h> 
+#include <soc/dfe/fe1600/fe1600_diag.h> */
+#include <appl/dcmn/interrupts/interrupt_handler.h> 
+#include <appl/dcmn/rx_los/rx_los.h> 
+#include <appl/dcmn/rx_los/rx_los_db.h> 
+#include <appl/diag/dcmn/bsp_cards_consts.h> 
+#include <appl/diag/dcmn/cmdlist.h> 
+#include <appl/diag/dcmn/counter.h> 
+#include <appl/diag/dcmn/dcmn_patch_database.h> 
+#include <appl/diag/dcmn/diag.h> 
+#include <appl/diag/dcmn/gport.h> 
+#include <appl/diag/dcmn/init.h> 
+#include <appl/diag/dcmn/rate_calc.h> 
+#include <appl/diag/dcmn/soc.h> 
+#include <appl/diag/dcmn/utils_board_general.h> 
+#include <appl/diag/dcmn/fabric.h> 
+#include <soc/dcmn/dcmn_captured_buffer.h> 
+#include <soc/dcmn/dcmn_cells_buffer.h> 
+#include <soc/dcmn/dcmn_defs.h> 
+#include <soc/dcmn/dcmn_error.h> 
+#include <soc/dcmn/dcmn_fabric_cell.h> 
+#include <soc/dcmn/dcmn_wb.h> 
+#include <bcm_int/dpp/alloc_mngr.h>
+#include <bcm_int/dpp/alloc_mngr_shr.h>
+#include <bcm_int/dpp/allocator.h>
+#include <bcm_int/dpp/bfd.h>
+#include <bcm_int/dpp/cosq.h>
+#include <bcm_int/dpp/counters.h>
+#include <bcm_int/dpp/dpp_eyescan.h>
+#include <bcm_int/dpp/error.h>
+#include <bcm_int/dpp/fabric.h>
+#include <bcm_int/dpp/failover.h>
+#include <bcm_int/dpp/field.h>
+#include <bcm_int/dpp/field_int.h>
+#include <bcm_int/dpp/gport_mgmt.h>
+#include <bcm_int/dpp/ipmc.h>
+#include <bcm_int/dpp/l2.h>
+#include <bcm_int/dpp/l3.h>
+#include <bcm_int/dpp/link.h>
+#include <bcm_int/dpp/mim.h>
+#include <bcm_int/dpp/mirror.h>
+#include <bcm_int/dpp/mpls.h>
+#include <bcm_int/dpp/multicast.h>
+#include <bcm_int/dpp/oam.h>
+#include <bcm_int/dpp/policer.h>
+#include <bcm_int/dpp/port.h>
+#include <bcm_int/dpp/qos.h>
+#include <bcm_int/dpp/rate.h>
+#include <bcm_int/dpp/rx.h>
+#include <bcm_int/dpp/stack.h>
+#include <bcm_int/dpp/stat.h>
+#include <bcm_int/dpp/state.h>
+#include <bcm_int/dpp/stg.h>
+#include <bcm_int/dpp/sw_db.h>
+#include <bcm_int/dpp/switch.h>
+#include <bcm_int/dpp/trill.h>
+#include <bcm_int/dpp/trunk.h>
+#include <bcm_int/dpp/tunnel.h>
+#include <bcm_int/dpp/utils.h>
+#include <bcm_int/dpp/vlan.h>
+#include <bcm_int/dpp/vswitch.h>
+#include <bcm_int/dpp/wb_db_alloc.h>
+#include <bcm_int/dpp/wb_db_cmn.h>
+#include <bcm_int/dpp/wb_db_cosq.h>
+#include <bcm_int/dpp/wb_db_counters.h>
+#include <bcm_int/dpp/wb_db_field.h>
+#include <bcm_int/dpp/wb_db_gport.h>
+#include <bcm_int/dpp/wb_db_l2.h>
+#include <bcm_int/dpp/wb_db_l3.h>
+#include <bcm_int/dpp/wb_db_mirror.h>
+#include <bcm_int/dpp/wb_db_multicast.h>
+#include <bcm_int/dpp/wb_db_policer.h>
+#include <bcm_int/dpp/wb_db_port.h>
+#include <bcm_int/dpp/wb_db_qos.h>
+#include <bcm_int/dpp/wb_db_stack.h>
+#include <bcm_int/dpp/wb_db_stg.h>
+#include <bcm_int/dpp/wb_db_switch.h>
+#include <bcm_int/dpp/wb_db_trill.h>
+#include <bcm_int/dpp/wb_db_trunk.h>
+#include <bcm_int/dpp/wb_db_vlan.h>
+#include <bcm_int/dpp/wb_db_vswitch.h>
+#include <bcm_int/dpp/gport_mgmt_sw_db.h>
+#include <soc/drvtypes.h>
+#include <../src/appl/cint/cint_types.h> 
+#include <bcm/time.h>
+#ifdef BCM_CMICM_SUPPORT
+#include <soc/shared/llm_appl.h>
+#endif
+
+
+#define SW_STATE_DUMP_STRING_LENGTH_MAX 512
+
+#define SW_STATE_DUMP_SAFE_STRCPY(dest, src) \
+do { \
+    if (sal_strlen(src) > (sizeof(dest)*8)) { \
+        cli_out("   ERROR: Failed in strncopy\n"); \
+        return; \
+    } \
+    sal_strncpy(dest, src, sal_strlen(src)+1);  \
+} while (0)
+
+#define SW_STATE_DUMP_SAFE_STRCAT(dest, src) \
+do { \
+    if (sal_strlen(dest)+sal_strlen(src) > (sizeof(dest)*8)) { \
+        cli_out("   ERROR: Failed in sal_strncat\n"); \
+        return; \
+    } \
+    sal_strncat(dest, src, sal_strlen(src)+1);  \
+} while (0)
+
+FILE *output_file;
+
+void printArray(const int sizes[], int sizeIndex, int nbrSizes, char* variableName, void** arrayVariable, void (*print_cb)(void*, char*), int pointerNbr, int member_size);
+void CHAR_SW_DUMP_PRINT(void* element, char* variableName); 
+void DOUBLE_SW_DUMP_PRINT(void* element, char* variableName); 
+void FLOAT_SW_DUMP_PRINT(void* element, char* variableName); 
+void INT_SW_DUMP_PRINT(void* element, char* variableName); 
+void LONG_SW_DUMP_PRINT(void* element, char* variableName); 
+void SHORT_SW_DUMP_PRINT(void* element, char* variableName); 
+void UNSIGNED_CHAR_SW_DUMP_PRINT(void* element, char* variableName); 
+void UNSIGNED_INT_SW_DUMP_PRINT(void* element, char* variableName); 
+void UNSIGNED_SW_DUMP_PRINT(void* element, char* variableName); 
+void UNSIGNED_SHORT_SW_DUMP_PRINT(void* element, char* variableName); 
+void UNSIGNED_LONG_SW_DUMP_PRINT(void* element, char* variableName); 
+void UNSIGNED_LONG_LONG_SW_DUMP_PRINT(void* element, char* variableName); 
+void SIGNED_CHAR_SW_DUMP_PRINT(void* element, char* variableName); 
+void SIGNED_SHORT_SW_DUMP_PRINT(void* element, char* variableName); 
+void SIGNED_INT_SW_DUMP_PRINT(void* element, char* variableName); 
+void SIGNED_SW_DUMP_PRINT(void* element, char* variableName); 
+void SIGNED_LONG_SW_DUMP_PRINT(void* element, char* variableName); 
+void uint8_SW_DUMP_PRINT(void* element, char* variableName); 
+void uint16_SW_DUMP_PRINT(void* element, char* variableName); 
+void uint32_SW_DUMP_PRINT(void* element, char* variableName); 
+void uint64_SW_DUMP_PRINT(void* element, char* variableName); 
+void int8_SW_DUMP_PRINT(void* element, char* variableName); 
+void int16_SW_DUMP_PRINT(void* element, char* variableName); 
+void int32_SW_DUMP_PRINT(void* element, char* variableName); 
+void int64_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_field_presel_set_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_field_datafield_bits_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_field_qual_set_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_field_action_set_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_PAT_TREE_NODE_KEY_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_PAT_TREE_T_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_INTERRUPTS_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_FP_DATABASE_STAGE_SW_DUMP_PRINT(void* element, char* variableName); 
+void _shr_port_phy_timesync_framesync_mode_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _shr_port_phy_timesync_framesync_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _shr_port_phy_timesync_event_message_ingress_mode_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void soc_port_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_PP_IPV4_SUBNET_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_CHIP_DEFINITIONS_SW_DUMP_PRINT(void* element, char* variableName); 
+void cint_atomic_type_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void cint_parameter_desc_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void cint_function_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void cint_struct_type_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void cint_enum_map_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void cint_enum_type_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void cint_constants_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void cint_function_pointer_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void cint_custom_iterator_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void cint_custom_macro_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void cint_data_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_dpp_am_pool_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void shr_res_allocator_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_dpp_am_template_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void shr_template_manage_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_dpp_am_cosq_res_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_dpp_am_cosq_pool_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_dpp_am_cosq_pool_entry_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_dpp_am_cosq_pool_ref_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void endpoint_list_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void endpoint_list_member_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPD_BFD_INIT_TRAP_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_BFD_INIT_TRAP_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_BFD_TRAP_ID_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_dpp_cosq_config_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_gport_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_dpp_cosq_voq_config_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_dpp_cosq_connector_config_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_dpp_cosq_se_config_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_dpp_cosq_list_hd_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_dpp_cosq_blk_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_dpp_cosq_hdlist_type_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_dpp_cosq_cal_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_dpp_cosq_rx_cal_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_dpp_cosq_tx_cal_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_fabric_vsq_category_mode_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_counter_state_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_counter_proc_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_TMC_CNT_PROCESSOR_ID_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_TMC_CNT_COUNTERS_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_TMC_CNT_SRC_TYPE_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_TMC_CNT_MODE_ING_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_TMC_CNT_MODE_EG_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_TMC_CNT_MODE_EG_RES_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_TMC_CNT_MODE_EG_TYPE_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_TMC_CNT_VOQ_PARAMS_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_TMC_CNT_Q_SET_SIZE_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_TMC_CNT_FORMAT_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_TMC_CNT_REPLICATED_PKTS_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_TMC_CNT_CUSTOM_MODE_PARAMS_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_TMC_CNT_BMAP_OFFSET_MAPPING_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_dpp_counter_set_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_dpp_counter_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_counter_source_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_TMC_CNT_RESULT_ARR_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_TMC_CNT_RESULT_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_field_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_field_device_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_field_stage_idx_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_field_type_idx_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_field_map_idx_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_field_chain_idx_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_field_presel_idx_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_field_device_stage_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_field_stage_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPD_FP_DATABASE_STAGE_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_FP_DATABASE_STAGE_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_field_device_st_mapping_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPD_FP_PREDEFINED_ACL_KEY_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_FP_PREDEFINED_ACL_KEY_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_field_device_group_mode_bits_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_field_group_mode_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_field_entry_type_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPD_FP_DATABASE_TYPE_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_FP_DATABASE_TYPE_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_field_device_range_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_field_qualify_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_field_range_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_field_range_idx_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_field_action_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_FP_QUAL_TYPE_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_field_ent_idx_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_field_grp_idx_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_field_dq_idx_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_field_qset_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_field_aset_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _shr_res_unit_desc_t_SW_DUMP_PRINT(void *element, char *variableName); 
+void _shr_res_type_desc_t_SW_DUMP_PRINT(void *element, char *variableName); 
+void _shr_res_pool_desc_t_SW_DUMP_PRINT(void *element, char *variableName); 
+void _bcm_dpp_field_stage_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_field_group_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_field_entry_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_field_entry_common_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_field_qual_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPD_FP_QUAL_TYPE_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_field_tc_p_act_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPD_FP_ACTION_TYPE_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_FP_ACTION_TYPE_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_field_tc_b_act_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_field_entry_dir_ext_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_field_de_act_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPD_FP_DIR_EXTR_ACTION_VAL_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_FP_DIR_EXTR_ENTRY_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_FP_QUAL_VAL_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_U64_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_FP_DIR_EXTR_ACTION_VAL_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_FP_DIR_EXTR_ACTION_LOC_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_field_profile_type_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void _bcm_dpp_field_info_wb_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+void soc_scache_handle_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_arad_field_device_qual_info_layer_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_lif_bookkeeping_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_lif_match_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_lif_type_e_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_port_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_petra_tpid_profile_t_SW_DUMP_PRINT(void* element, char* variableName); 
+
+void bcm_dpp_state_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_dpp_qos_state_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_dpp_l3_state_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_tunnel_bookkeeping_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_dpp_l3_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _dpp_policer_state_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _dpp_policer_group_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_policer_group_mode_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_stg_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_stg_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_pbmp_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _shr_pbmp_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_vlan_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_vswitch_bookkeeping_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_petra_mirror_unit_data_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_petra_mirror_data_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PB_ACTION_CMD_MIRROR_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_TMC_ACTION_CMD_MIRROR_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_TMC_ACTION_CMD_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_TMC_DEST_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_TMC_DEST_TYPE_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_TMC_ACTION_CMD_OVERRIDE_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_dpp_trill_state_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPD_AC_ID_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_AC_ID_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_petra_trill_port_list_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_dpp_switch_state_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_PP_MAC_ADDRESS_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPD_LLP_SA_AUTH_MAC_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_LLP_SA_AUTH_MAC_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_PP_VLAN_ID_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_PP_SYS_PORT_ID_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_PP_SYS_PORT_TYPE_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPD_FRWRD_MACT_ENTRY_KEY_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_FRWRD_MACT_ENTRY_KEY_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_FRWRD_MACT_KEY_TYPE_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_FRWRD_MACT_ENTRY_KEY_VAL_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_FRWRD_MACT_ENTRY_KEY_MAC_ADDR_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_FID_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_FRWRD_MACT_ENTRY_KEY_IPV4_MC_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPD_FRWRD_MACT_ENTRY_VALUE_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_FRWRD_MACT_ENTRY_VALUE_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_FRWRD_MACT_ENTRY_FRWRD_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_FRWRD_DECISION_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_FRWRD_DECISION_TYPE_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_FRWRD_DECISION_TYPE_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_EEI_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_EEI_TYPE_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_EEI_VAL_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_PP_TRILL_DEST_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_MPLS_COMMAND_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_MPLS_COMMAND_TYPE_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_TMC_MPLS_COMMAND_TYPE_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_PP_MPLS_LABEL_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_PP_MPLS_TUNNEL_MODEL_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_PKT_FRWRD_TYPE_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_TMC_PKT_FRWRD_TYPE_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_PP_ISID_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_OUTLIF_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_OUTLIF_ENCODE_TYPE_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_TRAP_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_ACTION_PROFILE_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_TRAP_CODE_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_FRWRD_MACT_ENTRY_AGING_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_petra_l2_freeze_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void l2_data_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_petra_l2_cb_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_mac_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_l2_addr_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_trunk_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_cos_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_fabric_distribution_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void llm_appl_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_mpls_bookkeeping_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPD_FRWRD_ILM_KEY_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_FRWRD_ILM_KEY_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_PP_MPLS_EXP_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_PORT_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_RIF_ID_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPD_FRWRD_DECISION_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPD_OAM_INIT_TRAP_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_OAM_INIT_TRAP_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_OAM_TRAP_ID_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_OAM_UPMEP_TRAP_ID_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_OAM_MIRROR_ID_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPD_OAM_CPU_TRAP_CODE_TO_MIRROR_PROFILE_MAP_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_OAM_CPU_TRAP_CODE_TO_MIRROR_PROFILE_MAP_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_bfd_event_types_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_bfd_event_type_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_bfd_endpoint_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_oam_event_type_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_oam_group_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_oam_endpoint_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_oam_group_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_oam_group_fault_alarm_defect_priority_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void soc_pbmp_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_dpp_port_config_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_port_map_type_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_petra_port_tpid_info_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPD_TRAP_FRWRD_ACTION_PROFILE_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_TRAP_FRWRD_ACTION_PROFILE_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_TRAP_ACTION_PROFILE_DEST_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_TRAP_ACTION_PROFILE_COS_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_PP_TC_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_PP_DP_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_TRAP_ACTION_PROFILE_COUNT_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_TRAP_ACTION_PROFILE_METER_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_TRAP_ACTION_PROFILE_POLICE_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_TRAP_ACTION_PROFILE_PROCESS_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_PP_ETHERNET_DA_TYPE_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPD_TRAP_SNOOP_ACTION_PROFILE_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_TRAP_SNOOP_ACTION_PROFILE_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_dpp_l3_sw_db_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void fec_to_ecmps_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void ecmp_size_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void fec_copy_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_dpp_mirror_sw_db_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_dpp_switch_sw_db_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void dos_attack_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void multi_device_sync_flags_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_time_interface_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_time_if_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_time_spec_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_time_capture_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void trunk_state_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void trunk_init_state_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_pkt_blk_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_color_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_multicast_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_pkt_stk_forward_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_if_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_rx_reasons_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _shr_rx_reasons_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _shr_rx_reason_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_vlan_action_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void sal_time_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void sbusdma_desc_handle_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_vlan_unit_state_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_dpp_vlan_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void fid_ref_count_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPD_LIF_ID_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_LIF_ID_SW_DUMP_PRINT(void* element, char* variableName); 
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void _bcm_dpp_vlan_wb_state_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_alloc_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void shr_wb_alloc_pool_desc_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_alloc_global_desc_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+void _dpp_res_arad_pool_egress_encap_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _dpp_res_arad_pool_cosq_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _dpp_res_pool_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void shr_wb_alloc_template_desc_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+void _dpp_template_pool_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_cosq_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void _bcm_dpp_wb_counter_state_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void _bcm_dpp_wb_counter_proc_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_counters_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+void counters_cntl_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_gport_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void shr_wb_hash_list_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void shr_wb_hash_list_type_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void shr_wb_htb_off_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void shr_wb_htb_key_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_l2_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_l3_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_mirror_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_mpls_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_multicast_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_policer_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_port_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_port_config_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_qos_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_stack_config_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_stg_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_switch_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_trill_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void trunk_wb_cntl_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+void bcm_dpp_trunk_private_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_vswitch_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+void ARAD_PP_ISEM_ACCESS_PROGRAM_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void soc_reg_above_64_val_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_SW_DB_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_SW_DB_DEVICE_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_SW_DB_OAM_MY_MAC_LSB_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_SW_DB_OAM_MY_MAC_LSB_REF_COUNT_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_MGMT_OPERATION_MODE_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_MGMT_IPV4_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_MGMT_P2P_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_MGMT_MPLS_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_PP_ETHER_TYPE_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_SW_DB_LLP_FILTER_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_LLP_FILTER_DESIGNATED_VLAN_TABLE_REF_COUNT_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_SW_DB_LLP_TRAP_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_MULTI_SET_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_MULTI_SET_INIT_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_MULTI_SET_T_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_HASH_TABLE_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_HASH_TABLE_INIT_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_HASH_TABLE_KEY_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_HASH_TABLE_T_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_OCC_BM_PTR_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_OCC_BM_T_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_SW_DB_LLP_MIRROR_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_SW_DB_LLP_VID_ASSIGN_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_SW_DB_PON_DOUBLE_LOOKUP_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_SW_DB_EG_MIRROR_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_SW_DB_EG_ENCAP_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_SW_DB_LLP_COS_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_SW_DB_ETH_POLICER_MTR_PROFILE_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_SW_DB_IPV4_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_IPV4_LPM_MNGR_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_IPV4_LPM_MNGR_INIT_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_IPV4_LPM_PXX_MODEL_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_ARR_MEM_ALLOCATOR_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_ARR_MEM_ALLOCATOR_ENTRY_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_ARR_MEM_ALLOCATOR_PTR_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_ARR_MEM_ALLOCATOR_T_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_GROUP_MEM_LL_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_GROUP_MEM_LL_GROUP_ENTRY_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_GROUP_MEM_LL_MEMBER_ID_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_GROUP_MEM_LL_MEMBER_ENTRY_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_GROUP_MEM_LL_GROUP_ID_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_GROUP_MEM_LL_T_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_PAT_TREE_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_PAT_TREE_NODE_PLACE_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_PAT_TREE_NODE_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_PAT_TREE_KEY_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_IPV4_LPM_MNGR_T_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_FRWRD_IPV4_HOST_TABLE_RESOURCE_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_IPV4_LPM_FREE_LIST_ITEM_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_SW_DB_ILM_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_SW_DB_FWD_MACT_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_FRWRD_MACT_LEARNING_MODE_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_FRWRD_MACT_LEARNING_MODE_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_FRWRD_MACT_FLUSH_DB_DATA_ARR_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_SW_DB_LIF_COS_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_SW_DB_LIF_TABLE_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_SW_DB_FEC_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_FRWRD_FEC_GLBL_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_FRWRD_FEC_GLBL_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_SW_DB_DIAG_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_DIAG_MODE_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_DIAG_MODE_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_SW_DB_ISEM_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_SW_DB_LAG_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_HASH_MASKS_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_HASH_MASKS_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_SW_DB_L2_LIF_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_SW_DB_L2_LIF_AC_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_SW_DB_VRRP_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_SW_DB_MAC_LIMIT_PER_TUNNEL_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_SW_DB_HEADER_DATA_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_SW_DB_RIF_TO_LIF_GROUP_MAP_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_INDIRECT_MODULE_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_INDIRECT_MODULE_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_INDIRECT_MODULE_BITS_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_INDIRECT_TABLES_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_INDIRECT_MEMORY_MAP_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_RET_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_DELTA_LIST_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_DELTA_LIST_NODE_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_DELTA_LIST_STATISTICS_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_DEVICE_DESC_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_DEVICE_TYPE_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_LL_TIMER_FUNCTION_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_RAND_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_DEVICE_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_OP_MODE_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_MGMT_TDM_MODE_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_TMC_MGMT_TDM_MODE_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_LAGS_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_TDM_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_INTERFACE_ID_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_TMC_INTERFACE_ID_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_DEV_EGR_PORTS_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_DEV_EGR_PORT_PRIORITY_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_DEV_RATE_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_DEV_EGR_TCG_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_DEV_EGR_RATE_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_OFP_RATES_EGQ_CHAN_ARB_ID_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_EGR_PROG_TM_PORT_PROFILE_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_SRC_BINDS_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SWDB_MULTICAST_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_FREE_ENTRIES_BLOCKS_REGION_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_FREE_ENTRIES_BLOCK_SIZE_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_FREE_ENTRIES_BLOCK_LIST_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_CELL_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_DRAM_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_TCAM_GLOBAL_LOCATION_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_TCAM_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_TCAM_DATA_FOR_RESTORATION_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_TCAM_SORTED_LIST_RESTORE_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_SORTED_LIST_INIT_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_TCAM_OCC_BM_RESTORE_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_OCC_BM_INIT_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_TCAM_BANK_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_TCAM_BANK_ENTRY_SIZE_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_TMC_TCAM_BANK_ENTRY_SIZE_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_TCAM_DB_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_TCAM_ACTION_SIZE_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_TMC_TCAM_ACTION_SIZE_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_TCAM_DB_PRIO_MODE_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_TCAM_SMALL_BANKS_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_TCAM_PREFIX_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_SORTED_LIST_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_SAND_SORTED_LIST_T_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_TCAM_LOCATION_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_TCAM_MGMT_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_TCAM_ACCESS_PROFILE_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_TCAM_BANK_OWNER_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_TMC_TCAM_BANK_OWNER_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_TCAM_MANAGED_BANK_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_VTT_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_VSI_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_FRWRD_IP_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_SRC_BIND_IPV6_STATIC_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_PMF_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_PMF_CE_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_FP_QUAL_TYPE_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_PMF_FES_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_FP_ACTION_TYPE_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_FP_FEM_ENTRY_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_FP_FEM_ENTRY_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_PMF_RESOURCE_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_PMF_DB_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_PMF_PSL_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_PMF_PSL_LEVEL_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_PMF_PSL_LINE_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PMF_SEL_GROUP_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PMF_SEL_INIT_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PMF_PSL_TYPE_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_FP_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PP_FP_DATABASE_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_PPC_FP_DATABASE_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_FP_ENTRY_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_TMC_PMF_PFG_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PMF_CE_QUAL_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PMF_CE_HEADER_QUAL_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PMF_IRPP_INFO_FIELD_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PMF_CE_SUB_HEADER_SW_DUMP_PRINT(void* element, char* variableName); 
+void SOC_TMC_PMF_CE_SUB_HEADER_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PMF_CE_IRPP_QUALIFIER_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PMF_CE_IRPP_QUALIFIER_ATTRIBUTES_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_PMF_CE_IRPP_QUALIFIER_SIGNAL_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_CNT_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_INTERRUPT_DATA_SW_DUMP_PRINT(void* element, char* variableName); 
+void arad_interrupt_type_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SYSPORT_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_SW_DB_TM_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_vlan_translate_action_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _bcm_dpp_vlan_translate_tag_action_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_vlan_tpid_action_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_dpp_am_egress_encap_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_dpp_am_ingress_lif_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void bcm_dpp_am_sync_lif_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void soc_dpp_port_map_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void soc_dpp_port_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void soc_driver_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void soc_chip_types_SW_DUMP_PRINT(void* element, char* variableName); 
+void soc_reg_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void soc_block_types_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void soc_regtype_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void soc_field_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void soc_field_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void soc_reg_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void soc_reg_above_64_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void soc_reg_array_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void soc_mem_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void soc_mem_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void soc_mem_array_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void soc_block_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void soc_port_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void soc_cmap_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void soc_ctr_ref_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void soc_port_phy_timesync_config_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void soc_port_phy_timesync_inband_ts_control_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _shr_port_phy_timesync_inband_ts_control_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void soc_port_phy_timesync_global_mode_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _shr_port_phy_timesync_global_mode_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void soc_port_phy_timesync_framesync_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _shr_port_phy_timesync_syncout_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _shr_port_phy_timesync_syncout_mode_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void soc_port_phy_timesync_syncout_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void soc_time_spec_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _shr_time_spec_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void soc_port_phy_timesync_event_message_egress_mode_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _shr_port_phy_timesync_event_message_egress_mode_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void soc_port_phy_timesync_event_message_ingress_mode_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void soc_port_phy_timesync_mpls_control_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _shr_port_phy_timesync_mpls_control_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _shr_port_phy_timesync_mpls_label_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void soc_port_control_phy_timesync_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _shr_port_control_phy_timesync_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void drv_vm_entry_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void drv_vm_qual_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void drv_mcrep_control_flag_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void drv_field_qualify_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void drv_field_action_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void drv_fp_tcam_checksum_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void drv_policer_config_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void drv_policer_mode_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void drv_field_stat_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void drv_wred_config_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void drv_wred_control_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void drv_wred_counter_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void dpp_wb_hash_tbl_data_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+void ARAD_EGR_PROG_EDITOR_PROGRAM_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+void ARAD_EGR_PROG_EDITOR_PROGRAMS_USAGE_INFO_SW_DUMP_PRINT(void* element, char* variableName); 
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void arad_wb_db_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+void soc_logical_port_sw_db_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void soc_phy_port_sw_db_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void soc_port_if_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _shr_port_if_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void soc_encap_mode_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void _shr_port_encap_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void soc_port_unit_info_t_SW_DUMP_PRINT(void* element, char* variableName); 
+void printArray(const int sizes[], int sizeIndex, int nbrSizes, char* variableName, void** arrayVariable, void (*print_cb)(void*, char*), int pointerNbr, int member_size) { 
+   char printNameBuffer[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   char arrayIndexCharacters[50]; 
+   int i;  
+   void** p = arrayVariable;
+   void* q;
+   int nof_members, elt_size;
+   nof_members = 1;
+
+   /* Compute in case of multi-dimension how many members to jump in this dimension */
+   for (i= sizeIndex + 1; i<nbrSizes; i++) {
+       nof_members = nof_members * sizes[i];
+   }
+   elt_size = member_size * nof_members;
+
+   for (i= 0; i<sizes[sizeIndex]; i++) {
+       if (i != 0) {
+          if (pointerNbr == 0) {
+             p += (elt_size / sizeof(void *));
+          }
+          else {
+             /* Array of pointers - go to next element */
+             p += 1;
+          }
+       }
+       switch (pointerNbr) {
+       case 0:
+          q = (void*) &(*p);
+           break;
+       case 1:
+          q = *p;
+          break;
+       case 2:
+          q = (void*) *((void**) *p);
+           break;
+       case 3:
+       default:
+          q = (void*) **((void***) *p);
+           break;
+       }
+       if (q == NULL) {
+           continue;
+       }
+       if (SHR_BITNULL_RANGE(q, 0, elt_size*8)){
+          continue;
+       }
+       SW_STATE_DUMP_SAFE_STRCPY(printNameBuffer, variableName);  
+       SW_STATE_DUMP_SAFE_STRCAT(printNameBuffer, "[");  
+       sal_snprintf(arrayIndexCharacters, 50, "%d", i);  
+       SW_STATE_DUMP_SAFE_STRCAT(printNameBuffer, arrayIndexCharacters);  
+       SW_STATE_DUMP_SAFE_STRCAT(printNameBuffer, "]");  
+       /* array is multidimensional */ 
+       if (sizeIndex < nbrSizes -1) { 
+          printArray(sizes, sizeIndex + 1, nbrSizes, printNameBuffer, (void**) p, print_cb, pointerNbr, member_size); 
+       } 
+        /* array is one-dimensional, print its elements */ 
+       else { 
+          print_cb(q, printNameBuffer); 
+       } 
+   }  
+}  
+void CHAR_SW_DUMP_PRINT(void* element, char* variableName) { 
+   char elt = *((char*) element); 
+   sal_fprintf(output_file, "%s: %c\n", variableName, elt); 
+} 
+void DOUBLE_SW_DUMP_PRINT(void* element, char* variableName) { 
+   double elt = *((double*) element); 
+   sal_fprintf(output_file, "%s: %G\n", variableName, elt); 
+} 
+void FLOAT_SW_DUMP_PRINT(void* element, char* variableName) { 
+   float elt = *((float*) element); 
+   sal_fprintf(output_file, "%s: %G\n", variableName, elt); 
+} 
+void INT_SW_DUMP_PRINT(void* element, char* variableName) { 
+   int elt = *((int*) element); 
+   sal_fprintf(output_file, "%s: %d\n", variableName, elt); 
+} 
+void LONG_SW_DUMP_PRINT(void* element, char* variableName) { 
+   long elt = *((long*) element); 
+   sal_fprintf(output_file, "%s: %li\n", variableName, elt); 
+} 
+void SHORT_SW_DUMP_PRINT(void* element, char* variableName) { 
+   short elt = *((short*) element); 
+   sal_fprintf(output_file, "%s: %hi\n", variableName, elt); 
+} 
+void UNSIGNED_CHAR_SW_DUMP_PRINT(void* element, char* variableName) { 
+   unsigned char elt = *((unsigned char*) element); 
+   sal_fprintf(output_file, "%s: %u\n", variableName, elt); 
+} 
+void UNSIGNED_INT_SW_DUMP_PRINT(void* element, char* variableName) { 
+   unsigned int elt = *((unsigned int*) element); 
+   sal_fprintf(output_file, "%s: %u\n", variableName, elt); 
+} 
+void UNSIGNED_SW_DUMP_PRINT(void* element, char* variableName) { 
+   unsigned elt = *((unsigned*) element); 
+   sal_fprintf(output_file, "%s: %u\n", variableName, elt); 
+} 
+void UNSIGNED_SHORT_SW_DUMP_PRINT(void* element, char* variableName) { 
+   unsigned short elt = *((unsigned short*) element); 
+   sal_fprintf(output_file, "%s: %u\n", variableName, elt); 
+} 
+void UNSIGNED_LONG_SW_DUMP_PRINT(void* element, char* variableName) { 
+   unsigned long elt = *((unsigned long*) element); 
+   sal_fprintf(output_file, "%s: %lu\n", variableName, elt); 
+} 
+void UNSIGNED_LONG_LONG_SW_DUMP_PRINT(void* element, char* variableName) { 
+   uint64 elt = *((uint64*) element); 
+   sal_fprintf(output_file, "%s: %08x%08x\n", variableName, COMPILER_64_HI(elt), COMPILER_64_LO(elt));
+} 
+void SIGNED_CHAR_SW_DUMP_PRINT(void* element, char* variableName) { 
+   signed char elt = *((signed char*) element); 
+   sal_fprintf(output_file, "%s: %c\n", variableName, elt); 
+} 
+void SIGNED_SHORT_SW_DUMP_PRINT(void* element, char* variableName) { 
+   signed short elt = *((signed short*) element); 
+   sal_fprintf(output_file, "%s: %hi\n", variableName, elt); 
+} 
+void SIGNED_INT_SW_DUMP_PRINT(void* element, char* variableName) { 
+   signed int elt = *((signed int*) element); 
+   sal_fprintf(output_file, "%s: %d\n", variableName, elt); 
+} 
+void SIGNED_SW_DUMP_PRINT(void* element, char* variableName) { 
+   signed elt = *((signed*) element); 
+   sal_fprintf(output_file, "%s: %d\n", variableName, elt); 
+} 
+void SIGNED_LONG_SW_DUMP_PRINT(void* element, char* variableName) { 
+   signed long elt = *((signed long*) element); 
+   sal_fprintf(output_file, "%s: %li\n", variableName, elt); 
+} 
+void uint8_SW_DUMP_PRINT(void* element, char* variableName){ 
+   UNSIGNED_CHAR_SW_DUMP_PRINT(element, variableName); 
+} 
+void uint16_SW_DUMP_PRINT(void* element, char* variableName){ 
+   UNSIGNED_SHORT_SW_DUMP_PRINT(element, variableName); 
+} 
+void uint32_SW_DUMP_PRINT(void* element, char* variableName){ 
+   UNSIGNED_INT_SW_DUMP_PRINT(element, variableName); 
+} 
+void uint64_SW_DUMP_PRINT(void* element, char* variableName){ 
+   UNSIGNED_LONG_SW_DUMP_PRINT(element, variableName); 
+} 
+void int8_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SIGNED_CHAR_SW_DUMP_PRINT(element, variableName); 
+} 
+void int16_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SIGNED_SHORT_SW_DUMP_PRINT(element, variableName); 
+} 
+void int32_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SIGNED_INT_SW_DUMP_PRINT(element, variableName); 
+} 
+void int64_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SIGNED_LONG_SW_DUMP_PRINT(element, variableName); 
+} 
+void bcm_field_presel_set_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   bcm_field_presel_set_t *elt = ((bcm_field_presel_set_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".w"); 
+   arraySizes_SW_DUMP[0]=_SHR_BITDCLSIZE ( BCM_FIELD_PRESEL_SEL_MAX ); 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->w, uint32_SW_DUMP_PRINT, 0, sizeof(SHR_BITDCL)); 
+} 
+void _bcm_dpp_field_datafield_bits_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint32_SW_DUMP_PRINT(element, variableName); 
+} 
+void _bcm_dpp_field_qual_set_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint32_SW_DUMP_PRINT(element, variableName); 
+} 
+void _bcm_dpp_field_action_set_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint32_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_SAND_PAT_TREE_NODE_KEY_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_SAND_PAT_TREE_NODE_KEY *elt = ((SOC_SAND_PAT_TREE_NODE_KEY*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".val"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->val), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".prefix"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->prefix), variableNameWithPath); 
+} 
+void SOC_SAND_PAT_TREE_T_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_SAND_PAT_TREE_T *elt = ((SOC_SAND_PAT_TREE_T*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".root"); 
+   SOC_SAND_PAT_TREE_NODE_PLACE_SW_DUMP_PRINT((void*) &(elt->root), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*tree_memory"); 
+   /* check the pointer is not null */ 
+   if (elt->tree_memory) { 
+      SOC_SAND_PAT_TREE_NODE_SW_DUMP_PRINT((void*) &(*elt->tree_memory), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".memory_use"); 
+   SOC_SAND_OCC_BM_PTR_SW_DUMP_PRINT((void*) &(elt->memory_use), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cache_enabled"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->cache_enabled), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*tree_memory_cache"); 
+   /* check the pointer is not null */ 
+   if (elt->tree_memory_cache) { 
+      SOC_SAND_PAT_TREE_NODE_SW_DUMP_PRINT((void*) &(*elt->tree_memory_cache), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".root_cache"); 
+   SOC_SAND_PAT_TREE_NODE_PLACE_SW_DUMP_PRINT((void*) &(elt->root_cache), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cache_change_head"); 
+   SOC_SAND_PAT_TREE_NODE_KEY_SW_DUMP_PRINT((void*) &(elt->cache_change_head), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".current_node_place"); 
+   SOC_SAND_PAT_TREE_NODE_PLACE_SW_DUMP_PRINT((void*) &(elt->current_node_place), variableNameWithPath); 
+} 
+void ARAD_SW_DB_INTERRUPTS_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_SW_DB_INTERRUPTS *elt = ((ARAD_SW_DB_INTERRUPTS*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".interrupt_data"); 
+   arraySizes_SW_DUMP[0]=ARAD_INT_LAST; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->interrupt_data, ARAD_SW_DB_INTERRUPT_DATA_SW_DUMP_PRINT, 0, sizeof(ARAD_SW_DB_INTERRUPT_DATA)); 
+} 
+void ARAD_FP_DATABASE_STAGE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_PPC_FP_DATABASE_STAGE_SW_DUMP_PRINT(element, variableName); 
+} 
+void _shr_port_phy_timesync_framesync_mode_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void _shr_port_phy_timesync_framesync_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   _shr_port_phy_timesync_framesync_t *elt = ((_shr_port_phy_timesync_framesync_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mode"); 
+   _shr_port_phy_timesync_framesync_mode_t_SW_DUMP_PRINT((void*) &(elt->mode), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".length_threshold"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->length_threshold), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".event_offset"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->event_offset), variableNameWithPath); 
+} 
+void _shr_port_phy_timesync_event_message_ingress_mode_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void soc_port_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   INT_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_SAND_PP_IPV4_SUBNET_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_SAND_PP_IPV4_SUBNET *elt = ((SOC_SAND_PP_IPV4_SUBNET*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ip_address"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->ip_address), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".prefix_len"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->prefix_len), variableNameWithPath); 
+} 
+void ARAD_CHIP_DEFINITIONS_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_CHIP_DEFINITIONS *elt = ((ARAD_CHIP_DEFINITIONS*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ticks_per_sec"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->ticks_per_sec), variableNameWithPath); 
+} 
+void cint_atomic_type_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   cint_atomic_type_t *elt = ((cint_atomic_type_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*name"); 
+   /* check the pointer is not null */ 
+   if (elt->name) { 
+      CHAR_SW_DUMP_PRINT((void*) &(*elt->name), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".size"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".flags"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->flags), variableNameWithPath); 
+} 
+void cint_parameter_desc_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   cint_parameter_desc_t *elt = ((cint_parameter_desc_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*basetype"); 
+   /* check the pointer is not null */ 
+   if (elt->basetype) { 
+      CHAR_SW_DUMP_PRINT((void*) &(*elt->basetype), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*name"); 
+   /* check the pointer is not null */ 
+   if (elt->name) { 
+      CHAR_SW_DUMP_PRINT((void*) &(*elt->name), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pcount"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->pcount), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".array"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->array), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".flags"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->flags), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".num_dimensions"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->num_dimensions), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".dimensions"); 
+   arraySizes_SW_DUMP[0]=CINT_CONFIG_ARRAY_DIMENSION_LIMIT; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->dimensions, INT_SW_DUMP_PRINT, 0, sizeof(int)); 
+} 
+void cint_function_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   cint_function_t *elt = ((cint_function_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*name"); 
+   /* check the pointer is not null */ 
+   if (elt->name) { 
+      CHAR_SW_DUMP_PRINT((void*) &(*elt->name), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*params"); 
+   /* check the pointer is not null */ 
+   if (elt->params) { 
+      cint_parameter_desc_t_SW_DUMP_PRINT((void*) &(*elt->params), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+void cint_struct_type_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   cint_struct_type_t *elt = ((cint_struct_type_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*name"); 
+   /* check the pointer is not null */ 
+   if (elt->name) { 
+      CHAR_SW_DUMP_PRINT((void*) &(*elt->name), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".size"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*struct_members"); 
+   /* check the pointer is not null */ 
+   if (elt->struct_members) { 
+      cint_parameter_desc_t_SW_DUMP_PRINT((void*) &(*elt->struct_members), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+void cint_enum_map_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   cint_enum_map_t *elt = ((cint_enum_map_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*name"); 
+   /* check the pointer is not null */ 
+   if (elt->name) { 
+      CHAR_SW_DUMP_PRINT((void*) &(*elt->name), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".value"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->value), variableNameWithPath); 
+} 
+void cint_enum_type_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   cint_enum_type_t *elt = ((cint_enum_type_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*name"); 
+   /* check the pointer is not null */ 
+   if (elt->name) { 
+      CHAR_SW_DUMP_PRINT((void*) &(*elt->name), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*enum_map"); 
+   /* check the pointer is not null */ 
+   if (elt->enum_map) { 
+      cint_enum_map_t_SW_DUMP_PRINT((void*) &(*elt->enum_map), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+void cint_constants_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   cint_enum_map_t_SW_DUMP_PRINT(element, variableName); 
+} 
+void cint_function_pointer_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   cint_function_pointer_t *elt = ((cint_function_pointer_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*name"); 
+   /* check the pointer is not null */ 
+   if (elt->name) { 
+      CHAR_SW_DUMP_PRINT((void*) &(*elt->name), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*params"); 
+   /* check the pointer is not null */ 
+   if (elt->params) { 
+      cint_parameter_desc_t_SW_DUMP_PRINT((void*) &(*elt->params), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+void cint_custom_iterator_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   cint_custom_iterator_t *elt = ((cint_custom_iterator_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*name"); 
+   /* check the pointer is not null */ 
+   if (elt->name) { 
+      CHAR_SW_DUMP_PRINT((void*) &(*elt->name), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+void cint_custom_macro_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   cint_custom_macro_t *elt = ((cint_custom_macro_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*name"); 
+   /* check the pointer is not null */ 
+   if (elt->name) { 
+      CHAR_SW_DUMP_PRINT((void*) &(*elt->name), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+void cint_data_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   cint_data_t *elt = ((cint_data_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*atomics"); 
+   /* check the pointer is not null */ 
+   if (elt->atomics) { 
+      cint_atomic_type_t_SW_DUMP_PRINT((void*) &(*elt->atomics), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*functions"); 
+   /* check the pointer is not null */ 
+   if (elt->functions) { 
+      cint_function_t_SW_DUMP_PRINT((void*) &(*elt->functions), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*structures"); 
+   /* check the pointer is not null */ 
+   if (elt->structures) { 
+      cint_struct_type_t_SW_DUMP_PRINT((void*) &(*elt->structures), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*enums"); 
+   /* check the pointer is not null */ 
+   if (elt->enums) { 
+      cint_enum_type_t_SW_DUMP_PRINT((void*) &(*elt->enums), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*typedefs"); 
+   /* check the pointer is not null */ 
+   if (elt->typedefs) { 
+      cint_parameter_desc_t_SW_DUMP_PRINT((void*) &(*elt->typedefs), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*constants"); 
+   /* check the pointer is not null */ 
+   if (elt->constants) { 
+      cint_constants_t_SW_DUMP_PRINT((void*) &(*elt->constants), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*fpointers"); 
+   /* check the pointer is not null */ 
+   if (elt->fpointers) { 
+      cint_function_pointer_t_SW_DUMP_PRINT((void*) &(*elt->fpointers), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*iterators"); 
+   /* check the pointer is not null */ 
+   if (elt->iterators) { 
+      cint_custom_iterator_t_SW_DUMP_PRINT((void*) &(*elt->iterators), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*macros"); 
+   /* check the pointer is not null */ 
+   if (elt->macros) { 
+      cint_custom_macro_t_SW_DUMP_PRINT((void*) &(*elt->macros), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+void bcm_dpp_am_pool_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_am_pool_info_t *elt = ((bcm_dpp_am_pool_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pool_id"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->pool_id), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".type"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->res_id), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".res_id"); 
+   shr_res_allocator_t_SW_DUMP_PRINT((void*) &(elt->res_type), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".start"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->start), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".count"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->count), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".max_elements_per_allocation"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->max_elements_per_allocation), variableNameWithPath); 
+} 
+void shr_res_allocator_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void bcm_dpp_am_template_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_am_template_info_t *elt = ((bcm_dpp_am_template_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pool_id"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->pool_id), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".type"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->template_id), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".manager"); 
+   shr_template_manage_t_SW_DUMP_PRINT((void*) &(elt->manager), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".start"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->start), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".count"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->count), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".max_entities"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->max_entities), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".data_size"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->data_size), variableNameWithPath); 
+} 
+void shr_template_manage_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void bcm_dpp_am_cosq_res_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_am_cosq_res_info_t *elt = ((bcm_dpp_am_cosq_res_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*e2e_fixed_res"); 
+   /* check the pointer is not null */ 
+   if (elt->e2e_fixed_res) { 
+      uint32_SW_DUMP_PRINT((void*) &(*elt->e2e_fixed_res), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*e2e_total_dynamic_res"); 
+   bcm_dpp_am_cosq_pool_info_t_SW_DUMP_PRINT((void*) &(elt->e2e_total_res_pool), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".connector_cont_res_pool_ref"); 
+   bcm_dpp_am_cosq_pool_ref_t_SW_DUMP_PRINT((void*) &(elt->connector_cont_res_pool_ref), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".connector_non_cont_region_type_1_res_pool_ref"); 
+   bcm_dpp_am_cosq_pool_ref_t_SW_DUMP_PRINT((void*) &(elt->connector_non_cont_region_type_1_res_pool_ref), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".connector_non_cont_region_type_2_res_pool_ref"); 
+   bcm_dpp_am_cosq_pool_ref_t_SW_DUMP_PRINT((void*) &(elt->connector_non_cont_region_type_2_res_pool_ref), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".se_cl_fq_region_type_1_res_pool_ref"); 
+   bcm_dpp_am_cosq_pool_ref_t_SW_DUMP_PRINT((void*) &(elt->se_cl_fq_region_type_1_res_pool_ref), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".se_cl_fq_region_type_2_res_pool_ref"); 
+   bcm_dpp_am_cosq_pool_ref_t_SW_DUMP_PRINT((void*) &(elt->se_cl_fq_region_type_2_res_pool_ref), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".se_cl_hr_res_pool_ref"); 
+   bcm_dpp_am_cosq_pool_ref_t_SW_DUMP_PRINT((void*) &(elt->se_cl_hr_res_pool_ref), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".fq_connector_region_type_2_sync_res_pool_ref"); 
+   bcm_dpp_am_cosq_pool_ref_t_SW_DUMP_PRINT((void*) &(elt->fq_connector_region_type_2_sync_res_pool_ref), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".hr_connector_region_type_2_sync_res_pool_ref"); 
+   bcm_dpp_am_cosq_pool_ref_t_SW_DUMP_PRINT((void*) &(elt->hr_connector_region_type_2_sync_res_pool_ref), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*queue_fixed_res"); 
+   /* check the pointer is not null */ 
+   if (elt->queue_fixed_res) { 
+      uint32_SW_DUMP_PRINT((void*) &(*elt->queue_fixed_res), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*queue_unicast_total_dynamic_res"); 
+   /* check the pointer is not null */ 
+   if (elt->queue_unicast_total_dynamic_res) { 
+      uint32_SW_DUMP_PRINT((void*) &(*elt->queue_unicast_total_dynamic_res), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*queue_unicast_free_dynamic_res"); 
+   /* check the pointer is not null */ 
+   if (elt->queue_unicast_free_dynamic_res) { 
+      uint32_SW_DUMP_PRINT((void*) &(*elt->queue_unicast_free_dynamic_res), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*queue_multicast_total_dynamic_res"); 
+   /* check the pointer is not null */ 
+   if (elt->queue_multicast_total_dynamic_res) { 
+      uint32_SW_DUMP_PRINT((void*) &(*elt->queue_multicast_total_dynamic_res), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*queue_multicast_free_dynamic_res"); 
+   /* check the pointer is not null */ 
+   if (elt->queue_multicast_free_dynamic_res) { 
+      uint32_SW_DUMP_PRINT((void*) &(*elt->queue_multicast_free_dynamic_res), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*queue_isq_total_dynamic_res"); 
+   /* check the pointer is not null */ 
+   if (elt->queue_isq_total_dynamic_res) { 
+      uint32_SW_DUMP_PRINT((void*) &(*elt->queue_isq_total_dynamic_res), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*queue_isq_free_dynamic_res"); 
+   /* check the pointer is not null */ 
+   if (elt->queue_isq_free_dynamic_res) { 
+      uint32_SW_DUMP_PRINT((void*) &(*elt->queue_isq_free_dynamic_res), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".queue_total_res_pool"); 
+   bcm_dpp_am_cosq_pool_info_t_SW_DUMP_PRINT((void*) &(elt->queue_total_res_pool), variableNameWithPath); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".queue_unicast_cont_res_pool_ref"); 
+   bcm_dpp_am_cosq_pool_ref_t_SW_DUMP_PRINT((void*) &(elt->queue_unicast_cont_res_pool_ref), variableNameWithPath); 
+#endif /* SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".queue_unicast_non_cont_res_pool_ref"); 
+   bcm_dpp_am_cosq_pool_ref_t_SW_DUMP_PRINT((void*) &(elt->queue_unicast_non_cont_res_pool_ref), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".queue_multicast_cont_res_pool_ref"); 
+   bcm_dpp_am_cosq_pool_ref_t_SW_DUMP_PRINT((void*) &(elt->queue_multicast_cont_res_pool_ref), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".queue_multicast_non_cont_res_pool_ref"); 
+   bcm_dpp_am_cosq_pool_ref_t_SW_DUMP_PRINT((void*) &(elt->queue_multicast_non_cont_res_pool_ref), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".queue_isq_cont_res_pool_ref"); 
+   bcm_dpp_am_cosq_pool_ref_t_SW_DUMP_PRINT((void*) &(elt->queue_isq_cont_res_pool_ref), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".queue_isq_non_cont_res_pool_ref"); 
+   bcm_dpp_am_cosq_pool_ref_t_SW_DUMP_PRINT((void*) &(elt->queue_isq_non_cont_res_pool_ref), variableNameWithPath); 
+} 
+void bcm_dpp_am_cosq_pool_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   bcm_dpp_am_cosq_pool_info_t *elt = ((bcm_dpp_am_cosq_pool_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".max_entries"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->max_entries), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".valid_entries"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->valid_entries), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*entries"); 
+   arraySizes_SW_DUMP[0]=elt->max_entries; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->entries, bcm_dpp_am_cosq_pool_entry_t_SW_DUMP_PRINT, 0, sizeof(bcm_dpp_am_cosq_pool_entry_t)); 
+} 
+void bcm_dpp_am_cosq_pool_entry_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   bcm_dpp_am_cosq_pool_entry_t *elt = ((bcm_dpp_am_cosq_pool_entry_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_valid"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->is_valid), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_dynamic"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->is_dynamic), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pool_id"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->pool_id), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".type_id"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->type_id), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".type"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->type), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".p_pool_id"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->p_pool_id), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".res"); 
+   arraySizes_SW_DUMP[0]=SHR_BITALLOCSIZE ( DPP_DEVICE_COSQ_MAX_REGION_VAL + 1 ); 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->res, uint32_SW_DUMP_PRINT, 0, sizeof(SHR_BITDCL)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".start"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->start), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".count"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->count), variableNameWithPath); 
+} 
+void bcm_dpp_am_cosq_pool_ref_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   bcm_dpp_am_cosq_pool_ref_t *elt = ((bcm_dpp_am_cosq_pool_ref_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".max_entries"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->max_entries), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".valid_entries"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->valid_entries), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*entries"); 
+   arraySizes_SW_DUMP[0]=elt->max_entries; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->entries, INT_SW_DUMP_PRINT, 0, sizeof(int)); 
+} 
+void endpoint_list_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   endpoint_list_t *elt = ((endpoint_list_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*first_member"); 
+   /* check the pointer is not null */ 
+   if (elt->first_member) { 
+      endpoint_list_member_t_SW_DUMP_PRINT((void*) &(*elt->first_member), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".size"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->size), variableNameWithPath); 
+} 
+void endpoint_list_member_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   endpoint_list_member_t *elt = ((endpoint_list_member_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".index"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->index), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*next"); 
+   /* check the pointer is not null */ 
+   if (elt->next) { 
+      endpoint_list_member_t_SW_DUMP_PRINT((void*) &(*elt->next), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+void SOC_PPD_BFD_INIT_TRAP_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_PPC_BFD_INIT_TRAP_INFO_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_PPC_BFD_INIT_TRAP_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   SOC_PPC_BFD_INIT_TRAP_INFO *elt = ((SOC_PPC_BFD_INIT_TRAP_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".trap_ids"); 
+   arraySizes_SW_DUMP[0]=SOC_PPC_BFD_TRAP_ID_COUNT; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->trap_ids, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+} 
+void SOC_PPC_BFD_TRAP_ID_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void bcm_dpp_cosq_pfc_rx_type_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+}
+void bcm_dpp_cosq_config_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   bcm_dpp_cosq_config_t *elt = ((bcm_dpp_cosq_config_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".fmq_class_ports"); 
+   arraySizes_SW_DUMP[0]=DPP_DEVICE_FMQ_CLASS_PORTS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->fmq_class_ports, bcm_gport_t_SW_DUMP_PRINT, 0, sizeof(bcm_gport_t)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".isq_port"); 
+   bcm_gport_t_SW_DUMP_PRINT((void*) &(elt->isq_port), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".hr_fc_default_template"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->hr_fc_default_template), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".hr_fc_default_template_data"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->hr_fc_default_template_data), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".default_se"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->default_se), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".default_se_flow"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->default_se_flow), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".default_se_type"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->default_se_type), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".default_se_class"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->default_se_class), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".voq_flags"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->voq_flags), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".voq_config"); 
+   arraySizes_SW_DUMP[0]=DPP_DEVICE_COSQ_MAX_COS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->voq_config, bcm_dpp_cosq_voq_config_t_SW_DUMP_PRINT, 0, sizeof(bcm_dpp_cosq_voq_config_t)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".connector_flags"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->connector_flags), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".connector_config"); 
+   arraySizes_SW_DUMP[0]=DPP_DEVICE_COSQ_MAX_COS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->connector_config, bcm_dpp_cosq_connector_config_t_SW_DUMP_PRINT, 0, sizeof(bcm_dpp_cosq_connector_config_t)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".se_flags"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->se_flags), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".se_config"); 
+   bcm_dpp_cosq_se_config_t_SW_DUMP_PRINT((void*) &(elt->se_config), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".voq_hd"); 
+   bcm_dpp_cosq_list_hd_t_SW_DUMP_PRINT((void*) &(elt->voq_hd), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".connector_hd"); 
+   bcm_dpp_cosq_list_hd_t_SW_DUMP_PRINT((void*) &(elt->connector_hd), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".se_hd"); 
+   bcm_dpp_cosq_list_hd_t_SW_DUMP_PRINT((void*) &(elt->se_hd), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".flow_hd"); 
+   bcm_dpp_cosq_list_hd_t_SW_DUMP_PRINT((void*) &(elt->flow_hd), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".inband_cal"); 
+   arraySizes_SW_DUMP[0]=SOC_DPP_MAX_INTERLAKEN_PORTS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->inband_cal, bcm_dpp_cosq_cal_t_SW_DUMP_PRINT, 0, sizeof(bcm_dpp_cosq_cal_t)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".oob_cal"); 
+   arraySizes_SW_DUMP[0]=SOC_DPP_MAX_OOB_PORTS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->oob_cal, bcm_dpp_cosq_cal_t_SW_DUMP_PRINT, 0, sizeof(bcm_dpp_cosq_cal_t)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".vsq_category_mode"); 
+   bcm_fabric_vsq_category_mode_t_SW_DUMP_PRINT((void*) &(elt->vsq_category_mode), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ucast_qid_start"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->ucast_qid_start), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ucast_qid_end"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->ucast_qid_end), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".rx_pfc_map_info"); 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_PORTS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->rx_pfc_map_info, bcm_dpp_cosq_pfc_rx_type_t_SW_DUMP_PRINT, 0, sizeof(bcm_dpp_cosq_pfc_rx_type_t));    
+}
+void bcm_gport_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   INT_SW_DUMP_PRINT(element, variableName); 
+} 
+void bcm_dpp_cosq_voq_config_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_cosq_voq_config_t *elt = ((bcm_dpp_cosq_voq_config_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".num_cos"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->num_cos), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".flags"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->flags), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ref_cnt"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->ref_cnt), variableNameWithPath); 
+} 
+void bcm_dpp_cosq_connector_config_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_cosq_connector_config_t *elt = ((bcm_dpp_cosq_connector_config_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".num_cos"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->num_cos), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".flags"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->flags), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".src_modid"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->src_modid), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ref_cnt"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->ref_cnt), variableNameWithPath); 
+} 
+void bcm_dpp_cosq_se_config_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_cosq_se_config_t *elt = ((bcm_dpp_cosq_se_config_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ref_cnt"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->ref_cnt), variableNameWithPath); 
+} 
+void bcm_dpp_cosq_list_hd_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_cosq_list_hd_t *elt = ((bcm_dpp_cosq_list_hd_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*blk"); 
+   /* check the pointer is not null */ 
+   if (elt->blk) { 
+      bcm_dpp_cosq_blk_info_t_SW_DUMP_PRINT((void*) &(*elt->blk), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".num_elements_per_blk"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->num_elements_per_blk), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".element_size"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->element_size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".index_divisor"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->index_divisor), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".type"); 
+   bcm_dpp_cosq_hdlist_type_t_SW_DUMP_PRINT((void*) &(elt->type), variableNameWithPath); 
+} 
+void bcm_dpp_cosq_blk_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_cosq_blk_info_t *elt = ((bcm_dpp_cosq_blk_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".start_element"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->start_element), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".end_element"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->end_element), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".count"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->count), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".used"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->used), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*next_blk"); 
+   /* check the pointer is not null */ 
+   if (elt->next_blk) { 
+      bcm_dpp_cosq_blk_info_t_SW_DUMP_PRINT((void*) &(*elt->next_blk), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+void bcm_dpp_cosq_hdlist_type_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void bcm_dpp_cosq_cal_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_cosq_cal_t *elt = ((bcm_dpp_cosq_cal_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".rx"); 
+   bcm_dpp_cosq_rx_cal_t_SW_DUMP_PRINT((void*) &(elt->rx), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tx"); 
+   bcm_dpp_cosq_tx_cal_t_SW_DUMP_PRINT((void*) &(elt->tx), variableNameWithPath); 
+} 
+void bcm_dpp_cosq_rx_cal_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_cosq_rx_cal_t *elt = ((bcm_dpp_cosq_rx_cal_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".valid"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->valid), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".intf"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->intf), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cal_mode_ndx"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->cal_mode_ndx), variableNameWithPath); 
+} 
+void bcm_dpp_cosq_tx_cal_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_cosq_tx_cal_t *elt = ((bcm_dpp_cosq_tx_cal_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".valid"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->valid), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".intf"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->intf), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cal_mode_ndx"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->cal_mode_ndx), variableNameWithPath); 
+} 
+void bcm_fabric_vsq_category_mode_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void _bcm_dpp_counter_state_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   _bcm_dpp_counter_state_t *elt = ((_bcm_dpp_counter_state_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".unit"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->unit), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".running"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->running), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".bgWait"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->bgWait), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".num_counter_procs"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->num_counter_procs), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".background_defer"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->background_defer), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".background_active"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->background_active), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".background_disable"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->background_disable), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".foreground_hit"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->foreground_hit), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".fifo_read_background"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->fifo_read_background), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".fifo_read_deferred"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->fifo_read_deferred), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*proc"); 
+   /* check the pointer is not null */ 
+   if (elt->proc) { 
+      _bcm_dpp_counter_proc_info_t_SW_DUMP_PRINT((void*) &(*elt->proc), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".fifo_results"); 
+   SOC_TMC_CNT_RESULT_ARR_SW_DUMP_PRINT((void*) &(elt->fifo_results), variableNameWithPath); 
+} 
+void _bcm_dpp_counter_proc_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   _bcm_dpp_counter_proc_info_t *elt = ((_bcm_dpp_counter_proc_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".proc_id"); 
+   SOC_TMC_CNT_PROCESSOR_ID_SW_DUMP_PRINT((void*) &(elt->proc_id), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mode"); 
+   SOC_TMC_CNT_COUNTERS_INFO_SW_DUMP_PRINT((void*) &(elt->mode), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".fifo_read_passes"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->fifo_read_passes), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".fifo_read_fails"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->fifo_read_fails), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".fifo_read_items"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->fifo_read_items), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".fifo_read_max"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->fifo_read_max), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".fifo_read_last"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->fifo_read_last), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".direct_read_passes"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->direct_read_passes), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".direct_read_fails"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->direct_read_fails), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cache_updates"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->cache_updates), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cache_reads"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->cache_reads), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cache_writes"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->cache_writes), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".api_reads"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->api_reads), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".api_writes"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->api_writes), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".api_miss_reads"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->api_miss_reads), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".api_miss_writes"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->api_miss_writes), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".native"); 
+   bcm_dpp_counter_set_t_SW_DUMP_PRINT((void*) &(elt->native), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".avail_offsets"); 
+   arraySizes_SW_DUMP[0]=bcm_dpp_counter_count; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->avail_offsets, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".source"); 
+   _bcm_dpp_counter_source_t_SW_DUMP_PRINT((void*) &(elt->source), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".num_counters"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->num_counters), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".num_sets"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->num_sets), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*counter"); 
+   /* check the pointer is not null */ 
+   if (elt->counter) { 
+      uint64_SW_DUMP_PRINT((void*) &(*elt->counter), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+void SOC_TMC_CNT_PROCESSOR_ID_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void SOC_TMC_CNT_COUNTERS_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_TMC_CNT_COUNTERS_INFO *elt = ((SOC_TMC_CNT_COUNTERS_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".src_type"); 
+   SOC_TMC_CNT_SRC_TYPE_SW_DUMP_PRINT((void*) &(elt->src_type), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mode_ing"); 
+   SOC_TMC_CNT_MODE_ING_SW_DUMP_PRINT((void*) &(elt->mode_ing), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mode_eg"); 
+   SOC_TMC_CNT_MODE_EG_SW_DUMP_PRINT((void*) &(elt->mode_eg), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".voq_cnt"); 
+   SOC_TMC_CNT_VOQ_PARAMS_SW_DUMP_PRINT((void*) &(elt->voq_cnt), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".stag_lsb"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->stag_lsb), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".format"); 
+   SOC_TMC_CNT_FORMAT_SW_DUMP_PRINT((void*) &(elt->format), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".replicated_pkts"); 
+   SOC_TMC_CNT_REPLICATED_PKTS_SW_DUMP_PRINT((void*) &(elt->replicated_pkts), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".custom_mode_params"); 
+   SOC_TMC_CNT_CUSTOM_MODE_PARAMS_SW_DUMP_PRINT((void*) &(elt->custom_mode_params), variableNameWithPath); 
+} 
+void SOC_TMC_CNT_SRC_TYPE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void SOC_TMC_CNT_MODE_ING_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void SOC_TMC_CNT_MODE_EG_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_TMC_CNT_MODE_EG *elt = ((SOC_TMC_CNT_MODE_EG*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".resolution"); 
+   SOC_TMC_CNT_MODE_EG_RES_SW_DUMP_PRINT((void*) &(elt->resolution), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".type"); 
+   SOC_TMC_CNT_MODE_EG_TYPE_SW_DUMP_PRINT((void*) &(elt->type), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".base_val"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->base_val), variableNameWithPath); 
+} 
+void SOC_TMC_CNT_MODE_EG_RES_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void SOC_TMC_CNT_MODE_EG_TYPE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void SOC_TMC_CNT_VOQ_PARAMS_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_TMC_CNT_VOQ_PARAMS *elt = ((SOC_TMC_CNT_VOQ_PARAMS*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".start_q"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->start_q), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".q_set_size"); 
+   SOC_TMC_CNT_Q_SET_SIZE_SW_DUMP_PRINT((void*) &(elt->q_set_size), variableNameWithPath); 
+} 
+void SOC_TMC_CNT_Q_SET_SIZE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void SOC_TMC_CNT_FORMAT_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void SOC_TMC_CNT_REPLICATED_PKTS_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void SOC_TMC_CNT_CUSTOM_MODE_PARAMS_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   SOC_TMC_CNT_CUSTOM_MODE_PARAMS *elt = ((SOC_TMC_CNT_CUSTOM_MODE_PARAMS*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entries_bmaps"); 
+   arraySizes_SW_DUMP[0]=SOC_TMC_CNT_BMAP_OFFSET_COUNT; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->entries_bmaps, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nof_counters"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->nof_counters), variableNameWithPath); 
+} 
+void SOC_TMC_CNT_BMAP_OFFSET_MAPPING_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void bcm_dpp_counter_set_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint32_SW_DUMP_PRINT(element, variableName); 
+} 
+void bcm_dpp_counter_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void _bcm_dpp_counter_source_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_TMC_CNT_SRC_TYPE_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_TMC_CNT_RESULT_ARR_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   SOC_TMC_CNT_RESULT_ARR *elt = ((SOC_TMC_CNT_RESULT_ARR*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cnt_result"); 
+   arraySizes_SW_DUMP[0]=SOC_TMC_CNT_CACHE_LENGTH_ARAD; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->cnt_result, SOC_TMC_CNT_RESULT_SW_DUMP_PRINT, 0, sizeof(SOC_TMC_CNT_RESULT)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nof_counters"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->nof_counters), variableNameWithPath); 
+} 
+void SOC_TMC_CNT_RESULT_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_TMC_CNT_RESULT *elt = ((SOC_TMC_CNT_RESULT*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".counter_id"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->counter_id), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pkt_cnt"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->pkt_cnt), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".byte_cnt"); 
+   uint64_SW_DUMP_PRINT((void*) &(elt->byte_cnt), variableNameWithPath); 
+} 
+void _bcm_dpp_field_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   _bcm_dpp_field_info_t *elt = ((_bcm_dpp_field_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".unit"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->unit), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".totalSize"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->totalSize), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".unitHandle"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->unitHandle), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*devInfo"); 
+   /* check the pointer is not null */ 
+   if (elt->devInfo) { 
+      _bcm_dpp_field_device_info_t_SW_DUMP_PRINT((void*) &(*elt->devInfo), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*qualMaps"); 
+   arraySizes_SW_DUMP[0]=bcmFieldQualifyCount; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->qualMaps, int32_SW_DUMP_PRINT, 1, sizeof(int32*)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*actMaps"); 
+   arraySizes_SW_DUMP[0]=bcmFieldActionCount; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->actMaps, int32_SW_DUMP_PRINT, 1, sizeof(int32*)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ppdQual"); 
+   arraySizes_SW_DUMP[0]=SOC_PPD_NOF_FP_QUAL_TYPES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->ppdQual, bcm_field_qualify_t_SW_DUMP_PRINT, 0, sizeof(bcm_field_qualify_t)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".qualMapCount"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->qualMapCount), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".actMapCount"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->actMapCount), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entryTcLimit"); 
+   _bcm_dpp_field_ent_idx_t_SW_DUMP_PRINT((void*) &(elt->entryTcLimit), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entryExtTcLimit"); 
+   _bcm_dpp_field_ent_idx_t_SW_DUMP_PRINT((void*) &(elt->entryExtTcLimit), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".groupLimit"); 
+   _bcm_dpp_field_grp_idx_t_SW_DUMP_PRINT((void*) &(elt->groupLimit), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entryDeLimit"); 
+   _bcm_dpp_field_ent_idx_t_SW_DUMP_PRINT((void*) &(elt->entryDeLimit), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".dqLimit"); 
+   _bcm_dpp_field_dq_idx_t_SW_DUMP_PRINT((void*) &(elt->dqLimit), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".preselLimit"); 
+   _bcm_dpp_field_presel_idx_t_SW_DUMP_PRINT((void*) &(elt->preselLimit), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".unitQset"); 
+   bcm_field_qset_t_SW_DUMP_PRINT((void*) &(elt->unitQset), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".unitAset"); 
+   bcm_field_aset_t_SW_DUMP_PRINT((void*) &(elt->unitAset), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cascadedKeyLen"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->cascadedKeyLen), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".rangeQualTypes"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->rangeQualTypes), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entryIntTcCount"); 
+   _bcm_dpp_field_ent_idx_t_SW_DUMP_PRINT((void*) &(elt->entryIntTcCount), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entryIntTcFree"); 
+   _bcm_dpp_field_ent_idx_t_SW_DUMP_PRINT((void*) &(elt->entryIntTcFree), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entryDeCount"); 
+   _bcm_dpp_field_ent_idx_t_SW_DUMP_PRINT((void*) &(elt->entryDeCount), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entryDeFree"); 
+   _bcm_dpp_field_ent_idx_t_SW_DUMP_PRINT((void*) &(elt->entryDeFree), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entryExtTcCount"); 
+   _bcm_dpp_field_ent_idx_t_SW_DUMP_PRINT((void*) &(elt->entryExtTcCount), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entryExtTcFree"); 
+   _bcm_dpp_field_ent_idx_t_SW_DUMP_PRINT((void*) &(elt->entryExtTcFree), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entryUninstalledTcCount"); 
+   _bcm_dpp_field_ent_idx_t_SW_DUMP_PRINT((void*) &(elt->entryUninstalledTcCount), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".groupCount"); 
+   _bcm_dpp_field_grp_idx_t_SW_DUMP_PRINT((void*) &(elt->groupCount), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".groupFree"); 
+   _bcm_dpp_field_grp_idx_t_SW_DUMP_PRINT((void*) &(elt->groupFree), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".groupCascaded"); 
+   _bcm_dpp_field_grp_idx_t_SW_DUMP_PRINT((void*) &(elt->groupCascaded), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*stageD"); 
+   /* check the pointer is not null */ 
+   if (elt->stageD) { 
+      _bcm_dpp_field_stage_t_SW_DUMP_PRINT((void*) &(*elt->stageD), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*groupD"); 
+   /* check the pointer is not null */ 
+   if (elt->groupD) { 
+      _bcm_dpp_field_group_t_SW_DUMP_PRINT((void*) &(*elt->groupD), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*entryTc"); 
+   /* check the pointer is not null */ 
+   if (elt->entryTc) { 
+      _bcm_dpp_field_entry_t_SW_DUMP_PRINT((void*) &(*elt->entryTc), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*entryDe"); 
+   /* check the pointer is not null */ 
+   if (elt->entryDe) { 
+      _bcm_dpp_field_entry_dir_ext_t_SW_DUMP_PRINT((void*) &(*elt->entryDe), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".unitFlags"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->unitFlags), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".**rangeInUse"); 
+   /* check the pointer is not null */ 
+   if (elt->rangeInUse) { 
+      uint32_SW_DUMP_PRINT((void*) &(**elt->rangeInUse), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".dataFieldInUse"); 
+   _bcm_dpp_field_datafield_bits_SW_DUMP_PRINT((void*) &(elt->dataFieldInUse), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".dataFieldOfsBit"); 
+   _bcm_dpp_field_datafield_bits_SW_DUMP_PRINT((void*) &(elt->dataFieldOfsBit), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".dataFieldLenBit"); 
+   _bcm_dpp_field_datafield_bits_SW_DUMP_PRINT((void*) &(elt->dataFieldLenBit), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".preselInUse"); 
+   bcm_field_presel_set_t_SW_DUMP_PRINT((void*) &(elt->preselInUse), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".dataFieldRefs"); 
+   arraySizes_SW_DUMP[0]=_BCM_DPP_NOF_FIELD_DATAS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->dataFieldRefs, UNSIGNED_INT_SW_DUMP_PRINT, 0, sizeof(unsigned int)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".preselRefs"); 
+   arraySizes_SW_DUMP[0]=_BCM_DPP_NOF_FIELD_PRESELECTORS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->preselRefs, UNSIGNED_INT_SW_DUMP_PRINT, 0, sizeof(unsigned int)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".preselProfileRefs"); 
+   arraySizes_SW_DUMP[0]=_bcmDppFieldProfileTypeCount; 
+   arraySizes_SW_DUMP[1]=_BCM_DPP_PRESEL_NOF_PORT_PROFILES; 
+   printArray(arraySizes_SW_DUMP, 0, 2, variableNameWithPath, (void**) elt->preselProfileRefs, UNSIGNED_INT_SW_DUMP_PRINT, 0, sizeof(unsigned int)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".wb"); 
+#ifdef BCM_WARM_BOOT_SUPPORT 
+   _bcm_dpp_field_info_wb_t_SW_DUMP_PRINT((void*) &(elt->wb), variableNameWithPath); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+} 
+void _bcm_dpp_field_device_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   _bcm_dpp_field_device_info_t *elt = ((_bcm_dpp_field_device_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".stages"); 
+   _bcm_dpp_field_stage_idx_t_SW_DUMP_PRINT((void*) &(elt->stages), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".types"); 
+   _bcm_dpp_field_type_idx_t_SW_DUMP_PRINT((void*) &(elt->types), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mappings"); 
+   _bcm_dpp_field_map_idx_t_SW_DUMP_PRINT((void*) &(elt->mappings), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".qualChain"); 
+   _bcm_dpp_field_chain_idx_t_SW_DUMP_PRINT((void*) &(elt->qualChain), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".actChain"); 
+   _bcm_dpp_field_chain_idx_t_SW_DUMP_PRINT((void*) &(elt->actChain), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".presels"); 
+   _bcm_dpp_field_presel_idx_t_SW_DUMP_PRINT((void*) &(elt->presels), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cascadeKeyLimit"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->cascadeKeyLimit), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*stage"); 
+   /* check the pointer is not null */ 
+   if (elt->stage) { 
+      _bcm_dpp_field_device_stage_info_t_SW_DUMP_PRINT((void*) &(*elt->stage), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*stMapInfo"); 
+   /* check the pointer is not null */ 
+   if (elt->stMapInfo) { 
+      _bcm_dpp_field_device_st_mapping_t_SW_DUMP_PRINT((void*) &(*elt->stMapInfo), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*modeBits"); 
+   /* check the pointer is not null */ 
+   if (elt->modeBits) { 
+      _bcm_dpp_field_device_group_mode_bits_t_SW_DUMP_PRINT((void*) &(*elt->modeBits), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*ranges"); 
+   /* check the pointer is not null */ 
+   if (elt->ranges) { 
+      _bcm_dpp_field_device_range_info_t_SW_DUMP_PRINT((void*) &(*elt->ranges), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*qualMap"); 
+   /* check the pointer is not null */ 
+   if (elt->qualMap) { 
+      int32_SW_DUMP_PRINT((void*) &(*elt->qualMap), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*actMap"); 
+   /* check the pointer is not null */ 
+   if (elt->actMap) { 
+      int32_SW_DUMP_PRINT((void*) &(*elt->actMap), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".**typeNames"); 
+   /* check the pointer is not null */ 
+   if (elt->typeNames) { 
+      CHAR_SW_DUMP_PRINT((void*) &(**elt->typeNames), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+void _bcm_dpp_field_stage_idx_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint8_SW_DUMP_PRINT(element, variableName); 
+} 
+void _bcm_dpp_field_type_idx_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint8_SW_DUMP_PRINT(element, variableName); 
+} 
+void _bcm_dpp_field_map_idx_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint8_SW_DUMP_PRINT(element, variableName); 
+} 
+void _bcm_dpp_field_chain_idx_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint8_SW_DUMP_PRINT(element, variableName); 
+} 
+void _bcm_dpp_field_presel_idx_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint16_SW_DUMP_PRINT(element, variableName); 
+} 
+void _bcm_dpp_field_device_stage_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   _bcm_dpp_field_device_stage_info_t *elt = ((_bcm_dpp_field_device_stage_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*stageName"); 
+   /* check the pointer is not null */ 
+   if (elt->stageName) { 
+      CHAR_SW_DUMP_PRINT((void*) &(*elt->stageName), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".bcmStage"); 
+   bcm_field_stage_t_SW_DUMP_PRINT((void*) &(elt->bcmStage), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".hwStageId"); 
+   SOC_PPD_FP_DATABASE_STAGE_SW_DUMP_PRINT((void*) &(elt->hwStageId), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".stageFlags"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->stageFlags), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".maxGroups"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->maxGroups), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".maxEntriesInternalTcam"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->maxEntriesInternalTcam), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".maxEntriesExternalTcam"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->maxEntriesExternalTcam), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".maxEntriesDe"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->maxEntriesDe), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".maxProgQuals"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->maxProgQuals), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entryMaxQuals"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->entryMaxQuals), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entryMaxActs"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->entryMaxActs), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entryDeMaxQuals"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->entryDeMaxQuals), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".sharesGroups"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->sharesGroups), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".sharesEntriesTc"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->sharesEntriesTc), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".sharesEntriesDe"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->sharesEntriesDe), variableNameWithPath); 
+} 
+void bcm_field_stage_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void SOC_PPD_FP_DATABASE_STAGE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_PPC_FP_DATABASE_STAGE_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_PPC_FP_DATABASE_STAGE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void _bcm_dpp_field_device_st_mapping_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   _bcm_dpp_field_device_st_mapping_t *elt = ((_bcm_dpp_field_device_st_mapping_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".stmStage"); 
+   _bcm_dpp_field_stage_idx_t_SW_DUMP_PRINT((void*) &(elt->stmStage), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".stmType"); 
+   _bcm_dpp_field_type_idx_t_SW_DUMP_PRINT((void*) &(elt->stmType), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".predefKey"); 
+   SOC_PPD_FP_PREDEFINED_ACL_KEY_SW_DUMP_PRINT((void*) &(elt->predefKey), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".stmFlags"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->stmFlags), variableNameWithPath); 
+} 
+void SOC_PPD_FP_PREDEFINED_ACL_KEY_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_PPC_FP_PREDEFINED_ACL_KEY_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_PPC_FP_PREDEFINED_ACL_KEY_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void _bcm_dpp_field_device_group_mode_bits_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   _bcm_dpp_field_device_group_mode_bits_t *elt = ((_bcm_dpp_field_device_group_mode_bits_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".stage"); 
+   _bcm_dpp_field_stage_idx_t_SW_DUMP_PRINT((void*) &(elt->stage), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mode"); 
+   bcm_field_group_mode_t_SW_DUMP_PRINT((void*) &(elt->mode), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".length"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->length), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".qualLength"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->qualLength), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entryCount"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->entryCount), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entryType"); 
+   _bcm_dpp_field_entry_type_t_SW_DUMP_PRINT((void*) &(elt->entryType), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".hwType"); 
+   SOC_PPD_FP_DATABASE_TYPE_SW_DUMP_PRINT((void*) &(elt->hwType), variableNameWithPath); 
+} 
+void bcm_field_group_mode_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void _bcm_dpp_field_entry_type_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void SOC_PPD_FP_DATABASE_TYPE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_PPC_FP_DATABASE_TYPE_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_PPC_FP_DATABASE_TYPE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void _bcm_dpp_field_device_range_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   _bcm_dpp_field_device_range_info_t *elt = ((_bcm_dpp_field_device_range_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".qualifier"); 
+   bcm_field_qualify_t_SW_DUMP_PRINT((void*) &(elt->qualifier), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".rangeFlags"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->rangeFlags), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".rangeBase"); 
+   bcm_field_range_t_SW_DUMP_PRINT((void*) &(elt->rangeBase), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".count"); 
+   _bcm_dpp_field_range_idx_t_SW_DUMP_PRINT((void*) &(elt->count), variableNameWithPath); 
+} 
+void bcm_field_qualify_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void bcm_field_range_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint32_SW_DUMP_PRINT(element, variableName); 
+} 
+void _bcm_dpp_field_range_idx_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint8_SW_DUMP_PRINT(element, variableName); 
+} 
+void bcm_field_action_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void SOC_PPC_FP_QUAL_TYPE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void _bcm_dpp_field_ent_idx_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint32_SW_DUMP_PRINT(element, variableName); 
+} 
+void _bcm_dpp_field_grp_idx_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint8_SW_DUMP_PRINT(element, variableName); 
+} 
+void _bcm_dpp_field_dq_idx_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint8_SW_DUMP_PRINT(element, variableName); 
+} 
+void bcm_field_qset_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   bcm_field_qset_t *elt = ((bcm_field_qset_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".w"); 
+   arraySizes_SW_DUMP[0]=_SHR_BITDCLSIZE ( BCM_FIELD_QUALIFY_MAX ); 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->w, uint32_SW_DUMP_PRINT, 0, sizeof(SHR_BITDCL)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".udf_map"); 
+   arraySizes_SW_DUMP[0]=_SHR_BITDCLSIZE ( BCM_FIELD_USER_NUM_UDFS ); 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->udf_map, uint32_SW_DUMP_PRINT, 0, sizeof(SHR_BITDCL)); 
+} 
+void bcm_field_aset_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   bcm_field_aset_t *elt = ((bcm_field_aset_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".w"); 
+   arraySizes_SW_DUMP[0]=_SHR_BITDCLSIZE ( bcmFieldActionCount ); 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->w, uint32_SW_DUMP_PRINT, 0, sizeof(SHR_BITDCL)); 
+} 
+void _shr_res_unit_desc_t_SW_DUMP_PRINT(void *element, char *variableName){ 
+    char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+    int arraySizes_SW_DUMP[4]; 
+    _shr_res_unit_desc_t *elt = ((_shr_res_unit_desc_t*) element); 
+    SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+    SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".resTypeCount");
+    uint16_SW_DUMP_PRINT((void*)&(elt->resTypeCount), variableNameWithPath); 
+    SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+    SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".resPoolCount");
+    uint16_SW_DUMP_PRINT((void*)&(elt->resPoolCount), variableNameWithPath); 
+    SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+    SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".res");
+    arraySizes_SW_DUMP[0]=elt->resTypeCount; 
+    arraySizes_SW_DUMP[1]=1; 
+    printArray(arraySizes_SW_DUMP, 0, 2, variableNameWithPath, (void**) elt->res, _shr_res_type_desc_t_SW_DUMP_PRINT, 1, sizeof(_shr_res_type_desc_t)); 
+    SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+    SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pool");
+    arraySizes_SW_DUMP[0]=elt->resPoolCount; 
+    arraySizes_SW_DUMP[1]=1; 
+    printArray(arraySizes_SW_DUMP, 0, 2, variableNameWithPath, (void**) elt->pool, _shr_res_pool_desc_t_SW_DUMP_PRINT, 1, sizeof(_shr_res_pool_desc_t)); 
+}
+void _shr_res_type_desc_t_SW_DUMP_PRINT(void *element, char *variableName){ 
+    char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+    int arraySizes_SW_DUMP[4]; 
+    _shr_res_type_desc_t *elt = ((_shr_res_type_desc_t*) element); 
+    SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+    SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".resPoolId");
+    INT_SW_DUMP_PRINT((void*)&(elt->resPoolId), variableNameWithPath); 
+    SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+    SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".resElemSize");
+    INT_SW_DUMP_PRINT((void*)&(elt->resElemSize), variableNameWithPath); 
+    SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+    SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".refCount");
+    INT_SW_DUMP_PRINT((void*)&(elt->refCount), variableNameWithPath); 
+    SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+    SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".name");
+    arraySizes_SW_DUMP[0]=1; 
+    printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->name, CHAR_SW_DUMP_PRINT, 0, sizeof(char)); 
+}
+void _shr_res_pool_desc_t_SW_DUMP_PRINT(void *element, char *variableName){ 
+    char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+    int arraySizes_SW_DUMP[4]; 
+    _shr_res_pool_desc_t *elt = ((_shr_res_pool_desc_t*) element); 
+    SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+    SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".resManagerType");
+    shr_res_allocator_t_SW_DUMP_PRINT((void*)&(elt->resManagerType), variableNameWithPath);
+    SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+    SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".low");
+    INT_SW_DUMP_PRINT((void*)&(elt->low), variableNameWithPath); 
+    SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+    SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".count");
+    INT_SW_DUMP_PRINT((void*)&(elt->count), variableNameWithPath); 
+    SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+    SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".refCount");
+    INT_SW_DUMP_PRINT((void*)&(elt->refCount), variableNameWithPath); 
+    SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+    SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".inuse");
+    INT_SW_DUMP_PRINT((void*)&(elt->inuse), variableNameWithPath); 
+    SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+    SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".name");
+    arraySizes_SW_DUMP[0]=1; 
+    printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->name, CHAR_SW_DUMP_PRINT, 0, sizeof(char)); 
+}
+void _bcm_dpp_field_stage_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   _bcm_dpp_field_stage_t *elt = ((_bcm_dpp_field_stage_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*devInfo"); 
+   /* check the pointer is not null */ 
+   if (elt->devInfo) { 
+      _bcm_dpp_field_device_stage_info_t_SW_DUMP_PRINT((void*) &(*elt->devInfo), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".stgQset"); 
+   bcm_field_qset_t_SW_DUMP_PRINT((void*) &(elt->stgQset), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".qsetType"); 
+   arraySizes_SW_DUMP[0]=_BCM_DPP_FIELD_MAX_GROUP_TYPES + 1; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->qsetType, bcm_field_qset_t_SW_DUMP_PRINT, 0, sizeof(bcm_field_qset_t)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ppqset"); 
+   _bcm_dpp_field_qual_set_t_SW_DUMP_PRINT((void*) &(elt->ppqset), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".stgAset"); 
+   bcm_field_aset_t_SW_DUMP_PRINT((void*) &(elt->stgAset), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".groupRes"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->groupRes), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entryRes"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->entryRes), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entryDeRes"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->entryDeRes), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*modeBits"); 
+   arraySizes_SW_DUMP[0]=bcmFieldGroupModeCount; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->modeBits, _bcm_dpp_field_device_group_mode_bits_t_SW_DUMP_PRINT, 1, sizeof(_bcm_dpp_field_device_group_mode_bits_t*)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ltOffset"); 
+   arraySizes_SW_DUMP[0]=_BCM_DPP_FIELD_MAX_GROUP_TYPES + 1; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->ltOffset, UNSIGNED_INT_SW_DUMP_PRINT, 0, sizeof(unsigned int)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".groupSh1"); 
+   _bcm_dpp_field_stage_idx_t_SW_DUMP_PRINT((void*) &(elt->groupSh1), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entryTcSh1"); 
+   _bcm_dpp_field_stage_idx_t_SW_DUMP_PRINT((void*) &(elt->entryTcSh1), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entryDeSh1"); 
+   _bcm_dpp_field_stage_idx_t_SW_DUMP_PRINT((void*) &(elt->entryDeSh1), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".hwGroupLimit"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->hwGroupLimit), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".hwEntryLimit"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->hwEntryLimit), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".hwEntryDeLimit"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->hwEntryDeLimit), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".groupHead"); 
+   _bcm_dpp_field_grp_idx_t_SW_DUMP_PRINT((void*) &(elt->groupHead), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".groupTail"); 
+   _bcm_dpp_field_grp_idx_t_SW_DUMP_PRINT((void*) &(elt->groupTail), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".groupCount"); 
+   _bcm_dpp_field_grp_idx_t_SW_DUMP_PRINT((void*) &(elt->groupCount), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entryCount"); 
+   _bcm_dpp_field_ent_idx_t_SW_DUMP_PRINT((void*) &(elt->entryCount), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entryElems"); 
+   _bcm_dpp_field_ent_idx_t_SW_DUMP_PRINT((void*) &(elt->entryElems), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entryDeCount"); 
+   _bcm_dpp_field_ent_idx_t_SW_DUMP_PRINT((void*) &(elt->entryDeCount), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entryDeElems"); 
+   _bcm_dpp_field_ent_idx_t_SW_DUMP_PRINT((void*) &(elt->entryDeElems), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pfgsEther"); 
+   bcm_field_presel_set_t_SW_DUMP_PRINT((void*) &(elt->pfgsEther), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pfgsIPv4"); 
+   bcm_field_presel_set_t_SW_DUMP_PRINT((void*) &(elt->pfgsIPv4), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pfgsIPv6"); 
+   bcm_field_presel_set_t_SW_DUMP_PRINT((void*) &(elt->pfgsIPv6), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pfgsMPLS"); 
+   bcm_field_presel_set_t_SW_DUMP_PRINT((void*) &(elt->pfgsMPLS), variableNameWithPath); 
+} 
+void _bcm_dpp_field_group_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   _bcm_dpp_field_group_t *elt = ((_bcm_dpp_field_group_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".qset"); 
+   bcm_field_qset_t_SW_DUMP_PRINT((void*) &(elt->qset), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".aset"); 
+   bcm_field_aset_t_SW_DUMP_PRINT((void*) &(elt->aset), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".preselSet"); 
+   bcm_field_presel_set_t_SW_DUMP_PRINT((void*) &(elt->preselSet), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".preselHw"); 
+   bcm_field_presel_set_t_SW_DUMP_PRINT((void*) &(elt->preselHw), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pqset"); 
+   _bcm_dpp_field_qual_set_t_SW_DUMP_PRINT((void*) &(elt->pqset), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".paset"); 
+   _bcm_dpp_field_action_set_t_SW_DUMP_PRINT((void*) &(elt->paset), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".groupTypes"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->groupTypes), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entryHead"); 
+   _bcm_dpp_field_ent_idx_t_SW_DUMP_PRINT((void*) &(elt->entryHead), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entryTail"); 
+   _bcm_dpp_field_ent_idx_t_SW_DUMP_PRINT((void*) &(elt->entryTail), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entryCount"); 
+   _bcm_dpp_field_ent_idx_t_SW_DUMP_PRINT((void*) &(elt->entryCount), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".groupNext"); 
+   _bcm_dpp_field_grp_idx_t_SW_DUMP_PRINT((void*) &(elt->groupNext), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".groupPrev"); 
+   _bcm_dpp_field_grp_idx_t_SW_DUMP_PRINT((void*) &(elt->groupPrev), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cascadePair"); 
+   _bcm_dpp_field_grp_idx_t_SW_DUMP_PRINT((void*) &(elt->cascadePair), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".priority"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->priority), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".stage"); 
+   _bcm_dpp_field_stage_idx_t_SW_DUMP_PRINT((void*) &(elt->stage), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".predefKey"); 
+   SOC_PPD_FP_PREDEFINED_ACL_KEY_SW_DUMP_PRINT((void*) &(elt->predefKey), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".groupFlags"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->groupFlags), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".grpMode"); 
+   bcm_field_group_mode_t_SW_DUMP_PRINT((void*) &(elt->grpMode), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".hwHandle"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->hwHandle), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".oaset"); 
+   bcm_field_aset_t_SW_DUMP_PRINT((void*) &(elt->oaset), variableNameWithPath); 
+} 
+void _bcm_dpp_field_entry_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   _bcm_dpp_field_entry_t *elt = ((_bcm_dpp_field_entry_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entryCmn"); 
+   _bcm_dpp_field_entry_common_t_SW_DUMP_PRINT((void*) &(elt->entryCmn), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tcActP"); 
+   arraySizes_SW_DUMP[0]=SOC_PPD_FP_NOF_ACTIONS_PER_DB_MAX; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->tcActP, _bcm_dpp_field_tc_p_act_t_SW_DUMP_PRINT, 0, sizeof(_bcm_dpp_field_tc_p_act_t)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".egrTrapProfile"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->egrTrapProfile), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tcActB"); 
+   arraySizes_SW_DUMP[0]=_BCM_DPP_NOF_BCM_ACTIONS_PER_DB_MAX; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->tcActB, _bcm_dpp_field_tc_b_act_t_SW_DUMP_PRINT, 0, sizeof(_bcm_dpp_field_tc_b_act_t)); 
+} 
+void _bcm_dpp_field_entry_common_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   _bcm_dpp_field_entry_common_t *elt = ((_bcm_dpp_field_entry_common_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entryNext"); 
+   _bcm_dpp_field_ent_idx_t_SW_DUMP_PRINT((void*) &(elt->entryNext), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entryPrev"); 
+   _bcm_dpp_field_ent_idx_t_SW_DUMP_PRINT((void*) &(elt->entryPrev), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entryGroup"); 
+   _bcm_dpp_field_grp_idx_t_SW_DUMP_PRINT((void*) &(elt->entryGroup), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".hwPriority"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->hwPriority), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entryQual"); 
+   arraySizes_SW_DUMP[0]=SOC_PPD_FP_NOF_QUALS_PER_DB_MAX; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->entryQual, _bcm_dpp_field_qual_t_SW_DUMP_PRINT, 0, sizeof(_bcm_dpp_field_qual_t)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entryFlags"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->entryFlags), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entryPriority"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->entryPriority), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".hwHandle"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->hwHandle), variableNameWithPath); 
+} 
+void _bcm_dpp_field_qual_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   _bcm_dpp_field_qual_t *elt = ((_bcm_dpp_field_qual_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".qualType"); 
+   bcm_field_qualify_t_SW_DUMP_PRINT((void*) &(elt->qualType), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".hwType"); 
+   SOC_PPD_FP_QUAL_TYPE_SW_DUMP_PRINT((void*) &(elt->hwType), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".qualData"); 
+   uint64_SW_DUMP_PRINT((void*) &(elt->qualData), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".qualMask"); 
+   uint64_SW_DUMP_PRINT((void*) &(elt->qualMask), variableNameWithPath); 
+} 
+void SOC_PPD_FP_QUAL_TYPE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_PPC_FP_QUAL_TYPE_SW_DUMP_PRINT(element, variableName); 
+} 
+void _bcm_dpp_field_tc_p_act_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   _bcm_dpp_field_tc_p_act_t *elt = ((_bcm_dpp_field_tc_p_act_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".hwType"); 
+   SOC_PPD_FP_ACTION_TYPE_SW_DUMP_PRINT((void*) &(elt->hwType), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".hwParam"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->hwParam), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".hwFlags"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->hwFlags), variableNameWithPath); 
+} 
+void SOC_PPD_FP_ACTION_TYPE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_PPC_FP_ACTION_TYPE_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_PPC_FP_ACTION_TYPE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void _bcm_dpp_field_tc_b_act_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   _bcm_dpp_field_tc_b_act_t *elt = ((_bcm_dpp_field_tc_b_act_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".bcmType"); 
+   bcm_field_action_t_SW_DUMP_PRINT((void*) &(elt->bcmType), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".bcmParam0"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->bcmParam0), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".bcmParam1"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->bcmParam1), variableNameWithPath); 
+} 
+void _bcm_dpp_field_entry_dir_ext_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   _bcm_dpp_field_entry_dir_ext_t *elt = ((_bcm_dpp_field_entry_dir_ext_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entryCmn"); 
+   _bcm_dpp_field_entry_common_t_SW_DUMP_PRINT((void*) &(elt->entryCmn), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".deAct"); 
+   arraySizes_SW_DUMP[0]=SOC_PPD_FP_NOF_ACTIONS_PER_DB_MAX; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->deAct, _bcm_dpp_field_de_act_t_SW_DUMP_PRINT, 0, sizeof(_bcm_dpp_field_de_act_t)); 
+} 
+void _bcm_dpp_field_de_act_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   _bcm_dpp_field_de_act_t *elt = ((_bcm_dpp_field_de_act_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".hwParam"); 
+   SOC_PPD_FP_DIR_EXTR_ACTION_VAL_SW_DUMP_PRINT((void*) &(elt->hwParam), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".bcmType"); 
+   bcm_field_action_t_SW_DUMP_PRINT((void*) &(elt->bcmType), variableNameWithPath); 
+} 
+void SOC_PPD_FP_DIR_EXTR_ACTION_VAL_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_PPC_FP_DIR_EXTR_ACTION_VAL_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_PPC_FP_DIR_EXTR_ENTRY_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   SOC_PPC_FP_DIR_EXTR_ENTRY_INFO *elt = ((SOC_PPC_FP_DIR_EXTR_ENTRY_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".qual_vals"); 
+   arraySizes_SW_DUMP[0]=SOC_PPC_FP_NOF_QUALS_PER_DB_MAX; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->qual_vals, SOC_PPC_FP_QUAL_VAL_SW_DUMP_PRINT, 0, sizeof(SOC_PPC_FP_QUAL_VAL)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".actions"); 
+   arraySizes_SW_DUMP[0]=SOC_PPC_FP_NOF_ACTIONS_PER_DB_MAX; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->actions, SOC_PPC_FP_DIR_EXTR_ACTION_VAL_SW_DUMP_PRINT, 0, sizeof(SOC_PPC_FP_DIR_EXTR_ACTION_VAL)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".priority"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->priority), variableNameWithPath); 
+} 
+void SOC_PPC_FP_QUAL_VAL_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_PPC_FP_QUAL_VAL *elt = ((SOC_PPC_FP_QUAL_VAL*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".type"); 
+   SOC_PPC_FP_QUAL_TYPE_SW_DUMP_PRINT((void*) &(elt->type), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".val"); 
+   SOC_SAND_U64_SW_DUMP_PRINT((void*) &(elt->val), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_valid"); 
+   SOC_SAND_U64_SW_DUMP_PRINT((void*) &(elt->is_valid), variableNameWithPath); 
+} 
+void SOC_SAND_U64_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   SOC_SAND_U64 *elt = ((SOC_SAND_U64*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".arr"); 
+   arraySizes_SW_DUMP[0]=SOC_SAND_U64_NOF_UINT32S; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->arr, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+} 
+void SOC_PPC_FP_DIR_EXTR_ACTION_VAL_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   SOC_PPC_FP_DIR_EXTR_ACTION_VAL *elt = ((SOC_PPC_FP_DIR_EXTR_ACTION_VAL*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".type"); 
+   SOC_PPC_FP_ACTION_TYPE_SW_DUMP_PRINT((void*) &(elt->type), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".fld_ext"); 
+   arraySizes_SW_DUMP[0]=SOC_PPC_FP_DIR_EXTR_MAX_NOF_FIELDS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->fld_ext, SOC_PPC_FP_DIR_EXTR_ACTION_LOC_SW_DUMP_PRINT, 0, sizeof(SOC_PPC_FP_DIR_EXTR_ACTION_LOC)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nof_fields"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->nof_fields), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".base_val"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->base_val), variableNameWithPath); 
+} 
+void SOC_PPC_FP_DIR_EXTR_ACTION_LOC_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_PPC_FP_DIR_EXTR_ACTION_LOC *elt = ((SOC_PPC_FP_DIR_EXTR_ACTION_LOC*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".type"); 
+   SOC_PPC_FP_QUAL_TYPE_SW_DUMP_PRINT((void*) &(elt->type), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".fld_lsb"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->fld_lsb), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cst_val"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->cst_val), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nof_bits"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->nof_bits), variableNameWithPath); 
+} 
+void _bcm_dpp_field_profile_type_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void _bcm_dpp_field_info_wb_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   _bcm_dpp_field_info_wb_t *elt = ((_bcm_dpp_field_info_wb_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".handle"); 
+   soc_scache_handle_t_SW_DUMP_PRINT((void*) &(elt->handle), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*buffer"); 
+   /* check the pointer is not null */ 
+   if (elt->buffer) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->buffer), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".totalSize"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->totalSize), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".version"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->version), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".padding"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->padding), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".offsetUnit"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->offsetUnit), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".offsetRange"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->offsetRange), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".offsetDataField"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->offsetDataField), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".offsetPresel"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->offsetPresel), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".offsetStage"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->offsetStage), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".offsetGroup"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->offsetGroup), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".offsetTcamEntry"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->offsetTcamEntry), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".offsetDirExtEntry"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->offsetDirExtEntry), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".bcmFieldQualifyCount"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->bcmFieldQualifyCount), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".bcmFieldActionCount"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->bcmFieldActionCount), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tcamBcmActionLimit"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->tcamBcmActionLimit), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ppdActionLimit"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->ppdActionLimit), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ppdActionCount"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->ppdActionCount), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ppdQualLimit"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->ppdQualLimit), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ppdQualCount"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->ppdQualCount), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".preselLimit"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->preselLimit), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".dataFieldLimit"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->dataFieldLimit), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tcamEntryLimit"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->tcamEntryLimit), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".dirextEntryLimit"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->dirextEntryLimit), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".groupLimit"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->groupLimit), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".stageLimit"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->stageLimit), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".rangeLimit"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->rangeLimit), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".rangeTypes"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->rangeTypes), variableNameWithPath); 
+} 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+void soc_scache_handle_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint32_SW_DUMP_PRINT(element, variableName); 
+} 
+void _bcm_arad_field_device_qual_info_layer_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   _bcm_arad_field_device_qual_info_layer_t *elt = ((_bcm_arad_field_device_qual_info_layer_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".bcmQual"); 
+   int32_SW_DUMP_PRINT((void*) &(elt->bcmQual), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".bits"); 
+   int32_SW_DUMP_PRINT((void*) &(elt->bits), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".lshift"); 
+   int32_SW_DUMP_PRINT((void*) &(elt->lshift), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".flags"); 
+   int32_SW_DUMP_PRINT((void*) &(elt->flags), variableNameWithPath); 
+} 
+void _bcm_dpp_lif_bookkeeping_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   _bcm_dpp_inlif_bookkeeping_t *elt = ((_bcm_dpp_inlif_bookkeeping_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*match_key"); 
+   /* check the pointer is not null */ 
+   if (elt->match_key) { 
+      _bcm_dpp_lif_match_info_t_SW_DUMP_PRINT((void*) &(*elt->match_key), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+void _bcm_dpp_lif_match_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   _bcm_dpp_inlif_match_info_t *elt = ((_bcm_dpp_inlif_match_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".lif_type"); 
+   _bcm_lif_type_e_SW_DUMP_PRINT((void*) &(elt->lif_type), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".flags"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->flags), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".criteria"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->criteria), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".port"); 
+   bcm_port_t_SW_DUMP_PRINT((void*) &(elt->port), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".match1"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->match1), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".match2"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->match2), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".match_tunnel"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->match_tunnel), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".match_ethertype"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->match_ethertype), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".gport_id"); 
+   bcm_gport_t_SW_DUMP_PRINT((void*) &(elt->gport_id), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".key1"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->key1), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".peer_gport"); 
+   bcm_gport_t_SW_DUMP_PRINT((void*) &(elt->peer_gport), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".learn_gport_id"); 
+   bcm_gport_t_SW_DUMP_PRINT((void*) &(elt->learn_gport_id), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tpid_profile_type"); 
+   _bcm_petra_tpid_profile_t_SW_DUMP_PRINT((void*) &(elt->tpid_profile_type), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".vsi"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->vsi), variableNameWithPath); 
+} 
+void _bcm_lif_type_e_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void bcm_port_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   INT_SW_DUMP_PRINT(element, variableName); 
+} 
+void _bcm_petra_tpid_profile_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+ 
+void bcm_dpp_state_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_state_t *elt = ((bcm_dpp_state_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*qos_state"); 
+   /* check the pointer is not null */ 
+   if (elt->qos_state) { 
+      bcm_dpp_qos_state_t_SW_DUMP_PRINT((void*) &(*elt->qos_state), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*l3_state"); 
+   /* check the pointer is not null */ 
+   if (elt->l3_state) { 
+      bcm_dpp_l3_state_t_SW_DUMP_PRINT((void*) &(*elt->l3_state), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*policer_state"); 
+   /* check the pointer is not null */ 
+   if (elt->policer_state) { 
+      _dpp_policer_state_t_SW_DUMP_PRINT((void*) &(*elt->policer_state), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*stg_info"); 
+   /* check the pointer is not null */ 
+   if (elt->stg_info) { 
+      bcm_stg_info_t_SW_DUMP_PRINT((void*) &(*elt->stg_info), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*vswitch_info"); 
+   /* check the pointer is not null */ 
+   if (elt->vswitch_info) { 
+      _bcm_dpp_vswitch_bookkeeping_t_SW_DUMP_PRINT((void*) &(*elt->vswitch_info), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*mirror_state"); 
+   /* check the pointer is not null */ 
+   if (elt->mirror_state) { 
+      _bcm_petra_mirror_unit_data_t_SW_DUMP_PRINT((void*) &(*elt->mirror_state), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*trill_state"); 
+   /* check the pointer is not null */ 
+   if (elt->trill_state) { 
+      bcm_dpp_trill_state_t_SW_DUMP_PRINT((void*) &(*elt->trill_state), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*switch_state"); 
+   /* check the pointer is not null */ 
+   if (elt->switch_state) { 
+      bcm_dpp_switch_state_t_SW_DUMP_PRINT((void*) &(*elt->switch_state), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+void bcm_dpp_qos_state_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_qos_state_t *elt = ((bcm_dpp_qos_state_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".init"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->init), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*ing_lif_cos_mpls_bitmap"); 
+   /* check the pointer is not null */ 
+   if (elt->ing_lif_cos_mpls_bitmap) { 
+      INT_SW_DUMP_PRINT((void*) &(*elt->ing_lif_cos_mpls_bitmap), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   }   
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*ing_pcp_vlan_stag_bitmap"); 
+   /* check the pointer is not null */ 
+   if (elt->ing_pcp_vlan_stag_bitmap) { 
+      INT_SW_DUMP_PRINT((void*) &(*elt->ing_pcp_vlan_stag_bitmap), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   }
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*egr_remark_mpls_bitmap"); 
+   /* check the pointer is not null */ 
+   if (elt->egr_remark_mpls_bitmap) { 
+      INT_SW_DUMP_PRINT((void*) &(*elt->egr_remark_mpls_bitmap), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   }
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*egr_mpls_php_ipv6_bitmap"); 
+   /* check the pointer is not null */ 
+   if (elt->egr_mpls_php_ipv6_bitmap) { 
+      INT_SW_DUMP_PRINT((void*) &(*elt->egr_mpls_php_ipv6_bitmap), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   }
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*egr_pcp_vlan_stag_bitmap"); 
+   /* check the pointer is not null */ 
+   if (elt->egr_pcp_vlan_stag_bitmap) { 
+      INT_SW_DUMP_PRINT((void*) &(*elt->egr_pcp_vlan_stag_bitmap), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   }
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*egr_l2_i_tag_bitmap"); 
+   /* check the pointer is not null */ 
+   if (elt->egr_l2_i_tag_bitmap) { 
+      INT_SW_DUMP_PRINT((void*) &(*elt->egr_l2_i_tag_bitmap), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   }
+#ifdef BCM_88660
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*egr_dscp_exp_marking_bitmap"); 
+   /* check the pointer is not null */ 
+   if (elt->egr_dscp_exp_marking_bitmap) { 
+      INT_SW_DUMP_PRINT((void*) &(*elt->egr_dscp_exp_marking_bitmap), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   }   
+#endif
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*ing_cos_opcode_flags"); 
+   /* check the pointer is not null */ 
+   if (elt->ing_cos_opcode_flags) { 
+      INT_SW_DUMP_PRINT((void*) &(*elt->ing_cos_opcode_flags), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*egr_pcp_vlan_dscp_exp_profile_id"); 
+   /* check the pointer is not null */ 
+   if (elt->egr_pcp_vlan_dscp_exp_profile_id) { 
+      INT_SW_DUMP_PRINT((void*) &(*elt->egr_pcp_vlan_dscp_exp_profile_id), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*egr_pcp_vlan_dscp_exp_enable"); 
+   /* check the pointer is not null */ 
+   if (elt->egr_pcp_vlan_dscp_exp_enable) { 
+      INT_SW_DUMP_PRINT((void*) &(*elt->egr_pcp_vlan_dscp_exp_enable), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*egr_remark_encap_enable"); 
+   /* check the pointer is not null */ 
+   if (elt->egr_remark_encap_enable) { 
+      INT_SW_DUMP_PRINT((void*) &(*elt->egr_remark_encap_enable), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*dp_max"); 
+   /* check the pointer is not null */ 
+   if (elt->dp_max) { 
+      INT_SW_DUMP_PRINT((void*) &(*elt->dp_max), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*opcode_bmp"); 
+   /* check the pointer is not null */ 
+   if (elt->opcode_bmp) { 
+      uint32_SW_DUMP_PRINT((void*) &(*elt->opcode_bmp), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+void bcm_dpp_l3_state_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_l3_state_t *elt = ((bcm_dpp_l3_state_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".init"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->init), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".urpf_mode"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->urpf_mode), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, "._bcm_dpp_tunnel_bk_info"); 
+   _bcm_dpp_tunnel_bookkeeping_t_SW_DUMP_PRINT((void*) &(elt->_bcm_dpp_tunnel_bk_info), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*_bcm_tunnel_intf_to_eep"); 
+   /* check the pointer is not null */ 
+   if (elt->_bcm_tunnel_intf_to_eep) { 
+      INT_SW_DUMP_PRINT((void*) &(*elt->_bcm_tunnel_intf_to_eep), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*l3_info"); 
+   /* check the pointer is not null */ 
+   if (elt->l3_info) { 
+      bcm_dpp_l3_info_t_SW_DUMP_PRINT((void*) &(*elt->l3_info), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+void _bcm_dpp_tunnel_bookkeeping_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   _bcm_dpp_tunnel_bookkeeping_t *elt = ((_bcm_dpp_tunnel_bookkeeping_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*egress_tunnel_id"); 
+   /* check the pointer is not null */ 
+   if (elt->egress_tunnel_id) { 
+      INT_SW_DUMP_PRINT((void*) &(*elt->egress_tunnel_id), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*vsi_usage"); 
+   /* check the pointer is not null */ 
+   if (elt->vsi_usage) { 
+      INT_SW_DUMP_PRINT((void*) &(*elt->vsi_usage), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+void bcm_dpp_l3_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_l3_info_t *elt = ((bcm_dpp_l3_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".used_intf"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->used_intf), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".used_vrf"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->used_vrf), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".used_host"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->used_host), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".used_route"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->used_route), variableNameWithPath); 
+} 
+void _dpp_policer_state_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   _dpp_policer_state_t *elt = ((_dpp_policer_state_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".policer_group"); 
+   arraySizes_SW_DUMP[0]=_DPP_POLICER_NOF_POLICERS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->policer_group, _dpp_policer_group_info_t_SW_DUMP_PRINT, 0, sizeof(_dpp_policer_group_info_t)); 
+} 
+void _dpp_policer_group_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   _dpp_policer_group_info_t *elt = ((_dpp_policer_group_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mode"); 
+   bcm_policer_group_mode_t_SW_DUMP_PRINT((void*) &(elt->mode), variableNameWithPath); 
+} 
+void bcm_policer_group_mode_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void bcm_stg_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_stg_info_t *elt = ((bcm_stg_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".init"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->init), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".stg_min"); 
+   bcm_stg_t_SW_DUMP_PRINT((void*) &(elt->stg_min), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".stg_max"); 
+   bcm_stg_t_SW_DUMP_PRINT((void*) &(elt->stg_max), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".stg_defl"); 
+   bcm_stg_t_SW_DUMP_PRINT((void*) &(elt->stg_defl), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*stg_bitmap"); 
+   /* check the pointer is not null */ 
+   if (elt->stg_bitmap) { 
+      uint32_SW_DUMP_PRINT((void*) &(*elt->stg_bitmap), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*stg_enable"); 
+   /* check the pointer is not null */ 
+   if (elt->stg_enable) { 
+      bcm_pbmp_t_SW_DUMP_PRINT((void*) &(*elt->stg_enable), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*stg_state_h"); 
+   /* check the pointer is not null */ 
+   if (elt->stg_state_h) { 
+      bcm_pbmp_t_SW_DUMP_PRINT((void*) &(*elt->stg_state_h), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*stg_state_l"); 
+   /* check the pointer is not null */ 
+   if (elt->stg_state_l) { 
+      bcm_pbmp_t_SW_DUMP_PRINT((void*) &(*elt->stg_state_l), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".stg_count"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->stg_count), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*vlan_first"); 
+   /* check the pointer is not null */ 
+   if (elt->vlan_first) { 
+      bcm_vlan_t_SW_DUMP_PRINT((void*) &(*elt->vlan_first), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*vlan_next"); 
+   /* check the pointer is not null */ 
+   if (elt->vlan_next) { 
+      bcm_vlan_t_SW_DUMP_PRINT((void*) &(*elt->vlan_next), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+void bcm_stg_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   INT_SW_DUMP_PRINT(element, variableName); 
+} 
+void bcm_pbmp_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   _shr_pbmp_t_SW_DUMP_PRINT(element, variableName); 
+} 
+void _shr_pbmp_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   _shr_pbmp_t *elt = ((_shr_pbmp_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pbits"); 
+   arraySizes_SW_DUMP[0]=_SHR_PBMP_WORD_MAX; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->pbits, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+} 
+void bcm_vlan_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint16_SW_DUMP_PRINT(element, variableName); 
+} 
+void _bcm_dpp_vswitch_bookkeeping_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   _bcm_dpp_vswitch_bookkeeping_t *elt = ((_bcm_dpp_vswitch_bookkeeping_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*vsi_usage"); 
+   /* check the pointer is not null */ 
+   if (elt->vsi_usage) { 
+      uint32_SW_DUMP_PRINT((void*) &(*elt->vsi_usage), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+void _bcm_petra_mirror_unit_data_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   _bcm_petra_mirror_unit_data_t *elt = ((_bcm_petra_mirror_unit_data_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".unit"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->unit), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ingressCount"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->ingressCount), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*ingress"); 
+   /* check the pointer is not null */ 
+   if (elt->ingress) { 
+      _bcm_petra_mirror_data_t_SW_DUMP_PRINT((void*) &(*elt->ingress), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+void _bcm_petra_mirror_data_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   _bcm_petra_mirror_data_t *elt = ((_bcm_petra_mirror_data_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".refCount"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->refCount), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mirrorInfo"); 
+   SOC_PB_ACTION_CMD_MIRROR_INFO_SW_DUMP_PRINT((void*) &(elt->mirrorInfo), variableNameWithPath); 
+} 
+void SOC_PB_ACTION_CMD_MIRROR_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_TMC_ACTION_CMD_MIRROR_INFO_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_TMC_ACTION_CMD_MIRROR_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_TMC_ACTION_CMD_MIRROR_INFO *elt = ((SOC_TMC_ACTION_CMD_MIRROR_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cmd"); 
+   SOC_TMC_ACTION_CMD_SW_DUMP_PRINT((void*) &(elt->cmd), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mirror_prob"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->mirror_prob), variableNameWithPath); 
+} 
+void SOC_TMC_ACTION_CMD_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_TMC_ACTION_CMD *elt = ((SOC_TMC_ACTION_CMD*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".dest_id"); 
+   SOC_TMC_DEST_INFO_SW_DUMP_PRINT((void*) &(elt->dest_id), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tc"); 
+   SOC_TMC_ACTION_CMD_OVERRIDE_SW_DUMP_PRINT((void*) &(elt->tc), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".dp"); 
+   SOC_TMC_ACTION_CMD_OVERRIDE_SW_DUMP_PRINT((void*) &(elt->dp), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".meter_ptr_low"); 
+   SOC_TMC_ACTION_CMD_OVERRIDE_SW_DUMP_PRINT((void*) &(elt->meter_ptr_low), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".meter_ptr_up"); 
+   SOC_TMC_ACTION_CMD_OVERRIDE_SW_DUMP_PRINT((void*) &(elt->meter_ptr_up), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".meter_dp"); 
+   SOC_TMC_ACTION_CMD_OVERRIDE_SW_DUMP_PRINT((void*) &(elt->meter_dp), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".counter_ptr_1"); 
+   SOC_TMC_ACTION_CMD_OVERRIDE_SW_DUMP_PRINT((void*) &(elt->counter_ptr_1), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".counter_ptr_2"); 
+   SOC_TMC_ACTION_CMD_OVERRIDE_SW_DUMP_PRINT((void*) &(elt->counter_ptr_2), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_ing_mc"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->is_ing_mc), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".outlif"); 
+   SOC_TMC_ACTION_CMD_OVERRIDE_SW_DUMP_PRINT((void*) &(elt->outlif), variableNameWithPath); 
+} 
+void SOC_TMC_DEST_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_TMC_DEST_INFO *elt = ((SOC_TMC_DEST_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".type"); 
+   SOC_TMC_DEST_TYPE_SW_DUMP_PRINT((void*) &(elt->type), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".id"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->id), variableNameWithPath); 
+} 
+void SOC_TMC_DEST_TYPE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void SOC_TMC_ACTION_CMD_OVERRIDE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_TMC_ACTION_CMD_OVERRIDE *elt = ((SOC_TMC_ACTION_CMD_OVERRIDE*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".value"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->value), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".enable"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->enable), variableNameWithPath); 
+} 
+void bcm_dpp_trill_state_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_trill_state_t *elt = ((bcm_dpp_trill_state_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".init"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->init), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mask_set"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->mask_set), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".trill_out_ac"); 
+   SOC_PPD_AC_ID_SW_DUMP_PRINT((void*) &(elt->trill_out_ac), variableNameWithPath);
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".last_used_id"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->last_used_id), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+    
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*trill_ports"); 
+   /* check the pointer is not null */ 
+   if (elt->trill_ports) { 
+      _bcm_petra_trill_port_list_t_SW_DUMP_PRINT((void*) &(*elt->trill_ports), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+void SOC_PPD_AC_ID_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_PPC_AC_ID_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_PPC_AC_ID_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint32_SW_DUMP_PRINT(element, variableName); 
+} 
+void _bcm_petra_trill_port_list_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   _bcm_petra_trill_port_list_t *elt = ((_bcm_petra_trill_port_list_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".allocated_cnt"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->allocated_cnt), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".port_cnt"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->port_cnt), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*ports"); 
+   /* check the pointer is not null */ 
+   if (elt->ports) { 
+      bcm_gport_t_SW_DUMP_PRINT((void*) &(*elt->ports), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+void bcm_dpp_switch_state_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_switch_state_t *elt = ((bcm_dpp_switch_state_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".init"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->init), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".scache_consistent"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->scache_consistent), variableNameWithPath); 
+} 
+void SOC_SAND_PP_MAC_ADDRESS_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   SOC_SAND_PP_MAC_ADDRESS *elt = ((SOC_SAND_PP_MAC_ADDRESS*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".address"); 
+   arraySizes_SW_DUMP[0]=SOC_SAND_PP_MAC_ADDRESS_NOF_U8; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->address, uint8_SW_DUMP_PRINT, 0, sizeof(uint8)); 
+} 
+void SOC_PPD_LLP_SA_AUTH_MAC_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_PPC_LLP_SA_AUTH_MAC_INFO_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_PPC_LLP_SA_AUTH_MAC_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_PPC_LLP_SA_AUTH_MAC_INFO *elt = ((SOC_PPC_LLP_SA_AUTH_MAC_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tagged_only"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->tagged_only), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".expect_tag_vid"); 
+   SOC_SAND_PP_VLAN_ID_SW_DUMP_PRINT((void*) &(elt->expect_tag_vid), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".expect_system_port"); 
+   SOC_SAND_PP_SYS_PORT_ID_SW_DUMP_PRINT((void*) &(elt->expect_system_port), variableNameWithPath); 
+} 
+void SOC_SAND_PP_VLAN_ID_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint32_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_SAND_PP_SYS_PORT_ID_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_SAND_PP_SYS_PORT_ID *elt = ((SOC_SAND_PP_SYS_PORT_ID*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".sys_port_type"); 
+   SOC_SAND_PP_SYS_PORT_TYPE_SW_DUMP_PRINT((void*) &(elt->sys_port_type), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".sys_id"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->sys_id), variableNameWithPath); 
+} 
+void SOC_SAND_PP_SYS_PORT_TYPE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void SOC_PPD_FRWRD_MACT_ENTRY_KEY_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_PPC_FRWRD_MACT_ENTRY_KEY_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_PPC_FRWRD_MACT_ENTRY_KEY_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_PPC_FRWRD_MACT_ENTRY_KEY *elt = ((SOC_PPC_FRWRD_MACT_ENTRY_KEY*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".key_type"); 
+   SOC_PPC_FRWRD_MACT_KEY_TYPE_SW_DUMP_PRINT((void*) &(elt->key_type), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".key_val"); 
+   SOC_PPC_FRWRD_MACT_ENTRY_KEY_VAL_SW_DUMP_PRINT((void*) &(elt->key_val), variableNameWithPath); 
+} 
+void SOC_PPC_FRWRD_MACT_KEY_TYPE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void SOC_PPC_FRWRD_MACT_ENTRY_KEY_VAL_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_PPC_FRWRD_MACT_ENTRY_KEY_VAL *elt = ((SOC_PPC_FRWRD_MACT_ENTRY_KEY_VAL*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mac"); 
+   SOC_PPC_FRWRD_MACT_ENTRY_KEY_MAC_ADDR_SW_DUMP_PRINT((void*) &(elt->mac), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ipv4_mc"); 
+   SOC_PPC_FRWRD_MACT_ENTRY_KEY_IPV4_MC_SW_DUMP_PRINT((void*) &(elt->ipv4_mc), variableNameWithPath); 
+} 
+void SOC_PPC_FRWRD_MACT_ENTRY_KEY_MAC_ADDR_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_PPC_FRWRD_MACT_ENTRY_KEY_MAC_ADDR *elt = ((SOC_PPC_FRWRD_MACT_ENTRY_KEY_MAC_ADDR*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mac"); 
+   SOC_SAND_PP_MAC_ADDRESS_SW_DUMP_PRINT((void*) &(elt->mac), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".fid"); 
+   SOC_PPC_FID_SW_DUMP_PRINT((void*) &(elt->fid), variableNameWithPath); 
+} 
+void SOC_PPC_FID_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint32_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_PPC_FRWRD_MACT_ENTRY_KEY_IPV4_MC_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_PPC_FRWRD_MACT_ENTRY_KEY_IPV4_MC *elt = ((SOC_PPC_FRWRD_MACT_ENTRY_KEY_IPV4_MC*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".dip"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->dip), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".fid"); 
+   SOC_PPC_FID_SW_DUMP_PRINT((void*) &(elt->fid), variableNameWithPath); 
+} 
+void SOC_PPD_FRWRD_MACT_ENTRY_VALUE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_PPC_FRWRD_MACT_ENTRY_VALUE_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_PPC_FRWRD_MACT_ENTRY_VALUE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_PPC_FRWRD_MACT_ENTRY_VALUE *elt = ((SOC_PPC_FRWRD_MACT_ENTRY_VALUE*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".frwrd_info"); 
+   SOC_PPC_FRWRD_MACT_ENTRY_FRWRD_INFO_SW_DUMP_PRINT((void*) &(elt->frwrd_info), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".aging_info"); 
+   SOC_PPC_FRWRD_MACT_ENTRY_AGING_INFO_SW_DUMP_PRINT((void*) &(elt->aging_info), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".accessed"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->accessed), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".group"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->group), variableNameWithPath); 
+} 
+void SOC_PPC_FRWRD_MACT_ENTRY_FRWRD_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_PPC_FRWRD_MACT_ENTRY_FRWRD_INFO *elt = ((SOC_PPC_FRWRD_MACT_ENTRY_FRWRD_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".forward_decision"); 
+   SOC_PPC_FRWRD_DECISION_INFO_SW_DUMP_PRINT((void*) &(elt->forward_decision), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".drop_when_sa_is_known"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->drop_when_sa_is_known), variableNameWithPath); 
+} 
+void SOC_PPC_FRWRD_DECISION_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+} 
+void SOC_PPC_FRWRD_DECISION_TYPE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void SOC_PPC_FRWRD_DECISION_TYPE_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_PPC_FRWRD_DECISION_TYPE_INFO *elt = ((SOC_PPC_FRWRD_DECISION_TYPE_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".eei"); 
+   SOC_PPC_EEI_SW_DUMP_PRINT((void*) &(elt->eei), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".outlif"); 
+   SOC_PPC_OUTLIF_SW_DUMP_PRINT((void*) &(elt->outlif), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".trap_info"); 
+   SOC_PPC_TRAP_INFO_SW_DUMP_PRINT((void*) &(elt->trap_info), variableNameWithPath); 
+} 
+void SOC_PPC_EEI_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_PPC_EEI *elt = ((SOC_PPC_EEI*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".type"); 
+   SOC_PPC_EEI_TYPE_SW_DUMP_PRINT((void*) &(elt->type), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".val"); 
+   SOC_PPC_EEI_VAL_SW_DUMP_PRINT((void*) &(elt->val), variableNameWithPath); 
+} 
+void SOC_PPC_EEI_TYPE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void SOC_PPC_EEI_VAL_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_PPC_EEI_VAL *elt = ((SOC_PPC_EEI_VAL*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".trill_dest"); 
+   SOC_SAND_PP_TRILL_DEST_SW_DUMP_PRINT((void*) &(elt->trill_dest), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mpls_command"); 
+   SOC_PPC_MPLS_COMMAND_SW_DUMP_PRINT((void*) &(elt->mpls_command), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".isid"); 
+   SOC_SAND_PP_ISID_SW_DUMP_PRINT((void*) &(elt->isid), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".raw"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->raw), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".outlif"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->outlif), variableNameWithPath); 
+} 
+void SOC_SAND_PP_TRILL_DEST_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_SAND_PP_TRILL_DEST *elt = ((SOC_SAND_PP_TRILL_DEST*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_multicast"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->is_multicast), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".dest_nick"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->dest_nick), variableNameWithPath); 
+} 
+void SOC_PPC_MPLS_COMMAND_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_PPC_MPLS_COMMAND *elt = ((SOC_PPC_MPLS_COMMAND*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".command"); 
+   SOC_PPC_MPLS_COMMAND_TYPE_SW_DUMP_PRINT((void*) &(elt->command), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".label"); 
+   SOC_SAND_PP_MPLS_LABEL_SW_DUMP_PRINT((void*) &(elt->label), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".push_profile"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->push_profile), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tpid_profile"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->tpid_profile), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".model"); 
+   SOC_SAND_PP_MPLS_TUNNEL_MODEL_SW_DUMP_PRINT((void*) &(elt->model), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".has_cw"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->has_cw), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pop_next_header"); 
+   SOC_PPC_PKT_FRWRD_TYPE_SW_DUMP_PRINT((void*) &(elt->pop_next_header), variableNameWithPath); 
+} 
+void SOC_PPC_MPLS_COMMAND_TYPE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_TMC_MPLS_COMMAND_TYPE_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_TMC_MPLS_COMMAND_TYPE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void SOC_SAND_PP_MPLS_LABEL_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint32_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_SAND_PP_MPLS_TUNNEL_MODEL_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void SOC_PPC_PKT_FRWRD_TYPE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_TMC_PKT_FRWRD_TYPE_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_TMC_PKT_FRWRD_TYPE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void SOC_SAND_PP_ISID_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint32_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_PPC_OUTLIF_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_PPC_OUTLIF *elt = ((SOC_PPC_OUTLIF*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".type"); 
+   SOC_PPC_OUTLIF_ENCODE_TYPE_SW_DUMP_PRINT((void*) &(elt->type), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".val"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->val), variableNameWithPath); 
+} 
+void SOC_PPC_OUTLIF_ENCODE_TYPE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void SOC_PPC_TRAP_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_PPC_TRAP_INFO *elt = ((SOC_PPC_TRAP_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".action_profile"); 
+   SOC_PPC_ACTION_PROFILE_SW_DUMP_PRINT((void*) &(elt->action_profile), variableNameWithPath); 
+} 
+void SOC_PPC_ACTION_PROFILE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_PPC_ACTION_PROFILE *elt = ((SOC_PPC_ACTION_PROFILE*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".trap_code"); 
+   SOC_PPC_TRAP_CODE_SW_DUMP_PRINT((void*) &(elt->trap_code), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".frwrd_action_strength"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->frwrd_action_strength), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".snoop_action_strength"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->snoop_action_strength), variableNameWithPath); 
+} 
+void SOC_PPC_TRAP_CODE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void SOC_PPC_FRWRD_MACT_ENTRY_AGING_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_PPC_FRWRD_MACT_ENTRY_AGING_INFO *elt = ((SOC_PPC_FRWRD_MACT_ENTRY_AGING_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_dynamic"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->is_dynamic), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".age_status"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->age_status), variableNameWithPath); 
+} 
+void _bcm_petra_l2_freeze_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   _bcm_petra_l2_freeze_t *elt = ((_bcm_petra_l2_freeze_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".frozen"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->frozen), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".save_age_ena"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->save_age_ena), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".save_learn_ena"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->save_learn_ena), variableNameWithPath); 
+} 
+void l2_data_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   l2_data_t *elt = ((l2_data_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cb"); 
+   _bcm_petra_l2_cb_t_SW_DUMP_PRINT((void*) &(elt->cb), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mymac_msb_is_set"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->mymac_msb_is_set), variableNameWithPath); 
+} 
+void _bcm_petra_l2_cb_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   _bcm_petra_l2_cb_t *elt = ((_bcm_petra_l2_cb_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".count"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->count), variableNameWithPath); 
+} 
+void bcm_mac_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint8_SW_DUMP_PRINT(element, variableName); 
+} 
+void bcm_l2_addr_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_l2_addr_t *elt = ((bcm_l2_addr_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".flags"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->flags), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mac"); 
+   bcm_mac_t_SW_DUMP_PRINT((void*) &(elt->mac), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".vid"); 
+   bcm_vlan_t_SW_DUMP_PRINT((void*) &(elt->vid), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".port"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->port), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".modid"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->modid), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tgid"); 
+   bcm_trunk_t_SW_DUMP_PRINT((void*) &(elt->tgid), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cos_dst"); 
+   bcm_cos_t_SW_DUMP_PRINT((void*) &(elt->cos_dst), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cos_src"); 
+   bcm_cos_t_SW_DUMP_PRINT((void*) &(elt->cos_src), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".l2mc_index"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->l2mc_group), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".block_bitmap"); 
+   bcm_pbmp_t_SW_DUMP_PRINT((void*) &(elt->block_bitmap), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".auth"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->auth), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".group"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->group), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".distribution_class"); 
+   bcm_fabric_distribution_t_SW_DUMP_PRINT((void*) &(elt->distribution_class), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".encap_id"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->encap_id), variableNameWithPath); 
+} 
+void bcm_trunk_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   INT_SW_DUMP_PRINT(element, variableName); 
+} 
+void bcm_cos_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   INT_SW_DUMP_PRINT(element, variableName); 
+} 
+void bcm_fabric_distribution_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   INT_SW_DUMP_PRINT(element, variableName); 
+} 
+void llm_appl_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   llm_appl_info_t *elt = ((llm_appl_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".rx_channel"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->rx_channel), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".uc_num"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->uc_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".dma_buffer_len"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->dma_buffer_len), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*dma_buffer"); 
+   /* check the pointer is not null */ 
+   if (elt->dma_buffer) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->dma_buffer), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*dmabuf_reply"); 
+   /* check the pointer is not null */ 
+   if (elt->dmabuf_reply) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->dmabuf_reply), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".event_thread_kill"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->event_thread_kill), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".event_enable"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->event_enable), variableNameWithPath); 
+} 
+void _bcm_dpp_mpls_bookkeeping_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   _bcm_dpp_mpls_bookkeeping_t *elt = ((_bcm_dpp_mpls_bookkeeping_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*egress_tunnel_id"); 
+   /* check the pointer is not null */ 
+   if (elt->egress_tunnel_id) { 
+      INT_SW_DUMP_PRINT((void*) &(*elt->egress_tunnel_id), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+void SOC_PPD_FRWRD_ILM_KEY_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_PPC_FRWRD_ILM_KEY_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_PPC_FRWRD_ILM_KEY_SW_DUMP_PRINT(void* element, char* variableName){ 
+} 
+void SOC_SAND_PP_MPLS_EXP_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint8_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_PPC_PORT_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint32_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_PPC_RIF_ID_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint32_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_PPD_FRWRD_DECISION_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_PPC_FRWRD_DECISION_INFO_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_PPD_OAM_INIT_TRAP_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_PPC_OAM_INIT_TRAP_INFO_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_PPC_OAM_INIT_TRAP_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   SOC_PPC_OAM_INIT_TRAP_INFO *elt = ((SOC_PPC_OAM_INIT_TRAP_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".trap_ids"); 
+   arraySizes_SW_DUMP[0]=SOC_PPC_OAM_TRAP_ID_COUNT; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->trap_ids, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".upmep_trap_ids"); 
+   arraySizes_SW_DUMP[0]=SOC_PPC_OAM_UPMEP_TRAP_ID_COUNT; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->upmep_trap_ids, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mirror_ids"); 
+   arraySizes_SW_DUMP[0]=SOC_PPC_OAM_MIRROR_ID_COUNT; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->mirror_ids, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+} 
+void SOC_PPC_OAM_TRAP_ID_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void SOC_PPC_OAM_UPMEP_TRAP_ID_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void SOC_PPC_OAM_MIRROR_ID_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void SOC_PPD_OAM_CPU_TRAP_CODE_TO_MIRROR_PROFILE_MAP_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_PPC_OAM_CPU_TRAP_CODE_TO_MIRROR_PROFILE_MAP_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_PPC_OAM_CPU_TRAP_CODE_TO_MIRROR_PROFILE_MAP_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint8_SW_DUMP_PRINT(element, variableName); 
+} 
+void bcm_bfd_event_types_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   bcm_bfd_event_types_t *elt = ((bcm_bfd_event_types_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".w"); 
+   arraySizes_SW_DUMP[0]=_SHR_BITDCLSIZE ( bcmBFDEventCount ); 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->w, uint32_SW_DUMP_PRINT, 0, sizeof(SHR_BITDCL)); 
+} 
+void bcm_bfd_event_type_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void bcm_bfd_endpoint_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   INT_SW_DUMP_PRINT(element, variableName); 
+} 
+void bcm_oam_event_type_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void bcm_oam_group_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   INT_SW_DUMP_PRINT(element, variableName); 
+} 
+void bcm_oam_endpoint_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   INT_SW_DUMP_PRINT(element, variableName); 
+} 
+void bcm_oam_group_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   bcm_oam_group_info_t *elt = ((bcm_oam_group_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".flags"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->flags), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".id"); 
+   bcm_oam_group_t_SW_DUMP_PRINT((void*) &(elt->id), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".name"); 
+   arraySizes_SW_DUMP[0]=BCM_OAM_GROUP_NAME_LENGTH; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->name, uint8_SW_DUMP_PRINT, 0, sizeof(uint8)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".faults"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->faults), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".persistent_faults"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->persistent_faults), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".clear_persistent_faults"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->clear_persistent_faults), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".lowest_alarm_priority"); 
+   bcm_oam_group_fault_alarm_defect_priority_t_SW_DUMP_PRINT((void*) &(elt->lowest_alarm_priority), variableNameWithPath); 
+} 
+void bcm_oam_group_fault_alarm_defect_priority_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void soc_pbmp_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   _shr_pbmp_t_SW_DUMP_PRINT(element, variableName); 
+} 
+void bcm_dpp_port_config_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   bcm_dpp_port_config_t *elt = ((bcm_dpp_port_config_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".bcm_petra_port_init_arrays_done"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->bcm_petra_port_init_arrays_done), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".port_pp_initialized"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->port_pp_initialized), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".map_tbl_use"); 
+   arraySizes_SW_DUMP[0]=_bcm_dpp_port_map_type_count; 
+   arraySizes_SW_DUMP[1]=_BCM_DPP_PORT_MAP_MAX_NOF_TBLS; 
+   printArray(arraySizes_SW_DUMP, 0, 2, variableNameWithPath, (void**) elt->map_tbl_use, INT_SW_DUMP_PRINT, 0, sizeof(int)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".trap_to_flag"); 
+   arraySizes_SW_DUMP[0]=_BCM_PETRA_PORT_LEARN_NOF_TRAPS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->trap_to_flag, INT_SW_DUMP_PRINT, 0, sizeof(int)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*_bcm_port_tpid_info"); 
+   /* check the pointer is not null */ 
+   if (elt->_bcm_port_tpid_info) { 
+      _bcm_petra_port_tpid_info_SW_DUMP_PRINT((void*) &(*elt->_bcm_port_tpid_info), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+void _bcm_dpp_port_map_type_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void _bcm_petra_port_tpid_info_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   _bcm_petra_port_tpid_info *elt = ((_bcm_petra_port_tpid_info*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tpid"); 
+   arraySizes_SW_DUMP[0]=_BCM_PETRA_NOF_TPIDS_PER_PORT; 
+   arraySizes_SW_DUMP[1]=_BCM_PORT_NOF_TPID_PROFILES; 
+   printArray(arraySizes_SW_DUMP, 0, 2, variableNameWithPath, (void**) elt->tpid, uint16_SW_DUMP_PRINT, 0, sizeof(uint16)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tpid_count"); 
+   arraySizes_SW_DUMP[0]=_BCM_PETRA_NOF_TPIDS_PER_PORT; 
+   arraySizes_SW_DUMP[1]=_BCM_PORT_NOF_TPID_PROFILES; 
+   printArray(arraySizes_SW_DUMP, 0, 2, variableNameWithPath, (void**) elt->tpid_count, INT_SW_DUMP_PRINT, 0, sizeof(int)); 
+} 
+void SOC_PPD_TRAP_FRWRD_ACTION_PROFILE_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_PPC_TRAP_FRWRD_ACTION_PROFILE_INFO_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_PPC_TRAP_FRWRD_ACTION_PROFILE_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_PPC_TRAP_FRWRD_ACTION_PROFILE_INFO *elt = ((SOC_PPC_TRAP_FRWRD_ACTION_PROFILE_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".strength"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->strength), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".bitmap_mask"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->bitmap_mask), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".dest_info"); 
+   SOC_PPC_TRAP_ACTION_PROFILE_DEST_INFO_SW_DUMP_PRINT((void*) &(elt->dest_info), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cos_info"); 
+   SOC_PPC_TRAP_ACTION_PROFILE_COS_INFO_SW_DUMP_PRINT((void*) &(elt->cos_info), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".count_info"); 
+   SOC_PPC_TRAP_ACTION_PROFILE_COUNT_INFO_SW_DUMP_PRINT((void*) &(elt->count_info), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".meter_info"); 
+   SOC_PPC_TRAP_ACTION_PROFILE_METER_INFO_SW_DUMP_PRINT((void*) &(elt->meter_info), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".policing_info"); 
+   SOC_PPC_TRAP_ACTION_PROFILE_POLICE_INFO_SW_DUMP_PRINT((void*) &(elt->policing_info), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".processing_info"); 
+   SOC_PPC_TRAP_ACTION_PROFILE_PROCESS_INFO_SW_DUMP_PRINT((void*) &(elt->processing_info), variableNameWithPath); 
+} 
+void SOC_PPC_TRAP_ACTION_PROFILE_DEST_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_PPC_TRAP_ACTION_PROFILE_DEST_INFO *elt = ((SOC_PPC_TRAP_ACTION_PROFILE_DEST_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_oam_dest"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->is_oam_dest), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".frwrd_dest"); 
+   SOC_PPC_FRWRD_DECISION_INFO_SW_DUMP_PRINT((void*) &(elt->frwrd_dest), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".add_vsi"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->add_vsi), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".vsi_shift"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->vsi_shift), variableNameWithPath); 
+} 
+void SOC_PPC_TRAP_ACTION_PROFILE_COS_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_PPC_TRAP_ACTION_PROFILE_COS_INFO *elt = ((SOC_PPC_TRAP_ACTION_PROFILE_COS_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tc"); 
+   SOC_SAND_PP_TC_SW_DUMP_PRINT((void*) &(elt->tc), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".dp"); 
+   SOC_SAND_PP_DP_SW_DUMP_PRINT((void*) &(elt->dp), variableNameWithPath); 
+} 
+void SOC_SAND_PP_TC_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint8_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_SAND_PP_DP_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint8_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_PPC_TRAP_ACTION_PROFILE_COUNT_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_PPC_TRAP_ACTION_PROFILE_COUNT_INFO *elt = ((SOC_PPC_TRAP_ACTION_PROFILE_COUNT_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".counter_select"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->counter_select), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".counter_id"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->counter_id), variableNameWithPath); 
+} 
+void SOC_PPC_TRAP_ACTION_PROFILE_METER_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_PPC_TRAP_ACTION_PROFILE_METER_INFO *elt = ((SOC_PPC_TRAP_ACTION_PROFILE_METER_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".meter_select"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->meter_select), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".meter_id"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->meter_id), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".meter_command"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->meter_command), variableNameWithPath); 
+} 
+void SOC_PPC_TRAP_ACTION_PROFILE_POLICE_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_PPC_TRAP_ACTION_PROFILE_POLICE_INFO *elt = ((SOC_PPC_TRAP_ACTION_PROFILE_POLICE_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ethernet_police_id"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->ethernet_police_id), variableNameWithPath); 
+} 
+void SOC_PPC_TRAP_ACTION_PROFILE_PROCESS_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_PPC_TRAP_ACTION_PROFILE_PROCESS_INFO *elt = ((SOC_PPC_TRAP_ACTION_PROFILE_PROCESS_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".enable_learning"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->enable_learning), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_trap"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->is_trap), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_control"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->is_control), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".frwrd_offset_index"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->frwrd_offset_index), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".frwrd_type"); 
+   SOC_TMC_PKT_FRWRD_TYPE_SW_DUMP_PRINT((void*) &(elt->frwrd_type), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".frwrd_offset_bytes_fix"); 
+   int32_SW_DUMP_PRINT((void*) &(elt->frwrd_offset_bytes_fix), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".da_type"); 
+   SOC_SAND_PP_ETHERNET_DA_TYPE_SW_DUMP_PRINT((void*) &(elt->da_type), variableNameWithPath); 
+} 
+void SOC_SAND_PP_ETHERNET_DA_TYPE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void SOC_PPD_TRAP_SNOOP_ACTION_PROFILE_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_PPC_TRAP_SNOOP_ACTION_PROFILE_INFO_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_PPC_TRAP_SNOOP_ACTION_PROFILE_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_PPC_TRAP_SNOOP_ACTION_PROFILE_INFO *elt = ((SOC_PPC_TRAP_SNOOP_ACTION_PROFILE_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".strength"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->strength), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".snoop_cmnd"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->snoop_cmnd), variableNameWithPath); 
+} 
+void bcm_dpp_l3_sw_db_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_l3_sw_db_t *elt = ((bcm_dpp_l3_sw_db_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*fec_to_ecmp"); 
+   /* check the pointer is not null */ 
+   if (elt->fec_to_ecmp) { 
+      fec_to_ecmps_t_SW_DUMP_PRINT((void*) &(*elt->fec_to_ecmp), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*ecmp_size"); 
+   /* check the pointer is not null */ 
+   if (elt->ecmp_size) { 
+      ecmp_size_t_SW_DUMP_PRINT((void*) &(*elt->ecmp_size), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*ecmp_successive"); 
+   /* check the pointer is not null */ 
+   if (elt->ecmp_successive) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->ecmp_successive), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*ecmp_protected"); 
+   /* check the pointer is not null */ 
+   if (elt->ecmp_protected) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->ecmp_protected), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*fec_copy_info"); 
+   /* check the pointer is not null */ 
+   if (elt->fec_copy_info) { 
+      fec_copy_info_t_SW_DUMP_PRINT((void*) &(*elt->fec_copy_info), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+void fec_to_ecmps_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   fec_to_ecmps_t *elt = ((fec_to_ecmps_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*ecmps"); 
+   /* check the pointer is not null */ 
+   if (elt->ecmps) { 
+      INT_SW_DUMP_PRINT((void*) &(*elt->ecmps), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*corresponding_fecs"); 
+   /* check the pointer is not null */ 
+   if (elt->corresponding_fecs) { 
+      INT_SW_DUMP_PRINT((void*) &(*elt->corresponding_fecs), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nof_ecmps"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->nof_ecmps), variableNameWithPath); 
+} 
+void ecmp_size_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ecmp_size_t *elt = ((ecmp_size_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cur_size"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->cur_size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".max_size"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->max_size), variableNameWithPath); 
+} 
+void fec_copy_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   fec_copy_info_t *elt = ((fec_copy_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ecmp"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->ecmp), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".real_fec"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->real_fec), variableNameWithPath); 
+} 
+void bcm_dpp_mirror_sw_db_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   bcm_dpp_mirror_sw_db_t *elt = ((bcm_dpp_mirror_sw_db_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mirror_mode"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->mirror_mode), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".egress_port_profile"); 
+   arraySizes_SW_DUMP[0]=SOC_PB_PP_MAX_NOF_LOCAL_PORTS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->egress_port_profile, uint8_SW_DUMP_PRINT, 0, sizeof(uint8)); 
+} 
+void bcm_dpp_switch_sw_db_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_switch_sw_db_t *elt = ((bcm_dpp_switch_sw_db_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".dos_attack"); 
+   dos_attack_info_t_SW_DUMP_PRINT((void*) &(elt->dos_attack), variableNameWithPath); 
+} 
+void dos_attack_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   dos_attack_info_t *elt = ((dos_attack_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tocpu"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->tocpu), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".sipequaldip"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->sipequaldip), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mintcphdrsize"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->mintcphdrsize), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".v4firstfrag"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->v4firstfrag), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tcpflags"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->tcpflags), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".l4port"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->l4port), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tcpfrag"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->tcpfrag), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".icmp"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->icmp), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".icmppktoversize"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->icmppktoversize), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".macsaequalmacda"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->macsaequalmacda), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".icmpv6pingsize"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->icmpv6pingsize), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".icmpfragments"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->icmpfragments), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tcpoffset"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->tcpoffset), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".udpportsequal"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->udpportsequal), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tcpportsequal"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->tcpportsequal), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tcpflagssf"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->tcpflagssf), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tcpflagsfup"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->tcpflagsfup), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tcphdrpartial"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->tcphdrpartial), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pingflood"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->pingflood), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".synflood"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->synflood), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tcpsmurf"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->tcpsmurf), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tcpxmas"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->tcpxmas), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".l3header"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->l3header), variableNameWithPath); 
+} 
+void multi_device_sync_flags_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   multi_device_sync_flags_t *elt = ((multi_device_sync_flags_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".eep"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->eep), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".inlif"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->inlif), variableNameWithPath); 
+} 
+void bcm_time_interface_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_time_interface_t *elt = ((bcm_time_interface_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".flags"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->flags), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".id"); 
+   bcm_time_if_t_SW_DUMP_PRINT((void*) &(elt->id), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".drift"); 
+   bcm_time_spec_t_SW_DUMP_PRINT((void*) &(elt->drift), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".offset"); 
+   bcm_time_spec_t_SW_DUMP_PRINT((void*) &(elt->offset), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".accuracy"); 
+   bcm_time_spec_t_SW_DUMP_PRINT((void*) &(elt->accuracy), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".heartbeat_hz"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->heartbeat_hz), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".clk_resolution"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->clk_resolution), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".bitclock_hz"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->bitclock_hz), variableNameWithPath); 
+} 
+void bcm_time_if_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   INT_SW_DUMP_PRINT(element, variableName); 
+} 
+void bcm_time_spec_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_time_spec_t *elt = ((bcm_time_spec_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".isnegative"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->isnegative), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".seconds"); 
+   uint64_SW_DUMP_PRINT((void*) &(elt->seconds), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nanoseconds"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->nanoseconds), variableNameWithPath); 
+} 
+void bcm_time_capture_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_time_capture_t *elt = ((bcm_time_capture_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".flags"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->flags), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".free"); 
+   bcm_time_spec_t_SW_DUMP_PRINT((void*) &(elt->free), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".syntonous"); 
+   bcm_time_spec_t_SW_DUMP_PRINT((void*) &(elt->syntonous), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".synchronous"); 
+   bcm_time_spec_t_SW_DUMP_PRINT((void*) &(elt->synchronous), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".received"); 
+   bcm_time_spec_t_SW_DUMP_PRINT((void*) &(elt->received), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".received_accuracy"); 
+   bcm_time_spec_t_SW_DUMP_PRINT((void*) &(elt->received_accuracy), variableNameWithPath); 
+} 
+void trunk_state_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   trunk_state_t *elt = ((trunk_state_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".init_state"); 
+   trunk_init_state_t_SW_DUMP_PRINT((void*) &(elt->init_state), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ngroups"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->ngroups), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".stk_ngroups"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->stk_ngroups), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nports"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->nports), variableNameWithPath); 
+} 
+void trunk_init_state_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void bcm_pkt_blk_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_pkt_blk_t *elt = ((bcm_pkt_blk_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*data"); 
+   /* check the pointer is not null */ 
+   if (elt->data) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->data), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".len"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->len), variableNameWithPath); 
+} 
+void bcm_color_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void bcm_multicast_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   INT_SW_DUMP_PRINT(element, variableName); 
+} 
+void bcm_pkt_stk_forward_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void bcm_if_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   INT_SW_DUMP_PRINT(element, variableName); 
+} 
+void bcm_rx_reasons_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   _shr_rx_reasons_t_SW_DUMP_PRINT(element, variableName); 
+} 
+void _shr_rx_reasons_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   _shr_rx_reasons_t *elt = ((_shr_rx_reasons_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pbits"); 
+   arraySizes_SW_DUMP[0]=_SHR_BITDCLSIZE ( _SHR_RX_REASON_COUNT ); 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->pbits, uint32_SW_DUMP_PRINT, 0, sizeof(SHR_BITDCL)); 
+} 
+void _shr_rx_reason_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void bcm_vlan_action_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void sal_time_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   UNSIGNED_LONG_SW_DUMP_PRINT(element, variableName); 
+} 
+void sbusdma_desc_handle_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   INT_SW_DUMP_PRINT(element, variableName); 
+} 
+void _bcm_dpp_vlan_unit_state_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   _bcm_dpp_vlan_unit_state_t *elt = ((_bcm_dpp_vlan_unit_state_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".vlan_info"); 
+   bcm_dpp_vlan_info_t_SW_DUMP_PRINT((void*) &(elt->vlan_info), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".fid_ref_count"); 
+   arraySizes_SW_DUMP[0]=DPP_NOF_SHARED_FIDS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->fid_ref_count, fid_ref_count_t_SW_DUMP_PRINT, 0, sizeof(fid_ref_count_t)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".wb"); 
+#ifdef BCM_WARM_BOOT_SUPPORT 
+   _bcm_dpp_vlan_wb_state_t_SW_DUMP_PRINT((void*) &(elt->wb), variableNameWithPath); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+} 
+void bcm_dpp_vlan_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   bcm_dpp_vlan_info_t *elt = ((bcm_dpp_vlan_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".init"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->init), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".defl"); 
+   bcm_vlan_t_SW_DUMP_PRINT((void*) &(elt->defl), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".defl_pbmp"); 
+   bcm_pbmp_t_SW_DUMP_PRINT((void*) &(elt->defl_pbmp), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".defl_ubmp"); 
+   bcm_pbmp_t_SW_DUMP_PRINT((void*) &(elt->defl_ubmp), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".vlan_bmp"); 
+   arraySizes_SW_DUMP[0]=_SHR_BITDCLSIZE ( BCM_VLAN_COUNT ); 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->vlan_bmp, uint32_SW_DUMP_PRINT, 0, sizeof(SHR_BITDCL)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".count"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->count), variableNameWithPath); 
+} 
+void fid_ref_count_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   fid_ref_count_t *elt = ((fid_ref_count_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ref_count"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->ref_count), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".fid"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->fid), variableNameWithPath); 
+} 
+void SOC_PPD_LIF_ID_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_PPC_LIF_ID_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_PPC_LIF_ID_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint32_SW_DUMP_PRINT(element, variableName); 
+} 
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void _bcm_dpp_vlan_wb_state_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   _bcm_dpp_vlan_wb_state_t *elt = ((_bcm_dpp_vlan_wb_state_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".handle"); 
+   soc_scache_handle_t_SW_DUMP_PRINT((void*) &(elt->handle), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*buffer"); 
+   /* check the pointer is not null */ 
+   if (elt->buffer) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->buffer), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".totalSize"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->totalSize), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".version"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->version), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".padding"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->padding), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".vlanCount"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->vlanCount), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".sharedFids"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->sharedFids), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".portsInPbmp"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->portsInPbmp), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".offsetVlanInfo"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->offsetVlanInfo), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".offsetFidRefs"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->offsetFidRefs), variableNameWithPath); 
+} 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_alloc_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   bcm_dpp_wb_alloc_info_t *elt = ((bcm_dpp_wb_alloc_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".init_done"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->init_done), variableNameWithPath); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_dirty"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->is_dirty), variableNameWithPath); 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".version"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->version), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".scache_handle"); 
+   soc_scache_handle_t_SW_DUMP_PRINT((void*) &(elt->scache_handle), variableNameWithPath); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*scache_ptr"); 
+   /* check the pointer is not null */ 
+   if (elt->scache_ptr) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->scache_ptr), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".total_size_in_bytes"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->total_size_in_bytes), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pool_desc"); 
+   arraySizes_SW_DUMP[0]= dpp_res_arad_pool_ingress_lif_bank_end; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->pool_desc, shr_wb_alloc_pool_desc_t_SW_DUMP_PRINT, 0, sizeof(shr_wb_alloc_pool_desc_t)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".global_desc"); 
+   bcm_dpp_wb_alloc_global_desc_t_SW_DUMP_PRINT((void*) &(elt->global_desc), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".template_desc"); 
+   arraySizes_SW_DUMP[0]=dpp_am_template_count; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->template_desc, shr_wb_alloc_template_desc_t_SW_DUMP_PRINT, 0, sizeof(shr_wb_alloc_template_desc_t)); 
+} 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void shr_wb_alloc_pool_desc_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   shr_wb_alloc_pool_desc_t *elt = ((shr_wb_alloc_pool_desc_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".scache_handle"); 
+   soc_scache_handle_t_SW_DUMP_PRINT((void*) &(elt->scache_handle), variableNameWithPath); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*scache_ptr"); 
+   /* check the pointer is not null */ 
+   if (elt->scache_ptr) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->scache_ptr), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".scache_offset"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->scache_offset), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pool_size_in_bytes"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->pool_size_in_bytes), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pool_info"); 
+   bcm_dpp_am_pool_info_t_SW_DUMP_PRINT((void*) &(elt->pool_info), variableNameWithPath); 
+} 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_alloc_global_desc_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_wb_alloc_global_desc_t *elt = ((bcm_dpp_wb_alloc_global_desc_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".scache_handle"); 
+   soc_scache_handle_t_SW_DUMP_PRINT((void*) &(elt->scache_handle), variableNameWithPath); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*scache_ptr"); 
+   /* check the pointer is not null */ 
+   if (elt->scache_ptr) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->scache_ptr), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".scache_offset"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->scache_offset), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".global_size_in_bytes"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->global_size_in_bytes), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".rsrc_db_size_in_bytes"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->rsrc_db_size_in_bytes), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".rsrc_db_offset"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->rsrc_db_offset), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".rsrc_sz_size_in_bytes"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->rsrc_sz_size_in_bytes), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".rsrc_sz_offset"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->rsrc_sz_offset), variableNameWithPath); 
+} 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+void _dpp_res_arad_pool_egress_encap_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void _dpp_res_arad_pool_cosq_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void _dpp_res_pool_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void shr_wb_alloc_template_desc_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   shr_wb_alloc_template_desc_t *elt = ((shr_wb_alloc_template_desc_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".scache_handle"); 
+   soc_scache_handle_t_SW_DUMP_PRINT((void*) &(elt->scache_handle), variableNameWithPath); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*scache_ptr"); 
+   /* check the pointer is not null */ 
+   if (elt->scache_ptr) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->scache_ptr), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".scache_offset"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->scache_offset), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".template_pool_size_in_bytes"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->template_pool_size_in_bytes), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".template_info"); 
+   bcm_dpp_am_template_info_t_SW_DUMP_PRINT((void*) &(elt->template_info), variableNameWithPath); 
+} 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+void _dpp_template_pool_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_cosq_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_wb_cosq_info_t *elt = ((bcm_dpp_wb_cosq_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".init_done"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->init_done), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*cosq_config"); 
+   /* check the pointer is not null */ 
+   if (elt->cosq_config) { 
+      bcm_dpp_cosq_config_t_SW_DUMP_PRINT((void*) &(*elt->cosq_config), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_dirty"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->is_dirty), variableNameWithPath); 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".version"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->version), variableNameWithPath); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*scache_ptr"); 
+   /* check the pointer is not null */ 
+   if (elt->scache_ptr) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->scache_ptr), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".size"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".max_voqs"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->max_voqs), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".voq_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->voq_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".max_conns"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->max_conns), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".conn_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->conn_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".max_ses"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->max_ses), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".se_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->se_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".max_flows"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->max_flows), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".flow_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->flow_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".max_e2e_fc_data"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->max_e2e_fc_data), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".e2e_fc_data_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->e2e_fc_data_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".max_class_data"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->max_class_data), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".class_data_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->class_data_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".max_ingr_rate_class_data"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->max_ingr_rate_class_data), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ingr_rate_class_data_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->ingr_rate_class_data_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".max_vsq_rate_class_data"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->max_vsq_rate_class_data), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".vsq_rate_class_data_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->vsq_rate_class_data_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".max_ingr_discount_class_data"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->max_ingr_discount_class_data), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ingr_discount_class_data_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->ingr_discount_class_data_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ipf_data_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->ipf_data_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".gbl_data_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->gbl_data_off), variableNameWithPath); 
+} 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void _bcm_dpp_wb_counter_state_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   _bcm_dpp_wb_counter_state_t *elt = ((_bcm_dpp_wb_counter_state_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*proc"); 
+   /* check the pointer is not null */ 
+   if (elt->proc) { 
+      _bcm_dpp_wb_counter_proc_info_t_SW_DUMP_PRINT((void*) &(*elt->proc), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*counter_state_ptr"); 
+   /* check the pointer is not null */ 
+   if (elt->counter_state_ptr) { 
+      _bcm_dpp_counter_state_t_SW_DUMP_PRINT((void*) &(*elt->counter_state_ptr), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void _bcm_dpp_wb_counter_proc_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   _bcm_dpp_wb_counter_proc_info_t *elt = ((_bcm_dpp_wb_counter_proc_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".allocated"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->allocated), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*inUse"); 
+   /* check the pointer is not null */ 
+   if (elt->inUse) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->inUse), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_counters_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_wb_counters_info_t *elt = ((bcm_dpp_wb_counters_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".init_done"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->init_done), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*counters_config"); 
+   /* check the pointer is not null */ 
+   if (elt->counters_config) { 
+      counters_cntl_t_SW_DUMP_PRINT((void*) &(*elt->counters_config), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_dirty"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->is_dirty), variableNameWithPath); 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".version"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->version), variableNameWithPath); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*scache_ptr"); 
+   /* check the pointer is not null */ 
+   if (elt->scache_ptr) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->scache_ptr), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".size"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".bgWait_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->bgWait_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".bgWait_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->bgWait_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".background_disable_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->background_disable_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".background_disable_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->background_disable_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".fifo_read_background_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->fifo_read_background_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".fifo_read_background_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->fifo_read_background_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".fifo_read_deferred_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->fifo_read_deferred_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".fifo_read_deferred_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->fifo_read_deferred_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".fifo_read_passes_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->fifo_read_passes_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".fifo_read_passes_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->fifo_read_passes_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".fifo_read_fails_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->fifo_read_fails_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".fifo_read_fails_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->fifo_read_fails_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".fifo_read_items_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->fifo_read_items_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".fifo_read_items_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->fifo_read_items_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".fifo_read_max_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->fifo_read_max_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".fifo_read_max_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->fifo_read_max_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".fifo_read_last_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->fifo_read_last_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".fifo_read_last_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->fifo_read_last_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".direct_read_passes_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->direct_read_passes_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".direct_read_passes_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->direct_read_passes_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".direct_read_fails_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->direct_read_fails_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".direct_read_fails_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->direct_read_fails_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cache_updates_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->cache_updates_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cache_updates_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->cache_updates_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cache_reads_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->cache_reads_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cache_reads_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->cache_reads_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cache_writes_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->cache_writes_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cache_writes_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->cache_writes_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".api_reads_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->api_reads_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".api_reads_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->api_reads_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".api_writes_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->api_writes_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".api_writes_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->api_writes_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".api_miss_reads_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->api_miss_reads_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".api_miss_reads_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->api_miss_reads_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".api_miss_writes_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->api_miss_writes_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".api_miss_writes_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->api_miss_writes_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".allocated_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->allocated_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".allocated_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->allocated_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".inUse_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->inUse_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".inUse_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->inUse_off), variableNameWithPath); 
+} 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+void counters_cntl_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+#ifdef BCM_WARM_BOOT_SUPPORT 
+   _bcm_dpp_wb_counter_state_t_SW_DUMP_PRINT(element, variableName); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+} 
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_gport_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_wb_gport_info_t *elt = ((bcm_dpp_wb_gport_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".init_done"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->init_done), variableNameWithPath); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_dirty"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->is_dirty), variableNameWithPath); 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_offset_aligned"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->is_offset_aligned), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".version"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->version), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".scache_handle"); 
+   soc_scache_handle_t_SW_DUMP_PRINT((void*) &(elt->scache_handle), variableNameWithPath); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*scache_ptr"); 
+   /* check the pointer is not null */ 
+   if (elt->scache_ptr) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->scache_ptr), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".size"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".inlif_match_off"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->inlif_match_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*port_info"); 
+   /* check the pointer is not null */ 
+   if (elt->port_info) { 
+      shr_wb_hash_list_info_t_SW_DUMP_PRINT((void*) &(*elt->port_info), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*trill_info"); 
+   /* check the pointer is not null */ 
+   if (elt->trill_info) { 
+      shr_wb_hash_list_info_t_SW_DUMP_PRINT((void*) &(*elt->trill_info), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*mc_trill_info"); 
+   /* check the pointer is not null */ 
+   if (elt->mc_trill_info) { 
+      shr_wb_hash_list_info_t_SW_DUMP_PRINT((void*) &(*elt->mc_trill_info), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*trill_route_info"); 
+   /* check the pointer is not null */ 
+   if (elt->trill_route_info) { 
+      shr_wb_hash_list_info_t_SW_DUMP_PRINT((void*) &(*elt->trill_route_info), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*trill_src_info"); 
+   /* check the pointer is not null */ 
+   if (elt->trill_src_info) { 
+      shr_wb_hash_list_info_t_SW_DUMP_PRINT((void*) &(*elt->trill_src_info), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*trill_vpn_info"); 
+   /* check the pointer is not null */ 
+   if (elt->trill_vpn_info) { 
+      shr_wb_hash_list_info_t_SW_DUMP_PRINT((void*) &(*elt->trill_vpn_info), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".max_voqs"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->max_voqs), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".voq_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->voq_off), variableNameWithPath); 
+} 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void shr_wb_hash_list_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   shr_wb_hash_list_info_t *elt = ((shr_wb_hash_list_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".type"); 
+   shr_wb_hash_list_type_t_SW_DUMP_PRINT((void*) &(elt->type), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".size_hdr_list"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->size_hdr_list), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".max_elements"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->max_elements), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".key_size"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->key_size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".data_size"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->data_size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".total_size"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->total_size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".element_size"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->element_size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".scache_handle"); 
+   soc_scache_handle_t_SW_DUMP_PRINT((void*) &(elt->scache_handle), variableNameWithPath); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*scache_ptr"); 
+   /* check the pointer is not null */ 
+   if (elt->scache_ptr) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->scache_ptr), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".scache_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->scache_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_offset_aligned"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->is_offset_aligned), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".free_list_off"); 
+   shr_wb_htb_off_t_SW_DUMP_PRINT((void*) &(elt->free_list_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".hd_lists_off"); 
+   shr_wb_htb_off_t_SW_DUMP_PRINT((void*) &(elt->hd_lists_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*free_list_off_p"); 
+   /* check the pointer is not null */ 
+   if (elt->free_list_off_p) { 
+      shr_wb_htb_off_t_SW_DUMP_PRINT((void*) &(*elt->free_list_off_p), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*hd_lists_off_p"); 
+   /* check the pointer is not null */ 
+   if (elt->hd_lists_off_p) { 
+      shr_wb_htb_off_t_SW_DUMP_PRINT((void*) &(*elt->hd_lists_off_p), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void shr_wb_hash_list_type_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void shr_wb_htb_off_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint32_SW_DUMP_PRINT(element, variableName); 
+} 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void shr_wb_htb_key_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint8_SW_DUMP_PRINT(element, variableName); 
+} 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_l2_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_wb_l2_info_t *elt = ((bcm_dpp_wb_l2_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".init_done"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->init_done), variableNameWithPath); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_dirty"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->is_dirty), variableNameWithPath); 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".version"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->version), variableNameWithPath); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*scache_ptr"); 
+   /* check the pointer is not null */ 
+   if (elt->scache_ptr) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->scache_ptr), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".size"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mymac_msb_off"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->mymac_msb_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".freeze_off"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->freeze_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".l2_data_off"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->l2_data_off), variableNameWithPath); 
+} 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_l3_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_wb_l3_info_t *elt = ((bcm_dpp_wb_l3_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".init_done"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->init_done), variableNameWithPath); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_dirty"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->is_dirty), variableNameWithPath); 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".version"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->version), variableNameWithPath); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*scache_ptr"); 
+   /* check the pointer is not null */ 
+   if (elt->scache_ptr) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->scache_ptr), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".size"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".egr_tnl_id_off"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->egr_tnl_id_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".vsi_usage_off"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->vsi_usage_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tnl_to_eep_off"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->tnl_to_eep_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".l3_info_off"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->l3_info_off), variableNameWithPath); 
+} 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_mirror_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_wb_mirror_info_t *elt = ((bcm_dpp_wb_mirror_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".init_done"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->init_done), variableNameWithPath); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_dirty"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->is_dirty), variableNameWithPath); 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".version"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->version), variableNameWithPath); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*scache_ptr"); 
+   /* check the pointer is not null */ 
+   if (elt->scache_ptr) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->scache_ptr), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".size"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".refCount_off"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->refCount_off), variableNameWithPath); 
+} 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_multicast_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_wb_multicast_info_t *elt = ((bcm_dpp_wb_multicast_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".init_done"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->init_done), variableNameWithPath); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_dirty"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->is_dirty), variableNameWithPath); 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".version"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->version), variableNameWithPath); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*scache_ptr"); 
+   /* check the pointer is not null */ 
+   if (elt->scache_ptr) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->scache_ptr), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".size"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".max_ingress_mc"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->max_ingress_mc), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ingress_mc_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->ingress_mc_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".max_egress_mc"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->max_egress_mc), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".egress_mc_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->egress_mc_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".gbl_data_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->gbl_data_off), variableNameWithPath); 
+} 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_policer_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_wb_policer_info_t *elt = ((bcm_dpp_wb_policer_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".init_done"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->init_done), variableNameWithPath); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_dirty"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->is_dirty), variableNameWithPath); 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".version"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->version), variableNameWithPath); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*scache_ptr"); 
+   /* check the pointer is not null */ 
+   if (elt->scache_ptr) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->scache_ptr), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".size"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".group_mode_off"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->group_mode_off), variableNameWithPath); 
+} 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_port_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_wb_port_info_t *elt = ((bcm_dpp_wb_port_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".init_done"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->init_done), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*port_config"); 
+   /* check the pointer is not null */ 
+   if (elt->port_config) { 
+      bcm_dpp_wb_port_config_t_SW_DUMP_PRINT((void*) &(*elt->port_config), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_dirty"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->is_dirty), variableNameWithPath); 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".version"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->version), variableNameWithPath); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*scache_ptr"); 
+   /* check the pointer is not null */ 
+   if (elt->scache_ptr) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->scache_ptr), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".size"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".map_tbl_use_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->map_tbl_use_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".map_tbl_use_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->map_tbl_use_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".trap_to_flag_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->trap_to_flag_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".trap_to_flag_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->trap_to_flag_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tpid_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->tpid_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tpid_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->tpid_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tpid_count_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->tpid_count_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tpid_count_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->tpid_count_off), variableNameWithPath); 
+} 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_port_config_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   bcm_dpp_wb_port_config_t *elt = ((bcm_dpp_wb_port_config_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".map_tbl_use"); 
+   arraySizes_SW_DUMP[0]=_bcm_dpp_port_map_type_count; 
+   arraySizes_SW_DUMP[1]=_BCM_DPP_PORT_MAP_MAX_NOF_TBLS; 
+   printArray(arraySizes_SW_DUMP, 0, 2, variableNameWithPath, (void**) elt->map_tbl_use, INT_SW_DUMP_PRINT, 0, sizeof(int)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".trap_to_flag"); 
+   arraySizes_SW_DUMP[0]=_BCM_PETRA_PORT_LEARN_NOF_TRAPS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->trap_to_flag, INT_SW_DUMP_PRINT, 0, sizeof(int)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*_bcm_port_tpid_info"); 
+   /* check the pointer is not null */ 
+   if (elt->_bcm_port_tpid_info) { 
+      _bcm_petra_port_tpid_info_SW_DUMP_PRINT((void*) &(*elt->_bcm_port_tpid_info), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_qos_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_wb_qos_info_t *elt = ((bcm_dpp_wb_qos_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".init_done"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->init_done), variableNameWithPath); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_dirty"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->is_dirty), variableNameWithPath); 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".version"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->version), variableNameWithPath); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*scache_ptr"); 
+   /* check the pointer is not null */ 
+   if (elt->scache_ptr) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->scache_ptr), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".size"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ing_lif_cos_mpls_bitmap_off"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->ing_lif_cos_mpls_bitmap_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ing_pcp_vlan_ctag_bitmap_off"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->ing_pcp_vlan_ctag_bitmap_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".egr_remark_mpls_bitmap_off"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->egr_remark_mpls_bitmap_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".egr_mpls_php_ipv6_bitmap_off"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->egr_mpls_php_ipv6_bitmap_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".egr_pcp_vlan_ctag_bitmap_off"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->egr_pcp_vlan_ctag_bitmap_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".egr_l2_i_tag_bitmap_off"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->egr_l2_i_tag_bitmap_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".egr_dscp_exp_marking_bitmap_off"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->egr_dscp_exp_marking_bitmap_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ing_cos_opcode_off"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->ing_cos_opcode_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".opcode_bmp_off"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->opcode_bmp_off), variableNameWithPath); 
+} 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_stack_config_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   bcm_dpp_wb_stack_config_t *elt = ((bcm_dpp_wb_stack_config_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, "._sysport_erp"); 
+   arraySizes_SW_DUMP[0]=_DPP_STACK_MAX_DEVICES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->_sysport_erp, INT_SW_DUMP_PRINT, 0, sizeof(int)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, "._modid_to_domain"); 
+   arraySizes_SW_DUMP[0]=_DPP_STACK_MAX_TM_DOMAIN; 
+   arraySizes_SW_DUMP[1]=_DPP_STACK_MAX_DEVICES_UINT32_BITMAP; 
+   printArray(arraySizes_SW_DUMP, 0, 2, variableNameWithPath, (void**) elt->_modid_to_domain, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, "._domain_to_stk_trunk"); 
+   arraySizes_SW_DUMP[0]=_DPP_STACK_MAX_TM_DOMAIN; 
+   arraySizes_SW_DUMP[1]=_DPP_STACK_MAX_TM_DOMAIN_UINT32_BITMAP; 
+   printArray(arraySizes_SW_DUMP, 0, 2, variableNameWithPath, (void**) elt->_domain_to_stk_trunk, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+} 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_stg_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_wb_stg_info_t *elt = ((bcm_dpp_wb_stg_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".init_done"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->init_done), variableNameWithPath); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_dirty"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->is_dirty), variableNameWithPath); 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".version"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->version), variableNameWithPath); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*scache_ptr"); 
+   /* check the pointer is not null */ 
+   if (elt->scache_ptr) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->scache_ptr), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".size"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".count_off"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->count_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".defl_off"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->defl_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".bitmap_off"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->bitmap_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".enable_off"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->enable_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".state_h_off"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->state_h_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".state_l_off"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->state_l_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".vlan_f_off"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->vlan_f_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".vlan_n_off"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->vlan_n_off), variableNameWithPath); 
+} 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_switch_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_wb_switch_info_t *elt = ((bcm_dpp_wb_switch_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".init_done"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->init_done), variableNameWithPath); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_dirty"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->is_dirty), variableNameWithPath); 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".version"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->version), variableNameWithPath); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*scache_ptr"); 
+   /* check the pointer is not null */ 
+   if (elt->scache_ptr) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->scache_ptr), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".size"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".scache_consistent_off"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->scache_consistent_off), variableNameWithPath); 
+} 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_trill_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_wb_trill_info_t *elt = ((bcm_dpp_wb_trill_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".init_done"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->init_done), variableNameWithPath); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_dirty"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->is_dirty), variableNameWithPath); 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".version"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->version), variableNameWithPath); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*scache_ptr"); 
+   /* check the pointer is not null */ 
+   if (elt->scache_ptr) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->scache_ptr), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".size"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mask_set_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->mask_set_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".trill_out_ac_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->trill_out_ac_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".last_used_id_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->last_used_id_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".trill_ports_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->trill_ports_off), variableNameWithPath); 
+} 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void trunk_wb_cntl_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   trunk_wb_cntl_t *elt = ((trunk_wb_cntl_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*t_info"); 
+   /* check the pointer is not null */ 
+   if (elt->t_info) { 
+      bcm_dpp_trunk_private_t_SW_DUMP_PRINT((void*) &(*elt->t_info), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+void bcm_dpp_trunk_private_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_trunk_private_t *elt = ((bcm_dpp_trunk_private_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".trunk_id"); 
+   bcm_trunk_t_SW_DUMP_PRINT((void*) &(elt->trunk_id), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".in_use"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->in_use), variableNameWithPath); 
+} 
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void bcm_dpp_wb_vswitch_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_wb_vswitch_info_t *elt = ((bcm_dpp_wb_vswitch_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".init_done"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->init_done), variableNameWithPath); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_dirty"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->is_dirty), variableNameWithPath); 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".version"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->version), variableNameWithPath); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*scache_ptr"); 
+   /* check the pointer is not null */ 
+   if (elt->scache_ptr) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->scache_ptr), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".size"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".vsi_usage_off"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->vsi_usage_off), variableNameWithPath); 
+} 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+void ARAD_PP_ISEM_ACCESS_PROGRAM_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_PP_ISEM_ACCESS_PROGRAM_INFO *elt = ((ARAD_PP_ISEM_ACCESS_PROGRAM_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".prog_used"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->prog_used), variableNameWithPath); 
+} 
+void soc_reg_above_64_val_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint32_SW_DUMP_PRINT(element, variableName); 
+} 
+void ARAD_PP_SW_DB_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_PP_SW_DB *elt = ((ARAD_PP_SW_DB*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".init"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->init), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*device"); 
+   arraySizes_SW_DUMP[0]=SOC_SAND_MAX_DEVICE; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->device, ARAD_PP_SW_DB_DEVICE_SW_DUMP_PRINT, 1, sizeof(ARAD_PP_SW_DB_DEVICE*)); 
+} 
+void ARAD_PP_SW_DB_DEVICE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_PP_SW_DB_DEVICE *elt = ((ARAD_PP_SW_DB_DEVICE*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*oam_my_mac_lsb"); 
+   /* check the pointer is not null */ 
+   if (elt->oam_my_mac_lsb) { 
+      ARAD_PP_SW_DB_OAM_MY_MAC_LSB_SW_DUMP_PRINT((void*) &(*elt->oam_my_mac_lsb), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*oper_mode"); 
+   /* check the pointer is not null */ 
+   if (elt->oper_mode) { 
+      ARAD_PP_MGMT_OPERATION_MODE_SW_DUMP_PRINT((void*) &(*elt->oper_mode), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*llp_filter"); 
+   /* check the pointer is not null */ 
+   if (elt->llp_filter) { 
+      ARAD_PP_SW_DB_LLP_FILTER_SW_DUMP_PRINT((void*) &(*elt->llp_filter), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*llp_trap"); 
+   /* check the pointer is not null */ 
+   if (elt->llp_trap) { 
+      ARAD_PP_SW_DB_LLP_TRAP_SW_DUMP_PRINT((void*) &(*elt->llp_trap), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*llp_mirror"); 
+   /* check the pointer is not null */ 
+   if (elt->llp_mirror) { 
+      ARAD_PP_SW_DB_LLP_MIRROR_SW_DUMP_PRINT((void*) &(*elt->llp_mirror), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*llp_vid_assign"); 
+   /* check the pointer is not null */ 
+   if (elt->llp_vid_assign) { 
+      ARAD_PP_SW_DB_LLP_VID_ASSIGN_SW_DUMP_PRINT((void*) &(*elt->llp_vid_assign), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*pon_double_lookup"); 
+   /* check the pointer is not null */ 
+   if (elt->pon_double_lookup) { 
+      ARAD_PP_SW_DB_PON_DOUBLE_LOOKUP_SW_DUMP_PRINT((void*) &(*elt->pon_double_lookup), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*eg_mirror"); 
+   /* check the pointer is not null */ 
+   if (elt->eg_mirror) { 
+      ARAD_PP_SW_DB_EG_MIRROR_SW_DUMP_PRINT((void*) &(*elt->eg_mirror), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*eg_encap"); 
+   /* check the pointer is not null */ 
+   if (elt->eg_encap) { 
+      ARAD_PP_SW_DB_EG_ENCAP_SW_DUMP_PRINT((void*) &(*elt->eg_encap), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*llp_cos"); 
+   /* check the pointer is not null */ 
+   if (elt->llp_cos) { 
+      ARAD_PP_SW_DB_LLP_COS_SW_DUMP_PRINT((void*) &(*elt->llp_cos), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*eth_policer_mtr_profile"); 
+   /* check the pointer is not null */ 
+   if (elt->eth_policer_mtr_profile) { 
+      ARAD_PP_SW_DB_ETH_POLICER_MTR_PROFILE_SW_DUMP_PRINT((void*) &(*elt->eth_policer_mtr_profile), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*ipv4_info"); 
+   /* check the pointer is not null */ 
+   if (elt->ipv4_info) { 
+      ARAD_PP_SW_DB_IPV4_INFO_SW_DUMP_PRINT((void*) &(*elt->ipv4_info), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*ilm_info"); 
+   /* check the pointer is not null */ 
+   if (elt->ilm_info) { 
+      ARAD_PP_SW_DB_ILM_INFO_SW_DUMP_PRINT((void*) &(*elt->ilm_info), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*fwd_mact"); 
+   /* check the pointer is not null */ 
+   if (elt->fwd_mact) { 
+      ARAD_PP_SW_DB_FWD_MACT_SW_DUMP_PRINT((void*) &(*elt->fwd_mact), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*lif_cos"); 
+   /* check the pointer is not null */ 
+   if (elt->lif_cos) { 
+      ARAD_PP_SW_DB_LIF_COS_SW_DUMP_PRINT((void*) &(*elt->lif_cos), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*lif_table"); 
+   /* check the pointer is not null */ 
+   if (elt->lif_table) { 
+      ARAD_PP_SW_DB_LIF_TABLE_SW_DUMP_PRINT((void*) &(*elt->lif_table), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*fec"); 
+   /* check the pointer is not null */ 
+   if (elt->fec) { 
+      ARAD_PP_SW_DB_FEC_SW_DUMP_PRINT((void*) &(*elt->fec), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*diag"); 
+   /* check the pointer is not null */ 
+   if (elt->diag) { 
+      ARAD_PP_SW_DB_DIAG_SW_DUMP_PRINT((void*) &(*elt->diag), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*isem"); 
+   /* check the pointer is not null */ 
+   if (elt->isem) { 
+      ARAD_PP_SW_DB_ISEM_SW_DUMP_PRINT((void*) &(*elt->isem), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*lag"); 
+   /* check the pointer is not null */ 
+   if (elt->lag) { 
+      ARAD_PP_SW_DB_LAG_SW_DUMP_PRINT((void*) &(*elt->lag), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*l2_lif"); 
+   /* check the pointer is not null */ 
+   if (elt->l2_lif) { 
+      ARAD_PP_SW_DB_L2_LIF_SW_DUMP_PRINT((void*) &(*elt->l2_lif), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*l2_lif_ac"); 
+   /* check the pointer is not null */ 
+   if (elt->l2_lif_ac) { 
+      ARAD_PP_SW_DB_L2_LIF_AC_SW_DUMP_PRINT((void*) &(*elt->l2_lif_ac), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*vrrp_info"); 
+   /* check the pointer is not null */ 
+   if (elt->vrrp_info) { 
+      ARAD_PP_SW_DB_VRRP_INFO_SW_DUMP_PRINT((void*) &(*elt->vrrp_info), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*mac_limit_info"); 
+   /* check the pointer is not null */ 
+   if (elt->mac_limit_info) { 
+      ARAD_PP_SW_DB_MAC_LIMIT_PER_TUNNEL_INFO_SW_DUMP_PRINT((void*) &(*elt->mac_limit_info), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*header_data"); 
+   /* check the pointer is not null */ 
+   if (elt->header_data) { 
+      ARAD_PP_SW_DB_HEADER_DATA_SW_DUMP_PRINT((void*) &(*elt->header_data), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*rif_to_lif_group_map"); 
+   /* check the pointer is not null */ 
+   if (elt->rif_to_lif_group_map) { 
+      ARAD_PP_SW_DB_RIF_TO_LIF_GROUP_MAP_SW_DUMP_PRINT((void*) &(*elt->rif_to_lif_group_map), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+void ARAD_PP_SW_DB_OAM_MY_MAC_LSB_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_PP_SW_DB_OAM_MY_MAC_LSB *elt = ((ARAD_PP_SW_DB_OAM_MY_MAC_LSB*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ref_count"); 
+   ARAD_PP_SW_DB_OAM_MY_MAC_LSB_REF_COUNT_SW_DUMP_PRINT((void*) &(elt->ref_count), variableNameWithPath); 
+} 
+void ARAD_PP_SW_DB_OAM_MY_MAC_LSB_REF_COUNT_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_PP_SW_DB_OAM_MY_MAC_LSB_REF_COUNT *elt = ((ARAD_PP_SW_DB_OAM_MY_MAC_LSB_REF_COUNT*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ref_count"); 
+   arraySizes_SW_DUMP[0]=ARAD_PP_SW_DB_OAM_MY_MAC_LSB_REF_COUNT_NUM; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->ref_count, uint16_SW_DUMP_PRINT, 0, sizeof(uint16)); 
+} 
+void ARAD_PP_MGMT_OPERATION_MODE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_PP_MGMT_OPERATION_MODE *elt = ((ARAD_PP_MGMT_OPERATION_MODE*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".authentication_enable"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->authentication_enable), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".system_vsi_enable"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->system_vsi_enable), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".hairpin_enable"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->hairpin_enable), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".split_horizon_filter_enable"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->split_horizon_filter_enable), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ipv4_info"); 
+   ARAD_PP_MGMT_IPV4_INFO_SW_DUMP_PRINT((void*) &(elt->ipv4_info), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".p2p_info"); 
+   ARAD_PP_MGMT_P2P_INFO_SW_DUMP_PRINT((void*) &(elt->p2p_info), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mim_enable"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->mim_enable), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".oam_enable"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->oam_enable), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".bfd_enable"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->bfd_enable), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".trill_enable"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->trill_enable), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mim_initialized"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->mim_initialized), variableNameWithPath); 
+} 
+void ARAD_PP_MGMT_IPV4_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_PP_MGMT_IPV4_INFO *elt = ((ARAD_PP_MGMT_IPV4_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pvlan_enable"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->pvlan_enable), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nof_vrfs"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->nof_vrfs), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".max_routes_in_vrf"); 
+   arraySizes_SW_DUMP[0]=SOC_DPP_DEFS_MAX(NOF_VRFS); 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->max_routes_in_vrf, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".bits_in_phase"); 
+   arraySizes_SW_DUMP[0]=ARAD_PP_MGMT_IPV4_LPM_BANKS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->bits_in_phase, uint8_SW_DUMP_PRINT, 0, sizeof(uint8)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".bits_in_phase_valid"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->bits_in_phase_valid), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".flags"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->flags), variableNameWithPath); 
+} 
+void ARAD_PP_MGMT_P2P_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_PP_MGMT_P2P_INFO *elt = ((ARAD_PP_MGMT_P2P_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mim_vsi"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->mim_vsi), variableNameWithPath); 
+} 
+void ARAD_PP_MGMT_MPLS_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_PP_MGMT_MPLS_INFO *elt = ((ARAD_PP_MGMT_MPLS_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mpls_ether_types"); 
+   arraySizes_SW_DUMP[0]=ARAD_PP_MGMT_MPLS_NOF_ETHER_TYPES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->mpls_ether_types, SOC_SAND_PP_ETHER_TYPE_SW_DUMP_PRINT, 0, sizeof(SOC_SAND_PP_ETHER_TYPE)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mpls_termination_label_index_enable"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->mpls_termination_label_index_enable), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mpls_coupling_enable"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->mpls_coupling_enable), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".fast_reroute_labels_enable"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->fast_reroute_labels_enable), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".lookup_include_inrif"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->lookup_include_inrif), variableNameWithPath); 
+} 
+void SOC_SAND_PP_ETHER_TYPE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint16_SW_DUMP_PRINT(element, variableName); 
+} 
+void ARAD_PP_SW_DB_LLP_FILTER_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_PP_SW_DB_LLP_FILTER *elt = ((ARAD_PP_SW_DB_LLP_FILTER*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ref_count"); 
+   ARAD_PP_LLP_FILTER_DESIGNATED_VLAN_TABLE_REF_COUNT_SW_DUMP_PRINT((void*) &(elt->ref_count), variableNameWithPath); 
+} 
+void ARAD_PP_LLP_FILTER_DESIGNATED_VLAN_TABLE_REF_COUNT_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_PP_LLP_FILTER_DESIGNATED_VLAN_TABLE_REF_COUNT *elt = ((ARAD_PP_LLP_FILTER_DESIGNATED_VLAN_TABLE_REF_COUNT*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".arr"); 
+   arraySizes_SW_DUMP[0]=ARAD_PP_LLP_FILTER_DESIGNATED_VLAN_TABLE_SIZE; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->arr, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+} 
+void ARAD_PP_SW_DB_LLP_TRAP_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_PP_SW_DB_LLP_TRAP *elt = ((ARAD_PP_SW_DB_LLP_TRAP*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".l3_protocols_multi_set"); 
+   SOC_SAND_MULTI_SET_INFO_SW_DUMP_PRINT((void*) &(elt->l3_protocols_multi_set), variableNameWithPath); 
+} 
+void SOC_SAND_MULTI_SET_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_SAND_MULTI_SET_INFO *elt = ((SOC_SAND_MULTI_SET_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".init_info"); 
+   SOC_SAND_MULTI_SET_INIT_INFO_SW_DUMP_PRINT((void*) &(elt->init_info), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".multiset_data"); 
+   SOC_SAND_MULTI_SET_T_SW_DUMP_PRINT((void*) &(elt->multiset_data), variableNameWithPath); 
+} 
+void SOC_SAND_MULTI_SET_INIT_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_SAND_MULTI_SET_INIT_INFO *elt = ((SOC_SAND_MULTI_SET_INIT_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".prime_handle"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->prime_handle), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".sec_handle"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->sec_handle), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nof_members"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->nof_members), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".member_size"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->member_size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".max_duplications"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->max_duplications), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".wb_var_index"); 
+   int32_SW_DUMP_PRINT((void*) &(elt->wb_var_index), variableNameWithPath); 
+} 
+void SOC_SAND_MULTI_SET_T_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_SAND_MULTI_SET_T *elt = ((SOC_SAND_MULTI_SET_T*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*ref_counter"); 
+   /* check the pointer is not null */ 
+   if (elt->ref_counter) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->ref_counter), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".counter_size"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->counter_size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".hash_table"); 
+   SOC_SAND_HASH_TABLE_INFO_SW_DUMP_PRINT((void*) &(elt->hash_table), variableNameWithPath); 
+} 
+void SOC_SAND_HASH_TABLE_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_SAND_HASH_TABLE_INFO *elt = ((SOC_SAND_HASH_TABLE_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".init_info"); 
+   SOC_SAND_HASH_TABLE_INIT_INFO_SW_DUMP_PRINT((void*) &(elt->init_info), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".hash_data"); 
+   SOC_SAND_HASH_TABLE_T_SW_DUMP_PRINT((void*) &(elt->hash_data), variableNameWithPath); 
+} 
+void SOC_SAND_HASH_TABLE_INIT_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_SAND_HASH_TABLE_INIT_INFO *elt = ((SOC_SAND_HASH_TABLE_INIT_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".prime_handle"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->prime_handle), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".sec_handle"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->sec_handle), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".table_size"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->table_size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".table_width"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->table_width), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".key_size"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->key_size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".data_size"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->data_size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".wb_var_index"); 
+   int32_SW_DUMP_PRINT((void*) &(elt->wb_var_index), variableNameWithPath); 
+} 
+void SOC_SAND_HASH_TABLE_KEY_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint8_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_SAND_HASH_TABLE_T_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_SAND_HASH_TABLE_T *elt = ((SOC_SAND_HASH_TABLE_T*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*lists_head"); 
+   /* check the pointer is not null */ 
+   if (elt->lists_head) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->lists_head), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*keys"); 
+   /* check the pointer is not null */ 
+   if (elt->keys) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->keys), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*next"); 
+   /* check the pointer is not null */ 
+   if (elt->next) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->next), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ptr_size"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->ptr_size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".memory_use"); 
+   SOC_SAND_OCC_BM_PTR_SW_DUMP_PRINT((void*) &(elt->memory_use), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".null_ptr"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->null_ptr), variableNameWithPath); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*tmp_buf"); 
+   /* check the pointer is not null */ 
+   if (elt->tmp_buf) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->tmp_buf), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+#endif /* SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*tmp_buf2"); 
+   /* check the pointer is not null */ 
+} 
+void SOC_SAND_OCC_BM_PTR_SW_DUMP_PRINT(void* element, char* variableName){ 
+   if (*((void**) element)) {
+      SOC_SAND_OCC_BM_T_SW_DUMP_PRINT(*((void**) element), variableName); 
+   }
+} 
+
+void SOC_SAND_OCC_BM_T_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_SAND_OCC_BM_T *elt = ((SOC_SAND_OCC_BM_T*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".**levels"); 
+   /* check the pointer is not null */ 
+   if (elt->levels) { 
+      uint8_SW_DUMP_PRINT((void*) &(**elt->levels), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*levels_size"); 
+   /* check the pointer is not null */ 
+   if (elt->levels_size) { 
+      uint32_SW_DUMP_PRINT((void*) &(*elt->levels_size), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nof_levels"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->nof_levels), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".size"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".init_val"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->init_val), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".support_cache"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->support_cache), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cache_enabled"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->cache_enabled), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".**levels_cache"); 
+   /* check the pointer is not null */ 
+   if (elt->levels_cache) { 
+      uint8_SW_DUMP_PRINT((void*) &(**elt->levels_cache), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*levels_buffer"); 
+   /* check the pointer is not null */ 
+   if (elt->levels_buffer) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->levels_buffer), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*levels_cache_buffer"); 
+   /* check the pointer is not null */ 
+   if (elt->levels_cache_buffer) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->levels_cache_buffer), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".buffer_size"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->buffer_size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".wb_var_index"); 
+   int32_SW_DUMP_PRINT((void*) &(elt->wb_var_index), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".unit"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->unit), variableNameWithPath); 
+} 
+void ARAD_PP_SW_DB_LLP_MIRROR_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_PP_SW_DB_LLP_MIRROR *elt = ((ARAD_PP_SW_DB_LLP_MIRROR*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".llp_mirror_port_vlan"); 
+   arraySizes_SW_DUMP[0]=ARAD_PORT_NOF_PP_PORTS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->llp_mirror_port_vlan, uint8_SW_DUMP_PRINT, 0, sizeof(uint8)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mirror_profile_multi_set"); 
+   SOC_SAND_MULTI_SET_INFO_SW_DUMP_PRINT((void*) &(elt->mirror_profile_multi_set), variableNameWithPath); 
+} 
+void ARAD_PP_SW_DB_LLP_VID_ASSIGN_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_PP_SW_DB_LLP_VID_ASSIGN *elt = ((ARAD_PP_SW_DB_LLP_VID_ASSIGN*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".vid_sa_based_enable"); 
+   arraySizes_SW_DUMP[0]=ARAD_PP_SW_DB_PP_PORTS_NOF_U32; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->vid_sa_based_enable, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+} 
+void ARAD_PP_SW_DB_PON_DOUBLE_LOOKUP_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_PP_SW_DB_PON_DOUBLE_LOOKUP *elt = ((ARAD_PP_SW_DB_PON_DOUBLE_LOOKUP*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pon_double_lookup_enable"); 
+   arraySizes_SW_DUMP[0]=ARAD_PP_SW_DB_PP_PORTS_NOF_U32; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->pon_double_lookup_enable, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+} 
+void ARAD_PP_SW_DB_EG_MIRROR_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_PP_SW_DB_EG_MIRROR *elt = ((ARAD_PP_SW_DB_EG_MIRROR*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".eg_mirror_port_vlan"); 
+   arraySizes_SW_DUMP[0]=ARAD_PORT_NOF_PP_PORTS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->eg_mirror_port_vlan, uint8_SW_DUMP_PRINT, 0, sizeof(uint8)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mirror_profile_multi_set"); 
+   SOC_SAND_MULTI_SET_INFO_SW_DUMP_PRINT((void*) &(elt->mirror_profile_multi_set), variableNameWithPath); 
+} 
+void ARAD_PP_SW_DB_EG_ENCAP_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_PP_SW_DB_EG_ENCAP *elt = ((ARAD_PP_SW_DB_EG_ENCAP*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".prog_data"); 
+   SOC_SAND_MULTI_SET_INFO_SW_DUMP_PRINT((void*) &(elt->prog_data), variableNameWithPath); 
+} 
+void ARAD_PP_SW_DB_LLP_COS_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_PP_SW_DB_LLP_COS *elt = ((ARAD_PP_SW_DB_LLP_COS*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ether_type_multi_set"); 
+   SOC_SAND_MULTI_SET_INFO_SW_DUMP_PRINT((void*) &(elt->ether_type_multi_set), variableNameWithPath); 
+} 
+void ARAD_PP_SW_DB_ETH_POLICER_MTR_PROFILE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_PP_SW_DB_ETH_POLICER_MTR_PROFILE *elt = ((ARAD_PP_SW_DB_ETH_POLICER_MTR_PROFILE*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".eth_meter_profile_multi_set"); 
+   SOC_SAND_MULTI_SET_INFO_SW_DUMP_PRINT((void*) &(elt->eth_meter_profile_multi_set), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".global_meter_profile_multi_set"); 
+   SOC_SAND_MULTI_SET_INFO_SW_DUMP_PRINT((void*) &(elt->global_meter_profile_multi_set), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".config_meter_status"); 
+   arraySizes_SW_DUMP[0]=ARAD_PP_SW_DB_MULTI_SET_ETH_POLICER_CONFIG_METER_PROFILE_NOF_MEMBER_BYTE; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->config_meter_status, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+} 
+void ARAD_PP_SW_DB_IPV4_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_PP_SW_DB_IPV4_INFO *elt = ((ARAD_PP_SW_DB_IPV4_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".lpm_mngr"); 
+   ARAD_PP_IPV4_LPM_MNGR_INFO_SW_DUMP_PRINT((void*) &(elt->lpm_mngr), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".default_fec"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->default_fec), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nof_lpm_entries_in_lpm"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->nof_lpm_entries_in_lpm), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nof_vrfs"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->nof_vrfs), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*vrf_modified_bitmask"); 
+   /* check the pointer is not null */ 
+   if (elt->vrf_modified_bitmask) { 
+      uint32_SW_DUMP_PRINT((void*) &(*elt->vrf_modified_bitmask), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*cm_buf_array"); 
+   /* check the pointer is not null */ 
+   if (elt->cm_buf_array) { 
+      uint32_SW_DUMP_PRINT((void*) &(*elt->cm_buf_array), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cm_buf_entry_words"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->cm_buf_entry_words), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cache_modified"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->cache_modified), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cache_mode"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->cache_mode), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*free_list"); 
+   /* check the pointer is not null */ 
+   if (elt->free_list) { 
+      ARAD_PP_IPV4_LPM_FREE_LIST_ITEM_INFO_SW_DUMP_PRINT((void*) &(*elt->free_list), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".free_list_size"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->free_list_size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".lem_add_fail"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->lem_add_fail), variableNameWithPath); 
+} 
+void ARAD_PP_IPV4_LPM_MNGR_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_PP_IPV4_LPM_MNGR_INFO *elt = ((ARAD_PP_IPV4_LPM_MNGR_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".init_info"); 
+   ARAD_PP_IPV4_LPM_MNGR_INIT_INFO_SW_DUMP_PRINT((void*) &(elt->init_info), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".data_info"); 
+   ARAD_PP_IPV4_LPM_MNGR_T_SW_DUMP_PRINT((void*) &(elt->data_info), variableNameWithPath); 
+} 
+void ARAD_PP_IPV4_LPM_MNGR_INIT_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_PP_IPV4_LPM_MNGR_INIT_INFO *elt = ((ARAD_PP_IPV4_LPM_MNGR_INIT_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".prime_handle"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->prime_handle), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".sec_handle"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->sec_handle), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nof_vrf_bits"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->nof_vrf_bits), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nof_banks"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->nof_banks), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*nof_bits_per_bank"); 
+   /* check the pointer is not null */ 
+   if (elt->nof_bits_per_bank) { 
+      uint32_SW_DUMP_PRINT((void*) &(*elt->nof_bits_per_bank), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*bank_to_mem"); 
+   /* check the pointer is not null */ 
+   if (elt->bank_to_mem) { 
+      uint32_SW_DUMP_PRINT((void*) &(*elt->bank_to_mem), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*mem_to_bank"); 
+   /* check the pointer is not null */ 
+   if (elt->mem_to_bank) { 
+      uint32_SW_DUMP_PRINT((void*) &(*elt->mem_to_bank), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".flags"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->flags), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nof_mems"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->nof_mems), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*nof_rows_per_mem"); 
+   /* check the pointer is not null */ 
+   if (elt->nof_rows_per_mem) { 
+      uint32_SW_DUMP_PRINT((void*) &(*elt->nof_rows_per_mem), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pxx_model"); 
+   ARAD_PP_IPV4_LPM_PXX_MODEL_SW_DUMP_PRINT((void*) &(elt->pxx_model), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*mem_allocators"); 
+   /* check the pointer is not null */ 
+   if (elt->mem_allocators) { 
+      ARAD_PP_ARR_MEM_ALLOCATOR_INFO_SW_DUMP_PRINT((void*) &(*elt->mem_allocators), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".**rev_ptrs"); 
+   /* check the pointer is not null */ 
+   if (elt->rev_ptrs) { 
+      SOC_SAND_GROUP_MEM_LL_INFO_SW_DUMP_PRINT((void*) &(**elt->rev_ptrs), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*lpms"); 
+   /* check the pointer is not null */ 
+   if (elt->lpms) { 
+      SOC_SAND_PAT_TREE_INFO_SW_DUMP_PRINT((void*) &(*elt->lpms), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nof_lpms"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->nof_lpms), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".max_nof_entries_for_hw_lpm"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->max_nof_entries_for_hw_lpm), variableNameWithPath); 
+} 
+void ARAD_PP_IPV4_LPM_PXX_MODEL_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void ARAD_PP_ARR_MEM_ALLOCATOR_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_PP_ARR_MEM_ALLOCATOR_INFO *elt = ((ARAD_PP_ARR_MEM_ALLOCATOR_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".instance_prim_handle"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->instance_prim_handle), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".instance_sec_handle"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->instance_sec_handle), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nof_entries"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->nof_entries), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entry_size"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->entry_size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".support_caching"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->support_caching), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".support_defragment"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->support_defragment), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".max_block_size"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->max_block_size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".wb_var_index"); 
+   int32_SW_DUMP_PRINT((void*) &(elt->wb_var_index), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".arr_mem_allocator_data"); 
+   ARAD_PP_ARR_MEM_ALLOCATOR_T_SW_DUMP_PRINT((void*) &(elt->arr_mem_allocator_data), variableNameWithPath); 
+} 
+void ARAD_PP_ARR_MEM_ALLOCATOR_ENTRY_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint32_SW_DUMP_PRINT(element, variableName); 
+} 
+void ARAD_PP_ARR_MEM_ALLOCATOR_PTR_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint32_SW_DUMP_PRINT(element, variableName); 
+} 
+void ARAD_PP_ARR_MEM_ALLOCATOR_T_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_PP_ARR_MEM_ALLOCATOR_T *elt = ((ARAD_PP_ARR_MEM_ALLOCATOR_T*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*array"); 
+   /* check the pointer is not null */ 
+   if (elt->array) { 
+      ARAD_PP_ARR_MEM_ALLOCATOR_ENTRY_SW_DUMP_PRINT((void*) &(*elt->array), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".free_list"); 
+   ARAD_PP_ARR_MEM_ALLOCATOR_PTR_SW_DUMP_PRINT((void*) &(elt->free_list), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*mem_shadow"); 
+   /* check the pointer is not null */ 
+   if (elt->mem_shadow) { 
+      uint32_SW_DUMP_PRINT((void*) &(*elt->mem_shadow), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cache_enabled"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->cache_enabled), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*array_cache"); 
+   /* check the pointer is not null */ 
+   if (elt->array_cache) { 
+      ARAD_PP_ARR_MEM_ALLOCATOR_ENTRY_SW_DUMP_PRINT((void*) &(*elt->array_cache), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".free_list_cache"); 
+   ARAD_PP_ARR_MEM_ALLOCATOR_PTR_SW_DUMP_PRINT((void*) &(elt->free_list_cache), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nof_updates"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->nof_updates), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*update_indexes"); 
+   /* check the pointer is not null */ 
+   if (elt->update_indexes) { 
+      ARAD_PP_ARR_MEM_ALLOCATOR_ENTRY_SW_DUMP_PRINT((void*) &(*elt->update_indexes), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*mem_shadow_cache"); 
+   /* check the pointer is not null */ 
+   if (elt->mem_shadow_cache) { 
+      uint32_SW_DUMP_PRINT((void*) &(*elt->mem_shadow_cache), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+void SOC_SAND_GROUP_MEM_LL_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_SAND_GROUP_MEM_LL_INFO *elt = ((SOC_SAND_GROUP_MEM_LL_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".auto_remove"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->auto_remove), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nof_groups"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->nof_groups), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".instance_prim_handle"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->instance_prim_handle), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".instance_sec_handle"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->instance_sec_handle), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nof_elements"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->nof_elements), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".support_caching"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->support_caching), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".wb_var_index"); 
+   int32_SW_DUMP_PRINT((void*) &(elt->wb_var_index), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".group_members_data"); 
+   SOC_SAND_GROUP_MEM_LL_T_SW_DUMP_PRINT((void*) &(elt->group_members_data), variableNameWithPath); 
+} 
+void SOC_SAND_GROUP_MEM_LL_GROUP_ENTRY_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_SAND_GROUP_MEM_LL_GROUP_ENTRY *elt = ((SOC_SAND_GROUP_MEM_LL_GROUP_ENTRY*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".first_member"); 
+   SOC_SAND_GROUP_MEM_LL_MEMBER_ID_SW_DUMP_PRINT((void*) &(elt->first_member), variableNameWithPath); 
+} 
+void SOC_SAND_GROUP_MEM_LL_MEMBER_ID_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint32_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_SAND_GROUP_MEM_LL_MEMBER_ENTRY_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_SAND_GROUP_MEM_LL_MEMBER_ENTRY *elt = ((SOC_SAND_GROUP_MEM_LL_MEMBER_ENTRY*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".next_member"); 
+   SOC_SAND_GROUP_MEM_LL_MEMBER_ID_SW_DUMP_PRINT((void*) &(elt->next_member), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".prev_member"); 
+   SOC_SAND_GROUP_MEM_LL_MEMBER_ID_SW_DUMP_PRINT((void*) &(elt->prev_member), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".group_id"); 
+   SOC_SAND_GROUP_MEM_LL_GROUP_ID_SW_DUMP_PRINT((void*) &(elt->group_id), variableNameWithPath); 
+} 
+void SOC_SAND_GROUP_MEM_LL_GROUP_ID_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint32_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_SAND_GROUP_MEM_LL_T_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_SAND_GROUP_MEM_LL_T *elt = ((SOC_SAND_GROUP_MEM_LL_T*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*groups"); 
+   /* check the pointer is not null */ 
+   if (elt->groups) { 
+      SOC_SAND_GROUP_MEM_LL_GROUP_ENTRY_SW_DUMP_PRINT((void*) &(*elt->groups), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*members"); 
+   /* check the pointer is not null */ 
+   if (elt->members) { 
+      SOC_SAND_GROUP_MEM_LL_MEMBER_ENTRY_SW_DUMP_PRINT((void*) &(*elt->members), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cache_enabled"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->cache_enabled), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*groups_cache"); 
+   /* check the pointer is not null */ 
+   if (elt->groups_cache) { 
+      SOC_SAND_GROUP_MEM_LL_GROUP_ENTRY_SW_DUMP_PRINT((void*) &(*elt->groups_cache), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*members_cache"); 
+   /* check the pointer is not null */ 
+   if (elt->members_cache) { 
+      SOC_SAND_GROUP_MEM_LL_MEMBER_ENTRY_SW_DUMP_PRINT((void*) &(*elt->members_cache), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+void SOC_SAND_PAT_TREE_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_SAND_PAT_TREE_INFO *elt = ((SOC_SAND_PAT_TREE_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tree_size"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->tree_size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".prime_handle"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->prime_handle), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".sec_handle"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->sec_handle), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".support_cache"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->support_cache), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".wb_var_index"); 
+   int32_SW_DUMP_PRINT((void*) &(elt->wb_var_index), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pat_tree_data"); 
+   SOC_SAND_PAT_TREE_T_SW_DUMP_PRINT((void*) &(elt->pat_tree_data), variableNameWithPath); 
+} 
+void SOC_SAND_PAT_TREE_NODE_PLACE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint32_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_SAND_PAT_TREE_NODE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   SOC_SAND_PAT_TREE_NODE *elt = ((SOC_SAND_PAT_TREE_NODE*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".child"); 
+   arraySizes_SW_DUMP[0]=SOC_SAND_PAT_TREE_NOF_NODE_CHILD; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->child, SOC_SAND_PAT_TREE_NODE_PLACE_SW_DUMP_PRINT, 0, sizeof(SOC_SAND_PAT_TREE_NODE_PLACE)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".key"); 
+   SOC_SAND_PAT_TREE_KEY_SW_DUMP_PRINT((void*) &(elt->key), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".data"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->data), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".prefix"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->prefix), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_prefix"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->is_prefix), variableNameWithPath); 
+} 
+void SOC_SAND_PAT_TREE_KEY_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint32_SW_DUMP_PRINT(element, variableName); 
+} 
+void ARAD_PP_IPV4_LPM_MNGR_T_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_PP_IPV4_LPM_MNGR_T *elt = ((ARAD_PP_IPV4_LPM_MNGR_T*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*bit_depth_per_bank"); 
+   /* check the pointer is not null */ 
+   if (elt->bit_depth_per_bank) { 
+      uint32_SW_DUMP_PRINT((void*) &(*elt->bit_depth_per_bank), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+void SOC_PPC_FRWRD_IPV4_HOST_TABLE_RESOURCE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void ARAD_PP_IPV4_LPM_FREE_LIST_ITEM_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_PP_IPV4_LPM_FREE_LIST_ITEM_INFO *elt = ((ARAD_PP_IPV4_LPM_FREE_LIST_ITEM_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".bank_id"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->bank_id), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".address"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->address), variableNameWithPath); 
+} 
+void ARAD_PP_SW_DB_ILM_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_PP_SW_DB_ILM_INFO *elt = ((ARAD_PP_SW_DB_ILM_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mask_inrif"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->mask_inrif), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mask_port"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->mask_port), variableNameWithPath); 
+} 
+void ARAD_PP_SW_DB_FWD_MACT_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_PP_SW_DB_FWD_MACT *elt = ((ARAD_PP_SW_DB_FWD_MACT*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".learning_mode"); 
+   ARAD_PP_FRWRD_MACT_LEARNING_MODE_SW_DUMP_PRINT((void*) &(elt->learning_mode), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_petra_a_compatible"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->is_petra_a_compatible), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".flush_db_data_arr"); 
+   arraySizes_SW_DUMP[0]=8; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->flush_db_data_arr, ARAD_PP_FRWRD_MACT_FLUSH_DB_DATA_ARR_SW_DUMP_PRINT, 0, sizeof(ARAD_PP_FRWRD_MACT_FLUSH_DB_DATA_ARR)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".flush_entry_use"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->flush_entry_use), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".traverse_mode"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->traverse_mode), variableNameWithPath); 
+} 
+void ARAD_PP_FRWRD_MACT_LEARNING_MODE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_PPC_FRWRD_MACT_LEARNING_MODE_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_PPC_FRWRD_MACT_LEARNING_MODE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void ARAD_PP_FRWRD_MACT_FLUSH_DB_DATA_ARR_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_PP_FRWRD_MACT_FLUSH_DB_DATA_ARR *elt = ((ARAD_PP_FRWRD_MACT_FLUSH_DB_DATA_ARR*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".flush_db_data"); 
+   arraySizes_SW_DUMP[0]=7; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->flush_db_data, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+} 
+void ARAD_PP_SW_DB_LIF_COS_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_PP_SW_DB_LIF_COS *elt = ((ARAD_PP_SW_DB_LIF_COS*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".map_from_tc_dp"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->map_from_tc_dp), variableNameWithPath); 
+} 
+void ARAD_PP_SW_DB_LIF_TABLE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_PP_SW_DB_LIF_TABLE *elt = ((ARAD_PP_SW_DB_LIF_TABLE*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".lif_use"); 
+   arraySizes_SW_DUMP[0]=ARAD_BIT_TO_U32 ( SOC_DPP_DEFS_MAX(NOF_LOCAL_LIFS) * ARAD_PP_SW_DB_TYPE_BITS ); 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->lif_use, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".lif_sub_use"); 
+   arraySizes_SW_DUMP[0]=ARAD_BIT_TO_U32 ( SOC_DPP_DEFS_MAX(NOF_LOCAL_LIFS) * ARAD_PP_SW_DB_TYPE_BITS ); 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->lif_sub_use, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+} 
+void ARAD_PP_SW_DB_FEC_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_PP_SW_DB_FEC *elt = ((ARAD_PP_SW_DB_FEC*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".glbl_info"); 
+   ARAD_PP_FRWRD_FEC_GLBL_INFO_SW_DUMP_PRINT((void*) &(elt->glbl_info), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".fec_entry_type"); 
+   arraySizes_SW_DUMP[0]=SOC_DPP_DEFS_MAX(NOF_FECS); 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->fec_entry_type, uint8_SW_DUMP_PRINT, 0, sizeof(uint8)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".flp_progs_mapping"); 
+   arraySizes_SW_DUMP[0]=SOC_DPP_DEFS_MAX(NOF_FLP_PROGRAMS); 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->flp_progs_mapping, uint8_SW_DUMP_PRINT, 0, sizeof(uint8)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".lem_prefix_mapping"); 
+   arraySizes_SW_DUMP[0]=(1 << SOC_DPP_DEFS_MAX(NOF_LEM_PREFIXES)); 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->lem_prefix_mapping, uint8_SW_DUMP_PRINT, 0, sizeof(uint8)); 
+} 
+void ARAD_PP_FRWRD_FEC_GLBL_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_PPC_FRWRD_FEC_GLBL_INFO_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_PPC_FRWRD_FEC_GLBL_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   SOC_PPC_FRWRD_FEC_GLBL_INFO *elt = ((SOC_PPC_FRWRD_FEC_GLBL_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ecmp_sizes"); 
+   arraySizes_SW_DUMP[0]=SOC_DPP_DEFS_MAX(ECMP_MAX_SIZE); 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->ecmp_sizes, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ecmp_sizes_nof_entries"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->ecmp_sizes_nof_entries), variableNameWithPath); 
+} 
+void ARAD_PP_SW_DB_DIAG_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_PP_SW_DB_DIAG *elt = ((ARAD_PP_SW_DB_DIAG*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".trap_dest"); 
+   arraySizes_SW_DUMP[0]=ARAD_PP_NOF_TRAP_CODES * 4; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->trap_dest, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".already_saved"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->already_saved), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mode_info"); 
+   ARAD_PP_DIAG_MODE_INFO_SW_DUMP_PRINT((void*) &(elt->mode_info), variableNameWithPath); 
+} 
+void ARAD_PP_DIAG_MODE_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_PPC_DIAG_MODE_INFO_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_PPC_DIAG_MODE_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_PPC_DIAG_MODE_INFO *elt = ((SOC_PPC_DIAG_MODE_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".flavor"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->flavor), variableNameWithPath); 
+} 
+void ARAD_PP_SW_DB_ISEM_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_PP_SW_DB_ISEM *elt = ((ARAD_PP_SW_DB_ISEM*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ext_key_enabled"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->ext_key_enabled), variableNameWithPath); 
+} 
+void ARAD_PP_SW_DB_LAG_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_PP_SW_DB_LAG *elt = ((ARAD_PP_SW_DB_LAG*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".lb_key_is_symtrc"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->lb_key_is_symtrc), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".masks"); 
+   ARAD_PP_HASH_MASKS_SW_DUMP_PRINT((void*) &(elt->masks), variableNameWithPath); 
+} 
+void ARAD_PP_HASH_MASKS_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_PPC_HASH_MASKS_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_PPC_HASH_MASKS_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void ARAD_PP_SW_DB_L2_LIF_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_PP_SW_DB_L2_LIF *elt = ((ARAD_PP_SW_DB_L2_LIF*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".vlan_compression_range_multi_set"); 
+   SOC_SAND_MULTI_SET_INFO_SW_DUMP_PRINT((void*) &(elt->vlan_compression_range_multi_set), variableNameWithPath); 
+} 
+void ARAD_PP_SW_DB_L2_LIF_AC_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_PP_SW_DB_L2_LIF_AC *elt = ((ARAD_PP_SW_DB_L2_LIF_AC*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ac_key_map_multi_set"); 
+   SOC_SAND_MULTI_SET_INFO_SW_DUMP_PRINT((void*) &(elt->ac_key_map_multi_set), variableNameWithPath); 
+} 
+void ARAD_PP_SW_DB_VRRP_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_PP_SW_DB_VRRP_INFO *elt = ((ARAD_PP_SW_DB_VRRP_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".vrrp_mac_use_bit_map"); 
+   arraySizes_SW_DUMP[0]=256; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->vrrp_mac_use_bit_map, uint16_SW_DUMP_PRINT, 0, sizeof(uint16)); 
+} 
+void ARAD_PP_SW_DB_MAC_LIMIT_PER_TUNNEL_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_PP_SW_DB_MAC_LIMIT_PER_TUNNEL_INFO *elt = ((ARAD_PP_SW_DB_MAC_LIMIT_PER_TUNNEL_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mac_limit"); 
+   arraySizes_SW_DUMP[0]=ARAD_PP_LIMIT_NUM_MAX; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->mac_limit, uint16_SW_DUMP_PRINT, 0, sizeof(uint16)); 
+} 
+void ARAD_PP_SW_DB_HEADER_DATA_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_PP_SW_DB_HEADER_DATA *elt = ((ARAD_PP_SW_DB_HEADER_DATA*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".system_headers_mode"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->system_headers_mode), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ftmh_stacking_ext_enable"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->ftmh_stacking_ext_enable), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ftmh_lb_key_ext_en"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->ftmh_lb_key_ext_en), variableNameWithPath); 
+} 
+void ARAD_PP_SW_DB_RIF_TO_LIF_GROUP_MAP_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_PP_SW_DB_RIF_TO_LIF_GROUP_MAP *elt = ((ARAD_PP_SW_DB_RIF_TO_LIF_GROUP_MAP*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".group_info"); 
+   SOC_SAND_GROUP_MEM_LL_INFO_SW_DUMP_PRINT((void*) &(elt->group_info), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*rif_urpf_mode"); 
+   /* check the pointer is not null */ 
+   if (elt->rif_urpf_mode) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->rif_urpf_mode), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+void SOC_SAND_INDIRECT_MODULE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_SAND_INDIRECT_MODULE *elt = ((SOC_SAND_INDIRECT_MODULE*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*info_arr"); 
+   /* check the pointer is not null */ 
+   if (elt->info_arr) { 
+      SOC_SAND_INDIRECT_MODULE_INFO_SW_DUMP_PRINT((void*) &(*elt->info_arr), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*tables_info"); 
+   /* check the pointer is not null */ 
+   if (elt->tables_info) { 
+      SOC_SAND_INDIRECT_TABLES_INFO_SW_DUMP_PRINT((void*) &(*elt->tables_info), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*memory_map_arr"); 
+   /* check the pointer is not null */ 
+   if (elt->memory_map_arr) { 
+      SOC_SAND_INDIRECT_MEMORY_MAP_SW_DUMP_PRINT((void*) &(*elt->memory_map_arr), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".info_arr_max_index"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->info_arr_max_index), variableNameWithPath); 
+} 
+void SOC_SAND_INDIRECT_MODULE_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_SAND_INDIRECT_MODULE_INFO *elt = ((SOC_SAND_INDIRECT_MODULE_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".module_index"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->module_index), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".read_result_offset"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->read_result_offset), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".word_size"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->word_size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".access_trigger"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->access_trigger), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".access_address"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->access_address), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".write_buffer_offset"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->write_buffer_offset), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".module_bits"); 
+   SOC_SAND_INDIRECT_MODULE_BITS_SW_DUMP_PRINT((void*) &(elt->module_bits), variableNameWithPath); 
+} 
+void SOC_SAND_INDIRECT_MODULE_BITS_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void SOC_SAND_INDIRECT_TABLES_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_SAND_INDIRECT_TABLES_INFO *elt = ((SOC_SAND_INDIRECT_TABLES_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tables_prefix"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->tables_prefix), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tables_prefix_nof_bits"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->tables_prefix_nof_bits), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".word_size"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->word_size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".read_result_offset"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->read_result_offset), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".write_buffer_offset"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->write_buffer_offset), variableNameWithPath); 
+} 
+void SOC_SAND_INDIRECT_MEMORY_MAP_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_SAND_INDIRECT_MEMORY_MAP *elt = ((SOC_SAND_INDIRECT_MEMORY_MAP*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".offset"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->offset), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".size"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->size), variableNameWithPath); 
+} 
+void SOC_SAND_RET_SW_DUMP_PRINT(void* element, char* variableName){ 
+   UNSIGNED_SHORT_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_SAND_DELTA_LIST_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_SAND_DELTA_LIST *elt = ((SOC_SAND_DELTA_LIST*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*head"); 
+   /* check the pointer is not null */ 
+   if (elt->head) { 
+      SOC_SAND_DELTA_LIST_NODE_SW_DUMP_PRINT((void*) &(*elt->head), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".head_time"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->head_time), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".stats"); 
+   SOC_SAND_DELTA_LIST_STATISTICS_SW_DUMP_PRINT((void*) &(elt->stats), variableNameWithPath); 
+} 
+void SOC_SAND_DELTA_LIST_NODE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_SAND_DELTA_LIST_NODE *elt = ((SOC_SAND_DELTA_LIST_NODE*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*next"); 
+   /* check the pointer is not null */ 
+   if (elt->next) { 
+      SOC_SAND_DELTA_LIST_NODE_SW_DUMP_PRINT((void*) &(*elt->next), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+void SOC_SAND_DELTA_LIST_STATISTICS_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_SAND_DELTA_LIST_STATISTICS *elt = ((SOC_SAND_DELTA_LIST_STATISTICS*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".current_size"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->current_size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".no_of_pops"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->no_of_pops), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".no_of_removes"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->no_of_removes), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".no_of_inserts"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->no_of_inserts), variableNameWithPath); 
+} 
+void SOC_SAND_DEVICE_DESC_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   SOC_SAND_DEVICE_DESC *elt = ((SOC_SAND_DEVICE_DESC*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".valid_word"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->valid_word), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*base_addr"); 
+   /* check the pointer is not null */ 
+   if (elt->base_addr) { 
+      uint32_SW_DUMP_PRINT((void*) &(*elt->base_addr), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mem_size"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->mem_size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".interrupt_bitstream"); 
+   arraySizes_SW_DUMP[0]=SIZE_OF_BITSTRAEM_IN_UINT32S; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->interrupt_bitstream, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".device_is_between_isr_to_tcm"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->device_is_between_isr_to_tcm), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".device_interrupt_mask_counter"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->device_interrupt_mask_counter), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".logic_chip_type"); 
+   SOC_SAND_DEVICE_TYPE_SW_DUMP_PRINT((void*) &(elt->logic_chip_type), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".chip_type"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->chip_type), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".dbg_ver"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->dbg_ver), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".chip_ver"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->chip_ver), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".device_at_init"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->device_at_init), variableNameWithPath); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".magic"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->magic), variableNameWithPath); 
+#endif /* SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+} 
+void SOC_SAND_DEVICE_TYPE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void SOC_SAND_LL_TIMER_FUNCTION_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   SOC_SAND_LL_TIMER_FUNCTION *elt = ((SOC_SAND_LL_TIMER_FUNCTION*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".name"); 
+   arraySizes_SW_DUMP[0]=SOC_SAND_LL_TIMER_MAX_NOF_CHARS_IN_TIMER_NAME; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->name, CHAR_SW_DUMP_PRINT, 0, sizeof(char)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nof_hits"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->nof_hits), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".active"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->active), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".start_timer"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->start_timer), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".total_time"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->total_time), variableNameWithPath); 
+} 
+void SOC_SAND_RAND_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   SOC_SAND_RAND *elt = ((SOC_SAND_RAND*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".state"); 
+   arraySizes_SW_DUMP[0]=SOC_SAND_RAND_N; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->state, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".left"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->left), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".initf"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->initf), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*next"); 
+   /* check the pointer is not null */ 
+   if (elt->next) { 
+      uint32_SW_DUMP_PRINT((void*) &(*elt->next), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".seed"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->seed), variableNameWithPath); 
+} 
+void ARAD_SW_DB_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_SW_DB *elt = ((ARAD_SW_DB*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*arad_device_sw_db"); 
+   arraySizes_SW_DUMP[0]=SOC_SAND_MAX_DEVICE; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->arad_device_sw_db, ARAD_SW_DB_DEVICE_SW_DUMP_PRINT, 1, sizeof(ARAD_SW_DB_DEVICE*)); 
+} 
+void ARAD_SW_DB_DEVICE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_SW_DB_DEVICE *elt = ((ARAD_SW_DB_DEVICE*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".op_mode"); 
+   ARAD_SW_DB_OP_MODE_SW_DUMP_PRINT((void*) &(elt->op_mode), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".lag"); 
+   ARAD_SW_DB_LAGS_INFO_SW_DUMP_PRINT((void*) &(elt->lag), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tdm"); 
+   ARAD_SW_DB_TDM_SW_DUMP_PRINT((void*) &(elt->tdm), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".arad_sw_db_egr_ports"); 
+   ARAD_SW_DB_DEV_EGR_PORTS_SW_DUMP_PRINT((void*) &(elt->arad_sw_db_egr_ports), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".arad_sw_db_src_binds"); 
+   ARAD_SW_DB_SRC_BINDS_SW_DUMP_PRINT((void*) &(elt->arad_sw_db_src_binds), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".q_type_map"); 
+   arraySizes_SW_DUMP[0]=ARAD_SW_DB_NOF_DYNAMIC_QUEUE_TYPES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->q_type_map, uint8_SW_DUMP_PRINT, 0, sizeof(uint8)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cell"); 
+   ARAD_SW_DB_CELL_SW_DUMP_PRINT((void*) &(elt->cell), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".dram"); 
+   ARAD_SW_DB_DRAM_SW_DUMP_PRINT((void*) &(elt->dram), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tcam"); 
+   ARAD_SW_DB_TCAM_SW_DUMP_PRINT((void*) &(elt->tcam), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tcam_mgmt"); 
+   ARAD_SW_DB_TCAM_MGMT_SW_DUMP_PRINT((void*) &(elt->tcam_mgmt), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".vtt"); 
+   ARAD_SW_DB_VTT_SW_DUMP_PRINT((void*) &(elt->vtt), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".vsi"); 
+   ARAD_SW_DB_VSI_SW_DUMP_PRINT((void*) &(elt->vsi), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".frwrd_ip"); 
+   ARAD_SW_DB_FRWRD_IP_SW_DUMP_PRINT((void*) &(elt->frwrd_ip), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pmf"); 
+   arraySizes_SW_DUMP[0]=ARAD_NOF_FP_DATABASE_STAGES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->pmf, ARAD_SW_DB_PMF_SW_DUMP_PRINT, 0, sizeof(ARAD_SW_DB_PMF)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cnt"); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".interrupts"); 
+   ARAD_SW_DB_INTERRUPTS_SW_DUMP_PRINT((void*) &(elt->interrupts), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*modport2sysport"); 
+
+      ARAD_SYSPORT_SW_DUMP_PRINT((void*) &(*elt->modport2sysport), variableNameWithPath); 
+
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tm"); 
+   ARAD_SW_DB_TM_SW_DUMP_PRINT((void*) &(elt->tm), variableNameWithPath); 
+} 
+void ARAD_SW_DB_OP_MODE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_SW_DB_OP_MODE *elt = ((ARAD_SW_DB_OP_MODE*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_petrab_in_system"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->is_petrab_in_system), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tdm_mode"); 
+   ARAD_MGMT_TDM_MODE_SW_DUMP_PRINT((void*) &(elt->tdm_mode), variableNameWithPath); 
+} 
+void ARAD_MGMT_TDM_MODE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_TMC_MGMT_TDM_MODE_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_TMC_MGMT_TDM_MODE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void ARAD_SW_DB_LAGS_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_SW_DB_LAGS_INFO *elt = ((ARAD_SW_DB_LAGS_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".in_use"); 
+   arraySizes_SW_DUMP[0]=ARAD_NOF_LAG_GROUPS_MAX; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->in_use, uint8_SW_DUMP_PRINT, 0, sizeof(uint8)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".local_to_reassembly_context"); 
+   arraySizes_SW_DUMP[0]=ARAD_NOF_LOCAL_PORTS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->local_to_reassembly_context, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+} 
+void ARAD_SW_DB_TDM_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_SW_DB_TDM *elt = ((ARAD_SW_DB_TDM*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".context_map"); 
+   arraySizes_SW_DUMP[0]=ARAD_NOF_TDM_CONTEXT_MAP; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->context_map, ARAD_INTERFACE_ID_SW_DUMP_PRINT, 0, sizeof(ARAD_INTERFACE_ID)); 
+} 
+void ARAD_INTERFACE_ID_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_TMC_INTERFACE_ID_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_TMC_INTERFACE_ID_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void ARAD_SW_DB_DEV_EGR_PORTS_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_SW_DB_DEV_EGR_PORTS *elt = ((ARAD_SW_DB_DEV_EGR_PORTS*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".chanif2chan_arb_occ"); 
+   SOC_SAND_OCC_BM_PTR_SW_DUMP_PRINT((void*) &(elt->chanif2chan_arb_occ), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nonchanif2sch_offset_occ"); 
+   SOC_SAND_OCC_BM_PTR_SW_DUMP_PRINT((void*) &(elt->nonchanif2sch_offset_occ), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".port_priority_cal"); 
+   ARAD_SW_DB_DEV_EGR_PORT_PRIORITY_SW_DUMP_PRINT((void*) &(elt->port_priority_cal), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tcg_cal"); 
+   ARAD_SW_DB_DEV_EGR_TCG_SW_DUMP_PRINT((void*) &(elt->tcg_cal), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".chan_arb"); 
+   arraySizes_SW_DUMP[0]=ARAD_OFP_RATES_EGQ_NOF_CHAN_ARB; 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".calcal_length"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->calcal_length), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".update_device"); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".update_dev_changed"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->update_dev_changed), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".dsp_pp_to_base_queue_pair_mapping"); 
+   arraySizes_SW_DUMP[0]=ARAD_NOF_FAP_PORTS; 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".dsp_pp_nof_queue_pairs"); 
+   arraySizes_SW_DUMP[0]=ARAD_NOF_FAP_PORTS; 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".port_reserved_reassembly_context"); 
+   arraySizes_SW_DUMP[0]=ARAD_NOF_LOCAL_PORTS / SOC_SAND_NOF_BITS_IN_UINT32; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->port_reserved_reassembly_context, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ports_prog_editor_profile"); 
+   arraySizes_SW_DUMP[0]=ARAD_NOF_FAP_PORTS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->ports_prog_editor_profile, ARAD_EGR_PROG_TM_PORT_PROFILE_SW_DUMP_PRINT, 0, sizeof(ARAD_EGR_PROG_TM_PORT_PROFILE)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".erp_interface_id"); 
+   ARAD_INTERFACE_ID_SW_DUMP_PRINT((void*) &(elt->erp_interface_id), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".egq_tcg_qpair_shaper_enable"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->egq_tcg_qpair_shaper_enable), variableNameWithPath); 
+} 
+void ARAD_SW_DB_DEV_EGR_PORT_PRIORITY_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_SW_DB_DEV_EGR_PORT_PRIORITY *elt = ((ARAD_SW_DB_DEV_EGR_PORT_PRIORITY*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".queue_rate"); 
+   arraySizes_SW_DUMP[0]=ARAD_EGR_NOF_Q_PAIRS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->queue_rate, ARAD_SW_DB_DEV_RATE_SW_DUMP_PRINT, 0, sizeof(ARAD_SW_DB_DEV_RATE)); 
+} 
+void ARAD_SW_DB_DEV_RATE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_SW_DB_DEV_RATE *elt = ((ARAD_SW_DB_DEV_RATE*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".valid"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->valid), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".egq_rates"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->egq_rates), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".egq_bursts"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->egq_bursts), variableNameWithPath); 
+} 
+void ARAD_SW_DB_DEV_EGR_TCG_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_SW_DB_DEV_EGR_TCG *elt = ((ARAD_SW_DB_DEV_EGR_TCG*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tcg_rate"); 
+   arraySizes_SW_DUMP[0]=ARAD_EGR_NOF_PS; 
+   arraySizes_SW_DUMP[1]=ARAD_NOF_TCGS; 
+   printArray(arraySizes_SW_DUMP, 0, 2, variableNameWithPath, (void**) elt->tcg_rate, ARAD_SW_DB_DEV_RATE_SW_DUMP_PRINT, 0, sizeof(ARAD_SW_DB_DEV_RATE)); 
+} 
+void ARAD_SW_DB_DEV_EGR_RATE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_SW_DB_DEV_EGR_RATE *elt = ((ARAD_SW_DB_DEV_EGR_RATE*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".valid"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->valid), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".sch_rates"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->sch_rates), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".egq_rates"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->egq_rates), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".egq_bursts"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->egq_bursts), variableNameWithPath); 
+} 
+void ARAD_OFP_RATES_EGQ_CHAN_ARB_ID_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void ARAD_EGR_PROG_TM_PORT_PROFILE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void ARAD_SW_DB_SRC_BINDS_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_SW_DB_SRC_BINDS *elt = ((ARAD_SW_DB_SRC_BINDS*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".srcbind_arb_occ"); 
+   SOC_SAND_OCC_BM_PTR_SW_DUMP_PRINT((void*) &(elt->srcbind_arb_occ), variableNameWithPath); 
+} 
+void ARAD_SWDB_MULTICAST_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_SWDB_MULTICAST *elt = ((ARAD_SWDB_MULTICAST*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*egress_groups_open_data"); 
+   /* check the pointer is not null */ 
+   if (elt->egress_groups_open_data) { 
+      uint32_SW_DUMP_PRINT((void*) &(*elt->egress_groups_open_data), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+void ARAD_SW_DB_CELL_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_SW_DB_CELL *elt = ((ARAD_SW_DB_CELL*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".current_cell_ident"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->current_cell_ident), variableNameWithPath); 
+} 
+void ARAD_SW_DB_DRAM_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_SW_DB_DRAM *elt = ((ARAD_SW_DB_DRAM*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".dram_deleted_buff_list"); 
+   arraySizes_SW_DUMP[0]=ARAD_DRAM_MAX_BUFFERS_IN_ERROR_CNTR; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->dram_deleted_buff_list, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+} 
+void ARAD_TCAM_GLOBAL_LOCATION_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_TCAM_GLOBAL_LOCATION *elt = ((ARAD_TCAM_GLOBAL_LOCATION*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tcam_db_id"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->tcam_db_id), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entry_id"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->entry_id), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".priority"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->priority), variableNameWithPath); 
+} 
+void ARAD_SW_DB_TCAM_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_SW_DB_TCAM *elt = ((ARAD_SW_DB_TCAM*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".restoration_data"); 
+   ARAD_SW_DB_TCAM_DATA_FOR_RESTORATION_SW_DUMP_PRINT((void*) &(elt->restoration_data), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".bank"); 
+   arraySizes_SW_DUMP[0]=SOC_DPP_DEFS_MAX_TCAM_NOF_BANKS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->bank, ARAD_SW_DB_TCAM_BANK_SW_DUMP_PRINT, 0, sizeof(ARAD_SW_DB_TCAM_BANK)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tcam_db"); 
+   arraySizes_SW_DUMP[0]=ARAD_TCAM_MAX_NOF_LISTS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->tcam_db, ARAD_SW_DB_TCAM_DB_SW_DUMP_PRINT, 0, sizeof(ARAD_SW_DB_TCAM_DB)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entry_id_to_location"); 
+   SOC_SAND_HASH_TABLE_INFO_SW_DUMP_PRINT((void*) &(elt->entry_id_to_location), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*db_location_tbl"); 
+   /* check the pointer is not null */ 
+   if (elt->db_location_tbl) { 
+      ARAD_TCAM_LOCATION_SW_DUMP_PRINT((void*) &(*elt->db_location_tbl), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*global_location_tbl"); 
+   /* check the pointer is not null */ 
+   if (elt->global_location_tbl) { 
+      ARAD_TCAM_GLOBAL_LOCATION_SW_DUMP_PRINT((void*) &(*elt->global_location_tbl), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+void ARAD_SW_DB_TCAM_DATA_FOR_RESTORATION_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_SW_DB_TCAM_DATA_FOR_RESTORATION *elt = ((ARAD_SW_DB_TCAM_DATA_FOR_RESTORATION*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".priorities"); 
+   arraySizes_SW_DUMP[0]=ARAD_TCAM_MAX_NOF_LISTS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->priorities, ARAD_TCAM_SORTED_LIST_RESTORE_SW_DUMP_PRINT, 0, sizeof(ARAD_TCAM_SORTED_LIST_RESTORE)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entries_used"); 
+   arraySizes_SW_DUMP[0]=SOC_DPP_DEFS_MAX_TCAM_NOF_BANKS; 
+   arraySizes_SW_DUMP[1]=2; 
+   printArray(arraySizes_SW_DUMP, 0, 2, variableNameWithPath, (void**) elt->entries_used, ARAD_TCAM_OCC_BM_RESTORE_SW_DUMP_PRINT, 0, sizeof(ARAD_TCAM_OCC_BM_RESTORE)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".db_entries_used"); 
+   arraySizes_SW_DUMP[0]=ARAD_TCAM_MAX_NOF_LISTS; 
+   arraySizes_SW_DUMP[1]=SOC_DPP_DEFS_MAX_TCAM_NOF_BANKS; 
+   printArray(arraySizes_SW_DUMP, 0, 2, variableNameWithPath, (void**) elt->db_entries_used, ARAD_TCAM_OCC_BM_RESTORE_SW_DUMP_PRINT, 0, sizeof(ARAD_TCAM_OCC_BM_RESTORE)); 
+} 
+void ARAD_TCAM_SORTED_LIST_RESTORE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_TCAM_SORTED_LIST_RESTORE *elt = ((ARAD_TCAM_SORTED_LIST_RESTORE*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_exist"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->is_exist), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".init_info"); 
+   SOC_SAND_SORTED_LIST_INIT_INFO_SW_DUMP_PRINT((void*) &(elt->init_info), variableNameWithPath); 
+} 
+void SOC_SAND_SORTED_LIST_INIT_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_SAND_SORTED_LIST_INIT_INFO *elt = ((SOC_SAND_SORTED_LIST_INIT_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".prime_handle"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->prime_handle), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".sec_handle"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->sec_handle), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".list_size"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->list_size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".key_size"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->key_size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".data_size"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->data_size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".wb_var_index"); 
+   int32_SW_DUMP_PRINT((void*) &(elt->wb_var_index), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".unit"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->unit), variableNameWithPath); 
+} 
+void ARAD_TCAM_OCC_BM_RESTORE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_TCAM_OCC_BM_RESTORE *elt = ((ARAD_TCAM_OCC_BM_RESTORE*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_exist"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->is_exist), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".init_info"); 
+   SOC_SAND_OCC_BM_INIT_INFO_SW_DUMP_PRINT((void*) &(elt->init_info), variableNameWithPath); 
+} 
+void SOC_SAND_OCC_BM_INIT_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_SAND_OCC_BM_INIT_INFO *elt = ((SOC_SAND_OCC_BM_INIT_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".size"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".init_val"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->init_val), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".support_cache"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->support_cache), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".wb_var_index"); 
+   int32_SW_DUMP_PRINT((void*) &(elt->wb_var_index), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".unit"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->unit), variableNameWithPath); 
+} 
+void ARAD_SW_DB_TCAM_BANK_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_SW_DB_TCAM_BANK *elt = ((ARAD_SW_DB_TCAM_BANK*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".valid"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->valid), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".has_direct_table"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->has_direct_table), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entry_size"); 
+   ARAD_TCAM_BANK_ENTRY_SIZE_SW_DUMP_PRINT((void*) &(elt->entry_size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entries_used"); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nof_entries_free"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->nof_entries_free), variableNameWithPath); 
+} 
+void ARAD_TCAM_BANK_ENTRY_SIZE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_TMC_TCAM_BANK_ENTRY_SIZE_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_TMC_TCAM_BANK_ENTRY_SIZE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void ARAD_SW_DB_TCAM_DB_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_SW_DB_TCAM_DB *elt = ((ARAD_SW_DB_TCAM_DB*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".valid"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->valid), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".action_bitmap_ndx"); 
+   ARAD_TCAM_ACTION_SIZE_SW_DUMP_PRINT((void*) &(elt->action_bitmap_ndx), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entry_size"); 
+   ARAD_TCAM_BANK_ENTRY_SIZE_SW_DUMP_PRINT((void*) &(elt->entry_size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".prefix_size"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->prefix_size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".bank_used"); 
+   arraySizes_SW_DUMP[0]=SOC_DPP_DEFS_MAX_TCAM_NOF_BANKS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->bank_used, uint8_SW_DUMP_PRINT, 0, sizeof(uint8)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_direct"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->is_direct), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".use_small_banks"); 
+   ARAD_TCAM_SMALL_BANKS_SW_DUMP_PRINT((void*) &(elt->use_small_banks), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".no_insertion_priority_order"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->no_insertion_priority_order), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".sparse_priorities"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->sparse_priorities), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".prefix"); 
+   ARAD_TCAM_PREFIX_SW_DUMP_PRINT((void*) &(elt->prefix), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".priorities"); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".access_profile_id"); 
+   arraySizes_SW_DUMP[0]=ARAD_PP_FP_KEY_NOF_KEYS_PER_DB_MAX; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->access_profile_id, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".forbidden_dbs"); 
+   arraySizes_SW_DUMP[0]=ARAD_BIT_TO_U32 ( ARAD_TCAM_MAX_NOF_LISTS ); 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->forbidden_dbs, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".bank_nof_entries"); 
+   arraySizes_SW_DUMP[0]=SOC_DPP_DEFS_MAX_TCAM_NOF_BANKS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->bank_nof_entries, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entries_used"); 
+   arraySizes_SW_DUMP[0]=SOC_DPP_DEFS_MAX_TCAM_NOF_BANKS; 
+} 
+void ARAD_TCAM_ACTION_SIZE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_TMC_TCAM_ACTION_SIZE_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_TMC_TCAM_ACTION_SIZE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void ARAD_TCAM_DB_PRIO_MODE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void ARAD_TCAM_SMALL_BANKS_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void ARAD_TCAM_PREFIX_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_TCAM_PREFIX *elt = ((ARAD_TCAM_PREFIX*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".bits"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->bits), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".length"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->length), variableNameWithPath); 
+} 
+void SOC_SAND_SORTED_LIST_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_SAND_SORTED_LIST_INFO *elt = ((SOC_SAND_SORTED_LIST_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".init_info"); 
+   SOC_SAND_SORTED_LIST_INIT_INFO_SW_DUMP_PRINT((void*) &(elt->init_info), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".list_data"); 
+   SOC_SAND_SORTED_LIST_T_SW_DUMP_PRINT((void*) &(elt->list_data), variableNameWithPath); 
+} 
+void SOC_SAND_SORTED_LIST_T_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   SOC_SAND_SORTED_LIST_T *elt = ((SOC_SAND_SORTED_LIST_T*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*keys"); 
+   /* check the pointer is not null */ 
+   if (elt->keys) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->keys), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*next"); 
+   /* check the pointer is not null */ 
+   if (elt->next) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->next), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*prev"); 
+   /* check the pointer is not null */ 
+   if (elt->prev) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->prev), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*data"); 
+   /* check the pointer is not null */ 
+   if (elt->data) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->data), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ptr_size"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->ptr_size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".memory_use"); 
+   SOC_SAND_OCC_BM_PTR_SW_DUMP_PRINT((void*) &(elt->memory_use), variableNameWithPath); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*tmp_data"); 
+   /* check the pointer is not null */ 
+   if (elt->tmp_data) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->tmp_data), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*tmp_key"); 
+   /* check the pointer is not null */ 
+   if (elt->tmp_key) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->tmp_key), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".null_ptr"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->null_ptr), variableNameWithPath); 
+} 
+void ARAD_TCAM_LOCATION_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_TCAM_LOCATION *elt = ((ARAD_TCAM_LOCATION*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".bank_id"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->bank_id), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entry"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->entry), variableNameWithPath); 
+} 
+void ARAD_SW_DB_TCAM_MGMT_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_SW_DB_TCAM_MGMT *elt = ((ARAD_SW_DB_TCAM_MGMT*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".profiles"); 
+   arraySizes_SW_DUMP[0]=ARAD_TCAM_NOF_ACCESS_PROFILE_IDS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->profiles, ARAD_SW_DB_TCAM_ACCESS_PROFILE_SW_DUMP_PRINT, 0, sizeof(ARAD_SW_DB_TCAM_ACCESS_PROFILE)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".banks"); 
+   arraySizes_SW_DUMP[0]=SOC_DPP_DEFS_MAX_TCAM_NOF_BANKS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->banks, ARAD_SW_DB_TCAM_MANAGED_BANK_SW_DUMP_PRINT, 0, sizeof(ARAD_SW_DB_TCAM_MANAGED_BANK)); 
+} 
+void ARAD_SW_DB_TCAM_ACCESS_PROFILE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_SW_DB_TCAM_ACCESS_PROFILE *elt = ((ARAD_SW_DB_TCAM_ACCESS_PROFILE*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".valid"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->valid), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".min_banks"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->min_banks), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".bank_owner"); 
+   ARAD_TCAM_BANK_OWNER_SW_DUMP_PRINT((void*) &(elt->bank_owner), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".user_data"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->user_data), variableNameWithPath); 
+} 
+void ARAD_TCAM_BANK_OWNER_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_TMC_TCAM_BANK_OWNER_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_TMC_TCAM_BANK_OWNER_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void ARAD_SW_DB_TCAM_MANAGED_BANK_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_SW_DB_TCAM_MANAGED_BANK *elt = ((ARAD_SW_DB_TCAM_MANAGED_BANK*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".prefix_db"); 
+   arraySizes_SW_DUMP[0]=ARAD_TCAM_NOF_PREFIXES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->prefix_db, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nof_dbs"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->nof_dbs), variableNameWithPath); 
+} 
+void ARAD_SW_DB_VTT_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_SW_DB_VTT *elt = ((ARAD_SW_DB_VTT*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".isem_key_to_entry_id"); 
+   SOC_SAND_HASH_TABLE_INFO_SW_DUMP_PRINT((void*) &(elt->isem_key_to_entry_id), variableNameWithPath); 
+} 
+void ARAD_SW_DB_VSI_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_SW_DB_VSI *elt = ((ARAD_SW_DB_VSI*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".vsi_to_isid"); 
+   arraySizes_SW_DUMP[0]=32 * 1024; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->vsi_to_isid, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+} 
+void ARAD_SW_DB_FRWRD_IP_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_SW_DB_FRWRD_IP *elt = ((ARAD_SW_DB_FRWRD_IP*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".route_key_to_entry_id"); 
+   SOC_SAND_HASH_TABLE_INFO_SW_DUMP_PRINT((void*) &(elt->route_key_to_entry_id), variableNameWithPath); 
+}  
+void ARAD_SW_DB_PMF_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_SW_DB_PMF *elt = ((ARAD_SW_DB_PMF*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pgm_ce"); 
+   arraySizes_SW_DUMP[0]=ARAD_SW_DB_PMF_NOF_PROGS; 
+   arraySizes_SW_DUMP[1]=ARAD_SW_DB_PMF_NOF_CYCLES; 
+   arraySizes_SW_DUMP[2]=ARAD_PMF_LOW_LEVEL_NOF_CE_IN_PROG_MAX_ALL_LEVELS; 
+   printArray(arraySizes_SW_DUMP, 0, 3, variableNameWithPath, (void**) elt->pgm_ce, ARAD_SW_DB_PMF_CE_SW_DUMP_PRINT, 0, sizeof(ARAD_SW_DB_PMF_CE)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pgm_fes"); 
+   arraySizes_SW_DUMP[0]=ARAD_SW_DB_PMF_NOF_PROGS; 
+   arraySizes_SW_DUMP[1]=ARAD_SW_DB_PMF_NOF_FES; 
+   printArray(arraySizes_SW_DUMP, 0, 2, variableNameWithPath, (void**) elt->pgm_fes, ARAD_SW_DB_PMF_FES_SW_DUMP_PRINT, 0, sizeof(ARAD_SW_DB_PMF_FES)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".fem_entry"); 
+   arraySizes_SW_DUMP[0]=ARAD_PMF_LOW_LEVEL_NOF_FEMS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->fem_entry, ARAD_PP_FP_FEM_ENTRY_SW_DUMP_PRINT, 0, sizeof(ARAD_PP_FP_FEM_ENTRY)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".rsources"); 
+   ARAD_SW_DB_PMF_RESOURCE_SW_DUMP_PRINT((void*) &(elt->rsources), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pgm_db_pmb"); 
+   arraySizes_SW_DUMP[0]=ARAD_SW_DB_PMF_NOF_PROGS; 
+   arraySizes_SW_DUMP[1]=ARAD_BIT_TO_U32 ( ARAD_SW_DB_PMF_NOF_DBS ); 
+   printArray(arraySizes_SW_DUMP, 0, 2, variableNameWithPath, (void**) elt->pgm_db_pmb, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".db_info"); 
+   arraySizes_SW_DUMP[0]=ARAD_SW_DB_PMF_NOF_DBS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->db_info, ARAD_SW_DB_PMF_DB_INFO_SW_DUMP_PRINT, 0, sizeof(ARAD_SW_DB_PMF_DB_INFO)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".psl_info"); 
+   ARAD_SW_DB_PMF_PSL_INFO_SW_DUMP_PRINT((void*) &(elt->psl_info), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".fp_info"); 
+} 
+void ARAD_SW_DB_PMF_CE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_SW_DB_PMF_CE *elt = ((ARAD_SW_DB_PMF_CE*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_used"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->is_used), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".db_id"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->db_id), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".lsb"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->lsb), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".msb"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->msb), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_msb"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->is_msb), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_second_key"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->is_second_key), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".qual_lsb"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->qual_lsb), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".qual_type"); 
+   ARAD_PP_FP_QUAL_TYPE_SW_DUMP_PRINT((void*) &(elt->qual_type), variableNameWithPath); 
+} 
+void ARAD_PP_FP_QUAL_TYPE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_PPC_FP_QUAL_TYPE_SW_DUMP_PRINT(element, variableName); 
+} 
+void ARAD_SW_DB_PMF_FES_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_SW_DB_PMF_FES *elt = ((ARAD_SW_DB_PMF_FES*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_used"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->is_used), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".db_id"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->db_id), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".action_type"); 
+   ARAD_PP_FP_ACTION_TYPE_SW_DUMP_PRINT((void*) &(elt->action_type), variableNameWithPath); 
+} 
+void ARAD_PP_FP_ACTION_TYPE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_PPC_FP_ACTION_TYPE_SW_DUMP_PRINT(element, variableName); 
+} 
+void ARAD_PP_FP_FEM_ENTRY_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_PPC_FP_FEM_ENTRY_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_PPC_FP_FEM_ENTRY_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   SOC_PPC_FP_FEM_ENTRY *elt = ((SOC_PPC_FP_FEM_ENTRY*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_for_entry"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->is_for_entry), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".db_strength"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->db_strength), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".db_id"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->db_id), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entry_strength"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->entry_strength), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entry_id"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->entry_id), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".action_type"); 
+   arraySizes_SW_DUMP[0]=SOC_PPC_FP_NOF_ACTIONS_PER_DB_MAX; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->action_type, SOC_PPC_FP_ACTION_TYPE_SW_DUMP_PRINT, 0, sizeof(SOC_PPC_FP_ACTION_TYPE)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_base_positive"); 
+   arraySizes_SW_DUMP[0]=SOC_PPC_FP_NOF_ACTIONS_PER_DB_MAX; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->is_base_positive, uint8_SW_DUMP_PRINT, 0, sizeof(uint8)); 
+} 
+void ARAD_SW_DB_PMF_RESOURCE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_SW_DB_PMF_RESOURCE *elt = ((ARAD_SW_DB_PMF_RESOURCE*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ce"); 
+   arraySizes_SW_DUMP[0]=ARAD_SW_DB_PMF_NOF_PROGS; 
+   arraySizes_SW_DUMP[1]=ARAD_SW_DB_PMF_NOF_CYCLES; 
+   printArray(arraySizes_SW_DUMP, 0, 2, variableNameWithPath, (void**) elt->ce, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".key"); 
+   arraySizes_SW_DUMP[0]=ARAD_SW_DB_PMF_NOF_PROGS; 
+   arraySizes_SW_DUMP[1]=ARAD_SW_DB_PMF_NOF_CYCLES; 
+   printArray(arraySizes_SW_DUMP, 0, 2, variableNameWithPath, (void**) elt->key, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".progs"); 
+   arraySizes_SW_DUMP[0]=ARAD_BIT_TO_U32 ( ARAD_SW_DB_PMF_NOF_PROGS ); 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->progs, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+} 
+void ARAD_SW_DB_PMF_DB_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_SW_DB_PMF_DB_INFO *elt = ((ARAD_SW_DB_PMF_DB_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".progs"); 
+   arraySizes_SW_DUMP[0]=ARAD_BIT_TO_U32 ( ARAD_SW_DB_PMF_NOF_PROGS ); 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->progs, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".prog_used_cycle_bmp"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->prog_used_cycle_bmp), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".used_key"); 
+   arraySizes_SW_DUMP[0]=ARAD_SW_DB_PMF_NOF_PROGS; 
+   arraySizes_SW_DUMP[1]=ARAD_PP_FP_KEY_NOF_KEYS_PER_DB_MAX; 
+   printArray(arraySizes_SW_DUMP, 0, 2, variableNameWithPath, (void**) elt->used_key, uint8_SW_DUMP_PRINT, 0, sizeof(uint8)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".prio"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->prio), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_320b"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->is_320b), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".alloc_place"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->alloc_place), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".valid"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->valid), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nof_bits_zone"); 
+   arraySizes_SW_DUMP[0]=ARAD_PP_FP_KEY_NOF_KEYS_PER_DB_MAX; 
+   arraySizes_SW_DUMP[1]=2; 
+   printArray(arraySizes_SW_DUMP, 0, 2, variableNameWithPath, (void**) elt->nof_bits_zone, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cascaded_key"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->cascaded_key), variableNameWithPath); 
+} 
+void ARAD_SW_DB_PMF_PSL_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_SW_DB_PMF_PSL_INFO *elt = ((ARAD_SW_DB_PMF_PSL_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pfgs_db_pmb"); 
+   arraySizes_SW_DUMP[0]=ARAD_PMF_NOF_GROUPS; 
+   arraySizes_SW_DUMP[1]=ARAD_BIT_TO_U32 ( ARAD_SW_DB_PMF_NOF_DBS ); 
+   printArray(arraySizes_SW_DUMP, 0, 2, variableNameWithPath, (void**) elt->pfgs_db_pmb, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".default_db_pmb"); 
+   arraySizes_SW_DUMP[0]=ARAD_BIT_TO_U32 ( ARAD_SW_DB_PMF_NOF_DBS ); 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->default_db_pmb, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pfgs_tm_bmp"); 
+   arraySizes_SW_DUMP[0]=ARAD_BIT_TO_U32 ( ARAD_PMF_NOF_GROUPS ); 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->pfgs_tm_bmp, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".levels_info"); 
+   arraySizes_SW_DUMP[0]=2; 
+   arraySizes_SW_DUMP[1]=ARAD_PMF_NOF_LEVELS_MAX_ALL_STAGES; 
+   printArray(arraySizes_SW_DUMP, 0, 2, variableNameWithPath, (void**) elt->levels_info, ARAD_SW_DB_PMF_PSL_LEVEL_INFO_SW_DUMP_PRINT, 0, sizeof(ARAD_SW_DB_PMF_PSL_LEVEL_INFO)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".init_info"); 
+   ARAD_PMF_SEL_INIT_INFO_SW_DUMP_PRINT((void*) &(elt->init_info), variableNameWithPath); 
+} 
+void ARAD_SW_DB_PMF_PSL_LEVEL_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_SW_DB_PMF_PSL_LEVEL_INFO *elt = ((ARAD_SW_DB_PMF_PSL_LEVEL_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".first_index"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->first_index), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".last_index"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->last_index), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".lines"); 
+   arraySizes_SW_DUMP[0]=ARAD_PMF_NOF_LINES_IN_LEVEL_MAX_ALL_STAGES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->lines, ARAD_SW_DB_PMF_PSL_LINE_INFO_SW_DUMP_PRINT, 0, sizeof(ARAD_SW_DB_PMF_PSL_LINE_INFO)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nof_lines"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->nof_lines), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nof_new_lines"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->nof_new_lines), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nof_removed_lines"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->nof_removed_lines), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".level_index"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->level_index), variableNameWithPath); 
+} 
+void ARAD_SW_DB_PMF_PSL_LINE_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_SW_DB_PMF_PSL_LINE_INFO *elt = ((ARAD_SW_DB_PMF_PSL_LINE_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".group"); 
+   ARAD_PMF_SEL_GROUP_SW_DUMP_PRINT((void*) &(elt->group), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".groups"); 
+   arraySizes_SW_DUMP[0]=ARAD_PMF_GROUP_LEN; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->groups, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".prog_id"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->prog_id), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".flags"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->flags), variableNameWithPath); 
+} 
+void ARAD_PMF_SEL_GROUP_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_PMF_SEL_GROUP *elt = ((ARAD_PMF_SEL_GROUP*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mask"); 
+   arraySizes_SW_DUMP[0]=ARAD_PMF_SEL_LINE_LEN; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->mask, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".value"); 
+   arraySizes_SW_DUMP[0]=ARAD_PMF_SEL_LINE_LEN; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->value, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+} 
+void ARAD_PMF_SEL_INIT_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_PMF_SEL_INIT_INFO *elt = ((ARAD_PMF_SEL_INIT_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nof_reserved_lines"); 
+   arraySizes_SW_DUMP[0]=ARAD_NOF_PMF_PSL_TYPES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->nof_reserved_lines, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pmf_pgm_default"); 
+   arraySizes_SW_DUMP[0]=ARAD_NOF_PMF_PSL_TYPES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->pmf_pgm_default, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+} 
+void ARAD_PMF_PSL_TYPE_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void ARAD_SW_DB_FP_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_SW_DB_FP_INFO *elt = ((ARAD_SW_DB_FP_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".db_info"); 
+   arraySizes_SW_DUMP[0]=ARAD_PP_FP_NOF_DBS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->db_info, ARAD_PP_FP_DATABASE_INFO_SW_DUMP_PRINT, 0, sizeof(ARAD_PP_FP_DATABASE_INFO)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".db_entries"); 
+   arraySizes_SW_DUMP[0]=ARAD_SW_DB_PMF_NOF_DBS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->db_entries, ARAD_SW_DB_FP_ENTRY_SW_DUMP_PRINT, 0, sizeof(ARAD_SW_DB_FP_ENTRY)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pfg_info"); 
+   arraySizes_SW_DUMP[0]=ARAD_PMF_NOF_GROUPS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->pfg_info, SOC_TMC_PMF_PFG_INFO_SW_DUMP_PRINT, 0, sizeof(SOC_TMC_PMF_PFG_INFO)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".udf"); 
+   arraySizes_SW_DUMP[0]=ARAD_PP_FP_NOF_HDR_USER_DEFS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->udf, ARAD_PMF_CE_QUAL_INFO_SW_DUMP_PRINT, 0, sizeof(ARAD_PMF_CE_QUAL_INFO)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".inner_eth_nof_tags"); 
+   arraySizes_SW_DUMP[0]=ARAD_PMF_NOF_GROUPS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->inner_eth_nof_tags, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".key_change_size"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->key_change_size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entry_bitmap"); 
+   arraySizes_SW_DUMP[0]=SOC_DPP_DEFS_MAX_TCAM_NOF_BANKS; 
+   arraySizes_SW_DUMP[1]=SOC_DPP_DEFS_MAX_TCAM_NOF_LINES_IN_BYTES; 
+   printArray(arraySizes_SW_DUMP, 0, 2, variableNameWithPath, (void**) elt->entry_bitmap, uint8_SW_DUMP_PRINT, 0, sizeof(uint8)); 
+} 
+void ARAD_PP_FP_DATABASE_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_PPC_FP_DATABASE_INFO_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_PPC_FP_DATABASE_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   SOC_PPC_FP_DATABASE_INFO *elt = ((SOC_PPC_FP_DATABASE_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".db_type"); 
+   SOC_PPC_FP_DATABASE_TYPE_SW_DUMP_PRINT((void*) &(elt->db_type), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".supported_pfgs"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->supported_pfgs), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".supported_pfgs_arad"); 
+   arraySizes_SW_DUMP[0]=SOC_PPC_FP_NOF_PFGS_IN_LONGS_ARAD; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->supported_pfgs_arad, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".qual_types"); 
+   arraySizes_SW_DUMP[0]=SOC_PPC_FP_NOF_QUALS_PER_DB_MAX; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->qual_types, SOC_PPC_FP_QUAL_TYPE_SW_DUMP_PRINT, 0, sizeof(SOC_PPC_FP_QUAL_TYPE)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".action_types"); 
+   arraySizes_SW_DUMP[0]=SOC_PPC_FP_NOF_ACTIONS_PER_DB_MAX; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->action_types, SOC_PPC_FP_ACTION_TYPE_SW_DUMP_PRINT, 0, sizeof(SOC_PPC_FP_ACTION_TYPE)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".strength"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->strength), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cascaded_coupled_db_id"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->cascaded_coupled_db_id), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".flags"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->flags), variableNameWithPath); 
+} 
+void ARAD_SW_DB_FP_ENTRY_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_SW_DB_FP_ENTRY *elt = ((ARAD_SW_DB_FP_ENTRY*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nof_db_entries"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->nof_db_entries), variableNameWithPath); 
+} 
+void SOC_TMC_PMF_PFG_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   SOC_TMC_PMF_PFG_INFO *elt = ((SOC_TMC_PMF_PFG_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".soc_sand_magic_num"); 
+   CHAR_SW_DUMP_PRINT((void*) &(elt->soc_sand_magic_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".hdr_format_bmp"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->hdr_format_bmp), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".vlan_tag_structure_bmp"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->vlan_tag_structure_bmp), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pp_ports_bmp"); 
+   SOC_SAND_U64_SW_DUMP_PRINT((void*) &(elt->pp_ports_bmp), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_array_qualifier"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->is_array_qualifier), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".qual_vals"); 
+   arraySizes_SW_DUMP[0]=SOC_PPC_FP_NOF_QUALS_PER_PFG_MAX; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->qual_vals, SOC_PPC_FP_QUAL_VAL_SW_DUMP_PRINT, 0, sizeof(SOC_PPC_FP_QUAL_VAL)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".stage"); 
+   SOC_PPC_FP_DATABASE_STAGE_SW_DUMP_PRINT((void*) &(elt->stage), variableNameWithPath); 
+} 
+void ARAD_PMF_CE_QUAL_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_PMF_CE_QUAL_INFO *elt = ((ARAD_PMF_CE_QUAL_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_header_qual"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->is_header_qual), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".header_qual_info"); 
+   ARAD_PMF_CE_HEADER_QUAL_INFO_SW_DUMP_PRINT((void*) &(elt->header_qual_info), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".irpp_qual_info"); 
+   arraySizes_SW_DUMP[0]=2; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->irpp_qual_info, ARAD_PMF_CE_IRPP_QUALIFIER_INFO_SW_DUMP_PRINT, 0, sizeof(ARAD_PMF_CE_IRPP_QUALIFIER_INFO)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".stage"); 
+   ARAD_FP_DATABASE_STAGE_SW_DUMP_PRINT((void*) &(elt->stage), variableNameWithPath); 
+} 
+void ARAD_PMF_CE_HEADER_QUAL_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_PMF_CE_HEADER_QUAL_INFO *elt = ((ARAD_PMF_CE_HEADER_QUAL_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".qual_type"); 
+   ARAD_PMF_IRPP_INFO_FIELD_SW_DUMP_PRINT((void*) &(elt->qual_type), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".msb"); 
+   int32_SW_DUMP_PRINT((void*) &(elt->msb), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".lsb"); 
+   int32_SW_DUMP_PRINT((void*) &(elt->lsb), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".header_ndx_0"); 
+   ARAD_PMF_CE_SUB_HEADER_SW_DUMP_PRINT((void*) &(elt->header_ndx_0), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".header_ndx_1"); 
+   ARAD_PMF_CE_SUB_HEADER_SW_DUMP_PRINT((void*) &(elt->header_ndx_1), variableNameWithPath); 
+} 
+void ARAD_PMF_IRPP_INFO_FIELD_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_PPC_FP_QUAL_TYPE_SW_DUMP_PRINT(element, variableName); 
+} 
+void ARAD_PMF_CE_SUB_HEADER_SW_DUMP_PRINT(void* element, char* variableName){ 
+   SOC_TMC_PMF_CE_SUB_HEADER_SW_DUMP_PRINT(element, variableName); 
+} 
+void SOC_TMC_PMF_CE_SUB_HEADER_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void ARAD_PMF_CE_IRPP_QUALIFIER_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_PMF_CE_IRPP_QUALIFIER_INFO *elt = ((ARAD_PMF_CE_IRPP_QUALIFIER_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".info"); 
+   ARAD_PMF_CE_IRPP_QUALIFIER_ATTRIBUTES_SW_DUMP_PRINT((void*) &(elt->info), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".signal"); 
+   ARAD_PMF_CE_IRPP_QUALIFIER_SIGNAL_SW_DUMP_PRINT((void*) &(elt->signal), variableNameWithPath); 
+} 
+void ARAD_PMF_CE_IRPP_QUALIFIER_ATTRIBUTES_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_PMF_CE_IRPP_QUALIFIER_ATTRIBUTES *elt = ((ARAD_PMF_CE_IRPP_QUALIFIER_ATTRIBUTES*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".irpp_field"); 
+   ARAD_PMF_IRPP_INFO_FIELD_SW_DUMP_PRINT((void*) &(elt->irpp_field), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_lsb"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->is_lsb), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_msb"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->is_msb), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".buffer_lsb"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->buffer_lsb), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".qual_nof_bits"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->qual_nof_bits), variableNameWithPath); 
+} 
+void ARAD_PMF_CE_IRPP_QUALIFIER_SIGNAL_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_PMF_CE_IRPP_QUALIFIER_SIGNAL *elt = ((ARAD_PMF_CE_IRPP_QUALIFIER_SIGNAL*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".irpp_field"); 
+   ARAD_PMF_IRPP_INFO_FIELD_SW_DUMP_PRINT((void*) &(elt->irpp_field), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".msb"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->msb), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".lsb"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->lsb), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".base0"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->base0), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".base1"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->base1), variableNameWithPath); 
+} 
+void ARAD_SW_DB_CNT_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   ARAD_SW_DB_CNT *elt = ((ARAD_SW_DB_CNT*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*host_buff"); 
+   arraySizes_SW_DUMP[0]=SOC_TMC_CNT_NOF_PROCESSOR_IDS_ARAD; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->host_buff, uint32_SW_DUMP_PRINT, 1, sizeof(uint32*)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".buff_line_ndx"); 
+   arraySizes_SW_DUMP[0]=SOC_TMC_CNT_NOF_PROCESSOR_IDS_ARAD; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->buff_line_ndx, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+} 
+void ARAD_SW_DB_INTERRUPT_DATA_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_SW_DB_INTERRUPT_DATA *elt = ((ARAD_SW_DB_INTERRUPT_DATA*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".flags"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->flags), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".storm_timed_count"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->storm_timed_count), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".storm_timed_period"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->storm_timed_period), variableNameWithPath); 
+} 
+void arad_interrupt_type_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void ARAD_SYSPORT_SW_DUMP_PRINT(void* element, char* variableName){ 
+   uint16_SW_DUMP_PRINT(element, variableName); 
+} 
+void ARAD_SW_DB_TM_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_SW_DB_TM *elt = ((ARAD_SW_DB_TM*) element); 
+   int arraySizes_SW_DUMP[4]; 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_power_saving_called"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->is_power_saving_called), variableNameWithPath); 
+
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".queue_to_rate_class_mapping.is_simple_mode"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->queue_to_rate_class_mapping.is_simple_mode), variableNameWithPath); 
+
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".queue_to_rate_class_mapping.ref_count");
+   arraySizes_SW_DUMP[0]=SOC_TMC_ITM_NOF_RATE_CLASSES;
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->queue_to_rate_class_mapping.ref_count, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+} 
+void _bcm_dpp_vlan_translate_action_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   _bcm_dpp_vlan_translate_action_t *elt = ((_bcm_dpp_vlan_translate_action_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".outer"); 
+   _bcm_dpp_vlan_translate_tag_action_t_SW_DUMP_PRINT((void*) &(elt->outer), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".inner"); 
+   _bcm_dpp_vlan_translate_tag_action_t_SW_DUMP_PRINT((void*) &(elt->inner), variableNameWithPath); 
+} 
+void _bcm_dpp_vlan_translate_tag_action_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   _bcm_dpp_vlan_translate_tag_action_t *elt = ((_bcm_dpp_vlan_translate_tag_action_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".vid_action"); 
+   bcm_vlan_action_t_SW_DUMP_PRINT((void*) &(elt->vid_action), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pcp_action"); 
+   bcm_vlan_action_t_SW_DUMP_PRINT((void*) &(elt->pcp_action), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tpid_action"); 
+   bcm_vlan_tpid_action_t_SW_DUMP_PRINT((void*) &(elt->tpid_action), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tpid_val"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->tpid_val), variableNameWithPath); 
+} 
+void bcm_vlan_tpid_action_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void bcm_dpp_am_egress_encap_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_am_egress_encap_t *elt = ((bcm_dpp_am_egress_encap_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*egress_encap_banks"); 
+   /* check the pointer is not null */ 
+   if (elt->egress_encap_banks) { 
+      uint32_SW_DUMP_PRINT((void*) &(*elt->egress_encap_banks), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".egress_encap_count"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->egress_encap_count), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".init"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->init), variableNameWithPath); 
+} 
+void bcm_dpp_am_ingress_lif_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_am_ingress_lif_t *elt = ((bcm_dpp_am_ingress_lif_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*ingress_lif_banks"); 
+   /* check the pointer is not null */ 
+   if (elt->ingress_lif_banks) { 
+      uint32_SW_DUMP_PRINT((void*) &(*elt->ingress_lif_banks), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ingress_lif_count"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->ingress_lif_count), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".init"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->init), variableNameWithPath); 
+} 
+void bcm_dpp_am_sync_lif_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   bcm_dpp_am_sync_lif_t *elt = ((bcm_dpp_am_sync_lif_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*sync_lif_banks"); 
+   /* check the pointer is not null */ 
+   if (elt->sync_lif_banks) { 
+      uint32_SW_DUMP_PRINT((void*) &(*elt->sync_lif_banks), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".init"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->init), variableNameWithPath); 
+} 
+void soc_dpp_port_map_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   soc_dpp_port_map_t *elt = ((soc_dpp_port_map_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".channel"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->channel), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nif_id"); 
+   SOC_TMC_INTERFACE_ID_SW_DUMP_PRINT((void*) &(elt->nif_id), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tm_port"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->tm_port), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pp_port"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->pp_port), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".if_rate_mbps"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->if_rate_mbps), variableNameWithPath); 
+} 
+void soc_dpp_port_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   soc_dpp_port_t *elt = ((soc_dpp_port_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".in_use"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->in_use), variableNameWithPath); 
+} 
+void soc_driver_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   soc_driver_t *elt = ((soc_driver_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".type"); 
+   soc_chip_types_SW_DUMP_PRINT((void*) &(elt->type), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*chip_string"); 
+   /* check the pointer is not null */ 
+   if (elt->chip_string) { 
+      CHAR_SW_DUMP_PRINT((void*) &(*elt->chip_string), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*origin"); 
+   /* check the pointer is not null */ 
+   if (elt->origin) { 
+      CHAR_SW_DUMP_PRINT((void*) &(*elt->origin), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pci_vendor"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->pci_vendor), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pci_device"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->pci_device), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pci_revision"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->pci_revision), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".num_cos"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->num_cos), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".**reg_info"); 
+   /* check the pointer is not null */ 
+   if (elt->reg_info) { 
+      soc_reg_info_t_SW_DUMP_PRINT((void*) &(**elt->reg_info), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".**reg_above_64_info"); 
+   /* check the pointer is not null */ 
+   if (elt->reg_above_64_info) { 
+      soc_reg_above_64_info_t_SW_DUMP_PRINT((void*) &(**elt->reg_above_64_info), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".**reg_array_info"); 
+   /* check the pointer is not null */ 
+   if (elt->reg_array_info) { 
+      soc_reg_array_info_t_SW_DUMP_PRINT((void*) &(**elt->reg_array_info), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".**mem_info"); 
+   /* check the pointer is not null */ 
+   if (elt->mem_info) { 
+      soc_mem_info_t_SW_DUMP_PRINT((void*) &(**elt->mem_info), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".**mem_aggr"); 
+   /* check the pointer is not null */ 
+   if (elt->mem_aggr) { 
+      soc_mem_t_SW_DUMP_PRINT((void*) &(**elt->mem_aggr), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".**mem_array_info"); 
+   /* check the pointer is not null */ 
+   if (elt->mem_array_info) { 
+      soc_mem_array_info_t_SW_DUMP_PRINT((void*) &(**elt->mem_array_info), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*block_info"); 
+   /* check the pointer is not null */ 
+   if (elt->block_info) { 
+      soc_block_info_t_SW_DUMP_PRINT((void*) &(*elt->block_info), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*port_info"); 
+   /* check the pointer is not null */ 
+   if (elt->port_info) { 
+      soc_port_info_t_SW_DUMP_PRINT((void*) &(*elt->port_info), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*counter_maps"); 
+   /* check the pointer is not null */ 
+   if (elt->counter_maps) { 
+      soc_cmap_t_SW_DUMP_PRINT((void*) &(*elt->counter_maps), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".port_num_blktype"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->port_num_blktype), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cmicd_base"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->cmicd_base), variableNameWithPath); 
+} 
+void soc_chip_types_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void soc_reg_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   soc_reg_info_t *elt = ((soc_reg_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".block"); 
+   soc_block_types_t_SW_DUMP_PRINT((void*) &(elt->block), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".regtype"); 
+   soc_regtype_t_SW_DUMP_PRINT((void*) &(elt->regtype), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".numels"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->numels), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".offset"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->offset), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".flags"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->flags), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nFields"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->nFields), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*fields"); 
+   /* check the pointer is not null */ 
+   if (elt->fields) { 
+      soc_field_info_t_SW_DUMP_PRINT((void*) &(*elt->fields), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".rst_val_lo"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->rst_val_lo), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".rst_val_hi"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->rst_val_hi), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".rst_mask_lo"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->rst_mask_lo), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".rst_mask_hi"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->rst_mask_hi), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ctr_idx"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->ctr_idx), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".numelportlist_idx"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->numelportlist_idx), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".snoop_flags"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->snoop_flags), variableNameWithPath); 
+} 
+void soc_block_types_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   INT_SW_DUMP_PRINT(element, variableName); 
+} 
+void soc_regtype_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void soc_field_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   soc_field_info_t *elt = ((soc_field_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".field"); 
+   soc_field_t_SW_DUMP_PRINT((void*) &(elt->field), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".len"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->len), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".bp"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->bp), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".flags"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->flags), variableNameWithPath); 
+} 
+void soc_field_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   INT_SW_DUMP_PRINT(element, variableName); 
+} 
+void soc_reg_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   INT_SW_DUMP_PRINT(element, variableName); 
+} 
+void soc_reg_above_64_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   soc_reg_above_64_info_t *elt = ((soc_reg_above_64_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".size"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*reset"); 
+   /* check the pointer is not null */ 
+   if (elt->reset) { 
+      uint32_SW_DUMP_PRINT((void*) &(*elt->reset), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*mask"); 
+   /* check the pointer is not null */ 
+   if (elt->mask) { 
+      uint32_SW_DUMP_PRINT((void*) &(*elt->mask), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+void soc_reg_array_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   soc_reg_array_info_t *elt = ((soc_reg_array_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".element_skip"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->element_skip), variableNameWithPath); 
+} 
+void soc_mem_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   soc_mem_info_t *elt = ((soc_mem_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".flags"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->flags), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".index_min"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->index_min), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".index_max"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->index_max), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".minblock"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->minblock), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".maxblock"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->maxblock), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".blocks"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->blocks), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".blocks_hi"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->blocks_hi), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".base"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->base), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".gran"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->gran), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".bytes"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->bytes), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nFields"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->nFields), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*fields"); 
+   /* check the pointer is not null */ 
+   if (elt->fields) { 
+      soc_field_info_t_SW_DUMP_PRINT((void*) &(*elt->fields), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".**views"); 
+   /* check the pointer is not null */ 
+   if (elt->views) { 
+      CHAR_SW_DUMP_PRINT((void*) &(**elt->views), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".snoop_flags"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->snoop_flags), variableNameWithPath); 
+} 
+void soc_mem_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   INT_SW_DUMP_PRINT(element, variableName); 
+} 
+void soc_mem_array_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   soc_mem_array_info_t *elt = ((soc_mem_array_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".numels"); 
+   UNSIGNED_INT_SW_DUMP_PRINT((void*) &(elt->numels), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".element_skip"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->element_skip), variableNameWithPath); 
+} 
+void soc_block_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   soc_block_info_t *elt = ((soc_block_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".type"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->type), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".number"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->number), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".schan"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->schan), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cmic"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->cmic), variableNameWithPath); 
+} 
+void soc_port_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   soc_port_info_t *elt = ((soc_port_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".blk"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->blk), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".bindex"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->bindex), variableNameWithPath); 
+} 
+void soc_cmap_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   soc_cmap_t *elt = ((soc_cmap_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*cmap_base"); 
+   /* check the pointer is not null */ 
+   if (elt->cmap_base) { 
+      soc_ctr_ref_t_SW_DUMP_PRINT((void*) &(*elt->cmap_base), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".cmap_size"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->cmap_size), variableNameWithPath); 
+} 
+void soc_ctr_ref_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   soc_ctr_ref_t *elt = ((soc_ctr_ref_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".reg"); 
+   soc_reg_t_SW_DUMP_PRINT((void*) &(elt->reg), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".index"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->index), variableNameWithPath); 
+} 
+void soc_port_phy_timesync_config_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   soc_port_phy_timesync_config_t *elt = ((soc_port_phy_timesync_config_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".capabilities"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->capabilities), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".validity_mask"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->validity_mask), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".flags"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->flags), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".itpid"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->itpid), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".otpid"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->otpid), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".otpid2"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->otpid2), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".inband_ts_control"); 
+   soc_port_phy_timesync_inband_ts_control_t_SW_DUMP_PRINT((void*) &(elt->inband_ts_control), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".gmode"); 
+   soc_port_phy_timesync_global_mode_t_SW_DUMP_PRINT((void*) &(elt->gmode), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".framesync"); 
+   soc_port_phy_timesync_framesync_t_SW_DUMP_PRINT((void*) &(elt->framesync), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".syncout"); 
+   soc_port_phy_timesync_syncout_t_SW_DUMP_PRINT((void*) &(elt->syncout), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ts_divider"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->ts_divider), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".original_timecode"); 
+   soc_time_spec_t_SW_DUMP_PRINT((void*) &(elt->original_timecode), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tx_timestamp_offset"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->tx_timestamp_offset), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".rx_timestamp_offset"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->rx_timestamp_offset), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".rx_link_delay"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->rx_link_delay), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tx_sync_mode"); 
+   soc_port_phy_timesync_event_message_egress_mode_t_SW_DUMP_PRINT((void*) &(elt->tx_sync_mode), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tx_delay_request_mode"); 
+   soc_port_phy_timesync_event_message_egress_mode_t_SW_DUMP_PRINT((void*) &(elt->tx_delay_request_mode), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tx_pdelay_request_mode"); 
+   soc_port_phy_timesync_event_message_egress_mode_t_SW_DUMP_PRINT((void*) &(elt->tx_pdelay_request_mode), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tx_pdelay_response_mode"); 
+   soc_port_phy_timesync_event_message_egress_mode_t_SW_DUMP_PRINT((void*) &(elt->tx_pdelay_response_mode), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".rx_sync_mode"); 
+   soc_port_phy_timesync_event_message_ingress_mode_t_SW_DUMP_PRINT((void*) &(elt->rx_sync_mode), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".rx_delay_request_mode"); 
+   soc_port_phy_timesync_event_message_ingress_mode_t_SW_DUMP_PRINT((void*) &(elt->rx_delay_request_mode), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".rx_pdelay_request_mode"); 
+   soc_port_phy_timesync_event_message_ingress_mode_t_SW_DUMP_PRINT((void*) &(elt->rx_pdelay_request_mode), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".rx_pdelay_response_mode"); 
+   soc_port_phy_timesync_event_message_ingress_mode_t_SW_DUMP_PRINT((void*) &(elt->rx_pdelay_response_mode), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mpls_control"); 
+   soc_port_phy_timesync_mpls_control_t_SW_DUMP_PRINT((void*) &(elt->mpls_control), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".sync_freq"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->sync_freq), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".phy_1588_dpll_k1"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->phy_1588_dpll_k1), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".phy_1588_dpll_k2"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->phy_1588_dpll_k2), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".phy_1588_dpll_k3"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->phy_1588_dpll_k3), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".phy_1588_dpll_loop_filter"); 
+   uint64_SW_DUMP_PRINT((void*) &(elt->phy_1588_dpll_loop_filter), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".phy_1588_dpll_ref_phase"); 
+   uint64_SW_DUMP_PRINT((void*) &(elt->phy_1588_dpll_ref_phase), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".phy_1588_dpll_ref_phase_delta"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->phy_1588_dpll_ref_phase_delta), variableNameWithPath); 
+} 
+void soc_port_phy_timesync_inband_ts_control_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   _shr_port_phy_timesync_inband_ts_control_t_SW_DUMP_PRINT(element, variableName); 
+} 
+void _shr_port_phy_timesync_inband_ts_control_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   _shr_port_phy_timesync_inband_ts_control_t *elt = ((_shr_port_phy_timesync_inband_ts_control_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".flags"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->flags), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".resv0_id"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->resv0_id), variableNameWithPath); 
+} 
+void soc_port_phy_timesync_global_mode_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   _shr_port_phy_timesync_global_mode_t_SW_DUMP_PRINT(element, variableName); 
+} 
+void _shr_port_phy_timesync_global_mode_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void soc_port_phy_timesync_framesync_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   _shr_port_phy_timesync_framesync_t_SW_DUMP_PRINT(element, variableName); 
+} 
+void _shr_port_phy_timesync_syncout_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   _shr_port_phy_timesync_syncout_t *elt = ((_shr_port_phy_timesync_syncout_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mode"); 
+   _shr_port_phy_timesync_syncout_mode_t_SW_DUMP_PRINT((void*) &(elt->mode), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pulse_1_length"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->pulse_1_length), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pulse_2_length"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->pulse_2_length), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".interval"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->interval), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".syncout_ts"); 
+   uint64_SW_DUMP_PRINT((void*) &(elt->syncout_ts), variableNameWithPath); 
+} 
+void _shr_port_phy_timesync_syncout_mode_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void soc_port_phy_timesync_syncout_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   _shr_port_phy_timesync_syncout_t_SW_DUMP_PRINT(element, variableName); 
+} 
+void soc_time_spec_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   _shr_time_spec_t_SW_DUMP_PRINT(element, variableName); 
+} 
+void _shr_time_spec_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   _shr_time_spec_t *elt = ((_shr_time_spec_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".isnegative"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->isnegative), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".seconds"); 
+   uint64_SW_DUMP_PRINT((void*) &(elt->seconds), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nanoseconds"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->nanoseconds), variableNameWithPath); 
+} 
+void soc_port_phy_timesync_event_message_egress_mode_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   _shr_port_phy_timesync_event_message_egress_mode_t_SW_DUMP_PRINT(element, variableName); 
+} 
+void _shr_port_phy_timesync_event_message_egress_mode_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void soc_port_phy_timesync_event_message_ingress_mode_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   _shr_port_phy_timesync_event_message_ingress_mode_t_SW_DUMP_PRINT(element, variableName); 
+} 
+void soc_port_phy_timesync_mpls_control_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   _shr_port_phy_timesync_mpls_control_t_SW_DUMP_PRINT(element, variableName); 
+} 
+void _shr_port_phy_timesync_mpls_control_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   _shr_port_phy_timesync_mpls_control_t *elt = ((_shr_port_phy_timesync_mpls_control_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".flags"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->flags), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".special_label"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->special_label), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".labels"); 
+   arraySizes_SW_DUMP[0]=10; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->labels, _shr_port_phy_timesync_mpls_label_t_SW_DUMP_PRINT, 0, sizeof(_shr_port_phy_timesync_mpls_label_t)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".size"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->size), variableNameWithPath); 
+} 
+void _shr_port_phy_timesync_mpls_label_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   _shr_port_phy_timesync_mpls_label_t *elt = ((_shr_port_phy_timesync_mpls_label_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".value"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->value), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mask"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->mask), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".flags"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->flags), variableNameWithPath); 
+} 
+void soc_port_control_phy_timesync_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   _shr_port_control_phy_timesync_t_SW_DUMP_PRINT(element, variableName); 
+} 
+void _shr_port_control_phy_timesync_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void drv_vm_entry_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   int arraySizes_SW_DUMP[4]; 
+   drv_vm_entry_t *elt = ((drv_vm_entry_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".id"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->id), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".prio"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->prio), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".key_data"); 
+   arraySizes_SW_DUMP[0]=2; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->key_data, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".key_mask"); 
+   arraySizes_SW_DUMP[0]=2; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->key_mask, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".act_data"); 
+   arraySizes_SW_DUMP[0]=2; 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->act_data, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".w"); 
+   arraySizes_SW_DUMP[0]=_SHR_BITDCLSIZE ( DRV_VM_QUAL_COUNT ); 
+   printArray(arraySizes_SW_DUMP, 0, 1, variableNameWithPath, (void**) elt->w, uint32_SW_DUMP_PRINT, 0, sizeof(SHR_BITDCL)); 
+} 
+void drv_vm_qual_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void drv_mcrep_control_flag_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void drv_field_qualify_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void drv_field_action_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void drv_fp_tcam_checksum_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   drv_fp_tcam_checksum_t *elt = ((drv_fp_tcam_checksum_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tcam_error"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->tcam_error), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".stage_ingress_addr"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->stage_ingress_addr), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".stage_lookup_addr"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->stage_lookup_addr), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".stage_egress_addr"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->stage_egress_addr), variableNameWithPath); 
+} 
+void drv_policer_config_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   drv_policer_config_t *elt = ((drv_policer_config_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".flags"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->flags), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mode"); 
+   drv_policer_mode_t_SW_DUMP_PRINT((void*) &(elt->mode), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ckbits_sec"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->ckbits_sec), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".max_ckbits_sec"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->max_ckbits_sec), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ckbits_burst"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->ckbits_burst), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pkbits_sec"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->pkbits_sec), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".max_pkbits_sec"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->max_pkbits_sec), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".pkbits_burst"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->pkbits_burst), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".kbits_current"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->kbits_current), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".action_id"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->action_id), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".sharing_mode"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->sharing_mode), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".entropy_id"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->entropy_id), variableNameWithPath); 
+} 
+void drv_policer_mode_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void drv_field_stat_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void drv_wred_config_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   drv_wred_config_t *elt = ((drv_wred_config_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".flags"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->flags), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".drop_prob"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->drop_prob), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".max_threshold"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->max_threshold), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".min_threshold"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->min_threshold), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".gain"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->gain), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".hw_index"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->hw_index), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".refer_count"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->refer_count), variableNameWithPath); 
+} 
+void drv_wred_control_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void drv_wred_counter_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void dpp_wb_hash_tbl_data_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   dpp_wb_hash_tbl_data_t *elt = ((dpp_wb_hash_tbl_data_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_initialized"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->is_initialized), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".max_nof_values"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->max_nof_values), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".max_data_size"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->max_data_size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nof_used_values"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->nof_used_values), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".key_size"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->key_size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".wb_var_idx"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->wb_var_idx), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*data"); 
+   /* check the pointer is not null */ 
+   if (elt->data) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->data), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*keys"); 
+   /* check the pointer is not null */ 
+   if (elt->keys) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->keys), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+} 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+void ARAD_EGR_PROG_EDITOR_PROGRAM_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_EGR_PROG_EDITOR_PROGRAM_INFO *elt = ((ARAD_EGR_PROG_EDITOR_PROGRAM_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".prog_used"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->prog_used), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".program_pointer"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->program_pointer), variableNameWithPath); 
+} 
+void ARAD_EGR_PROG_EDITOR_PROGRAMS_USAGE_INFO_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   ARAD_EGR_PROG_EDITOR_PROGRAMS_USAGE_INFO *elt = ((ARAD_EGR_PROG_EDITOR_PROGRAMS_USAGE_INFO*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".vxlan"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->vxlan), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".erspan"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->erspan), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".rspan"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->rspan), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".mpls_swap"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->mpls_swap), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".xgs_tm"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->xgs_tm), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".xgs_pp"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->xgs_pp), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".epon"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->epon), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ipv6_tunnel"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->ipv6_tunnel), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".oam_loopback"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->oam_loopback), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".oam_ts_ccm"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->oam_ts_ccm), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".oam_ts_ccm_fhei_2"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->oam_ts_ccm_fhei_2), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tdm"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->tdm), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tdm_stamp_cud"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->tdm_stamp_cud), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tdm_pmm"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->tdm_pmm), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".stacking"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->stacking), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".two_hop_scheduling"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->two_hop_scheduling), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".l2_remote_cpu"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->l2_remote_cpu), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".otmh_cud"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->otmh_cud), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".trill"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->trill), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".vmac_enable"); 
+   uint8_SW_DUMP_PRINT((void*) &(elt->vmac_enable), variableNameWithPath); 
+} 
+#ifdef BCM_WARM_BOOT_SUPPORT 
+void arad_wb_db_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   arad_wb_db_info_t *elt = ((arad_wb_db_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".init_done"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->init_done), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*arad_sw_db"); 
+   /* check the pointer is not null */ 
+   if (elt->arad_sw_db) { 
+      ARAD_SW_DB_DEVICE_SW_DUMP_PRINT((void*) &(*elt->arad_sw_db), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".is_dirty"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->is_dirty), variableNameWithPath); 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".version"); 
+   uint16_SW_DUMP_PRINT((void*) &(elt->version), variableNameWithPath); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".*scache_ptr"); 
+   /* check the pointer is not null */ 
+   if (elt->scache_ptr) { 
+      uint8_SW_DUMP_PRINT((void*) &(*elt->scache_ptr), variableNameWithPath); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", variableNameWithPath); 
+   } 
+#endif /* #if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".size"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->size), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".queue_rate_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->queue_rate_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".queue_rate_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->queue_rate_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tcg_rate_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->tcg_rate_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".tcg_rate_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->tcg_rate_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".rates_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->rates_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".rates_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->rates_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nof_calcal_instances_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->nof_calcal_instances_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".nof_calcal_instances_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->nof_calcal_instances_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".calcal_length_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->calcal_length_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".calcal_length_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->calcal_length_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".update_device_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->update_device_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".update_device_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->update_device_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".update_dev_changed_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->update_dev_changed_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".update_dev_changed_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->update_dev_changed_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".egq_tcg_qpair_shaper_enable_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->egq_tcg_qpair_shaper_enable_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".egq_tcg_qpair_shaper_enable_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->egq_tcg_qpair_shaper_enable_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".erp_interface_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->erp_interface_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".erp_interface_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->erp_interface_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".dsp_pp_to_base_queue_pair_mapping_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->dsp_pp_to_base_queue_pair_mapping_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".dsp_pp_to_base_queue_pair_mapping_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->dsp_pp_to_base_queue_pair_mapping_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".dsp_pp_nof_queue_pairs_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->dsp_pp_nof_queue_pairs_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".dsp_pp_nof_queue_pairs_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->dsp_pp_nof_queue_pairs_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ports_prog_editor_profile_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->ports_prog_editor_profile_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".ports_prog_editor_profile_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->ports_prog_editor_profile_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".in_use_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->in_use_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".in_use_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->in_use_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".local_to_sys_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->local_to_sys_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".local_to_sys_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->local_to_sys_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".local_to_reassembly_context_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->local_to_reassembly_context_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".local_to_reassembly_context_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->local_to_reassembly_context_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".current_cell_ident_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->current_cell_ident_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".current_cell_ident_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->current_cell_ident_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".context_map_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->context_map_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".context_map_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->context_map_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".deleted_buff_list_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->deleted_buff_list_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".deleted_buff_list_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->deleted_buff_list_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".dram_deleted_buff_list_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->dram_deleted_buff_list_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".dram_deleted_buff_list_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->dram_deleted_buff_list_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".interrupt_flags_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->interrupt_flags_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".interrupt_flags_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->interrupt_flags_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".interrupt_storm_timed_count_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->interrupt_storm_timed_count_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".interrupt_storm_timed_count_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->interrupt_storm_timed_count_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".interrupt_storm_timed_period_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->interrupt_storm_timed_period_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".interrupt_storm_timed_period_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->interrupt_storm_timed_period_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".egress_groups_open_data_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->egress_groups_open_data_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".egress_groups_open_data_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->egress_groups_open_data_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".q_type_map_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->q_type_map_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".q_type_map_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->q_type_map_off), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".vsi_to_isid_num"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->vsi_to_isid_num), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".vsi_to_isid_off"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->vsi_to_isid_off), variableNameWithPath); 
+} 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+void soc_logical_port_sw_db_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   soc_logical_port_sw_db_t *elt = ((soc_logical_port_sw_db_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".valid"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->valid), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".first_phy_port"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->first_phy_port), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".channel"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->channel), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".flags"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->flags), variableNameWithPath); 
+} 
+
+void soc_phy_port_sw_db_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   soc_phy_port_sw_db_t *elt = ((soc_phy_port_sw_db_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".phy_ports"); 
+   soc_pbmp_t_SW_DUMP_PRINT((void*) &(elt->phy_ports), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".interface_type"); 
+   soc_port_if_t_SW_DUMP_PRINT((void*) &(elt->interface_type), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".speed"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->speed), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".master_port"); 
+   soc_port_t_SW_DUMP_PRINT((void*) &(elt->master_port), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".channels_count"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->channels_count), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".latch_down"); 
+   INT_SW_DUMP_PRINT((void*) &(elt->latch_down), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".runt_pad"); 
+   uint32_SW_DUMP_PRINT((void*) &(elt->runt_pad), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".encap_mode"); 
+   soc_encap_mode_t_SW_DUMP_PRINT((void*) &(elt->encap_mode), variableNameWithPath); 
+} 
+void soc_port_if_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   _shr_port_if_t_SW_DUMP_PRINT(element, variableName); 
+} 
+void _shr_port_if_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void soc_encap_mode_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void _shr_port_encap_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   sal_fprintf(output_file, "%s: %d\n", variableName, *((int*) element)); 
+} 
+void soc_port_unit_info_t_SW_DUMP_PRINT(void* element, char* variableName){ 
+   char variableNameWithPath[SW_STATE_DUMP_STRING_LENGTH_MAX]; 
+   soc_port_unit_info_t *elt = ((soc_port_unit_info_t*) element); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".quads_out_of_reset"); 
+   soc_pbmp_t_SW_DUMP_PRINT((void*) &(elt->quads_out_of_reset), variableNameWithPath); 
+   SW_STATE_DUMP_SAFE_STRCPY(variableNameWithPath, variableName);     
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   SW_STATE_DUMP_SAFE_STRCAT(variableNameWithPath, ".all_phy_pbmp"); 
+   soc_pbmp_t_SW_DUMP_PRINT((void*) &(elt->all_phy_pbmp), variableNameWithPath); 
+#endif /* SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+} 
+void sw_state_dump(char *file_name) { 
+    int arraySizes_SW_DUMP[4];
+
+    if ((output_file = sal_fopen(file_name, "w")) == 0) {
+        cli_out("Error opening sw dump file %s\n", file_name);
+    }
+     
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_bcm_dpp_pool_info", (void**) _bcm_dpp_pool_info, bcm_dpp_am_pool_info_t_SW_DUMP_PRINT, 1, sizeof(bcm_dpp_am_pool_info_t*)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_bcm_dpp_template_info", (void**) _bcm_dpp_template_info, bcm_dpp_am_template_info_t_SW_DUMP_PRINT, 1, sizeof(bcm_dpp_am_template_info_t*)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "cosq_res_info", (void**) cosq_res_info, bcm_dpp_am_cosq_res_info_t_SW_DUMP_PRINT, 0, sizeof(bcm_dpp_am_cosq_res_info_t)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+  printArray(arraySizes_SW_DUMP, 0, 1, "_bcm_bfd_endpoint_list", (void**) _bcm_bfd_endpoint_list, endpoint_list_t_SW_DUMP_PRINT, 0, sizeof(endpoint_list_t)); 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_bcm_dpp_bfd_trap_info", (void**) _bcm_dpp_bfd_trap_info, SOC_PPD_BFD_INIT_TRAP_INFO_SW_DUMP_PRINT, 0, sizeof(SOC_PPD_BFD_INIT_TRAP_INFO)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_cosq_config", (void**) _dpp_cosq_config, bcm_dpp_cosq_config_t_SW_DUMP_PRINT, 0, sizeof(bcm_dpp_cosq_config_t)); 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_bcm_counter_thread_is_running", (void**) _bcm_counter_thread_is_running, INT_SW_DUMP_PRINT, 0, sizeof(int)); 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_bcm_dpp_counter_state", (void**) _bcm_dpp_counter_state, _bcm_dpp_counter_state_t_SW_DUMP_PRINT, 1, sizeof(_bcm_dpp_counter_state_t*)); 
+#endif /* SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   printArray(arraySizes_SW_DUMP, 0, 1, "dpp_saved_counter_1", (void**) dpp_saved_counter_1, uint64_SW_DUMP_PRINT, 1, sizeof(uint64*)); 
+   arraySizes_SW_DUMP[0]=BCM_LOCAL_UNITS_MAX; 
+#endif /* SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_bcm_dpp_field_unit_info", (void**) _bcm_dpp_field_unit_info, _bcm_dpp_field_info_t_SW_DUMP_PRINT, 1, sizeof(_bcm_dpp_field_info_t*)); 
+   _bcm_arad_field_device_qual_info_layer_t_SW_DUMP_PRINT((void*) &(_bcm_arad_field_qual_info), "_bcm_arad_field_qual_info"); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_bcm_dpp_inlif_bk_info", (void**) _bcm_dpp_inlif_bk_info, _bcm_dpp_lif_bookkeeping_t_SW_DUMP_PRINT, 0, sizeof(_bcm_dpp_inlif_bookkeeping_t)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_bcm_dpp_init_finished_ok", (void**) _bcm_dpp_init_finished_ok, INT_SW_DUMP_PRINT, 0, sizeof(int)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_state", (void**) _dpp_state, bcm_dpp_state_t_SW_DUMP_PRINT, 0, sizeof(bcm_dpp_state_t)); 
+   arraySizes_SW_DUMP[0]=BCM_LOCAL_UNITS_MAX; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_bcm_petra_l2_freeze_state", (void**) _bcm_petra_l2_freeze_state, _bcm_petra_l2_freeze_t_SW_DUMP_PRINT, 0, sizeof(_bcm_petra_l2_freeze_t)); 
+   arraySizes_SW_DUMP[0]=BCM_LOCAL_UNITS_MAX; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "l2_data", (void**) l2_data, l2_data_t_SW_DUMP_PRINT, 0, sizeof(l2_data_t)); 
+   arraySizes_SW_DUMP[0]=BCM_LOCAL_UNITS_MAX; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "l2_initialized", (void**) l2_initialized, INT_SW_DUMP_PRINT, 0, sizeof(int)); 
+   arraySizes_SW_DUMP[0]=BCM_LOCAL_UNITS_MAX; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "llm_appl_info", (void**) llm_appl_info, llm_appl_info_t_SW_DUMP_PRINT, 0, sizeof(llm_appl_info_t)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_l3_info", (void**) _dpp_l3_info, bcm_dpp_l3_info_t_SW_DUMP_PRINT, 1, sizeof(bcm_dpp_l3_info_t*)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_bcm_petra_mirror_unit_data", (void**) _bcm_petra_mirror_unit_data, _bcm_petra_mirror_unit_data_t_SW_DUMP_PRINT, 1, sizeof(_bcm_petra_mirror_unit_data_t*)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_bcm_dpp_mpls_bk_info", (void**) _bcm_dpp_mpls_bk_info, _bcm_dpp_mpls_bookkeeping_t_SW_DUMP_PRINT, 0, sizeof(_bcm_dpp_mpls_bookkeeping_t)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_bcm_mpls_traverse_ilm_keys", (void**) _bcm_mpls_traverse_ilm_keys, SOC_PPD_FRWRD_ILM_KEY_SW_DUMP_PRINT, 1, sizeof(SOC_PPD_FRWRD_ILM_KEY*)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_bcm_mpls_traverse_ilm_vals", (void**) _bcm_mpls_traverse_ilm_vals, SOC_PPD_FRWRD_DECISION_INFO_SW_DUMP_PRINT, 1, sizeof(SOC_PPD_FRWRD_DECISION_INFO*)); 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_bcm_dpp_oam_trap_info", (void**) _bcm_dpp_oam_trap_info, SOC_PPD_OAM_INIT_TRAP_INFO_SW_DUMP_PRINT, 0, sizeof(SOC_PPD_OAM_INIT_TRAP_INFO)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_policer_state", (void**) _dpp_policer_state, _dpp_policer_state_t_SW_DUMP_PRINT, 1, sizeof(_dpp_policer_state_t*)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_bcm_dpp_port_prbs_mac_mode", (void**) _bcm_dpp_port_prbs_mac_mode, soc_pbmp_t_SW_DUMP_PRINT, 0, sizeof(pbmp_t)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_port_config", (void**) _dpp_port_config, bcm_dpp_port_config_t_SW_DUMP_PRINT, 0, sizeof(bcm_dpp_port_config_t)); 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "qos_state", (void**) qos_state, bcm_dpp_qos_state_t_SW_DUMP_PRINT, 1, sizeof(bcm_dpp_qos_state_t*)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "stg_info", (void**) stg_info, bcm_stg_info_t_SW_DUMP_PRINT, 0, sizeof(bcm_stg_info_t)); 
+ /*INT_SW_DUMP_PRINT((void*) &(_packet_counter[0]), "_packet_counter");*/
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "stg_info", (void**) stg_info, bcm_stg_info_t_SW_DUMP_PRINT, 0, sizeof(bcm_stg_info_t)); 
+   INT_SW_DUMP_PRINT((void*) &(_cell_id_curr[0]), "_cell_id_curr"); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_l3_sw_db", (void**) _l3_sw_db, bcm_dpp_l3_sw_db_t_SW_DUMP_PRINT, 0, sizeof(bcm_dpp_l3_sw_db_t)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_mirror_sw_db", (void**) _mirror_sw_db, bcm_dpp_mirror_sw_db_t_SW_DUMP_PRINT, 0, sizeof(bcm_dpp_mirror_sw_db_t)); 
+   bcm_dpp_switch_sw_db_t_SW_DUMP_PRINT((void*) &(_switch_sw_db[0]), "_switch_sw_db"); 
+#ifdef BCM_WARM_BOOT_SUPPORT 
+   INT_SW_DUMP_PRINT((void*) &(_soc_dcmn_wb_override_wb_test[0]), "override_wb_test"); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+#ifdef BCM_WARM_BOOT_SUPPORT 
+   printArray(arraySizes_SW_DUMP, 0, 1, "wb_switch_state", (void**) wb_switch_state, bcm_dpp_switch_state_t_SW_DUMP_PRINT, 1, sizeof(bcm_dpp_switch_state_t*)); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+   INT_SW_DUMP_PRINT((void*) &(_soc_dcmn_wb_warmboot_test_mode[0]), "warmboot_test_mode"); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "trill_state", (void**) trill_state, bcm_dpp_trill_state_t_SW_DUMP_PRINT, 1, sizeof(bcm_dpp_trill_state_t*)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "bcm_trunk_control", (void**) bcm_trunk_control, trunk_state_t_SW_DUMP_PRINT, 0, sizeof(trunk_state_t)); 
+   arraySizes_SW_DUMP[0]=FRAGMENT_SIZE; 
+   arraySizes_SW_DUMP[1]=3; 
+   printArray(arraySizes_SW_DUMP, 0, 2, "_soc_port_tx_handles", (void**) _soc_port_tx_handles, sbusdma_desc_handle_t_SW_DUMP_PRINT, 0, sizeof(sbusdma_desc_handle_t)); 
+   uint32_SW_DUMP_PRINT((void*) &(_soc_tx_pending[0]), "_soc_tx_pending"); 
+   arraySizes_SW_DUMP[0]=BCM_UNITS_MAX; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_bcm_dpp_vlan_unit_state", (void**) _bcm_dpp_vlan_unit_state, _bcm_dpp_vlan_unit_state_t_SW_DUMP_PRINT, 1, sizeof(_bcm_dpp_vlan_unit_state_t*)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_bcm_dpp_vswitch_bk_info", (void**) _bcm_dpp_vswitch_bk_info, _bcm_dpp_vswitch_bookkeeping_t_SW_DUMP_PRINT, 0, sizeof(_bcm_dpp_vswitch_bookkeeping_t)); 
+#ifdef BCM_WARM_BOOT_SUPPORT 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_wb_alloc_info_p", (void**) _dpp_wb_alloc_info_p, bcm_dpp_wb_alloc_info_t_SW_DUMP_PRINT, 1, sizeof(bcm_dpp_wb_alloc_info_t*)); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_wb_alloc_info_p", (void**) _dpp_wb_alloc_info_p, bcm_dpp_wb_alloc_info_t_SW_DUMP_PRINT, 1, sizeof(bcm_dpp_wb_alloc_info_t*)); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_bcm_dpp_wb_counter_state", (void**) _bcm_dpp_wb_counter_state, _bcm_dpp_wb_counter_state_t_SW_DUMP_PRINT, 1, sizeof(_bcm_dpp_wb_counter_state_t*)); 
+#endif /* SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_wb_counters_info_p", (void**) _dpp_wb_counters_info_p, bcm_dpp_wb_counters_info_t_SW_DUMP_PRINT, 1, sizeof(bcm_dpp_wb_counters_info_t*)); 
+#endif /* SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+   uint8_SW_DUMP_PRINT((void*) &(wb_field_is_scheduled_sync[0]), "wb_field_is_scheduled_sync"); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_wb_gport_info_p", (void**) _dpp_wb_gport_info_p, bcm_dpp_wb_gport_info_t_SW_DUMP_PRINT, 1, sizeof(bcm_dpp_wb_gport_info_t*)); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_wb_l2_info_p", (void**) _dpp_wb_l2_info_p, bcm_dpp_wb_l2_info_t_SW_DUMP_PRINT, 1, sizeof(bcm_dpp_wb_l2_info_t*)); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_wb_l3_info_p", (void**) _dpp_wb_l3_info_p, bcm_dpp_wb_l3_info_t_SW_DUMP_PRINT, 1, sizeof(bcm_dpp_wb_l3_info_t*)); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_wb_mirror_info_p", (void**) _dpp_wb_mirror_info_p, bcm_dpp_wb_mirror_info_t_SW_DUMP_PRINT, 1, sizeof(bcm_dpp_wb_mirror_info_t*)); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_wb_multicast_info_p", (void**) _dpp_wb_multicast_info_p, bcm_dpp_wb_multicast_info_t_SW_DUMP_PRINT, 1, sizeof(bcm_dpp_wb_multicast_info_t*)); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_wb_policer_info_p", (void**) _dpp_wb_policer_info_p, bcm_dpp_wb_policer_info_t_SW_DUMP_PRINT, 1, sizeof(bcm_dpp_wb_policer_info_t*)); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_wb_port_info_p", (void**) _dpp_wb_port_info_p, bcm_dpp_wb_port_info_t_SW_DUMP_PRINT, 0, sizeof(bcm_dpp_wb_port_info_t)); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "bcm_dpp_wb_port_config", (void**) bcm_dpp_wb_port_config, bcm_dpp_wb_port_config_t_SW_DUMP_PRINT, 0, sizeof(bcm_dpp_wb_port_config_t)); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_wb_qos_info_p", (void**) _dpp_wb_qos_info_p, bcm_dpp_wb_qos_info_t_SW_DUMP_PRINT, 1, sizeof(bcm_dpp_wb_qos_info_t*)); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "bcm_dpp_wb_stack_config", (void**) bcm_dpp_wb_stack_config, bcm_dpp_wb_stack_config_t_SW_DUMP_PRINT, 0, sizeof(bcm_dpp_wb_stack_config_t)); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_wb_stg_info_p", (void**) _dpp_wb_stg_info_p, bcm_dpp_wb_stg_info_t_SW_DUMP_PRINT, 1, sizeof(bcm_dpp_wb_stg_info_t*)); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_wb_switch_info_p", (void**) _dpp_wb_switch_info_p, bcm_dpp_wb_switch_info_t_SW_DUMP_PRINT, 1, sizeof(bcm_dpp_wb_switch_info_t*)); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_wb_trill_info_p", (void**) _dpp_wb_trill_info_p, bcm_dpp_wb_trill_info_t_SW_DUMP_PRINT, 1, sizeof(bcm_dpp_wb_trill_info_t*)); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "bcm_wb_trunk_control", (void**) bcm_wb_trunk_control, trunk_wb_cntl_t_SW_DUMP_PRINT, 0, sizeof(trunk_wb_cntl_t)); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+   uint8_SW_DUMP_PRINT((void*) &(wb_vlan_is_scheduled_sync[0]), "wb_vlan_is_scheduled_sync"); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#ifdef BCM_WARM_BOOT_SUPPORT 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_wb_vswitch_info_p", (void**) _dpp_wb_vswitch_info_p, bcm_dpp_wb_vswitch_info_t_SW_DUMP_PRINT, 1, sizeof(bcm_dpp_wb_vswitch_info_t*)); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_g_unitResDesc", (void**) _g_unitResDesc, _shr_res_unit_desc_t_SW_DUMP_PRINT, 1, sizeof(_shr_res_unit_desc_t)); 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   arraySizes_SW_DUMP[1]=ARAD_PP_ISEM_ACCESS_PROG_TT_NOF_PROGS; 
+   printArray(arraySizes_SW_DUMP, 0, 2, "tt_programs", (void**) tt_programs, ARAD_PP_ISEM_ACCESS_PROGRAM_INFO_SW_DUMP_PRINT, 0, sizeof(ARAD_PP_ISEM_ACCESS_PROGRAM_INFO)); 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   arraySizes_SW_DUMP[1]=ARAD_PP_ISEM_ACCESS_PROG_VT_NOF_PROGS; 
+   printArray(arraySizes_SW_DUMP, 0, 2, "vt_programs", (void**) vt_programs, ARAD_PP_ISEM_ACCESS_PROGRAM_INFO_SW_DUMP_PRINT, 0, sizeof(ARAD_PP_ISEM_ACCESS_PROGRAM_INFO)); 
+   arraySizes_SW_DUMP[0]=SOC_SAND_MAX_DEVICE; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "Arad_pp_lem_actual_stamp", (void**) Arad_pp_lem_actual_stamp, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "last_program_id", (void**) last_program_id, INT_SW_DUMP_PRINT, 0, sizeof(int)); 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "last_program_pointer", (void**) last_program_pointer, INT_SW_DUMP_PRINT, 0, sizeof(int)); 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "programs_usage", (void**) programs_usage, ARAD_EGR_PROG_EDITOR_PROGRAMS_USAGE_INFO_SW_DUMP_PRINT, 0, sizeof(ARAD_EGR_PROG_EDITOR_PROGRAMS_USAGE_INFO)); 
+   arraySizes_SW_DUMP[0]=SOC_SAND_MAX_DEVICE; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "Soc_indirect_module_arr", (void**) Soc_indirect_module_arr, SOC_SAND_INDIRECT_MODULE_SW_DUMP_PRINT, 0, sizeof(SOC_SAND_INDIRECT_MODULE)); 
+   arraySizes_SW_DUMP[0]=SOC_SAND_MAX_DEVICE; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "Soc_sand_nof_repetitions", (void**) Soc_sand_nof_repetitions, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   arraySizes_SW_DUMP[0]=SOC_SAND_MAX_DEVICE; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "Soc_interrupt_mask_address_arr", (void**) Soc_interrupt_mask_address_arr, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   uint32_SW_DUMP_PRINT((void*) &(Soc_sand_mem_check_read_write_protect), "Soc_sand_mem_check_read_write_protect"); 
+   /* check the pointer is not null */ 
+   if (Soc_sand_handles_list) { 
+      SOC_SAND_DELTA_LIST_SW_DUMP_PRINT((void*) &(*Soc_sand_handles_list), "Soc_sand_handles_list"); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", "Soc_sand_handles_list"); 
+   } 
+   uint32_SW_DUMP_PRINT((void*) &(Soc_sand_array_size), "Soc_sand_array_size"); 
+   /* check the pointer is not null */ 
+   if (Soc_sand_chip_descriptors) { 
+      SOC_SAND_DEVICE_DESC_SW_DUMP_PRINT((void*) &(*Soc_sand_chip_descriptors), "Soc_sand_chip_descriptors"); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", "Soc_sand_chip_descriptors"); 
+   } 
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   uint32_SW_DUMP_PRINT((void*) &(Soc_sand_up_counter), "Soc_sand_up_counter"); 
+#endif /* SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   uint8_SW_DUMP_PRINT((void*) &(Soc_register_with_id), "Soc_register_with_id"); 
+   uint32_SW_DUMP_PRINT((void*) &(Soc_sand_driver_is_started), "Soc_sand_driver_is_started"); 
+   uint32_SW_DUMP_PRINT((void*) &(Soc_sand_max_num_devices), "Soc_sand_max_num_devices"); 
+   uint32_SW_DUMP_PRINT((void*) &(Soc_sand_min_time_between_tcm_activation), "Soc_sand_min_time_between_tcm_activation"); 
+   uint32_SW_DUMP_PRINT((void*) &(Soc_sand_system_ticks_in_ms), "Soc_sand_system_ticks_in_ms"); 
+   uint32_SW_DUMP_PRINT((void*) &(Soc_sand_tcm_mockup_interrupts), "Soc_sand_tcm_mockup_interrupts"); 
+   uint32_SW_DUMP_PRINT((void*) &(Soc_sand_big_endian), "Soc_sand_big_endian"); 
+   uint32_SW_DUMP_PRINT((void*) &(Soc_sand_big_endian_was_checked), "Soc_sand_big_endian_was_checked"); 
+   uint8_SW_DUMP_PRINT((void*) &(Soc_sand_ll_is_any_active), "Soc_sand_ll_is_any_active"); 
+   arraySizes_SW_DUMP[0]=SOC_SAND_LL_TIMER_MAX_NOF_TIMERS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "Soc_sand_ll_timer_cnt", (void**) Soc_sand_ll_timer_cnt, SOC_SAND_LL_TIMER_FUNCTION_SW_DUMP_PRINT, 0, sizeof(SOC_SAND_LL_TIMER_FUNCTION)); 
+   uint32_SW_DUMP_PRINT((void*) &(Soc_sand_ll_timer_total), "Soc_sand_ll_timer_total"); 
+   uint32_SW_DUMP_PRINT((void*) &(Soc_sand_physical_print_asic_style), "Soc_sand_physical_print_asic_style"); 
+   uint32_SW_DUMP_PRINT((void*) &(Soc_sand_physical_print_unit_or_base_address), "Soc_sand_physical_print_unit_or_base_address"); 
+   uint32_SW_DUMP_PRINT((void*) &(Soc_sand_physical_print_first_reg), "Soc_sand_physical_print_first_reg"); 
+   uint32_SW_DUMP_PRINT((void*) &(Soc_sand_physical_print_indirect_write), "Soc_sand_physical_print_indirect_write"); 
+   uint32_SW_DUMP_PRINT((void*) &(Soc_sand_physical_print_last_reg), "Soc_sand_physical_print_last_reg"); 
+   uint32_SW_DUMP_PRINT((void*) &(Soc_sand_physical_print_part_of_indirect_read), "Soc_sand_physical_print_part_of_indirect_read"); 
+   uint32_SW_DUMP_PRINT((void*) &(Soc_sand_physical_print_part_of_indirect_write), "Soc_sand_physical_print_part_of_indirect_write"); 
+   uint32_SW_DUMP_PRINT((void*) &(Soc_sand_physical_print_part_of_read_modify_write), "Soc_sand_physical_print_part_of_read_modify_write"); 
+   uint32_SW_DUMP_PRINT((void*) &(Soc_sand_physical_print_when_writing), "Soc_sand_physical_print_when_writing"); 
+   uint32_SW_DUMP_PRINT((void*) &(Soc_sand_physical_write_enable), "Soc_sand_physical_write_enable"); 
+   INT_SW_DUMP_PRINT((void*) &(Soc_sand_start_module_shut_down_mutex), "Soc_sand_start_module_shut_down_mutex"); 
+   uint32_SW_DUMP_PRINT((void*) &(Soc_sand_errors_msg_queue_flagged), "Soc_sand_errors_msg_queue_flagged"); 
+   /* check the pointer is not null */ 
+   if (Soc_sand_supplied_error_buffer) { 
+      CHAR_SW_DUMP_PRINT((void*) &(*Soc_sand_supplied_error_buffer), "Soc_sand_supplied_error_buffer"); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", "Soc_sand_supplied_error_buffer"); 
+   } 
+   uint32_SW_DUMP_PRINT((void*) &(Soc_sand_supplied_error_handler_is_on), "Soc_sand_supplied_error_handler_is_on"); 
+#if REMOVE_UNTIL_COMPILE /* Removed until compiled */   
+   SOC_SAND_RAND_SW_DUMP_PRINT((void*) &(Soc_sand_os_rand), "Soc_sand_os_rand"); 
+   /* check the pointer is not null */ 
+   if (Soc_sand_callback_delta_list) { 
+      SOC_SAND_DELTA_LIST_SW_DUMP_PRINT((void*) &(*Soc_sand_callback_delta_list), "Soc_sand_callback_delta_list"); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", "Soc_sand_callback_delta_list"); 
+   } 
+   uint32_SW_DUMP_PRINT((void*) &(Soc_sand_tcm_enable_polling_flag), "Soc_sand_tcm_enable_polling_flag"); 
+   uint32_SW_DUMP_PRINT((void*) &(Soc_sand_tcm_request_to_die_flag), "Soc_sand_tcm_request_to_die_flag"); 
+   uint32_SW_DUMP_PRINT((void*) &(Soc_sand_tcm_task_priority), "Soc_sand_tcm_task_priority"); 
+   uint32_SW_DUMP_PRINT((void*) &(Soc_sand_tcm_task_stack_size), "Soc_sand_tcm_task_stack_size"); 
+   uint32_SW_DUMP_PRINT((void*) &(Soc_sand_trace_table_index), "Soc_sand_trace_table_index"); 
+   uint32_SW_DUMP_PRINT((void*) &(Soc_sand_trace_table_turn_over), "Soc_sand_trace_table_turn_over"); 
+   arraySizes_SW_DUMP[0]=SOC_SAND_MAX_DEVICE; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "Soc_sand_workload_status_percent", (void**) Soc_sand_workload_status_percent, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   arraySizes_SW_DUMP[0]=SOC_SAND_MAX_DEVICE; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "Soc_sand_workload_status_total", (void**) Soc_sand_workload_status_total, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   uint8_SW_DUMP_PRINT((void*) &(Arad_sw_db_initialized), "Arad_sw_db_initialized"); 
+#ifdef BCM_WARM_BOOT_SUPPORT 
+   /* check the pointer is not null */ 
+   if (Dpp_wb_engine_Arad_pp_sw_db) { 
+      ARAD_PP_SW_DB_SW_DUMP_PRINT((void*) &(*Dpp_wb_engine_Arad_pp_sw_db), "Dpp_wb_engine_Arad_pp_sw_db"); 
+   } else { 
+       sal_fprintf(output_file, "%s: null \n ", "Dpp_wb_engine_Arad_pp_sw_db"); 
+   } 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   arraySizes_SW_DUMP[1]=SOC_TMC_IF_NOF_NIFS; 
+   printArray(arraySizes_SW_DUMP, 0, 2, "_bcm_dpp_egr_interface_multicast_thresh_map", (void**) _bcm_dpp_egr_interface_multicast_thresh_map, INT_SW_DUMP_PRINT, 0, sizeof(int)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   arraySizes_SW_DUMP[1]=SOC_TMC_NOF_FAP_PORTS_MAX; 
+   printArray(arraySizes_SW_DUMP, 0, 2, "_bcm_dpp_egr_thresh_map", (void**) _bcm_dpp_egr_thresh_map, INT_SW_DUMP_PRINT, 0, sizeof(int)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   arraySizes_SW_DUMP[1]=SOC_PPD_NOF_EGRESS_VLAN_EDIT_ACTION_IDS; 
+   printArray(arraySizes_SW_DUMP, 0, 2, "_bcm_dpp_vlan_edit_eg_action", (void**) _bcm_dpp_vlan_edit_eg_action, _bcm_dpp_vlan_translate_action_t_SW_DUMP_PRINT, 0, sizeof(_bcm_dpp_vlan_translate_action_t)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   arraySizes_SW_DUMP[1]=SOC_PPD_NOF_EGRESS_VLAN_EDIT_ACTION_MAPPINGS; 
+   printArray(arraySizes_SW_DUMP, 0, 2, "_bcm_dpp_vlan_edit_eg_action_mapping", (void**) _bcm_dpp_vlan_edit_eg_action_mapping, uint8_SW_DUMP_PRINT, 0, sizeof(uint8)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   arraySizes_SW_DUMP[1]=SOC_PPD_NOF_INGRESS_VLAN_EDIT_ACTION_IDS; 
+   printArray(arraySizes_SW_DUMP, 0, 2, "_bcm_dpp_vlan_edit_ing_action", (void**) _bcm_dpp_vlan_edit_ing_action, _bcm_dpp_vlan_translate_action_t_SW_DUMP_PRINT, 0, sizeof(_bcm_dpp_vlan_translate_action_t)); 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_am_egress_encap", (void**) _dpp_am_egress_encap, bcm_dpp_am_egress_encap_t_SW_DUMP_PRINT, 0, sizeof(bcm_dpp_am_egress_encap_t)); 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_am_ingress_lif", (void**) _dpp_am_ingress_lif, bcm_dpp_am_ingress_lif_t_SW_DUMP_PRINT, 0, sizeof(bcm_dpp_am_ingress_lif_t)); 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_am_sync_lif", (void**) _dpp_am_sync_lif, bcm_dpp_am_sync_lif_t_SW_DUMP_PRINT, 0, sizeof(bcm_dpp_am_sync_lif_t)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_arad_pp_bfd_trap_code_oamp_bfd_cc_mpls_tp", (void**) _dpp_arad_pp_bfd_trap_code_oamp_bfd_cc_mpls_tp, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_arad_pp_bfd_trap_code_oamp_bfd_ipv4", (void**) _dpp_arad_pp_bfd_trap_code_oamp_bfd_ipv4, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_arad_pp_bfd_trap_code_oamp_bfd_mpls", (void**) _dpp_arad_pp_bfd_trap_code_oamp_bfd_mpls, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_arad_pp_bfd_trap_code_oamp_bfd_pwe", (void**) _dpp_arad_pp_bfd_trap_code_oamp_bfd_pwe, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_arad_pp_bfd_trap_code_trap_to_cpu", (void**) _dpp_arad_pp_bfd_trap_code_trap_to_cpu, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_arad_pp_oam_mirror_profile_err_level", (void**) _dpp_arad_pp_oam_mirror_profile_err_level, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_arad_pp_oam_mirror_profile_err_passive", (void**) _dpp_arad_pp_oam_mirror_profile_err_passive, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_arad_pp_oam_mirror_profile_recycle", (void**) _dpp_arad_pp_oam_mirror_profile_recycle, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_arad_pp_oam_mirror_profile_snoop_to_cpu", (void**) _dpp_arad_pp_oam_mirror_profile_snoop_to_cpu, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_arad_pp_oam_trap_code_drop", (void**) _dpp_arad_pp_oam_trap_code_drop, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_arad_pp_oam_trap_code_frwrd", (void**) _dpp_arad_pp_oam_trap_code_frwrd, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_arad_pp_oam_trap_code_recycle", (void**) _dpp_arad_pp_oam_trap_code_recycle, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_arad_pp_oam_trap_code_snoop", (void**) _dpp_arad_pp_oam_trap_code_snoop, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_arad_pp_oam_trap_code_trap_to_cpu_level", (void**) _dpp_arad_pp_oam_trap_code_trap_to_cpu_level, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_arad_pp_oam_trap_code_trap_to_cpu_passive", (void**) _dpp_arad_pp_oam_trap_code_trap_to_cpu_passive, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_arad_pp_tcam_bfdcc_cv_last_entry_id", (void**) _dpp_arad_pp_tcam_bfdcc_cv_last_entry_id, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_arad_pp_tcam_mim_last_entry_id", (void**) _dpp_arad_pp_tcam_mim_last_entry_id, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_arad_pp_tcam_mpls_last_entry_id", (void**) _dpp_arad_pp_tcam_mpls_last_entry_id, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_bfd_ipv4_multi_hop_acc_ref_counter", (void**) _dpp_bfd_ipv4_multi_hop_acc_ref_counter, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_bfd_ipv4_udp_sport_ref_counter", (void**) _dpp_bfd_ipv4_udp_sport_ref_counter, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_bfd_is_init", (void**) _dpp_bfd_is_init, uint8_SW_DUMP_PRINT, 0, sizeof(uint8)); 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_bfd_mpls_tp_cc_ref_counter", (void**) _dpp_bfd_mpls_tp_cc_ref_counter, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_bfd_mpls_udp_sport_ref_counter", (void**) _dpp_bfd_mpls_udp_sport_ref_counter, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_bfd_pdu_ref_counter", (void**) _dpp_bfd_pdu_ref_counter, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_oam_acc_ref_counter", (void**) _dpp_oam_acc_ref_counter, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dpp_oam_is_init", (void**) _dpp_oam_is_init, uint8_SW_DUMP_PRINT, 0, sizeof(uint8)); 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   arraySizes_SW_DUMP[1]=SOC_PPD_NOF_TRAP_CODES; 
+   printArray(arraySizes_SW_DUMP, 0, 2, "_dpp_oam_traps_ref_counter", (void**) _dpp_oam_traps_ref_counter, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "bcm_dpp_fec_remote_lif", (void**) bcm_dpp_fec_remote_lif, uint32_SW_DUMP_PRINT, 1, sizeof(uint32*)); 
+   arraySizes_SW_DUMP[0]=BCM_MAX_NUM_UNITS; 
+   arraySizes_SW_DUMP[1]=SOC_TMC_NOF_FAP_PORTS_MAX; 
+   printArray(arraySizes_SW_DUMP, 0, 2, "bcm_dpp_port_tpids_count", (void**) bcm_dpp_port_tpids_count, uint8_SW_DUMP_PRINT, 0, sizeof(uint8)); 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dflt_tm_pp_port_map", (void**) _dflt_tm_pp_port_map, INT_SW_DUMP_PRINT, 0, sizeof(int)); 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_dflt_tm_pp_port_map", (void**) _dflt_tm_pp_port_map, INT_SW_DUMP_PRINT, 0, sizeof(int)); 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   arraySizes_SW_DUMP[1]=SOC_DPP_PORT_RANGE_NUM_ENTRIES; 
+   printArray(arraySizes_SW_DUMP, 0, 2, "_internal_port_map", (void**) _internal_port_map, soc_dpp_port_map_t_SW_DUMP_PRINT, 0, sizeof(soc_dpp_port_map_t)); 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   arraySizes_SW_DUMP[1]=SOC_DPP_PORT_RANGE_NUM_ENTRIES; 
+   printArray(arraySizes_SW_DUMP, 0, 2, "_internal_port_map", (void**) _internal_port_map, soc_dpp_port_map_t_SW_DUMP_PRINT, 0, sizeof(soc_dpp_port_map_t)); 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_modid_set_called", (void**) _modid_set_called, INT_SW_DUMP_PRINT, 0, sizeof(int)); 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   arraySizes_SW_DUMP[1]=_SOC_DPP_MAX_LOCAL_PORTS_ALL_DEVICES; 
+   printArray(arraySizes_SW_DUMP, 0, 2, "_port_map", (void**) _port_map, soc_dpp_port_map_t_SW_DUMP_PRINT, 0, sizeof(soc_dpp_port_map_t)); 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   arraySizes_SW_DUMP[1]=_SOC_DPP_MAX_LOCAL_PORTS_ALL_DEVICES; 
+   printArray(arraySizes_SW_DUMP, 0, 2, "_port_map", (void**) _port_map, soc_dpp_port_map_t_SW_DUMP_PRINT, 0, sizeof(soc_dpp_port_map_t)); 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "soc_dpp_units", (void**) soc_dpp_units, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "soc_dpp_units", (void**) soc_dpp_units, uint32_SW_DUMP_PRINT, 0, sizeof(uint32)); 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "soc_dpp_pp_ports", (void**) soc_dpp_pp_ports, soc_dpp_port_t_SW_DUMP_PRINT, 1, sizeof(soc_dpp_port_t*)); 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "soc_dpp_tm_ports", (void**) soc_dpp_tm_ports, soc_dpp_port_t_SW_DUMP_PRINT, 1, sizeof(soc_dpp_port_t*)); 
+   INT_SW_DUMP_PRINT((void*) &(current_hash_tbl_idx), "current_hash_tbl_idx"); 
+   INT_SW_DUMP_PRINT((void*) &(current_saved_idx), "current_saved_idx"); 
+   INT_SW_DUMP_PRINT((void*) &(nof_active_htb), "nof_active_htb"); 
+   arraySizes_SW_DUMP[0]=SOC_SAND_MAX_DEVICE; 
+   arraySizes_SW_DUMP[1]=SOC_DPP_WB_HASH_TBLS_NUM; 
+#ifdef BCM_WARM_BOOT_SUPPORT 
+   printArray(arraySizes_SW_DUMP, 0, 2, "wb_hash_tbl_data", (void**) wb_hash_tbl_data, dpp_wb_hash_tbl_data_t_SW_DUMP_PRINT, 0, sizeof(dpp_wb_hash_tbl_data_t)); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+   uint8_SW_DUMP_PRINT((void*) &(Arad_proc_desc_initialized), "Arad_proc_desc_initialized"); 
+   uint8_SW_DUMP_PRINT((void*) &(Arad_chip_defines_init), "Arad_chip_defines_init"); 
+   ARAD_CHIP_DEFINITIONS_SW_DUMP_PRINT((void*) &(Arad_chip_definitions), "Arad_chip_definitions"); 
+   uint32_SW_DUMP_PRINT((void*) &(_mc_swdb_nof_asserts), "_mc_swdb_nof_asserts"); 
+   cint_data_t_SW_DUMP_PRINT((void*) &(arad_mcdb_cint_data), "arad_mcdb_cint_data"); 
+   INT_SW_DUMP_PRINT((void*) &(arad_swdb_asserts_enabled), "arad_swdb_asserts_enabled"); 
+#endif /* REMOVE_UNTIL_COMPILE */   
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   arraySizes_SW_DUMP[1]=ARAD_EGR_PROG_EDITOR_PROG_NOF_PROGS; 
+   printArray(arraySizes_SW_DUMP, 0, 2, "programs", (void**) programs, ARAD_EGR_PROG_EDITOR_PROGRAM_INFO_SW_DUMP_PRINT, 0, sizeof(ARAD_EGR_PROG_EDITOR_PROGRAM_INFO)); 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "programs_usage", (void**) programs_usage, ARAD_EGR_PROG_EDITOR_PROGRAMS_USAGE_INFO_SW_DUMP_PRINT, 0, sizeof(ARAD_EGR_PROG_EDITOR_PROGRAMS_USAGE_INFO)); 
+   
+   uint8_SW_DUMP_PRINT((void*) &(Arad_sw_db_initialized), "Arad_sw_db_initialized"); 
+#ifdef BCM_WARM_BOOT_SUPPORT 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "_arad_wb_db_info_p", (void**) _arad_wb_db_info_p, arad_wb_db_info_t_SW_DUMP_PRINT, 1, sizeof(arad_wb_db_info_t*)); 
+#endif /* def BCM_WARM_BOOT_SUPPORT */  
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   arraySizes_SW_DUMP[1]=SOC_MAX_NUM_PORTS; 
+   printArray(arraySizes_SW_DUMP, 0, 2, "logical_ports_info_snapshot", (void**) logical_ports_info_snapshot, soc_logical_port_sw_db_t_SW_DUMP_PRINT, 0, sizeof(soc_logical_port_sw_db_t)); 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   arraySizes_SW_DUMP[1]=SOC_MAX_NUM_PORTS; 
+   printArray(arraySizes_SW_DUMP, 0, 2, "logical_ports_info_snapshot", (void**) logical_ports_info_snapshot, soc_logical_port_sw_db_t_SW_DUMP_PRINT, 0, sizeof(soc_logical_port_sw_db_t)); 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   arraySizes_SW_DUMP[1]=SOC_MAX_NUM_PORTS; 
+   printArray(arraySizes_SW_DUMP, 0, 2, "phy_ports_info_snapshot", (void**) phy_ports_info_snapshot, soc_phy_port_sw_db_t_SW_DUMP_PRINT, 0, sizeof(soc_phy_port_sw_db_t)); 
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   arraySizes_SW_DUMP[1]=SOC_MAX_NUM_PORTS; 
+   printArray(arraySizes_SW_DUMP, 0, 2, "phy_ports_info_snapshot", (void**) phy_ports_info_snapshot, soc_phy_port_sw_db_t_SW_DUMP_PRINT, 0, sizeof(soc_phy_port_sw_db_t)); 
+#endif /* SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "ports_unit_info", (void**) ports_unit_info, soc_port_unit_info_t_SW_DUMP_PRINT, 0, sizeof(soc_port_unit_info_t));
+#if SW_DUMP_DISPLAY_NON_RETRIEVED_STATE
+   arraySizes_SW_DUMP[0]=SOC_MAX_NUM_DEVICES; 
+   printArray(arraySizes_SW_DUMP, 0, 1, "soc_port_sw_db_snapshot_valid", (void**) soc_port_sw_db_snapshot_valid, INT_SW_DUMP_PRINT, 0, sizeof(int)); 
+#endif /* SW_DUMP_DISPLAY_NON_RETRIEVED_STATE */
+
+   sal_fclose(output_file);
+
+}
+#else 
+
+void sw_state_dump(char *file_name) { 
+    cli_out("sw_state_dump.c: sw state dump not supported \n"); 
+}
+
+#endif
+
