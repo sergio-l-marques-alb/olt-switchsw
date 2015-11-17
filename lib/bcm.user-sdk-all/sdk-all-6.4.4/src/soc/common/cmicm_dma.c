@@ -1,0 +1,645 @@
+/*
+ * $Id: cmicm_dma.c,v 1.05 Broadcom SDK $
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ *
+ * Purpose:     CMICM interface drvier for SOC DMA
+ *
+ */
+
+#include <sal/core/boot.h>
+#include <sal/core/libc.h>
+#include <shared/alloc.h>
+#include <shared/bsl.h>
+
+#include <soc/debug.h>
+#include <soc/cm.h>
+#include <soc/dma.h>
+#include <soc/drv.h>
+#include <soc/dcb.h>
+#include <soc/cmicm.h>
+
+#ifdef INCLUDE_KNET
+#include <soc/knet.h>
+#endif
+
+#ifdef BCM_CMICM_SUPPORT
+
+/* Static Driver Functions */
+
+/*
+ * Function:
+ *      cmicm_dma_chan_config
+ * Purpose:
+ *      Initialize the CMICM DMA channel for the specified SOC unit.
+ * Parameters:
+ *      unit - SOC unit #
+ *      chan - channel #
+ *      type - tx or rx
+ *      f_intr - interrupt flags
+ * Returns:
+ *      SOC_E_NONE - success
+ *      SOC_E_XXXX - error code
+ * Notes:
+ *
+ */
+static int
+cmicm_dma_chan_config(int unit, int chan, dvt_t type, uint32 flags)
+{
+    int             rv = SOC_E_NONE;
+    soc_control_t   *soc = SOC_CONTROL(unit);
+    sdc_t           *sc = &soc->soc_channels[chan];
+    uint32          bits;
+    int             cmc = SOC_PCI_CMC(unit);
+    uint32          cr;
+
+    /* Define locals and turn flags into easy to use things */
+    /*int f_mbm = (flags & SOC_DMA_F_MBM) != 0; */
+    int f_interrupt = (flags & SOC_DMA_F_POLL) == 0;
+    /*int f_drop = (flags & SOC_DMA_F_TX_DROP) != 0; */
+    int f_default = (flags & SOC_DMA_F_DEFAULT) != 0;
+    int f_desc_intr = (flags & SOC_DMA_F_INTR_ON_DESC) != 0;
+
+    /* Initial state of channel */
+    sc->sc_flags = 0;                   /* Clear flags to start */
+
+    (void)soc_cmicm_intr0_disable(unit, IRQ_CMCx_DESC_DONE(chan) |
+                                        IRQ_CMCx_CHAIN_DONE(chan));
+
+    cr = soc_pci_read(unit,CMIC_CMCx_CHy_DMA_CTRL_OFFSET(cmc,chan));
+    cr &= ~PKTDMA_ENABLE; /* clearing enable will also clear CHAIN_DONE */
+    soc_pci_write(unit, CMIC_CMCx_CHy_DMA_CTRL_OFFSET(cmc,chan), cr);
+
+    cr = soc_pci_read(unit, CMIC_CMCx_DMA_STAT_CLR_OFFSET(cmc));
+    soc_pci_write(unit, CMIC_CMCx_DMA_STAT_CLR_OFFSET(cmc),
+                  (cr | DS_DESCRD_CMPLT_CLR(chan)));
+    soc_pci_write(unit, CMIC_CMCx_DMA_STAT_CLR_OFFSET(cmc), cr);
+    /* Setup new mode */
+    /* MBM Deprecated in CMICm */
+    /* DROP_TX Deprecated in CMICm */
+    bits = f_desc_intr ? PKTDMA_SEL_INTR_ON_DESC_OR_PKT : 0;
+
+    if (type == DV_TX) {
+        bits |= PKTDMA_DIRECTION;
+        if (f_default) {
+            soc->soc_dma_default_tx = sc;
+        }
+    } else if (type == DV_RX) {
+        bits &= ~PKTDMA_DIRECTION;
+        if (f_default) {
+            soc->soc_dma_default_rx = sc;
+        }
+    } else if (type == DV_NONE) {
+        f_interrupt = FALSE;            /* Force off */
+    } else {
+        assert(0);
+}
+
+#ifdef INCLUDE_KNET
+    if (SOC_KNET_MODE(unit)) {
+        /* Interrupt are handled by kernel */
+        f_interrupt = FALSE;
+    }
+#endif
+
+    if (f_interrupt) {
+        (void)soc_cmicm_intr0_enable(unit, IRQ_CMCx_DESC_DONE(chan)
+                                     | IRQ_CMCx_CHAIN_DONE(chan));
+    }
+
+    sc->sc_type = type;
+    cr = soc_pci_read(unit,CMIC_CMCx_CHy_DMA_CTRL_OFFSET(cmc,chan));
+    /* clear everything except Endianess */
+    cr &= (PKTDMA_BIG_ENDIAN | PKTDMA_DESC_BIG_ENDIAN);
+    cr |= bits;
+    soc_pci_write(unit, CMIC_CMCx_CHy_DMA_CTRL_OFFSET(cmc, chan), cr);
+
+    return rv;
+}
+
+/*
+ * Function:
+ *      cmicm_dma_chan_start
+ * Purpose:
+ *      Start the CMICM DMA channel for the specified SOC unit.
+ * Parameters:
+ *      unit - SOC unit #
+ *      sc   - SOC channel data structure pointer
+ * Returns:
+ *      SOC_E_NONE - success
+ *      SOC_E_XXXX - error code
+ * Notes:
+ *
+ */
+static int
+cmicm_dma_chan_start(int unit, sdc_t *sc)
+{
+    int             rv = SOC_E_NONE;
+    dv_t            *dv;
+    int             cmc = SOC_PCI_CMC(unit);
+    uint32          val;
+
+    if ((dv = sc->sc_dv_active = sc->sc_q) == NULL) {
+        sc->sc_q_tail = NULL;
+        return rv;
+    }
+
+#ifdef INCLUDE_KNET
+    if (SOC_KNET_MODE(unit)) {
+        return rv;
+    }
+#endif
+
+    /* Set up DMA descriptor address */
+    soc_pci_write(unit, CMIC_CMCx_DMA_DESCy_OFFSET(cmc, sc->sc_channel),
+                  soc_cm_l2p(unit, sc->sc_q->dv_dcb));
+
+    if (sc->sc_flags & SOC_DMA_F_CLR_CHN_DONE) {
+        /* Clearing CMIC_CMC(0..2)_CH(0..3)_DMA_CTRL.ENABLE will
+         * clear CMIC_CMC(0..2)_DMA_STAT.CHAIN_DONE bit.
+         */
+        val = soc_pci_read(unit,
+                           CMIC_CMCx_CHy_DMA_CTRL_OFFSET(cmc, sc->sc_channel));
+        val &= ~PKTDMA_ENABLE;
+        soc_pci_write(unit,
+                      CMIC_CMCx_CHy_DMA_CTRL_OFFSET(cmc, sc->sc_channel),
+                      val);
+    } else {
+        sc->sc_flags |= SOC_DMA_F_CLR_CHN_DONE;
+    }
+
+    /* Start DMA */
+    val = soc_pci_read(unit,CMIC_CMCx_CHy_DMA_CTRL_OFFSET(cmc, sc->sc_channel));
+    val |= PKTDMA_ENABLE;
+
+    soc_pci_write(unit, CMIC_CMCx_CHy_DMA_CTRL_OFFSET(cmc, sc->sc_channel), val);
+
+    SDK_CONFIG_MEMORY_BARRIER;
+
+    if (!(sc->sc_flags & SOC_DMA_F_POLL)) {
+        (void)soc_cmicm_intr0_enable(unit, IRQ_CMCx_CHAIN_DONE(sc->sc_channel));
+    }
+
+    return rv;
+}
+
+/*
+ * Function:
+ *      cmicm_dma_chan_dv_start
+ * Purpose:
+ *      Adds DV to the ready queue for CMICM DMA for the specified SOC unit.
+ * Parameters:
+ *      unit - SOC unit #
+ *      chan - channel #
+ * Returns:
+ *      SOC_E_NONE - success
+ *      SOC_E_XXXX - error code
+ * Notes:
+ *      Assumes SOC_DMA_LOCK is held for CMIC_DMA_CTRL manipulation.
+ *
+ */
+static int
+cmicm_dma_chan_dv_start(int unit, sdc_t *sc, dv_t *dv_chain)
+{
+    int rv = SOC_E_NONE;
+
+    dv_chain->dv_next = NULL;
+    if (sc->sc_q_cnt != 0) {
+        sc->sc_q_tail->dv_next = dv_chain;
+    } else {
+        sc->sc_q = dv_chain;
+    }
+    sc->sc_q_tail = dv_chain;
+    sc->sc_q_cnt++;
+    if (sc->sc_dv_active == NULL) {     /* Start DMA if channel not active */
+        rv = cmicm_dma_chan_start(unit, sc);
+    }
+
+    return rv;
+}
+
+/*
+ * Function:
+ *      cmicm_dma_chan_poll
+ * Purpose:
+ *      Poll the CMICM DMA channel for the specified SOC unit.
+ * Parameters:
+ *      unit - SOC unit #
+ *      chan - channel #
+ *      type - poll type (chain done or desc done)
+ *      detected - poll result pointer to be updated
+ * Returns:
+ *      SOC_E_NONE - success
+ *      SOC_E_XXXX - error code
+ * Notes:
+ *      Assumes that SOC_DMA_LOCK is held when called.
+ */
+int
+cmicm_dma_chan_poll(int unit,
+                    int chan,
+                    soc_dma_poll_type_t type,
+                    int * detected)
+{
+    int            rv = SOC_E_NONE;
+    int            cmc = SOC_PCI_CMC(unit);
+
+    switch (type) {
+    case SOC_DMA_POLL_DESC_DONE:
+        *detected = ( soc_pci_read(unit, CMIC_CMCx_DMA_STAT_OFFSET(cmc))
+                     & DS_CMCx_DMA_DESC_DONE(chan) );
+        break;
+    case SOC_DMA_POLL_CHAIN_DONE:
+        *detected = ( soc_pci_read(unit, CMIC_CMCx_DMA_STAT_OFFSET(cmc))
+                     & DS_CMCx_DMA_CHAIN_DONE(chan) );
+        break;
+    default:
+        break;
+    }
+
+    return rv;
+}
+
+/*
+ * Function:
+ *      cmicm_dma_chan_abort
+ * Purpose:
+ *      Initialize the CMICM DMA channel for the specified SOC unit.
+ * Parameters:
+ *      unit - SOC unit #
+ *      chan - channel #
+ *      type - tx or rx
+ *      f_intr - interrupt flags
+ * Returns:
+ *      SOC_E_NONE   - Success
+ *      SOC_E_TIMEOUT - failed (Timeout)
+ * Notes:
+ *      Assumes SOC_DMA_LOCK is held for CMIC_DMA_CTRL manipulation.
+ *
+ */
+static int
+cmicm_dma_chan_abort(int unit, int chan)
+{
+    int             rv = SOC_E_NONE;
+
+    int             cmc = SOC_PCI_CMC(unit);
+    int		        to;
+    uint32          ctrl;
+    uint32          val;
+
+    if ((soc_pci_read(unit, CMIC_CMCx_DMA_STAT_OFFSET(cmc))
+         & DS_CMCx_DMA_ACTIVE(chan)) != 0) {
+        ctrl = soc_pci_read(unit, CMIC_CMCx_CHy_DMA_CTRL_OFFSET(cmc, chan));
+        ctrl |= PKTDMA_ENABLE;
+        soc_pci_write(unit, CMIC_CMCx_CHy_DMA_CTRL_OFFSET(cmc, chan), ctrl);
+        soc_pci_write(unit,
+                      CMIC_CMCx_CHy_DMA_CTRL_OFFSET(cmc, chan),
+                      ctrl | PKTDMA_ABORT);
+        SDK_CONFIG_MEMORY_BARRIER;
+
+        to = soc_property_get(unit, spn_PDMA_TIMEOUT_USEC, 500000);
+        while ((to >= 0) &&
+               ((soc_pci_read(unit, CMIC_CMCx_DMA_STAT_OFFSET(cmc))
+                 & DS_CMCx_DMA_ACTIVE(chan)) != 0)) {
+            sal_udelay(1000);
+            to -= 1000;
+        }
+        if ((soc_pci_read(unit, CMIC_CMCx_DMA_STAT_OFFSET(cmc))
+             & DS_CMCx_DMA_ACTIVE(chan)) != 0) {
+            LOG_ERROR(BSL_LS_SOC_DMA,
+                      (BSL_META_U(unit,
+                                  "soc_dma_abort_channel unit %d: "
+                                  "channel %d abort timeout\n"),
+                       unit, chan));
+            rv = SOC_E_TIMEOUT;
+            if (SOC_WARM_BOOT(unit)) {
+                return rv;
+            }
+        }
+    }
+    ctrl = soc_pci_read(unit, CMIC_CMCx_CHy_DMA_CTRL_OFFSET(cmc, chan));
+    /* Clearing enable will also clear CHAIN_DONE */
+    ctrl &= ~(PKTDMA_ENABLE|PKTDMA_ABORT);
+    soc_pci_write(unit, CMIC_CMCx_CHy_DMA_CTRL_OFFSET(cmc, chan), ctrl);
+
+    val = soc_pci_read(unit, CMIC_CMCx_DMA_STAT_CLR_OFFSET(cmc));
+    soc_pci_write(unit,
+                  CMIC_CMCx_DMA_STAT_CLR_OFFSET(cmc),
+                  (val | DS_DESCRD_CMPLT_CLR(chan)));
+    soc_pci_write(unit, CMIC_CMCx_DMA_STAT_CLR_OFFSET(cmc), val);
+    SDK_CONFIG_MEMORY_BARRIER;
+
+    return rv;
+}
+
+/*
+ * Function:
+ *      cmicm_dma_chan_desc_done
+ * Purpose:
+ *      Clears desc done on the CMICM DMA channel for the specified SOC unit.
+ * Parameters:
+ *      unit - SOC unit #
+ *      chan - channel #
+ * Returns:
+ *      SOC_E_NONE - success
+ *      SOC_E_XXXX - error code
+ * Notes:
+ *      INTERRUPT LEVEL ROUTINE.
+ *
+ */
+static int
+cmicm_dma_chan_desc_done(int unit, int chan)
+{
+    int             rv = SOC_E_NONE;
+    int             cmc = SOC_PCI_CMC(unit);
+    uint32          val;
+
+    /* Do we still need to generate an edge for CMICm and newer devices? */
+    val = soc_pci_read(unit, CMIC_CMCx_DMA_STAT_CLR_OFFSET(cmc));
+    soc_pci_write(unit, CMIC_CMCx_DMA_STAT_CLR_OFFSET(cmc),
+                  (val | DS_DESCRD_CMPLT_CLR(chan)));
+    soc_pci_write(unit, CMIC_CMCx_DMA_STAT_CLR_OFFSET(cmc), val);
+
+    /* Flush posted writes from PCI bridge */
+    (void)soc_pci_read(unit, CMIC_CMCx_DMA_STAT_OFFSET(cmc));
+
+    return rv;
+}
+
+/*
+ * Function:
+ *      cmicm_dma_ctrl_init
+ * Purpose:
+ *      Initialize the CMICM DMA Control to a known good state for
+ *      the specified SOC unit.
+ * Parameters:
+ *      unit - SOC unit #
+ * Returns:
+ *      SOC_E_NONE - success
+ *      SOC_E_XXXX - error code
+ * Notes:
+ *
+ */
+
+static int
+cmicm_dma_ctrl_init(int unit)
+{
+    int             rv = SOC_E_NONE;
+    int             cmc = SOC_PCI_CMC(unit);
+    uint32          val, chan;
+
+    for(chan=0; chan < N_DMA_CHAN; chan++) {
+        val = soc_pci_read(unit, CMIC_CMCx_CHy_DMA_CTRL_OFFSET(cmc, chan));
+        val &= (PKTDMA_BIG_ENDIAN | PKTDMA_DESC_BIG_ENDIAN);
+        soc_pci_write(unit, CMIC_CMCx_CHy_DMA_CTRL_OFFSET(cmc, chan), val);
+    }
+    /* 
+     * This has to be done only once after both CMIC and EP blocks
+     * are out of reset.
+     */
+    soc_pci_write(unit, CMIC_RXBUF_EPINTF_RELEASE_ALL_CREDITS_OFFSET, 0);
+    soc_pci_write(unit, CMIC_RXBUF_EPINTF_RELEASE_ALL_CREDITS_OFFSET, 1);
+
+    return rv;
+}
+
+/*
+ * Function:
+ *      cmicm_dma_init
+ * Purpose:
+ *      Initialize the CMICM DMA for the specified SOC unit.
+ * Parameters:
+ *      unit - SOC unit #
+ * Returns:
+ *      SOC_E_NONE - success
+ *      SOC_E_XXXX - error code
+ * Notes:
+ *
+ */
+
+static int
+cmicm_dma_init(int unit)
+{
+    int rv = SOC_E_NONE;
+
+    return rv;
+}
+
+/*
+ * Function:
+ *      cmicm_dma_chan_chain_done
+ * Purpose:
+ *      on the CMICM DMA channel for the specified SOC unit.
+ * Parameters:
+ *      unit - SOC unit #
+ *      chan - channel #
+ *      mitigation - >0 = interrupt mitigation on
+ * Returns:
+ *      SOC_E_NONE - success
+ *      SOC_E_XXXX - error code
+ * Notes:
+ *      INTERRUPT LEVEL ROUTINE.
+ *
+ */
+static int
+cmicm_dma_chan_chain_done(int unit, int chan, int mitigation)
+{
+    int             rv = SOC_E_NONE;
+    int             cmc = SOC_PCI_CMC(unit);
+    uint32          val;
+
+    if (mitigation) {
+        (void)soc_cmicm_intr0_disable(unit,
+                                      IRQ_CMCx_DESC_DONE(chan)
+                                      | IRQ_CMCx_CHAIN_DONE(chan));
+    } else {
+        (void)soc_cmicm_intr0_disable(unit, IRQ_CMCx_CHAIN_DONE(chan));
+    }
+    /* Enable DMA */
+    val = soc_pci_read(unit,CMIC_CMCx_CHy_DMA_CTRL_OFFSET(cmc,chan));
+    val &= ~PKTDMA_ENABLE;
+    soc_pci_write(unit, CMIC_CMCx_CHy_DMA_CTRL_OFFSET(cmc,chan), val);
+
+    /* Clear the descriptor read complete stat bit */
+    val = soc_pci_read(unit, CMIC_CMCx_DMA_STAT_CLR_OFFSET(cmc));
+    soc_pci_write(unit,
+                  CMIC_CMCx_DMA_STAT_CLR_OFFSET(cmc),
+                  (val | DS_DESCRD_CMPLT_CLR(chan)));
+    soc_pci_write(unit, CMIC_CMCx_DMA_STAT_CLR_OFFSET(cmc), val);
+
+    /* Flush posted writes from PCI bridge */
+    (void)soc_pci_read(unit, CMIC_CMCx_DMA_STAT_OFFSET(cmc));
+
+    return rv;
+}
+
+/*
+ * Function:
+ *      cmicm_dma_chan_tx_purge
+ * Purpose:
+ *      Purge partial pkt left in the pipeline from TX DMA abort.
+ * Parameters:
+ *      unit - SOC unit #
+ *      chan - channel #
+ * Returns:
+ *      SOC_E_NONE   - Success
+ *      SOC_E_TIMEOUT - failed (Timeout)
+ * Notes:
+ *      Assumes SOC_DMA_LOCK is held for CMIC_DMA_CTRL manipulation.
+ *
+ */
+static int
+cmicm_dma_chan_tx_purge(int unit, int chan, dv_t *dv)
+{
+    int             rv = SOC_E_NONE;
+    int             cmc = SOC_PCI_CMC(unit);
+    sal_usecs_t     start_time;
+    int             diff_time;
+    uint32          dma_stat;
+    uint32          dma_state;
+
+    soc_pci_write(unit,
+                  CMIC_CMCx_CHy_DMA_CTRL_OFFSET(cmc, chan),
+                  soc_pci_read(unit, CMIC_CMCx_CHy_DMA_CTRL_OFFSET(cmc,chan))
+                  | PKTDMA_DIRECTION);
+    soc_pci_write(unit,
+                  CMIC_CMCx_DMA_DESCy_OFFSET(cmc, chan),
+                  soc_cm_l2p(unit, dv->dv_dcb));
+    /* Start DMA */
+    soc_pci_write(unit,
+                  CMIC_CMCx_CHy_DMA_CTRL_OFFSET(cmc, chan),
+                  soc_pci_read(unit, CMIC_CMCx_CHy_DMA_CTRL_OFFSET(cmc ,chan))
+                  | PKTDMA_ENABLE);
+
+    start_time = sal_time_usecs();
+    diff_time = 0;
+    dma_state = (DS_CMCx_DMA_DESC_DONE(chan) | DS_CMCx_DMA_CHAIN_DONE(chan));
+    do {
+        sal_udelay(SAL_BOOT_SIMULATION ? 1000 : 10);
+        dma_stat = soc_pci_read(unit, CMIC_CMCx_DMA_STAT_OFFSET(cmc)) &
+            (DS_CMCx_DMA_DESC_DONE(chan) | DS_CMCx_DMA_CHAIN_DONE(chan));
+        diff_time = SAL_USECS_SUB(sal_time_usecs(), start_time);
+        if (diff_time > DMA_ABORT_TIMEOUT) { /* 10 Sec(QT)/10 msec */
+            rv = SOC_E_TIMEOUT;
+            break;
+        } else if (diff_time < 0) {
+            /* Restart in case system time changed */
+            start_time = sal_time_usecs();
+        }
+    } while (dma_stat != dma_state);
+    /* Clear CHAIN_DONE and DESC_DONE */
+    soc_pci_write(unit,
+                  CMIC_CMCx_CHy_DMA_CTRL_OFFSET(cmc, chan),
+                  soc_pci_read(unit,CMIC_CMCx_CHy_DMA_CTRL_OFFSET(cmc, chan))
+                  & ~PKTDMA_ENABLE);
+
+    dma_stat = soc_pci_read(unit, CMIC_CMCx_DMA_STAT_CLR_OFFSET(cmc));
+    soc_pci_write(unit,
+                  CMIC_CMCx_DMA_STAT_CLR_OFFSET(cmc),
+                  (dma_stat | DS_DESCRD_CMPLT_CLR(chan)));
+    soc_pci_write(unit, CMIC_CMCx_DMA_STAT_CLR_OFFSET(cmc), dma_stat);
+    return rv;
+}
+
+/*
+ * Function:
+ *      cmicm_dma_chan_desc_done_intr_enable
+ * Purpose:
+ *      Clears desc done on the CMICM DMA channel for the specified SOC unit.
+ * Parameters:
+ *      unit - SOC unit #
+ *      chan - channel #
+ * Returns:
+ *      SOC_E_NONE - success
+ *      SOC_E_XXXX - error code
+ * Notes:
+ *      INTERRUPT LEVEL ROUTINE.
+ *
+ */
+static int
+cmicm_dma_chan_desc_done_intr_enable(int unit, int chan)
+{
+    int rv = SOC_E_NONE;
+
+    (void)soc_cmicm_intr0_enable(unit, IRQ_CMCx_DESC_DONE(chan));
+    return rv;
+}
+
+/* Public Functions */
+
+/*
+ * Function:
+ *      soc_cmicm_dma_drv_init
+ * Purpose:
+ *      Initialize the CMICM DMA driver for the specified SOC unit.
+ *      Assign function pointers for SOC DMA driver interface.
+ * Parameters:
+ *      unit - SOC unit #
+ *      drv  - pointer to the function vector list
+ * Returns:
+ *      SOC_E_NONE - success
+ *      SOC_E_XXXX - error code
+ * Notes:
+ *
+ */
+int
+soc_cmicm_dma_drv_init(int unit, soc_cmic_dma_drv_t *drv)
+{
+    int rv = SOC_E_NONE;
+
+    drv->init = cmicm_dma_init;
+    drv->ctrl_init = cmicm_dma_ctrl_init;
+    drv->chan_config = cmicm_dma_chan_config;
+    drv->chan_dv_start = cmicm_dma_chan_dv_start;
+    drv->chan_start = cmicm_dma_chan_start;
+    drv->chan_poll = cmicm_dma_chan_poll;
+    drv->chan_abort = cmicm_dma_chan_abort;
+    drv->chan_tx_purge = cmicm_dma_chan_tx_purge;
+    drv->chan_desc_done_intr_enable
+        = cmicm_dma_chan_desc_done_intr_enable;
+    drv->chan_desc_done = cmicm_dma_chan_desc_done;
+    drv->chan_chain_done = cmicm_dma_chan_chain_done;
+    drv->chan_reload_done = NULL;
+
+    return rv;
+}
+
+#endif /* BCM_CMICM_SUPPORT */

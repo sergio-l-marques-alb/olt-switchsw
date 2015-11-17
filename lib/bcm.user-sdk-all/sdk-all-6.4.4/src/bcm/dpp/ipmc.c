@@ -1,0 +1,2389 @@
+/*
+ * $Id: ipmc.c,v 1.40 Broadcom SDK $
+ *
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ *
+ * File:    ipmc.c
+ * Purpose: 
+ */
+ 
+#ifdef _ERR_MSG_MODULE_NAME
+  #error "_ERR_MSG_MODULE_NAME redefined"
+#endif
+
+#define _ERR_MSG_MODULE_NAME BSL_BCM_IPMC
+
+#include <shared/bsl.h>
+#include <shared/swstate/sw_state_access.h>
+#include <bcm_int/common/debug.h>
+
+#include <soc/defs.h>
+ 
+#ifdef INCLUDE_L3
+ 
+#include <soc/drv.h>
+ 
+#include <soc/enet.h>
+ 
+#include <shared/gport.h>
+#include <bcm/types.h>
+#include <bcm/module.h>
+#include <bcm/error.h>
+#include <bcm/debug.h>
+#include <bcm/l2.h>
+#include <bcm/l3.h>
+#include <bcm/ipmc.h>
+#include <bcm/tunnel.h>
+#include <bcm/stack.h>
+#include <bcm/cosq.h>
+#include <bcm/mpls.h>
+#include <bcm/trunk.h>
+#include <bcm/pkt.h>
+
+#include <bcm_int/petra_dispatch.h>
+#include <bcm_int/dpp/ipmc.h>
+#include <bcm_int/dpp/utils.h>
+#include <bcm_int/dpp/error.h>
+#include <bcm_int/dpp/alloc_mngr.h>
+#include <bcm_int/dpp/trunk.h>
+#include <bcm_int/dpp/l3.h>
+#include <bcm_int/dpp/gport_mgmt.h>
+#include <bcm_int/common/multicast.h>
+#include <bcm_int/dpp/switch.h>
+
+
+#include <soc/dpp/PPD/ppd_api_rif.h>
+#include <soc/dpp/PPD/ppd_api_frwrd_ipv4.h>
+#include <soc/dpp/PPD/ppd_api_frwrd_ipv6.h>
+#include <soc/dpp/PPD/ppd_api_frwrd_ipv6.h>
+
+#include <soc/dcmn/dcmn_wb.h>
+
+#ifdef BCM_ARAD_SUPPORT
+#if defined(INCLUDE_KBP) && !defined(BCM_88030)
+#include <soc/dpp/ARAD/arad_kbp.h>
+#endif /* defined(INCLUDE_KBP) && !defined(BCM_88030) */
+#endif /* BCM_ARAD_SUPPORT */
+
+
+/***************************************************************/
+/***************************************************************/
+
+/*
+ * Local defines
+ *
+ */
+
+
+#define DPP_IPMC_MSG(string)   "%s[%d]: " string, __FILE__, __LINE__
+
+
+#define IPMC_SUPPORTED_FLAGS(unit) \
+(SOC_IS_PETRAB(unit) ? IPMC_SUPPORTED_FLAGS_PB : IPMC_SUPPORTED_FLAGS_ARAD)
+
+
+#define IPMC_SUPPORTED_FLAGS_PB   (BCM_IPMC_SOURCE_PORT_NOCHECK    | \
+                                 BCM_IPMC_REPLACE                | \
+                                 BCM_IPMC_IP6)
+
+#define IPMC_SUPPORTED_FLAGS_ARAD   (BCM_IPMC_SOURCE_PORT_NOCHECK    | \
+                                 BCM_IPMC_REPLACE                | \
+                                 BCM_IPMC_IP6|BCM_IPMC_HIT_CLEAR|BCM_IPMC_HIT)
+
+ 
+#define IPMC_ACCESS                 sw_state_access[unit].dpp.bcm.ipmc
+#define DPP_IPMC_UNIT_VALID_CHECK \
+    do {                                                                \
+        int _init;                                                      \
+        BCM_DPP_UNIT_CHECK(unit);                                       \
+        if (!(SOC_DPP_CONFIG(unit)->pp.ipmc_enable)) return BCM_E_UNAVAIL; \
+                                                                        \
+                                  \
+        if(sw_state[unit]->dpp.bcm.ipmc == NULL) {                      \
+            return BCM_E_INIT;                                          \
+        }                                                               \
+        BCMDNX_IF_ERR_EXIT(IPMC_ACCESS.init.get(unit, &_init));         \
+        if (_init == FALSE) return BCM_E_INIT;                          \
+        if (_init != TRUE) return _init;                                \
+    } while (0);
+    
+
+
+#define DPP_FRWRD_IP_GET_BLOCK_NOF_ENTRIES      (100)
+#define DPP_FRWRD_IP_ENTRIES_TO_SCAN(unit)      SOC_DPP_DEFS_GET_NOF_ENTRY_IDS(unit)
+#define SOC_SAND_FALSE 0
+
+/* 
+ * Related Defines
+ */
+
+ 
+/***************************************************************/
+/***************************************************************/
+
+/***** Internal functions ******/
+
+STATIC int 
+bcm_petra_ipmc_entry_rp_add(
+    int unit, 
+    bcm_ipmc_addr_t *entry);
+
+STATIC int 
+bcm_petra_ipmc_entry_rp_remove(
+    int unit, 
+    bcm_ipmc_addr_t *entry,
+    uint8 *is_bidir);
+
+STATIC int 
+bcm_petra_ipmc_entry_rp_get(
+    int unit, 
+    bcm_ipmc_addr_t *entry,
+    uint8 *is_bidir);
+
+
+/* Source port check */
+int
+  _bcm_petra_source_port_check(
+    int unit,
+    bcm_ipmc_addr_t *data
+  )
+{
+    BCMDNX_INIT_FUNC_DEFS;
+    if (data->ts) { /* Trunk port check */
+        if (!BCM_DPP_TRUNK_VALID(data->port_tgid)) {
+            LOG_ERROR(BSL_LS_BCM_IPMC,
+                      (BSL_META_U(unit,
+                                  "port tgid is invalid\n")));
+            BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("port tgid is invalid")));
+        }
+    } else {        /* Source port check */
+        if (!SOC_PORT_VALID(unit, data->port_tgid)) {
+            LOG_ERROR(BSL_LS_BCM_IPMC,
+                      (BSL_META_U(unit,
+                                  "Source port is invalid\n")));
+            BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Source port is invalid")));
+        }
+    }
+    BCM_EXIT;
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/* Validate general ipmc structure */
+int
+  _bcm_petra_ipmc_addr_validate(
+    int unit,
+    bcm_ipmc_addr_t *data
+  )
+{
+    BCMDNX_INIT_FUNC_DEFS;
+    if (data->flags & ~IPMC_SUPPORTED_FLAGS(unit)) {
+        LOG_ERROR(BSL_LS_BCM_IPMC,
+                  (BSL_META_U(unit,
+                              "flags %x is not supported\n"), data->flags));
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG_NO_UNIT("one or more flags is not supported")));
+    }
+
+    if (data->flags & BCM_IPMC_IP6) {
+        /* IPV6 */
+        if (!BCM_IP6_MULTICAST(data->mc_ip6_addr)) {
+            LOG_ERROR(BSL_LS_BCM_IPMC,
+                      (BSL_META_U(unit,
+                                  "Destination ipv6 address is not mc\n")));
+            BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG_NO_UNIT("IPV6 destination address is not MC")));
+        } 
+        if (BCM_IP6_MULTICAST(data->s_ip6_addr)) {
+            LOG_ERROR(BSL_LS_BCM_IPMC,
+                      (BSL_META_U(unit,
+                                  "Source ipv6 address is mc\n")));
+            BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG_NO_UNIT("IPV6 source address is MC")));
+        } 
+    } else {
+        /* IPV4 */
+        if (!BCM_IP4_MULTICAST(data->mc_ip_addr) && data->mc_ip_addr != 0) {/* zero is ok fo G mask*/
+            LOG_ERROR(BSL_LS_BCM_IPMC,
+                      (BSL_META_U(unit,
+                                  "Destination ipv4 address is not mc\n")));
+            BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG_NO_UNIT("IPV4 destination address is not MC")));
+        } 
+        if (BCM_IP4_MULTICAST(data->s_ip_addr)) {
+            LOG_ERROR(BSL_LS_BCM_IPMC,
+                      (BSL_META_U(unit,
+                                  "Source ipv4 address is mc\n")));
+            BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG_NO_UNIT("IPV4 source address is MC")));
+        }
+    }
+
+    /* Vlan id range check. */ 
+    if (SOC_IS_PETRAB(unit)) {
+        if (!BCM_VLAN_VALID(data->vid)) {
+            LOG_ERROR(BSL_LS_BCM_IPMC,
+                      (BSL_META_U(unit,
+                                  "Invalid vid\n")));
+            BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG_NO_UNIT("invalid vid")));
+        } 
+    }
+
+    /* IPMC module does not support vrf != 0 */
+    if (!_BCM_DPP_IPMC_BIDIR_SUPPORTED(unit) && data->vrf != 0) {
+        LOG_ERROR(BSL_LS_BCM_IPMC,
+                  (BSL_META_U(unit,
+                              "Invalid vrf, IPMC module only supports vrf = 0\n")));
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG_NO_UNIT("invalid vrf, IPMC module only supports vrf = 0")));
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/* Find internal functions */
+int
+  _bcm_ppd_frwrd_ipv4_mc_route_find(
+    int unit,
+    bcm_ipmc_addr_t *data
+  )
+{
+    uint32
+        soc_sand_rv,
+        rv = BCM_E_NONE;
+    SOC_PPD_FRWRD_IPV4_MC_ROUTE_KEY
+        route_key;
+    SOC_PPD_FRWRD_IPV4_MC_ROUTE_INFO
+        route_info;
+    SOC_PPD_FRWRD_IP_ROUTE_STATUS
+        route_status=0;
+    SOC_PPD_FRWRD_IP_ROUTE_LOCATION
+        location;
+    uint8
+        get_flags=0,
+        found,
+        is_bidir=0;
+
+    BCMDNX_INIT_FUNC_DEFS;
+    unit = (unit);
+
+    /* do operation on BIDIR DB, if exist done otherwise continue  */
+    if (data->rp_id != BCM_IPMC_RP_ID_INVALID) {
+        rv = bcm_petra_ipmc_entry_rp_get(unit,data,&is_bidir);
+    }
+    if (is_bidir) {
+        BCMDNX_IF_ERR_EXIT(rv);
+        BCM_EXIT;
+    }
+
+    data->rp_id = BCM_IPMC_RP_ID_INVALID;
+
+    SOC_PPD_FRWRD_IPV4_MC_ROUTE_KEY_clear(&route_key);
+    SOC_PPD_FRWRD_IPV4_MC_ROUTE_INFO_clear(&route_info);
+
+    /* Route key */
+    route_key.group             = data->mc_ip_addr;
+    route_key.inrif_valid       = data->vid != 0;
+    route_key.inrif             = data->vid;
+    route_key.source.ip_address = data->s_ip_addr;
+    /* Source IP address 0x0 means no lookup for SIP */
+    if (data->s_ip_addr == 0x0) {
+        route_key.source.prefix_len = 0;
+    } else {
+        if (SOC_IS_JERICHO(unit)) {
+            route_key.source.prefix_len = bcm_ip_mask_length(data->s_ip_mask);
+        } else {
+            route_key.source.prefix_len = _SHR_L3_IP_MAX_NETLEN;
+        }
+    }    
+
+    get_flags = SOC_PPD_FRWRD_IP_EXACT_MATCH;
+
+    if (data->flags & BCM_IPMC_HIT_CLEAR) {
+        get_flags |= SOC_PPD_FRWRD_IP_CLEAR_ON_GET;
+    }
+
+    soc_sand_rv = soc_ppd_frwrd_ipv4_mc_route_get(unit,&route_key,get_flags,&route_info,&route_status,&location,&found);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+    if (found == SOC_SAND_FALSE) {
+        /* Entry not found */
+        BCMDNX_ERR_EXIT_MSG(BCM_E_NOT_FOUND, (_BSL_BCM_MSG("IPV4 MC entry not found")));
+    } 
+    
+    /* Entry found */
+    if (route_status & SOC_PPD_FRWRD_IP_ROUTE_STATUS_ACCESSED) {
+        data->flags |= BCM_IPMC_HIT;
+    }
+
+    if (route_info.dest_id.dest_type == SOC_SAND_PP_DEST_MULTICAST) {
+        _BCM_MULTICAST_GROUP_SET(data->group,_BCM_MULTICAST_TYPE_L3,route_info.dest_id.dest_val);
+    }
+    else if (route_info.dest_id.dest_type == SOC_SAND_PP_DEST_FEC) {
+        _BCM_PETRA_L3_ITF_SET(data->l3a_intf, _BCM_PETRA_L3_ITF_FEC, route_info.dest_id.dest_val); 
+    } else {
+        LOG_ERROR(BSL_LS_BCM_IPMC,
+                  (BSL_META_U(unit,
+                              "entry get ipv4 resolve dest type differ from multicast\n")));
+        BCMDNX_ERR_EXIT_MSG(BCM_E_INTERNAL, (_BSL_BCM_MSG("in IPV4 entry resolve dest-type differ from multicast")));
+    }
+
+    BCM_EXIT;
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+  _bcm_ipmc_addr_t_to_ppd_frwrd_ipv6_mc_route_key(
+    int unit,
+    bcm_ipmc_addr_t *data,
+    SOC_PPD_FRWRD_IPV6_MC_ROUTE_KEY *route_key
+  )
+{
+    bcm_error_t
+        rv;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    SOC_PPD_FRWRD_IPV6_MC_ROUTE_KEY_clear(route_key);
+
+    /* Route key */ 
+    route_key->inrif.mask        = (SOC_DPP_CONFIG(unit)->l3.nof_rifs) - 1;
+    route_key->inrif.val         = data->vid;
+    route_key->vrf_ndx            = data->vrf;
+    rv = _bcm_l3_bcm_ipv6_addr_to_sand_ipv6_addr(unit, data->mc_ip6_addr, &(route_key->group));
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    /* Source IP address 0x0 means no lookup for SIP. In Arad, SIP in MC lookup only for external TCAM */
+#ifdef BCM_ARAD_SUPPORT
+#if defined(INCLUDE_KBP) && !defined(BCM_88030)
+    if(ARAD_KBP_ENABLE_IPV6_MC) 
+    {
+        bcm_ip6_t zero_addr;
+        sal_memset(&zero_addr, 0x0, sizeof(bcm_ip6_t));
+        if (sal_memcmp(data->s_ip6_addr, &zero_addr, sizeof(bcm_ip6_t)) == 0) {
+            route_key->source.prefix_len = 0;
+        } else {
+            route_key->source.prefix_len = _SHR_L3_IP6_MAX_NETLEN;
+            rv = _bcm_l3_bcm_ipv6_addr_to_sand_ipv6_addr(unit, data->s_ip6_addr, &(route_key->source.ipv6_address));
+            BCMDNX_IF_ERR_EXIT(rv);
+        }
+    }
+    else
+#endif /* defined(INCLUDE_KBP) && !defined(BCM_88030) */
+#endif /* BCM_ARAD_SUPPORT */
+    {
+        route_key->source.prefix_len = 0;
+    }
+    BCM_EXIT;
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+int
+  _bcm_ppd_frwrd_ipv6_mc_route_find(
+    int unit,
+    bcm_ipmc_addr_t *data
+  )
+{
+    uint32
+        soc_sand_rv;
+    bcm_error_t
+        rv;
+    SOC_PPD_FRWRD_IPV6_MC_ROUTE_KEY
+        route_key;
+    SOC_PPD_FRWRD_IPV6_MC_ROUTE_INFO
+        route_info;
+    SOC_PPD_FRWRD_IP_ROUTE_STATUS
+        route_status;
+    SOC_PPD_FRWRD_IP_ROUTE_LOCATION
+        location;
+    uint8
+        get_flags=0,
+        found;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    if (soc_property_suffix_num_get(unit, -1, spn_CUSTOM_FEATURE, "ipv6_mc_forwarding_disable", 0))
+    {        
+        BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("ipV6mc APIs is unavailable when property ipv6_mc_forwarding_disable=1")));    
+    }
+
+    unit = (unit);
+
+    SOC_PPD_FRWRD_IPV6_MC_ROUTE_KEY_clear(&route_key);
+    SOC_PPD_FRWRD_IPV6_MC_ROUTE_INFO_clear(&route_info);
+
+    /* Route key */ 
+    rv = _bcm_ipmc_addr_t_to_ppd_frwrd_ipv6_mc_route_key(unit, data, &route_key);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    get_flags = SOC_PPD_FRWRD_IP_EXACT_MATCH;
+
+    if (data->flags & BCM_IPMC_HIT_CLEAR) {
+        get_flags |= SOC_PPD_FRWRD_IP_CLEAR_ON_GET;
+    }
+
+    soc_sand_rv = soc_ppd_frwrd_ipv6_mc_route_get(unit,&route_key,get_flags,&route_info,&route_status,&location,&found);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+    if (found == SOC_SAND_FALSE) {
+        /* Entry not found */
+        BCMDNX_ERR_EXIT_MSG(BCM_E_NOT_FOUND, (_BSL_BCM_MSG("IPV6 MC entry not found")));
+    } 
+    
+    /* Entry found */
+    if (route_status & SOC_PPD_FRWRD_IP_ROUTE_STATUS_ACCESSED) {
+        data->flags |= BCM_IPMC_HIT;
+    }
+
+    if (route_info.dest_id.dest_type == SOC_SAND_PP_DEST_MULTICAST) {
+        _BCM_MULTICAST_GROUP_SET(data->group,_BCM_MULTICAST_TYPE_L3,route_info.dest_id.dest_val);
+    }
+    else if (route_info.dest_id.dest_type == SOC_SAND_PP_DEST_FEC) {
+        _BCM_PETRA_L3_ITF_SET(data->l3a_intf, _BCM_PETRA_L3_ITF_FEC, route_info.dest_id.dest_val); 
+    } else {
+        LOG_ERROR(BSL_LS_BCM_IPMC,
+                  (BSL_META_U(unit,
+                              "entry get ipv6 resolve dest type differ from multicast\n")));
+        BCMDNX_ERR_EXIT_MSG(BCM_E_INTERNAL, (_BSL_BCM_MSG("in IPV6 entry resolve dest-type differ from multicast")));
+    }
+    BCM_EXIT;
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+
+/* check if the entry to be added to routing DB or MACT
+ * depends if routing is enable or the in_rif
+ */
+
+STATIC
+int
+  _bcm_ppd_frwrd_ipv4_mc_is_bridged(
+    int unit,
+    bcm_ipmc_addr_t *data,
+    uint8 *bridge
+  )
+{
+    uint32
+        soc_sand_rv;
+    uint32
+        vsi;
+    SOC_PPD_RIF_INFO
+      rif_info;
+
+    BCMDNX_INIT_FUNC_DEFS;
+    unit = (unit);
+
+    *bridge = 0;
+    vsi = data->vid;
+
+    /* vsi not specified then this is entry for routing */
+    if (vsi == 0) {
+        BCM_EXIT;
+    }
+
+    /* get rif attributes */
+    soc_sand_rv = soc_ppd_rif_vsid_map_get(
+              unit,
+              vsi,
+              &rif_info
+          );
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+    /* if routing is disable on */
+    if (!(rif_info.routing_enablers_bm & SOC_PPD_RIF_ROUTE_ENABLE_TYPE_IPV4_MC)) {
+        *bridge = 1;
+    }
+
+    /* check if key is supported as bridged key */
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+STATIC
+int
+  _bcm_ppd_frwrd_ipv4_mc_bridge_add(
+    int unit,
+    bcm_ipmc_addr_t *data
+  )
+{
+    uint32
+        soc_sand_rv;
+    bcm_error_t
+        rv;
+    SOC_PPD_FRWRD_MACT_ENTRY_KEY
+        route_key;
+    SOC_PPD_FRWRD_MACT_ENTRY_VALUE
+        route_info;
+    SOC_SAND_SUCCESS_FAILURE
+        failure_indication;
+    bcm_ipmc_addr_t data_find;
+
+    BCMDNX_INIT_FUNC_DEFS;
+    unit = (unit);
+
+    SOC_PPD_FRWRD_MACT_ENTRY_KEY_clear(&route_key);
+    SOC_PPD_FRWRD_MACT_ENTRY_VALUE_clear(&route_info);
+    bcm_ipmc_addr_t_init(&data_find);
+
+    sal_memcpy(&data_find,data,sizeof(bcm_ipmc_addr_t));
+
+    rv = bcm_petra_ipmc_find(unit,&data_find);
+    if (rv == BCM_E_EXISTS && (!(data->flags & BCM_IPMC_REPLACE))) {
+       LOG_ERROR(BSL_LS_BCM_IPMC,
+                 (BSL_META_U(unit,
+                             "entry key given already exists and REPLACE flag is disabled\n")));
+       BCMDNX_ERR_EXIT_MSG(BCM_E_EXISTS, (_BSL_BCM_MSG("entry key given already exists and REPLACE flag is disabled")));
+    }
+    if (rv != BCM_E_NONE && rv != BCM_E_NOT_FOUND) {
+        LOG_ERROR(BSL_LS_BCM_IPMC,
+                  (BSL_META_U(unit,
+                              "find failed\n")));
+        BCMDNX_IF_ERR_EXIT(rv);
+    }
+
+
+    if (data->s_ip_addr != 0) {
+       BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("when add IPMC entry as bridged SIP has to be seto to zero")));
+    }
+
+
+    /* Route key */
+    route_key.key_type = SOC_PPD_FRWRD_MACT_KEY_TYPE_IPV4_MC;
+    route_key.key_val.ipv4_mc.dip = data->mc_ip_addr;
+    route_key.key_val.ipv4_mc.fid = data->vid;
+
+    /* Route info */
+    /* Resolve ipmc index */
+    if (_BCM_MULTICAST_IS_SET(data->group) && _BCM_MULTICAST_IS_L3(data->group)) {
+            SOC_PPD_FRWRD_DECISION_MC_GROUP_SET(unit,&route_info.frwrd_info.forward_decision,_BCM_MULTICAST_ID_GET(data->group), soc_sand_rv);
+            BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+    }
+    else {
+        /* Multicast ID is invalid */
+        LOG_ERROR(BSL_LS_BCM_IPMC,
+                  (BSL_META_U(unit,
+                              "ipmc index is invalid\n")));
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("ipmc index is invalid")));    
+    }
+
+    soc_sand_rv = soc_ppd_frwrd_mact_entry_add(unit,SOC_PPD_FRWRD_MACT_ADD_TYPE_INSERT,&route_key,&route_info,&failure_indication);
+    SOC_SAND_IF_FAIL_RETURN(failure_indication);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+
+STATIC
+int
+  _bcm_ppd_frwrd_ipv4_mc_bridged_find(
+    int unit,
+    bcm_ipmc_addr_t *data
+  )
+{
+    uint32
+        soc_sand_rv;
+    SOC_PPD_FRWRD_MACT_ENTRY_KEY
+        route_key;
+    SOC_PPD_FRWRD_MACT_ENTRY_VALUE
+        route_info;
+    uint8
+        found;
+
+    BCMDNX_INIT_FUNC_DEFS;
+    unit = (unit);
+
+    SOC_PPD_FRWRD_MACT_ENTRY_KEY_clear(&route_key);
+    SOC_PPD_FRWRD_MACT_ENTRY_VALUE_clear(&route_info);
+
+    if (data->s_ip_addr != 0) {
+       BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("when add IPMC entry as bridged SIP has to be seto to zero")));
+    }
+
+    /* Route key */
+    route_key.key_type = SOC_PPD_FRWRD_MACT_KEY_TYPE_IPV4_MC;
+    route_key.key_val.ipv4_mc.dip = data->mc_ip_addr;
+    route_key.key_val.ipv4_mc.fid = data->vid;
+
+
+    soc_sand_rv = soc_ppd_frwrd_mact_entry_get(unit,&route_key,&route_info,&found);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+    if (!found) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_NOT_FOUND, (_BSL_BCM_MSG("IPV4 MC (bridged) entry not found")));
+    }
+
+    if (route_info.frwrd_info.forward_decision.type == SOC_PPD_FRWRD_DECISION_TYPE_MC) {
+        _BCM_MULTICAST_GROUP_SET(data->group,_BCM_MULTICAST_TYPE_L3,route_info.frwrd_info.forward_decision.dest_id);
+    }
+    else{
+        BCMDNX_ERR_EXIT_MSG(BCM_E_INTERNAL, (_BSL_BCM_MSG("not expected destination")));    
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+
+STATIC
+int
+  _bcm_ppd_frwrd_ipv4_mc_bridge_remove(
+    int unit,
+    bcm_ipmc_addr_t *data
+  )
+{
+    uint32
+        soc_sand_rv;
+    bcm_error_t
+        rv;
+    SOC_PPD_FRWRD_MACT_ENTRY_KEY
+        route_key;
+    bcm_ipmc_addr_t data_find;
+
+    BCMDNX_INIT_FUNC_DEFS;
+    unit = (unit);
+
+    SOC_PPD_FRWRD_MACT_ENTRY_KEY_clear(&route_key);
+    bcm_ipmc_addr_t_init(&data_find);
+
+    sal_memcpy(&data_find,data,sizeof(bcm_ipmc_addr_t));
+
+    rv = bcm_petra_ipmc_find(unit,&data_find);
+
+    if (rv != BCM_E_NONE && rv != BCM_E_NOT_FOUND) {
+        LOG_ERROR(BSL_LS_BCM_IPMC,
+                  (BSL_META_U(unit,
+                              "find failed\n")));
+        BCMDNX_IF_ERR_EXIT(rv);
+    }
+    if (rv == BCM_E_NOT_FOUND) {
+       LOG_ERROR(BSL_LS_BCM_IPMC,
+                 (BSL_META_U(unit,
+                             "entry key given does not exist\n")));
+       BCMDNX_ERR_EXIT_MSG(BCM_E_NOT_FOUND, (_BSL_BCM_MSG("entry key given does not exist")));
+    }
+
+    if (data->s_ip_addr != 0) {
+       BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("when add IPMC entry as bridged SIP has to be seto to zero")));
+    }
+
+    /* Route key */
+    route_key.key_type = SOC_PPD_FRWRD_MACT_KEY_TYPE_IPV4_MC;
+    route_key.key_val.ipv4_mc.dip = data->mc_ip_addr;
+    route_key.key_val.ipv4_mc.fid = data->vid;
+
+
+    soc_sand_rv = soc_ppd_frwrd_mact_entry_remove(unit,&route_key, 0);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+/* Add internal funcions */
+/* Creates a new ipv4 mc route entry */
+int
+  _bcm_ppd_frwrd_ipv4_mc_route_add(
+    int unit,
+    bcm_ipmc_addr_t *data
+  )
+{
+    uint32
+        soc_sand_rv;
+    bcm_error_t
+        rv;
+    SOC_PPD_FRWRD_IPV4_MC_ROUTE_KEY
+        route_key;
+    SOC_PPD_FRWRD_IPV4_MC_ROUTE_INFO
+        route_info;
+    SOC_SAND_SUCCESS_FAILURE
+        success;
+    bcm_ipmc_addr_t data_find;
+
+    BCMDNX_INIT_FUNC_DEFS;
+    unit = (unit);
+
+
+    /* this is actually just RP entry addition */
+    if (data->rp_id != BCM_IPMC_RP_ID_INVALID) {
+        return bcm_petra_ipmc_entry_rp_add(unit,data);
+    }
+
+    SOC_PPD_FRWRD_IPV4_MC_ROUTE_KEY_clear(&route_key);
+    SOC_PPD_FRWRD_IPV4_MC_ROUTE_INFO_clear(&route_info);
+    bcm_ipmc_addr_t_init(&data_find);
+
+    sal_memcpy(&data_find,data,sizeof(bcm_ipmc_addr_t));
+
+    rv = bcm_petra_ipmc_find(unit,&data_find);
+        
+    if (rv == BCM_E_NONE && (!(data->flags & BCM_IPMC_REPLACE))) {
+       LOG_ERROR(BSL_LS_BCM_IPMC,
+                 (BSL_META_U(unit,
+                             "entry key given already exists and REPLACE flag is disabled\n")));
+       BCMDNX_ERR_EXIT_MSG(BCM_E_EXISTS, (_BSL_BCM_MSG("entry key given already exists and REPLACE flag is disabled")));
+    }
+    if (rv != BCM_E_NONE && rv != BCM_E_NOT_FOUND) {
+        LOG_ERROR(BSL_LS_BCM_IPMC,
+                  (BSL_META_U(unit,
+                              "find failed\n")));
+        BCMDNX_IF_ERR_EXIT(rv);
+    }
+
+    /* Route key */
+    route_key.group             = data->mc_ip_addr;
+    route_key.inrif_valid       = data->vid != 0;
+    route_key.inrif             = data->vid;
+    route_key.source.ip_address = data->s_ip_addr;
+    route_key.vrf_ndx           = data->vrf;
+    /* Source IP address 0x0 means no lookup for SIP */
+    if (data->s_ip_addr == 0x0) {
+        route_key.source.prefix_len = 0;
+    } else {
+        if (SOC_IS_JERICHO(unit)) {
+            route_key.source.prefix_len = bcm_ip_mask_length(data->s_ip_mask);
+        } else {
+            route_key.source.prefix_len = _SHR_L3_IP_MAX_NETLEN;
+        }
+    }   
+    
+    /* Route info */
+
+    /* Resolve ipmc index */    
+    if (_BCM_MULTICAST_IS_SET(data->group)) {
+        if (_BCM_MULTICAST_IS_L3(data->group)) {
+            data->group = _BCM_MULTICAST_ID_GET(data->group); 
+            route_info.dest_id.dest_type    = SOC_SAND_PP_DEST_MULTICAST;
+            route_info.dest_id.dest_val     = data->group;
+
+            /* The given ipmc_index was created by bcm_multicast APIs. It's
+             * assumed that the IPMC group's l2_pbmp and l3_pbmp have already
+             * been or will be configured by bcm_multicast APIs.
+             */
+        } else {
+            LOG_ERROR(BSL_LS_BCM_IPMC,
+                      (BSL_META_U(unit,
+                                  "ipmc index is not a L3 group\n")));
+            BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("group is not a L3 MC group")));    
+        }
+    } 
+    else if (_BCM_PETRA_L3_ITF_IS_FEC(data->l3a_intf)){
+             route_info.dest_id.dest_type = SOC_SAND_PP_DEST_FEC;
+             route_info.dest_id.dest_val = _BCM_PETRA_L3_ITF_VAL_GET(data->l3a_intf); 
+    }
+    else {
+        /* Multicast ID is invalid */
+        LOG_ERROR(BSL_LS_BCM_IPMC,
+                  (BSL_META_U(unit,
+                              "ipmc index is invalid\n")));
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("ipmc index is invalid")));    
+    }
+    
+        
+    /* Add / Update entry */
+    soc_sand_rv = soc_ppd_frwrd_ipv4_mc_route_add(unit,&route_key,&route_info,&success);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+    if (success != SOC_SAND_SUCCESS) {
+        /* Out of resources or other internal error */
+        LOG_ERROR(BSL_LS_BCM_IPMC,
+                  (BSL_META_U(unit,
+                              "Table is out of resources\n")));
+        BCMDNX_ERR_EXIT_MSG(BCM_E_FULL, (_BSL_BCM_MSG("out of resources")));
+    }
+
+    BCM_EXIT;
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+  _bcm_ppd_frwrd_ipv6_mc_route_add(
+    int unit,
+    bcm_ipmc_addr_t *data
+  )
+{
+    uint32
+      soc_sand_rv;
+    bcm_error_t
+      rv;
+    SOC_PPD_FRWRD_IPV6_MC_ROUTE_KEY
+        route_key;
+    SOC_PPD_FRWRD_IPV6_MC_ROUTE_INFO
+        route_info;
+    SOC_SAND_SUCCESS_FAILURE
+        success;
+    bcm_ipmc_addr_t
+        data_find;
+
+    BCMDNX_INIT_FUNC_DEFS;
+    unit = (unit);
+
+    if (soc_property_suffix_num_get(unit, -1, spn_CUSTOM_FEATURE, "ipv6_mc_forwarding_disable", 0))
+    {        
+        BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("ipmc APIs is unavailable when property ipv6_mc_forwarding_disable=1")));    
+    }
+
+    SOC_PPD_FRWRD_IPV6_MC_ROUTE_KEY_clear(&route_key);
+    SOC_PPD_FRWRD_IPV6_MC_ROUTE_INFO_clear(&route_info);
+    bcm_ipmc_addr_t_init(&data_find);
+
+    sal_memcpy(&data_find,data,sizeof(bcm_ipmc_addr_t));
+
+    /* Check if entry is already existed */
+    rv = bcm_petra_ipmc_find(unit,&data_find);
+        
+    if (rv == BCM_E_NONE && (!(data->flags & BCM_IPMC_REPLACE))) {
+       LOG_ERROR(BSL_LS_BCM_IPMC,
+                 (BSL_META_U(unit,
+                             "entry key given already exists and REPLACE flag is disabled\n")));
+       BCMDNX_ERR_EXIT_MSG(BCM_E_EXISTS, (_BSL_BCM_MSG("entry key given already exists and REPLACE flag is disabled")));
+    }
+    if (rv != BCM_E_NONE && rv != BCM_E_NOT_FOUND) {
+        LOG_ERROR(BSL_LS_BCM_IPMC,
+                  (BSL_META_U(unit,
+                              "find failed\n")));
+        BCMDNX_IF_ERR_EXIT(rv);
+    }
+
+    /* Route key */ 
+    rv = _bcm_ipmc_addr_t_to_ppd_frwrd_ipv6_mc_route_key(unit, data, &route_key);
+    BCMDNX_IF_ERR_EXIT(rv);
+            
+    /* Route info */
+
+    /* Resolve ipmc index */
+    if (_BCM_MULTICAST_IS_SET(data->group)) {
+        if (_BCM_MULTICAST_IS_L3(data->group)) {
+            route_info.dest_id.dest_type    = SOC_SAND_PP_DEST_MULTICAST;
+            data->group = _BCM_MULTICAST_ID_GET(data->group); 
+            route_info.dest_id.dest_val     = data->group;
+
+            /* The given ipmc_index was created by bcm_multicast APIs. It's
+             * assumed that the IPMC group's l2_pbmp and l3_pbmp have already
+             * been or will be configured by bcm_multicast APIs.
+             */
+        } 
+        else if (_BCM_PETRA_L3_ITF_IS_FEC(data->l3a_intf)){
+                 route_info.dest_id.dest_type = SOC_SAND_PP_DEST_FEC;
+                 route_info.dest_id.dest_val = _BCM_PETRA_L3_ITF_VAL_GET(data->l3a_intf); 
+        }
+        else {
+            LOG_ERROR(BSL_LS_BCM_IPMC,
+                      (BSL_META_U(unit,
+                                  "ipmc index is not a L3 group/FEC \n")));
+            BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("ipmc index is not a L3 MC group/FEC")));    
+        }
+    } else {
+        /* Multicast ID is invalid */
+        LOG_ERROR(BSL_LS_BCM_IPMC,
+                  (BSL_META_U(unit,
+                              "ipmc index is invalid\n")));
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("ipmc index is invalid")));    
+    }
+
+
+    /* Add / Update entry */
+    soc_sand_rv = soc_ppd_frwrd_ipv6_mc_route_add(unit,&route_key,&route_info,&success);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+    if (success != SOC_SAND_SUCCESS) {
+        LOG_ERROR(BSL_LS_BCM_IPMC,
+                  (BSL_META_U(unit,
+                              "Internal error %s\n"),soc_sand_SAND_SUCCESS_FAILURE_to_string(success)));
+        BCMDNX_ERR_EXIT_MSG(BCM_E_FULL, (_BSL_BCM_MSG("out of resources")));
+    }
+   
+    BCM_EXIT;
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/* Remove internal functions */
+int
+  _bcm_ppd_frwrd_ipv4_mc_route_remove(
+    int unit,
+    bcm_ipmc_addr_t *data
+  )
+{
+    uint32
+        soc_sand_rv;
+    bcm_error_t
+        rv = BCM_E_NONE;
+    SOC_PPD_FRWRD_IPV4_MC_ROUTE_KEY
+        route_key;
+    SOC_PPD_FRWRD_IPV4_MC_ROUTE_INFO
+        route_info;
+    SOC_SAND_SUCCESS_FAILURE
+        success;
+    bcm_ipmc_addr_t
+        data_find;
+    uint8
+        is_bidir=0;
+
+    BCMDNX_INIT_FUNC_DEFS;
+    unit = (unit);
+    success = SOC_SAND_FAILURE_UNKNOWN_ERR;
+
+    /* do operation on BIDIR DB, if exist done otherwise continue  */
+    if (data->rp_id != BCM_IPMC_RP_ID_INVALID) {
+        rv = bcm_petra_ipmc_entry_rp_remove(unit,data,&is_bidir);
+    }
+    if (is_bidir) {
+        BCMDNX_IF_ERR_EXIT(rv);
+        BCM_EXIT;
+    }
+
+
+    SOC_PPD_FRWRD_IPV4_MC_ROUTE_KEY_clear(&route_key);
+    SOC_PPD_FRWRD_IPV4_MC_ROUTE_INFO_clear(&route_info);
+    bcm_ipmc_addr_t_init(&data_find);
+
+    sal_memcpy(&data_find,data,sizeof(bcm_ipmc_addr_t));
+
+    /* check if exists before trying to remove */
+    rv = bcm_petra_ipmc_find(unit,&data_find);
+    
+    if (rv != BCM_E_NONE && rv != BCM_E_NOT_FOUND) {
+        LOG_ERROR(BSL_LS_BCM_IPMC,
+                  (BSL_META_U(unit,
+                              "find failed\n")));
+        BCMDNX_IF_ERR_EXIT(rv);
+    }
+        
+    if (rv == BCM_E_NOT_FOUND) {
+       LOG_ERROR(BSL_LS_BCM_IPMC,
+                 (BSL_META_U(unit,
+                             "entry key given does not exist\n")));
+       BCMDNX_ERR_EXIT_MSG(BCM_E_NOT_FOUND, (_BSL_BCM_MSG("entry key given does not exist")));
+    }
+
+    /* Route key */
+    route_key.group             = data->mc_ip_addr;
+    route_key.inrif_valid       = data->vid != 0;
+    route_key.inrif             = data->vid;
+    route_key.source.ip_address = data->s_ip_addr;
+    /* Source IP address 0x0 means no lookup for SIP */
+    if (data->s_ip_addr == 0x0) {
+        route_key.source.prefix_len = 0;
+    } else {
+        if (SOC_IS_JERICHO(unit)) {
+            route_key.source.prefix_len = bcm_ip_mask_length(data->s_ip_mask);
+        } else {
+            route_key.source.prefix_len = _SHR_L3_IP_MAX_NETLEN;
+        }
+    }
+
+    soc_sand_rv = soc_ppd_frwrd_ipv4_mc_route_remove(unit,&route_key,&success);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+    if (success != SOC_SAND_SUCCESS) {
+        LOG_ERROR(BSL_LS_BCM_IPMC,
+                  (BSL_META_U(unit,
+                              "Internal error %s\n"),soc_sand_SAND_SUCCESS_FAILURE_to_string(success)));
+        BCMDNX_ERR_EXIT_MSG(BCM_E_INTERNAL, (_BSL_BCM_MSG("internal error")));
+    }
+    
+    BCM_EXIT;
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+  _bcm_ppd_frwrd_ipv6_mc_route_remove(
+    int unit,
+    bcm_ipmc_addr_t *data
+  )
+{
+    uint32
+        soc_sand_rv;
+    bcm_error_t
+        rv;
+    SOC_PPD_FRWRD_IPV6_MC_ROUTE_KEY
+        route_key;
+    SOC_PPD_FRWRD_IPV6_MC_ROUTE_INFO
+        route_info;
+    SOC_SAND_SUCCESS_FAILURE
+        success;
+    bcm_ipmc_addr_t
+        data_find;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    if (soc_property_suffix_num_get(unit, -1, spn_CUSTOM_FEATURE, "ipv6_mc_forwarding_disable", 0))
+    {        
+        BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("ipmc APIs is unavailable when property ipv6_mc_forwarding_disable=1")));    
+    }
+
+    unit = (unit);
+
+    SOC_PPD_FRWRD_IPV6_MC_ROUTE_KEY_clear(&route_key);
+    SOC_PPD_FRWRD_IPV6_MC_ROUTE_INFO_clear(&route_info);
+    bcm_ipmc_addr_t_init(&data_find);
+
+    sal_memcpy(&data_find,data,sizeof(bcm_ipmc_addr_t));
+
+    /* Check if entry is already existed */
+    rv = bcm_petra_ipmc_find(unit,&data_find);
+    
+    if (rv != BCM_E_NONE && rv != BCM_E_NOT_FOUND) {
+        LOG_ERROR(BSL_LS_BCM_IPMC,
+                  (BSL_META_U(unit,
+                              "find failed\n")));
+        BCMDNX_IF_ERR_EXIT(rv);
+    }
+        
+    if (rv == BCM_E_NOT_FOUND) {
+       LOG_ERROR(BSL_LS_BCM_IPMC,
+                 (BSL_META_U(unit,
+                             "IPV6 entry key given does not exist\n")));
+       BCMDNX_ERR_EXIT_MSG(BCM_E_NOT_FOUND, (_BSL_BCM_MSG("IPV6 entry key given does not exist")));
+    }
+
+    /* Route key */ 
+    rv = _bcm_ipmc_addr_t_to_ppd_frwrd_ipv6_mc_route_key(unit, data, &route_key);
+    BCMDNX_IF_ERR_EXIT(rv);
+ 
+    soc_sand_rv = soc_ppd_frwrd_ipv6_mc_route_remove(unit,&route_key,&success);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+
+    if (success != SOC_SAND_SUCCESS) {
+        LOG_ERROR(BSL_LS_BCM_IPMC,
+                  (BSL_META_U(unit,
+                              "Internal error %s\n"),soc_sand_SAND_SUCCESS_FAILURE_to_string(success)));
+        BCMDNX_ERR_EXIT_MSG(BCM_E_INTERNAL, (_BSL_BCM_MSG("internal error")));
+    }
+    
+    BCM_EXIT;
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+  _bcm_ppd_frwrd_ipv4_mc_routing_table_clear(
+    int unit
+  )
+{
+    uint32
+        soc_sand_rv;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    soc_sand_rv = soc_ppd_frwrd_ipv4_mc_routing_table_clear(unit);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+    BCM_EXIT;
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+  _bcm_ppd_frwrd_ipv6_mc_routing_table_clear(
+    int unit
+  )
+{
+    uint32
+        soc_sand_rv;
+
+    BCMDNX_INIT_FUNC_DEFS;
+    unit = (unit);
+
+    soc_sand_rv = soc_ppd_frwrd_ipv6_mc_routing_table_clear(unit);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+    BCM_EXIT;
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+  _bcm_ppd_frwrd_ipv4_mc_route_traverse(
+    int unit, 
+    uint32 flags, 
+    bcm_ipmc_traverse_cb cb, 
+    void *user_data
+  )
+{
+    uint32
+        soc_sand_rv,
+        nof_entries = 0;
+    SOC_PPD_IP_ROUTING_TABLE_RANGE
+        block_range_key;
+    SOC_PPD_FRWRD_IPV4_MC_ROUTE_KEY
+        *route_keys = NULL;
+    SOC_PPD_FRWRD_IPV4_MC_ROUTE_INFO
+        routes_info[DPP_FRWRD_IP_GET_BLOCK_NOF_ENTRIES];
+    SOC_PPD_FRWRD_IP_ROUTE_STATUS
+        routes_status[DPP_FRWRD_IP_GET_BLOCK_NOF_ENTRIES];
+    SOC_PPD_FRWRD_IP_ROUTE_LOCATION
+        routes_location[DPP_FRWRD_IP_GET_BLOCK_NOF_ENTRIES];
+    bcm_ipmc_addr_t 
+        entry;
+    int idx;
+
+    BCMDNX_INIT_FUNC_DEFS;
+    SOC_PPD_IP_ROUTING_TABLE_RANGE_clear(&block_range_key);
+
+    /* Block range key */
+    block_range_key.start.type = SOC_PPD_IP_ROUTING_TABLE_ITER_TYPE_IP_PREFIX_ORDERED; /* type is not used, set only to pass verify */
+    block_range_key.entries_to_act = DPP_FRWRD_IP_GET_BLOCK_NOF_ENTRIES;
+    block_range_key.entries_to_scan = DPP_FRWRD_IP_ENTRIES_TO_SCAN(unit);
+    BCMDNX_ALLOC(route_keys, sizeof(SOC_PPD_FRWRD_IPV4_MC_ROUTE_KEY)*DPP_FRWRD_IP_GET_BLOCK_NOF_ENTRIES, "_bcm_ppd_frwrd_ipv4_mc_route_traverse.route_keys");
+    if (route_keys == NULL) {        
+        BCMDNX_ERR_EXIT_MSG(BCM_E_MEMORY, (_BSL_BCM_MSG("failed to allocate memory")));
+    }
+ 
+    while(!SOC_PPC_IP_ROUTING_TABLE_ITER_IS_END(&block_range_key.start.payload))
+    {
+      /* Call function */
+      soc_sand_rv = soc_ppd_frwrd_ipv4_mc_route_get_block(unit,&block_range_key,route_keys,routes_info,routes_status,routes_location,&nof_entries);
+      BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+      
+      for(idx = 0; idx < nof_entries; idx++)
+      {
+        bcm_ipmc_addr_t_init(&entry);
+        /* Valid entries,            */
+        /* Fill MC entry infromation */
+        entry.flags         = BCM_IPMC_SOURCE_PORT_NOCHECK;
+        entry.mc_ip_addr    = route_keys[idx].group;
+        entry.s_ip_addr     = route_keys[idx].source.ip_address;
+        entry.vrf           = BCM_L3_VRF_DEFAULT;
+        if (route_keys[idx].inrif_valid) {
+            entry.vid = route_keys[idx].inrif;
+        }
+        else{
+            entry.vid = 0;
+        }
+        if (routes_info[idx].dest_id.dest_type == SOC_SAND_PP_DEST_MULTICAST) {
+            entry.group = routes_info[idx].dest_id.dest_val;
+        }
+        else if (routes_info[idx].dest_id.dest_type == SOC_SAND_PP_DEST_FEC) {
+            _BCM_PETRA_L3_ITF_SET(entry.l3a_intf, _BCM_PETRA_L3_ITF_FEC, routes_info[idx].dest_id.dest_val);
+        } else {
+            LOG_ERROR(BSL_LS_BCM_IPMC,
+                      (BSL_META_U(unit,
+                                  "entry get block ipv4 resolve dest type differ from multicast\n")));
+            BCMDNX_ERR_EXIT_MSG(BCM_E_INTERNAL, (_BSL_BCM_MSG("in IPV4 entry resolved dest-type differ from multicast")));
+        }
+        /* Invoke user callback. */
+        (*cb)(unit, &entry, user_data);
+        
+       }
+    }
+
+    BCM_EXIT;
+exit:
+    BCM_FREE(route_keys);
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+  _bcm_ppd_frwrd_ipv6_mc_route_traverse(
+    int unit, 
+    uint32 flags, 
+    bcm_ipmc_traverse_cb cb, 
+    void *user_data
+  )
+{
+    bcm_error_t
+        rv;
+    uint32
+        soc_sand_rv,
+        nof_entries = 0;
+    SOC_PPD_IP_ROUTING_TABLE_RANGE
+        block_range_key;
+    SOC_PPD_FRWRD_IPV6_MC_ROUTE_KEY
+        *route_keys = NULL;
+    SOC_PPD_FRWRD_IPV6_MC_ROUTE_INFO
+        routes_info[DPP_FRWRD_IP_GET_BLOCK_NOF_ENTRIES];
+    SOC_PPD_FRWRD_IP_ROUTE_STATUS
+        routes_status[DPP_FRWRD_IP_GET_BLOCK_NOF_ENTRIES];
+    SOC_PPD_FRWRD_IP_ROUTE_LOCATION
+        routes_location[DPP_FRWRD_IP_GET_BLOCK_NOF_ENTRIES];
+    bcm_ipmc_addr_t 
+        entry;
+    int idx;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    if (soc_property_suffix_num_get(unit, -1, spn_CUSTOM_FEATURE, "ipv6_mc_forwarding_disable", 0))
+    {        
+        BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("ipV6mc APIs is unavailable when property ipv6_mc_forwarding_disable=1")));    
+    }
+
+    SOC_PPD_IP_ROUTING_TABLE_RANGE_clear(&block_range_key);
+
+    /* Block range key */
+    block_range_key.start.type = SOC_PPD_IP_ROUTING_TABLE_ITER_TYPE_FAST;
+    block_range_key.entries_to_act = DPP_FRWRD_IP_GET_BLOCK_NOF_ENTRIES;
+    block_range_key.entries_to_scan = DPP_FRWRD_IP_ENTRIES_TO_SCAN(unit);
+    BCMDNX_ALLOC(route_keys, sizeof(SOC_PPD_FRWRD_IPV6_MC_ROUTE_KEY)*DPP_FRWRD_IP_GET_BLOCK_NOF_ENTRIES, "_bcm_ppd_frwrd_ipv6_mc_route_traverse.route_keys");
+    if (route_keys == NULL) {        
+        BCMDNX_ERR_EXIT_MSG(BCM_E_MEMORY, (_BSL_BCM_MSG("failed to allocate memory")));
+    }
+ 
+    while(!SOC_PPC_IP_ROUTING_TABLE_ITER_IS_END(&block_range_key.start.payload))
+    {
+      /* Call function */
+      soc_sand_rv = soc_ppd_frwrd_ipv6_mc_route_get_block(unit,&block_range_key,route_keys,routes_info,routes_status,routes_location,&nof_entries);
+      BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+      
+      for(idx = 0; idx < nof_entries; idx++)
+      {
+        bcm_ipmc_addr_t_init(&entry);
+        /* Valid entries,            */
+        /* Fill MC entry infromation */
+        entry.flags         = BCM_IPMC_SOURCE_PORT_NOCHECK | BCM_IPMC_IP6;
+        rv = _bcm_l3_sand_ipv6_addr_to_bcm_ipv6_addr(unit,&(route_keys[idx].group),&(entry.mc_ip6_addr));
+        BCMDNX_IF_ERR_EXIT(rv);
+        
+        entry.vrf           = BCM_L3_VRF_DEFAULT;
+        entry.vid = route_keys[idx].inrif.val & route_keys[idx].inrif.mask;
+        
+        if (routes_info[idx].dest_id.dest_type == SOC_SAND_PP_DEST_MULTICAST) {
+            entry.group = routes_info[idx].dest_id.dest_val;
+        }
+        else if (routes_info[idx].dest_id.dest_type == SOC_SAND_PP_DEST_FEC) {
+            _BCM_PETRA_L3_ITF_SET(entry.l3a_intf, _BCM_PETRA_L3_ITF_FEC, routes_info[idx].dest_id.dest_val);
+        } else {
+            LOG_ERROR(BSL_LS_BCM_IPMC,
+                      (BSL_META_U(unit,
+                                  "entry get block ipv6 resolve dest type differ from multicast\n")));
+            BCMDNX_ERR_EXIT_MSG(BCM_E_INTERNAL, (_BSL_BCM_MSG("in IPV6 entry resolved dest-type differ from multicast")));
+        }
+        /* Invoke user callback. */
+        (*cb)(unit, &entry, user_data);
+        
+       }
+    }
+
+    BCM_EXIT;
+exit:
+    BCM_FREE(route_keys);
+    BCMDNX_FUNC_RETURN;
+}
+       
+/***************************************************************/
+/***************************************************************/
+
+
+/*
+ * Function:
+ *      bcm_petra_ipmc_init
+ * Purpose:
+ *      Initialize the BCM IPMC subsystem.
+ * Parameters:
+ *      unit - (IN) Unit number.
+ * Returns:
+ *      BCM_E_xxx
+ * Notes:
+ */
+int 
+bcm_petra_ipmc_init(
+    int unit)
+{
+    bcm_error_t  rv = BCM_E_NONE;   
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCM_DPP_UNIT_CHECK(unit);
+   _BCM_DPP_SWITCH_API_START(unit); 
+
+    if (!SOC_DPP_CONFIG(unit)->pp.ipmc_enable) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_INIT, (_BSL_BCM_MSG("IPMC is disabled. while ipmc init being called"))); 
+    }
+
+    rv = IPMC_ACCESS.alloc(unit);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    if (!SOC_WARM_BOOT(unit)) {
+       rv = bcm_petra_ipmc_enable(unit, 1); /* Enable IPMC Support */
+       BCMDNX_IF_ERR_EXIT(rv);
+    }
+
+    BCM_EXIT; 
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+    BCMDNX_FUNC_RETURN;
+}
+/*
+ * Function:
+ *      bcm_petra_ipmc_add
+ * Purpose:
+ *      Add new IPMC group.
+ * Parameters:
+ *      unit - (IN) Unit number.
+ *      data - (IN) <UNDEF>
+ * Returns:
+ *      BCM_E_xxx
+ * Notes:
+ */
+int 
+bcm_petra_ipmc_add(
+    int unit, 
+    bcm_ipmc_addr_t *data)
+{
+    int  status;
+    uint8 bridged=0;
+
+    BCMDNX_INIT_FUNC_DEFS;
+    DPP_IPMC_UNIT_VALID_CHECK;
+
+    BCMDNX_NULL_CHECK(data);
+    BCM_DPP_UNIT_CHECK(unit);
+    _BCM_DPP_SWITCH_API_START(unit);
+
+    status = _bcm_petra_ipmc_addr_validate(unit, data);
+    BCMDNX_IF_ERR_EXIT(status);
+    
+    if (!(data->flags & BCM_IPMC_SOURCE_PORT_NOCHECK)) {
+        /* Check valid Source port */
+        status = _bcm_petra_source_port_check(unit, data);
+        BCMDNX_IF_ERR_EXIT(status);
+    }    
+  
+    if (data->flags & BCM_IPMC_IP6) {
+        /* IPV6 */
+        status = _bcm_ppd_frwrd_ipv6_mc_route_add(unit, data);
+        BCMDNX_IF_ERR_EXIT(status);
+    } else {
+        /* IPV4 */
+        status = _bcm_ppd_frwrd_ipv4_mc_is_bridged(unit,data,&bridged);
+        BCMDNX_IF_ERR_EXIT(status);
+        /* check if this ipmc entry is to be bridged */
+        if (bridged) {
+            status = _bcm_ppd_frwrd_ipv4_mc_bridge_add(unit, data);
+            BCMDNX_IF_ERR_EXIT(status);
+        } else {
+            if (data->vid >= BCM_VLAN_INVALID) {
+                LOG_ERROR(BSL_LS_BCM_IPMC,
+                          (BSL_META_U(unit,
+                                      "Invalid vid\n")));
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG_NO_UNIT("invalid vid")));
+            }          
+            status = _bcm_ppd_frwrd_ipv4_mc_route_add(unit, data);
+            BCMDNX_IF_ERR_EXIT(status);
+        }
+    }
+
+
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      bcm_petra_ipmc_detach
+ * Purpose:
+ *      Detach the BCM IPMC subsystem.
+ * Parameters:
+ *      unit - (IN) Unit number.
+ * Returns:
+ *      BCM_E_xxx
+ * Notes:
+ */
+int 
+bcm_petra_ipmc_detach(
+    int unit)
+{
+    bcm_error_t rv;
+    int init;
+
+    BCMDNX_INIT_FUNC_DEFS;
+    _BCM_DPP_SWITCH_API_START(unit);
+    DPP_IPMC_UNIT_VALID_CHECK;
+
+    rv = IPMC_ACCESS.init.get(unit, &init);
+    BCMDNX_IF_ERR_EXIT(rv);
+    
+    if (init) {
+        /* Remove all IPMC entries */
+        rv = bcm_petra_ipmc_remove_all(unit);
+        BCMDNX_IF_ERR_CONT(rv);
+
+        /* Disable IPMC system */
+        rv = bcm_petra_ipmc_enable(unit, 0);
+        BCMDNX_IF_ERR_CONT(rv);
+    }
+    rv = IPMC_ACCESS.free(unit);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    BCM_EXIT; 
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      bcm_petra_ipmc_enable
+ * Purpose:
+ *      Enable/disable IPMC support.
+ * Parameters:
+ *      unit - (IN) Unit number.
+ *      enable - (IN) <UNDEF>
+ * Returns:
+ *      BCM_E_xxx
+ * Notes:
+ */
+int 
+bcm_petra_ipmc_enable(
+    int unit, 
+    int enable)
+{
+
+    BCMDNX_INIT_FUNC_DEFS;
+    BCM_DPP_UNIT_CHECK(unit);
+    _BCM_DPP_SWITCH_API_START(unit);
+    BCMDNX_IF_ERR_EXIT(IPMC_ACCESS.init.set(unit, enable));
+
+    
+    BCM_EXIT; 
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      bcm_petra_ipmc_find
+ * Purpose:
+ *      Find info of an IPMC group.
+ * Parameters:
+ *      unit - (IN) Unit number.
+ *      data - (IN/OUT) <UNDEF>
+ * Returns:
+ *      BCM_E_xxx
+ * Notes:
+ */
+int 
+bcm_petra_ipmc_find(
+    int unit, 
+    bcm_ipmc_addr_t *data)
+{
+    int status;
+    uint8 bridged;
+
+    BCMDNX_INIT_FUNC_DEFS;
+    DPP_IPMC_UNIT_VALID_CHECK;
+
+    BCMDNX_NULL_CHECK(data);
+
+    status = _bcm_petra_ipmc_addr_validate(unit, data);
+    BCMDNX_IF_ERR_EXIT(status);
+
+
+    if (data->flags & BCM_IPMC_IP6) {
+        /* IPV6 */
+        status = _bcm_ppd_frwrd_ipv6_mc_route_find(unit, data);
+        BCMDNX_IF_ERR_EXIT(status);
+    } else {
+        /* IPV4 */
+
+        status = _bcm_ppd_frwrd_ipv4_mc_is_bridged(unit,data,&bridged);
+        BCMDNX_IF_ERR_EXIT(status);
+
+        /* check if this ipmc entry is to be bridged */
+       if (bridged) {
+            status =_bcm_ppd_frwrd_ipv4_mc_bridged_find(unit,data);
+            BCMDNX_IF_ERR_EXIT(status);
+        }
+       else{
+            status = _bcm_ppd_frwrd_ipv4_mc_route_find(unit, data);
+            BCMDNX_IF_ERR_EXIT(status);
+        }
+    }  
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      bcm_petra_ipmc_remove
+ * Purpose:
+ *      Remove IPMC group.
+ * Parameters:
+ *      unit - (IN) Unit number.
+ *      data - (IN) <UNDEF>
+ * Returns:
+ *      BCM_E_xxx
+ * Notes:
+ */
+int 
+bcm_petra_ipmc_remove(
+    int unit, 
+    bcm_ipmc_addr_t *data)
+{
+    int status;
+    uint8 bridged;
+
+    BCMDNX_INIT_FUNC_DEFS;
+    DPP_IPMC_UNIT_VALID_CHECK;
+
+    BCMDNX_NULL_CHECK(data);
+    BCM_DPP_UNIT_CHECK(unit);
+    _BCM_DPP_SWITCH_API_START(unit);
+
+    status = _bcm_petra_ipmc_addr_validate(unit, data);
+    BCMDNX_IF_ERR_EXIT(status);
+
+    if (data->flags & BCM_IPMC_IP6) {
+        /* IPV6 */
+        status = _bcm_ppd_frwrd_ipv6_mc_route_remove(unit, data);
+        BCMDNX_IF_ERR_EXIT(status); 
+    } else {
+        /* IPV4 */
+        /* check if this ipmc entry is to be bridged */
+        status = _bcm_ppd_frwrd_ipv4_mc_is_bridged(unit,data,&bridged);
+        BCMDNX_IF_ERR_EXIT(status);
+
+        if (bridged) {
+             status = _bcm_ppd_frwrd_ipv4_mc_bridge_remove(unit, data);
+             BCMDNX_IF_ERR_EXIT(status);
+         }
+        else{
+             status = _bcm_ppd_frwrd_ipv4_mc_route_remove(unit, data);
+             BCMDNX_IF_ERR_EXIT(status);
+         }
+    }  
+    
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      bcm_petra_ipmc_remove_all
+ * Purpose:
+ *      Remove all IPMC groups.
+ * Parameters:
+ *      unit - (IN) Unit number.
+ * Returns:
+ *      BCM_E_xxx
+ * Notes:
+ */
+int 
+bcm_petra_ipmc_remove_all(
+    int unit)
+{
+    bcm_error_t
+        rv;
+    BCMDNX_INIT_FUNC_DEFS;
+           
+    BCM_DPP_UNIT_CHECK(unit);
+    if (!(SOC_DPP_CONFIG(unit)->pp.ipmc_enable)) {
+        return BCM_E_UNAVAIL;
+    }
+
+    _BCM_DPP_SWITCH_API_START(unit);
+    /* Remove all IPV4 entries */
+    rv = _bcm_ppd_frwrd_ipv4_mc_routing_table_clear(unit);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    /* Remove all IPV6 entries */
+    rv = _bcm_ppd_frwrd_ipv6_mc_routing_table_clear(unit);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    BCM_EXIT; 
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      bcm_petra_ipmc_traverse
+ * Purpose:
+ *      Traverse through the ipmc table and run callback at each valid
+ *      ipmc entry.
+ * Parameters:
+ *      unit - (IN) Unit number.
+ *      flags - (IN) <UNDEF>
+ *      cb - (IN) <UNDEF>
+ *      user_data - (IN) <UNDEF>
+ * Returns:
+ *      BCM_E_xxx
+ * Notes:
+ */
+int 
+bcm_petra_ipmc_traverse(
+    int unit, 
+    uint32 flags, 
+    bcm_ipmc_traverse_cb cb, 
+    void *user_data)
+{
+    bcm_error_t
+        rv;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    DPP_IPMC_UNIT_VALID_CHECK;
+
+    BCMDNX_NULL_CHECK(user_data);
+
+    if (flags & ~IPMC_SUPPORTED_FLAGS(unit)) {
+       LOG_ERROR(BSL_LS_BCM_IPMC,
+                 (BSL_META_U(unit,
+                             "flags %x is not supported\n"), flags));
+       BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("one or more flags is not supported")));
+    }
+
+    /* Traverse only the MC routing table */
+    if (flags & BCM_IPMC_IP6) {
+        /* IPV6 */
+        rv = _bcm_ppd_frwrd_ipv6_mc_route_traverse(unit,flags,cb,user_data);
+    } else {
+        /* IPV4 */
+        rv = _bcm_ppd_frwrd_ipv4_mc_route_traverse(unit,flags,cb,user_data);
+    }
+    BCMDNX_IF_ERR_EXIT(rv);
+
+exit:
+    _DCMN_BCM_WARM_BOOT_API_TEST_MODE_SKIP_WB_SEQUENCE(unit);
+    BCMDNX_FUNC_RETURN;
+}
+
+int bcm_petra_ipmc_rp_support_check(
+        uint32 unit)
+{
+    BCMDNX_INIT_FUNC_DEFS;
+
+    /* device support check */
+    if(SOC_IS_PETRAB(unit)) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("device doesn't support BIDIR")));
+    }
+
+    if (_BCM_DPP_IPMC_NOF_RPS(unit) == 0) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("Feature disabled, check soc-property ipmc_pim_mode")));
+    }
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/* RP implementation for BIDIR-PIM */
+
+/*
+ * Function:
+ *      bcm_petra_ipmc_rp_create
+ * Purpose:
+ *      Create a rendezvous point.
+ * Parameters:
+ *      unit - unit #
+ *      flags - BCM_IPMC_RP_xxx flags.
+ *      rp_id - (IN/OUT) Rendezvous point ID.
+ * Returns:
+ *      BCM_E_xxx
+ */
+int 
+bcm_petra_ipmc_rp_create(
+    int unit, 
+    uint32 flags, 
+    int *rp_id)
+{
+    int rv = BCM_E_NONE;
+    uint32 shr_flags = 0;
+
+    BCMDNX_INIT_FUNC_DEFS;
+    DPP_IPMC_UNIT_VALID_CHECK;
+
+    BCMDNX_NULL_CHECK(rp_id);
+
+    rv = bcm_petra_ipmc_rp_support_check(unit);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    /* with ID */
+    if (flags & BCM_IPMC_RP_WITH_ID) {
+        if ((*rp_id < 0) || (*rp_id >= _BCM_DPP_IPMC_NOF_RPS(unit))) {
+            BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("RP-id out of range")));
+        }
+        shr_flags |= SHR_RES_ALLOC_WITH_ID;
+    } 
+
+    /* allocate */
+    rv = bcm_dpp_am_rp_alloc(unit,shr_flags,rp_id);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+/*
+ * Function:
+ *      bcm_petra_ipmc_rp_destroy
+ * Purpose:
+ *      Destroy a rendezvous point.
+ * Parameters:
+ *      unit - unit #
+ *      rp_id - Rendezvous point ID.
+ * Returns:
+ *      BCM_E_xxx
+ */
+int 
+bcm_petra_ipmc_rp_destroy(
+    int unit, 
+    int rp_id)
+{
+    int rv = BCM_E_NONE;
+    BCMDNX_INIT_FUNC_DEFS;
+    DPP_IPMC_UNIT_VALID_CHECK;
+
+    rv = bcm_petra_ipmc_rp_support_check(unit);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    if ((rp_id < 0) || (rp_id >= _BCM_DPP_IPMC_NOF_RPS(unit))) {
+        return BCM_E_PARAM;
+    }
+
+    rv = bcm_dpp_am_rp_dealloc(unit,rp_id);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+STATIC int
+bcm_petra_ipmc_range_key_to_ppd(
+    int unit, 
+    int                         *range_id, 
+    bcm_ipmc_range_t            *range,
+    SOC_PPD_RIF_IP_TERM_KEY     *term_key
+ ) 
+{
+    uint32 rv;
+    BCMDNX_INIT_FUNC_DEFS;
+
+
+    /* Input check */
+    BCMDNX_NULL_CHECK(range_id);
+    BCMDNX_NULL_CHECK(range);
+
+    SOC_PPD_RIF_IP_TERM_KEY_clear(term_key);
+    /* verify inputs */
+    if((range->mc_ip_addr & 0xf0000000) != 0xe0000000){
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("IP address is not Multicast")));
+    }
+
+    if (!(range->flags & BCM_IPMC_RANGE_PIM_BIDIR)) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("only PIM-BIDIR eligible addresses can be specified.")));
+    }
+
+    if ((range->flags & (BCM_IPMC_RANGE_REPLACE|BCM_IPMC_RANGE_REPLACE|BCM_IPMC_RANGE_WITH_ID))) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("not supported flag")));
+    }
+
+    if (range->priority != 0) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("priority has to be zero, not used")));
+    }
+    
+    if (range->rp_id >= _BCM_DPP_IPMC_NOF_RPS(unit)) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("RP-id out of range")));
+    }
+
+    if (range->vrf >= SOC_DPP_CONFIG(unit)->l3.nof_bidir_vrfs){
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("VRF ID out of range for BIDIR support")));
+    }
+
+    /* exact match support only thus vrf and sip all considered */
+    if (range->vrf_mask != (int)-1 && range->mc_ip_addr_mask != (int)-1) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("SIP,VRF mask not supported ")));
+    }
+
+    rv = bcm_dpp_am_rp_is_alloced(unit,range->rp_id);
+    if (rv != BCM_E_EXISTS) {
+        BCMDNX_IF_ERR_EXIT(rv);
+    }
+    rv = BCM_E_NONE;
+
+    term_key->flags = SOC_PPC_RIF_IP_TERM_FLAG_KEY_ONLY|SOC_PPC_RIF_IP_TERM_IPMC_BIDIR;
+    term_key->vrf = range->vrf;
+    term_key->dip = range->mc_ip_addr;
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+
+STATIC int
+bcm_petra_ipmc_entry_rp_to_ppd(
+    int unit, 
+    bcm_ipmc_addr_t             *entry,
+    SOC_PPD_RIF_IP_TERM_KEY     *term_key
+ ) 
+{
+    BCMDNX_INIT_FUNC_DEFS;
+
+    /* Input check */
+    BCMDNX_NULL_CHECK(term_key);
+    BCMDNX_NULL_CHECK(entry);
+
+    SOC_PPD_RIF_IP_TERM_KEY_clear(term_key);
+    /* verify inputs */
+    if((entry->mc_ip_addr & 0xf0000000) != 0xe0000000){
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("IP address is not Multicast")));
+    }
+
+    if (entry->vrf >= SOC_DPP_CONFIG(unit)->l3.nof_bidir_vrfs){
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("VRF ID out of range for BIDIR support")));
+    }
+
+    if (entry->vid != 0 || entry->s_ip_addr != 0) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("VID and SIP has to be 0 for RP entry")));
+    }
+
+
+    term_key->flags = SOC_PPC_RIF_IP_TERM_FLAG_KEY_ONLY|SOC_PPC_RIF_IP_TERM_IPMC_BIDIR;
+    term_key->vrf = entry->vrf;
+    term_key->dip = entry->mc_ip_addr;
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+
+
+
+STATIC int 
+bcm_petra_ipmc_entry_rp_add(
+    int unit, 
+    bcm_ipmc_addr_t *entry)
+{
+    uint32 rv= BCM_E_NONE;
+    int soc_sand_rv;
+    unsigned int soc_sand_dev_id;
+    SOC_PPD_RIF_IP_TERM_KEY term_key;
+    SOC_PPD_RIF_IP_TERM_INFO term_info;
+    SOC_SAND_SUCCESS_FAILURE success;
+    SOC_PPD_FRWRD_IPV4_HOST_KEY host_key;
+    SOC_PPD_FRWRD_IPV4_HOST_ROUTE_INFO routing_info;
+    int lif_indx;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    rv = bcm_petra_ipmc_rp_support_check(unit);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    soc_sand_dev_id = (unit);
+
+    /* RP DB: <VRF,G> --> RP*/
+    SOC_PPD_RIF_IP_TERM_INFO_clear(&term_info);
+
+    if (entry->rp_id >= _BCM_DPP_IPMC_NOF_RPS(unit)) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("RP-id out of range")));
+    }
+
+    rv = bcm_dpp_am_rp_is_alloced(unit,entry->rp_id);
+    if (rv != BCM_E_EXISTS) {
+        BCMDNX_IF_ERR_EXIT(rv);
+    }
+    rv = bcm_petra_ipmc_entry_rp_to_ppd(unit,entry,&term_key);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    lif_indx = entry->rp_id;
+    term_info.ext_lif_id = lif_indx;
+    soc_sand_rv = 
+    soc_ppd_rif_ip_tunnel_term_add(soc_sand_dev_id, &term_key, lif_indx,&term_info,  NULL,&success);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+    SOC_SAND_IF_FAIL_RETURN(success);
+
+
+    /* FRWRD DB: <VRF,G> --> MC-group*/
+    if (_BCM_MULTICAST_IS_SET(entry->group)) {
+        SOC_PPD_FRWRD_IPV4_HOST_KEY_clear(&host_key);
+        SOC_PPD_FRWRD_IPV4_HOST_ROUTE_INFO_clear(&routing_info);
+
+        SOC_PPD_FRWRD_DECISION_MC_GROUP_SET(soc_sand_dev_id,&routing_info.frwrd_decision,_BCM_MULTICAST_ID_GET(entry->group), soc_sand_rv);
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+        host_key.vrf_ndx = entry->vrf;
+        host_key.ip_address = entry->mc_ip_addr;
+        soc_sand_rv = soc_ppd_frwrd_ipv4_host_add(
+                soc_sand_dev_id,
+                &host_key,
+                &routing_info,
+                &success
+              );
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+        SOC_SAND_IF_FAIL_RETURN(success);
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+STATIC int 
+bcm_petra_ipmc_entry_rp_remove(
+    int unit, 
+    bcm_ipmc_addr_t *entry,
+    uint8 *is_bidir)
+{
+    uint32 rv= BCM_E_NONE;
+    int soc_sand_rv;
+    unsigned int soc_sand_dev_id;
+    SOC_PPD_RIF_IP_TERM_KEY term_key;
+    SOC_PPD_FRWRD_IPV4_HOST_KEY host_key;
+    uint32 lif_indx=0xFFFFFFFF;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    *is_bidir = 0;
+    rv = bcm_petra_ipmc_rp_support_check(unit);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    soc_sand_dev_id = (unit);
+
+    /* RP DB: <VRF,G> --> RP*/
+    rv = bcm_petra_ipmc_entry_rp_to_ppd(unit,entry,&term_key);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    soc_sand_rv = 
+    soc_ppd_rif_ip_tunnel_term_remove(soc_sand_dev_id, &term_key, &lif_indx);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+    if (lif_indx == 0xFFFFFFFF) {
+        BCM_EXIT;/* not bidir */
+    }
+
+    *is_bidir = 1;
+
+    /* FRWRD DB: <VRF,G> --> MC-group*/
+    SOC_PPD_FRWRD_IPV4_HOST_KEY_clear(&host_key);
+
+    host_key.vrf_ndx = entry->vrf;
+    host_key.ip_address = entry->mc_ip_addr;
+    soc_sand_rv = soc_ppd_frwrd_ipv4_host_remove(
+            soc_sand_dev_id,
+            &host_key
+          );
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+
+STATIC int 
+bcm_petra_ipmc_entry_rp_get(
+    int unit, 
+    bcm_ipmc_addr_t *entry,
+    uint8 *is_bidir)
+{
+    uint32 rv= BCM_E_NONE;
+    int soc_sand_rv;
+    unsigned int soc_sand_dev_id;
+    SOC_PPD_RIF_IP_TERM_KEY term_key;
+    SOC_PPD_FRWRD_IPV4_HOST_KEY host_key;
+    SOC_PPD_RIF_IP_TERM_INFO term_info;
+    SOC_PPD_RIF_INFO rif_info;
+    uint8 found;
+    SOC_PPD_FRWRD_IPV4_HOST_ROUTE_INFO
+      routing_info;
+    SOC_PPD_FRWRD_IP_ROUTE_STATUS
+      route_status;
+    SOC_PPD_FRWRD_IP_ROUTE_LOCATION
+      location;
+    uint32 host_flags=0;
+    uint32 lif_indx;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    *is_bidir = 0;
+    rv = bcm_petra_ipmc_rp_support_check(unit);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    soc_sand_dev_id = (unit);
+
+    /* RP DB: <VRF,G> --> RP*/
+    rv = bcm_petra_ipmc_entry_rp_to_ppd(unit,entry,&term_key);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    soc_sand_rv = soc_ppd_rif_ip_tunnel_term_get(soc_sand_dev_id, &term_key, &lif_indx,
+                    &term_info, &rif_info, &found);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+    if (!found) {
+        BCM_EXIT;/* not bidir */
+    }
+
+    *is_bidir = 1;
+    entry->rp_id = lif_indx;
+
+    /* FRWRD DB: <VRF,G> --> MC-group*/
+    SOC_PPD_FRWRD_IPV4_HOST_KEY_clear(&host_key);
+
+    host_key.vrf_ndx = entry->vrf;
+    host_key.ip_address = entry->mc_ip_addr;
+    soc_sand_rv = soc_ppd_frwrd_ipv4_host_get(
+            soc_sand_dev_id,
+            &host_key,
+            host_flags,
+            &routing_info,
+            &route_status,
+            &location,
+            &found
+          );
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+    if (found == SOC_SAND_FALSE) {
+      /* Entry not found */
+      BCMDNX_ERR_EXIT_MSG(BCM_E_NOT_FOUND, (_BSL_BCM_MSG("<VRF,G> --> MC-group not found")));
+    }
+
+    if (routing_info.frwrd_decision.type == SOC_PPC_FRWRD_DECISION_TYPE_MC) {
+        _BCM_MULTICAST_GROUP_SET(entry->group,_BCM_MULTICAST_TYPE_L3,routing_info.frwrd_decision.dest_id);
+    }
+    else if (routing_info.frwrd_decision.type == SOC_PPC_FRWRD_DECISION_TYPE_FEC) {
+        _BCM_PETRA_L3_ITF_SET(entry->l3a_intf, _BCM_PETRA_L3_ITF_FEC, routing_info.frwrd_decision.dest_id);
+    } else {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_INTERNAL, (_BSL_BCM_MSG("resolved dest-type differ from multicast")));
+    }
+
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+int 
+bcm_petra_ipmc_range_add(
+    int unit, 
+    int *range_id, 
+    bcm_ipmc_range_t *range)
+{
+    uint32 rv= BCM_E_NONE;
+    int soc_sand_rv;
+    unsigned int soc_sand_dev_id;
+    SOC_PPD_RIF_IP_TERM_KEY term_key;
+    SOC_PPD_RIF_IP_TERM_INFO term_info;
+    SOC_SAND_SUCCESS_FAILURE success;
+    int lif_indx;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    /* device support check */
+    rv = bcm_petra_ipmc_rp_support_check(unit);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    rv = bcm_dpp_am_rp_is_alloced(unit,range->rp_id);
+    if (rv != BCM_E_EXISTS) {
+        BCMDNX_IF_ERR_EXIT(rv);
+    }
+
+    soc_sand_dev_id = (unit);
+    SOC_PPD_RIF_IP_TERM_INFO_clear(&term_info);
+
+    rv = bcm_petra_ipmc_range_key_to_ppd(unit,range_id,range,&term_key);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    lif_indx = range->rp_id;
+    soc_sand_rv = 
+    soc_ppd_rif_ip_tunnel_term_add(soc_sand_dev_id, &term_key, lif_indx,&term_info,  NULL,&success);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+    SOC_SAND_IF_FAIL_RETURN(success);
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+int 
+bcm_petra_ipmc_range_delete(
+    int unit, 
+    int range_id)
+{
+    return BCM_E_UNAVAIL;
+}
+
+
+int 
+bcm_petra_ipmc_range_delete_all(
+    int unit)
+{
+    return BCM_E_UNAVAIL;
+}
+
+
+int 
+bcm_petra_ipmc_range_get(
+    int unit, 
+    int range_id, 
+    bcm_ipmc_range_t *range)
+{
+    return BCM_E_UNAVAIL;
+}
+
+
+int 
+bcm_petra_ipmc_range_size_get(
+    int unit, 
+    int *size)
+{
+    return BCM_E_UNAVAIL;
+}
+
+
+int 
+bcm_petra_ipmc_rp_add(
+    int unit, 
+    int rp_id, 
+    bcm_if_t intf_id)
+{
+    int soc_sand_rv;
+    unsigned int soc_sand_dev_id;
+    SOC_PPD_FRWRD_IP_MC_RP_INFO rp_info;
+    uint32 rv = BCM_E_NONE;
+    
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    rv = bcm_petra_ipmc_rp_support_check(unit);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    /* check params */
+    if (rp_id >= _BCM_DPP_IPMC_NOF_RPS(unit)) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("RP-id out of range")));
+    }
+    /* check params configs */
+    rv = bcm_dpp_am_rp_is_alloced(unit,rp_id);
+    if (rv != BCM_E_EXISTS) {
+        BCMDNX_IF_ERR_EXIT(rv);
+    }
+
+    soc_sand_dev_id = (unit);
+    SOC_PPD_FRWRD_IP_MC_RP_INFO_clear(&rp_info);
+
+    rp_info.flags = 0;
+    rp_info.inrif = _BCM_PETRA_L3_ITF_VAL_GET(intf_id);
+    rp_info.rp_id = rp_id;
+
+    if (rp_info.inrif > SOC_DPP_CONFIG(unit)->l3.nof_rifs-1) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("intf-ID out of range")));
+    }
+
+    soc_sand_rv = soc_ppd_frwrd_ipmc_rp_add(soc_sand_dev_id,&rp_info);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+int 
+bcm_petra_ipmc_rp_delete(
+    int unit, 
+    int rp_id, 
+    bcm_if_t intf_id)
+{
+    int soc_sand_rv;
+    unsigned int soc_sand_dev_id;
+    SOC_PPD_FRWRD_IP_MC_RP_INFO rp_info;
+    uint32 rv = BCM_E_NONE;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    /* device support check */
+    rv = bcm_petra_ipmc_rp_support_check(unit);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    /* check params */
+    if (rp_id >= _BCM_DPP_IPMC_NOF_RPS(unit)) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("RP-id out of range")));
+    }
+    if (intf_id < 0 || intf_id > SOC_DPP_CONFIG(unit)->l3.nof_rifs-1) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("intf-ID out of range")));
+    }
+    /* check params configs */
+    rv = bcm_dpp_am_rp_is_alloced(unit,rp_id);
+    if (rv != BCM_E_EXISTS) {
+        BCMDNX_IF_ERR_EXIT(rv);
+    }
+
+    soc_sand_dev_id = (unit);
+    SOC_PPD_FRWRD_IP_MC_RP_INFO_clear(&rp_info);
+
+    rp_info.flags = 0;
+    rp_info.inrif = _BCM_PETRA_L3_ITF_VAL_GET(intf_id);
+    rp_info.rp_id = rp_id;
+
+    soc_sand_rv = soc_ppd_frwrd_ipmc_rp_remove(soc_sand_dev_id,&rp_info);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+int 
+bcm_petra_ipmc_rp_delete_all(
+    int unit, 
+    int rp_id)
+{
+
+    int soc_sand_rv;
+    unsigned int soc_sand_dev_id;
+    SOC_PPD_FRWRD_IP_MC_RP_INFO rp_info;
+    uint32 rv = BCM_E_NONE;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    /* device support check */
+    rv = bcm_petra_ipmc_rp_support_check(unit);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    /* check params range*/
+    if (rp_id >= _BCM_DPP_IPMC_NOF_RPS(unit)) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("RP-id out of range")));
+    }
+
+    /* check params configs */
+    rv = bcm_dpp_am_rp_is_alloced(unit,rp_id);
+    if (rv != BCM_E_EXISTS) {
+        BCMDNX_IF_ERR_EXIT(rv);
+    }
+
+    soc_sand_dev_id = (unit);
+    SOC_PPD_FRWRD_IP_MC_RP_INFO_clear(&rp_info);
+
+    /* delete all on RP ID*/
+    rp_info.flags = SOC_PPD_FRWRD_IP_MC_BIDIR_IGNORE_RIF;
+    rp_info.inrif = 0;
+    rp_info.rp_id = rp_id;
+
+    soc_sand_rv = soc_ppd_frwrd_ipmc_rp_remove(soc_sand_dev_id,&rp_info);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int 
+bcm_petra_ipmc_rp_get(
+    int unit, 
+    int rp_id, 
+    int intf_max, 
+    bcm_if_t *intf_array, 
+    int *intf_count)
+{
+    int soc_sand_rv;
+    unsigned int soc_sand_dev_id;
+    SOC_SAND_TABLE_BLOCK_RANGE block_range;
+    uint32 indx;
+    uint32 rif_count=0;
+    uint32 rv = BCM_E_NONE;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    /* device support check */
+    rv = bcm_petra_ipmc_rp_support_check(unit);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    /* check params range*/
+    if (rp_id >= _BCM_DPP_IPMC_NOF_RPS(unit)) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("RP-id out of range")));
+    }
+
+    /* check params configs */
+    rv = bcm_dpp_am_rp_is_alloced(unit,rp_id);
+    if (rv != BCM_E_EXISTS) {
+        BCMDNX_IF_ERR_EXIT(rv);
+    }
+
+    soc_sand_dev_id = (unit);
+
+    soc_sand_SAND_TABLE_BLOCK_RANGE_clear(&block_range);
+    block_range.entries_to_act = intf_max;
+    block_range.entries_to_scan = SOC_SAND_TBL_ITER_SCAN_ALL;
+
+    soc_sand_rv = soc_ppd_frwrd_ipmc_rp_get_block(soc_sand_dev_id,rp_id,&block_range,intf_array,&rif_count);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+    *intf_count = (int32)rif_count;
+    /* set type intf */
+    for (indx = 0; indx < *intf_count; ++indx) {
+        _BCM_PETRA_L3_ITF_SET(intf_array[indx],_BCM_PETRA_L3_ITF_RIF,intf_array[indx]);
+    }
+
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+int 
+bcm_petra_ipmc_rp_set(
+    int unit, 
+    int rp_id, 
+    int intf_count, 
+    bcm_if_t *intf_array)
+{
+    uint32 rv = BCM_E_NONE;
+    uint32 indx;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+
+    rv = bcm_petra_ipmc_rp_delete_all(unit,rp_id);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    for (indx = 0; indx< intf_count; ++indx) {
+        rv = bcm_petra_ipmc_rp_add(unit,rp_id,intf_array[indx]);
+        BCMDNX_IF_ERR_EXIT(rv);
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+#endif /* INCLUDE_L3 */ 
+

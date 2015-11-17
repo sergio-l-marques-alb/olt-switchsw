@@ -1,0 +1,262 @@
+/* $Id: ppc_api_frwrd_trill.c,v 1.11 Broadcom SDK $
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+*/
+/******************************************************************
+*
+* FILENAME:       DuneDriver/ppc/src/soc_ppc_api_frwrd_trill.c
+*
+* MODULE PREFIX:  soc_ppc_frwrd
+*
+* FILE DESCRIPTION:
+*
+* REMARKS:
+* SW License Agreement: Dune Networks (c). CONFIDENTIAL PROPRIETARY INFORMATION.
+* Any use of this Software is subject to Software License Agreement
+* included in the Driver User Manual of this device.
+* Any use of this Software constitutes an agreement to the terms
+* of the above Software License Agreement.
+******************************************************************/
+
+#ifdef _ERR_MSG_MODULE_NAME
+  #error "_ERR_MSG_MODULE_NAME redefined"
+#endif
+
+#define _ERR_MSG_MODULE_NAME BSL_SOC_PPC
+
+#include <shared/bsl.h>
+
+/*************
+ * INCLUDES  *
+ *************/
+/* { */
+
+#include <soc/dcmn/error.h>
+
+#include <soc/dpp/SAND/Utils/sand_header.h>
+
+#include <soc/dpp/SAND/Management/sand_general_macros.h>
+#include <soc/dpp/SAND/Management/sand_error_code.h>
+#include <soc/dpp/SAND/Utils/sand_os_interface.h>
+
+#include <soc/dpp/PPC/ppc_api_frwrd_trill.h>
+
+/* } */
+/*************
+ * DEFINES   *
+ *************/
+/* { */
+
+/* } */
+/*************
+ *  MACROS   *
+ *************/
+/* { */
+
+/* } */
+/*************
+ * TYPE DEFS *
+ *************/
+/* { */
+
+/* } */
+/*************
+ * GLOBALS   *
+ *************/
+/* { */
+
+/* } */
+/*************
+ * FUNCTIONS *
+ *************/
+/* { */
+
+void
+  SOC_PPC_TRILL_MC_MASKED_FIELDS_clear(
+    SOC_SAND_OUT SOC_PPC_TRILL_MC_MASKED_FIELDS *info
+  )
+{
+  SOC_SAND_INIT_ERROR_DEFINITIONS_NO_DEVID(0);
+  SOC_SAND_CHECK_NULL_INPUT(info);
+
+  sal_memset(info, 0x0, sizeof(SOC_PPC_TRILL_MC_MASKED_FIELDS));
+  info->mask_ing_nickname = 0;
+  info->mask_adjacent_nickname = 0;
+  info->mask_fid = 0;
+  SOC_SAND_MAGIC_NUM_SET;
+exit:
+  SOC_SAND_VOID_EXIT_AND_SEND_ERROR(0, 0, 0);
+}
+
+void
+  SOC_PPC_TRILL_MC_ROUTE_KEY_clear(
+    SOC_SAND_OUT SOC_PPC_TRILL_MC_ROUTE_KEY *info
+  )
+{
+  SOC_SAND_INIT_ERROR_DEFINITIONS_NO_DEVID(0);
+  SOC_SAND_CHECK_NULL_INPUT(info);
+
+  sal_memset(info, 0x0, sizeof(SOC_PPC_TRILL_MC_ROUTE_KEY));
+  info->tree_nick = 0;
+  info->fid = 0;
+  info->ing_nick = 0;
+  info->adjacent_eep = 0;
+  info->esadi = 0;
+  info->tts = 0;
+  SOC_SAND_MAGIC_NUM_SET;
+exit:
+  SOC_SAND_VOID_EXIT_AND_SEND_ERROR(0, 0, 0);
+}
+
+void
+  SOC_PPC_TRILL_ADJ_INFO_clear(
+    SOC_SAND_OUT SOC_PPC_TRILL_ADJ_INFO *info
+  )
+{
+  SOC_SAND_INIT_ERROR_DEFINITIONS_NO_DEVID(0);
+  SOC_SAND_CHECK_NULL_INPUT(info);
+
+  sal_memset(info, 0x0, sizeof(SOC_PPC_TRILL_ADJ_INFO));
+  info->expect_adjacent_eep = 0;
+  soc_sand_SAND_PP_SYS_PORT_ID_clear(&(info->expect_system_port));
+  SOC_SAND_MAGIC_NUM_SET;
+exit:
+  SOC_SAND_VOID_EXIT_AND_SEND_ERROR(0, 0, 0);
+}
+
+void
+  SOC_PPC_FRWRD_TRILL_GLOBAL_INFO_clear(
+    SOC_SAND_OUT SOC_PPC_FRWRD_TRILL_GLOBAL_INFO *info
+  )
+{
+  SOC_SAND_INIT_ERROR_DEFINITIONS_NO_DEVID(0);
+  SOC_SAND_CHECK_NULL_INPUT(info);
+
+  sal_memset(info, 0x0, sizeof(SOC_PPC_FRWRD_TRILL_GLOBAL_INFO));
+  info->cfg_ttl = 0;
+  info->ethertype = DEFAULT_TRILL_ETHER_TYPE;
+  SOC_SAND_MAGIC_NUM_SET;
+exit:
+  SOC_SAND_VOID_EXIT_AND_SEND_ERROR(0, 0, 0);
+}
+
+#if SOC_PPC_DEBUG_IS_LVL1
+
+void
+  SOC_PPC_TRILL_MC_MASKED_FIELDS_print(
+    SOC_SAND_IN  SOC_PPC_TRILL_MC_MASKED_FIELDS *info
+  )
+{
+  SOC_SAND_INIT_ERROR_DEFINITIONS_NO_DEVID(0);
+  SOC_SAND_CHECK_NULL_INPUT(info);
+
+  LOG_CLI((BSL_META_U(unit,
+                      "mask_ing_nickname: %u\n\r"),info->mask_ing_nickname));
+  LOG_CLI((BSL_META_U(unit,
+                      "mask_adjacent_nickname: %u\n\r"),info->mask_adjacent_nickname));
+  LOG_CLI((BSL_META_U(unit,
+                      "mask_fid: %u\n\r"),info->mask_fid));
+exit:
+  SOC_SAND_VOID_EXIT_AND_SEND_ERROR(0, 0, 0);
+}
+
+void
+  SOC_PPC_TRILL_MC_ROUTE_KEY_print(
+    SOC_SAND_IN  SOC_PPC_TRILL_MC_ROUTE_KEY *info
+  )
+{
+  SOC_SAND_INIT_ERROR_DEFINITIONS_NO_DEVID(0);
+  SOC_SAND_CHECK_NULL_INPUT(info);
+
+  LOG_CLI((BSL_META_U(unit,
+                      "tree_nick: %u\n\r"),info->tree_nick));
+  LOG_CLI((BSL_META_U(unit,
+                      "fid: %u\n\r"),info->fid));
+  LOG_CLI((BSL_META_U(unit,
+                      "ing_nick: %u\n\r"),info->ing_nick));
+  LOG_CLI((BSL_META_U(unit,
+                      "adjacent_eep: %u\n\r"),info->adjacent_eep));
+  LOG_CLI((BSL_META_U(unit,
+                      "esadi: %u\n\r"),info->esadi));
+  LOG_CLI((BSL_META_U(unit,
+                      "tts: %u\n\r"),info->tts));
+exit:
+  SOC_SAND_VOID_EXIT_AND_SEND_ERROR(0, 0, 0);
+}
+
+void
+  SOC_PPC_TRILL_ADJ_INFO_print(
+    SOC_SAND_IN  SOC_PPC_TRILL_ADJ_INFO *info
+  )
+{
+  SOC_SAND_INIT_ERROR_DEFINITIONS_NO_DEVID(0);
+  SOC_SAND_CHECK_NULL_INPUT(info);
+
+  LOG_CLI((BSL_META_U(unit,
+                      "expect_adjacent_eep: %u\n\r"),info->expect_adjacent_eep));
+  LOG_CLI((BSL_META_U(unit,
+                      "expect_system_port:")));
+  soc_sand_SAND_PP_SYS_PORT_ID_print(&(info->expect_system_port));
+exit:
+  SOC_SAND_VOID_EXIT_AND_SEND_ERROR(0, 0, 0);
+}
+
+void
+  SOC_PPC_FRWRD_TRILL_GLOBAL_INFO_print(
+    SOC_SAND_IN  SOC_PPC_FRWRD_TRILL_GLOBAL_INFO *info
+  )
+{
+  SOC_SAND_INIT_ERROR_DEFINITIONS_NO_DEVID(0);
+  SOC_SAND_CHECK_NULL_INPUT(info);
+
+  LOG_CLI((BSL_META_U(unit,
+                      "cfg_ttl: %u\n\r"),info->cfg_ttl));
+exit:
+  SOC_SAND_VOID_EXIT_AND_SEND_ERROR(0, 0, 0);
+}
+
+#endif /* SOC_PPC_DEBUG_IS_LVL1 */
+
+/* } */
+
+#include <soc/dpp/SAND/Utils/sand_footer.h>
+

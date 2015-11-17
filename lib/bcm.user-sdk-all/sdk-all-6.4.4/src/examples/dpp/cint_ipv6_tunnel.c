@@ -1,0 +1,266 @@
+/* $Id: cint_ipv6_tunnel.c,v 1.6 Broadcom SDK $
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+*/
+/* 
+ * how to run:
+ * cint cint_ip_route.c
+ * cint cint_ip_tunnel.c
+ * cint cint_ipv6_tunnel.c
+ * cint
+ * print ipv6_tunnel_example(<unit>, <in_port>, <out_port>); 
+ *  
+ * creating ipv6 tunnel no. 1 (host) - from <in_port> run packet: 
+ *      ethernet header with DA 00:0c:00:02:00:00, SA 00:00:07:00:01:00 and Vlan tag id 2
+ *      ipv4 header with DIP 127.255.255.3 and SIP 1.2.3.4
+ * the packet will arrive at <out_port> with: 
+ *      ethernet header with DA 00:00:00:00:CD:1D, SA 00:0C:00:02:00:00 and Vlan tag id 100
+ *      ipv6 header with DIP ACAF:AEAD:ACAB:AAA9:A8A7:A6A5:A4A3:A2A1, SIP FC0F:0E0D:0C0B:0A09:0807:0605:0403:0201 and hop limit 60
+ *      ipv4 header with DIP 1.0.0.17 and SIP 192.128.1.4, ttl decremented
+ *
+ * creating ipv6 tunnel no. 2 (route) - from <in_port> run packet: 
+ *      ethernet header with DA 00:0c:00:02:00:00, SA 00:00:07:00:01:00 and Vlan tag id 2
+ *      ipv4 header with DIP 127.255.255.0 and SIP 1.2.3.4
+ * the packet will arrive at <out_port> with: 
+ *      ethernet header with DA 20:00:00:00:CD:1D, SA 00:0C:00:02:00:00 and Vlan tag id 100
+ *      ipv6 header with DIP ECEF:EEED:ECEB:EAE9:E8E7:E6E5:E4E3:E2E1, SIP CCCF:CECD:CCCB:CAC9:C8C7:C6C5:C4C3:C2C1 and hop limit 50
+ *      ipv4 header with DIP 1.0.0.17 and SIP 192.128.1.4, ttl decremented
+*/ 
+
+/* ********* 
+  Globals/Aux Variables
+ ********** */
+
+/* debug prints */
+int verbose = 1;
+
+/********** 
+  functions
+ ********** */
+
+
+/******* Run example ******/
+ 
+/*
+ * IP tunnel example 
+ * - build IP tunnels. 
+ * - add ip routes/host points to the tunnels
+ */
+int ipv6_tunnel_example(int unit, int in_port, int out_port){
+    int intf_ids[2];
+    int rv;
+
+
+    /* build IP tunnels, and get back interfaces */
+    rv = ipv6_tunnel_build_tunnels(unit, out_port, intf_ids);
+    if (rv != BCM_E_NONE) {
+        printf("Error, ipv4_tunnel_add_routes, in_port=%d, \n", in_port);
+    }
+
+
+    /* add IP route host points to the Tunnels */
+    rv = ipv4_tunnel_add_routes(unit, in_port, out_port, intf_ids);
+    if (rv != BCM_E_NONE) {
+        printf("Error, ipv4_tunnel_add_routes, in_port=%d, \n", in_port);
+    }
+
+    return rv;
+}
+ 
+ 
+/*
+ * buid two IP tunnels with following information:
+ * Tunnnel 1: 
+ *   -  dscp  = 10;
+ *   -  ttl   = 60;
+ *   -  type  = bcmTunnelTypeIp4In4;
+ *   -  Vlan  = 100
+ *   -  Dmac  = 00:00:00:00:cd:1d
+ *   -  Smac  = 00:0c:00:02:00:00
+ *   + No Fec defined over this tunnel
+ *  
+ * Tunnnel 2: 
+ *   -  dscp  = 11;
+ *   -  ttl   = 50;
+ *   -  type  = bcmTunnelTypeGre4In4;
+ *   -  Vlan  = 100
+ *   -  Dmac  = 20:00:00:00:cd:1d
+ *   -  Smac  = 00:0c:00:02:00:00
+ *   + Define FEC point to this tunnel
+ *  
+ *   returned value:
+ *      intf_ids[] : array includes the interface-id to forward to the built tunnels.
+ *         intf_ids[0] : is IP-tunnel Id.
+ *         intf_ids[1] : is egress-object (FEC) points to the IP-tunnel
+ */
+int ipv6_tunnel_build_tunnels(int unit, int out_port, int* intf_ids){
+    int rv;
+    int ing_intf_in;
+  	int ing_intf_out; 
+    int fec[2] = {0x0,0x0};
+    int flags = 0;
+    int flags1 = 0;
+	  int out_vlan = 100;
+    int encap_id[2]={0x0,0x0}; 
+    int open_vlan=1;
+    bcm_mac_t mac_address  = {0x00, 0x0c, 0x00, 0x02, 0x00, 0x00};  /* my-MAC */
+    bcm_tunnel_initiator_t tunnel_1;
+
+
+    /* tunnel 1 info*/
+    int dscp1 = 0; /* not supported for IPv6 */
+    int flow_label1 = 0; /* has to be zero */
+    int ttl1 = 60; 
+    int type1 = bcmTunnelTypeIp4In6; /*possible types Ip4In6 and Ip6In6 */
+    bcm_mac_t next_hop_mac  = {0x00, 0x00, 0x00, 0x00, 0xcd, 0x1d}; /* next_hop_mac1 */
+    int tunnel_itf1=0;
+    bcm_ip6_t sip1;
+    bcm_ip6_t dip1;
+    /* tunnel 2 info */
+    bcm_tunnel_initiator_t tunnel_2;
+    int dscp2 = 0; /* not supported for IPv6 */
+    int flow_label2 = 0;
+    int ttl2 = 50;
+    int type2= bcmTunnelTypeIp4In6;
+    bcm_mac_t next_hop_mac2  = {0x20, 0x00, 0x00, 0x00, 0xcd, 0x1d}; /* next_hop_mac1 */
+    int tunnel_itf2=0;
+    bcm_ip6_t sip2;
+    bcm_ip6_t dip2;
+
+
+    sip1[15]= 0x01;    sip1[14]= 0x02;    sip1[13]= 0x03;    sip1[12]= 0x04;
+    sip1[11]= 0x05;    sip1[10]= 0x06;    sip1[9] = 0x07;    sip1[8] = 0x08;
+    sip1[7] = 0x09;    sip1[6] = 0x0a;    sip1[5] = 0x0b;    sip1[4] = 0x0c;
+    sip1[3] = 0x0d;    sip1[2] = 0x0e;    sip1[1] = 0x0f;    sip1[0] = 0xfc;
+  
+    dip1[15]= 0xa1;    dip1[14]= 0xa2;    dip1[13]= 0xa3;    dip1[12]= 0xa4;
+    dip1[11]= 0xa5;    dip1[10]= 0xa6;    dip1[9] = 0xa7;    dip1[8] = 0xa8;
+    dip1[7] = 0xa9;    dip1[6] = 0xaa;    dip1[5] = 0xab;    dip1[4] = 0xac;
+    dip1[3] = 0xad;    dip1[2] = 0xae;    dip1[1] = 0xaf;    dip1[0] = 0xac;
+  
+    sip2[15]= 0xc1;    sip2[14]= 0xc2;    sip2[13]= 0xc3;    sip2[12]= 0xc4;
+    sip2[11]= 0xc5;    sip2[10]= 0xc6;    sip2[9] = 0xc7;    sip2[8] = 0xc8;
+    sip2[7] = 0xc9;    sip2[6] = 0xca;    sip2[5] = 0xcb;    sip2[4] = 0xcc;
+    sip2[3] = 0xcd;    sip2[2] = 0xce;    sip2[1] = 0xcf;    sip2[0] = 0xcc;
+  
+    dip2[15]= 0xe1;    dip2[14]= 0xe2;    dip2[13]= 0xe3;    dip2[12]= 0xe4;
+    dip2[11]= 0xe5;    dip2[10]= 0xe6;    dip2[9] = 0xe7;    dip2[8] = 0xe8;
+    dip2[7] = 0xe9;    dip2[6] = 0xea;    dip2[5] = 0xeb;    dip2[4] = 0xec;
+    dip2[3] = 0xed;    dip2[2] = 0xee;    dip2[1] = 0xef;    dip2[0] = 0xec;
+  
+	/*** create egress router interface ***/
+	rv = create_l3_intf(unit,flags,open_vlan,out_port,out_vlan,0,mac_address, &ing_intf_out); 
+	if (rv != BCM_E_NONE) {
+		printf("Error, create ingress interface-1, in_port=%d, \n", out_port);
+	}
+    
+    /*** create IP tunnel 1 ***/
+    bcm_tunnel_initiator_t_init(&tunnel_1);
+
+    sal_memcpy(&(tunnel_1.dip6),&(dip1),16);
+    sal_memcpy(&(tunnel_1.sip6),&(sip1),16);
+    tunnel_1.flags = 0;
+    tunnel_1.ttl = ttl1;
+    tunnel_1.flow_label = flow_label1;
+    tunnel_1.type = type1;
+    tunnel_1.l3_intf_id = ing_intf_out;
+    tunnel_itf1 = 0;
+    rv = add_ip_tunnel(unit,&tunnel_itf1,&tunnel_1);
+    if (rv != BCM_E_NONE) {
+        printf("Error, add_ip_tunnel 1\n");
+    }
+    if(verbose >= 1) {
+        printf("created IP tunnel_1 on intf:0x%08x \n",tunnel_itf1);
+    }
+
+    /*** create tunnel 2 ***/
+    bcm_tunnel_initiator_t_init(&tunnel_2);
+    sal_memcpy(&(tunnel_2.dip6),&(dip2),16);
+    sal_memcpy(&(tunnel_2.sip6),&(sip2),16);
+    tunnel_2.dscp = dscp2;
+    tunnel_2.flags = 0;
+    tunnel_2.ttl = ttl2;
+    tunnel_2.flow_label = flow_label2;
+    tunnel_2.type = type2;
+    tunnel_2.l3_intf_id = 0;
+    tunnel_itf2 = 0;
+    rv = add_ip_tunnel(unit,&tunnel_itf2,&tunnel_2);
+    if (rv != BCM_E_NONE) {
+        printf("Error, add_ip_tunnel 2\n");
+    }
+    if(verbose >= 1) {
+        printf("created IP tunnel_2 on intf:0x%08x \n",tunnel_itf2);
+    }
+
+    /*** using egress object API set MAC address for tunnel 1 interface, without allocating FEC enty ***/
+    flags1 |= BCM_L3_EGRESS_ONLY;
+    rv = create_l3_egress(unit,flags1,out_port,out_vlan,tunnel_itf1,next_hop_mac, &fec[0], &encap_id[0]); 
+    if (rv != BCM_E_NONE) {
+        printf("Error, create egress object, out_port=%d, \n", out_port);
+    }
+    if(verbose >= 1) {
+        printf("no FEC is allocated FEC-id =0x%08x, \n", fec[0]);
+        printf("next hop mac at encap-id 0x%08x, \n", encap_id[0]);
+    }
+
+    /*** create egress object 2: points into tunnel 2, with allocating FEC, and da-mac = next_hop_mac2  ***/
+    flags1 = 0;
+    rv = create_l3_egress(unit,flags1,out_port,out_vlan,tunnel_itf2,next_hop_mac2, &fec[1], &encap_id[1]); 
+    if (rv != BCM_E_NONE) {
+        printf("Error, create egress object, out_port=%d, \n", out_port);
+    }
+    if(verbose >= 1) {
+        printf("created FEC-id =0x%08x, \n", fec[1]);
+        printf("next hop mac at encap-id %08x, \n", encap_id[1]);
+    }
+
+   /* interface for tunnel_1 is IP-tunnel ID */
+    intf_ids[0] = tunnel_itf1;
+
+    /* interface for tunnel_2 is egress-object (FEC) */
+    intf_ids[1] = fec[1];
+
+    return rv;
+}
+
+
+
