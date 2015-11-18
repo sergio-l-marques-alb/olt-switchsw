@@ -651,24 +651,24 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
   #if 1
   if (profile->cos < L7_COS_INTF_QUEUE_MAX_COUNT)
   {
-    L7_uint8 priority;
     BROAD_POLICY_FIELD_t fp_field;
 
 #if (PTIN_BOARD == PTIN_BOARD_CXO160G || PTIN_BOARD == PTIN_BOARD_TA48GE || PTIN_BOARD == PTIN_BOARD_OLT1T0)
+    L7_uint8  priority = profile->cos;
     fp_field = BROAD_FIELD_INT_PRIO;
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, fp_field, (L7_uchar8 *) &priority, mask);
 #else
+    L7_uint32 class_id = profile->cos;
     fp_field = BROAD_FIELD_CLASS_ID;
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, fp_field, (L7_uchar8 *) &class_id, mask);
 #endif
-
-    L7_uint8 prio_mask  = 0xFF;
-    priority = profile->cos;
-    if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, fp_field, (L7_uchar8 *)&priority, (L7_uchar8 *) &prio_mask))!=L7_SUCCESS)
+    if (result != L7_SUCCESS)
     {
       hapiBroadPolicyCreateCancel();
       LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(INT_PRIO)");
       return result;
     }
-    LOG_TRACE(LOG_CTX_PTIN_HAPI,"OCOS (priority=%u) qualifier added %u", priority , mask);
+    LOG_TRACE(LOG_CTX_PTIN_HAPI,"OCOS (priority=%u) qualifier added", profile->cos);
   }
   #else
   if (profile->cos < L7_COS_INTF_QUEUE_MAX_COUNT &&

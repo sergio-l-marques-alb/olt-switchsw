@@ -6346,7 +6346,7 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
     }
     else
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Egress remark for port %u set to %u", ptin_port, PTIN_BOARD_IS_DOWNLINK(board_id));
+      LOG_TRACE(LOG_CTX_PTIN_INTF, "Egress remark for port %u set to %u", ptin_port, PTIN_BOARD_IS_DOWNLINK(board_id));
     }
   #endif
   }
