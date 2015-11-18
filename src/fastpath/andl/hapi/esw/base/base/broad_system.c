@@ -3363,6 +3363,7 @@ L7_RC_t hapiBroadConfigTrap(DAPI_USP_t *usp, cmdData_snoopConfig_t *snoopConfig,
 }
 #endif
 
+/* CoS assigned to trapped packets */
 #define CPU_TRAPPED_PACKETS_COS 8
 
 #if 1
