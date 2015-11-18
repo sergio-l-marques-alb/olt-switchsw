@@ -2597,7 +2597,7 @@ void hapiBroadFfpSysMacInstall (DAPI_t      *dapi_g,
     hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_REASON_CODE, 
                                       BCM_ROBO_RX_REASON_SWITCHING, 0, 0);
 #else
-    hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_MED_PRIORITY_COS, 0, 0);
+    hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, 9 /*HAPI_BROAD_INGRESS_MED_PRIORITY_COS*/, 0, 0);
 #endif
 
     /* PTin added: inband */

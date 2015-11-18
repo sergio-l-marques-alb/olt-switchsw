@@ -3424,6 +3424,7 @@ L7_RC_t hapi_ptin_stormControl_cpu_set(L7_BOOL enable, L7_uint32 cir, L7_uint32 
   BROAD_POLICY_t      policyId;
   BROAD_POLICY_RULE_t ruleId;
   BROAD_METER_ENTRY_t meterInfo;
+  L7_uint8      cos_value, cos_mask;
   L7_RC_t rc = L7_SUCCESS;
 
   /* Delete configured policy */
@@ -3460,7 +3461,7 @@ L7_RC_t hapi_ptin_stormControl_cpu_set(L7_BOOL enable, L7_uint32 cir, L7_uint32 
   }
 
   /* Create policy */
-  rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_PTIN);
+  rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
   if (rc != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_STARTUP, "Cannot create trap policy\r\n");
@@ -3476,7 +3477,7 @@ L7_RC_t hapi_ptin_stormControl_cpu_set(L7_BOOL enable, L7_uint32 cir, L7_uint32 
   }
 
   /* Create rule */
-  rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_DEFAULT);
+  rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
   if (rc != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_STARTUP, "Error adding rule\r\n");
@@ -3488,6 +3489,17 @@ L7_RC_t hapi_ptin_stormControl_cpu_set(L7_BOOL enable, L7_uint32 cir, L7_uint32 
   if (rc != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_STARTUP, "Error adding port qualifier (bcm_port=%d)\r\n",bcm_port);
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+
+  /* Only apply to internal priorities 0-7 */
+  cos_value = 0;
+  cos_mask  = 0x8;
+  rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INT_PRIO, (L7_uchar8 *)&cos_value, (L7_uchar8 *)&cos_mask);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_STARTUP, "Error adding INT_PRIO qualifier (cos=%u/0x%x)\r\n", cos_value, cos_mask);
     hapiBroadPolicyCreateCancel();
     return L7_FAILURE;
   }
@@ -4289,7 +4301,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
       if (rc != L7_SUCCESS)  break;
       rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *) &vlanId, (L7_uchar8 *) &vlanMask);
       if (rc != L7_SUCCESS)  break;
-      rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, 8, 0, 0);
+      rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, 10, 0, 0);
       if (rc != L7_SUCCESS)  break;
     } while (0);
 
