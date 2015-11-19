@@ -263,12 +263,12 @@ static  L7_RC_t ptin_ipdtl0_packetHandle(L7_netBufHandle netBufHandle, sysnet_pd
     if (rc!=L7_SUCCESS)
     {
         LOG_TRACE(LOG_CTX_PTIN_API, "If any error, packet will be dropped");
-        return L7_FAILURE;
     }
 
     /* Release buffer */
     SYSAPI_NET_MBUF_FREE(netBufHandle);
 
+    /* At this point, packet is always consumed */
     return L7_SUCCESS;
 }
 
@@ -642,12 +642,16 @@ L7_RC_t ptin_ipdtl0_mirrorPacketCapture(L7_netBufHandle netBufHandle,
   rc = osapiMessageSend(ptin_ipdtl0_packetRx_queue, &msg, PTIN_IPDTL0_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
 
   /* If any error, packet will be dropped */
-  if (rc!=L7_SUCCESS)
+  if (rc != L7_SUCCESS)
   {
       LOG_TRACE(LOG_CTX_PTIN_API, "If any error, packet will be dropped");
   }
 
-  return rc;
+  /* Release buffer */
+  SYSAPI_NET_MBUF_FREE(netBufHandle);
+
+  /* At this point, packet is always consumed */
+  return L7_SUCCESS;
 }
 
 
