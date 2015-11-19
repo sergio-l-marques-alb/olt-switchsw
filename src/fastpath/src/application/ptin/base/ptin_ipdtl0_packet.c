@@ -263,13 +263,13 @@ static  L7_RC_t ptin_ipdtl0_packetHandle(L7_netBufHandle netBufHandle, sysnet_pd
     if (rc!=L7_SUCCESS)
     {
         LOG_TRACE(LOG_CTX_PTIN_API, "If any error, packet will be dropped");
-        return SYSNET_PDU_RC_IGNORED;
+        return L7_FAILURE;
     }
 
     /* Release buffer */
     SYSAPI_NET_MBUF_FREE(netBufHandle);
 
-    return SYSNET_PDU_RC_CONSUMED;
+    return L7_SUCCESS;
 }
 
 /**

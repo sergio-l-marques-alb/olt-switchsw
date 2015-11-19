@@ -424,13 +424,13 @@ L7_RC_t dtlIPProtoRecvAny(char *data, L7_uint32 nbytes, sysnet_pdu_info_t *pduIn
     return L7_SUCCESS;
   }
 
-  SYSAPI_NET_MBUF_GET_DATASTART(bufHandle, dataStart);
-  memcpy(dataStart, data, nbytes);
-  SYSAPI_NET_MBUF_SET_DATALENGTH(bufHandle, nbytes);
-
   if (data!=NULL && nbytes!=0 && (dtl_net_fd >= 0))
   {
     /* At this point, Packet is always tagged */
+
+    SYSAPI_NET_MBUF_GET_DATASTART(bufHandle, dataStart);
+    memcpy(dataStart, data, nbytes);
+    SYSAPI_NET_MBUF_SET_DATALENGTH(bufHandle, nbytes);
 
     /* Get Ethertype */
     memcpy(&etype, &data[16], sizeof(etype));      
