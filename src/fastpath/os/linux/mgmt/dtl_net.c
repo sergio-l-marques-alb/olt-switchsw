@@ -439,7 +439,7 @@ L7_RC_t dtlIPProtoRecvAny(char *data, L7_uint32 nbytes, sysnet_pdu_info_t *pduIn
     /* Get VLAN TAG */
     memcpy(&dtl0Vid, &data[14], sizeof(dtl0Vid));      
     dtl0Vid = osapiNtohs(dtl0Vid);
-    dtl0Vid &= 0x0FFF; /* VLAN ID */
+    dtl0Vid &= L7_VLAN_TAG_VLAN_ID_MASK; /* VLAN ID */
 
     if (dtlNetPtinDebug & DTLNET_PTINDEBUG_RX_LEVEL1)
       SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): etype %04X, nbytes %d \n\r", __FUNCTION__, __LINE__, etype, nbytes);
@@ -1220,7 +1220,7 @@ void dtlNetInit(void)
 #ifdef DTL_USE_TAP
 
 /* PTin added: inband */
-void ptin_AddTag(L7_ushort16 etype, L7_ushort16 vlanId, L7_uchar8 *data, L7_uint32 *data_length)
+void ptin_AddTag(L7_ushort16 tpid, L7_ushort16 vlanId, L7_uchar8 *data, L7_uint32 *data_length)
 {
   L7_int i;
 
@@ -1229,19 +1229,19 @@ void ptin_AddTag(L7_ushort16 etype, L7_ushort16 vlanId, L7_uchar8 *data, L7_uint
     data[i+4] = data[i];
 
   /* Insert tag */
-  data[12]= (L7_uchar8) ((etype >> 8)  & 0xFF);
-  data[13]= (L7_uchar8) ( etype        & 0xFF);
-  data[14]= (L7_uchar8) ((vlanId >> 8) & 0xFF);
+  data[12]= (L7_uchar8) ((tpid >> 8)  & 0xFF);
+  data[13]= (L7_uchar8) ( tpid        & 0xFF);
+  data[14]= (L7_uchar8) ((vlanId >> 8) & 0x0F);
   data[15]= (L7_uchar8) ( vlanId       & 0xFF);
   *data_length += 4;
 }
 
-void ptin_ReplaceTag(L7_ushort16 etype, L7_ushort16 vlanId, L7_uchar8 *data)
+void ptin_ReplaceTag(L7_ushort16 tpid, L7_ushort16 vlanId, L7_uchar8 *data)
 {
   /* Replace tag */
-  data[12]= (L7_uchar8) ((etype >> 8)  & 0xFF);
-  data[13]= (L7_uchar8) ( etype        & 0xFF);
-  data[14]= (L7_uchar8) ((vlanId >> 8) & 0xFF);
+  data[12]= (L7_uchar8) ((tpid >> 8)  & 0xFF);
+  data[13]= (L7_uchar8) ( tpid        & 0xFF);
+  data[14]= (L7_uchar8) ((vlanId >> 8) & 0x0F);
   data[15]= (L7_uchar8) ( vlanId       & 0xFF);
 }
 /* PTin end */
@@ -1315,7 +1315,7 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
    /* PTin added: Is this a 802.1Q packet? */
    if (memcmp(&data[12], etype_8021q, 2) == 0)
    {
-      dtl0Vid = ((data[14]<<8) & 0xFF00) | (data[15] & 0x00FF);
+      dtl0Vid = ((data[14]<<8) & 0x0F00) | (data[15] & 0x00FF);
 
       isTaggedPacket = L7_TRUE;
 

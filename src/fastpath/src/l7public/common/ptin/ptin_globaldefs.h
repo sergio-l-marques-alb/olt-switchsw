@@ -175,6 +175,7 @@ extern int ptin_sys_number_of_ports;
 #define RATE_LIMIT_IPDTL0   512
 #define RATE_LIMIT_QUATTRO  4096
 #define RATE_LIMIT_INBAND   8192
+#define RATE_LIMIT_PCAP     1024    /* 1 Mbps by default */
 
 /* PTin module states */
 typedef enum {

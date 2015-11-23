@@ -155,7 +155,7 @@ static void ptin_ipdtl0_task(void)
                 pduInfo.timestamp = msg.timestamp;
 
                 /* Convert Internal VLAN ID to dtl0 VLAN ID */
-                msg.payload[14] = (ptin_ipdtl0_intVid_info[msg.vlanId].dtl0Vid >> 8) & 0xFF;
+                msg.payload[14] = (ptin_ipdtl0_intVid_info[msg.vlanId].dtl0Vid >> 8) & 0x0F;
                 msg.payload[15] = (ptin_ipdtl0_intVid_info[msg.vlanId].dtl0Vid)      & 0xFF;
 
                 if (ptin_ipdtl0_debug_enable)
@@ -175,10 +175,13 @@ static void ptin_ipdtl0_task(void)
                 pduInfo.vlanId = msg.vlanId;
 
                 /* Convert Internal VLAN ID to dtl0 VLAN ID */
-                msg.payload[14] = (PTIN_VLAN_PCAP_EXT >> 8) & 0xFF;;
-                msg.payload[15] = (PTIN_VLAN_PCAP_EXT)      & 0xFF;;
+                msg.payload[14] = (PTIN_VLAN_PCAP_EXT >> 8) & 0x0F;
+                msg.payload[15] = (PTIN_VLAN_PCAP_EXT)      & 0xFF;
 
-                LOG_TRACE(LOG_CTX_PTIN_API, "Converting Internal VLAN ID (%d) to dtl0 VLAN ID 1\n", msg.vlanId);
+                if (ptin_ipdtl0_debug_enable)
+                {
+                    LOG_TRACE(LOG_CTX_PTIN_API, "Converting Internal VLAN ID (%d) to dtl0 VLAN ID %d\n", msg.vlanId, PTIN_VLAN_PCAP_EXT);
+                }
 
                 dtlIPProtoRecvAny(msg.payload, msg.payloadLen, &pduInfo, L7_FALSE);
             }
@@ -262,7 +265,7 @@ static  L7_RC_t ptin_ipdtl0_packetHandle(L7_netBufHandle netBufHandle, sysnet_pd
     /* If any error, packet will be dropped */
     if (rc!=L7_SUCCESS)
     {
-        LOG_TRACE(LOG_CTX_PTIN_API, "If any error, packet will be dropped");
+        LOG_TRACE(LOG_CTX_PTIN_API, "Error (%d) sending packet to queue, packet will be dropped", rc);
     }
 
     /* Release buffer */
@@ -605,29 +608,18 @@ L7_RC_t ptin_ipdtl0_mirrorPacketCapture(L7_netBufHandle netBufHandle,
   L7_uchar8 *data;
   L7_uint32 dataLength;
   L7_RC_t   rc = L7_SUCCESS;
-//L7_int    i;
   ptin_IPDTL0_PDU_Msg_t     msg;
 
-
-  LOG_TRACE(LOG_CTX_PTIN_API,
-            "Packet intercepted vlan %d, innerVlan=%u, intIfNum %d, rx_port=%d",
-            pduInfo->vlanId, pduInfo->innerVlanId, pduInfo->intIfNum, pduInfo->rxPort);
+  if (ptin_ipdtl0_debug_enable)
+  {
+      LOG_TRACE(LOG_CTX_PTIN_API,
+                "Packet intercepted vlan %d, innerVlan=%u, intIfNum %d, rx_port=%d",
+                pduInfo->vlanId, pduInfo->innerVlanId, pduInfo->intIfNum, pduInfo->rxPort);
+  }
 
   /* Get start and length of incoming frame */
   SYSAPI_NET_MBUF_GET_DATASTART(netBufHandle, data);
   SYSAPI_NET_MBUF_GET_DATALENGTH(netBufHandle, dataLength);
-
-//for (i=0; i<dataLength; i++)
-//{
-//  if (i%16==0)
-//  {
-//      if (i!=0)
-//          printf("\r\n");
-//      printf(" 0x%02x:",i);
-//  }
-//  printf(" %02x", data[i]);
-//}
-//printf("\r\n");
 
   memset(&msg, 0x00, sizeof(msg));
   msg.msgId       = PTIN_IPDTL0_MIRRORPKT_MESSAGE_ID;
@@ -644,7 +636,7 @@ L7_RC_t ptin_ipdtl0_mirrorPacketCapture(L7_netBufHandle netBufHandle,
   /* If any error, packet will be dropped */
   if (rc != L7_SUCCESS)
   {
-      LOG_TRACE(LOG_CTX_PTIN_API, "If any error, packet will be dropped");
+      LOG_TRACE(LOG_CTX_PTIN_API, "Error (%d) sending packet to queue, packet will be dropped", rc);
   }
 
   /* Release buffer */

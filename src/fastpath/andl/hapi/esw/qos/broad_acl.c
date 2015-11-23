@@ -23,6 +23,7 @@
 #include "unitmgr_api.h"
 #include "zlib.h"
 #include "osapi_support.h"
+#include "ptin_globaldefs.h"
 
 /* ACL Correlator Table Definition (tracks rule correlators received from TLV) */
 
@@ -1198,6 +1199,7 @@ static L7_RC_t hapiBroadQosAclInstAdd(DAPI_USP_t               *usp,
                 if (0 == denyFlag)    /* deny action takes precedence */
                 {
                     DAPI_USP_t mirrorUsp;
+                    BROAD_METER_ENTRY_t meterInfo;
 
 //                  mirrorUsp.unit = osapiNtohl(*(L7_int32*)GET_VALUE_PTR(pMatchTLV,0));
 //                  mirrorUsp.slot = osapiNtohl(*(L7_int32*)GET_VALUE_PTR(pMatchTLV,4));
@@ -1226,6 +1228,17 @@ static L7_RC_t hapiBroadQosAclInstAdd(DAPI_USP_t               *usp,
                         dependentLag[dependentLagCount] = mirrorUsp;
                         dependentLagCount++;
                       }
+                    }
+                    else if (L7_CPU_SLOT_NUM == mirrorUsp.slot)
+                    {
+                        meterInfo.cir       = RATE_LIMIT_PCAP;
+                        meterInfo.cbs       = 128;
+                        meterInfo.pir       = RATE_LIMIT_PCAP;
+                        meterInfo.pbs       = 128;
+                        meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
+
+                        result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+                        if (result != L7_SUCCESS)  break;
                     }
                 }
                 break;

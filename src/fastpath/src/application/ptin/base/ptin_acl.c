@@ -75,9 +75,38 @@ L7_RC_t ptin_acl_init(void)
   snEntry.notify_pdu_receive = ptin_ipdtl0_mirrorPacketCapture;
   snEntry.type = SYSNET_PKT_RX_REASON;
   snEntry.u.rxReason = L7_MBUF_RX_MIRROR;
+
   if (sysNetRegisterPduReceive(&snEntry) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_API, "Failure on sysNetRegisterPduReceive(ptinPacketCapture)");
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+
+/**
+ * 
+ * 
+ * @author alex (5/7/2015)
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_acl_deinit(void)
+{
+  sysnetNotifyEntry_t   snEntry;
+
+  /* register with sysnet for sampled packets */
+  bzero((char *)&snEntry, sizeof(sysnetNotifyEntry_t));
+  strncpy(snEntry.funcName, "ptin_ipdtl0_mirrorPacketCapture", sizeof(snEntry.funcName));
+  snEntry.notify_pdu_receive = ptin_ipdtl0_mirrorPacketCapture;
+  snEntry.type = SYSNET_PKT_RX_REASON;
+  snEntry.u.rxReason = L7_MBUF_RX_MIRROR;
+
+  if (sysNetDeregisterPduReceive(&snEntry) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API, "Failure on sysNetDeregisterPduReceive(ptinPacketCapture)");
     return L7_FAILURE;
   }
 
@@ -827,7 +856,6 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
     /* Mirror */
     if (mirrorVal > -1)
     {
-      printf("%s(%d) usmDbQosAclRuleMirrorIntfAdd() mirrorVal=%d\n", __FUNCTION__, __LINE__, mirrorVal);
       rc = usmDbQosAclRuleMirrorIntfAdd(unit, aclId, aclRuleNum, mirrorVal);
       if (rc != L7_SUCCESS)
       {
@@ -961,7 +989,6 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
     /* Mirror */
     if (mirrorVal > -1)
     {
-      printf("%s(%d) usmDbQosAclRuleMirrorIntfAdd() mirrorVal=%d\n", __FUNCTION__, __LINE__, mirrorVal);
       rc = usmDbQosAclRuleMirrorIntfAdd(unit, aclId, aclRuleNum, mirrorVal);
       if (rc != L7_SUCCESS)
       {
@@ -2170,7 +2197,6 @@ L7_RC_t ptin_aclMacRuleConfig(msg_mac_acl_t *msgAcl, ACL_OPERATION_t operation)
     /* Mirror */
     if (mirrorVal > -1)
     {
-      printf("%s(%d) usmDbQosAclMacRuleMirrorIntfAdd() mirrorVal=%d\n", __FUNCTION__, __LINE__, mirrorVal);
       rc = usmDbQosAclMacRuleMirrorIntfAdd(unit, aclId, aclRuleNum, mirrorVal);
       if (rc != L7_SUCCESS)
       {
@@ -2261,7 +2287,6 @@ L7_RC_t ptin_aclMacRuleConfig(msg_mac_acl_t *msgAcl, ACL_OPERATION_t operation)
     /* Mirror */
     if (mirrorVal > -1)
     {
-      printf("%s(%d) usmDbQosAclMacRuleMirrorIntfAdd() mirrorVal=%d\n", __FUNCTION__, __LINE__, mirrorVal);
       rc = usmDbQosAclMacRuleMirrorIntfAdd(unit, aclId, aclRuleNum, mirrorVal);
       if (rc != L7_SUCCESS)
       {

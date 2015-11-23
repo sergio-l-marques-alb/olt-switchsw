@@ -86,7 +86,7 @@ static L7_RC_t ptin_msg_evcStatsStruct_fill(msg_evcStats_t *msg_evcStats, ptin_e
 L7_RC_t ptin_to_fp_ip_notation(chmessage_ip_addr_t *ptinIpAddr, L7_inet_addr_t *fpIpAddr);
 
 
-static L7_uint force_capture = L7_FALSE;
+static L7_BOOL force_capture = L7_FALSE;
 
 void ptin_force_capture(L7_BOOL force)
 {
@@ -11945,7 +11945,7 @@ L7_RC_t ptin_msg_mac_acl_rule_config(msg_mac_acl_t *msgMacAcl, ACL_OPERATION_t o
   if (force_capture)
   {
     msgMacAcl->action = ACL_ACTION_CAPTURE;
-    force_capture = 0;
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Packet capture will be configured for this rule!");
   }
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
@@ -12060,7 +12060,7 @@ L7_RC_t ptin_msg_ip_acl_rule_config(msg_ip_acl_t *msgIpAcl, ACL_OPERATION_t oper
   if (force_capture)
   {
     msgIpAcl->action = ACL_ACTION_CAPTURE;
-    force_capture = 0;
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Packet capture will be configured for this rule!");
   }
   
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
@@ -12164,7 +12164,7 @@ L7_RC_t ptin_msg_ipv6_acl_rule_config(msg_ipv6_acl_t *msgIpv6Acl, ACL_OPERATION_
   if (force_capture)
   {
     msgIpv6Acl->action = ACL_ACTION_CAPTURE;
-    force_capture = 0;
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Packet capture will be configured for this rule!");
   }
   
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
