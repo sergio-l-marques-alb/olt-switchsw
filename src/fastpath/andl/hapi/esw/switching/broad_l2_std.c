@@ -3603,14 +3603,6 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
   }
   else
   {
-    /* PTin added: virtual ports */
-    if( BCM_GPORT_IS_VLAN_PORT(bcmx_l2_addr->lport))
-    {
-      LOG_TRACE(LOG_CTX_PTIN_HAPI, " Virtual Port ");
-      ptin_hapi_maclimit_inc(bcmx_l2_addr);
-    }
-    /* PTin ended */
-
     rv = usl_bcmx_l2_addr_add(bcmx_l2_addr, L7_NULL);
     //printf("%s(%d) Yeah!\r\n",__FUNCTION__,__LINE__);
   }
