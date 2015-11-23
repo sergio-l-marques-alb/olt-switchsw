@@ -1288,7 +1288,14 @@ L7_RC_t ptin_hapi_maclimit_status(DAPI_USP_t *ddUsp, L7_uint32 *mac_learned, L7_
     trunk_id = hapiPortPtr->hapiModeparm.lag.tgid;
     LOG_TRACE(LOG_CTX_PTIN_HAPI,"Interface {%d,%d,%d} is a lag: trunk_id = %d", ddUsp->unit, ddUsp->slot, ddUsp->port, trunk_id); 
 
-    *mac_learned = macLearn_info_lag[trunk_id].mac_counter;  
+    if(macLearn_info_lag[trunk_id].mac_counter < 0)
+    {
+      *mac_learned = 0;
+    }
+    else
+    {
+      *mac_learned = macLearn_info_lag[trunk_id].mac_counter;
+    }
     LOG_TRACE(LOG_CTX_PTIN_HAPI,"Number of MAC Learned is %d in LAG %d (Limit %d, Total %d)", macLearn_info_lag[trunk_id].mac_counter, trunk_id, macLearn_info_lag[trunk_id].mac_limit,macLearn_info_lag[trunk_id].mac_total);
 
     if (macLearn_info_lag[trunk_id].mac_counter > macLearn_info_lag[trunk_id].mac_limit && (macLearn_info_lag[trunk_id].mac_limit!=0))
@@ -1311,7 +1318,14 @@ L7_RC_t ptin_hapi_maclimit_status(DAPI_USP_t *ddUsp, L7_uint32 *mac_learned, L7_
     hapi_ptin_port_get(bcm_port, &physical_port);
     LOG_TRACE(LOG_CTX_PTIN_HAPI,"Interface {%d,%d,%d} is a port: bcm_port = %d", ddUsp->unit, ddUsp->slot, ddUsp->port, bcm_port);
 
-    *mac_learned = macLearn_info_physical[physical_port].mac_counter;  
+    if(macLearn_info_physical[physical_port].mac_counter < 0)
+    {
+      *mac_learned = 0;
+    }
+    else
+    {
+      *mac_learned = macLearn_info_physical[physical_port].mac_counter;  
+    }
     LOG_TRACE(LOG_CTX_PTIN_HAPI,"Number of MAC Learned is %d in physical port %d (Limit %d, Total %d)", macLearn_info_physical[physical_port].mac_counter, physical_port, macLearn_info_physical[physical_port].mac_limit,macLearn_info_physical[physical_port].mac_total);
 
     if ((macLearn_info_physical[physical_port].mac_counter > macLearn_info_physical[physical_port].mac_limit) && (macLearn_info_physical[physical_port].mac_limit!=0) )
@@ -1370,7 +1384,6 @@ L7_RC_t ptin_hapi_vport_maclimit_alarmconfig(bcm_gport_t gport, int bcm_port, L7
       LOG_NOTICE(LOG_CTX_PTIN_HAPI, "GPORT is out of range! (vport_id=%u max=%u)", vport_id, MAX_GPORTS);
       return L7_FAILURE;
     }
-
     LOG_NOTICE(LOG_CTX_PTIN_HAPI, "(GPORT=0x%x) MAC Learned limit information %u, bcm_port %u, outer_vid %d", gport, bcm_port, outer_vid);
 
     hapi_ptin_port_get(bcm_port, &port);
