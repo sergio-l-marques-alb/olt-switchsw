@@ -397,6 +397,7 @@ bcm_field_qualify_t systemQsetPTin[] =  /* System requirement */
 bcm_field_qualify_t systemQsetStats[] =  /* System requirement */
 {
   bcmFieldQualifyInPorts,
+  bcmFieldQualifySrcTrunk,      /* PTin added: FP */
   bcmFieldQualifySrcMac,
   bcmFieldQualifyDstMac,
   bcmFieldQualifyOuterVlan,
@@ -404,7 +405,6 @@ bcm_field_qualify_t systemQsetStats[] =  /* System requirement */
   bcmFieldQualifyEtherType,
   bcmFieldQualifyIpType,
   bcmFieldQualifyDrop,          /* PTin added: FP */
-  bcmFieldQualifySrcTrunk,      /* PTin added: FP */
   bcmFieldQualifyVlanFormat,    /* PTin added: FP */
   bcmFieldQualifyDstIp,         /* PTin added: FP */
 

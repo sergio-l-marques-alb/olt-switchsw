@@ -1694,7 +1694,7 @@ static int _policy_super_qset_init_ifp(int unit)
       sysapiPrintf("Adding qset systemQsetStats\r\n");
 
     /* Doublewide mode. */
-    rv = _policy_super_qset_add(unit, &systemQsetPTinDef, applicable_policy_types);
+    rv = _policy_super_qset_add(unit, &systemQsetStatsDef, applicable_policy_types);
     LOG_TRACE(LOG_CTX_STARTUP,"Adding systemQsetStatsDef qset: rv=%d", rv);
     #endif
   }
