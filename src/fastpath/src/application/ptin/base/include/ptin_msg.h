@@ -602,7 +602,7 @@ extern L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, 
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_msg_evc_config(msg_HwEthMef10EvcOptions_t *msgEvcOptions, L7_uint16 n_size);
+extern L7_RC_t ptin_msg_evc_config(ipc_msg *inbuffer, ipc_msg *outbuffer);
 
 /**
  * Adds a bridge to a stacked EVC between the root and a particular interface
