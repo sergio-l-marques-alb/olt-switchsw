@@ -4747,7 +4747,7 @@ L7_RC_t ptin_msg_dai_vlan_config(msg_dai_vlan_settings_t *config, L7_uint nElems
       dai_maxVlans = 4096;
       if (ptin_evc_get_intVlan_fromNNIvlan(item->service.id_val.nni_vid, dai_intVid_list, &dai_maxVlans) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "NNI VLAN %u is invalid, or doesn't belong to any EVC!", item->service.id_val.nni_vid);
+        LOG_ERR(LOG_CTX_PTIN_MSG, "NNI VLAN %u is invalid, or don't belong to any EVC!", item->service.id_val.nni_vid);
         rc_global = L7_NOT_EXIST;
         continue;
       }
@@ -4905,7 +4905,7 @@ L7_RC_t ptin_msg_dai_stats_get(msg_dai_statistics_t *msg_stats, L7_uint nElems)
       dai_maxVlans = 4096;
       if (ptin_evc_get_intVlan_fromNNIvlan(item->vlan_id /*item->service.id_val.nni_vid*/, dai_intVid_list, &dai_maxVlans) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "NNI VLAN %u is invalid, or doesn't belong to any EVC!", item->vlan_id /*item->service.id_val.nni_vid*/);
+        LOG_ERR(LOG_CTX_PTIN_MSG, "NNI VLAN %u is invalid, or don't belong to any EVC!", item->vlan_id /*item->service.id_val.nni_vid*/);
         rc_global = L7_NOT_EXIST;
         continue;
       }
@@ -5668,21 +5668,15 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
  * Reconfigure EVC
  * 
  * @param msgEvcOptions : EVC options
+ * @param n_size        : Number of structures 
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_msg_evc_config(ipc_msg *inbuffer, ipc_msg *outbuffer)
+L7_RC_t ptin_msg_evc_config(msg_HwEthMef10EvcOptions_t *msgEvcOptions, L7_uint16 n_size)
 {
-  L7_uint i, evc_list_index, evc_id;
+  L7_uint i;
   ptin_HwEthMef10EvcOptions_t evcOptions;
   L7_RC_t rc, rc_global = L7_SUCCESS, rc_global_failure = L7_SUCCESS;
-
-  msg_HwEthMef10EvcOptions_t *msgEvcOptions = (msg_HwEthMef10EvcOptions_t *) inbuffer->info;
-  L7_uint16 n_size  = inbuffer->infoDim/sizeof(msg_HwEthMef10EvcOptions_t);
-
-  /* List of EVCs to be used for local purposes */
-  static L7_uint32 evcid_list[4096];
-  static L7_uint max_evcs = 4096;
 
   /* Validate arguments */
   if (msgEvcOptions == L7_NULLPTR)
@@ -5694,115 +5688,36 @@ L7_RC_t ptin_msg_evc_config(ipc_msg *inbuffer, ipc_msg *outbuffer)
   /* Run all structures */
   for (i=0; i<n_size; i++)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," type = %u", msgEvcOptions[i].service_id.id_type);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," id   = %u", msgEvcOptions[i].service_id.id_val.evc_id);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "EVC# %u",     msgEvcOptions[i].id);
     LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Mask      = 0x%04x", msgEvcOptions[i].mask);
     LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Flags     = 0x%08x/0x%08x", msgEvcOptions[i].flags.value, msgEvcOptions[i].flags.mask);
     LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Type      = %u", msgEvcOptions[i].type);
     LOG_DEBUG(LOG_CTX_PTIN_MSG, " .MC_flood  = %u", msgEvcOptions[i].mc_flood);
 
-    /* If EVC id is provided, get related VLAN */
-    if (msgEvcOptions[i].service_id.id_type == MSG_ID_EVC_TYPE)
+    /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
+    if (msgEvcOptions[i].id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
     {
-      /* Validate EVC id */
-      if (msgEvcOptions[i].service_id.id_val.evc_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "eEVC#%u is out of range!", msgEvcOptions[i].service_id.id_val.evc_id);
-        rc_global = rc_global_failure = L7_FAILURE;
-        continue;
-      }
-      /* EVC must be active */
-      if (!ptin_evc_is_in_use(msgEvcOptions[i].service_id.id_val.evc_id)) 
-      {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "eEVC#%u is not in use!", msgEvcOptions[i].service_id.id_val.evc_id);
-        rc_global = L7_NOT_EXIST;
-        continue;
-      }
-
-      /* Copy data to ptin struct */
-      evcOptions.mask         = msgEvcOptions[i].mask;
-      evcOptions.flags.value  = msgEvcOptions[i].flags.value;
-      evcOptions.flags.mask   = msgEvcOptions[i].flags.mask;
-      evcOptions.type         = msgEvcOptions[i].type;
-      evcOptions.mc_flood     = msgEvcOptions[i].mc_flood;
-
-      if ((rc=ptin_evc_config(msgEvcOptions[i].service_id.id_val.evc_id, &evcOptions)) != L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring EVC# %u", msgEvcOptions[i].service_id.id_val.evc_id);
-        rc_global = rc;
-        if (IS_FAILURE_ERROR(rc))
-          rc_global_failure = rc;
-      }
-      else
-      {
-        LOG_TRACE(LOG_CTX_PTIN_MSG, "EVC# %u configured successfully", msgEvcOptions[i].service_id.id_val.evc_id);
-      }
-
+      LOG_ERR(LOG_CTX_PTIN_MSG, "EVC# %u is out of range [0..%u]", msgEvcOptions[i].id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+      return L7_FAILURE;
     }
-    /* Use given VLANs range */
-    else if (msgEvcOptions[i].service_id.id_type == MSG_ID_NNIVID_TYPE)
+
+    /* Copy data to ptin struct */
+    evcOptions.mask         = msgEvcOptions[i].mask;
+    evcOptions.flags.value  = msgEvcOptions[i].flags.value;
+    evcOptions.flags.mask   = msgEvcOptions[i].flags.mask;
+    evcOptions.type         = msgEvcOptions[i].type;
+    evcOptions.mc_flood     = msgEvcOptions[i].mc_flood;
+
+    if ((rc=ptin_evc_config(msgEvcOptions[i].id, &evcOptions)) != L7_SUCCESS)
     {
-      /* Validate NNI VLAN */
-      if (msgEvcOptions[i].service_id.id_val.nni_vid < PTIN_VLAN_MIN || msgEvcOptions[i].service_id.id_val.nni_vid > PTIN_VLAN_MAX)
-      {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "NNI VLAN %u is out of range!", msgEvcOptions[i].service_id.id_val.nni_vid);
-        rc_global = rc_global_failure = L7_FAILURE;
-        continue;
-      }
-
-      /* Get EVC list from NNI VLAN */
-      if (ptin_evc_get_evcId_fromNNIvlan(msgEvcOptions[i].service_id.id_val.nni_vid, evcid_list, &max_evcs) != L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "NNI VLAN %u is invalid, or doesn't belong to any EVC!", msgEvcOptions[i].service_id.id_val.nni_vid);
-        rc_global = L7_NOT_EXIST;
-        continue;
-      }
-
-      /* Copy data to ptin struct */
-      evcOptions.mask         = msgEvcOptions[i].mask;
-      evcOptions.flags.value  = msgEvcOptions[i].flags.value;
-      evcOptions.flags.mask   = msgEvcOptions[i].flags.mask;
-      evcOptions.type         = msgEvcOptions[i].type;
-      evcOptions.mc_flood     = msgEvcOptions[i].mc_flood;
-
-      /* Run EVCs range */
-      for (evc_list_index = 0; evc_list_index < max_evcs; evc_list_index++)
-      {
-        evc_id = evcid_list[evc_list_index];
-
-        /* Validate EVC id */
-        if (evc_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
-        {
-          LOG_ERR(LOG_CTX_PTIN_MSG, "eEVC#%u is out of range!", evc_id);
-          rc_global = rc_global_failure = L7_FAILURE;
-          continue;
-        }
-        /* EVC must be active */
-        if (!ptin_evc_is_in_use(evc_id)) 
-        {
-          LOG_ERR(LOG_CTX_PTIN_MSG, "eEVC#%u is not in use!", evc_id);
-          rc_global = L7_NOT_EXIST;
-          continue;
-        }
-
-        if ((rc=ptin_evc_config(evc_id, &evcOptions)) != L7_SUCCESS)
-        {
-          LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring EVC# %u", evc_id);
-          rc_global = rc;
-          if (IS_FAILURE_ERROR(rc))
-            rc_global_failure = rc;
-        }
-        else
-        {
-          LOG_TRACE(LOG_CTX_PTIN_MSG, "EVC# %u configured successfully", evc_id);
-        }
-      }
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring EVC# %u", msgEvcOptions[i].id);
+      rc_global = rc;
+      if (IS_FAILURE_ERROR(rc))
+        rc_global_failure = rc;
     }
     else
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid service type %u", msgEvcOptions[i].service_id.id_type);
-      rc_global = L7_NOT_SUPPORTED;
-      continue;
+      LOG_TRACE(LOG_CTX_PTIN_MSG, "EVC# %u configured successfully", msgEvcOptions[i].id);
     }
   }
 

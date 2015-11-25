@@ -2063,12 +2063,15 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       CHECK_INFO_SIZE_MOD(msg_HwEthMef10EvcOptions_t);
 
+      msg_HwEthMef10EvcOptions_t *evcOptions = (msg_HwEthMef10EvcOptions_t *) inbuffer->info;
+      L7_uint16 n_size  = inbuffer->infoDim/sizeof(msg_HwEthMef10EvcOptions_t);
+
       /* Execute command */
-      rc = ptin_msg_evc_config(inbuffer, outbuffer);
+      rc = ptin_msg_evc_config(evcOptions, n_size);
 
       if (L7_SUCCESS != rc)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while reconfiguring EVC");
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while reconfiguring EVC# %u", evcOptions->id);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;

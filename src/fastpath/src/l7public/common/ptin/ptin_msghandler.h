@@ -1098,7 +1098,7 @@ typedef struct
 typedef struct {
 
   L7_uint8  SlotId;
-  msg_id_t  service_id;   // EVC id / NNI VLAN
+  L7_uint32 id;           // EVC Id [1..PTIN_SYSTEM_N_EVCS]    /* EVC id */
   L7_uint16 mask;         // Generic mask
   struct {
    L7_uint32 value;           // bits related to active flags.mask bits will be considered
