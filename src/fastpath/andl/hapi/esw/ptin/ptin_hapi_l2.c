@@ -526,9 +526,7 @@ L7_RC_t ptin_hapi_maclimit_dec(bcmx_l2_addr_t *bcmx_l2_addr)
               __FUNCTION__, 
               bcmx_l2_addr->mac[0], bcmx_l2_addr->mac[1], bcmx_l2_addr->mac[2], bcmx_l2_addr->mac[3], bcmx_l2_addr->mac[4], bcmx_l2_addr->mac[5], 
               bcmx_l2_addr->vid, bcmx_l2_addr->lport, bcmx_l2_addr->flags);
-
     
-    /* Do not accept more MAC addresses, if maximum was reached */
     /* if BCM_L2_PENDING is cleared, it means it is a aging of a learned MAC in the L2 table */
     if ( ((bcmx_l2_addr->flags & BCM_L2_PENDING) && !(bcmx_l2_addr->flags & BCM_L2_MOVE)) )
     {
@@ -537,8 +535,9 @@ L7_RC_t ptin_hapi_maclimit_dec(bcmx_l2_addr_t *bcmx_l2_addr)
                 bcmx_l2_addr->vid);
 
       /* Decrement, but only if greater than 0 */
-      if ((macLearn_info_flow[vport_id].mac_total > macLearn_info_flow[vport_id].mac_counter) && (macLearn_info_flow[vport_id].mac_total > 0))
+      if ((macLearn_info_flow[vport_id].mac_total > 0))
       {
+        macLearn_info_flow[vport_id].mac_counter--;
         macLearn_info_flow[vport_id].mac_total--;
       }
 
