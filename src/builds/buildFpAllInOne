@@ -48,7 +48,7 @@ password=olttera
 currentUser=$(whoami)
 
 if [ "$builderUser" != "$currentUser" ]; then
-	echo "Current user: \"$currentUser\" is not the \"$buildUser\" user"
+	echo "Current user: \"$currentUser\" is not the \"$builderUser\" user"
 	exit -1
 fi
 ###############Validate Current User###################
