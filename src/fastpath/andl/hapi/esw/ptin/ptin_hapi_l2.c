@@ -1216,29 +1216,28 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, L7_uint3
   }
   LOG_NOTICE(LOG_CTX_PTIN_HAPI, "newLimit:%u newFlags:0x%.4X (oldLimit:%u oldFlags:0x%.4X)",l2_learn_limit.limit, l2_learn_limit.flags, old_limit, old_flags);
   
-  if(action == 1)
-  {  
-    #if(PTIN_BOARD != PTIN_BOARD_CXO640G) /*Not supported in Trident(Plus). */
-    if (l2_learn_limit.flags == 0x00)
-    {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid flag parameters: 0x%.4X", l2_learn_limit.flags);
-      return L7_FAILURE;
-    }
-    if ((rv=bcm_l2_learn_limit_set(0, &l2_learn_limit))!=BCM_E_NONE)
-    {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error (%d) setting L2 learn limit to %u", rv, mac_limit);
-      return L7_FAILURE;
-    }
-    #else
-    LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Not supported Yet!");
-    #endif
-
-    return rc;
-  }
-  else
+  if(action == 0) // Disable the HW limit when action is 0
   {
-    return L7_SUCCESS;
+    l2_learn_limit.limit = (int) -1;
   }
+
+  LOG_NOTICE(LOG_CTX_PTIN_HAPI, "newLimit:%u newFlags:0x%.4X (oldLimit:%u oldFlags:0x%.4X %u)",l2_learn_limit.limit, l2_learn_limit.flags, old_limit, old_flags, action);
+  #if(PTIN_BOARD != PTIN_BOARD_CXO640G) /*Not supported in Trident(Plus). */
+  if (l2_learn_limit.flags == 0x00)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid flag parameters: 0x%.4X", l2_learn_limit.flags);
+    return L7_FAILURE;
+  }
+  if ((rv=bcm_l2_learn_limit_set(0, &l2_learn_limit))!=BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error (%d) setting L2 learn limit to %u", rv, mac_limit);
+    return L7_FAILURE;
+  }
+  #else
+  LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Not supported Yet!");
+  #endif
+
+  return rc;
 }
 
 /**
