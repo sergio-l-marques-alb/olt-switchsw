@@ -410,27 +410,14 @@ void dtlGlobalInit (void)
 
 
 /* PTin added */
-L7_RC_t dtlIPProtoRecvAny(char *data, L7_uint32 nbytes, sysnet_pdu_info_t *pduInfo, L7_BOOL mac_learn)
+L7_RC_t dtlIPProtoRecvAny(L7_netBufHandle bufHandle, char *data, L7_uint32 nbytes, sysnet_pdu_info_t *pduInfo, L7_BOOL mac_learn)
 {
   L7_ushort16 etype = 0;
   L7_ushort16 dtl0Vid = 0;
-  L7_netBufHandle bufHandle;
-  L7_uchar8       *dataStart;
-
-  SYSAPI_NET_MBUF_GET(bufHandle);
-  if(bufHandle == L7_NULL)
-  {
-    /* No big deal */
-    return L7_SUCCESS;
-  }
 
   if (data!=NULL && nbytes!=0 && (dtl_net_fd >= 0))
   {
     /* At this point, Packet is always tagged */
-
-    SYSAPI_NET_MBUF_GET_DATASTART(bufHandle, dataStart);
-    memcpy(dataStart, data, nbytes);
-    SYSAPI_NET_MBUF_SET_DATALENGTH(bufHandle, nbytes);
 
     /* Get Ethertype */
     memcpy(&etype, &data[16], sizeof(etype));      

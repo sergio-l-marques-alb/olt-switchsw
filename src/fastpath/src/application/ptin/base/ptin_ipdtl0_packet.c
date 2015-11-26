@@ -163,7 +163,7 @@ static void ptin_ipdtl0_task(void)
                     LOG_TRACE(LOG_CTX_PTIN_API, "Converting Internal VLAN ID (%d) to dtl0 VLAN ID (%d)\n\r", msg.vlanId, ptin_ipdtl0_intVid_info[msg.vlanId].dtl0Vid);
                 }
 
-                dtlIPProtoRecvAny(msg.payload, msg.payloadLen, &pduInfo, L7_TRUE);
+                dtlIPProtoRecvAny(msg.bufHandle, msg.payload, msg.payloadLen, &pduInfo, L7_TRUE);
             }
             else if (msg.msgId == PTIN_IPDTL0_MIRRORPKT_MESSAGE_ID)
             {
@@ -183,7 +183,7 @@ static void ptin_ipdtl0_task(void)
                     LOG_TRACE(LOG_CTX_PTIN_API, "Converting Internal VLAN ID (%d) to dtl0 VLAN ID %d\n", msg.vlanId, PTIN_VLAN_PCAP_EXT);
                 }
 
-                dtlIPProtoRecvAny(msg.payload, msg.payloadLen, &pduInfo, L7_FALSE);
+                dtlIPProtoRecvAny(msg.bufHandle, msg.payload, msg.payloadLen, &pduInfo, L7_FALSE);
             }
             else 
             {
@@ -266,10 +266,10 @@ static  L7_RC_t ptin_ipdtl0_packetHandle(L7_netBufHandle netBufHandle, sysnet_pd
     if (rc!=L7_SUCCESS)
     {
         LOG_TRACE(LOG_CTX_PTIN_API, "Error (%d) sending packet to queue, packet will be dropped", rc);
-    }
 
-    /* Release buffer */
-    SYSAPI_NET_MBUF_FREE(netBufHandle);
+        /* In case of failure, Release buffer. Otherwise, buffer will be realeased later */
+        SYSAPI_NET_MBUF_FREE(netBufHandle);
+    }    
 
     /* At this point, packet is always consumed */
     return L7_SUCCESS;
@@ -634,14 +634,14 @@ L7_RC_t ptin_ipdtl0_mirrorPacketCapture(L7_netBufHandle netBufHandle,
   rc = osapiMessageSend(ptin_ipdtl0_packetRx_queue, &msg, PTIN_IPDTL0_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
 
   /* If any error, packet will be dropped */
-  if (rc != L7_SUCCESS)
+  if (rc!=L7_SUCCESS)
   {
       LOG_TRACE(LOG_CTX_PTIN_API, "Error (%d) sending packet to queue, packet will be dropped", rc);
-  }
-
-  /* Release buffer */
-  SYSAPI_NET_MBUF_FREE(netBufHandle);
-
+  
+      /* In case of failure, Release buffer. Otherwise, buffer will be realeased later */
+      SYSAPI_NET_MBUF_FREE(netBufHandle);
+  }    
+  
   /* At this point, packet is always consumed */
   return L7_SUCCESS;
 }

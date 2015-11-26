@@ -2086,7 +2086,7 @@ EXT_API L7_RC_t dtlIPProtoRecv (L7_netBufHandle bufHandle,
 *
 * @end
 **********************************************************************/
-EXT_API L7_RC_t dtlIPProtoRecvAny(char *data, L7_uint32 nbytes, sysnet_pdu_info_t *pduInfo, L7_BOOL mac_learn);
+EXT_API L7_RC_t dtlIPProtoRecvAny(L7_netBufHandle bufHandle, char *data, L7_uint32 nbytes, sysnet_pdu_info_t *pduInfo, L7_BOOL mac_learn);
 
 
 /* DTL MPI APIs */
