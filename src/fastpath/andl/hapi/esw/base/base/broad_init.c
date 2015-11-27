@@ -2546,7 +2546,7 @@ BROAD_METER_ENTRY_t inband_meterInfo = {RATE_LIMIT_INBAND, 128, RATE_LIMIT_INBAN
  * 
  * @return L7_RC_t 
  */
-L7_RC_t hapiBroadReconfigInbandMeter(L7_uint16 cir, L7_uint16 pir, L7_uint16 cbs, L7_uint16 pbs)
+L7_RC_t hapiBroadReconfigInbandMeter(L7_uint16 cir, L7_uint16 cbs)
 {
   BROAD_SYSTEM_t *hapiSystemPtr;
   extern DAPI_t *dapi_g;
@@ -2561,15 +2561,13 @@ L7_RC_t hapiBroadReconfigInbandMeter(L7_uint16 cir, L7_uint16 pir, L7_uint16 cbs
 
   /* Update meter data */
   if (cbs == 0)  cbs = 128;
-  if (pbs == 0)  pbs = 128;
-  if (cir > pir) pir = cir;
 
-  LOG_INFO(LOG_CTX_PTIN_HAPI, "Going to apply CIR=%u PIR=%u CBS=%u PBS=%u", cir, pir, cbs, pbs);
+  LOG_INFO(LOG_CTX_PTIN_HAPI, "Going to apply CIR=%u CBS=%u", cir, cbs);
 
   inband_meterInfo.cir = cir;
-  inband_meterInfo.pir = pir;
+  inband_meterInfo.pir = cir;
   inband_meterInfo.cbs = cbs;
-  inband_meterInfo.pbs = pbs;
+  inband_meterInfo.pbs = cbs;
 
   if (hapiSystemPtr->mgmtVlanId == 0 ||
       hapiSystemPtr->mgmtPolicy[BROAD_POLICY_STAGE_INGRESS] == 0 ||

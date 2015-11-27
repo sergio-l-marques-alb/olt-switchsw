@@ -3284,7 +3284,7 @@ L7_RC_t hapiBroadReconfigTrap(ptin_packet_type_t packet_type, L7_BOOL reenable)
  * 
  * @return L7_RC_t 
  */
-L7_RC_t hapiBroadReconfigTrapMeter(ptin_packet_type_t packet_type, L7_uint32 cir, L7_uint32 pir, L7_uint32 cbs, L7_uint32 pbs)
+L7_RC_t hapiBroadReconfigTrapMeter(ptin_packet_type_t packet_type, L7_uint32 cir, L7_uint32 cbs)
 {
   BROAD_METER_ENTRY_t *ptr;
 
@@ -3325,15 +3325,13 @@ L7_RC_t hapiBroadReconfigTrapMeter(ptin_packet_type_t packet_type, L7_uint32 cir
 
   /* Meter data */
   if (cbs == 0)  cbs = 128;
-  if (pbs == 0)  pbs = 128;
-  if (cir > pir) pir = cir;
 
-  LOG_INFO(LOG_CTX_PTIN_HAPI, "Going to apply CIR=%u PIR=%u CBS=%u PBS=%u", cir, pir, cbs, pbs);
+  LOG_INFO(LOG_CTX_PTIN_HAPI, "Going to apply CIR=%u CBS=%u", cir, cbs);
   
   ptr->cir = cir; 
-  ptr->pir = pir;
+  ptr->pir = cir;
   ptr->cbs = cbs;
-  ptr->pbs = pbs;
+  ptr->pbs = cbs;
 
   /* Update active rules */
   if (hapiBroadReconfigTrap(packet_type, L7_TRUE) != L7_SUCCESS)

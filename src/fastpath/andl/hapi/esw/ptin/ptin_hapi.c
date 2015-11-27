@@ -3649,12 +3649,11 @@ void ptin_stormcontrol_dump(void)
   /* CPU storm control */
   if (policyId_storm_cpu != 0 && policyId_storm_cpu != BROAD_POLICY_INVALID)
   {
-    printf("L2 CPU packets: ");
     rule = 0;
     while (l7_bcm_policy_hwInfo_get(0, policyId_storm_cpu, rule, &group_id, &entry_id, &policer_id, &counter_id) == L7_SUCCESS)
     {
       /* Also print hw group id and entry id*/
-      printf("policy=%-4u rule=%u -> group=%-2d, entry=%-4d (PolicerId=%-4d CounterId %-4d)",
+      printf("L2 CPU packets: policy=%-4u rule=%u -> group=%-2d, entry=%-4d (PolicerId=%-4d CounterId %-4d)",
              policyId_storm_cpu, 0, group_id, entry_id, policer_id, counter_id);
 
       /* Check counter */
