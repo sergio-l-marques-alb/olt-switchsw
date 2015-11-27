@@ -3193,7 +3193,7 @@ L7_RC_t hapiBroadReconfigTrap(ptin_packet_type_t packet_type, L7_BOOL reenable)
       continue;
 
     /* If rule is not configured, skop entry */
-    if (ptin_trap_policy[index].policyId != BROAD_POLICY_INVALID)
+    if (ptin_trap_policy[index].policyId != 0 && ptin_trap_policy[index].policyId != BROAD_POLICY_INVALID)
     {
       /* Uninstall rule */
       if (hapiBroadPolicyDelete(ptin_trap_policy[index].policyId) != L7_SUCCESS)
@@ -3203,6 +3203,7 @@ L7_RC_t hapiBroadReconfigTrap(ptin_packet_type_t packet_type, L7_BOOL reenable)
       }
       ptin_trap_policy[index].policyId = BROAD_POLICY_INVALID;
     }
+
     /* If rule is to be disabled, nothing more to be done */
     if (!reenable)
     {
@@ -3252,7 +3253,7 @@ L7_RC_t hapiBroadReconfigTrap(ptin_packet_type_t packet_type, L7_BOOL reenable)
       break;
     }
 
-    if (result == L7_SUCCESS && ptin_trap_policy[index].policyId != BROAD_POLICY_INVALID)
+    if (result == L7_SUCCESS)
     {
       LOG_NOTICE(LOG_CTX_PTIN_HAPI,"Rule entry %u reenabled", index);
     }
@@ -3260,8 +3261,7 @@ L7_RC_t hapiBroadReconfigTrap(ptin_packet_type_t packet_type, L7_BOOL reenable)
     else
     {
       LOG_ERR(LOG_CTX_PTIN_HAPI,"Error reenabling entry %u", index);
-      if (result != L7_SUCCESS)
-        result_global = result;
+      result_global = result;
     }
   }
 
@@ -3299,6 +3299,9 @@ L7_RC_t hapiBroadReconfigTrapMeter(ptin_packet_type_t packet_type, L7_uint32 cir
   {
   case PTIN_PACKET_IGMP:
     ptr = &ptin_components_meter.igmp;
+    break;
+  case PTIN_PACKET_MLD:
+    ptr = &ptin_components_meter.mld;
     break;
   case PTIN_PACKET_DHCP:
     ptr = &ptin_components_meter.dhcp;
