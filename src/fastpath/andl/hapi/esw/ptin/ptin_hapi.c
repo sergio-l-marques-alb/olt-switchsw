@@ -3541,7 +3541,7 @@ L7_RC_t hapi_ptin_stormControl_cpu_set(L7_BOOL enable, L7_uint32 cir, L7_uint32 
   /* Only apply to internal priorities 8 */
   cos_value = 8;
   cos_mask  = 0xf;
-  rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INT_PRIO, (L7_uchar8 *)&cos_value, (L7_uchar8 *)&cos_mask);
+  rc = hapiBroadPolicyRuleQualifierAdd(ruleId2, BROAD_FIELD_INT_PRIO, (L7_uchar8 *)&cos_value, (L7_uchar8 *)&cos_mask);
   if (rc != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_STARTUP, "Error adding INT_PRIO qualifier (cos=%u/0x%x)\r\n", cos_value, cos_mask);
@@ -3560,9 +3560,6 @@ L7_RC_t hapi_ptin_stormControl_cpu_set(L7_BOOL enable, L7_uint32 cir, L7_uint32 
 
   /* Store policyId */
   policyId_storm_cpu = policyId;
-
-
-
 
   return L7_SUCCESS;
 }
