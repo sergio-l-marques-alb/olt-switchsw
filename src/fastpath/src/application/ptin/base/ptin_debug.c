@@ -201,12 +201,15 @@ void ptin_debug(void)
   printf("  ptin_intf_stormcontrol_dump                                     - Dump storm control's interface configurations\r\n");
   printf("  ptin_bwpolicer_dump_debug                                       - Dump configured bandwidth policers\r\n");
   printf("  ptin_bwpolicer_flush_debug                                      - Flush configured EVC/client policers (at request)\r\n");
+  printf("  ptin_fpcounters_dump_debug                                      - Dump configured EVC/client counters (at request)\r\n");
+  printf("  ptin_fpcounters_flush_debug                                     - Flush configured EVC/client counters (at request)\r\n");
   printf("  ptin_debug_intf_cos_policer_set   <intf_type> <intf_id> <cos> <cir> <eir> <cbs> <ebs> - Create Interface/COS policer\r\n");
   printf("  ptin_debug_intf_cos_policer_clear <intf_type> <intf_id> <cos>   - Remove Interface/COS policer\r\n");
   printf("  ptin_hapi_qos_dump                                              - Dump VLAN-QoS rules\r\n");
-  printf("  ptin_fpcounters_dump_debug                                      - Dump configured EVC/client counters (at request)\r\n");
-  printf("  ptin_fpcounters_flush_debug                                     - Flush configured EVC/client counters (at request)\r\n");
   printf("  ptin_vcap_defvid_dump                                           - Flush configured VCAP rules associated to defVID\r\n");
+  printf("  hapiBroadReconfigTrap <packet_type> <reenable>                  - Reconfigure IGMP=1/MLD=2/DHCP=3/PPPoE=4/APS=5/IPDTL0=7 trap rules\r\n");
+  printf("  hapiBroadReconfigTrapMeter <packet_type> <cir> <pir> <cbs> <pbs>- Reconfigure meters for IGMP=1/MLD=2/DHCP=3/PPPoE=4/APS=5/IPDTL0=7 trap rules\r\n");
+  printf("  hapiBroadReconfigInbandMeter <cir> <pir> <cbs> <pbs>            - Reconfigure meter for the INBAN trap rule\r\n");
   printf("  hapiBroadDebugPolicyEnable <level>                              - Enable policy management debug messages (minimum level should be 3)\r\n");
   printf("\r\n");
   printf("Multicast Admission Control\r\n");

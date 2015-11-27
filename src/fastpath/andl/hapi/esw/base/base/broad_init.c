@@ -2533,6 +2533,59 @@ hapiBroadDestRouteGet(bcmx_lport_t src, bcmx_lport_t dest)
 
 }
 
+/* Meter for inband traffic */
+BROAD_METER_ENTRY_t inband_meterInfo = {RATE_LIMIT_INBAND, 128, RATE_LIMIT_INBAND, 128, BROAD_METER_COLOR_BLIND};
+
+/**
+ * Reconfigure inband rule with new meter
+ * 
+ * @param cir 
+ * @param pir 
+ * @param cbs 
+ * @param pbs 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t hapiBroadReconfigInbandMeter(L7_uint16 cir, L7_uint16 pir, L7_uint16 cbs, L7_uint16 pbs)
+{
+  BROAD_SYSTEM_t *hapiSystemPtr;
+  extern DAPI_t *dapi_g;
+
+  if (dapi_g == L7_NULLPTR || dapi_g->system == L7_NULLPTR || dapi_g->system->hapiSystem == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "dapi_g pointer is NULL");
+    return L7_FAILURE;
+  }
+
+  hapiSystemPtr = (BROAD_SYSTEM_t *)dapi_g->system->hapiSystem;
+
+  /* Update meter data */
+  if (cbs == 0)  cbs = 128;
+  if (pbs == 0)  pbs = 128;
+  if (cir > pir) pir = cir;
+
+  LOG_INFO(LOG_CTX_PTIN_HAPI, "Going to apply CIR=%u PIR=%u CBS=%u PBS=%u", cir, pir, cbs, pbs);
+
+  inband_meterInfo.cir = cir;
+  inband_meterInfo.pir = pir;
+  inband_meterInfo.cbs = cbs;
+  inband_meterInfo.pbs = pbs;
+
+  if (hapiSystemPtr->mgmtVlanId == 0 ||
+      hapiSystemPtr->mgmtPolicy[BROAD_POLICY_STAGE_INGRESS] == 0 ||
+      hapiSystemPtr->mgmtPolicy[BROAD_POLICY_STAGE_INGRESS] == BROAD_POLICY_INVALID)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_HAPI, "No inband rule is configured, but meter info was updated successfully");
+    return L7_SUCCESS;
+  }
+
+  /* Reconfigure inband rule */
+  hapiBroadFfpSysMacInstall(dapi_g, hapiSystemPtr->mgmtVlanId, hapiSystemPtr->bridgeMacAddr.addr);
+  
+  return L7_SUCCESS;
+}
+
+
 /*********************************************************************
 *
 * @purpose Install the MAC filter for the system MAC address.
@@ -2560,17 +2613,7 @@ void hapiBroadFfpSysMacInstall (DAPI_t      *dapi_g,
                                    FIELD_MASK_ALL,  FIELD_MASK_ALL,  FIELD_MASK_ALL };
   hapiSystemPtr = (BROAD_SYSTEM_t *)dapi_g->system->hapiSystem;
 
-  /* PTin added: inband */
-  BROAD_METER_ENTRY_t meterInfo;
-  meterInfo.cir       = RATE_LIMIT_INBAND;
-  meterInfo.cbs       = 128;
-  meterInfo.pir       = RATE_LIMIT_INBAND;
-  meterInfo.pbs       = 128;
-  meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
-  /* PTin end */
-
   LOG_INFO(LOG_CTX_MISC,"Going to configure Inband Trap rule...");
-
 
   /* Process the Ingress Stage */
 
@@ -2597,13 +2640,13 @@ void hapiBroadFfpSysMacInstall (DAPI_t      *dapi_g,
     hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_REASON_CODE, 
                                       BCM_ROBO_RX_REASON_SWITCHING, 0, 0);
 #else
-    hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, 9 /*HAPI_BROAD_INGRESS_MED_PRIORITY_COS*/, 0, 0);
+    hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_INBAND, 0, 0);
 #endif
 
     /* PTin added: inband */
     hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
     hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
-    hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+    hapiBroadPolicyRuleMeterAdd(ruleId, &inband_meterInfo);
     /* PTin end */
 
 #ifdef L7_STACKING_PACKAGE
@@ -2614,7 +2657,7 @@ void hapiBroadFfpSysMacInstall (DAPI_t      *dapi_g,
       hapiSystemPtr->mgmtPolicy[BROAD_POLICY_STAGE_INGRESS] = mgmtId;
   }
 
-
+#if 0
   /* Process the Egress Stage */
 
   /* If we already have an old MAC address for the network interface
@@ -2699,7 +2742,7 @@ void hapiBroadFfpSysMacInstall (DAPI_t      *dapi_g,
       return;
     }
     /* Define meter action, to rate limit packets */   
-    if (hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo) != L7_SUCCESS)
+    if (hapiBroadPolicyRuleMeterAdd(ruleId, &inband_meterInfo) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_STARTUP, "Error adding rate limit\r\n");
       hapiBroadPolicyCreateCancel();
@@ -2726,7 +2769,7 @@ void hapiBroadFfpSysMacInstall (DAPI_t      *dapi_g,
     /* Store policyId */
     hapiSystemPtr->mgmtPolicy[BROAD_POLICY_STAGE_EGRESS] = mgmtId;
   }
-
+#endif
 
   LOG_INFO(LOG_CTX_MISC,"Inband Trap rule configured for VLAN %u", new_vlan_id);
 }

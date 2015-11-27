@@ -3134,10 +3134,213 @@ typedef struct
 
 static L7_BOOL ptin_trap_policy_global_enable[PTIN_PACKET_LAST];
 
-
 #define PTIN_TRAP_POLICY_MAX_VLANS 200
 ptin_vlan_policy_trap_t ptin_trap_policy[PTIN_TRAP_POLICY_MAX_VLANS];
 
+typedef struct
+{
+  BROAD_METER_ENTRY_t igmp;
+  BROAD_METER_ENTRY_t mld;
+  BROAD_METER_ENTRY_t dhcp;
+  BROAD_METER_ENTRY_t pppoe;
+  BROAD_METER_ENTRY_t aps;
+  BROAD_METER_ENTRY_t ccm;
+  BROAD_METER_ENTRY_t ipdtl0;
+  BROAD_METER_ENTRY_t quattro;
+} ptin_components_meter_t;
+
+ptin_components_meter_t ptin_components_meter=
+{
+  .igmp    = {RATE_LIMIT_IGMP   , 128, RATE_LIMIT_IGMP   , 128, BROAD_METER_COLOR_BLIND},
+  .mld     = {RATE_LIMIT_IGMP   , 128, RATE_LIMIT_IGMP   , 128, BROAD_METER_COLOR_BLIND},
+  .dhcp    = {RATE_LIMIT_DHCP   , 128, RATE_LIMIT_DHCP   , 128, BROAD_METER_COLOR_BLIND},
+  .pppoe   = {RATE_LIMIT_PPPoE  , 128, RATE_LIMIT_PPPoE  , 128, BROAD_METER_COLOR_BLIND},
+  .aps     = {RATE_LIMIT_APS    , 128, RATE_LIMIT_APS    , 128, BROAD_METER_COLOR_BLIND},
+  .ccm     = {RATE_LIMIT_CCM    , 128, RATE_LIMIT_CCM    , 128, BROAD_METER_COLOR_BLIND},
+  .ipdtl0  = {RATE_LIMIT_IPDTL0 , 128, RATE_LIMIT_IPDTL0 , 128, BROAD_METER_COLOR_BLIND},
+  .quattro = {RATE_LIMIT_QUATTRO, 128, RATE_LIMIT_QUATTRO, 128, BROAD_METER_COLOR_BLIND},
+};
+
+/**
+ * Reconfigure all trap rules 
+ * 
+ * @author mruas (11/27/2015)
+ * 
+ * @param packet_type 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t hapiBroadReconfigTrap(ptin_packet_type_t packet_type, L7_BOOL reenable)
+{
+  L7_uint16 index;
+  L7_RC_t   result, result_global = L7_SUCCESS;
+
+  if (packet_type == PTIN_PACKET_NONE || packet_type >= PTIN_PACKET_LAST)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI,"Invalid packet type %u", packet_type);
+    return L7_FAILURE;
+  }
+
+  /* Run all trap rules */
+  for (index = 0; index < PTIN_TRAP_POLICY_MAX_VLANS; index++)
+  {
+    /* Skip not used entries */
+    if (!ptin_trap_policy[index].in_use)
+      continue;
+
+    /* Only for the specified packet type */
+    if (ptin_trap_policy[index].packet_type != packet_type)
+      continue;
+
+    /* If rule is not configured, skop entry */
+    if (ptin_trap_policy[index].policyId != BROAD_POLICY_INVALID)
+    {
+      /* Uninstall rule */
+      if (hapiBroadPolicyDelete(ptin_trap_policy[index].policyId) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error removing policy %u of entry %u", ptin_trap_policy[index].policyId, index);
+        continue;
+      }
+      ptin_trap_policy[index].policyId = BROAD_POLICY_INVALID;
+    }
+    /* If rule is to be disabled, nothing more to be done */
+    if (!reenable)
+    {
+      LOG_NOTICE(LOG_CTX_PTIN_HAPI,"Rule entry %u disabled", index);
+      continue;
+    }
+
+    /* Reconfigure */
+    /* Configure rules */
+    switch (packet_type)
+    {
+    case PTIN_PACKET_IGMP:
+      result = hapiBroadConfigIgmpTrap(ptin_trap_policy[index].vlan, ptin_trap_policy[index].vlan_mask, L7_FALSE, dapi_g,
+                                       &ptin_trap_policy[index].policyId);
+      break;
+
+    case PTIN_PACKET_DHCP:
+      if (ptin_trap_policy[index].ip_version == L7_AF_INET6)
+      {
+        result = hapiBroadConfigDhcpV6Trap(ptin_trap_policy[index].vlan, ptin_trap_policy[index].vlan_mask, dapi_g,
+                                           &ptin_trap_policy[index].policyId);
+      }
+      else
+      {
+        result = hapiBroadConfigDhcpV4Trap(ptin_trap_policy[index].vlan, ptin_trap_policy[index].vlan_mask, dapi_g,
+                                           &ptin_trap_policy[index].policyId);
+      }
+      break;
+
+    case PTIN_PACKET_PPPOE:
+      result = hapiBroadConfigPPPoETrap(ptin_trap_policy[index].vlan, ptin_trap_policy[index].vlan_mask, dapi_g,
+                                        &ptin_trap_policy[index].policyId);
+      break;
+
+    case PTIN_PACKET_APS:
+      result = hapiBroadConfigApsTrap(/*usp,*/ ptin_trap_policy[index].vlan, ptin_trap_policy[index].vlan_mask, ptin_trap_policy[index].param, dapi_g,
+                                      &ptin_trap_policy[index].policyId);
+      break;
+
+    case PTIN_PACKET_IPDTL0:
+      result = hapiBroadConfigIpDtl0Trap(ptin_trap_policy[index].vlan, ptin_trap_policy[index].vlan_mask, ptin_trap_policy[index].macAddr.addr, dapi_g,
+                                         &ptin_trap_policy[index].policyId);
+      break;
+
+    default:
+      result = L7_FAILURE;
+      break;
+    }
+
+    if (result == L7_SUCCESS && ptin_trap_policy[index].policyId != BROAD_POLICY_INVALID)
+    {
+      LOG_NOTICE(LOG_CTX_PTIN_HAPI,"Rule entry %u reenabled", index);
+    }
+    /* If error, clear entry */
+    else
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error reenabling entry %u", index);
+      if (result != L7_SUCCESS)
+        result_global = result;
+    }
+  }
+
+  if (result_global != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI,"Errors occurred reenabling entries");
+  }
+
+  return result_global;
+}
+
+/**
+ * Reconfigure meters (with rules reactivation)
+ * 
+ * @param packet_type 
+ * @param cir 
+ * @param pir 
+ * @param cbs 
+ * @param pbs 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t hapiBroadReconfigTrapMeter(ptin_packet_type_t packet_type, L7_uint32 cir, L7_uint32 pir, L7_uint32 cbs, L7_uint32 pbs)
+{
+  BROAD_METER_ENTRY_t *ptr;
+
+  if (packet_type == PTIN_PACKET_NONE || packet_type >= PTIN_PACKET_LAST)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI,"Invalid packet type %u", packet_type);
+    return L7_FAILURE;
+  }
+
+  /* Update meter data */
+  switch (packet_type)
+  {
+  case PTIN_PACKET_IGMP:
+    ptr = &ptin_components_meter.igmp;
+    break;
+  case PTIN_PACKET_DHCP:
+    ptr = &ptin_components_meter.dhcp;
+    break;
+  case PTIN_PACKET_PPPOE:
+    ptr = &ptin_components_meter.pppoe;
+    break;
+  case PTIN_PACKET_APS:
+    ptr = &ptin_components_meter.aps;
+    break;
+  case PTIN_PACKET_CCM:
+    ptr = &ptin_components_meter.ccm;
+    break;
+  case PTIN_PACKET_IPDTL0:
+    ptr = &ptin_components_meter.ipdtl0;
+    break;
+  default:
+    LOG_ERR(LOG_CTX_PTIN_HAPI,"Packet type %u not considered", packet_type);
+    return L7_FAILURE;
+  }
+
+  /* Meter data */
+  if (cbs == 0)  cbs = 128;
+  if (pbs == 0)  pbs = 128;
+  if (cir > pir) pir = cir;
+
+  LOG_INFO(LOG_CTX_PTIN_HAPI, "Going to apply CIR=%u PIR=%u CBS=%u PBS=%u", cir, pir, cbs, pbs);
+  
+  ptr->cir = cir; 
+  ptr->pir = pir;
+  ptr->cbs = cbs;
+  ptr->pbs = pbs;
+
+  /* Update active rules */
+  if (hapiBroadReconfigTrap(packet_type, L7_TRUE) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI,"Error reactivating rules");
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
 
 L7_RC_t hapiBroadConfigTrap(DAPI_USP_t *usp, cmdData_snoopConfig_t *snoopConfig, L7_BOOL switchFrame, DAPI_t *dapi_g)
 {
@@ -3338,7 +3541,7 @@ L7_RC_t hapiBroadConfigTrap(DAPI_USP_t *usp, cmdData_snoopConfig_t *snoopConfig,
                                         &ptin_trap_policy[index].policyId);
       break;
     case PTIN_PACKET_APS:
-      result = hapiBroadConfigApsTrap(usp, ptin_trap_policy[index].vlan, ptin_trap_policy[index].vlan_mask, ptin_trap_policy[index].param, dapi_g,
+      result = hapiBroadConfigApsTrap(/*usp,*/ ptin_trap_policy[index].vlan, ptin_trap_policy[index].vlan_mask, ptin_trap_policy[index].param, dapi_g,
                                       &ptin_trap_policy[index].policyId);
       break;
     case PTIN_PACKET_IPDTL0:
@@ -3362,9 +3565,6 @@ L7_RC_t hapiBroadConfigTrap(DAPI_USP_t *usp, cmdData_snoopConfig_t *snoopConfig,
   return result;
 }
 #endif
-
-/* CoS assigned to trapped packets */
-#define CPU_TRAPPED_PACKETS_COS 8
 
 #if 1
 /**
@@ -3432,19 +3632,11 @@ L7_RC_t hapiBroadConfigIgmpTrap(L7_uint16 vlanId, L7_uint16 vlan_match, L7_BOOL 
     /* Rate limit */
     if (PTIN_VLAN_IS_QUATTRO(vlanId))
     {
-      meterInfo.cir       = RATE_LIMIT_QUATTRO;
-      meterInfo.cbs       = 128;
-      meterInfo.pir       = RATE_LIMIT_QUATTRO;
-      meterInfo.pbs       = 128;
-      meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
+      meterInfo = ptin_components_meter.quattro;
     }
     else
     {
-      meterInfo.cir       = RATE_LIMIT_IGMP;
-      meterInfo.cbs       = 128;
-      meterInfo.pir       = RATE_LIMIT_IGMP;
-      meterInfo.pbs       = 128;
-      meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
+      meterInfo = ptin_components_meter.igmp;
     }
 
     /* give IGMP frames high priority and trap to the CPU. */
@@ -3459,7 +3651,7 @@ L7_RC_t hapiBroadConfigIgmpTrap(L7_uint16 vlanId, L7_uint16 vlan_match, L7_BOOL 
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PROTO, igmp_proto, exact_match);
     if (result != L7_SUCCESS)  break;
     LOG_TRACE(LOG_CTX_PTIN_HAPI, "Qualifier BROAD_FIELD_PROTO defined");
-    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS, 0, 0);
+    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_DEFAULT, 0, 0);
   #ifdef BCM_ROBO_SUPPORT 
     result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_REASON_CODE, 8, 0, 0);
   #endif
@@ -3570,19 +3762,11 @@ L7_RC_t hapiBroadConfigDhcpV4Trap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t
     /* Rate limit */
     if (PTIN_VLAN_IS_QUATTRO(vlanId))
     {
-      meterInfo.cir       = RATE_LIMIT_QUATTRO;
-      meterInfo.cbs       = 128;
-      meterInfo.pir       = RATE_LIMIT_QUATTRO;
-      meterInfo.pbs       = 128;
-      meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
+      meterInfo = ptin_components_meter.quattro;
     }
     else
     {
-      meterInfo.cir       = RATE_LIMIT_DHCP;
-      meterInfo.cbs       = 128;
-      meterInfo.pir       = RATE_LIMIT_DHCP;
-      meterInfo.pbs       = 128;
-      meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
+      meterInfo = ptin_components_meter.dhcp;
     }
 
     /* give dhcp frames high priority and trap to the CPU. */
@@ -3601,7 +3785,7 @@ L7_RC_t hapiBroadConfigDhcpV4Trap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t
     if (result != L7_SUCCESS)  break;
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP_TYPE, (L7_uchar8*)&ip_type, exact_match);
     if (result != L7_SUCCESS)  break;
-    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS, 0, 0);
+    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_DEFAULT, 0, 0);
     if (result != L7_SUCCESS)  break;
     /* Trap the frames to CPU, so that they are not switched */
     result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
@@ -3627,7 +3811,7 @@ L7_RC_t hapiBroadConfigDhcpV4Trap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t
     if (result != L7_SUCCESS)  break;
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP_TYPE, (L7_uchar8*)&ip_type, exact_match);
     if (result != L7_SUCCESS)  break;
-    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS, 0, 0);
+    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_DEFAULT, 0, 0);
     if (result != L7_SUCCESS)  break;
     /* Trap the frames to CPU, so that they are not switched */
     result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
@@ -3728,19 +3912,11 @@ L7_RC_t hapiBroadConfigDhcpV6Trap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t
     /* Rate limit */
     if (PTIN_VLAN_IS_QUATTRO(vlanId))
     {
-      meterInfo.cir       = RATE_LIMIT_QUATTRO;
-      meterInfo.cbs       = 128;
-      meterInfo.pir       = RATE_LIMIT_QUATTRO;
-      meterInfo.pbs       = 128;
-      meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
+      meterInfo = ptin_components_meter.quattro;
     }
     else
     {
-      meterInfo.cir       = RATE_LIMIT_DHCP;
-      meterInfo.cbs       = 128;
-      meterInfo.pir       = RATE_LIMIT_DHCP;
-      meterInfo.pbs       = 128;
-      meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
+      meterInfo = ptin_components_meter.dhcp;
     }
 
     /* give dhcp frames high priority and trap to the CPU. */
@@ -3759,7 +3935,7 @@ L7_RC_t hapiBroadConfigDhcpV6Trap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t
     if (result != L7_SUCCESS)  break;
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP_TYPE, (L7_uchar8*)&ip_type, exact_match);
     if (result != L7_SUCCESS)  break;
-    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS, 0, 0);
+    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_DEFAULT, 0, 0);
     if (result != L7_SUCCESS)  break;
     /* Trap the frames to CPU, so that they are not switched */
     result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
@@ -3785,7 +3961,7 @@ L7_RC_t hapiBroadConfigDhcpV6Trap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t
     if (result != L7_SUCCESS)  break;
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP_TYPE, (L7_uchar8*)&ip_type, exact_match);
     if (result != L7_SUCCESS)  break;
-    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS, 0, 0);
+    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_DEFAULT, 0, 0);
     if (result != L7_SUCCESS)  break;
     /* Trap the frames to CPU, so that they are not switched */
     result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
@@ -3872,19 +4048,11 @@ L7_RC_t hapiBroadConfigPPPoETrap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t 
     /* Rate limit */
     if (PTIN_VLAN_IS_QUATTRO(vlanId))
     {
-      meterInfo.cir       = RATE_LIMIT_QUATTRO;
-      meterInfo.cbs       = 128;
-      meterInfo.pir       = RATE_LIMIT_QUATTRO;
-      meterInfo.pbs       = 128;
-      meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
+      meterInfo = ptin_components_meter.quattro;
     }
     else
     {
-      meterInfo.cir       = RATE_LIMIT_PPPoE;
-      meterInfo.cbs       = 128;
-      meterInfo.pir       = RATE_LIMIT_PPPoE;
-      meterInfo.pbs       = 128;
-      meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
+      meterInfo = ptin_components_meter.pppoe;
     }
 
     /* give dhcp frames high priority and trap to the CPU. */
@@ -3896,7 +4064,7 @@ L7_RC_t hapiBroadConfigPPPoETrap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t 
     if (result != L7_SUCCESS)  break;
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&pppoe_ethtype, exact_match);
     if (result != L7_SUCCESS)  break;
-    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS, 0, 0);
+    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_DEFAULT, 0, 0);
     if (result != L7_SUCCESS)  break;
     /* Trap the frames to CPU, so that they are not switched */
     result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
@@ -3953,10 +4121,11 @@ L7_RC_t hapiBroadConfigPPPoETrap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t 
  * 
  * @return L7_RC_t
  */
-L7_RC_t hapiBroadConfigApsTrap(DAPI_USP_t *usp, L7_uint16 vlanId, L7_uint16 vlan_match, L7_uint8 ringId_level, DAPI_t *dapi_g,
+L7_RC_t hapiBroadConfigApsTrap(/*DAPI_USP_t *usp,*/ L7_uint16 vlanId, L7_uint16 vlan_match, L7_uint8 ringId_level, DAPI_t *dapi_g,
                                BROAD_POLICY_t *policy_id)
 {
-#ifdef __APS_AND_CCM_COMMON_FILTER__
+#ifdef __APS_AND_CCM_COMMON_FILTER
+  #error "USP argument was removed"
   if (L7_NULL==vlanId) return L7_SUCCESS;
   return hapiBroadConfigCcmFilter(usp, enable, vlanId, ringId_level, dapi_g);
 #else
@@ -3979,11 +4148,15 @@ L7_RC_t hapiBroadConfigApsTrap(DAPI_USP_t *usp, L7_uint16 vlanId, L7_uint16 vlan
   }
 
   /* APS packets on any port must go to the CPU and be rate limited to 64 kbps */
-  meterInfo.cir       = RATE_LIMIT_APS;
-  meterInfo.cbs       = 128;
-  meterInfo.pir       = RATE_LIMIT_APS;
-  meterInfo.pbs       = 128;
-  meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
+  /* Rate limit */
+  if (PTIN_VLAN_IS_QUATTRO(vlanId))
+  {
+    meterInfo = ptin_components_meter.quattro;
+  }
+  else
+  {
+    meterInfo = ptin_components_meter.aps;
+  }
 
   do
   {
@@ -4009,7 +4182,7 @@ L7_RC_t hapiBroadConfigApsTrap(DAPI_USP_t *usp, L7_uint16 vlanId, L7_uint16 vlan
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&aps_ethtype, exact_match);
     if (result != L7_SUCCESS)  break;
 
-    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS, 0, 0);
+    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_DEFAULT, 0, 0);
     if (result != L7_SUCCESS)  break;
 
     /* Trap the frames to CPU, so that they are not switched */
@@ -4096,11 +4269,15 @@ L7_RC_t hapiBroadConfigIpDtl0Trap(L7_uint16 vlanId, L7_uint16 vlan_match, L7_uch
   }
 
   /* IP packets on any port must go to the CPU and be rate limited to 128 kbps */
-  meterInfo.cir       = RATE_LIMIT_IPDTL0;
-  meterInfo.cbs       = 128;
-  meterInfo.pir       = RATE_LIMIT_IPDTL0;
-  meterInfo.pbs       = 128;
-  meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
+  /* Rate limit */
+  if (PTIN_VLAN_IS_QUATTRO(vlanId))
+  {
+    meterInfo = ptin_components_meter.quattro;
+  }
+  else
+  {
+    meterInfo = ptin_components_meter.ipdtl0;
+  }
 
   do
   {
@@ -4128,7 +4305,7 @@ L7_RC_t hapiBroadConfigIpDtl0Trap(L7_uint16 vlanId, L7_uint16 vlan_match, L7_uch
 //  result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ipdtl0_ethtype, exact_match);
 //  if (result != L7_SUCCESS)  break;
 
-    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS, 0, 0);
+    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_DEFAULT, 0, 0);
     if (result != L7_SUCCESS)  break;
 
     /* Trap the frames to CPU, so that they are not switched */
@@ -4231,11 +4408,15 @@ L7_RC_t hapiBroadConfigCcmFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
  //#endif
 
   /* CCM packets on any port must go to the CPU and be rate limited to 64 kbps */
-  meterInfo.cir       = RATE_LIMIT_CCM;
-  meterInfo.cbs       = 128;
-  meterInfo.pir       = RATE_LIMIT_CCM;
-  meterInfo.pbs       = 128;
-  meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
+  /* Rate limit */
+  if (PTIN_VLAN_IS_QUATTRO(vlanId))
+  {
+    meterInfo = ptin_components_meter.quattro;
+  }
+  else
+  {
+    meterInfo = ptin_components_meter.ccm;
+  }
 
   /* If vlan value is valid, Find index */
   if (!(vlanId >= PTIN_VLAN_MIN && vlanId <= PTIN_VLAN_MAX)) return L7_FAILURE;
@@ -4320,7 +4501,7 @@ L7_RC_t hapiBroadConfigCcmFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
       if (result != L7_SUCCESS)  break;
 
 
-      result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS, 0, 0);
+      result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_DEFAULT, 0, 0);
       if (result != L7_SUCCESS)  {
         break;
       }
