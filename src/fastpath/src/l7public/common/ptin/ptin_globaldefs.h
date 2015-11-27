@@ -163,19 +163,24 @@ extern int ptin_sys_number_of_ports;
 
 /* Rate Limits */
 #define RATE_LIMIT_LACP     64
-#define RATE_LIMIT_IGMP     512
-#define RATE_LIMIT_DHCP     512
-#define RATE_LIMIT_PPPoE    512
+#define RATE_LIMIT_IGMP     256
+#define RATE_LIMIT_DHCP     256
+#define RATE_LIMIT_PPPoE    256
+#define RATE_LIMIT_APS      256
+#define RATE_LIMIT_CCM      256
+#define RATE_LIMIT_IPDTL0   256
+#define RATE_LIMIT_QUATTRO  1024
+#define RATE_LIMIT_INBAND   4096
+#define RATE_LIMIT_PCAP     1024    /* 1 Mbps by default */
 #define RATE_LIMIT_BCAST    1024    /* 1 Mbps by default */
 #define RATE_LIMIT_MCAST    1024    /* 1 Mbps by default */
 #define RATE_LIMIT_UCUNK    1024    /* 1 Mbps by default */
 #define RATE_LIMIT_CPU      1024    /* 1 Mbps by default */
-#define RATE_LIMIT_APS      512
-#define RATE_LIMIT_CCM      512
-#define RATE_LIMIT_IPDTL0   512
-#define RATE_LIMIT_QUATTRO  4096
-#define RATE_LIMIT_INBAND   8192
-#define RATE_LIMIT_PCAP     1024    /* 1 Mbps by default */
+
+/* CoS assigned to trapped packets */
+#define CPU_TRAPPED_PACKETS_COS_DEFAULT 8     /* For IGMP/DHCP/PPPoE/APS/... */
+#define CPU_TRAPPED_PACKETS_COS_INBAND  9     /* For Inband packets */
+#define CPU_TRAPPED_PACKETS_COS_HIPRIO  10    /* High priority */
 
 /* PTin module states */
 typedef enum {
