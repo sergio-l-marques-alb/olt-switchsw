@@ -1,12 +1,14 @@
 dest=/var/log/output.txt
 echo "File cleared at `date`" > $dest
 
+# kill all related tails
+ps | grep 'tail' | grep $dest | awk '{print $1}' | xargs kill
+
 # If argument was provided, use that as destination
 if [ $# -ne 0 ]; then
   if [ "$1" == "/dev/null" -o "$1" == "dev/null" -o "$1" == "null" -o "$1" == "exit" -o "$1" == "0" ]; then
     echo "Console redirection cleared"
     fp.cli m 1000 /dev/null
-    ps | grep 'tail' | grep $dest | awk '{print $1}' | xargs kill
   else
     echo "Redirecting console to $1"
     fp.cli m 1000 $1
