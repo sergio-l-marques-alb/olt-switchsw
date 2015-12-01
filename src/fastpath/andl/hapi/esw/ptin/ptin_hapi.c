@@ -4290,6 +4290,7 @@ L7_RC_t hapiBroadSystemInstallPtin_preInit(void)
 L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
 {
   L7_uint8    port, prio;
+  L7_BOOL     remark_pbits;
   bcm_port_t  bcm_port;
   bcm_error_t rv;
   L7_RC_t     rc;
@@ -4437,6 +4438,31 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
         LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_vlan_priority_unmap_set(YELLOW): %u", rv);
         return L7_FAILURE; 
       }
+    }
+
+    /* Default is to have pbits remarking disabled */
+    remark_pbits = L7_FALSE;
+
+    /* For linecard uplink ports, or CXO160G downlink ports, remark should be active */
+    #if ((PTIN_BOARD_IS_LINECARD) || (PTIN_BOARD == PTIN_BOARD_CXO160G))
+    if ((PTIN_SYSTEM_10G_PORTS_MASK >> port) & 1)
+    /* For standalone equipments (OLT1T0), remark should be active for all ports */
+    #elif (PTIN_BOARD_IS_STANDALONE)
+    if (1)
+    /* For other situations, remarking should be disabled */
+    /* For CXO640G internal ports, this will be reconfigurable according to the boards presence */
+    #else
+    if (0)
+    #endif
+    {
+      remark_pbits = L7_TRUE;
+    }
+    /* Apply remark configuration: this will affect PCP and CFI bits */
+    rv = bcm_port_control_set(0, bcm_port, bcmPortControlEgressVlanPriUsesPktPri, !remark_pbits);
+    if (rv != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_control_set: %u", rv);
+      return L7_FAILURE; 
     }
 
     // This will make egress packets to be PCP remarked (from the internal priority value)
