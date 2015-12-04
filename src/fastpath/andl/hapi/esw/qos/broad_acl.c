@@ -867,6 +867,7 @@ static L7_RC_t hapiBroadQosAclInstAdd(DAPI_USP_t               *usp,
     BROAD_PORT_t             *hapiPortPtr;
     BROAD_POLICY_t            aclId;
     BROAD_POLICY_RULE_t       ruleId;
+    BROAD_POLICY_RULE_PRIORITY_t rulePriority = BROAD_POLICY_RULE_PRIORITY_DEFAULT;
     DAPI_PORT_t              *dapiPortPtr;
     L7_uint32                 data32, mask32;
     L7_ushort16               data16, mask16;
@@ -889,10 +890,12 @@ static L7_RC_t hapiBroadQosAclInstAdd(DAPI_USP_t               *usp,
     if ( L7_FALSE == IS_PORT_TYPE_CPU( dapiPortPtr ) )
     {
       result = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_PORT);
+      rulePriority = BROAD_POLICY_RULE_PRIORITY_HIGH;
     }
     else
     {
       result = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_VLAN);
+      rulePriority = BROAD_POLICY_RULE_PRIORITY_DEFAULT;
     }
     if (L7_SUCCESS != result)
     {
@@ -956,7 +959,8 @@ static L7_RC_t hapiBroadQosAclInstAdd(DAPI_USP_t               *usp,
           continue;
         }
 
-        result = hapiBroadPolicyRuleAdd(&ruleId);
+        /* Create rule with specified priority (port rules should have higher priority) */
+        result = hapiBroadPolicyPriorityRuleAdd(&ruleId, rulePriority);
         if (L7_SUCCESS != result)
         {
             (void)hapiBroadPolicyCreateCancel();

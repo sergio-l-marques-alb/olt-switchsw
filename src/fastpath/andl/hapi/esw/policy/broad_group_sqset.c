@@ -513,7 +513,13 @@ bcm_field_qualify_t ipv6L3L4Qset[] =  /* includes VLAN ID */
 bcm_field_qualify_t ipv6L3L4ClassIdQset[] =  /* includes VLAN ID */
 {
     bcmFieldQualifyInPorts,
+    /*bcmFieldQualifySrcMac,*/        /* PTin added: IPv6 ACL rules */
+    /*bcmFieldQualifyDstMac,*/        /* PTin added: IPv6 ACL rules */
     bcmFieldQualifyOuterVlan,
+    bcmFieldQualifyInnerVlan,     /* PTin added: IPv6 ACL rules */
+    bcmFieldQualifyVlanFormat,    /* PTin added: IPv6 ACL rules */
+    bcmFieldQualifyEtherType,     /* PTin added: IPv6 ACL rules */
+    bcmFieldQualifyIpType,        /* PTin added: IPv6 ACL rules */
     bcmFieldQualifySrcIp6,          
     bcmFieldQualifyDstIp6,          
     bcmFieldQualifyIp6TrafficClass,

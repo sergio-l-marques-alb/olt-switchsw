@@ -4362,9 +4362,9 @@ static int _policy_group_alloc_init(int unit, BROAD_POLICY_STAGE_t policyStage, 
           }
 
           group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].lowPrio  = lowPrioGroup + 0;
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio = lowPrioGroup + 1;   /* PTin modified: policer */
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio = lowPrioGroup + 3;   /* PTin modified: policer */
 
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio    = lowPrioGroup + 2;
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio    = lowPrioGroup + 0;
           group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio   = lowPrioGroup + 3;   /* PTin modified: policer */
 
           /* PTin added: policer */
@@ -4395,9 +4395,9 @@ static int _policy_group_alloc_init(int unit, BROAD_POLICY_STAGE_t policyStage, 
           }
 
           group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].lowPrio  = lowPrioGroup + 0;
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio = lowPrioGroup + 1;
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio = lowPrioGroup + 3;
 
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio    = lowPrioGroup + 2;
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio    = lowPrioGroup + 0;
           group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio   = lowPrioGroup + 3; //groups/2 - 1;   /*groups - 1;*/     /* PTin modified: policer */
 
           /* PTin added: QoS */
