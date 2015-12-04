@@ -211,6 +211,7 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
   BROAD_POLICY_t      policyId;
   BROAD_POLICY_RULE_t ruleId  = BROAD_POLICY_RULE_INVALID;
   BROAD_POLICY_TYPE_t policyType = BROAD_POLICY_TYPE_SYSTEM;
+  BROAD_POLICY_RULE_PRIORITY_t policy_priority = BROAD_POLICY_RULE_PRIORITY_DEFAULT;
   L7_uint8            drop_qualifier = 0;
   bcm_mac_t           dmac     = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
   L7_uint8            mask[16] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
@@ -404,6 +405,16 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
       continue;
     }
 
+    /* Rules priority: client counters have higher priority */
+    if (policyType == BROAD_POLICY_TYPE_STAT_CLIENT)
+    {
+      policy_priority = BROAD_POLICY_RULE_PRIORITY_HIGH;
+    }
+    else
+    {
+      policy_priority = BROAD_POLICY_RULE_PRIORITY_DEFAULT;
+    }
+
     LOG_TRACE(LOG_CTX_PTIN_HAPI,"policyType=%u",policyType);
 
     if ((result=hapiBroadPolicyCreate(policyType))!=L7_SUCCESS)
@@ -426,7 +437,7 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
     for (packets_type=PTIN_PACKETS_TYPE_FIRST; packets_type<PTIN_PACKETS_TYPE_MAX; packets_type++)
     {
       /* Creatre rule */
-      if ((result=hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_DEFAULT))!=L7_SUCCESS)
+      if ((result=hapiBroadPolicyPriorityRuleAdd(&ruleId, policy_priority))!=L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyPriorityRuleAdd");
         break;
