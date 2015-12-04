@@ -1580,9 +1580,34 @@ static uint32 l7_port_wred_percent_to_bytes(int unit, uint8 percent)
     /* We will set our conversion factor to: 100% = one queue active on 1/4 of the ports */
     unsigned int cellsize = 128;
     unsigned int totalmem = 32767; /* max cells that can be specified */
-        
-    if (SOC_IS_SC_CQ(unit)) 
+    
+    /* CXO640G board */
+    if (SOC_IS_TRIDENT(unit) || SOC_IS_TRIDENT2X(unit))
     {
+      cellsize = 208;
+      totalmem = 46080;
+    }
+    /* OLT1T0 board */
+    else if (SOC_IS_HELIX4(unit))
+    {
+      cellsize = 208;
+      totalmem = 20070;
+    }
+    /* CXO160G and TA48GE boards */
+    else if (SOC_IS_TRIUMPH3(unit))
+    {
+      cellsize = 208;
+      totalmem = 24576;
+    }
+    /* TG16G board */
+    else if (SOC_IS_VALKYRIE2(unit))
+    {
+      cellsize = 128;
+      totalmem = 24576;
+    }
+    else if (SOC_IS_SC_CQ(unit)) 
+    {
+      cellsize = 128;
       totalmem = 16383;
     }
 
