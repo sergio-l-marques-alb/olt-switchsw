@@ -66,6 +66,7 @@ typedef enum
   ALLOC_BLOCK_LOW = 0,      /* blocks */                 
   ALLOC_BLOCK_MEDIUM,       /* used for VLAN policies */ 
   ALLOC_BLOCK_HIGH,         /* used for PORT policies */ 
+  ALLOC_BLOCK_QOS,          /* used for QoS policies */            /* PTin added: QoS */
   ALLOC_BLOCK_PTIN,         /* used for PTIN special polices */    /* PTin added: policer */
   ALLOC_BLOCK_STATS_EVC,    /* used for PTIN special polices */    /* PTin added: stats */
   ALLOC_BLOCK_STATS_CLIENT, /* used for PTIN special polices */    /* PTin added: stats */

@@ -225,13 +225,14 @@ bcm_field_qualify_t l2l3l4Xgs4ClassIdQset[] =    /* l2/l3/l4 */
     bcmFieldQualifyEtherType,
     bcmFieldQualifyInnerVlan,
     bcmFieldQualifyOuterVlan,
-    bcmFieldQualifyL2Format,
+    /*bcmFieldQualifyL2Format,*/
     bcmFieldQualifyVlanFormat,
     bcmFieldQualifyIpType,
     bcmFieldQualifyIpProtocol,
     bcmFieldQualifyL4SrcPort,
     bcmFieldQualifyL4DstPort,
     bcmFieldQualifyDSCP,
+#if 0
     bcmFieldQualifyL2StationMove,
     bcmFieldQualifyL3DestRouteHit,
     bcmFieldQualifyL3DestHostHit,
@@ -249,9 +250,9 @@ bcm_field_qualify_t l2l3l4Xgs4ClassIdQset[] =    /* l2/l3/l4 */
 #else
     bcmFieldQualifySrcMacGroup,
 #endif
-
+#endif
   /* PTin added */
-#if (0 /*PTIN_BOARD != PTIN_BOARD_CXO640G*/)
+#if (PTIN_BOARD != PTIN_BOARD_CXO640G)
   bcmFieldQualifySrcIp6,
   bcmFieldQualifyDstIp6,
   bcmFieldQualifyIp6TrafficClass,
@@ -346,12 +347,10 @@ bcm_field_qualify_t systemQsetTriumph2[] =  /* System requirement */
 #endif
   bcmFieldQualifyIngressStpState,
   bcmFieldQualifyIpType,
+  bcmFieldQualifyVlanFormat,    /* PTin added: FP */
   #if 0
   bcmFieldQualifyDrop,          /* PTin added: FP */
   bcmFieldQualifySrcTrunk,      /* PTin added: FP */
-  #endif
-  bcmFieldQualifyVlanFormat,    /* PTin added: FP */
-  #if 0
   bcmFieldQualifyDstIp,         /* PTin added: FP */
   bcmFieldQualifyL2SrcHit,      /* PTin added: FP */
   bcmFieldQualifyL2DestHit,     /* PTin added: FP */
@@ -367,10 +366,29 @@ bcm_field_qualify_t systemQsetTriumph2[] =  /* System requirement */
 
 /* PTin added: ICAP */
 #if 1
+bcm_field_qualify_t systemQsetVlanQoS[] =
+{
+  bcmFieldQualifyInPorts,
+  bcmFieldQualifyOuterVlan,
+  bcmFieldQualifyEtherType,
+  bcmFieldQualifyDSCP,
+/* PTin modified: SDK 6.3.0 */
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+  bcmFieldQualifySrcClassField,
+#else
+  bcmFieldQualifyLookupClass0,
+#endif
+
+  bcmFieldQualifyStageIngress
+};
+
+#define systemQsetVlanQoSSize (sizeof(systemQsetVlanQoS) / sizeof(bcm_field_qualify_t))
+
+
 bcm_field_qualify_t systemQsetPTin[] =  /* System requirement */
 {
   bcmFieldQualifyInPorts,
-#if (PTIN_BOARD != PTIN_BOARD_TG16G)
+#if (0 /*PTIN_BOARD != PTIN_BOARD_TG16G*/)
   bcmFieldQualifySrcTrunk,      /* PTin added: FP */
 #endif
   bcmFieldQualifyOuterVlan,
@@ -498,12 +516,13 @@ bcm_field_qualify_t ipv6L3L4ClassIdQset[] =  /* includes VLAN ID */
     bcmFieldQualifyOuterVlan,
     bcmFieldQualifySrcIp6,          
     bcmFieldQualifyDstIp6,          
-    bcmFieldQualifyIp6TrafficClass,          
+    bcmFieldQualifyIp6TrafficClass,
     bcmFieldQualifyIp6FlowLabel,          
     bcmFieldQualifyIp6NextHeader,          
-    bcmFieldQualifyIp6HopLimit,          
     bcmFieldQualifyL4SrcPort,    /* also used for ICMP Msg Type */
     bcmFieldQualifyL4DstPort,
+#if 0
+    bcmFieldQualifyIp6HopLimit,
     bcmFieldQualifyL2StationMove,
     bcmFieldQualifyL3DestRouteHit,
     bcmFieldQualifyL3DestHostHit,
@@ -523,6 +542,7 @@ bcm_field_qualify_t ipv6L3L4ClassIdQset[] =  /* includes VLAN ID */
     bcmFieldQualifySrcClassL2,
 #else
     bcmFieldQualifySrcMacGroup,
+#endif
 #endif
     bcmFieldQualifyStageIngress
 };
@@ -857,6 +877,7 @@ super_qset_definition_t ipv6NdQsetScorpionDef    = {ipv6NdQsetScorpion,    ipv6N
 
 /* PTin added: ICAP */
 #if 1
+super_qset_definition_t systemQsetVlanQoSDef     = {systemQsetVlanQoS,     systemQsetVlanQoSSize, 0, 0};
 super_qset_definition_t systemQsetPTinDef        = {systemQsetPTin,        systemQsetPTinSize,    0, 0};
 super_qset_definition_t systemQsetStatsDef       = {systemQsetStats,       systemQsetStatsSize,   0, 0};
 #endif
