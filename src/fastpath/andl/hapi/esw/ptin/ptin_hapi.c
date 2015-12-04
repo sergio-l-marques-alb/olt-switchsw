@@ -4464,24 +4464,6 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
       LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_control_set: %u", rv);
       return L7_FAILURE; 
     }
-
-    // This will make egress packets to be PCP remarked (from the internal priority value)
-    // Only uplink ports of linecard will have the remarking enabled
-    #if ((PTIN_BOARD_IS_LINECARD) || (PTIN_BOARD == PTIN_BOARD_CXO160G))
-    if ((PTIN_SYSTEM_10G_PORTS_MASK >> port) & 1)
-    {
-      rv = bcm_port_control_set(0, bcm_port, bcmPortControlEgressVlanPriUsesPktPri, 0);
-    }
-    else
-    #endif
-    {
-      rv = bcm_port_control_set(0, bcm_port, bcmPortControlEgressVlanPriUsesPktPri, 1);
-    }
-    if (rv != BCM_E_NONE)
-    {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_control_set: %u", rv);
-      return L7_FAILURE; 
-    }
   }
 
   /** EGRESS STAGE **/
