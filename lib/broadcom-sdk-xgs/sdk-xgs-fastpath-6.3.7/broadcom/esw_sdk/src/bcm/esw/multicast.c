@@ -2467,7 +2467,7 @@ _bcm_esw_multicast_l3_destroy(int unit, bcm_multicast_t group)
             #else
             if (_bcm_esw_ipmc_egress_intf_set(unit, mc_index, port_iter, 0, NULL, is_l3, FALSE) != BCM_E_NONE)
             {
-              LOG_WARNING(LOG_CTX_SDK,"Error with _bcm_esw_ipmc_egress_intf_set: unit=%d, mc_index=%d, port=%d", unit, mc_index, port_iter);
+              PT_LOG_WARN(LOG_CTX_SDK,"Error with _bcm_esw_ipmc_egress_intf_set: unit=%d, mc_index=%d, port=%d", unit, mc_index, port_iter);
             }
             #endif
         }
