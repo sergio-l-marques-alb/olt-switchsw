@@ -196,7 +196,7 @@ static struct s_outFile {
 /**
  * Outputs (stdout) help on how to configure logger on-the-fly
  */
-void log_help(void)
+void logger_help(void)
 {
     int i;
 
@@ -204,7 +204,7 @@ void log_help(void)
            "\n"
            "Configuration functions\n"
            "  log_sev_set  (<ctx_mask>, <severity>)\n"
-           "  log_color_set(<ctx_mask>, <color>)\n");
+           "  logger_color_set(<ctx_mask>, <color>)\n");
 
     printf("\nContext mask\n");
     for ( i=0; i<LOG_CONTEXT_LAST; i++ )
@@ -283,7 +283,7 @@ void logger_deinit(void)
  * 
  * @param output : type of output
  */
-void log_output_file_set(log_output_t output, char *filename)
+void logger_output_file_set(log_output_t output, char *filename)
 {
   FILE *stream;
 
@@ -334,7 +334,7 @@ void log_output_file_set(log_output_t output, char *filename)
  * @param output : type of output
  * @param output_file_path : path and file name
  */
-void log_redirect(log_output_t output, char* output_file_path)
+void logger_redirect(log_output_t output, char* output_file_path)
 {
   FILE * temp_stream;
   
@@ -387,7 +387,7 @@ void log_redirect(log_output_t output, char* output_file_path)
  * 
  * @return int Zero if OK, otherwise means error
  */
-int log_sev_set(unsigned int ctx_mask, int sev)
+int logger_sev_set(unsigned int ctx_mask, int sev)
 {
     unsigned int ctx;
 
@@ -419,7 +419,7 @@ int log_sev_set(unsigned int ctx_mask, int sev)
  * 
  * @return int Zero if OK, otherwise means error
  */
-int log_color_set(unsigned int ctx_mask, int color)
+int logger_color_set(unsigned int ctx_mask, int color)
 {
     unsigned int ctx;
 
@@ -510,7 +510,7 @@ static unsigned int max_log_lines = 0;
  * @param line Line# (if zero, is ignored)
  * @param fmt  Format string+ arguments (like printf)
  */
-void log_print(log_context_t ctx, log_severity_t sev, char const *file,
+void logger_print(log_context_t ctx, log_severity_t sev, char const *file,
                char const *func, int line, char const *fmt, ...)
 {
     va_list vargs;
