@@ -1407,7 +1407,7 @@ L7_RC_t hapiBroadQosCosIpDscpToTcMap(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data
     #endif
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error applying bcmx_port_dscp_map_set: rv=%d", rv);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error applying bcmx_port_dscp_map_set: rv=%d", rv);
       result = L7_FAILURE;
     }
 

@@ -383,54 +383,54 @@ L7_RC_t ptin_routing_init(void)
   nimIntIfNumRangeGet(L7_LOGICAL_VLAN_INTF, &minRoutingIntfId, &maxRoutingIntfId);
 
   /* Local variables initialization */
-  LOG_INFO(LOG_CTX_PTIN_ROUTING, "Starting initialization");
+  PT_LOG_INFO(LOG_CTX_ROUTING, "Starting initialization");
   __routing_interfaces_max = maxRoutingIntfId - minRoutingIntfId + 1;
   __routing_interfaces     = (ptin_routing_intf_t*) osapiMalloc(L7_PTIN_COMPONENT_ID, __routing_interfaces_max*sizeof(ptin_routing_intf_t));
   __routing_loopbacks_max  = PTIN_ROUTING_MAX_LOOPBACKID;
   __routing_loopbacks      = (ptin_routing_loopback_t*) osapiMalloc(L7_PTIN_COMPONENT_ID, __routing_loopbacks_max*sizeof(ptin_routing_loopback_t));
   if(__arptable_snapshot_init() != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to initialize arp table snapshot");
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to initialize arp table snapshot");
     return L7_FAILURE;
   }
   if(__routetable_snapshot_init() != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to initialize route table snapshot");
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to initialize route table snapshot");
     return L7_FAILURE;
   }
   if(__ping_sessions_init() != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to initialize ping session array");
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to initialize ping session array");
     return L7_FAILURE;
   }
   if(__traceroute_sessions_init() != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to initialize traceroute session array");
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to initialize traceroute session array");
     return L7_FAILURE;
   }
 
   /* Create a new socket for ioctl interaction */
-  LOG_INFO(LOG_CTX_PTIN_ROUTING, "Creating new socket to interact with ioctl");
+  PT_LOG_INFO(LOG_CTX_ROUTING, "Creating new socket to interact with ioctl");
   __ioctl_socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
   if (__ioctl_socket_fd < 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to create new socket to interact with ioctl");
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to create new socket to interact with ioctl");
     return L7_FAILURE;
   }
 
   /* Set dtl0 MTU */
-  LOG_INFO(LOG_CTX_PTIN_ROUTING, "Setting %s mtu to %u", PTIN_ROUTING_DTL0_INTERFACE_NAME, PTIN_ROUTING_DTL0_MTU_DEFAULT);
+  PT_LOG_INFO(LOG_CTX_ROUTING, "Setting %s mtu to %u", PTIN_ROUTING_DTL0_INTERFACE_NAME, PTIN_ROUTING_DTL0_MTU_DEFAULT);
   if(__ioctl_dtl0_mtu_set(PTIN_ROUTING_DTL0_MTU_DEFAULT) != 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "ioctl error (errno:%d). Unable to set %s mtu", errno, PTIN_ROUTING_DTL0_INTERFACE_NAME);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "ioctl error (errno:%d). Unable to set %s mtu", errno, PTIN_ROUTING_DTL0_INTERFACE_NAME);
     return L7_FAILURE;
   }
 
   /* Enable routing on Fastpath */
-  LOG_INFO(LOG_CTX_PTIN_ROUTING, "Setting OLTSWITCH's routing admin mode to L7_ENABLE");
+  PT_LOG_INFO(LOG_CTX_ROUTING, "Setting OLTSWITCH's routing admin mode to L7_ENABLE");
   if(usmDbIpRtrAdminModeSet(PTIN_ROUTING_USMDB_UNITINDEX, L7_ENABLE) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to set OLTSWITCH's routing admin mode to L7_ENABLE");
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to set OLTSWITCH's routing admin mode to L7_ENABLE");
     return L7_FAILURE;
   }
 
@@ -456,27 +456,27 @@ L7_RC_t ptin_routing_intf_create(ptin_intf_t* routingIntf, L7_uint16 internalVla
 
   if( (routingIntf == L7_NULLPTR) )
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Abnormal context [routingIntf:%p]", routingIntf);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Abnormal context [routingIntf:%p]", routingIntf);
     return L7_ERROR;
   }
 
   if(routingIntf->intf_id >= __routing_interfaces_max)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested routing interface ID exceeds the allowed range [id:%u max:%u]", routingIntf->intf_id, __routing_interfaces_max);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Requested routing interface ID exceeds the allowed range [id:%u max:%u]", routingIntf->intf_id, __routing_interfaces_max);
     return L7_FAILURE;
   }
 
   /* Ensure the requested interface does not exist (required for flushes) */
   if(__routing_interfaces[routingIntf->intf_id].type != PTIN_ROUTING_INTF_TYPE_UNKNOWN)
   {
-    LOG_NOTICE(LOG_CTX_PTIN_ROUTING, "Received request to create an interface that already exists. Ignored. [intf_id:%u]", routingIntf->intf_id);
+    PT_LOG_NOTICE(LOG_CTX_ROUTING, "Received request to create an interface that already exists. Ignored. [intf_id:%u]", routingIntf->intf_id);
     return L7_SUCCESS;
   }
 
   /* Determine routing interface type, based on the intf mef_type of this evcId */
   if(L7_SUCCESS != ptin_evc_get_fromIntVlan(internalVlanId, &evc))
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to to convert internalVlanId %u to an EVC", internalVlanId);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to to convert internalVlanId %u to an EVC", internalVlanId);
     return L7_FAILURE;
   }
   for(i=0; i<evc.n_intf; ++i)
@@ -499,60 +499,60 @@ L7_RC_t ptin_routing_intf_create(ptin_intf_t* routingIntf, L7_uint16 internalVla
 
   if(L7_SUCCESS != ptin_intf_ptintf2intIfNum(routingIntf, &routingIntfNum))
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to to convert routingIntf %u/%u to intfNum", routingIntf->intf_type, routingIntf->intf_id);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to to convert routingIntf %u/%u to intfNum", routingIntf->intf_type, routingIntf->intf_id);
     return L7_FAILURE;
   }
 
   /* Ensure that the dtl0 interface is up */
   if(__is_dtl0_enabled == L7_FALSE)
   {
-    LOG_INFO(LOG_CTX_PTIN_ROUTING, "Enabling %s interface", PTIN_ROUTING_DTL0_INTERFACE_NAME);
+    PT_LOG_INFO(LOG_CTX_ROUTING, "Enabling %s interface", PTIN_ROUTING_DTL0_INTERFACE_NAME);
     if(__ioctl_dtl0_enable() != 0)
     {
-      LOG_ERR(LOG_CTX_PTIN_ROUTING, "ioctl error (errno:%d). Unable to enable %s interface", errno, PTIN_ROUTING_DTL0_INTERFACE_NAME);
+      PT_LOG_ERR(LOG_CTX_ROUTING, "ioctl error (errno:%d). Unable to enable %s interface", errno, PTIN_ROUTING_DTL0_INTERFACE_NAME);
       return L7_FAILURE;
     }
     __is_dtl0_enabled = L7_TRUE;
   }
 
   /* Create a new routing interface */
-  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Adding vlan %u to interface %s", routingVlanId, PTIN_ROUTING_DTL0_INTERFACE_NAME);
+  PT_LOG_DEBUG(LOG_CTX_ROUTING, "Adding vlan %u to interface %s", routingVlanId, PTIN_ROUTING_DTL0_INTERFACE_NAME);
   if(__ioctl_vlanintf_add(routingVlanId) != 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "ioctl error (errno:%d). Unable to add a new vlan %u to the %s interface", errno, routingVlanId, PTIN_ROUTING_DTL0_INTERFACE_NAME);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "ioctl error (errno:%d). Unable to add a new vlan %u to the %s interface", errno, routingVlanId, PTIN_ROUTING_DTL0_INTERFACE_NAME);
     return L7_FAILURE;
   }
 
   /* Rename the new routing interface */
-  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Renaming the new routing interface from %s.%u to %s%u", PTIN_ROUTING_DTL0_INTERFACE_NAME, routingVlanId, PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id);
+  PT_LOG_DEBUG(LOG_CTX_ROUTING, "Renaming the new routing interface from %s.%u to %s%u", PTIN_ROUTING_DTL0_INTERFACE_NAME, routingVlanId, PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id);
   if(__ioctl_intf_rename_dtl2rt(routingIntf->intf_id, routingVlanId) != 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "ioctl error (errno:%d). Unable to rename the new routing interface from %s.%u to %s%u", errno, PTIN_ROUTING_DTL0_INTERFACE_NAME, routingVlanId, PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "ioctl error (errno:%d). Unable to rename the new routing interface from %s.%u to %s%u", errno, PTIN_ROUTING_DTL0_INTERFACE_NAME, routingVlanId, PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id);
     return L7_FAILURE;
   }
 
   /* Enable the new interface */
-  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Enabling %s%u interface", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id);
+  PT_LOG_DEBUG(LOG_CTX_ROUTING, "Enabling %s%u interface", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id);
   if(__ioctl_vlanintf_enable(routingIntf->intf_id) != 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "ioctl error (errno:%d). Unable to enable %s%u interface", errno, PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "ioctl error (errno:%d). Unable to enable %s%u interface", errno, PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id);
     return L7_FAILURE;
   }
   
   /* Associate the new interface with the given vlanId in Fastpath's routing tables */
-  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Associating %s%u with vlan %u on OLTSWITCH's routing tables", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id, internalVlanId);
+  PT_LOG_DEBUG(LOG_CTX_ROUTING, "Associating %s%u with vlan %u on OLTSWITCH's routing tables", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id, internalVlanId);
   if(usmDbIpVlanRoutingIntfCreate(PTIN_ROUTING_USMDB_UNITINDEX, internalVlanId, routingIntf->intf_id+1) != 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to associate %s%u with vlan %u on OLTSWITCH's routing tables", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id, internalVlanId);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to associate %s%u with vlan %u on OLTSWITCH's routing tables", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id, internalVlanId);
     return L7_FAILURE;
   }
 
 #if (PTIN_BOARD_IS_MATRIX  || PTIN_BOARD_IS_STANDALONE) //Required because of 'ptin_ipdtl0_control'
   /* Allow IP/ARP packets through dtl0 for this vlan */
-  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Allowing IP/ARP packets through dtl0 for vlans %u/%u on intfIfNum %u", routingVlanId, internalVlanId, routingIntfNum);
+  PT_LOG_DEBUG(LOG_CTX_ROUTING, "Allowing IP/ARP packets through dtl0 for vlans %u/%u on intfIfNum %u", routingVlanId, internalVlanId, routingIntfNum);
   if(L7_SUCCESS != ptin_ipdtl0_control(routingVlanId, routingVlanId, internalVlanId, routingIntfNum, PTIN_IPDTL0_ETH_IPv4, L7_TRUE))
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to allow IP/ARP packets through dtl0 for this vlan");
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to allow IP/ARP packets through dtl0 for this vlan");
     return L7_FAILURE;
   }
 #endif /* PTIN_BOARD_IS_MATRIX */
@@ -576,20 +576,20 @@ L7_RC_t ptin_routing_intf_create(ptin_intf_t* routingIntf, L7_uint16 internalVla
 
     if(L7_SUCCESS != ptin_intf_ptintf2intIfNum(&physicalIntf, &physicalIntfNum))
     {
-      LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to to convert physicalIntf %u/%u to intfNum", physicalIntf.intf_type, physicalIntf.intf_id);
+      PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to to convert physicalIntf %u/%u to intfNum", physicalIntf.intf_type, physicalIntf.intf_id);
       return L7_FAILURE;
     }
 
     if (nimGetIntfAddress(physicalIntfNum, L7_NULL, &macAddr.addr[0]) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to get physical interface MAC address [physicalIntf:%u/%u]", physicalIntf.intf_type, physicalIntf.intf_id);
+      PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to get physical interface MAC address [physicalIntf:%u/%u]", physicalIntf.intf_type, physicalIntf.intf_id);
       return L7_FAILURE;
     }
 
-    LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Setting %s%u interface MAC address", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id);
+    PT_LOG_DEBUG(LOG_CTX_ROUTING, "Setting %s%u interface MAC address", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id);
     if(__intf_macaddress_set(routingIntf, &macAddr) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to set %s%u interface MAC address", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id);
+      PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to set %s%u interface MAC address", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id);
       return L7_FAILURE;
     }
 
@@ -613,36 +613,36 @@ L7_RC_t ptin_routing_loopback_create(ptin_intf_t* routingIntf)
 
   if( (routingIntf == L7_NULLPTR) )
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Abnormal context [routingIntf:%p]", routingIntf);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Abnormal context [routingIntf:%p]", routingIntf);
     return L7_ERROR;
   }
 
   if(routingIntf->intf_id >= __routing_loopbacks_max)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested routing loopback ID exceeds the allowed range [id:%u max:%u]", routingIntf->intf_id, __routing_loopbacks_max);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Requested routing loopback ID exceeds the allowed range [id:%u max:%u]", routingIntf->intf_id, __routing_loopbacks_max);
     return L7_FAILURE;
   }
 
   /* Ensure the requested interface does not exist (required for flushes) */
   if(__routing_loopbacks[routingIntf->intf_id].enabled == PTIN_ROUTING_LOOPBACK_DISABLED)
   {
-    LOG_NOTICE(LOG_CTX_PTIN_ROUTING, "Received request to create a loopback that is already enabled. Ignored. [intf_id:%u]", routingIntf->intf_id);
+    PT_LOG_NOTICE(LOG_CTX_ROUTING, "Received request to create a loopback that is already enabled. Ignored. [intf_id:%u]", routingIntf->intf_id);
     return L7_SUCCESS;
   }
 
   if(L7_SUCCESS != ptin_intf_ptintf2intIfNum(routingIntf, &routingIntfNum))
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to to convert routingIntf %u/%u to intfNum", routingIntf->intf_type, routingIntf->intf_id);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to to convert routingIntf %u/%u to intfNum", routingIntf->intf_type, routingIntf->intf_id);
     return L7_FAILURE;
   }
 
   /* Ensure that the dtl0 interface is up */
   if(__is_dtl0_enabled == L7_FALSE)
   {
-    LOG_INFO(LOG_CTX_PTIN_ROUTING, "Enabling %s interface", PTIN_ROUTING_DTL0_INTERFACE_NAME);
+    PT_LOG_INFO(LOG_CTX_ROUTING, "Enabling %s interface", PTIN_ROUTING_DTL0_INTERFACE_NAME);
     if(__ioctl_dtl0_enable() != 0)
     {
-      LOG_ERR(LOG_CTX_PTIN_ROUTING, "ioctl error (errno:%d). Unable to enable %s interface", errno, PTIN_ROUTING_DTL0_INTERFACE_NAME);
+      PT_LOG_ERR(LOG_CTX_ROUTING, "ioctl error (errno:%d). Unable to enable %s interface", errno, PTIN_ROUTING_DTL0_INTERFACE_NAME);
       return L7_FAILURE;
     }
     __is_dtl0_enabled = L7_TRUE;
@@ -655,44 +655,44 @@ L7_RC_t ptin_routing_loopback_create(ptin_intf_t* routingIntf)
   if(routingIntf->intf_id != 0)
   {
      /* Create a new routing interface */
-//   LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Adding vlan %u to interface %s", routingVlanId, PTIN_ROUTING_DTL0_INTERFACE_NAME);
+//   PT_LOG_DEBUG(LOG_CTX_ROUTING, "Adding vlan %u to interface %s", routingVlanId, PTIN_ROUTING_DTL0_INTERFACE_NAME);
 //   if(__ioctl_vlanintf_add(routingVlanId) != 0)
 //   {
-//     LOG_ERR(LOG_CTX_PTIN_ROUTING, "ioctl error (errno:%d). Unable to add a new vlan %u to the %s interface", errno, routingVlanId, PTIN_ROUTING_DTL0_INTERFACE_NAME);
+//     PT_LOG_ERR(LOG_CTX_ROUTING, "ioctl error (errno:%d). Unable to add a new vlan %u to the %s interface", errno, routingVlanId, PTIN_ROUTING_DTL0_INTERFACE_NAME);
 //     return L7_FAILURE;
 //   }
 
      /* Rename the new routing interface */
-//   LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Renaming the new routing interface from %s.%u to %s%u", PTIN_ROUTING_DTL0_INTERFACE_NAME, routingVlanId, PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id);
+//   PT_LOG_DEBUG(LOG_CTX_ROUTING, "Renaming the new routing interface from %s.%u to %s%u", PTIN_ROUTING_DTL0_INTERFACE_NAME, routingVlanId, PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id);
 //   if(__ioctl_intf_rename_dtl2rt(routingIntf->intf_id, routingVlanId) != 0)
 //   {
-//     LOG_ERR(LOG_CTX_PTIN_ROUTING, "ioctl error (errno:%d). Unable to rename the new routing interface from %s.%u to %s%u", errno, PTIN_ROUTING_DTL0_INTERFACE_NAME, routingVlanId, PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id);
+//     PT_LOG_ERR(LOG_CTX_ROUTING, "ioctl error (errno:%d). Unable to rename the new routing interface from %s.%u to %s%u", errno, PTIN_ROUTING_DTL0_INTERFACE_NAME, routingVlanId, PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id);
 //     return L7_FAILURE;
 //   }
 
      /* Enable the new interface */
-//   LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Enabling %s%u interface", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id);
+//   PT_LOG_DEBUG(LOG_CTX_ROUTING, "Enabling %s%u interface", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id);
 //   if(__ioctl_vlanintf_enable(routingIntf->intf_id) != 0)
 //   {
-//     LOG_ERR(LOG_CTX_PTIN_ROUTING, "ioctl error (errno:%d). Unable to enable %s%u interface", errno, PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id);
+//     PT_LOG_ERR(LOG_CTX_ROUTING, "ioctl error (errno:%d). Unable to enable %s%u interface", errno, PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id);
 //     return L7_FAILURE;
 //   }
   }
   
   /* Create a new loopback interface */
-  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Creating new loopback interface %u", routingIntf->intf_id);
+  PT_LOG_DEBUG(LOG_CTX_ROUTING, "Creating new loopback interface %u", routingIntf->intf_id);
   if(usmDbRlimLoopbackCreate(routingIntf->intf_id) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to create loopback %u", routingIntf->intf_id);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to create loopback %u", routingIntf->intf_id);
     return L7_FAILURE;
   }
 
 #if 0 //Disabled. Is this required?
   /* Allow IP/ARP packets through dtl0 for this vlan */
-  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Allowing IP/ARP packets through dtl0 for vlans %u/%u on intfIfNum %u", routingVlanId, internalVlanId, routingIntfNum);
+  PT_LOG_DEBUG(LOG_CTX_ROUTING, "Allowing IP/ARP packets through dtl0 for vlans %u/%u on intfIfNum %u", routingVlanId, internalVlanId, routingIntfNum);
   if(L7_SUCCESS != ptin_ipdtl0_control(routingVlanId, routingVlanId, internalVlanId, routingIntfNum, L7_TRUE))
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to allow IP/ARP packets through dtl0 for this vlan");
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to allow IP/ARP packets through dtl0 for this vlan");
     return L7_FAILURE;
   }
 #endif /* PTIN_BOARD_IS_MATRIX */
@@ -715,13 +715,13 @@ L7_RC_t ptin_routing_intf_remove(ptin_intf_t* routingIntf)
 
   if( (routingIntf == L7_NULLPTR) )
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Abnormal context [routingIntf:%p]", routingIntf);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Abnormal context [routingIntf:%p]", routingIntf);
     return L7_ERROR;
   }
 
   if(routingIntf->intf_id >= __routing_interfaces_max)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested routing interface ID exceeds the allowed range [id:%u max:%u]", routingIntf->intf_id, __routing_interfaces_max);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Requested routing interface ID exceeds the allowed range [id:%u max:%u]", routingIntf->intf_id, __routing_interfaces_max);
     return L7_FAILURE;
   }
   routingVlanId  = __routing_interfaces[routingIntf->intf_id].routingVlanId;
@@ -729,15 +729,15 @@ L7_RC_t ptin_routing_intf_remove(ptin_intf_t* routingIntf)
 
   if(L7_SUCCESS != ptin_intf_ptintf2intIfNum(routingIntf, &intfNum))
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to to convert routingIntf %u/%u to intfNum", routingIntf->intf_type, routingIntf->intf_id);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to to convert routingIntf %u/%u to intfNum", routingIntf->intf_type, routingIntf->intf_id);
     return L7_FAILURE;
   }
 
   /* Delete vlan routing interface */
-  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Deleting routing interface associated with internal vlan %u", internalVlanId);
+  PT_LOG_DEBUG(LOG_CTX_ROUTING, "Deleting routing interface associated with internal vlan %u", internalVlanId);
   if(usmDbIpVlanRoutingIntfDelete(PTIN_ROUTING_USMDB_UNITINDEX, internalVlanId) != 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to delete routing interface associated with internal vlan %u", internalVlanId);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to delete routing interface associated with internal vlan %u", internalVlanId);
     return L7_FAILURE;
   }
 
@@ -745,32 +745,32 @@ L7_RC_t ptin_routing_intf_remove(ptin_intf_t* routingIntf)
   /* Disable IP/ARP packets through dtl0 for this vlan */
   if(L7_SUCCESS != ptin_ipdtl0_control(routingVlanId, routingVlanId, (L7_uint16)-1, intfNum, PTIN_IPDTL0_ETH_IPv4, L7_FALSE))
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to allow IP/ARP packets through dtl0 for this vlan [routingVlanId:%u intfNum:%u]", routingVlanId, intfNum);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to allow IP/ARP packets through dtl0 for this vlan [routingVlanId:%u intfNum:%u]", routingVlanId, intfNum);
     return L7_FAILURE;
   }
 #endif /* PTIN_BOARD_IS_MATRIX */
 
   /* Disable the interface */
-  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Disabling %s%u interface", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id);
+  PT_LOG_DEBUG(LOG_CTX_ROUTING, "Disabling %s%u interface", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id);
   if(__ioctl_vlanintf_disable(routingIntf->intf_id) != 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "ioctl error (errno:%d). Unable to disable %s.%u interface", errno, PTIN_ROUTING_DTL0_INTERFACE_NAME, routingVlanId);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "ioctl error (errno:%d). Unable to disable %s.%u interface", errno, PTIN_ROUTING_DTL0_INTERFACE_NAME, routingVlanId);
     return L7_FAILURE;
   }
 
   /* Change the interface name to match the vconfig standards */
-  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Renaming the routing interface from %s%u to %s.%u", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id, PTIN_ROUTING_DTL0_INTERFACE_NAME, routingVlanId);
+  PT_LOG_DEBUG(LOG_CTX_ROUTING, "Renaming the routing interface from %s%u to %s.%u", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id, PTIN_ROUTING_DTL0_INTERFACE_NAME, routingVlanId);
   if(__ioctl_intf_rename_rt2dtl(routingIntf->intf_id, routingVlanId) != 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "ioctl error (errno:%d). Unable to rename the routing interface from %s%u to %s.%u", errno, PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id, PTIN_ROUTING_DTL0_INTERFACE_NAME, routingVlanId);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "ioctl error (errno:%d). Unable to rename the routing interface from %s%u to %s.%u", errno, PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id, PTIN_ROUTING_DTL0_INTERFACE_NAME, routingVlanId);
     return L7_FAILURE;
   }
 
   /* Delete the vlan interface */
-  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Removing vlan %u from interface %s", routingVlanId, PTIN_ROUTING_DTL0_INTERFACE_NAME);
+  PT_LOG_DEBUG(LOG_CTX_ROUTING, "Removing vlan %u from interface %s", routingVlanId, PTIN_ROUTING_DTL0_INTERFACE_NAME);
   if(__ioctl_vlanintf_remove(routingVlanId) != 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "ioctl error (errno:%d). Unable to remove a vlan %u from the %s interface", errno, routingVlanId, PTIN_ROUTING_DTL0_INTERFACE_NAME);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "ioctl error (errno:%d). Unable to remove a vlan %u from the %s interface", errno, routingVlanId, PTIN_ROUTING_DTL0_INTERFACE_NAME);
     return L7_FAILURE;
   }
 
@@ -791,7 +791,7 @@ void ptin_routing_intf_remove_all(void)
    ptin_intf_t intf;
 
    intf.intf_type = PTIN_EVC_INTF_ROUTING;
-   LOG_TRACE(LOG_CTX_PTIN_ROUTING, "Removing all routing interfaces");
+   PT_LOG_TRACE(LOG_CTX_ROUTING, "Removing all routing interfaces");
    for(i=0; i<__routing_interfaces_max; ++i)
    {
       if(__routing_interfaces[i].type != PTIN_ROUTING_INTF_TYPE_UNKNOWN)
@@ -799,7 +799,7 @@ void ptin_routing_intf_remove_all(void)
          intf.intf_id = i;
          if(L7_SUCCESS != ptin_routing_intf_remove(&intf))
          {
-            LOG_WARNING(LOG_CTX_PTIN_ROUTING, "Unable to remove routing interface %u. Continuing", i);
+            PT_LOG_WARN(LOG_CTX_ROUTING, "Unable to remove routing interface %u. Continuing", i);
          }
       }
    }
@@ -826,23 +826,23 @@ L7_RC_t ptin_routing_intf_ipaddress_set(ptin_intf_t* routingIntf, L7_uchar8 ipFa
 
   if( (routingIntf == L7_NULLPTR) )
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Abnormal context [routingIntf:%p]", routingIntf);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Abnormal context [routingIntf:%p]", routingIntf);
     return L7_ERROR;
   }
 
   if(L7_SUCCESS != ptin_intf_ptintf2intIfNum(routingIntf, &intfNum))
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to to convert routingIntf %u/%u to intfNum", routingIntf->intf_type, routingIntf->intf_id);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to to convert routingIntf %u/%u to intfNum", routingIntf->intf_type, routingIntf->intf_id);
     return L7_FAILURE;
   }
 
   /* Configure the routing interface with the given IP address */
   inetAddressSet(ipFamily, &ipAddr, &inetIpAddr);
   inetAddressSet(ipFamily, &subnetMask, &inetIpSubnet);
-  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Setting routing interface %u IP address to %s/%s", intfNum, inetAddrPrint(&inetIpAddr, ipAddrStr), inetAddrPrint(&inetIpSubnet, ipSubnetStr));
+  PT_LOG_DEBUG(LOG_CTX_ROUTING, "Setting routing interface %u IP address to %s/%s", intfNum, inetAddrPrint(&inetIpAddr, ipAddrStr), inetAddrPrint(&inetIpSubnet, ipSubnetStr));
   if((rc = usmDbIpRtrIntfIPAddressSet(PTIN_ROUTING_USMDB_UNITINDEX, intfNum, ipAddr, subnetMask, L7_INTF_IP_ADDR_METHOD_CONFIG)) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to set routing interface %u IP address to %s/%s (rc = %u)", intfNum, inetAddrPrint(&inetIpAddr, ipAddrStr), inetAddrPrint(&inetIpSubnet, ipSubnetStr), rc);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to set routing interface %u IP address to %s/%s (rc = %u)", intfNum, inetAddrPrint(&inetIpAddr, ipAddrStr), inetAddrPrint(&inetIpSubnet, ipSubnetStr), rc);
     return L7_FAILURE;
   }
 
@@ -864,21 +864,21 @@ L7_RC_t ptin_routing_intf_mtu_set(ptin_intf_t* routingIntf, L7_uint32 mtu)
 
   if( (routingIntf == L7_NULLPTR) )
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Abnormal context [routingIntf:%p]", routingIntf);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Abnormal context [routingIntf:%p]", routingIntf);
     return L7_ERROR;
   }
 
   if(L7_SUCCESS != ptin_intf_ptintf2intIfNum(routingIntf, &intfNum))
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to to convert routingIntf %u/%u to intfNum", routingIntf->intf_type, routingIntf->intf_id);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to to convert routingIntf %u/%u to intfNum", routingIntf->intf_type, routingIntf->intf_id);
     return L7_FAILURE;
   }
 
   /* Configure the routing interface with the given MTU */
-  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Setting routing interface %u MTU to %d", intfNum, mtu);
+  PT_LOG_DEBUG(LOG_CTX_ROUTING, "Setting routing interface %u MTU to %d", intfNum, mtu);
   if((rc = usmDbIntfIpMtuSet(PTIN_ROUTING_USMDB_UNITINDEX, intfNum, mtu)) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to set routing interface %u MTU to %d (rc = %u)", intfNum, mtu, rc);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to set routing interface %u MTU to %d (rc = %u)", intfNum, mtu, rc);
     return L7_FAILURE;
   }
 
@@ -905,19 +905,19 @@ L7_RC_t ptin_routing_intf_physicalport_get(L7_uint16 routingIntfNum, L7_uint16 *
 
   if( (physicalIntfNum == L7_NULLPTR) )
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Abnormal context [physicalIntfNum:%p]", physicalIntfNum);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Abnormal context [physicalIntfNum:%p]", physicalIntfNum);
     return L7_ERROR;
   }
 
   if(L7_SUCCESS != ptin_intf_intIfNum2ptintf(routingIntfNum, &routingIntf))
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to convert requested intIfNum [routingIntfNum:%u]", routingIntfNum);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to convert requested intIfNum [routingIntfNum:%u]", routingIntfNum);
     return L7_FAILURE;
   }
 
   if(routingIntf.intf_id >= __routing_interfaces_max)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested routing interface ID exceeds the allowed range [id:%u max:%u]", routingIntf.intf_id, __routing_interfaces_max);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Requested routing interface ID exceeds the allowed range [id:%u max:%u]", routingIntf.intf_id, __routing_interfaces_max);
     return L7_FAILURE;
   }
 
@@ -953,7 +953,7 @@ L7_RC_t ptin_routing_arptable_getnext(L7_uint32 intfNum, L7_uint32 firstIdx, L7_
 
   if( (readEntries == L7_NULLPTR) || (buffer == L7_NULLPTR) )
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Abnormal context [readEntries:%p buffer:%p]", readEntries, buffer);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Abnormal context [readEntries:%p buffer:%p]", readEntries, buffer);
     return L7_ERROR;
   }
 
@@ -966,7 +966,7 @@ L7_RC_t ptin_routing_arptable_getnext(L7_uint32 intfNum, L7_uint32 firstIdx, L7_
   /* Get pointer to the first element */
   if(NOERR != dl_queue_get_head(&__arptable_snapshot, (dl_queue_elem_t**)&snapshotIterator))
   {
-    LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "ARP table snapshot is empty");
+    PT_LOG_DEBUG(LOG_CTX_ROUTING, "ARP table snapshot is empty");
     *readEntries = 0;
     return L7_SUCCESS;
   }
@@ -978,18 +978,18 @@ L7_RC_t ptin_routing_arptable_getnext(L7_uint32 intfNum, L7_uint32 firstIdx, L7_
   {
     if(currentIndex >= firstIdx)
     {
-      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "Copying local entry [idx:%u]"            , currentIndex);
-      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  intfNum: %u"                           , snapshotIterator->intfNum);
-      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  type:    %u"                           , snapshotIterator->type);
-      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  age:     %u"                           , snapshotIterator->age);
-      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  ipAddr:  %s"                           , inetAddrPrint(&snapshotIterator->ipAddr, ipAddrStr));
-      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  macAddr: %02X:%02X:%02X:%02X:%02X:%02X", 
+      PT_LOG_TRACE(LOG_CTX_ROUTING, "Copying local entry [idx:%u]"            , currentIndex);
+      PT_LOG_TRACE(LOG_CTX_ROUTING, "  intfNum: %u"                           , snapshotIterator->intfNum);
+      PT_LOG_TRACE(LOG_CTX_ROUTING, "  type:    %u"                           , snapshotIterator->type);
+      PT_LOG_TRACE(LOG_CTX_ROUTING, "  age:     %u"                           , snapshotIterator->age);
+      PT_LOG_TRACE(LOG_CTX_ROUTING, "  ipAddr:  %s"                           , inetAddrPrint(&snapshotIterator->ipAddr, ipAddrStr));
+      PT_LOG_TRACE(LOG_CTX_ROUTING, "  macAddr: %02X:%02X:%02X:%02X:%02X:%02X", 
                 snapshotIterator->macAddr.addr[0], snapshotIterator->macAddr.addr[1], snapshotIterator->macAddr.addr[2], 
                 snapshotIterator->macAddr.addr[3], snapshotIterator->macAddr.addr[4], snapshotIterator->macAddr.addr[5]);
 
       if(L7_SUCCESS != ptin_intf_intIfNum2ptintf(snapshotIterator->intfNum, &intf))
       {
-        LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to to convert intfNum %u to ptin_intf_t", snapshotIterator->intfNum);
+        PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to to convert intfNum %u to ptin_intf_t", snapshotIterator->intfNum);
         return L7_FAILURE;
       }
       buffer->index          = currentIndex;
@@ -1051,7 +1051,7 @@ L7_RC_t ptin_routing_routetable_get(L7_uint32 intfNum, L7_uint32 firstIdx, L7_ui
 
   if( (readEntries == L7_NULLPTR) || (buffer == L7_NULLPTR) )
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Abnormal context [readEntries:%p buffer:%p]", readEntries, buffer);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Abnormal context [readEntries:%p buffer:%p]", readEntries, buffer);
     return L7_ERROR;
   }
 
@@ -1064,7 +1064,7 @@ L7_RC_t ptin_routing_routetable_get(L7_uint32 intfNum, L7_uint32 firstIdx, L7_ui
   /* Get pointer to the first element */
   if(NOERR != dl_queue_get_head(&__routetable_snapshot, (dl_queue_elem_t**)&snapshotIterator))
   {
-    LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Route table snapshot is empty");
+    PT_LOG_DEBUG(LOG_CTX_ROUTING, "Route table snapshot is empty");
     *readEntries = 0;
     return L7_SUCCESS;
   }
@@ -1075,19 +1075,19 @@ L7_RC_t ptin_routing_routetable_get(L7_uint32 intfNum, L7_uint32 firstIdx, L7_ui
   {
     if(currentIndex >= firstIdx)
     {
-      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "Copying local entry [idx:%u]" , currentIndex);
-      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  intfNum:       %u"             , snapshotIterator->intfNum);
-      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  protocol:      %u"             , snapshotIterator->protocol);
-      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  updateTime:    %ud %uh %um %us", snapshotIterator->updateTime.days, snapshotIterator->updateTime.hours, snapshotIterator->updateTime.minutes, snapshotIterator->updateTime.seconds);
-      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  networkIpAddr: %s"             , inetAddrPrint(&snapshotIterator->networkIpAddr, ipAddrStr));
-      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  subnetMask:    %u"             , snapshotIterator->subnetMask);
-      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  gwIpAddr:      %s"             , inetAddrPrint(&snapshotIterator->gwIpAddr, ipAddrStr));
-      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  preference:    %u"             , snapshotIterator->preference);
-      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  metric:        %u"             , snapshotIterator->metric);
+      PT_LOG_TRACE(LOG_CTX_ROUTING, "Copying local entry [idx:%u]" , currentIndex);
+      PT_LOG_TRACE(LOG_CTX_ROUTING, "  intfNum:       %u"             , snapshotIterator->intfNum);
+      PT_LOG_TRACE(LOG_CTX_ROUTING, "  protocol:      %u"             , snapshotIterator->protocol);
+      PT_LOG_TRACE(LOG_CTX_ROUTING, "  updateTime:    %ud %uh %um %us", snapshotIterator->updateTime.days, snapshotIterator->updateTime.hours, snapshotIterator->updateTime.minutes, snapshotIterator->updateTime.seconds);
+      PT_LOG_TRACE(LOG_CTX_ROUTING, "  networkIpAddr: %s"             , inetAddrPrint(&snapshotIterator->networkIpAddr, ipAddrStr));
+      PT_LOG_TRACE(LOG_CTX_ROUTING, "  subnetMask:    %u"             , snapshotIterator->subnetMask);
+      PT_LOG_TRACE(LOG_CTX_ROUTING, "  gwIpAddr:      %s"             , inetAddrPrint(&snapshotIterator->gwIpAddr, ipAddrStr));
+      PT_LOG_TRACE(LOG_CTX_ROUTING, "  preference:    %u"             , snapshotIterator->preference);
+      PT_LOG_TRACE(LOG_CTX_ROUTING, "  metric:        %u"             , snapshotIterator->metric);
 
       if(L7_SUCCESS != ptin_intf_intIfNum2ptintf(snapshotIterator->intfNum, &intf))
       {
-        LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to to convert intfNum %u to ptin_intf_t", snapshotIterator->intfNum);
+        PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to to convert intfNum %u to ptin_intf_t", snapshotIterator->intfNum);
         return L7_FAILURE;
       }
       buffer->index              = currentIndex;
@@ -1181,14 +1181,14 @@ L7_RC_t ptin_routing_pingsession_create(L7_uint8 sessionIdx, L7_uint32 ipAddr, L
 
   if(sessionIdx > __ping_sessions_max)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index[%u] is higher than the maximum allowed number of ping sessions", sessionIdx);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Requested index[%u] is higher than the maximum allowed number of ping sessions", sessionIdx);
     return L7_FAILURE;
   }
 
   /* Ensure that the requested index belongs to a ping session not in use */
   if(__ping_sessions[sessionIdx].isRunning == L7_TRUE)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index is already being used in an active ping session [index:%u]", sessionIdx);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Requested index is already being used in an active ping session [index:%u]", sessionIdx);
     return L7_FAILURE;
   }
 
@@ -1208,7 +1208,7 @@ L7_RC_t ptin_routing_pingsession_create(L7_uint8 sessionIdx, L7_uint32 ipAddr, L
   {
     memset(&__ping_sessions[sessionIdx], 0x00, sizeof(ptin_routing_pingsession_t));
 
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to start a new ping session");
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to start a new ping session");
     return L7_FAILURE;
   }
 
@@ -1229,21 +1229,21 @@ L7_RC_t ptin_routing_pingsession_query(msg_RoutingPingSessionQuery* buffer)
 
   if( (buffer == L7_NULLPTR) )
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Abnormal context [buffer:%p]", buffer);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Abnormal context [buffer:%p]", buffer);
     return L7_ERROR;
   }
 
   index = buffer->sessionIdx;
   if(index > __ping_sessions_max)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index[%u] is higher than the maximum allowed number of ping sessions", index);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Requested index[%u] is higher than the maximum allowed number of ping sessions", index);
     return L7_FAILURE;
   }
 
   /* Ensure that the requested index belongs to a created session */
   if(__ping_sessions[index].handle == 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index is does not belong to a created session [index:%u]", index);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Requested index is does not belong to a created session [index:%u]", index);
     return L7_FAILURE;
   }
 
@@ -1274,14 +1274,14 @@ L7_RC_t ptin_routing_pingsession_free(L7_uint8 sessionIdx)
 {
   if(sessionIdx > __ping_sessions_max)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index[%u] is higher than the maximum allowed number of ping sessions", sessionIdx);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Requested index[%u] is higher than the maximum allowed number of ping sessions", sessionIdx);
     return L7_FAILURE;
   }
 
   /* Ensure that the requested index belongs to a created session */
   if(__ping_sessions[sessionIdx].handle == 0)
   {
-    LOG_INFO(LOG_CTX_PTIN_ROUTING, "Requested index does not belong to a created session [index:%u]", sessionIdx);
+    PT_LOG_INFO(LOG_CTX_ROUTING, "Requested index does not belong to a created session [index:%u]", sessionIdx);
     return L7_SUCCESS;
   }
 
@@ -1332,14 +1332,14 @@ L7_RC_t ptin_routing_traceroutesession_create(L7_uint8 sessionIdx, L7_uint32 ipA
 
   if(sessionIdx > __traceroute_sessions_max)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index[%u] is higher than the maximum allowed number of traceroute sessions", sessionIdx);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Requested index[%u] is higher than the maximum allowed number of traceroute sessions", sessionIdx);
     return L7_FAILURE;
   }
 
   /* Ensure that the requested index belongs to a traceroute session not in use */
   if(__traceroute_sessions[sessionIdx].isRunning == L7_TRUE)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index is already being used in an active traceroute session [index:%u]", index);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Requested index is already being used in an active traceroute session [index:%u]", index);
     return L7_FAILURE;
   }
 
@@ -1364,7 +1364,7 @@ L7_RC_t ptin_routing_traceroutesession_create(L7_uint8 sessionIdx, L7_uint32 ipA
   {
     memset(&__traceroute_sessions[sessionIdx], 0x00, sizeof(ptin_routing_traceroutesession_t));
 
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to start a new traceroute session");
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to start a new traceroute session");
     return L7_FAILURE;
   }
 
@@ -1384,20 +1384,20 @@ L7_RC_t ptin_routing_traceroutesession_query(msg_RoutingTracertSessionQuery* buf
 
   if( (buffer == L7_NULLPTR) )
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Abnormal context [buffer:%p]", buffer);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Abnormal context [buffer:%p]", buffer);
     return L7_ERROR;
   }
 
   if(buffer->sessionIdx > __traceroute_sessions_max)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index[%u] is higher than the maximum allowed number of ping sessions", buffer->sessionIdx);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Requested index[%u] is higher than the maximum allowed number of ping sessions", buffer->sessionIdx);
     return L7_FAILURE;
   }
 
   /* Ensure that the requested index belongs to a created session */
   if(__traceroute_sessions[buffer->sessionIdx].handle == 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index is does not belong to a created session [index:%u]", buffer->sessionIdx);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Requested index is does not belong to a created session [index:%u]", buffer->sessionIdx);
     return L7_FAILURE;
   }
   session = &__traceroute_sessions[buffer->sessionIdx];
@@ -1406,14 +1406,14 @@ L7_RC_t ptin_routing_traceroutesession_query(msg_RoutingTracertSessionQuery* buf
   usmDbTraceRouteQuery(session->handle, &session->isRunning, 
                        &session->currTtl, &session->currHopCount, &session->currProbeCount, 
                        &session->testAttempt, &session->testSuccess);
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "Query [index:%u]",  buffer->sessionIdx);
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  Handle:       %u", session->handle);
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  Status:       %u", session->isRunning);
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  CurrTtl:      %u", session->currTtl);
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  Hop Count:    %u", session->currHopCount);
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  Probe Count:  %u", session->currProbeCount);
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  Test Attempt: %u", session->testAttempt);
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  Test Success: %u", session->testSuccess);
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "Query [index:%u]",  buffer->sessionIdx);
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "  Handle:       %u", session->handle);
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "  Status:       %u", session->isRunning);
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "  CurrTtl:      %u", session->currTtl);
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "  Hop Count:    %u", session->currHopCount);
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "  Probe Count:  %u", session->currProbeCount);
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "  Test Attempt: %u", session->testAttempt);
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "  Test Success: %u", session->testSuccess);
   buffer->isRunning      = session->isRunning;
   buffer->currTtl        = session->currTtl;
   buffer->currHopCount   = session->currHopCount;
@@ -1442,20 +1442,20 @@ L7_RC_t ptin_routing_traceroutesession_gethops(L7_uint32 sessionIdx, L7_uint16 f
 
   if( (readEntries == L7_NULLPTR) || (buffer == L7_NULLPTR) )
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Abnormal context [readEntries:%p buffer:%p]", readEntries, buffer);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Abnormal context [readEntries:%p buffer:%p]", readEntries, buffer);
     return L7_ERROR;
   }
 
   if(sessionIdx > __traceroute_sessions_max)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index[%u] is higher than the maximum allowed number of ping sessions", index);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Requested index[%u] is higher than the maximum allowed number of ping sessions", index);
     return L7_FAILURE;
   }
 
   /* Ensure that the requested index belongs to a created session */
   if(__traceroute_sessions[sessionIdx].handle == 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index is does not belong to a created session [sessionIdx:%u]", sessionIdx);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Requested index is does not belong to a created session [sessionIdx:%u]", sessionIdx);
     return L7_FAILURE;
   }
 
@@ -1468,7 +1468,7 @@ L7_RC_t ptin_routing_traceroutesession_gethops(L7_uint32 sessionIdx, L7_uint16 f
   /* Get pointer to the first element */
   if(NOERR != dl_queue_get_head(&__traceroutehops_snapshot, (dl_queue_elem_t**)&snapshotIterator))
   {
-    LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "There are not hops for this traceroute session");
+    PT_LOG_DEBUG(LOG_CTX_ROUTING, "There are not hops for this traceroute session");
     *readEntries = 0;
     return L7_SUCCESS;
   }
@@ -1476,7 +1476,7 @@ L7_RC_t ptin_routing_traceroutesession_gethops(L7_uint32 sessionIdx, L7_uint16 f
   /* Ensure that the local snapshot contents belong to the requested session */
   if((snapshotIterator != NULL) && (snapshotIterator->sessionHandle != __traceroute_sessions[sessionIdx].handle))
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Local snapshot handle does not match with the requested session [local:%u requested:%u]!", snapshotIterator->sessionHandle, __traceroute_sessions[sessionIdx].handle);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Local snapshot handle does not match with the requested session [local:%u requested:%u]!", snapshotIterator->sessionHandle, __traceroute_sessions[sessionIdx].handle);
     *readEntries = 0;
     return L7_FAILURE;
   }
@@ -1487,14 +1487,14 @@ L7_RC_t ptin_routing_traceroutesession_gethops(L7_uint32 sessionIdx, L7_uint16 f
   {
     if(currentIndex >= firstIdx)
     {
-      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "Copying Hop[idx:%u]", currentIndex);
-      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  TTL:        %u",    snapshotIterator->ttl);      
-      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  IP Address: %08X",  snapshotIterator->ipAddr);   
-      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  Min rtt:    %u",    snapshotIterator->minRtt);   
-      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  Max rtt:    %u",    snapshotIterator->maxRtt);   
-      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  Avg rtt:    %u",    snapshotIterator->avgRtt);   
-      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  Probe Sent: %u",    snapshotIterator->probeSent);
-      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  Probe Rcvd: %u",    snapshotIterator->probeRecv);
+      PT_LOG_TRACE(LOG_CTX_ROUTING, "Copying Hop[idx:%u]", currentIndex);
+      PT_LOG_TRACE(LOG_CTX_ROUTING, "  TTL:        %u",    snapshotIterator->ttl);      
+      PT_LOG_TRACE(LOG_CTX_ROUTING, "  IP Address: %08X",  snapshotIterator->ipAddr);   
+      PT_LOG_TRACE(LOG_CTX_ROUTING, "  Min rtt:    %u",    snapshotIterator->minRtt);   
+      PT_LOG_TRACE(LOG_CTX_ROUTING, "  Max rtt:    %u",    snapshotIterator->maxRtt);   
+      PT_LOG_TRACE(LOG_CTX_ROUTING, "  Avg rtt:    %u",    snapshotIterator->avgRtt);   
+      PT_LOG_TRACE(LOG_CTX_ROUTING, "  Probe Sent: %u",    snapshotIterator->probeSent);
+      PT_LOG_TRACE(LOG_CTX_ROUTING, "  Probe Rcvd: %u",    snapshotIterator->probeRecv);
 
       buffer->hopIdx     = currentIndex;
       buffer->ttl        = snapshotIterator->ttl;        
@@ -1528,14 +1528,14 @@ L7_RC_t ptin_routing_traceroutesession_free(L7_uint8 sessionIdx)
 {
   if(sessionIdx > __traceroute_sessions_max)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index[%u] is higher than the maximum allowed number of traceroute sessions", sessionIdx);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Requested index[%u] is higher than the maximum allowed number of traceroute sessions", sessionIdx);
     return L7_FAILURE;
   }
 
   /* Ensure that the requested index belongs to a created session */
   if(__traceroute_sessions[sessionIdx].handle == 0)
   {
-    LOG_INFO(LOG_CTX_PTIN_ROUTING, "Requested index is does not belong to a created session [index:%u]", sessionIdx);
+    PT_LOG_INFO(LOG_CTX_ROUTING, "Requested index is does not belong to a created session [index:%u]", sessionIdx);
     return L7_SUCCESS;
   }
 
@@ -1588,7 +1588,7 @@ L7_RC_t ptin_routing_L3UcastTtl1ToCpu_set(L7_BOOL enable)
   rc = dtlPtinHwProc(L7_ALL_INTERFACES, &hw_proc);
 
   if (rc != L7_SUCCESS)
-    LOG_ERR(LOG_CTX_PTIN_API,"Error applying HW L3UcastTtl1ToCpu");
+    PT_LOG_ERR(LOG_CTX_API,"Error applying HW L3UcastTtl1ToCpu");
 
   return rc;
 }
@@ -1615,15 +1615,15 @@ L7_RC_t __ptin_routing_ICMPRedirects_set(L7_uint32 routingIntfNum, L7_BOOL enabl
   */
 
   /* Enable/Disable ICMP Redirects on this routing interface. This fixes defect OLTTS-10058/OLTTS-10605 */
-  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Setting ICMP Redirects on intfIfNum %u to value %d", routingIntfNum, enable);
+  PT_LOG_DEBUG(LOG_CTX_ROUTING, "Setting ICMP Redirects on intfIfNum %u to value %d", routingIntfNum, enable);
   if(usmDbIpMapIfICMPRedirectsModeSet(PTIN_ROUTING_USMDB_UNITINDEX, routingIntfNum, enable) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Error while setting ICMP Redirects on intfIfNum %u to value %d", routingIntfNum, enable);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Error while setting ICMP Redirects on intfIfNum %u to value %d", routingIntfNum, enable);
     return L7_FAILURE;
   }
 
   /* Enable/Disable ICMP Redirects on this Router */
-  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Setting ICMP Redirects on Router to value %d", routingIntfNum, enable);
+  PT_LOG_DEBUG(LOG_CTX_ROUTING, "Setting ICMP Redirects on Router to value %d", routingIntfNum, enable);
   usmDbIpMapRtrICMPRedirectsModeSet(enable);
 
   return L7_SUCCESS;
@@ -1644,19 +1644,19 @@ L7_RC_t ptin_routing_ICMPRedirects_set(ptin_intf_t* routingIntf, L7_BOOL enable)
 
   if( (routingIntf == L7_NULLPTR) )
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Abnormal context [routingIntf:%p]", routingIntf);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Abnormal context [routingIntf:%p]", routingIntf);
     return L7_ERROR;
   }
 
   if(routingIntf->intf_id >= __routing_interfaces_max)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested routing interface ID exceeds the allowed range [id:%u max:%u]", routingIntf->intf_id, __routing_interfaces_max);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Requested routing interface ID exceeds the allowed range [id:%u max:%u]", routingIntf->intf_id, __routing_interfaces_max);
     return L7_FAILURE;
   }
 
   if(L7_SUCCESS != ptin_intf_ptintf2intIfNum(routingIntf, &routingIntfNum))
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to to convert routingIntf %u/%u to intfNum", routingIntf->intf_type, routingIntf->intf_id);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to to convert routingIntf %u/%u to intfNum", routingIntf->intf_type, routingIntf->intf_id);
     return L7_FAILURE;
   }
 
@@ -1688,9 +1688,9 @@ static L7_int __ioctl_dtl0_enable(void)
   memset(&request, 0x00, sizeof(request));
   strncpy(&request.ifr_name[0], PTIN_ROUTING_DTL0_INTERFACE_NAME, IFNAMSIZ);
   request.ifr_flags |= IFF_UP;
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "ioctl request -> SIOCSIFFLAGS");
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  ifr_name  = %s",     request.ifr_name);
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  ifr_flags = 0x%04X", request.ifr_flags);
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "ioctl request -> SIOCSIFFLAGS");
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "  ifr_name  = %s",     request.ifr_name);
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "  ifr_flags = 0x%04X", request.ifr_flags);
   if((res = ioctl(__ioctl_socket_fd, SIOCSIFFLAGS, &request)) < 0)
   {
     return res;
@@ -1715,10 +1715,10 @@ static L7_int __ioctl_dtl0_mtu_set(L7_uint32 mtu)
   request.ifr_addr.sa_family = AF_INET;
   request.ifr_mtu            = mtu;
   
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "ioctl request -> SIOCSIFMTU");
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  ifr_name = %s", request.ifr_name);
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  ifr_addr = %u", request.ifr_addr.sa_family);
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  ifr_mtu  = %u", request.ifr_mtu);
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "ioctl request -> SIOCSIFMTU");
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "  ifr_name = %s", request.ifr_name);
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "  ifr_addr = %u", request.ifr_addr.sa_family);
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "  ifr_mtu  = %u", request.ifr_mtu);
   if((res = ioctl(__ioctl_socket_fd, SIOCSIFMTU, &request)) < 0)
   {
     return res;
@@ -1749,9 +1749,9 @@ static L7_int __ioctl_vlanintf_enable(L7_uint16 intfId)
   strncpy(&request.ifr_name[0], &ifName[0], IFNAMSIZ);
   request.ifr_flags |= IFF_UP;
 
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "ioctl request -> SIOCSIFFLAGS");
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  ifr_name  = %s",     request.ifr_name);
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  ifr_flags = 0x%04X", request.ifr_flags);
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "ioctl request -> SIOCSIFFLAGS");
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "  ifr_name  = %s",     request.ifr_name);
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "  ifr_flags = 0x%04X", request.ifr_flags);
   if((res = ioctl(__ioctl_socket_fd, SIOCSIFFLAGS, &request)) < 0)
   {
     return res;
@@ -1782,9 +1782,9 @@ static L7_int __ioctl_vlanintf_disable(L7_uint16 intfId)
   strncpy(&request.ifr_name[0], &ifName[0], IFNAMSIZ);
   request.ifr_flags &= ~IFF_UP;
 
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "ioctl request -> SIOCSIFFLAGS");
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  ifr_name  = %s",     request.ifr_name);
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  ifr_flags = 0x%04X", request.ifr_flags);
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "ioctl request -> SIOCSIFFLAGS");
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "  ifr_name  = %s",     request.ifr_name);
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "  ifr_flags = 0x%04X", request.ifr_flags);
   if((res = ioctl(__ioctl_socket_fd, SIOCSIFFLAGS, &request)) < 0)
   {
     return res;
@@ -1813,10 +1813,10 @@ static L7_int __ioctl_vlanintf_add(L7_uint16 vlanId)
   strncpy(&request.device1[0], PTIN_ROUTING_DTL0_INTERFACE_NAME, 24);
   request.u.VID = vlanId;
 
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "ioctl request -> SIOCGIFVLAN");
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  cmd     = %u", request.cmd);
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  device1 = %s", request.device1);
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  u.VID   = %u", request.u.VID);
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "ioctl request -> SIOCGIFVLAN");
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "  cmd     = %u", request.cmd);
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "  device1 = %s", request.device1);
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "  u.VID   = %u", request.u.VID);
   if((res = ioctl(__ioctl_socket_fd, SIOCGIFVLAN, &request)) < 0)
   {
     return res;
@@ -1845,10 +1845,10 @@ static L7_int __ioctl_vlanintf_remove(L7_uint16 vlanId)
   snprintf(&request.device1[0], 24, "%s.%u", PTIN_ROUTING_DTL0_INTERFACE_NAME, vlanId);
   request.u.VID = vlanId;
 
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "ioctl request -> SIOCGIFVLAN");
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  cmd     = %u", request.cmd);
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  device1 = %s", request.device1);
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  u.VID   = %u", request.u.VID);
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "ioctl request -> SIOCGIFVLAN");
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "  cmd     = %u", request.cmd);
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "  device1 = %s", request.device1);
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "  u.VID   = %u", request.u.VID);
   if((res = ioctl(__ioctl_socket_fd, SIOCGIFVLAN, &request)) < 0)
   {
     return res;
@@ -1882,9 +1882,9 @@ static L7_int __ioctl_intf_rename_dtl2rt(L7_uint16 intfId, L7_uint16 vlanId)
   strncpy(&request.ifr_name[0],    &oldIfName[0], IFNAMSIZ);
   strncpy(&request.ifr_newname[0], &newIfName[0], IFNAMSIZ);
 
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "ioctl request -> SIOCSIFNAME");
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  ifr_name    = %s", request.ifr_name);
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  ifr_newname = %s", request.ifr_newname);
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "ioctl request -> SIOCSIFNAME");
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "  ifr_name    = %s", request.ifr_name);
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "  ifr_newname = %s", request.ifr_newname);
   if((res = ioctl(__ioctl_socket_fd, SIOCSIFNAME, &request)) < 0)
   {
     return res;
@@ -1907,18 +1907,18 @@ L7_RC_t __intf_macaddress_set(ptin_intf_t* intf, L7_enetMacAddr_t* macAddr)
 
   if(L7_SUCCESS != ptin_intf_ptintf2intIfNum(intf, &intfNum))
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to to convert intf %u/%u to intfNum", intf->intf_type, intf->intf_id);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to to convert intf %u/%u to intfNum", intf->intf_type, intf->intf_id);
     return L7_FAILURE;
   }
 
   if(macAddr == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Abnormal context [macAddr:%p]", macAddr);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Abnormal context [macAddr:%p]", macAddr);
     return L7_ERROR;
   }
 
   /* Configure the routing interface with the given MAC address */
-  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Setting intfnum:%u MAC address to %02X:%02X:%02X:%02X:%02X:%02X\n", 
+  PT_LOG_DEBUG(LOG_CTX_ROUTING, "Setting intfnum:%u MAC address to %02X:%02X:%02X:%02X:%02X:%02X\n", 
             intfNum, macAddr->addr[0], macAddr->addr[1], macAddr->addr[2], macAddr->addr[3], macAddr->addr[4], macAddr->addr[5]);
   nimSetIntfAddress(intfNum, L7_NULL, (void*)macAddr->addr);
   nimSetIntfL3MacAddress(intfNum, L7_NULL, (void*)macAddr->addr);
@@ -1951,9 +1951,9 @@ static L7_int __ioctl_intf_rename_rt2dtl(L7_uint16 intfId, L7_uint16 vlanId)
   strncpy(&request.ifr_name[0],    &oldIfName[0], IFNAMSIZ);
   strncpy(&request.ifr_newname[0], &newIfName[0], IFNAMSIZ);
 
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "ioctl request -> SIOCSIFNAME");
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  ifr_name    = %s", request.ifr_name);
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  ifr_newname = %s", request.ifr_newname);
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "ioctl request -> SIOCSIFNAME");
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "  ifr_name    = %s", request.ifr_name);
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "  ifr_newname = %s", request.ifr_newname);
   if((res = ioctl(__ioctl_socket_fd, SIOCSIFNAME, &request)) < 0)
   {
     return res;
@@ -1975,15 +1975,15 @@ static L7_RC_t __arptable_snapshot_init(void)
   /* Determine ARP table max size */
   if(L7_SUCCESS != ipMapArpCacheStatsGet(&arpTableStats))
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to get ARP table stats");
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to get ARP table stats");
     return L7_FAILURE;
   }
 
   /* Create pool of free elements to use in the '__arptable_snapshot' */
-  LOG_INFO(LOG_CTX_PTIN_ROUTING, "Creating pool of %u elements for the __arptable_snapshot", arpTableStats.cacheMax);
+  PT_LOG_INFO(LOG_CTX_ROUTING, "Creating pool of %u elements for the __arptable_snapshot", arpTableStats.cacheMax);
   if(NOERR != dl_queue_init(&__arptable_pool))
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to create new dl_queue for arp table snapshot");
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to create new dl_queue for arp table snapshot");
     return L7_FAILURE;
   }
   for (i=0; i<arpTableStats.cacheMax; ++i)
@@ -1995,7 +1995,7 @@ static L7_RC_t __arptable_snapshot_init(void)
   /* Create the local snapshot queue */
   if(NOERR != dl_queue_init(&__arptable_snapshot))
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to create new dl_queue for arp table snapshot");
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to create new dl_queue for arp table snapshot");
     return L7_FAILURE;
   }
   __arptable_entries_max = arpTableStats.cacheMax;
@@ -2019,13 +2019,13 @@ static void __arptable_snapshot_refresh(L7_uint32 intfNum)
   memset(&arpTablepEntry, 0x00, sizeof(L7_arpEntry_t));
 
   /* Clear the current snapshot */
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "Clearing current snapshot and return all elements to the pool");
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "Clearing current snapshot and return all elements to the pool");
   while(dl_queue_remove_tail(&__arptable_snapshot, (dl_queue_elem_t**)&localSnapshotEntry) == NOERR)
   {
     dl_queue_add_tail(&__arptable_pool, (dl_queue_elem_t*)localSnapshotEntry);
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Refreshing local snapshot");
+  PT_LOG_DEBUG(LOG_CTX_ROUTING, "Refreshing local snapshot");
   while(L7_ERROR != usmDbIpArpEntryNext(PTIN_ROUTING_USMDB_UNITINDEX, arpTablepEntry.ipAddr, arpTablepEntry.intIfNum, &arpTablepEntry))
   {
     /* If filtering is active, ensure we only accept entries with the desired intfNum */
@@ -2038,7 +2038,7 @@ static void __arptable_snapshot_refresh(L7_uint32 intfNum)
     ++insertedEntries;
     if(insertedEntries > __arptable_entries_max)
     {
-      LOG_ERR(LOG_CTX_PTIN_ROUTING, "Not enough free space in the local snapshot to save all os usmDb contents [insertedEntries:%u __arptable_entries_max:%u]", insertedEntries, __arptable_entries_max);
+      PT_LOG_ERR(LOG_CTX_ROUTING, "Not enough free space in the local snapshot to save all os usmDb contents [insertedEntries:%u __arptable_entries_max:%u]", insertedEntries, __arptable_entries_max);
       return;
     }
 
@@ -2085,10 +2085,10 @@ static L7_RC_t __routetable_snapshot_init(void)
   routeTableMaxEntries = platRtrRouteMaxEntriesGet();
 
   /* Create pool of free elements to use in the '__routetable_snapshot' */
-  LOG_INFO(LOG_CTX_PTIN_ROUTING, "Creating pool of %u elements for the __routetable_snapshot", routeTableMaxEntries);
+  PT_LOG_INFO(LOG_CTX_ROUTING, "Creating pool of %u elements for the __routetable_snapshot", routeTableMaxEntries);
   if(NOERR != dl_queue_init(&__routetable_pool))
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to create new dl_queue for arp table snapshot");
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to create new dl_queue for arp table snapshot");
     return L7_FAILURE;
   }
   for (i=0; i<routeTableMaxEntries; ++i)
@@ -2100,7 +2100,7 @@ static L7_RC_t __routetable_snapshot_init(void)
   /* Create the local snapshot queue */
   if(NOERR != dl_queue_init(&__routetable_snapshot))
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to create new dl_queue for route table snapshot");
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to create new dl_queue for route table snapshot");
     return L7_FAILURE;
   }
   __routetable_entries_max = routeTableMaxEntries;
@@ -2125,20 +2125,20 @@ static void __routetable_snapshot_refresh(L7_uint32 intfNum)
   memset(&routeTablepEntry, 0x00, sizeof(L7_routeEntry_t));
 
   /* Clear the current snapshot */
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "Clearing current snapshot and return all elements to the pool");
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "Clearing current snapshot and return all elements to the pool");
   while(dl_queue_remove_tail(&__routetable_snapshot, (dl_queue_elem_t**)&localSnapshotEntry) == NOERR)
   {
     dl_queue_add_tail(&__routetable_pool, (dl_queue_elem_t*)localSnapshotEntry);
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Refreshing local snapshot");
+  PT_LOG_DEBUG(LOG_CTX_ROUTING, "Refreshing local snapshot");
   currentTime = simSystemUpTimeGet();
   while(L7_ERROR != usmDbNextRouteEntryGet(PTIN_ROUTING_USMDB_UNITINDEX, &routeTablepEntry, L7_FALSE))
   {
     /* If filtering is active, ensure we only accept entries with the desired intfNum */
     if(routeTablepEntry.ecmpRoutes.numOfRoutes == 0)
     {
-      LOG_ERR(LOG_CTX_PTIN_ROUTING, "There has to be at least one best route in this entry!");
+      PT_LOG_ERR(LOG_CTX_ROUTING, "There has to be at least one best route in this entry!");
       return;
     }
 
@@ -2152,7 +2152,7 @@ static void __routetable_snapshot_refresh(L7_uint32 intfNum)
     ++insertedEntries;
     if(insertedEntries > __routetable_entries_max)
     {
-      LOG_ERR(LOG_CTX_PTIN_ROUTING, "Not enough free space in the local snapshot to save all os usmDb contents [insertedEntries:%u __routetable_entries_max:%u]", insertedEntries, __routetable_entries_max);
+      PT_LOG_ERR(LOG_CTX_ROUTING, "Not enough free space in the local snapshot to save all os usmDb contents [insertedEntries:%u __routetable_entries_max:%u]", insertedEntries, __routetable_entries_max);
       return;
     }
 
@@ -2184,7 +2184,7 @@ static L7_RC_t __ping_sessions_init(void)
 
   if(L7_SUCCESS != usmDbMaxPingSessionsGet(&max_sessions))
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to determine max number of ping sessions");
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to determine max number of ping sessions");
     return L7_FAILURE;
   }
 
@@ -2207,12 +2207,12 @@ static L7_RC_t __ping_session_finish_callback(void *userParam)
 
   if(userParam == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Abnormal context [userParam:%p]", userParam);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Abnormal context [userParam:%p]", userParam);
     return L7_FAILURE;
   }
   index = *(L7_uint8*)userParam;
 
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "Ping session %u has finished", index);
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "Ping session %u has finished", index);
   __ping_sessions[index].isRunning = L7_FALSE;
 
   return L7_SUCCESS;
@@ -2230,7 +2230,7 @@ static L7_RC_t __traceroute_sessions_init(void)
 
   if(L7_SUCCESS != usmDbTraceRouteMaxSessionsGet(&max_sessions))
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to determine max number of traceroute sessions");
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to determine max number of traceroute sessions");
     return L7_FAILURE;
   }
 
@@ -2239,10 +2239,10 @@ static L7_RC_t __traceroute_sessions_init(void)
   __traceroute_hops_max     = PTIN_ROUTING_TRACEROUTE_MAX_HOPS;
 
   /* Create pool of free elements to use in the '__traceroutehops_snapshot' */
-  LOG_INFO(LOG_CTX_PTIN_ROUTING, "Creating pool of %u elements for the __traceroutehops_snapshot", __traceroute_hops_max);
+  PT_LOG_INFO(LOG_CTX_ROUTING, "Creating pool of %u elements for the __traceroutehops_snapshot", __traceroute_hops_max);
   if(NOERR != dl_queue_init(&__traceroutehops_pool))
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to create new dl_queue for traceroute hops snapshot");
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to create new dl_queue for traceroute hops snapshot");
     return L7_FAILURE;
   }
   for (i=0; i<__traceroute_hops_max; ++i)
@@ -2254,7 +2254,7 @@ static L7_RC_t __traceroute_sessions_init(void)
   /* Create the local snapshot queue */
   if(NOERR != dl_queue_init(&__traceroutehops_snapshot))
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to create new dl_queue for traceroute hops snapshot");
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to create new dl_queue for traceroute hops snapshot");
     return L7_FAILURE;
   }
 
@@ -2278,7 +2278,7 @@ static void __traceroutehops_snapshot_refresh(L7_uint32 sessionIdx)
   L7_uint32                     insertedEntries = 0;
 
   /* Clear the current snapshot */
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "Clearing current snapshot and return all elements to the pool");
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "Clearing current snapshot and return all elements to the pool");
   while(dl_queue_remove_tail(&__traceroutehops_snapshot, (dl_queue_elem_t**)&localSnapshotEntry) == NOERR)
   {
     dl_queue_add_tail(&__traceroutehops_pool, (dl_queue_elem_t*)localSnapshotEntry);
@@ -2287,17 +2287,17 @@ static void __traceroutehops_snapshot_refresh(L7_uint32 sessionIdx)
   /* Get the handle for this traceroute session */
   if(sessionIdx > __traceroute_sessions_max)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index[%u] is higher than the maximum allowed number of ping sessions", index);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Requested index[%u] is higher than the maximum allowed number of ping sessions", index);
     return;
   }
   if(__traceroute_sessions[sessionIdx].handle == 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index is does not belong to a created session [sessionIdx:%u]", sessionIdx);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Requested index is does not belong to a created session [sessionIdx:%u]", sessionIdx);
     return;
   }
   sessionHandle = __traceroute_sessions[sessionIdx].handle;
 
-  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Refreshing local snapshot");
+  PT_LOG_DEBUG(LOG_CTX_ROUTING, "Refreshing local snapshot");
   insertedEntries = 0;
   lastHopIdx      = (L7_uint16)-1;
   while((L7_SUCCESS == usmDbTraceRouteHopGetNext(sessionHandle, &lastHopIdx, &ttl, &ipAddr,  &minRtt, &maxRtt, &avgRtt, &probeSent, &probeRecv)))
@@ -2306,7 +2306,7 @@ static void __traceroutehops_snapshot_refresh(L7_uint32 sessionIdx)
     ++insertedEntries;
     if(insertedEntries > __traceroute_hops_max)
     {
-      LOG_ERR(LOG_CTX_PTIN_ROUTING, "Not enough free space in the local snapshot to save all os usmDb contents [insertedEntries:%u __traceroute_hops_max:%u]", insertedEntries, __traceroute_hops_max);
+      PT_LOG_ERR(LOG_CTX_ROUTING, "Not enough free space in the local snapshot to save all os usmDb contents [insertedEntries:%u __traceroute_hops_max:%u]", insertedEntries, __traceroute_hops_max);
       return;
     }
 
@@ -2364,14 +2364,14 @@ void ptin_routing_arptablesnapshot_dump(void)
   /* Get pointer to the first element */
   if(NOERR != dl_queue_get_head(&__arptable_snapshot, (dl_queue_elem_t**)&snapshotIterator))
   {
-    LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "There are not hops for this traceroute session");
+    PT_LOG_DEBUG(LOG_CTX_ROUTING, "There are not hops for this traceroute session");
     return;
   }
 
   /* Get pointer to the first element */
   if(NOERR != dl_queue_get_head(&__arptable_snapshot, (dl_queue_elem_t**)&snapshotIterator))
   {
-    LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "ARP table snapshot is empty");
+    PT_LOG_DEBUG(LOG_CTX_ROUTING, "ARP table snapshot is empty");
     return;
   }
 
@@ -2404,14 +2404,14 @@ void ptin_routing_routetablesnapshot_dump(void)
   /* Get pointer to the first element */
   if(NOERR != dl_queue_get_head(&__routetable_snapshot, (dl_queue_elem_t**)&snapshotIterator))
   {
-    LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "There are not hops for this traceroute session");
+    PT_LOG_DEBUG(LOG_CTX_ROUTING, "There are not hops for this traceroute session");
     return;
   }
 
   /* Get pointer to the first element */
   if(NOERR != dl_queue_get_head(&__routetable_snapshot, (dl_queue_elem_t**)&snapshotIterator))
   {
-    LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Route table snapshot is empty");
+    PT_LOG_DEBUG(LOG_CTX_ROUTING, "Route table snapshot is empty");
     return;
   }
 
@@ -2445,7 +2445,7 @@ void ptin_routing_pingsession_dump(L7_uint32 index)
 
   if(index > __ping_sessions_max)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index[%u] is higher than the maximum allowed number of ping sessions", index);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Requested index[%u] is higher than the maximum allowed number of ping sessions", index);
     return;
   }
 
@@ -2497,7 +2497,7 @@ void ptin_routing_traceroutesession_dump(L7_uint32 index)
 
   if(index > __traceroute_sessions_max)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index[%u] is higher than the maximum allowed number of traceroute sessions", index);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Requested index[%u] is higher than the maximum allowed number of traceroute sessions", index);
     return;
   }
 

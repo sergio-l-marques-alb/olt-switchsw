@@ -221,7 +221,7 @@ static void _policy_group_set_default_pbm(int unit, BROAD_POLICY_TYPE_t type, BR
         SOC_PBMP_OR(tempPbm, PBMP_E_ALL(unit));
         /* TODO: SDK 6.3.0 */
         #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-        LOG_WARNING(LOG_CTX_PTIN_HAPI, "TODO: LB ports not considered!");
+        PT_LOG_WARN(LOG_CTX_HAPI, "TODO: LB ports not considered!");
         #else
         SOC_PBMP_OR(tempPbm, PBMP_LB(unit));
         #endif

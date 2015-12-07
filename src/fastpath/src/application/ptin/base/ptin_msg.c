@@ -170,7 +170,7 @@ L7_RC_t ptin_msg_FPInfo_get(msg_FWFastpathInfo *msgFPInfo)
   snprintf(msgFPInfo->BoardSerialNumber, 19, "OLTSW-SDK-%u.%u.%u.%u", SDK_MAJOR_VERSION, SDK_MINOR_VERSION, SDK_REVISION_ID, SDK_PATCH_ID);
   msgFPInfo->BoardSerialNumber[19] = '\0';
 
-  LOG_NOTICE(LOG_CTX_PTIN_MSG, "Board info: \"%s\"", msgFPInfo->BoardSerialNumber);
+  PT_LOG_NOTICE(LOG_CTX_MSG, "Board info: \"%s\"", msgFPInfo->BoardSerialNumber);
 
   return L7_SUCCESS;
 }
@@ -200,7 +200,7 @@ L7_RC_t fp_to_ptin_ip_notation(L7_inet_addr_t *fpIpAddr, chmessage_ip_addr_t *pt
    }
    else
    {
-     LOG_ERR(LOG_CTX_PTIN_MSG, "IP Family Address of FP not Supported:%u",fpIpAddr->family);
+     PT_LOG_ERR(LOG_CTX_MSG, "IP Family Address of FP not Supported:%u",fpIpAddr->family);
      return L7_NOT_SUPPORTED;
    }   
 }
@@ -224,7 +224,7 @@ L7_RC_t ptin_to_fp_ip_notation(chmessage_ip_addr_t *ptinIpAddr, L7_inet_addr_t *
    }
    else
    {
-     LOG_ERR(LOG_CTX_PTIN_MSG, "IP Family Address of PTIN not Supported:%u",fpIpAddr->family);
+     PT_LOG_ERR(LOG_CTX_MSG, "IP Family Address of PTIN not Supported:%u",fpIpAddr->family);
      return L7_NOT_SUPPORTED;
    }   
 }
@@ -242,53 +242,53 @@ extern void ptin_msg_defaults_reset(msg_HwGenReq_t *msgPtr)
 
   if (msgPtr == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Parameters: msgPtr:%p", msgPtr);
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid Parameters: msgPtr:%p", msgPtr);
     return;
   }
   mode = msgPtr->param;
   
-  LOG_INFO(LOG_CTX_PTIN_CONTROL,"Executing a reset defaults with mode=%u", mode);
+  PT_LOG_INFO(LOG_CTX_CONTROL,"Executing a reset defaults with mode=%u", mode);
 
   /*This Should be the First Module*/
   /* Reset IGMP Module */
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on IGMP...");
+  PT_LOG_INFO(LOG_CTX_MSG, "Performing Reset on IGMP...");
   ptin_igmp_default_reset();
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
+  PT_LOG_INFO(LOG_CTX_MSG, "Done.");
 
    /* Reset DAI Module */
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on DAI...");
+  PT_LOG_INFO(LOG_CTX_MSG, "Performing Reset on DAI...");
   daiRestore();
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
+  PT_LOG_INFO(LOG_CTX_MSG, "Done.");
 
 #ifdef __Y1731_802_1ag_OAM_ETH__
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on OAM...");
+  PT_LOG_INFO(LOG_CTX_MSG, "Performing Reset on OAM...");
   eth_srv_oam_msg_defaults_reset();
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
+  PT_LOG_INFO(LOG_CTX_MSG, "Done.");
 #endif
 
   /* Reset Routing Module*/
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on Routing...");
+  PT_LOG_INFO(LOG_CTX_MSG, "Performing Reset on Routing...");
   ptin_routing_intf_remove_all();
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
+  PT_LOG_INFO(LOG_CTX_MSG, "Done.");
 
   /* ERPS */
 #ifdef PTIN_ENABLE_ERPS
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on ERPS...");
+  PT_LOG_INFO(LOG_CTX_MSG, "Performing Reset on ERPS...");
   ptin_erps_clear();
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on HAL...");
+  PT_LOG_INFO(LOG_CTX_MSG, "Done.");
+  PT_LOG_INFO(LOG_CTX_MSG, "Performing Reset on HAL...");
   ptin_hal_erps_clear();
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
+  PT_LOG_INFO(LOG_CTX_MSG, "Done.");
 #endif
 
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on ACL...");
+  PT_LOG_INFO(LOG_CTX_MSG, "Performing Reset on ACL...");
   ptin_aclCleanAll();
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
+  PT_LOG_INFO(LOG_CTX_MSG, "Done.");
 
   /* Reset EVC Module */
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on EVC...");
+  PT_LOG_INFO(LOG_CTX_MSG, "Performing Reset on EVC...");
   ptin_evc_destroy_all();
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
+  PT_LOG_INFO(LOG_CTX_MSG, "Done.");
 
   if (mode == DEFAULT_RESET_MODE_FULL)
   {
@@ -297,14 +297,14 @@ extern void ptin_msg_defaults_reset(msg_HwGenReq_t *msgPtr)
     /* Unconfig Connectivity */
     memset(&ptinNtwConn, 0x00, sizeof(ptin_NtwConnectivity_t));
     ptinNtwConn.mask = PTIN_NTWCONN_MASK_IPADDR;
-    LOG_INFO(LOG_CTX_PTIN_MSG, "(Re)Configure Inband...");
+    PT_LOG_INFO(LOG_CTX_MSG, "(Re)Configure Inband...");
     ptin_cfg_ntw_connectivity_set(&ptinNtwConn);
-    LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
+    PT_LOG_INFO(LOG_CTX_MSG, "Done.");
 
     /*This Should be the Last Module*/
-    LOG_INFO(LOG_CTX_PTIN_MSG, "Performing Reset on LAG...");
+    PT_LOG_INFO(LOG_CTX_MSG, "Performing Reset on LAG...");
     ptin_intf_Lag_delete_all();
-    LOG_INFO(LOG_CTX_PTIN_MSG, "Done.");
+    PT_LOG_INFO(LOG_CTX_MSG, "Done.");
   }
 }
 
@@ -330,17 +330,17 @@ void ptin_msg_task_process(L7_uint32 msgId, void *msgPtr, L7_uint32 msgSize, L7_
   static L7_uint32 msgBuffer[IPCLIB_MAX_MSGSIZE] = {0};
   L7_RC_t rc;
   
-  LOG_INFO(LOG_CTX_PTIN_CONTROL,"Going to take ptin_ready_sem:%p waiting for it %d (ms)",ptin_ready_sem, timeOut);
+  PT_LOG_INFO(LOG_CTX_CONTROL,"Going to take ptin_ready_sem:%p waiting for it %d (ms)",ptin_ready_sem, timeOut);
 
   /* Lock Ready State */
   rc = osapiSemaTake(ptin_ready_sem, timeOut);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Failed to schedule a new task 0x%x within defined timeout:%d (ms)!", msgId, timeOut);
+    PT_LOG_ERR(LOG_CTX_MSG, "Failed to schedule a new task 0x%x within defined timeout:%d (ms)!", msgId, timeOut);
     return;
   }
 
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Scheduling a new task 0x%x to be handle within timeout:%d (ms)", msgId, timeOut);
+  PT_LOG_INFO(LOG_CTX_MSG, "Scheduling a new task 0x%x to be handle within timeout:%d (ms)", msgId, timeOut);
 
   ptin_task_msg_id = msgId;
   memcpy(&msgBuffer, msgPtr, msgSize);
@@ -362,10 +362,10 @@ void ptin_msg_task_process(L7_uint32 msgId, void *msgPtr, L7_uint32 msgSize, L7_
   /* After 3 seconds, function should be terminated */
   if (cycles_100ms == 0)
   {
-    LOG_INFO(LOG_CTX_PTIN_MSG, "Timeout... Leaving %s function.", __FUNCTION__); 
+    PT_LOG_INFO(LOG_CTX_MSG, "Timeout... Leaving %s function.", __FUNCTION__); 
     return;
   }
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Operation completed! Leaving %s function.", __FUNCTION__); 
+  PT_LOG_INFO(LOG_CTX_MSG, "Operation completed! Leaving %s function.", __FUNCTION__); 
 #else
   
 #endif
@@ -374,13 +374,13 @@ void ptin_msg_task_process(L7_uint32 msgId, void *msgPtr, L7_uint32 msgSize, L7_
   rc = osapiSemaTake(ptin_ready_sem, timeOut);
   if (rc)
   {
-    LOG_INFO(LOG_CTX_PTIN_MSG, "Timeout %d (ms) expired. Message Still Being Processed: 0x%x", timeOut, msgId); 
+    PT_LOG_INFO(LOG_CTX_MSG, "Timeout %d (ms) expired. Message Still Being Processed: 0x%x", timeOut, msgId); 
   }
   else
   {
     /* Unlock Ready State */
     osapiSemaGive(ptin_ready_sem);
-    LOG_INFO(LOG_CTX_PTIN_MSG, "Message Processed 0x%x Within TimeOut %d (ms) ", msgId, timeOut);         
+    PT_LOG_INFO(LOG_CTX_MSG, "Message Processed 0x%x Within TimeOut %d (ms) ", msgId, timeOut);         
   }
 #endif
 }
@@ -412,15 +412,15 @@ L7_RC_t ptin_msg_typeBprotIntfSwitchNotify(msg_HwTypeBProtSwitchNotify_t *msg)
   L7_uint32 intIfNum;
   L7_uint8  status;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Type-B Protection switch notification");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " slotId = %u"   , msg->slotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " portId = %u", msg->portId); //ptin_port format
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " cmd    = %08X" , msg->cmd);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Type-B Protection switch notification");
+  PT_LOG_DEBUG(LOG_CTX_MSG, " slotId = %u"   , msg->slotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " portId = %u", msg->portId); //ptin_port format
+  PT_LOG_DEBUG(LOG_CTX_MSG, " cmd    = %08X" , msg->cmd);
 
   /* Convert portId to intfNum */
   if (ptin_intf_port2intIfNum(msg->portId, &intIfNum)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Non existent port");
+    PT_LOG_ERR(LOG_CTX_MSG, "Non existent port");
     return L7_FAILURE;
   }
 
@@ -431,7 +431,7 @@ L7_RC_t ptin_msg_typeBprotIntfSwitchNotify(msg_HwTypeBProtSwitchNotify_t *msg)
   rc = ptin_prottypeb_intf_switch_notify(intIfNum, status);
   if (rc!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to set interface's type-b protection configurations");
+    PT_LOG_ERR(LOG_CTX_MSG, "Unable to set interface's type-b protection configurations");
     return L7_FAILURE;
   }
 
@@ -451,42 +451,42 @@ L7_RC_t ptin_msg_typeBprotIntfConfig(msg_HwTypeBProtIntfConfig_t *msg)
   L7_int                       ptin_port;
   ptin_prottypeb_intf_config_t ptin_intfConfig;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Configurations");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " slotId     = %u"   , msg->slotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " intfId     = %u/%u", msg->intfId.intf_type, msg->intfId.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " pairSlotId = %u"   , msg->pairSlotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " pairIntfId = %u/%u", msg->pairIntfId.intf_type, msg->pairIntfId.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " intfRole   = %u"   , msg->intfRole);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Configurations");
+  PT_LOG_DEBUG(LOG_CTX_MSG, " slotId     = %u"   , msg->slotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " intfId     = %u/%u", msg->intfId.intf_type, msg->intfId.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " pairSlotId = %u"   , msg->pairSlotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " pairIntfId = %u/%u", msg->pairIntfId.intf_type, msg->pairIntfId.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " intfRole   = %u"   , msg->intfRole);
 
   memset(&ptin_intfConfig, 0x00, sizeof(ptin_intfConfig));
 
   /* Convert intfId to intfNum */
   if (ptin_msg_ptinPort_get(msg->intfId.intf_type, msg->intfId.intf_id, &ptin_port)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid port");
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid port");
     return L7_FAILURE;
   }
   if (ptin_intf_port2intIfNum(ptin_port, &ptin_intfConfig.intfNum)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Non existent port");
+    PT_LOG_ERR(LOG_CTX_MSG, "Non existent port");
     return L7_FAILURE;
   }
 
   /* Convert pairIntfId to intfNum */
   if (ptin_msg_ptinPort_get(msg->pairIntfId.intf_type, msg->pairIntfId.intf_id, &ptin_port)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid port");
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid port");
     return L7_FAILURE;
   }
   if (ptin_intf_port2intIfNum(ptin_port, &ptin_intfConfig.pairIntfNum)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Non existent port");
+    PT_LOG_ERR(LOG_CTX_MSG, "Non existent port");
     return L7_FAILURE;
   }
 
   if (ptin_intfConfig.intfNum == ptin_intfConfig.pairIntfNum && msg->slotId == msg->pairSlotId)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Parameters: slotId=pairSlotId=%u, intfNum=pairIntfNum=%u", msg->slotId, ptin_intfConfig.intfNum);
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid Parameters: slotId=pairSlotId=%u, intfNum=pairIntfNum=%u", msg->slotId, ptin_intfConfig.intfNum);
     return L7_FAILURE;
   }
   
@@ -498,7 +498,7 @@ L7_RC_t ptin_msg_typeBprotIntfConfig(msg_HwTypeBProtIntfConfig_t *msg)
   rc = ptin_prottypeb_intf_config_set(&ptin_intfConfig);
   if (rc!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to set interface's type-b protection configurations");
+    PT_LOG_ERR(LOG_CTX_MSG, "Unable to set interface's type-b protection configurations");
     return L7_FAILURE;
   }
  
@@ -519,7 +519,7 @@ L7_RC_t ptin_msg_typeBprotSwitch(msg_HwTypeBprot_t *msg)
   L7_uint32 intIfNum;
   L7_uint32 lag_idx;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ptin_msg_typeBprotSwitch(slot %d, port %d)", msg->slot, msg->port);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ptin_msg_typeBprotSwitch(slot %d, port %d)", msg->slot, msg->port);
 
   rc = ptin_intf_slot2lagIdx(msg->slot, &lag_idx);
   if (rc==L7_SUCCESS)
@@ -536,7 +536,7 @@ L7_RC_t ptin_msg_typeBprotSwitch(msg_HwTypeBprot_t *msg)
   ptin_intf_t ptin_intf;
   L7_uint32 ptin_port;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ptin_msg_typeBprotSwitch(slot %d, port %d)", msg->slot, msg->port);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ptin_msg_typeBprotSwitch(slot %d, port %d)", msg->slot, msg->port);
 
   ptin_intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
   ptin_intf.intf_id = msg->port;
@@ -549,7 +549,7 @@ L7_RC_t ptin_msg_typeBprotSwitch(msg_HwTypeBprot_t *msg)
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Non existent port");
+    PT_LOG_ERR(LOG_CTX_MSG, "Non existent port");
   }
 #endif
 
@@ -559,13 +559,13 @@ L7_RC_t ptin_msg_typeBprotSwitch(msg_HwTypeBprot_t *msg)
   rc = ptin_igmp_generalquerier_reset();
   if (rc!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to reset MGMD General Queriers");
+    PT_LOG_ERR(LOG_CTX_MSG, "Unable to reset MGMD General Queriers");
   }
 #endif
 
   if (rc!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "return %d", rc);
+    PT_LOG_ERR(LOG_CTX_MSG, "return %d", rc);
   }
   
 
@@ -583,42 +583,42 @@ L7_RC_t ptin_msg_board_action(msg_HwGenReq_t *msg)
 {
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_INFO(LOG_CTX_PTIN_MSG, "ptin_msg_board_action");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," slot       = %u", msg->slot_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," generic_id = %u", msg->generic_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," type       = 0x%02x", msg->type);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," param      = 0x%02x", msg->param);
+  PT_LOG_INFO(LOG_CTX_MSG, "ptin_msg_board_action");
+  PT_LOG_DEBUG(LOG_CTX_MSG," slot       = %u", msg->slot_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," generic_id = %u", msg->generic_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," type       = 0x%02x", msg->type);
+  PT_LOG_DEBUG(LOG_CTX_MSG," param      = 0x%02x", msg->param);
 
   #if (PTIN_BOARD_IS_MATRIX)
 
   /* insertion action */
   if (msg->type == 0x03)
   {
-    LOG_INFO(LOG_CTX_PTIN_MSG,"Insertion detected (slot %u, board_id=%u)", msg->generic_id, msg->param);
+    PT_LOG_INFO(LOG_CTX_MSG,"Insertion detected (slot %u, board_id=%u)", msg->generic_id, msg->param);
 
     rc = ptin_slot_action_insert(msg->generic_id, msg->param);
     if ( rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error inserting card (%d)", rc);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error inserting card (%d)", rc);
     }
     else
     {
-      LOG_INFO(LOG_CTX_PTIN_MSG, "Card inserted successfully");
+      PT_LOG_INFO(LOG_CTX_MSG, "Card inserted successfully");
     }
   }
   /* Board removed */
   else if (msg->type == 0x00)
   {
-    LOG_INFO(LOG_CTX_PTIN_MSG,"Remotion detected (slot %u)", msg->generic_id);
+    PT_LOG_INFO(LOG_CTX_MSG,"Remotion detected (slot %u)", msg->generic_id);
 
     rc = ptin_slot_action_remove(msg->generic_id);
     if ( rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing card (%d)", rc);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error removing card (%d)", rc);
     }
     else
     {
-      LOG_INFO(LOG_CTX_PTIN_MSG, "Card removed successfully");
+      PT_LOG_INFO(LOG_CTX_MSG, "Card removed successfully");
     }
   }
   #endif
@@ -637,11 +637,11 @@ L7_RC_t ptin_msg_link_action(msg_HwGenReq_t *msg)
 {
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_INFO(LOG_CTX_PTIN_MSG, "ptin_msg_link_action");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," slot       = %u", msg->slot_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," generic_id = %u", msg->generic_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," type       = 0x%02x", msg->type);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," param      = 0x%02x", msg->param);
+  PT_LOG_INFO(LOG_CTX_MSG, "ptin_msg_link_action");
+  PT_LOG_DEBUG(LOG_CTX_MSG," slot       = %u", msg->slot_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," generic_id = %u", msg->generic_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," type       = 0x%02x", msg->type);
+  PT_LOG_DEBUG(LOG_CTX_MSG," param      = 0x%02x", msg->param);
 
   #if 0
   #if (PTIN_BOARD_IS_MATRIX)
@@ -652,7 +652,7 @@ L7_RC_t ptin_msg_link_action(msg_HwGenReq_t *msg)
   /* Only active matrix will process these messages */
   if (!cpld_map->reg.mx_is_active)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "I am not active matrix");
+    PT_LOG_ERR(LOG_CTX_MSG, "I am not active matrix");
     return L7_SUCCESS;
   }
 
@@ -663,7 +663,7 @@ L7_RC_t ptin_msg_link_action(msg_HwGenReq_t *msg)
   if (rc != L7_SUCCESS)
   {
     osapiSemaGive(ptin_boardaction_sem);
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting board_id for slot id %u (rc=%d)", msg->generic_id, rc);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error getting board_id for slot id %u (rc=%d)", msg->generic_id, rc);
     return L7_FAILURE;
   }
 
@@ -671,7 +671,7 @@ L7_RC_t ptin_msg_link_action(msg_HwGenReq_t *msg)
   if (!PTIN_BOARD_IS_UPLINK(board_type))
   {
     osapiSemaGive(ptin_boardaction_sem);
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Not an uplink board (board_id=%u)", board_type);
+    PT_LOG_ERR(LOG_CTX_MSG, "Not an uplink board (board_id=%u)", board_type);
     return L7_FAILURE;
   }
 
@@ -679,13 +679,13 @@ L7_RC_t ptin_msg_link_action(msg_HwGenReq_t *msg)
   if (ptin_intf_slotPort2port(msg->generic_id, msg->param, &ptin_port) != L7_SUCCESS)
   {
     osapiSemaGive(ptin_boardaction_sem);
-    LOG_ERR(LOG_CTX_PTIN_MSG, "No ptin_port related to slot/port %u/%u", msg->generic_id, msg->param);
+    PT_LOG_ERR(LOG_CTX_MSG, "No ptin_port related to slot/port %u/%u", msg->generic_id, msg->param);
     return L7_FAILURE;
   }
   if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
   {
     osapiSemaGive(ptin_boardaction_sem);
-    LOG_ERR(LOG_CTX_PTIN_MSG, "No intIfNum related to ptin_port %u", ptin_port);
+    PT_LOG_ERR(LOG_CTX_MSG, "No intIfNum related to ptin_port %u", ptin_port);
     return L7_FAILURE;
   }
 
@@ -693,14 +693,14 @@ L7_RC_t ptin_msg_link_action(msg_HwGenReq_t *msg)
   if (!ptin_intf_is_uplinkProtection(ptin_port))
   {
     osapiSemaGive(ptin_boardaction_sem);
-    LOG_ERR(LOG_CTX_PTIN_MSG, "ptin_port %u is not a protection port", ptin_port);
+    PT_LOG_ERR(LOG_CTX_MSG, "ptin_port %u is not a protection port", ptin_port);
     return L7_FAILURE;
   }
 
   /* When link is up, disable linkscan */
   if (msg->type == 0x01)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Link-up detected at ptin_port %u", ptin_port);
+    PT_LOG_DEBUG(LOG_CTX_MSG,"Link-up detected at ptin_port %u", ptin_port);
 
     #ifdef PTIN_LINKSCAN_CONTROL
     /* Linkscan control should be enabled */
@@ -718,7 +718,7 @@ L7_RC_t ptin_msg_link_action(msg_HwGenReq_t *msg)
       rc = ptin_intf_link_force(intIfNum, L7_TRUE, L7_ENABLE);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_API, "Error enabling force linkup for port %u (%d)", ptin_port, rc);
+        PT_LOG_ERR(LOG_CTX_API, "Error enabling force linkup for port %u (%d)", ptin_port, rc);
       }
 
       /* Add port to vlans again */
@@ -727,13 +727,13 @@ L7_RC_t ptin_msg_link_action(msg_HwGenReq_t *msg)
         ptin_vlan_port_add(ptin_port, 0);
       }
 
-      LOG_DEBUG(LOG_CTX_PTIN_API, "Forced linkup for port %u", ptin_port);
+      PT_LOG_DEBUG(LOG_CTX_API, "Forced linkup for port %u", ptin_port);
     }
     #endif
   }
   else
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Link-down detected at ptin_port %u", ptin_port);
+    PT_LOG_DEBUG(LOG_CTX_MSG,"Link-down detected at ptin_port %u", ptin_port);
 
     #ifdef PTIN_LINKSCAN_CONTROL
     if (linkscan_update_control)
@@ -742,16 +742,16 @@ L7_RC_t ptin_msg_link_action(msg_HwGenReq_t *msg)
       rc = ptin_intf_link_force(intIfNum, L7_TRUE, L7_DISABLE);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_API, "Error disabling force linkup for port %u (%d)", ptin_port, rc);
+        PT_LOG_ERR(LOG_CTX_API, "Error disabling force linkup for port %u (%d)", ptin_port, rc);
       }
 
       /* Cause link-down */
       rc = ptin_intf_link_force(intIfNum, L7_FALSE, 0);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_API, "Error disabling force linkup for port %u (%d)", ptin_port, rc);
+        PT_LOG_ERR(LOG_CTX_API, "Error disabling force linkup for port %u (%d)", ptin_port, rc);
       }
-      LOG_DEBUG(LOG_CTX_PTIN_API, "Force link-up disabled for port %u", ptin_port);
+      PT_LOG_DEBUG(LOG_CTX_API, "Force link-up disabled for port %u", ptin_port);
     }
     #endif
   }
@@ -770,7 +770,7 @@ L7_RC_t ptin_msg_link_action(msg_HwGenReq_t *msg)
  */
 void ptin_msg_alarms_reset(void)
 {
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Resetting alarms states");
+  PT_LOG_INFO(LOG_CTX_MSG, "Resetting alarms states");
 
   /* Init alarms state */
   ptin_alarms_init();
@@ -800,7 +800,7 @@ L7_RC_t ptin_msg_hw_resources_get(msg_ptin_policy_resources *msgResources)
   /* Read hardware available resources */
   if ((rc=ptin_hw_resources_get(&resources))!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error consulting hardware resources");
+    PT_LOG_ERR(LOG_CTX_MSG,"Error consulting hardware resources");
     return rc;
   }
 
@@ -845,15 +845,15 @@ L7_RC_t ptin_msg_PhyConfig_set(msg_HWEthPhyConf_t *msgPhyConf)
 {
   ptin_HWEthPhyConf_t phyConf;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Port # %u",           msgPhyConf->Port);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " Enable        = %u", msgPhyConf->PortEnable );
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " Speed         = %u", msgPhyConf->Speed );
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " Duplex        = %u", msgPhyConf->Duplex );
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " Media         = %u", msgPhyConf->Media );
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " MaxFrame      = %u", msgPhyConf->MaxFrame );
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " Loopback      = %u", msgPhyConf->LoopBack );
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " MACLearn Prio = %u", msgPhyConf->MacLearning );
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " Mask          = 0x%04X", msgPhyConf->Mask );
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Port # %u",           msgPhyConf->Port);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Enable        = %u", msgPhyConf->PortEnable );
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Speed         = %u", msgPhyConf->Speed );
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Duplex        = %u", msgPhyConf->Duplex );
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Media         = %u", msgPhyConf->Media );
+  PT_LOG_DEBUG(LOG_CTX_MSG, " MaxFrame      = %u", msgPhyConf->MaxFrame );
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Loopback      = %u", msgPhyConf->LoopBack );
+  PT_LOG_DEBUG(LOG_CTX_MSG, " MACLearn Prio = %u", msgPhyConf->MacLearning );
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Mask          = 0x%04X", msgPhyConf->Mask );
 
   /* Copy the message data to a new structure (*/
   phyConf.Port         = msgPhyConf->Port;
@@ -868,7 +868,7 @@ L7_RC_t ptin_msg_PhyConfig_set(msg_HWEthPhyConf_t *msgPhyConf)
   /* Apply config */
   if ( ptin_intf_PhyConfig_set(&phyConf) != L7_SUCCESS )
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error applying configurations on port# %u", phyConf.Port);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error applying configurations on port# %u", phyConf.Port);
 
     memset(msgPhyConf, 0x00, sizeof(msg_HWEthPhyConf_t));
     msgPhyConf->Mask = phyConf.Mask;  /* Restore mask */
@@ -898,7 +898,7 @@ L7_RC_t ptin_msg_PhyConfig_get(msg_HWEthPhyConf_t *msgPhyConf)
 
   if (ptin_intf_PhyConfig_get(&phyConf) != L7_SUCCESS )
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting configurations of port# %u", phyConf.Port);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error getting configurations of port# %u", phyConf.Port);
     memset(msgPhyConf, 0x00, sizeof(msg_HWEthPhyConf_t));
 
     return L7_FAILURE;
@@ -915,14 +915,14 @@ L7_RC_t ptin_msg_PhyConfig_get(msg_HWEthPhyConf_t *msgPhyConf)
   msgPhyConf->LoopBack    = phyConf.LoopBack;
 
   /* Output info read */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Port # %u",           msgPhyConf->Port);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " Enable        = %u", msgPhyConf->PortEnable );
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " Speed         = %u", msgPhyConf->Speed );
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " Duplex        = %u", msgPhyConf->Duplex );
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " Media         = %u", msgPhyConf->Media );
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " MaxFrame      = %u", msgPhyConf->MaxFrame );
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " Loopback      = %u", msgPhyConf->LoopBack );
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " Mask          = 0x%04X", msgPhyConf->Mask );
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Port # %u",           msgPhyConf->Port);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Enable        = %u", msgPhyConf->PortEnable );
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Speed         = %u", msgPhyConf->Speed );
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Duplex        = %u", msgPhyConf->Duplex );
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Media         = %u", msgPhyConf->Media );
+  PT_LOG_DEBUG(LOG_CTX_MSG, " MaxFrame      = %u", msgPhyConf->MaxFrame );
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Loopback      = %u", msgPhyConf->LoopBack );
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Mask          = 0x%04X", msgPhyConf->Mask );
 
   return L7_SUCCESS;
 }
@@ -954,7 +954,7 @@ L7_RC_t ptin_msg_PhyState_get(msg_HWEthPhyState_t *msgPhyState)
   phyConf.Mask = 0xFFFF;
   if (ptin_intf_PhyConfig_get(&phyConf) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting configurations of port# %u", phyConf.Port);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error getting configurations of port# %u", phyConf.Port);
     memset(msgPhyState, 0x00, sizeof(ptin_HWEthPhyState_t));
 
     return L7_FAILURE;
@@ -965,7 +965,7 @@ L7_RC_t ptin_msg_PhyState_get(msg_HWEthPhyState_t *msgPhyState)
   phyState.Mask = 0xFFFF;
   if (ptin_intf_PhyState_read(&phyState))
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting state of port# %u", phyState.Port);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error getting state of port# %u", phyState.Port);
     memset(msgPhyState, 0x00, sizeof(msg_HWEthPhyState_t));
 
     return L7_FAILURE;
@@ -978,7 +978,7 @@ L7_RC_t ptin_msg_PhyState_get(msg_HWEthPhyState_t *msgPhyState)
   portStats.TxMask = 0xFFFFFFFF;
   if (ptin_intf_counters_read(&portStats) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting statistics of port# %u", portStats.Port);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error getting statistics of port# %u", portStats.Port);
     memset(msgPhyState, 0x00, sizeof(msg_HWEthPhyState_t));
 
     return L7_FAILURE;
@@ -1004,21 +1004,21 @@ L7_RC_t ptin_msg_PhyState_get(msg_HWEthPhyState_t *msgPhyState)
 //msgPhyState->LOS                = 0;    /* Always FALSE */
 
   /* Output info read */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Port # %u",                   msgPhyState->Port);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " Mask             = 0x%04X",  msgPhyState->Mask );
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " Speed            = %u",      msgPhyState->Speed );
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " Duplex           = %u",      msgPhyState->Duplex );
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " LinkUp           = %s",      msgPhyState->LinkUp?"Yes":"No" );
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " AutoNegComplete  = %s",      msgPhyState->AutoNegComplete?"Yes":"No" );
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " Collisions       = %s",      msgPhyState->Collisions?"Yes":"No" );
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " RxActivity       = %s",      msgPhyState->RxActivity?"Yes":"No" );
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " TxActivity       = %s",      msgPhyState->TxActivity?"Yes":"No" );
-//LOG_DEBUG(LOG_CTX_PTIN_MSG, " TxFault          = %s",      msgPhyState->TxFault?"Yes":"No" );
-//LOG_DEBUG(LOG_CTX_PTIN_MSG, " RemoteFault      = %s",      msgPhyState->RemoteFault?"Yes":"No" );
-//LOG_DEBUG(LOG_CTX_PTIN_MSG, " LOS              = %s",      msgPhyState->LOS?"Yes":"No" );
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " Media            = %u",      msgPhyState->Media );
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " MTU_mismatch     = %s",      msgPhyState->MTU_mismatch?"Yes":"No" );
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " Support.MaxFrame = %u",      msgPhyState->Supported_MaxFrame );
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Port # %u",                   msgPhyState->Port);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Mask             = 0x%04X",  msgPhyState->Mask );
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Speed            = %u",      msgPhyState->Speed );
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Duplex           = %u",      msgPhyState->Duplex );
+  PT_LOG_DEBUG(LOG_CTX_MSG, " LinkUp           = %s",      msgPhyState->LinkUp?"Yes":"No" );
+  PT_LOG_DEBUG(LOG_CTX_MSG, " AutoNegComplete  = %s",      msgPhyState->AutoNegComplete?"Yes":"No" );
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Collisions       = %s",      msgPhyState->Collisions?"Yes":"No" );
+  PT_LOG_DEBUG(LOG_CTX_MSG, " RxActivity       = %s",      msgPhyState->RxActivity?"Yes":"No" );
+  PT_LOG_DEBUG(LOG_CTX_MSG, " TxActivity       = %s",      msgPhyState->TxActivity?"Yes":"No" );
+//PT_LOG_DEBUG(LOG_CTX_MSG, " TxFault          = %s",      msgPhyState->TxFault?"Yes":"No" );
+//PT_LOG_DEBUG(LOG_CTX_MSG, " RemoteFault      = %s",      msgPhyState->RemoteFault?"Yes":"No" );
+//PT_LOG_DEBUG(LOG_CTX_MSG, " LOS              = %s",      msgPhyState->LOS?"Yes":"No" );
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Media            = %u",      msgPhyState->Media );
+  PT_LOG_DEBUG(LOG_CTX_MSG, " MTU_mismatch     = %s",      msgPhyState->MTU_mismatch?"Yes":"No" );
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Support.MaxFrame = %u",      msgPhyState->Supported_MaxFrame );
 
   return L7_SUCCESS;
 }
@@ -1038,7 +1038,7 @@ L7_RC_t ptin_msg_PhyActivity_get(msg_HWEthPhyActivity_t *msgPhyAct)
   /* Get ptin port */
   if (ptin_intf_slotPort2port(msgPhyAct->intf.slot, msgPhyAct->intf.port, &ptin_port) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Unknown interface (slot=%u/%u)", msgPhyAct->intf.slot, msgPhyAct->intf.port);
+    PT_LOG_ERR(LOG_CTX_MSG, "Unknown interface (slot=%u/%u)", msgPhyAct->intf.slot, msgPhyAct->intf.port);
     return L7_FAILURE;
   }
 
@@ -1049,7 +1049,7 @@ L7_RC_t ptin_msg_PhyActivity_get(msg_HWEthPhyActivity_t *msgPhyAct)
   portStats.TxMask = 0xFFFFFFFF;
   if (ptin_intf_counters_read(&portStats) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting statistics of port# %u", portStats.Port);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error getting statistics of port# %u", portStats.Port);
     return L7_FAILURE;
   }
 
@@ -1059,10 +1059,10 @@ L7_RC_t ptin_msg_PhyActivity_get(msg_HWEthPhyActivity_t *msgPhyAct)
   msgPhyAct->TxActivity = (L7_uint32) portStats.Tx.Throughput;
 
   /* Output info read */
-  LOG_TRACE(LOG_CTX_PTIN_MSG, "Slot/Port # %u/%u",           msgPhyAct->intf.slot, msgPhyAct->intf.port);
-  LOG_TRACE(LOG_CTX_PTIN_MSG, " Mask             = 0x%02x",  msgPhyAct->Mask );
-  LOG_TRACE(LOG_CTX_PTIN_MSG, " RX Activity      = %u",      msgPhyAct->RxActivity );
-  LOG_TRACE(LOG_CTX_PTIN_MSG, " TX Activity      = %u",      msgPhyAct->TxActivity );
+  PT_LOG_TRACE(LOG_CTX_MSG, "Slot/Port # %u/%u",           msgPhyAct->intf.slot, msgPhyAct->intf.port);
+  PT_LOG_TRACE(LOG_CTX_MSG, " Mask             = 0x%02x",  msgPhyAct->Mask );
+  PT_LOG_TRACE(LOG_CTX_MSG, " RX Activity      = %u",      msgPhyAct->RxActivity );
+  PT_LOG_TRACE(LOG_CTX_MSG, " TX Activity      = %u",      msgPhyAct->TxActivity );
 
   return L7_SUCCESS;
 #else
@@ -1097,7 +1097,7 @@ L7_RC_t ptin_msg_PhyStatus_get(msg_HWEthPhyStatus_t *msgPhyStatus)
   phyConf.Mask = 0xFFFF;
   if (ptin_intf_PhyConfig_get(&phyConf) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting configurations of port# %u", phyConf.Port);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error getting configurations of port# %u", phyConf.Port);
     memset(msgPhyStatus, 0x00, sizeof(msg_HWEthPhyStatus_t));
 
     return L7_FAILURE;
@@ -1110,7 +1110,7 @@ L7_RC_t ptin_msg_PhyStatus_get(msg_HWEthPhyStatus_t *msgPhyStatus)
   portStats.TxMask = 0xFFFFFFFF;
   if (ptin_intf_counters_read(&portStats) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting statistics of port# %u", portStats.Port);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error getting statistics of port# %u", portStats.Port);
     memset(msgPhyStatus, 0x00, sizeof(msg_HWEthPhyStatus_t));
 
     return L7_FAILURE;
@@ -1121,7 +1121,7 @@ L7_RC_t ptin_msg_PhyStatus_get(msg_HWEthPhyStatus_t *msgPhyStatus)
   phyState.Mask = 0xFFFF;
   if (ptin_intf_PhyState_read(&phyState))
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting state of port# %u", phyState.Port);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error getting state of port# %u", phyState.Port);
     memset(msgPhyStatus, 0x00, sizeof(msg_HWEthPhyStatus_t));
 
     return L7_FAILURE;
@@ -1185,9 +1185,9 @@ L7_RC_t ptin_msg_PhyStatus_get(msg_HWEthPhyStatus_t *msgPhyStatus)
                                     HW_ETHERNET_STATUS_MASK_FULLDUPLEX_BIT | HW_ETHERNET_STATUS_MASK_SPEED1000_BIT | HW_ETHERNET_STATUS_MASK_MEDIAX_BIT;
 
   /* Output info read */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Port # %u",                   msgPhyStatus->Port);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " alarmes          = 0x%04X",  msgPhyStatus->phy.alarmes );
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " alarmes_mask     = 0x%04X",  msgPhyStatus->phy.alarmes_mask );
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Port # %u",                   msgPhyStatus->Port);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " alarmes          = 0x%04X",  msgPhyStatus->phy.alarmes );
+  PT_LOG_DEBUG(LOG_CTX_MSG, " alarmes_mask     = 0x%04X",  msgPhyStatus->phy.alarmes_mask );
 
   return L7_SUCCESS;
 }
@@ -1231,7 +1231,7 @@ L7_RC_t ptin_msg_PhyCounters_read(msg_HwGenReq_t *msgRequest, msg_HWEthRFC2819_P
     portStats.TxMask = 0xFFFFFFFF;
     if (ptin_intf_counters_read(&portStats) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting statistics of port# %u", portStats.Port);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error getting statistics of port# %u", portStats.Port);
       memset(p_msgPortStats, 0x00, sizeof(msg_HWEthRFC2819_PortStatistics_t));
       return L7_FAILURE;
     }
@@ -1240,25 +1240,25 @@ L7_RC_t ptin_msg_PhyCounters_read(msg_HwGenReq_t *msgRequest, msg_HWEthRFC2819_P
     ptin_msg_PortStats_convert(p_msgPortStats, &portStats);
 
     /* Output info read */
-    LOG_TRACE(LOG_CTX_PTIN_MSG, "Slotid=%u, Port # %2u", p_msgPortStats->SlotId, p_msgPortStats->Port);
-    LOG_TRACE(LOG_CTX_PTIN_MSG, " Rx.DropEvents           = %15llu  | Tx.DropEvents           = %15llu", p_msgPortStats->Rx.etherStatsDropEvents,           msgPortStats->Tx.etherStatsDropEvents);
-    LOG_TRACE(LOG_CTX_PTIN_MSG, " Rx.Octets               = %15llu  | Tx.Octets               = %15llu", p_msgPortStats->Rx.etherStatsOctets,               msgPortStats->Tx.etherStatsOctets);
-    LOG_TRACE(LOG_CTX_PTIN_MSG, " Rx.Pkts                 = %15llu  | Tx.Pkts                 = %15llu", p_msgPortStats->Rx.etherStatsPkts,                 msgPortStats->Tx.etherStatsPkts);
-    LOG_TRACE(LOG_CTX_PTIN_MSG, " Rx.BroadcastPkts        = %15llu  | Tx.BroadcastPkts        = %15llu", p_msgPortStats->Rx.etherStatsBroadcastPkts,        msgPortStats->Tx.etherStatsBroadcastPkts);
-    LOG_TRACE(LOG_CTX_PTIN_MSG, " Rx.MulticastPkts        = %15llu  | Tx.MulticastPkts        = %15llu", p_msgPortStats->Rx.etherStatsMulticastPkts,        msgPortStats->Tx.etherStatsMulticastPkts);
-    LOG_TRACE(LOG_CTX_PTIN_MSG, " Rx.CRCAlignErrors       = %15llu  | Tx.CRCAlignErrors       = %15llu", p_msgPortStats->Rx.etherStatsCRCAlignErrors,       msgPortStats->Tx.etherStatsCRCAlignErrors);
-    LOG_TRACE(LOG_CTX_PTIN_MSG, " Rx.UndersizePkts        = %15llu  | Tx.OversizePkts         = %15llu", p_msgPortStats->Rx.etherStatsUndersizePkts,        msgPortStats->Tx.etherStatsOversizePkts);
-    LOG_TRACE(LOG_CTX_PTIN_MSG, " Rx.OversizePkts         = %15llu  | Tx.Fragments            = %15llu", p_msgPortStats->Rx.etherStatsOversizePkts,         msgPortStats->Tx.etherStatsFragments);
-    LOG_TRACE(LOG_CTX_PTIN_MSG, " Rx.Fragments            = %15llu  | Tx.Jabbers              = %15llu", p_msgPortStats->Rx.etherStatsFragments,            msgPortStats->Tx.etherStatsJabbers);
-    LOG_TRACE(LOG_CTX_PTIN_MSG, " Rx.Jabbers              = %15llu  | Tx.Collisions           = %15llu", p_msgPortStats->Rx.etherStatsJabbers,              msgPortStats->Tx.etherStatsCollisions);
-    LOG_TRACE(LOG_CTX_PTIN_MSG, " Rx.Pkts64Octets         = %15llu  | Tx.Pkts64Octets         = %15llu", p_msgPortStats->Rx.etherStatsPkts64Octets,         msgPortStats->Tx.etherStatsPkts64Octets);
-    LOG_TRACE(LOG_CTX_PTIN_MSG, " Rx.Pkts65to127Octets    = %15llu  | Tx.Pkts65to127Octets    = %15llu", p_msgPortStats->Rx.etherStatsPkts65to127Octets,    msgPortStats->Tx.etherStatsPkts65to127Octets);
-    LOG_TRACE(LOG_CTX_PTIN_MSG, " Rx.Pkts128to255Octets   = %15llu  | Tx.Pkts128to255Octets   = %15llu", p_msgPortStats->Rx.etherStatsPkts128to255Octets,   msgPortStats->Tx.etherStatsPkts128to255Octets);
-    LOG_TRACE(LOG_CTX_PTIN_MSG, " Rx.Pkts256to511Octets   = %15llu  | Tx.Pkts256to511Octets   = %15llu", p_msgPortStats->Rx.etherStatsPkts256to511Octets,   msgPortStats->Tx.etherStatsPkts256to511Octets);
-    LOG_TRACE(LOG_CTX_PTIN_MSG, " Rx.Pkts512to1023Octets  = %15llu  | Tx.Pkts512to1023Octets  = %15llu", p_msgPortStats->Rx.etherStatsPkts512to1023Octets,  msgPortStats->Tx.etherStatsPkts512to1023Octets);
-    LOG_TRACE(LOG_CTX_PTIN_MSG, " Rx.Pkts1024to1518Octets = %15llu  | Tx.Pkts1024to1518Octets = %15llu", p_msgPortStats->Rx.etherStatsPkts1024to1518Octets, msgPortStats->Tx.etherStatsPkts1024to1518Octets);
-    LOG_TRACE(LOG_CTX_PTIN_MSG, " Rx.Pkts1519toMaxOctets  = %15llu  | Tx.Pkts1519toMaxOctets  = %15llu", p_msgPortStats->Rx.etherStatsPkts1519toMaxOctets,  msgPortStats->Tx.etherStatsPkts1519toMaxOctets);
-    LOG_TRACE(LOG_CTX_PTIN_MSG, " Rx.Throughput (bps)     = %15llu  | Tx.Throughput (bps)     = %15llu", p_msgPortStats->Rx.Throughput,                     msgPortStats->Tx.Throughput);
+    PT_LOG_TRACE(LOG_CTX_MSG, "Slotid=%u, Port # %2u", p_msgPortStats->SlotId, p_msgPortStats->Port);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.DropEvents           = %15llu  | Tx.DropEvents           = %15llu", p_msgPortStats->Rx.etherStatsDropEvents,           msgPortStats->Tx.etherStatsDropEvents);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Octets               = %15llu  | Tx.Octets               = %15llu", p_msgPortStats->Rx.etherStatsOctets,               msgPortStats->Tx.etherStatsOctets);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts                 = %15llu  | Tx.Pkts                 = %15llu", p_msgPortStats->Rx.etherStatsPkts,                 msgPortStats->Tx.etherStatsPkts);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.BroadcastPkts        = %15llu  | Tx.BroadcastPkts        = %15llu", p_msgPortStats->Rx.etherStatsBroadcastPkts,        msgPortStats->Tx.etherStatsBroadcastPkts);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.MulticastPkts        = %15llu  | Tx.MulticastPkts        = %15llu", p_msgPortStats->Rx.etherStatsMulticastPkts,        msgPortStats->Tx.etherStatsMulticastPkts);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.CRCAlignErrors       = %15llu  | Tx.CRCAlignErrors       = %15llu", p_msgPortStats->Rx.etherStatsCRCAlignErrors,       msgPortStats->Tx.etherStatsCRCAlignErrors);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.UndersizePkts        = %15llu  | Tx.OversizePkts         = %15llu", p_msgPortStats->Rx.etherStatsUndersizePkts,        msgPortStats->Tx.etherStatsOversizePkts);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.OversizePkts         = %15llu  | Tx.Fragments            = %15llu", p_msgPortStats->Rx.etherStatsOversizePkts,         msgPortStats->Tx.etherStatsFragments);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Fragments            = %15llu  | Tx.Jabbers              = %15llu", p_msgPortStats->Rx.etherStatsFragments,            msgPortStats->Tx.etherStatsJabbers);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Jabbers              = %15llu  | Tx.Collisions           = %15llu", p_msgPortStats->Rx.etherStatsJabbers,              msgPortStats->Tx.etherStatsCollisions);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts64Octets         = %15llu  | Tx.Pkts64Octets         = %15llu", p_msgPortStats->Rx.etherStatsPkts64Octets,         msgPortStats->Tx.etherStatsPkts64Octets);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts65to127Octets    = %15llu  | Tx.Pkts65to127Octets    = %15llu", p_msgPortStats->Rx.etherStatsPkts65to127Octets,    msgPortStats->Tx.etherStatsPkts65to127Octets);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts128to255Octets   = %15llu  | Tx.Pkts128to255Octets   = %15llu", p_msgPortStats->Rx.etherStatsPkts128to255Octets,   msgPortStats->Tx.etherStatsPkts128to255Octets);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts256to511Octets   = %15llu  | Tx.Pkts256to511Octets   = %15llu", p_msgPortStats->Rx.etherStatsPkts256to511Octets,   msgPortStats->Tx.etherStatsPkts256to511Octets);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts512to1023Octets  = %15llu  | Tx.Pkts512to1023Octets  = %15llu", p_msgPortStats->Rx.etherStatsPkts512to1023Octets,  msgPortStats->Tx.etherStatsPkts512to1023Octets);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts1024to1518Octets = %15llu  | Tx.Pkts1024to1518Octets = %15llu", p_msgPortStats->Rx.etherStatsPkts1024to1518Octets, msgPortStats->Tx.etherStatsPkts1024to1518Octets);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts1519toMaxOctets  = %15llu  | Tx.Pkts1519toMaxOctets  = %15llu", p_msgPortStats->Rx.etherStatsPkts1519toMaxOctets,  msgPortStats->Tx.etherStatsPkts1519toMaxOctets);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Throughput (bps)     = %15llu  | Tx.Throughput (bps)     = %15llu", p_msgPortStats->Rx.Throughput,                     msgPortStats->Tx.Throughput);
   }
 
   return L7_SUCCESS;
@@ -1277,13 +1277,13 @@ L7_RC_t ptin_msg_PhyCounters_clear(msg_HWEthRFC2819_PortStatistics_t *msgPortSta
   /* Clear statistics */
   if (ptin_intf_counters_clear(msgPortStats->Port) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error clearing statistics of port# %u", msgPortStats->Port);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error clearing statistics of port# %u", msgPortStats->Port);
     memset(msgPortStats, 0x00, sizeof(msg_HWEthRFC2819_PortStatistics_t));
 
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Port# %u counters cleared", msgPortStats->Port);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Port# %u counters cleared", msgPortStats->Port);
 
   return L7_SUCCESS;
 }
@@ -1314,7 +1314,7 @@ L7_RC_t ptin_msg_intfInfo_get(msg_HwIntfInfo_t *intf_info)
     /* Get intf data */
     if (ptin_intf_info_get(&ptin_intf, &admin, &link, &board_id) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error reading info for ptin_port %d", ptin_port);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error reading info for ptin_port %d", ptin_port);
       return L7_FAILURE;
     }
 
@@ -1322,7 +1322,7 @@ L7_RC_t ptin_msg_intfInfo_get(msg_HwIntfInfo_t *intf_info)
     intf_info->port[ptin_port].enable   = admin;
     intf_info->port[ptin_port].link     = link;
 
-    LOG_TRACE(LOG_CTX_PTIN_MSG, "port=%u: boardId=%u admin=%u link=%u", ptin_port, board_id, admin, link);
+    PT_LOG_TRACE(LOG_CTX_MSG, "port=%u: boardId=%u admin=%u link=%u", ptin_port, board_id, admin, link);
   }
   /* Number of ports */
   intf_info->number_of_ports = ptin_sys_number_of_ports;
@@ -1330,7 +1330,7 @@ L7_RC_t ptin_msg_intfInfo_get(msg_HwIntfInfo_t *intf_info)
   #ifdef MAP_CPLD
   if (!ptin_fpga_mx_is_matrixactive())
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "I am inactive matrix");
+    PT_LOG_ERR(LOG_CTX_MSG, "I am inactive matrix");
     return L7_FAILURE;
   }
   #endif
@@ -1359,11 +1359,11 @@ L7_RC_t ptin_msg_intfLinkStatus(ipc_msg *inbuffer)
   /* Validate slot */
   if (linkStatus->slot_id < PTIN_SYS_LC_SLOT_MIN || linkStatus->slot_id > PTIN_SYS_LC_SLOT_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid slot %u", linkStatus->slot_id);
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid slot %u", linkStatus->slot_id);
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Received linkStatus report from slot %u", linkStatus->slot_id);
+  PT_LOG_TRACE(LOG_CTX_CONTROL, "Received linkStatus report from slot %u", linkStatus->slot_id);
 
   /* Run all given interfaces */
   for (index=0; index<linkStatus->number_of_ports; index++)
@@ -1371,11 +1371,11 @@ L7_RC_t ptin_msg_intfLinkStatus(ipc_msg *inbuffer)
     /* Convert to matrix's local ptin_port */
     if (ptin_intf_slotPort2port(linkStatus->slot_id, index, &ptin_port)!=L7_SUCCESS)
     {
-      //LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid slot=%u/port=%u", linkStatus->slot_id, index);
+      //PT_LOG_ERR(LOG_CTX_MSG, "Invalid slot=%u/port=%u", linkStatus->slot_id, index);
       continue;
     }
 
-    LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Updating linkStatus report of port %u", ptin_port);
+    PT_LOG_TRACE(LOG_CTX_CONTROL, "Updating linkStatus report of port %u", ptin_port);
 
     /* Update remote linkStatus */
     memset(&info, 0x00, sizeof(info)); 
@@ -1389,11 +1389,11 @@ L7_RC_t ptin_msg_intfLinkStatus(ipc_msg *inbuffer)
     ptin_control_remoteLinkstatus_update(ptin_port, &info);
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_CONTROL, "linkStatus from slot %u updated!", linkStatus->slot_id);
+  PT_LOG_TRACE(LOG_CTX_CONTROL, "linkStatus from slot %u updated!", linkStatus->slot_id);
 
   return L7_SUCCESS;
 #else
-  LOG_ERR(LOG_CTX_PTIN_MSG, "This message is only supported by MATRIX board");
+  PT_LOG_ERR(LOG_CTX_MSG, "This message is only supported by MATRIX board");
   return L7_NOT_SUPPORTED;
 #endif
 }
@@ -1415,7 +1415,7 @@ L7_RC_t ptin_msg_slotMode_get(msg_slotModeCfg_t *slotMode)
   /* Get list of slot modes */
   if ( ptin_intf_slotMode_get(slot_list)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error obtaining list of slot modes");
+    PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining list of slot modes");
     return L7_FAILURE;
   }
 
@@ -1427,12 +1427,12 @@ L7_RC_t ptin_msg_slotMode_get(msg_slotModeCfg_t *slotMode)
     slotMode->slot_list[i].slot_mode   = slot_list[i];
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Slot mode list:");
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Slot mode list:");
   for (i=0; i<PTIN_SYS_SLOTS_MAX; i++)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Slot %02u: Mode=%u", i+1, slot_list[i]);
+    PT_LOG_DEBUG(LOG_CTX_MSG,"Slot %02u: Mode=%u", i+1, slot_list[i]);
   }
-  LOG_INFO(LOG_CTX_PTIN_MSG,"Success");
+  PT_LOG_INFO(LOG_CTX_MSG,"Success");
 
   return L7_SUCCESS;
 }
@@ -1453,10 +1453,10 @@ L7_RC_t ptin_msg_slotMode_validate(msg_slotModeCfg_t *slotMode)
   memset(slot_list, 0x00, sizeof(slot_list));
 
   /* Run all slots */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Slot mode list:");
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Slot mode list:");
   for (i=0; i<MSG_SLOTMODECFG_NSLOTS; i++)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Idx%02u: Slot %02u Active=%u Mode=%u", i,
+    PT_LOG_DEBUG(LOG_CTX_MSG,"Idx%02u: Slot %02u Active=%u Mode=%u", i,
               slotMode->slot_list[i].slot_index, slotMode->slot_list[i].slot_config, slotMode->slot_list[i].slot_mode);
 
     /* Valid slot? */
@@ -1472,19 +1472,19 @@ L7_RC_t ptin_msg_slotMode_validate(msg_slotModeCfg_t *slotMode)
     }
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Slot mode list to be validated:");
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Slot mode list to be validated:");
   for (i=0; i<PTIN_SYS_SLOTS_MAX; i++)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Slot %02u: Mode=%u", i+1, slot_list[i]);
+    PT_LOG_DEBUG(LOG_CTX_MSG,"Slot %02u: Mode=%u", i+1, slot_list[i]);
   }
 
   /* Validate list of slot modes */
   if ((rc=ptin_intf_slotMode_validate(slot_list)) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Slot mode list is not valid! (rc=%d)",rc);
+    PT_LOG_ERR(LOG_CTX_MSG, "Slot mode list is not valid! (rc=%d)",rc);
     return rc;
   }
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Slot mode list is valid!");
+  PT_LOG_INFO(LOG_CTX_MSG, "Slot mode list is valid!");
 
   return L7_SUCCESS;
 }
@@ -1498,7 +1498,7 @@ L7_RC_t ptin_msg_slotMode_validate(msg_slotModeCfg_t *slotMode)
  */
 L7_RC_t ptin_msg_slotMode_apply(void)
 {
-  LOG_INFO(LOG_CTX_PTIN_MSG,"Success");
+  PT_LOG_INFO(LOG_CTX_MSG,"Success");
 
   return L7_SUCCESS;
 }
@@ -1547,12 +1547,12 @@ L7_RC_t ptin_msg_portExt_set(msg_HWPortExt_t *portExt, L7_uint nElems)
     /* Set MEF parameters */
     if (ptin_intf_portExt_set(&ptin_intf, &portExt_conf)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Error setting MEF EXT configurations");
+      PT_LOG_ERR(LOG_CTX_MSG,"Error setting MEF EXT configurations");
       return L7_FAILURE;
     }
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Success setting MEF EXT configurations",__FUNCTION__);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Success setting MEF EXT configurations",__FUNCTION__);
 
   return L7_SUCCESS;
 }
@@ -1597,7 +1597,7 @@ L7_RC_t ptin_msg_portExt_get(msg_HWPortExt_t *portExt, L7_uint *nElems)
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading interface %u/%u",ptin_intf.intf_type,ptin_intf.intf_id);
+    PT_LOG_ERR(LOG_CTX_MSG,"Error reading interface %u/%u",ptin_intf.intf_type,ptin_intf.intf_id);
     return L7_FAILURE;
   }
 
@@ -1606,7 +1606,7 @@ L7_RC_t ptin_msg_portExt_get(msg_HWPortExt_t *portExt, L7_uint *nElems)
   {
     if (ptin_intf_port2ptintf(port,&ptin_intf)!=L7_SUCCESS)
     {
-      LOG_WARNING(LOG_CTX_PTIN_MSG,"Error reading port %u",port);
+      PT_LOG_WARN(LOG_CTX_MSG,"Error reading port %u",port);
       continue;
     }
 
@@ -1615,7 +1615,7 @@ L7_RC_t ptin_msg_portExt_get(msg_HWPortExt_t *portExt, L7_uint *nElems)
     /* Get MEF parameters */
     if (ptin_intf_portExt_get(&ptin_intf, &portExt_conf)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Error getting MEF EXT parameters for interface=%u/%u",ptin_intf.intf_type,ptin_intf.intf_id);
+      PT_LOG_ERR(LOG_CTX_MSG,"Error getting MEF EXT parameters for interface=%u/%u",ptin_intf.intf_type,ptin_intf.intf_id);
       return L7_FAILURE;
     }
 
@@ -1648,7 +1648,7 @@ L7_RC_t ptin_msg_portExt_get(msg_HWPortExt_t *portExt, L7_uint *nElems)
 
   if (nElems!=L7_NULLPTR)  *nElems = index;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Success reading MEF EXT parameters for %u interfaces",index);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Success reading MEF EXT parameters for %u interfaces",index);
 
   return L7_SUCCESS;
 }
@@ -1667,15 +1667,15 @@ L7_RC_t ptin_msg_portMAC_set(msg_HWPortMac_t *portMac, L7_uint nElems)
   ptin_intf_t      ptin_intf;
   ptin_HWPortMac_t portMac_conf;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Processing %u structures",nElems);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Processing %u structures",nElems);
 
   for (i=0; i<nElems; i++)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Structure %u",i);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," SlotId = %u",portMac[i].SlotId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Intf   = %u/%u",portMac[i].intf.intf_type,portMac[i].intf.intf_id);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Mask   = 0x%04x",portMac[i].Mask);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," MAC    = %02x:%02x:%02x:%02x:%02x:%02x",
+    PT_LOG_DEBUG(LOG_CTX_MSG,"Structure %u",i);
+    PT_LOG_DEBUG(LOG_CTX_MSG," SlotId = %u",portMac[i].SlotId);
+    PT_LOG_DEBUG(LOG_CTX_MSG," Intf   = %u/%u",portMac[i].intf.intf_type,portMac[i].intf.intf_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG," Mask   = 0x%04x",portMac[i].Mask);
+    PT_LOG_DEBUG(LOG_CTX_MSG," MAC    = %02x:%02x:%02x:%02x:%02x:%02x",
               portMac[i].macAddr[0],portMac[i].macAddr[1],portMac[i].macAddr[2],portMac[i].macAddr[3],portMac[i].macAddr[4],portMac[i].macAddr[5]);
 
     memset(&portMac_conf,0x00,sizeof(ptin_HWPortMac_t));
@@ -1688,12 +1688,12 @@ L7_RC_t ptin_msg_portMAC_set(msg_HWPortMac_t *portMac, L7_uint nElems)
     /* Set MEF parameters */
     if (ptin_intf_portMAC_set(&ptin_intf, &portMac_conf)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Error setting MAC address");
+      PT_LOG_ERR(LOG_CTX_MSG,"Error setting MAC address");
       return L7_FAILURE;
     }
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Success setting MAC address",__FUNCTION__);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Success setting MAC address",__FUNCTION__);
 
   return L7_SUCCESS;
 }
@@ -1739,18 +1739,18 @@ L7_RC_t ptin_msg_portMAC_get(msg_HWPortMac_t *portMac, L7_uint *nElems)
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading interface %u/%u",ptin_intf.intf_type,ptin_intf.intf_id);
+    PT_LOG_ERR(LOG_CTX_MSG,"Error reading interface %u/%u",ptin_intf.intf_type,ptin_intf.intf_id);
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Going to read %u structures",port_end-port_start+1);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Going to read %u structures",port_end-port_start+1);
 
   index = 0;
   for (port=port_start; port<=port_end; port++)
   {
     if (ptin_intf_port2ptintf(port,&ptin_intf)!=L7_SUCCESS)
     {
-      LOG_WARNING(LOG_CTX_PTIN_MSG,"Error reading port %u",port);
+      PT_LOG_WARN(LOG_CTX_MSG,"Error reading port %u",port);
       continue;
     }
 
@@ -1760,7 +1760,7 @@ L7_RC_t ptin_msg_portMAC_get(msg_HWPortMac_t *portMac, L7_uint *nElems)
     /* Get MEF parameters */
     if (ptin_intf_portMAC_get(&ptin_intf, &portMac_conf)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Error getting MAC address for interface=%u/%u",ptin_intf.intf_type,ptin_intf.intf_id);
+      PT_LOG_ERR(LOG_CTX_MSG,"Error getting MAC address for interface=%u/%u",ptin_intf.intf_type,ptin_intf.intf_id);
       return L7_FAILURE;
     }
 
@@ -1771,11 +1771,11 @@ L7_RC_t ptin_msg_portMAC_get(msg_HWPortMac_t *portMac, L7_uint *nElems)
     portMac[index].Mask                        = portMac_conf.Mask;
     memcpy(portMac[index].macAddr,portMac_conf.macAddr,sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Structure %u",index);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," SlotId = %u",portMac[index].SlotId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Intf   = %u/%u",portMac[index].intf.intf_type,portMac[index].intf.intf_id);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Mask   = 0x%04x",portMac[index].Mask);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," MAC    = %02x:%02x:%02x:%02x:%02x:%02x",
+    PT_LOG_DEBUG(LOG_CTX_MSG,"Structure %u",index);
+    PT_LOG_DEBUG(LOG_CTX_MSG," SlotId = %u",portMac[index].SlotId);
+    PT_LOG_DEBUG(LOG_CTX_MSG," Intf   = %u/%u",portMac[index].intf.intf_type,portMac[index].intf.intf_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG," Mask   = 0x%04x",portMac[index].Mask);
+    PT_LOG_DEBUG(LOG_CTX_MSG," MAC    = %02x:%02x:%02x:%02x:%02x:%02x",
               portMac[index].macAddr[0],portMac[index].macAddr[1],portMac[index].macAddr[2],portMac[index].macAddr[3],portMac[index].macAddr[4],portMac[index].macAddr[5]);
 
     index++;
@@ -1783,7 +1783,7 @@ L7_RC_t ptin_msg_portMAC_get(msg_HWPortMac_t *portMac, L7_uint *nElems)
 
   if (nElems!=L7_NULLPTR)  *nElems = index;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Success reading MEF EXT parameters for %u interfaces",index);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Success reading MEF EXT parameters for %u interfaces",index);
 
   return L7_SUCCESS;
 }
@@ -1862,7 +1862,7 @@ L7_RC_t ptin_msg_CoS_get(msg_QoSConfiguration_t *qos_msg)
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading interface QoS configuration");
+    PT_LOG_ERR(LOG_CTX_MSG,"Error reading interface QoS configuration");
     return rc;
   }
 
@@ -1904,27 +1904,27 @@ L7_RC_t ptin_msg_CoS_get(msg_QoSConfiguration_t *qos_msg)
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading QoS configuration for all 8 CoS");
+    PT_LOG_ERR(LOG_CTX_MSG,"Error reading QoS configuration for all 8 CoS");
     return rc;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Slotid         = %u",qos_msg->SlotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Interface      = %u/%u",qos_msg->intf.intf_type,qos_msg->intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "General Mask   = 0x%02X",qos_msg->mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Trust mode     = %u",qos_msg->trust_mode);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Bandwidth unit = %u",qos_msg->bandwidth_unit);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Shaping rate   = %u",qos_msg->shaping_rate);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "pktprio.cos    = [ %Xh %Xh %Xh %Xh %Xh %Xh %Xh %Xh ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Slotid         = %u",qos_msg->SlotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Interface      = %u/%u",qos_msg->intf.intf_type,qos_msg->intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "General Mask   = 0x%02X",qos_msg->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Trust mode     = %u",qos_msg->trust_mode);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Bandwidth unit = %u",qos_msg->bandwidth_unit);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Shaping rate   = %u",qos_msg->shaping_rate);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "pktprio.cos    = [ %Xh %Xh %Xh %Xh %Xh %Xh %Xh %Xh ]",
             qos_msg->pktprio.cos[0],qos_msg->pktprio.cos[1],qos_msg->pktprio.cos[2],qos_msg->pktprio.cos[3],qos_msg->pktprio.cos[4],qos_msg->pktprio.cos[5],qos_msg->pktprio.cos[6],qos_msg->pktprio.cos[7]);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Priority Mask  = 0x%02X",qos_msg->pktprio.mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "CoS Mask       = 0x%02X",qos_msg->cos_config.mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "CoS Spec. Mask = [ 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Priority Mask  = 0x%02X",qos_msg->pktprio.mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "CoS Mask       = 0x%02X",qos_msg->cos_config.mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "CoS Spec. Mask = [ 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X ]",
             qos_msg->cos_config.cos[0].mask,qos_msg->cos_config.cos[1].mask,qos_msg->cos_config.cos[2].mask,qos_msg->cos_config.cos[3].mask,qos_msg->cos_config.cos[4].mask,qos_msg->cos_config.cos[5].mask,qos_msg->cos_config.cos[6].mask,qos_msg->cos_config.cos[7].mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Queue_scheduler = [ %u %u %u %u %u %u %u %u ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Queue_scheduler = [ %u %u %u %u %u %u %u %u ]",
             qos_msg->cos_config.cos[0].scheduler, qos_msg->cos_config.cos[1].scheduler, qos_msg->cos_config.cos[2].scheduler, qos_msg->cos_config.cos[3].scheduler, qos_msg->cos_config.cos[4].scheduler, qos_msg->cos_config.cos[5].scheduler, qos_msg->cos_config.cos[6].scheduler, qos_msg->cos_config.cos[7].scheduler);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Queue_min_bw    = [ %u %u %u %u %u %u %u %u ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Queue_min_bw    = [ %u %u %u %u %u %u %u %u ]",
             qos_msg->cos_config.cos[0].min_bandwidth, qos_msg->cos_config.cos[1].min_bandwidth, qos_msg->cos_config.cos[2].min_bandwidth, qos_msg->cos_config.cos[3].min_bandwidth, qos_msg->cos_config.cos[4].min_bandwidth, qos_msg->cos_config.cos[5].min_bandwidth, qos_msg->cos_config.cos[6].min_bandwidth, qos_msg->cos_config.cos[7].min_bandwidth);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Queue_max_bw    = [ %u %u %u %u %u %u %u %u ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Queue_max_bw    = [ %u %u %u %u %u %u %u %u ]",
             qos_msg->cos_config.cos[0].max_bandwidth, qos_msg->cos_config.cos[1].max_bandwidth, qos_msg->cos_config.cos[2].max_bandwidth, qos_msg->cos_config.cos[3].max_bandwidth, qos_msg->cos_config.cos[4].max_bandwidth, qos_msg->cos_config.cos[5].max_bandwidth, qos_msg->cos_config.cos[6].max_bandwidth, qos_msg->cos_config.cos[7].max_bandwidth);
 
   return L7_SUCCESS;
@@ -1945,23 +1945,23 @@ L7_RC_t ptin_msg_CoS_set(msg_QoSConfiguration_t *qos_msg)
   ptin_QoS_cos_t          qos_cos[8];
   L7_RC_t                 rc, rc_global = L7_SUCCESS;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Slotid         = %u",qos_msg->SlotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Interface      = %u/%u",qos_msg->intf.intf_type,qos_msg->intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "General Mask   = 0x%02X",qos_msg->mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Trust mode     = %u",qos_msg->trust_mode);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Bandwidth unit = %u",qos_msg->bandwidth_unit);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Shaping rate   = %u",qos_msg->shaping_rate);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "pktprio.cos    = [ %Xh %Xh %Xh %Xh %Xh %Xh %Xh %Xh ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Slotid         = %u",qos_msg->SlotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Interface      = %u/%u",qos_msg->intf.intf_type,qos_msg->intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "General Mask   = 0x%02X",qos_msg->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Trust mode     = %u",qos_msg->trust_mode);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Bandwidth unit = %u",qos_msg->bandwidth_unit);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Shaping rate   = %u",qos_msg->shaping_rate);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "pktprio.cos    = [ %Xh %Xh %Xh %Xh %Xh %Xh %Xh %Xh ]",
             qos_msg->pktprio.cos[0],qos_msg->pktprio.cos[1],qos_msg->pktprio.cos[2],qos_msg->pktprio.cos[3],qos_msg->pktprio.cos[4],qos_msg->pktprio.cos[5],qos_msg->pktprio.cos[6],qos_msg->pktprio.cos[7]);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Priority Mask  = 0x%02X",qos_msg->pktprio.mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "CoS Mask       = 0x%02X",qos_msg->cos_config.mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "CoS Spec. Mask = [ 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Priority Mask  = 0x%02X",qos_msg->pktprio.mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "CoS Mask       = 0x%02X",qos_msg->cos_config.mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "CoS Spec. Mask = [ 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X ]",
             qos_msg->cos_config.cos[0].mask,qos_msg->cos_config.cos[1].mask,qos_msg->cos_config.cos[2].mask,qos_msg->cos_config.cos[3].mask,qos_msg->cos_config.cos[4].mask,qos_msg->cos_config.cos[5].mask,qos_msg->cos_config.cos[6].mask,qos_msg->cos_config.cos[7].mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Queue_scheduler = [ %u %u %u %u %u %u %u %u ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Queue_scheduler = [ %u %u %u %u %u %u %u %u ]",
             qos_msg->cos_config.cos[0].scheduler, qos_msg->cos_config.cos[1].scheduler, qos_msg->cos_config.cos[2].scheduler, qos_msg->cos_config.cos[3].scheduler, qos_msg->cos_config.cos[4].scheduler, qos_msg->cos_config.cos[5].scheduler, qos_msg->cos_config.cos[6].scheduler, qos_msg->cos_config.cos[7].scheduler);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Queue_min_bw    = [ %u %u %u %u %u %u %u %u ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Queue_min_bw    = [ %u %u %u %u %u %u %u %u ]",
             qos_msg->cos_config.cos[0].min_bandwidth, qos_msg->cos_config.cos[1].min_bandwidth, qos_msg->cos_config.cos[2].min_bandwidth, qos_msg->cos_config.cos[3].min_bandwidth, qos_msg->cos_config.cos[4].min_bandwidth, qos_msg->cos_config.cos[5].min_bandwidth, qos_msg->cos_config.cos[6].min_bandwidth, qos_msg->cos_config.cos[7].min_bandwidth);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Queue_max_bw    = [ %u %u %u %u %u %u %u %u ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Queue_max_bw    = [ %u %u %u %u %u %u %u %u ]",
             qos_msg->cos_config.cos[0].max_bandwidth, qos_msg->cos_config.cos[1].max_bandwidth, qos_msg->cos_config.cos[2].max_bandwidth, qos_msg->cos_config.cos[3].max_bandwidth, qos_msg->cos_config.cos[4].max_bandwidth, qos_msg->cos_config.cos[5].max_bandwidth, qos_msg->cos_config.cos[6].max_bandwidth, qos_msg->cos_config.cos[7].max_bandwidth);
 
   /* Clear structures */
@@ -2016,7 +2016,7 @@ L7_RC_t ptin_msg_CoS_set(msg_QoSConfiguration_t *qos_msg)
     rc = ptin_QoS_intf_config_set(&ptin_intf,&qos_intf);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Error configuring priority map (rc=%d)", rc);
+      PT_LOG_ERR(LOG_CTX_MSG,"Error configuring priority map (rc=%d)", rc);
       rc_global = rc;
     }
   }
@@ -2057,7 +2057,7 @@ L7_RC_t ptin_msg_CoS_set(msg_QoSConfiguration_t *qos_msg)
       rc = ptin_QoS_cos_config_set(&ptin_intf, (L7_uint8)-1, qos_cos);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG,"Error configuring QoS (rc=%d)",rc);
+        PT_LOG_ERR(LOG_CTX_MSG,"Error configuring QoS (rc=%d)",rc);
         rc_global = rc;
       }
     }
@@ -2065,11 +2065,11 @@ L7_RC_t ptin_msg_CoS_set(msg_QoSConfiguration_t *qos_msg)
 
   if (rc_global == L7_SUCCESS)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Success applying QoS configurations to all CoS");
+    PT_LOG_DEBUG(LOG_CTX_MSG,"Success applying QoS configurations to all CoS");
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error applying QoS configurations to all CoS (rc_global=%d)", rc_global);
+    PT_LOG_ERR(LOG_CTX_MSG,"Error applying QoS configurations to all CoS (rc_global=%d)", rc_global);
   }
 
   return rc_global;
@@ -2149,7 +2149,7 @@ L7_RC_t ptin_msg_CoS2_get(msg_QoSConfiguration2_t *qos_msg)
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading interface QoS configuration");
+    PT_LOG_ERR(LOG_CTX_MSG,"Error reading interface QoS configuration");
     return rc;
   }
 
@@ -2197,7 +2197,7 @@ L7_RC_t ptin_msg_CoS2_get(msg_QoSConfiguration2_t *qos_msg)
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading QoS configuration for all 8 CoS");
+    PT_LOG_ERR(LOG_CTX_MSG,"Error reading QoS configuration for all 8 CoS");
     return rc;
   }
 
@@ -2266,38 +2266,38 @@ L7_RC_t ptin_msg_CoS2_get(msg_QoSConfiguration2_t *qos_msg)
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading QoS drop configuration for all 8 CoS");
+    PT_LOG_ERR(LOG_CTX_MSG,"Error reading QoS drop configuration for all 8 CoS");
     return rc;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Slotid            = %u",qos_msg->SlotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Interface         = %u/%u",qos_msg->intf.intf_type,qos_msg->intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "General Mask      = 0x%02X",qos_msg->generic_mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Trust mode        = %u",qos_msg->trust_mode);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Bandwidth unit    = %u",qos_msg->bandwidth_unit);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Shaping rate      = %u",qos_msg->shaping_rate);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "pktprio.prio_mask = [ 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Slotid            = %u",qos_msg->SlotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Interface         = %u/%u",qos_msg->intf.intf_type,qos_msg->intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "General Mask      = 0x%02X",qos_msg->generic_mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Trust mode        = %u",qos_msg->trust_mode);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Bandwidth unit    = %u",qos_msg->bandwidth_unit);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Shaping rate      = %u",qos_msg->shaping_rate);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "pktprio.prio_mask = [ 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ]",
             qos_msg->pktprio.prio_mask[0],qos_msg->pktprio.prio_mask[1],qos_msg->pktprio.prio_mask[2],qos_msg->pktprio.prio_mask[3],qos_msg->pktprio.prio_mask[4],qos_msg->pktprio.prio_mask[5],qos_msg->pktprio.prio_mask[6],qos_msg->pktprio.prio_mask[7]);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "pktprio.cos       = [ %Xh %Xh %Xh %Xh %Xh %Xh %Xh %Xh ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "pktprio.cos       = [ %Xh %Xh %Xh %Xh %Xh %Xh %Xh %Xh ]",
             qos_msg->pktprio.cos[0],qos_msg->pktprio.cos[1],qos_msg->pktprio.cos[2],qos_msg->pktprio.cos[3],qos_msg->pktprio.cos[4],qos_msg->pktprio.cos[5],qos_msg->pktprio.cos[6],qos_msg->pktprio.cos[7]);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "CoS Mask       = 0x%02X",qos_msg->cos_config.cos_mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "CoS local Mask = [ 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "CoS Mask       = 0x%02X",qos_msg->cos_config.cos_mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "CoS local Mask = [ 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X ]",
             qos_msg->cos_config.cos[0].local_mask, qos_msg->cos_config.cos[1].local_mask, qos_msg->cos_config.cos[2].local_mask, qos_msg->cos_config.cos[3].local_mask, qos_msg->cos_config.cos[4].local_mask, qos_msg->cos_config.cos[5].local_mask, qos_msg->cos_config.cos[6].local_mask, qos_msg->cos_config.cos[7].local_mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Queue_scheduler = [ %u %u %u %u %u %u %u %u ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Queue_scheduler = [ %u %u %u %u %u %u %u %u ]",
             qos_msg->cos_config.cos[0].scheduler, qos_msg->cos_config.cos[1].scheduler, qos_msg->cos_config.cos[2].scheduler, qos_msg->cos_config.cos[3].scheduler, qos_msg->cos_config.cos[4].scheduler, qos_msg->cos_config.cos[5].scheduler, qos_msg->cos_config.cos[6].scheduler, qos_msg->cos_config.cos[7].scheduler);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Queue_min_bw    = [ %u %u %u %u %u %u %u %u ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Queue_min_bw    = [ %u %u %u %u %u %u %u %u ]",
             qos_msg->cos_config.cos[0].min_bandwidth, qos_msg->cos_config.cos[1].min_bandwidth, qos_msg->cos_config.cos[2].min_bandwidth, qos_msg->cos_config.cos[3].min_bandwidth, qos_msg->cos_config.cos[4].min_bandwidth, qos_msg->cos_config.cos[5].min_bandwidth, qos_msg->cos_config.cos[6].min_bandwidth, qos_msg->cos_config.cos[7].min_bandwidth);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Queue_max_bw    = [ %u %u %u %u %u %u %u %u ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Queue_max_bw    = [ %u %u %u %u %u %u %u %u ]",
             qos_msg->cos_config.cos[0].max_bandwidth, qos_msg->cos_config.cos[1].max_bandwidth, qos_msg->cos_config.cos[2].max_bandwidth, qos_msg->cos_config.cos[3].max_bandwidth, qos_msg->cos_config.cos[4].max_bandwidth, qos_msg->cos_config.cos[5].max_bandwidth, qos_msg->cos_config.cos[6].max_bandwidth, qos_msg->cos_config.cos[7].max_bandwidth);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "wrrSched_weight = [ %u %u %u %u %u %u %u %u ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "wrrSched_weight = [ %u %u %u %u %u %u %u %u ]",
             qos_msg->cos_config.cos[0].wrrSched_weight, qos_msg->cos_config.cos[1].wrrSched_weight, qos_msg->cos_config.cos[2].wrrSched_weight, qos_msg->cos_config.cos[3].wrrSched_weight, qos_msg->cos_config.cos[4].wrrSched_weight, qos_msg->cos_config.cos[5].wrrSched_weight, qos_msg->cos_config.cos[6].wrrSched_weight, qos_msg->cos_config.cos[7].wrrSched_weight);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "dropMgmttype    = [ %u %u %u %u %u %u %u %u ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "dropMgmttype    = [ %u %u %u %u %u %u %u %u ]",
             qos_msg->cos_config.cos[0].dropMgmtType, qos_msg->cos_config.cos[1].dropMgmtType, qos_msg->cos_config.cos[2].dropMgmtType, qos_msg->cos_config.cos[3].dropMgmtType, qos_msg->cos_config.cos[4].dropMgmtType, qos_msg->cos_config.cos[5].dropMgmtType, qos_msg->cos_config.cos[6].dropMgmtType, qos_msg->cos_config.cos[7].dropMgmtType);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "wred_decayExp   = [ %u %u %u %u %u %u %u %u ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "wred_decayExp   = [ %u %u %u %u %u %u %u %u ]",
             qos_msg->cos_config.cos[0].wred_decayExp, qos_msg->cos_config.cos[1].wred_decayExp, qos_msg->cos_config.cos[2].wred_decayExp, qos_msg->cos_config.cos[3].wred_decayExp, qos_msg->cos_config.cos[4].wred_decayExp, qos_msg->cos_config.cos[5].wred_decayExp, qos_msg->cos_config.cos[6].wred_decayExp, qos_msg->cos_config.cos[7].wred_decayExp);
   for (i=0; i<4; i++)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "DP%u: local_mask = [ 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X ]", i+1,
+    PT_LOG_DEBUG(LOG_CTX_MSG, "DP%u: local_mask = [ 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X ]", i+1,
               qos_msg->cos_config.cos[0].dropThresholds[i].local2_mask,
               qos_msg->cos_config.cos[1].dropThresholds[i].local2_mask,
               qos_msg->cos_config.cos[2].dropThresholds[i].local2_mask,
@@ -2306,7 +2306,7 @@ L7_RC_t ptin_msg_CoS2_get(msg_QoSConfiguration2_t *qos_msg)
               qos_msg->cos_config.cos[5].dropThresholds[i].local2_mask,
               qos_msg->cos_config.cos[6].dropThresholds[i].local2_mask,
               qos_msg->cos_config.cos[7].dropThresholds[i].local2_mask);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "DP%u: Taildrop threshold = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
+    PT_LOG_DEBUG(LOG_CTX_MSG, "DP%u: Taildrop threshold = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
               qos_msg->cos_config.cos[0].dropThresholds[i].tailDrop_threshold,
               qos_msg->cos_config.cos[1].dropThresholds[i].tailDrop_threshold,
               qos_msg->cos_config.cos[2].dropThresholds[i].tailDrop_threshold,
@@ -2315,7 +2315,7 @@ L7_RC_t ptin_msg_CoS2_get(msg_QoSConfiguration2_t *qos_msg)
               qos_msg->cos_config.cos[5].dropThresholds[i].tailDrop_threshold,
               qos_msg->cos_config.cos[6].dropThresholds[i].tailDrop_threshold,
               qos_msg->cos_config.cos[7].dropThresholds[i].tailDrop_threshold);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "DP%u: WRED min.threshold = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
+    PT_LOG_DEBUG(LOG_CTX_MSG, "DP%u: WRED min.threshold = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
               qos_msg->cos_config.cos[0].dropThresholds[i].wred_minThreshold,
               qos_msg->cos_config.cos[1].dropThresholds[i].wred_minThreshold,
               qos_msg->cos_config.cos[2].dropThresholds[i].wred_minThreshold,
@@ -2324,7 +2324,7 @@ L7_RC_t ptin_msg_CoS2_get(msg_QoSConfiguration2_t *qos_msg)
               qos_msg->cos_config.cos[5].dropThresholds[i].wred_minThreshold,
               qos_msg->cos_config.cos[6].dropThresholds[i].wred_minThreshold,
               qos_msg->cos_config.cos[7].dropThresholds[i].wred_minThreshold);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "DP%u: WRED drop prob.    = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
+    PT_LOG_DEBUG(LOG_CTX_MSG, "DP%u: WRED drop prob.    = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
               qos_msg->cos_config.cos[0].dropThresholds[i].wred_dropProb,
               qos_msg->cos_config.cos[1].dropThresholds[i].wred_dropProb,
               qos_msg->cos_config.cos[2].dropThresholds[i].wred_dropProb,
@@ -2354,34 +2354,34 @@ L7_RC_t ptin_msg_CoS2_set(msg_QoSConfiguration2_t *qos_msg)
   ptin_QoS_drop_t         qos_drop[8];
   L7_RC_t                 rc, rc_global = L7_SUCCESS;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Slotid            = %u",qos_msg->SlotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Interface         = %u/%u",qos_msg->intf.intf_type,qos_msg->intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "General Mask      = 0x%02X",qos_msg->generic_mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Trust mode        = %u",qos_msg->trust_mode);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Bandwidth unit    = %u",qos_msg->bandwidth_unit);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Shaping rate      = %u",qos_msg->shaping_rate);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "pktprio.prio_mask = [ 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Slotid            = %u",qos_msg->SlotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Interface         = %u/%u",qos_msg->intf.intf_type,qos_msg->intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "General Mask      = 0x%02X",qos_msg->generic_mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Trust mode        = %u",qos_msg->trust_mode);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Bandwidth unit    = %u",qos_msg->bandwidth_unit);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Shaping rate      = %u",qos_msg->shaping_rate);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "pktprio.prio_mask = [ 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ]",
             qos_msg->pktprio.prio_mask[0],qos_msg->pktprio.prio_mask[1],qos_msg->pktprio.prio_mask[2],qos_msg->pktprio.prio_mask[3],qos_msg->pktprio.prio_mask[4],qos_msg->pktprio.prio_mask[5],qos_msg->pktprio.prio_mask[6],qos_msg->pktprio.prio_mask[7]);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "pktprio.cos       = [ %Xh %Xh %Xh %Xh %Xh %Xh %Xh %Xh ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "pktprio.cos       = [ %Xh %Xh %Xh %Xh %Xh %Xh %Xh %Xh ]",
             qos_msg->pktprio.cos[0],qos_msg->pktprio.cos[1],qos_msg->pktprio.cos[2],qos_msg->pktprio.cos[3],qos_msg->pktprio.cos[4],qos_msg->pktprio.cos[5],qos_msg->pktprio.cos[6],qos_msg->pktprio.cos[7]);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "CoS Mask       = 0x%02X",qos_msg->cos_config.cos_mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "CoS local Mask = [ 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "CoS Mask       = 0x%02X",qos_msg->cos_config.cos_mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "CoS local Mask = [ 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X ]",
             qos_msg->cos_config.cos[0].local_mask, qos_msg->cos_config.cos[1].local_mask, qos_msg->cos_config.cos[2].local_mask, qos_msg->cos_config.cos[3].local_mask, qos_msg->cos_config.cos[4].local_mask, qos_msg->cos_config.cos[5].local_mask, qos_msg->cos_config.cos[6].local_mask, qos_msg->cos_config.cos[7].local_mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Queue_scheduler = [ %u %u %u %u %u %u %u %u ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Queue_scheduler = [ %u %u %u %u %u %u %u %u ]",
             qos_msg->cos_config.cos[0].scheduler, qos_msg->cos_config.cos[1].scheduler, qos_msg->cos_config.cos[2].scheduler, qos_msg->cos_config.cos[3].scheduler, qos_msg->cos_config.cos[4].scheduler, qos_msg->cos_config.cos[5].scheduler, qos_msg->cos_config.cos[6].scheduler, qos_msg->cos_config.cos[7].scheduler);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Queue_min_bw    = [ %u %u %u %u %u %u %u %u ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Queue_min_bw    = [ %u %u %u %u %u %u %u %u ]",
             qos_msg->cos_config.cos[0].min_bandwidth, qos_msg->cos_config.cos[1].min_bandwidth, qos_msg->cos_config.cos[2].min_bandwidth, qos_msg->cos_config.cos[3].min_bandwidth, qos_msg->cos_config.cos[4].min_bandwidth, qos_msg->cos_config.cos[5].min_bandwidth, qos_msg->cos_config.cos[6].min_bandwidth, qos_msg->cos_config.cos[7].min_bandwidth);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Queue_max_bw    = [ %u %u %u %u %u %u %u %u ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Queue_max_bw    = [ %u %u %u %u %u %u %u %u ]",
             qos_msg->cos_config.cos[0].max_bandwidth, qos_msg->cos_config.cos[1].max_bandwidth, qos_msg->cos_config.cos[2].max_bandwidth, qos_msg->cos_config.cos[3].max_bandwidth, qos_msg->cos_config.cos[4].max_bandwidth, qos_msg->cos_config.cos[5].max_bandwidth, qos_msg->cos_config.cos[6].max_bandwidth, qos_msg->cos_config.cos[7].max_bandwidth);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "wrrSched_weight = [ %u %u %u %u %u %u %u %u ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "wrrSched_weight = [ %u %u %u %u %u %u %u %u ]",
             qos_msg->cos_config.cos[0].wrrSched_weight, qos_msg->cos_config.cos[1].wrrSched_weight, qos_msg->cos_config.cos[2].wrrSched_weight, qos_msg->cos_config.cos[3].wrrSched_weight, qos_msg->cos_config.cos[4].wrrSched_weight, qos_msg->cos_config.cos[5].wrrSched_weight, qos_msg->cos_config.cos[6].wrrSched_weight, qos_msg->cos_config.cos[7].wrrSched_weight);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "dropMgmttype    = [ %u %u %u %u %u %u %u %u ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "dropMgmttype    = [ %u %u %u %u %u %u %u %u ]",
             qos_msg->cos_config.cos[0].dropMgmtType, qos_msg->cos_config.cos[1].dropMgmtType, qos_msg->cos_config.cos[2].dropMgmtType, qos_msg->cos_config.cos[3].dropMgmtType, qos_msg->cos_config.cos[4].dropMgmtType, qos_msg->cos_config.cos[5].dropMgmtType, qos_msg->cos_config.cos[6].dropMgmtType, qos_msg->cos_config.cos[7].dropMgmtType);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "wred_decayExp   = [ %u %u %u %u %u %u %u %u ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "wred_decayExp   = [ %u %u %u %u %u %u %u %u ]",
             qos_msg->cos_config.cos[0].wred_decayExp, qos_msg->cos_config.cos[1].wred_decayExp, qos_msg->cos_config.cos[2].wred_decayExp, qos_msg->cos_config.cos[3].wred_decayExp, qos_msg->cos_config.cos[4].wred_decayExp, qos_msg->cos_config.cos[5].wred_decayExp, qos_msg->cos_config.cos[6].wred_decayExp, qos_msg->cos_config.cos[7].wred_decayExp);
   for (i=0; i<4; i++)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "DP%u: local_mask = [ 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X ]", i+1,
+    PT_LOG_DEBUG(LOG_CTX_MSG, "DP%u: local_mask = [ 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X ]", i+1,
               qos_msg->cos_config.cos[0].dropThresholds[i].local2_mask,
               qos_msg->cos_config.cos[1].dropThresholds[i].local2_mask,
               qos_msg->cos_config.cos[2].dropThresholds[i].local2_mask,
@@ -2390,7 +2390,7 @@ L7_RC_t ptin_msg_CoS2_set(msg_QoSConfiguration2_t *qos_msg)
               qos_msg->cos_config.cos[5].dropThresholds[i].local2_mask,
               qos_msg->cos_config.cos[6].dropThresholds[i].local2_mask,
               qos_msg->cos_config.cos[7].dropThresholds[i].local2_mask);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "DP%u: Taildrop threshold = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
+    PT_LOG_DEBUG(LOG_CTX_MSG, "DP%u: Taildrop threshold = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
               qos_msg->cos_config.cos[0].dropThresholds[i].tailDrop_threshold,
               qos_msg->cos_config.cos[1].dropThresholds[i].tailDrop_threshold,
               qos_msg->cos_config.cos[2].dropThresholds[i].tailDrop_threshold,
@@ -2399,7 +2399,7 @@ L7_RC_t ptin_msg_CoS2_set(msg_QoSConfiguration2_t *qos_msg)
               qos_msg->cos_config.cos[5].dropThresholds[i].tailDrop_threshold,
               qos_msg->cos_config.cos[6].dropThresholds[i].tailDrop_threshold,
               qos_msg->cos_config.cos[7].dropThresholds[i].tailDrop_threshold);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "DP%u: WRED min.threshold = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
+    PT_LOG_DEBUG(LOG_CTX_MSG, "DP%u: WRED min.threshold = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
               qos_msg->cos_config.cos[0].dropThresholds[i].wred_minThreshold,
               qos_msg->cos_config.cos[1].dropThresholds[i].wred_minThreshold,
               qos_msg->cos_config.cos[2].dropThresholds[i].wred_minThreshold,
@@ -2408,7 +2408,7 @@ L7_RC_t ptin_msg_CoS2_set(msg_QoSConfiguration2_t *qos_msg)
               qos_msg->cos_config.cos[5].dropThresholds[i].wred_minThreshold,
               qos_msg->cos_config.cos[6].dropThresholds[i].wred_minThreshold,
               qos_msg->cos_config.cos[7].dropThresholds[i].wred_minThreshold);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "DP%u: WRED drop prob.    = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
+    PT_LOG_DEBUG(LOG_CTX_MSG, "DP%u: WRED drop prob.    = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
               qos_msg->cos_config.cos[0].dropThresholds[i].wred_dropProb,
               qos_msg->cos_config.cos[1].dropThresholds[i].wred_dropProb,
               qos_msg->cos_config.cos[2].dropThresholds[i].wred_dropProb,
@@ -2470,7 +2470,7 @@ L7_RC_t ptin_msg_CoS2_set(msg_QoSConfiguration2_t *qos_msg)
     rc = ptin_QoS_intf_config_set(&ptin_intf, &qos_intf);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Error configuring priority map (rc=%d)", rc);
+      PT_LOG_ERR(LOG_CTX_MSG,"Error configuring priority map (rc=%d)", rc);
       rc_global = rc;
     }
   }
@@ -2514,7 +2514,7 @@ L7_RC_t ptin_msg_CoS2_set(msg_QoSConfiguration2_t *qos_msg)
     rc = ptin_QoS_cos_config_set(&ptin_intf, (L7_uint8)-1, qos_cos);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Error configuring QoS (rc=%d)",rc);
+      PT_LOG_ERR(LOG_CTX_MSG,"Error configuring QoS (rc=%d)",rc);
       rc_global = rc;
     }
   }
@@ -2582,18 +2582,18 @@ L7_RC_t ptin_msg_CoS2_set(msg_QoSConfiguration2_t *qos_msg)
     rc = ptin_QoS_drop_config_set(&ptin_intf, (L7_uint8)-1, qos_drop);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Error configuring QoS Drop management (rc=%d)",rc);
+      PT_LOG_ERR(LOG_CTX_MSG,"Error configuring QoS Drop management (rc=%d)",rc);
       rc_global = rc;
     }
   }
 
   if (rc_global==L7_SUCCESS)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Success applying QoS configurations to all CoS");
+    PT_LOG_DEBUG(LOG_CTX_MSG,"Success applying QoS configurations to all CoS");
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error applying QoS configurations to all CoS (rc_global=%d)", rc_global);
+    PT_LOG_ERR(LOG_CTX_MSG,"Error applying QoS configurations to all CoS (rc_global=%d)", rc_global);
   }
 
   return rc_global;
@@ -2620,7 +2620,7 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
   /* Validate input */
   if (qos_msg == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Null pointer!");
+    PT_LOG_ERR(LOG_CTX_MSG, "Null pointer!");
     return L7_FAILURE;
   }
 
@@ -2641,7 +2641,7 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
   rc = ptin_QoS_intf_config_get(&ptin_intf, &qos_intf);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading interface configuration (rc=%d)", rc);
+    PT_LOG_ERR(LOG_CTX_MSG,"Error reading interface configuration (rc=%d)", rc);
     return rc;
   }
   trust_mode = qos_intf.trust_mode;
@@ -2727,7 +2727,7 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
   rc = ptin_QoS_cos_config_get(&ptin_intf, (L7_uint8)-1, qos_cos); 
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading QoS configurations (rc=%d)",rc);
+    PT_LOG_ERR(LOG_CTX_MSG,"Error reading QoS configurations (rc=%d)",rc);
     return rc;
   }
 
@@ -2785,7 +2785,7 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
   rc = ptin_QoS_drop_config_get(&ptin_intf, (L7_uint8)-1, qos_drop);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading QoS Drop management configurations (rc=%d)",rc);
+    PT_LOG_ERR(LOG_CTX_MSG,"Error reading QoS Drop management configurations (rc=%d)",rc);
     return rc;
   }
 
@@ -2847,17 +2847,17 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
     }
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Slotid         = %u",qos_msg->SlotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Interface      = %u/%u",qos_msg->intf.intf_type,qos_msg->intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Main Mask      = 0x%02x",qos_msg->main_mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Bandwidth unit = %u",qos_msg->bandwidth_unit);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Ingress:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Ingress Mask = 0x%02x",qos_msg->ingress.ingress_mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Trust mode   = %u",qos_msg->ingress.trust_mode);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Slotid         = %u",qos_msg->SlotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Interface      = %u/%u",qos_msg->intf.intf_type,qos_msg->intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Main Mask      = 0x%02x",qos_msg->main_mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Bandwidth unit = %u",qos_msg->bandwidth_unit);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Ingress:");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Ingress Mask = 0x%02x",qos_msg->ingress.ingress_mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Trust mode   = %u",qos_msg->ingress.trust_mode);
   if (qos_msg->ingress.trust_mode == L7_QOS_COS_MAP_INTF_MODE_TRUST_DOT1P)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_classif.pcp_map.prio_mask = 0x%02x",qos_msg->ingress.cos_classif.pcp_map.prio_mask);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_classif.pcp_map.cos = { %u %u %u %u %u %u %u %u } ",
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_classif.pcp_map.prio_mask = 0x%02x",qos_msg->ingress.cos_classif.pcp_map.prio_mask);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_classif.pcp_map.cos = { %u %u %u %u %u %u %u %u } ",
               qos_msg->ingress.cos_classif.pcp_map.cos[0],
               qos_msg->ingress.cos_classif.pcp_map.cos[1],
               qos_msg->ingress.cos_classif.pcp_map.cos[2],
@@ -2869,8 +2869,8 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
   }
   else if (qos_msg->ingress.trust_mode == L7_QOS_COS_MAP_INTF_MODE_TRUST_IPPREC)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_classif.ipprec_map.prio_mask = 0x%02x",qos_msg->ingress.cos_classif.ipprec_map.prio_mask);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_classif.ipprec_map.cos = { %u %u %u %u %u %u %u %u } ",
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_classif.ipprec_map.prio_mask = 0x%02x",qos_msg->ingress.cos_classif.ipprec_map.prio_mask);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_classif.ipprec_map.cos = { %u %u %u %u %u %u %u %u } ",
               qos_msg->ingress.cos_classif.ipprec_map.cos[0],
               qos_msg->ingress.cos_classif.ipprec_map.cos[1],
               qos_msg->ingress.cos_classif.ipprec_map.cos[2],
@@ -2882,11 +2882,11 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
   }
   else if (qos_msg->ingress.trust_mode == L7_QOS_COS_MAP_INTF_MODE_TRUST_IPDSCP)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_classif.dscp_map.prio_mask = 0x%08x 0x%08x",
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_classif.dscp_map.prio_mask = 0x%08x 0x%08x",
               qos_msg->ingress.cos_classif.dscp_map.prio_mask[0], qos_msg->ingress.cos_classif.dscp_map.prio_mask[1]);
     for (i = 0; i < 64; i+=8)
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_classif.dscp_map.cos[%2u-%2u] = { %u %u %u %u %u %u %u %u } ", i, i+7,
+      PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_classif.dscp_map.cos[%2u-%2u] = { %u %u %u %u %u %u %u %u } ", i, i+7,
                 qos_msg->ingress.cos_classif.dscp_map.cos[i+0],
                 qos_msg->ingress.cos_classif.dscp_map.cos[i+1],
                 qos_msg->ingress.cos_classif.dscp_map.cos[i+2],
@@ -2899,20 +2899,20 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
   }
   else
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_classif does not have usable information.");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_classif does not have usable information.");
   }
   for (i = 0; i < 8; i++)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Policer[%u]: mask=0x%02x - cir=%u eir=%u cbs=%u ebs=%u",
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  Policer[%u]: mask=0x%02x - cir=%u eir=%u cbs=%u ebs=%u",
               i, qos_msg->ingress.cos_policer[i].local_mask,
               qos_msg->ingress.cos_policer[i].cir, qos_msg->ingress.cos_policer[i].eir,
               qos_msg->ingress.cos_policer[i].cbs, qos_msg->ingress.cos_policer[i].ebs);
   }
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Egress:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Egress Mask  = 0x%02x", qos_msg->egress.egress_mask); 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Shaping rate = %u %%", qos_msg->egress.shaping_rate);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Egress:");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Egress Mask  = 0x%02x", qos_msg->egress.egress_mask); 
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Shaping rate = %u %%", qos_msg->egress.shaping_rate);
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_scheduler->local_mask      = [ 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_scheduler->local_mask      = [ 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ]",
             qos_msg->egress.cos_scheduler[0].local_mask,
             qos_msg->egress.cos_scheduler[1].local_mask,
             qos_msg->egress.cos_scheduler[2].local_mask,
@@ -2921,7 +2921,7 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
             qos_msg->egress.cos_scheduler[5].local_mask,
             qos_msg->egress.cos_scheduler[6].local_mask,
             qos_msg->egress.cos_scheduler[7].local_mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_scheduler->schedulerType   = [ %u %u %u %u %u %u %u %u ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_scheduler->schedulerType   = [ %u %u %u %u %u %u %u %u ]",
             qos_msg->egress.cos_scheduler[0].schedulerType,
             qos_msg->egress.cos_scheduler[1].schedulerType,
             qos_msg->egress.cos_scheduler[2].schedulerType,
@@ -2930,7 +2930,7 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
             qos_msg->egress.cos_scheduler[5].schedulerType,
             qos_msg->egress.cos_scheduler[6].schedulerType,
             qos_msg->egress.cos_scheduler[7].schedulerType);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_scheduler->wrrSched_weight = [ %u %u %u %u %u %u %u %u ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_scheduler->wrrSched_weight = [ %u %u %u %u %u %u %u %u ]",
             qos_msg->egress.cos_scheduler[0].wrrSched_weight,
             qos_msg->egress.cos_scheduler[1].wrrSched_weight,
             qos_msg->egress.cos_scheduler[2].wrrSched_weight,
@@ -2940,7 +2940,7 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
             qos_msg->egress.cos_scheduler[6].wrrSched_weight,
             qos_msg->egress.cos_scheduler[7].wrrSched_weight);
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_shaper->local_mask         = [ 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_shaper->local_mask         = [ 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ]",
             qos_msg->egress.cos_shaper[0].local_mask,
             qos_msg->egress.cos_shaper[1].local_mask,
             qos_msg->egress.cos_shaper[2].local_mask,
@@ -2949,7 +2949,7 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
             qos_msg->egress.cos_shaper[5].local_mask,
             qos_msg->egress.cos_shaper[6].local_mask,
             qos_msg->egress.cos_shaper[7].local_mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_shaper->min_bandwidth      = [ %u %u %u %u %u %u %u %u ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_shaper->min_bandwidth      = [ %u %u %u %u %u %u %u %u ]",
             qos_msg->egress.cos_shaper[0].min_bandwidth,
             qos_msg->egress.cos_shaper[1].min_bandwidth,
             qos_msg->egress.cos_shaper[2].min_bandwidth,
@@ -2958,7 +2958,7 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
             qos_msg->egress.cos_shaper[5].min_bandwidth,
             qos_msg->egress.cos_shaper[6].min_bandwidth,
             qos_msg->egress.cos_shaper[7].min_bandwidth);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_shaper->max_bandwidth      = [ %u %u %u %u %u %u %u %u ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_shaper->max_bandwidth      = [ %u %u %u %u %u %u %u %u ]",
             qos_msg->egress.cos_shaper[0].max_bandwidth,
             qos_msg->egress.cos_shaper[1].max_bandwidth,
             qos_msg->egress.cos_shaper[2].max_bandwidth,
@@ -2968,7 +2968,7 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
             qos_msg->egress.cos_shaper[6].max_bandwidth,
             qos_msg->egress.cos_shaper[7].max_bandwidth);
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_dropmgmt->local_mask       = [ 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_dropmgmt->local_mask       = [ 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ]",
             qos_msg->egress.cos_dropmgmt[0].local_mask,
             qos_msg->egress.cos_dropmgmt[1].local_mask,
             qos_msg->egress.cos_dropmgmt[2].local_mask,
@@ -2978,7 +2978,7 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
             qos_msg->egress.cos_dropmgmt[6].local_mask,
             qos_msg->egress.cos_dropmgmt[7].local_mask);
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_dropmgmt->dropMgmttype     = [ %u %u %u %u %u %u %u %u ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_dropmgmt->dropMgmttype     = [ %u %u %u %u %u %u %u %u ]",
             qos_msg->egress.cos_dropmgmt[0].dropMgmtType,
             qos_msg->egress.cos_dropmgmt[1].dropMgmtType,
             qos_msg->egress.cos_dropmgmt[2].dropMgmtType,
@@ -2987,7 +2987,7 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
             qos_msg->egress.cos_dropmgmt[5].dropMgmtType,
             qos_msg->egress.cos_dropmgmt[6].dropMgmtType,
             qos_msg->egress.cos_dropmgmt[7].dropMgmtType);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_dropmgmt->wred_decayExp    = [ %u %u %u %u %u %u %u %u ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_dropmgmt->wred_decayExp    = [ %u %u %u %u %u %u %u %u ]",
             qos_msg->egress.cos_dropmgmt[0].wred_decayExp,
             qos_msg->egress.cos_dropmgmt[1].wred_decayExp,
             qos_msg->egress.cos_dropmgmt[2].wred_decayExp,
@@ -2999,7 +2999,7 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
 
   for (i=0; i<6; i++)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_dropmgmt->dp_threshold[%u]: local_mask = [ 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ]", i+1,
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_dropmgmt->dp_threshold[%u]: local_mask = [ 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ]", i+1,
               qos_msg->egress.cos_dropmgmt[0].dp_thresholds[i].local2_mask,
               qos_msg->egress.cos_dropmgmt[1].dp_thresholds[i].local2_mask,
               qos_msg->egress.cos_dropmgmt[2].dp_thresholds[i].local2_mask,
@@ -3008,7 +3008,7 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
               qos_msg->egress.cos_dropmgmt[5].dp_thresholds[i].local2_mask,
               qos_msg->egress.cos_dropmgmt[6].dp_thresholds[i].local2_mask,
               qos_msg->egress.cos_dropmgmt[7].dp_thresholds[i].local2_mask);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_dropmgmt->dp_threshold[%u]: Taildrop threshold = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_dropmgmt->dp_threshold[%u]: Taildrop threshold = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
               qos_msg->egress.cos_dropmgmt[0].dp_thresholds[i].tailDrop_threshold,
               qos_msg->egress.cos_dropmgmt[1].dp_thresholds[i].tailDrop_threshold,
               qos_msg->egress.cos_dropmgmt[2].dp_thresholds[i].tailDrop_threshold,
@@ -3017,7 +3017,7 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
               qos_msg->egress.cos_dropmgmt[5].dp_thresholds[i].tailDrop_threshold,
               qos_msg->egress.cos_dropmgmt[6].dp_thresholds[i].tailDrop_threshold,
               qos_msg->egress.cos_dropmgmt[7].dp_thresholds[i].tailDrop_threshold);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_dropmgmt->dp_threshold[%u]: WRED min.threshold = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_dropmgmt->dp_threshold[%u]: WRED min.threshold = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
               qos_msg->egress.cos_dropmgmt[0].dp_thresholds[i].wred_minThreshold,
               qos_msg->egress.cos_dropmgmt[1].dp_thresholds[i].wred_minThreshold,
               qos_msg->egress.cos_dropmgmt[2].dp_thresholds[i].wred_minThreshold,
@@ -3026,7 +3026,7 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
               qos_msg->egress.cos_dropmgmt[5].dp_thresholds[i].wred_minThreshold,
               qos_msg->egress.cos_dropmgmt[6].dp_thresholds[i].wred_minThreshold,
               qos_msg->egress.cos_dropmgmt[7].dp_thresholds[i].wred_minThreshold);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_dropmgmt->dp_threshold[%u]: WRED drop prob.    = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_dropmgmt->dp_threshold[%u]: WRED drop prob.    = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
               qos_msg->egress.cos_dropmgmt[0].dp_thresholds[i].wred_dropProb,
               qos_msg->egress.cos_dropmgmt[1].dp_thresholds[i].wred_dropProb,
               qos_msg->egress.cos_dropmgmt[2].dp_thresholds[i].wred_dropProb,
@@ -3036,7 +3036,7 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
               qos_msg->egress.cos_dropmgmt[6].dp_thresholds[i].wred_dropProb,
               qos_msg->egress.cos_dropmgmt[7].dp_thresholds[i].wred_dropProb);
   }
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Dump finished!");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Dump finished!");
 
   return L7_SUCCESS;
 }
@@ -3062,21 +3062,21 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
 
   if (qos_msg == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Null pointer!");
+    PT_LOG_ERR(LOG_CTX_MSG, "Null pointer!");
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Slotid         = %u",qos_msg->SlotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Interface      = %u/%u",qos_msg->intf.intf_type,qos_msg->intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Main Mask      = 0x%02x",qos_msg->main_mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Bandwidth unit = %u",qos_msg->bandwidth_unit);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Ingress:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Ingress Mask = 0x%02x",qos_msg->ingress.ingress_mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Trust mode   = %u",qos_msg->ingress.trust_mode);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Slotid         = %u",qos_msg->SlotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Interface      = %u/%u",qos_msg->intf.intf_type,qos_msg->intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Main Mask      = 0x%02x",qos_msg->main_mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Bandwidth unit = %u",qos_msg->bandwidth_unit);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Ingress:");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Ingress Mask = 0x%02x",qos_msg->ingress.ingress_mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Trust mode   = %u",qos_msg->ingress.trust_mode);
   if (qos_msg->ingress.trust_mode == L7_QOS_COS_MAP_INTF_MODE_TRUST_DOT1P)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_classif.pcp_map.prio_mask = 0x%02x",qos_msg->ingress.cos_classif.pcp_map.prio_mask);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_classif.pcp_map.cos = { %u %u %u %u %u %u %u %u } ",
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_classif.pcp_map.prio_mask = 0x%02x",qos_msg->ingress.cos_classif.pcp_map.prio_mask);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_classif.pcp_map.cos = { %u %u %u %u %u %u %u %u } ",
               qos_msg->ingress.cos_classif.pcp_map.cos[0],
               qos_msg->ingress.cos_classif.pcp_map.cos[1],
               qos_msg->ingress.cos_classif.pcp_map.cos[2],
@@ -3088,8 +3088,8 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
   }
   else if (qos_msg->ingress.trust_mode == L7_QOS_COS_MAP_INTF_MODE_TRUST_IPPREC)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_classif.ipprec_map.prio_mask = 0x%02x",qos_msg->ingress.cos_classif.ipprec_map.prio_mask);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_classif.ipprec_map.cos = { %u %u %u %u %u %u %u %u } ",
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_classif.ipprec_map.prio_mask = 0x%02x",qos_msg->ingress.cos_classif.ipprec_map.prio_mask);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_classif.ipprec_map.cos = { %u %u %u %u %u %u %u %u } ",
               qos_msg->ingress.cos_classif.ipprec_map.cos[0],
               qos_msg->ingress.cos_classif.ipprec_map.cos[1],
               qos_msg->ingress.cos_classif.ipprec_map.cos[2],
@@ -3101,11 +3101,11 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
   }
   else if (qos_msg->ingress.trust_mode == L7_QOS_COS_MAP_INTF_MODE_TRUST_IPDSCP)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_classif.dscp_map.prio_mask = 0x%08x 0x%08x",
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_classif.dscp_map.prio_mask = 0x%08x 0x%08x",
               qos_msg->ingress.cos_classif.dscp_map.prio_mask[0], qos_msg->ingress.cos_classif.dscp_map.prio_mask[1]);
     for (i = 0; i < 64; i+=8)
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_classif.dscp_map.cos[%2u-%2u] = { %u %u %u %u %u %u %u %u } ", i, i+7,
+      PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_classif.dscp_map.cos[%2u-%2u] = { %u %u %u %u %u %u %u %u } ", i, i+7,
                 qos_msg->ingress.cos_classif.dscp_map.cos[i+0],
                 qos_msg->ingress.cos_classif.dscp_map.cos[i+1],
                 qos_msg->ingress.cos_classif.dscp_map.cos[i+2],
@@ -3118,20 +3118,20 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
   }
   else
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_classif does not have usable information.");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_classif does not have usable information.");
   }
   for (i = 0; i < 8; i++)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Policer[%u]: mask=0x%02x - cir=%u eir=%u cbs=%u ebs=%u",
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  Policer[%u]: mask=0x%02x - cir=%u eir=%u cbs=%u ebs=%u",
               i, qos_msg->ingress.cos_policer[i].local_mask,
               qos_msg->ingress.cos_policer[i].cir, qos_msg->ingress.cos_policer[i].eir,
               qos_msg->ingress.cos_policer[i].cbs, qos_msg->ingress.cos_policer[i].ebs);
   }
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Egress:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Egress Mask  = 0x%02x", qos_msg->egress.egress_mask); 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Shaping rate = %u %%", qos_msg->egress.shaping_rate);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Egress:");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Egress Mask  = 0x%02x", qos_msg->egress.egress_mask); 
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Shaping rate = %u %%", qos_msg->egress.shaping_rate);
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_scheduler->local_mask      = [ 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_scheduler->local_mask      = [ 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ]",
             qos_msg->egress.cos_scheduler[0].local_mask,
             qos_msg->egress.cos_scheduler[1].local_mask,
             qos_msg->egress.cos_scheduler[2].local_mask,
@@ -3140,7 +3140,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
             qos_msg->egress.cos_scheduler[5].local_mask,
             qos_msg->egress.cos_scheduler[6].local_mask,
             qos_msg->egress.cos_scheduler[7].local_mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_scheduler->schedulerType   = [ %u %u %u %u %u %u %u %u ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_scheduler->schedulerType   = [ %u %u %u %u %u %u %u %u ]",
             qos_msg->egress.cos_scheduler[0].schedulerType,
             qos_msg->egress.cos_scheduler[1].schedulerType,
             qos_msg->egress.cos_scheduler[2].schedulerType,
@@ -3149,7 +3149,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
             qos_msg->egress.cos_scheduler[5].schedulerType,
             qos_msg->egress.cos_scheduler[6].schedulerType,
             qos_msg->egress.cos_scheduler[7].schedulerType);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_scheduler->wrrSched_weight = [ %u %u %u %u %u %u %u %u ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_scheduler->wrrSched_weight = [ %u %u %u %u %u %u %u %u ]",
             qos_msg->egress.cos_scheduler[0].wrrSched_weight,
             qos_msg->egress.cos_scheduler[1].wrrSched_weight,
             qos_msg->egress.cos_scheduler[2].wrrSched_weight,
@@ -3159,7 +3159,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
             qos_msg->egress.cos_scheduler[6].wrrSched_weight,
             qos_msg->egress.cos_scheduler[7].wrrSched_weight);
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_shaper->local_mask         = [ 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_shaper->local_mask         = [ 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ]",
             qos_msg->egress.cos_shaper[0].local_mask,
             qos_msg->egress.cos_shaper[1].local_mask,
             qos_msg->egress.cos_shaper[2].local_mask,
@@ -3168,7 +3168,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
             qos_msg->egress.cos_shaper[5].local_mask,
             qos_msg->egress.cos_shaper[6].local_mask,
             qos_msg->egress.cos_shaper[7].local_mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_shaper->min_bandwidth      = [ %u %u %u %u %u %u %u %u ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_shaper->min_bandwidth      = [ %u %u %u %u %u %u %u %u ]",
             qos_msg->egress.cos_shaper[0].min_bandwidth,
             qos_msg->egress.cos_shaper[1].min_bandwidth,
             qos_msg->egress.cos_shaper[2].min_bandwidth,
@@ -3177,7 +3177,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
             qos_msg->egress.cos_shaper[5].min_bandwidth,
             qos_msg->egress.cos_shaper[6].min_bandwidth,
             qos_msg->egress.cos_shaper[7].min_bandwidth);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_shaper->max_bandwidth      = [ %u %u %u %u %u %u %u %u ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_shaper->max_bandwidth      = [ %u %u %u %u %u %u %u %u ]",
             qos_msg->egress.cos_shaper[0].max_bandwidth,
             qos_msg->egress.cos_shaper[1].max_bandwidth,
             qos_msg->egress.cos_shaper[2].max_bandwidth,
@@ -3187,7 +3187,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
             qos_msg->egress.cos_shaper[6].max_bandwidth,
             qos_msg->egress.cos_shaper[7].max_bandwidth);
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_dropmgmt->local_mask       = [ 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_dropmgmt->local_mask       = [ 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ]",
             qos_msg->egress.cos_dropmgmt[0].local_mask,
             qos_msg->egress.cos_dropmgmt[1].local_mask,
             qos_msg->egress.cos_dropmgmt[2].local_mask,
@@ -3197,7 +3197,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
             qos_msg->egress.cos_dropmgmt[6].local_mask,
             qos_msg->egress.cos_dropmgmt[7].local_mask);
   
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_dropmgmt->dropMgmttype     = [ %u %u %u %u %u %u %u %u ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_dropmgmt->dropMgmttype     = [ %u %u %u %u %u %u %u %u ]",
             qos_msg->egress.cos_dropmgmt[0].dropMgmtType,
             qos_msg->egress.cos_dropmgmt[1].dropMgmtType,
             qos_msg->egress.cos_dropmgmt[2].dropMgmtType,
@@ -3206,7 +3206,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
             qos_msg->egress.cos_dropmgmt[5].dropMgmtType,
             qos_msg->egress.cos_dropmgmt[6].dropMgmtType,
             qos_msg->egress.cos_dropmgmt[7].dropMgmtType);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_dropmgmt->wred_decayExp    = [ %u %u %u %u %u %u %u %u ]",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_dropmgmt->wred_decayExp    = [ %u %u %u %u %u %u %u %u ]",
             qos_msg->egress.cos_dropmgmt[0].wred_decayExp,
             qos_msg->egress.cos_dropmgmt[1].wred_decayExp,
             qos_msg->egress.cos_dropmgmt[2].wred_decayExp,
@@ -3218,7 +3218,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
 
   for (i=0; i<6; i++)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_dropmgmt->dp_threshold[%u]: local_mask = [ 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ]", i+1,
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_dropmgmt->dp_threshold[%u]: local_mask = [ 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ]", i+1,
               qos_msg->egress.cos_dropmgmt[0].dp_thresholds[i].local2_mask,
               qos_msg->egress.cos_dropmgmt[1].dp_thresholds[i].local2_mask,
               qos_msg->egress.cos_dropmgmt[2].dp_thresholds[i].local2_mask,
@@ -3227,7 +3227,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
               qos_msg->egress.cos_dropmgmt[5].dp_thresholds[i].local2_mask,
               qos_msg->egress.cos_dropmgmt[6].dp_thresholds[i].local2_mask,
               qos_msg->egress.cos_dropmgmt[7].dp_thresholds[i].local2_mask);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_dropmgmt->dp_threshold[%u]: Taildrop threshold = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_dropmgmt->dp_threshold[%u]: Taildrop threshold = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
               qos_msg->egress.cos_dropmgmt[0].dp_thresholds[i].tailDrop_threshold,
               qos_msg->egress.cos_dropmgmt[1].dp_thresholds[i].tailDrop_threshold,
               qos_msg->egress.cos_dropmgmt[2].dp_thresholds[i].tailDrop_threshold,
@@ -3236,7 +3236,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
               qos_msg->egress.cos_dropmgmt[5].dp_thresholds[i].tailDrop_threshold,
               qos_msg->egress.cos_dropmgmt[6].dp_thresholds[i].tailDrop_threshold,
               qos_msg->egress.cos_dropmgmt[7].dp_thresholds[i].tailDrop_threshold);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_dropmgmt->dp_threshold[%u]: WRED min.threshold = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_dropmgmt->dp_threshold[%u]: WRED min.threshold = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
               qos_msg->egress.cos_dropmgmt[0].dp_thresholds[i].wred_minThreshold,
               qos_msg->egress.cos_dropmgmt[1].dp_thresholds[i].wred_minThreshold,
               qos_msg->egress.cos_dropmgmt[2].dp_thresholds[i].wred_minThreshold,
@@ -3245,7 +3245,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
               qos_msg->egress.cos_dropmgmt[5].dp_thresholds[i].wred_minThreshold,
               qos_msg->egress.cos_dropmgmt[6].dp_thresholds[i].wred_minThreshold,
               qos_msg->egress.cos_dropmgmt[7].dp_thresholds[i].wred_minThreshold);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_dropmgmt->dp_threshold[%u]: WRED max.threshold = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_dropmgmt->dp_threshold[%u]: WRED max.threshold = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
               qos_msg->egress.cos_dropmgmt[0].dp_thresholds[i].wred_maxThreshold,
               qos_msg->egress.cos_dropmgmt[1].dp_thresholds[i].wred_maxThreshold,
               qos_msg->egress.cos_dropmgmt[2].dp_thresholds[i].wred_maxThreshold,
@@ -3254,7 +3254,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
               qos_msg->egress.cos_dropmgmt[5].dp_thresholds[i].wred_maxThreshold,
               qos_msg->egress.cos_dropmgmt[6].dp_thresholds[i].wred_maxThreshold,
               qos_msg->egress.cos_dropmgmt[7].dp_thresholds[i].wred_maxThreshold);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  cos_dropmgmt->dp_threshold[%u]: WRED drop prob.    = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_dropmgmt->dp_threshold[%u]: WRED drop prob.    = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
               qos_msg->egress.cos_dropmgmt[0].dp_thresholds[i].wred_dropProb,
               qos_msg->egress.cos_dropmgmt[1].dp_thresholds[i].wred_dropProb,
               qos_msg->egress.cos_dropmgmt[2].dp_thresholds[i].wred_dropProb,
@@ -3264,7 +3264,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
               qos_msg->egress.cos_dropmgmt[6].dp_thresholds[i].wred_dropProb,
               qos_msg->egress.cos_dropmgmt[7].dp_thresholds[i].wred_dropProb);
   }
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Dump finished!");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Dump finished!");
 
   /* Interface */
   ptin_intf.intf_type = qos_msg->intf.intf_type;
@@ -3275,7 +3275,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
   rc = ptin_QoS_intf_config_get(&ptin_intf, &qos_intf_curr);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading interface configuration (rc=%d)", rc);
+    PT_LOG_ERR(LOG_CTX_MSG,"Error reading interface configuration (rc=%d)", rc);
     return L7_FAILURE;
   }
   trust_mode = qos_intf_curr.trust_mode;
@@ -3363,13 +3363,13 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
         rc = ptin_QoS_intf_cos_policer_set(&ptin_intf, i, &meter);
         if (rc != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_PTIN_MSG,"Error applying interface configuration to ptin_intf %u/%u, cos=%u: cir=%u eir=%u cbs=%u ebs=%u (rc=%d)",
+          PT_LOG_ERR(LOG_CTX_MSG,"Error applying interface configuration to ptin_intf %u/%u, cos=%u: cir=%u eir=%u cbs=%u ebs=%u (rc=%d)",
                   ptin_intf.intf_type,ptin_intf.intf_id, i, meter.cir, meter.eir, meter.cbs, meter.ebs, rc);
           rc_global = rc;
         }
         else
         {
-          LOG_TRACE(LOG_CTX_PTIN_MSG,"Interface successfully configured to ptin_intf %u/%u, cos=%u: cir=%u eir=%u cbs=%u ebs=%u",
+          PT_LOG_TRACE(LOG_CTX_MSG,"Interface successfully configured to ptin_intf %u/%u, cos=%u: cir=%u eir=%u cbs=%u ebs=%u",
                     ptin_intf.intf_type,ptin_intf.intf_id, i, meter.cir, meter.eir, meter.cbs, meter.ebs);
         }
       }
@@ -3389,17 +3389,17 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
   /* Apply interface configuration */
   if (apply_conf)
   {
-    LOG_TRACE(LOG_CTX_PTIN_MSG,"Applying Interface configurations...");
+    PT_LOG_TRACE(LOG_CTX_MSG,"Applying Interface configurations...");
     /* Execute priority map configuration */
     rc = ptin_QoS_intf_config_set(&ptin_intf, &qos_intf);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Error applying interface configuration (rc=%d)", rc);
+      PT_LOG_ERR(LOG_CTX_MSG,"Error applying interface configuration (rc=%d)", rc);
       rc_global = rc;
     }
     else
     {
-      LOG_TRACE(LOG_CTX_PTIN_MSG,"Interface successfully configured");
+      PT_LOG_TRACE(LOG_CTX_MSG,"Interface successfully configured");
     }
   }
 
@@ -3451,7 +3451,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
         {
           qos_cos[i].max_bandwidth = qos_msg->egress.cos_shaper[i].max_bandwidth;
           qos_cos[i].mask |= PTIN_QOS_COS_BW_MAX_MASK;
-          LOG_TRACE(LOG_CTX_PTIN_MSG,"Interface successfully configured %u", qos_msg->egress.cos_shaper[i].max_bandwidth);
+          PT_LOG_TRACE(LOG_CTX_MSG,"Interface successfully configured %u", qos_msg->egress.cos_shaper[i].max_bandwidth);
           apply_conf = L7_TRUE;
         }
       }
@@ -3460,16 +3460,16 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
   /* Apply configuration */
   if (apply_conf)
   {
-    LOG_TRACE(LOG_CTX_PTIN_MSG,"Applying QoS configurations...");
+    PT_LOG_TRACE(LOG_CTX_MSG,"Applying QoS configurations...");
     rc = ptin_QoS_cos_config_set(&ptin_intf, (L7_uint8)-1, qos_cos); 
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Error configuring QoS (rc=%d)",rc);
+      PT_LOG_ERR(LOG_CTX_MSG,"Error configuring QoS (rc=%d)",rc);
       rc_global = rc;
     }
     else
     {
-      LOG_TRACE(LOG_CTX_PTIN_MSG,"QoS successfully configured");
+      PT_LOG_TRACE(LOG_CTX_MSG,"QoS successfully configured");
     }
   }
 
@@ -3513,7 +3513,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
             qos_drop[i].dp[j].local_mask |= PTIN_QOS_COS_DP_TAILDROP_THRESH_MASK;
             qos_drop[i].mask |= PTIN_QOS_COS_TAIL_THRESHOLDS_MASK; 
             apply_conf = L7_TRUE;
-            LOG_TRACE(LOG_CTX_PTIN_MSG,"Interface successfully configured %u", qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].tailDrop_threshold);
+            PT_LOG_TRACE(LOG_CTX_MSG,"Interface successfully configured %u", qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].tailDrop_threshold);
           }
           /* WRED min threshold */
           if (qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].local2_mask & MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_WRED_MIN_MASK)
@@ -3547,26 +3547,26 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
 
   if (apply_conf)
   {
-    LOG_TRACE(LOG_CTX_PTIN_MSG,"Applying Drop Management configurations...");
+    PT_LOG_TRACE(LOG_CTX_MSG,"Applying Drop Management configurations...");
     rc = ptin_QoS_drop_config_set(&ptin_intf, (L7_uint8)-1, qos_drop);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Error configuring QoS Drop management (rc=%d)",rc);
+      PT_LOG_ERR(LOG_CTX_MSG,"Error configuring QoS Drop management (rc=%d)",rc);
       rc_global = rc;
     }
     else
     {
-      LOG_TRACE(LOG_CTX_PTIN_MSG,"QoS Drop management successfully configurted");
+      PT_LOG_TRACE(LOG_CTX_MSG,"QoS Drop management successfully configurted");
     }
   }
 
   if (rc_global==L7_SUCCESS)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Success applying QoS configurations to all CoS");
+    PT_LOG_DEBUG(LOG_CTX_MSG,"Success applying QoS configurations to all CoS");
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error applying QoS configurations to all CoS (rc_global=%d)", rc_global);
+    PT_LOG_ERR(LOG_CTX_MSG,"Error applying QoS configurations to all CoS (rc_global=%d)", rc_global);
   }
 
   return rc_global;
@@ -3614,7 +3614,7 @@ L7_RC_t ptin_msg_Lag_get(msg_LACPLagInfo_t *lagInfo, L7_uint *nElems)
 
     if (ptin_intf_LagConfig_get(&ptinLagConf) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error reading LAG# %u", lag_idx);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error reading LAG# %u", lag_idx);
       return L7_FAILURE;
     }
 
@@ -3628,13 +3628,13 @@ L7_RC_t ptin_msg_Lag_get(msg_LACPLagInfo_t *lagInfo, L7_uint *nElems)
     lagInfo[array_idx].members_pbmp32[0]= (L7_uint32) ptinLagConf.members_pbmp64;
     lagInfo[array_idx].members_pbmp32[1]= (L7_uint32) (ptinLagConf.members_pbmp64 >> 32);
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "LAG# %2u", (L7_uint32)lagInfo[array_idx].id);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .admin            = %u", lagInfo[array_idx].admin);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .static_enable    = %u", lagInfo[array_idx].static_enable);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .stp_enable       = %u", lagInfo[array_idx].stp_enable);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .loadBalance_mode = %u", lagInfo[array_idx].loadBalance_mode);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .members_pbmp[0]  = 0x%08X", lagInfo[array_idx].members_pbmp32[0]);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .members_pbmp[1]  = 0x%08X", lagInfo[array_idx].members_pbmp32[1]);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "LAG# %2u", (L7_uint32)lagInfo[array_idx].id);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .admin            = %u", lagInfo[array_idx].admin);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .static_enable    = %u", lagInfo[array_idx].static_enable);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .stp_enable       = %u", lagInfo[array_idx].stp_enable);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .loadBalance_mode = %u", lagInfo[array_idx].loadBalance_mode);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .members_pbmp[0]  = 0x%08X", lagInfo[array_idx].members_pbmp32[0]);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .members_pbmp[1]  = 0x%08X", lagInfo[array_idx].members_pbmp32[1]);
 
     array_idx++;
   }
@@ -3680,17 +3680,17 @@ L7_RC_t ptin_msg_Lag_create(msg_LACPLagInfo_t *lagInfo)
   //ptinLagConf.members_pbmp64   = (L7_uint64)lagInfo->members_pbmp32[0];
   //ptinLagConf.members_pbmp64  |= ((L7_uint64)lagInfo->members_pbmp32[1]) << 32;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "LAG# %2u",                    (L7_uint32)lagInfo->id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .admin            = %u",     lagInfo->admin);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .static_enable    = %u",     lagInfo->static_enable);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .stp_enable       = %u",     lagInfo->stp_enable);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .loadBalance_mode = %u",     lagInfo->loadBalance_mode);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .members_pbmp[0]  = 0x%08X", lagInfo->members_pbmp32[0]);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .members_pbmp[1]  = 0x%08X", lagInfo->members_pbmp32[1]);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "LAG# %2u",                    (L7_uint32)lagInfo->id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .admin            = %u",     lagInfo->admin);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .static_enable    = %u",     lagInfo->static_enable);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .stp_enable       = %u",     lagInfo->stp_enable);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .loadBalance_mode = %u",     lagInfo->loadBalance_mode);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .members_pbmp[0]  = 0x%08X", lagInfo->members_pbmp32[0]);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .members_pbmp[1]  = 0x%08X", lagInfo->members_pbmp32[1]);
 
   if (ptin_intf_Lag_create(&ptinLagConf) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Failed to create LAG# %u", (L7_uint32)lagInfo->id);
+    PT_LOG_ERR(LOG_CTX_MSG, "Failed to create LAG# %u", (L7_uint32)lagInfo->id);
     return L7_FAILURE;
   }
 
@@ -3706,15 +3706,15 @@ L7_RC_t ptin_msg_Lag_create(msg_LACPLagInfo_t *lagInfo)
  */
 L7_RC_t ptin_msg_Lag_destroy(msg_LACPLagInfo_t *lagInfo)
 {
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "LAG# %2u", (L7_uint32) lagInfo->id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "LAG# %2u", (L7_uint32) lagInfo->id);
 
   if (ptin_intf_Lag_delete((L7_uint32) lagInfo->id) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Failed to delete LAG# %u", (L7_uint32)lagInfo->id);
+    PT_LOG_ERR(LOG_CTX_MSG, "Failed to delete LAG# %u", (L7_uint32)lagInfo->id);
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "LAG# %u: successfully deleted", (L7_uint32)lagInfo->id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "LAG# %u: successfully deleted", (L7_uint32)lagInfo->id);
 
   return L7_SUCCESS;
 }
@@ -3760,7 +3760,7 @@ L7_RC_t ptin_msg_LagStatus_get(msg_LACPLagStatus_t *lagStatus, L7_uint *nElems)
 
     if (ptin_intf_LagStatus_get(&ptinLagStatus) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting status of LAG# %u", lag_idx);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error getting status of LAG# %u", lag_idx);
       return L7_FAILURE;
     }
 
@@ -3775,14 +3775,14 @@ L7_RC_t ptin_msg_LagStatus_get(msg_LACPLagStatus_t *lagStatus, L7_uint *nElems)
     lagStatus[array_idx].active_members_pbmp32[0] = (L7_uint32)ptinLagStatus.active_members_pbmp64;
     lagStatus[array_idx].active_members_pbmp32[1] = (L7_uint32)(ptinLagStatus.active_members_pbmp64 >> 32);
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "LAG# %2u", (L7_uint32)lagStatus[array_idx].id);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .admin                  = %s",     lagStatus[array_idx].admin?"ON":"OFF");
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .link_status            = %s",     lagStatus[array_idx].link_status?"UP":"DOWN");
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port_channel_type      = %s",     lagStatus[array_idx].port_channel_type?"STATIC":"DYNAMIC");
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .members_pbmp[0]        = 0x%08X", lagStatus[array_idx].members_pbmp32[0]);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .members_pbmp[1]        = 0x%08X", lagStatus[array_idx].members_pbmp32[1]);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .active_members_pbmp[0] = 0x%08X", lagStatus[array_idx].active_members_pbmp32[0]);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .active_members_pbmp[1] = 0x%08X", lagStatus[array_idx].active_members_pbmp32[1]);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "LAG# %2u", (L7_uint32)lagStatus[array_idx].id);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .admin                  = %s",     lagStatus[array_idx].admin?"ON":"OFF");
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .link_status            = %s",     lagStatus[array_idx].link_status?"UP":"DOWN");
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .port_channel_type      = %s",     lagStatus[array_idx].port_channel_type?"STATIC":"DYNAMIC");
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .members_pbmp[0]        = 0x%08X", lagStatus[array_idx].members_pbmp32[0]);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .members_pbmp[1]        = 0x%08X", lagStatus[array_idx].members_pbmp32[1]);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .active_members_pbmp[0] = 0x%08X", lagStatus[array_idx].active_members_pbmp32[0]);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .active_members_pbmp[1] = 0x%08X", lagStatus[array_idx].active_members_pbmp32[1]);
 
     array_idx++;
   }
@@ -3815,14 +3815,14 @@ L7_RC_t ptin_msg_LACPAdminState_set(msg_LACPAdminState_t *adminState, L7_uint nE
     /* Apply settings */
     if (ptin_intf_LACPAdminState_set(&ptinAdminState) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error setting Port# %u LACP Admin State", ptinAdminState.port);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error setting Port# %u LACP Admin State", ptinAdminState.port);
       return L7_FAILURE;
     }
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Port# %2u LACP Admin State configured", ptinAdminState.port);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .state_aggregation = %s", ptinAdminState.state_aggregation?"Enabled":"Disabled");
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .lacp_activity     = %s", ptinAdminState.lacp_activity?"True":"False");
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .lacp_timeout      = %s", ptinAdminState.lacp_timeout?"Short":"Long");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Port# %2u LACP Admin State configured", ptinAdminState.port);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .state_aggregation = %s", ptinAdminState.state_aggregation?"Enabled":"Disabled");
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .lacp_activity     = %s", ptinAdminState.lacp_activity?"True":"False");
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .lacp_timeout      = %s", ptinAdminState.lacp_timeout?"Short":"Long");
   }
 
   return L7_SUCCESS;
@@ -3866,7 +3866,7 @@ L7_RC_t ptin_msg_LACPAdminState_get(msg_LACPAdminState_t *adminState, L7_uint *n
 
     if (ptin_intf_LACPAdminState_get(&ptinAdminState) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting admin status of Port# %u", port_idx);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error getting admin status of Port# %u", port_idx);
       return L7_FAILURE;
     }
 
@@ -3877,10 +3877,10 @@ L7_RC_t ptin_msg_LACPAdminState_get(msg_LACPAdminState_t *adminState, L7_uint *n
     adminState[array_idx].lacp_activity     = ptinAdminState.lacp_activity;
     adminState[array_idx].lacp_timeout      = ptinAdminState.lacp_timeout;
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Port# %2u", (L7_uint32)adminState[array_idx].id);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .state_aggregation = %s", adminState[array_idx].state_aggregation?"Enabled":"Disabled");
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .lacp_activity     = %s", adminState[array_idx].lacp_activity?"True":"False");
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .lacp_timeout      = %s", adminState[array_idx].lacp_timeout?"Short":"Long");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Port# %2u", (L7_uint32)adminState[array_idx].id);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .state_aggregation = %s", adminState[array_idx].state_aggregation?"Enabled":"Disabled");
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .lacp_activity     = %s", adminState[array_idx].lacp_activity?"True":"False");
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .lacp_timeout      = %s", adminState[array_idx].lacp_timeout?"Short":"Long");
 
     array_idx++;
   }
@@ -3927,7 +3927,7 @@ L7_RC_t ptin_msg_LACPStats_get(msg_LACPStats_t *lagStats, L7_uint *nElems)
 
     if (ptin_intf_LACPStats_get(&ptinLagStats) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting status of Port# %u", port_idx);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error getting status of Port# %u", port_idx);
       return L7_FAILURE;
     }
 
@@ -3937,9 +3937,9 @@ L7_RC_t ptin_msg_LACPStats_get(msg_LACPStats_t *lagStats, L7_uint *nElems)
     lagStats[array_idx].LACPdus_rx = ptinLagStats.LACPdus_rx;
     lagStats[array_idx].LACPdus_tx = ptinLagStats.LACPdus_tx;
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Port# %2u", (L7_uint32)lagStats[array_idx].id);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .LACPdus_rx = %u", lagStats[array_idx].LACPdus_rx);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .LACPdus_tx = %u", lagStats[array_idx].LACPdus_tx);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Port# %2u", (L7_uint32)lagStats[array_idx].id);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .LACPdus_rx = %u", lagStats[array_idx].LACPdus_rx);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .LACPdus_tx = %u", lagStats[array_idx].LACPdus_tx);
 
     array_idx++;
   }
@@ -3980,11 +3980,11 @@ L7_RC_t ptin_msg_LACPStats_clear(msg_LACPStats_t *lagStats)
 
     if (ptin_intf_LACPStats_clear(&ptinLagStats) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error clearing LACP statistics of Port# %u", port_idx);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error clearing LACP statistics of Port# %u", port_idx);
       return L7_FAILURE;
     }
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Port# %2u: LACP statistics successfully cleared", port_idx);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Port# %2u: LACP statistics successfully cleared", port_idx);
   }
 
   return L7_SUCCESS;
@@ -4001,7 +4001,7 @@ L7_RC_t ptin_msg_LACPStats_clear(msg_LACPStats_t *lagStats)
  */
 L7_RC_t ptin_msg_l2_switch_config_set(msg_switch_config_t *switch_config)
 {
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Message function '%s' is being executed",__FUNCTION__);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Message function '%s' is being executed",__FUNCTION__);
 
   /* Check mask */
   if (switch_config->mask & 0x0001)
@@ -4009,23 +4009,23 @@ L7_RC_t ptin_msg_l2_switch_config_set(msg_switch_config_t *switch_config)
     /* Set aging time */
     if (ptin_l2_mac_aging_set(switch_config->aging_time)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error setting aging time to %u seconds",switch_config->aging_time);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error setting aging time to %u seconds",switch_config->aging_time);
       return L7_FAILURE;
     }
     else
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Success setting aging time to %u seconds",switch_config->aging_time);
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Success setting aging time to %u seconds",switch_config->aging_time);
     }
 
     /* Set ARP timeout to be the same as MAC age time */
     if(L7_SUCCESS != usmDbIpArpAgeTimeSet(1, switch_config->aging_time))
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error setting ARP timeout to %u seconds", switch_config->aging_time);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error setting ARP timeout to %u seconds", switch_config->aging_time);
       return L7_FAILURE;
     }
     else
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Success setting ARP timeout to %u seconds", switch_config->aging_time);
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Success setting ARP timeout to %u seconds", switch_config->aging_time);
     }
   }
 
@@ -4041,18 +4041,18 @@ L7_RC_t ptin_msg_l2_switch_config_set(msg_switch_config_t *switch_config)
  */
 L7_RC_t ptin_msg_l2_switch_config_get(msg_switch_config_t *switch_config)
 {
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Message function '%s' is being executed",__FUNCTION__);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Message function '%s' is being executed",__FUNCTION__);
 
   switch_config->mask = 0x0000;
 
   if (ptin_l2_mac_aging_get(&switch_config->aging_time)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting aging time");
+    PT_LOG_ERR(LOG_CTX_MSG, "Error getting aging time");
     return L7_FAILURE;
   }
   else
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Success getting aging time (%u seconds)",switch_config->aging_time);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Success getting aging time (%u seconds)",switch_config->aging_time);
     switch_config->mask |= 0x0001;
   }
 
@@ -4070,18 +4070,18 @@ L7_RC_t ptin_msg_l2_macTable_get(msg_switch_mac_table_t *mac_table, int struct1o
 {
   L7_uint32 i, numEntries;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Message function '%s' is being executed",__FUNCTION__);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Message function '%s' is being executed",__FUNCTION__);
 
   /* Validate arguments */
   if (mac_table==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid argument");
+    PT_LOG_ERR(LOG_CTX_MSG,"Invalid argument");
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," SlotId       = %u",mac_table->intro.slotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," StartEntryId = %u",mac_table->intro.startEntryId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," NumEntries   = %u",mac_table->intro.numEntries);
+  PT_LOG_DEBUG(LOG_CTX_MSG," SlotId       = %u",mac_table->intro.slotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG," StartEntryId = %u",mac_table->intro.startEntryId);
+  PT_LOG_DEBUG(LOG_CTX_MSG," NumEntries   = %u",mac_table->intro.numEntries);
 
 #if 0
   L7_uint8  slotId;
@@ -4100,7 +4100,7 @@ L7_RC_t ptin_msg_l2_macTable_get(msg_switch_mac_table_t *mac_table, int struct1o
   if (startId>=maxSize)
   {
     mac_table->intro.numEntries = 0;
-    LOG_WARNING(LOG_CTX_PTIN_MSG," StartEntryId is higher than 999");
+    PT_LOG_WARN(LOG_CTX_MSG," StartEntryId is higher than 999");
     return L7_SUCCESS;
   }
 
@@ -4108,12 +4108,12 @@ L7_RC_t ptin_msg_l2_macTable_get(msg_switch_mac_table_t *mac_table, int struct1o
   if (startId+numEntries>=maxSize)
   {
     numEntries = maxSize - startId;
-    LOG_WARNING(LOG_CTX_PTIN_MSG," First majoration of Number of entries to %u",numEntries);
+    PT_LOG_WARN(LOG_CTX_MSG," First majoration of Number of entries to %u",numEntries);
   }
   if (numEntries>MSG_CMDGET_MAC_TABLE_MAXENTRIES)
   {
     numEntries = MSG_CMDGET_MAC_TABLE_MAXENTRIES;
-    LOG_WARNING(LOG_CTX_PTIN_MSG," Second majoration of entries limited to %u",numEntries);
+    PT_LOG_WARN(LOG_CTX_MSG," Second majoration of entries limited to %u",numEntries);
   }
 
   mac_table->intro.numEntries = numEntries;
@@ -4141,7 +4141,7 @@ L7_RC_t ptin_msg_l2_macTable_get(msg_switch_mac_table_t *mac_table, int struct1o
   {
     if (ptin_l2_mac_table_load()!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Error loading table");
+      PT_LOG_ERR(LOG_CTX_MSG,"Error loading table");
       return L7_FAILURE;
     }
   }
@@ -4158,7 +4158,7 @@ L7_RC_t ptin_msg_l2_macTable_get(msg_switch_mac_table_t *mac_table, int struct1o
   /* Read table */
   if (ptin_l2_mac_table_get(mac_table->intro.startEntryId, &numEntries, &entries_list)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error getting MAC list");
+    PT_LOG_ERR(LOG_CTX_MSG,"Error getting MAC list");
     return L7_FAILURE;
   }
 
@@ -4196,35 +4196,35 @@ L7_RC_t ptin_msg_l2_macTable_remove(msg_switch_mac_table_entry_t *mac_table, L7_
   ptin_switch_mac_entry entry;
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Message function '%s' being executed",__FUNCTION__);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Message function '%s' being executed",__FUNCTION__);
 
   /* Validate arguments */
   if (mac_table==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid argument");
+    PT_LOG_ERR(LOG_CTX_MSG,"Invalid argument");
     return L7_FAILURE;
   }
 
   /* Consider only a maximum of 256 elements */
   if (numEntries > MSG_CMDGET_MAC_TABLE_MAXENTRIES)
   {
-    LOG_WARNING(LOG_CTX_PTIN_MSG,"numEntries limited from %u to %u", numEntries, MSG_CMDGET_MAC_TABLE_MAXENTRIES);
+    PT_LOG_WARN(LOG_CTX_MSG,"numEntries limited from %u to %u", numEntries, MSG_CMDGET_MAC_TABLE_MAXENTRIES);
     numEntries = MSG_CMDGET_MAC_TABLE_MAXENTRIES;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," NumEntries   = %u", numEntries);
+  PT_LOG_DEBUG(LOG_CTX_MSG," NumEntries   = %u", numEntries);
 
   /* If numEntries is -1, flush all L2 MAC entries */
   if (numEntries == 0)
   {
     if (ptin_l2_mac_table_flush()!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Error flushing MAC table");
+      PT_LOG_ERR(LOG_CTX_MSG,"Error flushing MAC table");
       return L7_FAILURE;
     }
     else
     {
-      LOG_WARNING(LOG_CTX_PTIN_MSG,"MAC table will flushed");
+      PT_LOG_WARN(LOG_CTX_MSG,"MAC table will flushed");
       return L7_SUCCESS;
     }
   }
@@ -4242,12 +4242,12 @@ L7_RC_t ptin_msg_l2_macTable_remove(msg_switch_mac_table_entry_t *mac_table, L7_
 
     if (ptin_l2_mac_table_entry_remove(&entry) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Error removing index entry %u",i);
+      PT_LOG_ERR(LOG_CTX_MSG,"Error removing index entry %u",i);
       rc = L7_FAILURE;
     }
     else
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG,"Success adding index entry %u",i);
+      PT_LOG_DEBUG(LOG_CTX_MSG,"Success adding index entry %u",i);
     }
   }
 
@@ -4268,23 +4268,23 @@ L7_RC_t ptin_msg_l2_macTable_add(msg_switch_mac_table_entry_t *mac_table, L7_uin
   ptin_switch_mac_entry entry;
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Message function '%s' being executed",__FUNCTION__);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Message function '%s' being executed",__FUNCTION__);
 
   /* Validate arguments */
   if (mac_table==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid argument");
+    PT_LOG_ERR(LOG_CTX_MSG,"Invalid argument");
     return L7_FAILURE;
   }
 
   /* Consider only a maximum of 256 elements */
   if (numEntries > MSG_CMDGET_MAC_TABLE_MAXENTRIES)
   {
-    LOG_WARNING(LOG_CTX_PTIN_MSG,"numEntries limited from %u to %u", numEntries, MSG_CMDGET_MAC_TABLE_MAXENTRIES);
+    PT_LOG_WARN(LOG_CTX_MSG,"numEntries limited from %u to %u", numEntries, MSG_CMDGET_MAC_TABLE_MAXENTRIES);
     numEntries = MSG_CMDGET_MAC_TABLE_MAXENTRIES;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," NumEntries   = %u", numEntries);
+  PT_LOG_DEBUG(LOG_CTX_MSG," NumEntries   = %u", numEntries);
 
   /* Remove all elements */
   for (i = 0; i < numEntries; i++)
@@ -4299,12 +4299,12 @@ L7_RC_t ptin_msg_l2_macTable_add(msg_switch_mac_table_entry_t *mac_table, L7_uin
 
     if (ptin_l2_mac_table_entry_add(&entry)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Error adding index entry %u",i);
+      PT_LOG_ERR(LOG_CTX_MSG,"Error adding index entry %u",i);
       rc = L7_FAILURE;
     }
     else
     { 
-      LOG_DEBUG(LOG_CTX_PTIN_MSG,"Success adding index entry %u",i);
+      PT_LOG_DEBUG(LOG_CTX_MSG,"Success adding index entry %u",i);
     }
   }
 
@@ -4326,23 +4326,23 @@ L7_RC_t ptin_msg_l2_maclimit_config(msg_l2_maclimit_config_t *maclimit)
   ptin_intf_t ptin_intf;
   L7_uint32   intIfNum;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Message function '%s' being executed",__FUNCTION__);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Message function '%s' being executed",__FUNCTION__);
 
   /* Validate arguments */
   if (maclimit==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid argument");
+    PT_LOG_ERR(LOG_CTX_MSG,"Invalid argument");
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId       = %u",      maclimit->slotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," interface    = %u/%u",   maclimit->intf.intf_type, maclimit->intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," mask         = 0x%.8X",  maclimit->mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," vid          = %u",      maclimit->vid);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," system       = %u",      maclimit->system);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," limit        = %u",      maclimit->limit);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," action       = %u",      maclimit->action);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," trap         = %u",      maclimit->send_trap);
+  PT_LOG_DEBUG(LOG_CTX_MSG," slotId       = %u",      maclimit->slotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG," interface    = %u/%u",   maclimit->intf.intf_type, maclimit->intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," mask         = 0x%.8X",  maclimit->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG," vid          = %u",      maclimit->vid);
+  PT_LOG_DEBUG(LOG_CTX_MSG," system       = %u",      maclimit->system);
+  PT_LOG_DEBUG(LOG_CTX_MSG," limit        = %u",      maclimit->limit);
+  PT_LOG_DEBUG(LOG_CTX_MSG," action       = %u",      maclimit->action);
+  PT_LOG_DEBUG(LOG_CTX_MSG," trap         = %u",      maclimit->send_trap);
 
   memset(&entry, 0x00, sizeof(ptin_l2_maclimit_t));
 
@@ -4357,7 +4357,7 @@ L7_RC_t ptin_msg_l2_maclimit_config(msg_l2_maclimit_config_t *maclimit)
     ptin_intf.intf_id = maclimit->intf.intf_id;  
     if (ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ptin_intf: %u/%u", ptin_intf.intf_type, ptin_intf.intf_id);
+      PT_LOG_ERR(LOG_CTX_EVC,"Invalid ptin_intf: %u/%u", ptin_intf.intf_type, ptin_intf.intf_id);
       return L7_FAILURE;
     }
   }
@@ -4392,15 +4392,15 @@ L7_RC_t ptin_msg_l2_maclimit_config(msg_l2_maclimit_config_t *maclimit)
   rc = dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_L2_MACLIMIT, DAPI_CMD_SET, sizeof(ptin_l2_maclimit_t), &entry);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Failed set limit on hardware: rc:%u!", rc);
-    LOG_ERR(LOG_CTX_PTIN_MSG," slotId       = %u",      maclimit->slotId);
-    LOG_ERR(LOG_CTX_PTIN_MSG," interface    = %u/%u",   maclimit->intf.intf_type, maclimit->intf.intf_id);
-    LOG_ERR(LOG_CTX_PTIN_MSG," mask         = 0x%.8X",  maclimit->mask);
-    LOG_ERR(LOG_CTX_PTIN_MSG," vid          = %u",      maclimit->vid);
-    LOG_ERR(LOG_CTX_PTIN_MSG," system       = %u",      maclimit->system);
-    LOG_ERR(LOG_CTX_PTIN_MSG," limit        = %u",      maclimit->limit);
-    LOG_ERR(LOG_CTX_PTIN_MSG," action       = %u",      maclimit->action);
-    LOG_ERR(LOG_CTX_PTIN_MSG," trap         = %u",      maclimit->send_trap);
+    PT_LOG_ERR(LOG_CTX_EVC,"Failed set limit on hardware: rc:%u!", rc);
+    PT_LOG_ERR(LOG_CTX_MSG," slotId       = %u",      maclimit->slotId);
+    PT_LOG_ERR(LOG_CTX_MSG," interface    = %u/%u",   maclimit->intf.intf_type, maclimit->intf.intf_id);
+    PT_LOG_ERR(LOG_CTX_MSG," mask         = 0x%.8X",  maclimit->mask);
+    PT_LOG_ERR(LOG_CTX_MSG," vid          = %u",      maclimit->vid);
+    PT_LOG_ERR(LOG_CTX_MSG," system       = %u",      maclimit->system);
+    PT_LOG_ERR(LOG_CTX_MSG," limit        = %u",      maclimit->limit);
+    PT_LOG_ERR(LOG_CTX_MSG," action       = %u",      maclimit->action);
+    PT_LOG_ERR(LOG_CTX_MSG," trap         = %u",      maclimit->send_trap);
     return rc;
   }
 
@@ -4424,18 +4424,18 @@ L7_RC_t ptin_msg_l2_maclimit_status(msg_l2_maclimit_status_t *maclimit_status)
   /* Validate arguments */
   if (maclimit_status==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid argument");
+    PT_LOG_ERR(LOG_CTX_MSG,"Invalid argument");
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId       = %u",      maclimit_status->slotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," interface    = %u/%u",   maclimit_status->intf.intf_type, maclimit_status->intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," slotId       = %u",      maclimit_status->slotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG," interface    = %u/%u",   maclimit_status->intf.intf_type, maclimit_status->intf.intf_id);
 
   ptin_intf.intf_type = maclimit_status->intf.intf_type;
   ptin_intf.intf_id = maclimit_status->intf.intf_id;
   if (ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ptin_intf: %u/%u", ptin_intf.intf_type, ptin_intf.intf_id);
+    PT_LOG_ERR(LOG_CTX_EVC,"Invalid ptin_intf: %u/%u", ptin_intf.intf_type, ptin_intf.intf_id);
     return L7_FAILURE;
   } 
 
@@ -4444,9 +4444,9 @@ L7_RC_t ptin_msg_l2_maclimit_status(msg_l2_maclimit_status_t *maclimit_status)
   rc = dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_L2_MACLIMIT_STATUS, DAPI_CMD_GET, sizeof(ptin_l2_maclimit_status_t), &entry);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Failed to get status from hardware: rc:%u!", rc);
-    LOG_ERR(LOG_CTX_PTIN_MSG," slotId       = %u",      maclimit_status->slotId);
-    LOG_ERR(LOG_CTX_PTIN_MSG," interface    = %u/%u",   maclimit_status->intf.intf_type, maclimit_status->intf.intf_id);    
+    PT_LOG_ERR(LOG_CTX_EVC,"Failed to get status from hardware: rc:%u!", rc);
+    PT_LOG_ERR(LOG_CTX_MSG," slotId       = %u",      maclimit_status->slotId);
+    PT_LOG_ERR(LOG_CTX_MSG," interface    = %u/%u",   maclimit_status->intf.intf_type, maclimit_status->intf.intf_id);    
     return rc;
   }
 
@@ -4455,12 +4455,12 @@ L7_RC_t ptin_msg_l2_maclimit_status(msg_l2_maclimit_status_t *maclimit_status)
 
   maclimit_status->mask = 0x03;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," Status Response");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId       = %u",      maclimit_status->slotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," interface    = %u/%u",   maclimit_status->intf.intf_type, maclimit_status->intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," MacLearned   = %u",      maclimit_status->number_mac_learned);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," Status       = %u",      maclimit_status->status);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," Mask         = %u",      maclimit_status->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Status Response");
+  PT_LOG_DEBUG(LOG_CTX_MSG," slotId       = %u",      maclimit_status->slotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG," interface    = %u/%u",   maclimit_status->intf.intf_type, maclimit_status->intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," MacLearned   = %u",      maclimit_status->number_mac_learned);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Status       = %u",      maclimit_status->status);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Mask         = %u",      maclimit_status->mask);
 
   return rc;
 }
@@ -4481,16 +4481,16 @@ L7_RC_t ptin_msg_dai_global_config(msg_dai_global_settings_t *config)
   /* Validate arguments */
   if (config == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Null pointer");
+    PT_LOG_ERR(LOG_CTX_MSG, "Null pointer");
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," SlotId = %u", config->slotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," Mask   = 0x%02x", config->mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," Enable = %u", config->global_enable);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," SrcMAC Validate = %u", config->validate_smac);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," DstMAC Validate = %u", config->validate_dmac);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," IPAddr Validate = %u", config->validate_ipAddr);
+  PT_LOG_DEBUG(LOG_CTX_MSG," SlotId = %u", config->slotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Mask   = 0x%02x", config->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Enable = %u", config->global_enable);
+  PT_LOG_DEBUG(LOG_CTX_MSG," SrcMAC Validate = %u", config->validate_smac);
+  PT_LOG_DEBUG(LOG_CTX_MSG," DstMAC Validate = %u", config->validate_dmac);
+  PT_LOG_DEBUG(LOG_CTX_MSG," IPAddr Validate = %u", config->validate_ipAddr);
 
   /* Global enable */
   if (config->mask & 0x01)
@@ -4504,14 +4504,14 @@ L7_RC_t ptin_msg_dai_global_config(msg_dai_global_settings_t *config)
     rc = usmDbDaiVerifySMacSet(config->validate_smac);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error setting SMAC validation (%u)", config->validate_smac);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error setting SMAC validation (%u)", config->validate_smac);
       rc_global = rc;
       if (IS_FAILURE_ERROR(rc))
         rc_global_failure = rc;
     }
     else
     {
-      LOG_TRACE(LOG_CTX_PTIN_MSG, "SMAC validation set to %u", config->validate_smac);
+      PT_LOG_TRACE(LOG_CTX_MSG, "SMAC validation set to %u", config->validate_smac);
     }
   }
 
@@ -4521,14 +4521,14 @@ L7_RC_t ptin_msg_dai_global_config(msg_dai_global_settings_t *config)
     rc = usmDbDaiVerifyDMacSet(config->validate_dmac);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error setting DMAC validation (%u)", config->validate_smac);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error setting DMAC validation (%u)", config->validate_smac);
       rc_global = rc;
       if (IS_FAILURE_ERROR(rc))
         rc_global_failure = rc;
     }
     else
     {
-      LOG_TRACE(LOG_CTX_PTIN_MSG, "DMAC validation set to %u", config->validate_dmac);
+      PT_LOG_TRACE(LOG_CTX_MSG, "DMAC validation set to %u", config->validate_dmac);
     }
   }
 
@@ -4538,14 +4538,14 @@ L7_RC_t ptin_msg_dai_global_config(msg_dai_global_settings_t *config)
     rc = usmDbDaiVerifyIPSet(config->validate_ipAddr);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error setting IP validation (%u)", config->validate_ipAddr);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error setting IP validation (%u)", config->validate_ipAddr);
       rc_global = rc;
       if (IS_FAILURE_ERROR(rc))
         rc_global_failure = rc;
     }
     else
     {
-      LOG_TRACE(LOG_CTX_PTIN_MSG, "IPAddr validation set to %u", config->validate_ipAddr);
+      PT_LOG_TRACE(LOG_CTX_MSG, "IPAddr validation set to %u", config->validate_ipAddr);
     }
   }
 
@@ -4575,7 +4575,7 @@ L7_RC_t ptin_msg_dai_intf_config(msg_dai_intf_settings_t *config, L7_uint nElems
   /* Validate arguments */
   if (config == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Null pointer");
+    PT_LOG_ERR(LOG_CTX_MSG, "Null pointer");
     return L7_FAILURE;
   }
 
@@ -4584,11 +4584,11 @@ L7_RC_t ptin_msg_dai_intf_config(msg_dai_intf_settings_t *config, L7_uint nElems
   {
     item = &config[i];
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," SlotId = %u", item->slotId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Mask   = 0x%02x", item->mask);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Interface      = %u/%u", item->intf.intf_type, item->intf.intf_id);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Rate Limit     = %u", item->rateLimit);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Burst Interval = %u", item->burstInterval);
+    PT_LOG_DEBUG(LOG_CTX_MSG," SlotId = %u", item->slotId);
+    PT_LOG_DEBUG(LOG_CTX_MSG," Mask   = 0x%02x", item->mask);
+    PT_LOG_DEBUG(LOG_CTX_MSG," Interface      = %u/%u", item->intf.intf_type, item->intf.intf_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG," Rate Limit     = %u", item->rateLimit);
+    PT_LOG_DEBUG(LOG_CTX_MSG," Burst Interval = %u", item->burstInterval);
 
     ptin_intf.intf_type = item->intf.intf_type;
     ptin_intf.intf_id   = item->intf.intf_id;
@@ -4607,14 +4607,14 @@ L7_RC_t ptin_msg_dai_intf_config(msg_dai_intf_settings_t *config, L7_uint nElems
       rc = usmDbDaiIntfTrustSet(intIfNum, item->trust);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error setting trust mode (%u) for ptin_intf %u/%u", item->trust, ptin_intf.intf_type, ptin_intf.intf_id);
+        PT_LOG_ERR(LOG_CTX_MSG, "Error setting trust mode (%u) for ptin_intf %u/%u", item->trust, ptin_intf.intf_type, ptin_intf.intf_id);
         rc_global = rc;
         if (IS_FAILURE_ERROR(rc))
           rc_global_failure = rc;
       }
       else
       {
-        LOG_TRACE(LOG_CTX_PTIN_MSG, "Trust mode of intf %u/%u set to %u", item->intf.intf_type, item->intf.intf_id, item->trust);
+        PT_LOG_TRACE(LOG_CTX_MSG, "Trust mode of intf %u/%u set to %u", item->intf.intf_type, item->intf.intf_id, item->trust);
       }
     }
     /* Rate Limit */
@@ -4623,14 +4623,14 @@ L7_RC_t ptin_msg_dai_intf_config(msg_dai_intf_settings_t *config, L7_uint nElems
       rc = usmDbDaiIntfRateLimitSet(intIfNum, (L7_int) item->rateLimit);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error setting rate limit (%u) for ptin_intf %u/%u", item->rateLimit, ptin_intf.intf_type, ptin_intf.intf_id);
+        PT_LOG_ERR(LOG_CTX_MSG, "Error setting rate limit (%u) for ptin_intf %u/%u", item->rateLimit, ptin_intf.intf_type, ptin_intf.intf_id);
         rc_global = rc;
         if (IS_FAILURE_ERROR(rc))
           rc_global_failure = rc;
       }
       else
       {
-        LOG_TRACE(LOG_CTX_PTIN_MSG, "Rate Limit of intf %u/%u set to %u", item->intf.intf_type, item->intf.intf_id, item->rateLimit);
+        PT_LOG_TRACE(LOG_CTX_MSG, "Rate Limit of intf %u/%u set to %u", item->intf.intf_type, item->intf.intf_id, item->rateLimit);
       }
     }
     /* Burst interval */
@@ -4641,19 +4641,19 @@ L7_RC_t ptin_msg_dai_intf_config(msg_dai_intf_settings_t *config, L7_uint nElems
         rc = usmDbDaiIntfBurstIntervalSet(intIfNum, item->burstInterval);
         if (rc != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_PTIN_MSG, "Error setting burst interval (%u) for ptin_intf %u/%u", item->burstInterval, ptin_intf.intf_type, ptin_intf.intf_id);
+          PT_LOG_ERR(LOG_CTX_MSG, "Error setting burst interval (%u) for ptin_intf %u/%u", item->burstInterval, ptin_intf.intf_type, ptin_intf.intf_id);
           rc_global = rc;
           if (IS_FAILURE_ERROR(rc))
             rc_global_failure = rc;
         }
         else
         {
-          LOG_TRACE(LOG_CTX_PTIN_MSG, "Burst interval of intf %u/%u set to %u", item->intf.intf_type, item->intf.intf_id, item->burstInterval);
+          PT_LOG_TRACE(LOG_CTX_MSG, "Burst interval of intf %u/%u set to %u", item->intf.intf_type, item->intf.intf_id, item->burstInterval);
         }
       }
       else
       {
-        LOG_TRACE(LOG_CTX_PTIN_MSG, "Burst interval of intf %u/%u ignored", item->intf.intf_type, item->intf.intf_id);
+        PT_LOG_TRACE(LOG_CTX_MSG, "Burst interval of intf %u/%u ignored", item->intf.intf_type, item->intf.intf_id);
       }
     }
   }
@@ -4686,7 +4686,7 @@ L7_RC_t ptin_msg_dai_vlan_config(msg_dai_vlan_settings_t *config, L7_uint nElems
   /* Validate arguments */
   if (config == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Null pointer");
+    PT_LOG_ERR(LOG_CTX_MSG, "Null pointer");
     return L7_FAILURE;
   }
 
@@ -4695,12 +4695,12 @@ L7_RC_t ptin_msg_dai_vlan_config(msg_dai_vlan_settings_t *config, L7_uint nElems
   {
     item = &config[i];
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," SlotId = %u", item->slotId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," service_type = %u", item->service.id_type);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," service_id   = %u", item->service.id_val.evc_id);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Mask         = 0x%02x", item->mask);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," DAI enable   = %u", item->dai_enable);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Static Flag  = %u", item->staticFlag);
+    PT_LOG_DEBUG(LOG_CTX_MSG," SlotId = %u", item->slotId);
+    PT_LOG_DEBUG(LOG_CTX_MSG," service_type = %u", item->service.id_type);
+    PT_LOG_DEBUG(LOG_CTX_MSG," service_id   = %u", item->service.id_val.evc_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG," Mask         = 0x%02x", item->mask);
+    PT_LOG_DEBUG(LOG_CTX_MSG," DAI enable   = %u", item->dai_enable);
+    PT_LOG_DEBUG(LOG_CTX_MSG," Static Flag  = %u", item->staticFlag);
 
     /* Clear list of VLANs */
     memset(dai_intVid_list, 0x00, sizeof(dai_intVid_list));
@@ -4712,14 +4712,14 @@ L7_RC_t ptin_msg_dai_vlan_config(msg_dai_vlan_settings_t *config, L7_uint nElems
       /* Validate EVC id */
       if (item->service.id_val.evc_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "eEVC#%u is out of range!", item->service.id_val.evc_id);
+        PT_LOG_ERR(LOG_CTX_MSG, "eEVC#%u is out of range!", item->service.id_val.evc_id);
         rc_global = rc_global_failure = L7_FAILURE;
         continue;
       }
       /* EVC must be active */
       if (!ptin_evc_is_in_use(item->service.id_val.evc_id)) 
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "eEVC#%u is not in use!", item->service.id_val.evc_id);
+        PT_LOG_ERR(LOG_CTX_MSG, "eEVC#%u is not in use!", item->service.id_val.evc_id);
         rc_global = L7_NOT_EXIST;
         continue;
       }
@@ -4727,7 +4727,7 @@ L7_RC_t ptin_msg_dai_vlan_config(msg_dai_vlan_settings_t *config, L7_uint nElems
       dai_maxVlans = 1;
       if (ptin_evc_intRootVlan_get(item->service.id_val.evc_id, &dai_intVid_list[0]) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Cannot get intVlan from eEVC#%u!", item->service.id_val.evc_id, dai_intVid_list[0]);
+        PT_LOG_ERR(LOG_CTX_MSG, "Cannot get intVlan from eEVC#%u!", item->service.id_val.evc_id, dai_intVid_list[0]);
         rc_global = rc_global_failure = L7_FAILURE;
         continue;
       }
@@ -4738,7 +4738,7 @@ L7_RC_t ptin_msg_dai_vlan_config(msg_dai_vlan_settings_t *config, L7_uint nElems
       /* Validate NNI VLAN */
       if (item->service.id_val.nni_vid < PTIN_VLAN_MIN || item->service.id_val.nni_vid > PTIN_VLAN_MAX)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "NNI VLAN %u is out of range!", item->service.id_val.nni_vid);
+        PT_LOG_ERR(LOG_CTX_MSG, "NNI VLAN %u is out of range!", item->service.id_val.nni_vid);
         rc_global = rc_global_failure = L7_FAILURE;
         continue;
       }
@@ -4747,19 +4747,19 @@ L7_RC_t ptin_msg_dai_vlan_config(msg_dai_vlan_settings_t *config, L7_uint nElems
       dai_maxVlans = 4096;
       if (ptin_evc_get_intVlan_fromNNIvlan(item->service.id_val.nni_vid, dai_intVid_list, &dai_maxVlans) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "NNI VLAN %u is invalid, or doesn't belong to any EVC!", item->service.id_val.nni_vid);
+        PT_LOG_ERR(LOG_CTX_MSG, "NNI VLAN %u is invalid, or doesn't belong to any EVC!", item->service.id_val.nni_vid);
         rc_global = L7_NOT_EXIST;
         continue;
       }
     }
     else
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid service type %u", item->service.id_type);
+      PT_LOG_ERR(LOG_CTX_MSG, "Invalid service type %u", item->service.id_type);
       rc_global = L7_NOT_SUPPORTED;
       continue;
     }
 
-    LOG_TRACE(LOG_CTX_PTIN_MSG, "Going to process %u VLANs", dai_maxVlans);
+    PT_LOG_TRACE(LOG_CTX_MSG, "Going to process %u VLANs", dai_maxVlans);
 
     /* Run VLANs range: if EVC id was provided, only one iteration will be executed with vlanId=0 */
     for (vlan_index = 0; vlan_index < dai_maxVlans; vlan_index++)
@@ -4769,7 +4769,7 @@ L7_RC_t ptin_msg_dai_vlan_config(msg_dai_vlan_settings_t *config, L7_uint nElems
       /* Validate NNI VLAN */
       if (vlanId < PTIN_VLAN_MIN || vlanId > PTIN_VLAN_MAX)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Int. VLAN %u is out of range!", vlanId);
+        PT_LOG_ERR(LOG_CTX_MSG, "Int. VLAN %u is out of range!", vlanId);
         rc_global = rc_global_failure = L7_FAILURE;
         continue;
       }
@@ -4778,7 +4778,7 @@ L7_RC_t ptin_msg_dai_vlan_config(msg_dai_vlan_settings_t *config, L7_uint nElems
       rc = usmDbVlanIDGet(0, vlanId);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "VLAN %u is invalid, or don't belong to any EVC!", vlanId);
+        PT_LOG_ERR(LOG_CTX_MSG, "VLAN %u is invalid, or don't belong to any EVC!", vlanId);
         rc_global = L7_NOT_EXIST;
         continue;
       }
@@ -4789,14 +4789,14 @@ L7_RC_t ptin_msg_dai_vlan_config(msg_dai_vlan_settings_t *config, L7_uint nElems
         rc = usmDbDaiVlanEnableSet(vlanId, item->dai_enable);
         if (rc != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_PTIN_MSG, "Error setting enable state (%u) for VLAN %u", item->dai_enable, vlanId);
+          PT_LOG_ERR(LOG_CTX_MSG, "Error setting enable state (%u) for VLAN %u", item->dai_enable, vlanId);
           rc_global = rc;
           if (IS_FAILURE_ERROR(rc))
             rc_global_failure = rc;
         }
         else
         {
-          LOG_TRACE(LOG_CTX_PTIN_MSG, "DAI enable for VLAN %u set to %u", vlanId, item->dai_enable);
+          PT_LOG_TRACE(LOG_CTX_MSG, "DAI enable for VLAN %u set to %u", vlanId, item->dai_enable);
         }
       }
       /* Static flag */
@@ -4805,14 +4805,14 @@ L7_RC_t ptin_msg_dai_vlan_config(msg_dai_vlan_settings_t *config, L7_uint nElems
         rc = usmDbDaiVlanArpAclStaticFlagSet(vlanId, item->staticFlag);
         if (rc != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_PTIN_MSG, "Error setting static flag (%u) for VLAN %u", item->staticFlag, vlanId);
+          PT_LOG_ERR(LOG_CTX_MSG, "Error setting static flag (%u) for VLAN %u", item->staticFlag, vlanId);
           rc_global = rc;
           if (IS_FAILURE_ERROR(rc))
             rc_global_failure = rc;
         }
         else
         {
-          LOG_TRACE(LOG_CTX_PTIN_MSG, "Static flag for VLAN %u set to %u", vlanId, item->staticFlag);
+          PT_LOG_TRACE(LOG_CTX_MSG, "Static flag for VLAN %u set to %u", vlanId, item->staticFlag);
         }
       }
     }
@@ -4844,7 +4844,7 @@ L7_RC_t ptin_msg_dai_stats_get(msg_dai_statistics_t *msg_stats, L7_uint nElems)
   /* Validate arguments */
   if (msg_stats == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Null pointer");
+    PT_LOG_ERR(LOG_CTX_MSG, "Null pointer");
     return L7_FAILURE;
   }
 
@@ -4853,13 +4853,13 @@ L7_RC_t ptin_msg_dai_stats_get(msg_dai_statistics_t *msg_stats, L7_uint nElems)
   {
     item = &msg_stats[i];
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Stats index %u:", i);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," SlotId       = %u", item->slotId);
-//  LOG_DEBUG(LOG_CTX_PTIN_MSG," service_type = %u", item->service.id_type);
-//  LOG_DEBUG(LOG_CTX_PTIN_MSG," service_id   = %u", item->service.id_val.evc_id);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," EVC id       = %u", item->evc_idx);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," VLAN id      = %u", item->vlan_id);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Intf         = %u", item->intf.intf_type, item->intf.intf_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG,"Stats index %u:", i);
+    PT_LOG_DEBUG(LOG_CTX_MSG," SlotId       = %u", item->slotId);
+//  PT_LOG_DEBUG(LOG_CTX_MSG," service_type = %u", item->service.id_type);
+//  PT_LOG_DEBUG(LOG_CTX_MSG," service_id   = %u", item->service.id_val.evc_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG," EVC id       = %u", item->evc_idx);
+    PT_LOG_DEBUG(LOG_CTX_MSG," VLAN id      = %u", item->vlan_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG," Intf         = %u", item->intf.intf_type, item->intf.intf_id);
 
     /* Clear list of VLANs */
     memset(dai_intVid_list, 0x00, sizeof(dai_intVid_list));
@@ -4872,14 +4872,14 @@ L7_RC_t ptin_msg_dai_stats_get(msg_dai_statistics_t *msg_stats, L7_uint nElems)
       /* Check range */
       if (item->evc_idx /*item->service.id_val.evc_id*/ >= PTIN_SYSTEM_N_EXTENDED_EVCS) 
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "eEVC#%u is out of range!", item->evc_idx /*item->service.id_val.evc_id*/);
+        PT_LOG_ERR(LOG_CTX_MSG, "eEVC#%u is out of range!", item->evc_idx /*item->service.id_val.evc_id*/);
         rc_global = rc_global_failure = L7_FAILURE;
         continue;
       }
       /* EVC is active? */
       if (!ptin_evc_is_in_use(item->evc_idx /*item->service.id_val.evc_id*/))
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "eEVC#%u is not in use!", item->evc_idx /*item->service.id_val.evc_id*/);
+        PT_LOG_ERR(LOG_CTX_MSG, "eEVC#%u is not in use!", item->evc_idx /*item->service.id_val.evc_id*/);
         rc_global = L7_NOT_EXIST;
         continue;
       }
@@ -4887,7 +4887,7 @@ L7_RC_t ptin_msg_dai_stats_get(msg_dai_statistics_t *msg_stats, L7_uint nElems)
       dai_maxVlans = 1;
       if (ptin_evc_intRootVlan_get(item->evc_idx /*item->service.id_val.evc_id*/, &dai_intVid_list[0]) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Cannot get intVlan from eEVC#%u!", item->evc_idx /*item->service.id_val.evc_id*/);
+        PT_LOG_ERR(LOG_CTX_MSG, "Cannot get intVlan from eEVC#%u!", item->evc_idx /*item->service.id_val.evc_id*/);
         rc_global = rc_global_failure = L7_FAILURE;
         continue;
       }
@@ -4897,7 +4897,7 @@ L7_RC_t ptin_msg_dai_stats_get(msg_dai_statistics_t *msg_stats, L7_uint nElems)
     {
       if (item->vlan_id /*item->service.id_val.nni_vid*/ < PTIN_VLAN_MIN || item->vlan_id /*item->service.id_val.nni_vid*/ > PTIN_VLAN_MAX)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "VLAN %u is out of valid range!", item->vlan_id /*item->service.id_val.nni_vid*/);
+        PT_LOG_ERR(LOG_CTX_MSG, "VLAN %u is out of valid range!", item->vlan_id /*item->service.id_val.nni_vid*/);
         rc_global = rc_global_failure = L7_FAILURE;
         continue;
       }
@@ -4905,19 +4905,19 @@ L7_RC_t ptin_msg_dai_stats_get(msg_dai_statistics_t *msg_stats, L7_uint nElems)
       dai_maxVlans = 4096;
       if (ptin_evc_get_intVlan_fromNNIvlan(item->vlan_id /*item->service.id_val.nni_vid*/, dai_intVid_list, &dai_maxVlans) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "NNI VLAN %u is invalid, or doesn't belong to any EVC!", item->vlan_id /*item->service.id_val.nni_vid*/);
+        PT_LOG_ERR(LOG_CTX_MSG, "NNI VLAN %u is invalid, or doesn't belong to any EVC!", item->vlan_id /*item->service.id_val.nni_vid*/);
         rc_global = L7_NOT_EXIST;
         continue;
       }
     }
     //else
     //{
-    //  LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid service type %u", item->service.id_type);
+    //  PT_LOG_ERR(LOG_CTX_MSG, "Invalid service type %u", item->service.id_type);
     //  rc_global = L7_NOT_SUPPORTED;
     //  continue;
     //}
 
-    LOG_TRACE(LOG_CTX_PTIN_MSG, "Going to process %u VLANs", dai_maxVlans);
+    PT_LOG_TRACE(LOG_CTX_MSG, "Going to process %u VLANs", dai_maxVlans);
 
     /* Clear results for this request */
     memset(&item->stats, 0x00, sizeof(item->stats));
@@ -4930,7 +4930,7 @@ L7_RC_t ptin_msg_dai_stats_get(msg_dai_statistics_t *msg_stats, L7_uint nElems)
       /* Validate NNI VLAN */
       if (vlanId < PTIN_VLAN_MIN || vlanId > PTIN_VLAN_MAX)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Int. VLAN %u is out of range!", vlanId);
+        PT_LOG_ERR(LOG_CTX_MSG, "Int. VLAN %u is out of range!", vlanId);
         rc_global = rc_global_failure = L7_FAILURE;
         continue;
       }
@@ -4939,7 +4939,7 @@ L7_RC_t ptin_msg_dai_stats_get(msg_dai_statistics_t *msg_stats, L7_uint nElems)
       rc = usmDbVlanIDGet(0, vlanId);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "VLAN %u is invalid, or don't belong to any EVC!", vlanId);
+        PT_LOG_ERR(LOG_CTX_MSG, "VLAN %u is invalid, or don't belong to any EVC!", vlanId);
         rc_global = L7_NOT_EXIST;
         continue;
       }
@@ -4948,7 +4948,7 @@ L7_RC_t ptin_msg_dai_stats_get(msg_dai_statistics_t *msg_stats, L7_uint nElems)
       rc = usmDbDaiVlanEnableGet(vlanId, &val);
       if (rc != L7_SUCCESS || !val)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "VLAN %u is not used by DAI!", vlanId);
+        PT_LOG_ERR(LOG_CTX_MSG, "VLAN %u is not used by DAI!", vlanId);
         rc_global = rc;
         if (IS_FAILURE_ERROR(rc))
           rc_global_failure = rc;
@@ -4959,7 +4959,7 @@ L7_RC_t ptin_msg_dai_stats_get(msg_dai_statistics_t *msg_stats, L7_uint nElems)
       rc = usmDbDaiVlanStatsGet(vlanId, &stats);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting Stats from VLAN %u!", vlanId);
+        PT_LOG_ERR(LOG_CTX_MSG, "Error getting Stats from VLAN %u!", vlanId);
         rc_global = rc;
         if (IS_FAILURE_ERROR(rc))
           rc_global_failure = rc;
@@ -5004,7 +5004,7 @@ L7_RC_t ptin_msg_EVC_get(msg_HwEthMef10Evc_t *msgEvcConf)
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
   if (msgEvcConf->id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "EVC# %u is out of range [0..%u]", msgEvcConf->id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    PT_LOG_ERR(LOG_CTX_MSG, "EVC# %u is out of range [0..%u]", msgEvcConf->id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
@@ -5012,7 +5012,7 @@ L7_RC_t ptin_msg_EVC_get(msg_HwEthMef10Evc_t *msgEvcConf)
 
   if (ptin_evc_get(&ptinEvcConf) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting EVC# %u configuration", ptinEvcConf.index);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error getting EVC# %u configuration", ptinEvcConf.index);
     return L7_FAILURE;
   }
 
@@ -5024,11 +5024,11 @@ L7_RC_t ptin_msg_EVC_get(msg_HwEthMef10Evc_t *msgEvcConf)
   msgEvcConf->n_intf   = ptinEvcConf.n_intf;
   //memcpy(msgEvcConf->ce_vid_bmp, ptinEvcConf.ce_vid_bmp, sizeof(msgEvcConf->ce_vid_bmp));
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "EVC# %u",              msgEvcConf->id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Flags    = 0x%08X",  msgEvcConf->flags);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Type     = %u",      msgEvcConf->type);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .MC Flood = %u (%s)", msgEvcConf->mc_flood, msgEvcConf->mc_flood==0?"All":msgEvcConf->mc_flood==1?"Unknown":"None");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Nr.Intf  = %u",      msgEvcConf->n_intf);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u",              msgEvcConf->id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .Flags    = 0x%08X",  msgEvcConf->flags);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .Type     = %u",      msgEvcConf->type);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .MC Flood = %u (%s)", msgEvcConf->mc_flood, msgEvcConf->mc_flood==0?"All":msgEvcConf->mc_flood==1?"Unknown":"None");
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .Nr.Intf  = %u",      msgEvcConf->n_intf);
 
   for (i=0; i < ptinEvcConf.n_intf; i++)
   {
@@ -5037,7 +5037,7 @@ L7_RC_t ptin_msg_EVC_get(msg_HwEthMef10Evc_t *msgEvcConf)
     msgEvcConf->intf[i].mef_type  = ptinEvcConf.intf[i].mef_type;
     msgEvcConf->intf[i].vid       = ptinEvcConf.intf[i].vid;
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   %s# %02u %s VID=%04u",
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   %s# %02u %s VID=%04u",
               msgEvcConf->intf[i].intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
               msgEvcConf->intf[i].intf_id,
               msgEvcConf->intf[i].mef_type == PTIN_EVC_INTF_ROOT ? "Root":"Leaf",
@@ -5079,7 +5079,7 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_uint16 nni_vlan, L7_
     /* Get internal VLAN */
     if (ptin_evc_intRootVlan_get(evc_id, &int_vlan) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error obtaining internal VLAN from eEVC %u", evc_id);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining internal VLAN from eEVC %u", evc_id);
       return L7_FAILURE;
     }
 
@@ -5088,7 +5088,7 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_uint16 nni_vlan, L7_
     evcConf.index = evc_id;
     if (ptin_evc_get(&evcConf) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error obtaining EVC data");
+      PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining EVC data");
       return L7_FAILURE;
     }
     /* Add ports */
@@ -5100,18 +5100,18 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_uint16 nni_vlan, L7_
         if (ptin_intf_typeId2port(evcConf.intf[i].intf_type, evcConf.intf[i].intf_id, &port) == L7_SUCCESS)
         {
           qos_apply.ptin_port[number_of_ports++] = port;
-          LOG_DEBUG(LOG_CTX_PTIN_MSG, "Port %u added", port);
+          PT_LOG_DEBUG(LOG_CTX_MSG, "Port %u added", port);
         }
         else
         {
-          LOG_ERR(LOG_CTX_PTIN_MSG, "Intf %u/%u does not have ptin_port format",
+          PT_LOG_ERR(LOG_CTX_MSG, "Intf %u/%u does not have ptin_port format",
                   evcConf.intf[i].intf_type, evcConf.intf[i].intf_id);
         }
       }
     }
     for (i = 0; i < number_of_ports; i++)
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Port added: ptin_port=%u", qos_apply.ptin_port[i]);
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Port added: ptin_port=%u", qos_apply.ptin_port[i]);
     }
   }
   /* Use NNI VLAN */
@@ -5123,7 +5123,7 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_uint16 nni_vlan, L7_
     /* Validate NNI VLAN */
     if (ptin_evc_get_intVlan_fromNNIvlan(nni_vlan, L7_NULLPTR, L7_NULLPTR) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "NNI Vlan %u not valid!", nni_vlan);
+      PT_LOG_ERR(LOG_CTX_MSG, "NNI Vlan %u not valid!", nni_vlan);
       return L7_FAILURE;
     }
 
@@ -5141,23 +5141,23 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_uint16 nni_vlan, L7_
         qos_apply.ptin_port[number_of_ports++] = port;
       }
     #else
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Cannot use NNI VLAN for this board!");
+      PT_LOG_ERR(LOG_CTX_MSG, "Cannot use NNI VLAN for this board!");
       return L7_FAILURE;
     #endif
     }
     else
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Cannot use NNI VLAN for downlink interfaces!");
+      PT_LOG_ERR(LOG_CTX_MSG, "Cannot use NNI VLAN for downlink interfaces!");
       return L7_FAILURE;
     }
   #else
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Cannot use NNI VLAN for non LC cards!");
+    PT_LOG_ERR(LOG_CTX_MSG, "Cannot use NNI VLAN for non LC cards!");
     return L7_FAILURE;
   #endif
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "No inputs provided: eEVC %u, NNIVlan %u", evc_id, nni_vlan);
+    PT_LOG_ERR(LOG_CTX_MSG, "No inputs provided: eEVC %u, NNIVlan %u", evc_id, nni_vlan);
     return L7_FAILURE;
   }
 
@@ -5167,22 +5167,22 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_uint16 nni_vlan, L7_
   qos_apply.int_vlan        = int_vlan;
   qos_apply.leaf_side       = downlink;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to configure QoS for EVC %u / internalVlan %u", evc_id, int_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Going to configure QoS for EVC %u / internalVlan %u", evc_id, int_vlan);
 
   /* Configure QoS? */
   if (qos != L7_NULLPTR)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Ingress: %s", (downlink) ? "Downlink" : "Uplink");
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Mask      = 0x%02x", qos->mask);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "TrustMode = %u", qos->trust_mode);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Ingress: %s", (downlink) ? "Downlink" : "Uplink");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Mask      = 0x%02x", qos->mask);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "TrustMode = %u", qos->trust_mode);
 
     if (qos->mask == 0x00) 
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "No configurations to be done");
+      PT_LOG_DEBUG(LOG_CTX_MSG, "No configurations to be done");
       return L7_SUCCESS;
     }
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Processing QoS data");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Processing QoS data");
 
     /* Trust mode */
     qos_apply.trust_mode   = qos->trust_mode;
@@ -5233,37 +5233,37 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_uint16 nni_vlan, L7_
         break;
     }
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "NNIVlan=%u, intVlan=%u, trust_mode=%u, remark=%u, Number of ports=%u, Number of CoS=%u",
+    PT_LOG_DEBUG(LOG_CTX_MSG, "NNIVlan=%u, intVlan=%u, trust_mode=%u, remark=%u, Number of ports=%u, Number of CoS=%u",
               qos_apply.nni_vlan, qos_apply.int_vlan, qos_apply.trust_mode, qos_apply.pbits_remark, qos_apply.number_of_ports, qos_apply.cos_map_size);
 
     for (i = 0; i < qos_apply.cos_map_size; i++)
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "CoS(%u)=%u", i, qos_apply.cos_map[i]);
+      PT_LOG_DEBUG(LOG_CTX_MSG, "CoS(%u)=%u", i, qos_apply.cos_map[i]);
     }
 
     /* Apply configuration */
     if (ptin_qos_vlan_add(&qos_apply) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring QoS of intVlan %u / NNIVlan %u / leaf:%u",
+      PT_LOG_ERR(LOG_CTX_MSG, "Error configuring QoS of intVlan %u / NNIVlan %u / leaf:%u",
               qos_apply.int_vlan, qos_apply.nni_vlan, qos_apply.leaf_side);
       return L7_FAILURE;
     }
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "QoS configured successfully of intVlan %u / NNIVlan %u / leaf:%u",
+    PT_LOG_DEBUG(LOG_CTX_MSG, "QoS configured successfully of intVlan %u / NNIVlan %u / leaf:%u",
               qos_apply.int_vlan, qos_apply.nni_vlan, qos_apply.leaf_side);
   }
   /* Only update list of ports */
   else
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Updating list of ports");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Updating list of ports");
 
     /* Apply configuration */
     if (ptin_qos_vlan_ports_update(&qos_apply) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error reconfiguring list ports");
+      PT_LOG_ERR(LOG_CTX_MSG, "Error reconfiguring list ports");
       return L7_FAILURE;
     }
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Ports reconfigured!");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Ports reconfigured!");
   }
 
   return L7_SUCCESS;
@@ -5287,7 +5287,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
   if ((msgEvcConf->evc.id == PTIN_EVC_INBAND) || (msgEvcConf->evc.id >= PTIN_SYSTEM_N_EXTENDED_EVCS))
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "EVC# %u is out of range [0..%u]", msgEvcConf->evc.id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    PT_LOG_ERR(LOG_CTX_MSG, "EVC# %u is out of range [0..%u]", msgEvcConf->evc.id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
@@ -5299,26 +5299,26 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
   ptinEvcConf.n_intf   = msgEvcConf->evc.n_intf;
   //memcpy(ptinEvcConf.ce_vid_bmp, msgEvcConf->evc.ce_vid_bmp, sizeof(ptinEvcConf.ce_vid_bmp));
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "EVC# %u",              ptinEvcConf.index);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Flags    = 0x%08X",  ptinEvcConf.flags);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Type     = %u",      ptinEvcConf.type);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .MC Flood = %u (%s)", ptinEvcConf.mc_flood, ptinEvcConf.mc_flood==0?"All":ptinEvcConf.mc_flood==1?"Unknown":"None");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Nr.Intf  = %u",      ptinEvcConf.n_intf);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u",              ptinEvcConf.index);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .Flags    = 0x%08X",  ptinEvcConf.flags);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .Type     = %u",      ptinEvcConf.type);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .MC Flood = %u (%s)", ptinEvcConf.mc_flood, ptinEvcConf.mc_flood==0?"All":ptinEvcConf.mc_flood==1?"Unknown":"None");
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .Nr.Intf  = %u",      ptinEvcConf.n_intf);
 
   for (i=0; i < ptinEvcConf.n_intf; i++)
   {
     #if (0)
     /* PTP: Workaround */
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "ptin_sys_number_of_ports (%d)", ptin_sys_number_of_ports);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "ptin_sys_number_of_ports (%d)", ptin_sys_number_of_ports);
 
     if ( (msgEvcConf->intf[i].intf_id == ptin_sys_number_of_ports) && (msgEvcConf->intf[i].intf_type == PTIN_EVC_INTF_PHYSICAL))
     {
       ptinEvcConf.flags = 0x18;
       ptinEvcConf.n_intf--;
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Flags    = 0x%08X",  ptinEvcConf.flags);
+      PT_LOG_DEBUG(LOG_CTX_MSG, " .Flags    = 0x%08X",  ptinEvcConf.flags);
       
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "PTP EVC (%u)",              ptinEvcConf.index);
+      PT_LOG_DEBUG(LOG_CTX_MSG, "PTP EVC (%u)",              ptinEvcConf.index);
       break;
     }
 
@@ -5332,7 +5332,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
     ptinEvcConf.intf[i].vid       = msgEvcConf->evc.intf[i].vid;
     ptinEvcConf.intf[i].vid_inner = msgEvcConf->evc.intf[i].inner_vid;
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   %s# %02u %s VID=%04u/%-04u",
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   %s# %02u %s VID=%04u/%-04u",
              ptinEvcConf.intf[i].intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
              ptinEvcConf.intf[i].intf_id,
              ptinEvcConf.intf[i].mef_type == PTIN_EVC_INTF_ROOT ? "Root":"Leaf",
@@ -5341,14 +5341,14 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
 
   if (ptin_evc_create(&ptinEvcConf) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error creating/reconfiguring EVC# %u", ptinEvcConf.index);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error creating/reconfiguring EVC# %u", ptinEvcConf.index);
     return L7_FAILURE;
   }
 
   /* Get EVC flags */
   if (ptin_evc_flags_get(ptinEvcConf.index, &flags, L7_NULLPTR) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error obtaining flags for EVC %u", ptinEvcConf.index);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining flags for EVC %u", ptinEvcConf.index);
     return L7_FAILURE;
   }
 
@@ -5370,16 +5370,16 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
       else
       {
-        LOG_WARNING(LOG_CTX_PTIN_MSG, "Error obtaining NNI VLAN from eEVC %u", ptinEvcConf.index);
+        PT_LOG_WARN(LOG_CTX_MSG, "Error obtaining NNI VLAN from eEVC %u", ptinEvcConf.index);
         nni_vlan = 0;
       }
     }
   #endif
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to configure uplink QoS for EVC %u / NNI VLAN %u", evc_id, nni_vlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Going to configure uplink QoS for EVC %u / NNI VLAN %u", evc_id, nni_vlan);
     /* Uplink QoS */
     if (ptin_msg_qosvlan_config(evc_id, nni_vlan, L7_FALSE, &msgEvcConf->qos[0]) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring uplink QoS for EVC %u / NNI VLAN %u", evc_id, nni_vlan);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error configuring uplink QoS for EVC %u / NNI VLAN %u", evc_id, nni_vlan);
       return L7_FAILURE;
     }
   }
@@ -5389,11 +5389,11 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
     evc_id = ptinEvcConf.index;
     nni_vlan = 0;
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to configure downlink QoS for EVC %u / NNI VLAN %u", evc_id, nni_vlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Going to configure downlink QoS for EVC %u / NNI VLAN %u", evc_id, nni_vlan);
     /* Uplink QoS */
     if (ptin_msg_qosvlan_config(evc_id, nni_vlan, L7_TRUE, &msgEvcConf->qos[1]) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring downlink QoS for EVC %u / NNI VLAN %u", evc_id, nni_vlan);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error configuring downlink QoS for EVC %u / NNI VLAN %u", evc_id, nni_vlan);
       return L7_FAILURE;
     }
   }
@@ -5432,7 +5432,7 @@ L7_RC_t ptin_msg_evc_qos_set(ipc_msg *inbuffer, ipc_msg *outbuffer)
       number_of_evcs = 1;
       if (ptin_evc_get_evcId_fromNNIvlan(nni_vlan, &evc_id, &number_of_evcs) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error obtaining EVC id from NNI_VLAN %u", nni_vlan);
+        PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining EVC id from NNI_VLAN %u", nni_vlan);
         return L7_NOT_EXIST;
       }
     }
@@ -5441,7 +5441,7 @@ L7_RC_t ptin_msg_evc_qos_set(ipc_msg *inbuffer, ipc_msg *outbuffer)
       evc_id = msgEvcQoS[i].id.id_val.evc_id;
       if (ptin_evc_get_NNIvlan_fromEvcId(evc_id, &nni_vlan) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error obtaining NNI_VLAN %u from EVC %u", evc_id);
+        PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining NNI_VLAN %u from EVC %u", evc_id);
         return L7_NOT_EXIST;
       }
     }
@@ -5449,33 +5449,33 @@ L7_RC_t ptin_msg_evc_qos_set(ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Get EVC flags */
     if (ptin_evc_flags_get(evc_id, &flags, L7_NULLPTR) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error obtaining flags for EVC %u / NNI_VLAN %u", evc_id, nni_vlan);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining flags for EVC %u / NNI_VLAN %u", evc_id, nni_vlan);
       return L7_FAILURE;
     }
 
   #if (PTIN_BOARD_IS_LINECARD)
     if ((flags & PTIN_EVC_MASK_QUATTRO) && (flags & PTIN_EVC_MASK_STACKED))
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to configure uplink QoS for NNI_VLAN %u", nni_vlan);
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Going to configure uplink QoS for NNI_VLAN %u", nni_vlan);
       rc = ptin_msg_qosvlan_config((L7_uint32) -1, nni_vlan, L7_FALSE, &msgEvcQoS[i].qos[0]);
     }
     else
   #endif
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to configure uplink QoS for EVC %u", evc_id);
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Going to configure uplink QoS for EVC %u", evc_id);
       rc = ptin_msg_qosvlan_config(evc_id, 0, L7_FALSE, &msgEvcQoS[i].qos[0]);
     }
     if (rc != L7_SUCCESS) 
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring uplink QoS for EVC %u / NNI_VLAN %u", evc_id, nni_vlan);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error configuring uplink QoS for EVC %u / NNI_VLAN %u", evc_id, nni_vlan);
       return L7_FAILURE;
     }
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to configure downlink QoS for EVC %u / NNI VLAN %u", evc_id, nni_vlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Going to configure downlink QoS for EVC %u / NNI VLAN %u", evc_id, nni_vlan);
     rc = ptin_msg_qosvlan_config(evc_id, 0, L7_TRUE, &msgEvcQoS[i].qos[1]);
     if (rc != L7_SUCCESS) 
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring downlink QoS for EVC %u / NNI_VLAN %u", evc_id, nni_vlan);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error configuring downlink QoS for EVC %u / NNI_VLAN %u", evc_id, nni_vlan);
       return L7_FAILURE;
     }
   }
@@ -5497,7 +5497,7 @@ L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_s
 
   if (msgEvcConf == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid argument");
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid argument");
     return L7_FAILURE;
   }
 
@@ -5506,7 +5506,7 @@ L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_s
     /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
     if ((msgEvcConf[i].id == PTIN_EVC_INBAND) || (msgEvcConf[i].id >= PTIN_SYSTEM_N_EXTENDED_EVCS))
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "EVC# %u is out of range [0..%u]", msgEvcConf[i].id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+      PT_LOG_ERR(LOG_CTX_MSG, "EVC# %u is out of range [0..%u]", msgEvcConf[i].id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
       rc_global = L7_FAILURE;
       continue;
     }
@@ -5514,7 +5514,7 @@ L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_s
     /* Obtain internal vlan */
     if (ptin_evc_intRootVlan_get(msgEvcConf[i].id, &int_vlan) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error obtaining internal VLAN of EVC# %u", msgEvcConf[i].id);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining internal VLAN of EVC# %u", msgEvcConf[i].id);
       int_vlan = 0;
     }
     if (!PTIN_VLAN_IS_QUATTRO(int_vlan))
@@ -5527,32 +5527,32 @@ L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_s
       qos_apply.leaf_side  = -1;  /* All sides */
       qos_apply.trust_mode = 0;   /* Ignore */
 
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to unconfigure QoS for EVC %u / intVlan %u", msgEvcConf[i].id, int_vlan);
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Going to unconfigure QoS for EVC %u / intVlan %u", msgEvcConf[i].id, int_vlan);
 
       /* As long as a single QoS-VLAN map is applied to all stacked MAC-Bridge services, do not allow its deletion */
       if (ptin_qos_vlan_clear(&qos_apply) != L7_SUCCESS) 
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error deconfiguring QoS for EVC %u / intVlan %u", msgEvcConf[i].id, int_vlan);
+        PT_LOG_ERR(LOG_CTX_MSG, "Error deconfiguring QoS for EVC %u / intVlan %u", msgEvcConf[i].id, int_vlan);
         continue;
       }
       else
       {
-        LOG_DEBUG(LOG_CTX_PTIN_MSG, "Error deconfiguring QoS for EVC %u / intVlan %u", msgEvcConf[i].id, int_vlan);
+        PT_LOG_DEBUG(LOG_CTX_MSG, "Error deconfiguring QoS for EVC %u / intVlan %u", msgEvcConf[i].id, int_vlan);
       }
     }
     else
     {
-      LOG_WARNING(LOG_CTX_PTIN_MSG, "EVC# %u is QUATTRO type... do nothing");
+      PT_LOG_WARN(LOG_CTX_MSG, "EVC# %u is QUATTRO type... do nothing");
     }
 
     if (ptin_evc_delete(msgEvcConf[i].id) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error deleting EVC# %u", msgEvcConf[i].id);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error deleting EVC# %u", msgEvcConf[i].id);
       rc_global = L7_FAILURE;
       continue;
     }
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "EVC# %u successfully deleted", msgEvcConf[i].id);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u successfully deleted", msgEvcConf[i].id);
   }
 
   return rc_global;
@@ -5576,7 +5576,7 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
   /* Validate arguments */
   if (msgEvcPort == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "No data provided");
+    PT_LOG_ERR(LOG_CTX_MSG, "No data provided");
     return L7_FAILURE;
   }
 
@@ -5586,7 +5586,7 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
     /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
     if (/*(msgEvcPort[i].evcId == PTIN_EVC_INBAND) ||*/ (msgEvcPort[i].evcId >= PTIN_SYSTEM_N_EXTENDED_EVCS))
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "EVC# %u is out of range [0..%u]", msgEvcPort[i].evcId, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+      PT_LOG_ERR(LOG_CTX_MSG, "EVC# %u is out of range [0..%u]", msgEvcPort[i].evcId, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
       return L7_FAILURE;
     }
 
@@ -5597,12 +5597,12 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
     ptinEvcPort.vid       = msgEvcPort[i].intf.vid;
     ptinEvcPort.vid_inner = msgEvcPort[i].intf.inner_vid;
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "EVC# %u - oper %s",     msgEvcPort[i].evcId,
+    PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u - oper %s",     msgEvcPort[i].evcId,
               ((oper==PTIN_MSG_OPER_ADD) ? "ADD" : ((oper==PTIN_MSG_OPER_REMOVE) ? "REMOVE" : "UNKNOWN")));
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Intf      = %u/%u",   ptinEvcPort.intf_type, ptinEvcPort.intf_id);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .IntfType  = %s",     (ptinEvcPort.mef_type == PTIN_EVC_INTF_LEAF) ? "LEAF" : "ROOT");
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .OuterVlan = %u",      ptinEvcPort.vid);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .InnerVlan = %u",      ptinEvcPort.vid_inner);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .Intf      = %u/%u",   ptinEvcPort.intf_type, ptinEvcPort.intf_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .IntfType  = %s",     (ptinEvcPort.mef_type == PTIN_EVC_INTF_LEAF) ? "LEAF" : "ROOT");
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .OuterVlan = %u",      ptinEvcPort.vid);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .InnerVlan = %u",      ptinEvcPort.vid_inner);
 
     /* Add/remove port */
     switch (oper)
@@ -5613,7 +5613,7 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
         rc_global = rc;
         if (IS_FAILURE_ERROR(rc))
         {
-          LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding port %u/%u to EVC# %u (rc:%u)", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId, rc);
+          PT_LOG_ERR(LOG_CTX_MSG, "Error adding port %u/%u to EVC# %u (rc:%u)", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId, rc);
           rc_global_failure = rc;
         }
         else
@@ -5623,24 +5623,24 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
       }
       else
       {
-        LOG_TRACE(LOG_CTX_PTIN_MSG, "Added port %u/%u to EVC# %u", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId);
+        PT_LOG_TRACE(LOG_CTX_MSG, "Added port %u/%u to EVC# %u", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId);
       }
       break;
     case PTIN_MSG_OPER_REMOVE:
       if ((rc=ptin_evc_port_remove(msgEvcPort[i].evcId, &ptinEvcPort)) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing port %u/%u to EVC# %u", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId);
+        PT_LOG_ERR(LOG_CTX_MSG, "Error removing port %u/%u to EVC# %u", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId);
         rc_global = rc;
         if (IS_FAILURE_ERROR(rc))
           rc_global_failure = rc;
       }
       else
       {
-        LOG_TRACE(LOG_CTX_PTIN_MSG, "Removed port %u/%u from EVC# %u", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId);
+        PT_LOG_TRACE(LOG_CTX_MSG, "Removed port %u/%u from EVC# %u", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId);
       }
       break;
     default:
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Unknown operation %u", oper);
+      PT_LOG_ERR(LOG_CTX_MSG, "Unknown operation %u", oper);
       rc_global = L7_FAILURE;
     }
 
@@ -5648,12 +5648,12 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
     /* Update VLAN-QoS ports */
     if (rc_global_failure == L7_SUCCESS)
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to reconfigure QoS for EVC %u", msgEvcPort[i].evcId);
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Going to reconfigure QoS for EVC %u", msgEvcPort[i].evcId);
       if (ptin_msg_qosvlan_config(msgEvcPort[i].evcId, ptinEvcPort.mef_type, L7_NULLPTR))
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error reconfiguring QoS for EVC %u", msgEvcPort[i].evcId);
+        PT_LOG_ERR(LOG_CTX_MSG, "Error reconfiguring QoS for EVC %u", msgEvcPort[i].evcId);
       }
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "QoS for EVC %u reconfigured", msgEvcPort[i].evcId);
+      PT_LOG_DEBUG(LOG_CTX_MSG, "QoS for EVC %u reconfigured", msgEvcPort[i].evcId);
     }
 #endif
   }
@@ -5687,19 +5687,19 @@ L7_RC_t ptin_msg_evc_config(ipc_msg *inbuffer, ipc_msg *outbuffer)
   /* Validate arguments */
   if (msgEvcOptions == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "No data provided");
+    PT_LOG_ERR(LOG_CTX_MSG, "No data provided");
     return L7_FAILURE;
   }
 
   /* Run all structures */
   for (i=0; i<n_size; i++)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," type = %u", msgEvcOptions[i].service_id.id_type);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," id   = %u", msgEvcOptions[i].service_id.id_val.evc_id);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Mask      = 0x%04x", msgEvcOptions[i].mask);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Flags     = 0x%08x/0x%08x", msgEvcOptions[i].flags.value, msgEvcOptions[i].flags.mask);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Type      = %u", msgEvcOptions[i].type);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .MC_flood  = %u", msgEvcOptions[i].mc_flood);
+    PT_LOG_DEBUG(LOG_CTX_MSG," type = %u", msgEvcOptions[i].service_id.id_type);
+    PT_LOG_DEBUG(LOG_CTX_MSG," id   = %u", msgEvcOptions[i].service_id.id_val.evc_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .Mask      = 0x%04x", msgEvcOptions[i].mask);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .Flags     = 0x%08x/0x%08x", msgEvcOptions[i].flags.value, msgEvcOptions[i].flags.mask);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .Type      = %u", msgEvcOptions[i].type);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .MC_flood  = %u", msgEvcOptions[i].mc_flood);
 
     /* If EVC id is provided, get related VLAN */
     if (msgEvcOptions[i].service_id.id_type == MSG_ID_EVC_TYPE)
@@ -5707,14 +5707,14 @@ L7_RC_t ptin_msg_evc_config(ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Validate EVC id */
       if (msgEvcOptions[i].service_id.id_val.evc_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "eEVC#%u is out of range!", msgEvcOptions[i].service_id.id_val.evc_id);
+        PT_LOG_ERR(LOG_CTX_MSG, "eEVC#%u is out of range!", msgEvcOptions[i].service_id.id_val.evc_id);
         rc_global = rc_global_failure = L7_FAILURE;
         continue;
       }
       /* EVC must be active */
       if (!ptin_evc_is_in_use(msgEvcOptions[i].service_id.id_val.evc_id)) 
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "eEVC#%u is not in use!", msgEvcOptions[i].service_id.id_val.evc_id);
+        PT_LOG_ERR(LOG_CTX_MSG, "eEVC#%u is not in use!", msgEvcOptions[i].service_id.id_val.evc_id);
         rc_global = L7_NOT_EXIST;
         continue;
       }
@@ -5728,14 +5728,14 @@ L7_RC_t ptin_msg_evc_config(ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if ((rc=ptin_evc_config(msgEvcOptions[i].service_id.id_val.evc_id, &evcOptions)) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring EVC# %u", msgEvcOptions[i].service_id.id_val.evc_id);
+        PT_LOG_ERR(LOG_CTX_MSG, "Error configuring EVC# %u", msgEvcOptions[i].service_id.id_val.evc_id);
         rc_global = rc;
         if (IS_FAILURE_ERROR(rc))
           rc_global_failure = rc;
       }
       else
       {
-        LOG_TRACE(LOG_CTX_PTIN_MSG, "EVC# %u configured successfully", msgEvcOptions[i].service_id.id_val.evc_id);
+        PT_LOG_TRACE(LOG_CTX_MSG, "EVC# %u configured successfully", msgEvcOptions[i].service_id.id_val.evc_id);
       }
 
     }
@@ -5745,7 +5745,7 @@ L7_RC_t ptin_msg_evc_config(ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Validate NNI VLAN */
       if (msgEvcOptions[i].service_id.id_val.nni_vid < PTIN_VLAN_MIN || msgEvcOptions[i].service_id.id_val.nni_vid > PTIN_VLAN_MAX)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "NNI VLAN %u is out of range!", msgEvcOptions[i].service_id.id_val.nni_vid);
+        PT_LOG_ERR(LOG_CTX_MSG, "NNI VLAN %u is out of range!", msgEvcOptions[i].service_id.id_val.nni_vid);
         rc_global = rc_global_failure = L7_FAILURE;
         continue;
       }
@@ -5753,7 +5753,7 @@ L7_RC_t ptin_msg_evc_config(ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Get EVC list from NNI VLAN */
       if (ptin_evc_get_evcId_fromNNIvlan(msgEvcOptions[i].service_id.id_val.nni_vid, evcid_list, &max_evcs) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "NNI VLAN %u is invalid, or doesn't belong to any EVC!", msgEvcOptions[i].service_id.id_val.nni_vid);
+        PT_LOG_ERR(LOG_CTX_MSG, "NNI VLAN %u is invalid, or doesn't belong to any EVC!", msgEvcOptions[i].service_id.id_val.nni_vid);
         rc_global = L7_NOT_EXIST;
         continue;
       }
@@ -5773,34 +5773,34 @@ L7_RC_t ptin_msg_evc_config(ipc_msg *inbuffer, ipc_msg *outbuffer)
         /* Validate EVC id */
         if (evc_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
         {
-          LOG_ERR(LOG_CTX_PTIN_MSG, "eEVC#%u is out of range!", evc_id);
+          PT_LOG_ERR(LOG_CTX_MSG, "eEVC#%u is out of range!", evc_id);
           rc_global = rc_global_failure = L7_FAILURE;
           continue;
         }
         /* EVC must be active */
         if (!ptin_evc_is_in_use(evc_id)) 
         {
-          LOG_ERR(LOG_CTX_PTIN_MSG, "eEVC#%u is not in use!", evc_id);
+          PT_LOG_ERR(LOG_CTX_MSG, "eEVC#%u is not in use!", evc_id);
           rc_global = L7_NOT_EXIST;
           continue;
         }
 
         if ((rc=ptin_evc_config(evc_id, &evcOptions)) != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring EVC# %u", evc_id);
+          PT_LOG_ERR(LOG_CTX_MSG, "Error configuring EVC# %u", evc_id);
           rc_global = rc;
           if (IS_FAILURE_ERROR(rc))
             rc_global_failure = rc;
         }
         else
         {
-          LOG_TRACE(LOG_CTX_PTIN_MSG, "EVC# %u configured successfully", evc_id);
+          PT_LOG_TRACE(LOG_CTX_MSG, "EVC# %u configured successfully", evc_id);
         }
       }
     }
     else
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid service type %u", msgEvcOptions[i].service_id.id_type);
+      PT_LOG_ERR(LOG_CTX_MSG, "Invalid service type %u", msgEvcOptions[i].service_id.id_type);
       rc_global = L7_NOT_SUPPORTED;
       continue;
     }
@@ -5831,15 +5831,15 @@ L7_RC_t ptin_msg_EVCBridge_add(msg_HwEthEvcBridge_t *msgEvcBridge)
   ptinEvcBridge.intf.mef_type  = msgEvcBridge->intf.mef_type;   /* must be Leaf */
   ptinEvcBridge.intf.vid       = msgEvcBridge->intf.vid;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "EVC# %u Bridge",         ptinEvcBridge.index);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " %s# %u",                ptinEvcBridge.intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u Bridge",         ptinEvcBridge.index);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u",                ptinEvcBridge.intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
             ptinEvcBridge.intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Inner VID       = %u", ptinEvcBridge.inn_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Outer VID [NEW] = %u", ptinEvcBridge.intf.vid);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .Inner VID       = %u", ptinEvcBridge.inn_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .Outer VID [NEW] = %u", ptinEvcBridge.intf.vid);
 
   if (ptin_evc_p2p_bridge_add(&ptinEvcBridge) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding EVC# %u bridge", ptinEvcBridge.index);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error adding EVC# %u bridge", ptinEvcBridge.index);
     return L7_FAILURE;
   }
 
@@ -5866,17 +5866,17 @@ L7_RC_t ptin_msg_EVCBridge_remove(msg_HwEthEvcBridge_t *msgEvcBridge)
   ptinEvcBridge.intf.mef_type  = msgEvcBridge->intf.mef_type;   /* must be Leaf */
   ptinEvcBridge.intf.vid       = msgEvcBridge->intf.vid;        /* not used on remove oper. */
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "EVC# %u Bridge",         ptinEvcBridge.index);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " %s# %u",                ptinEvcBridge.intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u Bridge",         ptinEvcBridge.index);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u",                ptinEvcBridge.intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
             ptinEvcBridge.intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Inner VID       = %u", ptinEvcBridge.inn_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Outer VID [NEW] = %u", ptinEvcBridge.intf.vid);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .Inner VID       = %u", ptinEvcBridge.inn_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .Outer VID [NEW] = %u", ptinEvcBridge.intf.vid);
 
   rc = ptin_evc_p2p_bridge_remove(&ptinEvcBridge);
 
   if ( rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing EVC# %u bridge", ptinEvcBridge.index);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u bridge", ptinEvcBridge.index);
     return rc;
   }
 
@@ -5908,20 +5908,20 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
   ptinEvcFlow.uni_ivid            = msgEvcFlow->intf.inner_vid;
   ptinEvcFlow.macLearnMax         = msgEvcFlow->macLearnMax;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "EVC# %u Flow",     ptinEvcFlow.evc_idx);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " Flags = 0x%08x",  ptinEvcFlow.flags);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " %s# %u",          ptinEvcFlow.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u Flow",     ptinEvcFlow.evc_idx);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Flags = 0x%08x",  ptinEvcFlow.flags);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u",          ptinEvcFlow.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
                                                   ptinEvcFlow.ptin_intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " Int.IVID    = %u", ptinEvcFlow.int_ivid);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " UNI-OVID    = %u", ptinEvcFlow.uni_ovid);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " UNI-IVID    = %u", ptinEvcFlow.uni_ivid);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " macLearnMax = %u", ptinEvcFlow.macLearnMax);  
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Int.IVID    = %u", ptinEvcFlow.int_ivid);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " UNI-OVID    = %u", ptinEvcFlow.uni_ovid);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " UNI-IVID    = %u", ptinEvcFlow.uni_ivid);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " macLearnMax = %u", ptinEvcFlow.macLearnMax);  
 
   if (ptinEvcFlow.flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
   {
     if  (msgEvcFlow->mask > PTIN_MSG_EVC_FLOW_MASK_VALID)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Mask [mask:0x%02x",msgEvcFlow->mask);
+      PT_LOG_ERR(LOG_CTX_MSG, "Invalid Mask [mask:0x%02x",msgEvcFlow->mask);
       return L7_FAILURE;
     }
 
@@ -5932,7 +5932,7 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
           (msgEvcFlow->maxChannels != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE && msgEvcFlow->maxChannels > PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS) ) )
         
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Admission Control Parameters [mask:0x%02x maxBandwidth:%llu bits/s maxChannels:%hu]",msgEvcFlow->mask, msgEvcFlow->maxBandwidth, msgEvcFlow->maxChannels);
+      PT_LOG_ERR(LOG_CTX_MSG, "Invalid Admission Control Parameters [mask:0x%02x maxBandwidth:%llu bits/s maxChannels:%hu]",msgEvcFlow->mask, msgEvcFlow->maxBandwidth, msgEvcFlow->maxChannels);
       return L7_FAILURE;
     }
     ptinEvcFlow.mask                = msgEvcFlow->mask;
@@ -5940,17 +5940,17 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
     ptinEvcFlow.maxBandwidth        = msgEvcFlow->maxBandwidth;
     ptinEvcFlow.maxChannels         = msgEvcFlow->maxChannels;
     
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " onuId       = %u", ptinEvcFlow.onuId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " mask        = 0x%x", ptinEvcFlow.mask);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " maxChannels = %u", ptinEvcFlow.maxChannels);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " maxBandwidth= %llu bit/s", ptinEvcFlow.maxBandwidth);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " onuId       = %u", ptinEvcFlow.onuId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " mask        = 0x%x", ptinEvcFlow.mask);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " maxChannels = %u", ptinEvcFlow.maxChannels);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " maxBandwidth= %llu bit/s", ptinEvcFlow.maxBandwidth);
 #endif
   
   }
 
   if ((rc=ptin_evc_flow_add(&ptinEvcFlow)) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding EVC# %u flow", ptinEvcFlow.evc_idx);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error adding EVC# %u flow", ptinEvcFlow.evc_idx);
     return rc;
   }
 
@@ -5977,16 +5977,16 @@ L7_RC_t ptin_msg_EVCFlow_remove(msg_HwEthEvcFlow_t *msgEvcFlow)
   ptinEvcFlow.uni_ovid            = msgEvcFlow->intf.outer_vid; /* must be a leaf */
   ptinEvcFlow.uni_ivid            = msgEvcFlow->intf.inner_vid;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "EVC# %u Flow",   ptinEvcFlow.evc_idx);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " %s# %u",        ptinEvcFlow.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
+  PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u Flow",   ptinEvcFlow.evc_idx);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u",        ptinEvcFlow.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
                                                 ptinEvcFlow.ptin_intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " Int.IVID = %u", ptinEvcFlow.int_ivid);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " UNI-OVID = %u", ptinEvcFlow.uni_ovid);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " UNI-IVID = %u", ptinEvcFlow.uni_ivid);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Int.IVID = %u", ptinEvcFlow.int_ivid);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " UNI-OVID = %u", ptinEvcFlow.uni_ovid);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " UNI-IVID = %u", ptinEvcFlow.uni_ivid);
 
   if ((rc=ptin_evc_flow_remove(&ptinEvcFlow)) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing EVC# %u flow", ptinEvcFlow.evc_idx);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u flow", ptinEvcFlow.evc_idx);
     return rc;
   }
 
@@ -6009,21 +6009,21 @@ L7_RC_t ptin_msg_EvcFloodVlan_add(msg_HwEthEvcFloodVlan_t *msgEvcFlood, L7_uint 
 
   if ( msgEvcFlood == L7_NULLPTR )
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid params");
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid params");
     return L7_FAILURE;
   }
 
   /* Run all clients */
   for ( i=0; i<n_clients; i++)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"EVC flood vlan %u:",i);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Slot    = %u",    msgEvcFlood[i].SlotId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," EVC_idx = %u",    msgEvcFlood[i].evcId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Mask    = 0x%02x",msgEvcFlood[i].mask);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Intf    = %u/%u", msgEvcFlood[i].intf.intf_type, msgEvcFlood[i].intf.intf_id);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," CVlan   = %u",    msgEvcFlood[i].client_vlan);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Outer Vlan : %u", msgEvcFlood[i].oVlanId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Inner Vlan : %u", msgEvcFlood[i].iVlanId);
+    PT_LOG_DEBUG(LOG_CTX_MSG,"EVC flood vlan %u:",i);
+    PT_LOG_DEBUG(LOG_CTX_MSG," Slot    = %u",    msgEvcFlood[i].SlotId);
+    PT_LOG_DEBUG(LOG_CTX_MSG," EVC_idx = %u",    msgEvcFlood[i].evcId);
+    PT_LOG_DEBUG(LOG_CTX_MSG," Mask    = 0x%02x",msgEvcFlood[i].mask);
+    PT_LOG_DEBUG(LOG_CTX_MSG," Intf    = %u/%u", msgEvcFlood[i].intf.intf_type, msgEvcFlood[i].intf.intf_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG," CVlan   = %u",    msgEvcFlood[i].client_vlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG," Outer Vlan : %u", msgEvcFlood[i].oVlanId);
+    PT_LOG_DEBUG(LOG_CTX_MSG," Inner Vlan : %u", msgEvcFlood[i].iVlanId);
 
     ptin_intf.intf_type = msgEvcFlood[i].intf.intf_type;
     ptin_intf.intf_id   = msgEvcFlood[i].intf.intf_id;
@@ -6034,7 +6034,7 @@ L7_RC_t ptin_msg_EvcFloodVlan_add(msg_HwEthEvcFloodVlan_t *msgEvcFlood, L7_uint 
                                  msgEvcFlood[i].oVlanId,
                                  msgEvcFlood[i].iVlanId ) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding EVC# %u flooding vlan", msgEvcFlood[i].evcId);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error adding EVC# %u flooding vlan", msgEvcFlood[i].evcId);
       rc = L7_FAILURE;
     }
   }
@@ -6058,21 +6058,21 @@ L7_RC_t ptin_msg_EvcFloodVlan_remove(msg_HwEthEvcFloodVlan_t *msgEvcFlood, L7_ui
 
   if ( msgEvcFlood == L7_NULLPTR )
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid params");
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid params");
     return L7_FAILURE;
   }
 
   /* Run all clients */
   for ( i=0; i<n_clients; i++)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"EVC flood vlan %u:",i);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Slot    = %u",    msgEvcFlood[i].SlotId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," EVC_idx = %u",    msgEvcFlood[i].evcId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Mask    = 0x%02x",msgEvcFlood[i].mask);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Intf    = %u/%u", msgEvcFlood[i].intf.intf_type, msgEvcFlood[i].intf.intf_id);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," CVlan   = %u",    msgEvcFlood[i].client_vlan);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Outer Vlan : %u", msgEvcFlood[i].oVlanId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Inner Vlan : %u", msgEvcFlood[i].iVlanId);
+    PT_LOG_DEBUG(LOG_CTX_MSG,"EVC flood vlan %u:",i);
+    PT_LOG_DEBUG(LOG_CTX_MSG," Slot    = %u",    msgEvcFlood[i].SlotId);
+    PT_LOG_DEBUG(LOG_CTX_MSG," EVC_idx = %u",    msgEvcFlood[i].evcId);
+    PT_LOG_DEBUG(LOG_CTX_MSG," Mask    = 0x%02x",msgEvcFlood[i].mask);
+    PT_LOG_DEBUG(LOG_CTX_MSG," Intf    = %u/%u", msgEvcFlood[i].intf.intf_type, msgEvcFlood[i].intf.intf_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG," CVlan   = %u",    msgEvcFlood[i].client_vlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG," Outer Vlan : %u", msgEvcFlood[i].oVlanId);
+    PT_LOG_DEBUG(LOG_CTX_MSG," Inner Vlan : %u", msgEvcFlood[i].iVlanId);
 
     ptin_intf.intf_type = msgEvcFlood[i].intf.intf_type;
     ptin_intf.intf_id   = msgEvcFlood[i].intf.intf_id;
@@ -6083,7 +6083,7 @@ L7_RC_t ptin_msg_EvcFloodVlan_remove(msg_HwEthEvcFloodVlan_t *msgEvcFlood, L7_ui
                                     msgEvcFlood[i].oVlanId,
                                     msgEvcFlood[i].iVlanId ) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing EVC# %u flooding vlan", msgEvcFlood[i].evcId);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u flooding vlan", msgEvcFlood[i].evcId);
       rc = L7_FAILURE;
     }
   }
@@ -6107,21 +6107,21 @@ L7_RC_t ptin_msg_bwProfile_get(msg_HwEthBwProfile_t *msgBwProfile)
   ptin_bw_meter_t   meter;
   L7_RC_t   rc;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Starting message processing...");
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Starting message processing...");
 
   /* Validate arguments */
   if (msgBwProfile==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid Message Pointer");
+    PT_LOG_ERR(LOG_CTX_MSG,"Invalid Message Pointer");
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," evcId  = %u",msgBwProfile->evcId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," mask   = 0x%02x",msgBwProfile->mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," SVID   = %u",msgBwProfile->service_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," CVID   = %u",msgBwProfile->client_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," SrcIntf= %u/%u",msgBwProfile->intf_src.intf_type,msgBwProfile->intf_src.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," DstIntf= %u/%u",msgBwProfile->intf_dst.intf_type,msgBwProfile->intf_dst.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," evcId  = %u",msgBwProfile->evcId);
+  PT_LOG_DEBUG(LOG_CTX_MSG," mask   = 0x%02x",msgBwProfile->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG," SVID   = %u",msgBwProfile->service_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG," CVID   = %u",msgBwProfile->client_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG," SrcIntf= %u/%u",msgBwProfile->intf_src.intf_type,msgBwProfile->intf_src.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," DstIntf= %u/%u",msgBwProfile->intf_dst.intf_type,msgBwProfile->intf_dst.intf_id);
 
   /* Extract EVC id */
   evcId = msgBwProfile->evcId;
@@ -6129,18 +6129,18 @@ L7_RC_t ptin_msg_bwProfile_get(msg_HwEthBwProfile_t *msgBwProfile)
   /* Copy data */
   if (ptin_msg_bwProfileStruct_fill(msgBwProfile, &profile, &meter) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error with ptin_msg_bwProfileStruct_fill");
+    PT_LOG_ERR(LOG_CTX_MSG,"Error with ptin_msg_bwProfileStruct_fill");
     return L7_FAILURE;
   }
 
   /* Add bandwidth profile */
   if ((rc=ptin_evc_bwProfile_get(evcId, &profile, &meter))!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading profile!");
+    PT_LOG_ERR(LOG_CTX_MSG,"Error reading profile!");
     return rc;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Message processing finished!");
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Message processing finished!");
   return L7_SUCCESS;
 }
 
@@ -6158,23 +6158,23 @@ L7_RC_t ptin_msg_bwProfile_set(msg_HwEthBwProfile_t *msgBwProfile, unsigned int 
   ptin_bw_meter_t   meter;
   L7_RC_t   rc;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Starting message processing...");
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Starting message processing...");
 
   /* Validate arguments */
   if (msgBwProfile==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid Message Pointer");
+    PT_LOG_ERR(LOG_CTX_MSG,"Invalid Message Pointer");
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," evcId  = %u",msgBwProfile->evcId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," mask   = 0x%02x",msgBwProfile->mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," SVID   = %u",msgBwProfile->service_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," CVID   = %u",msgBwProfile->client_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," SrcIntf= %u/%u",msgBwProfile->intf_src.intf_type,msgBwProfile->intf_src.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," DstIntf= %u/%u",msgBwProfile->intf_dst.intf_type,msgBwProfile->intf_dst.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," Meter {CIR,CBS}={%llu,%llu}",msgBwProfile->profile.cir,msgBwProfile->profile.cbs);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," Meter {EIR,EBS}={%llu,%llu}",msgBwProfile->profile.eir,msgBwProfile->profile.ebs);
+  PT_LOG_DEBUG(LOG_CTX_MSG," evcId  = %u",msgBwProfile->evcId);
+  PT_LOG_DEBUG(LOG_CTX_MSG," mask   = 0x%02x",msgBwProfile->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG," SVID   = %u",msgBwProfile->service_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG," CVID   = %u",msgBwProfile->client_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG," SrcIntf= %u/%u",msgBwProfile->intf_src.intf_type,msgBwProfile->intf_src.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," DstIntf= %u/%u",msgBwProfile->intf_dst.intf_type,msgBwProfile->intf_dst.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Meter {CIR,CBS}={%llu,%llu}",msgBwProfile->profile.cir,msgBwProfile->profile.cbs);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Meter {EIR,EBS}={%llu,%llu}",msgBwProfile->profile.eir,msgBwProfile->profile.ebs);
 
   /* Extract EVC id */
   evcId = msgBwProfile->evcId;
@@ -6182,7 +6182,7 @@ L7_RC_t ptin_msg_bwProfile_set(msg_HwEthBwProfile_t *msgBwProfile, unsigned int 
   /* Copy data */
   if (ptin_msg_bwProfileStruct_fill(msgBwProfile, &profile, &meter) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error with ptin_msg_bwProfileStruct_fill");
+    PT_LOG_ERR(LOG_CTX_MSG,"Error with ptin_msg_bwProfileStruct_fill");
     return L7_FAILURE;
   }
 
@@ -6192,7 +6192,7 @@ L7_RC_t ptin_msg_bwProfile_set(msg_HwEthBwProfile_t *msgBwProfile, unsigned int 
       profile.cos=-1;   //Set to ignore
       if ((rc=ptin_evc_bwProfile_set(evcId, &profile, &meter)) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG,"Error applying profile!");
+        PT_LOG_ERR(LOG_CTX_MSG,"Error applying profile!");
         return rc;
       }
       break;
@@ -6212,7 +6212,7 @@ L7_RC_t ptin_msg_bwProfile_set(msg_HwEthBwProfile_t *msgBwProfile, unsigned int 
            p=profile;
            if ((rc=ptin_evc_bwProfile_set(evcId, &p, &meter)) != L7_SUCCESS)
            {
-             LOG_ERR(LOG_CTX_PTIN_MSG,"Error applying profile!");
+             PT_LOG_ERR(LOG_CTX_MSG,"Error applying profile!");
              return rc;
            }
        //}
@@ -6220,7 +6220,7 @@ L7_RC_t ptin_msg_bwProfile_set(msg_HwEthBwProfile_t *msgBwProfile, unsigned int 
       break;
   }//switch
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Message processing finished!");
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Message processing finished!");
   return L7_SUCCESS;
 }
 
@@ -6238,21 +6238,21 @@ L7_RC_t ptin_msg_bwProfile_delete(msg_HwEthBwProfile_t *msgBwProfile, unsigned i
   ptin_bw_meter_t   meter;
   L7_RC_t   rc;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Starting message processing...");
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Starting message processing...");
 
   /* Validate arguments */
   if (msgBwProfile==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid Message Pointer");
+    PT_LOG_ERR(LOG_CTX_MSG,"Invalid Message Pointer");
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," evcId  = %u",msgBwProfile->evcId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," mask   = 0x%02x",msgBwProfile->mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," SVID   = %u",msgBwProfile->service_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," CVID   = %u",msgBwProfile->client_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," SrcIntf= %u/%u",msgBwProfile->intf_src.intf_type,msgBwProfile->intf_src.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," DstIntf= %u/%u",msgBwProfile->intf_dst.intf_type,msgBwProfile->intf_dst.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," evcId  = %u",msgBwProfile->evcId);
+  PT_LOG_DEBUG(LOG_CTX_MSG," mask   = 0x%02x",msgBwProfile->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG," SVID   = %u",msgBwProfile->service_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG," CVID   = %u",msgBwProfile->client_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG," SrcIntf= %u/%u",msgBwProfile->intf_src.intf_type,msgBwProfile->intf_src.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," DstIntf= %u/%u",msgBwProfile->intf_dst.intf_type,msgBwProfile->intf_dst.intf_id);
 
   /* Extract EVC id */
   evcId = msgBwProfile->evcId;
@@ -6260,7 +6260,7 @@ L7_RC_t ptin_msg_bwProfile_delete(msg_HwEthBwProfile_t *msgBwProfile, unsigned i
   /* Copy data */
   if (ptin_msg_bwProfileStruct_fill(msgBwProfile, &profile, &meter) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error with ptin_msg_bwProfileStruct_fill");
+    PT_LOG_ERR(LOG_CTX_MSG,"Error with ptin_msg_bwProfileStruct_fill");
     return L7_FAILURE;
   }
 
@@ -6269,7 +6269,7 @@ L7_RC_t ptin_msg_bwProfile_delete(msg_HwEthBwProfile_t *msgBwProfile, unsigned i
       profile.cos=-1;   //Set to ignore
       if ((rc=ptin_evc_bwProfile_delete(evcId, &profile)) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG,"Error removing profile!");
+        PT_LOG_ERR(LOG_CTX_MSG,"Error removing profile!");
         return rc;
       }
       break;
@@ -6289,7 +6289,7 @@ L7_RC_t ptin_msg_bwProfile_delete(msg_HwEthBwProfile_t *msgBwProfile, unsigned i
            p=profile;
            if ((rc=ptin_evc_bwProfile_delete(evcId, &p)) != L7_SUCCESS)
            {
-             LOG_ERR(LOG_CTX_PTIN_MSG,"Error removing profile!");
+             PT_LOG_ERR(LOG_CTX_MSG,"Error removing profile!");
              return rc;
            }
        //}
@@ -6297,7 +6297,7 @@ L7_RC_t ptin_msg_bwProfile_delete(msg_HwEthBwProfile_t *msgBwProfile, unsigned i
       break;
   }//switch
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Message processing finished!");
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Message processing finished!");
   return L7_SUCCESS;
 }
 
@@ -6310,23 +6310,23 @@ L7_RC_t ptin_msg_bwProfile_delete(msg_HwEthBwProfile_t *msgBwProfile, unsigned i
  */
 L7_RC_t ptin_msg_stormControl2_get(msg_HwEthStormControl2_t *msgStormControl)
 {
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Starting message processing...");
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Starting message processing...");
 
   /* Validate arguments */
   if (msgStormControl==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid Message Pointer");
+    PT_LOG_ERR(LOG_CTX_MSG,"Invalid Message Pointer");
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId = %u", msgStormControl->SlotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," intf   = %u/%u",  msgStormControl->intf.intf_type, msgStormControl->intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," mask   = 0x%02x", msgStormControl->mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," Broadcast = %ld (%u)", msgStormControl->broadcast.rate_value, msgStormControl->broadcast.rate_units);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," Multicast = %ld (%u)", msgStormControl->multicast.rate_value, msgStormControl->multicast.rate_units);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," UnknownUC = %ld (%u)", msgStormControl->unknown_uc.rate_value, msgStormControl->unknown_uc.rate_units);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," Block UC = %u", msgStormControl->block_unicast);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," Block MC = %u", msgStormControl->block_multicast);
+  PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u", msgStormControl->SlotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG," intf   = %u/%u",  msgStormControl->intf.intf_type, msgStormControl->intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," mask   = 0x%02x", msgStormControl->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Broadcast = %ld (%u)", msgStormControl->broadcast.rate_value, msgStormControl->broadcast.rate_units);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Multicast = %ld (%u)", msgStormControl->multicast.rate_value, msgStormControl->multicast.rate_units);
+  PT_LOG_DEBUG(LOG_CTX_MSG," UnknownUC = %ld (%u)", msgStormControl->unknown_uc.rate_value, msgStormControl->unknown_uc.rate_units);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Block UC = %u", msgStormControl->block_unicast);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Block MC = %u", msgStormControl->block_multicast);
 
   return L7_SUCCESS;
 }
@@ -6346,23 +6346,23 @@ L7_RC_t ptin_msg_stormControl2_set(msg_HwEthStormControl2_t *msgStormControl)
   L7_RATE_UNIT_t  rate_units;
   L7_RC_t         rc, rc_global=L7_SUCCESS;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Starting message processing...");
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Starting message processing...");
 
   /* Validate arguments */
   if (msgStormControl==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid Message Pointer");
+    PT_LOG_ERR(LOG_CTX_MSG,"Invalid Message Pointer");
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId = %u", msgStormControl->SlotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," intf   = %u/%u",  msgStormControl->intf.intf_type, msgStormControl->intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," mask   = 0x%02x", msgStormControl->mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," Broadcast = %ld (%u)", msgStormControl->broadcast.rate_value, msgStormControl->broadcast.rate_units);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," Multicast = %ld (%u)", msgStormControl->multicast.rate_value, msgStormControl->multicast.rate_units);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," UnknownUC = %ld (%u)", msgStormControl->unknown_uc.rate_value, msgStormControl->unknown_uc.rate_units);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," Block UC = %u", msgStormControl->block_unicast);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," Block MC = %u", msgStormControl->block_multicast);
+  PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u", msgStormControl->SlotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG," intf   = %u/%u",  msgStormControl->intf.intf_type, msgStormControl->intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," mask   = 0x%02x", msgStormControl->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Broadcast = %ld (%u)", msgStormControl->broadcast.rate_value, msgStormControl->broadcast.rate_units);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Multicast = %ld (%u)", msgStormControl->multicast.rate_value, msgStormControl->multicast.rate_units);
+  PT_LOG_DEBUG(LOG_CTX_MSG," UnknownUC = %ld (%u)", msgStormControl->unknown_uc.rate_value, msgStormControl->unknown_uc.rate_units);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Block UC = %u", msgStormControl->block_unicast);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Block MC = %u", msgStormControl->block_multicast);
 
   ptin_intf.intf_type = msgStormControl->intf.intf_type;
   ptin_intf.intf_id   = msgStormControl->intf.intf_id;
@@ -6371,7 +6371,7 @@ L7_RC_t ptin_msg_stormControl2_set(msg_HwEthStormControl2_t *msgStormControl)
   /* -------- BROADCAST STORMCONTROL -------- */
   if (msgStormControl->mask & MSG_STORMCONTROL_MASK_BCAST)
   {
-    LOG_TRACE(LOG_CTX_PTIN_MSG, "Processing Broadcast stormcontrol...");
+    PT_LOG_TRACE(LOG_CTX_MSG, "Processing Broadcast stormcontrol...");
     do
     {
       /* Data units */
@@ -6384,7 +6384,7 @@ L7_RC_t ptin_msg_stormControl2_set(msg_HwEthStormControl2_t *msgStormControl)
       }
       if (rate_units == L7_RATE_UNIT_NONE)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG,"Unknown units (%u)", msgStormControl->broadcast.rate_units);
+        PT_LOG_ERR(LOG_CTX_MSG,"Unknown units (%u)", msgStormControl->broadcast.rate_units);
         rc_global = L7_FAILURE;
         break;
       }
@@ -6395,7 +6395,7 @@ L7_RC_t ptin_msg_stormControl2_set(msg_HwEthStormControl2_t *msgStormControl)
       rc = ptin_intf_bcast_stormControl_set(&ptin_intf, enable, rate_value, FD_POLICY_DEFAULT_BCAST_STORM_BURSTSIZE, rate_units);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG,"Error configuring Broadcast stormcontrol for ptin_intf %u/%u", ptin_intf.intf_type, ptin_intf.intf_id);
+        PT_LOG_ERR(LOG_CTX_MSG,"Error configuring Broadcast stormcontrol for ptin_intf %u/%u", ptin_intf.intf_type, ptin_intf.intf_id);
         rc_global = rc;
         break;
       }
@@ -6405,7 +6405,7 @@ L7_RC_t ptin_msg_stormControl2_set(msg_HwEthStormControl2_t *msgStormControl)
   /* -------- MULTICAST STORMCONTROL -------- */
   if (msgStormControl->mask & MSG_STORMCONTROL_MASK_MCAST)
   {
-    LOG_TRACE(LOG_CTX_PTIN_MSG, "Processing Multicast stormcontrol...");
+    PT_LOG_TRACE(LOG_CTX_MSG, "Processing Multicast stormcontrol...");
     do
     {
       /* Data units */
@@ -6418,7 +6418,7 @@ L7_RC_t ptin_msg_stormControl2_set(msg_HwEthStormControl2_t *msgStormControl)
       }
       if (rate_units == L7_RATE_UNIT_NONE)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG,"Unknown units (%u)", msgStormControl->multicast.rate_units);
+        PT_LOG_ERR(LOG_CTX_MSG,"Unknown units (%u)", msgStormControl->multicast.rate_units);
         rc_global = L7_FAILURE;
         break;
       }
@@ -6429,7 +6429,7 @@ L7_RC_t ptin_msg_stormControl2_set(msg_HwEthStormControl2_t *msgStormControl)
       rc = ptin_intf_mcast_stormControl_set(&ptin_intf, enable, rate_value, FD_POLICY_DEFAULT_BCAST_STORM_BURSTSIZE, rate_units);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG,"Error configuring Multicast stormcontrol for ptin_intf %u/%u", ptin_intf.intf_type, ptin_intf.intf_id);
+        PT_LOG_ERR(LOG_CTX_MSG,"Error configuring Multicast stormcontrol for ptin_intf %u/%u", ptin_intf.intf_type, ptin_intf.intf_id);
         rc_global = rc;
         break;
       }
@@ -6439,7 +6439,7 @@ L7_RC_t ptin_msg_stormControl2_set(msg_HwEthStormControl2_t *msgStormControl)
   /* -------- UNKNOWN UNICAST STORMCONTROL -------- */
   if (msgStormControl->mask & MSG_STORMCONTROL_MASK_UCUNK)
   {
-    LOG_TRACE(LOG_CTX_PTIN_MSG, "Processing Unknown Unicast stormcontrol...");
+    PT_LOG_TRACE(LOG_CTX_MSG, "Processing Unknown Unicast stormcontrol...");
     do
     {
       /* Data units */
@@ -6452,7 +6452,7 @@ L7_RC_t ptin_msg_stormControl2_set(msg_HwEthStormControl2_t *msgStormControl)
       }
       if (rate_units == L7_RATE_UNIT_NONE)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG,"Unknown units (%u)", msgStormControl->unknown_uc.rate_units);
+        PT_LOG_ERR(LOG_CTX_MSG,"Unknown units (%u)", msgStormControl->unknown_uc.rate_units);
         rc_global = L7_FAILURE;
         break;
       }
@@ -6463,7 +6463,7 @@ L7_RC_t ptin_msg_stormControl2_set(msg_HwEthStormControl2_t *msgStormControl)
       rc = ptin_intf_ucast_stormControl_set(&ptin_intf, enable, rate_value, FD_POLICY_DEFAULT_BCAST_STORM_BURSTSIZE, rate_units);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG,"Error configuring Unicast stormcontrol for ptin_intf %u/%u", ptin_intf.intf_type, ptin_intf.intf_id);
+        PT_LOG_ERR(LOG_CTX_MSG,"Error configuring Unicast stormcontrol for ptin_intf %u/%u", ptin_intf.intf_type, ptin_intf.intf_id);
         rc_global = rc;
         break;
       }
@@ -6473,11 +6473,11 @@ L7_RC_t ptin_msg_stormControl2_set(msg_HwEthStormControl2_t *msgStormControl)
   /* Final result */
   if (rc_global == L7_SUCCESS)
   {
-    LOG_TRACE(LOG_CTX_PTIN_MSG, "Success applying stormcontrol to ptin_intf %u/%u", ptin_intf.intf_type, ptin_intf.intf_id);
+    PT_LOG_TRACE(LOG_CTX_MSG, "Success applying stormcontrol to ptin_intf %u/%u", ptin_intf.intf_type, ptin_intf.intf_id);
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error applying stormcontrol to ptin_intf %u/%u", ptin_intf.intf_type, ptin_intf.intf_id);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error applying stormcontrol to ptin_intf %u/%u", ptin_intf.intf_type, ptin_intf.intf_id);
   }
 
   return rc_global;
@@ -6495,21 +6495,21 @@ L7_RC_t ptin_msg_stormControl_get(msg_HwEthStormControl_t *msgStormControl)
   //ptin_stormControl_t stormControl;
   //L7_RC_t   rc = L7_SUCCESS;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Starting message processing...");
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Starting message processing...");
 
   /* Validate arguments */
   if (msgStormControl==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid Message Pointer");
+    PT_LOG_ERR(LOG_CTX_MSG,"Invalid Message Pointer");
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId = %u", msgStormControl->SlotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," id     = %u", msgStormControl->id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," flags  = 0x%04x", msgStormControl->flags);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," mask   = 0x%04x", msgStormControl->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u", msgStormControl->SlotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG," id     = %u", msgStormControl->id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," flags  = 0x%04x", msgStormControl->flags);
+  PT_LOG_DEBUG(LOG_CTX_MSG," mask   = 0x%04x", msgStormControl->mask);
 
-  LOG_WARNING(LOG_CTX_PTIN_MSG, "Obsolete Feature: not supported anymore!");
+  PT_LOG_WARN(LOG_CTX_MSG, "Obsolete Feature: not supported anymore!");
 
   return L7_NOT_SUPPORTED;
 
@@ -6537,7 +6537,7 @@ L7_RC_t ptin_msg_stormControl_get(msg_HwEthStormControl_t *msgStormControl)
   /* Read bandwidth profile */
   if ((rc=ptin_evc_stormControl_get(&stormControl))!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading storm control data!");
+    PT_LOG_ERR(LOG_CTX_MSG,"Error reading storm control data!");
     return rc;
   }
 
@@ -6568,7 +6568,7 @@ L7_RC_t ptin_msg_stormControl_get(msg_HwEthStormControl_t *msgStormControl)
     msgStormControl->mask = MSG_STORMCONTROL_MASK_CPU;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Message processing finished! (rc=%d)", rc);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Message processing finished! (rc=%d)", rc);
   return rc;
 #endif
 }
@@ -6585,24 +6585,24 @@ L7_RC_t ptin_msg_stormControl_set(msg_HwEthStormControl_t *msgStormControl)
   //ptin_stormControl_t stormControl;
   //L7_RC_t   rc = L7_SUCCESS;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Starting message processing...");
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Starting message processing...");
 
   /* Validate arguments */
   if (msgStormControl==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid Message Pointer");
+    PT_LOG_ERR(LOG_CTX_MSG,"Invalid Message Pointer");
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId = %u", msgStormControl->SlotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," id     = %u", msgStormControl->id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," flags  = 0x%04x", msgStormControl->flags);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," mask   = 0x%04x", msgStormControl->mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," bcast_rate = %u bps", msgStormControl->bcast_rate);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," mcast_rate = %u bps", msgStormControl->mcast_rate);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," ucunk_rate = %u bps", msgStormControl->ucast_unknown_rate);
+  PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u", msgStormControl->SlotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG," id     = %u", msgStormControl->id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," flags  = 0x%04x", msgStormControl->flags);
+  PT_LOG_DEBUG(LOG_CTX_MSG," mask   = 0x%04x", msgStormControl->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG," bcast_rate = %u bps", msgStormControl->bcast_rate);
+  PT_LOG_DEBUG(LOG_CTX_MSG," mcast_rate = %u bps", msgStormControl->mcast_rate);
+  PT_LOG_DEBUG(LOG_CTX_MSG," ucunk_rate = %u bps", msgStormControl->ucast_unknown_rate);
 
-  LOG_WARNING(LOG_CTX_PTIN_MSG, "Obsolete Feature: not supported anymore!");
+  PT_LOG_WARN(LOG_CTX_MSG, "Obsolete Feature: not supported anymore!");
 
   return L7_SUCCESS;
 
@@ -6634,11 +6634,11 @@ L7_RC_t ptin_msg_stormControl_set(msg_HwEthStormControl_t *msgStormControl)
   /* Add bandwidth profile */
   if ((rc=ptin_evc_stormControl_set(L7_ENABLE, &stormControl))!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error applying storm control profile!");
+    PT_LOG_ERR(LOG_CTX_MSG,"Error applying storm control profile!");
     return rc;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Message processing finished!  (rc=%d)", rc);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Message processing finished!  (rc=%d)", rc);
   return rc;
 #endif
 }
@@ -6655,22 +6655,22 @@ L7_RC_t ptin_msg_stormControl_clear(msg_HwEthStormControl_t *msgStormControl)
   ptin_stormControl_t stormControl;
   L7_RC_t   rc = L7_SUCCESS;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Starting message processing...");
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Starting message processing...");
 
   /* Validate arguments */
   if (msgStormControl==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid Message Pointer");
+    PT_LOG_ERR(LOG_CTX_MSG,"Invalid Message Pointer");
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId = %u", msgStormControl->SlotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," id     = %u", msgStormControl->id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," flags  = 0x%04x", msgStormControl->flags);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," mask   = 0x%04x", msgStormControl->mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," bcast_rate = %u bps", msgStormControl->bcast_rate);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," mcast_rate = %u bps", msgStormControl->mcast_rate);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," ucunk_rate = %u bps", msgStormControl->ucast_unknown_rate);
+  PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u", msgStormControl->SlotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG," id     = %u", msgStormControl->id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," flags  = 0x%04x", msgStormControl->flags);
+  PT_LOG_DEBUG(LOG_CTX_MSG," mask   = 0x%04x", msgStormControl->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG," bcast_rate = %u bps", msgStormControl->bcast_rate);
+  PT_LOG_DEBUG(LOG_CTX_MSG," mcast_rate = %u bps", msgStormControl->mcast_rate);
+  PT_LOG_DEBUG(LOG_CTX_MSG," ucunk_rate = %u bps", msgStormControl->ucast_unknown_rate);
 
   /* Input data */
   memset(&stormControl, 0x00, sizeof(ptin_stormControl_t));
@@ -6695,11 +6695,11 @@ L7_RC_t ptin_msg_stormControl_clear(msg_HwEthStormControl_t *msgStormControl)
   /* Add bandwidth profile */
   if ((rc=ptin_evc_stormControl_set(L7_DISABLE, &stormControl))!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error disabling storm control profile!");
+    PT_LOG_ERR(LOG_CTX_MSG,"Error disabling storm control profile!");
     return rc;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Message processing finished!  (rc=%d)", rc);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Message processing finished!  (rc=%d)", rc);
   return rc;
 }
 
@@ -6715,19 +6715,19 @@ L7_RC_t ptin_msg_stormControl_reset(msg_HwEthStormControl_t *msgStormControl)
   ptin_stormControl_t stormControl;
   L7_RC_t   rc = L7_SUCCESS;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Starting message processing...");
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Starting message processing...");
 
   /* Validate arguments */
   if (msgStormControl==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid Message Pointer");
+    PT_LOG_ERR(LOG_CTX_MSG,"Invalid Message Pointer");
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId = %u", msgStormControl->SlotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," id     = %u", msgStormControl->id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," flags  = 0x%04x", msgStormControl->flags);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," mask   = 0x%04x", msgStormControl->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u", msgStormControl->SlotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG," id     = %u", msgStormControl->id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," flags  = 0x%04x", msgStormControl->flags);
+  PT_LOG_DEBUG(LOG_CTX_MSG," mask   = 0x%04x", msgStormControl->mask);
 
   /* Input data */
   memset(&stormControl, 0x00, sizeof(ptin_stormControl_t));
@@ -6752,11 +6752,11 @@ L7_RC_t ptin_msg_stormControl_reset(msg_HwEthStormControl_t *msgStormControl)
   /* Add bandwidth profile */
   if ((rc=ptin_evc_stormControl_reset(&stormControl))!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error clearing storm control profile!");
+    PT_LOG_ERR(LOG_CTX_MSG,"Error clearing storm control profile!");
     return rc;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Message processing finished! (rc=%d)", rc);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Message processing finished! (rc=%d)", rc);
   return rc;
 }
 
@@ -6776,21 +6776,21 @@ L7_RC_t ptin_msg_evcStats_get(msg_evcStats_t *msg_evcStats)
   ptin_evcStats_counters_t counters;
   L7_RC_t rc=L7_SUCCESS;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Starting message processing...");
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Starting message processing...");
 
   /* Validate arguments */
   if (msg_evcStats==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid Message Pointer");
+    PT_LOG_ERR(LOG_CTX_MSG,"Invalid Message Pointer");
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," evcId    = %u",    msg_evcStats->evc_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," mask     = 0x%02x",msg_evcStats->mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," Intf     = %u/%u", msg_evcStats->intf.intf_type,msg_evcStats->intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," SVID     = %u",    msg_evcStats->service_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," CVID     = %u",    msg_evcStats->client_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," ChannelIP= %u",    msg_evcStats->channel_ip);
+  PT_LOG_DEBUG(LOG_CTX_MSG," evcId    = %u",    msg_evcStats->evc_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," mask     = 0x%02x",msg_evcStats->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Intf     = %u/%u", msg_evcStats->intf.intf_type,msg_evcStats->intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," SVID     = %u",    msg_evcStats->service_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG," CVID     = %u",    msg_evcStats->client_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG," ChannelIP= %u",    msg_evcStats->channel_ip);
 
   /* Clear counters */
   memset(&msg_evcStats->stats,0x00,sizeof(msg_evcStats_counters_t));
@@ -6802,7 +6802,7 @@ L7_RC_t ptin_msg_evcStats_get(msg_evcStats_t *msg_evcStats)
   /* Copy data */
   if (ptin_msg_evcStatsStruct_fill(msg_evcStats,&profile)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error filling structure");
+    PT_LOG_ERR(LOG_CTX_MSG,"Error filling structure");
     return L7_FAILURE;
   }
 
@@ -6831,7 +6831,7 @@ L7_RC_t ptin_msg_evcStats_get(msg_evcStats_t *msg_evcStats)
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"No policy defined to read stats!");
+    PT_LOG_ERR(LOG_CTX_MSG,"No policy defined to read stats!");
     /* Null values to message */
     //memset(&(msg_evcStats->stats),0x00,sizeof(msg_evcStats_counters_t));
     /* Deactivate bit in mask: this indicates that the counters are NOT valid */
@@ -6839,27 +6839,27 @@ L7_RC_t ptin_msg_evcStats_get(msg_evcStats_t *msg_evcStats)
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," evcId    = %u",    msg_evcStats->evc_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," mask     = 0x%02x",msg_evcStats->mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," Intf     = %u/%u", msg_evcStats->intf.intf_type,msg_evcStats->intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," SVID     = %u",    msg_evcStats->service_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," CVID     = %u",    msg_evcStats->client_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," ChannelIP= %u",    msg_evcStats->channel_ip);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," Stat_mask  = 0x%02x",msg_evcStats->stats.mask_stat);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," Stats_RX:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"   Total    =%10u", msg_evcStats->stats.rx.pktTotal);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"   Unicast  =%10u", msg_evcStats->stats.rx.pktUnicast);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"   Multicast=%10u", msg_evcStats->stats.rx.pktMulticast);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"   Broadcast=%10u", msg_evcStats->stats.rx.pktBroadcast);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"   Dropped  =%10u", msg_evcStats->stats.rx.pktDropped);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," Stats_TX:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"   Total    =%10u", msg_evcStats->stats.tx.pktTotal);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"   Unicast  =%10u", msg_evcStats->stats.tx.pktUnicast);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"   Multicast=%10u", msg_evcStats->stats.tx.pktMulticast);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"   Broadcast=%10u", msg_evcStats->stats.tx.pktBroadcast);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"   Dropped  =%10u", msg_evcStats->stats.tx.pktDropped);
+  PT_LOG_DEBUG(LOG_CTX_MSG," evcId    = %u",    msg_evcStats->evc_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," mask     = 0x%02x",msg_evcStats->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Intf     = %u/%u", msg_evcStats->intf.intf_type,msg_evcStats->intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," SVID     = %u",    msg_evcStats->service_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG," CVID     = %u",    msg_evcStats->client_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG," ChannelIP= %u",    msg_evcStats->channel_ip);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Stat_mask  = 0x%02x",msg_evcStats->stats.mask_stat);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Stats_RX:");
+  PT_LOG_DEBUG(LOG_CTX_MSG,"   Total    =%10u", msg_evcStats->stats.rx.pktTotal);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"   Unicast  =%10u", msg_evcStats->stats.rx.pktUnicast);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"   Multicast=%10u", msg_evcStats->stats.rx.pktMulticast);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"   Broadcast=%10u", msg_evcStats->stats.rx.pktBroadcast);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"   Dropped  =%10u", msg_evcStats->stats.rx.pktDropped);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Stats_TX:");
+  PT_LOG_DEBUG(LOG_CTX_MSG,"   Total    =%10u", msg_evcStats->stats.tx.pktTotal);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"   Unicast  =%10u", msg_evcStats->stats.tx.pktUnicast);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"   Multicast=%10u", msg_evcStats->stats.tx.pktMulticast);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"   Broadcast=%10u", msg_evcStats->stats.tx.pktBroadcast);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"   Dropped  =%10u", msg_evcStats->stats.tx.pktDropped);
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Message processing finished!");
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Message processing finished!");
   return L7_SUCCESS;
 }
 
@@ -6876,21 +6876,21 @@ L7_RC_t ptin_msg_evcStats_set(msg_evcStats_t *msg_evcStats)
   ptin_evcStats_profile_t profile;
   L7_RC_t   rc=L7_SUCCESS;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Starting message processing...");
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Starting message processing...");
 
   /* Validate arguments */
   if (msg_evcStats==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid Message Pointer");
+    PT_LOG_ERR(LOG_CTX_MSG,"Invalid Message Pointer");
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," evcId    = %u",    msg_evcStats->evc_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," mask     = 0x%02x",msg_evcStats->mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," Intf     = %u/%u", msg_evcStats->intf.intf_type,msg_evcStats->intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," SVID     = %u",    msg_evcStats->service_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," CVID     = %u",    msg_evcStats->client_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," ChannelIP= 0x%08x",    msg_evcStats->channel_ip);
+  PT_LOG_DEBUG(LOG_CTX_MSG," evcId    = %u",    msg_evcStats->evc_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," mask     = 0x%02x",msg_evcStats->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Intf     = %u/%u", msg_evcStats->intf.intf_type,msg_evcStats->intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," SVID     = %u",    msg_evcStats->service_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG," CVID     = %u",    msg_evcStats->client_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG," ChannelIP= 0x%08x",    msg_evcStats->channel_ip);
 
   /* Extract EVC id */
   evcId = msg_evcStats->evc_id;
@@ -6898,18 +6898,18 @@ L7_RC_t ptin_msg_evcStats_set(msg_evcStats_t *msg_evcStats)
   /* Copy data */
   if (ptin_msg_evcStatsStruct_fill(msg_evcStats,&profile)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error filling structure");
+    PT_LOG_ERR(LOG_CTX_MSG,"Error filling structure");
     return L7_FAILURE;
   }
 
   /* Add bandwidth profile */
   if ((rc=ptin_evc_evcStats_set(evcId,&profile))!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error allocating statistics!");
+    PT_LOG_ERR(LOG_CTX_MSG,"Error allocating statistics!");
     return rc;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Message processing finished!");
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Message processing finished!");
   return L7_SUCCESS;
 }
 
@@ -6926,21 +6926,21 @@ L7_RC_t ptin_msg_evcStats_delete(msg_evcStats_t *msg_evcStats)
   ptin_evcStats_profile_t profile;
   L7_RC_t   rc=L7_SUCCESS;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Starting message processing...");
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Starting message processing...");
 
   /* Validate arguments */
   if (msg_evcStats==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid Message Pointer");
+    PT_LOG_ERR(LOG_CTX_MSG,"Invalid Message Pointer");
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," evcId    = %u",    msg_evcStats->evc_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," mask     = 0x%02x",msg_evcStats->mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," Intf     = %u/%u", msg_evcStats->intf.intf_type,msg_evcStats->intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," SVID     = %u",    msg_evcStats->service_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," CVID     = %u",    msg_evcStats->client_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," ChannelIP= %u",    msg_evcStats->channel_ip);
+  PT_LOG_DEBUG(LOG_CTX_MSG," evcId    = %u",    msg_evcStats->evc_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," mask     = 0x%02x",msg_evcStats->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Intf     = %u/%u", msg_evcStats->intf.intf_type,msg_evcStats->intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," SVID     = %u",    msg_evcStats->service_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG," CVID     = %u",    msg_evcStats->client_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG," ChannelIP= %u",    msg_evcStats->channel_ip);
 
   /* Extract EVC id */
   evcId = msg_evcStats->evc_id;
@@ -6948,7 +6948,7 @@ L7_RC_t ptin_msg_evcStats_delete(msg_evcStats_t *msg_evcStats)
   /* Copy data */
   if (ptin_msg_evcStatsStruct_fill(msg_evcStats,&profile)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error filling structure");
+    PT_LOG_ERR(LOG_CTX_MSG,"Error filling structure");
     return L7_FAILURE;
   }
 
@@ -6957,11 +6957,11 @@ L7_RC_t ptin_msg_evcStats_delete(msg_evcStats_t *msg_evcStats)
 
   if ( rc != L7_SUCCESS )
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error deallocating statistics!");
+    PT_LOG_ERR(LOG_CTX_MSG,"Error deallocating statistics!");
     return rc;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Message processing finished!");
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Message processing finished!");
   return L7_SUCCESS;
 }
 
@@ -6988,22 +6988,22 @@ L7_RC_t ptin_msg_ntw_connectivity_get(msg_NtwConnectivity_t *msgNtwConn)
 
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting inband management config");
+    PT_LOG_ERR(LOG_CTX_MSG, "Error getting inband management config");
     return L7_FAILURE;
   }
 
   /* Output data */
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Network Connectivity (mask=0x%08X)", ptinNtwConn.mask);
-  LOG_INFO(LOG_CTX_PTIN_MSG, "  IP Addr         = %u.%u.%u.%u",    (ptinNtwConn.ipaddr  >> 24) & 0xFF, (ptinNtwConn.ipaddr  >> 16) & 0xFF,
+  PT_LOG_INFO(LOG_CTX_MSG, "Network Connectivity (mask=0x%08X)", ptinNtwConn.mask);
+  PT_LOG_INFO(LOG_CTX_MSG, "  IP Addr         = %u.%u.%u.%u",    (ptinNtwConn.ipaddr  >> 24) & 0xFF, (ptinNtwConn.ipaddr  >> 16) & 0xFF,
            (ptinNtwConn.ipaddr  >>  8) & 0xFF,  ptinNtwConn.ipaddr         & 0xFF);
-  LOG_INFO(LOG_CTX_PTIN_MSG, "  Mask            = %u.%u.%u.%u",    (ptinNtwConn.netmask >> 24) & 0xFF, (ptinNtwConn.netmask >> 16) & 0xFF,
+  PT_LOG_INFO(LOG_CTX_MSG, "  Mask            = %u.%u.%u.%u",    (ptinNtwConn.netmask >> 24) & 0xFF, (ptinNtwConn.netmask >> 16) & 0xFF,
            (ptinNtwConn.netmask >>  8) & 0xFF,  ptinNtwConn.netmask        & 0xFF);
-  LOG_INFO(LOG_CTX_PTIN_MSG, "  Gateway         = %u.%u.%u.%u",    (ptinNtwConn.gateway >> 24) & 0xFF, (ptinNtwConn.gateway >> 16) & 0xFF,
+  PT_LOG_INFO(LOG_CTX_MSG, "  Gateway         = %u.%u.%u.%u",    (ptinNtwConn.gateway >> 24) & 0xFF, (ptinNtwConn.gateway >> 16) & 0xFF,
            (ptinNtwConn.gateway >>  8) & 0xFF,  ptinNtwConn.gateway        & 0xFF);
-  LOG_INFO(LOG_CTX_PTIN_MSG, "  Mgmt VLAN ID    = %u",             ptinNtwConn.mgmtVlanId);
-  LOG_INFO(LOG_CTX_PTIN_MSG, "  Interfaces (%u)", ptinNtwConn.n_intf);
+  PT_LOG_INFO(LOG_CTX_MSG, "  Mgmt VLAN ID    = %u",             ptinNtwConn.mgmtVlanId);
+  PT_LOG_INFO(LOG_CTX_MSG, "  Interfaces (%u)", ptinNtwConn.n_intf);
   for (i=0; i<ptinNtwConn.n_intf; i++)
-    LOG_INFO(LOG_CTX_PTIN_MSG, "    %s Intf #    = %u", ptinNtwConn.intf[i].intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG", ptinNtwConn.intf[i].intf_id);
+    PT_LOG_INFO(LOG_CTX_MSG, "    %s Intf #    = %u", ptinNtwConn.intf[i].intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG", ptinNtwConn.intf[i].intf_id);
 
   /* Copy data */
   msgNtwConn->mask            = ptinNtwConn.mask;
@@ -7048,24 +7048,24 @@ L7_RC_t ptin_msg_ntw_connectivity_set(msg_NtwConnectivity_t *msgNtwConn)
   }
 
   /* Output data */
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Network Connectivity (mask=0x%08X)", ptinNtwConn.mask);
-  LOG_INFO(LOG_CTX_PTIN_MSG, "  IP Addr         = %u.%u.%u.%u",    (ptinNtwConn.ipaddr  >> 24) & 0xFF, (ptinNtwConn.ipaddr  >> 16) & 0xFF,
+  PT_LOG_INFO(LOG_CTX_MSG, "Network Connectivity (mask=0x%08X)", ptinNtwConn.mask);
+  PT_LOG_INFO(LOG_CTX_MSG, "  IP Addr         = %u.%u.%u.%u",    (ptinNtwConn.ipaddr  >> 24) & 0xFF, (ptinNtwConn.ipaddr  >> 16) & 0xFF,
            (ptinNtwConn.ipaddr  >>  8) & 0xFF,  ptinNtwConn.ipaddr         & 0xFF);
-  LOG_INFO(LOG_CTX_PTIN_MSG, "  Mask            = %u.%u.%u.%u",    (ptinNtwConn.netmask >> 24) & 0xFF, (ptinNtwConn.netmask >> 16) & 0xFF,
+  PT_LOG_INFO(LOG_CTX_MSG, "  Mask            = %u.%u.%u.%u",    (ptinNtwConn.netmask >> 24) & 0xFF, (ptinNtwConn.netmask >> 16) & 0xFF,
            (ptinNtwConn.netmask >>  8) & 0xFF,  ptinNtwConn.netmask        & 0xFF);
-  LOG_INFO(LOG_CTX_PTIN_MSG, "  Gateway         = %u.%u.%u.%u",    (ptinNtwConn.gateway >> 24) & 0xFF, (ptinNtwConn.gateway >> 16) & 0xFF,
+  PT_LOG_INFO(LOG_CTX_MSG, "  Gateway         = %u.%u.%u.%u",    (ptinNtwConn.gateway >> 24) & 0xFF, (ptinNtwConn.gateway >> 16) & 0xFF,
            (ptinNtwConn.gateway >>  8) & 0xFF,  ptinNtwConn.gateway        & 0xFF);
-  LOG_INFO(LOG_CTX_PTIN_MSG, "  Mgmt VLAN ID    = %u",             ptinNtwConn.mgmtVlanId);
-  LOG_INFO(LOG_CTX_PTIN_MSG, "  Interfaces (%u)", ptinNtwConn.n_intf);
+  PT_LOG_INFO(LOG_CTX_MSG, "  Mgmt VLAN ID    = %u",             ptinNtwConn.mgmtVlanId);
+  PT_LOG_INFO(LOG_CTX_MSG, "  Interfaces (%u)", ptinNtwConn.n_intf);
   for (i=0; i<ptinNtwConn.n_intf; i++)
-    LOG_INFO(LOG_CTX_PTIN_MSG, "    %s Intf #    = %u", ptinNtwConn.intf[i].intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG", ptinNtwConn.intf[i].intf_id);
+    PT_LOG_INFO(LOG_CTX_MSG, "    %s Intf #    = %u", ptinNtwConn.intf[i].intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG", ptinNtwConn.intf[i].intf_id);
 
   /* Apply config */
   rc = ptin_cfg_ntw_connectivity_set(&ptinNtwConn);
 
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error setting inband management config");
+    PT_LOG_ERR(LOG_CTX_MSG, "Error setting inband management config");
     return L7_FAILURE;
   }
 
@@ -7086,27 +7086,27 @@ L7_RC_t ptin_msg_DHCP_evc_reconf(msg_DhcpEvcReconf_t *dhcpEvcInfo)
 {
   L7_RC_t   rc;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Processing message");
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Processing message");
 
   /* Validate input parameters */
   if (dhcpEvcInfo==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid parameters");
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid parameters");
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  ID Type    = %u",      dhcpEvcInfo->idType);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  ID         = %u",      dhcpEvcInfo->id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Mask       = 0x%04X",  dhcpEvcInfo->mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  DHCP Flag  = %u",      dhcpEvcInfo->dhcp_flag);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Options    = 0x%04X",  dhcpEvcInfo->options);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  ID Type    = %u",      dhcpEvcInfo->idType);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  ID         = %u",      dhcpEvcInfo->id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask       = 0x%04X",  dhcpEvcInfo->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  DHCP Flag  = %u",      dhcpEvcInfo->dhcp_flag);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Options    = 0x%04X",  dhcpEvcInfo->options);
 
   if (dhcpEvcInfo->idType == MSG_ID_EVC_TYPE)
   {
     rc = ptin_dhcp_reconf_evc(dhcpEvcInfo->id, dhcpEvcInfo->dhcp_flag, dhcpEvcInfo->options);
     if (rc!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error reconfiguring global DHCP EVC");
+      PT_LOG_ERR(LOG_CTX_MSG, "Error reconfiguring global DHCP EVC");
       return rc;
     }
     rc = ptin_pppoe_reconf_evc(dhcpEvcInfo->id, dhcpEvcInfo->dhcp_flag, dhcpEvcInfo->options);
@@ -7116,14 +7116,14 @@ L7_RC_t ptin_msg_DHCP_evc_reconf(msg_DhcpEvcReconf_t *dhcpEvcInfo)
     rc = ptin_dhcp_reconf_rootVid(dhcpEvcInfo->id, dhcpEvcInfo->dhcp_flag, dhcpEvcInfo->options);
     if (rc!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error reconfiguring global DHCP Instance");
+      PT_LOG_ERR(LOG_CTX_MSG, "Error reconfiguring global DHCP Instance");
       return rc;
     }
     rc = ptin_pppoe_reconf_rootVid(dhcpEvcInfo->id, dhcpEvcInfo->dhcp_flag, dhcpEvcInfo->options);
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid id %u", dhcpEvcInfo->idType);
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid id %u", dhcpEvcInfo->idType);
     return L7_FAILURE;
   }
 
@@ -7141,27 +7141,27 @@ L7_RC_t ptin_msg_DHCP_circuitid_set(msg_AccessNodeCircuitId_t *circuitid)
 {
   L7_RC_t rc;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Processing message");
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Processing message");
 
   /* Validate input parameters */
   if (circuitid==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid parameters");
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid parameters");
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Id_type            = %u",      circuitid->id_ref.id_type);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Id value           = %u",      circuitid->id_ref.id_val.evc_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Template           = %s",      circuitid->template_str);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  CircuitId Mask     = 0x%04X",  circuitid->mask_circuitid);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  AccessNode ID      = %s",      circuitid->access_node_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Chassis            = %u",      circuitid->chassis);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Rack               = %u",      circuitid->rack);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Frame              = %u",      circuitid->frame);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Ethernet Priority  = %u",      circuitid->ethernet_priority);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  S-VID              = %u",      circuitid->s_vid);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Flags Mask         = 0x%02X",  circuitid->mask_flags);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Flags              = 0x%02X",  circuitid->broadcast_flag);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Id_type            = %u",      circuitid->id_ref.id_type);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Id value           = %u",      circuitid->id_ref.id_val.evc_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Template           = %s",      circuitid->template_str);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  CircuitId Mask     = 0x%04X",  circuitid->mask_circuitid);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  AccessNode ID      = %s",      circuitid->access_node_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Chassis            = %u",      circuitid->chassis);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Rack               = %u",      circuitid->rack);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Frame              = %u",      circuitid->frame);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Ethernet Priority  = %u",      circuitid->ethernet_priority);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  S-VID              = %u",      circuitid->s_vid);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Flags Mask         = 0x%02X",  circuitid->mask_flags);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Flags              = 0x%02X",  circuitid->broadcast_flag);
 
   /* TODO: To be reworked */
 
@@ -7173,14 +7173,14 @@ L7_RC_t ptin_msg_DHCP_circuitid_set(msg_AccessNodeCircuitId_t *circuitid)
                                      circuitid->frame, circuitid->ethernet_priority, circuitid->s_vid);
     if (rc!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring DHCP circuit-id");
+      PT_LOG_ERR(LOG_CTX_MSG, "Error configuring DHCP circuit-id");
       return rc;
     }
     /* Flags */
     rc = ptin_dhcp_evc_flags_set(circuitid->id_ref.id_val.evc_id, circuitid->mask_flags, circuitid->broadcast_flag);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring DHCP flags");
+      PT_LOG_ERR(LOG_CTX_MSG, "Error configuring DHCP flags");
       return rc;
     }
 
@@ -7194,14 +7194,14 @@ L7_RC_t ptin_msg_DHCP_circuitid_set(msg_AccessNodeCircuitId_t *circuitid)
                                         circuitid->frame, circuitid->ethernet_priority, circuitid->s_vid);
     if (rc!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring DHCP circuit-id");
+      PT_LOG_ERR(LOG_CTX_MSG, "Error configuring DHCP circuit-id");
       return rc;
     }
     /* Flags */
     rc = ptin_dhcp_nniVid_flags_set(circuitid->id_ref.id_val.nni_vid, circuitid->mask_flags, circuitid->broadcast_flag);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring DHCP flags");
+      PT_LOG_ERR(LOG_CTX_MSG, "Error configuring DHCP flags");
       return rc;
     }
 
@@ -7210,7 +7210,7 @@ L7_RC_t ptin_msg_DHCP_circuitid_set(msg_AccessNodeCircuitId_t *circuitid)
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid id %u", circuitid->id_ref.id_type);
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid id %u", circuitid->id_ref.id_type);
     return L7_FAILURE;
   }
 
@@ -7218,7 +7218,7 @@ L7_RC_t ptin_msg_DHCP_circuitid_set(msg_AccessNodeCircuitId_t *circuitid)
 #if 0
   if (rc!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring circuit-id global data");
+    PT_LOG_ERR(LOG_CTX_MSG, "Error configuring circuit-id global data");
     return rc;
   }
 #endif
@@ -7237,12 +7237,12 @@ L7_RC_t ptin_msg_DHCP_circuitid_get(msg_AccessNodeCircuitId_t *circuitid)
 {
   L7_RC_t rc;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Processing message");
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Processing message");
 
   /* Validate input parameters */
   if (circuitid==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid parameters");
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid parameters");
     return L7_FAILURE;
   }
 
@@ -7261,33 +7261,33 @@ L7_RC_t ptin_msg_DHCP_circuitid_get(msg_AccessNodeCircuitId_t *circuitid)
   }
   else if (circuitid->id_ref.id_type == MSG_ID_NNIVID_TYPE)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Not supported yet");
+    PT_LOG_ERR(LOG_CTX_MSG, "Not supported yet");
     return L7_FAILURE;
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid id %u", circuitid->id_ref.id_type);
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid id %u", circuitid->id_ref.id_type);
     return L7_FAILURE;
   }
 
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring circuit-id global data");
+    PT_LOG_ERR(LOG_CTX_MSG, "Error configuring circuit-id global data");
     return rc;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  ID type            = %u",      circuitid->id_ref.id_type);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  ID value           = %u",      circuitid->id_ref.id_val);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Template           = %s",      circuitid->template_str);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  CircuitId Mask     = 0x%04X",  circuitid->mask_circuitid);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  AccessNode ID      = %s",      circuitid->access_node_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Chassis            = %u",      circuitid->chassis);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Rack               = %u",      circuitid->rack);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Frame              = %u",      circuitid->frame);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Ethernet Priority  = %u",      circuitid->ethernet_priority);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  S-VID              = %u",      circuitid->s_vid);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Flags Mask         = 0x%02X",  circuitid->mask_flags);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Flags              = 0x%02X",  circuitid->broadcast_flag);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  ID type            = %u",      circuitid->id_ref.id_type);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  ID value           = %u",      circuitid->id_ref.id_val);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Template           = %s",      circuitid->template_str);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  CircuitId Mask     = 0x%04X",  circuitid->mask_circuitid);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  AccessNode ID      = %s",      circuitid->access_node_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Chassis            = %u",      circuitid->chassis);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Rack               = %u",      circuitid->rack);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Frame              = %u",      circuitid->frame);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Ethernet Priority  = %u",      circuitid->ethernet_priority);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  S-VID              = %u",      circuitid->s_vid);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Flags Mask         = 0x%02X",  circuitid->mask_flags);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Flags              = 0x%02X",  circuitid->broadcast_flag);
 
   return L7_SUCCESS;
 }
@@ -7306,23 +7306,23 @@ L7_RC_t ptin_msg_DHCP_profile_get(msg_HwEthernetDhcpOpt82Profile_t *profile)
   ptin_clientCircuitId_t  circuitId_data;
   L7_RC_t           rc;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Processing message");
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Processing message");
 
   /* Validate input parameters */
   if (profile==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid parameters");
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid parameters");
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Slot Id      = %u",     profile->SlotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  evc_idx      = %u",     profile->evc_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Mask         = 0x%02x", profile->mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Interface    = %u/%u",  profile->intf.intf_type,profile->intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.Mask  = 0x%02x", profile->client.mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.OVlan = %u",     profile->client.outer_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.IVlan = %u",     profile->client.inner_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.Intf  = %u/%u",  profile->client.intf.intf_type, profile->client.intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Slot Id      = %u",     profile->SlotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  evc_idx      = %u",     profile->evc_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask         = 0x%02x", profile->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Interface    = %u/%u",  profile->intf.intf_type,profile->intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Mask  = 0x%02x", profile->client.mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.OVlan = %u",     profile->client.outer_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.IVlan = %u",     profile->client.inner_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Intf  = %u/%u",  profile->client.intf.intf_type, profile->client.intf.intf_id);
 
   /* Extract input data */
   evc_idx = profile->evc_id;
@@ -7356,17 +7356,17 @@ L7_RC_t ptin_msg_DHCP_profile_get(msg_HwEthernetDhcpOpt82Profile_t *profile)
 
   if (rc!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error obtaining circuit and remote ids");
+    PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining circuit and remote ids");
     return rc;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Options                      = %02x",  profile->options);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"CircuitId.onuid              = %u",    profile->circuitId.onuid);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"CircuitId.slot               = %u",    profile->circuitId.slot);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"CircuitId.port               = %u",    profile->circuitId.port);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"CircuitId.q_vid              = %u",    profile->circuitId.q_vid);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"CircuitId.c_vid              = %u",    profile->circuitId.c_vid);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"RemoteId                     = \"%s\"",profile->remoteId);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Options                      = %02x",  profile->options);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.onuid              = %u",    profile->circuitId.onuid);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.slot               = %u",    profile->circuitId.slot);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.port               = %u",    profile->circuitId.port);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.q_vid              = %u",    profile->circuitId.q_vid);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.c_vid              = %u",    profile->circuitId.c_vid);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"RemoteId                     = \"%s\"",profile->remoteId);
 
   return L7_SUCCESS;
 }
@@ -7388,38 +7388,38 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
   /* Validate input parameters */
   if (profile==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid parameters");
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid parameters");
     return L7_FAILURE;
   }
 
   for (i=0; i<n_clients; i++)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Processing message %u",i);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Processing message %u",i);
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Slot Id                      = %u",     profile[i].SlotId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  evc_idx                      = %u",     profile[i].evc_id);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Mask                         = 0x%02x", profile[i].mask);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Interface                    = %u/%u",  profile[i].intf.intf_type,profile[i].intf.intf_id);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.Mask                  = 0x%02x", profile[i].client.mask);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.OVlan                 = %u",     profile[i].client.outer_vlan);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.IVlan                 = %u",     profile[i].client.inner_vlan);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.Intf                  = %u/%u",  profile[i].client.intf.intf_type, profile[i].client.intf.intf_id);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Options                      = %04x",   profile[i].options);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  CircuitId.onuid              = %u",     profile[i].circuitId.onuid);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  CircuitId.slot               = %u",     profile[i].circuitId.slot);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  CircuitId.port               = %u",     profile[i].circuitId.port);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  CircuitId.q_vid              = %u",     profile[i].circuitId.q_vid);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Remote Id                    = \"%s\"", profile[i].remoteId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  Slot Id                      = %u",     profile[i].SlotId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  evc_idx                      = %u",     profile[i].evc_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask                         = 0x%02x", profile[i].mask);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  Interface                    = %u/%u",  profile[i].intf.intf_type,profile[i].intf.intf_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Mask                  = 0x%02x", profile[i].client.mask);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.OVlan                 = %u",     profile[i].client.outer_vlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.IVlan                 = %u",     profile[i].client.inner_vlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Intf                  = %u/%u",  profile[i].client.intf.intf_type, profile[i].client.intf.intf_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  Options                      = %04x",   profile[i].options);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  CircuitId.onuid              = %u",     profile[i].circuitId.onuid);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  CircuitId.slot               = %u",     profile[i].circuitId.slot);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  CircuitId.port               = %u",     profile[i].circuitId.port);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  CircuitId.q_vid              = %u",     profile[i].circuitId.q_vid);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  Remote Id                    = \"%s\"", profile[i].remoteId);
 
     /* Check if all UseGlobal_DHCP_options match */
     if ( ((profile[i].options & 0x02) >> 1) != ((profile[i].options & 0x08) >> 3) )
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error: UseGlobal_DHCP_options do not match");
+      PT_LOG_ERR(LOG_CTX_MSG, "Error: UseGlobal_DHCP_options do not match");
       return L7_FAILURE;
     }
     if ( ((profile[i].options & 0x08) >> 3) != ((profile[i].options & 0x20) >> 5) )
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error: UseGlobal_DHCP_options do not match");
+      PT_LOG_ERR(LOG_CTX_MSG, "Error: UseGlobal_DHCP_options do not match");
       return L7_FAILURE;
     }
 
@@ -7456,7 +7456,7 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
 
     if (rc!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding DHCP circuitId+remoteId entry");
+      PT_LOG_ERR(LOG_CTX_MSG, "Error adding DHCP circuitId+remoteId entry");
       return rc;
     }
 
@@ -7465,7 +7465,7 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
 #if 0
     if (rc!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding PPPoE circuitId+remoteId entry");
+      PT_LOG_ERR(LOG_CTX_MSG, "Error adding PPPoE circuitId+remoteId entry");
       return rc;
     }
 #endif
@@ -7490,22 +7490,22 @@ L7_RC_t ptin_msg_DHCP_profile_remove(msg_HwEthernetDhcpOpt82Profile_t *profile, 
   /* Validate input parameters */
   if (profile==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid parameters");
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid parameters");
     return L7_FAILURE;
   }
 
   for (i=0; i<n_clients; i++)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Processing message %u",i);
+    PT_LOG_DEBUG(LOG_CTX_MSG,"Processing message %u",i);
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Slot Id      = %u",     profile[i].SlotId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  evc_idx      = %u",     profile[i].evc_id);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Mask         = 0x%02x", profile[i].mask);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Interface    = %u/%u",  profile[i].intf.intf_type,profile[i].intf.intf_id);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.Mask  = 0x%02x", profile[i].client.mask);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.OVlan = %u",     profile[i].client.outer_vlan);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.IVlan = %u",     profile[i].client.inner_vlan);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.Intf  = %u/%u",  profile[i].client.intf.intf_type, profile[i].client.intf.intf_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  Slot Id      = %u",     profile[i].SlotId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  evc_idx      = %u",     profile[i].evc_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask         = 0x%02x", profile[i].mask);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  Interface    = %u/%u",  profile[i].intf.intf_type,profile[i].intf.intf_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Mask  = 0x%02x", profile[i].client.mask);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.OVlan = %u",     profile[i].client.outer_vlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.IVlan = %u",     profile[i].client.inner_vlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Intf  = %u/%u",  profile[i].client.intf.intf_type, profile[i].client.intf.intf_id);
 
     /* Extract input data */
     evc_idx = profile[i].evc_id;
@@ -7534,7 +7534,7 @@ L7_RC_t ptin_msg_DHCP_profile_remove(msg_HwEthernetDhcpOpt82Profile_t *profile, 
     rc = ptin_dhcp_client_delete(evc_idx,&client);
     if ( rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing DHCP circuitId+remoteId entry");
+      PT_LOG_ERR(LOG_CTX_MSG, "Error removing DHCP circuitId+remoteId entry");
       return rc;
     }
     rc = ptin_pppoe_client_delete(evc_idx,&client);
@@ -7542,7 +7542,7 @@ L7_RC_t ptin_msg_DHCP_profile_remove(msg_HwEthernetDhcpOpt82Profile_t *profile, 
 #if 0
     if ( rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing PPPoE circuitId+remoteId entry");
+      PT_LOG_ERR(LOG_CTX_MSG, "Error removing PPPoE circuitId+remoteId entry");
       return rc;
     }
 #endif
@@ -7566,26 +7566,26 @@ L7_RC_t ptin_msg_DHCP_clientStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
 
   if (dhcp_stats==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid arguments");
     return L7_FAILURE;
   }
 
   /* Output data */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Reading client DHCP stats:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  evc_idx      = %u",     dhcp_stats->evc_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Mask         = 0x%02x", dhcp_stats->mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Interface    = %u/%u",  dhcp_stats->intf.intf_type,dhcp_stats->intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.Mask  = 0x%02x", dhcp_stats->client.mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.OVlan = %u",     dhcp_stats->client.outer_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.IVlan = %u",     dhcp_stats->client.inner_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.Intf  = %u/%u",  dhcp_stats->client.intf.intf_type, dhcp_stats->client.intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Reading client DHCP stats:");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  evc_idx      = %u",     dhcp_stats->evc_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask         = 0x%02x", dhcp_stats->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Interface    = %u/%u",  dhcp_stats->intf.intf_type,dhcp_stats->intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Mask  = 0x%02x", dhcp_stats->client.mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.OVlan = %u",     dhcp_stats->client.outer_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.IVlan = %u",     dhcp_stats->client.inner_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Intf  = %u/%u",  dhcp_stats->client.intf.intf_type, dhcp_stats->client.intf.intf_id);
 
   /* Evaluate provided data */
   if ( dhcp_stats->evc_id==(L7_uint16)-1 ||
        !(dhcp_stats->mask & MSG_CLIENT_MASK) ||
        (dhcp_stats->client.mask == 0x00) )
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "MC EVC and client reference must be provided");
+    PT_LOG_ERR(LOG_CTX_MSG, "MC EVC and client reference must be provided");
     return L7_FAILURE;
   }
 
@@ -7612,12 +7612,12 @@ L7_RC_t ptin_msg_DHCP_clientStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
 
   if (rc!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting client statistics");
+    PT_LOG_ERR(LOG_CTX_MSG, "Error getting client statistics");
     return rc;
   }
   else
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Success getting client statistics");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Success getting client statistics");
   }
 
   /* Return data */
@@ -7666,26 +7666,26 @@ L7_RC_t ptin_msg_DHCP_clientStats_clear(msg_DhcpClientStatistics_t *dhcp_stats)
 
   if (dhcp_stats==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid arguments");
     return L7_FAILURE;
   }
 
   /* Output data */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Clearing client DHCP stats:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  evc_idx      = %u",     dhcp_stats->evc_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Mask         = 0x%02x", dhcp_stats->mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Interface    = %u/%u",  dhcp_stats->intf.intf_type,dhcp_stats->intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.Mask  = 0x%02x", dhcp_stats->client.mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.OVlan = %u",     dhcp_stats->client.outer_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.IVlan = %u",     dhcp_stats->client.inner_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.Intf  = %u/%u",  dhcp_stats->client.intf.intf_type, dhcp_stats->client.intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Clearing client DHCP stats:");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  evc_idx      = %u",     dhcp_stats->evc_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask         = 0x%02x", dhcp_stats->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Interface    = %u/%u",  dhcp_stats->intf.intf_type,dhcp_stats->intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Mask  = 0x%02x", dhcp_stats->client.mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.OVlan = %u",     dhcp_stats->client.outer_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.IVlan = %u",     dhcp_stats->client.inner_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Intf  = %u/%u",  dhcp_stats->client.intf.intf_type, dhcp_stats->client.intf.intf_id);
 
   /* Evaluate provided data */
   if ( dhcp_stats->evc_id==(L7_uint16)-1 ||
        !(dhcp_stats->mask & MSG_CLIENT_MASK) ||
        (dhcp_stats->client.mask == 0x00) )
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "MC EVC and client reference must be provided");
+    PT_LOG_ERR(LOG_CTX_MSG, "MC EVC and client reference must be provided");
     return L7_FAILURE;
   }
 
@@ -7712,12 +7712,12 @@ L7_RC_t ptin_msg_DHCP_clientStats_clear(msg_DhcpClientStatistics_t *dhcp_stats)
 
   if (rc!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error clearing client statistics");
+    PT_LOG_ERR(LOG_CTX_MSG, "Error clearing client statistics");
     return rc;
   }
   else
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Success clearing client statistics");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Success clearing client statistics");
   }
 
   return L7_SUCCESS;
@@ -7738,24 +7738,24 @@ L7_RC_t ptin_msg_DHCP_intfStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
 
   if (dhcp_stats==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid arguments");
     return L7_FAILURE;
   }
 
   /* Output data */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Reading interface DHCP stats:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  evc_idx      = %u",     dhcp_stats->evc_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Mask         = 0x%02x", dhcp_stats->mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Interface    = %u/%u",  dhcp_stats->intf.intf_type,dhcp_stats->intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.Mask  = 0x%02x", dhcp_stats->client.mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.OVlan = %u",     dhcp_stats->client.outer_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.IVlan = %u",     dhcp_stats->client.inner_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.Intf  = %u/%u",  dhcp_stats->client.intf.intf_type, dhcp_stats->client.intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Reading interface DHCP stats:");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  evc_idx      = %u",     dhcp_stats->evc_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask         = 0x%02x", dhcp_stats->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Interface    = %u/%u",  dhcp_stats->intf.intf_type,dhcp_stats->intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Mask  = 0x%02x", dhcp_stats->client.mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.OVlan = %u",     dhcp_stats->client.outer_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.IVlan = %u",     dhcp_stats->client.inner_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Intf  = %u/%u",  dhcp_stats->client.intf.intf_type, dhcp_stats->client.intf.intf_id);
 
   /* Evaluate provided data */
   if ( !(dhcp_stats->mask & MSG_INTERFACE_MASK) )
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "At least, interface must be provided");
+    PT_LOG_ERR(LOG_CTX_MSG, "At least, interface must be provided");
     return L7_FAILURE;
   }
 
@@ -7769,12 +7769,12 @@ L7_RC_t ptin_msg_DHCP_intfStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
 
     if (rc!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting global interface statistics");
+      PT_LOG_ERR(LOG_CTX_MSG, "Error getting global interface statistics");
       return rc;
     }
     else
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Success getting global interface statistics");
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Success getting global interface statistics");
     }
   }
   else
@@ -7783,12 +7783,12 @@ L7_RC_t ptin_msg_DHCP_intfStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
 
     if (rc!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting statistics struct");
+      PT_LOG_ERR(LOG_CTX_MSG, "Error getting statistics struct");
       return rc;
     }
     else
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Success getting interface statistics of one DHCP instance");
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Success getting interface statistics of one DHCP instance");
     }
   }
 
@@ -7838,19 +7838,19 @@ L7_RC_t ptin_msg_DHCP_intfStats_clear(msg_DhcpClientStatistics_t *dhcp_stats)
 
   if (dhcp_stats==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid arguments");
     return L7_FAILURE;
   }
 
   /* Output data */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Clearing interface DHCP stats:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  evc_idx      = %u",     dhcp_stats->evc_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Mask         = 0x%02x", dhcp_stats->mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Interface    = %u/%u",  dhcp_stats->intf.intf_type,dhcp_stats->intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.Mask  = 0x%02x", dhcp_stats->client.mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.OVlan = %u",     dhcp_stats->client.outer_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.IVlan = %u",     dhcp_stats->client.inner_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.Intf  = %u/%u",  dhcp_stats->client.intf.intf_type, dhcp_stats->client.intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Clearing interface DHCP stats:");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  evc_idx      = %u",     dhcp_stats->evc_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask         = 0x%02x", dhcp_stats->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Interface    = %u/%u",  dhcp_stats->intf.intf_type,dhcp_stats->intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Mask  = 0x%02x", dhcp_stats->client.mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.OVlan = %u",     dhcp_stats->client.outer_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.IVlan = %u",     dhcp_stats->client.inner_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Intf  = %u/%u",  dhcp_stats->client.intf.intf_type, dhcp_stats->client.intf.intf_id);
 
   ptin_intf.intf_type = dhcp_stats->intf.intf_type;
   ptin_intf.intf_id   = dhcp_stats->intf.intf_id;
@@ -7866,12 +7866,12 @@ L7_RC_t ptin_msg_DHCP_intfStats_clear(msg_DhcpClientStatistics_t *dhcp_stats)
 
       if (rc!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error clearing all statistics data");
+        PT_LOG_ERR(LOG_CTX_MSG, "Error clearing all statistics data");
         return rc;
       }
       else
       {
-        LOG_DEBUG(LOG_CTX_PTIN_MSG, "Success clearing all statistics data");
+        PT_LOG_DEBUG(LOG_CTX_MSG, "Success clearing all statistics data");
       }
     }
     /* Interface provided */
@@ -7882,12 +7882,12 @@ L7_RC_t ptin_msg_DHCP_intfStats_clear(msg_DhcpClientStatistics_t *dhcp_stats)
 
       if (rc!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error clearing statistics of one complete interface");
+        PT_LOG_ERR(LOG_CTX_MSG, "Error clearing statistics of one complete interface");
         return rc;
       }
       else
       {
-        LOG_DEBUG(LOG_CTX_PTIN_MSG, "Success clearing statistics of one complete interface");
+        PT_LOG_DEBUG(LOG_CTX_MSG, "Success clearing statistics of one complete interface");
       }
     }
   }
@@ -7902,12 +7902,12 @@ L7_RC_t ptin_msg_DHCP_intfStats_clear(msg_DhcpClientStatistics_t *dhcp_stats)
 
       if (rc!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error clearing statistics of one DHCP instance");
+        PT_LOG_ERR(LOG_CTX_MSG, "Error clearing statistics of one DHCP instance");
         return rc;
       }
       else
       {
-        LOG_DEBUG(LOG_CTX_PTIN_MSG, "Success clearing statistics of one DHCP instance");
+        PT_LOG_DEBUG(LOG_CTX_MSG, "Success clearing statistics of one DHCP instance");
       }
     }
     /* Interface provided */
@@ -7918,12 +7918,12 @@ L7_RC_t ptin_msg_DHCP_intfStats_clear(msg_DhcpClientStatistics_t *dhcp_stats)
 
       if (rc!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error clearing statistics of one DHCP instance + interface");
+        PT_LOG_ERR(LOG_CTX_MSG, "Error clearing statistics of one DHCP instance + interface");
         return rc;
       }
       else
       {
-        LOG_DEBUG(LOG_CTX_PTIN_MSG, "Success clearing statistics of one DHCP instance + interface");
+        PT_LOG_DEBUG(LOG_CTX_MSG, "Success clearing statistics of one DHCP instance + interface");
       }
     }
   }
@@ -7947,10 +7947,10 @@ L7_RC_t ptin_msg_DHCPv4v6_bindTable_get(msg_DHCP_bind_table_request_t *input, ms
   L7_RC_t   rc;
 
   /* Debug */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Binding table get:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  SlotId = %u",   input->slotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Page   = %u",   input->page);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Mask   = %02X", input->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Binding table get:");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  SlotId = %u",   input->slotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Page   = %u",   input->page);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask   = %02X", input->mask);
 
   page = input->page;
 
@@ -7963,7 +7963,7 @@ L7_RC_t ptin_msg_DHCPv4v6_bindTable_get(msg_DHCP_bind_table_request_t *input, ms
 
     if (rc!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading binding table");
+      PT_LOG_ERR(LOG_CTX_MSG,"Error reading binding table");
       return rc;
     }
     // Total number of entries
@@ -7973,7 +7973,7 @@ L7_RC_t ptin_msg_DHCPv4v6_bindTable_get(msg_DHCP_bind_table_request_t *input, ms
   // Validate page index
   if ((page*128)>dhcp_bindtable_entries)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Requested page exceeds binding table size (table size=%u, page=%u)",dhcp_bindtable_entries,page);
+    PT_LOG_ERR(LOG_CTX_MSG,"Requested page exceeds binding table size (table size=%u, page=%u)",dhcp_bindtable_entries,page);
     return L7_FAILURE;
   }
 
@@ -7983,7 +7983,7 @@ L7_RC_t ptin_msg_DHCPv4v6_bindTable_get(msg_DHCP_bind_table_request_t *input, ms
   {
     entries = 128;          // Overgoes 128? If so, limit to 128
   }
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "There at least %u entries left", entries);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "There at least %u entries left", entries);
 
   output->bind_table_msg_size      = entries;
   output->bind_table_total_entries = dhcp_bindtable_entries;
@@ -8004,17 +8004,17 @@ L7_RC_t ptin_msg_DHCPv4v6_bindTable_get(msg_DHCP_bind_table_request_t *input, ms
     output->bind_table[i].remLeave       = dhcpv4v6_bindtable[first+i].remLeave;
     output->bind_table[i].bindingType    = dhcpv4v6_bindtable[first+i].bindingType;
 
-    LOG_TRACE(LOG_CTX_PTIN_MSG, "Entry %u:", first+i);
-    LOG_TRACE(LOG_CTX_PTIN_MSG, "  entry_index = %u",    output->bind_table[i].entry_index);
-    LOG_TRACE(LOG_CTX_PTIN_MSG, "  evc_idx     = %u",    output->bind_table[i].evc_idx);
-    LOG_TRACE(LOG_CTX_PTIN_MSG, "  intf        = %u/%u", output->bind_table[i].intf.intf_type, output->bind_table[i].intf.intf_id);
-    LOG_TRACE(LOG_CTX_PTIN_MSG, "  outer_vlan  = %u",    output->bind_table[i].outer_vlan);
-    LOG_TRACE(LOG_CTX_PTIN_MSG, "  inner_vlan  = %u",    output->bind_table[i].inner_vlan);
-    LOG_TRACE(LOG_CTX_PTIN_MSG, "  macAddr     = %02X:%02X:%02X:%02X:%02X:%02X", output->bind_table[i].macAddr[0], output->bind_table[i].macAddr[1], 
+    PT_LOG_TRACE(LOG_CTX_MSG, "Entry %u:", first+i);
+    PT_LOG_TRACE(LOG_CTX_MSG, "  entry_index = %u",    output->bind_table[i].entry_index);
+    PT_LOG_TRACE(LOG_CTX_MSG, "  evc_idx     = %u",    output->bind_table[i].evc_idx);
+    PT_LOG_TRACE(LOG_CTX_MSG, "  intf        = %u/%u", output->bind_table[i].intf.intf_type, output->bind_table[i].intf.intf_id);
+    PT_LOG_TRACE(LOG_CTX_MSG, "  outer_vlan  = %u",    output->bind_table[i].outer_vlan);
+    PT_LOG_TRACE(LOG_CTX_MSG, "  inner_vlan  = %u",    output->bind_table[i].inner_vlan);
+    PT_LOG_TRACE(LOG_CTX_MSG, "  macAddr     = %02X:%02X:%02X:%02X:%02X:%02X", output->bind_table[i].macAddr[0], output->bind_table[i].macAddr[1], 
               output->bind_table[i].macAddr[2], output->bind_table[i].macAddr[3], output->bind_table[i].macAddr[4], output->bind_table[i].macAddr[5]);
-    LOG_TRACE(LOG_CTX_PTIN_MSG, "  ipAddr      = %08X",  output->bind_table[i].ipAddr);
-    LOG_TRACE(LOG_CTX_PTIN_MSG, "  remLeave    = %u",    output->bind_table[i].remLeave);
-    LOG_TRACE(LOG_CTX_PTIN_MSG, "  bindingType = %u",    output->bind_table[i].bindingType);
+    PT_LOG_TRACE(LOG_CTX_MSG, "  ipAddr      = %08X",  output->bind_table[i].ipAddr);
+    PT_LOG_TRACE(LOG_CTX_MSG, "  remLeave    = %u",    output->bind_table[i].remLeave);
+    PT_LOG_TRACE(LOG_CTX_MSG, "  bindingType = %u",    output->bind_table[i].bindingType);
   }
 
   return L7_SUCCESS;
@@ -8036,22 +8036,22 @@ L7_RC_t ptin_msg_DHCP_bindTable_remove(msg_DHCP_bind_table_entry_t *table, L7_ui
 
   if (numEntries > 128)  numEntries = 128;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"NumEntries=%u", numEntries);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"NumEntries=%u", numEntries);
 
   for (i=0; i<numEntries ; i++)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Evc_idx=%u",    table[i].bind_entry.evc_idx);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Port   = %u/%u",table[i].bind_entry.intf.intf_type, table[i].bind_entry.intf.intf_id);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"OVlan  = %u",   table[i].bind_entry.outer_vlan);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"IVlan  = %u",   table[i].bind_entry.inner_vlan);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"MacAddr=%02X:%02X:%02X:%02X:%02X:%02X",
+    PT_LOG_DEBUG(LOG_CTX_MSG,"Evc_idx=%u",    table[i].bind_entry.evc_idx);
+    PT_LOG_DEBUG(LOG_CTX_MSG,"Port   = %u/%u",table[i].bind_entry.intf.intf_type, table[i].bind_entry.intf.intf_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG,"OVlan  = %u",   table[i].bind_entry.outer_vlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG,"IVlan  = %u",   table[i].bind_entry.inner_vlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG,"MacAddr=%02X:%02X:%02X:%02X:%02X:%02X",
               table[i].bind_entry.macAddr[0],
               table[i].bind_entry.macAddr[1],
               table[i].bind_entry.macAddr[2],
               table[i].bind_entry.macAddr[3],
               table[i].bind_entry.macAddr[4],
               table[i].bind_entry.macAddr[5]);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"family = %u",table[i].bind_entry.ipAddr.family);
+    PT_LOG_DEBUG(LOG_CTX_MSG,"family = %u",table[i].bind_entry.ipAddr.family);
 
     memset(&dsBinding,0x00,sizeof(dhcpSnoopBinding_t));
     memcpy(dsBinding.key.macAddr, table[i].bind_entry.macAddr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
@@ -8060,10 +8060,10 @@ L7_RC_t ptin_msg_DHCP_bindTable_remove(msg_DHCP_bind_table_entry_t *table, L7_ui
 
     if (rc!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Error removing entry");
+      PT_LOG_ERR(LOG_CTX_MSG,"Error removing entry");
       return rc;
     }
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Success removing entry");
+    PT_LOG_DEBUG(LOG_CTX_MSG,"Success removing entry");
   }
 
   return L7_SUCCESS;
@@ -8083,9 +8083,9 @@ L7_RC_t ptin_msg_ipsg_verify_source_set(msg_IPSG_set_t* msgIpsgVerifySource)
   ptin_intf_t  ptin_intf;
   L7_uint32    intIfNum;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "slotId         = %u"   , msgIpsgVerifySource->slotId);  
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ptinPort       = %u/%u",msgIpsgVerifySource->intf.intf_type,msgIpsgVerifySource->intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "verifySource   = %s"   ,msgIpsgVerifySource->enable==L7_FALSE?"No":"Yes");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "slotId         = %u"   , msgIpsgVerifySource->slotId);  
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ptinPort       = %u/%u",msgIpsgVerifySource->intf.intf_type,msgIpsgVerifySource->intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "verifySource   = %s"   ,msgIpsgVerifySource->enable==L7_FALSE?"No":"Yes");
  
   /* Get intIfNum */
   ptin_intf.intf_id=msgIpsgVerifySource->intf.intf_id;
@@ -8093,10 +8093,10 @@ L7_RC_t ptin_msg_ipsg_verify_source_set(msg_IPSG_set_t* msgIpsgVerifySource)
 
   if (ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error converting port %u/%u to intIfNum",ptin_intf.intf_type, ptin_intf.intf_id);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error converting port %u/%u to intIfNum",ptin_intf.intf_type, ptin_intf.intf_id);
     return L7_FAILURE;
   }
-  LOG_TRACE(LOG_CTX_PTIN_MSG, "Port# %u/%u: intIfNum# %2u", ptin_intf.intf_type, ptin_intf.intf_id, intIfNum);
+  PT_LOG_TRACE(LOG_CTX_MSG, "Port# %u/%u: intIfNum# %2u", ptin_intf.intf_type, ptin_intf.intf_id, intIfNum);
 
 #ifdef L7_IPSG_PACKAGE
   /*Despite the IPSG API having two input parameters: IP filtering and MAC filtering. 
@@ -8114,12 +8114,12 @@ L7_RC_t ptin_msg_ipsg_verify_source_set(msg_IPSG_set_t* msgIpsgVerifySource)
     }
     else
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid value for enable:%u", msgIpsgVerifySource->enable);
+      PT_LOG_ERR(LOG_CTX_MSG, "Invalid value for enable:%u", msgIpsgVerifySource->enable);
       return L7_FAILURE;
     }
   }  
 #else
-  LOG_ERR(LOG_CTX_PTIN_MSG, "IP Source Guard not Supported!");
+  PT_LOG_ERR(LOG_CTX_MSG, "IP Source Guard not Supported!");
   return L7_FAILURE;
 #endif
 }
@@ -8145,19 +8145,19 @@ L7_RC_t ptin_msg_ipsg_static_entry_set(msg_IPSG_static_entry_t* msgIpsgStaticEnt
   L7_RC_t           rc, rc_global = L7_SUCCESS;
   
 #ifndef L7_IPSG_PACKAGE
-  LOG_ERR(LOG_CTX_IPSG, "IP Source Guard not Supported!");
+  PT_LOG_ERR(LOG_CTX_IPSG, "IP Source Guard not Supported!");
   return L7_FAILURE;
 #endif
 
   /* Run all structs */
   for (i = 0; i < n_msg; i++)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "slotId        = %u"   , msgIpsgStaticEntry[i].slotId);  
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "iDType        = %u"   , msgIpsgStaticEntry[i].idType);  
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "iD            = %u"   , msgIpsgStaticEntry[i].id);  
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "ptinP         = %u/%u", msgIpsgStaticEntry[i].intf.intf_type,msgIpsgStaticEntry[i].intf.intf_id);  
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "action        = %s"   , msgIpsgStaticEntry[i].action==L7_FALSE?"Remove":"Add");  
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "MAC Addr      = %02X:%02X:%02X:%02X:%02X:%02X",msgIpsgStaticEntry[i].macAddr[0],msgIpsgStaticEntry[i].macAddr[1],
+    PT_LOG_DEBUG(LOG_CTX_MSG, "slotId        = %u"   , msgIpsgStaticEntry[i].slotId);  
+    PT_LOG_DEBUG(LOG_CTX_MSG, "iDType        = %u"   , msgIpsgStaticEntry[i].idType);  
+    PT_LOG_DEBUG(LOG_CTX_MSG, "iD            = %u"   , msgIpsgStaticEntry[i].id);  
+    PT_LOG_DEBUG(LOG_CTX_MSG, "ptinP         = %u/%u", msgIpsgStaticEntry[i].intf.intf_type,msgIpsgStaticEntry[i].intf.intf_id);  
+    PT_LOG_DEBUG(LOG_CTX_MSG, "action        = %s"   , msgIpsgStaticEntry[i].action==L7_FALSE?"Remove":"Add");  
+    PT_LOG_DEBUG(LOG_CTX_MSG, "MAC Addr      = %02X:%02X:%02X:%02X:%02X:%02X",msgIpsgStaticEntry[i].macAddr[0],msgIpsgStaticEntry[i].macAddr[1],
               msgIpsgStaticEntry[i].macAddr[2],msgIpsgStaticEntry[i].macAddr[3],msgIpsgStaticEntry[i].macAddr[4],msgIpsgStaticEntry[i].macAddr[5]);
     
     rc = ptin_to_fp_ip_notation(&msgIpsgStaticEntry[i].ipAddr,&ipAddr);
@@ -8171,7 +8171,7 @@ L7_RC_t ptin_msg_ipsg_static_entry_set(msg_IPSG_static_entry_t* msgIpsgStaticEnt
     
     inetAddrPrint(&ipAddr, ipAddrStr);    
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "IP Address    = %s",ipAddrStr);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "IP Address    = %s",ipAddrStr);
      
     /* Get intIfNum */
     ptin_intf.intf_id   = msgIpsgStaticEntry[i].intf.intf_id;
@@ -8181,10 +8181,10 @@ L7_RC_t ptin_msg_ipsg_static_entry_set(msg_IPSG_static_entry_t* msgIpsgStaticEnt
     if (rc != L7_SUCCESS)
     {
       rc_global = rc;
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error converting port %u/%u to intIfNum",ptin_intf.intf_type, ptin_intf.intf_id);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error converting port %u/%u to intIfNum",ptin_intf.intf_type, ptin_intf.intf_id);
       continue;
     }
-    LOG_TRACE(LOG_CTX_PTIN_MSG, "Port# %u/%u: intIfNum# %2u", ptin_intf.intf_type, ptin_intf.intf_id, intIfNum);
+    PT_LOG_TRACE(LOG_CTX_MSG, "Port# %u/%u: intIfNum# %2u", ptin_intf.intf_type, ptin_intf.intf_id, intIfNum);
 
     if( (msgIpsgStaticEntry[i].idType & IPSG_ID_ALL) == IPSG_EVC_ID)
     {
@@ -8193,10 +8193,10 @@ L7_RC_t ptin_msg_ipsg_static_entry_set(msg_IPSG_static_entry_t* msgIpsgStaticEnt
       if (rc != L7_SUCCESS)
       {
         rc_global = L7_NOT_EXIST;
-        LOG_ERR(LOG_CTX_PTIN_MSG,"Error getting internal root vlan for eEVCId=%u", msgIpsgStaticEntry[i].id);
+        PT_LOG_ERR(LOG_CTX_MSG,"Error getting internal root vlan for eEVCId=%u", msgIpsgStaticEntry[i].id);
         continue;
       }
-      LOG_TRACE(LOG_CTX_PTIN_MSG, "EVCidx# %u: internalRootVlan# %u",msgIpsgStaticEntry[i].id,vlanId);
+      PT_LOG_TRACE(LOG_CTX_MSG, "EVCidx# %u: internalRootVlan# %u",msgIpsgStaticEntry[i].id,vlanId);
     }
     else
     {
@@ -8208,7 +8208,7 @@ L7_RC_t ptin_msg_ipsg_static_entry_set(msg_IPSG_static_entry_t* msgIpsgStaticEnt
         if ((vlanId = (0x0000FFFF & msgIpsgStaticEntry[i].id)) != msgIpsgStaticEntry[i].id && vlanId >= 4096)
         {
           rc_global = L7_FAILURE;
-          LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid root vlan given:%u", msgIpsgStaticEntry[i].id);
+          PT_LOG_ERR(LOG_CTX_MSG,"Invalid root vlan given:%u", msgIpsgStaticEntry[i].id);
           continue;
         }
   /*Disabled this verification to support MAC Bridge Services*/
@@ -8216,16 +8216,16 @@ L7_RC_t ptin_msg_ipsg_static_entry_set(msg_IPSG_static_entry_t* msgIpsgStaticEnt
         if (ptin_evc_get_evcIdfromIntVlan(vlanId, &eEVCId) != L7_SUCCESS)
         {
           rc_global = L7_NOT_EXIST;
-          LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid root VLAN:%u", vlanId);
+          PT_LOG_ERR(LOG_CTX_IGMP,"Invalid root VLAN:%u", vlanId);
           continue;
         }
-        LOG_TRACE(LOG_CTX_PTIN_MSG, "EVCidx# %u: internalRootVlan# %u",eEVCId, vlanId);
+        PT_LOG_TRACE(LOG_CTX_MSG, "EVCidx# %u: internalRootVlan# %u",eEVCId, vlanId);
   #endif
       }
       else
       {
         rc_global = L7_FAILURE;
-        LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid IdType:%u", msgIpsgStaticEntry[i].idType);
+        PT_LOG_ERR(LOG_CTX_MSG,"Invalid IdType:%u", msgIpsgStaticEntry[i].idType);
         continue;
       }
     }
@@ -8260,10 +8260,10 @@ L7_RC_t ptin_msg_ipsg_static_entry_set(msg_IPSG_static_entry_t* msgIpsgStaticEnt
 L7_RC_t ptin_msg_ipsg_binding_table_get(msg_ipsg_binding_table_request_t *input, msg_ipsg_binding_table_response_t *output)
 {
 #ifdef L7_IPSG_PACKAGE
-  LOG_NOTICE(LOG_CTX_IPSG, "Not Implemented Yet!");
+  PT_LOG_NOTICE(LOG_CTX_IPSG, "Not Implemented Yet!");
   return L7_NOT_IMPLEMENTED_YET;
 #else
-  LOG_ERR(LOG_CTX_IPSG, "IP Source Guard not Supported!");
+  PT_LOG_ERR(LOG_CTX_IPSG, "IP Source Guard not Supported!");
   return L7_FAILURE;
 #endif
 
@@ -8295,19 +8295,19 @@ L7_RC_t ptin_msg_igmp_admission_control_set(msg_IgmpAdmissionControl_t *msgAdmis
 
   if (msgAdmissionControl == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Input Parameters: igmpAdmissionControl=%p", msgAdmissionControl);
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid Input Parameters: igmpAdmissionControl=%p", msgAdmissionControl);
     return L7_FAILURE;
   }
    /* Output data */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "SlotId       = %u"        , msgAdmissionControl->SlotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "mask         = 0x%02X"    , msgAdmissionControl->mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "evcId        = %u"        , msgAdmissionControl->evcId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "intf         = %u/%u"     , msgAdmissionControl->intf.intf_type, msgAdmissionControl->intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "onuId        = %u"        , msgAdmissionControl->onuId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "outer_vlan   = %u"        , msgAdmissionControl->outer_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "inner_vlan   = %u"        , msgAdmissionControl->inner_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "maxChannels  = %hu"       , msgAdmissionControl->maxChannels);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "maxBandwidth = %llu bit/s", msgAdmissionControl->maxBandwidth);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "SlotId       = %u"        , msgAdmissionControl->SlotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "mask         = 0x%02X"    , msgAdmissionControl->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "evcId        = %u"        , msgAdmissionControl->evcId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "intf         = %u/%u"     , msgAdmissionControl->intf.intf_type, msgAdmissionControl->intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "onuId        = %u"        , msgAdmissionControl->onuId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "outer_vlan   = %u"        , msgAdmissionControl->outer_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "inner_vlan   = %u"        , msgAdmissionControl->inner_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "maxChannels  = %hu"       , msgAdmissionControl->maxChannels);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "maxBandwidth = %llu bit/s", msgAdmissionControl->maxBandwidth);
 
   if ( ((msgAdmissionControl->mask & PTIN_MSG_ADMISSION_CONTROL_MASK_INTF) !=  PTIN_MSG_ADMISSION_CONTROL_MASK_INTF) ||
        ((msgAdmissionControl->mask & PTIN_MSG_ADMISSION_CONTROL_MASK_EVCID) !=  PTIN_MSG_ADMISSION_CONTROL_MASK_EVCID) ||
@@ -8320,7 +8320,7 @@ L7_RC_t ptin_msg_igmp_admission_control_set(msg_IgmpAdmissionControl_t *msgAdmis
         (msgAdmissionControl->maxChannels != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE && msgAdmissionControl->maxChannels > PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS) ) )
       
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Admission Control Parameters [mask:0x%02x maxChannels:%hu maxBandwidth:%llu bits/s", msgAdmissionControl->mask, msgAdmissionControl->maxChannels, msgAdmissionControl->maxBandwidth);
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid Admission Control Parameters [mask:0x%02x maxChannels:%hu maxBandwidth:%llu bits/s", msgAdmissionControl->mask, msgAdmissionControl->maxChannels, msgAdmissionControl->maxBandwidth);
     return L7_FAILURE;
   }
 
@@ -8339,7 +8339,7 @@ L7_RC_t ptin_msg_igmp_admission_control_set(msg_IgmpAdmissionControl_t *msgAdmis
     intf.intf_type = msgAdmissionControl->intf.intf_type;  
     if (ptin_intf_ptintf2port(&intf, &igmpAdmissionControl.ptin_port) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Failed to obtain ptin_port from ptin_intf [ptin_intf.intf_type:%u ptin_intf:%u]",intf.intf_type, intf.intf_id);
+      PT_LOG_ERR(LOG_CTX_MSG,"Failed to obtain ptin_port from ptin_intf [ptin_intf.intf_type:%u ptin_intf:%u]",intf.intf_type, intf.intf_id);
       return L7_FAILURE;
     }
    
@@ -8354,19 +8354,19 @@ L7_RC_t ptin_msg_igmp_admission_control_set(msg_IgmpAdmissionControl_t *msgAdmis
 
     if (ptin_igmp_multicast_service_add(igmpAdmissionControl.ptin_port, igmpAdmissionControl.onuId, igmpAdmissionControl.serviceId) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Failed to add multicast service");
+      PT_LOG_ERR(LOG_CTX_MSG,"Failed to add multicast service");
       return L7_FAILURE;
     }
 
     if (ptin_igmp_admission_control_multicast_service_set(&igmpAdmissionControl) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Failed to set multicast admission control parameters");
+      PT_LOG_ERR(LOG_CTX_MSG,"Failed to set multicast admission control parameters");
       return L7_FAILURE;
     }     
   }
   else
   {
-    LOG_NOTICE(LOG_CTX_PTIN_MSG,"Ignoring Request - Admission Control Mask is 0x00!");    
+    PT_LOG_NOTICE(LOG_CTX_MSG,"Ignoring Request - Admission Control Mask is 0x00!");    
   }
 #endif 
   return L7_SUCCESS;  
@@ -8428,42 +8428,42 @@ L7_RC_t ptin_msg_igmp_proxy_set(msg_IgmpProxyCfg_t *msgIgmpProxy)
   ptinMgmdProxy.mask                                  |= PTIN_MGMD_CONFIG_WHITELIST_MASK;
 
   /* Output data */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "IGMP Proxy (mask=0x%08X)", ptinMgmdProxy.mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Admin #                          = %u", ptinMgmdProxy.admin);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Network Version                  = %u", ptinMgmdProxy.networkVersion);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client Version                   = %u", ptinMgmdProxy.clientVersion);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  IP Addr                          = %u.%u.%u.%u", (ptinMgmdProxy.ipv4Addr>>24)&0xFF, (ptinMgmdProxy.ipv4Addr>>16)&0xFF, 
+  PT_LOG_DEBUG(LOG_CTX_MSG, "IGMP Proxy (mask=0x%08X)", ptinMgmdProxy.mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Admin #                          = %u", ptinMgmdProxy.admin);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Network Version                  = %u", ptinMgmdProxy.networkVersion);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client Version                   = %u", ptinMgmdProxy.clientVersion);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  IP Addr                          = %u.%u.%u.%u", (ptinMgmdProxy.ipv4Addr>>24)&0xFF, (ptinMgmdProxy.ipv4Addr>>16)&0xFF, 
                                                                                   (ptinMgmdProxy.ipv4Addr>>8)&0xFF, ptinMgmdProxy.ipv4Addr&0xFF);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  COS                              = %u", ptinMgmdProxy.igmpCos);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  FastLeave                        = %s", ptinMgmdProxy.fastLeave != 0 ? "ON":"OFF");  
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Querier (mask=0x%08X)", ptinMgmdProxy.querier.mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Flags                          = 0x%04X", ptinMgmdProxy.querier.flags);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Robustness                     = %u", ptinMgmdProxy.querier.robustness);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Query Interval                 = %u", ptinMgmdProxy.querier.queryInterval);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Query Response Interval        = %u", ptinMgmdProxy.querier.queryResponseInterval);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Group Membership Interval      = %u", ptinMgmdProxy.querier.groupMembershipInterval);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Other Querier Present Interval = %u", ptinMgmdProxy.querier.otherQuerierPresentInterval);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Startup Query Interval         = %u", ptinMgmdProxy.querier.startupQueryInterval);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Startup Query Count            = %u", ptinMgmdProxy.querier.startupQueryCount);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Last Member Query Interval     = %u", ptinMgmdProxy.querier.lastMemberQueryInterval);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Last Member Query Count        = %u", ptinMgmdProxy.querier.lastMemberQueryCount);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Older Host Present Timeout     = %u", ptinMgmdProxy.querier.olderHostPresentTimeout);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Host (mask=0x%08X)", ptinMgmdProxy.host.mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Flags                          = 0x%02X", ptinMgmdProxy.host.flags);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Robustness                     = %u", ptinMgmdProxy.host.robustness);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Unsolicited Report Interval    = %u", ptinMgmdProxy.host.unsolicitedReportInterval);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Older Querier Present Timeout  = %u", ptinMgmdProxy.host.olderQuerierPresentTimeout);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Max Group Records per Packet   = %u", ptinMgmdProxy.host.maxRecordsPerReport);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Bandwidth Control                = %s", ptinMgmdProxy.bandwidthControl != 0 ? "ON":"OFF");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Channels Control                 = %s", ptinMgmdProxy.channelsControl != 0 ? "ON":"OFF");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  WhiteList                        = %s", ptinMgmdProxy.whiteList != 0 ? "ON":"OFF");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  COS                              = %u", ptinMgmdProxy.igmpCos);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  FastLeave                        = %s", ptinMgmdProxy.fastLeave != 0 ? "ON":"OFF");  
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Querier (mask=0x%08X)", ptinMgmdProxy.querier.mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Flags                          = 0x%04X", ptinMgmdProxy.querier.flags);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Robustness                     = %u", ptinMgmdProxy.querier.robustness);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Query Interval                 = %u", ptinMgmdProxy.querier.queryInterval);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Query Response Interval        = %u", ptinMgmdProxy.querier.queryResponseInterval);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Group Membership Interval      = %u", ptinMgmdProxy.querier.groupMembershipInterval);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Other Querier Present Interval = %u", ptinMgmdProxy.querier.otherQuerierPresentInterval);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Startup Query Interval         = %u", ptinMgmdProxy.querier.startupQueryInterval);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Startup Query Count            = %u", ptinMgmdProxy.querier.startupQueryCount);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Last Member Query Interval     = %u", ptinMgmdProxy.querier.lastMemberQueryInterval);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Last Member Query Count        = %u", ptinMgmdProxy.querier.lastMemberQueryCount);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Older Host Present Timeout     = %u", ptinMgmdProxy.querier.olderHostPresentTimeout);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Host (mask=0x%08X)", ptinMgmdProxy.host.mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Flags                          = 0x%02X", ptinMgmdProxy.host.flags);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Robustness                     = %u", ptinMgmdProxy.host.robustness);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Unsolicited Report Interval    = %u", ptinMgmdProxy.host.unsolicitedReportInterval);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Older Querier Present Timeout  = %u", ptinMgmdProxy.host.olderQuerierPresentTimeout);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Max Group Records per Packet   = %u", ptinMgmdProxy.host.maxRecordsPerReport);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Bandwidth Control                = %s", ptinMgmdProxy.bandwidthControl != 0 ? "ON":"OFF");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Channels Control                 = %s", ptinMgmdProxy.channelsControl != 0 ? "ON":"OFF");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  WhiteList                        = %s", ptinMgmdProxy.whiteList != 0 ? "ON":"OFF");
   
   /* Apply config */
   rc = ptin_igmp_proxy_config_set(&ptinMgmdProxy);
 
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error setting IGMP Proxy config");
+    PT_LOG_ERR(LOG_CTX_MSG, "Error setting IGMP Proxy config");
     return L7_FAILURE;
   }
 
@@ -8493,39 +8493,39 @@ L7_RC_t ptin_msg_igmp_proxy_get(msg_IgmpProxyCfg_t *msgIgmpProxy)
 
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting IGMP Proxy config");
+    PT_LOG_ERR(LOG_CTX_MSG, "Error getting IGMP Proxy config");
     return L7_FAILURE;
   }
 
   /* Output data */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "IGMP Proxy (mask=0x%08X)", ptinIgmpProxy.mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Admin #                          = %u", ptinIgmpProxy.admin);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Network Version                  = %u", ptinIgmpProxy.networkVersion);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client Version                   = %u", ptinIgmpProxy.clientVersion);  
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  IP Addr                          = %u.%u.%u.%u", (ptinIgmpProxy.ipv4Addr >> 24) & 0xFF, (ptinIgmpProxy.ipv4Addr >> 16) & 0xFF,
+  PT_LOG_DEBUG(LOG_CTX_MSG, "IGMP Proxy (mask=0x%08X)", ptinIgmpProxy.mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Admin #                          = %u", ptinIgmpProxy.admin);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Network Version                  = %u", ptinIgmpProxy.networkVersion);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client Version                   = %u", ptinIgmpProxy.clientVersion);  
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  IP Addr                          = %u.%u.%u.%u", (ptinIgmpProxy.ipv4Addr >> 24) & 0xFF, (ptinIgmpProxy.ipv4Addr >> 16) & 0xFF,
                                                                                   (ptinIgmpProxy.ipv4Addr >>  8) & 0xFF,  ptinIgmpProxy.ipv4Addr        & 0xFF);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  COS                              = %u", ptinIgmpProxy.igmpCos);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  FastLeave                        = %s", ptinIgmpProxy.fastLeave != 0 ? "ON":"OFF");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Querier (mask=0x%08X)", ptinIgmpProxy.querier.mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Flags                          = 0x%08X", ptinIgmpProxy.querier.flags);  
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Robustness                     = %u", ptinIgmpProxy.querier.robustness);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Query Interval                 = %u", ptinIgmpProxy.querier.queryInterval);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Query Response Interval        = %u", ptinIgmpProxy.querier.queryResponseInterval);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Group Membership Interval      = %u", ptinIgmpProxy.querier.groupMembershipInterval);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Other Querier Present Interval = %u", ptinIgmpProxy.querier.otherQuerierPresentInterval);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Startup Query Interval         = %u", ptinIgmpProxy.querier.startupQueryInterval);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Startup Query Count            = %u", ptinIgmpProxy.querier.startupQueryCount);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Last Member Query Interval     = %u", ptinIgmpProxy.querier.lastMemberQueryInterval);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Last Member Query Count        = %u", ptinIgmpProxy.querier.lastMemberQueryCount);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Older Host Present Timeout     = %u", ptinIgmpProxy.querier.olderHostPresentTimeout);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Host (mask=0x%08X)", ptinIgmpProxy.host.mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Flags                          = 0x%02X", ptinIgmpProxy.host.flags);  
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Robustness                     = %u", ptinIgmpProxy.host.robustness);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Unsolicited Report Interval    = %u", ptinIgmpProxy.host.unsolicitedReportInterval);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Older Querier Present  Timeout = %u", ptinIgmpProxy.host.olderQuerierPresentTimeout);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Bandwidth Control                = %s", ptinIgmpProxy.bandwidthControl != 0 ? "ON":"OFF");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Channels Control                 = %s", ptinIgmpProxy.channelsControl != 0 ? "ON":"OFF");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  WhiteList                        = %s", ptinIgmpProxy.whiteList != 0 ? "ON":"OFF");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  COS                              = %u", ptinIgmpProxy.igmpCos);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  FastLeave                        = %s", ptinIgmpProxy.fastLeave != 0 ? "ON":"OFF");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Querier (mask=0x%08X)", ptinIgmpProxy.querier.mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Flags                          = 0x%08X", ptinIgmpProxy.querier.flags);  
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Robustness                     = %u", ptinIgmpProxy.querier.robustness);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Query Interval                 = %u", ptinIgmpProxy.querier.queryInterval);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Query Response Interval        = %u", ptinIgmpProxy.querier.queryResponseInterval);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Group Membership Interval      = %u", ptinIgmpProxy.querier.groupMembershipInterval);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Other Querier Present Interval = %u", ptinIgmpProxy.querier.otherQuerierPresentInterval);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Startup Query Interval         = %u", ptinIgmpProxy.querier.startupQueryInterval);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Startup Query Count            = %u", ptinIgmpProxy.querier.startupQueryCount);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Last Member Query Interval     = %u", ptinIgmpProxy.querier.lastMemberQueryInterval);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Last Member Query Count        = %u", ptinIgmpProxy.querier.lastMemberQueryCount);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Older Host Present Timeout     = %u", ptinIgmpProxy.querier.olderHostPresentTimeout);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Host (mask=0x%08X)", ptinIgmpProxy.host.mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Flags                          = 0x%02X", ptinIgmpProxy.host.flags);  
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Robustness                     = %u", ptinIgmpProxy.host.robustness);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Unsolicited Report Interval    = %u", ptinIgmpProxy.host.unsolicitedReportInterval);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Older Querier Present  Timeout = %u", ptinIgmpProxy.host.olderQuerierPresentTimeout);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Bandwidth Control                = %s", ptinIgmpProxy.bandwidthControl != 0 ? "ON":"OFF");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Channels Control                 = %s", ptinIgmpProxy.channelsControl != 0 ? "ON":"OFF");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  WhiteList                        = %s", ptinIgmpProxy.whiteList != 0 ? "ON":"OFF");
 
   /* Copy data */
   msgIgmpProxy->mask                                   = ptinIgmpProxy.mask;
@@ -8574,21 +8574,21 @@ L7_RC_t ptin_msg_igmp_instance_add(msg_IgmpMultcastUnicastLink_t *msgIgmpInst)
 
   if (msgIgmpInst==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid arguments");
     return L7_FAILURE;
   }
 
   /* Output data */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to add IGMP Instance:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  MC evc_idx = %u", msgIgmpInst->multicastEvcId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  UC evc_idx = %u", msgIgmpInst->unicastEvcId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Going to add IGMP Instance:");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx = %u", msgIgmpInst->multicastEvcId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  UC evc_idx = %u", msgIgmpInst->unicastEvcId);
 
   /* Apply config */
   rc = ptin_igmp_instance_add(msgIgmpInst->multicastEvcId,msgIgmpInst->unicastEvcId);
 
   if (rc!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error creating/updating IGMP instance");
+    PT_LOG_ERR(LOG_CTX_MSG, "Error creating/updating IGMP instance");
     return rc;
   }
 
@@ -8608,21 +8608,21 @@ L7_RC_t ptin_msg_igmp_instance_remove(msg_IgmpMultcastUnicastLink_t *msgIgmpInst
 
   if (msgIgmpInst==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid arguments");
     return L7_FAILURE;
   }
 
   /* Output data */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to remove IGMP Instance:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  MC evc_idx = %u", msgIgmpInst->multicastEvcId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  UC evc_idx = %u", msgIgmpInst->unicastEvcId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Going to remove IGMP Instance:");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx = %u", msgIgmpInst->multicastEvcId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  UC evc_idx = %u", msgIgmpInst->unicastEvcId);
 
   /* Apply config */
   rc = ptin_igmp_instance_remove(msgIgmpInst->multicastEvcId,msgIgmpInst->unicastEvcId);
 
   if (rc!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing IGMP instance");
+    PT_LOG_ERR(LOG_CTX_MSG, "Error removing IGMP instance");
     return rc;
   }
 
@@ -8648,23 +8648,23 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
 
   if (McastClient==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid arguments");
     return L7_FAILURE;
   }
 
   for (i=0; i<n_clients; i++)
   {
     /* Output data */
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to add MC client");
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  MC evc_idx = %u", McastClient[i].mcEvcId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.Mask         = 0x%02x", McastClient[i].client.mask);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.OVlan        = %u", McastClient[i].client.outer_vlan);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.IVlan        = %u", McastClient[i].client.inner_vlan);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.Intf         = %u/%u", McastClient[i].client.intf.intf_type,McastClient[i].client.intf.intf_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Going to add MC client");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx = %u", McastClient[i].mcEvcId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.Mask         = 0x%02x", McastClient[i].client.mask);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.OVlan        = %u", McastClient[i].client.outer_vlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.IVlan        = %u", McastClient[i].client.inner_vlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.Intf         = %u/%u", McastClient[i].client.intf.intf_type,McastClient[i].client.intf.intf_id);
 
     if (McastClient[i].mask > PTIN_MSG_IGMP_CLIENT_MASK_VALID)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Mask [mask:0x%02x]",McastClient[i].mask, McastClient[i].maxBandwidth, McastClient[i].maxChannels);
+      PT_LOG_ERR(LOG_CTX_MSG, "Invalid Mask [mask:0x%02x]",McastClient[i].mask, McastClient[i].maxBandwidth, McastClient[i].maxChannels);
       return L7_FAILURE;
     }
 
@@ -8675,14 +8675,14 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
             (McastClient[i].maxChannels != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE && McastClient[i].maxChannels > PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS) ) )
           
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Admission Control Parameters [mask:0x%02x maxBandwidth:%llu bits/s maxChannels:%hu",McastClient[i].mask, McastClient[i].maxBandwidth, McastClient[i].maxChannels);
+        PT_LOG_ERR(LOG_CTX_MSG, "Invalid Admission Control Parameters [mask:0x%02x maxBandwidth:%llu bits/s maxChannels:%hu",McastClient[i].mask, McastClient[i].maxBandwidth, McastClient[i].maxChannels);
         return L7_FAILURE;
       }
 
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "   onuId        = %u", McastClient[i].onuId);
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "   mask         = %u", McastClient[i].mask);
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "   maxChannels  = %u", McastClient[i].maxChannels);
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "   maxBandwidth = %llu bit/s ", McastClient[i].maxBandwidth);
+      PT_LOG_DEBUG(LOG_CTX_MSG, "   onuId        = %u", McastClient[i].onuId);
+      PT_LOG_DEBUG(LOG_CTX_MSG, "   mask         = %u", McastClient[i].mask);
+      PT_LOG_DEBUG(LOG_CTX_MSG, "   maxChannels  = %u", McastClient[i].maxChannels);
+      PT_LOG_DEBUG(LOG_CTX_MSG, "   maxBandwidth = %llu bit/s ", McastClient[i].maxBandwidth);
 #endif
  
     memset(&client,0x00,sizeof(ptin_client_id_t));
@@ -8707,7 +8707,7 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
       rc = ptin_igmp_clientId_convert(McastClient[i].mcEvcId, &client);
       if ( rc != L7_SUCCESS )
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error converting clientId");
+        PT_LOG_ERR(LOG_CTX_MSG, "Error converting clientId");
         continue;
       }
 
@@ -8716,19 +8716,19 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
       {
         if (ptin_evc_extVlans_get(intIfNum, McastClient[i].mcEvcId,(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
         {
-          LOG_TRACE(LOG_CTX_PTIN_IGMP,"Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
+          PT_LOG_TRACE(LOG_CTX_IGMP,"Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
                     client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
         }
         else
         {
           uni_ovid = uni_ivid = 0;
-          LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot get ext vlans for ptin_intf %u/%u, cvlan %u",
+          PT_LOG_ERR(LOG_CTX_IGMP,"Cannot get ext vlans for ptin_intf %u/%u, cvlan %u",
                   client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan);
         }
       }
       else
       {
-        LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid ptin_intf %u/%u", client.ptin_intf.intf_type, client.ptin_intf.intf_id);
+        PT_LOG_ERR(LOG_CTX_IGMP,"Invalid ptin_intf %u/%u", client.ptin_intf.intf_type, client.ptin_intf.intf_id);
       }
     }
     
@@ -8737,7 +8737,7 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
 
     if (rc!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding MC client");
+      PT_LOG_ERR(LOG_CTX_MSG, "Error adding MC client");
       return rc;
     }
   }
@@ -8761,19 +8761,19 @@ L7_RC_t ptin_msg_igmp_client_delete(msg_IgmpClient_t *McastClient, L7_uint16 n_c
 
   if (McastClient==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid arguments");
     return L7_FAILURE;
   }
 
   for (i=0; i<n_clients; i++)
   {
     /* Output data */
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to remove MC client");
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  MC evc_idx = %u", McastClient[i].mcEvcId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.Mask  = 0x%02x", McastClient[i].client.mask);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.OVlan = %u", McastClient[i].client.outer_vlan);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.IVlan = %u", McastClient[i].client.inner_vlan);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.Intf  = %u/%u", McastClient[i].client.intf.intf_type,McastClient[i].client.intf.intf_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Going to remove MC client");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx = %u", McastClient[i].mcEvcId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.Mask  = 0x%02x", McastClient[i].client.mask);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.OVlan = %u", McastClient[i].client.outer_vlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.IVlan = %u", McastClient[i].client.inner_vlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.Intf  = %u/%u", McastClient[i].client.intf.intf_type,McastClient[i].client.intf.intf_id);
 
     memset(&client,0x00,sizeof(ptin_client_id_t));
     if (McastClient[i].client.mask & MSG_CLIENT_OVLAN_MASK)
@@ -8796,7 +8796,7 @@ L7_RC_t ptin_msg_igmp_client_delete(msg_IgmpClient_t *McastClient, L7_uint16 n_c
     rc = ptin_igmp_clientId_convert(McastClient[i].mcEvcId, &client);
     if ( rc != L7_SUCCESS )
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error converting clientId");
+      PT_LOG_ERR(LOG_CTX_MSG, "Error converting clientId");
       continue;
     }
 
@@ -8804,7 +8804,7 @@ L7_RC_t ptin_msg_igmp_client_delete(msg_IgmpClient_t *McastClient, L7_uint16 n_c
     rc = ptin_igmp_api_client_remove(&client);
     if ( rc != L7_SUCCESS )
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing MC client");
+      PT_LOG_ERR(LOG_CTX_MSG, "Error removing MC client");
       return rc;
     }
   }
@@ -8827,19 +8827,19 @@ L7_RC_t ptin_msg_IGMP_clientStats_get(msg_IgmpClientStatistics_t *igmp_stats)
 
   if (igmp_stats==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid arguments");
     return L7_FAILURE;
   }
 
   /* Output data */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Reading client IGMP stats:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  MC evc_idx   = %u", igmp_stats->mcEvcId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Mask         = 0x%02x", igmp_stats->mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Interface    = %u/%u", igmp_stats->intf.intf_type,igmp_stats->intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.Mask  = 0x%02x", igmp_stats->client.mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.OVlan = %u", igmp_stats->client.outer_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.IVlan = %u", igmp_stats->client.inner_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.Intf  = %u/%u", igmp_stats->client.intf.intf_type, igmp_stats->client.intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Reading client IGMP stats:");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx   = %u", igmp_stats->mcEvcId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask         = 0x%02x", igmp_stats->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Interface    = %u/%u", igmp_stats->intf.intf_type,igmp_stats->intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Mask  = 0x%02x", igmp_stats->client.mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.OVlan = %u", igmp_stats->client.outer_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.IVlan = %u", igmp_stats->client.inner_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Intf  = %u/%u", igmp_stats->client.intf.intf_type, igmp_stats->client.intf.intf_id);
 
   //Short Fix to Support Mac Bridge Services and Unicast Services 
   #if PTIN_BOARD_IS_LINECARD
@@ -8854,7 +8854,7 @@ L7_RC_t ptin_msg_IGMP_clientStats_get(msg_IgmpClientStatistics_t *igmp_stats)
       igmp_stats->client.outer_vlan=igmp_stats->client.inner_vlan;      
     }    
     igmp_stats->client.mask|=MSG_CLIENT_OVLAN_MASK;    
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Converted [client.Mask:%u Client.OVlan:%u]",igmp_stats->client.mask,igmp_stats->client.outer_vlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG,"Converted [client.Mask:%u Client.OVlan:%u]",igmp_stats->client.mask,igmp_stats->client.outer_vlan);
   }  
   #endif
 
@@ -8863,7 +8863,7 @@ L7_RC_t ptin_msg_IGMP_clientStats_get(msg_IgmpClientStatistics_t *igmp_stats)
        !(igmp_stats->mask & MSG_CLIENT_MASK) ||
        (igmp_stats->client.mask == 0x00) )
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "MC EVC and client reference must be provided");
+    PT_LOG_ERR(LOG_CTX_MSG, "MC EVC and client reference must be provided");
     return L7_FAILURE;
   }
 
@@ -8889,12 +8889,12 @@ L7_RC_t ptin_msg_IGMP_clientStats_get(msg_IgmpClientStatistics_t *igmp_stats)
   rc = ptin_igmp_stat_client_get(igmp_stats->mcEvcId,&client,&stats);
   if (rc!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting client statistics");
+    PT_LOG_ERR(LOG_CTX_MSG, "Error getting client statistics");
     return rc;
   }
   else
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Success getting client statistics");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Success getting client statistics");
   }
 
   igmp_stats->stats.active_groups                                                    = stats.activeGroups;            
@@ -8960,26 +8960,26 @@ L7_RC_t ptin_msg_IGMP_clientStats_clear(msg_IgmpClientStatistics_t *igmp_stats, 
 
   if (igmp_stats==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid arguments");
     return L7_FAILURE;
   }
 
   /* Output data */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Clearing client IGMP stats:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  MC evc_idx   = %u", igmp_stats->mcEvcId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Mask         = 0x%02x", igmp_stats->mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Interface    = %u/%u", igmp_stats->intf.intf_type,igmp_stats->intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.Mask  = 0x%02x", igmp_stats->client.mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.OVlan = %u", igmp_stats->client.outer_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.IVlan = %u", igmp_stats->client.inner_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.Intf  = %u/%u", igmp_stats->client.intf.intf_type, igmp_stats->client.intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Clearing client IGMP stats:");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx   = %u", igmp_stats->mcEvcId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask         = 0x%02x", igmp_stats->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Interface    = %u/%u", igmp_stats->intf.intf_type,igmp_stats->intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Mask  = 0x%02x", igmp_stats->client.mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.OVlan = %u", igmp_stats->client.outer_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.IVlan = %u", igmp_stats->client.inner_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Intf  = %u/%u", igmp_stats->client.intf.intf_type, igmp_stats->client.intf.intf_id);
 
   /* Evaluate provided data */
   if ( igmp_stats->mcEvcId==(L7_uint16)-1 ||
        !(igmp_stats->mask & MSG_CLIENT_MASK) ||
        (igmp_stats->client.mask == 0x00) )
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "MC EVC and client reference must be provided");
+    PT_LOG_ERR(LOG_CTX_MSG, "MC EVC and client reference must be provided");
     return L7_FAILURE;
   }
 
@@ -9006,12 +9006,12 @@ L7_RC_t ptin_msg_IGMP_clientStats_clear(msg_IgmpClientStatistics_t *igmp_stats, 
 
   if (rc!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error clearing client statistics");
+    PT_LOG_ERR(LOG_CTX_MSG, "Error clearing client statistics");
     return rc;
   }
   else
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Success clearing client statistics");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Success clearing client statistics");
   }
 
   return L7_SUCCESS;
@@ -9032,24 +9032,24 @@ L7_RC_t ptin_msg_IGMP_intfStats_get(msg_IgmpClientStatistics_t *igmp_stats)
 
   if (igmp_stats==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid arguments");
     return L7_FAILURE;
   }
 
   /* Output data */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Reading interface IGMP stats:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  MC evc_idx   = %u", igmp_stats->mcEvcId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Mask         = 0x%02x", igmp_stats->mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Interface    = %u/%u", igmp_stats->intf.intf_type,igmp_stats->intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.Mask  = 0x%02x", igmp_stats->client.mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.OVlan = %u", igmp_stats->client.outer_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.IVlan = %u", igmp_stats->client.inner_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.Intf  = %u/%u", igmp_stats->client.intf.intf_type, igmp_stats->client.intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Reading interface IGMP stats:");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx   = %u", igmp_stats->mcEvcId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask         = 0x%02x", igmp_stats->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Interface    = %u/%u", igmp_stats->intf.intf_type,igmp_stats->intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Mask  = 0x%02x", igmp_stats->client.mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.OVlan = %u", igmp_stats->client.outer_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.IVlan = %u", igmp_stats->client.inner_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Intf  = %u/%u", igmp_stats->client.intf.intf_type, igmp_stats->client.intf.intf_id);
 
   /* Evaluate provided data */
   if ( !(igmp_stats->mask & MSG_INTERFACE_MASK) )
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "At least, interface must be provided");
+    PT_LOG_ERR(LOG_CTX_MSG, "At least, interface must be provided");
     return L7_FAILURE;
   }
 
@@ -9063,12 +9063,12 @@ L7_RC_t ptin_msg_IGMP_intfStats_get(msg_IgmpClientStatistics_t *igmp_stats)
 
     if (rc!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting global interface statistics");
+      PT_LOG_ERR(LOG_CTX_MSG, "Error getting global interface statistics");
       return rc;
     }
     else
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Success getting global interface statistics");
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Success getting global interface statistics");
     }
   }
   else
@@ -9077,12 +9077,12 @@ L7_RC_t ptin_msg_IGMP_intfStats_get(msg_IgmpClientStatistics_t *igmp_stats)
 
     if (rc!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting statistics struct");
+      PT_LOG_ERR(LOG_CTX_MSG, "Error getting statistics struct");
       return rc;
     }
     else
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Success getting interface statistics of one IGMP instance");
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Success getting interface statistics of one IGMP instance");
     }
   }
 
@@ -9149,19 +9149,19 @@ L7_RC_t ptin_msg_IGMP_intfStats_clear(msg_IgmpClientStatistics_t *igmp_stats, ui
 
   if (igmp_stats==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid arguments");
     return L7_FAILURE;
   }
 
   /* Output data */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Clearing interface IGMP stats:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  MC evc_idx   = %u", igmp_stats->mcEvcId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Mask         = 0x%02x", igmp_stats->mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Interface    = %u/%u", igmp_stats->intf.intf_type,igmp_stats->intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.Mask  = 0x%02x", igmp_stats->client.mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.OVlan = %u", igmp_stats->client.outer_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.IVlan = %u", igmp_stats->client.inner_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.Intf  = %u/%u", igmp_stats->client.intf.intf_type, igmp_stats->client.intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Clearing interface IGMP stats:");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx   = %u", igmp_stats->mcEvcId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask         = 0x%02x", igmp_stats->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Interface    = %u/%u", igmp_stats->intf.intf_type,igmp_stats->intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Mask  = 0x%02x", igmp_stats->client.mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.OVlan = %u", igmp_stats->client.outer_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.IVlan = %u", igmp_stats->client.inner_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Intf  = %u/%u", igmp_stats->client.intf.intf_type, igmp_stats->client.intf.intf_id);
 
   ptin_intf.intf_type = igmp_stats->intf.intf_type;
   ptin_intf.intf_id   = igmp_stats->intf.intf_id;
@@ -9177,12 +9177,12 @@ L7_RC_t ptin_msg_IGMP_intfStats_clear(msg_IgmpClientStatistics_t *igmp_stats, ui
 
       if (rc!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error clearing all statistics data");
+        PT_LOG_ERR(LOG_CTX_MSG, "Error clearing all statistics data");
         return rc;
       }
       else
       {
-        LOG_DEBUG(LOG_CTX_PTIN_MSG, "Success clearing all statistics data");
+        PT_LOG_DEBUG(LOG_CTX_MSG, "Success clearing all statistics data");
       }
     }
     /* Interface provided */
@@ -9193,12 +9193,12 @@ L7_RC_t ptin_msg_IGMP_intfStats_clear(msg_IgmpClientStatistics_t *igmp_stats, ui
 
       if (rc!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error clearing statistics of one complete interface");
+        PT_LOG_ERR(LOG_CTX_MSG, "Error clearing statistics of one complete interface");
         return rc;
       }
       else
       {
-        LOG_DEBUG(LOG_CTX_PTIN_MSG, "Success clearing statistics of one complete interface");
+        PT_LOG_DEBUG(LOG_CTX_MSG, "Success clearing statistics of one complete interface");
       }
     }
   }
@@ -9213,12 +9213,12 @@ L7_RC_t ptin_msg_IGMP_intfStats_clear(msg_IgmpClientStatistics_t *igmp_stats, ui
 
       if (rc!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error clearing statistics of one IGMP instance");
+        PT_LOG_ERR(LOG_CTX_MSG, "Error clearing statistics of one IGMP instance");
         return rc;
       }
       else
       {
-        LOG_DEBUG(LOG_CTX_PTIN_MSG, "Success clearing statistics of one IGMP instance");
+        PT_LOG_DEBUG(LOG_CTX_MSG, "Success clearing statistics of one IGMP instance");
       }
     }
     /* Interface provided */
@@ -9229,12 +9229,12 @@ L7_RC_t ptin_msg_IGMP_intfStats_clear(msg_IgmpClientStatistics_t *igmp_stats, ui
 
       if (rc!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error clearing statistics of one IGMP instance + interface");
+        PT_LOG_ERR(LOG_CTX_MSG, "Error clearing statistics of one IGMP instance + interface");
         return rc;
       }
       else
       {
-        LOG_DEBUG(LOG_CTX_PTIN_MSG, "Success clearing statistics of one IGMP instance + interface");
+        PT_LOG_DEBUG(LOG_CTX_MSG, "Success clearing statistics of one IGMP instance + interface");
       }
     }
   }
@@ -9260,16 +9260,16 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_get(msg_MCAssocChannel_t *channel_list, L7_ui
 {
   if (channel_list==L7_NULLPTR || n_channels==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid arguments");
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Reading White list channel list:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," Slot   = %d",channel_list->SlotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," EVC_MC = %d",channel_list->evcid_mc);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," Entry_idx = %d",channel_list->entry_idx);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," DstIP_Channel = 0x%08x (ipv6=%u) / %u",channel_list->channel_dstIp.addr.ipv4, channel_list->channel_dstIp.family, channel_list->channel_dstmask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," SrcIP_Channel = 0x%08x (ipv6=%u) / %u",channel_list->channel_srcIp.addr.ipv4, channel_list->channel_srcIp.family, channel_list->channel_srcmask);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Reading White list channel list:");
+  PT_LOG_DEBUG(LOG_CTX_MSG," Slot   = %d",channel_list->SlotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG," EVC_MC = %d",channel_list->evcid_mc);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Entry_idx = %d",channel_list->entry_idx);
+  PT_LOG_DEBUG(LOG_CTX_MSG," DstIP_Channel = 0x%08x (ipv6=%u) / %u",channel_list->channel_dstIp.addr.ipv4, channel_list->channel_dstIp.family, channel_list->channel_dstmask);
+  PT_LOG_DEBUG(LOG_CTX_MSG," SrcIP_Channel = 0x%08x (ipv6=%u) / %u",channel_list->channel_srcIp.addr.ipv4, channel_list->channel_srcIp.family, channel_list->channel_srcmask);
 
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
   L7_uint16 i, i_start;
@@ -9286,7 +9286,7 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_get(msg_MCAssocChannel_t *channel_list, L7_ui
     number_of_channels = PTIN_IGMP_CHANNELS_MAX;
     if (ptin_igmp_channel_list_get(0, channel_list->evcid_mc, igmpAssoc_list, &number_of_channels)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error reading list of channels");
+      PT_LOG_ERR(LOG_CTX_MSG, "Error reading list of channels");
       return L7_FAILURE;
     }
     /* Update number of channels */
@@ -9358,7 +9358,7 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_get(msg_MCAssocChannel_t *channel_list, L7_ui
 
 #else
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Not supported!");
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Not supported!");
   return L7_NOT_SUPPORTED;
 
 #endif
@@ -9386,25 +9386,25 @@ L7_RC_t ptin_msg_group_list_add(msg_MCAssocChannel_t *channel_list, L7_uint16 n_
 
   if (channel_list==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid arguments");
     return L7_FAILURE;
   }
 
   for (i=0; i<n_channels; i++)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Adding channel index %u:",i);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Slot   = %d",channel_list[i].SlotId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," EVC_MC = %d",channel_list[i].evcid_mc);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Entry_idx = %d",channel_list[i].entry_idx);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," group_Channel = 0x%08x (ipv6=%u) / %u",channel_list[i].channel_dstIp.addr.ipv4, channel_list[i].channel_dstIp.family, channel_list[i].channel_dstmask);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," source_Channel = 0x%08x (ipv6=%u) / %u",channel_list[i].channel_srcIp.addr.ipv4, channel_list[i].channel_srcIp.family, channel_list[i].channel_srcmask);
+    PT_LOG_DEBUG(LOG_CTX_MSG,"Adding channel index %u:",i);
+    PT_LOG_DEBUG(LOG_CTX_MSG," Slot   = %d",channel_list[i].SlotId);
+    PT_LOG_DEBUG(LOG_CTX_MSG," EVC_MC = %d",channel_list[i].evcid_mc);
+    PT_LOG_DEBUG(LOG_CTX_MSG," Entry_idx = %d",channel_list[i].entry_idx);
+    PT_LOG_DEBUG(LOG_CTX_MSG," group_Channel = 0x%08x (ipv6=%u) / %u",channel_list[i].channel_dstIp.addr.ipv4, channel_list[i].channel_dstIp.family, channel_list[i].channel_dstmask);
+    PT_LOG_DEBUG(LOG_CTX_MSG," source_Channel = 0x%08x (ipv6=%u) / %u",channel_list[i].channel_srcIp.addr.ipv4, channel_list[i].channel_srcIp.family, channel_list[i].channel_srcmask);
 
     #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," channelBandwidth = %llu bits/s", channel_list[i].channelBandwidth);
+    PT_LOG_DEBUG(LOG_CTX_MSG," channelBandwidth = %llu bits/s", channel_list[i].channelBandwidth);
 
     if (channel_list[i].channelBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid channelBandwidth:%llu bits/s",channel_list[i].channelBandwidth);
+      PT_LOG_ERR(LOG_CTX_MSG, "Invalid channelBandwidth:%llu bits/s",channel_list[i].channelBandwidth);
       return L7_FAILURE;
     }
     #endif
@@ -9431,13 +9431,13 @@ L7_RC_t ptin_msg_group_list_add(msg_MCAssocChannel_t *channel_list, L7_uint16 n_
     {
       if (inetIsInMulticast(&groupAddr)== L7_FALSE || channel_list[i].channel_dstmask < PTIN_IGMP_GROUP_MASK_MIN || channel_list[i].channel_dstmask > 32 || (!inetIsAddressZero(&sourceAddr) && inetIsValidHostAddress(&sourceAddr)== L7_FALSE) )            
       {      
-        LOG_ERR(LOG_CTX_PTIN_MSG," Invalid Parameters: evcid_mc:%u groupAddr=%s/%u sourceAddr:%s/%u ", channel_list[i].evcid_mc, groupAddrStr, channel_list[i].channel_dstmask, sourceAddrStr, channel_list[i].channel_srcmask);
+        PT_LOG_ERR(LOG_CTX_MSG," Invalid Parameters: evcid_mc:%u groupAddr=%s/%u sourceAddr:%s/%u ", channel_list[i].evcid_mc, groupAddrStr, channel_list[i].channel_dstmask, sourceAddrStr, channel_list[i].channel_srcmask);
         return L7_FAILURE;                           
       }
 
       if ( channel_list[i].channel_srcmask != 32 )
       {
-//      LOG_WARNING(LOG_CTX_PTIN_MSG," Invalid Parameters: evcid_mc:%u groupAddr=%s/%u sourceAddr:%s/%u ", channel_list[i].evcid_mc, groupAddrStr, channel_list[i].channel_dstmask, sourceAddrStr, channel_list[i].channel_srcmask);
+//      PT_LOG_WARN(LOG_CTX_MSG," Invalid Parameters: evcid_mc:%u groupAddr=%s/%u sourceAddr:%s/%u ", channel_list[i].evcid_mc, groupAddrStr, channel_list[i].channel_dstmask, sourceAddrStr, channel_list[i].channel_srcmask);
         channel_list[i].channel_srcmask = 32;          
       }
     }
@@ -9445,19 +9445,19 @@ L7_RC_t ptin_msg_group_list_add(msg_MCAssocChannel_t *channel_list, L7_uint16 n_
     { /*Default Multicast Entry*/
       if (!inetIsAddressZero(&sourceAddr))
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG," Invalid Parameters: evcid_mc:%u groupAddr=%s/%u sourceAddr:%s/%u ", channel_list[i].evcid_mc, groupAddrStr, channel_list[i].channel_dstmask, sourceAddrStr, channel_list[i].channel_srcmask);
+        PT_LOG_ERR(LOG_CTX_MSG," Invalid Parameters: evcid_mc:%u groupAddr=%s/%u sourceAddr:%s/%u ", channel_list[i].evcid_mc, groupAddrStr, channel_list[i].channel_dstmask, sourceAddrStr, channel_list[i].channel_srcmask);
         return L7_FAILURE;                   
       }
 
       if ( channel_list[i].channel_dstmask != 32 )
       {
-        LOG_WARNING(LOG_CTX_PTIN_MSG," Invalid Parameters: evcid_mc:%u groupAddr=%s/%u sourceAddr:%s/%u ", channel_list[i].evcid_mc, groupAddrStr, channel_list[i].channel_dstmask, sourceAddrStr, channel_list[i].channel_srcmask);
+        PT_LOG_WARN(LOG_CTX_MSG," Invalid Parameters: evcid_mc:%u groupAddr=%s/%u sourceAddr:%s/%u ", channel_list[i].evcid_mc, groupAddrStr, channel_list[i].channel_dstmask, sourceAddrStr, channel_list[i].channel_srcmask);
         channel_list[i].channel_dstmask = 32;
       }
 
       if ( channel_list[i].channel_srcmask != 0 )
       {
-        LOG_WARNING(LOG_CTX_PTIN_MSG," Invalid Parameters: evcid_mc:%u groupAddr=%s/%u sourceAddr:%s/%u ", channel_list[i].evcid_mc, groupAddrStr, channel_list[i].channel_dstmask, sourceAddrStr, channel_list[i].channel_srcmask);
+        PT_LOG_WARN(LOG_CTX_MSG," Invalid Parameters: evcid_mc:%u groupAddr=%s/%u sourceAddr:%s/%u ", channel_list[i].evcid_mc, groupAddrStr, channel_list[i].channel_dstmask, sourceAddrStr, channel_list[i].channel_srcmask);
         channel_list[i].channel_srcmask = 0;
       }       
     }
@@ -9475,7 +9475,7 @@ L7_RC_t ptin_msg_group_list_add(msg_MCAssocChannel_t *channel_list, L7_uint16 n_
       }
       else
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding group address 0x%08x/%u, source address 0x%08x/%u to MC EVC %u",
+        PT_LOG_ERR(LOG_CTX_MSG, "Error adding group address 0x%08x/%u, source address 0x%08x/%u to MC EVC %u",
                 channel_list[i].channel_dstIp.addr.ipv4, channel_list[i].channel_dstmask,
                 channel_list[i].channel_srcIp.addr.ipv4, channel_list[i].channel_srcmask,
                 channel_list[i].evcid_mc);
@@ -9486,7 +9486,7 @@ L7_RC_t ptin_msg_group_list_add(msg_MCAssocChannel_t *channel_list, L7_uint16 n_
 
 #else
     rc = L7_NOT_SUPPORTED;
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Not supported!");
+    PT_LOG_DEBUG(LOG_CTX_MSG,"Not supported!");
     break;
 #endif
   }
@@ -9495,7 +9495,7 @@ L7_RC_t ptin_msg_group_list_add(msg_MCAssocChannel_t *channel_list, L7_uint16 n_
   {    
     if (rc != L7_SUCCESS)
       rc_global = rc;
-    LOG_WARNING(LOG_CTX_PTIN_MSG, "One or more channels were already added! rc:%u", rc_global);
+    PT_LOG_WARN(LOG_CTX_MSG, "One or more channels were already added! rc:%u", rc_global);
   }  
 
   return rc_global;
@@ -9521,19 +9521,19 @@ L7_RC_t ptin_msg_group_list_remove(msg_MCAssocChannel_t *channel_list, L7_uint16
 
   if (channel_list==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid arguments");
     return L7_FAILURE;
   }
 
   for (i=0; i<n_channels; i++)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Removing channel index %u:",i);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Slot   = %d",channel_list[i].SlotId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," EVC_MC = %d",channel_list[i].evcid_mc);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Entry_idx = %d",channel_list[i].entry_idx);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," isStatic = %s", isStatic?"Yes":"No");
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," DstIP_Channel = 0x%08x (ipv6=%u) / %u",channel_list[i].channel_dstIp.addr.ipv4, channel_list[i].channel_dstIp.family, channel_list[i].channel_dstmask);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," SrcIP_Channel = 0x%08x (ipv6=%u) / %u",channel_list[i].channel_srcIp.addr.ipv4, channel_list[i].channel_srcIp.family, channel_list[i].channel_srcmask);
+    PT_LOG_DEBUG(LOG_CTX_MSG,"Removing channel index %u:",i);
+    PT_LOG_DEBUG(LOG_CTX_MSG," Slot   = %d",channel_list[i].SlotId);
+    PT_LOG_DEBUG(LOG_CTX_MSG," EVC_MC = %d",channel_list[i].evcid_mc);
+    PT_LOG_DEBUG(LOG_CTX_MSG," Entry_idx = %d",channel_list[i].entry_idx);
+    PT_LOG_DEBUG(LOG_CTX_MSG," isStatic = %s", isStatic?"Yes":"No");
+    PT_LOG_DEBUG(LOG_CTX_MSG," DstIP_Channel = 0x%08x (ipv6=%u) / %u",channel_list[i].channel_dstIp.addr.ipv4, channel_list[i].channel_dstIp.family, channel_list[i].channel_dstmask);
+    PT_LOG_DEBUG(LOG_CTX_MSG," SrcIP_Channel = 0x%08x (ipv6=%u) / %u",channel_list[i].channel_srcIp.addr.ipv4, channel_list[i].channel_srcIp.family, channel_list[i].channel_srcmask);
 
     /* Prepare group address */    
     rc = ptin_to_fp_ip_notation(&channel_list[i].channel_dstIp, &groupAddr);
@@ -9557,13 +9557,13 @@ L7_RC_t ptin_msg_group_list_remove(msg_MCAssocChannel_t *channel_list, L7_uint16
     {
       if (inetIsInMulticast(&groupAddr)== L7_FALSE || channel_list[i].channel_dstmask < PTIN_IGMP_GROUP_MASK_MIN || channel_list[i].channel_dstmask > 32 || (!inetIsAddressZero(&sourceAddr) && inetIsValidHostAddress(&sourceAddr)== L7_FALSE) )            
       {      
-        LOG_ERR(LOG_CTX_PTIN_MSG," Invalid Parameters: evcid_mc:%u groupAddr=%s/%u sourceAddr:%s/%u ", channel_list[i].evcid_mc, groupAddrStr, channel_list[i].channel_dstmask, sourceAddrStr, channel_list[i].channel_srcmask);
+        PT_LOG_ERR(LOG_CTX_MSG," Invalid Parameters: evcid_mc:%u groupAddr=%s/%u sourceAddr:%s/%u ", channel_list[i].evcid_mc, groupAddrStr, channel_list[i].channel_dstmask, sourceAddrStr, channel_list[i].channel_srcmask);
         return L7_FAILURE;                           
       }
 
       if ( channel_list[i].channel_srcmask != 32 )
       {
-//      LOG_WARNING(LOG_CTX_PTIN_MSG," Invalid Parameters: evcid_mc:%u groupAddr=%s/%u sourceAddr:%s/%u ", channel_list[i].evcid_mc, groupAddrStr, channel_list[i].channel_dstmask, sourceAddrStr, channel_list[i].channel_srcmask);
+//      PT_LOG_WARN(LOG_CTX_MSG," Invalid Parameters: evcid_mc:%u groupAddr=%s/%u sourceAddr:%s/%u ", channel_list[i].evcid_mc, groupAddrStr, channel_list[i].channel_dstmask, sourceAddrStr, channel_list[i].channel_srcmask);
         channel_list[i].channel_srcmask = 32;          
       }
     }
@@ -9571,19 +9571,19 @@ L7_RC_t ptin_msg_group_list_remove(msg_MCAssocChannel_t *channel_list, L7_uint16
     { /*Default Multicast Entry*/
       if (!inetIsAddressZero(&sourceAddr))
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG," Invalid Parameters: evcid_mc:%u groupAddr=%s/%u sourceAddr:%s/%u ", channel_list[i].evcid_mc, groupAddrStr, channel_list[i].channel_dstmask, sourceAddrStr, channel_list[i].channel_srcmask);
+        PT_LOG_ERR(LOG_CTX_MSG," Invalid Parameters: evcid_mc:%u groupAddr=%s/%u sourceAddr:%s/%u ", channel_list[i].evcid_mc, groupAddrStr, channel_list[i].channel_dstmask, sourceAddrStr, channel_list[i].channel_srcmask);
         return L7_FAILURE;                   
       }
 
       if ( channel_list[i].channel_dstmask != 32 )
       {
-        LOG_WARNING(LOG_CTX_PTIN_MSG," Invalid Parameters: evcid_mc:%u groupAddr=%s/%u sourceAddr:%s/%u ", channel_list[i].evcid_mc, groupAddrStr, channel_list[i].channel_dstmask, sourceAddrStr, channel_list[i].channel_srcmask);
+        PT_LOG_WARN(LOG_CTX_MSG," Invalid Parameters: evcid_mc:%u groupAddr=%s/%u sourceAddr:%s/%u ", channel_list[i].evcid_mc, groupAddrStr, channel_list[i].channel_dstmask, sourceAddrStr, channel_list[i].channel_srcmask);
         channel_list[i].channel_dstmask = 32;
       }
 
       if ( channel_list[i].channel_srcmask != 0 )
       {
-        LOG_WARNING(LOG_CTX_PTIN_MSG," Invalid Parameters: evcid_mc:%u groupAddr=%s/%u sourceAddr:%s/%u ", channel_list[i].evcid_mc, groupAddrStr, channel_list[i].channel_dstmask, sourceAddrStr, channel_list[i].channel_srcmask);
+        PT_LOG_WARN(LOG_CTX_MSG," Invalid Parameters: evcid_mc:%u groupAddr=%s/%u sourceAddr:%s/%u ", channel_list[i].evcid_mc, groupAddrStr, channel_list[i].channel_dstmask, sourceAddrStr, channel_list[i].channel_srcmask);
         channel_list[i].channel_srcmask = 0;
       }       
     }
@@ -9595,7 +9595,7 @@ L7_RC_t ptin_msg_group_list_remove(msg_MCAssocChannel_t *channel_list, L7_uint16
                                    &groupAddr , channel_list[i].channel_dstmask,
                                    &sourceAddr, channel_list[i].channel_srcmask, isStatic )) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error (%d) removing group address 0x%08x/%u, source address 0x%08x/%u from the MC EVC %u",
+      PT_LOG_ERR(LOG_CTX_MSG, "Error (%d) removing group address 0x%08x/%u, source address 0x%08x/%u from the MC EVC %u",
               rc,
               channel_list[i].channel_dstIp.addr.ipv4, channel_list[i].channel_dstmask,
               channel_list[i].channel_srcIp.addr.ipv4, channel_list[i].channel_srcmask,
@@ -9607,7 +9607,7 @@ L7_RC_t ptin_msg_group_list_remove(msg_MCAssocChannel_t *channel_list, L7_uint16
 #else
     rc = L7_NOT_SUPPORTED;
     rc_global = L7_NOT_SUPPORTED;
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Not supported!");
+    PT_LOG_DEBUG(LOG_CTX_MSG,"Not supported!");
     break;
 #endif
   }
@@ -9630,21 +9630,21 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_remove_all(msg_MCAssocChannel_t *channel_list
 
   if (channel_list==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid arguments");
     return L7_FAILURE;
   }
 
   for (messageIterator=0; messageIterator<noOfMessages; messageIterator++)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Removing channel index %u:",messageIterator);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Slot   = %d",channel_list[messageIterator].SlotId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," EVC_MC = %d",channel_list[messageIterator].evcid_mc);
+    PT_LOG_DEBUG(LOG_CTX_MSG,"Removing channel index %u:",messageIterator);
+    PT_LOG_DEBUG(LOG_CTX_MSG," Slot   = %d",channel_list[messageIterator].SlotId);
+    PT_LOG_DEBUG(LOG_CTX_MSG," EVC_MC = %d",channel_list[messageIterator].evcid_mc);
 
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
 
     if ((rc = igmp_assoc_channel_clear(-1, channel_list[messageIterator].evcid_mc)) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error (%d) removing groups to MC EVC %u", rc, channel_list[messageIterator].evcid_mc);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error (%d) removing groups to MC EVC %u", rc, channel_list[messageIterator].evcid_mc);
       rc_global = rc;
       continue;
     }
@@ -9652,7 +9652,7 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_remove_all(msg_MCAssocChannel_t *channel_list
 #else
     rc = L7_NOT_SUPPORTED;
     rc_global = L7_NOT_SUPPORTED;
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Not supported!");
+    PT_LOG_DEBUG(LOG_CTX_MSG,"Not supported!");
     break;
 #endif
   }
@@ -9676,7 +9676,7 @@ L7_RC_t ptin_msg_static_channel_add(msg_MCStaticChannel_t *channel, L7_uint16 n_
 
   if (channel==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid arguments");
     return L7_FAILURE;
   }    
 
@@ -9685,7 +9685,7 @@ L7_RC_t ptin_msg_static_channel_add(msg_MCStaticChannel_t *channel, L7_uint16 n_
   {
     if( SUCCESS != ptin_evc_intRootVlan_get(channel[i].evc_id, L7_NULLPTR))
     {
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to get mcastRootVlan from serviceId:%u", channel[i].evc_id);    
+      PT_LOG_ERR(LOG_CTX_IGMP,"Unable to get mcastRootVlan from serviceId:%u", channel[i].evc_id);    
       return L7_DEPENDENCY_NOT_MET;
     } 
   }
@@ -9712,25 +9712,25 @@ L7_RC_t ptin_msg_static_channel_add(msg_MCStaticChannel_t *channel, L7_uint16 n_
 
     if ((rc =  ptin_msg_group_list_add(&channel_list,1, L7_TRUE)) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error (%d) adding static channel", rc);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error (%d) adding static channel", rc);
       return rc;
     }
     #endif//End Static Channel Add
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Static channel addition index %u:",i);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," SlotId           = %u",channel[i].SlotId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," EvcId            = %u",channel[i].evc_id);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Channel          = %u.%u.%u.%u",
+    PT_LOG_DEBUG(LOG_CTX_MSG,"Static channel addition index %u:",i);
+    PT_LOG_DEBUG(LOG_CTX_MSG," SlotId           = %u",channel[i].SlotId);
+    PT_LOG_DEBUG(LOG_CTX_MSG," EvcId            = %u",channel[i].evc_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG," Channel          = %u.%u.%u.%u",
               (channel[i].channelIp.s_addr>>24) & 0xff,(channel[i].channelIp.s_addr>>16) & 0xff,(channel[i].channelIp.s_addr>>8) & 0xff,channel[i].channelIp.s_addr & 0xff);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," SourceIP         = %u.%u.%u.%u",
+    PT_LOG_DEBUG(LOG_CTX_MSG," SourceIP         = %u.%u.%u.%u",
               (channel[i].sourceIp.s_addr>>24) & 0xff,(channel[i].sourceIp.s_addr>>16) & 0xff,(channel[i].sourceIp.s_addr>>8) & 0xff,channel[i].sourceIp.s_addr & 0xff);
 
     #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," channelBandwidth = %llu", channel[i].channelBandwidth);
+    PT_LOG_DEBUG(LOG_CTX_MSG," channelBandwidth = %llu", channel[i].channelBandwidth);
                                
     if (channel[i].channelBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid channelBandwidth = %llu", channel[i].channelBandwidth);
+      PT_LOG_ERR(LOG_CTX_MSG,"Invalid channelBandwidth = %llu", channel[i].channelBandwidth);
       return L7_FAILURE;
     }
     #endif
@@ -9742,7 +9742,7 @@ L7_RC_t ptin_msg_static_channel_add(msg_MCStaticChannel_t *channel, L7_uint16 n_
 
     if ((rc = ptin_igmp_static_channel_add(&staticGroup)) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error (%d) adding static channel", rc);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error (%d) adding static channel", rc);
       return rc;
     }
   }
@@ -9767,7 +9767,7 @@ L7_RC_t ptin_msg_static_channel_remove(msg_MCStaticChannel_t *channel, L7_uint16
 
   if (channel==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -9776,19 +9776,19 @@ L7_RC_t ptin_msg_static_channel_remove(msg_MCStaticChannel_t *channel, L7_uint16
   {
     if( SUCCESS != ptin_evc_intRootVlan_get(channel[i].evc_id, L7_NULLPTR))
     {
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to get mcastRootVlan from serviceId:%u", channel[i].evc_id);    
+      PT_LOG_ERR(LOG_CTX_IGMP,"Unable to get mcastRootVlan from serviceId:%u", channel[i].evc_id);    
       return L7_DEPENDENCY_NOT_MET;
     } 
   }
 
   for (i=0; i<n_channels; i++)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Channel remotion index %u:",i);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," SlotId =%u",channel[i].SlotId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," EvcId  =%u",channel[i].evc_id);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Channel=%u.%u.%u.%u",
+    PT_LOG_DEBUG(LOG_CTX_MSG,"Channel remotion index %u:",i);
+    PT_LOG_DEBUG(LOG_CTX_MSG," SlotId =%u",channel[i].SlotId);
+    PT_LOG_DEBUG(LOG_CTX_MSG," EvcId  =%u",channel[i].evc_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG," Channel=%u.%u.%u.%u",
               (channel[i].channelIp.s_addr>>24) & 0xff,(channel[i].channelIp.s_addr>>16) & 0xff,(channel[i].channelIp.s_addr>>8) & 0xff,channel[i].channelIp.s_addr & 0xff);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," SourceIP=%u.%u.%u.%u",
+    PT_LOG_DEBUG(LOG_CTX_MSG," SourceIP=%u.%u.%u.%u",
               (channel[i].sourceIp.s_addr>>24) & 0xff,(channel[i].sourceIp.s_addr>>16) & 0xff,(channel[i].sourceIp.s_addr>>8) & 0xff,channel[i].sourceIp.s_addr & 0xff);
 
     staticGroup.serviceId = channel[i].evc_id;
@@ -9798,7 +9798,7 @@ L7_RC_t ptin_msg_static_channel_remove(msg_MCStaticChannel_t *channel, L7_uint16
 
     if ((rc = ptin_igmp_static_channel_remove(&staticGroup)) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error (%d) removing channel", rc);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error (%d) removing channel", rc);
       rc_global = rc;
       continue;
     }
@@ -9850,19 +9850,19 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
 
   if (numberOfChannels == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid parameters");
+    PT_LOG_ERR(LOG_CTX_MSG,"Invalid parameters");
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Going to retrieve list of channels");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId = %u",             inputPtr->SlotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," EvcId  = %u",             inputPtr->evc_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," Client.Mask  = 0x%02x",   inputPtr->client.mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," Client.OVlan = %u",       inputPtr->client.outer_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," Client.IVlan = %u",       inputPtr->client.inner_vlan);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," Client.Intf  = %u/%u",    inputPtr->client.intf.intf_type,inputPtr->client.intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," Entry_idx=%u",            inputPtr->entryId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," Max Number of Channels=%u",*numberOfChannels);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Going to retrieve list of channels");
+  PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u",             inputPtr->SlotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG," EvcId  = %u",             inputPtr->evc_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Client.Mask  = 0x%02x",   inputPtr->client.mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Client.OVlan = %u",       inputPtr->client.outer_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Client.IVlan = %u",       inputPtr->client.inner_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Client.Intf  = %u/%u",    inputPtr->client.intf.intf_type,inputPtr->client.intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Entry_idx=%u",            inputPtr->entryId);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Max Number of Channels=%u",*numberOfChannels);
 
   //Short Fix to Support Mac Bridge Services and Unicast Services
   #if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
@@ -9880,7 +9880,7 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
     {
       inputPtr->client.mask|=MSG_CLIENT_OVLAN_MASK;
     }    
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Converted [client.Mask:%u Client.OVlan:%u]",inputPtr->client.mask,inputPtr->client.outer_vlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG,"Converted [client.Mask:%u Client.OVlan:%u]",inputPtr->client.mask,inputPtr->client.outer_vlan);
   }
   #endif
     
@@ -9916,19 +9916,19 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
       outputPtr[i].chIP    = clist[i].groupAddr.addr.ipv4.s_addr;
       outputPtr[i].srcIP   = clist[i].sourceAddr.addr.ipv4.s_addr;
       outputPtr[i].chType  = clist[i].static_type;
-      LOG_TRACE(LOG_CTX_PTIN_MSG,"EntryId[%u] -> Group:[%08X] Source[%08X] isStatic[%s]", outputPtr[i].entryId, outputPtr[i].chIP, outputPtr[i].srcIP, outputPtr[i].chType?"Yes":"No");
+      PT_LOG_TRACE(LOG_CTX_MSG,"EntryId[%u] -> Group:[%08X] Source[%08X] isStatic[%s]", outputPtr[i].entryId, outputPtr[i].chIP, outputPtr[i].srcIP, outputPtr[i].chType?"Yes":"No");
     }
      *numberOfChannels = i;
-     LOG_DEBUG(LOG_CTX_PTIN_MSG, "Read %u channels and retrieving %u channels.",number_of_channels, *numberOfChannels);
+     PT_LOG_DEBUG(LOG_CTX_MSG, "Read %u channels and retrieving %u channels.",number_of_channels, *numberOfChannels);
   }
   else if (rc==L7_NOT_EXIST)
   {
     *numberOfChannels = 0;
-    LOG_NOTICE(LOG_CTX_PTIN_MSG, "No channels to retrieve");
+    PT_LOG_NOTICE(LOG_CTX_MSG, "No channels to retrieve");
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error with ptin_igmp_channelList_get");
+    PT_LOG_ERR(LOG_CTX_MSG,"Error with ptin_igmp_channelList_get");
     return rc;
   }
 
@@ -9956,7 +9956,7 @@ L7_RC_t ptin_msg_snoop_sync_request(msg_SnoopSyncRequest_t *snoopSyncRequest)
 
   if (snoopSyncRequest==L7_NULLPTR )
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid input parameters snoopSyncRequest=%p",snoopSyncRequest);
+    PT_LOG_ERR(LOG_CTX_MSG,"Invalid input parameters snoopSyncRequest=%p",snoopSyncRequest);
     return L7_FAILURE;
   }
 
@@ -9968,16 +9968,16 @@ L7_RC_t ptin_msg_snoop_sync_request(msg_SnoopSyncRequest_t *snoopSyncRequest)
   inetAddrPrint(&sourceAddr, sourceAddrStr);
 #endif
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Received Snoop Sync Request Message");     
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," serviceId=%u",snoopSyncRequest->serviceId);  
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Received Snoop Sync Request Message");     
+  PT_LOG_DEBUG(LOG_CTX_MSG," serviceId=%u",snoopSyncRequest->serviceId);  
 #if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," groupAddr=%s", groupAddrStr);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," sourceAddr=%s", sourceAddrStr);
+  PT_LOG_DEBUG(LOG_CTX_MSG," groupAddr=%s", groupAddrStr);
+  PT_LOG_DEBUG(LOG_CTX_MSG," sourceAddr=%s", sourceAddrStr);
 #else
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," groupAddr=%08X",snoopSyncRequest->groupAddr);
+  PT_LOG_DEBUG(LOG_CTX_MSG," groupAddr=%08X",snoopSyncRequest->groupAddr);
 #endif
 #if !PTIN_BOARD_IS_MATRIX  
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," portId=%u",snoopSyncRequest->portId);
+  PT_LOG_DEBUG(LOG_CTX_MSG," portId=%u",snoopSyncRequest->portId);
 #endif
   
   if( snoopSyncRequest->serviceId != 0 
@@ -9985,20 +9985,20 @@ L7_RC_t ptin_msg_snoop_sync_request(msg_SnoopSyncRequest_t *snoopSyncRequest)
   {
     if( rc != L7_NOT_EXIST)
     {
-      LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to get mcastRootVlan from serviceId:%u",snoopSyncRequest->serviceId);
+      PT_LOG_ERR(LOG_CTX_IGMP, "Unable to get mcastRootVlan from serviceId:%u",snoopSyncRequest->serviceId);
       return rc;
     }
 #if PTIN_BOARD_IS_MATRIX 
   #if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Evc Id is not yet created. Silently Ignoring Snoop Sync Request! [serviceId:%u groupAddr:%08X sourceAddr:%08X]", snoopSyncRequest->serviceId, snoopSyncRequest->groupAddr, snoopSyncRequest->sourceAddr);
+    PT_LOG_NOTICE(LOG_CTX_IGMP, "Evc Id is not yet created. Silently Ignoring Snoop Sync Request! [serviceId:%u groupAddr:%08X sourceAddr:%08X]", snoopSyncRequest->serviceId, snoopSyncRequest->groupAddr, snoopSyncRequest->sourceAddr);
   #else
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Evc Id is not yet created. Silently Ignoring Snoop Sync Request! [serviceId:%u groupAddr:%08X]", snoopSyncRequest->serviceId, snoopSyncRequest->groupAddr);
+    PT_LOG_NOTICE(LOG_CTX_IGMP, "Evc Id is not yet created. Silently Ignoring Snoop Sync Request! [serviceId:%u groupAddr:%08X]", snoopSyncRequest->serviceId, snoopSyncRequest->groupAddr);
   #endif
 #else
   #if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Evc Id is not yet created. Silently Ignoring Snoop Sync Request! [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X]", snoopSyncRequest->serviceId, snoopSyncRequest->portId, snoopSyncRequest->groupAddr, snoopSyncRequest->sourceAddr);
+    PT_LOG_NOTICE(LOG_CTX_IGMP, "Evc Id is not yet created. Silently Ignoring Snoop Sync Request! [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X]", snoopSyncRequest->serviceId, snoopSyncRequest->portId, snoopSyncRequest->groupAddr, snoopSyncRequest->sourceAddr);
   #else
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Evc Id is not yet created. Silently Ignoring Snoop Sync Request! [serviceId:%u portId:%u groupAddr:%08X]", snoopSyncRequest->serviceId, snoopSyncRequest->portId, snoopSyncRequest->groupAddr);
+    PT_LOG_NOTICE(LOG_CTX_IGMP, "Evc Id is not yet created. Silently Ignoring Snoop Sync Request! [serviceId:%u portId:%u groupAddr:%08X]", snoopSyncRequest->serviceId, snoopSyncRequest->portId, snoopSyncRequest->groupAddr);
   #endif
 #endif
     return rc;
@@ -10019,7 +10019,7 @@ L7_RC_t ptin_msg_snoop_sync_request(msg_SnoopSyncRequest_t *snoopSyncRequest)
 #endif
 
 #else
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Silently Ignoring Snoop Sync Request. I'm a standalone!");
+    PT_LOG_NOTICE(LOG_CTX_IGMP, "Silently Ignoring Snoop Sync Request. I'm a standalone!");
     return L7_SUCCESS;
 #endif
 
@@ -10049,15 +10049,15 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
   
   if (snoopSyncReply==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid parameters: snoopSyncReply=%p",snoopSyncReply);
+    PT_LOG_ERR(LOG_CTX_MSG,"Invalid parameters: snoopSyncReply=%p",snoopSyncReply);
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Received Snoop Sync Reply Message: numberOfSnoopEntries=%u | maxNumberOfSnoopEntries:%u",numberOfSnoopEntries,maxNumberOfSnoopEntries);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Received Snoop Sync Reply Message: numberOfSnoopEntries=%u | maxNumberOfSnoopEntries:%u",numberOfSnoopEntries,maxNumberOfSnoopEntries);
   
   if(numberOfSnoopEntries==0)
   {
-    LOG_NOTICE(LOG_CTX_PTIN_MSG,"The number of snoop entries is equal to zero. Silently ignoring this reply message.");
+    PT_LOG_NOTICE(LOG_CTX_MSG,"The number of snoop entries is equal to zero. Silently ignoring this reply message.");
     return L7_SUCCESS;
   }
     
@@ -10068,20 +10068,20 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
 
     for(iterator=0;iterator < numberOfSnoopEntries; iterator++)
     {
-      LOG_TRACE(LOG_CTX_PTIN_MSG," serviceId=%u",snoopSyncReply[iterator].serviceId);
+      PT_LOG_TRACE(LOG_CTX_MSG," serviceId=%u",snoopSyncReply[iterator].serviceId);
 #if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
       ptin_to_fp_ip_notation(&snoopSyncReply[iterator].groupAddr, &groupAddr);
       ptin_to_fp_ip_notation(&snoopSyncReply[iterator].sourceAddr, &sourceAddr);
 
       inetAddrPrint(&groupAddr, groupAddrStr);
       inetAddrPrint(&sourceAddr, sourceAddrStr);
-      LOG_TRACE(LOG_CTX_PTIN_MSG," groupAddr=%s", groupAddrStr);
-      LOG_TRACE(LOG_CTX_PTIN_MSG," sourceAddr=%s", sourceAddrStr);
+      PT_LOG_TRACE(LOG_CTX_MSG," groupAddr=%s", groupAddrStr);
+      PT_LOG_TRACE(LOG_CTX_MSG," sourceAddr=%s", sourceAddrStr);
 #else
-      LOG_TRACE(LOG_CTX_PTIN_MSG," groupAddr=%08X",snoopSyncReply[iterator].groupAddr);
+      PT_LOG_TRACE(LOG_CTX_MSG," groupAddr=%08X",snoopSyncReply[iterator].groupAddr);
 #endif
-      LOG_TRACE(LOG_CTX_PTIN_MSG," StaticEntry=%s",snoopSyncReply[iterator].isStatic?"Yes":"No");
-      LOG_TRACE(LOG_CTX_PTIN_MSG," numberOfActivePorts=%u",snoopSyncReply[iterator].numberOfActivePorts);
+      PT_LOG_TRACE(LOG_CTX_MSG," StaticEntry=%s",snoopSyncReply[iterator].isStatic?"Yes":"No");
+      PT_LOG_TRACE(LOG_CTX_MSG," numberOfActivePorts=%u",snoopSyncReply[iterator].numberOfActivePorts);
       numberOfActivePorts=0;
       if(snoopSyncReply[iterator].numberOfActivePorts>0)
       {
@@ -10089,14 +10089,14 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
         {   
           if (PTIN_IS_MASKBITSET(snoopSyncReply[iterator].intIfNum_mask,intIfNum))
           {
-            LOG_DEBUG(LOG_CTX_PTIN_MSG, "Snoop Port Open :%u", intIfNum);
+            PT_LOG_DEBUG(LOG_CTX_MSG, "Snoop Port Open :%u", intIfNum);
             #if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
             if(snoopPortOpen(snoopSyncReply[iterator].serviceId, intIfNum, &groupAddr, &sourceAddr, snoopSyncReply[iterator].isStatic, isProtection)!=L7_SUCCESS)
             #else
             if(snooping_port_open(snoopSyncReply[iterator].serviceId, intIfNum, snoopSyncReply[iterator].groupAddr, sourceAddr, snoopSyncReply[iterator].isStatic)!=L7_SUCCESS)
             #endif
             {
-              LOG_ERR(LOG_CTX_PTIN_MSG, "Failed to open port");
+              PT_LOG_ERR(LOG_CTX_MSG, "Failed to open port");
               return L7_FAILURE;
             }
 
@@ -10113,27 +10113,27 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
   {
     for(iterator=0;iterator < numberOfSnoopEntries; iterator++)
     { 
-      LOG_TRACE(LOG_CTX_PTIN_MSG," serviceId=%u",snoopSyncReply[iterator].serviceId);
+      PT_LOG_TRACE(LOG_CTX_MSG," serviceId=%u",snoopSyncReply[iterator].serviceId);
 #if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
       ptin_to_fp_ip_notation(&snoopSyncReply[iterator].groupAddr, &groupAddr);
       ptin_to_fp_ip_notation(&snoopSyncReply[iterator].sourceAddr, &sourceAddr);
 
       inetAddrPrint(&groupAddr, groupAddrStr);
       inetAddrPrint(&sourceAddr, sourceAddrStr);
-      LOG_TRACE(LOG_CTX_PTIN_MSG," groupAddr=%s", groupAddrStr);
-      LOG_TRACE(LOG_CTX_PTIN_MSG," sourceAddr=%s", sourceAddrStr);
+      PT_LOG_TRACE(LOG_CTX_MSG," groupAddr=%s", groupAddrStr);
+      PT_LOG_TRACE(LOG_CTX_MSG," sourceAddr=%s", sourceAddrStr);
 #else
-      LOG_TRACE(LOG_CTX_PTIN_MSG," groupAddr=%08X",snoopSyncReply[iterator].groupAddr);
+      PT_LOG_TRACE(LOG_CTX_MSG," groupAddr=%08X",snoopSyncReply[iterator].groupAddr);
 #endif
-      LOG_TRACE(LOG_CTX_PTIN_MSG," StaticEntry=%s",snoopSyncReply[iterator].isStatic?"Yes":"No");   
-      LOG_TRACE(LOG_CTX_PTIN_MSG," portId=%u",snoopSyncReply->portId);
+      PT_LOG_TRACE(LOG_CTX_MSG," StaticEntry=%s",snoopSyncReply[iterator].isStatic?"Yes":"No");   
+      PT_LOG_TRACE(LOG_CTX_MSG," portId=%u",snoopSyncReply->portId);
       #if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
       if(snoopPortOpen(snoopSyncReply[iterator].serviceId, snoopSyncReply[iterator].portId, &groupAddr, &sourceAddr, snoopSyncReply[iterator].isStatic, isProtection)!=L7_SUCCESS)
       #else
       if(snooping_port_open(snoopSyncReply[iterator].serviceId, snoopSyncReply[iterator].portId, snoopSyncReply[iterator].groupAddr, sourceAddr, snoopSyncReply[iterator].isStatic)!=L7_SUCCESS)
       #endif
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Failed to open port");
+        PT_LOG_ERR(LOG_CTX_MSG, "Failed to open port");
         return L7_FAILURE;
       }
     }
@@ -10143,7 +10143,7 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
   //Request the remaining snoop entries
   if(numberOfSnoopEntries!=maxNumberOfSnoopEntries)
   {
-    LOG_TRACE(LOG_CTX_PTIN_MSG, "This is the Last Snoop Sync Reply Message Received");
+    PT_LOG_TRACE(LOG_CTX_MSG, "This is the Last Snoop Sync Reply Message Received");
     return L7_SUCCESS;
   }
 
@@ -10163,14 +10163,14 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
 #if PTIN_BOARD_IS_MATRIX    
   if(ptin_fpga_mx_is_matrixactive_rt())//If I'm a Active Matrix
   {
-    LOG_NOTICE(LOG_CTX_PTIN_MSG, "Not sending Another Snoop Sync Request Message to Sync the Remaining Snoop Entries. I'm a Active Matrix on slotId:%u",ptin_fpga_board_slot_get());
+    PT_LOG_NOTICE(LOG_CTX_MSG, "Not sending Another Snoop Sync Request Message to Sync the Remaining Snoop Entries. I'm a Active Matrix on slotId:%u",ptin_fpga_board_slot_get());
     return SUCCESS;
   }
 
   /* MX board IP address */
   ipAddr = IPC_MX_PAIR_IPADDR;
   
-  LOG_INFO(LOG_CTX_PTIN_MSG, "Sending Snoop Sync Request Message [groupAddr:%08X | serviceId:%u] to ipAddr:%08X (%u) to Sync the Remaining Snoop Entries", snoopSyncRequest.groupAddr, snoopSyncRequest.serviceId, ipAddr, MX_PAIR_SLOT_ID);         
+  PT_LOG_INFO(LOG_CTX_MSG, "Sending Snoop Sync Request Message [groupAddr:%08X | serviceId:%u] to ipAddr:%08X (%u) to Sync the Remaining Snoop Entries", snoopSyncRequest.groupAddr, snoopSyncRequest.serviceId, ipAddr, MX_PAIR_SLOT_ID);         
 #else
   ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};     
 
@@ -10179,7 +10179,7 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
 
   if(protTypebIntfConfig.status==L7_ENABLE)//If I'm a Protection
   {
-    LOG_NOTICE(LOG_CTX_PTIN_MSG, "Not sending Another Snoop Sync Request Message to Sync the Remaining Snoop Entries. I'm a Active slotId/intfNum:%u/%u",protTypebIntfConfig.pairSlotId, protTypebIntfConfig.intfNum);
+    PT_LOG_NOTICE(LOG_CTX_MSG, "Not sending Another Snoop Sync Request Message to Sync the Remaining Snoop Entries. I'm a Active slotId/intfNum:%u/%u",protTypebIntfConfig.pairSlotId, protTypebIntfConfig.intfNum);
     return SUCCESS;
   }
     
@@ -10189,20 +10189,20 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
   /* Determine the IP address of the working port/slot */   
   if (L7_SUCCESS != ptin_fpga_slot_ip_addr_get(protTypebIntfConfig.pairSlotId, &ipAddr))
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Failed to obtain ipAddress of slotId:%u", protTypebIntfConfig.pairSlotId);
+    PT_LOG_ERR(LOG_CTX_MSG, "Failed to obtain ipAddress of slotId:%u", protTypebIntfConfig.pairSlotId);
     return L7_FAILURE;
   }
   #endif
   snoopSyncRequest.portId    = protTypebIntfConfig.pairIntfNum;     
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Sending Snoop Sync Request Message [groupAddr:%08X | serviceId:%u | portId:%u] to ipAddr:%08X to Sync the Remaining Snoop Entries", snoopSyncRequest.groupAddr, snoopSyncRequest.serviceId, snoopSyncRequest.portId, ipAddr);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Sending Snoop Sync Request Message [groupAddr:%08X | serviceId:%u | portId:%u] to ipAddr:%08X to Sync the Remaining Snoop Entries", snoopSyncRequest.groupAddr, snoopSyncRequest.serviceId, snoopSyncRequest.portId, ipAddr);
 #endif
               
   
   /*Send the snoop sync request to the protection matrix */  
   if (send_ipc_message(IPC_HW_FASTPATH_PORT, ipAddr, CCMSG_MGMD_SNOOP_SYNC_REQUEST, (char *)(&snoopSyncRequest), NULL, sizeof(snoopSyncRequest), NULL) < 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_PROTB, "Failed to Send Snoop Sync Request Message");
+    PT_LOG_ERR(LOG_CTX_PROTB, "Failed to Send Snoop Sync Request Message");
     return L7_FAILURE;
   }
   
@@ -10224,13 +10224,13 @@ L7_RC_t ptin_msg_IGMP_clientList_get(msg_MCActiveChannelClientsResponse_t *clien
   L7_uint16        i, number_of_clients, total_clients;
   L7_RC_t rc;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Going to retrieve list of clients");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId     =%u",client_list->SlotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," EvcId      =%u",client_list->evc_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," groupAddr=%u.%u.%u.%u",(client_list->channelIp.s_addr>>24) & 0xff,(client_list->channelIp.s_addr>>16) & 0xff,(client_list->channelIp.s_addr>>8) & 0xff,client_list->channelIp.s_addr & 0xff);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Going to retrieve list of clients");
+  PT_LOG_DEBUG(LOG_CTX_MSG," slotId     =%u",client_list->SlotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG," EvcId      =%u",client_list->evc_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," groupAddr=%u.%u.%u.%u",(client_list->channelIp.s_addr>>24) & 0xff,(client_list->channelIp.s_addr>>16) & 0xff,(client_list->channelIp.s_addr>>8) & 0xff,client_list->channelIp.s_addr & 0xff);
   
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," sourceAddr=%u.%u.%u.%u",(client_list->sourceIp.s_addr>>24) & 0xff,(client_list->sourceIp.s_addr>>16) & 0xff,(client_list->sourceIp.s_addr>>8) & 0xff,client_list->sourceIp.s_addr & 0xff);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," Page_idx=%u",client_list->page_index);
+  PT_LOG_DEBUG(LOG_CTX_MSG," sourceAddr=%u.%u.%u.%u",(client_list->sourceIp.s_addr>>24) & 0xff,(client_list->sourceIp.s_addr>>16) & 0xff,(client_list->sourceIp.s_addr>>8) & 0xff,client_list->sourceIp.s_addr & 0xff);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Page_idx=%u",client_list->page_index);
 
   /* Get list of channels */      
   channelIp.s_addr    = client_list->channelIp.s_addr;
@@ -10238,7 +10238,7 @@ L7_RC_t ptin_msg_IGMP_clientList_get(msg_MCActiveChannelClientsResponse_t *clien
   number_of_clients   = MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX;
 
   rc = ptin_igmp_clientList_get(client_list->evc_id, &channelIp, &sourceIp, client_list->page_index*MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX, &number_of_clients, clist, extended_evc_id,&total_clients);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"number_of_clients=%u total_clients=%u", number_of_clients, total_clients);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"number_of_clients=%u total_clients=%u", number_of_clients, total_clients);
   if (rc==L7_SUCCESS)
   {
     /* Copy channels to message */
@@ -10259,14 +10259,14 @@ L7_RC_t ptin_msg_IGMP_clientList_get(msg_MCActiveChannelClientsResponse_t *clien
   }
   else if (rc==L7_NOT_EXIST)
   {
-    LOG_WARNING(LOG_CTX_PTIN_MSG, "No channels to retrieve");
+    PT_LOG_WARN(LOG_CTX_MSG, "No channels to retrieve");
     client_list->n_pages_total   = 1;
     client_list->n_clients_total = 0;
     client_list->n_clients_msg   = 0;
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error with ptin_igmp_clientList_get");
+    PT_LOG_ERR(LOG_CTX_MSG,"Error with ptin_igmp_clientList_get");
     return rc;
   }
 
@@ -10289,20 +10289,20 @@ L7_RC_t ptin_msg_igmp_static_channel_remove_all(msg_MCStaticChannel_t *channel, 
 
   if (channel==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid arguments");
     return L7_FAILURE;
   }
   for (messageIterator=0; messageIterator<noOfMessages; messageIterator++)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Channel remotion index %u:",messageIterator);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," SlotId =%u",channel[messageIterator].SlotId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," EvcId  =%u",channel[messageIterator].evc_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG,"Channel remotion index %u:",messageIterator);
+    PT_LOG_DEBUG(LOG_CTX_MSG," SlotId =%u",channel[messageIterator].SlotId);
+    PT_LOG_DEBUG(LOG_CTX_MSG," EvcId  =%u",channel[messageIterator].evc_id);
 
     staticGroup.serviceId = channel[messageIterator].evc_id;
     
     if ((ptin_igmp_mgmd_service_remove(channel[messageIterator].evc_id)) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error (%d) removing channel", rc);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error (%d) removing channel", rc);
       rc_global = rc;
       continue;
     }
@@ -10331,10 +10331,10 @@ L7_RC_t ptin_msg_uplink_protection_cmd(msg_uplinkProtCmd *cmd, L7_int n)
   /* Verify plan to be followed */
   for (i = 0; i < n; i++) 
   {
-    LOG_TRACE(LOG_CTX_PTIN_MSG, "Received protection command: "); 
-    LOG_TRACE(LOG_CTX_PTIN_MSG, " slot = %u", cmd[i].slotId);
-    LOG_TRACE(LOG_CTX_PTIN_MSG, " port = %u", cmd[i].port);
-    LOG_TRACE(LOG_CTX_PTIN_MSG, " cmd  = %u", cmd[i].protCmd);
+    PT_LOG_TRACE(LOG_CTX_MSG, "Received protection command: "); 
+    PT_LOG_TRACE(LOG_CTX_MSG, " slot = %u", cmd[i].slotId);
+    PT_LOG_TRACE(LOG_CTX_MSG, " port = %u", cmd[i].port);
+    PT_LOG_TRACE(LOG_CTX_MSG, " cmd  = %u", cmd[i].protCmd);
 
     if (n > 1)
     {
@@ -10346,13 +10346,13 @@ L7_RC_t ptin_msg_uplink_protection_cmd(msg_uplinkProtCmd *cmd, L7_int n)
   /* If provided a port to be removed, and to be added, follow plan D for those ports */
   if (i2add >= 0 && i2rem >= 0)
   {
-    LOG_TRACE(LOG_CTX_PTIN_MSG, "Applying plan D for slot/ports %d/%d -> %d/%d",
+    PT_LOG_TRACE(LOG_CTX_MSG, "Applying plan D for slot/ports %d/%d -> %d/%d",
               cmd[i2rem].slotId, cmd[i2rem].port, cmd[i2add].slotId, cmd[i2add].port);
     /* PLAN D */
     if (ptin_intf_protection_cmd_planD(cmd[i2rem].slotId, cmd[i2rem].port,
                                        cmd[i2add].slotId, cmd[i2add].port) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Plan D failed for slot/ports %d/%d -> %d/%d",
+      PT_LOG_ERR(LOG_CTX_MSG, "Plan D failed for slot/ports %d/%d -> %d/%d",
               cmd[i2rem].slotId, cmd[i2rem].port, cmd[i2add].slotId, cmd[i2add].port);
       rc = L7_FAILURE;
     }
@@ -10364,11 +10364,11 @@ L7_RC_t ptin_msg_uplink_protection_cmd(msg_uplinkProtCmd *cmd, L7_int n)
     /* Skip ports used for plan D */
     if (i == i2rem || i == i2add)  continue;
 
-    LOG_TRACE(LOG_CTX_PTIN_MSG, "Applying plan C for slot/port %d/%d", cmd[i].slotId, cmd[i].port);
+    PT_LOG_TRACE(LOG_CTX_MSG, "Applying plan C for slot/port %d/%d", cmd[i].slotId, cmd[i].port);
     /* PLAN C */
     if (ptin_intf_protection_cmd_planC(cmd[i].slotId, cmd[i].port, cmd[i].protCmd) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Plan C failed for slot/port %d/%d", cmd[i].slotId, cmd[i].port);
+      PT_LOG_ERR(LOG_CTX_MSG, "Plan C failed for slot/port %d/%d", cmd[i].slotId, cmd[i].port);
       rc = L7_FAILURE;
     }
   }
@@ -10376,14 +10376,14 @@ L7_RC_t ptin_msg_uplink_protection_cmd(msg_uplinkProtCmd *cmd, L7_int n)
   /* Check for result */
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Protection switch failed"); 
+    PT_LOG_ERR(LOG_CTX_MSG, "Protection switch failed"); 
   }
   else
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Successfull protection switch!"); 
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Successfull protection switch!"); 
   }
 #else
-  LOG_ERR(LOG_CTX_PTIN_MSG, "Uplink protection not supported for this board!");
+  PT_LOG_ERR(LOG_CTX_MSG, "Uplink protection not supported for this board!");
   rc = L7_NOT_SUPPORTED;
 #endif
 
@@ -10399,13 +10399,13 @@ L7_RC_t ptin_msg_uplink_protection_cmd(msg_uplinkProtCmd *cmd, L7_int n)
  */
 L7_RC_t ptin_msg_mgmd_sync_ports(msg_HwMgmdPortSync *port_sync_data)
 {
-  LOG_TRACE(LOG_CTX_PTIN_MSG, "Received request to sync MGMD port: ");
-  LOG_TRACE(LOG_CTX_PTIN_MSG, " admin      = %u",   port_sync_data->admin);
-  LOG_TRACE(LOG_CTX_PTIN_MSG, " serviceId  = %u",   port_sync_data->serviceId);
-  LOG_TRACE(LOG_CTX_PTIN_MSG, " portId     = %u",   port_sync_data->portId);
-  LOG_TRACE(LOG_CTX_PTIN_MSG, " groupAddr  = %08X", port_sync_data->groupAddr);
-  LOG_TRACE(LOG_CTX_PTIN_MSG, " sourceAddr = %08X", port_sync_data->sourceAddr);
-  LOG_TRACE(LOG_CTX_PTIN_MSG, " groupType  = %u",   port_sync_data->groupType);
+  PT_LOG_TRACE(LOG_CTX_MSG, "Received request to sync MGMD port: ");
+  PT_LOG_TRACE(LOG_CTX_MSG, " admin      = %u",   port_sync_data->admin);
+  PT_LOG_TRACE(LOG_CTX_MSG, " serviceId  = %u",   port_sync_data->serviceId);
+  PT_LOG_TRACE(LOG_CTX_MSG, " portId     = %u",   port_sync_data->portId);
+  PT_LOG_TRACE(LOG_CTX_MSG, " groupAddr  = %08X", port_sync_data->groupAddr);
+  PT_LOG_TRACE(LOG_CTX_MSG, " sourceAddr = %08X", port_sync_data->sourceAddr);
+  PT_LOG_TRACE(LOG_CTX_MSG, " groupType  = %u",   port_sync_data->groupType);
 
   ptin_igmp_mgmd_port_sync(port_sync_data->admin, port_sync_data->serviceId, port_sync_data->portId, port_sync_data->groupAddr, port_sync_data->sourceAddr, port_sync_data->groupType);
 
@@ -10427,10 +10427,10 @@ L7_RC_t ptin_msg_pcs_prbs_enable(msg_ptin_pcs_prbs *msg, L7_int n_msg)
 
   for (i=0; i<n_msg; i++)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"PRBS configuration:");
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId = %u",msg[i].SlotId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Port   = %u/%u",msg[i].intf.intf_type,msg[i].intf.intf_id);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Enable = %u",msg[i].enable);
+    PT_LOG_DEBUG(LOG_CTX_MSG,"PRBS configuration:");
+    PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u",msg[i].SlotId);
+    PT_LOG_DEBUG(LOG_CTX_MSG," Port   = %u/%u",msg[i].intf.intf_type,msg[i].intf.intf_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG," Enable = %u",msg[i].enable);
 
     ptin_intf.intf_type = msg[i].intf.intf_type;
     ptin_intf.intf_id   = msg[i].intf.intf_id;
@@ -10438,18 +10438,18 @@ L7_RC_t ptin_msg_pcs_prbs_enable(msg_ptin_pcs_prbs *msg, L7_int n_msg)
     /* Get intIfNum */
     if (ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Non existent port (%u/%u)",ptin_intf.intf_type,ptin_intf.intf_id);
+      PT_LOG_ERR(LOG_CTX_MSG,"Non existent port (%u/%u)",ptin_intf.intf_type,ptin_intf.intf_id);
       return L7_FAILURE;
     }
 
     rc = ptin_pcs_prbs_enable(intIfNum,msg[i].enable);
     if (rc!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Error settings PRBS enable of port %u/%u to %u",ptin_intf.intf_type,ptin_intf.intf_id,msg[i].enable);
+      PT_LOG_ERR(LOG_CTX_MSG,"Error settings PRBS enable of port %u/%u to %u",ptin_intf.intf_type,ptin_intf.intf_id,msg[i].enable);
       return rc;
     }
 
-    LOG_TRACE(LOG_CTX_PTIN_MSG,"Success setting PRBS enable of port %u/%u to %u",ptin_intf.intf_type,ptin_intf.intf_id,msg[i].enable);
+    PT_LOG_TRACE(LOG_CTX_MSG,"Success setting PRBS enable of port %u/%u to %u",ptin_intf.intf_type,ptin_intf.intf_id,msg[i].enable);
   }
 
   return L7_SUCCESS;
@@ -10470,9 +10470,9 @@ L7_RC_t ptin_msg_pcs_prbs_status(msg_ptin_pcs_prbs *msg, L7_int n_msg)
 
   for (i=0; i<n_msg; i++)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"PRBS status:");
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId = %u",msg[i].SlotId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Port   = %u/%u",msg[i].intf.intf_type,msg[i].intf.intf_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG,"PRBS status:");
+    PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u",msg[i].SlotId);
+    PT_LOG_DEBUG(LOG_CTX_MSG," Port   = %u/%u",msg[i].intf.intf_type,msg[i].intf.intf_id);
 
     ptin_intf.intf_type = msg[i].intf.intf_type;
     ptin_intf.intf_id   = msg[i].intf.intf_id;
@@ -10480,7 +10480,7 @@ L7_RC_t ptin_msg_pcs_prbs_status(msg_ptin_pcs_prbs *msg, L7_int n_msg)
     /* Get intIfNum */
     if (ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Non existent port (%u/%u)",ptin_intf.intf_type,ptin_intf.intf_id);
+      PT_LOG_ERR(LOG_CTX_MSG,"Non existent port (%u/%u)",ptin_intf.intf_type,ptin_intf.intf_id);
       return L7_FAILURE;
     }
 
@@ -10488,11 +10488,11 @@ L7_RC_t ptin_msg_pcs_prbs_status(msg_ptin_pcs_prbs *msg, L7_int n_msg)
     rc = ptin_pcs_prbs_errors_get(intIfNum, &rxStatus);
     if (rc!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Error getting PRBS errors from port %u/%u",ptin_intf.intf_type,ptin_intf.intf_id);
+      PT_LOG_ERR(LOG_CTX_MSG,"Error getting PRBS errors from port %u/%u",ptin_intf.intf_type,ptin_intf.intf_id);
       return rc;
     }
 
-    LOG_TRACE(LOG_CTX_PTIN_MSG,"Success getting PRBS errors from port %u/%u",ptin_intf.intf_type,ptin_intf.intf_id);
+    PT_LOG_TRACE(LOG_CTX_MSG,"Success getting PRBS errors from port %u/%u",ptin_intf.intf_type,ptin_intf.intf_id);
 
     memset(&msg[i].rxStatus, 0x00, sizeof(msg[i].rxStatus));
 
@@ -10527,10 +10527,10 @@ L7_RC_t ptin_msg_prbs_enable(msg_ptin_prbs_enable *msg, L7_int n_msg)
   /* Apply to all ports */
   if (msg->intf == 0xff)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"PRBS configuration:");
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId = %u",msg->SlotId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Port   = %u",msg->intf);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Enable = %u",msg->enable);
+    PT_LOG_DEBUG(LOG_CTX_MSG,"PRBS configuration:");
+    PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u",msg->SlotId);
+    PT_LOG_DEBUG(LOG_CTX_MSG," Port   = %u",msg->intf);
+    PT_LOG_DEBUG(LOG_CTX_MSG," Enable = %u",msg->enable);
 
     enable = msg->enable;
 
@@ -10546,7 +10546,7 @@ L7_RC_t ptin_msg_prbs_enable(msg_ptin_prbs_enable *msg, L7_int n_msg)
       /* Get intIfNum */
       if (ptin_intf_port2intIfNum(port, &intIfNum)!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG,"Non existent port %u", port);
+        PT_LOG_ERR(LOG_CTX_MSG,"Non existent port %u", port);
         rc_global = L7_FAILURE;
         continue;
       }
@@ -10554,12 +10554,12 @@ L7_RC_t ptin_msg_prbs_enable(msg_ptin_prbs_enable *msg, L7_int n_msg)
       rc = ptin_pcs_prbs_enable(intIfNum, enable);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG,"Error settings PRBS enable of port %u to %u", port, enable);
+        PT_LOG_ERR(LOG_CTX_MSG,"Error settings PRBS enable of port %u to %u", port, enable);
         rc_global = rc;
         continue;
       }
 
-      LOG_TRACE(LOG_CTX_PTIN_MSG, "Success setting PRBS enable of port %u to %u", port, enable);
+      PT_LOG_TRACE(LOG_CTX_MSG, "Success setting PRBS enable of port %u to %u", port, enable);
     }
   }
   /* Apply to each port */
@@ -10567,10 +10567,10 @@ L7_RC_t ptin_msg_prbs_enable(msg_ptin_prbs_enable *msg, L7_int n_msg)
   {
     for (i=0; i<n_msg; i++)
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG,"PRBS configuration:");
-      LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId = %u",msg[i].SlotId);
-      LOG_DEBUG(LOG_CTX_PTIN_MSG," Port   = %u",msg[i].intf);
-      LOG_DEBUG(LOG_CTX_PTIN_MSG," Enable = %u",msg[i].enable);
+      PT_LOG_DEBUG(LOG_CTX_MSG,"PRBS configuration:");
+      PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u",msg[i].SlotId);
+      PT_LOG_DEBUG(LOG_CTX_MSG," Port   = %u",msg[i].intf);
+      PT_LOG_DEBUG(LOG_CTX_MSG," Enable = %u",msg[i].enable);
 
       port = msg[i].intf;
       enable = msg[i].enable;
@@ -10578,14 +10578,14 @@ L7_RC_t ptin_msg_prbs_enable(msg_ptin_prbs_enable *msg, L7_int n_msg)
       /* Validate port */
       if (port >= ptin_sys_number_of_ports)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG,"Non existent port %u", port);
+        PT_LOG_ERR(LOG_CTX_MSG,"Non existent port %u", port);
         rc_global = L7_FAILURE;
         continue;
       }
       /* Get intIfNum */
       if (ptin_intf_port2intIfNum(port, &intIfNum)!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG,"Non existent port %u", port);
+        PT_LOG_ERR(LOG_CTX_MSG,"Non existent port %u", port);
         rc_global = L7_FAILURE;
         continue;
       }
@@ -10593,19 +10593,19 @@ L7_RC_t ptin_msg_prbs_enable(msg_ptin_prbs_enable *msg, L7_int n_msg)
       rc = ptin_pcs_prbs_enable(intIfNum, enable);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG,"Error settings PRBS enable of port %u to %u", port, enable);
+        PT_LOG_ERR(LOG_CTX_MSG,"Error settings PRBS enable of port %u to %u", port, enable);
         rc_global = rc;
         continue;
       }
 
-      LOG_TRACE(LOG_CTX_PTIN_MSG, "Success setting PRBS enable of port %u to %u", port, enable); 
+      PT_LOG_TRACE(LOG_CTX_MSG, "Success setting PRBS enable of port %u to %u", port, enable); 
     }
   }
 
   /* Total success? */
   if (rc_global == L7_SUCCESS)
   {
-    LOG_TRACE(LOG_CTX_PTIN_MSG, "Success setting PRBS enable of all ports"); 
+    PT_LOG_TRACE(LOG_CTX_MSG, "Success setting PRBS enable of all ports"); 
   }
 
   return L7_SUCCESS;
@@ -10632,9 +10632,9 @@ L7_RC_t ptin_msg_prbs_status(msg_ptin_prbs_request *msg_in, msg_ptin_prbs_status
 
   if (msg_in->intf == 0xff)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"PRBS status:");
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId = %u",msg_in->SlotId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Port   = %u",msg_in->intf);
+    PT_LOG_DEBUG(LOG_CTX_MSG,"PRBS status:");
+    PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u",msg_in->SlotId);
+    PT_LOG_DEBUG(LOG_CTX_MSG," Port   = %u",msg_in->intf);
 
     /* Run all ports */
     for (port = 0, i = 0; port < ptin_sys_number_of_ports; port++)
@@ -10648,7 +10648,7 @@ L7_RC_t ptin_msg_prbs_status(msg_ptin_prbs_request *msg_in, msg_ptin_prbs_status
       /* Get intIfNum */
       if (ptin_intf_port2intIfNum(port, &intIfNum)!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG,"Non existent port %u", port);
+        PT_LOG_ERR(LOG_CTX_MSG,"Non existent port %u", port);
         rc_global = L7_FAILURE;
         continue;
       }
@@ -10657,12 +10657,12 @@ L7_RC_t ptin_msg_prbs_status(msg_ptin_prbs_request *msg_in, msg_ptin_prbs_status
       rc = ptin_pcs_prbs_errors_get(intIfNum, &rxStatus);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG,"Error getting PRBS errors from port %u/%u", port);
+        PT_LOG_ERR(LOG_CTX_MSG,"Error getting PRBS errors from port %u/%u", port);
         rc_global = rc;
         continue;
       }
 
-      LOG_TRACE(LOG_CTX_PTIN_MSG,"Success getting PRBS errors from port %u", port);
+      PT_LOG_TRACE(LOG_CTX_MSG,"Success getting PRBS errors from port %u", port);
 
       /* Store result */
       msg_out[i++].rxErrors = rxStatus;
@@ -10676,9 +10676,9 @@ L7_RC_t ptin_msg_prbs_status(msg_ptin_prbs_request *msg_in, msg_ptin_prbs_status
     /* Run all messages */
     for (i=0; i<*n_msg; i++)
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG,"PRBS status:");
-      LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId = %u",msg_in[i].SlotId);
-      LOG_DEBUG(LOG_CTX_PTIN_MSG," Port   = %u",msg_in[i].intf);
+      PT_LOG_DEBUG(LOG_CTX_MSG,"PRBS status:");
+      PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u",msg_in[i].SlotId);
+      PT_LOG_DEBUG(LOG_CTX_MSG," Port   = %u",msg_in[i].intf);
 
       /* Init output as -1 (error) */
       msg_out[i].rxErrors = -1;
@@ -10688,14 +10688,14 @@ L7_RC_t ptin_msg_prbs_status(msg_ptin_prbs_request *msg_in, msg_ptin_prbs_status
       /* Validate port */
       if (port >= ptin_sys_number_of_ports)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG,"Non existent port %u", port);
+        PT_LOG_ERR(LOG_CTX_MSG,"Non existent port %u", port);
         rc_global = L7_FAILURE;
         continue;
       }
       /* Get intIfNum */
       if (ptin_intf_port2intIfNum(port, &intIfNum)!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG,"Non existent port %u", port);
+        PT_LOG_ERR(LOG_CTX_MSG,"Non existent port %u", port);
         rc_global = L7_FAILURE;
         continue;
       }
@@ -10704,12 +10704,12 @@ L7_RC_t ptin_msg_prbs_status(msg_ptin_prbs_request *msg_in, msg_ptin_prbs_status
       rc = ptin_pcs_prbs_errors_get(intIfNum, &rxStatus);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG,"Error getting PRBS errors from port %u/%u", port);
+        PT_LOG_ERR(LOG_CTX_MSG,"Error getting PRBS errors from port %u/%u", port);
         rc_global = rc;
         continue;
       }
 
-      LOG_TRACE(LOG_CTX_PTIN_MSG,"Success getting PRBS errors from port %u", port);
+      PT_LOG_TRACE(LOG_CTX_MSG,"Success getting PRBS errors from port %u", port);
 
       /* Store result */
       msg_out[i].rxErrors = rxStatus;
@@ -10721,7 +10721,7 @@ L7_RC_t ptin_msg_prbs_status(msg_ptin_prbs_request *msg_in, msg_ptin_prbs_status
   /* Total success? */
   if (rc_global == L7_SUCCESS)
   {
-    LOG_TRACE(LOG_CTX_PTIN_MSG, "Success getting PRBS errors for all ports");
+    PT_LOG_TRACE(LOG_CTX_MSG, "Success getting PRBS errors for all ports");
   }
 
   return L7_SUCCESS;
@@ -10872,7 +10872,7 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
   /* Validate arguments */
   if (msgBwProfile==L7_NULLPTR || profile==L7_NULLPTR || meter==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Null arguments");
+    PT_LOG_ERR(LOG_CTX_MSG,"Null arguments");
     return L7_FAILURE;
   }
 
@@ -10896,7 +10896,7 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
         (msgBwProfile->service_vlan>0 && msgBwProfile->service_vlan<4096))
     {
       profile->outer_vlan_lookup = msgBwProfile->service_vlan;
-      LOG_DEBUG(LOG_CTX_PTIN_MSG," SVID extracted!");
+      PT_LOG_DEBUG(LOG_CTX_MSG," SVID extracted!");
     }
 
     /* CVID */
@@ -10904,20 +10904,20 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
         (msgBwProfile->client_vlan>0 && msgBwProfile->client_vlan<4096))
     {
       profile->inner_vlan_ingress = msgBwProfile->client_vlan;
-      LOG_DEBUG(LOG_CTX_PTIN_MSG," CVID extracted!");
+      PT_LOG_DEBUG(LOG_CTX_MSG," CVID extracted!");
     }
 
     /* Get ptin_port */
     if (ptin_msg_ptinPort_get(msgBwProfile->intf_src.intf_type,msgBwProfile->intf_src.intf_id, &ptin_port)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid port reference");
+      PT_LOG_ERR(LOG_CTX_MSG,"Invalid port reference");
       return L7_FAILURE;
     }
 
     /* Calculate ddUSP */
     profile->ptin_port = ptin_port;
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," SrcIntf extracted!");
+    PT_LOG_DEBUG(LOG_CTX_MSG," SrcIntf extracted!");
   }
 
   /* Destination interface */
@@ -10928,7 +10928,7 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
         (msgBwProfile->service_vlan>0 && msgBwProfile->service_vlan<4096))
     {
       profile->outer_vlan_egress = msgBwProfile->service_vlan;
-      LOG_DEBUG(LOG_CTX_PTIN_MSG," SVID extracted!");
+      PT_LOG_DEBUG(LOG_CTX_MSG," SVID extracted!");
     }
 
     /* CVID */
@@ -10936,20 +10936,20 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
         (msgBwProfile->client_vlan>0 && msgBwProfile->client_vlan<4096))
     {
       profile->inner_vlan_egress = msgBwProfile->client_vlan;
-      LOG_DEBUG(LOG_CTX_PTIN_MSG," CVID extracted!");
+      PT_LOG_DEBUG(LOG_CTX_MSG," CVID extracted!");
     }
 
     /* Get ptin_port */
     if (ptin_msg_ptinPort_get(msgBwProfile->intf_dst.intf_type,msgBwProfile->intf_dst.intf_id, &ptin_port)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid port reference");
+      PT_LOG_ERR(LOG_CTX_MSG,"Invalid port reference");
       return L7_FAILURE;
     }
 
     /* Calculate ddUSP */
     profile->ptin_port = ptin_port;
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," DstIntf extracted!");
+    PT_LOG_DEBUG(LOG_CTX_MSG," DstIntf extracted!");
   }
 
   if (msgBwProfile->mask & MSG_HWETH_BWPROFILE_MASK_PROFILE)
@@ -10958,7 +10958,7 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
     meter->cbs = (L7_uint32) msgBwProfile->profile.cbs;          /* in bytes */
     meter->eir = (L7_uint32) (msgBwProfile->profile.eir/1000);   /* in kbps */
     meter->ebs = (L7_uint32) msgBwProfile->profile.ebs;          /* in bytes */
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Profile data extracted!");
+    PT_LOG_DEBUG(LOG_CTX_MSG," Profile data extracted!");
   }
   else
   {
@@ -10988,7 +10988,7 @@ static L7_RC_t ptin_msg_evcStatsStruct_fill(msg_evcStats_t *msg_evcStats, ptin_e
   /* Validate arguments */
   if (msg_evcStats==L7_NULLPTR || evcStats_profile==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Null arguments");
+    PT_LOG_ERR(LOG_CTX_MSG,"Null arguments");
     return L7_FAILURE;
   }
 
@@ -10998,11 +10998,11 @@ static L7_RC_t ptin_msg_evcStatsStruct_fill(msg_evcStats_t *msg_evcStats, ptin_e
     /* Get ptin_port */
     if (ptin_msg_ptinPort_get(msg_evcStats->intf.intf_type,msg_evcStats->intf.intf_id, &ptin_port)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid port reference");
+      PT_LOG_ERR(LOG_CTX_MSG,"Invalid port reference");
       return L7_FAILURE;
     }
     evcStats_profile->ptin_port = ptin_port;
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Intf extracted!");
+    PT_LOG_DEBUG(LOG_CTX_MSG," Intf extracted!");
   }
 
   /* SVID */
@@ -11013,7 +11013,7 @@ static L7_RC_t ptin_msg_evcStatsStruct_fill(msg_evcStats_t *msg_evcStats, ptin_e
       (msg_evcStats->service_vlan>0 && msg_evcStats->service_vlan<4096))
   {
     evcStats_profile->outer_vlan_lookup = msg_evcStats->service_vlan;
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," SVID extracted!");
+    PT_LOG_DEBUG(LOG_CTX_MSG," SVID extracted!");
   }
 
   /* CVID */
@@ -11023,7 +11023,7 @@ static L7_RC_t ptin_msg_evcStatsStruct_fill(msg_evcStats_t *msg_evcStats, ptin_e
       (msg_evcStats->client_vlan>0 && msg_evcStats->client_vlan<4096))
   {
     evcStats_profile->inner_vlan_ingress = msg_evcStats->client_vlan;
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," CVID extracted!");
+    PT_LOG_DEBUG(LOG_CTX_MSG," CVID extracted!");
   }
 
   /* Channel IP */
@@ -11032,7 +11032,7 @@ static L7_RC_t ptin_msg_evcStatsStruct_fill(msg_evcStats_t *msg_evcStats, ptin_e
       (msg_evcStats->channel_ip!=0 && msg_evcStats->channel_ip!=(L7_uint32)-1))
   {
     evcStats_profile->dst_ip = msg_evcStats->channel_ip;
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," ChannelIP extracted!");
+    PT_LOG_DEBUG(LOG_CTX_MSG," ChannelIP extracted!");
   }
 
   return L7_SUCCESS;
@@ -11080,7 +11080,7 @@ L7_RC_t ptin_msg_wr_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
 
     if (L7_SUCCESS!=ptin_intf_port2SlotPort(porta, &slot, &port, L7_NULLPTR)) return L7_FAILURE;
     if (slot!=pi[i].tu_slot) {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ptin_intf_port=%lu => (slot,port)=(%u,%u) struct_passed_slot=%u", porta, slot, port, pi[i].tu_slot);
+        PT_LOG_ERR(LOG_CTX_MSG, "ptin_intf_port=%lu => (slot,port)=(%u,%u) struct_passed_slot=%u", porta, slot, port, pi[i].tu_slot);
         //return L7_FAILURE;
     }
     if (send_also_uplinkprot_traps(1, slot, port, pi[i].bd.vid));// return L7_FAILURE;
@@ -11089,13 +11089,13 @@ L7_RC_t ptin_msg_wr_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
 
   if (valid_mep_index(pi[i].index)) {
       p = &oam.db[pi[i].index].mep;
-      if (EMPTY_T_MEP(*p)) LOG_DEBUG(LOG_CTX_PTIN_MSG, "MEP EMPTY");//changing_trap=0;
+      if (EMPTY_T_MEP(*p)) PT_LOG_DEBUG(LOG_CTX_MSG, "MEP EMPTY");//changing_trap=0;
 
       else {
           //old_prt=p->prt;       old_vid=p->vid;     old_level=p->level;
           //changing_trap=1;  //if (old_prt!=porta || old_vid!=pi[i].bd.vid || old_level!=pi[i].bd.level) changing_trap=1;    else changing_trap=0;
           ptin_msg_del_MEP(inbuff, outbuff, i);
-          LOG_DEBUG(LOG_CTX_PTIN_MSG, "MEP DEL");
+          PT_LOG_DEBUG(LOG_CTX_MSG, "MEP DEL");
       }
   }
   //else changing_trap=0;
@@ -11116,22 +11116,22 @@ L7_RC_t ptin_msg_wr_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
      hm.m=      &pi[i].bd;
 
      if (L7_SUCCESS!=ptin_intf_port2intIfNum(porta, &intIfNum))
-       LOG_DEBUG(LOG_CTX_PTIN_MSG, "Insucess port2intfNum");
+       PT_LOG_DEBUG(LOG_CTX_MSG, "Insucess port2intfNum");
      else
      if (L7_SUCCESS!=ptin_xlate_ingress_get(intIfNum, pi[i].bd.vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR)) 
-       LOG_DEBUG(LOG_CTX_PTIN_MSG, "Insucess ingress get");
+       PT_LOG_DEBUG(LOG_CTX_MSG, "Insucess ingress get");
      else {
          pi[i].bd.vid=vidInternal;
-         LOG_DEBUG(LOG_CTX_PTIN_MSG, "Sucess ingress get");
+         PT_LOG_DEBUG(LOG_CTX_MSG, "Sucess ingress get");
          if (L7_SUCCESS!=dtlPtinMEPControl(intIfNum, &hm))
-           LOG_DEBUG(LOG_CTX_PTIN_MSG, "Insucess MEP CONTROL");
+           PT_LOG_DEBUG(LOG_CTX_MSG, "Insucess MEP CONTROL");
          else {
-           LOG_DEBUG(LOG_CTX_PTIN_MSG, "Sucess MEP CONTROL");
+           PT_LOG_DEBUG(LOG_CTX_MSG, "Sucess MEP CONTROL");
          }
      }
     }
 #endif
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "i_MEP#%llu\tporta=%lu\tvid=%llu\tlevel=%lu", pi[i].index, porta, pi[i].bd.vid, pi[i].bd.level);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "i_MEP#%llu\tporta=%lu\tvid=%llu\tlevel=%lu", pi[i].index, porta, pi[i].bd.vid, pi[i].bd.level);
     break;
   case 2:    r=ERROR_CODE_FULLTABLE;    break;
   case 3:    r=  CCMSG_FLUSH_MEP==inbuff->msgId?   S_OK:   ERROR_CODE_FULLTABLE; break;
@@ -11142,12 +11142,12 @@ L7_RC_t ptin_msg_wr_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
 
   if (r==S_OK)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Sucess");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Sucess");
     return L7_SUCCESS;
   }
   else
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Insucess");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Insucess");
     return L7_FAILURE;
   }
 
@@ -11558,7 +11558,7 @@ L7_RC_t ptin_msg_erps_set(msg_erps_t *msgErpsConf)
   /* Validate ERPS# range (idx [0..MAX_PROT_PROT_ERPS[) */
   if (msgErpsConf->idx >= MAX_PROT_PROT_ERPS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "ERPS#%u is out of range [0..%u]", msgErpsConf->idx, MAX_PROT_PROT_ERPS-1);
+    PT_LOG_ERR(LOG_CTX_MSG, "ERPS#%u is out of range [0..%u]", msgErpsConf->idx, MAX_PROT_PROT_ERPS-1);
     return L7_FAILURE;
   }
 
@@ -11591,29 +11591,29 @@ L7_RC_t ptin_msg_erps_set(msg_erps_t *msgErpsConf)
 
   memcpy(ptinErpsConf.vid_bmp, msgErpsConf->vid_bmp, sizeof(ptinErpsConf.vid_bmp));
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ERPS#%u",                    msgErpsConf->idx);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .ringId             = %d",  ptinErpsConf.ringId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .isOpenRing         = %d",  ptinErpsConf.isOpenRing);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .controlVid         = %d",  ptinErpsConf.controlVid);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .megLevel           = %d",  ptinErpsConf.megLevel);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port0.slot         = %d",  ptinErpsConf.port0.slot);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port0.type         = %d",  ptinErpsConf.port0.type);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port0.idx          = %d",  ptinErpsConf.port0.idx);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port1.slot         = %d",  ptinErpsConf.port1.slot);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port1.type         = %d",  ptinErpsConf.port1.type);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port1.idx          = %d",  ptinErpsConf.port1.idx);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port0Role          = %d",  ptinErpsConf.port0Role);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port1Role          = %d",  ptinErpsConf.port1Role);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port0CfmIdx        = %d",  ptinErpsConf.port0CfmIdx);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port1CfmIdx        = %d",  ptinErpsConf.port1CfmIdx);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .revertive          = %d",  ptinErpsConf.revertive);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .guardTimer         = %d",  ptinErpsConf.guardTimer);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .holdoffTimer       = %d",  ptinErpsConf.holdoffTimer);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .waitToRestoreTimer = %d",  ptinErpsConf.waitToRestoreTimer);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ERPS#%u",                    msgErpsConf->idx);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .ringId             = %d",  ptinErpsConf.ringId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .isOpenRing         = %d",  ptinErpsConf.isOpenRing);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .controlVid         = %d",  ptinErpsConf.controlVid);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .megLevel           = %d",  ptinErpsConf.megLevel);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .port0.slot         = %d",  ptinErpsConf.port0.slot);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .port0.type         = %d",  ptinErpsConf.port0.type);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .port0.idx          = %d",  ptinErpsConf.port0.idx);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .port1.slot         = %d",  ptinErpsConf.port1.slot);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .port1.type         = %d",  ptinErpsConf.port1.type);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .port1.idx          = %d",  ptinErpsConf.port1.idx);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .port0Role          = %d",  ptinErpsConf.port0Role);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .port1Role          = %d",  ptinErpsConf.port1Role);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .port0CfmIdx        = %d",  ptinErpsConf.port0CfmIdx);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .port1CfmIdx        = %d",  ptinErpsConf.port1CfmIdx);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .revertive          = %d",  ptinErpsConf.revertive);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .guardTimer         = %d",  ptinErpsConf.guardTimer);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .holdoffTimer       = %d",  ptinErpsConf.holdoffTimer);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .waitToRestoreTimer = %d",  ptinErpsConf.waitToRestoreTimer);
 
   if (ptin_erps_add_entry(msgErpsConf->idx, (erpsProtParam_t *) &ptinErpsConf) != msgErpsConf->idx)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error Creating ERPS#%u", msgErpsConf->idx);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error Creating ERPS#%u", msgErpsConf->idx);
     return L7_FAILURE;
   } 
 
@@ -11641,15 +11641,15 @@ L7_RC_t ptin_msg_erps_del(msg_erps_t *msgErpsConf)
   /* Validate ERPS# range (idx [0..MAX_PROT_PROT_ERPS[) */
   if (msgErpsConf->idx >= MAX_PROT_PROT_ERPS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "ERPS#%u is out of range [0..%u]", msgErpsConf->idx, MAX_PROT_PROT_ERPS-1);
+    PT_LOG_ERR(LOG_CTX_MSG, "ERPS#%u is out of range [0..%u]", msgErpsConf->idx, MAX_PROT_PROT_ERPS-1);
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ERPS#%u", msgErpsConf->idx);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ERPS#%u", msgErpsConf->idx);
 
   if (ptin_erps_remove_entry(msgErpsConf->idx) != msgErpsConf->idx)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error Removing ERPS#%u", msgErpsConf->idx);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error Removing ERPS#%u", msgErpsConf->idx);
     ptin_hal_erps_entry_deinit(msgErpsConf->idx);
     return L7_FAILURE;
   }
@@ -11682,19 +11682,19 @@ L7_RC_t ptin_msg_erps_config(msg_erps_t *msgErpsConf)
   /* Validate ERPS# range (idx [0..MAX_PROT_PROT_ERPS[) */
   if (msgErpsConf->idx >= MAX_PROT_PROT_ERPS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "ERPS#%u is out of range [0..%u]", msgErpsConf->idx, MAX_PROT_PROT_ERPS-1);
+    PT_LOG_ERR(LOG_CTX_MSG, "ERPS#%u is out of range [0..%u]", msgErpsConf->idx, MAX_PROT_PROT_ERPS-1);
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ERPS#%u",                     msgErpsConf->idx);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .mask               = 0x%x", msgErpsConf->mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .isOpenRing         = %d",   msgErpsConf->isOpenRing);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port0CfmIdx        = %d",   msgErpsConf->port0CfmIdx);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .port1CfmIdx        = %d",   msgErpsConf->port1CfmIdx);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .revertive          = %d",   msgErpsConf->revertive);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .guardTimer         = %d",   msgErpsConf->guardTimer);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .holdoffTimer       = %d",   msgErpsConf->holdoffTimer);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " .waitToRestoreTimer = %d",   msgErpsConf->waitToRestoreTimer);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ERPS#%u",                     msgErpsConf->idx);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .mask               = 0x%x", msgErpsConf->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .isOpenRing         = %d",   msgErpsConf->isOpenRing);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .port0CfmIdx        = %d",   msgErpsConf->port0CfmIdx);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .port1CfmIdx        = %d",   msgErpsConf->port1CfmIdx);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .revertive          = %d",   msgErpsConf->revertive);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .guardTimer         = %d",   msgErpsConf->guardTimer);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .holdoffTimer       = %d",   msgErpsConf->holdoffTimer);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .waitToRestoreTimer = %d",   msgErpsConf->waitToRestoreTimer);
 
   /* Copy data to ptin struct */
 
@@ -11712,7 +11712,7 @@ L7_RC_t ptin_msg_erps_config(msg_erps_t *msgErpsConf)
 
   if (ptin_erps_conf_entry(msgErpsConf->idx, msgErpsConf->mask, (erpsProtParam_t *) &ptinErpsConf) != msgErpsConf->idx)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error creating/reconfiguring ERPS#%u", msgErpsConf->idx);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error creating/reconfiguring ERPS#%u", msgErpsConf->idx);
     return L7_FAILURE;
   }  
 
@@ -11742,15 +11742,15 @@ L7_RC_t ptin_msg_erps_status(msg_erps_status_t *msgErpsStatus)
   /* Validate ERPS# range (idx [0..MAX_PROT_PROT_ERPS[) */
   if (msgErpsStatus->idx >= MAX_PROT_PROT_ERPS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "ERPS#%u is out of range [0..%u]", msgErpsStatus->idx, MAX_PROT_PROT_ERPS-1);
+    PT_LOG_ERR(LOG_CTX_MSG, "ERPS#%u is out of range [0..%u]", msgErpsStatus->idx, MAX_PROT_PROT_ERPS-1);
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ERPS#%u", msgErpsStatus->idx);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ERPS#%u", msgErpsStatus->idx);
 
   if (ptin_erps_get_status(msgErpsStatus->idx, &status) != msgErpsStatus->idx)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error Retrieving Status ERPS#%u", msgErpsStatus->idx);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error Retrieving Status ERPS#%u", msgErpsStatus->idx);
     return L7_FAILURE;
   }
 
@@ -11807,7 +11807,7 @@ int ptin_msg_erps_status_next(msg_erps_status_t *msgErpsStatus, L7_int *n)
   i  = 0;
 
   nextIdx = msgErpsStatus->idx + 1;
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ERPS Next Index %d", nextIdx);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ERPS Next Index %d", nextIdx);
 
   while ( i < CCMSG_ERPS_STATUS_PAGESIZE )
   {
@@ -11815,7 +11815,7 @@ int ptin_msg_erps_status_next(msg_erps_status_t *msgErpsStatus, L7_int *n)
     /* Validate ERPS# range (idx [0..MAX_PROT_PROT_ERPS[) */
     if (nextIdx >= MAX_PROT_PROT_ERPS)
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "ERPS#%u is out of range [0..%u]", nextIdx, MAX_PROT_PROT_ERPS-1);
+      PT_LOG_DEBUG(LOG_CTX_MSG, "ERPS#%u is out of range [0..%u]", nextIdx, MAX_PROT_PROT_ERPS-1);
       break;
     }
 
@@ -11825,7 +11825,7 @@ int ptin_msg_erps_status_next(msg_erps_status_t *msgErpsStatus, L7_int *n)
       continue;
     }
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "ERPS#%d status retrieved", nextIdx);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "ERPS#%d status retrieved", nextIdx);
 
     msgErpsStatus[i].slotId             = slotId;
     msgErpsStatus[i].idx                = nextIdx;
@@ -11855,7 +11855,7 @@ int ptin_msg_erps_status_next(msg_erps_status_t *msgErpsStatus, L7_int *n)
 
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "n=%d", *n);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "n=%d", *n);
 
 #endif  // PTIN_ENABLE_ERPS
 
@@ -11879,18 +11879,18 @@ L7_RC_t ptin_msg_erps_cmd(msg_erps_cmd_t *msgErpsCmd)
 
   int ret;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ERPS#%u: CMD %d, Port %d", msgErpsCmd->idx, msgErpsCmd->cmd, msgErpsCmd->port);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ERPS#%u: CMD %d, Port %d", msgErpsCmd->idx, msgErpsCmd->cmd, msgErpsCmd->port);
 
   /* Validate ERPS# range (idx [0..MAX_PROT_PROT_ERPS[) */
   if (msgErpsCmd->idx >= MAX_PROT_PROT_ERPS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "ERPS#%u is out of range [0..%u]", msgErpsCmd->idx, MAX_PROT_PROT_ERPS-1);
+    PT_LOG_ERR(LOG_CTX_MSG, "ERPS#%u is out of range [0..%u]", msgErpsCmd->idx, MAX_PROT_PROT_ERPS-1);
     return L7_FAILURE;
   }
 
   if ( (msgErpsCmd->port != 0) && (msgErpsCmd->port != 1) )
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Port %d is out of range [0,1]", msgErpsCmd->port);
+    PT_LOG_ERR(LOG_CTX_MSG, "Port %d is out of range [0,1]", msgErpsCmd->port);
     return L7_FAILURE;
   }
 
@@ -11950,35 +11950,35 @@ L7_RC_t ptin_msg_arp_acl_rule_config(msg_arp_acl_t *msgArpAcl, ACL_OPERATION_t o
 
   if (msgArpAcl->aclType != ACL_TYPE_ARP)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "aclType Invalid (%d)", msgArpAcl->aclType);
+    PT_LOG_ERR(LOG_CTX_MSG, "aclType Invalid (%d)", msgArpAcl->aclType);
     return L7_FAILURE;
   }
 
   if (operation == ACL_OPERATION_CREATE && msgArpAcl->action != ACL_ACTION_PERMIT)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "action Invalid (%d) for rule creation", msgArpAcl->action);
+    PT_LOG_ERR(LOG_CTX_MSG, "action Invalid (%d) for rule creation", msgArpAcl->action);
     return L7_FAILURE;
   }
   
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Slot Id        %d",                              msgArpAcl->slotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Type       %s",                              "ARP");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Name       %s",                              msgArpAcl->name);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Action         %s",                              "PERMIT");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Src Mac Addr   %02x:%02x:%02x:%02x:%02x:%02x",   msgArpAcl->srcMacAddr[0], 
+  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Slot Id        %d",                              msgArpAcl->slotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Type       %s",                              "ARP");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Name       %s",                              msgArpAcl->name);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Action         %s",                              "PERMIT");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Src Mac Addr   %02x:%02x:%02x:%02x:%02x:%02x",   msgArpAcl->srcMacAddr[0], 
                                                                                 msgArpAcl->srcMacAddr[1],
                                                                                 msgArpAcl->srcMacAddr[2],
                                                                                 msgArpAcl->srcMacAddr[3],
                                                                                 msgArpAcl->srcMacAddr[4],
                                                                                 msgArpAcl->srcMacAddr[5]);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "SrcIPAddr      %03u.%03u.%03u.%03u (family=%u)", (msgArpAcl->srcIpAddr.addr.ipv4>>24) & 0xff,
+  PT_LOG_DEBUG(LOG_CTX_MSG, "SrcIPAddr      %03u.%03u.%03u.%03u (family=%u)", (msgArpAcl->srcIpAddr.addr.ipv4>>24) & 0xff,
                                                                                 (msgArpAcl->srcIpAddr.addr.ipv4>>16) & 0xff,
                                                                                 (msgArpAcl->srcIpAddr.addr.ipv4>>8) & 0xff,
                                                                                 (msgArpAcl->srcIpAddr.addr.ipv4) & 0xff,
                                                                                  msgArpAcl->srcIpAddr.family);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
 
   rc = ptin_aclArpRuleConfig(msgArpAcl, operation);
 
@@ -12005,82 +12005,82 @@ L7_RC_t ptin_msg_mac_acl_rule_config(msg_mac_acl_t *msgMacAcl, ACL_OPERATION_t o
 
   if (msgMacAcl->aclType != ACL_TYPE_MAC)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "aclType Invalid (%d)", msgMacAcl->aclType);
+    PT_LOG_ERR(LOG_CTX_MSG, "aclType Invalid (%d)", msgMacAcl->aclType);
     return L7_FAILURE;
   }
 
   if (msgMacAcl->aclId >= L7_MAX_ACL_LISTS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid ACL ID (%d)", msgMacAcl->aclId);
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid ACL ID (%d)", msgMacAcl->aclId);
     return L7_FAILURE;
   }
 
   if (msgMacAcl->aclRuleId > L7_MAX_NUM_RULES_PER_ACL)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "aclRuleId Invalid (%d)", msgMacAcl->aclRuleId);
+    PT_LOG_ERR(LOG_CTX_MSG, "aclRuleId Invalid (%d)", msgMacAcl->aclRuleId);
     return L7_FAILURE;
   }
 
   if (msgMacAcl->action >= ACL_ACTION_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "action Invalid (%d)", msgMacAcl->action);
+    PT_LOG_ERR(LOG_CTX_MSG, "action Invalid (%d)", msgMacAcl->action);
     return L7_FAILURE;
   }
   
   if (force_capture)
   {
     msgMacAcl->action = ACL_ACTION_CAPTURE;
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Packet capture will be configured for this rule!");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Packet capture will be configured for this rule!");
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Slot Id        %d",                              msgMacAcl->slotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Type       %s",                              aclTypeStr[msgMacAcl->aclType]);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Id         %d",                              msgMacAcl->aclId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Name       %s",                              msgMacAcl->name);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Rule Id    %d",                              msgMacAcl->aclRuleId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Action         %s",                              actionStr[msgMacAcl->action]);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Rule Mask  0x%x",                            msgMacAcl->aclRuleMask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Src Mac Addr   %.2x:%.2x:%.2x:%.2x:%.2x:%.2x",   msgMacAcl->srcMacAddr[0], 
+  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Slot Id        %d",                              msgMacAcl->slotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Type       %s",                              aclTypeStr[msgMacAcl->aclType]);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Id         %d",                              msgMacAcl->aclId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Name       %s",                              msgMacAcl->name);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Rule Id    %d",                              msgMacAcl->aclRuleId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Action         %s",                              actionStr[msgMacAcl->action]);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Rule Mask  0x%x",                            msgMacAcl->aclRuleMask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Src Mac Addr   %.2x:%.2x:%.2x:%.2x:%.2x:%.2x",   msgMacAcl->srcMacAddr[0], 
                                                                                 msgMacAcl->srcMacAddr[1],
                                                                                 msgMacAcl->srcMacAddr[2],
                                                                                 msgMacAcl->srcMacAddr[3],
                                                                                 msgMacAcl->srcMacAddr[4],
                                                                                 msgMacAcl->srcMacAddr[5]);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Src Mac Mask   %.2x:%.2x:%.2x:%.2x:%.2x:%.2x",   msgMacAcl->srcMacMask[0], 
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Src Mac Mask   %.2x:%.2x:%.2x:%.2x:%.2x:%.2x",   msgMacAcl->srcMacMask[0], 
                                                                                 msgMacAcl->srcMacMask[1],
                                                                                 msgMacAcl->srcMacMask[2],
                                                                                 msgMacAcl->srcMacMask[3],
                                                                                 msgMacAcl->srcMacMask[4],
                                                                                 msgMacAcl->srcMacMask[5]);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Dst Mac Addr   %.2x:%.2x:%.2x:%.2x:%.2x:%.2x",   msgMacAcl->dstMacAddr[0], 
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Dst Mac Addr   %.2x:%.2x:%.2x:%.2x:%.2x:%.2x",   msgMacAcl->dstMacAddr[0], 
                                                                                 msgMacAcl->dstMacAddr[1],
                                                                                 msgMacAcl->dstMacAddr[2],
                                                                                 msgMacAcl->dstMacAddr[3],
                                                                                 msgMacAcl->dstMacAddr[4],
                                                                                 msgMacAcl->dstMacAddr[5]);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Dst Mac Mask   %.2x:%.2x:%.2x:%.2x:%.2x:%.2x",   msgMacAcl->dstMacMask[0], 
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Dst Mac Mask   %.2x:%.2x:%.2x:%.2x:%.2x:%.2x",   msgMacAcl->dstMacMask[0], 
                                                                                 msgMacAcl->dstMacMask[1],
                                                                                 msgMacAcl->dstMacMask[2],
                                                                                 msgMacAcl->dstMacMask[3],
                                                                                 msgMacAcl->dstMacMask[4],
                                                                                 msgMacAcl->dstMacMask[5]);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "EtherType      0x%.4x",                          msgMacAcl->eType);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "EtherType      0x%.4x",                          msgMacAcl->eType);
 
   if (msgMacAcl->startVlan == msgMacAcl->endVlan)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Vlan           %d",                            msgMacAcl->startVlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Vlan           %d",                            msgMacAcl->startVlan);
   }
   else
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Vlan Range     %d-%d",                         msgMacAcl->startVlan, msgMacAcl->endVlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Vlan Range     %d-%d",                         msgMacAcl->startVlan, msgMacAcl->endVlan);
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "COS            %d",                              msgMacAcl->cosVal);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Operation      %s",                              operationStr[operation]);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "COS            %d",                              msgMacAcl->cosVal);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Operation      %s",                              operationStr[operation]);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
 
   rc = ptin_aclMacRuleConfig(msgMacAcl, operation);
 
@@ -12109,7 +12109,7 @@ L7_RC_t ptin_msg_ip_acl_rule_config(msg_ip_acl_t *msgIpAcl, ACL_OPERATION_t oper
 
   if ( (msgIpAcl->aclType != ACL_TYPE_IP_STANDARD) && (msgIpAcl->aclType != ACL_TYPE_IP_EXTENDED) && (msgIpAcl->aclType != ACL_TYPE_IP_NAMED) )
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "aclType Invalid (%d)", msgIpAcl->aclType);
+    PT_LOG_ERR(LOG_CTX_MSG, "aclType Invalid (%d)", msgIpAcl->aclType);
     return L7_FAILURE;
   }
 
@@ -12117,7 +12117,7 @@ L7_RC_t ptin_msg_ip_acl_rule_config(msg_ip_acl_t *msgIpAcl, ACL_OPERATION_t oper
   {
     if ( (msgIpAcl->aclId == 0) || (msgIpAcl->aclId > 99) ) /* [1..99] */
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid ACL ID (%d)", msgIpAcl->aclId);
+      PT_LOG_ERR(LOG_CTX_MSG, "Invalid ACL ID (%d)", msgIpAcl->aclId);
       return L7_FAILURE;
     }
   }
@@ -12125,77 +12125,77 @@ L7_RC_t ptin_msg_ip_acl_rule_config(msg_ip_acl_t *msgIpAcl, ACL_OPERATION_t oper
   {
     if ( (msgIpAcl->aclId < 100) || (msgIpAcl->aclId > 199) ) /* [100..199] */
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid ACL ID (%d)", msgIpAcl->aclId);
+      PT_LOG_ERR(LOG_CTX_MSG, "Invalid ACL ID (%d)", msgIpAcl->aclId);
       return L7_FAILURE;
     }
   }
 
   if (msgIpAcl->aclRuleId > L7_MAX_NUM_RULES_PER_ACL)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "aclRuleId Invalid (%d)", msgIpAcl->aclRuleId);
+    PT_LOG_ERR(LOG_CTX_MSG, "aclRuleId Invalid (%d)", msgIpAcl->aclRuleId);
     return L7_FAILURE;
   }
 
   if (msgIpAcl->action >= ACL_ACTION_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "action Invalid (%d)", msgIpAcl->action);
+    PT_LOG_ERR(LOG_CTX_MSG, "action Invalid (%d)", msgIpAcl->action);
     return L7_FAILURE;
   }
 
   if (force_capture)
   {
     msgIpAcl->action = ACL_ACTION_CAPTURE;
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Packet capture will be configured for this rule!");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Packet capture will be configured for this rule!");
   }
   
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Slot Id        %d",                              msgIpAcl->slotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Type       %s",                              aclTypeStr[msgIpAcl->aclType]);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Id         %d",                              msgIpAcl->aclId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Name       %s",                              msgIpAcl->name);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Rule Id    %d",                              msgIpAcl->aclRuleId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Action         %s",                              actionStr[msgIpAcl->action]);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Rule Mask  0x%x",                            msgIpAcl->aclRuleMask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Protocol       %d",                              msgIpAcl->protocol);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Slot Id        %d",                              msgIpAcl->slotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Type       %s",                              aclTypeStr[msgIpAcl->aclType]);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Id         %d",                              msgIpAcl->aclId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Name       %s",                              msgIpAcl->name);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Rule Id    %d",                              msgIpAcl->aclRuleId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Action         %s",                              actionStr[msgIpAcl->action]);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Rule Mask  0x%x",                            msgIpAcl->aclRuleMask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Protocol       %d",                              msgIpAcl->protocol);
 
   usmDbInetNtoa(msgIpAcl->srcIpAddr,  ipAddr);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Src IP Addr    %s",                              ipAddr);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Src IP Addr    %s",                              ipAddr);
 
   usmDbInetNtoa(msgIpAcl->srcIpMask,  ipAddr);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Src IP Mask    %s",                              ipAddr);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Src IP Mask    %s",                              ipAddr);
   
   usmDbInetNtoa(msgIpAcl->dstIpAddr,  ipAddr);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Dst IP Addr    %s",                              ipAddr);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Dst IP Addr    %s",                              ipAddr);
   
   usmDbInetNtoa(msgIpAcl->dstIpMask,  ipAddr);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Dst IP Mask    %s",                              ipAddr);  
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Dst IP Mask    %s",                              ipAddr);  
 
   if (msgIpAcl->srcStartPort == msgIpAcl->srcEndPort)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Src L4 Port    %d",                            msgIpAcl->srcStartPort);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Src L4 Port    %d",                            msgIpAcl->srcStartPort);
   }
   else
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Src L4 Port Range   %d-%d",                    msgIpAcl->srcStartPort, msgIpAcl->srcEndPort);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Src L4 Port Range   %d-%d",                    msgIpAcl->srcStartPort, msgIpAcl->srcEndPort);
   }
 
   if (msgIpAcl->dstStartPort == msgIpAcl->dstEndPort)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Dst L4 Port    %d",                            msgIpAcl->dstStartPort);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Dst L4 Port    %d",                            msgIpAcl->dstStartPort);
   }
   else
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Dst L4 Port Range   %d-%d",                    msgIpAcl->dstStartPort, msgIpAcl->dstEndPort);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Dst L4 Port Range   %d-%d",                    msgIpAcl->dstStartPort, msgIpAcl->dstEndPort);
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "TOS            0x%.2x",                          msgIpAcl->tosVal);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "TOS Mask       0x%.2x",                          msgIpAcl->tosMask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "DSCP           %d",                              msgIpAcl->dscpVal);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Prec           %d",                              msgIpAcl->precVal);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Operation      %s",                              operationStr[operation]);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "TOS            0x%.2x",                          msgIpAcl->tosVal);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "TOS Mask       0x%.2x",                          msgIpAcl->tosMask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "DSCP           %d",                              msgIpAcl->dscpVal);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Prec           %d",                              msgIpAcl->precVal);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Operation      %s",                              operationStr[operation]);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
 
   rc = ptin_aclIpRuleConfig(msgIpAcl, operation);
 
@@ -12224,78 +12224,78 @@ L7_RC_t ptin_msg_ipv6_acl_rule_config(msg_ipv6_acl_t *msgIpv6Acl, ACL_OPERATION_
 
   if (msgIpv6Acl->aclType != ACL_TYPE_IPv6_EXTENDED)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "aclType Invalid (%d)", msgIpv6Acl->aclType);
+    PT_LOG_ERR(LOG_CTX_MSG, "aclType Invalid (%d)", msgIpv6Acl->aclType);
     return L7_FAILURE;
   }
 
   if (msgIpv6Acl->aclId > L7_MAX_ACL_LISTS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid ACL ID (%d)", msgIpv6Acl->aclId);
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid ACL ID (%d)", msgIpv6Acl->aclId);
     return L7_FAILURE;
   }
 
   if (msgIpv6Acl->aclRuleId > L7_MAX_NUM_RULES_PER_ACL)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "aclRuleId Invalid (%d)", msgIpv6Acl->aclRuleId);
+    PT_LOG_ERR(LOG_CTX_MSG, "aclRuleId Invalid (%d)", msgIpv6Acl->aclRuleId);
     return L7_FAILURE;
   }
 
   if (msgIpv6Acl->action >= ACL_ACTION_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "action Invalid (%d)", msgIpv6Acl->action);
+    PT_LOG_ERR(LOG_CTX_MSG, "action Invalid (%d)", msgIpv6Acl->action);
     return L7_FAILURE;
   }
 
   if (force_capture)
   {
     msgIpv6Acl->action = ACL_ACTION_CAPTURE;
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Packet capture will be configured for this rule!");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Packet capture will be configured for this rule!");
   }
   
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Slot Id        %d",                              msgIpv6Acl->slotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Type       %s",                              aclTypeStr[msgIpv6Acl->aclType]);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Id         %d",                              msgIpv6Acl->aclId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Name       %s",                              msgIpv6Acl->name);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Rule Id    %d",                              msgIpv6Acl->aclRuleId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Action         %s",                              actionStr[msgIpv6Acl->action]);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Rule Mask  0x%x",                            msgIpv6Acl->aclRuleMask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Protocol       %d",                              msgIpv6Acl->protocol);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Slot Id        %d",                              msgIpv6Acl->slotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Type       %s",                              aclTypeStr[msgIpv6Acl->aclType]);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Id         %d",                              msgIpv6Acl->aclId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Name       %s",                              msgIpv6Acl->name);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Rule Id    %d",                              msgIpv6Acl->aclRuleId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Action         %s",                              actionStr[msgIpv6Acl->action]);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Rule Mask  0x%x",                            msgIpv6Acl->aclRuleMask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Protocol       %d",                              msgIpv6Acl->protocol);
 
   if (osapiInetNtop(L7_AF_INET6, (L7_uchar8 *)msgIpv6Acl->src6Addr, ipAddr, sizeof(ipAddr)) != L7_NULLPTR)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Src IP Addr    %s/%d",                         ipAddr, msgIpv6Acl->src6PrefixLen);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Src IP Addr    %s/%d",                         ipAddr, msgIpv6Acl->src6PrefixLen);
   }
 
   if (osapiInetNtop(L7_AF_INET6, (L7_uchar8 *)msgIpv6Acl->dst6Addr, ipAddr, sizeof(ipAddr)) != L7_NULLPTR)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Dst IP Addr    %s/%d",                         ipAddr, msgIpv6Acl->dst6PrefixLen);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Dst IP Addr    %s/%d",                         ipAddr, msgIpv6Acl->dst6PrefixLen);
   }
 
   if (msgIpv6Acl->srcStartPort == msgIpv6Acl->srcEndPort)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Src L4 Port    %d",                            msgIpv6Acl->srcStartPort);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Src L4 Port    %d",                            msgIpv6Acl->srcStartPort);
   }
   else
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Src L4 Port Range   %d-%d",                    msgIpv6Acl->srcStartPort, msgIpv6Acl->srcEndPort);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Src L4 Port Range   %d-%d",                    msgIpv6Acl->srcStartPort, msgIpv6Acl->srcEndPort);
   }
 
   if (msgIpv6Acl->dstStartPort == msgIpv6Acl->dstEndPort)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Dst L4 Port    %d",                            msgIpv6Acl->dstStartPort);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Dst L4 Port    %d",                            msgIpv6Acl->dstStartPort);
   }
   else
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Dst L4 Port Range   %d-%d",                    msgIpv6Acl->dstStartPort, msgIpv6Acl->dstEndPort);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Dst L4 Port Range   %d-%d",                    msgIpv6Acl->dstStartPort, msgIpv6Acl->dstEndPort);
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "DSCP           %d",                              msgIpv6Acl->dscpVal);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Flow Label     %d",                              msgIpv6Acl->flowLabelVal);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Operation      %s",                              operationStr[operation]);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "DSCP           %d",                              msgIpv6Acl->dscpVal);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Flow Label     %d",                              msgIpv6Acl->flowLabelVal);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Operation      %s",                              operationStr[operation]);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
 
   rc = ptin_aclIpv6RuleConfig(msgIpv6Acl, operation);
 
@@ -12331,7 +12331,7 @@ L7_RC_t ptin_msg_acl_rule_config(void *msgAcl, L7_uint msgId, L7_uint msgDim)
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid msgId: %u", msgId);
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid msgId: %u", msgId);
     return L7_FAILURE;
   }
 
@@ -12366,7 +12366,7 @@ L7_RC_t ptin_msg_acl_rule_config(void *msgAcl, L7_uint msgId, L7_uint msgDim)
     }
     else
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid struct type: %u", msg[1]);
+      PT_LOG_ERR(LOG_CTX_MSG, "Invalid struct type: %u", msg[1]);
       return L7_FAILURE;
     }
     /* Update global result */
@@ -12381,7 +12381,7 @@ L7_RC_t ptin_msg_acl_rule_config(void *msgAcl, L7_uint msgId, L7_uint msgDim)
   /* Check if pointer is not out of position */
   if (msg != ((L7_uint8 *) msgAcl + msgDim))
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Message pointer is out of the expected place... returning error");
+    PT_LOG_ERR(LOG_CTX_MSG, "Message pointer is out of the expected place... returning error");
     return L7_FAILURE;
   }
 
@@ -12410,35 +12410,35 @@ L7_RC_t ptin_msg_acl_apply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation, L
 
   if (msgAcl->aclType >= ACL_TYPE_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "aclType Invalid (%d)", msgAcl->aclType);
+    PT_LOG_ERR(LOG_CTX_MSG, "aclType Invalid (%d)", msgAcl->aclType);
     return L7_FAILURE;
   }
 
   if (msgAcl->direction >= ACL_DIRECTION_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "direction Invalid (%d)", msgAcl->direction);
+    PT_LOG_ERR(LOG_CTX_MSG, "direction Invalid (%d)", msgAcl->direction);
     return L7_FAILURE;
   }
   
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Slot Id        %u",                              msgAcl->slotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Type       %s",                              aclTypeStr[msgAcl->aclType]);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Id         %u",                              msgAcl->aclId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Name       %s",                              msgAcl->name);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "interface      %u",                              msgAcl->interface);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "vlanId         %u",                              msgAcl->vlanId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "evcId          %u",                              msgAcl->evcId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "direction      %s",                              directionStr[msgAcl->direction]);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Operation      %s",                              operationStr[operation]);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Slot Id        %u",                              msgAcl->slotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Type       %s",                              aclTypeStr[msgAcl->aclType]);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Id         %u",                              msgAcl->aclId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Name       %s",                              msgAcl->name);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "interface      %u",                              msgAcl->interface);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "vlanId         %u",                              msgAcl->vlanId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "evcId          %u",                              msgAcl->evcId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "direction      %s",                              directionStr[msgAcl->direction]);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Operation      %s",                              operationStr[operation]);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
 
   if ( (msgAcl->interface == L7_ACL_INVALID_IFACE_ID) &&
        (msgAcl->evcId == L7_ACL_INVALID_EVC_ID) &&
        (msgAcl->vlanId == L7_ACL_INVALID_VLAN_ID) )
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Neither interface neither evcId is valid");
+    PT_LOG_ERR(LOG_CTX_MSG, "Neither interface neither evcId is valid");
     return L7_FAILURE;
   }
 
@@ -12459,11 +12459,11 @@ L7_RC_t ptin_msg_acl_apply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation, L
     aclApply.number_of_vlans = 4096;
     if (ptin_evc_get_intVlan_fromNNIvlan(msgAcl->vlanId, aclApply.vlanId, &aclApply.number_of_vlans) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Unable to get extEVCid from NNI VLAN %u", msgAcl->vlanId );
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: Unable to get extEVCid from NNI VLAN %u", msgAcl->vlanId );
       return L7_NOT_EXIST;
     }
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Retrieved VLAN ID %d", (L7_uint32) aclApply.vlanId[0]);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Retrieved VLAN ID %d", (L7_uint32) aclApply.vlanId[0]);
   }
   else if (msgAcl->evcId < PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
@@ -12472,17 +12472,17 @@ L7_RC_t ptin_msg_acl_apply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation, L
     rc = ptin_evc_intRootVlan_get(msgAcl->evcId, &aclApply.vlanId[0]);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error while retrieving VLAN ID(rc=%d)", rc);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error while retrieving VLAN ID(rc=%d)", rc);
       return rc;
     }
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Retrieved VLAN ID %d", (L7_uint32) aclApply.vlanId[0]);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Retrieved VLAN ID %d", (L7_uint32) aclApply.vlanId[0]);
   }
   else
   {
     aclApply.interface = msgAcl->interface;
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Using Interface %d", aclApply.interface);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Using Interface %d", aclApply.interface);
   }
   
   if (aclType == ACL_TYPE_MAC)
@@ -12503,16 +12503,16 @@ L7_RC_t ptin_msg_acl_apply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation, L
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid ACL type: %d", aclType);
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid ACL type: %d", aclType);
     return L7_FAILURE;
   }
 
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error occurred: rc=%d", rc);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error occurred: rc=%d", rc);
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "rc=%d", rc);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "rc=%d", rc);
   return rc;
 }
 
@@ -12546,7 +12546,7 @@ L7_RC_t ptin_msg_acl_enable(msg_apply_acl_t *msgAcl, L7_uint msgId, L7_uint n_ms
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid msgId %u", msgId);
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid msgId %u", msgId);
     return L7_FAILURE;
   }
 
@@ -12575,7 +12575,7 @@ L7_RC_t ptin_msg_acl_enable(msg_apply_acl_t *msgAcl, L7_uint msgId, L7_uint n_ms
     }
     else
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "invalid entry type (i=%u): %d", i, aclType);
+      PT_LOG_ERR(LOG_CTX_MSG, "invalid entry type (i=%u): %d", i, aclType);
       rc_global = L7_FAILURE;
       continue;
     }
@@ -12583,7 +12583,7 @@ L7_RC_t ptin_msg_acl_enable(msg_apply_acl_t *msgAcl, L7_uint msgId, L7_uint n_ms
     /* Update final result */
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error occurred at i=%u (rc=%d)", i, rc);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error occurred at i=%u (rc=%d)", i, rc);
       rc_global = rc;
     }
   }
@@ -13060,13 +13060,13 @@ L7_RC_t ptin_msg_routing_intf_create(msg_RoutingIntf* data)
   ptin_intf_t routingIntf;
 
   /* Debug */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Creating new routing interface:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  mask          = %08X",  data->mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  routingIntf   = %u/%u", data->routingIntf.intf_type, data->routingIntf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  evcId         = %u",    data->evcId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  ipAddress     = %08X",  data->ipAddress);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  subnetMask    = %08X",  data->subnetMask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  mtu           = %u",    data->mtu);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Creating new routing interface:");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  mask          = %08X",  data->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  routingIntf   = %u/%u", data->routingIntf.intf_type, data->routingIntf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  evcId         = %u",    data->evcId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  ipAddress     = %08X",  data->ipAddress);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  subnetMask    = %08X",  data->subnetMask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  mtu           = %u",    data->mtu);
 
   routingIntf.intf_type  = data->routingIntf.intf_type;
   routingIntf.intf_id    = data->routingIntf.intf_id;
@@ -13077,41 +13077,41 @@ L7_RC_t ptin_msg_routing_intf_create(msg_RoutingIntf* data)
 
      if(L7_SUCCESS != ptin_evc_intRootVlan_get(data->evcId, &internalVlan))
      {
-       LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to convert evc_id to internal root vlan");
+       PT_LOG_ERR(LOG_CTX_MSG, "Unable to convert evc_id to internal root vlan");
        return L7_FAILURE;
      }
 
-     LOG_TRACE(LOG_CTX_PTIN_MSG, "Creating routing interface");
+     PT_LOG_TRACE(LOG_CTX_MSG, "Creating routing interface");
      if(L7_SUCCESS != ptin_routing_intf_create(&routingIntf, internalVlan))
      {
-       LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to create a new routing interface");
+       PT_LOG_ERR(LOG_CTX_MSG, "Unable to create a new routing interface");
        return L7_FAILURE;
      }
   }
   else if(data->routingIntf.intf_type == PTIN_EVC_INTF_LOOPBACK)
   {
-     LOG_TRACE(LOG_CTX_PTIN_MSG, "Creating loopback interface");
+     PT_LOG_TRACE(LOG_CTX_MSG, "Creating loopback interface");
      if(L7_SUCCESS != ptin_routing_loopback_create(&routingIntf))
      {
-       LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to create a new loopback interface");
+       PT_LOG_ERR(LOG_CTX_MSG, "Unable to create a new loopback interface");
        return L7_FAILURE;
      }
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_MSG, "Configuring interface IP Address");
+  PT_LOG_TRACE(LOG_CTX_MSG, "Configuring interface IP Address");
   if(L7_SUCCESS != ptin_routing_intf_ipaddress_set(&routingIntf, L7_AF_INET, data->ipAddress, data->subnetMask))
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to set interface IP address");
+    PT_LOG_ERR(LOG_CTX_MSG, "Unable to set interface IP address");
     return L7_FAILURE;
   }
 
   /* @note(Daniel): In v3.4.1, the loopback interfaces are not yet created in Linux. Hence, this command will fail. However, in future versions this MUST be fixed... */
   if(data->routingIntf.intf_type != PTIN_EVC_INTF_LOOPBACK)
   {
-    LOG_TRACE(LOG_CTX_PTIN_MSG, "Configuring interface MTU");
+    PT_LOG_TRACE(LOG_CTX_MSG, "Configuring interface MTU");
     if(L7_SUCCESS != ptin_routing_intf_mtu_set(&routingIntf, data->mtu))
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to set interface MTU");
+      PT_LOG_ERR(LOG_CTX_MSG, "Unable to set interface MTU");
       return L7_FAILURE;
     }
   }
@@ -13131,13 +13131,13 @@ L7_RC_t ptin_msg_routing_intf_modify(msg_RoutingIntf* data)
   ptin_intf_t routingIntf;
 
   /* Debug */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Configuring routing interface:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  mask          = %08X",  data->mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  routingIntf   = %u/%u", data->routingIntf.intf_type, data->routingIntf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  evcId         = %u",    data->evcId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  ipAddress     = %08X",  data->ipAddress);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  subnetMask    = %08X",  data->subnetMask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  mtu           = %u",    data->mtu);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Configuring routing interface:");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  mask          = %08X",  data->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  routingIntf   = %u/%u", data->routingIntf.intf_type, data->routingIntf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  evcId         = %u",    data->evcId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  ipAddress     = %08X",  data->ipAddress);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  subnetMask    = %08X",  data->subnetMask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  mtu           = %u",    data->mtu);
 
   routingIntf.intf_type  = data->routingIntf.intf_type;
   routingIntf.intf_id    = data->routingIntf.intf_id;
@@ -13146,17 +13146,17 @@ L7_RC_t ptin_msg_routing_intf_modify(msg_RoutingIntf* data)
   {
      if(L7_SUCCESS != ptin_routing_intf_ipaddress_set(&routingIntf, L7_AF_INET, data->ipAddress, data->subnetMask))
      {
-       LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to set interface IP address");
+       PT_LOG_ERR(LOG_CTX_MSG, "Unable to set interface IP address");
        return L7_FAILURE;
      }
   }
 
   if(data->mask & CCMSG_ROUTING_INTF_MASK_MTU)
   {
-     LOG_TRACE(LOG_CTX_PTIN_MSG, "Configuring interface MTU");
+     PT_LOG_TRACE(LOG_CTX_MSG, "Configuring interface MTU");
      if(L7_SUCCESS != ptin_routing_intf_mtu_set(&routingIntf, data->mtu))
      {
-       LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to set interface MTU");
+       PT_LOG_ERR(LOG_CTX_MSG, "Unable to set interface MTU");
        return L7_FAILURE;
      }
   }
@@ -13176,19 +13176,19 @@ L7_RC_t ptin_msg_routing_intf_remove(msg_RoutingIntf* data)
   ptin_intf_t routingIntf;
 
   /* Debug */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Removing routing interface:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  mask          = %08X",  data->mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  routingIntf   = %u/%u", data->routingIntf.intf_type, data->routingIntf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  evcId         = %u",    data->evcId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  ipAddress     = %08X",  data->ipAddress);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  subnetMask    = %08X",  data->subnetMask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Removing routing interface:");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  mask          = %08X",  data->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  routingIntf   = %u/%u", data->routingIntf.intf_type, data->routingIntf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  evcId         = %u",    data->evcId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  ipAddress     = %08X",  data->ipAddress);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  subnetMask    = %08X",  data->subnetMask);
 
   routingIntf.intf_type = data->routingIntf.intf_type;
   routingIntf.intf_id   = data->routingIntf.intf_id;
 
   if(L7_SUCCESS != ptin_routing_intf_remove(&routingIntf))
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to remove the existing routing interface");
+    PT_LOG_ERR(LOG_CTX_MSG, "Unable to remove the existing routing interface");
     return L7_FAILURE;
   }
 
@@ -13212,16 +13212,16 @@ L7_RC_t ptin_msg_routing_arptable_get(msg_RoutingArpTableRequest* inBuffer, msg_
 
   if( (inBuffer == L7_NULLPTR) || (outBuffer == L7_NULLPTR) || (readEntries == L7_NULLPTR) )
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Abnormal context [inBuffer=%p outBuffer=%p readEntries=%p]", inBuffer, outBuffer, readEntries);
+    PT_LOG_ERR(LOG_CTX_MSG, "Abnormal context [inBuffer=%p outBuffer=%p readEntries=%p]", inBuffer, outBuffer, readEntries);
     return L7_FAILURE;
   }
 
   /* Output data */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Getting ARP table:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  mask       = %08X",  inBuffer->mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  intf       = %u/%u", inBuffer->intf.intf_type, inBuffer->intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  lastIndex  = %u",    inBuffer->lastIndex);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  maxEntries = %u",    inBuffer->maxEntries);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Getting ARP table:");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  mask       = %08X",  inBuffer->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  intf       = %u/%u", inBuffer->intf.intf_type, inBuffer->intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  lastIndex  = %u",    inBuffer->lastIndex);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  maxEntries = %u",    inBuffer->maxEntries);
 
   if(inBuffer->mask & CCMSG_ROUTING_ARPTABLE_GET_MASK_INTF)
   {
@@ -13229,7 +13229,7 @@ L7_RC_t ptin_msg_routing_arptable_get(msg_RoutingArpTableRequest* inBuffer, msg_
     intf.intf_id   = inBuffer->intf.intf_id;
     if(L7_SUCCESS != ptin_intf_ptintf2intIfNum(&intf, &intfNum))
     {
-      LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to to convert intf %u/%u to intfNum", intf.intf_type, intf.intf_id);
+      PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to to convert intf %u/%u to intfNum", intf.intf_type, intf.intf_id);
       return L7_FAILURE;
     }
   }
@@ -13253,10 +13253,10 @@ L7_RC_t ptin_msg_routing_arptable_get(msg_RoutingArpTableRequest* inBuffer, msg_
   */
   if(L7_SUCCESS != ptin_routing_arptable_getnext(intfNum, inBuffer->lastIndex, maxEntries, readEntries, outBuffer))
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to get the ARP table");
+    PT_LOG_ERR(LOG_CTX_MSG, "Unable to get the ARP table");
     return L7_FAILURE;
   }
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Successfully read %u entries", *readEntries);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Successfully read %u entries", *readEntries);
 
   return L7_SUCCESS;
 }
@@ -13274,10 +13274,10 @@ L7_RC_t ptin_msg_routing_arpentry_purge(msg_RoutingArpEntryPurge* data)
   L7_uint32   intfNum;
 
   /* Output data */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Removing ARP entry:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  mask       = %08X",  data->mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Intf       = %u/%u", data->intf.intf_type, data->intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  IP Address = %08X",  data->ipAddr);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Removing ARP entry:");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  mask       = %08X",  data->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Intf       = %u/%u", data->intf.intf_type, data->intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  IP Address = %08X",  data->ipAddr);
 
   if(data->mask & CCMSG_ROUTING_ARPTABLE_GET_MASK_INTF)
   {
@@ -13285,7 +13285,7 @@ L7_RC_t ptin_msg_routing_arpentry_purge(msg_RoutingArpEntryPurge* data)
     intf.intf_id   = data->intf.intf_id;
     if(L7_SUCCESS != ptin_intf_ptintf2intIfNum(&intf, &intfNum))
     {
-      LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to to convert intf %u/%u to intfNum", intf.intf_type, intf.intf_id);
+      PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to to convert intf %u/%u to intfNum", intf.intf_type, intf.intf_id);
       return L7_FAILURE;
     }
   }
@@ -13296,7 +13296,7 @@ L7_RC_t ptin_msg_routing_arpentry_purge(msg_RoutingArpEntryPurge* data)
 
   if(L7_SUCCESS != ptin_routing_arpentry_purge(intfNum, data->ipAddr))
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to remove the existing ARP entry");
+    PT_LOG_ERR(LOG_CTX_MSG, "Unable to remove the existing ARP entry");
     return L7_FAILURE;
   }
 
@@ -13320,22 +13320,22 @@ L7_RC_t ptin_msg_routing_routetable_get(msg_RoutingRouteTableRequest* inBuffer, 
 
   if( (inBuffer == L7_NULLPTR) || (outBuffer == L7_NULLPTR) || (readEntries == L7_NULLPTR) )
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Abnormal context [inBuffer=%p outBuffer=%p readEntries=%p]", inBuffer, outBuffer, readEntries);
+    PT_LOG_ERR(LOG_CTX_MSG, "Abnormal context [inBuffer=%p outBuffer=%p readEntries=%p]", inBuffer, outBuffer, readEntries);
     return L7_FAILURE;
   }
 
   /* Output data */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Getting route table:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  intf       = %u/%u", inBuffer->intf.intf_type, inBuffer->intf.intf_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  lastIndex  = %u",    inBuffer->lastIndex);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  maxEntries = %u",    maxEntries);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Getting route table:");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  intf       = %u/%u", inBuffer->intf.intf_type, inBuffer->intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  lastIndex  = %u",    inBuffer->lastIndex);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  maxEntries = %u",    maxEntries);
 
   intf.intf_type = inBuffer->intf.intf_type;
   intf.intf_id   = inBuffer->intf.intf_id;
 
   if(L7_SUCCESS != ptin_intf_ptintf2intIfNum(&intf, &intfNum))
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to to convert intf %u/%u to intfNum", intf.intf_type, intf.intf_id);
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to to convert intf %u/%u to intfNum", intf.intf_type, intf.intf_id);
     return L7_FAILURE;
   }
 
@@ -13345,10 +13345,10 @@ L7_RC_t ptin_msg_routing_routetable_get(msg_RoutingRouteTableRequest* inBuffer, 
   */
   if(L7_SUCCESS != ptin_routing_routetable_get(intfNum, inBuffer->lastIndex, maxEntries, readEntries, outBuffer))
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to get the route table");
+    PT_LOG_ERR(LOG_CTX_MSG, "Unable to get the route table");
     return L7_FAILURE;
   }
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Successfully read %u entries", *readEntries);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Successfully read %u entries", *readEntries);
 
   return L7_SUCCESS;
 }
@@ -13366,22 +13366,22 @@ L7_RC_t ptin_msg_routing_staticroute_add(msg_RoutingStaticRoute* data)
 
   if( (data == L7_NULLPTR) )
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Abnormal context [data=%p]", data);
+    PT_LOG_ERR(LOG_CTX_MSG, "Abnormal context [data=%p]", data);
     return L7_FAILURE;
   }
 
   /* Output data */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Configuring static route:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  dstIpAddr   = %08X", data->dstIpAddr);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  subnetMask  = %08X", data->subnetMask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  nextHopRtr  = %08X", data->nextHopRtr);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  pref        = %u",   data->pref);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  isNullRoute = %u",   data->isNullRoute);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Configuring static route:");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  dstIpAddr   = %08X", data->dstIpAddr);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  subnetMask  = %08X", data->subnetMask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  nextHopRtr  = %08X", data->nextHopRtr);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  pref        = %u",   data->pref);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  isNullRoute = %u",   data->isNullRoute);
 
   rc = ptin_routing_staticroute_add(data->dstIpAddr, data->subnetMask, data->nextHopRtr, data->pref, (L7_BOOL)data->isNullRoute);
   if((rc != L7_SUCCESS) && (rc != L7_NOT_EXIST))
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to configure static route [rc:%u]", rc);
+    PT_LOG_ERR(LOG_CTX_MSG, "Unable to configure static route [rc:%u]", rc);
     return L7_FAILURE;
   }
 
@@ -13399,21 +13399,21 @@ L7_RC_t ptin_msg_routing_staticroute_delete(msg_RoutingStaticRoute* data)
 {
   if( (data == L7_NULLPTR) )
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Abnormal context [data=%p]", data);
+    PT_LOG_ERR(LOG_CTX_MSG, "Abnormal context [data=%p]", data);
     return L7_FAILURE;
   }
 
   /* Output data */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Removing an existing static route:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  dstIpAddr   = %08X", data->dstIpAddr);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  subnetMask  = %08X", data->subnetMask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  nextHopRtr  = %08X", data->nextHopRtr);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  pref        = %u",   data->pref);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  isNullRoute = %u",   data->isNullRoute);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Removing an existing static route:");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  dstIpAddr   = %08X", data->dstIpAddr);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  subnetMask  = %08X", data->subnetMask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  nextHopRtr  = %08X", data->nextHopRtr);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  pref        = %u",   data->pref);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  isNullRoute = %u",   data->isNullRoute);
 
   if(L7_SUCCESS != ptin_routing_staticroute_delete(data->dstIpAddr, data->subnetMask, data->nextHopRtr, (L7_BOOL)data->isNullRoute))
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to remove static route");
+    PT_LOG_ERR(LOG_CTX_MSG, "Unable to remove static route");
     return L7_FAILURE;
   }
 
@@ -13431,21 +13431,21 @@ L7_RC_t ptin_msg_routing_pingsession_create(msg_RoutingPingSessionCreate* data)
 {
   if( (data == L7_NULLPTR) )
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Abnormal context [data=%p]", data);
+    PT_LOG_ERR(LOG_CTX_MSG, "Abnormal context [data=%p]", data);
     return L7_FAILURE;
   }
 
   /* Output data */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Creating new ping session:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  sessionIdx    = %u",   data->sessionIdx);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  dstIpAddr     = %08X", data->dstIpAddr);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  probeCount    = %u",   data->probeCount);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  probeSize     = %u",   data->probeSize);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  probeInterval = %u",   data->probeInterval);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Creating new ping session:");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  sessionIdx    = %u",   data->sessionIdx);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  dstIpAddr     = %08X", data->dstIpAddr);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  probeCount    = %u",   data->probeCount);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  probeSize     = %u",   data->probeSize);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  probeInterval = %u",   data->probeInterval);
 
   if(L7_SUCCESS != ptin_routing_pingsession_create(data->sessionIdx, data->dstIpAddr, data->probeCount, data->probeSize, data->probeInterval))
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to create new ping session");
+    PT_LOG_ERR(LOG_CTX_MSG, "Unable to create new ping session");
     return L7_FAILURE;
   }
 
@@ -13463,13 +13463,13 @@ L7_RC_t ptin_msg_routing_pingsession_query(msg_RoutingPingSessionQuery* data)
 {
   if( (data == L7_NULLPTR) )
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Abnormal context [data=%p]", data);
+    PT_LOG_ERR(LOG_CTX_MSG, "Abnormal context [data=%p]", data);
     return L7_FAILURE;
   }
 
   /* Output data */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Querying ping session:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  sessionIdx = %u", data->sessionIdx);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Querying ping session:");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  sessionIdx = %u", data->sessionIdx);
 
   /*
    I know that passing a ptin_msghandler struct to a file other than ptin_msg breaks PTIN Fastpath's architecture.
@@ -13477,7 +13477,7 @@ L7_RC_t ptin_msg_routing_pingsession_query(msg_RoutingPingSessionQuery* data)
    */
   if(L7_SUCCESS != ptin_routing_pingsession_query(data))
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to query ping session");
+    PT_LOG_ERR(LOG_CTX_MSG, "Unable to query ping session");
     return L7_FAILURE;
   }
 
@@ -13495,20 +13495,20 @@ L7_RC_t ptin_msg_routing_pingsession_free(msg_RoutingPingSessionFree* data)
 {
   if( (data == L7_NULLPTR) )
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Abnormal context [data=%p]", data);
+    PT_LOG_ERR(LOG_CTX_MSG, "Abnormal context [data=%p]", data);
     return L7_FAILURE;
   }
 
   /* Output data */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Freeing ping session:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  mask       = %02X", data->mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  sessionIdx = %u",   data->sessionIdx);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Freeing ping session:");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  mask       = %02X", data->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  sessionIdx = %u",   data->sessionIdx);
 
   if(data->mask & CCMSG_ROUTING_PINGSESSION_MASK_SESSIONIDX)
   {
     if(L7_SUCCESS != ptin_routing_pingsession_free(data->sessionIdx))
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to free ping session");
+      PT_LOG_ERR(LOG_CTX_MSG, "Unable to free ping session");
       return L7_FAILURE;
     }
   }
@@ -13516,7 +13516,7 @@ L7_RC_t ptin_msg_routing_pingsession_free(msg_RoutingPingSessionFree* data)
   {
     if(L7_SUCCESS != ptin_routing_pingsession_freeall())
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to free ping sessions");
+      PT_LOG_ERR(LOG_CTX_MSG, "Unable to free ping sessions");
       return L7_FAILURE;
     }
   }
@@ -13535,26 +13535,26 @@ L7_RC_t ptin_msg_routing_tracertsession_create(msg_RoutingTracertSessionCreate* 
 {
   if( (data == L7_NULLPTR) )
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Abnormal context [data=%p]", data);
+    PT_LOG_ERR(LOG_CTX_MSG, "Abnormal context [data=%p]", data);
     return L7_FAILURE;
   }
 
   /* Output data */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Creating new traceroute session:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  sessionIdx    = %u",   data->sessionIdx);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  dstIpAddr     = %08X", data->dstIpAddr);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  probePerHop   = %u",   data->probePerHop);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  probeSize     = %u",   data->probeSize);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  probeInterval = %u",   data->probeInterval);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  dontFrag      = %u",   data->dontFrag);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  port          = %u",   data->port);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  maxTtl        = %u",   data->maxTtl);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  initTtl       = %u",   data->initTtl);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  maxFail       = %u",   data->maxFail);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Creating new traceroute session:");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  sessionIdx    = %u",   data->sessionIdx);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  dstIpAddr     = %08X", data->dstIpAddr);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  probePerHop   = %u",   data->probePerHop);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  probeSize     = %u",   data->probeSize);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  probeInterval = %u",   data->probeInterval);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  dontFrag      = %u",   data->dontFrag);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  port          = %u",   data->port);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  maxTtl        = %u",   data->maxTtl);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  initTtl       = %u",   data->initTtl);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  maxFail       = %u",   data->maxFail);
 
   if(L7_SUCCESS != ptin_routing_traceroutesession_create(data->sessionIdx, data->dstIpAddr, data->probeSize, data->probePerHop, data->probeInterval, data->dontFrag, data->port, data->maxTtl, data->initTtl, data->maxFail))
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to create new traceroute session");
+    PT_LOG_ERR(LOG_CTX_MSG, "Unable to create new traceroute session");
     return L7_FAILURE;
   }
 
@@ -13572,13 +13572,13 @@ L7_RC_t ptin_msg_routing_tracertsession_query(msg_RoutingTracertSessionQuery* da
 {
   if( (data == L7_NULLPTR) )
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Abnormal context [data=%p]", data);
+    PT_LOG_ERR(LOG_CTX_MSG, "Abnormal context [data=%p]", data);
     return L7_FAILURE;
   }
 
   /* Output data */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Querying traceroute session:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  sessionIdx = %u", data->sessionIdx);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Querying traceroute session:");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  sessionIdx = %u", data->sessionIdx);
 
   /*
    I know that passing a ptin_msghandler struct to a file other than ptin_msg breaks PTIN Fastpath's architecture.
@@ -13586,7 +13586,7 @@ L7_RC_t ptin_msg_routing_tracertsession_query(msg_RoutingTracertSessionQuery* da
    */
   if(L7_SUCCESS != ptin_routing_traceroutesession_query(data))
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to query traceroute session");
+    PT_LOG_ERR(LOG_CTX_MSG, "Unable to query traceroute session");
     return L7_FAILURE;
   }
 
@@ -13607,15 +13607,15 @@ L7_RC_t ptin_msg_routing_tracertsession_gethops(msg_RoutingTracertSessionHopsReq
 {
   if( (inBuffer == L7_NULLPTR) || (outBuffer == L7_NULLPTR) || (readEntries == L7_NULLPTR) )
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Abnormal context [inBuffer=%p outBuffer=%p readEntries=%p]", inBuffer, outBuffer, readEntries);
+    PT_LOG_ERR(LOG_CTX_MSG, "Abnormal context [inBuffer=%p outBuffer=%p readEntries=%p]", inBuffer, outBuffer, readEntries);
     return L7_FAILURE;
   }
 
   /* Output data */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Getting traceroute hops:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  sessionIdx = %u", inBuffer->sessionIdx);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  lastIndex  = %u", inBuffer->lastIndex);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  maxEntries = %u", maxEntries);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Getting traceroute hops:");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  sessionIdx = %u", inBuffer->sessionIdx);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  lastIndex  = %u", inBuffer->lastIndex);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  maxEntries = %u", maxEntries);
 
   /*
    I know that passing a ptin_msghandler struct to a file other than ptin_msg breaks PTIN Fastpath's architecture.
@@ -13623,10 +13623,10 @@ L7_RC_t ptin_msg_routing_tracertsession_gethops(msg_RoutingTracertSessionHopsReq
   */
   if(L7_SUCCESS != ptin_routing_traceroutesession_gethops(inBuffer->sessionIdx, inBuffer->lastIndex, maxEntries, readEntries, outBuffer))
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to get traceroute session hops");
+    PT_LOG_ERR(LOG_CTX_MSG, "Unable to get traceroute session hops");
     return L7_FAILURE;
   }
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Successfully read %u entries", *readEntries);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Successfully read %u entries", *readEntries);
 
   return L7_SUCCESS;
 }
@@ -13642,20 +13642,20 @@ L7_RC_t ptin_msg_routing_tracertsession_free(msg_RoutingTracertSessionFree* data
 {
   if( (data == L7_NULLPTR) )
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Abnormal context [data=%p]", data);
+    PT_LOG_ERR(LOG_CTX_MSG, "Abnormal context [data=%p]", data);
     return L7_FAILURE;
   }
 
   /* Output data */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Freeing traceroute session:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  mask       = %02X", data->mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  sessionIdx = %u",   data->sessionIdx);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Freeing traceroute session:");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  mask       = %02X", data->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  sessionIdx = %u",   data->sessionIdx);
 
   if(data->mask & CCMSG_ROUTING_TRACEROUTESESSION_MASK_SESSIONIDX)
   {
     if(L7_SUCCESS != ptin_routing_traceroutesession_free(data->sessionIdx))
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to free traceroute session");
+      PT_LOG_ERR(LOG_CTX_MSG, "Unable to free traceroute session");
       return L7_FAILURE;
     }
   }
@@ -13663,7 +13663,7 @@ L7_RC_t ptin_msg_routing_tracertsession_free(msg_RoutingTracertSessionFree* data
   {
     if(L7_SUCCESS != ptin_routing_traceroutesession_freeall())
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to free traceroute sessions");
+      PT_LOG_ERR(LOG_CTX_MSG, "Unable to free traceroute sessions");
       return L7_FAILURE;
     }
   }
@@ -13696,18 +13696,18 @@ void ptin_msg_protection_matrix_configuration_flush_end(void)
       /* IP address of Active Matrix*/
       ipAddr = IPC_MX_PAIR_IPADDR;
 
-      LOG_INFO(LOG_CTX_PTIN_MSG, "Sending a Snoop Sync Request Message to ipAddr:%08X (%u)", ipAddr, MX_PAIR_SLOT_ID);
+      PT_LOG_INFO(LOG_CTX_MSG, "Sending a Snoop Sync Request Message to ipAddr:%08X (%u)", ipAddr, MX_PAIR_SLOT_ID);
 
       /*Send the snoop sync request to the protection matrix */  
       if (send_ipc_message(IPC_HW_FASTPATH_PORT, ipAddr, CCMSG_MGMD_SNOOP_SYNC_REQUEST, (char *)(&snoopSyncRequest), NULL, sizeof(snoopSyncRequest), NULL) < 0)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Failed to send Snoop Sync Request Message");
+        PT_LOG_ERR(LOG_CTX_MSG, "Failed to send Snoop Sync Request Message");
 //      return;
       }         
     }
     else
     {
-      LOG_NOTICE(LOG_CTX_PTIN_MSG, "Not sending Snoop Sync Request Message. Since, I'm not a standby matrix");      
+      PT_LOG_NOTICE(LOG_CTX_MSG, "Not sending Snoop Sync Request Message. Since, I'm not a standby matrix");      
 //    return
     }
   #endif
@@ -13727,7 +13727,7 @@ void ptin_msg_protection_matrix_configuration_flush_end(void)
  */
 L7_RC_t ptin_msg_clear_rfc2819_monitoring_buffer(L7_uint32 buffer_index)
 { 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Clear buffer_index: %u", buffer_index);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Clear buffer_index: %u", buffer_index);
 
   //test bit31 to decide which buffer must be cleared (15min or 24hours)
   if (buffer_index & 0x80000000)
@@ -13821,7 +13821,7 @@ L7_RC_t ptin_msg_config_rfc2819_monitoring(msg_rfc2819_admin_t *config)
 { 
   L7_RC_t rc;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Configure monitoring: SlotId: %d, Port: %d, admin: %d", config->SlotId, config->Port, config->Admin);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Configure monitoring: SlotId: %d, Port: %d, admin: %d", config->SlotId, config->Port, config->Admin);
 
   //Configure
   rc = ptin_rfc2819_config_probe(config->Port, config->Admin);
@@ -13882,7 +13882,7 @@ L7_RC_t ptin_msg_igmp_packages_add(msg_igmp_package_t *msg)
   /* Input Argument validation */
   if ( msg  == L7_NULLPTR )
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [msg:%p]",msg);    
+    PT_LOG_ERR(LOG_CTX_IGMP, "Invalid arguments [msg:%p]",msg);    
     return L7_FAILURE;
   }
 #if 0      
@@ -13895,7 +13895,7 @@ L7_RC_t ptin_msg_igmp_packages_add(msg_igmp_package_t *msg)
 #endif
       
   /*Input Parameters*/
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Input Arguments [slotId:%u noOfPackages:%u packageBmpList:%s]",msg->slotId, msg->noOfPackages, packageBmpStr);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Input Arguments [slotId:%u noOfPackages:%u packageBmpList:%s]",msg->slotId, msg->noOfPackages, packageBmpStr);
 
   for (packageIdIterator = 0; packageIdIterator < PTIN_SYSTEM_IGMP_MAXPACKAGES && msg->noOfPackages > 0; packageIdIterator++)
   {
@@ -13921,7 +13921,7 @@ L7_RC_t ptin_msg_igmp_packages_add(msg_igmp_package_t *msg)
  }
   return rc;  
 #else
-  LOG_ERR(LOG_CTX_PTIN_IGMP, "Featured not supported in this card!");  
+  PT_LOG_ERR(LOG_CTX_IGMP, "Featured not supported in this card!");  
   return L7_NOT_SUPPORTED;  
 #endif 
 }
@@ -13946,7 +13946,7 @@ L7_RC_t ptin_msg_igmp_packages_remove(msg_igmp_package_t *msg)
   /* Input Argument validation */
   if ( msg  == L7_NULLPTR )
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [msg:%p]",msg);    
+    PT_LOG_ERR(LOG_CTX_IGMP, "Invalid arguments [msg:%p]",msg);    
     return L7_FAILURE;
   }
 #if 0
@@ -13958,7 +13958,7 @@ L7_RC_t ptin_msg_igmp_packages_remove(msg_igmp_package_t *msg)
   }
 #endif      
   /*Input Parameters*/
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Input Arguments [slotId:%u noOfPackages:%u packageBmpList:%s]",msg->slotId, msg->noOfPackages, packageBmpStr);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Input Arguments [slotId:%u noOfPackages:%u packageBmpList:%s]",msg->slotId, msg->noOfPackages, packageBmpStr);
 
   for (packageIdIterator = 0; packageIdIterator < PTIN_SYSTEM_IGMP_MAXPACKAGES && msg->noOfPackages > 0; packageIdIterator++)
   {
@@ -13988,7 +13988,7 @@ L7_RC_t ptin_msg_igmp_packages_remove(msg_igmp_package_t *msg)
  }
   return rc;   
 #else
-  LOG_ERR(LOG_CTX_PTIN_IGMP, "Feature not supported in this card!");  
+  PT_LOG_ERR(LOG_CTX_IGMP, "Feature not supported in this card!");  
   return L7_NOT_SUPPORTED;  
 #endif 
 }
@@ -14015,12 +14015,12 @@ L7_RC_t ptin_msg_igmp_package_channels_add(msg_igmp_package_channels_t *msg, L7_
   /* Input Argument validation */
   if ( msg  == L7_NULLPTR || noOfMessages == 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [msg:%p noOfMessages:%u]",msg, noOfMessages);    
+    PT_LOG_ERR(LOG_CTX_IGMP, "Invalid arguments [msg:%p noOfMessages:%u]",msg, noOfMessages);    
     return L7_FAILURE;
   }
 
   /*Input Parameters*/
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Input Arguments [noOfMessages:%u]", noOfMessages);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Input Arguments [noOfMessages:%u]", noOfMessages);
 
   for (messageIterator = 0; messageIterator < noOfMessages; messageIterator++)
   {
@@ -14047,13 +14047,13 @@ L7_RC_t ptin_msg_igmp_package_channels_add(msg_igmp_package_channels_t *msg, L7_
     {
       if (inetIsInMulticast(&groupAddr)== L7_FALSE ||  msg[messageIterator].groupMask < PTIN_IGMP_GROUP_MASK_MIN ||  msg[messageIterator].groupMask > 32 || (!inetIsAddressZero(&sourceAddr) && inetIsValidHostAddress(&sourceAddr)== L7_FALSE) )            
       {      
-        LOG_ERR(LOG_CTX_PTIN_MSG," Invalid Parameters: packageId:%u evcId:%u groupAddr=%s/%u sourceAddr:%s/%u ",  msg[messageIterator].packageId, msg[messageIterator].evcId, groupAddrStr,  msg[messageIterator].groupMask, sourceAddrStr,  msg[messageIterator].sourceMask);
+        PT_LOG_ERR(LOG_CTX_MSG," Invalid Parameters: packageId:%u evcId:%u groupAddr=%s/%u sourceAddr:%s/%u ",  msg[messageIterator].packageId, msg[messageIterator].evcId, groupAddrStr,  msg[messageIterator].groupMask, sourceAddrStr,  msg[messageIterator].sourceMask);
         return L7_FAILURE;                           
       }
 
       if ( msg[messageIterator].sourceMask != 32 )
       {
-//      LOG_WARNING(LOG_CTX_PTIN_MSG," Invalid Parameters: packageId:%u evcId:%u groupAddr=%s/%u sourceAddr:%s/%u ",  msg[messageIterator].packageId, msg[messageIterator].evcId, groupAddrStr,  msg[messageIterator].groupMask, sourceAddrStr,  msg[messageIterator].sourceMask);
+//      PT_LOG_WARN(LOG_CTX_MSG," Invalid Parameters: packageId:%u evcId:%u groupAddr=%s/%u sourceAddr:%s/%u ",  msg[messageIterator].packageId, msg[messageIterator].evcId, groupAddrStr,  msg[messageIterator].groupMask, sourceAddrStr,  msg[messageIterator].sourceMask);
         msg[messageIterator].sourceMask = 32;          
       }
     }
@@ -14061,25 +14061,25 @@ L7_RC_t ptin_msg_igmp_package_channels_add(msg_igmp_package_channels_t *msg, L7_
     { /*Default Multicast Entry*/
       if (!inetIsAddressZero(&sourceAddr))
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG," Invalid Parameters: packageId:%u evcId:%u groupAddr=%s/%u sourceAddr:%s/%u ",  msg[messageIterator].packageId, msg[messageIterator].evcId, groupAddrStr,  msg[messageIterator].groupMask, sourceAddrStr,  msg[messageIterator].sourceMask);
+        PT_LOG_ERR(LOG_CTX_MSG," Invalid Parameters: packageId:%u evcId:%u groupAddr=%s/%u sourceAddr:%s/%u ",  msg[messageIterator].packageId, msg[messageIterator].evcId, groupAddrStr,  msg[messageIterator].groupMask, sourceAddrStr,  msg[messageIterator].sourceMask);
         return L7_FAILURE;                   
       }
 
       if ( msg[messageIterator].groupMask != 32)
       {
-        LOG_WARNING(LOG_CTX_PTIN_MSG," Invalid Parameters: packageId:%u evcId:%u groupAddr=%s/%u sourceAddr:%s/%u ",  msg[messageIterator].packageId, msg[messageIterator].evcId, groupAddrStr,  msg[messageIterator].groupMask, sourceAddrStr,  msg[messageIterator].sourceMask);
+        PT_LOG_WARN(LOG_CTX_MSG," Invalid Parameters: packageId:%u evcId:%u groupAddr=%s/%u sourceAddr:%s/%u ",  msg[messageIterator].packageId, msg[messageIterator].evcId, groupAddrStr,  msg[messageIterator].groupMask, sourceAddrStr,  msg[messageIterator].sourceMask);
         msg[messageIterator].groupMask = 32;
       }
 
       if ( msg[messageIterator].sourceMask != 0 )
       {
-        LOG_WARNING(LOG_CTX_PTIN_MSG," Invalid Parameters: packageId:%u evcId:%u groupAddr=%s/%u sourceAddr:%s/%u ",  msg[messageIterator].packageId, msg[messageIterator].evcId, groupAddrStr,  msg[messageIterator].groupMask, sourceAddrStr,  msg[messageIterator].sourceMask);
+        PT_LOG_WARN(LOG_CTX_MSG," Invalid Parameters: packageId:%u evcId:%u groupAddr=%s/%u sourceAddr:%s/%u ",  msg[messageIterator].packageId, msg[messageIterator].evcId, groupAddrStr,  msg[messageIterator].groupMask, sourceAddrStr,  msg[messageIterator].sourceMask);
         msg[messageIterator].sourceMask = 0;
       }       
     }
 
     /*Input Parameters*/
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Input Arguments [slotId:%u packageId:%u serviceId:%u groupAddr:%s groupMask:%u sourceAddr:%s sourceMask:%u]",
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Input Arguments [slotId:%u packageId:%u serviceId:%u groupAddr:%s groupMask:%u sourceAddr:%s sourceMask:%u]",
               msg[messageIterator].slotId, msg[messageIterator].packageId, msg[messageIterator].evcId, 
               inetAddrPrint(&groupAddr, groupAddrStr), msg[messageIterator].groupMask, inetAddrPrint(&sourceAddr, sourceAddrStr), msg[messageIterator].sourceMask );
 
@@ -14092,7 +14092,7 @@ L7_RC_t ptin_msg_igmp_package_channels_add(msg_igmp_package_channels_t *msg, L7_
   }
   return rc;
 #else
-  LOG_ERR(LOG_CTX_PTIN_IGMP, "Featured not supported in this card!");  
+  PT_LOG_ERR(LOG_CTX_IGMP, "Featured not supported in this card!");  
   return L7_NOT_SUPPORTED;  
 #endif 
 }
@@ -14119,12 +14119,12 @@ L7_RC_t ptin_msg_igmp_package_channels_remove(msg_igmp_package_channels_t *msg, 
   /* Input Argument validation */
   if ( msg  == L7_NULLPTR || noOfMessages == 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [msg:%p noOfMessages:%u]",msg, noOfMessages);    
+    PT_LOG_ERR(LOG_CTX_IGMP, "Invalid arguments [msg:%p noOfMessages:%u]",msg, noOfMessages);    
     return L7_FAILURE;
   }
 
   /*Input Parameters*/
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Input Arguments [noOfMessages:%u]", noOfMessages);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Input Arguments [noOfMessages:%u]", noOfMessages);
 
   for (messageIterator = 0; messageIterator < noOfMessages; messageIterator++)
   {
@@ -14151,13 +14151,13 @@ L7_RC_t ptin_msg_igmp_package_channels_remove(msg_igmp_package_channels_t *msg, 
     {
       if (inetIsInMulticast(&groupAddr)== L7_FALSE ||  msg[messageIterator].groupMask < PTIN_IGMP_GROUP_MASK_MIN ||  msg[messageIterator].groupMask > 32 || (!inetIsAddressZero(&sourceAddr) && inetIsValidHostAddress(&sourceAddr)== L7_FALSE) )            
       {      
-        LOG_ERR(LOG_CTX_PTIN_MSG," Invalid Parameters: packageId:%u evcId:%u groupAddr=%s/%u sourceAddr:%s/%u ",  msg[messageIterator].packageId, msg[messageIterator].evcId, groupAddrStr,  msg[messageIterator].groupMask, sourceAddrStr,  msg[messageIterator].sourceMask);
+        PT_LOG_ERR(LOG_CTX_MSG," Invalid Parameters: packageId:%u evcId:%u groupAddr=%s/%u sourceAddr:%s/%u ",  msg[messageIterator].packageId, msg[messageIterator].evcId, groupAddrStr,  msg[messageIterator].groupMask, sourceAddrStr,  msg[messageIterator].sourceMask);
         return L7_FAILURE;                           
       }
 
       if ( msg[messageIterator].sourceMask != 32 )
       {
-//      LOG_WARNING(LOG_CTX_PTIN_MSG," Invalid Parameters: packageId:%u evcId:%u groupAddr=%s/%u sourceAddr:%s/%u ",  msg[messageIterator].packageId, msg[messageIterator].evcId, groupAddrStr,  msg[messageIterator].groupMask, sourceAddrStr,  msg[messageIterator].sourceMask);
+//      PT_LOG_WARN(LOG_CTX_MSG," Invalid Parameters: packageId:%u evcId:%u groupAddr=%s/%u sourceAddr:%s/%u ",  msg[messageIterator].packageId, msg[messageIterator].evcId, groupAddrStr,  msg[messageIterator].groupMask, sourceAddrStr,  msg[messageIterator].sourceMask);
         msg[messageIterator].sourceMask = 32;          
       }
     }
@@ -14165,25 +14165,25 @@ L7_RC_t ptin_msg_igmp_package_channels_remove(msg_igmp_package_channels_t *msg, 
     { /*Default Multicast Entry*/
       if (!inetIsAddressZero(&sourceAddr))
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG," Invalid Parameters: packageId:%u evcId:%u groupAddr=%s/%u sourceAddr:%s/%u ",  msg[messageIterator].packageId, msg[messageIterator].evcId, groupAddrStr,  msg[messageIterator].groupMask, sourceAddrStr,  msg[messageIterator].sourceMask);
+        PT_LOG_ERR(LOG_CTX_MSG," Invalid Parameters: packageId:%u evcId:%u groupAddr=%s/%u sourceAddr:%s/%u ",  msg[messageIterator].packageId, msg[messageIterator].evcId, groupAddrStr,  msg[messageIterator].groupMask, sourceAddrStr,  msg[messageIterator].sourceMask);
         return L7_FAILURE;                   
       }
 
       if ( msg[messageIterator].groupMask != 32 )
       {
-        LOG_WARNING(LOG_CTX_PTIN_MSG," Invalid Parameters: packageId:%u evcId:%u groupAddr=%s/%u sourceAddr:%s/%u ",  msg[messageIterator].packageId, msg[messageIterator].evcId, groupAddrStr,  msg[messageIterator].groupMask, sourceAddrStr,  msg[messageIterator].sourceMask);
+        PT_LOG_WARN(LOG_CTX_MSG," Invalid Parameters: packageId:%u evcId:%u groupAddr=%s/%u sourceAddr:%s/%u ",  msg[messageIterator].packageId, msg[messageIterator].evcId, groupAddrStr,  msg[messageIterator].groupMask, sourceAddrStr,  msg[messageIterator].sourceMask);
         msg[messageIterator].groupMask = 32;
       }
 
       if ( msg[messageIterator].sourceMask != 0 )
       {
-        LOG_WARNING(LOG_CTX_PTIN_MSG," Invalid Parameters: packageId:%u evcId:%u groupAddr=%s/%u sourceAddr:%s/%u ",  msg[messageIterator].packageId, msg[messageIterator].evcId, groupAddrStr,  msg[messageIterator].groupMask, sourceAddrStr,  msg[messageIterator].sourceMask);
+        PT_LOG_WARN(LOG_CTX_MSG," Invalid Parameters: packageId:%u evcId:%u groupAddr=%s/%u sourceAddr:%s/%u ",  msg[messageIterator].packageId, msg[messageIterator].evcId, groupAddrStr,  msg[messageIterator].groupMask, sourceAddrStr,  msg[messageIterator].sourceMask);
         msg[messageIterator].sourceMask = 0;
       }       
     }
 
     /*Input Parameters*/
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Input Arguments [slotId:%u packageId:%u serviceId:%u groupAddr:%s groupMask:%u sourceAddr:%s sourceMask:%u]",
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Input Arguments [slotId:%u packageId:%u serviceId:%u groupAddr:%s groupMask:%u sourceAddr:%s sourceMask:%u]",
               msg[messageIterator].slotId, msg[messageIterator].packageId, msg[messageIterator].evcId, 
               inetAddrPrint(&groupAddr, groupAddrStr), msg[messageIterator].groupMask, inetAddrPrint(&sourceAddr, sourceAddrStr), msg[messageIterator].sourceMask );
 
@@ -14196,7 +14196,7 @@ L7_RC_t ptin_msg_igmp_package_channels_remove(msg_igmp_package_channels_t *msg, 
   }
   return rc;
 #else
-  LOG_ERR(LOG_CTX_PTIN_IGMP, "Featured not supported in this card!");  
+  PT_LOG_ERR(LOG_CTX_IGMP, "Featured not supported in this card!");  
   return L7_NOT_SUPPORTED;  
 #endif 
 }
@@ -14227,12 +14227,12 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
   /* Input Argument validation */
   if ( msg  == L7_NULLPTR || noOfMessages == 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [msg:%p noOfMessages:%u]",msg, noOfMessages);    
+    PT_LOG_ERR(LOG_CTX_IGMP, "Invalid arguments [msg:%p noOfMessages:%u]",msg, noOfMessages);    
     return L7_FAILURE;
   }
 
   /*Input Parameters*/
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Input Arguments [noOfMessages:%u]", noOfMessages);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Input Arguments [noOfMessages:%u]", noOfMessages);
 
   for (messageIterator = 0; messageIterator < noOfMessages; messageIterator++)
   {
@@ -14246,20 +14246,20 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
 #endif
     
     /* Output data */
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to add MC client");
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  MC evc_idx = %u", msg[messageIterator].evcId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   onuId               = %u", msg[messageIterator].onuId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.Mask         = 0x%02x", msg[messageIterator].client.mask);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.OVlan        = %u", msg[messageIterator].client.outer_vlan);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.IVlan        = %u", msg[messageIterator].client.inner_vlan);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.Intf         = %u/%u", msg[messageIterator].client.intf.intf_type,msg[messageIterator].client.intf.intf_id);        
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   noOfPackages        = %u ", msg[messageIterator].noOfPackages);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   PackageBmpList      = %s", packageBmpStr);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Going to add MC client");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx = %u", msg[messageIterator].evcId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   onuId               = %u", msg[messageIterator].onuId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.Mask         = 0x%02x", msg[messageIterator].client.mask);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.OVlan        = %u", msg[messageIterator].client.outer_vlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.IVlan        = %u", msg[messageIterator].client.inner_vlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.Intf         = %u/%u", msg[messageIterator].client.intf.intf_type,msg[messageIterator].client.intf.intf_id);        
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   noOfPackages        = %u ", msg[messageIterator].noOfPackages);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   PackageBmpList      = %s", packageBmpStr);
 
     #if PTIN_BOARD_IS_ACTIVETH   
     if (msg[messageIterator].onuId != 0)
     {
-      LOG_WARNING(LOG_CTX_PTIN_MSG, "   I'm an Active Ethernet Card. OnuId:%u is different from 0. Going to set it to zero", msg[messageIterator].onuId);
+      PT_LOG_WARN(LOG_CTX_MSG, "   I'm an Active Ethernet Card. OnuId:%u is different from 0. Going to set it to zero", msg[messageIterator].onuId);
       msg[messageIterator].onuId = 0;
     }    
     #endif
@@ -14288,7 +14288,7 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
         rc = ptin_igmp_clientId_convert(msg[messageIterator].evcId, &client);
         if ( rc != L7_SUCCESS )
         {
-          LOG_ERR(LOG_CTX_PTIN_MSG, "Error converting clientId");
+          PT_LOG_ERR(LOG_CTX_MSG, "Error converting clientId");
           continue;
         }
 
@@ -14297,19 +14297,19 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
         {
           if (ptin_evc_extVlans_get(intIfNum, msg[messageIterator].evcId,(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
           {
-            LOG_TRACE(LOG_CTX_PTIN_IGMP,"Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
+            PT_LOG_TRACE(LOG_CTX_IGMP,"Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
                       client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
           }
           else
           {
             uni_ovid = uni_ivid = 0;
-            LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot get ext vlans for ptin_intf %u/%u, cvlan %u",
+            PT_LOG_ERR(LOG_CTX_IGMP,"Cannot get ext vlans for ptin_intf %u/%u, cvlan %u",
                     client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan);
           }
         }
         else
         {
-          LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid ptin_intf %u/%u", client.ptin_intf.intf_type, client.ptin_intf.intf_id);
+          PT_LOG_ERR(LOG_CTX_IGMP,"Invalid ptin_intf %u/%u", client.ptin_intf.intf_type, client.ptin_intf.intf_id);
         }
       }
 
@@ -14318,14 +14318,14 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
 
       if (rc!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding MC client");
+        PT_LOG_ERR(LOG_CTX_MSG, "Error adding MC client");
         return rc;
       }
     }
   }
   return rc;
 #else
-  LOG_ERR(LOG_CTX_PTIN_IGMP, "Featured not supported in this card!");  
+  PT_LOG_ERR(LOG_CTX_IGMP, "Featured not supported in this card!");  
   return L7_NOT_SUPPORTED;  
 #endif 
 }
@@ -14356,12 +14356,12 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_pac
   /* Input Argument validation */
   if ( msg  == L7_NULLPTR || noOfMessages == 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [msg:%p noOfMessages:%u]",msg, noOfMessages);    
+    PT_LOG_ERR(LOG_CTX_IGMP, "Invalid arguments [msg:%p noOfMessages:%u]",msg, noOfMessages);    
     return L7_FAILURE;
   }
 
   /*Input Parameters*/
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Input Arguments [noOfMessages:%u]", noOfMessages);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Input Arguments [noOfMessages:%u]", noOfMessages);
 
   for (messageIterator = 0; messageIterator < noOfMessages; messageIterator++)
   {
@@ -14377,21 +14377,21 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_pac
     #if PTIN_BOARD_IS_ACTIVETH   
     if (msg[messageIterator].onuId != 0)
     {
-      LOG_WARNING(LOG_CTX_PTIN_MSG, "   I'm an Active Ethernet Card. OnuId:%u is different from 0. Going to set it to zero", msg[messageIterator].onuId);
+      PT_LOG_WARN(LOG_CTX_MSG, "   I'm an Active Ethernet Card. OnuId:%u is different from 0. Going to set it to zero", msg[messageIterator].onuId);
       msg[messageIterator].onuId = 0;
     }    
     #endif
     
      /* Output data */
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to add MC client");
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  MC evc_idx = %u", msg[messageIterator].evcId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   onuId               = %u", msg[messageIterator].onuId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.Mask         = 0x%02x", msg[messageIterator].client.mask);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.OVlan        = %u", msg[messageIterator].client.outer_vlan);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.IVlan        = %u", msg[messageIterator].client.inner_vlan);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.Intf         = %u/%u", msg[messageIterator].client.intf.intf_type,msg[messageIterator].client.intf.intf_id);    
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   noOfPackages        = %u ", msg[messageIterator].noOfPackages);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   PackageBmpList      = %s", packageBmpStr);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Going to add MC client");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx = %u", msg[messageIterator].evcId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   onuId               = %u", msg[messageIterator].onuId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.Mask         = 0x%02x", msg[messageIterator].client.mask);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.OVlan        = %u", msg[messageIterator].client.outer_vlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.IVlan        = %u", msg[messageIterator].client.inner_vlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.Intf         = %u/%u", msg[messageIterator].client.intf.intf_type,msg[messageIterator].client.intf.intf_id);    
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   noOfPackages        = %u ", msg[messageIterator].noOfPackages);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   PackageBmpList      = %s", packageBmpStr);
 
     if ( msg[messageIterator].noOfPackages > 0 )
     {
@@ -14417,7 +14417,7 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_pac
         rc = ptin_igmp_clientId_convert(msg[messageIterator].evcId, &client);
         if ( rc != L7_SUCCESS )
         {
-          LOG_ERR(LOG_CTX_PTIN_MSG, "Error converting clientId");
+          PT_LOG_ERR(LOG_CTX_MSG, "Error converting clientId");
           /*The client may not exist!*/
           rc = L7_SUCCESS;
           continue;
@@ -14428,19 +14428,19 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_pac
         {
           if (ptin_evc_extVlans_get(intIfNum, msg[messageIterator].evcId,(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
           {
-            LOG_TRACE(LOG_CTX_PTIN_IGMP,"Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
+            PT_LOG_TRACE(LOG_CTX_IGMP,"Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
                       client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
           }
           else
           {
             uni_ovid = uni_ivid = 0;
-            LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot get ext vlans for ptin_intf %u/%u, cvlan %u",
+            PT_LOG_ERR(LOG_CTX_IGMP,"Cannot get ext vlans for ptin_intf %u/%u, cvlan %u",
                     client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan);
           }
         }
         else
         {
-          LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid ptin_intf %u/%u", client.ptin_intf.intf_type, client.ptin_intf.intf_id);
+          PT_LOG_ERR(LOG_CTX_IGMP,"Invalid ptin_intf %u/%u", client.ptin_intf.intf_type, client.ptin_intf.intf_id);
         }
       }
 
@@ -14449,14 +14449,14 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_pac
 
       if (rc!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding MC client rc:%u", rc);
+        PT_LOG_ERR(LOG_CTX_MSG, "Error adding MC client rc:%u", rc);
         return rc;
       }
     }
   }
   return rc;
 #else
-  LOG_ERR(LOG_CTX_PTIN_IGMP, "Featured not supported in this card!");  
+  PT_LOG_ERR(LOG_CTX_IGMP, "Featured not supported in this card!");  
   return L7_NOT_SUPPORTED;  
 #endif 
 }
@@ -14483,19 +14483,19 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_add(msg_igmp_macbridge_client_pa
   /* Input Argument validation */
   if ( msg  == L7_NULLPTR || noOfMessages == 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [msg:%p noOfMessages:%u]",msg, noOfMessages);    
+    PT_LOG_ERR(LOG_CTX_IGMP, "Invalid arguments [msg:%p noOfMessages:%u]",msg, noOfMessages);    
     return L7_FAILURE;
   }
 
   /*Input Parameters*/
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Input Arguments [noOfMessages:%u]", noOfMessages);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Input Arguments [noOfMessages:%u]", noOfMessages);
 
   for (messageIterator = 0; messageIterator < noOfMessages; messageIterator++)
   {    
     #if PTIN_BOARD_IS_ACTIVETH   
     if (msg[messageIterator].onuId != 0)
     {
-      LOG_WARNING(LOG_CTX_PTIN_MSG, "   I'm an Active Ethernet Card. OnuId:%u is different from 0. Going to set it to zero", msg[messageIterator].onuId);
+      PT_LOG_WARN(LOG_CTX_MSG, "   I'm an Active Ethernet Card. OnuId:%u is different from 0. Going to set it to zero", msg[messageIterator].onuId);
       msg[messageIterator].onuId = 0;
     }    
     #endif
@@ -14524,29 +14524,29 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_add(msg_igmp_macbridge_client_pa
     }
 #endif        
     
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "EVC# %u Flow",     ptinEvcFlow.evc_idx);    
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " %s# %u",          ptinEvcFlow.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
+    PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u Flow",     ptinEvcFlow.evc_idx);    
+    PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u",          ptinEvcFlow.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
                                                     ptinEvcFlow.ptin_intf.intf_id);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " Int.IVID    = %u", ptinEvcFlow.int_ivid);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " UNI-OVID    = %u", ptinEvcFlow.uni_ovid);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " UNI-IVID    = %u", ptinEvcFlow.uni_ivid);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " OnuId        = %u", ptinEvcFlow.onuId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " noOfPackages       = %u", ptinEvcFlow.noOfPackages);      
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " packageBmpList:%s", packageBmpStr);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " Int.IVID    = %u", ptinEvcFlow.int_ivid);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " UNI-OVID    = %u", ptinEvcFlow.uni_ovid);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " UNI-IVID    = %u", ptinEvcFlow.uni_ivid);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " OnuId        = %u", ptinEvcFlow.onuId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " noOfPackages       = %u", ptinEvcFlow.noOfPackages);      
+    PT_LOG_DEBUG(LOG_CTX_MSG, " packageBmpList:%s", packageBmpStr);
 
 
     if (ptinEvcFlow.noOfPackages >= 0)
     {
       if ((rc=ptin_evc_macbridge_client_packages_add(&ptinEvcFlow)) != L7_SUCCESS)
       {        
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding EVC# %u flow rc:%u", ptinEvcFlow.evc_idx, rc);
+        PT_LOG_ERR(LOG_CTX_MSG, "Error adding EVC# %u flow rc:%u", ptinEvcFlow.evc_idx, rc);
         return rc;
       }
     }
   }
   return rc;
 #else
-  LOG_ERR(LOG_CTX_PTIN_IGMP, "Featured not supported in this card!");  
+  PT_LOG_ERR(LOG_CTX_IGMP, "Featured not supported in this card!");  
   return L7_NOT_SUPPORTED;  
 #endif
 }
@@ -14573,12 +14573,12 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_remove(msg_igmp_macbridge_client
   /* Input Argument validation */
   if ( msg  == L7_NULLPTR || noOfMessages == 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [msg:%p noOfMessages:%u]",msg, noOfMessages);    
+    PT_LOG_ERR(LOG_CTX_IGMP, "Invalid arguments [msg:%p noOfMessages:%u]",msg, noOfMessages);    
     return L7_FAILURE;
   }
 
   /*Input Parameters*/
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Input Arguments [noOfMessages:%u]", noOfMessages);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Input Arguments [noOfMessages:%u]", noOfMessages);
 
   for (messageIterator = 0; messageIterator < noOfMessages; messageIterator++)
   {    
@@ -14588,7 +14588,7 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_remove(msg_igmp_macbridge_client
     #if PTIN_BOARD_IS_ACTIVETH   
     if (msg[messageIterator].onuId != 0)
     {
-      LOG_WARNING(LOG_CTX_PTIN_MSG, "   I'm an Active Ethernet Card. OnuId:%u is different from 0. Going to set it to zero", msg[messageIterator].onuId);
+      PT_LOG_WARN(LOG_CTX_MSG, "   I'm an Active Ethernet Card. OnuId:%u is different from 0. Going to set it to zero", msg[messageIterator].onuId);
       msg[messageIterator].onuId = 0;
     }    
     #endif
@@ -14620,15 +14620,15 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_remove(msg_igmp_macbridge_client
 //{
 //  osapiStrncpySafe(aclName, ptr->aclName, sizeof(aclName));
     
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "EVC# %u Flow",     ptinEvcFlow.evc_idx);    
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " %s# %u",          ptinEvcFlow.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
+    PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u Flow",     ptinEvcFlow.evc_idx);    
+    PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u",          ptinEvcFlow.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
                                                     ptinEvcFlow.ptin_intf.intf_id);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " Int.IVID    = %u", ptinEvcFlow.int_ivid);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " UNI-OVID    = %u", ptinEvcFlow.uni_ovid);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " UNI-IVID    = %u", ptinEvcFlow.uni_ivid);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " OnuId        = %u", ptinEvcFlow.onuId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " noOfPackages       = %u", ptinEvcFlow.noOfPackages);      
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " packageBmpList:%s", packageBmpStr);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " Int.IVID    = %u", ptinEvcFlow.int_ivid);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " UNI-OVID    = %u", ptinEvcFlow.uni_ovid);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " UNI-IVID    = %u", ptinEvcFlow.uni_ivid);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " OnuId        = %u", ptinEvcFlow.onuId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " noOfPackages       = %u", ptinEvcFlow.noOfPackages);      
+    PT_LOG_DEBUG(LOG_CTX_MSG, " packageBmpList:%s", packageBmpStr);
 
 
     if (ptinEvcFlow.noOfPackages > 0)
@@ -14637,7 +14637,7 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_remove(msg_igmp_macbridge_client
       {
         if (rc != L7_NOT_EXIST)
         {
-          LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing EVC# %u flow", ptinEvcFlow.evc_idx);
+          PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u flow", ptinEvcFlow.evc_idx);
           return rc;
         }
         else
@@ -14650,7 +14650,7 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_remove(msg_igmp_macbridge_client
   }
   return rc;
 #else
-  LOG_ERR(LOG_CTX_PTIN_IGMP, "Featured not supported in this card!");  
+  PT_LOG_ERR(LOG_CTX_IGMP, "Featured not supported in this card!");  
   return L7_NOT_SUPPORTED;  
 #endif
 }
@@ -14675,17 +14675,17 @@ L7_RC_t ptin_msg_igmp_multicast_service_add(msg_multicast_service_t *msg, L7_uin
   /* Input Argument validation */
   if ( msg  == L7_NULLPTR || noOfMessages == 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [msg:%p noOfMessages:%u]",msg, noOfMessages);    
+    PT_LOG_ERR(LOG_CTX_IGMP, "Invalid arguments [msg:%p noOfMessages:%u]",msg, noOfMessages);    
     return L7_FAILURE;
   }
 
   /*Input Parameters*/
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Input Arguments [msg:%p noOfMessages:%u]", msg, noOfMessages);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Input Arguments [msg:%p noOfMessages:%u]", msg, noOfMessages);
 
   for (messageIterator = 0; messageIterator < noOfMessages; messageIterator++)
   { 
     /*Input Parameters*/
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Input Arguments [slotId:%u evcId:%u intf.type:%u intf.id:%u onuId:%u]",
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Input Arguments [slotId:%u evcId:%u intf.type:%u intf.id:%u onuId:%u]",
               msg[messageIterator].slotId, msg[messageIterator].evcId, msg[messageIterator].intf.intf_type, msg[messageIterator].intf.intf_id, msg[messageIterator].onuId);
 
     /*Copy to ptin intf struct*/
@@ -14695,7 +14695,7 @@ L7_RC_t ptin_msg_igmp_multicast_service_add(msg_multicast_service_t *msg, L7_uin
     /*Convert from ptin intf to otin port*/
     if ( L7_SUCCESS != (rc = ptin_intf_ptintf2port(&ptinIntf, &ptinPort) ) )
     {
-      LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to convert to ptin port [slotId:%u evcId:%u intf.type:%u intf.id:%u onuId:%u]");  
+      PT_LOG_ERR(LOG_CTX_IGMP, "Failed to convert to ptin port [slotId:%u evcId:%u intf.type:%u intf.id:%u onuId:%u]");  
       return rc;
     }
 
@@ -14707,7 +14707,7 @@ L7_RC_t ptin_msg_igmp_multicast_service_add(msg_multicast_service_t *msg, L7_uin
   }
   return rc;  
 #else
-  LOG_ERR(LOG_CTX_PTIN_IGMP, "Featured not supported on this card!");  
+  PT_LOG_ERR(LOG_CTX_IGMP, "Featured not supported on this card!");  
   return L7_NOT_SUPPORTED;  
 #endif
 }
@@ -14732,17 +14732,17 @@ L7_RC_t ptin_msg_igmp_multicast_service_remove(msg_multicast_service_t *msg, L7_
   /* Input Argument validation */
   if ( msg  == L7_NULLPTR || noOfMessages == 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [msg:%p noOfMessages:%u]",msg, noOfMessages);    
+    PT_LOG_ERR(LOG_CTX_IGMP, "Invalid arguments [msg:%p noOfMessages:%u]",msg, noOfMessages);    
     return L7_FAILURE;
   }
 
   /*Input Parameters*/
-  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Input Arguments [msg:%p noOfMessages:%u]", msg, noOfMessages);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Input Arguments [msg:%p noOfMessages:%u]", msg, noOfMessages);
 
   for (messageIterator = 0; messageIterator < noOfMessages; messageIterator++)
   { 
     /*Input Parameters*/
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Input Arguments [slotId:%u evcId:%u intf.type:%u intf.id:%u onuId:%u]",
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Input Arguments [slotId:%u evcId:%u intf.type:%u intf.id:%u onuId:%u]",
               msg[messageIterator].slotId, msg[messageIterator].evcId, msg[messageIterator].intf.intf_type, msg[messageIterator].intf.intf_id, msg[messageIterator].onuId);
 
     /*Copy to ptin intf struct*/
@@ -14752,7 +14752,7 @@ L7_RC_t ptin_msg_igmp_multicast_service_remove(msg_multicast_service_t *msg, L7_
     /*Convert from ptin intf to otin port*/
     if ( L7_SUCCESS != (rc = ptin_intf_ptintf2port(&ptinIntf, &ptinPort) ) )
     {
-      LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to convert to ptin port [slotId:%u evcId:%u intf.type:%u intf.id:%u onuId:%u]");  
+      PT_LOG_ERR(LOG_CTX_IGMP, "Failed to convert to ptin port [slotId:%u evcId:%u intf.type:%u intf.id:%u onuId:%u]");  
       return rc;
     }
 
@@ -14764,7 +14764,7 @@ L7_RC_t ptin_msg_igmp_multicast_service_remove(msg_multicast_service_t *msg, L7_
   }
   return rc;  
 #else
-  LOG_ERR(LOG_CTX_PTIN_IGMP, "Featured not supported on this card!");  
+  PT_LOG_ERR(LOG_CTX_IGMP, "Featured not supported on this card!");  
   return L7_NOT_SUPPORTED;  
 #endif
 }
@@ -14799,12 +14799,12 @@ L7_RC_t rc;
         default:    return ERROR_CODE_INVALIDPARAM;
         case TS_ENCAP_ETH_IPv4_PTP:
             if (L7_SUCCESS!=ptin_intf_port2intIfNum(ib->board_port, &intIfNum)) {
-                LOG_ERR(LOG_CTX_PTIN_MSG,"ptin_intf_port2intIfNum");
+                PT_LOG_ERR(LOG_CTX_MSG,"ptin_intf_port2intIfNum");
                 return ERROR_CODE_INVALIDPARAM;
             }
 
             if (L7_SUCCESS!=ptin_xlate_ingress_get(intIfNum, ib->vid, PTIN_XLATE_NOT_DEFINED, &internalVid, L7_NULLPTR)) {
-                LOG_ERR(LOG_CTX_PTIN_MSG,"ptin_xlate_ingress_get");
+                PT_LOG_ERR(LOG_CTX_MSG,"ptin_xlate_ingress_get");
                 return ERROR_CODE_INVALIDPARAM;
             }
 
@@ -14818,38 +14818,38 @@ L7_RC_t rc;
 
             if (enable) {
                 if (L7_SUCCESS!=dtlVlanIfAdd(ib->dtl0vid)) {
-                    LOG_ERR(LOG_CTX_PTIN_MSG,"dtlVlanIfAdd");
+                    PT_LOG_ERR(LOG_CTX_MSG,"dtlVlanIfAdd");
                     return ERROR_CODE_INVALIDPARAM;
                 }
                 if (L7_SUCCESS!=osapiIfEnable(DTL0_STRING)) {
-                    LOG_ERR(LOG_CTX_PTIN_MSG,"osapiIfEnable(ifName=%s)", ifName);
+                    PT_LOG_ERR(LOG_CTX_MSG,"osapiIfEnable(ifName=%s)", ifName);
                     return ERROR_CODE_INVALIDPARAM;
                 }
                 if (L7_SUCCESS!=osapiIfEnable(ifName)) {
-                    LOG_ERR(LOG_CTX_PTIN_MSG,"osapiIfEnable(ifName=%s)", ifName);
+                    PT_LOG_ERR(LOG_CTX_MSG,"osapiIfEnable(ifName=%s)", ifName);
                     return ERROR_CODE_INVALIDPARAM;
                 }
                 if (L7_SUCCESS!=osapiNetIfConfig(ifName, ip, msk)) {
-                    LOG_ERR(LOG_CTX_PTIN_MSG,"osapiNetIfConfig(ifName=%s, ip=0x%lx, msk=0x%lx)", ifName, ip, msk);
+                    PT_LOG_ERR(LOG_CTX_MSG,"osapiNetIfConfig(ifName=%s, ip=0x%lx, msk=0x%lx)", ifName, ip, msk);
                     return ERROR_CODE_INVALIDPARAM;
                 }
                 //sprintf(com, "ifconfig %s %d.%d.%d.%d netmask %d.%d.%d.%d up\n", ifName,
                 //                ib->IP[0], ib->IP[1], ib->IP[2], ib->IP[3],
                 //                ib->IPmsk[0], ib->IPmsk[1], ib->IPmsk[2], ib->IPmsk[3]);
-                //LOG_NOTICE(LOG_CTX_PTIN_MSG, com);
+                //PT_LOG_NOTICE(LOG_CTX_MSG, com);
                 //system(com);
             }
 
             rc = ptin_ipdtl0_control(ib->dtl0vid, ib->vid, internalVid, intIfNum, PTIN_IPDTL0_ETH_IPv4_UDP_PTP, enable);
             if (L7_SUCCESS!=rc) {
-                LOG_ERR(LOG_CTX_PTIN_MSG,"ptin_ipdtl0_control(ib->dtl0vid=%u, ib->vid=%u, internalVid=%u, intIfNum=%lu, PTIN_IPDTL0_ETH_IPv4_UDP_PTP, enable=%u)=%d",
+                PT_LOG_ERR(LOG_CTX_MSG,"ptin_ipdtl0_control(ib->dtl0vid=%u, ib->vid=%u, internalVid=%u, intIfNum=%lu, PTIN_IPDTL0_ETH_IPv4_UDP_PTP, enable=%u)=%d",
                                             ib->dtl0vid, ib->vid, internalVid, intIfNum, PTIN_IPDTL0_ETH_IPv4_UDP_PTP, enable, rc);
                 return ERROR_CODE_INVALIDPARAM;
             }
 
             if (!enable) {
                 sprintf(com, "vconfig rem %s\n", ifName);
-                LOG_NOTICE(LOG_CTX_PTIN_MSG, com);
+                PT_LOG_NOTICE(LOG_CTX_MSG, com);
                 system(com);
             }
 
@@ -14857,7 +14857,7 @@ L7_RC_t rc;
             //time_interface_enable();
             rc = dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_TIME_INTERFACE, DAPI_CMD_GET, sizeof(T_MSG_PTP_LNX_NET_IF_SET), ib);
             if (rc != L7_SUCCESS) {
-              LOG_ERR(LOG_CTX_PTIN_MSG,"time_interface_enable()=%d", rc);
+              PT_LOG_ERR(LOG_CTX_MSG,"time_interface_enable()=%d", rc);
               return ERROR_CODE_INVALIDPARAM;
             }
 #endif

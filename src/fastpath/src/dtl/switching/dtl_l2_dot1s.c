@@ -83,7 +83,7 @@ L7_RC_t dtlDot1sStateSet(L7_uint32 instNumber, L7_uint32 intIfNum, L7_uint32 sta
     return rc;
   }
 
-  LOG_TRACE(LOG_CTX_MISC, "dtlDot1sStateSet: intIfNum=%u instNumber=%u state=%u",
+  PT_LOG_TRACE(LOG_CTX_MISC, "dtlDot1sStateSet: intIfNum=%u instNumber=%u state=%u",
            intIfNum, instNumber, state);
 
   if (nimGetUnitSlotPort(intIfNum, &usp) == L7_SUCCESS)

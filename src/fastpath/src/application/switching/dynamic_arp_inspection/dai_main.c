@@ -881,7 +881,7 @@ void daiRateLimitCheck(void)
           if (daiIntfInfo[i].blockedInterval == 0)
           {
             if (ptin_debug_dai_snooping)
-              LOG_DEBUG(LOG_CTX_DAI, "ARP rate limiter unblocked for intIfNum %u.", i);
+              PT_LOG_DEBUG(LOG_CTX_DAI, "ARP rate limiter unblocked for intIfNum %u.", i);
           }
         }
       }
@@ -1031,7 +1031,7 @@ L7_BOOL macIpAddrFilter(L7_uchar8 *data, L7_uint32 vlanId, L7_uint32 intIfNum)
       daiLogAndDropPacket(data, vlanId, intIfNum, SOURCE_MAC_FAILURE);
       osapiReadLockGive(daiCfgRWLock);
       if (ptin_debug_dai_snooping)
-        LOG_DEBUG(LOG_CTX_DAI, "Filtered ARP packet because of SMAC mismatch (intIfNum %u, vlan %u): SMAC=%02x:%02x:%02x:%02x:%02x:%02x SHA=%02x:%02x:%02x:%02x:%02x:%02x",
+        PT_LOG_DEBUG(LOG_CTX_DAI, "Filtered ARP packet because of SMAC mismatch (intIfNum %u, vlan %u): SMAC=%02x:%02x:%02x:%02x:%02x:%02x SHA=%02x:%02x:%02x:%02x:%02x:%02x",
                   intIfNum, vlanId,
                   eth_header->src.addr[0], eth_header->src.addr[1], eth_header->src.addr[2], eth_header->src.addr[3], eth_header->src.addr[4], eth_header->src.addr[5],
                   arp_pkt->arp_sha[0], arp_pkt->arp_sha[1], arp_pkt->arp_sha[2], arp_pkt->arp_sha[3], arp_pkt->arp_sha[4], arp_pkt->arp_sha[5]);
@@ -1049,7 +1049,7 @@ L7_BOOL macIpAddrFilter(L7_uchar8 *data, L7_uint32 vlanId, L7_uint32 intIfNum)
       daiLogAndDropPacket(data, vlanId, intIfNum, DEST_MAC_FAILURE);
       osapiReadLockGive(daiCfgRWLock);
       if (ptin_debug_dai_snooping)
-        LOG_DEBUG(LOG_CTX_DAI, "Filtered ARP packet because of DMAC mismatch (intIfNum %u, vlan %u): DMAC=%02x:%02x:%02x:%02x:%02x:%02x THA=%02x:%02x:%02x:%02x:%02x:%02x",
+        PT_LOG_DEBUG(LOG_CTX_DAI, "Filtered ARP packet because of DMAC mismatch (intIfNum %u, vlan %u): DMAC=%02x:%02x:%02x:%02x:%02x:%02x THA=%02x:%02x:%02x:%02x:%02x:%02x",
                   intIfNum, vlanId,
                   eth_header->dest.addr[0], eth_header->dest.addr[1], eth_header->dest.addr[2], eth_header->dest.addr[3], eth_header->dest.addr[4], eth_header->dest.addr[5],
                   arp_pkt->arp_tha[0], arp_pkt->arp_tha[1], arp_pkt->arp_tha[2], arp_pkt->arp_tha[3], arp_pkt->arp_tha[4], arp_pkt->arp_tha[5]);
@@ -1082,7 +1082,7 @@ L7_BOOL macIpAddrFilter(L7_uchar8 *data, L7_uint32 vlanId, L7_uint32 intIfNum)
       daiLogAndDropPacket(data, vlanId, intIfNum, IP_VALID_FAILURE);
       osapiReadLockGive(daiCfgRWLock);
       if (ptin_debug_dai_snooping)
-        LOG_DEBUG(LOG_CTX_DAI, "Filtered ARP packet because of IPADDR mismatch (intIfNum %u, vlan %u): SPA=%u.%u.%u.%u DPA=%u.%u.%u.%u",
+        PT_LOG_DEBUG(LOG_CTX_DAI, "Filtered ARP packet because of IPADDR mismatch (intIfNum %u, vlan %u): SPA=%u.%u.%u.%u DPA=%u.%u.%u.%u",
                   intIfNum, vlanId,
                   arp_pkt->arp_spa[0], arp_pkt->arp_spa[1], arp_pkt->arp_spa[2], arp_pkt->arp_spa[3],
                   arp_pkt->arp_tpa[0], arp_pkt->arp_tpa[1], arp_pkt->arp_tpa[2], arp_pkt->arp_tpa[3]);
@@ -1123,7 +1123,7 @@ SYSNET_PDU_RC_t daiArpRecv(L7_uint32 hookId,
   L7_uint32 intIfNum = pduInfo->intIfNum, intfType;
 
   if (ptin_debug_dai_snooping)
-    LOG_DEBUG(LOG_CTX_DAI, "Received ARP packet from intIfNum %u, vlan %u", intIfNum, vlanId);
+    PT_LOG_DEBUG(LOG_CTX_DAI, "Received ARP packet from intIfNum %u, vlan %u", intIfNum, vlanId);
 
   daiInfo->debugStats.pktsIntercepted++;
 
@@ -1165,7 +1165,7 @@ SYSNET_PDU_RC_t daiArpRecv(L7_uint32 hookId,
 
   if (nimGetIntfType(intIfNum, &intfType) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_DAI, "intIfNum %u is not ready", intIfNum);
+    PT_LOG_ERR(LOG_CTX_DAI, "intIfNum %u is not ready", intIfNum);
     return SYSNET_PDU_RC_IGNORED;
   }
 
@@ -1176,7 +1176,7 @@ SYSNET_PDU_RC_t daiArpRecv(L7_uint32 hookId,
      * port-based routing interfaces */
     if(ipMapRtrIntfModeGet(intIfNum, &routingEnabled) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_DAI, "intIfNum %u is not ready", intIfNum);
+      PT_LOG_ERR(LOG_CTX_DAI, "intIfNum %u is not ready", intIfNum);
       return SYSNET_PDU_RC_IGNORED;
     }
     if(routingEnabled == L7_ENABLE)
@@ -1184,7 +1184,7 @@ SYSNET_PDU_RC_t daiArpRecv(L7_uint32 hookId,
       daiInfo->debugStats.pktsOnPortRoutingIf++;
       daiInfo->debugStats.pktsToArpAppln++;
       if (ptin_debug_dai_snooping)
-        LOG_DEBUG(LOG_CTX_DAI, "intIfNum %u is a routing port", intIfNum);
+        PT_LOG_DEBUG(LOG_CTX_DAI, "intIfNum %u is a routing port", intIfNum);
       return SYSNET_PDU_RC_IGNORED;
     }
   }
@@ -1195,7 +1195,7 @@ SYSNET_PDU_RC_t daiArpRecv(L7_uint32 hookId,
          (_daiIntfTrustGet(intIfNum)   == L7_FALSE)) )
   {
     if (ptin_debug_dai_snooping)
-      LOG_DEBUG(LOG_CTX_DAI, "intIfNum %u is trusted", intIfNum);
+      PT_LOG_DEBUG(LOG_CTX_DAI, "intIfNum %u is trusted", intIfNum);
 
     /* If the packet came up to CPU on a Routing VLAN on a trusted
      * port/lag interface, give it to ARP appln */
@@ -1206,7 +1206,7 @@ SYSNET_PDU_RC_t daiArpRecv(L7_uint32 hookId,
       daiInfo->debugStats.pktsOnVlanRoutingIf++;
       daiInfo->debugStats.pktsToArpAppln++;
       if (ptin_debug_dai_snooping)
-        LOG_DEBUG(LOG_CTX_DAI, "intIfNum %u is a routing port", intIfNum);
+        PT_LOG_DEBUG(LOG_CTX_DAI, "intIfNum %u is a routing port", intIfNum);
       return SYSNET_PDU_RC_IGNORED;
     }
 
@@ -1219,7 +1219,7 @@ SYSNET_PDU_RC_t daiArpRecv(L7_uint32 hookId,
     {
       daiInfo->debugStats.pktsToSystem++;
       if (ptin_debug_dai_snooping)
-        LOG_DEBUG(LOG_CTX_DAI, "VLAN %u is a management vlan", pduInfo->vlanId);
+        PT_LOG_DEBUG(LOG_CTX_DAI, "VLAN %u is a management vlan", pduInfo->vlanId);
       return SYSNET_PDU_RC_IGNORED;
     }
 
@@ -1227,7 +1227,7 @@ SYSNET_PDU_RC_t daiArpRecv(L7_uint32 hookId,
      * They are not meant for us if received on a trusted port */
     daiInfo->debugStats.pktsNotHandled++;
     if (ptin_debug_dai_snooping)
-      LOG_DEBUG(LOG_CTX_DAI, "Packet not handled");
+      PT_LOG_DEBUG(LOG_CTX_DAI, "Packet not handled");
     return SYSNET_PDU_RC_IGNORED;
   }
 
@@ -1242,7 +1242,7 @@ SYSNET_PDU_RC_t daiArpRecv(L7_uint32 hookId,
   if(rateLimitFilter(pduInfo) == L7_TRUE)
   {
     if (ptin_debug_dai_snooping)
-      LOG_DEBUG(LOG_CTX_DAI, "Packet dropped because of rate limiter");
+      PT_LOG_DEBUG(LOG_CTX_DAI, "Packet dropped because of rate limiter");
     return SYSNET_PDU_RC_DISCARD;
   }
 
@@ -1250,7 +1250,7 @@ SYSNET_PDU_RC_t daiArpRecv(L7_uint32 hookId,
   if(macIpAddrFilter(data, vlanId, intIfNum) == L7_TRUE)
   {
     if (ptin_debug_dai_snooping)
-      LOG_DEBUG(LOG_CTX_DAI, "Packet dropped because of invalid MAC/IP address");
+      PT_LOG_DEBUG(LOG_CTX_DAI, "Packet dropped because of invalid MAC/IP address");
     return SYSNET_PDU_RC_DISCARD;
   }
 
@@ -1259,7 +1259,7 @@ SYSNET_PDU_RC_t daiArpRecv(L7_uint32 hookId,
   /* Queue the copy of daiTask that shall do the rest of the
    * DAI processing (ARP ACL + DHCP Snooping database checks etc...) */
   if (ptin_debug_dai_snooping)
-    LOG_DEBUG(LOG_CTX_DAI, "Queuing packet");
+    PT_LOG_DEBUG(LOG_CTX_DAI, "Queuing packet");
   rc = daiPacketQueue(data, len, pduInfo);
   if(rc == L7_SUCCESS)
   {
@@ -1268,7 +1268,7 @@ SYSNET_PDU_RC_t daiArpRecv(L7_uint32 hookId,
     return SYSNET_PDU_RC_CONSUMED;
   }
  
-  LOG_ERR(LOG_CTX_DAI, "Error queuing packet");
+  PT_LOG_ERR(LOG_CTX_DAI, "Error queuing packet");
 
   return SYSNET_PDU_RC_IGNORED;
 }
@@ -1461,7 +1461,7 @@ void daiFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVl
   daiFilterAction_t filterRc = DAI_FILTER_NONE;
 
   if (ptin_debug_dai_snooping)
-    LOG_DEBUG(LOG_CTX_DAI, "Processing packet from intIfNum %u, VLAN %u", intIfNum, vlanId);
+    PT_LOG_DEBUG(LOG_CTX_DAI, "Processing packet from intIfNum %u, VLAN %u", intIfNum, vlanId);
 
   /* Perform the validation checks on the queued ARP packets
    * that are received on untrusted ports, if the ingress VLAN
@@ -1469,14 +1469,14 @@ void daiFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVl
   if (_daiVlanEnableGet(vlanId))
   {
     if (ptin_debug_dai_snooping)
-      LOG_DEBUG(LOG_CTX_DAI, "Received ARP with valid VLAN %u", vlanId);
+      PT_LOG_DEBUG(LOG_CTX_DAI, "Received ARP with valid VLAN %u", vlanId);
 
     /* Filter ARP packets based on ARP ACL rules */
     filterRc = daiFrameARPAclFilter(intIfNum, vlanId, frame, dataLen);
     if(filterRc == DAI_FILTER_FAIL)
     {
       if (ptin_debug_dai_snooping)
-        LOG_DEBUG(LOG_CTX_DAI, "ARP packet dropped after ACL validation");
+        PT_LOG_DEBUG(LOG_CTX_DAI, "ARP packet dropped after ACL validation");
       return;
     }
     else if(filterRc == DAI_FILTER_NONE)
@@ -1486,16 +1486,16 @@ void daiFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVl
                                      frame, dataLen) == L7_TRUE)
       {
         if (ptin_debug_dai_snooping)
-          LOG_DEBUG(LOG_CTX_DAI, "ARP packet dropped after DHCP snooping validation");
+          PT_LOG_DEBUG(LOG_CTX_DAI, "ARP packet dropped after DHCP snooping validation");
         return;
       }
       if (ptin_debug_dai_snooping)
-        LOG_DEBUG(LOG_CTX_DAI, "Valid ARP packet");
+        PT_LOG_DEBUG(LOG_CTX_DAI, "Valid ARP packet");
     }
     else
     {
       if (ptin_debug_dai_snooping)
-        LOG_DEBUG(LOG_CTX_DAI, "Valid ARP packet");
+        PT_LOG_DEBUG(LOG_CTX_DAI, "Valid ARP packet");
     }
     daiInfo->debugStats.pktsValidated++;
     /* If we reach here, the ARP packet is verified to be a genuine one. */
@@ -1503,11 +1503,11 @@ void daiFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVl
   else
   {
     if (ptin_debug_dai_snooping)
-      LOG_DEBUG(LOG_CTX_DAI, "VLAN %u is not enabled", vlanId);
+      PT_LOG_DEBUG(LOG_CTX_DAI, "VLAN %u is not enabled", vlanId);
   }
 
   if (ptin_debug_dai_snooping)
-    LOG_DEBUG(LOG_CTX_DAI, "ARP packet is going to be forwarded");
+    PT_LOG_DEBUG(LOG_CTX_DAI, "ARP packet is going to be forwarded");
 
   /* (a) We shall flood this packet to other ports in this VLAN
    * (b) Give it to IPMAP if the ingress VLAN is a Routing VLAN */
@@ -1546,7 +1546,7 @@ daiFilterAction_t daiFrameARPAclFilter(L7_uint32 intIfNum, L7_ushort16 vlanId,
   {
     /* No ARP ACLs configured for check on this VLAN */
     if (ptin_debug_dai_snooping)
-      LOG_DEBUG(LOG_CTX_DAI, "No ARP ACLs configured for check on this VLAN");    
+      PT_LOG_DEBUG(LOG_CTX_DAI, "No ARP ACLs configured for check on this VLAN");    
     daiFilterAction = DAI_FILTER_NONE;
   }
 
@@ -1554,7 +1554,7 @@ daiFilterAction_t daiFrameARPAclFilter(L7_uint32 intIfNum, L7_ushort16 vlanId,
   {
     /* Configured ARP ACL doesn't exist */
     if (ptin_debug_dai_snooping)
-      LOG_DEBUG(LOG_CTX_DAI, "Configured ARP ACL doesn't exist");   
+      PT_LOG_DEBUG(LOG_CTX_DAI, "Configured ARP ACL doesn't exist");   
     daiFilterAction = DAI_FILTER_NONE;
   }
 
@@ -1816,7 +1816,7 @@ L7_RC_t daiFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inne
   (void)usmDbEntryVidMacCombine(vlanId, eth_header->dest.addr, vidMac);
 
   if (ptin_debug_dai_snooping)
-    LOG_TRACE(LOG_CTX_DAI,"VidMAC=%02x:%02x/%02x:%02x:%02x:%02x:%02x:%02x",
+    PT_LOG_TRACE(LOG_CTX_DAI,"VidMAC=%02x:%02x/%02x:%02x:%02x:%02x:%02x:%02x",
               vidMac[0], vidMac[1], vidMac[2], vidMac[3], vidMac[4], vidMac[5], vidMac[6], vidMac[7]);
 
   memset(&fdbEntry, 0, sizeof(fdbEntry));
@@ -1858,7 +1858,7 @@ L7_RC_t daiFrameUnicast(L7_uint32 outgoingIf, L7_ushort16 vlanId, L7_ushort16 in
   L7_INTF_TYPES_t   sysIntfType = 0;
 
   if (ptin_debug_dai_snooping)
-    LOG_TRACE(LOG_CTX_DAI, "intIfNum=%u, vlanId=%u, innerVlanId=%u, vport_id=%u", outgoingIf, vlanId, innerVlanId, vport_id);
+    PT_LOG_TRACE(LOG_CTX_DAI, "intIfNum=%u, vlanId=%u, innerVlanId=%u, vport_id=%u", outgoingIf, vlanId, innerVlanId, vport_id);
 
   nimGetIntfName(outgoingIf, L7_SYSNAME, ifName);
 
@@ -1915,7 +1915,7 @@ L7_RC_t daiFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerV
   L7_RC_t rc = L7_SUCCESS;
 
   if (ptin_debug_dai_snooping)
-    LOG_TRACE(LOG_CTX_DAI, "intIfNum=%u, vlanId=%u, innerVlanId=%u", intIfNum, vlanId, innerVlanId);
+    PT_LOG_TRACE(LOG_CTX_DAI, "intIfNum=%u, vlanId=%u, innerVlanId=%u", intIfNum, vlanId, innerVlanId);
 
   if (dot1qVlanEgressPortsGet(vlanId, &portMask) == L7_SUCCESS)
   {
@@ -2008,7 +2008,7 @@ L7_RC_t daiFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVl
   }
 
   if (ptin_debug_dai_snooping)
-    LOG_TRACE(LOG_CTX_DAI, "intIfNum=%u, vlanId=%u, innerVlanId=%u, vport_id=%u", intIfNum, vlanId, innerVlanId, vport_id);
+    PT_LOG_TRACE(LOG_CTX_DAI, "intIfNum=%u, vlanId=%u, innerVlanId=%u, vport_id=%u", intIfNum, vlanId, innerVlanId, vport_id);
 
   /* QUATTRO service? */
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
@@ -2017,7 +2017,7 @@ L7_RC_t daiFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVl
     if (ptin_evc_extVlans_get_fromIntVlanVPort(vlanId, vport_id, &intIfNum, &vlanId_list[0][0], &vlanId_list[0][1]) != L7_SUCCESS)
     {
       if (ptin_debug_dai_snooping)
-        LOG_ERR(LOG_CTX_DAI, "Error obtaining Ext. VLANs for VLANs %u and VPort %u", vlanId, vport_id);
+        PT_LOG_ERR(LOG_CTX_DAI, "Error obtaining Ext. VLANs for VLANs %u and VPort %u", vlanId, vport_id);
       return L7_FAILURE;
     }
     number_of_vlans = 1;
@@ -2048,7 +2048,7 @@ L7_RC_t daiFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVl
         ptin_evc_intf_type_get(vlanId, intIfNum, &port_type) != L7_SUCCESS)
     {
       if (ptin_debug_dai_snooping)
-        LOG_ERR(LOG_CTX_DAI, "Error obtaining UNI VLANs from IntIfNum %u, VLANs %u+%u", intIfNum, vlanId, innerVlanId);
+        PT_LOG_ERR(LOG_CTX_DAI, "Error obtaining UNI VLANs from IntIfNum %u, VLANs %u+%u", intIfNum, vlanId, innerVlanId);
       return L7_FAILURE;
     }
     /* No inner VLAN for root interfaces of unstacked services */
@@ -2061,7 +2061,7 @@ L7_RC_t daiFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVl
   }
 
   if (ptin_debug_dai_snooping)
-    LOG_TRACE(LOG_CTX_DAI, "number_of_vlans=%u", number_of_vlans);
+    PT_LOG_TRACE(LOG_CTX_DAI, "number_of_vlans=%u", number_of_vlans);
 
   /* Transmit for all VLANs */
   for (i = 0; i < number_of_vlans; i++)
@@ -2070,7 +2070,7 @@ L7_RC_t daiFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVl
     extIVlan = vlanId_list[i][1];
 
     if (ptin_debug_dai_snooping)
-      LOG_TRACE(LOG_CTX_DAI, "Going to transmit to intIfNum %u, with VLANs %u+%u", intIfNum, extOVlan, extIVlan);
+      PT_LOG_TRACE(LOG_CTX_DAI, "Going to transmit to intIfNum %u, with VLANs %u+%u", intIfNum, extOVlan, extIVlan);
 
     SYSAPI_NET_MBUF_GET(bufHandle);
     if (bufHandle == L7_NULL)
@@ -2093,7 +2093,7 @@ L7_RC_t daiFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVl
       frameLen += 4;
 
       if (ptin_debug_dai_snooping)
-        LOG_TRACE(LOG_CTX_DAI, "Added outer VLAN (%u)", vlanId);
+        PT_LOG_TRACE(LOG_CTX_DAI, "Added outer VLAN (%u)", vlanId);
     }
 
     /* Modify outer vlan */
@@ -2104,7 +2104,7 @@ L7_RC_t daiFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVl
       frame[15]  = extOVlan & 0xff;
       //vlanId = extOVlan;
       if (ptin_debug_dai_snooping)
-        LOG_TRACE(LOG_CTX_DAI, "Replaced outer VLAN (%u)", extOVlan);
+        PT_LOG_TRACE(LOG_CTX_DAI, "Replaced outer VLAN (%u)", extOVlan);
     }
     /* Add inner vlan when there exists, and if vlan belongs to a stacked EVC */
     if (extIVlan!=0)
@@ -2124,11 +2124,11 @@ L7_RC_t daiFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVl
       frame[19] = extIVlan & 0xff;
       //innerVlanId = extIVlan;
       if (ptin_debug_dai_snooping)
-        LOG_TRACE(LOG_CTX_DAI, "Added inner VLAN (%u)", extIVlan);
+        PT_LOG_TRACE(LOG_CTX_DAI, "Added inner VLAN (%u)", extIVlan);
     }
 
     if (ptin_debug_dai_snooping)
-      LOG_TRACE(LOG_CTX_DAI, "Going to transmit packet to intIfNum %u, vlanId=%u, innerVlanId=%u", intIfNum, extOVlan, extIVlan);
+      PT_LOG_TRACE(LOG_CTX_DAI, "Going to transmit packet to intIfNum %u, vlanId=%u, innerVlanId=%u", intIfNum, extOVlan, extIVlan);
 
     SYSAPI_NET_MBUF_GET_DATASTART(bufHandle, dataStart);
     memcpy(dataStart, frame, frameLen);

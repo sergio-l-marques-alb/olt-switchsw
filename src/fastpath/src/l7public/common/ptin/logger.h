@@ -31,25 +31,25 @@ typedef enum {
 typedef enum {
     LOG_CTX_LOGGER = 0,       /* Used to log logger config functions */
     LOG_CTX_IPC,
-    LOG_CTX_PTIN_MSGHANDLER,
-    LOG_CTX_PTIN_MSG,
-    LOG_CTX_PTIN_INTF,
-    LOG_CTX_PTIN_TRUNKS,
-    LOG_CTX_PTIN_HAPI,
-    LOG_CTX_PTIN_DTL,
-    LOG_CTX_PTIN_L2,
-    LOG_CTX_PTIN_XLATE,
-    LOG_CTX_PTIN_API,
-    LOG_CTX_PTIN_EVC,
-    LOG_CTX_PTIN_CONTROL,
-    LOG_CTX_PTIN_IGMP,
-    LOG_CTX_PTIN_DHCP,
-    LOG_CTX_PTIN_PPPOE,
-    LOG_CTX_PTIN_PROTB,
-    LOG_CTX_PTIN_ROUTING,
-    LOG_CTX_PTIN_SSM,
-    LOG_CTX_PTIN_PACKET,
-    LOG_CTX_PTIN_CNFGR,
+    LOG_CTX_MSGHANDLER,
+    LOG_CTX_MSG,
+    LOG_CTX_INTF,
+    LOG_CTX_TRUNKS,
+    LOG_CTX_HAPI,
+    LOG_CTX_DTL,
+    LOG_CTX_L2,
+    LOG_CTX_XLATE,
+    LOG_CTX_API,
+    LOG_CTX_EVC,
+    LOG_CTX_CONTROL,
+    LOG_CTX_IGMP,
+    LOG_CTX_DHCP,
+    LOG_CTX_PPPOE,
+    LOG_CTX_PROTB,
+    LOG_CTX_ROUTING,
+    LOG_CTX_SSM,
+    LOG_CTX_PACKET,
+    LOG_CTX_CNFGR,
     LOG_CTX_MISC,             /* Used on exceptional situations */
     LOG_CTX_OAM,
     LOG_CTX_ERPS,
@@ -190,32 +190,32 @@ extern void logger_print(log_context_t ctx, log_severity_t sev, char const *file
                char const *func, int line, char const *fmt, ...);
 
 
-#define LOG_TRACE( ctx , fmt , args... ) \
+#define PT_LOG_TRACE( ctx , fmt , args... ) \
     logger_print( ctx, LOG_SEV_TRACE, NULL, __FUNCTION__, __LINE__, fmt, ##args )
     
-#define LOG_DEBUG( ctx , fmt , args... ) \
+#define PT_LOG_DEBUG( ctx , fmt , args... ) \
     logger_print( ctx, LOG_SEV_DEBUG, NULL, __FUNCTION__, __LINE__, fmt, ##args )
     
-#define LOG_INFO( ctx , fmt , args... ) \
+#define PT_LOG_INFO( ctx , fmt , args... ) \
     logger_print( ctx, LOG_SEV_INFO, NULL, __FUNCTION__, __LINE__, fmt, ##args )
     
-#define LOG_NOTICE( ctx , fmt , args... ) \
+#define PT_LOG_NOTICE( ctx , fmt , args... ) \
     logger_print( ctx, LOG_SEV_NOTICE, NULL, __FUNCTION__, __LINE__, fmt, ##args )
     
-#define LOG_WARNING( ctx , fmt , args... ) \
+#define PT_LOG_WARN( ctx , fmt , args... ) \
     logger_print( ctx, LOG_SEV_WARNING, NULL, __FUNCTION__, __LINE__, fmt, ##args )
     
-#define LOG_ERR( ctx , fmt , args... ) \
+#define PT_LOG_ERR( ctx , fmt , args... ) \
     logger_print( ctx, LOG_SEV_ERROR, NULL, __FUNCTION__, __LINE__, fmt, ##args )
     
-#define LOG_CRITICAL( ctx , fmt , args... ) \
+#define PT_LOG_CRITIC( ctx , fmt , args... ) \
     logger_print( ctx, LOG_SEV_CRITICAL, NULL, __FUNCTION__, __LINE__, fmt, ##args )
     
-#define LOG_FATAL( ctx , fmt , args... ) \
+#define PT_LOG_FATAL( ctx , fmt , args... ) \
     logger_print( ctx, LOG_SEV_FATAL, NULL, __FUNCTION__, __LINE__, fmt, ##args )
     
     
-#define LOG_PRINT( ctx , fmt , args... ) \
+#define PT_LOG_PRINT( ctx , fmt , args... ) \
     logger_print( ctx, LOG_SEV_PRINT, NULL, NULL, 0, fmt, ##args )
     
 

@@ -65,7 +65,7 @@ L7_RC_t ptin_hapi_xlate_init(void)
   {
     if (hapi_ptin_bcmPort_get(port, &bcm_port) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error getting bcm unit id");
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcm unit id");
       rc = L7_FAILURE;
       continue;
     }
@@ -75,7 +75,7 @@ L7_RC_t ptin_hapi_xlate_init(void)
     if ( (bcm_vlan_control_port_set( bcm_unit, bcm_port,bcmVlanPortTranslateKeyFirst, bcmVlanTranslateKeyPortDouble) != L7_SUCCESS) ||
          (bcm_vlan_control_port_set( bcm_unit, bcm_port,bcmVlanPortTranslateKeySecond, bcmVlanTranslateKeyPortOuter) != L7_SUCCESS) )
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting translation keys");
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting translation keys");
       rc = L7_FAILURE;
       continue;
     }
@@ -87,7 +87,7 @@ L7_RC_t ptin_hapi_xlate_init(void)
         (bcm_vlan_control_port_set( bcm_unit, bcm_port, bcmVlanTranslateEgressEnable,    L7_TRUE) != L7_SUCCESS) ||
         (bcm_vlan_control_port_set( bcm_unit, bcm_port, bcmVlanTranslateEgressMissDrop,  L7_TRUE) != L7_SUCCESS) )
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting translation enables");
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting translation enables");
       rc = L7_FAILURE;
       continue;
     }
@@ -96,7 +96,7 @@ L7_RC_t ptin_hapi_xlate_init(void)
   /* Setting egress xlate class ids */
   if ( ptin_hapi_xlate_egress_portsGroup_init()!=L7_SUCCESS )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initing class ids");
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error initing class ids");
     rc = L7_FAILURE;
   }
 
@@ -104,7 +104,7 @@ L7_RC_t ptin_hapi_xlate_init(void)
   resources_xlate_ingress = FREE_RESOURCES_XLATE_INGRESS;
   resources_xlate_egress  = FREE_RESOURCES_XLATE_EGRESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "ptin_hapi_xlate_init finished: %d", rc);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "ptin_hapi_xlate_init finished: %d", rc);
 
   return rc;
 }
@@ -123,13 +123,13 @@ L7_RC_t ptin_hapi_xlate_free_resources(L7_uint16 *ingress, L7_uint16 *egress)
   if (ingress != L7_NULLPTR)
   {
     *ingress = resources_xlate_ingress;
-    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Free ingress translation resources consulted: %u", *ingress);
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Free ingress translation resources consulted: %u", *ingress);
   }
 
   if (egress != L7_NULLPTR)
   {
     *egress = resources_xlate_egress;
-    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Free egress translation resources consulted: %u", *egress);
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Free egress translation resources consulted: %u", *egress);
   }
 
   return L7_SUCCESS;
@@ -157,13 +157,13 @@ L7_RC_t ptin_hapi_xlate_singletag_action_add(ptin_dapi_port_t *dapiPort, L7_uint
   bcm_vlan_translate_key_t keyType;
   bcm_vlan_action_set_t action;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "dapiPort={%d,%d,%d} oVlanId=%u newOVlanId=%u",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "dapiPort={%d,%d,%d} oVlanId=%u newOVlanId=%u",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, oVlanId, newOVlanId);
 
   /* Validate dapiPort */
   if (dapiPort->usp->unit<0 || dapiPort->usp->slot<0 || dapiPort->usp->port<0)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid interface");
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid interface");
     return L7_FAILURE;
   }
 
@@ -172,7 +172,7 @@ L7_RC_t ptin_hapi_xlate_singletag_action_add(ptin_dapi_port_t *dapiPort, L7_uint
   /* Accept only physical and lag interfaces */
   if ( !IS_PORT_TYPE_PHYSICAL(dapiPortPtr) && !IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d} is not physical neither logical lag",
+    PT_LOG_ERR(LOG_CTX_HAPI, "Port {%d,%d,%d} is not physical neither logical lag",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
     return L7_FAILURE;
   }
@@ -191,14 +191,14 @@ L7_RC_t ptin_hapi_xlate_singletag_action_add(ptin_dapi_port_t *dapiPort, L7_uint
 
   action.new_outer_vlan = newOVlanId;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "bcm_vlan_translate_action_add(0, 0x%08X[%d], %u, %u, %u, &action)",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_add(0, 0x%08X[%d], %u, %u, %u, &action)",
             hapiPortPtr->bcmx_lport, hapiPortPtr->bcm_port, keyType, oVlanId, 0);
 
   error = bcmx_vlan_translate_action_add(hapiPortPtr->bcmx_lport, keyType, oVlanId, 0, &action);
 
   if (error != BCM_E_NONE && error != BCM_E_EXISTS)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error calling bcm_vlan_translate_action_add function: %d (\"%s\")", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_action_add function: %d (\"%s\")", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
@@ -209,7 +209,7 @@ L7_RC_t ptin_hapi_xlate_singletag_action_add(ptin_dapi_port_t *dapiPort, L7_uint
       resources_xlate_ingress++;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Translation entry added successfully: newOuterVlan=%u", newOVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry added successfully: newOuterVlan=%u", newOVlanId);
 
   return L7_SUCCESS;
 }
@@ -227,13 +227,13 @@ L7_RC_t ptin_hapi_xlate_singletag_action_delete(ptin_dapi_port_t *dapiPort, L7_u
   int error;
   bcm_vlan_translate_key_t keyType;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "dapiPort={%d,%d,%d} oVlanId=%u",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "dapiPort={%d,%d,%d} oVlanId=%u",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, oVlanId);
 
   /* Validate dapiPort */
   if (dapiPort->usp->unit<0 || dapiPort->usp->slot<0 || dapiPort->usp->port<0)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid interface");
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid interface");
     return L7_FAILURE;
   }
 
@@ -242,21 +242,21 @@ L7_RC_t ptin_hapi_xlate_singletag_action_delete(ptin_dapi_port_t *dapiPort, L7_u
   /* Accept only physical and lag interfaces */
   if ( !IS_PORT_TYPE_PHYSICAL(dapiPortPtr) && !IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d} is not physical neither logical lag",
+    PT_LOG_ERR(LOG_CTX_HAPI, "Port {%d,%d,%d} is not physical neither logical lag",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
     return L7_FAILURE;
   }
 
   keyType = bcmVlanTranslateKeyPortOuter;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "bcm_vlan_translate_action_delete(0, 0x%08X[%d], %u, %u, %u)",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_delete(0, 0x%08X[%d], %u, %u, %u)",
             hapiPortPtr->bcmx_lport, hapiPortPtr->bcm_port, keyType, oVlanId, 0);
 
   error = bcmx_vlan_translate_action_delete(hapiPortPtr->bcmx_lport, keyType, oVlanId, 0);
 
   if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error calling bcm_vlan_translate_action_delete function: %d (\"%s\")",error,bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_action_delete function: %d (\"%s\")",error,bcm_errmsg(error));
     return L7_FAILURE;
   }
 
@@ -267,7 +267,7 @@ L7_RC_t ptin_hapi_xlate_singletag_action_delete(ptin_dapi_port_t *dapiPort, L7_u
       resources_xlate_ingress--;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Translation entry removed successfully");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry removed successfully");
 
   return L7_SUCCESS;
 }
@@ -289,13 +289,13 @@ L7_RC_t ptin_hapi_xlate_doubletag_action_add(ptin_dapi_port_t *dapiPort, L7_uint
   bcm_vlan_translate_key_t keyType;
   bcm_vlan_action_set_t action;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"dapiPort={%d,%d,%d} oVlanId=%u iVlanId=%u newOVlanId=%u",
+  PT_LOG_TRACE(LOG_CTX_HAPI,"dapiPort={%d,%d,%d} oVlanId=%u iVlanId=%u newOVlanId=%u",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, oVlanId, iVlanId, newOVlanId);
 
   /* Validate dapiPort */
   if (dapiPort->usp->unit<0 || dapiPort->usp->slot<0 || dapiPort->usp->port<0)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI,"Invalid interface");
+    PT_LOG_ERR(LOG_CTX_HAPI,"Invalid interface");
     return L7_FAILURE;
   }
 
@@ -304,7 +304,7 @@ L7_RC_t ptin_hapi_xlate_doubletag_action_add(ptin_dapi_port_t *dapiPort, L7_uint
   /* Accept only physical and lag interfaces */
   if ( !IS_PORT_TYPE_PHYSICAL(dapiPortPtr) && !IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, " ERROR: Port {%d,%d,%d} is not physical neither logical lag",
+    PT_LOG_ERR(LOG_CTX_HAPI, " ERROR: Port {%d,%d,%d} is not physical neither logical lag",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
     return L7_FAILURE;
   }
@@ -323,14 +323,14 @@ L7_RC_t ptin_hapi_xlate_doubletag_action_add(ptin_dapi_port_t *dapiPort, L7_uint
 
   action.new_outer_vlan = newOVlanId;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "bcm_vlan_translate_action_add(0, 0x%08X[%d], %u, %u, %u, &action)",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_add(0, 0x%08X[%d], %u, %u, %u, &action)",
             hapiPortPtr->bcmx_lport, hapiPortPtr->bcm_port, keyType, oVlanId, iVlanId);
 
   error = bcmx_vlan_translate_action_add(hapiPortPtr->bcmx_lport, keyType, oVlanId, iVlanId, &action);
 
   if (error != BCM_E_NONE && error != BCM_E_EXISTS)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error calling bcm_vlan_translate_action_add function: %d (\"%s\")", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_action_add function: %d (\"%s\")", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
@@ -340,7 +340,7 @@ L7_RC_t ptin_hapi_xlate_doubletag_action_add(ptin_dapi_port_t *dapiPort, L7_uint
       resources_xlate_ingress++;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Translation entry added successfully: newOuterVlan=%u", newOVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry added successfully: newOuterVlan=%u", newOVlanId);
 
   /* Update resources availability */
   return L7_SUCCESS;
@@ -360,13 +360,13 @@ L7_RC_t ptin_hapi_xlate_doubletag_action_delete(ptin_dapi_port_t *dapiPort, L7_u
   int error;
   bcm_vlan_translate_key_t keyType;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"dapiPort={%d,%d,%d} oVlanId=%u iVlanId=%u",
+  PT_LOG_TRACE(LOG_CTX_HAPI,"dapiPort={%d,%d,%d} oVlanId=%u iVlanId=%u",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, oVlanId,iVlanId);
 
   /* Validate dapiPort */
   if (dapiPort->usp->unit<0 || dapiPort->usp->slot<0 || dapiPort->usp->port<0)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid interface");
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid interface");
     return L7_FAILURE;
   }
 
@@ -375,21 +375,21 @@ L7_RC_t ptin_hapi_xlate_doubletag_action_delete(ptin_dapi_port_t *dapiPort, L7_u
   /* Accept only physical and lag interfaces */
   if ( !IS_PORT_TYPE_PHYSICAL(dapiPortPtr) && !IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d} is not physical neither logical lag",
+    PT_LOG_ERR(LOG_CTX_HAPI, "Port {%d,%d,%d} is not physical neither logical lag",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
     return L7_FAILURE;
   }
 
   keyType = bcmVlanTranslateKeyPortDouble;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "bcm_vlan_translate_action_delete(0, 0x%08X[%d], %u, %u, %u)",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_delete(0, 0x%08X[%d], %u, %u, %u)",
             hapiPortPtr->bcmx_lport, hapiPortPtr->bcm_port, keyType, oVlanId, iVlanId);
 
   error = bcmx_vlan_translate_action_delete(hapiPortPtr->bcmx_lport, keyType, oVlanId, iVlanId);
 
   if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error calling bcm_vlan_translate_action_delete function: %d (\"%s\")", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_action_delete function: %d (\"%s\")", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
@@ -399,7 +399,7 @@ L7_RC_t ptin_hapi_xlate_doubletag_action_delete(ptin_dapi_port_t *dapiPort, L7_u
       resources_xlate_ingress--;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Translation entry removed successfully");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry removed successfully");
 
   /* Update resources availability */
   return L7_SUCCESS;
@@ -428,13 +428,13 @@ L7_RC_t ptin_hapi_xlate_ingress_action_get(ptin_dapi_port_t *dapiPort, L7_uint16
   bcm_vlan_translate_key_t keyType;
   bcm_vlan_action_set_t action;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"dapiPort={%d,%d,%d} oVlanId=%u iVlanId=%u",
+  PT_LOG_TRACE(LOG_CTX_HAPI,"dapiPort={%d,%d,%d} oVlanId=%u iVlanId=%u",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, oVlanId, iVlanId);
 
   /* Validate dapiPort */
   if (dapiPort->usp->unit<0 || dapiPort->usp->slot<0 || dapiPort->usp->port<0)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI,"Invalid interface");
+    PT_LOG_ERR(LOG_CTX_HAPI,"Invalid interface");
     return L7_FAILURE;
   }
 
@@ -443,7 +443,7 @@ L7_RC_t ptin_hapi_xlate_ingress_action_get(ptin_dapi_port_t *dapiPort, L7_uint16
   /* Accept only physical and lag interfaces */
   if ( !IS_PORT_TYPE_PHYSICAL(dapiPortPtr) && !IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d} is not physical neither logical lag",
+    PT_LOG_ERR(LOG_CTX_HAPI, "Port {%d,%d,%d} is not physical neither logical lag",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
     return L7_FAILURE;
   }
@@ -461,14 +461,14 @@ L7_RC_t ptin_hapi_xlate_ingress_action_get(ptin_dapi_port_t *dapiPort, L7_uint16
 
   bcm_vlan_action_set_t_init(&action);
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "bcm_vlan_translate_action_add(0, 0x%08X[%d], %u, %u, %u, &action)",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_add(0, 0x%08X[%d], %u, %u, %u, &action)",
             hapiPortPtr->bcmx_lport, hapiPortPtr->bcm_port, keyType, oVlanId, iVlanId);
 
   error = bcmx_vlan_translate_action_get(hapiPortPtr->bcmx_lport, keyType, oVlanId, iVlanId, &action);
 
   if (error != BCM_E_NONE)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error calling bcm_vlan_translate_action_get function: %d (\"%s\")", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_action_get function: %d (\"%s\")", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
@@ -476,7 +476,7 @@ L7_RC_t ptin_hapi_xlate_ingress_action_get(ptin_dapi_port_t *dapiPort, L7_uint16
   if ( newOVlanId != L7_NULLPTR )
   {
     *newOVlanId = action.new_outer_vlan;
-    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Translation entry read successfully: newOuterVlan=%u", *newOVlanId);
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry read successfully: newOuterVlan=%u", *newOVlanId);
   }
 
   /* Update resources availability */
@@ -500,13 +500,13 @@ L7_RC_t ptin_hapi_xlate_ingress_action_add(ptin_dapi_port_t *dapiPort, L7_uint16
   bcm_vlan_translate_key_t keyType;
   bcm_vlan_action_set_t action;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"dapiPort={%d,%d,%d} oVlanId=%u iVlanId=%u newOVlanId=%u",
+  PT_LOG_TRACE(LOG_CTX_HAPI,"dapiPort={%d,%d,%d} oVlanId=%u iVlanId=%u newOVlanId=%u",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, oVlanId, iVlanId, newOVlanId);
 
   /* Validate dapiPort */
   if (dapiPort->usp->unit<0 || dapiPort->usp->slot<0 || dapiPort->usp->port<0)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid interface");
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid interface");
     return L7_FAILURE;
   }
 
@@ -515,7 +515,7 @@ L7_RC_t ptin_hapi_xlate_ingress_action_add(ptin_dapi_port_t *dapiPort, L7_uint16
   /* Accept only physical and lag interfaces */
   if ( !IS_PORT_TYPE_PHYSICAL(dapiPortPtr) && !IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d} is not physical neither logical lag (usp=)",
+    PT_LOG_ERR(LOG_CTX_HAPI, "Port {%d,%d,%d} is not physical neither logical lag (usp=)",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
     return L7_FAILURE;
   }
@@ -543,14 +543,14 @@ L7_RC_t ptin_hapi_xlate_ingress_action_add(ptin_dapi_port_t *dapiPort, L7_uint16
 
   action.new_outer_vlan = newOVlanId;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "bcm_vlan_translate_action_add(0, 0x%08X[%d], %u, %u, %u, &action)",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_add(0, 0x%08X[%d], %u, %u, %u, &action)",
             hapiPortPtr->bcmx_lport, hapiPortPtr->bcm_port, keyType, oVlanId, iVlanId);
 
   error = bcmx_vlan_translate_action_add(hapiPortPtr->bcmx_lport, keyType, oVlanId, iVlanId, &action);
 
   if (error != BCM_E_NONE && error != BCM_E_EXISTS)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error calling bcm_vlan_translate_action_add function: %d (\"%s\")", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_action_add function: %d (\"%s\")", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
@@ -561,7 +561,7 @@ L7_RC_t ptin_hapi_xlate_ingress_action_add(ptin_dapi_port_t *dapiPort, L7_uint16
       resources_xlate_ingress++;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Translation entry added successfully: newOuterVlan=%u", newOVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry added successfully: newOuterVlan=%u", newOVlanId);
 
   return L7_SUCCESS;
 }
@@ -580,13 +580,13 @@ L7_RC_t ptin_hapi_xlate_ingress_action_delete(ptin_dapi_port_t *dapiPort, L7_uin
   int error;
   bcm_vlan_translate_key_t keyType;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "dapiPort={%d,%d,%d} oVlanId=%u iVlanId=%u",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "dapiPort={%d,%d,%d} oVlanId=%u iVlanId=%u",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, oVlanId, iVlanId);
 
   /* Validate dapiPort */
   if (dapiPort->usp->unit<0 || dapiPort->usp->slot<0 || dapiPort->usp->port<0)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid interface");
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid interface");
     return L7_FAILURE;
   }
 
@@ -595,7 +595,7 @@ L7_RC_t ptin_hapi_xlate_ingress_action_delete(ptin_dapi_port_t *dapiPort, L7_uin
   /* Accept only physical and lag interfaces */
   if ( !IS_PORT_TYPE_PHYSICAL(dapiPortPtr) && !IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d} is not physical neither logical lag",
+    PT_LOG_ERR(LOG_CTX_HAPI, "Port {%d,%d,%d} is not physical neither logical lag",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
     return L7_FAILURE;
   }
@@ -611,14 +611,14 @@ L7_RC_t ptin_hapi_xlate_ingress_action_delete(ptin_dapi_port_t *dapiPort, L7_uin
     keyType = bcmVlanTranslateKeyPortOuter;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "bcm_vlan_translate_action_delete(0, 0x%08X[%d], %u, %u, %u)",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_delete(0, 0x%08X[%d], %u, %u, %u)",
             hapiPortPtr->bcmx_lport, hapiPortPtr->bcm_port, keyType, oVlanId, iVlanId);
 
   error = bcmx_vlan_translate_action_delete(hapiPortPtr->bcmx_lport, keyType, oVlanId, iVlanId);
 
   if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error calling bcm_vlan_translate_action_delete function: %d (\"%s\")", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_action_delete function: %d (\"%s\")", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
@@ -629,7 +629,7 @@ L7_RC_t ptin_hapi_xlate_ingress_action_delete(ptin_dapi_port_t *dapiPort, L7_uin
       resources_xlate_ingress--;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Translation entry removed successfully");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry removed successfully");
 
   return L7_SUCCESS;
 }
@@ -650,17 +650,17 @@ L7_RC_t ptin_hapi_xlate_egress_action_get(L7_uint32 portgroup, L7_uint16 oVlanId
   int error;
   bcm_vlan_action_set_t action;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "portgroup=%u oVlanId=%u iVlanId=%u", portgroup, oVlanId, iVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "portgroup=%u oVlanId=%u iVlanId=%u", portgroup, oVlanId, iVlanId);
 
   bcm_vlan_action_set_t_init(&action);
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "bcm_vlan_translate_egress_action_add(0, %d, %u, %u, &action)", portgroup, oVlanId, iVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_egress_action_add(0, %d, %u, %u, &action)", portgroup, oVlanId, iVlanId);
 
   error = bcmx_vlan_translate_egress_action_get(portgroup, oVlanId, iVlanId, &action);
 
   if (error != BCM_E_NONE)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error calling bcm_vlan_translate_egress_action_get function: %d (\"%s\")", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_egress_action_get function: %d (\"%s\")", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
@@ -668,7 +668,7 @@ L7_RC_t ptin_hapi_xlate_egress_action_get(L7_uint32 portgroup, L7_uint16 oVlanId
   if ( newOVlanId != L7_NULLPTR )
   {
     *newOVlanId = action.new_outer_vlan;
-    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Translation entry read successfully: newOuterVlan=%u", *newOVlanId);
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry read successfully: newOuterVlan=%u", *newOVlanId);
   }
 
   return L7_SUCCESS;
@@ -690,7 +690,7 @@ L7_RC_t ptin_hapi_xlate_egress_action_add(L7_uint32 portgroup, L7_uint16 oVlanId
   int error;
   bcm_vlan_action_set_t action;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "portgroup=%u oVlanId=%u iVlanId=%u newOVlanId=%u", portgroup, oVlanId, iVlanId, newOVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "portgroup=%u oVlanId=%u iVlanId=%u newOVlanId=%u", portgroup, oVlanId, iVlanId, newOVlanId);
 
   /* Add translation entry */
   bcm_vlan_action_set_t_init(&action);
@@ -705,13 +705,13 @@ L7_RC_t ptin_hapi_xlate_egress_action_add(L7_uint32 portgroup, L7_uint16 oVlanId
 
   action.new_outer_vlan = newOVlanId;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "bcm_vlan_translate_egress_action_add(0, %d, %u, %u, &action)", portgroup, oVlanId, iVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_egress_action_add(0, %d, %u, %u, &action)", portgroup, oVlanId, iVlanId);
 
   error = bcmx_vlan_translate_egress_action_add(portgroup, oVlanId, iVlanId, &action);
 
   if (error != BCM_E_NONE && error != BCM_E_EXISTS)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error calling bcm_vlan_translate_egress_action_add function: %d (\"%s\")", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_egress_action_add function: %d (\"%s\")", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
@@ -722,7 +722,7 @@ L7_RC_t ptin_hapi_xlate_egress_action_add(L7_uint32 portgroup, L7_uint16 oVlanId
       resources_xlate_egress++;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Translation entry added successfully: newOuterVlan=%u", newOVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry added successfully: newOuterVlan=%u", newOVlanId);
 
   return L7_SUCCESS;
 }
@@ -740,15 +740,15 @@ L7_RC_t ptin_hapi_xlate_egress_action_delete(L7_uint32 portgroup, L7_uint16 oVla
 {
   int error;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"portgroup=%u oVlanId=%u iVlanId=%u", portgroup, oVlanId, iVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"portgroup=%u oVlanId=%u iVlanId=%u", portgroup, oVlanId, iVlanId);
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "bcm_vlan_translate_egress_action_delete(0,%d,%u,%u)", portgroup, oVlanId, iVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_egress_action_delete(0,%d,%u,%u)", portgroup, oVlanId, iVlanId);
 
   error = bcmx_vlan_translate_egress_action_delete(portgroup, oVlanId, iVlanId);
 
   if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error calling bcm_vlan_translate_egress_action_delete function: %d (\"%s\")", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_egress_action_delete function: %d (\"%s\")", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
@@ -756,7 +756,7 @@ L7_RC_t ptin_hapi_xlate_egress_action_delete(L7_uint32 portgroup, L7_uint16 oVla
   if (resources_xlate_egress > 0)
     resources_xlate_egress--;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Translation entry removed successfully");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry removed successfully");
 
   return L7_SUCCESS;
 }
@@ -774,13 +774,13 @@ L7_RC_t ptin_hapi_xlate_ingress_action_delete_all(void)
 
   if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error calling bcm_vlan_translate_delete_all function: %d (\"%s\")", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_delete_all function: %d (\"%s\")", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
   resources_xlate_ingress = FREE_RESOURCES_XLATE_INGRESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "All ingress translations were removed");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "All ingress translations were removed");
 
   /* Update resources availability */
   return L7_SUCCESS;
@@ -799,20 +799,20 @@ L7_RC_t ptin_hapi_xlate_egress_action_delete_all(void)
 
   if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error calling bcm_vlan_translate_egress_delete_all function: %d (\"%s\")", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_egress_delete_all function: %d (\"%s\")", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
   /* Setting egress xlate class ids */
   if ( ptin_hapi_xlate_egress_portsGroup_init()!=L7_SUCCESS )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting class ids");
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error setting class ids");
     return L7_FAILURE;
   }
 
   resources_xlate_egress = FREE_RESOURCES_XLATE_EGRESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "All egress translations were removed");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "All egress translations were removed");
 
   /* Update resources availability */
   return L7_SUCCESS;
@@ -840,13 +840,13 @@ L7_RC_t ptin_hapi_xlate_ingress_replaceOVid_addIVid(ptin_dapi_port_t *dapiPort, 
   bcm_vlan_translate_key_t keyType;
   bcm_vlan_action_set_t action;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"dapiPort={%d,%d,%d} oVlanId=%u newOVlanId=%u newIVlanId=%u",
+  PT_LOG_TRACE(LOG_CTX_HAPI,"dapiPort={%d,%d,%d} oVlanId=%u newOVlanId=%u newIVlanId=%u",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, oVlanId, newOVlanId, newIVlanId);
 
   /* Validate dapiPort */
   if (dapiPort->usp->unit<0 || dapiPort->usp->slot<0 || dapiPort->usp->port<0)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid interface");
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid interface");
     return L7_FAILURE;
   }
 
@@ -855,7 +855,7 @@ L7_RC_t ptin_hapi_xlate_ingress_replaceOVid_addIVid(ptin_dapi_port_t *dapiPort, 
   /* Accept only physical and lag interfaces */
   if ( !IS_PORT_TYPE_PHYSICAL(dapiPortPtr) && !IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d} is not physical neither logical lag (usp=)",
+    PT_LOG_ERR(LOG_CTX_HAPI, "Port {%d,%d,%d} is not physical neither logical lag (usp=)",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
     return L7_FAILURE;
   }
@@ -876,14 +876,14 @@ L7_RC_t ptin_hapi_xlate_ingress_replaceOVid_addIVid(ptin_dapi_port_t *dapiPort, 
   action.new_outer_vlan = newOVlanId;
   action.new_inner_vlan = newIVlanId;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "bcm_vlan_translate_action_add(0, 0x%08X[%d], %u, %u, %u, &action)",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_add(0, 0x%08X[%d], %u, %u, %u, &action)",
             hapiPortPtr->bcmx_lport, hapiPortPtr->bcm_port, keyType, oVlanId, 0);
 
   error = bcmx_vlan_translate_action_add(hapiPortPtr->bcmx_lport, keyType, oVlanId, 0, &action);
 
   if (error != BCM_E_NONE && error != BCM_E_EXISTS)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error calling bcm_vlan_translate_action_add function: %d (\"%s\")", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_action_add function: %d (\"%s\")", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
@@ -894,7 +894,7 @@ L7_RC_t ptin_hapi_xlate_ingress_replaceOVid_addIVid(ptin_dapi_port_t *dapiPort, 
       resources_xlate_ingress++;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Translation entry added successfully: newOuterVlan=%u newInnerVlan=%u",newOVlanId,newIVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry added successfully: newOuterVlan=%u newInnerVlan=%u",newOVlanId,newIVlanId);
 
   return L7_SUCCESS;
 }
@@ -914,7 +914,7 @@ L7_RC_t ptin_hapi_xlate_egress_replaceOVid_deleteIVid(L7_uint32 portgroup, L7_ui
   int error;
   bcm_vlan_action_set_t action;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "portgroup=%u oVlanId=%u iVlanId=%u newOVlanId=%u", portgroup, oVlanId, iVlanId, newOVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "portgroup=%u oVlanId=%u iVlanId=%u newOVlanId=%u", portgroup, oVlanId, iVlanId, newOVlanId);
 
   /* Add translation entry */
   bcm_vlan_action_set_t_init(&action);
@@ -929,13 +929,13 @@ L7_RC_t ptin_hapi_xlate_egress_replaceOVid_deleteIVid(L7_uint32 portgroup, L7_ui
 
   action.new_outer_vlan = newOVlanId;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "bcm_vlan_translate_egress_action_add(0, %d, %u, %u, &action)", portgroup, oVlanId, iVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_egress_action_add(0, %d, %u, %u, &action)", portgroup, oVlanId, iVlanId);
 
   error = bcmx_vlan_translate_egress_action_add(portgroup, oVlanId, iVlanId, &action);
 
   if (error != BCM_E_NONE && error != BCM_E_EXISTS)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error calling bcm_vlan_translate_egress_action_add function: %d (\"%s\")", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_egress_action_add function: %d (\"%s\")", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
@@ -946,7 +946,7 @@ L7_RC_t ptin_hapi_xlate_egress_replaceOVid_deleteIVid(L7_uint32 portgroup, L7_ui
       resources_xlate_egress++;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Translation entry added successfully: newOuterVlan=%u", newOVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry added successfully: newOuterVlan=%u", newOVlanId);
 
   return L7_SUCCESS;
 }
@@ -972,13 +972,13 @@ L7_RC_t ptin_hapi_xlate_ingress_get(ptin_dapi_port_t *dapiPort, ptin_hapi_xlate_
   bcm_vlan_translate_key_t keyType;
   bcm_vlan_action_set_t action;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"dapiPort={%d,%d,%d} oVlanId=%u iVlanId=%u",
+  PT_LOG_TRACE(LOG_CTX_HAPI,"dapiPort={%d,%d,%d} oVlanId=%u iVlanId=%u",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, xlate->outerVlanId, xlate->innerVlanId);
 
   /* Validate dapiPort */
   if (dapiPort->usp->unit<0 || dapiPort->usp->slot<0 || dapiPort->usp->port<0)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI,"Invalid interface");
+    PT_LOG_ERR(LOG_CTX_HAPI,"Invalid interface");
     return L7_FAILURE;
   }
 
@@ -987,7 +987,7 @@ L7_RC_t ptin_hapi_xlate_ingress_get(ptin_dapi_port_t *dapiPort, ptin_hapi_xlate_
   /* Accept only physical and lag interfaces */
   if ( !IS_PORT_TYPE_PHYSICAL(dapiPortPtr) && !IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d} is not physical neither logical lag",
+    PT_LOG_ERR(LOG_CTX_HAPI, "Port {%d,%d,%d} is not physical neither logical lag",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
     return L7_FAILURE;
   }
@@ -1005,14 +1005,14 @@ L7_RC_t ptin_hapi_xlate_ingress_get(ptin_dapi_port_t *dapiPort, ptin_hapi_xlate_
 
   bcm_vlan_action_set_t_init(&action);
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "bcm_vlan_translate_action_add(0, 0x%08X[%d], %u, %u, %u, &action)",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_add(0, 0x%08X[%d], %u, %u, %u, &action)",
             hapiPortPtr->bcmx_lport, hapiPortPtr->bcm_port, keyType, xlate->outerVlanId, xlate->innerVlanId);
 
   error = bcmx_vlan_translate_action_get(hapiPortPtr->bcmx_lport, keyType, xlate->outerVlanId, xlate->innerVlanId, &action);
 
   if (error != BCM_E_NONE)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error calling bcm_vlan_translate_action_get function: %d (\"%s\")", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_action_get function: %d (\"%s\")", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
@@ -1027,7 +1027,7 @@ L7_RC_t ptin_hapi_xlate_ingress_get(ptin_dapi_port_t *dapiPort, ptin_hapi_xlate_
   xlate->outerPrioAction = (xlate->innerVlanId!=0) ? action.dt_outer_prio : action.ot_outer_prio;
   xlate->innerPrioAction = (xlate->innerVlanId!=0) ? action.dt_inner_prio : action.ot_inner_pkt_prio;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Translation entry read successfully: newOVid=%u.%u (OAction=%u.%u), newIVid=%u.%u (IAction=%u.%u)",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry read successfully: newOVid=%u.%u (OAction=%u.%u), newIVid=%u.%u (IAction=%u.%u)",
             xlate->newOuterVlanId , xlate->newOuterPrio,
             xlate->outerVlanAction, xlate->outerPrioAction,
             xlate->newInnerVlanId , xlate->newInnerPrio,
@@ -1052,7 +1052,7 @@ L7_RC_t ptin_hapi_xlate_ingress_add(ptin_dapi_port_t *dapiPort, ptin_hapi_xlate_
   bcm_vlan_translate_key_t keyType;
   bcm_vlan_action_set_t action;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"dapiPort={%d,%d,%d} oVlanId=%u iVlanId=%u newOVlanId=%u (%u) newIVlanId=%u (%u)",
+  PT_LOG_TRACE(LOG_CTX_HAPI,"dapiPort={%d,%d,%d} oVlanId=%u iVlanId=%u newOVlanId=%u (%u) newIVlanId=%u (%u)",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port,
             xlate->outerVlanId, xlate->innerVlanId,
             xlate->newOuterVlanId, xlate->outerVlanAction, xlate->newInnerVlanId, xlate->innerVlanAction);
@@ -1060,7 +1060,7 @@ L7_RC_t ptin_hapi_xlate_ingress_add(ptin_dapi_port_t *dapiPort, ptin_hapi_xlate_
   /* Validate dapiPort */
   if (dapiPort->usp->unit<0 || dapiPort->usp->slot<0 || dapiPort->usp->port<0)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid interface");
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid interface");
     return L7_FAILURE;
   }
 
@@ -1069,7 +1069,7 @@ L7_RC_t ptin_hapi_xlate_ingress_add(ptin_dapi_port_t *dapiPort, ptin_hapi_xlate_
   /* Accept only physical and lag interfaces */
   if ( !IS_PORT_TYPE_PHYSICAL(dapiPortPtr) && !IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d} is not physical neither logical lag (usp=)",
+    PT_LOG_ERR(LOG_CTX_HAPI, "Port {%d,%d,%d} is not physical neither logical lag (usp=)",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
     return L7_FAILURE;
   }
@@ -1081,7 +1081,7 @@ L7_RC_t ptin_hapi_xlate_ingress_add(ptin_dapi_port_t *dapiPort, ptin_hapi_xlate_
     /* For double tagged packets we cannot use the ADD action */
 //  if (xlate->outerAction==PTIN_XLATE_ACTION_ADD || xlate->outerAction==PTIN_XLATE_ACTION_ADD)
 //  {
-//    LOG_ERR(LOG_CTX_PTIN_HAPI, "Cannot use PTIN_XLATE_ACTION_ADD action for double tagged packets!");
+//    PT_LOG_ERR(LOG_CTX_HAPI, "Cannot use PTIN_XLATE_ACTION_ADD action for double tagged packets!");
 //    return L7_FAILURE;
 //  }
   }
@@ -1113,39 +1113,39 @@ L7_RC_t ptin_hapi_xlate_ingress_add(ptin_dapi_port_t *dapiPort, ptin_hapi_xlate_
   action.priority           = xlate->newOuterPrio;
   action.new_inner_pkt_prio = xlate->newInnerPrio;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "bcm_vlan_translate_action_add(0, 0x%08X[%d], %u, %u, %u, &action)",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_add(0, 0x%08X[%d], %u, %u, %u, &action)",
             hapiPortPtr->bcmx_lport, hapiPortPtr->bcm_port, keyType, xlate->outerVlanId, xlate->innerVlanId);
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.new_outer_vlan     = %u", action.new_outer_vlan);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.new_inner_vlan     = %u", action.new_inner_vlan);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.priority           = %u", action.priority);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.new_inner_pkt_prio = %u", action.new_inner_pkt_prio);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.new_outer_vlan     = %u", action.new_outer_vlan);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.new_inner_vlan     = %u", action.new_inner_vlan);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.priority           = %u", action.priority);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.new_inner_pkt_prio = %u", action.new_inner_pkt_prio);
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.dt_outer           = %u", action.dt_outer);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.dt_inner           = %u", action.dt_inner);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.dt_outer_prio      = %u", action.dt_outer_prio);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.dt_outer_pkt_prio  = %u", action.dt_outer_pkt_prio);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.dt_inner_prio      = %u", action.dt_inner_prio);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.dt_inner_pkt_prio  = %u", action.dt_inner_pkt_prio);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.ot_outer           = %u", action.ot_outer);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.ot_inner           = %u", action.ot_inner);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.ot_outer_prio      = %u", action.ot_outer_prio);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.ot_outer_pkt_prio  = %u", action.ot_outer_pkt_prio);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.ot_inner_pkt_prio  = %u", action.ot_inner_pkt_prio);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.it_outer           = %u", action.it_outer);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.it_inner           = %u", action.it_inner);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.it_outer_prio      = %u", action.it_outer_pkt_prio);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.it_inner_pkt_prio  = %u", action.it_inner_pkt_prio);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.ut_outer           = %u", action.ut_outer);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.ut_inner           = %u", action.ut_inner);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.ut_outer_prio      = %u", action.ut_outer_pkt_prio);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.ut_inner_pkt_prio  = %u", action.ut_inner_pkt_prio);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.dt_outer           = %u", action.dt_outer);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.dt_inner           = %u", action.dt_inner);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.dt_outer_prio      = %u", action.dt_outer_prio);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.dt_outer_pkt_prio  = %u", action.dt_outer_pkt_prio);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.dt_inner_prio      = %u", action.dt_inner_prio);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.dt_inner_pkt_prio  = %u", action.dt_inner_pkt_prio);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.ot_outer           = %u", action.ot_outer);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.ot_inner           = %u", action.ot_inner);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.ot_outer_prio      = %u", action.ot_outer_prio);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.ot_outer_pkt_prio  = %u", action.ot_outer_pkt_prio);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.ot_inner_pkt_prio  = %u", action.ot_inner_pkt_prio);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.it_outer           = %u", action.it_outer);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.it_inner           = %u", action.it_inner);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.it_outer_prio      = %u", action.it_outer_pkt_prio);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.it_inner_pkt_prio  = %u", action.it_inner_pkt_prio);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.ut_outer           = %u", action.ut_outer);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.ut_inner           = %u", action.ut_inner);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.ut_outer_prio      = %u", action.ut_outer_pkt_prio);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.ut_inner_pkt_prio  = %u", action.ut_inner_pkt_prio);
 
   error = bcmx_vlan_translate_action_add(hapiPortPtr->bcmx_lport, keyType, xlate->outerVlanId, xlate->innerVlanId, &action);
 
   if (error != BCM_E_NONE && error != BCM_E_EXISTS)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error calling bcm_vlan_translate_action_add function: %d (\"%s\")", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_action_add function: %d (\"%s\")", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
@@ -1156,7 +1156,7 @@ L7_RC_t ptin_hapi_xlate_ingress_add(ptin_dapi_port_t *dapiPort, ptin_hapi_xlate_
       resources_xlate_ingress++;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Translation entry added successfully: newOVlanId=%u.%u (Oaction %u.%u) newIVlanId=%u.%u (Iaction %u.%u)",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry added successfully: newOVlanId=%u.%u (Oaction %u.%u) newIVlanId=%u.%u (Iaction %u.%u)",
             xlate->newOuterVlanId , xlate->newOuterPrio,
             xlate->outerVlanAction, xlate->outerPrioAction,
             xlate->newInnerVlanId , xlate->newInnerPrio,
@@ -1178,13 +1178,13 @@ L7_RC_t ptin_hapi_xlate_ingress_delete(ptin_dapi_port_t *dapiPort, ptin_hapi_xla
   int error;
   bcm_vlan_translate_key_t keyType;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "dapiPort={%d,%d,%d} oVlanId=%u iVlanId=%u",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "dapiPort={%d,%d,%d} oVlanId=%u iVlanId=%u",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, xlate->outerVlanId, xlate->innerVlanId);
 
   /* Validate dapiPort */
   if (dapiPort->usp->unit<0 || dapiPort->usp->slot<0 || dapiPort->usp->port<0)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid interface");
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid interface");
     return L7_FAILURE;
   }
 
@@ -1193,7 +1193,7 @@ L7_RC_t ptin_hapi_xlate_ingress_delete(ptin_dapi_port_t *dapiPort, ptin_hapi_xla
   /* Accept only physical and lag interfaces */
   if ( !IS_PORT_TYPE_PHYSICAL(dapiPortPtr) && !IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d} is not physical neither logical lag",
+    PT_LOG_ERR(LOG_CTX_HAPI, "Port {%d,%d,%d} is not physical neither logical lag",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
     return L7_FAILURE;
   }
@@ -1209,14 +1209,14 @@ L7_RC_t ptin_hapi_xlate_ingress_delete(ptin_dapi_port_t *dapiPort, ptin_hapi_xla
     keyType = bcmVlanTranslateKeyPortOuter;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "bcm_vlan_translate_action_delete(0, 0x%08X[%d], %u, %u, %u)",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_delete(0, 0x%08X[%d], %u, %u, %u)",
             hapiPortPtr->bcmx_lport, hapiPortPtr->bcm_port, keyType, xlate->outerVlanId, xlate->innerVlanId);
 
   error = bcmx_vlan_translate_action_delete(hapiPortPtr->bcmx_lport, keyType, xlate->outerVlanId, xlate->innerVlanId);
 
   if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error calling bcm_vlan_translate_action_delete function: %d (\"%s\")", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_action_delete function: %d (\"%s\")", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
@@ -1227,7 +1227,7 @@ L7_RC_t ptin_hapi_xlate_ingress_delete(ptin_dapi_port_t *dapiPort, ptin_hapi_xla
       resources_xlate_ingress--;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Translation entry removed successfully");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry removed successfully");
 
   return L7_SUCCESS;
 }
@@ -1245,13 +1245,13 @@ L7_RC_t ptin_hapi_xlate_ingress_delete_all(void)
 
   if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error calling bcm_vlan_translate_delete_all function: %d (\"%s\")", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_delete_all function: %d (\"%s\")", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
   resources_xlate_ingress = FREE_RESOURCES_XLATE_INGRESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "All ingress translations were removed");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "All ingress translations were removed");
 
   /* Update resources availability */
   return L7_SUCCESS;
@@ -1271,17 +1271,17 @@ L7_RC_t ptin_hapi_xlate_egress_get(L7_uint32 portgroup, ptin_hapi_xlate_t *xlate
   int error;
   bcm_vlan_action_set_t action;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "portgroup=%u oVlanId=%u iVlanId=%u", portgroup, xlate->outerVlanId, xlate->innerVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "portgroup=%u oVlanId=%u iVlanId=%u", portgroup, xlate->outerVlanId, xlate->innerVlanId);
 
   bcm_vlan_action_set_t_init(&action);
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "bcm_vlan_translate_egress_action_add(0, %d, %u, %u, &action)", portgroup, xlate->outerVlanId, xlate->innerVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_egress_action_add(0, %d, %u, %u, &action)", portgroup, xlate->outerVlanId, xlate->innerVlanId);
 
   error = bcmx_vlan_translate_egress_action_get(portgroup, xlate->outerVlanId, xlate->innerVlanId, &action);
 
   if (error != BCM_E_NONE)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error calling bcm_vlan_translate_egress_action_get function: %d (\"%s\")", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_egress_action_get function: %d (\"%s\")", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
@@ -1296,7 +1296,7 @@ L7_RC_t ptin_hapi_xlate_egress_get(L7_uint32 portgroup, ptin_hapi_xlate_t *xlate
   xlate->outerPrioAction = (xlate->innerVlanId!=0) ? action.dt_outer_prio : action.ot_outer_prio;
   xlate->innerPrioAction = (xlate->innerVlanId!=0) ? action.dt_inner_prio : action.ot_inner_pkt_prio;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Translation entry read successfully: newOuterVlan=%u.%u (Oaction %u.%u) newInnerVlan=%u.%u (Iaction %u.%u)",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry read successfully: newOuterVlan=%u.%u (Oaction %u.%u) newInnerVlan=%u.%u (Iaction %u.%u)",
             xlate->newOuterVlanId , xlate->newOuterPrio,
             xlate->outerVlanAction, xlate->outerPrioAction,
             xlate->newInnerVlanId , xlate->newInnerPrio,
@@ -1319,7 +1319,7 @@ L7_RC_t ptin_hapi_xlate_egress_add(L7_uint32 portgroup, ptin_hapi_xlate_t *xlate
   int error;
   bcm_vlan_action_set_t action;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "portgroup=%u oVlanId=%u iVlanId=%u newOVlanId=%u(%u) newIVlanId=%u(%u)",portgroup,
+  PT_LOG_TRACE(LOG_CTX_HAPI, "portgroup=%u oVlanId=%u iVlanId=%u newOVlanId=%u(%u) newIVlanId=%u(%u)",portgroup,
             xlate->outerVlanId,xlate->innerVlanId,
             xlate->newOuterVlanId,xlate->outerVlanAction,
             xlate->newInnerVlanId,xlate->innerVlanAction);
@@ -1328,7 +1328,7 @@ L7_RC_t ptin_hapi_xlate_egress_add(L7_uint32 portgroup, ptin_hapi_xlate_t *xlate
 //if (xlate->innerVlanId!=0 &&
 //    (xlate->outerAction==PTIN_XLATE_ACTION_ADD || xlate->innerAction==PTIN_XLATE_ACTION_ADD))
 //{
-//  LOG_ERR(LOG_CTX_PTIN_HAPI, "Cannot use PTIN_XLATE_ACTION_ADD action for double tagged packets!");
+//  PT_LOG_ERR(LOG_CTX_HAPI, "Cannot use PTIN_XLATE_ACTION_ADD action for double tagged packets!");
 //  return L7_FAILURE;
 //}
 
@@ -1352,40 +1352,40 @@ L7_RC_t ptin_hapi_xlate_egress_add(L7_uint32 portgroup, ptin_hapi_xlate_t *xlate
   action.priority           = xlate->newOuterPrio;
   action.new_inner_pkt_prio = xlate->newInnerPrio;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "bcm_vlan_translate_egress_action_add(0, %d, %u.%u, %u.%u, &action)", portgroup,
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_egress_action_add(0, %d, %u.%u, %u.%u, &action)", portgroup,
             xlate->outerVlanId, xlate->outerPrio,
             xlate->innerVlanId, xlate->innerPrio);
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.new_outer_vlan     = %d", action.new_outer_vlan);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.new_inner_vlan     = %d", action.new_inner_vlan);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.priority           = %d", action.priority);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.new_inner_pkt_prio = %d", action.new_inner_pkt_prio);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.new_outer_vlan     = %d", action.new_outer_vlan);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.new_inner_vlan     = %d", action.new_inner_vlan);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.priority           = %d", action.priority);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.new_inner_pkt_prio = %d", action.new_inner_pkt_prio);
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.dt_outer           = %d", action.dt_outer);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.dt_inner           = %d", action.dt_inner);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.dt_outer_prio      = %d", action.dt_outer_prio);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.dt_outer_pkt_prio  = %d", action.dt_outer_pkt_prio);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.dt_inner_prio      = %d", action.dt_inner_prio);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.dt_inner_pkt_prio  = %d", action.dt_inner_pkt_prio);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.ot_outer           = %d", action.ot_outer);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.ot_inner           = %d", action.ot_inner);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.ot_outer_prio      = %d", action.ot_outer_prio);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.ot_outer_pkt_prio  = %d", action.ot_outer_pkt_prio);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.ot_inner_pkt_prio  = %d", action.ot_inner_pkt_prio);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.it_outer           = %u", action.it_outer);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.it_inner           = %u", action.it_inner);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.it_outer_prio      = %u", action.it_outer_pkt_prio);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.it_inner_pkt_prio  = %u", action.it_inner_pkt_prio);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.ut_outer           = %u", action.ut_outer);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.ut_inner           = %u", action.ut_inner);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.ut_outer_prio      = %u", action.ut_outer_pkt_prio);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.ut_inner_pkt_prio  = %u", action.ut_inner_pkt_prio);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.dt_outer           = %d", action.dt_outer);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.dt_inner           = %d", action.dt_inner);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.dt_outer_prio      = %d", action.dt_outer_prio);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.dt_outer_pkt_prio  = %d", action.dt_outer_pkt_prio);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.dt_inner_prio      = %d", action.dt_inner_prio);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.dt_inner_pkt_prio  = %d", action.dt_inner_pkt_prio);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.ot_outer           = %d", action.ot_outer);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.ot_inner           = %d", action.ot_inner);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.ot_outer_prio      = %d", action.ot_outer_prio);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.ot_outer_pkt_prio  = %d", action.ot_outer_pkt_prio);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.ot_inner_pkt_prio  = %d", action.ot_inner_pkt_prio);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.it_outer           = %u", action.it_outer);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.it_inner           = %u", action.it_inner);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.it_outer_prio      = %u", action.it_outer_pkt_prio);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.it_inner_pkt_prio  = %u", action.it_inner_pkt_prio);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.ut_outer           = %u", action.ut_outer);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.ut_inner           = %u", action.ut_inner);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.ut_outer_prio      = %u", action.ut_outer_pkt_prio);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"action.ut_inner_pkt_prio  = %u", action.ut_inner_pkt_prio);
 
   error = bcmx_vlan_translate_egress_action_add(portgroup, xlate->outerVlanId, xlate->innerVlanId, &action);
 
   if (error != BCM_E_NONE && error != BCM_E_EXISTS)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error calling bcm_vlan_translate_egress_action_add function: %d (\"%s\")", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_egress_action_add function: %d (\"%s\")", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
@@ -1396,7 +1396,7 @@ L7_RC_t ptin_hapi_xlate_egress_add(L7_uint32 portgroup, ptin_hapi_xlate_t *xlate
       resources_xlate_egress++;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Translation entry added successfully: newOVlanId=%u.%u (Oaction %u.%u) newIVlanId=%u.%u (Iaction %u.%u)",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry added successfully: newOVlanId=%u.%u (Oaction %u.%u) newIVlanId=%u.%u (Iaction %u.%u)",
             xlate->newOuterVlanId , xlate->newOuterPrio,
             xlate->outerVlanAction, xlate->outerPrioAction,
             xlate->newInnerVlanId , xlate->newInnerPrio,
@@ -1417,15 +1417,15 @@ L7_RC_t ptin_hapi_xlate_egress_delete(L7_uint32 portgroup, ptin_hapi_xlate_t *xl
 {
   int error;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"portgroup=%u oVlanId=%u iVlanId=%u", portgroup, xlate->outerVlanId, xlate->innerVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"portgroup=%u oVlanId=%u iVlanId=%u", portgroup, xlate->outerVlanId, xlate->innerVlanId);
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "bcm_vlan_translate_egress_action_delete(0,%d,%u,%u)", portgroup, xlate->outerVlanId, xlate->innerVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_egress_action_delete(0,%d,%u,%u)", portgroup, xlate->outerVlanId, xlate->innerVlanId);
 
   error = bcmx_vlan_translate_egress_action_delete(portgroup, xlate->outerVlanId, xlate->innerVlanId);
 
   if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error calling bcm_vlan_translate_egress_action_delete function: %d (\"%s\")", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_egress_action_delete function: %d (\"%s\")", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
@@ -1433,7 +1433,7 @@ L7_RC_t ptin_hapi_xlate_egress_delete(L7_uint32 portgroup, ptin_hapi_xlate_t *xl
   if (resources_xlate_egress > 0)
     resources_xlate_egress--;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Translation entry removed successfully");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry removed successfully");
 
   return L7_SUCCESS;
 }
@@ -1451,20 +1451,20 @@ L7_RC_t ptin_hapi_xlate_egress_delete_all(void)
 
   if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error calling bcm_vlan_translate_egress_delete_all function: %d (\"%s\")", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_egress_delete_all function: %d (\"%s\")", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
   /* Setting egress xlate class ids */
   if ( ptin_hapi_xlate_egress_portsGroup_init()!=L7_SUCCESS )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting class ids");
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error setting class ids");
     return L7_FAILURE;
   }
 
   resources_xlate_egress = FREE_RESOURCES_XLATE_EGRESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "All egress translations were removed");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "All egress translations were removed");
 
   /* Update resources availability */
   return L7_SUCCESS;
@@ -1491,7 +1491,7 @@ L7_RC_t ptin_hapi_xlate_egress_portsGroup_set(L7_uint32 portgroup, DAPI_USP_t *u
   L7_uint8 index;
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"portgroup=%u usp_list[0]={%d,%d,%d} usp_list_size=%u",
+  PT_LOG_TRACE(LOG_CTX_HAPI,"portgroup=%u usp_list[0]={%d,%d,%d} usp_list_size=%u",
             portgroup, usp_list[0]->unit, usp_list[0]->slot, usp_list[0]->port, usp_list_size);
 
   /* If group is empty, there is nothing to be done */
@@ -1506,7 +1506,7 @@ L7_RC_t ptin_hapi_xlate_egress_portsGroup_set(L7_uint32 portgroup, DAPI_USP_t *u
     /* Validate usp */
     if (usp_list[index]->unit<0 || usp_list[index]->slot<0 || usp_list[index]->port<0)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI,"Invalid interface: {%d,%d,%d}", usp_list[index]->unit, usp_list[index]->slot, usp_list[index]->port);
+      PT_LOG_ERR(LOG_CTX_HAPI,"Invalid interface: {%d,%d,%d}", usp_list[index]->unit, usp_list[index]->slot, usp_list[index]->port);
       rc = L7_FAILURE;
       continue;
     }
@@ -1518,16 +1518,16 @@ L7_RC_t ptin_hapi_xlate_egress_portsGroup_set(L7_uint32 portgroup, DAPI_USP_t *u
     /* Accept only physical interfaces */
     if ( !IS_PORT_TYPE_PHYSICAL(dapiPortPtr) /*&& !IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr)*/ )
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d} is not physical", usp_list[index]->unit, usp_list[index]->slot, usp_list[index]->port);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Port {%d,%d,%d} is not physical", usp_list[index]->unit, usp_list[index]->slot, usp_list[index]->port);
       rc = L7_FAILURE;
       continue;
     }
 
-    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Setting class id %d to single port {%d,%d,%d}",
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Setting class id %d to single port {%d,%d,%d}",
               portgroup, usp_list[index]->unit, usp_list[index]->slot, usp_list[index]->port);
     if (bcmx_port_class_set(hapiPortPtr->bcmx_lport, bcmPortClassVlanTranslateEgress, (L7_uint32) portgroup ) != BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting class id %d to single port {%d,%d,%d} [VLAN XLATE]",
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting class id %d to single port {%d,%d,%d} [VLAN XLATE]",
               portgroup, usp_list[index]->unit, usp_list[index]->slot, usp_list[index]->port);
       rc = L7_FAILURE;
       continue;
@@ -1536,7 +1536,7 @@ L7_RC_t ptin_hapi_xlate_egress_portsGroup_set(L7_uint32 portgroup, DAPI_USP_t *u
     #if 0
     if (bcmx_port_class_set(hapiPortPtr->bcmx_lport, bcmPortClassFieldEgress, (L7_uint32) portgroup + EFP_STD_CLASS_ID_MAX) != BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting class id %d to single port {%d,%d,%d} [ECAP]",
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting class id %d to single port {%d,%d,%d} [ECAP]",
               portgroup, usp_list[index]->unit, usp_list[index]->slot, usp_list[index]->port);
       rc = L7_FAILURE;
       continue;
@@ -1544,7 +1544,7 @@ L7_RC_t ptin_hapi_xlate_egress_portsGroup_set(L7_uint32 portgroup, DAPI_USP_t *u
     #endif
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Class id %d successfully assigned to the given ports", portgroup);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Class id %d successfully assigned to the given ports", portgroup);
 
   return rc;
 }
@@ -1562,12 +1562,12 @@ L7_RC_t ptin_hapi_xlate_egress_portsGroup_get(L7_uint32 *portgroup, DAPI_USP_t *
 {
   L7_uint32 classId;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"usp={%d,%d,%d}",usp->unit,usp->slot,usp->port);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"usp={%d,%d,%d}",usp->unit,usp->slot,usp->port);
 
   /* Validate port group */
   if (usp->unit<0 || usp->slot<0 || usp->port<0)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI,"Invalid portgroup");
+    PT_LOG_ERR(LOG_CTX_HAPI,"Invalid portgroup");
     return L7_FAILURE;
   }
 
@@ -1578,14 +1578,14 @@ L7_RC_t ptin_hapi_xlate_egress_portsGroup_get(L7_uint32 *portgroup, DAPI_USP_t *
   /* Accept only physical and lag interfaces */
   if ( !IS_PORT_TYPE_PHYSICAL(dapiPortPtr) /*&& !IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr)*/ )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d} is not physical",usp->unit,usp->slot,usp->port);
+    PT_LOG_ERR(LOG_CTX_HAPI, "Port {%d,%d,%d} is not physical",usp->unit,usp->slot,usp->port);
     return L7_FAILURE;
   }
 
   /* Extract class id */
   if (bcmx_port_class_get(hapiPortPtr->bcmx_lport, bcmPortClassVlanTranslateEgress, &classId ) != BCM_E_NONE)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error getting class id from port {%d,%d,%d}", usp->unit, usp->slot, usp->port);
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error getting class id from port {%d,%d,%d}", usp->unit, usp->slot, usp->port);
     return L7_FAILURE;
   }
 
@@ -1595,7 +1595,7 @@ L7_RC_t ptin_hapi_xlate_egress_portsGroup_get(L7_uint32 *portgroup, DAPI_USP_t *
     *portgroup = (L7_int) classId;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Class id %u successfully extracted from port {%d,%d,%d}", classId, usp->unit, usp->slot, usp->port);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Class id %u successfully extracted from port {%d,%d,%d}", classId, usp->unit, usp->slot, usp->port);
 
   return L7_SUCCESS;
 }
@@ -1620,7 +1620,7 @@ static L7_RC_t ptin_hapi_xlate_egress_portsGroup_init(void)
   {
     if (hapi_ptin_bcmPort_get(port, &bcm_port) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error getting bcm unit id");
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcm unit id");
       rc = L7_FAILURE;
       continue;
     }
@@ -1628,7 +1628,7 @@ static L7_RC_t ptin_hapi_xlate_egress_portsGroup_init(void)
     /* Default class ids is port+1 */
     if (bcm_port_class_set(bcm_unit, bcm_port, bcmPortClassVlanTranslateEgress, port+1 ) != BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting class id %u to port %d [VLAN XLATE]", port+1, port);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting class id %u to port %d [VLAN XLATE]", port+1, port);
       rc = L7_FAILURE;
       continue;
     }
@@ -1636,14 +1636,14 @@ static L7_RC_t ptin_hapi_xlate_egress_portsGroup_init(void)
     #if 0
     if (bcm_port_class_set(bcm_unit, bcm_port, bcmPortClassFieldEgress, port+1 ) != BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting class id %u to port %d [ECAP]", port+1, port);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting class id %u to port %d [ECAP]", port+1, port);
       rc = L7_FAILURE;
       continue;
     }
     #endif
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Class ids assigned: rc=%d", rc);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Class ids assigned: rc=%d", rc);
 
   return rc;
 }

@@ -1800,12 +1800,12 @@ L7_RC_t dot3adLagCreate(L7_int lag_index /*PTin added*/, L7_char8 *name, L7_uint
     /* If index already exists, return error */
     if (dot3adAgg[index].inuse == L7_TRUE)
     {
-      LOG_ERR(LOG_CTX_PTIN_TRUNKS, "LAG index %u already exists!", lag_index);
+      PT_LOG_ERR(LOG_CTX_TRUNKS, "LAG index %u already exists!", lag_index);
       return L7_FAILURE;
     }
     else
     {
-      LOG_TRACE(LOG_CTX_PTIN_TRUNKS, "LAG index %u is going to be used!", lag_index);
+      PT_LOG_TRACE(LOG_CTX_TRUNKS, "LAG index %u is going to be used!", lag_index);
       dot3adAgg[index].inuse = L7_TRUE;
     }
   }

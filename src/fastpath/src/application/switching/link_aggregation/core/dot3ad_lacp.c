@@ -1700,7 +1700,7 @@ L7_RC_t dot3adTransmitLacpdu(dot3ad_port_t *p)
   if (!ptin_fpga_mx_is_matrixactive_rt())
   {
     if (ptin_debug_lacp)
-      LOG_NOTICE(LOG_CTX_MISC,"Silently ignoring packet transmission. I'm a Stanby Matrix");
+      PT_LOG_NOTICE(LOG_CTX_MISC,"Silently ignoring packet transmission. I'm a Stanby Matrix");
     return L7_SUCCESS;
   }
 #endif
@@ -1709,7 +1709,7 @@ L7_RC_t dot3adTransmitLacpdu(dot3ad_port_t *p)
   if ( (nimGetIntfActiveState(p->actorPortNum, &activeState) != L7_SUCCESS) || (activeState != L7_ACTIVE) )
   {
     if (ptin_debug_lacp)
-      LOG_NOTICE(LOG_CTX_MISC,"Silently ignoring packet transmission. Outgoing interface [intIfNum=%u] is down!",p->actorPortNum);
+      PT_LOG_NOTICE(LOG_CTX_MISC,"Silently ignoring packet transmission. Outgoing interface [intIfNum=%u] is down!",p->actorPortNum);
     return L7_SUCCESS;
   }
 

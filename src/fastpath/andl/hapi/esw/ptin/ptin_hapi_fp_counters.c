@@ -84,54 +84,54 @@ L7_RC_t hapi_ptin_fpCounters_get(DAPI_USP_t *usp, ptin_evcStats_counters_t *stat
   /* Validate arguments */
   if (stats==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI,"Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_HAPI,"Invalid arguments");
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"Profile contents:");
-  LOG_TRACE(LOG_CTX_PTIN_HAPI," ddUsp     = {%d,%d,%d}",usp->unit, usp->slot, usp->port);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_in   = %u",profile->outer_vlan_lookup);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_int  = %u",profile->outer_vlan_ingress);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_out  = %u",profile->outer_vlan_egress);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI," IVID_in   = %u",profile->inner_vlan_ingress);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI," IVID_out  = %u",profile->inner_vlan_egress);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI," DIP       = %u",profile->dst_ip);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"Profile contents:");
+  PT_LOG_TRACE(LOG_CTX_HAPI," ddUsp     = {%d,%d,%d}",usp->unit, usp->slot, usp->port);
+  PT_LOG_TRACE(LOG_CTX_HAPI," OVID_in   = %u",profile->outer_vlan_lookup);
+  PT_LOG_TRACE(LOG_CTX_HAPI," OVID_int  = %u",profile->outer_vlan_ingress);
+  PT_LOG_TRACE(LOG_CTX_HAPI," OVID_out  = %u",profile->outer_vlan_egress);
+  PT_LOG_TRACE(LOG_CTX_HAPI," IVID_in   = %u",profile->inner_vlan_ingress);
+  PT_LOG_TRACE(LOG_CTX_HAPI," IVID_out  = %u",profile->inner_vlan_egress);
+  PT_LOG_TRACE(LOG_CTX_HAPI," DIP       = %u",profile->dst_ip);
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"Looking to profile to find a matched counter...");
+  PT_LOG_TRACE(LOG_CTX_HAPI,"Looking to profile to find a matched counter...");
   /* Search in database for an entry with the same profile inputs (Source interface, SVLAN and CVLAN) */
   counter = ptin_hapi_policy_find(usp, profile, L7_NULLPTR, cnt_db);
 
   if (counter!=L7_NULLPTR)
   {
-    LOG_TRACE(LOG_CTX_PTIN_HAPI,"Database entry found!");
+    PT_LOG_TRACE(LOG_CTX_HAPI,"Database entry found!");
   }
   else
   {
-    LOG_WARNING(LOG_CTX_PTIN_HAPI,"This counter does not exist");
+    PT_LOG_WARN(LOG_CTX_HAPI,"This counter does not exist");
     return L7_NOT_EXIST;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Going to read counter");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Going to read counter");
 
   /* Validate counter pointer */
   if (!FP_POLICY_VALID_PTR(counter,cnt_db))
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI,"Not valid counter");
+    PT_LOG_ERR(LOG_CTX_HAPI,"Not valid counter");
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"Database entry contents:");
-  LOG_TRACE(LOG_CTX_PTIN_HAPI," inUse     = %u",         counter->inUse);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI," ddUsp_src = {%d,%d,%d}", counter->ddUsp_src.unit,counter->ddUsp_src.slot,counter->ddUsp_src.port);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI," ddUsp_dst = {%d,%d,%d}", counter->ddUsp_dst.unit,counter->ddUsp_dst.slot,counter->ddUsp_dst.port);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_in   = %u",         counter->outer_vlan_lookup);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_int  = %u",         counter->outer_vlan_ingress);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_out  = %u",         counter->outer_vlan_egress);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI," IVID_in   = %u",         counter->inner_vlan_ingress);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI," IVID_out  = %u",         counter->inner_vlan_egress);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI," DID       = %u",         counter->dip);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI," policy_id = {%d,%d,%d}", counter->policy_id[0],counter->policy_id[1],counter->policy_id[2]);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI," rule_id   = {[%d,%d,%d,%d];[%d,%d,%d,%d];[%d,%d,%d,%d]}",
+  PT_LOG_TRACE(LOG_CTX_HAPI,"Database entry contents:");
+  PT_LOG_TRACE(LOG_CTX_HAPI," inUse     = %u",         counter->inUse);
+  PT_LOG_TRACE(LOG_CTX_HAPI," ddUsp_src = {%d,%d,%d}", counter->ddUsp_src.unit,counter->ddUsp_src.slot,counter->ddUsp_src.port);
+  PT_LOG_TRACE(LOG_CTX_HAPI," ddUsp_dst = {%d,%d,%d}", counter->ddUsp_dst.unit,counter->ddUsp_dst.slot,counter->ddUsp_dst.port);
+  PT_LOG_TRACE(LOG_CTX_HAPI," OVID_in   = %u",         counter->outer_vlan_lookup);
+  PT_LOG_TRACE(LOG_CTX_HAPI," OVID_int  = %u",         counter->outer_vlan_ingress);
+  PT_LOG_TRACE(LOG_CTX_HAPI," OVID_out  = %u",         counter->outer_vlan_egress);
+  PT_LOG_TRACE(LOG_CTX_HAPI," IVID_in   = %u",         counter->inner_vlan_ingress);
+  PT_LOG_TRACE(LOG_CTX_HAPI," IVID_out  = %u",         counter->inner_vlan_egress);
+  PT_LOG_TRACE(LOG_CTX_HAPI," DID       = %u",         counter->dip);
+  PT_LOG_TRACE(LOG_CTX_HAPI," policy_id = {%d,%d,%d}", counter->policy_id[0],counter->policy_id[1],counter->policy_id[2]);
+  PT_LOG_TRACE(LOG_CTX_HAPI," rule_id   = {[%d,%d,%d,%d];[%d,%d,%d,%d];[%d,%d,%d,%d]}",
             counter->rule_id[0][0],counter->rule_id[0][1],counter->rule_id[0][2],counter->rule_id[0][3],
             counter->rule_id[1][0],counter->rule_id[1][1],counter->rule_id[1][2],counter->rule_id[1][3],
             counter->rule_id[2][0],counter->rule_id[2][1],counter->rule_id[2][2],counter->rule_id[2][3]);
@@ -139,7 +139,7 @@ L7_RC_t hapi_ptin_fpCounters_get(DAPI_USP_t *usp, ptin_evcStats_counters_t *stat
   /* Counter not in use */
   if (!counter->inUse)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI,"Counter not in use");
+    PT_LOG_ERR(LOG_CTX_HAPI,"Counter not in use");
     return L7_NOT_EXIST;
   }
 
@@ -151,7 +151,7 @@ L7_RC_t hapi_ptin_fpCounters_get(DAPI_USP_t *usp, ptin_evcStats_counters_t *stat
     /* Validate policy id */
     if (counter->policy_id[stage]<=0)
     {
-      LOG_WARNING(LOG_CTX_PTIN_HAPI,"Policy not created for this counter (stage=%d)",stage);
+      PT_LOG_WARN(LOG_CTX_HAPI,"Policy not created for this counter (stage=%d)",stage);
       continue;
     }
 
@@ -160,7 +160,7 @@ L7_RC_t hapi_ptin_fpCounters_get(DAPI_USP_t *usp, ptin_evcStats_counters_t *stat
     {
       if ((rc=hapiBroadPolicyStatsGet(counter->policy_id[stage],counter->rule_id[stage][packet_type],&stat[packet_type]))!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error reading counters (type=%d)",packet_type);
+        PT_LOG_ERR(LOG_CTX_HAPI,"Error reading counters (type=%d)",packet_type);
         return L7_FAILURE;
       }
     }
@@ -186,11 +186,11 @@ L7_RC_t hapi_ptin_fpCounters_get(DAPI_USP_t *usp, ptin_evcStats_counters_t *stat
       stats->mask |= PTIN_EVCSTATS_COUNTERS_MASK_TX;
     }
 
-    LOG_TRACE(LOG_CTX_PTIN_HAPI, " Stage %s",(stage==BROAD_POLICY_STAGE_LOOKUP) ? "LOOKUP" : ((stage==BROAD_POLICY_STAGE_INGRESS) ? "INGRESS" : "EGRESS"));
-    LOG_TRACE(LOG_CTX_PTIN_HAPI, "  Unicast   = %u", (L7_uint32) stat[PTIN_PACKETS_TYPE_UNICAST  ].statMode.counter.count);
-    LOG_TRACE(LOG_CTX_PTIN_HAPI, "  Multicast = %u", (L7_uint32) stat[PTIN_PACKETS_TYPE_MULTICAST].statMode.counter.count);
-    LOG_TRACE(LOG_CTX_PTIN_HAPI, "  Broadcast = %u", (L7_uint32) stat[PTIN_PACKETS_TYPE_BROADCAST].statMode.counter.count);
-    LOG_TRACE(LOG_CTX_PTIN_HAPI, "  Dropped   = %u", (L7_uint32) stat[PTIN_PACKETS_TYPE_DROPPED  ].statMode.counter.count);
+    PT_LOG_TRACE(LOG_CTX_HAPI, " Stage %s",(stage==BROAD_POLICY_STAGE_LOOKUP) ? "LOOKUP" : ((stage==BROAD_POLICY_STAGE_INGRESS) ? "INGRESS" : "EGRESS"));
+    PT_LOG_TRACE(LOG_CTX_HAPI, "  Unicast   = %u", (L7_uint32) stat[PTIN_PACKETS_TYPE_UNICAST  ].statMode.counter.count);
+    PT_LOG_TRACE(LOG_CTX_HAPI, "  Multicast = %u", (L7_uint32) stat[PTIN_PACKETS_TYPE_MULTICAST].statMode.counter.count);
+    PT_LOG_TRACE(LOG_CTX_HAPI, "  Broadcast = %u", (L7_uint32) stat[PTIN_PACKETS_TYPE_BROADCAST].statMode.counter.count);
+    PT_LOG_TRACE(LOG_CTX_HAPI, "  Dropped   = %u", (L7_uint32) stat[PTIN_PACKETS_TYPE_DROPPED  ].statMode.counter.count);
   }
 
   return L7_SUCCESS;
@@ -224,24 +224,24 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
   L7_uint8            packets_type;
   BROAD_POLICY_STAGE_t  stage;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"Starting processing...");
+  PT_LOG_TRACE(LOG_CTX_HAPI,"Starting processing...");
 
   /* Validate arguments */
   if (profile==L7_NULLPTR)
   {
-    LOG_TRACE(LOG_CTX_PTIN_HAPI,"No provided profile!");
+    PT_LOG_TRACE(LOG_CTX_HAPI,"No provided profile!");
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"Profile contents:");
-  LOG_TRACE(LOG_CTX_PTIN_HAPI," ddUsp     = {%d,%d,%d}",usp->unit, usp->slot, usp->port);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_in   = %u",profile->outer_vlan_lookup);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_int  = %u",profile->outer_vlan_ingress);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_out  = %u",profile->outer_vlan_egress);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI," IVID_in   = %u",profile->inner_vlan_ingress);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI," IVID_out  = %u",profile->inner_vlan_egress);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI," DIP       = %u",profile->dst_ip);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"Profile contents:");
+  PT_LOG_TRACE(LOG_CTX_HAPI," ddUsp     = {%d,%d,%d}",usp->unit, usp->slot, usp->port);
+  PT_LOG_TRACE(LOG_CTX_HAPI," OVID_in   = %u",profile->outer_vlan_lookup);
+  PT_LOG_TRACE(LOG_CTX_HAPI," OVID_int  = %u",profile->outer_vlan_ingress);
+  PT_LOG_TRACE(LOG_CTX_HAPI," OVID_out  = %u",profile->outer_vlan_egress);
+  PT_LOG_TRACE(LOG_CTX_HAPI," IVID_in   = %u",profile->inner_vlan_ingress);
+  PT_LOG_TRACE(LOG_CTX_HAPI," IVID_out  = %u",profile->inner_vlan_egress);
+  PT_LOG_TRACE(LOG_CTX_HAPI," DIP       = %u",profile->dst_ip);
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"Validating profile inputs...");
+  PT_LOG_TRACE(LOG_CTX_HAPI,"Validating profile inputs...");
 
   /* If there is not enough input parameters, remove counter and leave */
   if ( ((usp->unit<0 && usp->slot<0 && usp->port<0) &&
@@ -249,7 +249,7 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
         (profile->outer_vlan_ingress==0 || profile->outer_vlan_ingress>=4096) &&
         (profile->inner_vlan_ingress==0 || profile->inner_vlan_ingress>=4096)) )
   {
-    LOG_TRACE(LOG_CTX_PTIN_HAPI,"Nothing to do");
+    PT_LOG_TRACE(LOG_CTX_HAPI,"Nothing to do");
     return L7_SUCCESS;
   }
 
@@ -257,23 +257,23 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
 
   /* If counter is not provided, try to find in database an entry with matching inputs of profile */
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"Counter ptr is null: Looking to profile to find a match counter...");
+  PT_LOG_TRACE(LOG_CTX_HAPI,"Counter ptr is null: Looking to profile to find a match counter...");
   /* Search in database for an entry with the same profile inputs (Source interface, SVLAN and CVLAN) */
   counter_ptr = ptin_hapi_policy_find(usp, profile, L7_NULLPTR, cnt_db);
 
   if (counter_ptr!=L7_NULLPTR)
   {
-    LOG_TRACE(LOG_CTX_PTIN_HAPI,"Database entry found!");
+    PT_LOG_TRACE(LOG_CTX_HAPI,"Database entry found!");
   }
   else
   {
-    LOG_TRACE(LOG_CTX_PTIN_HAPI,"Database entry not found!");
+    PT_LOG_TRACE(LOG_CTX_HAPI,"Database entry not found!");
   }
 
   /* If we are using a valid database entry, compare input parameters */
   if (counter_ptr!=L7_NULLPTR && counter_ptr->inUse)
   {
-    LOG_TRACE(LOG_CTX_PTIN_HAPI,"Policer_ptr is in use: comparing inputs...");
+    PT_LOG_TRACE(LOG_CTX_HAPI,"Policer_ptr is in use: comparing inputs...");
     /* If some input parameter is different, we have to destroy fp policy */
     if ( ( counter_ptr->ddUsp_src.unit      != usp->unit ) ||
          ( counter_ptr->ddUsp_src.slot      != usp->slot ) ||
@@ -285,22 +285,22 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
          ( counter_ptr->inner_vlan_egress   != profile->inner_vlan_egress  ) ||
          ( counter_ptr->dip                 != profile->dst_ip             ) )
     {
-      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Inputs are different... we have to destroy firstly the counter");
+      PT_LOG_TRACE(LOG_CTX_HAPI,"Inputs are different... we have to destroy firstly the counter");
       if (hapi_ptin_fpCounters_delete(usp, profile, dapi_g)==L7_SUCCESS)
       {
         counter_ptr = L7_NULLPTR;
-        LOG_TRACE(LOG_CTX_PTIN_HAPI,"Counter destroyed");
+        PT_LOG_TRACE(LOG_CTX_HAPI,"Counter destroyed");
       }
       else
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error destroying counter");
+        PT_LOG_ERR(LOG_CTX_HAPI,"Error destroying counter");
         return L7_FAILURE;
       }
     }
     /* If inputs are the same, there is no need for update */
     else
     {
-      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Inputs are the same... there is nothing to do");
+      PT_LOG_TRACE(LOG_CTX_HAPI,"Inputs are the same... there is nothing to do");
       return L7_SUCCESS;
     }
   }
@@ -309,13 +309,13 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
   /* If not found, we have an error */
   if (counter_ptr==L7_NULLPTR)
   {
-    LOG_TRACE(LOG_CTX_PTIN_HAPI,"Policer_ptr is null: Trying to find a free database entry...");
+    PT_LOG_TRACE(LOG_CTX_HAPI,"Policer_ptr is null: Trying to find a free database entry...");
     if ((counter_ptr=ptin_hapi_policy_find_free(cnt_db))==L7_NULLPTR)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI,"Free database entry not found... error!");
+      PT_LOG_ERR(LOG_CTX_HAPI,"Free database entry not found... error!");
       return L7_TABLE_IS_FULL;
     }
-    LOG_TRACE(LOG_CTX_PTIN_HAPI,"Free entry found!");
+    PT_LOG_TRACE(LOG_CTX_HAPI,"Free entry found!");
   }
 
   /* AT THIS POINT POLICER_PTR HAS A VALID ADDRESS */
@@ -334,11 +334,11 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
       (portDescriptor.bcm_port < 0 && portDescriptor.trunk_id < 0) ||
       (dapiPortPtr == L7_NULLPTR || hapiPortPtr == L7_NULLPTR))
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI,"Error acquiring interface descriptor!");
+    PT_LOG_ERR(LOG_CTX_HAPI,"Error acquiring interface descriptor!");
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"Configuring counter...");
+  PT_LOG_TRACE(LOG_CTX_HAPI,"Configuring counter...");
 
   /* AT THIS POINT ENTRY IN DATABASE MUST BE CONFIGURED IN HARDWARE (inUse==L7_FALSE) */
 
@@ -354,7 +354,7 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
       /* Check for conflicts */
       if (ptin_hapi_policy_check_conflicts(usp, profile, L7_NULLPTR, cnt_db, BROAD_POLICY_STAGE_LOOKUP) != L7_NULLPTR)
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI,"Counter already configured in conflict (at lookup stage)");
+        PT_LOG_ERR(LOG_CTX_HAPI,"Counter already configured in conflict (at lookup stage)");
         return L7_REQUEST_DENIED;
       }
 
@@ -372,7 +372,7 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
       /* Check for conflicts */
       if (ptin_hapi_policy_check_conflicts(usp, profile, L7_NULLPTR, cnt_db, BROAD_POLICY_STAGE_INGRESS) != L7_NULLPTR)
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI,"Counter already configured in conflict (at ingress stage)");
+        PT_LOG_ERR(LOG_CTX_HAPI,"Counter already configured in conflict (at ingress stage)");
         return L7_REQUEST_DENIED;
       }
 
@@ -390,7 +390,7 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
       /* Check for conflicts */
       if (ptin_hapi_policy_check_conflicts(usp, profile, L7_NULLPTR, cnt_db, BROAD_POLICY_STAGE_EGRESS) != L7_NULLPTR)
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI,"Counter already configured in conflict (at egress stage)");
+        PT_LOG_ERR(LOG_CTX_HAPI,"Counter already configured in conflict (at egress stage)");
         continue;
       }
 
@@ -415,19 +415,19 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
       policy_priority = BROAD_POLICY_RULE_PRIORITY_DEFAULT;
     }
 
-    LOG_TRACE(LOG_CTX_PTIN_HAPI,"policyType=%u",policyType);
+    PT_LOG_TRACE(LOG_CTX_HAPI,"policyType=%u",policyType);
 
     if ((result=hapiBroadPolicyCreate(policyType))!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error creating new policy");
+      PT_LOG_ERR(LOG_CTX_HAPI,"Error creating new policy");
       return result;
     }
-    LOG_TRACE(LOG_CTX_PTIN_HAPI,"New policy created!");
+    PT_LOG_TRACE(LOG_CTX_HAPI,"New policy created!");
 
     /* Set FP stage */
     if ((result=hapiBroadPolicyStageSet(stage))!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting stage %u",stage);
+      PT_LOG_ERR(LOG_CTX_HAPI,"Error setting stage %u",stage);
       return result;
     }
 
@@ -439,10 +439,10 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
       /* Creatre rule */
       if ((result=hapiBroadPolicyPriorityRuleAdd(&ruleId, policy_priority))!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyPriorityRuleAdd");
+        PT_LOG_ERR(LOG_CTX_HAPI,"Error with hapiBroadPolicyPriorityRuleAdd");
         break;
       }
-      LOG_TRACE(LOG_CTX_PTIN_HAPI,"New rule added!");
+      PT_LOG_TRACE(LOG_CTX_HAPI,"New rule added!");
 
       /* Initialize mask */
       memset(mask,0xff,sizeof(mask));
@@ -452,25 +452,25 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
       {
         if (portDescriptor.bcm_port>=0)
         {
-          LOG_TRACE(LOG_CTX_PTIN_HAPI,"value = %08x %08x",pbm.pbits[0],pbm.pbits[1]);
-          LOG_TRACE(LOG_CTX_PTIN_HAPI,"mask  = %08x %08x",pbm_mask.pbits[0],pbm_mask.pbits[1]);
+          PT_LOG_TRACE(LOG_CTX_HAPI,"value = %08x %08x",pbm.pbits[0],pbm.pbits[1]);
+          PT_LOG_TRACE(LOG_CTX_HAPI,"mask  = %08x %08x",pbm_mask.pbits[0],pbm_mask.pbits[1]);
 
           if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INPORTS, (L7_uint8 *)&pbm, (L7_uint8 *)&pbm_mask))!=L7_SUCCESS)
           {
-            LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(INPORTS)");
+            PT_LOG_ERR(LOG_CTX_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(INPORTS)");
             break;
           }
-          LOG_TRACE(LOG_CTX_PTIN_HAPI,"InPorts qualifier added");
+          PT_LOG_TRACE(LOG_CTX_HAPI,"InPorts qualifier added");
         }
         /* Trunk id field */
         else if (portDescriptor.trunk_id>=0)
         {
           if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_SRCTRUNK, (L7_uint8 *)&(portDescriptor.trunk_id), (L7_uint8 *) mask))!=L7_SUCCESS)
           {
-            LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(SRCTRUNK)");
+            PT_LOG_ERR(LOG_CTX_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(SRCTRUNK)");
             break;
           }
-          LOG_TRACE(LOG_CTX_PTIN_HAPI,"Source TrunkId qualifier added");
+          PT_LOG_TRACE(LOG_CTX_HAPI,"Source TrunkId qualifier added");
         }
       }
       else if (stage==BROAD_POLICY_STAGE_EGRESS)
@@ -485,10 +485,10 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
         {
           if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uint8 *)&profile->outer_vlan_lookup, (L7_uint8 *) mask))!=L7_SUCCESS)
           {
-            LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(OVID_in)");
+            PT_LOG_ERR(LOG_CTX_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(OVID_in)");
             break;
           }
-          LOG_TRACE(LOG_CTX_PTIN_HAPI,"OVID_in qualifier added");
+          PT_LOG_TRACE(LOG_CTX_HAPI,"OVID_in qualifier added");
         }
       }
       else if (stage==BROAD_POLICY_STAGE_INGRESS)
@@ -497,10 +497,10 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
         {
           if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uint8 *)&profile->outer_vlan_ingress, (L7_uint8 *) mask))!=L7_SUCCESS)
           {
-            LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(OVID_in)");
+            PT_LOG_ERR(LOG_CTX_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(OVID_in)");
             break;
           }
-          LOG_TRACE(LOG_CTX_PTIN_HAPI,"OVID_in qualifier added");
+          PT_LOG_TRACE(LOG_CTX_HAPI,"OVID_in qualifier added");
         }
       }
       else if (stage==BROAD_POLICY_STAGE_EGRESS)
@@ -509,10 +509,10 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
         {
           if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uint8 *)&profile->outer_vlan_egress, (L7_uint8 *) mask))!=L7_SUCCESS)
           {
-            LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(OVID_out)");
+            PT_LOG_ERR(LOG_CTX_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(OVID_out)");
             break;
           }
-          LOG_TRACE(LOG_CTX_PTIN_HAPI,"OVID_out qualifier added");
+          PT_LOG_TRACE(LOG_CTX_HAPI,"OVID_out qualifier added");
         }
       }
 
@@ -523,10 +523,10 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
         {
           if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IVID, (L7_uint8 *)&profile->inner_vlan_ingress, (L7_uint8 *) mask))!=L7_SUCCESS)
           {
-            LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(IVID_in)");
+            PT_LOG_ERR(LOG_CTX_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(IVID_in)");
             break;
           }
-          LOG_TRACE(LOG_CTX_PTIN_HAPI,"CVid_in qualifier added");
+          PT_LOG_TRACE(LOG_CTX_HAPI,"CVid_in qualifier added");
         }
       }
       else if (stage==BROAD_POLICY_STAGE_EGRESS)
@@ -535,10 +535,10 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
         {
           if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IVID, (L7_uint8 *)&profile->inner_vlan_egress, (L7_uint8 *) mask))!=L7_SUCCESS)
           {
-            LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(IVID_out)");
+            PT_LOG_ERR(LOG_CTX_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(IVID_out)");
             break;
           }
-          LOG_TRACE(LOG_CTX_PTIN_HAPI,"CVid_out qualifier added");
+          PT_LOG_TRACE(LOG_CTX_HAPI,"CVid_out qualifier added");
         }
       }
 
@@ -547,10 +547,10 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
       {
         if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DIP, (L7_uint8 *)&profile->dst_ip, (L7_uint8 *) mask))!=L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(IVID)");
+          PT_LOG_ERR(LOG_CTX_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(IVID)");
           break;
         }
-        LOG_TRACE(LOG_CTX_PTIN_HAPI,"CVid qualifier added");
+        PT_LOG_TRACE(LOG_CTX_HAPI,"CVid qualifier added");
       }
 
       drop_qualifier = 0x00;
@@ -590,23 +590,23 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
       /* Evaluate if MACDA rule was successfully added */
       if (result!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(MACDA)... packet_type=%u",packets_type);
+        PT_LOG_ERR(LOG_CTX_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(MACDA)... packet_type=%u",packets_type);
         break;
       }
-      LOG_TRACE(LOG_CTX_PTIN_HAPI,"MACDA %u qualifier added",packets_type);
+      PT_LOG_TRACE(LOG_CTX_HAPI,"MACDA %u qualifier added",packets_type);
 
       /* Drop Qualifier */
       mask[0]=0x01;
       if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DROP, (L7_uint8 *)&drop_qualifier, (L7_uint8 *) mask))!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(DROP)");
+        PT_LOG_ERR(LOG_CTX_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(DROP)");
         break;
       }
 
       /* Add counter */
       if (hapiBroadPolicyRuleCounterAdd(ruleId,BROAD_COUNT_PACKETS)!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleCounterAdd");
+        PT_LOG_ERR(LOG_CTX_HAPI,"Error with hapiBroadPolicyRuleCounterAdd");
         break;
       }
 
@@ -618,7 +618,7 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
     if (packets_type<PTIN_PACKETS_TYPE_MAX || result!=L7_SUCCESS)
     {
       hapiBroadPolicyCreateCancel();
-      LOG_ERR(LOG_CTX_PTIN_HAPI,"An error have ocurred");
+      PT_LOG_ERR(LOG_CTX_HAPI,"An error have ocurred");
       return result;
     }
 
@@ -626,23 +626,23 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
     if ((result=hapiBroadPolicyCommit(&policyId))!=L7_SUCCESS)
     {
       hapiBroadPolicyCreateCancel();
-      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyCommit (stage=%u)",stage);
+      PT_LOG_ERR(LOG_CTX_HAPI,"Error with hapiBroadPolicyCommit (stage=%u)",stage);
       /* Only return error, for ingress stage */
       if (stage != BROAD_POLICY_STAGE_EGRESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI,"Returning error %u (stage=%u)",result,stage);
+        PT_LOG_ERR(LOG_CTX_HAPI,"Returning error %u (stage=%u)",result,stage);
         return result;
       }
       /* For others, do nothing */
       else
       {
         policyId = 0;
-        LOG_WARNING(LOG_CTX_PTIN_HAPI,"Ignoring error %u (stage=%u)",result,stage);
+        PT_LOG_WARN(LOG_CTX_HAPI,"Ignoring error %u (stage=%u)",result,stage);
       }
     }
     else
     {
-      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Policy committed (stage=%u)",stage);
+      PT_LOG_TRACE(LOG_CTX_HAPI,"Policy committed (stage=%u)",stage);
     }
 
     /* Add physical ports for Lookup/Egress rules */
@@ -662,7 +662,7 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
           if (hapiBroadPolicyApplyToIface(policyId, hapiPortPtr->bcmx_lport) != L7_SUCCESS)
           {
             hapiBroadPolicyDelete(policyId);
-            LOG_ERR(LOG_CTX_PTIN_HAPI,"Error applying interface usp={%d,%d,%d}/bcm_port %u!", usp->unit,usp->slot,usp->port, hapiPortPtr->bcm_port);
+            PT_LOG_ERR(LOG_CTX_HAPI,"Error applying interface usp={%d,%d,%d}/bcm_port %u!", usp->unit,usp->slot,usp->port, hapiPortPtr->bcm_port);
             return L7_FAILURE;
           }
         }
@@ -681,7 +681,7 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
               if (hapiBroadPolicyApplyToIface(policyId, hapiLagMemberPortPtr->bcmx_lport) != L7_SUCCESS)
               {
                 hapiBroadPolicyDelete(policyId);
-                LOG_ERR(LOG_CTX_PTIN_HAPI,"Error applying interface usp={%d,%d,%d}/bcm_port %u!", usp->unit,usp->slot,usp->port, hapiLagMemberPortPtr->bcm_port);
+                PT_LOG_ERR(LOG_CTX_HAPI,"Error applying interface usp={%d,%d,%d}/bcm_port %u!", usp->unit,usp->slot,usp->port, hapiLagMemberPortPtr->bcm_port);
                 return L7_FAILURE;
               }
             }
@@ -709,7 +709,7 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
   /* Search for the following empty entry in database */
   ptin_hapi_policy_find_free(cnt_db);
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"... Processing finished successfully!");
+  PT_LOG_TRACE(LOG_CTX_HAPI,"... Processing finished successfully!");
 
   /* Success */
   return L7_SUCCESS;
@@ -729,42 +729,42 @@ L7_RC_t hapi_ptin_fpCounters_delete(DAPI_USP_t *usp, ptin_evcStats_profile_t *pr
   L7_int stage;
   ptin_evcStats_policy_t *counter;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"Looking to profile to find a matched counter...");
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"Profile contents:");
-  LOG_TRACE(LOG_CTX_PTIN_HAPI," ddUsp     = {%d,%d,%d}",usp->unit, usp->slot, usp->port);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_in   = %u",profile->outer_vlan_lookup);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_int  = %u",profile->outer_vlan_ingress);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_out  = %u",profile->outer_vlan_egress);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI," IVID_in   = %u",profile->inner_vlan_ingress);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI," IVID_out  = %u",profile->inner_vlan_egress);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI," DIP       = %u",profile->dst_ip);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"Looking to profile to find a matched counter...");
+  PT_LOG_TRACE(LOG_CTX_HAPI,"Profile contents:");
+  PT_LOG_TRACE(LOG_CTX_HAPI," ddUsp     = {%d,%d,%d}",usp->unit, usp->slot, usp->port);
+  PT_LOG_TRACE(LOG_CTX_HAPI," OVID_in   = %u",profile->outer_vlan_lookup);
+  PT_LOG_TRACE(LOG_CTX_HAPI," OVID_int  = %u",profile->outer_vlan_ingress);
+  PT_LOG_TRACE(LOG_CTX_HAPI," OVID_out  = %u",profile->outer_vlan_egress);
+  PT_LOG_TRACE(LOG_CTX_HAPI," IVID_in   = %u",profile->inner_vlan_ingress);
+  PT_LOG_TRACE(LOG_CTX_HAPI," IVID_out  = %u",profile->inner_vlan_egress);
+  PT_LOG_TRACE(LOG_CTX_HAPI," DIP       = %u",profile->dst_ip);
 
   /* Search in database for an entry with the same profile inputs (Source interface, SVLAN and CVLAN) */
   counter = ptin_hapi_policy_find(usp, profile, L7_NULLPTR, cnt_db);
 
   if (counter!=L7_NULLPTR)
   {
-    LOG_TRACE(LOG_CTX_PTIN_HAPI,"Database entry found!");
+    PT_LOG_TRACE(LOG_CTX_HAPI,"Database entry found!");
   }
   else
   {
-    LOG_WARNING(LOG_CTX_PTIN_HAPI,"This counter does not exist");
+    PT_LOG_WARN(LOG_CTX_HAPI,"This counter does not exist");
     return L7_SUCCESS;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"Going to destroy counter...");
+  PT_LOG_TRACE(LOG_CTX_HAPI,"Going to destroy counter...");
 
   /* Validate arguments */
   if (!FP_POLICY_VALID_PTR(counter,cnt_db))
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI,"Invalid counter element");
+    PT_LOG_ERR(LOG_CTX_HAPI,"Invalid counter element");
     return L7_FAILURE;
   }
 
   /* Is there need to destroy this counter? */
   if (!counter->inUse)
   {
-    LOG_WARNING(LOG_CTX_PTIN_HAPI,"This counter does not exist");
+    PT_LOG_WARN(LOG_CTX_HAPI,"This counter does not exist");
     return L7_SUCCESS;
   }
 
@@ -775,7 +775,7 @@ L7_RC_t hapi_ptin_fpCounters_delete(DAPI_USP_t *usp, ptin_evcStats_profile_t *pr
     {
       if (hapiBroadPolicyDelete(counter->policy_id[stage])!=L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error destroying policy (counterId=%u)",counter->policy_id[stage]);
+        PT_LOG_ERR(LOG_CTX_HAPI,"Error destroying policy (counterId=%u)",counter->policy_id[stage]);
         return L7_FAILURE;
       }
     }
@@ -784,7 +784,7 @@ L7_RC_t hapi_ptin_fpCounters_delete(DAPI_USP_t *usp, ptin_evcStats_profile_t *pr
   /* Clear element in database */
   ptin_hapi_policy_clear(counter,cnt_db);
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"Counter destroyed!");
+  PT_LOG_TRACE(LOG_CTX_HAPI,"Counter destroyed!");
 
   return L7_SUCCESS;
 }
@@ -805,18 +805,18 @@ L7_RC_t hapi_ptin_fpCounters_deleteAll(DAPI_USP_t *usp, ptin_evcStats_profile_t 
 
   if (usp != L7_NULLPTR)
   {
-    LOG_TRACE(LOG_CTX_PTIN_HAPI, " ddUsp     = {%d,%d,%d}", usp->unit, usp->slot, usp->port); 
+    PT_LOG_TRACE(LOG_CTX_HAPI, " ddUsp     = {%d,%d,%d}", usp->unit, usp->slot, usp->port); 
   }
   if (profile != L7_NULLPTR)
   {
-    LOG_TRACE(LOG_CTX_PTIN_HAPI,"Profile contents:");
-    LOG_TRACE(LOG_CTX_PTIN_HAPI," ptin_port = %u",profile->ptin_port);
-    LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_in   = %u",profile->outer_vlan_lookup);
-    LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_int  = %u",profile->outer_vlan_ingress);
-    LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_out  = %u",profile->outer_vlan_egress);
-    LOG_TRACE(LOG_CTX_PTIN_HAPI," IVID_in   = %u",profile->inner_vlan_ingress);
-    LOG_TRACE(LOG_CTX_PTIN_HAPI," IVID_out  = %u",profile->inner_vlan_egress);
-    LOG_TRACE(LOG_CTX_PTIN_HAPI," DIP       = %u",profile->dst_ip);
+    PT_LOG_TRACE(LOG_CTX_HAPI,"Profile contents:");
+    PT_LOG_TRACE(LOG_CTX_HAPI," ptin_port = %u",profile->ptin_port);
+    PT_LOG_TRACE(LOG_CTX_HAPI," OVID_in   = %u",profile->outer_vlan_lookup);
+    PT_LOG_TRACE(LOG_CTX_HAPI," OVID_int  = %u",profile->outer_vlan_ingress);
+    PT_LOG_TRACE(LOG_CTX_HAPI," OVID_out  = %u",profile->outer_vlan_egress);
+    PT_LOG_TRACE(LOG_CTX_HAPI," IVID_in   = %u",profile->inner_vlan_ingress);
+    PT_LOG_TRACE(LOG_CTX_HAPI," IVID_out  = %u",profile->inner_vlan_egress);
+    PT_LOG_TRACE(LOG_CTX_HAPI," DIP       = %u",profile->dst_ip);
   }
 
   /* Get first counter */
@@ -828,7 +828,7 @@ L7_RC_t hapi_ptin_fpCounters_deleteAll(DAPI_USP_t *usp, ptin_evcStats_profile_t 
     /* Validate arguments */
     if (!FP_POLICY_VALID_PTR(counter, cnt_db))
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI,"Invalid counter element");
+      PT_LOG_ERR(LOG_CTX_HAPI,"Invalid counter element");
       rc_global = L7_FAILURE;
       continue;
     }
@@ -844,7 +844,7 @@ L7_RC_t hapi_ptin_fpCounters_deleteAll(DAPI_USP_t *usp, ptin_evcStats_profile_t 
         /* USP matches? */
         if (usp->unit!=counter->ddUsp_src.unit || usp->slot!=counter->ddUsp_src.slot || usp->port!=counter->ddUsp_src.port)
         {
-          LOG_TRACE(LOG_CTX_PTIN_HAPI,"Different port");
+          PT_LOG_TRACE(LOG_CTX_HAPI,"Different port");
           continue;
         }
       }
@@ -863,26 +863,26 @@ L7_RC_t hapi_ptin_fpCounters_deleteAll(DAPI_USP_t *usp, ptin_evcStats_profile_t 
         if ((profile->outer_vlan_ingress >= 1 && profile->outer_vlan_ingress <= 4095) &&
             (profile->outer_vlan_ingress != counter->outer_vlan_ingress))
         {
-          LOG_TRACE(LOG_CTX_PTIN_HAPI,"Different internal vlan");
+          PT_LOG_TRACE(LOG_CTX_HAPI,"Different internal vlan");
           continue;
         }
         /* Inner VLAN matches? */
         if ((profile->inner_vlan_ingress >= 1 && profile->inner_vlan_ingress <= 4095) &&
             (profile->inner_vlan_ingress != counter->inner_vlan_ingress))
         {
-          LOG_TRACE(LOG_CTX_PTIN_HAPI,"Different inner vlan");
+          PT_LOG_TRACE(LOG_CTX_HAPI,"Different inner vlan");
           continue;
         }
         /* Destination IP address matches? */
         if ((profile->dst_ip != 0) &&
             (profile->dst_ip != counter->dip))
         {
-          LOG_TRACE(LOG_CTX_PTIN_HAPI,"Different DIP");
+          PT_LOG_TRACE(LOG_CTX_HAPI,"Different DIP");
           continue;
         }
       }
 
-      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Proceeding to deletion...");
+      PT_LOG_TRACE(LOG_CTX_HAPI,"Proceeding to deletion...");
 
       rc_counter = L7_SUCCESS;
 
@@ -896,7 +896,7 @@ L7_RC_t hapi_ptin_fpCounters_deleteAll(DAPI_USP_t *usp, ptin_evcStats_profile_t 
 
           if (rc != L7_SUCCESS)
           {
-            LOG_ERR(LOG_CTX_PTIN_HAPI,"Error destroying policy (counterId=%u): usp={%d,%d,%d}, OVLAN_in=%u, OVLAN_int=%u, IVLAN_in=%u",
+            PT_LOG_ERR(LOG_CTX_HAPI,"Error destroying policy (counterId=%u): usp={%d,%d,%d}, OVLAN_in=%u, OVLAN_int=%u, IVLAN_in=%u",
                     counter->policy_id[stage],
                     counter->ddUsp_src.unit, counter->ddUsp_src.slot, counter->ddUsp_src.port,
                     counter->outer_vlan_lookup, counter->outer_vlan_ingress, counter->inner_vlan_ingress);
@@ -909,7 +909,7 @@ L7_RC_t hapi_ptin_fpCounters_deleteAll(DAPI_USP_t *usp, ptin_evcStats_profile_t 
       /* If success, clear element in database */
       if (rc_counter == L7_SUCCESS)
       {
-        LOG_TRACE(LOG_CTX_PTIN_HAPI,"Policy destroyed: usp={%d,%d,%d}, OVLAN_in=%u, OVLAN_int=%u, IVLAN_in=%u",
+        PT_LOG_TRACE(LOG_CTX_HAPI,"Policy destroyed: usp={%d,%d,%d}, OVLAN_in=%u, OVLAN_int=%u, IVLAN_in=%u",
                   counter->ddUsp_src.unit, counter->ddUsp_src.slot, counter->ddUsp_src.port,
                   counter->outer_vlan_lookup, counter->outer_vlan_ingress, counter->inner_vlan_ingress);
         ptin_hapi_policy_clear(counter,cnt_db);
@@ -917,7 +917,7 @@ L7_RC_t hapi_ptin_fpCounters_deleteAll(DAPI_USP_t *usp, ptin_evcStats_profile_t 
     }
     else
     {
-      LOG_WARNING(LOG_CTX_PTIN_HAPI,"This counter does not exist");
+      PT_LOG_WARN(LOG_CTX_HAPI,"This counter does not exist");
     }
   }
 

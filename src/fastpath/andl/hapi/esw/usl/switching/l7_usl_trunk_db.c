@@ -1354,16 +1354,16 @@ int usl_trunk_hw_id_allocate(L7_uint32 appId, bcm_trunk_t *tid)
       {
         pUslTrunkHwIdList[*tid].used = L7_TRUE;    
         //  *tid = idx;
-        LOG_DEBUG(LOG_CTX_PTIN_TRUNKS, "Suggested Trunk ID# %d is free", (int)*tid);
+        PT_LOG_DEBUG(LOG_CTX_TRUNKS, "Suggested Trunk ID# %d is free", (int)*tid);
         rv = BCM_E_NONE;
         break;
       }
-      LOG_CRITICAL(LOG_CTX_PTIN_TRUNKS, "Suggested Trunk ID# %d is NOT FREE!", (int)*tid);
+      PT_LOG_CRITIC(LOG_CTX_TRUNKS, "Suggested Trunk ID# %d is NOT FREE!", (int)*tid);
     }
     else
     {
       *tid = BCM_TRUNK_INVALID;
-      LOG_ERR(LOG_CTX_PTIN_TRUNKS, "Invalid trunk id");
+      PT_LOG_ERR(LOG_CTX_TRUNKS, "Invalid trunk id");
     }
     /* PTin end */
     
@@ -1376,7 +1376,7 @@ int usl_trunk_hw_id_allocate(L7_uint32 appId, bcm_trunk_t *tid)
       {
         pUslTrunkHwIdList[idx].used = L7_TRUE;    
         *tid = idx;
-        LOG_DEBUG(LOG_CTX_PTIN_TRUNKS, "Allocating a new Trunk ID# %d", (int)*tid);
+        PT_LOG_DEBUG(LOG_CTX_TRUNKS, "Allocating a new Trunk ID# %d", (int)*tid);
         rv = BCM_E_NONE;
         break;
       }

@@ -78,7 +78,7 @@ L7_RC_t ptin_acl_init(void)
 
   if (sysNetRegisterPduReceive(&snEntry) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, "Failure on sysNetRegisterPduReceive(ptinPacketCapture)");
+    PT_LOG_ERR(LOG_CTX_API, "Failure on sysNetRegisterPduReceive(ptinPacketCapture)");
     return L7_FAILURE;
   }
 
@@ -106,7 +106,7 @@ L7_RC_t ptin_acl_deinit(void)
 
   if (sysNetDeregisterPduReceive(&snEntry) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, "Failure on sysNetDeregisterPduReceive(ptinPacketCapture)");
+    PT_LOG_ERR(LOG_CTX_API, "Failure on sysNetDeregisterPduReceive(ptinPacketCapture)");
     return L7_FAILURE;
   }
 
@@ -133,7 +133,7 @@ void  ptin_aclIpClean(L7_BOOL isAclAdded, L7_uint32 mngAclId, L7_uint32 mngRuleI
      
   if (isAclAdded == L7_FALSE)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Removing Rule ID %d on ACL ID %d", ptin_aclIpDb[mngAclId].aclRuleNum[mngRuleId], ptin_aclIpDb[mngAclId].aclId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Removing Rule ID %d on ACL ID %d", ptin_aclIpDb[mngAclId].aclRuleNum[mngRuleId], ptin_aclIpDb[mngAclId].aclId);
     rc = usmDbQosAclRuleRemove(unit, ptin_aclIpDb[mngAclId].aclId, ptin_aclIpDb[mngAclId].aclRuleNum[mngRuleId]);
     ptin_aclIpDb[mngAclId].aclRuleCount--;
 
@@ -146,7 +146,7 @@ void  ptin_aclIpClean(L7_BOOL isAclAdded, L7_uint32 mngAclId, L7_uint32 mngRuleI
 
   if (isAclAdded == L7_TRUE)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Removing ACL ID %d", ptin_aclIpDb[mngAclId].aclId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Removing ACL ID %d", ptin_aclIpDb[mngAclId].aclId);
 
     rc = usmDbQosAclDelete(unit, ptin_aclIpDb[mngAclId].aclId);
 
@@ -196,7 +196,7 @@ void  ptin_aclIpv6Clean(L7_BOOL isAclAdded, L7_uint32 mngAclId, L7_uint32 mngRul
 
   if( isAclAdded == L7_FALSE)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Removing Rule ID %d on ACL ID %d", ptin_aclIpv6Db[mngAclId].aclRuleNum[mngRuleId], ptin_aclIpv6Db[mngAclId].aclId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Removing Rule ID %d on ACL ID %d", ptin_aclIpv6Db[mngAclId].aclRuleNum[mngRuleId], ptin_aclIpv6Db[mngAclId].aclId);
     rc = usmDbQosAclRuleRemove(unit, ptin_aclIpv6Db[mngAclId].aclId, ptin_aclIpv6Db[mngAclId].aclRuleNum[mngRuleId]);
     ptin_aclIpv6Db[mngAclId].aclRuleCount--;
 
@@ -209,7 +209,7 @@ void  ptin_aclIpv6Clean(L7_BOOL isAclAdded, L7_uint32 mngAclId, L7_uint32 mngRul
 
   if( isAclAdded == L7_TRUE)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Removing ACL ID %d", ptin_aclIpv6Db[mngAclId].aclId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Removing ACL ID %d", ptin_aclIpv6Db[mngAclId].aclId);
     rc = usmDbQosAclDelete(unit, ptin_aclIpv6Db[mngAclId].aclId);
 
     ptin_aclIpv6Db[mngAclId].aclId = 0;
@@ -258,7 +258,7 @@ void ptin_aclMacClean(L7_BOOL isAclAdded, L7_uint32 mngAclId, L7_uint32 mngRuleI
 
   if (isAclAdded == L7_FALSE)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Removing Rule ID %d on ACL ID %d", ptin_aclMacDb[mngAclId].aclRuleNum[mngRuleId], ptin_aclMacDb[mngAclId].aclId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Removing Rule ID %d on ACL ID %d", ptin_aclMacDb[mngAclId].aclRuleNum[mngRuleId], ptin_aclMacDb[mngAclId].aclId);
     rc = usmDbQosAclMacRuleRemove(unit, ptin_aclMacDb[mngAclId].aclId, ptin_aclMacDb[mngAclId].aclRuleNum[mngRuleId]);
     ptin_aclMacDb[mngAclId].aclRuleCount--;
 
@@ -271,7 +271,7 @@ void ptin_aclMacClean(L7_BOOL isAclAdded, L7_uint32 mngAclId, L7_uint32 mngRuleI
 
   if (isAclAdded == L7_TRUE)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Removing ACL ID %d", ptin_aclMacDb[mngAclId].aclId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Removing ACL ID %d", ptin_aclMacDb[mngAclId].aclId);
     rc = usmDbQosAclMacDelete(unit, ptin_aclMacDb[mngAclId].aclId);
 
     ptin_aclMacDb[mngAclId].aclId = 0;
@@ -370,7 +370,7 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
   /* *********************** ACL_OPERATION_REMOVE *********************** */
   if (operation == ACL_OPERATION_REMOVE)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Removing MNG Rule ID %d on MNG ACL ID %d", msgAcl->aclRuleId, msgAcl->aclId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Removing MNG Rule ID %d on MNG ACL ID %d", msgAcl->aclRuleId, msgAcl->aclId);
 
     if ( (ptin_aclIpDb[msgAcl->aclId].aclId != 0) && (ptin_aclIpDb[msgAcl->aclId].aclRuleNum[msgAcl->aclRuleId] != 0) )
     {
@@ -378,7 +378,7 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
     }
     else
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Entry is empty");
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Entry is empty");
     }
 
     return L7_SUCCESS;
@@ -386,7 +386,7 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
 
 
   /* *********************** ACL_OPERATION_CREATE *********************** */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Applying Rule...");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Applying Rule...");
 
   if (msgAcl->action == ACL_ACTION_PERMIT)
   {
@@ -403,7 +403,7 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Invalid Action (%d)", msgAcl->action);
+    PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: Invalid Action (%d)", msgAcl->action);
     return L7_FAILURE;
   }
 
@@ -440,14 +440,14 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Invalid ACL Type (%d)", msgAcl->aclType);
+    PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: Invalid ACL Type (%d)", msgAcl->aclType);
     return L7_FAILURE;
   }
 
 
   if (msgAcl->aclRuleMask == ACL_IP_RULE_MASK_NONE)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Matching Every");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Matching Every");
     matchEvery = L7_TRUE;
   }
 
@@ -455,7 +455,7 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
   {
     if (!(msgAcl->aclRuleMask & ACL_IP_RULE_MASK_protocol))
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Assuming protocol is IP");
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Assuming protocol is IP");
       msgAcl->protocol = L7_ACL_PROTOCOL_IP;
     }
 
@@ -469,7 +469,7 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
         /* [0..255] */
         if ((protVal < L7_ACL_MIN_PROTOCOL_NUM) || (protVal > L7_ACL_MAX_PROTOCOL_NUM))
         {
-          LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Invalid Protocol Value [0..255] (%d)", protVal);
+          PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: Invalid Protocol Value [0..255] (%d)", protVal);
           return L7_FAILURE;
         }
 
@@ -486,7 +486,7 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
     {
       if (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_ACL_COMPONENT_ID, L7_ACL_RULE_MATCH_DSTIP_FEATURE_ID) == L7_FALSE)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: L7_ACL_RULE_MATCH_DSTIP_FEATURE_ID");
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: L7_ACL_RULE_MATCH_DSTIP_FEATURE_ID");
         return L7_FAILURE;
       }
       matchSrc = L7_TRUE;
@@ -494,7 +494,7 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
     else if ( (aclType == ACL_STANDARD) && !(msgAcl->aclRuleMask & ACL_IP_RULE_MASK_srcIpAddr) )
     {
       /* In Standard ACL Type, Src IP must be specified */
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: In Standard ACL Type, Src IP must be specified");
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: In Standard ACL Type, Src IP must be specified");
       return L7_FAILURE;
     }
 
@@ -504,12 +504,12 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
       {
         if (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_ACL_COMPONENT_ID, L7_ACL_RULE_MATCH_SUPPORTS_MASKING_FEATURE_ID) == L7_FALSE)
         {
-          LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: L7_ACL_RULE_MATCH_SUPPORTS_MASKING_FEATURE_ID");
+          PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: L7_ACL_RULE_MATCH_SUPPORTS_MASKING_FEATURE_ID");
           return L7_FAILURE;
         }        
       }
 
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Matching Src IP");
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Matching Src IP");
       memcpy(&srcIpAddr, &msgAcl->srcIpAddr, sizeof(srcIpAddr));
       memcpy(&srcIpMask, &msgAcl->srcIpMask, sizeof(srcIpMask));
     }
@@ -522,20 +522,20 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
     {
       if (msgAcl->srcStartPort == msgAcl->srcEndPort)
       {
-        LOG_DEBUG(LOG_CTX_PTIN_MSG, "Matching Src L4 Port");
+        PT_LOG_DEBUG(LOG_CTX_MSG, "Matching Src L4 Port");
 
         srcPortValue = msgAcl->srcStartPort;
 
         if(srcPortValue < L7_ACL_MIN_L4PORT_NUM || srcPortValue > L7_ACL_MAX_L4PORT_NUM)
         {
           /* Invalid start SRCL4 port. <select SRCL4 port between 0 to 65535> */
-          LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Invalid start SRCL4 port. <select SRCL4 port between 0 to 65535>");
+          PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: Invalid start SRCL4 port. <select SRCL4 port between 0 to 65535>");
           return L7_FAILURE;
         }
       }
       else
       {
-        LOG_DEBUG(LOG_CTX_PTIN_MSG, "Matching Src L4 Port Range");
+        PT_LOG_DEBUG(LOG_CTX_MSG, "Matching Src L4 Port Range");
 
         srcStartPort = msgAcl->srcStartPort;
         srcEndPort = msgAcl->srcEndPort;
@@ -543,13 +543,13 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
         if(srcStartPort < L7_ACL_MIN_L4PORT_NUM || srcEndPort > L7_ACL_MAX_L4PORT_NUM)
         {
           /* Invalid start SRCL4 port. <select SRCL4 port between 0 to 65535> */
-          LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Invalid start SRCL4 port. <select SRCL4 port between 0 to 65535>");
+          PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: Invalid start SRCL4 port. <select SRCL4 port between 0 to 65535>");
           return L7_FAILURE;
         }
 
         if (srcEndPort < srcStartPort)
         {
-          LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Invalid start SRCL4 port. <select SRCL4 port between 0 to 65535>");
+          PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: Invalid start SRCL4 port. <select SRCL4 port between 0 to 65535>");
           return L7_FAILURE;
         }
       }
@@ -569,7 +569,7 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
 
     if (matchEvery == L7_FALSE && matchDst == L7_FALSE && usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_ACL_COMPONENT_ID, L7_ACL_RULE_MATCH_DSTIP_FEATURE_ID) == L7_TRUE)
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Matching Dst IP");
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Matching Dst IP");
 
       memcpy(&dstIp, &msgAcl->dstIpAddr, sizeof(dstIp));
       memcpy(&dstIpMask, &msgAcl->dstIpMask, sizeof(dstIpMask));
@@ -581,20 +581,20 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
     {
       if (msgAcl->dstStartPort == msgAcl->dstEndPort)
       {
-        LOG_DEBUG(LOG_CTX_PTIN_MSG, "Matching Dst L4 Port");
+        PT_LOG_DEBUG(LOG_CTX_MSG, "Matching Dst L4 Port");
 
         dstPortValue = msgAcl->dstStartPort;
 
         if(dstPortValue < L7_ACL_MIN_L4PORT_NUM || dstPortValue > L7_ACL_MAX_L4PORT_NUM)
         {
           /* Invalid start DSTL4 port. <select DSTL4 port between 0 to 65535> */
-          LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Invalid start DSTL4 port. <select DSTL4 port between 0 to 65535>");
+          PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: Invalid start DSTL4 port. <select DSTL4 port between 0 to 65535>");
           return L7_FAILURE;
         }
       }
       else
       {
-        LOG_DEBUG(LOG_CTX_PTIN_MSG, "Matching Dst L4 Port Range");
+        PT_LOG_DEBUG(LOG_CTX_MSG, "Matching Dst L4 Port Range");
 
         dstStartPort = msgAcl->dstStartPort;
         dstEndPort = msgAcl->dstEndPort;
@@ -602,13 +602,13 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
         if(dstStartPort < L7_ACL_MIN_L4PORT_NUM || dstEndPort > L7_ACL_MAX_L4PORT_NUM)
         {
           /* Invalid start DSTL4 port. <select DSTL4 port between 0 to 65535> */
-          LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Invalid start DSTL4 port. <select DSTL4 port between 0 to 65535>");
+          PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: Invalid start DSTL4 port. <select DSTL4 port between 0 to 65535>");
           return L7_FAILURE;
         }
 
         if (dstEndPort < dstStartPort)
         {
-          LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Invalid start DSTL4 port. <select DSTL4 port between 0 to 65535>");
+          PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: Invalid start DSTL4 port. <select DSTL4 port between 0 to 65535>");
           return L7_FAILURE;
         }
       }
@@ -620,7 +620,7 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
     /* Check PREC */
     if (msgAcl->aclRuleMask & ACL_IP_RULE_MASK_precVal)
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Matching PREC");
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Matching PREC");
 
       precVal = msgAcl->precVal;
       matchOther = L7_TRUE;
@@ -629,7 +629,7 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
     /* Check TOS */
     else if (msgAcl->aclRuleMask & ACL_IP_RULE_MASK_tosVal)
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Matching TOS");
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Matching TOS");
 
       tosVal = msgAcl->tosVal;
       matchOther = L7_TRUE;
@@ -645,14 +645,14 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
     /* Check DSCP */
     else if (msgAcl->aclRuleMask & ACL_IP_RULE_MASK_dscpVal)
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Matching DSCP");
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Matching DSCP");
 
       dscpVal = msgAcl->dscpVal;
 
       /* verify if the specified value is in between 0 to 63 */
       if ((dscpVal < L7_ACL_MIN_DSCP) || (dscpVal > L7_ACL_MAX_DSCP))
       {
-          LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: DSCP value must be between 0 to 63");
+          PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: DSCP value must be between 0 to 63");
           return L7_FAILURE;
       }
       else
@@ -676,36 +676,36 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
           break;
 
         case L7_FAILURE:
-          LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclCreate return L7_FAILURE");
+          PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclCreate return L7_FAILURE");
           return L7_FAILURE;
 
         case L7_TABLE_IS_FULL:
           usmDbQosAclMaxNumGet(unit, &maxAcls);           /* This function always returns L7_SUCCESS */
-          LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclCreate return L7_TABLE_IS_FULL (maxAcls=%d)", maxAcls);
+          PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclCreate return L7_TABLE_IS_FULL (maxAcls=%d)", maxAcls);
           return L7_FAILURE;
 
         case L7_ERROR:
-          LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclCreate return L7_ERROR");
+          PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclCreate return L7_ERROR");
           return L7_FAILURE;
 
         case L7_REQUEST_DENIED:
-          LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclCreate return L7_REQUEST_DENIED");
+          PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclCreate return L7_REQUEST_DENIED");
           return L7_FAILURE;
 
         default:
-          LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclCreate return (rc=%d)", rc);
+          PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclCreate return (rc=%d)", rc);
           return L7_FAILURE;
       }
 
       /* keep the association between MNG and usmDb ACL IDs */
       ptin_aclIpDb[msgAcl->aclId].aclId = aclId;
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Created New ACL: ID %d (MNG ID %d)", aclId, msgAcl->aclId);
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Created New ACL: ID %d (MNG ID %d)", aclId, msgAcl->aclId);
       isAclAdded = L7_TRUE;
     }
     else  /* ACL already exists */
     {
       aclId = ptin_aclIpDb[msgAcl->aclId].aclId;
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Configuring existing ACL: ID %d (MNG ID %d)", aclId, msgAcl->aclId);
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Configuring existing ACL: ID %d (MNG ID %d)", aclId, msgAcl->aclId);
     }
   }
   else
@@ -719,12 +719,12 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
         if (rc == L7_TABLE_IS_FULL)
         {
           (void)usmDbQosAclMaxNumGet(unit, &maxAcls);           /* This function always returns L7_SUCCESS */
-          LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclNamedIndexNextFree return L7_TABLE_IS_FULL (maxAcls=%d)", maxAcls);
+          PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclNamedIndexNextFree return L7_TABLE_IS_FULL (maxAcls=%d)", maxAcls);
           return L7_FAILURE;
         }
         else
         {
-          LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclNamedIndexNextFree return (rc=%d)", rc);
+          PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclNamedIndexNextFree return (rc=%d)", rc);
           return L7_FAILURE;
         }
       }
@@ -737,27 +737,27 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
 
         case L7_TABLE_IS_FULL:
           usmDbQosAclMaxNumGet(unit, &maxAcls);           /* This function always returns L7_SUCCESS */
-          LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclCreate return L7_TABLE_IS_FULL (maxAcls=%d)", maxAcls);
+          PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclCreate return L7_TABLE_IS_FULL (maxAcls=%d)", maxAcls);
           return L7_FAILURE;
 
         case L7_REQUEST_DENIED:
-          LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclCreate return L7_REQUEST_DENIED");
+          PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclCreate return L7_REQUEST_DENIED");
           return L7_FAILURE;
 
         default:
-          LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclCreate return (rc=%d)", rc);
+          PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclCreate return (rc=%d)", rc);
           return L7_FAILURE;
       }
 
       /* keep the association between MNG and usmDb ACL IDs */
       ptin_aclIpDb[msgAcl->aclId].aclId = aclId;
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Created New ACL: ID %d (MNG ID %d)", aclId, msgAcl->aclId);
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Created New ACL: ID %d (MNG ID %d)", aclId, msgAcl->aclId);
       isAclAdded = L7_TRUE;
 
       if (usmDbQosAclNameAdd(unit, aclId, accessListName) != L7_SUCCESS)
       {
         ptin_aclIpClean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclNameAdd return (rc=%d)", rc);
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclNameAdd return (rc=%d)", rc);
         return L7_FAILURE;
       }
     }
@@ -768,7 +768,7 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
   if (ptin_aclIpDb[msgAcl->aclId].aclRuleNum[msgAcl->aclRuleId] != 0)
   {
     aclRuleNum = ptin_aclIpDb[msgAcl->aclId].aclRuleNum[msgAcl->aclRuleId];
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Configuring existing Rule ID %d (MNG ID %d) on ACL ID %d (MNG ID %d)", aclRuleNum, msgAcl->aclRuleId, aclId, msgAcl->aclId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Configuring existing Rule ID %d (MNG ID %d) on ACL ID %d (MNG ID %d)", aclRuleNum, msgAcl->aclRuleId, aclId, msgAcl->aclId);
   }
   /* Get the new rule number */
   else
@@ -787,14 +787,14 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
     }
     if (aclRuleNum > L7_ACL_MAX_RULE_NUM)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: aclRuleNum > L7_ACL_MAX_RULE_NUM");
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: aclRuleNum > L7_ACL_MAX_RULE_NUM");
       return L7_FAILURE;
     }
 
     /* keep the association between MNG and usmDb Rule IDs */
     ptin_aclIpDb[msgAcl->aclId].aclRuleNum[msgAcl->aclRuleId] = aclRuleNum;
     ptin_aclIpDb[msgAcl->aclId].aclRuleCount++;
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Created New Rule ID %d (MNG ID %d) on ACL ID %d (MNG ID %d)", aclRuleNum, msgAcl->aclRuleId, aclId, msgAcl->aclId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Created New Rule ID %d (MNG ID %d) on ACL ID %d (MNG ID %d)", aclRuleNum, msgAcl->aclRuleId, aclId, msgAcl->aclId);
   }
 
   /* Add the rule to acl*/
@@ -805,23 +805,23 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
       break;
 
     case L7_FAILURE:
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleActionAdd return L7_FAILURE");
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclRuleActionAdd return L7_FAILURE");
       return L7_FAILURE;
 
     case L7_ERROR:
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleActionAdd return L7_ERROR");
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclRuleActionAdd return L7_ERROR");
       return L7_FAILURE;
 
     case L7_TABLE_IS_FULL:
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleActionAdd return L7_TABLE_IS_FULL");
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclRuleActionAdd return L7_TABLE_IS_FULL");
       return L7_FAILURE;
 
     case L7_REQUEST_DENIED:
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleActionAdd return L7_REQUEST_DENIED");
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclRuleActionAdd return L7_REQUEST_DENIED");
       return L7_FAILURE;
 
     default:
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleActionAdd return (rc=%d)", rc);
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclRuleActionAdd return (rc=%d)", rc);
       return L7_FAILURE;
   }
 
@@ -835,21 +835,21 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
     if (rc == L7_FAILURE)
     {
       ptin_aclIpClean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleEveryAdd return L7_FAILURE");
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclRuleEveryAdd return L7_FAILURE");
       return L7_FAILURE;
     }
 
     if (rc == L7_ERROR)
     {
       ptin_aclIpClean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleEveryAdd return L7_ERROR");
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclRuleEveryAdd return L7_ERROR");
       return L7_FAILURE;
     }
 
     if (rc == L7_REQUEST_DENIED)
     {
       ptin_aclIpClean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleEveryAdd return L7_REQUEST_DENIED");
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclRuleEveryAdd return L7_REQUEST_DENIED");
       return L7_FAILURE;
     }
 
@@ -860,7 +860,7 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
       if (rc != L7_SUCCESS)
       {
         ptin_aclIpClean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleMirrorIntfAdd return L7_REQUEST_DENIED");
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclRuleMirrorIntfAdd return L7_REQUEST_DENIED");
         return L7_FAILURE;
       }
     }
@@ -876,13 +876,13 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
         if (rc == L7_FAILURE)
         {
           ptin_aclIpClean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-          LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleSrcIpMaskAdd return L7_FAILURE");
+          PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclRuleSrcIpMaskAdd return L7_FAILURE");
           return L7_FAILURE;
         }
         else if (rc == L7_REQUEST_DENIED)
         {
           ptin_aclIpClean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-          LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleSrcIpMaskAdd return L7_REQUEST_DENIED");
+          PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclRuleSrcIpMaskAdd return L7_REQUEST_DENIED");
           return L7_FAILURE;
         }
       }
@@ -898,7 +898,7 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
         if (rc != L7_SUCCESS)
         {
           ptin_aclIpClean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-          LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleProtocolAdd return (rc=%d)", rc);
+          PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclRuleProtocolAdd return (rc=%d)", rc);
           return L7_FAILURE;
         }
       }
@@ -913,7 +913,7 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
       if (rc != L7_SUCCESS)
       {
         ptin_aclIpClean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleSrcL4Port(Range)Add return (rc=%d)", rc);
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclRuleSrcL4Port(Range)Add return (rc=%d)", rc);
         return L7_FAILURE;
       }
 
@@ -925,13 +925,13 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
           if (rc == L7_FAILURE)
           {
             ptin_aclIpClean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-            LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleDstIpMaskAdd return L7_FAILURE");
+            PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclRuleDstIpMaskAdd return L7_FAILURE");
             return L7_FAILURE;
           }
           else if (rc == L7_REQUEST_DENIED)
           {
             ptin_aclIpClean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-            LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleDstIpMaskAdd return L7_REQUEST_DENIED");
+            PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclRuleDstIpMaskAdd return L7_REQUEST_DENIED");
             return L7_FAILURE;
           }
         }
@@ -948,7 +948,7 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
       if (rc != L7_SUCCESS)
       {
         ptin_aclIpClean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleDstL4PortRangeAdd return (rc=%d)", rc);
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclRuleDstL4PortRangeAdd return (rc=%d)", rc);
         return L7_FAILURE;
       }
 
@@ -958,7 +958,7 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
         if (rc != L7_SUCCESS)
         {
           ptin_aclIpClean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-          LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleIPPrecedenceAdd return (rc=%d)", rc);
+          PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclRuleIPPrecedenceAdd return (rc=%d)", rc);
           return L7_FAILURE;
         }
       }
@@ -969,7 +969,7 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
         if (rc != L7_SUCCESS)
         {
           ptin_aclIpClean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-          LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleIPTosAdd return (rc=%d)", rc);
+          PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclRuleIPTosAdd return (rc=%d)", rc);
           return L7_FAILURE;
         }
       }
@@ -980,7 +980,7 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
         if (rc != L7_SUCCESS)
         {
           ptin_aclIpClean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-          LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleIPDscpAdd return (rc=%d)", rc);
+          PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclRuleIPDscpAdd return (rc=%d)", rc);
           return L7_FAILURE;
         }
       }
@@ -993,13 +993,13 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
       if (rc != L7_SUCCESS)
       {
         ptin_aclIpClean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleMirrorIntfAdd return (rc=%d)", rc);
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclRuleMirrorIntfAdd return (rc=%d)", rc);
         return L7_FAILURE;
       }
     }
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Rule Applied!");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Rule Applied!");
 
   return L7_SUCCESS;
 }
@@ -1038,12 +1038,12 @@ L7_RC_t ptin_aclIpApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
     /* get the vlan id specified by msg */
     vlanId = aclApply->vlanId[0];
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Applying ACL to VLAN ID %d", vlanId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Applying ACL to VLAN ID %d", vlanId);
 
     /* verify if the specified value is in valid range */
     if (usmDbQosAclIsValidVlan(unit, vlanId) == L7_FALSE)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: VLAN ID is invalid");
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: VLAN ID is invalid");
       return L7_FAILURE;
     }
   }
@@ -1051,15 +1051,15 @@ L7_RC_t ptin_aclIpApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
   {
     if (ptin_intf_port2intIfNum(aclApply->interface, &intIfNum) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Cannot convert port %u to intIfNum", aclApply->interface);
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: Cannot convert port %u to intIfNum", aclApply->interface);
       return L7_FAILURE;
     }
     if (ptin_intf_port2ptintf(aclApply->interface, &ptin_intf) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Cannot convert port %u to ptin_intf", aclApply->interface);
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: Cannot convert port %u to ptin_intf", aclApply->interface);
       return L7_FAILURE;
     }
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Applying ACL to Interface %d", aclApply->interface);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Applying ACL to Interface %d", aclApply->interface);
   }
 
 
@@ -1072,7 +1072,7 @@ L7_RC_t ptin_aclIpApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
     if ((usmDbQosAclNameToIndex(unit, aclName, &aclId) != L7_SUCCESS) ||
         (usmDbQosAclNamedIndexRangeCheck(unit, L7_ACL_TYPE_IP, aclId) != L7_SUCCESS))
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: ACL Name NOT found");
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: ACL Name NOT found");
       if (operation == ACL_OPERATION_CREATE)
       {
         return L7_FAILURE;
@@ -1093,14 +1093,14 @@ L7_RC_t ptin_aclIpApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
 
   if ((isNamedAcl == L7_FALSE) && ((aclId < L7_MIN_ACL_ID ) || (aclId > L7_MAX_ACL_ID)))
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: ACD ID out of range");
+    PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: ACD ID out of range");
     return L7_FAILURE;
   }
 
   rc = usmDbQosAclNumCheckValid(unit, aclId);
   if (rc == L7_FAILURE)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclNumCheckValid return (%d)", rc);
+    PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclNumCheckValid return (%d)", rc);
     return L7_FAILURE;
   }
 
@@ -1117,20 +1117,20 @@ L7_RC_t ptin_aclIpApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Invalid direction (%d)", aclApply->direction);
+    PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: Invalid direction (%d)", aclApply->direction);
     return L7_FAILURE;
   }
 
 
   if (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_ACL_COMPONENT_ID, feature) == L7_FALSE)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: L7_FLEX_QOS_ACL_COMPONENT_ID");
+    PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: L7_FLEX_QOS_ACL_COMPONENT_ID");
     return L7_FAILURE;
   }
 
   if (aclVlanIdGiven == L7_FALSE)
   {
-    LOG_TRACE(LOG_CTX_PTIN_MSG, "operation=%d intIfNum=%d direction=%d aclId=%u sequence=%d", operation, intIfNum, direction, aclId, sequence);
+    PT_LOG_TRACE(LOG_CTX_MSG, "operation=%d intIfNum=%d direction=%d aclId=%u sequence=%d", operation, intIfNum, direction, aclId, sequence);
 
     if (operation == ACL_OPERATION_CREATE)
     {
@@ -1141,21 +1141,21 @@ L7_RC_t ptin_aclIpApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
       rc = usmDbQosAclInterfaceDirectionRemove(unit, intIfNum, direction, aclId);
       if (rc != L7_SUCCESS)
       {
-        LOG_DEBUG(LOG_CTX_PTIN_MSG, "No ACL to be Unapplied");
+        PT_LOG_DEBUG(LOG_CTX_MSG, "No ACL to be Unapplied");
         return L7_SUCCESS;
       }
     }
 
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclInterfaceDirectionRemove return (rc=%d)", rc);
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclInterfaceDirectionRemove return (rc=%d)", rc);
       status = L7_FAILURE;
       return L7_FAILURE;
     }
   }
   else
   {
-    LOG_TRACE(LOG_CTX_PTIN_MSG, "operation=%d vlanId=%d direction=%d aclId=%u sequence=%d", operation, vlanId, direction, aclId, sequence);
+    PT_LOG_TRACE(LOG_CTX_MSG, "operation=%d vlanId=%d direction=%d aclId=%u sequence=%d", operation, vlanId, direction, aclId, sequence);
 
     #ifdef __VLAN_XLATE__
     L7_uint32 oldVlan = vlanId;
@@ -1165,11 +1165,11 @@ L7_RC_t ptin_aclIpApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
     rc = ptin_evc_intVlan_get_fromOVlan(&ptin_intf, oldVlan, 0, &newVlan);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE (rc=%d)", rc);
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE (rc=%d)", rc);
       return L7_FAILURE;
     }
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Translating VLAN ID %d to %d (rc=%d)", oldVlan, (L7_uint32) newVlan, rc);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Translating VLAN ID %d to %d (rc=%d)", oldVlan, (L7_uint32) newVlan, rc);
     vlanId = (L7_uint32) newVlan;
     #endif
 
@@ -1178,7 +1178,7 @@ L7_RC_t ptin_aclIpApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
     {
       if ((rc = usmDbQosAclVlanDirectionAdd(unit, vlanId, direction, aclId, sequence)) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclVlanDirectionAdd return (rc=%d)", rc);
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclVlanDirectionAdd return (rc=%d)", rc);
         return L7_FAILURE;
       }
     }
@@ -1186,7 +1186,7 @@ L7_RC_t ptin_aclIpApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
     {
       if ((rc = usmDbQosAclVlanDirectionRemove(unit, vlanId, direction, aclId)) != L7_SUCCESS)
       {
-        LOG_DEBUG(LOG_CTX_PTIN_MSG, "No ACL to be Unapplied");
+        PT_LOG_DEBUG(LOG_CTX_MSG, "No ACL to be Unapplied");
         return L7_SUCCESS;
       }
     }
@@ -1243,7 +1243,7 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
   /* *********************** ACL_OPERATION_REMOVE *********************** */
   if (operation == ACL_OPERATION_REMOVE)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Removing MNG Rule ID %d on MNG ACL ID %d", msgAcl->aclRuleId, msgAcl->aclId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Removing MNG Rule ID %d on MNG ACL ID %d", msgAcl->aclRuleId, msgAcl->aclId);
 
     if ((ptin_aclIpv6Db[msgAcl->aclId].aclId != 0) && (ptin_aclIpv6Db[msgAcl->aclId].aclRuleNum[msgAcl->aclRuleId] != 0))
     {
@@ -1251,7 +1251,7 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
     }
     else
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Entry is empty");
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Entry is empty");
     }
 
     return L7_SUCCESS;
@@ -1259,7 +1259,7 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
 
 
   /* *********************** ACL_OPERATION_CREATE *********************** */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Applying Rule...");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Applying Rule...");
 
   if (msgAcl->action == ACL_ACTION_PERMIT)
   {
@@ -1276,7 +1276,7 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Invalid Action (%d)", msgAcl->action);
+    PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: Invalid Action (%d)", msgAcl->action);
     return L7_FAILURE;
   }
 
@@ -1295,13 +1295,13 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Invalid ACL Type (%d)", msgAcl->aclType);
+    PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: Invalid ACL Type (%d)", msgAcl->aclType);
     return L7_FAILURE;
   }
 
   if (msgAcl->aclRuleMask == ACL_IPv6_RULE_MASK_NONE)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Matching Every");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Matching Every");
     matchEvery = L7_TRUE;
   }
 
@@ -1309,7 +1309,7 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
   {
     if (!(msgAcl->aclRuleMask & ACL_IPv6_RULE_MASK_protocol))
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Assuming protocol is IPv6");
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Assuming protocol is IPv6");
       msgAcl->protocol = L7_ACL_PROTOCOL_IP;
     }
 
@@ -1320,7 +1320,7 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
 
       if ((protVal < L7_ACL_MIN_PROTOCOL_NUM) || (protVal > L7_ACL_MAX_PROTOCOL_NUM))
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Invalid Protocol Value [0..255] (%d)", protVal);
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: Invalid Protocol Value [0..255] (%d)", protVal);
         return L7_FAILURE;
       }
 
@@ -1336,7 +1336,7 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
     {
       if (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_ACL_COMPONENT_ID, L7_ACL_RULE_MATCH_DSTIP_FEATURE_ID) != L7_TRUE)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: L7_ACL_RULE_MATCH_DSTIP_FEATURE_ID");
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: L7_ACL_RULE_MATCH_DSTIP_FEATURE_ID");
         return L7_FAILURE;
       }
       matchSrc = L7_TRUE;
@@ -1346,11 +1346,11 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
     {
       if (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_ACL_COMPONENT_ID, L7_ACL_RULE_MATCH_IPV6_DSTIP_FEATURE_ID) != L7_TRUE)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: L7_ACL_RULE_MATCH_IPV6_DSTIP_FEATURE_ID");
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: L7_ACL_RULE_MATCH_IPV6_DSTIP_FEATURE_ID");
         return L7_FAILURE;
       }
 
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Matching Src IP");
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Matching Src IP");
       memcpy(&srcIpv6Addr.in6Addr,      msgAcl->src6Addr, sizeof(msgAcl->src6Addr));
       memcpy(&srcIpv6Addr.in6PrefixLen, &msgAcl->src6PrefixLen, sizeof(msgAcl->src6PrefixLen));
     }
@@ -1360,7 +1360,7 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
   /* Check Src L4 Port */
   if (msgAcl->aclRuleMask & ACL_IPv6_RULE_MASK_srcStartPort)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Matching Src L4 Port");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Matching Src L4 Port");
 
     if (msgAcl->srcStartPort == msgAcl->srcEndPort)
     {
@@ -1369,13 +1369,13 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
       if (srcPortValue < L7_ACL_MIN_L4PORT_NUM || srcPortValue > L7_ACL_MAX_L4PORT_NUM)
       {
         /* Invalid start SRCL4 port. <select SRCL4 port between 0 to 65535> */
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Invalid start SRCL4 port. <select SRCL4 port between 0 to 65535>");
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: Invalid start SRCL4 port. <select SRCL4 port between 0 to 65535>");
         return L7_FAILURE;
       }
     }
     else
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Matching Src L4 Port Range");
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Matching Src L4 Port Range");
 
       srcStartPort = msgAcl->srcStartPort;
       srcEndPort = msgAcl->srcEndPort;
@@ -1383,13 +1383,13 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
       if (srcStartPort < L7_ACL_MIN_L4PORT_NUM || srcEndPort > L7_ACL_MAX_L4PORT_NUM)
       {
         /* Invalid start SRCL4 port. <select SRCL4 port between 0 to 65535> */
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Invalid start SRCL4 port. <select SRCL4 port between 0 to 65535>");
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: Invalid start SRCL4 port. <select SRCL4 port between 0 to 65535>");
         return L7_FAILURE;
       }
 
       if (srcEndPort < srcStartPort)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Invalid start SRCL4 port. <select SRCL4 port between 0 to 65535>");
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: Invalid start SRCL4 port. <select SRCL4 port between 0 to 65535>");
         return L7_FAILURE;
       }
     }
@@ -1411,7 +1411,7 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
   if (matchEvery == L7_FALSE && matchDst == L7_FALSE &&
       usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_ACL_COMPONENT_ID, L7_ACL_RULE_MATCH_IPV6_DSTIP_FEATURE_ID) == L7_TRUE)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Matching Dst IP");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Matching Dst IP");
 
     memcpy(&dstIpv6Addr.in6Addr, &msgAcl->dst6Addr, sizeof(msgAcl->dst6Addr));
     memcpy(&dstIpv6Addr.in6PrefixLen, &msgAcl->dst6PrefixLen, sizeof(msgAcl->dst6PrefixLen));
@@ -1421,7 +1421,7 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
   /* Check Dst L4 Port */
   if (msgAcl->aclRuleMask & ACL_IPv6_RULE_MASK_dstStartPort)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Matching Dst L4 Port");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Matching Dst L4 Port");
 
     if (msgAcl->dstStartPort == msgAcl->dstEndPort)
     {
@@ -1430,13 +1430,13 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
       if (dstPortValue < L7_ACL_MIN_L4PORT_NUM || dstPortValue > L7_ACL_MAX_L4PORT_NUM)
       {
         /* Invalid start DSTL4 port. <select DSTL4 port between 0 to 65535> */
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Invalid start DSTL4 port. <select DSTL4 port between 0 to 65535>");
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: Invalid start DSTL4 port. <select DSTL4 port between 0 to 65535>");
         return L7_FAILURE;
       }
     }
     else
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Matching Dst L4 Port Range");
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Matching Dst L4 Port Range");
 
       dstStartPort = msgAcl->dstStartPort;
       dstEndPort = msgAcl->dstEndPort;
@@ -1444,13 +1444,13 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
       if (dstStartPort < L7_ACL_MIN_L4PORT_NUM || dstEndPort > L7_ACL_MAX_L4PORT_NUM)
       {
         /* Invalid start DSTL4 port. <select DSTL4 port between 0 to 65535> */
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Invalid start DSTL4 port. <select DSTL4 port between 0 to 65535>");
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: Invalid start DSTL4 port. <select DSTL4 port between 0 to 65535>");
         return L7_FAILURE;
       }
 
       if (dstEndPort < dstStartPort)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Invalid start DSTL4 port. <select DSTL4 port between 0 to 65535>");
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: Invalid start DSTL4 port. <select DSTL4 port between 0 to 65535>");
         return L7_FAILURE;
       }
     }
@@ -1462,14 +1462,14 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
   /* dscp */
   if (msgAcl->aclRuleMask & ACL_IPv6_RULE_MASK_dscpVal)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Matching DSCP");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Matching DSCP");
 
     dscpVal = msgAcl->dscpVal;
 
     /* verify if the specified value is in between 0 to 63 */
     if ((dscpVal < L7_ACL_MIN_DSCP) || (dscpVal > L7_ACL_MAX_DSCP))
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: DSCP value must be between 0 to 63");
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: DSCP value must be between 0 to 63");
       return L7_FAILURE;
     }
     else
@@ -1481,14 +1481,14 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
   /* flow-label */
   else if (msgAcl->aclRuleMask & ACL_IPv6_RULE_MASK_flowLabelVal)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Matching Flow-label");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Matching Flow-label");
 
     flowLabelVal = msgAcl->flowLabelVal;
 
     /* verify if the specified value is in between 0 to 1048575 */
     if ((flowLabelVal < L7_ACL_MIN_FLOWLBL) || (flowLabelVal > L7_ACL_MAX_FLOWLBL))
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: flow-label value must be between 0 to 1048575");
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: flow-label value must be between 0 to 1048575");
       return L7_FAILURE;
     }
     else
@@ -1509,12 +1509,12 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
       if (rc == L7_TABLE_IS_FULL)
       {
         (void)usmDbQosAclMaxNumGet(unit, &maxAcls);           /* This function always returns L7_SUCCESS */
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclNamedIndexNextFree return L7_TABLE_IS_FULL (maxAcls=%d)", maxAcls);
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclNamedIndexNextFree return L7_TABLE_IS_FULL (maxAcls=%d)", maxAcls);
         return L7_FAILURE;
       }
       else
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclNamedIndexNextFree return (rc=%d)", rc);
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclNamedIndexNextFree return (rc=%d)", rc);
         return L7_FAILURE;
       }
     }
@@ -1527,27 +1527,27 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
 
       case L7_TABLE_IS_FULL:
         usmDbQosAclMaxNumGet(unit, &maxAcls);           /* This function always returns L7_SUCCESS */
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclCreate return L7_TABLE_IS_FULL (maxAcls=%d)", maxAcls);
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclCreate return L7_TABLE_IS_FULL (maxAcls=%d)", maxAcls);
         return L7_FAILURE;
 
       case L7_REQUEST_DENIED:
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclCreate return L7_REQUEST_DENIED");
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclCreate return L7_REQUEST_DENIED");
         return L7_FAILURE;
 
       default:
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclCreate return (rc=%d)", rc);
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclCreate return (rc=%d)", rc);
         return L7_FAILURE;
     }
 
     /* keep the association between MNG and usmDb ACL IDs */
     ptin_aclIpv6Db[msgAcl->aclId].aclId = aclId;
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Created New ACL: ID %d (MNG ID %d)", aclId, msgAcl->aclId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Created New ACL: ID %d (MNG ID %d)", aclId, msgAcl->aclId);
     isAclAdded = L7_TRUE;
 
     if (usmDbQosAclNameAdd(unit, aclId, accessListName) != L7_SUCCESS)
     {
       ptin_aclIpv6Clean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclNameAdd return (rc=%d)", rc);
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclNameAdd return (rc=%d)", rc);
       return L7_FAILURE;
     }
   }
@@ -1557,7 +1557,7 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
   if (ptin_aclIpv6Db[msgAcl->aclId].aclRuleNum[msgAcl->aclRuleId] != 0)
   {
     aclRuleNum = ptin_aclIpv6Db[msgAcl->aclId].aclRuleNum[msgAcl->aclRuleId]; 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Configuring existing Rule ID %d (MNG ID %d) on ACL ID %d (MNG ID %d)", aclRuleNum, msgAcl->aclRuleId, aclId, msgAcl->aclId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Configuring existing Rule ID %d (MNG ID %d) on ACL ID %d (MNG ID %d)", aclRuleNum, msgAcl->aclRuleId, aclId, msgAcl->aclId);
   }
   /* Get the new rule number */
   else {
@@ -1575,14 +1575,14 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
     }
     if (aclRuleNum > L7_ACL_MAX_RULE_NUM - 2)  /* account for 2 additional implied rules in IPv6 ACLs */
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: aclRuleNum > L7_ACL_MAX_RULE_NUM");
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: aclRuleNum > L7_ACL_MAX_RULE_NUM");
       return L7_FAILURE;
     }
 
     /* keep the association between MNG and usmDb Rule IDs */
     ptin_aclIpv6Db[msgAcl->aclId].aclRuleNum[msgAcl->aclRuleId] = aclRuleNum;
     ptin_aclIpv6Db[msgAcl->aclId].aclRuleCount++;
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Created New Rule ID %d (MNG ID %d) on ACL ID %d (MNG ID %d)", aclRuleNum, msgAcl->aclRuleId, aclId, msgAcl->aclId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Created New Rule ID %d (MNG ID %d) on ACL ID %d (MNG ID %d)", aclRuleNum, msgAcl->aclRuleId, aclId, msgAcl->aclId);
   }
 
   /* Add the rule to acl*/
@@ -1594,7 +1594,7 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
       break;
 
     default:
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleActionAdd return (rc=%d)", rc);
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclRuleActionAdd return (rc=%d)", rc);
       return L7_FAILURE;
   }
 
@@ -1607,7 +1607,7 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
     if (rc != L7_SUCCESS)
     {
       ptin_aclIpv6Clean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleEveryAdd return (rc=%d)", rc);
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclRuleEveryAdd return (rc=%d)", rc);
       return L7_FAILURE;
     }
   }
@@ -1621,7 +1621,7 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
         if (rc != L7_SUCCESS)
         {
           ptin_aclIpv6Clean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-          LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleSrcIpv6AddrAdd return (rc=%d)", rc);
+          PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclRuleSrcIpv6AddrAdd return (rc=%d)", rc);
           return L7_FAILURE;
         }
       }
@@ -1634,7 +1634,7 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
       if (rc != L7_SUCCESS)
       {
         ptin_aclIpv6Clean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleProtocolAdd return (rc=%d)", rc);
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclRuleProtocolAdd return (rc=%d)", rc);
         return L7_FAILURE;
       }
     }
@@ -1649,7 +1649,7 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
     if (rc != L7_SUCCESS)
     {
       ptin_aclIpv6Clean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleSrcL4Port(Range)Add return (rc=%d)", rc);
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclRuleSrcL4Port(Range)Add return (rc=%d)", rc);
       return L7_FAILURE;
     }
 
@@ -1661,7 +1661,7 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
         if (rc != L7_SUCCESS)
         {
           ptin_aclIpv6Clean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-          LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleDstIpv6AddrAdd return (rc=%d)", rc);
+          PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclRuleDstIpv6AddrAdd return (rc=%d)", rc);
           return L7_FAILURE;
         }
       }
@@ -1678,7 +1678,7 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
     if (rc != L7_SUCCESS)
     {
       ptin_aclIpv6Clean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleDstL4Port(Range)Add return (rc=%d)", rc);
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclRuleDstL4Port(Range)Add return (rc=%d)", rc);
       return L7_FAILURE;
     }
 
@@ -1688,7 +1688,7 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
       if (rc != L7_SUCCESS)
       {
         ptin_aclIpv6Clean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleIPDscpAdd return (rc=%d)", rc);
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclRuleIPDscpAdd return (rc=%d)", rc);
         return L7_FAILURE;
       }
     }
@@ -1699,13 +1699,13 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
       if (rc != L7_SUCCESS)
       {
         ptin_aclIpv6Clean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleIpv6FlowLabelAdd return (rc=%d)", rc);
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclRuleIpv6FlowLabelAdd return (rc=%d)", rc);
         return L7_FAILURE;
       }
     }
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Rule Applied!");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Rule Applied!");
 
   return L7_SUCCESS;
 }
@@ -1743,12 +1743,12 @@ L7_RC_t ptin_aclIpv6Apply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
     /* get the vlan id specified by msg */
     vlanId = aclApply->vlanId[0];
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Applying ACL to VLAN ID %d", vlanId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Applying ACL to VLAN ID %d", vlanId);
 
     /* verify if the specified value is in valid range */
     if (usmDbQosAclIsValidVlan(unit, vlanId) == L7_FALSE)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: VLAN ID is invalid");
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: VLAN ID is invalid");
       return L7_FAILURE;
     }
   }
@@ -1756,15 +1756,15 @@ L7_RC_t ptin_aclIpv6Apply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
   {
     if (ptin_intf_port2intIfNum(aclApply->interface, &intIfNum) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Cannot convert port %u to intIfNum", aclApply->interface);
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: Cannot convert port %u to intIfNum", aclApply->interface);
       return L7_FAILURE;
     }
     if (ptin_intf_port2ptintf(aclApply->interface, &ptin_intf) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Cannot convert port %u to ptin_intf", aclApply->interface);
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: Cannot convert port %u to ptin_intf", aclApply->interface);
       return L7_FAILURE;
     }
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Applying ACL to Interface %d", aclApply->interface);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Applying ACL to Interface %d", aclApply->interface);
   }
 
 
@@ -1777,7 +1777,7 @@ L7_RC_t ptin_aclIpv6Apply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
     if ((usmDbQosAclNameToIndex(unit, aclName, &aclId) != L7_SUCCESS) ||
         (usmDbQosAclNamedIndexRangeCheck(unit, L7_ACL_TYPE_IPV6, aclId) != L7_SUCCESS))
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: ACL Name NOT found");
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: ACL Name NOT found");
       if (operation == ACL_OPERATION_CREATE)
       {
         return L7_FAILURE;
@@ -1790,7 +1790,7 @@ L7_RC_t ptin_aclIpv6Apply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Invalid ACL Type");
+    PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: Invalid ACL Type");
     return L7_FAILURE;
   }
 
@@ -1798,7 +1798,7 @@ L7_RC_t ptin_aclIpv6Apply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
   rc = usmDbQosAclNumCheckValid(unit, aclId);
   if (rc == L7_FAILURE)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclNumCheckValid return (%d)", rc);
+    PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclNumCheckValid return (%d)", rc);
     return L7_FAILURE;
   }
 
@@ -1815,20 +1815,20 @@ L7_RC_t ptin_aclIpv6Apply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Ivalid direction (%d)", aclApply->direction);
+    PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: Ivalid direction (%d)", aclApply->direction);
     return L7_FAILURE;
   }
 
 
   if (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_ACL_COMPONENT_ID, feature) == L7_FALSE)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: L7_FLEX_QOS_ACL_COMPONENT_ID");
+    PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: L7_FLEX_QOS_ACL_COMPONENT_ID");
     return L7_FAILURE;
   }
 
   if (aclVlanIdGiven == L7_FALSE)
   {
-    LOG_TRACE(LOG_CTX_PTIN_MSG, "operation=%d intIfNum=%d direction=%d aclId=%u sequence=%d", operation, intIfNum, direction, aclId, sequence);
+    PT_LOG_TRACE(LOG_CTX_MSG, "operation=%d intIfNum=%d direction=%d aclId=%u sequence=%d", operation, intIfNum, direction, aclId, sequence);
 
     if (operation == ACL_OPERATION_CREATE)
     {
@@ -1839,14 +1839,14 @@ L7_RC_t ptin_aclIpv6Apply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
       rc = usmDbQosAclInterfaceDirectionRemove(unit, intIfNum, direction, aclId);
       if (rc != L7_SUCCESS)
       {
-        LOG_DEBUG(LOG_CTX_PTIN_MSG, "No ACL to be Unapplied");
+        PT_LOG_DEBUG(LOG_CTX_MSG, "No ACL to be Unapplied");
         return L7_SUCCESS;
       }
     }
 
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclInterfaceDirectionAdd return (rc=%d)", rc);
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclInterfaceDirectionAdd return (rc=%d)", rc);
       status = L7_FAILURE;
       return L7_FAILURE;
     }
@@ -1862,11 +1862,11 @@ L7_RC_t ptin_aclIpv6Apply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
     rc = ptin_evc_intVlan_get_fromOVlan(&ptin_intf, oldVlan, 0, &newVlan);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE (rc=%d)", rc);
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE (rc=%d)", rc);
       return L7_FAILURE;
     }
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Translating VLAN ID %d to %d (rc=%d)", oldVlan, (L7_uint32) newVlan, rc);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Translating VLAN ID %d to %d (rc=%d)", oldVlan, (L7_uint32) newVlan, rc);
     vlanId = (L7_uint32) newVlan;
     #endif
 
@@ -1875,7 +1875,7 @@ L7_RC_t ptin_aclIpv6Apply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
     {
       if ((rc = usmDbQosAclVlanDirectionAdd(unit, vlanId, direction, aclId, sequence)) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclVlanDirectionAdd return (rc=%d)", rc);
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclVlanDirectionAdd return (rc=%d)", rc);
         return L7_FAILURE;
       }
     }
@@ -1883,7 +1883,7 @@ L7_RC_t ptin_aclIpv6Apply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
     {
       if ((rc = usmDbQosAclVlanDirectionRemove(unit, vlanId, direction, aclId)) != L7_SUCCESS)
       {
-        LOG_DEBUG(LOG_CTX_PTIN_MSG, "No ACL to be Unapplied");
+        PT_LOG_DEBUG(LOG_CTX_MSG, "No ACL to be Unapplied");
         return L7_SUCCESS;
       }
     }
@@ -1935,7 +1935,7 @@ L7_RC_t ptin_aclMacRuleConfig(msg_mac_acl_t *msgAcl, ACL_OPERATION_t operation)
   /* *********************** ACL_OPERATION_REMOVE *********************** */
   if (operation == ACL_OPERATION_REMOVE)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Removing MNG Rule ID %d on MNG ACL ID %d", msgAcl->aclRuleId, msgAcl->aclId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Removing MNG Rule ID %d on MNG ACL ID %d", msgAcl->aclRuleId, msgAcl->aclId);
 
     if ((ptin_aclMacDb[msgAcl->aclId].aclId != 0) && (ptin_aclMacDb[msgAcl->aclId].aclRuleNum[msgAcl->aclRuleId] != 0))
     {
@@ -1943,7 +1943,7 @@ L7_RC_t ptin_aclMacRuleConfig(msg_mac_acl_t *msgAcl, ACL_OPERATION_t operation)
     }
     else
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Entry is empty");
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Entry is empty");
     }
 
     return L7_SUCCESS;
@@ -1951,7 +1951,7 @@ L7_RC_t ptin_aclMacRuleConfig(msg_mac_acl_t *msgAcl, ACL_OPERATION_t operation)
 
 
   /* *********************** ACL_OPERATION_CREATE *********************** */
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Applying Rule...");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Applying Rule...");
 
   if (msgAcl->action == ACL_ACTION_PERMIT)
   {
@@ -1968,7 +1968,7 @@ L7_RC_t ptin_aclMacRuleConfig(msg_mac_acl_t *msgAcl, ACL_OPERATION_t operation)
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Invalid Action (%d)", msgAcl->action);
+    PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: Invalid Action (%d)", msgAcl->action);
     return L7_FAILURE;
   }
 
@@ -1981,7 +1981,7 @@ L7_RC_t ptin_aclMacRuleConfig(msg_mac_acl_t *msgAcl, ACL_OPERATION_t operation)
 
   if (matchSrc == L7_FALSE && usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_ACL_COMPONENT_ID, L7_ACL_RULE_MATCH_SRCMAC_FEATURE_ID) == L7_TRUE)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Matching Src MAC");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Matching Src MAC");
     memcpy(srcMacAddr, msgAcl->srcMacAddr, sizeof(srcMacAddr));
     memcpy(srcMacMask, msgAcl->srcMacMask, sizeof(srcMacMask));
   }
@@ -1995,7 +1995,7 @@ L7_RC_t ptin_aclMacRuleConfig(msg_mac_acl_t *msgAcl, ACL_OPERATION_t operation)
 
   if (matchDst == L7_FALSE && usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_ACL_COMPONENT_ID, L7_ACL_RULE_MATCH_DSTMAC_FEATURE_ID) == L7_TRUE)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Matching Dst MAC");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Matching Dst MAC");
     memcpy(dstMacAddr, msgAcl->dstMacAddr, sizeof(dstMacAddr));
     memcpy(dstMacMask, msgAcl->dstMacMask, sizeof(dstMacMask));
   }
@@ -2004,7 +2004,7 @@ L7_RC_t ptin_aclMacRuleConfig(msg_mac_acl_t *msgAcl, ACL_OPERATION_t operation)
   /* Ethertype */
   if (msgAcl->aclRuleMask & ACL_MAC_RULE_MASK_eType)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Matching Ethertype");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Matching Ethertype");
     eTypeKeyVal = L7_QOS_ETYPE_KEYID_CUSTOM;
     eTypeCustVal = msgAcl->eType;
     matchOther = L7_TRUE;
@@ -2014,7 +2014,7 @@ L7_RC_t ptin_aclMacRuleConfig(msg_mac_acl_t *msgAcl, ACL_OPERATION_t operation)
   /* VLAN */
   if (msgAcl->aclRuleMask & ACL_MAC_RULE_MASK_startVlan)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Matching VLAN");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Matching VLAN");
     if (msgAcl->startVlan == msgAcl->endVlan)
     {
       vlanVal = msgAcl->startVlan;
@@ -2022,13 +2022,13 @@ L7_RC_t ptin_aclMacRuleConfig(msg_mac_acl_t *msgAcl, ACL_OPERATION_t operation)
       /* verify if the specified value is in between 1 to 4094 */
       if ((vlanVal < L7_ACL_MIN_VLAN_ID) || (vlanVal > L7_ACL_MAX_VLAN_ID))
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Invalid VLAN ID [1..4094] (%d)", vlanVal);
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: Invalid VLAN ID [1..4094] (%d)", vlanVal);
         return L7_FAILURE;
       }
     }
     else
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Matching VLAN Range");
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Matching VLAN Range");
 
       startVlanVal = msgAcl->startVlan;
       endVlanVal = msgAcl->endVlan;
@@ -2036,13 +2036,13 @@ L7_RC_t ptin_aclMacRuleConfig(msg_mac_acl_t *msgAcl, ACL_OPERATION_t operation)
       /* verify if the specified value is in between 1 to 4094 */
       if ((startVlanVal < L7_ACL_MIN_VLAN_ID) || (endVlanVal > L7_ACL_MAX_VLAN_ID))
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Invalid VLAN ID [1..4094] (%d:%d)", startVlanVal, endVlanVal);
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: Invalid VLAN ID [1..4094] (%d:%d)", startVlanVal, endVlanVal);
         return L7_FAILURE;
       }
 
       if (endVlanVal < startVlanVal)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Invalid VLAN ID [1..4094] (%d:%d)", startVlanVal, endVlanVal);
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: Invalid VLAN ID [1..4094] (%d:%d)", startVlanVal, endVlanVal);
         return L7_FAILURE;
       }
     }
@@ -2053,14 +2053,14 @@ L7_RC_t ptin_aclMacRuleConfig(msg_mac_acl_t *msgAcl, ACL_OPERATION_t operation)
   /* COS */
   if (msgAcl->aclRuleMask & ACL_MAC_RULE_MASK_cosVal)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Matching COS");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Matching COS");
 
     cosVal = msgAcl->cosVal;
 
     if ((cosVal < L7_ACL_MIN_COS) ||
         (cosVal > L7_ACL_MAX_COS))
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Invalid COS Value [0..7] (%d)", cosVal);
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: Invalid COS Value [0..7] (%d)", cosVal);
       return L7_FAILURE;
     }
     matchOther = L7_TRUE;
@@ -2080,12 +2080,12 @@ L7_RC_t ptin_aclMacRuleConfig(msg_mac_acl_t *msgAcl, ACL_OPERATION_t operation)
     {
       if (rc == L7_TABLE_IS_FULL)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclMacIndexNext return L7_TABLE_IS_FULL");
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclMacIndexNext return L7_TABLE_IS_FULL");
         return L7_FAILURE;
       }
       else
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclMacIndexNext return (rc=%d)", rc);
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclMacIndexNext return (rc=%d)", rc);
         return L7_FAILURE;
       }
     }
@@ -2097,27 +2097,27 @@ L7_RC_t ptin_aclMacRuleConfig(msg_mac_acl_t *msgAcl, ACL_OPERATION_t operation)
         break;
 
       case L7_TABLE_IS_FULL:
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclMacCreate return L7_TABLE_IS_FULL");
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclMacCreate return L7_TABLE_IS_FULL");
         return L7_FAILURE;
 
       case L7_REQUEST_DENIED:
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclMacCreate return L7_REQUEST_DENIED");
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclMacCreate return L7_REQUEST_DENIED");
         return L7_FAILURE;
 
       default:
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclMacCreate return (rc=%d)", rc);
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclMacCreate return (rc=%d)", rc);
         return L7_FAILURE;
     }
 
     /* keep the association between MNG and usmDb ACL IDs */
     ptin_aclMacDb[msgAcl->aclId].aclId = aclId;
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Created New ACL: ID %d (MNG ID %d)", aclId, msgAcl->aclId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Created New ACL: ID %d (MNG ID %d)", aclId, msgAcl->aclId);
     isAclAdded = L7_TRUE;
 
     if (usmDbQosAclMacNameAdd(unit, aclId, macAccessListName) != L7_SUCCESS)
     {
       ptin_aclMacClean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclMacNameAdd return (rc=%d)", rc);
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclMacNameAdd return (rc=%d)", rc);
       return L7_FAILURE;
     }
   }
@@ -2127,7 +2127,7 @@ L7_RC_t ptin_aclMacRuleConfig(msg_mac_acl_t *msgAcl, ACL_OPERATION_t operation)
   if ( ptin_aclMacDb[msgAcl->aclId].aclRuleNum[msgAcl->aclRuleId] != 0)
   {
     aclRuleNum = ptin_aclMacDb[msgAcl->aclId].aclRuleNum[msgAcl->aclRuleId]; 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Configuring existing Rule ID %d (MNG ID %d) on ACL ID %d (MNG ID %d)", aclRuleNum, msgAcl->aclRuleId, aclId, msgAcl->aclId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Configuring existing Rule ID %d (MNG ID %d) on ACL ID %d (MNG ID %d)", aclRuleNum, msgAcl->aclRuleId, aclId, msgAcl->aclId);
   }
   /* Get the new rule number */
   else {
@@ -2145,14 +2145,14 @@ L7_RC_t ptin_aclMacRuleConfig(msg_mac_acl_t *msgAcl, ACL_OPERATION_t operation)
     }
     if (aclRuleNum > L7_ACL_MAX_RULE_NUM)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: aclRuleNum > L7_ACL_MAX_RULE_NUM");
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: aclRuleNum > L7_ACL_MAX_RULE_NUM");
       return L7_FAILURE;
     }
 
     /* keep the association between MNG and usmDb Rule IDs */
     ptin_aclMacDb[msgAcl->aclId].aclRuleNum[msgAcl->aclRuleId] = aclRuleNum;
     ptin_aclMacDb[msgAcl->aclId].aclRuleCount++;
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Created New Rule ID %d (MNG ID %d) on ACL ID %d (MNG ID %d)", aclRuleNum, msgAcl->aclRuleId, aclId, msgAcl->aclId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Created New Rule ID %d (MNG ID %d) on ACL ID %d (MNG ID %d)", aclRuleNum, msgAcl->aclRuleId, aclId, msgAcl->aclId);
   }
   
 
@@ -2163,7 +2163,7 @@ L7_RC_t ptin_aclMacRuleConfig(msg_mac_acl_t *msgAcl, ACL_OPERATION_t operation)
     break;
 
   default:
-    LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclMacRuleActionAdd return (rc=%d)", rc);
+    PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclMacRuleActionAdd return (rc=%d)", rc);
     return L7_FAILURE;
   }
 
@@ -2171,26 +2171,26 @@ L7_RC_t ptin_aclMacRuleConfig(msg_mac_acl_t *msgAcl, ACL_OPERATION_t operation)
   /* Match Every */
   if (matchOther == L7_FALSE && matchSrc == L7_TRUE && matchDst == L7_TRUE)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Matching Every!");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Matching Every!");
     rc = usmDbQosAclMacRuleEveryAdd(unit, aclId, aclRuleNum, matchSrc);
     if (rc == L7_FAILURE)
     {
       ptin_aclMacClean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclMacRuleEveryAdd return L7_FAILURE");
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclMacRuleEveryAdd return L7_FAILURE");
       return L7_FAILURE;
     }
 
     if (rc == L7_ERROR)
     {
       ptin_aclMacClean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclMacRuleEveryAdd return L7_ERROR");
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclMacRuleEveryAdd return L7_ERROR");
       return L7_FAILURE;
     }
 
     if (rc == L7_REQUEST_DENIED)
     {
       ptin_aclMacClean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclMacRuleEveryAdd return L7_REQUEST_DENIED");
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclMacRuleEveryAdd return L7_REQUEST_DENIED");
       return L7_FAILURE;
     }
 
@@ -2201,7 +2201,7 @@ L7_RC_t ptin_aclMacRuleConfig(msg_mac_acl_t *msgAcl, ACL_OPERATION_t operation)
       if (rc != L7_SUCCESS)
       {
         ptin_aclMacClean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleMirrorIntfAdd return (rc=%d)", rc);
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclRuleMirrorIntfAdd return (rc=%d)", rc);
         return L7_FAILURE;
       }
     }
@@ -2214,13 +2214,13 @@ L7_RC_t ptin_aclMacRuleConfig(msg_mac_acl_t *msgAcl, ACL_OPERATION_t operation)
       if (rc == L7_FAILURE)
       {
         ptin_aclMacClean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclMacRuleSrcMacAdd return L7_FAILURE");
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclMacRuleSrcMacAdd return L7_FAILURE");
         return L7_FAILURE;
       }
       else if (rc == L7_REQUEST_DENIED)
       {
         ptin_aclMacClean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclMacRuleSrcMacAdd return L7_REQUEST_DENIED");
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclMacRuleSrcMacAdd return L7_REQUEST_DENIED");
         return L7_FAILURE;
       }
     }
@@ -2231,13 +2231,13 @@ L7_RC_t ptin_aclMacRuleConfig(msg_mac_acl_t *msgAcl, ACL_OPERATION_t operation)
       if (rc == L7_FAILURE)
       {
         ptin_aclMacClean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclMacRuleDstMacAdd return L7_FAILURE");
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclMacRuleDstMacAdd return L7_FAILURE");
         return L7_FAILURE;
       }
       else if (rc == L7_REQUEST_DENIED)
       {
         ptin_aclMacClean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclMacRuleDstMacAdd return L7_REQUEST_DENIED");
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclMacRuleDstMacAdd return L7_REQUEST_DENIED");
         return L7_FAILURE;
       }
     }
@@ -2249,7 +2249,7 @@ L7_RC_t ptin_aclMacRuleConfig(msg_mac_acl_t *msgAcl, ACL_OPERATION_t operation)
       if (rc != L7_SUCCESS)
       {
         ptin_aclMacClean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclMacRuleEtypeKeyAdd return (rc=%d)", rc);
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclMacRuleEtypeKeyAdd return (rc=%d)", rc);
         return L7_FAILURE;
       }
     }
@@ -2268,7 +2268,7 @@ L7_RC_t ptin_aclMacRuleConfig(msg_mac_acl_t *msgAcl, ACL_OPERATION_t operation)
     if (rc != L7_SUCCESS)
     {
       ptin_aclMacClean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclMacRuleVlanIdRangeAdd return (rc=%d)", rc);
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclMacRuleVlanIdRangeAdd return (rc=%d)", rc);
       return L7_FAILURE;
     }
 
@@ -2279,7 +2279,7 @@ L7_RC_t ptin_aclMacRuleConfig(msg_mac_acl_t *msgAcl, ACL_OPERATION_t operation)
       if (rc != L7_SUCCESS)
       {
         ptin_aclMacClean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclMacRuleCosAdd return (rc=%d)", rc);
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclMacRuleCosAdd return (rc=%d)", rc);
         return L7_FAILURE;
       }
     }
@@ -2291,13 +2291,13 @@ L7_RC_t ptin_aclMacRuleConfig(msg_mac_acl_t *msgAcl, ACL_OPERATION_t operation)
       if (rc != L7_SUCCESS)
       {
         ptin_aclMacClean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclRuleMirrorIntfAdd return (rc=%d)", rc);
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclRuleMirrorIntfAdd return (rc=%d)", rc);
         return L7_FAILURE;
       }
     }
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Rule Applied!");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Rule Applied!");
 
   return L7_SUCCESS;
 }
@@ -2334,12 +2334,12 @@ L7_RC_t ptin_aclMacApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
     /* get the vlan id specified by msg */
     vlanId = aclApply->vlanId[0];
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Applying ACL to VLAN ID %d", vlanId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Applying ACL to VLAN ID %d", vlanId);
 
     /* verify if the specified value is in valid range */
     if (usmDbQosAclIsValidVlan(unit, vlanId) == L7_FALSE)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: VLAN ID is invalid");
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: VLAN ID is invalid");
       return L7_FAILURE;
     }
   }
@@ -2347,15 +2347,15 @@ L7_RC_t ptin_aclMacApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
   {
     if (ptin_intf_port2intIfNum(aclApply->interface, &intIfNum) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Cannot convert port %u to intIfNum", aclApply->interface);
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: Cannot convert port %u to intIfNum", aclApply->interface);
       return L7_FAILURE;
     }
     if (ptin_intf_port2ptintf(aclApply->interface, &ptin_intf) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Cannot convert port %u to ptin_intf", aclApply->interface);
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: Cannot convert port %u to ptin_intf", aclApply->interface);
       return L7_FAILURE;
     }
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Applying ACL to Interface %d", aclApply->interface);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Applying ACL to Interface %d", aclApply->interface);
   }
 
 
@@ -2363,7 +2363,7 @@ L7_RC_t ptin_aclMacApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
 
   if (usmDbQosAclMacNameToIndex(0, macAclName, &aclId) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: ACL Name NOT found");
+    PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: ACL Name NOT found");
     if (operation == ACL_OPERATION_CREATE)
     {
       return L7_FAILURE;
@@ -2376,7 +2376,7 @@ L7_RC_t ptin_aclMacApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
 
   if (usmDbQosAclMacIndexCheckValid(0, aclId) == L7_ERROR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: ACD ID Invalid");
+    PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: ACD ID Invalid");
     return L7_FAILURE;
   }
 
@@ -2393,21 +2393,21 @@ L7_RC_t ptin_aclMacApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Ivalid direction (%d)", aclApply->direction);
+    PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: Ivalid direction (%d)", aclApply->direction);
     return L7_FAILURE;
   }
 
 
   if (usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_ACL_COMPONENT_ID, feature) == L7_FALSE)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: L7_FLEX_QOS_ACL_COMPONENT_ID");
+    PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: L7_FLEX_QOS_ACL_COMPONENT_ID");
     return L7_FAILURE;
   }
 
 
   if (aclVlanIdGiven == L7_FALSE)
   {
-    LOG_TRACE(LOG_CTX_PTIN_MSG, "operation=%d intIfNum=%d direction=%d aclId=%u sequence=%d", operation, intIfNum, direction, aclId, sequence);
+    PT_LOG_TRACE(LOG_CTX_MSG, "operation=%d intIfNum=%d direction=%d aclId=%u sequence=%d", operation, intIfNum, direction, aclId, sequence);
 
     if (operation == ACL_OPERATION_CREATE)
     {
@@ -2426,7 +2426,7 @@ L7_RC_t ptin_aclMacApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
           rc = aclMacRuleVlanIdGet(aclId, i, &oldVlan);
           if (rc != L7_SUCCESS)
           {
-            LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE (rc=%d)", rc);
+            PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE (rc=%d)", rc);
           }
           else if (oldVlan != 0)
           {
@@ -2434,7 +2434,7 @@ L7_RC_t ptin_aclMacApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
             rc = ptin_evc_intVlan_get_fromOVlan(&ptin_intf, oldVlan, 0, &newVlan);
             if (rc == L7_SUCCESS)
             {
-              LOG_DEBUG(LOG_CTX_PTIN_MSG, "Rule %d: Translating VLAN ID %d to %d (rc=%d)", i, oldVlan, (L7_uint32) newVlan, rc);
+              PT_LOG_DEBUG(LOG_CTX_MSG, "Rule %d: Translating VLAN ID %d to %d (rc=%d)", i, oldVlan, (L7_uint32) newVlan, rc);
 
               aclMacRuleVlanIdAdd(aclId, i, (L7_uint32) newVlan);
 
@@ -2452,14 +2452,14 @@ L7_RC_t ptin_aclMacApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
       rc = usmDbQosAclMacInterfaceDirectionRemove(unit, intIfNum, direction, aclId);
       if (rc != L7_SUCCESS)
       {
-        LOG_DEBUG(LOG_CTX_PTIN_MSG, "No ACL to be Unapplied");
+        PT_LOG_DEBUG(LOG_CTX_MSG, "No ACL to be Unapplied");
         return L7_SUCCESS;
       }
     }
 
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclMacInterfaceDirectionAdd return (rc=%d)", rc);
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclMacInterfaceDirectionAdd return (rc=%d)", rc);
       status = L7_FAILURE;
       /* Able to remove or add an interface, so set flag to FALSE */
       noMacAclName = L7_TRUE;
@@ -2476,11 +2476,11 @@ L7_RC_t ptin_aclMacApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
     rc = ptin_evc_intVlan_get_fromOVlan(&ptin_intf, oldVlan, 0, &newVlan);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE (rc=%d)", rc);
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE (rc=%d)", rc);
       return L7_FAILURE;
     }
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Translating VLAN ID %d to %d (rc=%d)", oldVlan, (L7_uint32) newVlan, rc);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Translating VLAN ID %d to %d (rc=%d)", oldVlan, (L7_uint32) newVlan, rc);
     vlanId = (L7_uint32) newVlan;
     #endif
 
@@ -2488,7 +2488,7 @@ L7_RC_t ptin_aclMacApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
     {
       if ((rc = usmDbQosAclMacVlanDirectionAdd(unit, vlanId, direction, aclId, sequence)) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: usmDbQosAclMacVlanDirectionAdd return (rc=%d)", rc);
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclMacVlanDirectionAdd return (rc=%d)", rc);
         return L7_FAILURE;
       }
     }
@@ -2497,7 +2497,7 @@ L7_RC_t ptin_aclMacApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
       // Just unapply the ACL. The same ACL can be in used by several entities (VLANs and Interfaces).
       if ((rc = usmDbQosAclMacVlanDirectionRemove(unit, vlanId, direction, aclId)) != L7_SUCCESS)
       {
-        LOG_DEBUG(LOG_CTX_PTIN_MSG, "No ACL to be Unapplied");
+        PT_LOG_DEBUG(LOG_CTX_MSG, "No ACL to be Unapplied");
         return L7_SUCCESS;
       }
     }
@@ -2527,28 +2527,28 @@ L7_RC_t ptin_aclArpRuleConfig(msg_arp_acl_t *msgAcl, ACL_OPERATION_t operation)
   /* Validate arguments */
   if (msgAcl == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Null pointer!");
+    PT_LOG_ERR(LOG_CTX_MSG, "Null pointer!");
     return L7_FAILURE;
   }
 
   /* Validate ACL type */
   if (msgAcl->aclType != ACL_TYPE_ARP)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid ACL_TYPE (%u)!", msgAcl->aclType);
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid ACL_TYPE (%u)!", msgAcl->aclType);
     return L7_FAILURE;
   }
 
   /* Validate IP family */
   if (msgAcl->srcIpAddr.family != PTIN_AF_INET)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Only IPv4 is supported!");
+    PT_LOG_ERR(LOG_CTX_MSG, "Only IPv4 is supported!");
     return L7_FAILURE;
   }
 
   /* Validate ACL name */
   if (msgAcl->name[0] == '\0')
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "ACL name is empty!");
+    PT_LOG_ERR(LOG_CTX_MSG, "ACL name is empty!");
     return L7_FAILURE;
   }
 
@@ -2561,19 +2561,19 @@ L7_RC_t ptin_aclArpRuleConfig(msg_arp_acl_t *msgAcl, ACL_OPERATION_t operation)
     /* Validate ACL name */
     if (arpAclGet(msgAcl->name) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL group \"%s\" does not exist", msgAcl->name);
+      PT_LOG_ERR(LOG_CTX_MSG, "ACL group \"%s\" does not exist", msgAcl->name);
       return L7_NOT_EXIST;
     }
     /* Check if entry does not exist */
     if (arpAclRuleGet(msgAcl->name, msgAcl->srcIpAddr.addr.ipv4, &srcMacAddr) != L7_SUCCESS)
     {
-      LOG_WARNING(LOG_CTX_PTIN_MSG, "ACL group \"%s\" does not exist", msgAcl->name);
+      PT_LOG_WARN(LOG_CTX_MSG, "ACL group \"%s\" does not exist", msgAcl->name);
       return L7_NOT_EXIST;
     }
     /* Remove entry */
     if (arpAclRuleDelete(msgAcl->name, msgAcl->srcIpAddr.addr.ipv4, &srcMacAddr) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing ACL rule %02x:%02x:%02x:%02x:%02x:%02x / %03u.%03u.%03u.%03u from \"%s\" group",
+      PT_LOG_ERR(LOG_CTX_MSG, "Error removing ACL rule %02x:%02x:%02x:%02x:%02x:%02x / %03u.%03u.%03u.%03u from \"%s\" group",
               msgAcl->srcMacAddr[0],msgAcl->srcMacAddr[1],msgAcl->srcMacAddr[2],msgAcl->srcMacAddr[3],msgAcl->srcMacAddr[4],msgAcl->srcMacAddr[5],
               (msgAcl->srcIpAddr.addr.ipv4>>24) & 0xff, (msgAcl->srcIpAddr.addr.ipv4>>16) & 0xff, (msgAcl->srcIpAddr.addr.ipv4>>8) & 0xff, msgAcl->srcIpAddr.addr.ipv4 & 0xff,
               msgAcl->name);
@@ -2587,7 +2587,7 @@ L7_RC_t ptin_aclArpRuleConfig(msg_arp_acl_t *msgAcl, ACL_OPERATION_t operation)
     {
       if (arpAclDelete(msgAcl->name) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error deleting ACL group \"%s\"", msgAcl->name);
+        PT_LOG_ERR(LOG_CTX_MSG, "Error deleting ACL group \"%s\"", msgAcl->name);
         return L7_FAILURE;
       }
     }
@@ -2596,11 +2596,11 @@ L7_RC_t ptin_aclArpRuleConfig(msg_arp_acl_t *msgAcl, ACL_OPERATION_t operation)
   /* *********************** ACL_OPERATION_CREATE *********************** */
   else if (operation == ACL_OPERATION_CREATE)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Applying Rule...");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Applying Rule...");
 
     if (msgAcl->action != ACL_ACTION_PERMIT)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Only PERMIT action is allowed");
+      PT_LOG_ERR(LOG_CTX_MSG, "Only PERMIT action is allowed");
       return L7_FAILURE;
     }
 
@@ -2609,7 +2609,7 @@ L7_RC_t ptin_aclArpRuleConfig(msg_arp_acl_t *msgAcl, ACL_OPERATION_t operation)
     {
       if (arpAclCreate(msgAcl->name) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error creating ACL group \"%s\"", msgAcl->name);
+        PT_LOG_ERR(LOG_CTX_MSG, "Error creating ACL group \"%s\"", msgAcl->name);
         return L7_FAILURE;
       }
     }
@@ -2617,18 +2617,18 @@ L7_RC_t ptin_aclArpRuleConfig(msg_arp_acl_t *msgAcl, ACL_OPERATION_t operation)
     /* Add ACL entry */
     if (arpAclRuleAdd(msgAcl->name, msgAcl->srcIpAddr.addr.ipv4, &srcMacAddr) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding ACL rule %02x:%02x:%02x:%02x:%02x:%02x / %03u.%03u.%03u.%03u to \"%s\" group",
+      PT_LOG_ERR(LOG_CTX_MSG, "Error adding ACL rule %02x:%02x:%02x:%02x:%02x:%02x / %03u.%03u.%03u.%03u to \"%s\" group",
               msgAcl->srcMacAddr[0],msgAcl->srcMacAddr[1],msgAcl->srcMacAddr[2],msgAcl->srcMacAddr[3],msgAcl->srcMacAddr[4],msgAcl->srcMacAddr[5],
               (msgAcl->srcIpAddr.addr.ipv4>>24) & 0xff, (msgAcl->srcIpAddr.addr.ipv4>>16) & 0xff, (msgAcl->srcIpAddr.addr.ipv4>>8) & 0xff, msgAcl->srcIpAddr.addr.ipv4 & 0xff,
               msgAcl->name);
       return L7_FAILURE;
     }
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Rule Applied!");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Rule Applied!");
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid operation %u", operation);
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid operation %u", operation);
     return L7_FAILURE;
   }
 
@@ -2653,21 +2653,21 @@ L7_RC_t ptin_aclArpApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
   /* Validate arguments */
   if (aclApply == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Null pointer!");
+    PT_LOG_ERR(LOG_CTX_MSG, "Null pointer!");
     return L7_FAILURE;
   }
 
   /* Validate ACL type */
   if (aclApply->aclType != ACL_TYPE_ARP)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid ACL_TYPE (%u)!", aclApply->aclType);
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid ACL_TYPE (%u)!", aclApply->aclType);
     return L7_FAILURE;
   }
 
   /* Validate direction */
   if (aclApply->direction != ACL_DIRECTION_IN)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Only ACL_DIRECTION_IN is allowed (%u)!", aclApply->direction);
+    PT_LOG_ERR(LOG_CTX_MSG, "Only ACL_DIRECTION_IN is allowed (%u)!", aclApply->direction);
     return L7_FAILURE;
   }
 
@@ -2679,14 +2679,14 @@ L7_RC_t ptin_aclArpApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
     /* Validate VLAN */
     if (vlanId < PTIN_VLAN_MIN || vlanId > PTIN_VLAN_MAX)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid VLAN %u at index %u", vlanId, i);
+      PT_LOG_ERR(LOG_CTX_MSG, "Invalid VLAN %u at index %u", vlanId, i);
       rc = L7_FAILURE;
       continue;
     }
 
     if (dot1qVlanCheckValid(vlanId) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "VLAN %u is not valid!", vlanId);
+      PT_LOG_ERR(LOG_CTX_MSG, "VLAN %u is not valid!", vlanId);
       rc = L7_NOT_EXIST;
       continue;
     }
@@ -2694,7 +2694,7 @@ L7_RC_t ptin_aclArpApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
     /* Validate ACL name */
     if (aclApply->name[0] == '\0')
     {
-      LOG_TRACE(LOG_CTX_PTIN_MSG, "ACL name is empty... changing operation to REMOVE");
+      PT_LOG_TRACE(LOG_CTX_MSG, "ACL name is empty... changing operation to REMOVE");
       operation = ACL_OPERATION_REMOVE;
     }
     
@@ -2703,14 +2703,14 @@ L7_RC_t ptin_aclArpApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
     {
       if (arpAclGet(aclApply->name) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "ACL group \"%s\" does not exist", aclApply->name);
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL group \"%s\" does not exist", aclApply->name);
         rc = L7_NOT_EXIST;
         continue;
       }
 
       if (daiVlanArpAclSet(vlanId, aclApply->name) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error assigning ACL name to VLAN %u", vlanId);
+        PT_LOG_ERR(LOG_CTX_MSG, "Error assigning ACL name to VLAN %u", vlanId);
         rc = L7_FAILURE;
         continue;
       }
@@ -2720,14 +2720,14 @@ L7_RC_t ptin_aclArpApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
     {
       if (daiVlanArpAclClear(vlanId) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing ACL name from VLAN %u", vlanId);
+        PT_LOG_ERR(LOG_CTX_MSG, "Error removing ACL name from VLAN %u", vlanId);
         rc = L7_FAILURE;
         continue;
       }
     }
     else
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid operation %u", operation);
+      PT_LOG_ERR(LOG_CTX_MSG, "Invalid operation %u", operation);
       return L7_FAILURE;
     }
   }
@@ -2754,22 +2754,22 @@ L7_RC_t ptin_aclIpDbDump(L7_uint32 mngAclId)
 
   if (mngAclId >= (2*L7_MAX_ACL_LISTS))
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Invalid ACL ID %d", mngAclId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Invalid ACL ID %d", mngAclId);
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "IP ACL Info: MNG ID %d -> ACL ID %d",        mngAclId, ptin_aclIpDb[mngAclId].aclId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Number of Rules: %d",                      ptin_aclIpDb[mngAclId].aclRuleCount);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "IP ACL Info: MNG ID %d -> ACL ID %d",        mngAclId, ptin_aclIpDb[mngAclId].aclId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Number of Rules: %d",                      ptin_aclIpDb[mngAclId].aclRuleCount);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
 
   for (i=1; i<=L7_MAX_NUM_RULES_PER_ACL; i++)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Rule Info: MNG ID %2d -> Rule ID %2d",   i, ptin_aclIpDb[mngAclId].aclRuleNum[i]);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  Rule Info: MNG ID %2d -> Rule ID %2d",   i, ptin_aclIpDb[mngAclId].aclRuleNum[i]);
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
 
   return L7_SUCCESS; 
 }
@@ -2789,22 +2789,22 @@ L7_RC_t ptin_aclIpv6DbDump(L7_uint32 mngAclId)
 
   if (mngAclId >= L7_MAX_ACL_LISTS)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Invalid ACL ID %d", mngAclId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Invalid ACL ID %d", mngAclId);
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "IPv6 ACL Info: MNG ID %d -> ACL ID %d",      mngAclId, ptin_aclIpv6Db[mngAclId].aclId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Number of Rules: %d",                      ptin_aclIpv6Db[mngAclId].aclRuleCount);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "IPv6 ACL Info: MNG ID %d -> ACL ID %d",      mngAclId, ptin_aclIpv6Db[mngAclId].aclId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Number of Rules: %d",                      ptin_aclIpv6Db[mngAclId].aclRuleCount);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
 
   for (i=1; i<=L7_MAX_NUM_RULES_PER_ACL; i++)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Rule Info: MNG ID %2d -> Rule ID %2d",   i, ptin_aclIpv6Db[mngAclId].aclRuleNum[i]);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  Rule Info: MNG ID %2d -> Rule ID %2d",   i, ptin_aclIpv6Db[mngAclId].aclRuleNum[i]);
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
 
   return L7_SUCCESS; 
 }
@@ -2824,22 +2824,22 @@ L7_RC_t ptin_aclMacDbDump(L7_uint32 mngAclId)
 
   if (mngAclId >= L7_MAX_ACL_LISTS)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Invalid ACL ID %d", mngAclId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Invalid ACL ID %d", mngAclId);
     return L7_FAILURE;
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "MAC ACL Info: MNG ID %d -> ACL ID %d",       mngAclId, ptin_aclMacDb[mngAclId].aclId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Number of Rules: %d",                      ptin_aclMacDb[mngAclId].aclRuleCount);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "MAC ACL Info: MNG ID %d -> ACL ID %d",       mngAclId, ptin_aclMacDb[mngAclId].aclId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Number of Rules: %d",                      ptin_aclMacDb[mngAclId].aclRuleCount);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
 
   for (i=1; i<=L7_MAX_NUM_RULES_PER_ACL; i++)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Rule Info: MNG ID %2d -> Rule ID %2d",   i, ptin_aclMacDb[mngAclId].aclRuleNum[i]);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  Rule Info: MNG ID %2d -> Rule ID %2d",   i, ptin_aclMacDb[mngAclId].aclRuleNum[i]);
   }
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
 
   return L7_SUCCESS;
 }

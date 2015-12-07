@@ -88,7 +88,7 @@ L7_RC_t ptin_vlan_port_add(L7_uint32 ptin_port, L7_uint16 vlanId)
   if (ptin_port >= PTIN_SYSTEM_N_INTERF ||
       ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, "Invalid ptin_port %u", ptin_port);
+    PT_LOG_ERR(LOG_CTX_API, "Invalid ptin_port %u", ptin_port);
     return L7_FAILURE;
   }
 
@@ -116,7 +116,7 @@ L7_RC_t ptin_vlan_port_remove(L7_uint32 ptin_port, L7_uint16 vlanId)
   if (ptin_port >= PTIN_SYSTEM_N_INTERF ||
       ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, "Invalid ptin_port %u", ptin_port);
+    PT_LOG_ERR(LOG_CTX_API, "Invalid ptin_port %u", ptin_port);
     return L7_FAILURE;
   }
 
@@ -144,7 +144,7 @@ L7_RC_t ptin_vlan_port_removeFlush(L7_uint32 ptin_port, L7_uint16 vlanId)
   if (ptin_port >= PTIN_SYSTEM_N_INTERF ||
       ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, "Invalid ptin_port %u", ptin_port);
+    PT_LOG_ERR(LOG_CTX_API, "Invalid ptin_port %u", ptin_port);
     return L7_FAILURE;
   }
 
@@ -174,14 +174,14 @@ L7_RC_t ptin_vlan_port_switch(L7_uint32 ptin_port_old, L7_uint32 ptin_port_new, 
   if (ptin_port_old >= PTIN_SYSTEM_N_INTERF ||
       ptin_intf_port2intIfNum(ptin_port_old, &intIfNum_prev) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, "Invalid ptin_port_old %u", ptin_port_old);
+    PT_LOG_ERR(LOG_CTX_API, "Invalid ptin_port_old %u", ptin_port_old);
     return L7_FAILURE;
   }
 
   if (ptin_port_new >= PTIN_SYSTEM_N_INTERF ||
       ptin_intf_port2intIfNum(ptin_port_new, &intIfNum_new) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, "Invalid ptin_port_new %u", ptin_port_new);
+    PT_LOG_ERR(LOG_CTX_API, "Invalid ptin_port_new %u", ptin_port_new);
     return L7_FAILURE;
   }
 
@@ -197,7 +197,7 @@ L7_RC_t ptin_vlan_port_switch(L7_uint32 ptin_port_old, L7_uint32 ptin_port_new, 
   vlan_mode.vlanId = (vlanId > 4095) ? 0 : vlanId;
   vlan_mode.cpu_include = 0;
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "ptin_port_old %u / usp={%d,%d,%d}", ptin_port_old,
+  PT_LOG_TRACE(LOG_CTX_API, "ptin_port_old %u / usp={%d,%d,%d}", ptin_port_old,
             vlan_mode.ddUsp.unit, vlan_mode.ddUsp.slot, vlan_mode.ddUsp.port);
 
   return dtlPtinVlanPortControl(intIfNum_new, &vlan_mode);
@@ -219,11 +219,11 @@ L7_RC_t ptin_vlanBridge_multicast_set(L7_uint16 vlanId, L7_int mcast_group)
   /* Validate arguments */
   if ( vlanId == 0 || vlanId > 4095 || mcast_group <= 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, "Invalid arguments (vlanId=%u)",vlanId);
+    PT_LOG_ERR(LOG_CTX_API, "Invalid arguments (vlanId=%u)",vlanId);
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "vlanId=%u, mcast_group=%u", vlanId, mcast_group);
+  PT_LOG_TRACE(LOG_CTX_API, "vlanId=%u, mcast_group=%u", vlanId, mcast_group);
 
   /* Fill structure */
   mode.oper             = DAPI_CMD_SET;
@@ -235,7 +235,7 @@ L7_RC_t ptin_vlanBridge_multicast_set(L7_uint16 vlanId, L7_int mcast_group)
   /* DTL call */
   rc = dtlPtinVlanBridgeMulticast(&mode);
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d (new MC group=%d)", rc, mode.multicast_group);
+  PT_LOG_TRACE(LOG_CTX_API, "Finished: rc=%d (new MC group=%d)", rc, mode.multicast_group);
 
   return rc;
 }
@@ -256,11 +256,11 @@ L7_RC_t ptin_vlanBridge_multicast_clear(L7_uint16 vlanId, L7_int mcast_group)
   /* Validate arguments */
   if ( vlanId == 0 || vlanId > 4095 || mcast_group <= 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, "Invalid arguments (vlanId=%u, mcast_group=%d)",vlanId,mcast_group);
+    PT_LOG_ERR(LOG_CTX_API, "Invalid arguments (vlanId=%u, mcast_group=%d)",vlanId,mcast_group);
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "vlanId=%u, mcast_group=%u", vlanId, mcast_group);
+  PT_LOG_TRACE(LOG_CTX_API, "vlanId=%u, mcast_group=%u", vlanId, mcast_group);
 
   /* Fill structure */
   mode.oper             = DAPI_CMD_CLEAR;
@@ -272,7 +272,7 @@ L7_RC_t ptin_vlanBridge_multicast_clear(L7_uint16 vlanId, L7_int mcast_group)
   /* DTL call */
   rc = dtlPtinVlanBridgeMulticast(&mode);
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d", rc);
+  PT_LOG_TRACE(LOG_CTX_API, "Finished: rc=%d", rc);
 
   return rc;
 }
@@ -299,20 +299,20 @@ L7_RC_t ptin_multicast_group_l3_create(L7_int *mcast_group)
   /* Validate arguments */
   if ( mcast_group == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_API, "Invalid arguments");
     return L7_FAILURE;
   }
 
   rc = ptin_multicast_group_create(&mcastGroup, BCM_MULTICAST_TYPE_L3);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, "Failed to Create Multicast Group: rc=%d", rc);
+    PT_LOG_ERR(LOG_CTX_API, "Failed to Create Multicast Group: rc=%d", rc);
     return rc;
   }
 
   *mcast_group = mcastGroup;
   
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d (new MC group=0x%08x)", rc, mcastGroup);
+  PT_LOG_TRACE(LOG_CTX_API, "Finished: rc=%d (new MC group=0x%08x)", rc, mcastGroup);
 
   return rc;
 }
@@ -332,20 +332,20 @@ L7_RC_t ptin_multicast_group_l2_create(L7_int *mcast_group)
   /* Validate arguments */
   if ( mcast_group == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_API, "Invalid arguments");
     return L7_FAILURE;
   }
 
   rc = ptin_multicast_group_create(&mcastGroup, BCM_MULTICAST_TYPE_L2);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, "Failed to Create Multicast Group: rc=%d", rc);
+    PT_LOG_ERR(LOG_CTX_API, "Failed to Create Multicast Group: rc=%d", rc);
     return rc;
   }
 
   *mcast_group = mcastGroup;
   
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d (new MC group=0x%08x)", rc, mcastGroup);
+  PT_LOG_TRACE(LOG_CTX_API, "Finished: rc=%d (new MC group=0x%08x)", rc, mcastGroup);
 
   return rc;
 }
@@ -365,20 +365,20 @@ L7_RC_t ptin_multicast_group_vlan_create(L7_int *mcast_group)
   /* Validate arguments */
   if ( mcast_group == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_API, "Invalid arguments");
     return L7_FAILURE;
   }
 
   rc = ptin_multicast_group_create(&mcastGroup, BCM_MULTICAST_TYPE_VLAN);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, "Failed to Create Multicast Group: rc=%d", rc);
+    PT_LOG_ERR(LOG_CTX_API, "Failed to Create Multicast Group: rc=%d", rc);
     return rc;
   }
 
   *mcast_group = mcastGroup;
   
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d (new MC group=%d)", rc, mcastGroup);
+  PT_LOG_TRACE(LOG_CTX_API, "Finished: rc=%d (new MC group=%d)", rc, mcastGroup);
 
   return rc;
 }
@@ -399,7 +399,7 @@ static L7_RC_t ptin_multicast_group_create(L7_int *mcast_group, L7_uint32 multic
   /* Validate arguments */
   if ( mcast_group == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_API, "Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -419,7 +419,7 @@ static L7_RC_t ptin_multicast_group_create(L7_int *mcast_group, L7_uint32 multic
     *mcast_group = mode.multicast_group;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d (new MC group=0x%08x)", rc, mode.multicast_group);
+  PT_LOG_TRACE(LOG_CTX_API, "Finished: rc=%d (new MC group=0x%08x)", rc, mode.multicast_group);
 
   return rc;
 }
@@ -439,7 +439,7 @@ L7_RC_t ptin_multicast_group_destroy(L7_int mcast_group)
   /* Validate arguments */
   if ( mcast_group <= 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, "Invalid mc_group 0x%08x", mcast_group);
+    PT_LOG_ERR(LOG_CTX_API, "Invalid mc_group 0x%08x", mcast_group);
     return L7_FAILURE;
   }
 
@@ -453,7 +453,7 @@ L7_RC_t ptin_multicast_group_destroy(L7_int mcast_group)
   /* DTL call */
   rc = dtlPtinVlanBridgeMulticast(&mode);
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d (removed MC group=0x%08x)", rc, mode.multicast_group);
+  PT_LOG_TRACE(LOG_CTX_API, "Finished: rc=%d (removed MC group=0x%08x)", rc, mode.multicast_group);
 
   return rc;
 }
@@ -476,10 +476,10 @@ L7_RC_t ptin_multicast_egress_port_add(L7_uint32 intIfNum, L7_int mcast_group, L
   /* Validate arguments */
   if ( intIfNum == 0 || intIfNum >= L7_ALL_INTERFACES || mcast_group <= 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, "Invalid arguments (intIfNum=%u)", intIfNum);
+    PT_LOG_ERR(LOG_CTX_API, "Invalid arguments (intIfNum=%u)", intIfNum);
     return L7_FAILURE;
   }
-  LOG_TRACE(LOG_CTX_PTIN_API, "intIfNum=%u, mcast_group=%u", intIfNum, mcast_group);
+  PT_LOG_TRACE(LOG_CTX_API, "intIfNum=%u, mcast_group=%u", intIfNum, mcast_group);
 
   /* Fill structure */
   mode.oper             = DAPI_CMD_SET;
@@ -491,7 +491,7 @@ L7_RC_t ptin_multicast_egress_port_add(L7_uint32 intIfNum, L7_int mcast_group, L
   /* DTL call */
   rc = dtlPtinMulticastEgressPort(intIfNum, &mode);
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d (new MC group=%d)", rc, mode.multicast_group);
+  PT_LOG_TRACE(LOG_CTX_API, "Finished: rc=%d (new MC group=%d)", rc, mode.multicast_group);
 
   return rc;
 }
@@ -514,10 +514,10 @@ L7_RC_t ptin_multicast_egress_port_remove(L7_uint32 intIfNum, L7_int mcast_group
   /* Validate arguments */
   if ( intIfNum == 0 || intIfNum >= L7_ALL_INTERFACES || mcast_group <= 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, "Invalid arguments (intIfNum=%u, mcast_group=%d)", intIfNum, mcast_group);
+    PT_LOG_ERR(LOG_CTX_API, "Invalid arguments (intIfNum=%u, mcast_group=%d)", intIfNum, mcast_group);
     return L7_FAILURE;
   }
-  LOG_TRACE(LOG_CTX_PTIN_API, "intIfNum=%u, mcast_group=%u", intIfNum, mcast_group);
+  PT_LOG_TRACE(LOG_CTX_API, "intIfNum=%u, mcast_group=%u", intIfNum, mcast_group);
 
    /* Fill structure */
   memset(&mode, 0x00, sizeof(mode));
@@ -530,7 +530,7 @@ L7_RC_t ptin_multicast_egress_port_remove(L7_uint32 intIfNum, L7_int mcast_group
   /* DTL call */
   rc = dtlPtinMulticastEgressPort(intIfNum, &mode);
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d", rc);
+  PT_LOG_TRACE(LOG_CTX_API, "Finished: rc=%d", rc);
 
   return rc;
 }
@@ -561,7 +561,7 @@ L7_RC_t ptin_multicast_l3_egress_port_add(L7_uint32 intIfNum, L7_int mcast_group
     /* Get list of active ports */
     if (usmDbDot3adMemberListGet(1, intIfNum, &nElems, members_list) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: error reading Active Members List", intIfNum);
+      PT_LOG_ERR(LOG_CTX_INTF, "LAG# %u: error reading Active Members List", intIfNum);
       return L7_FAILURE;
     }
 
@@ -570,13 +570,13 @@ L7_RC_t ptin_multicast_l3_egress_port_add(L7_uint32 intIfNum, L7_int mcast_group
       rc = ptin_multicast_egress_port_add(members_list[i], mcast_group, BCM_MULTICAST_TYPE_L3, l3_intf_id);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_API, "Failed to add L3 egress port: intIfNum=%u/lagIntIfNum=%u mcast_group:0x%x l3_intf_id:%d", members_list[i], intIfNum,  mcast_group, l3_intf_id);
+        PT_LOG_ERR(LOG_CTX_API, "Failed to add L3 egress port: intIfNum=%u/lagIntIfNum=%u mcast_group:0x%x l3_intf_id:%d", members_list[i], intIfNum,  mcast_group, l3_intf_id);
 //      return rc;
       }     
     }
     if (!nElems)
     {
-      LOG_WARNING(LOG_CTX_PTIN_API, "Number of  elements of lagIntIfNum:%u is equal to zero.", intIfNum);
+      PT_LOG_WARN(LOG_CTX_API, "Number of  elements of lagIntIfNum:%u is equal to zero.", intIfNum);
       return (ptin_multicast_egress_port_add(intIfNum, mcast_group, BCM_MULTICAST_TYPE_L3, l3_intf_id));
     }
     else
@@ -616,7 +616,7 @@ L7_RC_t ptin_multicast_l3_egress_port_remove(L7_uint32 intIfNum, L7_int mcast_gr
     /* Get list of active ports */
     if (usmDbDot3adMemberListGet(1, intIfNum, &nElems, members_list) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: error reading Active Members List", intIfNum);
+      PT_LOG_ERR(LOG_CTX_INTF, "LAG# %u: error reading Active Members List", intIfNum);
       return L7_FAILURE;
     }
 
@@ -625,13 +625,13 @@ L7_RC_t ptin_multicast_l3_egress_port_remove(L7_uint32 intIfNum, L7_int mcast_gr
       rc = ptin_multicast_egress_port_remove(members_list[i], mcast_group, BCM_MULTICAST_TYPE_L3, l3_intf_id);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_API, "Failed to remove L3 egress port: intIfNum=%u/intIfNum(Lag)=%u mcast_group:0x%x l3_intf_id:%d", members_list[i], intIfNum,  mcast_group, l3_intf_id);
+        PT_LOG_ERR(LOG_CTX_API, "Failed to remove L3 egress port: intIfNum=%u/intIfNum(Lag)=%u mcast_group:0x%x l3_intf_id:%d", members_list[i], intIfNum,  mcast_group, l3_intf_id);
 //      return rc;
       }     
     }
     if (!nElems)
     {
-      LOG_WARNING(LOG_CTX_PTIN_API, "Number of  elements of lagIntIfNum:%u is equal to zero.", intIfNum);
+      PT_LOG_WARN(LOG_CTX_API, "Number of  elements of lagIntIfNum:%u is equal to zero.", intIfNum);
       return (ptin_multicast_egress_port_remove(intIfNum, mcast_group, BCM_MULTICAST_TYPE_L3, l3_intf_id));
     }
     else
@@ -671,7 +671,7 @@ extern L7_RC_t ptin_multicast_l2_egress_port_add(L7_uint32 intIfNum, L7_int mcas
     /* Get list of active ports */
     if (usmDbDot3adMemberListGet(1, intIfNum, &nElems, members_list) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: error reading Active Members List", intIfNum);
+      PT_LOG_ERR(LOG_CTX_INTF, "LAG# %u: error reading Active Members List", intIfNum);
       return L7_FAILURE;
     }
 
@@ -680,13 +680,13 @@ extern L7_RC_t ptin_multicast_l2_egress_port_add(L7_uint32 intIfNum, L7_int mcas
       rc = ptin_multicast_egress_port_add(members_list[i], mcast_group, BCM_MULTICAST_TYPE_L2, -1);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_API, "Failed to add L3 egress port: intIfNum=%u/lagIntIfNum=%u mcast_group:0x%x", members_list[i], intIfNum,  mcast_group);
+        PT_LOG_ERR(LOG_CTX_API, "Failed to add L3 egress port: intIfNum=%u/lagIntIfNum=%u mcast_group:0x%x", members_list[i], intIfNum,  mcast_group);
 //      return rc;
       }     
     }
     if (!nElems)
     {
-      LOG_WARNING(LOG_CTX_PTIN_API, "Number of  elements of lagIntIfNum:%u is equal to zero.", intIfNum);
+      PT_LOG_WARN(LOG_CTX_API, "Number of  elements of lagIntIfNum:%u is equal to zero.", intIfNum);
       return (ptin_multicast_egress_port_add(intIfNum, mcast_group, BCM_MULTICAST_TYPE_L2, -1));
     }
     else
@@ -727,7 +727,7 @@ extern L7_RC_t ptin_multicast_l2_egress_port_remove(L7_uint32 intIfNum, L7_int m
     /* Get list of active ports */
     if (usmDbDot3adMemberListGet(1, intIfNum, &nElems, members_list) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: error reading Active Members List", intIfNum);
+      PT_LOG_ERR(LOG_CTX_INTF, "LAG# %u: error reading Active Members List", intIfNum);
       return L7_FAILURE;
     }
 
@@ -736,13 +736,13 @@ extern L7_RC_t ptin_multicast_l2_egress_port_remove(L7_uint32 intIfNum, L7_int m
       rc = ptin_multicast_egress_port_remove(members_list[i], mcast_group, BCM_MULTICAST_TYPE_L2, -1);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_API, "Failed to remove L3 egress port: intIfNum=%u/intIfNum(Lag)=%u mcast_group:0x%x", members_list[i], intIfNum,  mcast_group);
+        PT_LOG_ERR(LOG_CTX_API, "Failed to remove L3 egress port: intIfNum=%u/intIfNum(Lag)=%u mcast_group:0x%x", members_list[i], intIfNum,  mcast_group);
 //      return rc;
       }     
     }
     if (!nElems)
     {
-      LOG_WARNING(LOG_CTX_PTIN_API, "Number of  elements of lagIntIfNum:%u is equal to zero.", intIfNum);
+      PT_LOG_WARN(LOG_CTX_API, "Number of  elements of lagIntIfNum:%u is equal to zero.", intIfNum);
       return (ptin_multicast_egress_port_remove(intIfNum, mcast_group, BCM_MULTICAST_TYPE_L2, -1));
     }
     else
@@ -773,10 +773,10 @@ L7_RC_t ptin_multicast_egress_clean(L7_int mcast_group)
   /* Validate arguments */
   if ( mcast_group <= 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, "Invalid arguments (mcast_group=%d)", mcast_group);
+    PT_LOG_ERR(LOG_CTX_API, "Invalid arguments (mcast_group=%d)", mcast_group);
     return L7_FAILURE;
   }
-  LOG_TRACE(LOG_CTX_PTIN_API, "mcast_group=%u", mcast_group);
+  PT_LOG_TRACE(LOG_CTX_API, "mcast_group=%u", mcast_group);
 
   /* Fill structure */
   memset(&mode, 0x00, sizeof(mode));
@@ -789,7 +789,7 @@ L7_RC_t ptin_multicast_egress_clean(L7_int mcast_group)
   /* DTL call */
   rc = dtlPtinMulticastEgressPort(L7_ALL_INTERFACES, &mode);
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d", rc);
+  PT_LOG_TRACE(LOG_CTX_API, "Finished: rc=%d", rc);
 
   return rc;
 }
@@ -824,10 +824,10 @@ L7_RC_t ptin_virtual_port_add(L7_uint32 intIfNum,
        ext_ovid <= 0 || ext_ovid >= 4095 ||
        mcast_group <= 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_API, "Invalid arguments");
     return L7_FAILURE;
   }
-  LOG_TRACE(LOG_CTX_PTIN_API, "intIfNum=%u, int_ovid=%d, int_ivid=%d, ext_ovid=%d, ext_ivid=%d, mcast_group=%u, macLearnMax=%u",
+  PT_LOG_TRACE(LOG_CTX_API, "intIfNum=%u, int_ovid=%d, int_ivid=%d, ext_ovid=%d, ext_ivid=%d, mcast_group=%u, macLearnMax=%u",
             intIfNum, int_ovid, int_ivid, ext_ovid, ext_ivid, mcast_group, macLearnMax);
 
   /* Fill structure */
@@ -848,7 +848,7 @@ L7_RC_t ptin_virtual_port_add(L7_uint32 intIfNum,
   {
     if (vport.virtual_gport <= 0)
     {
-      LOG_ERR(LOG_CTX_PTIN_API, "Finished: Invalid vport id %d (MC group=%d)", rc, vport.virtual_gport, vport.multicast_group);
+      PT_LOG_ERR(LOG_CTX_API, "Finished: Invalid vport id %d (MC group=%d)", rc, vport.virtual_gport, vport.multicast_group);
       return L7_FAILURE;
     }
     /* Return vport id */
@@ -856,7 +856,7 @@ L7_RC_t ptin_virtual_port_add(L7_uint32 intIfNum,
       *vport_id = vport.virtual_gport;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d (new MC group=%d, vport=%d)", rc, vport.multicast_group, vport.virtual_gport);
+  PT_LOG_TRACE(LOG_CTX_API, "Finished: rc=%d (new MC group=%d, vport=%d)", rc, vport.multicast_group, vport.virtual_gport);
 
   return rc;
 }
@@ -875,7 +875,7 @@ L7_RC_t ptin_virtual_macLearnMax_set(L7_uint32 intIfNum, L7_int vport_id, L7_uin
   ptin_vport_t vport;
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "vport_id=0x%x, macLearnMax=%u", vport_id, macLearnMax);
+  PT_LOG_TRACE(LOG_CTX_API, "vport_id=0x%x, macLearnMax=%u", vport_id, macLearnMax);
 
   /* Fill structure */
 
@@ -894,7 +894,7 @@ L7_RC_t ptin_virtual_macLearnMax_set(L7_uint32 intIfNum, L7_int vport_id, L7_uin
   /* DTL call */
   rc = dtlPtinVirtualPort(intIfNum, &vport);
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d (new MC group=%d, vport=%d)", rc, vport.multicast_group, vport.virtual_gport);
+  PT_LOG_TRACE(LOG_CTX_API, "Finished: rc=%d (new MC group=%d, vport=%d)", rc, vport.multicast_group, vport.virtual_gport);
 
   return rc;
 }
@@ -917,10 +917,10 @@ L7_RC_t ptin_virtual_port_remove(L7_uint32 intIfNum, L7_int virtual_gport, L7_in
   if ( intIfNum == 0 || intIfNum >= L7_ALL_INTERFACES ||
        virtual_gport <= 0 || mcast_group <= 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_API, "Invalid arguments");
     return L7_FAILURE;
   }
-  LOG_TRACE(LOG_CTX_PTIN_API, "intIfNum=%u, virtual_gport=%d, mcast_group=%u",
+  PT_LOG_TRACE(LOG_CTX_API, "intIfNum=%u, virtual_gport=%d, mcast_group=%u",
             intIfNum, virtual_gport, mcast_group);
 
   /* Fill structure */
@@ -937,7 +937,7 @@ L7_RC_t ptin_virtual_port_remove(L7_uint32 intIfNum, L7_int virtual_gport, L7_in
   /* DTL call */
   rc = dtlPtinVirtualPort(intIfNum, &vport);
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d", rc);
+  PT_LOG_TRACE(LOG_CTX_API, "Finished: rc=%d", rc);
 
   return rc;
 }
@@ -962,10 +962,10 @@ L7_RC_t ptin_virtual_port_remove_from_vlans(L7_uint32 intIfNum, L7_int ext_ovid,
        ext_ovid <= 0 || ext_ovid >= 4095 ||
        mcast_group <= 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_API, "Invalid arguments");
     return L7_FAILURE;
   }
-  LOG_TRACE(LOG_CTX_PTIN_API, "intIfNum=%u, ext_ovid=%d, ext_ivid=%d, mcast_group=%u",
+  PT_LOG_TRACE(LOG_CTX_API, "intIfNum=%u, ext_ovid=%d, ext_ivid=%d, mcast_group=%u",
             intIfNum, ext_ovid, ext_ivid, mcast_group);
 
   /* Fill structure */
@@ -980,7 +980,7 @@ L7_RC_t ptin_virtual_port_remove_from_vlans(L7_uint32 intIfNum, L7_int ext_ovid,
   /* DTL call */
   rc = dtlPtinVirtualPort(intIfNum, &vport);
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d", rc);
+  PT_LOG_TRACE(LOG_CTX_API, "Finished: rc=%d", rc);
 
   return rc;
 }
@@ -1001,12 +1001,12 @@ L7_RC_t ptin_crossconnect_vlan_learn(L7_uint16 vlanId, L7_uint16 fwdVlanId, L7_i
   ptin_bridge_vlan_mode_t mode;
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "vlanId=%u, fwdVlanId=%u, macLearn=%u", vlanId, fwdVlanId, macLearn);
+  PT_LOG_TRACE(LOG_CTX_API, "vlanId=%u, fwdVlanId=%u, macLearn=%u", vlanId, fwdVlanId, macLearn);
   /* Validate arguments */
   if ( (vlanId == 0 || vlanId > 4095) ||
        (fwdVlanId == 0 || fwdVlanId > 4095) )
   {
-    LOG_ERR(LOG_CTX_PTIN_API, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_API, "Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -1024,7 +1024,7 @@ L7_RC_t ptin_crossconnect_vlan_learn(L7_uint16 vlanId, L7_uint16 fwdVlanId, L7_i
   /* DTL call */
   rc = dtlPtinVlanDefinitions(&mode);
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d", rc);
+  PT_LOG_TRACE(LOG_CTX_API, "Finished: rc=%d", rc);
 
   return rc;
 }
@@ -1043,11 +1043,11 @@ L7_RC_t ptin_crossconnect_enable(L7_uint16 vlanId, L7_BOOL crossconnect_apply, L
   ptin_bridge_vlan_mode_t mode;
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "vlanId=%u, crossconnect=%u", vlanId, crossconnect_apply);
+  PT_LOG_TRACE(LOG_CTX_API, "vlanId=%u, crossconnect=%u", vlanId, crossconnect_apply);
   /* Validate arguments */
   if ( vlanId == 0 || vlanId > 4095 )
   {
-    LOG_ERR(LOG_CTX_PTIN_API, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_API, "Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -1060,7 +1060,7 @@ L7_RC_t ptin_crossconnect_enable(L7_uint16 vlanId, L7_BOOL crossconnect_apply, L
   /* DTL call */
   rc = dtlPtinVlanDefinitions(&mode);
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d", rc);
+  PT_LOG_TRACE(LOG_CTX_API, "Finished: rc=%d", rc);
 
   return rc;
 }
@@ -1080,12 +1080,12 @@ L7_RC_t ptin_crossconnect_add(L7_uint16 outerVlanId, L7_uint16 innerVlanId, L7_u
   ptin_bridge_crossconnect_t cc;
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "outerVlanId=%u, innerVlanId=%u, intIfNum1=%u, intIfNum2=%u",
+  PT_LOG_TRACE(LOG_CTX_API, "outerVlanId=%u, innerVlanId=%u, intIfNum1=%u, intIfNum2=%u",
             outerVlanId, innerVlanId, intIfNum1, intIfNum2);
   /* Validate arguments */
   if ( outerVlanId > 4095 || innerVlanId > 4095 )
   {
-    LOG_ERR(LOG_CTX_PTIN_API, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_API, "Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -1098,7 +1098,7 @@ L7_RC_t ptin_crossconnect_add(L7_uint16 outerVlanId, L7_uint16 innerVlanId, L7_u
   /* DTL call */
   rc = dtlPtinBridgeCrossconnect(intIfNum1, intIfNum2, &cc);
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d", rc);
+  PT_LOG_TRACE(LOG_CTX_API, "Finished: rc=%d", rc);
 
   return rc;
 }
@@ -1116,11 +1116,11 @@ L7_RC_t ptin_crossconnect_delete(L7_uint16 outerVlanId, L7_uint16 innerVlanId)
   ptin_bridge_crossconnect_t cc;
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_API,"outerVlanId=%u, innerVlanId=%u", outerVlanId, innerVlanId);
+  PT_LOG_TRACE(LOG_CTX_API,"outerVlanId=%u, innerVlanId=%u", outerVlanId, innerVlanId);
   /* Validate arguments */
   if ( outerVlanId > 4095 || innerVlanId > 4095 )
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_API,"Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -1134,7 +1134,7 @@ L7_RC_t ptin_crossconnect_delete(L7_uint16 outerVlanId, L7_uint16 innerVlanId)
   /* DTL call */
   rc = dtlPtinBridgeCrossconnect(L7_ALL_INTERFACES, L7_ALL_INTERFACES, &cc);
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d", rc);
+  PT_LOG_TRACE(LOG_CTX_API, "Finished: rc=%d", rc);
 
   return rc;
 }
@@ -1149,7 +1149,7 @@ L7_RC_t ptin_crossconnect_delete_all(void)
   ptin_bridge_crossconnect_t cc;
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Beginning...");
+  PT_LOG_TRACE(LOG_CTX_API, "Beginning...");
 
   cc.dstUsp.unit = -1;
   cc.dstUsp.slot = -1;
@@ -1161,7 +1161,7 @@ L7_RC_t ptin_crossconnect_delete_all(void)
   /* DTL call */
   rc = dtlPtinBridgeCrossconnect(L7_ALL_INTERFACES,L7_ALL_INTERFACES,&cc);
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d", rc);
+  PT_LOG_TRACE(LOG_CTX_API, "Finished: rc=%d", rc);
 
   return rc;
 }

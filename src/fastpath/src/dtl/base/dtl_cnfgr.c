@@ -297,19 +297,19 @@ L7_RC_t dtlCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
     if ((dtlRC = dtlIpRegPkg()) != L7_SUCCESS)
       break;
 
-    LOG_INFO(LOG_CTX_STARTUP, "Going to registering function 0x%08x to family DTL_FAMILY_INTF_MGMT (%u)", (L7_uint32) dtlLinkChangeCallback, DTL_FAMILY_INTF_MGMT);
+    PT_LOG_INFO(LOG_CTX_STARTUP, "Going to registering function 0x%08x to family DTL_FAMILY_INTF_MGMT (%u)", (L7_uint32) dtlLinkChangeCallback, DTL_FAMILY_INTF_MGMT);
     if ((dtlRC = dtlCallbackRegistration(DTL_FAMILY_INTF_MGMT,dtlLinkChangeCallback)) != L7_SUCCESS)
       break;
 
-    LOG_INFO(LOG_CTX_STARTUP, "Going to register function 0x%08x to family DTL_FAMILY_FRAME (%u)", (L7_uint32) dtlPduReceiveCallback, DTL_FAMILY_FRAME);
+    PT_LOG_INFO(LOG_CTX_STARTUP, "Going to register function 0x%08x to family DTL_FAMILY_FRAME (%u)", (L7_uint32) dtlPduReceiveCallback, DTL_FAMILY_FRAME);
     if ((dtlRC = dtlCallbackRegistration(DTL_FAMILY_FRAME,dtlPduReceiveCallback)) != L7_SUCCESS)
       break;
 
-    LOG_INFO(LOG_CTX_STARTUP, "Going to register function 0x%08x to family DTL_FAMILY_QVLAN_MGMT (%u)", (L7_uint32) dtlGenericCallback, DTL_FAMILY_QVLAN_MGMT);
+    PT_LOG_INFO(LOG_CTX_STARTUP, "Going to register function 0x%08x to family DTL_FAMILY_QVLAN_MGMT (%u)", (L7_uint32) dtlGenericCallback, DTL_FAMILY_QVLAN_MGMT);
     if ((dtlRC = dtlCallbackRegistration(DTL_FAMILY_QVLAN_MGMT,dtlGenericCallback)) != L7_SUCCESS)
       break;
 
-    LOG_INFO(LOG_CTX_STARTUP, "Going to register function 0x%08x to family DTL_FAMILY_SERVICES (%u)", (L7_uint32) dtlGenericCallback, DTL_FAMILY_SERVICES);
+    PT_LOG_INFO(LOG_CTX_STARTUP, "Going to register function 0x%08x to family DTL_FAMILY_SERVICES (%u)", (L7_uint32) dtlGenericCallback, DTL_FAMILY_SERVICES);
     if ((dtlRC = dtlCallbackRegistration(DTL_FAMILY_SERVICES,dtlGenericCallback)) != L7_SUCCESS)
      break;
 

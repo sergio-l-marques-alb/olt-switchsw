@@ -164,15 +164,15 @@ void hpcHardwareFini(void)
 
   for (bcom_unit = 0; bcom_unit < total_bcom_units; bcom_unit++)
   {
-    LOG_INFO(LOG_CTX_STARTUP,"Shuting down unit %u...", SOC_NDEV_IDX2DEV(bcom_unit)); 
+    PT_LOG_INFO(LOG_CTX_STARTUP,"Shuting down unit %u...", SOC_NDEV_IDX2DEV(bcom_unit)); 
     (void) _bcm_shutdown(SOC_NDEV_IDX2DEV(bcom_unit));
     //(void) sal_thread_exit(SOC_NDEV_IDX2DEV(bcom_unit));
     //(void) soc_shutdown(SOC_NDEV_IDX2DEV(bcom_unit));
   }
 
-  LOG_INFO(LOG_CTX_STARTUP,"Destroying bde...");
+  PT_LOG_INFO(LOG_CTX_STARTUP,"Destroying bde...");
   bde_destroy();
-  LOG_INFO(LOG_CTX_STARTUP,"bde destroyed!");
+  PT_LOG_INFO(LOG_CTX_STARTUP,"bde destroyed!");
 }
 
 /**************************************************************************
@@ -237,7 +237,7 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
   /* PCI device ID override: when switch id is uncorrectly identified as 0xb34f */
   (void) sal_config_set(spn_PCI_OVERRIDE_DEV, "0xb340");
 
-  LOG_TRACE(LOG_CTX_STARTUP,"b340 id imposed for Helix4 switch");
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"b340 id imposed for Helix4 switch");
   #endif
 
 #if (SDK_VERSION_IS >= SDK_VERSION(6,4,0,0))
@@ -335,7 +335,7 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
     rv = bcm_rx_init(i);
     if (rv < 0)
     {
-      LOG_ERR(LOG_CTX_STARTUP,"RX init failed, unit %d\n", i);
+      PT_LOG_ERR(LOG_CTX_STARTUP,"RX init failed, unit %d\n", i);
       break;
     }
 
@@ -344,7 +344,7 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
       rv = bcm_rx_start(i, NULL);
       if (rv < 0)
       {
-        LOG_ERR(LOG_CTX_STARTUP,"RX start failed unit %d\n", i);
+        PT_LOG_ERR(LOG_CTX_STARTUP,"RX start failed unit %d\n", i);
         break;
       }
     }

@@ -57,7 +57,7 @@ L7_RC_t snoop_ptin_querytimer_init(void)
    timerSem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
    if (timerSem == L7_NULLPTR)
    {
-     LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to create timers_sem semaphore!");
+     PT_LOG_FATAL(LOG_CTX_CNFGR, "Failed to create timers_sem semaphore!");
      return L7_FAILURE;
    }
 
@@ -65,7 +65,7 @@ L7_RC_t snoop_ptin_querytimer_init(void)
    cbEventQueue = (void *) osapiMsgQueueCreate("cb_event_queue_querytimer", TIMER_COUNT, PTIN_IGMP_TIMER_MSG_SIZE);
    if (cbEventQueue == L7_NULLPTR)
    {
-     LOG_FATAL(LOG_CTX_PTIN_CNFGR,"cb_event_queue creation error.");
+     PT_LOG_FATAL(LOG_CTX_CNFGR,"cb_event_queue creation error.");
      return L7_FAILURE;
    }
 
@@ -76,12 +76,12 @@ L7_RC_t snoop_ptin_querytimer_init(void)
                                          L7_DEFAULT_TASK_SLICE);
    if (cbTaskId == L7_ERROR)
    {
-     LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Could not create task ptin_igmp_querytimer_task");
+     PT_LOG_FATAL(LOG_CTX_CNFGR, "Could not create task ptin_igmp_querytimer_task");
      return L7_FAILURE;
    }
    if (osapiWaitForTaskInit (L7_PTIN_IGMP_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS)
    {
-     LOG_FATAL(LOG_CTX_PTIN_CNFGR,"Unable to initialize ptin_igmp_querytimer_task");
+     PT_LOG_FATAL(LOG_CTX_CNFGR,"Unable to initialize ptin_igmp_querytimer_task");
      return(L7_FAILURE);
    }
 
@@ -92,7 +92,7 @@ L7_RC_t snoop_ptin_querytimer_init(void)
                      "PTin_IGMP_CB_QueryTimer_Buffer",
                      &cbBufferPoolId) != L7_SUCCESS)
    {
-     LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to allocate memory for IGMP Control Block timer buffers");
+     PT_LOG_FATAL(LOG_CTX_CNFGR, "Failed to allocate memory for IGMP Control Block timer buffers");
      return L7_FAILURE;
    }
 
@@ -101,7 +101,7 @@ L7_RC_t snoop_ptin_querytimer_init(void)
                 sizeof(L7_uint32)*2, timerDataCmp, timerDataDestroy,
                 &timerLinkedList) != L7_SUCCESS)
    {
-     LOG_FATAL(LOG_CTX_PTIN_CNFGR,"Failed to create timer linked list");
+     PT_LOG_FATAL(LOG_CTX_CNFGR,"Failed to create timer linked list");
      return L7_FAILURE;
    }
 
@@ -109,14 +109,14 @@ L7_RC_t snoop_ptin_querytimer_init(void)
    handleListMemHndl = (handle_member_t*) osapiMalloc(L7_PTIN_COMPONENT_ID, TIMER_COUNT*sizeof(handle_member_t));
    if (handleListMemHndl == L7_NULLPTR)
    {
-     LOG_FATAL(LOG_CTX_PTIN_CNFGR,"Error allocating Handle List Buffers");
+     PT_LOG_FATAL(LOG_CTX_CNFGR,"Error allocating Handle List Buffers");
      return L7_FAILURE;
    }
 
    /* Create timers handle list for this IGMP instance  */
    if(handleListInit(L7_PTIN_COMPONENT_ID, TIMER_COUNT, &handleList, handleListMemHndl) != L7_SUCCESS)
    {
-     LOG_FATAL(LOG_CTX_PTIN_CNFGR,"Unable to create timer handle list");
+     PT_LOG_FATAL(LOG_CTX_CNFGR,"Unable to create timer handle list");
      return L7_FAILURE;
    }
 
@@ -126,11 +126,11 @@ L7_RC_t snoop_ptin_querytimer_init(void)
                           cbBufferPoolId);
    if (cbTimer  == L7_NULLPTR)
    {
-     LOG_FATAL(LOG_CTX_PTIN_CNFGR,"snoopEntry App Timer Initialization Failed.");
+     PT_LOG_FATAL(LOG_CTX_CNFGR,"snoopEntry App Timer Initialization Failed.");
      return L7_FAILURE;
    }
 
-   LOG_TRACE(LOG_CTX_PTIN_CNFGR,"Initializations for IGMPv3 source timers finished");
+   PT_LOG_TRACE(LOG_CTX_CNFGR,"Initializations for IGMPv3 source timers finished");
 
   return(L7_SUCCESS);
 }
@@ -215,7 +215,7 @@ void cbtimerCallback(L7_APP_TMR_CTRL_BLK_t timerCtrlBlk, void* ptrData)
   rc = osapiMessageSend(cbEventQueue, &msg, PTIN_IGMP_TIMER_MSG_SIZE, L7_NO_WAIT,L7_MSG_PRIORITY_NORM);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Querytimer timer tick send failed");
+    PT_LOG_ERR(LOG_CTX_IGMP,"Querytimer timer tick send failed");
     return;
   }
 }
@@ -236,7 +236,7 @@ void cbEventqueueTask(void)
 
   if (osapiTaskInitDone(L7_PTIN_IGMP_TASK_SYNC)!=L7_SUCCESS)
   {
-    LOG_FATAL(LOG_CTX_PTIN_SSM, "Error syncing task");
+    PT_LOG_FATAL(LOG_CTX_SSM, "Error syncing task");
     PTIN_CRASH();
   }
 
@@ -250,7 +250,7 @@ void cbEventqueueTask(void)
     }
     else
     {
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"This is an invalid event");
+      PT_LOG_ERR(LOG_CTX_IGMP,"This is an invalid event");
     }
   }
 }
@@ -309,7 +309,7 @@ L7_RC_t timerDataDestroy (L7_sll_member_t *ll_member)
   /* Validate argument */
   if (ll_member==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Null arguments");
+    PT_LOG_ERR(LOG_CTX_IGMP,"Null arguments");
     return L7_FAILURE;
   }
 
@@ -321,7 +321,7 @@ L7_RC_t timerDataDestroy (L7_sll_member_t *ll_member)
     /* Delete the apptimer node */
     if (appTimerDelete(cbTimer, pTimerData->timer)!=L7_SUCCESS)
     {
-      LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Cannot delete timer");
+      PT_LOG_NOTICE(LOG_CTX_IGMP,"Cannot delete timer");
     }
     pTimerData->timer = (L7_APP_TMR_HNDL_t) NULL;
 
@@ -356,17 +356,17 @@ void timerCallback(void *param)
   pTimerData = (snoopPTinL3Querytimer_t*) handleListNodeRetrieve(timerHandle);
   if (pTimerData == L7_NULLPTR)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Failed to retrieve handle");
+    PT_LOG_DEBUG(LOG_CTX_IGMP,"Failed to retrieve handle");
     osapiSemaGive(timerSem);
     return;
   }
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Querytimer expired (group:%s vlan:%u ifId:%u)", 
+  PT_LOG_TRACE(LOG_CTX_IGMP,"Querytimer expired (group:%s vlan:%u ifId:%u)", 
             inetAddrPrint(&(pTimerData->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr), debug_buf), pTimerData->groupData->snoopPTinL3InfoDataKey.vlanId, pTimerData->interfaceIdx);
 
   /* Check if our handle is OK*/
   if (timerHandle != pTimerData->timerHandle)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"timerHandle and pTimerData->timerHandle do not match!");
+    PT_LOG_ERR(LOG_CTX_IGMP,"timerHandle and pTimerData->timerHandle do not match!");
     return;
   }
 
@@ -378,7 +378,7 @@ void timerCallback(void *param)
   if (SLLDelete(&timerLinkedList, (L7_sll_member_t *)pTimerData) != L7_SUCCESS)
   {
     osapiSemaGive(timerSem);
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed to delete timer node");
+    PT_LOG_ERR(LOG_CTX_IGMP,"Failed to delete timer node");
     return;
   }
   osapiSemaGive(timerSem);
@@ -396,7 +396,7 @@ void timerCallback(void *param)
       sourcePtr = &interfacePtr->sources[i];
       if (sourcePtr->sourceTimer.isRunning == L7_FALSE)
       {
-        LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Removing sourceIdx %u", i);
+        PT_LOG_DEBUG(LOG_CTX_IGMP,"Removing sourceIdx %u", i);
         snoopPTinSourceRemove(interfacePtr, sourcePtr);
       }
     }
@@ -404,7 +404,7 @@ void timerCallback(void *param)
     /* If no sources remain, remove group. Otherwise, switch to filter-mode INCLUDE */
     if (interfacePtr->numberOfSources == 0)
     {
-      LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Removing interface");
+      PT_LOG_DEBUG(LOG_CTX_IGMP,"Removing interface");
       snoopPTinInterfaceRemove(interfacePtr,pTimerData->groupData->snoopPTinL3InfoDataKey.vlanId,&(pTimerData->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr),pTimerData->interfaceIdx);
     }
     else
@@ -435,7 +435,7 @@ L7_RC_t snoop_ptin_querytimer_start(snoopPTinL3Querytimer_t *pTimer, L7_uint16 t
   /* Argument validation */
   if (pTimer == L7_NULLPTR || groupData == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_IGMP, "Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -451,7 +451,7 @@ L7_RC_t snoop_ptin_querytimer_start(snoopPTinL3Querytimer_t *pTimer, L7_uint16 t
     if (appTimerDelete(cbTimer, (void *) pTimer->timer) != L7_SUCCESS)
     {
       osapiSemaGive(timerSem);
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed restarting timer");
+      PT_LOG_ERR(LOG_CTX_IGMP,"Failed restarting timer");
       return L7_FAILURE;
     }
     pTimer->timer = L7_NULLPTR;
@@ -466,14 +466,14 @@ L7_RC_t snoop_ptin_querytimer_start(snoopPTinL3Querytimer_t *pTimer, L7_uint16 t
     pTimer->interfaceIdx = interfaceIdx;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Starting querytimer (group:%s vlan:%u ifIdx:%u)",
+  PT_LOG_TRACE(LOG_CTX_IGMP,"Starting querytimer (group:%s vlan:%u ifIdx:%u)",
             inetAddrPrint(&(groupData->snoopPTinL3InfoDataKey.mcastGroupAddr), debug_buf), groupData->snoopPTinL3InfoDataKey.vlanId, interfaceIdx);
 
   /* New timer handle */
   if ((pTimer->timerHandle = handleListNodeStore(handleList, pTimer)) == 0)
   {
     osapiSemaGive(timerSem);
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Could not get the handle node to store the timer data.");
+    PT_LOG_ERR(LOG_CTX_IGMP,"Could not get the handle node to store the timer data.");
     return L7_FAILURE;
   }
 
@@ -486,7 +486,7 @@ L7_RC_t snoop_ptin_querytimer_start(snoopPTinL3Querytimer_t *pTimer, L7_uint16 t
     handleListNodeDelete(handleList, &pTimer->timerHandle);
     pTimer->timerHandle = 0;
     osapiSemaGive(timerSem);
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Could not start the querytimer.");
+    PT_LOG_ERR(LOG_CTX_IGMP,"Could not start the querytimer.");
     return L7_FAILURE;
   }
 
@@ -495,13 +495,13 @@ L7_RC_t snoop_ptin_querytimer_start(snoopPTinL3Querytimer_t *pTimer, L7_uint16 t
   {
     if (appTimerDelete(cbTimer, pTimer->timer) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed to delete timer");
+      PT_LOG_ERR(LOG_CTX_IGMP,"Failed to delete timer");
     }
     pTimer->timer = L7_NULLPTR;
     handleListNodeDelete(handleList, &pTimer->timerHandle);
     pTimer->timerHandle = 0;
     osapiSemaGive(timerSem);
-    LOG_WARNING(LOG_CTX_PTIN_IGMP,"Could not add new timer data node");
+    PT_LOG_WARN(LOG_CTX_IGMP,"Could not add new timer data node");
     return L7_FAILURE;
   }
 
@@ -525,11 +525,11 @@ L7_RC_t snoop_ptin_querytimer_stop(snoopPTinL3Querytimer_t *pTimer)
   /* Argument validation */
   if (pTimer == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_IGMP, "Invalid arguments");
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Stopping querytimer (group:%s vlan:%u ifIdx:%u)",
+  PT_LOG_TRACE(LOG_CTX_IGMP,"Stopping querytimer (group:%s vlan:%u ifIdx:%u)",
             inetAddrPrint(&(pTimer->groupData->snoopPTinL3InfoDataKey.mcastGroupAddr), debug_buf), pTimer->groupData->snoopPTinL3InfoDataKey.vlanId, pTimer->interfaceIdx);
 
   osapiSemaTake(timerSem, L7_WAIT_FOREVER);
@@ -538,7 +538,7 @@ L7_RC_t snoop_ptin_querytimer_stop(snoopPTinL3Querytimer_t *pTimer)
   if (SLLDelete(&timerLinkedList, (L7_sll_member_t *)pTimer) != L7_SUCCESS)
   {
     osapiSemaGive(timerSem);
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Failed to delete timer node");
+    PT_LOG_NOTICE(LOG_CTX_IGMP,"Failed to delete timer node");
     return L7_FAILURE;
   }
 

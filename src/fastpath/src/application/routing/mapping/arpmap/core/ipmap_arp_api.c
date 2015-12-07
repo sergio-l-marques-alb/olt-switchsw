@@ -214,7 +214,7 @@ L7_RC_t ipMapArpInitPhase2Process(void)
 {
   L7_RC_t rc;
 
-  LOG_INFO(LOG_CTX_STARTUP, "Going to register function 0x%08x to family DTL_FAMILY_ROUTING_ARP_MGMT (%u)",
+  PT_LOG_INFO(LOG_CTX_STARTUP, "Going to register function 0x%08x to family DTL_FAMILY_ROUTING_ARP_MGMT (%u)",
            (L7_uint32) dtlIpv4ArpEntryCallback, DTL_FAMILY_ROUTING_ARP_MGMT);
 
   if ((rc = dtlCallbackRegistration(DTL_FAMILY_ROUTING_ARP_MGMT,

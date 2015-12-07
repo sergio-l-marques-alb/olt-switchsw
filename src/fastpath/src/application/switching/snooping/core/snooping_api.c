@@ -78,7 +78,7 @@ L7_RC_t __remoteslot_mfdbport_sync(L7_uint8 workingSlotId, L7_uint8 protectionSl
   rc = ptin_fpga_slot_ip_addr_get(protectionSlotId, &protectionSlotIp);
   if (L7_SUCCESS != rc)
   {
-    LOG_ERR(LOG_CTX_PTIN_PROTB, "Failed to obtain IP Address of slotId:%u", protectionSlotId);
+    PT_LOG_ERR(LOG_CTX_PROTB, "Failed to obtain IP Address of slotId:%u", protectionSlotId);
     return L7_FAILURE;
   }
 
@@ -87,7 +87,7 @@ L7_RC_t __remoteslot_mfdbport_sync(L7_uint8 workingSlotId, L7_uint8 protectionSl
   {
     if ( protectionSlotIp == workingSlotIp )
     {
-      LOG_ERR(LOG_CTX_PTIN_PROTB, "Invalid Configuration: protectionSlotId:%u != workingSlotId:%u && protectionSlotIp == workingSlotIp = :%u", protectionSlotId, workingSlotId, protectionSlotIp);
+      PT_LOG_ERR(LOG_CTX_PROTB, "Invalid Configuration: protectionSlotId:%u != workingSlotId:%u && protectionSlotIp == workingSlotIp = :%u", protectionSlotId, workingSlotId, protectionSlotIp);
       return L7_FAILURE;
     }    
   }
@@ -95,7 +95,7 @@ L7_RC_t __remoteslot_mfdbport_sync(L7_uint8 workingSlotId, L7_uint8 protectionSl
   {
     if (workingPortId == protectionPortId)
     {
-      LOG_ERR(LOG_CTX_PTIN_PROTB, "Invalid Configuration: protectionSlotId:%u == workingSlotId:%u && workingPortId == protectionPortId = :%u", protectionSlotId, workingPortId);
+      PT_LOG_ERR(LOG_CTX_PROTB, "Invalid Configuration: protectionSlotId:%u == workingSlotId:%u && workingPortId == protectionPortId = :%u", protectionSlotId, workingPortId);
       return L7_FAILURE;
     }
   }  
@@ -109,12 +109,12 @@ L7_RC_t __remoteslot_mfdbport_sync(L7_uint8 workingSlotId, L7_uint8 protectionSl
   mgmdPortSync.sourceAddr = sourceAddr;
   mgmdPortSync.groupType  = groupType;
 
-  LOG_TRACE(LOG_CTX_PTIN_PROTB, "Sending message to card %08X(%u) to set port %u admin to %u for group %08X/%08X", protectionSlotIp, protectionSlotId, protectionPortId, admin, groupAddr, sourceAddr);
+  PT_LOG_TRACE(LOG_CTX_PROTB, "Sending message to card %08X(%u) to set port %u admin to %u for group %08X/%08X", protectionSlotIp, protectionSlotId, protectionPortId, admin, groupAddr, sourceAddr);
 
   /* Send the mfdb port configurations to the remote slot */
   if (send_ipc_message(IPC_HW_FASTPATH_PORT, protectionSlotIp, CCMSG_MGMD_PORT_SYNC, (char *)(&mgmdPortSync), NULL, sizeof(mgmdPortSync), NULL) < 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_PROTB, "Failed to sync MGMD between active and protection interface");
+    PT_LOG_ERR(LOG_CTX_PROTB, "Failed to sync MGMD between active and protection interface");
     return L7_FAILURE;
   }
 
@@ -162,12 +162,12 @@ L7_RC_t __matrix_mfdbport_sync(L7_uint8 admin, ptin_fpga_matrix_type_t matrixTyp
   mgmdPortSync.sourceAddr = sourceAddr;
   mgmdPortSync.groupType  = groupType;
 
-  LOG_TRACE(LOG_CTX_PTIN_PROTB, "Sending message to matrix %08X(%u) to set port %u admin to %u for group %08X/%08X", matrixIpAddr, matrixSlotId, portId, admin, groupAddr, sourceAddr);
+  PT_LOG_TRACE(LOG_CTX_PROTB, "Sending message to matrix %08X(%u) to set port %u admin to %u for group %08X/%08X", matrixIpAddr, matrixSlotId, portId, admin, groupAddr, sourceAddr);
 
   /* Send the mfdb port configurations to the remote slot */
   if (send_ipc_message(IPC_HW_FASTPATH_PORT, matrixIpAddr, CCMSG_MGMD_PORT_SYNC, (char *)(&mgmdPortSync), NULL, sizeof(mgmdPortSync), NULL) < 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_PROTB, "Failed to sync MGMD between active and protection interface");
+    PT_LOG_ERR(LOG_CTX_PROTB, "Failed to sync MGMD between active and protection interface");
     return L7_FAILURE;
   }
 
@@ -195,14 +195,14 @@ L7_RC_t ptin_snoop_activeChannels_get(L7_uint16 vlanId,L7_uint32 intIfNum, L7_ui
 
   if (vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX || channels==L7_NULLPTR || nChannels==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_IGMP, "Invalid arguments");
     return L7_FAILURE;
   }
  
   /* Get proxy configurations */
   if (ptin_igmp_proxy_config_get__snooping_old(&igmpCfg) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting IGMP Proxy configurations");
+    PT_LOG_ERR(LOG_CTX_IGMP, "Error getting IGMP Proxy configurations");
     return L7_FAILURE;
   }
 
@@ -219,10 +219,10 @@ L7_RC_t ptin_snoop_activeChannels_get(L7_uint16 vlanId,L7_uint32 intIfNum, L7_ui
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid IGMP version [clientVersion=%u]", igmpCfg.clientVersion);
+    PT_LOG_ERR(LOG_CTX_IGMP, "Invalid IGMP version [clientVersion=%u]", igmpCfg.clientVersion);
     return L7_FAILURE;
   }
-  LOG_NOTICE(LOG_CTX_PTIN_IGMP, "We've read num_channels:%u",*nChannels);
+  PT_LOG_NOTICE(LOG_CTX_IGMP, "We've read num_channels:%u",*nChannels);
   return L7_SUCCESS;
 }
 
@@ -245,13 +245,13 @@ L7_RC_t ptin_snoop_clientsList_get(L7_inet_addr_t *groupAddr, L7_uint16 vlanId, 
 
   if (groupAddr==L7_NULL || vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX || client_list_bmp==L7_NULLPTR  || number_of_clients==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid Parameters");
+    PT_LOG_ERR(LOG_CTX_IGMP,"Invalid Parameters");
     return L7_FAILURE;
   }
 
   if (groupAddr->family!=L7_AF_INET)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Only IPv4 is supported!");
+    PT_LOG_ERR(LOG_CTX_IGMP,"Only IPv4 is supported!");
     return L7_FAILURE;
   }
 
@@ -260,14 +260,14 @@ L7_RC_t ptin_snoop_clientsList_get(L7_inet_addr_t *groupAddr, L7_uint16 vlanId, 
 
   if (igmp_network_version==3)
   {
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"IGMPv3 Clients List Get!");
+    PT_LOG_TRACE(LOG_CTX_IGMP,"IGMPv3 Clients List Get!");
      snoopPTinL3InfoData_t  *snoopEntryV3; 
      /* Search for entry in AVL tree*/
     if (L7_NULLPTR == (snoopEntryV3 = snoopPTinL3EntryFind(vlanId, groupAddr, L7_MATCH_EXACT)) || 
         snoopEntryV3->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].active==L7_FALSE ||
         snoopEntryV3->interfaces[SNOOP_PTIN_PROXY_ROOT_INTERFACE_NUM].numberOfClients==0)
     {
-      LOG_WARNING(LOG_CTX_PTIN_IGMP,"Channel %u.%u.%u.%u does not exist for vlan %u",
+      PT_LOG_WARN(LOG_CTX_IGMP,"Channel %u.%u.%u.%u does not exist for vlan %u",
                   (groupAddr->addr.ipv4.s_addr>>24) & 0xff,
                   (groupAddr->addr.ipv4.s_addr>>16) & 0xff,
                   (groupAddr->addr.ipv4.s_addr>> 8) & 0xff,
@@ -295,13 +295,13 @@ L7_RC_t ptin_snoop_clientsList_get(L7_inet_addr_t *groupAddr, L7_uint16 vlanId, 
             if (snoopEntryV3->interfaces[intIfNum].clients[idx]!=0)
             {
               client_list_bmp_tmp[idx]|=snoopEntryV3->interfaces[intIfNum].clients[idx];  
-              LOG_NOTICE(LOG_CTX_PTIN_IGMP,"At least one client!");
+              PT_LOG_NOTICE(LOG_CTX_IGMP,"At least one client!");
             }            
           } 
           *number_of_clients+=snoopEntryV3->interfaces[intIfNum].numberOfClients;          
         }
       }
-      LOG_NOTICE(LOG_CTX_PTIN_IGMP,"We have read number_of_clients:%u",*number_of_clients);
+      PT_LOG_NOTICE(LOG_CTX_IGMP,"We have read number_of_clients:%u",*number_of_clients);
       if(*number_of_clients>0)
       {        
         memcpy(client_list_bmp,
@@ -310,7 +310,7 @@ L7_RC_t ptin_snoop_clientsList_get(L7_inet_addr_t *groupAddr, L7_uint16 vlanId, 
       }
       else
       {
-        LOG_WARNING(LOG_CTX_PTIN_IGMP,"Something must had went wrong, since the variable number of clients is different from what we have read on the client bitmap!");
+        PT_LOG_WARN(LOG_CTX_IGMP,"Something must had went wrong, since the variable number of clients is different from what we have read on the client bitmap!");
       }
     }
   }
@@ -319,7 +319,7 @@ L7_RC_t ptin_snoop_clientsList_get(L7_inet_addr_t *groupAddr, L7_uint16 vlanId, 
     // Search for channel
     if (!snoopChannelExist4VlanId(vlanId,groupAddr,&snoopEntry))
     {
-      LOG_WARNING(LOG_CTX_PTIN_IGMP,"Channel %u.%u.%u.%u does not exist for vlan %u",
+      PT_LOG_WARN(LOG_CTX_IGMP,"Channel %u.%u.%u.%u does not exist for vlan %u",
                   (groupAddr->addr.ipv4.s_addr>>24) & 0xff,
                   (groupAddr->addr.ipv4.s_addr>>16) & 0xff,
                   (groupAddr->addr.ipv4.s_addr>> 8) & 0xff,
@@ -382,7 +382,7 @@ L7_RC_t ptin_snoop_client_remove(L7_uint16 sVlanId, L7_uint16 client_index, L7_u
       client_index>=PTIN_SYSTEM_IGMP_MAXCLIENTS ||
       intIfNum>=L7_MAX_INTERFACE_COUNT)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_IGMP,"Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -414,7 +414,7 @@ L7_RC_t ptin_snoop_client_remove(L7_uint16 sVlanId, L7_uint16 client_index, L7_u
       }
       else
       {
-        LOG_ERR(LOG_CTX_PTIN_IGMP,"Error with snoop_client_remove_procedure");
+        PT_LOG_ERR(LOG_CTX_IGMP,"Error with snoop_client_remove_procedure");
         rc = L7_FAILURE;
       }
     }
@@ -439,12 +439,12 @@ L7_RC_t ptin_snoop_static_channel_add(L7_uint16 vlanId, L7_inet_addr_t *channel)
   /* Validate arguments */
   if (vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX || channel==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_IGMP,"Invalid arguments");
     return L7_FAILURE;
   }
   if (channel->family!=L7_AF_INET || channel->addr.ipv4.s_addr==0)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid channel");
+    PT_LOG_ERR(LOG_CTX_IGMP,"Invalid channel");
     return L7_FAILURE;
   }
 
@@ -457,7 +457,7 @@ L7_RC_t ptin_snoop_static_channel_add(L7_uint16 vlanId, L7_inet_addr_t *channel)
     L7_INTF_MASK_t mcastClientAttached;
     if (ptin_igmp_clientIntfs_getList(vlanId, &mcastClientAttached, &noOfInterfaces)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting client interfaces of vlan %u",vlanId);
+      PT_LOG_ERR(LOG_CTX_IGMP, "Error getting client interfaces of vlan %u",vlanId);
       return L7_SUCCESS;
     }  
 
@@ -469,7 +469,7 @@ L7_RC_t ptin_snoop_static_channel_add(L7_uint16 vlanId, L7_inet_addr_t *channel)
         /* Add static channel */
         if (snoopPTinAddStaticGroup(vlanId,intIfNum,channel,0,L7_NULLPTR)!=L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_PTIN_IGMP,"Error adding static channel");
+          PT_LOG_ERR(LOG_CTX_IGMP,"Error adding static channel");
           return L7_FAILURE;
         }
       }
@@ -491,7 +491,7 @@ L7_RC_t ptin_snoop_static_channel_add(L7_uint16 vlanId, L7_inet_addr_t *channel)
     /* Add channel */
     if (snoop_channel_add_procedure(dmac,vlanId,channel,L7_TRUE,&sendJoin)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error adding static channel");
+      PT_LOG_ERR(LOG_CTX_IGMP,"Error adding static channel");
       return L7_FAILURE;
     }
   }
@@ -515,12 +515,12 @@ L7_RC_t ptin_snoop_channel_remove(L7_uint16 vlanId, L7_inet_addr_t *channel)
   /* Validate arguments */
   if (vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX || channel==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_IGMP,"Invalid arguments");
     return L7_FAILURE;
   }
   if (channel->family!=L7_AF_INET || channel->addr.ipv4.s_addr==0)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid channel");
+    PT_LOG_ERR(LOG_CTX_IGMP,"Invalid channel");
     return L7_FAILURE;
   }
 
@@ -533,7 +533,7 @@ L7_RC_t ptin_snoop_channel_remove(L7_uint16 vlanId, L7_inet_addr_t *channel)
     L7_INTF_MASK_t mcastClientAttached;
     if (ptin_igmp_clientIntfs_getList(vlanId, &mcastClientAttached, &noOfInterfaces)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting client interfaces of vlan %u",vlanId);
+      PT_LOG_ERR(LOG_CTX_IGMP, "Error getting client interfaces of vlan %u",vlanId);
       return L7_SUCCESS;
     }  
 
@@ -545,7 +545,7 @@ L7_RC_t ptin_snoop_channel_remove(L7_uint16 vlanId, L7_inet_addr_t *channel)
         /* Remove static channel */
         if (snoopPTinRemoveStaticGroup(vlanId,intIfNum,channel,0,L7_NULLPTR)!=L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_PTIN_IGMP,"Error adding static channel");
+          PT_LOG_ERR(LOG_CTX_IGMP,"Error adding static channel");
           return L7_FAILURE;
         }
       }
@@ -566,7 +566,7 @@ L7_RC_t ptin_snoop_channel_remove(L7_uint16 vlanId, L7_inet_addr_t *channel)
     /* Add channel */
     if (snoop_channel_remove_procedure(dmac,vlanId,channel)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing channel");
+      PT_LOG_ERR(LOG_CTX_IGMP,"Error removing channel");
       return L7_FAILURE;
     }
   }
@@ -592,7 +592,7 @@ L7_RC_t ptin_snoop_channel_removeAll(L7_uint16 sVlanId)
   /* Validate arguments */
   if (sVlanId!=0 && (sVlanId<PTIN_VLAN_MIN || sVlanId>PTIN_VLAN_MAX))
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_IGMP,"Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -620,11 +620,11 @@ L7_RC_t ptin_snoop_channel_removeAll(L7_uint16 sVlanId)
       /* Remove channel */
       if (snoop_channel_remove_procedure(macAddr,vlanId,&channel)==L7_SUCCESS)
       {
-        LOG_TRACE(LOG_CTX_PTIN_IGMP,"Channel removed from vlan %u",vlanId);
+        PT_LOG_TRACE(LOG_CTX_IGMP,"Channel removed from vlan %u",vlanId);
       }
       else
       {
-        LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing channel from vlan %u",vlanId);
+        PT_LOG_ERR(LOG_CTX_IGMP,"Error removing channel from vlan %u",vlanId);
         rc = L7_FAILURE;
       }
     }
@@ -3979,13 +3979,13 @@ L7_RC_t snoopPortOpen(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *g
   inetAddrPrint(groupAddr, groupAddrStr);
   inetAddrPrint(sourceAddr, sourceAddrStr);
 
-  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isStatic:%u isProtection:%u]", serviceId, intIfNum, groupAddrStr, sourceAddrStr, isStatic, isProtection);
+  PT_LOG_DEBUG(LOG_CTX_IGMP, "Context [serviceId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isStatic:%u isProtection:%u]", serviceId, intIfNum, groupAddrStr, sourceAddrStr, isStatic, isProtection);
 
   /* Get Snoop Execution Block and Control Block */
   pSnoopEB = snoopEBGet();
   if ((pSnoopCB = snoopCBGet(L7_AF_INET)) == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "pSnoopCB:%p", pSnoopCB);
+    PT_LOG_ERR(LOG_CTX_IGMP, "pSnoopCB:%p", pSnoopCB);
     return L7_FAILURE;
   }
 
@@ -4002,18 +4002,18 @@ L7_RC_t snoopPortOpen(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *g
 
   
   /* Send a Port_Open event to the FP */
-  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Sending request to FP to open a port on the switch");
+  PT_LOG_TRACE(LOG_CTX_IGMP, "Sending request to FP to open a port on the switch");
   if(L7_SUCCESS == (rc = osapiMessageSend(pSnoopCB->snoopExec->snoopIGMPQueue, &msg, SNOOP_PDU_MSG_SIZE, L7_WAIT_FOREVER, L7_MSG_PRIORITY_NORM)))
   {
     if (osapiSemaGive(pSnoopEB->snoopMsgQSema) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to unlock snooping's queue semaphore");
+      PT_LOG_ERR(LOG_CTX_IGMP, "Unable to unlock snooping's queue semaphore");
       return L7_FAILURE;
     }
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to send request to FP to open a port on the switch");
+    PT_LOG_ERR(LOG_CTX_IGMP, "Failed to send request to FP to open a port on the switch");
   }
 
   /*
@@ -4048,18 +4048,18 @@ L7_RC_t snoopPortOpen(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *g
       msg.isProtection  = L7_TRUE;
 
       /* Send a Port_Open event to the FP */
-      LOG_TRACE(LOG_CTX_PTIN_IGMP, "Sending request to FP to open a protection port on the switch");
+      PT_LOG_TRACE(LOG_CTX_IGMP, "Sending request to FP to open a protection port on the switch");
       if(L7_SUCCESS == (rc = osapiMessageSend(pSnoopCB->snoopExec->snoopIGMPQueue, &msg, SNOOP_PDU_MSG_SIZE, L7_WAIT_FOREVER, L7_MSG_PRIORITY_NORM)))
       {
         if (osapiSemaGive(pSnoopEB->snoopMsgQSema) != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to unlock snooping's queue semaphore");
+          PT_LOG_ERR(LOG_CTX_IGMP, "Unable to unlock snooping's queue semaphore");
           return L7_FAILURE;
         }
       }
       else
       {
-        LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to send request to FP to open a protection port on the switch");
+        PT_LOG_ERR(LOG_CTX_IGMP, "Failed to send request to FP to open a protection port on the switch");
       }
     }
 #else
@@ -4082,7 +4082,7 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
   inetAddrPrint(groupAddr, groupAddrStr);
   inetAddrPrint(sourceAddr, sourceAddrStr);
 
-  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u groupAddr:%s sourceAddr:%s isProtection:%s]", serviceId, intIfNum, groupAddr, sourceAddr, isProtection?"Yes":"No");
+  PT_LOG_DEBUG(LOG_CTX_IGMP, "Context [serviceId:%u portId:%u groupAddr:%s sourceAddr:%s isProtection:%s]", serviceId, intIfNum, groupAddr, sourceAddr, isProtection?"Yes":"No");
 
 #if !PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
   /*In L2 we do not support forwarding multicast packets based on the Source Address. 
@@ -4091,7 +4091,7 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
   if(sourceAddr != PTIN_MGMD_ANY_IPv4_HOST)
   {
     if (ptin_debug_igmp_snooping)
-      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Ignoring Port Close Request!");
+      PT_LOG_NOTICE(LOG_CTX_IGMP, "Ignoring Port Close Request!");
     return rc;
   }
 #endif
@@ -4115,7 +4115,7 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
   )
   {
 //  if (ptin_debug_igmp_snooping)
-      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Ignoring Port Close. This port is standby [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X]", serviceId, intIfNum, groupAddr, sourceAddr);
+      PT_LOG_NOTICE(LOG_CTX_IGMP, "Ignoring Port Close. This port is standby [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X]", serviceId, intIfNum, groupAddr, sourceAddr);
    
     return rc;
   } 
@@ -4138,18 +4138,18 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
   msg.cbHandle      = pSnoopCB;
 
   /* Send a Port_Close event to the FP */
-  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Sending request to FP to close a port");
+  PT_LOG_TRACE(LOG_CTX_IGMP, "Sending request to FP to close a port");
   if(L7_SUCCESS == (rc = osapiMessageSend(pSnoopCB->snoopExec->snoopIGMPQueue, &msg, SNOOP_PDU_MSG_SIZE, L7_WAIT_FOREVER, L7_MSG_PRIORITY_NORM)))
   {
     if (osapiSemaGive(pSnoopEB->snoopMsgQSema) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to unlock snooping's queue semaphore");
+      PT_LOG_ERR(LOG_CTX_IGMP, "Unable to unlock snooping's queue semaphore");
       return L7_FAILURE;
     }
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to send request to FP to close a port on the switch");
+    PT_LOG_ERR(LOG_CTX_IGMP, "Failed to send request to FP to close a port on the switch");
   }
 
 #if PTIN_BOARD_IS_MATRIX
@@ -4172,18 +4172,18 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
     msg.isProtection  = L7_TRUE; 
 
     /* Send a Port_Close event to the FP */
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Sending request to FP to close a protection port on the switch");
+    PT_LOG_TRACE(LOG_CTX_IGMP, "Sending request to FP to close a protection port on the switch");
     if(L7_SUCCESS == (rc = osapiMessageSend(pSnoopCB->snoopExec->snoopIGMPQueue, &msg, SNOOP_PDU_MSG_SIZE, L7_WAIT_FOREVER, L7_MSG_PRIORITY_NORM)))
     {
       if (osapiSemaGive(pSnoopEB->snoopMsgQSema) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to unlock snooping's queue semaphore");
+        PT_LOG_ERR(LOG_CTX_IGMP, "Unable to unlock snooping's queue semaphore");
         return L7_FAILURE;
       }
     }
     else
     {
-      LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to send request to FP to close a port on the switch");
+      PT_LOG_ERR(LOG_CTX_IGMP, "Failed to send request to FP to close a port on the switch");
     }
   }
 #else

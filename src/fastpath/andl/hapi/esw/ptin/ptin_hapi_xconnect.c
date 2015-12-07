@@ -39,24 +39,24 @@ L7_RC_t ptin_hapi_bridge_init(void)
 {
   int error;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "bcm_switch_control_set(%d,%d,1)", bcm_unit, bcmSwitchSharedVlanEnable);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_switch_control_set(%d,%d,1)", bcm_unit, bcmSwitchSharedVlanEnable);
 
   /* Enable Shared Vlan for using one single vlan in E-Trees when learning MACs */
   if ( (error = bcmx_switch_control_set( bcmSwitchSharedVlanEnable, L7_TRUE )) != BCM_E_NONE )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error enabling shared vlan: error=%d (%s)", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error enabling shared vlan: error=%d (%s)", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
   #if 0
   if ( (error=ptin_hapi_maclimit_init()) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing MAC learning control: error=%d (%s)", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing MAC learning control: error=%d (%s)", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
   #endif
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "ptin_hapi_bridge_init returned success");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "ptin_hapi_bridge_init returned success");
 
   return L7_SUCCESS;
 }
@@ -73,7 +73,7 @@ L7_RC_t ptin_hapi_bridge_free_resources(L7_uint16 *crossconnects)
   if (crossconnects != L7_NULLPTR)
   {
     *crossconnects = resources_crossconnects;
-    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Free cross-connections consulted: %u", *crossconnects);
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Free cross-connections consulted: %u", *crossconnects);
   }
 
   return L7_SUCCESS;
@@ -99,7 +99,7 @@ L7_RC_t ptin_hapi_bridge_vlan_mode_set(L7_uint16 vlanId, L7_uint16 fwdVlanId, L7
   bcm_vlan_control_vlan_t_init(&control);
   if ((error = bcmx_vlan_control_vlan_get(vlanId, &control))!=BCM_E_NONE)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error getting vlan control structure! error=%d (%s)\r\n", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error getting vlan control structure! error=%d (%s)\r\n", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
@@ -136,11 +136,11 @@ L7_RC_t ptin_hapi_bridge_vlan_mode_set(L7_uint16 vlanId, L7_uint16 fwdVlanId, L7
   /* Apply new control definitions to this vlan */
   if ( (error = bcmx_vlan_control_vlan_set(vlanId, control)) != BCM_E_NONE )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_vlan_control_vlan_set: error=%d (%s)", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_vlan_control_vlan_set: error=%d (%s)", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "ptin_hapi_bridge_vlan_mode_set returned success");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "ptin_hapi_bridge_vlan_mode_set returned success");
 
   return L7_SUCCESS;
 }
@@ -163,7 +163,7 @@ L7_RC_t ptin_hapi_bridge_vlan_mode_fwdVlan_set(L7_uint16 vlanId, L7_uint16 fwdVl
   /* Forwarding vlan, for MAC learning purposes (only if fwdvlan is valid) */
   if ( fwdVlanId == 0 || fwdVlanId > 4095 )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid fwd vlan id: %u",fwdVlanId);
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid fwd vlan id: %u",fwdVlanId);
     return L7_FAILURE;
   }
 
@@ -171,7 +171,7 @@ L7_RC_t ptin_hapi_bridge_vlan_mode_fwdVlan_set(L7_uint16 vlanId, L7_uint16 fwdVl
   bcm_vlan_control_vlan_t_init(&control);
   if ((error = bcmx_vlan_control_vlan_get(vlanId, &control))!=BCM_E_NONE)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error getting vlan control structure! error=%d (%s)", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error getting vlan control structure! error=%d (%s)", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
   
@@ -181,11 +181,11 @@ L7_RC_t ptin_hapi_bridge_vlan_mode_fwdVlan_set(L7_uint16 vlanId, L7_uint16 fwdVl
   /* Apply new control definitions to this vlan */
   if ( (error = bcmx_vlan_control_vlan_set(vlanId, control)) != BCM_E_NONE )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_vlan_control_vlan_set: error=%d (%s)", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_vlan_control_vlan_set: error=%d (%s)", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "ptin_hapi_bridge_vlan_mode_fwdVlan_set returned success");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "ptin_hapi_bridge_vlan_mode_fwdVlan_set returned success");
 
   return L7_SUCCESS;
 }
@@ -207,7 +207,7 @@ L7_RC_t ptin_hapi_bridge_vlan_mode_outerTpId_set(L7_uint16 vlanId, L7_uint16 out
   /* Validate outer TPID */
   if ( outer_tpid == 0x0000 )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR: TPID is null");
+    PT_LOG_ERR(LOG_CTX_HAPI, "ERROR: TPID is null");
     return L7_FAILURE;
   }
 
@@ -215,7 +215,7 @@ L7_RC_t ptin_hapi_bridge_vlan_mode_outerTpId_set(L7_uint16 vlanId, L7_uint16 out
   bcm_vlan_control_vlan_t_init(&control);
   if ((error = bcmx_vlan_control_vlan_get(vlanId, &control))!=BCM_E_NONE)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error getting vlan control structure! error=%d (%s)\r\n", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error getting vlan control structure! error=%d (%s)\r\n", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
@@ -225,11 +225,11 @@ L7_RC_t ptin_hapi_bridge_vlan_mode_outerTpId_set(L7_uint16 vlanId, L7_uint16 out
   /* Apply new control definitions to this vlan */
   if ( (error = bcmx_vlan_control_vlan_set(vlanId, control)) != BCM_E_NONE )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_vlan_control_vlan_set: error=%d (%s)", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_vlan_control_vlan_set: error=%d (%s)", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "ptin_hapi_bridge_vlan_mode_outerTpId_set returned success");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "ptin_hapi_bridge_vlan_mode_outerTpId_set returned success");
 
   return L7_SUCCESS;
 }
@@ -251,11 +251,11 @@ L7_RC_t ptin_hapi_bridge_vlan_mode_macLearn_set(L7_uint16 vlanId, L7_BOOL mac_le
   bcm_vlan_control_vlan_t_init(&control);
   if ((error = bcmx_vlan_control_vlan_get(vlanId, &control))!=BCM_E_NONE)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error getting vlan control structure! error=%d (%s)\r\n", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error getting vlan control structure! error=%d (%s)\r\n", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Control flags = 0x%08x",control.flags);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Control flags = 0x%08x",control.flags);
 
   /* Learn on this vlan */
   if (!mac_learning_apply)
@@ -280,11 +280,11 @@ L7_RC_t ptin_hapi_bridge_vlan_mode_macLearn_set(L7_uint16 vlanId, L7_BOOL mac_le
   /* Apply new control definitions to this vlan */
   if ( (error = bcmx_vlan_control_vlan_set(vlanId, control)) != BCM_E_NONE )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_vlan_control_vlan_set: error=%d (%s)", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_vlan_control_vlan_set: error=%d (%s)", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "ptin_hapi_bridge_vlan_mode_macLearn_set returned success");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "ptin_hapi_bridge_vlan_mode_macLearn_set returned success");
 
   return L7_SUCCESS;
 }
@@ -306,7 +306,7 @@ L7_RC_t ptin_hapi_bridge_vlan_mode_crossconnect_set(L7_uint16 vlanId, L7_BOOL cr
   bcm_vlan_control_vlan_t_init(&control);
   if ((error = bcmx_vlan_control_vlan_get(vlanId, &control))!=BCM_E_NONE)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error getting vlan control structure! error=%d (%s)\r\n", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error getting vlan control structure! error=%d (%s)\r\n", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
@@ -325,11 +325,11 @@ L7_RC_t ptin_hapi_bridge_vlan_mode_crossconnect_set(L7_uint16 vlanId, L7_BOOL cr
   /* Apply new control definitions to this vlan */
   if ( (error = bcmx_vlan_control_vlan_set(vlanId, control)) != BCM_E_NONE )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_vlan_control_vlan_set: error=%d (%s)", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_vlan_control_vlan_set: error=%d (%s)", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "ptin_hapi_bridge_vlan_mode_crossconnect_set returned success (enable=%u, double=%u)", cross_connects_apply, double_tag);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "ptin_hapi_bridge_vlan_mode_crossconnect_set returned success (enable=%u, double=%u)", cross_connects_apply, double_tag);
 
   return L7_SUCCESS;
 }
@@ -350,7 +350,7 @@ L7_RC_t ptin_hapi_bridge_crossconnect_add(L7_uint16 outerVlanId, L7_uint16 inner
   DAPI_PORT_t  *dapiPortPtr1, *dapiPortPtr2;
   BROAD_PORT_t *hapiPortPtr1, *hapiPortPtr2;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "oVlanId=%u iVlanId=%u port1={%d,%d,%d} port2={%d,%d,%d}",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "oVlanId=%u iVlanId=%u port1={%d,%d,%d} port2={%d,%d,%d}",
             outerVlanId,innerVlanId,
             dapiPort1->usp->unit,dapiPort1->usp->slot,dapiPort1->usp->port,
             dapiPort2->usp->unit,dapiPort2->usp->slot,dapiPort2->usp->port);
@@ -358,7 +358,7 @@ L7_RC_t ptin_hapi_bridge_crossconnect_add(L7_uint16 outerVlanId, L7_uint16 inner
   if ( (dapiPort1->usp->unit<0 || dapiPort1->usp->slot<0 || dapiPort1->usp->port<0) ||
        (dapiPort2->usp->unit<0 || dapiPort2->usp->slot<0 || dapiPort2->usp->port<0) )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR: Invalid interfaces");
+    PT_LOG_ERR(LOG_CTX_HAPI, "ERROR: Invalid interfaces");
     return L7_FAILURE;
   }
 
@@ -370,7 +370,7 @@ L7_RC_t ptin_hapi_bridge_crossconnect_add(L7_uint16 outerVlanId, L7_uint16 inner
   if ( ( !IS_PORT_TYPE_PHYSICAL(dapiPortPtr1) && !IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr1) ) ||
        ( !IS_PORT_TYPE_PHYSICAL(dapiPortPtr2) && !IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr2) ) )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR: Ports ({%d,%d,%d} and {%d,%d,%d}) are not physical neither lag",
+    PT_LOG_ERR(LOG_CTX_HAPI, "ERROR: Ports ({%d,%d,%d} and {%d,%d,%d}) are not physical neither lag",
             dapiPort1->usp->unit,dapiPort1->usp->slot,dapiPort1->usp->port,
             dapiPort2->usp->unit,dapiPort2->usp->slot,dapiPort2->usp->port);
     return L7_FAILURE;
@@ -379,7 +379,7 @@ L7_RC_t ptin_hapi_bridge_crossconnect_add(L7_uint16 outerVlanId, L7_uint16 inner
   /* Validate vlans */
   if ( outerVlanId==0 || outerVlanId>4095 )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Outer vlan is invalid: %u",outerVlanId);
+    PT_LOG_ERR(LOG_CTX_HAPI, "Outer vlan is invalid: %u",outerVlanId);
     return L7_FAILURE;
   }
 
@@ -389,7 +389,7 @@ L7_RC_t ptin_hapi_bridge_crossconnect_add(L7_uint16 outerVlanId, L7_uint16 inner
     innerVlanId = BCM_VLAN_INVALID;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "bcm_vlan_cross_connect_add(%d,%u,%u,%u({%d,%d,%d}), %u({%d,%d,%d}))",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_cross_connect_add(%d,%u,%u,%u({%d,%d,%d}), %u({%d,%d,%d}))",
             bcm_unit, outerVlanId, innerVlanId,
             hapiPortPtr1->bcmx_lport, dapiPort1->usp->unit, dapiPort1->usp->slot, dapiPort1->usp->port,
             hapiPortPtr2->bcmx_lport, dapiPort2->usp->unit, dapiPort2->usp->slot, dapiPort2->usp->port);
@@ -397,7 +397,7 @@ L7_RC_t ptin_hapi_bridge_crossconnect_add(L7_uint16 outerVlanId, L7_uint16 inner
   error = bcmx_vlan_cross_connect_add(outerVlanId, innerVlanId, hapiPortPtr1->bcmx_lport, hapiPortPtr2->bcmx_lport);
   if ( error != BCM_E_NONE && error != BCM_E_EXISTS )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_vlan_cross_connect_add: %d (%s)", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_vlan_cross_connect_add: %d (%s)", error, bcm_errmsg(error));
   }
 
   /* Manager resources meter */
@@ -407,7 +407,7 @@ L7_RC_t ptin_hapi_bridge_crossconnect_add(L7_uint16 outerVlanId, L7_uint16 inner
       resources_crossconnects++;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Finished successfully");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Finished successfully");
 
   return L7_SUCCESS;
 }
@@ -424,12 +424,12 @@ L7_RC_t ptin_hapi_bridge_crossconnect_delete(L7_uint16 outerVlanId, L7_uint16 in
 {
   int error;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "oVlanId=%u iVlanId=%u",outerVlanId,innerVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "oVlanId=%u iVlanId=%u",outerVlanId,innerVlanId);
 
   /* Validate vlans */
   if ( outerVlanId==0 || outerVlanId>4095 )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Outer vlan is invalid: %u",outerVlanId);
+    PT_LOG_ERR(LOG_CTX_HAPI, "Outer vlan is invalid: %u",outerVlanId);
     return L7_FAILURE;
   }
 
@@ -439,12 +439,12 @@ L7_RC_t ptin_hapi_bridge_crossconnect_delete(L7_uint16 outerVlanId, L7_uint16 in
     innerVlanId = BCM_VLAN_INVALID;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "bcm_vlan_cross_connect_delete(%d,%u,%u)",bcm_unit,outerVlanId,innerVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_cross_connect_delete(%d,%u,%u)",bcm_unit,outerVlanId,innerVlanId);
 
   error = bcmx_vlan_cross_connect_delete(outerVlanId, innerVlanId);
   if ( error != BCM_E_NONE && error != BCM_E_NOT_FOUND )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_vlan_cross_connect_delete: %d (%s)", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_vlan_cross_connect_delete: %d (%s)", error, bcm_errmsg(error));
   }
 
   /* Manager resources meter */
@@ -454,7 +454,7 @@ L7_RC_t ptin_hapi_bridge_crossconnect_delete(L7_uint16 outerVlanId, L7_uint16 in
       resources_crossconnects--;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Finished successfully");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Finished successfully");
 
   return L7_SUCCESS;
 }
@@ -468,15 +468,15 @@ L7_RC_t ptin_hapi_bridge_crossconnect_delete_all(void)
 {
   int error;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "bcm_vlan_cross_connect_delete_all(%d)",bcm_unit);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_cross_connect_delete_all(%d)",bcm_unit);
 
   error = bcmx_vlan_cross_connect_delete_all();
   if ( error != BCM_E_NONE && error != BCM_E_NOT_FOUND )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_vlan_cross_connect_delete: %d (%s)", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_vlan_cross_connect_delete: %d (%s)", error, bcm_errmsg(error));
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Finished successfully");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Finished successfully");
 
   return L7_SUCCESS;
 }
@@ -508,14 +508,14 @@ L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
   bcm_error_t error;
   bcm_multicast_t encap_id;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "port={%d,%d,%d}, oVlanId=%u iVlanId=%u => oVlanId=%u iVlanId=%u",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "port={%d,%d,%d}, oVlanId=%u iVlanId=%u => oVlanId=%u iVlanId=%u",
             dapiPort->usp->unit,dapiPort->usp->slot,dapiPort->usp->port,
             match_ovid, match_ivid, egress_ovid, egress_ivid);
 
   /* Validate interface */
   if ( dapiPort->usp->unit<0 || dapiPort->usp->slot<0 || dapiPort->usp->port<0 )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR: Invalid interfaces");
+    PT_LOG_ERR(LOG_CTX_HAPI, "ERROR: Invalid interfaces");
     return L7_FAILURE;
   }
 
@@ -525,7 +525,7 @@ L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
   /* Accept only physical interfaces */
   if ( !IS_PORT_TYPE_PHYSICAL(dapiPortPtr) )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR: Port {%d,%d,%d} are not physical",
+    PT_LOG_ERR(LOG_CTX_HAPI, "ERROR: Port {%d,%d,%d} are not physical",
             dapiPort->usp->unit,dapiPort->usp->slot,dapiPort->usp->port);
     return L7_FAILURE;
   }
@@ -546,15 +546,15 @@ L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
   vlan_port.egress_inner_vlan = egress_ivid;
   BCM_GPORT_LOCAL_SET(vlan_port.port, hapiPortPtr->bcm_port);
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "bcm_port=%d vlan_port.port=%d vport=%d", hapiPortPtr->bcm_port, vlan_port.port, vlan_port.vlan_port_id);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_port=%d vlan_port.port=%d vport=%d", hapiPortPtr->bcm_port, vlan_port.port, vlan_port.vlan_port_id);
 
   if ((error=bcm_vlan_port_create(0, &vlan_port)) != BCM_E_NONE)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_vlan_port_create: error=%d (\"%s\")", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_vlan_port_create: error=%d (\"%s\")", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "vport=0x%x", vlan_port.vlan_port_id);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "vport=0x%x", vlan_port.vlan_port_id);
 
   #if 0
   /* MAC learning */
@@ -563,32 +563,32 @@ L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
   {
     if ((error=bcm_port_learn_set(0, vlan_port.vlan_port_id, BCM_PORT_LEARN_PENDING | BCM_PORT_LEARN_ARL )) != BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_learn_set: error=%d (\"%s\")", error, bcm_errmsg(error));
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_port_learn_set: error=%d (\"%s\")", error, bcm_errmsg(error));
       break;
     }
     if ((error=bcm_port_control_set(0, vlan_port.vlan_port_id, bcmPortControlL2Learn, BCM_PORT_LEARN_PENDING | BCM_PORT_LEARN_ARL)) != BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_control_set: error=%d (\"%s\")", error, bcm_errmsg(error));
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_port_control_set: error=%d (\"%s\")", error, bcm_errmsg(error));
       break;
     }
     if ((error=bcm_port_control_set(0, vlan_port.vlan_port_id, bcmPortControlL2Move,  BCM_PORT_LEARN_PENDING | BCM_PORT_LEARN_ARL)) != BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_control_set: error=%d (\"%s\")", error, bcm_errmsg(error));
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_port_control_set: error=%d (\"%s\")", error, bcm_errmsg(error));
       break;
     }
     if ((error=bcm_port_control_set(0, vlan_port.vlan_port_id, bcmPortControlLearnClassEnable, L7_ENABLE)) != BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_control_set: error=%d (\"%s\")", error, bcm_errmsg(error));
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_port_control_set: error=%d (\"%s\")", error, bcm_errmsg(error));
       break;
     }
     if ((error=bcm_l2_learn_class_set(0, 1, 1, BCM_L2_LEARN_CLASS_MOVE)) != BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_l2_learn_class_set: error=%d (\"%s\")", error, bcm_errmsg(error));
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_l2_learn_class_set: error=%d (\"%s\")", error, bcm_errmsg(error));
       break;
     }
     if ((error=bcm_l2_learn_port_class_set(0, vlan_port.vlan_port_id, 1)) != BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_l2_learn_port_class_set: error=%d (\"%s\")", error, bcm_errmsg(error));
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_l2_learn_port_class_set: error=%d (\"%s\")", error, bcm_errmsg(error));
       break;
     }
   } while (0);
@@ -596,7 +596,7 @@ L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
   if (error != BCM_E_NONE)
   {
     bcm_vlan_port_destroy(0, vlan_port.vlan_port_id);
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "error=%d (\"%s\")", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "error=%d (\"%s\")", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
   #endif
@@ -622,7 +622,7 @@ L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
   if ((error=bcm_vlan_translate_egress_action_add(0, vlan_port.vlan_port_id, egress_ovid, 0, &action))!=BCM_E_NONE)
   {
     bcm_vlan_port_destroy(0, vlan_port.vlan_port_id);
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_vlan_translate_egress_action_add(0, %d, %d, %d, &action): error=%d (\"%s\")",
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_vlan_translate_egress_action_add(0, %d, %d, %d, &action): error=%d (\"%s\")",
            vlan_port.vlan_port_id, egress_ovid, 0, error, bcm_errmsg(error));
     return L7_FAILURE;
   }
@@ -635,24 +635,24 @@ L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
   {
     if ((error=bcm_multicast_create(0, BCM_MULTICAST_TYPE_VLAN, &mc_group)) != BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with bcm_multicast_create(0, %d, &mcast_group): error=%d (\"%s\")",
+      PT_LOG_ERR(LOG_CTX_HAPI,"Error with bcm_multicast_create(0, %d, &mcast_group): error=%d (\"%s\")",
               BCM_MULTICAST_TYPE_VLAN, error, bcm_errmsg(error));
       return L7_FAILURE;
     }
     *mcast_group = mc_group;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "mc_group=%d vlan_port.port=%d vport=%d", mc_group, vlan_port.port, vlan_port.vlan_port_id);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "mc_group=%d vlan_port.port=%d vport=%d", mc_group, vlan_port.port, vlan_port.vlan_port_id);
 
   /* Add virtual port to multicast group */
   if ((error=bcm_multicast_vlan_encap_get(0, mc_group, vlan_port.port, vlan_port.vlan_port_id, &encap_id))!=BCM_E_NONE)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_multicast_vlan_encap_get: error=%d (\"%s\")",error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_multicast_vlan_encap_get: error=%d (\"%s\")",error, bcm_errmsg(error));
     return L7_FAILURE;
   }
   if ((error=bcm_multicast_egress_add(0, mc_group, vlan_port.port, encap_id))!=BCM_E_NONE)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_multicast_egress_add: error=%d (\"%s\")",error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_multicast_egress_add: error=%d (\"%s\")",error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
@@ -660,7 +660,7 @@ L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
   if (virtual_gport != L7_NULLPTR)
     *virtual_gport = vlan_port.vlan_port_id;
 
-  LOG_DEBUG(LOG_CTX_PTIN_HAPI, "ptin_hapi_vp_create: vport 0x%x created", vlan_port.vlan_port_id);
+  PT_LOG_DEBUG(LOG_CTX_HAPI, "ptin_hapi_vp_create: vport 0x%x created", vlan_port.vlan_port_id);
 
   return L7_SUCCESS;
 }
@@ -686,14 +686,14 @@ L7_RC_t ptin_hapi_vp_remove(ptin_dapi_port_t *dapiPort,
   bcm_multicast_t encap_id;
   bcm_error_t error;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "port={%d,%d,%d}, oVlanId=%u iVlanId=%u",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "port={%d,%d,%d}, oVlanId=%u iVlanId=%u",
             dapiPort->usp->unit,dapiPort->usp->slot,dapiPort->usp->port,
             match_ovid, match_ivid);
 
   /* Validate interface */
   if ( dapiPort->usp->unit<0 || dapiPort->usp->slot<0 || dapiPort->usp->port<0 )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR: Invalid interfaces");
+    PT_LOG_ERR(LOG_CTX_HAPI, "ERROR: Invalid interfaces");
     return L7_FAILURE;
   }
 
@@ -703,7 +703,7 @@ L7_RC_t ptin_hapi_vp_remove(ptin_dapi_port_t *dapiPort,
   /* Accept only physical interfaces */
   if ( !IS_PORT_TYPE_PHYSICAL(dapiPortPtr) )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR: Port {%d,%d,%d} are not physical",
+    PT_LOG_ERR(LOG_CTX_HAPI, "ERROR: Port {%d,%d,%d} are not physical",
             dapiPort->usp->unit,dapiPort->usp->slot,dapiPort->usp->port);
     return L7_FAILURE;
   }
@@ -711,7 +711,7 @@ L7_RC_t ptin_hapi_vp_remove(ptin_dapi_port_t *dapiPort,
   /* Forwarding vlan, for MAC learning purposes (only if fwdvlan is valid) */
   if ( mcast_group <= 0 )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid MC group (%d)", mcast_group);
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid MC group (%d)", mcast_group);
     return L7_FAILURE;
   }
 
@@ -737,26 +737,26 @@ L7_RC_t ptin_hapi_vp_remove(ptin_dapi_port_t *dapiPort,
 
   if ((error=bcm_vlan_port_find(0, &vlan_port)) != BCM_E_NONE)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_vlan_port_find: error=%d (\"%s\")", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_vlan_port_find: error=%d (\"%s\")", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "gport=0x%x, bcm_port=%d => vlan_port.port=%d vport=%d",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "gport=0x%x, bcm_port=%d => vlan_port.port=%d vport=%d",
              virtual_gport, hapiPortPtr->bcm_port, vlan_port.port, vlan_port.vlan_port_id);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "flags=0x%08x criteria=0x%08x match_vlan=%u match_ivlan=%u egress_vlan=%u egress_ivlan=%u",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "flags=0x%08x criteria=0x%08x match_vlan=%u match_ivlan=%u egress_vlan=%u egress_ivlan=%u",
              vlan_port.flags, vlan_port.criteria, vlan_port.match_vlan, vlan_port.match_inner_vlan, vlan_port.egress_vlan, vlan_port.egress_inner_vlan);
 
   /* Remove virtual port from multicast group */
   error = bcm_multicast_vlan_encap_get(0, mcast_group, vlan_port.port, vlan_port.vlan_port_id, &encap_id);
   if (error != BCM_E_NONE)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_multicast_vlan_encap_get: error=%d (\"%s\")",error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_multicast_vlan_encap_get: error=%d (\"%s\")",error, bcm_errmsg(error));
     return L7_FAILURE;
   }
   error = bcm_multicast_egress_delete(0, mcast_group, vlan_port.port, encap_id);
   if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_multicast_egress_delete: error=%d (\"%s\")",error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_multicast_egress_delete: error=%d (\"%s\")",error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
@@ -764,7 +764,7 @@ L7_RC_t ptin_hapi_vp_remove(ptin_dapi_port_t *dapiPort,
   error = bcm_vlan_translate_egress_action_delete(0, vlan_port.vlan_port_id, vlan_port.egress_vlan, 0);
   if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcmx_vlan_translate_egress_action_delete(%d, %d, %d, &action): error=%d (\"%s\")",
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcmx_vlan_translate_egress_action_delete(%d, %d, %d, &action): error=%d (\"%s\")",
             vlan_port.vlan_port_id, vlan_port.egress_vlan, 0, error, bcm_errmsg(error));
     return L7_FAILURE;
   }
@@ -773,7 +773,7 @@ L7_RC_t ptin_hapi_vp_remove(ptin_dapi_port_t *dapiPort,
   error = bcm_vlan_port_destroy(0, vlan_port.vlan_port_id);
   if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_vlan_port_destroy: error=%d (\"%s\")", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_vlan_port_destroy: error=%d (\"%s\")", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
@@ -781,10 +781,10 @@ L7_RC_t ptin_hapi_vp_remove(ptin_dapi_port_t *dapiPort,
   error = bcm_l2_addr_delete_by_port(0, -1, vlan_port.vlan_port_id, 0);
   if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error removing MAC addresses related to this vport: error=%d (\"%s\")", error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error removing MAC addresses related to this vport: error=%d (\"%s\")", error, bcm_errmsg(error));
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "ptin_hapi_vp_remove: vport 0x%x removed", vlan_port.vlan_port_id);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "ptin_hapi_vp_remove: vport 0x%x removed", vlan_port.vlan_port_id);
 
   return L7_SUCCESS;
 }
@@ -810,17 +810,17 @@ L7_RC_t ptin_hapi_multicast_egress_port_add(L7_int *mcast_group, L7_uint32 multi
   /* Forwarding vlan, for MAC learning purposes (only if fwdvlan is valid) */
   if ( mcast_group == L7_NULLPTR )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid MC group");
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid MC group");
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "port={%d,%d,%d}, mcast_group=%d",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "port={%d,%d,%d}, mcast_group=%d",
             dapiPort->usp->unit,dapiPort->usp->slot,dapiPort->usp->port, mcast_group);
 
   /* Validate interface */
   if ( dapiPort->usp->unit<0 || dapiPort->usp->slot<0 || dapiPort->usp->port<0 )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR: Invalid interfaces");
+    PT_LOG_ERR(LOG_CTX_HAPI, "ERROR: Invalid interfaces");
     return L7_FAILURE;
   }
 
@@ -830,7 +830,7 @@ L7_RC_t ptin_hapi_multicast_egress_port_add(L7_int *mcast_group, L7_uint32 multi
   /* Accept only physical interfaces */
   if ( !IS_PORT_TYPE_PHYSICAL(dapiPortPtr) && !IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR: Port {%d,%d,%d} are not physical nor logical",
+    PT_LOG_ERR(LOG_CTX_HAPI, "ERROR: Port {%d,%d,%d} are not physical nor logical",
             dapiPort->usp->unit,dapiPort->usp->slot,dapiPort->usp->port);
     return L7_FAILURE;
   }
@@ -843,7 +843,7 @@ L7_RC_t ptin_hapi_multicast_egress_port_add(L7_int *mcast_group, L7_uint32 multi
   {
     if ((error=bcm_multicast_create(0, multicast_flag, &mc_group)) != BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with bcm_multicast_create(0, %d, &mcast_group): error=%d (\"%s\")",
+      PT_LOG_ERR(LOG_CTX_HAPI,"Error with bcm_multicast_create(0, %d, &mcast_group): error=%d (\"%s\")",
               BCM_MULTICAST_TYPE_VLAN, error, bcm_errmsg(error));
       return L7_FAILURE;
     }
@@ -856,7 +856,7 @@ L7_RC_t ptin_hapi_multicast_egress_port_add(L7_int *mcast_group, L7_uint32 multi
     /* get the encapsulation id */
     if ((error=bcm_multicast_l2_encap_get(0, mc_group, hapiPortPtr->bcmx_lport, -1, &encap_id))!=BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_multicast_l2_encap_get: error=%d (\"%s\")",error, bcm_errmsg(error));
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_multicast_l2_encap_get: error=%d (\"%s\")",error, bcm_errmsg(error));
       return L7_FAILURE;
     }    
     break;      
@@ -864,23 +864,23 @@ L7_RC_t ptin_hapi_multicast_egress_port_add(L7_int *mcast_group, L7_uint32 multi
     /* get the encapsulation id */   
     if ((error=bcm_multicast_l3_encap_get(0, mc_group, hapiPortPtr->bcmx_lport, virtual_gport, &encap_id))!=BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_multicast_l3_encap_get: error=%d (\"%s\")",error, bcm_errmsg(error));
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_multicast_l3_encap_get: error=%d (\"%s\")",error, bcm_errmsg(error));
       return L7_FAILURE;
     }    
     break;    
   default:
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Multicast Flag Not Supported :0x%08X", multicast_flag);
+    PT_LOG_ERR(LOG_CTX_HAPI, "Multicast Flag Not Supported :0x%08X", multicast_flag);
     return L7_NOT_SUPPORTED;
   }  
 
   /* add network port to multicast group */
   if ((error=bcm_multicast_egress_add(0, mc_group, hapiPortPtr->bcmx_lport, encap_id))!=BCM_E_NONE)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_multicast_egress_add: error=%d (\"%s\")",error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_multicast_egress_add: error=%d (\"%s\")",error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "ptin_hapi_multicast_port_add returned success");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "ptin_hapi_multicast_port_add returned success");
 
   return L7_SUCCESS;
 }
@@ -905,17 +905,17 @@ L7_RC_t ptin_hapi_multicast_egress_port_remove(L7_int mcast_group, L7_uint32 mul
   /* Forwarding vlan, for MAC learning purposes (only if fwdvlan is valid) */
   if ( mcast_group <= 0 )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid MC group (%d)", mcast_group);
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid MC group (%d)", mcast_group);
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "port={%d,%d,%d}, mcast_group=%d",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "port={%d,%d,%d}, mcast_group=%d",
             dapiPort->usp->unit,dapiPort->usp->slot,dapiPort->usp->port, mcast_group);
 
   /* Validate interface */
   if ( dapiPort->usp->unit<0 || dapiPort->usp->slot<0 || dapiPort->usp->port<0 )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR: Invalid interfaces");
+    PT_LOG_ERR(LOG_CTX_HAPI, "ERROR: Invalid interfaces");
     return L7_FAILURE;
   }
 
@@ -925,7 +925,7 @@ L7_RC_t ptin_hapi_multicast_egress_port_remove(L7_int mcast_group, L7_uint32 mul
   /* Accept only physical interfaces */
   if ( !IS_PORT_TYPE_PHYSICAL(dapiPortPtr) && !IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR: Port {%d,%d,%d} are not physical nor logical",
+    PT_LOG_ERR(LOG_CTX_HAPI, "ERROR: Port {%d,%d,%d} are not physical nor logical",
             dapiPort->usp->unit,dapiPort->usp->slot,dapiPort->usp->port);
     return L7_FAILURE;
   }
@@ -937,7 +937,7 @@ L7_RC_t ptin_hapi_multicast_egress_port_remove(L7_int mcast_group, L7_uint32 mul
     error = bcm_multicast_l2_encap_get(0, mcast_group, hapiPortPtr->bcmx_lport, -1, &encap_id);
     if (error != BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_multicast_l2_encap_get: error=%d (\"%s\")",error, bcm_errmsg(error));
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_multicast_l2_encap_get: error=%d (\"%s\")",error, bcm_errmsg(error));
       return L7_FAILURE;
     }
     break;  
@@ -945,23 +945,23 @@ L7_RC_t ptin_hapi_multicast_egress_port_remove(L7_int mcast_group, L7_uint32 mul
     /* get the encapsulation id */   
     if ((error=bcm_multicast_l3_encap_get(0, mcast_group, hapiPortPtr->bcmx_lport, virtual_gport, &encap_id))!=BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_multicast_l3_encap_get: error=%d (\"%s\")",error, bcm_errmsg(error));
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_multicast_l3_encap_get: error=%d (\"%s\")",error, bcm_errmsg(error));
       return L7_FAILURE;
     }
     break;
   default:
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Multicast Flag Not Supported :0x%08X", multicast_flag);
+    PT_LOG_ERR(LOG_CTX_HAPI, "Multicast Flag Not Supported :0x%08X", multicast_flag);
     return L7_NOT_SUPPORTED;
   }
   
   error = bcm_multicast_egress_delete(0, mcast_group, hapiPortPtr->bcmx_lport, encap_id);
   if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_multicast_egress_delete: error=%d (\"%s\")",error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_multicast_egress_delete: error=%d (\"%s\")",error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "ptin_hapi_multicast_port_add returned success");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "ptin_hapi_multicast_port_add returned success");
 
   return L7_SUCCESS;
 }
@@ -981,16 +981,16 @@ L7_RC_t ptin_hapi_multicast_egress_clean(L7_int mcast_group, L7_BOOL destroy_mcg
   /* Forwarding vlan, for MAC learning purposes (only if fwdvlan is valid) */
   if ( mcast_group <= 0 )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid MC group (%d)", mcast_group);
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid MC group (%d)", mcast_group);
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "mcast_group=%d", mcast_group);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "mcast_group=%d", mcast_group);
 
   error = bcm_multicast_egress_delete_all(0, mcast_group);
   if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_multicast_egress_delete_all: error=%d (\"%s\")",error, bcm_errmsg(error));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_multicast_egress_delete_all: error=%d (\"%s\")",error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
@@ -1000,13 +1000,13 @@ L7_RC_t ptin_hapi_multicast_egress_clean(L7_int mcast_group, L7_BOOL destroy_mcg
     error = bcm_multicast_destroy(0, mcast_group);
     if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with bcm_multicast_create(0, %d, &mcast_group): error=%d (\"%s\")",
+      PT_LOG_ERR(LOG_CTX_HAPI,"Error with bcm_multicast_create(0, %d, &mcast_group): error=%d (\"%s\")",
               BCM_MULTICAST_TYPE_VLAN, error, bcm_errmsg(error));
       return L7_FAILURE;
     }
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "bcm_multicast_egress_delete_all returned success");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_multicast_egress_delete_all returned success");
 
   return L7_SUCCESS;
 }
@@ -1031,7 +1031,7 @@ L7_RC_t ptin_hapi_bridgeVlan_multicast_set(L7_uint16 vlanId, L7_int *mcast_group
   /* Forwarding vlan, for MAC learning purposes (only if fwdvlan is valid) */
   if ( mcast_group == L7_NULLPTR )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid MC group");
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid MC group");
     return L7_FAILURE;
   }
 
@@ -1043,13 +1043,13 @@ L7_RC_t ptin_hapi_bridgeVlan_multicast_set(L7_uint16 vlanId, L7_int *mcast_group
   {
     if ((error=bcm_multicast_create(0, multicast_flag, &mc_group)) != BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with bcm_multicast_create(0,0x%x, &mcast_group): error=%d (\"%s\")",
+      PT_LOG_ERR(LOG_CTX_HAPI,"Error with bcm_multicast_create(0,0x%x, &mcast_group): error=%d (\"%s\")",
               multicast_flag, error, bcm_errmsg(error));
       return L7_FAILURE;
     }
     *mcast_group = mc_group;
 
-    LOG_DEBUG(LOG_CTX_PTIN_HAPI, "mc_group=0x%08x created!", mc_group);
+    PT_LOG_DEBUG(LOG_CTX_HAPI, "mc_group=0x%08x created!", mc_group);
   }
 
   if (multicast_flag & BCM_MULTICAST_TYPE_VLAN)
@@ -1061,7 +1061,7 @@ L7_RC_t ptin_hapi_bridgeVlan_multicast_set(L7_uint16 vlanId, L7_int *mcast_group
       bcm_vlan_control_vlan_t_init(&control);
       if ((error = bcm_vlan_control_vlan_get(0, vlanId, &control))!=BCM_E_NONE)
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error getting vlan control structure! error=%d (%s)", error, bcm_errmsg(error));
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error getting vlan control structure! error=%d (%s)", error, bcm_errmsg(error));
         return L7_FAILURE;
       }
       
@@ -1073,13 +1073,13 @@ L7_RC_t ptin_hapi_bridgeVlan_multicast_set(L7_uint16 vlanId, L7_int *mcast_group
       /* Apply new control definitions to this vlan */
       if ( (error = bcm_vlan_control_vlan_set(0, vlanId, control)) != BCM_E_NONE )
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_vlan_control_vlan_set: error=%d (%s)", error, bcm_errmsg(error));
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_vlan_control_vlan_set: error=%d (%s)", error, bcm_errmsg(error));
         return L7_FAILURE;
       }
     }
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "ptin_hapi_bridge_vlan_mode_mcast_set returned success");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "ptin_hapi_bridge_vlan_mode_mcast_set returned success");
 
   return L7_SUCCESS;
 }
@@ -1102,7 +1102,7 @@ L7_RC_t ptin_hapi_bridgeVlan_multicast_reset(L7_uint16 vlanId, L7_int mcast_grou
   /* Forwarding vlan, for MAC learning purposes (only if fwdvlan is valid) */
   if ( mcast_group <= 0 )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid MC group (%d)", mcast_group);
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid MC group (%d)", mcast_group);
     return L7_FAILURE;
   }
 
@@ -1115,7 +1115,7 @@ L7_RC_t ptin_hapi_bridgeVlan_multicast_reset(L7_uint16 vlanId, L7_int mcast_grou
       bcm_vlan_control_vlan_t_init(&control);
       if ((error = bcm_vlan_control_vlan_get(0, vlanId, &control))!=BCM_E_NONE)
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error getting vlan control structure! error=%d (%s)", error, bcm_errmsg(error));
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error getting vlan control structure! error=%d (%s)", error, bcm_errmsg(error));
         return L7_FAILURE;
       }
       
@@ -1127,7 +1127,7 @@ L7_RC_t ptin_hapi_bridgeVlan_multicast_reset(L7_uint16 vlanId, L7_int mcast_grou
       /* Apply new control definitions to this vlan */
       if ( (error = bcm_vlan_control_vlan_set(0, vlanId, control)) != BCM_E_NONE )
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_vlan_control_vlan_set: error=%d (%s)", error, bcm_errmsg(error));
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_vlan_control_vlan_set: error=%d (%s)", error, bcm_errmsg(error));
         //return L7_FAILURE;
       }
     }
@@ -1138,13 +1138,13 @@ L7_RC_t ptin_hapi_bridgeVlan_multicast_reset(L7_uint16 vlanId, L7_int mcast_grou
   {
     if ((error=bcm_multicast_destroy(0, mcast_group)) != BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with bcm_multicast_destroy (mcast_group=0x%08x): error=%d (\"%s\")",
+      PT_LOG_ERR(LOG_CTX_HAPI,"Error with bcm_multicast_destroy (mcast_group=0x%08x): error=%d (\"%s\")",
                 mcast_group, error, bcm_errmsg(error));
       return ptin_bcm_to_fp_error_code(error);
     }
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "ptin_hapi_bridge_vlan_mode_mcast_set returned success");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "ptin_hapi_bridge_vlan_mode_mcast_set returned success");
 
   return L7_SUCCESS;
 }

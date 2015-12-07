@@ -93,10 +93,10 @@ L7_RC_t ptin_packet_init(void)
                                PTIN_PACKET_MAX_MESSAGES, PTIN_PDU_MSG_SIZE);
   if (ptin_packet_queue == L7_NULLPTR)
   {
-    LOG_FATAL(LOG_CTX_PTIN_PACKET,"PTIN packet queue creation error.");
+    PT_LOG_FATAL(LOG_CTX_PACKET,"PTIN packet queue creation error.");
     return L7_FAILURE;
   }
-  LOG_TRACE(LOG_CTX_PTIN_PACKET,"PTIN packet queue created.");
+  PT_LOG_TRACE(LOG_CTX_PACKET,"PTIN packet queue created.");
 
   /* Create task for packets management */
   ptin_packet_TaskId = osapiTaskCreate("ptin_packet_task", ptin_packet_task, 0, 0,
@@ -106,19 +106,19 @@ L7_RC_t ptin_packet_init(void)
 
   if (ptin_packet_TaskId == L7_ERROR)
   {
-    LOG_FATAL(LOG_CTX_PTIN_PACKET, "Could not create task ptin_packet_task");
+    PT_LOG_FATAL(LOG_CTX_PACKET, "Could not create task ptin_packet_task");
     return L7_FAILURE;
   }
-  LOG_TRACE(LOG_CTX_PTIN_PACKET,"Task ptin_packet_task created");
+  PT_LOG_TRACE(LOG_CTX_PACKET,"Task ptin_packet_task created");
 
   if (osapiWaitForTaskInit (L7_PTIN_PACKET_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS)
   {
-    LOG_FATAL(LOG_CTX_PTIN_PACKET,"Unable to initialize ptin_packet_task()\n");
+    PT_LOG_FATAL(LOG_CTX_PACKET,"Unable to initialize ptin_packet_task()\n");
     return(L7_FAILURE);
   }
-  LOG_TRACE(LOG_CTX_PTIN_PACKET,"Task ptin_packet_task initialized");
+  PT_LOG_TRACE(LOG_CTX_PACKET,"Task ptin_packet_task initialized");
 
-  LOG_INFO(LOG_CTX_STARTUP,"Going to register ptinMacBcastRecv related to type=%u: 0x%08x",
+  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register ptinMacBcastRecv related to type=%u: 0x%08x",
            SYSNET_MAC_ENTRY, (L7_uint32) ptinMacBcastRecv);
 
   /* Register broadcast packets */
@@ -128,10 +128,10 @@ L7_RC_t ptin_packet_init(void)
   memcpy(snEntry.u.macAddr, BroadcastMacAddr, L7_MAC_ADDR_LEN);
   if (sysNetRegisterPduReceive(&snEntry) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_PACKET, "Cannot register ptinBcastPduReceive callback!");
+    PT_LOG_ERR(LOG_CTX_PACKET, "Cannot register ptinBcastPduReceive callback!");
     return L7_FAILURE;
   }
-  LOG_INFO(LOG_CTX_PTIN_PACKET, "ptinBcastPduReceive registered!");
+  PT_LOG_INFO(LOG_CTX_PACKET, "ptinBcastPduReceive registered!");
 
   return L7_SUCCESS;
 }
@@ -154,10 +154,10 @@ L7_RC_t ptin_packet_deinit(void)
   memcpy(snEntry.u.macAddr, BroadcastMacAddr, L7_MAC_ADDR_LEN);
   if (sysNetDeregisterPduReceive(&snEntry) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_PACKET, "Cannot unregister ptinBcastPduReceive callback!");
+    PT_LOG_ERR(LOG_CTX_PACKET, "Cannot unregister ptinBcastPduReceive callback!");
     return L7_FAILURE;
   }
-  LOG_INFO(LOG_CTX_PTIN_PACKET, "ptinBcastPduReceive unregistered!");
+  PT_LOG_INFO(LOG_CTX_PACKET, "ptinBcastPduReceive unregistered!");
 
   /* Delete task */
   if ( ptin_packet_TaskId != L7_ERROR )
@@ -173,7 +173,7 @@ L7_RC_t ptin_packet_deinit(void)
     ptin_packet_queue = L7_NULLPTR;
   }
 
-  LOG_INFO(LOG_CTX_PTIN_PACKET, "PTin packet deinit OK");
+  PT_LOG_INFO(LOG_CTX_PACKET, "PTin packet deinit OK");
 
   return L7_SUCCESS;
 }
@@ -201,7 +201,7 @@ L7_RC_t ptinMacBcastRecv(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
 
 
   if (ptin_packet_debug_enable)
-    LOG_TRACE(LOG_CTX_PTIN_PACKET,"Packet received at intIfNum=%u with vlanId=%u and innerVlanId=%u",
+    PT_LOG_TRACE(LOG_CTX_PACKET,"Packet received at intIfNum=%u with vlanId=%u and innerVlanId=%u",
               intIfNum, vlanId, innerVlanId);
 
   SYSAPI_NET_MBUF_GET_DATASTART(bufHandle, payload);
@@ -211,14 +211,14 @@ L7_RC_t ptinMacBcastRecv(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
   if ( vlanId < PTIN_VLAN_MIN || vlanId > PTIN_VLAN_MAX )
   {
     if (ptin_packet_debug_enable)
-      LOG_ERR(LOG_CTX_PTIN_PACKET,"Invalid vlanId %u",vlanId);
+      PT_LOG_ERR(LOG_CTX_PACKET,"Invalid vlanId %u",vlanId);
     return L7_FAILURE;
   }
   /* Validate inner vlan id */
   if ( innerVlanId == 0 || innerVlanId > 4095 )
   {
     if (ptin_packet_debug_enable)
-      LOG_ERR(LOG_CTX_PTIN_PACKET,"Invalid innerVlanId %u",innerVlanId);
+      PT_LOG_ERR(LOG_CTX_PACKET,"Invalid innerVlanId %u",innerVlanId);
     return L7_FAILURE;
   }
 
@@ -226,7 +226,7 @@ L7_RC_t ptinMacBcastRecv(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
   if ( memcmp(&payload[0], BroadcastMacAddr, L7_MAC_ADDR_LEN)!=0 )
   {
     if (ptin_packet_debug_enable)
-      LOG_ERR(LOG_CTX_PTIN_PACKET,"Packet is not broadcast");
+      PT_LOG_ERR(LOG_CTX_PACKET,"Packet is not broadcast");
     return L7_FAILURE;
   }
 
@@ -234,7 +234,7 @@ L7_RC_t ptinMacBcastRecv(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
   if (ptin_evc_intfVlan_validate(intIfNum, vlanId)!=L7_SUCCESS)
   {
     if (ptin_packet_debug_enable)
-      LOG_ERR(LOG_CTX_PTIN_PACKET,"intIfNum %u and vlan %u does not belong to any valid EVC/interface");
+      PT_LOG_ERR(LOG_CTX_PACKET,"intIfNum %u and vlan %u does not belong to any valid EVC/interface");
     return L7_FAILURE;
   }
 
@@ -253,7 +253,7 @@ L7_RC_t ptinMacBcastRecv(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
   if (rc != L7_SUCCESS)
   {
     if (ptin_packet_debug_enable)
-      LOG_ERR(LOG_CTX_PTIN_PACKET,"Failed message sending to ptin_packet queue");
+      PT_LOG_ERR(LOG_CTX_PACKET,"Failed message sending to ptin_packet queue");
     return L7_FAILURE;
   }
 
@@ -270,15 +270,15 @@ void ptin_packet_task(void)
   L7_uint32 status;
   ptin_PDU_Msg_t msg;
 
-  LOG_INFO(LOG_CTX_PTIN_PACKET,"PTin packet process task started");
+  PT_LOG_INFO(LOG_CTX_PACKET,"PTin packet process task started");
 
   if (osapiTaskInitDone(L7_PTIN_PACKET_TASK_SYNC)!=L7_SUCCESS)
   {
-    LOG_FATAL(LOG_CTX_PTIN_SSM, "Error syncing task");
+    PT_LOG_FATAL(LOG_CTX_SSM, "Error syncing task");
     PTIN_CRASH();
   }
 
-  LOG_INFO(LOG_CTX_PTIN_PACKET,"PTin packet task ready to process events");
+  PT_LOG_INFO(LOG_CTX_PACKET,"PTin packet task ready to process events");
 
   /* Loop */
   while (1)
@@ -296,7 +296,7 @@ void ptin_packet_task(void)
         if (ptinMacBcastProcess(&msg)!=L7_SUCCESS)
         {
           if (ptin_packet_debug_enable)
-            LOG_ERR(LOG_CTX_PTIN_PACKET,"Error processing message");
+            PT_LOG_ERR(LOG_CTX_PACKET,"Error processing message");
         }
       }
       else if ( msg.msgId == PTIN_PACKET_TRANSMIT )
@@ -304,19 +304,19 @@ void ptin_packet_task(void)
         if (ptin_packet_frame_l2forward(msg.intIfNum, msg.vlanId, msg.innerVlanId, msg.payload, msg.payloadLen) != L7_SUCCESS)
         {
           if (ptin_packet_debug_enable)
-            LOG_ERR(LOG_CTX_PTIN_PACKET,"Error processing message");
+            PT_LOG_ERR(LOG_CTX_PACKET,"Error processing message");
         }
       }
       else
       {
         if (ptin_packet_debug_enable)
-          LOG_ERR(LOG_CTX_PTIN_PACKET,"Message id is unknown (%u)",msg.msgId);
+          PT_LOG_ERR(LOG_CTX_PACKET,"Message id is unknown (%u)",msg.msgId);
       }
     }
     else
     {
       if (ptin_packet_debug_enable)
-        LOG_ERR(LOG_CTX_PTIN_PACKET,"Failed packet reception from ptin_packet queue (status = %d)",status);
+        PT_LOG_ERR(LOG_CTX_PACKET,"Failed packet reception from ptin_packet queue (status = %d)",status);
     }
   }
 }
@@ -345,7 +345,7 @@ L7_RC_t ptinMacBcastProcess( ptin_PDU_Msg_t *pktMsg )
   if (ptin_evc_intfType_getList(vlanId, PTIN_EVC_INTF_LEAF, &intfList)!=L7_SUCCESS)
   {
     if (ptin_packet_debug_enable)
-      LOG_ERR(LOG_CTX_PTIN_PACKET,"Error getting list of leaf interfaces for vlanId=%u", vlanId);
+      PT_LOG_ERR(LOG_CTX_PACKET,"Error getting list of leaf interfaces for vlanId=%u", vlanId);
     return L7_FAILURE;
   }
 
@@ -364,18 +364,18 @@ L7_RC_t ptinMacBcastProcess( ptin_PDU_Msg_t *pktMsg )
                                   flood_vlan, L7_NULLPTR, &number_of_vlans) != L7_SUCCESS )
     {
       if (ptin_packet_debug_enable)
-        LOG_ERR(LOG_CTX_PTIN_PACKET,"Error getting list of vlans for vlanId=%u, innervlan=%u, intIfNum=%u", vlanId, innerVlanId, intf);
+        PT_LOG_ERR(LOG_CTX_PACKET,"Error getting list of vlans for vlanId=%u, innervlan=%u, intIfNum=%u", vlanId, innerVlanId, intf);
       continue;
     }
 
     if (ptin_packet_debug_enable)
-      LOG_TRACE(LOG_CTX_PTIN_PACKET,"%u vlans obtained for intIfNum %u, vlanId=%u, cvlan=%u", number_of_vlans, intf, vlanId, innerVlanId);
+      PT_LOG_TRACE(LOG_CTX_PACKET,"%u vlans obtained for intIfNum %u, vlanId=%u, cvlan=%u", number_of_vlans, intf, vlanId, innerVlanId);
 
     /* Transmit packet to all vlans of this interface */
     for (i=0; i<number_of_vlans; i++)
     {
       if (ptin_packet_debug_enable)
-        LOG_TRACE(LOG_CTX_PTIN_PACKET,"Sending packet to intIfNum %u, with oVlan=%u", intf, flood_vlan[i]);
+        PT_LOG_TRACE(LOG_CTX_PACKET,"Sending packet to intIfNum %u, with oVlan=%u", intf, flood_vlan[i]);
 
       ptin_packet_send(intf, vlanId, flood_vlan[i], pktMsg->payload, pktMsg->payloadLen);
     }
@@ -450,7 +450,7 @@ void ptin_packet_send(L7_uint32 intIfNum,
   dtlPduTransmit (bufHandle, DTL_CMD_TX_L2, &dtlCmd);
 
   if (ptin_packet_debug_enable)
-    LOG_TRACE(LOG_CTX_PTIN_PACKET,"Packet transmited to intIfNum=%u", intIfNum);
+    PT_LOG_TRACE(LOG_CTX_PACKET,"Packet transmited to intIfNum=%u", intIfNum);
 
   return;
 }
@@ -495,7 +495,7 @@ L7_RC_t ptin_packet_frame_l2forward(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_u
   (void)usmDbEntryVidMacCombine(vlanId, eth_header->dest.addr, vidMac);
 
   if (ptin_packet_debug_enable)
-    LOG_TRACE(LOG_CTX_PTIN_PACKET,"VidMAC=%02x:%02x/%02x:%02x:%02x:%02x:%02x:%02x",
+    PT_LOG_TRACE(LOG_CTX_PACKET,"VidMAC=%02x:%02x/%02x:%02x:%02x:%02x:%02x:%02x",
               vidMac[0], vidMac[1], vidMac[2], vidMac[3], vidMac[4], vidMac[5], vidMac[6], vidMac[7]);
 
   memset(&fdbEntry, 0, sizeof(fdbEntry));
@@ -519,7 +519,7 @@ L7_RC_t ptin_packet_frame_l2forward_nonblocking(L7_uint32 intIfNum, L7_ushort16 
   /* Check if initializations were properly done! */
   if (ptin_packet_TaskId == L7_ERROR || ptin_packet_queue == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_PACKET,"Task or Queue not initialized!");
+    PT_LOG_ERR(LOG_CTX_PACKET,"Task or Queue not initialized!");
     return L7_FAILURE;
   }
 
@@ -536,7 +536,7 @@ L7_RC_t ptin_packet_frame_l2forward_nonblocking(L7_uint32 intIfNum, L7_ushort16 
   if (rc != L7_SUCCESS)
   {
     if (ptin_packet_debug_enable)
-      LOG_ERR(LOG_CTX_PTIN_PACKET,"Error scheduling a transmission based on src intIfNum %u, vlanId %u, innerVlanId %u",
+      PT_LOG_ERR(LOG_CTX_PACKET,"Error scheduling a transmission based on src intIfNum %u, vlanId %u, innerVlanId %u",
               intIfNum, vlanId, innerVlanId);
   }
 
@@ -570,7 +570,7 @@ static L7_RC_t ptin_packet_frame_unicast(L7_uint32 outgoingIf,
   L7_INTF_TYPES_t sysIntfType = 0;
 
   if (ptin_packet_debug_enable)
-    LOG_TRACE(LOG_CTX_PTIN_PACKET, "intIfNum=%u, vlanId=%u, innerVlanId=%u, vport_id=%u", outgoingIf, vlanId, innerVlanId, vport_id);
+    PT_LOG_TRACE(LOG_CTX_PACKET, "intIfNum=%u, vlanId=%u, innerVlanId=%u, vport_id=%u", outgoingIf, vlanId, innerVlanId, vport_id);
 
   /* Get interface type */
   nimGetIntfType(outgoingIf, &sysIntfType);
@@ -585,12 +585,12 @@ static L7_RC_t ptin_packet_frame_unicast(L7_uint32 outgoingIf,
         return L7_SUCCESS;
       }
       if (ptin_packet_debug_enable)
-        LOG_ERR(LOG_CTX_PTIN_PACKET, "Failure to transmit packet on intIfNum %u in VLAN %d", outgoingIf, vlanId);
+        PT_LOG_ERR(LOG_CTX_PACKET, "Failure to transmit packet on intIfNum %u in VLAN %d", outgoingIf, vlanId);
     }
     else
     {
       if (ptin_packet_debug_enable)
-        LOG_ERR(LOG_CTX_PTIN_PACKET, "Outgoing intIfNum %u is not member of VLAN %d", outgoingIf, vlanId);
+        PT_LOG_ERR(LOG_CTX_PACKET, "Outgoing intIfNum %u is not member of VLAN %d", outgoingIf, vlanId);
     }
   }
 
@@ -622,7 +622,7 @@ static L7_RC_t ptin_packet_frame_flood(L7_uint32 intIfNum, L7_ushort16 vlanId, L
   L7_RC_t rc = L7_SUCCESS;
 
   if (ptin_packet_debug_enable)
-    LOG_TRACE(LOG_CTX_PTIN_PACKET, "intIfNum=%u, vlanId=%u, innerVlanId=%u", intIfNum, vlanId, innerVlanId);
+    PT_LOG_TRACE(LOG_CTX_PACKET, "intIfNum=%u, vlanId=%u, innerVlanId=%u", intIfNum, vlanId, innerVlanId);
 
   if (dot1qVlanEgressPortsGet(vlanId, &portMask) == L7_SUCCESS)
   {
@@ -640,7 +640,7 @@ static L7_RC_t ptin_packet_frame_flood(L7_uint32 intIfNum, L7_ushort16 vlanId, L
             if (ptin_packet_frame_send(i, vlanId, innerVlanId, 0, frame, frameLen) != L7_SUCCESS)
             {
               if (ptin_packet_debug_enable)
-                LOG_ERR(LOG_CTX_PTIN_PACKET, "Error transmitting packet to intIfNum %u (vlanId=%u, innerVlanId=%u)",
+                PT_LOG_ERR(LOG_CTX_PACKET, "Error transmitting packet to intIfNum %u (vlanId=%u, innerVlanId=%u)",
                         i, vlanId, innerVlanId);
               rc = L7_FAILURE;
             }
@@ -693,7 +693,7 @@ static L7_RC_t ptin_packet_frame_send(L7_uint32 intIfNum, L7_ushort16 vlanId, L7
   }
 
   if (ptin_packet_debug_enable)
-    LOG_TRACE(LOG_CTX_PTIN_PACKET, "intIfNum=%u, vlanId=%u, innerVlanId=%u, vport_id=%u", intIfNum, vlanId, innerVlanId, vport_id);
+    PT_LOG_TRACE(LOG_CTX_PACKET, "intIfNum=%u, vlanId=%u, innerVlanId=%u, vport_id=%u", intIfNum, vlanId, innerVlanId, vport_id);
 
   /* QUATTRO service? */
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
@@ -702,7 +702,7 @@ static L7_RC_t ptin_packet_frame_send(L7_uint32 intIfNum, L7_ushort16 vlanId, L7
     if (ptin_evc_extVlans_get_fromIntVlanVPort(vlanId, vport_id, &intIfNum, &vlanId_list[0][0], &vlanId_list[0][1]) != L7_SUCCESS)
     {
       if (ptin_packet_debug_enable)
-        LOG_ERR(LOG_CTX_PTIN_PACKET, "Error obtaining Ext. VLANs for VLANs %u and VPort %u", vlanId, vport_id);
+        PT_LOG_ERR(LOG_CTX_PACKET, "Error obtaining Ext. VLANs for VLANs %u and VPort %u", vlanId, vport_id);
       return L7_FAILURE;
     }
     number_of_vlans = 1;
@@ -733,7 +733,7 @@ static L7_RC_t ptin_packet_frame_send(L7_uint32 intIfNum, L7_ushort16 vlanId, L7
         ptin_evc_intf_type_get(vlanId, intIfNum, &port_type) != L7_SUCCESS)
     {
       if (ptin_packet_debug_enable)
-        LOG_ERR(LOG_CTX_PTIN_PACKET, "Error obtaining UNI VLANs from IntIfNum %u, VLANs %u+%u", intIfNum, vlanId, innerVlanId);
+        PT_LOG_ERR(LOG_CTX_PACKET, "Error obtaining UNI VLANs from IntIfNum %u, VLANs %u+%u", intIfNum, vlanId, innerVlanId);
       return L7_FAILURE;
     }
     /* No inner VLAN for root interfaces of unstacked services */
@@ -746,7 +746,7 @@ static L7_RC_t ptin_packet_frame_send(L7_uint32 intIfNum, L7_ushort16 vlanId, L7
   }
 
   if (ptin_packet_debug_enable)
-    LOG_TRACE(LOG_CTX_PTIN_PACKET, "number_of_vlans=%u", number_of_vlans);
+    PT_LOG_TRACE(LOG_CTX_PACKET, "number_of_vlans=%u", number_of_vlans);
 
   /* Transmit for all VLANs */
   for (i = 0; i < number_of_vlans; i++)
@@ -755,7 +755,7 @@ static L7_RC_t ptin_packet_frame_send(L7_uint32 intIfNum, L7_ushort16 vlanId, L7
     extIVlan = vlanId_list[i][1];
 
     if (ptin_packet_debug_enable)
-      LOG_TRACE(LOG_CTX_PTIN_PACKET, "Going to transmit to intIfNum %u, with VLANs %u+%u", intIfNum, extOVlan, extIVlan);
+      PT_LOG_TRACE(LOG_CTX_PACKET, "Going to transmit to intIfNum %u, with VLANs %u+%u", intIfNum, extOVlan, extIVlan);
 
     SYSAPI_NET_MBUF_GET(bufHandle);
     if (bufHandle == L7_NULL)
@@ -777,7 +777,7 @@ static L7_RC_t ptin_packet_frame_send(L7_uint32 intIfNum, L7_ushort16 vlanId, L7
       frameLen += 4;
 
       if (ptin_packet_debug_enable)
-        LOG_TRACE(LOG_CTX_PTIN_PACKET, "Added outer VLAN (%u)", vlanId);
+        PT_LOG_TRACE(LOG_CTX_PACKET, "Added outer VLAN (%u)", vlanId);
     }
 
     /* Modify outer vlan */
@@ -788,7 +788,7 @@ static L7_RC_t ptin_packet_frame_send(L7_uint32 intIfNum, L7_ushort16 vlanId, L7
       frame[15]  = extOVlan & 0xff;
       //vlanId = extOVlan;
       if (ptin_packet_debug_enable)
-        LOG_TRACE(LOG_CTX_PTIN_PACKET, "Replaced outer VLAN (%u)", extOVlan);
+        PT_LOG_TRACE(LOG_CTX_PACKET, "Replaced outer VLAN (%u)", extOVlan);
     }
     /* Add inner vlan when there exists, and if vlan belongs to a stacked EVC */
     if (extIVlan!=0)
@@ -808,11 +808,11 @@ static L7_RC_t ptin_packet_frame_send(L7_uint32 intIfNum, L7_ushort16 vlanId, L7
       frame[19] = extIVlan & 0xff;
       //innerVlanId = extIVlan;
       if (ptin_packet_debug_enable)
-        LOG_TRACE(LOG_CTX_PTIN_PACKET, "Added inner VLAN (%u)", extIVlan);
+        PT_LOG_TRACE(LOG_CTX_PACKET, "Added inner VLAN (%u)", extIVlan);
     }
 
     if (ptin_packet_debug_enable)
-      LOG_TRACE(LOG_CTX_PTIN_PACKET, "Going to transmit packet to intIfNum %u, vlanId=%u, innerVlanId=%u", intIfNum, extOVlan, extIVlan);
+      PT_LOG_TRACE(LOG_CTX_PACKET, "Going to transmit packet to intIfNum %u, vlanId=%u, innerVlanId=%u", intIfNum, extOVlan, extIVlan);
 
     SYSAPI_NET_MBUF_GET_DATASTART(bufHandle, dataStart);
     memcpy(dataStart, frame, frameLen);
@@ -823,12 +823,12 @@ static L7_RC_t ptin_packet_frame_send(L7_uint32 intIfNum, L7_ushort16 vlanId, L7
     if (rc != L7_SUCCESS)
     {
       if (ptin_packet_debug_enable)
-        LOG_ERR(LOG_CTX_PTIN_PACKET, "Error transmitting packet to intIfNum %u, vlanId=%u, innerVlanId=%u", intIfNum, extOVlan, extIVlan);
+        PT_LOG_ERR(LOG_CTX_PACKET, "Error transmitting packet to intIfNum %u, vlanId=%u, innerVlanId=%u", intIfNum, extOVlan, extIVlan);
       break;
     }
 
     if (ptin_packet_debug_enable)
-      LOG_TRACE(LOG_CTX_PTIN_PACKET, "Packet transmitted to intIfNum %u, vlanId=%u, innerVlanId=%u", intIfNum, extOVlan, extIVlan);
+      PT_LOG_TRACE(LOG_CTX_PACKET, "Packet transmitted to intIfNum %u, vlanId=%u, innerVlanId=%u", intIfNum, extOVlan, extIVlan);
   }
 
   return rc;

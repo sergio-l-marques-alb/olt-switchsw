@@ -171,7 +171,7 @@ static void hpcHardwareRpcDispatch (rpc_header_t * rpc_header,
   {
     if (hpc_rpc_callback[i].transaction_id == rpc_header->transaction_id)
     {
-      //LOG_DEBUG(LOG_CTX_MISC, "hpc_rpc_callback[i].callback = 0x%08X", (unsigned int)hpc_rpc_callback[i].callback); /* PTin added: debug */
+      //PT_LOG_DEBUG(LOG_CTX_MISC, "hpc_rpc_callback[i].callback = 0x%08X", (unsigned int)hpc_rpc_callback[i].callback); /* PTin added: debug */
       rc = (hpc_rpc_callback[i].callback) (rpc_header->transaction_id,
                                            rpc_data, 
                                            &rpc_header->app_status,

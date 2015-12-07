@@ -696,7 +696,7 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
   L7_uint client_idx = (L7_uint)-1;   /* PTin added: DHCP snooping */
 
   if (ptin_debug_dhcp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet intercepted: intIfNum=%u, vlanId=%u, innerVlanId=%u",
+    PT_LOG_TRACE(LOG_CTX_DHCP,"Packet intercepted: intIfNum=%u, vlanId=%u, innerVlanId=%u",
               pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);
 
   if (ptin_debug_dhcp_snooping || (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_RX))
@@ -706,7 +706,7 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
                   "(%s)Packet rx'ed at DHCP intercept, intIfNum=%u, vlanId = %d, inner vlanId = %d",
                   __FUNCTION__, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);
     dsTraceWrite(traceMsg);
-    LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet rx'ed at DHCP intercept, intIfNum=%u, vlanId = %d, inner vlanId = %d",
+    PT_LOG_TRACE(LOG_CTX_DHCP,"Packet rx'ed at DHCP intercept, intIfNum=%u, vlanId = %d, inner vlanId = %d",
               pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);
   }
 
@@ -715,7 +715,7 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
     /* DHCP packet received before control plane is ready. Drop such packet */
     dsInfo->debugStats.msgsDroppedControlPlaneNotReady++;
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"DHCP packet received before control plane is ready. Dropping this packet.");
+      PT_LOG_ERR(LOG_CTX_DHCP,"DHCP packet received before control plane is ready. Dropping this packet.");
     return SYSNET_PDU_RC_DISCARD;
   }
 
@@ -732,13 +732,13 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
                     "(%s)Packet rx'ed is ignored as neither GBL Snooping nor L2 Relay is enabled at DHCP intercept.",
                       __FUNCTION__);
         dsTraceWrite(traceMsg);
-        LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet rx'ed is ignored as neither GBL Snooping nor L2 Relay is enabled at DHCP intercept.");
+        PT_LOG_TRACE(LOG_CTX_DHCP,"Packet rx'ed is ignored as neither GBL Snooping nor L2 Relay is enabled at DHCP intercept.");
       }
       return SYSNET_PDU_RC_IGNORED;
     }
     #else
     if (ptin_debug_dhcp_snooping)
-      LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet ignored");
+      PT_LOG_TRACE(LOG_CTX_DHCP,"Packet ignored");
     return SYSNET_PDU_RC_IGNORED;
     #endif
   }
@@ -758,7 +758,7 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
     if (pduInfo->vlanId == PTIN_VLAN_INBAND)
     {
       if (ptin_debug_dhcp_snooping)
-        LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet ignored (vlan=%u)", pduInfo->vlanId);
+        PT_LOG_TRACE(LOG_CTX_DHCP,"Packet ignored (vlan=%u)", pduInfo->vlanId);
       return SYSNET_PDU_RC_IGNORED;
     }
 
@@ -769,7 +769,7 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
     #if 1
       l2_forward = L7_TRUE;
       //if (ptin_debug_dhcp_snooping)
-      //  LOG_ERR(LOG_CTX_PTIN_DHCP, "VLAN %u / intIfNum %u not valid", pduInfo->vlanId, pduInfo->intIfNum);
+      //  PT_LOG_ERR(LOG_CTX_DHCP, "VLAN %u / intIfNum %u not valid", pduInfo->vlanId, pduInfo->intIfNum);
       //return SYSNET_PDU_RC_IGNORED;
     #else
       #ifdef L7_DHCP_L2_RELAY_PACKAGE
@@ -782,13 +782,13 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
                       "(%s)Packet rx'ed is ignored as neither INTF Snooping nor L2 Relay is enabled at DHCP intercept.",
                         __FUNCTION__);
           dsTraceWrite(traceMsg);
-          LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet rx'ed is ignored as neither INTF Snooping nor L2 Relay is enabled at DHCP intercept.");
+          PT_LOG_TRACE(LOG_CTX_DHCP,"Packet rx'ed is ignored as neither INTF Snooping nor L2 Relay is enabled at DHCP intercept.");
         }
         return SYSNET_PDU_RC_IGNORED;
       }
       #else
       if (ptin_debug_dhcp_snooping)
-        LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet ignored");
+        PT_LOG_TRACE(LOG_CTX_DHCP,"Packet ignored");
       return SYSNET_PDU_RC_IGNORED;
       #endif
     #endif
@@ -802,14 +802,14 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
       {
         l2_forward = L7_TRUE;
         //if (ptin_debug_dhcp_snooping)
-        //  LOG_ERR(LOG_CTX_PTIN_DHCP, "Error calling ptin_dhcp_flags_get");
+        //  PT_LOG_ERR(LOG_CTX_DHCP, "Error calling ptin_dhcp_flags_get");
         //return SYSNET_PDU_RC_IGNORED;
       }
       else if (!(evc_flags & PTIN_EVC_MASK_DHCPV4_PROTOCOL))
       {
         l2_forward = L7_TRUE;
         //if (ptin_debug_dhcp_snooping)
-        //  LOG_ERR(LOG_CTX_PTIN_DHCP, "VLAN %u does not have DHCPv4 enabled!", pduInfo->vlanId);
+        //  PT_LOG_ERR(LOG_CTX_DHCP, "VLAN %u does not have DHCPv4 enabled!", pduInfo->vlanId);
         //return SYSNET_PDU_RC_IGNORED;
       }
     }
@@ -820,11 +820,11 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
       /* For MX board, ignore DHCP packet */
     #if (PTIN_BOARD_IS_MATRIX)
       if (ptin_debug_dhcp_snooping) 
-        LOG_ERR(LOG_CTX_PTIN_DHCP, "Packet will be ignored (VLAN %u / intIfNum %u)", pduInfo->vlanId, pduInfo->intIfNum);
+        PT_LOG_ERR(LOG_CTX_DHCP, "Packet will be ignored (VLAN %u / intIfNum %u)", pduInfo->vlanId, pduInfo->intIfNum);
       return SYSNET_PDU_RC_IGNORED;
     #else
       if (ptin_debug_dhcp_snooping) 
-        LOG_ERR(LOG_CTX_PTIN_DHCP, "Going to L2 forward packet from VLAN %u / intIfNum %u", pduInfo->vlanId, pduInfo->intIfNum);
+        PT_LOG_ERR(LOG_CTX_DHCP, "Going to L2 forward packet from VLAN %u / intIfNum %u", pduInfo->vlanId, pduInfo->intIfNum);
       /* L2 forward */
       if (ptin_packet_frame_l2forward_nonblocking(pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId, data, len) == L7_SUCCESS)
       {
@@ -834,7 +834,7 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
       else
       {
         if (ptin_debug_dhcp_snooping)
-          LOG_ERR(LOG_CTX_PTIN_PPPOE, "Error trying to L2 forward packet");
+          PT_LOG_ERR(LOG_CTX_PPPOE, "Error trying to L2 forward packet");
         return SYSNET_PDU_RC_IGNORED;
       }
     #endif
@@ -855,7 +855,7 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
                       "(%s) Packet ignored, because of ip source (0x%08x)",
                       __FUNCTION__, osapiNtohl(ipHeader->iph_src));
         dsTraceWrite(traceMsg);
-        LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet ignored, because of ip source (0x%08x)", osapiNtohl(ipHeader->iph_src));
+        PT_LOG_TRACE(LOG_CTX_DHCP,"Packet ignored, because of ip source (0x%08x)", osapiNtohl(ipHeader->iph_src));
       }
 
       return SYSNET_PDU_RC_IGNORED;
@@ -875,7 +875,7 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
                       "(%s)Packet rx'ed Dot1q VLAN Id (%d) length(%d)",
                       __FUNCTION__, vlanId, len);
         dsTraceWrite(traceMsg);
-        LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet rx'ed Dot1q VLAN Id (%d) length(%d)", vlanId, len);
+        PT_LOG_TRACE(LOG_CTX_DHCP,"Packet rx'ed Dot1q VLAN Id (%d) length(%d)", vlanId, len);
       }
       if ( dsRateLimitFilter(pduInfo))
       {
@@ -889,7 +889,7 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
                         "(%s) Packet rate limited",
                         __FUNCTION__);
           dsTraceWrite(traceMsg);
-          LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet rate limited");
+          PT_LOG_TRACE(LOG_CTX_DHCP,"Packet rate limited");
         }
         return SYSNET_PDU_RC_CONSUMED;
       }
@@ -907,7 +907,7 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
         if (innerVlanId==0 || innerVlanId>=4095)
         {
           if (ptin_debug_dhcp_snooping)
-            LOG_ERR(LOG_CTX_PTIN_DHCP,"Client not referenced! (intIfNum=%u, innerVlanId=%u, intVlanId=%u)",
+            PT_LOG_ERR(LOG_CTX_DHCP,"Client not referenced! (intIfNum=%u, innerVlanId=%u, intVlanId=%u)",
                   pduInfo->intIfNum, innerVlanId, vlanId);
           ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_INTERCEPTED);
           ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_FILTERED);
@@ -936,12 +936,12 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
               client_idx>=PTIN_SYSTEM_DHCP_MAXCLIENTS)
           {
             if (ptin_debug_dhcp_snooping)
-              LOG_ERR(LOG_CTX_PTIN_DHCP,"Client not found! (intIfNum=%u, ptin_intf=%u/%u, innerVlanId=%u, intVlanId=%u extOVlan=%u extIVlan=%u)",
+              PT_LOG_ERR(LOG_CTX_DHCP,"Client not found! (intIfNum=%u, ptin_intf=%u/%u, innerVlanId=%u, intVlanId=%u extOVlan=%u extIVlan=%u)",
                       pduInfo->intIfNum, client.ptin_intf.intf_type, client.ptin_intf.intf_id, client.innerVlan, vlanId, client.outerVlan, client.innerVlan);
             ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_INTERCEPTED);
             ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_FILTERED);
             if (ptin_debug_dhcp_snooping)
-              LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet ignored");
+              PT_LOG_TRACE(LOG_CTX_DHCP,"Packet ignored");
             return SYSNET_PDU_RC_IGNORED;
             //client_idx = (L7_uint)-1;
           }
@@ -954,7 +954,7 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
       #endif
 
       if (ptin_debug_dhcp_snooping)
-        LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet intercepted at intIfNum=%u, oVlan=%u, iVlan=%u",
+        PT_LOG_TRACE(LOG_CTX_DHCP,"Packet intercepted at intIfNum=%u, oVlan=%u, iVlan=%u",
                   pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);
 
       rc = dsPacketQueue(data, len, vlanId, pduInfo->intIfNum, innerVlanId, &client_idx);    /* PTin modified: DHCP snooping */
@@ -968,7 +968,7 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
         dsInfo->debugStats.msgsIntercepted++;
         dsInfo->debugStats.msgsInterceptedIntf[pduInfo->intIfNum]++;
         if (ptin_debug_dhcp_snooping)
-          LOG_TRACE(LOG_CTX_PTIN_DHCP,"Incremented DHCP_STAT_FIELD_RX_FILTERED");
+          PT_LOG_TRACE(LOG_CTX_DHCP,"Incremented DHCP_STAT_FIELD_RX_FILTERED");
         ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, DHCP_STAT_FIELD_RX_FILTERED);
         SYSAPI_NET_MBUF_FREE(bufHandle);
         if (ptin_debug_dhcp_snooping || (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_RX))
@@ -978,7 +978,7 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
                         "(%s) Packet denied to be stored in packet queue",
                         __FUNCTION__);
           dsTraceWrite(traceMsg);
-          LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet denied to be stored in packet queue");
+          PT_LOG_TRACE(LOG_CTX_DHCP,"Packet denied to be stored in packet queue");
         }
         return SYSNET_PDU_RC_CONSUMED;
       }
@@ -995,7 +995,7 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
         if (memcmp(dhcpPacket->chaddr, sysMacAddr, L7_MAC_ADDR_LEN) == L7_NULL)
         {
           if (ptin_debug_dhcp_snooping)
-            LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet ignored");
+            PT_LOG_TRACE(LOG_CTX_DHCP,"Packet ignored");
           return SYSNET_PDU_RC_IGNORED;
         }
 
@@ -1003,7 +1003,7 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
         if ((ihAdminModeGet(&mode) == L7_SUCCESS) && (mode == L7_ENABLE))
         {
           if (ptin_debug_dhcp_snooping)
-            LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet ignored");
+            PT_LOG_TRACE(LOG_CTX_DHCP,"Packet ignored");
           return SYSNET_PDU_RC_IGNORED;
         }
 #endif /* if Relay agent is there */
@@ -1012,7 +1012,7 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
             (mode == L7_ENABLE))
         {
           if (ptin_debug_dhcp_snooping)
-            LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet ignored");
+            PT_LOG_TRACE(LOG_CTX_DHCP,"Packet ignored");
           return SYSNET_PDU_RC_IGNORED;
         }
 #endif /* If DHCP server is there */
@@ -1020,13 +1020,13 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
         if (_dsVlanIntfTrustGet(pduInfo->vlanId,pduInfo->intIfNum) /*_dsIntfTrustGet(pduInfo->intIfNum)*/) /* Trusted port */   /* PTin modified: DHCP snooping */
         {
           if (ptin_debug_dhcp_snooping)
-            LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet ignored");
+            PT_LOG_TRACE(LOG_CTX_DHCP,"Packet ignored");
           return SYSNET_PDU_RC_IGNORED;
         }
 #endif
         SYSAPI_NET_MBUF_FREE(bufHandle);
         if (ptin_debug_dhcp_snooping)
-          LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet consumed");
+          PT_LOG_TRACE(LOG_CTX_DHCP,"Packet consumed");
         return SYSNET_PDU_RC_CONSUMED;
       }
     }
@@ -1039,7 +1039,7 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
                       "(%s) Packet is neither server nor client (%u)",
                       __FUNCTION__, osapiNtohs(udpHeader->destPort));
         dsTraceWrite(traceMsg);
-        LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet is neither server nor client (%u)", osapiNtohs(udpHeader->destPort));
+        PT_LOG_TRACE(LOG_CTX_DHCP,"Packet is neither server nor client (%u)", osapiNtohs(udpHeader->destPort));
       }
     }
   }
@@ -1052,12 +1052,12 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
                     "(%s) Invalid protocol received (%u), or invalid versLen (0x%02x)",
                     __FUNCTION__, ipHeader->iph_prot, ipHeader->iph_versLen);
       dsTraceWrite(traceMsg);
-      LOG_TRACE(LOG_CTX_PTIN_DHCP,"Invalid protocol received (%u), or invalid versLen (0x%02x)",ipHeader->iph_prot, ipHeader->iph_versLen);
+      PT_LOG_TRACE(LOG_CTX_DHCP,"Invalid protocol received (%u), or invalid versLen (0x%02x)",ipHeader->iph_prot, ipHeader->iph_versLen);
     }
   }
 
   if (ptin_debug_dhcp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet ignored");
+    PT_LOG_TRACE(LOG_CTX_DHCP,"Packet ignored");
 
   return SYSNET_PDU_RC_IGNORED;
 }
@@ -1096,7 +1096,7 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
   L7_uint client_idx = (L7_uint)-1;   /* PTin added: DHCP snooping */
 
   if (ptin_debug_dhcp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet intercepted: intIfNum=%u, vlanId=%u, innerVlanId=%u",
+    PT_LOG_TRACE(LOG_CTX_DHCP,"Packet intercepted: intIfNum=%u, vlanId=%u, innerVlanId=%u",
               pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);
 
   if (ptin_debug_dhcp_snooping || (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_RX))
@@ -1106,7 +1106,7 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
                   "(%s)Packet rx'ed at DHCP intercept, intIfNum=%u, vlanId = %d, inner vlanId = %d",
                   __FUNCTION__, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);
     dsTraceWrite(traceMsg);
-    LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet rx'ed at DHCP intercept, intIfNum=%u, vlanId = %d, inner vlanId = %d",
+    PT_LOG_TRACE(LOG_CTX_DHCP,"Packet rx'ed at DHCP intercept, intIfNum=%u, vlanId = %d, inner vlanId = %d",
               pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);
   }
 
@@ -1130,7 +1130,7 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
                     "(%s)Packet rx'ed is ignored as neither GBL Snooping nor L2 Relay is enabled at DHCP intercept.",
                       __FUNCTION__);
         dsTraceWrite(traceMsg);
-        LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet rx'ed is ignored as neither GBL Snooping nor L2 Relay is enabled at DHCP intercept.");
+        PT_LOG_TRACE(LOG_CTX_DHCP,"Packet rx'ed is ignored as neither GBL Snooping nor L2 Relay is enabled at DHCP intercept.");
       }
       return SYSNET_PDU_RC_IGNORED;
     }
@@ -1153,7 +1153,7 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
     if (pduInfo->vlanId == PTIN_VLAN_INBAND)
     {
       if (ptin_debug_dhcp_snooping)
-        LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet ignored (vlan=%u)", pduInfo->vlanId);
+        PT_LOG_TRACE(LOG_CTX_DHCP,"Packet ignored (vlan=%u)", pduInfo->vlanId);
       return SYSNET_PDU_RC_IGNORED;
     }
 
@@ -1164,7 +1164,7 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
     #if 1
       l2_forward = L7_TRUE;
       //if (ptin_debug_dhcp_snooping)
-      //  LOG_ERR(LOG_CTX_PTIN_DHCP, "VLAN %u / intIfNum %u not valid", pduInfo->vlanId, pduInfo->intIfNum); 
+      //  PT_LOG_ERR(LOG_CTX_DHCP, "VLAN %u / intIfNum %u not valid", pduInfo->vlanId, pduInfo->intIfNum); 
       //return SYSNET_PDU_RC_IGNORED;
     #else
       #ifdef L7_DHCP_L2_RELAY_PACKAGE
@@ -1177,7 +1177,7 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
                       "(%s)Packet rx'ed is ignored as neither INTF Snooping nor L2 Relay is enabled at DHCP intercept.",
                         __FUNCTION__);
           dsTraceWrite(traceMsg);
-          LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet rx'ed is ignored as neither INTF Snooping nor L2 Relay is enabled at DHCP intercept.");
+          PT_LOG_TRACE(LOG_CTX_DHCP,"Packet rx'ed is ignored as neither INTF Snooping nor L2 Relay is enabled at DHCP intercept.");
         }
         return SYSNET_PDU_RC_IGNORED;
       }
@@ -1195,14 +1195,14 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
       {
         l2_forward = L7_TRUE;
         //if (ptin_debug_dhcp_snooping)
-        //  LOG_ERR(LOG_CTX_PTIN_DHCP, "Error calling ptin_dhcp_flags_get");
+        //  PT_LOG_ERR(LOG_CTX_DHCP, "Error calling ptin_dhcp_flags_get");
         //return SYSNET_PDU_RC_IGNORED;
       }
       else if (!(evc_flags & PTIN_EVC_MASK_DHCPV6_PROTOCOL))
       {
         l2_forward = L7_TRUE;
         //if (ptin_debug_dhcp_snooping)
-        //  LOG_ERR(LOG_CTX_PTIN_DHCP, "VLAN %u does not have DHCPv6 enabled!", pduInfo->vlanId);
+        //  PT_LOG_ERR(LOG_CTX_DHCP, "VLAN %u does not have DHCPv6 enabled!", pduInfo->vlanId);
         //return SYSNET_PDU_RC_IGNORED;
       }
     }
@@ -1213,11 +1213,11 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
       /* For MX board, ignore DHCP packet */
     #if (PTIN_BOARD_IS_MATRIX)
       if (ptin_debug_dhcp_snooping) 
-        LOG_ERR(LOG_CTX_PTIN_DHCP, "Packet will be ignored (VLAN %u / intIfNum %u)", pduInfo->vlanId, pduInfo->intIfNum);
+        PT_LOG_ERR(LOG_CTX_DHCP, "Packet will be ignored (VLAN %u / intIfNum %u)", pduInfo->vlanId, pduInfo->intIfNum);
       return SYSNET_PDU_RC_IGNORED;
     #else
       if (ptin_debug_dhcp_snooping) 
-        LOG_ERR(LOG_CTX_PTIN_DHCP, "Going to L2 forward packet from VLAN %u / intIfNum %u", pduInfo->vlanId, pduInfo->intIfNum);
+        PT_LOG_ERR(LOG_CTX_DHCP, "Going to L2 forward packet from VLAN %u / intIfNum %u", pduInfo->vlanId, pduInfo->intIfNum);
       /* L2 forward */
       if (ptin_packet_frame_l2forward_nonblocking(pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId, data, len) == L7_SUCCESS)
       {
@@ -1227,7 +1227,7 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
       else
       {
         if (ptin_debug_dhcp_snooping)
-          LOG_ERR(LOG_CTX_PTIN_PPPOE, "Error trying to L2 forward packet");
+          PT_LOG_ERR(LOG_CTX_PPPOE, "Error trying to L2 forward packet");
         return SYSNET_PDU_RC_IGNORED;
       }
     #endif
@@ -1247,7 +1247,7 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
                       "(%s)Packet rx'ed Dot1q VLAN Id (%d) length(%d)",
                       __FUNCTION__, vlanId, len);
         dsTraceWrite(traceMsg);
-        LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet rx'ed Dot1q VLAN Id (%d) length(%d)", vlanId, len);
+        PT_LOG_TRACE(LOG_CTX_DHCP,"Packet rx'ed Dot1q VLAN Id (%d) length(%d)", vlanId, len);
       }
       if ( dsRateLimitFilter(pduInfo))
       {
@@ -1270,7 +1270,7 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
         if (innerVlanId==0 || innerVlanId>=4095)
         {
           if (ptin_debug_dhcp_snooping)
-            LOG_ERR(LOG_CTX_PTIN_DHCP,"Client not referenced! (intIfNum=%u, innerVlanId=%u, intVlanId=%u)",
+            PT_LOG_ERR(LOG_CTX_DHCP,"Client not referenced! (intIfNum=%u, innerVlanId=%u, intVlanId=%u)",
                   pduInfo->intIfNum, innerVlanId, vlanId);
           ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_INTERCEPTED);
           ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_FILTERED);
@@ -1298,12 +1298,12 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
               client_idx>=PTIN_SYSTEM_DHCP_MAXCLIENTS)
           {
             if (ptin_debug_dhcp_snooping)
-              LOG_ERR(LOG_CTX_PTIN_DHCP,"Client not found! (intIfNum=%u, ptin_intf=%u/%u, innerVlanId=%u, intVlanId=%u)",
+              PT_LOG_ERR(LOG_CTX_DHCP,"Client not found! (intIfNum=%u, ptin_intf=%u/%u, innerVlanId=%u, intVlanId=%u)",
                       pduInfo->intIfNum, client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan, vlanId);
             ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_INTERCEPTED);
             ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_FILTERED);
             if (ptin_debug_dhcp_snooping)
-              LOG_ERR(LOG_CTX_PTIN_DHCP,"Packet ignored.");
+              PT_LOG_ERR(LOG_CTX_DHCP,"Packet ignored.");
             return SYSNET_PDU_RC_IGNORED;
             //client_idx = (L7_uint)-1;
           }
@@ -1316,7 +1316,7 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
       #endif
 
       if (ptin_debug_dhcp_snooping)
-        LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet intercepted at intIfNum=%u, oVlan=%u, iVlan=%u",
+        PT_LOG_TRACE(LOG_CTX_DHCP,"Packet intercepted at intIfNum=%u, oVlan=%u, iVlan=%u",
                   pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);
 
       rc = dsPacketQueue(data, len, vlanId, pduInfo->intIfNum, innerVlanId, &client_idx);    /* PTin modified: DHCP snooping */
@@ -1330,7 +1330,7 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
         dsInfo->debugStats.msgsIntercepted++;
         dsInfo->debugStats.msgsInterceptedIntf[pduInfo->intIfNum]++;
         if (ptin_debug_dhcp_snooping)
-          LOG_TRACE(LOG_CTX_PTIN_DHCP,"Incremented DHCP_STAT_FIELD_RX_FILTERED");
+          PT_LOG_TRACE(LOG_CTX_DHCP,"Incremented DHCP_STAT_FIELD_RX_FILTERED");
         ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, DHCP_STAT_FIELD_RX_FILTERED);
         SYSAPI_NET_MBUF_FREE(bufHandle);
         return SYSNET_PDU_RC_CONSUMED;
@@ -1376,12 +1376,12 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
     else
     {
       if (ptin_debug_dhcp_snooping)
-        LOG_TRACE(LOG_CTX_PTIN_DHCP,"DHCP Packet is not server nor client");
+        PT_LOG_TRACE(LOG_CTX_DHCP,"DHCP Packet is not server nor client");
     }
   }
 
   if (ptin_debug_dhcp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet is not DHCP");
+    PT_LOG_TRACE(LOG_CTX_DHCP,"Packet is not DHCP");
 
   return SYSNET_PDU_RC_IGNORED;
 }
@@ -1435,7 +1435,7 @@ L7_RC_t dsPacketQueue(L7_uchar8 *ethHeader, L7_uint32 dataLen,
       dhcpPktLen = ipPktLen - ipHdrLen - sizeof(L7_udp_header_t);
 
       if (ptin_debug_dhcp_snooping)
-        LOG_DEBUG(LOG_CTX_PTIN_DHCP, "Packet %s received at intIfNum=%u, oVlan=%u, iVlan=%u, MAC=%02x:%02x:%02x:%02x:%02x:%02x",
+        PT_LOG_DEBUG(LOG_CTX_DHCP, "Packet %s received at intIfNum=%u, oVlan=%u, iVlan=%u, MAC=%02x:%02x:%02x:%02x:%02x:%02x",
               dhcpMsgTypeNames[dsPacketType(dhcpPacket, dhcpPktLen)], intIfNum, vlanId, innerVlanId, dhcpPacket->chaddr[0], dhcpPacket->chaddr[1], dhcpPacket->chaddr[2], dhcpPacket->chaddr[3], dhcpPacket->chaddr[4], dhcpPacket->chaddr[5]);
 
       if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_RX)
@@ -1462,7 +1462,7 @@ L7_RC_t dsPacketQueue(L7_uchar8 *ethHeader, L7_uint32 dataLen,
          dsInfo->debugStats.msgsFiltered++;
 
          if (ptin_debug_dhcp_snooping)
-            LOG_TRACE(LOG_CTX_PTIN_DHCP, "Incremented DHCP_STAT_FIELD_RX_FILTERED");
+            PT_LOG_TRACE(LOG_CTX_DHCP, "Incremented DHCP_STAT_FIELD_RX_FILTERED");
          //ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_FILTERED);
          return L7_REQUEST_DENIED;
       }
@@ -1582,13 +1582,13 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
   ipPktLen   = osapiNtohs(ipHeader->iph_len);
   dhcpPktLen = ipPktLen - ipHdrLen - sizeof(L7_udp_header_t);
   if (ptin_debug_dhcp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_DHCP, "Packet frameLen = %d, initial UDP length = %d ", frameLen, osapiNtohs(udp_header->length) );
+    PT_LOG_TRACE(LOG_CTX_DHCP, "Packet frameLen = %d, initial UDP length = %d ", frameLen, osapiNtohs(udp_header->length) );
 
   /* Update Binding database only when DHCP Snooping is enabled */
   if ((dsCfgData->dsGlobalAdminMode == L7_ENABLE) && (dsVlanIntfIsSnooping(vlanId,intIfNum) == L7_TRUE))
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_TRACE(LOG_CTX_PTIN_DHCP, "intIfNum %u, vlanId=%u valid", intIfNum, vlanId);
+      PT_LOG_TRACE(LOG_CTX_DHCP, "intIfNum %u, vlanId=%u valid", intIfNum, vlanId);
 
     if ((dhcpPacket->op == L7_DHCP_BOOTP_REPLY) || (dhcpPacket->op == L7_DHCP_BOOTP_REQUEST)) 
     {
@@ -1596,7 +1596,7 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
       if(dhcpPacket->op == L7_DHCP_BOOTP_REPLY)
       {
         if (ptin_debug_dhcp_snooping)
-          LOG_TRACE(LOG_CTX_PTIN_DHCP, "L7_DHCP_BOOTP_REPLY");
+          PT_LOG_TRACE(LOG_CTX_DHCP, "L7_DHCP_BOOTP_REPLY");
 
         memset(&dhcp_binding, 0, sizeof(dhcpSnoopBinding_t));
         mac_header = (L7_enetHeader_t*) frame;
@@ -1605,7 +1605,7 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
         if (L7_SUCCESS != dsBindingFind(&dhcp_binding, L7_MATCH_EXACT))
         {
           if (ptin_debug_dhcp_snooping)
-            LOG_TRACE(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Received server reply for an unknown client");
+            PT_LOG_TRACE(LOG_CTX_DHCP, "DHCP Relay-Agent: Received server reply for an unknown client");
           return L7_SUCCESS;
         }
       }
@@ -1618,7 +1618,7 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
       if ((dhcpPacket->op == L7_DHCP_BOOTP_REQUEST) && (rc == L7_REQUEST_DENIED))
       {
         if (ptin_debug_dhcp_snooping)
-          LOG_TRACE(LOG_CTX_PTIN_DHCP, "L7_DHCP_BOOTP_REQUEST: Request denied");
+          PT_LOG_TRACE(LOG_CTX_DHCP, "L7_DHCP_BOOTP_REQUEST: Request denied");
 
         /* Static binding exists for client on untrusted interface. Consider
          * this a configuration error. Drop client messages. Logic does let
@@ -1645,7 +1645,7 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
     {
       if (ptin_debug_dhcp_snooping)
       {
-        LOG_TRACE(LOG_CTX_PTIN_DHCP, "L7_DHCP_BOOTP_REPLY - Packet frameLen = %d after Option-82 Removal from DHCP Reply", frameLen);
+        PT_LOG_TRACE(LOG_CTX_DHCP, "L7_DHCP_BOOTP_REPLY - Packet frameLen = %d after Option-82 Removal from DHCP Reply", frameLen);
       }
 
       /* Get this client's information (if we don't already have it) */
@@ -1658,7 +1658,7 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
          if (L7_SUCCESS != dsBindingFind(&dhcp_binding, L7_MATCH_EXACT))
          {
            if (ptin_debug_dhcp_snooping)
-             LOG_TRACE(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Received server reply for an unknown client");
+             PT_LOG_TRACE(LOG_CTX_DHCP, "DHCP Relay-Agent: Received server reply for an unknown client");
            return L7_SUCCESS;
          }
       }
@@ -1671,7 +1671,7 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
          if (dsRelayAgentInfoRemoveOrGet(frame, &frameLen, dhcpPacket, dhcpPktLen, L7_TRUE, &relayAgentInfo) != L7_SUCCESS)
          {
             if (ptin_debug_dhcp_snooping)
-               LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Error while removing relay agent info");
+               PT_LOG_ERR(LOG_CTX_DHCP, "DHCP Relay-Agent: Error while removing relay agent info");
             return L7_FAILURE;
          }
       }
@@ -1680,7 +1680,7 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
          if (dsRelayAgentInfoRemoveOrGet(frame, &frameLen, dhcpPacket, dhcpPktLen, L7_FALSE, &relayAgentInfo) != L7_SUCCESS)
          {
             if (ptin_debug_dhcp_snooping)
-               LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Error while getting relay agent info");
+               PT_LOG_ERR(LOG_CTX_DHCP, "DHCP Relay-Agent: Error while getting relay agent info");
             return L7_FAILURE;
          }
       }
@@ -1694,12 +1694,12 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
       L7_BOOL isActiveOp82;
 
       if (ptin_debug_dhcp_snooping)
-        LOG_TRACE(LOG_CTX_PTIN_DHCP, "L7_DHCP_BOOTP_REQUEST");
+        PT_LOG_TRACE(LOG_CTX_DHCP, "L7_DHCP_BOOTP_REQUEST");
 
       if (dsL2RelayServiceIsEnabled(intIfNum, vlanId, innerVlanId) == L7_FALSE)
       {
          if (ptin_debug_dhcp_snooping)
-            LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCP L2 Relay is not enabled [intIfNum:%u vlanId:%u innerVlanId:%u].", intIfNum, vlanId, innerVlanId);
+            PT_LOG_ERR(LOG_CTX_DHCP, "DHCP L2 Relay is not enabled [intIfNum:%u vlanId:%u innerVlanId:%u].", intIfNum, vlanId, innerVlanId);
          return L7_FAILURE;
       }
 
@@ -1709,7 +1709,7 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
          if (ptin_dhcp_client_options_get(intIfNum, vlanId, innerVlanId, &isActiveOp82, L7_NULLPTR, L7_NULLPTR) != L7_SUCCESS)
          {
            if (ptin_debug_dhcp_snooping)
-              LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to get DHCP client options [intIfNum:%u vlanId:%u innerVlanId:%u]", intIfNum, vlanId, innerVlanId);
+              PT_LOG_ERR(LOG_CTX_DHCP, "Unable to get DHCP client options [intIfNum:%u vlanId:%u innerVlanId:%u]", intIfNum, vlanId, innerVlanId);
            return L7_FAILURE;
          }
 
@@ -1718,19 +1718,19 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
            L7_RC_t rcRelayAgentInfoAdd;
 
            if (ptin_debug_dhcp_snooping)
-             LOG_TRACE(LOG_CTX_PTIN_DHCP, "Is Active option 82");
+             PT_LOG_TRACE(LOG_CTX_DHCP, "Is Active option 82");
 
            /* This function adds Option-82 only if it does not already exists.*/
            if ((rcRelayAgentInfoAdd = dsRelayAgentInfoAdd(intIfNum, vlanId, innerVlanId, frame, &frameLen)) == L7_FAILURE)
            {
              if (ptin_debug_dhcp_snooping)
-                LOG_ERR(LOG_CTX_PTIN_DHCP, "Failed to add DHCP Option-82 for Client request on SVLAN %d", vlanIdFwd);
+                PT_LOG_ERR(LOG_CTX_DHCP, "Failed to add DHCP Option-82 for Client request on SVLAN %d", vlanIdFwd);
              return L7_FAILURE;
            }
            ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_RX_SERVER_REPLIES_WITH_OPTION82);
 
            /* Set the relayop_added bit so we know, when processing the server response, that it was us who added the relay option */
-           LOG_TRACE(LOG_CTX_PTIN_DHCP, "dsRelayAgentInfoAdd returned %u", rcRelayAgentInfoAdd);
+           PT_LOG_TRACE(LOG_CTX_DHCP, "dsRelayAgentInfoAdd returned %u", rcRelayAgentInfoAdd);
            if(rcRelayAgentInfoAdd == L7_SUCCESS)
            {
               dsBindingTreeKey_t key;
@@ -1743,7 +1743,7 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
            }
 
            if (ptin_debug_dhcp_snooping)
-             LOG_TRACE(LOG_CTX_PTIN_DHCP, "Packet frameLen = %d after Option-82 addition", frameLen);
+             PT_LOG_TRACE(LOG_CTX_DHCP, "Packet frameLen = %d after Option-82 addition", frameLen);
          }
       }
 
@@ -1751,7 +1751,7 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
       if ( (ptin_dhcp_flags_get(vlanId, &broadcast_flag, L7_NULLPTR) == L7_SUCCESS) && (broadcast_flag != DHCP_BOOTP_FLAG_NONE) )
       {
         if (ptin_debug_dhcp_snooping)
-          LOG_TRACE(LOG_CTX_PTIN_DHCP, "Broadcast_flag = 0x%x", broadcast_flag);
+          PT_LOG_TRACE(LOG_CTX_DHCP, "Broadcast_flag = 0x%x", broadcast_flag);
 
         if (broadcast_flag == DHCP_BOOTP_FLAG_BROADCAST)
         {
@@ -1766,20 +1766,20 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
         dsUdpCheckSumCalculate(frame, &frameLen, L7_TRUE, 0);
 
         if (ptin_debug_dhcp_snooping)
-          LOG_TRACE(LOG_CTX_PTIN_DHCP,"Broadcast flag changed (%u)",broadcast_flag);
+          PT_LOG_TRACE(LOG_CTX_DHCP,"Broadcast flag changed (%u)",broadcast_flag);
       }
     }
   }
 #endif //L7_DHCP_L2_RELAY_PACKAGE
 
-  LOG_TRACE(LOG_CTX_PTIN_DHCP, "Forwarding packet from intIfNum %u to %u (vlanId=%u, innerVlanId=%u)", intIfNum, relayOptIntIfNum, vlanId, innerVlanId);
+  PT_LOG_TRACE(LOG_CTX_DHCP, "Forwarding packet from intIfNum %u to %u (vlanId=%u, innerVlanId=%u)", intIfNum, relayOptIntIfNum, vlanId, innerVlanId);
   if (dsFrameForward(intIfNum, vlanId, frame, frameLen, innerVlanId, client_idx, relayOptIntIfNum) == L7_SUCCESS)
   {
     dsInfo->debugStats.msgsForwarded++;
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to forward DHCP packet [intIfNum:%u vlanId:%u frame:%p frameLen:%u innerVlanId:%u client_idx:%u relayOptIntIfNum:%u]",
+    PT_LOG_ERR(LOG_CTX_DHCP, "Unable to forward DHCP packet [intIfNum:%u vlanId:%u frame:%p frameLen:%u innerVlanId:%u client_idx:%u relayOptIntIfNum:%u]",
             intIfNum, vlanId, frame, frameLen, innerVlanId, client_idx, relayOptIntIfNum);
   }
 
@@ -1808,7 +1808,7 @@ L7_RC_t dsDHCPv6FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
 
    dhcp_header_ptr = frame + sysNetDataOffsetGet(frame) + L7_IP6_HEADER_LEN + sizeof(L7_udp_header_t);
 
-   LOG_DEBUG(LOG_CTX_PTIN_DHCP, "Received DHCPv6 message type[%u] [intIfNum:%u clientIdx:%u vlanId:%u innerVlanId:%u]", *dhcp_header_ptr, intIfNum, client_idx, vlanId, innerVlanId);
+   PT_LOG_DEBUG(LOG_CTX_DHCP, "Received DHCPv6 message type[%u] [intIfNum:%u clientIdx:%u vlanId:%u innerVlanId:%u]", *dhcp_header_ptr, intIfNum, client_idx, vlanId, innerVlanId);
 
    switch(*dhcp_header_ptr)
    {
@@ -1816,7 +1816,7 @@ L7_RC_t dsDHCPv6FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
       case L7_DHCP6_REPLY:
       {
          if (ptin_debug_dhcp_snooping)
-           LOG_WARNING(LOG_CTX_PTIN_DHCP, "Silently ignoring invalid message received: msg-type (%d)", *dhcp_header_ptr);
+           PT_LOG_WARN(LOG_CTX_DHCP, "Silently ignoring invalid message received: msg-type (%d)", *dhcp_header_ptr);
          return L7_SUCCESS;
       }
       case L7_DHCP6_RELAY_REPL:
@@ -1842,7 +1842,7 @@ L7_RC_t dsDHCPv6FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
       }
       default:
         if (ptin_debug_dhcp_snooping)
-          LOG_WARNING(LOG_CTX_PTIN_DHCP, "Invalid DHCPv6 Message received: unknown msg-type %u", *dhcp_header_ptr);
+          PT_LOG_WARN(LOG_CTX_DHCP, "Invalid DHCPv6 Message received: unknown msg-type %u", *dhcp_header_ptr);
    }
 
    return L7_SUCCESS;
@@ -1879,13 +1879,13 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    L7_dhcp6_packet_t* dhcp_msg_hdr_ptr = 0;
    L7_dhcp6_option_packet_t *dhcp_op_header = 0;
 
-   LOG_DEBUG(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Processing client request");
+   PT_LOG_DEBUG(LOG_CTX_DHCP, "DHCP Relay-Agent: Processing client request");
 
    //Check if the port through which the message was received is valid
    if (_dsVlanIsIntfRoot(vlanId,intIfNum))
    {
       if (ptin_debug_dhcp_snooping)
-        LOG_WARNING(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Discarded client request received on root port");
+        PT_LOG_WARN(LOG_CTX_DHCP, "DHCPv6 Relay-Agent: Discarded client request received on root port");
       ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_RX_CLIENT_PKTS_ON_TRUSTED_INTF);
       return L7_FAILURE;
    }
@@ -1914,7 +1914,7 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    if(osapiNtohs(udp_header->length) < (sizeof(L7_udp_header_t) + sizeof(L7_dhcp6_packet_t)))
    {
       if (ptin_debug_dhcp_snooping)
-        LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Broken frame received, ignoring (invalid UDP.length).");
+        PT_LOG_ERR(LOG_CTX_DHCP, "DHCPv6 Relay-Agent: Broken frame received, ignoring (invalid UDP.length).");
       return L7_SUCCESS;
    }
 
@@ -1922,7 +1922,7 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    if((dhcp_msg_type==L7_DHCP6_RELAY_FORW) && (!_dsVlanIntfTrustGet(vlanId,intIfNum)))
    {
       if (ptin_debug_dhcp_snooping)
-        LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Discarded RELAY-FORW message received on untrusted port");
+        PT_LOG_ERR(LOG_CTX_DHCP, "DHCPv6 Relay-Agent: Discarded RELAY-FORW message received on untrusted port");
       return L7_SUCCESS;
    }
 
@@ -1931,10 +1931,10 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    memcpy(&client_mac_addr, mac_header->src.addr, L7_ENET_MAC_ADDR_LEN);
    if (ptin_dhcp_client_options_get(intIfNum, vlanId, innerVlanId, L7_NULLPTR, &isActiveOp37, &isActiveOp18) != L7_SUCCESS)
    {
-      LOG_WARNING(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Unknown client [intIfNum:%u vlanId:%u innerVlanId:%u]", intIfNum, vlanId, innerVlanId);
+      PT_LOG_WARN(LOG_CTX_DHCP, "DHCPv6 Relay-Agent: Unknown client [intIfNum:%u vlanId:%u innerVlanId:%u]", intIfNum, vlanId, innerVlanId);
       return L7_FAILURE;
    }
-   LOG_TRACE(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Determined client options [op18:%u op37:%u]", isActiveOp18, isActiveOp37);
+   PT_LOG_TRACE(LOG_CTX_DHCP, "DHCPv6 Relay-Agent: Determined client options [op18:%u op37:%u]", isActiveOp18, isActiveOp37);
    
    //Parse the client packet to discover the original message type
    if(dhcp_msg_type != L7_DHCP6_RELAY_FORW)
@@ -1953,7 +1953,7 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
         if ((osapiNtohs(dhcp_op_header->option_len) == 0) || 
             (frame_len < (sizeof(L7_dhcp6_option_packet_t) + osapiNtohs(dhcp_op_header->option_len))))
         {
-           LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Received message with an invalid frame length %d/%d", frame_len, sizeof(L7_dhcp6_option_packet_t) + osapiNtohs(dhcp_op_header->option_len));
+           PT_LOG_ERR(LOG_CTX_DHCP, "DHCP Relay-Agent: Received message with an invalid frame length %d/%d", frame_len, sizeof(L7_dhcp6_option_packet_t) + osapiNtohs(dhcp_op_header->option_len));
            return L7_SUCCESS;
         }
 
@@ -1992,16 +1992,16 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    //Create a new Relay-Agent message. If the received msg is a 'L7_DHCP6_RELAY_FORW', increase hop_count
    relay_agent_header.msg_type  = L7_DHCP6_RELAY_FORW;
    relay_agent_header.hop_count = (dhcp_msg_type==L7_DHCP6_RELAY_FORW) ? (*(dhcp_header_ptr+1)+1) : (0);
-   LOG_TRACE(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Setting hopCount to %u", relay_agent_header.hop_count);
+   PT_LOG_TRACE(LOG_CTX_DHCP, "DHCPv6 Relay-Agent: Setting hopCount to %u", relay_agent_header.hop_count);
    memcpy(relay_agent_header.peer_address, ipv6_header->src, IPV6_ADDRESS_LEN);
    memcpy(dhcp_copy_header_ptr, &relay_agent_header, sizeof(L7_dhcp6_relay_agent_packet_t));
    frame_copy_len += sizeof(L7_dhcp6_relay_agent_packet_t);
 
    //Add DHCP-Relay option (option 9)
-   LOG_TRACE(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Adding option 9");
+   PT_LOG_TRACE(LOG_CTX_DHCP, "DHCPv6 Relay-Agent: Adding option 9");
    if (L7_SUCCESS != dsv6AddOption9(frame_copy, &frame_copy_len, dhcp_header_ptr, osapiNtohs(udp_header->length) - sizeof(L7_dhcp6_packet_t) - L7_FCS_LEN))
    {
-      LOG_WARNING(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Unable to add op9 to DHCP frame");
+      PT_LOG_WARN(LOG_CTX_DHCP, "DHCP Relay-Agent: Unable to add op9 to DHCP frame");
       return L7_FAILURE;
    }
 
@@ -2011,10 +2011,10 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
       if (L7_SUCCESS != dsv6AddOption18or37(intIfNum, frame_copy, &frame_copy_len, vlanId, innerVlanId, client_mac_addr.addr, L7_DHCP6_OPT_INTERFACE_ID))
       {
          if (ptin_debug_dhcp_snooping)
-           LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Error adding op18 to DHCP frame");
+           PT_LOG_ERR(LOG_CTX_DHCP, "DHCP Relay-Agent: Error adding op18 to DHCP frame");
          return L7_FAILURE;
       }
-      LOG_TRACE(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Added op18 to DHCP frame");
+      PT_LOG_TRACE(LOG_CTX_DHCP, "DHCPv6 Relay-Agent: Added op18 to DHCP frame");
    }
 
    //Add Interface-id option (option 37)
@@ -2023,10 +2023,10 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
       if (L7_SUCCESS != dsv6AddOption18or37(intIfNum, frame_copy, &frame_copy_len, vlanId, innerVlanId, client_mac_addr.addr, L7_DHCP6_OPT_REMOTE_ID))
       {
          if (ptin_debug_dhcp_snooping)
-           LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Error adding op37 to DHCP frame");
+           PT_LOG_ERR(LOG_CTX_DHCP, "DHCP Relay-Agent: Error adding op37 to DHCP frame");
          return L7_FAILURE;
       }
-      LOG_TRACE(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Added op37 to DHCP frame");
+      PT_LOG_TRACE(LOG_CTX_DHCP, "DHCPv6 Relay-Agent: Added op37 to DHCP frame");
    }
 
    //Update the UDP and IPv6 headers
@@ -2035,11 +2035,11 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    dsUdpCheckSumCalculate(frame_copy, &frame_copy_len, L7_TRUE, 0);
 
    //Send the new DHCP message to the server
-   LOG_TRACE(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Sending packet [intfNum:%u vlanId:%u innerVlan:%u client:%u]", intIfNum, vlanId, innerVlanId, client_idx);
+   PT_LOG_TRACE(LOG_CTX_DHCP, "DHCPv6 Relay-Agent: Sending packet [intfNum:%u vlanId:%u innerVlan:%u client:%u]", intIfNum, vlanId, innerVlanId, client_idx);
    if (L7_SUCCESS != dsFrameFlood(intIfNum, vlanId, frame_copy, frame_copy_len, L7_TRUE, innerVlanId, client_idx))
    {
       if (ptin_debug_dhcp_snooping)
-        LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Error sending DHCPv6 message");
+        PT_LOG_ERR(LOG_CTX_DHCP, "DHCP Relay-Agent: Error sending DHCPv6 message");
       return L7_FAILURE;
    }
 
@@ -2083,13 +2083,13 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    L7_uint8 ethPrty, *frameEthPrty;
    L7_dhcp6_packet_t *dhcp_msg_hdr_ptr = 0;
 
-   LOG_DEBUG(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Received server reply");
+   PT_LOG_DEBUG(LOG_CTX_DHCP, "DHCP Relay-Agent: Received server reply");
 
    //Check if the port through which the message was received is valid
    if (_dsVlanIsIntfRoot(vlanId,intIfNum) == L7_FALSE)
    {
       if (ptin_debug_dhcp_snooping)
-        LOG_WARNING(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Received server reply on untrusted port");
+        PT_LOG_WARN(LOG_CTX_DHCP, "DHCP Relay-Agent: Received server reply on untrusted port");
       ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_RX_SERVER_PKTS_ON_UNTRUSTED_INTF);
       return L7_FAILURE;
    }
@@ -2127,7 +2127,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    if (ptin_dhcp_client_options_get(intIfNum, dhcp_binding.vlanId, dhcp_binding.innerVlanId, L7_NULLPTR, &isActiveOp37, &isActiveOp18) != L7_SUCCESS)
    {
       if (ptin_debug_dhcp_snooping)
-        LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Unable to get client[intfNum:%u oVlan:%u iVlan:%u] options", intIfNum, dhcp_binding.vlanId, dhcp_binding.innerVlanId);
+        PT_LOG_ERR(LOG_CTX_DHCP, "DHCP Relay-Agent: Unable to get client[intfNum:%u oVlan:%u iVlan:%u] options", intIfNum, dhcp_binding.vlanId, dhcp_binding.innerVlanId);
       return L7_FAILURE;
    }
    //If the service is unstacked (client_idx==-1) then we have to determine the client_idx through the inner_vlan in the Binding Table
@@ -2144,7 +2144,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
      if (ptin_dhcp_clientIndex_get(intIfNum, vlanId, &client, &client_idx)!=L7_SUCCESS)
      {
        if (ptin_debug_dhcp_snooping)
-         LOG_ERR(LOG_CTX_PTIN_DHCP,"Client not found! (intIfNum=%u, innerVlanId=%u, intVlanId=%u)",
+         PT_LOG_ERR(LOG_CTX_DHCP,"Client not found! (intIfNum=%u, innerVlanId=%u, intVlanId=%u)",
                  intIfNum, dhcp_binding.innerVlanId, vlanId);
        ptin_dhcp_stat_increment_field(intIfNum, vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_INTERCEPTED);
        ptin_dhcp_stat_increment_field(intIfNum, vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_FILTERED);
@@ -2156,7 +2156,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    if(osapiNtohs(udp_header->length) < (sizeof(L7_udp_header_t) + sizeof(L7_dhcp6_packet_t)))
    {
       if (ptin_debug_dhcp_snooping)
-        LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Broken frame received, ignoring (invalid UDP.length).");
+        PT_LOG_ERR(LOG_CTX_DHCP, "DHCPv6 Relay-Agent: Broken frame received, ignoring (invalid UDP.length).");
       return L7_SUCCESS;
    }
 
@@ -2171,7 +2171,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
      if ((osapiNtohs(dhcp_op_header->option_len) == 0) || 
          (frame_len < (sizeof(L7_dhcp6_option_packet_t) + osapiNtohs(dhcp_op_header->option_len))))
      {
-        LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Received message with an invalid frame length %d/%d", frame_len, sizeof(L7_dhcp6_option_packet_t) + osapiNtohs(dhcp_op_header->option_len));
+        PT_LOG_ERR(LOG_CTX_DHCP, "DHCP Relay-Agent: Received message with an invalid frame length %d/%d", frame_len, sizeof(L7_dhcp6_option_packet_t) + osapiNtohs(dhcp_op_header->option_len));
         return L7_SUCCESS;
      }
 
@@ -2251,7 +2251,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    if(!op_relaymsg_ptr)
    {
       if (ptin_debug_dhcp_snooping)
-        LOG_WARNING(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Received DHCPv6 message missing mandatory relay message option");
+        PT_LOG_WARN(LOG_CTX_DHCP, "DHCP Relay-Agent: Received DHCPv6 message missing mandatory relay message option");
       return L7_SUCCESS;
    }
 
@@ -2260,7 +2260,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    if(!inetIsInAddressAny(&link_addr) || 0 != memcmp(ipv6_header->dst, relay_agent_header->peer_address, IPV6_ADDRESS_LEN))
    {
       if (ptin_debug_dhcp_snooping)
-        LOG_WARNING(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Received DHCPv6 message with invalid fields");
+        PT_LOG_WARN(LOG_CTX_DHCP, "DHCP Relay-Agent: Received DHCPv6 message with invalid fields");
       return L7_SUCCESS;
    }
 
@@ -2268,7 +2268,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    if (ptin_dhcp_ethPrty_get(vlanId, &ethPrty) != L7_SUCCESS)
    {
      if (ptin_debug_dhcp_snooping)
-       LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to get ethernet priority");
+       PT_LOG_ERR(LOG_CTX_DHCP, "Unable to get ethernet priority");
      return L7_FAILURE;
    }
    frameEthPrty  = (L7_uint8*)(frame_copy + 2*sizeof(L7_enetMacAddr_t) + sizeof(L7_ushort16));
@@ -2292,11 +2292,11 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    dsUdpCheckSumCalculate(frame_copy, &frame_copy_len, L7_TRUE, 0);
 
    //Send the new DHCP message to the client
-   LOG_TRACE(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Sending packet [intfNum:%u vlanId:%u innerVlan:%u client:%u]", intIfNum, vlanId, innerVlanId, client_idx);
+   PT_LOG_TRACE(LOG_CTX_DHCP, "DHCPv6 Relay-Agent: Sending packet [intfNum:%u vlanId:%u innerVlan:%u client:%u]", intIfNum, vlanId, innerVlanId, client_idx);
    if (L7_SUCCESS != dsFrameIntfFilterSend(intIfNum, vlanId, frame_copy, frame_copy_len, L7_TRUE, innerVlanId, client_idx))
    {
       if (ptin_debug_dhcp_snooping)
-        LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Error sending DHCPv6 message");
+        PT_LOG_ERR(LOG_CTX_DHCP, "DHCP Relay-Agent: Error sending DHCPv6 message");
       return L7_SUCCESS;
    }
 
@@ -2397,11 +2397,11 @@ L7_RC_t dsv6AddOption18or37(L7_uint32 intIfNum, L7_uchar8 *frame, L7_uint32 *fra
       if(!strlen(circuit_id))
       {
         if (ptin_debug_dhcp_snooping)
-          LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Invalid circuit-id string (string length is 0)", circuit_id);
+          PT_LOG_ERR(LOG_CTX_DHCP, "DHCP Relay-Agent: Invalid circuit-id string (string length is 0)", circuit_id);
         return L7_FAILURE;
       }
       if (ptin_debug_dhcp_snooping)
-        LOG_TRACE(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Adding interface-id '%s'", circuit_id);
+        PT_LOG_TRACE(LOG_CTX_DHCP, "DHCP Relay-Agent: Adding interface-id '%s'", circuit_id);
       memcpy(frame + *frameLen, circuit_id, strlen(circuit_id)); //Copy circuit-id string
       *frameLen += strlen(circuit_id);
    }
@@ -2417,11 +2417,11 @@ L7_RC_t dsv6AddOption18or37(L7_uint32 intIfNum, L7_uchar8 *frame, L7_uint32 *fra
       if(!strlen(remote_id))
       {
         if (ptin_debug_dhcp_snooping)
-          LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Invalid remote-id string (string length is 0)", remote_id);
+          PT_LOG_ERR(LOG_CTX_DHCP, "DHCP Relay-Agent: Invalid remote-id string (string length is 0)", remote_id);
         return L7_FAILURE;
       }
       if (ptin_debug_dhcp_snooping)
-        LOG_TRACE(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Adding remote-id '%s'", remote_id);
+        PT_LOG_TRACE(LOG_CTX_DHCP, "DHCP Relay-Agent: Adding remote-id '%s'", remote_id);
       memcpy(frame + *frameLen, remote_id, strlen(remote_id)); //Copy remote-id string
       *frameLen += strlen(remote_id);
    }
@@ -2451,7 +2451,7 @@ L7_BOOL dsFrameFilter(L7_uint32 intIfNum, L7_ushort16 vlanId,
   if (dsFilterServerMessage(intIfNum, vlanId, frame, ipHeader, innerVlanId, client_idx))    /* PTin modified: DHCP snooping */
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Packet dropped here: server filter");
+      PT_LOG_ERR(LOG_CTX_DHCP,"Packet dropped here: server filter");
     return L7_TRUE;
   }
 
@@ -2459,7 +2459,7 @@ L7_BOOL dsFrameFilter(L7_uint32 intIfNum, L7_ushort16 vlanId,
   if (dsFilterClientMessage(intIfNum, vlanId, frame, ipHeader, innerVlanId, client_idx))    /* PTin modified: DHCP snooping */
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Packet dropped here: client filter");
+      PT_LOG_ERR(LOG_CTX_DHCP,"Packet dropped here: client filter");
      return L7_TRUE;
   }
 
@@ -2467,7 +2467,7 @@ L7_BOOL dsFrameFilter(L7_uint32 intIfNum, L7_ushort16 vlanId,
   if (dsFilterVerifyMac(intIfNum, vlanId, frame, ipHeader))
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Packet dropped here: verify MAC");
+      PT_LOG_ERR(LOG_CTX_DHCP,"Packet dropped here: verify MAC");
     return L7_TRUE;
   }
 
@@ -3242,8 +3242,8 @@ void dsL2RelayRelayAgentInfoOptionCfgGet(L7_uint32 intIfNum, L7_uint32 vlanId, L
 
     if (ptin_debug_dhcp_snooping)
     {
-      LOG_TRACE(LOG_CTX_PTIN_DHCP,"CircuitId=\"%s\"\r\n",circuitIdStr);
-      LOG_TRACE(LOG_CTX_PTIN_DHCP,"remoteId =\"%s\"\r\n",remoteIdStr);
+      PT_LOG_TRACE(LOG_CTX_DHCP,"CircuitId=\"%s\"\r\n",circuitIdStr);
+      PT_LOG_TRACE(LOG_CTX_DHCP,"remoteId =\"%s\"\r\n",remoteIdStr);
     }
   }
   #else
@@ -3424,7 +3424,7 @@ L7_RC_t dsRelayAgentInfoAdd(L7_uint32 intIfNum, L7_uint32 vlanId,
     #endif
 
     if (ptin_debug_dhcp_snooping)
-      LOG_TRACE(LOG_CTX_PTIN_DHCP,"CircuitId=\"%s\"\r\n",circuitIdStr);
+      PT_LOG_TRACE(LOG_CTX_DHCP,"CircuitId=\"%s\"\r\n",circuitIdStr);
   }
   if (ridFlag == L7_TRUE)
   {
@@ -3437,7 +3437,7 @@ L7_RC_t dsRelayAgentInfoAdd(L7_uint32 intIfNum, L7_uint32 vlanId,
     subOption += optLen_rId;
 
     if (ptin_debug_dhcp_snooping)
-      LOG_TRACE(LOG_CTX_PTIN_DHCP,"RemoteId=\"%s\"\r\n",remoteIdStr);
+      PT_LOG_TRACE(LOG_CTX_DHCP,"RemoteId=\"%s\"\r\n",remoteIdStr);
   }
 
 
@@ -3504,7 +3504,7 @@ L7_RC_t dsRelayAgentInfoRemoveOrGet (L7_uchar8 *frame,
       dsTraceWrite(traceMsg);
     }
     if (ptin_debug_dhcp_snooping)
-      LOG_TRACE(LOG_CTX_PTIN_DHCP,"There's no cookie...");
+      PT_LOG_TRACE(LOG_CTX_DHCP,"There's no cookie...");
     return L7_SUCCESS;
   }
 
@@ -3544,7 +3544,7 @@ L7_RC_t dsRelayAgentInfoRemoveOrGet (L7_uchar8 *frame,
       if (!DHCP_PACKET)
       {
         if (ptin_debug_dhcp_snooping)
-          LOG_TRACE(LOG_CTX_PTIN_DHCP,"Not a DHCP packet");
+          PT_LOG_TRACE(LOG_CTX_DHCP,"Not a DHCP packet");
         return L7_FAILURE;
       }
       stop_processing = L7_TRUE; /* while loop breaks */
@@ -3572,7 +3572,7 @@ L7_RC_t dsRelayAgentInfoRemoveOrGet (L7_uchar8 *frame,
       dsTraceWrite(traceMsg);
     }
     if (ptin_debug_dhcp_snooping)
-      LOG_TRACE(LOG_CTX_PTIN_DHCP,"Not a DHCP packet");
+      PT_LOG_TRACE(LOG_CTX_DHCP,"Not a DHCP packet");
     return L7_SUCCESS;
   }
 
@@ -3591,7 +3591,7 @@ L7_RC_t dsRelayAgentInfoRemoveOrGet (L7_uchar8 *frame,
       dsTraceWrite(traceMsg);
     }
     if (ptin_debug_dhcp_snooping)
-      LOG_TRACE(LOG_CTX_PTIN_DHCP,"DHCP packet does not have Relay options");
+      PT_LOG_TRACE(LOG_CTX_DHCP,"DHCP packet does not have Relay options");
     return L7_SUCCESS;
   }
 
@@ -3605,7 +3605,7 @@ L7_RC_t dsRelayAgentInfoRemoveOrGet (L7_uchar8 *frame,
   if((*(relayOffset + 1)) < DHCP_OPTION_CONTENT_OFFSET)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP, "Invalid DHCP Agent Information Option length [%u]", *(relayOffset + 1));
+      PT_LOG_ERR(LOG_CTX_DHCP, "Invalid DHCP Agent Information Option length [%u]", *(relayOffset + 1));
     return L7_FAILURE;
   }
 
@@ -3619,7 +3619,7 @@ L7_RC_t dsRelayAgentInfoRemoveOrGet (L7_uchar8 *frame,
   while ((relayOffset < relayEnd) && (*relayOffset != DHO_END))
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_TRACE(LOG_CTX_PTIN_DHCP,"Suboption detected? %u (relayOffset=%u)",*relayOffset,relayOffset);
+      PT_LOG_TRACE(LOG_CTX_DHCP,"Suboption detected? %u (relayOffset=%u)",*relayOffset,relayOffset);
 
     switch (*relayOffset)
     {
@@ -3628,7 +3628,7 @@ L7_RC_t dsRelayAgentInfoRemoveOrGet (L7_uchar8 *frame,
         optLen = *(relayOffset + 1);
 
         if (ptin_debug_dhcp_snooping)
-          LOG_TRACE(LOG_CTX_PTIN_DHCP,"optLen=%u",optLen);
+          PT_LOG_TRACE(LOG_CTX_DHCP,"optLen=%u",optLen);
 
         relayOffset += DHCP_OPTION_CONTENT_OFFSET;
 
@@ -3636,7 +3636,7 @@ L7_RC_t dsRelayAgentInfoRemoveOrGet (L7_uchar8 *frame,
         if ((relayOffset+optLen)>relayEnd)
         {
           if (ptin_debug_dhcp_snooping)
-            LOG_TRACE(LOG_CTX_PTIN_DHCP,"optLen is too big");
+            PT_LOG_TRACE(LOG_CTX_DHCP,"optLen is too big");
           return L7_FAILURE;
         }
 
@@ -3675,7 +3675,7 @@ L7_RC_t dsRelayAgentInfoRemoveOrGet (L7_uchar8 *frame,
         if (ind>optLen-5-3)
         {
           if (ptin_debug_dhcp_snooping)
-            LOG_TRACE(LOG_CTX_PTIN_DHCP,"Invalid circuit id length");
+            PT_LOG_TRACE(LOG_CTX_DHCP,"Invalid circuit id length");
           return L7_FAILURE;
         }
         ind+=5;
@@ -3686,7 +3686,7 @@ L7_RC_t dsRelayAgentInfoRemoveOrGet (L7_uchar8 *frame,
         if (sscanf(&relayOffset[ind],"%*2d-%1d%2d",&slot,&port)!=2)
         {
           if (ptin_debug_dhcp_snooping)
-            LOG_TRACE(LOG_CTX_PTIN_DHCP,"Failure here");
+            PT_LOG_TRACE(LOG_CTX_DHCP,"Failure here");
           slot = 0;
           port = 0;
         }
@@ -3697,7 +3697,7 @@ L7_RC_t dsRelayAgentInfoRemoveOrGet (L7_uchar8 *frame,
         if (sscanf(&relayOffset[ind],"%2d-%*1d%*2d/%1d%2d",&board_slot,&slot,&port)!=3)
         {
           if (ptin_debug_dhcp_snooping)
-            LOG_TRACE(LOG_CTX_PTIN_DHCP,"Failure here");
+            PT_LOG_TRACE(LOG_CTX_DHCP,"Failure here");
           slot = 0;
           port = 0;
           board_slot = 0;
@@ -3709,7 +3709,7 @@ L7_RC_t dsRelayAgentInfoRemoveOrGet (L7_uchar8 *frame,
         if (sscanf(&relayOffset[ind],"%d/%d",&slot,&port)!=2)
          {
           if (ptin_debug_dhcp_snooping)
-            LOG_TRACE(LOG_CTX_PTIN_DHCP,"Failure here");
+            PT_LOG_TRACE(LOG_CTX_DHCP,"Failure here");
           slot = 0;
           port = 0;
          }
@@ -3719,7 +3719,7 @@ L7_RC_t dsRelayAgentInfoRemoveOrGet (L7_uchar8 *frame,
         #endif
         
         if (ptin_debug_dhcp_snooping)
-          LOG_TRACE(LOG_CTX_PTIN_DHCP,"{unit,slot,port}={%d,%d,%d}\r\n",unit,slot,port);
+          PT_LOG_TRACE(LOG_CTX_DHCP,"{unit,slot,port}={%d,%d,%d}\r\n",unit,slot,port);
 
         #endif
         relayOffset += optLen;
@@ -3745,11 +3745,11 @@ L7_RC_t dsRelayAgentInfoRemoveOrGet (L7_uchar8 *frame,
           if (optionsRemove == L7_TRUE)
           {
             if (ptin_debug_dhcp_snooping)
-              LOG_TRACE(LOG_CTX_PTIN_DHCP,"Failure here");
+              PT_LOG_TRACE(LOG_CTX_DHCP,"Failure here");
             return L7_FAILURE;
           }
           if (ptin_debug_dhcp_snooping)
-            LOG_TRACE(LOG_CTX_PTIN_DHCP,"Success here");
+            PT_LOG_TRACE(LOG_CTX_DHCP,"Success here");
           return L7_SUCCESS;
         }
         #endif
@@ -3764,7 +3764,7 @@ L7_RC_t dsRelayAgentInfoRemoveOrGet (L7_uchar8 *frame,
         if ((relayOffset+optLen)>relayEnd)
         {
           if (ptin_debug_dhcp_snooping)
-            LOG_TRACE(LOG_CTX_PTIN_DHCP,"optLen is too big");
+            PT_LOG_TRACE(LOG_CTX_DHCP,"optLen is too big");
           return L7_FAILURE;
         }
 
@@ -3788,11 +3788,11 @@ L7_RC_t dsRelayAgentInfoRemoveOrGet (L7_uchar8 *frame,
         if (optionsRemove == L7_TRUE)
         {
           if (ptin_debug_dhcp_snooping)
-            LOG_TRACE(LOG_CTX_PTIN_DHCP,"Failure here");
+            PT_LOG_TRACE(LOG_CTX_DHCP,"Failure here");
           return L7_FAILURE;
         }
         if (ptin_debug_dhcp_snooping)
-          LOG_TRACE(LOG_CTX_PTIN_DHCP,"Success here");
+          PT_LOG_TRACE(LOG_CTX_DHCP,"Success here");
         return L7_SUCCESS;
       }
     }
@@ -3811,7 +3811,7 @@ L7_RC_t dsRelayAgentInfoRemoveOrGet (L7_uchar8 *frame,
     }
   }
   if (ptin_debug_dhcp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_DHCP,"Success here");
+    PT_LOG_TRACE(LOG_CTX_DHCP,"Success here");
 
   return L7_SUCCESS;
 }
@@ -3859,7 +3859,7 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
   if (dhcpPacket->op != L7_DHCP_BOOTP_REPLY)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_TRACE(LOG_CTX_PTIN_DHCP,"Not a L7_DHCP_BOOTP_REPLY");
+      PT_LOG_TRACE(LOG_CTX_DHCP,"Not a L7_DHCP_BOOTP_REPLY");
     /* Packet not under interest of current function.*/
     return L7_FALSE;
   }
@@ -3894,7 +3894,7 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
         }
       }
       if (ptin_debug_dhcp_snooping)
-        LOG_ERR(LOG_CTX_PTIN_DHCP,"DHCP packet dropped here: DHCP snooping dropping DHCP server message received on untrusted interface");
+        PT_LOG_ERR(LOG_CTX_DHCP,"DHCP packet dropped here: DHCP snooping dropping DHCP server message received on untrusted interface");
       ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_SERVER_PKTS_ON_UNTRUSTED_INTF);
       return L7_TRUE;
     }
@@ -3909,7 +3909,7 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
   if (memcmp(dhcpPacket->chaddr, sysMacAddr, L7_MAC_ADDR_LEN) == L7_NULL)
   {
     if (ptin_debug_dhcp_snooping)
-      LOG_TRACE(LOG_CTX_PTIN_DHCP,"Invalid MAC");
+      PT_LOG_TRACE(LOG_CTX_DHCP,"Invalid MAC");
     return L7_FALSE;
   }
 
@@ -3940,7 +3940,7 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
       if (L7_SUCCESS != dsBindingFind(&dhcp_binding, L7_MATCH_EXACT))
       {
         if (ptin_debug_dhcp_snooping)
-          LOG_WARNING(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Received server reply for a client (%02X:%02X:%02X:%02X:%02X:%02X) that is not in the binding table", 
+          PT_LOG_WARN(LOG_CTX_DHCP, "DHCP Relay-Agent: Received server reply for a client (%02X:%02X:%02X:%02X:%02X:%02X) that is not in the binding table", 
                     dhcp_binding.key.macAddr[0], dhcp_binding.key.macAddr[1], dhcp_binding.key.macAddr[2], dhcp_binding.key.macAddr[3], dhcp_binding.key.macAddr[4], dhcp_binding.key.macAddr[5]);
         return L7_TRUE;
       }
@@ -3978,7 +3978,7 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
           {
             *client_idx = client_index;   /* Update to new client index */
             if (ptin_debug_dhcp_snooping)
-              LOG_TRACE(LOG_CTX_PTIN_DHCP,"Client Id redefined to %u",*client_idx);
+              PT_LOG_TRACE(LOG_CTX_DHCP,"Client Id redefined to %u",*client_idx);
           }
         }
       }
@@ -3988,7 +3988,7 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
           relayAgentInfo.remoteIdFlag == L7_TRUE)
       {
         if (ptin_debug_dhcp_snooping)
-          LOG_TRACE(LOG_CTX_PTIN_DHCP,"Relay Flag is 1");
+          PT_LOG_TRACE(LOG_CTX_DHCP,"Relay Flag is 1");
         relayFlag = L7_TRUE;
       }
     }
@@ -4007,7 +4007,7 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
 //                       intIfNum, vlanId, (L7_enetHeader_t *)frame, ipHeader, dhcpPacket, DS_TRACE_LOG);
 #if 0 /* PTin removed: flexible circuit-id */
       if (ptin_debug_dhcp_snooping)
-        LOG_ERR(LOG_CTX_PTIN_DHCP,"DHCP packet dropped here: DHCP L2 Relay dropping server msg without Option-82 rx'ed on L2Relay trusted");
+        PT_LOG_ERR(LOG_CTX_DHCP,"DHCP packet dropped here: DHCP L2 Relay dropping server msg without Option-82 rx'ed on L2Relay trusted");
       return L7_TRUE;
 #else
       return L7_FALSE;
@@ -4023,7 +4023,7 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
       DHCP_L2RELAY_LOG("DHCP L2 Relay dropping server msg with Option-82 rx'ed on L2Relay untrusted",
                          intIfNum, vlanId, (L7_enetHeader_t *)frame, ipHeader, dhcpPacket, DS_TRACE_LOG);
       if (ptin_debug_dhcp_snooping)
-        LOG_ERR(LOG_CTX_PTIN_DHCP,"DHCP packet dropped here: DHCP L2 Relay dropping server msg with Option-82 rx'ed on L2Relay untrusted");
+        PT_LOG_ERR(LOG_CTX_DHCP,"DHCP packet dropped here: DHCP L2 Relay dropping server msg with Option-82 rx'ed on L2Relay untrusted");
       return L7_TRUE;
     }
     /* PTin replaced: DHCP snooping */
@@ -4031,7 +4031,7 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
       if (result!=L7_SUCCESS)
       {
         if (ptin_debug_dhcp_snooping)
-          LOG_ERR(LOG_CTX_PTIN_DHCP,"DHCP packet dropped here");
+          PT_LOG_ERR(LOG_CTX_DHCP,"DHCP packet dropped here");
         return L7_TRUE;
       }
 
@@ -4046,12 +4046,12 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
         if (ptin_intf_slot_get(&board_slot)!=L7_SUCCESS || board_slot!=relayAgentInfo.board_slot)
         {
           if (ptin_debug_dhcp_snooping)
-            LOG_ERR(LOG_CTX_PTIN_DHCP,"Destination board (%u) does not match this one (%u)... discarding packet!",
+            PT_LOG_ERR(LOG_CTX_DHCP,"Destination board (%u) does not match this one (%u)... discarding packet!",
                     relayAgentInfo.board_slot, board_slot);
           return L7_TRUE;
         }
         if (ptin_debug_dhcp_snooping)
-          LOG_TRACE(LOG_CTX_PTIN_DHCP,"Destination board matches this one (%u)... yeah!",board_slot);
+          PT_LOG_TRACE(LOG_CTX_DHCP,"Destination board matches this one (%u)... yeah!",board_slot);
       }
       #endif
 #endif
@@ -4078,7 +4078,7 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
                            (L7_enetHeader_t *)frame, ipHeader, dhcpPacket,
                            DS_TRACE_LOG);
           if (ptin_debug_dhcp_snooping)
-            LOG_ERR(LOG_CTX_PTIN_DHCP,"DHCP packet dropped here: DHCP L2 Relay dropping server msg without expected circuit-id rx'ed on trusted");
+            PT_LOG_ERR(LOG_CTX_DHCP,"DHCP packet dropped here: DHCP L2 Relay dropping server msg without expected circuit-id rx'ed on trusted");
           return L7_TRUE;
         }
         if (rIdFlag == L7_TRUE && relayAgentInfo.remoteIdFlag != L7_TRUE)
@@ -4090,20 +4090,20 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
                            (L7_enetHeader_t *)frame, ipHeader, dhcpPacket,
                            DS_TRACE_LOG);
           if (ptin_debug_dhcp_snooping)
-            LOG_ERR(LOG_CTX_PTIN_DHCP,"DHCP packet dropped here: DHCP L2 Relay dropping server msg without expected remote-id rx'ed on trusted");
+            PT_LOG_ERR(LOG_CTX_DHCP,"DHCP packet dropped here: DHCP L2 Relay dropping server msg without expected remote-id rx'ed on trusted");
           return L7_TRUE;
         }
 #endif
       }
       if (ptin_debug_dhcp_snooping)
-        LOG_TRACE(LOG_CTX_PTIN_DHCP,"No discard");
+        PT_LOG_TRACE(LOG_CTX_DHCP,"No discard");
       return L7_FALSE;
     }
   }
   #endif
 
   if (ptin_debug_dhcp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_DHCP,"No discard");
+    PT_LOG_TRACE(LOG_CTX_DHCP,"No discard");
 
   return L7_FALSE;
 }
@@ -4183,7 +4183,7 @@ L7_BOOL dsFilterClientMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
           relayAgentInfo.remoteIdFlag == L7_TRUE)
       {
         if (ptin_debug_dhcp_snooping)
-          LOG_ERR(LOG_CTX_PTIN_DHCP,"Relay Flag is 1");
+          PT_LOG_ERR(LOG_CTX_DHCP,"Relay Flag is 1");
         relayFlag = L7_TRUE;
       }
     }
@@ -4192,7 +4192,7 @@ L7_BOOL dsFilterClientMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
     {
       dsInfo->debugStats.clientOption82Rx++;
       if (ptin_debug_dhcp_snooping)
-        LOG_TRACE(LOG_CTX_PTIN_DHCP,"Incremented DHCP_STAT_FIELD_RX_CLIENT_REQUESTS_WITH_OPTION82");
+        PT_LOG_TRACE(LOG_CTX_DHCP,"Incremented DHCP_STAT_FIELD_RX_CLIENT_REQUESTS_WITH_OPTION82");
 #if 0 /* PTin removed: DHCPv6 */
       ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_CLIENT_REQUESTS_WITH_OPTION82);
 #endif
@@ -4200,7 +4200,7 @@ L7_BOOL dsFilterClientMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
     else
     {
       if (ptin_debug_dhcp_snooping)
-        LOG_TRACE(LOG_CTX_PTIN_DHCP,"Incremented DHCP_STAT_FIELD_RX_CLIENT_REQUESTS_WITHOUT_OPTION82");
+        PT_LOG_TRACE(LOG_CTX_DHCP,"Incremented DHCP_STAT_FIELD_RX_CLIENT_REQUESTS_WITHOUT_OPTION82");
       ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_CLIENT_REQUESTS_WITHOUT_OPTIONS);
     }
 
@@ -4216,7 +4216,7 @@ L7_BOOL dsFilterClientMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
                             (L7_enetHeader_t *)frame, ipHeader, dhcpPacket,
                              DS_TRACE_LOG);
          if (ptin_debug_dhcp_snooping)
-           LOG_ERR(LOG_CTX_PTIN_DHCP,"DHCP packet dropped here: DHCP L2 Relay dropping client msg with Option-82 and giaddr==0 rx'ed on L2 Relay untrusted");
+           PT_LOG_ERR(LOG_CTX_DHCP,"DHCP packet dropped here: DHCP L2 Relay dropping client msg with Option-82 and giaddr==0 rx'ed on L2 Relay untrusted");
          return L7_TRUE;
        }
     }
@@ -4226,7 +4226,7 @@ L7_BOOL dsFilterClientMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
     if (result!=L7_SUCCESS)
     {
       if (ptin_debug_dhcp_snooping)
-        LOG_ERR(LOG_CTX_PTIN_DHCP,"DHCP packet dropped here");
+        PT_LOG_ERR(LOG_CTX_DHCP,"DHCP packet dropped here");
       return L7_TRUE;
     }
     #endif
@@ -4239,7 +4239,7 @@ L7_BOOL dsFilterClientMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
                          intIfNum, vlanId, (L7_enetHeader_t *) frame,
                          ipHeader, dhcpPacket, DS_TRACE_CONSOLE);
       if (ptin_debug_dhcp_snooping)
-        LOG_ERR(LOG_CTX_PTIN_DHCP,"DHCP packet dropped here: DHCP L2 Relay dropping client msg whose SVLAN does not have L2 Relay enabled");
+        PT_LOG_ERR(LOG_CTX_DHCP,"DHCP packet dropped here: DHCP L2 Relay dropping client msg whose SVLAN does not have L2 Relay enabled");
       return L7_TRUE;
     }
   }
@@ -4258,7 +4258,7 @@ L7_BOOL dsFilterClientMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
          related validations are not needed as the binding database is updated
          only for untrusted interfaces. */
       if (ptin_debug_dhcp_snooping)
-       LOG_ERR(LOG_CTX_PTIN_DHCP,"DHCP packet dropped here: Received client request on root interface");
+       PT_LOG_ERR(LOG_CTX_DHCP,"DHCP packet dropped here: Received client request on root interface");
       return L7_TRUE;
     }
     dhcpPktType = dsPacketType(dhcpPacket, dhcpPktLen);
@@ -4303,7 +4303,7 @@ L7_BOOL dsFilterClientMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
           }
         }
         if (ptin_debug_dhcp_snooping)
-          LOG_ERR(LOG_CTX_PTIN_DHCP,"DHCP packet dropped here: Client should have a binding before sending a RELEASE or DECLINE. Drop msg.");
+          PT_LOG_ERR(LOG_CTX_DHCP,"DHCP packet dropped here: Client should have a binding before sending a RELEASE or DECLINE. Drop msg.");
         /* Client should have a binding before sending a RELEASE or DECLINE. Drop msg. */
         return L7_TRUE;
       }
@@ -4345,7 +4345,7 @@ L7_BOOL dsFilterClientMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
           }
         }
         if (ptin_debug_dhcp_snooping)
-          LOG_ERR(LOG_CTX_PTIN_DHCP,"DHCP packet dropped here");
+          PT_LOG_ERR(LOG_CTX_DHCP,"DHCP packet dropped here");
         return L7_TRUE;    /* drop msg */
       }
     }
@@ -4468,7 +4468,7 @@ L7_RC_t dsBindingExtract(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inn
   {
     case L7_DHCP_DISCOVER:
       if (ptin_debug_dhcp_snooping)
-        LOG_DEBUG(LOG_CTX_PTIN_DHCP,"Processing DISCOVER from intIfNum=%u, oVlan=%u, iVlan=%u, MAC=%02x:%02x:%02x:%02x:%02x:%02x",
+        PT_LOG_DEBUG(LOG_CTX_DHCP,"Processing DISCOVER from intIfNum=%u, oVlan=%u, iVlan=%u, MAC=%02x:%02x:%02x:%02x:%02x:%02x",
                   intIfNum, vlanId, innerVlanId,
                   dsBinding.key.macAddr[0],dsBinding.key.macAddr[1],dsBinding.key.macAddr[2],dsBinding.key.macAddr[3],dsBinding.key.macAddr[4],dsBinding.key.macAddr[5]);
 
@@ -4483,7 +4483,7 @@ L7_RC_t dsBindingExtract(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inn
         static L7_uint32 lastMsg = 0;
 
         if (ptin_debug_dhcp_snooping)
-          LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to add new entry to the binding table [chaddr:%02X:%02X:%02X:%02X:%02X:%02X yiaddr:%08X, vlanId:%u innerVlanId:%u intIfNum:%u]", 
+          PT_LOG_ERR(LOG_CTX_DHCP, "Unable to add new entry to the binding table [chaddr:%02X:%02X:%02X:%02X:%02X:%02X yiaddr:%08X, vlanId:%u innerVlanId:%u intIfNum:%u]", 
                   dsBinding.key.macAddr[0], dsBinding.key.macAddr[1], dsBinding.key.macAddr[2], dsBinding.key.macAddr[3], dsBinding.key.macAddr[4], dsBinding.key.macAddr[5], 
                   yiaddr, vlanId, innerVlanId, intIfNum);
 
@@ -4500,7 +4500,7 @@ L7_RC_t dsBindingExtract(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inn
         return L7_FAILURE;
       }
       if (ptin_debug_dhcp_snooping)
-        LOG_DEBUG(LOG_CTX_PTIN_DHCP, "Successfully added new entry to the binding table [chaddr:%02X:%02X:%02X:%02X:%02X:%02X yiaddr:%08X, vlanId:%u innerVlanId:%u intIfNum:%u]",
+        PT_LOG_DEBUG(LOG_CTX_DHCP, "Successfully added new entry to the binding table [chaddr:%02X:%02X:%02X:%02X:%02X:%02X yiaddr:%08X, vlanId:%u innerVlanId:%u intIfNum:%u]",
                   dsBinding.key.macAddr[0], dsBinding.key.macAddr[1], dsBinding.key.macAddr[2], dsBinding.key.macAddr[3], dsBinding.key.macAddr[4], dsBinding.key.macAddr[5], 
                   yiaddr, vlanId, innerVlanId, intIfNum);
 
@@ -4508,7 +4508,7 @@ L7_RC_t dsBindingExtract(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inn
 
     case L7_DHCP_REQUEST:
       if (ptin_debug_dhcp_snooping)
-        LOG_DEBUG(LOG_CTX_PTIN_DHCP,"Processing REQUEST from intIfNum=%u, oVlan=%u, iVlan=%u, MAC=%02x:%02x:%02x:%02x:%02x:%02x",
+        PT_LOG_DEBUG(LOG_CTX_DHCP,"Processing REQUEST from intIfNum=%u, oVlan=%u, iVlan=%u, MAC=%02x:%02x:%02x:%02x:%02x:%02x",
                   intIfNum, vlanId, innerVlanId,
                   dsBinding.key.macAddr[0],dsBinding.key.macAddr[1],dsBinding.key.macAddr[2],dsBinding.key.macAddr[3],dsBinding.key.macAddr[4],dsBinding.key.macAddr[5]);
 
@@ -4555,7 +4555,7 @@ L7_RC_t dsBindingExtract(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inn
     case L7_DHCP_ACK:
     {
          if (ptin_debug_dhcp_snooping)
-           LOG_DEBUG(LOG_CTX_PTIN_DHCP,"Processing ACK from intIfNum=%u, oVlan=%u, iVlan=%u, MAC=%02x:%02x:%02x:%02x:%02x:%02x",
+           PT_LOG_DEBUG(LOG_CTX_DHCP,"Processing ACK from intIfNum=%u, oVlan=%u, iVlan=%u, MAC=%02x:%02x:%02x:%02x:%02x:%02x",
                      intIfNum, vlanId, innerVlanId,
                      dsBinding.key.macAddr[0],dsBinding.key.macAddr[1],dsBinding.key.macAddr[2],dsBinding.key.macAddr[3],dsBinding.key.macAddr[4],dsBinding.key.macAddr[5]);
 
@@ -4587,7 +4587,7 @@ L7_RC_t dsBindingExtract(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inn
     case L7_DHCP_NACK:
     {
          if (ptin_debug_dhcp_snooping)
-           LOG_DEBUG(LOG_CTX_PTIN_DHCP,"Processing DECLINE / RELEASE / NACK from intIfNum=%u, oVlan=%u, iVlan=%u, MAC=%02x:%02x:%02x:%02x:%02x:%02x",
+           PT_LOG_DEBUG(LOG_CTX_DHCP,"Processing DECLINE / RELEASE / NACK from intIfNum=%u, oVlan=%u, iVlan=%u, MAC=%02x:%02x:%02x:%02x:%02x:%02x",
                      intIfNum, vlanId, innerVlanId,
                      dsBinding.key.macAddr[0],dsBinding.key.macAddr[1],dsBinding.key.macAddr[2],dsBinding.key.macAddr[3],dsBinding.key.macAddr[4],dsBinding.key.macAddr[5]);
 
@@ -4606,7 +4606,7 @@ L7_RC_t dsBindingExtract(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inn
     }
     default:
       if (ptin_debug_dhcp_snooping)
-        LOG_DEBUG(LOG_CTX_PTIN_DHCP,"Ignoring OFFER from intIfNum=%u, oVlan=%u, iVlan=%u, MAC=%02x:%02x:%02x:%02x:%02x:%02x",
+        PT_LOG_DEBUG(LOG_CTX_DHCP,"Ignoring OFFER from intIfNum=%u, oVlan=%u, iVlan=%u, MAC=%02x:%02x:%02x:%02x:%02x:%02x",
                   intIfNum, vlanId, innerVlanId,
                   dsBinding.key.macAddr[0],dsBinding.key.macAddr[1],dsBinding.key.macAddr[2],dsBinding.key.macAddr[3],dsBinding.key.macAddr[4],dsBinding.key.macAddr[5]);
       /* just ignore OFFER messages */
@@ -4687,7 +4687,7 @@ L7_RC_t dsFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId,
       if (ptin_dhcp_ethPrty_get(vlanId, &ethPrty) != L7_SUCCESS)
       {
          if (ptin_debug_dhcp_snooping)
-           LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to get ethernet priority");
+           PT_LOG_ERR(LOG_CTX_DHCP, "Unable to get ethernet priority");
          return L7_FAILURE;
       }
       frameEthPrty  = (L7_uint8*)(frame + 2*sizeof(L7_enetMacAddr_t) + sizeof(L7_ushort16));
@@ -4710,7 +4710,7 @@ L7_RC_t dsFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId,
       if (ptin_dhcp_ethPrty_get(vlanId, &ethPrty) != L7_SUCCESS)
       {
          if (ptin_debug_dhcp_snooping)
-           LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to get ethernet priority");
+           PT_LOG_ERR(LOG_CTX_DHCP, "Unable to get ethernet priority");
          return L7_FAILURE;
       }
       frameEthPrty  = (L7_uint8*)(frame + 2*sizeof(L7_enetMacAddr_t) + sizeof(L7_ushort16));
@@ -4783,7 +4783,7 @@ L7_RC_t dsFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId,
   L7_RC_t rc = L7_SUCCESS;
 
   if (ptin_debug_dhcp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_DHCP, "Going to flood packet (src_intIfNum %u, vlanId=%u, innerVlanId=%u)", intIfNum, vlanId, innerVlanId);
+    PT_LOG_TRACE(LOG_CTX_DHCP, "Going to flood packet (src_intIfNum %u, vlanId=%u, innerVlanId=%u)", intIfNum, vlanId, innerVlanId);
 
   /* PTin modified: DHCP snooping */
   #if 1
@@ -4812,7 +4812,7 @@ L7_RC_t dsFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId,
       if (L7_INTF_ISMASKBITSET(portMask, i))
       {
         if (ptin_debug_dhcp_snooping)
-          LOG_TRACE(LOG_CTX_PTIN_DHCP, "Going to flood to intIfNum %u", i);
+          PT_LOG_TRACE(LOG_CTX_DHCP, "Going to flood to intIfNum %u", i);
 
         /* This port is in the packet's VLAN.
          * If we are not snooping this VLAN,
@@ -4835,13 +4835,13 @@ L7_RC_t dsFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId,
           L7_uint8  *frameEthPrty;
 
           if (ptin_debug_dhcp_snooping)
-            LOG_TRACE(LOG_CTX_PTIN_DHCP, "I am here");
+            PT_LOG_TRACE(LOG_CTX_DHCP, "I am here");
 
           //Change ethernet priority bit
           if (ptin_dhcp_ethPrty_get(vlanId, &ethPrty) != L7_SUCCESS)
           {
             if (ptin_debug_dhcp_snooping)
-              LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to get ethernet priority");
+              PT_LOG_ERR(LOG_CTX_DHCP, "Unable to get ethernet priority");
             return L7_FAILURE;
           }
           frameEthPrty  = (L7_uint8*)(frame + 2*sizeof(L7_enetMacAddr_t) + sizeof(L7_ushort16));
@@ -4865,12 +4865,12 @@ L7_RC_t dsFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId,
              if (ptin_dhcp_client_options_get(intIfNum, vlanId, innerVlanId, &isActiveOp82, &isActiveOp37, &isActiveOp18) != L7_SUCCESS)
              {
                 if (ptin_debug_dhcp_snooping)
-                  LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to get DHCP options");
+                  PT_LOG_ERR(LOG_CTX_DHCP, "Unable to get DHCP options");
                 return L7_FAILURE;
              }
 
              if (ptin_debug_dhcp_snooping)
-               LOG_TRACE(LOG_CTX_PTIN_DHCP, "ipVersion=%u: isActiveOp82=%u isActiveOp37=%u isActiveOp18=%u",
+               PT_LOG_TRACE(LOG_CTX_DHCP, "ipVersion=%u: isActiveOp82=%u isActiveOp37=%u isActiveOp18=%u",
                          ipVersion, isActiveOp82, isActiveOp37, isActiveOp18);
 
              if(L7_IP_VERSION == ipVersion)
@@ -5184,7 +5184,7 @@ L7_RC_t dsFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
   //L7_BOOL           is_vlan_stacked;
 
   if (ptin_debug_dhcp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_DHCP, "Going to transmit packet to intIfNum %u, vlanId=%u, innerVlanId=%u", intIfNum, vlanId, innerVlanId);
+    PT_LOG_TRACE(LOG_CTX_DHCP, "Going to transmit packet to intIfNum %u, vlanId=%u, innerVlanId=%u", intIfNum, vlanId, innerVlanId);
 
   /* If outgoing interface is CPU interface, don't send it */
   if ((nimGetIntfType(intIfNum, &sysIntfType) == L7_SUCCESS) &&
@@ -5221,7 +5221,7 @@ L7_RC_t dsFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
   //L7_int i;
 
   if (ptin_debug_dhcp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_DHCP, "Going to transmit packet to intIfNum %u, vlanId=%u, innerVlanId=%u", intIfNum, vlanId, innerVlanId);
+    PT_LOG_TRACE(LOG_CTX_DHCP, "Going to transmit packet to intIfNum %u, vlanId=%u, innerVlanId=%u", intIfNum, vlanId, innerVlanId);
 
   /* Extract external outer and inner vlan for this tx interface */
   if (ptin_dhcp_extVlans_get(intIfNum, vlanId, innerVlanId, client_idx, &extOVlan,&extIVlan) == L7_SUCCESS)
@@ -5280,7 +5280,7 @@ L7_RC_t dsFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
   }
 
   if (ptin_debug_dhcp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_DHCP, "Ready to transmit packet to intIfNum %u, vlanId=%u, innerVlanId=%u", intIfNum, vlanId, innerVlanId);
+    PT_LOG_TRACE(LOG_CTX_DHCP, "Ready to transmit packet to intIfNum %u, vlanId=%u, innerVlanId=%u", intIfNum, vlanId, innerVlanId);
 
   if (dtlIpBufSend(intIfNum, vlanId, bufHandle) != L7_SUCCESS)
   {
@@ -5294,7 +5294,7 @@ L7_RC_t dsFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
   }
 
   if (ptin_debug_dhcp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet transmited to intIfNum=%u, with oVlan=%u (intVlan=%u), iVlan=%u",
+    PT_LOG_TRACE(LOG_CTX_DHCP,"Packet transmited to intIfNum=%u, with oVlan=%u (intVlan=%u), iVlan=%u",
               intIfNum, extOVlan, vlanId, extIVlan);
 
   return L7_SUCCESS;

@@ -559,7 +559,7 @@ L7_RC_t garpCnfgrInitPhase2Process(L7_CNFGR_CMD_DATA_t *pCmdData)
   /*register with vlan to get notifications for vlan create/delete and port added/deleted*/
   rc = vlanRegisterForChange(garpVlanChangeCallback, L7_GARP_COMPONENT_ID, eventMask);
 
-  LOG_INFO(LOG_CTX_STARTUP,"Going to register GarpRecvPkt related to type=%u: 0x%08x",
+  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register GarpRecvPkt related to type=%u: 0x%08x",
            SYSNET_MAC_ENTRY, (L7_uint32) GarpRecvPkt);
 
   strcpy(snEntry.funcName, "GvrpRecvPkt");
@@ -573,7 +573,7 @@ L7_RC_t garpCnfgrInitPhase2Process(L7_CNFGR_CMD_DATA_t *pCmdData)
     return L7_FAILURE;
   }
 
-  LOG_INFO(LOG_CTX_STARTUP,"Going to register GarpRecvPkt related to type=%u: 0x%08x",
+  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register GarpRecvPkt related to type=%u: 0x%08x",
            SYSNET_MAC_ENTRY, (L7_uint32) GarpRecvPkt);
 
   strcpy(snEntry.funcName, "GmrpRecvPkt");

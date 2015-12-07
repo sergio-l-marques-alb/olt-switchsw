@@ -123,7 +123,7 @@ L7_RC_t ssm_init(void)
   if (bufferPoolInit(SSM_NUM_BUFFERS, SSM_BUFFER_SIZE, "SSM Bufs",
                      &ssmBufferPoolId) != L7_SUCCESS)
   {
-    LOG_FATAL(LOG_CTX_PTIN_CNFGR,"Error allocating buffers!");
+    PT_LOG_FATAL(LOG_CTX_CNFGR,"Error allocating buffers!");
     return L7_FAILURE;
   }
 
@@ -131,20 +131,20 @@ L7_RC_t ssm_init(void)
   ssmTimersSyncSema = osapiSemaBCreate( OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
   if (ssmTimersSyncSema == L7_NULLPTR)
   {
-    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Unable to create ssmTimersSyncSema semaphore()");
+    PT_LOG_FATAL(LOG_CTX_CNFGR, "Unable to create ssmTimersSyncSema semaphore()");
     return(L7_FAILURE);
   }
   /*semaphore creation for task protection over the common data*/
   ssmTaskRxSyncSema = osapiSemaBCreate( OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
   if (ssmTaskRxSyncSema == L7_NULLPTR)
   {
-    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Unable to create ssm rx task semaphore()");
+    PT_LOG_FATAL(LOG_CTX_CNFGR, "Unable to create ssm rx task semaphore()");
     return(L7_FAILURE);
   }
   ssmTaskTxSyncSema = osapiSemaBCreate( OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
   if (ssmTaskTxSyncSema == L7_NULLPTR)
   {
-    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Unable to create ssm tx task semaphore()");
+    PT_LOG_FATAL(LOG_CTX_CNFGR, "Unable to create ssm tx task semaphore()");
     return(L7_FAILURE);
   }
 
@@ -154,32 +154,32 @@ L7_RC_t ssm_init(void)
                                          L7_DEFAULT_TASK_PRIORITY,
                                          L7_DEFAULT_TASK_SLICE)) == L7_ERROR)
   {
-    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to create SSM RX task!");
+    PT_LOG_FATAL(LOG_CTX_CNFGR, "Failed to create SSM RX task!");
     return L7_FAILURE;
   }
   /* Wait for task to be launched */
   if (osapiWaitForTaskInit (L7_SSM_RX_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS)
   {
-    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to start SSM RX task!");
+    PT_LOG_FATAL(LOG_CTX_CNFGR, "Failed to start SSM RX task!");
     return L7_FAILURE;
   }
-  LOG_INFO(LOG_CTX_PTIN_CNFGR, "SSM RX task launch OK");
+  PT_LOG_INFO(LOG_CTX_CNFGR, "SSM RX task launch OK");
 
   if ( (ssm_task_tx_id = osapiTaskCreate("SSM tx task", ssm_task_pdu_transmit, 0, 0,
                                          L7_DEFAULT_STACK_SIZE,
                                          L7_DEFAULT_TASK_PRIORITY,
                                          L7_DEFAULT_TASK_SLICE)) == L7_ERROR)
   {
-    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to create SSM TX task!");
+    PT_LOG_FATAL(LOG_CTX_CNFGR, "Failed to create SSM TX task!");
     return L7_FAILURE;
   }
   /* Wait for task to be launched */
   if (osapiWaitForTaskInit (L7_SSM_TX_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS)
   {
-    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to start SSM TX task!");
+    PT_LOG_FATAL(LOG_CTX_CNFGR, "Failed to start SSM TX task!");
     return L7_FAILURE;
   }
-  LOG_INFO(LOG_CTX_PTIN_CNFGR, "SSM TX task launch OK");
+  PT_LOG_INFO(LOG_CTX_CNFGR, "SSM TX task launch OK");
 
   /* Initialize shared memory and internal structures */
   ssmCodesInit();
@@ -355,13 +355,13 @@ L7_RC_t ssmPDUReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
 
   if (ssm_debug_enable)
   {
-    LOG_TRACE(LOG_CTX_PTIN_SSM,"Packet from intIfNum %u, rxPort %u", pduInfo->intIfNum, pduInfo->rxPort);
+    PT_LOG_TRACE(LOG_CTX_SSM,"Packet from intIfNum %u, rxPort %u", pduInfo->intIfNum, pduInfo->rxPort);
   }
 
   /* Remove tags */
   if (ssmPduHeaderTagRemove(bufHandle)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_SSM,"Error extracting vlans");
+    PT_LOG_ERR(LOG_CTX_SSM,"Error extracting vlans");
     SYSAPI_NET_MBUF_FREE(bufHandle);
     return L7_SUCCESS;
   }
@@ -376,7 +376,7 @@ L7_RC_t ssmPDUReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
   {
     /* increment  appropriate statistics */
     ssm_stats[intIfNum].RxPDUsDropped++;
-    LOG_ERR(LOG_CTX_PTIN_SSM,"Error allocating buffer");
+    PT_LOG_ERR(LOG_CTX_SSM,"Error allocating buffer");
     /* consume packet and return success*/
     bufferPoolFree(ssmBufferPoolId,  buffer);
     SYSAPI_NET_MBUF_FREE(bufHandle);
@@ -401,7 +401,7 @@ L7_RC_t ssmPDUReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
     bufferPoolFree(ssmBufferPoolId,  buffer);
     /* By returning a success we ensure that this mbuf is not freed 
        again by sysnet*/
-    LOG_ERR(LOG_CTX_PTIN_SSM,"Error in processing pdu (%d)", rc);
+    PT_LOG_ERR(LOG_CTX_SSM,"Error in processing pdu (%d)", rc);
     return L7_SUCCESS;
   }
 
@@ -469,13 +469,13 @@ void ssm_task_pdu_receive()
 
   if (osapiTaskInitDone(L7_SSM_RX_TASK_SYNC) != L7_SUCCESS)
   {
-    LOG_FATAL(LOG_CTX_PTIN_SSM, "Error syncing task");
+    PT_LOG_FATAL(LOG_CTX_SSM, "Error syncing task");
     PTIN_CRASH();
   }
 
   if (ssm_queue == L7_NULLPTR)
   {
-    LOG_FATAL(LOG_CTX_PTIN_SSM, "Unable to create msg queue for ssm_task!");
+    PT_LOG_FATAL(LOG_CTX_SSM, "Unable to create msg queue for ssm_task!");
     return;
   }
 
@@ -513,14 +513,14 @@ void ssm_task_pdu_transmit( void )
 {
   if (osapiTaskInitDone(L7_SSM_TX_TASK_SYNC) != L7_SUCCESS)
   {
-    LOG_FATAL(LOG_CTX_PTIN_SSM, "Error syncing task");
+    PT_LOG_FATAL(LOG_CTX_SSM, "Error syncing task");
     PTIN_CRASH();
   }
 
   /* Register a period timer */
   if (osapiPeriodicUserTimerRegister(SSM_LOOP_TICK, &ssm_loop_handle) != L7_SUCCESS)
   {
-    LOG_FATAL(LOG_CTX_PTIN_SSM, "Error registering period timer! CRASH!");
+    PT_LOG_FATAL(LOG_CTX_SSM, "Error registering period timer! CRASH!");
     PTIN_CRASH();
   }
 
@@ -595,18 +595,18 @@ L7_RC_t ssmPDUProcess(L7_uint32 intf, void *buffer)
 
   if (ssm_debug_enable)
   {
-    LOG_TRACE(LOG_CTX_PTIN_SSM,"Packet received on interface %u:",intf);
-    LOG_TRACE(LOG_CTX_PTIN_SSM," DMAC=%02x:%02x:%02x:%02x:%02x:%02x",pdu->dmac[0],pdu->dmac[1],pdu->dmac[2],pdu->dmac[3],pdu->dmac[4],pdu->dmac[5]);
-    LOG_TRACE(LOG_CTX_PTIN_SSM," SMAC=%02x:%02x:%02x:%02x:%02x:%02x",pdu->smac[0],pdu->smac[1],pdu->smac[2],pdu->smac[3],pdu->smac[4],pdu->smac[5]);
-    LOG_TRACE(LOG_CTX_PTIN_SSM," EtherType     = 0x%04x",osapiNtohs(pdu->etherType));
-    LOG_TRACE(LOG_CTX_PTIN_SSM," SubType       = 0x%02x",pdu->subType);
-    LOG_TRACE(LOG_CTX_PTIN_SSM," ITU-OUI       = 0x%02x%02x%02x",pdu->itu_oui[0],pdu->itu_oui[1],pdu->itu_oui[2]);
-    LOG_TRACE(LOG_CTX_PTIN_SSM," ITU-T Subtype = 0x%04x",osapiNtohs(pdu->itut_subtype));
-    LOG_TRACE(LOG_CTX_PTIN_SSM," Version       = 0x%02x",pdu->version);
-    LOG_TRACE(LOG_CTX_PTIN_SSM," SSM Type      = 0x%02x",pdu->ssm_type);
-    LOG_TRACE(LOG_CTX_PTIN_SSM," SSM Length    = 0x%04x",osapiNtohs(pdu->ssm_length));
-    LOG_TRACE(LOG_CTX_PTIN_SSM," SSM Code      = 0x%02x",pdu->ssm_code);
-    LOG_TRACE(LOG_CTX_PTIN_SSM,"End of Packet processing");
+    PT_LOG_TRACE(LOG_CTX_SSM,"Packet received on interface %u:",intf);
+    PT_LOG_TRACE(LOG_CTX_SSM," DMAC=%02x:%02x:%02x:%02x:%02x:%02x",pdu->dmac[0],pdu->dmac[1],pdu->dmac[2],pdu->dmac[3],pdu->dmac[4],pdu->dmac[5]);
+    PT_LOG_TRACE(LOG_CTX_SSM," SMAC=%02x:%02x:%02x:%02x:%02x:%02x",pdu->smac[0],pdu->smac[1],pdu->smac[2],pdu->smac[3],pdu->smac[4],pdu->smac[5]);
+    PT_LOG_TRACE(LOG_CTX_SSM," EtherType     = 0x%04x",osapiNtohs(pdu->etherType));
+    PT_LOG_TRACE(LOG_CTX_SSM," SubType       = 0x%02x",pdu->subType);
+    PT_LOG_TRACE(LOG_CTX_SSM," ITU-OUI       = 0x%02x%02x%02x",pdu->itu_oui[0],pdu->itu_oui[1],pdu->itu_oui[2]);
+    PT_LOG_TRACE(LOG_CTX_SSM," ITU-T Subtype = 0x%04x",osapiNtohs(pdu->itut_subtype));
+    PT_LOG_TRACE(LOG_CTX_SSM," Version       = 0x%02x",pdu->version);
+    PT_LOG_TRACE(LOG_CTX_SSM," SSM Type      = 0x%02x",pdu->ssm_type);
+    PT_LOG_TRACE(LOG_CTX_SSM," SSM Length    = 0x%04x",osapiNtohs(pdu->ssm_length));
+    PT_LOG_TRACE(LOG_CTX_SSM," SSM Code      = 0x%02x",pdu->ssm_code);
+    PT_LOG_TRACE(LOG_CTX_SSM,"End of Packet processing");
   }
 
   /* Validar restantes campos do campo */
@@ -615,28 +615,28 @@ L7_RC_t ssmPDUProcess(L7_uint32 intf, void *buffer)
 
   if (itu_oui != SSM_ITU_OUI)
   {
-    LOG_ERR(LOG_CTX_PTIN_SSM,"ITU-T field is not valid: received=0x%x, expected=0x%x",itu_oui,SSM_ITU_OUI);
+    PT_LOG_ERR(LOG_CTX_SSM,"ITU-T field is not valid: received=0x%x, expected=0x%x",itu_oui,SSM_ITU_OUI);
     bufferPoolFree(ssmBufferPoolId,  buffer);
     return L7_FAILURE;
   }
   /* Protocol version */
   if ((pdu->version >> 4) != 1)
   {
-    LOG_ERR(LOG_CTX_PTIN_SSM,"Protocol version is not the expected: received=%u, expected=1",pdu->version >> 4);
+    PT_LOG_ERR(LOG_CTX_SSM,"Protocol version is not the expected: received=%u, expected=1",pdu->version >> 4);
     bufferPoolFree(ssmBufferPoolId,  buffer);
     return L7_FAILURE;
   }
   /* SSM type */
   if (pdu->ssm_type!=1)
   {
-    LOG_ERR(LOG_CTX_PTIN_SSM,"SSM type is not the expected: received=%u, expected=1",pdu->ssm_type);
+    PT_LOG_ERR(LOG_CTX_SSM,"SSM type is not the expected: received=%u, expected=1",pdu->ssm_type);
     bufferPoolFree(ssmBufferPoolId,  buffer);
     return L7_FAILURE;
   }
   /* SSM length must be one, or greater */
   if (osapiNtohs(pdu->ssm_length) < SSM_L4_LENGTH)
   {
-    LOG_ERR(LOG_CTX_PTIN_SSM,"SSM length is less than %u bytes (%u)",SSM_L4_LENGTH, osapiNtohs(pdu->ssm_length));
+    PT_LOG_ERR(LOG_CTX_SSM,"SSM length is less than %u bytes (%u)",SSM_L4_LENGTH, osapiNtohs(pdu->ssm_length));
     bufferPoolFree(ssmBufferPoolId,  buffer);
     return L7_FAILURE;
   }
@@ -663,7 +663,7 @@ void ssmPDUSend(void)
   L7_uint16 slot, intf;
   L7_RC_t   rc;
 
-  //LOG_INFO(LOG_CTX_PTIN_SSM,"This is the place where i will transmit SSM messages!");
+  //PT_LOG_INFO(LOG_CTX_SSM,"This is the place where i will transmit SSM messages!");
 
   for (slot=0; slot<SSM_N_SLOTS; slot++)
   {
@@ -683,7 +683,7 @@ void ssmPDUSend(void)
       else
       {
         //if (ssm_debug_enable)
-        //  LOG_ERR(LOG_CTX_PTIN_SSM,"Invalid slot %u / intf %u... no tranmission executed",slot,intf);
+        //  PT_LOG_ERR(LOG_CTX_SSM,"Invalid slot %u / intf %u... no tranmission executed",slot,intf);
       }
     }
   }
@@ -718,13 +718,13 @@ L7_RC_t ssmPDUTransmit(L7_uint32 intIfNum)
   if (rc != L7_SUCCESS)
   {
     //if (ssm_debug_enable)
-    //  LOG_ERR(LOG_CTX_PTIN_SSM,"Cannot convert intIfNum %u to slot/intf",intIfNum);
+    //  PT_LOG_ERR(LOG_CTX_SSM,"Cannot convert intIfNum %u to slot/intf",intIfNum);
     return L7_FAILURE;
   }
 
   if (slot >= SSM_N_SLOTS || intf >= SSM_N_INTFS_IN_USE)
   {
-    LOG_ERR(LOG_CTX_PTIN_SSM,"Invalid slot/intf %u/%u", slot, intf);
+    PT_LOG_ERR(LOG_CTX_SSM,"Invalid slot/intf %u/%u", slot, intf);
     return L7_FAILURE;
   }
 
@@ -734,7 +734,7 @@ L7_RC_t ssmPDUTransmit(L7_uint32 intIfNum)
   SYSAPI_NET_MBUF_GET(bufHandle);
   if (bufHandle == L7_NULL)
   {
-    LOG_ERR(LOG_CTX_PTIN_SSM,"Error initializing bufHandle");
+    PT_LOG_ERR(LOG_CTX_SSM,"Error initializing bufHandle");
     return L7_FAILURE;
   }
 
@@ -752,7 +752,7 @@ L7_RC_t ssmPDUTransmit(L7_uint32 intIfNum)
   if (nimGetIntfAddress(intIfNum, L7_NULL, pdu->smac)!=L7_SUCCESS)
   {
     if (ssm_debug_enable)
-      LOG_ERR(LOG_CTX_PTIN_SSM,"Error getting MAC address of intIfNum %u",intIfNum);
+      PT_LOG_ERR(LOG_CTX_SSM,"Error getting MAC address of intIfNum %u",intIfNum);
     SYSAPI_NET_MBUF_FREE(bufHandle);
     return L7_SUCCESS;
   }
@@ -803,12 +803,12 @@ L7_RC_t ssmPDUTransmit(L7_uint32 intIfNum)
 
   if (ssmTransmit(intIfNum, bufHandle)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_SSM,"Error transmiting packet");
+    PT_LOG_ERR(LOG_CTX_SSM,"Error transmiting packet");
     return L7_FAILURE;
   }
 
   if (ssm_debug_enable)
-    LOG_TRACE(LOG_CTX_PTIN_SSM,"SSM transmitted to intIfNum %u (slot=%u/intf=%u) with SSM_code=%x (length=%u)",
+    PT_LOG_TRACE(LOG_CTX_SSM,"SSM transmitted to intIfNum %u (slot=%u/intf=%u) with SSM_code=%x (length=%u)",
               intIfNum, slot, intf, SHMEM(slot,intf).ssm_tx, frameLength);
 
   return L7_SUCCESS;
@@ -844,7 +844,7 @@ L7_RC_t ssmTransmit(L7_uint32 intIfNum, L7_uint32 bufHandle)
   if (nimIntfQuery(&nimQueryData) != L7_SUCCESS)
   {
     /* should never get here */
-    //LOG_ERR(LOG_CTX_PTIN_SSM,"nimIntfQuery error (intIfNum=%u)",intIfNum);
+    //PT_LOG_ERR(LOG_CTX_SSM,"nimIntfQuery error (intIfNum=%u)",intIfNum);
     SYSAPI_NET_MBUF_FREE(bufHandle);
     return L7_FAILURE;
   }
@@ -854,7 +854,7 @@ L7_RC_t ssmTransmit(L7_uint32 intIfNum, L7_uint32 bufHandle)
   {
     /* HW not present, free the buffer and return success */
     //if (ssm_debug_enable)
-    //  LOG_ERR(LOG_CTX_PTIN_SSM,"intIfNum %u is not yet attached!",intIfNum);
+    //  PT_LOG_ERR(LOG_CTX_SSM,"intIfNum %u is not yet attached!",intIfNum);
     SYSAPI_NET_MBUF_FREE(bufHandle);
     return L7_SUCCESS;
   }
@@ -864,7 +864,7 @@ L7_RC_t ssmTransmit(L7_uint32 intIfNum, L7_uint32 bufHandle)
       nimGetIntfAdminState(intIfNum,&adminState)!=L7_SUCCESS ||
       nimGetIntfLinkState(intIfNum,&linkState)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_SSM,"Error getting intIfNum %u status!",intIfNum);
+    PT_LOG_ERR(LOG_CTX_SSM,"Error getting intIfNum %u status!",intIfNum);
     SYSAPI_NET_MBUF_FREE(bufHandle);
     return L7_FAILURE;
   }
@@ -872,7 +872,7 @@ L7_RC_t ssmTransmit(L7_uint32 intIfNum, L7_uint32 bufHandle)
   /* Interface must be physical */
   if (intfType!=L7_PHYSICAL_INTF)
   {
-    LOG_ERR(LOG_CTX_PTIN_SSM,"intIfNum %u is not physical",intIfNum);
+    PT_LOG_ERR(LOG_CTX_SSM,"intIfNum %u is not physical",intIfNum);
     SYSAPI_NET_MBUF_FREE(bufHandle);
     return L7_SUCCESS;
   }
@@ -880,7 +880,7 @@ L7_RC_t ssmTransmit(L7_uint32 intIfNum, L7_uint32 bufHandle)
   if (adminState!=L7_ENABLE || linkState!=L7_UP)
   {
     //if (ssm_debug_enable)
-    //  LOG_ERR(LOG_CTX_PTIN_SSM,"intIfNum %u not ready",intIfNum);
+    //  PT_LOG_ERR(LOG_CTX_SSM,"intIfNum %u not ready",intIfNum);
     SYSAPI_NET_MBUF_FREE(bufHandle);
     return L7_SUCCESS;
   }
@@ -901,11 +901,11 @@ L7_RC_t ssmTransmit(L7_uint32 intIfNum, L7_uint32 bufHandle)
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_SSM,"Error transmiting packet to intIfNum %u",intIfNum);
+    PT_LOG_ERR(LOG_CTX_SSM,"Error transmiting packet to intIfNum %u",intIfNum);
   }
 
   if (ssm_debug_enable)
-    LOG_TRACE(LOG_CTX_PTIN_SSM,"Packet transmitted successfully to intIfNum %u",intIfNum);
+    PT_LOG_TRACE(LOG_CTX_SSM,"Packet transmitted successfully to intIfNum %u",intIfNum);
 
   return rc;
 }
@@ -1037,7 +1037,7 @@ L7_RC_t ssmTimersUpdate(void)
         if (ssm_debug_enable)
         {
           if (ssm_timer[slot][intf]==6)
-            LOG_TRACE(LOG_CTX_PTIN_SSM,"slot %u / intf %u timed out... ssm code is 0xf",slot,intf);
+            PT_LOG_TRACE(LOG_CTX_SSM,"slot %u / intf %u timed out... ssm code is 0xf",slot,intf);
         }
       }
     }
@@ -1070,7 +1070,7 @@ L7_RC_t ssmCodeUpdate(L7_uint32 intIfNum, L7_uint16 ssm_code)
   if (rc != L7_SUCCESS)
   {
     //if (ssm_debug_enable)
-    //  LOG_ERR(LOG_CTX_PTIN_SSM,"Cannot convert intIfNum %u to slot/intf",intIfNum);
+    //  PT_LOG_ERR(LOG_CTX_SSM,"Cannot convert intIfNum %u to slot/intf",intIfNum);
     return L7_FAILURE;
   }
 
@@ -1086,7 +1086,7 @@ L7_RC_t ssmCodeUpdate(L7_uint32 intIfNum, L7_uint16 ssm_code)
   SHMEM(slot,intf).ssm_rx = ssm_code & 0x000f;
 
   if (ssm_debug_enable)
-    LOG_TRACE(LOG_CTX_PTIN_SSM,"SSM code (0x%02x) updated for slot=%u, intf=%u (intIfNum=%u)",ssm_code,slot,intf,intIfNum);
+    PT_LOG_TRACE(LOG_CTX_SSM,"SSM code (0x%02x) updated for slot=%u, intf=%u (intIfNum=%u)",ssm_code,slot,intf,intIfNum);
 
   return L7_SUCCESS;
 }

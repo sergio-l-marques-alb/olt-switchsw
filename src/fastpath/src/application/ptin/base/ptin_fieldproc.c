@@ -35,7 +35,7 @@ L7_RC_t ptin_bwPolicer_create(ptin_bw_meter_t *meter, L7_int *policer_id)
   /* Policer must be a valid pointer */
   if (meter==L7_NULLPTR || policer_id==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_EVC,"Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -71,7 +71,7 @@ L7_RC_t ptin_bwPolicer_destroy(L7_int policer_id)
   /* Policer must be a valid pointer */
   if (policer_id <= 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments (policer_id=%d)", policer_id);
+    PT_LOG_ERR(LOG_CTX_EVC,"Invalid arguments (policer_id=%d)", policer_id);
     return L7_FAILURE;
   }
 
@@ -102,7 +102,7 @@ L7_RC_t ptin_bwPolicer_get(ptin_bw_profile_t *profile, ptin_bw_meter_t *meter)
   /* Validate profile */
   if (profile == L7_NULLPTR || meter == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid profile");
+    PT_LOG_ERR(LOG_CTX_EVC,"Invalid profile");
     return L7_FAILURE;
   }
   /* Get intIfNum */
@@ -110,7 +110,7 @@ L7_RC_t ptin_bwPolicer_get(ptin_bw_profile_t *profile, ptin_bw_meter_t *meter)
   {
     if (ptin_intf_port2intIfNum(profile->ptin_port, &intIfNum) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ptin_port %u", profile->ptin_port);
+      PT_LOG_ERR(LOG_CTX_EVC,"Invalid ptin_port %u", profile->ptin_port);
       return L7_FAILURE;
     }
   }
@@ -155,7 +155,7 @@ L7_RC_t ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_meter_t *meter, L
   /* Policer must be a valid pointer */
   if (profile==L7_NULLPTR || meter==L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid profile");
+    PT_LOG_ERR(LOG_CTX_EVC,"Invalid profile");
     return L7_FAILURE;
   }
   /* Get intIfNum */
@@ -163,7 +163,7 @@ L7_RC_t ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_meter_t *meter, L
   {
     if (ptin_intf_port2intIfNum(profile->ptin_port, &intIfNum) != L7_SUCCESS) 
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ptin_port %u", profile->ptin_port);
+      PT_LOG_ERR(LOG_CTX_EVC,"Invalid ptin_port %u", profile->ptin_port);
       return L7_FAILURE;
     }
   }
@@ -201,7 +201,7 @@ L7_RC_t ptin_bwPolicer_delete(ptin_bw_profile_t *profile)
   /* Validate arguments */
   if (profile == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid profile");
+    PT_LOG_ERR(LOG_CTX_EVC,"Invalid profile");
     return L7_FAILURE;
   }
   /* Get intIfNum */
@@ -209,7 +209,7 @@ L7_RC_t ptin_bwPolicer_delete(ptin_bw_profile_t *profile)
   {
     if (ptin_intf_port2intIfNum(profile->ptin_port, &intIfNum) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC,"ptin_port %u not valid", profile->ptin_port);
+      PT_LOG_ERR(LOG_CTX_EVC,"ptin_port %u not valid", profile->ptin_port);
       return L7_FAILURE;
     }
   }
@@ -246,7 +246,7 @@ L7_RC_t ptin_bwPolicer_deleteAll(ptin_bw_profile_t *profile)
   /* Validate arguments */
   if (profile == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid profile");
+    PT_LOG_ERR(LOG_CTX_EVC,"Invalid profile");
     return L7_FAILURE;
   }
   /* Get intIfNum */
@@ -254,7 +254,7 @@ L7_RC_t ptin_bwPolicer_deleteAll(ptin_bw_profile_t *profile)
   {
     if (ptin_intf_port2intIfNum(profile->ptin_port, &intIfNum) != L7_SUCCESS) 
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC,"ptin_port %u not valid", profile->ptin_port);
+      PT_LOG_ERR(LOG_CTX_EVC,"ptin_port %u not valid", profile->ptin_port);
       return L7_FAILURE;
     }
   }
@@ -295,13 +295,13 @@ L7_RC_t ptin_evcStats_get(ptin_evcStats_counters_t *stats, ptin_evcStats_profile
   /* Validate arguments */
   if (profile == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid profile");
+    PT_LOG_ERR(LOG_CTX_EVC,"Invalid profile");
     return L7_FAILURE;
   }
   /* Get intIfNum */
   if (ptin_intf_port2intIfNum(profile->ptin_port, &intIfNum) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ptin_port %u", profile->ptin_port);
+    PT_LOG_ERR(LOG_CTX_EVC,"Invalid ptin_port %u", profile->ptin_port);
     return L7_FAILURE;
   }
 
@@ -336,13 +336,13 @@ L7_RC_t ptin_evcStats_set(ptin_evcStats_profile_t *profile)
   /* Validate arguments */
   if (profile == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid profile");
+    PT_LOG_ERR(LOG_CTX_EVC,"Invalid profile");
     return L7_FAILURE;
   }
   /* Get intIfNum */
   if (ptin_intf_port2intIfNum(profile->ptin_port, &intIfNum) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ptin_port %u", profile->ptin_port);
+    PT_LOG_ERR(LOG_CTX_EVC,"Invalid ptin_port %u", profile->ptin_port);
     return L7_FAILURE;
   }
 
@@ -373,13 +373,13 @@ L7_RC_t ptin_evcStats_delete(ptin_evcStats_profile_t *profile)
   /* Validate arguments */
   if (profile == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid profile");
+    PT_LOG_ERR(LOG_CTX_EVC,"Invalid profile");
     return L7_FAILURE;
   }
   /* Get intIfNum */
   if (ptin_intf_port2intIfNum(profile->ptin_port, &intIfNum) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"ptin_port %u not valid", profile->ptin_port);
+    PT_LOG_ERR(LOG_CTX_EVC,"ptin_port %u not valid", profile->ptin_port);
     return L7_FAILURE;
   }
 
@@ -408,7 +408,7 @@ L7_RC_t ptin_evcStats_deleteAll(ptin_evcStats_profile_t *profile)
   /* Validate arguments */
   if (profile == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid profile");
+    PT_LOG_ERR(LOG_CTX_EVC,"Invalid profile");
     return L7_FAILURE;
   }
   /* Get intIfNum */
@@ -417,7 +417,7 @@ L7_RC_t ptin_evcStats_deleteAll(ptin_evcStats_profile_t *profile)
   {
     if (ptin_intf_port2intIfNum(profile->ptin_port, &intIfNum) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC,"ptin_port %u not valid", profile->ptin_port);
+      PT_LOG_ERR(LOG_CTX_EVC,"ptin_port %u not valid", profile->ptin_port);
       return L7_FAILURE;
     }
   }
@@ -458,11 +458,11 @@ L7_RC_t ptin_igmpPkts_global_trap(L7_BOOL enable)
 
   rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
   if (rc!=L7_SUCCESS)  {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error setting global enable to %u",enable);
+    PT_LOG_ERR(LOG_CTX_API,"Error setting global enable to %u",enable);
     return rc;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API,"Success applying global enable to %u",enable);
+  PT_LOG_TRACE(LOG_CTX_API,"Success applying global enable to %u",enable);
 
   return L7_SUCCESS;
 }
@@ -483,7 +483,7 @@ L7_RC_t ptin_igmpPkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable)
   /* Policer must be a valid pointer */
   if (vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Invalid argument");
+    PT_LOG_ERR(LOG_CTX_API,"Invalid argument");
     return L7_FAILURE;
   }
 
@@ -498,11 +498,11 @@ L7_RC_t ptin_igmpPkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable)
 
   rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
   if (rc!=L7_SUCCESS)  {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error setting rule to %u",enable);
+    PT_LOG_ERR(LOG_CTX_API,"Error setting rule to %u",enable);
     return rc;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API,"Success applying rule to %u",enable);
+  PT_LOG_TRACE(LOG_CTX_API,"Success applying rule to %u",enable);
 
   return L7_SUCCESS;
 }
@@ -530,11 +530,11 @@ L7_RC_t ptin_mldPkts_global_trap(L7_BOOL enable)
 
   rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
   if (rc!=L7_SUCCESS)  {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error setting global enable to %u",enable);
+    PT_LOG_ERR(LOG_CTX_API,"Error setting global enable to %u",enable);
     return rc;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API,"Success applying global enable to %u",enable);
+  PT_LOG_TRACE(LOG_CTX_API,"Success applying global enable to %u",enable);
 
   return L7_SUCCESS;
 }
@@ -555,7 +555,7 @@ L7_RC_t ptin_mldPkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable)
   /* Policer must be a valid pointer */
   if (vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Invalid argument");
+    PT_LOG_ERR(LOG_CTX_API,"Invalid argument");
     return L7_FAILURE;
   }
 
@@ -570,11 +570,11 @@ L7_RC_t ptin_mldPkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable)
 
   rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
   if (rc!=L7_SUCCESS)  {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error setting rule to %u",enable);
+    PT_LOG_ERR(LOG_CTX_API,"Error setting rule to %u",enable);
     return rc;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API,"Success applying rule to %u",enable);
+  PT_LOG_TRACE(LOG_CTX_API,"Success applying rule to %u",enable);
 
   return L7_SUCCESS;
 }
@@ -602,11 +602,11 @@ L7_RC_t ptin_dhcpPkts_global_trap(L7_BOOL enable)
 
   rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
   if (rc!=L7_SUCCESS)  {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error setting global enable to %u",enable);
+    PT_LOG_ERR(LOG_CTX_API,"Error setting global enable to %u",enable);
     return rc;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API,"Success applying global enable to %u",enable);
+  PT_LOG_TRACE(LOG_CTX_API,"Success applying global enable to %u",enable);
 
   return L7_SUCCESS;
 }
@@ -628,7 +628,7 @@ L7_RC_t ptin_dhcpPkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable, L7_uint8 famil
   /* Policer must be a valid pointer */
   if (vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Invalid argument");
+    PT_LOG_ERR(LOG_CTX_API,"Invalid argument");
     return L7_FAILURE;
   }
 
@@ -643,11 +643,11 @@ L7_RC_t ptin_dhcpPkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable, L7_uint8 famil
 
   rc = dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
   if (rc != L7_SUCCESS)  {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error setting rule to %u",enable);
+    PT_LOG_ERR(LOG_CTX_API,"Error setting rule to %u",enable);
     return rc;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API,"Success applying rule to %u",enable);
+  PT_LOG_TRACE(LOG_CTX_API,"Success applying rule to %u",enable);
 
   return L7_SUCCESS;
 }
@@ -675,11 +675,11 @@ L7_RC_t ptin_pppoePkts_global_trap(L7_BOOL enable)
 
   rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
   if (rc!=L7_SUCCESS)  {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error setting global enable to %u",enable);
+    PT_LOG_ERR(LOG_CTX_API,"Error setting global enable to %u",enable);
     return rc;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API,"Success applying global enable to %u",enable);
+  PT_LOG_TRACE(LOG_CTX_API,"Success applying global enable to %u",enable);
 
   return L7_SUCCESS;
 }
@@ -700,7 +700,7 @@ L7_RC_t ptin_pppoePkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable)
   /* Policer must be a valid pointer */
   if (vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Invalid argument");
+    PT_LOG_ERR(LOG_CTX_API,"Invalid argument");
     return L7_FAILURE;
   }
 
@@ -715,11 +715,11 @@ L7_RC_t ptin_pppoePkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable)
 
   rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
   if (rc!=L7_SUCCESS)  {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error setting rule to %u",enable);
+    PT_LOG_ERR(LOG_CTX_API,"Error setting rule to %u",enable);
     return rc;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API,"Success applying rule to %u",enable);
+  PT_LOG_TRACE(LOG_CTX_API,"Success applying rule to %u",enable);
 
   return L7_SUCCESS;
 }
@@ -750,20 +750,20 @@ L7_RC_t ptin_stormControl_config(L7_BOOL enable, ptin_stormControl_t *stormContr
 {
   L7_RC_t rc;
 
-  LOG_TRACE(LOG_CTX_PTIN_API,"Going to apply storm control (enable=%u)", enable);
+  PT_LOG_TRACE(LOG_CTX_API,"Going to apply storm control (enable=%u)", enable);
 
   rc = dtlPtinStormControl(L7_ALL_INTERFACES, enable, stormControl);
   if (rc!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error setting storm control enable=%u", enable);
+    PT_LOG_ERR(LOG_CTX_API,"Error setting storm control enable=%u", enable);
     return rc;
   }
   else
   {
-    LOG_TRACE(LOG_CTX_PTIN_API,"Success setting storm control enable=%u", enable);
+    PT_LOG_TRACE(LOG_CTX_API,"Success setting storm control enable=%u", enable);
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_API,"Storm control applied successfully (enable=%u)", enable);
+  PT_LOG_TRACE(LOG_CTX_API,"Storm control applied successfully (enable=%u)", enable);
 
   return L7_SUCCESS;
 }
@@ -866,12 +866,12 @@ L7_RC_t ptin_qos_vlan_clear(ptin_qos_vlan_t *qos)
   rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_QOS_CLASSIFY, DAPI_CMD_CLEAR, sizeof(ptin_dtl_qos_t), &qos_cfg);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error removing all rules of intVLAN %u / NNIVlan %u / leaf:%d",
+    PT_LOG_ERR(LOG_CTX_INTF, "Error removing all rules of intVLAN %u / NNIVlan %u / leaf:%d",
             qos->int_vlan, qos->nni_vlan, qos->leaf_side);
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_INTF, "All rules removed from intVLAN %u / NNIVlan %u / leaf:%u",
+  PT_LOG_TRACE(LOG_CTX_INTF, "All rules removed from intVLAN %u / NNIVlan %u / leaf:%u",
             qos->int_vlan, qos->nni_vlan, qos->leaf_side);
 
   return L7_SUCCESS;
@@ -899,25 +899,25 @@ static L7_RC_t cos_vlan_configure(ptin_dtl_qos_t *qos_cfg, L7_uint8 *cos_map, L7
   /* Validate arguments */
   if (qos_cfg == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_INTF, "Invalid arguments");
     return L7_FAILURE;
   }
 
   /* Only update port information */
   if (n_prios < 0)
   {
-    LOG_TRACE(LOG_CTX_PTIN_INTF, "Going to port data of intVLAN %u / NNIVlan %u",
+    PT_LOG_TRACE(LOG_CTX_INTF, "Going to port data of intVLAN %u / NNIVlan %u",
               qos_cfg->int_vlan, qos_cfg->ext_vlan);
 
     qos_cfg->trust_mode = -1;
     rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_QOS_CLASSIFY, DAPI_CMD_SET, sizeof(ptin_dtl_qos_t), qos_cfg);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Error reconfiguring rules of intVLAN %u / NNIVlan %u",
+      PT_LOG_ERR(LOG_CTX_INTF, "Error reconfiguring rules of intVLAN %u / NNIVlan %u",
               qos_cfg->int_vlan, qos_cfg->ext_vlan);
       return L7_FAILURE;
     }
-    LOG_TRACE(LOG_CTX_PTIN_INTF, "All rules were reconfigured");
+    PT_LOG_TRACE(LOG_CTX_INTF, "All rules were reconfigured");
     return L7_SUCCESS;
   }
 
@@ -932,17 +932,17 @@ static L7_RC_t cos_vlan_configure(ptin_dtl_qos_t *qos_cfg, L7_uint8 *cos_map, L7
     qos_apply.leaf_side  = qos_cfg->leaf_side;
     qos_apply.trust_mode = 0;
 
-    LOG_TRACE(LOG_CTX_PTIN_INTF, "Going to remove all configurations of intVLAN %u / NNIVlan %u / leaf:%u",
+    PT_LOG_TRACE(LOG_CTX_INTF, "Going to remove all configurations of intVLAN %u / NNIVlan %u / leaf:%u",
               qos_apply.int_vlan, qos_apply.nni_vlan, qos_apply.leaf_side);
     /* Remove all configurations */
     rc = ptin_qos_vlan_clear(&qos_apply);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Error removing all rules of intVLAN %u / NNIVlan %u / leaf:%u",
+      PT_LOG_ERR(LOG_CTX_INTF, "Error removing all rules of intVLAN %u / NNIVlan %u / leaf:%u",
               qos_apply.int_vlan, qos_apply.nni_vlan, qos_apply.leaf_side);
       return L7_FAILURE;
     }
-    LOG_TRACE(LOG_CTX_PTIN_INTF, "All rules removed of intVLAN %u / NNIVlan %u / leaf:%u",
+    PT_LOG_TRACE(LOG_CTX_INTF, "All rules removed of intVLAN %u / NNIVlan %u / leaf:%u",
               qos_apply.int_vlan, qos_apply.nni_vlan, qos_apply.leaf_side);
 
     return L7_SUCCESS;
@@ -951,24 +951,24 @@ static L7_RC_t cos_vlan_configure(ptin_dtl_qos_t *qos_cfg, L7_uint8 *cos_map, L7
   /* A CoS map should be provided */
   if (cos_map == L7_NULLPTR || cos_map_size == 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_INTF, "Invalid arguments");
     return L7_FAILURE;
   }
 
   if (n_prios < 2)
   {
     /* All priorities will be mapped into one single priority */
-    LOG_TRACE(LOG_CTX_PTIN_INTF, "All priorities will be mapped in a single int_prio");
+    PT_LOG_TRACE(LOG_CTX_INTF, "All priorities will be mapped in a single int_prio");
     qos_cfg->priority = 0;
     qos_cfg->priority_mask = 0;
     qos_cfg->int_priority = cos_map[0];
     rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_QOS_CLASSIFY, DAPI_CMD_SET, sizeof(ptin_dtl_qos_t), qos_cfg);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Error configuring rule");
+      PT_LOG_ERR(LOG_CTX_INTF, "Error configuring rule");
       return L7_FAILURE;
     }
-    LOG_TRACE(LOG_CTX_PTIN_INTF, "All priorities were mapped to int_prio %u", qos_cfg->int_priority);
+    PT_LOG_TRACE(LOG_CTX_INTF, "All priorities were mapped to int_prio %u", qos_cfg->int_priority);
     return L7_SUCCESS;
   }
   else if (n_prios < 4)
@@ -976,49 +976,49 @@ static L7_RC_t cos_vlan_configure(ptin_dtl_qos_t *qos_cfg, L7_uint8 *cos_map, L7
     /* 2 CoS values (1 bit) */
     n_prios = 2;
     cos_mask_lookup = cos_mask_lookup_1bit;
-    LOG_TRACE(LOG_CTX_PTIN_API, "Assuming a 1 bit mask (2 distinct priorities)");
+    PT_LOG_TRACE(LOG_CTX_API, "Assuming a 1 bit mask (2 distinct priorities)");
   }
   else if (n_prios < 8)
   {
     /* 4 CoS values (2 bits) */
     n_prios = 4;
     cos_mask_lookup = cos_mask_lookup_2bits;
-    LOG_TRACE(LOG_CTX_PTIN_API, "Assuming a 2 bit mask (4 distinct priorities)");
+    PT_LOG_TRACE(LOG_CTX_API, "Assuming a 2 bit mask (4 distinct priorities)");
   }
   else if (n_prios < 16)
   {
     /* 8 CoS values (3 bits) */
     n_prios = 8;
     cos_mask_lookup = cos_mask_lookup_3bits;
-    LOG_TRACE(LOG_CTX_PTIN_API, "Assuming a 3 bit mask (8 distinct priorities)");
+    PT_LOG_TRACE(LOG_CTX_API, "Assuming a 3 bit mask (8 distinct priorities)");
   }
   else if (n_prios < 32)
   {
     /* 16 CoS values (4 bits) */
     n_prios = 16;
     cos_mask_lookup = cos_mask_lookup_4bits;
-    LOG_TRACE(LOG_CTX_PTIN_API, "Assuming a 4 bit mask (16 distinct priorities)");
+    PT_LOG_TRACE(LOG_CTX_API, "Assuming a 4 bit mask (16 distinct priorities)");
   }
   else if (n_prios < 64)
   {
     /* 32 CoS values (5 bits) */
     n_prios = 32;
     cos_mask_lookup = cos_mask_lookup_5bits;
-    LOG_TRACE(LOG_CTX_PTIN_API, "Assuming a 5 bit mask (32 distinct priorities)");
+    PT_LOG_TRACE(LOG_CTX_API, "Assuming a 5 bit mask (32 distinct priorities)");
   }
   else
   {
     /* 64 CoS values (6 bits) */
     n_prios = 64;
     cos_mask_lookup = cos_mask_lookup_6bits;
-    LOG_TRACE(LOG_CTX_PTIN_API, "Assuming a 6 bit mask (64 distinct priorities)");
+    PT_LOG_TRACE(LOG_CTX_API, "Assuming a 6 bit mask (64 distinct priorities)");
   }
 
   /* Limit size of cos_map to be considered */
   if (cos_map_size > n_prios)
   {
     cos_map_size = n_prios;
-    LOG_WARNING(LOG_CTX_PTIN_API, "CoS map size limited to %u elements", cos_map_size);
+    PT_LOG_WARN(LOG_CTX_API, "CoS map size limited to %u elements", cos_map_size);
   }
 
   /* Run all possible CoS values */
@@ -1027,7 +1027,7 @@ static L7_RC_t cos_vlan_configure(ptin_dtl_qos_t *qos_cfg, L7_uint8 *cos_map, L7
     L7_uint8 i, look;
     L7_uint64 cos_bitmap, cos_bitmap_mask;
 
-    LOG_TRACE(LOG_CTX_PTIN_API,"Searching for CoS %u...", cos);
+    PT_LOG_TRACE(LOG_CTX_API,"Searching for CoS %u...", cos);
 
     /* Calculate bitmap of 1s where this CoS occurs (input) */
     cos_bitmap = 0;
@@ -1042,12 +1042,12 @@ static L7_RC_t cos_vlan_configure(ptin_dtl_qos_t *qos_cfg, L7_uint8 *cos_map, L7
       cos_bitmap_mask |= 1ULL<<i;
     }
 
-    LOG_TRACE(LOG_CTX_PTIN_API,"Entries with CoS %u: 0x%llx", cos, cos_bitmap);
+    PT_LOG_TRACE(LOG_CTX_API,"Entries with CoS %u: 0x%llx", cos, cos_bitmap);
 
     /* If this CoS is not used, go to next cos */
     if (cos_bitmap == 0)
     {
-      LOG_TRACE(LOG_CTX_PTIN_API,"No entries have CoS %u. Skipt it!", cos);
+      PT_LOG_TRACE(LOG_CTX_API,"No entries have CoS %u. Skipt it!", cos);
       continue;
     }
 
@@ -1061,7 +1061,7 @@ static L7_RC_t cos_vlan_configure(ptin_dtl_qos_t *qos_cfg, L7_uint8 *cos_map, L7
       /* Mask to be considered for this lookup entry */
       mask = cos_mask_lookup[look];
 
-      LOG_TRACE(LOG_CTX_PTIN_API,"Lookup entry %u: mask=0x%x", look, mask);
+      PT_LOG_TRACE(LOG_CTX_API,"Lookup entry %u: mask=0x%x", look, mask);
 
       /* List of possible results from the AND operation between all values and this mask (some may be repeated) */
       for (value = 0; value < n_prios; value++)
@@ -1081,11 +1081,11 @@ static L7_RC_t cos_vlan_configure(ptin_dtl_qos_t *qos_cfg, L7_uint8 *cos_map, L7
         /* Skip value if it's excluded */
         if ((values_excluded >> value) & 1)
         {
-          //LOG_TRACE(LOG_CTX_PTIN_API,"value %u skipped for being excluded in previous iterations.", value);
+          //PT_LOG_TRACE(LOG_CTX_API,"value %u skipped for being excluded in previous iterations.", value);
           continue;
         }
 
-        //LOG_TRACE(LOG_CTX_PTIN_API,"Processing value %u / mask 0x%x", value, mask);
+        //PT_LOG_TRACE(LOG_CTX_API,"Processing value %u / mask 0x%x", value, mask);
 
         /* CoS bitmap to be used as reference */
         cos_bitmap_reference = 0x00;
@@ -1114,11 +1114,11 @@ static L7_RC_t cos_vlan_configure(ptin_dtl_qos_t *qos_cfg, L7_uint8 *cos_map, L7
         /* If reference CoS bitmap is empty, skip to next value */
         if (cos_bitmap_reference == 0x00)
         {
-          //LOG_TRACE(LOG_CTX_PTIN_API,"CoS bitmap reference empty. Going to next Lookup entry");
+          //PT_LOG_TRACE(LOG_CTX_API,"CoS bitmap reference empty. Going to next Lookup entry");
           continue;
         }
 
-        LOG_TRACE(LOG_CTX_PTIN_API,"CoS bitmap reference: 0x%llx (Excluded values: 0x%llx)",
+        PT_LOG_TRACE(LOG_CTX_API,"CoS bitmap reference: 0x%llx (Excluded values: 0x%llx)",
                   cos_bitmap_reference, values_excluded);
 
         /** The reference bitmap was already determined.
@@ -1128,7 +1128,7 @@ static L7_RC_t cos_vlan_configure(ptin_dtl_qos_t *qos_cfg, L7_uint8 *cos_map, L7
         /* Clear hidden bits (hidden by previous iterations, to avoid conflicting rules) */
         cos_bitmap &= cos_bitmap_mask; 
 
-        LOG_TRACE(LOG_CTX_PTIN_API,"CoS bitmap to be used: 0x%llx (cos_bitmap_mask: 0x%llx)", cos_bitmap, cos_bitmap_mask);
+        PT_LOG_TRACE(LOG_CTX_API,"CoS bitmap to be used: 0x%llx (cos_bitmap_mask: 0x%llx)", cos_bitmap, cos_bitmap_mask);
 
         /* If a matched pattern occurs, apply rule */
         if ((cos_bitmap & cos_bitmap_reference) == cos_bitmap_reference)
@@ -1136,7 +1136,7 @@ static L7_RC_t cos_vlan_configure(ptin_dtl_qos_t *qos_cfg, L7_uint8 *cos_map, L7
           /* Hide these bits, in order to not be considered next time */
           cos_bitmap_mask &= ~cos_bitmap_reference;
 
-          LOG_TRACE(LOG_CTX_PTIN_API,"Pattern 0x%llx is present (0x%llx -> 0x%llx). Removing this to cos_bitmap_mask (0xllx)",
+          PT_LOG_TRACE(LOG_CTX_API,"Pattern 0x%llx is present (0x%llx -> 0x%llx). Removing this to cos_bitmap_mask (0xllx)",
                     cos_bitmap, cos_bitmap_reference, cos_bitmap_mask);
 
           /* Rule configuration */
@@ -1146,14 +1146,14 @@ static L7_RC_t cos_vlan_configure(ptin_dtl_qos_t *qos_cfg, L7_uint8 *cos_map, L7
           rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_QOS_CLASSIFY, DAPI_CMD_SET, sizeof(ptin_dtl_qos_t), qos_cfg);
           if (rc != L7_SUCCESS)
           {
-            LOG_ERR(LOG_CTX_PTIN_INTF, "Error configuring priorities %u/0x%x", qos_cfg->priority, qos_cfg->priority_mask);
+            PT_LOG_ERR(LOG_CTX_INTF, "Error configuring priorities %u/0x%x", qos_cfg->priority, qos_cfg->priority_mask);
             return L7_FAILURE;
           }
-          LOG_TRACE(LOG_CTX_PTIN_INTF, "Priorities %u/0x%x is mapped to int_prio %u", qos_cfg->priority, qos_cfg->priority_mask, qos_cfg->int_priority);
+          PT_LOG_TRACE(LOG_CTX_INTF, "Priorities %u/0x%x is mapped to int_prio %u", qos_cfg->priority, qos_cfg->priority_mask, qos_cfg->int_priority);
         }
         else
         {
-          LOG_TRACE(LOG_CTX_PTIN_INTF, "Nothing done... next iteration");
+          PT_LOG_TRACE(LOG_CTX_INTF, "Nothing done... next iteration");
         }
       }
     }
@@ -1189,21 +1189,21 @@ static L7_RC_t ptin_qos_port_bitmap_get(L7_uint32 *ptin_port, L7_uint8 number_of
     /* Validate ptin_port */
     if (ptin_port[i] >= PTIN_SYSTEM_N_INTERF)
     {
-      LOG_ERR(LOG_CTX_PTIN_API, "Invalid ptin port %u", ptin_port[i]);
+      PT_LOG_ERR(LOG_CTX_API, "Invalid ptin port %u", ptin_port[i]);
       rc = L7_FAILURE;
       continue;
     }
     /* Convert to intIfNum */
     if (ptin_intf_port2intIfNum(ptin_port[i], &intIfNum) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_API, "port %u does not exist", ptin_port[i]);
+      PT_LOG_ERR(LOG_CTX_API, "port %u does not exist", ptin_port[i]);
       rc = L7_FAILURE;
       continue;
     }
     /* Get interface type */
     if (nimGetIntfType(intIfNum, &intfType) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_L2,"Error getting interface type of intIfNum=%u", intIfNum);
+      PT_LOG_ERR(LOG_CTX_L2,"Error getting interface type of intIfNum=%u", intIfNum);
       rc = L7_FAILURE;
       continue;
     }
@@ -1214,7 +1214,7 @@ static L7_RC_t ptin_qos_port_bitmap_get(L7_uint32 *ptin_port, L7_uint8 number_of
       number_of_lag_members = PTIN_SYSTEM_N_PORTS;
       if (usmDbDot3adMemberListGet(1, intIfNum, &number_of_lag_members, lag_members_list) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_INTF, "Error reading Members List of intIfNum %u", intIfNum);
+        PT_LOG_ERR(LOG_CTX_INTF, "Error reading Members List of intIfNum %u", intIfNum);
         rc = L7_FAILURE;
         continue;
       }
@@ -1227,7 +1227,7 @@ static L7_RC_t ptin_qos_port_bitmap_get(L7_uint32 *ptin_port, L7_uint8 number_of
         }
         else
         {
-          LOG_ERR(LOG_CTX_PTIN_INTF, "Error adding LAG member intIfNum %u", lag_members_list[j]);
+          PT_LOG_ERR(LOG_CTX_INTF, "Error adding LAG member intIfNum %u", lag_members_list[j]);
           rc = L7_FAILURE;
         }
       }
@@ -1240,12 +1240,12 @@ static L7_RC_t ptin_qos_port_bitmap_get(L7_uint32 *ptin_port, L7_uint8 number_of
     /* Not recognized type */
     else
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid intIfNum %u", intIfNum);
+      PT_LOG_ERR(LOG_CTX_INTF, "Invalid intIfNum %u", intIfNum);
       rc = L7_FAILURE;
       continue;
     }
   }
-  LOG_TRACE(LOG_CTX_PTIN_API, "Bitmap ports: 0x%llx", pbmp);
+  PT_LOG_TRACE(LOG_CTX_API, "Bitmap ports: 0x%llx", pbmp);
 
   if (ptin_port_bmp != L7_NULLPTR)
   {
@@ -1291,10 +1291,10 @@ L7_RC_t ptin_qos_egress_remark(L7_uint32 intIfNum, L7_BOOL enable)
   rc = dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_QOS_REMARK, DAPI_CMD_SET, sizeof(L7_uint32), (void *) &remark_enable);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error setting remarking for intIfNum %u: rc=%d", intIfNum, rc);
+    PT_LOG_ERR(LOG_CTX_INTF, "Error setting remarking for intIfNum %u: rc=%d", intIfNum, rc);
     return L7_FAILURE;
   }
-  LOG_TRACE(LOG_CTX_PTIN_INTF, "QoS remark set to %u at intIfNum %u", remark_enable, intIfNum);
+  PT_LOG_TRACE(LOG_CTX_INTF, "QoS remark set to %u at intIfNum %u", remark_enable, intIfNum);
 
   return L7_SUCCESS;
 }
@@ -1316,14 +1316,14 @@ L7_RC_t ptin_qos_vlan_add(ptin_qos_vlan_t *qos)
   /* Validate arguments */
   if (qos->int_vlan > PTIN_VLAN_MAX || qos->nni_vlan > PTIN_VLAN_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, "Invalid vlan id: int_vlan=%u nni_vlan=%u", qos->int_vlan, qos->nni_vlan);
+    PT_LOG_ERR(LOG_CTX_API, "Invalid vlan id: int_vlan=%u nni_vlan=%u", qos->int_vlan, qos->nni_vlan);
     return L7_FAILURE;
   }
 
   /* Validate trust mode */
   if (qos->trust_mode > L7_QOS_COS_MAP_INTF_MODE_TRUST_IPDSCP)
   {
-    LOG_ERR(LOG_CTX_PTIN_API, "Invalid trust mode: %u", qos->trust_mode);
+    PT_LOG_ERR(LOG_CTX_API, "Invalid trust mode: %u", qos->trust_mode);
     return L7_FAILURE;
   }
 
@@ -1351,17 +1351,17 @@ L7_RC_t ptin_qos_vlan_add(ptin_qos_vlan_t *qos)
   /* Validate ports */
   if (qos->number_of_ports == 0)
   {
-    LOG_WARNING(LOG_CTX_PTIN_API, "No ports provided (ports=%u)... ignoring", qos->number_of_ports);
+    PT_LOG_WARN(LOG_CTX_API, "No ports provided (ports=%u)... ignoring", qos->number_of_ports);
     return L7_SUCCESS;
   }
 
   /* Get bitmap of ports */
   if (ptin_qos_port_bitmap_get(qos->ptin_port, qos->number_of_ports, &ptin_port_bmp) != L7_SUCCESS)
   {
-    LOG_WARNING(LOG_CTX_PTIN_API, "Error getting bitmap of ports");
+    PT_LOG_WARN(LOG_CTX_API, "Error getting bitmap of ports");
     return L7_FAILURE;
   }
-  LOG_TRACE(LOG_CTX_PTIN_API, "VLAN %u, Bitmap ports: 0x%llx", qos->int_vlan, ptin_port_bmp);
+  PT_LOG_TRACE(LOG_CTX_API, "VLAN %u, Bitmap ports: 0x%llx", qos->int_vlan, ptin_port_bmp);
 
   memset(&qos_cfg, 0x00, sizeof(qos_cfg));
   qos_cfg.ext_vlan      = qos->nni_vlan;
@@ -1376,7 +1376,7 @@ L7_RC_t ptin_qos_vlan_add(ptin_qos_vlan_t *qos)
 
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "QoS mapping failed");
+    PT_LOG_ERR(LOG_CTX_INTF, "QoS mapping failed");
     return rc;
   }
 
@@ -1401,7 +1401,7 @@ L7_RC_t ptin_qos_vlan_add_recursive(ptin_dtl_qos_t *qos_cfg, L7_uint8 *cos_map, 
 
   if (prio_start > 7 || prio_end > 7 || prio_start > prio_end)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid prio range: %u - %u", prio_start, prio_end);
+    PT_LOG_ERR(LOG_CTX_INTF, "Invalid prio range: %u - %u", prio_start, prio_end);
     return L7_FAILURE;
   }
 
@@ -1414,10 +1414,10 @@ L7_RC_t ptin_qos_vlan_add_recursive(ptin_dtl_qos_t *qos_cfg, L7_uint8 *cos_map, 
     rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_QOS, DAPI_CMD_SET, sizeof(ptin_dtl_qos_t), qos_cfg);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Error configuring priority %u", prio_start);
+      PT_LOG_ERR(LOG_CTX_INTF, "Error configuring priority %u", prio_start);
       return L7_FAILURE;
     }
-    LOG_TRACE(LOG_CTX_PTIN_INTF, "Priority %u will be mapped to int_prio %u", prio_start, cos_map[prio_start]);
+    PT_LOG_TRACE(LOG_CTX_INTF, "Priority %u will be mapped to int_prio %u", prio_start, cos_map[prio_start]);
 
     return L7_SUCCESS;
   }
@@ -1438,10 +1438,10 @@ L7_RC_t ptin_qos_vlan_add_recursive(ptin_dtl_qos_t *qos_cfg, L7_uint8 *cos_map, 
     rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_QOS, DAPI_CMD_SET, sizeof(ptin_dtl_qos_t), qos_cfg);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Error configuring priority %u-%u", prio_start, prio_end);
+      PT_LOG_ERR(LOG_CTX_INTF, "Error configuring priority %u-%u", prio_start, prio_end);
       return L7_FAILURE;
     }
-    LOG_TRACE(LOG_CTX_PTIN_INTF, "Priorities %u-%u will be mapped to int_prio %u", prio_start, prio_end, cos_map[prio_start]);
+    PT_LOG_TRACE(LOG_CTX_INTF, "Priorities %u-%u will be mapped to int_prio %u", prio_start, prio_end, cos_map[prio_start]);
 
     return L7_SUCCESS;
   }
@@ -1473,7 +1473,7 @@ L7_RC_t ptin_broadcast_rateLimit(L7_BOOL enable, L7_uint16 vlanId)
 
   if (vlanId==0 || vlanId>4095)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Invalid Vlan Id %u",vlanId);
+    PT_LOG_ERR(LOG_CTX_API,"Invalid Vlan Id %u",vlanId);
     return L7_FAILURE;
   }
 
@@ -1488,11 +1488,11 @@ L7_RC_t ptin_broadcast_rateLimit(L7_BOOL enable, L7_uint16 vlanId)
 
   if (rc!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error setting broadcast rate limit to vlan %u to %u",vlanId,enable);
+    PT_LOG_ERR(LOG_CTX_API,"Error setting broadcast rate limit to vlan %u to %u",vlanId,enable);
   }
   else
   {
-    LOG_TRACE(LOG_CTX_PTIN_API,"Success setting broadcast rate limit to vlan %u to %u",vlanId,enable);
+    PT_LOG_TRACE(LOG_CTX_API,"Success setting broadcast rate limit to vlan %u to %u",vlanId,enable);
   }
 
   return rc;
@@ -1513,7 +1513,7 @@ L7_RC_t ptin_multicast_rateLimit(L7_BOOL enable, L7_uint16 vlanId)
 
   if (vlanId==0 || vlanId>4095)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Invalid Vlan Id %u",vlanId);
+    PT_LOG_ERR(LOG_CTX_API,"Invalid Vlan Id %u",vlanId);
     return L7_FAILURE;
   }
 
@@ -1528,11 +1528,11 @@ L7_RC_t ptin_multicast_rateLimit(L7_BOOL enable, L7_uint16 vlanId)
 
   if (rc!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error setting multicast rate limit to vlan %u to %u",vlanId,enable);
+    PT_LOG_ERR(LOG_CTX_API,"Error setting multicast rate limit to vlan %u to %u",vlanId,enable);
   }
   else
   {
-    LOG_TRACE(LOG_CTX_PTIN_API,"Success setting multicast rate limit to vlan %u to %u",vlanId,enable);
+    PT_LOG_TRACE(LOG_CTX_API,"Success setting multicast rate limit to vlan %u to %u",vlanId,enable);
   }
 
   return rc;
@@ -1554,7 +1554,7 @@ L7_RC_t ptin_hw_resources_get(st_ptin_policy_resources *resources)
 
   if ((rc=dtlPtinHwResources(resources))!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Error consulting hardware resources");
+    PT_LOG_ERR(LOG_CTX_API,"Error consulting hardware resources");
   }
 
   return rc;

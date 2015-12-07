@@ -372,7 +372,7 @@ L7_RC_t pppoeCnfgrInitPhase1Process(L7_CNFGR_RESPONSE_t *pResponse,
   pppoeBindingTable.dataHeap = (ptinPppoeBindingInfoData_t *)osapiMalloc(L7_PTIN_COMPONENT_ID, PTIN_SYSTEM_PPPOE_MAXCLIENTS * sizeof(ptinPppoeBindingInfoData_t)); 
   if ((pppoeBindingTable.treeHeap == L7_NULLPTR) || (pppoeBindingTable.dataHeap == L7_NULLPTR))
   {
-    LOG_ERR(LOG_CTX_PTIN_PPPOE,"Error allocating data for PPPoE AVL Trees\n");
+    PT_LOG_ERR(LOG_CTX_PPPOE,"Error allocating data for PPPoE AVL Trees\n");
     return L7_FAILURE;
   }
 
@@ -415,7 +415,7 @@ L7_RC_t pppoeCnfgrInitPhase2Process(L7_CNFGR_RESPONSE_t *pResponse,
   *pResponse  = L7_CNFGR_CMD_COMPLETE;
   *pReason    = 0;
 
-  LOG_INFO(LOG_CTX_STARTUP,"Going to register pppoePduReceive related to type=%u, protocol_type=%u: 0x%08x",
+  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register pppoePduReceive related to type=%u, protocol_type=%u: 0x%08x",
            SYSNET_ETHERTYPE_ENTRY, L7_ETYPE_PPPOE, (L7_uint32) pppoePduReceive);
 
   memset(&snEntry, 0x00, sizeof(snEntry));
@@ -425,7 +425,7 @@ L7_RC_t pppoeCnfgrInitPhase2Process(L7_CNFGR_RESPONSE_t *pResponse,
   snEntry.u.protocol_type = L7_ETYPE_PPPOE;
   if (sysNetRegisterPduReceive(&snEntry) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_PPPOE, "Failure registering sysNetRegisterPduReceive() for PPPoE packets");
+    PT_LOG_ERR(LOG_CTX_PPPOE, "Failure registering sysNetRegisterPduReceive() for PPPoE packets");
 
     *pResponse = 0;
     *pReason   = L7_CNFGR_ERR_RC_FATAL;

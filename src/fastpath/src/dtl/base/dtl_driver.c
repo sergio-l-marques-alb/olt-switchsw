@@ -77,28 +77,28 @@ L7_RC_t dtlDriverInit(L7_ulong32 cpuBoardID)
 
   if (dapiInit(cpuBoardID) == L7_SUCCESS)
   {
-    LOG_INFO(LOG_CTX_STARTUP, "Going to register function 0x%08x to family DTL_FAMILY_INTF_MGMT (%u)", (L7_uint32) dtlLinkChangeCallback, DTL_FAMILY_INTF_MGMT);
+    PT_LOG_INFO(LOG_CTX_STARTUP, "Going to register function 0x%08x to family DTL_FAMILY_INTF_MGMT (%u)", (L7_uint32) dtlLinkChangeCallback, DTL_FAMILY_INTF_MGMT);
     rc = dtlCallbackRegistration(DTL_FAMILY_INTF_MGMT,dtlLinkChangeCallback);
     if (rc==L7_FAILURE)
     {
       return rc;
     }
 
-    LOG_INFO(LOG_CTX_STARTUP, "Going to register function 0x%08x to family DTL_FAMILY_FRAME (%u)", (L7_uint32) dtlPduReceiveCallback, DTL_FAMILY_FRAME);
+    PT_LOG_INFO(LOG_CTX_STARTUP, "Going to register function 0x%08x to family DTL_FAMILY_FRAME (%u)", (L7_uint32) dtlPduReceiveCallback, DTL_FAMILY_FRAME);
     rc = dtlCallbackRegistration(DTL_FAMILY_FRAME,dtlPduReceiveCallback);
     if (rc==L7_FAILURE)
     {
       return rc;
     }
 
-    LOG_INFO(LOG_CTX_STARTUP, "Going to register function 0x%08x to family DTL_FAMILY_QVLAN_MGMT (%u)", (L7_uint32) dtlGenericCallback, DTL_FAMILY_QVLAN_MGMT);
+    PT_LOG_INFO(LOG_CTX_STARTUP, "Going to register function 0x%08x to family DTL_FAMILY_QVLAN_MGMT (%u)", (L7_uint32) dtlGenericCallback, DTL_FAMILY_QVLAN_MGMT);
     rc = dtlCallbackRegistration(DTL_FAMILY_QVLAN_MGMT,dtlGenericCallback);
     if (rc == L7_FAILURE)
     {
       return rc;
     }
 
-    LOG_INFO(LOG_CTX_STARTUP, "Going to register function 0x%08x to family DTL_FAMILY_SERVICES (%u)", (L7_uint32) dtlGenericCallback, DTL_FAMILY_SERVICES);
+    PT_LOG_INFO(LOG_CTX_STARTUP, "Going to register function 0x%08x to family DTL_FAMILY_SERVICES (%u)", (L7_uint32) dtlGenericCallback, DTL_FAMILY_SERVICES);
     rc = dtlCallbackRegistration(DTL_FAMILY_SERVICES, dtlGenericCallback);
     if (rc == L7_FAILURE)
     {
@@ -144,21 +144,21 @@ L7_RC_t dtlCardCmd(L7_ushort16    unitNum,
     dapiCardMgmt.cardCmd = CARD_CMD_INSERT;
     dapiCardMgmt.cmdData.cardInsert.cardId = cardTypeID;
 
-    LOG_TRACE(LOG_CTX_STARTUP,"CARD_CMD_INSERT event");
+    PT_LOG_TRACE(LOG_CTX_STARTUP,"CARD_CMD_INSERT event");
     if (dapiCtl(&usp,DAPI_CMD_CARD_INSERT,&dapiCardMgmt) == L7_FAILURE)
       return L7_FAILURE;
     break;
 
   case DTL_CARD_REMOVE:
     dapiCardMgmt.cardCmd = CARD_CMD_REMOVE;
-    LOG_TRACE(LOG_CTX_STARTUP,"CARD_CMD_REMOVE event");
+    PT_LOG_TRACE(LOG_CTX_STARTUP,"CARD_CMD_REMOVE event");
     if (dapiCtl(&usp,DAPI_CMD_CARD_REMOVE,&dapiCardMgmt) == L7_FAILURE)
       return L7_FAILURE;
     break;
 
   case DTL_CARD_PLUGIN_START:
     dapiCardMgmt.cardCmd = CARD_CMD_PLUGIN_START;
-    LOG_TRACE(LOG_CTX_STARTUP,"CARD_CMD_PLUGIN_START event");
+    PT_LOG_TRACE(LOG_CTX_STARTUP,"CARD_CMD_PLUGIN_START event");
     if (dapiCtl(&usp,DAPI_CMD_CARD_PLUGIN,&dapiCardMgmt) == L7_FAILURE)
       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DTL_COMPONENT_ID,
               "cardCmd %d failed for unit/slot %d/%d\n", cardCmd, unitNum, slotNum);
@@ -166,7 +166,7 @@ L7_RC_t dtlCardCmd(L7_ushort16    unitNum,
 
   case DTL_CARD_PLUGIN_FINISH:
     dapiCardMgmt.cardCmd = CARD_CMD_PLUGIN_FINISH;
-    LOG_TRACE(LOG_CTX_STARTUP,"CARD_CMD_PLUGIN_FINISH event");
+    PT_LOG_TRACE(LOG_CTX_STARTUP,"CARD_CMD_PLUGIN_FINISH event");
     if (dapiCtl(&usp,DAPI_CMD_CARD_PLUGIN,&dapiCardMgmt) == L7_FAILURE)
       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DTL_COMPONENT_ID,
               "cardCmd %d failed for unit/slot %d/%d\n", cardCmd, unitNum, slotNum);
@@ -174,7 +174,7 @@ L7_RC_t dtlCardCmd(L7_ushort16    unitNum,
 
   case DTL_CARD_UNPLUG_START:
     dapiCardMgmt.cardCmd = CARD_CMD_UNPLUG_START;
-    LOG_TRACE(LOG_CTX_STARTUP,"CARD_CMD_UNPLUG_START event");
+    PT_LOG_TRACE(LOG_CTX_STARTUP,"CARD_CMD_UNPLUG_START event");
     if (dapiCtl(&usp,DAPI_CMD_CARD_UNPLUG,&dapiCardMgmt) == L7_FAILURE)
       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DTL_COMPONENT_ID,
               "cardCmd %d failed for unit/slot %d/%d\n", cardCmd, unitNum, slotNum);
@@ -182,14 +182,14 @@ L7_RC_t dtlCardCmd(L7_ushort16    unitNum,
 
   case DTL_CARD_UNPLUG_FINISH:
     dapiCardMgmt.cardCmd = CARD_CMD_UNPLUG_FINISH;
-    LOG_TRACE(LOG_CTX_STARTUP,"CARD_CMD_UNPLUG_FINISH event");
+    PT_LOG_TRACE(LOG_CTX_STARTUP,"CARD_CMD_UNPLUG_FINISH event");
     if (dapiCtl(&usp,DAPI_CMD_CARD_UNPLUG,&dapiCardMgmt) == L7_FAILURE)
       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DTL_COMPONENT_ID,
               "cardCmd %d failed for unit/slot %d/%d\n", cardCmd, unitNum, slotNum);
     break;
 
   default:
-    LOG_ERR(LOG_CTX_STARTUP,"Unknown event");
+    PT_LOG_ERR(LOG_CTX_STARTUP,"Unknown event");
     return L7_FAILURE;
   }
   return L7_SUCCESS;

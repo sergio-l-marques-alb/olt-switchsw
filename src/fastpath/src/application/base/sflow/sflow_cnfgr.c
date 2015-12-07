@@ -622,7 +622,7 @@ L7_RC_t sFlowCnfgrInitPhase2Process(L7_CNFGR_RESPONSE_t *pResponse,
     return sFlowRC;
   }
 
-  LOG_INFO(LOG_CTX_STARTUP,"Going to register sFlowPduReceive related to type=%u, rx_reason=%u: 0x%08x",
+  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register sFlowPduReceive related to type=%u, rx_reason=%u: 0x%08x",
            SYSNET_PKT_RX_REASON, SFLOW_SAMPLE_INGRESS_REASON_CODE, (L7_uint32) sFlowPduReceive);
 
   /* register with sysnet for sampled packets */
@@ -820,7 +820,7 @@ void sFlowCnfgrFiniPhase2Process(void)
 {
   sysnetNotifyEntry_t snEntry;
 
-  LOG_NOTICE(LOG_CTX_PTIN_CNFGR, "ATTENTION: sFlow callback will be deregistered!");
+  PT_LOG_NOTICE(LOG_CTX_CNFGR, "ATTENTION: sFlow callback will be deregistered!");
 
   /* deregistrations with
              NIM, NVStore, sysNet

@@ -75,45 +75,45 @@ L7_RC_t broad_ptin_example(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uin
 {
   ptin_dtl_example_t *example = (ptin_dtl_example_t *) data;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Hello World: usp={%d,%d,%d} operation=%u dataSize=%u", usp->unit, usp->slot, usp->port, operation, dataSize);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Hello World: usp={%d,%d,%d} operation=%u dataSize=%u", usp->unit, usp->slot, usp->port, operation, dataSize);
 
   /* Validate data pointer */
   if (example == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Structure data pointer is null");
+    PT_LOG_ERR(LOG_CTX_HAPI, "Structure data pointer is null");
     return L7_FAILURE;
   }
 
   /* Validate data size */
   if (dataSize != sizeof(ptin_dtl_example_t))
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid data size (%u VS %u)", dataSize, sizeof(ptin_dtl_example_t));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid data size (%u VS %u)", dataSize, sizeof(ptin_dtl_example_t));
     return L7_FAILURE;
   }
 
   switch (operation)
   {
     case DAPI_CMD_GET:
-      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Operation is DAPI_CMD_GET");
+      PT_LOG_TRACE(LOG_CTX_HAPI, "Operation is DAPI_CMD_GET");
       /* Put here function for GET procedure */
       break;
 
     case DAPI_CMD_SET:
-      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Operation is DAPI_CMD_SET");
+      PT_LOG_TRACE(LOG_CTX_HAPI, "Operation is DAPI_CMD_SET");
       /* Put here function for SET procedure */
       break;
 
     case DAPI_CMD_CLEAR:
-      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Operation is DAPI_CMD_CLEAR");
+      PT_LOG_TRACE(LOG_CTX_HAPI, "Operation is DAPI_CMD_CLEAR");
       /* Put here function for CLEAR procedure */
       break;
 
     default:
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Not recognized operation (%u)!", operation);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Not recognized operation (%u)!", operation);
       return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Calling ptin_hapi_example...");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Calling ptin_hapi_example...");
   return ptin_hapi_example(usp, example, dapi_g);
 }
 
@@ -135,7 +135,7 @@ L7_RC_t broad_ptin_l2_maclimit(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7
 
   entry = (ptin_l2_maclimit_t*) data;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "%s: usp={%d,%d,%d} operation=%u dataSize=%u", __FUNCTION__, usp->unit, usp->slot, usp->port, operation, dataSize);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "%s: usp={%d,%d,%d} operation=%u dataSize=%u", __FUNCTION__, usp->unit, usp->slot, usp->port, operation, dataSize);
 
   // Check action: None-0 or Limit-1. If none, the MAC learning is not limited 
   if (entry->limit == (L7_uint32) -1)
@@ -156,7 +156,7 @@ L7_RC_t broad_ptin_l2_maclimit_status(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operat
 
   entry = (ptin_l2_maclimit_status_t*) data;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "%s: usp={%d,%d,%d} operation=%u dataSize=%u", __FUNCTION__, usp->unit, usp->slot, usp->port, operation, dataSize);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "%s: usp={%d,%d,%d} operation=%u dataSize=%u", __FUNCTION__, usp->unit, usp->slot, usp->port, operation, dataSize);
 
   rc = ptin_hapi_maclimit_status(usp, &entry->number_mac_learned, &entry->status, dapi_g);
 
@@ -179,23 +179,23 @@ L7_RC_t broad_ptin_l3_intf(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uin
   ptin_dtl_l3_intf_t *intf = (ptin_dtl_l3_intf_t *) data;
   L7_RC_t             rc = L7_SUCCESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "usp={%d,%d,%d} operation=%u dataSize=%u", usp->unit, usp->slot, usp->port, operation, dataSize);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "usp={%d,%d,%d} operation=%u dataSize=%u", usp->unit, usp->slot, usp->port, operation, dataSize);
 
   /* Validate data pointer */
   if (intf == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid Arguments: intf=%p", intf);
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid Arguments: intf=%p", intf);
     return L7_FAILURE;
   }
 
   /* Validate data size */
   if (dataSize != sizeof(ptin_dtl_l3_intf_t))
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid data size (%u VS %u)", dataSize, sizeof(ptin_dtl_l3_intf_t));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid data size (%u VS %u)", dataSize, sizeof(ptin_dtl_l3_intf_t));
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Input Parameters [flags:0x08%X vid:%d mac_address:%02x:%02x:%02x:%02x:%02x:%02x l3_intf_id:%d mtu:%d]", intf->flags, intf->vid, 
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Input Parameters [flags:0x08%X vid:%d mac_address:%02x:%02x:%02x:%02x:%02x:%02x l3_intf_id:%d mtu:%d]", intf->flags, intf->vid, 
            intf->mac_addr[0], intf->mac_addr[1], intf->mac_addr[2], intf->mac_addr[3], intf->mac_addr[4], intf->mac_addr[5], intf->l3_intf_id, intf->mtu);
   
   switch (operation)
@@ -213,7 +213,7 @@ L7_RC_t broad_ptin_l3_intf(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uin
       break;
 
     default:
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Not recognized operation (%u)!", operation);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Not recognized operation (%u)!", operation);
       return L7_FAILURE;
   }
   return rc;  
@@ -237,23 +237,23 @@ L7_RC_t broad_ptin_l3_ipmc(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uin
   ptin_dtl_ipmc_addr_t *ipmc = (ptin_dtl_ipmc_addr_t *) data;
   L7_RC_t               rc = L7_SUCCESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "usp={%d,%d,%d} operation=%u dataSize=%u", usp->unit, usp->slot, usp->port, operation, dataSize);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "usp={%d,%d,%d} operation=%u dataSize=%u", usp->unit, usp->slot, usp->port, operation, dataSize);
 
   /* Validate data pointer */
   if (ipmc == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid Arguments: intf=%p", ipmc);
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid Arguments: intf=%p", ipmc);
     return L7_FAILURE;
   }
 
   /* Validate data size */
   if (dataSize != sizeof(ptin_dtl_ipmc_addr_t))
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid data size (%u VS %u)", dataSize, sizeof(ptin_dtl_ipmc_addr_t));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid data size (%u VS %u)", dataSize, sizeof(ptin_dtl_ipmc_addr_t));
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Input Parameters [flags:0x08%X vid:%d group_index:0x%x sourceAddr:0x%08x groupAddr:0x%08x]", ipmc->flags, ipmc->vid, ipmc->group_index, 
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Input Parameters [flags:0x08%X vid:%d group_index:0x%x sourceAddr:0x%08x groupAddr:0x%08x]", ipmc->flags, ipmc->vid, ipmc->group_index, 
            ipmc->s_ip_addr.addr.ipv4.s_addr, ipmc->mc_ip_addr.addr.ipv4.s_addr);
   
   switch (operation)
@@ -274,7 +274,7 @@ L7_RC_t broad_ptin_l3_ipmc(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uin
       break;
 
     default:
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Not recognized operation (%u)!", operation);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Not recognized operation (%u)!", operation);
       return L7_FAILURE;
   }
   return rc;  
@@ -286,23 +286,23 @@ L7_RC_t broad_ptin_qos_classify(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L
   ptin_dtl_qos_t  *qos_cfg = (ptin_dtl_qos_t *) data;
   L7_RC_t          rc = L7_SUCCESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "usp={%d,%d,%d} operation=%u dataSize=%u", usp->unit, usp->slot, usp->port, operation, dataSize);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "usp={%d,%d,%d} operation=%u dataSize=%u", usp->unit, usp->slot, usp->port, operation, dataSize);
 
   /* Validate data pointer */
   if (qos_cfg == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid Arguments: intf=0x%08x", (L7_uint32) qos_cfg);
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid Arguments: intf=0x%08x", (L7_uint32) qos_cfg);
     return L7_FAILURE;
   }
 
   /* Validate data size */
   if (dataSize != sizeof(ptin_dtl_qos_t))
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid data size (%u VS %u)", dataSize, sizeof(ptin_dtl_qos_t));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid data size (%u VS %u)", dataSize, sizeof(ptin_dtl_qos_t));
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Input Parameters [port_bmp=0x%016llx intVlan=%u NNIVlan=%u trust_mode=%u priority=%u/0x%x -> int_prio=%u",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Input Parameters [port_bmp=0x%016llx intVlan=%u NNIVlan=%u trust_mode=%u priority=%u/0x%x -> int_prio=%u",
             qos_cfg->ptin_port_bmp, qos_cfg->int_vlan, qos_cfg->ext_vlan, qos_cfg->trust_mode, qos_cfg->priority, qos_cfg->priority_mask, qos_cfg->int_priority);
 
   dapiPort.usp = usp;
@@ -322,7 +322,7 @@ L7_RC_t broad_ptin_qos_classify(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L
       break;
 
     default:
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Not recognized operation (%u)!", operation);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Not recognized operation (%u)!", operation);
       return L7_FAILURE;
   }
   return rc;  
@@ -334,23 +334,23 @@ L7_RC_t broad_ptin_qos_remark(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_
   L7_uint32 *remark_enable = (L7_uint32 *) data;
   L7_RC_t    rc = L7_SUCCESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "usp={%d,%d,%d} operation=%u dataSize=%u", usp->unit, usp->slot, usp->port, operation, dataSize);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "usp={%d,%d,%d} operation=%u dataSize=%u", usp->unit, usp->slot, usp->port, operation, dataSize);
 
   /* Validate data pointer */
   if (remark_enable == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid Arguments: intf=0x%08x", (L7_uint32) remark_enable);
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid Arguments: intf=0x%08x", (L7_uint32) remark_enable);
     return L7_FAILURE;
   }
 
   /* Validate data size */
   if (dataSize != sizeof(L7_uint32))
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid data size (%u VS %u)", dataSize, sizeof(L7_uint32));
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid data size (%u VS %u)", dataSize, sizeof(L7_uint32));
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Input Parameters [Remark enable: %u]", *remark_enable);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Input Parameters [Remark enable: %u]", *remark_enable);
 
   dapiPort.usp = usp;
   dapiPort.dapi_g = dapi_g;
@@ -362,7 +362,7 @@ L7_RC_t broad_ptin_qos_remark(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_
       break;
 
     default:
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Not recognized operation (%u)!", operation);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Not recognized operation (%u)!", operation);
       return L7_FAILURE;
   }
   return rc;  
@@ -386,28 +386,28 @@ L7_RC_t hapiBroadPtinGeneric(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t
   /* Validate arguments */
   if (ptinDtlGeneric == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_DTL, "Null pointer");
+    PT_LOG_ERR(LOG_CTX_DTL, "Null pointer");
     return L7_FAILURE;
   }
 
   /* Validate message id */
   if (ptinDtlGeneric->msgId >= PTIN_DTL_MSG_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_DTL, "Invalid Message ID (%u)", ptinDtlGeneric->msgId);
+    PT_LOG_ERR(LOG_CTX_DTL, "Invalid Message ID (%u)", ptinDtlGeneric->msgId);
     return L7_FAILURE;
   }
 
   /* Validate datasize */
   if (ptinDtlGeneric->dataSize > PTIN_DTL_GENERICMSG_MAX_DATASIZE)
   {
-    LOG_ERR(LOG_CTX_PTIN_DTL, "Invalid datasize (%u)", ptinDtlGeneric->dataSize);
+    PT_LOG_ERR(LOG_CTX_DTL, "Invalid datasize (%u)", ptinDtlGeneric->dataSize);
     return L7_FAILURE;
   }
 
   /* Is a valid function pointer? */
   if (ptin_dtl_callbacks[ptinDtlGeneric->msgId] == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_DTL, "Null callback for message ID %u", ptinDtlGeneric->msgId);
+    PT_LOG_ERR(LOG_CTX_DTL, "Null callback for message ID %u", ptinDtlGeneric->msgId);
     return L7_FAILURE;
   }
 
@@ -436,12 +436,12 @@ L7_RC_t hapiBroadPtinDataInit(void)
 {
   L7_RC_t rc;
 
-  LOG_INFO(LOG_CTX_PTIN_HAPI, "PTin HAPI Applying configs...");
+  PT_LOG_INFO(LOG_CTX_HAPI, "PTin HAPI Applying configs...");
 
   /* Initialize PTIN HAPI files */
   rc = hapi_ptin_data_init();
 
-  LOG_INFO(LOG_CTX_PTIN_HAPI, "PTin HAPI data structs config: %d",rc);
+  PT_LOG_INFO(LOG_CTX_HAPI, "PTin HAPI data structs config: %d",rc);
 
   return rc;
 }
@@ -460,14 +460,14 @@ L7_RC_t hapiBroadPtinInit(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *d
 {
   L7_RC_t rc;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "PTin HAPI Applying configs...");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "PTin HAPI Applying configs...");
 
   /* Initialize PTIN HAPI files */
   rc = hapi_ptin_config_init();
 
   //hapi_ptin_phy_config_init();
 
-  LOG_INFO(LOG_CTX_PTIN_HAPI, "PTin HAPI Configuration: %d",rc);
+  PT_LOG_INFO(LOG_CTX_HAPI, "PTin HAPI Configuration: %d",rc);
 
   return rc;
 }
@@ -488,19 +488,19 @@ L7_RC_t hapiBroadHwApply(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *da
   L7_RC_t rc = L7_SUCCESS;
   L7_uint8 enable, link;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "PTin HAPI Configuration: procedure=%u, param1=%d, param2=%d", hwproc->procedure, hwproc->param1, hwproc->param2);
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "usp={%d,%d,%d}",usp->unit, usp->slot, usp->port);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "PTin HAPI Configuration: procedure=%u, param1=%d, param2=%d", hwproc->procedure, hwproc->param1, hwproc->param2);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "usp={%d,%d,%d}",usp->unit, usp->slot, usp->port);
 
   /* Validate interface */
   if ( usp->unit<0 || usp->slot<0 || usp->port<0 )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI,"USP not provided");
+    PT_LOG_ERR(LOG_CTX_HAPI,"USP not provided");
     return L7_FAILURE;
   }
 
   if (hwproc->procedure == PTIN_HWPROC_NONE)
   {
-    LOG_INFO(LOG_CTX_PTIN_HAPI, "Nothing to do");
+    PT_LOG_INFO(LOG_CTX_HAPI, "Nothing to do");
     return L7_SUCCESS;
   }
 
@@ -511,7 +511,7 @@ L7_RC_t hapiBroadHwApply(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *da
     {
       rc = ptin_hapi_linkscan_get(usp, dapi_g, &enable); 
       if (rc != L7_SUCCESS)
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_linkscan_get: rc=%d", rc);
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error with ptin_hapi_linkscan_get: rc=%d", rc);
       hwproc->param1 = (L7_int32) enable;
     }
     else if (hwproc->operation == DAPI_CMD_SET)
@@ -519,11 +519,11 @@ L7_RC_t hapiBroadHwApply(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *da
       enable = (L7_uint8) hwproc->param1;
       rc = ptin_hapi_linkscan_set(usp, dapi_g, enable);
       if (rc != L7_SUCCESS)
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_linkscan_set (%u): rc=%d", hwproc->param1, rc);
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error with ptin_hapi_linkscan_set (%u): rc=%d", hwproc->param1, rc);
     }
     else
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Operation not recognized: %u", hwproc->operation);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Operation not recognized: %u", hwproc->operation);
       rc = L7_FAILURE;
     }
     break;
@@ -534,17 +534,17 @@ L7_RC_t hapiBroadHwApply(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *da
     {
       rc = ptin_hapi_link_force(usp, dapi_g, link, L7_ENABLE);
       if (rc != L7_SUCCESS)
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_force_link (link=%u, enable=1): rc=%d", hwproc->param1, rc);
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error with ptin_hapi_force_link (link=%u, enable=1): rc=%d", hwproc->param1, rc);
     }
     else if (hwproc->operation == DAPI_CMD_CLEAR)
     {
       rc = ptin_hapi_link_force(usp, dapi_g, link, L7_DISABLE);
       if (rc != L7_SUCCESS)
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_force_link (link=%u, enable=0): rc=%d", hwproc->param1, rc);
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error with ptin_hapi_force_link (link=%u, enable=0): rc=%d", hwproc->param1, rc);
     }
     else
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Operation not recognized: %u", hwproc->operation);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Operation not recognized: %u", hwproc->operation);
       rc = L7_FAILURE;
     }
     break; 
@@ -559,11 +559,11 @@ L7_RC_t hapiBroadHwApply(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *da
 
       rc = ptin_hapi_clock_recovery_set(main_port, bckp_port, dapi_g);
       if (rc != L7_SUCCESS)
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_clock_recovery_set (main_port=%d, backup_port=%d): rc=%d", main_port, bckp_port, rc);
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error with ptin_hapi_clock_recovery_set (main_port=%d, backup_port=%d): rc=%d", main_port, bckp_port, rc);
     }
     else
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Operation not recognized: %u", hwproc->operation);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Operation not recognized: %u", hwproc->operation);
       rc = L7_FAILURE;
     }
     break;
@@ -573,17 +573,17 @@ L7_RC_t hapiBroadHwApply(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *da
     {
       rc = ptin_hapi_vcap_defvid(usp, hwproc->param1, hwproc->param2, dapi_g);
       if (rc != L7_SUCCESS)
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_vcap_defvid (outerVlan=%u, innerVlan=%u): rc=%d", hwproc->param1, hwproc->param2, rc);
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error with ptin_hapi_vcap_defvid (outerVlan=%u, innerVlan=%u): rc=%d", hwproc->param1, hwproc->param2, rc);
     }
     else if (hwproc->operation == DAPI_CMD_CLEAR)
     {
       rc = ptin_hapi_vcap_defvid(usp, 0, 0, dapi_g);
       if (rc != L7_SUCCESS)
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_vcap_defvid (outerVlan=0, innerVlan=0): rc=%d", rc);
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error with ptin_hapi_vcap_defvid (outerVlan=0, innerVlan=0): rc=%d", rc);
     }
     else
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Operation not recognized: %u", hwproc->operation);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Operation not recognized: %u", hwproc->operation);
       rc = L7_FAILURE;
     }
     break; 
@@ -593,13 +593,13 @@ L7_RC_t hapiBroadHwApply(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *da
     {
       rc = ptin_hapi_L3UcastTtl1ToCpu_set(usp, 1, dapi_g);
       if (rc != L7_SUCCESS)
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_L3UcastTtl1ToCpu_set");
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error with ptin_hapi_L3UcastTtl1ToCpu_set");
     }
     else if (hwproc->operation == DAPI_CMD_CLEAR)
     {
       rc = ptin_hapi_L3UcastTtl1ToCpu_set(usp, 0, dapi_g);
       if (rc != L7_SUCCESS)
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_L3UcastTtl1ToCpu_set");
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error with ptin_hapi_L3UcastTtl1ToCpu_set");
     }
     break; 
 
@@ -608,20 +608,20 @@ L7_RC_t hapiBroadHwApply(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *da
     {
       rc = ptin_hapi_frame_oversize_get(usp, &hwproc->param1, dapi_g);
       if (rc != L7_SUCCESS)
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_frame_oversize_get: rc=%d", rc);
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error with ptin_hapi_frame_oversize_get: rc=%d", rc);
       else
-        LOG_TRACE(LOG_CTX_PTIN_HAPI, "Oversize frame limite for port {%d,%d,%d} is %u bytes",
+        PT_LOG_TRACE(LOG_CTX_HAPI, "Oversize frame limite for port {%d,%d,%d} is %u bytes",
                   usp->unit, usp->slot, usp->port, hwproc->param1);
     }
     else if (hwproc->operation == DAPI_CMD_SET)
     {
       rc = ptin_hapi_frame_oversize_set(usp, hwproc->param1, dapi_g);
       if (rc != L7_SUCCESS)
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_frame_oversize_set (frame_size=%u): rc=%d", hwproc->param1, rc);
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error with ptin_hapi_frame_oversize_set (frame_size=%u): rc=%d", hwproc->param1, rc);
     }
     else
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Operation not recognized: %u", hwproc->operation);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Operation not recognized: %u", hwproc->operation);
       rc = L7_FAILURE;
     }
     break;
@@ -633,13 +633,13 @@ L7_RC_t hapiBroadHwApply(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *da
     }
     else
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Operation not recognized: %u", hwproc->operation);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Operation not recognized: %u", hwproc->operation);
       rc = L7_FAILURE;
     }
     break;
 
   default:
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid procedure: %u", hwproc->procedure);
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid procedure: %u", hwproc->procedure);
     rc = L7_FAILURE;
     break;
   }
@@ -673,7 +673,7 @@ L7_RC_t hapiBroadPtinSlotMode(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_
   hapiSlotMapPtr       = dapiCardPtr->slotMap;
   wcSlotMode           = dapiCardPtr->wcSlotMode;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Slot mode operation");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Slot mode operation");
 
   slotmode = (ptin_slotmode_t *) data;
 
@@ -689,7 +689,7 @@ L7_RC_t hapiBroadPtinSlotMode(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_
     rc = hpcConfigWCmap_build(slotmode->slotMode, L7_NULLPTR);
   }
 
-  //LOG_INFO(LOG_CTX_PTIN_HAPI, "PTin HAPI Configuration: %d",rc);
+  //PT_LOG_INFO(LOG_CTX_HAPI, "PTin HAPI Configuration: %d",rc);
   #endif
 
   return rc;
@@ -715,12 +715,12 @@ L7_RC_t hapiBroadPtinPortExt(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t
   /* Extract priority */
   portExt = (ptin_HWPortExt_t *) data;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "usp={%d,%d,%d}",usp->unit, usp->slot, usp->port);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "usp={%d,%d,%d}",usp->unit, usp->slot, usp->port);
 
   /* Validate interface */
   if ( usp->unit<0 || usp->slot<0 || usp->port<0 )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI,"USP not provided");
+    PT_LOG_ERR(LOG_CTX_HAPI,"USP not provided");
     return L7_FAILURE;
   }
 
@@ -759,7 +759,7 @@ L7_RC_t hapiBroadPtinPortExt(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t
         rc = L7_SUCCESS;
       }
     }
-    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Result for L2LearnPortSet: %d",rc);
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Result for L2LearnPortSet: %d",rc);
   }
   else if (portExt->operation==DAPI_CMD_SET)
   {
@@ -778,7 +778,7 @@ L7_RC_t hapiBroadPtinPortExt(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t
         rc = hapi_ptin_egress_port_type_set(&dapiPort, portExt->egress_type);
       }
     }
-    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Result for L2LearnPortSet: %d",rc);
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Result for L2LearnPortSet: %d",rc);
   }
 
   return rc;
@@ -826,7 +826,7 @@ L7_RC_t hapiBroadPtinCountersClear(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
 
   if ( hapi_ptin_counters_clear(port) )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error on hapi_ptin_counters_clear() on port# %u", port);
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error on hapi_ptin_counters_clear() on port# %u", port);
     return L7_FAILURE;
   }
 
@@ -872,7 +872,7 @@ L7_RC_t hapiBroadPtinVlanTranslate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
   ptin_dapi_port_t dapiPort;
   ptin_hapi_xlate_t hapi_xlate;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "usp={%d,%d,%d}, Stage=%u, operation=%u, group=%u, oVlanId=%u, iVlanId=%u, newOVlanId=%u(%u), newIVlanId=%u(%u), rem_VLANs=%u",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "usp={%d,%d,%d}, Stage=%u, operation=%u, group=%u, oVlanId=%u, iVlanId=%u, newOVlanId=%u(%u), newIVlanId=%u(%u), rem_VLANs=%u",
             usp->unit, usp->slot, usp->port, xlate->stage, xlate->oper, xlate->portgroup,
             xlate->outerVlan, xlate->innerVlan,
             xlate->outerVlan_new,xlate->outerVlanAction,
@@ -883,7 +883,7 @@ L7_RC_t hapiBroadPtinVlanTranslate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
   if ( ( xlate->portgroup==PTIN_XLATE_PORTGROUP_INTERFACE ) &&
        ( usp->unit<0 || usp->slot<0 || usp->port<0 ) )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI,"USP not provided");
+    PT_LOG_ERR(LOG_CTX_HAPI,"USP not provided");
     return L7_FAILURE;
   }
 
@@ -957,7 +957,7 @@ L7_RC_t hapiBroadPtinVlanTranslate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
   case PTIN_XLATE_STAGE_ALL:
     if ( xlate->oper == DAPI_CMD_CLEAR )
     {
-      LOG_TRACE(LOG_CTX_PTIN_HAPI, "All translations will be removed");
+      PT_LOG_TRACE(LOG_CTX_HAPI, "All translations will be removed");
 
       if ( (ptin_hapi_xlate_ingress_delete_all() != L7_SUCCESS) ||
            (ptin_hapi_xlate_egress_delete_all() != L7_SUCCESS) )
@@ -969,7 +969,7 @@ L7_RC_t hapiBroadPtinVlanTranslate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
     break;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Finished: rc=%d", rc);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Finished: rc=%d", rc);
 
   return rc;
 }
@@ -989,13 +989,13 @@ L7_RC_t hapiBroadPtinVlanTranslatePortGroups(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
   ptin_vlanXlate_classId_t *classSt = (ptin_vlanXlate_classId_t *) data;
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "usp={%d,%d,%d}, Oper=%d, classId=%d",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "usp={%d,%d,%d}, Oper=%d, classId=%d",
             usp->unit, usp->slot, usp->port, classSt->oper, classSt->class_id);
 
   /* Validate usp */
   if (usp->unit<0 || usp->slot<0 || usp->port<0)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid usp");
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid usp");
     return L7_FAILURE;
   }
 
@@ -1010,7 +1010,7 @@ L7_RC_t hapiBroadPtinVlanTranslatePortGroups(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
     break;
   }
   
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Finished: rc=%d", rc);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Finished: rc=%d", rc);
 
   return rc;
 }
@@ -1034,7 +1034,7 @@ L7_RC_t hapiBroadPtinVlanModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
 
   if (mode->vlanId<=1 || mode->vlanId>=4094)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI,"Invalid arguments");
+    PT_LOG_ERR(LOG_CTX_HAPI,"Invalid arguments");
     return L7_FAILURE;
   }
 
@@ -1043,7 +1043,7 @@ L7_RC_t hapiBroadPtinVlanModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
   */
   if (CPU_USP_GET(&cpuUsp) == L7_FAILURE)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI,"Error obtaining CPU interfaces");
+    PT_LOG_ERR(LOG_CTX_HAPI,"Error obtaining CPU interfaces");
     return L7_FAILURE;
   }
 
@@ -1090,20 +1090,20 @@ L7_RC_t hapiBroadPtinBridgeVlanModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *da
   ptin_bridge_vlan_mode_t *mode = (ptin_bridge_vlan_mode_t *) data;
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"vlanId=%u, mask=0x%02X, fwdVlan=%u, outerTPID=0x%04X, mac_learn=%u, crossc=%u",
+  PT_LOG_TRACE(LOG_CTX_HAPI,"vlanId=%u, mask=0x%02X, fwdVlan=%u, outerTPID=0x%04X, mac_learn=%u, crossc=%u",
             mode->vlanId, mode->mask, mode->fwdVlanId, mode->outer_tpid, mode->learn_enable, mode->cross_connects_enable);
 
   /* Validate vlan */
   if (mode->vlanId==0 || mode->vlanId>4095)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI,"Invalid vlan (%d)", mode->vlanId);
+    PT_LOG_ERR(LOG_CTX_HAPI,"Invalid vlan (%d)", mode->vlanId);
     return L7_FAILURE;
   }
 
   /* If mask is empty there is nothing to be done */
   if (mode->mask==PTIN_BRIDGE_VLAN_MODE_MASK_NONE)
   {
-    LOG_WARNING(LOG_CTX_PTIN_HAPI,"Mask is empty... nothing to be done");
+    PT_LOG_WARN(LOG_CTX_HAPI,"Mask is empty... nothing to be done");
     return L7_SUCCESS;
   }
 
@@ -1140,7 +1140,7 @@ L7_RC_t hapiBroadPtinBridgeVlanModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *da
       rc = L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Finished: rc=%d", rc);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Finished: rc=%d", rc);
 
   return rc;
 }
@@ -1175,7 +1175,7 @@ L7_RC_t hapiBroadPtinBridgeVlanPortControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
   dapiPortPtr = DAPI_PORT_GET(usp, dapi_g);
   hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
 
-  LOG_TRACE(LOG_CTX_PTIN_API, "usp_old={%d,%d,%d}, usp_new={%d,%d,%d}",
+  PT_LOG_TRACE(LOG_CTX_API, "usp_old={%d,%d,%d}, usp_new={%d,%d,%d}",
             vlan_mode->ddUsp.unit, vlan_mode->ddUsp.slot, vlan_mode->ddUsp.port,
             usp->unit, usp->slot, usp->port);
 
@@ -1238,7 +1238,7 @@ L7_RC_t hapiBroadPtinBridgeVlanPortControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
       hapiPortPtr_prev = L7_NULLPTR;
     }
 
-    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Previous port {%d,%d,%d}", vlan_mode->ddUsp.unit, vlan_mode->ddUsp.slot, vlan_mode->ddUsp.port);
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Previous port {%d,%d,%d}", vlan_mode->ddUsp.unit, vlan_mode->ddUsp.slot, vlan_mode->ddUsp.port);
   }
 
   /* Physical port to be added */
@@ -1301,7 +1301,7 @@ L7_RC_t hapiBroadPtinBridgeVlanPortControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
 
         if (rv != BCM_E_NONE) 
         {
-          LOG_ERR(LOG_CTX_PTIN_HAPI,"Error applying bcm_l2_replace (rv = %d)\r\n", rv);
+          PT_LOG_ERR(LOG_CTX_HAPI,"Error applying bcm_l2_replace (rv = %d)\r\n", rv);
         }
         #endif
       }
@@ -1324,22 +1324,22 @@ L7_RC_t hapiBroadPtinBridgeVlanPortControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
         }
         if (rv != BCM_E_NONE)
         {
-          LOG_ERR(LOG_CTX_PTIN_HAPI,"Error flushing MAC entries from port {%d,%d,%d} (rv=%d)\r\n",
+          PT_LOG_ERR(LOG_CTX_HAPI,"Error flushing MAC entries from port {%d,%d,%d} (rv=%d)\r\n",
                   vlan_mode->ddUsp.unit, vlan_mode->ddUsp.slot, vlan_mode->ddUsp.port, rv);
         }
         #endif
 
-        LOG_TRACE(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d} switched to {%d,%d,%d}",
+        PT_LOG_TRACE(LOG_CTX_HAPI, "Port {%d,%d,%d} switched to {%d,%d,%d}",
                   vlan_mode->ddUsp.unit, vlan_mode->ddUsp.slot, vlan_mode->ddUsp.port,
                   usp->unit, usp->slot, usp->port);
       }
 
-      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d} added to all VLANS (MACs flushed)", usp->unit, usp->slot, usp->port);
+      PT_LOG_TRACE(LOG_CTX_HAPI, "Port {%d,%d,%d} added to all VLANS (MACs flushed)", usp->unit, usp->slot, usp->port);
     }
     else
     {
       hapiBroadL2VlanAddPortToVlanHw(usp, vlan_mode->vlanId, L7_TRUE, dapi_g);
-      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d} added to VLAN %u", usp->unit, usp->slot, usp->port, vlan_mode->vlanId);
+      PT_LOG_TRACE(LOG_CTX_HAPI, "Port {%d,%d,%d} added to VLAN %u", usp->unit, usp->slot, usp->port, vlan_mode->vlanId);
     }
   }
   else if (vlan_mode->oper == DAPI_CMD_CLEAR)
@@ -1348,12 +1348,12 @@ L7_RC_t hapiBroadPtinBridgeVlanPortControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
     {
       /* Remove the port to all vlans */
       hapiBroadAddRemovePortFromVlans(usp, 0, dapi_g);
-      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d} removed from all VLANS", usp->unit, usp->slot, usp->port);
+      PT_LOG_TRACE(LOG_CTX_HAPI, "Port {%d,%d,%d} removed from all VLANS", usp->unit, usp->slot, usp->port);
     }
     else
     {
       hapiBroadL2VlanRemovePortFromVlanHw(usp, vlan_mode->vlanId, dapi_g);
-      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d} removed from VLAN %u", usp->unit, usp->slot, usp->port, vlan_mode->vlanId);
+      PT_LOG_TRACE(LOG_CTX_HAPI, "Port {%d,%d,%d} removed from VLAN %u", usp->unit, usp->slot, usp->port, vlan_mode->vlanId);
     }
   }
   else if (vlan_mode->oper == DAPI_CMD_CLEAR_ALL)
@@ -1372,7 +1372,7 @@ L7_RC_t hapiBroadPtinBridgeVlanPortControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
       {
         (void) bcmx_l2_addr_delete_by_port(lport, BCM_L2_DELETE_NO_CALLBACKS);
       }
-      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d} removed from all VLANS (MACs flushed)", usp->unit, usp->slot, usp->port);
+      PT_LOG_TRACE(LOG_CTX_HAPI, "Port {%d,%d,%d} removed from all VLANS (MACs flushed)", usp->unit, usp->slot, usp->port);
     }
     else
     {
@@ -1387,7 +1387,7 @@ L7_RC_t hapiBroadPtinBridgeVlanPortControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
       {
         (void) bcmx_l2_addr_delete_by_vlan_port(vlan_mode->vlanId, lport, BCM_L2_DELETE_NO_CALLBACKS);
       }
-      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d} removed from VLAN %u (MACs flushed)", usp->unit, usp->slot, usp->port, vlan_mode->vlanId);
+      PT_LOG_TRACE(LOG_CTX_HAPI, "Port {%d,%d,%d} removed from VLAN %u (MACs flushed)", usp->unit, usp->slot, usp->port, vlan_mode->vlanId);
     }
   }
 
@@ -1549,7 +1549,7 @@ L7_RC_t hapiBroadPtinBridgeCrossconnect(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
   ptin_dapi_port_t dapiPort1, dapiPort2;
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"SrcPort={%d,%d,%d}, DstPort={%d,%d,%d}, outerVlanId=%u, innerVlanId=%u",
+  PT_LOG_TRACE(LOG_CTX_HAPI,"SrcPort={%d,%d,%d}, DstPort={%d,%d,%d}, outerVlanId=%u, innerVlanId=%u",
             usp->unit, usp->slot, usp->port,
             crossc->dstUsp.unit, crossc->dstUsp.slot, crossc->dstUsp.port,
             crossc->outerVlanId, crossc->innerVlanId);
@@ -1595,7 +1595,7 @@ L7_RC_t hapiBroadPtinBwPolicer(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
 
   if (usp != L7_NULLPTR)
   {
-    LOG_TRACE(LOG_CTX_PTIN_HAPI, "usp={%d,%d,%d}", usp->unit, usp->slot, usp->port); 
+    PT_LOG_TRACE(LOG_CTX_HAPI, "usp={%d,%d,%d}", usp->unit, usp->slot, usp->port); 
   }
 
   /* Adapt usp data */
@@ -1606,7 +1606,7 @@ L7_RC_t hapiBroadPtinBwPolicer(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
 
   if (usp != L7_NULLPTR)
   {
-    LOG_TRACE(LOG_CTX_PTIN_HAPI, "usp={%d,%d,%d}", usp->unit, usp->slot, usp->port); 
+    PT_LOG_TRACE(LOG_CTX_HAPI, "usp={%d,%d,%d}", usp->unit, usp->slot, usp->port); 
   }
 
   switch (bwPolicer->operation)  {
@@ -1755,7 +1755,7 @@ L7_RC_t hapiBroadPTinPrbsEnable(DAPI_USP_t *usp, L7_BOOL enable, DAPI_t *dapi_g)
        usp->slot != 0 ||
        usp->port >= dapiCardPtr->numOfSlotMapEntries )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR: Invalid port reference {%d,%d,%d}",usp->unit,usp->slot,usp->port);
+    PT_LOG_ERR(LOG_CTX_HAPI, "ERROR: Invalid port reference {%d,%d,%d}",usp->unit,usp->slot,usp->port);
     return L7_FAILURE;
   }
 
@@ -1775,7 +1775,7 @@ L7_RC_t hapiBroadPTinPrbsEnable(DAPI_USP_t *usp, L7_BOOL enable, DAPI_t *dapi_g)
     rc = hapiBroadPTinPrbsPreemphasisGet(usp, preemphasys, 4);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error reading preemphasys from bcm_port %u", bcm_port);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error reading preemphasys from bcm_port %u", bcm_port);
     }
 
     /* Enable */
@@ -1784,22 +1784,22 @@ L7_RC_t hapiBroadPTinPrbsEnable(DAPI_USP_t *usp, L7_BOOL enable, DAPI_t *dapi_g)
       /* If PRBS is to be enabled, disable AN */
       if (bcm_port_autoneg_set(0, bcm_port, L7_DISABLE) != BCM_E_NONE)
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing bcm_port %u", bcm_port);
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing bcm_port %u", bcm_port);
       }
       /* Full duplex */
       if (bcm_port_duplex_set(0, bcm_port, L7_ENABLE) != BCM_E_NONE)
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing bcm_port %u", bcm_port);
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing bcm_port %u", bcm_port);
       }
       /* Set speed again */
       if (bcm_port_speed_set(0, bcm_port, 40000) != BCM_E_NONE)
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing bcm_port %u", bcm_port);
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing bcm_port %u", bcm_port);
       }
       /* Set if again */
       if (bcm_port_interface_set(0, bcm_port, BCM_PORT_IF_KR4) != BCM_E_NONE)
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing bcm_port %u", bcm_port);
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing bcm_port %u", bcm_port);
       }
 
       /* Wait for KR4 establishment */
@@ -1813,22 +1813,22 @@ L7_RC_t hapiBroadPTinPrbsEnable(DAPI_USP_t *usp, L7_BOOL enable, DAPI_t *dapi_g)
                 bcm_port_duplex_get   (0, bcm_port, &duplex ) != BCM_E_NONE || duplex  != L7_TRUE ||
                 bcm_port_interface_get(0, bcm_port, &if_type) != BCM_E_NONE || if_type != BCM_PORT_IF_KR4));
 
-      LOG_INFO(LOG_CTX_PTIN_HAPI, "Needed %u tries to wait for KR4 reestablishment (bcm_port %u)", bcm_port);
+      PT_LOG_INFO(LOG_CTX_HAPI, "Needed %u tries to wait for KR4 reestablishment (bcm_port %u)", bcm_port);
 
       /* Force previous tap settings */
       if (rc == L7_SUCCESS)
       {
-        LOG_INFO(LOG_CTX_PTIN_HAPI, "Going to force original preemphasys (1:0x%08x, 2:0x%08x, 3:0x%08x, 4:0x%08x) to bcm_port %u",
+        PT_LOG_INFO(LOG_CTX_HAPI, "Going to force original preemphasys (1:0x%08x, 2:0x%08x, 3:0x%08x, 4:0x%08x) to bcm_port %u",
                  preemphasys[0], preemphasys[1], preemphasys[2], preemphasys[3], bcm_port);
 
         rc = hapiBroadPTinPrbsPreemphasisSet(usp, preemphasys, 4, L7_TRUE);
         if (rc != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_PTIN_HAPI, "Error forcing preemphasys to bcm_port %u", bcm_port);
+          PT_LOG_ERR(LOG_CTX_HAPI, "Error forcing preemphasys to bcm_port %u", bcm_port);
         }
         else
         {
-          LOG_INFO(LOG_CTX_PTIN_HAPI, "Success forcing preemphasys to bcm_port %u", bcm_port);
+          PT_LOG_INFO(LOG_CTX_HAPI, "Success forcing preemphasys to bcm_port %u", bcm_port);
         }
       }
     }
@@ -1837,13 +1837,13 @@ L7_RC_t hapiBroadPTinPrbsEnable(DAPI_USP_t *usp, L7_BOOL enable, DAPI_t *dapi_g)
   /* PRBS generated by internal PHY */
   if (bcm_port_control_set(0, bcm_port, bcmPortControlPrbsMode, 0)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR applying bcmPortControlPrbsMode 0 to port %d, bcm_port=%d",enable, port, bcm_port);
+    PT_LOG_ERR(LOG_CTX_HAPI, "ERROR applying bcmPortControlPrbsMode 0 to port %d, bcm_port=%d",enable, port, bcm_port);
     return L7_FAILURE;
   }
   /* PRBS polynomial 31 */
   if (bcm_port_control_set(0, bcm_port, bcmPortControlPrbsPolynomial, BCM_PORT_PRBS_POLYNOMIAL_X31_X28_1)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR applying bcmPortControlPrbsMode 0 to port %d, bcm_port=%d",enable, port, bcm_port);
+    PT_LOG_ERR(LOG_CTX_HAPI, "ERROR applying bcmPortControlPrbsMode 0 to port %d, bcm_port=%d",enable, port, bcm_port);
     return L7_FAILURE;
   }
   /* For OLT1T1, SFI and XFI modes, invert PRBS sequence */
@@ -1852,16 +1852,16 @@ L7_RC_t hapiBroadPTinPrbsEnable(DAPI_USP_t *usp, L7_BOOL enable, DAPI_t *dapi_g)
   {
     if (bcm_port_control_set(0, bcm_port, bcmPortControlPrbsTxInvertData, enable & 1)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR applying enable state %u to port %d, bcm_port=%d",enable, port, bcm_port);
+      PT_LOG_ERR(LOG_CTX_HAPI, "ERROR applying enable state %u to port %d, bcm_port=%d",enable, port, bcm_port);
       return L7_FAILURE;
     }
-    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Success inverting PRBS sequence to port %d, bcm_port=%d", port, bcm_port);
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Success inverting PRBS sequence to port %d, bcm_port=%d", port, bcm_port);
   }
 #endif
   /* PRBS enable */
   if (bcm_port_control_set(0, bcm_port, bcmPortControlPrbsTxEnable, enable & 1)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR applying enable state %u to port %d, bcm_port=%d",enable, port, bcm_port);
+    PT_LOG_ERR(LOG_CTX_HAPI, "ERROR applying enable state %u to port %d, bcm_port=%d",enable, port, bcm_port);
     return L7_FAILURE;
   }
 
@@ -1880,22 +1880,22 @@ L7_RC_t hapiBroadPTinPrbsEnable(DAPI_USP_t *usp, L7_BOOL enable, DAPI_t *dapi_g)
       rc = hapiBroadPTinPrbsPreemphasisSet(usp, preemphasys, 4, L7_FALSE);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error restoring preemphasys to bcm_port %u", bcm_port);
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error restoring preemphasys to bcm_port %u", bcm_port);
       }
       else
       {
-        LOG_INFO(LOG_CTX_PTIN_HAPI, "Success restoring preemphasys to bcm_port %u", bcm_port);
+        PT_LOG_INFO(LOG_CTX_HAPI, "Success restoring preemphasys to bcm_port %u", bcm_port);
       }
 
       /* KR4 mode again */
       if (ptin_hapi_kr4_set(bcm_port) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error restoring KR4 mode at bcm_port %u", bcm_port);
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error restoring KR4 mode at bcm_port %u", bcm_port);
       }
     }
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "PRBS TX/RX %s for port {%d,%d,%d}, bcm_port=%d",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "PRBS TX/RX %s for port {%d,%d,%d}, bcm_port=%d",
             ((enable) ? "enabled" : "disabled"),
             port, bcm_port);
 
@@ -1928,7 +1928,7 @@ L7_RC_t hapiBroadPTinPrbsRxStatus(DAPI_USP_t *usp, L7_uint32 *rxErrors, DAPI_t *
        usp->slot != 0 ||
        usp->port >= dapiCardPtr->numOfSlotMapEntries )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR: Invalid port reference {%d,%d,%d}",usp->unit,usp->slot,usp->port);
+    PT_LOG_ERR(LOG_CTX_HAPI, "ERROR: Invalid port reference {%d,%d,%d}",usp->unit,usp->slot,usp->port);
     return L7_FAILURE;
   }
 
@@ -1936,7 +1936,7 @@ L7_RC_t hapiBroadPTinPrbsRxStatus(DAPI_USP_t *usp, L7_uint32 *rxErrors, DAPI_t *
 
   if (bcm_port_control_get(0, bcm_port, bcmPortControlPrbsRxStatus, &rxStatus)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR reading rx status from port {%d,%d,%d}, bcm_port=%d",usp->unit,usp->slot,usp->port,bcm_port);
+    PT_LOG_ERR(LOG_CTX_HAPI, "ERROR reading rx status from port {%d,%d,%d}, bcm_port=%d",usp->unit,usp->slot,usp->port,bcm_port);
     return L7_FAILURE;
   }
 
@@ -1976,7 +1976,7 @@ static L7_RC_t hapiBroadPTinPrbsPreemphasisGet(DAPI_USP_t *usp, L7_uint16 *preem
        usp->slot != 0 ||
        usp->port >= dapiCardPtr->numOfSlotMapEntries )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR: Invalid port reference {%d,%d,%d}",usp->unit,usp->slot,usp->port);
+    PT_LOG_ERR(LOG_CTX_HAPI, "ERROR: Invalid port reference {%d,%d,%d}",usp->unit,usp->slot,usp->port);
     return L7_FAILURE;
   }
 
@@ -1985,12 +1985,12 @@ static L7_RC_t hapiBroadPTinPrbsPreemphasisGet(DAPI_USP_t *usp, L7_uint16 *preem
   /* Disable linkscan */
   if (bcm_linkscan_enable_get(0, &linkscan) != BCM_E_NONE)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error reading linkscan mode");
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error reading linkscan mode");
     return L7_FAILURE;
   }
   if (bcm_linkscan_enable_set(0, 0) != BCM_E_NONE)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error disablink linkscan to all ports");
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error disablink linkscan to all ports");
     return L7_FAILURE;
   }
 
@@ -2003,7 +2003,7 @@ static L7_RC_t hapiBroadPTinPrbsPreemphasisGet(DAPI_USP_t *usp, L7_uint16 *preem
     rc = bcm_port_phy_set(0, bcm_port, BCM_PORT_PHY_INTERNAL, 0x1f, 0xffd0);
     if (rc != BCM_E_NONE) 
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error modifying register to port %u (bcm_port %u)", usp->port, bcm_port);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error modifying register to port %u (bcm_port %u)", usp->port, bcm_port);
       rc_global = rc;
       continue;
     }
@@ -2011,7 +2011,7 @@ static L7_RC_t hapiBroadPTinPrbsPreemphasisGet(DAPI_USP_t *usp, L7_uint16 *preem
     rc = bcm_port_phy_set(0, bcm_port, BCM_PORT_PHY_INTERNAL, 0x1e, lane);
     if (rc != BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error modifying register to port %u (bcm_port %u)", usp->port, bcm_port);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error modifying register to port %u (bcm_port %u)", usp->port, bcm_port);
       rc_global = rc;
       continue;
     }
@@ -2019,7 +2019,7 @@ static L7_RC_t hapiBroadPTinPrbsPreemphasisGet(DAPI_USP_t *usp, L7_uint16 *preem
     rc = bcm_port_phy_set(0, bcm_port, BCM_PORT_PHY_INTERNAL, 0x1f, 0x8060);
     if (rc != BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error modifying register to port %u (bcm_port %u)", usp->port, bcm_port);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error modifying register to port %u (bcm_port %u)", usp->port, bcm_port);
       rc_global = rc;
       return L7_FAILURE;
     }
@@ -2027,14 +2027,14 @@ static L7_RC_t hapiBroadPTinPrbsPreemphasisGet(DAPI_USP_t *usp, L7_uint16 *preem
     rc = bcm_port_phy_get(0, bcm_port, BCM_PORT_PHY_INTERNAL, 0x13, &saved_data);
     if (rc != BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error reading register from port %u (bcm_port %u)", usp->port, bcm_port);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error reading register from port %u (bcm_port %u)", usp->port, bcm_port);
       rc_global = rc;
       continue;
     }
     rc = bcm_port_phy_set(0, bcm_port, BCM_PORT_PHY_INTERNAL, 0x13, saved_data | (1<<14));
     if (rc != BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error modifying register to port %u (bcm_port %u)", usp->port, bcm_port);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error modifying register to port %u (bcm_port %u)", usp->port, bcm_port);
       rc_global = rc;
       return L7_FAILURE;
     }
@@ -2042,7 +2042,7 @@ static L7_RC_t hapiBroadPTinPrbsPreemphasisGet(DAPI_USP_t *usp, L7_uint16 *preem
     rc = bcm_port_phy_get(0, bcm_port, BCM_PORT_PHY_INTERNAL, 0x10, &phy_data);
     if (rc != BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error reading register from port %u (bcm_port %u)", usp->port, bcm_port);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error reading register from port %u (bcm_port %u)", usp->port, bcm_port);
       rc_global = rc;
       continue;
     }
@@ -2051,7 +2051,7 @@ static L7_RC_t hapiBroadPTinPrbsPreemphasisGet(DAPI_USP_t *usp, L7_uint16 *preem
     rc = bcm_port_phy_set(0, bcm_port, BCM_PORT_PHY_INTERNAL, 0x13, saved_data);
     if (rc != BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error modifying register to port %u (bcm_port %u)", usp->port, bcm_port);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error modifying register to port %u (bcm_port %u)", usp->port, bcm_port);
       rc_global = rc;
       return L7_FAILURE;
     }
@@ -2059,14 +2059,14 @@ static L7_RC_t hapiBroadPTinPrbsPreemphasisGet(DAPI_USP_t *usp, L7_uint16 *preem
     /* Save preemphasys for this lane */
     preemphasys[lane] = phy_data & 0xffff;
 
-    LOG_INFO(LOG_CTX_PTIN_HAPI, "Port %-2u (bcm_port %-2u) lane %u: preemphasys=0x%04x", usp->port, bcm_port, lane, preemphasys[lane]);
+    PT_LOG_INFO(LOG_CTX_HAPI, "Port %-2u (bcm_port %-2u) lane %u: preemphasys=0x%04x", usp->port, bcm_port, lane, preemphasys[lane]);
   }
 
   /* Reset lane */
   rc = bcm_port_phy_set(0, bcm_port, BCM_PORT_PHY_INTERNAL, 0x1f, 0xffd0);
   if (rc != BCM_E_NONE) 
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error modifying register to port %u (bcm_port %u)", usp->port, bcm_port);
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error modifying register to port %u (bcm_port %u)", usp->port, bcm_port);
     rc_global = rc;
   }
   else
@@ -2074,7 +2074,7 @@ static L7_RC_t hapiBroadPTinPrbsPreemphasisGet(DAPI_USP_t *usp, L7_uint16 *preem
     rc = bcm_port_phy_set(0, bcm_port, BCM_PORT_PHY_INTERNAL, 0x1e, 0); 
     if (rc != BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error modifying register to port %u (bcm_port %u)", usp->port, bcm_port);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error modifying register to port %u (bcm_port %u)", usp->port, bcm_port);
       rc_global = rc;
     }
   }
@@ -2083,7 +2083,7 @@ static L7_RC_t hapiBroadPTinPrbsPreemphasisGet(DAPI_USP_t *usp, L7_uint16 *preem
   rc = bcm_linkscan_enable_set(0, linkscan);
   if (rc != BCM_E_NONE)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error restoring linkscan mode to all ports");
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error restoring linkscan mode to all ports");
     rc_global = rc;
   }
 
@@ -2117,7 +2117,7 @@ static L7_RC_t hapiBroadPTinPrbsPreemphasisSet(DAPI_USP_t *usp, L7_uint16 *preem
        usp->slot != 0 ||
        usp->port >= dapiCardPtr->numOfSlotMapEntries )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR: Invalid port reference {%d,%d,%d}",usp->unit,usp->slot,usp->port);
+    PT_LOG_ERR(LOG_CTX_HAPI, "ERROR: Invalid port reference {%d,%d,%d}",usp->unit,usp->slot,usp->port);
     return L7_FAILURE;
   }
 
@@ -2126,12 +2126,12 @@ static L7_RC_t hapiBroadPTinPrbsPreemphasisSet(DAPI_USP_t *usp, L7_uint16 *preem
   /* Disable linkscan */
   if (bcm_linkscan_enable_get(0, &linkscan) != BCM_E_NONE)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error reading linkscan mode");
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error reading linkscan mode");
     return L7_FAILURE;
   }
   if (bcm_linkscan_enable_set(0, 0) != BCM_E_NONE)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error disablink linkscan to all ports");
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error disablink linkscan to all ports");
     return L7_FAILURE;
   }
 
@@ -2145,7 +2145,7 @@ static L7_RC_t hapiBroadPTinPrbsPreemphasisSet(DAPI_USP_t *usp, L7_uint16 *preem
     rc = bcm_port_phy_set(0, bcm_port, BCM_PORT_PHY_INTERNAL, 0x1f, 0xffd0);
     if (rc != BCM_E_NONE) 
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error modifying register to port %u (bcm_port %u)", usp->port, bcm_port);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error modifying register to port %u (bcm_port %u)", usp->port, bcm_port);
       rc_global = rc;
       continue;
     }
@@ -2153,7 +2153,7 @@ static L7_RC_t hapiBroadPTinPrbsPreemphasisSet(DAPI_USP_t *usp, L7_uint16 *preem
     rc = bcm_port_phy_set(0, bcm_port, BCM_PORT_PHY_INTERNAL, 0x1e, lane);
     if (rc != BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error modifying register to port %u (bcm_port %u)", usp->port, bcm_port);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error modifying register to port %u (bcm_port %u)", usp->port, bcm_port);
       rc_global = rc;
       continue;
     }
@@ -2161,7 +2161,7 @@ static L7_RC_t hapiBroadPTinPrbsPreemphasisSet(DAPI_USP_t *usp, L7_uint16 *preem
     rc = bcm_port_phy_set(0, bcm_port, BCM_PORT_PHY_INTERNAL, 0x1f, 0x82e0);
     if (rc != BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error modifying register to port %u (bcm_port %u)", usp->port, bcm_port);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error modifying register to port %u (bcm_port %u)", usp->port, bcm_port);
       rc_global = rc;
       return L7_FAILURE;
     }
@@ -2169,19 +2169,19 @@ static L7_RC_t hapiBroadPTinPrbsPreemphasisSet(DAPI_USP_t *usp, L7_uint16 *preem
     rc = bcm_port_phy_set(0, bcm_port, BCM_PORT_PHY_INTERNAL, 0x12, preemphasys[lane]);
     if (rc != BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting register to port %u (bcm_port %u)", usp->port, bcm_port);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting register to port %u (bcm_port %u)", usp->port, bcm_port);
       rc_global = rc;
       continue;
     }
 
-    LOG_INFO(LOG_CTX_PTIN_HAPI, "Port %-2u (bcm_port %-2u) lane %u: preemphasys=0x%04x", usp->port, bcm_port, lane, preemphasys[lane]);
+    PT_LOG_INFO(LOG_CTX_HAPI, "Port %-2u (bcm_port %-2u) lane %u: preemphasys=0x%04x", usp->port, bcm_port, lane, preemphasys[lane]);
   }
 
   /* Reset lane */
   rc = bcm_port_phy_set(0, bcm_port, BCM_PORT_PHY_INTERNAL, 0x1f, 0xffd0);
   if (rc != BCM_E_NONE) 
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error modifying register to port %u (bcm_port %u)", usp->port, bcm_port);
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error modifying register to port %u (bcm_port %u)", usp->port, bcm_port);
     rc_global = rc;
   }
   else
@@ -2189,7 +2189,7 @@ static L7_RC_t hapiBroadPTinPrbsPreemphasisSet(DAPI_USP_t *usp, L7_uint16 *preem
     rc = bcm_port_phy_set(0, bcm_port, BCM_PORT_PHY_INTERNAL, 0x1e, 0); 
     if (rc != BCM_E_NONE)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error modifying register to port %u (bcm_port %u)", usp->port, bcm_port);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error modifying register to port %u (bcm_port %u)", usp->port, bcm_port);
       rc_global = rc;
     }
   }
@@ -2198,7 +2198,7 @@ static L7_RC_t hapiBroadPTinPrbsPreemphasisSet(DAPI_USP_t *usp, L7_uint16 *preem
   rc = bcm_linkscan_enable_set(0, linkscan);
   if (rc != BCM_E_NONE)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error restoring linkscan mode to all ports");
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error restoring linkscan mode to all ports");
     rc_global = rc;
   }
 
@@ -2319,12 +2319,12 @@ L7_RC_t hapiBroadPtinL3Manage(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_
   ptin_dapi_port_t dapiPort;
   L7_RC_t rc = L7_SUCCESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "usp={%d,%d,%d}",usp->unit, usp->slot, usp->port);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "usp={%d,%d,%d}",usp->unit, usp->slot, usp->port);
 
   /* Validate interface */
   if ( usp->unit<0 || usp->slot<0 || usp->port<0 )
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI,"USP not provided");
+    PT_LOG_ERR(LOG_CTX_HAPI,"USP not provided");
     return L7_FAILURE;
   }
 
@@ -2345,7 +2345,7 @@ L7_RC_t hapiBroadPtinL3Manage(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_
 
       default:
         rc = L7_FAILURE;
-        LOG_ERR(LOG_CTX_PTIN_HAPI,"Command not handled (%u)", ptr->cmd);
+        PT_LOG_ERR(LOG_CTX_HAPI,"Command not handled (%u)", ptr->cmd);
     }
   }
   else if (ptr->oper == PTIN_L3_MANAGE_ROUTE)
@@ -2362,18 +2362,18 @@ L7_RC_t hapiBroadPtinL3Manage(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_
 
       default:
         rc = L7_FAILURE;
-        LOG_ERR(LOG_CTX_PTIN_HAPI,"Command not handled (%u)", ptr->cmd);
+        PT_LOG_ERR(LOG_CTX_HAPI,"Command not handled (%u)", ptr->cmd);
     }
   }
   else
   {
     rc = L7_FAILURE;
-    LOG_ERR(LOG_CTX_PTIN_HAPI,"Operation not implemented (%u)", ptr->oper);
+    PT_LOG_ERR(LOG_CTX_HAPI,"Operation not implemented (%u)", ptr->oper);
   }
 
   if (rc != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI,"Error: rc=%u", rc);
+    PT_LOG_ERR(LOG_CTX_HAPI,"Error: rc=%u", rc);
   }
 
   return rc;
@@ -2427,7 +2427,7 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
   p= ((hapi_mep_t *) data)->m;
   lm= ((hapi_mep_t *) data)->lm;
 
-  //LOG_TRACE(LOG_CTX_PTIN_API, ,);
+  //PT_LOG_TRACE(LOG_CTX_API, ,);
 
   //if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr_prev) == L7_TRUE)
   //else if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr_prev) == L7_TRUE)
@@ -2459,7 +2459,7 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
       ginfo.flags= BCM_OAM_GROUP_WITH_ID; //| BCM_OAM_GROUP_REMOTE_DEFECT_TX;
       r=bcm_oam_group_create(0, &ginfo);
       if (BCM_E_NONE!=r) {
-          LOG_ERR(LOG_CTX_PTIN_API, "bcm_oam_group_create()=%d\n\r", r);
+          PT_LOG_ERR(LOG_CTX_API, "bcm_oam_group_create()=%d\n\r", r);
           return L7_DEPENDENCY_NOT_MET;
       }
   }
@@ -2535,7 +2535,7 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
              L7_SUCCESS!=nimGetIntfAddress(intIfNum, L7_SYSMAC_BIA, mep.src_mac_address)) {
 
              r=L7_REQUEST_DENIED;
-             LOG_ERR(LOG_CTX_PTIN_HAPI, "couldn't get SMAC\n\r");
+             PT_LOG_ERR(LOG_CTX_HAPI, "couldn't get SMAC\n\r");
              goto _hapiBroadPtinMEPCreate_nokend;
          }//memcpy(mep.src_mac_address, &s, 6);
    }
@@ -2563,9 +2563,9 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
   //mep.timestamp_format;               // DM time stamp format - NTP/IEEE1588(PTP)
 
 
-  //LOG_TRACE(LOG_CTX_PTIN_API, "Success -> %d \n\r", mep.id);
+  //PT_LOG_TRACE(LOG_CTX_API, "Success -> %d \n\r", mep.id);
   r=bcm_oam_endpoint_create(0, &mep);
-  if (BCM_E_NONE!=r) LOG_ERR(LOG_CTX_PTIN_HAPI, "bcm_oam_endpoint_create()=%d\n\r", r);
+  if (BCM_E_NONE!=r) PT_LOG_ERR(LOG_CTX_HAPI, "bcm_oam_endpoint_create()=%d\n\r", r);
 
  /*
   bcm_oam_loss_t_init(&loss);
@@ -2592,14 +2592,14 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
   //loss.tx_oam_packets;
   bcm_oam_loss_add(0, &loss);
 
-  LOG_TRACE(LOG_CTX_PTIN_API, " loss.rx_oam_packets %d ", loss.rx_oam_packets);
-  LOG_TRACE(LOG_CTX_PTIN_API, " loss.tx_oam_packets %d ", loss.tx_oam_packets);
-  LOG_TRACE(LOG_CTX_PTIN_API, " loss.rx_oam_packets %d ", loss.rx_oam_packets);
-  LOG_TRACE(LOG_CTX_PTIN_API, " loss.rx_oam_packets %d ", loss.tx_oam_packets);
-  LOG_TRACE(LOG_CTX_PTIN_API, " loss.tx_nearend %d ", loss.tx_nearend);
-  LOG_TRACE(LOG_CTX_PTIN_API, " loss.rx_nearend %d ", loss.rx_nearend);
-  LOG_TRACE(LOG_CTX_PTIN_API, " loss.tx_farend %d ", loss.tx_farend);
-  LOG_TRACE(LOG_CTX_PTIN_API, " loss.rx_farend %d ", loss.rx_farend);
+  PT_LOG_TRACE(LOG_CTX_API, " loss.rx_oam_packets %d ", loss.rx_oam_packets);
+  PT_LOG_TRACE(LOG_CTX_API, " loss.tx_oam_packets %d ", loss.tx_oam_packets);
+  PT_LOG_TRACE(LOG_CTX_API, " loss.rx_oam_packets %d ", loss.rx_oam_packets);
+  PT_LOG_TRACE(LOG_CTX_API, " loss.rx_oam_packets %d ", loss.tx_oam_packets);
+  PT_LOG_TRACE(LOG_CTX_API, " loss.tx_nearend %d ", loss.tx_nearend);
+  PT_LOG_TRACE(LOG_CTX_API, " loss.rx_nearend %d ", loss.rx_nearend);
+  PT_LOG_TRACE(LOG_CTX_API, " loss.tx_farend %d ", loss.tx_farend);
+  PT_LOG_TRACE(LOG_CTX_API, " loss.rx_farend %d ", loss.rx_farend);
   
   */
   if (BCM_E_NONE==r) return L7_SUCCESS;
@@ -2607,7 +2607,7 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
 _hapiBroadPtinMEPCreate_nokend:
   if (!alrdy) {
       bcm_oam_group_destroy(0, ginfo.id);
-      LOG_TRACE(LOG_CTX_PTIN_API, "ERROR\n\r", r);
+      PT_LOG_TRACE(LOG_CTX_API, "ERROR\n\r", r);
   }
 
   return r;
@@ -2622,11 +2622,11 @@ unsigned long i, group_id=-1;
 bcm_oam_endpoint_info_t mep;
 
     r=bcm_oam_endpoint_get(0, 1+((hapi_mep_t *) data)->imep, &mep); //1..N
-    if (BCM_E_NONE!=r) {LOG_ERR(LOG_CTX_PTIN_HAPI, "bcm_oam_endpoint_get()=%d\n\r", r); return L7_NOT_EXIST;}
+    if (BCM_E_NONE!=r) {PT_LOG_ERR(LOG_CTX_HAPI, "bcm_oam_endpoint_get()=%d\n\r", r); return L7_NOT_EXIST;}
     group_id=mep.group;
 
     r=bcm_oam_endpoint_destroy(0, 1+((hapi_mep_t *) data)->imep);   //1..N
-    if (BCM_E_NONE!=r) {LOG_ERR(LOG_CTX_PTIN_HAPI, "bcm_oam_endpoint_destroy()=%d\n\r", r); return L7_FAILURE;}
+    if (BCM_E_NONE!=r) {PT_LOG_ERR(LOG_CTX_HAPI, "bcm_oam_endpoint_destroy()=%d\n\r", r); return L7_FAILURE;}
 
     //Delete MEG/MA if unused by any other MEP
     for (i=1; i<=N_MEPs; i++) {                                      //1..N
@@ -2636,7 +2636,7 @@ bcm_oam_endpoint_info_t mep;
     }
 
     r=bcm_oam_group_destroy(0, group_id);   //1..N
-    if (BCM_E_NONE!=r) LOG_ERR(LOG_CTX_PTIN_HAPI, "bcm_oam_endpoint_destroy()=%d\n\r", r);
+    if (BCM_E_NONE!=r) PT_LOG_ERR(LOG_CTX_HAPI, "bcm_oam_endpoint_destroy()=%d\n\r", r);
     return r;
 }//hapiBroadPtinMEPDelete
 
@@ -2759,7 +2759,7 @@ L7_RC_t broad_ptin_oam_check_lm_counters(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t ope
     uint32 *ptr;
     ptr = (uint32*) data;
 
-    LOG_TRACE(LOG_CTX_PTIN_HAPI, "%s: usp={%d,%d,%d} operation=%u dataSize=%u", __FUNCTION__, usp->unit, usp->slot, usp->port, operation, dataSize);
+    PT_LOG_TRACE(LOG_CTX_HAPI, "%s: usp={%d,%d,%d} operation=%u dataSize=%u", __FUNCTION__, usp->unit, usp->slot, usp->port, operation, dataSize);
     //soc_mem_info_t *memp;
     int  i;
     soc_mem_t mem = 5872; // Fixed position in SOC mem 
