@@ -158,7 +158,7 @@ void arpLockShowStack(L7_char8 * fname, L7_uint32 lockid, L7_char8 * file, L7_ui
     osapiShowTasks();
     osapiDebugStackTrace(0, 0);
     osapiSleep(60);
-    LOG_ERROR(0xbadd);
+    L7_LOG_ERROR(0xbadd);
   }
 
   /* die */

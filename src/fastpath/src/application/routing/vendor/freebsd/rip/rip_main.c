@@ -175,7 +175,7 @@ void rip_Task(void)
     ripMapVendGlobalsGet(&ripSplitHorizon, &ripAutoSummary, &ripHostRoutesAccept);
 
     if (ripMapVendRnTreeCritEnter())
-      LOG_ERROR(0);
+      L7_LOG_ERROR(0);
 
     fix_select();
 
@@ -381,7 +381,7 @@ void rip_Task(void)
         ripMapVendRnTreeCritExit();
         n = select(sock_max, &ibits, 0, 0, &wtime_temp);
         if (ripMapVendRnTreeCritEnter())
-          LOG_ERROR(0);
+          L7_LOG_ERROR(0);
 
         if (n <= 0) {
             if (n < 0 && errno != EINTR && errno != EAGAIN)

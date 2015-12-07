@@ -74,7 +74,7 @@ L7_RC_t usl_port_bcmx_init()
   if (osapiRWLockCreate(&uslPortDbBcmxRWLock, 
                         OSAPI_RWLOCK_Q_PRIORITY) != L7_SUCCESS)
   {
-    USL_LOG_ERROR("USL: unable to allocate RW Lock for the Port database\n");
+    USL_L7_LOG_ERROR("USL: unable to allocate RW Lock for the Port database\n");
   }
 
   return rc;  
@@ -98,7 +98,7 @@ void usl_port_bcmx_suspend()
 
   if (osapiWriteLockTake(uslPortDbBcmxRWLock,L7_WAIT_FOREVER) != L7_SUCCESS) 
   {
-    USL_LOG_ERROR("Failed to take USL Port Write Read lock\n"); 
+    USL_L7_LOG_ERROR("Failed to take USL Port Write Read lock\n"); 
   }
 
   return;
@@ -122,7 +122,7 @@ void usl_port_bcmx_resume()
 
   if (osapiWriteLockGive(uslPortDbBcmxRWLock) != L7_SUCCESS) 
   {
-    USL_LOG_ERROR("Failed to give USL Port Write Read lock\n"); 
+    USL_L7_LOG_ERROR("Failed to give USL Port Write Read lock\n"); 
   }
   
   return;

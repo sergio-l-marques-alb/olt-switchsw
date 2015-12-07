@@ -258,7 +258,7 @@ L7_RC_t hapiBroadL3Init(DAPI_t *dapi_g)
       (L7_NULLPTR == hapiBroadL3TunnelTreeHeap) ||
       (L7_NULLPTR == hapiBroadL3TunnelDataHeap))
   {
-    HAPI_BROAD_L3_LOG_ERROR(0);
+    HAPI_BROAD_L3_L7_LOG_ERROR(0);
   }
 
   /* Create a single lock for all the work lists and trees*/
@@ -276,13 +276,13 @@ L7_RC_t hapiBroadL3Init(DAPI_t *dapi_g)
 
   if (hapiBroadL3WakeUpQueue == L7_NULL)
   {
-    HAPI_BROAD_L3_LOG_ERROR(0);
+    HAPI_BROAD_L3_L7_LOG_ERROR(0);
   }
 
   /* Init the L3 cache */
   if (hapiBroadL3CacheInit() != L7_SUCCESS)
   {
-    HAPI_BROAD_L3_LOG_ERROR(0);
+    HAPI_BROAD_L3_L7_LOG_ERROR(0);
   }
 
   /* Create a queue to wait for ASYNC task to finish up work list processing
@@ -299,7 +299,7 @@ L7_RC_t hapiBroadL3Init(DAPI_t *dapi_g)
                       L7_DEFAULT_TASK_PRIORITY,
                       L7_DEFAULT_TASK_SLICE) == L7_ERROR)
   {
-    HAPI_BROAD_L3_LOG_ERROR(0);
+    HAPI_BROAD_L3_L7_LOG_ERROR(0);
   }
 
   return L7_SUCCESS;
@@ -506,7 +506,7 @@ L7_RC_t hapiBroadL3CardInit(L7_ushort16 unitNum,
       if (hapiPortPtr->vrrp_interface_id == L7_NULLPTR)
       {
         /* Treat alloc failure as fatal. osapiMalloc log errors on failure too */
-        HAPI_BROAD_L3_LOG_ERROR(0);
+        HAPI_BROAD_L3_L7_LOG_ERROR(0);
       }
     }
     else if (L7_TRUE == IS_PORT_TYPE_CPU(dapiPortPtr))
@@ -527,7 +527,7 @@ L7_RC_t hapiBroadL3CardInit(L7_ushort16 unitNum,
                                       L7_NULLPTR, (L7_uchar8 *)hapiBroadL3CpuMac);
         if (result != L7_SUCCESS)
         {
-          HAPI_BROAD_L3_LOG_ERROR (result);
+          HAPI_BROAD_L3_L7_LOG_ERROR(result);
         }
 
         usl_bcm_l3_intf_t_init(&cpuIntfInfo);
@@ -548,7 +548,7 @@ L7_RC_t hapiBroadL3CardInit(L7_ushort16 unitNum,
                   hapiBroadL3CpuMac[0], hapiBroadL3CpuMac[1],
                   hapiBroadL3CpuMac[2], hapiBroadL3CpuMac[3],
                   hapiBroadL3CpuMac[4], hapiBroadL3CpuMac[5]);
-          HAPI_BROAD_L3_LOG_ERROR (rv);
+          HAPI_BROAD_L3_L7_LOG_ERROR(rv);
         }
         else
         {
@@ -583,7 +583,7 @@ L7_RC_t hapiBroadL3CardInit(L7_ushort16 unitNum,
               L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID,
                       "Failed to get modid/port for lport %x\n",
                       hapiPortPtr->bcmx_lport);
-              HAPI_BROAD_L3_LOG_ERROR (0);
+              HAPI_BROAD_L3_L7_LOG_ERROR(0);
             }
           }
 
@@ -598,7 +598,7 @@ L7_RC_t hapiBroadL3CardInit(L7_ushort16 unitNum,
                                  bcm_errmsg(rv));
           if ((result == L7_FAILURE) || (rv != BCM_E_NONE))
           {
-            HAPI_BROAD_L3_LOG_ERROR (rv);
+            HAPI_BROAD_L3_L7_LOG_ERROR(rv);
           }
         }
 
@@ -841,7 +841,7 @@ L7_RC_t hapiBroadL3RouterCardRemove(DAPI_USP_t *usp,
                            " deleted (%s)\n", bcm_errmsg(rv));
     if ((L7_BCMX_OK(rv) != L7_TRUE) && (rv != BCM_E_UNIT))
     {
-      HAPI_BROAD_L3_LOG_ERROR(rv);
+      HAPI_BROAD_L3_L7_LOG_ERROR(rv);
     }
 
   }
@@ -850,37 +850,37 @@ L7_RC_t hapiBroadL3RouterCardRemove(DAPI_USP_t *usp,
   result = avlDeleteAvlTree(&hapiBroadL3NhopTree);
   if (L7_SUCCESS != result)
   {
-    HAPI_BROAD_L3_LOG_ERROR(0);
+    HAPI_BROAD_L3_L7_LOG_ERROR(0);
   }
 
   result = avlDeleteAvlTree(&hapiBroadL3EcmpTree);
   if (L7_SUCCESS != result)
   {
-    HAPI_BROAD_L3_LOG_ERROR(0);
+    HAPI_BROAD_L3_L7_LOG_ERROR(0);
   }
 
   result = avlDeleteAvlTree(&hapiBroadL3HostTree);
   if (L7_SUCCESS != result)
   {
-    HAPI_BROAD_L3_LOG_ERROR(0);
+    HAPI_BROAD_L3_L7_LOG_ERROR(0);
   }
 
   result = avlDeleteAvlTree(&hapiBroadL3MacTree);
   if (L7_SUCCESS != result)
   {
-    HAPI_BROAD_L3_LOG_ERROR(0);
+    HAPI_BROAD_L3_L7_LOG_ERROR(0);
   }
 
   result = avlDeleteAvlTree(&hapiBroadL3RouteTree);
   if (L7_SUCCESS != result)
   {
-    HAPI_BROAD_L3_LOG_ERROR(0);
+    HAPI_BROAD_L3_L7_LOG_ERROR(0);
   }
 
   result = avlDeleteAvlTree(&hapiBroadL3TunnelTree);
   if (L7_SUCCESS != result)
   {
-    HAPI_BROAD_L3_LOG_ERROR(0);
+    HAPI_BROAD_L3_L7_LOG_ERROR(0);
   }
 
   if (pBroadL3RetryTimer != L7_NULL)
@@ -1389,14 +1389,14 @@ static L7_RC_t hapiBroadL3IntfCreate(DAPI_USP_t *usp,
     if (0 == vid)
     {
       result = L7_FAILURE;
-      HAPI_BROAD_L3_LOG_ERROR(result);
+      HAPI_BROAD_L3_L7_LOG_ERROR(result);
     }
 
     /* Add the CPU and this port to the assigned VLAN */
     rv = usl_bcmx_vlan_create(vid);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
-      HAPI_BROAD_L3_LOG_ERROR(rv);
+      HAPI_BROAD_L3_L7_LOG_ERROR(rv);
     }
 
     L7_VLAN_SETMASKBIT(portVlanMask.vlan_membership_mask, vid);
@@ -1404,7 +1404,7 @@ static L7_RC_t hapiBroadL3IntfCreate(DAPI_USP_t *usp,
     rv = usl_bcmx_port_vlan_member_add(hapiPortPtr->bcmx_lport, &portVlanMask);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
-      HAPI_BROAD_L3_LOG_ERROR (vid);
+      HAPI_BROAD_L3_L7_LOG_ERROR(vid);
     }
 
     /* Set STP state to forwarding for all instances */
@@ -1420,21 +1420,21 @@ static L7_RC_t hapiBroadL3IntfCreate(DAPI_USP_t *usp,
     rv = usl_bcmx_port_learn_set(hapiPortPtr->bcmx_lport, learnMode);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
-      HAPI_BROAD_L3_LOG_ERROR(rv);
+      HAPI_BROAD_L3_L7_LOG_ERROR(rv);
     }
 
     /* Set PVID to this VLAN */
     rv = usl_bcmx_port_untagged_vlan_set(hapiPortPtr->bcmx_lport, vid);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
-      HAPI_BROAD_L3_LOG_ERROR(rv);
+      HAPI_BROAD_L3_L7_LOG_ERROR(rv);
     }
 
     /* Set default priority */
     rv = usl_bcmx_port_untagged_priority_set(hapiPortPtr->bcmx_lport, 0);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
-      HAPI_BROAD_L3_LOG_ERROR(rv);
+      HAPI_BROAD_L3_L7_LOG_ERROR(rv);
     }
 
     /* Enable ingress filtering */
@@ -1442,7 +1442,7 @@ static L7_RC_t hapiBroadL3IntfCreate(DAPI_USP_t *usp,
 
     if (result != L7_SUCCESS)
     {
-      HAPI_BROAD_L3_LOG_ERROR(hapiPortPtr->bcmx_lport);
+      HAPI_BROAD_L3_L7_LOG_ERROR(hapiPortPtr->bcmx_lport);
     }
 
     /* Set port to accept both untagged and tagged frames */
@@ -1450,7 +1450,7 @@ static L7_RC_t hapiBroadL3IntfCreate(DAPI_USP_t *usp,
     rv = usl_bcmx_port_discard_set(hapiPortPtr->bcmx_lport, discardMode);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
-      HAPI_BROAD_L3_LOG_ERROR(rv);
+      HAPI_BROAD_L3_L7_LOG_ERROR(rv);
     }
 
     hapiPortPtr->port_based_routing_vlanid = vid;
@@ -1496,7 +1496,7 @@ static L7_RC_t hapiBroadL3IntfCreate(DAPI_USP_t *usp,
   else
   {
     /* Invalid port type. Neither port based nor VLAN based */
-    HAPI_BROAD_L3_LOG_ERROR(L7_FAILURE);
+    HAPI_BROAD_L3_L7_LOG_ERROR(L7_FAILURE);
   }
 
   /* Create the L3 interface in the hardware */
@@ -1514,7 +1514,7 @@ static L7_RC_t hapiBroadL3IntfCreate(DAPI_USP_t *usp,
   if ((L7_BCMX_OK(rv) != L7_TRUE) ||
       (intfInfo.bcm_data.l3a_intf_id == HAPI_BROAD_INVALID_L3_INTF_ID))
   {
-    HAPI_BROAD_L3_LOG_ERROR(rv);
+    HAPI_BROAD_L3_L7_LOG_ERROR(rv);
   }
   else
   {
@@ -1683,7 +1683,7 @@ static L7_RC_t hapiBroadL3IntfDelete(DAPI_USP_t *usp,
     rv = usl_bcmx_vlan_destroy(vid);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
-      HAPI_BROAD_L3_LOG_ERROR(rv);
+      HAPI_BROAD_L3_L7_LOG_ERROR(rv);
     }
 
     hapiPortPtr->port_based_routing_vlanid = 0;
@@ -1725,7 +1725,7 @@ static L7_RC_t hapiBroadL3IntfDelete(DAPI_USP_t *usp,
 
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
-      HAPI_BROAD_L3_LOG_ERROR(rv);
+      HAPI_BROAD_L3_L7_LOG_ERROR(rv);
     }
 
     /* Restore STP state for port. */
@@ -1735,7 +1735,7 @@ static L7_RC_t hapiBroadL3IntfDelete(DAPI_USP_t *usp,
                              hapiPortPtr->hw_stp_state);
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
-        HAPI_BROAD_L3_LOG_ERROR(hapiPortPtr->bcmx_lport);
+        HAPI_BROAD_L3_L7_LOG_ERROR(hapiPortPtr->bcmx_lport);
       }
     }
     else
@@ -1765,7 +1765,7 @@ static L7_RC_t hapiBroadL3IntfDelete(DAPI_USP_t *usp,
   }
   else
   {
-    HAPI_BROAD_L3_LOG_ERROR(L7_FAILURE);
+    HAPI_BROAD_L3_L7_LOG_ERROR(L7_FAILURE);
   }
 
   /* For devices which support per-port L3 MTU, restore the port's
@@ -1787,7 +1787,7 @@ static L7_RC_t hapiBroadL3IntfDelete(DAPI_USP_t *usp,
                       intfInfo.bcm_data.l3a_intf_id, bcm_errmsg(rv));
   if (L7_BCMX_OK(rv) != L7_TRUE)
   {
-    HAPI_BROAD_L3_LOG_ERROR(rv);
+    HAPI_BROAD_L3_L7_LOG_ERROR(rv);
   }
   else
   {
@@ -1840,7 +1840,7 @@ static L7_RC_t hapiBroadL3IntfIpv4AddrSet(DAPI_USP_t *usp,
   }
   else
   {
-    HAPI_BROAD_L3_LOG_ERROR(L7_FAILURE);
+    HAPI_BROAD_L3_L7_LOG_ERROR(L7_FAILURE);
   }
 
   return L7_SUCCESS;
@@ -1903,7 +1903,7 @@ static L7_RC_t hapiBroadL3IntfAddrAdd(DAPI_USP_t *usp,
          */
         if (CPU_USP_GET(&cpuUsp) != L7_SUCCESS)
         {
-          HAPI_BROAD_L3_LOG_ERROR(0);
+          HAPI_BROAD_L3_L7_LOG_ERROR(0);
         }
 
         memcpy(&(hostCmd.cmdData.arpAdd.macAddr), hapiBroadL3CpuMac,
@@ -1975,7 +1975,7 @@ static L7_RC_t hapiBroadL3IntfAddrDelete(DAPI_USP_t *usp,
 
         if (CPU_USP_GET(&cpuUsp) != L7_SUCCESS)
         {
-          HAPI_BROAD_L3_LOG_ERROR(0);
+          HAPI_BROAD_L3_L7_LOG_ERROR(0);
         }
 
         memcpy(&(hostCmd.cmdData.arpDelete.macAddr), hapiBroadL3CpuMac,
@@ -2223,7 +2223,7 @@ static L7_RC_t hapiBroadL3RouteNhopProcess(BROAD_L3_ROUTE_ENTRY_t  *pRouteEntry,
     {
       if (isValidUsp(&(pRtNhop->equalCostRoute[i].usp), dapi_g) != L7_TRUE)
       {
-        HAPI_BROAD_L3_LOG_ERROR(0);
+        HAPI_BROAD_L3_L7_LOG_ERROR(0);
       }
       numNextHops++;
     }
@@ -2325,7 +2325,7 @@ static L7_RC_t hapiBroadL3RouteNhopProcess(BROAD_L3_ROUTE_ENTRY_t  *pRouteEntry,
 
       if (pNhopEntry == L7_NULL)
       {
-        HAPI_BROAD_L3_LOG_ERROR(0);
+        HAPI_BROAD_L3_L7_LOG_ERROR(0);
       }
 
       /* If this route is a 6to4 route, see if it resolves any relay routes */
@@ -2466,7 +2466,7 @@ static BROAD_L3_NH_ENTRY_t * hapiBroadL3NhopEntryAdd(BROAD_L3_NH_KEY_t *pNhopKey
   }
   else
   {
-    HAPI_BROAD_L3_LOG_ERROR(0);
+    HAPI_BROAD_L3_L7_LOG_ERROR(0);
   }
 
   return pNhopEntry;
@@ -2642,7 +2642,7 @@ static BROAD_L3_ECMP_ENTRY_t * hapiBroadL3EcmpEntryAdd(BROAD_L3_NH_ENTRY_t **pNh
     }
     else
     {
-      HAPI_BROAD_L3_LOG_ERROR(0);
+      HAPI_BROAD_L3_L7_LOG_ERROR(0);
     }
   }
 
@@ -3033,7 +3033,7 @@ L7_RC_t hapiBroadL3RouteEntryDelete(DAPI_USP_t *usp,
 
       if (avlDeleteEntry(&hapiBroadL3RouteTree, pRouteEntry) == L7_NULL)
       {
-        HAPI_BROAD_L3_LOG_ERROR(0);
+        HAPI_BROAD_L3_L7_LOG_ERROR(0);
       }
 
       /* Special case: Delete the next hop is not being used */
@@ -3281,7 +3281,7 @@ L7_RC_t hapiBroadL3HostEntryAdd(DAPI_USP_t *usp,
       if (pTunNhop == L7_NULL)
       {
         /* If tunnel exists, then a tunnel nexthop must exist */
-        HAPI_BROAD_L3_LOG_ERROR(0);
+        HAPI_BROAD_L3_L7_LOG_ERROR(0);
       }
       pTunNhop->ref_count++;
     }
@@ -3401,7 +3401,7 @@ L7_RC_t hapiBroadL3HostEntryAdd(DAPI_USP_t *usp,
     }
     else
     {
-      HAPI_BROAD_L3_LOG_ERROR(0);
+      HAPI_BROAD_L3_L7_LOG_ERROR(0);
     }
 
     /* If MAC resolves to tunnel, link the host to MAC. */
@@ -3465,7 +3465,7 @@ static BROAD_L3_MAC_ENTRY_t * hapiBroadL3MacEntryAdd(DAPI_USP_t *usp,
   {
     if (dapiPortPtr->modeparm.physical.routerIntfEnabled != L7_TRUE)
     {
-      HAPI_BROAD_L3_LOG_ERROR (0);
+      HAPI_BROAD_L3_L7_LOG_ERROR(0);
     }
 
     isVlanRouting = L7_FALSE;
@@ -3483,7 +3483,7 @@ static BROAD_L3_MAC_ENTRY_t * hapiBroadL3MacEntryAdd(DAPI_USP_t *usp,
   }
   else
   {
-    HAPI_BROAD_L3_LOG_ERROR(dapiPortPtr->type);
+    HAPI_BROAD_L3_L7_LOG_ERROR(dapiPortPtr->type);
   }
 
   pMacEntry = avlSearchLVL7(&hapiBroadL3MacTree, &mac, AVL_EXACT);
@@ -3526,7 +3526,7 @@ static BROAD_L3_MAC_ENTRY_t * hapiBroadL3MacEntryAdd(DAPI_USP_t *usp,
     }
     else
     {
-      HAPI_BROAD_L3_LOG_ERROR(0);
+      HAPI_BROAD_L3_L7_LOG_ERROR(0);
     }
   }
 
@@ -3659,7 +3659,7 @@ static L7_RC_t hapiBroadL3TunnelHostMacUnlink (BROAD_L3_HOST_ENTRY_t *pHostEntry
 
     if (pTmpHost == L7_NULL) /* Host not found */
     {
-      HAPI_BROAD_L3_LOG_ERROR(0);
+      HAPI_BROAD_L3_L7_LOG_ERROR(0);
     }
   }
 
@@ -4061,7 +4061,7 @@ L7_RC_t hapiBroadL3HostEntryDelete(DAPI_USP_t *usp,
 
       if (avlDeleteEntry(&hapiBroadL3HostTree, pHostEntry) == L7_NULL)
       {
-        HAPI_BROAD_L3_LOG_ERROR(0);
+        HAPI_BROAD_L3_L7_LOG_ERROR(0);
       }
 
       hapiBroadL3MacNhopUnlink(pNhopEntry);
@@ -4708,7 +4708,7 @@ static L7_RC_t hapiBroadL3TunnelNhopProcess(DAPI_USP_t *usp,
     memset(&nhKey, 0, sizeof (BROAD_L3_NH_KEY_t));
     if (CPU_USP_GET(&nhKey.addrUsp.usp) != L7_SUCCESS)
     {
-      HAPI_BROAD_L3_LOG_ERROR(0);
+      HAPI_BROAD_L3_L7_LOG_ERROR(0);
     }
 
     /* Use remote address of tunnel, so that each tunnel has a unique key */
@@ -4777,7 +4777,7 @@ hapiBroadL3TunnelNhopGet(BROAD_L3_NH_KEY_t *pTunNhopKey, DAPI_t * dapi_g)
 
     if (pTunnelEntry == (BROAD_L3_TUNNEL_ENTRY_t *)L7_NULL)
     {
-      HAPI_BROAD_L3_LOG_ERROR(0);
+      HAPI_BROAD_L3_L7_LOG_ERROR(0);
     }
 
     /* For 6over4 tunnels, use the tunnel next hop (only one nhop for 6o4) */
@@ -4786,7 +4786,7 @@ hapiBroadL3TunnelNhopGet(BROAD_L3_NH_KEY_t *pTunNhopKey, DAPI_t * dapi_g)
       pNhopEntry = pTunnelEntry->pTunnelNhop; /* Got to be valid */
       if (pNhopEntry == L7_NULL)
       {
-        HAPI_BROAD_L3_LOG_ERROR(0);
+        HAPI_BROAD_L3_L7_LOG_ERROR(0);
       }
       return pNhopEntry;
     }
@@ -4912,7 +4912,7 @@ hapiBroadL3TunnelNhopGet(BROAD_L3_NH_KEY_t *pTunNhopKey, DAPI_t * dapi_g)
   else
   {
     /* Other tunnel types not handled */
-    HAPI_BROAD_L3_LOG_ERROR(0);
+    HAPI_BROAD_L3_L7_LOG_ERROR(0);
   }
 
   return L7_NULL;
@@ -4949,7 +4949,7 @@ static void hapiBroadL3Tunnel6to4RelayUpdate (DAPI_USP_t *tnlUsp,
   nhHapiPortPtr = HAPI_PORT_GET(tnlUsp, dapi_g);
   if (nhHapiPortPtr->hapiModeparm.pTunnel == (void *)L7_NULL)
   {
-    HAPI_BROAD_L3_LOG_ERROR(0);
+    HAPI_BROAD_L3_L7_LOG_ERROR(0);
   }
 
   pTunnelEntry = (BROAD_L3_TUNNEL_ENTRY_t *)nhHapiPortPtr->hapiModeparm.pTunnel;
@@ -5100,7 +5100,7 @@ static L7_RC_t hapiBroadL3TunnelDelete(DAPI_USP_t *usp,
     }
     if (avlDeleteEntry(&hapiBroadL3TunnelTree, pTunnelEntry) == L7_NULL)
     {
-      HAPI_BROAD_L3_LOG_ERROR(0);
+      HAPI_BROAD_L3_L7_LOG_ERROR(0);
     }
   }
   else if ((pTunnelEntry->wl.cmd == BROAD_L3_TUNNEL_CMD_MODIFY) ||
@@ -5192,7 +5192,7 @@ static L7_RC_t hapiBroadL3TunnelMacAddressAdd(DAPI_USP_t *usp,
     }
     else
     {
-      HAPI_BROAD_L3_LOG_ERROR(0);
+      HAPI_BROAD_L3_L7_LOG_ERROR(0);
     }
   }
   else
@@ -5363,7 +5363,7 @@ static L7_RC_t hapiBroadL3TunnelMacAddressDelete(DAPI_USP_t *usp,
                           " Deleting MAC AVL entry\n");
       if (avlDeleteEntry(&hapiBroadL3MacTree, pMacEntry) == L7_NULL)
       {
-        HAPI_BROAD_L3_LOG_ERROR(0);
+        HAPI_BROAD_L3_L7_LOG_ERROR(0);
       }
     }
   }
@@ -5638,7 +5638,7 @@ static L7_RC_t hapiBroadL3IntfVRIDAdd(DAPI_USP_t *usp,
   }
   else
   {
-    HAPI_BROAD_L3_LOG_ERROR(dapiPortPtr->type);
+    HAPI_BROAD_L3_L7_LOG_ERROR(dapiPortPtr->type);
   }
 
   /* add the entry to the HW */
@@ -5653,7 +5653,7 @@ static L7_RC_t hapiBroadL3IntfVRIDAdd(DAPI_USP_t *usp,
   rv = usl_bcmx_l3_intf_create(&intfInfo);
   if ((L7_BCMX_OK(rv) != L7_TRUE))
   {
-    HAPI_BROAD_L3_LOG_ERROR(rv);
+    HAPI_BROAD_L3_L7_LOG_ERROR(rv);
   }
   else
   {
@@ -5719,7 +5719,7 @@ static L7_RC_t hapiBroadL3IntfVRIDDelete(DAPI_USP_t *usp,
   rv = usl_bcmx_l3_intf_delete(&intfInfo);
   if ((L7_BCMX_OK(rv) != L7_TRUE))
   {
-    HAPI_BROAD_L3_LOG_ERROR(rv);
+    HAPI_BROAD_L3_L7_LOG_ERROR(rv);
   }
 
   hapiPortPtr->vrrp_interface_id[vrid] = 0;

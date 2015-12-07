@@ -874,7 +874,7 @@ void nimMigrateConfigDebug (void)
                                                                 sizeof (nimConfigDataDebug_t));
     if (pNimConfigDebugData == L7_NULL)
     {
-      NIM_LOG_ERROR ("NIM:Couldn't allocate memory for the nimConfigData\n");
+      NIM_L7_LOG_ERROR("NIM:Couldn't allocate memory for the nimConfigData\n");
       return;
     }
     memset ((void *) pNimConfigDebugData, 0, sizeof (nimConfigDataDebug_t));

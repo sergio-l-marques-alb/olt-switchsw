@@ -142,7 +142,7 @@ L7_RC_t hapiBroadQosCardInit(L7_ushort16 unitNum, L7_ushort16 slotNum, DAPI_t *d
         hapiPortPtr->qos = (void*)osapiMalloc(L7_DRIVER_COMPONENT_ID, sizeof(HAPI_BROAD_QOS_PORT_t));
         if (L7_NULLPTR == hapiPortPtr->qos)
         {
-            LOG_ERROR(0);
+            L7_LOG_ERROR(0);
             return L7_FAILURE;
         }
 

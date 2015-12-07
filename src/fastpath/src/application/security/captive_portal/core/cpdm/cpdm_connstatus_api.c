@@ -26,9 +26,9 @@ extern cpdmOprData_t *cpdmOprData;
 
 /* Syntactic sugar */
 #define SEMA_TAKE(access)   \
-  if ( CPDM_##access##_LOCK_TAKE(cpdmSema, L7_WAIT_FOREVER) != L7_SUCCESS)  LOG_ERROR(0);
+  if ( CPDM_##access##_LOCK_TAKE(cpdmSema, L7_WAIT_FOREVER) != L7_SUCCESS)  L7_LOG_ERROR(0);
 #define SEMA_GIVE(access)   \
-  if ( CPDM_##access##_LOCK_GIVE(cpdmSema) != L7_SUCCESS)  LOG_ERROR(0);
+  if ( CPDM_##access##_LOCK_GIVE(cpdmSema) != L7_SUCCESS)  L7_LOG_ERROR(0);
 
 
 static avlTree_t         cacStatusTree;
@@ -143,7 +143,7 @@ L7_RC_t cpdmActStatusInit(L7_uint32 maxActStatus)
     if ( (L7_NULLPTR == actStatusDataHeap) ||
          (L7_NULLPTR == actStatusTreeHeap))
     {
-      LOG_ERROR(0); /* no point in continuing */
+      L7_LOG_ERROR(0); /* no point in continuing */
     }
   }
   return rc;
@@ -847,7 +847,7 @@ L7_RC_t cpdmIntfStatusInit(L7_uint32 maxIntfStatus)
     if ( (L7_NULLPTR == intfStatusDataHeap) ||
          (L7_NULLPTR == intfStatusTreeHeap))
     {
-      LOG_ERROR(0); /* no point in continuing */
+      L7_LOG_ERROR(0); /* no point in continuing */
     }
   }
   return rc;
@@ -1358,7 +1358,7 @@ L7_RC_t cpdmCACStatusInit(L7_uint32 maxCACStatus)
     if ( (L7_NULLPTR == cacStatusDataHeap) ||
          (L7_NULLPTR == cacStatusTreeHeap))
     {
-      LOG_ERROR(0); /* no point in continuing */
+      L7_LOG_ERROR(0); /* no point in continuing */
     }
   }
   return rc;
@@ -1638,13 +1638,13 @@ L7_RC_t cpdmClientConnStatusInit(L7_uint32 maxClientConnStatus)
     if ( (L7_NULLPTR == clientConnStatusDataHeap) ||
          (L7_NULLPTR == clientConnStatusTreeHeap))
     {
-      LOG_ERROR(0); /* no point in continuing */
+      L7_LOG_ERROR(0); /* no point in continuing */
     }
 
     if ( (L7_NULLPTR == intfConnDataHeap) ||
          (L7_NULLPTR == intfConnTreeHeap))
     {
-      LOG_ERROR(0); /* no point in continuing */
+      L7_LOG_ERROR(0); /* no point in continuing */
     }
   }
   return rc;

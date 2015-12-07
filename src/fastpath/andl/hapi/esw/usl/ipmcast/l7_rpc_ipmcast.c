@@ -158,7 +158,7 @@ int l7_rpc_client_ipmc_remove(usl_bcm_ipmc_addr_t *data, int keep,
             "Msg size %d is greater than RPC buffer size %d\n",
             msgSize,l7_rpc_req_buffer_size_get());
            
-    LOG_ERROR(msgSize); 
+    L7_LOG_ERROR(msgSize); 
   }
 
 
@@ -456,7 +456,7 @@ l7_rpc_client_ipmc_add_l2_port_groups (bcmx_lport_t      port,
 
   if ((num_groups < 1) || (num_groups > L7_L3_MCAST_ROUTE_TBL_SIZE_TOTAL ))
   {
-    LOG_ERROR (num_groups);
+    L7_LOG_ERROR(num_groups);
   }
 
   ipmc_cmd = (usl_bcmx_port_ipmc_cmd_t *) args;
@@ -468,7 +468,7 @@ l7_rpc_client_ipmc_add_l2_port_groups (bcmx_lport_t      port,
   {
     if (ipmc_index[i] >= L7_L3_MCAST_ROUTE_TBL_SIZE_TOTAL)
     {
-      LOG_ERROR (ipmc_index[i]);
+      L7_LOG_ERROR(ipmc_index[i]);
     }
 
     USL_BCMX_PORT_IPMC_INDEX_MEMBER_SET (ipmc_index[i], 
@@ -554,7 +554,7 @@ l7_rpc_client_ipmc_delete_l2_port_groups(bcmx_lport_t port,
   if ((num_groups < 1) || 
       (num_groups > L7_L3_MCAST_ROUTE_TBL_SIZE_TOTAL ))
   {
-    LOG_ERROR (num_groups);
+    L7_LOG_ERROR(num_groups);
   }
 
   ipmc_cmd = (usl_bcmx_port_ipmc_cmd_t *) args;
@@ -566,7 +566,7 @@ l7_rpc_client_ipmc_delete_l2_port_groups(bcmx_lport_t port,
   {
     if (ipmc_index[i] >= L7_L3_MCAST_ROUTE_TBL_SIZE_TOTAL)
     {
-      LOG_ERROR (ipmc_index[i]);
+      L7_LOG_ERROR(ipmc_index[i]);
     }
 
     USL_BCMX_PORT_IPMC_INDEX_MEMBER_SET (ipmc_index[i],
@@ -653,7 +653,7 @@ l7_rpc_client_ipmc_add_l3_port_groups (bcmx_lport_t port,
 
   if ((num_groups < 1) || (num_groups > L7_L3_MCAST_ROUTE_TBL_SIZE_TOTAL ))
   {
-    LOG_ERROR (num_groups);
+    L7_LOG_ERROR(num_groups);
   }
 
   ipmc_cmd = (usl_bcmx_port_ipmc_cmd_t *) args;
@@ -665,7 +665,7 @@ l7_rpc_client_ipmc_add_l3_port_groups (bcmx_lport_t port,
   {
     if (ipmc_index[i] >= L7_L3_MCAST_ROUTE_TBL_SIZE_TOTAL)
     {
-      LOG_ERROR (ipmc_index[i]);
+      L7_LOG_ERROR(ipmc_index[i]);
     }
 
     USL_BCMX_PORT_IPMC_INDEX_MEMBER_SET (ipmc_index[i], 
@@ -749,7 +749,7 @@ l7_rpc_client_ipmc_egress_port_add (bcmx_lport_t port,
 
   if (*ipmc_index >= L7_L3_MCAST_ROUTE_TBL_SIZE_TOTAL)
   {
-    LOG_ERROR (*ipmc_index);
+    L7_LOG_ERROR(*ipmc_index);
   }
 
   USL_BCMX_PORT_IPMC_INDEX_MEMBER_SET (*ipmc_index, 
@@ -829,7 +829,7 @@ l7_rpc_client_ipmc_delete_l3_port_groups (bcmx_lport_t port,
 
   if ((num_groups < 1) || (num_groups > L7_L3_MCAST_ROUTE_TBL_SIZE_TOTAL ))
   {
-    LOG_ERROR (num_groups);
+    L7_LOG_ERROR(num_groups);
   }
 
   ipmc_cmd = (usl_bcmx_port_ipmc_cmd_t *) args;
@@ -841,7 +841,7 @@ l7_rpc_client_ipmc_delete_l3_port_groups (bcmx_lport_t port,
   {
     if (ipmc_index[i] >= L7_L3_MCAST_ROUTE_TBL_SIZE_TOTAL)
     {
-      LOG_ERROR (ipmc_index[i]);
+      L7_LOG_ERROR(ipmc_index[i]);
     }
 
     USL_BCMX_PORT_IPMC_INDEX_MEMBER_SET (ipmc_index[i],
@@ -920,7 +920,7 @@ l7_rpc_client_ipmc_egress_port_delete (bcmx_lport_t port,
 
   if (*ipmc_index >= L7_L3_MCAST_ROUTE_TBL_SIZE_TOTAL)
   {
-    LOG_ERROR (*ipmc_index);
+    L7_LOG_ERROR(*ipmc_index);
   }
   USL_BCMX_PORT_IPMC_INDEX_MEMBER_SET (*ipmc_index,
                                        ipmc_cmd->ipmc_index_mask);
@@ -986,28 +986,28 @@ void l7_custom_rpc_ipmcast_init (void)
                                  l7_rpc_server_ipmc_add);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERROR (rc);
+      L7_LOG_ERROR(rc);
     }
 
     rc = hpcHardwareRpcRegister (L7_RPC_IPMCAST_IPMC_DELETE,
                                  l7_rpc_server_ipmc_delete);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERROR (rc);
+      L7_LOG_ERROR(rc);
     }
 
     rc = hpcHardwareRpcRegister (L7_RPC_IPMCAST_RPF_SET,
                                  l7_rpc_server_ipmc_rpf_set);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERROR (rc);
+      L7_LOG_ERROR(rc);
     }
 
     rc = hpcHardwareRpcRegister (L7_RPC_IPMCAST_L2_PORT_SET,
                                  l7_rpc_server_ipmc_set_l2_ports);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERROR (rc);
+      L7_LOG_ERROR(rc);
     }
 }
 

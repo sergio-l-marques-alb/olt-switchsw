@@ -143,7 +143,7 @@ L7_RC_t hapiBroadVoiceVlanInit(DAPI_t *dapi_g)
   hapiBroadVoiceVlanSemaphore = osapiSemaMCreate(OSAPI_SEM_Q_FIFO);
   if (hapiBroadVoiceVlanSemaphore == L7_NULL)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
   voiceVlanDeviceCount = 0;
   hapiBroadVoiceVlanDBInit();

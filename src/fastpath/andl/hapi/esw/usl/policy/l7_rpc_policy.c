@@ -319,7 +319,7 @@ L7_RC_t l7_init_policy_rpc(void)
     rpcStatsResponse[i].buf = osapiMalloc(L7_DRIVER_COMPONENT_ID, size);
     if (rpcStatsResponse[i].buf == L7_NULLPTR)
     {
-      LOG_ERROR(0);
+      L7_LOG_ERROR(0);
     }
     rpcStatsResponse[i].buf_size = size;
     rpcStatsResponse[i].data_len = 0; 
@@ -328,7 +328,7 @@ L7_RC_t l7_init_policy_rpc(void)
   rc = hpcHardwareRpcRegister(L7_RPC_POLICY_HANDLER, l7_rpc_server_policy_handler);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 
   return rc;

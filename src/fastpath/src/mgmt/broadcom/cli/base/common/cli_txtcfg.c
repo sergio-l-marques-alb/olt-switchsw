@@ -786,7 +786,7 @@ L7_RC_t cliTxtCfgInit (L7_uint32 phase)
     cliTxtCfgWap = (cliTxtCfgWa_t *) osapiMalloc (L7_CLI_WEB_COMPONENT_ID, sizeof (*cliTxtCfgWap));
     if (cliTxtCfgWap == L7_NULLPTR)
     {
-      LOG_ERROR (0);
+      L7_LOG_ERROR(0);
       return L7_ERROR;
     }
     cliTxtCfgWap->doCompress = L7_TRUE;
@@ -808,7 +808,7 @@ L7_RC_t cliTxtCfgInit (L7_uint32 phase)
     cliTxtRunCfg = (cliTxtRunCfg_t *)osapiMalloc(L7_CLI_WEB_COMPONENT_ID, sizeof(cliTxtRunCfg_t));
     if (cliTxtRunCfg == L7_NULLPTR)
     {
-      LOG_ERROR (0);
+      L7_LOG_ERROR(0);
       return L7_ERROR;
     }
     memset(cliTxtRunCfg, 0, sizeof(cliTxtRunCfg_t));

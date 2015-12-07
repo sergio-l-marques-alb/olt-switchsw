@@ -128,21 +128,21 @@ void * usl_alloc_port_db_elem()
                                               sizeof(usl_port_db_elem_t));
     if (elem == L7_NULLPTR)
     {
-      USL_LOG_ERROR("Unable to allocate memory for portdb elem\n");
+      USL_L7_LOG_ERROR("Unable to allocate memory for portdb elem\n");
     }
 
     elem->portPoliciesMask = osapiMalloc(L7_DRIVER_COMPONENT_ID, 
                                          USL_PORT_DB_POLICY_MASK_SIZE);
     if (elem->portPoliciesMask == L7_NULLPTR)
     {
-      USL_LOG_ERROR("Unable to allocate memory for portdb elem\n");  
+      USL_L7_LOG_ERROR("Unable to allocate memory for portdb elem\n");  
     }
 
     elem->portPoliciesChangeMask = osapiMalloc(L7_DRIVER_COMPONENT_ID, 
                                                USL_PORT_DB_POLICY_MASK_SIZE);
     if (elem->portPoliciesChangeMask == L7_NULLPTR)
     {
-      USL_LOG_ERROR("Unable to allocate memory for portdb elem\n");  
+      USL_L7_LOG_ERROR("Unable to allocate memory for portdb elem\n");  
     }
 
   } while (0);
@@ -553,13 +553,13 @@ L7_RC_t usl_port_db_init()
     uslPortDbSema = osapiSemaMCreate(OSAPI_SEM_Q_PRIORITY);
     if (uslPortDbSema == L7_NULLPTR)
     {
-      USL_LOG_ERROR("USL: unable to create Port Db lock\n");
+      USL_L7_LOG_ERROR("USL: unable to create Port Db lock\n");
     }
 
     if (usl_port_db_alloc(&uslOperPortDbTree, &uslOperPortDbTreeHeap,
                           &uslOperPortDbDataHeap) != L7_SUCCESS)
     {
-      USL_LOG_ERROR("USL: unable to allocate memory for the Port database\n");
+      USL_L7_LOG_ERROR("USL: unable to allocate memory for the Port database\n");
     }
 
     uslOperPortDbNumEntries = 0;
@@ -571,7 +571,7 @@ L7_RC_t usl_port_db_init()
       if (usl_port_db_alloc(&uslShadowPortDbTree, &uslShadowPortDbTreeHeap,
                             &uslShadowPortDbDataHeap) != L7_SUCCESS)
       {
-        USL_LOG_ERROR("USL: unable to allocate memory for the Port database\n");
+        USL_L7_LOG_ERROR("USL: unable to allocate memory for the Port database\n");
       }
 
        uslShadowPortDbNumEntries = 0;
@@ -604,7 +604,7 @@ L7_RC_t usl_port_db_init()
     if (usl_db_sync_func_table_register(USL_PORT_DB_ID, 
                                         &portDbFuncs) != L7_SUCCESS)
     {
-      LOG_ERROR(0);   
+      L7_LOG_ERROR(0);   
     }
   
  
@@ -720,7 +720,7 @@ L7_RC_t usl_portdb_insert_port_record(USL_DB_TYPE_t dbType,
   portPolicyMask = osapiMalloc(L7_DRIVER_COMPONENT_ID, USL_PORT_DB_POLICY_MASK_SIZE);
   if (portPolicyMask == L7_NULL)
   {
-    USL_LOG_ERROR("USL: Can't allocate policy mask for port %d\n", gport);
+    USL_L7_LOG_ERROR("USL: Can't allocate policy mask for port %d\n", gport);
   }
   portEntry.portPoliciesMask = portPolicyMask;
 
@@ -728,7 +728,7 @@ L7_RC_t usl_portdb_insert_port_record(USL_DB_TYPE_t dbType,
   portPolicyMask = osapiMalloc(L7_DRIVER_COMPONENT_ID, USL_PORT_DB_POLICY_MASK_SIZE);
   if (portPolicyMask == L7_NULL)
   {
-    USL_LOG_ERROR("USL: Can't allocate policy mask for port %d\n", gport);
+    USL_L7_LOG_ERROR("USL: Can't allocate policy mask for port %d\n", gport);
   }
   portEntry.portPoliciesChangeMask = portPolicyMask;
 
@@ -739,14 +739,14 @@ L7_RC_t usl_portdb_insert_port_record(USL_DB_TYPE_t dbType,
 
   if (pUslPortEntry != L7_NULLPTR) /* Item was not inserted */
   {
-    USL_LOG_ERROR("USL: Failed to insert port %d in USL database\n", gport);
+    USL_L7_LOG_ERROR("USL: Failed to insert port %d in USL database\n", gport);
   }
  
   /* Search the entry to find the item inserted */
   pUslPortEntry = avlSearchLVL7(dbHandle, &portEntry, AVL_EXACT);
   if (L7_NULLPTR == pUslPortEntry)
   {
-    USL_LOG_ERROR("USL: Failed to insert port %d in USL database\n", gport);
+    USL_L7_LOG_ERROR("USL: Failed to insert port %d in USL database\n", gport);
   }
 
   (*numEntries)++;
@@ -1119,7 +1119,7 @@ L7_RC_t usl_portdb_update(L7_BOOL updateCmd, L7_uint32 targetFpUnit,
       }
     }
 #else
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
 #endif
   }
 
@@ -1250,7 +1250,7 @@ L7_RC_t usl_portdb_update_msg_send(L7_BOOL updateCmd, L7_uint32 targetFpUnit,
   }
 
   if ((msg = usl_control_tx_buffer_alloc()) == L7_NULLPTR)
-    USL_LOG_ERROR("USL: Tx buffer not allocated for USL_PORTDB_CREATE_PORTS\n");
+    USL_L7_LOG_ERROR("USL: Tx buffer not allocated for USL_PORTDB_CREATE_PORTS\n");
 
   msgSize = usl_control_tx_buffer_size();
   memset(msg, 0, msgSize);
@@ -1261,7 +1261,7 @@ L7_RC_t usl_portdb_update_msg_send(L7_BOOL updateCmd, L7_uint32 targetFpUnit,
 
   if (maxElems == 0)
   {
-    USL_LOG_ERROR("USL: Tx message size is too small for portdb create msg\n");
+    USL_L7_LOG_ERROR("USL: Tx message size is too small for portdb create msg\n");
     usl_tx_buffer_free(msg);
   }
 
@@ -1290,7 +1290,7 @@ L7_RC_t usl_portdb_update_msg_send(L7_BOOL updateCmd, L7_uint32 targetFpUnit,
     {
       if (updateCmd == L7_TRUE)
       {
-        LOG_ERROR(rv);    
+        L7_LOG_ERROR(rv);    
       }
       else
         continue;
@@ -1302,7 +1302,7 @@ L7_RC_t usl_portdb_update_msg_send(L7_BOOL updateCmd, L7_uint32 targetFpUnit,
     {
       if (updateCmd == L7_TRUE)
       {
-        LOG_ERROR(rv);    
+        L7_LOG_ERROR(rv);    
       }
       else
         continue;

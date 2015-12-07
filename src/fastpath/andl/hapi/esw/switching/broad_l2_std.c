@@ -269,7 +269,7 @@ void hapiBroadL2ReInit(void)
   rc = hapiBroadDot1sBcmStgMapSet(DOT1S_CIST_ID, BCM_STG_DEFAULT);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 
 ///* PTin added: MAC learning */
@@ -305,7 +305,7 @@ L7_RC_t hapiBroadL2Init(DAPI_t *dapi_g)
   broadMacFilters = osapiMalloc (L7_DRIVER_COMPONENT_ID, filter_size);
   if (filter_size == 0)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR(0);
   }
   memset (broadMacFilters, 0, filter_size);
 
@@ -315,19 +315,19 @@ L7_RC_t hapiBroadL2Init(DAPI_t *dapi_g)
   broadMacFilterSema = osapiSemaMCreate (OSAPI_SEM_Q_PRIORITY);
 
   if (broadMacFilterSema == L7_NULLPTR)
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
 
   broadCOSQsema = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
   if (broadCOSQsema == L7_NULL)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 
 
   broadVlanSema = osapiSemaMCreate(OSAPI_SEM_Q_PRIORITY);
   if (broadVlanSema == L7_NULLPTR)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 
   hapiBroadL2ReInit();
@@ -1015,7 +1015,7 @@ static void hapiBroadDot1sAsyncProcessMessages(L7_uint32 num_msgs, DAPI_t *dapi_
         break;
 
       default:
-        LOG_ERROR (dot1s_cmd.async_cmd);
+        L7_LOG_ERROR(dot1s_cmd.async_cmd);
     }
   }
 }
@@ -1277,7 +1277,7 @@ void hapiBroadDot1sPortStateCopy(DAPI_USP_t *destUsp, DAPI_USP_t *srcUsp, DAPI_t
 
   if (IS_PORT_TYPE_PHYSICAL(dapiDestPortPtr) == L7_FALSE)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 
   for (index = 0; index < HAPI_MAX_MULTIPLE_STP_INSTANCES; index++)
@@ -1292,7 +1292,7 @@ void hapiBroadDot1sPortStateCopy(DAPI_USP_t *destUsp, DAPI_USP_t *srcUsp, DAPI_t
       rc = usl_bcmx_stg_stp_set (stg, lport, hapiSrcPortPtr->hw_dot1s_state[index]);
       if (L7_BCMX_OK(rc) != L7_TRUE)
       {
-        LOG_ERROR(rc);
+        L7_LOG_ERROR(rc);
       }
     }
   }
@@ -1329,7 +1329,7 @@ void hapiBroadDot1sPortAllGroupsStateSet(DAPI_USP_t *usp,
 
   if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr) == L7_FALSE)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 
   for (index = 0; index < HAPI_MAX_MULTIPLE_STP_INSTANCES; index++)
@@ -1344,7 +1344,7 @@ void hapiBroadDot1sPortAllGroupsStateSet(DAPI_USP_t *usp,
       rc = usl_bcmx_stg_stp_set (stg, lport, state);
       if (L7_BCMX_OK(rc) != L7_TRUE)
       {
-        LOG_ERROR(rc);
+        L7_LOG_ERROR(rc);
       }
     }
   }
@@ -3318,7 +3318,7 @@ void hapiBroadAddrMacFrameAsyncLearn(L7_uint32 numArgs, DAPI_t *dapi_g)
                                 sizeof(bcmx_l2_addr_t),
                                 L7_WAIT_FOREVER) != L7_SUCCESS)
         {
-            LOG_ERROR (0);
+            L7_LOG_ERROR(0);
         }
 
         hapiBroadAddrMacUpdateLearn(&bcmx_l2_addr, dapi_g);
@@ -3346,7 +3346,7 @@ static void hapiBroadAddrMacFrameAsyncLearnCreate(DAPI_t *dapi_g)
                                                         sizeof(bcmx_l2_addr_t));
     if (hapiFrameLearnAsyncQueue == L7_NULLPTR)
     {
-        LOG_ERROR (0);
+        L7_LOG_ERROR(0);
     }
 
     if (osapiTaskCreate("hapiBroadAddrMacFrameAsyncLearn",
@@ -3355,7 +3355,7 @@ static void hapiBroadAddrMacFrameAsyncLearnCreate(DAPI_t *dapi_g)
                         L7_DEFAULT_TASK_PRIORITY,
                         L7_DEFAULT_TASK_SLICE) == L7_ERROR)
     {
-      LOG_ERROR(0);
+      L7_LOG_ERROR(0);
     }
 }
 
@@ -4143,7 +4143,7 @@ L7_RC_t hapiBroadL2AddrMacSyncInit (DAPI_t *dapi_g)
                       L7_DEFAULT_TASK_PRIORITY,
                       L7_DEFAULT_TASK_SLICE) == L7_ERROR)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 
   return result;
@@ -4378,7 +4378,7 @@ L7_RC_t hapiBroadL2AddrFlushInit (DAPI_t *dapi_g)
   hapiBroadFlushSema = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
   if (hapiBroadFlushSema == L7_NULL)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 
   /* an array to indicate each trunk being flushed */
@@ -4388,7 +4388,7 @@ L7_RC_t hapiBroadL2AddrFlushInit (DAPI_t *dapi_g)
   if (hapiBroadFlushTgidList  == L7_NULLPTR)
     hapiBroadFlushTgidList = osapiMalloc(L7_DRIVER_COMPONENT_ID,size);
 
-  if (hapiBroadFlushTgidList == L7_NULLPTR) LOG_ERROR(hapiBroadFlushTgidList);
+  if (hapiBroadFlushTgidList == L7_NULLPTR) L7_LOG_ERROR(hapiBroadFlushTgidList);
 
   memset((void *)hapiBroadFlushTgidList,0,size);
 
@@ -4399,7 +4399,7 @@ L7_RC_t hapiBroadL2AddrFlushInit (DAPI_t *dapi_g)
   if (hapiBroadFlushVlanList == L7_NULLPTR)
     hapiBroadFlushVlanList = osapiMalloc(L7_DRIVER_COMPONENT_ID,size);
 
-  if (hapiBroadFlushVlanList == L7_NULLPTR) LOG_ERROR(hapiBroadFlushVlanList);
+  if (hapiBroadFlushVlanList == L7_NULLPTR) L7_LOG_ERROR(hapiBroadFlushVlanList);
 
 
   memset(hapiBroadFlushMac, 0, L7_ENET_MAC_ADDR_LEN);
@@ -4409,7 +4409,7 @@ L7_RC_t hapiBroadL2AddrFlushInit (DAPI_t *dapi_g)
                                                       1,
                                                       sizeof(BROAD_L2ADDR_FLUSH_t));
 
-  if (hapiL2AddrFlushQueue == L7_NULL) LOG_ERROR(hapiL2AddrFlushQueue);
+  if (hapiL2AddrFlushQueue == L7_NULL) L7_LOG_ERROR(hapiL2AddrFlushQueue);
 
   /* spawn task */
   if (osapiTaskCreate("hapiL2AddrFlushTask", hapiBroadL2AddrFlushTask,
@@ -4417,7 +4417,7 @@ L7_RC_t hapiBroadL2AddrFlushInit (DAPI_t *dapi_g)
                       L7_DEFAULT_TASK_PRIORITY,
                       L7_DEFAULT_TASK_SLICE) == L7_ERROR)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 
   return result;
@@ -5135,7 +5135,7 @@ void hapiBroadDot1sAsyncDoneWait(void)
                          L7_MSG_PRIORITY_NORM);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 
   /* Signal the L2 Async task that work is pending. */
@@ -5173,7 +5173,7 @@ static void hapiBroadL2AsyncTask(L7_uint32 num_args, DAPI_t *dapi_g)
                               sizeof(l2async_cmd),
                               L7_WAIT_FOREVER) != L7_SUCCESS)
       {
-        LOG_ERROR(0);
+        L7_LOG_ERROR(0);
       }
 
       while (1) {
@@ -5182,13 +5182,13 @@ static void hapiBroadL2AsyncTask(L7_uint32 num_args, DAPI_t *dapi_g)
         rc = osapiMsgQueueGetNumMsgs(hapiBroadDot1sAsyncCmdQueue, &num_dot1s_msg);
         if (rc != L7_SUCCESS)
         {
-          LOG_ERROR (rc);
+          L7_LOG_ERROR(rc);
         }
 
         rc = osapiMsgQueueGetNumMsgs(hapiBroadLagAsyncCmdQueue, &num_lag_msg);
         if (rc != L7_SUCCESS)
         {
-          LOG_ERROR (rc);
+          L7_LOG_ERROR(rc);
         }
 
         /* No more messages left to be processed */
@@ -5235,13 +5235,13 @@ L7_RC_t hapiBroadL2AsyncInit(DAPI_t *dapi_g)
                                                      async_cmd_size);
   if (hapiBroadDot1sAsyncCmdQueue == L7_NULL)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR(0);
   }
 
   hapiBroadDot1sAsyncDoneSema = osapiSemaBCreate(OSAPI_SEM_Q_FIFO,OSAPI_SEM_EMPTY);
   if (hapiBroadDot1sAsyncDoneSema == L7_NULL)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 
   async_cmd_size = sizeof (hapi_broad_lag_async_msg_t);
@@ -5251,13 +5251,13 @@ L7_RC_t hapiBroadL2AsyncInit(DAPI_t *dapi_g)
                                                    async_cmd_size);
   if (hapiBroadLagAsyncCmdQueue == L7_NULL)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR(0);
   }
 
   hapiBroadLagAsyncDoneSema = osapiSemaBCreate(OSAPI_SEM_Q_FIFO,OSAPI_SEM_EMPTY);
   if (hapiBroadLagAsyncDoneSema == L7_NULL)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 
 
@@ -5270,7 +5270,7 @@ L7_RC_t hapiBroadL2AsyncInit(DAPI_t *dapi_g)
                                                    async_cmd_size);
   if (hapiBroadL2AsyncCmdQueue == L7_NULL)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR(0);
   }
 
   /* Start the L2 async task */
@@ -5284,7 +5284,7 @@ L7_RC_t hapiBroadL2AsyncInit(DAPI_t *dapi_g)
                       L7_DEFAULT_TASK_PRIORITY,
                       L7_DEFAULT_TASK_SLICE) == L7_ERROR)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 
   return L7_SUCCESS;
@@ -5344,7 +5344,7 @@ L7_RC_t hapiBroadDynamicArpInspectionPortUpdate(DAPI_USP_t *portUsp,
       break;
 
     default:
-      LOG_ERROR(temp16);
+      L7_LOG_ERROR(temp16);
       break;
     }
   }

@@ -86,7 +86,7 @@ void cmgrReceiveCardPlugIn(cmgr_cmpdu_t *cmpdu)
           rc = cmgrCMDBUnitInfoCopy (cmpdu->unit, 0);
           if (rc != L7_SUCCESS)
           {
-            LOG_ERROR (cmpdu->unit);
+            L7_LOG_ERROR(cmpdu->unit);
           }
         }
 
@@ -157,7 +157,7 @@ void cmgrReceiveCardPlugIn(cmgr_cmpdu_t *cmpdu)
           rc = cmgrCMDBUnitInfoCopy (cmpdu->unit, 0);
           if (rc != L7_SUCCESS)
           {
-            LOG_ERROR (cmpdu->unit);
+            L7_LOG_ERROR(cmpdu->unit);
           }
         }
 
@@ -351,7 +351,7 @@ void cmgrReceiveCardUnplug(cmgr_cmpdu_t *cmpdu)
       rc = cmgrCMDBUnitInfoCopy (cmpdu->unit, 0);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERROR (cmpdu->unit);
+        L7_LOG_ERROR(cmpdu->unit);
       }
     }
 
@@ -379,7 +379,7 @@ void cmgrReceiveCardUnplug(cmgr_cmpdu_t *cmpdu)
       rc = cmgrCMDBUnitInfoCopy (cmpdu->unit, 0);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERROR (cmpdu->unit);
+        L7_LOG_ERROR(cmpdu->unit);
       }
     }
     osapiSemaGive(cmgrSemaId);
@@ -478,7 +478,7 @@ void cmgrReceiveCardFailure(cmgr_cmpdu_t *cmpdu)
       rc = cmgrCMDBUnitInfoCopy (cmpdu->unit, 0);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERROR (cmpdu->unit);
+        L7_LOG_ERROR(cmpdu->unit);
       }
     }
 
@@ -504,7 +504,7 @@ void cmgrReceiveCardFailure(cmgr_cmpdu_t *cmpdu)
       rc = cmgrCMDBUnitInfoCopy (cmpdu->unit, 0);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERROR (cmpdu->unit);
+        L7_LOG_ERROR(cmpdu->unit);
       }
     }
     osapiSemaGive(cmgrSemaId);

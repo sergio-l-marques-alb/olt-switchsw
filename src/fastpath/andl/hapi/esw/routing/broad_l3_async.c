@@ -300,7 +300,7 @@ static void hapiBroadL3AsyncNhopWlistProcess (DAPI_t *dapi_g)
           HAPI_BROAD_L3_NH_WLIST_DEL(pNhop);
           if (avlDeleteEntry(&hapiBroadL3NhopTree, pNhop) == L7_NULL)
           {
-            HAPI_BROAD_L3_LOG_ERROR(0);
+            HAPI_BROAD_L3_L7_LOG_ERROR(0);
           }
       
           HAPI_BROAD_L3_SEMA_GIVE(hapiBroadL3Sema);
@@ -315,7 +315,7 @@ static void hapiBroadL3AsyncNhopWlistProcess (DAPI_t *dapi_g)
         break;
 
       default:
-        HAPI_BROAD_L3_LOG_ERROR(0);
+        HAPI_BROAD_L3_L7_LOG_ERROR(0);
     }
 
     HAPI_BROAD_L3_SEMA_TAKE(hapiBroadL3Sema, L7_WAIT_FOREVER);  
@@ -451,7 +451,7 @@ static void hapiBroadL3AsyncEcmpWlistProcess (DAPI_t *dapi_g)
          HAPI_BROAD_L3_ECMP_WLIST_DEL(pEcmp);
          if (avlDeleteEntry(&hapiBroadL3EcmpTree, pEcmp) == L7_NULL)
          {
-           HAPI_BROAD_L3_LOG_ERROR(0);
+           HAPI_BROAD_L3_L7_LOG_ERROR(0);
          }
 
          HAPI_BROAD_L3_SEMA_GIVE(hapiBroadL3Sema);
@@ -469,7 +469,7 @@ static void hapiBroadL3AsyncEcmpWlistProcess (DAPI_t *dapi_g)
          break;
 
       default:
-        HAPI_BROAD_L3_LOG_ERROR(0);
+        HAPI_BROAD_L3_L7_LOG_ERROR(0);
     }
 
     HAPI_BROAD_L3_SEMA_TAKE(hapiBroadL3Sema, L7_WAIT_FOREVER);
@@ -521,7 +521,7 @@ static void hapiBroadL3AsyncHostWlistProcess (DAPI_t *dapi_g)
 
     if (pNhop == (BROAD_L3_NH_ENTRY_t *)L7_NULL)
     {
-      HAPI_BROAD_L3_LOG_ERROR(pHost->wl.cmd); /* Shouldn't happen */
+      HAPI_BROAD_L3_L7_LOG_ERROR(pHost->wl.cmd); /* Shouldn't happen */
     }
 
     /* Check if this host goes over tunnel */
@@ -678,7 +678,7 @@ static void hapiBroadL3AsyncHostWlistProcess (DAPI_t *dapi_g)
 
         if (avlDeleteEntry(&hapiBroadL3HostTree, pHost) == L7_NULL)
         {
-          HAPI_BROAD_L3_LOG_ERROR(0);
+          HAPI_BROAD_L3_L7_LOG_ERROR(0);
         }
 
         HAPI_BROAD_L3_SEMA_GIVE(hapiBroadL3Sema);
@@ -716,7 +716,7 @@ static void hapiBroadL3AsyncHostWlistProcess (DAPI_t *dapi_g)
         break;
  
       default: 
-        HAPI_BROAD_L3_LOG_ERROR(0);
+        HAPI_BROAD_L3_L7_LOG_ERROR(0);
     }
 
     HAPI_BROAD_L3_SEMA_TAKE(hapiBroadL3Sema, L7_WAIT_FOREVER); 
@@ -780,7 +780,7 @@ L7_RC_t hapiBroadL3MacNhopUnlink (BROAD_L3_NH_ENTRY_t *pNhopEntry)
      
     if (pTmp == L7_NULL) /* Nhop was not found in the MAC list */
     {
-      HAPI_BROAD_L3_LOG_ERROR(0);
+      HAPI_BROAD_L3_L7_LOG_ERROR(0);
     }
   } 
   
@@ -795,7 +795,7 @@ L7_RC_t hapiBroadL3MacNhopUnlink (BROAD_L3_NH_ENTRY_t *pNhopEntry)
     pTmp = avlDeleteEntry(&hapiBroadL3MacTree, pMacEntry);
     if (pTmp == L7_NULL)
     {
-      HAPI_BROAD_L3_LOG_ERROR(0);
+      HAPI_BROAD_L3_L7_LOG_ERROR(0);
     }
   }
  
@@ -884,7 +884,7 @@ static void hapiBroadL3AsyncRouteWlistProcess (DAPI_t *dapi_g)
       /* ECMP route */
       if (pEcmp == (BROAD_L3_ECMP_ENTRY_t *)L7_NULL)
       {
-        HAPI_BROAD_L3_LOG_ERROR(pRoute->wl.cmd);
+        HAPI_BROAD_L3_L7_LOG_ERROR(pRoute->wl.cmd);
       }
 
       if (pEcmp->egressId == HAPI_BROAD_L3_INVALID_EGR_ID)
@@ -918,7 +918,7 @@ static void hapiBroadL3AsyncRouteWlistProcess (DAPI_t *dapi_g)
       /* Non-ECMP route must be next hop info */
       if (pNhop == (BROAD_L3_NH_ENTRY_t *)L7_NULL)
       {
-         HAPI_BROAD_L3_LOG_ERROR(0);
+         HAPI_BROAD_L3_L7_LOG_ERROR(0);
       }
   
       if (pNhop->egressId == HAPI_BROAD_L3_INVALID_EGR_ID)
@@ -1070,7 +1070,7 @@ static void hapiBroadL3AsyncRouteWlistProcess (DAPI_t *dapi_g)
 
         if (avlDeleteEntry(&hapiBroadL3RouteTree, pRoute) == L7_NULL)
         {
-          HAPI_BROAD_L3_LOG_ERROR(0);
+          HAPI_BROAD_L3_L7_LOG_ERROR(0);
         }
 
         HAPI_BROAD_L3_SEMA_GIVE(hapiBroadL3Sema);
@@ -1096,7 +1096,7 @@ static void hapiBroadL3AsyncRouteWlistProcess (DAPI_t *dapi_g)
         break;
 
       default:
-        HAPI_BROAD_L3_LOG_ERROR(0); 
+        HAPI_BROAD_L3_L7_LOG_ERROR(0); 
     }
   
     HAPI_BROAD_L3_SEMA_TAKE(hapiBroadL3Sema, L7_WAIT_FOREVER);  
@@ -1181,12 +1181,12 @@ static void hapiBroadL3AsyncTunnelWlistProcess (DAPI_t *dapi_g)
         HAPI_BROAD_L3_TUNNEL_WLIST_DEL(pTunEntry);
         if (avlDeleteEntry(&hapiBroadL3TunnelTree, pTunEntry) == L7_NULL)
         {
-          HAPI_BROAD_L3_LOG_ERROR(0);
+          HAPI_BROAD_L3_L7_LOG_ERROR(0);
         }
         break;
 
       default:
-        HAPI_BROAD_L3_LOG_ERROR(pTunEntry->wl.cmd);
+        HAPI_BROAD_L3_L7_LOG_ERROR(pTunEntry->wl.cmd);
     }
 
   } while (hapiBroadL3TunnelListHead != L7_NULL);
@@ -1265,7 +1265,7 @@ static void hapiBroadL3AsyncTunnelCreate (BROAD_L3_TUNNEL_ENTRY_t *pTunEntry,
     rv = usl_bcmx_l3_intf_get(&intfInfo); /* Intf must exists */
     if (rv != BCM_E_NONE)
     {
-      HAPI_BROAD_L3_LOG_ERROR(rv);
+      HAPI_BROAD_L3_L7_LOG_ERROR(rv);
     }
 
     intfInfo.bcm_data.l3a_flags |= (BCM_L3_REPLACE | BCM_L3_WITH_ID);
@@ -1294,7 +1294,7 @@ static void hapiBroadL3AsyncTunnelCreate (BROAD_L3_TUNNEL_ENTRY_t *pTunEntry,
   }
   else
   {
-    HAPI_BROAD_L3_LOG_ERROR(nhDapiPortPtr->type);
+    HAPI_BROAD_L3_L7_LOG_ERROR(nhDapiPortPtr->type);
   }
 
   intfInfo.bcm_data.l3a_vid = vlanId;
@@ -1730,7 +1730,7 @@ static void hapiBroadL3AsyncTunnelNhopResolve(BROAD_L3_NH_ENTRY_t *pTunNhop,
           }
           else
           {
-            HAPI_BROAD_L3_LOG_ERROR(nhDapiPortPtr->type);
+            HAPI_BROAD_L3_L7_LOG_ERROR(nhDapiPortPtr->type);
           } 
  
           intfInfo.bcm_data.l3a_vid = vlanId;
@@ -1897,7 +1897,7 @@ static void hapiBroadL3AsyncWaitqProcess (DAPI_t *dapi_g)
 
   if (rc != L7_SUCCESS)
   {
-    HAPI_BROAD_L3_LOG_ERROR (rc);
+    HAPI_BROAD_L3_L7_LOG_ERROR(rc);
   }
 
   if (num_msg == 0)
@@ -1930,7 +1930,7 @@ static void hapiBroadL3AsyncWaitqProcess (DAPI_t *dapi_g)
     if (rc != L7_SUCCESS)
     {
       /* This shouldn't be the case. There should be atleast one msg on queue */
-      HAPI_BROAD_L3_LOG_ERROR (rc);           
+      HAPI_BROAD_L3_L7_LOG_ERROR(rc);           
     }
 
     HAPI_BROAD_L3_ASYNC_DBG("hapiBroadL3AsyncWaitqProcess: waking up"
@@ -2356,7 +2356,7 @@ hapiBroadL3v6LinkLocalRouteAddDel(L7_BOOL install, DAPI_t *dapi_g)
       {
         HAPI_BROAD_L3_ASYNC_DBG("hapiBroadL3v6LinkLocalRouteAddDel:"
                             " Failed to install link local route rv %d\n", rv);
-        HAPI_BROAD_L3_LOG_ERROR(rv);
+        HAPI_BROAD_L3_L7_LOG_ERROR(rv);
       }
     }
   }

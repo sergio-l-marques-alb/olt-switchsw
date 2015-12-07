@@ -77,14 +77,14 @@ void * hapiBroadL3AvlInsert(avlTree_t *tree, void *item)
 
   if (entry != L7_NULL) /* Item was not inserted */
   {
-    HAPI_BROAD_L3_LOG_ERROR(0);
+    HAPI_BROAD_L3_L7_LOG_ERROR(0);
   }
 
   /* Search the entry to find the item inserted */
   entry = avlSearchLVL7(tree, item, AVL_EXACT);
   if (L7_NULL == entry)
   {
-    HAPI_BROAD_L3_LOG_ERROR(0); /* Cannot find the inserted item */
+    HAPI_BROAD_L3_L7_LOG_ERROR(0); /* Cannot find the inserted item */
   }
 
   return entry;
@@ -281,7 +281,7 @@ BROAD_PORT_t * hapiBroadL3CpuHapiPortGet(DAPI_t *dapi_g)
 
   if (CPU_USP_GET(&cpuUsp) != L7_SUCCESS)
   {
-    HAPI_BROAD_L3_LOG_ERROR(-1);
+    HAPI_BROAD_L3_L7_LOG_ERROR(-1);
   }
 
   return HAPI_PORT_GET(&cpuUsp, dapi_g);
@@ -323,7 +323,7 @@ static L7_uint32 hapiBroadL3MaxEcmpPathsGet(void)
   }
 
   /* The number of paths exceeded 2^31 so we are out of bits. */
-  HAPI_BROAD_L3_LOG_ERROR(sw_val);
+  HAPI_BROAD_L3_L7_LOG_ERROR(sw_val);
 
   /* NOTREACHED */
   return (1 << 31);
@@ -357,7 +357,7 @@ L7_RC_t hapiBroadL3MaxEcmpPathsSet(L7_uint32 unit)
         rv = bcm_l3_route_max_ecmp_set(unit, maxEcmpPaths);
         if (rv != BCM_E_NONE)
         {
-          HAPI_BROAD_L3_LOG_ERROR (rv);
+          HAPI_BROAD_L3_L7_LOG_ERROR(rv);
         }
       }
     }
@@ -754,7 +754,7 @@ L7_RC_t hapiBroadL3HostPolicyInstall (DAPI_USP_t *usp, L7_uchar8 *mac, DAPI_t *d
      */
     if (hapiBroadPolicyRemoveFromAll(sysId) != L7_SUCCESS)
     {
-      HAPI_BROAD_L3_LOG_ERROR(0);
+      HAPI_BROAD_L3_L7_LOG_ERROR(0);
     }
 
     /* Apply the policy to the routed port */
@@ -762,7 +762,7 @@ L7_RC_t hapiBroadL3HostPolicyInstall (DAPI_USP_t *usp, L7_uchar8 *mac, DAPI_t *d
   }
   else
   {
-    HAPI_BROAD_L3_LOG_ERROR(0);
+    HAPI_BROAD_L3_L7_LOG_ERROR(0);
   }
 
   return L7_SUCCESS;
@@ -1124,7 +1124,7 @@ L7_RC_t hapiBroadL3AsyncWait (DAPI_USP_t *usp, DAPI_CMD_t cmd)
                          L7_MSG_PRIORITY_NORM);
   if (rc != L7_SUCCESS)
   {
-    HAPI_BROAD_L3_LOG_ERROR (rc);
+    HAPI_BROAD_L3_L7_LOG_ERROR(rc);
   }
 
   /* Wake up Async task and wait on the sema */

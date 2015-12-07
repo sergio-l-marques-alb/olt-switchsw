@@ -189,7 +189,7 @@ void nimDoNotify(NIM_CORRELATOR_t correlator, NIM_EVENT_NOTIFY_INFO_t eventInfo)
                       correlatorTable.requestData.intIfNum,maskString,
                       rc);
 
-        NIM_LOG_ERROR("NIM: Timeout event(%d), intIfNum(%d) remainingMask = %s\n",
+        NIM_L7_LOG_ERROR("NIM: Timeout event(%d), intIfNum(%d) remainingMask = %s\n",
                       correlatorTable.requestData.event,
                       correlatorTable.requestData.intIfNum,maskString);
       }
@@ -207,7 +207,7 @@ void nimDoNotify(NIM_CORRELATOR_t correlator, NIM_EVENT_NOTIFY_INFO_t eventInfo)
   /* delete the correlator for the next event */
   if (nimEventCorrelatorDelete(correlatorTable.correlator) != L7_SUCCESS)
   {
-    NIM_LOG_ERROR("NIM: Error deleting the event correlator(%d)\n", correlatorTable.correlator);
+    NIM_L7_LOG_ERROR("NIM: Error deleting the event correlator(%d)\n", correlatorTable.correlator);
   }
 
   correlatorTable.inUse = L7_FALSE;
@@ -355,12 +355,12 @@ L7_RC_t nimRegisterIntfChange(L7_COMPONENT_IDS_t registrar_ID,
   }
   else if (nimCtlBlk_g == L7_NULLPTR)
   {
-    NIM_LOG_ERROR("NIM: nimCtlBlk_g uninitialized\n");
+    NIM_L7_LOG_ERROR("NIM: nimCtlBlk_g uninitialized\n");
 
   }
   else if (nimCtlBlk_g->nimNotifyList == L7_NULLPTR)
   {
-    NIM_LOG_ERROR("NIM: nimNotifyList not initialized\n");
+    NIM_L7_LOG_ERROR("NIM: nimNotifyList not initialized\n");
   }
   else
   {
@@ -372,7 +372,7 @@ L7_RC_t nimRegisterIntfChange(L7_COMPONENT_IDS_t registrar_ID,
       nimStartUpCreate(registrar_ID, priority, startupFcn);
     }
     else {
-      LOG_ERROR(registrar_ID);
+      L7_LOG_ERROR(registrar_ID);
     }
     rc = L7_SUCCESS;
   }
@@ -406,12 +406,12 @@ L7_RC_t nimRegisterIntfEvents(L7_COMPONENT_IDS_t registrar_ID,
   }
   else if (nimCtlBlk_g == L7_NULLPTR)
   {
-    NIM_LOG_ERROR("NIM: nimCtlBlk_g uninitialized\n");
+    NIM_L7_LOG_ERROR("NIM: nimCtlBlk_g uninitialized\n");
 
   }
   else if (nimCtlBlk_g->nimNotifyList == L7_NULLPTR)
   {
-    NIM_LOG_ERROR("NIM: nimNotifyList not initialized\n");
+    NIM_L7_LOG_ERROR("NIM: nimNotifyList not initialized\n");
   }
   else
   {
@@ -446,12 +446,12 @@ L7_RC_t nimDeRegisterIntfChange(L7_COMPONENT_IDS_t registrar_ID)
   }
   else if (nimCtlBlk_g == L7_NULLPTR)
   {
-    NIM_LOG_ERROR("NIM: nimCtlBlk_g uninitialized\n");
+    NIM_L7_LOG_ERROR("NIM: nimCtlBlk_g uninitialized\n");
 
   }
   else if (nimCtlBlk_g->nimNotifyList == L7_NULLPTR)
   {
-    NIM_LOG_ERROR("NIM: nimNotifyList not initialized\n");
+    NIM_L7_LOG_ERROR("NIM: nimNotifyList not initialized\n");
   }
   else
   {
@@ -925,7 +925,7 @@ L7_RC_t nimNotifyUserOfIntfChange(NIM_CORRELATOR_t correlator, NIM_EVENT_NOTIFY_
     /* delete the correlator for the next event */
     if (nimEventCorrelatorDelete(correlator) != L7_SUCCESS)
     {
-      NIM_LOG_ERROR("NIM: Error deleting the event correlator(%d)\n", correlator);
+      NIM_L7_LOG_ERROR("NIM: Error deleting the event correlator(%d)\n", correlator);
     }
 
     nimTracePortEvent(eventInfo.component,eventInfo.event,eventInfo.intIfNum,L7_FALSE,correlator);
@@ -991,7 +991,7 @@ void nimTask()
 
   if (osapiTaskInitDone(L7_NIM_TASK_SYNC) != L7_SUCCESS)
   {
-    NIM_LOG_ERROR("NIM: Task failed to int\n");
+    NIM_L7_LOG_ERROR("NIM: Task failed to int\n");
   }
 
   do
@@ -1323,7 +1323,7 @@ L7_RC_t nimEventHdlrInit()
 
     if ((nimEventSema = osapiSemaMCreate(OSAPI_SEM_Q_FIFO)) == L7_NULLPTR)
     {
-      NIM_LOG_ERROR("NIM: failed to create the event semaphore\n");
+      NIM_L7_LOG_ERROR("NIM: failed to create the event semaphore\n");
       rc = L7_FAILURE;
       break;
     }
@@ -1338,7 +1338,7 @@ L7_RC_t nimEventHdlrInit()
 
     if (correlatorTable.remainingMask == L7_NULL)
     {
-      NIM_LOG_ERROR("NIM: unable to alloc memory for correlator table.\n");
+      NIM_L7_LOG_ERROR("NIM: unable to alloc memory for correlator table.\n");
       rc = L7_FAILURE;
     }
     else
@@ -1350,7 +1350,7 @@ L7_RC_t nimEventHdlrInit()
 
     if (correlatorTable.failedMask == L7_NULL)
     {
-      NIM_LOG_ERROR("NIM: unable to alloc memory for correlator table.\n");
+      NIM_L7_LOG_ERROR("NIM: unable to alloc memory for correlator table.\n");
       rc = L7_FAILURE;
     }
     else
@@ -1368,7 +1368,7 @@ L7_RC_t nimEventHdlrInit()
 
     if (pNimEventStatusQueue == L7_NULLPTR)
     {
-      NIM_LOG_ERROR("NIM: unable to create the status quueue.\n");
+      NIM_L7_LOG_ERROR("NIM: unable to create the status quueue.\n");
       rc = L7_ERROR;
       break;
     }
@@ -1480,7 +1480,7 @@ L7_RC_t nimEventTally(NIM_EVENT_COMPLETE_INFO_t status,L7_BOOL *complete)
 
   if (status.correlator != correlatorTable.correlator)
   {
-    NIM_LOG_ERROR("NIM: Unexpected status callback on correlator(%d), event(%d), intIf(%d)\n",
+    NIM_L7_LOG_ERROR("NIM: Unexpected status callback on correlator(%d), event(%d), intIf(%d)\n",
                   status.correlator,status.event,status.intIfNum);
     LOG_ERR(LOG_CTX_EVENTS, "NIM: Unexpected status callback on correlator(%d), event(%d), intIf(%d)",
              status.correlator,status.event,status.intIfNum);
@@ -1504,7 +1504,7 @@ L7_RC_t nimEventTally(NIM_EVENT_COMPLETE_INFO_t status,L7_BOOL *complete)
     {
       correlatorTable.response = status.response.rc;
       correlatorTable.failedMask[intIndex] |= (1 << bitIndex);
-      NIM_LOG_ERROR("NIM: Component(%d) failed on event(%d) for intIfNum(%d)\n",
+      NIM_L7_LOG_ERROR("NIM: Component(%d) failed on event(%d) for intIfNum(%d)\n",
                     status.component,status.event,status.intIfNum);
       LOG_ERR(LOG_CTX_EVENTS, "NIM: Component(%d) failed on event(%d) for intIfNum(%d)",
                status.component,status.event,status.intIfNum);
@@ -1660,7 +1660,7 @@ void nimEventPostProcessor(NIM_EVENT_NOTIFY_INFO_t eventInfo, NIM_NOTIFY_CB_INFO
   {
     NIM_CRIT_SEC_WRITE_EXIT();
 
-    NIM_LOG_ERROR("NIM: Failed event(%d), intIfNum(%d)\n",
+    NIM_L7_LOG_ERROR("NIM: Failed event(%d), intIfNum(%d)\n",
                   eventInfo.event, eventInfo.intIfNum);
   }
 
@@ -1744,7 +1744,7 @@ L7_RC_t   nimIntfCreate(nimIntfCreateRequest_t *pRequest, nimIntfCreateOutput_t 
              (pRequest->pIntfDescr == L7_NULLPTR) ||
              (pRequest->pIntfIdInfo == L7_NULLPTR))
     {
-      NIM_LOG_ERROR("NIM: Null data in call to nimIntfCreate\n");
+      NIM_L7_LOG_ERROR("NIM: Null data in call to nimIntfCreate\n");
       rc = L7_FAILURE;
       break;
     }
@@ -2013,7 +2013,7 @@ L7_RC_t   nimIntfCreate(nimIntfCreateRequest_t *pRequest, nimIntfCreateOutput_t 
       nimCtlBlk_g->nimPorts[*intIfNum].present = L7_FALSE;
 
       NIM_LOG_MSG("NIM: Create error for Physical Interface \n");
-      LOG_EVENT(*intIfNum);
+      L7_LOG_EVENT(*intIfNum);
       rc = (L7_FAILURE);
     }
 

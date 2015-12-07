@@ -2171,7 +2171,7 @@ int hapiBroadDebugPktSendStart(int unit, int slot, int port, int vlan_id, int pk
     if (osapiTaskCreate("hapiTxTask",hapiBroadDebugPktSendTask,1,dapi_g, L7_DEFAULT_STACK_SIZE,
                         L7_DEFAULT_TASK_PRIORITY,L7_DEFAULT_TASK_SLICE) == L7_ERROR)
     {
-        LOG_ERROR(0);
+        L7_LOG_ERROR(0);
     }
   }
 
@@ -2242,31 +2242,31 @@ int hapiBroadDebugFltInst1 (void)
   rv = bcm_filter_create(unit, &test_flt);
   if (rv != BCM_E_NONE)
   {
-    LOG_ERROR (rv);
+    L7_LOG_ERROR(rv);
   }
 
   rv = bcm_filter_qualify_data16(unit, test_flt, 0, 0xffff, 0xffff);
   if (rv != BCM_E_NONE)
   {
-    LOG_ERROR (rv);
+    L7_LOG_ERROR(rv);
   }
 
   rv = bcm_filter_action_match(unit, test_flt, bcmActionSetPrio, 7);
   if (rv != BCM_E_NONE)
   {
-    LOG_ERROR (rv);
+    L7_LOG_ERROR(rv);
   }
 
   rv = bcm_filter_install(unit, test_flt);
   if (rv != BCM_E_NONE)
   {
-    LOG_ERROR (rv);
+    L7_LOG_ERROR(rv);
   }
 
   rv = bcm_filter_destroy(unit, test_flt);
   if (rv != BCM_E_NONE)
   {
-    LOG_ERROR (rv);
+    L7_LOG_ERROR(rv);
   }
   #endif
   return 0;
@@ -2294,37 +2294,37 @@ int hapiBroadDebugFltReInst1 (void)
   rv = bcm_filter_create(unit, &test_flt);
   if (rv != BCM_E_NONE)
   {
-    LOG_ERROR (rv);
+    L7_LOG_ERROR(rv);
   }
 
   rv = bcm_filter_qualify_data16(unit, test_flt, 0, 0xffff, 0xffff);
   if (rv != BCM_E_NONE)
   {
-    LOG_ERROR (rv);
+    L7_LOG_ERROR(rv);
   }
 
   rv = bcm_filter_qualify_ingress(unit, test_flt, port_list);
   if (rv != BCM_E_NONE)
   {
-    LOG_ERROR (rv);
+    L7_LOG_ERROR(rv);
   }
 
   rv = bcm_filter_action_match(unit, test_flt, bcmActionSetPrio, 6);
   if (rv != BCM_E_NONE)
   {
-    LOG_ERROR (rv);
+    L7_LOG_ERROR(rv);
   }
 
   rv = bcm_filter_reinstall(unit, test_flt);
   if (rv != BCM_E_NONE)
   {
-    LOG_ERROR (rv);
+    L7_LOG_ERROR(rv);
   }
 
   rv = bcm_filter_destroy(unit, test_flt);
   if (rv != BCM_E_NONE)
   {
-    LOG_ERROR (rv);
+    L7_LOG_ERROR(rv);
   }
   #endif
   return 0;

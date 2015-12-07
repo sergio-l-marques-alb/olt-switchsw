@@ -156,7 +156,7 @@ L7_RC_t usl_policy_db_init(void)
       if (usl_db_sync_func_table_register(USL_POLICY_DB_ID, 
                                           &policyDbFuncs) != L7_SUCCESS)
       {
-        LOG_ERROR(0);   
+        L7_LOG_ERROR(0);   
       }
     }
     
@@ -1251,13 +1251,13 @@ L7_int32 usl_delete_policy_db_elem_bcm(void *dbItem)
     searchElem.dbElem = dbFuncTable.alloc_db_elem();
     if (searchElem.dbElem == L7_NULLPTR)
     {
-      LOG_ERROR(0);    
+      L7_LOG_ERROR(0);    
     }
 
     operElem.dbElem = dbFuncTable.alloc_db_elem();
     if (operElem.dbElem == L7_NULLPTR)
     {
-      LOG_ERROR(0);    
+      L7_LOG_ERROR(0);    
     }
   }
   else
@@ -1266,7 +1266,7 @@ L7_int32 usl_delete_policy_db_elem_bcm(void *dbItem)
                                     dbElemSize);
     if (searchElem.dbElem == L7_NULLPTR)
     {
-      LOG_ERROR(0);    
+      L7_LOG_ERROR(0);    
     }
 
     memset(searchElem.dbElem, 0, dbElemSize);
@@ -1275,7 +1275,7 @@ L7_int32 usl_delete_policy_db_elem_bcm(void *dbItem)
                                   dbElemSize);
     if (operElem.dbElem == L7_NULLPTR)
     {
-      LOG_ERROR(0);    
+      L7_LOG_ERROR(0);    
     }
 
     memset(operElem.dbElem, 0, dbElemSize);

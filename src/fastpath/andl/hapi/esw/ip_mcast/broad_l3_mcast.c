@@ -298,7 +298,7 @@ L7_uint32 hapiBroadL3McastStats (void)
   rc = osapiMsgQueueGetNumMsgs (hapiBroadMcastAsyncCmdQueue, &num_msgs);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
   sysapiPrintf ("Group add/delete queue current = %d\n", num_msgs);
   sysapiPrintf("Total RPF callbacks = %d\n", mcast_stats.total_rpf_callbacks);
@@ -382,7 +382,7 @@ void hapiBroadL3McastCritEnter (void)
     if (!hapiBroadL3McastSema)
     {
       /* Not good - semaphore create failed */
-      LOG_ERROR(0xDEAD1055);
+      L7_LOG_ERROR(0xDEAD1055);
     }
   }
 
@@ -391,7 +391,7 @@ void hapiBroadL3McastCritEnter (void)
   if (rc != L7_SUCCESS)
   {
     /* Take failed for some reason! */
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 }
 
@@ -416,7 +416,7 @@ void hapiBroadL3McastCritExit (void)
   rc = osapiSemaGive(hapiBroadL3McastSema);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 }
 
@@ -1145,7 +1145,7 @@ L7_RC_t hapiBroadL3McastInit(DAPI_t *dapi_g)
   hapiBroadL3McastAsyncWaitSema = osapiSemaBCreate(OSAPI_SEM_Q_FIFO,OSAPI_SEM_EMPTY);
   if (hapiBroadL3McastAsyncWaitSema == L7_NULL)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR(0);
   }
 
   async_cmd_size = sizeof (hapi_broad_mcast_async_msg_t);
@@ -1155,7 +1155,7 @@ L7_RC_t hapiBroadL3McastInit(DAPI_t *dapi_g)
                                                 async_cmd_size);
   if (hapiBroadMcastAsyncCmdQueue == L7_NULL)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR(0);
   }
 
 
@@ -1164,7 +1164,7 @@ L7_RC_t hapiBroadL3McastInit(DAPI_t *dapi_g)
                                                      sizeof (hapi_broad_mcast_rpf_async_t));
   if (hapiBroadMcastAsyncRpfQueue == L7_NULL)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR(0);
   }
 
 
@@ -1178,7 +1178,7 @@ L7_RC_t hapiBroadL3McastInit(DAPI_t *dapi_g)
 
   if (hapiBroadRoutingMcastQueue == L7_NULL)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 
   usl_db_sync_failure_notify_callback_register(USL_IPMC_ROUTE_DB_ID, hapiBroadL3McastAsyncFailureCallback);
@@ -1189,7 +1189,7 @@ L7_RC_t hapiBroadL3McastInit(DAPI_t *dapi_g)
                       L7_DEFAULT_TASK_PRIORITY,
                       L7_DEFAULT_TASK_SLICE) == L7_ERROR)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 
   hapi_mcast_inited = L7_TRUE;
@@ -1331,7 +1331,7 @@ L7_RC_t hapiBroadRoutingIntfMcastAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data
                            L7_MSG_PRIORITY_NORM);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 
   /* Notify multicast async task that there is work to do.
@@ -1393,7 +1393,7 @@ L7_RC_t hapiBroadRoutingSnoopNotify(DAPI_USP_t *usp, DAPI_CMD_t cmd,
                            L7_MSG_PRIORITY_NORM);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 
   /* Notify multicast async task that there is work to do.
@@ -1472,7 +1472,7 @@ static int hapiBroadMcastHardwareAddEntry(BroadGroupEntryType *entry,DAPI_t *dap
   if (!entry)
   {
     /* passed entry was NULL; that's invalid */
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 
   /* Initialise the hardware entry buffer */
@@ -1638,7 +1638,7 @@ static void hapiBroadMcastHardwareSetIfs(BroadGroupEntryType *entry,DAPI_t *dapi
   if (!entry)
   {
     /* passed entry was NULL; that's invalid */
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 
   /* Only do something if the entry appears to be in hardware already */
@@ -2169,7 +2169,7 @@ L7_RC_t hapiBroadRoutingIntfMcastAsyncAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void 
     /* Print a message... */
       HAPI_L3_MCAST_DEBUG("L7_L3_MCAST_ROUTE_TBL_SIZE_TOTAL reached, tryting to add more");
     /* ...and then die logging the module, line, and ... and ... address family??? */
-      LOG_ERROR (dapiCmd->cmdData.mcastAdd.mcastGroupAddr.family);
+      L7_LOG_ERROR(dapiCmd->cmdData.mcastAdd.mcastGroupAddr.family);
 #else /* BROAD_MCAST_CRASH_ON_TABLE_FULL */
     /* Log the problem */
     L7_LOGF (L7_LOG_SEVERITY_CRITICAL, L7_DRIVER_COMPONENT_ID,
@@ -2315,7 +2315,7 @@ L7_RC_t hapiBroadRoutingIntfMcastAsyncAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void 
       {
         /* This interface was not in the group, but for some reason we have too many */
         /* Since this practically guarantees corruption (impossible condition), die. */
-        LOG_ERROR(portIndex);
+        L7_LOG_ERROR(portIndex);
       }
       /* Okay, it wasn't in the list and we're not in any impossible conditions; fill it in */
       memcpy(&(BroadGroupList[tableIndex].downstream_if[portIndex].usp),portUsp,sizeof(DAPI_USP_t));
@@ -2386,7 +2386,7 @@ L7_RC_t hapiBroadRoutingIntfMcastDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
                            L7_MSG_PRIORITY_NORM);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 
   /* Notify multicast async task that there is work to do.
@@ -3024,12 +3024,12 @@ L7_RC_t hapiBroadRoutingMcastIgmpConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
         rv = bcmx_switch_control_set(bcmSwitchMldPktDrop, 0);
         if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
         {
-          LOG_ERROR(rv);
+          L7_LOG_ERROR(rv);
         }
         rv = bcmx_switch_control_set(bcmSwitchMldPktToCpu, 1);
         if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
         {
-          LOG_ERROR(rv);
+          L7_LOG_ERROR(rv);
         }
 
        /* Set the MLD packet priority. This is required for FB2 devices or later.
@@ -3057,12 +3057,12 @@ L7_RC_t hapiBroadRoutingMcastIgmpConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
         rv = bcmx_switch_control_set(bcmSwitchMldPktDrop, 0);
         if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
         {
-          LOG_ERROR(rv);
+          L7_LOG_ERROR(rv);
         }
         rv = bcmx_switch_control_set(bcmSwitchMldPktToCpu, 0);
         if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
         {
-          LOG_ERROR(rv);
+          L7_LOG_ERROR(rv);
         }
         dapi_g->system->mldEnable = L7_FALSE;
       }
@@ -3657,7 +3657,7 @@ L7_RC_t hapiBroadL3McastRPF(L7_netBufHandle frameHdl, L7_ushort16 vlanID, DAPI_U
   if (isValidUsp(usp,dapi_g) == L7_FALSE)
   {
     HAPI_L3_MCAST_DEBUG("Invalid usp");
-    LOG_ERROR (usp->port);
+    L7_LOG_ERROR(usp->port);
   }
 
   hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
@@ -4070,7 +4070,7 @@ void hapiBroadL3McastAsyncRouteAddDeleteHandle(DAPI_t *dapi_g)
     rc = osapiMsgQueueGetNumMsgs (hapiBroadMcastAsyncCmdQueue, &num_msgs);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERROR (rc);
+      L7_LOG_ERROR(rc);
     }
 
     if (num_msgs > mcast_stats.high_route_queue_length)
@@ -4133,7 +4133,7 @@ void hapiBroadL3McastAsyncRouteAddDeleteHandle(DAPI_t *dapi_g)
       rc = osapiSemaGive (hapiBroadL3McastAsyncWaitSema);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERROR (rc);
+        L7_LOG_ERROR(rc);
       }
       break;
     case HAPI_BROAD_MCAST_ASYNC_SNOOP_NOTIFY:
@@ -4173,7 +4173,7 @@ void hapiBroadL3McastAsyncRouteAddDeleteHandle(DAPI_t *dapi_g)
       break;
 
     default:
-      LOG_ERROR (async_cmd.async_cmd);
+      L7_LOG_ERROR(async_cmd.async_cmd);
       break;
     }
 
@@ -4205,7 +4205,7 @@ void hapiBroadRoutingMcastAsyncTask(L7_uint32 num_args, DAPI_t *dapi_g)
                           sizeof(work_available),
                           L7_WAIT_FOREVER) != L7_SUCCESS)
     {
-      LOG_ERROR(0);
+      L7_LOG_ERROR(0);
     }
 
     /* Handle any RPFs.
@@ -4289,7 +4289,7 @@ void hapiBroadL3McastAsyncFailureCallback(void *data)
                            L7_MSG_PRIORITY_NORM);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 
   /* Notify multicast async task that there is work to do.
@@ -4349,7 +4349,7 @@ void hapiBroadL3McastWait (void)
                            L7_MSG_PRIORITY_NORM);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 
   hapiBroadL3McastAsyncNotify ();
@@ -4357,7 +4357,7 @@ void hapiBroadL3McastWait (void)
   rc = osapiSemaTake (hapiBroadL3McastAsyncWaitSema, L7_WAIT_FOREVER);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 }
 

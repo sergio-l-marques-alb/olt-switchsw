@@ -399,7 +399,7 @@ static rtoRouteInfo_t *rtoNewRouteInfoGet(void)
 {
     rtoRouteInfo_t *routeInfo = rtoFreeRouteInfoList;
     if (routeInfo == L7_NULLPTR)
-        LOG_ERROR (rtoStats.route_entries);
+        L7_LOG_ERROR(rtoStats.route_entries);
    
     rtoStats.route_entries++;
     rtoFreeRouteInfoList = rtoFreeRouteInfoList->next;
@@ -450,7 +450,7 @@ rtoNextHop_t *rtoFreeNextHopGet(void)
   {
     /* Should have allocated enough next hops. If we run out, something
      * is wrong. */
-    LOG_ERROR (rtoStats.nextHopCount);
+    L7_LOG_ERROR(rtoStats.nextHopCount);
   }
 
   rtoStats.nextHopCount++;
@@ -1079,13 +1079,13 @@ L7_RC_t rtoRouteAdd (L7_routeEntry_t *routeEntry)
       rtoStats.radix_entries++;
     }
     else
-      LOG_ERROR ((L7_uint32) pData);
+      L7_LOG_ERROR((L7_uint32) pData);
 
     /* Find the new entry so that we can attach route info. */
     pData = radixLookupNode(&rtoRouteTreeData, &routeData.network, &routeData.netmask, L7_RN_EXACT);
     if (!pData)
     {
-      LOG_ERROR ("Error: rto.c radix corruption detected!\n"); /* Database corruption. */
+      L7_LOG_ERROR("Error: rto.c radix corruption detected!\n"); /* Database corruption. */
       return L7_FAILURE;
     }          
   }
@@ -1678,7 +1678,7 @@ void rtoSelectNewBestRoute(rtoRouteData_t *pData, rtoRouteInfo_t *oldBestRouteIn
                                                      after re-election */
 
   if (pData == L7_NULLPTR)
-    LOG_ERROR (0);
+    L7_LOG_ERROR(0);
 
   /* Sort the existing routes to the network to elect the best route */
   pData->nextRouteInfo = rtoRouteInfoListSort(pData->nextRouteInfo);
@@ -2118,7 +2118,7 @@ void rtoCleanupAfterDelete (rtoRouteData_t *pData, rtoRouteInfo_t *routeInfo)
     }
     pData = radixDeleteEntry(&rtoRouteTreeData, pData);
     if (pData == L7_NULLPTR)
-      LOG_ERROR (0);
+      L7_LOG_ERROR(0);
     rtoStats.radix_entries--;
   }
 }
@@ -2490,7 +2490,7 @@ L7_RC_t rtoBestRouteLookup (L7_uint32 dest_ip, L7_routeEntry_t *route,
     }
 
     if (!pData->nextRouteInfo)
-        LOG_ERROR (dest_ip); /* radix entry must always have a list of IP addresses */
+        L7_LOG_ERROR(dest_ip); /* radix entry must always have a list of IP addresses */
 
     if((acceptRejectRoute == L7_FALSE) &&
        (pData->nextRouteInfo->flags & RTO_REJECT_ROUTE))
@@ -2770,7 +2770,7 @@ rtoRouteData_t *rtoFirstRouteGet(L7_uint32 lookupType)
     /* must pass a valid lookup type */
     if(lookupType != L7_RN_GETNEXT && lookupType != L7_RN_GETNEXT_ASCEND)
     {
-      LOG_ERROR(lookupType);
+      L7_LOG_ERROR(lookupType);
       return L7_NULLPTR;
     }
 
@@ -3250,7 +3250,7 @@ static L7_RC_t rtoRouterIfResolve(L7_arpEntry_t *arpEntry, L7_uint32 *intIfNum)
     }
 
     if (!pData->nextRouteInfo)
-        LOG_ERROR (arpEntry->ipAddr); /* radix entry must always have a list of IP addresses */
+        L7_LOG_ERROR(arpEntry->ipAddr); /* radix entry must always have a list of IP addresses */
 
     /* Local routes have a single outgoing interface */
     *intIfNum = pData->nextRouteInfo->nextHops->intIfNum;
@@ -3299,7 +3299,7 @@ static rtoProtoInfo_t *rtoNewProtoInfoGet(void)
 {
     rtoProtoInfo_t *protoInfo = rtoFreeProtoInfoList;
     if (protoInfo == L7_NULLPTR){
-        LOG_ERROR (0);
+        L7_LOG_ERROR(0);
         return L7_NULL;
     }
    
@@ -3416,7 +3416,7 @@ L7_RC_t rtoNHResCallbackUnregister (L7_uint32 ipAddr,
     pData = radixDeleteEntry(&rtoNHResTreeData, pData);
 
     if (pData == L7_NULLPTR)
-      LOG_ERROR (0);
+      L7_LOG_ERROR(0);
 
     rtoStats.nhres_radix_entries--;
   }
@@ -3506,13 +3506,13 @@ L7_RC_t rtoNHResCallbackRegister (L7_uint32 ipAddr,
       rtoStats.nhres_radix_entries++;
     }
     else
-      LOG_ERROR (0);
+      L7_LOG_ERROR(0);
 
     /* Find the new entry so that we can attach route info. */
     pData = radixLookupNode(&rtoNHResTreeData, &routeData.network, &routeData.netmask, L7_RN_EXACT);
     if (!pData)
     {
-      LOG_ERROR (0); /* Database corruption. */
+      L7_LOG_ERROR(0); /* Database corruption. */
       /* happy tools */
       if (osapiSemaGive(rtoNHResTreeData.semId) != L7_SUCCESS)
         L7_LOGF(L7_LOG_SEVERITY_INFO, L7_IP_MAP_COMPONENT_ID,

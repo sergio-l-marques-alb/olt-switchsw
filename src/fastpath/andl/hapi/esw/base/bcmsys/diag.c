@@ -52,7 +52,7 @@ tks_st_thread(void *cookie)
   rv = topo_pkt_handle_init(TOPO_ATP_FLAGS);
   if (rv < 0) {
         LOG_ERR(LOG_CTX_STARTUP,"WARNING: topo pkt handle init returned %s\n", bcm_errmsg(rv));
-        LOG_ERROR (rv);
+        L7_LOG_ERROR(rv);
   }
 
   if ((rv=bcm_stack_attach_init()) != BCM_E_NONE) {

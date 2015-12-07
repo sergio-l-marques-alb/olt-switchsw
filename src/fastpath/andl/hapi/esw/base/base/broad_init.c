@@ -1422,7 +1422,7 @@ L7_RC_t hapiBroadCpuBoardInit(DAPI_t *dapi_g)
 
   if (hapiLinkStatusQueue == L7_NULL)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 
   /* Start link status task.
@@ -1430,7 +1430,7 @@ L7_RC_t hapiBroadCpuBoardInit(DAPI_t *dapi_g)
   if (osapiTaskCreate("hapiLinkStatusTask",hapiBroadPortLinkStatusTask,0,0, L7_DEFAULT_STACK_SIZE,
                       FD_CNFGR_SIM_DEFAULT_STATS_TASK_PRI,L7_DEFAULT_TASK_SLICE) == L7_ERROR)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 #endif /* L7_PRODUCT_SMARTPATH */
 
@@ -1810,7 +1810,7 @@ L7_RC_t hapiBroadPortMemAlloc(L7_ushort16 unitNum, L7_ushort16 slotNum, DAPI_t *
 
       if (hapiPortPtr->hapiModeparm.physical.phySemaphore == L7_NULL)
       {
-        LOG_ERROR(usp.port);
+        L7_LOG_ERROR(usp.port);
       }
 
       /* Initialize speed and duplex */
@@ -2066,7 +2066,7 @@ L7_RC_t hapiBroadPhysicalPortMapGet(L7_ushort16 unitNum, L7_ushort16 slotNum, DA
       if ((hapiPortPtr->bcm_modid == HAPI_BROAD_INVALID_MODID) ||
           (mod_port == HAPI_BROAD_INVALID_MODPORT))
       {
-        LOG_ERROR (0);
+        L7_LOG_ERROR(0);
       }
 
       hapiBroadModidModportToLportSet (hapiPortPtr->bcm_modid,
@@ -2466,7 +2466,7 @@ L7_RC_t hapiBroadDefaultConfigInit(L7_ushort16 unitNum,L7_ushort16 slotNum, DAPI
       hapiPortPtr->l2FlushSyncSem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
       if (hapiPortPtr->l2FlushSyncSem == L7_NULL)
       {
-        LOG_ERROR(usp.port);
+        L7_LOG_ERROR(usp.port);
       }
     }
   }
@@ -3166,7 +3166,7 @@ L7_RC_t hapiBroadCardRemove(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *data, voi
         rc = osapiSemaDelete (hapiPortPtr->routing_if_sync_sem);
         if (rc != L7_SUCCESS)
         {
-          LOG_ERROR (rc);
+          L7_LOG_ERROR(rc);
         }
         hapiPortPtr->routing_if_sync_sem = NULL;
       }
@@ -3458,7 +3458,7 @@ void hapiBroadStackCardPluginsFinishTimerProcess(L7_uint32 arg1, L7_uint32 arg2)
                        L7_DEFAULT_TASK_PRIORITY,
                        L7_DEFAULT_TASK_SLICE) == L7_ERROR)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 
   return;
@@ -3565,14 +3565,14 @@ L7_RC_t broadDriverStart(void *data)
         startupReason = L7_STARTUP_AUTO_COLD;  
       }
       else /* Fatal error */
-        LOG_ERROR(rc);
+        L7_LOG_ERROR(rc);
     }
 
     /* Start hapi layer */
     if (hapiBroadStart(startupReason) != L7_SUCCESS)
     {
       /* Fatal error */
-      LOG_ERROR(0);
+      L7_LOG_ERROR(0);
     }
 
   } while (0);

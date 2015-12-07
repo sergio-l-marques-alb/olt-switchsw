@@ -125,7 +125,7 @@ L7_RC_t l7_l2_mcast_rpc_init (void)
                                l7_rpc_server_mcast_handler);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 
   return rc;
@@ -174,7 +174,7 @@ int  l7_rpc_client_mcast_addr_update(usl_bcm_mcast_addr_t *mcAddr,
             "Msg size %d is greater than RPC buffer size %d\n",
             msgSize,l7_rpc_req_buffer_size_get());
            
-    LOG_ERROR(msgSize); 
+    L7_LOG_ERROR(msgSize); 
   }
 
 
@@ -264,7 +264,7 @@ int  l7_rpc_client_mcast_update_ports(usl_bcm_mcast_addr_t *mcAddr,
             "Msg size %d is greater than RPC buffer size %d\n",
             msgSize,l7_rpc_req_buffer_size_get());
            
-    LOG_ERROR(msgSize); 
+    L7_LOG_ERROR(msgSize); 
   }
 
 
@@ -333,7 +333,7 @@ int l7_rpc_client_mcast_port_update_groups(bcm_gport_t port, int *l2mc_index, in
   argSize = (l2mc_index_count * sizeof(*l2mc_index)) + sizeof(updateCmd);
   if (argSize > sizeof(args))
   {
-    LOG_ERROR(argSize);
+    L7_LOG_ERROR(argSize);
   }
 
   L7_UINT32_PACK(msgBuf, updateCmd);

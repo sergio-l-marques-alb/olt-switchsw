@@ -156,7 +156,7 @@ L7_RC_t rlimIntfCreateInNim(L7_uint32 intfType, L7_uint32 intfId,
   rc = nimEventIntfNotify(notifyEventInfo, &handle);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR(rc);
+    L7_LOG_ERROR(rc);
     return L7_FAILURE;
   }
 

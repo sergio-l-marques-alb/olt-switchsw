@@ -1780,7 +1780,7 @@ radiusDebugLevelSet(L7_uint32 level)
 {
   if (level >= RD_LEVEL_LAST)
   {
-    LOG_ERROR (level);
+    L7_LOG_ERROR(level);
   }
   else
     radiusDebugLevel[level] = 1;
@@ -1804,7 +1804,7 @@ radiusDebugLevelClear(L7_uint32 level)
 {
   if (level >= RD_LEVEL_LAST)
   {
-    LOG_ERROR (level);
+    L7_LOG_ERROR(level);
   }
   else
     radiusDebugLevel[level] = 0;
@@ -1828,7 +1828,7 @@ radiusDebugLevelCheck(L7_uint32 level)
 {
    if (level >= RD_LEVEL_LAST)
    {
-      LOG_ERROR (level);
+      L7_LOG_ERROR(level);
    }
    else if (radiusDebugLevel[level] == 1)
    {

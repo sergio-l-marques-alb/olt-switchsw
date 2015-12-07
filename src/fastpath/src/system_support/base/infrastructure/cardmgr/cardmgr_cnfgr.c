@@ -306,7 +306,7 @@ L7_RC_t cmgrCnfgrInitPhase3Process( L7_CNFGR_RESPONSE_t *pResponse,
   rc = unitMgrNumberGet (&unit);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 
   /* For stackable devices the local unit information is stored in unit 0.
@@ -319,7 +319,7 @@ L7_RC_t cmgrCnfgrInitPhase3Process( L7_CNFGR_RESPONSE_t *pResponse,
   rc = cmgrCMDBUnitInfoCopy(0, unit);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (unit);
+    L7_LOG_ERROR(unit);
   }
 
 
@@ -352,7 +352,7 @@ L7_RC_t cmgrCnfgrInitPhase3Process( L7_CNFGR_RESPONSE_t *pResponse,
       cardTypeDb = sysapiHpcCardDbEntryGet(card_id);
       if (cardTypeDb == L7_NULL)
       {
-         LOG_ERROR (card_id);
+         L7_LOG_ERROR(card_id);
       }
 
       /* If this is a logical card, but the unit is not the logical unit then
@@ -700,7 +700,7 @@ L7_RC_t cmgrStartTask(L7_CNFGR_CMD_DATA_t *pCmdData)
       L7_CMGR_MSGQ_SIZE_f);
   if (cmgrQueue == L7_NULLPTR)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR(0);
   }
 
   cmgrCardInsertRemoveQueue =
@@ -709,25 +709,25 @@ L7_RC_t cmgrStartTask(L7_CNFGR_CMD_DATA_t *pCmdData)
                 sizeof (cmgrWorkerMsg_t));
   if (cmgrCardInsertRemoveQueue == L7_NULLPTR)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR(0);
   }
 
   cmgrSemaId = osapiSemaBCreate (OSAPI_SEM_Q_PRIORITY, OSAPI_SEM_FULL);
   if (cmgrSemaId == L7_NULLPTR)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR(0);
   }
 
   cmgrCardInsertRemoveSemaId = osapiSemaBCreate (OSAPI_SEM_Q_PRIORITY, OSAPI_SEM_EMPTY);
   if (cmgrCardInsertRemoveSemaId == L7_NULLPTR)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR(0);
   }
 
   cmgrTimerSyncSemaId = osapiSemaBCreate (OSAPI_SEM_Q_PRIORITY, OSAPI_SEM_FULL);
   if (cmgrTimerSyncSemaId == L7_NULLPTR)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR(0);
   }
 
   cmgrNimSyncSemCreate ();
@@ -739,12 +739,12 @@ L7_RC_t cmgrStartTask(L7_CNFGR_CMD_DATA_t *pCmdData)
 
   if (taskId == L7_ERROR)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR(0);
   }
 
   if (osapiWaitForTaskInit (L7_CMGR_TASK_SYNC_f, L7_WAIT_FOREVER) != L7_SUCCESS)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR(0);
   }
 
   /* Start Card Insertion/Removal task.
@@ -757,7 +757,7 @@ L7_RC_t cmgrStartTask(L7_CNFGR_CMD_DATA_t *pCmdData)
 
   if (taskId == L7_ERROR)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR(0);
   }
 
   cmgrTraceInit(CMGR_TRACE_ENTRY_MAX, CMGR_TRACE_ENTRY_SIZE_MAX);
@@ -795,7 +795,7 @@ void cmgrAsyncCardStart(L7_uint32 startAction)
                         L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 }
 

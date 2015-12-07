@@ -191,7 +191,7 @@ void cnfgrApiCallback( CNFGR_IN L7_CNFGR_CB_DATA_t *pCbData )
       /* For now any failures in component configuration event processing
       ** causes a box reset.
       */
-      LOG_ERROR (correlatorTable.pCorrelator[pCbData->correlator].cid);
+      L7_LOG_ERROR(correlatorTable.pCorrelator[pCbData->correlator].cid);
 
     }
 
@@ -1518,7 +1518,7 @@ void cnfgrTallyWdTimerExpiredReceive(
 
              /* For now log error.
              */
-             LOG_ERROR (correlatorTable.pCorrelator[pHandle->correlator].cid);
+             L7_LOG_ERROR(correlatorTable.pCorrelator[pHandle->correlator].cid);
 
          } /* endif retry */
 

@@ -176,7 +176,7 @@ void dot1s_task()
                             sizeof(dot1sSignalMsg),
                             L7_WAIT_FOREVER) != L7_SUCCESS)
     {
-      LOG_ERROR(0);
+      L7_LOG_ERROR(0);
     }
 
     while (L7_TRUE)
@@ -187,13 +187,13 @@ void dot1s_task()
                                    &num_state_change_queue);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERROR (rc);
+        L7_LOG_ERROR(rc);
       }
 
       rc = osapiMsgQueueGetNumMsgs(dot1s_queue, &num_dot1s_queue);
       if (rc != L7_SUCCESS)
       {
-        LOG_ERROR (rc);
+        L7_LOG_ERROR(rc);
       }
 
       /* No more messages left to be processed */
@@ -998,7 +998,7 @@ L7_RC_t dot1sIssueCmd(L7_uint32 event,
         /* Missing any event other than a BPDU will put a system in an unknown state,
         ** so make sure that it doesn't happen.
         */
-        LOG_ERROR (event);
+        L7_LOG_ERROR(event);
       }
 
       missedMsgCount++;
@@ -4003,7 +4003,7 @@ void dot1sQueueSyncSemCreate (void)
    dot1sQueueSyncSem = osapiSemaBCreate (OSAPI_SEM_Q_FIFO, OSAPI_SEM_EMPTY);
    if (dot1sQueueSyncSem == L7_NULL)
    {
-       LOG_ERROR (0);
+       L7_LOG_ERROR(0);
    }
 }
 
@@ -4021,7 +4021,7 @@ void dot1sQueueSyncSemGet (void)
    rc = osapiSemaTake (dot1sQueueSyncSem, L7_WAIT_FOREVER);
    if (rc != L7_SUCCESS)
    {
-       LOG_ERROR (rc);
+       L7_LOG_ERROR(rc);
    }
 }
 
@@ -4039,7 +4039,7 @@ void dot1sQueueSyncSemFree (void)
     rc = osapiSemaGive (dot1sQueueSyncSem);
     if (rc != L7_SUCCESS)
     {
-        LOG_ERROR (rc);
+        L7_LOG_ERROR(rc);
     }
 }
 
@@ -4057,7 +4057,7 @@ void dot1sQueueSyncSemDelete (void)
     rc = osapiSemaDelete (dot1sQueueSyncSem);
     if (rc != L7_SUCCESS)
     {
-        LOG_ERROR (rc);
+        L7_LOG_ERROR(rc);
     }
 }
 

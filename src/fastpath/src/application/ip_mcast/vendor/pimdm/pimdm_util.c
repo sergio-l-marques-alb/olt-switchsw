@@ -168,7 +168,7 @@ static heapBuffPool_t *pimdmV4HeapPoolListGet(void)
 
   if (i != PIMDM_IPV4_POOL_LIST_SIZE)
   {
-    LOG_ERROR(i);
+    L7_LOG_ERROR(i);
   }
   return pimdmV4HeapPoolList;
 }

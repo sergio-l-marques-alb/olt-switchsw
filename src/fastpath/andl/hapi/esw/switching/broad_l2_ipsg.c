@@ -125,7 +125,7 @@ L7_RC_t hapiBroadIpsgInit(DAPI_t *dapi_g)
     hapiBroadIpsgSemaphore = osapiSemaMCreate(OSAPI_SEM_Q_FIFO);
     if (hapiBroadIpsgSemaphore == L7_NULL)
     {
-      LOG_ERROR(0);
+      L7_LOG_ERROR(0);
     }
 
     hapiBroadIpsgTreeHeap = osapiMalloc(L7_DRIVER_COMPONENT_ID,
@@ -136,7 +136,7 @@ L7_RC_t hapiBroadIpsgInit(DAPI_t *dapi_g)
     if ((hapiBroadIpsgTreeHeap == L7_NULL) || 
         (hapiBroadIpsgDataHeap == L7_NULL))
     {
-      LOG_ERROR(0);
+      L7_LOG_ERROR(0);
     }
 
     /* Initialize the storage for all the AVL trees */

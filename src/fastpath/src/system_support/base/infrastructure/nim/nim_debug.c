@@ -257,7 +257,7 @@ int nim_log_msg_test (int msg_size)
 
 int nimTestLogErr (int val)
 {
- NIM_LOG_ERROR ("Val = %d\n", val);
+ NIM_L7_LOG_ERROR("Val = %d\n", val);
  return 0;
 }
 

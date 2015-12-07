@@ -1628,7 +1628,7 @@ void nimConfigIdTreePopulate(void)
 
   if ((nimCtlBlk_g == L7_NULLPTR) || (nimCtlBlk_g->nimConfigData == L7_NULLPTR))
   {
-    NIM_LOG_ERROR("NIM: Control block or config data not valid\n");
+    NIM_L7_LOG_ERROR("NIM: Control block or config data not valid\n");
   }
   else
   {

@@ -57,7 +57,7 @@ int l7_rpc_client_rate_bcast_set(bcmx_lport_t port,
 
   if (sizeof(bcast_limit) > sizeof(args))
   {
-    LOG_ERROR(sizeof(bcast_limit));
+    L7_LOG_ERROR(sizeof(bcast_limit));
   }
 
   memcpy(args, &bcast_limit, sizeof(bcast_limit));
@@ -135,7 +135,7 @@ int l7_rpc_client_rate_mcast_set(bcmx_lport_t port,
 
   if (sizeof(mcast_limit) > sizeof(args))
   {
-    LOG_ERROR(sizeof(mcast_limit));
+    L7_LOG_ERROR(sizeof(mcast_limit));
   }
 
   memcpy(args, &mcast_limit, sizeof(mcast_limit));
@@ -214,7 +214,7 @@ int l7_rpc_client_rate_dlfbc_set(bcmx_lport_t port,
 
   if (sizeof(dlf_limit) > sizeof(args))
   {
-    LOG_ERROR(sizeof(dlf_limit));
+    L7_LOG_ERROR(sizeof(dlf_limit));
   }
 
   memcpy(args, &dlf_limit, sizeof(dlf_limit));
@@ -292,7 +292,7 @@ int l7_rpc_client_port_vlan_member_set(bcmx_lport_t port,
 
   if (sizeof(mode) > sizeof(args))
   {
-    LOG_ERROR(sizeof(mode));
+    L7_LOG_ERROR(sizeof(mode));
   }
 
   memcpy(args, &mode, sizeof(mode));
@@ -370,7 +370,7 @@ int l7_rpc_client_port_untagged_priority_set(bcmx_lport_t port,
 
   if (sizeof(priority) > sizeof(args))
   {
-    LOG_ERROR(sizeof(priority));
+    L7_LOG_ERROR(sizeof(priority));
   }
 
   memcpy(args, &priority, sizeof(priority));
@@ -449,7 +449,7 @@ int l7_rpc_client_port_frame_max_set(bcmx_lport_t port,
 
   if (sizeof(max_frame_size) > sizeof(args))
   {
-    LOG_ERROR(sizeof(max_frame_size));
+    L7_LOG_ERROR(sizeof(max_frame_size));
   }
 
   memcpy(args, &max_frame_size, sizeof(max_frame_size));
@@ -528,7 +528,7 @@ int l7_rpc_client_port_learn_set(bcmx_lport_t port,
 
   if (sizeof(learn_mode) > sizeof(args))
   {
-    LOG_ERROR(sizeof(learn_mode));
+    L7_LOG_ERROR(sizeof(learn_mode));
   }
 
   memcpy(args, &learn_mode, sizeof(learn_mode));
@@ -607,7 +607,7 @@ int l7_rpc_client_dtag_mode_set(bcmx_lport_t port,
 
   if (sizeof(dtag_mode) > sizeof(args))
   {
-    LOG_ERROR(sizeof(dtag_mode));
+    L7_LOG_ERROR(sizeof(dtag_mode));
   }
 
   memcpy(args, &dtag_mode, sizeof(dtag_mode));
@@ -687,7 +687,7 @@ int l7_rpc_client_port_tpid_set(bcmx_lport_t port, usl_bcm_port_tpid_t tpid)
 
   if (sizeof(tpid) > sizeof(args))
   {
-    LOG_ERROR(sizeof(tpid));
+    L7_LOG_ERROR(sizeof(tpid));
   }
 
   memcpy(args, &tpid, sizeof(tpid));
@@ -728,7 +728,7 @@ int l7_rpc_client_port_tpid_add(bcmx_lport_t port, usl_bcm_port_tpid_t tpid)
 
   if (sizeof(tpid) > sizeof(args))
   {
-    LOG_ERROR(sizeof(tpid));
+    L7_LOG_ERROR(sizeof(tpid));
   }
 
   memcpy(args, &tpid, sizeof(tpid));
@@ -769,7 +769,7 @@ int l7_rpc_client_port_tpid_delete(bcmx_lport_t port, usl_bcm_port_tpid_t tpid)
 
   if (sizeof(tpid) > sizeof(args))
   {
-    LOG_ERROR(sizeof(tpid));
+    L7_LOG_ERROR(sizeof(tpid));
   }
 
   memcpy(args, &tpid, sizeof(tpid));
@@ -919,7 +919,7 @@ int l7_rpc_client_port_untagged_vlan_set(bcmx_lport_t port, bcm_vlan_t vid)
 
   if (sizeof(vid) > sizeof(args))
   {
-    LOG_ERROR(sizeof(vid));
+    L7_LOG_ERROR(sizeof(vid));
   }
 
   memcpy(args, &vid, sizeof(vid));
@@ -998,7 +998,7 @@ int l7_rpc_client_port_discard_set(bcmx_lport_t port, bcm_port_discard_t mode)
 
   if (sizeof(mode) > sizeof(args))
   {
-    LOG_ERROR(sizeof(mode));
+    L7_LOG_ERROR(sizeof(mode));
   }
 
   memcpy(args, &mode, sizeof(mode));
@@ -1081,7 +1081,7 @@ int l7_rpc_client_port_medium_config_set(bcmx_lport_t port,
 
   if ((sizeof(medium) + sizeof(*config)) > sizeof(args))
   {
-    LOG_ERROR(sizeof(medium) + sizeof(*config));
+    L7_LOG_ERROR(sizeof(medium) + sizeof(*config));
   }
 
   argPtr = (L7_uchar8 *)args;
@@ -1177,7 +1177,7 @@ int l7_rpc_client_port_flow_control_set(bcmx_lport_t port,
 
   if (sizeof(pauseConfig) > sizeof(args))
   {
-    LOG_ERROR(sizeof(pauseConfig));
+    L7_LOG_ERROR(sizeof(pauseConfig));
   }
 
   memcpy(args, &pauseConfig, sizeof(pauseConfig));
@@ -1257,7 +1257,7 @@ int l7_rpc_client_port_cosq_sched_set(bcmx_lport_t port,
 
   if (sizeof(cosqSchedConfig) > sizeof(args))
   {
-    LOG_ERROR(sizeof(cosqSchedConfig));
+    L7_LOG_ERROR(sizeof(cosqSchedConfig));
   }
 
   memcpy(args, &cosqSchedConfig, sizeof(cosqSchedConfig));
@@ -1336,7 +1336,7 @@ int l7_rpc_client_port_rate_egress_set(bcmx_lport_t port,
 
   if (sizeof(shaperConfig) > sizeof(args))
   {
-    LOG_ERROR(sizeof(shaperConfig));
+    L7_LOG_ERROR(sizeof(shaperConfig));
   }
 
   memcpy(args, &shaperConfig, sizeof(shaperConfig));
@@ -1420,7 +1420,7 @@ int l7_rpc_client_port_vlan_config(bcmx_lport_t port,
 
   if ((sizeof (*vlanConfig) + sizeof(cmd)) > sizeof (args))
   {
-    LOG_ERROR(sizeof (*vlanConfig) + sizeof(cmd));
+    L7_LOG_ERROR(sizeof (*vlanConfig) + sizeof(cmd));
   }
 
   argPtr = (L7_char8 *) args;
@@ -1515,7 +1515,7 @@ int l7_rpc_client_stg_stp_set(bcm_stg_t stg, bcmx_lport_t port,
 
   if ((sizeof (stg) + sizeof(stpState)) > sizeof (args))
   {
-    LOG_ERROR(sizeof (stg) + sizeof(stpState));
+    L7_LOG_ERROR(sizeof (stg) + sizeof(stpState));
   }
 
   argPtr = (L7_char8 *) args;
@@ -1614,7 +1614,7 @@ int l7_rpc_client_port_protocol_vlan_config(bcmx_lport_t port,
 
   if ((sizeof (pbvlanConfig) + sizeof(cmd)) > sizeof (args))
   {
-    LOG_ERROR(sizeof (pbvlanConfig) + sizeof(cmd));
+    L7_LOG_ERROR(sizeof (pbvlanConfig) + sizeof(cmd));
   }
 
   argPtr = (L7_char8 *) args;
@@ -1707,7 +1707,7 @@ int l7_rpc_client_port_dot1x_config(bcmx_lport_t port,
 
   if (sizeof(dot1xStatus) > sizeof (args))
   {
-    LOG_ERROR(sizeof(dot1xStatus));
+    L7_LOG_ERROR(sizeof(dot1xStatus));
   }
 
   memcpy (args, &dot1xStatus, sizeof (dot1xStatus));
@@ -2029,7 +2029,7 @@ l7_rpc_client_port_dot1x_client_block(bcmx_lport_t port,
 
   if (sizeof(usl_bcm_port_dot1x_client_t) > sizeof(args)) 
   {
-      LOG_ERROR(sizeof(usl_bcm_port_dot1x_client_t));
+      L7_LOG_ERROR(sizeof(usl_bcm_port_dot1x_client_t));
   }
 
   memcpy (args, client_cmd, sizeof (usl_bcm_port_dot1x_client_t));
@@ -2071,7 +2071,7 @@ l7_rpc_client_port_dot1x_client_unblock(bcmx_lport_t port,
 
   if (sizeof(usl_bcm_port_dot1x_client_t) > sizeof(args)) 
   {
-      LOG_ERROR(sizeof(usl_bcm_port_dot1x_client_t));
+      L7_LOG_ERROR(sizeof(usl_bcm_port_dot1x_client_t));
   }
 
   memcpy (args, client_cmd, sizeof (usl_bcm_port_dot1x_client_t));
@@ -2177,7 +2177,7 @@ l7_rpc_client_port_dot1x_client_timeout_get(bcmx_lport_t port,
 
   if (sizeof(usl_bcm_port_dot1x_client_t) > sizeof(args)) 
   {
-    LOG_ERROR(sizeof(usl_bcm_port_dot1x_client_t));
+    L7_LOG_ERROR(sizeof(usl_bcm_port_dot1x_client_t));
   }
 
   memcpy (args, client_cmd, sizeof (usl_bcm_port_dot1x_client_t));
@@ -2458,7 +2458,7 @@ int l7_rpc_client_port_mirror_set(bcmx_lport_t port,
 
   if (sizeof(mirrorConfig) > sizeof(args)) 
   {
-      LOG_ERROR(sizeof(mirrorConfig));
+      L7_LOG_ERROR(sizeof(mirrorConfig));
   }
 
   memcpy (args, &mirrorConfig, sizeof (mirrorConfig));
@@ -2578,7 +2578,7 @@ int l7_rpc_client_port_enable_set(bcmx_lport_t port,
 
   if (sizeof(enable) > sizeof(args)) 
   {
-      LOG_ERROR(sizeof(enable));
+      L7_LOG_ERROR(sizeof(enable));
   }
 
   memcpy (args, &enable, sizeof (enable));
@@ -2657,7 +2657,7 @@ int l7_rpc_client_port_wred_set(bcmx_lport_t port,
 
   if (sizeof(*wredParams) > sizeof(args)) 
   {
-      LOG_ERROR(sizeof(*wredParams));
+      L7_LOG_ERROR(sizeof(*wredParams));
   }
 
   memcpy (args, wredParams, sizeof (*wredParams));
@@ -2736,7 +2736,7 @@ int l7_rpc_client_port_sflow_config_set(bcmx_lport_t port,
 
   if (sizeof(*sflowConfig) > sizeof(args)) 
   {
-      LOG_ERROR(sizeof(*sflowConfig));
+      L7_LOG_ERROR(sizeof(*sflowConfig));
   }
 
   memcpy (args, sflowConfig, sizeof (*sflowConfig));
@@ -3245,7 +3245,7 @@ int l7_rpc_client_port_pfc_config_set(bcmx_lport_t port,
 
   if (sizeof(pfcConfig) > sizeof(args)) 
   {
-      LOG_ERROR(sizeof(pfcConfig));
+      L7_LOG_ERROR(sizeof(pfcConfig));
   }
 
   memcpy (args, &pfcConfig, sizeof (pfcConfig));
@@ -3401,7 +3401,7 @@ int l7_rpc_client_port_pfc_stats_clear(bcmx_lport_t port)
   #if 1
   if (sizeof(port) > sizeof(args)) 
   {
-      LOG_ERROR(sizeof(port));
+      L7_LOG_ERROR(sizeof(port));
   }
 
   memcpy (args, &port, sizeof (port));

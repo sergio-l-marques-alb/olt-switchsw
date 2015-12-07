@@ -49,9 +49,9 @@ static L7_BOOL           sendAuthReqMsg     = L7_TRUE;
 
 /* Syntactic sugar */
 #define SEMA_TAKE(access)   \
-  if ( CPDM_##access##_LOCK_TAKE(cpdmSema, L7_WAIT_FOREVER) != L7_SUCCESS)  LOG_ERROR(0);  
+  if ( CPDM_##access##_LOCK_TAKE(cpdmSema, L7_WAIT_FOREVER) != L7_SUCCESS)  L7_LOG_ERROR(0);  
 #define SEMA_GIVE(access)   \
-  if ( CPDM_##access##_LOCK_GIVE(cpdmSema) != L7_SUCCESS)  LOG_ERROR(0);  
+  if ( CPDM_##access##_LOCK_GIVE(cpdmSema) != L7_SUCCESS)  L7_LOG_ERROR(0);  
 
 
 /* Our "prepare to authenticate" call must be handled asynchronously, so we'll make 
@@ -1004,7 +1004,7 @@ L7_RC_t cpcmAIPStatusInit(L7_uint32 maxAIPStatus)
     if ( (L7_NULLPTR == aipStatusDataHeap) ||
          (L7_NULLPTR == aipStatusTreeHeap)) 
     {
-      LOG_ERROR(0); /* no point in continuing */
+      L7_LOG_ERROR(0); /* no point in continuing */
     }
   }
   return rc;

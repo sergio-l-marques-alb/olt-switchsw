@@ -232,7 +232,7 @@ static void hapiBroadL3NhopCacheCmdSet (BROAD_L3_HW_CMD_t cmd)
     if (hapiBroadL3NhopCache.cmd == BROAD_L3_HW_CMD_NO_OP)
     {
       /* If there are entries in cache, this shouldn't be the case */
-      HAPI_BROAD_L3_LOG_ERROR(hapiBroadL3NhopCache.cmd);
+      HAPI_BROAD_L3_L7_LOG_ERROR(hapiBroadL3NhopCache.cmd);
     }
     else if (hapiBroadL3NhopCache.cmd == cmd)
     {
@@ -469,7 +469,7 @@ void hapiBroadL3NhopCacheCommit (void)
   else
   {
     /* This shouldn't be the case if numEntries > 0 */
-    HAPI_BROAD_L3_LOG_ERROR(hapiBroadL3NhopCache.cmd);
+    HAPI_BROAD_L3_L7_LOG_ERROR(hapiBroadL3NhopCache.cmd);
   }
 
   /* Clear up cache */
@@ -579,7 +579,7 @@ static void hapiBroadL3HostCacheCmdSet (BROAD_L3_HW_CMD_t cmd)
     if (hapiBroadL3HostCache.cmd == BROAD_L3_HW_CMD_NO_OP)
     {
       /* If there are entries in cache, this shouldn't be the case */
-      HAPI_BROAD_L3_LOG_ERROR(hapiBroadL3HostCache.cmd);
+      HAPI_BROAD_L3_L7_LOG_ERROR(hapiBroadL3HostCache.cmd);
     }
     else if (hapiBroadL3HostCache.cmd == cmd)
     {
@@ -758,7 +758,7 @@ void hapiBroadL3HostCacheCommit (void)
   else
   {
     /* This shouldn't be the case if numEntries > 0 */
-    HAPI_BROAD_L3_LOG_ERROR(hapiBroadL3HostCache.cmd);
+    HAPI_BROAD_L3_L7_LOG_ERROR(hapiBroadL3HostCache.cmd);
   }
 
   /* Clear up cache */
@@ -863,7 +863,7 @@ static void hapiBroadL3RouteCacheCmdSet (BROAD_L3_HW_CMD_t cmd)
     if (hapiBroadL3RouteCache.cmd == BROAD_L3_HW_CMD_NO_OP)
     {
       /* If there are entries in cache, this shouldn't be the case */
-      HAPI_BROAD_L3_LOG_ERROR(hapiBroadL3RouteCache.cmd);
+      HAPI_BROAD_L3_L7_LOG_ERROR(hapiBroadL3RouteCache.cmd);
     }
     else if (hapiBroadL3RouteCache.cmd == cmd)
     {
@@ -995,7 +995,7 @@ void hapiBroadL3RouteCacheCommit (void)
   else
   {
     /* This shouldn't be the case if numEntries > 0 */
-    HAPI_BROAD_L3_LOG_ERROR(hapiBroadL3RouteCache.cmd);
+    HAPI_BROAD_L3_L7_LOG_ERROR(hapiBroadL3RouteCache.cmd);
   }
 
   /* Clear up cache */

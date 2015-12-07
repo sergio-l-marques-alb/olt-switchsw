@@ -1012,7 +1012,7 @@ e_Err OS_XX_InitAll( void )
 {
    if ((lockSem = osapiSemaMCreate(OSAPI_SEM_Q_FIFO)) == NULL)
    {
-      LOG_ERROR((L7_uint32)lockSem);
+      L7_LOG_ERROR((L7_uint32)lockSem);
    }
 
 #if ((L7_CORE_CPU == MPC860) || (L7_CORE_CPU == MPC8260)) && NO_CACHE_SIZE && !NO_CACHE_MEMORY
@@ -1021,7 +1021,7 @@ e_Err OS_XX_InitAll( void )
 
    if( !(_No_Cache_Memory = (void *) cacheDmaMalloc (NO_CACHE_SIZE)) )
    {
-      LOG_ERROR(0);
+      L7_LOG_ERROR(0);
       return E_NOMEMORY;
    }
 #endif
@@ -1169,7 +1169,7 @@ void OS_XX_Freeze(void)
 #else
    if (osapiSemaTake(lockSem, L7_WAIT_FOREVER) != L7_SUCCESS)
    {
-      LOG_ERROR(L7_FAILURE);
+      L7_LOG_ERROR(L7_FAILURE);
    }
 #endif
 }
@@ -1182,7 +1182,7 @@ void OS_XX_Thaw(void)
 #else
    if (osapiSemaGive(lockSem) != L7_SUCCESS)
    {
-      LOG_ERROR(L7_FAILURE);
+      L7_LOG_ERROR(L7_FAILURE);
    }
 #endif
 }
@@ -1312,7 +1312,7 @@ void XX_DisplayQueue(t_Handle threadID, ulng queueId, ulng resolveNames, long ma
   rc = osapiMsgQueueGetNumMsgs(msgQueue, &currLen);
   if(rc != L7_SUCCESS)
   {
-     LOG_ERROR (rc);
+     L7_LOG_ERROR(rc);
   }
   printf("\r\nnumber of messages %d", currLen);
 

@@ -239,7 +239,7 @@ heapBuffPool_t *pimsmV6HeapPoolListGet(void)
 
   if (i != PIMSM_IPV6_POOL_LIST_SIZE)
   {
-    LOG_ERROR(i);
+    L7_LOG_ERROR(i);
   }
   return pimsmV6HeapPoolList;
 }

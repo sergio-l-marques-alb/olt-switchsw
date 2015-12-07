@@ -259,7 +259,7 @@ L7_RC_t routingStart(void)
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_IP_MAP_COMPONENT_ID,
             "%s: routingInit failed, rc=%d\n", __FUNCTION__, erc);
-    LOG_ERROR (0);
+    L7_LOG_ERROR(0);
     return erc;
   }
   OS_XX_Start();

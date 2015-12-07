@@ -2140,7 +2140,7 @@ L7_RC_t l7_rpc_l3_init (void)
     rpcIntfResp[i].buf = osapiMalloc(L7_DRIVER_COMPONENT_ID, size);
     if (rpcIntfResp[i].buf == L7_NULLPTR)
     {
-      LOG_ERROR(0);
+      L7_LOG_ERROR(0);
     }
     memset (rpcIntfResp[i].buf, 0, size);
     rpcIntfResp[i].buf_size = size;
@@ -2158,7 +2158,7 @@ L7_RC_t l7_rpc_l3_init (void)
 
   if (rpcEgrNhopData.buf == L7_NULLPTR)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
   
   memset (rpcEgrNhopData.buf, 0, size);
@@ -2172,7 +2172,7 @@ L7_RC_t l7_rpc_l3_init (void)
     rpcEgrNhopResp[i].buf = osapiMalloc(L7_DRIVER_COMPONENT_ID, size);
     if (rpcEgrNhopResp[i].buf == L7_NULLPTR)
     {
-      LOG_ERROR(0);
+      L7_LOG_ERROR(0);
     }
     memset (rpcEgrNhopResp[i].buf, 0, size);
     rpcEgrNhopResp[i].buf_size = size;
@@ -2187,7 +2187,7 @@ L7_RC_t l7_rpc_l3_init (void)
 
   if (rpcHostData.buf == L7_NULLPTR)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 
   memset (rpcHostData.buf, 0, size);
@@ -2201,7 +2201,7 @@ L7_RC_t l7_rpc_l3_init (void)
     rpcHostResp[i].buf = osapiMalloc(L7_DRIVER_COMPONENT_ID, size);
     if (rpcHostResp[i].buf == L7_NULLPTR)
     {
-      LOG_ERROR(0);
+      L7_LOG_ERROR(0);
     }
     memset (rpcHostResp[i].buf, 0, size);
     rpcHostResp[i].buf_size = size;
@@ -2216,7 +2216,7 @@ L7_RC_t l7_rpc_l3_init (void)
   
   if (rpcRouteData.buf == L7_NULLPTR)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 
   memset (rpcRouteData.buf, 0, size);
@@ -2230,7 +2230,7 @@ L7_RC_t l7_rpc_l3_init (void)
     rpcRouteResp[i].buf = osapiMalloc(L7_DRIVER_COMPONENT_ID, size);
     if (rpcRouteResp[i].buf == L7_NULLPTR)
     {
-      LOG_ERROR(0);
+      L7_LOG_ERROR(0);
     }
     memset (rpcRouteResp[i].buf, 0, size);
     rpcRouteResp[i].buf_size = size;
@@ -2241,56 +2241,56 @@ L7_RC_t l7_rpc_l3_init (void)
                                l7_rpc_server_l3_host_add);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 
   rc = hpcHardwareRpcRegister (L7_RPC_L3_HOST_DELETE,
                                l7_rpc_server_l3_host_delete);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 
   rc = hpcHardwareRpcRegister (L7_RPC_L3_ROUTE_ADD,
                                l7_rpc_server_l3_route_add);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 
   rc = hpcHardwareRpcRegister (L7_RPC_L3_ROUTE_DELETE,
                                l7_rpc_server_l3_route_delete);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 
   rc = hpcHardwareRpcRegister (L7_RPC_L3_EGRESS_CREATE,
                                l7_rpc_server_l3_egress_create);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 
   rc = hpcHardwareRpcRegister (L7_RPC_L3_EGRESS_DESTROY,
                                l7_rpc_server_l3_egress_destroy);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 
   rc = hpcHardwareRpcRegister (L7_RPC_L3_EGRESS_MULTIPATH_CREATE,
                                l7_rpc_server_l3_egress_multipath_create);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 
   rc = hpcHardwareRpcRegister (L7_RPC_L3_EGRESS_MULTIPATH_DESTROY,
                                l7_rpc_server_l3_egress_multipath_destroy);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 
 
@@ -2298,28 +2298,28 @@ L7_RC_t l7_rpc_l3_init (void)
                                l7_rpc_server_l3_tunnel_initiator_set);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 
   rc = hpcHardwareRpcRegister (L7_RPC_L3_TUNNEL_INITIATOR_CLEAR,
                                l7_rpc_server_l3_tunnel_initiator_clear);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 
   rc = hpcHardwareRpcRegister (L7_RPC_L3_TUNNEL_TERMINATOR_ADD,
                                l7_rpc_server_l3_tunnel_terminator_add);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 
   rc = hpcHardwareRpcRegister (L7_RPC_L3_TUNNEL_TERMINATOR_DELETE,
                                l7_rpc_server_l3_tunnel_terminator_delete);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 
   /* Implement L3 interface create/delete using L7 RPC too. This way
@@ -2330,14 +2330,14 @@ L7_RC_t l7_rpc_l3_init (void)
                                l7_rpc_server_l3_intf_create);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 
   rc = hpcHardwareRpcRegister (L7_RPC_L3_INTF_DELETE,
                                l7_rpc_server_l3_intf_delete);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 
   return rc;
@@ -2361,7 +2361,7 @@ L7_uint32 l7_custom_rpc_l3_max_egress_nhop_get(void)
 
   if (maxRpcLen == 0)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 
   return (maxRpcLen/sizeof(l7RpcEgrInfo_t));
@@ -2388,7 +2388,7 @@ L7_uint32 l7_custom_rpc_l3_max_host_get(void)
 
   if (maxRpcLen == 0)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 
   return (maxRpcLen/sizeof(usl_bcm_l3_host_t));
@@ -2415,7 +2415,7 @@ L7_uint32 l7_custom_rpc_l3_max_route_get(void)
 
   if (maxRpcLen == 0)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 
   return (maxRpcLen/sizeof(usl_bcm_l3_route_t));

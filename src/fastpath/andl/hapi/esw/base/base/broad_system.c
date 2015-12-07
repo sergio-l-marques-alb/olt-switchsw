@@ -287,7 +287,7 @@ void hapiBroadMirrorEnable (void)
     rv = bcmx_mirror_mode_set(BCM_MIRROR_L2);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
-       LOG_ERROR (rv);
+       L7_LOG_ERROR(rv);
     }
 
     /* TODO: SDK 6.3.0 */
@@ -298,7 +298,7 @@ void hapiBroadMirrorEnable (void)
     #endif
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
-      LOG_ERROR (rv);
+      L7_LOG_ERROR(rv);
     }
   }
 }
@@ -316,7 +316,7 @@ static void hapiBroadMirrorDisable (void)
     rv = bcmx_mirror_mode_set(BCM_MIRROR_DISABLE);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
-       LOG_ERROR (rv);
+       L7_LOG_ERROR(rv);
     }
   }
 }
@@ -617,7 +617,7 @@ L7_RC_t hapiBroadSystemMirroring(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
      rv = usl_bcmx_port_vlan_member_set(bcmxMirrorToLport, mode);
      if (L7_BCMX_OK(rv) != L7_TRUE)
      {
-       LOG_ERROR(bcmxMirrorToLport);
+       L7_LOG_ERROR(bcmxMirrorToLport);
      }
 
      /* Disable egress filtering. The mirrored packets may not be on the
@@ -627,14 +627,14 @@ L7_RC_t hapiBroadSystemMirroring(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
      rv = usl_bcmx_port_vlan_member_set(bcmxMirrorToLport, mode);
      if (L7_BCMX_OK(rv) != L7_TRUE)
      {
-       LOG_ERROR(bcmxMirrorToLport);
+       L7_LOG_ERROR(bcmxMirrorToLport);
      }
 
 
      rv = usl_bcmx_port_untagged_vlan_set(bcmxMirrorToLport, HPC_STACKING_VLAN_ID);
      if (L7_BCMX_OK(rv) != L7_TRUE)
      {
-       LOG_ERROR(bcmxMirrorToLport);
+       L7_LOG_ERROR(bcmxMirrorToLport);
      }
  
      /*Session can be active only with an active probe*/
@@ -646,7 +646,7 @@ L7_RC_t hapiBroadSystemMirroring(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
 
      if (result != L7_SUCCESS)
      {
-       LOG_ERROR(bcmxMirrorToLport);
+       L7_LOG_ERROR(bcmxMirrorToLport);
      }
 
      /* Re-enable egress filtering. */
@@ -655,14 +655,14 @@ L7_RC_t hapiBroadSystemMirroring(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
      rv = usl_bcmx_port_vlan_member_set(bcmxMirrorToLport, mode);
      if (L7_BCMX_OK(rv) != L7_TRUE)
      {
-       LOG_ERROR(bcmxMirrorToLport);
+       L7_LOG_ERROR(bcmxMirrorToLport);
      }
 
 
      rv = usl_bcmx_port_untagged_vlan_set(bcmxMirrorToLport,hapiMirrorToPortPtr->pvid);
      if (L7_BCMX_OK(rv) != L7_TRUE)
      {
-       LOG_ERROR(bcmxMirrorToLport);
+       L7_LOG_ERROR(bcmxMirrorToLport);
      }
 
      dapi_g->system->mirrorEnable = L7_FALSE;
@@ -878,7 +878,7 @@ L7_RC_t hapiBroadSystemMacAddress(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, D
       hapiSystemPtr->mgmtVlanId = dapiCmd->cmdData.systemMacAddress.vlanId;
       if (L7_BCMX_OK(rc) == L7_FALSE)
       {
-        LOG_ERROR(rc);
+        L7_LOG_ERROR(rc);
       }
     }
 
@@ -959,7 +959,7 @@ L7_RC_t hapiBroadSystemMacAddress(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, D
     rc = usl_bcmx_l2_addr_delete(mgmtMac, hapiSystemPtr->mgmtVlanId);
     if (L7_BCMX_OK(rc) == L7_FALSE)
     {
-      LOG_ERROR(rc);
+      L7_LOG_ERROR(rc);
     }
   }
 
@@ -1217,7 +1217,7 @@ L7_RC_t hapiBroadIntfBroadcastControlModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "rv=%d", rv);
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
-        LOG_ERROR (rv);
+        L7_LOG_ERROR(rv);
       }
 
       break;
@@ -1242,7 +1242,7 @@ L7_RC_t hapiBroadIntfBroadcastControlModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "rv=%d", rv);
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
-         LOG_ERROR (rv);
+         L7_LOG_ERROR(rv);
       }
 
       break;
@@ -1267,7 +1267,7 @@ L7_RC_t hapiBroadIntfBroadcastControlModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "rv=%d", rv);
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
-         LOG_ERROR (rv);
+         L7_LOG_ERROR(rv);
       }
 
       break;
@@ -1653,7 +1653,7 @@ L7_RC_t hapiBroadIntfStpState(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_
         rv = bcmx_port_stp_set(hapiPortPtr->bcmx_lport, state);
         if (L7_BCMX_OK(rv) != L7_TRUE)
         {
-          LOG_ERROR (rv);
+          L7_LOG_ERROR(rv);
         }
       }
     }
@@ -1739,7 +1739,7 @@ L7_RC_t hapiBroadIntfLoopbackConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
           rv = bcmx_port_loopback_set(hapiPortPtr->bcmx_lport, dapiCmd->cmdData.portLoopbackConfig.loopMode);
           if (L7_BCMX_OK(rv) != L7_TRUE)
           {
-            LOG_ERROR (rv);
+            L7_LOG_ERROR(rv);
           }
         }
       }
@@ -1838,7 +1838,7 @@ L7_RC_t hapiBroadIntfIsolatePhyConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *dat
   rv = usl_bcmx_port_enable_set(hapiPortPtr->bcmx_lport, enable);
   if (L7_BCMX_OK(rv) != L7_TRUE)
   {
-	LOG_ERROR (rv);
+	L7_LOG_ERROR(rv);
   }
 
   /* PTin removed */
@@ -2544,14 +2544,14 @@ static L7_RC_t hapiBroadHelixConfigMldFilter(L7_BOOL enableFilter,DAPI_t *dapi_g
         if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
         {
           rc = L7_FAILURE;
-          LOG_ERROR(rv);
+          L7_LOG_ERROR(rv);
         }
     
         rv = bcmx_switch_control_set(bcmSwitchMldPktToCpu, 1);
         if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
         {
           rc = L7_FAILURE;
-          LOG_ERROR(rv);
+          L7_LOG_ERROR(rv);
         }
     
         /* Set the MLD packet priority. This is required only for FB2 platforms.
@@ -2584,14 +2584,14 @@ static L7_RC_t hapiBroadHelixConfigMldFilter(L7_BOOL enableFilter,DAPI_t *dapi_g
     if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
     {
       rc = L7_FAILURE;
-      LOG_ERROR(rv);
+      L7_LOG_ERROR(rv);
     }
 
     rv = bcmx_switch_control_set(bcmSwitchMldPktToCpu, 0);
     if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
     {
       rc = L7_FAILURE;
-      LOG_ERROR(rv);
+      L7_LOG_ERROR(rv);
     }
 
     /* Reset the MLD packet priority to default */
@@ -2913,13 +2913,13 @@ L7_RC_t hapiBroadConfigMldFilter(L7_BOOL enableFilter,DAPI_t *dapi_g)
      if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
      {
        rc = L7_FAILURE;
-       LOG_ERROR(rv);
+       L7_LOG_ERROR(rv);
      }
      rv = bcmx_switch_control_set(bcmSwitchMldPktToCpu, 1);
      if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
      {
        rc = L7_FAILURE;
-       LOG_ERROR(rv);
+       L7_LOG_ERROR(rv);
      }
 
      /* Set the MLD packet priority. This is required only for FB2 platforms.
@@ -2958,14 +2958,14 @@ L7_RC_t hapiBroadConfigMldFilter(L7_BOOL enableFilter,DAPI_t *dapi_g)
     if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
     {
       rc = L7_FAILURE;
-      LOG_ERROR(rv);
+      L7_LOG_ERROR(rv);
     }
 
     rv = bcmx_switch_control_set(bcmSwitchMldPktToCpu, 0);
     if ((rv != BCM_E_EXISTS) && (L7_BCMX_OK(rv) != L7_TRUE))
     {
       rc = L7_FAILURE;
-      LOG_ERROR(rv);
+      L7_LOG_ERROR(rv);
     }
 
     /* Reset the MLD packet priority to default */
@@ -5958,7 +5958,7 @@ L7_RC_t hapiBroadSystemCpuSamplePriority(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *
   rv = bcmx_switch_control_set(bcmSwitchCpuSamplePrio, dapiCmd->cmdData.sFlowConfig.sampleCpuPrio);
   if (L7_BCMX_OK(rv) != L7_TRUE)
   {
-    LOG_ERROR(bcmSwitchCpuSamplePrio);
+    L7_LOG_ERROR(bcmSwitchCpuSamplePrio);
   }
 
   /* Upon failure, the error is logged.
@@ -6005,7 +6005,7 @@ L7_RC_t hapiBroadSystemSampleRandomSeed(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
     rv = bcmx_switch_control_set(bcmSwitchSampleIngressRandomSeed, dapiCmd->cmdData.sFlowConfig.RandomSeed);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
-      LOG_ERROR(bcmSwitchSampleIngressRandomSeed);
+      L7_LOG_ERROR(bcmSwitchSampleIngressRandomSeed);
     }
   }
 
@@ -6014,7 +6014,7 @@ L7_RC_t hapiBroadSystemSampleRandomSeed(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
     rv = bcmx_switch_control_set(bcmSwitchSampleEgressRandomSeed, dapiCmd->cmdData.sFlowConfig.RandomSeed);
     if (L7_BCMX_OK(rv) != L7_TRUE)
     {
-      LOG_ERROR(bcmSwitchSampleEgressRandomSeed);
+      L7_LOG_ERROR(bcmSwitchSampleEgressRandomSeed);
     }
   }
 
@@ -6212,7 +6212,7 @@ L7_RC_t hapiBroadSystemCardPortsAdminModeSet(L7_uint32 unit, L7_uint32 slot,
   maxElems = (sizeof(args) - sizeof(L7_uint32))/sizeof(usl_bcm_port_admin_mode_t);
   if (maxElems == 0) 
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 
   /* Setup the message */

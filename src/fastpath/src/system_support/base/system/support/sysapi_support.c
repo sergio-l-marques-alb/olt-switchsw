@@ -164,7 +164,7 @@ void sysapiSupportCfgFileReload(void)
 
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 }
 
@@ -215,7 +215,7 @@ L7_RC_t sysapiSupportCfgFileSysInit(void)
     {
       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SIM_COMPONENT_ID,
               "Failed to malloc pSysapiSupportCfgTree[%u]\n", i);
-      LOG_ERROR(1);
+      L7_LOG_ERROR(1);
       return L7_ERROR;
     }
     else
@@ -225,7 +225,7 @@ L7_RC_t sysapiSupportCfgFileSysInit(void)
       pSysapiSupportCfgTree[i]->fileInfo.filename = osapiMalloc(L7_SIM_COMPONENT_ID, L7_MAX_FILENAME);
       if ( pSysapiSupportCfgTree[i]->fileInfo.filename == L7_NULLPTR)
       {
-        LOG_ERROR (0);
+        L7_LOG_ERROR(0);
       }
       pSysapiSupportCfgTree[i]->fileInfo.filename[0] = 0;
     }
@@ -650,7 +650,7 @@ L7_RC_t sysapiSupportCfgFileSave(void)
   rc = osapiFsFileCreate (SYSAPI_SUPPORT_CONFIG_FILENAME, &file_desc);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 
   checksum = nvStoreCrcInit ();
@@ -665,7 +665,7 @@ L7_RC_t sysapiSupportCfgFileSave(void)
   rc = osapiFsWriteNoClose (file_desc, (L7_char8 *) &cfgFileHdr, sizeof (cfgFileHdr));
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 
   /*--------------------------------------------*/
@@ -685,7 +685,7 @@ L7_RC_t sysapiSupportCfgFileSave(void)
     rc = osapiFsWriteNoClose (file_desc, source_location, size_to_copy);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERROR (rc);
+      L7_LOG_ERROR(rc);
     }
 
     octet = source_location;
@@ -704,7 +704,7 @@ L7_RC_t sysapiSupportCfgFileSave(void)
     rc = osapiFsWriteNoClose (file_desc, source_location, size_to_copy);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERROR (rc);
+      L7_LOG_ERROR(rc);
     }
 
     octet = source_location;
@@ -725,7 +725,7 @@ L7_RC_t sysapiSupportCfgFileSave(void)
   rc = osapiFsWriteNoClose (file_desc, (L7_uchar8 *) &checksum, 4);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 
   (void)osapiFsClose (file_desc);

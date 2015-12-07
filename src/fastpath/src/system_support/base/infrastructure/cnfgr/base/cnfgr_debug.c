@@ -75,7 +75,7 @@ void cnfgrDebugFini(void)
   rc = cnfgrApiCommand(pCmdData);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 }
 
@@ -486,7 +486,7 @@ L7_RC_t cnfgrDebugUnconfigure()
  rc = cnfgrApiCommand(pCmdData);
  if (rc != L7_SUCCESS)
  {
-   LOG_ERROR (rc);
+   L7_LOG_ERROR(rc);
  }
 
  /* The system will come back up without further intervention.

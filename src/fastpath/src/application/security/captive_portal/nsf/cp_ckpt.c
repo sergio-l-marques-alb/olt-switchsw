@@ -51,9 +51,9 @@
 #include "cp_ckpt.h"
 
 #define SEMA_TAKE(access)   \
-  if (CPDM_##access##_LOCK_TAKE(cpdmSema, L7_WAIT_FOREVER) != L7_SUCCESS)  LOG_ERROR(0);
+  if (CPDM_##access##_LOCK_TAKE(cpdmSema, L7_WAIT_FOREVER) != L7_SUCCESS)  L7_LOG_ERROR(0);
 #define SEMA_GIVE(access)   \
-  if (CPDM_##access##_LOCK_GIVE(cpdmSema) != L7_SUCCESS)  LOG_ERROR(0);
+  if (CPDM_##access##_LOCK_GIVE(cpdmSema) != L7_SUCCESS)  L7_LOG_ERROR(0);
 
 extern cpdmOprData_t   *cpdmOprData;
 extern avlTree_t        clientConnStatusTree;

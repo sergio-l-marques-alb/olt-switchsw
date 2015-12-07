@@ -171,7 +171,7 @@ static L7_RC_t hapiBroadPolicyActionAdd(BROAD_POLICY_RULE_ENTRY_t  *rulePtr,
     if (action >= 32)
     {
       /* Programming error... need to update BROAD_ACTION_ENTRY_t to widen the 'actions' field. */
-      LOG_ERROR(action);
+      L7_LOG_ERROR(action);
     }
     actionPtr->actions[action_scope] |= (1 << action);
 
@@ -195,7 +195,7 @@ static L7_RC_t hapiBroadPolicyActionAdd(BROAD_POLICY_RULE_ENTRY_t  *rulePtr,
       {
        if (action_scope != BROAD_POLICY_ACTION_CONFORMING)
        {
-         LOG_ERROR(action_scope); /* Catch programming errors... BROAD_ACTION_ENTRY_t may need to be updated to support multiple action scopes. */
+         L7_LOG_ERROR(action_scope); /* Catch programming errors... BROAD_ACTION_ENTRY_t may need to be updated to support multiple action scopes. */
        }
       }
       actionPtr->u.ifp_parms.usp.unit = param0;
@@ -295,7 +295,7 @@ static L7_RC_t hapiBroadPolicyActionAdd(BROAD_POLICY_RULE_ENTRY_t  *rulePtr,
     case BROAD_ACTION_SET_DROPPREC:
       if (action_scope != BROAD_POLICY_ACTION_CONFORMING)
       {
-        LOG_ERROR(action_scope); /* Catch programming errors... BROAD_ACTION_ENTRY_t may need to be updated to support multiple action scopes. */
+        L7_LOG_ERROR(action_scope); /* Catch programming errors... BROAD_ACTION_ENTRY_t may need to be updated to support multiple action scopes. */
       }
       actionPtr->u.ifp_parms.set_dropprec.conforming    = param0;
       actionPtr->u.ifp_parms.set_dropprec.exceeding     = param1;
@@ -305,7 +305,7 @@ static L7_RC_t hapiBroadPolicyActionAdd(BROAD_POLICY_RULE_ENTRY_t  *rulePtr,
     case BROAD_ACTION_SET_OUTER_VID:
       if (action_scope != BROAD_POLICY_ACTION_CONFORMING)
       {
-        LOG_ERROR(action_scope); /* Catch programming errors... BROAD_ACTION_ENTRY_t may need to be updated to support multiple action scopes. */
+        L7_LOG_ERROR(action_scope); /* Catch programming errors... BROAD_ACTION_ENTRY_t may need to be updated to support multiple action scopes. */
       }
       if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
       {
@@ -320,7 +320,7 @@ static L7_RC_t hapiBroadPolicyActionAdd(BROAD_POLICY_RULE_ENTRY_t  *rulePtr,
     case BROAD_ACTION_SET_INNER_VID:
       if (action_scope != BROAD_POLICY_ACTION_CONFORMING)
       {
-        LOG_ERROR(action_scope); /* Catch programming errors... BROAD_ACTION_ENTRY_t may need to be updated to support multiple action scopes. */
+        L7_LOG_ERROR(action_scope); /* Catch programming errors... BROAD_ACTION_ENTRY_t may need to be updated to support multiple action scopes. */
       }
       actionPtr->u.efp_parms.set_ivid = param0;
       break;
@@ -328,7 +328,7 @@ static L7_RC_t hapiBroadPolicyActionAdd(BROAD_POLICY_RULE_ENTRY_t  *rulePtr,
     case BROAD_ACTION_ADD_OUTER_VID:
       if (action_scope != BROAD_POLICY_ACTION_CONFORMING)
       {
-        LOG_ERROR(action_scope); /* Catch programming errors... BROAD_ACTION_ENTRY_t may need to be updated to support multiple action scopes. */
+        L7_LOG_ERROR(action_scope); /* Catch programming errors... BROAD_ACTION_ENTRY_t may need to be updated to support multiple action scopes. */
       }
       actionPtr->u.vfp_parms.add_ovid = param0;
       break;
@@ -336,7 +336,7 @@ static L7_RC_t hapiBroadPolicyActionAdd(BROAD_POLICY_RULE_ENTRY_t  *rulePtr,
     case BROAD_ACTION_ADD_INNER_VID:
       if (action_scope != BROAD_POLICY_ACTION_CONFORMING)
       {
-        LOG_ERROR(action_scope); /* Catch programming errors... BROAD_ACTION_ENTRY_t may need to be updated to support multiple action scopes. */
+        L7_LOG_ERROR(action_scope); /* Catch programming errors... BROAD_ACTION_ENTRY_t may need to be updated to support multiple action scopes. */
       }
       actionPtr->u.vfp_parms.add_ivid = param0;
       break;
@@ -344,7 +344,7 @@ static L7_RC_t hapiBroadPolicyActionAdd(BROAD_POLICY_RULE_ENTRY_t  *rulePtr,
     case BROAD_ACTION_SET_CLASS_ID:
       if (action_scope != BROAD_POLICY_ACTION_CONFORMING)
       {
-        LOG_ERROR(action_scope); /* Catch programming errors... BROAD_ACTION_ENTRY_t may need to be updated to support multiple action scopes. */
+        L7_LOG_ERROR(action_scope); /* Catch programming errors... BROAD_ACTION_ENTRY_t may need to be updated to support multiple action scopes. */
       }
       if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
       {
@@ -360,7 +360,7 @@ static L7_RC_t hapiBroadPolicyActionAdd(BROAD_POLICY_RULE_ENTRY_t  *rulePtr,
     case BROAD_ACTION_SET_SRC_CLASS_ID:
       if (action_scope != BROAD_POLICY_ACTION_CONFORMING)
       {
-        LOG_ERROR(action_scope); /* Catch programming errors... BROAD_ACTION_ENTRY_t may need to be updated to support multiple action scopes. */
+        L7_LOG_ERROR(action_scope); /* Catch programming errors... BROAD_ACTION_ENTRY_t may need to be updated to support multiple action scopes. */
       }
       if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
       {
@@ -407,7 +407,7 @@ static L7_RC_t hapiBroadPolicyActionAdd(BROAD_POLICY_RULE_ENTRY_t  *rulePtr,
     case BROAD_ACTION_SET_REASON_CODE:
       if (action_scope != BROAD_POLICY_ACTION_CONFORMING)
       {
-        LOG_ERROR(action_scope); /* Catch programming errors... BROAD_ACTION_ENTRY_t may need to be updated to support multiple action scopes. */
+        L7_LOG_ERROR(action_scope); /* Catch programming errors... BROAD_ACTION_ENTRY_t may need to be updated to support multiple action scopes. */
       }
       actionPtr->u.ifp_parms.set_reason = param0;
       break;
@@ -418,7 +418,7 @@ static L7_RC_t hapiBroadPolicyActionAdd(BROAD_POLICY_RULE_ENTRY_t  *rulePtr,
           (param1 != 0) ||
           (param2 != 0))
       {
-        LOG_ERROR(action);
+        L7_LOG_ERROR(action);
       }
       break;
     }
@@ -595,14 +595,14 @@ L7_RC_t hapiBroadPolicyInit()
     policyTableSema = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
     if (L7_NULLPTR == policyTableSema)
     {
-        LOG_ERROR(0);
+        L7_LOG_ERROR(0);
         return L7_FAILURE;
     }
 
     policyInfo = osapiMalloc(L7_DRIVER_COMPONENT_ID, sizeof(*policyInfo));
     if (L7_NULLPTR == policyInfo)
     {
-      LOG_ERROR(0);
+      L7_LOG_ERROR(0);
       return L7_FAILURE;
     }
 
@@ -2007,7 +2007,7 @@ L7_uint32 hapiBroadMaxPortsPerBcmUnit()
     board_info = hpcBoardGet();
     if (board_info == L7_NULL)
     {
-      LOG_ERROR(0);
+      L7_LOG_ERROR(0);
     }
     first_time = L7_FALSE;
 
@@ -2048,7 +2048,7 @@ L7_uint32 hapiBroadMaxBcmUnitsPerCpu()
     board_info = hpcBoardGet();
     if (board_info == L7_NULL)
     {
-      LOG_ERROR(0);
+      L7_LOG_ERROR(0);
     }
     first_time = L7_FALSE;
 
@@ -2111,7 +2111,7 @@ L7_uint32 hapiBroadMaxVfpRulesPerUnit()
     board_info = hpcBoardGet();
     if (board_info == L7_NULL)
     {
-      LOG_ERROR(0);
+      L7_LOG_ERROR(0);
     }
     first_time = L7_FALSE;
 
@@ -2149,7 +2149,7 @@ L7_uint32 hapiBroadMaxSystemRulesPerUnit()
     board_info = hpcBoardGet();
     if (board_info == L7_NULL)
     {
-      LOG_ERROR(0);
+      L7_LOG_ERROR(0);
     }
     first_time = L7_FALSE;
 
@@ -2187,7 +2187,7 @@ L7_uint32 hapiBroadMaxUserRulesPerUnit()
     board_info = hpcBoardGet();
     if (board_info == L7_NULL)
     {
-      LOG_ERROR(0);
+      L7_LOG_ERROR(0);
     }
     first_time = L7_FALSE;
 
@@ -2225,7 +2225,7 @@ L7_uint32 hapiBroadMaxEfpRulesPerUnit()
     board_info = hpcBoardGet();
     if (board_info == L7_NULL)
     {
-      LOG_ERROR(0);
+      L7_LOG_ERROR(0);
     }
     first_time = L7_FALSE;
 
@@ -2301,7 +2301,7 @@ L7_uint32 hapiBroadMaxPolicies()
     board_info = hpcBoardGet();
     if (board_info == L7_NULL)
     {
-      LOG_ERROR(0);
+      L7_LOG_ERROR(0);
     }
     first_time = L7_FALSE;
 
@@ -2371,7 +2371,7 @@ L7_uint32 hapiBroadMaxPoliciesPerBcmUnit()
     board_info = hpcBoardGet();
     if (board_info == L7_NULL)
     {
-      LOG_ERROR(0);
+      L7_LOG_ERROR(0);
     }
     first_time = L7_FALSE;
 

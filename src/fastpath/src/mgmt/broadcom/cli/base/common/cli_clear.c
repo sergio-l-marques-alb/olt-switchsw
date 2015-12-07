@@ -536,7 +536,7 @@ const L7_char8 *commandClearConfig(EwsContext ewsContext, L7_uint32 argc, const 
         }
         cliWebCmdLoggerEntryAdd(pStrErr_base_ClrCfgCmd, FD_WEB_DEFAULT_MAX_CONNECTIONS+1);
         rc = usmDbResetConfigActionSet(unit, 3);
-        /*   LOG_ERROR(USER_RESET);  You don't want to reset the Hardware */
+        /*   L7_LOG_ERROR(USER_RESET);  You don't want to reset the Hardware */
         ewsTelnetWriteAddBlanks (1, 0, 0, 0, L7_NULLPTR, ewsContext, pStrInfo_base_CfgClred);     /*   Configuration Cleared!  */
       }
     }

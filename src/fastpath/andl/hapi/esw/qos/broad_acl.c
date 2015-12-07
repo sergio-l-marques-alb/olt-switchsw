@@ -173,7 +173,7 @@ L7_RC_t hapiBroadQosAclInit(DAPI_t *dapi_g)
     }
     if (broadAclTable == L7_NULL)
     {
-      LOG_ERROR(0);
+      L7_LOG_ERROR(0);
     }
     /* Init the ACL instance lookup table. */
     for (i = 0; i < maxAclPolicies; i++)
@@ -190,7 +190,7 @@ L7_RC_t hapiBroadQosAclInit(DAPI_t *dapi_g)
     }
     if (broadAclCorrTable == L7_NULL)
     {
-      LOG_ERROR(0);
+      L7_LOG_ERROR(0);
     }
     /* init the ACL correlator table */
     for (i = 0; i < maxAclEntries; i++)
@@ -203,7 +203,7 @@ L7_RC_t hapiBroadQosAclInit(DAPI_t *dapi_g)
       timeBasedRuleId = osapiMalloc(L7_DRIVER_COMPONENT_ID, L7_ACL_MAX_RULES_PER_MULTILIST * sizeof(BROAD_POLICY_RULE_t));
       if (timeBasedRuleId == L7_NULL)
       {
-        LOG_ERROR(0);
+        L7_LOG_ERROR(0);
       }
     }
 
@@ -212,7 +212,7 @@ L7_RC_t hapiBroadQosAclInit(DAPI_t *dapi_g)
       timeBasedRuleCorrelator = osapiMalloc(L7_DRIVER_COMPONENT_ID, L7_ACL_MAX_RULES_PER_MULTILIST * sizeof(BROAD_POLICY_RULE_t));
       if (timeBasedRuleCorrelator == L7_NULL)
       {
-        LOG_ERROR(0);
+        L7_LOG_ERROR(0);
       }
     }
 

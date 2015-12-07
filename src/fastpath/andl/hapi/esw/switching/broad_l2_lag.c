@@ -261,7 +261,7 @@ void hapiBroadLagAsyncProcessMessages(L7_uint32 num_msgs, DAPI_t *dapi_g)
         break;
 
       default:
-        LOG_ERROR (lag_cmd.async_cmd);
+        L7_LOG_ERROR(lag_cmd.async_cmd);
     }
   }
 
@@ -286,7 +286,7 @@ void hapiBroadLagInit (void)
   hapiBroadLagSema = osapiSemaMCreate(OSAPI_SEM_Q_FIFO);
   if (hapiBroadLagSema == L7_NULL)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 
 }
@@ -654,7 +654,7 @@ static void hapiBroadAddRemovePortFromLagVlans (DAPI_USP_t *usp,
   */
   if (hapiPortPtr->hapiModeparm.physical.isMemberOfLag != L7_TRUE)
   {
-    LOG_ERROR (usp->port);
+    L7_LOG_ERROR(usp->port);
   }
 
   lag_usp = &hapiPortPtr->hapiModeparm.physical.lagUsp;
@@ -851,7 +851,7 @@ L7_RC_t hapiBroadLagCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *data, 
 	hapiPortPtr->l2FlushSyncSem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
 	if (hapiPortPtr->l2FlushSyncSem == L7_NULL) 
 	{
-	  LOG_ERROR(usp.port);
+	  L7_LOG_ERROR(usp.port);
 	}
   }
 
@@ -961,7 +961,7 @@ L7_RC_t hapiBroadLagCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *
 
   if (usp->port >= L7_MAX_NUM_LAG_INTF)
   {
-    LOG_ERROR (usp->port);
+    L7_LOG_ERROR(usp->port);
   }
 
   hapiPortPtr->hapiModeparm.lag.numMembers = 0;
@@ -1048,7 +1048,7 @@ L7_RC_t hapiBroadLagPortAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t 
                          L7_MSG_PRIORITY_NORM);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 
   /* Signal the L2 Async task that work is pending. */
@@ -1609,7 +1609,7 @@ L7_RC_t hapiBroadLagPortDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
                          L7_MSG_PRIORITY_NORM);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 
   /* Signal the L2 Async task that work is pending. */
@@ -1673,7 +1673,7 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
   hapiLagPortPtr = dapi_g->unit[usp->unit]->slot[usp->slot]->port[usp->port]->hapiPort;
 
   if (IS_PORT_TYPE_LOGICAL_LAG(lagDapiPortPtr) == L7_FALSE)
-    LOG_ERROR (lagDapiPortPtr->type);
+    L7_LOG_ERROR(lagDapiPortPtr->type);
 
   lagMemberSet = lagDapiPortPtr->modeparm.lag.memberSet;
   member_found = L7_FALSE;
@@ -2422,7 +2422,7 @@ L7_RC_t hapiBroadADTrunkModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAP
 
   if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr) == L7_FALSE)
   {
-    LOG_ERROR(dapiPortPtr->type);
+    L7_LOG_ERROR(dapiPortPtr->type);
   }
   /* Set the mode in HAPI port struct so that it sends 802.3AD PDUs to the host CPU. */
   hapiPortPtr->hapiModeparm.physical.acceptLAPDU = cmdADTrunk->cmdData.portADTrunk.enable;

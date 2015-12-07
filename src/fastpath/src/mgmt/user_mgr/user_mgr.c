@@ -1776,7 +1776,7 @@ L7_RC_t userMgrPhaseOneInit(void)
   excludeKeywordSemaphore = osapiSemaBCreate (OSAPI_SEM_Q_PRIORITY, OSAPI_SEM_FULL);
   if(excludeKeywordSemaphore == L7_NULLPTR)
   {
-    LOG_ERROR(L7_NULL);
+    L7_LOG_ERROR(L7_NULL);
     rc = L7_FAILURE;
   }
 
@@ -1785,7 +1785,7 @@ L7_RC_t userMgrPhaseOneInit(void)
 
   if (userMgrPortOper_g == L7_NULLPTR)
   {
-    LOG_ERROR(L7_NULL);
+    L7_LOG_ERROR(L7_NULL);
     rc = L7_FAILURE;
   }
   else

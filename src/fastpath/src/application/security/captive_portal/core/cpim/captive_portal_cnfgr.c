@@ -56,9 +56,9 @@
 
 /* Syntactic sugar */
 #define SEMA_TAKE(access)   \
-  if ( CPDM_##access##_LOCK_TAKE(cpdmSema, L7_WAIT_FOREVER) != L7_SUCCESS)  LOG_ERROR(0);  
+  if ( CPDM_##access##_LOCK_TAKE(cpdmSema, L7_WAIT_FOREVER) != L7_SUCCESS)  L7_LOG_ERROR(0);  
 #define SEMA_GIVE(access)   \
-  if ( CPDM_##access##_LOCK_GIVE(cpdmSema) != L7_SUCCESS)  LOG_ERROR(0);  
+  if ( CPDM_##access##_LOCK_GIVE(cpdmSema) != L7_SUCCESS)  L7_LOG_ERROR(0);  
 
 cpdmCfgData_t            *cpdmCfgData        = (cpdmCfgData_t *) L7_NULLPTR;
 cpdmCfgData_t            *cpdmCfgDataToStore = (cpdmCfgData_t *) L7_NULLPTR;
@@ -727,7 +727,7 @@ captivePortalInitPhase1Func(L7_CNFGR_CMD_DATA_t * pCmd,
 {
   if (L7_SUCCESS != osapiFsRamCreate(RAM_CP_PATH,RAM_CP_NAME,L7_CAPTIVE_PORTAL_IMAGES_NVRAM_SIZE))
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR(0);
   }
 
   /* Initialize our buffer area for CP images. */
@@ -735,7 +735,7 @@ captivePortalInitPhase1Func(L7_CNFGR_CMD_DATA_t * pCmd,
                                       sizeof(cpdmRAMCfgDataToStore_t));
   if (L7_NULLPTR == cpdmRAMCfgDataToStore) 
   {
-    LOG_ERROR(0); /* no point in continuing */
+    L7_LOG_ERROR(0); /* no point in continuing */
   }
   memset((void *) cpdmRAMCfgDataToStore, 0, sizeof(cpdmRAMCfgDataToStore_t));
 
@@ -749,7 +749,7 @@ captivePortalInitPhase1Func(L7_CNFGR_CMD_DATA_t * pCmd,
     if (L7_NULLPTR == cpdmCfgDataToStore)
     {
       /* fatal error, thump the switch */
-      LOG_ERROR(0);  
+      L7_LOG_ERROR(0);  
     }
   }
   memset(cpdmCfgDataToStore, 0, sizeof(cpdmCfgData_t));
@@ -757,14 +757,14 @@ captivePortalInitPhase1Func(L7_CNFGR_CMD_DATA_t * pCmd,
   ptrCpGlobalData = (cpdmGlobal_t *)osapiMalloc(L7_FLEX_CAPTIVE_PORTAL_COMPONENT_ID, sizeof(cpdmGlobal_t));
   if (ptrCpGlobalData == L7_NULLPTR)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR(0);
   }
 
   ptrCpConfigData = (cpdmConfigData_t *)osapiMalloc(L7_FLEX_CAPTIVE_PORTAL_COMPONENT_ID,
                                                     sizeof(cpdmConfigData_t)*FD_CP_CONFIG_MAX);
   if (ptrCpConfigData == L7_NULLPTR)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR(0);
   }
   numCP = 0;
 
@@ -772,28 +772,28 @@ captivePortalInitPhase1Func(L7_CNFGR_CMD_DATA_t * pCmd,
                                             sizeof(cpLocaleKey_t)*FD_CP_CONFIG_MAX*FD_CP_CUSTOM_LOCALE_MAX);
   if (ptrCpWebID == L7_NULLPTR)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR(0);
   }
 
   ptrCpCodeLink = (cpLocaleCodeLink_t *)osapiMalloc(L7_FLEX_CAPTIVE_PORTAL_COMPONENT_ID,
                                                     sizeof(cpLocaleCodeLink_t)*FD_CP_CONFIG_MAX*FD_CP_CUSTOM_LOCALE_MAX);
   if (ptrCpCodeLink == L7_NULLPTR)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR(0);
   }
 
   ptrCpInterfaceAssocData = (ifNumCPPair_t *)osapiMalloc(L7_FLEX_CAPTIVE_PORTAL_COMPONENT_ID,
                                                          sizeof(ifNumCPPair_t)*FD_CP_CONFIG_MAX*CP_INTERFACE_MAX);
   if (ptrCpInterfaceAssocData == L7_NULLPTR)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR(0);
   }
 
   ptrCpUserGroupData = (cpdmUserGroupData_t *)osapiMalloc(L7_FLEX_CAPTIVE_PORTAL_COMPONENT_ID,
                                                           sizeof(cpdmUserGroupData_t)*FD_CP_USER_GROUP_MAX);
   if (ptrCpUserGroupData == L7_NULLPTR)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR(0);
   }
   numGroup = 0;
 
@@ -801,7 +801,7 @@ captivePortalInitPhase1Func(L7_CNFGR_CMD_DATA_t * pCmd,
                                          sizeof(cpdmUser_t)*FD_CP_LOCAL_USERS_MAX);
   if (ptrCpUsers == L7_NULLPTR)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR(0);
   }
   numUser = 0;
 
@@ -809,14 +809,14 @@ captivePortalInitPhase1Func(L7_CNFGR_CMD_DATA_t * pCmd,
                                                                     sizeof(cpdmUserGroupAssocData_t)*FD_CP_USER_GROUP_ASSOC_MAX);
   if (ptrCpUserGroupAssocData == L7_NULLPTR)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR(0);
   }
 
   resendPeer = (L7_enetMacAddr_t *)osapiMalloc(L7_FLEX_CAPTIVE_PORTAL_COMPONENT_ID,
                                                sizeof(L7_enetMacAddr_t)*CP_CLUSTER_MEMBERS);
   if (resendPeer == L7_NULLPTR)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR(0);
   }
   memset(resendPeer, 0, sizeof(L7_enetMacAddr_t)*CP_CLUSTER_MEMBERS);
 
@@ -874,7 +874,7 @@ captivePortalInitPhase2Func(L7_CNFGR_CMD_DATA_t * pCmd,
   if (nimRegisterIntfChange(L7_FLEX_CAPTIVE_PORTAL_COMPONENT_ID, cpimIntfChangeCallback, 
                             cpimIntfStartupCallback, NIM_STARTUP_PRIO_CP) != L7_SUCCESS)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR(0);
     *pReason = L7_CNFGR_ERR_RC_FATAL;
     *pResp = 0;
     return L7_ERROR;
@@ -884,7 +884,7 @@ captivePortalInitPhase2Func(L7_CNFGR_CMD_DATA_t * pCmd,
   if (radiusResponseRegister(L7_FLEX_CAPTIVE_PORTAL_COMPONENT_ID,
 			     cpcmRadiusResponseCallback) != L7_SUCCESS)
   {
-	LOG_ERROR (0);
+	L7_LOG_ERROR(0);
     *pReason = L7_CNFGR_ERR_RC_FATAL;
     *pResp = 0;
     return L7_ERROR;
@@ -895,7 +895,7 @@ captivePortalInitPhase2Func(L7_CNFGR_CMD_DATA_t * pCmd,
     /* Register for Cluster event callback */
     if (clusterMemberNotifyRegister(cpClusterMemberEventCallback) != L7_SUCCESS)
     {
-	   LOG_ERROR (0);
+	   L7_LOG_ERROR(0);
       *pReason = L7_CNFGR_ERR_RC_FATAL;
       *pResp = 0;
       return L7_ERROR;
@@ -909,7 +909,7 @@ captivePortalInitPhase2Func(L7_CNFGR_CMD_DATA_t * pCmd,
     if (clusterMsgRegister(CP_CLUSTER_CP_CLIENT_NOTIFICATION_MSG, CLUSTER_MSG_DELIVERY_RELIABLE,
                            cpClusterMsgCallback) != L7_SUCCESS)
     {
-	  LOG_ERROR (0);
+	  L7_LOG_ERROR(0);
       *pReason = L7_CNFGR_ERR_RC_FATAL;
       *pResp = 0;
       return L7_ERROR;
@@ -918,7 +918,7 @@ captivePortalInitPhase2Func(L7_CNFGR_CMD_DATA_t * pCmd,
     if (clusterMsgRegister(CP_CLUSTER_CP_CLIENT_AUTH_REQUEST_MSG, CLUSTER_MSG_DELIVERY_RELIABLE, 
                            cpClusterMsgCallback /*cpClusterClientAuthRequestMsgCallback*/) != L7_SUCCESS)
     {
-      LOG_ERROR (0);
+      L7_LOG_ERROR(0);
       *pReason = L7_CNFGR_ERR_RC_FATAL;
       *pResp = 0;
       return L7_ERROR;
@@ -927,7 +927,7 @@ captivePortalInitPhase2Func(L7_CNFGR_CMD_DATA_t * pCmd,
     if (clusterMsgRegister(CP_CLUSTER_CP_CLIENT_AUTH_REPLY_MSG, CLUSTER_MSG_DELIVERY_RELIABLE,
                            cpClusterMsgCallback /*cpClusterClientAuthReplyMsgCallback*/) != L7_SUCCESS)
     { 
-      LOG_ERROR (0);
+      L7_LOG_ERROR(0);
       *pReason = L7_CNFGR_ERR_RC_FATAL;
       *pResp = 0;
       return L7_ERROR;
@@ -936,7 +936,7 @@ captivePortalInitPhase2Func(L7_CNFGR_CMD_DATA_t * pCmd,
     if (clusterMsgRegister(CP_CLUSTER_CP_CONTROLLER_COMMAND_MSG, CLUSTER_MSG_DELIVERY_RELIABLE,
                            cpClusterMsgCallback) != L7_SUCCESS)
     {
-     LOG_ERROR (0);
+     L7_LOG_ERROR(0);
       *pReason = L7_CNFGR_ERR_RC_FATAL;
       *pResp = 0;
       return L7_ERROR;
@@ -945,7 +945,7 @@ captivePortalInitPhase2Func(L7_CNFGR_CMD_DATA_t * pCmd,
     if (clusterMsgRegister(CP_CLUSTER_CP_CONNECTED_CLIENTS_UPDATE_MSG, CLUSTER_MSG_DELIVERY_RELIABLE,
                            cpClusterMsgCallback) != L7_SUCCESS)
     {
-      LOG_ERROR (0);
+      L7_LOG_ERROR(0);
       *pReason = L7_CNFGR_ERR_RC_FATAL;
       *pResp = 0;
       return L7_ERROR;
@@ -954,7 +954,7 @@ captivePortalInitPhase2Func(L7_CNFGR_CMD_DATA_t * pCmd,
     if (clusterMsgRegister(CP_CLUSTER_CP_INSTANCE_INTERFACE_UPDATE_MSG, CLUSTER_MSG_DELIVERY_RELIABLE,
                            cpClusterMsgCallback) != L7_SUCCESS)
     {
-        LOG_ERROR (0);
+        L7_LOG_ERROR(0);
         *pReason = L7_CNFGR_ERR_RC_FATAL;
         *pResp = 0;
         return L7_ERROR;
@@ -963,7 +963,7 @@ captivePortalInitPhase2Func(L7_CNFGR_CMD_DATA_t * pCmd,
     if (clusterMsgRegister(CP_CLUSTER_CP_STATISTICS_UPDATE_MSG, CLUSTER_MSG_DELIVERY_DATAGRAM,
                            cpClusterMsgCallback) != L7_SUCCESS)
     {
-      LOG_ERROR (0);
+      L7_LOG_ERROR(0);
       *pReason = L7_CNFGR_ERR_RC_FATAL;
       *pResp = 0;
       return L7_ERROR;
@@ -972,7 +972,7 @@ captivePortalInitPhase2Func(L7_CNFGR_CMD_DATA_t * pCmd,
     if (clusterMsgRegister(CP_CLUSTER_CP_CONFIG_SYNC_MSG, CLUSTER_MSG_DELIVERY_RELIABLE,
                            cpClusterMsgCallback) != L7_SUCCESS)
     {
-      LOG_ERROR (0);
+      L7_LOG_ERROR(0);
       *pReason = L7_CNFGR_ERR_RC_FATAL;
       *pResp = 0;
       return L7_ERROR;
@@ -981,7 +981,7 @@ captivePortalInitPhase2Func(L7_CNFGR_CMD_DATA_t * pCmd,
     if (clusterMsgRegister(CP_CLUSTER_CP_RESEND_MSG, CLUSTER_MSG_DELIVERY_RELIABLE,
                            cpClusterMsgCallback) != L7_SUCCESS)
     {
-      LOG_ERROR (0);
+      L7_LOG_ERROR(0);
       *pReason = L7_CNFGR_ERR_RC_FATAL;
       *pResp = 0;
       return L7_ERROR;
@@ -991,7 +991,7 @@ captivePortalInitPhase2Func(L7_CNFGR_CMD_DATA_t * pCmd,
     if (clusterConfigRegister(CLUSTER_CFG_ID(CAPTIVE_PORTAL),
                               cpClusterConfigSendCallback, cpClusterConfigRxCallback) != L7_SUCCESS)
     {
-      LOG_ERROR (0);
+      L7_LOG_ERROR(0);
       *pReason = L7_CNFGR_ERR_RC_FATAL;
       *pResp = 0;
       return L7_ERROR;
@@ -1005,7 +1005,7 @@ captivePortalInitPhase2Func(L7_CNFGR_CMD_DATA_t * pCmd,
     if (ckptMgrCheckpointCallbackRegister(L7_FLEX_CAPTIVE_PORTAL_COMPONENT_ID,
                                           cpCkptManagerCallback) != L7_SUCCESS)
     {
-      LOG_ERROR (0);
+      L7_LOG_ERROR(0);
       *pReason = L7_CNFGR_ERR_RC_FATAL;
       *pResp = 0;
       return L7_ERROR;
@@ -1014,7 +1014,7 @@ captivePortalInitPhase2Func(L7_CNFGR_CMD_DATA_t * pCmd,
     if (ckptBackupMgrCheckpointCallbackRegister(L7_FLEX_CAPTIVE_PORTAL_COMPONENT_ID,
                                                 cpCkptBackupCallback) != L7_SUCCESS)
     {
-      LOG_ERROR (0);
+      L7_LOG_ERROR(0);
       *pReason = L7_CNFGR_ERR_RC_FATAL;
       *pResp = 0;
       return L7_ERROR;

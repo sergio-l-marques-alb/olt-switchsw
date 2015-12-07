@@ -124,7 +124,7 @@ void osapiMonitorInit()
                       L7_DEFAULT_TASK_SLICE) == L7_ERROR)
   {
     SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Error starting osapiMonitorTask\n");
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 
   bspapiWatchdogEnable();

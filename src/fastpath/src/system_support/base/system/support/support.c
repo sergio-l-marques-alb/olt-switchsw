@@ -1039,7 +1039,7 @@ L7_RC_t supportDebugSave(void)
         L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SIM_COMPONENT_ID,
                 "support/debug Save call failed for component %d, %s\n",
                 (L7_int32)supportDebugDescrList[i].componentId, name);
-        LOG_EVENT(supportDebugDescrList[i].componentId);
+        L7_LOG_EVENT(supportDebugDescrList[i].componentId);
       }
     }  /*  notifySave != L7_NULL */
   }  /*  j < L7_LAST_COMPONENT_ID */
@@ -1124,7 +1124,7 @@ void supportDebugClear(void)
         L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SIM_COMPONENT_ID,
                 "Clear routine failed for component %d, %s\n",
                 (L7_int32)supportDebugDescrList[i].componentId, name);
-        LOG_EVENT(supportDebugDescrList[i].componentId);
+        L7_LOG_EVENT(supportDebugDescrList[i].componentId);
       }
     }  /*  clearFunc != L7_NULL */
   }  /*  j < L7_LAST_COMPONENT_ID */

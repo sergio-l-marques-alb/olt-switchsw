@@ -68,7 +68,7 @@ void pmlSemaTake(void)
     pmlSemaphore = osapiSemaMCreate(OSAPI_SEM_Q_FIFO);
     if (pmlSemaphore == L7_NULL)
     {
-      LOG_ERROR(0);
+      L7_LOG_ERROR(0);
     }
   }
 
@@ -410,7 +410,7 @@ L7_RC_t pmlIntfCreate(L7_uint32 intIfNum)
   /* allocate operational data structures for this interface */
   if (pmlMapIntfIsOperational(intIfNum, &pOpr) != L7_TRUE)
   {
-    LOG_ERROR(intIfNum);
+    L7_LOG_ERROR(intIfNum);
   }
 
   pOpr->dynamicCount = 0;
@@ -421,13 +421,13 @@ L7_RC_t pmlIntfCreate(L7_uint32 intIfNum)
                                                          sizeof(avlTreeTables_t));
   if (pOpr->violationTreeHeap == L7_NULL)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
   pOpr->violationDataHeap = (pmlLockInfoData_t *)osapiMalloc(L7_PORT_MACLOCK_COMPONENT_ID, PML_VIOLATION_TREE_SIZE *
                                                            sizeof(pmlLockInfoData_t));
   if (pOpr->violationDataHeap == L7_NULL)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }
 
   avlCreateAvlTree(&pOpr->violationAvlTree, pOpr->violationTreeHeap, pOpr->violationDataHeap,

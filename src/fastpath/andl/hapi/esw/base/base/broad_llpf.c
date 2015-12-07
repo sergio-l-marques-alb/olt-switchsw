@@ -553,7 +553,7 @@ L7_RC_t hapiBroadLlpfPolicyInstall(DAPI_t *dapi_g)
   }
   if (hapiBroadLlpfSemaphore == L7_NULL)
   {
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
   }  
 
   /* ISDP BLOCK POLICY */

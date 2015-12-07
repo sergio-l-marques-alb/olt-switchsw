@@ -312,7 +312,7 @@ static Gid *gid_add_port(Gid *existing_ports, Gid *new_port)
         else
         {
             /* syserr_panic();        */
-            LOG_ERROR(new_port_no);
+            L7_LOG_ERROR(new_port_no);
         }
 
     }

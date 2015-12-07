@@ -356,11 +356,11 @@ L7_RC_t osapiRestartUserTimerMain (osapiTimerDescr_t *osapitimer)
             /* PTin modified: Clock */
             #if 0
 			if (gettimeofday(&curTime, NULL) != 0) {
-			   LOG_EVENT(errno);
+			   L7_LOG_EVENT(errno);
 			}
             #else
             if (clock_gettime(CLOCK_MONOTONIC, &monoTime) != 0) {
-			   LOG_EVENT(errno);
+			   L7_LOG_EVENT(errno);
 			}
             curTime.tv_sec = monoTime.tv_sec;
             curTime.tv_usec = monoTime.tv_nsec / 1000;

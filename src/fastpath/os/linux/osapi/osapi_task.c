@@ -315,7 +315,7 @@ static void osapi_task_init(void)
   if (rc != 0)
   {
     osapi_printf("osapi_task_init(): Fatal error %d creating stack monitor thread\n", rc);
-    LOG_ERROR(rc);
+    L7_LOG_ERROR(rc);
   }  
 }
 
@@ -929,7 +929,7 @@ L7_RC_t osapiWaitForTaskInit( L7_uint32 syncHandle, L7_int32 timeout )
 
   if (syncSema == L7_NULL)
   {
-    LOG_ERROR((L7_ulong32)syncSema);
+    L7_LOG_ERROR((L7_ulong32)syncSema);
   }
 
   syncSemaArray[syncHandle] = syncSema;
@@ -1545,7 +1545,7 @@ L7_RC_t  osapiTaskNameGet( L7_int32 task_id, L7_char8 *task_name)
                        (void *)&task_list_lock);
   if (pthread_mutex_lock(&task_list_lock) != 0)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR(0);
   }
 
   for (curTask = task_list_head; curTask != NULL;
@@ -1625,7 +1625,7 @@ L7_RC_t osapiTaskIdVerify(L7_int32 task_id)
                        (void *)&task_list_lock);
   if (pthread_mutex_lock(&task_list_lock) != 0)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR(0);
   }
 
   for (curTask = task_list_head; curTask != NULL;
@@ -1765,7 +1765,7 @@ void osapiDebugStackTrace (L7_uint32 debug_task_id, FILE *filePtr)
       (void *)&task_list_lock);
   if (pthread_mutex_lock(&task_list_lock) != 0)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR(0);
   }
 
 #ifdef L7_LINUX_26

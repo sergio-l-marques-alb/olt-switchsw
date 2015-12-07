@@ -462,7 +462,7 @@ void bootpConfigSemCreate (void)
    bootpConfigSem = osapiSemaBCreate (OSAPI_SEM_Q_FIFO, OSAPI_SEM_EMPTY);
    if (bootpConfigSem == L7_NULL)
    {
-       LOG_ERROR (0);
+       L7_LOG_ERROR(0);
    }
 }
 
@@ -480,7 +480,7 @@ void bootpConfigSemGet (void)
    rc = osapiSemaTake (bootpConfigSem, L7_WAIT_FOREVER);
    if (rc != L7_SUCCESS)
    {
-       LOG_ERROR (rc);
+       L7_LOG_ERROR(rc);
    }
 }
 
@@ -498,7 +498,7 @@ void bootpConfigSemFree (void)
     rc = osapiSemaGive (bootpConfigSem);
     if (rc != L7_SUCCESS)
     {
-        LOG_ERROR (rc);
+        L7_LOG_ERROR(rc);
     }
 }
 
@@ -516,7 +516,7 @@ void bootpNotificationSemCreate (void)
   bootpNotificationSem = osapiSemaBCreate (OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
   if (bootpNotificationSem == L7_NULL)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR(0);
   }
 }
 
@@ -534,7 +534,7 @@ void bootpNotificationSemGet (void)
   rc = osapiSemaTake (bootpNotificationSem, L7_WAIT_FOREVER);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 }
 
@@ -552,7 +552,7 @@ void bootpNotificationSemFree (void)
   rc = osapiSemaGive (bootpNotificationSem);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 }
 

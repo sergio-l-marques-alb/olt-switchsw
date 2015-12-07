@@ -90,9 +90,9 @@ static L7_RC_t cpimIntfCapabilitySetHelper(cpdmIntfCapabilityStatusData_t *pStat
 
 /* Syntactic sugar */
 #define SEMA_TAKE(access)   \
-  if ( CPDM_##access##_LOCK_TAKE(cpdmSema, L7_WAIT_FOREVER) != L7_SUCCESS)  LOG_ERROR(0);
+  if ( CPDM_##access##_LOCK_TAKE(cpdmSema, L7_WAIT_FOREVER) != L7_SUCCESS)  L7_LOG_ERROR(0);
 #define SEMA_GIVE(access)   \
-  if ( CPDM_##access##_LOCK_GIVE(cpdmSema) != L7_SUCCESS)  LOG_ERROR(0);
+  if ( CPDM_##access##_LOCK_GIVE(cpdmSema) != L7_SUCCESS)  L7_LOG_ERROR(0);
 
 static avlTree_t         capabStatusTree;
 static L7_BOOL           capabStatusTreeReady = L7_FALSE;
@@ -1150,7 +1150,7 @@ L7_RC_t cpIntfCapabStatusInit(L7_uint32 maxCapabStatus)
 
   if (L7_SUCCESS != intfWOQInit(4 * CP_INTERFACE_MAX *
                                 CP_INTF_NUM_WORK_ITEMS))
-    LOG_ERROR(0);
+    L7_LOG_ERROR(0);
 
   do
   {
@@ -1181,7 +1181,7 @@ L7_RC_t cpIntfCapabStatusInit(L7_uint32 maxCapabStatus)
     if ( (L7_NULLPTR == capabStatusDataHeap) ||
          (L7_NULLPTR == capabStatusTreeHeap))
     {
-      LOG_ERROR(0); /* no point in continuing */
+      L7_LOG_ERROR(0); /* no point in continuing */
     }
   }
   return rc;

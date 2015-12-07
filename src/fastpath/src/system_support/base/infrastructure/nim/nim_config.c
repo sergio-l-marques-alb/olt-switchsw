@@ -57,7 +57,7 @@ L7_RC_t nimConfigPhase2Init(void)
 
   if (nimCtlBlk_g->nimConfigData == L7_NULL)
   {
-    NIM_LOG_ERROR("NIM:Couldn't allocate memory for the nimConfigData\n");
+    NIM_L7_LOG_ERROR("NIM:Couldn't allocate memory for the nimConfigData\n");
     return(L7_FAILURE);
   }
   else
@@ -107,11 +107,11 @@ void nimConfigInit(void)
 
     if (rc != L7_SUCCESS)
     {
-      NIM_LOG_ERROR("NIM: Failed to read the config data\n");
+      NIM_L7_LOG_ERROR("NIM: Failed to read the config data\n");
     }
     else if ((rc = nimConfigFileOffsetsSet()) != L7_SUCCESS)
     {
-      NIM_LOG_ERROR("NIM: Failed to set the offsets in the config file\n");
+      NIM_L7_LOG_ERROR("NIM: Failed to set the offsets in the config file\n");
     }
     else
     {
@@ -124,7 +124,7 @@ void nimConfigInit(void)
   }
   else
   {
-    NIM_LOG_ERROR("NIM: Memory not created for config file\n");
+    NIM_L7_LOG_ERROR("NIM: Memory not created for config file\n");
     /* need an error handler here */
   }
 
@@ -331,7 +331,7 @@ L7_RC_t nimConfigSet(nimIntf_t *port, L7_uint32 cfgVersion)
 
   if ((nimCtlBlk_g == L7_NULLPTR) || (nimCtlBlk_g->nimConfigData == L7_NULLPTR))
   {
-    NIM_LOG_ERROR("NIM: Control block or config data not valid\n");
+    NIM_L7_LOG_ERROR("NIM: Control block or config data not valid\n");
     rc = (L7_ERROR);
   }
   else
@@ -578,7 +578,7 @@ L7_RC_t nimConfigFileOffsetsSet()
   {
     if (nimCtlBlk_g->nimConfigData == L7_NULL)
     {
-      NIM_LOG_ERROR("NIM: Config file not allocated during init\n");
+      NIM_L7_LOG_ERROR("NIM: Config file not allocated during init\n");
       rc = L7_FAILURE;
       break;
     }
@@ -627,13 +627,13 @@ L7_RC_t nimConfigFileHdrCreate()
     if (nimCtlBlk_g == L7_NULLPTR)
     {
       rc = L7_FAILURE;
-      NIM_LOG_ERROR("NIM: nimCtlBlk_g not allocated\n");
+      NIM_L7_LOG_ERROR("NIM: nimCtlBlk_g not allocated\n");
       break;
     }
     else if (nimCtlBlk_g->nimConfigData == L7_NULLPTR)
     {
       rc = L7_FAILURE;
-      NIM_LOG_ERROR("NIM: Config buffer not allocated\n");
+      NIM_L7_LOG_ERROR("NIM: Config buffer not allocated\n");
       break;
     }
 

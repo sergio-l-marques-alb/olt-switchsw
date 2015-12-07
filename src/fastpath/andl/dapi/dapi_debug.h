@@ -434,7 +434,7 @@ void dapiDebugCallbackDecode(DAPI_CMD_t cmd, DAPI_EVENT_t event, void *cbInfo, D
         sysapiPrintf("FAILURE (%s: %d) Code: 0x%08LX\n", __FILE__, __LINE__, (L7_ulong32)(code)); \
       }
 #else
-#define DAPI_ERROR_MSG(dapi_g, code) LOG_ERROR((L7_ulong32)(code))
+#define DAPI_ERROR_MSG(dapi_g, code) L7_LOG_ERROR((L7_ulong32)(code))
 #endif
 
 /****************************************************************************************

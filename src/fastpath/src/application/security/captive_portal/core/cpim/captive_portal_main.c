@@ -52,9 +52,9 @@ extern avlTree_t      peerSwTree;
 
 /* Syntactic sugar */
 #define SEMA_TAKE(access)   \
-  if ( CPDM_##access##_LOCK_TAKE(cpdmSema, L7_WAIT_FOREVER) != L7_SUCCESS)  LOG_ERROR(0);
+  if ( CPDM_##access##_LOCK_TAKE(cpdmSema, L7_WAIT_FOREVER) != L7_SUCCESS)  L7_LOG_ERROR(0);
 #define SEMA_GIVE(access)   \
-  if ( CPDM_##access##_LOCK_GIVE(cpdmSema) != L7_SUCCESS)  LOG_ERROR(0);
+  if ( CPDM_##access##_LOCK_GIVE(cpdmSema) != L7_SUCCESS)  L7_LOG_ERROR(0);
 
 #define CAPTIVE_PORTAL_QUEUE_WAIT_INTERVAL   10000 /* in milliseconds */
 
@@ -998,7 +998,7 @@ captive_portal_main(int argc, char *argv[])
   }
 
   CP_DLOG(CPD_LEVEL_LOG, "%s: task 0x%08x exiting (rc=%d)\n", __FUNCTION__, my_pid, rc);
-  LOG_ERROR(0xDEADBEEF); /* We should NEVER get here */
+  L7_LOG_ERROR(0xDEADBEEF); /* We should NEVER get here */
   return rc;
 }
 
@@ -1059,7 +1059,7 @@ captivePortalTaskStart(void)
     if (L7_ERROR == cpTaskId)
     {
       CP_DLOG(CPD_LEVEL_LOG, "%s: osapiTaskCreate failed.\n", __FUNCTION__);
-      LOG_ERROR(0xDEAFBABE);   /* No real point in continuing. */
+      L7_LOG_ERROR(0xDEAFBABE);   /* No real point in continuing. */
       break;
     }
     if (osapiWaitForTaskInit(L7_CAPTIVE_PORTAL_TASK_SYNC, L7_WAIT_FOREVER))

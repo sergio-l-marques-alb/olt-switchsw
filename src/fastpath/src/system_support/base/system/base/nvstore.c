@@ -238,7 +238,7 @@ L7_RC_t nvStoreSave(L7_SAVE_CONFIG_TYPE_t generateConfig)
                       "Failed to save configuration for component with component ID %u.",
                       nvStoreNotifyList[i].registrar_ID);
             }
-            LOG_EVENT(nvStoreNotifyList[i].registrar_ID);
+            L7_LOG_EVENT(nvStoreNotifyList[i].registrar_ID);
           }
         }
       }
@@ -629,7 +629,7 @@ L7_RC_t nvStoreConfigDump(void)
           L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SIM_COMPONENT_ID,
                   "bad rc on config dump call to registrar_ID %d, %s\n",
                   (L7_int32)nvStoreNotifyList[i].registrar_ID, name);
-          LOG_EVENT(nvStoreNotifyList[i].registrar_ID);
+          L7_LOG_EVENT(nvStoreNotifyList[i].registrar_ID);
         }
       }
     }
@@ -673,7 +673,7 @@ L7_RC_t nvStoreDebugDump(void)
           L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SIM_COMPONENT_ID,
                   "bad rc on debug dump call to registrar_ID %d\n",
                   (L7_int32)nvStoreNotifyList[i].registrar_ID);
-          LOG_EVENT(nvStoreNotifyList[i].registrar_ID);
+          L7_LOG_EVENT(nvStoreNotifyList[i].registrar_ID);
         }
       }
     }
@@ -890,7 +890,7 @@ L7_RC_t nvStoreComponentSave(L7_COMPONENT_IDS_t componentId)
         L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SIM_COMPONENT_ID,
                 "bad rc on Save call to registrar_ID %d\n",
                 (L7_int32)nvStoreNotifyList[componentId].registrar_ID);
-        LOG_EVENT(nvStoreNotifyList[componentId].registrar_ID);
+        L7_LOG_EVENT(nvStoreNotifyList[componentId].registrar_ID);
       }
     }
   }

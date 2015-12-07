@@ -135,7 +135,7 @@ static heapBuffPool_t *mgmdV4HeapPoolListGet(void)
 
   if (i != MGMD_IPV4_POOL_LIST_SIZE)
   {
-    LOG_ERROR(i);
+    L7_LOG_ERROR(i);
   }
   return mgmdV4HeapPoolList;
 }
@@ -219,7 +219,7 @@ static heapBuffPool_t *mgmdProxyV4HeapPoolListGet(void)
 
   if (i != MGMD_PROXY_IPV4_POOL_LIST_SIZE)
   {
-    LOG_ERROR(i);
+    L7_LOG_ERROR(i);
   }
   return mgmdProxyV4HeapPoolList;
 }

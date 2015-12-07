@@ -336,7 +336,7 @@ static int nimConfigIdCompare(const void *a, const void *b, size_t len)
       /*
        * A node with an invalid type is a critical error.
        */
-      NIM_LOG_ERROR("Bad config id type");
+      NIM_L7_LOG_ERROR("Bad config id type");
       return 0;
   }
 }
@@ -364,7 +364,7 @@ L7_RC_t   nimPhaseOneInit()
 
     if (nimCtlBlk_g == L7_NULL)
     {
-      NIM_LOG_ERROR("NIM Control block not created\n");
+      NIM_L7_LOG_ERROR("NIM Control block not created\n");
       rc = L7_FAILURE;
       break;
     }
@@ -377,7 +377,7 @@ L7_RC_t   nimPhaseOneInit()
 
     if (nimStartTask() != L7_SUCCESS)
     {
-      NIM_LOG_ERROR("NIM: Tasks and queues not created\n");
+      NIM_L7_LOG_ERROR("NIM: Tasks and queues not created\n");
       rc = L7_FAILURE;
       break;
     }
@@ -393,7 +393,7 @@ L7_RC_t   nimPhaseOneInit()
     /* Not to be freed during operation */
     if (nimCtlBlk_g->nimNotifyList == L7_NULL)
     {
-      NIM_LOG_ERROR("NIM registrant notification list not created\n");
+      NIM_L7_LOG_ERROR("NIM registrant notification list not created\n");
       rc = L7_FAILURE;
       break;
     }
@@ -407,7 +407,7 @@ L7_RC_t   nimPhaseOneInit()
        be called at any time by multiple tasks */
     if (osapiRWLockCreate(&nimCtlBlk_g->rwLock,  OSAPI_RWLOCK_Q_PRIORITY) != L7_SUCCESS)
     {
-      NIM_LOG_ERROR("NIM syncronization read write lock not created\n");
+      NIM_L7_LOG_ERROR("NIM syncronization read write lock not created\n");
       rc = L7_FAILURE;
       break;
     }
@@ -422,7 +422,7 @@ L7_RC_t   nimPhaseOneInit()
                                  sizeof(nimUspIntIfNumTreeData_t), 0x10,
                                  nimUspCompare, sizeof(nimUSP_t)) != L7_SUCCESS)
     {
-      NIM_LOG_ERROR("NIM: Unable to allocate resources\n");
+      NIM_L7_LOG_ERROR("NIM: Unable to allocate resources\n");
       break; /* goto while */
     }
 
@@ -434,7 +434,7 @@ L7_RC_t   nimPhaseOneInit()
                                  nimConfigIdCompare,
                                  sizeof(nimConfigID_t)) != L7_SUCCESS)
     {
-      NIM_LOG_ERROR("NIM: Unable to allocate resources\n");
+      NIM_L7_LOG_ERROR("NIM: Unable to allocate resources\n");
       break; /* goto while */
     }
 
@@ -568,7 +568,7 @@ L7_RC_t   nimPhaseTwoInit()
 
     if (nimCtlBlk_g->nimFileName == L7_NULL)
     {
-      NIM_LOG_ERROR("NIM:Couldn't create memory for the nimFileName\n");
+      NIM_L7_LOG_ERROR("NIM:Couldn't create memory for the nimFileName\n");
       rc = L7_FAILURE;
       break;
     }
@@ -729,7 +729,7 @@ L7_RC_t nimIntfDataAlloc()
 
     if (nimCtlBlk_g->nimPorts == L7_NULLPTR)
     {
-      NIM_LOG_ERROR("NIM: unable to alloc memory for nimPorts\n");
+      NIM_L7_LOG_ERROR("NIM: unable to alloc memory for nimPorts\n");
       rc = L7_FAILURE;
       break;
     }
@@ -747,7 +747,7 @@ L7_RC_t nimIntfDataAlloc()
 
     if (nimCtlBlk_g->nimNumberOfPortsPerUnit == L7_NULL)
     {
-      NIM_LOG_ERROR("NIM:Couldn't allocate memory for nimNumberOfPortPerUnit\n");
+      NIM_L7_LOG_ERROR("NIM:Couldn't allocate memory for nimNumberOfPortPerUnit\n");
       rc = L7_FAILURE;
       break;
     }
@@ -761,7 +761,7 @@ L7_RC_t nimIntfDataAlloc()
 
     if (nimCtlBlk_g->nimVlanSlotsInfo == L7_NULLPTR)
     {
-      NIM_LOG_ERROR("NIM: unable to alloc nimVlanSlotsInfo\n");
+      NIM_L7_LOG_ERROR("NIM: unable to alloc nimVlanSlotsInfo\n");
       rc = L7_FAILURE;
       break;
     }
@@ -775,7 +775,7 @@ L7_RC_t nimIntfDataAlloc()
 
     if (nimCtlBlk_g->numberOfInterfacesByType == L7_NULLPTR)
     {
-      NIM_LOG_ERROR("NIM: unable to alloc numberOfInterfacesByType\n");
+      NIM_L7_LOG_ERROR("NIM: unable to alloc numberOfInterfacesByType\n");
       rc = L7_FAILURE;
       break;
     }
@@ -787,7 +787,7 @@ L7_RC_t nimIntfDataAlloc()
     nimCtlBlk_g->intfTypeData = osapiMalloc (L7_NIM_COMPONENT_ID, sizeof(nimIntfTypeData_t) * L7_MAX_INTF_TYPE_VALUE);
     if (nimCtlBlk_g->intfTypeData == L7_NULLPTR)
     {
-      LOG_ERROR (0);
+      L7_LOG_ERROR(0);
     }
 
   }while (0);
@@ -908,7 +908,7 @@ L7_RC_t nimStartTask()
 
     if (nimCtlBlk_g->nimMsgQueue == L7_NULLPTR)
     {
-      NIM_LOG_ERROR("NIM queue not created\n");
+      NIM_L7_LOG_ERROR("NIM queue not created\n");
       rc = L7_FAILURE;
       break;
     }
@@ -920,14 +920,14 @@ L7_RC_t nimStartTask()
 
     if (nimCtlBlk_g->taskId == L7_ERROR)
     {
-      NIM_LOG_ERROR("NIM task not created.\n");
+      NIM_L7_LOG_ERROR("NIM task not created.\n");
       rc = L7_FAILURE;
       break;
     }
 
     if (osapiWaitForTaskInit (L7_NIM_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS)
     {
-      NIM_LOG_ERROR("NIM: Could not sync the TASK\n");
+      NIM_L7_LOG_ERROR("NIM: Could not sync the TASK\n");
       rc = L7_FAILURE;
       break;
     }

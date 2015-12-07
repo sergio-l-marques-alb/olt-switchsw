@@ -39,7 +39,7 @@ extern L7_int32 hpcBroadMasterCpuModPortGet(L7_int32 *modid, L7_int32 *cpuport);
 #define MASK_NONE    (~0)
 #define MASK_ALL     (0)
 
-#define CHECK_UNIT(u)    {if (u >= SOC_MAX_NUM_DEVICES) LOG_ERROR(u);}
+#define CHECK_UNIT(u)    {if (u >= SOC_MAX_NUM_DEVICES) L7_LOG_ERROR(u);}
 
 typedef enum custom_field_qualify_e 
 {
@@ -744,7 +744,7 @@ group_table_t;
 static group_table_t *group_table[SOC_MAX_NUM_DEVICES][BROAD_POLICY_STAGE_COUNT];
 static int            group_table_size[SOC_MAX_NUM_DEVICES][BROAD_POLICY_STAGE_COUNT];
 
-#define CHECK_GROUP(u,s,g)  {if ((u>=SOC_MAX_NUM_DEVICES)||(s>=BROAD_POLICY_STAGE_COUNT)||(g>=group_table_size[u][s])) LOG_ERROR(g);}
+#define CHECK_GROUP(u,s,g)  {if ((u>=SOC_MAX_NUM_DEVICES)||(s>=BROAD_POLICY_STAGE_COUNT)||(g>=group_table_size[u][s])) L7_LOG_ERROR(g);}
 
 /* Mapping from BROAD_ENTRY_t to bcm_field_entry_t */
 #define BROAD_ENTRY_TO_BCM_ENTRY(entry)   ((bcm_field_entry_t)entry)
@@ -1025,7 +1025,7 @@ static void _policy_group_alloc_type(BROAD_POLICY_TYPE_t type, int *block, int *
         *dir   = ALLOC_HIGH_TO_LOW;
         break;
     default:
-        LOG_ERROR(type);
+        L7_LOG_ERROR(type);
         break;
     }
 }
@@ -2395,7 +2395,7 @@ static int _policy_group_table_init(int unit, BROAD_POLICY_STAGE_t policyStage, 
           group_table[unit][policyStage]    = (group_table_t *)osapiMalloc(L7_DRIVER_COMPONENT_ID, group_table_bytes);
           if (NULL == group_table[unit][policyStage])
           {
-              LOG_ERROR(0);
+              L7_LOG_ERROR(0);
               return BCM_E_MEMORY;
           }
         }

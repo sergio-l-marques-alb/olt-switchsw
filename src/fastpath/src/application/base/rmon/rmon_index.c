@@ -68,7 +68,7 @@ L7_uint32 rmonMapCreate (L7_uint32 max_size)
 
   if (numMapTabs == RMON_MAX_MAP_TAB)
   {
-    LOG_ERROR (numMapTabs);
+    L7_LOG_ERROR(numMapTabs);
   };
 
   /* Allocate memory for table storage.
@@ -76,13 +76,13 @@ L7_uint32 rmonMapCreate (L7_uint32 max_size)
   rmonIndexMap[numMapTabs].array_index = osapiMalloc (L7_RMON_COMPONENT_ID, max_size * sizeof (L7_uint32));
   if (rmonIndexMap[numMapTabs].array_index == 0)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR(0);
   }
 
   rmonIndexMap[numMapTabs].snmp_index = osapiMalloc (L7_RMON_COMPONENT_ID, max_size * sizeof (L7_uint32));
   if (rmonIndexMap[numMapTabs].snmp_index == 0)
   {
-    LOG_ERROR (0);
+    L7_LOG_ERROR(0);
   }
 
   for (i = 0; i < max_size; i++)
@@ -132,7 +132,7 @@ L7_RC_t rmonMapInsert (L7_uint32 handle, L7_uint32 snmp_index)
 
   if ((handle < 0) || (handle >= RMON_MAX_MAP_TAB) )
   {
-    LOG_ERROR (handle);
+    L7_LOG_ERROR(handle);
   }
 
   if(snmp_index < 1 || snmp_index >65535)
@@ -141,7 +141,7 @@ L7_RC_t rmonMapInsert (L7_uint32 handle, L7_uint32 snmp_index)
   rc = osapiSemaTake (index_sem, L7_WAIT_FOREVER);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 
   map = &rmonIndexMap[handle];
@@ -164,7 +164,7 @@ L7_RC_t rmonMapInsert (L7_uint32 handle, L7_uint32 snmp_index)
     */
     if (map->snmp_index[new_pos] == snmp_index)
     {
-      LOG_ERROR (snmp_index);
+      L7_LOG_ERROR(snmp_index);
     }
 
     if (map->snmp_index[new_pos] > snmp_index)
@@ -218,13 +218,13 @@ L7_RC_t rmonMapRemove (L7_uint32 handle, L7_uint32 snmp_index)
 
   if ((handle < 0) || (handle >= RMON_MAX_MAP_TAB) )
   {
-    LOG_ERROR (handle);
+    L7_LOG_ERROR(handle);
   }
 
   rc = osapiSemaTake (index_sem, L7_WAIT_FOREVER);
   if (rc != L7_SUCCESS)
   {
-    LOG_ERROR (rc);
+    L7_LOG_ERROR(rc);
   }
 
   map = &rmonIndexMap[handle];
@@ -301,7 +301,7 @@ L7_RC_t rmonMapMatch (L7_uint32 handle, L7_uint32 snmp_index,
 
   if ((handle < 0) || (handle >= RMON_MAX_MAP_TAB) )
   {
-    LOG_ERROR (handle);
+    L7_LOG_ERROR(handle);
   }
 
 
@@ -345,7 +345,7 @@ L7_RC_t rmonMapLowestGet (L7_uint32 handle, L7_uint32 * snmp_index)
 
   if ((handle < 0) || (handle >= RMON_MAX_MAP_TAB) )
   {
-    LOG_ERROR (handle);
+    L7_LOG_ERROR(handle);
   }
 
   map = &rmonIndexMap[handle];
@@ -382,7 +382,7 @@ L7_RC_t rmonMapHighestGet (L7_uint32 handle, L7_uint32 * snmp_index)
 
   if ((handle < 0) || (handle >= RMON_MAX_MAP_TAB) )
   {
-    LOG_ERROR (handle);
+    L7_LOG_ERROR(handle);
   }
 
   map = &rmonIndexMap[handle];
@@ -423,7 +423,7 @@ L7_RC_t rmonMapNextGet (L7_uint32 handle, L7_uint32 snmp_index,
 
   if ((handle < 0) || (handle >= RMON_MAX_MAP_TAB) )
   {
-    LOG_ERROR (handle);
+    L7_LOG_ERROR(handle);
   }
 
   map = &rmonIndexMap[handle];
@@ -469,7 +469,7 @@ L7_RC_t rmonMapFirstAvailableIndexGet (L7_uint32 handle, L7_uint32 * first_avail
 
     if ((handle < 0) || (handle >= RMON_MAX_MAP_TAB) )
     {
-        LOG_ERROR (handle);
+        L7_LOG_ERROR(handle);
     }
 
     map = &rmonIndexMap[handle];
@@ -477,7 +477,7 @@ L7_RC_t rmonMapFirstAvailableIndexGet (L7_uint32 handle, L7_uint32 * first_avail
     rc = osapiSemaTake (index_sem, L7_WAIT_FOREVER);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERROR (rc);
+      L7_LOG_ERROR(rc);
     }
 
     /* If table is full then return an error
@@ -558,7 +558,7 @@ L7_RC_t rmonBinarySearch (L7_uint32 handle, L7_uint32 key, L7_int32 *pos)
 
     if ((handle < 0) || (handle >= RMON_MAX_MAP_TAB) )
     {
-        LOG_ERROR (handle);
+        L7_LOG_ERROR(handle);
     }
 
     map = &rmonIndexMap[handle];

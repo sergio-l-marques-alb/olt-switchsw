@@ -586,7 +586,7 @@ int usl_db_l3_egress_create(USL_DB_TYPE_t dbType, bcm_if_t egrIntf,
   if (pData == &data)
   {
     rv = BCM_E_FAIL;
-    USL_LOG_ERROR("USL: Error adding egress object entry \n");
+    USL_L7_LOG_ERROR("USL: Error adding egress object entry \n");
   }
   else if (pData != L7_NULLPTR)
   {
@@ -865,7 +865,7 @@ L7_RC_t usl_l3_egr_nhop_db_init()
       if (usl_db_sync_func_table_register(USL_L3_EGR_NHOP_DB_ID,
                                           &l3EgrNhopDbFuncs) != L7_SUCCESS)
       {
-        LOG_ERROR(0);
+        L7_LOG_ERROR(0);
       }
 
 
@@ -1430,7 +1430,7 @@ int usl_db_l3_egress_multipath_create(USL_DB_TYPE_t dbType, bcm_if_t mpintf,
   memset(&data, 0, sizeof(data));
 
   if (intf_count > L7_RT_MAX_EQUAL_COST_ROUTES)
-    USL_LOG_ERROR("USL: Invalid number of ECMP next hops\n");
+    USL_L7_LOG_ERROR("USL: Invalid number of ECMP next hops\n");
 
   data.avlKey = mpintf;
 
@@ -1445,7 +1445,7 @@ int usl_db_l3_egress_multipath_create(USL_DB_TYPE_t dbType, bcm_if_t mpintf,
   if (pData == &data)
   {
     rv = BCM_E_FAIL;
-    USL_LOG_ERROR("USL: Error adding multipath object entry \n");
+    USL_L7_LOG_ERROR("USL: Error adding multipath object entry \n");
   }
   else if (pData != L7_NULLPTR)
   {
@@ -1685,7 +1685,7 @@ L7_RC_t usl_l3_mpath_egr_nhop_db_init()
       if (usl_db_sync_func_table_register(USL_L3_MPATH_EGR_NHOP_DB_ID,
                                           &l3MpathEgrNhopDbFuncs) != L7_SUCCESS)
       {
-        LOG_ERROR(0);
+        L7_LOG_ERROR(0);
       }
 
 
@@ -2699,7 +2699,7 @@ L7_RC_t usl_l3_intf_db_init()
       if (usl_db_sync_func_table_register(USL_L3_INTF_DB_ID,
                                           &l3IntfDbFuncs) != L7_SUCCESS)
       {
-        LOG_ERROR(0);
+        L7_LOG_ERROR(0);
       }
 
 
@@ -3507,7 +3507,7 @@ L7_RC_t usl_l3_tunnel_terminator_db_init()
       if (usl_db_sync_func_table_register(USL_L3_TUNNEL_TERMINATOR_DB_ID,
                                           &tunnelTerminatorDbFuncs) != L7_SUCCESS)
       {
-        LOG_ERROR(0);
+        L7_LOG_ERROR(0);
       }
 
       /* Point the Db handle to Operational table */
@@ -4065,7 +4065,7 @@ int usl_db_l3_tunnel_initiator_set(USL_DB_TYPE_t dbType,
   if (pData == &data)
   {
     rv = BCM_E_FAIL;
-    USL_LOG_ERROR("USL: Error adding initiator\n");
+    USL_L7_LOG_ERROR("USL: Error adding initiator\n");
   }
   else if (pData != L7_NULLPTR)
   {
@@ -4331,7 +4331,7 @@ L7_RC_t usl_l3_tunnel_initiator_db_init()
       if (usl_db_sync_func_table_register(USL_L3_TUNNEL_INITIATOR_DB_ID,
                                           &tunnelInitiatorDbFuncs) != L7_SUCCESS)
       {
-        LOG_ERROR(0);
+        L7_LOG_ERROR(0);
       }
 
       /* Point the Db handle to Operational table */
@@ -4885,7 +4885,7 @@ int usl_db_l3_route_add(USL_DB_TYPE_t dbType, usl_bcm_l3_route_t *info)
     if (pData != L7_NULLPTR)
     {
       rv = BCM_E_FAIL;
-      USL_LOG_ERROR("USL: Error adding Route entry \n");
+      USL_L7_LOG_ERROR("USL: Error adding Route entry \n");
     }
   }
   else
@@ -5139,7 +5139,7 @@ L7_RC_t usl_l3_lpm_db_init()
       if (usl_db_sync_func_table_register(USL_L3_LPM_DB_ID,
                                           &lpmDbFuncs) != L7_SUCCESS)
       {
-        LOG_ERROR(0);
+        L7_LOG_ERROR(0);
       }
 
       /* Point the Db handle to Operational table */
@@ -5675,7 +5675,7 @@ int usl_db_l3_host_add(USL_DB_TYPE_t dbType, usl_bcm_l3_host_t *info)
   if (pData == &data)
   {
     rv = BCM_E_FAIL;
-    USL_LOG_ERROR("USL: Error adding ARP/NDP entry \n");
+    USL_L7_LOG_ERROR("USL: Error adding ARP/NDP entry \n");
   }
   else if (pData != L7_NULLPTR)
   {
@@ -5931,7 +5931,7 @@ L7_RC_t usl_l3_host_db_init()
       if (usl_db_sync_func_table_register(USL_L3_HOST_DB_ID,
                                           &hostDbFuncs) != L7_SUCCESS)
       {
-        LOG_ERROR(0);
+        L7_LOG_ERROR(0);
       }
 
       /* Point the Db handle to Operational table */
@@ -7066,7 +7066,7 @@ int usl_l3_intf_hw_id_allocate(usl_bcm_l3_intf_t *intfInfo, bcm_if_t *index)
 
         if ((*index > uslL3IntfHwIdMax) || (*index < uslL3IntfHwIdMin))
         {
-          LOG_ERROR(*index);
+          L7_LOG_ERROR(*index);
         }
 
         /* Mark this index as used in HwIdList */
@@ -7277,7 +7277,7 @@ L7_RC_t usl_l3_egr_nhop_hw_id_generator_sync()
     tblIdx = egrId - BCM_XGS3_EGRESS_IDX_MIN;
     if ((tblIdx > uslL3EgrNhopHwIdMax) || (tblIdx < uslL3EgrNhopHwIdMin))
     {
-      LOG_ERROR(*index);
+      L7_LOG_ERROR(*index);
     }
 
     /* Mark this index as used in HwIdList */
@@ -7360,7 +7360,7 @@ int usl_l3_egr_nhop_hw_id_allocate(usl_bcm_l3_egress_t *egressInfo,
         tblIdx = *index - BCM_XGS3_EGRESS_IDX_MIN;
         if ((tblIdx > uslL3EgrNhopHwIdMax) || (tblIdx < uslL3EgrNhopHwIdMin))
         {
-          LOG_ERROR(*index);
+          L7_LOG_ERROR(*index);
         }
 
         /* Mark this index as used in HwIdList */
@@ -7528,7 +7528,7 @@ L7_RC_t usl_l3_mpath_egr_nhop_hw_id_generator_sync()
     if ((tblIdx > uslL3MpathEgrNhopHwIdMax) ||
         (tblIdx < uslL3MpathEgrNhopHwIdMin))
     {
-      LOG_ERROR(*index);
+      L7_LOG_ERROR(*index);
     }
 
 
@@ -7609,7 +7609,7 @@ int usl_l3_mpath_egr_nhop_hw_id_allocate(L7_uint32 intf_count,
         if ((tblIdx > uslL3MpathEgrNhopHwIdMax) ||
             (tblIdx < uslL3MpathEgrNhopHwIdMin))
         {
-          LOG_ERROR(*index);
+          L7_LOG_ERROR(*index);
         }
 
         /* Mark this index as used in HwIdList */
@@ -7890,7 +7890,7 @@ int usl_l3_db_dataplane_cleanup(L7_int32 *missing_mod_ids,
       }
       else
       {
-        LOG_ERROR(egrNhopIdx);
+        L7_LOG_ERROR(egrNhopIdx);
       }
     }
 
@@ -7926,7 +7926,7 @@ int usl_l3_db_dataplane_cleanup(L7_int32 *missing_mod_ids,
       }
       else
       {
-        LOG_ERROR(egrNhopIdx);
+        L7_LOG_ERROR(egrNhopIdx);
       }
     }
 

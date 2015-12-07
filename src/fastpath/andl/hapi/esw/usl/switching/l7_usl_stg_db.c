@@ -863,7 +863,7 @@ L7_RC_t usl_stg_db_init(void)
       if (usl_db_sync_func_table_register(USL_L2_STG_DB_ID, 
                                           &stgDbFuncs) != L7_SUCCESS)
       {
-        LOG_ERROR(0);   
+        L7_LOG_ERROR(0);   
       }
 
 
@@ -1234,7 +1234,7 @@ int usl_stg_hw_id_allocate(L7_uint32 appId, bcm_stg_t *stg)
 
         if (*stg == BCM_STG_INVALID)
         {
-          LOG_ERROR(*stg);    
+          L7_LOG_ERROR(*stg);    
         }
 
         /* Mark this index as used in StgHwList */    

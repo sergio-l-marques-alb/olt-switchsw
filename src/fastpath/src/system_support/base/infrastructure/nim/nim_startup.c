@@ -113,7 +113,7 @@ L7_RC_t nimStartUpPhaseOneInit()
                                  0x10, nimStartupCompare,
                                  sizeof(L7_uint32)*2) != L7_SUCCESS)
     {
-      NIM_LOG_ERROR("NIM: Unable to allocate resources\n");
+      NIM_L7_LOG_ERROR("NIM: Unable to allocate resources\n");
       break; /* goto while */
     }
 
@@ -125,7 +125,7 @@ L7_RC_t nimStartUpPhaseOneInit()
 
     if (nimStartUpSema == L7_NULLPTR)
     {
-      NIM_LOG_ERROR("NIM: unable to create the ifIndex Sema\n");
+      NIM_L7_LOG_ERROR("NIM: unable to create the ifIndex Sema\n");
     }
 
   } while ( 0 );

@@ -845,7 +845,7 @@ L7_RC_t dot1qVlanIntfCreateInNim(L7_uint32 vlanId, L7_uint32 *pIntIfNum)
     rc = nimEventIntfNotify(notifyEventInfo,&handle);
     if (rc != L7_SUCCESS)
     {
-      LOG_ERROR (rc);
+      L7_LOG_ERROR(rc);
     }
 
     /*---------------------------------*/

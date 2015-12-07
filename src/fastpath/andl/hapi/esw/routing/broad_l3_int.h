@@ -72,12 +72,12 @@
 */
 #define HAPI_BROAD_L3_CPU_EGR_NHOP_IP      (0x7f000001)
 
-#define HAPI_BROAD_L3_LOG_ERROR(e)                                            \
+#define HAPI_BROAD_L3_L7_LOG_ERROR(e)                                            \
   {                                                                           \
     sysapiPrintf("Log error: %s, %d, code %d\n", __FILE__, __LINE__, e);      \
     hapiBroadL3StatsShow();                                                   \
     hapiBroadL3DebugStackTrace();                                             \
-    LOG_ERROR((e));                                                           \
+    L7_LOG_ERROR((e));                                                           \
   }
 
 /* Macros for improving readability */
@@ -111,7 +111,7 @@
                         "sema create %s (%s, %s)\n",                \
                         #sema, #opt, #state);                       \
     (sema) = osapiSemaBCreate((opt), (state));                      \
-    if ((sema) == NULL) HAPI_BROAD_L3_LOG_ERROR(0);                 \
+    if ((sema) == NULL) HAPI_BROAD_L3_L7_LOG_ERROR(0);                 \
   }
 
 #define HAPI_BROAD_L3_SEMA_DELETE(sema)                             \
@@ -120,7 +120,7 @@
                         "sema delete %s\n",                         \
                         #sema);                                     \
     if (osapiSemaDelete((sema)) != L7_SUCCESS)                      \
-      HAPI_BROAD_L3_LOG_ERROR(0);                                   \
+      HAPI_BROAD_L3_L7_LOG_ERROR(0);                                   \
   }
 
 #define HAPI_BROAD_L3_SEMA_TAKE(sema, opt)                          \
@@ -129,7 +129,7 @@
     HAPI_BROAD_L3_DEBUG(broadL3SemaDebug, "sema take %s\n",         \
                         #sema);                                     \
     rc = osapiSemaTake((sema), (opt));                              \
-    if (rc != L7_SUCCESS) HAPI_BROAD_L3_LOG_ERROR(rc);              \
+    if (rc != L7_SUCCESS) HAPI_BROAD_L3_L7_LOG_ERROR(rc);              \
     HAPI_BROAD_L3_DEBUG(broadL3SemaDebug, "sema have %s\n",         \
                         #sema);                                     \
   }
@@ -140,7 +140,7 @@
     HAPI_BROAD_L3_DEBUG(broadL3SemaDebug, "sema give %s\n",         \
                         #sema);                                     \
     rc = osapiSemaGive((sema));                                     \
-    if (rc != L7_SUCCESS) HAPI_BROAD_L3_LOG_ERROR(rc);              \
+    if (rc != L7_SUCCESS) HAPI_BROAD_L3_L7_LOG_ERROR(rc);              \
   }
 
 #define NTOP(f,a,s,l)   ((L7_uchar8 *)osapiInetNtop((L7_uint32)(f),     \
@@ -351,7 +351,7 @@
                             sizeof(_val32_),                                   \
                              L7_WAIT_FOREVER) != L7_SUCCESS)                   \
     {                                                                          \
-      HAPI_BROAD_L3_LOG_ERROR(0);                                              \
+      HAPI_BROAD_L3_L7_LOG_ERROR(0);                                              \
     }                                                                          \
   } while(0)                                                                   \
 

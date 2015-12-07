@@ -154,14 +154,14 @@ L7_RC_t usl_init(void)
     if (usl_port_db_init() != L7_SUCCESS)
     {
       rc = L7_FAILURE;
-      USL_LOG_ERROR("USL: failed to init the Port DBs\n");
+      USL_L7_LOG_ERROR("USL: failed to init the Port DBs\n");
       break;
     }
 
     if (usl_port_bcmx_init() != L7_SUCCESS)
     {
       rc = L7_FAILURE;
-      USL_LOG_ERROR("USL: failed to init the Port Bcmx\n");
+      USL_L7_LOG_ERROR("USL: failed to init the Port Bcmx\n");
       break;
     }
 
@@ -169,58 +169,58 @@ L7_RC_t usl_init(void)
     if (usl_l2_db_init() != L7_SUCCESS)
     {
       rc = L7_FAILURE;
-      USL_LOG_ERROR("USL: failed to init the L2 DBs\n");
+      USL_L7_LOG_ERROR("USL: failed to init the L2 DBs\n");
       break;
     }
 
     if (usl_l2_bcmx_init() != L7_SUCCESS)
     {
       rc = L7_FAILURE;
-      USL_LOG_ERROR("USL: failed to init the L2 Bcmx\n");
+      USL_L7_LOG_ERROR("USL: failed to init the L2 Bcmx\n");
       break;
     }
     else if (usl_l2_hw_id_generator_init() != L7_SUCCESS)
     {
       rc = L7_FAILURE;
-      USL_LOG_ERROR("USL: failed to init the L2 Hw Index Generation module\n");
+      USL_L7_LOG_ERROR("USL: failed to init the L2 Hw Index Generation module\n");
       break;
     }
 #ifdef L7_ROUTING_PACKAGE
     else if (usl_l3_db_init() != L7_SUCCESS)
     {
       rc = L7_FAILURE;
-      USL_LOG_ERROR("USL: failed to init the L3 DBs\n");
+      USL_L7_LOG_ERROR("USL: failed to init the L3 DBs\n");
       break;
     }
     else if (usl_l3_hw_id_generator_init() != L7_SUCCESS)
     {
       rc = L7_FAILURE;
-      USL_LOG_ERROR("USL: failed to init the L3 Hw Id generation\n");
+      USL_L7_LOG_ERROR("USL: failed to init the L3 Hw Id generation\n");
       break;
     }
     else if (usl_l3_bcmx_init() != L7_SUCCESS)
     {
       rc = L7_FAILURE;
-      USL_LOG_ERROR("USL: failed to init the L3 Bcmx\n");
+      USL_L7_LOG_ERROR("USL: failed to init the L3 Bcmx\n");
       break;
     }
 #ifdef L7_MCAST_PACKAGE
     else if (usl_ipmc_db_init() != L7_SUCCESS)
     {
       rc = L7_FAILURE;
-      USL_LOG_ERROR("USL: failed to init the IPMC DBs\n");
+      USL_L7_LOG_ERROR("USL: failed to init the IPMC DBs\n");
       break;
     }
     else if (usl_ipmc_bcmx_init() != L7_SUCCESS)
     {
       rc = L7_FAILURE;
-      USL_LOG_ERROR("USL: failed to init the IPMC Bcmx\n");
+      USL_L7_LOG_ERROR("USL: failed to init the IPMC Bcmx\n");
       break;
     }
     else if (usl_ipmc_hw_id_generator_init() != L7_SUCCESS)
     {
       rc = L7_FAILURE;
-      USL_LOG_ERROR("USL: failed to init the IPMC Hw Id Generation\n");
+      USL_L7_LOG_ERROR("USL: failed to init the IPMC Hw Id Generation\n");
       break;
     }
 
@@ -229,20 +229,20 @@ L7_RC_t usl_init(void)
     else if (usl_policy_db_init() != L7_SUCCESS)
     {
         rc = L7_FAILURE;
-        USL_LOG_ERROR("USL: failed to init the Policy DB\n");
+        USL_L7_LOG_ERROR("USL: failed to init the Policy DB\n");
         break;
     }
     else if (usl_policy_bcmx_init() != L7_SUCCESS)
     {
         rc = L7_FAILURE;
-        USL_LOG_ERROR("USL: failed to init Policy Bcmx\n");
+        USL_L7_LOG_ERROR("USL: failed to init Policy Bcmx\n");
         break;
     }
 #ifdef L7_METRO_FLEX_PACKAGE
     else if (usl_metro_bcmx_init() != L7_SUCCESS)
     {
         rc = L7_FAILURE;
-        USL_LOG_ERROR("USL: failed to init Metro Bcmx\n");
+        USL_L7_LOG_ERROR("USL: failed to init Metro Bcmx\n");
         break;
     }
 #endif
@@ -251,31 +251,31 @@ L7_RC_t usl_init(void)
     else if (usl_wlan_port_db_init() != L7_SUCCESS)
     {
         rc = L7_FAILURE;
-        USL_LOG_ERROR("USL: failed to init the WLAN Port DB\n");
+        USL_L7_LOG_ERROR("USL: failed to init the WLAN Port DB\n");
         break;
     }
     else if (usl_wlan_vlan_db_init() != L7_SUCCESS)
     {
         rc = L7_FAILURE;
-        USL_LOG_ERROR("USL: failed to init the WLAN VLAN DB\n");
+        USL_L7_LOG_ERROR("USL: failed to init the WLAN VLAN DB\n");
         break;
     }
     else if (usl_wlan_bcmx_init() != L7_SUCCESS)
     {
       rc = L7_FAILURE;
-      USL_LOG_ERROR("USL: failed to init the WLAN Bcmx\n");
+      USL_L7_LOG_ERROR("USL: failed to init the WLAN Bcmx\n");
       break;
     }
     else if (usl_wlan_port_hw_id_generator_init() != L7_SUCCESS)
     {
       rc = L7_FAILURE;
-      USL_LOG_ERROR("USL: failed to init the WLAN port Hw Id Generation\n");
+      USL_L7_LOG_ERROR("USL: failed to init the WLAN port Hw Id Generation\n");
       break;
     }
     else if (usl_wlan_vlan_hw_id_generator_init() != L7_SUCCESS)
     {
       rc = L7_FAILURE;
-      USL_LOG_ERROR("USL: failed to init the WLAN vlan Hw Id Generation\n");
+      USL_L7_LOG_ERROR("USL: failed to init the WLAN vlan Hw Id Generation\n");
       break;
     }
 #endif
