@@ -5881,7 +5881,7 @@ soc_cm_salloc(int dev, int size, const char *name)
 
     if (name == NULL || name[0] == 0)
     {
-      LOG_FATAL(LOG_CTX_PTIN_HAPI,"XXXXXX - SEGMENTATION FAULT - XXXXXX");
+      PT_LOG_FATAL(LOG_CTX_SDK,"XXXXXX - SEGMENTATION FAULT - XXXXXX");
     }
 
     assert(name != NULL);        /* Don't pass NULLs in here! */
@@ -5954,7 +5954,7 @@ soc_cm_sfree(int dev, void *ptr)
 
     if (p == NULL)
     {
-      LOG_FATAL(LOG_CTX_PTIN_HAPI,"XXXXXX - SEGMENTATION FAULT - XXXXXX");
+      PT_LOG_FATAL(LOG_CTX_SDK,"XXXXXX - SEGMENTATION FAULT - XXXXXX");
     }
 
     assert(SHARED_GOOD_START(p));
@@ -5975,7 +5975,7 @@ soc_cm_sfree(int dev, void *ptr)
     } else {
         if (p->prev == NULL)
         {
-          LOG_FATAL(LOG_CTX_PTIN_HAPI,"XXXXXX - SEGMENTATION FAULT - XXXXXX");
+          PT_LOG_FATAL(LOG_CTX_SDK,"XXXXXX - SEGMENTATION FAULT - XXXXXX");
         }
         p->prev->next = p->next;
         if (p->next != NULL) {

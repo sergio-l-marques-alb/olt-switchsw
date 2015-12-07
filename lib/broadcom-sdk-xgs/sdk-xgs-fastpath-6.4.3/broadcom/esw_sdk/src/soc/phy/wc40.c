@@ -10255,7 +10255,7 @@ phy_wc40_firmware_load(int unit, int port, int offset, uint8 *array,int datalen)
                 (BSL_META_U(unit,
                             "WC40 : uC RAM download success: u=%d p=%d ver=%x"), unit, port,ver));
 
-    LOG_NOTICE(LOG_CTX_SDK,"WC40 : uC RAM download success: u=%d p=%d ver=%x\r\n", unit, port,ver);   /* PTin added: WC40 */
+    PT_LOG_NOTICE(LOG_CTX_SDK,"WC40 : uC RAM download success: u=%d p=%d ver=%x\r\n", unit, port,ver);   /* PTin added: WC40 */
 
     if (!no_cksum) {
         LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,

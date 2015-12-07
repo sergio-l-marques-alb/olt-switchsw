@@ -3,7 +3,7 @@ TARGET=esw_sdk
 echo "Apply this script before patching."
 read -p "Proceed? (type 'yes') " ans
 
-if [ $ans != "yes" ]; then
+if [ "$ans" != "yes" ]; then
   echo "Leaving..."
   exit 0;
 fi
