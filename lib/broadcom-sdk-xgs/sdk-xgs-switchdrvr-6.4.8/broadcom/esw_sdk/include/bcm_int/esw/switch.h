@@ -1,0 +1,314 @@
+/*
+ * $Id: switch.h,v 1.8 Broadcom SDK $
+ * $Copyright: Copyright 2015 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ *
+ * This file contains internal definitions for switch module to the BCM library.
+ */
+
+#ifndef _BCM_INT_SWITCH_H
+#define _BCM_INT_SWITCH_H
+
+#include <bcm/switch.h>
+
+typedef int (*xlate_arg_f)(int unit, int arg, int set);
+
+typedef struct {
+    bcm_switch_control_t        type;
+    uint32                      chip;
+    soc_reg_t                   reg;
+    soc_field_t                 field;
+    xlate_arg_f                 xlate_arg;
+    soc_feature_t               feature;
+} bcm_switch_binding_t;
+
+/* Following struct contains synce L1 clock recovery port to unicore, warpcore
+ * lane map and mux value
+ */
+typedef struct {
+    bcm_port_t  port;                   /* phyical port number */
+    uint32      unicore_or_warpcore;    /* unicore -> 0, wrapcore -> 1, 2*/
+    uint32      lane_num;
+    uint32      recovered_clock_select; /* configured mux value */
+} _bcm_l1_port_mx_lane_map_t;
+
+/* Following struct contains AGM monitor state and attribute */
+#define _AGM_POOL_ID_CNT        (2)
+#define _AGM_POOL_ID_INVALID    (-1)
+#define _AGM_ID_INVALID         (0)
+#define _AGM_GROUP_ID_INVALID   (-1)
+#define _AGM_TIME_ID_INVALID    (-1)
+#define _AGM_TIME_ID_DFLT       (0)
+
+typedef struct agm_monitor_s {
+    int             agm_pool_id;
+    int             in_use;
+    int             running;
+    int             group_id;
+    int             counter_id;
+    bcm_switch_agm_info_t attr;
+} agm_monitor_t;
+
+extern int
+bcm_th_switch_agm_init(int unit);
+
+extern int
+bcm_th_switch_agm_deinit(int unit);
+
+extern int
+bcm_th_switch_agm_wb_scache_size_get(int unit, int *req_scache_size);
+
+extern int
+bcm_th_switch_agm_wb_sync(int unit, uint8 **scache_ptr);
+
+extern int
+bcm_th_switch_agm_wb_reinit(int unit, uint8 **scache_ptr);
+
+extern int
+bcm_th_switch_agm_info(int unit, bcm_switch_agm_id_t agm_id, 
+                       agm_monitor_t *agm_mnt);
+extern int
+bcm_th_switch_agm_fwd_grp_update(int unit, bcm_switch_agm_id_t agm_id, 
+                                 int group_id);
+extern int
+bcm_th_switch_agm_id_get_by_group(int unit, int group_id, 
+                                  bcm_switch_agm_id_t *agm_id);
+
+extern int bcm_th_switch_agm_dump(int unit);
+
+extern int
+bcm_th_switch_agm_create(int unit,
+                         uint32 options,
+                         bcm_switch_agm_info_t *agm_info);
+extern int
+bcm_th_switch_agm_enable_set(int unit,
+                             bcm_switch_agm_id_t agm_id,
+                             int enable);
+extern int
+bcm_th_switch_agm_stat_get(int unit,
+                           bcm_switch_agm_id_t agm_id,
+                           int nstat,
+                           bcm_switch_agm_stat_t *stat_arr);
+
+extern int
+bcm_th_switch_agm_stat_clear(int unit, bcm_switch_agm_id_t agm_id);
+
+extern int
+bcm_th_switch_agm_destroy(int unit, bcm_switch_agm_id_t agm_id);
+
+extern int
+bcm_th_switch_agm_trunk_attach_get(int unit, bcm_switch_agm_id_t agm_id,
+                                   bcm_trunk_t *trunk_id);
+
+extern int
+bcm_th_switch_agm_l3_ecmp_attach_get(int unit, bcm_switch_agm_id_t agm_id,
+                                     bcm_if_t *l3_ecmp_id);
+
+extern int
+bcm_th_switch_agm_get(int unit, bcm_switch_agm_info_t *agm_info);
+
+extern int
+bcm_th_switch_agm_enable_get(int unit, bcm_switch_agm_id_t agm_id, int *enable);
+
+extern int
+bcm_th_switch_agm_traverse(int unit, int flags,
+                           bcm_switch_agm_traverse_cb trav_fn,
+                           void *user_data);
+
+extern int
+bcm_th_xgs3_meter_adjust_set(int unit, bcm_port_t port, int arg);
+
+
+extern int
+bcm_th_xgs3_meter_adjust_get(int unit, bcm_port_t port, int *arg);
+
+/* Number of KT2 physical ports = 40 */ 
+extern _bcm_l1_port_mx_lane_map_t _kt2_l1_port_mx_lane_map[40 + 1]; 
+
+#define MMRP_ETHERTYPE_DEFAULT      0x88f6
+#define SRP_ETHERTYPE_DEFAULT       0x1
+#define TS_ETHERTYPE_DEFAULT        0x88f7
+#define MMRP_MAC_OUI_DEFAULT        0x0180c2
+#define SRP_MAC_OUI_DEFAULT         0x0
+#define TS_MAC_OUI_DEFAULT          0x0180c2 
+#define MMRP_MAC_NONOUI_DEFAULT     0x000020
+#define SRP_MAC_NONOUI_DEFAULT      0x0
+#define TS_MAC_NONOUI_DEFAULT       0x00000e  
+#define TS_MAC_MSGBITMAP_DEFAULT    0x000d  
+#define EP_COPY_TOCPU_DEFAULT       0x1
+
+
+extern int _bcm_esw_switch_init(int unit);
+extern int _bcm_esw_switch_detach(int unit);
+
+extern int _bcm_switch_module_type_get(int unit, bcm_module_t mod,
+                                       uint32 *mod_type);
+
+extern int _bcm_switch_pkt_info_ecmp_hash_get(int unit,
+                                              bcm_switch_pkt_info_t *pkt_info,
+                                              bcm_gport_t *dst_gport,
+                                              bcm_if_t *dst_intf);
+extern int _bcm_td2_switch_pkt_info_hash_get(int unit,
+                                             bcm_switch_pkt_info_t *pkt_info,
+                                             bcm_gport_t *dst_gport,
+                                             bcm_if_t *dst_intf);
+extern int _bcm_tr3_switch_pkt_info_hash_get(int unit,
+                                             bcm_switch_pkt_info_t *pkt_info,
+                                             bcm_gport_t *dst_gport,
+                                             bcm_if_t *dst_intf);
+extern int _bcm_tr3_repl_head_entry_info_get(int unit, int *free);
+ 
+extern int _bcm_en_switch_pkt_info_hash_get(int unit,
+                                            bcm_switch_pkt_info_t *pkt_info,
+                                            bcm_gport_t *dst_gport,
+                                            bcm_if_t *dst_intf);
+
+#define _BCM_SWITCH_PKT_INFO_FLAG_TEST(_pkt_info, _flag_suffix) \
+        (0 != (((_pkt_info)->flags) & BCM_SWITCH_PKT_INFO_##_flag_suffix))
+
+#if defined(BCM_KATANA2_SUPPORT) || defined(BCM_TRIDENT2PLUS_SUPPORT)
+extern int _bcm_switch_olp_port_mac_get(int unit, bcm_port_t port, bcm_mac_t *mac);
+extern int _bcm_switch_olp_dglp_get(int unit, int dglp, bcm_mac_t *mac,int *Index);
+#endif
+/* Switch OLP bookkeeping structure */
+typedef struct _bcm_switch_olp_bookeeping_s {
+    int             api_ver;
+} _bcm_switch_olp_bookeeping_t;
+
+extern _bcm_switch_olp_bookeeping_t _bcm_switch_olp_bk_info[BCM_MAX_NUM_UNITS];
+extern int _bcm_esw_switch_olp_reinit(int unit);
+extern int _bcm_esw_switch_olp_wb_alloc(int unit);
+
+#define _BCM_SWITCH_OLP_INFO(_unit_)   (&_bcm_switch_olp_bk_info[_unit_])
+#define _BCM_SWITCH_OLP_APIV(_unit_) \
+    (_bcm_switch_olp_bk_info[_unit_].api_ver)
+#define _BCM_SWITCH_OLP_APIV_SET(_unit_, v) \
+    (_bcm_switch_olp_bk_info[_unit_].api_ver = (v))
+
+/*
+ * Following flags are used with _bcm_switch_olp_bookeeping_t.api_ver
+ * _BCM_SWITCH_OLP_OPEN_API represents that either of bcm_l2_station_xxx OR
+ *                          bcm_switch_olp_l2_addr_xxx can be used at this moment
+ *                          for OLP configuration. 
+ * _BCM_SWITCH_OLP_L2_STATION_API represents that only bcm_l2_station_xxx can be 
+ *                          used for olp configuration
+ * _BCM_SWITCH_OLP_TRUE_API represents that only  bcm_switch_olp_l2_addr_xxx can be 
+ *                          used for olp configuration
+ */
+#define _BCM_SWITCH_OLP_OPEN_API                 0
+#define _BCM_SWITCH_OLP_L2_STATION_API           1
+#define _BCM_SWITCH_OLP_TRUE_API                 2
+
+#ifdef BCM_WARM_BOOT_SUPPORT
+extern int _bcm_esw_scache_ptr_get(int unit, soc_scache_handle_t handle,
+                                   int create, uint32 size,
+                                   uint8 **scache_ptr, uint16 default_ver, 
+                                   uint16 *recovered_ver);
+extern int _bcm_mem_scache_sync(int unit);
+extern int _bcm_switch_control_scache_sync(int unit);
+#endif /* BCM_WARM_BOOT_SUPPORT */
+
+#ifdef BCM_GREYHOUND_SUPPORT
+extern int
+_bcm_gh_switch_control_port_binding_set(int unit,
+                                bcm_port_t port,
+                                bcm_switch_control_t type,
+                                int arg, int *found);
+extern int
+_bcm_gh_switch_control_port_binding_get(int unit,
+                                bcm_port_t port,
+                                bcm_switch_control_t type,
+                                int *arg, int *found);
+#endif
+
+#if defined(BCM_TOMAHAWK_SUPPORT)
+
+#define OUT
+#define IN_OUT
+
+extern int
+bcm_esw_switch_latency_deinit(int unit);
+
+extern int
+bcmi_esw_switch_latency_show(int unit);
+
+extern int
+bcmi_esw_switch_latency_diag(int unit);
+
+extern int
+bcmi_esw_switch_latency_mem_avail(
+    int         unit,
+    soc_mem_t   mem);
+
+extern int
+bcmi_esw_switch_latency_reg_avail(
+    int         unit,
+    soc_reg_t   reg);
+
+#ifdef BCM_WARM_BOOT_SUPPORT
+extern int
+bcm_esw_scache_ver_get(
+    int               unit,
+    int               module,
+    OUT uint16* const version);
+
+extern int
+bcmi_esw_switch_latency_wb_memsz_get(
+    int                 unit,
+    OUT uint32* const   mem_sz,
+    uint16              scache_ver);
+
+extern int
+bcmi_esw_switch_latency_wb_sync(
+    int             unit,
+    IN_OUT uint8*   wb_data);
+
+extern int
+bcmi_esw_switch_latency_wb_recover(
+    int            unit,
+    uint8* const   wb_data,
+    uint16         scache_ver);
+#endif
+
+#endif
+
+#endif	/* !_BCM_INT_SWITCH_H */
