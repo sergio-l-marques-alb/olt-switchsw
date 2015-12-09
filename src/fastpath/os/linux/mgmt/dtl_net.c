@@ -918,7 +918,7 @@ L7_RC_t dtlARPProtoRecv(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
 
 
 /**
- * Add a vlan on to the dtl0 interface. 
+ * Add a vlan to the dtl0 interface. 
  *  
  * @param   vlanId    Vlan ID to which the routing interface will be associated
  * 
