@@ -3,14 +3,15 @@
 thisapp=$0
 mode="run"
 app_name=switchdrvr
-app_path=/usr/local/ptin/sbin/$app_name
-cli=/usr/local/ptin/sbin/fp.cli
-proc_txt=/usr/local/ptin/log/fastpath/proc.txt
+ptin_path=/usr/local/ptin
+app_path=$ptin_path/sbin/$app_name
+cli=$ptin_path/sbin/fp.cli
+proc_txt=$ptin_path/log/fastpath/proc.txt
 ntry=0
 #cpld_gpr=fe000001fh
-#db=/usr/local/ptin/bin/db64
-#sb=/usr/local/ptin/bin/sb64
-fp_status=/usr/local/ptin/bin/fp_status
+#db=$ptin_path/bin/db64
+#sb=$ptin_path/bin/sb64
+fp_status=$ptin_path/bin/fp_status
 
 insert_modules()
 {
@@ -18,9 +19,36 @@ insert_modules()
     if [ ! -c /dev/linux-user-bde ]; then
       mknod /dev/linux-user-bde c 126 0
     fi
+
+    kernel_version=`/bin/uname -r | awk '{print $1}'`
+    linux_kernel_bde=$ptin_path/sbin/linux-kernel-bde.ko
+    linux_user_bde=$ptin_path/sbin/linux-user-bde.ko
+
+    # Check kernel version, and use proper ko modules
+    if [ "$kernel_version" == "3.6.5-OLT1T0AC" ]; then
+      linux_kernel_bde_ref=$ptin_path/sbin/linux-kernel-bde_3.6.5-OLT1T0AC.ko
+      linux_user_bde_ref=$ptin_path/sbin/linux-user-bde_3.6.5-OLT1T0AC.ko
+    elif [ "$kernel_version" == "3.6.5-Broadcom" ]; then
+      linux_kernel_bde_ref=$ptin_path/sbin/linux-kernel-bde_3.6.5-Broadcom.ko
+      linux_user_bde_ref=$ptin_path/sbin/linux-user-bde_3.6.5-Broadcom.ko
+    else
+      linux_kernel_bde_ref=""
+      linux_user_bde_ref=""
+    fi
+    # If a specific kernel version was found, make symbolic links
+    if [ ! -z $linux_kernel_bde_ref -a ! -h $linux_kernel_bde ]; then
+      rm -f $linux_kernel_bde
+      ln -s $linux_kernel_bde_ref $linux_kernel_bde
+    fi
+    if [ ! -z $linux_user_bde_ref -a ! -h $linux_user_bde ]; then
+      rm -f $linux_user_bde
+      ln -s $linux_user_bde_ref   $linux_user_bde
+    fi
+
     echo "Inserting modules..."
-    insmod /usr/local/ptin/sbin/linux-kernel-bde.ko dmasize=16M debug=1
-    insmod /usr/local/ptin/sbin/linux-user-bde.ko
+    insmod $linux_kernel_bde dmasize=16M debug=1
+    insmod $linux_user_bde
+
     sleep 1
     echo "Going to start Fastpath..."
 }
