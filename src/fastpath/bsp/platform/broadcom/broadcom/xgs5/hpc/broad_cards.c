@@ -159,7 +159,7 @@ HPC_BROAD_SLOT_MAC_ALLOCATION_t mac_allocation_UNIT_BROAD_4_10G_3_40G_1_GIG_REV_
 /* PTin added: new switch 56340 (Helix4) */
 HPC_BROAD_SLOT_MAC_ALLOCATION_t mac_allocation_UNIT_BROAD_12_GIG_4_TENGIG_1_GS_REV_1[] =
 {
-{ 0,  L7_TRUE,   16, 1},   /* physical slot with 16 port card (12x1G + 4x10G) */
+{ 0,  L7_TRUE,   16, 1},   /* physical slot with 16 port card (12x1G + 4x10G + 1x1G +1x1G) */
 { 1,  L7_FALSE,  1,  0},   /* logical CPU card */
 { 2,  L7_TRUE,   8, 30},   /* logical LAG card */
 { 3,  L7_TRUE,   8, 38}    /* logical Router card */
@@ -1060,7 +1060,8 @@ HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56
 {       0,      13,          0,      52,       "" },
 {       0,      14,          0,      51,       "" },
 {       0,      15,          0,      50,       "" },
-{       0,      16,          0,      49,       "" }, /* GS port */
+{       0,      16,          0,      54,       "" }, /* 1G port for FPGA */
+{       0,      17,          0,      49,       "" }, /* GS port */
 };
 
 /* PTin added: new switch 56843 (Trident) */
@@ -1723,6 +1724,7 @@ HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_RE
 {    14},
 {    15},
 {    16},
+{    17},
 };
 
 /* PTin added: new switch 56843 (Trident) */
@@ -2235,7 +2237,7 @@ SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56
 {L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},{L7_PORT_DESC_BCOM_1G_AN},
 {L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},  /* 8xGPON + 4x1G ports + 4x10G + GS */
 {L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},
-{L7_PORT_DESC_BCOM_1G_NO_AN},
+{L7_PORT_DESC_BCOM_XAUI_SGMII_1G},{L7_PORT_DESC_BCOM_1G_NO_AN},
 };
 
 /* PTin added: new switch 56843 (Trident) */

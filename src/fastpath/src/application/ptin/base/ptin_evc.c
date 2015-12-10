@@ -633,8 +633,8 @@ L7_RC_t ptin_evc_startup(void)
   evcConf.mc_flood          = PTIN_EVC_MC_FLOOD_ALL;
   evcConf.n_intf            = 5;
   /* Root port */
-  evcConf.intf[0].intf_id   = 16;
   evcConf.intf[0].intf_type = 0;
+  evcConf.intf[0].intf_id   = PTIN_SYSTEM_N_PORTS-1;
   evcConf.intf[0].mef_type  = PTIN_EVC_INTF_ROOT;
   evcConf.intf[0].vid       = PTIN_VLAN_BL2CPU_EXT;
   /* Leaf ports */
@@ -1657,7 +1657,7 @@ L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint32 evc_ext_id, L7_uint3
       ptin_evc_find_flow(innerVlan, &(evcs[evc_int_id].intf[ptin_port].clients), (dl_queue_elem_t **) &pclientFlow);
       if (pclientFlow==NULL)
       {
-        PT_LOG_ERR(LOG_CTX_EVC,"There is no flow with gemId=%u in IntIfNum=%u/ptin_port=%u and EVC=%u",innerVlan,intIfNum,ptin_port,evc_int_id);
+        //PT_LOG_ERR(LOG_CTX_EVC,"There is no flow with gemId=%u in IntIfNum=%u/ptin_port=%u and EVC=%u",innerVlan,intIfNum,ptin_port,evc_int_id);
         return L7_FAILURE;
       }
       ovid = pclientFlow->uni_ovid;
@@ -1671,7 +1671,7 @@ L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint32 evc_ext_id, L7_uint3
       ptin_evc_find_client(innerVlan, &(evcs[evc_int_id].intf[ptin_port].clients), (dl_queue_elem_t **) &pclientFlow);
       if (pclientFlow==NULL)
       {
-        PT_LOG_ERR(LOG_CTX_EVC,"There is no client/flow with cvid=%u in IntIfNum=%u/ptin_port=%u and EVC=%u",innerVlan,intIfNum,ptin_port,evc_int_id);
+        //PT_LOG_ERR(LOG_CTX_EVC,"There is no client/flow with cvid=%u in IntIfNum=%u/ptin_port=%u and EVC=%u",innerVlan,intIfNum,ptin_port,evc_int_id);
         return L7_FAILURE;
       }
       ovid = pclientFlow->uni_ovid;
@@ -2235,7 +2235,7 @@ L7_RC_t ptin_evc_extVlans_get_fromIntVlan(L7_uint32 intIfNum, L7_uint16 intOVlan
   /* Get external vlans */
   if (ptin_evc_extVlans_get(intIfNum, evc_ext_id, evc_int_id, intIVlan, extOVlan, extIVlan)!=L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC,"Error getting external vlans for intIfNum=%u, evc_ext_id=%u, intIVlan=%u",intIfNum,evc_ext_id,intIVlan);
+    //PT_LOG_ERR(LOG_CTX_EVC,"Error getting external vlans for intIfNum=%u, evc_ext_id=%u, intIVlan=%u",intIfNum,evc_ext_id,intIVlan);
     return L7_FAILURE;
   }
 

@@ -750,7 +750,7 @@ L7_RC_t ptin_hapi_phy_init_olt1t0(void)
 
   osapiSleep(2);
 
-  #if (PHY_RECOVERY_PROCEDURE)
+ #if (PHY_RECOVERY_PROCEDURE)
   bcm_pbmp_t pbm, pbm_out;
   int i;
 
@@ -758,7 +758,7 @@ L7_RC_t ptin_hapi_phy_init_olt1t0(void)
   /* Reset PHY cores */
   for (bcm_port=1; bcm_port<=49; bcm_port+=4)
   {
-    if (bcm_port>29 && bcm_port!=49)        
+    if (bcm_port>29)
       continue;  // Do not apply this configurations to ports ge32 to xe0 (1G and 10G)
 
     PT_LOG_INFO(LOG_CTX_HAPI, "Resetting port bcm_port=%u", bcm_port);
@@ -794,7 +794,7 @@ L7_RC_t ptin_hapi_phy_init_olt1t0(void)
 
       if (bcm_port_enable_set(0, bcm_port+i, L7_ENABLE) != BCM_E_NONE)
       {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error disabling bcm_port %u", bcm_port+i);
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error enabling bcm_port %u", bcm_port+i);
         rc = L7_FAILURE;
       }
     }
@@ -804,7 +804,7 @@ L7_RC_t ptin_hapi_phy_init_olt1t0(void)
   /* Outra martelada: set da velocidade de 2.5G para garantir que nenhuma fica em 1G (que supostamente não é suportada) e  e set do max frame  */
   for (i=0; i<PTIN_SYSTEM_N_PONS; i++)
   {
-  /* Get bcm_port format */
+    /* Get bcm_port format */
     if (hapi_ptin_bcmPort_get(i, &bcm_port)!=BCM_E_NONE)
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error obtaining bcm_port for port %u", i);
@@ -855,8 +855,37 @@ L7_RC_t ptin_hapi_phy_init_olt1t0(void)
     PT_LOG_ERR(LOG_CTX_HAPI, "Error obtaining bcm_port value for port %d", ptin_sys_number_of_ports-1);
   }
 
+ #endif // PHY_RECOVERY_PROCEDURE
 
-  #endif // PHY_RECOVERY_PROCEDURE
+  /* Run all ethernet ports */
+  for (i = PTIN_SYSTEM_N_PONS; i < PTIN_SYSTEM_N_PONS+PTIN_SYSTEM_N_ETH; i++)
+  {
+    /* Get bcm_port format */
+    if (hapi_ptin_bcmPort_get(i, &bcm_port)!=BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error obtaining bcm_port for port %u", i);
+      continue;
+    }
+
+    /* If is a 10G port, apply SFI mode */
+    if ((PTIN_SYSTEM_10G_PORTS_MASK >> i) & 1)
+    {
+      /* Init 10G ports at SFI mode */
+      if (ptin_hapi_sfi_set(bcm_port) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing port %u (bcm_port %u) at SFI", i, bcm_port);
+        rc = L7_FAILURE;
+        continue;
+      }
+      /* Disable port */
+      if (bcm_port_enable_set(0, bcm_port, L7_DISABLE) != BCM_E_NONE)
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error reenabling bcm_port %u", bcm_port);
+        return L7_FAILURE;
+      }
+      PT_LOG_NOTICE(LOG_CTX_HAPI, "Port %u (bcm_port %u) at SFI", i, bcm_port);
+    }
+  }
 
   /* Inicialize polarity invertions (ge48 port) */
   if (hapi_ptin_bcmPort_get(ptin_sys_number_of_ports-1, &bcm_port) == L7_SUCCESS)

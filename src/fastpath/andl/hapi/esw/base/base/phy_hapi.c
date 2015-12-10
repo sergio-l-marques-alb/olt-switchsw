@@ -455,6 +455,8 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 					L7_LOG_ERROR(rc);
 				}
 #else
+                PT_LOG_INFO(LOG_CTX_STARTUP,"usp={%d,%d,%d}, hapiPortPtr->bcmx_lport=0x%x, speed=%u (rc=%d)",
+                            usp->unit, usp->slot, usp->port, hapiPortPtr->bcmx_lport, bcmSpeed, rc);
 				L7_LOG_ERROR(rc);
 #endif
 			}

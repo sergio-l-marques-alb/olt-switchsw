@@ -200,8 +200,7 @@
 /* PTin added: Interfaces without Auto-Negotiation and connector */
 #define L7_PORT_DESC_BCOM_1G_NO_AN     L7_IANA_GIGABIT_ETHERNET,            \
                                        L7_PORTCTRL_PORTSPEED_FULL_1000SX,   \
-                                       (L7_PHY_CAP_PORTSPEED_FULL_1000 |    \
-                                        L7_PHY_CAP_PORTSPEED_FULL_2500),    \
+                                       (L7_PHY_CAP_PORTSPEED_FULL_1000),    \
                                        L7_CONNECTOR_NONE
 
 /* PTin added: Speed 2.5G */
@@ -245,6 +244,13 @@
                                           L7_PHY_CAP_PORTSPEED_FULL_1000 |  \
                                           L7_PHY_CAP_PORTSPEED_FULL_10G),   \
                                          L7_XAUI
+
+/* PTin added: XE-1G port */
+#define L7_PORT_DESC_BCOM_XAUI_SGMII_1G  L7_IANA_10G_ETHERNET,              \
+                                         L7_PORTCTRL_PORTSPEED_FULL_1000SX, \
+                                         (L7_PHY_CAP_PORTSPEED_FULL_1000 |  \
+                                          L7_PHY_CAP_PORTSPEED_FULL_10G),   \
+                                          L7_XAUI
 
 #define L7_PORT_DESC_BCOM_RJ45_FE_SFP    L7_IANA_FAST_ETHERNET_FX,          \
                                          L7_PORTCTRL_PORTSPEED_FULL_100FX,  \

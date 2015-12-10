@@ -509,7 +509,14 @@ L7_RC_t nimConfigDefaultGet(nimIntfDescr_t *intfDescr, nimIntfConfig_t *defaultC
 
     case L7_IANA_10G_ETHERNET:
       /* PTin modified: Auto-neg */
-      defaultCfg->ifSpeed = (intfDescr->defaultSpeed == L7_PORTCTRL_PORTSPEED_AUTO_NEG) ? L7_PORTCTRL_PORTSPEED_AUTO_NEG : FD_NIM_10G_ENET_SPEED;
+      if (intfDescr->defaultSpeed == L7_PORTCTRL_PORTSPEED_AUTO_NEG || intfDescr->defaultSpeed == L7_PORTCTRL_PORTSPEED_FULL_1000SX)
+      {
+        defaultCfg->ifSpeed = intfDescr->defaultSpeed;
+      }
+      else
+      {
+        defaultCfg->ifSpeed = FD_NIM_10G_ENET_SPEED;
+      }
       break;
 
     /* PTin added: Speed 40G */

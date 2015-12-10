@@ -434,8 +434,8 @@ L7_RC_t hpcConfigBoardSet()
       if (sal_config_set(spn_PCI_OVERRIDE_DEV, "0xb340") != 0)
         return(L7_FAILURE);
 
-      /* Enable 12xF.QSGMII + Flex[4x10] + 2xHG[21] + 1GE mode for BCM56340 */
-      if (sal_config_set(spn_BCM56340_4X10, "1") != 0)
+      /* Enable 12xF.QSGMII + 2xFlex[4x10] + 1GE mode for BCM56340 */
+      if (sal_config_set(spn_BCM56340_2X10, "1") != 0)
         return(L7_FAILURE);
 
       /*
@@ -445,7 +445,7 @@ L7_RC_t hpcConfigBoardSet()
        * bits initialized to HG ports.  Note that HG and XE ports may be
        * exchanged through the bcm_port_encap_set API.
        */
-      if (sal_config_set(spn_PBMP_XPORT_XE, "0x3c000000000000") != 0)
+      if (sal_config_set(spn_PBMP_XPORT_XE, "0x3fc000000000000") != 0)
         return(L7_FAILURE);
 
        /* 1G ports */
@@ -482,6 +482,28 @@ L7_RC_t hpcConfigBoardSet()
 
         sprintf(param_name, spn_SERDES_IF_TYPE"_%u", idx);
         sprintf(param_value, "%u", SOC_PORT_IF_SFI);
+        PT_LOG_INFO(LOG_CTX_STARTUP, "port=%d: sal_config_set(%s,%s)", idx, param_name, param_value);
+        if (sal_config_set(param_name, param_value) != 0)
+          return(L7_FAILURE);
+      }
+      /* SGMII ports */
+      for (idx = 54; idx <= 57; idx++)
+      {
+        /* Configurations for 10G SFI mode */
+        sprintf(param_name, spn_SERDES_AUTOMEDIUM"_%u", idx);
+        sprintf(param_value, "%u", 0);
+        PT_LOG_INFO(LOG_CTX_STARTUP, "port=%d: sal_config_set(%s,%s)", idx, param_name, param_value);
+        if (sal_config_set(param_name, param_value) != 0)
+          return(L7_FAILURE);
+
+        sprintf(param_name, spn_SERDES_FIBER_PREF"_%u", idx);
+        sprintf(param_value, "%u", 0);
+        PT_LOG_INFO(LOG_CTX_STARTUP, "port=%d: sal_config_set(%s,%s)", idx, param_name, param_value);
+        if (sal_config_set(param_name, param_value) != 0)
+          return(L7_FAILURE);
+
+        sprintf(param_name, spn_SERDES_IF_TYPE"_%u", idx);
+        sprintf(param_value, "%u", SOC_PORT_IF_SGMII);
         PT_LOG_INFO(LOG_CTX_STARTUP, "port=%d: sal_config_set(%s,%s)", idx, param_name, param_value);
         if (sal_config_set(param_name, param_value) != 0)
           return(L7_FAILURE);
@@ -523,7 +545,9 @@ L7_RC_t hpcConfigBoardSet()
         return(L7_FAILURE);
       if (sal_config_set(spn_PORTGROUP"_11", "4") != 0)
         return(L7_FAILURE);
-      if (sal_config_set(spn_PORTGROUP"_12", "1") != 0)   /* WC group: 10G ports */
+      if (sal_config_set(spn_PORTGROUP"_12", "1") != 0)   /* WC0: 10G ports */
+        return(L7_FAILURE);
+      if (sal_config_set(spn_PORTGROUP"_13", "1") != 0)   /* WC1: 1G ports */
         return(L7_FAILURE);
 
       /* Configure mmu lossy mode */

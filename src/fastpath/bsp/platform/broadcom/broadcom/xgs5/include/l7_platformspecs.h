@@ -90,9 +90,9 @@
 /* PTin added: new switch 56340 (Helix4) */
 #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
 #define L7_MAX_PHYSICAL_SLOTS_PER_UNIT           1
-#define L7_MAX_PORTS_PER_SLOT                    17
-#define L7_MAX_PHYSICAL_PORTS_PER_SLOT           17
-#define L7_MAX_PHYSICAL_PORTS_PER_UNIT           17
+#define L7_MAX_PORTS_PER_SLOT                    18
+#define L7_MAX_PHYSICAL_PORTS_PER_SLOT           18
+#define L7_MAX_PHYSICAL_PORTS_PER_UNIT           18
 
 /* PTin added: new switch 56689 (Valkyrie2) */
 #elif (PTIN_BOARD == PTIN_BOARD_OLT7_8CH_B)

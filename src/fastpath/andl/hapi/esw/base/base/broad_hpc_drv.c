@@ -3635,10 +3635,15 @@ int hapiBroadCmPrint(bsl_meta_t *meta_data, const char *format, va_list args)
       sev = L7_LOG_SEVERITY_INFO;
       ptin_log_sev = LOG_SEV_INFO;
     }
-    else
+    if (meta_data->severity <= bslSeverityVerbose)
     {
       sev = L7_LOG_SEVERITY_DEBUG;
       ptin_log_sev = LOG_SEV_DEBUG;
+    }
+    else
+    {
+      sev = L7_LOG_SEVERITY_DEBUG;
+      ptin_log_sev = LOG_SEV_TRACE;
     }
   }
 

@@ -226,6 +226,7 @@ L7_RC_t ptin_intf_init(void)
         PT_LOG_ERR(LOG_CTX_INTF, "Failed to disable port# %u", i);
         return L7_FAILURE;
       }
+      PT_LOG_INFO(LOG_CTX_INTF, "Port# %u (intIfNum %u) disabled", i, map_port2intIfNum[i]);
     }
     #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
     else
@@ -235,9 +236,10 @@ L7_RC_t ptin_intf_init(void)
         rc = usmDbIfAdminStateSet(1, map_port2intIfNum[i], L7_ENABLE);
         if (rc != L7_SUCCESS)
         {
-          PT_LOG_ERR(LOG_CTX_INTF, "Failed to disable port# %u", i);
+          PT_LOG_ERR(LOG_CTX_INTF, "Failed to enable port# %u", i);
           return L7_FAILURE;
         }
+        PT_LOG_INFO(LOG_CTX_INTF, "Port# %u (intIfNum %u) enabled", i, map_port2intIfNum[i]);
       }
       else
       {
@@ -246,9 +248,10 @@ L7_RC_t ptin_intf_init(void)
           rc = usmDbIfAdminStateSet(1, map_port2intIfNum[i], L7_ENABLE);
           if (rc != L7_SUCCESS)
           {
-            PT_LOG_ERR(LOG_CTX_INTF, "Failed to disable port# %u", i);
+            PT_LOG_ERR(LOG_CTX_INTF, "Failed to enable port# %u", i);
             return L7_FAILURE;
           }
+          PT_LOG_INFO(LOG_CTX_INTF, "Port# %u (intIfNum %u) enabled", i, map_port2intIfNum[i]);
         }
       }
     }
