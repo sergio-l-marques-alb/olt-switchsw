@@ -502,7 +502,7 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
                 portDescriptor.trunk_id, portDescriptor.bcm_port, portDescriptor.xlate_class_port);
 
       /* For TG16G board, if a trunk was provided, use the uplink ports */
-    #if (PTIN_BOARD_IS_LINECARD)
+    #if (PTIN_BOARD == PTIN_BOARD_TG16G)
       if (portDescriptor.trunk_id >= 0)
       {
         BCM_PBMP_ASSIGN(pbm, pbm_uplink);
@@ -511,7 +511,7 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
     }
 
     /* Trunk qualifier is not supported for TG16G boards (to allow using single-wide rules) */
-  #if (0 /*PTIN_BOARD != PTIN_BOARD_TG16G*/)
+  #if (PTIN_BOARD != PTIN_BOARD_TG16G)
     /* Trunk id field */
     if (portDescriptor.trunk_id >= 0)
     {
