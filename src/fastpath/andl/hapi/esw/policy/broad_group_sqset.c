@@ -388,7 +388,7 @@ bcm_field_qualify_t systemQsetVlanQoS[] =
 bcm_field_qualify_t systemQsetPTin[] =  /* System requirement */
 {
   bcmFieldQualifyInPorts,
-#if (PTIN_BOARD != PTIN_BOARD_TG16G)
+#if (0 /*PTIN_BOARD != PTIN_BOARD_TG16G*/)
   bcmFieldQualifySrcTrunk,      /* PTin added: FP */
 #endif
   bcmFieldQualifyOuterVlan,
