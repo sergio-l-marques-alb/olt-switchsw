@@ -7944,6 +7944,7 @@ static ptin_DHCPv4v6_bind_entry dhcpv4v6_bindtable[PLAT_MAX_FDB_MAC_ENTRIES];
 L7_RC_t ptin_msg_DHCPv4v6_bindTable_get(msg_DHCP_bind_table_request_t *input, msg_DHCPv4v6_bind_table_t *output)
 {
   L7_uint32 i, page, first, entries, size;
+  L7_uint8 intf;
   L7_RC_t   rc;
 
   /* Debug */
@@ -7951,6 +7952,7 @@ L7_RC_t ptin_msg_DHCPv4v6_bindTable_get(msg_DHCP_bind_table_request_t *input, ms
   PT_LOG_DEBUG(LOG_CTX_MSG, "  SlotId = %u",   input->slotId);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Page   = %u",   input->page);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask   = %02X", input->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask   = %u", input->intfId);
 
   page = input->page;
 
@@ -7959,7 +7961,9 @@ L7_RC_t ptin_msg_DHCPv4v6_bindTable_get(msg_DHCP_bind_table_request_t *input, ms
   {
     size = PLAT_MAX_FDB_MAC_ENTRIES;
 
-    rc = ptin_dhcpv4v6_bindtable_get(dhcpv4v6_bindtable,&size);
+    intf =(input->mask == 0x01) ? (input->intfId + 1) /* Convertion to ptinIntfNum)*/ : ((uint8) -1); //check if is slot or intf reading
+
+    rc = ptin_dhcpv4v6_bindtable_get(dhcpv4v6_bindtable,&size,&intf);
 
     if (rc!=L7_SUCCESS)
     {

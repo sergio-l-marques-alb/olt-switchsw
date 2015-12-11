@@ -2123,7 +2123,7 @@ L7_RC_t ptin_dhcp82_bindtable_get(ptin_DHCP_bind_entry *table, L7_uint32 *max_en
  *
  * @return L7_RC_t : L7_FAILURE/L7_SUCCESS
  */
-L7_RC_t ptin_dhcpv4v6_bindtable_get(ptin_DHCPv4v6_bind_entry *table, L7_uint32 *max_entries)
+L7_RC_t ptin_dhcpv4v6_bindtable_get(ptin_DHCPv4v6_bind_entry *table, L7_uint32 *max_entries, L7_uint8 *port )
 {
   dhcpSnoopBinding_t  dsBinding;
   L7_uint32           index, i;
@@ -2145,6 +2145,12 @@ L7_RC_t ptin_dhcpv4v6_bindtable_get(ptin_DHCPv4v6_bind_entry *table, L7_uint32 *
     // Calculate flow id and validate it
     if (ptin_evc_get_evcIdfromIntVlan(dsBinding.vlanId,&evc_idx)!=L7_SUCCESS)
       evc_idx = (L7_uint16)-1;
+
+    if(*port!=(L7_uint8)-1) // check if is a intf binding table reading
+    {
+      if(*port!=dsBinding.intIfNum)
+      continue;
+    }
 
     // Fill mac-table entry
     table[index].entry_index    = index;

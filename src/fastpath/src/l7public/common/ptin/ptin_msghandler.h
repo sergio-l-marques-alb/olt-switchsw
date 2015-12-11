@@ -1516,9 +1516,12 @@ typedef struct {
 
 /* Message used to request a specific page in the DHCP Binding table */
 typedef struct {
-  L7_uint8  slotId;     // Slot ID
-  L7_uint8  mask;       // Mask
-  L7_uint16 page;       // [mask = 0x01] Page index
+
+  uint8  slotId;     // Slot ID 
+  uint8  mask;       // Mask
+  uint8  intfId;     // Pon ID     [mask = 0x01]
+  uint16 page;       // Page index [mask = 0x02]
+
 } __attribute__((packed)) msg_DHCP_bind_table_request_t;
 
 typedef struct {
