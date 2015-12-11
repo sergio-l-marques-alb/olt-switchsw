@@ -1400,12 +1400,35 @@ L7_RC_t ptin_msg_acl_rule_config(void *msgAcl, L7_uint msgId, L7_uint msgDim);
 L7_RC_t ptin_msg_acl_enable(msg_apply_acl_t *msgAcl, L7_uint msgId, L7_uint n_msg);
 
 
+
+/****************************************************************************** 
+ * Port Mirroring Configuration
+ ******************************************************************************/
+
+/**
+ * Configure Session Monitor (Port Mirroring)
+ * 
+ * @author joaom (11/26/2015)
+ * 
+ * @param inbuffer 
+ * @param outbuffer 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer);
+
+
 extern int msg_wr_802_1x_Genrc(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i);
 //#define msg_wr_802_1x_AdminMode     msg_wr_802_1x_Genrc
 //#define msg_wr_802_1x_TraceMode     msg_wr_802_1x_Genrc
 //#define msg_wr_802_1x_VlanAssgnMode msg_wr_802_1x_Genrc
 //#define msg_wr_802_1x_MonMode       msg_wr_802_1x_Genrc
 //#define msg_wr_802_1x_DynVlanMode   msg_wr_802_1x_Genrc
+
+
+/****************************************************************************** 
+ * 802.1X Configuration
+ ******************************************************************************/
 
 extern int msg_wr_802_1x_Genrc2(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i);
 

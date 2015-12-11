@@ -188,14 +188,18 @@ extern int canal_buga;
 #define CCMSG_ROUTING_TRACERTSESSION_FREE     0x915F  // msg_RoutingTracertSessionFree
 
 /* ACL Configuration */
-
 #define CCMSG_ACL_RULE_ADD                  0x9190   /* ACL Type is used to validate msg size */
 #define CCMSG_ACL_RULE_DEL                  0x9191
 #define CCMSG_ACL_APPLY                     0x9192   /* Applies an ACL to an Interface or VLAN ID */
 #define CCMSG_ACL_UNAPPLY                   0x9193
 
-/* SLOT modes configuration */
+/* Port Mirroring Configuration */
+#define CCMSG_PORTMIRROR_SESSION_ADD        0x919A
+#define CCMSG_PORTMIRROR_SESSION_REMOVE     0x919B
+#define CCMSG_PORTMIRROR_PORT_ADD           0x919C
+#define CCMSG_PORTMIRROR_PORT_REMOVE        0x919D
 
+/* SLOT modes configuration */
 #define CCMSG_SLOT_MAP_MODE_GET             0x91E0  // struct msg_slotModeCfg_t
 #define CCMSG_SLOT_MAP_MODE_VALIDATE        0x91E1  // struct msg_slotModeCfg_t
 #define CCMSG_SLOT_MAP_MODE_APPLY           0x91E2  // struct msg_slotModeCfg_t
@@ -920,6 +924,36 @@ typedef struct
   L7_uint16 sessionIdx;
 } __attribute__((packed)) msg_RoutingTracertSessionFree;
 
+/***************************************************** 
+ * EVCs messages
+ ****************************************************/
+
+typedef enum
+{
+  PORT_MIRROR_MASK_NONE           = 0x0000,
+  PORT_MIRROR_MASK_sessionMode    = 0x0001,
+  PORT_MIRROR_MASK_dst_intf       = 0x0002,
+  PORT_MIRROR_MASK_src_intf       = 0x0004,
+  PORT_MIRROR_MASK_ALL            = 0xFFFF
+} PORT_MIRROR_MASK_t;
+
+typedef struct {
+
+  L7_uint8  slotId;
+
+  L7_uint8  sessionId;                /* Always '1' on this implementation */
+  L7_uint16 mask;                     /* Configurations mask */
+  L7_uint8  sessionMode;              /* Enable (1) / Disable (1) */
+
+  msg_HwEthInterface_t  dst_intf;     /* Destination/probe interface */
+
+  L7_uint8              n_intf;       /* Number of interfaces present on src_intf array */
+  struct {
+    msg_HwEthInterface_t  intf;       /* Source interface, physical or logical */
+    L7_uint8              direction;  /* L7_MIRROR_DIRECTION_t: None (0), Both (1), Rx (2) , Tx (3) */
+  } __attribute__((packed)) src_intf[PTIN_SYSTEM_MAX_N_PORTS];
+  
+} __attribute__((packed)) msg_port_mirror_t;
 
 /***************************************************** 
  * EVCs messages

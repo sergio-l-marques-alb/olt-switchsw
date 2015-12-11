@@ -38,6 +38,8 @@
 #include "usmdb_ip_api.h"
 #include "usmdb_dot1q_api.h"
 #include "usmdb_dai_api.h"
+#include "usmdb_dot3ad_api.h"
+#include "usmdb_mirror_api.h"
 #include "ptin_xlate_api.h"
 
 #include "ptin_acl.h"
@@ -12816,6 +12818,236 @@ L7_RC_t ptin_msg_DEBUG_mac_acl_apply(L7_uint32 interface, L7_uint32 evcId, L7_ui
 
   return L7_SUCCESS;
 }
+
+/* ********************************************************************* */
+
+
+/**
+ * Configure Session Monitor (Port Mirroring)
+ * 
+ * @author joaom (11/26/2015)
+ * 
+ * @param inbuffer 
+ * @param outbuffer 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
+{
+  static L7_uint32      listSrcPorts[L7_FILTER_MAX_INTF];
+  L7_uint32             numPorts;
+  L7_uint32             sessionNum;
+  L7_uint32             mode;
+  L7_uint32             unit = 1;
+  L7_int                ptin_port;
+  L7_uint32             dstIntfNum;
+  L7_uint32             srcIntfNum;
+  L7_INTF_MASK_t        srcIntfMask;
+  L7_MIRROR_DIRECTION_t type = L7_MIRROR_UNCONFIGURED;
+  L7_RC_t               rc = L7_SUCCESS, rc_global = L7_SUCCESS;
+
+  L7_uint8              n;
+  const L7_uchar8       *dir[]={"None", "In & Out", "In", "Out"};
+
+  msg_port_mirror_t *msg = (msg_port_mirror_t *) inbuffer->info;
+
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Mirror Configurations:");
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Slot Id       = %u",        msg->slotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Session Id    = %u",        msg->sessionId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Mask          = %.8X (h)",  msg->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Mode          = %u",        msg->sessionMode);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Dst intfid    = %u/%u",     msg->dst_intf.intf_type, msg->dst_intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Src intf Num  = %u",        msg->n_intf);
+
+  if (msg->n_intf >= PTIN_SYSTEM_MAX_N_PORTS)
+  {
+    PT_LOG_ERR(LOG_CTX_MSG, "Ups.. something is wrong! Too many Src interfaces");
+    return L7_FAILURE;
+  }
+
+  for (n=0; n<msg->n_intf && n<PTIN_SYSTEM_MAX_N_PORTS; n++)
+  {
+    if (msg->src_intf[n].direction > 3)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, " Src intfid (Type/ID/Direction) = %u/%u/(%u?), with INVALID Direction! Ignoring this one!", msg->src_intf[n].intf.intf_type, msg->src_intf[n].intf.intf_id, msg->src_intf[n].direction);
+      continue;
+    }
+
+    PT_LOG_DEBUG(LOG_CTX_MSG, " Src intfid (Type/ID/Direction) = %u/%u/%s", msg->src_intf[n].intf.intf_type, msg->src_intf[n].intf.intf_id, dir[msg->src_intf[n].direction]);
+  }
+
+  /* Validate Session ID */
+  sessionNum = 1; // msg->sessionId;
+
+  if( sessionNum > L7_MIRRORING_MAX_SESSIONS || sessionNum == 0)
+  {
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid Session ID %u, sessionNum");
+    return L7_FAILURE;
+  }
+
+  /* Check if Feature is supported */
+  if(cnfgrIsFeaturePresent(L7_PORT_MIRROR_COMPONENT_ID, L7_MIRRORING_DIRECTION_PER_SOURCE_PORT_SUPPORTED_FEATURE_ID) != L7_TRUE)
+  {
+    PT_LOG_ERR(LOG_CTX_MSG, "Feature not supported");
+    return L7_FAILURE;
+  }
+
+  /* Configure Probe interface */
+  if (msg->mask & PORT_MIRROR_MASK_dst_intf)
+  {
+    /* Convert Dst intfId to intfNum */
+    if (ptin_msg_ptinPort_get(msg->dst_intf.intf_type, msg->dst_intf.intf_id, &ptin_port)!=L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Invalid port");
+      return L7_FAILURE;
+    }
+    if (ptin_intf_port2intIfNum(ptin_port, &dstIntfNum)!=L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Non existent port");
+      return L7_FAILURE;
+    }
+
+    /* check for portChannel members */
+    if (usmDbDot3adIsMember(unit, dstIntfNum) == L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "This port is a portChannel member");
+      return L7_FAILURE;
+    }
+
+    PT_LOG_TRACE(LOG_CTX_MSG, "Configuring Destination interface intfNum %d", dstIntfNum);
+
+    rc = usmDbSwPortMonitorDestPortSet(unit, sessionNum, dstIntfNum);
+    if(rc != L7_SUCCESS)
+    {
+      if (rc == L7_ALREADY_CONFIGURED)
+      {
+        L7_uint32 auxIntfNum;
+        usmDbSwPortMonitorDestPortGet(unit, sessionNum, &auxIntfNum);
+
+        if (auxIntfNum != dstIntfNum)
+        {
+          PT_LOG_TRACE(LOG_CTX_MSG, "Destination interface is already configured with a different value (current intfNum %d)", auxIntfNum);
+          return L7_FAILURE;
+        }
+        //else
+        //  Nothing to be done
+      }
+      else
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "Some error occurred (%d)", rc); 
+        return L7_FAILURE;
+      }
+    }    
+  }
+
+  /* Configure Source interface */
+  if (msg->mask & PORT_MIRROR_MASK_src_intf)
+  {
+    for (n=0; n<msg->n_intf && n<PTIN_SYSTEM_MAX_N_PORTS; n++)
+    {
+      /* Convert Src intfId to intfNum */
+      if (ptin_msg_ptinPort_get(msg->src_intf[n].intf.intf_type, msg->src_intf[n].intf.intf_id, &ptin_port)!=L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "Invalid port. Ignoring this one!");
+        rc_global = L7_FAILURE;
+        continue;
+      }
+      if (ptin_intf_port2intIfNum(ptin_port, &srcIntfNum)!=L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "Non existent port. Ignoring this one!");
+        rc_global = L7_FAILURE;
+        continue;
+      }  
+
+      /* check for portChannel members */
+      if (usmDbDot3adIsMember(unit, srcIntfNum) == L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "This port is a portChannel member. Ignoring this one!");
+        rc_global = L7_FAILURE;
+        continue;
+      }
+
+      if (msg->src_intf[n].direction > 3)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "With INVALID (%u) Direction! Ignoring this port!", msg->src_intf[n].direction);
+        rc_global = L7_FAILURE;
+        continue;
+      }
+
+      type = msg->src_intf[n].direction;
+      
+      usmDbSwPortMonitorSourcePortsGet(unit, sessionNum, &srcIntfMask);
+      usmDbConvertMaskToList(&srcIntfMask, listSrcPorts, &numPorts);
+      listSrcPorts[numPorts++] = srcIntfNum;
+
+      PT_LOG_TRACE(LOG_CTX_MSG, "Configuring Source interface intfNum %d with direction %u", dstIntfNum, type);
+      
+      if (type == L7_MIRROR_UNCONFIGURED)
+      {
+        PT_LOG_TRACE(LOG_CTX_MSG, "Removing intfNum %d", srcIntfNum);
+        rc = usmDbSwPortMonitorSourcePortRemove(unit, sessionNum, srcIntfNum);
+
+        /* Configure Egress XLATE on the destination interface */
+
+        // TODO
+      }
+      else
+      {
+        PT_LOG_TRACE(LOG_CTX_MSG, "Adding intfNum %d", srcIntfNum);
+        rc = usmDbSwPortMonitorSourcePortAdd(unit, sessionNum, srcIntfNum, type);
+
+        /* Configure Egress XLATE on the destination interface */
+
+        // TODO
+      }
+
+      if(rc != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "Some error occurred (%d)", rc);
+        rc_global = rc;
+      }
+    }
+  }
+
+  /* Enable/Disable this session */
+  if (msg->mask & PORT_MIRROR_MASK_sessionMode)
+  {
+    mode = msg->sessionMode? L7_ENABLE:L7_DISABLE;
+    
+    PT_LOG_TRACE(LOG_CTX_MSG, "%s Mirror session", msg->sessionMode? "Enabling" : "Disabling");
+
+    if (mode == L7_ENABLE)
+    {
+      /* Enable Monitor Session */
+      rc = usmDbSwPortMonitorModeSet(unit, sessionNum, L7_ENABLE);
+      if(rc != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "Session do not exists");
+        return L7_FAILURE;
+      }
+    }
+    else {
+      
+      /* Remove Monitor Session */
+      rc = usmDbSwPortMonitorSessionRemove(unit, sessionNum);
+      if(rc != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "Some error occurred (%d)", rc);
+        return L7_FAILURE;
+      }
+
+      /* Disable Monitor Session */
+      //rc = usmDbSwPortMonitorModeSet(unit, sessionNum, L7_DISABLE);
+      //rc = usmDbSwPortMonitorSourcePortRemove(unit, sessionNum, intfNum);
+      //rc = usmDbSwPortMonitorDestPortRemove(unit, sessionNum);
+      
+    }
+  }
+
+  PT_LOG_TRACE(LOG_CTX_MSG, "Return value is %u",rc_global);
+  return rc_global;
+}
+
 
 /* ********************************************************************* */
 

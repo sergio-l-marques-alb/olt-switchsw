@@ -4868,7 +4868,30 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break;
 
 
+    case CCMSG_PORTMIRROR_SESSION_ADD:
+    case CCMSG_PORTMIRROR_SESSION_REMOVE:
+    case CCMSG_PORTMIRROR_PORT_ADD:
+    case CCMSG_PORTMIRROR_PORT_REMOVE:
+      {
+        PT_LOG_INFO(LOG_CTX_MSGHANDLER,
+                 "Message received: CCMSG_PORTMIRROR (0x%04X)", inbuffer->msgId);
 
+        CHECK_INFO_SIZE_MOD(msg_port_mirror_t);
+
+        /* Execute command */
+        rc = ptin_msg_mirror(inbuffer, outbuffer);
+
+        if (L7_SUCCESS != rc)
+        {
+          PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+          res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+          SetIPCNACK(outbuffer, res);
+          break;
+        }
+
+        SETIPCACKOK(outbuffer);
+      }
+      break;
 
     case CCMSG_PTP_LNX_NET_IF_SET:
       {

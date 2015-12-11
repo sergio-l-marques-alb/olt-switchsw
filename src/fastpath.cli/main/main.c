@@ -192,6 +192,8 @@ void help_oltBuga(void)
         "m 1851 index(0-15) - Query traceroute session\r\n"
         "m 1852 index(0-15) - Get traceroute session hops\r\n"
         "m 1853 index(0-15) - Free traceroute session\r\n"
+        "--- Port Mirroring  --------------------------------------------------------------------------------------------------------------\n\r"
+        "m 1885 mode=en(0/1) dstintf=intfType/intf# [srcintf=intfType/intf# dir=None/Both/Rx/Tx(0/1/2/3) ...]  - Configure Port Mirroring session. Multiple Src may be configured. \r\n"
         "--- OAM --------------------------------------------------------------------------------------------------------------------------\n\r"
         "m 1890 port# idx# packet_number(1-65535) packet_size(64-1500) period(0-127) dmmCosColor(0-7) - MEP Frame Delay Write \r\n"
         "m 1891 port# idx# packet_number(1-65535) packet_size(64-1500) period(0-127) dmmCosColor(0-7) - MEP Frame Delay Remove \r\n"
@@ -6900,6 +6902,130 @@ int main (int argc, char *argv[])
       }
       break;
 
+      /* Set Port Mirroring */
+      case 1885:
+        {
+          msg_port_mirror_t *ptr;
+
+          int ret,index;
+          int type, intf;
+          char param[21], value[21];
+
+          /* Validate number of arguments */
+          if (argc < 3+1)  {
+            help_oltBuga();
+            exit(0);
+          }
+
+          ptr = (msg_port_mirror_t *) &(comando.info[0]);
+          
+          ptr->slotId = (uint8)-1;
+          ptr->sessionId = 1;
+          ptr->mask = PORT_MIRROR_MASK_NONE;
+          ptr->sessionMode = 0;
+          ptr->dst_intf.intf_type = 0;
+          ptr->dst_intf.intf_id   = 0;
+          ptr->n_intf = 0;
+
+          memset(ptr->src_intf, 0, PTIN_SYSTEM_MAX_N_PORTS);
+ 
+          for (index=(3+0); index<argc; index++)
+          {
+            param[0]='\0';
+            value[0]='\0';
+            if ((ret=sscanf(argv[index],"%20[^ \t:=]=%20s",param,value))!=2)
+            {
+              printf("Invalid syntax: use <param1>=<value1> <param2>=<value2> ... (%d param=\"%s\" value=\"%s\")\r\n",ret,param,value);
+              exit(0);
+            }
+
+            if (strcmp(param,"mode")==0 || strcmp(param,"sessionMode")==0)
+            {
+              if (StrToLongLong(value,&valued)<0)
+              {
+                printf("Invalid sessionMode \r\n");
+                exit(0);
+              }
+              ptr->sessionMode = (uint8) valued;
+
+              ptr->mask |= PORT_MIRROR_MASK_sessionMode;
+            }
+            else if (strcmp(param,"dstintf")==0 || strcmp(param,"dst_intf")==0 || strcmp(param,"dstport")==0 || strcmp(param,"dst_port")==0)
+            {
+              if (sscanf(value,"%d/%d",&type,&intf)!=2)
+              {
+                printf("Invalid port value\r\n");
+                exit(0);
+              }
+              ptr->dst_intf.intf_type = type;
+              ptr->dst_intf.intf_id   = intf;
+
+              ptr->mask |= PORT_MIRROR_MASK_dst_intf;
+            }
+            else if (strcmp(param,"srcintf")==0 || strcmp(param,"src_intf")==0 || strcmp(param,"srcport")==0 || strcmp(param,"src_port")==0)
+            {
+              if (sscanf(value,"%d/%d",&type,&intf)!=2)
+              {
+                printf("Invalid port value\r\n");
+                exit(0);
+              }
+
+              if (ptr->n_intf >= PTIN_SYSTEM_MAX_N_PORTS) {
+                printf("Too may interaces specified \r\n");
+                exit(0);
+              }
+
+              ptr->src_intf[ptr->n_intf].intf.intf_type = type;
+              ptr->src_intf[ptr->n_intf].intf.intf_id   = intf;
+
+              index++;
+
+              if (index >= argc) {
+                printf("Too few arguments. Direction must be specified \r\n");
+                exit(0);
+              }
+
+              param[0]='\0';
+              value[0]='\0';
+
+              if ((ret=sscanf(argv[index],"%20[^ \t:=]=%20s",param,value))!=2)
+              {
+                printf("Invalid syntax: use <param1>=<value1> <param2>=<value2> ... (%d param=\"%s\" value=\"%s\")\r\n",ret,param,value);
+                exit(0);
+              }
+
+              if (strcmp(param,"dir")==0 || strcmp(param,"direction")==0)
+              {
+
+                if (StrToLongLong(value,&valued)<0)
+                {
+                  printf("Invalid direction value\r\n");
+                  exit(0);
+                }
+
+                ptr->src_intf[ptr->n_intf].direction = valued;
+              }
+              else
+              {
+                printf("direction must be specified \r\n");
+                exit(0);
+              }
+
+              ptr->n_intf += 1;
+              ptr->mask |= PORT_MIRROR_MASK_src_intf;
+            }
+            else
+            {
+              printf("Invalid param\r\n");
+              exit(0);
+            }
+          }
+
+          comando.msgId = CCMSG_PORTMIRROR_SESSION_ADD;
+          comando.infoDim = sizeof(msg_port_mirror_t);
+        }
+        break;
+
 //    "m 1890 port# idx# packet_number(1-65535) packet_size(64-1500) period(0-127) dmmCosColor(0-7) - MEP Frame Delay Write \r\n"
 //    "m 1891 port# idx# packet_number(1-65535) packet_size(64-1500) period(0-127) dmmCosColor(0-7) - MEP Frame Delay Remove \r\n"
     case 1890:
@@ -9521,7 +9647,8 @@ int main (int argc, char *argv[])
         printf(" IGMP MacBridge Client  Correctly Removed\n\r");
       else
         printf(" IGMP MacBridge Client Failed to Remove\n\r");          
-      break;
+      break;      
+
       case 1890:
       if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
         printf(" FrameDelay MEP Correctly Added\n\r");
