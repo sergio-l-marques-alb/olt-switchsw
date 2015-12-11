@@ -58,6 +58,8 @@
  *
  */
 
+#if (!((defined(LVL7_FIXUP)) && (defined(L7_SAL_MAP_TO_OSAPI)) && (!defined(__KERNEL__))))
 #define sal_free sal_free_safe
+#endif
  
 #endif /* _SHR_ALLOC_H */

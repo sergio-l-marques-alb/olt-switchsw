@@ -52,6 +52,11 @@
 
 #include <sal/types.h>
 
+#ifdef LVL7_FIXUP
+#include <soc/cm.h>
+#else
+#endif
+
 #include <sal/core/memlog.h>
 
 #ifndef USE_EXTERNAL_MEM_CHECKING
@@ -375,9 +380,15 @@ sal_dma_alloc(size_t sz, char *s)
      */
     sz = (sz + 3) & ~3;
 
+#if defined(LVL7_FIXUP) && !defined(PLISIM)
+    if ((p = soc_cm_salloc(0,sz + 12 ,s)) == 0) {
+        return p;
+    }
+#else
     if ((p = malloc(sz + 12)) == 0) {
 	return p;
     }
+#endif
 
     assert(INT_TO_PTR(PTR_TO_INT(p)) == p);
 
@@ -453,8 +464,12 @@ sal_dma_free(void *addr)
     MEMLOG_FREE("sal_dma_free", ap);
 
     ap[1] = 0;			/* Detect redundant frees */
+#if defined(LVL7_FIXUP) && !defined(PLISIM)
+    soc_cm_sfree(0, ap);
+#else
     /*    coverity[address_free : FALSE]    */
     free(ap);
+#endif
 }
 
 /* } */

@@ -58,5 +58,9 @@ bsl_config_t_init(bsl_config_t *config);
 extern int
 bsl_init(bsl_config_t *config);
 
+/* PTin added: BSL LOG */
+extern int
+bsl_vectors_get(bsl_config_t * dst);
+
 #endif /* _SHR_BSLEXT_H_ */
 

@@ -59,6 +59,15 @@
 #
 #
 
+LVL7_FIXUP = 1
+
+ifdef LVL7_FIXUP
+  ifdef QUIET
+    MAKE := @$(MAKE)
+  endif
+  MAKE := +$(MAKE)
+endif
+
 export DEST_DIR_SUFFIX :=$(subst $(realpath $(SDK))/systems,,$(realpath $(CURDIR)/$(dir ($(firstword $(MAKEFILE_LIST))))))
 
 ifeq (,$(kernel_version))
@@ -119,3 +128,10 @@ distclean:
 
 .PHONY: build clean distclean clean_d DELIVER variable mod bcm user
 
+
+ifdef LVL7_FIXUP
+.PHONY: get_sdk_flags
+
+get_sdk_flags:
+	$(MAKE) $(CMD) get_sdk_flags
+endif

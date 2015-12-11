@@ -1244,6 +1244,14 @@ _bcm_esw_link_fault_get(int unit, int port, int *fault)
 
     return BCM_E_NONE;
 }
+
+/* PTin added: linkscan */
+#if 1
+int _ptin_esw_link_fault_get(int unit, int port, int *fault)
+{
+  return _bcm_esw_link_fault_get(unit, port, fault);
+}
+#endif
 #endif /* HERC15, FIREBOLT */  
 
 
@@ -3297,6 +3305,70 @@ _bcm_esw_link_force(int unit, uint32 flags, bcm_port_t port,
 
     return(BCM_E_NONE);
 }
+
+/* PTin added: linkscan */
+#if 1
+int
+_ptin_esw_link_force(int unit, bcm_port_t port, int force, int link, int no_linkchange)
+{
+    soc_persist_t	*sop = SOC_PERSIST(unit);
+    ls_cntl_t		*lc = link_control[unit];
+    pbmp_t		pbm;
+
+    LC_CHECK_INIT(unit);
+
+    if (!SOC_PORT_VALID(unit, port) || !IS_PORT(unit, port)) {
+        return BCM_E_PORT;
+    }
+
+    LC_LOCK(unit);
+
+    if (force) {
+        SOC_PBMP_PORT_REMOVE(sop->lc_pbm_override_link, port);
+	    if (link) {
+            if (lc->lc_warm_boot) {
+                /* Don't update ports when recovering from Warm Boot. */
+                SOC_PBMP_PORT_ADD(sop->lc_pbm_link, port);
+                SOC_PBMP_PORT_REMOVE(sop->lc_pbm_link_change, port);
+            }
+	        SOC_PBMP_PORT_ADD(sop->lc_pbm_override_link, port);
+	    }
+        SOC_PBMP_PORT_ADD(sop->lc_pbm_override_ports, port);
+    } else {
+        SOC_PBMP_PORT_REMOVE(sop->lc_pbm_override_ports, port);
+        SOC_PBMP_PORT_REMOVE(sop->lc_pbm_override_link, port);
+        if (no_linkchange)
+        {
+          //SOC_PBMP_PORT_ADD(sop->lc_pbm_link, port);
+          SOC_PBMP_PORT_REMOVE(sop->lc_pbm_link_change, port);
+        }
+        else
+        {
+          SOC_PBMP_PORT_ADD(sop->lc_pbm_link_change, port);
+        }
+    }
+
+    /*
+     * Force immediate update to just this port - this allows loopback 
+     * forces to take effect immediately.
+     */
+    SOC_PBMP_CLEAR(pbm);
+    SOC_PBMP_PORT_ADD(pbm, port);
+    _bcm_esw_linkscan_update(unit, 0 /*flags*/, pbm);
+
+    LC_UNLOCK(unit);
+
+    /*
+     * Wake up master thread to notice changes - required if using hardware
+     * link scanning.
+     */
+    if (lc->lc_sema != NULL) {
+        sal_sem_give(lc->lc_sema);
+    }
+
+    return(BCM_E_NONE);
+}
+#endif
 
 /*
  * Function:    

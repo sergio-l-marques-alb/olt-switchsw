@@ -2179,6 +2179,8 @@ extern int bcm_vlan_port_stat_multi_set32(
                                                           egress out from this
                                                           VLAN port. */
 
+#define BCM_VLAN_PORT_INNER_VLAN_REPLACE    0x01000000  /* PTin added: Replace the port inner vid */
+
 /* Logical layer 2 port match criteria */
 typedef enum bcm_vlan_port_match_e {
     BCM_VLAN_PORT_MATCH_INVALID = 0,    /* Illegal. */

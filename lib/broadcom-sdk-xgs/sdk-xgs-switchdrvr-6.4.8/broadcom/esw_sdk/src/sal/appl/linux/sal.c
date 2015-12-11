@@ -48,9 +48,15 @@
 
 #include <shared/bsl.h>
 
+#ifdef LVL7_FIXUP
+#include <ctype.h>
+#include <stdlib.h>
+#include "bspapi.h"
+#else
 #include <linux/ctype.h>
 #include <linux/kernel.h>
 #include <linux/random.h>
+#endif
 
 #include <sal/core/time.h>
 #include <sal/core/thread.h>
@@ -242,6 +248,9 @@ sal_appl_init(void)
 void
 sal_reboot(void)
 {
+#ifdef LVL7_FIXUP
+  bspapiSwitchReset();
+#endif
 }
 
 /*
