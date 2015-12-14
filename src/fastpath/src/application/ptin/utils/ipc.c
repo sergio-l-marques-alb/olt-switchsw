@@ -19,6 +19,7 @@ uint8 ptin_board_slotId = 0;
 static int g_iInterfaceSW  = -1;      // Canal de dados com as aplicacoes cliente
 static int g_iInterfaceHW  = -1;      // Canal de dados com as aplicacoes firmware
 static int g_iInterfaceCX  = -1;      // Canal de dados com as aplicacoes firmware
+static int g_iInterfaceCX2 = -1;      // Canal de dados com as aplicacoes firmware
 static int g_iInterfaceMan = -1;      // Canal de dados com as aplicacoes firmware
 
 static  int g_iCCounter   = 0;      //
@@ -108,7 +109,7 @@ static void ipc_server_ipaddr_init(void);
         close_ipc(g_iInterfaceHW);
         return res;
       }
-      if ((res=open_ipc (IPC_HW_FP_CTRL_PORT2, INADDR_ANY, &CHMessageHandler, IPC_CH_TIMEOUT, &g_iInterfaceCX))!=S_OK)
+      if ((res=open_ipc (IPC_HW_FP_CTRL_PORT2, INADDR_ANY, &CHMessageHandler, IPC_CH_TIMEOUT, &g_iInterfaceCX2))!=S_OK)
       {
         PT_LOG_CRITIC(LOG_CTX_IPC,
                      "Nao foi possivel abrir o canal de comunicacoes para atendimento de mensagens (%08X).", res);
@@ -122,6 +123,7 @@ static void ipc_server_ipaddr_init(void);
                  "Nao foi possivel abrir o canal para o envio de mensagens (%08X).", res);
         close_ipc (g_iInterfaceHW);
         close_ipc (g_iInterfaceCX);
+        close_ipc (g_iInterfaceCX2);
         return res;
       }
 
@@ -142,6 +144,8 @@ static void ipc_server_ipaddr_init(void);
          close_ipc (g_iInterfaceHW);
       if (g_iInterfaceCX>=0)
          close_ipc (g_iInterfaceCX);
+      if (g_iInterfaceCX2>=0)
+         close_ipc (g_iInterfaceCX2);
       if (g_iInterfaceMan>=0)
          close_ipc (g_iInterfaceMan);
       PT_LOG_INFO(LOG_CTX_IPC,
