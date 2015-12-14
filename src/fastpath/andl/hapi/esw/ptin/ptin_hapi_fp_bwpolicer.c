@@ -199,7 +199,7 @@ L7_RC_t hapi_ptin_bwPolicer_get(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
 
   PT_LOG_TRACE(LOG_CTX_HAPI,"Looking to profile to find a matched bwPolicer...");
   PT_LOG_TRACE(LOG_CTX_HAPI,"Profile contents:");
-  PT_LOG_TRACE(LOG_CTX_HAPI," ptin_port = %d",bwPolicer->profile.ptin_port);
+  PT_LOG_TRACE(LOG_CTX_HAPI," ptin_ports= 0x%llx",bwPolicer->profile.ptin_port_bmp);
   PT_LOG_TRACE(LOG_CTX_HAPI," OVID_in   = %u",bwPolicer->profile.outer_vlan_lookup);
   PT_LOG_TRACE(LOG_CTX_HAPI," OVID_int  = %u",bwPolicer->profile.outer_vlan_ingress);
   PT_LOG_TRACE(LOG_CTX_HAPI," OVID_out  = %u",bwPolicer->profile.outer_vlan_egress);
@@ -234,7 +234,7 @@ L7_RC_t hapi_ptin_bwPolicer_get(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
   /* Copy meter data */
   bwPolicer->meter = policer_ptr->meter;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, " ptin_port = %d", bwPolicer->profile.ptin_port);
+  PT_LOG_TRACE(LOG_CTX_HAPI, " ptin_ports= 0x%llx", bwPolicer->profile.ptin_port_bmp);
   PT_LOG_TRACE(LOG_CTX_HAPI, " OVID_in   = %u", bwPolicer->profile.outer_vlan_lookup);
   PT_LOG_TRACE(LOG_CTX_HAPI, " OVID_int  = %u", bwPolicer->profile.outer_vlan_ingress);
   PT_LOG_TRACE(LOG_CTX_HAPI, " OVID_out  = %u", bwPolicer->profile.outer_vlan_egress);
@@ -293,7 +293,7 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
 
   PT_LOG_TRACE(LOG_CTX_HAPI,"Profile contents:");
   PT_LOG_TRACE(LOG_CTX_HAPI, "usp       = {%d,%d,%d}", usp->unit, usp->slot, usp->port);
-  PT_LOG_TRACE(LOG_CTX_HAPI," ptin_port = %d",profile->ptin_port);
+  PT_LOG_TRACE(LOG_CTX_HAPI," ptin_ports= 0x%llx",profile->ptin_port_bmp);
   PT_LOG_TRACE(LOG_CTX_HAPI," OVID_in   = %u",profile->outer_vlan_lookup);
   PT_LOG_TRACE(LOG_CTX_HAPI," OVID_int  = %u",profile->outer_vlan_ingress);
   PT_LOG_TRACE(LOG_CTX_HAPI," OVID_out  = %u",profile->outer_vlan_egress);
@@ -332,8 +332,8 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
   PT_LOG_TRACE(LOG_CTX_HAPI,"Validating profile inputs...");
 
   /* If there is not enough input parameters, remove bwPolicer and leave */
-  if ( (/*(usp->unit<0 && usp->slot<0 && usp->port<0) &&*/
-        /*(profile->outer_vlan_lookup==0 || profile->outer_vlan_lookup>=4096) &&*/
+  if ( (/*(usp->unit<0 && usp->slot<0 && usp->port<0) && (profile->ptin_ports_bmp==0) &&
+        (profile->outer_vlan_lookup==0 || profile->outer_vlan_lookup>=4096) &&*/
         (profile->outer_vlan_ingress==0 || profile->outer_vlan_ingress>=4096) &&
         (profile->outer_vlan_egress==0 || profile->outer_vlan_egress>=4096) &&
         (profile->inner_vlan_ingress==0 || profile->inner_vlan_ingress>=4096) &&
@@ -365,11 +365,12 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
     if ( ( policer_ptr->ddUsp_src.unit      != usp->unit      ) ||
          ( policer_ptr->ddUsp_src.slot      != usp->slot      ) ||
          ( policer_ptr->ddUsp_src.port      != usp->port      ) ||
+         ( policer_ptr->ptin_port_bmp       != profile->ptin_port_bmp ) ||
          /*( policer_ptr->outer_vlan_lookup   != profile->outer_vlan_lookup ) ||*/
-         ( policer_ptr->outer_vlan_ingress != profile->outer_vlan_ingress ) ||
-         ( policer_ptr->outer_vlan_egress      != profile->outer_vlan_egress      ) ||
-         ( policer_ptr->inner_vlan_ingress       != profile->inner_vlan_ingress       ) ||
-         ( policer_ptr->inner_vlan_egress      != profile->inner_vlan_egress      ) ||
+         ( policer_ptr->outer_vlan_ingress  != profile->outer_vlan_ingress ) ||
+         ( policer_ptr->outer_vlan_egress   != profile->outer_vlan_egress  ) ||
+         ( policer_ptr->inner_vlan_ingress  != profile->inner_vlan_ingress ) ||
+         ( policer_ptr->inner_vlan_egress   != profile->inner_vlan_egress  ) ||
          ( policer_ptr->cos  != profile->cos && policer_ptr->cos<L7_COS_INTF_QUEUE_MAX_COUNT && profile->cos<L7_COS_INTF_QUEUE_MAX_COUNT) ||
          ( policer_ptr->cos>=L7_COS_INTF_QUEUE_MAX_COUNT && profile->cos<L7_COS_INTF_QUEUE_MAX_COUNT) ||
          ( policer_ptr->cos<L7_COS_INTF_QUEUE_MAX_COUNT && profile->cos>=L7_COS_INTF_QUEUE_MAX_COUNT) ||
@@ -424,8 +425,6 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
   meterInfo.pir       = meter->cir + meter->eir;
   meterInfo.pbs       = ((meter->cbs + meter->ebs) * 8) / 1000;
   meterInfo.colorMode = BROAD_METER_COLOR_AWARE;
-
-
 
   if ((result=hapiBroadPolicyCreate(policyType))!=L7_SUCCESS)
   {
@@ -489,8 +488,19 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
 
   if (stage == BROAD_POLICY_STAGE_INGRESS)
   {
+    /* Use port bitmap, if provided (only at ingress stage) */
+    if (bwPolicer->ptin_port_bmp != 0)
+    {
+      PT_LOG_TRACE(LOG_CTX_HAPI,"Going to use port bitmap 0x%ull", bwPolicer->ptin_port_bmp);
+
+      if (hapi_ptin_bcmPbmPort_get(bwPolicer->ptin_port_bmp, &pbm) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI,"Error getting port bitmap");
+        return L7_FAILURE;
+      }
+    }
     /* For valid usp values */
-    if (usp->unit >= 0 && usp->slot >= 0 && usp->port >= 0)
+    else if (usp->unit >= 0 && usp->slot >= 0 && usp->port >= 0)
     {
       if (ptin_hapi_portDescriptor_get(usp, dapi_g, &pbm, &portDescriptor, &dapiPortPtr, &hapiPortPtr) != L7_SUCCESS) 
       {
@@ -783,6 +793,7 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
   /* AT THIS POINT, THE NEW POLICER IS APPLIED TO HARDWARE */
 
   policer_ptr->ddUsp_src            = *usp;
+  policer_ptr->ptin_port_bmp        = profile->ptin_port_bmp;
   policer_ptr->outer_vlan_lookup    = profile->outer_vlan_lookup;
   policer_ptr->outer_vlan_ingress   = profile->outer_vlan_ingress;
   policer_ptr->outer_vlan_egress    = profile->outer_vlan_egress;
@@ -832,7 +843,7 @@ L7_RC_t hapi_ptin_bwPolicer_delete(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer,
   meter   = &bwPolicer->meter;
 
   PT_LOG_TRACE(LOG_CTX_HAPI,"Profile contents:");
-  PT_LOG_TRACE(LOG_CTX_HAPI," ptin_port = %d",profile->ptin_port);
+  PT_LOG_TRACE(LOG_CTX_HAPI," ptin_ports= 0x%llx",profile->ptin_port_bmp);
   PT_LOG_TRACE(LOG_CTX_HAPI," OVID_in   = %u",profile->outer_vlan_lookup);
   PT_LOG_TRACE(LOG_CTX_HAPI," OVID_int  = %u",profile->outer_vlan_ingress);
   PT_LOG_TRACE(LOG_CTX_HAPI," OVID_out  = %u",profile->outer_vlan_egress);
@@ -910,7 +921,7 @@ L7_RC_t hapi_ptin_bwPolicer_deleteAll(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolic
   if (bwPolicer != L7_NULLPTR)
   {
     PT_LOG_TRACE(LOG_CTX_HAPI,"Profile contents:");
-    PT_LOG_TRACE(LOG_CTX_HAPI," ptin_port = %d",bwPolicer->profile.ptin_port);
+    PT_LOG_TRACE(LOG_CTX_HAPI," ptin_ports= 0x%llx",bwPolicer->profile.ptin_port_bmp);
     PT_LOG_TRACE(LOG_CTX_HAPI," OVID_in   = %u",bwPolicer->profile.outer_vlan_lookup);
     PT_LOG_TRACE(LOG_CTX_HAPI," OVID_int  = %u",bwPolicer->profile.outer_vlan_ingress);
     PT_LOG_TRACE(LOG_CTX_HAPI," OVID_out  = %u",bwPolicer->profile.outer_vlan_egress);
@@ -954,6 +965,15 @@ L7_RC_t hapi_ptin_bwPolicer_deleteAll(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolic
       /* Check profile */
       if (bwPolicer != L7_NULLPTR)
       {
+        #if 0
+        /* ptin_ports match? */
+        if (bwPolicer->profile.ptin_port_bmp != policer_ptr->ptin_port_bmp)
+        {
+          PT_LOG_TRACE(LOG_CTX_HAPI,"Different ptin_ports list");
+          continue;
+        }
+        #endif
+
         #if 0
         /* Input vlan matches? */
         if ((bwPolicer->profile.outer_vlan_lookup >= 1 && bwPolicer->profile.outer_vlan_lookup <= 4095) &&
@@ -1012,9 +1032,9 @@ L7_RC_t hapi_ptin_bwPolicer_deleteAll(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolic
 
         if (rc != L7_SUCCESS)
         {
-          PT_LOG_ERR(LOG_CTX_HAPI,"Error destroying policy (policerId=%u): usp={%d,%d,%d}, OVLAN_in=%u, OVLAN_int=%u, IVLAN_in=%u, OVLAN_out=%u",
+          PT_LOG_ERR(LOG_CTX_HAPI,"Error destroying policy (policerId=%u): usp={%d,%d,%d}/ptin_ports=0x%llx, OVLAN_in=%u, OVLAN_int=%u, IVLAN_in=%u, OVLAN_out=%u",
                   policer_ptr->policy_id,
-                  policer_ptr->ddUsp_src.unit, policer_ptr->ddUsp_src.slot, policer_ptr->ddUsp_src.port,
+                  policer_ptr->ddUsp_src.unit, policer_ptr->ddUsp_src.slot, policer_ptr->ddUsp_src.port, policer_ptr->ptin_port_bmp,
                   policer_ptr->outer_vlan_lookup, policer_ptr->outer_vlan_ingress, policer_ptr->inner_vlan_ingress, policer_ptr->outer_vlan_egress);
           rc_policer  = rc;
           rc_global   = rc;
@@ -1024,8 +1044,8 @@ L7_RC_t hapi_ptin_bwPolicer_deleteAll(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolic
       /* If success, clear element in database */
       if (rc_policer == L7_SUCCESS)
       {
-        PT_LOG_TRACE(LOG_CTX_HAPI,"Policy destroyed: usp={%d,%d,%d}, OVLAN_in=%u, OVLAN_int=%u, IVLAN_in=%u, OVLAN_out=%u",
-                  policer_ptr->ddUsp_src.unit, policer_ptr->ddUsp_src.slot, policer_ptr->ddUsp_src.port,
+        PT_LOG_TRACE(LOG_CTX_HAPI,"Policy destroyed: usp={%d,%d,%d}/ptin_ports=0x%llx, OVLAN_in=%u, OVLAN_int=%u, IVLAN_in=%u, OVLAN_out=%u",
+                  policer_ptr->ddUsp_src.unit, policer_ptr->ddUsp_src.slot, policer_ptr->ddUsp_src.port, policer_ptr->ptin_port_bmp,
                   policer_ptr->outer_vlan_lookup, policer_ptr->outer_vlan_ingress, policer_ptr->inner_vlan_ingress, policer_ptr->outer_vlan_egress);
         ptin_hapi_policy_clear(policer_ptr, bwp_db);
       }
@@ -1071,6 +1091,7 @@ static void bwPolicy_clear_data(void *policy_ptr)
   ptr->inUse                = L7_FALSE;
   ptr->policy_id            = 0;
   ptr->ddUsp_src.unit       = ptr->ddUsp_src.slot = ptr->ddUsp_src.port = -1;
+  ptr->ptin_port_bmp        = 0;
   ptr->outer_vlan_lookup    = 0;
   ptr->outer_vlan_ingress   = 0;
   ptr->outer_vlan_egress    = 0;
@@ -1104,19 +1125,20 @@ static L7_BOOL bwPolicy_compare(DAPI_USP_t *usp, void *profile_ptr, const void *
       /*(usp->unit >= 0 && usp->slot >= 0 && usp->port >= 0) &&*/
       (usp->unit != ptr->ddUsp_src.unit ||
        usp->slot != ptr->ddUsp_src.slot ||
-       usp->port != ptr->ddUsp_src.port))  return L7_FALSE;
+       usp->port != ptr->ddUsp_src.port /*||
+       profile->ptin_port_bmp != ptr->ptin_port_bmp*/))  return L7_FALSE;
 
   /* Verify SVID*/
   //if (profile->outer_vlan_lookup       != ptr->outer_vlan_lookup)       return L7_FALSE;
   if (profile->outer_vlan_ingress != ptr->outer_vlan_ingress) return L7_FALSE;
-  if (profile->outer_vlan_egress      != ptr->outer_vlan_egress)      return L7_FALSE;
+  if (profile->outer_vlan_egress  != ptr->outer_vlan_egress)  return L7_FALSE;
 
   /* Verify IVID */
-  if (profile->inner_vlan_ingress !=ptr->inner_vlan_ingress )  return L7_FALSE;
-  if (profile->inner_vlan_egress!=ptr->inner_vlan_egress)  return L7_FALSE;
+  if (profile->inner_vlan_ingress !=ptr->inner_vlan_ingress ) return L7_FALSE;
+  if (profile->inner_vlan_egress  !=ptr->inner_vlan_egress)   return L7_FALSE;
 
   /* COS */
-  if (profile->cos !=ptr->cos)  return L7_FALSE;
+  if (profile->cos != ptr->cos)  return L7_FALSE;
 
   /* MAC addr */
   if (memcmp(profile->macAddr, ptr->macAddr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN) != 0)  return L7_FALSE;
@@ -1167,18 +1189,19 @@ void ptin_bwpolicer_dump_debug(L7_uint32 vid_internal)
     }
 
     printf("Index %d:\r\n",index);
-    printf("  inUse = %u\r\n",ptr->inUse);
-    printf("  ddUsp_src= {%d,%d,%d}\r\n",ptr->ddUsp_src.unit,ptr->ddUsp_src.slot,ptr->ddUsp_src.port);
+    printf("  inUse     = %u\r\n",ptr->inUse);
+    printf("  ddUsp_src = {%d,%d,%d} ptin_ports=0x%llx\r\n",ptr->ddUsp_src.unit,ptr->ddUsp_src.slot,ptr->ddUsp_src.port,ptr->ptin_port_bmp);
+    printf("  ptin_ports= 0x%llx", ptr->ptin_port_bmp);
     //printf("  OVID_in  = %u\r\n",ptr->outer_vlan_lookup);
-    printf("  OVID_int = %u\r\n",ptr->outer_vlan_ingress);
-    printf("  OVID_out = %u\r\n",ptr->outer_vlan_egress);
-    printf("  IVID_in  = %u\r\n",ptr->inner_vlan_ingress);
-    printf("  IVID_out = %u\r\n",ptr->inner_vlan_egress);
-    printf("  COS      = %u\r\n",ptr->cos);
-    printf("  MAC      = %02x:%02x:%02x:%02x:%02x:%02x\r\n",ptr->macAddr[0],ptr->macAddr[1],ptr->macAddr[2],ptr->macAddr[3],ptr->macAddr[4],ptr->macAddr[5]);
+    printf("  OVID_int  = %u\r\n",ptr->outer_vlan_ingress);
+    printf("  OVID_out  = %u\r\n",ptr->outer_vlan_egress);
+    printf("  IVID_in   = %u\r\n",ptr->inner_vlan_ingress);
+    printf("  IVID_out  = %u\r\n",ptr->inner_vlan_egress);
+    printf("  COS       = %u\r\n",ptr->cos);
+    printf("  MAC       = %02x:%02x:%02x:%02x:%02x:%02x\r\n",ptr->macAddr[0],ptr->macAddr[1],ptr->macAddr[2],ptr->macAddr[3],ptr->macAddr[4],ptr->macAddr[5]);
     printf("  meter: cir=%u eir=%u cbs=%u ebs=%u\r\n",ptr->meter.cir,ptr->meter.eir,ptr->meter.cbs,ptr->meter.ebs);
-    printf("  policer_id = %u\r\n",ptr->policer_id);
-    printf("  policy_id  = %u\r\n",ptr->policy_id);
+    printf("  policer_id= %u\r\n",ptr->policer_id);
+    printf("  policy_id = %u\r\n",ptr->policy_id);
     /* Also print hw group id and entry id*/
     /* PTin modified: SDK 6.3.0 */
     if (l7_bcm_policy_hwInfo_get(0,ptr->policy_id,0,&group_id,&entry_id,&policer_id,&counter_id)==L7_SUCCESS)

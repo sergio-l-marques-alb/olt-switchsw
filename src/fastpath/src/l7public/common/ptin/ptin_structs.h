@@ -856,6 +856,7 @@ typedef struct {
 typedef struct {
   L7_uint8   inUse;                     // This entry is in use (TRUE to be in use)
   DAPI_USP_t ddUsp_src;                 // Source interface (have precedence over port_bmp_src)
+  L7_uint64  ptin_port_bmp;             // Port bitmap
   L7_uint16  outer_vlan_lookup;         // SVlan (0 value means no appliance)
   L7_uint16  outer_vlan_ingress;        // SVlan (0 value means no appliance)
   L7_uint16  outer_vlan_egress;         // SVlan (0 value means no appliance)
@@ -869,7 +870,8 @@ typedef struct {
 } ptin_bw_policy_t;
 
 typedef struct {
-  L7_int     ptin_port;                 // Interface
+  L7_uint32  ptin_port;                 // Single interface
+  L7_uint64  ptin_port_bmp;             // List of Interfaces
   L7_uint16  outer_vlan_lookup;         // SVlan (0 value means no appliance)
   L7_uint16  outer_vlan_ingress;        // SVlan (0 value means no appliance)
   L7_uint16  outer_vlan_egress;         // SVlan (0 value means no appliance)
@@ -881,6 +883,7 @@ typedef struct {
 
 typedef struct {
   L7_int             operation;         // Operation: DAPI_CMD_GET / DAPI_CMD_SET / DAPI_CMD_CLEAR / DAPI_CMD_CLEAR_ALL
+  L7_uint64          ptin_port_bmp;     // List of ports to apply profile
   ptin_bw_profile_t  profile;           // Profile data
   ptin_bw_meter_t    meter;             // Meter info
   ptin_bw_policy_t  *policy_ptr;        // Policy pointer

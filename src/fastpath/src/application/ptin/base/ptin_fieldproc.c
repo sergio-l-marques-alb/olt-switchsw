@@ -150,6 +150,7 @@ L7_RC_t ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_meter_t *meter, L
 {
   L7_uint32 intIfNum;
   ptin_bwPolicer_t bwPolicer;
+  L7_uint64 ptin_port_bmp = 0;
   L7_RC_t rc;
 
   /* Policer must be a valid pointer */
@@ -159,12 +160,39 @@ L7_RC_t ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_meter_t *meter, L
     return L7_FAILURE;
   }
   /* Get intIfNum */
-  if (profile->ptin_port >= 0)
+  if (ptin_intf_port2intIfNum(profile->ptin_port, &intIfNum) != L7_SUCCESS) 
   {
-    if (ptin_intf_port2intIfNum(profile->ptin_port, &intIfNum) != L7_SUCCESS) 
+    PT_LOG_ERR(LOG_CTX_EVC,"Invalid ptin_port %u", profile->ptin_port);
+    return L7_FAILURE;
+  }
+
+  /* Get intIfNum */
+  if (profile->ptin_port >= 0 && profile->ptin_port < PTIN_SYSTEM_N_INTERF)
+  {
+    /* Is it a LAG? */
+    if (profile->ptin_port >= PTIN_SYSTEM_N_PORTS)
     {
-      PT_LOG_ERR(LOG_CTX_EVC,"Invalid ptin_port %u", profile->ptin_port);
-      return L7_FAILURE;
+      ptin_LACPLagConfig_t lagInfo;
+
+      /* Get LAG id */
+      if (ptin_intf_port2lag(profile->ptin_port, &lagInfo.lagId) == L7_SUCCESS)
+      {
+        /* Get LAG members */
+        if (ptin_intf_LagConfig_get(&lagInfo) == L7_SUCCESS && lagInfo.admin && lagInfo.members_pbmp64 != 0)
+        {
+          ptin_port_bmp = lagInfo.members_pbmp64;
+        }
+        else
+        {
+          PT_LOG_ERR(LOG_CTX_API, "ptin_port %u (LAG) does not have members", intIfNum, profile->ptin_port);
+          return L7_FAILURE;
+        }
+      }
+      else
+      {
+        PT_LOG_ERR(LOG_CTX_API, "Invalid ptin_port %u", profile->ptin_port);
+        return L7_FAILURE;
+      }
     }
   }
   else
@@ -174,11 +202,12 @@ L7_RC_t ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_meter_t *meter, L
 
   memset(&bwPolicer,0x00,sizeof(ptin_bwPolicer_t));
 
-  bwPolicer.operation  = DAPI_CMD_SET;
-  bwPolicer.profile    = *profile;
-  bwPolicer.meter      = *meter;
-  bwPolicer.policer_id = policer_id;
-  bwPolicer.policy_ptr = L7_NULLPTR;
+  bwPolicer.operation     = DAPI_CMD_SET;
+  bwPolicer.ptin_port_bmp = ptin_port_bmp;
+  bwPolicer.profile       = *profile;
+  bwPolicer.meter         = *meter;
+  bwPolicer.policer_id    = policer_id;
+  bwPolicer.policy_ptr    = L7_NULLPTR;
 
   rc = dtlPtinBWPolicer(intIfNum, &bwPolicer);
 
