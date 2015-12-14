@@ -1726,6 +1726,11 @@ int usl_bcm_port_wred_set(int unit, bcm_port_t port,
 
         rv = bcm_cosq_gport_discard_set(unit, wredParams->bcm_gport, 
                                         queueIndex, &discardParams);
+
+        PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_port=%u bcm_gport=0x%x queue=%u DP=%u, min=%u max=%u prob=%u flags=0x%x (rv=%d)",
+                    port, wredParams->bcm_gport, queueIndex, precIndex,
+                    discardParams.min_thresh, discardParams.max_thresh, discardParams.drop_probability, discardParams.flags, rv);
+
         if (L7_BCMX_OK(rv) != L7_TRUE)
         {
           break;    
