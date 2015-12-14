@@ -17,9 +17,11 @@
 #include "ptin_msg.h"
 #include "usmdb_telnet_api.h"
 #include "usmdb_sim_api.h"
+#include "usmdb_util_api.h"
 #include <unistd.h>
 #include <usmdb_nim_api.h>
 #include <string.h>
+#include <ctype.h>
 
 #include <dapi_db.h>
 
@@ -117,6 +119,8 @@ void ptin_debug(void)
   printf("  slot_monitor_dump                                               - Dump link status information\r\n");
   printf("  slot_monitor_reset <port>                                       - Reset link status data (local and remote)\r\n");
   printf("  ptin_debug_example <intIfNum> <oper> <param1> <param2>          - Generic DTL processor example\r\n");
+  printf("  ptin_process_cpu                                                - Show CPU utilization by each thread\r\n");
+  printf("  ptin_process_threshold                                          - Show CPU thresholds\r\n");
   printf("  cliTelnetAdminModeSet <port>\r\n");
   printf("  webAccessAdminModeSet <port>\r\n");
   printf("\r\n");                                                          
@@ -928,6 +932,149 @@ void ptin_lag_dump(void)
 
   return;
 }
+
+#define L7_BUFFSIZE  64*1024
+#define ESC_CHAR     0x1b
+L7_char8 buffer_threads[L7_BUFFSIZE];
+
+inline void print_string_hex(char *str, L7_uint16 max, L7_BOOL print_all, L7_BOOL char_identify)
+{
+  L7_uint16 i;
+
+  if (str == L7_NULLPTR)
+  {
+    return;
+  }
+
+  for (i = 0; i < max && (print_all || str[i] != '\0'); i++)
+  {
+    printf("%02x", str[i]);
+    if (char_identify)
+    {
+      if (str[i]=='\0')
+        printf("Z");
+      else if (str[i] == '\r')
+        printf("R");
+      else if (str[i] == '\n')
+        printf("N");
+      else if (str[i] == '\e')
+        printf("E");
+      else if (str[i]=='\t' || str[i]==' ')
+        printf("_");
+      else if (isdigit(str[i]))
+        printf("=");
+      else if (isalpha(str[i]))
+        printf("a");
+      else if (ispunct(str[i]))
+        printf(".");
+      else if (isgraph(str[i]))
+        printf("#");
+      else if (iscntrl(str[i]))
+        printf("$");
+      else if (str[i] < ' ' || (unsigned char) str[i] >= 127)
+        printf("!");
+      else
+        printf("?");
+    }
+    printf(" ");
+  }
+  printf("\r\n");
+}
+
+/**
+ * Show CPU utilization for each thread
+ * 
+ * @param hex 
+ * @param print_all 
+ * @param char_identify 
+ */
+void ptin_process_cpu(void)
+{
+  L7_char8   printBuf[L7_CLI_MAX_STRING_LENGTH];
+  L7_char8   *cpuUtil = "CPU Utilization:";
+  L7_uint32  cpuUtilLen = osapiStrnlen(cpuUtil, L7_CLI_MAX_STRING_LENGTH);
+
+  memset(buffer_threads, 0x00, sizeof(buffer_threads));
+
+  if(usmdbCpuUtilizationStringGet(1, buffer_threads, L7_BUFFSIZE) != L7_SUCCESS)
+  {
+    printf("Error getting CPU utilization!\r\n");
+    return;
+  }
+
+  L7_char8 *start;
+  L7_char8 *end;
+
+  start = buffer_threads;
+  end   = buffer_threads;
+  buffer_threads[L7_BUFFSIZE-1] = 0; /* For safety */
+
+  do
+  {
+    while ( ( isprint((int)*end ) ) ||
+             ( ESC_CHAR == *end  ) )
+    {
+       end++;
+    }
+    *end = '\0';
+
+    if (osapiStrncmp(start, cpuUtil, cpuUtilLen) == L7_NULL)
+    {
+      osapiSnprintf(printBuf, L7_CLI_MAX_STRING_LENGTH,"\r\n %s\r\n\r\n", start);
+      printf("%s",printBuf);
+    }
+    else
+    {
+      osapiSnprintf(printBuf, L7_CLI_MAX_STRING_LENGTH,"%s\r\n", start);
+      printf("%s",printBuf);
+    }
+
+    end++;               /* Skip over zero */
+    while ( ( iscntrl((int)*end ) ) &&
+             ( *end != ESC_CHAR ) &&
+             ( *end != '\0' )    &&
+             ( end - buffer_threads < L7_BUFFSIZE  ) )
+    {
+       end++;
+    }
+    start = end;
+  } while ( ( start - buffer_threads < L7_BUFFSIZE ) && ( start[1] != '\0' ) );
+
+  printf("\r\nDone!\r\n");
+}
+
+/**
+ * Show CPU thresholds
+ */
+void ptin_process_threshold(void)
+{
+  L7_uint32  risingThr = 0, risingInterval = 0;
+  L7_uint32  fallingThr = 0, fallingInterval = 0;
+  L7_uint32  memoryLowWatermark = 0;
+
+   (void) usmdbCpuUtilMonitorParamGet(1, 
+                                      SIM_CPU_UTIL_MONITOR_RISING_THRESHOLD_PARAM,
+                                      &risingThr);
+   (void) usmdbCpuUtilMonitorParamGet(1, 
+                                      SIM_CPU_UTIL_MONITOR_RISING_PERIOD_PARAM,
+                                      &risingInterval);
+   (void) usmdbCpuUtilMonitorParamGet(1, 
+                                      SIM_CPU_UTIL_MONITOR_FALLING_THRESHOLD_PARAM,
+                                      &fallingThr);
+   (void) usmdbCpuUtilMonitorParamGet(1, 
+                                      SIM_CPU_UTIL_MONITOR_FALLING_PERIOD_PARAM,
+                                      &fallingInterval);
+   (void) usmdbCpuFreeMemoryThresholdGet(1, &memoryLowWatermark);
+
+   printf("CPU Utilization Monitoring Parameters\r\n");
+   printf("Rising Threshold : %d %%\r\n", risingThr);
+   printf("Rising Interval  : %d secs\r\n", risingInterval);
+   printf("Falling Threshold: %d %%\r\n", fallingThr);
+   printf("Falling Interval : %d secs\r\n", fallingInterval);
+   printf("\r\n");
+   printf("CPU Free Memory Monitoring Threshold: %d KB\r\n", memoryLowWatermark);
+}
+
 
 
 /**
