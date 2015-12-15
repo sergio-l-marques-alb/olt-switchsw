@@ -26,11 +26,16 @@
 #include "usmdb_filter_api.h"
 #include "usmdb_mib_vlan_api.h"
 
+#ifndef SNOOPING_API_H
+#include "snooping_api.h"
+#endif
+
 #include "ptin_packet.h"
 #include "ptin_hal_erps.h"
 
 #include "dtlinclude.h"
 #include "usmdb_nim_api.h"
+
 
 #include <vlan_port.h>
 
@@ -3643,7 +3648,7 @@ L7_RC_t ptin_evc_config(L7_uint32 evc_ext_id, ptin_HwEthMef10EvcOptions_t *evcOp
  */
 L7_RC_t ptin_evc_delete(L7_uint32 evc_ext_id)
 {
-  L7_uint evc_id;
+  L7_uint evc_id, i;
 
   PT_LOG_TRACE(LOG_CTX_EVC, "Deleting eEVC# %u...", evc_ext_id);
 
@@ -3786,6 +3791,18 @@ L7_RC_t ptin_evc_delete(L7_uint32 evc_ext_id)
       //return L7_FAILURE;/*Operation still running*/
     }
     PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: Removed mc_group 0x%08x", evc_id, evcs[evc_id].multicast_group);
+
+    /* Remove all configured interfaces */
+    for (i=0; i<PTIN_SYSTEM_N_INTERF; i++)
+    {
+      if (!evcs[evc_id].intf[i].in_use)
+      continue;
+
+      ptin_igmp_snooping_channel_reset(evcs[evc_id].rvlan, i);
+
+      PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: Succefully channel snooping reset 0x%08x", evc_id, evcs[evc_id].multicast_group);
+    }
+
   }  
   evcs[evc_id].multicast_group = -1;
 

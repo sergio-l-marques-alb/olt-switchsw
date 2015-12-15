@@ -16,6 +16,7 @@
 #include "ptin_mgmd_defs.h"
 #include "ptin_globaldefs.h"
 
+extern unsigned int ptin_igmp_snooping_channel_reset(L7_uint16 vlanId ,L7_uint intf);
 unsigned int snooping_igmp_admin_set(unsigned char admin);
 unsigned int snooping_mld_admin_set(unsigned char admin);
 
@@ -46,6 +47,5 @@ unsigned int snooping_port_open(unsigned int serviceId, unsigned int portId, uns
 unsigned int snooping_port_close(unsigned int serviceId, unsigned int portId, unsigned int groupAddr, unsigned int sourceAddr);
 
 unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLength, unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned char family);
-
 #endif /* SNOOPING_MGMD_API_H */
 

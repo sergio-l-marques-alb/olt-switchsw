@@ -4192,3 +4192,17 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
 
   return rc;
 }
+
+/**
+* @purpose This method is to reset the snooping channels in a 
+*          specific vlan
+*
+* @return RC_t
+*
+* 
+*/
+L7_RC_t ptin_igmp_snooping_channel_reset(L7_uint16 vlanId , L7_uint intf)
+{
+  snoopChannelReset(vlanId, intf);
+  return L7_SUCCESS;
+}
