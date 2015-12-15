@@ -340,7 +340,9 @@ L7_RC_t ptin_hapi_maclimit_inc(bcmx_l2_addr_t *bcmx_l2_addr)
 
     if (!(bcmx_l2_addr->flags & BCM_L2_MOVE))
     {
+      if(ptin_hapi_l2_enable)
       PT_LOG_TRACE(LOG_CTX_HAPI, "Increase MAC Learned in LAG %d", tgid);
+
       macLearn_info_lag[tgid].mac_counter++;
       macLearn_info_lag[tgid].mac_total++;
     }
@@ -387,7 +389,9 @@ L7_RC_t ptin_hapi_maclimit_inc(bcmx_l2_addr_t *bcmx_l2_addr)
       /* Feature enabled? */
       if (macLearn_info_physical[physical_port].enable == L7_FALSE)
       { 
+        if(ptin_hapi_l2_enable)
         PT_LOG_TRACE(LOG_CTX_HAPI, "Feature not enable");
+
         macLearn_info_physical[physical_port].mac_counter++;
         macLearn_info_physical[physical_port].mac_total++;
         return L7_FAILURE;
@@ -455,6 +459,7 @@ L7_RC_t ptin_hapi_maclimit_inc(bcmx_l2_addr_t *bcmx_l2_addr)
   {  
     /* Check if is a VLAN port */
     vlan_id = bcmx_l2_addr->vid;
+     if(ptin_hapi_l2_enable)
     PT_LOG_TRACE(LOG_CTX_HAPI, "Check if is a VLAN port");
 
     /* VLAN ID is valid? */

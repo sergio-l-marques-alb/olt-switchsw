@@ -3591,7 +3591,6 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
         /* This action allows rejected MACs to appear in Fdb table */
         //bcmx_l2_addr->flags &= ~((L7_uint32)BCM_L2_PENDING);
         //rv = usl_bcmx_l2_addr_delete(bcmx_l2_addr->mac, bcmx_l2_addr->vid);
-        PT_LOG_TRACE(LOG_CTX_HAPI, " Warning ");
         PT_LOG_WARN(LOG_CTX_HAPI, "MAC limit has been reached for VID %d, GPORT 0x%08X",
                     bcmx_l2_addr->vid, bcmx_l2_addr->lport);
       }
@@ -3630,7 +3629,6 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
       /* Save virtual port */
       if (BCM_GPORT_IS_VLAN_PORT(bcmx_l2_addr->lport))
       {
-        PT_LOG_TRACE(LOG_CTX_HAPI, " Warning ");
         macAddressInfo.virtual_port = _SHR_GPORT_VLAN_PORT_ID_GET(bcmx_l2_addr->lport);
       }
       else
