@@ -1,0 +1,225 @@
+
+/* $Id: jer_pp_eg_encap_access.c,v 1.20 Broadcom SDK $
+ * $Copyright: Copyright 2015 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+*/
+#include <soc/mcm/memregs.h>
+
+#ifdef _ERR_MSG_MODULE_NAME
+  #error "_ERR_MSG_MODULE_NAME redefined"
+#endif
+
+#define _ERR_MSG_MODULE_NAME BSL_SOC_EGRESS
+
+
+
+/*************
+ * INCLUDES  *
+ *************/
+/* { */
+
+#include <soc/dpp/SAND/Utils/sand_header.h>
+
+#include <soc/dpp/SAND/Management/sand_general_macros.h>
+#include <soc/dpp/SAND/Management/sand_error_code.h>
+#include <soc/dpp/SAND/Utils/sand_bitstream.h>
+
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_eg_encap_access.h>
+#include <soc/dpp/ARAD/arad_general.h>
+#include <soc/dpp/JER/JER_PP/jer_pp_eg_encap_access.h>
+
+/* } */
+/*************
+ * DEFINES   *
+ *************/
+/* { */
+
+/* } */
+/*************
+ * TYPE DEFS *
+ *************/
+/* { */
+
+ 
+ 
+/* } */
+/*************
+ * GLOBALS   *
+ *************/
+/* { */
+
+/* } */
+/*************
+ * FUNCTIONS *
+ *************/
+/* { */
+
+soc_error_t 
+  soc_jer_eg_encap_access_roo_link_layer_format_tbl_set(
+    SOC_SAND_IN  int             unit,
+    SOC_SAND_IN  uint32          outlif,
+    SOC_SAND_IN  JER_PP_EG_ENCAP_ACCESS_ROO_LL_ENTRY_FORMAT  *tbl_data
+  ) {
+  uint32
+    res = SOC_SAND_OK;
+  uint32
+    entry_offset,
+    internal_offset,
+    tmp = 0,
+    bank_id,
+    data[ARAD_PP_EG_ENCAP_ACCESS_FORMAT_TBL_ENTRY_SIZE];
+  uint64 mac64;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+
+  ARAD_CLEAR(data, uint32, ARAD_PP_EG_ENCAP_ACCESS_FORMAT_TBL_ENTRY_SIZE);
+
+  entry_offset = ARAD_PP_EG_ENCAP_ACCESS_OUT_LIF_TO_OFFSET(outlif);
+
+  if (!ARAD_PP_EG_ENCAP_ACCESS_EEDB_ENTRY_OFFSET_IS_LEGAL(unit, entry_offset)) { 
+    SOC_SAND_SET_ERROR_CODE(ARAD_PP_TBL_RANGE_OUT_OF_LIMIT, 10, exit);
+  }
+
+  bank_id = ARAD_PP_EG_ENCAP_ACCESS_OFFSET_TO_BANK_ID(unit, entry_offset);
+  internal_offset = ARAD_PP_EG_ENCAP_ACCESS_OFFSET_TO_INTERNAL_OFFSET(unit, entry_offset);
+
+  /* set ROO LL table data */
+
+  /* Key prefix set (same as link layer format */
+  tmp = ARAD_PP_EG_ENCAP_ACCESS_PREFIX_TYPE_LINK_LAYER;
+  res = soc_sand_bitstream_set_any_field(&tmp, ARAD_PP_EG_ENCAP_ACCESS_PREFIX_LSB(unit), ARAD_PP_EG_ENCAP_ACCESS_PREFIX_NOF_BITS(unit), data);
+  SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+
+  soc_mem_field32_set(unit, EPNI_LINK_LAYER_OR_ARP_NEW_FORMATm, data, ARP_LL_ACTION_TAGS_MSBf, tbl_data->outer_tag_msb); 
+  soc_mem_field32_set(unit, EPNI_LINK_LAYER_OR_ARP_NEW_FORMATm, data, ARP_LL_ACTION_ETHER_TYPE_INDEXf, tbl_data->ether_type_index); 
+  soc_mem_field32_set(unit, EPNI_LINK_LAYER_OR_ARP_NEW_FORMATm, data, ARP_LL_ACTION_REMARK_PROFILEf, tbl_data->remark_profile); 
+  soc_mem_field32_set(unit, EPNI_LINK_LAYER_OR_ARP_NEW_FORMATm, data, ARP_LL_ACTION_NUMBER_OF_TAGSf, tbl_data->nof_tags); 
+  soc_mem_field32_set(unit, EPNI_LINK_LAYER_OR_ARP_NEW_FORMATm, data, ARP_LL_ACTION_ACTION_SAf, tbl_data->sa_lsb); 
+  COMPILER_64_SET(mac64, tbl_data->dest_mac[1], tbl_data->dest_mac[0]);
+  soc_mem_field64_set(unit, EPNI_LINK_LAYER_OR_ARP_NEW_FORMATm, data, ARP_LL_ACTION_ACTION_DAf, mac64); 
+  /* roo-link-format-identifier: used to indentify that the eedby entry is a roo link layer format
+   (field "type" is usually used to identify the eedb entry, but here the type is the same as link layer) */
+  soc_mem_field32_set(unit, EPNI_LINK_LAYER_OR_ARP_NEW_FORMATm, data, ARP_LL_ACTION_ACTION_IDENTIFIERf, 0x1); 
+  soc_mem_field32_set(unit, EPNI_LINK_LAYER_OR_ARP_NEW_FORMATm, data, ARP_LL_ACTION_DROPf, tbl_data->drop); 
+  soc_mem_field32_set(unit, EPNI_LINK_LAYER_OR_ARP_NEW_FORMATm, data, ARP_LL_ACTION_PCP_DEI_PROFILEf, tbl_data->pcp_dei_profile); 
+
+  SOC_SAND_SOC_IF_ERROR_RETURN(res, 1100, exit, WRITE_EDB_EEDB_BANKm(unit, bank_id, MEM_BLOCK_ANY, internal_offset, data));
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in soc_jer_eg_encap_access_roo_link_layer_format_tbl_set()", outlif, 0);
+}
+
+
+soc_error_t
+  soc_jer_eg_encap_access_roo_link_layer_format_tbl_get(
+    SOC_SAND_IN  int             unit,
+    SOC_SAND_IN  uint32              outlif,
+    SOC_SAND_OUT JER_PP_EG_ENCAP_ACCESS_ROO_LL_ENTRY_FORMAT  *tbl_data
+  ) {
+  uint32
+    res = SOC_SAND_OK;
+  uint32
+    entry_offset,
+    internal_offset,
+    tmp = 0,
+    bank_id,
+    data[ARAD_PP_EG_ENCAP_ACCESS_FORMAT_TBL_ENTRY_SIZE], 
+    roo_link_format_identifier;
+  uint64 mac64;
+
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+
+  ARAD_CLEAR(data, uint32, ARAD_PP_EG_ENCAP_ACCESS_FORMAT_TBL_ENTRY_SIZE);
+  ARAD_CLEAR(tbl_data, ARAD_PP_EG_ENCAP_ACCESS_DATA_ENTRY_FORMAT, 1);
+
+  entry_offset = ARAD_PP_EG_ENCAP_ACCESS_OUT_LIF_TO_OFFSET(outlif);
+
+  if (!ARAD_PP_EG_ENCAP_ACCESS_EEDB_ENTRY_OFFSET_IS_LEGAL(unit, entry_offset))
+  { 
+    SOC_SAND_SET_ERROR_CODE(ARAD_PP_TBL_RANGE_OUT_OF_LIMIT, 10, exit);
+  }
+
+  bank_id = ARAD_PP_EG_ENCAP_ACCESS_OFFSET_TO_BANK_ID(unit, entry_offset);
+  internal_offset = ARAD_PP_EG_ENCAP_ACCESS_OFFSET_TO_INTERNAL_OFFSET(unit, entry_offset);
+
+  SOC_SAND_SOC_IF_ERROR_RETURN(res, 1000, exit, READ_EDB_EEDB_BANKm(unit, bank_id, MEM_BLOCK_ANY, internal_offset, data));
+
+  /* Key prefix get */
+  res = soc_sand_bitstream_get_any_field(data, ARAD_PP_EG_ENCAP_ACCESS_PREFIX_LSB(unit), ARAD_PP_EG_ENCAP_ACCESS_PREFIX_NOF_BITS(unit), &tmp);
+  SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+
+  /* check entry matches LL */
+  if ((tmp & ARAD_PP_EG_ENCAP_ACCESS_LL_ENTRY_PREFIX_MASK) != (ARAD_PP_EG_ENCAP_ACCESS_PREFIX_TYPE_LINK_LAYER)) {
+      SOC_SAND_SET_ERROR_CODE(ARAD_PP_EG_ENCAP_ACCESS_ENTRY_TYPE_MISMATCH_ERR, 10, exit);
+  }
+
+  /* bit specific to ROO LL */
+  roo_link_format_identifier = soc_mem_field32_get(unit, EPNI_LINK_LAYER_OR_ARP_NEW_FORMATm, data, ARP_LL_ACTION_ACTION_IDENTIFIERf); 
+  
+  /*check ROO Link format identifier is 1. (Differentiate between LL and roo LL) */
+  if (roo_link_format_identifier  != 1) {
+      SOC_SAND_SET_ERROR_CODE(ARAD_PP_EG_ENCAP_ACCESS_ENTRY_TYPE_MISMATCH_ERR, 20, exit);
+  }
+
+  tbl_data->outer_tag_msb = soc_mem_field32_get(unit, EPNI_LINK_LAYER_OR_ARP_NEW_FORMATm, data, ARP_LL_ACTION_TAGS_MSBf); 
+  tbl_data->ether_type_index = soc_mem_field32_get(unit, EPNI_LINK_LAYER_OR_ARP_NEW_FORMATm, data, ARP_LL_ACTION_ETHER_TYPE_INDEXf); 
+  tbl_data->remark_profile = soc_mem_field32_get(unit, EPNI_LINK_LAYER_OR_ARP_NEW_FORMATm, data, ARP_LL_ACTION_REMARK_PROFILEf); 
+  tbl_data->nof_tags = soc_mem_field32_get(unit, EPNI_LINK_LAYER_OR_ARP_NEW_FORMATm, data, ARP_LL_ACTION_NUMBER_OF_TAGSf); 
+  tbl_data->sa_lsb = soc_mem_field32_get(unit, EPNI_LINK_LAYER_OR_ARP_NEW_FORMATm, data, ARP_LL_ACTION_ACTION_SAf); 
+  soc_mem_field64_get(unit, EPNI_LINK_LAYER_OR_ARP_NEW_FORMATm, data, ARP_LL_ACTION_ACTION_DAf, &mac64); 
+  COMPILER_64_TO_32_HI(tbl_data->dest_mac[1], mac64);
+  COMPILER_64_TO_32_LO(tbl_data->dest_mac[0], mac64);
+  tbl_data->drop = soc_mem_field32_get(unit, EPNI_LINK_LAYER_OR_ARP_NEW_FORMATm, data, ARP_LL_ACTION_DROPf); 
+  tbl_data->pcp_dei_profile = soc_mem_field32_get(unit, EPNI_LINK_LAYER_OR_ARP_NEW_FORMATm, data, ARP_LL_ACTION_PCP_DEI_PROFILEf); 
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in soc_jer_eg_encap_access_roo_link_layer_format_tbl_get_unsafe()", outlif, 0);
+
+}
+ 
+
+/* } */
+
+#include <soc/dpp/SAND/Utils/sand_footer.h>
+
+

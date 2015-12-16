@@ -1,0 +1,1114 @@
+/* $Id: petra_scheduler_elements.c,v 1.7 Broadcom SDK $
+ * $Copyright: Copyright 2015 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+*/
+
+
+/*************
+ * INCLUDES  *
+ *************/
+/* { */
+#include <soc/dpp/SAND/Utils/sand_header.h>
+
+#include <soc/dpp/Petra/petra_scheduler_element_converts.h>
+#include <soc/dpp/Petra/petra_scheduler_elements.h>
+#include <soc/dpp/Petra/petra_scheduler_end2end.h>
+#include <soc/dpp/Petra/petra_api_framework.h>
+#include <soc/dpp/Petra/petra_tbl_access.h>
+#include <soc/dpp/Petra/petra_general.h>
+#include <soc/dpp/Petra/petra_scheduler_flows.h>
+/* } */
+
+/*************
+ * DEFINES   *
+ *************/
+/* { */
+
+/* } */
+
+/*************
+ *  MACROS   *
+ *************/
+/* { */
+
+/* $Id: petra_scheduler_elements.c,v 1.7 Broadcom SDK $
+ * The spouse flow id for a dual aggregate with flow id == flow_id is:
+ *  flow_id + 1 if flow_id is even.
+ *  flow_id - 1 if flow_id is odd
+ */
+#define SOC_PETRA_SCH_DUAL_SPOUSE_ID(flow_id) ( ((flow_id)&0x1)?((flow_id)-1):((flow_id)+1))
+
+/* } */
+
+/*************
+ * TYPE DEFS *
+ *************/
+/* { */
+
+/* } */
+
+/*************
+ * GLOBALS   *
+ *************/
+/* { */
+
+/* } */
+
+/*************
+ * FUNCTIONS *
+ *************/
+/* { */
+
+/*********************************************************************
+*     Details: in the H file. (search for prototype)
+*     It is assumed that se_ndx is verified by the calling function.
+*********************************************************************/
+uint32
+  soc_petra_sch_se_state_get(
+    SOC_SAND_IN     int                unit,
+    SOC_SAND_IN     SOC_PETRA_SCH_SE_ID          se_ndx,
+    SOC_SAND_OUT    uint8                *is_se_enabled
+  )
+{
+  uint32
+    offset = 0,
+    idx = 0,
+    res = SOC_SAND_OK;
+  SOC_PETRA_SCH_SEM_TBL_DATA
+    sem_tbl_data;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(SOC_PETRA_SCH_SE_STATE_GET);
+
+  /*
+   * Check input parameter
+   */
+  SOC_SAND_CHECK_NULL_INPUT(is_se_enabled);
+
+  offset  = se_ndx/8;
+  idx = se_ndx%8;
+
+  res = soc_petra_sch_sem_tbl_get_unsafe(
+          unit,
+          offset,
+          &sem_tbl_data
+        );
+  SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+
+  *is_se_enabled = (uint8)SOC_SAND_GET_BIT(sem_tbl_data.sch_enable, idx);
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in soc_petra_sch_se_state_get()",se_ndx,0);
+}
+
+/*********************************************************************
+*     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  soc_petra_sch_se_state_set(
+    SOC_SAND_IN     int                unit,
+    SOC_SAND_IN     SOC_PETRA_SCH_SE_ID          se_ndx,
+    SOC_SAND_IN     uint8                is_se_enabled
+  )
+{
+  uint32
+    offset = 0,
+    idx = 0,
+    res = SOC_SAND_OK;
+  SOC_PETRA_SCH_SEM_TBL_DATA
+    sem_tbl_data;
+  uint32
+    bit_val_to_set = 0;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(SOC_PETRA_SCH_SE_STATE_SET);
+
+  res = soc_petra_sch_se_id_verify_unsafe(
+          unit,
+          se_ndx
+        );
+  SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+
+  offset  = se_ndx/8;
+  idx = se_ndx%8;
+
+  res = soc_petra_sch_sem_tbl_get_unsafe(
+          unit,
+          offset,
+          &sem_tbl_data
+        );
+  SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+
+  bit_val_to_set = (is_se_enabled)?0x1:0x0;
+
+  if (SOC_SAND_GET_BIT(sem_tbl_data.sch_enable,idx) != bit_val_to_set)
+  {
+    SOC_SAND_SET_BIT(sem_tbl_data.sch_enable,bit_val_to_set,idx);
+     res = soc_petra_sch_sem_tbl_set_unsafe(
+          unit,
+          offset,
+          &sem_tbl_data
+        );
+    SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+  }
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in soc_petra_sch_se_state_set()",0,0);
+}
+
+/*********************************************************************
+*     Details: in the H file. (search for prototype)
+*     It is assumed that se_ndx is verified by the calling function
+*********************************************************************/
+uint32
+  soc_petra_sch_se_dual_shaper_get(
+    SOC_SAND_IN     int                unit,
+    SOC_SAND_IN     SOC_PETRA_SCH_SE_ID          se_ndx,
+    SOC_SAND_IN     SOC_PETRA_SCH_SE_TYPE        se_type,
+    SOC_SAND_OUT    uint8                *is_dual_shaper
+  )
+{
+  uint32
+    se_offset_ndx,
+    offset = 0,
+    idx = 0,
+    res = SOC_SAND_OK;
+  SOC_PETRA_SCH_DSM_TBL_DATA
+    dsm_tbl_data;
+  SOC_PETRA_SCH_FLOW_ID
+    flow_id;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(SOC_PETRA_SCH_SE_DUAL_SHAPER_GET);
+
+  /*
+   * Check input parameters
+   */
+  SOC_SAND_CHECK_NULL_INPUT(is_dual_shaper);
+
+  if (se_type == SOC_PETRA_SCH_SE_TYPE_CL)
+  {
+    se_offset_ndx = se_ndx - SOC_PETRA_CL_SE_ID_MIN;
+  }
+  else /* FQ or HR*/
+  {
+    /*
+     * Get scheduling element's flow index
+     */
+    flow_id = soc_petra_sch_se2flow_id(se_ndx);
+
+    /*
+     * The CL is the first scheduling element in the quartet
+     */
+    flow_id = SOC_PETRA_SCH_FLOW_BASE_QRTT_ID(flow_id);
+    se_offset_ndx = soc_petra_sch_flow2se_id(flow_id) - SOC_PETRA_CL_SE_ID_MIN;
+  }
+
+  offset  = se_offset_ndx / 16;
+  idx = se_offset_ndx % 16;
+
+  res = soc_petra_sch_dsm_tbl_get_unsafe(
+          unit,
+          offset,
+          &dsm_tbl_data
+        );
+  SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+
+  *is_dual_shaper = (uint8)SOC_SAND_GET_BIT(dsm_tbl_data.dual_shaper_ena, idx);
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in soc_petra_sch_se_dual_get()",0,0);
+}
+
+
+/*********************************************************************
+*     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  soc_petra_sch_se_dual_shaper_set(
+    SOC_SAND_IN     int                   unit,
+    SOC_SAND_IN     SOC_PETRA_SCH_FLOW_ID          se_ndx,
+    SOC_SAND_IN     uint8                   is_dual_shaper
+  )
+{
+  uint32
+    se_offset_ndx,
+    offset = 0,
+    idx = 0,
+    res = SOC_SAND_OK;
+  SOC_PETRA_SCH_DSM_TBL_DATA
+    dsm_tbl_data;
+  uint32
+    bit_val_to_set = 0;
+  SOC_PETRA_SCH_FLOW_ID
+    flow_id;
+  SOC_PETRA_SCH_SE_TYPE
+    se_type;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(SOC_PETRA_SCH_SE_DUAL_SHAPER_SET);
+
+  res = soc_petra_sch_se_id_verify_unsafe(
+          unit,
+          se_ndx
+        );
+  SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+
+  /*
+   * The dual shaper offset is according to the "CL" element of the
+   * pair sharing dual bucket.
+   */
+  se_type = soc_petra_sch_se_get_type_by_id(se_ndx);
+  if (se_type == SOC_PETRA_SCH_SE_TYPE_CL)
+  {
+    se_offset_ndx = se_ndx - SOC_PETRA_CL_SE_ID_MIN;
+  }
+  else /* FQ or HR*/
+  {
+    /*
+     * Get scheduling element's flow index
+     */
+    flow_id = soc_petra_sch_se2flow_id(se_ndx);
+
+    /*
+     * The CL is the first scheduling element in the quartet
+     */
+    flow_id = SOC_PETRA_SCH_FLOW_BASE_QRTT_ID(flow_id);
+    se_offset_ndx = soc_petra_sch_flow2se_id(flow_id) - SOC_PETRA_CL_SE_ID_MIN;
+  }
+
+  offset = se_offset_ndx / 16;
+  idx = se_offset_ndx % 16;
+
+  res = soc_petra_sch_dsm_tbl_get_unsafe(
+          unit,
+          offset,
+          &dsm_tbl_data
+        );
+  SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+
+  bit_val_to_set = (is_dual_shaper) ? 0x1 : 0x0;
+
+  if (SOC_SAND_GET_BIT(dsm_tbl_data.dual_shaper_ena,idx) != bit_val_to_set)
+  {
+    SOC_SAND_SET_BIT(dsm_tbl_data.dual_shaper_ena,bit_val_to_set,idx);
+    res = soc_petra_sch_dsm_tbl_set_unsafe(
+            unit,
+            offset,
+            &dsm_tbl_data
+          );
+    SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+  }
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in soc_petra_sch_se_dual_shaper_set()",0,0);
+}
+
+/*********************************************************************
+*     Details: in the H file. (search for prototype)
+*     It is assumed that se_ndx is verified by the calling function.
+*********************************************************************/
+uint32
+  soc_petra_sch_se_config_get(
+    SOC_SAND_IN   int           unit,
+    SOC_SAND_IN   SOC_PETRA_SCH_SE_ID     se_ndx,
+    SOC_SAND_IN   SOC_PETRA_SCH_SE_TYPE   se_type,
+    SOC_SAND_OUT  SOC_PETRA_SCH_SE_INFO  *se
+    )
+{
+  uint32
+    offset = 0,
+    res;
+  SOC_PETRA_SCH_SE_HR_MODE
+    hr_mode;
+  uint8
+    is_dual_shaper;
+  SOC_PETRA_SCH_SHC_TBL_DATA
+    shc_tbl_data;
+  SOC_PETRA_SCH_SCC_TBL_DATA
+    scc_tbl_data;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(SOC_PETRA_SCH_SE_CONFIG_GET);
+  SOC_SAND_CHECK_NULL_INPUT(se);
+
+  se->id = se_ndx;
+  se->type = se_type;
+
+  switch(se_type)
+    {
+    case SOC_PETRA_SCH_SE_TYPE_HR:
+      /*
+       * Read indirect from SHC table
+       */
+      /*
+       * Get id relative to base HR id -
+       * this is the table offset
+       */
+      offset  = se_ndx - SOC_PETRA_HR_SE_ID_MIN;
+      res = soc_petra_sch_shc_tbl_get_unsafe(
+              unit,
+              offset,
+              &shc_tbl_data
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+
+      res = soc_petra_sch_INTERNAL_HR_MODE_to_HR_MODE_convert(
+              shc_tbl_data.hrmode,
+              &hr_mode
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+
+      se->type_info.hr.mode = hr_mode;
+      break;
+    case SOC_PETRA_SCH_SE_TYPE_CL:
+      /*
+       * Read indirect from SCC table
+       */
+      /*
+       * Get id relative to base CL id -
+       * this is the table offset
+       */
+      offset  = se_ndx - SOC_PETRA_CL_SE_ID_MIN;
+      res = soc_petra_sch_scc_tbl_get_unsafe(
+              unit,
+              offset,
+              &scc_tbl_data
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 30, exit);
+
+      se->type_info.cl.id = scc_tbl_data.clsch_type;
+      break;
+    case SOC_PETRA_SCH_SE_TYPE_FQ:
+        break;
+    default:
+      SOC_SAND_SET_ERROR_CODE(SOC_PETRA_SCH_SE_TYPE_UNDEFINED_ERR, 40, exit);
+      break;
+    }
+
+    res = soc_petra_sch_se_dual_shaper_get(
+            unit,
+            se_ndx,
+            se_type,
+            &is_dual_shaper
+          );
+    SOC_SAND_CHECK_FUNC_RESULT(res, 50, exit);
+
+    se->is_dual = is_dual_shaper;
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("soc_petra_sch_se_config_get", 0, 0);
+}
+
+/*********************************************************************
+*     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  soc_petra_sch_se_config_set(
+    SOC_SAND_IN  int              unit,
+    SOC_SAND_IN  SOC_PETRA_SCH_SE_INFO     *se,
+    SOC_SAND_IN  uint32              nof_subflows
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+  uint32
+    internal_hr_mode,
+    offset;
+  SOC_PETRA_SCH_SE_ID
+    spouse_se_id;
+  SOC_PETRA_SCH_FLOW_ID
+    se_flow_id,
+    spouse_flow_id;
+  uint8
+    is_composite_agg_0_1,
+    dual_state,
+    spouse_id_is_enabled;
+  SOC_PETRA_SCH_SHC_TBL_DATA
+    shc_tbl_data;
+  SOC_PETRA_SCH_SCC_TBL_DATA
+    scc_tbl_data;
+  SOC_PETRA_SCH_GLOBAL_PER1K_INFO
+    global_per1k_info;
+  uint32
+    fsf_nof_subflows;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(SOC_PETRA_SCH_SE_CONFIG_SET);
+  SOC_SAND_CHECK_NULL_INPUT(se);
+
+  se_flow_id = soc_petra_sch_se2flow_id(se->id);
+  spouse_flow_id = SOC_PETRA_SCH_DUAL_SPOUSE_ID(se_flow_id);
+  spouse_se_id = soc_petra_sch_flow2se_id(spouse_flow_id);
+
+  res = soc_petra_sch_per1k_info_get_unsafe(
+          unit,0,
+          SOC_PETRA_SCH_FLOW_TO_1K_ID(se_flow_id),
+          &global_per1k_info
+        );
+  SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+
+  if (se->state == SOC_PETRA_SCH_SE_STATE_DISABLE)
+  {
+    res = soc_petra_sch_flow_nof_subflows_get(
+            unit,
+            SOC_PETRA_SCH_SUB_FLOW_BASE_FLOW(se->id, TRUE),
+            &fsf_nof_subflows
+          );
+    SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+
+    is_composite_agg_0_1 = SOC_SAND_NUM2BOOL((fsf_nof_subflows == 2) && (global_per1k_info.is_odd_even));
+    if (is_composite_agg_0_1 && SOC_PETRA_SCH_COMPOSITE_IS_SECOND_SUBFLOW(se_flow_id, TRUE))
+    {
+      SOC_SAND_SET_ERROR_CODE(SOC_PETRA_SCH_ILLEGAL_COMPOSITE_AGGREGATE_ERR, 11, exit);
+    }
+
+    res = soc_petra_sch_se_state_set(
+            unit,
+            se->id,
+            FALSE
+          );
+    SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+
+    if (is_composite_agg_0_1)
+    {
+      res = soc_petra_sch_se_state_set(
+              unit,
+              spouse_se_id,
+              FALSE
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+    }
+  }
+  else
+  {
+    is_composite_agg_0_1 = SOC_SAND_NUM2BOOL((nof_subflows == 2) && (global_per1k_info.is_odd_even));
+    if (is_composite_agg_0_1 && SOC_PETRA_SCH_COMPOSITE_IS_SECOND_SUBFLOW(se_flow_id, TRUE))
+    {
+      SOC_SAND_SET_ERROR_CODE(SOC_PETRA_SCH_ILLEGAL_COMPOSITE_AGGREGATE_ERR, 13, exit);
+    }
+    if (is_composite_agg_0_1 && se->is_dual)
+    {
+      SOC_SAND_SET_ERROR_CODE(SOC_PETRA_SCH_COMPOSITE_AGGREGATE_DUAL_SHAPER_ERR, 16, exit);
+    }
+
+    switch(se->type)
+    {
+    case SOC_PETRA_SCH_SE_TYPE_HR:
+      /*
+       * Write indirect to SHC table
+       */
+
+      /*
+       * Get id relative to base HR id -
+       * this is the table offset
+       */
+      offset = se->id - SOC_PETRA_HR_SE_ID_MIN;
+
+      res = soc_petra_sch_shc_tbl_get_unsafe(
+              unit,
+              offset,
+              &shc_tbl_data
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+
+      res = soc_petra_sch_HR_MODE_to_INTERNAL_HR_MODE_convert(
+              se->type_info.hr.mode,
+              &internal_hr_mode
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 30, exit);
+
+      if (shc_tbl_data.hrmode != internal_hr_mode)
+      {
+        shc_tbl_data.hrmode = internal_hr_mode;
+
+        res = soc_petra_sch_shc_tbl_set_unsafe(
+              unit,
+              offset,
+              &shc_tbl_data
+            );
+        SOC_SAND_CHECK_FUNC_RESULT(res, 40, exit);
+      }
+
+      break;
+    case SOC_PETRA_SCH_SE_TYPE_CL:
+      /*
+       * Write indirect to SCC table
+       */
+
+      /*
+       * Get id relative to base CL id -
+       * this is the table offset
+       */
+      offset  = se->id - SOC_PETRA_CL_SE_ID_MIN;
+
+      scc_tbl_data.clsch_type = se->type_info.cl.id;
+      res = soc_petra_sch_scc_tbl_set_unsafe(
+              unit,
+              offset,
+              &scc_tbl_data
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 50, exit);
+      break;
+    case SOC_PETRA_SCH_SE_TYPE_FQ:
+        break;
+    default:
+      SOC_SAND_SET_ERROR_CODE(SOC_PETRA_SCH_SE_TYPE_UNDEFINED_ERR, 40, exit);
+      break;
+    }
+
+    res = soc_petra_sch_se_state_get(
+            unit,
+            spouse_se_id,
+            &spouse_id_is_enabled
+          );
+    SOC_SAND_CHECK_FUNC_RESULT(res, 60, exit);
+
+    /* Is composite aggregate is configured that it cannot be dual */
+    dual_state = SOC_SAND_NUM2BOOL(spouse_id_is_enabled ? se->is_dual : FALSE);
+    res = soc_petra_sch_se_dual_shaper_set(
+            unit,
+            se->id,
+            dual_state
+          );
+    SOC_SAND_CHECK_FUNC_RESULT(res, 70, exit);
+
+    res = soc_petra_sch_se_state_set(
+          unit,
+          se->id,
+          TRUE
+        );
+    SOC_SAND_CHECK_FUNC_RESULT(res, 90, exit);
+
+    if (is_composite_agg_0_1)
+    {
+      res = soc_petra_sch_se_state_set(
+            unit,
+            spouse_se_id,
+            TRUE
+          );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 90, exit);
+    }
+  } /* SE Enable */
+
+exit:
+   SOC_SAND_EXIT_AND_SEND_ERROR("soc_petra_sch_se_config_set", 0, 0);
+}
+
+/********************************************************************
+*     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  soc_petra_sch_se_id_and_type_match_verify(
+    SOC_PETRA_SCH_SE_ID                   se_id,
+    SOC_PETRA_SCH_SE_TYPE                 se_type
+  )
+{
+  SOC_PETRA_SCH_SE_TYPE
+    se_type_from_id = SOC_PETRA_SCH_SE_TYPE_NONE;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(SOC_PETRA_SCH_SE_ID_AND_TYPE_MATCH_VERIFY);
+
+  se_type_from_id = soc_petra_sch_se_get_type_by_id(se_id);
+
+  if (se_type_from_id != se_type)
+  {
+    SOC_SAND_SET_ERROR_CODE(SOC_PETRA_SCH_SE_ID_AND_TYPE_MISMATCH_ERR, 10, exit)
+  }
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in soc_petra_sch_se_id_and_type_match_verify()",0,0);
+}
+
+/* CL { */
+
+/*********************************************************************
+*     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  soc_petra_sch_class_type_params_verify(
+    SOC_SAND_IN  int                 unit,
+    SOC_SAND_IN  SOC_PETRA_SCH_CL_CLASS_TYPE_ID cl_type_ndx,
+    SOC_SAND_IN  SOC_PETRA_SCH_SE_CL_CLASS_INFO *class_type
+  )
+{
+  SOC_SAND_INIT_ERROR_DEFINITIONS(SOC_PETRA_SCH_CLASS_TYPE_PARAMS_VERIFY);
+
+  SOC_SAND_CHECK_NULL_INPUT(class_type);
+
+  SOC_SAND_MAGIC_NUM_VERIFY(class_type);
+  SOC_SAND_ERR_IF_ABOVE_MAX(
+    cl_type_ndx, SOC_PETRA_SCH_NOF_CLASS_TYPES-1,
+    SOC_PETRA_SCH_CL_ID_OUT_OF_RANGE_ERR, 10, exit
+  );
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in soc_petra_sch_class_type_params_verify()",0,0);
+}
+
+/*********************************************************************
+*     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  soc_petra_sch_class_type_params_get_unsafe(
+    SOC_SAND_IN  int                 unit,
+    SOC_SAND_IN  SOC_PETRA_SCH_CL_CLASS_TYPE_ID cl_type_ndx,
+    SOC_SAND_OUT SOC_PETRA_SCH_SE_CL_CLASS_INFO *class_type
+  )
+{
+  uint32
+    offset,
+    res;
+  SOC_PETRA_SCH_SCT_TBL_DATA
+    sct_tbl_data;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(SOC_PETRA_SCH_CLASS_TYPE_PARAMS_GET_UNSAFE);
+
+  SOC_SAND_CHECK_NULL_INPUT(class_type);
+
+  SOC_SAND_ERR_IF_ABOVE_MAX(
+    cl_type_ndx, SOC_PETRA_SCH_NOF_CLASS_TYPES - 1,
+    SOC_PETRA_SCH_CL_ID_OUT_OF_RANGE_ERR, 2, exit
+  );
+
+  offset = cl_type_ndx;
+
+  res = soc_petra_sch_sct_tbl_get_unsafe(
+          unit,
+          offset,
+          &sct_tbl_data
+        );
+  SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+
+  class_type->id = cl_type_ndx;
+
+  /*
+   * Convert to user representation.
+   */
+  res = soc_petra_sch_INTERNAL_CLASS_TYPE_to_CLASS_TYPE_convert(
+          &sct_tbl_data,
+          class_type
+        );
+  SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in soc_petra_sch_class_type_params_get_unsafe()",0,0);
+}
+
+/*********************************************************************
+*     Sets a single class type in the table. The driver writes
+*     to the following tables: CL-Schedulers Type (SCT)
+*     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  soc_petra_sch_class_type_params_set_unsafe(
+    SOC_SAND_IN  int                 unit,
+    SOC_SAND_IN  SOC_PETRA_SCH_SE_CL_CLASS_INFO *class_type,
+    SOC_SAND_OUT SOC_PETRA_SCH_SE_CL_CLASS_INFO *exact_class_type
+  )
+{
+  uint32
+    offset,
+    res;
+  SOC_PETRA_SCH_SCT_TBL_DATA
+    sct_tbl_data;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(SOC_PETRA_SCH_CLASS_TYPE_PARAMS_SET_UNSAFE);
+
+
+  SOC_SAND_CHECK_NULL_INPUT(class_type);
+  SOC_SAND_CHECK_NULL_INPUT(exact_class_type);
+
+  SOC_PETRA_COPY(exact_class_type, class_type, SOC_PETRA_SCH_SE_CL_CLASS_INFO, 1);
+
+  /*
+   * Convert to internal representation.
+   */
+  res = soc_petra_sch_CLASS_TYPE_to_INTERNAL_CLASS_TYPE_convert(
+          unit,
+          class_type,
+          &sct_tbl_data
+        );
+  SOC_SAND_CHECK_FUNC_RESULT(res, 2, exit);
+
+  /*
+   * Set device internal queue type representation.
+   */
+  offset = class_type->id;
+
+  res = soc_petra_sch_sct_tbl_set_unsafe(
+          unit,
+          offset,
+          &sct_tbl_data
+        );
+  SOC_SAND_CHECK_FUNC_RESULT(res, 4, exit);
+
+  res = soc_petra_sch_sct_tbl_get_unsafe(
+          unit,
+          offset,
+          &sct_tbl_data
+        );
+  SOC_SAND_CHECK_FUNC_RESULT(res, 6, exit);
+
+
+  /*
+   * Convert back to user representation.
+   */
+  res = soc_petra_sch_INTERNAL_CLASS_TYPE_to_CLASS_TYPE_convert(
+          &sct_tbl_data,
+          exact_class_type
+        );
+  SOC_SAND_CHECK_FUNC_RESULT(res, 8, exit);
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in soc_petra_sch_class_type_params_set_unsafe()",0,0);
+}
+
+/*********************************************************************
+*     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  soc_petra_sch_class_type_params_table_verify(
+    SOC_SAND_IN  int                 unit,
+    SOC_SAND_IN  SOC_PETRA_SCH_SE_CL_CLASS_TABLE *sct
+  )
+{
+  uint32
+    idx, idx2;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(SOC_PETRA_SCH_CLASS_TYPE_PARAMS_TABLE_VERIFY);
+
+  SOC_SAND_CHECK_NULL_INPUT(sct);
+  SOC_SAND_MAGIC_NUM_VERIFY(sct);
+
+  SOC_SAND_ERR_IF_ABOVE_MAX(
+    sct->nof_class_types, SOC_PETRA_SCH_NOF_CLASS_TYPES,
+    SOC_PETRA_SCH_NOF_CLASS_TYPES_OUT_OF_RANGE_ERR, 10, exit
+  );
+
+  for (idx = 0; idx < sct->nof_class_types; idx++)
+  {
+
+    SOC_SAND_ERR_IF_ABOVE_MAX(
+      sct->class_types[idx].id, SOC_PETRA_SCH_NOF_CLASS_TYPES-1,
+      SOC_PETRA_SCH_CL_ID_OUT_OF_RANGE_ERR, 20, exit
+    );
+
+    SOC_SAND_ERR_IF_ABOVE_MAX(
+      sct->class_types[idx].mode, SOC_PETRA_SCH_CL_CLASS_MODE_LAST-1,
+      SOC_PETRA_SCH_CL_CLASS_MODE_OUT_OF_RANGE_ERR, 30, exit
+    );
+
+    SOC_SAND_ERR_IF_ABOVE_MAX(
+      sct->class_types[idx].mode, SOC_PETRA_SCH_CL_CLASS_MODE_LAST-1,
+      SOC_PETRA_SCH_CL_CLASS_MODE_OUT_OF_RANGE_ERR, 30, exit
+    );
+
+    for (idx2 = 0; idx2 < SOC_PETRA_SCH_MAX_NOF_DISCRETE_WEIGHT_VALS; idx2++)
+    {
+      SOC_SAND_ERR_IF_ABOVE_MAX(
+        sct->class_types[idx].weight[idx2], SOC_PETRA_SCH_DESCRETE_WEIGHT_MAX,
+        SOC_PETRA_SCH_DESCRETE_WEIGHT_OUT_OF_RANGE_ERR, 40, exit
+      );
+    }
+
+    SOC_SAND_ERR_IF_ABOVE_MAX(
+      sct->class_types[idx].weight_mode, SOC_PETRA_SCH_CL_CLASS_WEIGHTS_MODE_LAST-1,
+      SOC_PETRA_SCH_CL_CLASS_WEIGHTS_MODE_OUT_OF_RANGE_ERR, 50, exit
+    );
+
+    SOC_SAND_ERR_IF_ABOVE_MAX(
+      sct->class_types[idx].enhanced_mode, SOC_PETRA_SCH_CL_ENHANCED_MODE_LAST-1,
+      SOC_PETRA_SCH_CL_ENHANCED_MODE_OUT_OF_RANGE_ERR, 60, exit
+    );
+
+  }
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in soc_petra_sch_class_type_params_table_verify()",0,0);
+}
+
+/*********************************************************************
+*     Sets the scheduler class type table as a whole.
+*     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  soc_petra_sch_class_type_params_table_set_unsafe(
+    SOC_SAND_IN  int                 unit,
+    SOC_SAND_IN  SOC_PETRA_SCH_SE_CL_CLASS_TABLE *sct,
+    SOC_SAND_OUT SOC_PETRA_SCH_SE_CL_CLASS_TABLE *exact_sct
+  )
+{
+  uint32
+    res,
+    sct_index;
+  const SOC_PETRA_SCH_SE_CL_CLASS_INFO
+      *sct_entry;
+  SOC_PETRA_SCH_SE_CL_CLASS_INFO
+      *exact_sct_entry;
+  SOC_SAND_INIT_ERROR_DEFINITIONS(SOC_PETRA_SCH_CLASS_TYPE_PARAMS_TABLE_SET_UNSAFE);
+
+  SOC_SAND_CHECK_NULL_INPUT(sct);
+  SOC_SAND_CHECK_NULL_INPUT(exact_sct);
+
+  /*
+   * Set SCT table.
+   */
+  exact_sct->nof_class_types = 0;
+  for (sct_index = 0; sct_index < sct->nof_class_types; ++sct_index)
+  {
+    sct_entry = &sct->class_types[sct_index];
+    exact_sct_entry = &exact_sct->class_types[sct_index];
+    res = soc_petra_sch_class_type_params_set_unsafe(
+            unit,
+            sct_entry,
+            exact_sct_entry
+          );
+    SOC_SAND_CHECK_FUNC_RESULT(res, 2, exit);
+    exact_sct->nof_class_types++;
+  }
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in soc_petra_sch_class_type_params_table_set_unsafe()",0,0);
+}
+
+/*********************************************************************
+*     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  soc_petra_sch_class_type_params_table_get_unsafe(
+    SOC_SAND_IN  int                 unit,
+    SOC_SAND_OUT SOC_PETRA_SCH_SE_CL_CLASS_TABLE *sct
+  )
+{
+  uint32
+    res,
+    sct_index;
+  SOC_PETRA_SCH_SE_CL_CLASS_INFO
+      sct_entry;
+  SOC_SAND_INIT_ERROR_DEFINITIONS(SOC_PETRA_SCH_CLASS_TYPE_PARAMS_TABLE_GET_UNSAFE);
+
+  SOC_SAND_CHECK_NULL_INPUT(sct);
+
+  soc_petra_PETRA_SCH_SE_CL_CLASS_INFO_clear(&sct_entry);
+
+  sct->nof_class_types = SOC_PETRA_SCH_NOF_CLASS_TYPES;
+  /*
+   * Get SCT table.
+   */
+  for (sct_index = 0; sct_index < SOC_PETRA_SCH_NOF_CLASS_TYPES; ++sct_index)
+  {
+    res = soc_petra_sch_class_type_params_get_unsafe(
+            unit,
+            sct_index,
+            &sct_entry
+          );
+    SOC_SAND_CHECK_FUNC_RESULT(res, 2, exit);
+    SOC_PETRA_COPY(&(sct->class_types[sct_index]), &sct_entry, SOC_PETRA_SCH_SE_CL_CLASS_INFO, 1);
+  }
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR( "error in soc_petra_sch_class_type_params_table_get_unsafe()",0,0);
+}
+
+/* CL } */
+
+
+uint32
+  soc_petra_sch_se_verify_unsafe(
+    SOC_SAND_IN  int               unit,
+    SOC_SAND_IN  SOC_PETRA_SCH_SE_INFO      *se
+  )
+{
+  uint32
+    res;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(SOC_PETRA_SCH_SE_VERIFY_UNSAFE);
+  SOC_SAND_CHECK_NULL_INPUT(se);
+
+  res =
+    soc_petra_sch_se_id_verify_unsafe(
+      unit,
+      se->id
+    );
+  SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+
+  res =
+    soc_petra_sch_se_id_and_type_match_verify(
+      se->id,
+      se->type
+    );
+  SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+
+  if ((se->state != SOC_PETRA_SCH_SE_STATE_ENABLE) &&
+        (se->state != SOC_PETRA_SCH_SE_STATE_DISABLE))
+  {
+    SOC_SAND_SET_ERROR_CODE(SOC_PETRA_SCH_SE_STATE_OUT_OF_RANGE_ERR, 3, exit);
+  }
+
+  if((se->state == SOC_PETRA_SCH_SE_STATE_ENABLE))
+  {
+    switch(se->type)
+    {
+    case SOC_PETRA_SCH_SE_TYPE_HR:
+      if ((se->type_info.hr.mode != SOC_PETRA_SCH_HR_MODE_DUAL_WFQ) &&
+          (se->type_info.hr.mode != SOC_PETRA_SCH_HR_MODE_SINGLE_WFQ) &&
+          (se->type_info.hr.mode != SOC_PETRA_SCH_HR_MODE_ENHANCED_PRIO_WFQ)
+         )
+      {
+        SOC_SAND_SET_ERROR_CODE(SOC_PETRA_SCH_HR_MODE_OUT_OF_RANGE_ERR, 30, exit);
+      }
+      break;
+    case SOC_PETRA_SCH_SE_TYPE_CL:
+      SOC_SAND_ERR_IF_ABOVE_MAX(
+        se->type_info.cl.id, SOC_PETRA_SCH_NOF_CLASS_TYPES-1,
+        SOC_PETRA_SCH_CL_ID_OUT_OF_RANGE_ERR, 40, exit
+      );
+      break;
+    case SOC_PETRA_SCH_SE_TYPE_FQ:
+        /* Nothing to verify */
+        break;
+    default:
+      SOC_SAND_SET_ERROR_CODE(SOC_PETRA_SCH_SE_TYPE_UNDEFINED_ERR, 50, exit);
+      break;
+    }
+  }
+
+  SOC_SAND_ERR_IF_ABOVE_MAX(
+    se->group, SOC_PETRA_SCH_GROUP_LAST-1,
+    SOC_PETRA_SCH_GROUP_OUT_OF_RANGE_ERR, 50, exit
+  );
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in soc_petra_sch_se_verify_unsafe()",unit,se->id);
+}
+
+uint32
+  soc_petra_sch_se_get_unsafe(
+    SOC_SAND_IN   int         unit,
+    SOC_SAND_IN   SOC_PETRA_SCH_SE_ID    se_ndx,
+    SOC_SAND_OUT  SOC_PETRA_SCH_SE_INFO  *se
+  )
+{
+  uint32
+    res;
+  uint8
+    is_sched_enabled = FALSE;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(SOC_PETRA_SCH_SE_GET_UNSAFE);
+  SOC_SAND_CHECK_NULL_INPUT(se);
+
+  res =
+    soc_petra_sch_se_id_verify_unsafe(
+      unit,
+      se_ndx
+    );
+  SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+
+  se->id = se_ndx;
+  se->type = soc_petra_sch_se_get_type_by_id(se_ndx);
+
+  /*
+   * First check if the given scheduler is enabled in SEM
+   * Then read its entry in the SHC or SCC (for a HR or CL scheduler, respectively).
+   */
+
+  /*
+   * Read indirect from SEM table
+   */
+  res = soc_petra_sch_se_state_get(
+          unit,
+          se_ndx,
+          &is_sched_enabled
+        );
+  SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+
+  se->state = is_sched_enabled ?
+                       SOC_PETRA_SCH_SE_STATE_ENABLE :
+                       SOC_PETRA_SCH_SE_STATE_DISABLE;
+
+  /*
+   * Read scheduler type-specific configuration
+   */
+  res = soc_petra_sch_se_config_get(
+          unit,
+          se_ndx,
+          se->type,
+          se
+        );
+  SOC_SAND_CHECK_FUNC_RESULT(res, 30, exit);
+
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in soc_petra_sch_se_get_unsafe()",0,0);
+}
+
+
+
+uint32
+  soc_petra_sch_se_set_unsafe(
+    SOC_SAND_IN  int              unit,
+    SOC_SAND_IN  SOC_PETRA_SCH_SE_INFO      *se,
+    SOC_SAND_IN  uint32              nof_subflows
+  )
+{
+  uint32
+    res;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(SOC_PETRA_SCH_SE_SET_UNSAFE);
+  SOC_SAND_CHECK_NULL_INPUT(se);
+
+  res = soc_petra_sch_se_id_verify_unsafe(
+          unit,
+          se->id
+        );
+  SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+
+  res = soc_petra_sch_se_config_set(
+          unit,
+          se,
+          nof_subflows
+        );
+  SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in soc_petra_sch_se_set_unsafe()",unit,se->id);
+}
+
+/* } */
+
+
+#include <soc/dpp/SAND/Utils/sand_footer.h>
