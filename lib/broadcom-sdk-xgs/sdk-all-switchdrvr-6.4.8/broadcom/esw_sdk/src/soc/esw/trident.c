@@ -8020,7 +8020,7 @@ _soc_trident_misc_init(int unit)
     divisor = soc_property_get(unit, spn_RATE_EXT_MDIO_DIVISOR, 40);
     dividend = soc_property_get(unit, spn_RATE_EXT_MDIO_DIVIDEND, 1);
     rval = 0;
-    soc_reg_field_set(unit, CMIC_RATE_ADJUSTr, &rval, DIVISORf, divisor);
+    soc_reg_field_set(unit, CMIC_RATE_ADJUSTr, &rval, DIVISORf, divisor*2); /* PTin changed: LTX patch */
     soc_reg_field_set(unit, CMIC_RATE_ADJUSTr, &rval, DIVIDENDf, dividend);
     /* coverity[result_independent_of_operands] */
     SOC_IF_ERROR_RETURN(WRITE_CMIC_RATE_ADJUSTr(unit, rval));

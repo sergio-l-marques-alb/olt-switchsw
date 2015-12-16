@@ -2237,8 +2237,22 @@ _xgs3_tx(int unit, bcm_pkt_t *pkt, void *cookie)
         _xgs3_tx_cb_cookie->orig_cookie = cookie;
         _xgs3_tx_cb_cookie->cleanup_mem = packets_p;
 
+#ifdef LVL7_FIXUP
+        /* If original pkt was synchronous, make a synchronous call */
+        if (NULL == pkt->call_back) {
+          /* Make synchronous call, and invoke the callback */
+          rv = bcm_common_tx_array(unit, packet_pointers_p, pkt_cnt, NULL, NULL);
+
+          _xgs3_tx_cb(unit, packet_pointers_p[0],  _xgs3_tx_cb_cookie);
+        }
+        else {
+           rv = bcm_common_tx_array(unit, packet_pointers_p, pkt_cnt, &_xgs3_tx_cb,
+                _xgs3_tx_cb_cookie);
+        }
+#else
         rv = bcm_common_tx_array(unit, packet_pointers_p, pkt_cnt, &_xgs3_tx_cb,
                 _xgs3_tx_cb_cookie);
+#endif
 
         sal_free(packet_pointers_p);
         /* packets_p and _xgs3_tx_cb_cookie will be freed by _xgs3_tx_cb */

@@ -56,6 +56,7 @@
 #include <soc/drv.h>
 #endif
 
+#include "logger.h"
 
 /*!
 \brief WCMod clause 45 read driver.
@@ -312,12 +313,12 @@ int wcmod_reg_aer_read(uint32 unit, wcmod_st *pc, uint32 a, uint16 *phy_data)
     cl45_addr    = SOC_PHY_CLAUSE45_ADDR(cl45Devid,0xffde);
 
     if (cl45_ln_no) /* write the lane number to the AER only if nonzero */
-      wcmod_cl45_write(pc,cl45_addr,cl45_ln_no);
+      CHK_RET_VAL_FUNC(wcmod_cl45_write(pc,cl45_addr,cl45_ln_no));
 
-    wcmod_cl45_read(pc,cl45_addr,&data16);
+    CHK_RET_VAL_FUNC(wcmod_cl45_read(pc,cl45_addr,&data16));
 
     if (cl45_ln_no) /* restore back the lane number to 0 */
-      wcmod_cl45_write(pc,cl45_addr,0);
+      CHK_RET_VAL_FUNC(wcmod_cl45_write(pc,cl45_addr,0));
 
   } else if (pc->mdio_type == WCMOD_MDIO_CL22) {
     phy_reg_aer  = PHY_AER_REG_ADDR_AER(addr);    /* upper 16 bits */

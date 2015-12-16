@@ -2133,13 +2133,13 @@ phy_hl65_speed_get(int unit, soc_port_t port, int *speed)
                 break;
         }
 
-        LOG_INFO(BSL_LS_SOC_PHY,
-                 (BSL_META_U(unit,
-                             "phy_hl65_speed_get: u=%d p=%d GP_STATUS_TOPANSTATUS1 %04x speed= %d\n"),
-                  unit, port,
-                  ((xgxs_stat & GP_STATUS_XGXSSTATUS1_ACTUAL_SPEED_LN0_MASK) >>
-                  GP_STATUS_XGXSSTATUS1_ACTUAL_SPEED_LN0_SHIFT), *speed));
-
+        /* PTin modified: logs */
+        LOG_DEBUG(BSL_LS_SOC_PHY,
+                      (BSL_META_U(unit,
+                                  "phy_hl65_speed_get: u=%d p=%d GP_STATUS_TOPANSTATUS1 %04x speed= %d\n"),
+                       unit, port,
+                       ((xgxs_stat & GP_STATUS_XGXSSTATUS1_ACTUAL_SPEED_LN0_MASK) >>
+                        GP_STATUS_XGXSSTATUS1_ACTUAL_SPEED_LN0_SHIFT), *speed));
     }
     return SOC_E_NONE;
 }

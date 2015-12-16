@@ -828,6 +828,10 @@ bcm_tr2_wlan_init(int unit)
     uint64 rval64, *rval64s[1];
     uint32 capwap_frag_profile;
 
+#ifdef LVL7_FIXUP
+    (void)bcm_tr2_wlan_port_delete_all(unit); /* jls added */
+#endif
+
     if (!L3_INFO(unit)->l3_initialized) {
         LOG_INFO(BSL_LS_BCM_L3,
                  (BSL_META_U(unit,
@@ -1539,7 +1543,11 @@ _bcm_tr2_wlan_l3_intf_add(int unit, _bcm_l3_intf_cfg_t *if_info)
         }
     }
     /* Create an interface */
+#ifdef LVL7_FIXUP
+    BCM_IF_ERROR_RETURN(bcm_xgs3_l3_intf_id_create(unit, if_info));
+#else
     BCM_IF_ERROR_RETURN(bcm_xgs3_l3_intf_create(unit, if_info));
+#endif
     _BCM_WLAN_INTF_USED_SET(unit, if_info->l3i_index);
     return BCM_E_NONE;
 }
@@ -1611,6 +1619,12 @@ _bcm_tr2_wlan_nh_info_add(int unit, bcm_wlan_port_t *wlan_port, int vp, int drop
         bcm_l3_egress_t_init(&nh_info);
 
         nh_flags = _BCM_L3_SHR_MATCH_DISABLE | _BCM_L3_SHR_WRITE_DISABLE;
+#ifdef LVL7_FIXUP
+        if (*nh_index > 0)
+        {
+          nh_flags |= _BCM_L3_SHR_WITH_ID;
+        }
+#endif
         rv = bcm_xgs3_nh_add(unit, nh_flags, &nh_info, nh_index);
         BCM_IF_ERROR_RETURN(rv);
     }
@@ -1670,7 +1684,12 @@ _bcm_tr2_wlan_nh_info_add(int unit, bcm_wlan_port_t *wlan_port, int vp, int drop
 
     /* Add an L3 interface entry with L2_SWITCH=1 - ref count if exists */
     sal_memset(&if_info, 0, sizeof(_bcm_l3_intf_cfg_t));
+#ifdef LVL7_FIXUP
+    if_info.l3i_flags |= BCM_L3_L2ONLY | BCM_L3_SECONDARY | BCM_L3_WITH_ID;
+    if_info.l3i_index = L3_INFO(unit)->l3_intf_table_size - 2;
+#else
     if_info.l3i_flags |= BCM_L3_L2ONLY | BCM_L3_SECONDARY;
+#endif
     rv = _bcm_tr2_wlan_l3_intf_add(unit, &if_info);
     if (BCM_FAILURE(rv)) {
         goto cleanup;
@@ -1975,7 +1994,11 @@ _bcm_tr2_wlan_match_add(int unit, bcm_wlan_port_t *wlan_port, int vp)
 int 
 bcm_tr2_wlan_port_add(int unit, bcm_wlan_port_t *wlan_port)
 {
+#ifdef LVL7_FIXUP
+    int drop, mode, is_local = 0, rv = BCM_E_PARAM, nh_index = wlan_port->encap_id;
+#else
     int drop, mode, is_local = 0, rv = BCM_E_PARAM, nh_index = 0;
+#endif
     bcm_port_t local_port;
     bcm_module_t my_modid;
     int vp, num_vp, lport_ptr = -1;
@@ -2118,10 +2141,20 @@ bcm_tr2_wlan_port_add(int unit, bcm_wlan_port_t *wlan_port)
         soc_LPORT_TABm_field32_set(unit, &lport_profile, IPMC_DO_VLANf, 0x1);
         soc_LPORT_TABm_field32_set(unit, &lport_profile, FILTER_ENABLEf, 0x1);
         soc_LPORT_TABm_field32_set(unit, &lport_profile, VFP_ENABLEf, 0x1);
+#ifdef LVL7_FIXUP
+        /* In FASTPATH, all the ports have the same sel_index for slices. Point
+         * the tunnel ports to pick up sel_index of 0. Otherwise IFP matching
+         * does not work on tunnel ports.
+         */
+        soc_LPORT_TABm_field32_set(unit, &lport_profile, 
+                                   FP_PORT_FIELD_SEL_INDEXf, 
+                                   0);
+#else
         /* Allocate a fixed high index for the PORT_FIELD_SEL */
         soc_LPORT_TABm_field32_set(unit, &lport_profile, 
                                    FP_PORT_FIELD_SEL_INDEXf, 
                                    soc_mem_index_max(unit, FP_PORT_FIELD_SELm));
+#endif
         /* The vt_key_types must be set to 0x3 or 0x7 for WLAN */
         soc_LPORT_TABm_field32_set(unit, &lport_profile, VT_KEY_TYPEf,
                                    TR_VLXLT_HASH_KEY_TYPE_VLAN_MAC);
@@ -2301,7 +2334,9 @@ _bcm_tr2_wlan_port_delete(int unit, int vp)
         }
     }
     rv = _bcm_lport_profile_entry_delete(unit, lport_ptr);
+#ifndef LVL7_FIXUP
     BCM_IF_ERROR_RETURN(rv);
+#endif
 
     /* Clear the SVP and DVP table entries */
     sal_memset(&svp, 0, sizeof(wlan_svp_table_entry_t));
@@ -2318,7 +2353,9 @@ _bcm_tr2_wlan_port_delete(int unit, int vp)
 
     /* Clear the next-hop table entries */
     rv = _bcm_tr2_wlan_nh_info_delete(unit, nh_index);
+#ifndef LVL7_FIXUP
     BCM_IF_ERROR_RETURN(rv);
+#endif
 
     /* Update the physical port's SW state */
     BCM_IF_ERROR_RETURN(
@@ -2427,9 +2464,11 @@ bcm_tr2_wlan_port_delete_all(int unit)
             WLAN_LOCK(unit);
             rv = _bcm_tr2_wlan_port_delete(unit, vp);
             WLAN_UNLOCK(unit);
+#ifndef LVL7_FIXUP
             if (rv < 0) {
                 goto done;
             }
+#endif
         }
     }
 done:

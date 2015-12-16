@@ -149,6 +149,11 @@
 #include <soc/phy/phyctrl.h>
 #include <soc/phy/drv.h>
 
+#ifdef LVL7_FIXUP
+#include "sysapi_hpc.h"
+#include "hpc_phy.h"
+#endif
+
 #include "phydefs.h"      /* Must include before other phy related includes */
 
 #if defined(INCLUDE_PHY_5464_ESW)
@@ -238,6 +243,10 @@ _phy_5464_medium_check(int unit, soc_port_t port, int *medium)
     phy_ctrl_t        *pc;    /* PHY state */
     uint16             tmp;    /* Temp variable */
     int                copper; /* Copper medium is active */
+#if (defined(LVL7_FIXUP) && \
+    (defined(LVL7_ALPHA8245) || defined(LVL7_DNI8541)))
+static int              fiberCnt[2][24];
+#endif
 
     pc    = EXT_PHY_SW_STATE(unit, port);
     /* Read Mode Register (0x1c shadow 11111) */
@@ -255,7 +264,22 @@ _phy_5464_medium_check(int unit, soc_port_t port, int *medium)
                 /* 0x10 Fiber Signal Detect
                  * 0x20 Copper Energy Detect
                  */
+#if (defined(LVL7_FIXUP) && \
+    (defined(LVL7_ALPHA8245) || defined(LVL7_DNI8541)))
+                copper = TRUE;
+                if ((tmp & 0x10) == 0x10) {
+                    fiberCnt[unit][port]++;
+                    /* Require multiple detections so as not to prematurely    */
+                    /* disable the copper transmitter because of a transition. */
+                    if (fiberCnt[unit][port] > 5) {
+                        copper = FALSE;
+                    }
+                } else {
+                    fiberCnt[unit][port] = 0;
+                }
+#else
                 copper = ((tmp & 0x30) == 0x20); 
+#endif
             } else {
                 copper = ((tmp & 0x20) == 0x20);
             }
@@ -1335,6 +1359,13 @@ phy_5464_link_get(int unit, soc_port_t port, int *link)
         SOC_IF_ERROR_RETURN
             (MODIFY_PHY5464_MII_ECRr(unit, pc, copper_transmit, 0x2000));
     }
+#ifdef LVL7_FIXUP 
+    /* alok relook*/
+    if (soc_property_get(unit, spn_LED_MODE_CUST, 0))
+    {
+      (void)sysapiHpcLedModeCustomization(unit, (int)port, *link);
+    }
+#endif
 
     DPRINTF_VERBOSE((BSL_META_U(unit,
                                 "phy_5464_link_get: "
@@ -3224,6 +3255,10 @@ phy_5464_shadow_dump(int unit, soc_port_t port)
 
     pc       = EXT_PHY_SW_STATE(unit, port);
 
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_LOCK(unit);
+#endif
+
     /* Register 0x18 Shadows */
     for (i = 0; i <= 7; i++) {
         WRITE_PHY_REG(unit, pc, 0x18, (i << 12) | 0x7);
@@ -3256,9 +3291,59 @@ phy_5464_shadow_dump(int unit, soc_port_t port)
         LOG_CLI((BSL_META_U(unit,
                             "0x17[0x%x]=0x%04x\n"), i, tmp));
     }
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_UNLOCK(unit);
+#endif
+
 }
 
 #endif /* BROADCOM_DEBUG */
+
+#ifdef LVL7_FIXUP
+/*
+ * Function:    
+ *      phy_5464_link_up
+ * Purpose:     
+ *      Performs tasks on link up.
+ * Parameters:
+ *      unit - StrataSwitch unit #.
+ *      port - StrataSwitch port #. 
+ * Returns:     
+ *      SOC_E_XXX
+ * Notes:
+ *      sees link up.
+ */
+STATIC int
+phy_5464_link_up(int unit, soc_port_t port)
+{
+    int an, an_done;
+
+    DPRINTF((BSL_META_U(unit,
+                        "phy_5464_link_up: u=%d p=%d \n"),
+             unit, port));
+
+    /* For copper mode only */
+    if (PHY_FLAGS_TST(unit, port, PHY_FLAGS_COPPER)) {
+        /* Get the an status */
+        SOC_IF_ERROR_RETURN
+            (phy_5464_autoneg_get(unit, port, &an, &an_done));
+
+        /* If an is diabled and link up happens then enable PHY 
+        ** as on combp ports it does not happen 
+        */
+        if (an == FALSE) {
+
+            SOC_IF_ERROR_RETURN
+               (soc_phyctrl_notify(unit, port, phyEventResume, PHY_STOP_PHY_DIS));
+
+            DPRINTF((BSL_META_U(unit,
+                                "phy_5464_link_up: Resume PHY_STOP_PHY_DIS for u=%d p=%d \n"),
+                     unit, port));
+        }
+    }
+    return SOC_E_NONE;
+}
+#endif /* LVL7_FIXUP */
 
 /*
  * Variable:    phy_5464drv_ge
@@ -3288,7 +3373,11 @@ phy_driver_t phy_5464drv_ge = {
     phy_5464_interface_set,
     phy_5464_interface_get,
     phy_5464_ability_get,
-    NULL,                       /* Link up event */
+#ifdef LVL7_FIXUP
+    phy_5464_link_up,          /* Link up event */
+#else 
+    NULL,
+#endif
     phy_5464_link_down,
     phy_5464_mdix_set,
     phy_5464_mdix_get,

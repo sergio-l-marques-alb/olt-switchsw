@@ -104,6 +104,17 @@ ifdef PORTMOD_SUPPORT
 subdirs+= portmod
 endif
 
+# If L7_INCLUDE_BCM_SHELL is not defined then compile sysconf.c only.
+ifdef LVL7_FIXUP 
+ifndef L7_INCLUDE_BCM_SHELL
+subdirs=
+# Only compile sysconf.c file if BCM_SHELL is not included.
+LSRCS   =       sysconf.c
+LOBJS   =       $(addsuffix .o, $(basename ${LSRCS}))
+BOBJS   =       $(addprefix ${BLDDIR}/,${LOBJS})
+endif # L7_INCLUDE_BCM_SHELL
+endif # LVL7_FIXUP 
+
 include ${SDK}/make/Make.subdirs
 
 lib = libdiag

@@ -4642,6 +4642,14 @@ rx_default_parser(int unit,  bcm_pkt_t *pkt)
                 if (BCM_SUCCESS(rv) && (tid != -1)) {
                     pkt->src_trunk = tid;
                     pkt->flags |= BCM_PKT_F_TRUNK;
+#ifndef LVL7_FIXUP
+   /* Don't destroy information!!
+   ** When frames are received from remote units the src_port is not the same as
+   ** rx_port. We still need to know the physical port on which the frame is
+   ** received even when the frame is for a trunk.
+   */
+                    //pkt->src_port = -1;   /* Already removed at SDK 6.3.4 */
+#endif
                 }
             }
 #endif /* BCM_XGS3_SWITCH_SUPPORT */
