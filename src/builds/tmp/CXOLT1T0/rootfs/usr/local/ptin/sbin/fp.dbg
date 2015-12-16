@@ -2,7 +2,10 @@ dest=/var/log/output.txt
 echo "File cleared at `date`" > $dest
 
 # kill all related tails
-ps | grep 'tail' | grep $dest | awk '{print $1}' | xargs kill
+proc=`ps | grep 'tail' | grep $dest | awk '{print $1}'`
+if [ ! -z "$proc" ]; then
+  kill $proc
+fi
 
 # If argument was provided, use that as destination
 if [ $# -ne 0 ]; then
