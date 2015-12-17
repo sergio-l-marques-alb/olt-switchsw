@@ -252,8 +252,14 @@ L7_RC_t ptin_hapi_maclimit_inc(bcmx_l2_addr_t *bcmx_l2_addr)
       if(ptin_hapi_l2_enable)
       PT_LOG_TRACE(LOG_CTX_HAPI, "Count %d in %d ", macLearn_info_flow[vport_id].mac_counter, vport_id);
 
+      if( macLearn_info_flow[vport_id].mac_counter == (L7_int32) -1)
+      {
+        macLearn_info_flow[vport_id].mac_counter = 0;
+      }
+
       macLearn_info_flow[vport_id].mac_counter++;
       macLearn_info_flow[vport_id].mac_total++;
+
       return L7_FAILURE;
     }
 
@@ -284,6 +290,11 @@ L7_RC_t ptin_hapi_maclimit_inc(bcmx_l2_addr_t *bcmx_l2_addr)
               bcmx_l2_addr->mac[0], bcmx_l2_addr->mac[1], bcmx_l2_addr->mac[2], bcmx_l2_addr->mac[3], bcmx_l2_addr->mac[4], bcmx_l2_addr->mac[5], 
               bcmx_l2_addr->vid, bcmx_l2_addr->lport, bcmx_l2_addr->flags);
 
+    if( macLearn_info_flow[vport_id].mac_counter == (L7_int32) -1)
+    {
+      macLearn_info_flow[vport_id].mac_counter = 0;
+    }
+
     macLearn_info_flow[vport_id].mac_counter++;
     macLearn_info_flow[vport_id].mac_total++;
 
@@ -305,6 +316,11 @@ L7_RC_t ptin_hapi_maclimit_inc(bcmx_l2_addr_t *bcmx_l2_addr)
     /* Feature enabled? */
     if (macLearn_info_lag[tgid].enable == L7_FALSE)
     { 
+      if( macLearn_info_lag[tgid].mac_counter == (L7_int32) -1)
+      {
+        macLearn_info_lag[tgid].mac_counter = 0;
+      }
+
       macLearn_info_lag[tgid].mac_counter++;
       macLearn_info_lag[tgid].mac_total++;
       return L7_FAILURE;
@@ -342,6 +358,11 @@ L7_RC_t ptin_hapi_maclimit_inc(bcmx_l2_addr_t *bcmx_l2_addr)
     {
       if(ptin_hapi_l2_enable)
       PT_LOG_TRACE(LOG_CTX_HAPI, "Increase MAC Learned in LAG %d", tgid);
+
+      if( macLearn_info_lag[tgid].mac_counter == (L7_int32) -1)
+      {
+        macLearn_info_lag[tgid].mac_counter = 0;
+      }
 
       macLearn_info_lag[tgid].mac_counter++;
       macLearn_info_lag[tgid].mac_total++;
@@ -392,6 +413,12 @@ L7_RC_t ptin_hapi_maclimit_inc(bcmx_l2_addr_t *bcmx_l2_addr)
         if(ptin_hapi_l2_enable)
         PT_LOG_TRACE(LOG_CTX_HAPI, "Feature not enable");
 
+
+        if( macLearn_info_physical[physical_port].mac_counter == (L7_int32) -1)
+        {
+          macLearn_info_physical[physical_port].mac_counter = 0;
+        }
+
         macLearn_info_physical[physical_port].mac_counter++;
         macLearn_info_physical[physical_port].mac_total++;
         return L7_FAILURE;
@@ -427,6 +454,11 @@ L7_RC_t ptin_hapi_maclimit_inc(bcmx_l2_addr_t *bcmx_l2_addr)
                 __FUNCTION__, 
                 bcmx_l2_addr->mac[0], bcmx_l2_addr->mac[1], bcmx_l2_addr->mac[2], bcmx_l2_addr->mac[3], bcmx_l2_addr->mac[4], bcmx_l2_addr->mac[5], 
                 physical_port, bcmx_l2_addr->lport, bcmx_l2_addr->flags);
+
+      if( macLearn_info_physical[physical_port].mac_counter == (L7_int32) -1)
+      {
+        macLearn_info_physical[physical_port].mac_counter = 0;
+      }
 
       macLearn_info_physical[physical_port].mac_counter++;
       macLearn_info_physical[physical_port].mac_total++;
@@ -522,8 +554,11 @@ L7_RC_t ptin_hapi_maclimit_dec(bcmx_l2_addr_t *bcmx_l2_addr)
       if(ptin_hapi_l2_enable)
       PT_LOG_TRACE(LOG_CTX_HAPI, "Count %d in %d ", macLearn_info_flow[vport_id].mac_counter, vport_id);
 
-      macLearn_info_flow[vport_id].mac_counter--;
-      macLearn_info_flow[vport_id].mac_total--;
+       if ((macLearn_info_flow[vport_id].mac_total > 0) && (macLearn_info_flow[vport_id].mac_counter > 0))
+      {
+        macLearn_info_flow[vport_id].mac_counter--;
+        macLearn_info_flow[vport_id].mac_total--;
+      }
       return L7_FAILURE;
     }
 
@@ -540,7 +575,7 @@ L7_RC_t ptin_hapi_maclimit_dec(bcmx_l2_addr_t *bcmx_l2_addr)
                 bcmx_l2_addr->vid);
 
       /* Decrement, but only if greater than 0 */
-      if ((macLearn_info_flow[vport_id].mac_total > 0))
+      if ((macLearn_info_flow[vport_id].mac_total > 0) && (macLearn_info_flow[vport_id].mac_counter > 0))
       {
         macLearn_info_flow[vport_id].mac_counter--;
         macLearn_info_flow[vport_id].mac_total--;
@@ -550,7 +585,7 @@ L7_RC_t ptin_hapi_maclimit_dec(bcmx_l2_addr_t *bcmx_l2_addr)
     }
 
     /* Decrement, but only if greater than 0 */
-    if (macLearn_info_flow[vport_id].mac_counter > 0)
+    if (macLearn_info_flow[vport_id].mac_counter > 0 && (macLearn_info_flow[vport_id].mac_total > 0))
     {
       macLearn_info_flow[vport_id].mac_counter--;
       macLearn_info_flow[vport_id].mac_total--;
@@ -585,8 +620,11 @@ L7_RC_t ptin_hapi_maclimit_dec(bcmx_l2_addr_t *bcmx_l2_addr)
     /* Feature enabled? */
     if (macLearn_info_lag[tgid].enable == L7_FALSE)
     {
-      macLearn_info_lag[tgid].mac_counter--;
-      macLearn_info_lag[tgid].mac_total--;
+      if ((macLearn_info_lag[tgid].mac_counter > 0) && (macLearn_info_lag[tgid].mac_total > 0))
+      {
+        macLearn_info_lag[tgid].mac_counter--;
+        macLearn_info_lag[tgid].mac_total--;
+      }
       return L7_FAILURE;
     }
 
@@ -616,8 +654,11 @@ L7_RC_t ptin_hapi_maclimit_dec(bcmx_l2_addr_t *bcmx_l2_addr)
     /* Decrement, but only if greater than 0 */
     if (macLearn_info_lag[tgid].mac_counter > 0)
     {
-      macLearn_info_lag[tgid].mac_counter--;
-      macLearn_info_lag[tgid].mac_total--;
+      if ((macLearn_info_lag[tgid].mac_counter > 0) && (macLearn_info_lag[tgid].mac_total > 0))
+      {
+        macLearn_info_lag[tgid].mac_counter--;
+        macLearn_info_lag[tgid].mac_total--;
+      }
     }
   
     /* Check if maximum was reached */
@@ -676,7 +717,7 @@ L7_RC_t ptin_hapi_maclimit_dec(bcmx_l2_addr_t *bcmx_l2_addr)
      #endif
 
      /* Decrement, but only if greater than 0 */
-     if (macLearn_info_physical[physical_port].mac_counter > 0)
+     if (macLearn_info_physical[physical_port].mac_counter > 0 &&  macLearn_info_physical[physical_port].mac_total > 0 && macLearn_info_physical[physical_port].mac_counter > 0)
      {
        macLearn_info_physical[physical_port].mac_counter--;
        macLearn_info_physical[physical_port].mac_total--;
@@ -1291,7 +1332,7 @@ L7_RC_t ptin_hapi_maclimit_status(DAPI_USP_t *ddUsp, L7_uint32 *mac_learned, L7_
     trunk_id = hapiPortPtr->hapiModeparm.lag.tgid;
     PT_LOG_TRACE(LOG_CTX_HAPI,"Interface {%d,%d,%d} is a lag: trunk_id = %d", ddUsp->unit, ddUsp->slot, ddUsp->port, trunk_id); 
 
-    if(macLearn_info_lag[trunk_id].mac_counter < 0)
+    if( macLearn_info_lag[trunk_id].mac_counter < 0)
     {
       *mac_learned = 0;
     }
