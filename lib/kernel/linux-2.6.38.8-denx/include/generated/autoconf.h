@@ -1,7 +1,7 @@
 /*
  * Automatically generated C config: don't edit
  * Linux/powerpc 2.6.38.8 Kernel Configuration
- * Thu Apr  9 19:00:31 2015
+ * Thu Dec 17 10:31:37 2015
  */
 #define CONFIG_NLS_CODEPAGE_861 1
 #define CONFIG_SCSI_DMA 1
@@ -9,6 +9,7 @@
 #define CONFIG_I2C_BOARDINFO 1
 #define CONFIG_EXT3_FS_XATTR 1
 #define CONFIG_SECCOMP 1
+#define CONFIG_VLAN_8021Q 1
 #define CONFIG_FLATMEM_MANUAL 1
 #define CONFIG_EXT3_DEFAULTS_TO_ORDERED 1
 #define CONFIG_INOTIFY_USER 1
@@ -365,6 +366,7 @@
 #define CONFIG_FLATMEM 1
 #define CONFIG_PAGEFLAGS_EXTENDED 1
 #define CONFIG_MTD_PHYSMAP_COMPAT 1
+#define CONFIG_IKCONFIG 1
 #define CONFIG_NFS_USE_KERNEL_DNS 1
 #define CONFIG_RTAS_ERROR_LOGGING 1
 #define CONFIG_SYSCTL 1
@@ -382,6 +384,7 @@
 #define CONFIG_JBD 1
 #define CONFIG_ARCH_MAY_HAVE_PC_FDC 1
 #define CONFIG_INET_DIAG 1
+#define CONFIG_IKCONFIG_PROC 1
 #define CONFIG_ELF_CORE 1
 #define CONFIG_SENSORS_FM75 1
 #define CONFIG_USB_SUPPORT 1
