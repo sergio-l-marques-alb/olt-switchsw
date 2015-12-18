@@ -921,12 +921,13 @@ L7_RC_t dtlARPProtoRecv(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
  * Add a vlan to the dtl0 interface. 
  *  
  * @param   vlanId    Vlan ID to which the routing interface will be associated
+ * @param   ifName    Name used to rename the Interface (NULL to ignore)
  * 
  * @return  L7_RC_t   L7_SUCCESS/L7_FAILURE 
  *  
  * @note This creates a routing interface named dtl0.VLANID, where VLANID is the value passed through 'vlanId' 
  */
-L7_int dtlVlanIfAdd(L7_uint16 vlanId)
+L7_int dtlVlanIfAdd(L7_uint16 vlanId, L7_uchar8 *ifName)
 {
   L7_uint32 ioctl_socket_fd = 0;
   struct    vlan_ioctl_args request; 
@@ -943,6 +944,7 @@ L7_int dtlVlanIfAdd(L7_uint16 vlanId)
     return L7_FAILURE;
   }
 
+  /* New request to create a sub-interface */
   memset(&request, 0x00, sizeof(request));
   
   request.cmd = ADD_VLAN_CMD;
@@ -962,6 +964,29 @@ L7_int dtlVlanIfAdd(L7_uint16 vlanId)
     return res;
   }
 
+  /* New request to rename the sub-interface created above */
+  if (ifName != NULL)
+  {
+    struct ifreq request2;
+    char         oldIfName[IFNAMSIZ];
+    char         newIfName[IFNAMSIZ];
+
+    memset(&request2, 0x00, sizeof(request2));
+
+    snprintf(oldIfName, IFNAMSIZ, "%s.%u", "dtl0", vlanId);
+    snprintf(newIfName, IFNAMSIZ, "%s", ifName);
+    
+    strncpy(&request2.ifr_name[0],    &oldIfName[0], IFNAMSIZ);
+    strncpy(&request2.ifr_newname[0], &newIfName[0], IFNAMSIZ);
+
+    SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "ioctl request -> SIOCSIFNAME");
+    SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "  ifr_name    = %s", request2.ifr_name);
+    SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "  ifr_newname = %s", request2.ifr_newname);
+    if((res = ioctl(ioctl_socket_fd, SIOCSIFNAME, &request2)) < 0)
+    {
+      return res;
+    }
+  }
   return res;
 }
 
@@ -1197,7 +1222,13 @@ void dtlNetInit(void)
 
   #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
   /* This will create the interface dtl0.INBANDVID used to configure the system IP Address */
-  dtlVlanIfAdd(DTL0INBANDVID);  
+  dtlVlanIfAdd(DTL0INBANDVID, NULL);
+
+  dtlVlanIfAdd(PTIN_VLAN_PCAP_EXT, "pcap");
+
+  #elif (PTIN_BOARD == PTIN_BOARD_OLT1T1)
+
+  dtlVlanIfAdd(PTIN_VLAN_PCAP_EXT, "pcap");
   #endif
 
   dtlNetInitDone = L7_TRUE;
