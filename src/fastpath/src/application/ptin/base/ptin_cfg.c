@@ -327,12 +327,13 @@ inline L7_uint16 ptin_cfg_inband_vlan_get(void)
 
 
 /**
- * Creates a bridge between dtl0 interface and a virtual interface eth0.4093 
+ * Creates a bridge between dtl0.2047 interface and a virtual 
+ * interface eth0.2047
  *  
  * NOTE: 
- *  1. virtual interface eth0.4093 is created here 
- *  2. all operations are accomplished through an external shell script 
- *     '/usr/local/ptin/scripts/startBridge.sh'
+ *  1. virtual interface eth0.2047 is created here
+ *  2. all operations are accomplished through an external shell
+ *     script '/usr/local/ptin/scripts/startBridge.sh'
  * 
  * @author alex (4/10/2012)
  * 
@@ -354,4 +355,33 @@ L7_RC_t ptin_cfg_inband_bridge_set(void)
   return L7_SUCCESS;
 }
 
+
+/**
+ * Creates a bridge between dtl0.2048 interface and a virtual 
+ * interface eth0.2048
+ *  
+ * NOTE: 
+ *  1. virtual interface eth0.2048 is created here 
+ *  2. all operations are accomplished through an external shell script 
+ *     '/usr/local/ptin/scripts/startPcapBridge.sh' 
+ * 
+ * @author joaom (12/16/2015)
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_cfg_pcap_bridge_set(void)
+{
+  int rc;
+
+  rc = system(PTIN_PCAP_BRIDGE_SCRIPT);
+  if (rc != 0)
+  {
+    PT_LOG_ERR(LOG_CTX_API, "Error executing script " PTIN_PCAP_BRIDGE_SCRIPT " (rc=%d)", rc);
+    return L7_FAILURE;
+  }
+
+  PT_LOG_TRACE(LOG_CTX_API, "PCAP bridge script successfully executed");
+
+  return L7_SUCCESS;
+}
 

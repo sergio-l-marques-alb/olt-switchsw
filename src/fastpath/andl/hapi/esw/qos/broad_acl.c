@@ -1205,12 +1205,16 @@ static L7_RC_t hapiBroadQosAclInstAdd(DAPI_USP_t               *usp,
                     DAPI_USP_t mirrorUsp;
                     BROAD_METER_ENTRY_t meterInfo;
 
-//                  mirrorUsp.unit = osapiNtohl(*(L7_int32*)GET_VALUE_PTR(pMatchTLV,0));
-//                  mirrorUsp.slot = osapiNtohl(*(L7_int32*)GET_VALUE_PTR(pMatchTLV,4));
-//                  mirrorUsp.port = osapiNtohl(*(L7_int32*)GET_VALUE_PTR(pMatchTLV,8));
+                    /* PTIN TODO: Currently the intfnum comming from the above layer is being ignored and the CPU port is forced */
+                    #if 0
+                    mirrorUsp.unit = osapiNtohl(*(L7_int32*)GET_VALUE_PTR(pMatchTLV,0));
+                    mirrorUsp.slot = osapiNtohl(*(L7_int32*)GET_VALUE_PTR(pMatchTLV,4));
+                    mirrorUsp.port = osapiNtohl(*(L7_int32*)GET_VALUE_PTR(pMatchTLV,8));
+                    #else                   
                     mirrorUsp.unit = 0;
                     mirrorUsp.slot = L7_CPU_SLOT_NUM;
                     mirrorUsp.port = 0;
+                    #endif
 
                     result = hapiBroadPolicyRuleActionAdd(ruleId,
                                                           BROAD_ACTION_MIRROR,
@@ -1218,31 +1222,36 @@ static L7_RC_t hapiBroadQosAclInstAdd(DAPI_USP_t               *usp,
                                                           mirrorUsp.slot,
                                                           mirrorUsp.port);
 
-                    if (L7_LAG_SLOT_NUM == mirrorUsp.slot)
+                    if (result == L7_SUCCESS)
                     {
-                      /* This policy now depends upon the LAG as it's destination. */
-                      /* Make sure we don't add the same LAG USP twice. */
-                      for (i = 0; i < dependentLagCount; i++)
-                      {
-                        if (dependentLag[dependentLagCount].port == mirrorUsp.port)
-                          break;
-                      }
-                      if ((i == dependentLagCount) && (dependentLagCount < L7_MAX_NUM_LAG_INTF))
-                      {
-                        dependentLag[dependentLagCount] = mirrorUsp;
-                        dependentLagCount++;
-                      }
-                    }
-                    else if (L7_CPU_SLOT_NUM == mirrorUsp.slot)
-                    {
-                        meterInfo.cir       = RATE_LIMIT_PCAP;
-                        meterInfo.cbs       = 128;
-                        meterInfo.pir       = RATE_LIMIT_PCAP;
-                        meterInfo.pbs       = 128;
-                        meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
+                        /* Workaround for VK2 (TG16G) */
+                        result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_PCAP, 0, 0);
+                    
+                        if (L7_LAG_SLOT_NUM == mirrorUsp.slot)
+                        {
+                          /* This policy now depends upon the LAG as it's destination. */
+                          /* Make sure we don't add the same LAG USP twice. */
+                          for (i = 0; i < dependentLagCount; i++)
+                          {
+                            if (dependentLag[dependentLagCount].port == mirrorUsp.port)
+                              break;
+                          }
+                          if ((i == dependentLagCount) && (dependentLagCount < L7_MAX_NUM_LAG_INTF))
+                          {
+                            dependentLag[dependentLagCount] = mirrorUsp;
+                            dependentLagCount++;
+                          }
+                        }
+                        else if (L7_CPU_SLOT_NUM == mirrorUsp.slot)
+                        {
+                            meterInfo.cir       = RATE_LIMIT_PCAP;
+                            meterInfo.cbs       = 128;
+                            meterInfo.pir       = RATE_LIMIT_PCAP;
+                            meterInfo.pbs       = 128;
+                            meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
 
-                        result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
-                        if (result != L7_SUCCESS)  break;
+                            result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+                        }
                     }
                 }
                 break;

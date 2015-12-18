@@ -227,6 +227,10 @@ void ptinTask(L7_uint32 numArgs, void *unit)
   }
 #endif
 
+#if ( PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_TA48GE || PTIN_BOARD == PTIN_BOARD_TG16G )
+  ptin_cfg_pcap_bridge_set();
+#endif
+
   /* Default EVCs */
   if (ptin_evc_startup() != L7_SUCCESS)
   {

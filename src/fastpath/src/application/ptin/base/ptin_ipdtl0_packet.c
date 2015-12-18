@@ -156,7 +156,7 @@ static void ptin_ipdtl0_task(void)
 
                 /* Convert Internal VLAN ID to dtl0 VLAN ID */
                 msg.payload[14] = (ptin_ipdtl0_intVid_info[msg.vlanId].dtl0Vid >> 8) & 0x0F;
-                msg.payload[15] = (ptin_ipdtl0_intVid_info[msg.vlanId].dtl0Vid)      & 0xFF;
+                msg.payload[15] = (ptin_ipdtl0_intVid_info[msg.vlanId].dtl0Vid)      & 0xFF;                
 
                 if (ptin_ipdtl0_debug_enable)
                 {
@@ -177,6 +177,9 @@ static void ptin_ipdtl0_task(void)
                 /* Convert Internal VLAN ID to dtl0 VLAN ID */
                 msg.payload[14] = (PTIN_VLAN_PCAP_EXT >> 8) & 0x0F;
                 msg.payload[15] = (PTIN_VLAN_PCAP_EXT)      & 0xFF;
+
+                // TODO - It would be interesting if instead of replacing the internal VLAN ID with PTIN_VLAN_PCAP_EXT (2048),
+                // we add/push to the packet the external VLAN(s) according to the info on IXLATE for the ingress port
 
                 if (ptin_ipdtl0_debug_enable)
                 {

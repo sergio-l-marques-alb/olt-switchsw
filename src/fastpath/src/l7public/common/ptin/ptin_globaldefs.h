@@ -52,7 +52,8 @@
 #define CPLD_ID0_VAL                  ((CPLD_ID >> 8) & 0xFF)
 #define CPLD_ID1_VAL                  (CPLD_ID & 0xFF)
 
-#define PTIN_INBAND_BRIDGE_SCRIPT     "/bin/sh /usr/local/ptin/scripts/startBridge.sh"  /* Only applicable to CXP360G */
+#define PTIN_INBAND_BRIDGE_SCRIPT     "/bin/sh /usr/local/ptin/scripts/startBridge.sh"  /* Only applicable to CXP640G */
+#define PTIN_PCAP_BRIDGE_SCRIPT       "/bin/sh /usr/local/ptin/scripts/startPcapBridge.sh"  /* Applicable to CXP640G and Line Cards */
 
 #define PTIN_SYSTEM_GROUP_VLANS  1
 
@@ -181,6 +182,7 @@ extern int ptin_sys_number_of_ports;
 #define CPU_TRAPPED_PACKETS_COS_DEFAULT 8     /* For IGMP/DHCP/PPPoE/APS/... */
 #define CPU_TRAPPED_PACKETS_COS_INBAND  9     /* For Inband packets */
 #define CPU_TRAPPED_PACKETS_COS_HIPRIO  10    /* High priority */
+#define CPU_TRAPPED_PACKETS_COS_PCAP    11    /* For Packet Capture */
 
 /* PTin module states */
 typedef enum {

@@ -74,15 +74,16 @@ typedef struct  {
 
 
 /**
- * Add a vlan on to the dtl0 interface. 
+ * Add a vlan to the dtl0 interface. 
  *  
- * @param vlanId : Vlan ID to which the routing interface will be associated
+ * @param   vlanId    Vlan ID to which the routing interface will be associated
+ * @param   ifName    Name used to rename the Interface (NULL to ignore)
  * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ * @return  L7_RC_t   L7_SUCCESS/L7_FAILURE 
  *  
  * @note This creates a routing interface named dtl0.VLANID, where VLANID is the value passed through 'vlanId' 
  */
-L7_int dtlVlanIfAdd(L7_uint16 vlanId);
+L7_int dtlVlanIfAdd(L7_uint16 vlanId, L7_uchar8 *ifName);
 
 /**
  * Update the MAC address for a given interface

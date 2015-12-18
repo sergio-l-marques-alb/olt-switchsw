@@ -1272,7 +1272,7 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
   else if (msgAcl->action == ACL_ACTION_CAPTURE)
   {
     actionType = L7_ACL_PERMIT;
-    mirrorVal = ptin_mirror_intfnum;
+    mirrorVal = ptin_mirror_intfnum;    /* TODO: Currently the intfnum is being ignored on the hapi layer and the CPU port is forced */
   }
   else
   {

@@ -58,4 +58,19 @@ extern inline L7_uint16 ptin_cfg_inband_vlan_get(void);
  */
 extern L7_RC_t ptin_cfg_inband_bridge_set(void);
 
+/**
+ * Creates a bridge between dtl0.2048 interface and a virtual 
+ * interface eth0.2048
+ *  
+ * NOTE: 
+ *  1. virtual interface eth0.2048 is created here 
+ *  2. all operations are accomplished through an external shell script 
+ *     '/usr/local/ptin/scripts/startPcapBridge.sh' 
+ * 
+ * @author joaom (12/16/2015)
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_cfg_pcap_bridge_set(void);
+
 #endif /* _PTIN_CFG_H */

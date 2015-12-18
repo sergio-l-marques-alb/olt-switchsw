@@ -2375,10 +2375,18 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
   hapiBroadReceive_packets_count++;
   #endif
 
+  //PTIN Added
+  //TO BE DONE - somewhere the under layer is just considering 3 bits for cos (this is NOT an HW issue)
+  //if (bcm_pkt->cos == (CPU_TRAPPED_PACKETS_COS_PCAP & 0x07))  // Current workaround just to proceed
+  if (bcm_pkt->cos == CPU_TRAPPED_PACKETS_COS_PCAP)
+  {
+    BCM_RX_REASON_SET(bcm_pkt->rx_reasons, bcmRxReasonMirror);
+  }
+
   // PTin
   if (cpu_intercept_debug & CPU_INTERCEPT_DEBUG_STDOUT)
   {
-    printf("%s(%d) Lowest level reception: (reason=%u [%u,%u,%u,%u,%u]) %u rxport:%u, srcport=%u, vid=%u\n", __FUNCTION__, __LINE__,
+    printf("%s(%d) Lowest level reception: (reason=%u [%u,%u,%u,%u,%u]), cos=%u, rxport=%u, srcport=%u, vid=%u, length=%d\n", __FUNCTION__, __LINE__,
            bcm_pkt->rx_reason,
            bcm_pkt->rx_reasons.pbits[0],
            bcm_pkt->rx_reasons.pbits[1],
@@ -2388,14 +2396,15 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
            bcm_pkt->cos,
            bcm_pkt->rx_port,
            bcm_pkt->src_port,
-           bcm_pkt->vlan);
+           bcm_pkt->vlan,
+           bcm_pkt->pkt_len);
 
     printf("rx_timestamp %u, rx_timestamp_upper %u, timestamp_flags 0X%X\n\r", bcm_pkt->rx_timestamp, bcm_pkt->rx_timestamp_upper, bcm_pkt->timestamp_flags);
     fflush(stdout);
   }
   else if (cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL1)
   {
-    PT_LOG_TRACE(LOG_CTX_HAPI, "Lowest level reception: (reason=%u [%u,%u,%u]) %u rxport:%u, srcport=%u, vid=%d, length=%d\n",
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Lowest level reception: (reason=%u [%u,%u,%u,%u,%u]), cos=%u, rxport=%u, srcport=%u, vid=%u, length=%d\n",
               bcm_pkt->rx_reason,bcm_pkt->rx_reasons.pbits[0],bcm_pkt->rx_reasons.pbits[1],bcm_pkt->rx_reasons.pbits[2],bcm_pkt->cos,
               bcm_pkt->rx_port,bcm_pkt->src_port,bcm_pkt->vlan, bcm_pkt->pkt_len);
 
