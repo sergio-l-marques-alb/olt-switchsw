@@ -1,7 +1,7 @@
 #!/bin/sh
 
 export MODULE=fastpath-olt1t0
-export PLATFORMS="CXOLT1T0"
+export PLATFORMS="CXOLT1T0 CXOLT1T0-AC"
 
 export APPLICATION=fp
 
