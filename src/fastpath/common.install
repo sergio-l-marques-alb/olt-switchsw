@@ -14,26 +14,28 @@ if [ ! -e $BASE ]; then
   exit 1;
 fi
 
-echo "Creating folders for $PLATFORM"
-mkdir -p $APPS_FOLDER/backup
-rm -rf $APPS_FOLDER/backup/$PLATFORM_FOLDER
-mkdir -p $APPS_FOLDER/backup/$PLATFORM_FOLDER
+for platform in $PLATFORM_FOLDER; do
+ echo "Creating folders for $platform"
+ mkdir -p $APPS_FOLDER/backup
+ rm -rf $APPS_FOLDER/backup/$platform
+ mkdir -p $APPS_FOLDER/backup/$platform
 
-rm -rf $APPS_FOLDER/image/$PLATFORM_FOLDER
-mkdir -p $APPS_FOLDER/image/$PLATFORM_FOLDER/$FILESYSTEM/usr/local/ptin/sbin
-mkdir -p $APPS_FOLDER/image/$PLATFORM_FOLDER/$FILESYSTEM/usr/local/ptin/lib
+ rm -rf $APPS_FOLDER/image/$platform
+ mkdir -p $APPS_FOLDER/image/$platform/$FILESYSTEM/usr/local/ptin/sbin
+ mkdir -p $APPS_FOLDER/image/$platform/$FILESYSTEM/usr/local/ptin/lib
 
-echo "Copying $PLATFORM binaries"
-for file in $BIN_FILES; do
- cp -v $BIN_PATH/$file $APPS_FOLDER/image/$PLATFORM_FOLDER/$FILESYSTEM/usr/local/ptin/sbin
-done
-for file in $LIB_FILES; do
- cp -v $BIN_PATH/$file $APPS_FOLDER/image/$PLATFORM_FOLDER/$FILESYSTEM/usr/local/ptin/lib
-done
-for file in $KO_FILES; do
- cp -v $KO_PATH/$file $APPS_FOLDER/image/$PLATFORM_FOLDER/$FILESYSTEM/usr/local/ptin/sbin
-done
-for file in $BACKUP_FILES; do
- cp -v $BIN_PATH/$file $APPS_FOLDER/backup/$PLATFORM_FOLDER
+ echo "Copying $platform binaries"
+ for file in $BIN_FILES; do
+  cp -v $BIN_PATH/$file $APPS_FOLDER/image/$platform/$FILESYSTEM/usr/local/ptin/sbin
+ done
+ for file in $LIB_FILES; do
+  cp -v $BIN_PATH/$file $APPS_FOLDER/image/$platform/$FILESYSTEM/usr/local/ptin/lib
+ done
+ for file in $KO_FILES; do
+  cp -v $KO_PATH/$file $APPS_FOLDER/image/$platform/$FILESYSTEM/usr/local/ptin/sbin
+ done
+ for file in $BACKUP_FILES; do
+  cp -v $BIN_PATH/$file $APPS_FOLDER/backup/$platform
+ done
 done
 echo "Done!"
