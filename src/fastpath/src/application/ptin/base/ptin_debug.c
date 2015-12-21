@@ -119,8 +119,10 @@ void ptin_debug(void)
   printf("  slot_monitor_dump                                               - Dump link status information\r\n");
   printf("  slot_monitor_reset <port>                                       - Reset link status data (local and remote)\r\n");
   printf("  ptin_debug_example <intIfNum> <oper> <param1> <param2>          - Generic DTL processor example\r\n");
+  printf("  osapiShowTasks                                                  - Show all existent tasks\r\n");
   printf("  ptin_process_cpu                                                - Show CPU utilization by each thread\r\n");
   printf("  ptin_process_threshold                                          - Show CPU thresholds\r\n");
+  printf("  sysapiCpuUtilTableDump <show_tasks>                             - Show CPU calculation results for all tasks\r\n");
   printf("  cliTelnetAdminModeSet <port>\r\n");
   printf("  webAccessAdminModeSet <port>\r\n");
   printf("\r\n");                                                          
@@ -933,8 +935,8 @@ void ptin_lag_dump(void)
   return;
 }
 
-#define L7_BUFFSIZE  64*1024
 #define ESC_CHAR     0x1b
+#define L7_BUFFSIZE  16*1024
 L7_char8 buffer_threads[L7_BUFFSIZE];
 
 inline void print_string_hex(char *str, L7_uint16 max, L7_BOOL print_all, L7_BOOL char_identify)
@@ -1052,27 +1054,27 @@ void ptin_process_threshold(void)
   L7_uint32  fallingThr = 0, fallingInterval = 0;
   L7_uint32  memoryLowWatermark = 0;
 
-   (void) usmdbCpuUtilMonitorParamGet(1, 
-                                      SIM_CPU_UTIL_MONITOR_RISING_THRESHOLD_PARAM,
-                                      &risingThr);
-   (void) usmdbCpuUtilMonitorParamGet(1, 
-                                      SIM_CPU_UTIL_MONITOR_RISING_PERIOD_PARAM,
-                                      &risingInterval);
-   (void) usmdbCpuUtilMonitorParamGet(1, 
-                                      SIM_CPU_UTIL_MONITOR_FALLING_THRESHOLD_PARAM,
-                                      &fallingThr);
-   (void) usmdbCpuUtilMonitorParamGet(1, 
-                                      SIM_CPU_UTIL_MONITOR_FALLING_PERIOD_PARAM,
-                                      &fallingInterval);
-   (void) usmdbCpuFreeMemoryThresholdGet(1, &memoryLowWatermark);
+  (void) usmdbCpuUtilMonitorParamGet(1, 
+                                    SIM_CPU_UTIL_MONITOR_RISING_THRESHOLD_PARAM,
+                                    &risingThr);
+  (void) usmdbCpuUtilMonitorParamGet(1, 
+                                    SIM_CPU_UTIL_MONITOR_RISING_PERIOD_PARAM,
+                                    &risingInterval);
+  (void) usmdbCpuUtilMonitorParamGet(1, 
+                                    SIM_CPU_UTIL_MONITOR_FALLING_THRESHOLD_PARAM,
+                                    &fallingThr);
+  (void) usmdbCpuUtilMonitorParamGet(1, 
+                                    SIM_CPU_UTIL_MONITOR_FALLING_PERIOD_PARAM,
+                                    &fallingInterval);
+  (void) usmdbCpuFreeMemoryThresholdGet(1, &memoryLowWatermark);
 
-   printf("CPU Utilization Monitoring Parameters\r\n");
-   printf("Rising Threshold : %d %%\r\n", risingThr);
-   printf("Rising Interval  : %d secs\r\n", risingInterval);
-   printf("Falling Threshold: %d %%\r\n", fallingThr);
-   printf("Falling Interval : %d secs\r\n", fallingInterval);
-   printf("\r\n");
-   printf("CPU Free Memory Monitoring Threshold: %d KB\r\n", memoryLowWatermark);
+  printf("CPU Utilization Monitoring Parameters\r\n");
+  printf("Rising Threshold : %d %%\r\n", risingThr);
+  printf("Rising Interval  : %d secs\r\n", risingInterval);
+  printf("Falling Threshold: %d %%\r\n", fallingThr);
+  printf("Falling Interval : %d secs\r\n", fallingInterval);
+  printf("\r\n");
+  printf("CPU Free Memory Monitoring Threshold: %d KB\r\n", memoryLowWatermark);
 }
 
 
