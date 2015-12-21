@@ -191,9 +191,15 @@ if  [ $scriptVerbose -eq 1 ]; then
 fi
 cd $mkBoardsPath/CXOLT1T0
 if  [ $scriptDebugCommands -eq 1 ]; then
-	echo "sudo sh fastpath_olt1t0.sh"
+	echo "OLT1T0 -> sudo sh fastpath_olt1t0.sh"
 fi
-echo $password | sudo -S sh fastpath_olt1t0.sh 
+echo $password | sudo -S sh fastpath_olt1t0.sh
+
+if  [ $scriptDebugCommands -eq 1 ]; then
+        echo "OLT1T0-AC -> sudo sh fastpath_olt1t0.sh"
+fi
+cd $mkBoardsPath/CXOLT1T0-AC 
+echo $password | sudo -S sh fastpath_olt1t0.sh
 
 if  [ $? -ne 0 ]; then
 	echo -e "
