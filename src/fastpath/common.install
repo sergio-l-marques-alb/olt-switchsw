@@ -2,6 +2,7 @@
 
 BASE=../builds
 APPS_FOLDER=$BASE/apps
+TMP_PATH=$BASE/tmp
 
 BIN_FILES="switchdrvr devshell_symbols.gz fp.cli fp.shell mgmd.cli"
 KO_FILES="linux-kernel-bde.ko linux-user-bde.ko"
@@ -34,8 +35,13 @@ for platform in $PLATFORM_FOLDER; do
  for file in $KO_FILES; do
   cp -v $KO_PATH/$file $APPS_FOLDER/image/$platform/$FILESYSTEM/usr/local/ptin/sbin
  done
+
  for file in $BACKUP_FILES; do
   cp -v $BIN_PATH/$file $APPS_FOLDER/backup/$platform
  done
+
+ echo "Copying tmp files to $platform"
+ cp -r $TMP_FOLDER/$platform/* $APPS_FOLDER/image/$platform
 done
+
 echo "Done!"

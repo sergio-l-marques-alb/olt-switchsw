@@ -89,11 +89,10 @@ for plat in $PLATFORMS; do
   echo "echo OLTSWITCH md5sum: "`md5sum $APPS_PATH/image/$plat/rootfs/usr/local/ptin/sbin/$MAIN_BIN | awk '{print $1}'` >> $APPS_PATH/image/$plat/rootfs/usr/local/ptin/sbin/$APPLICATION.ver
 done
 
-echo -en $colorNotice
-echo "Replacing some files by backup ones..."
-echo -en $colorReset
-
-cp -r $TMP_PATH/* $APPS_PATH/image
+#echo -en $colorNotice
+#echo "Replacing some files by backup ones..."
+#echo -en $colorReset
+#cp -r $TMP_PATH/* $APPS_PATH/image
 
 sync
 
