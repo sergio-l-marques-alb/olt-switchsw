@@ -1089,12 +1089,12 @@ L7_RC_t usmDbDsStaticBindingRemove(L7_enetMacAddr_t *macAddr)
 *
 * @end
 *********************************************************************/
-L7_RC_t usmDbDsBindingRemove(L7_enetMacAddr_t *macAddr)
+L7_RC_t usmDbDsBindingRemove(L7_enetMacAddr_t *macAddr , L7_uint8 type)
 {
   dsBindingTreeKey_t key;
   memset(&key, 0x00, sizeof(key));
   memcpy(&key.macAddr.addr, &macAddr->addr, L7_ENET_MAC_ADDR_LEN);
-  key.ipType = L7_AF_INET;
+  key.ipType = type;
   return dsBindingRemove(&key);
 }
 #endif

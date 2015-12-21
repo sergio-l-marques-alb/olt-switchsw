@@ -1640,6 +1640,8 @@ L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_i
                 avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5],
                 #endif
                 dhcp_idx);
+              
+
   }
   /* New client */
   else
@@ -2187,7 +2189,7 @@ L7_RC_t ptin_dhcpv4v6_bindtable_get(ptin_DHCPv4v6_bind_entry *table, L7_uint32 *
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp82_bindtable_remove(dhcpSnoopBinding_t *dsBinding)
+L7_RC_t ptin_dhcp82_bindtable_remove(dhcpSnoopBinding_t *dsBinding )
 {
   L7_enetMacAddr_t   macAddr;
 
@@ -2199,7 +2201,7 @@ L7_RC_t ptin_dhcp82_bindtable_remove(dhcpSnoopBinding_t *dsBinding)
 
   // Remove this entry
   memcpy(macAddr.addr,dsBinding->key.macAddr,sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
-  if (usmDbDsBindingRemove(&macAddr)!=L7_SUCCESS) {
+  if (usmDbDsBindingRemove(&macAddr, dsBinding->key.ipType)!=L7_SUCCESS) {
     PT_LOG_ERR(LOG_CTX_DHCP, "Error removing entry");
     return L7_FAILURE;
   }

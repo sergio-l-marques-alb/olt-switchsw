@@ -8021,6 +8021,7 @@ L7_RC_t ptin_msg_DHCPv4v6_bindTable_get(msg_DHCP_bind_table_request_t *input, ms
     PT_LOG_TRACE(LOG_CTX_MSG, "  ipAddr      = %08X",  output->bind_table[i].ipAddr);
     PT_LOG_TRACE(LOG_CTX_MSG, "  remLeave    = %u",    output->bind_table[i].remLeave);
     PT_LOG_TRACE(LOG_CTX_MSG, "  bindingType = %u",    output->bind_table[i].bindingType);
+    PT_LOG_TRACE(LOG_CTX_MSG, "  family      = %u",    output->bind_table[i].ipAddr.family);
   }
 
   return L7_SUCCESS;
@@ -8037,8 +8038,8 @@ L7_RC_t ptin_msg_DHCPv4v6_bindTable_get(msg_DHCP_bind_table_request_t *input, ms
 L7_RC_t ptin_msg_DHCP_bindTable_remove(msg_DHCP_bind_table_entry_t *table, L7_uint16 numEntries)
 {
   L7_uint16           i;
-  dhcpSnoopBinding_t  dsBinding;
-  L7_RC_t             rc;
+  dhcpSnoopBinding_t  dsBindingIpv4,dsBindingIpv6;
+  L7_RC_t             rc_Ipv4, rc_Ipv6;
 
   if (numEntries > 128)  numEntries = 128;
 
@@ -8059,15 +8060,23 @@ L7_RC_t ptin_msg_DHCP_bindTable_remove(msg_DHCP_bind_table_entry_t *table, L7_ui
               table[i].bind_entry.macAddr[5]);
     PT_LOG_DEBUG(LOG_CTX_MSG,"family = %u",table[i].bind_entry.ipAddr.family);
 
-    memset(&dsBinding,0x00,sizeof(dhcpSnoopBinding_t));
-    memcpy(dsBinding.key.macAddr, table[i].bind_entry.macAddr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
-    dsBinding.key.ipType = (table[i].bind_entry.ipAddr.family==0) ? (L7_AF_INET) : (L7_AF_INET6);
-    rc = ptin_dhcp82_bindtable_remove(&dsBinding);
+    memset(&dsBindingIpv4,0x00,sizeof(dhcpSnoopBinding_t));
+    memcpy(dsBindingIpv4.key.macAddr, table[i].bind_entry.macAddr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
+    dsBindingIpv4.key.ipType = L7_AF_INET;  //(table[i].bind_entry.ipAddr.family==0) ;//? (L7_AF_INET) : (L7_AF_INET6);
 
-    if (rc!=L7_SUCCESS)
+    memset(&dsBindingIpv6,0x00,sizeof(dhcpSnoopBinding_t));
+    memcpy(dsBindingIpv6.key.macAddr, table[i].bind_entry.macAddr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
+    dsBindingIpv6.key.ipType = L7_AF_INET6;  //(table[i].bind_entry.ipAddr.family==0) ;//? (L7_AF_INET) : (L7_AF_INET6);
+
+    // Remove IPv6 and IPv4 entry
+
+    rc_Ipv4 = ptin_dhcp82_bindtable_remove(&dsBindingIpv4);
+    rc_Ipv6 = ptin_dhcp82_bindtable_remove(&dsBindingIpv6);
+
+    if ((rc_Ipv4!= L7_SUCCESS) && (rc_Ipv6!=L7_SUCCESS))
     {
       PT_LOG_ERR(LOG_CTX_MSG,"Error removing entry");
-      return rc;
+      return L7_SUCCESS;
     }
     PT_LOG_DEBUG(LOG_CTX_MSG,"Success removing entry");
   }
