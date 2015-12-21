@@ -2,7 +2,7 @@
 
 BASE=../builds
 APPS_FOLDER=$BASE/apps
-TMP_PATH=$BASE/tmp
+TMP_FOLDER=$BASE/tmp
 
 BIN_FILES="switchdrvr devshell_symbols.gz fp.cli fp.shell mgmd.cli"
 KO_FILES="linux-kernel-bde.ko linux-user-bde.ko"
