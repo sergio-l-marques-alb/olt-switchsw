@@ -162,6 +162,8 @@ int fe1600_interrupts_array_init(int unit)
     SOCDNX_INIT_FUNC_DEFS;
 	SOC_FE1600_ONLY(unit);
 
+    interrupts_info_allocation[0]='i';
+
     SOC_CONTROL(unit)->interrupts_info = sal_alloc(sizeof(soc_interrupt_t), "DFE: fe1600_interrupts");
     if (SOC_CONTROL(unit)->interrupts_info == NULL) {
         SOCDNX_EXIT_WITH_ERR(SOC_E_MEMORY, (_BSL_SOCDNX_MSG("failed to allocate fe1600_interrupts")));

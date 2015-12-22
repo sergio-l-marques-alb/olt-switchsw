@@ -35,6 +35,10 @@ ifeq (1,$(BLD_L7_TARGETOS_LINUX))
   ifeq (1,$(BLD_L7_TARGETOS_LINUX_36))
     vend_sdk_arc := $(vend_sdk_arc)-3_6
   endif
+
+  ifeq (1,$(BLD_L7_TARGETOS_LINUX_3x))
+    vend_sdk_arc := $(vend_sdk_arc)-3_x
+  endif
 endif
 
 ifeq (1,$(BLD_L7_TARGETOS_VXWORKS))
@@ -91,7 +95,7 @@ clean::
 #
 
 $(SDK_BUILD_FILE):
-	@echo "============================== THIS IS SDK 6.4.3 =============================="
+	@echo "============================== THIS IS SDK-ALL-6.4.8 =============================="
 	@echo "Building vendor SDK" $(HUSH)
 	+$(DBG)[ -d $(FP_BASE)/$(out_vend_sdk) ] || mkdir -p $(FP_BASE)/$(out_vend_sdk)
 	+$(DBG)[ -d $(FP_BASE)/$(OUT_TARGET) ] || mkdir -p $(FP_BASE)/$(OUT_TARGET)

@@ -81,12 +81,17 @@ ifeq (,$(kernel_version))
 kernel_version=2_4
 endif
 
+ifeq ($(kernel_version),3_x)
+ADD_TO_CFLAGS += -DLKM_3_x
+KOBJ=ko
+else
 ifeq ($(kernel_version),2_6)
 ADD_TO_CFLAGS += -DLKM_2_6
 KOBJ=ko
 else
 ADD_TO_CFLAGS += -DLKM_2_4
 KOBJ=o
+endif
 endif
 
 ifneq (,$(TOOLS_DIR))
@@ -143,6 +148,16 @@ SBX_DIAG_LIBS = \
 	libdiag_sbx.$(libext)
 endif
 
+ifdef DPP_CHIPS
+DPP_DIAG_LIBS = \
+        libdiag_dpp.$(libext)
+endif
+
+ifdef DFE_CHIPS
+DPP_DIAG_LIBS = \
+        libdiag_dfe.$(libext)
+endif
+
 DIAG_LIBS = \
         libdiag.a       \
         ${ESW_DIAG_LIBS} \
@@ -189,6 +204,10 @@ user_libs:
 ifdef BUILD_MACSEC
 	@${ECHO} "Building MACSEC libraries ...."
 	$(MAKE) -C ${MACSEC_HOME} MACSEC_CC="${CC}" MACSEC_LD="${LD}" MACSEC_AR="$(AR)" MACSEC_CFLAGS="${MACSEC_BUILD_FLAG}" MACSEC_TARGET="${targetbase}/${targetplat}/${platform}"
+endif
+ifdef BUILD_PHYMOD
+	@${ECHO} "Building PHYMOD libraries ...."
+	$(MAKE) -C $(SDK)/libs/phymod
 endif
 
 # Broadcom Command Monitor
