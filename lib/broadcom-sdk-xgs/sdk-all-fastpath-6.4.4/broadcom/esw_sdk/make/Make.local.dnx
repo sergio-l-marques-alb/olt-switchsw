@@ -105,7 +105,7 @@
 #CFGFLAGS += -DCOMPILER_OVERRIDE_NO_DOUBLE
 
 # Disable inlining of functions
-CFGFLAGS += -DCOMPILER_OVERRIDE_NO_INLINE
+#CFGFLAGS += -DCOMPILER_OVERRIDE_NO_INLINE
 
 # Disable use of const
 #CFGFLAGS += -DCOMPILER_OVERRIDE_NO_CONST
@@ -165,8 +165,8 @@ CFGFLAGS += -DCOMPILER_OVERRIDE_NO_INLINE
 #	NO_DEFAULT_CPU		do not init cpu ports into vlan 1
 #	NO_DEFAULT_SPI_SUBPORT	do not init spi subports into vlan 1
 #	NO_AUTO_STACK		do not init stack/HG ports into created vlans
-CFGFLAGS += -DBCM_VLAN_NO_DEFAULT_ETHER
-CFGFLAGS += -DBCM_VLAN_NO_DEFAULT_CPU
+#CFGFLAGS += -DBCM_VLAN_NO_DEFAULT_ETHER
+#CFGFLAGS += -DBCM_VLAN_NO_DEFAULT_CPU
 #CFGFLAGS += -DBCM_VLAN_NO_DEFAULT_SPI_SUBPORT
 #CFGFLAGS += -DBCM_VLAN_NO_AUTO_STACK
 
@@ -178,7 +178,7 @@ CFGFLAGS += -DBCM_VLAN_NO_DEFAULT_CPU
 #                               All packets destined to an unknown multicast
 #                               address are dropped.
 #CFGFLAGS += -DBCM_MCAST_FLOOD_DEFAULT=BCM_VLAN_MCAST_FLOOD_ALL
-CFGFLAGS += -DBCM_MCAST_FLOOD_DEFAULT=BCM_VLAN_MCAST_FLOOD_UNKNOWN
+#CFGFLAGS += -DBCM_MCAST_FLOOD_DEFAULT=BCM_VLAN_MCAST_FLOOD_UNKNOWN
 #CFGFLAGS += -DBCM_MCAST_FLOOD_DEFAULT=BCM_VLAN_MCAST_FLOOD_NONE
 
 #Port Enable/Disable Policy control:
@@ -189,7 +189,7 @@ CFGFLAGS += -DBCM_PORT_DEFAULT_DISABLE
 #CFGFLAGS += -DSAL_THREAD_PRIORITY=255
 
 # disable printing of thread name in messages
-CFGFLAGS += -DSAL_THREAD_NAME_PRINT_DISABLE
+#CFGFLAGS += -DSAL_THREAD_NAME_PRINT_DISABLE
 
 # disable runtime reading of flash config.bcm file (even if !NO_FILEIO)
 CFGFLAGS += -DSAL_CONFIG_FILE=\"/usr/local/ptin/sbin/config.bcm\" -DSAL_CONFIG_TEMP=\"/usr/local/ptin/sbin/config.tmp\"
@@ -228,10 +228,10 @@ INCLUDE_BCMX=1
 #     DISCOVER:      Simple discovery; will also include CPUTRANS
 #     STKTASK:       Stack manager application
 #
-CFGFLAGS += -DINCLUDE_LIB_CPUDB
-CFGFLAGS += -DINCLUDE_LIB_CPUTRANS
-CFGFLAGS += -DINCLUDE_LIB_DISCOVER
-CFGFLAGS += -DINCLUDE_LIB_STKTASK
+#CFGFLAGS += -DINCLUDE_LIB_CPUDB
+#CFGFLAGS += -DINCLUDE_LIB_CPUTRANS
+#CFGFLAGS += -DINCLUDE_LIB_DISCOVER
+#CFGFLAGS += -DINCLUDE_LIB_STKTASK
 
 # Option for discovery to use the application-data field in routing
 # packets for Board-ID and CPU base flag information.
