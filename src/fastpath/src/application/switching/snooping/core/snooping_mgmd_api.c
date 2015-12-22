@@ -129,7 +129,7 @@ L7_RC_t __matrix_slotid_get(L7_uint8 matrixType, L7_uint8 *slotId)
  */
 L7_RC_t __matrix_ipaddr_get(L7_uint8 matrixType, L7_uint32 *ipAddr)
 {
-  L7_uint8 matrixSlotId;
+  L7_uint8 matrixSlotId = PTIN_SYS_MX1_SLOT;
 
   if(ipAddr == L7_NULLPTR)
   {
@@ -226,7 +226,7 @@ L7_RC_t __matrix_mfdbport_sync(L7_uint8 admin, L7_uint8 matrixType, L7_uint32 se
 {
   msg_HwMgmdPortSync mgmdPortSync = {0};
   L7_uint32          matrixIpAddr = 0;
-  L7_uint8           matrixSlotId;
+  L7_uint8           matrixSlotId = PTIN_SYS_MX1_SLOT;
 
   /* Determine active/backup matrix slotId and IP address */
   if(L7_SUCCESS != __matrix_slotid_get(matrixType, &matrixSlotId))

@@ -2928,7 +2928,7 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t* g
     }
 
    /*Remove L3 Multicast Group*/
-    rc = ptin_multicast_group_destroy(pChannelEntry->pChannelIntfMask->multicastGroup);
+    rc = ptin_multicast_group_destroy(pChannelEntry->pChannelIntfMask->multicastGroup, BCM_MULTICAST_TYPE_L3);
     if ( rc != L7_SUCCESS )
     {
       PT_LOG_ERR(LOG_CTX_IGMP, "Error removing L3 multicast group: 0x%08x (rc:%u)", pChannelEntry->pChannelIntfMask->multicastGroup, rc);      
@@ -3125,7 +3125,7 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t
       } 
      
       /*Remove L3 Multicast Group*/
-      rc = ptin_multicast_group_destroy(multicast_group);
+      rc = ptin_multicast_group_destroy(multicast_group, BCM_MULTICAST_TYPE_L3);
       if ( rc != L7_SUCCESS )
       {
         PT_LOG_ERR(LOG_CTX_IGMP, "Error removing L3 multicast group: 0x%08x (rc:%u)", multicast_group, rc);      
@@ -3362,7 +3362,7 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 evcId, L7_uint16 vlanId, L7_inet_addr_t
     }
 
     /*Remove L3 Multicast Group*/
-    rc = ptin_multicast_group_destroy(pChannelEntry->pChannelIntfMask->multicastGroup);
+    rc = ptin_multicast_group_destroy(pChannelEntry->pChannelIntfMask->multicastGroup, BCM_MULTICAST_TYPE_L3);
     if ( rc != L7_SUCCESS )
     {
       PT_LOG_ERR(LOG_CTX_IGMP, "Error removing L3 multicast group: 0x%08x (rc:%u)", pChannelEntry->pChannelIntfMask->multicastGroup, rc);      
