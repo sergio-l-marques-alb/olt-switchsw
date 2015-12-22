@@ -672,6 +672,15 @@ L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort, L7_uint16 vsi,
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "vport=0x%x -> VSI=%u", vlan_port.vlan_port_id, vlan_port.vsi);
 
+  /* For BCM_VLAN_PORT_MATCH_PORT_VLAN criteria, inner VLAN should not be considered */
+  error = bcm_vlan_control_port_set(bcm_unit, vlan_port.vlan_port_id, bcmVlanPortDoubleLookupEnable, (criteria != BCM_VLAN_PORT_MATCH_PORT_VLAN));
+  if (error != BCM_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error configuring bcmVlanPortDoubleLookupEnable=%u to lif 0x%x: error=%d (\"%s\")",
+               (criteria != BCM_VLAN_PORT_MATCH_PORT_VLAN), vlan_port.vlan_port_id, error, bcm_errmsg(error));
+    return L7_FAILURE;
+  }
+
   /* Configure replication lists */
   if (mcast_group != 0)
   {

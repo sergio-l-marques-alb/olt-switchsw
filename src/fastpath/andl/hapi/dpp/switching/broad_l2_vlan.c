@@ -415,6 +415,9 @@ L7_RC_t hapiBroadPortAcceptableFrameTypeSet(DAPI_USP_t *usp, L7_uint32 acceptFra
       
   }
 
+  PT_LOG_NOTICE(LOG_CTX_MISC,"usp={%d,%d,%d}, mode=%u", usp->unit, usp->slot, usp->port, acceptFrameType);
+  return L7_SUCCESS;
+
   if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) == L7_TRUE)
   {
     int i;
@@ -2245,7 +2248,8 @@ L7_RC_t hapiBroadCosSetDot1pParams(DAPI_USP_t *usp, L7_uchar8 dot1p, L7_uchar8 c
 *********************************************************************/
 L7_RC_t hapiBroadQvlanMcastFloodModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g)
 {
-  L7_RC_t                result         = L7_SUCCESS;
+#if 0
+  L7_RC_t                result         = L7_SUCCESS; 
   DAPI_QVLAN_MGMT_CMD_t *cmdVlanCfg = (DAPI_QVLAN_MGMT_CMD_t*)data;
   L7_uint32              vlanId;
   L7_uint32              mode;
@@ -2275,6 +2279,10 @@ L7_RC_t hapiBroadQvlanMcastFloodModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
   }
 
   return result;
+#else
+  PT_LOG_WARN(LOG_CTX_HAPI,"hapiBroadQvlanMcastFloodModeSet not supported for DNX!");
+  return L7_SUCCESS;
+#endif
 }
 /*********************************************************************
 *
