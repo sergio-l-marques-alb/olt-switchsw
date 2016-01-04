@@ -3550,7 +3550,6 @@ L7_RC_t hapi_ptin_stormControl_cpu_set(L7_BOOL enable, L7_uint32 cir, L7_uint32 
     hapiBroadPolicyCreateCancel();
     return L7_FAILURE;
   }
-
   /* Add counter */
   if (hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS) != L7_SUCCESS)
   {
@@ -3574,6 +3573,22 @@ L7_RC_t hapi_ptin_stormControl_cpu_set(L7_BOOL enable, L7_uint32 cir, L7_uint32 
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding INT_PRIO qualifier (cos=%u/0x%x)\r\n", cos_value, cos_mask);
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+
+  /* Define meter action, to rate limit packets */
+  rc = hapiBroadPolicyRuleMeterAdd(ruleId2, &meterInfo);
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding rate limit\r\n");
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+  /* Add counter */
+  if (hapiBroadPolicyRuleCounterAdd(ruleId2, BROAD_COUNT_PACKETS) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_STARTUP,"Error with hapiBroadPolicyRuleCounterAdd");
     hapiBroadPolicyCreateCancel();
     return L7_FAILURE;
   }

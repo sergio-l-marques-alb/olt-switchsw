@@ -922,7 +922,8 @@ L7_RC_t hapiBroadPolicyRuleCopy(BROAD_POLICY_RULE_t  oldRule,
     if (oldRulePtr->ruleFlags & BROAD_METER_SPECIFIED)
     {
         /* indicate meter is shared with existing entry */
-        newRulePtr->meterSrcEntry    = oldRule;
+        newRulePtr->meterSrcEntry = oldRule;
+        newRulePtr->src_policerId = oldRule;
         newRulePtr->ruleFlags |= BROAD_METER_SHARED;
     }
     /* PTin modified: Stats */
@@ -932,7 +933,8 @@ L7_RC_t hapiBroadPolicyRuleCopy(BROAD_POLICY_RULE_t  oldRule,
     if (oldRulePtr->ruleFlags & BROAD_COUNTER_SPECIFIED)
     {
         /* indicate counter is shared with existing entry */
-        newRulePtr->meterSrcEntry     = oldRule;
+        newRulePtr->meterSrcEntry = oldRule;
+        newRulePtr->src_counterId = oldRule;
         newRulePtr->ruleFlags |= BROAD_COUNTER_SHARED;
     }
 
@@ -1338,7 +1340,9 @@ L7_RC_t hapiBroadPolicyRuleMeterAdd(BROAD_POLICY_RULE_t     rule,
     }
     #endif
 
-    rulePtr->ruleFlags |= BROAD_METER_SPECIFIED;
+    rulePtr->ruleFlags    &= ~((L7_uchar8) BROAD_METER_SHARED);
+    rulePtr->ruleFlags    |= BROAD_METER_SPECIFIED;
+    rulePtr->src_policerId = -1;
     memcpy(&rulePtr->policer.policerInfo, meterInfo, sizeof(*meterInfo));   /* PTin modified: SDK 6.3.0 */
 
     return L7_SUCCESS;
@@ -1384,7 +1388,9 @@ L7_RC_t hapiBroadPolicyRuleCounterAdd(BROAD_POLICY_RULE_t  rule,
     }
     #endif
 
-    rulePtr->ruleFlags               |= BROAD_COUNTER_SPECIFIED;
+    rulePtr->ruleFlags    &= ~((L7_uchar8) BROAD_COUNTER_SHARED);
+    rulePtr->ruleFlags    |= BROAD_COUNTER_SPECIFIED;
+    rulePtr->src_counterId = -1;
     rulePtr->counter.counterInfo.mode = mode;       /* PTin modified: SDK 6.3.0 */
 
     return L7_SUCCESS;

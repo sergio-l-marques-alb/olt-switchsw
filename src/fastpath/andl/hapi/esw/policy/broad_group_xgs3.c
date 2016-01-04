@@ -4874,7 +4874,7 @@ int policy_group_add_rule(int                        unit,
       }
   
       /* add meters or counters, if any, but not both */
-      if (rulePtr->ruleFlags & BROAD_METER_SPECIFIED)
+      if ((rulePtr->ruleFlags & BROAD_METER_SPECIFIED) || (rulePtr->ruleFlags & BROAD_METER_SHARED))
       {
         if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
             sysapiPrintf("- adding a meter\n");
@@ -4919,7 +4919,7 @@ int policy_group_add_rule(int                        unit,
       #if (SDK_VERSION_IS < SDK_VERSION(5,6,0,0))
       else
       #endif
-      if (rulePtr->ruleFlags & BROAD_COUNTER_SPECIFIED)
+      if ((rulePtr->ruleFlags & BROAD_COUNTER_SPECIFIED) || (rulePtr->ruleFlags & BROAD_COUNTER_SHARED))
       {
         if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
             sysapiPrintf("- adding a counter\n");
