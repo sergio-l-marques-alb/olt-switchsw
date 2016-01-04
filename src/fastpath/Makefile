@@ -54,7 +54,7 @@ all:
 	#@$(MAKE) -f cxp360g.make
 	#@$(MAKE) -f tolt8g.make
 	@$(MAKE) -f tg16g.make
-	@$(MAKE) -f tg4g.make
+	#@$(MAKE) -f tg4g.make
 	@$(MAKE) -f ta48ge.make
 	@$(MAKE) -f cxo640g.make
 	@$(MAKE) -f cxo160g.make
@@ -64,7 +64,7 @@ install:
 	#@$(MAKE) -f cxp360g.make install
 	#@$(MAKE) -f tolt8g.make install
 	@$(MAKE) -f tg16g.make install
-	@$(MAKE) -f tg4g.make install
+	#@$(MAKE) -f tg4g.make install
 	@$(MAKE) -f ta48ge.make install
 	@$(MAKE) -f cxo640g.make install
 	@$(MAKE) -f cxo160g.make install
@@ -74,7 +74,7 @@ clean:
 	#@$(MAKE) -f cxp360g.make clean
 	#@$(MAKE) -f tolt8g.make clean
 	@$(MAKE) -f tg16g.make clean
-	@$(MAKE) -f tg4g.make clean
+	#@$(MAKE) -f tg4g.make clean
 	@$(MAKE) -f ta48ge.make clean
 	@$(MAKE) -f cxo640g.make clean
 	@$(MAKE) -f cxo160g.make clean
@@ -84,7 +84,7 @@ cleanall:
 	#@$(MAKE) -f cxp360g.make cleanall
 	#@$(MAKE) -f tolt8g.make cleanall
 	@$(MAKE) -f tg16g.make cleanall
-	@$(MAKE) -f tg4g.make cleanall
+	#@$(MAKE) -f tg4g.make cleanall
 	@$(MAKE) -f ta48ge.make cleanall
 	@$(MAKE) -f cxo640g.make cleanall
 	@$(MAKE) -f cxo160g.make cleanall
