@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #########################################################################################################
-#  																																	  #
+#     																																  #
 # Use this script to updated the desired mkboards folder for the requested card. 							  #
 # Optionally, you can also generate an image for the selected card and upload it to a remote equipment. #
 #  																																	  #
@@ -24,6 +24,15 @@ if [ $BOARD == "tg16g" ]; then
  cd output/FastPath-Ent-esw-xgs4-pq2pro-LR-CSxw-IQH_TG16G
  cp -v ipl/switchdrvr ipl/devshell_symbols.gz target/*.ko ipl/fp.cli ipl/fp.shell ipl/mgmd.cli $MKBOARDS/TG16G/rootfs/usr/local/ptin/sbin/
  cp -v ipl/libmgmd.so $MKBOARDS/TG16G/rootfs/usr/local/ptin/lib/
+ cd - > /dev/null 2>&1
+ echo "OK!"
+fi
+
+if [ $BOARD == "tg4g" ]; then
+ echo -n "Updating TG4G mkboard...$1"
+ cd output/FastPath-Ent-esw-xgs4-e500-LR-CSxw-IQH_TG4G
+ cp -v ipl/switchdrvr ipl/devshell_symbols.gz target/*.ko ipl/fp.cli ipl/fp.shell ipl/mgmd.cli $MKBOARDS/TA48GE/rootfs/usr/local/ptin/sbin/
+ cp -v ipl/libmgmd.so $MKBOARDS/TA48GE/rootfs/usr/local/ptin/lib/
  cd - > /dev/null 2>&1
  echo "OK!"
 fi
@@ -67,6 +76,12 @@ if [ $# -ge 3 ]; then
 			echo "Failed to generate ramdisk!"
 			exit $?
 		fi
+		echo "OK!"
+	fi
+
+	if [ $BOARD == "tg4g" ]; then
+		cd $MKBOARDS/TA48GE/
+		sudo ./build_ramdisk_TA48GE.sh $IMAGE_VERSION > /dev/null 2>&1
 		echo "OK!"
 	fi
 
