@@ -925,11 +925,6 @@ void osapiFree(L7_COMPONENT_IDS_t compId, void * memory)
 
   pthread_t self;
 
-  self = pthread_self();
-  pthread_cleanup_push((void (*)(void *))pthread_mutex_unlock,
-                       (void *)&threadsafe_lock);
-  pthread_mutex_lock(&threadsafe_lock);
-
   if (compId >= L7_LAST_COMPONENT_ID)
   {
     L7_LOG_ERROR(compId);
@@ -937,8 +932,14 @@ void osapiFree(L7_COMPONENT_IDS_t compId, void * memory)
 
   if (memory == 0)
   {
-    L7_LOG_ERROR(0);
+    PT_LOG_WARN(LOG_CTX_MISC,"memory pointer is null!!!");
+    return;
   }
+
+  self = pthread_self();
+  pthread_cleanup_push((void (*)(void *))pthread_mutex_unlock,
+                       (void *)&threadsafe_lock);
+  pthread_mutex_lock(&threadsafe_lock);
 
   {
 #ifdef OSAPI_MEM_DEBUG
