@@ -27,6 +27,7 @@ struct {
   L7_uint32 aclId;
   L7_uint32 aclRuleNum[L7_MAX_NUM_RULES_PER_ACL+1];         /* [1..12] */
   L7_uint8  aclRuleCount;
+  L7_BOOL   aclRuleCap;
   #ifdef __VLAN_XLATE__
   L7_uint32 aclRuleXlated[L7_MAX_NUM_RULES_PER_ACL+1];
   #endif
@@ -36,12 +37,14 @@ struct {
   L7_uint32 aclId;
   L7_uint32 aclRuleNum[L7_MAX_NUM_RULES_PER_ACL+1];         /* [1..12] */
   L7_uint8  aclRuleCount;
+  L7_BOOL   aclRuleCap;
 } ptin_aclIpDb[2*L7_MAX_ACL_LISTS];                         /* Standard [1..99] and Extended [100..199]*/
 
 struct {
   L7_uint32 aclId;
   L7_uint32 aclRuleNum[L7_MAX_NUM_RULES_PER_ACL+1];         /* [1..12] */
   L7_uint8  aclRuleCount;
+  L7_BOOL   aclRuleCap;
 } ptin_aclIpv6Db[L7_MAX_ACL_LISTS];                         /* IPv6 [1..99] */
 
 
@@ -153,6 +156,7 @@ void  ptin_aclIpClean(L7_BOOL isAclAdded, L7_uint32 mngAclId, L7_uint32 mngRuleI
     ptin_aclIpDb[mngAclId].aclId = 0;
     memset(ptin_aclIpDb[mngAclId].aclRuleNum, 0, L7_MAX_NUM_RULES_PER_ACL);
     ptin_aclIpDb[mngAclId].aclRuleCount = 0;
+    ptin_aclIpDb[mngAclId].aclRuleCap = L7_FALSE;
   }
 
   /* No need to check error case. This is garbage cleaner and doesn't
@@ -215,6 +219,7 @@ void  ptin_aclIpv6Clean(L7_BOOL isAclAdded, L7_uint32 mngAclId, L7_uint32 mngRul
     ptin_aclIpv6Db[mngAclId].aclId = 0;
     memset(ptin_aclIpv6Db[mngAclId].aclRuleNum, 0, L7_MAX_NUM_RULES_PER_ACL);
     ptin_aclIpv6Db[mngAclId].aclRuleCount = 0;
+    ptin_aclIpv6Db[mngAclId].aclRuleCap = L7_FALSE;
   }  
 
   /* No need to check error case. This is garbage cleaner and doesn't
@@ -277,6 +282,7 @@ void ptin_aclMacClean(L7_BOOL isAclAdded, L7_uint32 mngAclId, L7_uint32 mngRuleI
     ptin_aclMacDb[mngAclId].aclId = 0;
     memset(ptin_aclMacDb[mngAclId].aclRuleNum, 0, L7_MAX_NUM_RULES_PER_ACL);
     ptin_aclMacDb[mngAclId].aclRuleCount = 0;
+    ptin_aclMacDb[mngAclId].aclRuleCap = L7_FALSE;
     #ifdef __VLAN_XLATE__
     memset(ptin_aclMacDb[mngAclId].aclRuleXlated, 0, L7_MAX_NUM_RULES_PER_ACL);
     #endif
@@ -400,6 +406,14 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
   {
     actionType = L7_ACL_PERMIT;
     mirrorVal = ptin_mirror_intfnum;
+
+    ptin_aclIpDb[msgAcl->aclId].aclRuleCap = L7_TRUE;
+
+    /* When an ACL with a CAPTURE rule is applied to a VLAN, on Line Cards we will assume the configuration as a permit
+       to allow that traffic and block the other. The mirror/capture rule will be applied only on the Matrix */
+    #if (PTIN_BOARD_IS_LINECARD)
+    mirrorVal = -1;
+    #endif
   }
   else
   {
@@ -1134,6 +1148,12 @@ L7_RC_t ptin_aclIpApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
 
     if (operation == ACL_OPERATION_CREATE)
     {
+      /* When an ACL with a CAPTURE rule is applied to an interface that belongs to a Line Card an error is returned */
+      #if (PTIN_BOARD_IS_LINECARD)
+      if (ptin_aclIpDb[aclApply->aclId].aclRuleCap == L7_TRUE)
+        return L7_FAILURE;
+      #endif
+
       rc = usmDbQosAclInterfaceDirectionAdd(unit, intIfNum, direction, aclId, sequence);
     }
     else /* ACL_OPERATION_REMOVE */
@@ -1273,6 +1293,8 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
   {
     actionType = L7_ACL_PERMIT;
     mirrorVal = ptin_mirror_intfnum;    /* TODO: Currently the intfnum is being ignored on the hapi layer and the CPU port is forced */
+
+    ptin_aclIpv6Db[msgAcl->aclId].aclRuleCap = L7_TRUE;
   }
   else
   {
@@ -1832,6 +1854,11 @@ L7_RC_t ptin_aclIpv6Apply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
 
     if (operation == ACL_OPERATION_CREATE)
     {
+      #if (PTIN_BOARD_IS_LINECARD)
+      if (ptin_aclIpv6Db[aclApply->aclId].aclRuleCap == L7_TRUE)
+        return L7_FAILURE;
+      #endif
+
       rc = usmDbQosAclInterfaceDirectionAdd(unit, intIfNum, direction, aclId, sequence);
     }
     else /* ACL_OPERATION_REMOVE */
@@ -1965,6 +1992,8 @@ L7_RC_t ptin_aclMacRuleConfig(msg_mac_acl_t *msgAcl, ACL_OPERATION_t operation)
   {
     actionType = L7_ACL_PERMIT;
     mirrorVal = ptin_mirror_intfnum;
+
+    ptin_aclMacDb[msgAcl->aclId].aclRuleCap = L7_TRUE;
   }
   else
   {
@@ -2443,6 +2472,11 @@ L7_RC_t ptin_aclMacApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
           }
         }
       }
+      #endif
+
+      #if (PTIN_BOARD_IS_LINECARD)
+      if (ptin_aclMacDb[aclApply->aclId].aclRuleCap == L7_TRUE)
+        return L7_FAILURE;
       #endif
 
       rc = usmDbQosAclMacInterfaceDirectionAdd(unit, intIfNum, direction, aclId, sequence);
