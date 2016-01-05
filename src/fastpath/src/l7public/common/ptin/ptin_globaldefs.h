@@ -9,12 +9,12 @@
 /* ************************** */
 /* Global Features Activation */
 
-#if PTIN_BOARD_IS_MATRIX || (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+#if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_STANDALONE)
   #define PTIN_ENABLE_ERPS
   #define PTIN_ERPS_EVC
 #endif
 
-#if PTIN_BOARD_IS_MATRIX || (PTIN_BOARD == PTIN_BOARD_OLT1T0) || (PTIN_BOARD == PTIN_BOARD_TG16G)  || (PTIN_BOARD == PTIN_BOARD_TA48GE)
+#if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_STANDALONE || PTIN_BOARD_IS_LINECARD)
   #define PTIN_ENABLE_DTL0TRAP
 #endif
 
@@ -100,6 +100,10 @@ extern int ptin_sys_number_of_ports;
 /* TG16G */
 #elif (PTIN_BOARD == PTIN_BOARD_TG16G)
 #include "ptin_globaldefs_tg16g.h"
+
+/* TG4G */
+#elif (PTIN_BOARD == PTIN_BOARD_TG4G)
+#include "ptin_globaldefs_tg4g.h"
 
 /* TA48GE */
 #elif (PTIN_BOARD == PTIN_BOARD_TA48GE)

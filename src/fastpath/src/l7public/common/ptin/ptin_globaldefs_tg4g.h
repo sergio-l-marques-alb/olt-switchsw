@@ -2,7 +2,7 @@
 #define _PTIN_GLOBALDEFS_TG16G_H
 
 /* If SSM is not supported, comment this line */
-#define SYNC_SSM_IS_SUPPORTED
+//#define SYNC_SSM_IS_SUPPORTED
 
 /** Service association AVL Tree */
 #define IGMPASSOC_MULTI_MC_SUPPORTED
@@ -19,8 +19,8 @@
 # define PTIN_SLOT_WORK             0
 # define PTIN_SLOT_PROT             1
 
-# define PTIN_SYSTEM_N_PORTS           20
-# define PTIN_SYSTEM_N_PONS            16 
+# define PTIN_SYSTEM_N_PORTS           8
+# define PTIN_SYSTEM_N_PONS            4 
 # define PTIN_SYSTEM_N_ETH             0
 # define PTIN_SYSTEM_N_LAGS_EXTERNAL   0
 # define PTIN_SYSTEM_N_LAGS            PTIN_SYSTEM_N_PORTS
@@ -28,9 +28,9 @@
 # define PTIN_SYSTEM_N_INTERF          (PTIN_SYSTEM_N_PORTS + PTIN_SYSTEM_N_LAGS)
 # define PTIN_SYSTEM_N_UPLINK_INTERF   (PTIN_SYSTEM_N_PONS + PTIN_SYSTEM_N_ETH)
 
-# define PTIN_SYSTEM_PON_PORTS_MASK    0x0000FFFF
+# define PTIN_SYSTEM_PON_PORTS_MASK    0x0000000F
 # define PTIN_SYSTEM_ETH_PORTS_MASK    0x00000000
-# define PTIN_SYSTEM_10G_PORTS_MASK    0x000F0000
+# define PTIN_SYSTEM_10G_PORTS_MASK    0x000000F0
 # define PTIN_SYSTEM_PORTS_MASK        (PTIN_SYSTEM_PON_PORTS_MASK | PTIN_SYSTEM_ETH_PORTS_MASK | PTIN_SYSTEM_10G_PORTS_MASK)
 
 # define PTIN_SYSTEM_N_EVCS            4002  /* Maximum nr of EVCs allowed in this equipment */
@@ -94,11 +94,11 @@
 # define PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD         1     /*Support L3 Multicast Forwarding*/
 # define PTIN_SYSTEM_IGMP_L3_MULTICAST_MAX_ENTRIES     4096  /*Max Number of L3 Multicast Entries*/
 # define PTIN_SYSTEM_IGMP_GROUP_LIST_MAX_ENTRIES       16384 /*Max Number of Group List Entries*/
-                                                      
-# define PTIN_SYSTEM_N_DHCP_INSTANCES                  32     /* Maximum nr of DHCP instances */
-# define PTIN_SYSTEM_N_PPPOE_INSTANCES                 32     /* Maximum nr of PPPoE instances */
-# define PTIN_SYSTEM_DHCP_MAXCLIENTS                   8192  /* Maximum DHCP clients */
-# define PTIN_SYSTEM_PPPOE_MAXCLIENTS                  8192  /* Maximum PPPoE clients */
+
+# define PTIN_SYSTEM_N_DHCP_INSTANCES               32      /* Maximum nr of DHCP instances */
+# define PTIN_SYSTEM_N_PPPOE_INSTANCES              32      /* Maximum nr of PPPoE instances */
+# define PTIN_SYSTEM_DHCP_MAXCLIENTS                8192    /* Maximum DHCP clients */
+# define PTIN_SYSTEM_PPPOE_MAXCLIENTS               8192    /* Maximum PPPoE clients */
 
 #define SNOOP_PTIN_MGMD_SUPPORT //Comment this line if you want to disable MGMD integration (not supported..)
 #define SNOOP_PTIN_IGMPv3_GLOBAL 1//Change to 0 if you want to globally disable IGMPv3 Module
@@ -106,9 +106,9 @@
 #define SNOOP_PTIN_IGMPv3_PROXY 1//Change to 0 if you want to disable IGMPv3 Proxy SubModule
 
 /* FPGA AND CPLD BASE ADDRESS */
-# define MAP_FPGA
+/*# define MAP_FPGA*/
 # define MAP_CPLD
-# define FPGA_BASE_ADDR                0xFF200000
+# define FPGA_BASE_ADDR                0xF8000000
 # define CPLD_BASE_ADDR                0xFF500000
 
 /* PLD map registers */
@@ -143,9 +143,9 @@ typedef union
     L7_uint8  slot_id;          /* 0x0F (1 byte)  */
     L7_uint8  empty3[0x18 - 0x10];
     L7_uint8  mx_get_active;    /* 0x18 (1 byte)  */
-    L7_uint8  empty4[0x1E - 0x19];
-    L7_uint8  slot_matrix;      /* 0x1E (1 byte)  */
-    L7_uint8  empty5[PTIN_CPLD_MAP_SIZE - 0x1F];
+    L7_uint8  empty4[0x1E - 0x10];
+    L7_uint8  slot_matrix;      /* 0x1e (1 byte) */
+    L7_uint8  empty5[PTIN_CPLD_MAP_SIZE - 0x1f];
   } reg;
 } st_cpld_map_t;
 
@@ -154,7 +154,7 @@ extern volatile st_cpld_map_t *cpld_map;
 #endif
 
 /* FPGA map registers */
-# define FPGA_ID                       0x1256
+# define FPGA_ID                       0x1295
 # define FPGA_ID0_REG                  0x0000
 # define FPGA_ID1_REG                  0x0001
 # define FPGA_VER_REG                  0x0002

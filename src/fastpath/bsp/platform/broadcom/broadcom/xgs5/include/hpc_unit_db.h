@@ -483,10 +483,103 @@
    },
    hpc_data_UNIT_BROAD_4_10G_3_40G_1_GIG_56640_REV_1        /* pointer to hpc platform specific data */
 },
+#if (PTIN_BOARD == PTIN_BOARD_TG4G)
+/* PTin added: new switch 5664x (Triumph3) GPON */
+{
+  {     
+     UNIT_BROAD_48_GIG_4_TENGIG_4_40GIG_56643_REV_1_ID,      /* unitTypeID */
+     "BCM-56643-01",                                  /* unitModel */
+     "Broadcom Triumph3 56643 Development System - 4 TENGIG, 4 40GIG",    /* unitDescription */
+     L7_UNITMGR_MGMTFUNC_UNASSIGNED,                /* managementPreference */
+     "1.3.6.1.4.1.4413",                             /* systemOID */
+     1,                                              /* numPowerSupply */
+     4,                                              /* numFans */
+     0,                                              /* poeSupport */
+     L7_TRUE,                                        /* nsfSupport */
+     1,                                             /* number of physical slots */
+/* do not specify the Logical Routing card as a non-removable card in switching builds */
+#if L7_SWITCHING_PACKAGE == 1
+     3,                                             /* number of static card-slot mapping table entries */  /* PTin modified: virtual ports */
+#elif L7_ROUTING_PACKAGE == 1
+#if L7_RLIM_PACKAGE == 1
+     6,                                             /* number of static card-slot mapping table entries */  /* PTin modified: virtual ports */
+#else
+    5,                                                                                                      /* PTin modified: virtual ports */
+#endif
+#else
+#error __FILE__, __LINE__: Neither L7_SWITCHING_PACKAGE nor L7_ROUTING_PACKAGE defined.
+#endif
+     UNIT_BRXGS_CODE_TARGET_DEVICE, /* codeLoadTargetId - What code to load on this device */
+     UNIT_BRXGS_CONFIG_TARGET_DEVICE, /* configLoadTargetId - What configuration to load on this device */
+     {
+       {L7_CPU_SLOT_NUM, L7_LOGICAL_CARD_CPU_48_GIG_4_TENGIG_4_40GIG_REV_1_ID},
+       {L7_LAG_SLOT_NUM, L7_LOGICAL_CARD_LAG_ID}
+#if L7_ROUTING_PACKAGE == 1
+       ,
+       {L7_VLAN_SLOT_NUM, L7_LOGICAL_CARD_VLAN_ROUTER_INTF_ID},
+       {L7_LOOPBACK_SLOT_NUM, L7_LOGICAL_CARD_LOOPBACK_INTF_ID},
+#if L7_RLIM_PACKAGE == 1
+       {L7_TUNNEL_SLOT_NUM, L7_LOGICAL_CARD_TUNNEL_INTF_ID}
+#endif
+#endif
+       ,
+       {L7_VLAN_PORT_SLOT_NUM, L7_LOGICAL_CARD_VLAN_PORT_INTF_ID}  /* PTin added: virtual ports */
+     },
+     {
+      {
+         0,   /* Slot Number */
+         L7_FALSE,  /* Slot supports pluggable cards */
+         L7_FALSE, /* Slot Can't be powered down */
+         1,    /* This slot supports one card types */
+
+         /* Supported card types.
+         */
+         {CARD_BROAD_48_GIG_4_TENGIG_4_40GIG_56643_REV_1_ID}
+       }
+     },
+     4,      /* four stacking ports */
+     {
+         /* First Stacking Port Descriptor */
+         {
+          1,     /* Front Panel Stacking stacking port */
+          0, 5,  /* slot/port for the stacking port */
+          {'0', '/', '5'},  /* Port identifier */
+          40,       /* 40 Gb/s */
+          0, 54, 0, 0  /* Bcm unit, Bcm port, unused, unused */
+         },
+         /* Second Stacking Port Descriptor */
+         {
+          1,     /* Front Panel Stacking stacking port */
+          0, 6,  /* slot/port for the stacking port */
+          {'0', '/', '6'},  /* Port identifier */
+          40,       /* 10 Gb/s */
+          0, 55, 0, 0  /* Bcm unit, Bcm port, unused, unused */
+         },
+         /* third Stacking Port Descriptor */
+         {
+          1,     /* Front Panel Stacking stacking port */
+          0, 7,  /* slot/port for the stacking port */
+          {'0', '/', '7'},  /* Port identifier */
+          40,       /* 1 Gb/s */
+          0, 56, 0, 0  /* Bcm unit, Bcm port, unused, unused */
+         },
+         /* fourth Stacking Port Descriptor */
+         {
+          1,     /* Front Panel Stacking stacking port */
+          0, 8,  /* slot/port for the stacking port */
+          {'0', '/', '8'},  /* Port identifier */
+          40,       /* 1 Gb/s */
+          0, 57, 0, 0  /* Bcm unit, Bcm port, unused, unused */
+         }
+       }
+   },
+   hpc_data_UNIT_BROAD_4_TENGIG_4_40GIG_56643_REV_1        /* pointer to hpc platform specific data */
+},
+#else
 /* PTin added: new switch 5664x (Triumph3) */
 {
   {     
-     UNIT_BROAD_48_GIG_4_TENGIG_56643_REV_1_ID,      /* unitTypeID */
+     UNIT_BROAD_48_GIG_4_TENGIG_4_40GIG_56643_REV_1_ID,      /* unitTypeID */
      "BCM-56643-00",                                  /* unitModel */
      "Broadcom Triumph3 56643 Development System - 48 GE, 4 TENGIG",    /* unitDescription */
      L7_UNITMGR_MGMTFUNC_UNASSIGNED,                /* managementPreference */
@@ -511,7 +604,7 @@
      UNIT_BRXGS_CODE_TARGET_DEVICE, /* codeLoadTargetId - What code to load on this device */
      UNIT_BRXGS_CONFIG_TARGET_DEVICE, /* configLoadTargetId - What configuration to load on this device */
      {
-       {L7_CPU_SLOT_NUM, L7_LOGICAL_CARD_CPU_48_GIG_4_TENGIG_REV_1_ID},
+       {L7_CPU_SLOT_NUM, L7_LOGICAL_CARD_CPU_48_GIG_4_TENGIG_4_40GIG_REV_1_ID},
        {L7_LAG_SLOT_NUM, L7_LOGICAL_CARD_LAG_ID}
 #if L7_ROUTING_PACKAGE == 1
        ,
@@ -531,7 +624,7 @@
 
          /* Supported card types.
          */
-         {CARD_BROAD_48_GIG_4_TENGIG_56643_REV_1_ID}
+         {CARD_BROAD_48_GIG_4_TENGIG_4_40GIG_56643_REV_1_ID}
        }
      },
      4,      /* four stacking ports */
@@ -574,6 +667,7 @@
    },
    hpc_data_UNIT_BROAD_48_GIG_4_TENGIG_56643_REV_1        /* pointer to hpc platform specific data */
 },
+#endif
 /* PTin added: new switch 56340 (Helix4) */
 {
   {     

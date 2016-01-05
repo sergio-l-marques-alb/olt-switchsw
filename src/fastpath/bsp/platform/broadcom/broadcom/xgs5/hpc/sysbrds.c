@@ -320,7 +320,7 @@ L7_RC_t hpcConfigBoardSet()
         break;
 
       /* PTin added: new switch 5664x (Triumph3) */
-      case UNIT_BROAD_48_GIG_4_TENGIG_56643_REV_1_ID:
+      case UNIT_BROAD_48_GIG_4_TENGIG_4_40GIG_56643_REV_1_ID:
         /* Enable trunk_128 bit. This will enable 128 trunks */
         /* and fixes LAG issue on XGS3 stacking              */
         if (sal_config_set(spn_TRUNK_EXTEND, "0x1") != 0)
@@ -358,6 +358,10 @@ L7_RC_t hpcConfigBoardSet()
         PT_LOG_NOTICE(LOG_CTX_MISC,"Interrupts and DMA are enabled!");
         #endif
 
+      #if (PTIN_BOARD == PTIN_BOARD_TG4G)
+        if (sal_config_set(spn_PBMP_XPORT_XE, "0x3fc000000000000") != 0)
+          return(L7_FAILURE);
+      #else
         for (idx = 1; idx <= 49; idx++)
         {
           /* Configurations for 1000 BASE-X mode */
@@ -398,6 +402,7 @@ L7_RC_t hpcConfigBoardSet()
             return(L7_FAILURE);
         #endif
         }
+      #endif
 
         /* L2 table */
         if (sal_config_set(spn_L2_MEM_ENTRIES, "131072") != 0)
@@ -448,7 +453,7 @@ L7_RC_t hpcConfigBoardSet()
       if (sal_config_set(spn_PBMP_XPORT_XE, "0x3fc000000000000") != 0)
         return(L7_FAILURE);
 
-       /* 1G ports */
+      /* 1G ports */
       for (idx = 33; idx <= 45; idx+=4)
       {
         /* Configurations for 1000 BASE-X mode */

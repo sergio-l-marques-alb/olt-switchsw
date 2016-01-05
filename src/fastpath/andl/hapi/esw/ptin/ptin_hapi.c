@@ -102,6 +102,7 @@ L7_RC_t ptin_hapi_phy_init_matrix(void);
 L7_RC_t ptin_hapi_phy_init_olt1t0(void);
 L7_RC_t ptin_hapi_phy_init_tolt8g_tg16g(void);
 L7_RC_t ptin_hapi_phy_init_ta48ge(void);
+L7_RC_t ptin_hapi_phy_init_tg4g(void);
 
 L7_RC_t ptin_hapi_linkscan_execute(bcm_port_t bcm_port, L7_uint8 enable);
 
@@ -402,6 +403,17 @@ L7_RC_t ptin_hapi_phy_init(void)
     PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing TA48GE phys");
   }
 
+  /* TG4G */
+#elif (PTIN_BOARD == PTIN_BOARD_TG4G)
+  if (ptin_hapi_phy_init_tg4g() == L7_SUCCESS)
+  {
+    PT_LOG_INFO(LOG_CTX_HAPI, "Success initializing TG4G phys");
+  }
+  else
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing TG4G phys");
+  }
+
   /* TOLT8G and TG16G boards */
 #elif (PTIN_BOARD == PTIN_BOARD_TOLT8G || PTIN_BOARD == PTIN_BOARD_TG16G)
   if (ptin_hapi_phy_init_tolt8g_tg16g() == L7_SUCCESS)
@@ -689,6 +701,73 @@ L7_RC_t ptin_hapi_phy_init_ta48ge(void)
     PT_LOG_NOTICE(LOG_CTX_HAPI, "All front ports were reinitialized to 1G speed");
   }
  #endif
+#else
+  rc = L7_NOT_SUPPORTED;
+#endif
+
+  return rc;
+}
+
+/**
+ * Initialize PHYs for TG4G board
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_hapi_phy_init_tg4g(void)
+{
+  L7_RC_t rc = L7_SUCCESS;
+
+#if (PTIN_BOARD == PTIN_BOARD_TG4G)
+  int i;
+  bcm_port_t bcm_port;
+
+  #if 0
+  /* Front ports */
+  for (i=0; i<PTIN_SYSTEM_N_PONS; i++)
+  {
+    /* Get bcm_port format */
+    if (hapi_ptin_bcmPort_get(i, &bcm_port)!=BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error obtaining bcm_port for port %u", i);
+      continue;
+    }
+
+    /* Configure ports at SFI mode */
+    rc = bcm_port_interface_set(0, bcm_port, BCM_PORT_IF_SFI);
+    if (L7_BCMX_OK(rc) != L7_TRUE)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing bcm_port %u", bcm_port);
+      return L7_FAILURE;
+    }
+    /* Activate FW mode 2 */
+    if (bcm_port_phy_control_set(0, bcm_port, BCM_PORT_PHY_CONTROL_FIRMWARE_MODE, 2) != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error applying Firmware mode 2 to port %u (bcm_port %u)", i, bcm_port);
+      rc = L7_FAILURE;
+      break;
+    }
+    PT_LOG_NOTICE(LOG_CTX_HAPI, "Success initializing port %u (bcm_port %u) at SFI mode", i, bcm_port);
+  }
+  #endif
+
+  /* Backplane ports */
+  for (i=PTIN_SYSTEM_N_PONS; i<PTIN_SYSTEM_N_PORTS; i++)
+  {
+    /* Get bcm_port format */
+    if (hapi_ptin_bcmPort_get(i, &bcm_port)!=BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error obtaining bcm_port for port %u", i);
+      continue;
+    }
+
+    if (ptin_hapi_kr4_set(bcm_port)!=L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing port %u (bcm_port %u) in KR4", i, bcm_port);
+      rc = L7_FAILURE;
+    }
+
+    PT_LOG_NOTICE(LOG_CTX_HAPI, "Port %u (bcm_port %u) in KR4", i, bcm_port);
+  }
 #else
   rc = L7_NOT_SUPPORTED;
 #endif

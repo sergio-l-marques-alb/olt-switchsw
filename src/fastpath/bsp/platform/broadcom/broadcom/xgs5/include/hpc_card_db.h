@@ -202,11 +202,31 @@
   }
 }
 ,
+#if (PTIN_BOARD == PTIN_BOARD_TG4G)
+/* PTin added: new switch 5664x (Triumph3) GPON */
+/* Board 56643 */
+{
+  {
+    CARD_BROAD_48_GIG_4_TENGIG_4_40GIG_56643_REV_1_ID,    /* cardtypeID */
+    "BCM56643-4TENGE-4FORTYGE",                   /* cardModel  */
+    "Broadcom BCM56643 - 4 Ten-Gigabit + 4 40GbE Ethernet Line Card",  /* cardDescription  */
+    SYSAPI_CARD_TYPE_LINE,            /* type       */
+    8,
+    SYSAPI_NO_CODE_LOAD,    /* codeLoadTargetId - What code to load on this device */
+    SYSAPI_NO_CONFIG_LOAD,  /* configLoadTargetId - What configuration to load on this device */
+    /* numOfNimPorts (computed from number of SYSAPI_PORT_DESCRIPTOR_t entries in table */
+    hpcPortInfoTable_CARD_BROAD_4_TENGIG_4_40GIG_56643_REV_1,
+    /* portInfo, refers to table declared above for each card type */
+    &dapiBroadPhysicalCardEntry_CARD_BROAD_4_TENGIG_4_40GIG_56643_REV_1 /* dapiCardInfo */
+  }
+}
+,
+#else
 /* PTin added: new switch 5664x (Triumph3) */
 /* Board 56643 */
 {
   {
-    CARD_BROAD_48_GIG_4_TENGIG_56643_REV_1_ID,   /* cardtypeID */
+    CARD_BROAD_48_GIG_4_TENGIG_4_40GIG_56643_REV_1_ID,   /* cardtypeID */
     "BCM56643-48GIG-4TENGE",              /* cardModel  */
     "Broadcom BCM56643 - 48 Port GbE + 4 Ten-Gigabit Ethernet Line Card",  /* cardDescription  */
     SYSAPI_CARD_TYPE_LINE,            /* type       */
@@ -220,6 +240,7 @@
   }
 }
 ,
+#endif
 /* PTin added: new switch 56340 (Helix4) */
 {
   {
@@ -388,7 +409,7 @@
 {
   /* Logical CPU Card */
   {
-    L7_LOGICAL_CARD_CPU_48_GIG_4_TENGIG_REV_1_ID,       /* cardtypeID */
+    L7_LOGICAL_CARD_CPU_48_GIG_4_TENGIG_4_40GIG_REV_1_ID,       /* cardtypeID */
     "LVL7 Logical CPU Card",        /* cardModel  */
     "LVL7 Logical CPU Card",        /* cardDescription  */
     SYSAPI_CARD_TYPE_LOGICAL_CPU, /* type       */

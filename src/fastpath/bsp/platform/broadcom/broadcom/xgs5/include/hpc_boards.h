@@ -107,7 +107,7 @@
         bcm_sys_id_defl,
         bcm_sys_sa_init_defl,
         bcm_sys_pre_stack_defl,
-        UNIT_BROAD_48_GIG_4_TENGIG_56643_REV_1_ID,
+        UNIT_BROAD_48_GIG_4_TENGIG_4_40GIG_56643_REV_1_ID,
         __BROADCOM_56640_ID,
         NO_CONNECTION_LIST
     },

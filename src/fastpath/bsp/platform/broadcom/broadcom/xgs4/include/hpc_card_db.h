@@ -335,7 +335,7 @@
 {
   /* Logical CPU Card */
   {
-    L7_LOGICAL_CARD_CPU_48_GIG_4_TENGIG_REV_1_ID,       /* cardtypeID */
+    L7_LOGICAL_CARD_CPU_48_GIG_4_TENGIG_4_40GIG_REV_1_ID,       /* cardtypeID */
     "LVL7 Logical CPU Card",        /* cardModel  */
     "LVL7 Logical CPU Card",        /* cardDescription  */
     SYSAPI_CARD_TYPE_LOGICAL_CPU, /* type       */
