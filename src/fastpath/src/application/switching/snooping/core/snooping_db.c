@@ -370,7 +370,8 @@ L7_RC_t snoopEntryDelete(L7_uchar8* macAddr, L7_uint32 vlanId, L7_uchar8 family)
   }
   if (pData == snoopEntry)
   {
-    pSnoopEB->snoopEntryTimerFreeIdx--;
+    if (pSnoopEB->snoopEntryTimerFreeIdx > 0)
+      pSnoopEB->snoopEntryTimerFreeIdx--;
     /* Entry deleted */
 
 #ifdef L7_NSF_PACKAGE
@@ -2970,7 +2971,7 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
   }
 
   /*New Entry or Multicast Group Needs to be Replaced*/
-  if ( ( (dtl_ipmc.flags & PTIN_BCM_IPMC_REPLACE) == 0) || (removeMulticastGroup == L7_TRUE) )
+  if (1 /*( (dtl_ipmc.flags & PTIN_BCM_IPMC_REPLACE) == 0) || (removeMulticastGroup == L7_TRUE)*/ )
   {    
     dtl_ipmc.group_index =  pChannelIntfMask->multicastGroup;   
     memcpy(&dtl_ipmc.s_ip_addr, &pChannelEntry->snoopChannelInfoDataKey.sourceAddr, sizeof(dtl_ipmc.s_ip_addr));
@@ -3098,7 +3099,8 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
   {
     if ( removechannelIntfMask == L7_FALSE )
     {
-      pChannelEntry->pChannelIntfMask->noOfChannelEntries--;
+      if (pChannelEntry->pChannelIntfMask->noOfChannelEntries > 0)
+        pChannelEntry->pChannelIntfMask->noOfChannelEntries--; 
     }
     pChannelEntry->pChannelIntfMask = pChannelIntfMask;
   }
@@ -3264,7 +3266,7 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
       PT_LOG_TRACE(LOG_CTX_IGMP,"Protection Entry Removed. [evcId:%u vlanId:%u groupAddr:%s sourceAddr:%s intIfNum:%u]",serviceId, vlanId, groupAddrStr, sourceAddrStr, intIfNum);
       PTIN_UNSET_MASKBIT(pChannelEntry->channelIntfProtectionMask,intIfNum);        
       if (pChannelEntry->noOfProtectionInterfaces>0)
-        --pChannelEntry->noOfProtectionInterfaces;
+        pChannelEntry->noOfProtectionInterfaces--;
       else
         PT_LOG_WARN(LOG_CTX_IGMP,"Number of Protection Interfaces is already zero! [evcId:%u vlanId:%u groupAddr:%s sourceAddr:%s intIfNum:%u]",serviceId, vlanId, groupAddrStr, sourceAddrStr, intIfNum);
 
@@ -3287,7 +3289,7 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
     {
       PTIN_UNSET_MASKBIT(pChannelEntry->channelIntfDynamicMask,intIfNum);        
       if (pChannelEntry->noOfDynamicInterfaces>0)
-        --pChannelEntry->noOfDynamicInterfaces;
+        pChannelEntry->noOfDynamicInterfaces--;
       else
         PT_LOG_WARN(LOG_CTX_IGMP,"Number of Dynamic Interfaces is already zero! [evcId:%u vlanId:%u groupAddr:%s sourceAddr:%s intIfNum:%u]",serviceId, vlanId, groupAddrStr, sourceAddrStr, intIfNum);
 
@@ -3306,8 +3308,12 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
   }
   #endif  
 
+  /* Decrement number of interfaces */
+  if ( pChannelEntry->noOfInterfaces > 0 )
+    pChannelEntry->noOfInterfaces--;
+
   /*Is it the last interface of this channel?*/
-  if ( --pChannelEntry->noOfInterfaces == 0 )
+  if ( pChannelEntry->noOfInterfaces == 0 )
   {
     /*Only Remove Entries that are in HW*/
     if ((pChannelEntry->flags & SNOOP_CHANNEL_ENTRY_IS_IN_HARDWARE) == SNOOP_CHANNEL_ENTRY_IS_IN_HARDWARE)
@@ -3323,8 +3329,12 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
       }
     }
 
+    /* Decrement number of channel entries */
+    if (pChannelEntry->pChannelIntfMask->noOfChannelEntries > 0)
+      pChannelEntry->pChannelIntfMask->noOfChannelEntries--;
+
     /*Is this channel the last entry of this interface mask?*/
-    if ( --pChannelEntry->pChannelIntfMask->noOfChannelEntries == 0 )
+    if ( pChannelEntry->pChannelIntfMask->noOfChannelEntries == 0 )
     {
       #if defined IGMP_SMART_MC_EVC_SUPPORTED
       l3_intf_id = -1;
@@ -3406,8 +3416,12 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
   PT_LOG_TRACE(LOG_CTX_IGMP, "This Channel Has %u Interface(s)  Left!", pChannelEntry->noOfInterfaces);
   PTIN_UNSET_MASKBIT(pChannelEntry->channelIntfMask, intIfNum);
 
+  /* Decrement number of channel entries */
+  if (pChannelEntry->pChannelIntfMask->noOfChannelEntries > 0)
+    pChannelEntry->pChannelIntfMask->noOfChannelEntries--;
+
   /*Is this channel the last entry of this interface mask?*/
-  if ( --pChannelEntry->pChannelIntfMask->noOfChannelEntries == 0 )
+  if ( pChannelEntry->pChannelIntfMask->noOfChannelEntries == 0 )
   {
     removeMulticastGroup = L7_TRUE;
     removechannelIntfMask = L7_TRUE;
@@ -3585,35 +3599,35 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
       }
     }
   }
-      
-  if ( removeMulticastGroup == L7_TRUE )
+   
+  dtl_ipmc.group_index = pChannelIntfMask->multicastGroup;
+  /*Update the IPMC Entry*/  
+  rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_L3_IPMC, DAPI_CMD_SET, sizeof(ptin_dtl_ipmc_addr_t), &dtl_ipmc);   
+  if (rc != L7_SUCCESS)
   {
-    dtl_ipmc.group_index = pChannelIntfMask->multicastGroup;
-    /*Update the IPMC Entry*/  
-    rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_L3_IPMC, DAPI_CMD_SET, sizeof(ptin_dtl_ipmc_addr_t), &dtl_ipmc);   
-    if (rc != L7_SUCCESS)
+    snoop_eb_t* pSnoopEB = snoopEBGet();     
+    if (rc == L7_ALREADY_CONFIGURED)
     {
-      snoop_eb_t* pSnoopEB = snoopEBGet();     
-      if (rc == L7_ALREADY_CONFIGURED)
-      {
-        PT_LOG_WARN(LOG_CTX_IGMP, "Channel already added to HW IPMC Table [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s multicast_group:0x%08x rc:%u noOfEntriesFW:%u]", serviceId, vlanId, intIfNum, 
-                inetAddrPrint(&dtl_ipmc.mc_ip_addr, groupAddrStr), inetAddrPrint(&dtl_ipmc.s_ip_addr, sourceAddrStr), dtl_ipmc.group_index, rc, pSnoopEB->snoopChannelAvlTree.count);      
-        flags |= SNOOP_CHANNEL_ENTRY_IS_IN_HARDWARE;
-      }
-      else
-      {
-        PT_LOG_ERR(LOG_CTX_IGMP, "Failed to Update Channel on the HW IPMC Table [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s multicast_group:0x%08x rc:%u noOfEntriesFW:%u]", serviceId, vlanId, intIfNum, 
-              inetAddrPrint(&dtl_ipmc.mc_ip_addr, groupAddrStr), sourceAddrStr, dtl_ipmc.group_index, rc, pSnoopEB->snoopChannelAvlTree.count);      
-        //Do not abort here the operation!
-    //  return rc;
-      }
-      rc = L7_SUCCESS;
+      PT_LOG_WARN(LOG_CTX_IGMP, "Channel already added to HW IPMC Table [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s multicast_group:0x%08x rc:%u noOfEntriesFW:%u]", serviceId, vlanId, intIfNum, 
+              inetAddrPrint(&dtl_ipmc.mc_ip_addr, groupAddrStr), inetAddrPrint(&dtl_ipmc.s_ip_addr, sourceAddrStr), dtl_ipmc.group_index, rc, pSnoopEB->snoopChannelAvlTree.count);      
+      flags |= SNOOP_CHANNEL_ENTRY_IS_IN_HARDWARE;
     }
     else
     {
-      flags |= SNOOP_CHANNEL_ENTRY_IS_IN_HARDWARE;
-    }   
-
+      PT_LOG_ERR(LOG_CTX_IGMP, "Failed to Update Channel on the HW IPMC Table [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s multicast_group:0x%08x rc:%u noOfEntriesFW:%u]", serviceId, vlanId, intIfNum, 
+            inetAddrPrint(&dtl_ipmc.mc_ip_addr, groupAddrStr), sourceAddrStr, dtl_ipmc.group_index, rc, pSnoopEB->snoopChannelAvlTree.count);      
+      //Do not abort here the operation!
+  //  return rc;
+    }
+    rc = L7_SUCCESS;
+  }
+  else
+  {
+    flags |= SNOOP_CHANNEL_ENTRY_IS_IN_HARDWARE;
+  } 
+     
+  if ( removeMulticastGroup == L7_TRUE )
+  {
     /* Remove Egress Ports*/  
     uint32 intf;
     uint32 noOfInterfacesFound = 0;
