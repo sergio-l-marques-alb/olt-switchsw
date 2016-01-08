@@ -2600,10 +2600,10 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
   memcpy(&channelEntry.snoopChannelInfoDataKey.sourceAddr, sourceAddr, sizeof(channelEntry.snoopChannelInfoDataKey.sourceAddr));
   
   rc = snoopChannelEntryAdd(&pChannelEntry);
-
+  PT_LOG_TRACE(LOG_CTX_IGMP, "rc = %d ", rc);  
   if (rc == L7_SUCCESS)
   {
-    //  New Channel Entry
+    /* New Channel Entry */
     newChannelEntry = L7_TRUE;
     PT_LOG_TRACE(LOG_CTX_IGMP, "New Channel Entry");  
   }  
@@ -2613,6 +2613,7 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
     {
       /*Replace Existing Entry*/
       dtl_ipmc.flags |= PTIN_BCM_IPMC_REPLACE;
+      PT_LOG_TRACE(LOG_CTX_IGMP, "dtl_ipmc.flags != PTIN_BCM_IPMC_REPLACE");
 
       /*Check if the Interface Mask Pointer is Valid*/
       if ( pChannelEntry->pChannelIntfMask == L7_NULLPTR)
@@ -2977,6 +2978,9 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
     memcpy(&dtl_ipmc.s_ip_addr, &pChannelEntry->snoopChannelInfoDataKey.sourceAddr, sizeof(dtl_ipmc.s_ip_addr));
     memcpy(&dtl_ipmc.mc_ip_addr, &pChannelEntry->snoopChannelInfoDataKey.groupAddr, sizeof(dtl_ipmc.mc_ip_addr));
     dtl_ipmc.vid = pChannelEntry->snoopChannelInfoDataKey.vlanId;
+
+    PT_LOG_TRACE(LOG_CTX_IGMP, "evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s multicast_group:0x%08x", serviceId, vlanId, intIfNum, 
+                inetAddrPrint(&dtl_ipmc.mc_ip_addr, groupAddrStr), inetAddrPrint(&dtl_ipmc.s_ip_addr, sourceAddrStr), dtl_ipmc.group_index);
     
     rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_L3_IPMC, DAPI_CMD_SET, sizeof(ptin_dtl_ipmc_addr_t), &dtl_ipmc);
     if (rc != L7_SUCCESS)
@@ -3131,7 +3135,10 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
     else
     {
       if (ptin_debug_igmp_snooping)
+      {
+        PT_LOG_DEBUG(LOG_CTX_IGMP, "L3 Multicast group 0x%08x removed", pChannelEntry->pChannelIntfMask->multicastGroup);
         PT_LOG_NOTICE(LOG_CTX_IGMP,"Interface %u is already in dynamic",intIfNum);
+      }
     }
   }
   #endif  
