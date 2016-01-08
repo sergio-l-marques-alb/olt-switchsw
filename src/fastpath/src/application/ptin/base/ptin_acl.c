@@ -2474,7 +2474,7 @@ L7_RC_t ptin_aclMacApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
       }
       #endif
 
-      #if (PTIN_BOARD_TG16G)
+      #if (PTIN_BOARD_IS_LINECARD)
       if (ptin_aclMacDb[aclApply->aclId].aclRuleCap == L7_TRUE)
         return L7_FAILURE;
       #endif
