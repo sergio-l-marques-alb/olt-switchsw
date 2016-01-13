@@ -28,14 +28,14 @@ startup()
     insert_modules;
 
     # Launch app
-#    nice -n -19 $app_path 0>/dev/null &
+    #nice -n -19 $app_path 0>/dev/null &
     $app_path 0>/dev/null &
 
     # Wait 200 seconds for FP to boot up
     $cli ping 10 20
 
     # Redirect output to the default pipes
-    exec 1>&- 2>&-
+    #exec 1>&- 2>&-
 
     let "ntry=ntry+1"
 }

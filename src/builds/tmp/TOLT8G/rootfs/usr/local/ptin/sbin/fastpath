@@ -18,17 +18,17 @@ startup()
     free >> $startup_log
 
     # Redirect output to the log file (temporarily)
-#    exec 1>>$startup_log 2>&1
+    #exec 1>>$startup_log 2>&1
 
     # Launch app
-#    nice -n -19 $app_path 0>/dev/null &
+    #nice -n -19 $app_path 0>/dev/null &
     $app_path 0>/dev/null &
 
     # Wait 200 seconds for FP to boot up
     $cli ping 10 20
 
     # Redirect output to the default pipes
-#    exec 1>&- 2>&-
+    #exec 1>&- 2>&-
 
     let "ntry=ntry+1"
 }
