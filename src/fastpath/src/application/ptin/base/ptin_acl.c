@@ -6,6 +6,7 @@
  * 
  */
 
+#include <string.h>
 #include "ptin_acl.h"
 #include "ptin_evc.h"
 #include "ptin_ipdtl0_packet.h"
@@ -2792,18 +2793,18 @@ L7_RC_t ptin_aclIpDbDump(L7_uint32 mngAclId)
     return L7_FAILURE;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "IP ACL Info: MNG ID %d -> ACL ID %d",        mngAclId, ptin_aclIpDb[mngAclId].aclId);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Number of Rules: %d",                      ptin_aclIpDb[mngAclId].aclRuleCount);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
+  printf("------------------------------------------- \n\r");
+  printf(" IP ACL Info: MNG ID %d -> ACL ID %d \n\r",        mngAclId, ptin_aclIpDb[mngAclId].aclId);
+  printf("------------------------------------------- \n\r");
+  printf(" Number of Rules: %d \n\r",                      ptin_aclIpDb[mngAclId].aclRuleCount);
+  printf("------------------------------------------- \n\r");
 
   for (i=1; i<=L7_MAX_NUM_RULES_PER_ACL; i++)
   {
-    PT_LOG_DEBUG(LOG_CTX_MSG, "  Rule Info: MNG ID %2d -> Rule ID %2d",   i, ptin_aclIpDb[mngAclId].aclRuleNum[i]);
+    printf(" Rule Info: MNG ID %2d -> Rule ID %2d \n\r",   i, ptin_aclIpDb[mngAclId].aclRuleNum[i]);
   }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "------------------------------------------- \n\r");
 
   return L7_SUCCESS; 
 }
@@ -2823,22 +2824,22 @@ L7_RC_t ptin_aclIpv6DbDump(L7_uint32 mngAclId)
 
   if (mngAclId >= L7_MAX_ACL_LISTS)
   {
-    PT_LOG_DEBUG(LOG_CTX_MSG, "Invalid ACL ID %d", mngAclId);
+    printf("Invalid ACL ID %d", mngAclId);
     return L7_FAILURE;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "IPv6 ACL Info: MNG ID %d -> ACL ID %d",      mngAclId, ptin_aclIpv6Db[mngAclId].aclId);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Number of Rules: %d",                      ptin_aclIpv6Db[mngAclId].aclRuleCount);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
+  printf("-------------------------------------------\n\r");
+  printf("IPv6 ACL Info: MNG ID %d -> ACL ID %d\n\r",      mngAclId, ptin_aclIpv6Db[mngAclId].aclId);
+  printf("-------------------------------------------\n\r");
+  printf("Number of Rules: %d",                      ptin_aclIpv6Db[mngAclId].aclRuleCount);
+  printf("-------------------------------------------\n\r");
 
   for (i=1; i<=L7_MAX_NUM_RULES_PER_ACL; i++)
   {
-    PT_LOG_DEBUG(LOG_CTX_MSG, "  Rule Info: MNG ID %2d -> Rule ID %2d",   i, ptin_aclIpv6Db[mngAclId].aclRuleNum[i]);
+    printf("Rule Info: MNG ID %2d -> Rule ID %2d \n\r",   i, ptin_aclIpv6Db[mngAclId].aclRuleNum[i]);
   }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
+  printf("------------------------------------------- \n\r");
 
   return L7_SUCCESS; 
 }
@@ -2862,18 +2863,18 @@ L7_RC_t ptin_aclMacDbDump(L7_uint32 mngAclId)
     return L7_FAILURE;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "MAC ACL Info: MNG ID %d -> ACL ID %d",       mngAclId, ptin_aclMacDb[mngAclId].aclId);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Number of Rules: %d",                      ptin_aclMacDb[mngAclId].aclRuleCount);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
+  printf("------------------------------------------- \n\r");
+  printf(" MAC ACL Info: MNG ID %d -> ACL ID %d \n\r",       mngAclId, ptin_aclMacDb[mngAclId].aclId);
+  printf("------------------------------------------- \n\r");
+  printf(" Number of Rules: %d \n\r",                      ptin_aclMacDb[mngAclId].aclRuleCount);
+  printf("------------------------------------------- \n\r");
 
   for (i=1; i<=L7_MAX_NUM_RULES_PER_ACL; i++)
   {
-    PT_LOG_DEBUG(LOG_CTX_MSG, "  Rule Info: MNG ID %2d -> Rule ID %2d",   i, ptin_aclMacDb[mngAclId].aclRuleNum[i]);
+    printf("  Rule Info: MNG ID %2d -> Rule ID %2d \n\r",   i, ptin_aclMacDb[mngAclId].aclRuleNum[i]);
   }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
+  printf("------------------------------------------- \n\r");
 
   return L7_SUCCESS;
 }
@@ -2941,4 +2942,39 @@ L7_RC_t ptin_aclDbDump(L7_uint8 aclType, L7_uint32 mngAclId)
   } 
 
   return L7_SUCCESS; 
+}
+
+/**
+ * Dump all ACL MNG DB
+ * 
+ * @author ruif (13/01/2016)
+ * 
+ * 
+ * @return L7_RC_t 
+ */
+
+void ptin_aclDbDump_all()
+{
+  int i =0;
+
+  for (i=0; i<L7_MAX_ACL_LISTS; i++)
+  {
+    if (ptin_aclMacDb[i].aclId==0)  continue;
+
+    ptin_aclMacDbDump(i); 
+  }
+
+  for (i=0; i<(2*L7_MAX_ACL_LISTS); i++)
+  {
+    if (ptin_aclIpDb[i].aclId==0)  continue;
+
+    ptin_aclIpDbDump(i);
+  }
+
+  for (i=0; i<L7_MAX_ACL_LISTS; i++)
+  {
+    if (ptin_aclIpv6Db[i].aclId==0)  continue;
+
+    ptin_aclIpv6DbDump(i);
+  }
 }
