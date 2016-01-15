@@ -2477,7 +2477,7 @@ L7_BOOL ptin_pppoe_intf_validate(L7_uint32 intIfNum)
   /* Convert interface to ptin_port */
   if (ptin_intf_intIfNum2ptintf(intIfNum,L7_NULLPTR)!=L7_SUCCESS)
   {
-    if (ptin_debug_pppoe_snooping)
+    //if (ptin_debug_pppoe_snooping)
       PT_LOG_ERR(LOG_CTX_PPPOE,"Invalid intIfNum %u",intIfNum);
     return L7_FALSE;
   }
@@ -2635,7 +2635,6 @@ L7_BOOL ptin_pppoe_is_intfRoot(L7_uint32 intIfNum, L7_uint16 intVlanId)
 L7_BOOL ptin_pppoe_intfTrusted_getList(L7_uint16 intVlanId, NIM_INTF_MASK_t *intfList)
 {
   L7_uint32             i, intIfNum;
-  ptin_intf_t           ptintf;
   L7_uint               pppoe_idx;
   st_PppoeInstCfg_t     *pppoeInst;
   L7_uint32             evc_id_ext;
@@ -2687,12 +2686,7 @@ L7_BOOL ptin_pppoe_intfTrusted_getList(L7_uint16 intVlanId, NIM_INTF_MASK_t *int
   /* Check all EVC ports for trusted ones */
   for (i = 0; i < evcConf.n_intf; i++)
   {
-    ptintf.intf_type = evcConf.intf[i].intf_type;
-    ptintf.intf_id   = evcConf.intf[i].intf_id;
-
-    /* Convert interface to intIfNum */
-    if (ptin_intf_ptintf2intIfNum(&ptintf, &intIfNum) != L7_SUCCESS)
-      continue;
+    intIfNum = evcConf.intf[i].intf.value.intIfNum;
 
     /* Mark interface as trusted, if it is */
     if (L7_INTF_ISMASKBITSET(pppoe_intIfNum_trusted, intIfNum))

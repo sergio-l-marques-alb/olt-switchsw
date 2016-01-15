@@ -486,8 +486,8 @@ L7_RC_t ptin_routing_intf_create(ptin_intf_t* routingIntf, L7_uint16 internalVla
      {
         intfType               = PTIN_ROUTING_INTF_TYPE_PHYSICAL;
         routingVlanId          = evc.intf[i].vid;
-        physicalIntf.intf_type = evc.intf[i].intf_type;
-        physicalIntf.intf_id   = evc.intf[i].intf_id;
+        physicalIntf.intf_type = evc.intf[i].intf.value.ptin_intf.intf_type;
+        physicalIntf.intf_id   = evc.intf[i].intf.value.ptin_intf.intf_id;
         break;
      }
   }

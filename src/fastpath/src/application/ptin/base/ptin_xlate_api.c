@@ -605,10 +605,8 @@ L7_RC_t ptin_xlate_ingress_get_originalVlan( L7_uint32 intIfNum, L7_uint16 *oute
 
 /**
  * Add ingress translation entry
- * 
- * @param intIfNum : interface reference
- * @param outerVlanId : lookup outer vlan 
- * @param innerVlanId : lookup inner vlan  
+ *  
+ * @param intf_vlan: intf/VLAN input 
  * @param newOuterVlanId : new vlan id 
  * @param newInnerVlanId : new inner vlan to be added (0 to not 
  *                       be added)
@@ -617,16 +615,19 @@ L7_RC_t ptin_xlate_ingress_get_originalVlan( L7_uint32 intIfNum, L7_uint16 *oute
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t ptin_xlate_ingress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uint16 innerVlanId,
+L7_RC_t ptin_xlate_ingress_add( ptin_HwEthMef10Intf_t *intf_vlan,
                                 L7_uint16 newOuterVlanId, L7_uint16 newInnerVlanId,
                                 L7_int newOuterPrio, L7_int newInnerPrio )
 {
+  L7_uint32 intIfNum;
   ptin_vlanXlate_t xlate;
   L7_RC_t rc = L7_SUCCESS;
 
   if (ptin_debug_xlate)
     PT_LOG_TRACE(LOG_CTX_XLATE, "intIfNum=%u, outerVlanId=%u, innerVlanId=%u, newOuterVlanId=%u, newInnerVlanId=%u, newOuterPrio=%u, newInnerPrio=%u",
-              intIfNum, outerVlanId, innerVlanId, newOuterVlanId, newInnerVlanId, newOuterPrio, newInnerPrio);
+                 intf_vlan->intf.value.intIfNum, intf_vlan->vid, intf_vlan->vid_inner, newOuterVlanId, newInnerVlanId, newOuterPrio, newInnerPrio);
+
+  intIfNum = intf_vlan->intf.value.intIfNum;
 
   /* Validate intIfNum */
   if (intIfNum == 0 || intIfNum >= INTIFNUM_LOCAL_MAX)
@@ -636,7 +637,7 @@ L7_RC_t ptin_xlate_ingress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_ui
   }
 
   /* Validate arguments */
-  if (outerVlanId>4095 || /*innerVlanId>4095 ||*/
+  if (intf_vlan->vid>4095 || /*innerVlanId>4095 ||*/
       newOuterVlanId>4095 /*|| newInnerVlanId>4095*/)
   {
     PT_LOG_ERR(LOG_CTX_XLATE, " ERROR: Invalid arguments");
@@ -644,7 +645,7 @@ L7_RC_t ptin_xlate_ingress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_ui
   }
 
   /* Configure DefVID using VCAP rules (only for single tagged packets) */
-  if (xlate_table_pvid[intIfNum] == outerVlanId && (innerVlanId == 0 || innerVlanId >= 4096))
+  if (xlate_table_pvid[intIfNum] == intf_vlan->vid && (intf_vlan->vid_inner == 0 || intf_vlan->vid_inner >= 4096))
   {
     /* Set default VLAN */
     if (usmDbQportsPVIDSet(1, intIfNum, newOuterVlanId) != L7_SUCCESS) 
@@ -674,8 +675,8 @@ L7_RC_t ptin_xlate_ingress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_ui
   xlate.portgroup       = PTIN_XLATE_PORTGROUP_INTERFACE;
   xlate.stage           = PTIN_XLATE_STAGE_INGRESS;
 
-  xlate.outerVlan       = outerVlanId;
-  xlate.innerVlan       = (innerVlanId > 4095) ? 0 : innerVlanId;
+  xlate.outerVlan       = (intf_vlan->vid > 4095) ? 0 : intf_vlan->vid;
+  xlate.innerVlan       = (intf_vlan->vid_inner > 4095) ? 0 : intf_vlan->vid_inner;
   xlate.outerVlan_new   = newOuterVlanId;
   xlate.innerVlan_new   = (newInnerVlanId > 4095) ? 0 : newInnerVlanId;
 
@@ -684,48 +685,51 @@ L7_RC_t ptin_xlate_ingress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_ui
   xlate.outerPrio_new   = (newOuterPrio >= 0 && newOuterPrio <= 7) ? newOuterPrio : 0;
   xlate.innerPrio_new   = (newInnerPrio >= 0 && newInnerPrio <= 7) ? newInnerPrio : 0;
 
-  xlate.outerVlanAction = PTIN_XLATE_ACTION_REPLACE;
+  xlate.outerVlanAction = intf_vlan->action_outer;
+  xlate.innerVlanAction = intf_vlan->action_inner;
   xlate.outerPrioAction = (newOuterPrio >= 0 && newOuterPrio <= 7) ? PTIN_XLATE_ACTION_REPLACE : PTIN_XLATE_ACTION_NONE;
+  xlate.innerPrioAction = PTIN_XLATE_ACTION_NONE;
+
+  /* If inner VLAN is to be added, no information should be provided about the input inner vlan (no push allowed to the inner tag) */
+  if (intf_vlan->action_inner == PTIN_XLATE_ACTION_ADD)
+  {
+    xlate.innerVlan = 0;
+  }
+
+  /* Correct actions according to new vlan values */
+  if (newOuterVlanId == 0)                /* If new VLANID is 0, do nothing */
+  {
+    xlate.outerVlanAction = PTIN_XLATE_ACTION_NONE;
+  }
+  else if (newOuterVlanId > 4095)         /* If new VLANID is -1, delete it */
+  {
+    xlate.outerVlanAction = PTIN_XLATE_ACTION_DELETE;
+  }
+  else if (intf_vlan->vid == 0)           /* If valid VLAN was provided, add a new one */
+  {
+    xlate.outerVlanAction = PTIN_XLATE_ACTION_ADD;
+  }
 
 #if ( PTIN_BOARD_IS_MATRIX )
+  /* No inner VLAN action on Matrix board */
   xlate.innerVlanAction = PTIN_XLATE_ACTION_NONE;
-  xlate.innerPrioAction = PTIN_XLATE_ACTION_NONE;
 #else
-  if (newInnerVlanId == 0)                /* If new inner VLANID is 0, do nothing */
+  if (newInnerVlanId == 0)                /* If new VLANID is 0, do nothing */
   {
     xlate.innerVlanAction = PTIN_XLATE_ACTION_NONE;
-    xlate.innerPrioAction = PTIN_XLATE_ACTION_NONE;
   }
-  else if (newInnerVlanId > 4095)         /* If new inner VLANID is -1, delete it */
+  else if (newInnerVlanId > 4095)         /* If new VLANID is -1, delete it */
   {
     xlate.innerVlanAction = PTIN_XLATE_ACTION_DELETE;
-    xlate.innerPrioAction = PTIN_XLATE_ACTION_NONE;
   }
-  /* Valid new inner vlan */
-  else if (innerVlanId == 0)            /* If current inner VLANID is 0, it means it does not exist */
+  else if (intf_vlan->vid_inner == 0)     /* If valid VLAN was provided, add a new one */
   {
     xlate.innerVlanAction = PTIN_XLATE_ACTION_ADD;
-    xlate.innerPrioAction = PTIN_XLATE_ACTION_NONE;
   }
-  else                                    /* Current inner vlan exists -> Do a replace */
-  {
-    xlate.innerVlanAction = PTIN_XLATE_ACTION_REPLACE;
-    xlate.innerPrioAction = PTIN_XLATE_ACTION_NONE;
-  }
+#endif
+
   /* Never remove VLANs at ingress translation */
   xlate.remove_VLANs = L7_FALSE;
-
-  #if 0
-  if (innerVlanId!=0)
-  {
-    xlate.innerAction = (newInnerVlanId != 0) ? PTIN_XLATE_ACTION_REPLACE : PTIN_XLATE_ACTION_NONE; 
-  }
-  else
-  {
-    xlate.innerAction = (newInnerVlanId!=0) ? PTIN_XLATE_ACTION_ADD : PTIN_XLATE_ACTION_NONE;
-  }
-  #endif
-#endif
 
   /* DTL call */
   rc = ptin_xlate_operation(DAPI_CMD_SET, intIfNum, &xlate);
@@ -1008,10 +1012,8 @@ L7_RC_t ptin_xlate_egress_get_originalVlan( L7_uint32 intIfNum, L7_uint16 *outer
 
 /**
  * Add egress translation entry
- * 
- * @param intIfNum : interface reference
- * @param outerVlanId : lookup outer vlan
- * @param innerVlanId : lookup inner vlan (0 to not be used)
+ *  
+ * @param intf_vlan: intf/VLAN input  
  * @param newOuterVlanId : new vlan id 
  * @param newInnerVlanId : new inner vlan id  
  * @param newOuterPrio : new outer prio (-1 to not be used)
@@ -1019,18 +1021,20 @@ L7_RC_t ptin_xlate_egress_get_originalVlan( L7_uint32 intIfNum, L7_uint16 *outer
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t ptin_xlate_egress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uint16 innerVlanId,
+L7_RC_t ptin_xlate_egress_add( ptin_HwEthMef10Intf_t *intf_vlan,
                                L7_uint16 newOuterVlanId, L7_uint16 newInnerVlanId,
                                L7_int newOuterPrio, L7_int newInnerPrio)
 {
-  L7_uint32 class_id;
+  L7_uint32 intIfNum, class_id;
   ptin_vlanXlate_t xlate;
   L7_RC_t rc = L7_SUCCESS;
   L7_uint32 unit = 0;
 
   if (ptin_debug_xlate)
     PT_LOG_TRACE(LOG_CTX_XLATE, "intIfNum=%u, outerVlanId=%u, innerVlanId=%u, newOuterVlanId=%u, newInnerVlanId=%u, newOuterPrio=%u, newInnerPrio=%u",
-              intIfNum, outerVlanId, innerVlanId, newOuterVlanId, newInnerVlanId, newOuterPrio, newInnerPrio);
+              intf_vlan->intf.value.intIfNum, intf_vlan->vid, intf_vlan->vid_inner, newOuterVlanId, newInnerVlanId, newOuterPrio, newInnerPrio);
+
+  intIfNum = intf_vlan->intf.value.intIfNum;
 
   /* Validate intIfNum */
   if (intIfNum == 0 || intIfNum >= INTIFNUM_LOCAL_MAX)
@@ -1059,7 +1063,7 @@ L7_RC_t ptin_xlate_egress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uin
 
   /* Validate arguments */
   if (class_id == 0 || 
-      outerVlanId > 4095 /*|| innerVlanId > 4095*/)
+      intf_vlan->vid > 4095 /*|| innerVlanId > 4095*/)
   {
     PT_LOG_ERR(LOG_CTX_XLATE, " ERROR: Invalid arguments");
     return L7_FAILURE;
@@ -1070,8 +1074,8 @@ L7_RC_t ptin_xlate_egress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uin
   xlate.portgroup     = class_id;
   xlate.stage         = PTIN_XLATE_STAGE_EGRESS;
 
-  xlate.outerVlan     = outerVlanId;
-  xlate.innerVlan     = (innerVlanId > 4095) ? 0 : innerVlanId;
+  xlate.outerVlan     = (intf_vlan->vid > 4095) ? 0 : intf_vlan->vid;
+  xlate.innerVlan     = (intf_vlan->vid_inner > 4095) ? 0 : intf_vlan->vid_inner;
   xlate.outerVlan_new = (newOuterVlanId > 4095) ? 0 : newOuterVlanId;
   xlate.innerVlan_new = (newInnerVlanId > 4095) ? 0 : newInnerVlanId;
 
@@ -1080,38 +1084,47 @@ L7_RC_t ptin_xlate_egress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uin
   xlate.outerPrio_new = (newOuterPrio >= 0 && newOuterPrio <= 7) ? newOuterPrio : 0;
   xlate.innerPrio_new = (newInnerPrio >= 0 && newInnerPrio <= 7) ? newInnerPrio : 0;
 
-#if ( PTIN_BOARD_IS_MATRIX )
-  xlate.outerVlanAction = PTIN_XLATE_ACTION_REPLACE;
+  xlate.outerVlanAction = intf_vlan->action_outer;
+  xlate.innerVlanAction = intf_vlan->action_inner;
   xlate.outerPrioAction = (newOuterPrio >= 0 && newOuterPrio <= 7) ? PTIN_XLATE_ACTION_REPLACE : PTIN_XLATE_ACTION_NONE;
-
-  xlate.innerVlanAction = PTIN_XLATE_ACTION_NONE;
   xlate.innerPrioAction = PTIN_XLATE_ACTION_NONE;
-#else
-  xlate.outerVlanAction = (newOuterVlanId>4095) ? PTIN_XLATE_ACTION_DELETE : PTIN_XLATE_ACTION_REPLACE;
-  xlate.outerPrioAction = (newOuterPrio >= 0 && newOuterPrio <= 7) ? PTIN_XLATE_ACTION_REPLACE : PTIN_XLATE_ACTION_NONE;
 
-  if (newInnerVlanId == 0)            /* If new inner VLANID is 0, do nothing */
+  /* If inner VLAN is to be added, no information should be provided about the input inner vlan (no push allowed to the inner tag) */
+  if (intf_vlan->action_inner == PTIN_XLATE_ACTION_ADD)
+  {
+    xlate.innerVlan = 0;
+  }
+
+  /* Correct actions according to new vlan values */
+  if (newOuterVlanId == 0)                /* If new VLANID is 0, do nothing */
+  {
+    xlate.outerVlanAction = PTIN_XLATE_ACTION_NONE;
+  }
+  else if (newOuterVlanId > 4095)         /* If new VLANID is -1, delete it */
+  {
+    xlate.outerVlanAction = PTIN_XLATE_ACTION_DELETE;
+  }
+  else if (intf_vlan->vid == 0)           /* If valid VLAN was provided, add a new one */
+  {
+    xlate.outerVlanAction = PTIN_XLATE_ACTION_ADD;
+  }
+
+#if ( PTIN_BOARD_IS_MATRIX )
+  /* No inner VLAN action on Matrix board */
+  xlate.innerVlanAction = PTIN_XLATE_ACTION_NONE;
+#else
+  if (newInnerVlanId == 0)                /* If new VLANID is 0, do nothing */
   {
     xlate.innerVlanAction = PTIN_XLATE_ACTION_NONE;
-    xlate.innerPrioAction = PTIN_XLATE_ACTION_NONE;
   }
-  else if (newInnerVlanId > 4095)     /* If new inner VLANID is -1, delete it */
+  else if (newInnerVlanId > 4095)         /* If new VLANID is -1, delete it */
   {
     xlate.innerVlanAction = PTIN_XLATE_ACTION_DELETE;
-    xlate.innerPrioAction = PTIN_XLATE_ACTION_NONE;
   }
-  /* Valid new inner vlan id (add new inner vlan, and copy priority) */
-  else if (innerVlanId > 4095)          /* If current inner VLANID is -1, it means it does not exist */
+  else if (intf_vlan->vid_inner == 0)     /* If valid VLAN was provided, add a new one */
   {
     xlate.innerVlanAction = PTIN_XLATE_ACTION_ADD;
-    xlate.innerPrioAction = PTIN_XLATE_ACTION_NONE; //PTIN_XLATE_ACTION_COPY; /* Copy priority from outer tag */
   }
-  else                                /* Current inner vlan exists -> Do a replace */
-  {
-    xlate.innerVlanAction = PTIN_XLATE_ACTION_REPLACE;
-    xlate.innerPrioAction = PTIN_XLATE_ACTION_NONE;
-  }
-  //xlate.innerAction = (newInnerVlanId>4095) ? PTIN_XLATE_ACTION_DELETE : PTIN_XLATE_ACTION_NONE;
 #endif
 
   /* Remove VLANs? */
@@ -1120,9 +1133,9 @@ L7_RC_t ptin_xlate_egress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uin
   if (xlate.remove_VLANs)
   {
     /* Set untagged port */
-    if (usmDbVlanTaggedSet(unit, outerVlanId, intIfNum, L7_DOT1Q_UNTAGGED) != L7_SUCCESS)
+    if (usmDbVlanTaggedSet(unit, intf_vlan->vid, intIfNum, L7_DOT1Q_UNTAGGED) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_EVC, "Error setting intIfNum# %u internal VLAN %u as UNtagged (rc=%d)", intIfNum, outerVlanId);
+      PT_LOG_ERR(LOG_CTX_EVC, "Error setting intIfNum# %u internal VLAN %u as UNtagged (rc=%d)", intIfNum, intf_vlan->vid);
       return L7_FAILURE;
     }
   }

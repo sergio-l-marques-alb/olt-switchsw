@@ -6358,7 +6358,6 @@ L7_RC_t ptin_igmp_rootIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfList,
   ptin_HwEthMef10Evc_t evcCfg;
   L7_uint intf_idx;
   L7_uint32 intIfNum;
-  ptin_intf_t ptin_intf;
 
   /* IGMP instance, from internal vlan */
   if (ptin_igmp_inst_get_fromIntVlan(intVlan,&igmpInst,L7_NULLPTR)!=L7_SUCCESS)
@@ -6394,18 +6393,10 @@ L7_RC_t ptin_igmp_rootIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfList,
   {
     if (evcCfg.intf[intf_idx].mef_type==PTIN_EVC_INTF_ROOT)
     {
-      ptin_intf.intf_type = evcCfg.intf[intf_idx].intf_type;
-      ptin_intf.intf_id   = evcCfg.intf[intf_idx].intf_id;
+      intIfNum = evcCfg.intf[intf_idx].intf.value.intIfNum;
 
-      if (ptin_intf_ptintf2intIfNum(&ptin_intf,&intIfNum)==L7_SUCCESS)
-      {
-        L7_INTF_SETMASKBIT(*intfList,intIfNum);
-        (*noOfInterfaces)++;
-      }
-      else
-      {
-        return L7_FAILURE;
-      }
+      L7_INTF_SETMASKBIT(*intfList,intIfNum);
+      (*noOfInterfaces)++;
     }
   }
 
@@ -6427,7 +6418,6 @@ L7_RC_t ptin_igmp_clientIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfLis
   L7_uint     intf_idx;
   L7_uint32   intIfNum;
   L7_uint     ptin_port;
-  ptin_intf_t ptin_intf;
   L7_uint32   evc_idx;
 
 #if (!defined IGMP_QUERIER_IN_UC_EVC)
@@ -6486,15 +6476,8 @@ L7_RC_t ptin_igmp_clientIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfLis
     /* Client ports are EVC leafs */
     if (evcCfg.intf[intf_idx].mef_type==PTIN_EVC_INTF_LEAF)
     {
-      ptin_intf.intf_type = evcCfg.intf[intf_idx].intf_type;
-      ptin_intf.intf_id   = evcCfg.intf[intf_idx].intf_id;
-
-      /* Validate interface */
-      if (ptin_intf_ptintf2port(&ptin_intf, &ptin_port)!=L7_SUCCESS ||
-          ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum)!=L7_SUCCESS)
-      {
-        return L7_FAILURE;
-      }
+      ptin_port = evcCfg.intf[intf_idx].intf.value.ptin_port;
+      intIfNum  = evcCfg.intf[intf_idx].intf.value.intIfNum;
 
       /* It must have at least one client on this interface */
 #if PTIN_BOARD_IS_MATRIX
