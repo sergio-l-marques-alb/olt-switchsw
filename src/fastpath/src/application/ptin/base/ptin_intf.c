@@ -2179,7 +2179,6 @@ inline L7_RC_t ptin_intf_port2ptintf(L7_uint32 ptin_port, ptin_intf_t *ptin_intf
   /* Validate arguments */
   if (ptin_intf == L7_NULLPTR)
   {
-    PT_LOG_ERR(LOG_CTX_INTF,"ptin_intf is a null pointer");
     return L7_FAILURE;
   }
 
@@ -2200,7 +2199,6 @@ inline L7_RC_t ptin_intf_ptintf2port(const ptin_intf_t *ptin_intf, L7_uint32 *pt
   /* Validate arguments */
   if (ptin_intf == L7_NULLPTR)
   {
-    PT_LOG_ERR(LOG_CTX_INTF,"ptin_intf is a null pointer");
     return L7_FAILURE;
   }
 
@@ -2357,7 +2355,7 @@ inline L7_RC_t ptin_intf_intIfNum2ptintf(L7_uint32 intIfNum, ptin_intf_t *ptin_i
     /* Convert ptin_port to type+id format */
     if (ptin_intf_port2ptintf(ptin_port, ptin_intf)!=L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_INTF, "Error converting ptin_port %u to type+id format", ptin_port);
+      //PT_LOG_ERR(LOG_CTX_INTF, "Error converting ptin_port %u to type+id format", ptin_port);
       return L7_FAILURE;
     }
   }

@@ -2477,7 +2477,7 @@ L7_BOOL ptin_pppoe_intf_validate(L7_uint32 intIfNum)
   /* Convert interface to ptin_port */
   if (ptin_intf_intIfNum2ptintf(intIfNum,L7_NULLPTR)!=L7_SUCCESS)
   {
-    //if (ptin_debug_pppoe_snooping)
+    if (ptin_debug_pppoe_snooping)
       PT_LOG_ERR(LOG_CTX_PPPOE,"Invalid intIfNum %u",intIfNum);
     return L7_FALSE;
   }
