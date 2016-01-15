@@ -57,12 +57,23 @@ static L7_RC_t ptin_hapi_xlate_egress_portsGroup_init(void);
  */
 L7_RC_t ptin_hapi_xlate_init(void)
 {
+  L7_BOOL enable;
   L7_int port, bcm_port;
   L7_RC_t rc = L7_SUCCESS;
 
   /* Change Ingress Vlan Translate Keys for all physical ports (LAGs are included through their physical ports) */
   for (port=0; port<ptin_sys_number_of_ports; port++)
   {
+    /* Enable translations? */
+    enable = L7_TRUE;
+    #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+    if (port == ptin_sys_number_of_ports-2)
+    {
+      /* Disable for FPGA port of OLT1T0 */
+      enable = L7_FALSE;
+    }
+    #endif
+
     if (hapi_ptin_bcmPort_get(port, &bcm_port) != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcm unit id");
@@ -82,10 +93,10 @@ L7_RC_t ptin_hapi_xlate_init(void)
 
     /* Enable ingress and egress translations.
        Also, drop packets that do not fullfil any translation entry. */
-    if ((bcm_vlan_control_port_set( bcm_unit, bcm_port, bcmVlanTranslateIngressEnable,   L7_TRUE) != L7_SUCCESS) ||
-        (bcm_vlan_control_port_set( bcm_unit, bcm_port, bcmVlanTranslateIngressMissDrop, L7_TRUE) != L7_SUCCESS) ||
-        (bcm_vlan_control_port_set( bcm_unit, bcm_port, bcmVlanTranslateEgressEnable,    L7_TRUE) != L7_SUCCESS) ||
-        (bcm_vlan_control_port_set( bcm_unit, bcm_port, bcmVlanTranslateEgressMissDrop,  L7_TRUE) != L7_SUCCESS) )
+    if ((bcm_vlan_control_port_set( bcm_unit, bcm_port, bcmVlanTranslateIngressEnable,   enable) != L7_SUCCESS) ||
+        (bcm_vlan_control_port_set( bcm_unit, bcm_port, bcmVlanTranslateIngressMissDrop, enable) != L7_SUCCESS) ||
+        (bcm_vlan_control_port_set( bcm_unit, bcm_port, bcmVlanTranslateEgressEnable,    enable) != L7_SUCCESS) ||
+        (bcm_vlan_control_port_set( bcm_unit, bcm_port, bcmVlanTranslateEgressMissDrop,  enable) != L7_SUCCESS) )
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error setting translation enables");
       rc = L7_FAILURE;
