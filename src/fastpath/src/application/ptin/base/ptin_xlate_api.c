@@ -603,6 +603,86 @@ L7_RC_t ptin_xlate_ingress_get_originalVlan( L7_uint32 intIfNum, L7_uint16 *oute
   return rc;
 }
 
+void ptin_xlate_ingress_set( L7_uint port, L7_uint16 outer_vlan, L7_uint op, L7_uint16 newOuterVlanId)
+{
+  ptin_HwEthMef10Intf_t intf_vlan;
+  L7_RC_t rc;
+
+  memset(&intf_vlan, 0x00, sizeof(intf_vlan));
+
+  intf_vlan.intf.format = PTIN_INTF_FORMAT_PORT;
+  intf_vlan.intf.value.ptin_port = port;
+
+  if (ptin_intf_any_format(&intf_vlan.intf) != L7_SUCCESS)
+  {
+    printf("Invalid port %d", port);
+    return;
+  }
+
+  intf_vlan.vid = outer_vlan;
+  intf_vlan.action_outer = op;
+
+  rc = ptin_xlate_ingress_add(&intf_vlan, newOuterVlanId, 0, -1, -1);
+
+  printf("Operation result: rc=%d", rc);
+}
+
+void ptin_xlate_egress_set( L7_uint port, L7_uint16 outer_vlan, L7_uint op, L7_uint16 newOuterVlanId)
+{
+  ptin_HwEthMef10Intf_t intf_vlan;
+  L7_RC_t rc;
+
+  memset(&intf_vlan, 0x00, sizeof(intf_vlan));
+
+  intf_vlan.intf.format = PTIN_INTF_FORMAT_PORT;
+  intf_vlan.intf.value.ptin_port = port;
+
+  if (ptin_intf_any_format(&intf_vlan.intf) != L7_SUCCESS)
+  {
+    printf("Invalid port %d", port);
+    return;
+  }
+
+  intf_vlan.vid = outer_vlan;
+  intf_vlan.action_outer = op;
+
+  rc = ptin_xlate_egress_add(&intf_vlan, newOuterVlanId, 0, -1, -1);
+
+  printf("Operation result: rc=%d", rc);
+}
+
+void ptin_xlate_ingress_clear( L7_uint port, L7_uint16 outer_vlan)
+{
+  L7_uint32 intIfNum;
+  L7_RC_t rc;
+
+  if (ptin_intf_port2intIfNum(port, &intIfNum) != L7_SUCCESS)
+  {
+    printf("Invalid port %d", port);
+    return;
+  }
+
+  rc = ptin_xlate_ingress_delete(intIfNum, outer_vlan, 0);
+
+  printf("Operation result: rc=%d", rc);
+}
+
+void ptin_xlate_egress_clear( L7_uint port, L7_uint16 outer_vlan)
+{
+  L7_uint32 intIfNum;
+  L7_RC_t rc;
+
+  if (ptin_intf_port2intIfNum(port, &intIfNum) != L7_SUCCESS)
+  {
+    printf("Invalid port %d", port);
+    return;
+  }
+
+  rc = ptin_xlate_egress_delete(intIfNum, outer_vlan, 0);
+
+  printf("Operation result: rc=%d", rc);
+}
+
 /**
  * Add ingress translation entry
  *  
