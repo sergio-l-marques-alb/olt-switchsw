@@ -12475,7 +12475,7 @@ L7_RC_t ptin_msg_acl_apply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation, L
     if (ptin_evc_get_intVlan_fromNNIvlan(msgAcl->vlanId, aclApply.vlanId, &aclApply.number_of_vlans) != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: Unable to get extEVCid from NNI VLAN %u", msgAcl->vlanId );
-      return L7_NOT_EXIST;
+      return L7_DEPENDENCY_NOT_MET;
     }
 
     PT_LOG_DEBUG(LOG_CTX_MSG, "Retrieved VLAN ID %d", (L7_uint32) aclApply.vlanId[0]);
@@ -12485,7 +12485,12 @@ L7_RC_t ptin_msg_acl_apply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation, L
     /* Gets the root vlan (internal) for a particular evc */
     aclApply.number_of_vlans = 1;
     rc = ptin_evc_intRootVlan_get(msgAcl->evcId, &aclApply.vlanId[0]);
-    if (rc != L7_SUCCESS)
+    if (rc == L7_NOT_EXIST)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "eEVC %u does not exist", msgAcl->evcId);
+      return L7_DEPENDENCY_NOT_MET;
+    }
+    else if (rc != L7_SUCCESS) 
     {
       PT_LOG_ERR(LOG_CTX_MSG, "Error while retrieving VLAN ID(rc=%d)", rc);
       return rc;
