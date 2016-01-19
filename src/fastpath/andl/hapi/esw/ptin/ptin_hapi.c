@@ -3524,7 +3524,7 @@ static BROAD_POLICY_t policyId_storm_cpu = BROAD_POLICY_INVALID;
  * 
  * @return L7_RC_t 
  */
-L7_RC_t hapi_ptin_stormControl_cpu_set(L7_BOOL enable, L7_uint32 cir, L7_uint32 cbs)
+L7_RC_t hapi_ptin_stormControl_cpu_set(L7_BOOL enable, L7_uint32 cir1, L7_uint32 cbs1, L7_uint32 cir2, L7_uint32 cbs2)
 {
   bcmx_lport_t  lport;
   bcm_port_t    bcm_port;
@@ -3543,18 +3543,6 @@ L7_RC_t hapi_ptin_stormControl_cpu_set(L7_BOOL enable, L7_uint32 cir, L7_uint32 
     PT_LOG_TRACE(LOG_CTX_HAPI,"CPU stormcontrol destroyed");
   }
 
-  if (!enable || cir == 0 || cir == (L7_uint32)-1)
-  {
-    PT_LOG_WARN(LOG_CTX_HAPI,"Nothing done: enable=%u cir=%u cbs=%u", enable, cir, cbs);
-    return L7_SUCCESS;
-  }
-
-  meterInfo.cir       = cir;
-  meterInfo.cbs       = cbs;
-  meterInfo.pir       = cir;
-  meterInfo.pbs       = cbs;
-  meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
-
   /* CPU port */
   if (bcmx_lport_local_cpu_get(0, &lport) != BCM_E_NONE)
   {
@@ -3566,6 +3554,13 @@ L7_RC_t hapi_ptin_stormControl_cpu_set(L7_BOOL enable, L7_uint32 cir, L7_uint32 
   {
     PT_LOG_ERR(LOG_CTX_HAPI,"Error with bcmx_lport_bcm_port");
     return L7_FAILURE;
+  }
+
+  if (!enable ||
+      (cir1 == (L7_uint32)-1 && cir2 == (L7_uint32)-1))
+  {
+    PT_LOG_WARN(LOG_CTX_HAPI,"Nothing done: enable=%u cir=%u cbs=%u", enable, cir1, cbs1);
+    return L7_SUCCESS;
   }
 
   /* Create policy */
@@ -3584,92 +3579,130 @@ L7_RC_t hapi_ptin_stormControl_cpu_set(L7_BOOL enable, L7_uint32 cir, L7_uint32 
     return L7_FAILURE;
   }
 
-  /* Create rule */
-  rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
-  if (rc != L7_SUCCESS)
+  /* First Rule */
+  if (cir1 != (L7_uint32)-1)
   {
-    PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding rule\r\n");
-    hapiBroadPolicyCreateCancel();
-    return L7_FAILURE;
+    meterInfo.cir       = cir1;
+    meterInfo.cbs       = cbs1;
+    meterInfo.pir       = cir1;
+    meterInfo.pbs       = cbs1;
+    meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
+
+    /* Create rule */
+    rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding rule\r\n");
+      hapiBroadPolicyCreateCancel();
+      return L7_FAILURE;
+    }
+
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OUTPORT, (L7_uchar8 *)&bcm_port, (L7_uchar8 *)&bcm_port_mask);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding port qualifier (bcm_port=%d)\r\n",bcm_port);
+      hapiBroadPolicyCreateCancel();
+      return L7_FAILURE;
+    }
+
+    /* Only apply to internal priorities 0-7 */
+    cos_value = 0;
+    cos_mask  = 0x8;
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INT_PRIO, (L7_uchar8 *)&cos_value, (L7_uchar8 *)&cos_mask);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding INT_PRIO qualifier (cos=%u/0x%x)\r\n", cos_value, cos_mask);
+      hapiBroadPolicyCreateCancel();
+      return L7_FAILURE;
+    }
+
+    /* Drop red packets */
+    rc = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding hard_drop action\r\n");
+      hapiBroadPolicyCreateCancel();
+      return L7_FAILURE;
+    }
+
+    /* Define meter action, to rate limit packets */
+    rc = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding rate limit\r\n");
+      hapiBroadPolicyCreateCancel();
+      return L7_FAILURE;
+    }
+    /* Add counter */
+    if (hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP,"Error with hapiBroadPolicyRuleCounterAdd");
+      hapiBroadPolicyCreateCancel();
+      return L7_FAILURE;
+    }
   }
 
-  rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OUTPORT, (L7_uchar8 *)&bcm_port, (L7_uchar8 *)&bcm_port_mask);
-  if (rc != L7_SUCCESS)
+  /* First Rule */
+  if (cir2 != (L7_uint32)-1)
   {
-    PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding port qualifier (bcm_port=%d)\r\n",bcm_port);
-    hapiBroadPolicyCreateCancel();
-    return L7_FAILURE;
-  }
+    meterInfo.cir       = cir2;
+    meterInfo.cbs       = cbs2;
+    meterInfo.pir       = cir2;
+    meterInfo.pbs       = cbs2;
+    meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
 
-  /* Only apply to internal priorities 0-7 */
-  cos_value = 0;
-  cos_mask  = 0x8;
-  rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INT_PRIO, (L7_uchar8 *)&cos_value, (L7_uchar8 *)&cos_mask);
-  if (rc != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding INT_PRIO qualifier (cos=%u/0x%x)\r\n", cos_value, cos_mask);
-    hapiBroadPolicyCreateCancel();
-    return L7_FAILURE;
-  }
+    /* Create rule */
+    rc = hapiBroadPolicyPriorityRuleAdd(&ruleId2, BROAD_POLICY_RULE_PRIORITY_HIGH);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding rule\r\n");
+      hapiBroadPolicyCreateCancel();
+      return L7_FAILURE;
+    }
 
-  /* Drop red packets */
-  rc = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
-  if (rc != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding hard_drop action\r\n");
-    hapiBroadPolicyCreateCancel();
-    return L7_FAILURE;
-  }
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId2, BROAD_FIELD_OUTPORT, (L7_uchar8 *)&bcm_port, (L7_uchar8 *)&bcm_port_mask);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding port qualifier (bcm_port=%d)\r\n",bcm_port);
+      hapiBroadPolicyCreateCancel();
+      return L7_FAILURE;
+    }
 
-  /* Define meter action, to rate limit packets */
-  rc = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
-  if (rc != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding rate limit\r\n");
-    hapiBroadPolicyCreateCancel();
-    return L7_FAILURE;
-  }
-  /* Add counter */
-  if (hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS) != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_STARTUP,"Error with hapiBroadPolicyRuleCounterAdd");
-    hapiBroadPolicyCreateCancel();
-    return L7_FAILURE;
-  }
+    /* Only apply to internal priorities 0-7 */
+    cos_value = 8;
+    cos_mask  = 0xf;
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId2, BROAD_FIELD_INT_PRIO, (L7_uchar8 *)&cos_value, (L7_uchar8 *)&cos_mask);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding INT_PRIO qualifier (cos=%u/0x%x)\r\n", cos_value, cos_mask);
+      hapiBroadPolicyCreateCancel();
+      return L7_FAILURE;
+    }
 
-  /* Create rule */
-  rc = hapiBroadPolicyRuleCopy(ruleId, &ruleId2);
-  if (rc != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_STARTUP, "Error copying rule\r\n");
-    hapiBroadPolicyCreateCancel();
-    return L7_FAILURE;
-  }
-  /* Only apply to internal priorities 8 */
-  cos_value = 8;
-  cos_mask  = 0xf;
-  rc = hapiBroadPolicyRuleQualifierAdd(ruleId2, BROAD_FIELD_INT_PRIO, (L7_uchar8 *)&cos_value, (L7_uchar8 *)&cos_mask);
-  if (rc != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding INT_PRIO qualifier (cos=%u/0x%x)\r\n", cos_value, cos_mask);
-    hapiBroadPolicyCreateCancel();
-    return L7_FAILURE;
-  }
+    /* Drop red packets */
+    rc = hapiBroadPolicyRuleNonConfActionAdd(ruleId2, BROAD_ACTION_HARD_DROP, 0, 0, 0);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding hard_drop action\r\n");
+      hapiBroadPolicyCreateCancel();
+      return L7_FAILURE;
+    }
 
-  /* Define meter action, to rate limit packets */
-  rc = hapiBroadPolicyRuleMeterAdd(ruleId2, &meterInfo);
-  if (rc != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding rate limit\r\n");
-    hapiBroadPolicyCreateCancel();
-    return L7_FAILURE;
-  }
-  /* Add counter */
-  if (hapiBroadPolicyRuleCounterAdd(ruleId2, BROAD_COUNT_PACKETS) != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_STARTUP,"Error with hapiBroadPolicyRuleCounterAdd");
-    hapiBroadPolicyCreateCancel();
-    return L7_FAILURE;
+    /* Define meter action, to rate limit packets */
+    rc = hapiBroadPolicyRuleMeterAdd(ruleId2, &meterInfo);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error adding rate limit\r\n");
+      hapiBroadPolicyCreateCancel();
+      return L7_FAILURE;
+    }
+    /* Add counter */
+    if (hapiBroadPolicyRuleCounterAdd(ruleId2, BROAD_COUNT_PACKETS) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP,"Error with hapiBroadPolicyRuleCounterAdd");
+      hapiBroadPolicyCreateCancel();
+      return L7_FAILURE;
+    }
   }
 
   /* Commit rule */
@@ -3704,7 +3737,7 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
   /* CPU storm control */
   if (control->flags & PTIN_STORMCONTROL_MASK_CPU)
   {
-    result = hapi_ptin_stormControl_cpu_set(enable, control->cpu_rate, 128);
+    result = hapi_ptin_stormControl_cpu_set(enable, control->cpu_rate, 128, control->cpu_rate, 128);
 
     if (result != L7_SUCCESS)
     {
@@ -3777,14 +3810,14 @@ void ptin_stormcontrol_dump(void)
     {
       /* Also print hw group id and entry id*/
       printf("L2 CPU packets: policy=%-4u rule=%u -> group=%-2d, entry=%-4d (PolicerId=%-4d CounterId %-4d)",
-             policyId_storm_cpu, 0, group_id, entry_id, policer_id, counter_id);
+             policyId_storm_cpu, rule, group_id, entry_id, policer_id, counter_id);
 
       /* Check counter */
       if (counter_id > 0)
       {
         printf(": Packets=");
         /* Get stat data */
-        if (hapiBroadPolicyStatsGet(policyId_storm_cpu, 0, &stat) != L7_SUCCESS)
+        if (hapiBroadPolicyStatsGet(policyId_storm_cpu, rule, &stat) != L7_SUCCESS)
           printf("Error");
         else
           printf("%llu", stat.statMode.counter.count);
