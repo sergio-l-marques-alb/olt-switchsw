@@ -140,6 +140,90 @@ extern L7_RC_t ptin_xlate_egress_portgroup_get_originalVlan( L7_uint32 portgroup
 #endif
 
 /**
+ * Set ingress translation rule (single tag)
+ * 
+ * @param port 
+ * @param outer_vlan 
+ * @param op 
+ * @param newOuterVlanId 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_xlate_ingress_set( L7_uint port, L7_uint16 outer_vlan, L7_uint op, L7_uint16 newOuterVlanId);
+
+/**
+ * Set ingress translation rule (double tag)
+ * 
+ * @author mruas (1/20/2016)
+ * 
+ * @param port 
+ * @param outer_vlan 
+ * @param inner_vlan 
+ * @param newOuterVlanId 
+ * @param newInnerVlanId 
+ * @param outer_op 
+ * @param inner_op 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_xlate_double_ingress_set(L7_uint port, L7_uint16 outer_vlan, L7_uint16 inner_vlan, L7_uint16 newOuterVlanId, L7_uint16 newInnerVlanId, L7_uint outer_op, L7_uint inner_op);
+
+/**
+ * Set egress translation rule (single tag)
+ * 
+ * @param port 
+ * @param outer_vlan 
+ * @param op 
+ * @param newOuterVlanId 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_xlate_egress_set( L7_uint port, L7_uint16 outer_vlan, L7_uint op, L7_uint16 newOuterVlanId);
+
+/**
+ * Set egress translation rule (double tag)
+ * 
+ * @author mruas (1/20/2016)
+ * 
+ * @param port 
+ * @param outer_vlan 
+ * @param inner_vlan 
+ * @param newOuterVlanId 
+ * @param newInnerVlanId 
+ * @param outer_op 
+ * @param inner_op 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_xlate_double_egress_set(L7_uint port, L7_uint16 outer_vlan, L7_uint16 inner_vlan, L7_uint16 newOuterVlanId, L7_uint16 newInnerVlanId, L7_uint outer_op, L7_uint inner_op);
+
+/**
+ * Delete ingress translation rule (single/double tag)
+ * 
+ * @author mruas (1/20/2016)
+ * 
+ * @param port 
+ * @param outer_vlan 
+ * @param inner_vlan 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_xlate_ingress_clear( L7_uint port, L7_uint16 outer_vlan, L7_uint16 inner_vlan);
+
+/**
+ * Delete egress translation rule (single/double tag)
+ * 
+ * @author mruas (1/20/2016)
+ * 
+ * @param port 
+ * @param outer_vlan 
+ * @param inner_vlan 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_xlate_egress_clear( L7_uint port, L7_uint16 outer_vlan, L7_uint16 inner_vlan);
+
+/**
  * Add ingress translation entry
  *  
  * @param intf_vlan: intf/VLAN input 

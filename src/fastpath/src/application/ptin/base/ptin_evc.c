@@ -689,11 +689,18 @@ L7_RC_t ptin_evc_startup(void)
     evcConf.intf[1].action_outer= PTIN_XLATE_ACTION_NONE;
     evcConf.intf[1].action_inner= PTIN_XLATE_ACTION_NONE;
 
-    /* Creates EVC for Broadlights management */
+    /* Create circuit */
     rc = ptin_evc_create(&evcConf);
     if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_API, "Error creating EVC# %u connecting CPU-FPGA", PTIN_EVC_FPGA2CPU);
+      return rc;
+    }
+    /* Configure pop translation actions */
+    rc = ptin_xlate_egress_set(PTIN_PORT_CPU, PTIN_VLAN_FPGA2CPU, PTIN_XLATE_ACTION_DELETE, (L7_uint16)-1);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_API, "Error defining pop xlate action for EVC# %u (CPU-FPGA): rc=%d", PTIN_EVC_FPGA2CPU, rc);
       return rc;
     }
 
@@ -721,11 +728,18 @@ L7_RC_t ptin_evc_startup(void)
       evcConf.intf[1].action_outer= PTIN_XLATE_ACTION_NONE;
       evcConf.intf[1].action_inner= PTIN_XLATE_ACTION_NONE;
 
-      /* Creates EVC for Broadlights management */
+      /* Create circuit */
       rc = ptin_evc_create(&evcConf);
       if (rc != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_API, "Error creating EVC# %u for connecting Port %u to FPGA", PTIN_EVC_FPGA2CPU, i);
+        return rc;
+      }
+      /* Configure pop translation actions */
+      rc = ptin_xlate_egress_set(i, PTIN_VLAN_FPGA2PORT_MIN+i, PTIN_XLATE_ACTION_DELETE, (L7_uint16)-1);
+      if (rc != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_API, "Error defining pop xlate action for EVC# %u (CPU-FPGA): rc=%d", PTIN_EVC_FPGA2PORTS_MIN+i, rc);
         return rc;
       }
     }
