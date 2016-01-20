@@ -652,6 +652,17 @@ void ptin_intf_dump(void)
   printf("+-------+------+------+---------+----------+-----------+-----+------+-------+-----------+------------------------+------------------------+\r\n");
   for (port=0; port<ptin_sys_number_of_ports; port++)
   {
+    #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+    if (!KERNEL_NODE_IS("OLT1T0-AC"))
+    {
+      /* Skip FPGA port for non OLT1T0-AC systems */
+      if (port == PTIN_PORT_FPGA)
+      {
+        continue;
+      }
+    }
+    #endif
+
     /* Get intIfNum ID */
     ptin_intf_port2intIfNum(port, &intIfNum);
 
@@ -849,7 +860,7 @@ void ptin_intf_dump(void)
            (portStats.Tx.etherStatsOctets >= 1000000000000ULL) ? "*" : " ", portStats.Tx.etherStatsOctets % 1000000000000ULL,
            portStats.Tx.Throughput / ((portStats.Tx.Throughput>=1000000000ULL) ? 1000 : 1), (portStats.Tx.Throughput>=1000000000ULL) ? "K" : " ");
   }
-  printf("+-------+------+------+-----+----------+-----------+-----+------+-------+-----------+------------------------+------------------------+\r\n");
+  printf("+-------+------+------+---------+----------+-----------+-----+------+-------+-----------+------------------------+------------------------+\r\n");
   printf("MEF Ext: MEF Extension attributes -> Port Type - MAC move enable / MAC move with same prio enable / MAC move prio\r\n");
 
   fflush(stdout);
