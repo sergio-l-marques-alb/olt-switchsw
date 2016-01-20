@@ -283,6 +283,11 @@ extern void ptin_msg_defaults_reset(msg_HwGenReq_t *msgPtr)
   PT_LOG_INFO(LOG_CTX_MSG, "Done.");
 #endif
 
+  /*Reset Mirror */
+  PT_LOG_INFO(LOG_CTX_MSG, "Performing Mirror Reset...");
+  usmDbSwPortMonitorSessionRemove(1,1);
+  PT_LOG_INFO(LOG_CTX_MSG, "Done.");
+
   PT_LOG_INFO(LOG_CTX_MSG, "Performing Reset on ACL...");
   ptin_aclCleanAll();
   PT_LOG_INFO(LOG_CTX_MSG, "Done.");
