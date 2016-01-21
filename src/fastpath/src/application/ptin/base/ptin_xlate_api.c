@@ -1028,7 +1028,6 @@ L7_RC_t ptin_xlate_egress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uin
   L7_uint32 class_id;
   ptin_vlanXlate_t xlate;
   L7_RC_t rc = L7_SUCCESS;
-  L7_RC_t rc_aux = L7_SUCCESS;
   L7_uint32 unit = 0;
 
   if (ptin_debug_xlate)
@@ -1143,6 +1142,7 @@ L7_RC_t ptin_xlate_egress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uin
 #if ( PTIN_BOARD_IS_MATRIX )
 
   L7_uint32 ptin_port_src, ptin_port_dst, intIfNum_Dst , sessionNum;
+  L7_RC_t rc_aux = L7_SUCCESS;
 
   /* Check if is a mirror Port*/
    mirrorIsDestConfigured(intIfNum, &sessionNum);
@@ -1182,7 +1182,7 @@ L7_RC_t ptin_xlate_egress_delete( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_
   L7_uint32 class_id;
   ptin_vlanXlate_t xlate;
   L7_RC_t rc = L7_SUCCESS;
-  L7_RC_t rc_aux = L7_FAILURE;
+  
 
   if (ptin_debug_xlate)
     PT_LOG_TRACE(LOG_CTX_XLATE, "intIfNum=%u, outerVlanId=%u, innerVlanId=%u",
@@ -1242,6 +1242,7 @@ L7_RC_t ptin_xlate_egress_delete( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_
 /* Mirror */
 #if ( PTIN_BOARD_IS_MATRIX )
 
+  L7_RC_t rc_aux = L7_FAILURE;
   L7_uint32 ptin_port_src, ptin_port_dst, intIfNum_Dst , sessionNum;
 
   /* Check if is a mirror Port*/
