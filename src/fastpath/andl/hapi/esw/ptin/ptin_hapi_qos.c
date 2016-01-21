@@ -21,6 +21,7 @@
 
 #define PTIN_HAPI_QOS_TABLE_SIZE    20
 #define PTIN_HAPI_QOS_VLAN_ENTRIES  32
+#define PTIN_HAPI_QOS_HW_RULES_MAX  250
 
 typedef struct
 {
@@ -959,9 +960,10 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
 
   /* At this point, we will configure a new rule.
      If no free rule was found, leave with error */
-  if (free_rule < 0 || free_rule >= PTIN_HAPI_QOS_VLAN_ENTRIES)
+  if ((free_rule < 0 || free_rule >= PTIN_HAPI_QOS_VLAN_ENTRIES) ||
+      (hw_rules_total >= PTIN_HAPI_QOS_HW_RULES_MAX))
   {
-    PT_LOG_ERR(LOG_CTX_HAPI, "No free rules!");
+    PT_LOG_ERR(LOG_CTX_HAPI, "No free rules! (free_rule=%d, hw_rules_total=%u/%u)", free_rule, hw_rules_total, PTIN_HAPI_QOS_HW_RULES_MAX);
     return L7_TABLE_IS_FULL;
   }
   /* Selected rule */

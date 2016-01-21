@@ -2373,8 +2373,8 @@ int _policy_group_calc_qset(int                             unit,
     {
       if (hapiBroadPolicyFieldFlagsGet(&(rulePtr->fieldInfo), BROAD_FIELD_ETHTYPE) == BROAD_FIELD_SPECIFIED)
       {
-        uint16 ethtype = *((uint16*)hapiBroadPolicyFieldValuePtr(&(rulePtr->fieldInfo), BROAD_FIELD_ETHTYPE));
-        if ((0x0800 != ethtype) && (0x86DD != ethtype))
+        //uint16 ethtype = *((uint16*)hapiBroadPolicyFieldValuePtr(&(rulePtr->fieldInfo), BROAD_FIELD_ETHTYPE));
+        //if ((0x0800 != ethtype) && (0x86DD != ethtype))
         {
           resourceReq->requiresEtype = 1;
         }
