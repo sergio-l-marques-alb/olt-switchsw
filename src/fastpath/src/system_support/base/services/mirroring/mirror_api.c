@@ -23,6 +23,8 @@
 #include "mirror_cfg.h"
 #include "mirror.h"
 #include "mirror_api.h"
+#include "usmdb_mirror_api.h"
+#include "usmdb_util_api.h"
 #include "dtlapi.h"
 #include "cnfgr.h"
 
@@ -1534,4 +1536,90 @@ L7_BOOL mirrorValidDestIntfNextGet(L7_uint32 intIfNum, L7_uint32 *nextIfNum)
   }
   else
     return L7_SUCCESS;
+}
+
+
+/*********************************************************************
+* @purpose ptin_mirror_reset - Reset mirror procedure 
+* 
+*
+* @end
+*********************************************************************/
+void ptin_mirror_reset()
+{
+   usmDbSwPortMonitorSessionRemove(1,1);
+}
+
+/*********************************************************************
+* @purpose ptin_mirror_dump - Reset mirror procedure 
+* 
+*
+* @end
+*********************************************************************/
+
+void ptin_mirror_dump()
+{
+  L7_BOOL        mode;
+  L7_RC_t        rc;
+  L7_uint32      intIfNum_dst, numPorts, probeType;
+  L7_INTF_MASK_t intIfMask; 
+  static L7_uint32      listSrcPorts[L7_FILTER_MAX_INTF];
+  int i;
+
+  rc = mirrorModeGet(1,&mode);
+
+  if( rc != L7_SUCCESS)
+  {
+    printf(" No mirror session configured \n\r");
+    return;
+  }
+
+  rc = mirrorSourcePortsGet(1,&intIfMask);
+
+  if( rc != L7_SUCCESS)
+  {
+    printf("No source ports configured \n\r");
+  }
+  else
+  {
+    usmDbSwPortMonitorSourcePortsGet(1, 1, &intIfMask);
+    usmDbConvertMaskToList(&intIfMask, listSrcPorts, &numPorts);
+
+    for (i=1; i<=numPorts;i++)
+    {
+      printf("Src Port %d = %d \n\r",i, listSrcPorts[i]);
+
+      //Get direction
+      mirrorSourcePortDirectionGet(1, listSrcPorts[i], &probeType);
+      switch (probeType) 
+      {
+      case 0:
+              printf("Direction None \n\r");
+      break;
+      case 1:
+              printf("Direction TX/RX \n\r");
+      break;
+      case 2:
+              printf("Direction RX \n\r");
+      break;
+      case 3:
+              printf("Direction Tx \n\r");
+      default:
+              printf("Invalid Direction \n\r");
+      break;
+      }
+    }
+  }
+
+  rc = mirrorDestPortGet(1,&intIfNum_dst);
+
+  if( rc != L7_SUCCESS)
+  {
+    printf("No destination ports configured \n\r");
+  }
+  else
+  {
+    printf("Dst Port: %d \n\r", intIfNum_dst);
+  }
+
 }

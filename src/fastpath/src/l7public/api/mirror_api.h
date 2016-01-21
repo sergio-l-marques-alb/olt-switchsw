@@ -436,5 +436,12 @@ extern L7_BOOL mirrorValidDestIntfFirstGet(L7_uint32 *intIfNum);
 *********************************************************************/
 extern L7_BOOL mirrorValidDestIntfNextGet(L7_uint32 intIfNum, L7_uint32 *nextIfNum);
 
+/*********************************************************************
+* @purpose ptin_mirror_reset - Reset mirror procedure 
+*
+*
+* @end
+*********************************************************************/
+extern void ptin_mirror_reset();
 
 #endif /*MIRROR_API_H*/

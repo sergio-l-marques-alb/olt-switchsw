@@ -4,6 +4,7 @@
 #include "ptin_globaldefs.h"
 #include "ptin_structs.h"
 #include "ptin_intf.h"
+#include "mirror_api.h"
 
 #include "usmdb_nim_api.h"
 
@@ -44,6 +45,7 @@ typedef struct ptinXlateInfoData_s
   L7_uint16         innerPrio_result;
 
   L7_BOOL           remove_VLANs;
+  L7_BOOL           mirror;
 
   void             *next;
 } ptinXlateInfoData_t;
@@ -1026,6 +1028,7 @@ L7_RC_t ptin_xlate_egress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uin
   L7_uint32 class_id;
   ptin_vlanXlate_t xlate;
   L7_RC_t rc = L7_SUCCESS;
+  L7_RC_t rc_aux = L7_SUCCESS;
   L7_uint32 unit = 0;
 
   if (ptin_debug_xlate)
@@ -1068,6 +1071,7 @@ L7_RC_t ptin_xlate_egress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uin
   /* Define structure */
   memset(&xlate, 0x00, sizeof(ptin_vlanXlate_t));
   xlate.portgroup     = class_id;
+
   xlate.stage         = PTIN_XLATE_STAGE_EGRESS;
 
   xlate.outerVlan     = outerVlanId;
@@ -1081,12 +1085,14 @@ L7_RC_t ptin_xlate_egress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uin
   xlate.innerPrio_new = (newInnerPrio >= 0 && newInnerPrio <= 7) ? newInnerPrio : 0;
 
 #if ( PTIN_BOARD_IS_MATRIX )
+
   xlate.outerVlanAction = PTIN_XLATE_ACTION_REPLACE;
   xlate.outerPrioAction = (newOuterPrio >= 0 && newOuterPrio <= 7) ? PTIN_XLATE_ACTION_REPLACE : PTIN_XLATE_ACTION_NONE;
 
   xlate.innerVlanAction = PTIN_XLATE_ACTION_NONE;
   xlate.innerPrioAction = PTIN_XLATE_ACTION_NONE;
 #else
+
   xlate.outerVlanAction = (newOuterVlanId>4095) ? PTIN_XLATE_ACTION_DELETE : PTIN_XLATE_ACTION_REPLACE;
   xlate.outerPrioAction = (newOuterPrio >= 0 && newOuterPrio <= 7) ? PTIN_XLATE_ACTION_REPLACE : PTIN_XLATE_ACTION_NONE;
 
@@ -1133,6 +1139,32 @@ L7_RC_t ptin_xlate_egress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uin
   if (ptin_debug_xlate)
     PT_LOG_TRACE(LOG_CTX_XLATE, "Finished: intIfNum=%u, class_id=%u,  rc=%d", intIfNum, class_id, rc);
 
+/* Mirror */
+#if ( PTIN_BOARD_IS_MATRIX )
+
+  L7_uint32 ptin_port_src, ptin_port_dst, intIfNum_Dst , sessionNum;
+
+  /* Check if is a mirror Port*/
+   mirrorIsDestConfigured(intIfNum, &sessionNum);
+
+  /* Convert to ptin format*/
+  rc_aux = mirrorDestPortGet(1,&intIfNum_Dst); /* 1 -> SessionNum*/
+  PT_LOG_TRACE(LOG_CTX_XLATE, "Mirror Configuration : rc_aux=%d", rc_aux); 
+
+  if (rc_aux == L7_SUCCESS) 
+  { 
+    /* Convert to ptin format*/
+    ptin_intf_intIfNum2port(intIfNum,&ptin_port_src); 
+    ptin_intf_intIfNum2port(intIfNum_Dst,&ptin_port_dst);
+    PT_LOG_TRACE(LOG_CTX_XLATE, "ptin_port_src=%d", ptin_port_src);
+    PT_LOG_TRACE(LOG_CTX_XLATE, "ptin_port_dst=%d", ptin_port_dst);
+
+    /* Configure xlate to the destination mirror port */
+    xlate_outer_vlan_replicate_Dstport(1, ptin_port_src , ptin_port_dst); /* 1 -> Configure xlate */
+  }
+  /*else -> Do nothing*/
+#endif
+
   return rc;
 }
 
@@ -1150,6 +1182,7 @@ L7_RC_t ptin_xlate_egress_delete( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_
   L7_uint32 class_id;
   ptin_vlanXlate_t xlate;
   L7_RC_t rc = L7_SUCCESS;
+  L7_RC_t rc_aux = L7_FAILURE;
 
   if (ptin_debug_xlate)
     PT_LOG_TRACE(LOG_CTX_XLATE, "intIfNum=%u, outerVlanId=%u, innerVlanId=%u",
@@ -1205,6 +1238,30 @@ L7_RC_t ptin_xlate_egress_delete( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_
 
   if (ptin_debug_xlate)
     PT_LOG_TRACE(LOG_CTX_XLATE, "Finished: rc=%d", rc);
+
+/* Mirror */
+#if ( PTIN_BOARD_IS_MATRIX )
+
+  L7_uint32 ptin_port_src, ptin_port_dst, intIfNum_Dst , sessionNum;
+
+  /* Check if is a mirror Port*/
+  rc_aux = mirrorIsDestConfigured(intIfNum, &sessionNum);
+  PT_LOG_TRACE(LOG_CTX_XLATE, "rc_aux=%d", rc_aux);  
+
+  if (rc_aux == L7_TRUE) 
+  {
+    /* Convert to ptin format*/
+    ptin_intf_intIfNum2port(intIfNum,&ptin_port_src); 
+
+    /* Convert to ptin format*/
+    ptin_intf_intIfNum2port(intIfNum_Dst,&ptin_port_dst);
+    mirrorDestPortGet(1, &intIfNum_Dst); /* 1 -> SessionNum*/
+
+    /* Configure xlate to the destination mirror port */
+    xlate_outer_vlan_replicate_Dstport(2, ptin_port_src , ptin_port_dst); /* 2 -> Remove xlate */
+  }
+  /*else -> Do nothing*/
+#endif
 
   return rc;
 }
@@ -2447,6 +2504,112 @@ static L7_RC_t xlate_portgroup_from_intf(L7_uint32 intIfNum, L7_uint32 *portgrou
 
   return L7_SUCCESS;
 }
+
+/**
+ * Get all the outer vlan from port 
+ * 
+ * @param stage : PTIN_XLATE_STAGE_ALL, PTIN_XLATE_STAGE_INGRESS
+ *             or PTIN_XLATE_STAGE_EGRESS
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+L7_RC_t xlate_outer_vlan_replicate_Dstport(L7_uint32 operation, L7_uint32 ptin_port_src , L7_uint32 ptin_port_dst)
+{
+  ptinXlateKey_t       avl_key;
+  ptinXlateAvlTree_t   *avl_tree;
+  ptinXlateInfoData_t  *avl_infoData;
+  L7_uint32 intIfNum_dst  = (L7_uint32)-1;
+  L7_uint32 intIfNum_src  = (L7_uint32)-1;
+  L7_uint32 class_id_src, class_id_dst ;
+  L7_uint32 rc = L7_SUCCESS;         
+
+  /* Select AVL tree */
+  avl_tree = &database_xlate[PTIN_XLATE_STAGE_EGRESS];
+   
+  /* Get ptin_port */
+  if (ptin_intf_port2intIfNum(ptin_port_src, &intIfNum_src) != L7_SUCCESS)
+  {
+    PT_LOG_TRACE(LOG_CTX_MSG, "Invalid intIfNum %u", intIfNum_src);
+    //return L7_FAILURE;
+  }
+
+  /* Get class id */
+  if (xlate_portgroup_from_intf(intIfNum_src, &class_id_src)!=L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_XLATE, " ERROR getting class id");
+    return L7_FAILURE;
+  }
+
+  /* Get ptin_port */
+  if (ptin_intf_port2intIfNum(ptin_port_dst, &intIfNum_dst) != L7_SUCCESS)
+  {
+    PT_LOG_TRACE(LOG_CTX_MSG, "Invalid intIfNum %u", intIfNum_dst);
+    return L7_FAILURE;
+  }
+
+  /* Get class id */
+  if (xlate_portgroup_from_intf(intIfNum_dst, &class_id_dst)!=L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_XLATE, " ERROR getting class id");
+    return L7_FAILURE;
+  }
+
+  // Seach for all members
+  /* Initialize AVL key */
+  memset(&avl_key, 0x00, sizeof(ptinXlateKey_t));
+
+  /* Run all items */
+  while ((avl_infoData=(ptinXlateInfoData_t *)avlSearchLVL7(&avl_tree->avlTree, (void *)&avl_key, AVL_NEXT)) != L7_NULLPTR)
+  {  
+    PT_LOG_TRACE(LOG_CTX_XLATE, " avl_infoData->key.portGroup = %d",avl_infoData->key.portGroup);
+    PT_LOG_TRACE(LOG_CTX_XLATE, " class_id_src = %d",class_id_src);
+    PT_LOG_TRACE(LOG_CTX_XLATE, " operation = %d",operation);
+
+    /* Prepare next key */
+    if( avl_infoData->key.portGroup == class_id_src ) /* Check if exist a portGroup that match the class_id_src */
+    {
+      if(operation == 1) /* Add egress xlate to the dst mirror port */
+      {
+        if(avl_infoData->mirror == L7_TRUE) /* Avoid loop's' with ptin_xlate_egress_add function  */
+        {
+          PT_LOG_TRACE(LOG_CTX_XLATE, " Already configured");
+          return rc;
+        }
+        avl_infoData->mirror = L7_TRUE;
+
+        PT_LOG_TRACE(LOG_CTX_XLATE, " Xlate add to %d , outer_vid %d , innerVid %d , new_outer_vid %d , new_inner_vid %d",
+                                   intIfNum_dst, avl_infoData->key.outerVid, avl_infoData->key.innerVid, avl_infoData->outerVlan_result, avl_infoData->innerVlan_result );
+
+        rc = ptin_xlate_egress_add(intIfNum_dst, avl_infoData->key.outerVid, avl_infoData->key.innerVid,
+                                   avl_infoData->outerVlan_result, avl_infoData->innerVlan_result,
+                                   avl_infoData->outerPrio_result,avl_infoData->innerPrio_result);
+
+         if (rc != L7_SUCCESS)
+         {
+           return rc;
+         }
+      }
+      else /* Remove egress xlate to the dst mirror port */
+      {
+        if(avl_infoData->mirror == L7_TRUE) 
+        {
+          PT_LOG_TRACE(LOG_CTX_XLATE, "intfNum_dst %d", intIfNum_dst);
+          rc = ptin_xlate_egress_delete(intIfNum_dst, avl_infoData->key.outerVid, avl_infoData->key.innerVid);
+          avl_infoData->mirror = L7_FALSE;
+        }
+         if(rc != L7_SUCCESS)
+        {
+          return rc;
+        }
+      }
+    }
+    memcpy(&avl_key, &avl_infoData->key, sizeof(ptinXlateKey_t));
+  } 
+
+  return L7_SUCCESS;
+}
+
+
 
 /***************************************************************** 
  * DEVSHELL FUNCTIONS

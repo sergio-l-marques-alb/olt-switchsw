@@ -264,4 +264,15 @@ extern L7_RC_t ptin_xlate_PVID_set(L7_uint32 intIfNum, L7_uint16 vlanId);
  */
 extern L7_RC_t ptin_xlate_PVID_get(L7_uint32 intIfNum, L7_uint16 *vlanId);
 
+
+/**
+ * Get all the outer vlan from port 
+ * 
+ * @param stage : PTIN_XLATE_STAGE_ALL, PTIN_XLATE_STAGE_INGRESS
+ *             or PTIN_XLATE_STAGE_EGRESS
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+L7_RC_t xlate_outer_vlan_replicate_Dstport(L7_uint32 operation, L7_uint32 ptin_port_src , L7_uint32 ptin_port_dst);
+
 #endif /* _PTIN_XLATE_API__H */

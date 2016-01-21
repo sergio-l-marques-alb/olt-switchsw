@@ -173,6 +173,7 @@ void ptin_debug(void)
   printf("  ptin_igmptimer_clear                                            - Initializes IGMP packet processing time data\r\n");
   printf("  dai_settings_get                                                - Get DAI configurations\r\n");
   printf("  daiAcl_table_dump                                               - Dump ARP ACL table\r\n");
+  printf("  ptin_mirror_dump                                                - Dump Mirror sessions \r\n");
   printf("\r\n");                                                          
   printf("  snoopDebugTraceEnable                                           - Enable IGMP snoop trace debugging\r\n");
   printf("  snoopDebugTraceDisable                                          - Disable IGMP snoop trace debugging\r\n");
