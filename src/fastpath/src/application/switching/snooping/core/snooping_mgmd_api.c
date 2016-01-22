@@ -1700,7 +1700,6 @@ L7_RC_t ptin_igmp_mgmd_status_get(void)
 {
   PTIN_MGMD_EVENT_t            inEventMsg  = {0}, outEventMsg = {0};
   PTIN_MGMD_EVENT_CTRL_t       ctrlResMsg  = {0};
-  PTIN_MGMD_CTRL_MGMD_STATUS_t mgmdStatus  = {0};
 
   /* Create and send a PTIN_MGMD_EVENT_CTRL_STATUS_GET event to MGMD */
   ptin_mgmd_event_ctrl_create(&inEventMsg, PTIN_MGMD_EVENT_CTRL_STATUS_GET, rand(), 0, ptinMgmdTxQueueId, (void*) &mgmdStatus, (uint32) sizeof(PTIN_MGMD_CTRL_MGMD_STATUS_t));
