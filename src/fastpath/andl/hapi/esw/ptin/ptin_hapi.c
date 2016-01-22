@@ -3533,10 +3533,6 @@ L7_RC_t hapi_ptin_stormControl_cpu_set(L7_BOOL enable, L7_uint32 cir1, L7_uint32
   BROAD_POLICY_RULE_t ruleId;
   BROAD_METER_ENTRY_t meterInfo;
   L7_uint8      cos_value, cos_mask;
-  //L7_uint8      ipType = BROAD_IP_TYPE_NONIP;
-  L7_uint16     etherType = 0x0800;
-  L7_uchar8     macAddr_iptv_value[6] = { 0x01, 0x00, 0x5e, 0x00, 0x00, 0x00 };
-  L7_uchar8     mask[6]  = { 0xff, 0xff, 0xff, 0x00, 0x00, 0x00 };
   L7_RC_t rc = L7_SUCCESS;
 
   /* Delete configured policy */
@@ -3560,7 +3556,7 @@ L7_RC_t hapi_ptin_stormControl_cpu_set(L7_BOOL enable, L7_uint32 cir1, L7_uint32
     return L7_FAILURE;
   }
 
-  if (!enable)
+  if (!enable || (cir1 == (L7_uint32)-1 && cir2 == (L7_uint32)-1))
   {
     PT_LOG_WARN(LOG_CTX_HAPI,"Nothing done: enable=%u cir=%u cbs=%u", enable, cir1, cbs1);
     return L7_SUCCESS;
@@ -3581,6 +3577,12 @@ L7_RC_t hapi_ptin_stormControl_cpu_set(L7_BOOL enable, L7_uint32 cir1, L7_uint32
     hapiBroadPolicyCreateCancel();
     return L7_FAILURE;
   }
+
+#if 0
+  //L7_uint8      ipType = BROAD_IP_TYPE_NONIP;
+  L7_uint16     etherType = 0x0800;
+  L7_uchar8     macAddr_iptv_value[6] = { 0x01, 0x00, 0x5e, 0x00, 0x00, 0x00 };
+  L7_uchar8     mask[6]  = { 0xff, 0xff, 0xff, 0x00, 0x00, 0x00 };
 
   /* Drop IPTV for CPU */
   /* Create rule */
@@ -3630,6 +3632,7 @@ L7_RC_t hapi_ptin_stormControl_cpu_set(L7_BOOL enable, L7_uint32 cir1, L7_uint32
     hapiBroadPolicyCreateCancel();
     return L7_FAILURE;
   }
+#endif
 
   /* First Rule */
   if (cir1 != (L7_uint32)-1)

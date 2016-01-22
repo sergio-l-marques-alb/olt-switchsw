@@ -3134,7 +3134,7 @@ typedef struct
 
 static L7_BOOL ptin_trap_policy_global_enable[PTIN_PACKET_LAST];
 
-#define PTIN_TRAP_POLICY_MAX_VLANS 200
+#define PTIN_TRAP_POLICY_MAX_VLANS 100
 ptin_vlan_policy_trap_t ptin_trap_policy[PTIN_TRAP_POLICY_MAX_VLANS];
 
 typedef struct

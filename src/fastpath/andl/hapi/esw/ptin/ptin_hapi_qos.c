@@ -21,7 +21,7 @@
 
 #define PTIN_HAPI_QOS_TABLE_SIZE    20
 #define PTIN_HAPI_QOS_VLAN_ENTRIES  32
-#define PTIN_HAPI_QOS_HW_RULES_MAX  250
+#define PTIN_HAPI_QOS_HW_RULES_MAX  100
 
 typedef struct
 {
@@ -1002,7 +1002,7 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
   do
   {
     /* Create ICAP rule */
-    rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_COSQ);
+    rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM /*BROAD_POLICY_TYPE_COSQ*/);
     if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Cannot create trap policy");
