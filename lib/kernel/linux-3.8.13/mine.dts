@@ -1,0 +1,367 @@
+/dts-v1/;
+
+/ {
+	model = "fsl,P1010";
+	compatible = "fsl,P1010RDB";
+	#address-cells = <0x2>;
+	#size-cells = <0x2>;
+
+	aliases {
+		serial0 = "/soc@ffe00000/serial@4500";
+		serial1 = "/soc@ffe00000/serial@4600";
+		ethernet0 = "/soc@ffe00000/ethernet@b0000";
+	};
+
+	cpus {
+		#address-cells = <0x1>;
+		#size-cells = <0x0>;
+
+		PowerPC,P1010@0 {
+			device_type = "cpu";
+			reg = <0x0>;
+			next-level-cache = <0x1>;
+		};
+	};
+
+	memory {
+		device_type = "memory";
+	};
+
+	ifc@ffe1e000 {
+		#address-cells = <0x2>;
+		#size-cells = <0x1>;
+		compatible = "fsl,ifc", "simple-bus";
+		reg = <0x0 0xffe1e000 0x0 0x2000>;
+		interrupts = <0x10 0x2 0x13 0x2>;
+		interrupt-parent = <0x2>;
+		ranges = <0x0 0x0 0x0 0xff800000 0x20000>;
+
+		nand@0,0 {
+			#address-cells = <0x1>;
+			#size-cells = <0x1>;
+			compatible = "fsl,ifc-nand";
+			reg = <0x0 0x0 0x40000>;
+
+			partition@0 {
+				reg = <0x0 0x84000>;
+				label = "NAND U-Boot Image";
+			};
+
+			partition@84000 {
+				reg = <0x84000 0x7c000>;
+				label = "NAND U-BOOT - ENV";
+			};
+
+			partition@100000 {
+				reg = <0x100000 0x100000>;
+				label = "NAND DTB Image";
+			};
+
+			partition@200000 {
+				reg = <0x200000 0x400000>;
+				label = "NAND Linux Kernel Image";
+			};
+
+			partition@600000 {
+				reg = <0x600000 0x400000>;
+				label = "NAND Compressed RFS Image";
+			};
+
+			partition@a00000 {
+				reg = <0xa00000 0xf00000>;
+				label = "NAND JFFS2 Root File System";
+			};
+
+			partition@1900000 {
+				reg = <0x1900000 0x700000>;
+				label = "NAND User area";
+			};
+
+			partition@2000000 {
+				reg = <0x2000000 0x2000000>;
+				label = "NAND BIG User area";
+			};
+		};
+	};
+
+	soc@ffe00000 {
+		#address-cells = <0x1>;
+		#size-cells = <0x1>;
+		device_type = "soc";
+		compatible = "fsl,p1020-immr", "simple-bus";
+		ranges = <0x0 0x0 0xffe00000 0x100000>;
+		bus-frequency = <0x0>;
+
+		ecm-law@0 {
+			compatible = "fsl,ecm-law";
+			reg = <0x0 0x1000>;
+			fsl,num-laws = <0xc>;
+		};
+
+		ecm@1000 {
+			compatible = "fsl,p1020-ecm", "fsl,ecm";
+			reg = <0x1000 0x1000>;
+			interrupts = <0x10 0x2>;
+			interrupt-parent = <0x2>;
+		};
+
+		memory-controller@2000 {
+			compatible = "fsl,p1020-memory-controller";
+			reg = <0x2000 0x1000>;
+			interrupt-parent = <0x2>;
+			interrupts = <0x10 0x2>;
+		};
+
+		i2c@3000 {
+			#address-cells = <0x1>;
+			#size-cells = <0x0>;
+			cell-index = <0x0>;
+			compatible = "fsl-i2c";
+			reg = <0x3000 0x100>;
+			interrupts = <0x2b 0x2>;
+			interrupt-parent = <0x2>;
+			dfsrr;
+
+			rtc@68 {
+				compatible = "pericom,pt7c4338";
+				reg = <0x68>;
+			};
+		};
+
+		i2c@3100 {
+			#address-cells = <0x1>;
+			#size-cells = <0x0>;
+			cell-index = <0x1>;
+			compatible = "fsl-i2c";
+			reg = <0x3100 0x100>;
+			interrupts = <0x2b 0x2>;
+			interrupt-parent = <0x2>;
+			dfsrr;
+		};
+
+		serial@4500 {
+			cell-index = <0x0>;
+			device_type = "serial";
+			compatible = "ns16550";
+			reg = <0x4500 0x100>;
+			clock-frequency = <0x0>;
+			interrupts = <0x2a 0x2>;
+			interrupt-parent = <0x2>;
+		};
+
+		serial@4600 {
+			cell-index = <0x1>;
+			device_type = "serial";
+			compatible = "ns16550";
+			reg = <0x4600 0x100>;
+			clock-frequency = <0x0>;
+			interrupts = <0x2a 0x2>;
+			interrupt-parent = <0x2>;
+		};
+
+		spi@7000 {
+			cell-index = <0x0>;
+			#address-cells = <0x1>;
+			#size-cells = <0x0>;
+			compatible = "fsl,mpc8536-espi";
+			reg = <0x7000 0x1000>;
+			interrupts = <0x3b 0x2>;
+			interrupt-parent = <0x2>;
+			fsl,espi-num-chipselects = <0x1>;
+
+			pld@0 {
+				#address-cells = <0x1>;
+				#size-cells = <0x1>;
+				compatible = "spidev";
+				chip_select = <0x3>;
+				reg = <0x0>;
+				spi-max-frequency = <0x2625a00>;
+			};
+		};
+
+		gpio-controller@f000 {
+			#gpio-cells = <0x2>;
+			compatible = "fsl,mpc8572-gpio";
+			reg = <0xf000 0x100>;
+			interrupts = <0x2f 0x2>;
+			interrupt-parent = <0x2>;
+			gpio-controller;
+		};
+
+		tdm@16000 {
+			device_type = "tdm";
+			compatible = "fsl,starlite-tdm";
+			reg = <0x16000 0x200 0x2c000 0x2000>;
+			clock-frequency = <0x0>;
+			interrupts = <0x10 0x8 0x3e 0x8>;
+			interrupt-parent = <0x2>;
+		};
+
+		l2-cache-controller@20000 {
+			compatible = "fsl,p1020-l2-cache-controller";
+			reg = <0x20000 0x1000>;
+			cache-line-size = <0x20>;
+			cache-size = <0x40000>;
+			interrupt-parent = <0x2>;
+			interrupts = <0x10 0x2>;
+			linux,phandle = <0x1>;
+			phandle = <0x1>;
+		};
+
+		dma@21300 {
+			#address-cells = <0x1>;
+			#size-cells = <0x1>;
+			compatible = "fsl,eloplus-dma";
+			reg = <0x21300 0x4>;
+			ranges = <0x0 0x21100 0x200>;
+			cell-index = <0x0>;
+
+			dma-channel@0 {
+				compatible = "fsl,eloplus-dma-channel";
+				reg = <0x0 0x80>;
+				cell-index = <0x0>;
+				interrupt-parent = <0x2>;
+				interrupts = <0x14 0x2>;
+			};
+
+			dma-channel@80 {
+				compatible = "fsl,eloplus-dma-channel";
+				reg = <0x80 0x80>;
+				cell-index = <0x1>;
+				interrupt-parent = <0x2>;
+				interrupts = <0x15 0x2>;
+			};
+
+			dma-channel@100 {
+				compatible = "fsl,eloplus-dma-channel";
+				reg = <0x100 0x80>;
+				cell-index = <0x2>;
+				interrupt-parent = <0x2>;
+				interrupts = <0x16 0x2>;
+			};
+
+			dma-channel@180 {
+				compatible = "fsl,eloplus-dma-channel";
+				reg = <0x180 0x80>;
+				cell-index = <0x3>;
+				interrupt-parent = <0x2>;
+				interrupts = <0x17 0x2>;
+			};
+		};
+
+		mdio@24000 {
+			#address-cells = <0x1>;
+			#size-cells = <0x0>;
+			compatible = "fsl,etsec2-tbi";
+			reg = <0x24000 0x1000 0xb1030 0x4>;
+
+			tbi-phy@11 {
+				reg = <0x11>;
+				device_type = "tbi-phy";
+				linux,phandle = <0x5>;
+				phandle = <0x5>;
+			};
+
+			ethernet-phy@6 {
+				interrupt-parent = <0x2>;
+				interrupts = <0x3 0x1>;
+				reg = <0x1>;
+			};
+		};
+
+		ptimer@b0e00 {
+			compatible = "fsl,gianfar-ptp-timer";
+			reg = <0xb0e00 0xb0>;
+			interrupts = <0x44 0x2 0x45 0x2 0x46 0x2>;
+			interrupt-parent = <0x2>;
+			tmr-prsc = <0x2>;
+			cksel = <0x1>;
+		};
+
+		ethernet@b0000 {
+			#address-cells = <0x1>;
+			#size-cells = <0x1>;
+			device_type = "network";
+			model = "eTSEC";
+			compatible = "fsl,etsec2";
+			fsl,num_rx_queues = <0x8>;
+			fsl,num_tx_queues = <0x8>;
+			local-mac-address = [00 00 00 00 00 00];
+			interrupt-parent = <0x2>;
+			phy-connection-type = "sgmii";
+			fixed-link = <0x0 0x1 0x3e8 0x0 0x0>;
+
+			queue-group@0 {
+				#address-cells = <0x1>;
+				#size-cells = <0x1>;
+				reg = <0xb0000 0x1000>;
+				fsl,rx-bit-map = <0xff>;
+				fsl,tx-bit-map = <0xff>;
+				interrupts = <0x1d 0x2 0x1e 0x2 0x22 0x2>;
+			};
+		};
+
+		pic@40000 {
+			interrupt-controller;
+			#address-cells = <0x0>;
+			#interrupt-cells = <0x2>;
+			reg = <0x40000 0x40000>;
+			compatible = "chrp,open-pic";
+			device_type = "open-pic";
+			linux,phandle = <0x2>;
+			phandle = <0x2>;
+		};
+
+		message@41400 {
+			compatible = "fsl,p1020-msg", "fsl,mpic-msg";
+			reg = <0x41400 0x200>;
+			interrupts = <0xb0 0x2 0xb1 0x2 0xb2 0x2 0xb3 0x2>;
+			interrupt-parent = <0x2>;
+		};
+
+		message@42400 {
+			compatible = "fsl,p1020-msg", "fsl,mpic-msg";
+			reg = <0x42400 0x200>;
+			interrupts = <0xb4 0x2 0xb5 0x2 0xb6 0x2 0xb7 0x2>;
+			interrupt-parent = <0x2>;
+		};
+
+		msi@41600 {
+			compatible = "fsl,p1020-msi", "fsl,mpic-msi";
+			reg = <0x41600 0x80>;
+			msi-available-ranges = <0x0 0x100>;
+			interrupts = <0xe0 0x0 0xe1 0x0 0xe2 0x0 0xe3 0x0 0xe4 0x0 0xe5 0x0 0xe6 0x0 0xe7 0x0>;
+			interrupt-parent = <0x2>;
+		};
+
+		global-utilities@e0000 {
+			compatible = "fsl,p2020-guts";
+			reg = <0xe0000 0x1000>;
+			fsl,has-rstcr;
+		};
+	};
+
+	pcie@ffe0a000 {
+		compatible = "fsl,p1010-pcie", "fsl,qoriq-pcie-v2.3", "fsl,qoriq-pcie-v2.2", "bcm,fastpath-pci";
+		device_type = "pci";
+		#interrupt-cells = <0x1>;
+		#size-cells = <0x2>;
+		#address-cells = <0x3>;
+		reg = <0x0 0xffe0a000 0x0 0x1000>;
+		bus-range = <0x0 0xff>;
+		ranges = <0x2000000 0x0 0x80000000 0x0 0x80000000 0x0 0x20000000 0x1000000 0x0 0x0 0x0 0xffc00000 0x0 0x10000>;
+		clock-frequency = <0x7735940>;
+		interrupt-parent = <0x2>;
+		interrupts = <0x1a 0x2>;
+		interrupt-map-mask = <0xf800 0x0 0x0 0x7>;
+		interrupt-map = <0x0 0x0 0x0 0x1 0x2 0x0 0x1 0x0 0x0 0x0 0x2 0x2 0x1 0x1 0x0 0x0 0x0 0x3 0x2 0x2 0x1 0x0 0x0 0x0 0x4 0x2 0x3 0x1>;
+
+		pcie@0 {
+			reg = <0x0 0x0 0x0 0x0 0x0>;
+			#size-cells = <0x2>;
+			#address-cells = <0x3>;
+			device_type = "pci";
+			ranges = <0x2000000 0x0 0x80000000 0x2000000 0x0 0x80000000 0x0 0x20000000 0x1000000 0x0 0x0 0x1000000 0x0 0x0 0x0 0x10000>;
+		};
+	};
+};
