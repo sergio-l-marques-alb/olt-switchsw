@@ -19,6 +19,8 @@
 #include "ptin_debug.h"//Added by MMelo to use ptin_timer routines
 #include "ipc.h"
 #include <ptin_prot_oam_eth.h>
+#include <ptin_intf.h>
+extern L7_RC_t ptin_ptp_fpga_entry(ptin_dtl_search_ptp_t *e, DAPI_CMD_GET_SET_t operation);
 
 /* Message processing time measuring */
 
@@ -5457,6 +5459,59 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       #endif
       break;
     }
+
+
+
+#if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+    case CCMSG_PTP_FPGA:
+    if (!KERNEL_NODE_IS("OLT1T0-AC")) {
+            PT_LOG_WARN(LOG_CTX_MSGHANDLER, "Message not supported!");
+            SetIPCNACK (outbuffer, SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_WARNING, ERROR_CODE_NOSUCHMSG));
+
+            rc = L7_FAILURE;
+            break;
+    }
+    else {
+     T_MSG_PTP_FPGA *p;
+     ptin_dtl_search_ptp_t e;
+     L7_uint32 ptin_port;
+     ptin_intf_t ptin_intf;
+
+     PT_LOG_INFO(LOG_CTX_MSGHANDLER,
+              "Message received: CCMSG_PTP_FPGA (0x%04X)", inbuffer->msgId); 
+     CHECK_INFO_SIZE(T_MSG_PTP_FPGA);   //CHECK_INFO_MOD(T_MSG_PTP_FPGA);
+
+     do {
+         p= (T_MSG_PTP_FPGA *) inbuffer->info;
+         ptin_intf.intf_id=     p->intf.intf_id;
+         ptin_intf.intf_type=   p->intf.intf_type;
+         rc = ptin_intf_ptintf2port(&ptin_intf, &ptin_port);
+         //ptin_intf_ptintf2intIfNum(&p->intf, &intIfNum);
+         if (L7_SUCCESS != rc) break;
+    
+         e.key.prt= ptin_port;
+         e.key.vid= p->vid;
+         //e.vid_prt=
+         e.vid_os=  p->vid_os;
+         e.encap=   p->encap;
+         memcpy(&e.ntw, &p->ntw, sizeof(e.ntw));
+         rc = ptin_ptp_fpga_entry(&e, 0==p->add0_del1? DAPI_CMD_SET:DAPI_CMD_CLEAR);
+     } while (0);
+
+     if (L7_SUCCESS != rc) {
+       PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+       res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+       //res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, rc);
+       SetIPCNACK(outbuffer, res);
+       break;
+     }
+
+     SETIPCACKOK(outbuffer);
+     break;
+    }
+#endif
+//(PTIN_BOARD == PTIN_BOARD_OLT1T0)
+
     default:
     {
       PT_LOG_WARN(LOG_CTX_MSGHANDLER,

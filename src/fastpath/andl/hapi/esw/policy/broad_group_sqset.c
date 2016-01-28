@@ -842,6 +842,9 @@ static bcm_field_qualify_t llpfQsetLookup[] =    /* llpf specific qset */
     bcmFieldQualifyOuterVlan,
 
     bcmFieldQualifySrcIp6,  /* PTin added: FP */
+    //bcmFieldQualifyDstIp,  /* PTin added: FP */
+    //bcmFieldQualifyDstIp6,  /* PTin added: FP */
+    bcmFieldQualifyEtherType,  /* PTin added: FP */
 
     bcmFieldQualifyStageLookup
 };

@@ -46,6 +46,7 @@ typedef enum
   PTIN_DTL_MSG_LMM,
   PTIN_DTL_MSG_COUNTERS_LM,
   PTIN_DTL_MSG_TIME_INTERFACE,
+  PTIN_DTL_MSG_PTP_FPGA,
   PTIN_DTL_MSG_MAX
   
 } ptin_dtl_msg_enum;
@@ -80,6 +81,33 @@ typedef struct
   L7_BOOL   pbits_remark;
   L7_uint8  int_priority;
 } ptin_dtl_qos_t;
+
+
+
+
+
+typedef struct {
+    struct {
+        unsigned short  prt;
+        unsigned short  vid;
+    } __attribute__((packed)) key;
+
+    unsigned short  vid_prt;
+    unsigned short  vid_os;
+    int encap;
+#define TS_ENCAP_ETH_PTP            1
+#define TS_ENCAP_ETH_IPv4_PTP       2
+#define TS_ENCAP_ETH_IPv6_PTP       3
+//#define TS_ENCAP_ETH_MPLS_IPv4_PTP  4
+//#define TS_ENCAP_ETH_MPLS_IPv6_PTP  5
+    union {
+        u8 DMAC[6];                     //If all 0s, matches any DMAC
+        u8 dIP[16];                     //If all 0s, matches any IP     //big Endian
+    } __attribute__((packed)) ntw;
+} __attribute__((packed)) ptin_dtl_search_ptp_t;
+
+
+
 
 typedef struct
 {
