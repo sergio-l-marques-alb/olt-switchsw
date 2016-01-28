@@ -13015,7 +13015,7 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
         rc = usmDbSwPortMonitorSourcePortAdd(unit, sessionNum, srcIntfNum, type);
 
         /* Configure Egress XLATE on the destination interface */
-        if (msg->src_intf[n].direction == 1 || msg->src_intf[n].direction == 2)
+        if (msg->src_intf[n].direction == 1 || msg->src_intf[n].direction == 3)
         {
           PT_LOG_TRACE(LOG_CTX_MSG, "Dst intfNum %d", msg->dst_intf.intf_id);
           xlate_outer_vlan_replicate_Dstport(msg->sessionMode, msg->src_intf[n].intf.intf_id, msg->dst_intf.intf_id);
