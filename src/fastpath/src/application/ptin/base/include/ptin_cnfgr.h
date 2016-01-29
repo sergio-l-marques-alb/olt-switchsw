@@ -46,8 +46,12 @@ L7_RC_t ptinCnfgrUconfigPhase2( L7_CNFGR_RESPONSE_t *pResponse,
 extern void *ptin_ready_sem;
 extern void *ptin_busy_sem;
 
+#if (!PTIN_BOARD_IS_STANDALONE)
 extern void *ptin_switchover_sem;
+#endif
+#if (PTIN_BOARD_IS_MATRIX)
 extern void *ptin_boardaction_sem;
+#endif
 
 extern L7_int32 ptinMgmdTxQueueId;
 

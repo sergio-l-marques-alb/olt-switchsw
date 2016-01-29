@@ -85,9 +85,12 @@ inline L7_int32 ptin_mgmd_txqueue_id_get(void){return ptinMgmdTxQueueId;};
 /* Reinit MGMD TxQueue */
 inline RC_t ptin_mgmd_txqueue_reinit(void) {return ptin_mgmd_txqueue_create(MGMD_TXQUEUE_KEY, &ptinMgmdTxQueueId);};
 
-
+#if (!PTIN_BOARD_IS_STANDALONE)
 void *ptin_switchover_sem  = L7_NULLPTR;
+#endif
+#if (PTIN_BOARD_IS_MATRIX)
 void *ptin_boardaction_sem = L7_NULLPTR;
+#endif
 
 static ptinCnfgrState_t ptinCnfgrState = PTIN_PHASE_INIT_0;
 
@@ -539,7 +542,8 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
   LOG_INFO(LOG_CTX_PTIN_CNFGR, "ptin_packet initialized!");
 #endif
 
-/* Only make interface state management, if CXO board */
+#if (!PTIN_BOARD_IS_STANDALONE)
+  /* Only make interface state management, if CXO board */
   ptin_switchover_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_EMPTY);
   if (ptin_switchover_sem == L7_NULLPTR)
   {
@@ -550,7 +554,6 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
     return L7_FAILURE;
   }
 
-#if (!PTIN_BOARD_IS_STANDALONE)
   /* Create ptinSwitchoverTask */
   if (osapiTaskCreate("PTinSwitchover task", ptinSwitchoverTask, 0, 0,
                       L7_DEFAULT_STACK_SIZE,
@@ -561,7 +564,6 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
     return L7_FAILURE;
   }
   LOG_INFO(LOG_CTX_PTIN_CONTROL, "ptinSwitchoverTask created");
-#endif
 
   /* Wait for task to be launched */
   if (osapiWaitForTaskInit (L7_PTIN_SWITCHOVER_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS)
@@ -570,6 +572,7 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
     return L7_FAILURE;
   }
   LOG_INFO(LOG_CTX_PTIN_CONTROL, "ptinSwitchoverTask launch OK");
+#endif
 
   /* Initialize rfc2819 monitoring (includes structures and tasks) */
   ptin_rfc2819_init();
