@@ -1362,7 +1362,7 @@ L7_RC_t ptin_msg_intfLinkStatus(ipc_msg *inbuffer)
     /* Convert to matrix's local ptin_port */
     if (ptin_intf_slotPort2port(linkStatus->slot_id, index, &ptin_port)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid slot=%u/port=%u", linkStatus->slot_id, index);
+      //LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid slot=%u/port=%u", linkStatus->slot_id, index);
       continue;
     }
 
