@@ -469,10 +469,17 @@ bcmx_uport_t lvl7_uport_create_callback(bcmx_lport_t lport, int unit, bcm_port_t
   bcmx_uport_t  uport;
   BROAD_PORT_t *hapiPortPtr;
 
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"New port: lport=0x%x unit=%d port=%d flags=0x%x", lport, unit, port, flags);
+
   if (~flags & BCMX_PORT_F_VALID)
   {
     return(BCMX_UPORT_INVALID_DEFAULT);
   }
+  
+  /* PTin modified: 40G interfaces have flags=0x01 */
+  #if 1
+  hapiBroadMapDbPortEntryAdd(unit, port, lport);
+  #else
   else if (flags & (BCMX_PORT_F_FE | BCMX_PORT_F_GE | BCMX_PORT_F_XE | BCMX_PORT_F_HG ))
   {
     /* Regular Physical Ports */
@@ -488,6 +495,7 @@ bcmx_uport_t lvl7_uport_create_callback(bcmx_lport_t lport, int unit, bcm_port_t
   {
     return(BCMX_UPORT_INVALID_DEFAULT);
   }
+  #endif
 
   /* Check to see if the lport already exists */
   if ((dapi_g != L7_NULLPTR) &&
@@ -3422,7 +3430,7 @@ extern int soc_robo_mmu_init(int );
   SYSTEM_INIT_CHECK(soc_robo_reset_init(unit), "Device reset");
   //SYSTEM_INIT_CHECK(soc_robo_misc_init(unit), "Misc init");
   //SYSTEM_INIT_CHECK(soc_robo_mmu_init(unit), "MMU init");
-#elif BCM_XGS_SUPPORT
+#elif defined (BCM_XGS_SUPPORT)
   SYSTEM_INIT_CHECK(soc_reset_init(unit), "Device reset");
   //SYSTEM_INIT_CHECK(soc_misc_init(unit), "Misc init");
   //SYSTEM_INIT_CHECK(soc_mmu_init(unit), "MMU init");
