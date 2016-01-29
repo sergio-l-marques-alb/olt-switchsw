@@ -195,7 +195,7 @@
           0, 10,  /* slot/port for the stacking port */
           {'0', '/', '1', '0'},  /* Port identifier */
           10,       /* 10 Gb/s */
-          0,20,0,0  /* Bcm unit, Bcm port, unused, unused */
+          0,18,0,0  /* Bcm unit, Bcm port, unused, unused */
          },
              /* third Stacking Port Descriptor */
          {
@@ -203,7 +203,7 @@
           0, 11,  /* slot/port for the stacking port */
           {'0', '/', '1', '1'},  /* Port identifier */
           10,       /* 10 Gb/s */
-          0,24,0,0  /* Bcm unit, Bcm port, unused, unused */
+          0,19,0,0  /* Bcm unit, Bcm port, unused, unused */
          }
 
        }
