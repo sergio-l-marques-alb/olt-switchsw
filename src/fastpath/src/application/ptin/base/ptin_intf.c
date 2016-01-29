@@ -818,7 +818,6 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
   L7_uint32 value;
   L7_uint32 intIfNum = 0;
   L7_uint32 speed_mode;
-  ptin_HWEthRFC2819_PortStatistics_t portStats;
 
   /* Validate arguments */
   if (phyConf == L7_NULLPTR)
@@ -1011,11 +1010,7 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
   }
 
   /* Always clear counters after a reconfiguration */
-  portStats.Port = port;
-  portStats.Mask = 0xFF;
-  portStats.RxMask = 0xFFFFFFFF;
-  portStats.TxMask = 0xFFFFFFFF;
-  if (ptin_intf_counters_clear(&portStats) != L7_SUCCESS)
+  if (ptin_intf_counters_clear(port) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to clear counters on port# %u", port);
     return L7_FAILURE;
@@ -1232,27 +1227,46 @@ L7_RC_t ptin_intf_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
 /**
  * Clear counters
  * 
- * @param portStats portStats->Port must be defined
+ * @param ptin_port
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_intf_counters_clear(ptin_HWEthRFC2819_PortStatistics_t *portStats)
+L7_RC_t ptin_intf_counters_clear(L7_uint ptin_port)
 {
-  /* Validate arguments */
-  if (portStats == L7_NULLPTR)
-  {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid argument");
-    return L7_FAILURE;
-  }
+  ptin_HWEthRFC2819_PortStatistics_t portStats;
+  L7_RC_t rc;
 
   /* Validate port range */
-  if (portStats->Port >= ptin_sys_number_of_ports)
+  if (ptin_port >= ptin_sys_number_of_ports)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u is out of range [0..%u]", portStats->Port, ptin_sys_number_of_ports-1);
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u is out of range [0..%u]", ptin_port, ptin_sys_number_of_ports-1);
     return L7_FAILURE;
   }
 
-  return dtlPtinCountersClear(portStats);
+  memset(&portStats, 0x00, sizeof(portStats));
+  portStats.Port = ptin_port;
+  portStats.Mask = 0xFF;
+  portStats.RxMask = 0xFFFFFFFF;
+  portStats.TxMask = 0xFFFFFFFF;
+
+  rc = dtlPtinCountersClear(&portStats);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Error clearing stats of Port# %u", ptin_port);
+    return rc;
+  }
+
+#if (PTIN_BOARD_IS_MATRIX)
+  /* Reset linkStatus data */
+  rc = ptin_control_linkStatus_reset(ptin_port);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Error clearing linkStatus of Port# %u", ptin_port);
+    return rc;
+  }
+#endif /*PTIN_BOARD_IS_MATRIX*/
+
+  return L7_SUCCESS;
 }
 
 
@@ -5814,8 +5828,10 @@ L7_RC_t ptin_intf_linkscan_control(L7_uint port, L7_BOOL enable)
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_intf_slot_reset(L7_int slot_id)
+L7_RC_t ptin_intf_slot_reset(L7_int slot_id, L7_BOOL force_linkup)
 {
+  L7_uint16 index;
+  L7_uint32 ptin_port;
   ptin_hwproc_t hw_proc;
   L7_RC_t   rc = L7_SUCCESS;
 
@@ -5841,6 +5857,30 @@ L7_RC_t ptin_intf_slot_reset(L7_int slot_id)
   {
     LOG_ERR(LOG_CTX_PTIN_INTF,"Error applying HW procedure to slot %d", slot_id);
     return rc;
+  }
+
+  /* Force link up if required */
+  if (force_linkup)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Forcing link up to all ports of slot %u", slot_id); 
+
+    rc = ptin_slot_link_force(slot_id, -1, L7_TRUE, L7_ENABLE);
+    if (rc != L7_SUCCESS) 
+    {
+      LOG_ERR(LOG_CTX_PTIN_CONTROL, "Error setting force link to slot %u!", slot_id);
+      return rc;
+    }
+  }
+
+  /* Clear counters of all slot ports */
+  for (index = 0; index < PTIN_SYS_INTFS_PER_SLOT_MAX; index++)
+  {
+    /* Get ptin_port */
+    if (ptin_intf_slotPort2port(slot_id, index, &ptin_port)==L7_SUCCESS && ptin_port<ptin_sys_number_of_ports)
+    {
+      /* Reset counters */
+      ptin_intf_counters_clear(ptin_port);
+    }
   }
 
   LOG_TRACE(LOG_CTX_PTIN_INTF,"HW procedure applied to slot %d", slot_id);
@@ -6288,7 +6328,7 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
     if (board_id == PTIN_BOARD_TYPE_TG16G)
     {
       LOG_INFO(LOG_CTX_PTIN_INTF, "Going to reset warpcore of slot %u", slot_id);
-      rc = ptin_intf_slot_reset(slot_id);
+      rc = ptin_intf_slot_reset(slot_id, L7_FALSE);
       if (rc == L7_SUCCESS)
       {
         LOG_INFO(LOG_CTX_PTIN_INTF, "Slot %d reseted", slot_id);
@@ -6379,6 +6419,9 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
       }
     }
     #endif
+
+    /* Reset counters */
+    ptin_intf_counters_clear(ptin_port);
   }
 
   /* Unblock board event processing */

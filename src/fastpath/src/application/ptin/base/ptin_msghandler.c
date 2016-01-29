@@ -463,6 +463,28 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       outbuffer->infoDim = sizeof(msg_HwIntfInfo_t);
       return IPC_OK;
     }
+    /* CCMSG_HW_INTF_STATUS */
+    case CCMSG_HW_INTF_STATUS:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_HW_INTF_STATUS (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE_ATLEAST(msg_HwIntfStatus_t);
+
+      /* Execute command */
+      rc = ptin_msg_intfLinkStatus(inbuffer);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error interface status");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        return IPC_NO_REPLY;
+      }
+
+      SETIPCACKOK(outbuffer);
+      return IPC_NO_REPLY;
+    }
 
     /* CCMSG_APPLICATION_RESOURCES *********************************************/
     case CCMSG_APPLICATION_RESOURCES:

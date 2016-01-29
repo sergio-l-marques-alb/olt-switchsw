@@ -1964,7 +1964,7 @@ void *ptin_ber_rx_sem = L7_NULLPTR;
 int ber_tx_running = 0;
 int ber_rx_running = 0;
 
-static int canal_ipc;
+static int canal_ipc = -1;
 
 static int ber_init_done = 0;
 static int mx = 0;
@@ -2868,6 +2868,28 @@ int ber_init(void)
   HAPI_CARD_SLOT_MAP_t         *hapiSlotMapPtr;
   HAPI_WC_PORT_MAP_t           *hapiWCMapPtr;
 
+  /* Open IPC channel */
+  if (canal_ipc >= 0)
+  {
+    if (close_ipc(canal_ipc) != 0)
+    {
+      printf("Closed IPC channel!\n");
+      canal_ipc = -1; 
+    }
+    else
+    {
+      printf("Error closing IPC channel!\n");
+      return -1;
+    }
+  }
+
+  ret = open_ipc(0, 0, NULL, 5, &canal_ipc);
+  if (ret != 0) {
+    printf("Error opening IPC channel! (ret=%d)\n", ret);
+    return -1;
+  }
+  printf("IPC channel OK\n");
+
   if (ptin_ber_tx_sem != L7_NULLPTR) {
     printf("BER has already been initialized!\n");
     return -1;
@@ -2995,14 +3017,6 @@ int ber_init(void)
   }
 
   printf("BER tasks launch OK\n");
-
-  /* Open IPC channel */
-  ret = open_ipc(0, 0, NULL, 5, &canal_ipc);
-  if (ret != 0) {
-    printf("Error opening IPC channel!\n");
-    return -1;
-  }
-  printf("IPC channel OK\n");
 
   ber_init_done = 1;
 

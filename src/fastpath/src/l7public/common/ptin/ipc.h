@@ -65,7 +65,8 @@ Historico:  VM 2006.06.22 - Criacao do modulo V1.0.0.0
    #define IPC_HARDWARE_PORT     6000
    #define IPC_HW_OSI_PORT       6030
    #define IPC_HW_FASTPATH_PORT  6006
-   #define IPC_HW_FP_CTRL_PORT   6008
+   #define IPC_HW_FP_CTRL_PORT   6008 /* For communication between switchdrvr and fwctrl */
+   #define IPC_HW_FP_CTRL_PORT2  6009 /* For switchdrvr communication between boards */
 
    #define IPC_CC_TIMEOUT        30
    #define IPC_CH_TIMEOUT        20
