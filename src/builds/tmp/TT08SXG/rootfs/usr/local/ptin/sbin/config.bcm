@@ -4,6 +4,9 @@
 
 ### Device configuration ###
 
+# Advanced translations
+bcm886xx_vlan_translate_mode=1
+
 ## General
 # Set the FAP Device mode
 # Options: PP / TM / TDM_OPTIMIZED / TDM_STANDARD
@@ -26,7 +29,7 @@ system_ref_core_clock_khz=600000
 ucode_port_0=CPU.0
 
 # Map bcm local port to Network-Interface[.channel] interfaces - TBD
-custom_feature_nif_recovery_enable=0
+#custom_feature_nif_recovery_enable=1
 
 #Firmware mode:
 #0=DEFAULT
@@ -59,22 +62,25 @@ ucode_port_14=10GBase-R13
 ucode_port_15=10GBase-R14
 ucode_port_16=10GBase-R15
 
-#ucode_port_17=XLGE4
-#ucode_port_18=XLGE5
-#ucode_port_19=XLGE6
+ucode_port_17=XLGE4
+ucode_port_18=XLGE5
+ucode_port_19=XLGE6
 
-ucode_port_17=10GBase-R16
-ucode_port_18=10GBase-R17
-ucode_port_19=10GBase-R18
-ucode_port_20=10GBase-R19
-ucode_port_21=10GBase-R20
-ucode_port_22=10GBase-R21
-ucode_port_23=10GBase-R22
-ucode_port_24=10GBase-R23
-ucode_port_25=10GBase-R24
-ucode_port_26=10GBase-R25
-ucode_port_27=10GBase-R26
-ucode_port_28=10GBase-R27
+#ucode_port_17=10GBase-R16
+#ucode_port_18=10GBase-R17
+#ucode_port_19=10GBase-R18
+#ucode_port_17=10GBase-R16
+#ucode_port_18=10GBase-R17
+#ucode_port_19=10GBase-R18
+#ucode_port_20=10GBase-R19
+#ucode_port_21=10GBase-R20
+#ucode_port_22=10GBase-R21
+#ucode_port_23=10GBase-R22
+#ucode_port_24=10GBase-R23
+#ucode_port_25=10GBase-R24
+#ucode_port_26=10GBase-R25
+#ucode_port_27=10GBase-R26
+#ucode_port_28=10GBase-R27
 
 ucode_port_200.BCM88650=CPU.8
 ucode_port_201.BCM88650=CPU.16
@@ -152,7 +158,6 @@ fabric_ftmh_outlif_extension=IF_MC
 # Options for 88660: ENABLED, FULL_HASH
 # Options for 88650: ENABLED
 # Options for 88640 compatible: DISABLED / 8B_LB_KEY_8B_STACKING_ROUTE_HISTORY / 16B_STACKING_ROUTE_HISTORY / STANDBY_MC_LB (av
-
 
 # Default: DISABLED
 system_ftmh_load_balancing_ext_mode=DISABLED
@@ -238,7 +243,6 @@ voq_mapping_mode=INDIRECT
 flow_mapping_queue_base=0
 
 # The allocation of the total per core resources between source and queue based reservation depends on one of two guarantee mod
-
 
 #ingress_congestion_management_guarantee_mode={STRICT,LOOSE} default: STRICT
 # Each DP has its own thresholds for source based (dynamic) and for queue based (pools 0,1 and headroom).
@@ -495,99 +499,99 @@ ext_ram_type=DDR3
 ext_ram_total_size=4000
 
 os=unix
-ddr3_tune_rd_dq_wl1_rp_ci8.0=0x81818181,0x81818181,0x84848484,0x84848484
-ddr3_tune_wr_dq_wl0_ci4.0=0x8e8e8e8e,0x8e8e8e8e,0x90909090,0x90909090
-ddr3_tune_vref_ci10.0=0x000007df
-ddr3_tune_wr_dq_wl1_ci2.0=0x8f8f8f8f,0x8f8f8f8f,0x90909090,0x90909090
+ddr3_tune_rd_dq_wl1_rp_ci8.0=0x82828282,0x82828282,0x89898989,0x89898989
+ddr3_tune_wr_dq_wl0_ci4.0=0x8d8d8d8d,0x8d8d8d8d,0x8e8e8e8e,0x8e8e8e8e
+ddr3_tune_vref_ci10.0=0x0000079e
+ddr3_tune_wr_dq_wl1_ci2.0=0x8e8e8e8e,0x8e8e8e8e,0x8f8f8f8f,0x8f8f8f8f
 ddr3_tune_wr_dq_ci6.0=0x80808080
-ddr3_tune_rd_dq_wl0_rn_ci6.0=0x92929292,0x92929292,0x80808080,0x80808080
-ddr3_tune_rd_dq_wl1_rp_ci10.0=0x84848484,0x84848484,0x83838383,0x83838383
-ddr3_tune_rd_dqs_ci8.0=0x93939191,0x93939292
-ddr3_tune_vref_ci6.0=0x0000079e
-ddr3_tune_rd_dq_wl0_rp_ci14.0=0x83838383,0x83838383,0x81818181,0x81818181
-ddr3_tune_rd_en_ci10.0=0x008e8d8f,0x008d908a
+ddr3_tune_rd_dq_wl0_rn_ci6.0=0x80808080,0x80808080,0x82828282,0x82828282
+ddr3_tune_rd_dq_wl1_rp_ci10.0=0x84848484,0x84848484,0x84848484,0x84848484
+ddr3_tune_rd_dqs_ci8.0=0x92929292,0x96969292
+ddr3_tune_vref_ci6.0=0x000007df
+ddr3_tune_rd_dq_wl0_rp_ci14.0=0x80808080,0x80808080,0x82828282,0x82828282
+ddr3_tune_rd_en_ci10.0=0x008b8b8b,0x008a8c89
 ddr3_tune_rd_data_dly_ci4.0=0x00000404
-ddr3_tune_addrc_ci8.0=0x000000ae
-ddr3_tune_rd_dq_wl0_rp_ci2.0=0x80808080,0x80808080,0x82828282,0x82828282
-ddr3_tune_rd_dqs_ci10.0=0x92929393,0x93939393
-ddr3_tune_rd_en_ci2.0=0x008d8c8f,0x008d9189
-ddr3_tune_wr_dq_wl0_ci12.0=0x8f8f8f8f,0x8f8f8f8f,0x8f8f8f8f,0x8f8f8f8f
-ddr3_tune_rd_dq_wl1_rn_ci4.0=0x84848484,0x84848484,0x89898989,0x89898989
-ddr3_tune_addrc_ci10.0=0x000000ab
-ddr3_tune_wr_dq_wl0_ci6.0=0x90909090,0x90909090,0x8e8e8e8e,0x8e8e8e8e
+ddr3_tune_addrc_ci8.0=0x000000aa
+ddr3_tune_rd_dq_wl0_rp_ci2.0=0x81818181,0x81818181,0x82828282,0x82828282
+ddr3_tune_rd_dqs_ci10.0=0x91919292,0x91919292
+ddr3_tune_rd_en_ci2.0=0x008b8c8b,0x008a8d88
+ddr3_tune_wr_dq_wl0_ci12.0=0x8e8e8e8e,0x8e8e8e8e,0x8e8e8e8e,0x8e8e8e8e
+ddr3_tune_rd_dq_wl1_rn_ci4.0=0x89898989,0x89898989,0x89898989,0x89898989
+ddr3_tune_addrc_ci10.0=0x000000a9
+ddr3_tune_wr_dq_wl0_ci6.0=0x8f8f8f8f,0x8f8f8f8f,0x8e8e8e8e,0x8e8e8e8e
 ddr3_tune_vref_ci12.0=0x0000079e
-ddr3_tune_rd_dq_wl0_rn_ci10.0=0x82828282,0x82828282,0x83838383,0x83838383
-ddr3_tune_wr_dq_wl1_ci4.0=0x90909090,0x90909090,0x90909090,0x90909090
+ddr3_tune_rd_dq_wl0_rn_ci10.0=0x81818181,0x81818181,0x82828282,0x82828282
+ddr3_tune_wr_dq_wl1_ci4.0=0x8e8e8e8e,0x8e8e8e8e,0x8e8e8e8e,0x8e8e8e8e
 ddr3_tune_wr_dq_ci8.0=0x80808080
-ddr3_tune_rd_dq_wl1_rp_ci0.0=0x82828282,0x82828282,0x8a8a8a8a,0x8a8a8a8a
-ddr3_tune_wr_dq_wl1_ci10.0=0x90909090,0x90909090,0x90909090,0x90909090
-ddr3_tune_rd_dq_wl0_rn_ci8.0=0x81818181,0x81818181,0x83838383,0x83838383
-ddr3_tune_rd_dq_wl1_rp_ci12.0=0x83838383,0x83838383,0x83838383,0x83838383
+ddr3_tune_rd_dq_wl1_rp_ci0.0=0x83838383,0x83838383,0x84848484,0x84848484
+ddr3_tune_wr_dq_wl1_ci10.0=0x8f8f8f8f,0x8f8f8f8f,0x90909090,0x90909090
+ddr3_tune_rd_dq_wl0_rn_ci8.0=0x81818181,0x81818181,0x82828282,0x82828282
+ddr3_tune_rd_dq_wl1_rp_ci12.0=0x82828282,0x82828282,0x89898989,0x89898989
 ddr3_tune_wr_dq_ci10.0=0x80808080
-ddr3_tune_vref_ci8.0=0x00000820
-ddr3_tune_rd_en_ci12.0=0x008e908c,0x008d8d8d
+ddr3_tune_vref_ci8.0=0x000007df
+ddr3_tune_rd_en_ci12.0=0x008b8c8b,0x008b8d8a
 ddr3_tune_rd_data_dly_ci6.0=0x00000404
-ddr3_tune_rd_dq_wl0_rp_ci4.0=0x81818181,0x81818181,0x81818181,0x81818181
-ddr3_tune_rd_dqs_ci12.0=0x91919191,0x92929393
-ddr3_tune_rd_dqs_ci0.0=0x92929393,0x97979393
-ddr3_tune_rd_en_ci4.0=0x008d8e8c,0x008d8d8d
+ddr3_tune_rd_dq_wl0_rp_ci4.0=0x82828282,0x82828282,0x82828282,0x82828282
+ddr3_tune_rd_dqs_ci12.0=0x92929292,0x97979191
+ddr3_tune_rd_dqs_ci0.0=0x8f8f9191,0x91919191
+ddr3_tune_rd_en_ci4.0=0x008b8b8b,0x008b8d8a
 ddr3_tune_rd_data_dly_ci10.0=0x00000404
-ddr3_tune_addrc_ci0.0=0x000000ab
-ddr3_tune_wr_dq_wl0_ci14.0=0x90909090,0x90909090,0x8d8d8d8d,0x8d8d8d8d
-ddr3_tune_rd_dq_wl1_rn_ci6.0=0x82828282,0x82828282,0x89898989,0x89898989
-ddr3_tune_addrc_ci12.0=0x000000ad
-ddr3_tune_wr_dq_wl0_ci8.0=0x8f8f8f8f,0x8f8f8f8f,0x8f8f8f8f,0x8f8f8f8f
+ddr3_tune_addrc_ci0.0=0x000000a8
+ddr3_tune_wr_dq_wl0_ci14.0=0x8e8e8e8e,0x8e8e8e8e,0x8d8d8d8d,0x8d8d8d8d
+ddr3_tune_rd_dq_wl1_rn_ci6.0=0x83838383,0x83838383,0x82828282,0x82828282
+ddr3_tune_addrc_ci12.0=0x000000ab
+ddr3_tune_wr_dq_wl0_ci8.0=0x8d8d8d8d,0x8d8d8d8d,0x8d8d8d8d,0x8d8d8d8d
 ddr3_tune_vref_ci14.0=0x000007df
-ddr3_tune_rd_dq_wl0_rn_ci12.0=0x80808080,0x80808080,0x82828282,0x82828282
-ddr3_tune_wr_dq_wl1_ci6.0=0x8f8f8f8f,0x8f8f8f8f,0x8f8f8f8f,0x8f8f8f8f
-ddr3_tune_rd_dq_wl1_rp_ci2.0=0x83838383,0x83838383,0x83838383,0x83838383
-ddr3_tune_wr_dq_wl1_ci12.0=0x8f8f8f8f,0x8f8f8f8f,0x90909090,0x90909090
-ddr3_tune_rd_dq_wl1_rp_ci14.0=0x83838383,0x83838383,0x83838383,0x83838383
+ddr3_tune_rd_dq_wl0_rn_ci12.0=0x81818181,0x81818181,0x83838383,0x83838383
+ddr3_tune_wr_dq_wl1_ci6.0=0x8d8d8d8d,0x8d8d8d8d,0x8d8d8d8d,0x8d8d8d8d
+ddr3_tune_rd_dq_wl1_rp_ci2.0=0x83838383,0x83838383,0x89898989,0x89898989
+ddr3_tune_wr_dq_wl1_ci12.0=0x8e8e8e8e,0x8e8e8e8e,0x8f8f8f8f,0x8f8f8f8f
+ddr3_tune_rd_dq_wl1_rp_ci14.0=0x82828282,0x82828282,0x84848484,0x84848484
 ddr3_tune_wr_dq_ci12.0=0x80808080
 ddr3_tune_wr_dq_ci0.0=0x80808080
-ddr3_tune_rd_en_ci14.0=0x00908f92,0x0090948d
-ddr3_tune_rd_dq_wl0_rn_ci0.0=0x83838383,0x83838383,0x82828282,0x82828282
+ddr3_tune_rd_en_ci14.0=0x008e8f8d,0x008e8f8d
+ddr3_tune_rd_dq_wl0_rn_ci0.0=0x82828282,0x82828282,0x81818181,0x81818181
 ddr3_tune_rd_data_dly_ci8.0=0x00000404
-ddr3_tune_rd_dq_wl0_rp_ci6.0=0x92929292,0x92929292,0x80808080,0x80808080
-ddr3_tune_rd_dqs_ci14.0=0x93939292,0x92929292
-ddr3_tune_rd_dqs_ci2.0=0x90909090,0x92929292
-ddr3_tune_rd_en_ci6.0=0x00909090,0x008e928a
+ddr3_tune_rd_dq_wl0_rp_ci6.0=0x80808080,0x80808080,0x82828282,0x82828282
+ddr3_tune_rd_dqs_ci14.0=0x91918f8f,0x92929090
+ddr3_tune_rd_dqs_ci2.0=0x91919090,0x96969191
+ddr3_tune_rd_en_ci6.0=0x008d8d8d,0x008b8d8a
 ddr3_tune_rd_data_dly_ci12.0=0x00000404
-ddr3_tune_vref_ci0.0=0x00000820
-ddr3_tune_addrc_ci2.0=0x000000aa
-ddr3_tune_rd_dq_wl1_rn_ci8.0=0x81818181,0x81818181,0x84848484,0x84848484
-ddr3_tune_addrc_ci14.0=0x000000a9
-ddr3_tune_rd_dq_wl1_rn_ci10.0=0x84848484,0x84848484,0x83838383,0x83838383
-ddr3_tune_rd_dq_wl0_rn_ci14.0=0x83838383,0x83838383,0x81818181,0x81818181
-ddr3_tune_wr_dq_wl1_ci8.0=0x90909090,0x90909090,0x8f8f8f8f,0x8f8f8f8f
-ddr3_tune_rd_dq_wl1_rp_ci4.0=0x84848484,0x84848484,0x89898989,0x89898989
-ddr3_tune_wr_dq_wl1_ci14.0=0x8f8f8f8f,0x8f8f8f8f,0x90909090,0x90909090
-ddr3_tune_wr_dq_wl0_ci0.0=0x8e8e8e8e,0x8e8e8e8e,0x8e8e8e8e,0x8e8e8e8e
+ddr3_tune_vref_ci0.0=0x000007df
+ddr3_tune_addrc_ci2.0=0x000000a8
+ddr3_tune_rd_dq_wl1_rn_ci8.0=0x82828282,0x82828282,0x89898989,0x89898989
+ddr3_tune_addrc_ci14.0=0x000000a8
+ddr3_tune_rd_dq_wl1_rn_ci10.0=0x84848484,0x84848484,0x84848484,0x84848484
+ddr3_tune_rd_dq_wl0_rn_ci14.0=0x80808080,0x80808080,0x82828282,0x82828282
+ddr3_tune_wr_dq_wl1_ci8.0=0x8f8f8f8f,0x8f8f8f8f,0x8f8f8f8f,0x8f8f8f8f
+ddr3_tune_rd_dq_wl1_rp_ci4.0=0x89898989,0x89898989,0x89898989,0x89898989
+ddr3_tune_wr_dq_wl1_ci14.0=0x8f8f8f8f,0x8f8f8f8f,0x8f8f8f8f,0x8f8f8f8f
+ddr3_tune_wr_dq_wl0_ci0.0=0x8e8e8e8e,0x8e8e8e8e,0x8c8c8c8c,0x8c8c8c8c
 ddr3_tune_wr_dq_ci14.0=0x80808080
 ddr3_tune_wr_dq_ci2.0=0x80808080
-ddr3_tune_rd_dq_wl0_rn_ci2.0=0x80808080,0x80808080,0x82828282,0x82828282
-ddr3_tune_rd_dq_wl0_rp_ci8.0=0x81818181,0x81818181,0x83838383,0x83838383
-ddr3_tune_rd_dqs_ci4.0=0x92929292,0x97979494
-ddr3_tune_rd_en_ci8.0=0x008f918d,0x008f8f8f
+ddr3_tune_rd_dq_wl0_rn_ci2.0=0x81818181,0x81818181,0x82828282,0x82828282
+ddr3_tune_rd_dq_wl0_rp_ci8.0=0x81818181,0x81818181,0x82828282,0x82828282
+ddr3_tune_rd_dqs_ci4.0=0x91919191,0x95959797
+ddr3_tune_rd_en_ci8.0=0x008d8e8c,0x008d8f8b
 ddr3_tune_rd_data_dly_ci14.0=0x00000404
-ddr3_tune_vref_ci2.0=0x0000079e
-ddr3_tune_rd_dq_wl0_rp_ci10.0=0x82828282,0x82828282,0x83838383,0x83838383
+ddr3_tune_vref_ci2.0=0x000007df
+ddr3_tune_rd_dq_wl0_rp_ci10.0=0x81818181,0x81818181,0x82828282,0x82828282
 ddr3_tune_rd_data_dly_ci0.0=0x00000404
-ddr3_tune_addrc_ci4.0=0x000000ad
-ddr3_tune_rd_dq_wl1_rn_ci12.0=0x83838383,0x83838383,0x83838383,0x83838383
-ddr3_tune_rd_dq_wl1_rn_ci0.0=0x82828282,0x82828282,0x8a8a8a8a,0x8a8a8a8a
-ddr3_tune_rd_dq_wl1_rp_ci6.0=0x82828282,0x82828282,0x89898989,0x89898989
-ddr3_tune_wr_dq_wl0_ci2.0=0x90909090,0x90909090,0x8d8d8d8d,0x8d8d8d8d
-ddr3_tune_wr_dq_wl1_ci0.0=0x8f8f8f8f,0x8f8f8f8f,0x8e8e8e8e,0x8e8e8e8e
+ddr3_tune_addrc_ci4.0=0x000000ab
+ddr3_tune_rd_dq_wl1_rn_ci12.0=0x82828282,0x82828282,0x89898989,0x89898989
+ddr3_tune_rd_dq_wl1_rn_ci0.0=0x83838383,0x83838383,0x84848484,0x84848484
+ddr3_tune_rd_dq_wl1_rp_ci6.0=0x83838383,0x83838383,0x82828282,0x82828282
+ddr3_tune_wr_dq_wl0_ci2.0=0x8e8e8e8e,0x8e8e8e8e,0x8d8d8d8d,0x8d8d8d8d
+ddr3_tune_wr_dq_wl1_ci0.0=0x8e8e8e8e,0x8e8e8e8e,0x8e8e8e8e,0x8e8e8e8e
 ddr3_tune_wr_dq_ci4.0=0x80808080
-ddr3_tune_rd_dq_wl0_rn_ci4.0=0x81818181,0x81818181,0x81818181,0x81818181
-ddr3_tune_rd_dqs_ci6.0=0x9f9f9393,0x97979292
-ddr3_tune_vref_ci4.0=0x000007df
-ddr3_tune_rd_dq_wl0_rp_ci12.0=0x80808080,0x80808080,0x82828282,0x82828282
+ddr3_tune_rd_dq_wl0_rn_ci4.0=0x82828282,0x82828282,0x82828282,0x82828282
+ddr3_tune_rd_dqs_ci6.0=0x91919393,0x90909191
+ddr3_tune_vref_ci4.0=0x0000079e
+ddr3_tune_rd_dq_wl0_rp_ci12.0=0x81818181,0x81818181,0x83838383,0x83838383
 ddr3_tune_rd_data_dly_ci2.0=0x00000404
-ddr3_tune_addrc_ci6.0=0x000000a7
-ddr3_tune_rd_dq_wl0_rp_ci0.0=0x83838383,0x83838383,0x82828282,0x82828282
-ddr3_tune_rd_dq_wl1_rn_ci14.0=0x83838383,0x83838383,0x83838383,0x83838383
-ddr3_tune_rd_en_ci0.0=0x008f908e,0x008e8f8d
-ddr3_tune_wr_dq_wl0_ci10.0=0x90909090,0x90909090,0x8f8f8f8f,0x8f8f8f8f
-ddr3_tune_rd_dq_wl1_rn_ci2.0=0x83838383,0x83838383,0x83838383,0x83838383
+ddr3_tune_addrc_ci6.0=0x000000a8
+ddr3_tune_rd_dq_wl0_rp_ci0.0=0x82828282,0x82828282,0x81818181,0x81818181
+ddr3_tune_rd_dq_wl1_rn_ci14.0=0x82828282,0x82828282,0x84848484,0x84848484
+ddr3_tune_rd_en_ci0.0=0x008c8c8d,0x008c8e8b
+ddr3_tune_wr_dq_wl0_ci10.0=0x8f8f8f8f,0x8f8f8f8f,0x8d8d8d8d,0x8d8d8d8d
+ddr3_tune_rd_dq_wl1_rn_ci2.0=0x83838383,0x83838383,0x89898989,0x89898989

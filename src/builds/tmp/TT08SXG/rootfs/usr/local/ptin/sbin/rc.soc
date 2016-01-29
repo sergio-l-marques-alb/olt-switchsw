@@ -1,5 +1,5 @@
 # $Id: rc.soc,v 1.192 Broadcom SDK $
-# $Copyright: Copyright 2012 Broadcom Corporation.
+# $Copyright: Copyright 2015 Broadcom Corporation.
 # This program is the proprietary software of Broadcom Corporation
 # and/or its licensors, and may only be used, duplicated, modified
 # or distributed pursuant to the terms and conditions of a separate,
@@ -129,7 +129,7 @@ if $?PETRAB_A0 \
     'rcload dune.soc ; exit'
 
 
-if $?BCM88750_A0 || $?BCM88750_B0 ||  $?BCM88755_B0 || $?BCM88754_A0 || $?BCM88950_A0 \
+if $?BCM88750_A0 || $?BCM88750_B0 || $?BCM88753_A0 || $?BCM88753_B0 || $?BCM88755_B0 || $?BCM88754_A0 || $?BCM88770_A1 || $?BCM88773_A1 || $?BCM88774_A1 || $?BCM88775_A1 || $?BCM88776_A1 || $?BCM88950_A0 || $?BCM88950_A1 || $?BCM88953_A1 || $?BCM88954_A1 || $?BCM88955_A1 || $?BCM88956_A1 || $?BCM88772_A1 \
     'rcload dfe.soc ; exit'
 
 if $?ARAD_A0 || $?ARAD_B0 || $?ARAD_B1 || $?ARADPLUS_A0 || $?BCM88650_A0 || $?BCM88650_B0 || $?BCM88650_B1 || $?BCM88350_B1 || $?BCM88351_B1 || \
@@ -140,8 +140,14 @@ if $?ARAD_A0 || $?ARAD_B0 || $?ARAD_B1 || $?ARADPLUS_A0 || $?BCM88650_A0 || $?BC
 if $?BCM88850_P3 \
     'exit'
 
-if $?JERICHO_A0 || $?QMX_A0 || $?BCM88378_A0 \
+if $?JERICHO_A0 ||  $?BCM88670_A0 || $?BCM88671_A0 || $?BCM88671M_A0 || $?BCM88672_A0 || $?BCM88673_A0 || $?BCM88674_A0 || $?BCM88675_A0 || $?BCM88675M_A0 || $?BCM88676_A0 || $?BCM88676M_A0 || $?BCM88678_A0 || $?BCM88679_A0 || \
+   $?JERICHO_A1 ||  $?BCM88670_A1 || $?BCM88671_A1 || $?BCM88671M_A1 || $?BCM88672_A1 || $?BCM88673_A1 || $?BCM88674_A1 || $?BCM88675_A1 || $?BCM88675M_A1 || $?BCM88676_A1 || $?BCM88676M_A1 || $?BCM88678_A1 || $?BCM88679_A1 || \
+   $?QMX_A0     ||  $?BCM88370_A0 || $?BCM88371_A0 || $?BCM88371M_A0 || $?BCM88375_A0 || $?BCM88376_A0 || $?BCM88376M_A0 || $?BCM88377_A0 || $?BCM88378_A0 || $?BCM88379_A0 || \
+   $?QMX_A1     ||  $?BCM88370_A1 || $?BCM88371_A1 || $?BCM88371M_A1 || $?BCM88375_A1 || $?BCM88376_A1 || $?BCM88376M_A1 || $?BCM88377_A1 || $?BCM88378_A1 || $?BCM88379_A1 \
     'rcload jer.soc ; exit'
+
+if $?QAX_A0 \
+    'rcload qax.soc ; exit'
 
 if $?BCM88202_A0 || $?ARDON_A0 \
     'rcload atmf.soc ; exit'
@@ -261,18 +267,38 @@ $echo rc: MMU initialized
 # Load uKernel
 #
 
-if $?feature_cmicm && !$?rcpu_only && !$ihost_mode && !$?feature_iproc\
-    "mcsload 0 ${drivername}_0.srec InitMCS=true; \
-     mcsload 1 ${drivername}_1.srec;"
+# Pick default FW names if not set already by config
+if !$?fw_core_0 \
+    'local fw_core_0 ${fw_prefix}_0_bfd_bhh.srec; \
+     if $?greyhound || $?hurricane2 "local fw_core_0 ${fw_prefix}_0_ptpfull.srec"; \
+     if $?caladan3 "local fw_core_0 ${fw_prefix}_0.srec"; \
+     if $?helix4 && !$?feature_bhh "local fw_core_0 ${fw_prefix}_0_bfd.srec"; \
+     if $?helix4 && $?feature_bhh "local fw_core_0 ${fw_prefix}_0_bfd_bhh.srec"; \
+     if $?tomahawk && !$?feature_bhh "local fw_core_0 ${fw_prefix}_0_bfd.srec"; \
+     if $?trident2plus && !$?feature_bhh "local fw_core_0 ${fw_prefix}_0_bfd.srec"; \
+    '
+
+if !$?fw_core_1 \
+   'local fw_core_1 ${fw_prefix}_1_ptpfull.srec; \
+    if $?caladan3 "local fw_core_1 ${fw_prefix}_1_bs.srec"; \
+   '
+
+if !$?fw_core_2 \
+   "local fw_core_2 ${fw_prefix}_2_eth_lmdm.srec"
+
+# Load the firmwares
+if $?feature_cmicm && !$?rcpu_only && !$ihost_mode && !$?feature_iproc \
+    "mcsload 0 ${fw_core_0} InitMCS=true; \
+     mcsload 1 ${fw_core_1};"
 
 if $?feature_iproc && !$?rcpu_only && !$?feature_uc_mhost && !$ihost_mode\
-    "mcsload 0 ${drivername}_0.srec InitMCS=true TwoStage=true TwoStageAddr=0x60000000;\
-     mcsload 1 ${drivername}_1.srec TwoStage=true TwoStageAddr=0x6002c000;"
+    "mcsload 0 ${fw_core_0} InitMCS=true TwoStage=true TwoStageAddr=0x60000000;\
+     mcsload 1 ${fw_core_1} TwoStage=true TwoStageAddr=0x6002c000;"
 
 if $?feature_iproc && !$?rcpu_only && $?feature_uc_mhost && $?num_ucs\
-    'if !"expr $num_ucs > 0" "mcsload 0 ${drivername}_0.srec InitMCS=true"; \
-     if !"expr $num_ucs > 1" "mcsload 1 ${drivername}_1.srec"; \
-     if !"expr $num_ucs > 2" "mcsload 2 ${drivername}_2.srec";'
+    'if !"expr $num_ucs > 0" "mcsload 0 ${fw_core_0} InitMCS=true"; \
+     if !"expr $num_ucs > 1" "mcsload 1 ${fw_core_1}"; \
+     if !"expr $num_ucs > 2" "mcsload 2 ${fw_core_2}";'
 
 #
 # Init CLI and BCM API
@@ -320,6 +346,7 @@ if !$?no_bcm && !$?rcpu_only \
 	 port st linkscan=on txpause=false rxpause=false; \
          port xe,ce linkscan=on autoneg=off \
                 speed=0 fullduplex=true txpause=true rxpause=true; \
+         port hg linkscan=on fullduplex=true txpause=false rxpause=false; \
 	 $echo rc: Port modes initialized"
 
 if !$?no_bcm && $?rcpu_only \
@@ -1094,6 +1121,14 @@ if $?tomahawk "local ledcode '\
  05 74 3E 77 37 67 2B 75 37 77 45 12 A0 F8 15 1A \
  00 57 28 32 07 97 57 32 0E 87 32 0E 87 57 32 0F \
  87 32 0E 87 57 32 0E 87 32 0F 87 57 00 00 00 00'" #sdk56960.hex
+
+if $?trident2plus "local ledcode '\
+ 02 01 28 60 E1 67 31 67 20 06 E1 80 D2 31 74 02 \
+ 86 E0 3A C0 67 37 75 1C 67 51 77 20 67 43 77 43 \
+ 28 32 00 32 01 B7 97 75 43 16 E0 CA 05 74 4A 77 \
+ 43 67 37 75 43 77 51 12 A0 F8 15 1A 00 57 28 32 \
+ 07 97 57 32 0E 87 32 0E 87 57 32 0F 87 32 0E 87 \
+ 57 32 0E 87 32 0F 87 57 00 00 00 00 00 00 00 00'" #sdk56860.hex 
 
 if $?generic8led "local ledcode '\
  06 E1 D2 40 71 11 E0 60 E1 16 E3 DA 01 71 15 60 \
