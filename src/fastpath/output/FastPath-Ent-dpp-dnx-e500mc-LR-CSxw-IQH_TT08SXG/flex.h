@@ -94,12 +94,12 @@
 #define _INCLUDE_LLPF_COMPONENT_API_
 #define L7_LLPF_PACKAGE 1
 #endif
-#endif
 
 /* MACLOCK definitions */
 #ifndef _INCLUDE_MACLOCK_COMPONENT_API_
 #define _INCLUDE_MACLOCK_COMPONENT_API_
 #define L7_MACLOCK_PACKAGE 1
+#endif
 #endif
 
 /* MACVLAN definitions */
