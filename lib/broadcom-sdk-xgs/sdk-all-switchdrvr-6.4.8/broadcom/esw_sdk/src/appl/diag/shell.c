@@ -758,7 +758,8 @@ MEM_FILE_t *mem_fopen(unsigned char *filename)
     return NULL;
   }
 
-  if (strcmp("rc.soc", (char *)filename) == 0)
+  /* PTin modified: given filename can have a full path */
+  if (strlen((char *) filename)>=6 && strcmp("rc.soc", (char *)&filename[ strlen((char *) filename)-6 ]) == 0)
   {
     fp->start = rc_soc_array;
     fp->current = rc_soc_array;
