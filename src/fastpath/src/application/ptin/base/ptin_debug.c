@@ -113,7 +113,7 @@ void ptin_debug(void)
   printf("  ptin_l2_maclimit_dump                                           - Dumps MAC limit tables (non empty)\r\n");
   printf("  ptin_l2_maclimit_status                                         - Dumps MAC limit tables per interface (non empty)\r\n");
   printf("  ptin_l2_maclimit_config <sys> <ifType> <ifId> <vid> <lmt>       - Configures L2 MAC Limit on system/ per VLAN / per Port\r\n");
-  printf("  slot_monitor_enable <enable>                                    - Enables or disables slot monitor reset\r\n");
+  printf("  slot_monitor_enable <monitor_enable> <fcs_enable>               - Enables or disables slot monitor reset\r\n");
   printf("  slot_monitor_dump                                               - Dump link status information\r\n");
   printf("  slot_monitor_reset <port>                                       - Reset link status data (local and remote)\r\n");
   printf("  ptin_debug_example <intIfNum> <oper> <param1> <param2>          - Generic DTL processor example\r\n");
