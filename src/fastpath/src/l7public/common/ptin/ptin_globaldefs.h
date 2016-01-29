@@ -76,10 +76,13 @@ extern int ptin_sys_number_of_ports;
 #define PTIN_BOARD_TYPE_TA12XGE   0xFF
 
 #define PTIN_BOARD_IS_PRESENT(board)  ((board) != 0)
-#define PTIN_BOARD_IS_UPLINK(board)   ((board)==(PTIN_BOARD_TYPE_TOLTU20G) || ((board)==(PTIN_BOARD_TYPE_TOLTU20GR)) || (board)==(PTIN_BOARD_TYPE_TU40G) || (board)==(PTIN_BOARD_TYPE_TU40GR) || (board)==(PTIN_BOARD_TYPE_CXO160G) || (board)==(PTIN_BOARD_TYPE_TA12XGE))
-#define PTIN_BOARD_IS_DOWNLINK(board) ((board)==(PTIN_BOARD_TYPE_TOLT8G) || (board)==(PTIN_BOARD_TYPE_TOLT8GR) || (board)==(PTIN_BOARD_TYPE_TG16G) || (board)==(PTIN_BOARD_TYPE_TA48GE) || (board)==(PTIN_BOARD_TYPE_TA48GED))
+#define PTIN_BOARD_IS_UPLINK(board)   ((board)==(PTIN_BOARD_TYPE_TOLTU20G) || ((board)==(PTIN_BOARD_TYPE_TOLTU20GR)) || (board)==(PTIN_BOARD_TYPE_TU40G) || (board)==(PTIN_BOARD_TYPE_TU40GR) || (board)==(PTIN_BOARD_TYPE_CXO160G) || \
+                                       (board)==(PTIN_BOARD_TYPE_TA12XGE))
+#define PTIN_BOARD_IS_DOWNLINK(board) ((board)==(PTIN_BOARD_TYPE_TOLT8G) || (board)==(PTIN_BOARD_TYPE_TOLT8GR) || (board)==(PTIN_BOARD_TYPE_TG16G) || (board)==(PTIN_BOARD_TYPE_TA48GE) || (board)==(PTIN_BOARD_TYPE_TA48GED) || \
+                                       (board)==(PTIN_BOARD_TYPE_TT08SXG))
 #define PTIN_BOARD_IS_OLT360(board)   ((board)==(PTIN_BOARD_TYPE_TOLTU20G) || (board)==(PTIN_BOARD_TYPE_TOLTU20GR) || (board)==(PTIN_BOARD_TYPE_TOLT8G) || (board)==(PTIN_BOARD_TYPE_TOLT8GR))
-#define PTIN_BOARD_IS_OLT1T3(board)   ((board)==(PTIN_BOARD_TYPE_TU40G) || (board)==(PTIN_BOARD_TYPE_TU40GR) || (board)==(PTIN_BOARD_TYPE_TG16G) || (board)==(PTIN_BOARD_TYPE_TA48GE) || (board)==(PTIN_BOARD_TYPE_TA48GED) || (board)==(PTIN_BOARD_TYPE_TA12XGE))
+#define PTIN_BOARD_IS_OLT1T3(board)   ((board)==(PTIN_BOARD_TYPE_TU40G) || (board)==(PTIN_BOARD_TYPE_TU40GR) || (board)==(PTIN_BOARD_TYPE_TG16G) || (board)==(PTIN_BOARD_TYPE_TA48GE) || (board)==(PTIN_BOARD_TYPE_TA48GED) || \
+                                       (board)==(PTIN_BOARD_TYPE_TA12XGE) || (board)==(PTIN_BOARD_TYPE_TT08SXG))
 
 #define PTIN_BOARD_LS_CTRL(board)     ((board)==(PTIN_BOARD_TYPE_TOLTU20G) || (board)==(PTIN_BOARD_TYPE_TOLTU20GR) || \
                                        (board)==(PTIN_BOARD_TYPE_TU40G) || (board)==(PTIN_BOARD_TYPE_TU40GR) || \
