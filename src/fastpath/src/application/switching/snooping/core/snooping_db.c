@@ -2545,7 +2545,7 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
   ptin_dtl_ipmc_addr_t               dtl_ipmc;
   L7_uint32                          flags = 0x0;  
   L7_int                             multicast_group;  
-  #if 0//Disabled Using L3 Interfaces
+  #if defined IGMP_SMART_MC_EVC_SUPPORTED
   L7_int                             l3_intf_id;
   #endif
   L7_BOOL                            newChannelEntry = L7_FALSE;
@@ -2811,13 +2811,21 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
       /*Channel Only Has one Interface*/
       if ( newChannelEntry == L7_TRUE )
       {
-        #if 0//Disabled Using L3 Interfaces        
+        #if defined IGMP_SMART_MC_EVC_SUPPORTED
         l3_intf_id = -1;
-        if (ptin_evc_l3_intf_get(serviceId, intIfNum, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
+        L7_uint32 iptv_evc_id;
+
+        if (ptin_igmp_UcastEvcId_get(serviceId, &iptv_evc_id) != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", serviceId, l3_intf_id);      
+          LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to get UcastEvcId");
           return L7_FAILURE;
-        }          
+        }
+               
+        if (ptin_evc_l3_intf_get(iptv_evc_id, intIfNum, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
+        {
+          LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", iptv_evc_id, l3_intf_id);      
+          return L7_FAILURE;
+        }
         if (ptin_debug_igmp_snooping)
           LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Obtained L3 Interface l3_intf_id:%d", l3_intf_id);          
 
@@ -2852,13 +2860,21 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
 
           if (PTIN_IS_MASKBITSET(pChannelIntfMask->snoopChannelIntfMaskInfoDataKey.channelIntfMask, intf))
           {
-            #if 0//Disabled Using L3 Interfaces
+            #if defined IGMP_SMART_MC_EVC_SUPPORTED
             l3_intf_id = -1;
-            if (ptin_evc_l3_intf_get(serviceId, intf, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
+            L7_uint32 iptv_evc_id;
+
+            if (ptin_igmp_UcastEvcId_get(serviceId, &iptv_evc_id) != L7_SUCCESS)
             {
-              LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", serviceId, l3_intf_id);      
+              LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to get UcastEvcId");
               return L7_FAILURE;
-            }          
+            }
+                   
+            if (ptin_evc_l3_intf_get(iptv_evc_id, intIfNum, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
+            {
+              LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", iptv_evc_id, l3_intf_id);      
+              return L7_FAILURE;
+            }
             if (ptin_debug_igmp_snooping)
               LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Obtained L3 Interface l3_intf_id:%d", l3_intf_id);          
 
@@ -2893,13 +2909,21 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
 
       /*Use Existing Multicast Group*/
       removeMulticastGroup = L7_FALSE;
-      #if 0//Disabled Using L3 Interfaces
+      #if defined IGMP_SMART_MC_EVC_SUPPORTED
       l3_intf_id = -1;
-      if (ptin_evc_l3_intf_get(serviceId, intIfNum, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
+      L7_uint32 iptv_evc_id;
+
+      if (ptin_igmp_UcastEvcId_get(serviceId, &iptv_evc_id) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", serviceId, l3_intf_id);      
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to get UcastEvcId");
         return L7_FAILURE;
-      }          
+      }
+             
+      if (ptin_evc_l3_intf_get(iptv_evc_id, intIfNum, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", iptv_evc_id, l3_intf_id);      
+        return L7_FAILURE;
+      }
       if (ptin_debug_igmp_snooping)
         LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Obtained L3 Interface l3_intf_id:%d", l3_intf_id);          
 
@@ -2994,13 +3018,21 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
 
       if (PTIN_IS_MASKBITSET(pChannelEntry->channelIntfMask, intf))
       {
-        #if 0//Disabled Using L3 Interfaces
+        #if defined IGMP_SMART_MC_EVC_SUPPORTED
         l3_intf_id = -1;
-        if (ptin_evc_l3_intf_get(serviceId, intf, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
+        L7_uint32 iptv_evc_id;
+
+        if (ptin_igmp_UcastEvcId_get(serviceId, &iptv_evc_id) != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", serviceId, l3_intf_id);      
+          LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to get UcastEvcId");
           return L7_FAILURE;
-        }          
+        }
+               
+        if (ptin_evc_l3_intf_get(iptv_evc_id, intIfNum, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
+        {
+          LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", iptv_evc_id, l3_intf_id);      
+          return L7_FAILURE;
+        }
         if (ptin_debug_igmp_snooping)
           LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Obtained L3 Interface l3_intf_id:%d", l3_intf_id);          
 
@@ -3127,7 +3159,7 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
   ptin_dtl_ipmc_addr_t               dtl_ipmc;
   L7_uint32                          flags = 0x0;  
   L7_int                             multicast_group = -1;  
-  #if 0//Disabled Using L3 Interfaces
+  #if defined IGMP_SMART_MC_EVC_SUPPORTED
   L7_int                             l3_intf_id;  
   #endif
   L7_BOOL                            newChannelIntfMaskEntry = L7_FALSE;
@@ -3304,15 +3336,21 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
     /*Is this channel the last entry of this interface mask?*/
     if ( pChannelEntry->pChannelIntfMask->noOfChannelEntries == 0 )
     {
-      #if 0//Disabled Using L3 Interfaces
-      /*Get L3 Interface Id*/
+      #if defined IGMP_SMART_MC_EVC_SUPPORTED
       l3_intf_id = -1;
-      if (ptin_evc_l3_intf_get(serviceId, intIfNum, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
+      L7_uint32 iptv_evc_id;
+
+      if (ptin_igmp_UcastEvcId_get(serviceId, &iptv_evc_id) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", serviceId, l3_intf_id);      
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to get UcastEvcId");
         return L7_FAILURE;
       }
-
+             
+      if (ptin_evc_l3_intf_get(iptv_evc_id, intIfNum, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", iptv_evc_id, l3_intf_id);      
+        return L7_FAILURE;
+      }
       if (ptin_debug_igmp_snooping)
         LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Obtained L3 Interface l3_intf_id:%d", l3_intf_id);
 
@@ -3450,18 +3488,23 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
           {
             LOG_ERR(LOG_CTX_PTIN_IGMP, "intf == intIfNum", intf, intIfNum);              
           }
-          #if 0//Disabled Using L3 Interfaces
+          #if defined IGMP_SMART_MC_EVC_SUPPORTED
           l3_intf_id = -1;
-          if (ptin_evc_l3_intf_get(serviceId, intf, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
+          L7_uint32 iptv_evc_id;
+
+          if (ptin_igmp_UcastEvcId_get(serviceId, &iptv_evc_id) != L7_SUCCESS)
           {
-            LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", serviceId, l3_intf_id);      
+            LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to get UcastEvcId");
             return L7_FAILURE;
           }
-          else
+                 
+          if (ptin_evc_l3_intf_get(iptv_evc_id, intIfNum, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
           {
-            if (ptin_debug_igmp_snooping)
-              LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Obtained L3 Interface l3_intf_id:%d", l3_intf_id);
+            LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", iptv_evc_id, l3_intf_id);      
+            return L7_FAILURE;
           }
+          if (ptin_debug_igmp_snooping)
+            LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Obtained L3 Interface l3_intf_id:%d", l3_intf_id);
 
           rc = ptin_multicast_l3_egress_port_add(intf, multicast_group,  l3_intf_id);
 
@@ -3492,13 +3535,21 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
     {
       /*Use Existing Multicast Group*/
       removeMulticastGroup = L7_FALSE;
-      #if 0//Disabled Using L3 Interfaces
+      #if defined IGMP_SMART_MC_EVC_SUPPORTED
       l3_intf_id = -1;
-      if (ptin_evc_l3_intf_get(serviceId, intIfNum, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
+      L7_uint32 iptv_evc_id;
+
+      if (ptin_igmp_UcastEvcId_get(serviceId, &iptv_evc_id) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", serviceId, l3_intf_id);      
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to get UcastEvcId");
         return L7_FAILURE;
-      }          
+      }
+             
+      if (ptin_evc_l3_intf_get(iptv_evc_id, intIfNum, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", iptv_evc_id, l3_intf_id);      
+        return L7_FAILURE;
+      }
       if (ptin_debug_igmp_snooping)
         LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Obtained L3 Interface l3_intf_id:%d", l3_intf_id);          
 
@@ -3603,13 +3654,21 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
 
       if (PTIN_IS_MASKBITSET(pChannelEntry->pChannelIntfMask->snoopChannelIntfMaskInfoDataKey.channelIntfMask, intf))
       {
-        #if 0//Disabled Using L3 Interfaces
+        #if defined IGMP_SMART_MC_EVC_SUPPORTED
         l3_intf_id = -1;
-        if (ptin_evc_l3_intf_get(serviceId, intf, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
+        L7_uint32 iptv_evc_id;
+
+        if (ptin_igmp_UcastEvcId_get(serviceId, &iptv_evc_id) != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", serviceId, l3_intf_id);      
+          LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to get UcastEvcId");
           return L7_FAILURE;
-        }          
+        }
+               
+        if (ptin_evc_l3_intf_get(iptv_evc_id, intIfNum, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
+        {
+          LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", iptv_evc_id, l3_intf_id);      
+          return L7_FAILURE;
+        }
         if (ptin_debug_igmp_snooping)
           LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Obtained L3 Interface l3_intf_id:%d", l3_intf_id);          
 

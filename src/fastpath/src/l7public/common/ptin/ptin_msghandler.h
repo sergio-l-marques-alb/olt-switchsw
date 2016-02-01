@@ -1607,6 +1607,11 @@ typedef struct {
   L7_uint8  SlotId;
   L7_uint32 multicastEvcId;                     /* Multicast EVC id */
   L7_uint32 unicastEvcId;                       /* Unicast EVC id */
+
+  /* IGMP_SMART_MC_EVC_SUPPORTED
+     In case of SFR service model, where IPTV traffic and other data traffic flows using the same VLAN,
+     the unicastEvcId is used as an auxiliary VLAN used to deviate IPTV MC traffic */
+
 } __attribute__((packed)) msg_IgmpMultcastUnicastLink_t;
 
 /* IGMP Client add/remove struct */

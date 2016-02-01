@@ -8,6 +8,7 @@
 #define IGMPASSOC_MULTI_MC_SUPPORTED
 #define IGMP_QUERIER_IN_UC_EVC
 #define IGMP_DYNAMIC_CLIENTS_SUPPORTED
+#define IGMP_SMART_MC_EVC_SUPPORTED /* SFR service model.  Creation/removal of L3 Interfaces on MC-IPTV Services */
 
 #define PTIN_SYS_LC_SLOT_MIN        2
 #define PTIN_SYS_LC_SLOT_MAX        19
