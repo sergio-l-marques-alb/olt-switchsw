@@ -1,0 +1,119 @@
+diff -rpN --unified=6 sdk-all-6.4.4_original/src/appl/diag/dcmn/init.c sdk-all-6.4.4_mod/src/appl/diag/dcmn/init.c
+--- sdk-all-6.4.4_original/src/appl/diag/dcmn/init.c	2015-07-01 12:41:37.992643771 +0100
++++ sdk-all-6.4.4_mod/src/appl/diag/dcmn/init.c	2015-07-01 12:20:41.780642781 +0100
+@@ -144,13 +144,13 @@ extern int _cpu_pci_register(int d);
+ 
+ 
+ #define PCP_DEVICE_ID (SOC_SAND_MAX_DEVICE-1)
+ 
+ #define MAX_NUM_DEVICES (SOC_SAND_MAX_DEVICE)
+ #define MAX_COS         (8)
+-#define MAX_MODIDS_PER_DEVICE 2
++#define MAX_MODIDS_PER_DEVICE 1	/* PTin modified (2) */
+ #define MODIDS_PER_DEVICE (g_dii.is_symmetric ? MAX_MODIDS_PER_DEVICE : 1)
+ #define OLP_DEFAULT_CORE 0
+ #define CORE_ID2INDEX(core_id) ((core_id == BCM_CORE_ALL) ? 0 : core_id)
+ 
+ #ifdef BCM_DPP_SUPPORT
+ typedef struct appl_dpp_diag_init_s {
+diff -rpN --unified=6 sdk-all-6.4.4_original/systems/bde/linux/kernel/linux-kernel-bde.c sdk-all-6.4.4_mod/systems/bde/linux/kernel/linux-kernel-bde.c
+--- sdk-all-6.4.4_original/systems/bde/linux/kernel/linux-kernel-bde.c	2015-07-01 12:41:27.564650221 +0100
++++ sdk-all-6.4.4_mod/systems/bde/linux/kernel/linux-kernel-bde.c	2015-07-01 12:20:36.948075233 +0100
+@@ -134,13 +134,15 @@
+ #define virt_to_bus virt_to_phys
+ #define bus_to_virt phys_to_virt
+ #endif
+ 
+ MODULE_AUTHOR("Broadcom Corporation");
+ MODULE_DESCRIPTION("Kernel BDE");
+-MODULE_LICENSE("Proprietary");
++/* PTin modified */
++//MODULE_LICENSE("Proprietary");
++MODULE_LICENSE("GPL");
+ 
+ /* DMA memory pool size */
+ static char *dmasize;
+ LKM_MOD_PARAM(dmasize, "s", charp, 0);
+ MODULE_PARM_DESC(dmasize,
+ "Specify DMA memory size (default 4MB)");
+@@ -149,13 +151,13 @@ MODULE_PARM_DESC(dmasize,
+ static char *himem;
+ LKM_MOD_PARAM(himem, "s", charp, 0);
+ MODULE_PARM_DESC(himem,
+ "Use high memory for DMA (default no)");
+ 
+ /* PCIe max payload */
+-int maxpayload = 256;
++int maxpayload = 128; /* PTin modified: 256; */
+ LKM_MOD_PARAM(maxpayload, "i", int, 0);
+ MODULE_PARM_DESC(maxpayload,
+ "Limit maximum payload size and request size on PCIe devices");
+ 
+ /* Use MSI interrupts */
+ int usemsi = -1;
+@@ -694,12 +696,15 @@ _eb_device_create(resource_size_t paddr,
+ 
+ static int
+ petra_device_create(void)
+ {
+     bde_ctrl_t* ctrl;
+ 
++    /* PTin added: Do not execute this function */
++    return 0;
++
+     ctrl = _devices; 
+ 
+ #ifndef __DUNE_LINUX_BCM_CPU_PCIE__
+     _switch_ndevices++;
+     _ndevices++;
+ 
+@@ -4067,12 +4072,19 @@ _interrupt_connect(int d,
+ {
+     bde_ctrl_t *ctrl;
+     unsigned long irq_flags;
+     int isr2_dev;
+     int isr_active;
+ 
++    /* PTin added: Kernel */
++    struct device_node *np = NULL;
++    unsigned int eirq;
++
++    gprintk("Setting IRQ...\n");
++    /* PTin end */
++
+     isr2_dev = d & LKBDE_ISR2_DEV;
+     d &= ~LKBDE_ISR2_DEV;
+ 
+     if (!VALID_DEVICE(d)) {
+         gprintk("_interrupt_connect: Invalid device index %d\n", d);
+         return -1;
+@@ -4109,12 +4121,29 @@ _interrupt_connect(int d,
+         if (isr_active) {
+             /* Main handler (_isr) already installed */
+             return 0;
+         }
+     }
+ 
++    /* PTin added: Kernel */
++    np = of_find_compatible_node(NULL, NULL, "bcm,fastpath-pci");
++    if (np == NULL){
++      gprintk ("LMP - Nao apanhei nenhum no' da devtree\n\r");
++      return -1;
++    }
++    eirq = irq_of_parse_and_map(np, 0);
++    if (eirq == NO_IRQ)
++    {
++      gprintk ("LMP - Nao apanhei nenhum irq devtree\n\r");
++      return -1;
++    }
++    ctrl->iLine = eirq;
++
++    gprintk("irq to be used: %d\n",ctrl->iLine);
++    /* PTin end */
++
+     if (ctrl->iLine != -1) {
+         irq_flags = IRQF_SHARED;
+ #if defined(CONFIG_PCI_MSI)
+         if (ctrl->use_msi && pci_enable_msi(ctrl->pci_device) == 0) {
+             irq_flags = 0;
+             ctrl->iLine = ctrl->pci_device->irq;
