@@ -880,6 +880,7 @@ static L7_RC_t hapiBroadQosAclInstAdd(DAPI_USP_t               *usp,
     L7_uint32                 dependentLagCount = 0;
     L7_uint32                 i;
     L7_BOOL                   l3OrL4RuleFound = L7_FALSE;
+    L7_uchar8   captureNotDeny = 0;
 
     *policyId = BROAD_POLICY_INVALID;
 
@@ -1200,61 +1201,64 @@ static L7_RC_t hapiBroadQosAclInstAdd(DAPI_USP_t               *usp,
                 break;
 
             case L7_QOS_ACL_TLV_ATTR_MIRROR_TYPE:
-                if (0 == denyFlag)    /* deny action takes precedence */
-                {
-                    DAPI_USP_t mirrorUsp;
-                    BROAD_METER_ENTRY_t meterInfo;
 
-                    /* PTIN TODO: Currently the intfnum comming from the above layer is being ignored and the CPU port is forced */
-                    #if 0
-                    mirrorUsp.unit = osapiNtohl(*(L7_int32*)GET_VALUE_PTR(pMatchTLV,0));
-                    mirrorUsp.slot = osapiNtohl(*(L7_int32*)GET_VALUE_PTR(pMatchTLV,4));
-                    mirrorUsp.port = osapiNtohl(*(L7_int32*)GET_VALUE_PTR(pMatchTLV,8));
-                    #else                   
-                    mirrorUsp.unit = 0;
-                    mirrorUsp.slot = L7_CPU_SLOT_NUM;
-                    mirrorUsp.port = 0;
-                    #endif
+              denyFlag = 0;    
+              captureNotDeny = 1;
+              DAPI_USP_t mirrorUsp;
+              BROAD_METER_ENTRY_t meterInfo;
 
-                    result = hapiBroadPolicyRuleActionAdd(ruleId,
-                                                          BROAD_ACTION_MIRROR,
-                                                          mirrorUsp.unit,
-                                                          mirrorUsp.slot,
-                                                          mirrorUsp.port);
+              /* PTIN TODO: Currently the intfnum comming from the above layer is being ignored and the CPU port is forced */
+              #if 0
+              mirrorUsp.unit = osapiNtohl(*(L7_int32*)GET_VALUE_PTR(pMatchTLV,0));
+              mirrorUsp.slot = osapiNtohl(*(L7_int32*)GET_VALUE_PTR(pMatchTLV,4));
+              mirrorUsp.port = osapiNtohl(*(L7_int32*)GET_VALUE_PTR(pMatchTLV,8));
+              #else                   
+              mirrorUsp.unit = 0;
+              mirrorUsp.slot = L7_CPU_SLOT_NUM;
+              mirrorUsp.port = 0;
+              #endif
 
-                    if (result == L7_SUCCESS)
-                    {
-                        /* Workaround for VK2 (TG16G) */
-                        result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_PCAP, 0, 0);
+              result = hapiBroadPolicyRuleActionAdd(ruleId,
+                                                     BROAD_ACTION_MIRROR,
+                                                     mirrorUsp.unit,
+                                                     mirrorUsp.slot,
+                                                     mirrorUsp.port);
+
+               result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_PERMIT, 0, 0, 0);
+
+               if (result == L7_SUCCESS)
+               {
+                 /* Workaround for VK2 (TG16G) */
+                 result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_PCAP, 0, 0);
                     
-                        if (L7_LAG_SLOT_NUM == mirrorUsp.slot)
-                        {
-                          /* This policy now depends upon the LAG as it's destination. */
-                          /* Make sure we don't add the same LAG USP twice. */
-                          for (i = 0; i < dependentLagCount; i++)
-                          {
-                            if (dependentLag[dependentLagCount].port == mirrorUsp.port)
-                              break;
-                          }
-                          if ((i == dependentLagCount) && (dependentLagCount < L7_MAX_NUM_LAG_INTF))
-                          {
-                            dependentLag[dependentLagCount] = mirrorUsp;
-                            dependentLagCount++;
-                          }
-                        }
-                        else if (L7_CPU_SLOT_NUM == mirrorUsp.slot)
-                        {
-                            meterInfo.cir       = RATE_LIMIT_PCAP;
-                            meterInfo.cbs       = 128;
-                            meterInfo.pir       = RATE_LIMIT_PCAP;
-                            meterInfo.pbs       = 128;
-                            meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
-
-                            result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
-                        }
+                 if (L7_LAG_SLOT_NUM == mirrorUsp.slot)
+                 {
+                    /* This policy now depends upon the LAG as it's destination. */
+                    /* Make sure we don't add the same LAG USP twice. */
+                    for (i = 0; i < dependentLagCount; i++)
+                    {
+                      if (dependentLag[dependentLagCount].port == mirrorUsp.port)
+                        break;
                     }
-                }
-                break;
+                    if ((i == dependentLagCount) && (dependentLagCount < L7_MAX_NUM_LAG_INTF))
+                    {
+                      dependentLag[dependentLagCount] = mirrorUsp;
+                      dependentLagCount++;
+                    }
+                  }
+                  else if (L7_CPU_SLOT_NUM == mirrorUsp.slot)
+                  {
+                    meterInfo.cir       = RATE_LIMIT_PCAP;
+                    meterInfo.cbs       = 128;
+                    meterInfo.pir       = RATE_LIMIT_PCAP;
+                    meterInfo.pbs       = 128;
+                    meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
+
+                    result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+                  }
+                 }
+            break;
+
             /* Timed Based ACLs - Reading the correaltor and rule status information from the TLV */
             case L7_QOS_ACL_TLV_RULE_STATUS:
                  ruleStatus = osapiNtohs(*((L7_ushort16 *)GET_VALUE_PTR(pMatchTLV,0)));             
@@ -1263,7 +1267,8 @@ static L7_RC_t hapiBroadQosAclInstAdd(DAPI_USP_t               *usp,
                  {
                     status = BROAD_POLICY_RULE_STATUS_INACTIVE;
                  }
-                 else                  {
+                 else 
+                 {
                     status = BROAD_POLICY_RULE_STATUS_ACTIVE;
                  }                 
 
@@ -1302,7 +1307,7 @@ static L7_RC_t hapiBroadQosAclInstAdd(DAPI_USP_t               *usp,
             pMatchTLV = GET_NEXT_TLV(pMatchTLV);
         }
 
-        if (denyFlag)
+        if (denyFlag == 0 && captureNotDeny == 0) // Do not apply the Hard Drop in Capture 
         {
             result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
             if (L7_SUCCESS == result)
