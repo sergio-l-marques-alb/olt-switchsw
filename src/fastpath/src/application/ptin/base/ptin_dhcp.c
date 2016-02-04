@@ -2737,7 +2737,7 @@ L7_BOOL ptin_dhcp_intf_validate(L7_uint32 intIfNum)
   /* Convert interface to ptin_port */
   if (ptin_intf_intIfNum2ptintf(intIfNum,L7_NULLPTR)!=L7_SUCCESS)
   {
-    //if (ptin_debug_dhcp_snooping)
+    if (ptin_debug_dhcp_snooping)
       PT_LOG_ERR(LOG_CTX_DHCP,"Invalid intIfNum %u",intIfNum);
     return L7_FALSE;
   }
