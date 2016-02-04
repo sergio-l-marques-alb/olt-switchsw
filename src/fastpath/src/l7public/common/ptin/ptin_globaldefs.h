@@ -36,7 +36,8 @@
 #define PTIN_SYSTEM_MAX_N_LAGS          PTIN_SYSTEM_MAX_N_PORTS
 #define PTIN_SYSTEM_ETH_MTU_SIZE        9600
 #define PTIN_SYSTEM_PON_MTU_SIZE        2048
-#define PTIN_SYSTEM_N_EXTENDED_EVCS     ((1UL << 17) + 1)     /* 17 bits will be used by management */
+#define PTIN_SYSTEM_EXT_EVCS_MGMT       (1UL << 17)     /* 17 bits will be used by management */
+#define PTIN_SYSTEM_N_EXTENDED_EVCS     (PTIN_SYSTEM_EXT_EVCS_MGMT + 64)    /* 64 Extra EVCs */
 
 #define PTIN_IS_PORT_PON(p)           ((((unsigned long long)1 << p) & PTIN_SYSTEM_PON_PORTS_MASK) != 0)
 #define PTIN_IS_PORT_ETH(p)           ((((unsigned long long)1 << p) & PTIN_SYSTEM_ETH_PORTS_MASK) != 0)
@@ -144,11 +145,8 @@ extern int ptin_sys_number_of_ports;
 #define PTIN_RESERVED_VLANS           (PTIN_RESERVED_VLAN_MAX - PTIN_RESERVED_VLAN_MIN + 1)
 #define PTIN_VLAN_PCAP_EXT            2048  /* L7_DOT1Q_MAX_VLAN_ID - Reserved VLAN for packet capture. Only used on Linux interfaces (dtl0 and eth0) */
 #define PTIN_VLAN_INBAND              2047  /* L7_DOT1Q_MAX_VLAN_ID - Reserved VLAN for inBand management */
-#define PTIN_VLAN_BL2CPU              2046  /* (L7_DOT1Q_MAX_VLAN_ID - 1) */
-#define PTIN_VLAN_BL2CPU_EXT          400
 
 #define PTIN_EVC_INBAND               0 /* inBand EVC id */
-#define PTIN_EVC_BL2CPU               (PTIN_SYSTEM_N_EXTENDED_EVCS - 1)
 
 /* Global Macros */
 #define PTIN_PORT_IS_VALID(p)         (p < PTIN_SYSTEM_N_INTERF)
