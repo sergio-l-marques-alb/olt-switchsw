@@ -90,8 +90,8 @@ L7_RC_t ptin_cfg_ntw_connectivity_get(ptin_NtwConnectivity_t *ntwConn)
       {
         for (i=0; i<evcConf.n_intf; i++)
         {
-          ntwConn->intf[i].intf_id   = evcConf.intf[i].intf_id;
-          ntwConn->intf[i].intf_type = evcConf.intf[i].intf_type;
+          ntwConn->intf[i].intf_id   = evcConf.intf[i].intf.value.ptin_intf.intf_id;
+          ntwConn->intf[i].intf_type = evcConf.intf[i].intf.value.ptin_intf.intf_type;
         }
         ntwConn->mask |= PTIN_NTWCONN_MASK_INTF;
       }
@@ -130,6 +130,8 @@ L7_RC_t ptin_cfg_ntw_connectivity_set(ptin_NtwConnectivity_t *ntwConn)
   L7_uint32 ipAddr;
   L7_uchar8 macAddr[L7_MAC_ADDR_LEN];
 #endif
+
+  memset(&evcConf, 0x00, sizeof(evcConf));
 
   /* Get current config */
   rc = 0;
@@ -207,13 +209,17 @@ L7_RC_t ptin_cfg_ntw_connectivity_set(ptin_NtwConnectivity_t *ntwConn)
       evcConf.index             = PTIN_EVC_INBAND;
       evcConf.flags             = PTIN_EVC_MASK_MACLEARNING | PTIN_EVC_MASK_CPU_TRAPPING;
       evcConf.mc_flood          = PTIN_EVC_MC_FLOOD_ALL;
+      evcConf.internal_vlan     = PTIN_VLAN_INBAND;
       evcConf.n_intf            = ntwConn->n_intf;
       for (i=0; i<evcConf.n_intf; i++)
       {
-        evcConf.intf[i].intf_id   = ntwConn->intf[i].intf_id;
-        evcConf.intf[i].intf_type = ntwConn->intf[i].intf_type;
-        evcConf.intf[i].mef_type  = PTIN_EVC_INTF_ROOT;
-        evcConf.intf[i].vid       = ntwConn->mgmtVlanId;
+        evcConf.intf[i].intf.format = PTIN_INTF_FORMAT_TYPEID;
+        evcConf.intf[i].intf.value.ptin_intf.intf_id   = ntwConn->intf[i].intf_id;
+        evcConf.intf[i].intf.value.ptin_intf.intf_type = ntwConn->intf[i].intf_type;
+        evcConf.intf[i].mef_type    = PTIN_EVC_INTF_ROOT;
+        evcConf.intf[i].vid         = ntwConn->mgmtVlanId;
+        evcConf.intf[i].action_outer= PTIN_XLATE_ACTION_REPLACE;
+        evcConf.intf[i].action_inner= PTIN_XLATE_ACTION_NONE;
       }
 
       rc = ptin_evc_create(&evcConf);

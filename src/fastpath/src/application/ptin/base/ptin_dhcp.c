@@ -2737,7 +2737,7 @@ L7_BOOL ptin_dhcp_intf_validate(L7_uint32 intIfNum)
   /* Convert interface to ptin_port */
   if (ptin_intf_intIfNum2ptintf(intIfNum,L7_NULLPTR)!=L7_SUCCESS)
   {
-    if (ptin_debug_dhcp_snooping)
+    //if (ptin_debug_dhcp_snooping)
       PT_LOG_ERR(LOG_CTX_DHCP,"Invalid intIfNum %u",intIfNum);
     return L7_FALSE;
   }
@@ -2985,7 +2985,6 @@ L7_BOOL ptin_dhcp_is_intfTrusted(L7_uint32 intIfNum, L7_uint16 intVlanId)
 L7_BOOL ptin_dhcp_intfTrusted_getList(L7_uint16 intVlanId, NIM_INTF_MASK_t *intfList)
 {
   L7_uint32             i, intIfNum;
-  ptin_intf_t           ptintf;
   L7_uint               dhcp_idx;
   st_DhcpInstCfg_t      *dhcpInst;
   L7_uint32             evc_id_ext;
@@ -3042,31 +3041,22 @@ L7_BOOL ptin_dhcp_intfTrusted_getList(L7_uint16 intVlanId, NIM_INTF_MASK_t *intf
   /* Check all EVC ports for trusted ones */
   for (i = 0; i < evcConf.n_intf; i++)
   {
-    ptintf.intf_type = evcConf.intf[i].intf_type;
-    ptintf.intf_id   = evcConf.intf[i].intf_id;
+    intIfNum = evcConf.intf[i].intf.value.intIfNum;
 
     if (ptin_debug_dhcp_snooping)
-      PT_LOG_WARN(LOG_CTX_DHCP,"Processing ptin_intf %u/%u", ptintf.intf_type, ptintf.intf_id);
-
-    /* Convert interface to intIfNum */
-    if (ptin_intf_ptintf2intIfNum(&ptintf, &intIfNum) != L7_SUCCESS)
-    {
-      if (ptin_debug_dhcp_snooping)
-        PT_LOG_WARN(LOG_CTX_DHCP,"Error converting ptin_intf %u/%u to intIfNum format", ptintf.intf_type, ptintf.intf_id);
-      continue;
-    }
+      PT_LOG_WARN(LOG_CTX_DHCP,"Processing port %u", evcConf.intf[i].intf.value.ptin_port);
 
     /* Mark interface as trusted, if it is */
     if (L7_INTF_ISMASKBITSET(dhcp_intIfNum_trusted, intIfNum))
     {
       if (ptin_debug_dhcp_snooping)
-        PT_LOG_TRACE(LOG_CTX_DHCP,"ptin_intf %u/%u or intIfNum %u is trusted", ptintf.intf_type, ptintf.intf_id, intIfNum);
+        PT_LOG_TRACE(LOG_CTX_DHCP,"ptin_port %u / intIfNum %u is trusted", evcConf.intf[i].intf.value.ptin_port, intIfNum);
       L7_INTF_SETMASKBIT(*intfList, intIfNum);
     }
     else
     {
       if (ptin_debug_dhcp_snooping)
-        PT_LOG_TRACE(LOG_CTX_DHCP,"ptin_intf %u/%u or intIfNum %u is UNtrusted", ptintf.intf_type, ptintf.intf_id, intIfNum);
+        PT_LOG_TRACE(LOG_CTX_DHCP,"ptin_port %u / intIfNum %u is UNtrusted", evcConf.intf[i].intf.value.ptin_port, intIfNum);
     }
   }
 

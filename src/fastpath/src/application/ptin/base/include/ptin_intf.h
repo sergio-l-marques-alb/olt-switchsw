@@ -188,6 +188,15 @@ extern L7_RC_t ptin_slot_boardtype_set(L7_int slot_id, L7_uint16 board_id);
  * Port, LAGs and Interfaces convertion functions
  */ 
 
+/**
+ * Get all interface formats
+ * 
+ * @param intf 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_intf_any_format(ptin_intf_any_format_t *intf);
+
 #if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
 /**
  * Get current slot_id for this board
@@ -310,6 +319,26 @@ extern inline L7_RC_t ptin_intf_port2intIfNum(L7_uint32 ptin_port, L7_uint32 *in
 extern inline L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint32 *ptin_port);
 
 /**
+ * Converts ptin_port index to LAG index
+ * 
+ * @param ptin_port PTin port index
+ * @param lag_idx   LAG index
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern inline L7_RC_t ptin_intf_port2lag(L7_uint32 ptin_port, L7_uint32 *lag_idx);
+
+/**
+ * Converts LAG index to ptin_port
+ *  
+ * @param lag_idx   LAG index 
+ * @param ptin_port PTin port index 
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+inline L7_RC_t ptin_intf_lag2port(L7_uint32 lag_idx, L7_uint32 *ptin_port);
+
+/**
  * Converts ptin_port index to PTin port type and id
  * 
  * @param ptin_port PTin port index
@@ -319,16 +348,6 @@ extern inline L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint32 *pti
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 extern inline L7_RC_t ptin_intf_port2ptintf(L7_uint32 ptin_port, ptin_intf_t *ptin_intf);
-
-/**
- * Converts ptin_port index to LAG index
- * 
- * @param ptin_port PTin port index
- * @param lag_idx   LAG index
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
- */
-extern inline L7_RC_t ptin_intf_port2lag(L7_uint32 ptin_port, L7_uint32 *lag_idx);
 
 /**
  * Converts PTin port type and id to ptin_port index
@@ -351,6 +370,17 @@ extern inline L7_RC_t ptin_intf_ptintf2port(const ptin_intf_t *ptin_intf, L7_uin
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 extern inline L7_RC_t ptin_intf_typeId2port(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 *ptin_port);
+
+/**
+ * Converts ptin_port index to port type and id
+ * 
+ * @param ptin_port PTin port index
+ * @param intf_type PTin port type (out)
+ * @param intf_id   PTin port id (out)
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern inline L7_RC_t ptin_intf_port2typeId(L7_uint32 ptin_port, L7_uint8 *intf_type, L7_uint8 *intf_id);
 
 /**
  * Converts FP interface# to PTin port type and id

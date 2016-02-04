@@ -1468,6 +1468,177 @@ L7_RC_t ptin_intf_boardtype_dump(void)
  ******************************************************************************/
 
 /**
+ * Get all interface formats
+ * 
+ * @param intf 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_intf_any_format(ptin_intf_any_format_t *intf)
+{
+  L7_uint32 ptin_port, intIfNum, lag_idx;
+  L7_INTF_TYPES_t intf_type;
+  L7_RC_t rc, rc_global;
+
+  /* Validate arguments */
+  if (intf == L7_NULLPTR)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Null pointer");
+    return L7_FAILURE;
+  }
+  /* If already in ALL format, there is nothing to do */
+  if (intf->format == PTIN_INTF_FORMAT_ALL)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Format is already ALL type");
+    return L7_SUCCESS;
+  }
+
+  intIfNum  = 0;
+  ptin_port = (L7_uint32)-1;
+  rc = L7_SUCCESS;
+
+  /* Get reference ptin_port format */
+  switch (intf->format)
+  {
+  case PTIN_INTF_FORMAT_PORT:
+    ptin_port = intf->value.ptin_port;
+    break;
+
+  case PTIN_INTF_FORMAT_LAGID:
+    rc = ptin_intf_lag2port(intf->value.lag_id, &ptin_port);
+    break;
+
+  case PTIN_INTF_FORMAT_TYPEID:
+    rc = ptin_intf_typeId2port(intf->value.ptin_intf.intf_type, intf->value.ptin_intf.intf_id, &ptin_port);
+    break;
+
+  case PTIN_INTF_FORMAT_SYS_SLOTPORT:
+    rc = ptin_intf_slotPort2port(intf->value.slot_port.system_slot, intf->value.slot_port.system_port, &ptin_port);
+    break;
+
+  case PTIN_INTF_FORMAT_USP:
+    rc = nimGetIntIfNumFromUSP(&intf->value.usp, &intIfNum);
+    if (rc == L7_SUCCESS)
+    {
+      rc = ptin_intf_intIfNum2port(intIfNum, &ptin_port);
+    }
+    break; 
+
+  case PTIN_INTF_FORMAT_INTIFNUM:
+    intIfNum = intf->value.intIfNum;
+    rc = ptin_intf_intIfNum2port(intIfNum, &ptin_port);
+    break;
+
+  default:
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid format: %u", intf->format);
+    rc = L7_FAILURE;
+  }
+
+  /* Validate operation result */
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"An error have occurred for given format (%u): rc=%d", intf->format, rc);
+    return rc;
+  }
+
+  /* Validate ptin_port range */
+  if (ptin_port >= PTIN_SYSTEM_N_INTERF || (ptin_port >= ptin_sys_number_of_ports && ptin_port < PTIN_SYSTEM_N_PORTS))
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"ptin_port is out of range: %u", ptin_port);
+    return L7_FAILURE;
+  }
+
+  /* Error to be returned */
+  rc_global = L7_SUCCESS;
+
+  /* Fill structure */
+  /* PTin port */
+  intf->value.ptin_port = ptin_port;
+
+  /* LAG index format */
+  rc = ptin_intf_port2lag(ptin_port, &lag_idx);
+  if (rc == L7_SUCCESS)
+  {
+    intf->value.lag_id = lag_idx;
+  }
+  else
+  {
+    intf->value.lag_id = -1;
+  }
+
+  /* Type/ID format (not supposed to have errors) */
+  rc = ptin_intf_port2typeId(ptin_port, &intf->value.ptin_intf.intf_type, &intf->value.ptin_intf.intf_id);
+  if (rc == L7_SUCCESS)
+  {
+    /* Save port type (physical/LAG/...) */
+    intf->port_type = intf->value.ptin_intf.intf_type;
+  }
+  else
+  {
+    rc_global = rc;
+    intf->value.ptin_intf.intf_type = 0xff;
+    intf->value.ptin_intf.intf_id   = 0xff;
+  }
+
+  /* Slot/Port format */
+  rc = ptin_intf_port2SlotPort(ptin_port, &intf->value.slot_port.system_slot, &intf->value.slot_port.system_port, L7_NULLPTR);
+  if (rc != L7_SUCCESS)
+  {
+    intf->value.slot_port.system_slot = (L7_uint16)-1;
+    intf->value.slot_port.system_port = (L7_uint16)-1;
+  }
+
+  /* Get board id */
+  rc = ptin_intf_boardid_get(ptin_port, &intf->board_id);
+  if (rc != L7_SUCCESS)
+  {
+    intf->board_id = 0; /* Board not present */
+  }
+
+  /* intIfNum Format (not supposed to have errors) */
+  rc = ptin_intf_port2intIfNum(ptin_port, &intIfNum);
+  if (rc != L7_SUCCESS)
+  {
+    rc_global = rc;
+    intIfNum = 0;
+  }
+  /* Save intIfNum */
+  intf->value.intIfNum = intIfNum;
+
+  /* If intIfNum is valid... */
+  if (intIfNum > 0 && intIfNum < L7_ALL_INTERFACES)
+  {
+    /* USP format (not supposed to have errors) */
+    rc = nimGetUnitSlotPort(intIfNum, &intf->value.usp);
+    if (rc != L7_SUCCESS) 
+    {
+      rc_global = rc;
+      intf->value.usp.unit = (L7_uchar8)-1;
+      intf->value.usp.slot = (L7_uchar8)-1;
+      intf->value.usp.port = (L7_uchar8)-1;
+    }
+
+    /* IntIfNum type (not supposed to have errors) */
+    rc = nimGetIntfType(intIfNum, &intf_type);
+    if (rc == L7_SUCCESS)
+    {
+      intf->intIfNum_type = intf_type;
+    }
+    else
+    {
+      rc_global = rc;
+      intf->intIfNum_type = 0xff;
+    }
+  }
+
+  /* Structure have all values calculated */
+  intf->format = PTIN_INTF_FORMAT_ALL;
+
+  /* Return global error */
+  return rc_global;
+}
+
+/**
  * Get the intIfNum from the slot and port location in the 
  * system.
  * 
@@ -1514,12 +1685,14 @@ L7_RC_t ptin_intf_intIfNum2SlotPort(L7_uint32 intIfNum, L7_uint16 *slot, L7_uint
   /* Convert intIfNum to ptin_intf */
   if (ptin_intf_intIfNum2ptintf(intIfNum,&ptin_intf)!=L7_SUCCESS)
   {
+    PT_LOG_ERR(LOG_CTX_INTF,"I was here!");
     return L7_FAILURE;
   }
 
   /* Get slot and port */
   if (ptin_intf_ptintf2SlotPort(&ptin_intf, slot, port, board_type)!=L7_SUCCESS)
   {
+    PT_LOG_ERR(LOG_CTX_INTF,"I was here!");
     return L7_FAILURE;
   }
 
@@ -1651,7 +1824,7 @@ L7_RC_t ptin_intf_port2SlotPort(L7_uint32 ptin_port, L7_uint16 *slot_ret, L7_uin
   /* Validate arguments */
   if (ptin_port >= ptin_sys_number_of_ports)
   {
-    PT_LOG_ERR(LOG_CTX_INTF,"Invalid port id (%u)", ptin_port);
+    //PT_LOG_ERR(LOG_CTX_INTF,"Invalid port id (%u)", ptin_port);
     return L7_FAILURE;
   }
 
@@ -1907,44 +2080,6 @@ inline L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint32 *ptin_port)
 }
 
 /**
- * Converts ptin_port index to PTin port type and id
- * 
- * @param ptin_port PTin port index
- * @param port_type PTin port type (0 is physical and 1 is LAG) 
- * @param port_id   PTin port id
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
- */
-inline L7_RC_t ptin_intf_port2ptintf(L7_uint32 ptin_port, ptin_intf_t *ptin_intf)
-{
-  ptin_intf_t p_intf;
-
-  /* Validate ptin_port */
-  if (ptin_port >= PTIN_SYSTEM_N_INTERF ||
-      (ptin_port >= ptin_sys_number_of_ports && ptin_port < PTIN_SYSTEM_N_PORTS))
-  {
-    PT_LOG_ERR(LOG_CTX_INTF, "PTin port is out of range: %u", ptin_port);
-    return L7_FAILURE;
-  }
-
-  /* Convert ptin_port to type+id format */
-  if (ptin_port < PTIN_SYSTEM_N_PORTS)
-  {
-    p_intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
-    p_intf.intf_id   = ptin_port;
-  }
-  else
-  {
-    p_intf.intf_type = PTIN_EVC_INTF_LOGICAL;
-    p_intf.intf_id   = ptin_port - PTIN_SYSTEM_N_PORTS;
-  }
-
-  if (ptin_intf != L7_NULLPTR)  *ptin_intf = p_intf;
-
-  return L7_SUCCESS;
-}
-
-/**
  * Converts ptin_port index to LAG index
  * 
  * @param ptin_port PTin port index
@@ -1987,6 +2122,68 @@ inline L7_RC_t ptin_intf_port2lag(L7_uint32 ptin_port, L7_uint32 *lag_idx)
   if (lag_idx != L7_NULLPTR)  *lag_idx = p_lag;
 
   return L7_SUCCESS;
+}
+
+/**
+ * Converts LAG index to ptin_port
+ *  
+ * @param lag_idx   LAG index 
+ * @param ptin_port PTin port index 
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+inline L7_RC_t ptin_intf_lag2port(L7_uint32 lag_idx, L7_uint32 *ptin_port)
+{
+  L7_uint32 port;
+
+  /* Validate LAG id */
+  if (lag_idx >= PTIN_SYSTEM_N_LAGS)
+  {
+    return L7_FAILURE;
+  }
+
+  /* Check if LAG is not created */
+  if (lagConf_data[lag_idx].lagId == MAP_EMTPY_ENTRY)
+  {
+    return L7_FAILURE;
+  }
+
+  /* Check if this LAG exists */
+  port = lag_idx + PTIN_SYSTEM_N_PORTS;
+
+  /* Validate ptin_port */
+  if (port >= PTIN_SYSTEM_N_INTERF ||
+      (port >= ptin_sys_number_of_ports && port < PTIN_SYSTEM_N_PORTS))
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "PTin port is out of range: %u", port);
+    return L7_FAILURE;
+  }
+
+  /* Retrieve lag index */
+  if (ptin_port != L7_NULLPTR)  *ptin_port = port;
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Converts ptin_port index to PTin port type and id
+ * 
+ * @param ptin_port PTin port index
+ * @param port_type PTin port type (0 is physical and 1 is LAG) 
+ * @param port_id   PTin port id
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+inline L7_RC_t ptin_intf_port2ptintf(L7_uint32 ptin_port, ptin_intf_t *ptin_intf)
+{
+  /* Validate arguments */
+  if (ptin_intf == L7_NULLPTR)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"ptin_intf is a null pointer");
+    return L7_FAILURE;
+  }
+
+  return ptin_intf_port2typeId(ptin_port, &ptin_intf->intf_type, &ptin_intf->intf_id);
 }
 
 /**
@@ -2057,6 +2254,45 @@ inline L7_RC_t ptin_intf_typeId2port(L7_uint8 intf_type, L7_uint8 intf_id, L7_ui
   }
 
   if (ptin_port != L7_NULLPTR)  *ptin_port = p_port;
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Converts ptin_port index to port type and id
+ * 
+ * @param ptin_port PTin port index
+ * @param intf_type PTin port type (out)
+ * @param intf_id   PTin port id (out)
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+inline L7_RC_t ptin_intf_port2typeId(L7_uint32 ptin_port, L7_uint8 *intf_type, L7_uint8 *intf_id)
+{
+  ptin_intf_t p_intf;
+
+  /* Validate ptin_port */
+  if (ptin_port >= PTIN_SYSTEM_N_INTERF ||
+      (ptin_port >= ptin_sys_number_of_ports && ptin_port < PTIN_SYSTEM_N_PORTS))
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "PTin port is out of range: %u", ptin_port);
+    return L7_FAILURE;
+  }
+
+  /* Convert ptin_port to type+id format */
+  if (ptin_port < PTIN_SYSTEM_N_PORTS)
+  {
+    p_intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
+    p_intf.intf_id   = ptin_port;
+  }
+  else
+  {
+    p_intf.intf_type = PTIN_EVC_INTF_LOGICAL;
+    p_intf.intf_id   = ptin_port - PTIN_SYSTEM_N_PORTS;
+  }
+
+  if (intf_type != L7_NULLPTR)  *intf_type = p_intf.intf_type;
+  if (intf_id   != L7_NULLPTR)  *intf_id   = p_intf.intf_id;
 
   return L7_SUCCESS;
 }

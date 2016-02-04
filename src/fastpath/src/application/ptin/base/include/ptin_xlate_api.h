@@ -2,6 +2,7 @@
 #define _PTIN_XLATE_API__H
 
 #include "datatypes.h"
+#include "ptin_structs.h"
 
 #define PTIN_XLATE_NOT_DEFINED  0
 
@@ -140,10 +141,8 @@ extern L7_RC_t ptin_xlate_egress_portgroup_get_originalVlan( L7_uint32 portgroup
 
 /**
  * Add ingress translation entry
- * 
- * @param intIfNum : interface reference
- * @param outerVlanId : lookup outer vlan 
- * @param innerVlanId : lookup inner vlan (0 to not be used)
+ *  
+ * @param intf_vlan: intf/VLAN input 
  * @param newOuterVlanId : new vlan id 
  * @param newInnerVlanId : new inner vlan id 
  * @param newOuterPrio : new outer prio (-1 to not be used)
@@ -151,16 +150,14 @@ extern L7_RC_t ptin_xlate_egress_portgroup_get_originalVlan( L7_uint32 portgroup
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-extern L7_RC_t ptin_xlate_ingress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uint16 innerVlanId,
+extern L7_RC_t ptin_xlate_ingress_add( ptin_HwEthMef10Intf_t *intf_vlan,
                                        L7_uint16 newOuterVlanId, L7_uint16 newInnerVlanId,
                                        L7_int newOuterPrio, L7_int newInnerPrio  );
 
 /**
  * Add egress translation entry
- * 
- * @param intIfNum : interface reference
- * @param outerVlanId : lookup outer vlan
- * @param innerVlanId : lookup inner vlan (0 to not be used)
+ *  
+ * @param intf_vlan: intf/VLAN input  
  * @param newOuterVlanId : new vlan id 
  * @param newInnerVlanId : new inner vlan id 
  * @param newOuterPrio : new outer prio (-1 to not be used)
@@ -168,7 +165,7 @@ extern L7_RC_t ptin_xlate_ingress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId
  *  
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-extern L7_RC_t ptin_xlate_egress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uint16 innerVlanId,
+extern L7_RC_t ptin_xlate_egress_add( ptin_HwEthMef10Intf_t *intf_vlan,
                                       L7_uint16 newOuterVlanId, L7_uint16 newInnerVlanId,
                                       L7_int newOuterPrio, L7_int newInnerPrio );
 

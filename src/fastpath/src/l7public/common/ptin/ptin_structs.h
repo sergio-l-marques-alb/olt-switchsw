@@ -212,6 +212,12 @@ typedef struct {
   L7_uint8  intf_id;                            /* Interface Id# (phy ports / LAGs) */
 } ptin_intf_t;
 
+/* PTin Interface */
+typedef struct {
+  L7_uint16  system_slot;                         /* Physical slot of the system */
+  L7_uint16  system_port;                         /* Physical port of slot */
+} ptin_slot_port_t;
+
 /* Slo modes */
 typedef struct
 {
@@ -611,12 +617,45 @@ typedef struct
 #define PTIN_EVC_INTF_LEAF          1
 #define PTIN_EVC_INTF_NOTUSED       255
 
-typedef struct {
-  L7_uint8  intf_id;      // Interface Id# (phy ports / LAGs)
-  L7_uint8  intf_type;    // Interface type: { 0-Physical, 1-Logical (LAG) }
+/* Interface format */
+typedef enum {
+  PTIN_INTF_FORMAT_PORT=0,
+  PTIN_INTF_FORMAT_LAGID,
+  PTIN_INTF_FORMAT_TYPEID,
+  PTIN_INTF_FORMAT_SYS_SLOTPORT,
+  PTIN_INTF_FORMAT_USP,
+  PTIN_INTF_FORMAT_INTIFNUM,
+  PTIN_INTF_FORMAT_ALL,
+} enum_ptin_intf_format_t;
+
+/* Structure to contain any format */
+typedef struct
+{
+  enum_ptin_intf_format_t format;
+
+  struct
+  {
+    L7_uint32         ptin_port;
+    L7_int32          lag_id;
+    ptin_intf_t       ptin_intf;
+    ptin_slot_port_t  slot_port;
+    nimUSP_t          usp;
+    L7_uint32         intIfNum;
+  } value;
+
+  L7_uint8  port_type;
+  L7_uint8  intIfNum_type;
+  L7_uint16 board_id;
+} ptin_intf_any_format_t;
+
+typedef struct
+{
+  ptin_intf_any_format_t intf;  // Interface Id# (phy ports / LAGs)
   L7_uint8  mef_type;     // { 0 - root, 1 - leaf }
   L7_uint16 vid;          // Outer VLAN id [1..4094]
   L7_uint16 vid_inner;    // Inner vlan associated to this interface
+  ptin_vlanXlate_action_enum action_outer; // Action associated to the outer VLAN
+  ptin_vlanXlate_action_enum action_inner; // Action associated to the inner VLAN
 } ptin_HwEthMef10Intf_t;
 
 #define PTIN_EVC_OPTIONS_MASK_FLAGS   0x0001
@@ -705,6 +744,8 @@ typedef struct {
    * physical or LAG interfaces because if one interface is being used as physical
    * port, it cannot be used in a LAG, and vice-versa. So it means that we will
    * have at most the max(phy,lag) interfaces combination in an EVC. */
+
+  L7_uint16 internal_vlan;  // Internal VLAN used within this EVC (if not provided, a new one will be selected from a pool)
 
 } ptin_HwEthMef10Evc_t;
 

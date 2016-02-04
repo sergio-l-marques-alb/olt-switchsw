@@ -5040,8 +5040,8 @@ L7_RC_t ptin_msg_EVC_get(msg_HwEthMef10Evc_t *msgEvcConf)
 
   for (i=0; i < ptinEvcConf.n_intf; i++)
   {
-    msgEvcConf->intf[i].intf_id   = ptinEvcConf.intf[i].intf_id;
-    msgEvcConf->intf[i].intf_type = ptinEvcConf.intf[i].intf_type;
+    msgEvcConf->intf[i].intf_id   = ptinEvcConf.intf[i].intf.value.ptin_intf.intf_id;
+    msgEvcConf->intf[i].intf_type = ptinEvcConf.intf[i].intf.value.ptin_intf.intf_type;
     msgEvcConf->intf[i].mef_type  = ptinEvcConf.intf[i].mef_type;
     msgEvcConf->intf[i].vid       = ptinEvcConf.intf[i].vid;
 
@@ -5068,7 +5068,7 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_uint16 nni_vlan, L7_
                                        msg_CoS_classification_t *qos)
 {
   L7_uint16 i;
-  L7_uint32 port, number_of_ports;
+  L7_uint32 number_of_ports;
   L7_uint16 int_vlan = 0;
   ptin_HwEthMef10Evc_t  evcConf;
   ptin_qos_vlan_t       qos_apply;
@@ -5105,16 +5105,8 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_uint16 nni_vlan, L7_
       if ((!downlink && evcConf.intf[i].mef_type == PTIN_EVC_INTF_ROOT) ||   /* Uplink interface */
           ( downlink && evcConf.intf[i].mef_type == PTIN_EVC_INTF_LEAF))     /* Downlink interface */
       {
-        if (ptin_intf_typeId2port(evcConf.intf[i].intf_type, evcConf.intf[i].intf_id, &port) == L7_SUCCESS)
-        {
-          qos_apply.ptin_port[number_of_ports++] = port;
-          PT_LOG_DEBUG(LOG_CTX_MSG, "Port %u added", port);
-        }
-        else
-        {
-          PT_LOG_ERR(LOG_CTX_MSG, "Intf %u/%u does not have ptin_port format",
-                  evcConf.intf[i].intf_type, evcConf.intf[i].intf_id);
-        }
+        qos_apply.ptin_port[number_of_ports++] = evcConf.intf[i].intf.value.ptin_port;
+        PT_LOG_DEBUG(LOG_CTX_MSG, "Port %u added", evcConf.intf[i].intf.value.ptin_port);
       }
     }
     for (i = 0; i < number_of_ports; i++)
@@ -5139,14 +5131,14 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_uint16 nni_vlan, L7_
     if (!downlink)
     {
     #if (PTIN_BOARD == PTIN_BOARD_TG16G)
-      for (port=PTIN_SYSTEM_N_PONS; port<PTIN_SYSTEM_N_PORTS; port++)
+      for (i=PTIN_SYSTEM_N_PONS; i<PTIN_SYSTEM_N_PORTS; i++)
       {
-        qos_apply.ptin_port[number_of_ports++] = port;
+        qos_apply.ptin_port[number_of_ports++] = i;
       }
     #elif (PTIN_BOARD == PTIN_BOARD_TA48GE)
-      for (port=PTIN_SYSTEM_N_ETH; port<PTIN_SYSTEM_N_PORTS; port++)
+      for (i=PTIN_SYSTEM_N_ETH; i<PTIN_SYSTEM_N_PORTS; i++)
       {
-        qos_apply.ptin_port[number_of_ports++] = port;
+        qos_apply.ptin_port[number_of_ports++] = i;
       }
     #else
       PT_LOG_ERR(LOG_CTX_MSG, "Cannot use NNI VLAN for this board!");
@@ -5300,6 +5292,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
   }
 
   /* Copy data to ptin struct */
+  memset(&ptinEvcConf, 0x00, sizeof(ptinEvcConf));
   ptinEvcConf.index    = msgEvcConf->evc.id;
   ptinEvcConf.flags    = msgEvcConf->evc.flags;
   ptinEvcConf.type     = msgEvcConf->evc.type;
@@ -5334,15 +5327,18 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
     ptinEvcConf.flags &= ~PTIN_EVC_MASK_MC_IPTV;     
     #endif
 
-    ptinEvcConf.intf[i].intf_id   = msgEvcConf->evc.intf[i].intf_id;
-    ptinEvcConf.intf[i].intf_type = msgEvcConf->evc.intf[i].intf_type;
-    ptinEvcConf.intf[i].mef_type  = msgEvcConf->evc.intf[i].mef_type /*PTIN_EVC_INTF_ROOT*/;
-    ptinEvcConf.intf[i].vid       = msgEvcConf->evc.intf[i].vid;
-    ptinEvcConf.intf[i].vid_inner = msgEvcConf->evc.intf[i].inner_vid;
+    ptinEvcConf.intf[i].intf.format = PTIN_INTF_FORMAT_TYPEID;
+    ptinEvcConf.intf[i].intf.value.ptin_intf.intf_type = msgEvcConf->evc.intf[i].intf_type;
+    ptinEvcConf.intf[i].intf.value.ptin_intf.intf_id   = msgEvcConf->evc.intf[i].intf_id;
+    ptinEvcConf.intf[i].mef_type    = msgEvcConf->evc.intf[i].mef_type /*PTIN_EVC_INTF_ROOT*/;
+    ptinEvcConf.intf[i].vid         = msgEvcConf->evc.intf[i].vid;
+    ptinEvcConf.intf[i].vid_inner   = msgEvcConf->evc.intf[i].inner_vid;
+    ptinEvcConf.intf[i].action_outer= PTIN_XLATE_ACTION_REPLACE;
+    ptinEvcConf.intf[i].action_inner= PTIN_XLATE_ACTION_NONE;
 
-    PT_LOG_DEBUG(LOG_CTX_MSG, "   %s# %02u %s VID=%04u/%-04u",
-             ptinEvcConf.intf[i].intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
-             ptinEvcConf.intf[i].intf_id,
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   %s %02u %s VID=%04u/%-04u",
+             ptinEvcConf.intf[i].intf.value.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
+             ptinEvcConf.intf[i].intf.value.ptin_intf.intf_id,
              ptinEvcConf.intf[i].mef_type == PTIN_EVC_INTF_ROOT ? "Root":"Leaf",
              ptinEvcConf.intf[i].vid,ptinEvcConf.intf[i].vid_inner);
   }
@@ -5599,15 +5595,16 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
     }
 
     /* Copy data to ptin struct */
-    ptinEvcPort.intf_type = msgEvcPort[i].intf.intf_type;
-    ptinEvcPort.intf_id   = msgEvcPort[i].intf.intf_id;
+    ptinEvcPort.intf.format = PTIN_INTF_FORMAT_TYPEID;
+    ptinEvcPort.intf.value.ptin_intf.intf_type = msgEvcPort[i].intf.intf_type;
+    ptinEvcPort.intf.value.ptin_intf.intf_id   = msgEvcPort[i].intf.intf_id;
     ptinEvcPort.mef_type  = msgEvcPort[i].intf.mef_type;
     ptinEvcPort.vid       = msgEvcPort[i].intf.vid;
     ptinEvcPort.vid_inner = msgEvcPort[i].intf.inner_vid;
 
     PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u - oper %s",     msgEvcPort[i].evcId,
               ((oper==PTIN_MSG_OPER_ADD) ? "ADD" : ((oper==PTIN_MSG_OPER_REMOVE) ? "REMOVE" : "UNKNOWN")));
-    PT_LOG_DEBUG(LOG_CTX_MSG, " .Intf      = %u/%u",   ptinEvcPort.intf_type, ptinEvcPort.intf_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .Intf      = %u/%u",   ptinEvcPort.intf.value.ptin_intf.intf_type, ptinEvcPort.intf.value.ptin_intf.intf_id);
     PT_LOG_DEBUG(LOG_CTX_MSG, " .IntfType  = %s",     (ptinEvcPort.mef_type == PTIN_EVC_INTF_LEAF) ? "LEAF" : "ROOT");
     PT_LOG_DEBUG(LOG_CTX_MSG, " .OuterVlan = %u",      ptinEvcPort.vid);
     PT_LOG_DEBUG(LOG_CTX_MSG, " .InnerVlan = %u",      ptinEvcPort.vid_inner);
@@ -5621,7 +5618,8 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
         rc_global = rc;
         if (IS_FAILURE_ERROR(rc))
         {
-          PT_LOG_ERR(LOG_CTX_MSG, "Error adding port %u/%u to EVC# %u (rc:%u)", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId, rc);
+          PT_LOG_ERR(LOG_CTX_MSG, "Error adding port %u/%u to EVC# %u (rc:%u)",
+                     ptinEvcPort.intf.value.ptin_intf.intf_type, ptinEvcPort.intf.value.ptin_intf.intf_id, msgEvcPort[i].evcId, rc);
           rc_global_failure = rc;
         }
         else
@@ -5631,20 +5629,23 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
       }
       else
       {
-        PT_LOG_TRACE(LOG_CTX_MSG, "Added port %u/%u to EVC# %u", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId);
+        PT_LOG_TRACE(LOG_CTX_MSG, "Added port %u/%u to EVC# %u",
+                     ptinEvcPort.intf.value.ptin_intf.intf_type, ptinEvcPort.intf.value.ptin_intf.intf_id, msgEvcPort[i].evcId);
       }
       break;
     case PTIN_MSG_OPER_REMOVE:
       if ((rc=ptin_evc_port_remove(msgEvcPort[i].evcId, &ptinEvcPort)) != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_MSG, "Error removing port %u/%u to EVC# %u", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId);
+        PT_LOG_ERR(LOG_CTX_MSG, "Error removing port %u/%u to EVC# %u",
+                   ptinEvcPort.intf.value.ptin_intf.intf_type, ptinEvcPort.intf.value.ptin_intf.intf_id, msgEvcPort[i].evcId);
         rc_global = rc;
         if (IS_FAILURE_ERROR(rc))
           rc_global_failure = rc;
       }
       else
       {
-        PT_LOG_TRACE(LOG_CTX_MSG, "Removed port %u/%u from EVC# %u", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId);
+        PT_LOG_TRACE(LOG_CTX_MSG, "Removed port %u/%u from EVC# %u",
+                     ptinEvcPort.intf.value.ptin_intf.intf_type, ptinEvcPort.intf.value.ptin_intf.intf_id, msgEvcPort[i].evcId);
       }
       break;
     default:
@@ -5834,14 +5835,16 @@ L7_RC_t ptin_msg_EVCBridge_add(msg_HwEthEvcBridge_t *msgEvcBridge)
   /* Copy data */
   ptinEvcBridge.index          = msgEvcBridge->evcId;
   ptinEvcBridge.inn_vlan       = msgEvcBridge->inn_vlan;
-  ptinEvcBridge.intf.intf_id   = msgEvcBridge->intf.intf_id;
-  ptinEvcBridge.intf.intf_type = msgEvcBridge->intf.intf_type;
+  ptinEvcBridge.intf.intf.format = PTIN_INTF_FORMAT_TYPEID;
+  ptinEvcBridge.intf.intf.value.ptin_intf.intf_id   = msgEvcBridge->intf.intf_id;
+  ptinEvcBridge.intf.intf.value.ptin_intf.intf_type = msgEvcBridge->intf.intf_type;
   ptinEvcBridge.intf.mef_type  = msgEvcBridge->intf.mef_type;   /* must be Leaf */
   ptinEvcBridge.intf.vid       = msgEvcBridge->intf.vid;
 
   PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u Bridge",         ptinEvcBridge.index);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u",                ptinEvcBridge.intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
-            ptinEvcBridge.intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u",
+               ptinEvcBridge.intf.intf.value.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
+               ptinEvcBridge.intf.intf.value.ptin_intf.intf_id);
   PT_LOG_DEBUG(LOG_CTX_MSG, " .Inner VID       = %u", ptinEvcBridge.inn_vlan);
   PT_LOG_DEBUG(LOG_CTX_MSG, " .Outer VID [NEW] = %u", ptinEvcBridge.intf.vid);
 
@@ -5869,14 +5872,16 @@ L7_RC_t ptin_msg_EVCBridge_remove(msg_HwEthEvcBridge_t *msgEvcBridge)
   /* Copy data */
   ptinEvcBridge.index          = msgEvcBridge->evcId;
   ptinEvcBridge.inn_vlan       = msgEvcBridge->inn_vlan;
-  ptinEvcBridge.intf.intf_id   = msgEvcBridge->intf.intf_id;
-  ptinEvcBridge.intf.intf_type = msgEvcBridge->intf.intf_type;
+  ptinEvcBridge.intf.intf.format = PTIN_INTF_FORMAT_TYPEID;
+  ptinEvcBridge.intf.intf.value.ptin_intf.intf_id   = msgEvcBridge->intf.intf_id;
+  ptinEvcBridge.intf.intf.value.ptin_intf.intf_type = msgEvcBridge->intf.intf_type;
   ptinEvcBridge.intf.mef_type  = msgEvcBridge->intf.mef_type;   /* must be Leaf */
   ptinEvcBridge.intf.vid       = msgEvcBridge->intf.vid;        /* not used on remove oper. */
 
   PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u Bridge",         ptinEvcBridge.index);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u",                ptinEvcBridge.intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
-            ptinEvcBridge.intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u",
+               ptinEvcBridge.intf.intf.value.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
+               ptinEvcBridge.intf.intf.value.ptin_intf.intf_id);
   PT_LOG_DEBUG(LOG_CTX_MSG, " .Inner VID       = %u", ptinEvcBridge.inn_vlan);
   PT_LOG_DEBUG(LOG_CTX_MSG, " .Outer VID [NEW] = %u", ptinEvcBridge.intf.vid);
 
