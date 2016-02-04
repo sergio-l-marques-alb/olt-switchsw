@@ -74,6 +74,8 @@ extern void LM75MonitorTask(void);
 L7_BOOL globValgrindRunning = L7_FALSE;
 #endif
 
+/* PTin added: kernel information */
+struct utsname kernel_uname;
 
 /*
  *These are usefull #defines used in tuning the
@@ -983,6 +985,17 @@ int main(int argc, char *argv[], char *envp[])
 
     perror("chdir " CONFIG_PATH);
 
+  }
+
+  /* Get kernel information */
+  if (uname(&kernel_uname) == 0)
+  {
+    PT_LOG_NOTICE(LOG_CTX_HAPI,"uname info: %s %s %s %s %s",
+                  kernel_uname.sysname, kernel_uname.nodename, kernel_uname.release, kernel_uname.version, kernel_uname.machine);
+  }
+  else
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI,"Error reading kernel information");
   }
 
   if ((argc <= 1) || (strcmp(argv[1], "boot") != 0)) {

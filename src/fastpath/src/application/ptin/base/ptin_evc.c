@@ -664,48 +664,19 @@ L7_RC_t ptin_evc_startup(void)
     return rc;
   }
 
-  /* Create CPU-FPGA circuit */
-  memset(&evcConf, 0x00, sizeof(evcConf));
-  evcConf.index         = PTIN_EVC_FPGA2CPU;
-  evcConf.flags         = PTIN_EVC_MASK_MACLEARNING;
-  evcConf.mc_flood      = PTIN_EVC_MC_FLOOD_ALL;
-  evcConf.internal_vlan = PTIN_VLAN_FPGA2CPU;
-  evcConf.n_intf        = 2;
-  /* Root port */
-  evcConf.intf[0].intf.format = PTIN_INTF_FORMAT_PORT;
-  evcConf.intf[0].intf.value.ptin_port = PTIN_PORT_CPU;
-  evcConf.intf[0].mef_type    = PTIN_EVC_INTF_ROOT;
-  evcConf.intf[0].vid         = 0;
-  evcConf.intf[0].action_outer= PTIN_XLATE_ACTION_NONE;
-  evcConf.intf[0].action_inner= PTIN_XLATE_ACTION_NONE;
-  /* Leaf ports */
-  evcConf.intf[1].intf.format = PTIN_INTF_FORMAT_PORT;
-  evcConf.intf[1].intf.value.ptin_port = PTIN_PORT_FPGA;
-  evcConf.intf[1].mef_type    = PTIN_EVC_INTF_LEAF;
-  evcConf.intf[1].vid         = 0;
-  evcConf.intf[1].action_outer= PTIN_XLATE_ACTION_NONE;
-  evcConf.intf[1].action_inner= PTIN_XLATE_ACTION_NONE;
-
-  /* Creates EVC for Broadlights management */
-  rc = ptin_evc_create(&evcConf);
-  if (rc != L7_SUCCESS)
+  /* Only configure special EVCs, for CPU-FPGA-Ports connectivity, if OLT1T0-AC equipment */
+  if (KERNEL_NODE_IS("OLT1T0-AC"))
   {
-    PT_LOG_ERR(LOG_CTX_API, "Error creating EVC# %u connecting CPU-FPGA", PTIN_EVC_FPGA2CPU);
-    return rc;
-  }
-
-  /* Create Port-FPGA circuits */
-  for (i = 0; i < PTIN_SYSTEM_N_UPLINK_INTERF; i++)
-  {
-    memset(&evcConf, 0x00, sizeof(evcConf)); 
-    evcConf.index         = PTIN_EVC_FPGA2PORTS_MIN + i;
+    /* Create CPU-FPGA circuit */
+    memset(&evcConf, 0x00, sizeof(evcConf));
+    evcConf.index         = PTIN_EVC_FPGA2CPU;
     evcConf.flags         = PTIN_EVC_MASK_MACLEARNING;
     evcConf.mc_flood      = PTIN_EVC_MC_FLOOD_ALL;
-    evcConf.internal_vlan = PTIN_VLAN_FPGA2PORT_MIN + i;
+    evcConf.internal_vlan = PTIN_VLAN_FPGA2CPU;
     evcConf.n_intf        = 2;
     /* Root port */
     evcConf.intf[0].intf.format = PTIN_INTF_FORMAT_PORT;
-    evcConf.intf[0].intf.value.ptin_port = i;
+    evcConf.intf[0].intf.value.ptin_port = PTIN_PORT_CPU;
     evcConf.intf[0].mef_type    = PTIN_EVC_INTF_ROOT;
     evcConf.intf[0].vid         = 0;
     evcConf.intf[0].action_outer= PTIN_XLATE_ACTION_NONE;
@@ -722,9 +693,47 @@ L7_RC_t ptin_evc_startup(void)
     rc = ptin_evc_create(&evcConf);
     if (rc != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_API, "Error creating EVC# %u for connecting Port %u to FPGA", PTIN_EVC_FPGA2CPU, i);
+      PT_LOG_ERR(LOG_CTX_API, "Error creating EVC# %u connecting CPU-FPGA", PTIN_EVC_FPGA2CPU);
       return rc;
     }
+
+    /* Create Port-FPGA circuits */
+    for (i = 0; i < PTIN_SYSTEM_N_UPLINK_INTERF; i++)
+    {
+      memset(&evcConf, 0x00, sizeof(evcConf)); 
+      evcConf.index         = PTIN_EVC_FPGA2PORTS_MIN + i;
+      evcConf.flags         = PTIN_EVC_MASK_MACLEARNING;
+      evcConf.mc_flood      = PTIN_EVC_MC_FLOOD_ALL;
+      evcConf.internal_vlan = PTIN_VLAN_FPGA2PORT_MIN + i;
+      evcConf.n_intf        = 2;
+      /* Root port */
+      evcConf.intf[0].intf.format = PTIN_INTF_FORMAT_PORT;
+      evcConf.intf[0].intf.value.ptin_port = i;
+      evcConf.intf[0].mef_type    = PTIN_EVC_INTF_ROOT;
+      evcConf.intf[0].vid         = 0;
+      evcConf.intf[0].action_outer= PTIN_XLATE_ACTION_NONE;
+      evcConf.intf[0].action_inner= PTIN_XLATE_ACTION_NONE;
+      /* Leaf ports */
+      evcConf.intf[1].intf.format = PTIN_INTF_FORMAT_PORT;
+      evcConf.intf[1].intf.value.ptin_port = PTIN_PORT_FPGA;
+      evcConf.intf[1].mef_type    = PTIN_EVC_INTF_LEAF;
+      evcConf.intf[1].vid         = 0;
+      evcConf.intf[1].action_outer= PTIN_XLATE_ACTION_NONE;
+      evcConf.intf[1].action_inner= PTIN_XLATE_ACTION_NONE;
+
+      /* Creates EVC for Broadlights management */
+      rc = ptin_evc_create(&evcConf);
+      if (rc != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_API, "Error creating EVC# %u for connecting Port %u to FPGA", PTIN_EVC_FPGA2CPU, i);
+        return rc;
+      }
+    }
+    PT_LOG_INFO(LOG_CTX_API, "Standard EVCs configured for OLT1T0-AC equipment");
+  }
+  else
+  {
+    PT_LOG_INFO(LOG_CTX_API, "Standard EVCs configured for OLT1T0 equipment");
   }
   #endif
 

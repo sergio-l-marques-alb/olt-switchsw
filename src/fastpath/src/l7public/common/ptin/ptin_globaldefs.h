@@ -2,6 +2,7 @@
 #define _PTIN_GLOBALDEFS_H
 
 #include "l7_platformspecs.h"
+#include <sys/utsname.h>
 
 #define LOG_OUTPUT_FILE_DEFAULT   "/var/log/switchdrvr.log"
 #define LOG_OUTPUT_FILE_DEFAULT2  "/var/log/switchdrvr_sdk.log"
@@ -57,6 +58,11 @@
 #define PTIN_PCAP_BRIDGE_SCRIPT       "/bin/sh /usr/local/ptin/scripts/startPcapBridge.sh"  /* Applicable to CXP640G and Line Cards */
 
 #define PTIN_SYSTEM_GROUP_VLANS  1
+
+/* Kernel information */
+extern struct utsname kernel_uname;
+
+#define KERNEL_NODE_IS(str)   (strcmp((str), kernel_uname.nodename) == 0)
 
 /* Number of physical interfaces */
 extern int ptin_sys_number_of_ports;
