@@ -9,6 +9,7 @@
 #include "ptin_hapi_fp_counters.h"
 #include "ptin_hapi_fp_utils.h"
 #include "ptin_hapi_qos.h"
+#include "ptin_ptp_fpga.h"
 #include "ptin_structs.h"
 #include "ptin_globaldefs.h"
 #include "broad_common.h"
@@ -44,6 +45,7 @@ L7_RC_t broad_ptin_qos_remark(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_
 L7_RC_t broad_ptin_oam_sendlmm(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_oam_check_lm_counters(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_time_interface(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
+L7_RC_t broad_ptin_ptp_fpga_entry(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 
 L7_RC_t broadPtin_oam_tx( int unit, int flags, bcm_gport_t gport_dst, bcm_mac_t *mac_dst, bcm_mac_t *mac_src, bcm_oam_endpoint_info_t *endpoint_info);
 /* List of callbacks */
@@ -57,7 +59,8 @@ broad_ptin_generic_f ptin_dtl_callbacks[PTIN_DTL_MSG_MAX] = {
   broad_ptin_qos_remark,
   broad_ptin_oam_sendlmm,
   broad_ptin_oam_check_lm_counters,
-  broad_ptin_time_interface
+  broad_ptin_time_interface,
+  broad_ptin_ptp_fpga_entry
 };
 
 /**
@@ -2936,6 +2939,40 @@ L7_RC_t broad_ptin_time_interface(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation,
     if (BCM_E_NONE!=time_interface_enable(usp, data, dapi_g)) return L7_FAILURE;
     return L7_SUCCESS;
 }//broad_ptin_time_interface
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+L7_RC_t broad_ptin_ptp_fpga_entry(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g) {
+ptin_dapi_port_t dapiPort;
+
+    dapiPort.usp = usp;
+    dapiPort.dapi_g = dapi_g;
+
+    switch (operation) {
+    case DAPI_CMD_SET:  return ptin_hapi_ptp_entry_add(&dapiPort, data);
+    case DAPI_CMD_CLEAR:return ptin_hapi_ptp_entry_del(&dapiPort, data);
+    default: break;
+    }
+
+    return L7_FAILURE;
+}//broad_ptin_ptp_fpga_entry
 
 
 

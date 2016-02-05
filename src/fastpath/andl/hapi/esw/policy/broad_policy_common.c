@@ -373,6 +373,7 @@ L7_uchar8 *hapiBroadPolicyFieldMaskPtr(BROAD_FIELD_ENTRY_t *fieldInfo, BROAD_POL
     ptr = fieldInfo->u.l2Ipv4.fieldMacSa.mask;
     break;
   case BROAD_FIELD_ETHTYPE:
+    ptr = fieldInfo->fieldEthtype.mask; // PTin added
     break;
   case BROAD_FIELD_OVID:
     ptr = fieldInfo->fieldOvid.mask;

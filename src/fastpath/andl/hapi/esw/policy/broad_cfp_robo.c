@@ -1655,7 +1655,8 @@ static int _policy_group_add_std_field(int                   unit,
         break;
     case BROAD_FIELD_ETHTYPE:
         /* ETHTYPE is a special case as it can be used to specify IPv4/6 or OTHER. */
-        rv = bcm_field_qualify_EtherType(unit, eid, *((uint16*)value), 0xFFFF);
+        rv = bcm_field_qualify_EtherType(unit, eid, *((uint16*)value), *((bcm_ethertype_t*)mask)); //PTin modified
+        //rv = bcm_field_qualify_EtherType(unit, eid, *((uint16*)value), 0xFFFF);
         /* ETHTYPE must not be part of the qset, try IpType */
         if(BCM_E_NOT_FOUND==rv)
         {

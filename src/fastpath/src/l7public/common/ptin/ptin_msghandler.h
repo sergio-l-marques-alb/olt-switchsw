@@ -263,6 +263,7 @@
 #define CCMSG_PORTMIRROR_PORT_REMOVE        0x919D
 
 
+#define CCMSG_PTP_FPGA               0x919E
 #define CCMSG_PTP_LNX_NET_IF_SET            0x919F
 
 
@@ -2997,6 +2998,28 @@ typedef struct {
         IP[16],                      //If all 0s, matches any IP     //big Endian
         IPmsk[16];
 } __attribute__((packed)) T_MSG_PTP_LNX_NET_IF_SET;
+
+
+
+
+typedef struct {
+     unsigned char SlotIndex;
+     msg_HwEthInterface_t intf;
+
+     unsigned char add0_del1;
+     unsigned short  vid;
+     //unsigned short  vid_prt;
+     unsigned short  vid_os;
+     unsigned char encap;
+// #define TS_ENCAP_ETH_PTP            1
+// #define TS_ENCAP_ETH_IPv4_PTP       2
+// #define TS_ENCAP_ETH_IPv6_PTP       3
+     union {
+         u8 DMAC[6];                     //If all 0s, matches any DMAC
+         u8 dIP[16];                     //If all 0s, matches any IP     //big Endian
+     } __attribute__((packed)) ntw;
+} __attribute__((packed)) T_MSG_PTP_FPGA;
+
 
 /***************************************************************************** 
  * Functions prototypes

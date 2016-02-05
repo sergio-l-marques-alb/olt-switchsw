@@ -487,6 +487,7 @@ typedef struct
   struct 
   {
     L7_uchar8  value[BROAD_FIELD_ETHTYPE_SIZE];
+    L7_uchar8  mask[BROAD_FIELD_ETHTYPE_SIZE];  // PTin added
   } fieldEthtype;
 
   struct 
