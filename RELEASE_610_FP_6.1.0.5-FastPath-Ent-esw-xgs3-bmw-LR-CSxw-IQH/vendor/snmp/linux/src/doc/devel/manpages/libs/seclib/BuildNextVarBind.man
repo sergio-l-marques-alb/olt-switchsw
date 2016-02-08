@@ -1,0 +1,427 @@
+.\"
+.\"
+.\" Copyright (C) 1992-2006 by SNMP Research, Incorporated.
+.\"
+.\" This software is furnished under a license and may be used and copied
+.\" only in accordance with the terms of such license and with the
+.\" inclusion of the above copyright notice. This software or any other
+.\" copies thereof may not be provided or otherwise made available to any
+.\" other person. No title to and ownership of the software is hereby
+.\" transferred.
+.\"
+.\" The information in this software is subject to change without notice
+.\" and should not be construed as a commitment by SNMP Research, Incorporated.
+.\"
+.\" Restricted Rights Legend:
+.\"  Use, duplication, or disclosure by the Government is subject to
+.\"  restrictions as set forth in subparagraph (c)(1)(ii) of the Rights
+.\"  in Technical Data and Computer Software clause at DFARS 252.227-7013;
+.\"  subparagraphs (c)(4) and (d) of the Commercial Computer
+.\"  Software-Restricted Rights Clause, FAR 52.227-19; and in similar
+.\"  clauses in the NASA FAR Supplement and other corresponding
+.\"  governmental regulations.
+.\"
+.\"
+.\"
+.\"                PROPRIETARY NOTICE
+.\"
+.\" This software is an unpublished work subject to a confidentiality agreement
+.\" and is protected by copyright and trade secret law.  Unauthorized copying,
+.\" redistribution or other use of this work is prohibited.
+.\"
+.\" The above notice of copyright on this source code product does not indicate
+.\" any actual or intended publication of such source code.
+.\"
+.\"
+.\"
+.\"
+.TH BuildNextVarBind SR_CLIBMAN "27 May 1996"
+.SH NAME
+.HP 5
+.B "BuildNextVarBind, CreateVarBind, FreeVarBindList, MakeVarBindWithNull,"
+.B "MakeVarBindWithValue, MakeVarBind, PrintVarBindList," 
+.B "PrintVarBind, SPrintVarBind, PrintVarBindValue, SPrintVarBindValue,"
+.B "CloneVarBind, CloneVarBindList," 
+and 
+.B LinkVarBind \- manipulate SNMP VarBinds
+.SH SYNOPSIS
+VarBind *
+.br
+.BR BuildNextVarBind " (argv, in_index)"
+.br
+char *argv[];
+.br
+int *in_index;
+.LP
+VarBind *
+.br
+.BR CreateVarBind " (name, type, value) "
+.br
+char name[];
+.br
+char type[];
+.br
+char value[];
+.LP
+void
+.br
+FreeVarBindList(vb_ptr)
+.br
+VarBind *vb_ptr;
+.LP
+VarBind *
+.br
+MakeVarBindWithNull(object, instance)
+.br
+OID *object;
+.br
+OID *instance;
+.LP
+VarBind *
+.br
+MakeVarBindWithValue(object, instance, type, value)
+.br
+OID *object;
+.br
+OID *instance;
+.br
+int type;
+.br
+void *value;
+.LP
+VarBind *
+.br
+MakeVarBind(object, instance, value)
+.br
+ObjectInfo *object;
+.br
+OID *instance;
+.br
+void *value;
+.LP
+int
+.br
+PrintVarBindList(vb_ptr)
+.br
+VarBind *vb_ptr;
+.LP
+int
+.br
+PrintVarBind(vb_ptr)
+.br
+VarBind *vb_ptr;
+.LP
+int
+.br
+SPrintVarBind(vb_ptr, buf)
+.br
+VarBind *vb_ptr;
+.br
+char *buf;
+.LP
+int
+.br
+PrintVarBindValue(vb_ptr, name)
+.br
+VarBind *vb_ptr;
+.br
+char *name;
+.LP
+int
+.br
+SPrintVarBindValue(vb_ptr, buf, name)
+.br
+VarBind *vb_ptr;
+.br
+char *buf;
+.br
+char *name;
+.LP
+VarBind *
+.br
+CloneVarBind(in_vb)
+.br
+VarBind *in_vb;
+.LP
+VarBind *
+.br
+CloneVarBindList(in_vb)
+.br
+VarBind *in_vb;
+.LP
+short
+.br
+LinkVarBind(pdu_ptr, vb_ptr)
+.br
+Pdu *pdu_ptr;
+.br
+VarBind *vb_ptr;
+.SH DESCRIPTION
+.PP
+The 
+.B BuildNextVarBind, CreateVarBind, FreeVarBindList, 
+.B MakeVarBindWithNull, MakeVarBindWithValue, MakeVarBind, PrintVarBindList, 
+.B PrintVarBind, SPrintVarBind, PrintVarBindValue, SPrintVarBindValue,
+.B CloneVarBind, CloneVarBindList
+and
+.B LinkVarbind 
+routines are used for manipulating a SNMP VarBind.
+.HP 5
+.I BuildNextVarBind 
+takes the command line in the form of either a
+<name type value> tuple or a <name value> tuple, determines the 
+variable type if necessary and returns a new VarBind on success. The
+value NULL is returned on failure.
+.HP 5
+The parameter 
+.I argv 
+is a pointer to what was typed on the command
+line when invoking the manager utility.
+.HP 5
+The parameter 
+.I in_index 
+is the index into the command line, argv.
+.HP 15
+Returns the new VarBind on success.
+.HP 5
+NULL on failure.
+.HP 5
+.I CreateVarBind 
+takes a variable's name, type, and value, creates a VarBind, puts those
+values in the new VarBind, and returns it on success.  It returns NULL on
+failure, but can exit if the passed name does not appear in the MIB table.
+.HP 5
+The parameter, 
+.I name, 
+is the variable name for the VarBind.
+.HP 5
+The parameter, 
+.I type, 
+is the variable type for this VarBind.
+.HP 5
+The parameter, 
+.I value, 
+is the variable value for this VarBind.
+.HP 5
+.I FreeVarBindList 
+frees the VarBind data structures allocated and built by calls to routines
+like MakeVarBindWithNull(SR_CLIBMAN), MakeVarBindWithValue, MakeVarBind, CreateVarBind(SR_CLIBMAN), and
+BuildNextVarBind(SR_CLIBMAN).
+.HP 5
+The parameter, 
+.I vb_ptr, 
+is the pointer to the VarBind list that should be freed.
+.HP 5
+Returns nothing.
+.HP 5
+.I MakeVarBindWithNull 
+is used by a manager to make a VarBind given
+the variable name.  The variable name could appear in the object 
+parameter (ex: SysDescr.0) (with instance being NULL), or the name 
+could be split up in the object (sysDescr) and instance (0) parameters.
+The type field of the VarBind is set to NULL_TYPE and the value field
+of the VarBind is set to NULL.  This routine is normally called when
+performing a get, get-next, or get-bulk request.  
+.HP 5
+This routine should return a pointer to the new VarBind on success and 
+NULL on failure.
+.HP 5
+The parameter, 
+.I object, 
+is the object class portion of the variable 
+name (or the entire variable name).
+.HP 5
+The parameter, 
+.I instance, 
+could contain the object instance of the
+variable name or be NULL.
+.HP 5
+.I MakeVarBindWithValue 
+is used by a manager to make a VarBind given the
+variable and a value.  It performs the same function as 
+MakeVarBindWithNull(SR_CLIBMAN) except that the VarBind's type and value fields
+are filled in with the type and value parameters, respectively.  
+.HP 5
+This routine returns a pointer to the new VarBind on success and NULL 
+on failure.
+.HP 5
+The parameter, 
+.I object,
+is the object class portion of the variable
+name (or the entire variable name).
+.HP 5
+The parameter,
+.I instance,
+could contain the object instance of the
+variable name or be equal to NULL.
+.HP 5
+The parameter, 
+.I type, 
+contains the VarBind's type value.
+.HP 5
+The parameter, 
+.I value, 
+contains the VarBind's value field.
+.HP 5
+.I MakeVarBind
+is used by the agent to make a VarBind given the
+variable's object structure and a value.  It performs the same function as 
+MakeVarBindWithNull(SR_CLIBMAN) except that the VarBind's type and value fields
+are filled in with the type field from the object parameter and value
+parameters, respectively.  
+.HP 5
+This routine returns a pointer to the new VarBind on success and NULL 
+on failure.
+.HP 5
+The parameter, 
+.I object,
+is the object class portion of the variable
+name (or the entire variable name).
+.HP 5
+The parameter,
+.I instance, 
+could contain the object instance of the
+variable name or be equal to NULL.
+.HP 5
+The parameter, 
+.I value, 
+contains the VarBind's value field.
+.HP 5
+.I PrintVarBindList
+prints out the contents of a VarBind list to the
+screen in human readable form.  This is a quick user interface for 
+printing out SNMP responses for the manager utilities.  If the SNMP 
+Pdu structure is called pdu_ptr, an example of a call to 
+PrintVarBindList would be: PrintVarBindList(pdu_ptr->var_bind_list).
+.HP 5
+This routine returns 1 on success, 
+.HP 5
+0 for an illegal type, and 
+.HP 5
+-1 for failure.
+.HP 5
+The parameter, 
+.I vb_ptr, 
+is a pointer to the VarBind list that should be printed.
+.HP 5
+.I PrintVarBind
+prints out the contents of a single VarBind to the
+screen in human readable form.  This is a quick user interface for 
+printing out SNMP responses for the manager utilities. The output
+is in the form "name = value".
+.HP 5
+This routine returns 0 on success and
+.HP 5
+-1 for failure.
+.HP 5
+The parameter, 
+.I vb_ptr, 
+is a pointer to the VarBind that should be printed.
+.HP 5
+.I SPrintVarBind
+prints out the contents of a single VarBind to a
+buffer.  This is a quick user interface for 
+printing out SNMP responses for the manager utilities. The output
+is in the form "name = value".
+.HP 5
+This routine returns 0 on success and
+.HP 5
+-1 for failure.
+.HP 5
+The parameter, 
+.I vb_ptr, 
+is a pointer to the VarBind that should be printed.
+.HP 5
+The parameter, 
+.I buf, 
+is a pointer to the character buffer that will store the results of the
+routine. The buffer should be big enough to store the result.
+.HP 5
+.I PrintVarBindValue
+prints out the value of a single VarBind in human readable form to
+the screen.  This is a quick user interface for printing out SNMP responses for 
+the manager utilities.
+.HP 5
+This routine returns 0 on success and
+.HP 5
+-1 for failure.
+.HP 5
+The parameter, 
+.I vb_ptr, 
+is a pointer to the VarBind that should be printed.
+.HP 5
+The parameter, 
+.I name, 
+is the variable name for this VarBind. 
+.HP 5
+.I SPrintVarBindValue
+prints out the value of a single VarBind in human readable form to
+a buffer.  This is a quick user interface for printing out SNMP responses for 
+the manager utilities.
+.HP 5
+This routine returns 0 on success and
+.HP 5
+-1 for failure.
+.HP 5
+The parameter, 
+.I vb_ptr, 
+is a pointer to the VarBind that should be printed.
+.HP 5
+The parameter, 
+.I buf, 
+is a pointer to the character buffer that will store the results of the
+routine. The buffer should be big enough to store the result.
+.HP 5
+The parameter, 
+.I name, 
+is the variable name for this VarBind. 
+.HP 5
+.I CloneVarBind
+clones the incoming VarBind and returns a pointer to the new copy of the
+VarBind.
+.HP 5
+This routine returns a pointer to the new VarBind on success and
+.HP 5
+NULL for failure.
+.HP 5
+The parameter, 
+.I in_vb, 
+is a pointer to the VarBind that should be cloned.
+.HP 5
+.I CloneVarBindList
+clones the incoming VarBind list and returns a pointer to the new copy of the
+VarBind list.
+.HP 5
+This routine returns a pointer to the new VarBind list on success and
+.HP 5
+NULL for failure.
+.HP 5
+The parameter, 
+.I in_vb, 
+is a pointer to the VarBind list that should be cloned.
+.HP 5
+.I LinkVarBind 
+adds the VarBind entry created by a call to routines
+such as MakeVarBindWithValue(SR_CLIBMAN), MakeVarBind(SR_CLIBMAN), MakeVarBindWithNull(SR_CLIBMAN), 
+BuildNextVarBind(SR_CLIBMAN), and CreateVarBind(SR_CLIBMAN) to a SNMP PDU previously
+created by a call to MakePdu().  This routine should only be called
+once for each VarBind ptr associated with the PDU so the memory for
+each can be freed when the PDU is freed.  
+.HP 5
+This routine returns 0 on success and -1 on failure.
+.HP 5
+The parameter, 
+.I pdu_ptr, 
+should have vb_ptr added to the end of its
+VarBind list (pdu_ptr->var_bind_end_ptr).  If this is the first VarBind
+being added to the pdu_ptr, the head and tail of the VarBind list are
+set equal to this VarBind. (i.e., pdu_ptr->var_bind_list = vb_ptr,
+pdu_ptr->var_bind_end_ptr = vb_ptr).
+.HP 5
+The parameter, 
+.I vb_ptr, 
+should be added to the end of the pdu_ptr's
+VarBind list.
+.SH "EXAMPLES"
+For an example of how these routines are used, see the manager
+utilities.

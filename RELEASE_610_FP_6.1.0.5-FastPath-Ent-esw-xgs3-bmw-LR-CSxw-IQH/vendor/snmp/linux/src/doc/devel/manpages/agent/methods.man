@@ -1,0 +1,487 @@
+.\"
+.\"
+.\" Copyright (C) 1992-2006 by SNMP Research, Incorporated.
+.\"
+.\" This software is furnished under a license and may be used and copied
+.\" only in accordance with the terms of such license and with the
+.\" inclusion of the above copyright notice. This software or any other
+.\" copies thereof may not be provided or otherwise made available to any
+.\" other person. No title to and ownership of the software is hereby
+.\" transferred.
+.\"
+.\" The information in this software is subject to change without notice
+.\" and should not be construed as a commitment by SNMP Research, Incorporated.
+.\"
+.\" Restricted Rights Legend:
+.\"  Use, duplication, or disclosure by the Government is subject to
+.\"  restrictions as set forth in subparagraph (c)(1)(ii) of the Rights
+.\"  in Technical Data and Computer Software clause at DFARS 252.227-7013;
+.\"  subparagraphs (c)(4) and (d) of the Commercial Computer
+.\"  Software-Restricted Rights Clause, FAR 52.227-19; and in similar
+.\"  clauses in the NASA FAR Supplement and other corresponding
+.\"  governmental regulations.
+.\"
+.\"
+.\"
+.\"                PROPRIETARY NOTICE
+.\"
+.\" This software is an unpublished work subject to a confidentiality agreement
+.\" and is protected by copyright and trade secret law.  Unauthorized copying,
+.\" redistribution or other use of this work is prohibited.
+.\"
+.\" The above notice of copyright on this source code product does not indicate
+.\" any actual or intended publication of such source code.
+.\"
+.\"
+.\"
+.\"
+.\"
+.\"
+.\"
+.\"
+.TH METHOD\ ROUTINES SR_CLIBMAN "16 May 1996"
+
+.SH NAME
+k_<family>_get,
+k_<family>_test,
+k_<family>_ready,
+k_<family>_set,
+<family>_undo,
+k_<family>_set_defaults \- system dependent method routines
+.SH SYNOPSIS
+.nf
+postomsy -agent *.def
+
+<family>_t *
+k_<family>_get(serialNum, contextInfo, nominator,
+               searchType, tableIndex)
+   int serialNum;
+   ContextInfo *contextInfo;
+   int nominator;
+   int searchType;
+   SR_INT32 tableIndex;
+
+int
+k_<family>_test(object, value, dp, contextInfo) 
+   ObjectInfo *object;
+   ObjectSyntax *value;
+   doList_t *dp;
+   ContextInfo *contextInfo;
+
+int
+k_<family>_ready(object, value, doHead, dp) 
+   ObjectInfo *object;
+   ObjectSyntax *value;
+   doList_t *doHead;
+   doList_t *dp;
+
+int
+k_<family>_set(data, contextInfo, function)
+   <family>_t *data;
+   ContextInfo *contextInfo;
+   int function;
+
+int
+<family>_undo(doHead, doCur, contextInfo) 
+   doList_t *doHead;
+   doList_t *doCur;
+   ContextInfo *contextInfo;
+
+int
+k_<family>_set_defaults(dp) 
+   doList_t *dp;
+
+.fi
+.SH DESCRIPTION
+The
+.BR k_<family>_get (\|)
+function is the method routine to retrieve the values of MIB
+variables for a specific family.  This method routine accesses
+the instrumentation to read the values, copies the values into
+the
+.I <family>_t
+structure, and returns the structure to the system independent
+method routine layer.
+
+The
+.I serialNum
+parameter is an integer which is unique for each SNMP PDU which
+arrives at the agent.  It can be used by the method routine to implement
+a caching scheme for values returned by the instrumentation.  This might
+be useful when multiple VarBinds are being retrieved from the
+same family in the same PDU, which results in multiple calls to the
+method routine.  This parameter may be ignored if the method routine
+does not support caching.
+
+The
+.I contextInfo
+parameter is a pointer to a
+.I ContextInfo
+structure.  This parameter is used when a method routine only supports a
+family of variables in a certain context, or when it supports the family
+in multiple contexts that it must distinguish between.
+If the method supports the family in all contexts in the
+same fashion, this parameter may be ignored.
+
+The
+.I nominator
+parameter indicates which field in the family structure should be
+filled in with correct data.  While one may choose only to fill in this
+field, it is often equally efficient to fill in all fields in the family
+structure.  If the field identified by this parameter cannot be filled
+with the value of the corresponding MIB variable, the method routine
+.B MUST
+return NULL.
+
+During a Set request, the
+.BR k_<family>_get (\|)
+function will be called for tabular families, and the value of the
+.I nominator
+parameter will be
+.B -1.
+Under these circumstances, if the row indicated by the
+.I tableIndex
+parameter(s) exists, then NULL must
+.B not
+be returned, and the valid bit(s) for the
+.I tableIndex
+parameter(s) must be turned on.  If other values in this family were
+not returned, then the
+.I data
+parameter to
+.BR k_<family>_set (\|)
+would contain only the values from the VarBind list in the Set request
+PDU.  However, because inter\-variable or inter\-family constraints
+may be checked by other method routines, the correct procedure is to
+fill in all fields in the family structure.
+
+The
+.I searchType
+parameter indicates whether an
+.B EXACT
+(Get) or
+.B NEXT
+(GetNext) search should be performed.
+This parameter exists only for tabular families and must be used in
+conjunction with the
+.I tableIndex
+parameter(s).  An
+.B EXACT
+search requires that the
+.I tableIndex
+parameter(s) contain the index of a particular row of the table
+supported by the method called.  A
+.B NEXT
+search requires only that a row in the
+table exists whose indices are
+.B greater
+.B than
+.B or
+.B equal
+.B to
+the incoming
+.I tableIndex
+parameter(s).  The row with the smallest such index variables is
+the row which should be returned.  Note that only the variable indicated
+by
+.I nominator
+plus the fields corresponding to the indices need be
+valid in that row.  If there is no row which meets these criteria in the
+given context, the method should return NULL.
+
+There may be one or many
+.I tableIndex
+parameter(s) for tabular families.  The
+.I tableIndex
+parameter(s) exist only for tabular families and must be used in
+conjunction with the
+.I searchType
+parameter.  The
+.I tableIndex
+parameter(s) indicate which row to search for in the table, and the
+.I searchType
+parameter indicates what type of search to perform.
+The
+.I tableIndex
+parameter(s) may be of different types (INTEGERs, OctetStrings, OIDs,
+etc.), and the first index is the most significant.  OID
+and OctetString indices are compared lexicographically.
+
+The
+.BR k_<family>_test (\|)
+function is used during the processing of a Set request and is the
+first function called for a particular family in that processing.
+The purpose of the this method routine is to check the validity of
+the MIB variable being set
+.B in
+.B isolation.
+For example, if the `DESCRIPTION' clause in the MIB indicates that
+this object may take on only certain values, then the
+.BR k_<family>_test (\|)
+function is the correct place to perform this kind of checking.
+Some range checking is performed automatically by the
+.BR <family>_test (\|)
+function (v_ layer).
+
+The
+.I object
+parameter is a pointer to an
+.I ObjectInfo
+structure containing information about the MIB variable being
+tested.  The primary items of interest in this structure are:
+.in+4
+.IP \ \ \ \(bu\ oid
+is the object identifier of the object to be tested.
+.IP \ \ \ \(bu\ nominator
+designates which variable within the family is to be tested.
+.in-4
+
+The
+.I value
+parameter is a pointer to an
+.I ObjectSyntax
+structure (a union) which contains the value to be tested for this MIB
+variable.  If the test succeeds, this is the value to which the
+MIB variable will be set.  The items of interest in this structure are:
+.in+4
+.IP \ \ \ \(bu\ type
+is the union discriminator.  For example, if
+.I value\->type
+is equal to
+.B INTEGER,
+then
+.I value\->sl_value
+contains a signed long integer.
+.IP \ \ \ \(bu\ value
+the value for this MIB variable.  The value contained in this field
+of the union is interpreted by examining
+.I value\->type.
+.in-4
+
+The
+.I dp
+parameter is a pointer to a
+.I doList_t
+structure which contains agent\-specific information about the MIB
+variable to be tested.  The item of interest in this structure at
+this stage of Set\-processing is:
+.in+4
+.IP \ \ \ \(bu\ state
+is current state of the Set request, which may be
+.B SR_UNKNOWN,
+.B SR_ADD_MODIFY,
+or
+.B SR_DELETE.
+This value is examined by the Set\-processing engine after the
+.BR k_<family>_test (\|)
+and
+.BR k_<family>_ready (\|)
+functions for all of the families being set have been called.
+A Set request can proceed to the phase where the
+.BR k_<family>_set (\|)
+functions are called only if this field is
+.B SR_ADD_MODIFY
+or
+.B SR_DELETE
+at this time it is examined by the Set\-processing engine.
+.in-4
+
+The
+.I contextInfo
+parameter has already been described.
+
+The
+.BR k_<family>_ready (\|)
+function is used during the processing of a Set request and is the
+second function called for a particular family in that processing.
+The purpose of the this method routine is to check the validity of
+the MIB variable being set
+.B as
+.B it
+.B relates
+.B to
+.B other
+.B MIB
+.B variables
+(inter\-variable or inter\-family constraints).
+For example, if the `DESCRIPTION' clause in the MIB indicates that
+this object may take on certain values only when another object
+contains a specific value, then the 
+.BR k_<family>_ready (\|)
+function is the correct place to perform this kind of checking.
+
+The
+.I object,
+.I value,
+and
+.I dp
+parameters have already been described.
+
+The
+.I doHead
+parameter is a pointer to the
+.I doList_t
+structure which is the first element in a linked list of these
+structures.  The item of interest in the structures in this linked
+list at this stage of Set\-processing is:
+.in+4
+.IP \ \ \ \(bu\ next
+is a pointer to the next element in the `do\-list'.
+.IP \ \ \ \(bu\ setMethod
+is a pointer to the
+.BR k_<family>_set (\|)
+function for the family associated with this element of the `do\-list'.
+By comparing the value of the
+.I setMethod
+field to the name of the
+.BR k_<family>_set (\|)
+functions in the same source code file, it can be determined with
+which family this element of the `do\-list' is associated.
+.IP \ \ \ \(bu\ data
+is a pointer to the
+.I <family>_t
+structure for the family associated with this element of the `do\-list'.
+To test for inter\-family constraints, it is important to scan the
+`do\-list' to see if the interdependent variable(s) are being changed
+in the same Set request PDU.  If the interdependent variable is also
+being changed, its family will also have an element in the `do\-list'.
+If the interdependent variable is not being changed (or if the
+VarBind for the interdependent variable has not yet been processed)
+and thus an element is not found in the `do\-list' for the interdependent
+variable's family, the
+.BR k_<family>_ready (\|)
+function should call the interdependent variable's
+.BR k_<family>_get (\|)
+function to obtain the test value.
+.IP \ \ \ \(bu\ state
+is current state of the Set request, which has already been described.
+.in-4
+
+The
+.BR k_<family>_set (\|)
+function is used during the processing of a Set request and is the
+third function called for a particular family in that processing.
+This method routine accesses the instrumentation to write the
+values which are marked valid in the
+.I <family>_t
+structure.
+
+The
+.I data
+parameter is the
+.I <family>_t
+structure which contains values in the family to be updated in the
+instrumentation.
+
+The
+.I contextInfo
+parameter has already been described.
+
+The
+.I function
+parameter may contain one of two values for tabular families
+containing a `read\-create' variable.
+If the value of this parameter is
+.B SR_ADD_MODIFY,
+it indicates that the
+.I <family>_t
+structure contains information to update an existing row or to
+create a new row.  To update or create a row is decided by
+examining the
+.I tableIndex
+field(s) of the
+.I <family>_t
+structure to determine if the row already exists in the
+instrumention layer.
+If the value of this parameter is
+.B SR_DELETE,
+it indicates that the
+.I tableIndex
+field(s) of the
+.I <family>_t
+structure specifies a row to destroy in the instrumention layer.
+
+The
+.BR <family>_undo (\|)
+function may be used during the processing of a Set request.  If
+one of the
+.BR k_<family>_set (\|)
+functions fails, and if the
+processing of the Set request has not yet reached a stage in which
+it cannot be undone, this function is called for each family which
+has returned from the
+.BR k_<family>_set (\|)
+routines successfully, and the request returns with the
+.I COMMIT\ FAILED
+error.  If the processing of the Set request has
+reached a stage in which it cannot be undone, none of the
+.BR <family>_undo (\|)
+functions are called, and the request returns with the
+.I UNDO\ FAILED
+error.
+
+The
+.I doHead
+and
+.I contextInfo
+parameters have already been described.
+
+The
+.I doCur
+parameter is a pointer to a
+.I doList_t
+structure which contains information about the MIB variable
+for which the change in the instrumentation layer intiated by
+the Set request must be reversed.  The primary item of interest
+in this structure is:
+.in+4
+.IP \ \ \ \(bu\ undodata
+is a pointer to a
+.I <family>_t
+structure containing the values of the MIB variables as they
+were before the call to
+.BR k_<family>_set (\|)
+changed them.  This data structure is created by the
+.BR <family>_test (\|)
+function (v_ layer) by calling the
+.BR k_<family>_get (\|)
+function.
+.in-4
+
+The
+.BR k_<family>_set_defaults (\|)
+function may be used during the processing of a Set request for
+tables containing a `read\-create' variable.  Within the
+.BR k_<family>_test (\|)
+function, a call is made to the
+.BR k_<family>_get (\|)
+function.  If the
+.BR k_<family>_get (\|)
+returns NULL, this indicates that the row does not exist
+and must be created.  Under these circumstances, the
+.BR k_<family>_set_defaults (\|)
+function is called to supply default values for the objects
+in the new row.  The default values supplied by this function
+are defined by the MIB in `DEFVAL' clauses.
+
+The
+.I dp
+parameter has already been described.
+
+.SH "SEE ALSO"
+.I premosy(SR_CMDMAN),
+.I mosy(SR_CMDMAN),
+.I postmosy(SR_CMDMAN),
+RFCs 1155, 1157, 1212, and 1902-1908.
+
+.SH LIMITATIONS
+In the
+.BR k_<family>_set (\|)
+function, there is currently no way to determine the origin of
+the values in the
+.I <family>_t
+structure.  These values may have been supplied by the
+.BR k_<family>_get (\|)
+function, by the
+.BR k_<family>_set_defaults (\|)
+function, or by the VarBind list of the Set request.

@@ -1,0 +1,124 @@
+# This file defines special package-level build rules and is included by
+# make.magic.pkg as part of the SECURITY package.
+#
+# Note: The vendor source files listed here are built into individual archive
+#       files which are subsequently included when pre-linking the package 
+#       library.
+#
+# Note: Set 'ARC_EXCLUDE := <list of source files>' that are NOT to be built
+#       within a given directory.  Be sure to reset 'ARC_EXCLUDE :=' (i.e. empty)
+#       immediately following the include $(arc_pkg_rules_file) line.
+#
+
+# Local abbreviations (for convenience).
+#
+arc_pkg_rules_file := $(FP_ROOT)/src/l7tools/build/makerules.arc.pkg
+
+
+# Specify the source anchor location of the vendor code tree and the prefix 
+# of the output directory names and archive files that are created.
+#
+ARC_BASE    := $(FP_BASE)/vendor
+ARC_TOPOUT  := vendor
+ARC_PREFIX  := _$(FP_PREFIX)_vend
+
+# Initialize empty, to accumulate information from the include statements below.
+#
+ARC_DIRLIST :=
+
+
+# openssh
+#
+ARC_PATH := openssh
+ARC_EXCLUDE := \
+	audit-bsm.c \
+	audit.c \
+	auth-bsdauth.c \
+	auth-pam.c \
+	auth-shadow.c \
+	auth-sia.c \
+	auth-skey.c \
+	auth2-gss.c \
+	groupaccess.c \
+	gss-genr.c \
+	gss-serv-krb5.c \
+	gss-serv.c \
+	logintest.c \
+	monitor.c \
+	monitor_fdpass.c \
+	monitor_mm.c \
+	monitor_wrap.c \
+	sftp-server.c \
+	ssh-add.c \
+	ssh-agent.c \
+	ssh-keygen.c \
+	ssh-keyscan.c \
+	ssh-keysign.c \
+	ssh-rand-helper.c
+include $(arc_pkg_rules_file)
+ARC_EXCLUDE :=
+
+
+# openssh/openbsd-compat
+#
+ARC_PATH := openssh/openbsd-compat
+ARC_EXCLUDE := \
+	basename.c \
+	bindresvport.c \
+	bsd-asprintf.c \
+	bsd-closefrom.c \
+	bsd-cray.c \
+	bsd-cygwin_util.c \
+	bsd-getpeereid.c \
+	bsd-nextstep.c \
+	bsd-openpty.c \
+	bsd-snprintf.c \
+	bsd-waitpid.c \
+	daemon.c \
+	dirname.c \
+	getcwd.c \
+	getgrouplist.c \
+	getrrsetbyname.c \
+	glob.c \
+	inet_aton.c \
+	inet_ntoa.c \
+	inet_ntop.c \
+	mktemp.c \
+	openssl-compat.c \
+	port-aix.c \
+	port-irix.c \
+	port-uw.c \
+	realpath.c \
+	setenv.c \
+	setproctitle.c \
+	sigact.c \
+	strmode.c \
+	strtoul.c \
+	xcrypt.c \
+	xmmap.c
+include $(arc_pkg_rules_file)
+ARC_EXCLUDE :=
+
+
+# Clean vendor output archives and directories
+#
+.PHONY: clean
+clean::
+	-$(DBG) $(RM) $(QT)$(ARC_PREFIX)*.a$(QT)
+	@echo Removing archive directories: $(ARC_DIRLIST) $(HUSH)
+	$(foreach dir, $(ARC_DIRLIST), \
+		$(shell [ ! -d $(dir) ] || ($(RM) $(dir)/* && rmdir $(dir))))
+	$(shell [ ! -d $(ARC_TOPOUT) ] || rmdir $(ARC_TOPOUT))
+      
+  
+.PHONY: debug-variables
+debug-variables::
+	@$(echo) ""
+	@$(echo) "Vendor OpenSSH pkg rules"
+	@$(echo) "------------------------"
+	@$(echo) "ARC_BASE=$(ARC_BASE)"
+	@$(echo) "ARC_PREFIX=$(ARC_PREFIX)"
+	@$(echo) ""
+	@$(echo) "ARC_DIRLIST=$(ARC_DIRLIST)"
+	@$(echo) ""
+
