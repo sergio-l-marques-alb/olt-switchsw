@@ -1,0 +1,6 @@
+#
+# GPL
+# BROUTER8
+#
+
+TEXT_BASE = 0xfff00000

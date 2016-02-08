@@ -1,0 +1,49 @@
+#! /bin/bash
+
+CC='/opt/ppc-ptin/bin/powerpc-linux-gcc' 
+CFLAGS='-O2 -pipe -g -Wall -UET_DEBUG -DDEBUG --save-temps' 
+CPPFLAGS='-I/opt/ppc-ptin/include' 
+AS='/opt/ppc-ptin/bin/powerpc-linux-as' 
+ASFLAGS='-g -gstabs' 
+LD='/opt/ppc-ptin/bin/powerpc-linux-ld' 
+LIB='/opt/ppc-ptin/bin/powerpc-linux-ar' 
+RANLIB='/opt/ppc-ptin/bin/powerpc-linux-ranlib' 
+LLIBDIR=/opt/ppc-ptin/lib  
+NM=/opt/ppc-ptin/bin/powerpc-linux-nm
+CROSS_COMPILE=/opt/ppc-ptin/bin/powerpc-linux-
+MKIMAGE=../../../bin/mkimages/mkimage
+
+export CC CFLAGS CPPFLAGS AS ASFLAGS LD LIB RANLIB LLIBDIR NM CROSS_COMPILE
+
+rebuild=true
+if test $# -gt 0; then
+	if test $1 = clean; then
+		make clean
+		exit 1
+	fi
+
+	if test $1 = make;then
+		rebuild=false
+	fi
+fi
+
+
+cat > board/olt7_8ch/compile_date.h <<EOF
+#ifndef __COMPILE_DATE_H__
+#define __COMPILE_DATE_H__
+
+EOF
+echo '#define OLT7_8CH_COMPILE_DATE "'`date`'"' >>  board/olt7_8ch/compile_date.h
+echo >>  board/olt7_8ch/compile_date.h
+echo '#endif//__COMPILE_DATE_H__' >>  board/olt7_8ch/compile_date.h
+
+
+if test ${rebuild} = true;then
+	rm -vf u-boot u-boot.bin u-boot.srec
+	make mrproper
+	make OLT7_8CH_66MHZ_config
+	make
+else
+	make
+fi
+cp u-boot.bin ../u-boot_olt8ch_66MHz.bin

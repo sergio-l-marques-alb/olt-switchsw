@@ -1,0 +1,104 @@
+# 1 "/home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/drivers/sk98lin//"
+skge.o: skge.c \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/config.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/configs/cx160gV2.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/cmd_confdefs.h
+# 1 "/home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/drivers/sk98lin//"
+skaddr.o: skaddr.c \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/config.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/configs/cx160gV2.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/cmd_confdefs.h
+# 1 "/home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/drivers/sk98lin//"
+skgehwt.o: skgehwt.c \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/config.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/configs/cx160gV2.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/cmd_confdefs.h
+# 1 "/home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/drivers/sk98lin//"
+skgeinit.o: skgeinit.c \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/config.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/configs/cx160gV2.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/cmd_confdefs.h
+# 1 "/home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/drivers/sk98lin//"
+skgepnmi.o: skgepnmi.c \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/config.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/configs/cx160gV2.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/cmd_confdefs.h
+# 1 "/home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/drivers/sk98lin//"
+skgesirq.o: skgesirq.c \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/config.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/configs/cx160gV2.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/cmd_confdefs.h
+# 1 "/home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/drivers/sk98lin//"
+ski2c.o: ski2c.c \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/config.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/configs/cx160gV2.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/cmd_confdefs.h
+# 1 "/home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/drivers/sk98lin//"
+sklm80.o: sklm80.c \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/config.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/configs/cx160gV2.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/cmd_confdefs.h
+# 1 "/home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/drivers/sk98lin//"
+skqueue.o: skqueue.c \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/config.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/configs/cx160gV2.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/cmd_confdefs.h
+# 1 "/home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/drivers/sk98lin//"
+skrlmt.o: skrlmt.c \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/config.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/configs/cx160gV2.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/cmd_confdefs.h
+# 1 "/home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/drivers/sk98lin//"
+sktimer.o: sktimer.c \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/config.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/configs/cx160gV2.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/cmd_confdefs.h
+# 1 "/home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/drivers/sk98lin//"
+skvpd.o: skvpd.c \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/config.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/configs/cx160gV2.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/cmd_confdefs.h
+# 1 "/home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/drivers/sk98lin//"
+skxmac2.o: skxmac2.c \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/config.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/configs/cx160gV2.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/cmd_confdefs.h
+# 1 "/home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/drivers/sk98lin//"
+skcsum.o: skcsum.c \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/config.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/configs/cx160gV2.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/cmd_confdefs.h
+# 1 "/home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/drivers/sk98lin//"
+uboot_skb.o: uboot_skb.c \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/config.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/configs/cx160gV2.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/cmd_confdefs.h
+# 1 "/home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/drivers/sk98lin//"
+uboot_drv.o: uboot_drv.c \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/common.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/config.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/configs/cx160gV2.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/cmd_confdefs.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/linux/bitops.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/asm/bitops.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/linux/config.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/asm/byteorder.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/asm/types.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/linux/byteorder/big_endian.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/linux/byteorder/swab.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/linux/byteorder/generic.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/linux/types.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/linux/posix_types.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/linux/stddef.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/asm/posix_types.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/linux/string.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/asm/string.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/asm/ptrace.h \
+  /opt/ppc-ptin/lib/gcc/powerpc-linux/3.4.2/include/stdarg.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/asm/immap_8260.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/part.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/ide.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/flash.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/image.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/asm/u-boot.h \
+  /home/clemos/projectosNG/PacketPad/sources/cx100g/u-boot/u-boot-1.1.6/include/asm/global_data.h

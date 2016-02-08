@@ -1,0 +1,645 @@
+/*
+ * (C) Copyright 2002
+ * CDFtel, Lda; Porto, Portugal
+ * PTIN, Aveiro, Portugal
+ *
+ * (C) Copyright 2000
+ * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
+ *
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
+ */
+
+#if 0
+#define DEBUG
+#endif
+
+
+#include <common.h>
+#include <mpc8xx.h>
+#include <flash.h>
+
+/* #define _MT_FLASH_DBG_ 1 */
+
+#define FLASH_29LV002T 0x0040
+#define FLASH_29LV002B 0x00C2
+#define FLASH_28F002B3T 0x007C
+#define FLASH_28F002B3B 0x007D
+
+flash_info_t	flash_info[CFG_MAX_FLASH_BANKS]; /* info for FLASH chips */
+
+
+/*-----------------------------------------------------------------------
+ * Functions
+ */
+static ulong flash_get_size (vu_long *addr, flash_info_t *info);
+static int write_byte (flash_info_t *info, ulong dest, unsigned char data);
+static void flash_get_offsets (ulong base, flash_info_t *info);
+int boot_update(flash_info_t *info);
+
+/*-----------------------------------------------------------------------
+ */
+
+unsigned long flash_init (void)
+{
+/* 	volatile immap_t     *immap  = (immap_t *)CFG_IMMR;*/
+/*	volatile memctl8xx_t *memctl = &immap->im_memctl; */
+	unsigned long size_b0;
+	int i;
+
+	/* Init: no FLASHes known */
+	for (i=0; i < CFG_MAX_FLASH_BANKS; ++i)
+	{
+		flash_info[i].flash_id = FLASH_UNKNOWN;
+	}
+
+	/* Static FLASH Bank configuration here - FIXME XXX */
+
+	size_b0 = flash_get_size((vu_long *)FLASH_BASE0_PRELIM, &flash_info[0]);
+
+/*          flash_print_info  (&flash_info[0]); */
+
+	/* Remap FLASH according to real size */
+/*      memctl->memc_or0 = CFG_OR0_PRELIM; */
+/*      memctl->memc_br0 = CFG_BR0_PRELIM; */
+
+	/* Re-do sizing to get full correct info */
+/*  	size_b0 = flash_get_size((vu_long *)CFG_FLASH_BASE, &flash_info[0]); */
+
+	return (size_b0);
+}
+
+/*-----------------------------------------------------------------------
+ */
+static void flash_get_offsets (ulong base, flash_info_t *info)
+{
+
+  switch (info->flash_id & FLASH_TYPEMASK)
+  {
+    case FLASH_29LV002T:
+        /* set sector offsets for top boot block type		*/
+      info->start[0] = base + 0x00000000; /* start of 64 kbyte block */
+      info->start[1] = base + 0x00010000; /* start of 64 kbyte block */
+      info->start[2] = base + 0x00020000; /* start of 64 kbyte block */
+      info->start[3] = base + 0x00030000; /* start of 32 kbyte block */
+      info->start[4] = base + 0x00038000; /* start of 8  kbyte block */
+      info->start[5] = base + 0x0003a000; /* start of 8  kbyte block */
+      info->start[6] = base + 0x0003c000; /* start of 16 kbyte block */
+      break;
+    case FLASH_29LV002B:
+        /* set sector offsets for bottom boot block type	*/
+      info->start[0] = base + 0x00000000; /* start of 16 kbyte block */
+      info->start[1] = base + 0x00004000; /* start of 8  kbyte block */
+      info->start[2] = base + 0x00006000; /* start of 8  kbyte block */
+      info->start[3] = base + 0x00008000; /* start of 32 kbyte block */
+      info->start[4] = base + 0x00010000; /* start of 64 kbyte block */
+      info->start[5] = base + 0x00020000; /* start of 64 kbyte block */
+      info->start[6] = base + 0x00030000; /* start of 64 kbyte block */
+      break;
+    case FLASH_28F002B3T:
+       /* set sector offsets for top boot block type		*/
+      info->start[0] = base + 0x00000000; /* start of 128 kbyte block */
+      info->start[1] = base + 0x00020000; /* start of  96 kbyte block */
+      info->start[2] = base + 0x00038000; /* start of   8 kbyte block */
+      info->start[3] = base + 0x0003a000; /* start of   8 kbyte block */
+      info->start[4] = base + 0x0003c000; /* start of  16 kbyte block */
+      break;
+    case FLASH_28F002B3B:
+        /* set sector offsets for topbottom boot block type		*/
+      info->start[0] = base + 0x00000000; /* start of 128 kbyte block */
+      info->start[1] = base + 0x00004000; /* start of  96 kbyte block */
+      info->start[2] = base + 0x00006000; /* start of   8 kbyte block */
+      info->start[3] = base + 0x00008000; /* start of   8 kbyte block */
+      info->start[4] = base + 0x00020000; /* start of  16 kbyte block */
+     break;
+    default:
+      break;
+  }
+
+}
+
+/*-----------------------------------------------------------------------
+ */
+void flash_print_info  (flash_info_t *info)
+{
+  int i;
+
+  if (info->flash_id == FLASH_UNKNOWN)
+  {
+    printf ("missing or unknown FLASH type\n");
+    return;
+  }
+
+  switch (info->flash_id & FLASH_VENDMASK)
+  {
+    case FLASH_MAN_AMD:	printf ("AMD ");		break;
+    case FLASH_MAN_FUJ:	printf ("FUJITSU ");		break;
+    case FLASH_MAN_MT:	printf ("MICRON ");		break;
+    default:		printf ("Unknown Vendor ");	break;
+  }
+
+  switch (info->flash_id & FLASH_TYPEMASK)
+  {
+    case FLASH_29LV002T:   printf ("29LV002T (2 Mbit, top boot sector)\n");
+      break;
+    case FLASH_29LV002B:   printf ("29LV002B (2 Mbit, bottom boot sector)\n");
+      break;
+    case FLASH_28F002B3T:  printf ("28F002B3T (2 Mbit, top boot sector)\n");
+      break;
+    case FLASH_28F002B3B:  printf ("28F002B3B (2 Mbit, bottom boot sector)\n");
+      break;
+    default:		   printf ("Unknown Chip Type\n");
+      break;
+  }
+
+  printf ("  Size: %ld kbytes in %d Sectors\n",info->size >> 10, info->sector_count);
+
+  printf ("  Sector Start Addresses:");
+
+  for (i=0; i<info->sector_count; ++i)
+  {
+    if ((i % 5) == 0)
+    {
+      printf ("\n   ");
+    }
+
+    printf (" %08lX%s",
+            info->start[i],
+            info->protect[i] ? " (RO)" : "     ");
+  }
+
+  printf ("\n");
+
+//Temporary, for boot update
+//  boot_update(info);
+
+//--------------------------
+
+  return;
+}
+
+/*-----------------------------------------------------------------------
+ */
+
+
+/*
+ * The following code cannot be run from FLASH!
+ */
+
+static ulong flash_get_size (vu_long *addr, flash_info_t *info)
+{
+  short i;
+
+  volatile char* flash_base = (char*)addr;
+  volatile uchar vendor, devid;
+
+  /* Write auto select command: read Manufacturer ID */
+  flash_base[0x0555] = 0xAA;
+  flash_base[0x02AA] = 0x55;
+  flash_base[0x0555] = 0x90;
+
+  udelay(1000);
+  
+  vendor = flash_base[0];
+  devid = flash_base[1];
+  switch (((ulong)vendor)+(((ulong)vendor) <<16))
+  {
+    case FUJ_MANUFACT:
+      info->flash_id = FLASH_MAN_FUJ;
+      break;
+    case AMD_MANUFACT:
+      info->flash_id = FLASH_MAN_AMD;
+      break;
+    case MT_MANUFACT:
+      info->flash_id = FLASH_MAN_MT;
+      break;
+    default:
+      info->flash_id = FLASH_UNKNOWN;
+      info->sector_count = 0;
+      info->size = 0;
+      break;
+  }
+
+  switch(devid)
+  {
+    case FLASH_29LV002T:
+      info->flash_id += FLASH_29LV002T;
+      info->sector_count = 7;
+      info->size = 256*1024; break;
+    case FLASH_29LV002B:
+      info->flash_id += FLASH_29LV002B;
+      info->sector_count = 7;
+      info->size = 256*1024;
+      break;
+    case FLASH_28F002B3T:
+      info->flash_id += FLASH_28F002B3T;
+      info->sector_count = 5;
+      info->size = 256*1024;
+      break;
+    case FLASH_28F002B3B:
+      info->flash_id += FLASH_28F002B3B;
+      info->sector_count = 5;
+      info->size = 256*1024;
+      break;
+    default:
+      info->flash_id = FLASH_UNKNOWN;
+      return (0);			/* => no or unknown flash */
+  }
+
+  flash_get_offsets ((ulong)addr, &flash_info[0]);
+  
+  if (info->flash_id != FLASH_UNKNOWN) /*Prevent writes to uninitialized FLASH.*/
+  {
+    if ( ( (info->flash_id & FLASH_TYPEMASK) == FLASH_28F002B3T) ||
+         ( (info->flash_id & FLASH_TYPEMASK) == FLASH_28F002B3B) )
+    {
+      /* Flashes Micron */
+        /* These flashes does't support protected sectors */
+      for (i = 0; i < info->sector_count; i++)
+      {
+        info->protect[i] = 0;
+      }
+
+      flash_base[0]=0xFF; /* return to read array mode */
+    }
+    else /* Flashes AMD/Fujitsu */
+    {
+        /* check for protected sectors */
+      for (i = 0; i < info->sector_count; i++)
+      {
+          /* read sector protection at sector address, (A7 .. A0) = 0x02 */
+          /* D0 = 1 if protected */
+        addr = (volatile unsigned long *)(info->start[i]);
+        info->protect[i] = *(((char*)addr)+2) & 1;
+      }
+
+      flash_base[0]=0xF0; /* return to read array mode */
+    }
+  }
+  return (info->size);
+
+}
+
+
+/*-----------------------------------------------------------------------
+ */
+
+int flash_erase (flash_info_t *info, int s_first, int s_last)
+{
+	volatile unsigned char *addr = (unsigned char*)(info->start[0]);
+	int flag, prot, sect, l_sect;
+	ulong start, now, last;
+
+	if ((s_first < 0) || (s_first > s_last)) {
+		if (info->flash_id == FLASH_UNKNOWN) {
+			printf ("- missing\n");
+		} else {
+			printf ("- no sectors to erase\n");
+		}
+		return 1;
+	}
+
+	if ((info->flash_id == FLASH_UNKNOWN)) {
+		printf ("Can't erase unknown flash type - aborted\n");
+		return 1;
+	}
+
+	prot = 0; /* To count the protected sectors */
+	for (sect=s_first; sect<=s_last; ++sect) {
+		if (info->protect[sect]) {
+			prot++;
+		}
+	}
+
+	if (prot) {
+		printf ("- Warning: %d protected sectors will not be erased!\n",
+			prot);
+	} else {
+		printf ("\n");
+	}
+
+	l_sect = -1;
+
+        switch (info->flash_id & FLASH_TYPEMASK)
+        {
+          case FLASH_29LV002T:
+          case FLASH_29LV002B:
+          {
+              /* Disable interrupts which might cause a timeout here */
+            flag = disable_interrupts();
+
+            addr[0x0555] = 0xAA;
+            addr[0x02AA] = 0x55;
+            addr[0x0555] = 0x80;
+            addr[0x0555] = 0xAA;
+            addr[0x02AA] = 0x55;
+
+              /* Start erase on unprotected sectors */
+            for (sect = s_first; sect<=s_last; sect++) {
+              if (info->protect[sect] == 0) {	/* not protected */
+                addr = (unsigned char *)(info->start[sect]);
+                addr[0] = 0x30;
+                l_sect = sect;
+              }
+            }
+
+              /* re-enable interrupts if necessary */
+            if (flag)
+              enable_interrupts();
+
+              /* wait at least 50us - let's wait 1 ms */
+            udelay (1000);
+
+              /*
+               * We wait for the last triggered sector
+               */
+            if (l_sect < 0)
+              goto DONE;
+
+            start = get_timer (0);
+            last  = start;
+            addr = (unsigned char *)(info->start[l_sect]);
+            while ((addr[0] & 0x80) != 0x80) /* Data polling on DQ7 */
+            {
+              if ((now = get_timer(start)) > CFG_FLASH_ERASE_TOUT) {
+                printf ("Timeout\n");
+                return 1;
+              }
+		/* show that we're waiting */
+              if ((now - last) > 1000) {	/* every second */
+                putc ('.');
+                last = now;
+              }
+            }
+
+            DONE:
+              /* reset to read mode */
+            addr = (volatile unsigned char *)info->start[0];
+            addr[0] = 0xF0;	/* reset bank */
+          }
+          break;
+          case FLASH_28F002B3T:
+          case FLASH_28F002B3B:
+          {
+            for (sect = s_first; sect<=s_last; sect++) 
+            {
+                /* Disable interrupts which might cause a timeout here */
+              flag = disable_interrupts();
+
+              /* Erase sequence */
+              addr[0] = 0x20;
+              addr = (unsigned char *)(info->start[sect]);
+              addr[0] = 0xD0;
+
+                /* re-enable interrupts if necessary */
+              if (flag)
+                enable_interrupts();
+
+                /* wait at least 50us - let's wait 1 ms */
+              udelay (1000);
+
+              start = get_timer (0);
+              last  = start;
+                //addr = (unsigned char *)(info->start[l_sect]);
+
+              addr[0] = 0x70; /* Read Status Register */
+              while ((addr[0] & 0x80) != 0x80) /* Polling on SR7 */
+              {
+                if ((now = get_timer(start)) > CFG_FLASH_ERASE_TOUT) {
+                  printf ("Timeout\n");
+                  return 1;
+                }
+                  /* show that we're waiting */
+                if ((now - last) > 1000) {	/* every second */
+                  putc ('.');
+                  last = now;
+                }
+              }
+#ifdef _MT_FLASH_DBG_
+              printf("\nBlock[%d] erase: SR = 0x%0x\n", sect, addr[0]);
+#endif
+
+            }
+              /* reset to read mode */
+            addr = (volatile unsigned char *)info->start[0];
+            addr[0] = 0xFF;	/* reset bank */
+          }
+          break;
+          default:
+            break;
+        }
+	return 0;
+}
+
+/*-----------------------------------------------------------------------
+ * Copy memory to flash, returns:
+ * 0 - OK
+ * 1 - write timeout
+ * 2 - Flash not erased
+ */
+
+int write_buff (flash_info_t *info, uchar *src, ulong addr, ulong cnt)
+{
+  ulong i;
+  int rc;
+/*??*///printf("%s @ %d:src:0x%p|addr:0x%X|cnd:0x%X\n",__FUNCTION__,__LINE__,src,addr,cnt);
+  for(i=0; i<cnt; i++)
+  {
+    if((rc = write_byte(info, addr+i, *(src+i))) != 0)
+    {
+      return(rc);
+    }
+  }
+
+  return(0);
+
+}
+
+/*-----------------------------------------------------------------------
+ * Write a byte to Flash, returns:
+ * 0 - OK
+ * 1 - write timeout
+ * 2 - Flash not erased
+ */
+static int write_byte (flash_info_t *info, ulong dest, unsigned char data)
+{
+	volatile unsigned char *addr = (unsigned char *)(info->start[0]);
+	ulong start;
+	int flag;
+
+	/* Check if Flash is (sufficiently) erased */
+	if ((*((unsigned char *)dest) & data) != data) {
+		return (2);
+	}
+
+        switch (info->flash_id & FLASH_TYPEMASK)
+        {
+          case FLASH_29LV002T:
+          case FLASH_29LV002B:
+          {
+              /* Disable interrupts which might cause a timeout here */
+            flag = disable_interrupts();
+
+            addr[0x0555] = 0xAA;
+            addr[0x02AA] = 0x55;
+            addr[0x0555] = 0xA0;
+
+            *((unsigned char *)dest) = data;
+
+              /* re-enable interrupts if necessary */
+            if (flag)
+              enable_interrupts();
+
+              /* data polling for D7 */
+            start = get_timer (0);
+            while ((*((unsigned char *)dest) & 0x80) != (data & 0x80))
+            {
+              if (get_timer(start) > CFG_FLASH_WRITE_TOUT) {
+                return (1);
+              }
+            }
+          }
+          break;
+          case FLASH_28F002B3T:
+          case FLASH_28F002B3B:
+          {
+               /* Disable interrupts which might cause a timeout here */
+            flag = disable_interrupts();
+
+              /* Write sequence */
+            addr[0x0] = 0x40;
+ 
+            *((unsigned char *)dest) = data;
+
+              /* re-enable interrupts if necessary */
+            if (flag)
+              enable_interrupts();
+
+            /* Read Status Register and check SR7 */
+            addr[0x0] = 0x70;
+            start = get_timer (0);
+            while ((*((unsigned char *)dest) & 0x80) != 0x80 )
+            {
+              if (get_timer(start) > CFG_FLASH_WRITE_TOUT) {
+                addr[0x0] = 0xFF; /* Return to Read Array mode */
+                return (1);
+              }
+            }
+            /* Return to Read Array mode */
+            addr[0x0] = 0xFF;
+          }
+          break;
+          default:
+            break;
+        }
+	return (0);
+}
+
+/*-----------------------------------------------------------------------
+ */
+
+static int _sao_8bytes_iguais(const uchar *src)
+{
+	uchar x= src[0];
+	return (x == src[1]) &&
+	(x == src[2]) &&
+	(x == src[3]) &&
+	(x == src[4]) &&
+	(x == src[5]) &&
+	(x == src[6]) &&
+	(x == src[7]);
+}
+
+int boot_update(flash_info_t *info)
+{
+  uchar * src_base;
+  int rc;
+  
+  src_base = (uchar *)CDF_BOOTUPD_DL_BASE;
+
+  printf("\nUpdate started ");
+
+  if(!(_sao_8bytes_iguais(src_base+0) &&
+      _sao_8bytes_iguais(src_base+8) &&
+      _sao_8bytes_iguais(src_base+16) &&
+      _sao_8bytes_iguais(src_base+24)))
+  {
+    printf("\n  Error: boot update failed!\n");
+    printf("  Please check if a valid binary boot file has \n" \
+           "  been loaded to address 0x%08x.\n", src_base);
+    return (-1); /* PPC boot signature not found */
+  }
+
+  /* For now only Top type flashes are supported to burn the boot */
+  /* due to flash internal organization, namely the areas to store */
+  /* the environment variables */
+
+  switch (info->flash_id & FLASH_TYPEMASK)
+  {
+    case FLASH_29LV002T:
+    {
+      rc=flash_erase (info, 0, 3); /* Erase first four blocks */
+      if(rc != 0)
+      {
+        printf("\n  Error: boot update failed (when erasing the flash)!\n");
+        return(-2);
+      }
+
+      /* Write first four blocks (for flash "Top" type: 3 blocks of 64k plus */
+      /* one block of 32k.                                                   */
+      rc=write_buff (info, src_base, (ulong)0xfff00000, (64*3 + 32) * 1024);
+      if(rc != 0)
+      {
+        printf("\n  Error: boot update failed (writing to flash)!\n");
+        return(-3);
+      }
+    }
+    break;
+    case FLASH_28F002B3T:
+    {
+      rc=flash_erase (info, 0, 1); /* Erase first first two blocks */
+      if(rc != 0)
+      {
+        printf("\n  Error: boot update failed (when erasing the flash)!\n");
+        return(-2);
+      }
+
+      /* Write first two blocks (for flash "Top" type: 128k block plus */
+      /* a 96k block.                                                  */
+      rc=write_buff (info, src_base, (ulong)0xfff00000, (128 + 96) * 1024);
+      if(rc != 0)
+      {
+        printf("\n  Error: boot update failed (writing to flash)!\n");
+        return(-3);
+      }
+    }
+    break;
+    default:
+        printf("\n  Error: boot update failed (invalid flash type)!\n");
+        return(-3);
+      break;
+  }
+  printf ("\nUpdate done.\n");
+
+  /* Now invalidadte the magic number to avoid a later update because */
+  /* we can not ensure that, in the meanwhile, the memory area where  */
+  /* the binary file was loaded was not modified.                     */
+  *((ulong *)src_base) = 0xabcd1234;
+
+  return(0);
+}

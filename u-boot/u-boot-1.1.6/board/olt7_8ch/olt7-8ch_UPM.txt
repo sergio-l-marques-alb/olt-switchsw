@@ -1,0 +1,80 @@
+/*********************** Configuration Warnings **************************
+      ************************   UPM A   **************************
+Section Error: In RSS: Incorrect Number of Transaction Assertions.
+Section Error: In RBS: Incorrect Number of Transaction Assertions.
+Section Error: In WSS: Incorrect Number of Transaction Assertions.
+Section Error: In WBS: Incorrect Number of Transaction Assertions.
+      ************************   UPM B   **************************
+Section Error: In RBS: Incorrect Number of Transaction Assertions.
+Section Error: In WBS: Incorrect Number of Transaction Assertions.
+      ************************   UPM C   **************************
+Section Error: In RBS: Incorrect Number of Transaction Assertions.
+Section Error: In WBS: Incorrect Number of Transaction Assertions.
+******************** End of Configuration Warnings ***********************/
+
+/* MxMR Configuration Code */
+unsigned long MAMR = 0x40000;
+unsigned long MBMR = 0x40000;
+unsigned long MCMR = 0x40000;
+
+/* UPM Table Configuration Code */
+static unsigned long UPMATable[] = 
+{
+	0xfffffc00,  0xfffffc00,  0xfffffc00,  0xfffffc00, //Words 0 to 3
+	0xfffffc00,  0xfffffc00,  0xfffffc00,  0xfffffc01, //Words 4 to 7
+	0xfffffc00,  0xfffffc00,  0xfffffc00,  0xfffffc00, //Words 8 to 11
+	0xfffffc00,  0xfffffc00,  0xfffffc00,  0xfffffc00, //Words 12 to 15
+	0xfffffc00,  0xfffffc00,  0xfffffc00,  0xfffffc00, //Words 16 to 19
+	0xfffffc00,  0xfffffc00,  0xfffffc00,  0xfffffc01, //Words 20 to 23
+	0xfffffc00,  0xfffffc00,  0xfffffc00,  0xfffffc00, //Words 24 to 27
+	0xfffffc00,  0xfffffc00,  0xfffffc00,  0xfffffc01, //Words 28 to 31
+	0xfffffc00,  0xfffffc00,  0xfffffc00,  0xfffffc00, //Words 32 to 35
+	0xfffffc00,  0xfffffc00,  0xfffffc00,  0xfffffc00, //Words 36 to 39
+	0xfffffc00,  0xfffffc00,  0xfffffc00,  0xfffffc00, //Words 40 to 43
+	0xfffffc00,  0xfffffc00,  0xfffffc00,  0xfffffc01, //Words 44 to 47
+	0xfffffc00,  0xfffffc00,  0xfffffc00,  0xfffffc00, //Words 48 to 51
+	0xfffffc00,  0xfffffc00,  0xfffffc00,  0xfffffc00, //Words 52 to 55
+	0xfffffc00,  0xfffffc00,  0xfffffc00,  0xfffffc01, //Words 56 to 59
+	0xfffffc00,  0xfffffc00,  0xfffffc00,  0xfffffc01  //Words 60 to 63
+};
+
+static unsigned long UPMBTable[] = 
+{
+	0xffffec00,  0x0ffcec00,  0x0ffcec00,  0x0ffcfc00, //Words 0 to 3
+	0x0ffcfc04,  0x0ffcec00,  0x0ffcec00,  0xffffec01, //Words 4 to 7
+	0xfffffc00,  0xfffffc00,  0xfffffc00,  0xfffffc00, //Words 8 to 11
+	0xfffffc00,  0xfffffc00,  0xfffffc00,  0xfffffc00, //Words 12 to 15
+	0xfffffc00,  0xfffffc00,  0xfffffc00,  0xfffffc00, //Words 16 to 19
+	0xfffffc00,  0xfffffc00,  0xfffffc00,  0xfffffc01, //Words 20 to 23
+	0xffffec00,  0x00ffec00,  0x00ffec00,  0x00fffc00, //Words 24 to 27
+	0x00fffc00,  0x00ffec00,  0x00ffec00,  0xffffec05, //Words 28 to 31
+	0xfffffc00,  0xfffffc00,  0xfffffc00,  0xfffffc00, //Words 32 to 35
+	0xfffffc00,  0xfffffc00,  0xfffffc00,  0xfffffc00, //Words 36 to 39
+	0xfffffc00,  0xfffffc00,  0xfffffc00,  0xfffffc00, //Words 40 to 43
+	0xfffffc00,  0xfffffc00,  0xfffffc00,  0xfffffc01, //Words 44 to 47
+	0xfffffc00,  0xfffffc00,  0xfffffc00,  0xfffffc00, //Words 48 to 51
+	0xfffffc00,  0xfffffc00,  0xfffffc00,  0xfffffc00, //Words 52 to 55
+	0xfffffc00,  0xfffffc00,  0xfffffc00,  0xfffffc01, //Words 56 to 59
+	0xfffffc00,  0xfffffc00,  0xfffffc00,  0xfffffc01  //Words 60 to 63
+};
+
+static unsigned long UPMCTable[] = 
+{
+	0xffffec00,  0x0fffec00,  0x0fffec00,  0x0ffcec00, //Words 0 to 3
+	0x0ffcec00,  0x0ffcec00,  0x0ffcec04,  0xffffec01, //Words 4 to 7
+	0xffffec00,  0xffffec00,  0xffffec00,  0xffffec00, //Words 8 to 11
+	0xffffec00,  0xffffec00,  0xffffec00,  0xffffec00, //Words 12 to 15
+	0xffffec00,  0xffffec00,  0xffffec00,  0xffffec00, //Words 16 to 19
+	0xffffec00,  0xffffec00,  0xffffec00,  0xffffec01, //Words 20 to 23
+	0xffffec00,  0x00ffec00,  0x00ffec00,  0x00ffec00, //Words 24 to 27
+	0x00ffec00,  0x0fffee00,  0x0fffec00,  0xffffec05, //Words 28 to 31
+	0xffffec00,  0xffffec00,  0xffffec00,  0xffffec00, //Words 32 to 35
+	0xffffec00,  0xffffec00,  0xffffec00,  0xffffec00, //Words 36 to 39
+	0xffffec00,  0xffffec00,  0xffffec00,  0xffffec00, //Words 40 to 43
+	0xffffec00,  0xffffec00,  0xffffec00,  0xffffec01, //Words 44 to 47
+	0xffffec00,  0xffffec00,  0xffffec00,  0xffffec00, //Words 48 to 51
+	0xffffec00,  0xffffec00,  0xffffec00,  0xffffec00, //Words 52 to 55
+	0xffffec00,  0xffffec00,  0xffffec00,  0xffffec01, //Words 56 to 59
+	0xffffec00,  0xffffec00,  0xffffec00,  0xffffec01  //Words 60 to 63
+};
+

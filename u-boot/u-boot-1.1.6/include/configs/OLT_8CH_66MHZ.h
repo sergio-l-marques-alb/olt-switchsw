@@ -1,0 +1,528 @@
+/*
+ * (C) Copyright 2005
+ * Jos� Pedro Pereira Valente de Matos <jose-v-matos@ptinovacao.pt>
+ * This file is based on similar values for other boards found in other
+ * U-Boot config files, and some that I found in the mpc8260ads manual.
+ *
+ * u-boot para BROUTER8_V2
+ * 
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
+ */
+
+#ifndef __CONFIG_H
+#define __CONFIG_H
+
+/*
+ * High Level Configuration Options
+ * (easy to change)
+ */
+
+#define CONFIG_PQ2PTIN           1	/* PT Inova��o PQ2PTIN board */
+
+/* PQ2PTIN flavours */
+//#define CFG_EMILOX16            1
+#define CFG_OLT                 1
+
+#define CONFIG_MPC8260		1
+
+/*-----------------------------------------------------------------------
+ * Flash
+ */
+#undef CFG_NO_FLASH
+
+#define CFG_FLASH_BASE          0xfff00000
+#define CFG_MAX_FLASH_BANKS     1       /* max num of memory banks      */
+#define CFG_MAX_FLASH_SECT      19      /* max num of sects on one chip */
+#define CFG_FLASH_SIZE          (1*1024*1024)
+#define CFG_FLASH_ERASE_TOUT    120000  /* Timeout for Flash Erase (in ms)    */
+#define CFG_FLASH_WRITE_TOUT    500     /* Timeout for Flash Write (in ms)    */
+#define CFG_FLASH_LOCK_TOUT     5       /* Timeout for Flash Set Lock Bit (in ms) */
+#define CFG_FLASH_UNLOCK_TOUT   10000   /* Timeout for Flash Clear Lock Bits (in ms) */
+//#define CFG_FLASH_PROTECTION          /* "Real" (hardware) sectors protection */
+
+#define CFG_FLASH0_BASE         CFG_FLASH_BASE
+#define FLASH_BASE0_PRELIM      CFG_FLASH_BASE
+#define CDF_BOOTUPD_DL_BASE     0x00600000
+
+/*-----------------------------------------------------------------------
+ * Environment
+ */
+#if 0
+//#define CFG_ENV_IS_NOWHERE
+#define CFG_ENV_IS_IN_NVRAM   1
+#  define CFG_ENV_ADDR        0xFF800000
+#  define CFG_ENV_SIZE        0x400
+#endif
+#if 1
+#define CFG_ENV_IS_IN_FLASH     1
+# define CFG_ENV_OFFSET          0x00040000
+# define CFG_ENV_SIZE            (64*1024)  /* Total Size of Environment Sector */
+# define CFG_ENV_SECT_SIZE       (64*1024)  /* see README - env sector total size */
+# define CFG_ENV_ADDR            (CFG_FLASH_BASE + CFG_ENV_OFFSET)
+#endif
+
+#undef CONFIG_BOARD_EARLY_INIT_F 	/* Call board_early_init_f	*/
+#undef CONFIG_BOARD_EARLY_INIT_R 
+
+/* allow serial and ethaddr to be overwritten */
+#define CONFIG_ENV_OVERWRITE
+
+/*
+ * select serial console configuration
+ *
+ * if either CONFIG_CONS_ON_SMC or CONFIG_CONS_ON_SCC is selected, then
+ * CONFIG_CONS_INDEX must be set to the channel number (1-2 for SMC, 1-4
+ * for SCC).
+ *
+ * if CONFIG_CONS_NONE is defined, then the serial console routines must
+ * defined elsewhere (for example, on the cogent platform, there are serial
+ * ports on the motherboard which are used for the serial console - see
+ * cogent/cma101/serial.[ch]).
+ */
+#undef	CONFIG_CONS_ON_SCC		/* define if console on SMC */
+#define CONFIG_CONS_ON_SMC		/* define if console on SCC */
+#undef	CONFIG_CONS_NONE		/* define if console on something else */
+#define CONFIG_CONS_INDEX	1	/* which serial channel for console */
+
+/*
+ * select ethernet configuration
+ *
+ * if either CONFIG_ETHER_ON_SCC or CONFIG_ETHER_ON_FCC is selected, then
+ * CONFIG_ETHER_INDEX must be set to the channel number (1-4 for SCC, 1-3
+ * for FCC)
+ *
+ * if CONFIG_ETHER_NONE is defined, then either the ethernet routines must be
+ * defined elsewhere (as for the console), or CFG_CMD_NET must be removed
+ * from CONFIG_COMMANDS to remove support for networking.
+ */
+#undef	CONFIG_ETHER_ON_SCC		/* define if ether on SCC   */
+#define CONFIG_ETHER_ON_FCC		/* define if ether on FCC   */
+#undef	CONFIG_ETHER_NONE		/* define if ether on something else */
+
+#ifdef CONFIG_ETHER_ON_FCC
+
+#define CONFIG_ETHER_INDEX	1	/* which SCC/FCC channel for ethernet */
+
+# define CFG_PHY_ADDR           0x10
+# define CFG_CMXFCR_VALUE       (CMXFCR_RF1CS_CLK9 | CMXFCR_TF1CS_CLK10)
+# define CFG_CMXFCR_MASK        (CMXFCR_FC1 | CMXFCR_RF1CS_MSK | CMXFCR_TF1CS_MSK)
+
+#define CFG_CPMFCR_RAMTYPE	0		/* BDs and buffers on 60x bus */
+#define CFG_FCC_PSMR		(FCC_PSMR_FDE | FCC_PSMR_LPB)  /* Full duplex */
+
+#endif /* CONFIG_ETHER_ON_FCC */
+
+
+#define CONFIG_MII			/* MII PHY management		*/
+#define CONFIG_BITBANGMII		/* bit-bang MII PHY management	*/
+#define CFG_FAULT_MII_ADDR   0x10
+
+// ini claudia setembro 2008
+/*
+ * GPIO pins used for bit-banged MII communications
+ */
+#define MDIO_PORT	2		/* Port C */
+// fim claudia
+
+#define MDIO_MACHINE_ADDR ((CFG_BR2_PRELIM & 0xFFFF8000) | 0x30)
+// ini claudia setembro 2008
+//#define MDIO_ACTIVE     emilox16_marvel_mdio_dir_read(0)
+//#define MDIO_TRISTATE   emilox16_marvel_mdio_dir_read(1)
+//#define MDIO_READ       (emilox16_marvel_mdio_read())
+//#define MDIO(bit)       (emilox16_marvel_mdio_write(bit))
+//#define MDC(bit)        (emilox16_marvel_mdc_write(bit))
+
+#define MDIO_ACTIVE     marvel_mdio_dir_read(0)
+#define MDIO_TRISTATE   marvel_mdio_dir_read(1)
+#define MDIO_READ       (marvel_mdio_read())
+#define MDIO(bit)       (marvel_mdio_write(bit))
+#define MDC(bit)        (marvel_mdc_write(bit))
+// fim claudia
+#define MIIDELAY        udelay(1)
+
+#ifndef CONFIG_SDRAM_PBI
+#define CONFIG_SDRAM_PBI        0 /* By default, use bank-based interleaving */
+#endif
+
+/* PCI */
+#define CONFIG_PCI
+#undef CONFIG_PCI_PNP
+#define CONFIG_PCI_BOOTDELAY 0
+#define CONFIG_PCI_SCAN_SHOW
+
+#ifndef CONFIG_8260_CLKIN
+#define CONFIG_8260_CLKIN	66000000	/* in Hz */ //Alterado por Licinio - Voltei a colocar a 66Mhz
+//#define CONFIG_8260_CLKIN	50000000	/* in Hz */ //Alterado por Milton - 50Mhz por causa do PCI
+#endif
+
+#define CONFIG_BAUDRATE		19200	
+//ini claudia setembro 2008
+//#define CFG_EXCLUDE		 CFG_CMD_BEDBUG | \
+//				 CFG_CMD_BMP	| \
+//				 CFG_CMD_BSP	| \
+//				 CFG_CMD_DATE	| \
+//				 CFG_CMD_DOC	| \
+//				 CFG_CMD_DTT	| \
+//				 CFG_CMD_EEPROM | \
+//				 CFG_CMD_ELF    | \
+//				 CFG_CMD_EXT2	| \
+//				 CFG_CMD_FAT    | \
+//				 CFG_CMD_FDC	| \
+//				 CFG_CMD_FDOS	| \
+//				 CFG_CMD_HWFLOW	| \
+//				 CFG_CMD_KGDB	| \
+//				 CFG_CMD_MMC	| \
+//				 CFG_CMD_NAND	| \
+//				 CFG_CMD_PCMCIA | \
+//				 CFG_CMD_REISER	| \
+//				 CFG_CMD_SCSI	| \
+//				 CFG_CMD_SPI	| \
+//				 CFG_CMD_UNIVERSE | \
+//				 CFG_CMD_USB	| \
+//				 CFG_CMD_VFD	| \
+//				 CFG_CMD_XIMG
+
+#define CFG_EXCLUDE		 CFG_CMD_BEDBUG | \
+				 CFG_CMD_BMP	| \
+				 CFG_CMD_BSP	| \
+				 CFG_CMD_DATE	| \
+                 CFG_CMD_DISPLAY | \
+				 CFG_CMD_DOC	| \
+				 CFG_CMD_DTT	| \
+				 CFG_CMD_EEPROM | \
+				 CFG_CMD_ELF    | \
+				 CFG_CMD_EXT2	| \
+				 CFG_CMD_FAT    | \
+				 CFG_CMD_FDC	| \
+				 CFG_CMD_FDOS	| \
+				 CFG_CMD_HWFLOW	| \
+				 CFG_CMD_KGDB	| \
+				 CFG_CMD_MMC	| \
+				 CFG_CMD_NAND	| \
+				 CFG_CMD_PCMCIA | \
+				 CFG_CMD_REISER	| \
+				 CFG_CMD_SCSI	| \
+				 CFG_CMD_SPI	| \
+                 CFG_CMD_SNTP	| \
+				 CFG_CMD_UNIVERSE | \
+				 CFG_CMD_USB	| \
+				 CFG_CMD_VFD	| \
+				 CFG_CMD_XIMG
+// fim claudia
+
+#define CONFIG_COMMANDS		(CFG_CMD_ALL & ~( \
+				 CFG_CMD_SDRAM	| \
+				 CFG_CMD_JFFS2  | \
+				 CFG_CMD_IMLS   | \
+				 CFG_CMD_I2C    | \
+				 CFG_EXCLUDE	))
+#define 		CMD_BOOT_UPDATE
+
+/* this must be included AFTER the definition of CONFIG_COMMANDS (if any) */
+#include <cmd_confdefs.h>
+
+#define CONFIG_BOOTDELAY	3		/* autoboot after 1 seconds */
+#define CONFIG_BOOTCOMMAND	"diskboot 0x1000000 0:1;bootm 0x1000000"	/* autoboot command */
+#define CONFIG_BOOTARGS		"root=/dev/hda2 rw,noatime,nodiratime console=ttyCPM0,19200 devfs=nomount"
+
+#define CONFIG_AUTOBOOT_KEYED   1
+//#define CONFIG_BOOT_RETRY_TIME 30
+//#define CONFIG_AUTOBOOT_DELAY_STR "espera"
+#define CONFIG_AUTOBOOT_STOP_STR  " "
+
+#if (CONFIG_COMMANDS & CFG_CMD_KGDB)
+#undef	CONFIG_KGDB_ON_SMC		/* define if kgdb on SMC */
+#define CONFIG_KGDB_ON_SCC		/* define if kgdb on SCC */
+#undef	CONFIG_KGDB_NONE		/* define if kgdb on something else */
+#define CONFIG_KGDB_INDEX	2	/* which serial channel for kgdb */
+#define CONFIG_KGDB_BAUDRATE	115200	/* speed to run kgdb serial port at */
+#endif
+
+#define CONFIG_BZIP2	/* include support for bzip2 compressed images */
+#undef	CONFIG_WATCHDOG	/* disable platform specific watchdog */
+
+/*
+ * Miscellaneous configurable options
+ */
+#define CFG_HUSH_PARSER
+#define CFG_PROMPT_HUSH_PS2 "> "
+#define CFG_LONGHELP			/* undef to save memory	    */
+#define CFG_PROMPT	"=> "		/* Monitor Command Prompt   */
+#if (CONFIG_COMMANDS & CFG_CMD_KGDB)
+#define CFG_CBSIZE	1024		/* Console I/O Buffer Size  */
+#else
+#define CFG_CBSIZE	256			/* Console I/O Buffer Size  */
+#endif
+#define CFG_PBSIZE (CFG_CBSIZE+sizeof(CFG_PROMPT)+16)	/* Print Buffer Size */
+#define CFG_MAXARGS	16			/* max number of command args	*/
+#define CFG_BARGSIZE	CFG_CBSIZE	/* Boot Argument Buffer Size	*/
+
+#define CFG_MEMTEST_START	0x00100000	/* memtest works on */
+#define CFG_MEMTEST_END		0x00f00000	/* 1 ... 15 MB in DRAM	*/
+
+#define CFG_LOAD_ADDR		0x100000	/* default load address */
+
+#define CFG_HZ			1000	/* decrementer freq: 1 ms ticks */
+
+#define CFG_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200, 230400 }
+
+/* this is stuff came out of the Motorola docs */
+//#define CFG_DEFAULT_IMMR	0x0F010000
+
+#define CFG_IMMR		0x0F000000
+#define CFG_SDRAM_BASE		0x00000000
+
+#define CFG_MONITOR_BASE    TEXT_BASE
+#define CFG_MONITOR_LEN		0x3C000
+//#define CFG_MONITOR_LEN		(256 << 10)	/* Reserve 256 kB for Monitor	*/
+#define CFG_BOOTMAPSZ		(8 << 20)	/* Initial Memory map for Linux */
+
+#ifdef CONFIG_BZIP2
+#define CFG_MALLOC_LEN		(4096 << 10)	/* Reserve 4 MB for malloc()	*/
+#else
+#define CFG_MALLOC_LEN		(128 << 10)	/* Reserve 128 KB for malloc()	*/
+#endif /* CONFIG_BZIP2 */
+
+#define CFG_CACHELINE_SIZE	32	/* For MPC8260 CPU */
+#if (CONFIG_COMMANDS & CFG_CMD_KGDB)
+#  define CFG_CACHELINE_SHIFT	5	/* log base 2 of the above value */
+#endif
+
+
+#define CFG_SYPCR		0xFFFFFFC3 /* DISABLE WATCHDOG */
+#define CFG_BCR			0x100C0000 
+#define CFG_SIUMCR		0x0A200000
+#define CFG_SCCR		SCCR_DFBRG10
+#define CFG_BR0_PRELIM		CFG_FLASH_BASE | 0x00000801
+#define CFG_OR0_PRELIM		0xFFF01EF0
+#define CFG_SDRAM_BASE          0x00000000
+
+
+#if 0
+// BR1                          0000_0000_0000_0000_0(BA) 00 1_1(32bit) 00(DEC) 0(WP) _010(SDRAM 60x) 0(EMEC)_10(RAWA Atomic) 0(DR) 1(VALID)
+#  define CFG_BR1_PRELIM      CFG_SDRAM_BASE | 0x00001845
+#  define CFG_OR1_PRELIM      0xfc002910
+//PSDMR
+//                       0(PBI Page-based interleaving) 0(Refresh disable) 00_0(Mode register write) 001(SDAM)_
+//                             010(BSMA) 0_10(SDA10=A10) 01_1(RFRC=5clock refresh recovery) 011(PRETOACT 3clk)_
+//                             011(ACTTORW=3clk) 1(BL=8)_10(LDOTOPRE - 2clk) 00_(WRC 4clock) _0(EAMUX=0) 0(BUFCMD=normal operation) 11(CAS=3)
+//                       0149b783
+#  define CFG_PSDMR_BASE 0x0149b783
+#else
+//PSDMR
+//                       0(PBI Bank page interleaving) 0(Refresh enable) 00_0(OP=Normal) 001(SDAM)_
+//                             001(BSMA) 0_11(SDA10=A9) 01_1(RFRC=5clock refresh recovery) 011(PRETOACT 3clk)_
+//                             011(ACTTORW=3clk) 0(BL=4)_10(LDOTOPRE - 2clk) 00_(WRC 4clock) _0(EAMUX=0) 0(BUFCMD=normal operation) 11(CAS=3)
+//                       0x012db683
+#  define CFG_PSDMR_BASE 0x012db683
+//#  define CFG_BR1_PRELIM    CFG_SDRAM_BASE | 0x00000045 /* 64 bit */
+#define CFG_BR1_PRELIM          CFG_SDRAM_BASE | 0x00000041     //em 15/03/2007 by Celso Lemos para resolver o problema do IP
+    //WM32      0x0471010c      1111_1000_0000(128 Mbytes) 0000_0(LSDAM) 01(4 banks) 0_010( row start at A7) 1_00(13 row address lines) 0(PMSEL) 1_(IBID interbank interleave = false)  28-31=0 (reserved)
+#  define CFG_OR1_PRELIM      0xf8002510 /*0xf8002510 128M */
+#endif
+
+// PLD @0xFF500000, 8bit, no parity
+#define CFG_OR2_PRELIM      0xfff018f0 /* 1111_1111_1111_0000_0 (AM 1M) 00(reserved) 1 _(BCTLx disabled) _1(CSNT) 00(ACS) 0(res)_  1111_(SCY) _0(PSDVAL internal) 0(TRLX) 0(ETHR) 0(res) */
+#define CFG_BR2_PRELIM      0xFF500801
+
+//CS3 - CS Leds
+//#define CFG_OR3_PRELIM      0xfff018f0 /* 1111_1111_1111_0000_0(AM 1M) 00(res) 1_(BCTLx disabled) _1(CSNT) 00(ACS) 0(res)_ 1111_(SCY) _0(PSDVAL internal) 0(TRLX) 0(ETHR) 0(res) */
+//#define CFG_BR3_PRELIM	    0xFF600801 /* 8 bit */
+#undef CFG_OR3_PRELIM
+#undef CFG_BR3_PRELIM
+
+//CS4 - Compact Flash  16Mbyte @ 0x60000000, 16bit, no parity
+//OR4         10124      1111_1111_0000_0000_0 (AM: 16 Mbyte) 00(Reserved) 0(BCTLx Enabled)  _000(Reserved) 1(BI burst inhibit=1)  _0000_0(Reserved) 00(Normal Hold Access) 0(Reserved)
+//BR4         10120      1111_1110_0000_0000_0(Base Address) 00(reserved) 1_0(16 Bit) 00(DECC) 0(WP Write Protect) _101(UPMB) 0(EMEC) _00(ATOM) 0(DR) 1(Valid) 
+#define CFG_OR4_PRELIM      0xff000100
+#define CFG_BR4_PRELIM      0x600010A1
+
+//CS5 - NVRAM 1Mbyte @ 0xff800000, 8bit, no parity
+//#define CFG_OR5_PRELIM       0xfff010f0
+//#define CFG_BR5_PRELIM       0xFF800801
+#undef CFG_OR5_PRELIM
+#undef CFG_BR5_PRELIM
+
+//CS6 - FPGA :1Mbyte @ 0xff900000, 8bit, no parity
+#define CFG_OR6_PRELIM      0xfff008f0
+#define CFG_BR6_PRELIM      0xFF900801
+//#undef CFG_OR6_PRELIM
+//#undef CFG_BR6_PRELIM
+
+//CS7 - LIU : LIU @0xFFA00000, 8bit, no parity
+//#define CFG_OR7_PRELIM      0xfff008f0
+//#define CFG_BR7_PRELIM      0xFFA00801
+#undef CFG_OR7_PRELIM
+#undef CFG_BR7_PRELIM
+
+//CS8 - SDRAM: LBUS 32MByte
+//#undef CFG_OR8_PRELIM
+//#undef CFG_BR8_PRELIM
+#undef CFG_OR8_PRELIM
+#undef CFG_BR8_PRELIM
+
+#define CFG_PSDMR		CFG_PSDMR_BASE
+#define CFG_PSRT		0x13
+#define CFG_MPTPR		0x2800
+
+#define CFG_RMR			RMR_CSRE
+#define CFG_TMCNTSC		(TMCNTSC_SEC|TMCNTSC_ALR|TMCNTSC_TCF|TMCNTSC_TCE)
+#define CFG_PISCR		(PISCR_PS|PISCR_PTF|PISCR_PTE)
+#define CFG_RCCR		0
+
+#undef CFG_LSDRAM_BASE		/* No local bus SDRAM on these boards */
+
+//#define CFG_RESET_ADDRESS	0x04400000
+#define CFG_RESET_ADDRESS       0xfff00100
+
+#define CFG_INIT_RAM_ADDR	CFG_IMMR
+#define CFG_INIT_RAM_END	0x2000	/* End of used area in DPRAM	*/
+#define CFG_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
+#define CFG_GBL_DATA_OFFSET	(CFG_INIT_RAM_END - CFG_GBL_DATA_SIZE)
+#define CFG_INIT_SP_OFFSET	CFG_GBL_DATA_OFFSET
+
+/* 0x04620340 : 0(EARB-External arbitration) 0(EXMC-External MEMC) 0(CDIS:core disable) 0_(EBM)
+ *              _01(BPS Boot port size=8bit) 0(CIP) 0_(ISPS) _01(L2CPC) 10_(DPPC) _0(PLLBP)  
+ *              010_(ISB=0x0F000000) _0(BMS) 0(BBD) 00_(MMR) _00(LBPC) 11_(APPC) _01(CS10PC)   
+ *              0(ALD_EN) 0_ _0011(MODCK)
+ *              tab 4, UNICOM/PROCESSAMENTO/MPC8280 - PowerQUICCII 
+ */
+								   
+//#define CFG_HRCW_MASTER  0x04620343 //Alterado por Hugo de 0x04620340 --> 0x04620343, para aumentar o clock do CPM
+#define CFG_HRCW_MASTER  0x04620740 //Alterado por Licinio de 0x04620343 --> 0x04620740, para activar o modo PCI
+//0x0CB20245
+
+/* 0x0EA28205 */
+
+/* #define CFG_HRCW_MASTER (   ( HRCW_BPS11 | HRCW_CIP )                       |\
+                            ( HRCW_L2CPC10 | HRCW_DPPC10 | HRCW_ISB010 )    |\
+                            ( HRCW_BMS | HRCW_APPC10 )                      |\
+	                    ( HRCW_MODCK_H0101 )                             \
+                        )
+*/
+/* no slaves */
+#define CFG_HRCW_SLAVE1 0
+#define CFG_HRCW_SLAVE2 0
+#define CFG_HRCW_SLAVE3 0
+#define CFG_HRCW_SLAVE4 0
+#define CFG_HRCW_SLAVE5 0
+#define CFG_HRCW_SLAVE6 0
+#define CFG_HRCW_SLAVE7 0
+
+#define BOOTFLAG_COLD	0x01	/* Normal Power-On: Boot from FLASH  */
+#define BOOTFLAG_WARM	0x02	/* Software reboot	     */
+
+#define CFG_HID0_INIT           0
+#define CFG_HID0_FINAL          (HID0_ICE | HID0_IFEM | HID0_ABE )
+
+#define CFG_HID2                0
+
+
+/* PCI Memory map (if different from default map */
+#define CFG_PCI_SLV_MEM_LOCAL	CFG_SDRAM_BASE		/* Local base */
+#define CFG_PCI_SLV_MEM_BUS		0x00000000		/* PCI base */
+#define CFG_PICMR0_MASK_ATTRIB	(PICMR_MASK_512MB | PICMR_ENABLE | \
+				 PICMR_PREFETCH_EN)
+
+/*
+ * These are the windows that allow the CPU to access PCI address space.
+ * All three PCI master windows, which allow the CPU to access PCI
+ * prefetch, non prefetch, and IO space (see below), must all fit within
+ * these windows.
+ */
+
+/* PCIBR0 */
+#define CFG_PCI_MSTR0_LOCAL		0x80000000		/* Local base */
+#define CFG_PCIMSK0_MASK		PCIMSK_1GB		/* Size of window */
+/* PCIBR1 */
+#define CFG_PCI_MSTR1_LOCAL		0xF4000000		/* Local base */
+#define CFG_PCIMSK1_MASK		PCIMSK_64MB		/* Size of window */
+
+/*
+ * Master window that allows the CPU to access PCI Memory (prefetch).
+ * This window will be setup with the first set of Outbound ATU registers
+ * in the bridge.
+ */
+
+#define CFG_PCI_MSTR_MEM_LOCAL	0x80000000          /* Local base */
+#define CFG_PCI_MSTR_MEM_BUS	0x80000000          /* PCI base   */
+#define	CFG_CPU_PCI_MEM_START	PCI_MSTR_MEM_LOCAL
+#define CFG_PCI_MSTR_MEM_SIZE	0x20000000          /* 512MB */
+#define CFG_POCMR0_MASK_ATTRIB	(POCMR_MASK_512MB | POCMR_ENABLE | POCMR_PREFETCH_EN)
+
+/*
+ * Master window that allows the CPU to access PCI Memory (non-prefetch).
+ * This window will be setup with the second set of Outbound ATU registers
+ * in the bridge.
+ */
+
+#define CFG_PCI_MSTR_MEMIO_LOCAL    0xA0000000          /* Local base */
+#define CFG_PCI_MSTR_MEMIO_BUS      0xA0000000          /* PCI base   */
+#define CFG_CPU_PCI_MEMIO_START     PCI_MSTR_MEMIO_LOCAL
+#define CFG_PCI_MSTR_MEMIO_SIZE     0x20000000          /* 512MB */
+#define CFG_POCMR1_MASK_ATTRIB      (POCMR_MASK_512MB | POCMR_ENABLE)
+
+/*
+ * Master window that allows the CPU to access PCI IO space.
+ * This window will be setup with the third set of Outbound ATU registers
+ * in the bridge.
+ */
+
+#define CFG_PCI_MSTR_IO_LOCAL       0xF4000000          /* Local base */
+#define CFG_PCI_MSTR_IO_BUS         0xF4000000          /* PCI base   */
+#define CFG_CPU_PCI_IO_START        PCI_MSTR_IO_LOCAL
+#define CFG_PCI_MSTR_IO_SIZE        0x04000000          /* 64MB */
+#define CFG_POCMR2_MASK_ATTRIB      (POCMR_MASK_64MB | POCMR_ENABLE | POCMR_PCI_IO)
+
+/*-----------------------------------------------------------------------
+ * IDE/ATA stuff (Supports IDE harddisk on PCMCIA Adapter)
+ *-----------------------------------------------------------------------
+ */
+#undef  CONFIG_IDE_LED                  /* LED   for ide not supported  */
+#undef  CONFIG_IDE_RESET                /* reset for ide not supported  */
+#define CONFIG_DOS_PARTITION
+
+//By clemos
+#undef ATA_RESET_TIME
+#define ATA_RESET_TIME  5      /* spec allows up to 10 seconds */
+////////
+
+#define CFG_IDE_MAXBUS          1       /* max. 1 IDE bus               */
+#define CFG_IDE_MAXDEVICE       1       /* max. 1 drive per IDE bus     */
+
+#define CFG_ATA_IDE0_OFFSET     0x0000
+
+#define CFG_ATA_BASE_ADDR       ((CFG_BR4_PRELIM & 0xFFFF8000)+0x00C00000)
+
+/* Offset for data I/O                  */
+#define CFG_ATA_DATA_OFFSET     0x1f0
+
+/* Offset for normal register accesses  */
+#define CFG_ATA_REG_OFFSET      0
+
+/* Offset for alternate registers       */
+#define CFG_ATA_ALT_OFFSET      0
+/*-----------------------------------------------------------------------
+ * I2C
+ */
+#undef CONFIG_HARD_I2C
+#define CFG_I2C_SPEED 40000
+#define CFG_I2C_SLAVE 0x7F
+
+#endif /* __CONFIG_H */

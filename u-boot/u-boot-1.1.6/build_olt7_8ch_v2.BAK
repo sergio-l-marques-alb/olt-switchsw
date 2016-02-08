@@ -1,0 +1,26 @@
+NAME=OLT7_8CH_50MHZ
+#DEVDIR=/usr/local/powerpc-linux-3.4.2
+DEVDIR=/opt/freescale/usr/local/gcc-4.0.2-glibc-2.3.6-nptl-2/powerpc-e300c3-linux
+CROSS_COMPILE=$DEVDIR/bin/powerpc-e300c3-linux-
+
+CC='${CROSS-COMPILE}gcc'
+CFLAGS='-O2 -pipe -g -Wall -UET_DEBUG -DDEBUG --save-temps' 
+CPPFLAGS='-I/$DEVDIR/include' 
+AS='${CROSS_COMPILE}as' 
+ASFLAGS='-g -gstabs' 
+LD='${CROSS_COMPILE}ld' 
+LIB='${CROSS_COMPILE}ar' 
+RANLIB='$CROSS_COMPILE\ranlib' 
+LLIBDIR='$DEVDIR/lib'  
+NM='${CROSS_COMPILE}nm'
+
+export CC CFLAGS CPPFLAGS AS ASFLAGS LD LIB RANLIB LLIBDIR NM CROSS_COMPILE
+
+rm -vf u-boot u-boot.bin u-boot.srec
+
+make distclean
+make mrproper
+make ${NAME}_config
+make
+mv u-boot.bin u-boot_${NAME}.bin
+cp u-boot_${NAME}.bin /tftpboot/u-boot_${NAME}.bin

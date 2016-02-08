@@ -1,0 +1,208 @@
+[Tool_Version]
+MPC8280 3.000
+[DEACTIVATED_GROUP_SIGNALS]
+SCC1-HDLC/UART/TRANSP./ETH. scc1_rts scc1_cts scc1_cd notasig__
+SCC2-HDLC/UART/TRANSP./ETH. scc2_rts scc2_cts scc2_cd notasig__
+SCC3-HDLC/UART/TRANSP./ETH. scc3_rts scc3_cts scc3_cd notasig__
+SCC4-HDLC/UART/TRANSP./ETH. scc4_rts scc4_cts scc4_cd notasig__
+TDMA1-BIT tdma1_l1rq tdma1_l1clko notasig__
+TDMB1 tdmb1_l1rq tdmb1_l1clko notasig__
+TDMC1 tdmc1_l1rq tdmc1_l1clko notasig__
+TDMD1 tdmd1_l1rq tdmd1_l1clko notasig__
+TDMA2-BIT tdma2_l1rq tdma2_l1clko notasig__
+TDMB2 tdmb2_l1rq tdmb2_l1clko notasig__
+TDMC2 tdmc2_l1rq tdmc2_l1clko notasig__
+TDMD2 tdmd2_l1rq tdmd2_l1clko notasig__
+SMC1 smc1_smsyn notasig__
+SMC2 smc2_smsyn notasig__
+[END]
+[OPEN_DRAIN_SIGNALS]
+[END]
+[PIN_DETAILS]
+pa0 O F FPGA_RDWR_Z ;
+pa1 I F  ;
+pa2 I F  ;
+pa3 I F  ;
+pa4 I F  ;
+pa5 I F  ;
+pa6 I F  ;
+pa7 I F  ;
+pa8 I F  ;
+pa9 I F  ;
+pa10 I F FPGA BUSY ;
+pa11 I F FPGA INIT_Z ;
+pa12 I F FPGA DONE ;
+pa13 O F FPGA PROGRAM_Z ;
+pa14 I F  ;
+pa15 I F  ;
+pa16 I F  ;
+pa17 I F  ;
+pa18 I F  ;
+pa19 I F  ;
+pa20 I F  ;
+pa21 I F  ;
+pa22 I F  ;
+pa23 I F  ;
+pa24 I F  ;
+pa25 I F  ;
+pa26 I F  ;
+pa27 I F  ;
+pa28 I F  ;
+pa29 I F  ;
+pa30 I F  ;
+pa31 I F  ;
+pb4 I F  ;
+pb5 I F  ;
+pb6 I F  ;
+pb7 I F  ;
+pb8 I F  ;
+pb9 I F  ;
+pb10 I F  ;
+pb11 I F  ;
+pb12 I F  ;
+pb13 I F  ;
+pb14 I F  ;
+pb15 I F  ;
+pb16 I F  ;
+pb17 I F  ;
+pb18 I F  ;
+pb19 I F  ;
+pb20 I F  ;
+pb21 I F  ;
+pb22 I F  ;
+pb23 I F  ;
+pb24 I F  ;
+pb25 I F  ;
+pb26 I F  ;
+pb27 I F  ;
+pb28 I F  ;
+pb29 I F  ;
+pb30 I F  ;
+pb31 I F  ;
+pc0 I F  ;
+pc1 I F  ;
+pc2 I F  ;
+pc3 I F  ;
+pc4 I F  ;
+pc5 I F  ;
+pc6 I F  ;
+pc7 I F  ;
+pc8 I F  ;
+pc9 I F  ;
+pc10 I F  ;
+pc11 I F  ;
+pc12 I F  ;
+pc13 I F  ;
+pc14 I F  ;
+pc15 I F  ;
+pc16 I F  ;
+pc17 I F  ;
+pc18 I F  ;
+pc19 I F  ;
+pc20 I F  ;
+pc21 I F  ;
+pc22 I F  ;
+pc23 I F  ;
+pc24 I F  ;
+pc25 I F  ;
+pc26 I F  ;
+pc27 I F  ;
+pc28 I F  ;
+pc29 I F  ;
+pc30 I F  ;
+pc31 I F  ;
+pd4 I F  ;
+pd5 I F  ;
+pd6 I F  ;
+pd7 I F  ;
+pd8 I F  ;
+pd9 I F  ;
+pd10 I F  ;
+pd11 I F  ;
+pd12 I F  ;
+pd13 I F  ;
+pd14 I F  ;
+pd15 I F  ;
+pd16 I F  ;
+pd17 I F  ;
+pd18 I F  ;
+pd19 I F  ;
+pd20 I F  ;
+pd21 I F  ;
+pd22 I F  ;
+pd23 I F  ;
+pd24 I F  ;
+pd25 I F  ;
+pd26 I F  ;
+pd27 I F  ;
+pd28 I F  ;
+pd29 I F  ;
+pd30 I F  ;
+pd31 I F  ;
+[END]
+[SIGNAL_COMMENTS]
+[END]
+[GROUP_DETAILS]
+FCC1-MII 
+I2C 
+TDMA1-BIT 
+TDMB1 
+TDMC1 
+TDMD1 
+TDMA2-BIT 
+TDMB2 
+TDMC2 
+TDMD2 
+BRG1 
+BRG2 
+CLK1 
+CLK2 
+CLK3 
+CLK4 
+CLK5 
+CLK6 
+CLK7 
+CLK8 
+CLK9 
+CLK10 
+CLK13 
+CLK14 
+CLK15 
+CLK16 
+CLK17 
+CLK18 
+CLK19 
+CLK20 
+SMC1 
+SMC2 
+[END]
+[CLK_DETAILS]
+FCC1-MII CLK9 R
+FCC1-MII CLK10 T
+TDMA1-BIT CLK1 R
+TDMA1-BIT CLK2 T
+TDMB1 CLK3 R
+TDMB1 CLK4 T
+TDMC1 CLK5 R
+TDMC1 CLK6 T
+TDMD1 CLK7 R
+TDMD1 CLK8 T
+TDMA2-BIT CLK13 R
+TDMA2-BIT CLK14 T
+TDMB2 CLK15 R
+TDMB2 CLK16 T
+TDMC2 CLK17 R
+TDMC2 CLK18 T
+TDMD2 CLK19 R
+TDMD2 CLK20 T
+SMC1 BRG1 T
+SMC1 BRG1 R
+SMC2 BRG2 T
+SMC2 BRG2 R
+[END]
+[Non-CPM_Values]
+1 LB_CS[5:7] ;
+2 LB_WE[0:3] ;
+3 LB_GPL4 ;
+4 IRQ[9:11] ;
+[END]

@@ -1,0 +1,419 @@
+List of allocated groups of pins
+========================================
+Group of pins: FCC1-MII
+----------------------------------------
+Used:	COL
+	CRS
+	RX_DV
+	TX_EN
+	RX_ER
+	TX_ER
+	TxD[0]
+	RxD[0]
+	TxD[1]
+	TxD[2]
+	TxD[3]
+	RxD[1]
+	RxD[2]
+	RxD[3]
+	
+Not used:	
+
+Group of pins: I2C
+----------------------------------------
+Used:	I2CSDA
+	I2CSCL
+	
+Not used:	
+
+Group of pins: TDMA1-BIT
+----------------------------------------
+Used:	L1TXD
+	L1RXD
+	L1TSYNC
+	L1RSYNC
+	
+Not used:	L1RQ
+	L1CLKO
+	
+Group of pins: TDMB1
+----------------------------------------
+Used:	L1TXD
+	L1RXD
+	L1TSYNC
+	L1RSYNC
+	
+Not used:	L1RQ
+	L1CLKO
+	
+Group of pins: TDMC1
+----------------------------------------
+Used:	L1TXD
+	L1RXD
+	L1TSYNC
+	L1RSYNC
+	
+Not used:	L1RQ
+	L1CLKO
+	
+Group of pins: TDMD1
+----------------------------------------
+Used:	L1TXD
+	L1RXD
+	L1TSYNC
+	L1RSYNC
+	
+Not used:	L1RQ
+	L1CLKO
+	
+Group of pins: TDMA2-BIT
+----------------------------------------
+Used:	L1TXD
+	L1RXD
+	L1TSYNC
+	L1RSYNC
+	
+Not used:	L1RQ
+	L1CLKO
+	
+Group of pins: TDMB2
+----------------------------------------
+Used:	L1TXD
+	L1RXD
+	L1RSYNC
+	L1TSYNC
+	
+Not used:	L1RQ
+	L1CLKO
+	
+Group of pins: TDMC2
+----------------------------------------
+Used:	L1TXD
+	L1RXD
+	L1RSYNC
+	L1TSYNC
+	
+Not used:	L1RQ
+	L1CLKO
+	
+Group of pins: TDMD2
+----------------------------------------
+Used:	L1TXD
+	L1RXD
+	L1RSYNC
+	L1TSYNC
+	
+Not used:	L1RQ
+	L1CLKO
+	
+Group of pins: BRG1
+----------------------------------------
+Used:	BRGO
+	
+Not used:	
+
+Group of pins: BRG2
+----------------------------------------
+Used:	BRGO
+	
+Not used:	
+
+Group of pins: CLK1
+----------------------------------------
+Used:	CLK1
+	
+Not used:	
+
+Group of pins: CLK2
+----------------------------------------
+Used:	CLK2
+	
+Not used:	
+
+Group of pins: CLK3
+----------------------------------------
+Used:	CLK3
+	
+Not used:	
+
+Group of pins: CLK4
+----------------------------------------
+Used:	CLK4
+	
+Not used:	
+
+Group of pins: CLK5
+----------------------------------------
+Used:	CLK5
+	
+Not used:	
+
+Group of pins: CLK6
+----------------------------------------
+Used:	CLK6
+	
+Not used:	
+
+Group of pins: CLK7
+----------------------------------------
+Used:	CLK7
+	
+Not used:	
+
+Group of pins: CLK8
+----------------------------------------
+Used:	CLK8
+	
+Not used:	
+
+Group of pins: CLK9
+----------------------------------------
+Used:	CLK9
+	
+Not used:	
+
+Group of pins: CLK10
+----------------------------------------
+Used:	CLK10
+	
+Not used:	
+
+Group of pins: CLK13
+----------------------------------------
+Used:	CLK13
+	
+Not used:	
+
+Group of pins: CLK14
+----------------------------------------
+Used:	CLK14
+	
+Not used:	
+
+Group of pins: CLK15
+----------------------------------------
+Used:	CLK15
+	
+Not used:	
+
+Group of pins: CLK16
+----------------------------------------
+Used:	CLK16
+	
+Not used:	
+
+Group of pins: CLK17
+----------------------------------------
+Used:	CLK17
+	
+Not used:	
+
+Group of pins: CLK18
+----------------------------------------
+Used:	CLK18
+	
+Not used:	
+
+Group of pins: CLK19
+----------------------------------------
+Used:	CLK19
+	
+Not used:	
+
+Group of pins: CLK20
+----------------------------------------
+Used:	CLK20
+	
+Not used:	
+
+Group of pins: SMC1
+----------------------------------------
+Used:	SMTXD
+	SMRXD
+	
+Not used:	SMSYN
+	
+Group of pins: SMC2
+----------------------------------------
+Used:	SMTXD
+	SMRXD
+	
+Not used:	SMSYN
+	
+
+List of pins and allocated functions
+========================================
+
+Pin  Group - Function
+----------------------------------
+
+pa0	PARALLEL PORT - OUTPUT	 : FPGA_RDWR_Z
+pa1	PARALLEL PORT - INPUT	 : 
+pa2	CLK20 - CLK20 - INPUT OR BIDIRECTIONAL	 :	
+pa3	CLK19 - CLK19 - INPUT OR BIDIRECTIONAL	 :	
+pa4	PARALLEL PORT - INPUT	 : 
+pa5	PARALLEL PORT - INPUT	 : 
+pa6	TDMA1-BIT - L1RSYNC - INPUT OR BIDIRECTIONAL	 :	
+pa7	TDMA1-BIT - L1TSYNC - INPUT OR BIDIRECTIONAL	 :	
+pa8	TDMA1-BIT - L1RXD - INPUT OR BIDIRECTIONAL	 :	
+pa9	TDMA1-BIT - L1TXD - INPUT OR BIDIRECTIONAL	 :	
+pa10	PARALLEL PORT - INPUT	 : FPGA BUSY
+pa11	PARALLEL PORT - INPUT	 : FPGA INIT_Z
+pa12	PARALLEL PORT - INPUT	 : FPGA DONE
+pa13	PARALLEL PORT - OUTPUT	 : FPGA PROGRAM_Z
+pa14	FCC1-MII - RxD[3] - INPUT OR BIDIRECTIONAL	 :	
+pa15	FCC1-MII - RxD[2] - INPUT OR BIDIRECTIONAL	 :	
+pa16	FCC1-MII - RxD[1] - INPUT OR BIDIRECTIONAL	 :	
+pa17	FCC1-MII - RxD[0] - INPUT OR BIDIRECTIONAL	 :	
+pa18	FCC1-MII - TxD[0] - OUTPUT	 :	
+pa19	FCC1-MII - TxD[1] - OUTPUT	 :	
+pa20	FCC1-MII - TxD[2] - OUTPUT	 :	
+pa21	FCC1-MII - TxD[3] - OUTPUT	 :	
+pa22	PARALLEL PORT - INPUT	 : 
+pa23	PARALLEL PORT - INPUT	 : 
+pa24	PARALLEL PORT - INPUT	 : 
+pa25	PARALLEL PORT - INPUT	 : 
+pa26	FCC1-MII - RX_ER - INPUT OR BIDIRECTIONAL	 :	
+pa27	FCC1-MII - RX_DV - INPUT OR BIDIRECTIONAL	 :	
+pa28	FCC1-MII - TX_EN - OUTPUT	 :	
+pa29	FCC1-MII - TX_ER - OUTPUT	 :	
+pa30	FCC1-MII - CRS - INPUT OR BIDIRECTIONAL	 :	
+pa31	FCC1-MII - COL - INPUT OR BIDIRECTIONAL	 :	
+
+pb4	TDMA2-BIT - L1RSYNC - INPUT OR BIDIRECTIONAL	 :	
+pb5	TDMA2-BIT - L1TSYNC - INPUT OR BIDIRECTIONAL	 :	
+pb6	TDMA2-BIT - L1RXD - INPUT OR BIDIRECTIONAL	 :	
+pb7	TDMA2-BIT - L1TXD - INPUT OR BIDIRECTIONAL	 :	
+pb8	TDMD1 - L1RSYNC - INPUT OR BIDIRECTIONAL	 :	
+pb9	TDMD1 - L1TSYNC - INPUT OR BIDIRECTIONAL	 :	
+pb10	TDMD1 - L1RXD - INPUT OR BIDIRECTIONAL	 :	
+pb11	TDMD1 - L1TXD - INPUT OR BIDIRECTIONAL	 :	
+pb12	TDMC1 - L1RSYNC - INPUT OR BIDIRECTIONAL	 :	
+pb13	TDMC1 - L1TSYNC - INPUT OR BIDIRECTIONAL	 :	
+pb14	TDMC1 - L1RXD - INPUT OR BIDIRECTIONAL	 :	
+pb15	TDMC1 - L1TXD - INPUT OR BIDIRECTIONAL	 :	
+pb16	CLK18 - CLK18 - INPUT OR BIDIRECTIONAL	 :	
+pb17	CLK17 - CLK17 - INPUT OR BIDIRECTIONAL	 :	
+pb18	PARALLEL PORT - INPUT	 : 
+pb19	PARALLEL PORT - INPUT	 : 
+pb20	TDMD2 - L1RSYNC - INPUT OR BIDIRECTIONAL	 :	
+pb21	TDMD2 - L1TSYNC - INPUT OR BIDIRECTIONAL	 :	
+pb22	TDMD2 - L1RXD - INPUT OR BIDIRECTIONAL	 :	
+pb23	TDMD2 - L1TXD - INPUT OR BIDIRECTIONAL	 :	
+pb24	TDMC2 - L1RSYNC - INPUT OR BIDIRECTIONAL	 :	
+pb25	TDMC2 - L1TSYNC - INPUT OR BIDIRECTIONAL	 :	
+pb26	TDMC2 - L1RXD - INPUT OR BIDIRECTIONAL	 :	
+pb27	TDMC2 - L1TXD - INPUT OR BIDIRECTIONAL	 :	
+pb28	TDMB2 - L1TSYNC - INPUT OR BIDIRECTIONAL	 :	
+pb29	TDMB2 - L1RSYNC - INPUT OR BIDIRECTIONAL	 :	
+pb30	TDMB2 - L1RXD - INPUT OR BIDIRECTIONAL	 :	
+pb31	TDMB2 - L1TXD - INPUT OR BIDIRECTIONAL	 :	
+
+pc0	PARALLEL PORT - INPUT	 : 
+pc1	PARALLEL PORT - INPUT	 : 
+pc2	PARALLEL PORT - INPUT	 : 
+pc3	PARALLEL PORT - INPUT	 : 
+pc4	PARALLEL PORT - INPUT	 : 
+pc5	PARALLEL PORT - INPUT	 : 
+pc6	PARALLEL PORT - INPUT	 : 
+pc7	PARALLEL PORT - INPUT	 : 
+pc8	PARALLEL PORT - INPUT	 : 
+pc9	PARALLEL PORT - INPUT	 : 
+pc10	PARALLEL PORT - INPUT	 : 
+pc11	PARALLEL PORT - INPUT	 : 
+pc12	PARALLEL PORT - INPUT	 : 
+pc13	PARALLEL PORT - INPUT	 : 
+pc14	PARALLEL PORT - INPUT	 : 
+pc15	SMC2 - SMTXD - OUTPUT	 :	
+pc16	CLK16 - CLK16 - INPUT OR BIDIRECTIONAL	 :	
+pc17	CLK15 - CLK15 - INPUT OR BIDIRECTIONAL	 :	
+pc18	CLK14 - CLK14 - INPUT OR BIDIRECTIONAL	 :	
+pc19	CLK13 - CLK13 - INPUT OR BIDIRECTIONAL	 :	
+pc20	PARALLEL PORT - INPUT	 : 
+pc21	PARALLEL PORT - INPUT	 : 
+pc22	CLK10 - CLK10 - INPUT OR BIDIRECTIONAL	 :	
+pc23	CLK9 - CLK9 - INPUT OR BIDIRECTIONAL	 :	
+pc24	CLK8 - CLK8 - INPUT OR BIDIRECTIONAL	 :	
+pc25	CLK7 - CLK7 - INPUT OR BIDIRECTIONAL	 :	
+pc26	CLK6 - CLK6 - INPUT OR BIDIRECTIONAL	 :	
+pc27	CLK5 - CLK5 - INPUT OR BIDIRECTIONAL	 :	
+pc28	CLK4 - CLK4 - INPUT OR BIDIRECTIONAL	 :	
+pc29	CLK3 - CLK3 - INPUT OR BIDIRECTIONAL	 :	
+pc30	CLK2 - CLK2 - INPUT OR BIDIRECTIONAL	 :	
+pc31	CLK1 - CLK1 - INPUT OR BIDIRECTIONAL	 :	
+
+pd4	SMC2 - SMRXD - INPUT OR BIDIRECTIONAL	 :	
+pd5	PARALLEL PORT - INPUT	 : 
+pd6	PARALLEL PORT - INPUT	 : 
+pd7	PARALLEL PORT - INPUT	 : 
+pd8	SMC1 - SMRXD - INPUT OR BIDIRECTIONAL	 :	
+pd9	SMC1 - SMTXD - OUTPUT	 :	
+pd10	TDMB1 - L1RSYNC - INPUT OR BIDIRECTIONAL	 :	
+pd11	TDMB1 - L1TSYNC - INPUT OR BIDIRECTIONAL	 :	
+pd12	TDMB1 - L1RXD - INPUT OR BIDIRECTIONAL	 :	
+pd13	TDMB1 - L1TXD - INPUT OR BIDIRECTIONAL	 :	
+pd14	I2C - I2CSCL - INPUT OR BIDIRECTIONAL	 :	
+pd15	I2C - I2CSDA - INPUT OR BIDIRECTIONAL	 :	
+pd16	PARALLEL PORT - INPUT	 : 
+pd17	BRG2 - BRGO - OUTPUT	 :	
+pd18	PARALLEL PORT - INPUT	 : 
+pd19	BRG1 - BRGO - OUTPUT	 :	
+pd20	PARALLEL PORT - INPUT	 : 
+pd21	PARALLEL PORT - INPUT	 : 
+pd22	PARALLEL PORT - INPUT	 : 
+pd23	PARALLEL PORT - INPUT	 : 
+pd24	PARALLEL PORT - INPUT	 : 
+pd25	PARALLEL PORT - INPUT	 : 
+pd26	PARALLEL PORT - INPUT	 : 
+pd27	PARALLEL PORT - INPUT	 : 
+pd28	PARALLEL PORT - INPUT	 : 
+pd29	PARALLEL PORT - INPUT	 : 
+pd30	PARALLEL PORT - INPUT	 : 
+pd31	PARALLEL PORT - INPUT	 : 
+
+
+
+
+Parallel port registers programming
+========================================
+
+/* PowerQUICC MPC8280 parallel ports configuration code */
+void init_parallel_ports()
+{
+	/* Reset all port pins to General Purpose I/O */
+	PPARA= 0x00000000;
+	PPARB= 0x00000000;
+	PPARC= 0x00000000;
+	PPARD= 0x00000000;
+
+	/* Reset all port pins to input direction */
+	PDIRA= 0x00000000;
+	PDIRB= 0x00000000;
+	PDIRC= 0x00000000;
+	PDIRD= 0x00000000;
+
+	/* Program the Port Special Options Registers */
+	PSORA= 0x03c0003f;
+	PSORB= 0x0fffcfff;
+	PSORC= 0x00000000;
+	PSORD= 0x083f1000;
+
+	/* Program the Port Data Direction Registers */
+	PDIRA= 0x80043c0c;
+	PDIRB= 0x00000000;
+	PDIRC= 0x00010000;
+	PDIRD= 0x00405000;
+
+	/* Program the Port Open-Drain Registers */
+	PODRA= 0x00000000;
+	PODRB= 0x00000000;
+	PODRC= 0x00000000;
+	PODRD= 0x00000000;
+
+	/* Program the Port Pin Assignment Registers */
+	PPARA= 0x33c3fc3f;
+	PPARB= 0x0fffcfff;
+	PPARC= 0x0001f3ff;
+	PPARD= 0x08ff5000;
+}
+

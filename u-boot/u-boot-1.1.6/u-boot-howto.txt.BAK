@@ -1,0 +1,134 @@
+-----------------------------------------------------------------------
+U-BOOT:
+O QUE SEMPRE QUIS SABER, MAS TIVE VERGONHA DE PERGUNTAR...
+-----------------------------------------------------------------------
+
+  Contribuições:
+  Paulo Gonçalves - paulog@ptinovacao.pt
+
+-----------------------------------------------------------------------
+
+NOVOS BLOCOS DE PROCESSAMENTO
+
+É frequente existirem pequenas diferenças entre blocos de processamento
+baseados no MPC8XX.
+Neste ponto serão enunciados os passos para criação de uma nova plataforma.
+
+1 - Determinar o nome a atribuir à plataforma:
+
+  Ex:
+  modbl220
+
+2 - Adicionar à "Makefile" principal a nova plataforma:
+
+  Ex:
+  Em "./Makefile":
+  modbl220_config: unconfig
+	         @./mkconfig $(@:_config=) ppc mpc8xx modbl220
+
+3 - Criar uma pasta dentro de "./board" com o código para a plataforma em
+questão. Para isso será um bom ponto de partida copiar uma plantaforma que
+já exista e que seja o mais parecida com a que se pretende criar.
+
+  Ex:
+  mkdir ./board/modbl220
+  cp ./board/ptin860t/* ./board/modbl220/.
+  mv ./board/modbl220/ptin860t.c ./board/modbl220/modbl220.c
+
+  Alterar ou adicionar o que for necessário.
+
+4 - Criar o arquivo de configuração em "./include/configs". Para isso também
+pode servir de ponto de partida um arquivo que já exista:
+
+  Ex:
+  cp ./include/configs/ptin860t.h ./include/configs/modbl220.h
+
+  Alterar ou adicionar o que for necessário.
+
+5 - Para compilar, é necessário referir o nome da nova plataforma:
+
+  Ex:
+  Make modbl220_config
+
+  Aconselha-se a criar uma nova shell orientada à nova plataforma.
+
+-----------------------------------------------------------------------
+Agumas plataformas já criadas:
+-----------------------------------------------------------------------
+
+  PTIN860T
+    Bloco basedo em MPC860T com file system em compact flash.
+
+  PTIN870F
+    Bloco basedo em MPC870 com file system em flash.
+
+  PTIN870CF
+    Bloco basedo em MPC870 com file system em compact flash.
+
+  UBOOT001
+    Equipamentos:
+      URT7
+    Propriedades:
+      uP @ 131MHz/65.5MHz
+      Watch-dog
+      FS em Compact Flash
+
+  UBOOT002
+    Equipamentos:
+      CONCAL-IP
+      URT7_V2
+      URT7_V3
+      BA-IP
+    Propriedades:
+      uP @ 65.5MHz/32.7MHz
+      Watch-dog
+      FS em Compact Flash
+
+  UBOOT003
+    Equipamentos:
+      MC7-CESoP
+    Propriedades:
+      uP @ 40.0MHz/40.0MHz
+      FS em Compact Flash
+
+  UBOOT004
+    Equipamentos:
+      MC7-Telem
+    Propriedades:
+      uP @ 66.0MHz/66.0MHz
+      Watch-dog
+      FS em Compact Flash
+
+  UBOOT005
+    Equipamentos:
+      MC7-8SHDSL
+    Propriedades:
+      uP @ 66MHz/66MHz
+      Watch-dog
+      FS em Flash
+
+  UBOOT006
+    Equipamentos:
+      PROBE-PON
+    Propriedades:
+      uP @ 66MHz/66MHz
+      FS em Compact Flash
+
+  UBOOT007
+    Equipamentos:
+      CONCAL-IP_V6
+    Propriedades:
+      uP @ 65.5MHz/32.7MHz
+      Watch-dog
+      FS em Compact Flash
+      Flash boot M29W800DT
+
+  olt7_8ch_v2
+    Unidades olt7-8ch V1 com 256MB
+
+  olt7_8ch_hv2
+    Unidades olt7-8ch V2 (V1 corrigida, acesso a memoria diferente)
+    
+-----------------------------------------------------------------------
+
+
