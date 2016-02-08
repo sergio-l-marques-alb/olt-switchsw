@@ -832,24 +832,32 @@ int MEP_enable_Tx_CSF(u16 mep_idx, u8 CSF_tx_flags, T_ETH_SRV_OAM *p_oam)
     return 0;
 }
 
-int MEP_is_CC_LOC_or_RDI(u16 mep_idx, T_ETH_SRV_OAM *p_oam)
+int MEP_is_CC_LOC_or_RDI(u16 mep_idx, T_ETH_SRV_OAM *p_oam, u16 *mep_id, u16 *rmep_id, T_MEG_ID *meg_id, u16 *prt, u64 *vid)
 {
     T_MEP   *_p_mep;
     T_MEP_DB *p_mep_db;
-    u32     i;
+    u32     i, r=0;
+
+    if (mep_idx>=N_MEPs) return 0;
 
     p_mep_db =  p_oam->db;
     _p_mep =    &p_mep_db[mep_idx].mep; //Get the pointer to this MEP,...
 
+    if (!valid_mep_id(_p_mep->mep_id)) return 0;
 
-    for 
-        (i=0; i<N_MAX_MEs_PER_MEP; i++) {
+    for (i=0; i<N_MAX_MEs_PER_MEP; i++) {
         if (!valid_mep_id(_p_mep->ME[i].mep_id))   continue;
 
-        if (LOC(_p_mep->ME[i].LOC_timer, OAM_TMR_CODE_TO_ms[_p_mep->tmout])) return 1;
-        if (_p_mep->ME[i].RDI) return 1;
+        if (LOC(_p_mep->ME[i].LOC_timer, OAM_TMR_CODE_TO_ms[_p_mep->tmout])) {r=1; break;}
+        if (_p_mep->ME[i].RDI) {r=2; break;}
     }//for
-    return 0;   // _p_mep->LOC
+
+    if (NULL!=meg_id)	memcpy(meg_id, &_p_mep->meg_id, sizeof(T_MEG_ID));
+    if (NULL!=mep_id)	*mep_id=_p_mep->mep_id;
+    if (NULL!=rmep_id && i<N_MAX_MEs_PER_MEP)	*rmep_id=_p_mep->ME[i].mep_id;
+    if (NULL!=prt)	*prt=_p_mep->prt;
+    if (NULL!=vid)	*vid=_p_mep->vid;
+    return r;   // _p_mep->LOC
 }
 
 int MEP_is_CSF_LOS(u16 mep_idx, T_ETH_SRV_OAM *p_oam)

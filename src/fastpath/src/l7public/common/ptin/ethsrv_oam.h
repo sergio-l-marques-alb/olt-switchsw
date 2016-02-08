@@ -901,7 +901,7 @@ extern int MEP_csf_admin(u16 mep_idx, u8 en1dis0, u8 period, T_ETH_SRV_OAM *p_oa
 
 // CSF Function and Link Fault Pass-through (LFP) integration
 extern int MEP_enable_Tx_CSF(u16 mep_idx, u8 CSF_tx_flags, T_ETH_SRV_OAM *p_oam);
-extern int MEP_is_CC_LOC_or_RDI(u16 mep_idx, T_ETH_SRV_OAM *p_oam);
+extern int MEP_is_CC_LOC_or_RDI(u16 mep_idx, T_ETH_SRV_OAM *p_oam, u16 *mep_id, u16 *rmep_id, T_MEG_ID *meg_id, u16 *prt, u64 *vid);
 extern int MEP_is_CSF_LOS(u16 mep_idx, T_ETH_SRV_OAM *p_oam);
 
 
