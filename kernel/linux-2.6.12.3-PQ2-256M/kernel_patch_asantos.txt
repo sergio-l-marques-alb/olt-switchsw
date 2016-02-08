@@ -1,0 +1,8 @@
+Todas as alteracoes são marcadas com a seguinte tag:
+ 'Added by PTin yyyy-mm-dd A.Santos'
+
+Ficheiro afectados:
+linux-2.6.12.3-PQ2-256M/kernel/sched.c
+linux-2.6.12.3-PQ2-256M/init/Kconfig
+linux-2.6.12.3-PQ2-256M/arch/ppc/configs/PQ2-PTIN_defconfig
+
