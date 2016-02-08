@@ -1,0 +1,29 @@
+#
+# Run packet TX, packet RX tests and CPU benchmark.
+echo "testsuite: started: performance" 
+
+# Packet RX test is not supported on fabric devices.
+if $?bradley || $?humv || $?herc "local skipRX false"
+
+echo "Running: Test(CPU_Benchmark)"
+tr 21
+echo "Complete: Test(CPU_Benchmark)"
+
+echo "Running: Test(Packet_TX)"
+tr 40 FP=false op=1000 LS=64 LE=1518 C=10000 PktsPerChain=4
+echo "Complete: Test(Packet_TX)"
+
+# Magnum requires override. testmode +override indicates that this tr 
+# has not been tested on this chip. However I've validated this test
+# before committing this change.
+if $?magnum "testmode +override"
+if $?tucana "testmode +override"
+
+if !$?skipRX "echo 'Running: Test(Packet_RX)'"
+if !$?skipRX "tr 41 T=2 LS=64 LE=1518 LI=64 PERC=0 R=0 B=100 PPC=4 C=4"
+if !$?skipRX "echo 'Complete: Test(Packet_RX)'"
+
+tl 
+local returnCode $?
+
+echo "testsuite: finished: performance: $returnCode"

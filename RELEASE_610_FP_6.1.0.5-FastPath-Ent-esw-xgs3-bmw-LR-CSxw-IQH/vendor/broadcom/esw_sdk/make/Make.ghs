@@ -1,0 +1,247 @@
+# $Id: Make.ghs,v 1.1 2011/04/18 17:10:58 mruas Exp $
+# $Copyright: Copyright 2008 Broadcom Corporation.
+# This program is the proprietary software of Broadcom Corporation
+# and/or its licensors, and may only be used, duplicated, modified
+# or distributed pursuant to the terms and conditions of a separate,
+# written license agreement executed between you and Broadcom
+# (an "Authorized License").  Except as set forth in an Authorized
+# License, Broadcom grants no license (express or implied), right
+# to use, or waiver of any kind with respect to the Software, and
+# Broadcom expressly reserves all rights in and to the Software
+# and all intellectual property rights therein.  IF YOU HAVE
+# NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+# IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+# ALL USE OF THE SOFTWARE.  
+#  
+# Except as expressly set forth in the Authorized License,
+#  
+# 1.     This program, including its structure, sequence and organization,
+# constitutes the valuable trade secrets of Broadcom, and you shall use
+# all reasonable efforts to protect the confidentiality thereof,
+# and to use this information only in connection with your use of
+# Broadcom integrated circuit products.
+#  
+# 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+# PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+# REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+# OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+# DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+# NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+# ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+# CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+# OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+# 
+# 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+# BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+# INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+# ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+# TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+# THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR U.S. $1,
+# WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+# ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+#
+# This file contains the common portion of the Makefiles for the different
+# Greenhills BSPs in ${SDK}/systems/ghs/*/Makefile
+#
+
+GHS_TARGET = ghs.st
+GHS_BINARY = bcm.${targetplat}${all_suffix}
+
+# Some diag libraries must appear more than once because there are
+# circular references that the linker won't otherwise resolve.
+
+ifdef ROBO_CHIPS
+DIAG += libdiagrobo.a
+endif
+ifdef ESW_CHIPS
+DIAG += libdiag_esw.a
+endif
+ifdef SBX_CHIPS
+DIAG += libdiag_sbx.a
+endif
+
+DIAG_BLD = $(addprefix ${LIBDIR}/,${DIAG})
+BCM_LIBS_BLD = ${BLDDIR}/socdiag.o \
+			${BLDDIR}/version.o \
+			${BLDDIR}/hal.o \
+			${BLDDIR}/platform_defines.o \
+			${LIBDIR}/libdiag.a \
+			${DIAG_BLD} \
+			${COND_LIB_BCMX_DIAG_BLD} \
+			${COND_LIB_TEST_BLD} \
+			${COND_LIB_TCL_BLD} \
+			${APPL_LIBS_BLD} \
+			${COND_LIB_BSAFE_BLD} \
+			${COND_LIB_ACL_BLD} \
+			${COND_LIB_ACL_BLD} \
+			${COND_LIB_BCM570X_BLD} \
+			${LIBDIR}/libsal_appl.a \
+			${COND_LIB_EDITLINE_BLD} \
+			${LIBDIR}/libsal_appl_plat.a \
+			${LIBDIR}/${LIB_BDE} \
+			${LIBDIR}/libsal_appl.a \
+			${DRV_LIBS_BLD} \
+			${COND_LIB_ETH_DRV_BLD} \
+			${COND_LIB_BSP}
+
+#
+# For now, put toolbase at the start of the PATH variable so everyone 
+# picks up the right tools.
+#
+
+GHS_HOST_BIN = /projects/ntsw-sw3/ghs/multi424/linux86/
+
+#
+# Since we are calling down into another vendors makefile, we must be 
+# sure to add everything it requires to the make flags.
+#
+
+override MAKEFLAGS +=	SRC_DIR=${GHS_SRC} SRCDIR=${GHS_SRC} \
+			PATH=${PATH} \
+			CC=${CC} LD=${LD} NM=${NM} \
+			SIZE=${SIZE} 
+
+# Setup default conditional library directory
+#ifndef COND_LIB_DIRECTORY
+#COND_LIB_DIRECTORY=${SDK}/systems/drv
+#endif
+
+#
+# Default target(s)
+#
+all:: ${GHS_BINARY}
+
+ifdef BUILD_COMPRESSED
+all:: ${GHS_BINARY}.Z ${GHS_BINARY}.gz
+endif
+
+#
+# Rule to build all BCM libraries before creating GHS binary.
+# From systems/ghs/*, one can run "make NO_BCM=1" to skip building
+# the BCM libraries and build only the GHS BSP.
+#
+.PHONY: bcm_libraries
+bcm_libraries:
+ifndef NO_BCM
+	$(MAKE) -C ${SDK}
+endif
+
+.PHONY: driver_libraries
+driver_libraries:
+ifndef NO_BCM
+	$(MAKE) -C ${SDK}/systems/drv
+endif
+
+LIB_BDE = libghsbde.a
+
+bde:
+	$(MAKE) -C ${SDK}/systems/bde/ghs
+
+# Build Compiled-In configuration Variable Support
+# Generate C stub for default SAL and BCM API configuration variables
+# See also $SDK/rc/config.bcm
+# See also $SDK/src/sal/appl/config.c
+PLATFORM_DEFINES_OBJ = ${BLDDIR}/platform_defines.o
+${BLDDIR}/platform_defines.c: ${SDK}/rc/config.bcm
+	$(BCM2C) ${SDK}/rc/config.bcm > $@
+${BLDDIR}/platform_defines.o: ${BLDDIR}/platform_defines.c
+	$(CC) ${CFLAGS} -c $< -o $@
+
+#
+# Build version generator.  If NO_VERSION=1 is specified in Make.local
+# or on command line, then use the existing version.c.  If that doesn't
+# exist, copy the default one from config.
+#
+# Otherwise, force the generation of a new version.c using the perl script.
+#
+ifeq "$(HOSTTYPE)" "Windows2000PC"
+ifdef NO_VERSION
+${BLDDIR}/version.c: ${BLDDIR}/.tree
+	$(CP) ${SDK}/make/version.c $@
+else
+.PHONY: _force
+${BLDDIRWITHDRIVE}/version.c: ${BLDDIR}/.tree _force
+	$(MKVERS) > $@
+endif
+${BLDDIR}/version.o: ${BLDDIRWITHDRIVE}/version.c
+	${CC} ${CFLAGS} -c $< -o $@
+else
+ifdef NO_VERSION
+${BLDDIR}/version.c: ${BLDDIR}/.tree
+	$(CP) ${SDK}/make/version.c $@
+else
+.PHONY: _force
+${BLDDIR}/version.c: ${BLDDIR}/.tree _force
+	$(MKVERS) > $@
+endif
+${BLDDIR}/version.o: ${BLDDIR}/version.c
+	${CC} ${CFLAGS} -c $< -o $@
+endif
+
+#
+# In Tornado 1, stripppc and objcopyppc corrupt the ELF program header
+# and require the use of the "stripfix" kludge.  Alternately, Solaris'
+# strip works on PPC binaries also (/usr/ccs/bin/strip).
+#
+STRIPFIX = $(PERL) ${SDK}/tools/stripfix.pl
+
+#
+# The following target creates the deflated version suitable to
+# place on the flash disk.
+#
+
+#DEFLATE = ${GHS_BASE}/host/${GHS_HOST_TYPE}/bin/deflate
+
+bcm.gz ${GHS_BINARY}.gz: ${GHS_BINARY}
+	@${ECHO} "GZIP Compressing ${GHS_BINARY} ==> ${GHS_BINARY}.gz ...."
+	${GZIP} -c ${GHS_BINARY} > ${GHS_BINARY}.gz
+	$(RM) bcm.gz; ln -s ${GHS_BINARY}.gz bcm.gz
+
+#ifdef COND_LIB_DIRECTORY
+#${LIBDIR}/libdrivers.${LIBSUFFIX}: ${BLDDIR}/.tree
+#	$(MAKE) -C ${COND_LIB_DIRECTORY}
+#endif
+
+ifdef COND_LIB_BCM570X
+${LIBDIR}/libbcm570x.${LIBSUFFIX}: ${BLDDIR}/.tree
+	$(MAKE) -C ${SDK}/systems/drv/bcm570x
+endif
+
+${GHS_TARGET}: $(BLDDIR)/socdiag.o $(BLDDIR)/version.o \
+	${PLATFORM_DEFINES_OBJ} $(BCM_LIBS_BLD)
+	@rm -f $@       # Prevent core dump if currently running
+	$(CC) $(CFLAGS) -o $@ $(BCM_LIBS_BLD) $(LDFLAGS)
+
+
+#
+# Use ghsclean to do a "make clean" in the GHS directory only.
+#
+ghsclean::
+	$(RM) ${GHS_BINARY} ${GHS_BINARY}.sym ${GHS_BINARY}.Z bcm.Z bcm.gz
+	$(RM) ${SRC_DIR}/${GHS_BINARY} ${SRC_DIR}/${GHS_BINARY}.sym
+	$(RM) ${SRC_DIR}/${GHS_BINARY}.Z ${SRC_DIR}/bcm.Z ${SRC_DIR}/bcm.gz
+	$(RM) ${SRC_DIR}/${GHS_TARGET}
+	$(RM) ${SRC_DIR}/ghs.dla
+	$(RM) ${SRC_DIR}/ghs.dnm
+	$(RM) ${SRC_DIR}/ghs.map
+
+clean:: ghsclean
+	$(MAKE) -C ${SDK} clean
+	$(MAKE) -C ${SDK}/systems/drv clean
+ifdef COND_LIB_BCM570X
+	$(MAKE) -C ${SDK}/systems/drv/bcm570x clean
+endif
+	$(MAKE) -C ${SDK}/systems/bde/ghs clean
+
+	$(RM) ${BOBJS}
+	$(RM) ${BLDDIR}/version.c ${BLDDIR}/version.o
+	$(RM) ${BLDDIR}/platform_defines.c ${BLDDIR}/platform_defines.o
+	@# Rather than just removing the build directory, the following
+	@# will detect any file missed by 'clean' so it can be fixed.
+	@-find ${BLDROOT} -depth \
+		\( -name .tree -exec rm {} \; \) -o \
+		\( -type d -exec rmdir {} \; \) -o \
+		-exec echo WARNING: make clean did not remove {} \; \
+		-exec rm -f {} \;
+

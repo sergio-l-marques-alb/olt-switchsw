@@ -1,0 +1,155 @@
+# $Copyright: (c) 2004 Broadcom Corp.
+# All Rights Reserved.$
+#
+# Triumph/Valkyrie Sanity (for screening)
+#
+# Script to run all available tests as quickly as possible.
+# For testing basic sanity of new drivers, simulators, chips, etc.
+#
+
+echo "testsuite: started: sanity"
+rcload rc.soc
+counter off
+l2mode off
+linkscan off
+
+if $?BCM56680_A0 || $?BCM56684_A0 \
+    'port ge1-ge24 an=off sp=2500 en=1; \
+     sleep 2'
+
+# We need to print out port status since any cabling effects results.
+*:ps
+
+local done 'echo "   Done"'
+
+# Set run command script not to fail on errors reported by commands
+# this allows the script to continue if a test fails
+set rcerror=false
+
+# Set up test mode: don't stop on errors, show progress on each test
+tm -stoponerror +progress
+# Unselect all
+ts -*
+
+#Display some useful information
+date
+ver
+soc
+
+init soc
+
+set rct=false
+echo "Running Switching Memory Tests (CAMs only) ..."
+echo " EFP_TCAM";
+tr 50 M=EFP_TCAM;
+tr 51 M=EFP_TCAM;
+tr 52 M=EFP_TCAM;
+echo " FP_TCAM";
+tr 50 M=FP_TCAM;
+tr 51 M=FP_TCAM;
+tr 52 M=FP_TCAM;
+echo " VFP_TCAM";
+tr 50 M=VFP_TCAM;
+tr 51 M=VFP_TCAM;
+tr 52 M=VFP_TCAM;
+echo " L3_DEFIP_ONLY";
+tr 71 M=L3_DEFIP_ONLY S=0 C=0 TSE=F SLTH=T;
+tr 71 M=L3_DEFIP_ONLY S=0 C=0 TSE=T SLTH=T;
+tr 71 M=L3_DEFIP_ONLY S=0 C=0 TSE=T SLTH=F;
+echo " L3_TUNNEL";
+tr 50 M=L3_TUNNEL;
+tr 51 M=L3_TUNNEL;
+tr 52 M=L3_TUNNEL;
+echo " VLAN_SUBNET_ONLY";
+tr 50 M=VLAN_SUBNET_ONLY;
+tr 51 M=VLAN_SUBNET_ONLY;
+tr 52 M=VLAN_SUBNET_ONLY;
+echo " L2_USER_ENTRY_ONLY";
+tr 71 M=L2_USER_ENTRY_ONLY S=0 C=0 TSE=F SLTH=T;
+tr 71 M=L2_USER_ENTRY_ONLY S=0 C=0 TSE=T SLTH=T;
+tr 71 M=L2_USER_ENTRY_ONLY S=0 C=0 TSE=T SLTH=F;
+echo " L3_DEFIP_128_ONLY";
+tr 71 M=L3_DEFIP_128_ONLY S=0 C=0 TSE=F SLTH=T;
+tr 71 M=L3_DEFIP_128_ONLY S=0 C=0 TSE=T SLTH=T;
+tr 71 M=L3_DEFIP_128_ONLY S=0 C=0 TSE=T SLTH=F;
+echo " CPU_COS_MAP_ONLY"; 
+tr 50 M=CPU_COS_MAP_ONLY; 
+tr 51 M=CPU_COS_MAP_ONLY;
+tr 52 M=CPU_COS_MAP_ONLY; 
+
+$done
+set rct=true
+
+#Traffic Test
+if $?BCM56820_A0
+    'rc; \
+     echo "Running Traffic Test in PHY mode ..."; \
+     tr 72 RM=PHY PBM=xe0-xe23 tis=30 l=64;'
+$done
+
+echo "Testing PHY Loopback - 10000 Mb/s all HG ports"
+rc
+tr 19 pbm=hg speed=10G
+$done
+
+if $?BCM56820_A0 \
+    'rc; \
+     echo "Testing EXT Loopback - 1000 Mb/s all GE ports"; \
+     tr 19 pbm=ge0-ge3 speed=1000 ExtselfloopPBM=ge0-ge3'
+$done
+
+# FIXME: Import external patterns from main sanity once verified.
+
+if $?BCM56820_A0 \
+    'setenv ext10G  1;'
+if !$?BCM56820_A0 \
+    'setenv ext10G  1; \
+     setenv ext16G  1'
+
+#External Loopback on HG port
+if $?BCM56624_A0 || $?BCM56680_A0 || $?BCM56684_A0 \
+    'local hg_fwd 0x50000000; \
+     local hg_bwd 0xa0000000'
+if $?BCM56626_A0 \
+    'local hg_fwd 0x50100000; \
+     local hg_bwd 0xa1000000'
+if $?BCM56628_A0 \
+    'local hg_fwd 0x50100004; \
+     local hg_bwd 0xa1004000'
+if $?BCM56629_A0 \
+    'local hg_fwd 0x50100000; \
+     local hg_bwd 0xa1000000'
+
+if $?ext10G \
+        "echo Testing External Loopback - 10 GB/s forward; \
+                tr 20 tpbm=$hg_fwd di=1 speed=10G count=10; \
+         echo Testing External Loopback - 10 GB/s reverse; \
+                tr 20 tpbm=$hg_bwd di=-1 speed=10G count=10"
+
+if $?ext12G \
+        "echo Testing External Loopback - 12 GB/s forward; \
+                tr 20 tpbm=$hg_fwd di=1 speed=12G count=10; \
+         echo Testing External Loopback - 12 GB/s reverse; \
+                tr 20 tpbm=$hg_bwd di=-1 speed=12G count=10"
+
+if $?ext16G \
+        "echo Testing External Loopback - 16 GB/s forward; \
+                tr 20 tpbm=$hg_fwd di=1 speed=16G count=10; \
+         echo Testing External Loopback - 16 GB/s reverse; \
+                tr 20 tpbm=$hg_bwd di=-1 speed=16G count=10"
+
+# Show status
+date
+tl 
+local returnCode $?
+
+echo Tests Complete.  Reinitializing ...
+config refresh
+rcload rc.soc
+counter off
+l2mode off
+
+# We want to show the return code from the tl command which
+# lists the results. The automated test infrastructure keys off of this 
+# value
+echo "testsuite: finished: sanity: $returnCode"

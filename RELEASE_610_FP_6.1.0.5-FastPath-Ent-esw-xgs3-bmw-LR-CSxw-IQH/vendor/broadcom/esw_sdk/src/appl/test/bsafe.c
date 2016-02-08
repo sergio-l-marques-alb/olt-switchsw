@@ -1,0 +1,161 @@
+/*
+ * $Id: bsafe.c,v 1.1 2011/04/18 17:11:00 mruas Exp $
+ * $Copyright: Copyright 2009 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ *
+ * BroadSAFE tests
+ */
+
+#include <sal/core/libc.h>
+#include <stdarg.h>
+
+#include <sal/types.h>
+#include <soc/mem.h>
+#include <soc/cm.h>
+#include <soc/bsafe.h>
+
+#include <appl/diag/system.h>
+#include <appl/diag/parse.h>
+#include <appl/diag/test.h>
+
+#include "testlist.h"
+
+#ifdef BCM_ESW_SUPPORT
+
+#define SELF_TEST_VECTOR_DEFAULT	0x00007fc
+#define SELF_TEST_VECTOR_BRADLEY	0x00003fe
+
+typedef struct bsafe_test_s {
+    uint32	self_test_vector;
+} bsafe_test_t;
+
+int
+bsafe_test_done(int unit, void *pa)
+{
+    bsafe_test_t	*b = pa;
+
+    if (b != NULL) {
+	sal_free(b);
+    }
+
+    return 0;
+}
+
+int
+bsafe_test_init(int unit, args_t *a, void **pa)
+{
+    bsafe_test_t	*b = 0;
+    int			rv = -1, r;
+    parse_table_t       pt;
+
+    *pa = NULL;
+
+    if ((b = sal_alloc(sizeof (bsafe_test_t), "bsafe_diag")) == 0) {
+	goto done;
+    }
+
+    sal_memset(b, 0, sizeof (*b));
+
+    *pa = b;
+
+    b->self_test_vector = SELF_TEST_VECTOR_DEFAULT;
+
+#ifdef BCM_BRADLEY_SUPPORT
+    if (SOC_IS_HB_GW(unit)) {
+        b->self_test_vector = SELF_TEST_VECTOR_BRADLEY;
+    }
+#endif
+
+    parse_table_init(unit, &pt);
+    parse_table_add(&pt, "Vector", PQ_HEX|PQ_DFL, 0,
+                    &b->self_test_vector, NULL);
+
+    if (parse_arg_eq(a, &pt) < 0 || ARG_CNT(a) != 0) {
+        test_error(unit,
+                   "%s: Invalid option: %s\n",
+                   ARG_CMD(a),
+                   ARG_CUR(a) ? ARG_CUR(a) : "*");
+        parse_arg_eq_done(&pt);
+	goto done;
+    }
+
+    parse_arg_eq_done(&pt);
+
+    r = soc_bsafe_init(unit);
+
+    if (r < 0) {
+	test_error(unit,
+		   "BroadSAFE init failed: %s\n",
+		   soc_errmsg(rv));
+	goto done;
+    }
+
+    rv = 0;
+
+ done:
+    if (rv < 0) {
+	bsafe_test_done(unit, *pa);
+    }
+
+    return rv;
+}
+
+int
+bsafe_test_test(int unit, args_t *a, void *pa)
+{
+    bsafe_test_t	*b = pa;
+    uint32		fail_vector;
+    int			r;
+
+    r = soc_bsafe_selftest(unit, b->self_test_vector, &fail_vector);
+
+    if (r < 0) {
+	test_error(unit,
+		   "BroadSAFE Self-Test failed: %s (vector=0x%04x)\n",
+		   soc_errmsg(r),
+		   fail_vector);
+	return -1;
+    }
+
+    return 0;
+}
+#endif /* BCM_ESW_SUPPORT */

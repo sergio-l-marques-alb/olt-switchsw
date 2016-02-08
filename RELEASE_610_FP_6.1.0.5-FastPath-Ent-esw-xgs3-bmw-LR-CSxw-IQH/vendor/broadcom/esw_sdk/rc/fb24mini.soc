@@ -1,0 +1,21 @@
+# $Id: fb24mini.soc,v 1.1 2011/04/18 18:52:10 mruas Exp $
+# $Copyright: (c) 2004 Broadcom Corp.
+# All Rights Reserved.$
+#
+# Script to run led diag and all available tests through fsanity soc script.
+
+if $?fb24mini \
+    "echo Running LED test, Press spacebar to turn all the leds to green ..; \
+    pause ;\
+    phy ge 0x1c 0xb8fe; \
+    phy ge 0x1c 0xb4fe; \
+    echo Press spacebar to turn all the leds to yellow ..; \
+    pause; \
+    phy ge 0x1c 0xb8ef; \
+    phy ge 0x1c 0xb4ef; \
+    "
+
+
+echo "Running the fsanity script .."
+fsanity
+

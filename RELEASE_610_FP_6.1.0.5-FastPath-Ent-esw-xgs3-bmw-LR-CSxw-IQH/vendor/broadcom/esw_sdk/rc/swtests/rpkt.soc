@@ -1,0 +1,65 @@
+#
+# Receive packet test cases
+#
+
+# These are the common cases done for all other configs.
+setenv base_cases "sleep 1; tr 41 r=500 b=0; sleep 1; tr 41 r=100 b=500; \
+sleep 1; tr 41 r=5000 b=1000; sleep 1; tr 41 r=0 b=0; sleep 1"
+
+echo ""; echo "New test case"; echo ""
+echo "Basic tests"
+tr 41 ls=64 le=1522 li=451 fb=f r=50 b=30 ppc=4 intr=t
+$base_cases
+
+echo ""; echo "New test case"; echo ""
+echo "Per-COS tests"
+tr 41 ls=64 le=1522 li=451 fb=f r=50 b=100 ppc=4 intr=t percos=1
+$base_cases
+
+echo ""; echo "New test case"; echo ""
+echo "MAX queue length tests"
+tr 41 ls=64 le=1522 li=451 fb=f r=50 b=100 ppc=4 intr=t percos=1 qlen=10
+$base_cases
+
+echo ""; echo "New test case"; echo ""
+echo "MAX queue length tests"
+tr 41 ls=64 le=1522 li=451 fb=f r=50 b=100 ppc=4 intr=t percos=1 qlen=1000
+$base_cases
+
+echo ""; echo "New test case"; echo ""
+echo "Free buffer tests"
+tr 41 r=50 b=100 fb=t percos=0 qlen=-1
+$base_cases
+
+echo ""; echo "New test case"; echo ""
+echo "Non-interrupt tests"
+tr 41 r=100 b=200 fb=f intr=f
+$base_cases
+
+echo ""; echo "New test case"; echo ""
+echo "Non-interrupt, free buffer tests"
+tr 41 r=100 b=200 fb=t intr=f
+$base_cases
+
+echo ""; echo "New test case"; echo ""
+echo "Increasing packets/chain: 8, chains 4"
+tr 41 ls=64 le=1522 li=401 fb=f r=0 b=1000 ppc=8 intr=t
+
+echo "Increasing packets/chain: 16, chains 4"
+tr 41 ls=64 le=1522 li=401 fb=f r=0 b=1000 ppc=16 intr=t
+
+echo ""; echo "New test case"; echo ""
+echo "Increasing packets/chain: 8, chains 8"
+tr 41 ls=64 le=1522 li=401 fb=f r=0 b=1000 ppc=8 c=8 intr=t
+
+echo "Increasing packets/chain: 16 chains 16"
+tr 41 ls=64 le=1522 li=401 fb=f r=0 b=1000 ppc=16 c=16 intr=t
+
+echo "Running for two minutes, interrupt"
+tr 41 t=120 ls=64 le=1522 li=401 fb=f r=0 b=1000 c=4 ppc=8 intr=t
+
+echo "Running for two minutes non-interrupt"
+tr 41 t=120 ls=64 le=1522 li=401 fb=f r=0 b=1000 c=4 ppc=8 intr=f
+
+echo "Running for two minutes non-interrupt, free buf"
+tr 41 t=120 ls=64 le=1522 li=401 fb=t r=0 b=1000 c=4 ppc=8 intr=f

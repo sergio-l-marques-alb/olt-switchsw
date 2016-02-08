@@ -1,0 +1,34 @@
+#!/usr/local/bin/expect
+
+# This example Expect script runs the clear counters command, sleeps,
+# runs the show counters command, sleeps, and repeats in a loop.
+
+set timeout 600
+
+set DELAY_CLR  2
+set DELAY_SHO  3
+
+# The command "rack 4.3" should be replaced by the appropriate command
+# to telnet to your SDK on the terminal server.
+
+spawn rack 4.3
+
+send "\r" 
+send "\r"
+send "\r"
+
+while {1} {
+	expect "BCM.0>" { send "clear counters\r" }
+	sleep $DELAY_CLR
+	send "\r"
+	send "\r"
+	send "\r"
+	expect "BCM.0>" { send "show counters\r" }
+	expect "BCM.0>"
+	sleep $DELAY_SHO
+	send "\r"
+	send "\r"
+	send "\r"
+}
+
+interact

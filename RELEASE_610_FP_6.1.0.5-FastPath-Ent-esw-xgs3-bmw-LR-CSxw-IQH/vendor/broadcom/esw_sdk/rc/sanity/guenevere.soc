@@ -1,0 +1,7 @@
+# This scripts to run all sanity test on all chips in Guenevere
+
+0:bcm5675.soc
+1:bcm5695.soc
+2:bcm5695.soc
+3:bcm5673.soc
+4:bcm5673.soc

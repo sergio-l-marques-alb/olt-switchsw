@@ -1,0 +1,216 @@
+# $Copyright: (c) 2004 Broadcom Corp.
+# All Rights Reserved.$
+#
+# Triumph/Valkyrie Sanity (for screening)
+#
+# Script to run all available tests as quickly as possible.
+# For testing basic sanity of new drivers, simulators, chips, etc.
+#
+
+echo "testsuite: started: sanity"
+rcload rc.soc
+counter off
+l2mode off
+linkscan off
+
+if $?BCM56620_A0 || $?BCM56620_A1 || $?BCM56620_B0 \
+    'local BCM56620 1'
+if $?BCM56624_A0 || $?BCM56624_A1 || $?BCM56624_B0 \
+    'local BCM56624 1'
+if $?BCM56626_A0 || $?BCM56626_A1 || $?BCM56626_B0 \
+    'local BCM56626 1'
+if $?BCM56628_A0 || $?BCM56628_A1 || $?BCM56628_B0 \
+    'local BCM56628 1'
+if $?BCM56629_A1 || $?BCM56629_B0 \
+    'local BCM56629 1'
+if $?BCM56680_A0 || $?BCM56680_A1 || $?BCM56680_B0 \
+    'local BCM56680 1'
+if $?BCM56684_A0 || $?BCM56684_A1 || $?BCM56684_B0 \
+    'local BCM56684 1'
+
+if $?BCM56680 || $?BCM56684 \
+    'port ge1-ge24 an=off sp=2500 en=1; \
+     sleep 2'
+
+# We need to print out port status since any cabling effects results.
+*:ps
+
+local done 'echo "   Done"'
+
+# Set run command script not to fail on errors reported by commands
+# this allows the script to continue if a test fails
+set rcerror=false
+
+# Set up test mode: don't stop on errors, show progress on each test
+tm -stoponerror +progress
+# Unselect all
+ts -*
+
+#Display some useful information
+date
+ver
+soc
+
+set rct=true
+
+#Traffic Test
+if $?BCM56624 \
+    'echo "Running Traffic Test in PHY mode - all GE ports"; \
+     tr 72 RM=PHY PBM=0x3fffff0ffffffc tis=30 l=64; \
+     tr 72 RM=PHY PBM=0x6 tis=10 l=64'
+if $?BCM56626 \
+    'echo "Running Traffic Test in PHY mode - all GE ports"; \
+     tr 72 RM=PHY PBM=0xffffffc tis=30 l=64; \
+     tr 72 RM=PHY PBM=0x6 tis=10 l=64'
+if $?BCM56629 \
+    'echo "Running Traffic Test in PHY mode - all GE ports"; \
+     tr 72 RM=PHY PBM=0x3f07e003f03f00 tis=30 l=64; \
+     tr 72 RM=PHY PBM=0x102 tis=10 l=64; \
+     echo "Running Traffic Test in PHY mode - all XE ports"; \
+     tr 72 RM=PHY PBM=xe tis=30 l=64'
+$done
+
+if $?BCM56626 || $?BCM56628 || $?BCM56629 \
+    'echo "Testing PHY Loopback - 10 Gb/s all XE ports"; \
+     tr 19 pbm=xe speed=10G; \
+     $done'
+
+echo "Testing PHY Loopback - 10 Gb/s all HG ports"
+tr 19 pbm=hg speed=10G
+$done
+
+if $?BCM56680 || $?BCM56684 \
+    'echo "Testing EXT Loopback - 2500 Mb/s all 2.5GE ports"; \
+     tr 19 pbm=0xf81f0c0fc0fc speed=2500 ExtselfloopPBM=0xf81f0c0fc0fc; \
+     $done'
+
+#External Loopback
+# If you have external loopback cables connected as follows
+# GE ports:  2-3   4-5   6-7  18-19  8-9  10-11
+#           12-13 20-21 14-15 16-17 22-23 24-25
+#           37-38 39-40 26-32 33-34 41-42 48-49
+#           50-51 52-53 35-36 46-47 27-43 44-45
+# Front panel XE ports: 2-14 26-27
+# Back panel HG ports: 28-29 30-31
+#
+# then you can enable this script to perform external loopback at
+# different speeds.  Before running this script, use:
+#       setenv ext10    1
+#       setenv ext100   1
+#       setenv ext1000  1
+#       setenv extf10G  1
+#       setenv extf12G  1
+#       setenv extb10G  1
+#       setenv extb12G  1
+#       setenv extb16G  1
+# or
+#       setenv extall   1
+
+if $?BCM56680 || $?BCM56684 \
+    'setenv extb10G  1; \
+     setenv extb12G  1'
+if $?BCM56624 || $?BCM56626 \
+    'setenv extb10G  1; \
+     setenv extb16G  1'
+if $?BCM56629 \
+    'setenv extf10G  1; \
+     setenv extb10G  1; \
+     setenv extb12G  1'
+
+#External Loopback on GE port
+local ge_fwd 0x0
+local ge_bwd 0x0
+if $?BCM56624 \
+    'local ge_fwd 0x2aaaaa05555554; \
+     local ge_bwd 0x1555550aaaaaa8'
+if $?BCM56626 || $?BCM56629_A1 \
+    'local ge_fwd 0x00055554; \
+     local ge_bwd 0x000aaaa8'
+if $?BCM56620 \
+    'local ge_fwd 0x00501504054054; \
+     local ge_bwd 0x00a80a080a80a8'
+if $?BCM56629_B0 \
+    'local ge_fwd 0x1502a001501500; \
+     local ge_bwd 0x2a054002a02a00'
+
+#External Loopback on front panel XE port
+local xe_fwd 0x0
+local xe_bwd 0x0
+if $?BCM56626 || $?BCM56629_A1 \
+    'local xe_fwd 0x04000000; \
+     local xe_bwd 0x08000000'
+if $?BCM56628 || $?BCM56629_B0 \
+    'local xe_fwd 0x04000004; \
+     local xe_bwd 0x08004000'
+
+#External Loopback on back panel HG port
+local hg_fwd 0x50000000
+local hg_bwd 0xa0000000
+
+if $?extall \
+    "local ext10 1; local ext100 1; local ext1000 1; \
+     local extf10G 1; local extb10G 1"
+
+if $?ext10 \
+    "echo Testing GE ports External Loopback - 10 MB/s forward; \
+     tr 20 tpbm=$ge_fwd di=1 speed=10 count=10; \
+     echo Testing GE ports External Loopback - 10 MB/s reverse; \
+     tr 20 tpbm=$ge_bwd di=-1 speed=10 count=10"
+
+if $?ext100 \
+    "echo Testing GE ports External Loopback - 100 MB/s forward; \
+     tr 20 tpbm=$ge_fwd di=1 speed=100 count=10; \
+     echo Testing GE ports External Loopback - 100 MB/s reverse; \
+     tr 20 tpbm=$ge_bwd di=-1 speed=100 count=10"
+
+if $?ext1000 \
+    "echo Testing GE ports External Loopback - 1000 MB/s forward; \
+     tr 20 tpbm=$ge_fwd di=1 speed=1000 count=10; \
+     echo Testing GE ports External Loopback - 1000 MB/s reverse; \
+     tr 20 tpbm=$ge_bwd di=-1 speed=1000 count=10"
+
+if $?extf10G \
+    "echo Testing Front Panel 10G ports External Loopback - 10 GB/s forward; \
+     tr 20 tpbm=$xe_fwd di=1 speed=10G count=10; \
+     echo Testing Front Panel 10G ports External Loopback - 10 GB/s reverse; \
+     tr 20 tpbm=$xe_bwd di=-1 speed=10G count=10"
+
+if $?extf12G \
+    "echo Testing Front Panel 10G ports External Loopback - 12 GB/s forward; \
+     tr 20 tpbm=$xe_fwd di=1 speed=12G count=10; \
+     echo Testing Front Panel 10G ports External Loopback - 12 GB/s reverse; \
+     tr 20 tpbm=$xe_bwd di=-1 speed=12G count=10"
+
+if $?extb10G \
+    "echo Testing Back Panel 10G ports External Loopback - 10 GB/s forward; \
+     tr 20 tpbm=$hg_fwd di=1 speed=10G count=10; \
+     echo Testing Back Panel 10G ports External Loopback - 10 GB/s reverse; \
+     tr 20 tpbm=$hg_bwd di=-1 speed=10G count=10"
+
+if $?extb12G \
+    "echo Testing Back Panel 10G ports External Loopback - 12 GB/s forward; \
+     tr 20 tpbm=$hg_fwd di=1 speed=12G count=10; \
+     echo Testing Back Panel 10G ports External Loopback - 12 GB/s reverse; \
+     tr 20 tpbm=$hg_bwd di=-1 speed=12G count=10"
+
+if $?extb16G \
+    "echo Testing Back Panel 10G ports External Loopback - 16 GB/s forward; \
+     tr 20 tpbm=$hg_fwd di=1 speed=16G count=10; \
+     echo Testing Back Panel 10G ports External Loopback - 16 GB/s reverse; \
+     tr 20 tpbm=$hg_bwd di=-1 speed=16G count=10"
+
+# Show status
+date
+tl
+local returnCode $?
+
+echo Tests Complete.  Reinitializing ...
+config refresh
+rcload rc.soc
+counter off
+l2mode off
+
+# We want to show the return code from the tl command which
+# lists the results. The automated test infrastructure keys off of this
+# value
+echo "testsuite: finished: sanity: $returnCode"

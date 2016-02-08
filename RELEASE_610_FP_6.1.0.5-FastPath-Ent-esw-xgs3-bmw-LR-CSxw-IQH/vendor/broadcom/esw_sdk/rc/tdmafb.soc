@@ -1,0 +1,393 @@
+# $Id: tdmafb.soc,v 1.1 2011/04/18 18:52:10 mruas Exp $
+# $Copyright: (c) 2004 Broadcom Corp.
+# All Rights Reserved.$
+#
+# TDMA test on FB
+
+echo "tr 71 M=DSCP_TABLE";
+tr 71 M=DSCP_TABLE Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=E2E_HOL_STATUS";
+tr 71 M=E2E_HOL_STATUS Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=EGR_DSCP_TABLE";
+tr 71 M=EGR_DSCP_TABLE Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=EGR_EM_MTP_INDEX";
+tr 71 M=EGR_EM_MTP_INDEX Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=EGR_IM_MTP_INDEX";
+tr 71 M=EGR_IM_MTP_INDEX Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=EGR_IP_TUNNEL";
+tr 71 M=EGR_IP_TUNNEL Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=EGR_L3_INTF";
+tr 71 M=EGR_L3_INTF Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=EGR_L3_NEXT_HOP";
+tr 71 M=EGR_L3_NEXT_HOP Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=EGRESS_MASK";
+tr 71 M=EGRESS_MASK Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=EGR_VLAN";
+tr 71 M=EGR_VLAN Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=EGR_VLAN_STG";
+tr 71 M=EGR_VLAN_STG Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=EGR_VLAN_XLATE";
+tr 71 M=EGR_VLAN_XLATE Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=EGR_VLAN_XLATE_DATA_ONLY";
+tr 71 M=EGR_VLAN_XLATE_DATA_ONLY Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=EGR_VLAN_XLATE_ONLY";
+tr 71 M=EGR_VLAN_XLATE_ONLY Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=EM_MTP_INDEX";
+tr 71 M=EM_MTP_INDEX Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=FP_COUNTER_TABLE";
+tr 71 M=FP_COUNTER_TABLE Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=FP_METER_TABLE";
+tr 71 M=FP_METER_TABLE Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=FP_POLICY_TABLE";
+tr 71 M=FP_POLICY_TABLE Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=FP_PORT_FIELD_SEL";
+tr 71 M=FP_PORT_FIELD_SEL Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=FP_RANGE_CHECK";
+tr 71 M=FP_RANGE_CHECK Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=FP_TCAM";
+tr 71 M=FP_TCAM Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=FP_TCAM_PLUS_POLICY";
+tr 71 M=FP_TCAM_PLUS_POLICY Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=IM_MTP_INDEX";
+tr 71 M=IM_MTP_INDEX Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=ING_L3_NEXT_HOP";
+tr 71 M=ING_L3_NEXT_HOP Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=IPORT_TABLE";
+tr 71 M=IPORT_TABLE Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=L2MC";
+tr 71 M=L2MC Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=L2_ENTRY";
+tr 71 M=L2_ENTRY Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=L2_ENTRY_ONLY";
+tr 71 M=L2_ENTRY_ONLY Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=L2_HITDA_ONLY";
+tr 71 M=L2_HITDA_ONLY Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=L2_HITSA_ONLY";
+tr 71 M=L2_HITSA_ONLY Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=L2_MOD_FIFO";
+tr 71 M=L2_MOD_FIFO Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=L2_USER_ENTRY";
+tr 71 M=L2_USER_ENTRY Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=L2_USER_ENTRY_DATA_ONLY";
+tr 71 M=L2_USER_ENTRY_DATA_ONLY Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=L2_USER_ENTRY_ONLY";
+tr 71 M=L2_USER_ENTRY_ONLY Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=L3_DEFIP";
+tr 71 M=L3_DEFIP Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=L3_DEFIP_DATA_ONLY";
+tr 71 M=L3_DEFIP_DATA_ONLY Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=L3_DEFIP_HIT_ONLY";
+tr 71 M=L3_DEFIP_HIT_ONLY Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=L3_DEFIP_ONLY";
+tr 71 M=L3_DEFIP_ONLY Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=L3_ECMP";
+tr 71 M=L3_ECMP Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=L3_ENTRY_HIT_ONLY";
+tr 71 M=L3_ENTRY_HIT_ONLY Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=L3_ENTRY_IPV4_MULTICAST";
+tr 71 M=L3_ENTRY_IPV4_MULTICAST Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=L3_ENTRY_IPV4_UNICAST";
+tr 71 M=L3_ENTRY_IPV4_UNICAST Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=L3_ENTRY_IPV6_MULTICAST";
+tr 71 M=L3_ENTRY_IPV6_MULTICAST Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=L3_ENTRY_IPV6_UNICAST";
+tr 71 M=L3_ENTRY_IPV6_UNICAST Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=L3_ENTRY_ONLY";
+tr 71 M=L3_ENTRY_ONLY Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=L3_ENTRY_VALID_ONLY";
+tr 71 M=L3_ENTRY_VALID_ONLY Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=IPMC";
+tr 71 M=IPMC Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=L3_TUNNEL";
+tr 71 M=L3_TUNNEL Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=PORT_MAC_BLOCK";
+tr 71 M=PORT_MAC_BLOCK Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=AGING_CTR";
+tr 71 M=AGING_CTR Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=AGING_EXP";
+tr 71 M=AGING_EXP Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=CBPCELLHEADER";
+tr 71 M=CBPCELLHEADER Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=CBPDATA0";
+tr 71 M=CBPDATA0 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=CBPDATA1";
+tr 71 M=CBPDATA1 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=CBPDATA2";
+tr 71 M=CBPDATA2 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=CBPDATA3";
+tr 71 M=CBPDATA3 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=CBPDATA4";
+tr 71 M=CBPDATA4 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=CBPDATA5";
+tr 71 M=CBPDATA5 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=CBPDATA6";
+tr 71 M=CBPDATA6 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=CBPDATA7";
+tr 71 M=CBPDATA7 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=CBPDATA8";
+tr 71 M=CBPDATA8 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=CBPDATA9";
+tr 71 M=CBPDATA9 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=CBPDATA10";
+tr 71 M=CBPDATA10 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=CBPDATA11";
+tr 71 M=CBPDATA11 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=CBPDATA12";
+tr 71 M=CBPDATA12 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=CBPDATA13";
+tr 71 M=CBPDATA13 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=CBPDATA14";
+tr 71 M=CBPDATA14 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=CBPDATA15";
+tr 71 M=CBPDATA15 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=CBPPKTHEADER0";
+tr 71 M=CBPPKTHEADER0 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=CBPPKTHEADER1";
+tr 71 M=CBPPKTHEADER1 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=CCP";
+tr 71 M=CCP Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=CFAP";
+tr 71 M=CFAP Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=IPMC_GROUP0";
+tr 71 M=IPMC_GROUP0 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=IPMC_GROUP1";
+tr 71 M=IPMC_GROUP1 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=IPMC_GROUP2";
+tr 71 M=IPMC_GROUP2 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=IPMC_GROUP3";
+tr 71 M=IPMC_GROUP3 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=IPMC_GROUP4";
+tr 71 M=IPMC_GROUP4 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=IPMC_GROUP5";
+tr 71 M=IPMC_GROUP5 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=IPMC_GROUP6";
+tr 71 M=IPMC_GROUP6 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=IPMC_GROUP7";
+tr 71 M=IPMC_GROUP7 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=IPMC_VLAN";
+tr 71 M=IPMC_VLAN Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=XQ0";
+tr 71 M=XQ0 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=XQ1";
+tr 71 M=XQ1 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=XQ2";
+tr 71 M=XQ2 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=XQ3";
+tr 71 M=XQ3 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=XQ4";
+tr 71 M=XQ4 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=XQ5";
+tr 71 M=XQ5 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=XQ6";
+tr 71 M=XQ6 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=XQ7";
+tr 71 M=XQ7 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=XQ8";
+tr 71 M=XQ8 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=XQ9";
+tr 71 M=XQ9 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=XQ10";
+tr 71 M=XQ10 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=XQ11";
+tr 71 M=XQ11 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=XQ12";
+tr 71 M=XQ12 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=XQ13";
+tr 71 M=XQ13 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=XQ14";
+tr 71 M=XQ14 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=XQ15";
+tr 71 M=XQ15 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=XQ16";
+tr 71 M=XQ16 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=XQ17";
+tr 71 M=XQ17 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=XQ18";
+tr 71 M=XQ18 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=XQ19";
+tr 71 M=XQ19 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=XQ20";
+tr 71 M=XQ20 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=XQ21";
+tr 71 M=XQ21 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=XQ22";
+tr 71 M=XQ22 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=XQ23";
+tr 71 M=XQ23 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=XQ24";
+tr 71 M=XQ24 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=XQ25";
+tr 71 M=XQ25 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=XQ26";
+tr 71 M=XQ26 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=XQ27";
+tr 71 M=XQ27 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=XQ28";
+tr 71 M=XQ28 Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=MODPORT_MAP";
+tr 71 M=MODPORT_MAP Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=NONUCAST_TRUNK_BLOCK_MASK";
+tr 71 M=NONUCAST_TRUNK_BLOCK_MASK Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=PORT";
+tr 71 M=PORT Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=SOURCE_TRUNK_MAP";
+tr 71 M=SOURCE_TRUNK_MAP Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=VLAN_STG";
+tr 71 M=VLAN_STG Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=TRUNK_BITMAP";
+tr 71 M=TRUNK_BITMAP Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=PORT_TRUNK_EGRESS";
+tr 71 M=PORT_TRUNK_EGRESS Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=TRUNK_GROUP";
+tr 71 M=TRUNK_GROUP Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=UDF_OFFSET";
+tr 71 M=UDF_OFFSET Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=VLAN";
+tr 71 M=VLAN Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=VLAN_MAC";
+tr 71 M=VLAN_MAC Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=VLAN_PROTOCOL";
+tr 71 M=VLAN_PROTOCOL Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=VLAN_PROTOCOL_DATA";
+tr 71 M=VLAN_PROTOCOL_DATA Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=VLAN_SUBNET";
+tr 71 M=VLAN_SUBNET Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=VLAN_SUBNET_DATA_ONLY";
+tr 71 M=VLAN_SUBNET_DATA_ONLY Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=VLAN_SUBNET_ONLY";
+tr 71 M=VLAN_SUBNET_ONLY Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=VLAN_XLATE";
+tr 71 M=VLAN_XLATE Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=VLAN_XLATE_DATA_ONLY";
+tr 71 M=VLAN_XLATE_DATA_ONLY Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"
+echo "tr 71 M=VLAN_XLATE_ONLY";
+tr 71 M=VLAN_XLATE_ONLY Start=0 Count=5 readonlymemVerifyCount=1 TSlamEnable=True;
+echo " Done"

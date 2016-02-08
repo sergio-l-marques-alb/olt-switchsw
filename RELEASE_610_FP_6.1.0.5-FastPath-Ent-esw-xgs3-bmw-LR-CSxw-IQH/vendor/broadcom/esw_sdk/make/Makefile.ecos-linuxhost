@@ -1,0 +1,44 @@
+# $Id: Makefile.ecos-linuxhost,v 1.1 2011/04/18 17:10:58 mruas Exp $
+# $Copyright: Copyright 2007, Broadcom Corporation All Rights Reserved.
+# THIS SOFTWARE IS OFFERED "AS IS", AND BROADCOM GRANTS NO WARRANTIES
+# OF ANY KIND, EXPRESS OR IMPLIED, BY STATUTE, COMMUNICATION OR OTHERWISE.
+# BROADCOM SPECIFICALLY DISCLAIMS ANY IMPLIED WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A SPECIFIC PURPOSE OR NONINFRINGEMENT CONCERNING THIS SOFTWARE.$
+
+# Look for custom tools
+ifneq (,$(MIPS_TOOLS_DIR))
+override PATH := $(MIPS_TOOLS_DIR):$(PATH)
+endif
+ifneq (,$(MIPS_CROSS_COMPILE))
+override CROSS_COMPILE := $(MIPS_CROSS_COMPILE)
+endif
+
+# Default tools
+ifeq (,$(CROSS_COMPILE))
+CROSS_COMPILE := mipsisa32-elf-
+override PATH := $(PATH):/projects/ntsw-sw/toolchains/ecos/mips32/mipsisa32-elf/bin
+endif
+
+CFGFLAGS += -DSYS_BE_PIO=0 -DSYS_BE_PACKET=0 -DSYS_BE_OTHER=0
+ENDIAN = LE_HOST=1
+CFGFLAGS += -D$(ENDIAN)
+
+CFGFLAGS += -I${ECOSKERNEL_INSTALL_DIR}/include
+CFGFLAGS += -DRTOS_STRINGS
+
+TARGETTYPE = PLISIM
+
+include ${SDK}/make/Makefile.ecos-common
+
+#
+# ESW requires compiler options optimized for size
+#
+ifeq (,$(ECOS_GLOBAL_CFLAGS))
+ifeq (${MODENA_CHIP},1)
+KFLAGS := -EL -DRTOS_STRINGS -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fomit-frame-pointer -G 0 -mno-abicalls -fno-pic -pipe -m$(gcc-tune-flag)=r4600 -mips2 -Wa,--trap -mlong-calls
+else # ESW needs size down
+KFLAGS :=  -EL -DRTOS_STRINGS -O1 -ffunction-sections -fdata-sections -fno-strict-aliasing -fno-common -fomit-frame-pointer -G 0 -mno-abicalls -fno-pic -pipe -m$(gcc-tune-flag)=r4600 -mips2 -Wa,--trap -mlong-calls
+endif # MODENA_CHIP
+else
+KFLAGS := $(ECOS_GLOBAL_CFLAGS)
+endif

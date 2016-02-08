@@ -1,0 +1,67 @@
+#
+# $Id: Make.ecos,v 1.1 2011/04/18 17:10:58 mruas Exp $
+# $Copyright: Copyright 2007, Broadcom Corporation All Rights Reserved.
+# THIS SOFTWARE IS OFFERED "AS IS", AND BROADCOM GRANTS NO WARRANTIES
+# OF ANY KIND, EXPRESS OR IMPLIED, BY STATUTE, COMMUNICATION OR OTHERWISE.
+# BROADCOM SPECIFICALLY DISCLAIMS ANY IMPLIED WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A SPECIFIC PURPOSE OR NONINFRINGEMENT CONCERNING THIS SOFTWARE.$
+# 
+# Common make targets for ecos included by top level ecos makefiles
+#
+# Variables referenced:
+#
+# ECOS_MAKE_FLAGS
+#   Additional flags passed to Make
+#
+# ECOS_MAKE_DIR
+#   Common makefile location, if it is not ../common
+#
+#
+
+LVL7_FIXUP = 1
+
+ifdef LVL7_FIXUP
+  ifdef QUIET
+    MAKE := @$(MAKE)
+  endif
+  MAKE := +$(MAKE)
+endif
+
+ifeq (,$(SHAREDLIBVER))
+SHAREDLIBVER=1
+endif
+
+ifndef ECOS_MAKE_DIR
+ECOS_MAKE_DIR := ../common
+endif
+
+CMD = $(MAKE) $(ECOS_MAKE_FLAGS) -C $(ECOS_MAKE_DIR) platform=$(platform)
+
+build:
+	$(CMD)
+
+clean:
+	$(CMD) clean
+
+variable:
+	$(CMD) variable
+
+distclean clean_d: clean
+
+#
+# Create script language binding
+#
+binding:
+	@$(SDK)/tools/mkbinding/mkbinding
+
+.PHONY: build clean distclean clean_d binding variable
+
+
+ifdef LVL7_FIXUP
+.PHONY: get_sdk_flags
+
+get_sdk_flags:
+	echo $(CMD) get_sdk_flags
+	$(CMD) get_sdk_flags
+endif
+

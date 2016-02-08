@@ -1,0 +1,45 @@
+#
+# Quickturn Version of bcm.soc
+#
+# Note:	For faster operation, use the "config" command to make sure
+#		the following properties are set:
+#
+#	bcm_filter_clear_fe=0
+#	bcm_filter_clear_ge=0
+#	phy_enable=0
+#
+
+# Reset chip, initialize for most basic operation
+echo "Resetting chip..."
+init soc
+
+# Program the SDRAM timing and MMU switch configuration registers
+init mmu
+
+# Determine and configure the GBP size
+sizegbp size=auto quiet=yes
+
+# Initialize the Slot Free Address Pool in the GBP
+sfapinit
+
+# Initialize the BCM driver layer
+echo "Initializing BCM driver layer..."
+init bcm
+echo "BCM Driver Enabled"
+
+s epc_link 0xbffffff
+if $?smul || $?sl "modify ptable 0 26 sp_st=3"
+if $?gsl          "modify ptable 0 8 sp_st=3"
+
+# Clear counters and enable counter collection
+#counter interval=100 Pbm=all dma=true
+
+# Set default mode for packet watcher
+pw report +raw
+
+set rctest=false
+
+echo "Use 'pw start' to monitor packets from CPU."
+echo "Use 'counter interval=100 pbm=all dma=true' to enable show counters."
+
+echo "Initialization complete."

@@ -1,0 +1,9 @@
+# $Id: pass.soc,v 1.1 2011/04/18 18:52:10 mruas Exp $
+# $Copyright: (c) 1998-1999 Broadcom Corp.
+# All Rights Reserved.$
+#
+# Used only by the automated infrastructure to validate behavior. 
+# Always finishes successfully.
+
+echo "testsuite: started: pass"
+echo "testsuite: finished: pass: 0"

@@ -1,0 +1,117 @@
+------------------------------------------------------------------------------
+                        External TCAM sharing
+                 Joe Dadek, Broadcom Corp. 08-08-2005
+                       Last Updated: 08-08-2005
+------------------------------------------------------------------------------
+
+The BCM5660x series of devices permits the use of an external TCAM for LPM
+and FP tables.  Both vendors currently supported by the 5660x series
+provide two LA1 interfaces to their TCAMs.  It is conceptually possible
+to connect two 5660x devices to one TCAM, reducing customer expense in
+constructing a 24-port solution.  Design and schedule trade-offs have
+led to the decision to pursue this option entirely in software.  This
+document details the steps necessary for this development project.
+
+
+1) Overall theory
+
+    To correctly implement one TCAM table servicing two units, only one
+unit may change TCAM state.  The other must refuse or redirect any update
+requests.  This may be done either at the API layer by returning a
+BCM_E_UNAVAIL error, or at the soc layer by channeling the TCAM update
+operation to the master unit.
+    The 5660x design uses separate memory instances for both the LPM and
+FP implementations using TCAMs.  The key and mask are stored in the TCAM,
+where a lookup will match them to produce a result index.  This index is
+then used for the external SRAM memory to retrieve the search results.
+    The current 5660x implementation provides HW assistance for managing
+these coordinated memories.  The driver may treat them as one unified memory
+line for purposes of table updates, and the HW will handle the coherency,
+ordering, and entry movement details.  In a system with one TCAM shared by
+two 5660x devices, this HW assist will be unusable.
+    The 5660x HW also provides HW access to sub entries in the SRAM and TCAM
+independently.  So if the SW assumes the coherency, ordering, and entry
+movement responsibility, it will not need to take on the role of formatting
+data for the SRAM or TCAM interfaces.
+
+
+2) Implementation details
+
+2.1) Configuration properties
+    Configuration properties will be needed to indicate that certain units
+are part of the master/slave relationship, and which member is which.
+
+2.2) Multi-unit operations
+    Support must be added to the SOC layer to allow operations upon multiple
+units in one logical table update.  This step will largely be concerned
+with implementing the properly locks and safeguards to prevent deadlocks or
+read/write mis ordering.  Since initial estimates indicate that some table
+updates may take up to 20 milliseconds, it is important not to
+shut down the SCHAN during shared TCAM updates, while still retaining
+proper coherency control.
+
+2.3) Table update algorithms
+    The steps necessary to change one entry in the FP/LPM table implemented
+in a shared TCAM are:
+   1) Invalidate TCAM entry (if currently valid).
+   2) Write SRAM data to master unit.
+   3) Write SRAM data to slave unit.
+   4) Write TCAM data through master unit.
+
+Since the FP table entries are managed at the BCM layer, this is all
+that is needed for FP operation.  For the LPM table, it may be necessary
+to shuffle up to 96 entries during an insert/delete in order to
+emulate the HW operations.  Each entry will require the 4 steps listed above.
+
+2.4) TCAM initialization
+    The initialization sequence of the TCAMs will require minor modification
+to allow operation of both LA1 ports
+
+2.5) Debugging/testing
+    The validation stage of this project will require board support for
+a testing platform (below), support from the vendors' for the correct
+configurations, and testing on both TCAM types.  It is anticipated that this
+will represent a substantial effort during the project.
+
+
+3) Additional options
+
+3.1) Improved LPM algorithms
+   The TCAM vendors achieve better performance by reducing the number of
+"shuffles" needed during table management.  We could explore either
+adopting the vendors' drivers as part of ours or implementing a better
+table management approach of our own.  Incorporating the vendors' drivers
+is a large project with code space and memory footprint implications, but
+we don't need to create the algorithms. Designing our own table management
+approach has the advantage of working with either TCAM and any future
+TCAMs, but it is a substantial project.
+
+3.2) Cascade (Cypress)
+    Cypress allows attaching additional TCAMs to the TCAM directly
+connected to Easyrider.  These additional TCAMs are somewhat less expensive.
+After proper initialization, the system appears simply to have a larger
+TCAM.  This may also be applied to sharing mode.
+
+3.3) Sahasra (Cypress)
+    Cypress has an SRAM-based device for performing LPM operations.  It is
+less expensive than TCAMs, but requires at least one TCAM as the interface
+between it and Easyrider via cascade mode.  Further, it may only be
+managed by Cypress' driver, so we must incorporate some Cypress software
+into our driver to use this device.
+
+3.4) Cascade (NetLogic)
+    NetLogic does not support cascading in their current device, but it is
+planned for future devices.  (Details to come in meeting with NL 8/9/05)
+
+
+4) External support requirements
+    A list of the support necessary from outside the platform group:
+
+sharing:
+    - shared TCAM board for ER
+ 
+Sahasra:
+    - Sahasra cascaded TCAM board for ER (maybe this could be combined with
+      a board design for cascade mode).
+    - Potential HW acceleration for Sahasra key/mask data writes to
+      avoid direct QDR operations.

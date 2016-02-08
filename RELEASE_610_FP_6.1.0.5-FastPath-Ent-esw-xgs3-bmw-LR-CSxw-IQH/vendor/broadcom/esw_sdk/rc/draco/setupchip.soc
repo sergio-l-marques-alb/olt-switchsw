@@ -1,0 +1,23 @@
+#
+# Basic register setup for Draco
+#
+
+if !@?rootdir "local rootdir /home/labguy/boot/draco"
+
+if @?init_misc "init misc"
+if !@?init_misc "echo init misc not performed"
+
+s epc_link 0x3fff
+s prtable_default vlan_id=1
+s hash_control hash_select=2
+w vlan 1 1 valid=1 port_bitmap=0x3fff
+m gmacc1 rxen0=1 txen0=1
+set rctest=false
+
+# Set up the serdes stuff
+m gmacc0 tmds=0x0
+m gpcsc rcsel=0x0
+# m gmacc1 autoz=0x1 # prefer no autoz for now
+
+rcl @rootdir/setupcos.soc
+rcl @rootdir/setupipic.soc

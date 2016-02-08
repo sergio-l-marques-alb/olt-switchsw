@@ -1,0 +1,6 @@
+echo "Setting up 8 COS"
+s xqcosrange3_0 cos0_endaddress=0x2 cos1_endaddress=0x4 cos2_endaddress=0x6 cos3_endaddress=0x8
+s xqcosrange7_4 cos4_endaddress=0xa cos5_endaddress=0xc cos6_endaddress=0xe cos7_endaddress=0x10
+s cos_sel cos0=0 cos1=1 cos2=2 cos3=3 cos4=4 cos5=5 cos6=6 cos7=7
+s icos_sel cos0=0 cos1=1 cos2=2 cos3=3 cos4=4 cos5=5 cos6=6 cos7=7
+

@@ -1,0 +1,59 @@
+This is version 3.10.vxW.02 				Date: 8/12/94
+
+This code was originally created under vxWorks version 5.02b.  It has been
+updated to run under vxWorks version 5.1.1.  Unfortunately, you will need to
+do some system dependent hacking to get this up and running on your machine.
+Specifically:
+
+	1) Modify "rtcTime.fixme.c".  You need to interface a clock
+	   to the routine "rtcUpdateTime()" in that file.  The other two 
+	   routines in that file already work, and they simulate
+	   Unix time() and ctime() library routines.  Rename the fixed 
+	   version to "rtcTime.c".  I believe that the sysClock in vx 5.1
+	   can now be used for time keeping too, so that is another option.
+	   The ctime() routine is included in vx5.1.  The rtcTime.c will
+	   have to be added to the Makefile if you use it. 
+	2) A Unix utime() command to set incoming files to their original
+	   time/date is an optional item.  I neglected this since it was 
+	   not possible to make one generic across all disk drivers.   The
+	   consequence is simply the incoming files are time stamped
+	   to whatever the vxWorks disk driver sees fit.
+	3) A vxWorks ioctl call that gets  tty speed would also be sorta
+	   useful, although I neglected this too, and just used a default 
+	   of 1200 baud.  This can slow down the file receive function if 
+	   a higher baud rate is used, since the program will sleep the
+	   time needed for 100 characters at 1200 baud to be received.  To
+	   change this edit the routine getspeed() in the file "getput.c".
+	4) If your machine is not a 680x0, and it handles calling argurments
+	   in a different manner, you will have to modify the argv/argc
+	   creation in xmodem.c
+
+RUNNING XMODEM UNDER VXWORKS
+
+Since vxWorks does not use the standard argv and argc parameters,  they
+were kludged in.  The result of this is that you MUST terminate your
+argurment list with a 0 to prevent run-away stack access, and a probable
+crash.  Some ambitious soul could add a check if argc goes over some limit,
+say 25, but since the shell rounds out parameter lists to about 10 fields,
+which usually automatically adds 0s to tasks, this did not seem to be
+worth the effort.  Here is an example of using xmodem in the shell to receive 
+a file:
+
+	xmodem "-rt", "mfile.txt"
+
+The program uses stdin, stdout, and stderr for I/O, and it uses the pwd to
+grab and save files.  If you use this program in something other than the
+shell environment,  make sure your I/O and path are setup using the vxWorks
+ioTaskStdSet, and ioDefPathSet before executing the program.  One last thing:
+vxWorks DOES NOT SUPPORT WILDCARD filenames, so when sending files in the
+batch mode, each file must be explicitly named.  The vxWorks archived contain
+dirLib which does handle wildcards and can be fairly easily slapped together.
+
+				Matt Michaelis
+				National Center for Atmospheric Research
+				P.O. Box 3000
+				Boulder, CO 80307
+				michaeli@ncar.ucar.edu
+
+
+
