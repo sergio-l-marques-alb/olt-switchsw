@@ -1,0 +1,1 @@
+ssh mruas@10.112.15.243 "cd ~/repositorio/PR1003/fastpath/RELEASE_610_FP_6.1.0.5-FastPath-Ent-esw-xgs3-bmw-LR-CSxw-IQH/output/RELEASE_610_FP_6.1.0.5-FastPath-Ent-esw-xgs3-bmw-LR-CSxw-IQH_OLT7-8CH_A && sh build.sh $1 $2 $3 $4"
