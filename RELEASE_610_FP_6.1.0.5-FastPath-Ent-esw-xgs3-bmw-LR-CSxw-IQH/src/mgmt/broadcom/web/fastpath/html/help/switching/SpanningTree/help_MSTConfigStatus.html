@@ -1,0 +1,119 @@
+<EMWEB_IF ID=USMWEB_IF_LVL_HDR_NOT_REQ>
+<!--
+/*********************************************************************
+*
+* (C) Copyright Broadcom Corporation 2002-2007
+*
+**********************************************************************
+*
+* @filename src\mgmt\emweb\content\screens\spanning_tree\help_mstp.html
+*
+* @purpose help file for Spanning Tree
+*
+* @comments 
+*
+* @create 11/16/02
+*
+* @author smathew
+* @end
+*
+**********************************************************************/
+
+**********************************************************************/
+-->
+</EMWEB_IF>
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Spanning Tree Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+<hr size=4 width="100%" align=center>
+
+
+<h2><a name=msticfg></a>Help for Spanning Tree MST Configuration/Status</h2>
+
+<h3>Selection Criteria</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>MST</b> - Create a new
+      MST which you wish to configure or configure already existing MSTs. </li>
+ </ul>
+</ul> 
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>MST ID</b> - This is only visible when the select option of the MST ID select box 
+           is selected. The ID of the MST being created. Valid values for this are between 
+           1 and 4094. </li>
+  <li><b>Priority</b> -  The bridge priority for the MST instance selected.The value lies between (0 to 61440).
+        The bridge priority is set in multiples of 4096. For example if
+         the priority is attempted to be set to any value between 0 and 4095, 
+         it will be set to 0. If it is tried to be set to any value between 4096 and 
+         (2*4096-1) it will be set to 4096 and so on.The default priority is 32768. </li>                                                    
+  <li><b>VLAN ID</b> - This gives a list box of all VLANs on the switch.
+      The VLANs associated with the MST instance which is selected are highlighted 
+      on the list. These can be selected or unselected for re-configuring the 
+      association of VLANs to MST instances.</li> 
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Bridge Identifier</b> -
+      The bridge identifier for the selected MST instance. It is made 
+      up using the bridge priority and the base MAC address of the bridge. </li>
+  <li><b>Time Since Topology Change</b> - The time n seconds since the
+       topology of the selected MST instance last changed.</li>
+  <li><b>Topology Change Count</b> - Number of times topology has changed 
+       for the selected MST instance. </li>
+  <li><b>Topology Change</b> - The value of the topology change parameter
+        for the switch indicating
+         if a topology change is in progress on any port assigned to the  
+       selected MST instance. It takes a value if True or False. </li>
+  <li><b>Designated Root</b> - The bridge identifier of the root bridge. 
+        It is made up from the bridge priority and the base MAC address 
+        of the bridge </li>
+  <li><b>Root Path Cost</b> - Path Cost to the Designated Root for this 
+  MST instance. </li>       
+  <li><b>Root Port</b> - Port to access the Designated Root for this MST 
+   instance. </li>
+ </ul>
+</ul>
+
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+   <EMWEB_IF ID=USMWEB_IF_READWRITE>
+  <li><b>Submit</b> - Applies the new configuration and causes the 
+          changes to take effect.  
+         These changes will not be retained across a power cycle
+          unless a save configuration is performed.</li>
+  <li><b>Delete</b> - Deletes the selected MST instance. All VLANs associated 
+   with the instance are associated with the CST </li>       
+   </EMWEB_IF> 
+  <li><b>Refresh</b> - Refreshes the screen with most recent data. </li>
+ </ul>
+ </ul>
+
+<hr size=4 width="100%" align=center>
+
+</body>
+
+</html>
+
+

@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="routing" version="1.0" >
+
+<module name="ipstaticrouteconfig" >
+<key-combo list="ipaddress,ipmask,preference,nexthopipaddress"/>
+
+<object name="ipaddress" >
+<core  type = "user" xtype="rtoipv4_t"  key = "yes" access= "read-write" descr="Ip Address of the static route."/>
+<ui  name="Network Address" style="inputLine">
+</ui>
+</object>
+
+<object name="ipmask" >
+<core  type = "user" xtype="rtoipv4_t"  key = "yes" access= "read-write" descr="network mask of the static route."/>
+<ui  name="Subnet Mask" style="inputLine">
+</ui>
+</object>
+
+<object name="preference" >
+<core  type="uint" key="yes" min="L7_RTO_PREFERENCE_MIN" max="L7_RTO_PREFERENCE_MAX" access= "read-write" descr="The preference associated with this route."/>
+<ui  name="Preference"  style="inputLine">
+</ui>
+</object>
+
+<object name="nexthopipaddress" >
+<core  type="user" xtype="rtoipv4_t" key="yes" access= "read-write" descr="The ip address of the next-hop-router associated with static routing entry"/>
+<ui name="Next HOP IP" style="inputLine"> 
+</ui>
+</object>
+
+<object name="ifindex"  depends="ipaddress,ipmask,preference,nexthopipaddress" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core  type="user" xtype = "uspRouteNextHop_t"  access= "read-write" descr="The outgoing internal interface number."/>
+<ui  name="Unit/Slot/Port" style="inputLine">
+</ui>
+</object>
+
+<object name="ifindex"  depends="ipaddress,ipmask,preference,nexthopipaddress" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core  type="user" xtype = "uspRouteNextHop_t"  access= "read-write" descr="The outgoing internal interface number."/>
+<ui  name="Slot/Port" style="inputLine">
+</ui>
+</object>
+
+<object name="routeType">
+<core  type="enum" xtype="L7_STATIC_ROUTE_TYPE_t"  dynamic="yes" access= "read-write" descr="The preference associated with this route."/>
+<ui  name="Route Type" style="choiceNselect1">
+</ui>
+</object> 
+
+<object name="RowStatus" depends = "ipaddress,ipmask,preference,nexthopipaddress" >
+<core type="row-status" xtype= "L7_ROW_STATUS_t" access="read-write" descr="This variable displays the status of the entry."/>
+<ui  name="RowStatus" style="inputLine" />
+</object>
+
+</module>
+</objectxml>
+</FastPathXML>
+

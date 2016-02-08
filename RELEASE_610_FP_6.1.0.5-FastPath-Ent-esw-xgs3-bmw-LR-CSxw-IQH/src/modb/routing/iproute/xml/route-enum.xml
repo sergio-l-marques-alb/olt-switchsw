@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "types.dtd">
+<FastPathXML>
+  <data-types version="1.0">
+    <enum name="L7_IP_CIDR_ENTRY_ROUTE_TYPE_t">
+      <option macro="L7_IP_CIDR_ROUTE_TYPE_OTHER" name="unknown"> </option>
+      <option macro="L7_IP_CIDR_ROUTE_TYPE_REJECT" name="Discard packets with errors"> </option>
+      <option macro="L7_IP_CIDR_ROUTE_TYPE_LOCAL" name="Local interface"> </option>
+      <option macro="L7_IP_CIDR_ROUTE_TYPE_REMOTE" name="remote destination"> </option>
+      <option macro="L7_IP_CIDR_ROUTE_TYPE_BLACKHOLE" name="discard packets without errors"> </option>
+    </enum>
+    <enum name="L7_IP_CIDR_ROUTE_PROTO_t">
+      <option macro="L7_IP_CIDR_ROUTE_PROTO_OTHER" name="Unknown"> </option>
+      <option macro="L7_IP_CIDR_ROUTE_PROTO_LOCAL" name="Local interface"> </option>
+      <option macro="L7_IP_CIDR_ROUTE_PROTO_NETMGMT" name=" static route"> </option>
+      <option macro="L7_IP_CIDR_ROUTE_PROTO_ICMP" name="result of ICMP redirect"> </option>
+      <option macro="L7_IP_CIDR_ROUTE_PROTO_EGP" name="Exterior gateway protocol"> </option>
+      <option macro="L7_IP_CIDR_ROUTE_PROTO_GGP" name="gateway-gateway protocol"> </option>
+      <option macro="L7_IP_CIDR_ROUTE_PROTO_HELLO" name="Fuzzball Hellospeak"> </option>
+      <option macro="L7_IP_CIDR_ROUTE_PROTO_RIP" name=" Berkeley RIP or RIP2"> </option>
+      <option macro="L7_IP_CIDR_ROUTE_PROTO_ISIS" name="Dual IS-IS"> </option>
+      <option macro="L7_IP_CIDR_ROUTE_PROTO_ESIS" name="ISO 9542"> </option>
+      <option macro="L7_IP_CIDR_ROUTE_PROTO_CISCOIGRP" name="Cisco IGRP"> </option>
+      <option macro="L7_IP_CIDR_ROUTE_PROTO_BBNSPFIGP" name="BBN SPF IGP"> </option>
+      <option macro="L7_IP_CIDR_ROUTE_PROTO_OSPF" name="Open shortest path first"> </option>
+      <option macro="L7_IP_CIDR_ROUTE_PROTO_BGP" name="border gateway protocol"> </option>
+      <option macro="L7_IP_CIDR_ROUTE_PROTO_IDPR" name="Interdomain pplicy routing"> </option>
+      <option macro="L7_IP_CIDR_ROUTE_PROTO_CISCOEIGRP" name="Cisco EIGRP"> </option>
+      <option macro="L7_IP_CIDR_ROUTE_PROTO_LAST" name="Last Option"> </option>
+    </enum>
+  </data-types>
+</FastPathXML>

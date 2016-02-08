@@ -1,0 +1,148 @@
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Diffserv Policy Configuration Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+ 
+<h1 align=center style='text-align:center'>DiffServ Policy Help</h1>
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=policing_attributes></a>Help for Policing Attributes</h2>
+
+<h3>Selection Criteria</h3>
+                                                      
+<ul type=disc>
+ <ul type=circle>
+ <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_POLICY_ATTR_POLICE_COLORAWARE_FEATURE">
+  <li><b>Color Mode</b> - This lists the color mode. The default is 'Color Blind'.
+      <ul type=square>
+          <li><I><b>Color Blind</b></I></li>
+          <li><I><b>Color Aware</b></I></li>
+      </UL>
+  <p>Color Aware mode requires the existence of one or more color classes that 
+  are valid for use with this policy instance.  A valid color class contains 
+  a single, non-excluded match criterion for one of the following fields (provided 
+  the field does not conflict with the classifier of the policy instance itself):
+    <ul type=square>
+      <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_MATCH_COS_FEATURE">
+        <li>CoS</li>
+      </EMWEB_IF>
+      <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_MATCH_IPDSCP_FEATURE">
+        <li>IP DSCP</li>
+      </EMWEB_IF>
+      <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_MATCH_IPPRECEDENCE_FEATURE">
+        <li>IP Precedence</li>
+      </EMWEB_IF>
+      <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_MATCH_COS2_FEATURE">
+        <li>Secondary CoS</li>
+      </EMWEB_IF>
+    </UL>
+  </li>
+ </EMWEB_IF>
+  <li><b>Conform Action Selector</b> - This lists the actions to be taken on conforming packets 
+      per the policing metrics, from which one can be selected. The default is 'send'.</li>
+  <EMWEB_IF ID=USMWEB_POLICY_ATTR_SINGLEORTWORATE>
+    <li><b>Exceed Action Selector</b> - This lists the actions to be taken on excess packets per the 
+      policing metrics, from which one can be selected. The default is 'drop'.</li>
+  </EMWEB_IF>
+  <li><b>Violate Action Selector</b> - This lists the actions to be taken on violating packets 
+      per the policing metrics, from which one can be selected. The default is 'drop'.</li>
+  <li>For each of the above Action Selectors one of the following actions can be taken:
+      <ul type=square>
+          <li><I><b>Drop</b></I> - These packets are immediately dropped.</li>
+          <li><I><b>Mark IP DSCP</b></I> - These packets are marked by DiffServ with the specified 
+              DSCP value before being presented to the system forwarding element. 
+              This selection requires that the DSCP value field be set.</li>
+          <li><I><b>Mark CoS</b></I> - These packets are marked by DiffServ with the specified 
+              CoS value before being presented to the system forwarding element. 
+              This selection requires that the Mark CoS value field be set.</li>
+          <EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE=DIFFSERV_POLICY_ATTR_MARK_COS2VAL_FEATURE>
+            <li><I><b>Mark Secondary CoSP</b></I> - These packets are marked by DiffServ with the specified 
+              CoS2 value before being presented to the system forwarding element. 
+              This selection requires that the Mark Secondary CoS value field be set.</li>
+          </EMWEB_IF>
+          <li><I><b>Send</b></I> - These packets are presented unmodified by DiffServ 
+              to the system forwarding element.</li>
+          <li><I><b>Mark IP Precedence</b></I> - These packets are marked by DiffServ with the specified 
+              IP Precedence value before being presented to the system forwarding element.
+              This selection requires that the Mark IP Precedence value field be set.</li>
+
+      </UL>
+  </li>
+  <li><b>Conform DSCP Keyword</b> - This displays the list of all the possible ip-dscp keywords which allows the user to configure when the 'Conform Action' selector is 'DSCP'.</li>
+  <li><b>Violate DSCP Keyword</b> - This displays the list of all the possible ip-dscp keywords which allows the user to configure when the 'Violate Action' selector is 'DSCP'.</li>
+ </ul>
+</ul>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Committed Rate </b> - This value is specified in the range 1 to 4294967295 kilobits-per-second (Kbps). The committed rate is used to monitor arrival rate of incoming packets for this class.</li>
+  <li><b>Committed Burst Size </b> - This value is specified in the range 1 to 128 KBytes. The committed burst size is used to determine the amount of conforming traffic allowed.</li>
+  <li><b>Conform CoS Value </b> - This is an CoS queue value to be configured in the range 0-7 when the 'Conform Action' selector is 'Cos'.</li>
+  <li><b>Violate CoS Value </b> - This is an CoS queue value to be configured in the range 0-7 when the 'Violate Action' selector is 'Cos'.</li>
+  <li><b> </b> - This is an CoS queue value to be configured in the range 0-7 when the 'Violate Action' selector is 'Cos'.</li>
+  <li><b>Conform IP Precedence Value </b> - This is an ip-precedence value to be configured in the range 0-7 when the 'Confirm Action' selector is 'Precedence'.</li>
+  <li><b>Violate IP Precedence Value </b> - This is an ip-precedence value to be configured in the range 0-7 when the 'Violate Action' selector is 'Precedence'.</li>
+
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Policy Name</b> - Displays name of the specified DiffServ policy.</li>
+  <li><b>Policy Type</b> - Displays type of the specified policy as 
+      <EMWEB_STRING C='
+       L7_uint32 unit;
+       L7_uint32 inpresent = 0;
+       unit = usmDbThisUnitGet();
+       memset(sBuf, 0x00, sizeof(sBuf));
+      if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+       strcpy(sBuf,"In");
+       inpresent++;
+      }
+
+      if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+        if(inpresent == 1)
+           strcat(sBuf," or Out");
+        else
+           strcat(sBuf,"Out");
+      }
+      return sBuf;
+       ' >.
+  </li>
+  <li><b>Class Name</b> - Displays name of the DiffServ class to which this policy is attached.</li>
+  <li><b>Policing Style</b> - Displays the selected policing style: Simple, SingleRate, or TwoRate.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Confirm</b> - Provides the policing configuration screen.</li>
+  <li><b>Cancel</b> - Cancel the currently selected filter.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+
+<hr size=4 width="100%" align=center>
+
+
+</body>
+
+</html>
+
+

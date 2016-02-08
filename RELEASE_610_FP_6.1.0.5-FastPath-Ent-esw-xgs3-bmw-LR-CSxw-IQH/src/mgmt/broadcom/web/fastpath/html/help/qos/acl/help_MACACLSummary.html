@@ -1,0 +1,73 @@
+
+<HTML>
+<EMWEB_HEAD C='
+    #include "web.h"
+  '>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>ACL Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+
+<hr size=4 width="80%" align=center>
+
+<h2><a name=mac_acl_summ></a>Help for MAC ACL Summary</h2>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>MAC ACL Name</b> - MAC ACL identifier.
+      </li>
+  <li><b>Rules</b> - The number of rules currently configured for the MAC ACL.
+      </li>
+  <li><b>Direction</b> - The direction of packet traffic affected by the MAC ACL.
+      <BR>Valid Directions
+      <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_INTF_DIRECTION_INBOUND_FEATURE">
+        <ul type=square>
+          <li><I><B>Inbound</B></I></li>
+        </UL>
+      </EMWEB_IF>
+      <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_INTF_DIRECTION_OUTBOUND_FEATURE">
+        <ul type=square>
+          <li><I><B>Outbound</B></I></li>
+        </UL>
+      </EMWEB_IF>
+      </li>
+  <li><b><EMWEB_IF ID=XUI_IF_STACKING_PRESENT>
+	Unit/Slot/Port
+<EMWEB_ELSE>
+	Slot/Port
+</EMWEB_IF></b> - The interfaces to which the MAC ACL applies.
+	  </li>
+  <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_INTF_VLAN_SUPPORT_FEATURE">
+  <li><b>VLAN</b> - VLANs to which the MAC ACL applies.
+	  </li>
+  </EMWEB_IF>
+ </ul>
+</ul>
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li>
+     <b>Refresh</b> - Refresh the data on the screen to the latest state.</li>
+ </ul>
+</ul>
+
+
+<hr size=4 width="80%" align=center>
+</body>
+
+</html>
+
+
+
+
+

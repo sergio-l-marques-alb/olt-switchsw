@@ -1,0 +1,21 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="ConfirmEraseStartupConfig" title="Confirm Erase Startup Configuration File">
+        <group id="1" heading=" " level="ReadWriteUser">
+            <node id="1">
+                <message>Are you sure you want to erase the system startup configuration file?</message>
+            </node>
+
+
+            <node id="2">
+                <button scope="page" type="buttonSubmit" value="Enable" obj-name="basesysReset_sysDeviceEraseStartupConfig" target-page="EraseStartupConfig.html" help="Submits the form on this page to the Switch" id="1" name="Yes"/>
+                <button scope="page" type="buttonClear" target-page="EraseStartupConfig.html" help="Submits the form on this page to the Switch" id="2" name="No"/>
+            </node>
+
+        </group>
+    </webxml>
+</FastPathXML>

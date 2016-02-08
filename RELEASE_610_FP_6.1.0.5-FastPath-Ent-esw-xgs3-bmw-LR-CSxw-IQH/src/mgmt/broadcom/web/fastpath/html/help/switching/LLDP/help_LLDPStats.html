@@ -1,0 +1,91 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<!--#INCLUDE INCLPATH = "src/mgmt/emweb/web/web.h" -->
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>LLDP - 802.1AB Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=lldpstat></a>Help for LLDP Statistics</h2>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Last Update</b>   
+  - Specifies the time when an entry was created, modified or deleted in the tables 
+     associated with the remote system. </li>
+  <li><b>Total Inserts</b>   
+  - Specifies the number of times the complete set of information advertised by a particular 
+        MAC Service Access Point (MSAP) has been inserted into tables associated with the remote systems. </li>
+  <li><b>Total Deletes</b>   
+  - Specifies the number of times the complete set of information advertised by a particular MAC 
+        Service Access Point (MSAP) has been deleted from tables associated with the remote systems. </li>
+  <li><b>Total Drops</b>   
+  - Specifies the number of times the complete set of information advertised by a particular MAC 
+        Service Access Point (MSAP) could not be entered into tables associated with the remote systems 
+        because of insufficient resources. </li>
+  <li><b>Total Age outs</b>   
+  - Specifies the number of times the complete set of information advertised by a particular MAC Service 
+        Access Point (MSAP) has been deleted from tables associated with the remote systems because the 
+        information timeliness interval has expired.</li>
+  <li><b>Interface</b>   
+  - Specifies the<EMWEB_IF ID=XUI_IF_STACKING_PRESENT>
+	 Unit/Slot/Port
+<EMWEB_ELSE>
+	 Slot/Port
+</EMWEB_IF> for the interfaces. </li>
+  <li><b>Transmit Total</b>   
+  - Specifies the number of LLDP frames transmitted by the LLDP agent on the corresponding port.</li>
+  <li><b>Receive Total</b>   
+  - Specifies the number of valid LLDP frames received by this LLDP agent on the corresponding port, 
+         while the LLDP agent is enabled.</li>
+  <li><b>Discards</b>   
+  - Specifies the number of LLDP TLVs discarded for any reason by the LLDP agent on the corresponding port. </li>
+  <li><b>Errors</b>   
+  - Specifies the number of invalid LLDP frames received by the LLDP agent on the corresponding port, 
+         while the LLDP agent is enabled. </li>
+  <li><b>Age outs</b>   
+  - Specifies the number of age-outs that occurred on a given port. An age-out is the number of times 
+         the complete set of information advertised by a particular MAC Service Access Point (MSAP) has been 
+         deleted from tables associated with the remote entries because information timeliness interval had expired. </li>
+  <li><b>TLV Discards</b>   
+  - Specifies the number of LLDP TLVs discarded for any reason by the LLDP agent on the corresponding port. </li>
+  <li><b>TLV Unknowns</b>   
+  - Specifies the number of LLDP TLVs received on the local ports which were not recognized by the LLDP 
+        agent on the corresponding port. </li>
+  <li><b>TLV MED</b>   
+  - Specifies the total number of LLDP-MED TLVs received on the local ports. </li>
+  <li><b>TLV 802.1</b>   
+  - Specifies the total  number of LLDP TLVs received on the local ports which are of type 802.1. </li>
+  <li><b>TLV 802.3</b>   
+  - Specifies the total number of LLDP TLVs received on the local ports which are of type 802.3. </li>
+ </ul>
+</ul>
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Refresh</b> - Updates the information on the page. </li>
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+  <li><b>Clear</b> - Clears LLDP Statistics of all the interfaces. </li>
+</EMWEB_IF>
+ </ul>
+</ul>
+
+
+</body>
+
+</html>
+
+  
+
+

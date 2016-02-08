@@ -1,0 +1,120 @@
+##############################################################################
+#
+# make.targets
+#
+# Purpose:  
+#      Constructs list of all possible targets that can be built by
+#      the make system in accordance with package.cfg definitions.
+#
+# Note:
+#      Requires that the make.cfg file be included prior to including this file.
+#
+##############################################################################
+
+# The following targets are designated as pure source code packages for 
+# linkable object builds.  These are not built when creating the linkable
+# object file itself.
+#
+srcdist_targets := bsp cli emweb kmod netsnmp nls os snmp tr069ui web xlib modb xweb
+
+# The following targets consist of a mixture of source and object file distribution
+# and handled within their own make files (this list is just for reference).
+#
+srcobj_targets  := andl base binds chassis 
+
+
+# Construct a customized list of targets for this build combination.
+#
+# Put andl and xui targets early in the list so parallel make can overlap them.
+#
+common_targets := andl
+
+ifeq (1,$(BLD_L7_UI_HAS_XUI))
+  common_targets += xlib modb xweb
+endif
+
+common_targets += bsp binds base os
+
+ifeq (1,$(BLD_L7_CHASSIS_IS_TYPE_CHASSIS))
+  common_targets += chassis
+endif
+
+flex_targets :=
+
+mgmt_targets :=
+cliweb_targets :=
+ifeq (1,$(BLD_L7_UI_HAS_CLI))
+  mgmt_targets += cli
+  cliweb_targets = nls emweb
+endif
+ifeq (1,$(BLD_L7_UI_HAS_TR069))
+  mgmt_targets += tr069ui
+endif
+ifeq (1,$(BLD_L7_UI_HAS_WEB))
+  mgmt_targets += web
+  cliweb_targets = nls emweb
+endif
+
+# need to add emweb separately as we need web first before emweb
+mgmt_targets += $(cliweb_targets)
+
+ifeq (1,$(BLD_L7_UI_HAS_SNMP))
+  mgmt_targets += snmp
+endif
+
+ifeq (1,$(BLD_L7_UI_HAS_XNETSNMP))
+  mgmt_targets += netsnmp
+endif
+
+other_targets :=
+ifeq (1,$(BLD_L7_TARGETOS_LINUX))
+  ifneq (,$(strip $(L7_MODULE_LIST_LOCAL_BUILD)))
+    other_targets += kmod
+  endif
+endif
+
+os_link_targets      :=
+os_primary_targets   :=
+ifeq (1,$(BLD_L7_TARGETOS_LINUX))
+  os_link_targets    += ipl
+endif
+ifeq (1,$(BLD_L7_TARGETOS_VXWORKS))
+  os_link_targets    += start ipl
+  os_primary_targets += convert
+endif
+ifeq (1,$(BLD_L7_TARGETOS_ECOS))
+  os_link_targets    += ipl
+endif
+
+
+LIB_TARGETS     := $(common_targets) $(flex_targets) $(mgmt_targets) $(other_targets)
+
+
+# Add targets that are categorized as object-only for linkable object builds.
+#
+# Note: This is included conditionally, since the file is deleted when a
+#       linkable object build is generated.
+#
+# Note: This must be placed after the LIB_TARGETS definition, since it may 
+#       specify a more complete definition.
+#
+-include $(FP_ROOT)/src/l7tools/build/make.targets.objdist
+
+
+# The following definitions are common to all source and object package targets.
+#
+
+LINK_TARGETS    := $(os_link_targets)
+
+CLEAN_TARGETS   := $(addprefix clean-,$(LIB_TARGETS) $(LINK_TARGETS))
+DEBUG_TARGETS   := $(addprefix debug-,$(LIB_TARGETS) $(LINK_TARGETS))
+
+PRIMARY_TARGETS := bldlib clean cleanexe debug-variables installexe metrics snafu
+PRIMARY_TARGETS += $(os_primary_targets)
+
+ALL_TARGETS     := $(PRIMARY_TARGETS) $(LIB_TARGETS) $(LINK_TARGETS) $(CLEAN_TARGETS) $(DEBUG_TARGETS)
+
+MULTI_TARGETS   := all relink linkable-object
+
+DISALLOWED_LOCAL_TARGETS := $(filter-out all bldlib $(LIB_TARGETS),$(ALL_TARGETS) $(MULTI_TARGETS))
+

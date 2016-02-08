@@ -1,0 +1,52 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" java-script="macFilter" name="MACFilterConfig" title="MAC Filter Configuration">
+        <group level="ReadWriteUser" id="1" heading="  ">
+            
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="SwitchingStaticMACFilterConfig_StaticMacFilteringAddress" id="1" name="MAC Filter">
+                    <action type="extn" value="Create" setval_ids="1_2|1_3" setval_args="valMapEmptyMacString|valMapEmptyString" disable="1_6_2|1_6_3|1_6_4|1_4|1_5" hide="1_6_2|1_6_3|1_6_4|1_4|1_5" show="1_2_1|1_3_1|1_6_1|1_7|1_8" enable="1_2_1|1_3_1|1_6_1|1_7|1_8"/>
+                    <action type="default" disable="1_2_1|1_6_1|1_7|1_8" enable="1_3|1_4|1_5|1_6_2|1_6_3|1_6_4" show="1_4|1_5|1_6_2|1_6_3|1_6_4" hide="1_6_1|1_7|1_8"/>
+                </element>
+            </node>
+            <node id="3">
+                <element control="combo" properties="filter,iterate,list" obj-name="SwitchingStaticMACFilterConfig_StaticMacFilteringVlanId" id="1" name="VLAN ID">
+				    <action type="mandate" disable="1_1|1_2" invoke="onChange" />
+                </element>
+            </node>
+            <node id="2">
+                <element control="textbox" value="" properties="filter,iterate" obj-name="SwitchingStaticMACFilterConfig_StaticMacFilteringAddress" id="1" name="MAC Address"/>                    
+            </node>
+            <node id="4">
+                <element control="combo-multiselect" obj-name="SwitchingStaticMACFilterConfig_StaticMacFilteringSourcePortMask" id="1" name="Source Port Members" properties="edit,list,collate"/>
+            </node>
+            <node id="5">
+                <element control="combo-multiselect" obj-name="SwitchingStaticMACFilterConfig_StaticMacFilteringDestPortMask" id="1" name="Destination Port Members" properties="edit,list,collate"/>
+            </node>
+			<node id="7">
+                <element control="combo-multiselect" value="" obj-name="SwitchingStaticMACFilterConfig_StaticMacFilteringSourcePortMask" id="1" name="Source Port Members" properties="edit,list,collate,write-only"/>
+            </node>
+            <node id="8">
+                <element control="combo-multiselect" value="" obj-name="SwitchingStaticMACFilterConfig_StaticMacFilteringDestPortMask" id="1" name="Destination Port Members" properties="edit,list,collate,write-only"/>
+            </node>
+            <node id="6">
+                <button scope="page" type="buttonSubmit" value="Add" obj-name="SwitchingStaticMACFilterConfig_StaticMacFilteringStatus" help="Submits the form on this page to the Switch" id="1" name="Submit">
+			       <action disable="1_6_2|1_6_3|1_6_4"/>
+				</button>   
+				<button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="4" name="Submit">
+				   <action disable="1_6_1|1_6_2|1_6_3"/>
+				</button>   
+                <button scope="page" type="buttonSubmit" value="Delete" obj-name="SwitchingStaticMACFilterConfig_StaticMacFilteringStatus" help="Submits the form on this page to the Switch" id="2" name="Delete">
+				   <action disable="1_6_1|1_6_3|1_6_4"/>
+				</button>   
+                <button scope="page" type="buttonSubmit" value="1" obj-name="SwitchingStaticMACFilterConfig_StaticMacFilteringDeleteAll" help="Submits the form on this page to the Switch" id="3" name="Delete All">
+				   <action disable="1_6_1|1_6_2|1_6_4"/>
+				</button>   
+			</node>
+		</group>	
+    </webxml>
+</FastPathXML>

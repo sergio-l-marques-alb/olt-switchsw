@@ -1,0 +1,149 @@
+
+<HTML>
+<EMWEB_HEAD C='
+    #include "web.h"
+  '>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>DHCP Server Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+
+<hr size=4 width="80%" align=center>
+
+<h2><a name=dhcp_pool_cfg></a>Help for DHCP Server Pool Configuration</h2>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Pool Name*</b> - For a user with readwrite permission, this field would show names
+  of all the existing pools along with an additional option "Create". When the user selects
+  "Create" another text box "Pool Name" appears where the user may enter name for the Pool
+  to be created. For a user with readonly permission, this field would show names of the
+  existing pools only.</li>
+  <li><b>Pool Name</b> - This field appears when the user with read-write permission has
+  selected "Create" in the Drop Down list against Pool Name*. Specifies the Name of the Pool
+  to be created. Pool Name can be upto
+  <EMWEB_STRING C='
+      return usmWebIntegerToString(L7_DHCPS_POOL_NAME_MAXLEN);
+       ' > characters in length.</li>
+  <li><b>Type of Binding</b> - Specifies the type of binding for the pool.
+  <UL>
+         <LI><I><B>Unallocated</B></I></LI>
+         <li><I><B>Automatic</B></I></LI>
+         <LI><I><B>Manual</B></I></li>
+         </UL>
+  </li>
+
+  <li><b>Network Number</b> - Specifies the subnet number for a DHCP address of a automatic pool. This field is displayed upon the selection of   <b>Automatic</b> binding</li>
+  <li><b>Network Mask</b> - Specifies the subnet number for a DHCP address of a automatic pool. Either
+  Network Mask or Prefix Length can be configured to specify the subnet mask but not both. This field is displayed upon the selection of   
+  <b>Automatic</b> binding</li>
+  <li><b>Prefix Length</b> - Specifies the subnet number for a DHCP address of a automatic pool. Either
+  Network Mask or Prefix Length can be configured to specify the subnet mask but not both. This field is displayed upon the selection of 
+  <b>Automatic</b> binding. Valid Range is
+  <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_DHCPS_PREFIX_MIN, L7_DHCPS_PREFIX_MAX);
+       ' ></li>.
+
+  <li><b>Prefix Length Option Enable</b> - Checkbox provides option to configure the Network Number using Prefix Length or Network Mask. Network Mask and Prefix Length are mutually exclusive. This field is displayed upon the selection of <b>Automatic</b> binding.</li>
+  <li><b>Client Name</b> - Specifies the Client Name for DHCP manual Pool. This field is displayed upon the selection of   
+  <b>Manual</b> binding.</li>
+  <li><b>Hardware Address</b> - Specifies the MAC address of the hardware platform of the DHCP client. This field is displayed upon the selection of <b>Manual</b> binding.</li>
+  <li><b>Hardware Address Type</b> - Specifies the protocol of the hardware platform of the DHCP client.
+  Valid types are Ethernet and IEEE802. Default value is Ethernet. This field is displayed upon the selection of
+  <b>Manual</b> binding.</li>
+  <li><b>Client ID</b> - Specifies the Client Identifier for DHCP manual Pool. This field is displayed upon the selection of
+  <b>Manual</b> binding.</li>
+  <li><b>Host Number</b> - Specifies the IP address for a manual binding to a DHCP client. Host can be set
+  only if at least one among of Client Identifier or Hardware Address is specified. Deleting Host would
+  delete Client Name, Client ID, Hardware Address for the Manual Pool and set the Pool Type to Unallocated. This field is displayed upon the selection of <b>Manual</b> binding.</li>
+  <li><b>Host Mask</b> - Specifies the subnet mask for a manual binding to a DHCP client. Either
+  Host Mask or Prefix Length can be configured to specify the subnet mask but not both. This field is displayed upon the selection of
+  <b>Manual</b> binding.</li>
+  <li><b>Prefix Length</b> - Specifies the subnet mask for a manual binding to a DHCP client. Either
+  Host Mask or Prefix Length can be configured to specify the subnet mask but not both. This field is displayed upon the selection of
+  <b>Manual</b> binding. Valid Range is
+  <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_DHCPS_PREFIX_MIN, L7_DHCPS_PREFIX_MAX);
+       ' ></li>.
+  <li><b>Prefix Length Option Enable</b> - Checkbox provides option to configure the Host Number using Prefix Length or Host Mask. Host Mask and Prefix Length are mutually exclusive. This field is displayed upon the selection of <b>Manual</b> binding.</li>
+  <li><b>Lease Time</b> - Can be selected as "Infinite" to specify lease time as Infinite
+  or "Specified Duration" to enter a specific lease period. In case of automatic binding
+  infinite implies a lease period of 60 days and In case of manual binding infinite
+  implies indefinite lease period. Default Value is "Specified Duration".</li>
+  <li><b>Days</b> - Specifies the Number of Days of Lease Period. This field appears only
+  if the user has specified "Specified Duration" as the Lease time. Default value is 1.
+  Valid Range is
+  <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_DHCPS_LEASETIME_DAY_MIN, (L7_DHCPS_LEASETIME_DAY_MAX-1));
+       ' >.
+  </li>
+  <li><b>Hours</b> - Specifies the Number of Hours of Lease Period. This field appears only
+  if the user has specified "Specified Duration" as the Lease time. Valid Range is
+  <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_DHCPS_LEASETIME_HRS_MIN, (L7_DHCPS_LEASETIME_HRS_MAX-1));
+       ' ></li>. Default value is 0.
+  <li><b>Minutes</b> - Specifies the Number of Minutes of Lease Period. This field appears
+  only if the user has specified "Specified Duration" as the Lease time. Valid Range is
+  <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp((L7_DHCPS_LEASETIME_MIN - 1), (L7_DHCPS_LEASETIME_MAX-1));
+       ' ></li>. Default value is 0.
+  <li><b>Default Router Addresses</b> - Specifies the list of Default Router Addresses for the pool.
+  The user may specify upto 8 Default Router Addresses in order of preference.</li>
+  <li><b>DNS Server Addresses</b> - Specifies the list of DNS Server Addresses for the pool.
+  The user may specify upto 8 DNS Server Addresses in order of preference.</li>
+  <li><b>NetBIOS Name Server Addresses</b> - Specifies the list of NetBIOS Name Server Addresses for the pool.
+  The user may specify upto 8 NetBIOS Name Server Addresses in order of preference.</li>
+  <li><b>NetBIOS Node Type</b> - Specifies the NetBIOS node type for DHCP clients.
+  <UL>
+         <LI><I><B>b-node Broadcast</B></I></LI>
+         <li><I><B>p-node Peer-to-Peer</B></I></LI>
+         <LI><I><B>m-node Mixed</B></I></li>
+         <LI><I><B>h-node Hybrid</B></I></li>
+         </UL>
+  </li>
+  <li><b>Next Server Address</b> - Specifies the Next Server Address for the pool.</li>
+  <li><b>Domain Name</b> - Specifies the domain name for a DHCP client. Domain Name can be upto
+  <EMWEB_STRING C='
+      return usmWebIntegerToString(L7_DHCPS_DOMAIN_NAME_MAXLEN);
+       ' > characters in length.</li>
+  <li><b>Boot File</b> - Specifies the name of the default boot image for a DHCP client. File Name can be upto
+  <EMWEB_STRING C='
+      return usmWebIntegerToString(L7_DHCPS_BOOT_FILE_NAME_MAXLEN);
+       ' > characters in length.</li>
+  <li><b>Add Option</b> - This field is used to configure the DHCP server options.</li>
+  <li><b>Code</b> - Specifies the DHCP option code. Valid Range is
+  <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_DHCPS_OPTION_CONFIGURE_MIN, L7_DHCPS_OPTION_CONFIGURE_MAX);
+       ' ></li>
+  <li><b>ASCII Value</b> - Specifies an NVT ASCII character string.</li>
+  <li><b>Hex Value</b> - Specifies hexadecimal data. Each byte in hexadecimal
+  character strings is 2 hexadecimal digits. Each byte can be separated by a colon or white
+  space. A period can be used to separate 2 bytes/4 hexadecimal digits.</li>
+  <li><b>IP Address Value</b> - Specifies the Option IP addresses.</li>
+  </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Creates/Modifies the Pool Configuration. Sends the updated configuration to the switch.
+  Configuration changes take effect immediately.</li>
+  <li><b>Delete</b> - Deletes the Pool. This field is not visible to a user with readonly permission.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+</body>
+
+</html>
+
+

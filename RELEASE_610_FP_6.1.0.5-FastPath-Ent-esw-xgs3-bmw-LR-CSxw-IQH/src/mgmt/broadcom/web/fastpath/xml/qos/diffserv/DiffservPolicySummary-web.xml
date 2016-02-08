@@ -1,0 +1,34 @@
+<?xml version='1.0'?>
+
+<!DOCTYPE FastPathXML SYSTEM "web.dtd" >
+
+ 
+
+ 
+
+<FastPathXML>
+
+<webxml version="1.0" name="DiffservPolicySummary" title="DiffServ Policy Summary">
+
+<group id="1" heading=" ">
+
+<repeat present="vtable" edit="no" heading=" " id="1">
+
+<element properties="filter,iterate,hidden" obj-name="qosDiffServPolicy_PolicyIndex" id="1"/>
+<element control="label" properties="read-only" obj-name="qosDiffServPolicy_PolicyName" id="2" name="Policy Name"/>
+<element control="label" properties="read-only" obj-name="qosDiffServPolicy_PolicyType" id="3" name="Policy Type"/>
+<element control="label" properties="read-only" obj-name="qosDiffServPolicy_PolicyMemberClassList" id="4" name="Member Classes"/>
+</repeat>
+
+<node id="2">
+
+<button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+
+</node>
+
+</group>
+
+</webxml>
+
+</FastPathXML>
+

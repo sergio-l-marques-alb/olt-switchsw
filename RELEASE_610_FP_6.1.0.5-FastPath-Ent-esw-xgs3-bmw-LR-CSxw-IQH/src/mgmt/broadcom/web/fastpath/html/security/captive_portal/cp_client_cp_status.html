@@ -1,0 +1,367 @@
+<EMWEB_IF ID=USMWEB_IF_LVL_HDR_NOT_REQ>
+<!--
+/*********************************************************************
+*
+* (C) Copyright Broadcom Corporation 2001-2007
+*
+**********************************************************************
+*
+* @filename  cp_client_cp_status.html
+*
+* @purpose   HTML content
+*
+* @comments  None
+*
+* @create    7/9/2007
+*
+* @author    rjindal
+*
+* @end
+*
+*********************************************************************/
+-->
+</EMWEB_IF>
+emweb:/USMWEB_PAGE_DTD_HEADER_GET;
+<HTML>
+<HEAD>
+   emweb:/USMWEB_PAGE_META_DATA_GET; <!-- Style Sheet link and Meta data     -->
+   <TITLE>emweb:/USMWEB_SECURITY_OEM_STRING_GET?1962;</TITLE>
+
+<script src="/scripts/utils.js"></script>
+<script type='text/javascript' language='JavaScript'>
+var msie = false;
+var browser=navigator.appName;
+if (browser.indexOf("Microsoft") != -1)
+  msie = true;
+
+var userRW = emweb:/USMWEB_USER_READWRITE;; 
+var tableSize=emweb:/USMWEB_PAGE_NUMBER_OF_ROWS;;
+var numPagesPerBlock = emweb:/USMWEB_PAGES_PER_BLOCK;; 
+var blockSize=tableSize*numPagesPerBlock;
+var startIndex=0;
+
+jsData = new Array();
+<EMWEB_ITERATE C='
+  EwaNetHandle net;
+  usmWeb_AppInfo_t appInfo;
+  static L7_enetMacAddr_t macAddr;
+  static macIterator_t macIterator;
+  static L7_uint32 entryIndex;
+  static cpId_t selected_cpId;
+
+  if (ewsContextIterator(ewsContext) == NULL)
+  {
+    selected_cpId = 0;
+    memset(&macAddr, 0x00, sizeof(L7_enetMacAddr_t));
+    entryIndex = 0;
+
+    net = ewsContextNetHandle(ewsContext);
+    if (net->app_pointer != L7_NULL)
+    {
+      memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+      selected_cpId = appInfo.data[1];
+    }
+    else
+    {
+      if (usmDbCpdmCPConfigNextGet(selected_cpId, &selected_cpId) != L7_SUCCESS)
+        return L7_NULL;
+    }
+  }
+
+  if (usmDbCpdmClientConnStatusCPIDClientNextGet(selected_cpId, macAddr, &macAddr) == L7_SUCCESS)
+  {
+    memcpy(macIterator.macAddr.addr, macAddr.addr, L7_ENET_MAC_ADDR_LEN);
+    macIterator.index = entryIndex;
+    entryIndex++;
+    return (const void *) &macIterator;
+  }
+  else
+  {
+    return L7_NULL;
+  }
+  '>
+<EMWEB_STRING C='
+  macIterator_t macIterator;
+  
+  if (ewsContextIterator(ewsContext) == NULL)
+    memset(&macIterator, 0x00, sizeof(macIterator_t));
+  else
+    memcpy(&macIterator, (macIterator_t *) ewsContextIterator(ewsContext), sizeof(macIterator_t));
+
+  return usmWebCPClientCpidEntryGet(macIterator.macAddr, macIterator.index);
+  '>
+</EMWEB_ITERATE>
+
+function fillTable(tbodyID, start)
+{
+  var tr, td;
+  var tbody = document.getElementById(tbodyID);
+  var lastIndex = jsData.length;
+  var totalNumEntries = jsData.length;
+
+  startIndex = start;
+  clearTable(tbody);
+
+  if ((startIndex + tableSize) < lastIndex)
+    lastIndex = (startIndex + tableSize);
+
+  var strClass = "class";
+  if (msie)
+    strClass = "className";
+
+  for (var i=startIndex; i<lastIndex; i++)
+  {
+    tr = tbody.insertRow(tbody.rows.length);
+
+    td = tr.insertCell(tr.cells.length);
+    td.setAttribute(strClass, "rowvalue");
+    td.innerHTML = jsData[i].peerClient;
+
+    td = tr.insertCell(tr.cells.length);
+    td.setAttribute(strClass, "sortedtabledata");
+    td.innerHTML = "<a href=\"cp_client_status.html?mac="+jsData[i].mac+"\" title=\"Click here to see details\">"+jsData[i].mac+"</a>";
+
+    td = tr.insertCell(tr.cells.length);
+    td.setAttribute(strClass, "sortedtabledata");
+    td.innerHTML = jsData[i].ip;
+
+    td = tr.insertCell(tr.cells.length);
+    td.setAttribute(strClass, "sortedtabledata");
+    td.innerHTML = jsData[i].intf;
+
+    td = tr.insertCell(tr.cells.length);
+    td.setAttribute(strClass, "sortedtabledata");
+    td.innerHTML = jsData[i].protocol;
+
+    td = tr.insertCell(tr.cells.length);
+    td.setAttribute(strClass, "sortedtabledata");
+    td.innerHTML = jsData[i].verification;
+  }
+
+  tr = tbody.insertRow(tbody.rows.length);
+
+  td = tr.insertCell(tr.cells.length);
+  td.colSpan = 5;
+  td.setAttribute("align", "center");
+  td.innerHTML = "<br>";
+
+  var currPage = ((startIndex - (startIndex%(tableSize)))/(tableSize)) + 1;
+  var currBlock = 0;
+  var prevIndex = -1;
+  var nextIndex = -1;
+  if (startIndex >= blockSize)
+    currBlock = (startIndex - (startIndex%(blockSize)))/(blockSize);
+  i = currBlock*numPagesPerBlock+1;
+  var pStart = (i-1)*tableSize;
+  if (jsData.length > tableSize)
+  {
+    if (currBlock >= 1)
+    {
+      prevIndex = (currBlock-1)*(blockSize);
+      td.innerHTML += "<a href=\"#\" onclick=\'fillTable(\"cpCpidData\","+prevIndex+")\'>Previous</a>&nbsp;";
+    }
+    for (var k=0; k<numPagesPerBlock; k++)
+    {
+      if (pStart >= jsData.length)
+        break;
+      if (i == currPage)
+        td.innerHTML += i+"&nbsp;";
+      else
+        td.innerHTML += "<a href=\"#\" onclick=\'fillTable(\"cpCpidData\","+pStart+")\'>"+i+"</a>&nbsp;";
+      pStart += tableSize;
+      i++;
+    }
+    if (totalNumEntries > ((currBlock+1)*blockSize))
+    {
+      nextIndex = (currBlock+1)*(blockSize);
+      td.innerHTML += "<a href=\"#\" onclick=\'fillTable(\"cpCpidData\","+nextIndex+")\'>Next</a>";
+    }
+  }
+}
+
+function sortTable(link)
+{
+  switch (link.firstChild.nodeValue) {
+  case "Client MAC Address" :
+    jsData.sort(sortByMac);
+    break;
+  case "Client IP Address" :
+    jsData.sort(sortByIP);
+    break;
+  case "Interface" :
+    jsData.sort(sortByIntf);
+    break;
+  case "Protocol" :
+    jsData.sort(sortByProtocol);
+    break;
+  case "Verification" :
+    jsData.sort(sortByVerify);
+    break;
+  default :
+    jsData.sort(sortByMac);
+    break;
+  }
+  fillTable("cpCpidData", 0);
+  return false;
+}
+
+function sortByMac(a, b)
+{
+  var sa = a.mac.toLowerCase();
+  var sb = b.mac.toLowerCase();
+  return ((sa < sb) ? -1 : ((sa > sb) ? 1 : 0));
+}
+
+function sortByIP(a, b)
+{
+  var sa = a.ip.toLowerCase();
+  var sb = b.ip.toLowerCase();
+  return ((sa < sb) ? -1 : ((sa > sb) ? 1 : 0));
+}
+
+function sortByIntf(a, b)
+{
+  var sa = a.intf.toLowerCase();
+  var sb = b.intf.toLowerCase();
+  return ((sa < sb) ? -1 : ((sa > sb) ? 1 : 0));
+}
+
+function sortByProtocol(a, b)
+{
+  var sa = a.protocol.toLowerCase();
+  var sb = b.protocol.toLowerCase();
+  return ((sa < sb) ? -1 : ((sa > sb) ? 1 : 0));
+}
+
+function sortByVerify(a, b)
+{
+  var sa = a.verification.toLowerCase();
+  var sb = b.verification.toLowerCase();
+  return ((sa < sb) ? -1 : ((sa > sb) ? 1 : 0));
+}
+
+function clearTable(tbody)
+{
+  while (tbody.rows.length > 0)
+  {
+    tbody.deleteRow(0);
+  }
+}
+
+function DisplayErrorMsg()
+{
+  alert(document.forms[0].err_msg.value);
+}
+
+function check_error()
+{
+  if (document.forms[0].err_flag.value == 1)
+  {
+    DisplayErrorMsg();
+  }
+}
+
+function cp_id_refresh()
+{
+  document.forms[0].submit();
+}
+
+function delete_all_check()
+{
+  var prompt = window.confirm("Are you sure you want to deauthenticate all clients for this CP configuration?");
+  if (prompt)
+  {
+    document.forms[0].refresh_in_progress.value = 1;
+    document.forms[0].refresh_key.value = 1;
+    document.forms[0].submit();
+  }
+}
+
+</script>
+</HEAD>
+
+<BODY class="bodyframeattributes" onload="check_error()">
+<FORM method="post" EMWEB_NAME="cpClientCpStatus">
+
+<!-- ----------------------------------------------------------------------- -->
+<!--         Tabbed Navigation                                               -->
+<!-- ----------------------------------------------------------------------- -->
+emweb:/USMWEB_TABS_CP_CLIENT_STATUS?4;
+
+<!-- ----------------------------------------------------------------------- -->
+<!--         Web page header                                                 -->
+<!-- ----------------------------------------------------------------------- -->
+emweb:/USMWEB_SECURITY_PAGE_HEADER_1ST_GET?1962;   <!-- Includes page title          -->
+emweb:/USMWEB_SECURITY_PAGE_HEADER_2ND_GET?2762;   <!-- Includes help page link      -->
+
+<TABLE CLASS="tablecontent" emweb:/USMWEB_TABLE_CONTENT_ALIGN; cellpadding="0" cellspacing="0">
+
+  <TR>
+  <TD align="center" colspan=5><select class="selectfield" name="cp_id" size="1" maxlength="3" EMWEB_ITERATE EMWEB_TYPE="DECIMAL_UINT" onchange="cp_id_refresh()">
+      <option class="selectfield" value="one">1</option>
+      </select>
+  </TD>
+  </TR>
+
+  <TR><TD>&nbsp;</TD></TR>
+
+  <EMWEB_IF ID=USMWEB_IF_CP_CLIENT_ASSOC_CPID> <!-- If client associated to CP -->
+  <TR>
+  <TD>
+  <TABLE id="cpCpidTable" class="datatableattributes" emweb:/USMWEB_DATA_TABLE_ALIGN; cellpadding="0" cellspacing="0">
+    <THEAD>
+      <TR>
+      <TH class="nodatatableheading"></TH>  <!-- No header for peer managed client indication -->
+<EMWEB_IF ID=USMWEB_IF_WIDS_CONTROLLER>
+      <TH nowrap class="datatableheading" align="center"><a href="#" title="Sort by Client MAC" onclick="return sortTable(this)">MAC Address<BR>(*)-Peer Authenticated</a></TH>
+<EMWEB_ELSE>
+      <TH nowrap class="datatableheading" align="center"><a href="#" title="Sort by Client MAC" onclick="return sortTable(this)">MAC Address</a></TH>
+</EMWEB_IF>
+      <TH nowrap class="datatableheading" align="center"><a href="#" title="Sort by Client IP" onclick="return sortTable(this)">IP Address</a></TH>
+      <TH nowrap class="datatableheading" align="center"><a href="#" title="Sort by Interface" onclick="return sortTable(this)">Interface</a></TH>
+      <TH nowrap class="datatableheading" align="center"><a href="#" title="Sort by Protocol" onclick="return sortTable(this)">Protocol</a></TH>
+      <TH nowrap class="datatableheading" align="center"><a href="#" title="Sort by Verification" onclick="return sortTable(this)">Verification</a></TH>
+      </TR>
+    </THEAD>
+    <TFOOT><TR><TD=colspan=6></TD></TR></TFOOT>     
+    <TBODY id="cpCpidData"></TBODY>
+  </TABLE>
+  </TD>
+  </TR>
+
+  <EMWEB_ELSE> <!-- No clients associated to CP -->
+  <TR>
+  <TD colspan=6 class="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27162;</TD>
+  </TR>
+
+  </EMWEB_IF> <!-- EndIf client associated to CP -->
+
+  <TR>
+  <TD colspan=6 emweb:/USMWEB_BUTTON_ALIGN;><BR>
+  <EMWEB_IF ID=USMWEB_IF_CP_CLIENT_ASSOC_CPID> <!-- If client associated to CP -->
+    <input class="buttonattributes" type="submit" name="Delete_all" VALUE="Delete All" onclick='delete_all_check()'>
+  </EMWEB_IF> <!-- EndIf client associated to CP -->
+    <input class="buttonattributes" type="submit" name="Refresh">
+  </TD>
+  </TR>
+
+</TABLE>
+
+<INPUT TYPE="hidden" NAME="err_flag" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT value="">
+<INPUT TYPE="hidden" NAME="err_msg" SIZE="128" MAXLENGTH="127">
+<INPUT TYPE="hidden" NAME="refresh_in_progress" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT>
+<INPUT TYPE="hidden" NAME="refresh_key" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT>
+
+<EMWEB_IF ID=USMWEB_IF_CP_CLIENT_ASSOC_CPID>
+  <script type="text/javascript" language="JavaScript1.2">fillTable("cpCpidData", 0)</script>
+</EMWEB_IF>
+
+<!-- ----------------------------------- -->
+<!--         Web page footer             -->
+<!-- ----------------------------------- -->
+ emweb:/USMWEB_PAGE_FOOTER_GET;
+
+</FORM>
+</BODY>
+</HTML>
+

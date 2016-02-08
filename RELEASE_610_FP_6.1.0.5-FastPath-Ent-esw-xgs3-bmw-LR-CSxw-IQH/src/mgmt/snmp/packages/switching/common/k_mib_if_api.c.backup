@@ -1,0 +1,436 @@
+
+/*********************************************************************
+*
+* (C) Copyright Broadcom Corporation 2001-2007
+*
+**********************************************************************
+* @filename k_mib_if_api.h
+*
+* @purpose SNMP specific value conversion
+*
+* @component SNMP
+*
+* @comments This file is included at the top of the k_mib_if.c
+*
+* @create 04/09/2001
+*
+* @author cpverne
+*
+* @end
+*             
+**********************************************************************/
+
+/*************************************************************
+                    
+*************************************************************/
+
+#include "k_mib_if_api.h"
+#include "usmdb_2233_stats_api.h"
+#include "usmdb_nim_api.h"
+#include "usmdb_trapmgr_api.h"
+
+L7_RC_t 
+snmpIfSpeedGet(L7_uint32 UnitIndex, L7_uint32 interface, SR_UINT32 *val)
+{
+  L7_uint32 temp_val;
+  L7_RC_t rc;
+
+  rc = usmDbIfSpeedStatusGet(UnitIndex, interface, &temp_val);
+
+  if (rc == L7_SUCCESS)
+  {
+    switch (temp_val)
+    {
+    case L7_PORTCTRL_PORTSPEED_FULL_100TX:
+      *val = SNMP_HUNDRED_MBPS; /* 100,000,000 bps */
+      break;
+    case L7_PORTCTRL_PORTSPEED_HALF_100TX:
+      *val = SNMP_HUNDRED_MBPS; /* 100,000,000 bps */
+      break;
+    case L7_PORTCTRL_PORTSPEED_FULL_10T:
+      *val = SNMP_TEN_MBPS; /* 10,000,000 bps */
+      break;
+    case L7_PORTCTRL_PORTSPEED_HALF_10T:
+      *val = SNMP_TEN_MBPS; /* 10,000,000 bps */
+      break;
+    case L7_PORTCTRL_PORTSPEED_FULL_100FX:
+      *val = SNMP_HUNDRED_MBPS; /* 100,000,000 bps */
+      break;
+    case L7_PORTCTRL_PORTSPEED_FULL_1000SX:
+      *val = SNMP_THOUSAND_MBPS; /* 1,000,000,000 bps */
+      break;
+    case L7_PORTCTRL_PORTSPEED_FULL_10GSX:
+      *val = SNMP_IFSPEEDMAX_MBPS; /* 4,294,967,295 bps (see MIB description) */
+      break;
+/* lvl7_@p1327 start */
+    case L7_PORTCTRL_PORTSPEED_LAG:
+      rc = usmDbIfLAGSpeedGet(interface, val);  /* get data rate from LAG component */
+      if (rc == L7_SUCCESS)
+      {
+        if(*val > (SNMP_IFSPEEDMAX_MBPS / SNMP_ONE_MBPS))
+          *val = SNMP_IFSPEEDMAX_MBPS; /* 4,294,967,295 bps */ 
+        else 
+          *val = *val * SNMP_ONE_MBPS;
+      }
+      break;
+/* lvl7_@p1327 end */
+    case L7_PORTCTRL_PORTSPEED_UNKNOWN:
+      *val = 0;          /* unknown, likely down */
+      break;
+    default:
+      *val = 0; 
+      rc = L7_FAILURE;
+    }
+  }
+
+  return rc;
+}
+
+/*#define usmDbIfSpeedStatusGet                   snmpIfSpeedGet*/
+
+L7_RC_t 
+snmpIfHighSpeedGet(L7_uint32 UnitIndex, L7_uint32 interface, L7_uint32 *val)
+{
+  L7_uint32 temp_val;
+  L7_RC_t rc;
+
+  rc = usmDbIfSpeedStatusGet(UnitIndex, interface, &temp_val);
+
+  if (rc == L7_SUCCESS)
+  {
+    switch (temp_val)
+    {
+    case L7_PORTCTRL_PORTSPEED_FULL_100TX:
+      *val = SNMP_HUNDRED; /* 100 Mbps */
+      break;
+    case L7_PORTCTRL_PORTSPEED_HALF_100TX:
+      *val = SNMP_HUNDRED; /* 100 Mbps */
+      break;
+    case L7_PORTCTRL_PORTSPEED_FULL_10T:
+      *val = SNMP_TEN; /* 10 Mbps */
+      break;
+    case L7_PORTCTRL_PORTSPEED_HALF_10T:
+      *val = SNMP_TEN; /* 10 Mbps */
+      break;
+    case L7_PORTCTRL_PORTSPEED_FULL_100FX:
+      *val = SNMP_HUNDRED; /* 100 Mbps */
+      break;
+    case L7_PORTCTRL_PORTSPEED_FULL_1000SX:
+      *val = SNMP_THOUSAND; /* 1000 Mbps */
+      break;
+    case L7_PORTCTRL_PORTSPEED_FULL_10GSX:
+      *val = SNMP_TENTHOUSAND; /* 10000 Mbps */
+      break;
+    case L7_PORTCTRL_PORTSPEED_LAG:
+      rc = usmDbIfLAGSpeedGet(interface, val);  /* get data rate from LAG component */
+      break;
+
+    case L7_PORTCTRL_PORTSPEED_UNKNOWN:
+      *val = 0;          /* unknown, likely down */
+      break;
+    default:
+      *val = 0; 
+      rc = L7_FAILURE;
+    }
+  }
+
+  return rc;
+}
+/*#define usmDbIfSpeedStatusGet       snmpIfHighSpeedGet*/
+
+/* lvl7_@p0315 start */
+L7_RC_t 
+snmpIfOperStatusGet(L7_uint32 UnitIndex, L7_uint32 interface, L7_uint32 *val)
+{
+   L7_int32 admin_status;
+   L7_int32 link_status;
+   L7_RC_t rc1, rc2;
+   L7_uint32 temp_val;
+   L7_uint32 sysIntfType;
+   L7_INTF_STATES_t state;
+
+   /* get the interface type corresponding to internal interface number */
+   if (usmDbIntfTypeGet(interface, &sysIntfType) != L7_SUCCESS)
+     return L7_FAILURE;
+
+   /* skip CPU interface */
+   if (sysIntfType == L7_CPU_INTF)
+   {
+     /* CPU interface Oper Status will always be UP */
+     *val = D_ifOperStatus_up; 
+     return L7_SUCCESS;
+   }
+
+   if (usmDbIntfStatusGet(interface, &temp_val) == L7_SUCCESS)
+   {
+     state = (L7_INTF_STATES_t)temp_val;
+     if (state == L7_INTF_ATTACHED)
+     {
+       rc1 = usmDbIfAdminStateGet(UnitIndex, interface, &admin_status);
+       rc2 = usmDbIfOperStatusGet(UnitIndex, interface, &link_status);
+
+       if (rc1 == L7_SUCCESS && rc2 == L7_SUCCESS )
+       {
+         if (admin_status == L7_ENABLE && link_status == L7_UP)
+         {
+           *val = D_ifOperStatus_up;
+         }
+         else if (admin_status == L7_DISABLE || admin_status == L7_DIAG_DISABLE || link_status == L7_DOWN)
+         {
+           *val = D_ifOperStatus_down;
+         }
+         else
+         {
+           *val = 0;
+           return L7_FAILURE;
+         }
+         return L7_SUCCESS;
+       }
+     }
+     else
+     {
+       *val = 6; /* value hardcoded as the enumerated value ifOperStatus-notPresent(6) is not defined */
+       return L7_SUCCESS;
+     }
+   }
+
+   return L7_FAILURE;
+}
+/*#define usmDbIfOperStatusGet        snmpIfOperStatusGet*/
+/* lvl7_@p0315 end */
+
+L7_RC_t 
+snmpIfAdminStatusGet(L7_uint32 UnitIndex, L7_uint32 interface, L7_uint32 *val)
+{
+  L7_int32 temp_val;
+  L7_RC_t rc;
+
+  rc = usmDbIfAdminStateGet(UnitIndex, interface, &temp_val);
+
+  if (rc == L7_SUCCESS)
+  {
+    switch (temp_val)
+    {
+    case L7_ENABLE:
+      *val = D_ifAdminStatus_up;
+      break;
+    case L7_DISABLE:
+      *val = D_ifAdminStatus_down;
+      break;
+    case L7_DIAG_DISABLE:
+      *val = D_ifAdminStatus_testing;
+      break;
+    default:
+      *val = 0; 
+      rc = L7_FAILURE;
+    }
+  }
+
+  return rc;
+}
+
+/*#define usmDbIfAdminStateGet        snmpIfAdminStatusGet*/
+
+L7_RC_t 
+snmpIfAdminStatusSet(L7_uint32 UnitIndex, L7_uint32 interface, L7_uint32 val)
+{
+  L7_int32 temp_val = 0, admin_status;
+  L7_RC_t rc1, rc2 = L7_SUCCESS;
+  L7_uint32 sysIntfType;  
+
+  /* get the interface type corresponding to internal interface no. Skip CPU interface as admin Status will always be UP */
+  if((usmDbIntfTypeGet(interface, &sysIntfType) != L7_SUCCESS) || (sysIntfType == L7_CPU_INTF))
+    return L7_FAILURE;
+
+  /* get the current value */
+  rc1 = snmpIfAdminStatusGet(UnitIndex, interface, &admin_status);
+  
+  /* lvl7_@p0492 start */
+  /* if we're setting to the current value, succeed */
+  if (rc1 == L7_SUCCESS && val == admin_status)
+    return L7_SUCCESS;
+  /* lvl7_@p0492 end */
+
+  switch (val)
+  {
+  case D_ifAdminStatus_up:
+    temp_val = L7_ENABLE;
+    break;
+  case D_ifAdminStatus_down:
+    temp_val = L7_DISABLE;
+    break;
+  case D_ifAdminStatus_testing:
+    temp_val = L7_DIAG_DISABLE;
+    break;
+  default:
+    rc2 = L7_FAILURE;
+  }
+
+  if (rc2 == L7_SUCCESS)
+  {
+    rc2 = usmDbIfAdminStateSet(UnitIndex, interface, temp_val);
+  }
+
+  return rc2;
+}
+
+/*#define usmDbIfAdminStateSet        snmpIfAdminStatusSet*/
+
+L7_RC_t 
+snmpIfPromiscuousModeGet(L7_uint32 UnitIndex, L7_uint32 interface, L7_uint32 *val)
+{
+  L7_int32 temp_val;
+  L7_RC_t rc;
+
+  rc = usmDbIfPromiscuousModeGet(UnitIndex, interface, &temp_val);
+
+  if (rc == L7_SUCCESS)
+  {
+    switch (temp_val)
+    {
+    case L7_TRUE:
+      *val = D_ifPromiscuousMode_true; 
+      break;
+    case L7_FALSE:
+      *val = D_ifPromiscuousMode_false;
+      break;
+    default:
+      *val = 0; 
+      rc = L7_FAILURE;
+    }
+  }
+
+  return rc;
+}
+
+/*#define usmDbIfPromiscuousModeGet       snmpIfPromiscuousModeGet*/
+
+L7_RC_t 
+snmpIfPromiscuousModeSet(L7_uint32 UnitIndex, L7_uint32 interface, L7_uint32 val)
+{
+  L7_int32 temp_val = 0;
+  L7_RC_t rc = L7_SUCCESS;
+
+  switch (val)
+  {
+  case D_ifPromiscuousMode_true:
+    temp_val = L7_TRUE;
+    break;
+  case D_ifPromiscuousMode_false:
+    temp_val = L7_FALSE;
+    break;
+  default:
+    rc = L7_FAILURE;
+  }
+
+  if (rc == L7_SUCCESS)
+  {
+    rc = usmDbIfPromiscuousModeSet(UnitIndex, interface, temp_val);
+  }
+
+  return rc;
+}
+
+/*#define usmDbIfPromiscuousModeSet   snmpIfPromiscuousModeSet*/
+
+
+L7_RC_t 
+snmpIfConnectorPresentGet(L7_uint32 UnitIndex, L7_uint32 interface, L7_uint32 *val)
+{
+  L7_int32 temp_val;
+  L7_RC_t rc;
+
+  rc = usmDbIfConnectorPresentGet(UnitIndex, interface, &temp_val);
+
+  if (rc == L7_SUCCESS)
+  {
+    switch (temp_val)
+    {
+    case L7_TRUE:
+      *val = D_ifConnectorPresent_true;
+      break;
+    case L7_FALSE:
+      *val = D_ifConnectorPresent_false;
+      break;
+    default:
+      *val = 0; 
+      rc = L7_FAILURE;
+    }
+  }
+
+  return rc;
+}
+
+/*#define usmDbIfConnectorPresentGet  snmpIfConnectorPresentGet*/
+
+L7_RC_t 
+snmpIfLastChangeGet(L7_uint32 UnitIndex, L7_uint32 interface, L7_uint32 *val)
+{
+  L7_RC_t rc;
+
+  rc = usmDbIfLastChangeGet(UnitIndex, interface, val);
+
+  /* usmdb returns time in seconds, SNMP returns time in timeticks measured by hundredths of a second */
+  *val = *val * 100;
+
+  return rc;
+}
+
+/*#define usmDbIfLastChangeGet        snmpIfLastChangeGet*/
+
+L7_RC_t 
+snmpIfLinkUpDownTrapEnableGet(L7_uint32 UnitIndex, L7_int32 interface, L7_int32 *val)
+{
+  L7_int32 temp_val;
+  L7_RC_t rc;
+
+  rc = usmDbIfLinkUpDownTrapEnableGet(UnitIndex, interface, &temp_val);
+
+  if (rc == L7_SUCCESS)
+  {
+    switch (temp_val)
+    {
+    case L7_ENABLE:
+      *val = D_ifLinkUpDownTrapEnable_enabled;
+      break;
+    case L7_DISABLE:
+      *val = D_ifLinkUpDownTrapEnable_disabled;
+      break;
+    default:
+      *val = 0; 
+      rc = L7_FAILURE;
+    }
+  }
+
+  return rc;
+}
+
+/*#define usmDbIfLinkUpDownTrapEnableGet           snmpIfLinkUpDownTrapEnableGet*/
+
+L7_RC_t 
+snmpIfLinkUpDownTrapEnableSet(L7_uint32 UnitIndex, L7_int32 interface, L7_int32 val)
+{
+  L7_int32 temp_val = 0;
+  L7_RC_t rc = L7_SUCCESS;
+
+  switch (val)
+  {
+  case D_ifLinkUpDownTrapEnable_enabled:
+    temp_val = L7_ENABLE;
+    break;
+  case D_ifLinkUpDownTrapEnable_disabled:
+    temp_val = L7_DISABLE;
+    break;
+  default:
+    rc = L7_FAILURE;
+  }
+
+  if (rc == L7_SUCCESS)
+  {
+    rc = usmDbIfLinkUpDownTrapEnableSet(UnitIndex, interface, temp_val);
+  }
+
+  return rc;
+}
+
+/*#define usmDbIfCounterDiscontinuityTimeGet      snmpIfCounterDiscontinuityTimeGet*/

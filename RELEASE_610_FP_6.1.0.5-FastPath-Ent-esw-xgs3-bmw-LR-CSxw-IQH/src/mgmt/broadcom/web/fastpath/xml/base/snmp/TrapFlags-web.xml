@@ -1,0 +1,64 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="TrapFlags" title="Trap Flags">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element control="combo" obj-name="baseTrapFlags_Authentication" id="1" name="Authentication"/>
+            </node>
+            <node id="2">
+                <element control="combo" obj-name="baseTrapFlags_LinkUpDown" id="1" name="Link Up/Down"/>
+            </node>
+            <node id="3">
+                <element control="combo" obj-name="baseTrapFlags_MultipleUsers" id="1" name="Multiple Users"/>
+            </node>
+            <node id="4">
+                <element control="combo" obj-name="baseTrapFlags_SpanningTree" id="1" name="Spanning Tree"/>
+            </node>
+            <node id="5">
+                <element control="combo" obj-name="fastPathQOSACLQOSACL_aclTrapFlag" id="1" name="ACL Traps" compile_if="IF_QOS_PACKAGE_PRESENT" run_if="ACL_RULE_LOGGING_FEATURE"/>
+            </node>
+            <node id="6">
+                <element control="combo" obj-name="IPMCASTagentSnmpTrapFlagsConfigGroupMulticast_agentSnmpDVMRPTrapFlag" id="1" name="DVMRP Traps" compile_if="IF_IPMULTICAST_PACKAGE"/>
+            </node>
+            <node id="8">
+                <element control="combo" obj-name="IPMCASTagentSnmpTrapFlagsConfigGroupMulticast_agentSnmpPIMTrapFlag" id="1" name="PIM Traps" compile_if="IF_IPMULTICAST_PACKAGE"/>
+            </node>
+            <node id="10">
+                <element control="combo" obj-name="captiveportalcpTrapsConfig_cpTrapMode" id="1" name="Captive Portal Trap Mode" compile_if="IF_CAPTIVE_PORTAL_PACKAGE_PRESENT"/>
+            </node>
+            <node id="9">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+        </group>
+        <group level="ReadOnlyUser" id="2" heading="  ">
+            <node id="1">
+                <element control="label" properties="read-only" obj-name="baseTrapFlags_Authentication" id="1" name="Authentication"/>
+            </node>
+            <node id="2">
+                <element control="label" properties="read-only" obj-name="baseTrapFlags_LinkUpDown" id="1" name="Link Up/Down"/>
+            </node>
+            <node id="3">
+                <element control="label" properties="read-only" obj-name="baseTrapFlags_MultipleUsers" id="1" name="Multiple Users"/>
+            </node>
+            <node id="4">
+                <element control="label" properties="read-only" obj-name="baseTrapFlags_SpanningTree" id="1" name="Spanning Tree"/>
+            </node>
+            <node id="5">
+                <element control="label" properties="read-only" obj-name="fastPathQOSACLQOSACL_aclTrapFlag" id="1" name="ACL Traps" compile_if="IF_QOS_PACKAGE_PRESENT" run_if="ACL_RULE_LOGGING_FEATURE"/>
+            </node>
+            <node id="6">
+                <element control="label" properties="read-only" obj-name="IPMCASTagentSnmpTrapFlagsConfigGroupMulticast_agentSnmpDVMRPTrapFlag" id="1" name="DVMRP Traps" compile_if="IF_IPMULTICAST_PACKAGE"/>
+            </node>
+            <node id="8">
+                <element control="label" properties="read-only" obj-name="IPMCASTagentSnmpTrapFlagsConfigGroupMulticast_agentSnmpPIMTrapFlag" id="1" name="PIM Traps" compile_if="IF_IPMULTICAST_PACKAGE"/>
+            </node>
+            <node id="9">
+                <element control="label" properties="read-only" obj-name="captiveportalcpTrapsConfig_cpTrapMode" id="1" name="Captive Portal Trap Mode" compile_if="IF_CAPTIVE_PORTAL_PACKAGE_PRESENT"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

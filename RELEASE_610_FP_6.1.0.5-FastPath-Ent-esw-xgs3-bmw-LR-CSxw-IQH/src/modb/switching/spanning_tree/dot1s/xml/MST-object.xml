@@ -1,0 +1,715 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "object.dtd" >
+
+
+<FastPathXML>
+    <objectxml version="1.0" name="Switching">
+        <module name="StpSwitchMstVlanMapGroup">
+          <key-combo list="MstId,VlanIndex" />
+            <object name="MstId">
+                <core descr="This object specifies the MSTP instance ID that is to be configured or is already configured" max="L7_DOT1S_MSTID_MAX" min="0" key="yes" access="read-write" type="uint"/>
+                <ui style="inputLine" name="MST ID">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.12.1.1"/>
+                </ui>
+            </object>
+            <object name="VlanIndex">
+                <core descr="This object specifies the VLAN-ID or other identifier refering to this VLAN" max="L7_DOT1Q_MAX_VLAN_ID" min="L7_DOT1Q_MIN_VLAN_ID" key="yes" access="read-write" type="uint"/>
+                <ui style="inputLine" name="VLAN Index">
+                    <snmp asn-id="1.3.6.1.2.1.17.7.1.4.2.1.2"/>
+                </ui>
+            </object>
+            <object depends="MstId,VlanIndex" name="MstVlanRowStatus">
+                <core descr="This object is used to configure the association status of an MSTP instance and a VLAN. Supported values: Add - used to create a new association between an MSTP instance and a VLAN. Delete- removes the association between an MSTP instance and a V" xtype="L7_ROW_STATUS_t" access="read-write" type="row-status"/>
+                <ui style="inputLine" name="MST VLAN Row Status">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.14.1.1"/>
+                </ui>
+            </object>
+            <object depends="MstId,VlanIndex" name="MstVlanRowStatusEdit">
+                <core descr="This object is used to configure the association status of an MSTP instance and a VLAN. Supported values: Add - used to create a new association between an MSTP instance and a VLAN. Delete- removes the association between an MSTP instance and a V" xtype="L7_ROW_STATUS_t" access="read-write" type="row-status"/>
+                <ui style="inputLine" name=" MST VLAN Edit Row Status">
+                </ui>
+            </object>
+         </module>
+        <module name="StpMstVlanMapGroup">
+            <object name="MstIdEdit">
+                <core descr="This object specifies the MSTP instance ID that is to be configured or is already configured" max="L7_DOT1S_MSTID_MAX" min="L7_DOT1S_MSTID_MIN" access="read-write" type="uint"/>
+                <ui style="inputLine" name="STP MST ID">
+                </ui>
+            </object>
+            <object name="VlanIndex">
+                <core descr="This object specifies the VLAN-ID or other identifier refering to this VLAN" max="L7_DOT1Q_MAX_VLAN_ID" min="L7_DOT1Q_MIN_VLAN_ID" key="yes" access="read-write" type="uint"/>
+                <ui style="inputLine" name="STP VLAN Index">
+                </ui>
+            </object>
+            <object depends="VlanIndex" name="MstVlanRowStatusEdit">
+                <core descr="This object is used to configure the association status of an MSTP instance and a VLAN. Supported values: Add - used to create a new association between an MSTP instance and a VLAN. Delete- removes the association between an MSTP instance and a V" xtype="L7_ROW_STATUS_t" access="read-write" type="row-status"/>
+                <ui style="inputLine" name="STP MST VLAN Row Status">
+                </ui>
+            </object>
+        </module>
+        <module name="stpCstPortConfigGroup">
+            <object name="Interface" compile_if="IF_STACKING_PACKAGE_PRESENT">
+                <core descr="This object specifies the interfaces on which STP parameters are to be configured" key="yes" access="read-write" type="user" xtype="usp_t"/>
+                <ui style="inputLine" name="Unit/Slot/Port">
+                    <snmp asn-id="1.3.6.1.2.1.2.2.1.1"/>
+                </ui>
+            </object>
+            <object name="Interface" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+                <core descr="This object specifies the interfaces on which STP parameters are to be configured" key="yes" access="read-write" type="user" xtype="usp_t"/>
+                <ui style="inputLine" name="Slot/Port">
+                    <snmp asn-id="1.3.6.1.2.1.2.2.1.1"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="StpCstPortOperEdge">
+                <core descr="This object specifies the MSTP operational status of a specific port for the CIST" access="read-only" type="enum" xtype="disabled_t"/>
+                <ui style="plainText" name="CST Edge Port Operational Status">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.11.1.1"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="StpCstPortOperPointToPoint">
+                <core descr="This object specifies the MSTP operational point to point mac of a specific port for the CIST." access="read-only" type="enum" xtype="L7_FalseTrue"/>
+                <ui style="plainText" name="CST Operational Point To Point Mac">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.11.1.2"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="StpCstPortTopologyChangeAck">
+                <core descr="This object specifies the MSTP topology change acknowledge for a specific port in the CIST" access="read-only" type="enum" xtype="L7_FalseTrue"/>
+                <ui style="plainText" name="CST Port Topology Change Acknowledge">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.11.1.3"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="StpCstPortEdge">
+                <core descr="This object specifies the administrative state of a specific port in CIST. enable(1) - enables the port. disable(2) - disables the port. The default port state is disabled." xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="CST Port Edge">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.11.1.4"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="StpCstPortForwardingState">
+                <core descr="This object specifies the MSTP forwarding state of a specific port in CIST." access="read-only" type="string"/>
+                <ui style="plainText" name="CST Port Forwarding State">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.11.1.5"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="StpCstPortId">
+                <core descr="This object specifies the MSTP port identifier of a specific port in CIST." access="read-only" type="string"/>
+                <ui style="plainText" name="CST Port Id">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.11.1.6"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="StpCstPortPathCost">
+                <core descr="This object specifies the MSTP port path cost in CIST. The default value will correspond to the recommendation specified in IEEE 802.1s Table 13-2 which varies depending upon link speed." max="L7_DOT1S_MAX_PORT_PATHCOST" min="L7_DOT1S_MIN_PORT_PATHCOST" access="read-write" type="uint"/>
+                <ui style="inputLine" name="CST Port Path Cost">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.11.1.7"/>
+                </ui>
+            </object>
+			<object depends="Interface" name="StpCstPortHelloTimer">
+                <core descr="This object specifies the STP port Hello Timer in CIST." access="read-only" type="uint"/>
+                <ui style="plainText" name="CST Port Hello Timer"/>        
+            </object>
+            <object depends="Interface" name="StpCstPortPriority">
+                <core descr="This object specifies the MSTP port priority in CIST. The priority is in the increments of 16. The default value is 128." min="L7_DOT1S_PORT_PRIORITY_MIN" max="L7_DOT1S_PORT_PRIORITY_MAX" default="FD_DOT1S_PORT_PRIORITY" access="read-write" type="uint"/>
+                <ui style="inputLine" name="CST Port Priority">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.11.1.8"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="StpCstDesignatedBridgeId">
+                <core descr="This object specifies the MSTP designated bridge ID of a specific port in CIST" access="read-only" type="string"/>
+                <ui style="plainText" name="CST Designated Bridge Id">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.11.1.9"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="StpCstDesignatedCost">
+                <core descr="This object specifies the MSTP designated cost of a specific port in CIST." access="read-only" type="uint"/>
+                <ui style="plainText" name="CST Designated Cost">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.11.1.10"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="StpCstDesignatedPortId">
+                <core descr="This object specifies the MSTP designated port ID of a specific port in CIST." access="read-only" type="string"/>
+                <ui style="plainText" name="CST Designated Port Id">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.11.1.11"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="StpCstExtPortPathCost">
+                <core descr="This object specifies the MSTP external port path cost in CIST. The default value varies depending upon the link speed." min="L7_DOT1S_MIN_PORT_PATHCOST" max="L7_DOT1S_MAX_PORT_PATHCOST" default="FD_DOT1S_PORT_PATH_COST" access="read-write" type="uint"/>
+                <ui style="inputLine" name="CST External Port Path Cost">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.11.1.12"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="StpCstPortBpduGuardEffect">
+                <core descr="This object specifies the BPDU Guard Mode effect on the port. enable(1) - BPDU Guard Mode is enabled on the port. disable(2) - BPDU Guard Mode is disabled on the port." xtype="disabled_t" access="read-only" type="enum"/>
+                <ui style="plainText" name="CST Port BPDU Guard Effect">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.11.1.13"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="StpCstPortBpduFilter">
+                <core descr="This object sets BPDU Filter mode on the port. enable(1) - BPDU Filter Mode is enabled on the port. disable(2) - BPDU Filter Mode is disabled on the port." default="FD_DOT1S_BPDUFILTER" xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="CST Port BPDU Filter">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.11.1.14"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="StpCstPortBpduFlood">
+                <core descr="This object sets BPDU Flood mode on the port.enable(1) - BPDU Flood Mode is enabled on the port.disable(2) - BPDU Flood Mode is disabled on the port." default="FD_DOT1S_BPDUFLOOD" xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="CST Port BPDU Flood">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.11.1.15"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="StpCstPortAutoEdge">
+                <core descr="This object sets the auto-edge mode of the port which enables it to become an edge port if it does not see BPDUs for some duration. enable(1) - enables the auto-edge mode for the port. disable(2) - disables the auto-edge mode for the port. The default auto-edge mo" default="FD_DOT1S_AUTO_EDGE" xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="CST Port Auto Edge">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.11.1.16"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="StpCstPortRootGuard">
+                <core descr="This object sets a port to discard any superior information received by the port and thus protect against root of the device from changing.The port gets put into discarding state and does not forward any packets. enable(1) - enables the root-guard mode for the port." default="FD_DOT1S_ROOTGUARD" xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="CST Port Root Guard">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.11.1.17"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="StpCstPortTCNGuard">
+                <core descr="This command restricts the port from propagating any topology change information received through that port. enable(1) - enables the tcn-guard mode for the port.disable(2) - disables the tcn-guard mode for the port. The default tcn-guard mode is disabled" default="FD_DOT1S_TCNGUARD" xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="CST Port TCN Guard">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.11.1.18"/>
+                </ui>
+            </object>
+<!-- ObjectAddedStart -->
+            <object depends="Interface" name="StpCstPortLoopGuard">
+                <core descr="This command enables loop guard on this port" default="FD_DOT1S_LOOPGUARD" xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="CST Port Loop Guard">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.11.1.19"/>
+                </ui>
+            </object>
+<!-- ObjectAddedEnd -->
+<!-- Missing Object Start -->
+            <object name="Dot1sCistExtPortPathCostMode" depends="Interface" >
+              <core  type="enum" xtype="disabled_t" access="read-only" descr="This object is used to specify the Cist External Port Path Cost Mode for an interface"/>
+              <ui  name="Dot1s CIST External Port Path Cost Mode" style="plainText" />
+            </object>
+            <object name="Dot1sCistPortPathCost" depends="Interface" >
+              <core  type="uint" access="read-only" descr="This object is used to specify the Cist External Port Path Cost  for an interface"/>
+              <ui  name="Dot1s CIST Port Path Cost" style="plainText" />
+            </object>
+            <object name="Dot1sCistPortRegionalRootID" depends="Interface" >
+              <core  type="string" access="read-only" descr="This object is used to specify the Cist Port Regional Root ID for an interface"/>
+              <ui  name="Dot1s CIST Port Regional RootID" style="plainText" />
+            </object>
+            <object name="Dot1sCstPortPathCostMode" depends="Interface" >
+              <core  type="enum" xtype="disabled_t" access="read-only" descr="This object is used to specify the CST  Port Path Cost Mode for an interface"/>
+              <ui  name="Dot1s CST Port Path Cost Mode" style="plainText" />
+            </object>
+            <object name="Dot1sCstPortRole" depends="Interface" >
+              <core  type="string" access="read-only" descr="This object is used to specify the CST  Port Role for an interface"/>
+              <ui  name="Dot1s CST Port Role" style="plainText" />
+            </object> 
+            <object name="Dot1sCstPortDesignatedRootID" depends="Interface" >
+              <core  type="string" access="read-only" descr="This object is used to specify the CST Port Designated Root ID for an interface"/>
+              <ui  name="Dot1s CST Port Designated RootID" style="plainText"/>
+            </object>	
+            <object name="StpCstPortLoopInconsistentState" depends="Interface" >
+              <core  type="enum" xtype="L7_FalseTrue" access="read-only" descr="This object is used to specify the CST Port Loop Inconsistent state for an interface"/>
+              <ui  name="CST Port Loop Inconsistent State" style="plainText" />
+            </object> 
+            <object name="StpCstPortTransitionsIntoLoopInconsistentState" depends="Interface" >
+              <core  type="uint" access="read-only" descr="This object is used to specify the Port Transitions into CST Loop Inconsistent state for an interface"/>
+              <ui  name="CST Port Transitions Into Loop Inconsistent State" style="plainText" />
+            </object>
+            <object name="StpCstPortTransitionsOutOfLoopInconsistentState" depends="Interface" >
+              <core  type="uint" access="read-only" descr="This object is used to specify the CST Port Transitions Out of Loop Inconsistent state for an interface"/>
+              <ui  name="CST Port Transitions Out Of Loop Inconsistent State" style="plainText" />
+            </object>			
+<!-- Missing Object End -->
+        </module>
+        <module name="StpMstPortConfigGroup">
+          <key-combo list="MstId,Interface" />
+<!-- Note: The key's in the below Module are made as dynamic to support even for products which needs Pre configured MST Instances. This is becuase for such cases MST Instances list is displayed but they will be configured only when they are binded to interface.A new object is designed to support pre configured MST Instances. The object is MstIDPreConfig and this is 
+     module "StpMstConfig"
+-->
+            <object name="MstId">
+                <core descr="This object specifies the MSTP instance ID that is to be configured or is already configured" max="L7_DOT1S_MSTID_MAX" min="L7_DOT1S_MSTID_MIN" key="yes" access="read-write" type="uint" properties="dynamic" />
+                <ui style="choiceNselect1" name="Port MST Id">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.12.1.1"/>
+                </ui>
+            </object>
+            <object name="Interface" compile_if="IF_STACKING_PACKAGE_PRESENT">
+                <core descr="This object specifies the interfaces on which MSTP parameters are to be configured" key="yes" access="read-write" type="user" xtype="usp_t" properties="dynamic"/>
+                <ui style="choiceNselect1" name="Unit/Slot/Port">
+                    <snmp asn-id="1.3.6.1.2.1.2.2.1.1"/>
+                </ui>
+            </object>
+            <object name="Interface" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+                <core descr="This object specifies the interfaces on which MSTP parameters are to be configured" key="yes" access="read-write" type="user" xtype="usp_t" properties="dynamic"/>
+                <ui style="choiceNselect1" name="Slot/Port">
+                    <snmp asn-id="1.3.6.1.2.1.2.2.1.1"/>
+                </ui>
+            </object>
+            <object depends="MstId,Interface" name="StpMstPortForwardingState">
+                <core descr="This object specifies the MSTP forwarding state of a specific port in a specific instance." access="read-only" type="string"/>
+                <ui style="plainText" name="MST Port Forwarding State">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.13.1.1"/>
+                </ui>
+            </object>
+            <object depends="MstId,Interface" name="StpMstPortId">
+                <core descr="This object specifies the MSTP port identifier of a specific port in a specific instance" access="read-only" type="string"/>
+                <ui style="plainText" name="MST Port Id">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.13.1.2"/>
+                </ui>
+            </object>
+            <object depends="MstId,Interface" name="StpMstPortPathCost">
+                <core descr="This object specifies the MSTP port path cost in a specific instance. The default value will correspond to the recommendation specified in IEEE 802.1s Table 13-2 which varies depending upon link speed." max="L7_DOT1S_MAX_PORT_PATHCOST" min="L7_DOT1S_MIN_PORT_PATHCOST" access="read-write" type="uint"/>
+                <ui style="inputLine" name="MST Port Path Cost">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.13.1.3"/>
+                </ui>
+            </object>
+            <object depends="MstId,Interface" name="StpMstPortPriority">
+                <core descr="This object specifies the MSTP port priority in a specific instance. The priority is in the increments of 16. The default value is 128." default="FD_DOT1S_PORT_PRIORITY" max="L7_DOT1S_PORT_PRIORITY_MAX" min="L7_DOT1S_PORT_PRIORITY_MIN" access="read-write" type="uint"/>
+                <ui style="inputLine" name="MST Port Priority">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.13.1.4"/>
+                </ui>
+            </object>
+            <object depends="MstId,Interface" name="StpMstDesignatedBridgeId">
+                <core descr="This object specifies the MSTP designated bridge ID of a specific port in a specific instance." access="read-only" type="string"/>
+                <ui style="plainText" name="MST Designated Bridge Id">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.13.1.5"/>
+                </ui>
+            </object>
+            <object depends="MstId,Interface" name="StpMstDesignatedCost">
+                <core descr="This object specifies the MSTP designated cost of a specific port in a specific instance." access="read-only" type="uint"/>
+                <ui style="plainText" name="MST Designated Cost">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.13.1.6"/>
+                </ui>
+            </object>
+            <object depends="MstId,Interface" name="StpMstDesignatedPortId">
+                <core descr="This object specifies the MSTP designated port ID of a specific port in a specific instance." access="read-only" type="string"/>
+                <ui style="plainText" name="MST Designated Port Id">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.13.1.7"/>
+                </ui>
+            </object>
+<!-- Missing Object Start -->
+            <object name="Dot1sMstPortDesignatedRootID" depends="MstId,Interface" >
+              <core  type="string" access="read-only" descr="This object is used to specify the MST Port Designated Root ID for an interface"/>
+              <ui  name="Dot1s MST Port Designated Root ID" style="plainText" />
+            </object>
+            <object name="Dot1sMstPortPathCostMode" depends="MstId,Interface" >
+              <core  type="enum" xtype="disabled_t" access="read-only" descr="This object is used to specify the MST Port Path Cost Mode for an interface"/>
+              <ui  name="Dot1s MST Port Path Cost Mode" style="plainText" />
+            </object>
+            <object name="Dot1sMstPortRole" depends="MstId,Interface" >
+              <core  type="string" access="read-only" descr="This object is used to specify the MST Port Role for an interface"/>
+              <ui  name="Dot1s Mst Port Role" style="plainText" />
+            </object>
+            <object name="StpMstPortLoopInconsistentState" depends="MstId,Interface" >
+              <core  type="enum" xtype="L7_FalseTrue" access="read-only" descr="This object is used to specify the MST Port Loop Inconsistent state for an interface"/>
+              <ui  name="MST Port Loop Inconsistent State" style="plainText" />
+            </object> 
+            <object name="StpMstPortTransitionsIntoLoopInconsistentState" depends="MstId,Interface" >
+              <core  type="uint" access="read-only" descr="This object is used to specify the MST Port Transitions Into Loop Inconsistent state for an interface"/>
+              <ui  name="MST Port Transitions Into Loop Inconsistent State" style="plainText" />
+            </object>
+            <object name="StpMstPortTransitionsOutOfLoopInconsistentState" depends="MstId,Interface" >
+              <core  type="uint" access="read-only" descr="This object is used to specify the MST Port Transitions Out of Loop Inconsistent state for an interface"/>
+              <ui  name="MST Port Transitions Out Of Loop Inconsistent State" style="plainText" />
+            </object>
+<!-- Missing Object End -->
+            <object depends="MstId" name="StpMstRowStatus">
+                <core descr="This object is used to specify the MSTP instance status. Supported values: Add - used to create a new instance.Remove - removes an instance.This is added to support MST Pre Configuration" xtype="L7_ROW_STATUS_t" access="read-write" type="row-status"/>
+                <ui style="inputLine" name="Port MST Row Status">
+                </ui>
+            </object>
+        </module>
+        <module name="StpMstConfig">
+            <object name="MstId">
+                <core descr="This object specifies the MSTP instance ID that is to be configured or is already configured" max="L7_DOT1S_MSTID_MAX" min="L7_DOT1S_MSTID_MIN" key="yes" access="read-write" type="uint" properties="dynamic"/>
+                <ui style="choiceNselect1" name="Config MST Id">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.12.1.1"/>
+                </ui>
+            </object>
+            <object name="MstIDPreConfig">
+                <core descr="This object specifies the pre configured MSTP instance ID that is to be configured or is already configured" max="L7_DOT1S_MSTID_MAX" min="L7_DOT1S_MSTID_MIN" key="yes" access="read-write" type="uint" properties="dynamic"/>
+                <ui style="choiceNselect1" name="Pre Configured MST Id">
+                </ui>
+            </object>
+            <object depends="MstId" name="StpMstBridgePriority">
+                <core descr="This object specifies the MSTP bridge priority in a specific instance. The priority is in the increments of 4096. The recommended default value is 32768." default="FD_DOT1S_BRIDGE_PRIORITY" max="L7_DOT1S_PRIORITY_MAX" min="L7_DOT1S_PRIORITY_MIN" access="read-write" type="uint"/>
+                <ui style="inputLine" name="MST Bridge Priority">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.12.1.2"/>
+                </ui>
+            </object>
+			<object depends="MstId" name="StpMstVlanIndex" >
+                 <core descr="This object specifies the interface number of this instance" xtype="vlanRange_t"  access="read-write" type="user" properties="range,dynamic"/>
+                 <ui style="choiceMselectN" name="MST VLAN Index">
+                </ui>
+            </object>
+            <object depends="MstId" name="StpMstBridgeIdentifier">
+                <core descr="This object specifies the MSTP bridge identifier in a specific instance." access="read-only" type="string"/>
+                <ui style="plainText" name="MST Bridge Identifier">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.12.1.3"/>
+                </ui>
+            </object>
+            <object depends="MstId" name="StpMstDesignatedRootId">
+                <core descr="This object specifies the MSTP designated root bridge identifier in a specific instance." access="read-only" type="string"/>
+                <ui style="plainText" name="MST Designated Root Id">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.12.1.4"/>
+                </ui>
+            </object>
+            <object depends="MstId" name="StpMstRootPathCost">
+                <core descr="This object specifies the MSTP root path cost in a specific instance." access="read-only" type="uint"/>
+                <ui style="plainText" name="MST Root Path Cost">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.12.1.5"/>
+                </ui>
+            </object>
+            <object depends="MstId" name="StpMstRootPortId">
+                <core descr="This object specifies the MSTP root port ID in a specific instance." access="read-only" type="string"/>
+                <ui style="plainText" name="MST Root Port Id">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.12.1.6"/>
+                </ui>
+            </object>
+            <object depends="MstId" name="StpMstTimeSinceTopologyChange">
+                <core descr="This object specifies the MSTP time since the last topology change in a specific instance." access="read-only" type="string"/>
+                <ui style="plainText" name="MST Time Since Topology Change">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.12.1.7"/>
+                </ui>
+            </object>
+            <object depends="MstId" name="StpMstTopologyChangeCount">
+                <core descr="This object specifies the MSTP count of topology changes in a specific instance." access="read-only" type="uint"/>
+                <ui style="plainText" name="MST Topology Change Count">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.12.1.8"/>
+                </ui>
+            </object>
+            <object depends="MstId" name="StpMstTopologyChangeParm">
+                <core descr="This object specifies the MSTP topology change parameter in a specific instance" access="read-only" type="enum" xtype="L7_FalseTrue"/>
+                <ui style="plainText" name="MST Topology Change Parameter">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.12.1.9"/>
+                </ui>
+            </object>		
+            <object depends="MstId" name="StpMstVlanRowStatus">
+                <core descr="This object specifies the association status of an MSTP instance and a VLAN. Supported values: Add - used to create a new association between an MSTP instance and a VLAN. Delete- removes the association between an MSTP instance and a V" xtype="L7_ROW_STATUS_t" access="read-write" type="row-status"/>
+                <ui style="inputLine" name="MST Vlan Row Status"/>                   
+            </object>
+
+<!-- Row status object to support MST Preconfig -->
+              <object depends="MstId" name="StpMstPreConfigVlanRowStatus">
+                <core descr="The association status of an MSTP instance and a VLAN. Supported values: Add - used to create a new association between an MSTP instance and a VLAN. Delete- removes the association between an MSTP instance and a V" xtype="L7_ROW_STATUS_t" access="read-write" type="row-status"/>
+                <ui style="inputLine" name="StpMstPreConfigVlanRowStatus"/>
+            </object> 
+            <object depends="MstId" name="StpMstRowStatus">
+                <core descr="This object specifies the MSTP instance status. Supported values: Add - used to create a new instance.Remove - removes an instance." xtype="L7_ROW_STATUS_t" access="read-write" type="row-status"/>
+                <ui style="inputLine" name="Config MST Row Status">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.12.1.10"/>
+                </ui>
+            </object>
+<!-- Missing Object Start -->
+            <object name="Dot1sMstiFID" depends="MstId" >
+              <core  type="uint" key="yes" access="read-write" descr="This object specifies the Forwarding Database ID associated  with the specified MSTP instance ID"/>
+              <ui  name="Dot1s MSTi FID" style="inputLine" />
+            </object>
+            
+            <object name="Dot1sMstiVID" depends="MstId" >
+              <core  type="uint" key="yes" access="read-write" descr="This object specifies the VLAN ID associated with the specified MSTP instance ID"/>
+              <ui  name="Dot1s MSTi VID" style="inputLine" />
+            </object>
+            
+            <object name="Dot1sMstiRegionalRootID" depends="MstId" >
+              <core  type="string" access="read-only" descr="This object is used to specify the MST instance  Regional Root ID"/>
+              <ui  name="MSTi Regional Root ID" style="plainText" />
+            </object>
+            <object  name="VlanId">
+            <core access="read-write" descr="This object specifies the VLANs for their  participation state in specified MST Instance. " key="yes" type="uint"/>
+            <ui name="Participating VLANs" style="inputLine"/>
+            </object>
+            <object depends="MstId,VlanId" name="VlanParticipation">
+            <core access="read-write" descr="This object specifies the VLAN  participation state in the selected MST instance." type="enum" xtype="enable_t"/>
+            <ui name="VLAN Participation" style="choiceNselect1"/>
+            </object>
+
+
+            <object name="Dot1sMstiInstanceIsPresent" depends="This object specifies whether the specified MST instance is present or not">
+              <core  type="enum" xtype="TrueFalse_t" access="read-only" descr="TODO"/>
+              <ui  name="MSTi Instance Is Present" style="plainText" />
+            </object>
+            <!--
+            <object name="Dot1sMstiRootPathCost" depends="MstId" >
+              <core  type="uint" access="read-only" descr="TODO"/>
+              <ui  name="Dot1sMstiRootPathCost" style="plainText" />
+            </object>-->
+<!-- Missing Object End -->
+        </module>
+        <module name="StpPortConfig">
+            <object name="Interface" compile_if="IF_STACKING_PACKAGE_PRESENT">
+                <core descr="This object specifies all configurable interfaces for STP." xtype="usp_t" key="yes" access="read-write" type="user"/>
+                <ui style="inputLine" name="Unit/Slot/Port">
+                    <snmp asn-id="1.3.6.1.2.1.2.2.1.1"/>
+                </ui>
+            </object>
+            <object name="Interface" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+                <core descr="This object specifies all configurable interfaces for STP." xtype="usp_t" key="yes" access="read-write" type="user"/>
+                <ui style="inputLine" name="Slot/Port">
+                    <snmp asn-id="1.3.6.1.2.1.2.2.1.1"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="StpPortState">
+                <core descr="This object specifies the administrative STP state for the port. enable(1) - enables STP on the port. disable(2) - disables STP on the port." access="read-write" type="enum" xtype="enable_t"/>
+                <ui style="choiceNselect1" name="STP Port State">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.9.1.1"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="StpPortStatsMstpBpduRx">
+                <core descr="This object specifies the MSTP BPDUs received on a specific port" access="read-only" type="uint"/>
+                <ui style="plainText" name="Port MST BPDUs Received Statistics">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.9.1.2"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="StpPortStatsMstpBpduTx">
+                <core descr="This object specifies the MSTP BPDUs sent on a specific port " access="read-only" type="uint"/>
+                <ui style="plainText" name="Port MST BPDUs Sent Statistics">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.9.1.3"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="StpPortStatsRstpBpduRx">
+                <core descr="This object specifies the RSTP BPDUs received on a specific port" access="read-only" type="uint"/>
+                <ui style="plainText" name="Port RSTP BPDUs Received Statistics">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.9.1.4"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="StpPortStatsRstpBpduTx">
+                <core descr="This object specifies the RSTP BPDUs sent on a specific port " access="read-only" type="uint"/>
+                <ui style="plainText" name="Port RSTP BPDUs Sent Statistics">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.9.1.5"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="StpPortStatsStpBpduRx">
+                <core descr="This object specifies the STP BPDUs received on a specific port" access="read-only" type="uint"/>
+                <ui style="plainText" name="Port STP BPDUs Received Statistics">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.9.1.6"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="StpPortStatsStpBpduTx">
+                <core descr="This object specifies the STP BPDUs sent from a specific port." access="read-only" type="uint"/>
+                <ui style="plainText" name="Port STP BPDUs Sent Statistics">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.9.1.7"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="StpPortUpTime">
+                <core descr="This object specifies time since port was reset.It is displayed in days, hours, minutes, and seconds." access="read-only" type="string"/>
+                <ui style="plainText" name="STP Port Up Time">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.9.1.8"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="StpPortMigrationCheck">
+                <core descr="This object Forces the specified port to transmit RSTP or MSTP BPDU's. Supported values:false(0) - BPDUs are not to be transmitted. true(1) - BPDUs are to be transmitted A non-zero value indicates that BPDUs are to be sent on the specified port." min="L7_DISABLE" max="L7_ENABLE" default="L7_ENABLE" access="read-write" type="uint"/>
+                <ui style="inputLine" name="STP Port Migration Check">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.9.1.9"/>
+                </ui>
+            </object>
+<!-- ObjectRemoved
+            <object depends="Interface" name="StpPortHelloTime">
+                <core descr="Hello time for the STP port. The default value is 2." min="L7_DOT1S_BRIDGE_HELLOTIME_MIN" max="L7_DOT1S_BRIDGE_HELLOTIME_MAX" default="FD_DOT1S_BRIDGE_HELLO_TIME" access="read-write" type="uint"/>
+                <ui style="inputLine" name="StpPortHelloTime">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.9.1.10"/>
+                </ui>
+            </object>
+-->            
+<!-- Missing Object Start -->
+            <object name="Dot1sPortStatsClear" depends="Interface" >
+              <core  type="uint" access="write-only" descr="This object is used to clear the Dot1s Port Statistics"/>
+              <ui  name="Clear Dot1s Port Stats " style="plainText" />
+            </object>
+<!-- Missing Object End -->
+             <object depends="Interface," name="StpIntfLAG">
+                <core descr="This object is used to specify the STP Lag interface." access="read-only" type="string"/>
+                <ui style="plainText" name="STP LAG"/>
+            </object>
+        </module>
+        <module name="StpGlobalConfig">
+            <object name="StpConfigDigestKey">
+                <core descr="This object specifies the MST configuration digest key" access="read-only" type="string"/>
+                <ui style="plainText" name="STP Config Digest Key">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.1"/>
+                </ui>
+            </object>
+            <object name="StpCstRegionalRootId">
+                <core descr="This object specifies the MSTP regional root identifier for the CIST" access="read-only" type="string"/>
+                <ui style="plainText" name="STP CST Regional Root Id">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.10.3"/>
+                </ui>
+            </object>
+            <object name="StpCstRegionalRootPathCost">
+                <core descr="This object specifies the MSTP regional root path cost for the CIST" access="read-only" type="uint"/>
+                <ui style="plainText" name="STP CST Regional Root Path Cost">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.10.4"/>
+                </ui>
+            </object>
+            <object name="StpAdminMode">
+                <core descr="This object specifies the spanning tree operational status. enable(1) - enables spanning tree operational status on the switch.disable(2) - disables spanning tree operational status on the switch. The default status is disabled." xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="STP Admin Mode">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.6"/>
+                </ui>
+            </object>
+            <object name="StpCstRootFwdDelay">
+                <core descr="This object specifies the MSTP root port forward delay for the CIST." access="read-only" type="uint"/>
+                <ui style="plainText" name="CST Root Forward Delay">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.10.5"/>
+                </ui>
+            </object>
+            <object name="StpCstBridgePriority">
+                <core descr="This object specifies the MSTP bridge priority for the CIST. The default value is 32768." min="L7_DOT1S_PRIORITY_MIN" max="L7_DOT1S_PRIORITY_MAX" default="FD_DOT1S_BRIDGE_PRIORITY" access="read-write" type="uint"/>
+                <ui style="inputLine" name="CST Bridge Priority">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.10.11"/>
+                </ui>
+            </object>
+            <object name="StpCstBridgeHoldCount">
+                <core descr="This object specifies the MSTP bridge hold count for the CIST. This command sets the value of maximum bpdus that a bridge is allowed to send within a hello time window.The default value is 6." min="L7_DOT1S_BRIDGE_HOLDCOUNT_MIN" max="L7_DOT1S_BRIDGE_HOLDCOUNT_MAX" default="FD_DOT1S_BRIDGE_TX_HOLD_COUNT" access="read-write" type="uint"/>
+                <ui style="inputLine" name="CST Bridge Hold Count">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.10.12"/>
+                </ui>
+            </object>
+            <object name="StpCstMaxAge">
+                <core descr="This object specifies the MSTP root port max age for the CIST." access="read-only" min="L7_DOT1S_BRIDGE_MAXAGE_MIN" max="L7_DOT1S_BRIDGE_MAXAGE_MAX" default="FD_DOT1S_BRIDGE_MAX_AGE" type="uint"/>
+                <ui style="plainText" name="CST Max Age">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.10.2"/>
+                </ui>
+            </object>
+            <object name="StpConfigFormatSelector">
+                <core descr="This object specifies the MST configuration format selector. A value other than 0 (zero) indicates non-support for the IEEE 802.1s standard." access="read-write"  max="L7_DOT1S_MAX_FORMAT_SELECTOR"  min="L7_DOT1S_MIN_FORMAT_SELECTOR" type="uint"/>
+                <ui style="inputLine" name="STP Config Format Selector">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.2"/>
+                </ui>
+            </object>
+            <object name="StpConfigName">
+                <core descr="This object specifies the MST configuration name of at most 32 characters." access="read-write" type="user" xtype="string_t"/>
+                <ui style="inputLine" name="STP Config Name">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.3"/>
+                </ui>
+            </object>
+            <object name="StpCstBridgeMaxAge">
+                <core descr="This object specifies the MSTP bridge max age for the CIST. The default value is 20." min="L7_DOT1S_BRIDGE_MAXAGE_MIN" max="L7_DOT1S_BRIDGE_MAXAGE_MAX" default="FD_DOT1S_BRIDGE_MAX_AGE" access="read-write" type="uint"/>
+                <ui style="inputLine" name="CST Bridge Max Age">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.10.9"/>
+                </ui>
+            </object>
+            <object name="StpBpduGuardMode">
+                <core descr="This object specifies the spanning tree BPDU Guard Mode. enable(1) - enables BPDU Guard Mode on the switch. disable(2) - disables BPDU Guard Mode on the switch. The default status is disabled." xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="STP BPDU Guard Mode">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.7"/>
+                </ui>
+            </object>
+            <object name="StpBpduFilterDefault">
+                <core descr="This object specifies the spanning tree BPDU Filter Mode, it enables BPDU Filter on all edge ports. enable(1) - enables BPDU Filter Mode on the switch. disable(2) - disables BPDU Filter Mode on the switch. The default status is disabled." access="read-write" type="enum" xtype="enable_t"/>
+                <ui style="choiceNselect1" name="STP BPDU Filter Default">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.10.8"/>
+                </ui>
+            </object>
+
+            <object name="StpGlobalCstPortEdge">
+                <core descr="This object specifies the administrative state of a specific port in CIST. enable(1) - enables the port. disable(2) - disables the port. The default port state is disabled." xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="STP Global CST Port Edge">
+                </ui>
+            </object>
+
+
+           <object  name="StpGlobalCstLoopGuard">
+                <core descr="This command enables loop guard on all ports" default="FD_DOT1S_LOOPGUARD" xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="STP Global CST Loop Guard">
+                </ui>
+            </object>
+
+            <object name="StpGlobalCstBpduFlood">
+                <core descr="This object sets BPDU Flood mode on all the ports.enable(1) - BPDU Flood Mode is enabled on the port.disable(2) - BPDU Flood Mode is disabled on the port." default="FD_DOT1S_BPDUFLOOD" xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="STP Global CST BPDU Flood">
+                </ui>
+            </object>
+
+            <object name="StpCstBridgeHoldTime">
+                <core descr="This object specifies the MSTP bridge hold time for the CIST." access="read-only" type="uint"/>
+                <ui style="plainText" name="CST Bridge Hold Time">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.8"/>
+                </ui>
+            </object>
+            <object name="StpCstBridgeHelloTime">
+                <core descr="This object specifies the MSTP bridge hello time for the CIST. The default value is 2. According to IEEE 802.1Q-REV 2005 updating hello time is disallowed" access="read-only" type="uint"/>
+                <ui style="plainText" name="CST Bridge Hello Time">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.10.7"/>
+                </ui>
+            </object>
+            <object name="StpCstBridgeFwdDelay">
+                <core descr="This object specifies the MSTP bridge forward delay for the CIST. The default value is 15" min="L7_DOT1S_BRIDGE_FORWARDDELAY_MIN" max="L7_DOT1S_BRIDGE_FORWARDDELAY_MAX" default="FD_DOT1S_BRIDGE_FWD_DELAY" access="read-write" type="uint"/>
+                <ui style="inputLine" name="CST Bridge Forward Delay">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.10.6"/>
+                </ui>
+            </object>
+            <object name="StpCstHelloTime">
+                <core descr="This object specifies the MSTP root port hello time for the CIST" access="read-only" type="uint"/>
+                <ui style="plainText" name="STP CST Hello Time">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.10.1"/>
+                </ui>
+            </object>
+            <object name="StpConfigRevision">
+                <core descr="This object specifies the MST configuration revision. The default value is 1" min="L7_DOT1S_MIN_REVISION_VALUE" max="L7_DOT1S_MAX_REVISION_VALUE" default="FD_DOT1S_DEFAULT_CONFIG_REVISION" access="read-write" type="uint"/>
+                <ui style="inputLine" name="STP Config Revision">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.4"/>
+                </ui>
+            </object>
+            <object name="StpCstBridgeMaxHops">
+                <core descr="This object specifies the MSTP bridge max hops for the CIST. The default value is 20" min="L7_DOT1S_BRIDGE_MAXHOP_MIN" max="L7_DOT1S_BRIDGE_MAXHOP_MAX" default="FD_DOT1S_BRIDGE_MAX_HOP" access="read-write" type="uint"/>
+                <ui style="inputLine" name="CST Bridge Max Hops">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.10.10"/>
+                </ui>
+            </object>
+            <object name="StpForceVersion">
+                <core descr="This object specifies the MST configuration force protocol version. The default version is dot1s." access="read-write" type="enum" xtype="spanningTreeModes_t"/>
+                <ui style="choiceNselect1" name="STP Force Version">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.15.5"/>
+                </ui>
+            </object>
+			 <object name="StpCstDesignatedRootId">
+                <core descr="This object specifies the STP designated root bridge identifier in a specific instance." access="read-only" type="string"/>
+                <ui style="plainText" name="CST Designated RootId"/>
+            </object>
+            <object name="StpCstRootPathCost">
+                <core descr="This object specifies the STP root path cost in a specific instance." access="read-only" type="uint"/>
+                <ui style="plainText" name="CST Root Path Cost"/>
+            </object>
+            <object name="StpCstRootPortId">
+                <core descr="This object specifies the STP root port ID in a specific instance." access="read-only" type="string"/>
+                <ui style="plainText" name="CST Root Port Id"/>
+            </object>
+			<object name="StpCstBridgeIdentifier">
+                <core descr="This object specifies the CSTP bridge identifier in a specific instance." access="read-only" type="string"/>
+                <ui style="plainText" name="CST Bridge Identifier"/>                 
+            </object>
+			<object name="StpCstTimeSinceTopologyChange">
+                <core descr="This object specifies the STP time since the last topology change in a specific instance." access="read-only" type="string"/>
+                <ui style="plainText" name="CST Time Since Topology Change"/>
+            </object>
+            <object name="StpCstTopologyChangeCount">
+                <core descr="This object specifies the STP count of topology changes in a specific instance." access="read-only" type="uint"/>
+                <ui style="plainText" name="CST Topology Change Count"/>
+            </object>
+            <object name="StpCstTopologyChangeParm">
+                <core descr="This object specifies the STP topology change parameter in a specific instance" access="read-only" type="enum" xtype="L7_FalseTrue"/>
+                <ui style="plainText" name="CST Topology Change Parameter"/>
+            </object>
+        </module> 
+<!-- Missing Object Start 
+        <module name="stpCstPortConfig">
+            <object name="Interface">
+                <core descr="Interfaces on which STP parameters are to be configured" key="yes" access="read-write" type="uint"/>
+                <ui style="plainText" name="Interface">
+                </ui>
+            </object>
+            <object name="Dot1sCistExtPortPathCostMode" depends="Interface" >
+              <core  type="enum" xtype="TrueFalse_t" access="read-only" descr="TODO"/>
+              <ui  name="Dot1sCistExtPortPathCostMode" style="plainText" />
+            </object>
+            <object name="Dot1sCistPortPathCost" depends="Interface" >
+              <core  type="uint" access="read-only" descr="TODO"/>
+              <ui  name="Dot1sCistPortPathCost" style="plainText" />
+            </object>
+            <object name="Dot1sCistPortRegionalRootID" depends="Interface" >
+              <core  type="string" access="read-only" descr="TODO"/>
+              <ui  name="Dot1sCistPortRegionalRootID" style="plainText" />
+            </object>
+        </module>
+ Missing Object End -->
+        
+    </objectxml>
+</FastPathXML>

@@ -1,0 +1,23 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="RouterDiscSumm" title="Router Discovery Status">
+        <group id="1" heading=" ">
+            <repeat present="vtable" edit="no" heading=" " id="1">
+                <element properties="filter,iterate" obj-name="routingIpRouterDiscovery_IfIndex" id="1" />
+                <element control="label" properties="edit,read-only" obj-name="routingIpRouterDiscovery_advertiseMode" id="2" name="Advertise Mode"/>
+                <element control="label" properties="edit,read-only" obj-name="routingIpRouterDiscovery_advertisementAddress" id="3" name="Advertise Address"/>
+                <element control="label" properties="edit,read-only" obj-name="routingIpRouterDiscovery_maxAdvertisementInterval" id="4" name="Maximum Advertise Interval (secs)"/>
+                <element control="label" properties="edit,read-only" obj-name="routingIpRouterDiscovery_minAdvertisementInterval" id="5" name="Minimum Advertise Interval (secs)"/>
+                <element control="label" properties="edit,read-only" obj-name="routingIpRouterDiscovery_advertisementLifetime" id="6" name="Advertise Lifetime (secs)"/>
+                <element control="label" properties="edit,read-only" obj-name="routingIpRouterDiscovery_preferenceLevel" id="7" name="Preference Level"/>
+            </repeat>
+            <node id="2">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

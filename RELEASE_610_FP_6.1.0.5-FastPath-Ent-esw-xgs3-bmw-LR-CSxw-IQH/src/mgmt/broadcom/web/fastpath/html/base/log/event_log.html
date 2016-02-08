@@ -1,0 +1,149 @@
+<EMWEB_HEAD C='
+#include "usmdb_log_api.h"
+#include "usmdb_unitmgr_api.h"
+'>
+<EMWEB_IF ID=USMWEB_IF_LVL_HDR_NOT_REQ>
+<!--
+/*********************************************************************
+*
+* (C) Copyright Broadcom Corporation 2001-2007
+*
+**********************************************************************
+*
+* @filename event_log.html
+*
+* @purpose html content
+*
+* @comments
+*
+* @create 01-Mar-2001
+*
+* @author gaunce
+* @end
+*
+**********************************************************************/
+
+**********************************************************************/
+-->
+</EMWEB_IF>
+emweb:/USMWEB_PAGE_DTD_HEADER_GET;
+<HTML>
+<HEAD>
+   emweb:/USMWEB_PAGE_META_DATA_GET; <!-- Style Sheet link and Meta data     -->
+   <TITLE>emweb:/USMWEB_BASE_OEM_STRING_GET?1013;</TITLE>
+   <LINK REL=stylesheet HREF="/css/style.css" TYPE="text/css">
+</HEAD>
+
+<body CLASS="bodyframeattributes">
+
+<form method="post" EMWEB_NAME= "event_log">
+
+
+<!-- ----------------------------------------------------------------------- -->
+<!--         Web page header                                                 -->
+<!-- ----------------------------------------------------------------------- -->
+ emweb:/USMWEB_BASE_PAGE_HEADER_1ST_GET?1013;   <!-- Includes page title          -->
+ emweb:/USMWEB_BASE_PAGE_HEADER_2ND_GET?2761;   <!-- Includes help page link      -->
+
+
+
+<table CLASS="tablecontent" emweb:/USMWEB_TABLE_CONTENT_ALIGN;>
+
+<TR></TR>
+
+
+<TR><TD>
+<TABLE class="msgtableattributes"  emweb:/USMWEB_DATA_TABLE_ALIGN;>
+
+<THEAD>
+  <TR>
+    <TH class="msgtableheading">Entry</th>
+    <TH class="msgtableheading">Type</th>
+    <TH class="msgtableheading">Filename</th>
+    <TH class="msgtableheading">Line</th>
+    <TH class="msgtableheading">Task ID</th>
+    <TH class="msgtableheading">Code</th>
+    <TH class="msgtableheading">Time(d h m s)</TH>
+  </TR>
+</THEAD>
+
+
+
+<EMWEB_ITERATE
+ C='
+   static L7_uint32 ptr;
+   L7_char8 string[LOG_MSG_MAX_MSG_SIZE+1];
+   static L7_char8 msg[LOG_MSG_MAX_MSG_SIZE+15];
+   static L7_uint32 msgnum;
+
+   L7_uint32 unit;
+   usmDbUnitMgrMgrNumberGet(&unit);
+
+   if (ewsContextIterator(ewsContext) == NULL)
+   {
+      /* If first time into function, set pointer to null to get first entry. */
+      ptr = L7_NULL;
+      msgnum = 1;
+   }
+
+   memset(string, 0, LOG_MSG_MAX_MSG_SIZE+1);
+   memset(msg, 0, LOG_MSG_MAX_MSG_SIZE+11);
+   ptr = usmDbLogEventLogEntryNextGet(unit, ptr, string);
+   if ( ptr == L7_NULL )
+   {
+     return NULL;
+   }
+   else
+   {
+     sprintf(msg, "%05d: %s", msgnum, string);
+     msgnum++;
+     return (const void *) msg;
+   }
+   '>
+
+   <EMWEB_STRING C='
+
+   L7_char8 msg_itr[LOG_MSG_MAX_MSG_SIZE+15];
+   L7_char8 *buf;
+   buf = ewsContextNetHandle(ewsContext)->buffer;
+   memset(buf, 0x00, APP_BUFFER_SIZE);
+
+   if (ewsContextIterator(ewsContext) == NULL)
+   {
+     memset(msg_itr, 0, LOG_MSG_MAX_MSG_SIZE+15);
+     sprintf(msg_itr, "%05d: %s", 0, usmWebBaseGetNLS(7350));
+     return(usmWebLogFormat(msg_itr));
+   }
+   else
+   {
+     memcpy(msg_itr, (L7_char8 *) ewsContextIterator(ewsContext), LOG_MSG_MAX_MSG_SIZE+15);
+     return(usmWebEventLogFormat(ewsContext, msg_itr));
+
+   }
+
+   '>
+
+</EMWEB_ITERATE>
+
+</TABLE></TD></TR>
+
+<tr></TR><TR><td emweb:/USMWEB_BUTTON_ALIGN;><BR>
+<input class="buttonattributes" type=SUBMIT name="Refresh">
+</TD>
+</TR>
+
+</TABLE>
+
+
+
+<!-- ----------------------------------- -->
+<!--         Web page footer             -->
+<!-- ----------------------------------- -->
+ emweb:/USMWEB_PAGE_FOOTER_GET;
+
+</form>
+
+</BODY>
+</HTML>
+
+

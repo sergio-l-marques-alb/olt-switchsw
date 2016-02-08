@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "types.dtd">
+<FastPathXML>
+  <data-types version="1.0">
+    <enum name="L7_ARP_REMOVE_FROM_TABLE_t">
+      <option macro="L7_ARP_REMOVE_NONE" name="None"> </option>
+      <option macro="L7_ARP_REMOVE_ALL_DYNAMIC" name="All Dynamic Entries"> </option>
+      <option macro="L7_ARP_REMOVE_ALL_DYN_AND_GW" name="All Dynamic and Gateway Entries"> </option>
+      <option macro="L7_ARP_REMOVE_SPECIFIC_DYN_AND_GW" name="Specific Dynamic/Gateway Entry"> </option>
+      <option macro="L7_ARP_REMOVE_SPECIFIC_STATIC_ARP" name="Specific Static Entry"> </option>
+    </enum>
+    <enum name="L7_ARP_ENTRY_TYPE_t">
+      <option macro="L7_ARP_ENTRY_LOCAL" name="Local"> </option>
+      <option macro="L7_ARP_ENTRY_GATEWAY" name="Gateway"> </option>
+      <option macro="L7_ARP_ENTRY_STATIC" name="Static"> </option>
+      <option macro="L7_ARP_ENTRY_DYNAMIC" name="Dynamic"> </option>
+    </enum>
+  </data-types>
+</FastPathXML>
+

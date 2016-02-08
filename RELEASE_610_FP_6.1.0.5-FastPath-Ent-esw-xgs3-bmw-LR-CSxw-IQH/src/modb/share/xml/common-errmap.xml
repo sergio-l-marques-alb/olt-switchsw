@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "misc.dtd">
+<FastPathXML>
+<misc version="1.0">
+
+  <errorMap id="MAP_VLAN_ERR_CODES">
+     <map code="ALREADY_EXSITS" mCode="VLAN_EXSITS" />
+     <map code="FAILED_CREATION" mCode="VLAN_OUT_OF_RANGE" />
+  </errorMap>
+
+  <errorMap id="MAP_SESSION_ERR_CODES">
+     <map code="ALREADY_EXSITS" mCode="SESSION_ALREADY_EXSITS" />
+     <map code="FAILED_CREATION" mCode="FAILED_CREATING_SESSION" />
+  </errorMap>
+
+  <errorMap id="MAP_MIRRORING_SOURCE_PORT_ADDED">
+    <map code="PORT_ADDED" mCode="MIRRIORING_SOURCE_PORT_ADDED" />
+  </errorMap>
+ 
+  <errorMap id="MAP_MIRRORING_DEST_PORT_ADDED">
+    <map code="PORT_ADDED" mCode="MIRRIORING_DESTINATION_PORT_ADDED" />
+  </errorMap>
+
+</misc>
+</FastPathXML>
+
+

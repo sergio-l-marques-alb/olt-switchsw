@@ -1,0 +1,116 @@
+<HTML>
+
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>IPv6 Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+
+<hr size=4 width="100%" align=center>
+
+
+
+<h2><a name=loopbackconfig></a>Help for Loopbacks Configuration</h2>
+  Loopback interfaces can be created, configured and removed on this page.
+<h3>Selection Criteria</h3>
+<ul type=disc>
+ <ul type=circle>
+<li><b>Loopback</b>
+      - Select list of currently configured loopback interfaces.  Create is also a valid
+        choice if the maximum number of loopback interfaces has not been created.
+      </li>
+
+  <li><b>Loopback ID</b>
+      - When 'Create' is chosen from the Loopback selector this list of available
+        loopback ID's becomes visible.
+      </li>
+
+<EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE="IPv6">
+  <li><b>Protocol</b>
+      - Select IPv4 or IPv6 to configure the corresponding attributes on the loopback interface.
+      </li>
+
+   <li><b>IPv6 Mode</b>
+      - Enable IPv6 on this interface using the IPv6 address.  This option is only
+        configurable prior to specifying an explicit IPv6 address.
+      </li>
+
+   <li><b>IPv6 Address</b>
+      - Select list of configured IPv6 addresses for the selected Loopback interface.  Add is
+        also a valid choice if the maximum number of addresses has not been configured.
+      </li>
+</EMWEB_IF>
+ <li><b>Secondary Address</b>
+      - Select list of configured IPv4 secondary addresses for the selected Loopback interface.
+        Add Secondary is also a valid choice if the maximum number of secondary addresses has not been configured.
+        A primary address must be configured before secondary addresses can be added.
+      </li>
+
+</ul>
+</ul>
+<h3>Configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+
+<EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE="IPv6">
+ <li><b>IPv6 Address</b>
+      - When 'Add' is chosen from the IPv6 Address selector this IPv6 address input
+        field becomes visible. Address must be entered in the format prefix/length.
+    </li>
+   <li><b>EUI64</b>
+      -  The user also has the option to specify the 64-bit extended unique identifier (EUI-64).
+      </li>
+
+</EMWEB_IF>
+ <li><b>IPv4 Address</b>
+      - The primary IPv4 address for this interface in dotted decimal notation.
+      </li>
+
+   <li><b>IPv4 Subnet Mask</b>
+      - The primary IPv4 subnet mask for this interface in dotted decimal notation.
+      </li>
+
+
+   <li><b>Secondary IP Address</b>
+      - The secondary ip address for this interface in dotted decimal notation.
+        This input field is visible only when 'Add Secondary' is selected.
+      </li>
+
+   <li><b>Secondary Subnet Mask</b>
+      - The secondary subnet mask for this interface in dotted decimal notation.
+        This input field is visible only when 'Add Secondary' is selected.
+      </li>
+
+ </ul>
+</ul>
+
+<h3>Command Buttons</h3>
+<ul type=disc>
+ <ul type=circle>
+
+   <li><b>Submit</b> - Update the system with the values on this screen.</li>
+
+   <li><b>Delete Loopback </b> - Remove the selected loopback interface.</li>
+
+   <li><b>Delete Primary </b> - Remove the configured Primary IPv4 Address.</li>
+
+   <li><b>Add Secondary </b> - Add the user specified Secondary IPv4 Address.</li>
+
+   <li><b>Delete Selected Secondary </b> - Remove the selected Secondary IPv4 Address.</li>
+
+<EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE="IPv6">
+   <li><b>Delete Selected Address </b> - Remove the selected IPv6 Address.</li>
+</EMWEB_IF>
+
+ </ul>
+</ul>
+
+<hr size=4 width="100%" align=center>
+</BODY>
+
+</HTML>

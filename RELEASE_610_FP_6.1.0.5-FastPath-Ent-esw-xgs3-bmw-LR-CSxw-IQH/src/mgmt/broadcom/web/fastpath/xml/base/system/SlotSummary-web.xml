@@ -1,0 +1,24 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="SlotSummary" title="Slot Summary">
+        <group id="1" heading=" ">
+            <repeat present="vtable" edit="no" heading=" " id="1">
+                <element properties="filter,iterate,hidden" obj-name="baseSlotInfo_UnitNumber" id="1" name="Unit"/>
+                <element properties="filter,iterate,hidden" obj-name="baseSlotInfo_SlotIndex" id="2" name="Slot"/>
+                <element  obj-name="baseSlotInfo_Slot" id="3" name="Slot"/>
+                <element  obj-name="baseSlotInfo_SlotStatus" id="4" name="Status"/>
+                <element  obj-name="baseSlotInfo_SlotAdminMode" id="5" name="Administrative State "/>
+                <element  obj-name="baseSlotInfo_SlotPowerMode" id="6" name=" Power State"/>
+                <element  obj-name="baseSlotInfo_ConfiguredCardModel" id="7" name="Card Model ID"/>
+                <element  obj-name="baseSlotInfo_ConfiguredCardDescription" id="8" name="Card Description"/>
+            </repeat>
+            <node id="2">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

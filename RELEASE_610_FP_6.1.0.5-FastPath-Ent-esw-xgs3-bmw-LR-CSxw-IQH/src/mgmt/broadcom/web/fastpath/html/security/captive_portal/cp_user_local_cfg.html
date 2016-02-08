@@ -1,0 +1,250 @@
+<EMWEB_IF ID=USMWEB_IF_LVL_HDR_NOT_REQ>
+<!--
+/*********************************************************************
+*
+* (C) Copyright Broadcom Corporation 2001-2007
+*
+**********************************************************************
+*
+* @filename  cp_user_local_cfg.html
+*
+* @purpose   HTML content
+*
+* @comments  None
+*
+* @create    7/6/2007
+*
+* @author    rjindal
+*
+* @end
+*
+*********************************************************************/
+-->
+</EMWEB_IF>
+emweb:/USMWEB_PAGE_DTD_HEADER_GET;
+<HTML>
+<HEAD>
+   emweb:/USMWEB_PAGE_META_DATA_GET; <!-- Style Sheet link and Meta data     -->
+   <TITLE>emweb:/USMWEB_SECURITY_OEM_STRING_GET?1954;</TITLE>
+
+<script src="/scripts/utils.js"></script>
+<script type='text/javascript' language='JavaScript'>
+function DisplayErrorMsg()
+//******************************************************************************
+//* Purpose: Display an input error message.
+//* Return:  none
+//******************************************************************************
+{
+  alert(document.forms[0].err_msg.value);
+}
+
+function check_error()
+{
+  if (document.forms[0].err_flag.value == 1)
+  {
+    DisplayErrorMsg();
+  }
+ <EMWEB_IF ID=USMWEB_IF_READWRITE>
+ <EMWEB_ELSE>
+  disableAll();
+  document.forms[0].Refresh_ro.disabled = false;
+ </EMWEB_IF>
+}
+
+
+function screen_refresh()
+{
+  document.forms[0].submit();
+}
+
+function delete_check()
+{
+  var prompt = window.confirm("Are you sure you want to delete this user?");
+  if (prompt)
+  {
+    document.forms[0].refresh_in_progress.value = 1;
+    document.forms[0].refresh_key.value = 1;
+  }
+  else
+  {
+    document.forms[0].refresh_in_progress.value = 1;
+    document.forms[0].refresh_key.value = 2;
+  }
+  document.forms[0].submit();
+}
+
+function submit_check()
+{
+  var count = 0;
+  for (var idx=0; idx<document.forms[0].user_gp_id.options.length; idx++)
+  {
+    if (document.forms[0].user_gp_id.options[idx].selected)
+    {
+      count++;
+    }
+  }
+  if (0==count)
+  {
+    alert("Please note that the default User Group has been selected.");
+  }
+  else
+  {
+    document.forms[0].submit();
+  }
+}
+
+</script>
+</HEAD>
+
+<BODY class="bodyframeattributes" onload="check_error()">
+<FORM method="post" EMWEB_NAME="cpUserLocalCfg">
+
+<!-- ----------------------------------------------------------------------- -->
+<!--         Tabbed Navigation                                               -->
+<!-- ----------------------------------------------------------------------- -->
+emweb:/USMWEB_TABS_USER_LOCAL?1;
+
+<!-- ----------------------------------------------------------------------- -->
+<!--         Web page header                                                 -->
+<!-- ----------------------------------------------------------------------- -->
+emweb:/USMWEB_SECURITY_PAGE_HEADER_1ST_GET?1954;   <!-- Includes page title          -->
+<EMWEB_IF ID=USMWEB_IF_NEW_USER>
+emweb:/USMWEB_SECURITY_PAGE_HEADER_2ND_GET?2767;   <!-- Includes help page link      -->
+<EMWEB_ELSE>
+emweb:/USMWEB_SECURITY_PAGE_HEADER_2ND_GET?2754;   <!-- Includes help page link      -->
+</EMWEB_IF>
+
+<TABLE CLASS="tablecontent" emweb:/USMWEB_TABLE_CONTENT_ALIGN;>
+
+  <TR>
+
+  <TD>
+   <TABLE height="100%">
+   <TR>
+   <EMWEB_IF ID=USMWEB_IF_NEW_USER>
+   <TD class="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?1000;</TD> <!-- User Name -->
+   <TD class="rowdataattributes" NOWRAP><input class="inputfield" type="text" name="user_name" maxlength="32" size="16">
+       <EMWEB_STRING C='return usmWebCharacterRangeHelp(CP_USER_LOCAL_USERNAME_MIN, CP_USER_LOCAL_USERNAME_MAX);'>
+   </TD>
+   <EMWEB_ELSE>
+   <TD class="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?1000;</TD> <!-- User Name -->
+   <TD class="rowdataattributes" NOWRAP><input class="rowdataattributes" type="text" name="user_exists" maxlength="32" size="16" READONLY TABINDEX="-1"></TD> 
+   </EMWEB_IF>
+   </TR>
+
+   <TR>
+   <TD class="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?1001;</TD> <!-- Password -->
+   <TD class="rowdataattributes" NOWRAP><input class="inputfield" type="password" name="user_pwd" maxlength="64" size="16">
+       <EMWEB_STRING C='return usmWebCharacterRangeHelp(CP_USER_LOCAL_PASSWORD_MIN, CP_USER_LOCAL_PASSWORD_MAX);'>
+   </TD>
+   </TR>
+
+   <TR>
+   <TD class="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27106;</TD> <!-- User Groups -->
+   <TD class="rowdataattributes" NOWRAP>
+     <SELECT class="selectfield" name="user_gp_id" size="5" multiple EMWEB_ITERATE EMWEB_TYPE=DECIMAL_UINT>
+      <OPTION class="selectfield" value="one">1</OPTION>
+     </SELECT>
+   </TD>
+   </TR>
+
+   <TR>
+     <EMWEB_IF ID=USMWEB_IF_READWRITE>
+       <EMWEB_IF ID=USMWEB_IF_NEW_USER>
+       <TD colspan=2 emweb:/USMWEB_BUTTON_ALIGN;><BR>
+       <input class="buttonattributes" type="submit" name="Add" value="Add">
+       </TD>
+       </EMWEB_IF>
+     </EMWEB_IF>
+   </TR>
+   </TABLE>
+  </TD>
+
+  <EMWEB_IF ID=USMWEB_IF_NOT_NEW_USER>
+
+  <TD width="3"></TD>
+
+  <TD>
+   <TABLE height="100%">
+   <TR valign="top">
+   <TD class="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27107;</TD> <!-- Session Timeout (secs) -->
+   <TD class="rowdataattributes" NOWRAP><input class="inputfield" type="text" name="session_timeout" maxlength="5" size="9" EMWEB_TYPE=DECIMAL_UINT>
+       <EMWEB_STRING C='return usmWebIntegerRangeHelp(CP_USER_LOCAL_SESSION_TIMEOUT_MIN, CP_USER_LOCAL_SESSION_TIMEOUT_MAX);'>
+   </TD>
+   </TR>
+
+   <TR>
+   <TD class="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27108;</TD> <!-- Idle Timeout (secs) -->
+   <TD class="rowdataattributes" NOWRAP><input class="inputfield" type="text" name="idle_timeout" maxlength="3" size="9" EMWEB_TYPE=DECIMAL_UINT>
+       <EMWEB_STRING C='return usmWebIntegerRangeHelp(CP_USER_LOCAL_IDLE_TIMEOUT_MIN, CP_USER_LOCAL_IDLE_TIMEOUT_MAX);'>
+   </TD>
+   </TR>
+
+   <TR>
+   <TD CLASS="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27109;</TD> <!-- Max Bandwidth Up -->
+   <TD class="rowdataattributes" NOWRAP><input class="inputfield" type="text" name="user_max_bandwidth_up" maxlength="9" size="9" EMWEB_TYPE=DECIMAL_UINT>(0 = unlimited)</TD>
+   </TR>
+   <TR>
+   <TD CLASS="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27110;</TD> <!-- Max Bandwidth Down -->
+   <TD class="rowdataattributes" NOWRAP><input class="inputfield" type="text" name="user_max_bandwidth_down" maxlength="9" size="9" EMWEB_TYPE=DECIMAL_UINT>(0 = unlimited)</TD>
+   </TR>
+   <TR>
+   <TD CLASS="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27111;</TD> <!-- Max Input Octets -->
+   <TD class="rowdataattributes" NOWRAP><input class="inputfield" type="text" name="user_max_input" maxlength="10" size="9" EMWEB_TYPE=DECIMAL_UINT>(0 = unlimited)</TD>
+   </TR>
+   <TR>
+   <TD CLASS="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27112;</TD> <!-- Max Output Octets -->
+   <TD class="rowdataattributes" NOWRAP><input class="inputfield" type="text" name="user_max_output" maxlength="10" size="9" EMWEB_TYPE=DECIMAL_UINT>(0 = unlimited)</TD>
+   </TR>
+   <TR>
+   <TD CLASS="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27113;</TD> <!-- Max Total Octets -->
+   <TD class="rowdataattributes" NOWRAP><input class="inputfield" type="text" name="user_max_total" maxlength="10" size="9" EMWEB_TYPE=DECIMAL_UINT>(0 = unlimited)</TD>
+   </TR>
+
+   </TABLE>
+  </TD>
+  </EMWEB_IF>
+
+  </TR>
+
+  <TR>
+    <EMWEB_IF ID=USMWEB_IF_READWRITE>
+      <EMWEB_IF ID=USMWEB_IF_NOT_NEW_USER>
+      <TD colspan=3 emweb:/USMWEB_BUTTON_ALIGN;><BR>
+        <input class="buttonattributes" type="submit" name="Delete" value="Delete" onclick='delete_check()'>
+        <input class="buttonattributes" type="submit" name="Submit" value="Submit" onclick='submit_check()'>
+        <input class="buttonattributes" type="submit" name="Refresh">
+      </TD>
+      </EMWEB_IF>
+    <EMWEB_ELSE>
+    <input class="buttonattributes" type="submit" name="Refresh_ro" value="Refresh">
+    </EMWEB_IF>
+  </TR>
+
+</TABLE>
+
+<INPUT TYPE="hidden" NAME="err_flag" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT>
+<INPUT TYPE="hidden" NAME="err_msg" SIZE="128" MAXLENGTH="127">
+<INPUT TYPE="hidden" NAME="userId" value="">
+<INPUT TYPE="hidden" NAME="refresh_in_progress" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT>
+<INPUT TYPE="hidden" NAME="refresh_key" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT>
+
+<!-- ----------------------------------- -->
+<!--         Web page footer             -->
+<!-- ----------------------------------- -->
+ emweb:/USMWEB_PAGE_FOOTER_GET;
+
+<!-- ----------------------------------- -->
+<!--     Check Read/Write Privileges     -->
+<!-- ----------------------------------- -->
+<script type='text/javascript' language='JavaScript'>
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<EMWEB_ELSE>
+  disableAll();
+</EMWEB_IF>
+</script>
+
+</FORM>
+</BODY>
+</HTML>
+

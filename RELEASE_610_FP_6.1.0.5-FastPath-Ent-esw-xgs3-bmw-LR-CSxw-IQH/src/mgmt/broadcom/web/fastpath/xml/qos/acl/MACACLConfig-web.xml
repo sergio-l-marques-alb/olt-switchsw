@@ -1,0 +1,48 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+<!-- exmaple for pseudo-keys where extended-actions are associated to pseudo-key and user need not input the key value -->
+
+<FastPathXML>
+    <webxml version="1.0" name="MACACLConfig" java-script="acltable" title="MAC ACL Configuration">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element control="combo"  obj-name="fastPathQOSACLQOSACL_aclMacName" properties="filter" id="1" name="MAC ACL">
+                    <action type="extn" value="Create New Extended MAC ACL" disable="1_3_2|1_3_3" hide="1_3_2|1_3_3" enable="1_2|1_3_1" show="1_2|1_3_1" setval_args="valMapEmptyString" setval_ids="1_2" position="0"/>
+                    <action type="default" hide="1_3_1" disable="1_3_1" enable="1_2" show="1_2|1_3_2|1_3_3"/>
+                </element>
+            </node>
+            <node id="2">
+                <element control="textbox" maxLength="32" obj-name="fastPathQOSACLQOSACL_aclMacName" id="1" name="MAC ACL Name" arghelp= "HELP_FORMAT_NAME31" validation="validate_name31" />
+            </node>
+            <node id="4">
+                <element properties="hidden" obj-name="fastPathQOSACLQOSACL_aclMacIndex" id="1" name="MAC ACL ID"/>
+            </node>
+
+            <node id="3">
+                <button scope="group" type="buttonSubmit" value="Add" obj-name="fastPathQOSACLQOSACL_aclMacStatus" help="Submits the form on this page to the Switch" id="1" name="Submit"/>                
+                <button scope="group" type="buttonSubmit" value="Active" obj-name="fastPathQOSACLQOSACL_aclMacStatus" help="Submits the form on this page to the Switch" id="2" name="Rename"/>
+                  <action type="button" disable="1_3_3" enable="1_3_2" show="1_3_2|1_3_3" />
+               <button scope="group" type="buttonSubmit" value="Delete" obj-name="fastPathQOSACLQOSACL_aclMacStatus" help="on Click submits the form and renames the selected MAC ACL" id="3" name="Delete">
+                  <action type="button" disable="1_3_2|1_2_1" enable="1_3_3" show="1_3_2|1_3_3" />
+               </button> 
+            </node>
+        </group>
+
+        <group level="ReadWriteUser" id="2" div-name="summary" heading=" ">
+           <node id="1">
+              <element properties="hidden" obj-name="fastPathQOSACLQOSACLTABLE_aclsConfigCurrent" id="1" />
+              <element properties="hidden" obj-name="fastPathQOSACLQOSACLTABLE_aclMaxNum" id="2" />
+           </node>
+           <node id="2">
+              <element control="label" clazz="ipAclConfig" value="Table" properties="noname,write-only" obj-name="xLibObjects_dummy" id="1" name="Table"/>
+              <element control="label" clazz="ipAclConfig" value="Current Size / Max Size" properties="noname,write-only" obj-name="xLibObjects_dummy" id="2" name="Current Size / Max Size"/>
+           </node>
+           <node id="3">
+              <element control="label" value="ACL" properties="noname,write-only" obj-name="xLibObjects_dummy" id="1" name="ACL"/>
+              <element control="label" properties="noname" obj-name="xLibObjects_dummy" id="2"/>
+           </node>
+        </group>
+    </webxml>
+</FastPathXML>

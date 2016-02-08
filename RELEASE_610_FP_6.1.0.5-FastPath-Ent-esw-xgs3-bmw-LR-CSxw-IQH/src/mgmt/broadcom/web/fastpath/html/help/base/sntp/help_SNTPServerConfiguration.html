@@ -1,0 +1,103 @@
+
+<HTML>
+<EMWEB_HEAD C='
+    #include "web.h"
+  '>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>SNTP Server Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+
+<hr size=4 width="80%" align=center>
+
+<h2><a name=sntp_server_cfg></a>Help for SNTP Server Configuration</h2>
+
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Server</b> - Specifies all the existing Server Addresses along with an additional option
+  "Create". When the user selects "Create" another text box "Address" appears where the user may
+  enter Address for Server to be configured. </li>
+  <li><b>Address / Hostname</b> - Specifies the address of the SNTP server. This is a text string of up to
+  64 characters containing the encoded unicast IP address or hostname of a SNTP server. Unicast
+  SNTP requests will be sent to this address. If this address is a DNS hostname, then that
+  hostname should be resolved into an IP address each time a SNTP request is sent to it.</li>
+  <li><b>Address Type</b> - Specifies the address type of the configured SNTP Server address.
+  Allowed type is :
+  <UL>
+    <LI><I><B>IPv4</B></I></LI>
+    <LI><I><B>DNS</B></I></LI>
+  </UL>
+  By Default IPv4 will be selected.</li>
+
+
+  <li><b>Port</b> - Specifies the port on the server to which SNTP requests are to be sent.
+  Allowed range is
+  <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(SNTP_MIN_SERVER_PORT, SNTP_MAX_SERVER_PORT);
+       ' >.
+  Default value is
+  <EMWEB_STRING C='
+      return usmWebIntegerToString(L7_SNTP_DEFAULT_SERVER_PORT);
+       ' >.
+  </li>
+
+ <li><b>Priority</b> - Specifies the priority of this server entry in determining the
+ sequence of servers to which SNTP requests will be sent. The client continues sending requests
+ to different servers until a successful response is received or all servers are exhausted. This
+ object indicates the order in which to query the servers. A server entry with a precedence of 1
+ will be queried before a server with a priority of 2, and so forth. If more than one server
+ has the same priority then the requesting order will follow the lexicographical ordering of
+ the entries in this table. Allowed range is
+ <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(SNTP_MIN_SERVER_PRIORITY, SNTP_MAX_SERVER_PRIORITY);
+       ' >.
+  Default value is
+  <EMWEB_STRING C='
+      return usmWebIntegerToString(L7_SNTP_DEFAULT_SERVER_PRIORITY);
+       ' >.
+ </li>
+
+
+ <li><b>Version</b> - Specifies the NTP Version running on the server. Allowed range is
+  <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(SNTP_VERSION_MIN, SNTP_VERSION_MAX);
+       ' >.
+  Default value is
+  <EMWEB_STRING C='
+      return usmWebIntegerToString(L7_SNTP_DEFAULT_VERSION);
+       ' >.
+  </li>
+</ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li>
+     <b>Submit</b> - Sends the updated configuration to the switch.  Configuration changes
+      take effect immediately.</li>
+  <li>
+     <b>Delete</b> - Deletes the SNTP Server entry. Sends the updated configuration to the
+     switch.  Configuration changes take effect immediately.</li>
+
+ </ul>
+</ul>
+</EMWEB_IF>
+
+ <hr size=4 width="80%" align=center>
+</body>
+
+</html>
+
+

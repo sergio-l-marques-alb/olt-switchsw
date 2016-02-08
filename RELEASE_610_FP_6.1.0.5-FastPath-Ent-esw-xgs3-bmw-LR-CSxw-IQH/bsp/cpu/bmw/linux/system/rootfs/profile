@@ -1,0 +1,23 @@
+# /etc/profile: system-wide .profile file for the Bourne shell (sh(1))
+# and Bourne compatible shells (bash(1), ksh(1), ash(1), ...).
+
+PATH=/usr/bin:/bin:/usr/sbin:/sbin:/mnt/host/usr/bin:/mnt/host/bin:/mnt/host/usr/sbin:/mnt/host/sbin
+
+LD_LIBRARY_PATH=/mnt/host/lib:/mnt/host/usr/lib
+
+if [ "`id -u`" -eq 0 ]; then
+  PS1='# '
+else
+  PS1='$ '
+fi
+
+export PATH LD_LIBRARY_PATH PS1
+
+ENVDEV=/dev/nvram
+ENVTYPE=nvram
+ENVOFF=0x0800
+ENVLEN=0x0800
+
+export ENVDEV ENVTYPE ENVOFF ENVLEN
+
+umask 022

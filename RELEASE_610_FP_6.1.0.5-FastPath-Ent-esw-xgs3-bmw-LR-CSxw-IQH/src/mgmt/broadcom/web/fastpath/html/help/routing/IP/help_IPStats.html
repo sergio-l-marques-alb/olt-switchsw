@@ -1,0 +1,147 @@
+<HTML>
+
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>IP Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+
+<hr size=4 width="80%" align=center>
+
+
+<h2><a name=ipstats></a>Help for IP Statistics</h2>
+
+The statistics reported on this screen are as specified in RFC 1213.
+
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+
+  <li><b> IpInReceives                  </b> - The total number of input datagrams received from
+      interfaces, including those received in error. </li>
+  <li><b> IpInHdrErrors            </b> - The number of input datagrams discarded due to
+      errors in their IP headers, including bad checksums, version number mismatch, other format
+      errors, time-to-live exceeded, errors discovered in processing their IP options, etc. </li>
+  <li><b> IpInAddrErrors </b> - The number of input datagrams discarded because
+      the IP address in their IP header's destination field was not a valid address to be received at
+      this entity.  This count includes invalid addresses (e.g., 0.0.0.0) and addresses of
+      unsupported Classes (e.g., Class E).  For entities which are not IP Gateways and therefore do not
+      forward datagrams, this counter includes datagrams discarded because the destination address was not
+      a local address. </li>
+  <li><b> IpForwDatagrams                  </b> - The number of input datagrams for which this
+      entity was not their final IP destination, as a result of which an attempt was made to find a
+      route to forward them to that final destination. In entities which do not act as IP Gateways, this
+      counter will include only those packets which were Source-Routed via this entity, and the
+      Source-Route option processing was successful. </li>
+  <li><b> IpInUnknownProtos  </b> - The number of locally-addressed datagrams
+      received successfully but discarded because of an unknown or unsupported protocol. </li>
+  <li><b> IpInDiscards       </b> - The number of input IP datagrams for which no
+      problems were encountered to prevent their continued processing, but which were discarded
+      (e.g., for lack of buffer space).  Note that this counter does not include any datagrams discarded
+      while awaiting re-assembly. </li>
+  <li><b> IpInDelivers      </b> - The total number of input datagrams successfully
+      delivered to IP user-protocols (including ICMP). </li>
+  <li><b> IpOutRequests            </b> - The total number of IP datagrams which local IP
+      user-protocols (including ICMP) supplied to IP in requests for transmission.  Note that this counter
+      does not include any datagrams counted in ipForwDatagrams. </li>
+  <li><b> IpOutDiscards      </b> - The number of output IP datagrams for which no
+      problem was encountered to prevent their transmission to their destination, but which were
+      discarded (e.g., for lack of buffer space).  Note that this counter would include datagrams counted
+      in ipForwDatagrams if any such packets met this (discretionary) discard criterion. </li>
+  <li><b> IpOutNoRoutes                   </b> - The number of IP datagrams discarded because no
+      route could be found to transmit them to their destination.  Note that this counter includes any
+      packets counted in ipForwDatagrams which meet this `no-route' criterion.  Note that this includes any
+      datagrams which a host cannot route because all of its default gateways are down. </li>
+  <li><b>IpReasmTimeout       </b> - The maximum number of seconds which received
+      fragments are held while they are awaiting reassembly at this entity. </li>
+  <li><b> IpReasmReqds             </b> - The number of IP fragments received which needed
+      to be reassembled at this entity. </li>
+  <li><b> IpReasmOKs              </b> - The number of IP datagrams successfully re-assembled. </li>
+  <li><b> IpReasmFails     </b> - The number of failures detected by the IP re-assembly
+  algorithm (for whatever reason: timed out, errors, etc).  Note that this is not
+      necessarily a count of discarded IP fragments since some algorithms can lose track of the number of fragments
+      by combining them as they are received. </li>
+  <li><b> IpFragOKs              </b> - The number of IP datagrams that have been
+      successfully fragmented at this entity. </li>
+  <li><b> IpFragFails           </b> - The number of IP datagrams that have been
+      discarded because they needed to be fragmented at this entity but could not be, e.g., because their
+      Don't Fragment flag was set. </li>
+  <li><b> IpFragCreates                              </b> - The number of IP datagram fragments that have
+      been generated as a result of fragmentation at this entity. </li>
+  <li><b> IpRoutingDiscards                    </b> - The number of routing entries which were chosen
+      to be discarded even though they are valid.  One possible reason for discarding such an entry could
+      be to free-up buffer space for other routing entries. </li>
+
+  <li><b> IcmpInMsgs             </b> - The total number of ICMP messages which the
+      entity received.  Note that this counter includes all those counted by icmpInErrors. </li>
+  <li><b> IcmpInErrors                  </b> - The number of ICMP messages which the entity
+      received but determined as having ICMP-specific errors (bad ICMP checksums, bad length, etc.). </li>
+  <li><b> IcmpInDestUnreachs      </b> - The number of ICMP Destination Unreachable
+      messages received. </li>
+  <li><b> IcmpInTimeExcds                 </b> - The number of ICMP Time Exceeded messages
+      received. </li>
+  <li><b> IcmpInParmProbs            </b> - The number of ICMP Parameter Problem messages
+      received. </li>
+  <li><b> IcmpInSrcQuenchs                </b> - The number of ICMP Source Quench messages
+      received. </li>
+  <li><b> IcmpInRedirects                     </b> - The number of ICMP Redirect messages received. </li>
+  <li><b> IcmpInEchos                                  </b> - The number of ICMP Echo (request) messages
+      received. </li>
+  <li><b> IcmpInEchoReps                   </b> - The number of ICMP Echo Reply messages received. </li>
+  <li><b> IcmpInTimestamps                    </b> - The number of ICMP Timestamp (request) messages received. </li>
+  <li><b> IcmpInTimestampReps              </b> - The number of ICMP Timestamp Reply messages received. </li>
+  <li><b> IcmpInAddrMasks         </b> - The number of ICMP Address Mask Request messages received. </li>
+  <li><b> IcmpInAddrMaskReps           </b> - The number of ICMP Address Mask Reply messages received. </li>
+  <li><b> IcmpOutMsgs                                  </b> - The total number of ICMP messages which this
+      entity attempted to send.  Note that this counter includes all those counted by icmpOutErrors. </li>
+  <li><b> IcmpOutErrors              </b> - The number of ICMP messages which this entity did
+      not send due to problems discovered within ICMP such as a lack of buffers.  This value should not
+      include errors discovered outside the ICMP layer such as the inability of IP to route the resultant
+      datagram.  In some implementations there may be no types of error which contribute to this counter's
+      value. </li>
+  <li><b> IcmpOutDestUnreachs      </b> - The number of ICMP Destination Unreachable messages sent. </li>
+  <li><b> IcmpOutTimeExcds                    </b> - The number of ICMP Time Exceeded messages sent. </li>
+  <li><b> IcmpOutParmProbs                </b> - The number of ICMP Parameter Problem messages sent. </li>
+  <li><b> IcmpOutSrcQuenchs               </b> - The number of ICMP Source Quench messages sent. </li>
+  <li><b> IcmpOutRedirects                         </b> - The number of ICMP Redirect messages sent.  For a
+      host, this object will always be zero, since hosts do not send redirects. </li>
+  <li><b> IcmpOutEchos                             </b> - The number of ICMP Echo (request) messages sent. </li>
+  <li><b> IcmpOutEchoReps                       </b> - The number of ICMP Echo Reply messages sent. </li>
+  <li><b> IcmpOutTimestamps                        </b> - The number of ICMP Timestamp (request) messages. </li>
+  <li><b> IcmpOutTimestampReps                  </b> - The number of ICMP Timestamp Reply messages sent. </li>
+  <li><b> IcmpOutAddrMasks                  </b> - The number of ICMP Address Mask Request messages sent. </li>
+  <!--    Next Release
+  <li><b>Time Since Counters Last
+      Cleared</b> - The elapsed time, in days, hours, minutes, and seconds since the
+      statistics for this router were last cleared. </li>     -->
+ </ul>
+</ul>
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li>
+     <b>Refresh</b> - Refresh the data on the screen with the present state of
+     the data in the switch. </li>
+  <!--   Next Release
+  <li><b>Clear Counters</b>
+      - Clear all the counters, resetting all summary and switch detailed statistics to defaults. </li>  -->
+ </ul>
+</ul>
+
+<hr size=4 width="80%" align=center>
+
+
+</body>
+
+</html>
+
+

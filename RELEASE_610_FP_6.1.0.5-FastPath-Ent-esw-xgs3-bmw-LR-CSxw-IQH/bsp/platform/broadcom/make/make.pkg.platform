@@ -1,0 +1,64 @@
+# Local source path abbreviations (for convenience).
+#
+src_platform  := bsp/platform
+
+
+# Platform makefile definitions included by bsp package.
+#
+# Note: Various $(src_xxx) abbreviations are defined by caller.
+#
+# Note: Only use += here (to append to existing definitions).
+#
+
+# Master list of source paths to be built into this package library.
+#  - All entries must be specified relative to top-of-view $(FP_ROOT).
+#  - Defines all source locations to be referenced by the package-level makefile.
+#
+MASTERSRC += \
+	$(src_platform)/$(L7_COMPANY)/common/src \
+	$(src_platform)/$(L7_COMPANY)/$(L7_CUSTOMER)/$(L7_PLATFORM)/hpc \
+	$(src_platform)/$(L7_COMPANY)/$(L7_CUSTOMER)/common/hpc
+
+# These files are included only if any poe support is present
+#
+ifneq ($(findstring poe,$(L7_COMPONENTS)),)
+  MASTERSRC += \
+	$(src_platform)/$(L7_COMPANY)/common/poe
+
+# These files are present only if PowerDsine controller is present
+#
+ifeq ($(findstring poe_pwrdsn,$(L7_FEATURE)), poe_pwrdsn)
+  MASTERSRC += \
+	$(src_platform)/$(L7_COMPANY)/common/poe/pwrdsn
+endif
+
+# These files are present only if Broadcom controller is present
+#
+ifeq ($(findstring poe_brcm,$(L7_FEATURE)), poe_brcm)
+  MASTERSRC += \
+	$(src_platform)/$(L7_COMPANY)/common/poe/brcm
+endif
+endif
+
+
+# List here individual source files to be selectively EXCLUDED from the build.
+#
+MASTERSRC_FILE_EXCLUDE +=
+
+
+# Additional source header file search paths (without the -I).
+#
+SRCINCPATHS += \
+	andl/dapi \
+	andl/hapi/$(L7_CHIP)/base \
+	andl/hapi/$(L7_CHIP)/base/bcmsys
+
+
+# Additional CFLAGS.
+#
+CFLAGSEXTRA += \
+	$(L7_OS_VENDOR)
+
+
+# Conditional source inclusion
+#

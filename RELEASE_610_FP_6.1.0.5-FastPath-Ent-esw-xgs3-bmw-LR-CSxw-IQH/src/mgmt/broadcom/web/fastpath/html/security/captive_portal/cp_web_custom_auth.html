@@ -1,0 +1,369 @@
+<EMWEB_IF ID=USMWEB_IF_LVL_HDR_NOT_REQ>
+<!--
+/*********************************************************************
+*
+* (C) Copyright Broadcom Corporation 2001-2007
+*
+**********************************************************************
+*
+* @filename  cp_web_custom_auth.html
+*
+* @purpose   HTML iframe content
+*
+* @comments  None
+*
+* @create    1/06/2009
+*
+* @author    darsen
+*
+* @end
+*
+*********************************************************************/
+-->
+</EMWEB_IF>
+emweb:/USMWEB_PAGE_DTD_HEADER_GET;
+<HTML>
+<HEAD>
+   emweb:/USMWEB_PAGE_META_DATA_GET; <!-- Style Sheet link and Meta data     -->
+</HEAD>
+
+<BODY CLASS="tablecontentnowidth" onload="onLoad();">
+
+<script type='text/javascript' src="/scripts/PopupWindow.js"></script>
+<script type='text/javascript' src="/scripts/cp_web_custom.js"></script>
+
+<script type="text/javascript" language="JavaScript">
+
+<EMWEB_IF C='return (usmWebCPWebFormObjectEnabled(ewsContext,CP_FORM_OBJ_USER_LOGOUT))?"":NULL;'>
+var fLogoutEnabled = true;
+<EMWEB_ELSE>
+var fLogoutEnabled = false;
+</EMWEB_IF>
+
+function onLoad()
+{
+  var h = "580px";
+
+  checkError();
+  setDirty(AUTH_PAGE,false);
+
+  document.getElementById('background_image_label').title = globalNote;
+  document.getElementById('branding_image_label').title = globalNote;
+  document.getElementById('cp_auth_background_image').disabled = true;
+  document.getElementById('cp_auth_branding_image').disabled = true;
+  document.getElementById('vis_fg').style.background=document.forms[0].cp_fg.value;
+  document.getElementById('vis_bg').style.background=document.forms[0].cp_bg.value;
+  document.getElementById('vis_sp').style.background=document.forms[0].cp_sp.value;
+  if (msie)
+  {
+    document.getElementById("cp_aup_text").style.width  = "419px";
+    document.getElementById("cp_aup_text").style.height = "115px";	
+  }
+
+  if (currentDPI>defaultDPI) h = "650px"; // attempt to fudge msie DPI scaling ??
+  parent.document.getElementById('page_frame').height = h;
+}
+
+function translate()
+{
+  setDirty(AUTH_PAGE,false);
+  document.forms[0].cp_browser_title_hex.value  = l2h(document.forms[0].cp_browser_title.value);
+  document.forms[0].cp_page_title_hex.value     = l2h(document.forms[0].cp_page_title.value);
+  document.forms[0].cp_account_label_hex.value  = l2h(document.forms[0].cp_account_label.value);
+  document.forms[0].cp_user_label_hex.value     = l2h(document.forms[0].cp_user_label.value);
+  document.forms[0].cp_password_label_hex.value = l2h(document.forms[0].cp_password_label.value);
+  document.forms[0].cp_button_label_hex.value   = l2h(document.forms[0].cp_button_label.value);
+  document.forms[0].cp_aup_text_hex.value       = l2h(document.forms[0].cp_aup_text.value);
+  document.forms[0].cp_accept_text_hex.value    = l2h(document.forms[0].cp_accept_text.value);
+  document.forms[0].cp_instruct_text_hex.value  = l2h(document.forms[0].cp_instruct_text.value);
+  document.forms[0].cp_denied_msg_hex.value     = l2h(document.forms[0].cp_denied_msg.value);
+  document.forms[0].cp_resource_msg_hex.value   = l2h(document.forms[0].cp_resource_msg.value);
+  document.forms[0].cp_timeout_msg_hex.value    = l2h(document.forms[0].cp_timeout_msg.value);
+  document.forms[0].cp_wip_msg_hex.value        = l2h(document.forms[0].cp_wip_msg.value);
+  document.forms[0].cp_noaccept_msg_hex.value   = l2h(document.forms[0].cp_noaccept_msg.value);
+  document.forms[0].cp_account_image.value = document.forms[0].sel_account_image.options[document.forms[0].sel_account_image.selectedIndex].text;
+}
+
+function showPreview()
+{
+  var url = "";
+  var widthHeight = "";
+  var title = "";
+
+  url = "captive_portal.html?p1="+CP_PREVIEW;
+  url += "&p2=" + document.forms[0].cpId.value;
+  url += "&p3=" + document.forms[0].webId.value;
+  widthHeight = "";
+  title = AUTH_PAGE;
+
+  window.open(url,title,widthHeight);
+}
+
+//******************************************************************************
+//* Purpose: Instantiate the ColorPicker object and set its properties
+//* Return:  none
+//******************************************************************************
+var cp = new ColorPicker(); // DIV style
+cp.autoHide();
+
+//******************************************************************************
+//* Purpose: Instantiate the ImagePicker object and set its properties
+//* Return:  none
+//******************************************************************************
+var ip = new ImagePicker(); // DIV style
+ip.autoHide();
+
+//******************************************************************************
+//* Purpose: Save the params as global and set the pop position because MSIE
+//* has a problem with the Z position.
+//* Return:  none
+//******************************************************************************
+function popupActivate(vis,val,src)
+{
+  cpVisual = vis;
+  cpValue = val;
+
+  switch (vis)
+  {
+    case "vis_sp":
+    {
+      cp.offsetX = 0;
+      cp.offsetY = 20;
+      break;
+    }
+    case "vis_fg":
+    {
+      cp.offsetX = -90;
+      cp.offsetY = 20;
+      break;
+    }
+    case "vis_bg":
+    {
+      cp.offsetX = -190;
+      cp.offsetY = 20;
+      break;
+    }
+  }
+  cp.show(src);
+}
+
+//******************************************************************************
+//* Purpose: Save the params as global and set the pop position because MSIE
+//* has a problem with the Z position.
+//* Return:  none
+//******************************************************************************
+function popupImageActivate(vis,val,src)
+{
+  ipVisual = vis;
+  ipValue = val;
+
+  ip.clear();
+  var sel = document.getElementById(ipVisual);
+  for (var i=0; i<sel.length; i++)
+  {
+    var val = sel.options[i].value;
+    if (val != NO_SELECTION)
+    {
+	  var b = ((val == ACCOUNTING_IMAGE) ||
+               (val == BACKGROUND_IMAGE)  ||
+               (val == BRANDING_IMAGE))?true:false;
+	  if (b)
+	  {
+        ip.add("/images/" + val);
+	  }
+	  else
+	  {
+        ip.add("/filesystem/ramcp/" + val);
+	  }
+    }
+  }
+
+  ip.run();
+  ip.show(src);
+}
+
+function setColor(vis,val)
+{
+  document.getElementById(vis).style.background=document.getElementById(val).value;
+  setDirty(AUTH_PAGE,true);
+}
+
+//******************************************************************************
+//* Purpose: This function is overwritten and called from the ColorPicker object
+//* Return:  none
+//******************************************************************************
+function pickColor(color)
+{
+  document.getElementById(cpVisual).style.background = color;
+  document.getElementById(cpValue).value = color;
+  setDirty(AUTH_PAGE,true);
+}
+
+//******************************************************************************
+//* Purpose: This function is overwritten and called from the ImagePicker object
+//* Return:  none
+//******************************************************************************
+function pickImage(image)
+{
+  var imageName = image.slice(image.lastIndexOf('/')+1);
+  var selObj = document.getElementById(ipVisual);
+  
+  for (var i=0; i<selObj.length; i++)
+  {
+    if (selObj.options[i].value == imageName)
+	{
+	  selObj.selectedIndex = i;
+    }
+  }
+  setDirty(AUTH_PAGE,true);
+}
+
+</script>
+
+<SCRIPT LANGUAGE="JavaScript">cp.writeDiv()</SCRIPT>
+<SCRIPT LANGUAGE="JavaScript">ip.writeDiv()</SCRIPT>
+
+<FORM CLASS="tablecontent" method="post" ENCTYPE="multipart/form-data" EMWEB_NAME="cpWebCustomAuth">
+
+<table align="center"><tr><td>
+<TABLE CLASS="tablecontent" align=CENTER>
+  <TR>
+    <td class="rowidentifierattributes" id="background_image_label" width="1%" nowrap>Background Image:</td>
+    <td colspan="3" class="rowdataattributes">
+      <table class="rowdataattributes">
+        <TR>
+        <td class="rowdataattributes" nowrap><input class="buttonattributes" id="cp_auth_background_image" name="cp_auth_background_image" SIZE="29" maxlength="512" value="" type="text"></td>
+        <td class="rowidentifierattributes" id="branding_image_label" nowrap>Branding Image:</td>
+        <td class="rowdataattributes" nowrap><input class="buttonattributes" id="cp_auth_branding_image" name="cp_auth_branding_image" SIZE="29" maxlength="512" value="" type="text"></td>
+        </TR>
+      </table>
+    </td>
+  </tr>
+  <TR> 
+    <TD CLASS="rowidentifierattributes">Browser Title:</TD>
+    <TD CLASS="rowdataattributes" NOWRAP colspan="3"><INPUT CLASS="buttonattributes" type="text" name="cp_browser_title" SIZE="87" MAXLEN="1024" VALUE="" onChange="setDirty(AUTH_PAGE,true);"></TD>
+  </TR>
+  <TR> 
+    <TD CLASS="rowidentifierattributes">Page Title: </TD>
+    <TD CLASS="rowdataattributes" NOWRAP colspan="3"><INPUT CLASS="buttonattributes" type="text" name="cp_page_title" SIZE="87" MAXLENGTH="1024" VALUE="" onChange="setDirty(AUTH_PAGE,true);"></TD>
+  </TR>
+  <TR> 
+    <TD CLASS="rowidentifierattributes">Colors:</TD>
+    <TD CLASS="rowdataattributes" NOWRAP colspan="3">
+      Separator:<INPUT type="text"  id="cp_sp" name="cp_sp" SIZE="7" MAXLENGTH="32" VALUE="" onChange="setColor('vis_sp','cp_sp')" title="Enter color name or RGB hex value."><input style="width: 20px;" type="button" value="..." onClick="popupActivate('vis_sp','cp_sp','btn_sp');return false;" name="btn_sp" id="btn_sp" title="Press for color pick list.">
+      Foreground:<INPUT type="text" id="cp_fg" name="cp_fg" SIZE="7" MAXLENGTH="32" VALUE="" onChange="setColor('vis_fg','cp_fg')" title="Enter color name or RGB hex value."><input style="width: 20px;" type="button" value="..." onClick="popupActivate('vis_fg','cp_fg','btn_fg');return false;" name="btn_fg" id="btn_fg" title="Press for color pick list.">
+      Background:<INPUT type="text" id="cp_bg" name="cp_bg" SIZE="7" MAXLENGTH="32" VALUE="" onChange="setColor('vis_bg','cp_bg')" title="Enter color name or RGB hex value."><input style="width: 20px;" type="button" value="..." onClick="popupActivate('vis_bg','cp_bg','btn_bg');return false;" name="btn_bg" id="btn_bg" title="Press for color pick list."></TD>
+  </TR>
+
+<TR>
+<td colspan="4">
+
+<TABLE class="tablecontent" ID="vis_bg" style="padding: 5px;">
+  <TR><TD ID="vis_sp" colspan="2" height="22">&nbsp;</TD></TR>
+  <TR> 
+    <TD> 
+      <TABLE ID="vis_fg">
+        <TR> 
+          <TD NOWRAP>Account Image:</TD>
+          <TD NOWRAP><EMWEB_STRING C='return usmWebCPImageFileSelect(ewsContext,CP_GET_ID_ACCOUNT_IMAGE);'>
+            <input style="width: 20px;" value="..." onChange="setDirty(AUTH_PAGE,true);" onClick="popupImageActivate('sel_account_image','','btn_acc_img');return false;" name="btn_acc_img" id="btn_acc_img" title="Press for image pick list." type="button"></TD>
+        </TR>
+        <TR> 
+          <TD NOWRAP>Account Title:</TD>
+          <TD><INPUT type="text" name="cp_account_label" SIZE="20" MAXLENGTH="512" VALUE="" onChange="setDirty(AUTH_PAGE,true);"></TD>
+        </TR>
+        <TR> 
+          <TD NOWRAP>User Label:</TD>
+          <TD><INPUT type="text" name="cp_user_label" SIZE="20" MAXLENGTH="256" VALUE="" onChange="setDirty(AUTH_PAGE,true);"></TD>
+        </TR>
+        <TR> 
+<EMWEB_IF C='return (usmWebCPWebFormObjectEnabled(ewsContext,CP_FORM_OBJ_PWD))?"":NULL;'>
+          <TD NOWRAP>Password Label:</TD>
+<EMWEB_ELSE>
+          <TD NOWRAP style="color: gray;">Password Label:</TD>
+</EMWEB_IF>
+          <TD><INPUT type="text" name="cp_password_label" SIZE="20" MAXLENGTH="256" VALUE="" onChange="setDirty(AUTH_PAGE,true);"></TD>
+        </TR>
+        <TR> 
+          <TD NOWRAP>Button Label:</TD>
+          <TD><INPUT type="text" name="cp_button_label" SIZE="20" MAXLENGTH="256" VALUE="" onChange="setDirty(AUTH_PAGE,true);"></TD>
+        </TR>
+      </table>
+    </TD>
+    <TD> 
+      <TABLE CLASS="rowdataattributes" width="100%" border="0" height="100%">
+        <TR> 
+          <TD><TEXTAREA name="cp_aup_text" ROWS="5" COLS="39" MAXLENGTH="65536" onChange="setDirty(AUTH_PAGE,true);"></TEXTAREA></TD>
+        </TR>
+        <TR> 
+          <TD NOWRAP> 
+            <INPUT type="checkbox" name="aupCheck" value="1" disabled><INPUT type="text" name="cp_accept_text" SIZE="60" MAXLENGTH="1024" VALUE="" onChange="setDirty(AUTH_PAGE,true);">
+          </TD>
+        </TR>
+      </table>
+    </TD>
+  </TR>
+</table>
+
+</td>
+</tr>
+
+  <TR>
+    <TD CLASS="rowidentifierattributes">Instructional Text:</TD><TD colspan="3" CLASS="rowdataattributes"><INPUT CLASS="buttonattributes" type="text" name="cp_instruct_text" SIZE="87" MAXLENGTH="2048" VALUE="" onChange="setDirty(AUTH_PAGE,true);"></TD>
+  </TR>
+  <TR>
+    <TD CLASS="rowidentifierattributes">Denied Message:</TD><TD colspan="3" CLASS="rowdataattributes"><INPUT CLASS="buttonattributes" type="text" name="cp_denied_msg" SIZE="87" MAXLENGTH="1024" VALUE="" onChange="setDirty(AUTH_PAGE,true);"></TD>
+  </TR>
+  <TR>
+    <TD CLASS="rowidentifierattributes">Resource Message:</TD><TD colspan="3" CLASS="rowdataattributes"><INPUT CLASS="buttonattributes" type="text" name="cp_resource_msg" SIZE="87" MAXLENGTH="1024" VALUE="" onChange="setDirty(AUTH_PAGE,true);"></TD>
+  </TR>
+  <TR>
+    <TD CLASS="rowidentifierattributes">Timeout Message:</TD><TD colspan="3" CLASS="rowdataattributes"><INPUT CLASS="buttonattributes" type="text" name="cp_timeout_msg" SIZE="87" MAXLENGTH="1024" VALUE="" onChange="setDirty(AUTH_PAGE,true);"></TD>
+  </TR>
+  <TR> 
+    <TD CLASS="rowidentifierattributes">Busy Message:</TD><TD colspan="3" CLASS="rowdataattributes"><INPUT CLASS="buttonattributes" type="text" name="cp_wip_msg" SIZE="87" MAXLENGTH="1024" VALUE="" onChange="setDirty(AUTH_PAGE,true);"></TD>
+  </TR>
+  <TR>
+    <TD CLASS="rowidentifierattributes">No Accept Message:</TD><TD colspan="3" CLASS="rowdataattributes"><INPUT CLASS="buttonattributes" type="text" name="cp_noaccept_msg" SIZE="87" MAXLENGTH="1024" VALUE="" onChange="setDirty(AUTH_PAGE,true);"></TD>
+  </TR>
+
+  <TR>
+    <TD colspan="4" emweb:/USMWEB_BUTTON_ALIGN;><BR>
+      <EMWEB_IF ID=USMWEB_IF_READWRITE>
+      <INPUT CLASS="buttonattributes" TYPE="button" ID="Clear" NAME="Clear" VALUE="Clear" onclick="clearForm();">
+      <INPUT CLASS="buttonattributes" TYPE="button" ID="Authentication" NAME="Authentication" VALUE="Preview" onclick="showPreview(this);">
+      <INPUT CLASS="buttonattributes" TYPE="submit" ID="Submit" NAME="Submit" VALUE="Submit" onclick="translate();">
+      <EMWEB_ELSE>
+      <INPUT CLASS="buttonattributes" TYPE="submit" ID="Refresh" NAME="Refresh" VALUE="Refresh">
+      </EMWEB_IF>
+    </TD>
+  </TR>
+
+</table>
+</TD></TR></table>
+
+<INPUT TYPE="hidden" NAME="err_flag" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT VALUE="">
+<INPUT TYPE="hidden" NAME="err_msg" SIZE="128" MAXLENGTH="127">
+<INPUT TYPE="hidden" NAME="refresh_in_progress" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT>
+<INPUT TYPE="hidden" NAME="refresh_key" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT>
+<INPUT TYPE="hidden" NAME="cpId" VALUE="0" EMWEB_TYPE=DECIMAL_UINT>
+<INPUT TYPE="hidden" NAME="webId" VALUE="0" EMWEB_TYPE=DECIMAL_UINT>
+<INPUT TYPE="hidden" NAME="cp_account_image" SIZE="32" MAXLENGTH="32">
+<INPUT TYPE="hidden" NAME="cp_browser_title_hex" SIZE="32" MAXLENGTH="512">
+<INPUT TYPE="hidden" NAME="cp_page_title_hex" MAXLENGTH="512">
+<INPUT TYPE="hidden" NAME="cp_account_label_hex" MAXLENGTH="256">
+<INPUT TYPE="hidden" NAME="cp_user_label_hex" MAXLENGTH="128">
+<INPUT TYPE="hidden" NAME="cp_password_label_hex" MAXLENGTH="128">
+<INPUT TYPE="hidden" NAME="cp_button_label_hex" MAXLENGTH="128">
+<INPUT TYPE="hidden" NAME="cp_aup_text_hex" MAXLENGTH="32768">
+<INPUT TYPE="hidden" NAME="cp_accept_text_hex" MAXLENGTH="1024">
+<INPUT TYPE="hidden" NAME="cp_instruct_text_hex" MAXLENGTH="2048">
+<INPUT TYPE="hidden" NAME="cp_denied_msg_hex" MAXLENGTH="1024">
+<INPUT TYPE="hidden" NAME="cp_resource_msg_hex" MAXLENGTH="1024">
+<INPUT TYPE="hidden" NAME="cp_timeout_msg_hex" MAXLENGTH="1024">
+<INPUT TYPE="hidden" NAME="cp_wip_msg_hex" MAXLENGTH="1024">
+<INPUT TYPE="hidden" NAME="cp_noaccept_msg_hex" MAXLENGTH="1024">
+</FORM>
+</BODY>
+</HTML>
+

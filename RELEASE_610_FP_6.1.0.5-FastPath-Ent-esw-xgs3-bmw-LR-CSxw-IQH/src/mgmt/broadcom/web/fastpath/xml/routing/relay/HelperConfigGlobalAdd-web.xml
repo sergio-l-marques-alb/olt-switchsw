@@ -1,0 +1,45 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+
+<FastPathXML>
+    <webxml version="1.0" name="HelperConfigGlobalAdd" title="IP Helper Global Configuration">
+      <group id="1" heading=" ">
+            <node id="1">
+                <element control="combo" uienum="udpPortName_t" obj-name="xLibObjects_dummy" id="1" name="UDP Destination Port">
+                    <action type="enum" discard="no" show="1_2_1" setval_ids="1_2_1" setval_args="valMapEmptyString" />
+                    <action type="enum" discard="no" hide="1_2_1" setval_ids="1_2_1" setval_args="DefaultSet" />
+                    <action type="enum" discard="no" hide="1_2_1" setval_ids="1_2_1" setval_args="dhcp" />
+                    <action type="enum" discard="no" hide="1_2_1" setval_ids="1_2_1" setval_args="domain" />
+                    <action type="enum" discard="no" hide="1_2_1" setval_ids="1_2_1" setval_args="isakmp" />
+                    <action type="enum" discard="no" hide="1_2_1" setval_ids="1_2_1" setval_args="mobile-ip" />
+                    <action type="enum" discard="no" hide="1_2_1" setval_ids="1_2_1" setval_args="nameserver" />
+                    <action type="enum" discard="no" hide="1_2_1" setval_ids="1_2_1" setval_args="netbios-dgm" />
+                    <action type="enum" discard="no" hide="1_2_1" setval_ids="1_2_1" setval_args="netbios-ns" />
+                    <action type="enum" discard="no" hide="1_2_1" setval_ids="1_2_1" setval_args="ntp" />
+                    <action type="enum" discard="no" hide="1_2_1" setval_ids="1_2_1" setval_args="pim-auto-rp" />
+                    <action type="enum" discard="no" hide="1_2_1" setval_ids="1_2_1" setval_args="rip" />
+                    <action type="enum" discard="no" hide="1_2_1" setval_ids="1_2_1" setval_args="tacacs" />
+                    <action type="enum" discard="no" hide="1_2_1" setval_ids="1_2_1" setval_args="tftp" />
+                    <action type="enum" discard="no" hide="1_2_1" setval_ids="1_2_1" setval_args="time" />
+                </element>
+            </node>
+            <node id="2">
+                <element arghelp="HELP_FORMAT_FP" level="ReadWriteUser" control="textbox" obj-name="routingswitchHelperTableGlobal_helperIpDestUDPPort" id="1" name="UDP Destination Port" maxLength="5"/>
+            </node>
+            <node id="3">
+                <element level="ReadWriteUser" control="textbox" properties="write-only" value="" obj-name="routingswitchHelperTableGlobal_helperIpAddress" id="1" name="Server Address">
+                </element>
+            </node>
+     </group>
+     <group level="ReadWriteUser" id="2" heading=" ">
+            <node id="1">
+                <button scope="page" type="buttonSubmit"  help="Submits the form on this page to the Switch" id="1" name="Submit" obj-name="routingswitchHelperTableGlobal_helperStatus" value="Add" >
+                   <action type="button" disable="2_1_2"/>
+                </button>
+                <button scope="page" type="buttonClear"  help="Submits the form on this page to the Switch" id="2" name="Cancel" target-page="HelperConfigGlobal.html"/>
+            </node>
+     </group>
+
+ </webxml>
+</FastPathXML>
+

@@ -1,0 +1,95 @@
+/********************************************************************
+ *
+ * (C) Copyright Broadcom Corporation 2003-2007
+ *
+ * *********************************************************************
+ *
+ * @filename    ll.ext
+ *
+ * @purpose     Linked list management API
+ *
+ * @component   Routing Utils Component
+ *
+ * @comments
+ *
+ * @create      01/09/1993
+ *
+ * @author      Jonathan Masel
+ *
+ * @end
+ *
+ * ********************************************************************/
+#ifndef _ll_ext
+#define _ll_ext
+
+#include "std.h"
+
+#include "local.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+void     LL_InitAll( void );
+t_Handle LL_NewExt( word Size, word NextOffset );
+void     LL_Delete( t_Handle LL );
+int      LL_Put( t_Handle LL, void *p );
+void    *LL_Get( t_Handle LL );
+int      LL_Insert( t_Handle LL, void *pCur, void *p);
+#define  LL_New(Size) LL_NewExt(Size, 0)
+
+/* get next pointer of an element in the list */
+#define LL_NEXT(l,p) (*(void **)((byte *)p + ((t_LL *)(l))->NextOffset))
+
+#if L7_DEBUG == 0
+
+#define  LL_Read(p)     ((void *)(((t_LL *)p)->Read))
+#define  LL_ReadShiftCount(p) ((word)(((t_LL *)p)->ReadShiftCount))
+#define  LL_Inc(p)                                 \
+{                                                  \
+   XX_Freeze();                                    \
+   if( ((t_LL *)p)->Read )                         \
+      ((t_LL *)p)->Read = LL_NEXT(p, ((t_LL *)p)->Read); \
+   XX_Thaw();                                      \
+}
+#define  LL_IncIf(l,c)                             \
+{                                                  \
+   XX_Freeze();                                    \
+   if( ((t_LL *)l)->ReadShiftCount == c )                    \
+      ((t_LL *)l)->Read = LL_NEXT(l, ((t_LL *)l)->Read); \
+   XX_Thaw();                                      \
+}
+
+#define  LL_Rewind(p)   (((t_LL *)p)->Read = ((t_LL *)p)->First)
+#define  LL_Empty(p)    (((t_LL *)p)->Count == 0)
+#define  LL_HowMany(p)  (((t_LL *)p)->Count)
+#define  LL_ReadLast(p) (((t_LL *)p)->Last)
+#define  LL_SetOffset(p,off) (((t_LL *)p)->Read = off)
+#else
+
+void *LL_Read( t_Handle LL );
+word  LL_ReadShiftCount( t_Handle LL );
+void  LL_Inc( t_Handle LL );
+void  LL_IncIf( t_Handle LL, word c);
+void  LL_Rewind( t_Handle LL );
+Bool  LL_Empty( t_Handle LL );
+word  LL_HowMany( t_Handle LL );
+void  *LL_ReadLast( t_Handle LL );
+void  LL_SetOffset(t_Handle LL, void *p);
+#endif
+
+void  LL_Cut(t_Handle LL, void *pPrev, void *pCur);
+
+e_Err LL_FlowControl( t_Handle LL, t_Handle Owner,
+                      word Max, word NumLevels,
+                      word (*f_Resources)(void *), void (*f_CongInd)(t_Handle, word), ... );
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* _ll_ext */
+
+/* --- end of file ll.ext --- */
+

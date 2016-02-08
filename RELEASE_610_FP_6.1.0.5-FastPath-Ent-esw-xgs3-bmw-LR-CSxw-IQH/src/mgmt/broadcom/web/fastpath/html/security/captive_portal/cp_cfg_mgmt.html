@@ -1,0 +1,599 @@
+<EMWEB_IF ID=USMWEB_IF_LVL_HDR_NOT_REQ>
+<!--
+/*********************************************************************
+*
+* (C) Copyright Broadcom Corporation 2001-2007
+*
+**********************************************************************
+*
+* @filename  cp_cfg_mgmt.html
+*
+* @purpose   HTML content
+*
+* @comments  None
+*
+* @create    7/9/2007
+*
+* @author    rjindal/darsen
+*
+* @end
+*
+*********************************************************************/
+-->
+</EMWEB_IF>
+emweb:/USMWEB_PAGE_DTD_HEADER_GET;
+<HTML>
+<HEAD>
+   emweb:/USMWEB_PAGE_META_DATA_GET; <!-- Style Sheet link and Meta data     -->
+   <TITLE>emweb:/USMWEB_SECURITY_OEM_STRING_GET?1965;</TITLE>
+
+<script src="/scripts/utils.js"></script>
+<script src="/scripts/PopupWindow.js"></script>
+<script TYPE='text/javascript' language='JavaScript'>
+
+var SUBMIT      = 1
+var CLEAR       = 2
+var DELETE      = 3
+var GROUP_ADD   = 4
+var GROUP_DEL   = 5
+var GROUP_MOD   = 6
+
+var DISABLE_COLOR = "gray";
+
+var GUEST = 0;
+var LOCAL = 1;
+var RADIUS = 2;
+
+var browser = navigator.appName;
+var msie = (browser.indexOf("Microsoft") != -1)?true:false;
+
+function DisplayErrorMsg()
+//******************************************************************************
+//* Purpose: Display an input error message.
+//* Return:  none
+//******************************************************************************
+{
+  alert(document.forms[0].err_msg.value);
+}
+
+function on_load()
+{
+  if (document.forms[0].err_flag.value == 1)
+  {
+    DisplayErrorMsg();
+  }
+
+  if (msie)
+  {
+    document.getElementById("cfg_radius_server").style.width  = "245px";
+  }
+
+  change_verify();
+  change_group();
+  validate_protocol();
+
+ <EMWEB_IF ID=USMWEB_IF_READWRITE>
+  redirect_check();
+ <EMWEB_ELSE>
+  disableAll();
+  document.forms[0].Refresh.disabled = false;
+ </EMWEB_IF>
+}
+
+function redirect_check()
+{
+  enableDisable = (document.forms[0].cfg_redirect_mode.checked)?false:true;
+  document.forms[0].cfg_redirect_url.disabled = enableDisable;
+  document.getElementById("redirect_URL_label").style.color = (enableDisable)?DISABLE_COLOR:"";
+}
+
+function clear_check()
+{
+  var prompt = window.confirm("All configurations will be set to the default values for this CP. Are you sure you want to clear the CP configuration?");
+  if (prompt)
+  {
+    document.forms[0].refresh_in_progress.value = 1;
+    document.forms[0].refresh_key.value = CLEAR;
+    document.forms[0].submit();
+  }
+}
+
+function delete_check()
+{
+  var prompt = window.confirm("Are you sure you want to delete the CP configuration?");
+  if (prompt)
+  {
+    document.forms[0].refresh_in_progress.value = 1;
+    document.forms[0].refresh_key.value = DELETE;
+    document.forms[0].submit();
+  }
+}
+
+function getCodeCount(val)
+{
+  var cnt = 0;
+  if (val!="")
+  {
+    cnt += (val == document.getElementById("code1").value.toLowerCase())?1:0;
+    cnt += (val == document.getElementById("code2").value.toLowerCase())?1:0;
+    cnt += (val == document.getElementById("code3").value.toLowerCase())?1:0;
+    cnt += (val == document.getElementById("code4").value.toLowerCase())?1:0;
+    cnt += (val == document.getElementById("code5").value.toLowerCase())?1:0;
+  }
+  return cnt;
+}
+
+function checkCodes()
+{
+  var rtn = ((1>=getCodeCount(document.getElementById("code1").value.toLowerCase())) &&
+		     (1>=getCodeCount(document.getElementById("code2").value.toLowerCase())) &&
+    	     (1>=getCodeCount(document.getElementById("code3").value.toLowerCase())) &&
+		     (1>=getCodeCount(document.getElementById("code4").value.toLowerCase())) &&
+		     (1>=getCodeCount(document.getElementById("code5").value.toLowerCase())))
+		     ?true:false;
+  if (!rtn)
+  {			 
+	alert("Error: Duplicate language codes are not allowed!");
+  }
+  return rtn;		  
+}
+
+function getLinkCount(val)
+{
+  var cnt = 0;
+  if (val!="")
+  {
+    cnt += (val == document.getElementById("link1").value.toLowerCase())?1:0;
+    cnt += (val == document.getElementById("link2").value.toLowerCase())?1:0;
+    cnt += (val == document.getElementById("link3").value.toLowerCase())?1:0;
+    cnt += (val == document.getElementById("link4").value.toLowerCase())?1:0;
+    cnt += (val == document.getElementById("link5").value.toLowerCase())?1:0;
+  }
+  return cnt;
+}
+
+function checkLinks()
+{
+  var rtn = ((1>=getLinkCount(document.getElementById("link1").value.toLowerCase())) &&
+		     (1>=getLinkCount(document.getElementById("link2").value.toLowerCase())) &&
+    	     (1>=getLinkCount(document.getElementById("link3").value.toLowerCase())) &&
+		     (1>=getLinkCount(document.getElementById("link4").value.toLowerCase())) &&
+		     (1>=getLinkCount(document.getElementById("link5").value.toLowerCase())))
+		     ?true:false;
+  if (!rtn)
+  {			 
+	alert("Error: Duplicate languages are not allowed!");
+  }
+  return rtn;
+}
+
+function submit_check()
+{
+  if ((checkCodes()) && (checkLinks()))
+  {
+    translate();
+    change_verify(); /* Must enable gp_id select field for emweb */
+    document.forms[0].refresh_in_progress.value = 1;
+    document.forms[0].refresh_key.value = SUBMIT;
+    document.forms[0].submit();
+  }
+}
+
+function change_verify()
+{
+  enableDisable = (document.forms[0].cfg_verify[GUEST].checked)?true:false;
+  if (enableDisable)
+  {
+    document.forms[0].gp_id.selectedIndex = 0;
+  }
+  document.forms[0].gp_id.disabled = enableDisable;
+  document.forms[0].cfg_user_group.disabled = enableDisable;
+  document.forms[0].add_button.disabled = enableDisable;
+  document.forms[0].del_button.disabled = enableDisable;
+  document.forms[0].mod_button.disabled = enableDisable;
+  document.getElementById("user_group_label").style.color = (enableDisable)?DISABLE_COLOR:"";  
+  
+  enableDisable = (document.forms[0].cfg_verify[RADIUS].checked)?false:true;
+  document.getElementById("radius_label").style.color = (enableDisable)?DISABLE_COLOR:"";
+  document.forms[0].cfg_radius_server.disabled = enableDisable; 
+  document.forms[0].btn_radius.disabled = enableDisable;
+}
+
+function range_check(comp)
+{
+  var BPS = 536870911;
+  var BYTES = 4294967295;
+  var n = document.getElementById(comp).name;
+  var v = document.getElementById(comp).value;
+
+  switch (n)
+  {
+    case "cfg_max_bandwidth_up":
+    {
+      if ((isNaN(v)) || (v > BPS))
+	  {
+        alert("Error: Invalid Max Up Rate!\nByte limit (" + BPS + ") exceeded.");
+        document.getElementById("cfg_max_bandwidth_up").value = "0";
+        return false;
+	  }
+      break;
+    }
+    case "cfg_max_bandwidth_down":
+    {
+      if ((isNaN(v)) || (v > BPS))
+	  {
+        alert("Error: Invalid Max Down Rate!\nByte limit (" + BPS + ") exceeded.");	  
+        document.getElementById("cfg_max_bandwidth_down").value = "0";
+        return false;
+	  }
+    }
+    case "cfg_max_input":
+    {
+      if ((isNaN(v)) || (v > BYTES))
+	  {
+        alert("Error: Invalid Max Receive value!\nByte limit (" + BYTES + ") exceeded.");	  
+        document.getElementById("cfg_max_input").value = "0";
+        return false;
+	  }
+    }
+    case "cfg_max_output":
+    {
+      if ((isNaN(v)) || (v > BYTES))
+	  {
+        alert("Error: Invalid Max Transmit value!\nByte limit (" + BYTES + ") exceeded.");	  
+        document.getElementById("cfg_max_output").value = "0";
+        return false;
+	  }
+    }
+    case "cfg_max_total":
+    {
+      if ((isNaN(v)) || (v > BYTES))
+	  {
+        alert("Error: Invalid Max Total value!\nByte limit (" + BYTES + ") exceeded.");	  
+        document.getElementById("cfg_max_total").value = "0";
+        return false;
+	  }
+    }
+    default:
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+function validate_protocol()
+{
+  <EMWEB_IF ID=USMWEB_IF_MGMT_SECURITY_SUPPORTED>
+  <EMWEB_ELSE>
+    document.forms[0].cfg_protocol[1].disabled = true;
+  </EMWEB_IF>
+}
+
+function change_group()
+{
+  if (document.forms[0].cfg_verify[1].checked)
+  {
+    enableDisable = (document.forms[0].gp_id.selectedIndex==0)?true:false;
+    document.forms[0].del_button.disabled = enableDisable;
+  }
+}
+
+function add_group()
+{
+  if (document.forms[0].cfg_user_group.value.length>0)
+  {
+    if ((checkCodes()) && (checkLinks()))
+    {
+      translate();
+      change_verify(); /* Must enable gp_id select field for emweb */
+      document.forms[0].refresh_in_progress.value = 1;
+      document.forms[0].refresh_key.value = GROUP_ADD;
+      document.forms[0].submit();
+    }
+  }
+}
+
+function delete_group()
+{
+  gp = document.forms[0].gp_id;
+  selectName = gp.options[gp.selectedIndex].text;
+
+  if (0 == gp.selectedIndex)
+  {
+    alert("Error: You can rename, but not delete the first user group!");	  
+    return false;
+  }
+
+  var prompt = window.confirm("NOTE: If you delete this group,\n"
+                          +"all user records currently assigned to this group\n"
+                          +"will be reset to use the default user group!\n\n"
+                          +"Are you sure you want to delete \"" + selectName + "\" ?");
+  if (prompt)
+  {
+    if ((checkCodes()) && (checkLinks()))
+    {
+      translate();
+      change_verify(); /* Must enable gp_id select field for emweb */
+      document.forms[0].refresh_in_progress.value = 1;
+      document.forms[0].refresh_key.value = GROUP_DEL;
+      document.forms[0].submit();
+    }
+  }
+}
+
+function modify_group()
+{
+  if (document.forms[0].cfg_user_group.value.length>0)
+  {
+    gp = document.forms[0].gp_id;
+    selectName = gp.options[gp.selectedIndex].text;
+    offset = selectName.indexOf("-")+1;
+    groupName = document.forms[0].cfg_user_group.value;
+    var prompt = window.confirm("Are you sure you want to change the user group name\n"
+                            +"from: \"" + selectName.substring(offset) + "\" "
+                            +"to: \"" + groupName + "\" ?");
+    if (prompt)
+    {
+      if ((checkCodes()) && (checkLinks()))
+      {
+        translate();
+        change_verify(); /* Must enable gp_id select field for emweb */
+        document.forms[0].refresh_in_progress.value = 1;
+        document.forms[0].refresh_key.value = GROUP_MOD;
+        document.forms[0].submit();
+      }
+    }
+  }
+}
+
+function clr_lang(codeObj,linkObj)
+{
+  codeObj.value = "";
+  linkObj.value = "";
+}
+
+function l2h(str)
+{     
+  var tmp = "";
+  var rtn = "";
+      
+  for (i=0;i<str.length;i++)
+  {
+    tmp = "0000" + str.charCodeAt(i).toString(16).toUpperCase();
+    rtn += tmp.substring(tmp.length-4,tmp.length);
+  }
+  return rtn;
+}
+
+function translate()
+{
+  document.forms[0].cp_code1.value = document.forms[0].code1.value;
+  document.forms[0].cp_code2.value = document.forms[0].code2.value;
+  document.forms[0].cp_code3.value = document.forms[0].code3.value;
+  document.forms[0].cp_code4.value = document.forms[0].code4.value;
+  document.forms[0].cp_code5.value = document.forms[0].code5.value;
+  document.forms[0].cp_link1.value = l2h(document.forms[0].link1.value);
+  document.forms[0].cp_link2.value = l2h(document.forms[0].link2.value);
+  document.forms[0].cp_link3.value = l2h(document.forms[0].link3.value);
+  document.forms[0].cp_link4.value = l2h(document.forms[0].link4.value);
+  document.forms[0].cp_link5.value = l2h(document.forms[0].link5.value);
+}
+
+/* Popup Locale support */
+var popupLocale = new PopupWindow("langDiv");
+popupLocale.offsetX=-150;
+popupLocale.offsetY=20;
+popupLocale.autoHide();
+
+var codeInput = null;
+var linkInput = null;
+
+popupLocale.populate("<EMWEB_STRING C='return usmWebCPLangCodeSelect(ewsContext);'>");
+
+function popupLocaleActivate(codeObj,linkObj,anchor)
+{
+  codeInput = codeObj;
+  linkInput = linkObj;
+  popupLocale.showPopup(anchor);
+}
+
+function langPick(code,link)
+{
+  if (code=="")
+  {
+    link = "";
+  }
+  codeInput.value = code;
+  linkInput.value = link;
+  popupLocale.hidePopup();
+}
+
+/* Popup RADIUS support */
+var popupRadius = new PopupWindow("radiusDiv");
+popupRadius.offsetX=-150;
+popupRadius.offsetY=20;
+popupRadius.autoHide();
+
+var radiusInput = null;
+
+popupRadius.populate("<EMWEB_STRING C='return usmWebCPRadiusServerSelect(ewsContext);'>");
+
+function popupRadiusActivate(radiusObj,anchor)
+{
+  radiusInput = radiusObj;
+  popupRadius.showPopup(anchor);
+}
+
+function radiusPick(server)
+{
+  radiusInput.value = server;
+  popupRadius.hidePopup();
+}
+
+</script>
+</HEAD>
+
+<BODY CLASS="bodyframeattributes" onload="on_load()">
+<FORM method="post" EMWEB_NAME="cpCfgMgmt">
+
+<!-- ----------------------------------------------------------------------- -->
+<!--         Tabbed Navigation                                               -->
+<!-- ----------------------------------------------------------------------- -->
+emweb:/USMWEB_TABS_CP_CONFIGURATION?1;
+
+<!-- ----------------------------------------------------------------------- -->
+<!--         Web page header                                                 -->
+<!-- ----------------------------------------------------------------------- -->
+emweb:/USMWEB_SECURITY_PAGE_HEADER_1ST_GET?1965;   <!-- Includes page title          -->
+emweb:/USMWEB_SECURITY_PAGE_HEADER_2ND_GET?2765;   <!-- Includes help page link      -->
+
+<TABLE CLASS="tablecontent" emweb:/USMWEB_TABLE_CONTENT_ALIGN;>
+
+  <TR>
+  <TD ALIGN="right" COLSPAN=4 height="22">emweb:/USMWEB_CPID_NAME_STRING;<BR></TD>
+  </TR>
+
+ <TR><TD>&nbsp;</TD></TR>
+
+  <TR>
+  <TD CLASS="rowidentifierattributes" WIDTH="1%">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27101;</TD> <!-- Enable Captive Portal -->
+  <TD CLASS="rowdataattributes" WIDTH="1%"><INPUT TYPE="checkbox" NAME="cfg_mode"></TD>
+  <TD CLASS="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27108;</TD> <!-- Idle Timeout (secs) -->
+  <TD CLASS="rowdataattributes"><INPUT CLASS="inputfield" TYPE="text" NAME="cfg_idle_timeout" maxlength="3" size="9" EMWEB_TYPE=DECIMAL_UINT>
+      <EMWEB_STRING C='return usmWebIntegerRangeHelp(CP_USER_LOCAL_IDLE_TIMEOUT_MIN, CP_USER_LOCAL_IDLE_TIMEOUT_MAX);'></TD>
+  </TR>
+
+  <TR>
+  <TD CLASS="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?12401;</TD> <!-- Configuration Name -->
+  <TD CLASS="rowdataattributes"><INPUT CLASS="inputfield" TYPE="text" NAME="cpConfig_name" maxlength="32" size="32"></TD>
+  <TD CLASS="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27107;</TD> <!-- Session Timeout (secs) -->
+  <TD CLASS="rowdataattributes"><INPUT CLASS="inputfield" TYPE="text" NAME="cfg_session_timeout" maxlength="5" size="9" EMWEB_TYPE=DECIMAL_UINT>
+      <EMWEB_STRING C='return usmWebIntegerRangeHelp(CP_USER_LOCAL_SESSION_TIMEOUT_MIN, CP_USER_LOCAL_SESSION_TIMEOUT_MAX);'></TD>
+  </TR>
+
+  <TR>
+  <TD CLASS="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27148;</TD> <!-- Protocol Mode -->
+  <TD CLASS="rowdataattributes" nowrap>
+      <INPUT TYPE="radio" NAME="cfg_protocol" VALUE="http">emweb:/USMWEB_SECURITY_GET_NLS_STRING?25567;
+      <INPUT TYPE="radio" NAME="cfg_protocol" VALUE="https">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27156;</TD>
+  <TD CLASS="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27109;</TD> <!-- Max Bandwidth Up -->
+  <TD class="rowdataattributes" nowrap><INPUT class="inputfield"  type="text" id="cfg_max_bandwidth_up" name="cfg_max_bandwidth_up" maxlength="9" size="9" EMWEB_TYPE=DECIMAL_UINT ONCHANGE="range_check('cfg_max_bandwidth_up');">(0 = unlimited)</TD>
+  </TR>
+
+  <TR>
+  <TD CLASS="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27149;</TD> <!-- Verification Mode -->
+  <TD CLASS="rowdataattributes" nowrap>
+      <INPUT TYPE="radio" NAME="cfg_verify" VALUE="guest" onClick="change_verify()">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27157;  
+      <INPUT TYPE="radio" NAME="cfg_verify" VALUE="local" onClick="change_verify()">emweb:/USMWEB_SECURITY_GET_NLS_STRING?1474;
+      <INPUT TYPE="radio" NAME="cfg_verify" VALUE="radius" onClick="change_verify()">emweb:/USMWEB_SECURITY_GET_NLS_STRING?15963;</TD>
+  <TD CLASS="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27110;</TD> <!-- Max Bandwidth Down -->
+  <TD class="rowdataattributes" nowrap><INPUT class="inputfield" type="text" id="cfg_max_bandwidth_down" name="cfg_max_bandwidth_down" maxlength="9" size="9" EMWEB_TYPE=DECIMAL_UINT ONCHANGE="range_check('cfg_max_bandwidth_down');">(0 = unlimited)</TD>
+  </TR>
+
+  <TR>
+  <TD CLASS="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27202;</TD> <!--  User Logout Mode -->
+  <TD CLASS="rowdataattributes" nowrap>
+      <INPUT TYPE="checkbox" NAME="cfg_user_logout_mode" VALUE="0"></TD>
+  <TD CLASS="rowidentifierattributes" WIDTH="15%" nowrap>Max Receive (bytes)</TD> <!-- Max Input Octets -->
+  <TD class="rowdataattributes" nowrap><INPUT class="inputfield" type="text" id="cfg_max_input" name="cfg_max_input" maxlength="10" size="9" EMWEB_TYPE=DECIMAL_UINT ONCHANGE="range_check('cfg_max_input');">(0 = unlimited)</TD>
+  </TR>
+
+  <TR>
+  <TD CLASS="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27150;</TD> <!--  Enable Redirect URL -->
+  <TD CLASS="rowdataattributes" nowrap>
+      <INPUT TYPE="checkbox" NAME="cfg_redirect_mode" VALUE="0" onclick="redirect_check()"></TD>
+  <TD CLASS="rowidentifierattributes" WIDTH="15%" nowrap>emweb:/USMWEB_SECURITY_GET_NLS_STRING?27112;</TD> <!-- Max Output Octets -->
+  <TD class="rowdataattributes" nowrap><INPUT class="inputfield" type="text" id="cfg_max_output" name="cfg_max_output" maxlength="10" size="9" EMWEB_TYPE=DECIMAL_UINT ONCHANGE="range_check('cfg_max_output');">(0 = unlimited)</TD>
+  </TR>
+
+  <TR>
+  <TD CLASS="rowidentifierattributes"><DIV ID="redirect_URL_label">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27151;</DIV></TD> <!--  Redirect URL -->
+  <TD CLASS="rowdataattributes" nowrap>
+      <INPUT CLASS="inputfield" TYPE="text" NAME="cfg_redirect_url" SIZE="32" maxlength="512"></TD>
+  <TD CLASS="rowidentifierattributes" WIDTH="15%" nowrap>emweb:/USMWEB_SECURITY_GET_NLS_STRING?27113;</TD> <!-- Max Total Octets -->
+  <TD class="rowdataattributes" nowrap><INPUT class="inputfield" type="text" id="cfg_max_total" name="cfg_max_total" maxlength="10" size="9" EMWEB_TYPE=DECIMAL_UINT ONCHANGE="range_check('cfg_max_total');">(0 = unlimited)</TD>
+  </TR>
+
+  <TR>
+  <TD class = "rowidentifierattributes"><DIV ID="radius_label">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27152;</DIV></TD> <!-- RADIUS Auth Server -->
+  <TD CLASS="rowdataattributes" nowrap> 
+      <INPUT class="inputfield" type="text" name="cfg_radius_server" size="27" maxlength="32" value=""><INPUT type="button" name="btn_radius" id="btn_radius" onClick="popupRadiusActivate(document.forms[0].cfg_radius_server,'btn_radius');return false;"  title="Pick from configured RADIUS Auth servers." value="..."></TD>
+  <TD CLASS="rowdataattributes" WIDTH="15%" nowrap></TD>
+  <TD class="rowdataattributes" nowrap></TD>
+  </TR>
+
+  <TR>
+  <TD CLASS="rowidentifierattributes"><DIV ID="user_group_label">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27106;</DIV></TD> <!-- User Group -->
+  <TD CLASS="rowdataattributes" COLSPAN=3>
+    <SELECT CLASS="selectfield" NAME="gp_id" size="1" onchange="change_group()" EMWEB_MAX=1 EMWEB_ITERATE EMWEB_TYPE=DECIMAL_UINT>
+      <OPTION CLASS="selectfield" VALUE="one">1</OPTION>
+    </SELECT>
+    <INPUT CLASS="inputfield" TYPE="text" NAME="cfg_user_group" SIZE="21" MAXLENGTH="32" VALUE="">
+    <INPUT CLASS="buttonattributes" TYPE="button" NAME="add_button" onclick="add_group()" VALUE="Add">
+    <INPUT CLASS="buttonattributes" TYPE="button" NAME="del_button" onclick="delete_group()" VALUE="Delete">
+    <INPUT CLASS="buttonattributes" TYPE="button" NAME="mod_button" onclick="modify_group()" VALUE="Modify">
+  </TD>
+  </TR>
+
+  <TR> 
+    <TD COLSPAN=4"> 
+      <TABLE WIDTH="100%">
+        <TR> 
+          <TD> 
+            <TABLE WIDTH="400" emweb:/USMWEB_TABLE_CONTENT_ALIGN;>
+              <TR> 
+                <TD CLASS="rowidentifierattributes">Code</TD>
+                <TD COLSPAN=2 CLASS="rowidentifierattributes">Language</TD>
+              </TR>
+              <EMWEB_STRING C='return usmWebCPLangCodeGet(ewsContext);'>
+            </TABLE>
+          </TD>
+        </TR>
+      </TABLE>
+    </TD>
+  </TR>
+
+  <TR>
+    <TD COLSPAN=4 emweb:/USMWEB_BUTTON_ALIGN;><BR>
+      <EMWEB_IF ID=USMWEB_IF_READWRITE>
+      <INPUT CLASS="buttonattributes" TYPE="submit" NAME="Clear" VALUE="Clear" onclick='clear_check()'>
+      <EMWEB_IF ID=USMWEB_IF_NOT_DEFAULT_CP_CONFIGURATION>
+      <INPUT CLASS="buttonattributes" TYPE="submit" NAME="Delete" VALUE="Delete" onclick='delete_check()'>
+      </EMWEB_IF>
+      <INPUT CLASS="buttonattributes" TYPE="button" NAME="Submit" VALUE="Submit" onclick='submit_check()'>
+      </EMWEB_IF>
+      <INPUT CLASS="buttonattributes" TYPE="submit" NAME="Refresh" VALUE="Refresh">
+    </TD>
+  </TR>
+
+</TABLE>
+
+<INPUT TYPE="hidden" NAME="err_flag" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT VALUE="">
+<INPUT TYPE="hidden" NAME="err_msg" SIZE="128" MAXLENGTH="127">
+<INPUT TYPE="hidden" NAME="refresh_in_progress" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT>
+<INPUT TYPE="hidden" NAME="refresh_key" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT>
+<INPUT TYPE="hidden" NAME="cpId" VALUE="0" EMWEB_TYPE=DECIMAL_UINT>
+<INPUT TYPE="hidden" NAME="webId" VALUE="0" EMWEB_TYPE=DECIMAL_UINT>
+<INPUT TYPE="hidden" NAME="cp_code1" MAXLENGTH="32">
+<INPUT TYPE="hidden" NAME="cp_link1" MAXLENGTH="512">
+<INPUT TYPE="hidden" NAME="cp_code2" MAXLENGTH="32">
+<INPUT TYPE="hidden" NAME="cp_link2" MAXLENGTH="512">
+<INPUT TYPE="hidden" NAME="cp_code3" MAXLENGTH="32">
+<INPUT TYPE="hidden" NAME="cp_link3" MAXLENGTH="512">
+<INPUT TYPE="hidden" NAME="cp_code4" MAXLENGTH="32">
+<INPUT TYPE="hidden" NAME="cp_link4" MAXLENGTH="512">
+<INPUT TYPE="hidden" NAME="cp_code5" MAXLENGTH="32">
+<INPUT TYPE="hidden" NAME="cp_link5" MAXLENGTH="512">
+
+<!-- ----------------------------------- -->
+<!--         Web page footer             -->
+<!-- ----------------------------------- -->
+ emweb:/USMWEB_PAGE_FOOTER_GET;
+
+</FORM>
+<DIV NAME="langDiv" ID="langDiv" STYLE="position:absolute;visibility:hidden;background-color:#CCCCCC;width:25px;height:25px;"></DIV>
+<DIV NAME="radiusDiv" ID="radiusDiv" STYLE="position:absolute;visibility:hidden;background-color:#CCCCCC;width:25px;height:25px;"></DIV>
+</BODY>
+</HTML>
+

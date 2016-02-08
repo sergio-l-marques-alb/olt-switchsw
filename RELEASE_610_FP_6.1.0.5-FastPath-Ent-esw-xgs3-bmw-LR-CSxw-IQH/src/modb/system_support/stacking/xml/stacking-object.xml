@@ -1,0 +1,456 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="base" version="1.0">
+<module name="SPM">
+<object name="spmIndex">
+<core  type="uint" key="yes" access="read-write" descr="Index for a given USP"/>
+<ui name="SPM Index" style="inputLine"/>
+</object>
+<object name="Unit" depends="spmIndex">
+<core  type="uint" access="read-only" descr="Stack port unit"/>
+<ui name="Unit" style="plainText"/>
+</object>
+<object name="Tag" depends="spmIndex">
+<core  type="string" access="read-only" descr="Name of the port"/>
+<ui name="Tag" style="plainText"/>
+</object>
+<object name="ConfiguredStackMode" depends="spmIndex">
+<core  type="enum" xtype="L7_XUI_STACKMODE_t" default="1" access="read-write" descr="config mode of the stack port"/>
+<ui name="Configured Stack Mode" style="inputLine"/>
+</object>
+<object name="RunningStackMode" depends="spmIndex">
+<core  type="enum" xtype="L7_XUI_STACKMODE_t" access="read-only" descr="runtime mod eof the port"/>
+<ui name="Running Stack Mode" style="plainText"/>
+</object>
+<object name="LinkStatus" depends="spmIndex">
+<core  type="enum" xtype="L7_XUI_LINKSTATUS_t" access="read-only" descr="Link status of th port"/>
+<ui name="Link Status" style="plainText"/>
+</object>
+<object name="LinkSpeed" depends="spmIndex">
+<core  type="uint" access="read-only" descr="Link speed of the port"/>
+<ui name="Link Speed" style="plainText"/>
+</object>
+<object name="DataRate" depends="spmIndex">
+<core  type="uint" access="read-only" descr="Data rate of the port"/>
+<ui name="Data Rate" style="plainText"/>
+</object>
+<object name="ErrorRate" depends="spmIndex">
+<core  type="uint" access="read-only" descr="Error rate of the port"/>
+<ui name="Error Rate" style="plainText"/>
+</object>
+<object name="TotalErrors" depends="spmIndex">
+<core  type="uint" access="read-only" descr="Total number of errors"/>
+<ui name="Total Errors" style="plainText"/>
+</object>
+<object name="ConfigQosMode">
+<core  type="enum" xtype="enable_t" default="L7_DISABLE" access="read-write" descr="Configurability of QOS Mode"/>
+<ui name="Qos Mode Configuration" style="choiceNselect1"/>
+</object>
+<object name="TxDataRate" depends="spmIndex">
+<core  type="uint" access="read-only" descr="Trasmit Data rate of the port"/>
+<ui name="Transmit Data Rate" style="plainText"/>
+</object>
+<object name="RxDataRate" depends="spmIndex">
+<core  type="uint" access="read-only" descr="Receive Data rate of the port"/>
+<ui name="Receive Data Rate" style="plainText"/>
+</object>
+<object name="TxTotalErrors" depends="spmIndex">
+<core  type="uint" access="read-only" descr="Trasmit Total number of errors"/>
+<ui name="Transmit Total Errors" style="plainText"/>
+</object>
+<object name="RxTotalErrors" depends="spmIndex">
+<core  type="uint" access="read-only" descr="Receive Total number of errors"/>
+<ui name="Receive Total Errors" style="plainText"/>
+</object>
+<object name="TxErrorRate" depends="spmIndex">
+<core  type="uint" access="read-only" descr="Trasmit Error rate of the port"/>
+<ui name="Transmit Error Rate" style="plainText"/>
+</object>
+<object name="RxErrorRate" depends="spmIndex">
+<core  type="uint" access="read-only" descr="Receive Error rate of the port"/>
+<ui name="Receive Error Rate" style="plainText"/>
+</object>
+<object name="info1" depends="spmIndex">
+<core  type="string" access="read-only" descr="debug and status information"/>
+<ui name="Info1" style="plainText"/>
+</object>
+<object name="info2" depends="spmIndex">
+<core  type="string" access="read-only" descr="debug and status information"/>
+<ui name="Info2" style="plainText"/>
+</object>
+<object name="info3" depends="spmIndex">
+<core  type="string" access="read-only" descr="debug and status information"/>
+<ui name="Info3" style="plainText"/>
+</object>
+<!-- These objects are derived only for such cases where stack Port Diag 
+     objects needed to be parsed and shows in terms of counters
+  -->
+<object name="StackIndex">
+<core  type="uint" key="yes" access="read-write" min="L7_UNITMGR_MIN_UNIT_NUMBER" max="L7_UNITMGR_MAX_UNIT_NUMBER"  descr="UnitID of the Stackmember"/>
+<ui name="Stack Index" style="inputLine"/>
+</object>
+<object name="spmStackIndex" depends="StackIndex">
+<core  type="uint" key="yes" access="read-write" descr="Index for a given USP"/>
+<ui name="SPM Stack Index" style="inputLine"/>
+</object>
+<object name="spmStackUnit" depends="spmStackIndex">
+<core  type="uint" access="read-only" descr="Stack port unit"/>
+<ui name="SPM Stack Unit" style="plainText"/>
+</object>
+<object name="RBYT" depends="spmStackIndex">
+<core  descr="&lt;HTML&gt;Received Bytes for a given stack port" access="read-only" type="string"/>
+<ui style="plainText" name="Received Bytes">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="RPKT" depends="spmStackIndex">
+<core descr="&lt;HTML&gt;Received Packets of the given stack port" access="read-only" type="string"/>
+<ui style="plainText" name="Received Packets ">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="TBYT" depends="spmStackIndex">
+<core descr="&lt;HTML&gt;Transmitted Bytes of the given stack port" access="read-only" type="string"/>
+<ui style="plainText" name="Transmitted Bytes">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="TPKT" depends="spmStackIndex">
+<core descr="&lt;HTML&gt;Transmitted packets for a given stack port" access="read-only" type="string"/>
+<ui style="plainText" name="Transmitted Packets">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="RFCS" depends="spmStackIndex">
+<core descr="&lt;HTML&gt;Received Frame Check Sequence Errors" access="read-only" type="string"/>
+<ui style="plainText" name="Received Frame Check Err">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="RFRG" depends="spmStackIndex">
+<core descr="&lt;HTML&gt;Received Fragment Errors" access="read-only" type="string"/>
+<ui style="plainText" name="Received Fragment Errors">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="RJBR" depends="spmStackIndex">
+<core  descr="&lt;HTML&gt;Received Jabber Errors" access="read-only" type="string"/>
+<ui style="plainText" name="Received Jabber Errors">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="RUND" depends="spmStackIndex">
+<core  descr="&lt;HTML&gt;Received Under Run Errors" access="read-only" type="string"/>
+<ui style="inputLine" name="Received Under Run Errors">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="ROVR" depends="spmStackIndex">
+<core descr="&lt;HTML&gt;Received Overrun Errors" access="read-only" type="string"/>
+<ui style="plainText" name="Received Overrun Errors">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="TFCS" depends="spmStackIndex">
+<core descr="&lt;HTML&gt;Tranmit Frame Check Sequence Errors" access="read-only" type="string"/>
+<ui style="plainText" name="Transmit Frame Chk Seq Errors">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="TERR" depends="spmStackIndex">
+<core descr="&lt;HTML&gt;Transmit Errors" access="read-only" type="string"/>
+<ui style="plainText" name="Transmit Errors">
+<snmp asn-id=""/>
+</ui>
+</object>
+</module>
+<module name="Stacking">
+
+<object name="ResetAllUnits">
+<core  type="enum"  xtype="clear_t" access="write-only" descr="Reset All units"/>
+<ui name="Reset All Units" style="inputLine"/>
+</object>
+
+<object name="SupportedUnitIndex">
+<core  type="uint" key="yes" access="read-write" descr="Index for Supported Unit Types"/>
+<ui name="Supported Unit Index" style="inputLine"/>
+</object>
+<object name="UnitType" depends="SupportedUnitIndex">
+<core  type="user" xtype="hex_uint_t" access="read-only" descr="Unit Type for a given Supported Unit Index"/>
+<ui name="Unit Type" style="plainText"/>
+</object>
+<object name="UnitTypeID" depends="SupportedUnitIndex">
+<core  type="uint" access="read-only" descr="Unit Type for a given Unit"/>
+<ui name="Unit TypeID" style="plainText"/>
+</object>
+<object name="SupportedModel" depends="SupportedUnitIndex">
+<core  type="string" access="read-write" properties="pseudo-key" descr="Model of the Supported Unit Type"/>
+<ui name="Supported Model" style="inputLine"/>
+</object>
+<object name="Description" depends="SupportedUnitIndex">
+<core  type="string" access="read-only" descr="Description of the Supported Unit Type"/>
+<ui name="Description" style="plainText"/>
+</object>
+<object name="ManagementPreference" depends="SupportedUnitIndex">
+<core  type="uint" access="read-only" descr="Management preferance of the Supported Unit Type"/>
+<ui name="Management Preference" style="plainText"/>
+</object>
+<object name="TargetCodeVersion" depends="SupportedUnitIndex">
+<core  type="string" access="read-only" descr="Code Target ID on the Supported Unit Type"/>
+<ui name="Target Code Version" style="plainText"/>
+</object>
+<object name="StackMember">
+<core  type="uint" key="yes" access="read-write" min="L7_UNITMGR_MIN_UNIT_NUMBER" max="L7_UNITMGR_MAX_UNIT_NUMBER"  descr="UnitID of the Stackmember"/>
+<ui name="Stack Member" style="inputLine"/>
+</object>
+<object name="StackMemberType" depends="StackMember">
+<core  type="string" access="read-only" descr="Type of the Stackmember"/>
+<ui name="Stack Member Type" style="plainText"/>
+</object>
+<object name="UnitMgrModelIdentifier" depends="StackMember">
+<core  type="string" access="read-only" descr="Model Identifier of the unit"/>
+<ui name="UnitMgr Model Id" style="plainText"/>
+</object>
+<object name="UnitMgrModelIdentiferPreCfg" depends="StackMember">
+<core  type="string" access="read-only" descr="Pre-configured Model Identifier"/>
+<ui name="UnitMgr Pre-configured ModelId" style="plainText"/>
+</object>
+<object name="UnitMgrUnitStatus" depends="StackMember">
+<core  type="enum" xtype="usmDbUnitMgrStatus_t" access="read-only" descr="Unit Manager Status"/>
+<ui name="UnitMgr Unit Status" style="plainText"/>
+</object>
+<object name="UnitMgrIsMgmtUnit" depends="StackMember">
+<core type="enum" xtype="usmDbUnitMgrMgmtFlag_t" access="read-only" descr="Indicates whether the unit is a Management Unit, a Stack Unit, or has              been configured to be a Management Unit"/>
+<ui name="UnitMgr IsMgmtUnit" style="plainText"/>
+</object>
+<object name="UnitMgrStandbyStatus" depends="StackMember">
+<core type="enum" xtype="L7_XUI_StandbyStatus_t" access="read-only" descr="Indicates the Standby Status of the stack unit"/>
+<ui name="UnitMgr Standby Status" style="plainText"/>
+</object>
+<object name="UnitMgrDeviceDescription" depends="StackMember">
+<core  type="string" access="read-only" descr="Device Description of the Unit"/>
+<ui name="UnitMgr Device Description" style="plainText"/>
+</object>
+<object name="UnitMgrUserDescription" depends="StackMember">
+<core  type="string" access="read-only" descr="Device Description of the Unit"/>
+<ui name="UnitMgr User Description" style="plainText"/>
+</object>
+
+<object name="UnitMgrUnitIdKey" depends="StackMember">
+<core  type="string" access="read-only" descr="Key of the Unit"/>
+<ui name="UnitMgr UnitId Key" style="plainText"/>
+</object>
+<object name="UnitMgrExpectedCodeVer" depends="StackMember">
+<core  type="string" access="read-only" descr="Expected Code Version on the Unit"/>
+<ui name="UnitMgr Expected Code Version" style="plainText"/>
+</object>
+<object name="UnitMgrUnitUpTime" depends="StackMember">
+<core  type="uint" access="read-only" descr="Number of Seconds since this is Unit is running"/>
+<ui name="UnitMgr Unit UpTime" style="plainText"/>
+</object>
+<object name="UnitMgrUnitUpTimeFormatted" depends="StackMember">
+<core type="user" xtype="formattedTimeDHMS_t" access="read-only" descr="Number of Seconds since this is Unit is running"/>
+<ui name="UnitMgr Unit UpTime(DD:HH:MM:SS)" style="plainText">
+</ui></object>
+<object name="UnitMgrHwMgmtPref" depends="StackMember">
+<core  type="enum" xtype="L7_XUI_MgmtPref_t" access="read-only" descr="Indicates the default preference assigned to the unit."/>
+<ui name="UnitMgr HwMgmt Preference" style="plainText"/>
+</object>
+<object name="UnitMgrHwMgmtPrefValue" depends="StackMember">
+<core  type="enum" xtype="L7_XUI_UnitMgrMgmtPrefValue_t" access="read-only" descr="Indicates the default preference value assigned to the unit. The preference value indicates how likely this unit is to be chosen as the management unit.  A value of 0 indicates a disabled or unassigned preference."/>
+<ui name="UnitMgr HwMgmt PrefValue" style="plainText"/>
+</object>
+<object name="UnitMgrAdminMgmtPref" depends="StackMember">
+<core  type="enum" xtype="L7_XUI_MgmtPref_t" access="read-write" descr="Indicates the configured preference assigned to the unit. This object can not be set to assigned(3).  Setting this object to disabled(1), or unassigned(2) will set agentInventoryUnitHWMgmtPrefValue to 0."/>
+<ui name="UnitMgr AdminMgmt Preference" style="choiceNselect1"/>
+</object>
+<object name="UnitMgrAdminMgmtPrefValue" depends="StackMember">
+<core  type="enum" xtype="L7_XUI_UnitMgrMgmtPrefValue_t" access="read-write" descr="Indicates the configured preference value assigned to the unit. "/>
+<ui name="UnitMgr AdminMgmt PrefValue" style="choiceNselect1"/>
+</object>
+<object name="UnitMgrDetectCodeVerRunning" depends="StackMember">
+<core  type="string" access="read-only" descr="Detected Version of the Code on the unit"/>
+<ui name="UnitMgr Detect CodeVer" style="plainText"/>
+</object>
+<object name="UnitMgrSerialNumber" depends="StackMember">
+<core  type="string" access="read-only" descr="Serial Number of the unit"/>
+<ui name="UnitMgr Serial Number" style="plainText"/>
+</object>
+<object name="UnitMgrOsDescription" depends="StackMember">
+<core  type="string" access="read-only" descr="Operating System Description of the Unit"/>
+<ui name="UnitMgr OS Description" style="plainText"/>
+</object>
+<object name="UnitMgrDetectCodeVerFlash" depends="StackMember">
+<core  type="string" access="read-only" descr="Detected Version of the Code in the Flash"/>
+<ui name="UnitMgr Detected CodeVer in Flash" style="plainText"/>
+</object>
+<object name="ResetUnit" depends="StackMember">
+<core  type="uint" access="write-only" descr="Rest the unit"/>
+<ui name="Reset Unit" style="inputLine"/>
+</object>
+<object name="ResetUnitCfg">
+<core  type="enum" xtype="TrueFalse_t" access="write-only" descr="Clear the configuration on the unit to factory defaults"/>
+<ui name="Reset Unit Configuration" style="inputLine"/>
+</object>
+<object name="UnitMgrNumber" depends="StackMember">
+<core  type="uint" min="1" max="L7_MAX_UNITS_PER_STACK" access="write-only" descr="Unit number of the management unit"/>
+<ui name="UnitMgr Number" style="inputLine"/>
+</object>
+<object name="UnitMgrEventLog" depends="StackMember">
+<core  type="enum" xtype="TrueFalse_t" access="read-only" descr="Number of Event log entries on the management unit"/>
+<ui name="UnitMgr EventLog" style="plainText"/>
+</object>
+<object name="Slots" depends="StackMember">
+<core  type="uint" access="read-only" descr="Number of Slots on the management unit"/>
+<ui name="Slots" style="plainText"/>
+</object>
+<object name="UnitMgrActiveImageName" depends="StackMember">
+<core  type="string" access="read-only" descr="Image name of the Current Active Image"/>
+<ui name="UnitMgr Active Image Name" style="plainText"/>
+</object>
+<object name="UnitMgrBackupImageName" depends="StackMember">
+<core  type="string" access="read-only" descr="Image name of the backup image"/>
+<ui name="UnitMgr Backup Image Name" style="plainText"/>
+</object>
+<object name="UnitMgrActivatedImageName" depends="StackMember">
+<core  type="string" access="read-only" descr="Image name of the Activated Image"/>
+<ui name="UnitMgr Activated Image Name" style="plainText"/>
+</object>
+
+<object name="UnitMgrReplicateSTK" depends="StackMember">
+<core  type="enum" xtype="enable_t" access="write-only" descr="Initiates the specified STK file copy from management unit to this unit."/>
+<ui name="UnitMgr Replicate STK" style="inputLine"/>
+</object>
+
+<object name="UnitMgrRowStatus" depends="StackMember">
+<core  type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="Status of this row."/>
+<ui name="UnitMgr RowStatus" style="inputLine"/>
+</object>
+
+<object name="UnitMgrImage1Version" depends="StackMember">
+<core  type="string" access="read-only" descr="Code version for Image1."/>
+<ui name="UnitMgr Image1 Version" style="plainText"/>
+</object>
+
+<object name="UnitMgrImage2Version" depends="StackMember">
+<core  type="string" access="read-only" descr="Code version for Image2."/>
+<ui name="UnitMgr Image2 Version" style="plainText"/>
+</object>
+
+<object name="UnitMgrSTKName" depends="StackMember">
+<core  type="enum" xtype="L7_XUI_IMAGE_TYPE_t" access="read-write" descr="STK file to be used for copy/delete/activate operatiosn"/>
+<ui name="UnitMgr STK Name" style="choiceNselect1"/>
+</object>
+
+<object name="UnitMgrActivateSTK" depends="StackMember">
+<core  type="enum" xtype="enable_t" access="write-only" descr="Activates the specified STK file on this unit."/>
+<ui name="UnitMgr Activate STK" style="inputLine"/>
+</object>
+
+<object name="UnitMgrDeleteSTK" depends="StackMember">
+<core  type="enum" xtype="enable_t" access="write-only" descr="Deletes the specified STK file on this unit."/>
+<ui name="UnitMgr DeleteSTK" style="plainText"/>
+</object>
+
+<object name="CodeVersion" depends="StackMember">
+<core  type="string" access="read-only" descr="Code Version"/>
+<ui name="Code Version" style="plainText"/>
+</object>
+
+<object name="ServiceTag" depends="StackMember">
+<core  type="string" access="read-only" descr="the service reference number used when servicing the device"/>
+<ui name="Service Tag" style="plainText"/>
+</object>
+
+<object name="AssetTag" depends="StackMember">
+<core  type="user" xtype="string_t" access="read-write" descr="the user-defined device reference"/>
+<ui name="Asset Tag" style="inputLine"/>
+</object>
+
+
+<object name="UnitMgrManagementStatus" depends="StackMember">
+<core type="enum" xtype="L7_XUI_UnitManagementStatus_t" access="read-write" descr="Get or set the management status. It could be either  member, management or standby unit."/>
+<ui name="UnitMgr Management Status" style="choiceNselect1"/>
+</object>
+
+<object name="UnitMgrManagementStandByStatus" depends="StackMember">
+<core type="enum" xtype="L7_XUI_UnitManagementStandByStatus_t" access="read-only" descr="Get or set the management status. It could be either  member, management or standby unit."/>
+<ui name="UnitMgr Management StandBy Status" style="plainText"/>
+</object>
+
+<object name="DebugSupUnitsNextGetTest">
+<core  type="enum" xtype="TrueFalse_t" access="write-only" descr="Enable Debugs for NextGetTest"/>
+<ui name="Debug NextGetTest" style="inputLine"/>
+</object>
+<object name="UnitMgrPropagateCfgSCFM2ACFM">
+<core  type="enum" xtype="TrueFalse_t" access="write-only" descr="Propagate configuration from Standby to Active unit"/>
+<ui name="UnitMgr Propagate Config" style="inputLine"/>
+</object>
+<object name="UnitMgrPropagateCfg">
+<core  type="enum" xtype="TrueFalse_t" access="write-only" descr="Propagate configuration from Manager to Standby units"/>
+<ui name="UnitMgr Propagate Config" style="inputLine"/>
+</object>
+<object name="StandbyCfmSlot">
+<core  type="uint" access="read-only" descr="Physical number of the Slots on Standby"/>
+<ui name="Standby CFM Slot" style="plainText"/>
+</object>
+<object name="UnitMgrUnitTypeClear">
+<core  type="enum" xtype="TrueFalse_t" access="write-only" descr="Reset the Unit Type to Factory default"/>
+<ui name="UnitMgr Clear UnitType" style="inputLine"/>
+</object>
+<object name="UnitMgrTransferMgmt">
+<core  type="uint" access="write-only" descr="Transfer the Unit Management"/>
+<ui name="UnitMgr Transfer Mgmt" style="inputLine"/>
+</object>
+<object name="UnitMgrReplicateCfg">
+<core  type="uint" access="write-only" descr="Replicate the Config from Master to Member units"/>
+<ui name="UnitMgr Replicate Config" style="inputLine"/>
+</object>
+<object name="UnitMgrReplicateOpr">
+<core  type="uint" access="write-only" descr="Replicate the Code from Master to Member units"/>
+<ui name="UnitMgr Replicate Image" style="inputLine"/>
+</object>
+<object name="UnitMgrMgrNumber">
+<core  type="uint" access="read-only" descr="Unit number of the management unit"/>
+<ui name="UnitMgr Manager Number" style="plainText"/>
+</object>
+<object name="ChassisStandbyCMUnit">
+<core  type="uint" access="read-only" descr="Chassis model number of the Standby unit"/>
+<ui name="Standby Unit Standby unit" style="plainText"/>
+</object>
+<object name="StandbyStackMember">
+<core  type="user" xtype="standbyStackUnit_t" properties="dynamic" access="read-write" descr="UnitID of the Standby Stackmember"/>
+<ui name="Standby Stack Member" style="plainText"/>
+</object>
+<object depends="StackMember" name="unitBootImageVersion">
+<core validation="validate_uint" descr="&lt;HTML&gt;Boot Image Version of the Unit in the stack" access="read-only" type="string"/>
+<ui style="inputLine" name="unit BootImage Version">
+<snmp asn-id=""/>
+</ui>
+</object>
+
+
+<object name="DestinationTransferUnit">
+<core  type="uint" key="yes" access="read-write" descr="UnitID of the Stackmember to which the image has to be copied."/>
+<ui name="Destination TransferUnit" style="inputLine"/>
+</object>
+<object name="CopyMasterImageToStackMember" depends="DestinationTransferUnit">
+<core type="enum"  xtype="enable_t" access="write-only" descr="copies the image from master unit to the selected stack member unit."/>
+<ui name="Copy MasterImage To StackMember" style="inputLine"/>
+</object>
+
+</module>
+<module name="StackPortConfiguration"  >
+<object name="StackPort"  >
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="Stack Port"/>
+<ui  name="Unit/Slot/Port" style="plainText">
+</ui></object>
+<object name="ConfiguredStackPortMode" depends="StackPort" >
+<core  type="enum" xtype="L7_XUI_STACKMODE_t" access="read-write" descr="Configured mode of the stack port"/>
+<ui  name="Stack Port Mode" style="inputLine">
+</ui></object>
+
+</module>
+</objectxml>
+</FastPathXML>

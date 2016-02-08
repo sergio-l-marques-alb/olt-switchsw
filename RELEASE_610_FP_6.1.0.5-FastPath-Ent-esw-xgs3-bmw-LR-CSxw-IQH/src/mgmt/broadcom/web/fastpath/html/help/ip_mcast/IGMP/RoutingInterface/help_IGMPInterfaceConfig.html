@@ -1,0 +1,92 @@
+<HTML>
+<EMWEB_HEAD C='
+    #include "web.h"
+  '>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>IGMP Help</TITLE>
+	<LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+
+<hr size=4 width="80%" align=center>
+
+<h2><a name=igmpintfcfg></a>Help for IGMP Routing Interface Configuration </h2>
+
+<h3>Selection Criteria</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b><EMWEB_IF ID=XUI_IF_STACKING_PRESENT>
+	Unit/Slot/Port
+<EMWEB_ELSE>
+	Slot/Port
+</EMWEB_IF></b> -
+      Select the slot and port for which data is to be displayed or
+      configured from the pulldown menu. Slot 0 is the base unit.
+      You must have configured at least one router interface before configuring or displaying data for
+      an IGMP interface, otherwise an error message will be displayed.
+      </li>
+ </ul>
+</ul>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Interface Mode</b> - Select enable or disable from the pulldown menu to
+   set the administrative status of IGMP on the selected interface. The default is disable. </li>
+  <li><b>Version </b> - Enter the version of IGMP you want to configure on the selected interface.
+  Valid values are <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_IGMP_VERSION_MIN,  L7_IGMP_VERSION_MAX);
+    ' >
+ and the default value is 3. This field is configurable only when IGMP interface mode is enabled. </li>
+   <li><b>Robustness </b> - Enter the robustness value.
+   This variable allows tuning for the expected packet loss on a subnet.
+   If you expect the subnet to be lossy, you should enter a higher number for this parameter.
+   IGMP is robust to (robustness variable-1) packet losses. Valid values are from 1 to 255.
+   The default value is 2. </li>
+   <li><b>Query Interval </b> - Enter the frequency in seconds at which IGMP host-query packets are to be
+            transmitted on this interface. Valid values are from 1 to 3600. The default value is 125.</li>
+   <li><b>Query Max Response Time </b> - Enter the maximum query response time to be advertised in IGMPv2
+            queries on this interface, in tenths of a second. The default value is 10. Valid values are from
+            <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_IGMP_RESPONSE_TIME_MIN, L7_IGMP_RESPONSE_TIME_MAX);
+       ' > .
+   </li>
+   <li><b>Startup Query Interval </b> - Enter the number of seconds between the transmission of
+   startup queries on the selected interface. The valid values are from 1 to 300. The default value is 31.</li>
+    <li><b>Startup Query Count </b> - Enter the number of queries to be sent on startup.
+    The valid values are from 1 to 20. The default value is 2.</li>
+    <li><b>Last Member Query Interval </b> - Enter the last member query interval in tenths of a second.
+    This is the maximum response time to be
+            inserted into group-specific queries sent in response to
+            leave group messages, and is also the amount of time between
+            group-specific query messages. Valid values are from 0 to 255. The default value is 1.
+            This value is not used for IGMP version 1.</li>
+    <li><b>Last Member Query Count </b> - Enter the number of queries to be sent on receiving a leave
+    group report. Valid values are from 1 to 20. The default value is 2. </li>
+   </ul>
+</ul>
+
+   <h3>Command Buttons </h3>
+
+   <ul type=disc>
+    <ul type=circle>
+     <li>
+        <b>Submit</b> - Send the updated configuration to the router.  Configuration changes
+         take effect immediately. These changes will not be retained across a power cycle
+         unless a save is performed. </li>
+    </ul>
+</ul>
+
+<hr size=4 width="80%" align=center>
+</body>
+
+</html>
+
+

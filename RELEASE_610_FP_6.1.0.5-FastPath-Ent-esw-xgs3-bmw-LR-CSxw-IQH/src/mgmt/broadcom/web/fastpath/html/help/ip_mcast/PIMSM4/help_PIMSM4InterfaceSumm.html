@@ -1,0 +1,135 @@
+<EMWEB_HEAD C='
+    #include "l3_mcast_defaultconfig.h"
+'>
+<EMWEB_HEAD C='
+    #include "web.h"
+  '>
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>PIM-SM Help</TITLE>
+	<LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+<h1 align=center style='text-align:center'>Protocol Independent Multicasting - Sparse Mode (PIM-SM) Protocol Help</h1>
+
+<hr size=4 width="80%" align=center>
+
+<h2><a name=pimsmifparams></a>Help for PIM-SM Interface Summary</h2>
+
+<h3>Selection Criteria</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b><EMWEB_IF ID=XUI_IF_STACKING_PRESENT>
+	Unit/Slot/Port
+<EMWEB_ELSE>
+	Slot/Port
+</EMWEB_IF></b> -
+      Select the slot and port for which data is to be displayed. Slot 0 is the base unit. </li>
+ </ul>
+</ul>
+
+<h3>Status Information</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Admin Mode </b> - The administrative mode of PIM-SM interface in the router: 
+         either enable or disable.</li>
+ </ul>
+</ul>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Protocol State </b> - The state of PIM-SM in the router: either
+    operational or non-operational. </li>
+ </ul>
+</ul>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>IP Address </b> - The IP address of the selected PIM interface.</li>
+ </ul>
+</ul>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Net Mask</b> - The network mask for the IP address of the selected PIM interface.</li>
+ </ul>
+</ul>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Hello Interval</b> - The frequency at which PIM Hello messages are transmitted
+            on the selected interface.</li>
+ </ul>
+</ul>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Join/Prune Interval</b> - The frequency at which PIM Join/Prune messages are
+      transmitted on this PIM interface.</li>
+ </ul>
+</ul>
+
+<ul type=disc>
+ <ul type=circle>
+   <li><b>DR Priority</b> - Indicates the DR priority on the PIM interface.</li>
+  </ul>
+</ul>
+
+<ul type=disc>
+ <ul type=circle>
+   <li><b>BSR Border</b> - Specifies the BSR border mode on the PIM interface.</li>
+ </ul>
+</ul>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Designated Router</b> - The Designated Router on the selected PIM interface.</li>
+ </ul>
+</ul>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Neighbor Count</b> - The number of PIM neighbors on the selected interface.</li>
+ </ul>
+</ul>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>IP Address</b> - The IP address of the PIM neighbor for this entry.</li>
+ </ul>
+</ul>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Up Time</b> - The time since this PIM neighbor (last) became a neighbor
+            of the local router.</li>
+ </ul>
+</ul>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Expiry Time</b> - The minimum time remaining before this PIM neighbor will be
+            aged out.</li>
+ </ul>
+</ul>
+
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Refresh</b> - Refreshes the data on the screen with the present state of
+     the data in the router.</li>
+  </ul>
+</ul>
+<hr size=4 width="80%" align=center>
+</body>
+
+</html>
+
+

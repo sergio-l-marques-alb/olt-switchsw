@@ -1,0 +1,83 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="MLDInterfaceSumm" title="MLD Routing Interface Summary">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="ipmcastmgmdRouterInterfaceTable_mgmdRouterInterfaceIfIndex" id="1" name="Unit/Slot/Port"/>
+            </node>
+            <node id="2">
+                <element properties="hidden,write-only" obj-name="ipmcastmgmdRouterInterfaceTable_mgmdRouterInterfaceQuerierType" id="1" name="Querier Type" value="IPv6"/>
+            </node>
+        </group>
+        <group id="2" heading="Interface Parameters">
+                <node id="1">
+                    <element properties="hidden,write-only" obj-name="IPMCASTagentMulticastIGMPConfigGroup_agentMulticastIGMPFamily" id="1" name="" value="IPv6"/>
+                </node>
+                <node id="2">
+                    <element control="label" properties="read-only" obj-name="IPMCASTagentMulticastIGMPConfigGroup_agentMulticastIGMPAdminMode" id="1" name="Global Admin Mode"/>
+                </node>
+                <node id="3">
+                    <element control="label" properties="read-only" obj-name="ipmcastmgmdRouterInterfaceTable_mgmdRouterInterfaceMode" id="1" name="Interface Mode"/>
+                </node>
+                <node id="4">
+                    <element control="label" properties="read-only" obj-name="ipmcastmgmdRouterInterfaceTable_mgmdRouterInterfaceStatus" id="1" name="Operational Mode"/>
+                </node>
+                <node id="5">
+                    <element control="label" properties="read-only" obj-name="ipmcastmgmdRouterInterfaceTable_mgmdRouterInterfaceVersion" id="1" name="Version"/>
+                </node>
+                <node id="6">
+                    <element control="label" properties="read-only" obj-name="ipmcastmgmdRouterInterfaceTable_mgmdRouterInterfaceQueryInterval" id="1" name="Query Interval (secs)"/>
+                </node>
+                <node id="7">
+                    <element control="label" properties="read-only" obj-name="ipmcastmgmdRouterInterfaceTable_mgmdRouterInterfaceQueryMaxResponseTime" id="1" name="Query Max Response Time(milli-secs)"/>
+                </node>
+                <node id="8">
+                    <element control="label" properties="read-only" obj-name="ipmcastmgmdRouterInterfaceTable_mgmdRouterInterfaceRobustness" id="1" name="Robustness"/>
+                </node>
+                <node id="9">
+                    <element control="label" properties="read-only" obj-name="ipmcastmgmdRouterInterfaceTable_mgmdRouterInterfaceStartupQueryIntvl" id="1" name="Startup Query Interval (secs)"/>
+                </node>
+                <node id="10">
+                    <element control="label" properties="read-only" obj-name="ipmcastmgmdRouterInterfaceTable_mgmdRouterInterfaceStartupQueryCount" id="1" name="Startup Query Count"/>
+                </node>
+                <node id="11">
+                    <element control="label" properties="read-only" obj-name="ipmcastmgmdRouterInterfaceTable_mgmdRouterInterfaceLastMembQueryIntvl" id="1" name="Last Member Query Interval (milli-secs)"/>
+                </node>
+                <node id="12">
+                    <element control="label" properties="read-only" obj-name="ipmcastmgmdRouterInterfaceTable_mgmdRouterInterfaceLastMemberQuerycount" id="1" name="Last Member Query Count"/>
+                </node>
+        </group>
+        <group id="3" heading="Interface Statistics">
+                <node id="1">
+                    <element control="label" obj-name="ipmcastmgmdRouterInterfaceTable_mgmdQuerierStatus" id="1" name="Querier Status"/>
+                </node>
+                <node id="2">
+                    <element control="label" obj-name="ipmcastmgmdRouterInterfaceTable_mgmdRouterInterfaceQuerier" id="1" name="Querier Address"/>
+                </node>
+                <node id="3">
+                    <element control="label" obj-name="ipmcastmgmdRouterInterfaceTable_mgmdRouterInterfaceQuerierUpTime" id="1" name="Querier Up Time(secs)"/>
+                </node>
+                <node id="4">
+                    <element control="label" obj-name="ipmcastmgmdRouterInterfaceTable_mgmdRouterInterfaceQuerierExpiryTime" id="1" name="Querier Expiry Time(secs)"/>
+                </node>
+                <node id="5">
+                    <element control="label" obj-name="ipmcastmgmdRouterInterfaceTable_mgmdRouterInterfaceWrongVersionQueries" id="1" name="Wrong Version Queries Received"/>
+                </node>
+                <node id="6">
+                    <element control="label" obj-name="ipmcastmgmdRouterInterfaceTable_mgmdRouterInterfaceJoins" id="1" name="Number of Joins Received"/>
+                </node>
+                <node id="7">
+                    <element control="label" obj-name="ipmcastmgmdRouterInterfaceTable_mgmdRouterInterfaceGroups" id="1" name="Number of Groups"/>
+                </node>
+        </group>
+        <group id="4" heading="">
+            <node id="1">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

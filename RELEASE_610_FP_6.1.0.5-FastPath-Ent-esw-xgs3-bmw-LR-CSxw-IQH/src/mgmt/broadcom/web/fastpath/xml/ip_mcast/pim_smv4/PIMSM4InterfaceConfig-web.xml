@@ -1,0 +1,35 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="PIMSM4InterfaceConfig" title="PIM-SM Interface Configuration">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="ipmcastpimInterfaceTable_pimInterfaceIfIndex" id="1" />
+            </node>
+            <node id="2">
+                <element control="combo" properties="filter,iterate,hidden" obj-name="ipmcastpimInterfaceTable_pimInterfaceIPVersion" id="1" name="pimInterfaceIPVersion"/>
+            </node>
+            <node id="3">
+                <element control="combo" obj-name="ipmcastpimInterfaceTable_pimInterfaceStatus" id="1" name="Admin Mode"/>
+            </node>
+            <node id="4">
+                <element arghelp="HELP_FORMAT_FP" obj-name="ipmcastpimInterfaceTable_pimInterfaceHelloInterval" id="1" name="Hello Interval (secs)"/>
+            </node>
+            <node id="5">
+                <element arghelp="HELP_FORMAT_FP" obj-name="ipmcastpimInterfaceTable_pimInterfaceJoinPruneInterval" id="1" name="Join Prune Interval (secs)"/>
+            </node>
+            <node id="6">
+                <element control="combo" obj-name="ipmcastpimInterfaceTable_pimInterfaceDomainBorder" id="1" name="BSR Border"/>
+            </node>
+            <node id="7">
+                <element arghelp="HELP_FORMAT_FP" obj-name="ipmcastpimInterfaceTable_pimInterfaceDRPriority" id="1" name="DR Priority"/>
+            </node>
+            <node id="8">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

@@ -1,0 +1,89 @@
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>MFDB Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+ 
+
+
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=gmrp_table></a>Help for MFDB GMRP Table</h2>
+
+<P>This screen will display all of the entries in the Multicast Forwarding Database that were
+created for the GARP Multicast Registration Protocol.
+
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>MAC Address</b> -
+      A VLAN ID - multicast MAC address pair for which the switch has forwarding and or
+      filtering information. The format is 8 two-digit hexadecimal
+      numbers that are separated by colons, for example 00:01:23:45:67:89:AB:CD.</li>
+  <li><b>Type</b> - 
+         This displays the type of the entry. Static entries are those that           
+         are configured by the user. Dynamic entries are added to the table as a
+         result of a learning process or protocol.
+  </li>
+  <li><b>Description</b> - The text description of this multicast table entry.  Possible values
+  are Management Configured, Network Configured and Network Assisted.                                          
+  </li>
+  <li><b><EMWEB_IF ID=XUI_IF_STACKING_PRESENT>
+	Unit/Slot/Port
+<EMWEB_ELSE>
+	Slot/Port
+</EMWEB_IF>(s)</b> - The list of interfaces that are designated for forwarding (Fwd:).                                 
+  </li>
+ </ul>
+</ul>
+
+                 
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Refresh</b> - Refresh
+      the data on the screen with the present state of the data in the switch. </li>
+ </ul>
+</ul>
+
+<hr size=4 width="100%" align=center>
+
+
+
+
+</body>
+
+</html> 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

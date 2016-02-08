@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "types.dtd">
+<FastPathXML>
+<data-types version="1.0">
+
+  <enum name="L7_XUI_MCAST_IANA_PROTO_ID_t">
+    <option name="Unassigned" macro="L7_XUI_MCAST_IANA_MROUTE_UNASSIGNED"/>
+    <option name="Other" macro="L7_XUI_MCAST_IANA_MROUTE_OTHER"/>
+    <option name="Local" macro="L7_XUI_MCAST_IANA_MROUTE_LOCAL"/>
+    <option name="Net Mgmt" macro="L7_XUI_MCAST_IANA_MROUTE_NETMGMT"/>
+    <option name="DVMRP" macro="L7_XUI_MCAST_IANA_MROUTE_DVMRP"/>
+    <option name="MOSPF" macro="L7_XUI_MCAST_IANA_MROUTE_MOSPF"/>
+    <option name="PIM SM DM" macro="L7_XUI_MCAST_IANA_MROUTE_PIM_SM_DM"/>
+    <option name=" CBT" macro="L7_XUI_MCAST_IANA_MROUTE_CBT"/>
+    <option name="PIMSM" macro="L7_XUI_MCAST_IANA_MROUTE_PIM_SM"/>
+    <option name="PIMDM" macro="L7_XUI_MCAST_IANA_MROUTE_PIM_DM"/>
+    <option name=" IGMP" macro="L7_XUI_MCAST_IANA_MROUTE_IGMP"/>
+    <option name="BMGP" macro="L7_XUI_MCAST_IANA_MROUTE_BMGP"/>
+    <option name="MSDP" macro="L7_XUI_MCAST_IANA_MROUTE_MSDP"/>
+    <option name="IGMP-Proxy" macro="L7_XUI_MCAST_IANA_MROUTE_IGMP_PROXY"/>
+    <option name="MLD-Proxy" macro="L7_XUI_MCAST_IANA_MROUTE_MLD_PROXY"/>
+    <option name="No Protocol Enabled" macro="L7_XUI_MCAST_IANA_MROUTE_NO_PROTOCOL"/>
+  </enum>
+
+  <enum name="L7_XUI_MROUTE_FLAG_t">
+    <option macro="L7_XUI_MROUTE_FLAG_RPT" name="RPT"/>
+    <option macro="L7_XUI_MROUTE_FLAG_SPT" name="SPT"/>
+  </enum>
+  
+  <enum name="L7_IPMCAST_PROTOCOL_STATE_t">
+    <option macro="L7_TRUE" name="Operational"/>
+    <option macro="L7_FALSE" name="Non-Operational"/>
+  </enum>
+
+</data-types>
+</FastPathXML>

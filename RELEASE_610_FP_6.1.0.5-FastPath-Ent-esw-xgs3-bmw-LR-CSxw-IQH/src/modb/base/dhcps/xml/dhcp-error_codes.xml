@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "misc.dtd">
+<FastPathXML>
+  <misc version="1.0">
+     <error name="DHCP_POOL_OPTIONS_FAILED" output="\n Error! Failed to set Option Code."/>
+     <error name="DHCP_POOL_OPTIONS_NOT_ALLOWED" output="\n Error! Failed to set Option Code. Option Value must be specified as either Ascii or Hex or IP Address. More than one Types is not allowed."/>
+     <error name="DHCP_POOL_OPTIONS_MUST_SPECIFY" output="\n Error! Failed to set Option Code. Option Value must be specified as Ascii / Hex / IP Address."/>
+     <error name="DHCP_POOL_OPTIONS_LENGTH_EXCEEDED" output="\nError! Failed to set Option Code. Option Value Total Length exceeds Allowable Length."/>
+     <error name="DHCPS_POOL_NETWORK_SET_FAILED" output="\n Error! Failed to set DHCP Server Network Address."/>
+     <error name="DHCPS_SPECIFIC_BINDING_DELETE_FAILED" output="\n Error! Failed to delete the Specific Dynamic Binding."/>
+     <error name="DHCPS_SPECIFIC_ADDCONFLICT_DEL_FAILED" output="\n Error! Failed to delete the Specific Address Conflict."/>
+	 <error name="DHCPS_CLEAR_BINDINGS_FAILURE" output="\n Error! Failed to delete All Dynamic Bindings."/>
+     <error name="DHCPS_CLEAR_CONFLICTS_FAILURE" output="\n Error! Failed to delete All Address Conflicts."/>
+
+
+
+
+  </misc>
+</FastPathXML>
+

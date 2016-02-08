@@ -1,0 +1,34 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+
+
+
+<FastPathXML>
+  <webxml version="1.0" name="MACACLRuleSecVlanRangeConfig" title="MAC ACL Rule Configuration" help-file="help_MACACLRuleConfig.html">
+       <group id="1" heading=" ">
+           <node id="1">
+                 <element control="label" properties="hidden" obj-name="fastPathQOSACLQOSACL_aclMacIndex" id="1" name="MAC ACL"/>
+           </node>
+           <node id="2">
+                 <element control="label"  obj-name="fastPathQOSACLQOSACL_aclMacName" id="1" name="MAC ACL"/>
+           </node>
+            <node id="3">
+                <element control="label"  obj-name="fastPathQOSACLQOSACL_aclMacRuleIndex" id="1" name="Rule"/>
+            </node>
+            <node id="7">
+                <element control="label"  obj-name="xLibObjects_dummy" id="1" name="Secondary VLAN Range"/>
+            </node>
+            <node id="4">
+                <element control="textbox" arghelp="HELP_FORMAT_FP" obj-name="fastPathQOSACLQOSACL_aclMacRuleVlanId2RangeStart" id="1" name="From"/>
+            </node>
+            <node id="5">
+                <element control="textbox" arghelp="HELP_FORMAT_FP" obj-name="fastPathQOSACLQOSACL_aclMacRuleVlanId2RangeEnd" id="1" name="To"/>
+            </node>
+            <node id="6">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch and serve the page MACACLRuleConfig" id="1" name="Submit" target-page="MACACLRuleConfig.html"/>
+                <button scope="page" type="buttonClear"  help="Cancel and serve to the page MACACLRuleConfig" id="2" name="Cancel"  target-page="MACACLRuleConfig.html" />
+          </node>
+
+       </group>
+    </webxml>
+</FastPathXML>

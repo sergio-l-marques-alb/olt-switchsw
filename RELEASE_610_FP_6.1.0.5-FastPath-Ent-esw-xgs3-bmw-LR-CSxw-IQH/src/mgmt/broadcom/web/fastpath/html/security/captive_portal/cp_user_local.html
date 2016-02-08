@@ -1,0 +1,384 @@
+<EMWEB_IF ID=USMWEB_IF_LVL_HDR_NOT_REQ>
+<!--
+/*********************************************************************
+*
+* (C) Copyright Broadcom Corporation 2001-2007
+*
+**********************************************************************
+*
+* @filename  cp_user_local.html
+*
+* @purpose   HTML content
+*
+* @comments  None
+*
+* @create    8/17/2007
+*
+* @author    rjindal
+*
+* @end
+*
+*********************************************************************/
+-->
+</EMWEB_IF>
+emweb:/USMWEB_PAGE_DTD_HEADER_GET;
+<HTML>
+<HEAD>
+   emweb:/USMWEB_PAGE_META_DATA_GET; <!-- Style Sheet link and Meta data     -->
+   <TITLE>emweb:/USMWEB_SECURITY_OEM_STRING_GET?1964;</TITLE>
+
+<script type='text/javascript' language='JavaScript' src='/scripts/browser.js'></script> 
+<script src="/scripts/utils.js"></script>
+<script type='text/javascript' language='JavaScript'>
+var msie = false;
+var browser=navigator.appName;
+if (browser.indexOf("Microsoft") != -1)
+  msie = true;
+
+var userRW = emweb:/USMWEB_USER_READWRITE;; 
+var tableSize=emweb:/USMWEB_PAGE_NUMBER_OF_ROWS;;
+var numPagesPerBlock = emweb:/USMWEB_PAGES_PER_BLOCK;; 
+var blockSize=tableSize*numPagesPerBlock;
+var startIndex=0;
+
+jsData = new Array();
+<EMWEB_ITERATE C='
+  static L7_char8 user[CP_USER_LOCAL_USERNAME_MAX+1];
+  static userIterator_t userIterator;
+  static L7_uint32 entryIndex;
+  static uId_t uId;
+
+  if (ewsContextIterator(ewsContext) == NULL)
+  {
+    memset(user, 0, sizeof(user));
+    entryIndex = 0;
+    uId = 0;
+  }
+
+  if (L7_SUCCESS==usmDbCpdmUserEntryNextGet(uId,&uId))
+  {
+    if (L7_SUCCESS==usmDbCpdmUserEntryLoginNameGet(uId,user))
+    {
+      memcpy(userIterator.user, user, CP_USER_LOCAL_USERNAME_MAX);
+      userIterator.index = entryIndex;
+      entryIndex++;
+      return (const void *) &userIterator;
+    }
+  }
+  else
+  {
+    return L7_NULL;
+  }
+  '>
+<EMWEB_STRING C='
+  userIterator_t userIterator;
+  
+  if (ewsContextIterator(ewsContext) == NULL)
+    memset(&userIterator, 0x00, sizeof(userIterator_t));
+  else
+    memcpy(&userIterator, (userIterator_t *) ewsContextIterator(ewsContext), sizeof(userIterator_t));
+
+  return usmWebCPUserEntryGet(userIterator.user, userIterator.index);
+  '>
+</EMWEB_ITERATE>
+
+function fillTable(tbodyID, start)
+{
+  var tr, td;
+  var tbody = document.getElementById(tbodyID);
+  var lastIndex = jsData.length;
+  var totalNumEntries = jsData.length;
+
+  startIndex = start;
+  clearTable(tbody);
+
+  if ((startIndex + tableSize) < lastIndex)
+    lastIndex = (startIndex + tableSize);
+
+  var strClass = "class";
+  if (msie)
+    strClass = "className";
+
+  for (var i=startIndex; i<lastIndex; i++)
+  {
+    tr = tbody.insertRow(tbody.rows.length);
+
+    td = tr.insertCell(tr.cells.length);
+    td.setAttribute(strClass, "rowvalue");
+    if (userRW == 1)
+      td.innerHTML = "emweb:/USMWEB_INPUT; align=\"right\" type=\"checkbox\" id=\"cb"+i+"\">";
+    else
+      td.innerHTML = "emweb:/USMWEB_INPUT; disabled align=\"right\" type=\"checkbox\" id=\"cb"+i+"\">";
+
+    /*
+    Note: For user, we replace all spaces with plus signs so that ewsCGIQueryString will perform conversion.
+    I tried using the obvious javascript escape(), but ewsCGIQueryString fails. It actually appears to
+    convert correctly, but the byte count doesn't seem to be adjusted in consideration for the escape
+    characters. As a result, the bytes returned from ewsCGIQueryString are based on the escape characters
+    not the converted bytes.
+    */
+    td = tr.insertCell(tr.cells.length);
+    td.setAttribute(strClass, "sortedtabledata");
+    td.innerHTML = "<a href=\"cp_user_local_cfg.html?user="+jsData[i].user.replace(/ /g,"+")+"\" title=\"Click here to see details\">"+jsData[i].user+"</a>";
+
+    td = tr.insertCell(tr.cells.length);
+    td.setAttribute(strClass, "sortedtabledata");
+    td.innerHTML = jsData[i].sessionTimeout;
+
+    td = tr.insertCell(tr.cells.length);
+    td.setAttribute(strClass, "sortedtabledata");
+    td.innerHTML = jsData[i].idleTimeout;
+  }
+  tr = tbody.insertRow(tbody.rows.length);
+
+  td = tr.insertCell(tr.cells.length);
+  td.colSpan = 5;
+  td.setAttribute("align", "center");
+  td.innerHTML = "<br>";
+
+  var currPage = ((startIndex - (startIndex%(tableSize)))/(tableSize)) + 1;
+  var currBlock = 0;
+  var prevIndex = -1;
+  var nextIndex = -1;
+  if (startIndex >= blockSize)
+    currBlock = (startIndex - (startIndex%(blockSize)))/(blockSize);
+  i = currBlock*numPagesPerBlock+1;
+  var pStart = (i-1)*tableSize;
+  if (jsData.length > tableSize)
+  {
+    if (currBlock >= 1)
+    {
+      prevIndex = (currBlock-1)*(blockSize);
+      td.innerHTML += "<a href=\"#\" onclick=\'fillTable(\"cpUserData\","+prevIndex+")\'>Previous</a>&nbsp;";
+    }
+    for (var k=0; k<numPagesPerBlock; k++)
+    {
+      if (pStart >= jsData.length)
+        break;
+      if (i == currPage)
+        td.innerHTML += i+"&nbsp;";
+      else
+        td.innerHTML += "<a href=\"#\" onclick=\'fillTable(\"cpUserData\","+pStart+")\'>"+i+"</a>&nbsp;";
+      pStart += tableSize;
+      i++;
+    }
+    if (totalNumEntries > ((currBlock+1)*blockSize))
+    {
+      nextIndex = (currBlock+1)*(blockSize);
+      td.innerHTML += "<a href=\"#\" onclick=\'fillTable(\"cpUserData\","+nextIndex+")\'>Next</a>";
+    }
+  }
+}
+
+function sortTable(link)
+{
+  switch (link.firstChild.nodeValue) {
+  case "User" :
+    jsData.sort(sortByUser);
+    break;
+  case "Session Timeout" :
+    jsData.sort(sortBySesionTimeout);
+    break;
+  case "Idle Timeout" :
+    jsData.sort(sortByIdleTimeout);
+    break;
+  default :
+    jsData.sort(sortByUser);
+    break;
+  }
+  fillTable("cpUserData", 0);
+  return false;
+}
+
+function sortByUser(a, b)
+{
+  var sa = a.user.toLowerCase();
+  var sb = b.user.toLowerCase();
+  return ((sa < sb) ? -1 : ((sa > sb) ? 1 : 0));
+}
+
+function sortBySesionTimeout(a, b)
+{
+  var sa = a.sessionTimeout.toLowerCase();
+  var sb = b.sessionTimeout.toLowerCase();
+  return ((sa < sb) ? -1 : ((sa > sb) ? 1 : 0));
+}
+
+function sortByIdleTimeout(a, b)
+{
+  var sa = a.idleTimeout.toLowerCase();
+  var sb = b.idleTimeout.toLowerCase();
+  return ((sa < sb) ? -1 : ((sa > sb) ? 1 : 0));
+}
+
+function clearTable(tbody)
+{
+  while (tbody.rows.length > 0)
+  {
+    tbody.deleteRow(0);
+  }
+}
+
+function getCheckedUsers()
+{
+  var lastIndex = jsData.length;
+  if ((startIndex + tableSize) < lastIndex)
+  {
+    lastIndex = (startIndex + tableSize);
+  }
+  clearSelectedUsers();
+
+  var j=0;
+  var selUser = document.getElementById("selectedUsers");
+  for (var i=startIndex; i<lastIndex; i++)
+  {
+    var checkBox = document.getElementById("cb"+i);
+    if (checkBox.checked == true)
+    {
+      if (j == 0)
+        selUser.value = jsData[i].user+";";
+      else
+        selUser.value += jsData[i].user+";";
+      j++;
+    }
+  }
+}
+
+function clearSelectedUsers()
+{
+  var selUser = document.getElementById("selectedUsers");
+  selUser.value = "";
+}
+
+function DisplayErrorMsg()
+{
+  alert(document.forms[0].err_msg.value);
+}
+
+function check_error()
+{
+  if (document.forms[0].err_flag.value == 1)
+  {
+    DisplayErrorMsg();
+  }
+ <EMWEB_IF ID=USMWEB_IF_READWRITE>
+ <EMWEB_ELSE>
+  disableAll();
+  document.forms[0].Refresh.disabled = false;
+ </EMWEB_IF>
+}
+
+function delete_check()
+{
+  count = 0;
+  for (var i=0; i<document.forms[0].elements.length; i++)
+  {
+    if (document.forms[0].elements[i].checked == true)
+      count++;
+  }
+
+  if (count == 0)
+  {
+    alert("Error: Please make a selection by clicking on check box(es).\0");
+  }
+  else
+  {
+    var prompt = window.confirm("Are you sure you want to delete the user(s)?");
+    if (prompt)
+    {
+      document.forms[0].refresh_in_progress.value = 1;
+      document.forms[0].refresh_key.value = 1;
+      document.forms[0].submit();
+    }
+  }
+}
+
+function delete_all_check()
+{
+  var prompt = window.confirm("Are you sure you want to delete all users?");
+  if (prompt)
+  {
+    document.forms[0].refresh_in_progress.value = 1;
+    document.forms[0].refresh_key.value = 2;
+    document.forms[0].submit();
+  }
+}
+</script>
+</HEAD>
+
+<BODY class="bodyframeattributes" onload="check_error()">
+<FORM method="post" onSubmit="getCheckedUsers()" EMWEB_NAME="cpUserLocal">
+
+<!-- ----------------------------------------------------------------------- -->
+<!--         Tabbed Navigation                                               -->
+<!-- ----------------------------------------------------------------------- -->
+emweb:/USMWEB_TABS_USER_LOCAL?0;
+
+<!-- ----------------------------------------------------------------------- -->
+<!--         Web page header                                                 -->
+<!-- ----------------------------------------------------------------------- -->
+emweb:/USMWEB_SECURITY_PAGE_HEADER_1ST_GET?1964;   <!-- Includes page title          -->
+emweb:/USMWEB_SECURITY_PAGE_HEADER_2ND_GET?2764;   <!-- Includes help page link      -->
+
+<TABLE CLASS="tablecontent" emweb:/USMWEB_TABLE_CONTENT_ALIGN; cellpadding="0" cellspacing="0">
+
+  <EMWEB_IF ID=USMWEB_IF_USER_LOCAL_EXISTS> <!-- If User Local entry exists -->
+  <!-- START - User Local summary -->
+  <TR>
+  <TD>
+  <TABLE id="cpUserTable" class="datatableattributes" emweb:/USMWEB_DATA_TABLE_ALIGN; cellpadding="0" cellspacing="0">
+    <THEAD>
+      <TR>
+      <TH class="nodatatableheading"></TH>  <!-- No header for checkboxes -->
+      <TH class="datatableheading"><a href="#" title="Sort by User" onclick="return sortTable(this)">User</a></TH>
+      <TH class="datatableheading"><a href="#" title="Sort by Session Timeout" onclick="return sortTable(this)">Session Timeout</a></TH>
+      <TH class="datatableheading"><a href="#" title="Sort by Idle Timeout" onclick="return sortTable(this)">Idle Timeout</a></TH>
+      </TR>
+    </THEAD>
+    <TFOOT><TR><TD=colspan=4></TD></TR></TFOOT> 
+    <TBODY id="cpUserData"></TBODY>
+  </TABLE>
+  </TD>
+  </TR>
+
+  <EMWEB_ELSE> <!-- No users exist -->
+  <TR>
+  <TD colspan=2 class="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27133;</TD>
+  </TR>
+
+  </EMWEB_IF> <!-- EndIf User Local entry exists -->
+
+  <TR>
+  <TD colspan=4 emweb:/USMWEB_BUTTON_ALIGN;><BR>
+    <EMWEB_IF ID=USMWEB_IF_READWRITE>
+    <input class="buttonattributes" type="submit" name="Add" value="Add">
+    <EMWEB_IF ID=USMWEB_IF_USER_LOCAL_EXISTS>
+    <input class="buttonattributes" type="submit" name="Delete" VALUE="Delete" onclick='delete_check()'>
+    <input class="buttonattributes" type="submit" name="Delete_all" VALUE="Delete All" onclick='delete_all_check()'>
+    </EMWEB_IF>
+    </EMWEB_IF>
+    <input class="buttonattributes" type="submit" name="Refresh">
+  </TD>
+  </TR>
+
+</TABLE>
+
+<INPUT TYPE="hidden" NAME="err_flag" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT>
+<INPUT TYPE="hidden" NAME="err_msg" SIZE="128" MAXLENGTH="127">
+<INPUT TYPE="hidden" NAME="selectedUsers" id="selectedUsers" SIZE="500" MAXLENGTH="499" value="">
+<INPUT TYPE="hidden" NAME="refresh_in_progress" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT>
+<INPUT TYPE="hidden" NAME="refresh_key" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT>
+
+<EMWEB_IF ID=USMWEB_IF_USER_LOCAL_EXISTS>
+  <script type="text/javascript" language="JavaScript1.2">fillTable("cpUserData", 0)</script>
+</EMWEB_IF>
+
+<!-- ----------------------------------- -->
+<!--         Web page footer             -->
+<!-- ----------------------------------- -->
+ emweb:/USMWEB_PAGE_FOOTER_GET;
+
+</FORM>
+</BODY>
+</HTML>
+

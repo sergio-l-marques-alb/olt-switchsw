@@ -1,0 +1,38 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="cpIntfActivationStatus" title="Interface Activation Status">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate,hidden" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalInstanceId" id="1" name="CP Instance ID"/>
+        </node>
+            <node id="2">
+                <element control="combo" properties="filter,iterate" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalConfigName" id="1" name="Configuration Name"/>
+           </node> 
+            <node id="3">
+                <element properties="hidden" obj-name="captiveportalcpCaptivePortalIntfStatusTable_cpCaptivePortalInstanceId" cpval="captiveportalcpCaptivePortalTable_cpCaptivePortalInstanceId" id="1" name="CP Instance ID"/>
+            </node> 
+            <node id="4">
+                <element control="combo" properties="filter,iterate" obj-name="captiveportalcpCaptivePortalIntfStatusTable_cpCaptivePortalIntfIfIndex" id="1" name="Interface"/>
+            </node>
+            <node id="5">
+                <element control="label" obj-name="captiveportalcpCaptivePortalIntfStatusTable_cpCaptivePortalIntfOperStatus" id="1" name="Operational Status"/>
+            </node> 
+            <node id="6">
+                <element control="label" obj-name="captiveportalcpCaptivePortalIntfStatusTable_cpCaptivePortalIntfOperDisabledReason" id="1" name="Disable Reason"/>
+            </node> 
+            <node id="7">
+                <element control="label" obj-name="captiveportalcpCaptivePortalIntfStatusTable_cpCaptivePortalIntfBlockStatus" id="1" name="Blocked Status"/>
+            </node> 
+            <node id="8">
+                <element control="label" obj-name="captiveportalcpCaptivePortalIntfStatusTable_cpCaptivePortalIntfAuthUserCount" id="1" name="Authenticated Users"/>
+            </node> 
+            <node id="9">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

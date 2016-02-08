@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="PortChannelCfg" title="Port Channel Configuration">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="SwitchingLagConfig_LagIndex" id="1" name="Port Channel Interface">
+                <action type="extn" value="Create" hide="1_8_1|1_10_2|1_10_4|1_4|1_9" disable="1_10_4|1_10_2|1_4|1_9" show="1_10_1|1_14|1_13" enable="1_14|1_13" setval_ids="1_3_1|1_14_1|1_6_1|1_7_1|1_11_1|1_12_1|1_13_3" setval_args="L7_ENABLE|L7_ENABLE|L7_ENABLE|L7_DISABLE|Default_DOT3AD_HASH_MODE|Default_DOT3AD_HASH_MODE|Exclude"/> 
+                 <action type="default" show="1_8_1|1_10_2|1_10_3|1_10_4|1_4|1_9" hide="1_10_1|1_13|1_14" enable="1_4|1_9" disable="1_13|1_14"/>
+                </element>
+            </node>
+            <node id="2">
+                <element arghelp="NAME_FORMAT_FOUR" obj-name="SwitchingLagConfig_LagName" id="1" name="Port Channel Name" validation="validate_name15"/>
+            </node>
+            <node id="3">
+                <element control="combo" obj-name="SwitchingLagConfig_LagLinkTrapMode" id="1" name="Link Trap "/>
+            </node>
+            <!-- Purpose of this node is to show or hide the table that corresponds to "default" option. --> 
+            <node id="14">
+                <element control="combo" obj-name="SwitchingLagConfig_LagAdminMode" id="1" name="Administrative Mode">
+                <action type="enum" show="1_13" enable="1_13" hide="1_9" disable="1_9"/>
+                <action type="enum" hide="1_13|1_9" disable="1_13|1_9"/>
+                </element>
+            </node>
+            <!-- Purpose of this node is to show or hide the table that corresponds to "Create" option. --> 
+            <node id="4">
+                <element control="combo" obj-name="SwitchingLagConfig_LagAdminMode" id="1" name="Administrative Mode">
+                <action type="enum" show="1_9" enable="1_9" hide="1_13" disable="1_13"/>
+                <action type="enum" hide="1_9|1_13" disable="1_9|1_13"/>
+                </element>
+            </node>
+            <node id="5">
+                <element control="label" obj-name="SwitchingLagConfig_LinkStatus" id="1" name="Link Status"/>
+            </node>
+            <node id="6">
+                <element control="combo" obj-name="SwitchingLagConfig_LagStpMode" id="1" name="STP Mode"/>
+            </node>
+            <node id="7">
+                <element control="combo" obj-name="SwitchingLagConfig_LagStaticCapability" id="1" name="Static Mode"/>
+            </node>
+            <node id="11">
+                <element control="combo" obj-name="SwitchingLagConfig_LagSummaryHashOption" id="1" name="Load Balance" run_if="INTF_HASH_MODE_FEATURE"/>
+            </node>
+            <node id="12">
+                <element control="combo" obj-name="SwitchingLagConfig_LagGlobalHashOption" id="1" name="Load Balance" run_if="GLOBAL_HASH_MODE_FEATURE"/>
+            </node>
+            <node id="8">
+                <element control="label" obj-name="SwitchingLagConfig_LagMemberPortList" id="1" name="Port Channel Members"/>
+            </node>
+            <!-- This table maintains the membership conflict of an interface in all lags except the 
+                 selected lag and would be shown when "default" option is selected --> 
+            <repeat present="vtable" edit="inline" heading=" " id="9">
+                <element properties="filter,iterate" obj-name="SwitchingLagConfig_Interface" id="2"/>
+                <element obj-name="SwitchingLagConfig_LagParticipation" id="3" control="combo" value="Exclude" name="Participation"/>
+                <element obj-name="SwitchingLagConfig_MemberShipConflicts" id="4" control="label" name="Membership Conflicts"/>
+            </repeat>
+            <!-- This table maintains the membership conflict of an interface in all lags 
+                 and would be shown when "Create" option is selected --> 
+            <repeat present="vtable" edit="inline" heading=" " id="13">
+                <element properties="filter,iterate" obj-name="SwitchingLagConfig_Interface" id="2"/>
+                <element obj-name="SwitchingLagConfig_LagParticipationAll" id="3" control="combo" value="Exclude" name="Participation"/>
+                <element obj-name="SwitchingLagConfig_MemberShipConflictsAll" id="4" control="label" name="Membership Conflicts"/>
+            </repeat>
+            <node id="10">
+                <button scope="page" type="buttonSubmit" value="Add" obj-name="SwitchingLagConfig_LagRowStatus" help="Submits the form on this page to the Switch" id="1" name="Submit">
+                    <action type="button" disable="1_10_2|1_10_3|1_10_4"/>
+                </button>
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="4" name="Submit">
+                    <action type="button" disable="1_10_2|1_10_3"/>
+                </button>
+                <button scope="page" type="buttonSubmit" value="Delete" obj-name="SwitchingLagConfig_LagRowStatus" help="Submits the form on this page to the Switch" id="2" name="Delete">
+                    <action type="button" disable="1_3_1|1_4|1_5_1|1_6_1|1_7_1|1_11_1|1_12_1|1_8_1|1_9|1_13|1_14|1_10_1|1_10_3"/>
+                </button>
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="3" name="Refresh"/>
+                <action type="button" disable="1_10_1|1_10_2|1_10_4"/> 
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

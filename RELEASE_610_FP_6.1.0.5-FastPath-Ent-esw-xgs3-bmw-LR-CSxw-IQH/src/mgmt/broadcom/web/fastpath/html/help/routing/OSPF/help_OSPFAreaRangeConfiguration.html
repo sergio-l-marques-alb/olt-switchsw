@@ -1,0 +1,87 @@
+
+<HTML>
+<EMWEB_HEAD C='
+    #include "web.h"
+  '>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>OSPF Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+
+<hr size=4 width="80%" align=center>
+
+
+
+<h2><a name=area_range></a>Help for OSPF Area Range Configuration</h2>
+
+<h3>Selection Criteria </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Area ID</b> -
+      Selects the area for which data is to be configured. </li>
+ </ul>
+</ul>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>LSDB Type</b> - Select the type of Link Advertisement associated with
+        the specified area and address range. The default type is 'Network Summary'. </li>
+  <li><b>IP Address</b> - Enter the network Address for the address range for the selected area.
+         </li>
+  <li><b>Subnet Mask</b> - Enter the Subnet Mask for the address range for the selected area.
+        </li>
+  <li><b>Advertise</b> - Select the advertisement mode of the link advertisement from the drop down menu. 
+The default is 'Advertise'.
+ <li><b>Remove</b> - Check box to remove the particular entry from the table.</li>  
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+<h4>Configured Area Ranges</h4>
+  <li><b>Area ID</b> - The OSPF area. </li>
+  <li><b>LSDB Type</b> - The Link Advertisement type for the address range and area. </li>
+  <li><b>IP Address</b> - The network Address of an address range for the area. </li>
+  <li><b>Subnet Mask</b> - The Subnet Mask of an address range for the area. </li>
+  <li><b>Advertise</b> - The Advertisement mode for the address range and area. </li>
+</ul>
+</ul>
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+  <li>
+     <b>Create</b> - Send the updated configuration to the switch.  Configuration changes
+      take effect immediately. These changes will not be retained across a power cycle
+      unless a save is performed. The new address range will be added to the display
+      in the non-configurable data area.</li>
+  <li><b>Delete</b> - Removes the specified address range from the area
+         configuration. </li>
+</EMWEB_IF>
+  <li>
+     <b>Refresh</b> - Refreshes the screen with updated configuration.
+  </li>
+ </ul>
+</ul>
+
+<hr size=4 width="80%" align=center>
+
+</body>
+
+</html>
+
+
+

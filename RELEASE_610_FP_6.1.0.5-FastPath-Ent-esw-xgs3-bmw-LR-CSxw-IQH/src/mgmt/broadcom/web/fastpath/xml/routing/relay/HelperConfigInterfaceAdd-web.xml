@@ -1,0 +1,60 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+
+<FastPathXML>
+    <webxml version="1.0" name="HelperConfigInterfaceAdd" title="IP Helper Interface Configuration">
+      <group id="1" heading=" ">
+             <node id="1">
+                <element control="combo" properties="filter" obj-name="routingswitchIPInterfaceConfig_IfIndex" id="1" name="Source IP Interface"/>
+                <element control="label" cpval="routingswitchIPInterfaceConfig_IfIndex" properties="filter,hidden" obj-name="routingswitchHelperTable_IfIndex" id="2" name="Source IP Interface"/>
+             </node>
+             <node id="2">
+                <element control="combo" uienum="udpPortName_t" obj-name="xLibObjects_dummy" id="1" name="UDP Destination Port">
+                    <action type="enum" discard="no" show="1_3_1" setval_ids="1_3_1" setval_args="valMapEmptyString" />
+                    <action type="enum" discard="no" hide="1_3_1" setval_ids="1_3_1" setval_args="DefaultSet" />
+                    <action type="enum" discard="no" hide="1_3_1" setval_ids="1_3_1" setval_args="dhcp" />
+                    <action type="enum" discard="no" hide="1_3_1" setval_ids="1_3_1" setval_args="domain" />
+                    <action type="enum" discard="no" hide="1_3_1" setval_ids="1_3_1" setval_args="isakmp" />
+                    <action type="enum" discard="no" hide="1_3_1" setval_ids="1_3_1" setval_args="mobile-ip" />
+                    <action type="enum" discard="no" hide="1_3_1" setval_ids="1_3_1" setval_args="nameserver" />
+                    <action type="enum" discard="no" hide="1_3_1" setval_ids="1_3_1" setval_args="netbios-dgm" />
+                    <action type="enum" discard="no" hide="1_3_1" setval_ids="1_3_1" setval_args="netbios-ns" />
+                    <action type="enum" discard="no" hide="1_3_1" setval_ids="1_3_1" setval_args="ntp" />
+                    <action type="enum" discard="no" hide="1_3_1" setval_ids="1_3_1" setval_args="pim-auto-rp" />
+                    <action type="enum" discard="no" hide="1_3_1" setval_ids="1_3_1" setval_args="rip" />
+                    <action type="enum" discard="no" hide="1_3_1" setval_ids="1_3_1" setval_args="tacacs" />
+                    <action type="enum" discard="no" hide="1_3_1" setval_ids="1_3_1" setval_args="tftp" />
+                    <action type="enum" discard="no" hide="1_3_1" setval_ids="1_3_1" setval_args="time" />
+                </element>
+            </node>
+            <node id="3">
+                <element arghelp="HELP_FORMAT_FP" maxLength="6" clazz="input5" level="ReadWriteUser" control="textbox" obj-name="routingswitchHelperTable_helperIpDestUDPPort" id="1" name="UDP Destination Port"/>
+            </node>
+            <node id="6">
+                <element control="combo" uienum="L7_FalseTrue" obj-name="xLibObjects_dummy" id="1" name="Discard">
+                     <action type="enum" discard="no" disable="1_5_1" enable="1_7_1|1_4_1" show="1_4_1" hide="1_5_1|1_7_1"/>
+                     <action type="enum" discard="no" enable="1_5_1" disable="1_7_1|1_4_1" hide="1_4_1|1_5_1|1_7_1"/>
+                </element>
+            </node>
+            <node id="4">
+                <element level="ReadWriteUser" control="textbox" properties="write-only" value="" obj-name="routingswitchHelperTable_helperIpAddress" id="1" name="Server Address"/>
+            </node>
+            <node id="5">
+                <element control="textbox" value="True" properties="write-only" obj-name="routingswitchHelperTable_helperIpDiscard" id="1" name="Discard"/>
+            </node>
+            <node id="7">
+                <element control="textbox" value="Add" properties="write-only" obj-name="routingswitchHelperTable_helperStatus" id="1" name="Status"/>
+            </node>
+     </group>
+     <group level="ReadWriteUser" id="2" heading=" " >
+            <node id="1">
+                <button scope="page" type="buttonSubmit"  help="Submits the form on this page to the Switch" id="1" name="Submit" >
+                   <action type="button" disable="2_1_2"/>
+                </button>
+                <button scope="page" type="buttonClear"  help="Submits the form on this page to the Switch" id="2" name="Cancel" target-page="HelperConfigInterface.html"/>
+            </node>
+     </group>
+
+ </webxml>
+</FastPathXML>
+

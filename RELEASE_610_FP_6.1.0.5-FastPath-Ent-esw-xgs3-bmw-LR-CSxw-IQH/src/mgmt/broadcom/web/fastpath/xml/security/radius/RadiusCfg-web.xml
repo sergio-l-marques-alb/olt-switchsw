@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="RadiusCfg" title="RADIUS Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element obj-name="securityRadius_radiusServerConfiguredAuthServersCount" id="1" name="Number of Configured Authentication Servers"/>
+            </node>
+            <node id="2">
+                <element obj-name="securityRadius_radiusServerConfiguredAcctServersCount" id="1" name="Number of Configured Accounting Servers"/>
+            </node>
+            <node id="3">
+                <element obj-name="securityRadius_radiusServerAuthServerGroupsCount" id="1" name="Number of Named Authentication Server Groups"/>
+            </node>
+            <node id="4">
+                <element obj-name="securityRadius_radiusServerAcctServerGroupsCount" id="1" name="Number of Named Accounting Server Groups"/>
+            </node>
+            <node id="5">
+                <element maxLength="10" arghelp="HELP_FORMAT_FP" obj-name="securityRadius_RadiusMaxTransmit" id="1" name="Max Number of Retransmits"/>
+            </node>
+            <node id="6">
+                <element maxLength="10" arghelp="HELP_FORMAT_FP" obj-name="securityRadius_RadiusTimeout" id="1" name="Timeout Duration (secs)"/>
+            </node>
+            <node id="7">
+                <element control="combo" obj-name="securityRadius_RadiusAccountingMode" id="1" name="Accounting Mode"/>
+            </node>
+            <node id="8">
+                <element control="checkbox" obj-name="securityRadius_radiusAccClientAddressMode" id="1" name="Enable RADIUS Attribute 4 (NAS-IP Address)">
+                    <action type="enum" discard="no" enable="1_9_1"/>
+                    <action type="enum" discard="no" disable="1_9_1"/>
+                </element>
+            </node>
+            <node id="9">
+                <element maxLength="15" control="textbox" obj-name="securityRadius_radiusAccClientAddress" id="1" name="NAS-IP Address" arghelp="IP_Address"/>
+            </node>
+            <node id="10">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="2" name="Refresh"/>
+            </node>
+        </group>
+        <group level="ReadOnlyUser" id="2" heading=" ">
+             <node id="1">
+                <element control="label" obj-name="securityRadius_radiusServerConfiguredAuthServersCount" id="1" name="Number of Configured Authentication Servers"/>
+            </node>
+            <node id="2">
+                <element control="label" obj-name="securityRadius_radiusServerConfiguredAcctServersCount" id="1" name="Number of Configured Accounting Servers"/>
+            </node>
+            <node id="3">
+                <element control="label" obj-name="securityRadius_radiusServerAuthServerGroupsCount" id="1" name="Number of Named Authentication Server Groups"/>
+            </node>
+            <node id="4">
+                <element control="label" obj-name="securityRadius_radiusServerAcctServerGroupsCount" id="1" name="Number of Named Accounting Server Groups"/>
+            </node>
+			<node id="5">
+                <element control="label" obj-name="securityRadius_RadiusMaxTransmit" id="1" name="Max Number of Retransmits"/>
+            </node>
+            <node id="6">
+                <element control="label" obj-name="securityRadius_RadiusTimeout" id="1" name="Timeout Duration (secs)"/>
+            </node>
+            <node id="7">
+                <element control="label" obj-name="securityRadius_RadiusAccountingMode" id="1" name="Accounting Mode"/>
+            </node>
+            <node id="8">
+                <element control="checkbox" properties="read-only" obj-name="securityRadius_radiusAccClientAddressMode" id="1" name="Enable RADIUS Attribute 4 (NAS-IP Address)"/>
+            </node>
+            <node id="9">
+                <element control="textbox" properties="read-only" obj-name="securityRadius_radiusAccClientAddress" id="1" name="NAS-IP Address"/>
+            </node>
+            <node id="10">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

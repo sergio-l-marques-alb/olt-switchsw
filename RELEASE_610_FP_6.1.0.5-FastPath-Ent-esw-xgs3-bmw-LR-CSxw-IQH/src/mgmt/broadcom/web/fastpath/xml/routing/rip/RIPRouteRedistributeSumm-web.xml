@@ -1,0 +1,25 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="RIPRouteRedistributeSumm" title="RIP Route Redistribution Summary">
+        <group id="1" heading=" ">
+            <repeat present="vtable" edit="no" heading=" " id="1">
+                <element properties="filter,iterate" obj-name="routingConfigRipRedistribute_Source" id="1"/>
+                <element control="label" properties="read-only" obj-name="routingConfigRipRedistribute_Metric" id="2"/>
+                <element control="label" properties="read-only" obj-name="routingConfigRipRedistribute_Mode" id="3" name="Redistribute"/>
+                <element control="label" properties="read-only" obj-name="routingConfigRipRedistribute_DistList" id="4" name="Distribute List"/>
+                <element control="label" properties="read-only" obj-name="routingConfigRipRedistribute_MatchInternal" id="5" name="Match Internal"/>
+                <element control="label" properties="read-only" obj-name="routingConfigRipRedistribute_MatchExternal1" id="6" name="Match External Type 1"/>
+                <element control="label" properties="read-only" obj-name="routingConfigRipRedistribute_MatchExternal2" id="7" name="Match External Type 2"/>
+                <element control="label" properties="read-only" obj-name="routingConfigRipRedistribute_MatchNSSAExternal1" id="8" name="Match NSSA External Type 1"/>
+                <element control="label" properties="read-only" obj-name="routingConfigRipRedistribute_MatchNSSAExternal2" id="9" name="Match NSSA External Type 2"/>
+            </repeat>
+            <node id="2">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

@@ -1,0 +1,39 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="CableTest" title="Cable Test">
+        <group id="1" heading=" ">
+            <node id="1">
+		<element control="combo" properties="iterate" obj-name="baseCableTest_Interface" id="1" >
+                  <action type="default" hide="1_2|1_4|1_5|1_6" disable="1_2|1_4|1_5|1_6"/> 
+	        </element>
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="2" name="Test Cable">
+                  <action show="1_2|1_4_1" enable="1_2|1_4|1_5|1_6"/> 
+                </button> 
+            </node>
+            <node id="2">
+                <message>Cable Test Results</message>
+            </node>
+            <node id="4">
+	        <element obj-name="baseCableTest_Status" id="1" name="Cable Status">
+                    <action type="enum" show="1_4_1" hide="1_5_1|1_6_1"/>
+                    <action type="enum" show="1_5_1|1_4_1" hide="1_6_1"/>
+                    <action type="enum" show="1_4_1|1_6_1" hide="1_5_1"/>
+                    <action type="enum" show="1_4_1|1_5_1" hide="1_6_1"/>
+                    <action type="enum" show="1_4_1|1_5_1" hide="1_6_1"/>
+                    <action type="enum" show="1_4_1|1_5_1" hide="1_6_1"/>
+                    <action type="enum" show="1_4_1|1_5_1" hide="1_6_1"/>
+                </element>
+            </node>
+            <node id="5">
+                <element obj-name="baseCableTest_FailureLoc" id="1" name="Failure Location"/>
+	          </node>
+            <node id="6">
+                <element obj-name="baseCableTest_Length" id="1" name="Cable Length"/>
+            </node>	    
+        </group>
+    </webxml>
+</FastPathXML>

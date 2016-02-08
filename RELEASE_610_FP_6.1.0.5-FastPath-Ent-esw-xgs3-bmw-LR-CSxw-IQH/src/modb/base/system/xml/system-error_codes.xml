@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "misc.dtd">
+<FastPathXML>
+  <misc version="1.0">
+  <error name="SYSINFO_IPCFG_ERROR" output="\n Error! System Network Config protocol must be NONE to set IP address."/>
+<error name="SERVPORT_PROTOCFG_FAILURE" output="\n Error! Only one interface can run DHCP or Bootp. Configure network protocol to none."/>
+<error name="SYSINFO_PROTOCFG_FAILURE"  output="\r\nError! Only one interface can run DHCP or Bootp. Configure service port protocol to none."/>
+<error name="SERVPORT_IPGATEWAYCFG_ERROR" output="\n Error! IP address and gateway do not reside on the same subnet."/>
+<error name="SERVPORT_IPCFG_ERROR" output="\n Error! Service port protocol must be NONE to set IP address."/>
+<error name="SERVPORT_IPMASKCFG_ERROR" output="\n Error! The IP address and subnet mask combination is not valid."/>
+<error name="SERVPORT_IPMASKCFG_SWT_CONFLICT_ERROR" output="\n Error! IP Address/Netmask entered conflicts with the configured IP Address/Netmask of the switch."/>
+<error name="SERVPORT_IPMASKCFG_SERVPORT_CONFLICT_ERROR" output="\n Error! IP Address/Netmask entered conflicts with the configured IP Address/Netmask of the service port."/>
+<error name="SERVPORT_IPMASKCFG_RTRINTF_CONFLICT_ERROR" output="\n Error! IP Address/Netmask entered conflicts with the configured IP Address/Netmask of a router interface."/>
+<error name="IMAGE_NOT_FOUND" output="\nError! Specified File could not be found."/>
+<error name="IMAGE1ACTIVEFAILURE" output="\nError! Failed to configure image1."/>
+<error name="IMAGE2ACTIVEFAILURE" output="\nError! Failed to configure image2."/>
+<error name="IMAGE_REQ_DENIED" output="Permission Denied."/>
+<error name="MAX_LOGIN_USERS_ERROR" output="\n Error! Number of Users Exceed more than allowed."/>
+<error name="ERASE_STRARTUP_CONFIG_ERROR" output="\n Error! Startup Configuration file does not exist."/>
+<error name="ERASE_STRARTUP_CONFIG_SUCCESS" output="\n Startup Configuration erased successfully."/>
+<error name="RESTART_CONFIG_TO_DEFAULTS_SUCCESS" output="\n Configuration reset to defaults successfully."/>
+<error name="INVALID_IPV4_DNS_ADDRESS" output="\n Error! Invalid Address value."/>
+<error name="TABLE_IS_FULL" output="\r\nError! No more entries can be added as the table reached maximum allowed entries."/>
+<error name="ALREADY_EXISTS" output="\r\nError!Unable to set $$objName$$ with $$objValue$$. The given entry already exists."/>
+<error name="USERNAME_DEFAULT_ERROR" output="\r\nError!Username with default can not be created."/>
+<error name="USERNAME_EXCEEDED_LIMIT" output="\r\nError!Username exceeded maximum characters allowed."/>
+<error name="USERNAME_ALPHA_NUMERIC_ERROR" output="\r\nError!Username should be alpha numeric."/>
+<error name="SNMP_AUTH_NOT_SUPPORTED" output="\r\nError!SNMP deos not support Authorization feature."/>
+<error name="PORTMIRROR_SOURCE_DEST_SAME" output="\r\nError!Source Port(s) can not have destination Port"/>
+<error name="LOG_HOST_INDEX_FAILURE" output="\n Error! Failed to retrieve Host Index."/>
+<error name="LOG_HOST_SET_FAILURE" output="\n Error! Failed to set the Host."/>
+<error name="PING_OWNER_FAILURE" output="\n Error! Failed to retrieve Owner."/>
+<error name="PING_TEST_NAME_FAILURE" output="\n Error! Failed to retrieve Test Name."/>
+<error name="PING_OWNER_ADD_FAILURE" output="\n Error! Failed to add Owner."/>
+<error name="PING_OWNER_DEL_FAILURE" output="\n Error! Failed to delete Owner."/>
+<error name="TRACE_ROUTE_OWNER_FAILURE" output="\n Error! Failed to retrieve Owner."/>
+<error name="TRACE_ROUTE_TEST_NAME_FAILURE" output="\n Error! Failed to retrieve Test Name."/>
+<error name="TRACE_ROUTE_OWNER_ADD_FAILURE" output="\n Error! Failed to add Owner."/>
+<error name="TRACE_ROUTE_OWNER_DEL_FAILURE" output="\n Error! Failed to delete Owner."/>
+<error name="AUTH_LIST_CREATE_FAILURE" output="\n Error! Failed to create Authentication List."/> 
+<error name="PREVIOUS_METHOD_UNCONFIGURED" output="\n Error! Previous methods must be configured before this one."/>
+<error name="AUTH_LIST_DEL_FAILURE" output="\n Error! Failed to delete Authentication List."/>
+<error name="USER_FAILURE" output="\n Error! Failed to retrieve User."/>
+<error name="USER_NAME_INVALID" output="\n Error! User Name must contain only alpha-numeric, dash, or            underscore characters and the length of the string  must not exceed nine characters"/>
+<error name="USER_NAME_DEFAULT_FAILURE" output="\n Error! User Name cannot be &apos;default&apos;."/>
+<error name="USER_NAME_ALREADY_EXISTS" output="\n Error! Specified User Name already exists!"/>
+<error name="LOGIN_SET_FAILURE" output="\n Error! Failed to set Login for the specified User."/>
+<error name="PASSWORD_SET_FAILURE" output="\n Error! Failed to set Password."/>
+<error name="USER_DEL_FAILURE" output="\n Error! Failed to delete the User."/>
+<error name="AUTH_PROTOCOL_SET_FAILURE" output="\n Error! Failed to set Authentication Protocol."/>
+<error name="USER_ENCRYPT_TYPE_FAILURE" output="\n Error! Failed to retrieve User Encryption Type."/>
+<error name="USER_ENCRYPT_ISSET_FAILURE" output="\n Error! Encryption should be set to None before setting Authentication Type to None"/>
+<error name="INVALID_CONFIGFILE_TYPE" output="\n Error! Invalid Source or destination configuration file."/>
+<error name="MGMTVLAN_VLAN_ROUTING_MODE_CANT_CONF" output="\n Error! Vlan Id in use by Vlan Routing."/>
+
+</misc>
+</FastPathXML>

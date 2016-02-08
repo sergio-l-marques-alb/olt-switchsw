@@ -1,0 +1,134 @@
+# Local source path abbreviations (for convenience)
+#
+src_security       := src/application/security
+src_mgmt_security  := src/mgmt/mgmt_support/security
+src_system_support := src/system_support
+
+
+# Master list of source paths to be built into this package library.
+#  - All entries must be specified relative to top-of-view $(FP_ROOT).
+#  - Defines all source locations to be referenced by the package-level makefile.
+#
+MASTERSRC += \
+	$(src_security)/dot1x \
+	$(src_security)/dot1x/dot1x_sid \
+	$(src_system_support)/security/radius/client \
+	src/dtl/security/dot1x \
+	src/usmdb/security/dot1x \
+	src/usmdb/security/radius \
+	$(src_security)/mgmt_acal \
+	$(src_security)/mgmt_acal/mgmt_acal_sid \
+	src/usmdb/security/mgmt_acal
+
+# These source files are included only if CAPTIVE_PORTAL flex component
+# is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_CAPTIVE_PORTAL))
+MASTERSRC += \
+	$(src_security)/captive_portal \
+        $(src_security)/captive_portal/cpcm \
+	$(src_security)/captive_portal/cpdm \
+	$(src_security)/captive_portal/cpim \
+       	src/usmdb/security/captive_portal
+endif
+
+# These source files are included only if captive portal wired interface owner component
+# is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_CP_WIO))
+MASTERSRC += \
+	$(src_security)/cpwio \
+        src/dtl/security/cpwio
+endif
+
+# List here individual source files to be selectively EXCLUDED from the build
+#
+MASTERSRC_FILE_EXCLUDE +=
+
+
+# List here individual source include directories owned by this package (without the -I).
+#
+MASTERINC += \
+	$(src_security)/dot1x/include \
+	$(src_security)/mgmt_acal/include \
+	$(src_system_support)/security/radius/include \
+	$(src_system_support)/security/tacacs/include
+
+
+# Additional source header file search paths (without the -I).
+#
+SRCINCPATHS += \
+	andl/dapi \
+	src/application/switching/spanning_tree/dot1s/encryption \
+	src/dtl/routing/include \
+	$(src_system_support)/base/infrastructure/cnfgr/include
+
+
+# Additional compiler flags.
+#
+CFLAGSEXTRA +=
+
+
+
+# Conditional source inclusion -- Flex Components.
+#
+
+# These source files are included only if TACACS flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_TACACS))
+
+  MASTERSRC += \
+	$(src_system_support)/security/tacacs/client \
+	src/usmdb/security/tacacs
+
+  MASTERINC += \
+	$(src_system_support)/security/tacacs/include
+
+endif
+
+
+# These sources are included only if the OPENSSL library is required.
+ifeq (1,$(BLD_L7_FLEX_OPENSSL_LIB))
+
+MASTERSRC += \
+	$(src_mgmt_security)/mapping/openssl
+
+endif
+
+
+# These sources are included only if SECURE_MGMT package is present.
+ifeq (1,$(BLD_L7_FLEX_SECURE_MGMT))
+
+MASTERSRC += \
+	$(src_mgmt_security)/mapping/ssh \
+	$(src_mgmt_security)/mapping/ssh/ssh_sid \
+	$(src_mgmt_security)/ssl_tunnel \
+	$(src_mgmt_security)/ssl_tunnel/sslt_sid \
+	src/usmdb/security/sshd \
+	src/usmdb/security/sslt
+
+MASTERINC += \
+	vendor/openssh
+
+SRCINCPATHS +=
+
+CFLAGSEXTRA += \
+	-DL7_SSHD
+
+
+# The SSH vendor sources are also built as part of the secure_mgmt package.
+#
+# NOTE: The OPENSSH vendor source is built using a collection of 
+#       archive files, so no source files are defined here.
+#       See file vendor/openssh/make/makerules.pkg.vendor for details.
+#
+
+# Identify makefile containing specific build rules to be used.
+#
+# Note: This makefile must be included within make.magic.pkg to define
+#       the rules within the right scope of makefile processing.
+#
+BLDRULESFILE = $(FP_ROOT)/vendor/openssh/make/makerules.pkg.vendor
+
+endif  # secure_mgmt
+

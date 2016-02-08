@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "types.dtd">
+<!-- 
+  - both the name and model are required
+  - Model is used only for stub code generation purpose
+  - expectes xLibAppEncode_$name and xLibAppDecode_$name functions
+--><FastPathXML>
+  <data-types version="1.0">
+    <usrtype model="string" name="vidMac" validation="validate_string" dtype="xLibStr256"/>
+    <usrtype model="uint" name="usp_t" validation="validate_string" dtype="xLibU32"/>
+    <usrtype model="uint" name="uspGlobal_t" validation="validate_string" dtype="xLibU32"/>
+    <usrtype model="uint" name="vlansRtngIntfs_t" validation="validate_string" dtype="xLibU32"/>
+    <usrtype model="string" name="alnumid_t" validation="validate_alpha_num" dtype="xLibStr256"/>
+    <usrtype model="uint" name="vlanId_t" validation="validate_uint" dtype="xLibU32"/>
+    <usrtype model="string" name="snmpMac_t" validation="validate_string" dtype="xLibStr256"/>
+    <usrtype model="uint" name="intRange_t" validation="validate_int_range" dtype="xLibU32"/>
+    <usrtype model="uint" name="uintRange_t" validation="validate_int_range" dtype="xLibU32"/>
+    <usrtype model="string" name="ipv4_ipv6" validation="validate_ipv4_ipv6" dtype="xLibStr256"/>
+    <usrtype model="string" name="ipv4_ipv6_with_zeros" validation="validate_ipv4_ipv6_with_zeros" dtype="xLibStr256"/>
+    <usrtype model="string" name="uspRange_t" validation="validate_usp_range" dtype="xLibStr256"/>
+    <usrtype model="string" name="uspRangeFP_t" validation="validate_usp_range" dtype="xLibStr256"/>
+    <usrtype model="string" name="vlanRange_t" validation="validate_vlan_range" dtype="xLibStr256"/>
+    <usrtype model="string" name="ipv6Prefix_t" validation="validate_string" dtype="xLibStr256"/>
+    <usrtype model="string" name="ospfv3_trap_flags_t" validation="validate_string" dtype="xLibStr256"/>
+    <usrtype model="string" name="usplist_t" validation="validate_string"/>
+    <usrtype model="string" name="vlanIDMac_t" validation="validate_string"/>
+    <usrtype model="string" name="stats64_t" validation="validate_string" dtype="xLibU64"/>
+    <usrtype model="uint" name="elapsedTime_t" validation="validate_uint" dtype="xLibU32"/>
+    <usrtype model="uint" name="elapsedTimeDHCP_t" validation="validate_uint" dtype="xLibU32"/>
+    <usrtype model="uint" name="RemainingTimeDHCP_t" validation="validate_uint" dtype="xLibU32"/>
+    <usrtype model="string" name="ipAddrList_t" validation="validate_string" dtype="xLibStr256"/>
+    <usrtype model="string" name="clientIDDHCP_t" validation="validate_string" dtype="xLibStr256"/>
+    <usrtype model="string" name="hexDataDHCP_t" validation="validate_string" dtype="xLibStr256"/>
+    <usrtype model="string" name="ipAddrDataStr_t" validation="validate_string" dtype="xLibStr256"/>
+    <usrtype model="string" name="optionCode_t" validation="validate_string" dtype="xLibStr256"/>
+    <usrtype model="uint" name="timeStampHHMMSS_t" validation="validate_uint" dtype="xLibU32"/>
+    <usrtype model="uint" name="timeStampDHHMMSS_t" validation="validate_uint" dtype="xLibU32"/>
+    <usrtype model="string" name="ipv4_ipv6_serial" validation="validate_string" dtype="xLibStr256"/>
+    <usrtype model="uint" name="ipv4_uint" validation="validate_ipv4_uint" dtype="xLibU32"/>
+    <usrtype model="string" name="tr069PeriodicInformTime_t" validation="validate_tr069PeriodicTime" dtype="xLibStr256"/>
+    <usrtype model="string" name="dot3ahCap_t" validation="validate_string" dtype="xLibStr256"/>
+    <usrtype model="string" name="dot3ahTime_t" validation="validate_string" dtype="xLibStr256"/>
+    <usrtype model="string" name="dot3ahOui_t" validation="validate_string" dtype="xLibStr256"/>
+    <usrtype model="string" name="dot3ahDevVendorID_t" validation="validate_string" dtype="xLibStr256"/>
+    <usrtype model="string" name="string_t" validation="validate_string_t"/>
+    <usrtype model="string" name="hex_uint_t" validation="validate_hex_uint_t"/>
+    <!-- The decoding will be different for hex_t compared to hex_uint_t
+       hex_t assumes the given input is in hex value (it allows the user to give directly value like abc instead of 0xabc ) and will decode it into the decimal value. hex_t encode routine will encode the given decimal value into the hex value. -->
+    <usrtype model="string" name="hex_t" validation="validate_string"/>
+    <usrtype model="string" name="VRRPPriority_t" validation="validate_string" dtype="xLibStr256"/>
+    <usrtype model="string" name="IPMask_t" validation="validate_uint" dtype="xLibU32"/>
+    <usrtype model="uint" name="elapsedTimeDHMS_t" validation="validate_uint" dtype="xLibU32"/>
+    <usrtype model="uint" name="formattedTimeDHMS_t" validation="validate_uint" dtype="xLibU32"/>    
+    <usrtype model="string" name="rtoipv4_t" validation="validate_rtoipv4_t" dtype = "xLibIpV4"/>
+    <usrtype model="string" name="formatipv4_t" validation="validate_formatipv4_t" dtype = "xLibIpV4"/>
+    <usrtype model="uint" name="IPV6_link_t" validation="validate_string" dtype="xLibU32"/>
+    <usrtype model="uint" name="standbyStackUnit_t" validation="validate_string" dtype="xLibU32"/>
+    <usrtype model="uint" name="uspNone_t" validation="validate_string" dtype="xLibU32"/>
+    <usrtype model="string" name="uspNoneRange_t" validation="validate_usp_range" dtype="xLibStr256"/>
+    <usrtype model="string" name="ppsPercent_t" validation="validate_string" dtype="xLibStr256"/>
+    <usrtype model="string" name="sFlowIndex_t" validation="validate_string" dtype="xLibStr256"/>
+    <usrtype model="uint" name="uspRouteNextHop_t" validation="validate_string" dtype="xLibU32"/>
+    <usrtype model="ipv4" name="newipv4_t" validation="validate_newipv4" dtype="xLibU32"/>
+    <usrtype model="string" name="formatv4v6mask_t" validation="validate_string" dtype = "xLibStr256"/>
+    <usrtype model="ipv6" name="mcast_ipv6" validation="validate_multicast_ipv6" dtype="xLibIpV6"/>
+    <usrtype model="uint" name="protectedPortGroupId_t" validation="validate_string" dtype="xLibU32"/>
+    <usrtype model="string" name="OUIVal_t" validation="validate_string" dtype="xLibStr256"/>
+    <usrtype model="string" name="cp_hex_str_t" validation="validate_string"/>
+    <usrtype model="uint" name="eventControlTimeFormat_t" validation="validate_uint" dtype="xLibU32"/>
+    
+</data-types>
+</FastPathXML>

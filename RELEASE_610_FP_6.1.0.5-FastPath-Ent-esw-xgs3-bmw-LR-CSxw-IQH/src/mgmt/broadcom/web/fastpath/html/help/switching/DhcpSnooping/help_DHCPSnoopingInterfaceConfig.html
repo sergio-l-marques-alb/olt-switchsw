@@ -1,0 +1,144 @@
+<EMWEB_IF ID=USMWEB_IF_LVL_HDR_NOT_REQ>
+<!--
+/*********************************************************************
+*
+* (C) Copyright Broadcom Corporation 2002-2007
+*
+**********************************************************************
+*
+*
+* @purpose help file for DHCP Snooping
+*
+* @comments
+*
+* @create 23/10/2007
+*
+* @author msudhir
+* @end
+*
+**********************************************************************/
+
+**********************************************************************/
+-->
+</EMWEB_IF>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<HTML>
+<EMWEB_HEAD C='
+    #include "web.h"
+  '>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>DHCP Snooping Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+<BODY class = "helppageattributes">
+
+
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=dhcpsnoopintfcfg></a>Help for DHCP Snooping Interface Configuration</h2>
+
+<h3>Selection Criteria</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b><EMWEB_IF ID=XUI_IF_STACKING_PRESENT>
+	Unit/Slot/Port
+<EMWEB_ELSE>
+	Slot/Port
+</EMWEB_IF></b> -
+      Selects the interface for which data is to be displayed or
+      configured.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Trust State</b> - If it is Enabled DHCP snooping application considers as port trusted.
+       The factory default is Disable.
+    </li>
+  <li><b>Logging Invalid Packets</b> - If it is Enabled DHCP snooping application logs invalid packets on this interface.
+       The factory default is Disable.
+    </li>
+  <li><b>Rate Limit</b> - Specifies rate limit value for DHCP Snooping purpose. 
+      If the incoming rate of DHCP packets
+      exceeds the value of this object for consecutively
+      burst interval seconds, the port will be shutdown.
+      The factory default is 15pps (packets per second). 
+      The range of Rate Limit is 
+      <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_DS_RATE_LIMIT_MIN, L7_DS_RATE_LIMIT_MAX);
+      ' > .
+      </li>
+ <li><b>No Limit</b> - Selecting this option specifies that the value of Rate Limit will be configured to -1. If the rate limit is -1 burst interval has no meaning , hence it is disabled.
+      </li>
+
+  <li><b>Burst Interval</b> - This Specifies the burst interval value
+      for rate limiting purpose on this interface.
+      If the rate limit is None, then burst interval has no meaning shows it as N/A.
+      The factory default is 1 second.
+      The range of Burst Interval is 
+      <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_DS_BURST_INTERVAL_MIN, L7_DS_BURST_INTERVAL_MAX);
+      ' > .
+       </li> 
+ </ul>
+</ul>
+<EMWEB_ELSE>
+<h3>Non-configurable data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Trust State</b> - Displays the DHCP snooping trust mode for the selected interface.
+       The factory default is Disable.
+  </li>
+  <li><b>Logging Invalid Packets</b> - Displays the DHCP snooping application logging mode on this interface.
+       The factory default is Disable.
+    </li>
+  <li><b>Rate Limit</b> - Specifies rate limit value for DHCP Snooping purpose.
+      If the incoming rate of DHCP packets
+      exceeds the value of this object for consecutively
+      burst interval seconds, DHCP packets will be
+      dropped. If this value is -1,then there is no limit.
+      The factory default is 15pps (packets per second).
+      The range of Rate Limit is 
+      <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_DS_RATE_LIMIT_MIN, L7_DS_RATE_LIMIT_MAX);
+      ' > .
+      </li>
+  <li><b>Burst Interval</b> - This Specifies the burst interval value
+      for rate limiting purpose on this interface.
+      If the rate limit is None burst interval has no meaning shows it as N/A.
+      The factory default is 1 second.
+      The range of Burst Interval is 
+      <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_DS_BURST_INTERVAL_MIN, L7_DS_BURST_INTERVAL_MAX);
+      ' > .
+       </li> 
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<h3>Command Buttons</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Applies the new configuration and causes the
+         changes to take effect. These changes will not be retained across a power cycle
+          unless a save configuration is performed.</li>
+  <li><b>Refresh</b> - Refreshes the data on the screen with the present
+      state of the data in the switch.</li>
+</ul>
+</ul>
+</EMWEB_IF>
+
+</body>
+
+</html>
+

@@ -1,0 +1,886 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml version="1.0" name="captiveportal">
+
+<!-- cpGlobalConfigGroup -->
+<module name="cpGlobalConfigGroup" >
+<object name="cpAdminMode" >
+  <core type="enum" xtype="enable_t" default="FD_CP_DEFAULT_CP_MODE" access="read-write" descr="Enable or disable the captive portal feature on the system."/>
+  <ui name="cpAdminMode" style="plainText">
+    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.38.1.1.1"/>
+  </ui>
+</object>
+<object name="cpAdditionalHttpPort" >
+  <core type="uint" min="CP_HTTP_PORT_MIN" max="CP_HTTP_PORT_MAX" default="FD_CP_HTTP_PORT" access="read-write" descr="The additional captive portal authentication server port for HTTP web connection. The HTTP port default is 0 which denotes no specific port and the default port (80) is used."/>
+  <ui name="cpAdditionalHttpPort" style="plainText">
+    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.38.1.1.2"/>
+  </ui>
+</object>
+<object name="cpAdditionalSecureHttpPort" >
+  <core type="uint" min="CP_HTTP_PORT_MIN" max="CP_HTTP_PORT_MAX" default="FD_CP_HTTP_PORT" access="read-write" descr="The additional captive portal authentication server port for secured HTTP web connection. The Secure HTTP port default is 0 which denotes no specific port and the default port (443) is used."/>
+  <ui name="cpAdditionalSecureHttpPort" style="plainText">
+  </ui>
+</object>
+<object name="cpPeerStatsReportingInterval" >
+  <core type="uint" min="CP_PS_STATS_REPORT_INTERVAL_MIN" max="CP_PS_STATS_REPORT_INTERVAL_MAX" default="FD_CP_PS_STATS_REPORT_INTERVAL" access="read-write" descr="The time interval between statistics reports to the cluster controller.A value of 0 indicates reporting is disabled.The value is represented in seconds."/>
+  <ui name="cpPeerStatsReportingInterval" style="plainText">
+    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.38.1.1.3"/>
+  </ui>
+</object>
+<object name="cpAuthTimeout" >
+  <core type="uint" min="CP_AUTH_SESSION_TIMEOUT_MIN" max="CP_AUTH_SESSION_TIMEOUT_MAX" default="FD_CP_AUTH_SESSION_TIMEOUT" access="read-write" descr="The length of time to maintain an authentication session from a client.This time is measured from when a client initiates an authentication request.The value is represented in seconds."/>
+  <ui name="cpAuthTimeout" style="plainText">
+    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.38.1.1.4"/>
+  </ui>
+</object>
+</module>
+
+<!-- cpCaptivePortalTable -->
+<module name="cpCaptivePortalTable" >
+<object name="cpCaptivePortalInstanceId" >
+  <core type="uint" access="read-write" descr="The identifier associated with this instance of captive portal." key="yes"/>
+  <ui name="cpCaptivePortalInstanceId" style="plainText">
+    <snmp name="cpCaptivePortalInstanceId" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.2.1.1.1"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalWebId" depends="cpCaptivePortalInstanceId" >
+  <core type="uint" access="read-write" descr="Captive Portal Config Web ID." key="yes"/>
+  <ui name="cpCaptivePortalWebId" style="plainText">
+  </ui>
+</object>
+<object name="cpCaptivePortalConfigName" depends="cpCaptivePortalInstanceId" >
+  <core type="string" access="read-write" descr="The name, in alpha-numeric characters, assigned to this captive portal configuration." properties="pseudo-key"/>
+  <ui name="cpCaptivePortalConfigName" style="plainText">
+    <snmp name="cpCaptivePortalConfigName" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.2.1.1.2"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalAdminMode" depends="cpCaptivePortalInstanceId" >
+  <core type="enum" xtype="L7_CP_MODE_STATUS_t" default="CP_DEF_MODE" access="read-write" descr="Enable or disable this instance of captive portal on the system."/>
+  <ui name="cpCaptivePortalAdminMode" style="plainText">
+    <snmp name="cpCaptivePortalAdminMode" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.2.1.1.3"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalProtocolMode" depends="cpCaptivePortalInstanceId" >
+  <core type="enum" xtype="L7_LOGIN_TYPE_t" default="CP_DEF_PROTOCAL_MODE" access="read-write" descr="The protocol mode to be used."/>
+  <ui name="cpCaptivePortalProtocolMode" style="plainText">
+    <snmp name="cpCaptivePortalProtocolMode" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.2.1.1.4"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalVerificationMode" depends="cpCaptivePortalInstanceId" >
+  <core type="enum" xtype="CP_VERIFY_MODE_t" default="CP_DEF_VERIFY_MODE" access="read-write" descr="The type of user verification to perform."/>
+  <ui name="cpCaptivePortalVerificationMode" style="plainText">
+    <snmp name="cpCaptivePortalVerificationMode" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.2.1.1.5"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalLanguages" depends="cpCaptivePortalInstanceId" >
+  <core type="uint" access="read-only" descr="Number of languages configured for given CP configuration."/>
+  <ui name="cpCaptivePortalLanguages" style="plainText">
+  </ui>
+</object>
+<object name="cpCaptivePortalUserGroup" depends="cpCaptivePortalInstanceId" >
+  <core type="uint" min="1" max="FD_CP_USER_GROUP_MAX" default="1" access="read-write" descr="The group ID for this captive portal user database.A group ID may be assigned for databases which use verification mode LOCAL."/>
+  <ui name="cpCaptivePortalUserGroup" style="plainText">
+    <snmp name="cpCaptivePortalUserGroup" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.2.1.1.6"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalURLRedirectMode" depends="cpCaptivePortalInstanceId" >
+  <core type="enum" xtype="enable_t" default="CP_DEF_REDIRECT_MODE" access="read-write" descr="Whether the captive portal should redirect newly authenticated clients to the configured URL. If this mode is disabled, the default locale specific welcome page is used. If enabled, the client is redirected to a configured URL."/>
+  <ui name="cpCaptivePortalURLRedirectMode" style="plainText">
+    <snmp name="cpCaptivePortalURLRedirectMode" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.2.1.1.7"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalRedirectURL" depends="cpCaptivePortalInstanceId" >
+  <core type="string" access="read-write" descr="The URL to which the newly authenticated client is redirected if cpCaptivePortalURLRedirectMode is enabled."/>
+  <ui name="cpCaptivePortalRedirectURL" style="plainText">
+    <snmp name="cpCaptivePortalRedirectURL" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.2.1.1.8"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalSessionTimeout" depends="cpCaptivePortalInstanceId" >
+  <core type="uint" min="CP_USER_LOCAL_SESSION_TIMEOUT_MIN" max="CP_USER_LOCAL_SESSION_TIMEOUT_MAX" default="CP_DEF_SESSION_TIMEOUT" access="read-write" descr="The session timeout. After this limit has been reached the user will be disconnected. If this value is set to 0, no timeout is enforced.This value is represented in seconds."/>
+  <ui name="cpCaptivePortalSessionTimeout" style="plainText">
+    <snmp name="cpCaptivePortalSessionTimeout" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.2.1.1.9"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalIdleTimeout" depends="cpCaptivePortalInstanceId" >
+  <core type="uint" min="CP_USER_LOCAL_IDLE_TIMEOUT_MIN" max="CP_USER_LOCAL_IDLE_TIMEOUT_MAX" default="CP_DEF_IDLE_TIMEOUT" access="read-write" descr="The idle timeout of the session. After this limit has been reached the user will be disconnected. If this value is set to 0, no timeout is enforced.This value is represented in seconds."/>
+  <ui name="cpCaptivePortalIdleTimeout" style="plainText">
+    <snmp name="cpCaptivePortalIdleTimeout" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.2.1.1.10"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalRadiusAuthServer" depends="cpCaptivePortalInstanceId" >
+  <core type="user" xtype="string_t" access="read-write" descr="The RADIUS authentication server name, in alpha-numeric characters (or dotted IP address), assigned to this captive portal configuration."/>
+  <ui name="cpCaptivePortalRadiusAuthServer" style="plainText">
+    <snmp name="cpCaptivePortalRadiusAuthServer" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.2.1.1.11"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalMaxBandwidthUp" depends="cpCaptivePortalInstanceId" >
+  <core type="uint" min="CP_USER_LOCAL_MAX_BW_UP_MIN" max="CP_USER_LOCAL_MAX_BW_UP_MAX" default="FD_CP_LOCAL_USER_MAX_BW_UP" access="read-write" descr="The maximum bandwidth up/transmit bytes per second rate of the session.After this limit has been reached the user will be disconnected.If this value is set to 0, no rate limiting is enforced.This value is represented in bytes (however; converted and stored as bits/sec)."/>
+  <ui name="cpCaptivePortalMaxBandwidthUp" style="plainText">
+    <snmp name="cpCaptivePortalMaxBandwidthUp" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.2.1.1.12"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalMaxBandwidthDown" depends="cpCaptivePortalInstanceId" >
+  <core type="uint" min="CP_USER_LOCAL_MAX_BW_DOWN_MIN" max="CP_USER_LOCAL_MAX_BW_DOWN_MAX" default="FD_CP_LOCAL_USER_MAX_BW_DOWN" access="read-write" descr="The maximum bandwidth down/receive bytes per second rate of the session.After this limit has been reached the user will be disconnected.If this value is set to 0, no rate limiting is enforced.This value is represented in bytes (however; converted and stored as bits/sec)."/>
+  <ui name="cpCaptivePortalMaxBandwidthDown" style="plainText">
+    <snmp name="cpCaptivePortalMaxBandwidthDown" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.2.1.1.13"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalMaxInputOctets" depends="cpCaptivePortalInstanceId" >
+  <core type="uint" min="CP_USER_LOCAL_MAX_INPUT_OCTETS_MIN" max="CP_USER_LOCAL_MAX_INPUT_OCTETS_MAX" default="FD_CP_LOCAL_USER_MAX_INPUT_OCTETS" access="read-write" descr="The maximum input octets (bytes) allowed for the session.After this limit has been reached the user will be disconnected.If this value is set to 0, no rate limiting is enforced.This value is represented in bytes."/>
+  <ui name="cpCaptivePortalMaxInputOctets" style="plainText">
+    <snmp name="cpCaptivePortalMaxInputOctets" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.2.1.1.14"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalMaxOutputOctets" depends="cpCaptivePortalInstanceId" >
+  <core type="uint" min="CP_USER_LOCAL_MAX_OUTPUT_OCTETS_MIN" max="CP_USER_LOCAL_MAX_OUTPUT_OCTETS_MAX" default="FD_CP_LOCAL_USER_MAX_OUTPUT_OCTETS" access="read-write" descr="The maximum Output octets (bytes) allowed for the session.After this limit has been reached the user will be disconnected.If this value is set to 0, no rate limiting is enforced.This value is represented in bytes."/>
+  <ui name="cpCaptivePortalMaxOutputOctets" style="plainText">
+    <snmp name="cpCaptivePortalMaxOutputOctets" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.2.1.1.15"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalMaxTotalOctets" depends="cpCaptivePortalInstanceId" >
+  <core type="uint" min="CP_USER_LOCAL_MAX_TOTAL_OCTETS_MIN" max="CP_USER_LOCAL_MAX_TOTAL_OCTETS_MAX" default="FD_CP_LOCAL_USER_MAX_TOTAL_OCTETS" access="read-write" descr="The maximum input/output octets (bytes) allowed for the session.After this limit has been reached the user will be disconnected.If this value is set to 0, no rate limiting is enforced.This value is represented in bytes."/>
+  <ui name="cpCaptivePortalMaxTotalOctets" style="plainText">
+    <snmp name="cpCaptivePortalMaxTotalOctets" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.2.1.1.16"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalLangCode" depends="cpCaptivePortalInstanceId,cpCaptivePortalWebId" >
+  <core type="string" access="read-write" descr="CP Web language code. This is used to identify the choice for customized content. IANA Lang Subtag Code plus the optional region code."/>
+  <ui name="cpCaptivePortalLangCode" style="plainText">
+  </ui>
+</object>
+<object name="cpCaptivePortalLocaleLink" depends="cpCaptivePortalInstanceId,cpCaptivePortalWebId" >
+  <core type="string" access="read-write" descr="CP Web link language locale. This is the text to display and identify the web locale. This shows in the administration tab and the validation page at the top which provides user selection."/>
+  <ui name="cpCaptivePortalLocaleLink" style="plainText">
+  </ui>
+</object>
+<object name="cpCaptivePortalConfigReset" depends="cpCaptivePortalInstanceId" >
+  <core type="uint" access="write-only" descr="Used with Reset Button. Load with default values."/>
+  <ui name="cpCaptivePortalConfigReset" style="plainText">
+  </ui>
+</object>
+<object name="cpCaptivePortalRowStatus" depends="cpCaptivePortalInstanceId" >
+  <core type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="The captive portal instance status.Supported values: active(1)      - valid instance      createAndGo(4) - creates a new instance     destroy(6)     - removes an instance"/>
+  <ui name="cpCaptivePortalRowStatus" style="plainText">
+    <snmp name="cpCaptivePortalRowStatus" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.2.1.1.17"/>
+  </ui>
+</object>
+</module>
+
+<!-- cpLocalUserGroupTable -->
+<module name="cpLocalUserGroupTable" >
+<object name="cpLocalUserGroupIndex" >
+  <core type="uint" access="read-write" descr="The user group entry index." key="yes"/>
+  <ui name="cpLocalUserGroupIndex" style="plainText">
+    <snmp name="cpLocalUserGroupIndex" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.3.1.1.1"/>
+  </ui>
+</object>
+<object name="cpLocalUserGroupName" depends="cpLocalUserGroupIndex" >
+  <core type="string" access="read-write" descr="The user group name, limited to alpha-numeric strings (including the '-' and '_' characters)." properties="pseudo-key"/>
+  <ui name="cpLocalUserGroupName" style="plainText">
+    <snmp name="cpLocalUserGroupName" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.3.1.1.2"/>
+  </ui>
+</object>
+<object name="cpLocalUserGroupRowStatus" depends="cpLocalUserGroupIndex" >
+  <core type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="The user group entry status.Supported values:  active(1)      - valid entry    createAndGo(4) - creates a new entry     destroy(6)     - removes an entry"/>
+  <ui name="cpLocalUserGroupRowStatus" style="plainText">
+    <snmp name="cpLocalUserGroupRowStatus" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.3.1.1.3"/>
+  </ui>
+</object>
+</module>
+
+<!-- cpLocalUserTable -->
+<module name="cpLocalUserTable" >
+<object name="cpLocalUserIndex" >
+  <core type="uint" access="read-write" descr="The local user entry index." key="yes"/>
+  <ui name="cpLocalUserIndex" style="plainText">
+    <snmp name="cpLocalUserIndex" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.3.2.1.1"/>
+  </ui>
+</object>
+<object name="cpLocalUserName" depends="cpLocalUserIndex" >
+  <core type="string" access="read-write" descr="The user name, limited to alpha-numeric strings (including the '-' and '_' characters)." properties="pseudo-key"/>
+  <ui name="cpLocalUserName" style="plainText">
+    <snmp name="cpLocalUserName" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.3.2.1.2"/>
+  </ui>
+</object>
+<object name="cpLocalUserGroupIndexRange" depends="cpLocalUserIndex">
+  <core type="user" xtype="uintRange_t" access="read-write" descr="The user group entry index." properties="dynamic,range" />
+  <ui name="cpLocalUserGroupIndex" style="choiceMselectN">
+  </ui>
+</object>
+<object name="cpLocalUserPassword" depends="cpLocalUserIndex" >
+  <core type="string" access="read-write" descr="The user password. This object will return an empty string even if a password is set."/>
+  <ui name="cpLocalUserPassword" style="plainText">
+    <snmp name="cpLocalUserPassword" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.3.2.1.3"/>
+  </ui>
+</object>
+<object name="cpLocalUserSessionTimeout" depends="cpLocalUserIndex" >
+  <core type="uint" min="CP_USER_LOCAL_SESSION_TIMEOUT_MIN" max="CP_USER_LOCAL_SESSION_TIMEOUT_MAX" default="FD_CP_LOCAL_USER_SESSION_TIMEOUT" access="read-write" descr="The session timeout in seconds. After this limit is reached, the user is disconnected.If this value is set to 0, the default value for the captive portal is used."/>
+  <ui name="cpLocalUserSessionTimeout" style="plainText">
+    <snmp name="cpLocalUserSessionTimeout" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.3.2.1.4"/>
+  </ui>
+</object>
+<object name="cpLocalUserIdleTimeout" depends="cpLocalUserIndex" >
+  <core type="uint" min="CP_USER_LOCAL_IDLE_TIMEOUT_MIN" max="CP_USER_LOCAL_IDLE_TIMEOUT_MAX" default="FD_CP_LOCAL_USER_IDLE_TIMEOUT" access="read-write" descr="The idle timeout of the session in seconds. After this limit is reached, the user is disconnected.If this value is set to 0, the default value for the captive portal is used."/>
+  <ui name="cpLocalUserIdleTimeout" style="plainText">
+    <snmp name="cpLocalUserIdleTimeout" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.3.2.1.5"/>
+  </ui>
+</object>
+<object name="cpLocalUserMaxBandwidthUp" depends="cpLocalUserIndex" >
+  <core type="uint" min="CP_USER_LOCAL_MAX_BW_UP_MIN" max="CP_USER_LOCAL_MAX_BW_UP_MAX" default="FD_CP_LOCAL_USER_MAX_BW_UP" access="read-write" descr="The maximum bandwidth up/transmit bytes per second rate of the session.After this limit has been reached the user will be disconnected.If this value is set to 0, no rate limiting is enforced.This value is represented in bytes (however; converted and stored as bits/sec)."/>
+  <ui name="cpLocalUserMaxBandwidthUp" style="plainText">
+    <snmp name="cpLocalUserMaxBandwidthUp" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.3.2.1.6"/>
+  </ui>
+</object>
+<object name="cpLocalUserMaxBandwidthDown" depends="cpLocalUserIndex" >
+  <core type="uint" min="CP_USER_LOCAL_MAX_BW_DOWN_MIN" max="CP_USER_LOCAL_MAX_BW_DOWN_MAX" default="FD_CP_LOCAL_USER_MAX_BW_DOWN" access="read-write" descr="The maximum bandwidth down/receive bytes per second rate of the session.After this limit has been reached the user will be disconnected.If this value is set to 0, no rate limiting is enforced.This value is represented in bytes (however; converted and stored as bits/sec)."/>
+  <ui name="cpLocalUserMaxBandwidthDown" style="plainText">
+    <snmp name="cpLocalUserMaxBandwidthDown" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.3.2.1.7"/>
+  </ui>
+</object>
+<object name="cpLocalUserMaxInputOctets" depends="cpLocalUserIndex" >
+  <core type="uint" min="CP_USER_LOCAL_MAX_INPUT_OCTETS_MIN" max="CP_USER_LOCAL_MAX_INPUT_OCTETS_MAX" default="FD_CP_LOCAL_USER_MAX_INPUT_OCTETS" access="read-write" descr="The maximum input octets (bytes) allowed for the session.After this limit has been reached the user will be disconnected.If this value is set to 0, no rate limiting is enforced.This value is represented in bytes."/>
+  <ui name="cpLocalUserMaxInputOctets" style="plainText">
+    <snmp name="cpLocalUserMaxInputOctets" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.3.2.1.8"/>
+  </ui>
+</object>
+<object name="cpLocalUserMaxOutputOctets" depends="cpLocalUserIndex" >
+  <core type="uint" min="CP_USER_LOCAL_MAX_OUTPUT_OCTETS_MIN" max="CP_USER_LOCAL_MAX_OUTPUT_OCTETS_MAX" default="FD_CP_LOCAL_USER_MAX_OUTPUT_OCTETS" access="read-write" descr="The maximum Output octets (bytes) allowed for the session.After this limit has been reached the user will be disconnected.If this value is set to 0, no rate limiting is enforced.This value is represented in bytes."/>
+  <ui name="cpLocalUserMaxOutputOctets" style="plainText">
+    <snmp name="cpLocalUserMaxOutputOctets" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.3.2.1.9"/>
+  </ui>
+</object>
+<object name="cpLocalUserMaxTotalOctets" depends="cpLocalUserIndex" >
+  <core type="uint" min="CP_USER_LOCAL_MAX_TOTAL_OCTETS_MIN" max="CP_USER_LOCAL_MAX_TOTAL_OCTETS_MAX" default="FD_CP_LOCAL_USER_MAX_TOTAL_OCTETS" access="read-write" descr="The maximum input/output octets (bytes) allowed for the session.After this limit has been reached the user will be disconnected.If this value is set to 0, no rate limiting is enforced.This value is represented in bytes."/>
+  <ui name="cpLocalUserMaxTotalOctets" style="plainText">
+    <snmp name="cpLocalUserMaxTotalOctets" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.3.2.1.10"/>
+  </ui>
+</object>
+<object name="cpLocalUserDeleteAll" >
+  <core type="uint" access="write-only" descr="Delete all Users."/>
+  <ui name="cpLocalUserDeleteAll" style="plainText">
+  </ui>
+</object>
+<object name="cpLocalUserRowStatus" depends="cpLocalUserIndex" >
+  <core type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="The user entry status.Supported values:active(1)      - valid entry      createAndGo(4) - creates a new entry      destroy(6)     - removes an entry"/>
+  <ui name="cpLocalUserRowStatus" style="plainText">
+    <snmp name="cpLocalUserRowStatus" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.3.2.1.11"/>
+  </ui>
+</object>
+</module>
+
+<!-- cpLocalUserGroupAssociationTable -->
+<module name="cpLocalUserGroupAssociationTable" >
+<key-combo list="cpLocalUserGroupAssociationUserIndex,cpLocalUserGroupAssociationGroupIndex"/>
+<object name="cpLocalUserGroupAssociationUserIndex" >
+  <core type="uint" access="read-write" descr="The local user entry index associated with a user group." key="yes"/>
+  <ui name="cpLocalUserGroupAssociationUserIndex" style="plainText">
+    <snmp name="cpLocalUserGroupAssociationUserIndex" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.3.3.1.1"/>
+  </ui>
+</object>
+<object name="cpLocalUserGroupAssociationGroupIndex" >
+  <core type="uint" access="read-write" descr="The user group entry index associated with a local user." key="yes"/>
+  <ui name="cpLocalUserGroupAssociationGroupIndex" style="plainText">
+    <snmp name="cpLocalUserGroupAssociationGroupIndex" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.3.3.1.2"/>
+  </ui>
+</object>
+<object name="cpLocalUserGroupAssociationRowStatus" depends="cpLocalUserGroupAssociationUserIndex,cpLocalUserGroupAssociationGroupIndex" >
+  <core type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="The local user to user group association entry status.Supported values:active(1)      - valid entry   createAndGo(4) - creates a new entry      destroy(6)     - removes an entry"/>
+  <ui name="cpLocalUserGroupAssociationRowStatus" style="plainText">
+    <snmp name="cpLocalUserGroupAssociationRowStatus" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.3.3.1.3"/>
+  </ui>
+</object>
+</module>
+
+
+<!-- cpInterfaceAssociationTable -->
+<module name="cpInterfaceAssociationTable" >
+<key-combo list="cpIntfAssociationCPID,cpIntfAssociationIfIndex"/>
+<object name="cpIntfAssociationCPID" >
+  <core type="uint" access="read-write" descr="The Captive Portal instance identifier associated with an interface." key="yes"/>
+  <ui name="cpIntfAssociationCPID" style="plainText">
+    <snmp name="cpIntfAssociationCPID" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.4.1.1.1"/>
+  </ui>
+</object>
+<object name="cpIntfAssociationIfIndex" >
+  <core type="user" xtype="usp_t" access="read-write" descr="The interface ifIndex to which the Captive Portal instance is associated." key="yes"/>
+  <ui name="cpIntfAssociationIfIndex" style="plainText">
+    <snmp name="cpIntfAssociationIfIndex" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.4.1.1.2"/>
+  </ui>
+</object>
+<object name="cpIntfAssociationInterfaces" depends="cpIntfAssociationCPID" >
+        <core type="user" xtype="uspRange_t" properties="range,dynamic" access="read-write" descr="The interface ifIndex to which the Captive Portal instance is associated." />
+  <ui name="cpIntfAssociationInterfaces" style="choiceMselectN">
+  </ui>
+</object>
+<object name="cpIntfAssociationNotAssocIfIndex" >
+  <core type="user" xtype="usp_t" access="read-only" descr="The interface ifIndices which are not associated." key="yes"/>
+  <ui name="cpIntfAssociationNotAssocIfIndex" style="plainText">
+  </ui>
+</object>
+<object name="cpIntfAssociationRowStatus" depends="cpIntfAssociationCPID,cpIntfAssociationIfIndex" >
+  <core type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="The Captive Portal instance to interface association status.Supported values:active(1)      - valid entry    createAndGo(4) - creates a new entry     destroy(6)     - removes an entry"/>
+  <ui name="cpIntfAssociationRowStatus" style="plainText">
+    <snmp name="cpIntfAssociationRowStatus" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.4.1.1.3"/>
+  </ui>
+</object>
+</module>
+
+<!-- cpCaptivePortalGlobalStatusGroup -->
+<module name="cpCaptivePortalGlobalStatusGroup" >
+<object name="cpCaptivePortalOperStatus" >
+  <core type="enum" xtype="L7_CP_MODE_STATUS_t" access="read-only" descr="Indication of the current operational state of the captive portal feature."/>
+  <ui name="cpCaptivePortalOperStatus" style="plainText">
+    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.38.2.1.1"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalOperDisabledReason" >
+  <core type="enum" xtype="L7_CP_MODE_REASON_t" access="read-only" descr="The reason for the captive portal feature being operationally disabled."/>
+  <ui name="cpCaptivePortalOperDisabledReason" style="plainText">
+    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.38.2.1.2"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalIpv4Address" >
+  <core type="ipv4" access="read-only" descr="The IP address of this captive portal."/>
+  <ui name="cpCaptivePortalIpv4Address" style="plainText">
+    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.38.2.1.3"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalInstanceMaxCount" >
+  <core type="uint" access="read-only" descr="The maximum number of captive portal instances supported by the system."/>
+  <ui name="cpCaptivePortalInstanceMaxCount" style="plainText">
+    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.38.2.1.4"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalInstanceConfiguredCount" >
+  <core type="uint" access="read-only" descr="The number of captive portal instances currently configured in the system."/>
+  <ui name="cpCaptivePortalInstanceConfiguredCount" style="plainText">
+    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.38.2.1.5"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalInstanceActiveCount" >
+  <core type="uint" access="read-only" descr="The number of captive portal instances currently active in the system."/>
+  <ui name="cpCaptivePortalInstanceActiveCount" style="plainText">
+    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.38.2.1.6"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalAuthenUserMaxCount" >
+  <core type="uint" access="read-only" descr="The maximum number of authenticated users that the system can support."/>
+  <ui name="cpCaptivePortalAuthenUserMaxCount" style="plainText">
+    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.38.2.1.7"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalLocalUserMaxCount" >
+  <core type="uint" access="read-only" descr="The maximum number of local users that the system can support."/>
+  <ui name="cpCaptivePortalLocalUserMaxCount" style="plainText">
+    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.38.2.1.8"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalConfiguredLocalUserCount" >
+  <core type="uint" access="read-only" descr="The number of local users configured."/>
+  <ui name="cpCaptivePortalConfiguredLocalUserCount" style="plainText">
+  </ui>
+</object>
+<object name="cpCaptivePortalAuthenUserCurrentCount" >
+  <core type="uint" access="read-only" descr="The number of currently authenticated users across all captive portal instances."/>
+  <ui name="cpCaptivePortalAuthenUserCurrentCount" style="plainText">
+    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.38.2.1.9"/>
+  </ui>
+</object>
+</module>
+
+<!-- cpCaptivePortalInstanceStatusTable -->
+<module name="cpCaptivePortalInstanceStatusTable" >
+<object name="cpCaptivePortalInstanceId" >
+  <core type="uint" access="read-write" descr="The identifier associated with this instance of captive portal." key="yes"/>
+  <ui name="cpCaptivePortalInstanceId" style="plainText">
+    <snmp name="cpCaptivePortalInstanceId" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.2.1.1.1"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalInstanceOperStatus" depends="cpCaptivePortalInstanceId" >
+  <core type="enum" xtype="L7_CP_INST_OPER_STATUS_t" access="read-only" descr="Indication of the current operational state of the captive portal instance."/>
+  <ui name="cpCaptivePortalInstanceOperStatus" style="plainText">
+    <snmp name="cpCaptivePortalInstanceOperStatus" asn-id=".1.3.6.1.4.1.4413.1.1.38.2.2.1.1.1"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalInstanceOperDisabledReason" depends="cpCaptivePortalInstanceId" >
+  <core type="enum" xtype="L7_CP_INST_DISABLE_REASON_t" access="read-only" descr="The reason the captive portal instance is not currently operational."/>
+  <ui name="cpCaptivePortalInstanceOperDisabledReason" style="plainText">
+    <snmp name="cpCaptivePortalInstanceOperDisabledReason" asn-id=".1.3.6.1.4.1.4413.1.1.38.2.2.1.1.2"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalInstanceBlockStatus" depends="cpCaptivePortalInstanceId" >
+  <core type="enum" xtype="L7_CP_INST_BLOCK_STATUS_t" default="L7_CP_INST_BLOCK_STATUS_NOT_BLOCKED" access="read-write" descr="Block or unblock the captive portal instance for authentications."/>
+  <ui name="cpCaptivePortalInstanceBlockStatus" style="plainText">
+    <snmp name="cpCaptivePortalInstanceBlockStatus" asn-id=".1.3.6.1.4.1.4413.1.1.38.2.2.1.1.3"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalInstanceAuthUserCount" depends="cpCaptivePortalInstanceId" >
+  <core type="uint" access="read-only" descr="The number of currently authenticated users for this captive portal."/>
+  <ui name="cpCaptivePortalInstanceAuthUserCount" style="plainText">
+    <snmp name="cpCaptivePortalInstanceAuthUserCount" asn-id=".1.3.6.1.4.1.4413.1.1.38.2.2.1.1.4"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalInstanceStatusByCPIdDeleteAll" depends="cpCaptivePortalInstanceId" >
+  <core type="uint" access="write-only" descr="Delete All Connection status with given Captive Portal Instance ID."/>
+  <ui name="cpCaptivePortalInstanceStatusByCPIdDeleteAll" style="plainText">
+  </ui>
+</object>
+</module>
+
+
+<!-- cpCaptivePortalIntfStatusTable -->
+<module name="cpCaptivePortalIntfStatusTable" >
+<key-combo list="cpCaptivePortalInstanceId,cpCaptivePortalIntfIfIndex"/>
+<object name="cpCaptivePortalInstanceId" >
+  <core type="uint" access="read-write" descr="The identifier associated with this instance of captive portal." key="yes"/>
+  <ui name="cpCaptivePortalInstanceId" style="plainText">
+    <snmp name="cpCaptivePortalInstanceId" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.2.1.1.1"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalIntfIfIndex" >
+  <core type="user" xtype="usp_t" access="read-write" descr="The ifIndex of the interface associated with this entry." key="yes"/>
+  <ui name="cpCaptivePortalIntfIfIndex" style="plainText">
+    <snmp name="cpCaptivePortalIntfIfIndex" asn-id=".1.3.6.1.4.1.4413.1.1.38.2.3.1.1.1"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalIntfOperStatus" depends="cpCaptivePortalInstanceId,cpCaptivePortalIntfIfIndex" >
+  <core type="enum" xtype="enable_t" access="read-only" descr="Indication of whether captive portal instance is active on the interface."/>
+  <ui name="cpCaptivePortalIntfOperStatus" style="plainText">
+    <snmp name="cpCaptivePortalIntfOperStatus" asn-id=".1.3.6.1.4.1.4413.1.1.38.2.3.1.1.2"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalIntfOperDisabledReason" depends="cpCaptivePortalInstanceId,cpCaptivePortalIntfIfIndex" >
+  <core type="enum" xtype="L7_INTF_WHY_DISABLED_t" access="read-only" descr="The reason for the captive portal instance interface not being currently operational."/>
+  <ui name="cpCaptivePortalIntfOperDisabledReason" style="plainText">
+    <snmp name="cpCaptivePortalIntfOperDisabledReason" asn-id=".1.3.6.1.4.1.4413.1.1.38.2.3.1.1.3"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalIntfBlockStatus" depends="cpCaptivePortalInstanceId,cpCaptivePortalIntfIfIndex" >
+  <core type="enum" xtype="L7_CP_INST_BLOCK_STATUS_t" access="read-only" descr="Indication of whether the captive portal instance interface is currently blocked for authentications."/>
+  <ui name="cpCaptivePortalIntfBlockStatus" style="plainText">
+    <snmp name="cpCaptivePortalIntfBlockStatus" asn-id=".1.3.6.1.4.1.4413.1.1.38.2.3.1.1.4"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalIntfAuthUserCount" depends="cpCaptivePortalInstanceId,cpCaptivePortalIntfIfIndex" >
+  <core type="uint" access="read-only" descr="The number of currently authenticated users for this captive portal instance interface."/>
+  <ui name="cpCaptivePortalIntfAuthUserCount" style="plainText">
+    <snmp name="cpCaptivePortalIntfAuthUserCount" asn-id=".1.3.6.1.4.1.4413.1.1.38.2.3.1.1.5"/>
+  </ui>
+</object>
+</module>
+
+<!-- cpCaptivePortalIntfDatabaseTable -->
+<module name="cpCaptivePortalIntfDatabaseTable" >
+<object name="cpCaptivePortalIntfIfIndex" >
+  <core type="user" xtype="usp_t" access="read-write" descr="The ifIndex of the interface associated with this entry." key="yes"/>
+  <ui name="cpCaptivePortalIntfIfIndex" style="plainText">
+    <snmp name="cpCaptivePortalIntfIfIndex" asn-id=".1.3.6.1.4.1.4413.1.1.38.2.3.1.1.1"/>
+  </ui>
+</object>
+<!--
+<object name="cpCaptivePortalIntfCapabilities" depends="cpCaptivePortalIntfIfIndex" >
+  <core type="string" access="read-only" descr="The bitmap value used to identify which capabilities are available on the interface."/>
+  <ui name="cpCaptivePortalIntfCapabilities" style="plainText">
+    <snmp name="cpCaptivePortalIntfCapabilities" asn-id=".1.3.6.1.4.1.4413.1.1.38.2.4.1.1.1"/>
+  </ui>
+</object>
+-->
+<object name="cpCaptivePortalIntfCapabilitySessionTimeout" depends="cpCaptivePortalIntfIfIndex" >
+  <core type="string"  access="read-only" descr="Interface capability field: sessionTimeout."/>
+  <ui name="cpCaptivePortalIntfCapabilitySessionTimeout" style="plainText">
+  </ui>
+</object>
+<object name="cpCaptivePortalIntfCapabilityIdleTimeout" depends="cpCaptivePortalIntfIfIndex" >
+  <core type="string"  access="read-only" descr="Interface capability field: idleTimeout."/>
+  <ui name="cpCaptivePortalIntfCapabilityIdleTimeout" style="plainText">
+  </ui>
+</object>
+<object name="cpCaptivePortalIntfCapabilityBytesReceivedCounter" depends="cpCaptivePortalIntfIfIndex" >
+  <core type="string" access="read-only" descr="Interface capability field: bytesReceivedCounter."/>
+  <ui name="cpCaptivePortalIntfCapabilityBytesReceivedCounter" style="plainText">
+  </ui>
+</object>
+<object name="cpCaptivePortalIntfCapabilityBytesTransmittedCounter" depends="cpCaptivePortalIntfIfIndex" >
+  <core type="string" access="read-only" descr="Interface capability field: bytesTransmittedCounter."/>
+  <ui name="cpCaptivePortalIntfCapabilityBytesTransmittedCounter" style="plainText">
+  </ui>
+</object>
+<object name="cpCaptivePortalIntfCapabilityPacketsReceivedCounter" depends="cpCaptivePortalIntfIfIndex" >
+  <core type="string" access="read-only" descr="Interface capability field: packetsReceivedCounter."/>
+  <ui name="cpCaptivePortalIntfCapabilityPacketsReceivedCounter" style="plainText">
+  </ui>
+</object>
+<object name="cpCaptivePortalIntfCapabilityPacketsTransmittedCounter" depends="cpCaptivePortalIntfIfIndex" >
+  <core type="string" access="read-only" descr="Interface capability field: packetsTransmittedCounter."/>
+  <ui name="cpCaptivePortalIntfCapabilityPacketsTransmittedCounter" style="plainText">
+  </ui>
+</object>
+<object name="cpCaptivePortalIntfCapabilityRoamingSupport" depends="cpCaptivePortalIntfIfIndex" >
+  <core type="string" access="read-only" descr="Interface capability field: roamingSupport."/>
+  <ui name="cpCaptivePortalIntfCapabilityRoamingSupport" style="plainText">
+  </ui>
+</object>
+<object name="cpCaptivePortalIntfCapabilityDescription" depends="cpCaptivePortalIntfIfIndex" >
+  <core type="string" access="read-only" descr="Interface Capabilty field Description."/>
+  <ui name="cpCaptivePortalIntfCapabilityDescription" style="plainText">
+  </ui>
+</object>
+</module>
+
+<!-- cpCaptivePortalClientStatusTable -->
+<module name="cpCaptivePortalClientStatusTable" >
+<object name="cpCaptivePortalClientMacAddress" >
+  <core type="mac" access="read-write" descr="The MAC address of the workstation from which the client is authenticated." key="yes"/>
+  <ui name="cpCaptivePortalClientMacAddress" style="plainText">
+    <snmp name="cpCaptivePortalClientMacAddress" asn-id=".1.3.6.1.4.1.4413.1.1.38.2.5.1.1.1"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalClientIpAddress" depends="cpCaptivePortalClientMacAddress" >
+  <core type="ipv4" access="read-only" descr="The IP address of the workstation from which the client is authenticated."/>
+  <ui name="cpCaptivePortalClientIpAddress" style="plainText">
+    <snmp name="cpCaptivePortalClientIpAddress" asn-id=".1.3.6.1.4.1.4413.1.1.38.2.5.1.1.2"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalClientUserName" depends="cpCaptivePortalClientMacAddress" >
+  <core type="string" access="read-only" descr="User name (or Guest ID) of the connected client."/>
+  <ui name="cpCaptivePortalClientUserName" style="plainText">
+    <snmp name="cpCaptivePortalClientUserName" asn-id=".1.3.6.1.4.1.4413.1.1.38.2.5.1.1.3"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalConfigName" depends="cpCaptivePortalClientCPID" >
+  <core type="string" access="read-only" descr="Configuration name associated with given ID."/>
+  <ui name="cpCaptivePortalConfigName" style="plainText">
+  </ui>
+</object>
+<object name="cpCaptivePortalClientProtocolMode" depends="cpCaptivePortalClientMacAddress" >
+  <core type="enum" xtype="L7_LOGIN_TYPE_t" access="read-only" descr="Protocol mode used for the client authentication."/>
+  <ui name="cpCaptivePortalClientProtocolMode" style="plainText">
+    <snmp name="cpCaptivePortalClientProtocolMode" asn-id=".1.3.6.1.4.1.4413.1.1.38.2.5.1.1.4"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalClientVerificationMode" depends="cpCaptivePortalClientMacAddress" >
+  <core type="enum" xtype="CP_VERIFY_MODE_t" access="read-only" descr="Type of user verification performed for the client authentication."/>
+  <ui name="cpCaptivePortalClientVerificationMode" style="plainText">
+    <snmp name="cpCaptivePortalClientVerificationMode" asn-id=".1.3.6.1.4.1.4413.1.1.38.2.5.1.1.5"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalClientAssocIfIndex" depends="cpCaptivePortalClientMacAddress" >
+  <core type="user" xtype="usp_t" access="read-only" descr="The interface on which the client was authenticated."/>
+  <ui name="cpCaptivePortalClientAssocIfIndex" style="plainText">
+    <snmp name="cpCaptivePortalClientAssocIfIndex" asn-id=".1.3.6.1.4.1.4413.1.1.38.2.5.1.1.6"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalClientCPID" depends="cpCaptivePortalClientMacAddress" >
+  <core type="uint" access="read-only" descr="The captive portal instance on which the client was authenticated." key="yes"/>
+  <ui name="cpCaptivePortalClientCPID" style="plainText">
+    <snmp name="cpCaptivePortalClientCPID" asn-id=".1.3.6.1.4.1.4413.1.1.38.2.5.1.1.7"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalClientSessionTime" depends="cpCaptivePortalClientMacAddress" >
+  <core type="uint" access="read-only" descr="The time (in seconds) since the client was authenticated."/>
+  <ui name="cpCaptivePortalClientSessionTime" style="plainText">
+    <snmp name="cpCaptivePortalClientSessionTime" asn-id=".1.3.6.1.4.1.4413.1.1.38.2.5.1.1.8"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalClientSwitchMacAddress" depends="cpCaptivePortalClientMacAddress" >
+  <core type="mac" access="read-only" descr="The MAC address of the switch to which the client is authenticated."/>
+  <ui name="cpCaptivePortalClientSwitchMacAddress" style="plainText">
+    <snmp name="cpCaptivePortalClientSwitchMacAddress" asn-id=".1.3.6.1.4.1.4413.1.1.38.2.5.1.1.9"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalClientSwitchIpAddress" depends="cpCaptivePortalClientMacAddress" >
+  <core type="ipv4" access="read-only" descr="The IP address of the switch to which the client is authenticated."/>
+  <ui name="cpCaptivePortalClientSwitchIpAddress" style="plainText">
+    <snmp name="cpCaptivePortalClientSwitchIpAddress" asn-id=".1.3.6.1.4.1.4413.1.1.38.2.5.1.1.10"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalClientSwitchType" depends="cpCaptivePortalClientMacAddress" >
+  <core type="enum" xtype="cpdmAuthWhichSwitch_t" access="read-only" descr="The switch (peer or local) to which the client is authenticated."/>
+  <ui name="cpCaptivePortalClientSwitchType" style="plainText">
+    <snmp name="cpCaptivePortalClientSwitchType" asn-id=".1.3.6.1.4.1.4413.1.1.38.2.5.1.1.11"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalClientDeauthAction" depends="cpCaptivePortalClientMacAddress" >
+  <core type="enum" xtype="L7_XUI_MANUAL_ACTION_t" access="read-write" descr="This is an action object. Setting this object to start will initiate the deauthentication of authenticated client. Read on this object will always return none."/>
+  <ui name="cpCaptivePortalClientDeauthAction" style="plainText">
+    <snmp name="cpCaptivePortalClientDeauthAction" asn-id=".1.3.6.1.4.1.4413.1.1.38.2.5.1.1.12"/>
+  </ui>
+</object>
+<!--
+<object name="cpCaptivePortalClientAuthFailureConnectionAttempts" depends="cpCaptivePortalClientMacAddress" >
+  <core type="uint" access="read-only" descr="The captive portal authentication failure count."/>
+  <ui name="cpCaptivePortalClientAuthFailureConnectionAttempts" style="plainText">
+    <snmp name="cpCaptivePortalClientAuthFailureConnectionAttempts" asn-id=".1.3.6.1.4.1.4413.1.1.38.2.5.1.1.13"/>
+  </ui>
+</object>
+-->
+<object name="cpCaptivePortalClientConnStatusDeleteAll" >
+  <core type="uint" access="write-only" descr="Delete all current connections."/>
+  <ui name="cpCaptivePortalClientConnStatusDeleteAll" style="plainText">
+  </ui>
+</object>
+</module>
+
+<!-- cpCaptivePortalClientStatisticsTable -->
+<module name="cpCaptivePortalClientStatisticsTable" >
+<object name="cpCaptivePortalClientMacAddress" >
+  <core type="mac" access="read-write" descr="The MAC address of the workstation from which the client is authenticated." key="yes"/>
+  <ui name="cpCaptivePortalClientMacAddress" style="plainText">
+    <snmp name="cpCaptivePortalClientMacAddress" asn-id=".1.3.6.1.4.1.4413.1.1.38.2.5.1.1.1"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalClientBytesReceived" depends="cpCaptivePortalClientMacAddress" >
+  <core type="uint" access="read-only" descr="Number of bytes received by this client."/>
+  <ui name="cpCaptivePortalClientBytesReceived" style="plainText">
+    <snmp name="cpCaptivePortalClientBytesReceived" asn-id=".1.3.6.1.4.1.4413.1.1.38.2.5.2.1.1"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalClientBytesTransmitted" depends="cpCaptivePortalClientMacAddress" >
+  <core type="uint" access="read-only" descr="Number of bytes transmitted by this client."/>
+  <ui name="cpCaptivePortalClientBytesTransmitted" style="plainText">
+    <snmp name="cpCaptivePortalClientBytesTransmitted" asn-id=".1.3.6.1.4.1.4413.1.1.38.2.5.2.1.2"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalClientPacketsReceived" depends="cpCaptivePortalClientMacAddress" >
+  <core type="uint" access="read-only" descr="Number of packets received by this client."/>
+  <ui name="cpCaptivePortalClientPacketsReceived" style="plainText">
+    <snmp name="cpCaptivePortalClientPacketsReceived" asn-id=".1.3.6.1.4.1.4413.1.1.38.2.5.2.1.3"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalClientPacketsTransmitted" depends="cpCaptivePortalClientMacAddress" >
+  <core type="uint" access="read-only" descr="Number of packets transmitted by this client."/>
+  <ui name="cpCaptivePortalClientPacketsTransmitted" style="plainText">
+    <snmp name="cpCaptivePortalClientPacketsTransmitted" asn-id=".1.3.6.1.4.1.4413.1.1.38.2.5.2.1.4"/>
+  </ui>
+</object>
+</module>
+
+<!-- cpCaptivePortalIntfClientAssocTable -->
+<module name="cpCaptivePortalIntfClientAssocTable" >
+<key-combo list="cpCaptivePortalIntfClientIfIndex,cpCaptivePortalIntfClientAssocMacAddress"/>
+<object name="cpCaptivePortalIntfClientIfIndex" >
+  <core type="user" xtype="usp_t" access="read-write" descr="The interface on which the client was authenticated." key="yes"/>
+  <ui name="cpCaptivePortalIntfClientIfIndex" style="plainText">
+    <snmp name="cpCaptivePortalIntfClientIfIndex" asn-id=".1.3.6.1.4.1.4413.1.1.38.2.6.1.1.1"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalIntfClientAssocMacAddress" >
+  <core type="mac" access="read-write" descr="The MAC address of the workstation from which the client is authenticated." key="yes"/>
+  <ui name="cpCaptivePortalIntfClientAssocMacAddress" style="plainText">
+    <snmp name="cpCaptivePortalIntfClientAssocMacAddress" asn-id=".1.3.6.1.4.1.4413.1.1.38.2.6.1.1.2"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalIntfClientAssocRowStatus" depends="cpCaptivePortalIntfClientIfIndex,cpCaptivePortalIntfClientAssocMacAddress" >
+ <core type="row-status" xtype="L7_ROW_STATUS_t" access="read-only" descr="This specifies the row-status of this entry. For a valid entry,the row-status will return active(1). This is the only supported value."/>
+  <ui name="cpCaptivePortalIntfClientAssocRowStatus" style="plainText">
+    <snmp name="cpCaptivePortalIntfClientAssocRowStatus" asn-id=".1.3.6.1.4.1.4413.1.1.38.2.6.1.1.3"/>
+  </ui>
+</object>
+</module>
+
+<!-- cpCaptivePortalInstanceClientAssocTable -->
+<module name="cpCaptivePortalInstanceClientAssocTable" >
+<key-combo list="cpCaptivePortalInstanceClientAssocInstanceId,cpCaptivePortalInstanceClientAssocMacAddress"/>        
+<object name="cpCaptivePortalInstanceClientAssocInstanceId" >
+  <core type="uint" access="read-write" descr="The instance ID associated with this client." key="yes"/>
+  <ui name="cpCaptivePortalInstanceClientAssocInstanceId" style="plainText">
+    <snmp name="cpCaptivePortalInstanceClientAssocInstanceId" asn-id=".1.3.6.1.4.1.4413.1.1.38.2.7.1.1.1"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalInstanceClientAssocMacAddress" >
+  <core type="mac" access="read-write" descr="The MAC address of the workstation from which the client is authenticated." key="yes"/>
+  <ui name="cpCaptivePortalInstanceClientAssocMacAddress" style="plainText">
+    <snmp name="cpCaptivePortalInstanceClientAssocMacAddress" asn-id=".1.3.6.1.4.1.4413.1.1.38.2.7.1.1.2"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalInstanceClientAssocRowStatus" depends="cpCaptivePortalInstanceClientAssocInstanceId,cpCaptivePortalInstanceClientAssocMacAddress" >
+  <core type="row-status" xtype="L7_ROW_STATUS_t" access="read-only" descr="This specifies the row-status of this entry. For a valid entry,the row-status will return active(1). This is the only supported value."/>
+  <ui name="cpCaptivePortalInstanceClientAssocRowStatus" style="plainText">
+    <snmp name="cpCaptivePortalInstanceClientAssocRowStatus" asn-id=".1.3.6.1.4.1.4413.1.1.38.2.7.1.1.3"/>
+  </ui>
+</object>
+</module>
+
+<!-- cpCaptivePortalConfigWeb -->
+<module name="cpCaptivePortalConfigWeb" >
+<object name="cpCaptivePortalInstanceId" >
+  <core type="uint" access="read-write" descr="The identifier associated with this instance of captive portal." key="yes"/>
+  <ui name="cpCaptivePortalInstanceId" style="plainText">
+    <snmp name="cpCaptivePortalInstanceId" asn-id=".1.3.6.1.4.1.4413.1.1.38.1.2.1.1.1"/>
+  </ui>
+</object>
+<object name="cpCaptivePortalWebId" depends="cpCaptivePortalInstanceId" >
+  <core type="uint" access="read-write" descr="Captive Portal Config Web ID." key="yes"/>
+  <ui name="cpCaptivePortalWebId" style="plainText">
+  </ui>
+</object>
+
+<object name="cpCaptivePortalConfigWebClear" depends="cpCaptivePortalInstanceId" >
+  <core type="uint" access="write-only" descr="Restore the configuration to default"/>
+  <ui name="Restore to default" style="plainText">
+  </ui>
+</object>
+
+<object name="cpCaptivePortalConfigWebBackgroundColor" depends="cpCaptivePortalInstanceId" >
+  <core type="string" access="read-write" descr="CP config Background color."/>
+  <ui name="cpCaptivePortalConfigWebBackgroundColor" style="plainText">
+  </ui>
+</object>
+<object name="cpCaptivePortalConfigWebForegroundColor" depends="cpCaptivePortalInstanceId" >
+  <core type="string" access="read-write" descr="CP config Foreground color."/>
+  <ui name="cpCaptivePortalConfigWebForegroundColor" style="plainText">
+  </ui>
+</object>
+<object name="cpCaptivePortalConfigWebSeparatorColor" depends="cpCaptivePortalInstanceId" >
+  <core type="string" access="read-write" descr="CP config Separator color."/>
+  <ui name="cpCaptivePortalConfigWebSeparatorColor" style="plainText">
+  </ui>
+</object>
+<object name="cpCaptivePortalConfigWebAcceptText" depends="cpCaptivePortalInstanceId,cpCaptivePortalWebId" >
+  <core type="user" xtype="cp_hex_str_t" access="read-write" descr="CP Web accept text."/>
+  <ui name="cpCaptivePortalConfigWebAcceptText" style="plainText">
+  </ui>
+</object>
+<object name="cpCaptivePortalConfigWebAccountImageName" depends="cpCaptivePortalInstanceId,cpCaptivePortalWebId" >
+  <core type="string" access="read-write" properties="dynamic" descr="CP Web account image name for this configuration. This does not include any directory specification."/>
+  <ui name="cpCaptivePortalConfigWebAccountImageName" style="plainText">
+  </ui>
+</object>
+
+<object name="cpCaptivePortalConfigWebAllImages"  >
+  <core type="string" properties="key" access="read-write" descr="CP Web account image name for this configuration. This does not include any directory specification."/>
+  <ui name="cpCaptivePortalConfigWebAllImages" style="plainText">
+  </ui>
+</object>
+
+<object name="cpCaptivePortalDeleteImage" depends="cpCaptivePortalConfigWebAllImages" >
+  <core type="enum" xtype="enable_t" access="write-only" descr="Delete the downloaded image"/>
+  <ui name="cpCaptivePortalDeleteImage" style="plainText">
+  </ui>
+</object>
+
+<object name="cpCaptivePortalConfigWebAccountLabel" depends="cpCaptivePortalInstanceId,cpCaptivePortalWebId" >
+  <core type="user" xtype="cp_hex_str_t" access="read-write" descr="CP Web account label."/>
+  <ui name="cpCaptivePortalConfigWebAccountLabel" style="plainText">
+  </ui>
+</object>
+<object name="cpCaptivePortalConfigWebWebAUPText" depends="cpCaptivePortalInstanceId,cpCaptivePortalWebId" >
+  <core type="user" xtype="cp_hex_str_t" access="read-write" descr="CP Web acceptance use policy."/>
+  <ui name="cpCaptivePortalConfigWebWebAUPText" style="plainText">
+  </ui>
+</object>
+<object name="cpCaptivePortalConfigWebWebBrandingImageName" depends="cpCaptivePortalInstanceId,cpCaptivePortalWebId" >
+  <core type="string" access="read-write" properties="dynamic" descr="CP Web branding image name for the given configuration."/>
+  <ui name="cpCaptivePortalConfigWebWebBrandingImageName" style="plainText">
+  </ui>
+</object>
+<object name="cpCaptivePortalConfigWebWebBrowserTitleText" depends="cpCaptivePortalInstanceId,cpCaptivePortalWebId" >
+  <core type="user" xtype="cp_hex_str_t" access="read-write" descr="CP Web browser title text."/>
+  <ui name="cpCaptivePortalConfigWebWebBrowserTitleText" style="plainText">
+  </ui>
+</object>
+<object name="cpCaptivePortalConfigWebButtonLabel" depends="cpCaptivePortalInstanceId,cpCaptivePortalWebId" >
+  <core type="user" xtype="cp_hex_str_t" access="read-write" descr="CP Web submit button label."/>
+  <ui name="cpCaptivePortalConfigWebButtonLabel" style="plainText">
+  </ui>
+</object>
+<object name="cpCaptivePortalConfigWebDeniedMsgText" depends="cpCaptivePortalInstanceId,cpCaptivePortalWebId" >
+  <core type="user" xtype="cp_hex_str_t" access="read-write" descr="CP Web message text for a denied failure."/>
+  <ui name="cpCaptivePortalConfigWebDeniedMsgText" style="plainText">
+  </ui>
+</object>
+<object name="cpCaptivePortalConfigWebFontList" depends="cpCaptivePortalInstanceId,cpCaptivePortalWebId" >
+  <core type="string" access="read-write" descr="CP font list."/>
+  <ui name="cpCaptivePortalConfigWebFontList" style="plainText">
+  </ui>
+</object>
+<object name="cpCaptivePortalConfigWebInstructionalText" depends="cpCaptivePortalInstanceId,cpCaptivePortalWebId" >
+  <core type="user" xtype="cp_hex_str_t" access="read-write" descr="CP Web instructional text used to describe the intent and operations of the verification page."/>
+  <ui name="cpCaptivePortalConfigWebInstructionalText" style="plainText">
+  </ui>
+</object>
+<object name="cpCaptivePortalConfigWebNoAcceptMsgText" depends="cpCaptivePortalInstanceId,cpCaptivePortalWebId" >
+  <core type="user" xtype="cp_hex_str_t" access="read-write" descr="CP Web message text for no accept failure. This is error text to display when the user attempts to connect but did not check/acknowledge the AUP."/>
+  <ui name="cpCaptivePortalConfigWebNoAcceptMsgText" style="plainText">
+  </ui>
+</object>
+<object name="cpCaptivePortalConfigWebPasswordLabel" depends="cpCaptivePortalInstanceId,cpCaptivePortalWebId" >
+  <core type="user" xtype="cp_hex_str_t" access="read-write" descr="CP Web password label."/>
+  <ui name="cpCaptivePortalConfigWebPasswordLabel" style="plainText">
+  </ui>
+</object>
+<object name="cpCaptivePortalConfigWebResourceMsgText" depends="cpCaptivePortalInstanceId,cpCaptivePortalWebId" >
+  <core type="user" xtype="cp_hex_str_t" access="read-write" descr="CP Web message text for a resource failure. This is error text to display when the user attempts to connect but the system has resource problems. This could be such that the CP connection limit has been reached. But this message should be a generic resource failure message."/>
+  <ui name="cpCaptivePortalConfigWebResourceMsgText" style="plainText">
+  </ui>
+</object>
+<object name="cpCaptivePortalConfigWebTimeoutMsgText" depends="cpCaptivePortalInstanceId,cpCaptivePortalWebId" >
+  <core type="user" xtype="cp_hex_str_t" access="read-write" descr="CP Web message text for a timeout failure. This is error text to display when the user attempts to connect but the connnection has timed out. This could be such that the CP connection time has been reached. Maybe the RADIUS sever is busy. But this message should be a generic timeout failure message."/>
+  <ui name="cpCaptivePortalConfigWebTimeoutMsgText" style="plainText">
+  </ui>
+</object>
+<object name="cpCaptivePortalConfigWebTitleText" depends="cpCaptivePortalInstanceId,cpCaptivePortalWebId" >
+  <core type="user" xtype="cp_hex_str_t" access="read-write" descr="CP Web title text used to greet the user."/>
+  <ui name="cpCaptivePortalConfigWebTitleText" style="plainText">
+  </ui>
+</object>
+<object name="cpCaptivePortalConfigWebUserLabel" depends="cpCaptivePortalInstanceId,cpCaptivePortalWebId" >
+  <core type="user" xtype="cp_hex_str_t" access="read-write" descr="CP Web user (uid) label."/>
+  <ui name="cpCaptivePortalConfigWebUserLabel" style="plainText">
+  </ui>
+</object>
+<object name="cpCaptivePortalConfigWebWelcomeText" depends="cpCaptivePortalInstanceId,cpCaptivePortalWebId" >
+  <core type="user" xtype="cp_hex_str_t" access="read-write" descr="CP Web message text for the welcome page. This is the general text used to notify that the user has successfully connected in the network."/>
+  <ui name="cpCaptivePortalConfigWebWelcomeText" style="plainText">
+  </ui>
+</object>
+<object name="cpCaptivePortalConfigWebWelcomeTitleText" depends="cpCaptivePortalInstanceId,cpCaptivePortalWebId" >
+  <core type="user" xtype="cp_hex_str_t" access="read-write" descr="CP Web message title text for the welcome page. This is the title text used in the welcome page once the user is connected. The welcome page is optional."/>
+  <ui name="cpCaptivePortalConfigWebWelcomeTitleText" style="plainText">
+  </ui>
+</object>
+<object name="cpCaptivePortalConfigWebWipMsgText" depends="cpCaptivePortalInstanceId,cpCaptivePortalWebId" >
+  <core type="user" xtype="cp_hex_str_t" access="read-write" descr="CP Web message text for WIP. This text is used to indicate to the user work-in-progress (wip) status."/>
+  <ui name="cpCaptivePortalConfigWebWipMsgText" style="plainText">
+  </ui>
+</object>
+</module>
+
+<!-- cpTrapsConfig -->
+<module name="cpTrapsConfig" >
+<object name="cpTrapMode" >
+  <core type="enum" xtype="enable_t" default="L7_DISABLE" access="read-write" descr="Flag to enable/disable following Captive Portal SNMP traps: Client Authentication Failures, Client Connections, Client Database Full, Client Disconnections."/>
+  <ui name="cpTrapMode" style="plainText">
+    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.38.3.1"/>
+  </ui>
+</object>
+<object name="cpClientAuthenticationFailureTrapMode" >
+  <core type="enum" xtype="enable_t" default="FD_CP_DEFAULT_TRAP_AUTH_FAILURE" access="read-write" descr="Flag to enable/disable client authentication failure SNMP traps."/>
+  <ui name="cpClientAuthenticationFailureTrapMode" style="plainText">
+    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.38.3.2"/>
+  </ui>
+</object>
+<object name="cpClientConnectTrapMode" >
+  <core type="enum" xtype="enable_t" default="FD_CP_DEFAULT_TRAP_CLIENT_CONNECTED" access="read-write" descr="Flag to enable/disable client connection SNMP traps."/>
+  <ui name="cpClientConnectTrapMode" style="plainText">
+    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.38.3.3"/>
+  </ui>
+</object>
+<object name="cpClientDatabaseFullTrapMode" >
+  <core type="enum" xtype="enable_t" default="FD_CP_DEFAULT_TRAP_CONNECTION_DB_FULL" access="read-write" descr="Flag to enable/disable client database full SNMP traps."/>
+  <ui name="cpClientDatabaseFullTrapMode" style="plainText">
+    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.38.3.4"/>
+  </ui>
+</object>
+<object name="cpClientDisconnectTrapMode" >
+  <core type="enum" xtype="enable_t" default="FD_CP_DEFAULT_TRAP_CLIENT_DISCONNECTED" access="read-write" descr="Flag to enable/disable client disconnection SNMP traps."/>
+  <ui name="cpClientDisconnectTrapMode" style="plainText">
+    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.38.3.5"/>
+  </ui>
+</object>
+</module>
+</objectxml>
+</FastPathXML>
+
+

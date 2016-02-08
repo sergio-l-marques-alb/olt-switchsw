@@ -1,0 +1,194 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="cpConfig" title="Configuration">
+        <group id="1" heading=" " level="ReadWriteUser">
+            <node id="1">
+               <element control="combo" properties="iterate,hidden" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalInstanceId" id="1" name="CP Config Instance ID"/>
+            </node>
+            <node id="2">
+                <element control="combo" properties="filter,iterate" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalConfigName" id="1" name="Configuration Name"/>
+            </node>
+            <node id="3">
+               <element control="combo" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalAdminMode" id="1" name="Captive Portal">
+                   <action type="enum" discard="yes"/>
+                   <action type="enum"/>
+                   <action type="enum" discard="yes"/>
+                   <action type="enum"/>
+               </element>
+            </node>
+            <node id="4">
+               <element control="label" obj-name="xLibObjects_dummy" id="1" name="Protocol Mode"/>
+               <element control="radio" properties="noname" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalProtocolMode" id="2">
+                   <action type="enum" discard="yes"/>
+                   <action type="enum" discard="yes"/>
+                   <action type="enum" discard="yes"/>
+                   <action type="enum" discard="yes"/>
+                   <action type="enum" discard="no"/>
+                   <action type="enum" discard="no"/>
+                   <action type="enum" discard="yes"/>
+               </element>
+            </node>
+            <node id="5">
+               <element control="label" obj-name="xLibObjects_dummy" id="1" name="Verification Mode"/>
+               <element control="radio" properties="noname" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalVerificationMode" id="2">
+                   <action type="enum" disable="1_8|1_9|1_10|1_11|1_12|1_13" />
+                   <action type="enum" enable="1_11|1_12|1_13" disable="1_8|1_9|1_10"/>
+                   <action type="enum" enable="1_8|1_9|1_10|1_11|1_12|1_13"/>
+               </element>
+            </node>
+            <node id="6">
+               <element control="checkbox" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalURLRedirectMode" id="1" name="Enable Redirect Mode">
+                   <action type="enum" enable="1_7"/>
+                   <action type="enum" disable="1_7"/>
+               </element>
+            </node>
+            <node id="7">
+               <element control="textbox" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalRedirectURL" id="1" name="Redirect URL"/>
+            </node>
+            <node id="8">
+               <element properties="iterate,hidden" obj-name="securityRadius_RadiusServerIndex" id="1"/>
+            </node>
+            <node id="9">
+               <element control="combo" obj-name="securityRadius_RadiusServerName" id="1" name="RADIUS Auth Server"/>
+            </node>
+            <node id="10">
+               <element properties="hidden" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalRadiusAuthServer" id="1"/>
+            </node>
+            <node id="11">
+               <element properties="iterate,hidden" obj-name="captiveportalcpLocalUserGroupTable_cpLocalUserGroupIndex" id="1" name="User Group Index"/>
+            </node>
+            <node id="12">
+               <element control="combo" properties="filter" obj-name="captiveportalcpLocalUserGroupTable_cpLocalUserGroupName" id="1" name="User Group"/>
+            </node>
+            <node id="13">
+               <element properties="hidden" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalUserGroup" cpval="captiveportalcpLocalUserGroupTable_cpLocalUserGroupIndex" id="1"/>
+            </node>
+            <node id="14">
+               <element control="textbox" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalIdleTimeout" id="1" arghelp="HELP_FORMAT_FP_UNITS_SECONDS" name="Idle Timeout(secs)"/>
+            </node>
+            <node id="15">
+               <element control="textbox" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalSessionTimeout" id="1" arghelp="HELP_FORMAT_FP_UNITS_SECONDS" name="Session Timeout(secs)"/>
+            </node>
+            <node id="16">
+               <element control="textbox" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalMaxBandwidthUp" id="1" arghelp="HELP_FORMAT_FP_BYTES_PER_SECOND" name="Max Up Rate"/>
+            </node>
+            <node id="17">
+               <element control="textbox" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalMaxBandwidthDown" id="1" arghelp="HELP_FORMAT_FP_BYTES_PER_SECOND" name="Max Down Rate"/>
+            </node>
+            <node id="18">
+               <element control="textbox" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalMaxInputOctets" id="1" arghelp="HELP_FORMAT_FP_BYTES" name="Max Receive"/>
+            </node>
+            <node id="19">
+               <element control="textbox" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalMaxOutputOctets" id="1" arghelp="HELP_FORMAT_FP_BYTES" name="Max Transmit"/>
+            </node>
+            <node id="20">
+               <element control="textbox" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalMaxTotalOctets" id="1" arghelp="HELP_FORMAT_FP_BYTES" name="Max Total"/>
+            </node>
+            <node id="21" >
+               <button scope="page" type="buttonSubmit" value="Delete" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalRowStatus" help="Submits the form on this page to the Switch" id="1" name="Delete">
+                   <action type="button" disable="1_1_3|1_1_4|1_1_5|1_1_6|1_1_7|1_1_8|1_1_9|1_1_10|1_1_11|1_1_12|1_1_13|1_1_14|1_1_15|1_1_16|1_1_17|1_1_18|1_1_19|1_1_20|1_21_2|1_21_3"/> 
+               </button>
+               <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="2" name="Submit">
+                   <action type="button" disable="1_25_1|1_25_3"/> 
+               </button>
+               <button scope="page" level="ReadWriteUser" target-page="cpConfigAdd.html" type="buttonClear" help="opens CP config add page" id="3" name="Add">
+                   <action type="button" disable="1_1_3|1_1_4|1_1_5|1_1_6|1_1_7|1_1_8|1_1_9|1_1_10|1_1_11|1_1_12|1_1_13|1_1_14|1_1_15|1_1_16|1_1_17|1_1_18|1_1_19|1_1_20|1_21_1|1_21_2"/> 
+               </button>
+               <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="4" name="Refresh"/> 
+            </node>
+        </group>
+
+        <group id="2" heading=" " level="ReadOnlyUser">
+            <node id="1">
+               <element control="combo" properties="iterate,hidden" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalInstanceId" id="1" name="CP Config Instance ID"/>
+            </node>
+            <node id="2">
+                <element control="combo" properties="filter,iterate" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalConfigName" id="1" name="Configuration Name"/>
+            </node>
+            <node id="3">
+               <element control="label" properties="read-only" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalAdminMode" id="1" name="Captive Portal">
+                   <action type="enum" discard="yes"/>
+                   <action type="enum"/>
+                   <action type="enum" discard="yes"/>
+                   <action type="enum"/>
+               </element>
+            </node>
+            <node id="4">
+               <element control="label" properties="read-only" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalProtocolMode" id="1" name="Protocol Mode"/>
+               <!--<element control="label" properties="read-only" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalProtocolMode" id="2" name="Protocol Mode">
+                   <action type="enum" discard="yes"/>
+                   <action type="enum" discard="yes"/>
+                   <action type="enum" discard="yes"/>
+                   <action type="enum" discard="yes"/>
+                   <action type="enum" discard="no" web_name="HTTP"/>
+                   <action type="enum" discard="no" web_name="HTTPS"/>
+                   <action type="enum" discard="yes"/>
+               </element>-->
+            </node>
+            <node id="5">
+               <element control="label" properties="read-only" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalVerificationMode" id="1" name="Verification Mode"/>
+               <!-- <element control="label" properties="read-only" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalVerificationMode" id="2" name="Verification Mode">
+                   <action type="enum" disable="2_8|2_9|2_10|2_11|2_12|2_13" web_name="Guest"/>
+                   <action type="enum" enable="2_11|2_12|2_13" disable="2_8|2_9|2_10" web_name="Local"/>
+                   <action type="enum" enable="2_8|2_9|2_10|2_11|2_12|2_13" web_name="RADIUS"/>
+               </element>-->
+            </node>
+            <node id="6">
+               <element control="label" properties="read-only" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalURLRedirectMode" id="1" name="Enable Redirect Mode">
+                   <action type="enum" enable="2_7"/>
+                   <action type="enum" disable="2_7"/>
+               </element>
+            </node>
+            <node id="7">
+               <element control="label" properties="read-only" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalRedirectURL" id="1" name="Redirect URL"/>
+            </node>
+            <node id="8">
+               <element properties="iterate,hidden" obj-name="securityRadius_RadiusServerIndex" id="1"/>
+            </node>
+            <node id="9">
+               <element control="label" properties="read-only" obj-name="securityRadius_RadiusServerName" id="1" name="RADIUS Auth Server"/>
+            </node>
+            <node id="10">
+               <element properties="hidden" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalRadiusAuthServer" id="1"/>
+            </node>
+            <node id="11">
+               <element properties="iterate,hidden" obj-name="captiveportalcpLocalUserGroupTable_cpLocalUserGroupIndex" id="1" name="User Group Index"/>
+            </node>
+            <node id="12">
+               <element control="label" properties="read-only" obj-name="captiveportalcpLocalUserGroupTable_cpLocalUserGroupName" id="1" name="User Group"/>
+            </node>
+            <node id="13">
+               <element properties="hidden" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalUserGroup" cpval="captiveportalcpLocalUserGroupTable_cpLocalUserGroupIndex" id="1"/>
+            </node>
+            <node id="14">
+               <element control="label" properties="read-only" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalIdleTimeout" id="1" name="Idle Timeout(secs)"/>
+            </node>
+            <node id="15">
+               <element control="label" properties="read-only" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalSessionTimeout" id="1" name="Session Timeout(secs)"/>
+            </node>
+            <node id="16">
+               <element control="label" properties="read-only" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalMaxBandwidthUp" id="1" name="Max Up Rate"/>
+            </node>
+            <node id="17">
+               <element control="label" properties="read-only" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalMaxBandwidthDown" id="1" name="Max Down Rate"/>
+            </node>
+            <node id="18">
+               <element control="label" properties="read-only" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalMaxInputOctets" id="1" name="Max Receive"/>
+            </node>
+            <node id="19">
+               <element control="label" properties="read-only" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalMaxOutputOctets" id="1" name="Max Transmit"/>
+            </node>
+            <node id="20">
+               <element control="label" properties="read-only" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalMaxTotalOctets" id="1" name="Max Total"/>
+            </node>
+            <node id="21" >
+               <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/> 
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>
+

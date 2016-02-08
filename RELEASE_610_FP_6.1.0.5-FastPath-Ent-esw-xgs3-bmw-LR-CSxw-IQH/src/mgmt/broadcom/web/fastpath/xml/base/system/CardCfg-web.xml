@@ -1,0 +1,47 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="CardCfg" title="Slot Card Configuration">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="baseSlotInfo_UnitNumber" id="1" name="Unit"/>
+            </node>
+            <node id="2">
+                <element control="combo" properties="filter,iterate" obj-name="baseSlotInfo_SlotIndex" id="1" name="Slot"/>
+            </node>
+            <node id="3">
+                <element obj-name="baseSlotInfo_SlotStatus" id="1" name="Slot Status"/>
+            </node>
+            <node id="4">
+                <element obj-name="baseSlotInfo_SlotAdminMode" id="1" name="Admin State"/>
+            </node>
+            <node id="5">
+                <element obj-name="baseSlotInfo_SlotPowerMode" id="1" name=" Power State"/>
+            </node>
+            <node id="6">
+                <element obj-name="baseSlotInfo_InsertedCardModel" id="1" name="Inserted Card Model"/>
+            </node>
+            <node id="7">
+                <element obj-name="baseSlotInfo_InsertedCardDescription" id="1" name="Inserted Card Description"/>
+            </node>
+            <node id="8">
+                <element obj-name="baseSlotInfo_ConfiguredCardModel" id="1" name="Configured Card Model"/>
+            </node>
+            <node id="9">
+                <element obj-name="baseSlotInfo_ConfiguredCardDescription" id="1" name="Configured Card Description"/>
+            </node>
+            <node id="10">
+                <element obj-name="baseSlotInfo_SlotCapabilities" id="1" name="Pluggable"/>
+            </node>
+            <node id="11">
+                <element obj-name="baseSlotInfo_SlotPowerDown" id="1" name="Power Down"/>
+            </node>
+            <node id="12">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="3" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

@@ -1,0 +1,12 @@
+<?xml version='1.0'?>
+
+<!DOCTYPE FastPathXML SYSTEM  "misc.dtd" >
+
+<FastPathXML>
+    <misc version="1.0">
+       <feature name="L7_ROUTING_PACKAGE" YesOrNo="yes" />
+       <feature name="L7_RIP_PACKAGE" YesOrNo="yes" />
+       <feature name="L7_MACRO_ONE" YesOrNo="yes" />
+       <feature name="L7_MACRO_TWO" YesOrNo="yes" /> 
+    </misc>
+</FastPathXML>

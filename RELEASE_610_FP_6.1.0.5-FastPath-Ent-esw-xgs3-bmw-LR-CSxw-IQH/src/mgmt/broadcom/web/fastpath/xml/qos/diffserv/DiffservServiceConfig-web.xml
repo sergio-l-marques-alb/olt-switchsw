@@ -1,0 +1,94 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="ServiceConfiguration" title="DiffServ Service Configuration" java-script="DiffservConfigButtons">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="qosDiffServService_IfIndex" id="1" >
+                    <action type="default" enable="1_5_1|1_6_1|1_8_1" disable="1_3_1|1_7_1|1_9_1|1_10_1|1_11_1|1_13|1_15_1" show="1_5_1" hide="1_3_1|1_13|1_15_1"/>
+                    <action type="extn" position="0" value="All" enable="1_3_1|1_10_1|1_13" disable="1_5_1|1_6_1|1_7_1|1_8_1|1_9_1|1_11_1|1_15_1" show="1_3_1|1_13" hide="1_5_1|1_15_1" setval_ids="1_3_1" setval_args="QOS_DIFFSERV_DIRECTION_IN"/>
+
+                </element>
+            </node>
+            <node id="2">
+                    <!--<element control="combo" properties="hidden" value="In" obj-name="qosDiffServService_IfDirection" id="1" name="IfDirection"/>-->
+                    <element control="combo" properties="hidden" obj-name="qosDiffServService_IfDirection" id="1" name="IfDirection"/>
+            </node>
+            <node id="3">
+                <element control="combo" obj-name="qosDiffServService_GlobalDirection" id="1" name="Direction">
+                        <action type="enum" enable="1_4_1" disable="1_14_1" show="1_4_1" hide="1_14_1"/>
+                        <action type="enum" enable="1_14_1" disable="1_4_1|1_5_1" show="1_14_1" hide="1_4_1|1_5_1"/>
+                </element>
+            </node>
+            <node id="4">
+                <element control="combo" properties="list" obj-name="qosDiffServService_InPolicyNameList" id="1" name="Policy In">
+                    <action type="default" enable="1_6_1|1_10_1"/>
+                    <action type="extn" position="0" value="None" disable="1_6_1|1_10_1"/>
+                </element>
+            </node>
+            <node id="5">
+                <element control="combo" properties="list" obj-name="qosDiffServService_OutPolicyNameList" id="1" name="Policy Out" run_if="QOS_DIFFSERV_SERVICE_OUT_SLOTPORT_FEATURE">
+                    <action type="default" enable="1_8_1|1_10_1"/>
+                    <action type="extn" position="0" value="None" disable="1_8_1|1_10_1"/>
+                </element>
+            </node>
+            <node id="14">
+                <element control="combo" properties="list" obj-name="qosDiffServService_OutPolicyNameList" id="1" name="Policy Out" run_if="QOS_DIFFSERV_SERVICE_OUT_SLOTPORT_FEATURE">
+                    <action type="default" enable="1_8_1|1_10_1"/>
+                    <action type="extn" position="0" value="None" disable="1_8_1|1_10_1"/>
+                </element>
+            </node>
+            <node id="15">
+                <element control="combo" obj-name="qosDiffServService_IfIndex" id="1" >
+                    <action type="extn" position="0" value="All"/>        
+                    <action type="default" enable="1_4_1" show="1_4_1"/>
+                </element>
+            </node>
+            <node id="6">
+                <element properties="hidden" value="1" obj-name="qosDiffServService_InPolicyAdd" id="1" name="Add In Policy">
+                </element>
+            </node>
+            <node id="7">
+                <element properties="hidden" value="1" obj-name="qosDiffServService_InPolicyDel" id="1" name="Delete In Policy">
+                </element>
+        </node>
+            <node id="8">
+                <element properties="hidden" value="1" obj-name="qosDiffServService_OutPolicyAdd" id="1" name="Add Out Policy" run_if="QOS_DIFFSERV_SERVICE_OUT_SLOTPORT_FEATURE">
+                </element>
+            </node>
+            <node id="9">
+                <element properties="hidden" value="1" obj-name="qosDiffServService_OutPolicyDel" id="1" name="Delete Out Policy" run_if="QOS_DIFFSERV_SERVICE_OUT_SLOTPORT_FEATURE">
+                </element>
+            </node>
+            <node id="10">
+                <element properties="hidden" value="1" obj-name="qosDiffServService_GlobalPolicyAdd" id="1" name="Policy Add All">
+                </element>
+            </node>
+            <node id="11">
+                <element properties="hidden" value="1" obj-name="qosDiffServService_GlobalPolicyDel" id="1" name="Policy Delete All">
+                </element>
+            </node>
+            <node id="12">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit">
+                    <action type="button" discard="no" disable="1_2_1"/>
+                </button>
+            </node>
+            <repeat present="vtable" edit="no" heading=" " id="13" compile_if="IF_STACKING_PACKAGE_PRESENT">
+                <element properties="filter,iterate" obj-name="qosDiffServService_IfIndex" id="1" name="Table Unit/Slot/Port"/>
+                <element properties="filter,iterate" obj-name="qosDiffServService_IfDirection" id="2" name="Table Direction"/>
+                <element obj-name="qosDiffServService_IfOperStatus" id="3" name="Table Operational Status"/>
+                <element obj-name="qosDiffServService_PolicyName" id="4" name="Table Policy Name" control="label"/>
+            </repeat>
+            <repeat present="vtable" edit="no" heading=" " id="13" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+                <element properties="filter,iterate" obj-name="qosDiffServService_IfIndex" id="1" name="Table Slot/Port"/>
+                <element properties="filter,iterate" obj-name="qosDiffServService_IfDirection" id="2" name="Table Direction"/>
+                <element obj-name="qosDiffServService_IfOperStatus" id="3" name="Table Operational Status"/>
+                <element obj-name="qosDiffServService_PolicyName" id="4" name="Table Policy Name" control="label"/>
+            </repeat>
+        </group>
+    </webxml>
+</FastPathXML>
+

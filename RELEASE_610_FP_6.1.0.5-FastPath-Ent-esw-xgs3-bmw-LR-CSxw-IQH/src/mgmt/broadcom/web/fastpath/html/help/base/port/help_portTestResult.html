@@ -1,0 +1,78 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE> Loopback Test Result Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+ 
+
+
+
+<hr size=4 width="100%" align=center>
+
+
+
+<h2>Help for Loopback Test Result</h2>
+
+
+<h3>Selection Criteria</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b><EMWEB_IF ID=XUI_IF_STACKING_PRESENT>
+         Unit/Slot/Port
+         <EMWEB_ELSE>
+         Slot/Port
+         </EMWEB_IF></b>-
+      This field indicates the interface on which the Loopback Test is run.  
+      </li>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Interface</b> 
+      - Displays the interface tested in the
+       <EMWEB_IF ID=XUI_IF_STACKING_PRESENT>
+        Unit/Slot/Port 
+       <EMWEB_ELSE>
+         Slot/Port
+       </EMWEB_IF>notation.
+        This field is displayed after the "Run" button has been clicked and results are available. 
+      </li>
+  <li><b>Loopback Status</b> 
+      - This displays the Loopback status as Good or Bad based on Error condition on the port.
+  <BR><B>Tested</B>: the Port selected is Tested.
+  <BR><B>Not-Tested</B>:  the Port selected is not-tested.
+  <BR><B>Status of the Test</B>: Good means the TX and RX direction of the Port is working Correctly on tested Layer.
+       Bad means port is working incorrectly either in TX or RX based on Errors on the direction.
+      </li>
+ </ul>
+</ul>
+
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Refresh </b>
+      - Refreshed test result page on the selected interface. Since the Loopback test may take up 
+      to 5 seconds to complete and also involves hardware intraction, user need to click "Refresh" 
+      Button to view the statistics like Data TX, RX and Error TX and RX etc.
+      </li>
+  <li><b>Clear </b>
+      - Clears the Loopback test results page on the selected interface and go to original Loopback Test page.
+      </li>
+
+ </ul>
+</ul>
+
+<hr size=4 width="80%" align=center>
+</body>
+
+</html>

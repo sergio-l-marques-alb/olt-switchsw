@@ -1,0 +1,106 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="ARPTableConfig" title="ARP Table Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element arghelp="HELP_FORMAT_FP" obj-name="routingarpGlobal_ageoutTime" id="1" name="Age Time(secs)"/>
+            </node>
+            <node id="2">
+                <element arghelp="HELP_FORMAT_FP" obj-name="routingarpGlobal_responseTime" id="1" name="ResponseTime(secs)"/>
+            </node>
+            <node id="3">
+                <element arghelp="HELP_FORMAT_FP" obj-name="routingarpGlobal_maxRetries" id="1" name="Retries"/>
+            </node>
+            <node id="4">
+                <element arghelp="HELP_FORMAT_FP" obj-name="routingarpGlobal_cacheSize" id="1" name="Cache Size"/>
+            </node>
+            <node id="5">
+                <element control="combo" obj-name="routingarpGlobal_dynamicRenew" id="1" name="Dynamic Renew"/>
+            </node>
+            <node id="6">
+                <element obj-name="routingarpCounters_totalEntryCountCurrent" id="1" name="Total Entry Count"/>
+            </node>
+            <node id="7">
+                <element obj-name="routingarpCounters_totalEntryCountPeak" id="1" name="Peak Total Entries"/>
+            </node>
+            <node id="8">
+                <element obj-name="routingarpCounters_staticEntryCountCurrent" id="1" name="Active Static Entries"/>
+            </node>
+            <node id="9">
+                <element obj-name="routingstaticArp_StaticArpCount" id="1" name="Configured Static Entries"/>
+            </node>
+            <node id="10">
+                <element obj-name="routingarpGlobal_staticEntryCountMax" id="1" name="Maximum Static Entries"/>
+            </node>
+            <node id="11">
+                <element control="combo" value="None" obj-name="routingarpGlobal_removeArpEntry" id="1" name="Remove From Table">
+                  <action type="enum" discard="no" hide="1_12_1" disable="1_12_1" />
+                  <action type="enum" discard="no" hide="1_12_1" disable="1_12_1" />
+                  <action type="enum" discard="no" hide="1_12_1" disable="1_12_1" />
+                  <action type="enum" discard="no" show="1_12_1" enable="1_12_1" />
+                  <action type="enum" discard="no" show="1_12_1" enable="1_12_1" />
+                </element>
+            </node>
+            <node id="12">
+                <element control="textbox" value="" obj-name="routingarpGlobal_removeArpEntryIP" id="1" name="Remove IP Address"/>
+            </node>
+            <repeat present="vtable" edit="no" heading=" " id="13">
+                <element control="label" properties="filter,iterate" obj-name="routingarpIntfConfig_ipAddress" id="1" name="IP Address"/>
+                <element control="label" properties="filter,iterate" obj-name="routingarpIntfConfig_ifIndex" id="2" />
+                <element control="label" properties="read-only" obj-name="routingarpIntfConfig_macAddress" id="3" name="MAC Address"/>
+                <element control="label" properties="read-only" obj-name="routingarpIntfConfig_type" id="4" name="Type"/>
+                <element control="label" properties="read-only" obj-name="routingarpIntfConfig_age" id="5" name="Age"/>
+            </repeat>
+            <node id="14">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="2" name="Refresh"/>
+            </node>
+        </group>
+        <group level="ReadOnlyUser" id="2" heading="  ">
+            <node id="1">
+                <element control="label" properties="read-only" obj-name="routingarpGlobal_ageoutTime" id="1" name="Age Time(secs)"/>
+            </node>
+            <node id="2">
+                <element control="label" properties="read-only" obj-name="routingarpGlobal_responseTime" id="1" name="Response Time(secs)"/>
+            </node>
+            <node id="3">
+                <element control="label" properties="read-only" obj-name="routingarpGlobal_maxRetries" id="1" name="Retries"/>
+            </node>
+            <node id="4">
+                <element control="label" properties="read-only" obj-name="routingarpGlobal_cacheSize" id="1" name="Cache Size"/>
+            </node>
+            <node id="5">
+                <element control="label" properties="read-only" obj-name="routingarpGlobal_dynamicRenew" id="1" name="Dynamic Renew"/>
+            </node>
+            <node id="6">
+                <element obj-name="routingarpCounters_totalEntryCountCurrent" id="1" name="Total Entry Count"/>
+            </node>
+            <node id="7">
+                <element obj-name="routingarpCounters_totalEntryCountPeak" id="1" name="Peak Total Entries"/>
+            </node>
+            <node id="8">
+                <element obj-name="routingstaticArp_StaticArpCount" id="1" name="Active Static Entries"/>
+            </node>
+            <node id="9">
+                <element obj-name="routingarpCounters_staticEntryCountCurrent" id="1" name="Configured Static Entries"/>
+            </node>
+            <node id="10">
+                <element obj-name="routingarpGlobal_staticEntryCountMax" id="1" name="Maximum Static Entries"/>
+            </node>
+            <repeat present="vtable" edit="no" heading="  " id="11">
+                <element control="label" properties="filter,iterate" obj-name="routingarpIntfConfig_ipAddress" id="1" name="IP Address"/>
+                <element control="label" properties="filter,iterate" obj-name="routingarpIntfConfig_ifIndex" id="2" />
+                <element control="label" properties="read-only" obj-name="routingarpIntfConfig_macAddress" id="3" name="MAC Address"/>
+                <element control="label" properties="read-only" obj-name="routingarpIntfConfig_type" id="4" name="Type"/>
+                <element control="label" properties="read-only" obj-name="routingarpIntfConfig_age" id="5" name="Age"/>
+            </repeat>
+            <node id="12">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

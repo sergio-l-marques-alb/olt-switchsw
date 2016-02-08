@@ -1,0 +1,146 @@
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>OSPF Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+<h1 align=center style='text-align:center'>OSPF Help</h1>
+
+
+<hr size=4 width="80%" align=center>
+
+
+<h2><a name=virt_link></a>Help for OSPF Virtual Link Configuration</h2>
+
+<h3>Selection Criteria </h3>
+
+<ul type=disc>
+ <ul type=circle>
+
+  <li><b>Create New Virtual Link</b> -
+      Select this option from the dropdown menu to define a new virtual link.
+      The area portion of the virtual link identification is fixed:  you will be prompted to enter the
+    Neighbor Router ID on a new screen.   </li>
+
+  <li><b>Area ID and Neighbor Router ID</b> -
+      Select the virtual link for which you want to display or configure data.
+      It consists of the Area ID and Neighbor Router ID.   </li>
+
+ </ul>
+</ul>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Neighbor Router ID</b> - Enter the neighbor portion of a Virtual Link specification.
+        Virtual links may be configured between any pair of area border
+        routers having interfaces to a common (non-backbone) area.
+        You only enter this ID when you are creating a new virtual link. </li>
+  <li><b>Hello Interval</b> - Enter the time between hellos transmitted on the virtual link.
+  This parameter must be the same both routers attached to the virtual link.
+  Valid values range from 1 to 65,535 seconds. The default is 10 seconds. </li>
+  <li><b>Dead Interval</b> - The dead interval is how long a router will wait
+      for the virtual neighbor's hello packets before declaring
+  that the router is down. This parameter must be the same for both routers on the virtual link.
+  This value should a multiple of the Hello Interval (e.g. 4). Valid values range
+  from 1 to 2,147,483,647 seconds. The default is 40 seconds. </li>
+  <li><b>Transmit Delay</b> - Enter the OSPF Transmit Delay for the virtual link.
+  This is the estimated number of seconds it takes to transmit a link state update
+  packet over the virtual link. Valid values range from 1 to 3600 seconds (1 hour).
+  The default value is 1 second.
+  </li>
+  <li><b>Retransmit Interval</b> - Enter the OSPF retransmit interval for the specified interface.
+  This is the time between LSA retransmissions. This value is also used when retransmitting
+  database descriptions and link-state
+  request packets. Valid values range from 1 to 3600 seconds (1 hour).
+  The default is 5 seconds. </li>
+ <li><b>Authentication Type</b> - You may select an authentication type other than
+        none by clicking on the 'Configure Authentication' button.
+        You will then see a new screen, where you can select the authentication type from the pulldown menu.
+        The choices are:
+        <ul type=square>
+         <li><I><b>None</b></I> - This is the initial interface state.  If you select
+         this option from the pulldown menu on the second screen you will be returned to the
+         first screen.</LI>
+         <LI><i><B>Simple</b></I></li> - If you select 'Simple' you will be prompted to enter
+         an authentication key. This key will be included, in the clear, in the OSPF header of
+         all packets sent on the network.  All routers on the network must be configured with
+         the same key. </LI>
+         <LI><i><B>Encrypt</B></I> - If you select 'Encrypt' you will be prompted to enter both an
+         authentication key and an authentication ID. Encryption uses the MD5 Message-Digest algorithm.
+         All routers on the network must be configured with
+         the same key and ID.</LI>
+        </ul>
+  </li>
+  <li><b>Authentication Key</b> - Enter the OSPF Authentication Key
+        for the specified interface. If you do not choose to use authentication
+        you will not be prompted to enter a key.  If you choose 'simple' authentication
+        you cannot use a key of more than 8 octets. If you choose 'encrypt' the key may be
+        up to 16 octets long.
+        The key value will only be displayed if you are logged on with
+         Read/Write privileges, otherwise it will be displayed as asterisks.  </li>
+   <LI><B>Authentication ID</B> - Enter the ID to be used for authentication.  You will only
+        be prompted to enter an ID when you select 'Encrypt' as the authentication type.
+        The ID is a number between 0 ad 255, inclusive.
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+   <li>
+     <b>State</b> - The current state of the selected Virtual Link.  One of:
+      <ul type=square>
+        <li><I><b>Down</b></I> - This virtual link is down.
+        </li>
+        <li><b><I>Waiting</I></b> - The router is trying to find
+            an intra-area route to the virtual neighbor across
+            the transit area.
+        </li>
+        <li><b><I>Point-to-Point</I></b> - The virtual link is operational.
+                The router has computed an intra-area path to the virtual
+          neighbor via the transit area. On entering this state the
+          router attempts to form
+          an adjacency with the virtual neighbor.  Hello Packets are
+          sent to the neighbor every HelloInterval seconds.
+        </li>
+      </ul>
+       </li>
+ <b>Neighbor State</b> - The state of adjacency on the virtual link.
+       </li>
+ </ul>
+</ul>
+
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li>
+     <b>Configure Authentication</b> - Display a new screen where you can select the
+     authentication method for the virtual link. </li>
+
+   <li><b>Submit</b> - Send the updated configuration to the switch.  Configuration changes
+      take effect immediately. These changes will not be retained across a power cycle
+      unless a save is performed. </li>
+
+   <li><b>Delete</b> - Removes the specified virtual link from the router
+         configuration. </li>
+ </ul>
+</ul>
+
+
+<hr size=4 width="80%" align=center>
+
+</body>
+
+</html>
+
+

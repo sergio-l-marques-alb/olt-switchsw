@@ -1,0 +1,130 @@
+
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>CoS Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+
+<hr size=4 width="80%" align=center>
+
+<h2><a name=cos_intf_queue_cfg></a>Help for Class of Service Interface Queue Configuration</h2>
+
+<h3>Selection Criteria </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b><EMWEB_IF ID=XUI_IF_STACKING_PRESENT>
+	Unit/Slot/Port
+<EMWEB_ELSE>
+	Slot/Port
+</EMWEB_IF></b> - Specifies all CoS configurable interfaces. The option "Global" represents the most recent global configuration settings.
+      
+            These may be overridden on a per-interface basis.
+      
+  </li>
+  <li><b>Queue ID</b> - Specifies all the available queues per interface (platform based).
+  </li>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>  
+  <li><b>Minimum Bandwidth Allocated</b> - Specifies the sum of individual Minimum Bandwidth
+  values for all queues in the interface. The sum cannot exceed the defined maximum of
+  100. This value is considered while configuring the Minimum Bandwidth for a queue in the selected interface.
+  </li> 
+  </ul>
+</ul>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+
+ 
+  <li><b>Minimum Bandwidth</b> - Specifies the minimum guaranteed bandwidth allotted to
+  this queue. Setting this value higher than its corresponding Maximum Bandwidth
+  automatically increases the maximum to the same value. Default value is
+  0. Valid Range is
+   (0 to 100)in increments of
+       1.
+       The value 0 means no guaranteed minimum. Sum of individual Minimum Bandwidth values for all queues in the selected interface cannot exceed defined maximum
+  100.
+  </li>
+ 
+
+ <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="COS_QUEUE_MAX_BW_FEATURE">
+  <li><b>Maximum Bandwidth</b> - Specifies the maximum bandwidth allowed for this queue,
+  typically used to shape the outbound transmission rate.
+  
+  This value can be set to 0 without regard to its corresponding Minimum Bandwidth, but cannot otherwise be set less
+  than the Minimum Bandwidth.
+  
+  The value 0 means maximum is unlimited. Default value is
+  0. Valid Range is
+   (0 to 100)in increments of
+       1.
+  </li>
+ </EMWEB_IF> 
+
+
+  <li><b>Scheduler Type</b> - Specifies the type of scheduling used for this queue.
+  <BR>Scheduler Type can only be one of the following:
+      <ul type=square>
+        <li><I><B>strict</B></I></LI>
+      </UL>
+      <ul type=square>
+        <li><I><B>weighted</B></I></LI>
+      </UL>
+  Default value is
+   weighted.
+  </li>
+ 
+
+
+ <li><b>Queue Management Type</b> - Queue depth management technique used for queues on
+ this interface. This is only used if device supports independent settings per-queue.
+  <BR>Queue Management Type can only be one of the following:
+      <ul type=square>
+        <li><I><B>taildrop</B></I></LI>
+      </UL>
+ <EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="COS_QUEUE_WRED_SUPPORT_FEATURE">
+      <ul type=square>
+        <li><I><B>wred</B></I></LI>
+      </UL>
+ </EMWEB_IF>
+  Default value is
+   taildrop.
+  </li>
+
+
+ </ul>
+</ul>
+
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Restore Defaults for All Queues</b> - Restores default settings for all queues on the selected interface.</li>
+  <li> <b>Submit</b> - Send the updated configuration to the switch.  Configuration changes take effect immediately. These changes will not be retained across a power cycle unless a save is performed.</li>
+ </ul>
+</ul>
+
+<hr size=4 width="80%" align=center>
+
+</body>
+
+</html>
+
+
+
+

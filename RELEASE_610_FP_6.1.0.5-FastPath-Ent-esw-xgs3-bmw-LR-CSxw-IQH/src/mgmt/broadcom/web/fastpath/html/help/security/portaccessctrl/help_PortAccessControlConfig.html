@@ -1,0 +1,63 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Dot1x Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+
+<BODY class = "helppageattributes">
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=dot1xcfg></a>Help for Port Access Control Configuration</h2>
+             
+
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+ 
+  <li><b>Administrative Mode</b>
+  - This selector lists the two options for administrative mode: Enable 
+      and Disable. By default Administrative Mode is 
+       <EMWEB_STRING C='
+      memset(sBuf, 0x00, sizeof(sBuf));
+      if (FD_DOT1X_ADMIN_MODE == L7_ENABLE)
+         strcpy(sBuf," Enabled");
+      else
+         strcpy(sBuf," Disabled");
+      return sBuf;
+       ' >.
+  </li>
+  <li><b>VLAN Assignment Mode</b>
+  - This selector lists the two options for VLAN Assignment mode: Enable 
+      and Disable. The default value is Disable.
+  </li>
+
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Sends
+      the updated screen to the switch and cause the changes to take effect on
+      the switch but these changes will not be retained across a power cycle
+      unless a save is performed. </li>
+  <li><b>Cancel</b> - This resets the page to display the administrative mode that is
+  currently configured by the selected unit. </li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<hr size=4 width="100%" align=center>
+
+</body>
+
+</html>
+
+

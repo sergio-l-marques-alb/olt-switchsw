@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="RadiusAccServCfg" title="RADIUS Accounting Server Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter" obj-name="securityRadius_RadiusAccountingServerAddress" id="1" name="Accounting Server Host Address">
+                     <action type="extn" value="Add" show="1_2_1|1_7_1|1_8_1" enable="1_2_1|1_7_1|1_8_1" hide="1_4_1|1_5_1|1_5_2|1_6_1|1_8_2|1_8_3|1_8_4" disable="1_4_1|1_5_1|1_5_2|1_6_1|1_8_2|1_8_3|1_8_4" setval_ids="1_7_1|1_2_1" setval_args="Default_RADIUS_Server_Name|valMapEmptyString"/>
+                     <action type="default" hide="1_2_1|1_8_1" disable=" 1_2_1|1_8_1" show="1_4_1|1_5_1|1_5_2|1_6_1|1_8_2|1_8_3|1_8_4" enable="1_4_1|1_5_1|1_5_2|1_6_1|1_8_2|1_8_3|1_8_4"/>
+                </element>
+            </node>
+            <node id="2">
+                <element maxLength="255" control="textbox" obj-name="securityRadius_RadiusAccountingServerAddress" id="1" name="Host Address"/>
+            </node>
+            <node id="3">
+                <element properties="hidden" obj-name="securityRadius_RadiusAccountingServerIndex" id="1" name="Accounting Server Host Index"/>
+            </node>
+            <node id="4">
+                <element maxLength="10" obj-name="securityRadius_RadiusAccountingPort" id="1" name="Port" arghelp="HELP_FORMAT_FP"/>
+            </node>
+            <node id="5">
+             		<element maxLength="16" control="textbox-passwd" obj-name="securityRadius_RadiusAccountingSecret" id="1" name="Secret"/>
+		            <element control="checkbox" uienum="TrueFalse_t" properties="write-only" value="L7_FLASE" obj-name="xLibObjects_dummy" id="2" name="Apply">
+                    <action type="enum" enable="1_5_1"/>
+                    <action type="enum" disable="1_5_1"/>
+                </element>
+            </node>
+            <node id="6">
+                <element control="label" obj-name="securityRadius_RadiusAccountingIsSecretSet" id="1" name="Secret Configured"/>
+            </node>
+            <node id="7">
+                <element maxLength="32" arghelp="HELP_FORMAT_NAME31" obj-name="securityRadius_RadiusAccountingName" id="1" name="RADIUS Accounting Server Name" validation="validate_alphanum_underscore_dash_space32"/>
+            </node>
+            <node id="8">
+                <button scope="page" type="buttonSubmit" value="Add" obj-name="securityRadius_RadiusAccountingStatus" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+	 	            <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="2" name="Submit">
+	                  <action type="button" disable="1_8_3"/>		
+		            </button>
+                <button scope="page" type="buttonSubmit" value="Delete" obj-name="securityRadius_RadiusAccountingStatus" help="Submits the form on this page to the Switch" id="3" name="Remove"/>
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="4" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

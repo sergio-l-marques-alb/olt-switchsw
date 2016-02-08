@@ -1,0 +1,181 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="security" version="1.0" >
+
+<module name="Dot1xSupplicantIntfConfig">
+
+<object name="Interface" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="A table that contains the configuration objects for the Supplicant PAE associated with each port. An entry appears in this table for each port that may authenticate itself when challenged by a remote system."/>
+<ui  name="Unit/Slot/Port" style="plainText" >
+</ui>
+</object>
+<object name="Interface" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="A table that contains the configuration objects for the Supplicant PAE associated with each port. An entry appears in this table for each port that may authenticate itself when challenged by a remote system."/>
+<ui  name="Slot/Port" style="plainText" >
+</ui>
+</object>
+<!-- This object should be in dot1x authenticate xml file
+<object name="Capability" depends="Interface">
+<core  type="enum" xtype = "dot1xInterfaceCapable_t" access="read-write" descr="This object indicates whether DHCP L2 Relay is enabled globally or not."/>
+<ui  name="Capability" style="inputLine" >
+</ui>
+</object> -->
+<object name="MaxStart" depends="Interface">
+<core  type="uint" min="L7_DOT1X_PORT_MIN_MAX_START" max="L7_DOT1X_PORT_MAX_MAX_START" default="FD_DOT1X_SUPPLICANT_PORT_MAX_START" access="read-write" descr="The value of the maxStart constant currently in use by the Supplicant PAE state machine."/>
+<ui  name="MaxStart" style="inputLine" >
+</ui>
+</object>
+
+<object name="StartPeriod" depends="Interface">
+<core  type="uint" min="L7_DOT1X_PORT_MIN_START_PERIOD" max="L7_DOT1X_PORT_MAX_START_PERIOD" default="FD_DOT1X_SUPPLICANT_PORT_START_PERIOD" access="read-write" descr="The value, in seconds, of the startPeriod constant currently in use by the Supplicant PAE state machine."/>
+<ui  name="StartPeriod" style="inputLine" >
+</ui>
+</object>
+
+<object name="HeldPeriod" depends="Interface">
+<core  type="uint" min="L7_DOT1X_PORT_MIN_HELD_PERIOD" max="L7_DOT1X_PORT_MAX_HELD_PERIOD" default= "FD_DOT1X_SUPPLICANT_PORT_HELD_PERIOD" access="read-write" descr="The value, in seconds, of the heldPeriod constant currently in use by the Supplicant PAE state machine."/>
+<ui  name="HeldPeriod" style="inputLine" >
+</ui>
+</object>
+
+<object name="AuthPeriod" depends="Interface">
+<core  type="uint"  min="L7_DOT1X_PORT_MIN_AUTH_PERIOD" max="L7_DOT1X_PORT_MAX_AUTH_PERIOD" default= "FD_DOT1X_SUPPLICANT_PORT_AUTH_PERIOD" access="read-write" descr="The value, in seconds, of the authPeriod constant currently in use by the Supplicant PAE state machine."/>
+<ui  name="AuthPeriod" style="inputLine" >
+</ui>
+</object>
+
+<object name="ControlMode" depends="Interface">
+<core  type="enum" xtype="dot1xPortControl_t" access="read-write" default = "L7_DOT1X_PORT_AUTO" descr="Current port's control Mode"/>
+<ui  name="ControlMode" style="inputLine" >
+</ui>
+</object>
+
+<object name="UserName" depends="Interface">
+<core  type="string"  access="read-write" dynamic="yes" descr="Dot1x Supplicant user name."/>
+<ui  name="UserName" style="inputLine" >
+</ui>
+</object>
+
+<object name="PaeState" depends="Interface">
+<core  type="enum" xtype="dot1xPaeState_t" access="read-only" descr="The current state of the Supplicant PAE state machine."/>
+<ui  name="PaeState" style="inputLine" >
+</ui>
+</object>
+
+<object name="Status" depends="Interface">
+<core  type="enum" xtype="dot1xPortStatus_t" access="read-only" descr="The current value of the controlled  port status parameter of the port."/>
+<ui  name="Status" style="inputLine" >
+</ui>
+</object>
+
+<object name="SbmState" depends="Interface">
+<core  type="enum" xtype = "dot1xSbmState_t" access="read-only" descr="The current state value of the Supplicant Backend state machine status parameter of the port." />
+<ui  name="SbmState" style="inputLine" >
+</ui>
+</object>
+<object depends="Interface," name="MacAuthBypass">
+<core descr="&lt;HTML&gt;Get or Set the configured MAB value on the port" xtype="enable_t" access="read-write" type="enum"/>
+<ui style="inputLine" name="MacAuthBypass">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object depends="Interface," name="macAuthBypassOperMode">
+<core validation="validate_uint" descr="&lt;HTML&gt;Get the operational MAB value on the port" xtype="enable_t" access="read-only" type="enum"/>
+<ui style="inputLine" name="macAuthBypassOperMode">
+<snmp asn-id=""/>
+</ui>
+</object>
+
+</module>
+
+<module name="Dot1xSupplicantIntfStats">
+
+<object name="Interface" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="A table that contains the statistics objects for the Supplicant PAE associated with each port. An entry appears in this table for each port that may authenticate itself when challenged by a remote system."/>
+<ui  name="Unit/Slot/Port" style="plainText" >
+</ui>
+</object>
+
+<object name="Interface" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="A table that contains the statistics objects for the Supplicant PAE associated with each port. An entry appears in this table for each port that may authenticate itself when challenged by a remote system."/>
+<ui  name="Slot/Port" style="plainText" >
+</ui>
+</object>
+
+<object name="FramesRx" depends="Interface">
+<core  type="uint" access="read-only" descr="The number of EAPOL frames of any type that have been received by this Supplicant."/>
+<ui  name="FramesRx" style="inputLine" >
+</ui>
+</object>
+
+<object name="FramesTx" depends="Interface">
+<core  type="uint" access="read-only" descr="The number of EAPOL frames of any type that have been transmitted by this Supplicant."/>
+<ui  name="FramesTx" style="inputLine" >
+</ui>
+</object>
+
+<object name="StartFramesTx" depends="Interface">
+<core  type="uint" access="read-only" descr= "The number of EAPOL Start frames that have been transmitted by this Supplicant."/>
+<ui  name="StartFramesTx" style="inputLine" >
+</ui>
+</object>
+
+<object name="LogoffFramesTx" depends="Interface">
+<core  type="uint" access="read-only" descr= "The number of EAPOL Logoff frames that have been transmitted by this Supplicant."/>
+<ui  name="LogoffFramesTx" style="inputLine" >
+</ui>
+</object>
+
+<object name="RespIdFramesTx" depends="Interface">
+<core  type="uint" access="read-only" descr= "The number of EAP Resp/Id frames that have been transmitted by this Supplicant."/>
+<ui  name="RespIdFramesTx" style="inputLine" >
+</ui>
+</object>
+
+<object name="ResponseFramesTx" depends="Interface">
+<core  type="uint" access="read-only" descr="The number of valid EAP Response frames (other than Resp/Id frames) that have been transmitted by this Supplicant."/>
+<ui  name="ResponseFramesTx" style="inputLine" >
+</ui>
+</object>
+
+<object name="ReqIdFramesRx" depends="Interface">
+<core  type="uint" access="read-only" descr= "The number of EAP Req/Id frames that have been received by this Supplicant."/>
+<ui  name="ReqIdFramesRx" style="inputLine" >
+</ui>
+</object>
+
+<object name="ReqFramesRx" depends="Interface">
+<core  type="uint" access="read-only" descr= "The number of EAP Request frames (other than Rq/Id frames) that have been received by this Supplicant."/>
+<ui  name="ReqFramesRx" style="inputLine" >
+</ui>
+</object>
+
+<object name="InvalidEapolFramesRx" depends="Interface">
+<core  type="uint" access="read-only" descr="The number of EAPOL frames that have been received by this Supplicant in which the frame type is not recognized."/>
+<ui  name="InvalidEapolFramesRx" style="inputLine" >
+</ui>
+</object>
+
+<object name="EapLengthErrorFramesRx" depends="Interface">
+<core  type="uint" access="read-only" descr= "The number of EAPOL frames that have been received by this Supplicant in which the Packet Body Length field is invalid."/>
+<ui  name="EapLengthErrorFramesRx" style="inputLine" >
+</ui>
+</object>
+
+<object name="LastEapolFrameVersion" depends="Interface">
+<core  type="uint" access="read-only" descr= "The protocol version number carried in the most recently received EAPOL frame."/>
+<ui  name="LastEapolFrameVersion" style="inputLine" >
+</ui>
+</object>
+
+<object name="LastEapolFrameSource" depends="Interface">
+<core  type="mac" access="read-only" descr="The source MAC address carried in the most recently received EAPOL frame."/>
+<ui  name="LastEapolFrameSource" style="inputLine" >
+</ui>
+</object>
+
+</module>
+</objectxml>
+</FastPathXML>
+

@@ -1,0 +1,53 @@
+# Local source path abbreviations (for convenience)
+#
+chassis_binds    := src/binds/chassis_binds
+chassis_lm_binds := src/binds/chassis_lm_binds
+
+
+# These sources are included only if CHASSIS_XGS3LM platform is being built.
+#
+ifeq (1,$(BLD_MISC_CHASSIS_XGS3LM))
+  MASTERSRC += \
+	$(chassis_lm_binds)/base \
+	$(chassis_lm_binds)/switching_binds \
+	$(chassis_lm_binds)/usmdb
+	
+  # These sources are included only if ROUTING package is present with chassis LM.
+  ifeq (1,$(BLD_L7_PACKAGE_ROUTING))
+    MASTERSRC += \
+	$(chassis_lm_binds)/routing_binds
+  endif
+  
+  # These sources are included only if IP_MCAST flex package is present with chassis LM.
+  ifeq (1,$(BLD_L7_FLEX_IP_MCAST))
+    MASTERSRC += \
+	$(chassis_lm_binds)/ip_mcast_binds
+  endif
+
+  # These sources are included only if IPV6 package is present with chassis LM.
+  ifeq (1,$(BLD_L7_FLEX_IPV6))
+    MASTERSRC += \
+	$(chassis_lm_binds)/ipv6_binds
+  endif
+endif
+
+
+# These sources are included only if CHASSIS packages are NOT being built.
+#
+ifeq (0,$(BLD_L7_CHASSIS_IS_TYPE_CHASSIS))
+  MASTERSRC += \
+	$(chassis_binds)/slot_mapper_binds \
+	src/usmdb/chassis_binds
+endif
+
+
+# These sources are included only if CFM chassis package NOT being built.
+#
+ifeq (0,$(BLD_L7_CHASSIS_CFM))
+  MASTERSRC += \
+	$(chassis_binds)/chassis_hpc_binds \
+	$(chassis_binds)/alarmmgr_binds \
+	$(chassis_binds)/fanmgr_binds \
+	$(chassis_binds)/powermgr_binds
+endif
+

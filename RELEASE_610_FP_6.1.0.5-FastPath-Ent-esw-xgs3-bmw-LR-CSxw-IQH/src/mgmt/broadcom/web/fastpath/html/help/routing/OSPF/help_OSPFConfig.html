@@ -1,0 +1,176 @@
+
+<HTML>
+<EMWEB_HEAD C='
+    #include "web.h"
+  '>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>OSPF Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+
+
+<hr size=4 width="80%" align=center>
+
+<h2><a name=ospfinfo></a>Help For OSPF Configuration</h2>
+
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Router ID</b> - The 32 bit integer in dotted decimal format that uniquely identifies
+      the router within the OSPF domain. If you want to
+      change the Router ID you must first disable OSPF.
+      After you set the new Router ID, you must re-enable OSPF to have the change take effect.
+      The default value is 0.0.0.0, although this is not a valid Router ID.
+  <li><b>OSPF Admin State</b> - Select Enable or Disable from the pull down menu.
+      If you select Enable OSPF will be activated for the switch.
+      The default value is Enable.  You must configure a Router ID
+      before OSPF can become operational.  </li>
+  <li><b>RFC 1583 Compatibility</b> - Select Enable or Disable from the pull down menu to
+      specify the preference rules that will be used when choosing
+      among multiple AS-external-LSAs advertising the same destination.
+      If you select Enable, the preference rules will be those
+      defined by RFC 1583.  If you select Disable, the preference rules will be those defined in
+      Section 16.4.1 of RFC 2328. The newer preference rules
+      prevent routing loops when AS-external-LSAs for
+      the same destination have been originated from different areas.  The default value is Enable.
+      All routers in the OSPF domain must be configured the same. If all OSPF routers
+      are capable of operating according to RFC 2328, RFC 1583 Compatibility should be disabled.
+      </li>
+  <li><b>Opaque LSA Status</b> - Set this parameter to Enable to if OSPF should
+      store and flood opaque LSAs. The default value is Enable. An opaque LSA is used for flooding user-defined
+      information within an OSPF router domain. </li>
+  <li><b>Exit Overflow Interval(secs)</b> - When the number of non-default external LSAs exceeds
+      a configured limit, the router enters an overflow state as defined in RFC 1765. The
+      Exit Overflow Interval specifies how long OSPF must wait before attempting to
+      leave overflow state. The default interval is 0 seconds.  In overflow state, OSPF cannot originate non-default external
+      LSAs. If the Exit Overflow Interval is 0, OSPF will not leave overflow state until
+      it is disabled and re-enabled. The range is 0 to 2,147,483,647 seconds. </li>
+
+  <li><b>SPF DelayTime(secs)</b> - Delay time is the number of seconds from
+      when OSPF receives a topology change to the start of the next SPF calculation.
+      Delay Time is an integer from 0 to 65535 seconds. The default time is 5 seconds. A value of 0
+      means that there is no delay; that is, the SPF calculation is started upon a topology
+      change.
+
+  <li><b>SPF HoldTime(secs)</b> - Hold Time is the minimum time in seconds between two
+      consecutive SPF calculations. The range is 0 to 65,535 seconds. The default time is 10 seconds.
+      A value of 0 means that there is no delay; that is, two SPF calculations can be done, one immediately
+      after the other.
+
+  <li><b>External LSDB Limit</b> - The maximum number of External LSAs that can be stored in the database.
+       Default value for limit is -1. A value of -1 indicates there is no limit. The valid range of values is
+             <EMWEB_STRING C='
+              return usmWebIntegerRangeHelp(L7_OSPF_EXT_LSDB_LIMIT_MIN, L7_OSPF_EXT_LSDB_LIMIT_MAX);
+              ' >.
+  </li>
+
+  <li><b>Default Metric</b> - Sets a default for the metric of redistributed routes.
+      This field is 0 if a default metric has not been configured. The range of valid values is
+      <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_OSPF_DEFAULT_METRIC_MIN, L7_OSPF_DEFAULT_METRIC_MAX);
+       ' >.
+  </li>
+  <li><b>Maximum Paths</b> - Configure the maximum number of paths that OSPF can report to a
+      given destination. Default value is 4. The range of valid values is
+      <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(1, L7_RT_MAX_EQUAL_COST_ROUTES);
+       ' >.
+  </li>
+  <li><b>AutoCost Reference Bandwidth</b> - Configure the auto-cost reference-bandwidth to
+      control how OSPF calculates link cost. Specify the reference bandwidth in
+      megabits per second. Unless a link cost is configured, the link cost
+      is computed by dividing the reference bandwidth by the interface bandwidth.
+      Default value is 100. The range is
+       <EMWEB_STRING C='
+       return usmWebIntegerRangeHelp( L7_OSPF_MIN_REF_BW, L7_OSPF_MAX_REF_BW);
+       ' >.
+       </li>
+
+  <li><b>Default Passive Setting</b> - Configure the global passive mode setting for
+      all OSPF interfaces. Configuring this field overwrites any present interface level
+      passive mode setting. OSPF does not form adjacencies on passive interfaces, but
+      does advertise attached networks as stub networks. Default is Disable.
+      </li>
+
+  <h4>Default Route Advertise</h4>
+
+  <li><b>Default Information Originate</b> - When this parameter is enabled, OSPF
+      originates an external LSA advertising a default route (0.0.0.0/0.0.0.0). It has
+      to be enabled to be able to configure Always, Metric and Metric Type attributes. Default is Disable.</li>
+  <li><b>Always</b> - If Default Information Originate is enabled, but the Always option
+      is FALSE, OSPF will only originate a default route if the router already has a default
+      route in its routing table. Set Always to TRUE to force OSPF to originate a default
+      route regardless of whether the router has a default route. Default is False.</li>
+  <li><b>Metric</b> - Specifies the metric of the default route. Default value is 0. 0 specifies that nothing has been configured.   The range of valid values is
+  <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_OSPF_DEFAULT_RT_ADVERTISE_METRIC_MIN, L7_OSPF_DEFAULT_RT_ADVERTISE_METRIC_MAX);
+       ' >
+  </li>
+  <li><b>Metric Type</b> - Sets the OSPF metric type of the default route. Default value is External Type 2.</li>
+
+
+
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>ASBR Status</b> - The router is an Autonomous System Boundary Router
+      if it is configured to redistribute
+      routes from another protocol, or if it is configured to originate an external
+      LSA advertising the default route.</li>
+  <li><b>ABR Status</b> - The router is an Area Border Router if it has active
+      non-virtual interfaces in two or more OSPF areas. </li>
+  <li><b>External LSA Count</b> - The number of external LSAs in the link state database. </li>
+  <li><b>External LSA Checksum</b> - The sum of the LS checksums of the external
+      LSAs in the link-state database. This
+      sum can be used to determine if there has been a change in a router's link
+      state database, and to compare the link-state databases of two routers.
+      This value is in hexadecimal.</li>
+  <li><b>AS_OPAQUE LSA Count</b> - The number of opaque LSAs with domain wide flooding scope.</li>
+  <li><b>AS_OPAQUE LSA Checksum</b> - The sum of the LS checksums of the opaque
+      LSAs with domain wide flooding scope. This sum can be used to determine if there has
+      been a change in a router's link
+      state database, and to compare the link-state databases of two routers.
+      This value is in hexadecimal.</li>
+  <li><b>New LSAs Originated</b> - The number of LSAs originated by this router. </li>
+  <li><b>LSAs Received</b> - The number of LSAs received. </li>
+
+ </ul>
+</ul>
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+  <li>
+     <b>Submit</b> - Send the updated configuration to the switch.  Configuration changes
+      take effect immediately. These changes will not be retained across a power cycle
+      unless a save is performed. </li>
+<EMWEB_ELSE>
+  <li>
+     <b>Refresh</b> - Refreshes the screen with updated configuration.
+  </li>
+</EMWEB_IF>
+ </ul>
+</ul>
+
+<hr size=4 width="80%" align=center>
+
+</body>
+
+</html>
+
+
+

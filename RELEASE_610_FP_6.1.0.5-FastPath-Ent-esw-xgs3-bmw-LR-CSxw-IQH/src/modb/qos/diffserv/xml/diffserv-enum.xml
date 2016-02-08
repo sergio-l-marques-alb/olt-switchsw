@@ -1,0 +1,206 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "types.dtd">
+<FastPathXML>
+  <data-types version="1.0">
+    <enum name="L7_DIFFSERV_IF_DIRECTION_t">
+      <option macro="L7_DIFFSERV_IF_DIRECTION_NONE" name="None"> </option>
+      <option macro="L7_DIFFSERV_IF_DIRECTION_IN" name="In"> </option>
+      <option macro="L7_DIFFSERV_IF_DIRECTION_OUT" name="Out"> </option>
+    </enum>
+    <enum name="diffServIfOperStatus_t">
+      <option macro="L7_DIFFSERV_IF_OPER_STATUS_UP" name="Up"> </option>
+      <option macro="L7_DIFFSERV_IF_OPER_STATUS_DOWN" name="Down"> </option>
+    </enum>
+    <enum name="diffServPolicyType_t">
+      <option macro="L7_DIFFSERV_POLICY_TYPE_IN" name="In"> </option>
+      <option macro="L7_DIFFSERV_POLICY_TYPE_OUT" name="Out"> </option>
+    </enum>
+    <enum name="diffServIfDirection_t">
+      <option macro="L7_DIFFSERV_IF_DIRECTION_NONE" name="None"> </option>
+      <option macro="L7_DIFFSERV_IF_DIRECTION_IN" name="In"> </option>
+      <option macro="L7_DIFFSERV_IF_DIRECTION_OUT" name="Out"> </option>
+    </enum>
+    <enum name="diffServPolicyAttrType_t">
+      <option macro="L7_DIFFSERV_POLICY_ATTR_TYPE_NONE" name="None"> </option>
+      <option macro="L7_DIFFSERV_POLICY_ATTR_TYPE_ASSIGN_QUEUE" name="Assign Queue"> </option>
+      <option macro="L7_DIFFSERV_POLICY_ATTR_TYPE_BANDWIDTH" name="Bandwidth"> </option>
+      <option macro="L7_DIFFSERV_POLICY_ATTR_TYPE_DROP" name="Drop"> </option>
+      <option macro="L7_DIFFSERV_POLICY_ATTR_TYPE_EXPEDITE" name="Expedite"> </option>
+      <option macro="L7_DIFFSERV_POLICY_ATTR_TYPE_MARK_COSVAL" name="Mark CoS"> </option>
+      <option macro="L7_DIFFSERV_POLICY_ATTR_TYPE_MARK_COS2VAL" name="Mark CoS2"> </option>
+      <option macro="L7_DIFFSERV_POLICY_ATTR_TYPE_MARK_COSASCOS2" name="Mark CoS As Secondary CoS"> </option>
+      <option macro="L7_DIFFSERV_POLICY_ATTR_TYPE_MARK_IPDSCPVAL" name="Mark IP DSCP"> </option>
+      <option macro="L7_DIFFSERV_POLICY_ATTR_TYPE_MARK_IPPRECEDENCEVAL" name="Mark IP Precedence"> </option>
+      <option macro="L7_DIFFSERV_POLICY_ATTR_TYPE_MIRROR" name="Mirror"> </option>
+      <option macro="L7_DIFFSERV_POLICY_ATTR_TYPE_POLICE_SIMPLE" name="Simple"> </option>
+      <option macro="L7_DIFFSERV_POLICY_ATTR_TYPE_POLICE_SINGLERATE" name="Single Rate"> </option>
+      <option macro="L7_DIFFSERV_POLICY_ATTR_TYPE_POLICE_TWORATE" name="Two Rate"> </option>
+      <option macro="L7_DIFFSERV_POLICY_ATTR_TYPE_RANDOMDROP" name="Random Drop"> </option>
+      <option macro="L7_DIFFSERV_POLICY_ATTR_TYPE_REDIRECT" name="Redirect"> </option>
+      <option macro="L7_DIFFSERV_POLICY_ATTR_TYPE_SHAPE_AVERAGE" name="Shape Average"> </option>
+      <option macro="L7_DIFFSERV_POLICY_ATTR_TYPE_SHAPE_PEAK" name="Shape Peak"> </option>
+    </enum>
+    <enum name="diffServBandWidthUnits_t">
+      <option macro="L7_DIFFSERV_BW_UNITS_NONE" name="None"> </option>
+      <option macro="L7_DIFFSERV_BW_UNITS_KBPS" name="KBPS"> </option>
+      <option macro="L7_DIFFSERV_BW_UNITS_PERCENT" name="Percentage"> </option>
+    </enum>
+    <enum name="diffServPoliceAct_t">
+      <option macro="L7_DIFFSERV_POLICE_ACT_NONE"     name="None"> </option>
+      <option macro="L7_DIFFSERV_POLICE_ACT_DROP"     name="Drop"> </option>
+      <option macro="L7_DIFFSERV_POLICE_ACT_MARKCOS"  name="Mark CoS"> </option>
+      <option macro="L7_DIFFSERV_POLICE_ACT_MARKCOS2" name="Mark Secondary CoS"> </option>
+      <option macro="L7_DIFFSERV_POLICT_ACT_MARKCOSASCOS2" name="Mark CoS As Secondary CoS"> </option>
+      <option macro="L7_DIFFSERV_POLICE_ACT_MARKDSCP" name="Mark IP DSCP"> </option>
+      <option macro="L7_DIFFSERV_POLICE_ACT_MARKPREC" name="Mark IP Precedence"> </option>
+      <option macro="L7_DIFFSERV_POLICE_ACT_SEND"     name="Send"> </option>
+    </enum>
+    <enum name="diffServPoliceColor_t">
+      <option macro="L7_DIFFSERV_POLICE_COLOR_BLIND" name="color-blind mode"> </option>
+      <option macro="L7_DIFFSERV_POLICE_COLOR_COS" name="aware COS (802.1p)"> </option>
+      <option macro="L7_DIFFSERV_POLICE_COLOR_COS2" name="aware COS2 (802.1p)"> </option>
+      <option macro="L7_DIFFSERV_POLICE_COLOR_IPDSCP" name="aware IP DSCP"> </option>
+      <option macro="L7_DIFFSERV_POLICE_COLOR_IPPREC" name="aware IP Prec"> </option>
+      <option macro="L7_DIFFSERV_POLICE_COLOR_UNUSED" name="exceed color not specified"> </option>
+    </enum>
+    <enum name="diffServClassType_t">
+      <option macro="L7_DIFFSERV_CLASS_TYPE_NONE" name="None"> </option>
+      <option macro="L7_DIFFSERV_CLASS_TYPE_ALL" name="All"> </option>
+      <option macro="L7_DIFFSERV_CLASS_TYPE_ANY" name="Any"> </option>
+      <option macro="L7_DIFFSERV_CLASS_TYPE_ACL" name="ACL"> </option>
+    </enum>
+    <enum name="diffServACLType_t">
+      <option macro="L7_DIFFSERV_CLASS_ACLTYPE_NONE" name="None"> </option>
+      <option macro="L7_DIFFSERV_CLASS_ACLTYPE_IP" name="IP"> </option>
+      <option macro="L7_DIFFSERV_CLASS_ACLTYPE_MAC" name="MAC"> </option>
+    </enum>
+    <enum name="diffServClassL3Protocol_t">
+      <option macro="L7_DIFFSERV_CLASS_L3PROTOCOL_IPV4" name="IPv4"> </option>
+      <option macro="L7_DIFFSERV_CLASS_L3PROTOCOL_IPV6" name="IPv6"> </option>
+    </enum>
+    <enum name="diffServClassRuleType_t">
+      <option macro="L7_NULL" name="none" > </option>
+      <option macro="L7_DIFFSERV_CLASS_RULE_TYPE_COS" name="Class of Service"> </option>
+      <option macro="L7_DIFFSERV_CLASS_RULE_TYPE_COS2" name="Secondary Class of Service"> </option>
+      <option macro="L7_DIFFSERV_CLASS_RULE_TYPE_DSTIP" name="Destination IP Address"> </option>
+      <option macro="L7_DIFFSERV_CLASS_RULE_TYPE_DSTIPV6" name="Destination IPV6 Address"> </option>
+      <option macro="L7_DIFFSERV_CLASS_RULE_TYPE_DSTL4PORT" name="Destination layer 4 Port"> </option>
+      <option macro="L7_DIFFSERV_CLASS_RULE_TYPE_DSTMAC" name="Destination MAC Address"> </option>
+      <option macro="L7_DIFFSERV_CLASS_RULE_TYPE_ETYPE" name="Ethertype"> </option>
+      <option macro="L7_DIFFSERV_CLASS_RULE_TYPE_EVERY" name="Any"> </option>
+      <option macro="L7_DIFFSERV_CLASS_RULE_TYPE_FLOWLBLV6" name="Flow Label"> </option>
+      <option macro="L7_DIFFSERV_CLASS_RULE_TYPE_IPDSCP" name="IP DSCP"> </option>
+      <option macro="L7_DIFFSERV_CLASS_RULE_TYPE_IPPRECEDENCE" name="IP Precedence"> </option>
+      <option macro="L7_DIFFSERV_CLASS_RULE_TYPE_IPTOS" name="IP TOS"> </option>
+      <option macro="L7_DIFFSERV_CLASS_RULE_TYPE_PROTOCOL" name="Protocol"> </option>
+      <option macro="L7_DIFFSERV_CLASS_RULE_TYPE_REFCLASS" name="Reference Class"> </option>
+      <option macro="L7_DIFFSERV_CLASS_RULE_TYPE_SRCIP" name="source IP Address"> </option>
+      <option macro="L7_DIFFSERV_CLASS_RULE_TYPE_SRCIPV6" name="Source IPV6 Address"> </option>
+      <option macro="L7_DIFFSERV_CLASS_RULE_TYPE_SRCL4PORT" name="Source Layer4 Port"> </option>
+      <option macro="L7_DIFFSERV_CLASS_RULE_TYPE_SRCMAC" name="Source MAC Address"> </option>
+      <option macro="L7_DIFFSERV_CLASS_RULE_TYPE_VLANID" name="VLAN"> </option>
+      <option macro="L7_DIFFSERV_CLASS_RULE_TYPE_VLANID2" name="Secondary VLANID"> </option>
+    </enum>
+    <enum name="diffServTruthVal_t">
+      <option macro="L7_DIFFSERV_TRUTH_VALUE_TRUE" name="True"> </option>
+      <option macro="L7_DIFFSERV_TRUTH_VALUE_FALSE" name="False"> </option>
+    </enum>
+    <enum name="diffServETypeKeyID_t">
+      <option macro="L7_QOS_ETYPE_KEYID_NONE" name="None"> </option> 
+      <option macro="L7_QOS_ETYPE_KEYID_APPLETALK" name="Apple Talk"> </option>
+      <option macro="L7_QOS_ETYPE_KEYID_ARP" name="ARP"> </option>
+      <option macro="L7_QOS_ETYPE_KEYID_IBMSNA" name="IBMSNA"> </option>
+      <option macro="L7_QOS_ETYPE_KEYID_IPV4" name="IPv4"> </option>
+      <option macro="L7_QOS_ETYPE_KEYID_IPV6" name="IPv6"> </option>
+      <option macro="L7_QOS_ETYPE_KEYID_IPX" name="IPX"> </option>
+      <option macro="L7_QOS_ETYPE_KEYID_MPLSMCAST" name="MPLS Multicast"> </option>
+      <option macro="L7_QOS_ETYPE_KEYID_MPLSUCAST" name="MPLS Unicast"> </option>
+      <option macro="L7_QOS_ETYPE_KEYID_NETBIOS" name="NetBIOS"> </option>
+      <option macro="L7_QOS_ETYPE_KEYID_NOVELL" name="Novell"> </option>
+      <option macro="L7_QOS_ETYPE_KEYID_PPPOE" name="PPPOE"> </option>
+      <option macro="L7_QOS_ETYPE_KEYID_RARP" name="reverse ARP"> </option>
+      <option macro="L7_QOS_ETYPE_KEYID_CUSTOM" name="User Value"> </option>
+    </enum>
+    
+    <enum name="diffServColorMode_t">
+      <option macro="L7_DIFFSERV_COLOR_MODE_BLIND" name="Blind"> </option>
+      <option macro="L7_DIFFSERV_COLOR_MODE_AWARE_COS" name="CoS"> </option>
+      <option macro="L7_DIFFSERV_COLOR_MODE_AWARE_COS2" name=" CoS2"> </option>
+      <option macro="L7_DIFFSERV_COLOR_MODE_AWARE_IPDSCP" name="IP DSCP"> </option>
+      <option macro="L7_DIFFSERV_COLOR_MODE_AWARE_IPPREC" name="IP Precedence"> </option>
+      <option macro="L7_DIFFSERV_COLOR_MODE_AWARE_UNUSED" name="Un used"> </option>
+    </enum>
+    <enum name="diffServAlgDropType_t">
+      <option macro="L7_DIFFSERV_ALG_DROP_TYPE_OTHER" name="Other"> </option>
+      <option macro="L7_DIFFSERV_ALG_DROP_TYPE_TAIL_DROP" name="Tail Drop"> </option>
+      <option macro="L7_DIFFSERV_ALG_DROP_TYPE_HEAD_DROP" name="Head Drop"> </option>
+      <option macro="L7_DIFFSERV_ALG_DROP_TYPE_RANDOM_DROP" name="Random Drop"> </option>
+      <option macro="L7_DIFFSERV_ALG_DROP_TYPE_ALWAYS_DROP" name="Always Drop"> </option>
+    </enum>
+    <enum name="diffServMaxRateLevel_t">
+      <option macro="L7_DIFFSERV_MAXRATE_LEVEL_MEAN" name="Mean"> </option>
+      <option macro="L7_DIFFSERV_MAXRATE_LEVEL_PEAK" name="Peak"> </option>
+    </enum>
+    <enum name="diffServColorLevel_t">
+      <option macro="L7_DIFFSERV_COLOR_LEVEL_NONE" name="None"> </option>
+      <option macro="L7_DIFFSERV_COLOR_LEVEL_CONFORM" name="Confirm"> </option>
+      <option macro="L7_DIFFSERV_COLOR_LEVEL_EXCEED" name="Exceed"> </option>
+    </enum>
+    <enum name="diffServClassDscpValues_t">
+     <option macro="L7_USMDB_MIB_DIFFSERV_IP_DSCP_AF11" name="af11" />
+     <option macro="L7_USMDB_MIB_DIFFSERV_IP_DSCP_AF12" name="af12" />
+     <option macro="L7_USMDB_MIB_DIFFSERV_IP_DSCP_AF13" name="af13" />
+     <option macro="L7_USMDB_MIB_DIFFSERV_IP_DSCP_AF21" name="af21" />
+     <option macro="L7_USMDB_MIB_DIFFSERV_IP_DSCP_AF22" name="af22" />
+     <option macro="L7_USMDB_MIB_DIFFSERV_IP_DSCP_AF23" name="af23" />
+     <option macro="L7_USMDB_MIB_DIFFSERV_IP_DSCP_AF31" name="af31" />
+     <option macro="L7_USMDB_MIB_DIFFSERV_IP_DSCP_AF32" name="af32" />
+     <option macro="L7_USMDB_MIB_DIFFSERV_IP_DSCP_AF33" name="af33" />
+     <option macro="L7_USMDB_MIB_DIFFSERV_IP_DSCP_AF41" name="af41" />
+     <option macro="L7_USMDB_MIB_DIFFSERV_IP_DSCP_AF42" name="af42" />
+     <option macro="L7_USMDB_MIB_DIFFSERV_IP_DSCP_AF43" name="af43" />
+     <option macro="L7_USMDB_MIB_DIFFSERV_IP_DSCP_BE" name="BE" />
+     <option macro="L7_USMDB_MIB_DIFFSERV_IP_DSCP_CS0" name="CS0" />
+     <option macro="L7_USMDB_MIB_DIFFSERV_IP_DSCP_CS1" name="CS1" />
+     <option macro="L7_USMDB_MIB_DIFFSERV_IP_DSCP_CS2" name="CS2" />
+     <option macro="L7_USMDB_MIB_DIFFSERV_IP_DSCP_CS3" name="CS3" />
+     <option macro="L7_USMDB_MIB_DIFFSERV_IP_DSCP_CS4" name="CS4" />
+     <option macro="L7_USMDB_MIB_DIFFSERV_IP_DSCP_CS5" name="CS5" />
+     <option macro="L7_USMDB_MIB_DIFFSERV_IP_DSCP_CS6" name="CS6" />
+     <option macro="L7_USMDB_MIB_DIFFSERV_IP_DSCP_CS7" name="CS7" />
+     <option macro="L7_USMDB_MIB_DIFFSERV_IP_DSCP_EF" name="EF" />
+     <option macro="L7_NULL" name="Other" />
+    </enum>
+
+    <enum name="diffServClassProtocol_t">
+     <option macro="L7_USMDB_MIB_DIFFSERV_LAYER_4_PROTOCOL_ICMP" name="ICMP"/>
+     <option macro="L7_USMDB_MIB_DIFFSERV_LAYER_4_PROTOCOL_IGMP" name="IGMP"/>
+     <option macro="L7_USMDB_MIB_DIFFSERV_LAYER_4_PROTOCOL_IP" name="IP"/>
+     <option macro="L7_USMDB_MIB_DIFFSERV_LAYER_4_PROTOCOL_TCP" name="TCP"/>
+     <option macro="L7_USMDB_MIB_DIFFSERV_LAYER_4_PROTOCOL_UDP" name="UDP"/>
+     <option macro="L7_NULL" name="Other" />
+    </enum>
+    
+    <enum name="diffServClassL4Port_t">
+     <option macro="L7_USMDB_MIB_DIFFSERV_LAYER_4_PORT_NUM_DOMAIN" name="domain" />
+     <option macro="L7_USMDB_MIB_DIFFSERV_LAYER_4_PORT_NUM_ECHO" name="echo"/>
+     <option macro="L7_USMDB_MIB_DIFFSERV_LAYER_4_PORT_NUM_FTP" name="ftp" />
+     <option macro="L7_USMDB_MIB_DIFFSERV_LAYER_4_PORT_NUM_FTPDATA" name="ftpdata" />
+     <option macro="L7_USMDB_MIB_DIFFSERV_LAYER_4_PORT_NUM_HTTP" name="http" />
+     <option macro="L7_USMDB_MIB_DIFFSERV_LAYER_4_PORT_NUM_SMTP" name="smtp" />
+     <option macro="L7_USMDB_MIB_DIFFSERV_LAYER_4_PORT_NUM_SNMP" name="snmp" />
+     <option macro="L7_USMDB_MIB_DIFFSERV_LAYER_4_PORT_NUM_TELNET" name="telnet" />
+     <option macro="L7_USMDB_MIB_DIFFSERV_LAYER_4_PORT_NUM_TFTP" name="tftp" />
+     <option macro="L7_USMDB_MIB_DIFFSERV_LAYER_4_PORT_NUM_WWW" name="www" />
+     <option macro="L7_NULL" name="Other" />
+    </enum>
+
+     <enum name="diffServColorType_t">
+      <option macro="L7_XUI_DIFFSERV_COLOR_BLIND" name="Color Blind"> </option>
+      <option macro="L7_XUI_DIFFSERV_COLOR_AWARE" name="Color Aware"> </option>
+     </enum>
+    
+     
+     
+  </data-types>
+</FastPathXML>

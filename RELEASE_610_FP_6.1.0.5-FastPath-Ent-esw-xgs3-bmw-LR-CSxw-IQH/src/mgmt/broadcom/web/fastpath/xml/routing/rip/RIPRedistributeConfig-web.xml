@@ -1,0 +1,70 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+
+
+
+<FastPathXML>
+    <webxml version="1.0" name="RIPRedistributeConfig" title="RIP Route Redistribution Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+        	<node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="routingConfigRipRedistribute_Source" id="1" name="Source">
+                    <action type="enum" discard="no" enable="1_1_1|1_2_1|1_8_1|1_9_1|1_10_1" disable="1_3_1|1_4_1|1_5_1|1_6_1|1_7_1" hide="1_3_1|1_4_1|1_5_1|1_6_1|1_7_1" show="1_1_1|1_2_1|1_8_1|1_9_1|1_10_1"/>
+                    <action type="enum" discard="no" enable="1_1_1|1_2_1|1_8_1|1_9_1|1_10_1" disable="1_3_1|1_4_1|1_5_1|1_6_1|1_7_1" hide="1_3_1|1_4_1|1_5_1|1_6_1|1_7_1" show="1_1_1|1_2_1|1_8_1|1_9_1|1_10_1"/>
+                    <action type="enum" discard="yes" />
+                    <action type="enum" discard="no" enable="1_1_1|1_2_1|1_3_1|1_4_1|1_5_1|1_6_1|1_7_1|1_8_1|1_9_1|1_10_1" show="1_1_1|1_2_1|1_3_1|1_4_1|1_5_1|1_6_1|1_7_1|1_8_1|1_9_1|1_10_1"/>
+                    <action type="enum" discard="yes" />
+                </element>
+            </node>
+            <node id="2">
+                <element arghelp="HELP_FORMAT_FP" obj-name="routingConfigRipRedistribute_Metric" id="1" name="Metric"/>
+            </node>
+            <node id="3">
+                <element  control="checkbox" obj-name="routingConfigRipRedistribute_MatchInternal" id="1" name="Match Internal Routes"/>
+            </node>
+            <node id="4">
+                <element  control="checkbox" obj-name="routingConfigRipRedistribute_MatchExternal1" id="1" name="Match External Type 1 Routes"/>
+            </node>
+            <node id="5">
+                <element  control="checkbox" obj-name="routingConfigRipRedistribute_MatchExternal2" id="1" name="Match External Type 2 Routes"/>
+            </node>
+            <node id="6">
+                <element  control="checkbox" obj-name="routingConfigRipRedistribute_MatchNSSAExternal1" id="1" name="Match NSSA External Type 1 Routes"/>
+            </node>
+            <node id="7">
+                <element  control="checkbox" obj-name="routingConfigRipRedistribute_MatchNSSAExternal2" id="1" name="Match NSSA External Type 2 Routes"/>
+            </node>
+            <node id="8">
+                <element arghelp="HELP_FORMAT_FP" obj-name="routingConfigRipRedistribute_DistList" id="1" name="Distribute List"/>
+            </node>
+            <node id="9">
+                <element control="combo" obj-name="routingConfigRipRedistribute_Mode" id="1" name="Redistribute"/>
+            </node>
+            <node id="10">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit" />
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>
+
+
+
+
+<!--<enum name="XUI_CONFIG_L7_REDIST_RT_INDICES_t">
+        0   <option name="Create" macro="REDIST_RT_FIRST"> </option>
+        1   <option name="Connected" macro="REDIST_RT_LOCAL"> </option>
+        2   <option name="Static" macro="REDIST_RT_STATIC"> </option>
+        3   <option name="RIP" macro="REDIST_RT_RIP"> </option>
+        4   <option name="BGP" macro="REDIST_RT_BGP"> </option>
+        5   <option macro="REDIST_RT_OSPF" name="OSPF"> </option>
+        </enum>
+
+ <enum name="XUI_L7_REDIST_RT_INDICES_t">
+         1  <option name="Connected" macro="XUI_REDIST_RT_LOCAL"> </option>
+         2  <option name="Static" macro="XUI_REDIST_RT_STATIC"> </option>
+         3  <option name="RIP" macro="XUI_REDIST_RT_RIP"> </option>
+         4  <option name="BGP" macro="XUI_REDIST_RT_BGP"> </option>
+         5  <option macro="XUI_REDIST_RT_OSPF" name="OSPF"> </option>
+        </enum>
+
+-->
+

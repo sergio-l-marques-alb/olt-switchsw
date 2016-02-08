@@ -1,0 +1,85 @@
+<EMWEB_HEAD C='
+#include "usmdb_cnfgr_api.h"
+#include "usmdb_util_api.h"
+#include "usmdb_unitmgr_api.h"
+'>
+<EMWEB_INCLUDE ID=USMWEB_JAVA_BOX_MARKUP_GET C=' 
+if(usmDbIsAChassisPlatform()==L7_TRUE)
+return "/java/chassis/map_chassis.html";
+else
+return "/java/xgs3/map_xgs3.html";  
+' >
+
+<EMWEB_STRING ID=USMWEB_JAVA_BASE_IMAGE_SIZE_GET C=' 
+
+  L7_char8    *buf;
+  
+  buf = ewsContextNetHandle(ewsContext)->buffer;
+  if (usmDbComponentPresentCheck(0, L7_FLEX_STACKING_COMPONENT_ID) == L7_TRUE)
+  { 
+    if(usmDbIsAChassisPlatform()==L7_TRUE)
+      sprintf(buf, "WIDTH=\"600\" HEIGHT=\"100\"");
+    else
+      sprintf(buf, "WIDTH=\"660\" HEIGHT=\"100\"");
+
+  }
+  else
+{
+    sprintf(buf, "WIDTH=\"600\" HEIGHT=\"80\"");
+}
+
+  return buf;  
+
+' > 
+
+<EMWEB_STRING ID=USMWEB_JAVA_FULL_STACK_SIZE_GET C='    
+
+  L7_RC_t      rc;
+  L7_uint32    height;
+  L7_uint32    unitNum;
+  L7_uint32    numUnits;
+  L7_uint32    prevUnitNum;
+  L7_char8    *buf;
+  
+  buf = ewsContextNetHandle(ewsContext)->buffer;
+
+  if(usmDbIsAChassisPlatform()==L7_TRUE)
+  {
+    height= 91;
+  numUnits = 6;
+  rc = usmDbUnitMgrStackMemberGetFirst(&unitNum);
+  while (rc == L7_SUCCESS)
+  {
+    prevUnitNum = unitNum;
+    rc = usmDbUnitMgrStackMemberGetNext(prevUnitNum, &unitNum);
+  }
+  sprintf(buf, "WIDTH=\"645\" HEIGHT=\"%d\"", (numUnits * height));
+  }
+  else
+  {
+  height= 80;
+  numUnits = 0;
+  rc = usmDbUnitMgrStackMemberGetFirst(&unitNum);
+  while (rc == L7_SUCCESS)
+  {
+    numUnits++;
+    prevUnitNum = unitNum;
+    rc = usmDbUnitMgrStackMemberGetNext(prevUnitNum, &unitNum);
+  }
+  sprintf(buf, "WIDTH=\"630\" HEIGHT=\"%d\"", (numUnits * height));
+  }
+  return buf;
+
+' >
+
+<EMWEB_STRING ID=USMWEB_JAVA_APPLET_ROWSIZE_GET C=' return "140"; ' >
+
+<EMWEB_STRING ID=USMWEB_LOGIN_LOGO_GET C=' return "<IMG SRC=\"/base/images/BRCM_logo.gif\">"; ' >
+
+<EMWEB_STRING ID=USMWEB_BANNER_IMAGE_GET C=' return "<IMG SRC=\"/base/images/fastpath_banner.gif\">"; ' >
+
+<EMWEB_STRING ID=USMWEB_TOPLEFT_LOGO_GET C='
+return "<A HREF=\"http://www.broadcom.com/\" TARGET=\"_blank\"> \
+         <IMG alt=\"Broadcom Corporation\" src=\"/base/images/BRCM_logo.gif\" border=\"0\"></A>";
+' >
+

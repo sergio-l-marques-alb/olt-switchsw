@@ -1,0 +1,138 @@
+<EMWEB_IF ID=USMWEB_IF_LVL_HDR_NOT_REQ>
+<!--
+/*********************************************************************
+*
+* (C) Copyright Broadcom Corporation 2001-2007
+*
+**********************************************************************
+*
+* @filename  cp_global_cfg.html
+*
+* @purpose   HTML content
+*
+* @comments  None
+*
+* @create    6/27/2007
+*
+* @author    rjindal
+*
+* @end
+*
+*********************************************************************/
+-->
+</EMWEB_IF>
+emweb:/USMWEB_PAGE_DTD_HEADER_GET;
+<HTML>
+<HEAD>
+   emweb:/USMWEB_PAGE_META_DATA_GET; <!-- Style Sheet link and Meta data     -->
+   <TITLE>emweb:/USMWEB_SECURITY_OEM_STRING_GET?1951;</TITLE>
+
+<script src="/scripts/utils.js"></script>
+<script type='text/javascript' language='JavaScript'>
+function DisplayErrorMsg()
+//******************************************************************************
+//* Purpose: Display an input error message.
+//* Return:  none
+//******************************************************************************
+{
+  alert(document.forms[0].err_msg.value);
+}
+
+function check_error()
+{
+  if (document.forms[0].err_flag.value == 1)
+  {
+    DisplayErrorMsg();
+  }
+ <EMWEB_IF ID=USMWEB_IF_READWRITE>
+ <EMWEB_ELSE>
+  disableAll();
+  document.forms[0].Refresh.disabled = false;
+ </EMWEB_IF>
+}
+</script>
+</HEAD>
+
+<BODY class="bodyframeattributes" onload="check_error()">
+<FORM method="post" EMWEB_NAME="cpGlobalCfg">
+
+<!-- ----------------------------------------------------------------------- -->
+<!--         Web page header                                                 -->
+<!-- ----------------------------------------------------------------------- -->
+ emweb:/USMWEB_SECURITY_PAGE_HEADER_1ST_GET?1951;   <!-- Includes page title          -->
+ emweb:/USMWEB_SECURITY_PAGE_HEADER_2ND_GET?2751;   <!-- Includes help page link      -->
+
+<TABLE CLASS="tablecontent" emweb:/USMWEB_TABLE_CONTENT_ALIGN;>
+
+  <TR>
+  <TD width="50%" class="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27101;</TD> <!-- Captive Portal Enabled -->
+  <TD width="50%" class="rowdataattributes"><input type="checkbox" name="cp_mode" value="0"></TD>
+  </TR>
+
+  <TR>
+  <TD class="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27114;</TD> <!-- CP Global Operational Status --> 
+  <TD class="rowdataattributes"><input class="rowdataattributes" type="text" name="cp_status" READONLY></TD>
+  </TR>
+
+  <EMWEB_IF ID=USMWEB_IF_CP_MODE_DISABLED>
+  <TR>
+  <TD class="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27115;</TD> <!-- CP Global Disable Reason-->
+  <TD class="rowdataattributes"><input class="rowdataattributes" type="text" name="cp_disable_reason" maxlength="30" size="31" READONLY></TD>
+  </TR>
+  </EMWEB_IF>
+
+  <TR>
+  <TD class="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27126;</TD> <!-- Additional HTTP Port -->
+  <TD class="rowdataattributes"><input class="inputfield" type="text" name="http_port" maxlength="5" size="4" EMWEB_TYPE=DECIMAL_UINT>
+      <EMWEB_STRING C='return usmWebIntegerRangeDisableHelp(CP_HTTP_PORT_MIN, CP_HTTP_PORT_MAX);'>
+  </TD>
+  </TR>
+
+  <EMWEB_IF ID=USMWEB_IF_MGMT_SECURITY_SUPPORTED>
+  <TR>
+  <TD class="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27201;</TD> <!-- Additional HTTP Secure Port -->
+  <TD class="rowdataattributes"><input class="inputfield" type="text" name="http_secure_port" maxlength="5" size="4" EMWEB_TYPE=DECIMAL_UINT>
+      <EMWEB_STRING C='return usmWebIntegerRangeDisableHelp(CP_HTTP_SECURE_PORT_MIN, CP_HTTP_SECURE_PORT_MAX);'>
+  </TD>
+  </TR>
+  </EMWEB_IF>
+
+  <EMWEB_IF ID=USMWEB_IF_CP_CLUSTERING_SUPPORTED>
+  <TR>
+  <TD class="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27102;</TD> <!-- Peer Switch Statistics Reporting Interval -->
+  <TD class="rowdataattributes"><input class="inputfield" type="text" name="ps_stat_int" maxlength="4" size="4" EMWEB_TYPE=DECIMAL_UINT>
+      <EMWEB_STRING C='return usmWebIntegerRangeDisableHelp(CP_PS_STATS_REPORT_INTERVAL_MIN, CP_PS_STATS_REPORT_INTERVAL_MAX);'>
+  </TD>
+  </TR>
+  </EMWEB_IF>
+
+  <TR>
+  <TD class="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27103;</TD> <!-- Authentication Timeout -->
+  <TD class="rowdataattributes"><input class="inputfield" type="text" name="auth_timeout" maxlength="3" size="4" EMWEB_TYPE=DECIMAL_UINT>
+      <EMWEB_STRING C='return usmWebIntegerRangeHelp(CP_AUTH_SESSION_TIMEOUT_MIN, CP_AUTH_SESSION_TIMEOUT_MAX);'>
+  </TD>
+  </TR>
+
+  <TR>
+  <TD colspan=2 emweb:/USMWEB_BUTTON_ALIGN;><BR>
+    <EMWEB_IF ID=USMWEB_IF_READWRITE>
+    <input class="buttonattributes" type="submit" name="Submit">
+    </EMWEB_IF>
+    <input class="buttonattributes" type="submit" name="Refresh">
+  </TD>
+  </TR>
+
+</TABLE>
+
+<INPUT TYPE="hidden" NAME="err_flag" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT value="">
+<INPUT TYPE="hidden" NAME="err_msg" SIZE="128" MAXLENGTH="127">
+
+<!-- ----------------------------------- -->
+<!--         Web page footer             -->
+<!-- ----------------------------------- -->
+ emweb:/USMWEB_PAGE_FOOTER_GET;
+
+</FORM>
+</BODY>
+</HTML>
+

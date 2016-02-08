@@ -1,0 +1,35 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="cpClientStats" title="Client Statistics">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="captiveportalcpCaptivePortalClientStatisticsTable_cpCaptivePortalClientMacAddress" id="1" name="MAC Address">
+                   <action type="value" value="" disable="1_1|1_2|1_3|1_4|1_5" hide="1_1|1_2|1_3|1_4|1_5" show="1_6"/>
+                   <action type="default" hide="1_6"/>
+                </element>  
+            </node> 
+            <node id="2">
+                <element control="label" obj-name="captiveportalcpCaptivePortalClientStatisticsTable_cpCaptivePortalClientBytesTransmitted" id="1" name="Bytes Transmitted"/>
+            </node> 
+            <node id="3">
+                <element control="label" obj-name="captiveportalcpCaptivePortalClientStatisticsTable_cpCaptivePortalClientBytesReceived" id="1" name="Bytes Received"/>
+            </node> 
+            <node id="4">
+                <element control="label" obj-name="captiveportalcpCaptivePortalClientStatisticsTable_cpCaptivePortalClientPacketsReceived" id="1" name="Packets Transmitted"/>
+            </node> 
+            <node id="5">
+                <element control="label" obj-name="captiveportalcpCaptivePortalClientStatisticsTable_cpCaptivePortalClientPacketsTransmitted" id="1" name="Packets Received"/>
+            </node> 
+            <node id="6" clazz="unavailableattributes">
+                <element properties="noname,write-only" control="label" value="No Clients exist." obj-name="xLibObjects_dummy" id="1" name="No Clients exist."/>
+            </node>
+            <node id="7">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

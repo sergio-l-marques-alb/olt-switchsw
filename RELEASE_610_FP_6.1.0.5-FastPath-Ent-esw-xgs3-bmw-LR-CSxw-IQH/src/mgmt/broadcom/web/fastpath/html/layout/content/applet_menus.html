@@ -1,0 +1,1367 @@
+  <PARAM NAME="L7_MAX_MENUITEMS" VALUE="768">     <!-- maximum number of menu items for the applet -->
+
+  <PARAM NAME="IntfMenu" VALUE="
+
+  <EMWEB_IF ID=USMWEB_IF_READWRITE >
+  {Port Configuration*/PortConfig.html?v_1_1_1}
+  </EMWEB_IF>
+
+  <EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=CABLE_TEST >
+  <EMWEB_IF ID=USMWEB_IF_READWRITE >
+   {Cable Test*/CableTest.html?v_1_1_1}
+  </EMWEB_IF>
+  </EMWEB_IF>
+
+        {Port Detailed Statistics*/PortDetailedStats.html?v_1_2_1}
+        {Port Summary Statistics*/PortSummaryStats.html?v_1_2_1}
+
+  <EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE=L7_DVLANTAG_FEATURE_SUPPORTED >
+        {Double VLAN Tunnelling*/DVLANConfig.html?v_1_1_1}
+  </EMWEB_IF>
+  <EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=DHCP_SNOOPING>
+  <EMWEB_IF ID=USMWEB_IF_READWRITE >
+  {DHCP Snooping Interface Configuration*/DHCPSnoopingInterfaceConfig.html?v_1_1_1}
+  <EMWEB_ELSE>
+  {DHCP Snooping Interface Configuration*/DHCPSnoopingInterfaceConfig.html?v_2_1_1}
+  </EMWEB_IF>
+  {DHCP Snooping Interface Statistics*/DhcpSnoopingStats.html?v_1_1_1}
+  <EMWEB_IF ID=USMWEB_IF_READWRITE >
+  {DHCP L2 Relay Interface Configuration*/DHCPL2RelayInterfaceConfiguration.html?v_1_1_1}
+  <EMWEB_ELSE>
+  {DHCP L2 Relay Interface Configuration*/DHCPL2RelayInterfaceConfiguration.html?v_2_1_1}
+  </EMWEB_IF>
+  {DHCP L2 Relay Interface Statistics*/DHCPL2RelayInterfaceStatistics.html?v_1_1_1}
+
+     <EMWEB_IF ID=USMWEB_IF_IPSG>
+  <EMWEB_IF ID=USMWEB_IF_READWRITE >
+        {IPSG Interface Configuration*/IPSGInterfaceConfig.html?v_1_1_1}
+  <EMWEB_ELSE>
+        {IPSG Interface Configuration*/IPSGInterfaceConfig.html?v_2_1_1}
+  </EMWEB_IF>
+     </EMWEB_IF>
+  </EMWEB_IF>
+  <EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=DYNAMIC_ARP_INSPECTION >
+  <EMWEB_IF ID=USMWEB_IF_READWRITE >
+   {DAI Interface Configuration*/DAIInterfaceConfig.html?v_1_1_1}
+  <EMWEB_ELSE>
+   {DAI Interface Configuration*/DAIInterfaceConfig.html?v_2_1_1}
+  </EMWEB_IF>
+  </EMWEB_IF>
+  <EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=SFLOW >
+  {sFlow
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+        {Poller Configuration*/sFlowPollerConfig.html?v_1_1_1}
+</EMWEB_IF>
+        {Poller Summary*/sFlowPollerSummary.html?v_1_1_1}
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+        {Sampler Configuration*/sFlowSamplerConfig.html?v_1_1_1}
+</EMWEB_IF>
+        {Sampler Summary*/sFlowSamplerSummary.html?v_1_1_1}
+  }
+  </EMWEB_IF>
+   {MST Port Configuration/Status*/MSTPortConfigStatus.html?v_1_2_1}
+   {CST Port Configuration/Status*/CSTPortConfigStatus.html?v_1_1_1}
+  <EMWEB_IF ID=USMWEB_IF_READWRITE >
+  {VLAN Port Configuration*/VLANPortConfig.html?v_1_1_1}
+  </EMWEB_IF>
+  <EMWEB_IF ID=USMWEB_IF_READWRITE >
+  {GARP Port Configuration*/GARPPortConfig.html?v_1_1_1}
+  </EMWEB_IF>
+
+   <EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE=IGMP_SNOOPING >
+   {IGMP Snooping {Interface Configuration*/IGMPSnoopingInterfaceConfig.html?v_1_1_1}
+        {Multicast Router Status*/MulticastRouterStatus.html?v_1_1_1}
+        {Multicast Router Configuration*/MulticastRouterConfig.html?v_1_1_1}
+        {Multicast Router VLAN Status*/snooping_multicast_router_vlan_status.html?v_1_1_1}
+        {Multicast Router VLAN Configuration*/snooping_multicast_router_vlan_config.html?v_1_1_1}
+   }
+    </EMWEB_IF>
+   <EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE=MLD_SNOOPING >
+   {MLD Snooping{Interface Configuration*/switching/mld_snooping/mld_intf_cfg.html?v_1_1_1}
+        {Multicast Router Status*/MLDSnoopingMulticastRouterStatus.html?v_1_1_1}
+        {Multicast Router Configuration*/MLDSnoopingMulticastRouterConfiguration.html?v_1_1_1}
+        {Multicast Router VLAN Status*/MLDSnoopingMulticastRouterVlanStatus.html?v_1_1_1}
+        {Multicast Router VLAN Configuration*/MLDSnoopingMulticastRouterVlanConfiguration.html?v_1_1_1}
+  }
+  </EMWEB_IF>
+
+  <EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=PORT_MACLOCK >
+  <EMWEB_IF ID=USMWEB_IF_READWRITE >
+    {Port Security{Port Security Interface Configuration*/PortSecurityInterfaceConfig.html?v_1_1_1}
+    {Port Security Static*/PortSecurityStatic.html?v_1_1_1}
+  <EMWEB_ELSE>
+    {Port Security{Port Security Interface Configuration*/PortSecurityInterfaceConfig.html?v_2_1_1}
+    {Port Security Static*/PortSecurityStatic.html?v_2_1_1}
+  </EMWEB_IF>
+        {Port Security Dynamic*/PortSecurityDynamic.html?v_1_1_1}
+        {Port Security Violation Status*/PortSecurityViolationStatus.html?v_1_1_1}
+    }
+  </EMWEB_IF>
+  <EMWEB_IF ID=USMWEB_IF_READWRITE>
+  {LLDP{Interface Configuration*/LLDPInterfaceConfig.html}
+       {LLDP-MED Interface Configuration*/LLDPMEDInterfaceConfig.html}
+  }
+  </EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=LAYER3 >
+  <EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=IP_MAP >
+  <EMWEB_IF ID=USMWEB_IF_READWRITE >
+  {IP Interface Configuration*/IPInterfaceConfig.html?v_1_1_1}
+  <EMWEB_ELSE>
+  {IP Interface Configuration*/IPInterfaceConfig.html?v_2_1_1}
+  </EMWEB_IF>
+  <EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=RIP >
+  {RIP Interface Configuration*/RIPInterfaceConfig.html?v_1_1_1}
+  </EMWEB_IF>
+  <EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=OSPF >
+        {OSPF Interface Configuration*/OSPFInterfaceConfig.html?v_1_1_1}
+        {OSPF Interface Statistics*/OSPFInterfaceStats.html?v_1_1_1}
+  </EMWEB_IF>
+  </EMWEB_IF>
+  <EMWEB_IF ID=USMWEB_IF_READWRITE >
+   {Port Access Control Configuration*/PortAccessControlPortConfig.html?v_1_1_1}
+  </EMWEB_IF>
+  {Port Access Control Status*/PortAccessControlPortStatus.html?v_1_1_1}
+  {Port Access Control Statistics*/PortAccessCtrlPortStats.html?v_1_1_1}
+  <EMWEB_IF ID=USMWEB_IF_READWRITE >
+  {Port Access Privileges*/PortAccessPrivileges.html?v_1_1_1}
+  </EMWEB_IF>
+  </EMWEB_IF>
+
+
+<EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=IPV6>
+  {IPv6 Interface Configuration*/IPv6InterfaceConfig.html?v_1_1_1}
+  {IPv6 Statistics*/IPv6Stats.html?v_1_1_1}
+  {IPv6 Neighbor Table*/IPv6NeighborTable.html?v_1_1_1}
+  <EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=DHCPV6>
+  {DHCPv6
+        {Interface Configuration*/DHCPv6InterfaceConfig.html?v_1_1_1}
+        {Statistics*/DHCPv6Stats.html?v_1_1_1}
+  }
+  </EMWEB_IF>
+  <EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=OSPFV3>
+    {OSPFv3{Interface Configuration*/OSPFv3InterfaceConfig.html?v_1_1_1}
+            {Interface Statistics*/OSPFv3InterfaceStats.html?v_1_1_1}
+            {Neighbors*/OSPFv3Neighbors.html?v_1_1_1}
+            {Neighbor Table*/OSPFv3NeighborTable.html?v_1_1_1}
+    }
+  </EMWEB_IF>
+  </EMWEB_IF>
+
+  <EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=MCAST >
+  <EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=IP_MAP >
+  {IPv4 Multicast
+    <EMWEB_IF ID=USMWEB_IF_READWRITE >
+        {MCAST Interface Configuration*/MulticastInterfaceCfg.html?v_1_1_1}
+        {DVMRP Interface Configuration*/DVMRPInterfaceCfg.html?v_1_1_1}
+        {DVMRP Configuration Summary*/DVMRPConfigSumm.html?v_1_1_1}
+        {IGMP Interface Configuration*/IGMPInterfaceConfig.html?v_1_2_1}
+        {IGMP Configuration Summary*/IGMPConfigSummary.html?v_1_1_1}
+        {IGMP Proxy Interface Configuration*/IGMPProxyInterfaceConfig.html?v_1_2_1}
+        {IGMP Proxy Configuration Summary*/IGMPProxyConfigSumm.html?v_1_2_1}
+        {PIM Interface Configuration*/PIM4InterfaceConfig.html?v_1_1_1}
+        {PIM Interface Summary*/PIM4InterfaceSumm.html?v_1_2_1}
+    <EMWEB_ELSE>
+        {MCAST Interface Summary*/MulticastInterfaceCfg.html?v_2_1_1}
+        {DVMRP Configuration Summary*/DVMRPConfigSumm.html?v_1_1_1}
+        {IGMP Configuration Summary*/IGMPConfigSummary.html?v_1_1_1}
+        {IGMP Proxy Configuration Summary*/IGMPProxyConfigSumm.html?v_1_2_1}
+        {PIM Interface Summary*/PIM4InterfaceSumm.html?v_1_2_1}
+    </EMWEB_IF>
+   }
+  </EMWEB_IF>
+
+   <EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=IPV6>
+  {IPv6 Multicast
+    <EMWEB_IF ID=USMWEB_IF_READWRITE>
+        {MLD Interface Configuration*/MLDInterfaceConfig.html?v_1_1_1}
+        {MLD Configuration Summary*/MLDInterfaceSumm.html?v_1_1_1}
+        {MLD Proxy Interface Configuration*/MLDProxyInterfaceConfig.html?v_1_2_1}
+        {MLD Proxy Configuration Summary*/MLDProxyConfigSumm.html?v_1_2_1}
+        {PIM Interface Configuration*/PIM6InterfaceConfig.html?v_1_1_1}
+        {PIM Interface Summary*/PIM6InterfaceSumm.html?v_1_2_1}
+    <EMWEB_ELSE>
+        {MLD Configuration Summary*/MLDInterfaceSumm.html?v_1_1_1}
+        {MLD Proxy Configuration Summary*/IGMPProxyConfigSumm.html?v_1_2_1}
+        {PIM Interface Summary*/PIM6InterfaceSumm.html?v_1_2_1}
+    </EMWEB_IF>
+   }
+    </EMWEB_IF>
+  </EMWEB_IF>
+
+  ">
+
+  <EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=STACKING >
+  <PARAM NAME="fpsIntfMenu" VALUE="
+
+    <EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=STACKING >
+    <EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE=L7_FPS_PORT_MODE_CFG_FEATURE >
+    <EMWEB_IF ID=USMWEB_IF_READWRITE >
+    {Stack Port Configuration*/StackPortConfiguration.html?v_1_1_1}
+    </EMWEB_IF>
+    </EMWEB_IF>
+        {Stack Port Summary*/StackPortSummary.html}
+        {Stack Port Counters*/StackPortCounters.html}
+        {Stack Port Diagnostics*/StackPortDiagnostics.html}
+    </EMWEB_IF>
+
+
+  ">
+  </EMWEB_IF>
+
+  <EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=STACKING >
+  <PARAM NAME="stackIntfMenu" VALUE="
+        {Stack Port Summary*/StackPortSummary.html}
+        {Stack Port Counters*/StackPortCounters.html}
+        {Stack Port Diagnostics*/StackPortDiagnostics.html}
+  ">
+  </EMWEB_IF>
+
+ <PARAM NAME="FullMenu" VALUE="
+{System
+	{ARP Cache*/ArpCacheInfo.html}
+
+	{Inventory Information*/InventoryInfo.html}
+
+	{Dual Image Status*/dual_image_status.html}
+
+{Configuration
+	{System Description*/SysDescription.html}
+
+	{Switch*/SwitchConfig.html}
+      <EMWEB_IF ID=USMWEB_IF_SERVICE_PORT_PRESENT >
+	{Service Port*/ServicePortConfig.html}
+     <EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=IPV6>
+	{Service Port NDP Summary*/ServicePortNDPSummary.html}
+     </EMWEB_IF>
+      </EMWEB_IF>
+
+     <EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=IPV6>
+	{Network NDP Summary*/NetworkNDPSummary.html}
+      </EMWEB_IF>
+
+	{Network Connectivity*/NetworkConnectivityConfig.html}
+
+	{DHCP Client Options*/DhcpClientOptions.html}
+
+	{HTTP Configuration*/HTTPConfig.html}
+
+	{Telnet Session*/TelnetSessionConfig.html}
+
+	{Serial Port*/SerialPortConfig.html}
+      <EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{User Accounts*/UserAccounts.html}
+
+	{Authentication List Configuration*/AuthenticationListConfig.html}
+
+	{Login Session*/LoginSession.html}
+
+	{Authentication List Summary*/AuthenticationListSummary.html}
+
+	{User Login*/UserLoginConfig.html}
+      </EMWEB_IF>
+
+	{Password Management*/PasswordManagement.html}
+      <EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=DOSCONTROL >
+	{Denial Of Service*/DenialOfService.html}
+      </EMWEB_IF>
+}
+
+{Forwarding Database
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Configuration*/FDBConfig.html}
+      </EMWEB_IF>
+
+	{Search*/FDBSearch.html}
+}
+    <EMWEB_IF ID=USMWEB_IF_READWRITE >
+{Log
+	{Buffered Log Configuration*/BufferedLogConfiguration.html}
+
+	{Buffered Log*/BufferedLogs.html}
+
+	{Command Logger Configuration*/CommandLoggerConfiguration.html}
+
+	{Console Log Configuration*/ConsoleLogConfiguration.html}
+
+	{Event Log*/EventLog.html}
+
+	{Hosts Configuration*/HostsConfiguration.html}
+        <EMWEB_IF ID=IF_L7_PERSISTENT_LOG_SUPPORTED>
+	{Persistent Log Configuration*/PersistentLogConfiguration.html}
+
+	{Persistent Log*/PersistentLogs.html}
+        </EMWEB_IF>
+
+	{Syslog Configuration*/SyslogConfiguration.html}
+}
+    </EMWEB_IF>
+
+{Slot
+	{Card Configuration*/CardCfg.html}
+
+	{Slot Summary*/SlotSummary.html}
+
+	{Supported Cards*/SupportedCards.html}
+}
+
+{Port
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Configuration*/PortConfig.html}
+</EMWEB_IF>
+
+	{Summary*/PortSummary.html}
+
+	{Port Description*/PortDescription.html}
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Cable Test*/CableTest.html}
+</EMWEB_IF>
+
+	{Multiple Port Mirroring*/PortMirroring.html}
+
+	{Double VLAN Tunnelling*/DVLANConfig.html}
+
+	{Double VLAN Tunneling Summary*/DVLANSummary.html}
+}
+    <EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=SFLOW >
+{sFlow
+	{Agent  Summary*/sFlowAgentSumm.html}
+
+	{Receiver Configuration*/sFlowRecvrConfig.html}
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Poller Configuration*/sFlowPollerConfig.html}
+</EMWEB_IF>
+	{Poller Summary*/sFlowPollerSummary.html}
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Sampler Configuration*/sFlowSamplerConfig.html}
+</EMWEB_IF>
+	{Sampler Summary*/sFlowSamplerSummary.html}
+}
+    </EMWEB_IF>
+<EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE="TR069" >
+{TR-069
+        {TR-069 Configuration*/TR069Configuration.html}
+
+        {TR-069 Statistics*/TR069Statistics.html}
+}
+</EMWEB_IF>
+<EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=SNMP >
+{SNMP
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Community Configuration*/SNMPCommunityConfig.html}
+</EMWEB_IF>
+
+	{Trap Receiver Configuration*/SNMPTrapRecvrConfig.html}
+
+	{Supported MIBs*/snmp_supported_mibs.html}
+}
+</EMWEB_IF>
+
+{Statistics
+	{Switch Detailed*/SwitchDetailedStats.html}
+
+	{Switch Summary*/SwitchSummary.html}
+
+	{Port Detailed*/PortDetailedStats.html}
+
+	{Port Summary*/PortSummaryStats.html}
+}
+    <EMWEB_IF ID=USMWEB_IF_READWRITE >
+{System Utilities
+	{Save All Applied Changes*/SaveAllChanges.html}
+
+	{System Reset*/SystemReset.html}
+
+	{Reset Configuration To Defaults*/ResetConfigToDefaults.html}
+
+	{Erase Startup Config file*/EraseStartupConfig.html}
+
+	{Reset Passwords to Defaults*/ResetPasswords.html}
+
+	{Download File To Switch*/DownloadFile.html}
+
+	{Upload File From Switch*/UploadFile.html}
+
+	{Dual Image Configuration*/dual_image_cfg.html}
+
+	{HTTP File Download*/http_file_download.html}
+
+	{Ping*/Ping.html}
+
+	{TraceRoute*/TraceRoute.html}
+      <EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE="IPv6">
+	{Ping IPv6*/ping_ipv6.html}
+      </EMWEB_IF>
+
+	{Auto Install*/auto_install_cfg.html}
+}
+    </EMWEB_IF>
+<EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=SNMP >
+{Trap Manager
+	{Trap Flags*/TrapFlags.html}
+
+	{Trap Logs*/TrapLogs.html}
+}
+</EMWEB_IF>
+
+{DHCP Server
+	{Global Configuration*/DHCPServerGlobalConfig.html}
+
+	{Pool Configuration*/DHCPPoolConfiguration.html}
+
+	{Pool Options*/DHCPServerPoolOptions.html}
+        <EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Reset Configuration*/DHCPServerResetConfig.html}
+        </EMWEB_IF>
+
+	{Bindings Information*/DHCPServerBindingsInfo.html}
+
+	{Server Statistics*/DHCPServerStatistics.html}
+
+	{Conflicts Information*/DHCPServerConflictsInfo.html}
+}
+
+{DNS
+	{Global Configuration*/DNSGlobalConfig.html}
+
+	{Server Configuration*/DNSServerConfig.html}
+
+	{HostName IP Mapping Summary*/DNSHostIPMapping.html}
+}
+
+{SNTP
+	{Global Configuration*/SNTPGlobalConfiguration.html}
+
+	{Global Status*/SNTPGlobalStatus.html}
+
+	{Server Configuration*/SNTPServerConfiguration.html}
+
+	{Server Status*/SNTPServerStatus.html}
+}
+<EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=ISDP >
+{ISDP
+	{Global Configuration*/ISDPGlobalConfig.html}
+
+	{Cache Table*/ISDPCacheTable.html}
+
+	{Interface Configuration*/ISDPInterfaceConfig.html}
+
+	{Statistics*/ISDPStats.html}
+}
+</EMWEB_IF>
+
+}
+
+{Switching
+<EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE="DHCP_SNOOPING">
+{DHCP Snooping
+	{Configuration*/DHCPSnoopingConfig.html}
+
+	{VLAN Configuration*/DHCPSnoopingVLANConfig.html}
+
+	{Interface Configuration*/DHCPSnoopingInterfaceConfig.html}
+
+	{Binding Configuration*/DHCPSnoopingBindingsConfig.html}
+     <EMWEB_IF ID=USMWEB_IF_IPSG>
+	{Persistent Configuration*/DHCPSnoopingPersistentConfig.html}
+     </EMWEB_IF>
+	{Statistics*/DhcpSnoopingStats.html}
+{DHCP L2 Relay
+	{Global Configuration*/DHCPL2RelayConfiguration.html}
+
+	{Interface Configuration*/DHCPL2RelayInterfaceConfiguration.html}
+
+	{VLAN Configuration*/DHCPL2RelayVLANConfiguration.html}
+     <EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE="DOT1AD">
+        {Subscription Configuration*/DHCPL2RelaySubscConfiguration.html}
+        {Subscription Summary*/DHCPL2RelaySubscConfigSummary.html}
+     </EMWEB_IF>
+	{Interface Statistics*/DHCPL2RelayInterfaceStatistics.html}
+}
+}
+<EMWEB_IF ID=USMWEB_IF_IPSG>
+{IP Source  Guard
+	{IPSG Interface Configuration*/IPSGInterfaceConfig.html}
+
+	{IPSG Binding Configuration*/IPSGBindingConfig.html}
+}
+</EMWEB_IF>
+</EMWEB_IF>
+
+{VLAN
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Configuration*/VlanCreateConfig.html}
+</EMWEB_IF>
+
+	{Status*/VLANStatus.html}
+      <EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Port Configuration*/VLANPortConfig.html}
+     </EMWEB_IF>
+
+	{Port Summary*/VLANPortSummary.html}
+      <EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Reset Configuration*/ResetVLANConfig.html}
+     </EMWEB_IF>
+}
+<EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=PROTECTED_PORTS>
+{Protected Ports
+      <EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Configuration*/ProtectedPortsConfig.html}
+     </EMWEB_IF>
+
+	{Summary*/ProtectedPortsSummary.html}
+}
+</EMWEB_IF>
+<EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=PBVLAN>
+{Protocol-based VLAN
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+	{Configuration*/protocol_based_vlan_config.html}
+</EMWEB_IF>
+	{Summary*/PBVlanSummary.html}
+}
+</EMWEB_IF>
+<EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE="IPSUBNET_VLAN" >
+{IP Subnet-Based VLAN
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+	{Configuration*/IPSubnetVlanConfig.html}
+</EMWEB_IF>
+	{Summary*/IPSubnetVlanSummary.html}
+}
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE="MAC_VLAN" >
+{MAC-based VLAN
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+	{Configuration*/MACVLANConfig.html}
+</EMWEB_IF>
+
+	{Summary*/MACVLANSummary.html}
+}
+</EMWEB_IF>
+
+{Voice VLAN
+	{Voice VLAN Configuration*/VoiceVlanConfig.html}
+}
+
+{Filters
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{MAC Filter Configuration*/MACFilterConfig.html}
+</EMWEB_IF>
+
+	{MAC Filter Summary*/MACFilterSumm.html}
+}
+
+{GARP
+	{Status*/GARPStatus.html}
+    <EMWEB_IF ID=USMWEB_IF_READWRITE>
+	{Switch Configuration*/GARPSwitchConfig.html}
+
+	{Port Configuration*/GARPPortConfig.html}
+    </EMWEB_IF>
+}
+
+    <EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=DYNAMIC_ARP_INSPECTION >
+{Dynamic Arp Inspection
+	{DAI Configuration*/DAIConfig.html}
+
+	{DAI VLAN Configuration*/DAIVlanCfg.html}
+
+	{DAI Interface Configuration*/DAIInterfaceConfig.html}
+
+	{DAI ARP ACL Configuration*/DAIARPACLConfig.html}
+
+	{DAI ARP ACL Rule Configuration*/DAIARPACLRuleConfig.html}
+
+	{DAI Statistics*/DAIStatistics.html}
+}
+    </EMWEB_IF>
+
+    <EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE=IGMP_SNOOPING >
+{IGMP Snooping
+	{Configuration and Status*/IGMPSnoopingGlobalConfig.html}
+
+      <EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Interface Configuration*/IGMPSnoopingInterfaceConfig.html}
+      </EMWEB_IF>
+      <EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE=IGMP_SNOOPING_PER_VLAN >
+	{VLAN Status*/IGMPSnoopingVLANStatus.html}
+
+      <EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{VLAN Configuration*/IGMPSnoopingVLANConfig.html}
+      </EMWEB_IF>
+      </EMWEB_IF>
+
+	{Multicast Router Status*/MulticastRouterStatus.html}
+      <EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Multicast Router Configuration*/MulticastRouterConfig.html}
+      </EMWEB_IF>
+      <EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE=IGMP_SNOOPING_PER_VLAN >
+	{Multicast Router VLAN Status*/snooping_multicast_router_vlan_status.html}
+      <EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Multicast Router VLAN Configuration*/snooping_multicast_router_vlan_config.html}
+      </EMWEB_IF>
+      </EMWEB_IF>
+}
+
+{IGMP Snooping Querier
+	{Querier Configuration*/IGMPSnoopingQuerierConfig.html}
+    <EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Querier VLAN Configuration*/IGMPSnoopingQuerierVLANConfig.html}
+      </EMWEB_IF>
+
+	{Querier VLAN Configuration Summary*/IGMPSnoopingQuerierVlanSummary.html}
+
+	{Querier VLAN Status*/IGMPSnoopingQuerierVLANStatus.html}
+}
+      </EMWEB_IF>
+<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE=MLD_SNOOPING >
+{MLD Snooping
+	{Configuration and Status*/MLDSnoopingGlobalConfigStatus.html}
+      <EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Interface Configuration*/MLDSnoopingInterfaceConfig.html}
+      </EMWEB_IF>
+
+      <EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE=MLD_SNOOPING_PER_VLAN >
+	{VLAN Status*/MLDSnoopingVLANStatus.html}
+      <EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{VLAN Configuration*/MLDSnoopingVLANConfiguration.html}
+        </EMWEB_IF>
+      </EMWEB_IF>
+
+	{Multicast Router Status*/MLDSnoopingMulticastRouterStatus.html}
+      <EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Multicast Router Configuration*/MLDSnoopingMulticastRouterConfiguration.html}
+      </EMWEB_IF>
+      <EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE=MLD_SNOOPING_PER_VLAN >
+	{Multicast Router VLAN Status*/MLDSnoopingMulticastRouterVlanStatus.html}
+      <EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Multicast Router VLAN Configuration*/MLDSnoopingMulticastRouterVlanConfiguration.html}
+        </EMWEB_IF>
+      </EMWEB_IF>
+}
+
+{MLD Snooping Querier
+	{Querier Configuration*/MLDSnoopingQuerierConfiguration.html}
+      <EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Querier VLAN Configuration*/MLDSnoopingQuerierVLANConfiguration.html}
+        </EMWEB_IF>
+
+	{Querier VLAN Configuration Summary*/MLDSnoopingQuerierVLANConfigurationSummary.html}
+
+	{Querier VLAN Status*/MLDSnoopingQuerierVLANStatus.html}
+}
+</EMWEB_IF>
+{Port Channel
+    <EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Configuration*/PortChannelCfg.html}
+     </EMWEB_IF>
+
+	{Status*/PortChannelStatus.html}
+}
+
+{Multicast Forwarding Database
+	{MFDB Table*/MFDBTable.html}
+
+	{GMRP Table*/MFDBGMRPTable.html}
+<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="IGMP_SNOOPING" >
+	{IGMP Snooping Table*/IGMPSnoopingTable.html}
+ </EMWEB_IF>
+<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="MLD_SNOOPING" >
+	{MLD Snooping Table*/MLDSnoopingTable.html}
+ </EMWEB_IF>
+
+	{Stats*/MFDBStatistics.html}
+}
+    <EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE=DOT1S_FEATURE >
+{Spanning Tree
+	{Switch Configuration/Status*/SpanningTreeConfigStatus.html}
+
+	{CST Configuration/Status*/CSTConfigStatus.html}
+
+	{MST Configuration/Status*/MSTConfigStatus.html}
+
+	{CST Port Configuration/Status*/CSTPortConfigStatus.html}
+
+	{MST Port Configuration/Status*/MSTPortConfigStatus.html}
+
+	{Statistics*/SpanningTreeStats.html}
+}
+    </EMWEB_IF>
+    <EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE=DOT1P_FEATURE>
+{Class Of Service
+	{802.1p Priority Mapping*/PriorityMapping.html}
+}
+    </EMWEB_IF>
+    <EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=PORT_MACLOCK >
+{Port Security
+	{Port Security Administration*/PortSecurityGlobalConfig.html}
+
+	{Port Security Interface Configuration*/PortSecurityInterfaceConfig.html}
+
+	{Port Security Static*/PortSecurityStatic.html}
+
+	{Port Security Dynamic*/PortSecurityDynamic.html}
+
+	{Port Security Violation Status*/PortSecurityViolationStatus.html}
+}
+    </EMWEB_IF>
+
+{LLDP
+	{Global Configuration*/LLDPGlobalConfig.html}
+      <EMWEB_IF ID=USMWEB_IF_READWRITE>
+	{Interface Configuration*/LLDPInterfaceConfig.html}
+      </EMWEB_IF>
+	{Interface Summary*/LLDPInterfaceSummary.html}
+
+	{Statistics*/LLDPStats.html}
+
+	{Local Device Information*/LLDPLocalDeviceInfo.html}
+
+	{Local Device Summary*/LLDPLocalDeviceSumm.html}
+
+	{Remote Device Information*/LLDPRemoteDeviceInfo.html}
+
+	{Remote Device Summary*/LLDPRemoteDeviceSumm.html}
+
+{LLDP-MED
+	{Global Config*/LLDPMEDGlobalConfig.html}
+      <EMWEB_IF ID=USMWEB_IF_READWRITE>
+	{Interface Configuration*/LLDPMEDInterfaceConfig.html}
+      </EMWEB_IF>
+
+	{Interface Summary*/LLDPMEDInterfaceSummary.html}
+
+	{Local Device Information*/LLDPMEDLocalDeviceInfo.html}
+
+	{Remote Device Information*/LLDPMEDRemoteDeviceInfo.html}
+}
+}
+<EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE="DOT1AD">
+{DOT1AD
+      <EMWEB_IF ID=USMWEB_IF_READWRITE>
+        {Service Configuration*/service_cfg.html}
+      </EMWEB_IF>
+
+        {Service Summary*/service_summary.html}
+
+      <EMWEB_IF ID=USMWEB_IF_READWRITE>
+        {Subscription Configuration*/subscription_cfg.html}
+      </EMWEB_IF>
+
+        {Subscription Summary*/subscription_summary.html}
+
+      <EMWEB_IF ID=USMWEB_IF_READWRITE>
+        {Interface Type Configuration*/dot1adInterfaceTypeConfig.html}
+      </EMWEB_IF>
+
+        {Interface Summary*/Dot1adInterfaceSummary.html}
+
+      <EMWEB_IF ID=USMWEB_IF_READWRITE>
+        {Protocol Tunnel Configuration*/ListProtocolTunnelConfig.html}
+      </EMWEB_IF>
+        {Protocol Tunnel Summary*/TunnelActionSummary.html}
+}
+</EMWEB_IF>
+<EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE="DOT3AH">
+{EFM-OAM
+        {Protocol Status*/dot3ahProtocolStatus.html}
+
+      <EMWEB_IF ID=USMWEB_IF_READWRITE>
+        {Interface Configuration*/dot3ahInterfaceConfig.html}
+      </EMWEB_IF>
+
+        {Interface Summary*/dot3ahInterfaceSummary.html}
+
+        {Statistics*/dot3ahStatistics.html}
+
+        {Link Status*/dot3ahLinkStatus.html}
+
+        {Local Device Summary*/dot3ahLocalDeviceSummary.html}
+
+        {Remote Device Summary*/dot3ahRemoteDeviceSummary.html}
+
+        {Link Monitoring*/dot3ahLinkMonitoring.html}
+
+        {Remote Loopback*/dot3ahRemoteLoopback.html}
+}
+</EMWEB_IF>
+}
+  <EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=LAYER3>
+{Routing
+{ARP
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{ARP Create*/ARPCreate.html}
+</EMWEB_IF>
+
+	{ARP Table Configuration*/ARPTableConfig.html}
+}
+
+{IP
+	{Configuration*/IPConfig.html}
+
+	{Statistics*/IPStats.html}
+
+	{Interface Configuration*/IPInterfaceConfig.html}
+}
+    <EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=OSPF >
+{OSPF
+	{OSPF Configuration*/OSPFConfig.html}
+
+	{Area Configuration*/OSPFAreaConfig.html}
+
+	{Stub Area Summary*/OSPFAreaStubSummary.html}
+
+	{Area Range Configuration*/OSPFAreaRangeConfiguration.html}
+
+	{Interface Statistics*/OSPFInterfaceStats.html}
+
+	{Interface Configuration*/OSPFInterfaceConfig.html}
+
+	{Neighbor Table*/ospfNbrTable.html}
+
+	{Neighbor Configuration*/OSPFNeighborConfig.html}
+
+	{Link State Database*/OSPFLinkStateDB.html}
+
+	{Virtual Link Configuration*/OSPFVirtualLinkConfig.html}
+
+	{Virtual Link Summary*/OSPFVirtualLinkSumm.html}
+      <EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Route Redistribution Configuration*/OSPFRouteRedistConfig.html}
+      </EMWEB_IF>
+
+	{Route Redistribution Summary*/OSPFRouteRedistSumm.html}
+}
+    </EMWEB_IF>
+
+{BOOTP/DHCP Relay Agent
+      <EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Configuration*/BootpdhcpRelayConfig.html}
+      </EMWEB_IF>
+
+	{Status*/BootdhcpRelayStatus.html}
+}
+
+<EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=RIP >
+{RIP
+	{Configuration*/RIPConfig.html}
+
+	{Interface Summary*/RIPInterfaceSumm.html}
+
+	{Interface Configuration*/RIPInterfaceConfig.html}
+      <EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Route Redistribution Configuration*/RIPRedistributeConfig.html}
+      </EMWEB_IF>
+
+	{Route Redistribution Summary*/RIPRouteRedistributeSumm.html}
+}
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=ROUTER_DISCOVERY >
+{Router Discovery
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Configuration*/RouterDiscConfig.html}
+</EMWEB_IF>
+
+	{Summary*/RouterDiscSumm.html}
+}
+</EMWEB_IF>
+
+{VLAN Routing
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Configuration*/VLANRoutingConfig.html}
+</EMWEB_IF>
+	{Summary*/VLANRoutingSumm.html}
+}
+
+{Router
+	{Route Table*/ipRouteTable.html}
+
+	{Best Routes Table*/ipGoodRouteTable.html}
+
+	{Configured Routes*/ConfiguredRoutes.html}
+
+	{Route Preferences Configuration*/ConfigRoute.html}
+}
+
+{VRRP
+	{VRRP Configuration*/VRRPConfig.html}
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Virtual Router Configuration*/VRRPRouterConfig.html}
+</EMWEB_IF>
+	{Virtual Router Status*/VRRPRouterStatus.html}
+
+	{Virtual Router Statistics*/VRRPRouterStats.html}
+}
+   <EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=RLIM>
+     <EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=IPV6>
+{Tunnels
+       <EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Configuration*/TunnelConfig.html}
+       </EMWEB_IF>
+
+	{Summary*/TunnelSummary.html}
+}
+    </EMWEB_IF>
+
+{Loopbacks
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Loopback Configuration*/loopbackConfig.html}
+</EMWEB_IF>
+
+	{Loopback Summary*/LoopbackSummary.html}
+}
+</EMWEB_IF>
+}
+  </EMWEB_IF>
+
+{Security
+{Port Access Control
+	{Configuration*/PortAccessControlConfig.html}
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Port Configuration*/PortAccessControlPortConfig.html}
+      </EMWEB_IF>
+
+	{PAE Capability Configuration*/PortAccessControlPaeConfiguration.html}
+
+	{Supplicant Port Configuration*/dot1xSupplPortConfig.html}
+
+	{Port Status*/PortAccessCtrlPortStatus.html}
+
+	{Port Summary*/PortAccessControlPortSummary.html}
+
+	{Statistics*/PortAccessCtrlPortStats.html}
+
+	{Client Summary*/ClientSummary.html}
+
+	{Client Detail*/PortAccessControlClientDetail.html}
+      <EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Login*/LoginConfig.html}
+
+	{Port Access Privileges*/PortAccessPrivileges.html}
+
+	{Port Access Summary*/PortAccessSummary.html}
+      </EMWEB_IF>
+}
+
+{RADIUS
+	{Configuration*/RadiusCfg.html}
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Server Configuration*/RadiusServCfg.html}
+</EMWEB_IF>
+	{Named Server Status*/RADIUSNamedServerStatus.html}
+
+	{Server Statsistics*/RadiusServStats.html}
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Accounting Server Configuration*/RadiusAccServCfg.html}
+</EMWEB_IF>
+
+	{Named Accounting Server Status*/RADIUSNamedAccountingServerStatus.html}
+
+	{Accounting Server Statistics*/RadAccServStats.html}
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Clear Statistics*/RadClearStats.html}
+</EMWEB_IF>
+}
+
+{TACACS+
+	{Configuration*/TacacsCfg.html}
+
+	{Server Configuration*/TacacsServCfg.html}
+}
+  <EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=SSLT>
+{Secure HTTP
+	{Configuration*/SSLCfg.html}
+}
+  </EMWEB_IF>
+
+  <EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=SSHD>
+{Secure Shell
+	{Configuration*/SSHCfg.html}
+}
+  </EMWEB_IF>
+}
+
+<EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=WIRELESS>
+  {WLAN
+    {Basic Setup*/WirelessGlobalConfig.html}
+    {AP Management
+      <EMWEB_IF ID=USMWEB_IF_READWRITE >
+        {Reset*/managed_ap_reset.html}
+      </EMWEB_IF>
+        {RF Management*/RFConfiguration.html}
+        {Software Download*/managed_ap_download.html}
+        {Advanced Settings*/managed_ap_advanced.html}
+    }
+    {Status/Statistics
+        {Global*/WirelessGlobalStats.html}
+        {Managed AP*/managed_ap_status.html}
+        {Associated Client*/client_status.html}
+        {Peer Switch*/peer_ws_status.html}
+        {RRM*/RRMChannelLoadConfig.html}
+        {WDS Managed APs*/wds_group_summary.html}
+    }
+    {Intrusion Detection
+        {Rogue/RF Scan*/managed_aprfscan_status_summ.html}
+        {Detected Clients*/client_detected_status_summ.html}
+        {Ad Hoc Clients*/client_adhoc_status_summ.html}
+        {AP Authentication Failures*/managed_apfailure_status_summ.html}
+        {AP De-Auth Attack Status*/APDeAuthAttackStatus.html}
+    }
+    {Advanced Configuration
+        {Global*/AdvancedGlobalConfig.html}
+        {Known Client*/wireless_kc_summ.html}
+        {Networks*/WirelessNetworkSummary.html}
+        {AP Profiles*/APProfileSummary.html}
+        {AP Provisioning*/ap_provisioning_summ.html}
+        <EMWEB_IF ID=USMWEB_IF_PRODUCT_ENTERPRISE>
+        {Peer Switch*/PeerSwitchConfigRequest.html}
+        </EMWEB_IF>
+        {WIDS Security*/widsAPConfig.html}
+        {Switch Provisioning*/SwitchCertificateRequest.html}
+    }
+    {Network Visualization
+         {Download Image*/NVImageDownload.html}
+         {Launch...*/nv_launch.html}
+    }
+  }
+</EMWEB_IF>
+
+  <EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE="IPV6">
+{IPv6
+	{Global Configuration*/IPv6GlobalConfig.html}
+
+	{Interface Configuration*/IPv6InterfaceConfig.html}
+
+	{Interface Summary*/IPv6InterfaceSum.html}
+
+	{IPv6 Statistics*/IPv6Stats.html}
+	{IPv6 Neighbor Table*/IPv6NeighborTable.html}
+
+    <EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE="DHCPV6" >
+{DHCPv6
+	{Global Configuration*/DHCPv6GlobalConfig.html}
+
+	{Pool Configuration*/DHCPv6PoolConfig.html}
+
+	{Prefix Delegation Configuration*/DHCPv6PrefixDelegation.html}
+
+	{Pool Summary*/DHCPv6PoolSummary.html}
+
+	{Interface Configuration*/DHCPv6InterfaceConfig.html}
+
+	{Binding Summary*/DHCPv6BindingSumm.html}
+
+	{Statistics*/DHCPv6Stats.html}
+}
+    </EMWEB_IF>
+    <EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE="OSPFV3">
+{OSPFv3
+	{Configuration*/OSPFv3Config.html}
+
+	{Area Configuration*/OSPFv3AreaConfig.html}
+
+	{Stub Area Summary*/OSPFv3StubAreaSumm.html}
+
+	{Area Range Configuration*/OSPFv3AreaRangeConfig.html}
+
+	{Interface Configuration*/OSPFv3InterfaceConfig.html}
+
+	{Interface Statistics*/OSPFv3InterfaceStats.html}
+
+	{Neighbors*/OSPFv3Neighbors.html}
+
+	{Neighbor Table*/OSPFv3NeighborTable.html}
+
+	{Link State Database*/OSPFv3LSDB.html}
+      <EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Virt Link Configuration*/OSPFv3VirtLinkConfig.html}
+      </EMWEB_IF>
+
+	{Virt Link Summary*/OSPFv3VirtLinkSumm.html}
+      <EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Route Redistribution Configuration*/OSPFv3RouteRedistributeConfig.html}
+      </EMWEB_IF>
+
+	{Route Redistribution Summary*/OSPFv3RouteRedistributeSumm.html}
+}
+</EMWEB_IF>
+
+{IPv6 Routes
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{IPv6 Route Entry Configuration*/IPv6RouteEntryConfig.html}
+</EMWEB_IF >
+	{IPv6 Route Table*/IPv6RouteTable.html}
+
+	{IPv6 Best Route Table*/IPv6BestRouteTable.html}
+
+	{IPv6 Router Route Preferences*/IPv6RouterRoutePreferences.html}
+
+	{Configured IPv6 Routes*/IPv6RoutesConfigured.html}
+}
+}
+</EMWEB_IF>
+  <EMWEB_IF ID=USMWEB_IF_QOS_PACKAGE>
+{QoS
+<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE=ACL_FEATURE_SUPPORTED>
+{Access Control Lists
+{IP Access Control Lists
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Configuration*/IPACLConfig.html}
+</EMWEB_IF>
+	{Summary*/IPACLSummary.html}
+
+	{Rule Config*/IPACLRuleConfig.html}
+}
+      <EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE=IPV6_ACL_TYPE_FEATURE_SUPPORT>
+{IPV6 Access Control Lists
+	{Configuration*/IPV6ACLConfig.html}
+
+	{Summary*/IPV6ACLSummary.html}
+
+	{Rule Config*/IPV6ACLRuleConfig.html}
+}
+</EMWEB_IF>
+      <EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE=ACL_TYPE_MAC_FEATURE>
+{MAC Access Control Lists
+ <EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Configuration*/MACACLConfig.html}
+</EMWEB_IF>
+	{Summary*/MACACLSummary.html}
+
+	{Rule Configuration*/MACACLRuleConfig.html}
+}
+</EMWEB_IF>
+
+	{Interface Configuration*/ACLInterfaceConfig.html}
+      <EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE=ACL_INTF_VLAN_SUPPORT_FEATURE>
+	{VLAN ACL Configuration*/ACLVlanConfig.html}
+
+	{ACL Interface VLAN Summary*/ ACLVlanIntfSummary.html}
+      </EMWEB_IF>
+}
+</EMWEB_IF>
+<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE=DIFFSERV_FEATURE_SUPPORTED>
+{Differentiated Services
+	{Diffserv Configuration*/DiffservConfig.html}
+
+	{Class Configuration*/DiffservClassConfig.html}
+
+	{Class Summary*/DiffservClassSummary.html}
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Policy Configuration*/DiffservPolicyConfig.html}
+</EMWEB_IF>
+	{Policy Summary*/DiffservPolicySummary.html}
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Policy Class Definition*/Policy_class_definition.html}
+</EMWEB_IF>
+
+	{Policy Attribute Summary*/DiffservPolicyAttrSummary.html}
+      <EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Service Configuration*/ServiceConfiguration.html}
+</EMWEB_IF>
+	{Service Summary*/DiffservServiceSummary.html}
+
+	{Service Statistics*/DiffservStats.html}
+
+	{Service Detailed Statistics*/ServiceDetailedStats.html}
+}
+</EMWEB_IF>
+<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE=COS_FEATURE_SUPPORTED>
+{Class of Service
+<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE=COS_QUEUE_INTF_SHAPING_FEATURE>
+	{Interface Configuration*/CoSInterfaceConfig.html}
+</EMWEB_IF>
+<EMWEB_IF ID=USMWEB_IF_COS_MAPPING_TRUST_MODE_SUPPORTED>
+	{Trust Mode Configuration*/CoSTrustModeConfig.html}
+</EMWEB_IF>
+<EMWEB_IF ID=USMWEB_IF_COS_MAPPING_IPPREC_SUPPORTED>
+	{IP DSCP Mapping Configuration*/CoSIPPrecedenceConfig.html}
+</EMWEB_IF>
+      <EMWEB_IF ID=USMWEB_IF_COS_MAPPING_IPDSCP_SUPPORTED>
+	{IP DSCP Mapping Configuration*/CoSIPDSCPMapConfig.html}
+      </EMWEB_IF>
+{Interface Queue Configuration*/CosInterfaceQueueConfig.html}
+
+	{Interface Queue Status*/CoSInterfaceQueueStatus.html}
+      <EMWEB_IF ID=USMWEB_IF_COS_QUEUE_DROP_PREC_CFG_SUPPORTED>
+      {Interface Queue Drop Precedence Configuration*/CoSIntfDropPrecConfig.html}
+      {Interface Queue Drop Precedence Status*/CoSIntfDropPrecStatus.html}
+      </EMWEB_IF>
+}
+</EMWEB_IF>
+<EMWEB_IF ID=USMWEB_IF_VOIP_SUPPORTED>
+{Auto VoIP
+	{Auto VoIP Configuration*/AutoVoipConfig.html}
+
+	{Auto VoIP Summary*/AutoVoipSumm.html}
+}
+</EMWEB_IF>
+}
+</EMWEB_IF>
+  <EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=MCAST >
+{IPv4 Multicast
+	{Global Configuration*/MulticastGlobalCfg.html}
+
+	{Interface Configuration*/MulticastInterfaceCfg.html}
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Admin Boundary Configuration*/MulticastAdminBoundaryConfig.html}
+</EMWEB_IF>
+	{Admin Boundary Summary*/MulticastAdminBoundarySumm.html}
+    <EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=DVMRP >
+{DVMRP
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Global Configuration*/DVMRPGlobalCfg.html}
+
+	{Interface Configuration*/DVMRPInterfaceCfg.html}
+</EMWEB_IF>
+	{Interface Summary*/DVMRPConfigSumm.html}
+
+	{Next Hop Summary*/DVMRPNextHopSumm.html}
+
+	{Prune Summary*/DVMRPPruneSummary.html}
+
+	{Route Summary*/DVMRPRouteSummary.html}
+}
+</EMWEB_IF>
+
+{IGMP
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Global Configuration*/IGMPGlobalConfig.html}
+</EMWEB_IF>
+{Routing Interface
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Interface Configuration*/IGMPInterfaceConfig.html}
+</EMWEB_IF>
+
+	{Interface Summary*/IGMPConfigSummary.html}
+
+	{Cache Information*/IGMPCacheInfo.html}
+
+	{Interface Membership Info Detailed*/IGMPInterfaceDetailedInfo.html}
+}
+
+{Proxy Interface
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Interface Configuration*/IGMPProxyInterfaceConfig.html}
+</EMWEB_IF>
+
+	{Configuration Summary*/IGMPProxyConfigSumm.html}
+
+	{Interface Membership Info*/IGMPProxyCache.html}
+
+	{Interface Membership Info Detailed*/IGMPProxyMemberShipInfoDetailed.html}
+}
+}
+<EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=PIMDM >
+{PIM
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Global Configuration*/PIM4GlobalConfig.html}
+    {Global Status*/PIM4GlobalStatus.html}
+    {Interface Configuration*/PIM4InterfaceConfig.html}
+	{Interface Summary*/PIM4InterfaceSumm.html}
+<EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=PIMSM >
+    {SSM Configuration*/PIM4SSMRangeConfig.html}                
+    {Static RP Configuration*/PIM4StaticRPConfig.html}   
+    {Candidate RP Configuration*/PIM4CandidateRPConfig.html}   
+    {Candidate BSR Configuration*/PIM4BSRCandidateConfiguration.html}   
+    {Candidate BSR Summary*/PIM4BSRCandidateSummary.html}   
+</EMWEB_IF>
+<EMWEB_ELSE>
+    {Global Status*/PIM4GlobalStatus.html}
+    {Interface Summary*/PIM4InterfaceSumm.html} 
+<EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=PIMSM >
+    {SSM Configuration*/PIM4SSMRangeConfig.html}
+    {Static RP Configuration*/PIM4StaticRPConfig.html} 
+    {Candidate RP Configuration*/PIM4CandidateRPConfig.html} 
+    {Candidate BSR Summary*/PIM4BSRCandidateSummary.html}
+</EMWEB_IF>
+</EMWEB_IF>
+}
+</EMWEB_IF>
+
+	{MRoute Table*/MRouteTable.html}
+}
+   <EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=IPV6>
+{IPv6 Multicast
+{MLD
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Global Configuration*/MLDGlobalConfig.html}
+</EMWEB_IF>
+{Routing Interface
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Interface Configuration*/MLDInterfaceConfig.html}
+</EMWEB_IF>
+
+	{Interface Summary*/MLDInterfaceSumm.html}
+	{Groups Summary*/MLDGroupSumm.html}
+
+	{MLD Traffic*/MLDTraffic.html}
+}
+
+{Proxy Interface
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Interface Configuration*/MLDProxyInterfaceConfig.html}
+</EMWEB_IF>
+	{Configuration Summary*/MLDProxyConfigSumm.html}
+
+	{Interface Membership Info*/MLDProxyCache.html}
+
+	{Interface Membership Info Detailed*/MLDProxyMemberShipInfoDetailed.html}
+}
+}
+<EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=PIMDM >
+{PIM
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Global Configuration*/PIM6GlobalConfig.html}
+    {Global Status*/PIM6GlobalStatus.html}
+    {Interface Configuration*/PIM6InterfaceConfig.html}
+	{Interface Summary*/PIM6InterfaceSumm.html}
+<EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=PIMSM >
+    {SSM Configuration*/PIM6SSMRangeConfig.html}                
+    {Static RP Configuration*/PIM6StaticRPConfig.html}   
+    {Candidate RP Configuration*/PIM6CandidateRPConfig.html}   
+    {Candidate BSR Configuration*/PIM6BSRCandidateConfiguration.html}   
+    {Candidate BSR Summary*/PIM6BSRCandidateSummary.html}   
+</EMWEB_IF>
+<EMWEB_ELSE>
+    {Global Status*/PIM6GlobalStatus.html} 
+    {Interface Summary*/PIM6InterfaceSumm.html}
+<EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=PIMSM >
+    {SSM Configuration*/PIM6SSMRangeConfig.html}
+    {Static RP Configuration*/PIM6StaticRPConfig.html}
+    {Candidate RP Configuration*/PIM6CandidateRPConfig.html} 
+    {Candidate BSR Summary*/PIM6BSRCandidateSummary.html}
+</EMWEB_IF>
+</EMWEB_IF>
+}
+</EMWEB_IF>
+	{Mroute Table*/MulticastMroute6Table.html}
+}
+  </EMWEB_IF>
+  </EMWEB_IF>
+<EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=STACKING >
+{Stacking
+	{Unit Configuration*/UnitConfiguration.html}
+
+	{Stack Summary*/StackSummary.html}
+
+	{Supported Switches*/SupportedSwitches.html}
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	{Firmware Update*/FirmwareUpdate.html}
+</EMWEB_IF>
+	{Stack Port Summary*/StackPortSummary.html}
+
+	{Stack Port Counters*/StackPortCounters.html}
+
+	{Stack Port Diagnostics*/StackPortDiagnostics.html}
+}
+</EMWEB_IF>
+">

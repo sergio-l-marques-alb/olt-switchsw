@@ -1,0 +1,1046 @@
+.footer {
+FONT-FAMILY: arial,helvetica;
+font-size:10px;
+color:#FFF;
+}
+
+.footer a,.navigation a {
+color:red;
+text-decoration:none;
+}
+
+.footer a:hover,.navigation a:hover {
+color:red;
+text-decoration:underline;
+}
+
+.navigation {
+FONT-FAMILY: arial,helvetica;
+font-size:1em;
+color:red;
+}
+
+.onClick {
+color:#FF0;
+font-weight:700;
+}
+
+#path {
+FONT-FAMILY: arial,helvetica;
+vertical-align:middle;
+font-size:1em;
+font-weight:700;
+}
+
+body.page {
+margin-left:0;
+margin-right:0;
+margin-top:0;
+}
+
+.normal {
+color:#FFF;
+font-weight:400;
+}
+
+.switchName {
+color:#FFF;
+font-weight:400;
+FONT-FAMILY: arial,helvetica;
+font-size:15px;
+}
+
+.bodyframeattributes {
+  BACKGROUND-COLOR: #ffffff;
+  MARGIN: 0;
+  FONT-SIZE: 1em;
+  FONT-FAMILY: arial,helvetica;
+  FONT-STYLE: normal;
+}
+
+/* Buttons */
+.logoutButton {
+  color:#000000;
+  font-family: arial,helvetica;
+  padding-left: 5px;
+  padding-right: 5px;
+  font-style: normal;
+  text-align: center;
+}
+
+.defbutton {
+  text-align: left;
+}
+
+.buttonalign {
+  text-align: center;
+}
+
+/* All Navigation related style definitions */
+.navigation_header {
+  COLOR: #ffffff;
+  BACKGROUND-COLOR: #b70024;
+  FONT-FAMILY: arial,helvetica;
+  FONT-SIZE: 1em;
+  FONT-STYLE: normal;
+  FONT-WEIGHT: 700;
+  TEXT-ALIGN: center;
+  MARGIN-BOTTOM: 1em;
+}
+
+/* All Side Navigation Tree related style definitions */
+#sidenavigation {
+FONT-FAMILY: arial,helvetica;
+width:135px;
+height:380px;
+overflow:auto;
+}
+
+#sidenavigation ul ul {
+margin-left:11px;
+}
+
+#sidenavigation ul li {
+color:#c83530;
+}
+
+#sidenavigation ul,#sidenavigation li {
+list-style-type:none;
+font-weight:700;
+font-size:1em;
+margin:0;
+padding:0;
+}
+
+#sidenavigation li a {
+margin-left:0;
+border-top:2px;
+text-decoration:none;
+font-size:1em;
+color:#c83530;
+font-weight:700;
+display:block;
+padding:3px;
+}
+
+#sidenavigation li {
+display:inline;
+}
+
+#sidenavigation ul > li {
+display:list-item;
+}
+
+#sidenavigation li > a {
+width:auto;
+height:auto;
+}
+
+#sidenavigation li a.samePage {
+color:#900;
+font-style:italic;
+font-weight:400;
+}
+ 
+#sidenavigation li li a,#sidenavigation li li li a {
+color:#c83530;
+font-size:1em;
+}
+
+#sidenavigation li a:hover,#sidenavigation li li a:hover,#sidenavigation li li li a:hover {
+color:blue;
+}
+
+.contentHeader {
+  BACKGROUND-COLOR: #b70024;
+}
+
+/* Misc */
+.tableroundcorners {
+    COLOR: #000000;
+    BACKGROUND-COLOR: #ffffff;
+    BORDER-STYLE: SOLID;
+    BORDER-COLOr:#b70024;
+    BORDER-WIDTH:1px;
+    WIDTH: 100%;
+}
+
+.pageheaderattributes {
+   COLOR: #ffffff;
+   BACKGROUND-COLOR: #b70024;
+   FONT-FAMILY: arial,helvetica;
+   FONT-SIZE: 1.2em;
+   FONT-STYLE: normal;
+   FONT-WEIGHT: 700;
+   TEXT-ALIGN: LEFT;
+   MARGIN-BOTTOM: 1em;
+   MARGIN-LEFT: 1em;
+   padding-left:15px;
+}
+ 
+#topdiv {
+ position:absolute;
+ top:0;
+ width:100%;
+}
+
+#preload {
+ position:absolute;
+ top:0;
+ width:99%;
+}
+
+#content {
+margin-top:0;
+margin-left:0;
+}
+
+#TopNav ul {
+list-style:none;
+margin:0;
+padding:0;
+}
+
+#TopNav li {
+float:left;
+color:#FFF;
+FONT-FAMILY: arial,helvetica;
+margin:0 .15em;
+}
+
+#TopNav li a {
+height:2em;
+line-height:2em;
+float:left;
+width:9em;
+display:block;
+color:#FFF;
+text-decoration:none;
+text-align:center;
+font-size:14px;
+border-right:#FFF 1px solid;
+}
+
+#TopNav li a:hover,#TopNav li a:active {
+color:#FF0;
+}
+
+.license {
+color:#FFF;
+FONT-FAMILY: arial,helvetica;
+font-size:10px;
+text-align:center;
+}
+
+.left {
+FONT-FAMILY: arial,helvetica;
+font-size:1em;
+text-align:right;
+color:#c83530;
+font-weight:700;
+}
+
+.right {
+FONT-FAMILY: arial,helvetica;
+font-size:1em;
+text-align:right;
+color:#000;
+}
+
+.hTitle {
+font:normal 14px Tahoma;
+font-weight:700;
+text-align:center;
+color:#c83530;
+}
+
+.ghead {
+font:normal 12px Tahoma;
+font-weight:700;
+text-align:left;
+color:#000;
+white-space:nowrap;
+}
+
+.eHead {
+font:normal 11px Tahoma;
+font-weight:700;
+text-align:left;
+vertical-align:top;
+color:#c83530;
+white-space:nowrap;
+}
+
+.eDes {
+font:normal 11px Tahoma;
+color:#000;
+text-align:left;
+}
+
+.eRange {
+font:normal 11px Tahoma;
+color:#c83530;
+text-align:left;
+}
+
+/* Scalar Table style definitions */
+#scalar table,
+#wlanscalar table{
+  font-family: arial,helvetica;
+  border:1px;
+  vertical-align:top;
+  width: 95%;
+  float:left;
+  margin-left:12px;
+}
+
+#scalar table caption,
+#wlanscalar table caption {
+  font-weight:700;
+  text-align:left;
+  font-size:1em;
+  padding-bottom:5px;
+  padding-left: 5px;
+  font-family: arial, helvetica;
+}
+
+#scalar table td,
+#wlanscalar table td{
+  border:1px;
+  color:#000000;
+  vertical-align: top;
+  font-size: 1em;
+  height: 1.7em;
+  font-style: normal;
+  font-weight:400;
+  text-decoration:none;
+  border-style: none;
+  white-space: nowrap;
+}
+
+#scalar table td.message,#wlanSummaryTable table td.message{
+  background-color: #00000;
+  text-align: left;
+  font-weight: 700;
+  font-size: 1em;
+  white-space: normal;
+  padding-right: 10px;
+  padding-left: 4px;
+}
+
+#scalar table td.defleft,#scalar table td.input4left,
+#scalar table td.input5left,
+#scalar table td.rowdataattributesleft,
+#wlanscalar table td.rowdataattributesleft,
+#wlanSummaryTable table td.rowdataattributesleft
+{
+  background-color: #E0E0E0;
+  text-align: left;
+  font-weight: 700;
+  padding-right: 10px;
+  padding-left: 4px;
+  width:30%;
+}
+
+#wlanSummaryTable table td.boldfontleft
+{
+  background-color: #E0E0E0;
+  text-align: left;
+  font-weight: 700;
+  padding-right: 10px;
+  padding-left: 4px;
+  width:12%;
+}
+
+#wlanSummaryTable table td.boldfontright
+{
+  background-color: #E0E0E0;
+  text-align: left;
+  padding-left: 2px;
+  font-weight: 700;
+}
+
+#scalar table td.defright {
+  text-align: left;
+  padding-right: 10px;
+  padding-left: 4px;
+}
+
+#scalar table td.wlandef10right,
+#wlanscalar table td.wlandef10right{
+  text-align: left;
+  padding-right: 10px;
+  padding-left: 4px;
+  width : 10%;
+}
+
+#scalar table td.def4left {
+  background-color: #E0E0E0;
+  text-align: left;
+  font-weight: 700;
+  padding-right: 10px;
+  padding-left: 4px;
+  width:30%;
+}
+
+
+#scalar table td.def4right {
+  padding-left:4px;
+  padding-right:10px;
+  text-align:left;
+  width:35%;
+}
+
+
+#scalar table td.wlandef10left,
+#wlanscalar table td.wlandef10left
+{
+  background-color: #E0E0E0;
+  text-align: left;
+  font-weight: 700;
+  padding-right: 10px;
+  padding-left: 4px;
+  width:20%;
+}
+
+/* Summary Table style definitions */
+#summary table,#plotpagination_summary table {
+  border:1px;
+  vertical-align:top;
+  color: #000000;
+  background-color: #ffffff;
+  font-style: normal;
+  font-family: arial,helvetica;
+  border-style: none;
+  font-size: 1em;
+  font-weight: 400;
+  text-align: left;
+  white-space: normal;
+  width: 95%;
+  float:left;
+  margin-left:12px;
+}
+
+#summary table caption,#plotpagination_summary table caption,
+#wlanSummaryTable table caption,#plotwlanSummaryTable table caption{
+  color: #ffffff;
+  background-color: #b70024;
+  font-family: arial,helvetica;
+  font-weight: 700;
+  text-align: left;
+  padding-left: 4px;
+}
+
+#summary table th ,#plotpagination_summary table th,
+#wlanSummaryTable table th,#plotwlanSummaryTable table th{
+  background-color: #E0E0E0;
+  font-weight: 700;
+  padding-left: 4px;
+  vertical-align: bottom;
+}
+
+#summary table td ,#plotpagination_summary table td,
+#wlanSummaryTable table td,#plotwlanSummaryTable table td{
+  background-color: #F0F0F0;
+  padding-right: 10px;
+  padding-left: 4px;
+}
+
+#summary table table th, #plotpagination_summary table table th,
+#wlanSummaryTable table table th,#plotwlanSummaryTable table table th
+{
+  BACKGROUND-COLOR: #E0E0E0;
+  HEIGHT: 1.7em;
+  WHITE-SPACE: NOWRAP;
+  FONT-WEIGHT: 700;
+  PADDING-RIGHT: 10px; 
+  PADDING-LEFT:4px;
+}
+
+.unavailableattributes {
+COLOR: #000000;
+BACKGROUND-COLOR: #F0F0F0;
+TEXT-ALIGN: CENTER;
+FONT-FAMILY: arial,helvetica;
+FONT-SIZE: 1em;
+FONT-STYLE: normal;
+FONT-WEIGHT: 700;
+BORDER-STYLE: NONE;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Text in pages used for user confirmation such as the page that comes up   */
+/* after the "Reset System" page ... are you sure ...                        */
+/* ------------------------------------------------------------------------- */
+.confirmationattributes 
+{
+  COLOR: #000000;
+  BACKGROUND-COLOR: #000000;
+  FONT-SIZE: 1em;
+  FONT-FAMILY: arial,helvetica;
+  FONT-STYLE: normal;
+  FONT-WEIGHT: 700;
+  TEXT-ALIGN: LEFT;
+}
+
+.nowraptdleft {
+  COLOR: #000000;
+  BACKGROUND-COLOR: #E0E0E0;
+  TEXT-ALIGN: LEFT;
+  VERTICAL-ALIGN: TOP;
+  HEIGHT: 1.7em;
+  WHITE-SPACE: NOWRAP;
+  FONT-SIZE: 1em;
+  FONT-FAMILY: arial,helvetica;
+  FONT-STYLE: normal;
+  FONT-WEIGHT: 700;
+  BORDER-STYLE: NONE;
+  PADDING-RIGHT: 10px;
+  PADDING-LEFT:4px;
+  WIDTH:50%;
+}
+
+.nowraptdright {
+  COLOR: #000000;
+  BACKGROUND-COLOR: #FFFFFF;
+  TEXT-ALIGN: LEFT;
+  VERTICAL-ALIGN: TOP;
+  FONT-SIZE: 1em;
+  FONT-FAMILY: arial,helvetica;
+  FONT-STYLE: normal;
+  BORDER-STYLE: NONE;
+  PADDING-LEFT:4px;
+  WIDTH:50%;
+  WHITE-SPACE: NOWRAP;
+
+}
+
+/* ------------------------------------------------------------------------- */
+/* Used for wireless                                                         */
+/* ------------------------------------------------------------------------- */
+#scalar table td.rowdataattributesright,
+#wlanSummaryTable table td.rowdataattributesright,
+#scalar table td.rowdataattributesindentlabelright
+{
+  COLOR: #000000;
+  BACKGROUND-COLOR: #F0F0F0;
+  TEXT-ALIGN: LEFT;
+  VERTICAL-ALIGN: TOP;
+  FONT-SIZE: 1em;
+  FONT-FAMILY: arial,helvetica;
+  FONT-STYLE: normal;
+  BORDER-STYLE: NONE;
+}
+
+#wlanscalar table td.rowdataattributesright
+{
+  COLOR: #000000;
+  BACKGROUND-COLOR: #F0F0F0;
+  TEXT-ALIGN: LEFT;
+  VERTICAL-ALIGN: TOP;
+  FONT-SIZE: 1em;
+  FONT-FAMILY: arial,helvetica;
+  FONT-STYLE: normal;
+  BORDER-STYLE: NONE;
+  width : 20%;
+}
+
+#scalar table td.rowdataattributesindentlabelleft,
+#wlanscalar table td.rowdataattributesindentlabelleft,
+#wlanSummaryTable table td.rowdataattributesindentlabelleft
+{
+  background-color: #E0E0E0;
+  text-align: left;
+  font-weight: 700;
+  padding-right: 10px;
+  padding-left: 48px;
+  width:30%;
+}
+
+#scalar table td.rowdataattributesnonameright,
+#wlanscalar table td.rowdataattributesnonameright,
+#wlanSummaryTable table td.rowdataattributesnonameright
+{
+  COLOR: #000000;
+  BACKGROUND-COLOR: #FFFFFF;
+  TEXT-ALIGN: LEFT;
+  VERTICAL-ALIGN: TOP;
+  FONT-SIZE: 1em;
+  FONT-FAMILY: arial,helvetica;
+  FONT-STYLE: normal;
+  BORDER-STYLE: NONE;
+}
+
+#scalar table td.rowdataattributesnonameleft,
+#wlanSummaryTable table td.rowdataattributesnonameleft
+{
+  background-color: #FFFFFF;
+}
+
+#scalar table td.rowdataattributesnoname1right,
+#wlanSummaryTable table td.rowdataattributesnoname1right
+{
+  background-color: #E0E0E0;
+  text-align: left;
+  font-weight: 700;
+  padding-right: 8px;
+  padding-left: 4px;
+}
+
+#scalar table td.rowdataattributesnoname1left,
+#wlanSummaryTable table td.rowdataattributesnoname1left
+{
+  background-color: #E0E0E0;
+}
+
+#scalar table td.input4right,
+#scalar table td.input5right,
+#wlanSummaryTable table td.input4right,
+#wlanSummaryTable table td.input5right
+{
+  COLOR: #000000;
+  BACKGROUND-COLOR: #F0F0F0;
+  TEXT-ALIGN: LEFT;
+  VERTICAL-ALIGN: TOP;
+  FONT-SIZE: 1em;
+  FONT-FAMILY: arial,helvetica;
+  FONT-STYLE: normal;
+  BORDER-STYLE: NONE;
+}
+
+.input4right input
+{
+  width: 4em;
+}
+
+.input5right input
+{
+  width: 6em;
+}
+
+#summary table th.wirelessChbx,
+#wlanSummaryTable table th.wirelessChbx
+{
+  background-color: #FFFFFF;
+  width : 1%;
+}
+
+#summary table td.wirelessChbx,
+#wlanSummaryTable table td.wirelessChbx
+{
+  BACKGROUND-COLOR: #ffffff;
+  WIDTH: 1%;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Tab Styles for single (or top) row tabs                                   */
+/* ------------------------------------------------------------------------- */
+   #tablink0, #tablink1, #tablink2, #tablink3, #tablink4, #tablink5, #tablink6,
+   #tablink7, #tablink8, #tablink9, #tablink10, #tablink11, #tablink12,
+   #tablink13, #tablink14, #tablink15, #tablink16
+   {
+    FONT-SIZE: 1em;
+    TEXT-DECORATION: none;
+    TEXT-ALIGN: CENTER;
+    FONT-FAMILY: arial;
+    FONT-STYLE: normal;
+    FONT-WEIGHT: 700;
+    BORDER-STYLE: NONE;
+    PADDING-RIGHT: 4px;
+    PADDING-LEFT: 4px;
+    VERTICAL-ALIGN: MIDDLE
+   }
+
+ /* ------------------------------------------------------------------------- */
+ /* Tab Styles for second row tabs                                            */
+ /* ------------------------------------------------------------------------- */
+   #tab2link0, #tab2link1, #tab2link2, #tab2link3, #tab2link4, #tab2link5, #tab2link6,
+   #tab2link7, #tab2link8, #tab2link9, #tab2link10, #tab2link11, #tab2link12,
+   #tab2link13, #tab2link14, #tab2link15
+   {
+    FONT-SIZE: 0.8em;
+    TEXT-DECORATION: none;
+    TEXT-ALIGN: CENTER;
+    FONT-FAMILY: arial;
+    FONT-STYLE: normal;
+    FONT-WEIGHT: 700;
+    BORDER-STYLE: NONE;
+    PADDING-RIGHT: 6px;
+    PADDING-LEFT: 2px;
+    VERTICAL-ALIGN: MIDDLE
+   }
+
+#tablink
+{
+  FONT-SIZE: 1em;
+  TEXT-DECORATION: none;
+  TEXT-ALIGN: CENTER;
+  FONT-FAMILY: arial;
+  FONT-STYLE: normal;
+  FONT-WEIGHT: 700;
+  BORDER-STYLE: NONE;
+  PADDING-RIGHT: 4px;
+  PADDING-LEFT: 4px;
+  VERTICAL-ALIGN: MIDDLE
+}
+
+#tab2link
+{
+  FONT-SIZE: 0.8em;
+  TEXT-DECORATION: none;
+  TEXT-ALIGN: CENTER;
+  FONT-FAMILY: arial;
+  FONT-STYLE: normal;
+  FONT-WEIGHT: 700;
+  BORDER-STYLE: NONE;
+  PADDING-RIGHT: 6px;
+  PADDING-LEFT: 2px;
+  VERTICAL-ALIGN: MIDDLE
+}
+
+.rowidentifierattributes {
+    color: #000000;
+    background-color: #E0E0E0;
+    text-align: left;
+    font-weight: 700;
+    font-size: 1em;
+    white-space: normal;
+    padding-right: 10px;
+    padding-left: 4px;
+    font-family: arial,helvetica;
+    font-style: normal;
+  }
+
+#wlanSummaryTable table,#plotwlanSummaryTable table{
+  border-collapse:collapse;
+  vertical-align:top;
+  color: #000000;
+  background-color: #ffffff;
+  font-style: normal;
+  font-family: arial,helvetica;
+  border-style: none;
+  font-size: 1em;
+  font-weight: 400;
+  text-align: left;
+  white-space: normal;
+  width: 95%;
+  float: left;
+  margin-left: 12px;
+}
+
+#scalar table td.rowdataattributes20left
+{
+  background-color: #E0E0E0;
+  text-align: left;
+  font-weight: 700;
+  padding-right: 10px;
+  padding-left: 4px;
+  width:20%;
+}
+
+#scalar table td.rowdataattributes20right
+{
+  COLOR: #000000;
+  BACKGROUND-COLOR: #F0F0F0;
+  TEXT-ALIGN: LEFT;
+  VERTICAL-ALIGN: TOP;
+  FONT-SIZE: 1em;
+  FONT-FAMILY: arial,helvetica;
+  FONT-STYLE: normal;
+  BORDER-STYLE: NONE;
+  width : 20%;
+}
+
+#summary table td.htableheader {
+  background-color: #E0E0E0;
+  font-weight: 700;
+  padding-left: 4px;
+  vertical-align: bottom;
+  padding-right: 4px;
+  WHITE-SPACE: NOWRAP;
+}
+
+#summary table th table {
+  width: 100%;
+}
+
+#summary table td table {
+  width: 100%;
+}
+ .bodyframeattributes {
+   BACKGROUND-COLOR: #ffffff;
+   MARGIN: 0;
+   FONT-SIZE: 1em;
+   FONT-FAMILY: arial,helvetica;
+   FONT-STYLE: normal;
+ }
+ .tablecontent {
+    COLOR: #000000;
+    BACKGROUND-COLOR: #ffffff;
+    BORDER-STYLE: NONE;
+    WIDTH: 95%;
+  }
+ .datatableattributes {
+    COLOR: #000000;
+    BACKGROUND-COLOR: #ffffff;
+    BORDER-STYLE: NONE;
+    WIDTH: 100%;
+  }
+ .nodatatableheading {
+    BACKGROUND-COLOR: #ffffff;
+    WIDTH: 1%;
+  }
+ .datatableheading {
+    COLOR: #000000;
+    BACKGROUND-COLOR: #E0E0E0;
+    TEXT-ALIGN: LEFT;
+    FONT-SIZE: 1em;
+    FONT-FAMILY: arial,helvetica;
+    FONT-STYLE: normal;
+    FONT-WEIGHT: 700;
+    BORDER-STYLE: NONE;
+    PADDING-RIGHT: 10px;
+    VERTICAL-ALIGN: BOTTOM;
+  }
+ .rowidentifierattributes 
+  {
+    COLOR: #000000;
+    BACKGROUND-COLOR: #E0E0E0;
+    TEXT-ALIGN: LEFT;
+    VERTICAL-ALIGN: TOP;
+    HEIGHT: 1.7em;
+    WHITE-SPACE: NOWRAP;
+    FONT-SIZE: 1em;
+    FONT-FAMILY: arial,helvetica;
+    FONT-STYLE: normal;
+    FONT-WEIGHT: 700;
+    BORDER-STYLE: NONE;
+    PADDING-RIGHT: 10px;
+  }
+ .inputfield {
+    COLOR: #000000;
+    BACKGROUND-COLOR: #FFFFFF;
+    TEXT-ALIGN: LEFT;
+    FONT-SIZE: 1em;
+    FONT-FAMILY: arial,helvetica;
+    FONT-STYLE: normal;
+  }
+ .buttonattributes {
+    COLOR: #000000;
+  }
+
+  .rowvalue 
+  {
+    COLOR: #000000;
+    BACKGROUND-COLOR: #FFFFFF;
+    TEXT-ALIGN: LEFT;
+    VERTICAL-ALIGN: TOP;
+    FONT-SIZE: 1em;
+    FONT-FAMILY: arial,helvetica;
+    FONT-STYLE: normal;
+    BORDER-STYLE: NONE;
+  }
+
+  .tabledata {
+    COLOR: #000000;
+    BACKGROUND-COLOR: #F0F0F0;
+    TEXT-ALIGN: LEFT;
+    VERTICAL-ALIGN: TOP;
+    FONT-SIZE: 1em;
+    FONT-FAMILY: arial,helvetica;
+    FONT-STYLE: normal;
+    BORDER-STYLE: NONE;
+    PADDING-RIGHT: 10px;
+    VERTICAL-ALIGN: TOP;
+  }
+
+  .sortedtabledata {
+    COLOR: #000000;
+    BACKGROUND-COLOR: #F0F0F0;
+    TEXT-ALIGN: LEFT;
+    VERTICAL-ALIGN: TOP;
+    FONT-SIZE: 1em;
+    FONT-FAMILY: "Courier New", courier, monospace;
+    FONT-STYLE: normal;
+    BORDER-STYLE: NONE;
+    PADDING-RIGHT: 10px;
+  }
+
+ /* ------------------------------------------------------------------------- */
+ /* Used for non-wrapping display                                             */
+ /* ------------------------------------------------------------------------- */
+  .sortedtabledatanowrap {
+    COLOR: #000000;
+    BACKGROUND-COLOR: #F0F0F0;
+    TEXT-ALIGN: LEFT;
+    VERTICAL-ALIGN: TOP;
+    WHITE-SPACE: NOWRAP;
+    FONT-SIZE: 1em;
+    FONT-FAMILY: "Courier New", courier, monospace;
+    FONT-STYLE: normal;
+    BORDER-STYLE: NONE;
+    PADDING-RIGHT: 10px;
+  }
+  
+  .rowdataattributes {
+    COLOR: #000000;
+    BACKGROUND-COLOR: #F0F0F0;
+    TEXT-ALIGN: LEFT;
+    VERTICAL-ALIGN: TOP;
+    FONT-SIZE: 1em;
+    FONT-FAMILY: arial,helvetica;
+    FONT-STYLE: normal;
+    BORDER-STYLE: NONE;
+  }
+  
+  .datanumericheading {
+    COLOR: #000000;
+    BACKGROUND-COLOR: #E0E0E0;
+    TEXT-ALIGN: RIGHT;
+    FONT-SIZE: 1em;
+    FONT-FAMILY: arial,helvetica;
+    FONT-STYLE: normal;
+    FONT-WEIGHT: 700;
+    BORDER-STYLE: NONE;
+    PADDING-RIGHT: 10px;
+    VERTICAL-ALIGN: BOTTOM;
+  }
+  
+  .sortednumericdata {
+    COLOR: #000000;
+    BACKGROUND-COLOR: #F0F0F0;
+    TEXT-ALIGN: RIGHT;
+    VERTICAL-ALIGN: TOP;
+    FONT-SIZE: 1em;
+    FONT-FAMILY: "Courier New", courier, monospace;
+    FONT-STYLE: normal;
+    BORDER-STYLE: NONE;
+    PADDING-RIGHT: 10px;
+  }
+ 
+  /* ------------------------------------------------------------------------- */
+  /* Used for inside content message tables such as message log or event log   */
+  /* ------------------------------------------------------------------------- */
+  .msgtableattributes {
+    COLOR: #000000;
+    BACKGROUND-COLOR: #ffffff;
+    BORDER-STYLE: NONE;
+    WIDTH: 100%;
+  }
+
+  /* ------------------------------------------------------------------------- */
+  /* Data attributes for message tables such as message log or event log       */
+  /* ------------------------------------------------------------------------- */
+  .msgtabledata {
+    COLOR: #000000;
+    BACKGROUND-COLOR: #EEEEEE;
+    TEXT-ALIGN: LEFT;
+    VERTICAL-ALIGN: TOP;
+    FONT-SIZE: 1em;
+    FONT-FAMILY: arial,helvetica;
+    FONT-STYLE: normal;
+    WHITE-SPACE: PRE;
+    BORDER-STYLE: NONE;
+    PADDING-RIGHT: 10px;
+    VERTICAL-ALIGN: TOP;
+  }
+  
+  /* ------------------------------------------------------------------------- */
+  /* Headings for message tables such as message log or event log              */
+  /* ------------------------------------------------------------------------- */
+  .msgtableheading {
+    COLOR: #000000;
+    BACKGROUND-COLOR: #E0E0E0;
+    TEXT-ALIGN: LEFT;
+    FONT-SIZE: 1em;
+    FONT-FAMILY: arial,helvetica;
+    FONT-STYLE: normal;
+    FONT-WEIGHT: 700;
+    WHITE-SPACE: PRE;
+    BORDER-STYLE: NONE;
+    PADDING-RIGHT: 10px;
+    VERTICAL-ALIGN: BOTTOM;
+  }
+
+ /* ------------------------------------------------------------------------- */
+ /* Used for the progress bar on the wireless software download page          */
+ /* ------------------------------------------------------------------------- */
+  #barattributes {
+    POSITION: RELATIVE;
+    WIDTH: 150px;
+    HEIGHT: 15px;
+    PADDING: 0px;
+  }
+
+  #basebarattributes {
+    POSITION: ABSOLUTE;
+    WIDTH: 150px;
+    HEIGHT: 15px;
+    TOP: 0px;
+    LEFT: 0px;
+    BACKGROUND-IMAGE: URL(/images/progressBar.gif);
+    BACKGROUND-REPEAT: NO-REPEAT;
+  }
+
+  #coverbarattributes {
+    POSITION: ABSOLUTE;
+    WIDTH: 150px;
+    HEIGHT: 15px;
+    TOP: 0px;
+    LEFT: 0px;
+    BACKGROUND-COLOR: #FFFFFF;
+  }
+
+A:link    { color: #666666 }   /* unvisited link */
+A:visited { color: #666666 }   /* visited links */
+A:active  { color: #000000 }   /* active link */
+
+#toplabel{
+ height:35px;
+ float: right;
+ FONT-SIZE: 1em;
+ FONT-FAMILY: arial,helvetica;
+ text-align: right;
+}
+
+#toplabel  table {
+ text-align: right;
+}
+
+#toplabel  table td{
+ text-align: right;
+}
+
+#centerbuttons {
+ height:35px;
+ margin-left: auto;
+ margin-right: auto;
+ text-align: right;
+}
+
+#centerbuttons  table {
+ text-align: right;
+}
+
+#centerbuttons  table td{
+ text-align: right;
+}
+
+#scalar table td input[type=text] {
+ background-color:#FFFFFF;
+ color:#000000;
+ font-family:arial,helvetica;
+ font-size:1em;
+ font-style:normal;
+ text-align:left;
+}
+
+#summary table td.ipAclConfigleft
+{
+  font-weight:700;
+}
+
+#summary table td.ipAclConfigright
+{
+  font-weight:700;
+}

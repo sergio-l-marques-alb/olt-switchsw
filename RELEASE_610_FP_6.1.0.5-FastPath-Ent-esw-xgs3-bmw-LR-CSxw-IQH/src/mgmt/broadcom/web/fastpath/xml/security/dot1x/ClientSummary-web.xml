@@ -1,0 +1,22 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="ClientSummary" title="Port Access Control Client Summary">
+        <group id="1" heading=" ">
+            <repeat present="vtable" edit="no" heading=" " id="1">
+                <element properties="filter,iterate" obj-name="securitydot1xLogicalPort_dot1xPhysicalPort" id="1" name="Port"/>
+                <element properties="filter,iterate" obj-name="securitydot1xLogicalPort_dot1xLogicalPort" id="2" name="Interface"/>
+                <element obj-name="securitydot1xLogicalPort_dot1xLogicalPortUserName" id="3" name="User Name"/>
+                <element obj-name="securitydot1xLogicalPort_dot1xLogicalPortSupplicantMacAddr" id="4" name="Supp MAC Address"/>
+                <element obj-name="securitydot1xLogicalPort_dot1xLogicalPortSessionTime" id="5" name="Session Time"/>
+                <element obj-name="securitydot1xLogicalPort_dot1xLogicalPortFilterId" id="6" name="Filter ID"/>
+            </repeat>
+            <node id="2">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

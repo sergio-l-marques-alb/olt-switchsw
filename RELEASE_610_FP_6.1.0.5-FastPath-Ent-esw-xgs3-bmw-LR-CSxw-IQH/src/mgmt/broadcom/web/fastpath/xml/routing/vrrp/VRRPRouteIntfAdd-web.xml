@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="VRRPRouteIntfAdd" title="Virtual Router Tracking Route Add" java-script="VRRPRouteIntfAdd_copy">
+        <group id="1" heading=" ">
+
+           <node id="7">
+                <element control="label" properties="filter,iterate" obj-name="routingvrrpOperationEntry_ifIndex" id="1"/>
+            </node>
+            <node id="8">
+                <element control="label" properties="filter,iterate" obj-name="routingvrrpOperationEntry_VrId" id="1" name="Virtual Router ID"/>
+            </node>  
+        
+            <node id="1">
+                <element control="combo" properties="hidden" cpval="routingvrrpOperationEntry_ifIndex" obj-name="routingVrrpTrackRouteTable_ifIndex" id="1"/>
+            </node>
+            
+            <node id="2">
+                <element control="combo" properties="hidden" cpval="routingvrrpOperationEntry_VrId" obj-name="routingVrrpTrackRouteTable_VrrpOperVrId" id="1" name="VRID"/>
+            </node>
+
+            <node id="3">
+                <element control="textbox" value="0.0.0.0" properties="write-only" obj-name="routingVrrpTrackRouteTable_VrrpTrackRtPfx" id="1" name="Track Route Pfx"/>
+            </node>
+
+            <node id="4">
+                <element arghelp="vrrp_track_route_pfx_len_range" control="textbox" value="0" properties="write-only" obj-name="routingVrrpTrackRouteTable_VrrpTrackRtPfxLen" id="1" name="Track Route PfxLen"/>
+            </node>
+
+            <node id="5">
+                <element arghelp="HELP_FORMAT_FP" control="textbox" value="10" properties="write-only" obj-name="routingVrrpTrackRouteTable_VrrpTrackRtPrioDec" id="1" name="Priority Decrement"/>
+            </node>
+
+            <node id="9">
+            
+                <button scope="page" type="buttonSubmit" value="Add" target-page="VRRPRouteIntf.html" obj-name="routingVrrpTrackRouteTable_VrrpTrackRtStatus" help="Refreshes the form on this page from the Switch" id="1" name="Submit">
+                <action type="button" disable="1_9_2"/>
+                </button>
+ 
+                <button scope="page" type="buttonClear" target-page="VRRPRouteIntf.html" help="Refreshes the form on this page from the Switch" id="2" name="Cancel">
+                <action type="button" disable="1_9_1|1_1_1|1_2_1|1_3_1|1_4_1|1_5_1"/>
+                </button>
+                
+            </node>
+        </group>
+        
+    </webxml>
+</FastPathXML>

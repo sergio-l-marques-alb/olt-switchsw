@@ -1,0 +1,74 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="DiffservConfig" title="Diffserv Configuration" java-script="diff_serv_table">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element control="combo" obj-name="qosDiffServGenStatus_AdminMode" id="1" name="DiffServ Admin Mode"/>
+            </node>
+            <node id="2">
+                <button scope="group" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+        </group>
+        <group level="ReadOnlyUser" id="2" heading="  ">
+            <node id="1">
+                <element obj-name="qosDiffServGenStatus_AdminMode" id="1" name="DiffServ Admin Mode"/>
+            </node>
+            <node id="2">
+                <button scope="node" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+        <group id="3"  div-name="summary" heading="   ">
+            <node id="1">
+                <element control="label" clazz="ipAclConfig" value="Table" properties="noname,write-only" obj-name="xLibObjects_dummy" id="1" name="MIB Table"/>
+                
+              <element control="label" clazz="ipAclConfig" value="Current Size/Max Size" properties="noname,write-only" obj-name="xLibObjects_dummy" id="2" name="Current Number / Max Number"/>
+
+            </node>
+            <node id="2">
+              <element control="label" value="Class Table" properties="noname,write-only" obj-name="xLibObjects_dummy" id="1" name="Class Table"/>
+              <element control="label" properties="noname" obj-name="xLibObjects_dummy" id="2"/>           
+           </node>
+            <node id="3">
+     
+                 <element control="label" value="Class Rule Table" properties="noname,write-only" obj-name="xLibObjects_dummy" id="1" name="Class Rule Table"/>
+              <element control="label" properties="noname" obj-name="xLibObjects_dummy" id="2"/> 
+            </node>
+            <node id="4">
+              <element control="label" value="Policy Table" properties="noname,write-only" obj-name="xLibObjects_dummy" id="1" name="Policy Table"/>
+              <element control="label" properties="noname" obj-name="xLibObjects_dummy" id="2"/> 
+            </node>
+            <node id="5">
+               
+                 <element control="label" value="Policy Instance Table" properties="noname,write-only" obj-name="xLibObjects_dummy" id="1" name="Policy Instance Table"/>
+              <element control="label" properties="noname" obj-name="xLibObjects_dummy" id="2"/> 
+            </node>
+            <node id="6">                
+              <element control="label" value="Policy Attributes Table" properties="noname,write-only" obj-name="xLibObjects_dummy" id="1" name="Policy Attributes Table"/>
+              <element control="label" properties="noname" obj-name="xLibObjects_dummy" id="2"/> 
+            </node>
+            <node id="7">
+                
+                 <element control="label" value="Service Table" properties="noname,write-only" obj-name="xLibObjects_dummy" id="1" name="Service Table"/>
+              <element control="label" properties="noname" obj-name="xLibObjects_dummy" id="2"/> 
+            </node>
+            <node id="8">
+                <element properties="noname,hidden" obj-name="qosDiffServGenStatus_ClassTableSize" id="11" name="ClassTableSize"/>
+                <element properties="noname,hidden" obj-name="qosDiffServGenStatus_ClassTableMax" id="12" name="ClassTableMax"/>
+                <element properties="noname,hidden" obj-name="qosDiffServGenStatus_ClassRuleTableSize" id="1" name="ClassRuleTableSize"/>
+                <element properties="noname,hidden" obj-name="qosDiffServGenStatus_ClassRuleTableMax" id="2" name="ClassRuleTableMax"/>
+                <element properties="noname,hidden" obj-name="qosDiffServGenStatus_PolicyTableSize" id="3" name="PolicyTableSize"/>
+                <element properties="noname,hidden" obj-name="qosDiffServGenStatus_PolicyTableMax" id="4" name="PolicyTableMax"/>
+                <element properties="noname,hidden" obj-name="qosDiffServGenStatus_PolicyInstTableSize" id="5" name="PolicyInstTableSize"/>
+                <element properties="noname,hidden" obj-name="qosDiffServGenStatus_PolicyInstTableMax" id="6" name="PolicyInstTableMax"/>
+                <element properties="noname,hidden" obj-name="qosDiffServGenStatus_PolicyAttrTableSize" id="7" name="PolicyAttrTableSize"/>
+                <element properties="noname,hidden" obj-name="qosDiffServGenStatus_PolicyAttrTableMax" id="8" name="PolicyAttrTableMax"/>
+                <element properties="noname,hidden" obj-name="qosDiffServGenStatus_ServiceTableSize" id="9" name="ServiceTableSize"/>
+                <element properties="noname,hidden" obj-name="qosDiffServGenStatus_ServiceTableMax" id="10" name="ServiceTableMax"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

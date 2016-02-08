@@ -1,0 +1,101 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml java-script="loopback_ipv6" version="1.0" name="loopbackConfig" title="Loopback Configuration">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter" obj-name="routingloopbackConfig_ID" id="1" name="Loopback">
+                    <action type="extn" discard="no" value="Create" enable="1_2|1_3" disable="1_4|1_5|1_6|1_7|1_8|1_9|1_10|1_11|1_12|1_13_1|1_13_2|1_14|1_16|1_15|1_17" hide="1_4|1_5|1_6|1_7|1_8|1_9|1_10|1_11|1_12|1_13_1|1_13_2|1_14|1_15|1_16|1_17" show="1_2|1_3"/>
+                    <action type="default" discard="no" enable="1_4|1_5|1_16_1" disable="1_2|1_3|1_16_3|1_15|1_17" hide="1_2|1_3|1_16_3|1_15|1_17" show="1_5|1_16_1"/>
+                </element>
+            </node>
+            <node id="2">
+                <element control="combo" properties="list" obj-name="routingloopbackConfig_ID" id="1" name="Loopback ID"/>
+            </node>
+            <node id="3">
+                <button scope="page" type="buttonSubmit" value="Add" obj-name="routingloopbackConfig_status" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+            <node id="4">
+                <element properties="hidden" obj-name="routingloopbackConfig_ifIndex" id="1" name="Loopback ifIndex"/>
+            </node>		
+            <node id="5">
+                <element control="combo" uienum="ipAddrType_t" properties="filter" obj-name="routingloopbackConfig_Protocol" id="1" name="Protocol">
+                    <action type="enum" discard="no" enable="1_6" disable="1_9|1_10|1_11|1_12|1_13_1|1_13_2|1_14|1_16_5|1_16_6" hide="1_6|1_9|1_10|1_11|1_12|1_13_1|1_13_2|1_14|1_16_5|1_16_6" show=""/>
+                    <action type="enum" discard="no" enable="1_9|1_10|1_11" disable="1_6|1_7|1_8|1_16_2|1_16_3|1_16_4" hide="1_6|1_7|1_8|1_16_2|1_16_3|1_16_4" show="1_10|1_11"/>
+                </element>
+            </node>			
+            <node id="6">
+                <element control="combo" obj-name="routingloopbackConfig_IsIpv4Exist" id="1" name="PrimaryIP Exist">
+                    <action type="enum" discard="no" enable="1_7|1_8|1_16_2" disable="1_16_4" hide="1_16_4" show="1_7|1_8|1_16_2"/>
+                    <action type="enum" discard="no" enable="1_7|1_8|1_16_3|1_16_4" disable="1_16_2" hide="1_16_2" show="1_7|1_8|1_16_3|1_16_4"/>
+                </element>
+            </node>					
+            <node id="7">
+                <element obj-name="routingloopbackConfig_IPAddress" id="1" name="IPv4 Address"/>
+            </node>
+            <node id="8">
+                <element obj-name="routingloopbackConfig_IPSubnet" id="1" name="IPv4 Subnet Mask"/>
+            </node>
+            <node id="9">
+                <element cpval="routingloopbackConfig_ID" properties="filter,hidden" compile_if="IF_IPV6_PACKAGE_PRESENT" obj-name="IPv6LoopbackIPv6Group_LoopbackID" id="1" name="LoopbackID"/>
+            </node>
+            <node id="10">
+                <element control="combo" compile_if="IF_IPV6_PACKAGE_PRESENT" obj-name="IPv6LoopbackIPv6Group_LoopbackIpv6Mode" id="1" name="IPv6 Mode"/>
+            </node>
+            <node id="11">
+                <element control="combo" properties="filter,iterate" compile_if="IF_IPV6_PACKAGE_PRESENT" obj-name="IPv6LoopbackIPv6Group_LoopbackIpv6Prefix" id="1" name="IPv6 Address">
+                    <action type="extn" discard="no" value="Add" setval_ids="1_13_1|1_14" setval_args="valMapEmptyString|valMapEmptyString" enable="1_12|1_13_1|1_13_2|1_14|1_16_1|1_16_5" disable="1_16_6" hide="1_12|1_16_6" show="1_13_1|1_13_2|1_14|1_16_1|1_16_5"/>
+                    <action type="default" discard="no" enable="1_12|1_14|1_16_1|1_16_6" disable="1_16_5|1_13_1|1_13_2" hide="1_12|1_13_1|1_13_2|1_16_5" show="1_14|1_16_1|1_16_6"/>
+                </element>
+            </node>            
+            <node id="12">
+                <element control="combo" compile_if="IF_IPV6_PACKAGE_PRESENT" obj-name="IPv6LoopbackIPv6Group_IsLoopbackIpv6PrefixExist" id="1" name="IPv6 Exist">
+                    <action type="enum" discard="no" enable="" disable="" hide="" show=""/>
+                    <action type="enum" discard="no" enable="" disable="" hide="" show=""/>
+                </element>
+            </node>
+            <node id="13">
+                <element control="textbox" properties="filter,iterate" compile_if="IF_IPV6_PACKAGE_PRESENT" obj-name="IPv6LoopbackIPv6Group_LoopbackIpv6Prefix" id="1" name="IPv6 Address"/>
+                <element control="checkbox" arghelp="Eui64" properties="noname" compile_if="IF_IPV6_PACKAGE_PRESENT" obj-name="IPv6LoopbackIPv6Group_LoopbackIpv6Eui64Flag" id="2"/>
+            </node>
+            <node id="14">
+                <element control="textbox" compile_if="IF_IPV6_PACKAGE_PRESENT" obj-name="IPv6LoopbackIPv6Group_LoopbackIpv6PrefixLen" id="1" name="IPv6 Prefix Len"/>
+            </node>
+            <node id="17">
+                <element control="combo" uienum="ipAddrType_t" properties="filter" obj-name="routingloopbackConfig_Protocol" id="1" name="Dummy Protocol">
+                    <action type="enum" discard="no" enable="1_6" disable="1_9|1_10|1_11|1_12|1_16_5|1_16_6" hide="1_6|1_9|1_10|1_11|1_12|1_13_1|1_13_2|1_14|1_16_5|1_16_6" show=""/>
+                    <action type="enum" discard="no" enable="1_9|1_10|1_11" disable="1_6|1_7|1_8|1_16_2|1_16_3|1_16_4" hide="1_6|1_7|1_8|1_16_2|1_16_3|1_16_4" show="1_10|1_11"/>
+                </element>
+            </node>					
+            <node id="15">
+                <element control="combo" obj-name="routingloopbackConfig_ID" id="1" name="Loopback">
+                    <action type="extn" discard="no" value="Create" enable="1_2|1_3" disable="1_4|1_5_1|1_6|1_7|1_8|1_9|1_10|1_11|1_12|1_13_1|1_13_2|1_14|1_16|1_17" hide="1_4|1_5_1|1_6|1_7|1_8|1_9|1_10|1_11|1_12|1_13_1|1_13_2|1_14|1_16|1_17" show="1_2|1_3"/>
+                    <action type="default" discard="no" enable="1_4|1_5" disable="1_2|1_3" hide="1_2|1_3" show="1_5"/>
+                </element>
+            </node>
+            <node id="16">
+                <button scope="page" type="buttonSubmit" value="Delete" obj-name="routingloopbackConfig_status" help="Submits the form on this page to the Switch" id="1" name="Delete Loopback">
+                    <action type="button" discard="no" enable="1_1" disable="1_5|1_6|1_7|1_8|1_9|1_10|1_11|1_12|1_13_1|1_13_2|1_14|1_16_2|1_16_3|1_16_4|1_16_5|1_16_6" hide="1_5|1_6|1_7|1_8|1_9|1_10|1_11|1_12|1_13_1|1_13_2|1_14|1_16" show="1_1"/>
+                </button>
+                <button scope="page" type="buttonSubmit" help="Submits Primary Address to the Switch" id="2" name="Submit">
+                    <action type="button" discard="no" enable="1_1|1_4|1_5|1_6|1_7|1_8" disable="1_9|1_10|1_11|1_12|1_13_1|1_13_2|1_14|1_16_1|1_16_4|1_16_5|1_16_6" hide="1_6|1_9|1_10|1_11|1_12|1_13_1|1_13_2|1_14|1_16_2|1_16_5|1_16_6" show="1_1|1_5|1_6|1_7|1_8"/>
+                </button>
+                <button scope="page" type="buttonClear" target-page="loopbackSecondaryConfig.html" help="Executes the associated actions if any." id="3" name="Add Secondary">
+                    <action type="button" discard="no" enable="" disable="1_5|1_6|1_11|1_16_1|1_16_2|1_16_4|1_16_5|1_16_6|1_7|1_8" hide="" show=""/>
+                </button>
+                <button scope="page" type="buttonSubmit" value="1" obj-name="routingloopbackConfig_IPAddressDel" help="Submits the form on this page to the Switch" id="4" name="Delete Primary">
+                    <action type="button" discard="no" enable="1_1|1_4|1_5|1_6|1_7|1_8" disable="1_9|1_10|1_11|1_12|1_13_1|1_13_2|1_14|1_16_1|1_16_2|1_16_3|1_16_5|1_16_6" hide="1_6|1_9|1_10|1_11|1_12|1_13_1|1_13_2|1_14|1_16_1|1_16_2|1_16_3|1_16_4|1_16_5|1_16_6" show="1_1|1_5|1_7|1_8"/>
+                </button>
+                <button scope="page" type="buttonSubmit" value="Add" compile_if="IF_IPV6_PACKAGE_PRESENT" obj-name="IPv6LoopbackIPv6Group_LoopbackIpv6PrefixStatus" help="Submits the form on this page to the Switch" id="5" name="Submit">
+                    <action type="button" discard="no" enable="1_1|1_4|1_5|1_9|1_10|1_11" disable="1_5|1_6|1_7|1_8|1_16_1|1_16_2|1_16_3|1_16_4|1_16_6" hide="1_12|1_5|1_6|1_7|1_8|1_16_2|1_16_3|1_16_4|1_16_5" show="1_1|1_5|1_10|1_11"/>
+                </button>
+                <button scope="page" type="buttonSubmit" value="Delete" compile_if="IF_IPV6_PACKAGE_PRESENT" obj-name="IPv6LoopbackIPv6Group_LoopbackIpv6PrefixStatus" help="Submits the form on this page to the Switch" id="6" name="Delete Selected Address">
+                    <action type="button" discard="no" enable="1_1|1_4|1_5|1_9|1_10|1_11" disable="1_5|1_6|1_7|1_8|1_16_1|1_16_2|1_16_3|1_16_4|1_16_5" hide="1_12|1_5|1_6|1_7|1_8|1_16_2|1_16_3|1_16_4|1_16_6" show="1_1|1_5|1_10|1_11"/>
+                </button>				
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

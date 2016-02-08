@@ -1,0 +1,24 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="PBVlanSummary" title="Protocol-based VLAN Summary">
+        <group id="1" heading=" ">
+            <repeat present="vtable" edit="no" heading=" " id="1">
+                <element properties="filter,iterate,hidden" obj-name="SwitchingPbvlanGroupConfig_GroupId" id="1" name="Group ID"/>
+                <element obj-name="SwitchingPbvlanGroupConfig_GroupName" id="2" name="Group Name"/>
+                <element cpval="SwitchingPbvlanGroupConfig_GroupId" obj-name="SwitchingPbvlanGroupConfig_GroupId" id="3" name="Group ID"/>
+                <element  control="label" properties="collate" obj-name="SwitchingPbvlanGroupConfig_GroupProtocol" id="4" name="Protocols"/>
+
+                <element control="label" properties="read-only" obj-name="SwitchingPbvlanGroupConfig_GroupVlanId" id="5" name="VLAN"/>
+                <element control="label" properties="collate" obj-name="SwitchingPbvlanGroupConfig_GroupInterface" id="6" run_if="stacking" name="Unit/Slot/Port(s)" />
+                <element control="label" properties="collate" obj-name="SwitchingPbvlanGroupConfig_GroupInterface" id="7" run_if="nostacking" name="Slot/Port(s)" />
+            </repeat>
+            <node id="2">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

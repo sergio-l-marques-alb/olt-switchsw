@@ -1,0 +1,54 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="IPV6ACLRuleIPDSCP" title="IPv6 ACL Rule Configuration" help-file="help_IPV6ACLRuleConfig.html">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element  properties="hidden" obj-name="fastPathQOSACLQOSACL_aclIpv6Index" id="1" name="IPv6 ACL"/>
+            </node>
+            <node id="2">
+                <element control="label" obj-name="fastPathQOSACLQOSACL_aclIpv6Name" id="2" name="IPv6 ACL Name"/>
+            </node>
+            <node id="3">
+                <element obj-name="fastPathQOSACLQOSACL_aclIpv6RuleIndex" id="1" name="Rule"/>
+            </node>
+            <node id="4">
+                <element control="combo" obj-name="fastPathQOSACLQOSACL_aclIpv6RuleIPDSCP" id="1" name="IP DSCP">
+                   <action type="enum" show="1_6_1" enable="1_6_1"/>
+                   <action type="enum" hide="1_6_1" disable="1_6_1"/>
+                   <action type="enum" hide="1_6_1" disable="1_6_1"/>
+                   <action type="enum" hide="1_6_1" disable="1_6_1"/>
+                   <action type="enum" hide="1_6_1" disable="1_6_1"/>
+                   <action type="enum" hide="1_6_1" disable="1_6_1"/>
+                   <action type="enum" hide="1_6_1" disable="1_6_1"/>
+                   <action type="enum" hide="1_6_1" disable="1_6_1"/>
+                   <action type="enum" hide="1_6_1" disable="1_6_1"/>
+                   <action type="enum" hide="1_6_1" disable="1_6_1"/>
+                   <action type="enum" hide="1_6_1" disable="1_6_1"/>
+                   <action type="enum" hide="1_6_1" disable="1_6_1"/>
+                   <action type="enum" hide="1_6_1" disable="1_6_1"/>
+                   <action type="enum" hide="1_6_1" disable="1_6_1"/>
+                   <action type="enum" hide="1_6_1" disable="1_6_1"/>
+                   <action type="enum" hide="1_6_1" disable="1_6_1"/>
+                   <action type="enum" hide="1_6_1" disable="1_6_1"/>
+                   <action type="enum" hide="1_6_1" disable="1_6_1"/>
+                   <action type="enum" hide="1_6_1" disable="1_6_1"/>
+                   <action type="enum" hide="1_6_1" disable="1_6_1"/>
+                   <action type="enum" hide="1_6_1" disable="1_6_1"/>
+                   <action type="enum" hide="1_6_1" disable="1_6_1"/>
+                   <action type="enum" hide="1_6_1" disable="1_6_1"/>
+                </element>
+            </node>
+             <node id="6">
+                <element control="textbox" obj-name="fastPathQOSACLQOSACL_aclIpv6RuleIPDSCPValue" id="1" name="IP DSCP Value" arghelp="ipdscprange"/>
+            </node>
+            <node id="5">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit" target-page="IPV6ACLRuleConfig.html"/>
+                <button scope="page" type="buttonClear" target-page="IPV6ACLRuleConfig.html" help="Executes the associated actions if any." id="2" name="Cancel"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

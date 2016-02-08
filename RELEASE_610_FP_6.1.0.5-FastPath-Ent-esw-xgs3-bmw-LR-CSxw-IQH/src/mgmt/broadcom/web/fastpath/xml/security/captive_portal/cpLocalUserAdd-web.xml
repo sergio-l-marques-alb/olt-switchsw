@@ -1,0 +1,22 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+   <webxml version="1.0" name="cpLocalUserAdd" title="Add Local User">
+      <group id="1" heading=" ">
+          <node id="1">
+              <element properties="filter,iterate,hidden" obj-name="captiveportalcpLocalUserTable_cpLocalUserIndex" id="1" name="Local User Index"/>
+          </node>
+          <node id="2">
+              <element control="textbox" properties="write-only" obj-name="captiveportalcpLocalUserTable_cpLocalUserName" value="" id="1" arghelp="NAME_FORMAT_ONE" maxLength="31" validation="validate_name31" name="Local User Name"/>
+          </node>
+          <node id="3">
+              <button scope="page" type="buttonSubmit" value="Add" obj-name="captiveportalcpLocalUserTable_cpLocalUserRowStatus" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+              <button scope="page" type="buttonClear" target-page="cpLocalUser.html" help="Opens CP Local User page." id="2" name="Cancel"/>
+          </node>
+      </group>
+   </webxml>
+</FastPathXML>
+

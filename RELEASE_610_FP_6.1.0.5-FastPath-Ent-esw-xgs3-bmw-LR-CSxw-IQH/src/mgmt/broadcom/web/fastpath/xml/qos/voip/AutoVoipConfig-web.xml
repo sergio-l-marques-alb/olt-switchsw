@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="AutoVoipConfig" title="Auto VoIP Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="fastPathQOSAUTOVOIPAutoVoIPTable_AutoVoIPIntfIndex" id="1" name="Interface">
+                    <action type="extn" position="0" value="All" enable="1_4_1|1_5_1" disable="1_2_1|1_3_1" show="1_4_1|1_5_1" hide="1_2_1|1_3_1"/>
+                    <action type="default" enable="1_2_1|1_3_1" disable="1_4_1|1_5_1" show="1_2_1|1_3_1" hide="1_4_1|1_5_1"/>
+                </element>
+				</node>
+            <node id="2">
+                <element control="combo" obj-name="fastPathQOSAUTOVOIPAutoVoIPTable_AutoVoIPMode" id="1" name="Auto VoIP Mode"/>
+            </node>
+            <node id="3">
+                <element control="label" obj-name="fastPathQOSAUTOVOIPAutoVoIPTable_AutoVoIPTrafficClass" id="1" name="Traffic Class"/>
+            </node>
+			<node id="4">
+                <element control="combo" obj-name="fastPathQOSAUTOVOIPAutoVoIPTable_GlobalAutoVoIPMode" id="1" name="Auto VoIP Mode"/>
+            </node>
+            <node id="5">
+                <element control="label" obj-name="fastPathQOSAUTOVOIPAutoVoIPTable_GlobalAutoVoIPTrafficClass" id="1" name="Traffic Class"/>
+            </node>
+            <node id="6">
+                <button type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+        </group>
+        <group level="ReadOnlyUser" id="2" heading="  ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="fastPathQOSAUTOVOIPAutoVoIPTable_AutoVoIPIntfIndex" id="1" />
+            </node>
+            <node id="2">
+                <element control="label" properties="read-only" obj-name="fastPathQOSAUTOVOIPAutoVoIPTable_AutoVoIPMode" id="1" name="Auto VoIP Mode"/>
+            </node>
+            <node id="3">
+                <element control="label" obj-name="fastPathQOSAUTOVOIPAutoVoIPTable_AutoVoIPTrafficClass" id="1" name="Traffic Class"/>
+            </node>
+            <node id="4">
+                <button type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+
+    </webxml>
+</FastPathXML>

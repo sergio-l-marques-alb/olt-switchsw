@@ -1,0 +1,239 @@
+
+xui_framework_src := src/xui/framework/src
+xui_framework_inc := src/xui/framework/include
+modb := src/modb
+
+MASTERSRC += $(modb)/security/dot1x/handlers
+MASTERSRC += $(modb)/security/mgmt_acal/handlers
+
+ifeq (1,$(BLD_L7_COMPONENTS_TACACS))
+	MASTERSRC += $(modb)/security/tacacs/handlers
+endif
+
+MASTERSRC += $(modb)/security/radius/handlers
+
+ifeq (1,$(BLD_L7_FLEX_SECURE_MGMT))
+	MASTERSRC += $(modb)/security/sslt/handlers
+	MASTERSRC += $(modb)/security/sshd/handlers
+endif
+
+ifeq (1,$(BLD_L7_COMPONENTS_CAPTIVE_PORTAL))
+	MASTERSRC += $(modb)/security/captive_portal/include
+	MASTERSRC += $(modb)/security/captive_portal/handlers
+endif
+
+MASTERSRC += $(modb)/include
+MASTERSRC += $(modb)/share/src
+
+ifeq (1,$(BLD_L7_FLEX_IP_MCAST))
+	MASTERSRC += $(modb)/ip_mcast/pim/handlers
+	MASTERSRC += $(modb)/ip_mcast/dvmrp/handlers
+	MASTERSRC += $(modb)/ip_mcast/mcastmap/handlers
+	MASTERSRC += $(modb)/ip_mcast/mgmd/handlers
+endif
+
+ifeq (1,$(BLD_L7_COMPONENTS_POE))
+	MASTERSRC += $(modb)/base/poe/handlers
+endif
+
+MASTERSRC += $(modb)/base/dos/handlers
+
+ifeq (1,$(BLD_L7_COMPONENTS_OUTBOUND_TELNET))
+	MASTERSRC += $(modb)/base/telnet/handlers
+endif
+
+ifeq (1,$(BLD_L7_COMPONENTS_DVLAN))
+	MASTERSRC += $(modb)/base/doublevlantag/handlers
+endif
+
+ifeq (1,$(BLD_L7_COMPONENTS_DHCPS))
+	MASTERSRC += $(modb)/base/dhcps/handlers
+endif
+
+ifeq (1,$(BLD_L7_UI_HAS_ANYSNMP))
+	MASTERSRC += $(modb)/base/snmp/handlers
+endif
+
+ifeq (1,$(BLD_L7_COMPONENTS_AUTO_INSTALL))
+	MASTERSRC += $(modb)/base/auto_install/handlers
+endif
+
+MASTERSRC += $(modb)/base/system/handlers
+MASTERSRC += $(modb)/base/dot1ab/handlers
+
+ifeq (1,$(BLD_L7_COMPONENTS_SFLOW))
+	MASTERSRC += $(modb)/base/sflow/handlers
+endif
+
+MASTERSRC += $(modb)/base/timezone/handlers
+
+ifeq (1,$(BLD_L7_COMPONENTS_ISDP))
+	MASTERSRC += $(modb)/base/isdp/handlers
+endif
+
+MASTERSRC += $(modb)/mgmt_support/handlers
+MASTERSRC += $(modb)/system_support/base/sntp/handlers
+MASTERSRC += $(modb)/system_support/base/dns/handlers
+MASTERSRC += $(modb)/system_support/base/traceroute/handlers
+MASTERSRC += $(modb)/system_support/base/log/handlers
+MASTERSRC += $(modb)/system_support/base/ping/handlers
+
+ifeq (1,$(BLD_L7_FLEX_HAS_COMMON_IPV6))
+	MASTERSRC += $(modb)/system_support/ipv6/ip6mgmt/handlers
+	MASTERSRC += $(modb)/system_support/ipv6/pingv6/handlers
+endif
+
+ifeq (1,$(BLD_L7_FLEX_STACKING))
+	MASTERSRC += $(modb)/system_support/stacking/handlers
+endif
+
+
+ifeq (1, $(BLD_L7_FLEX_METRO))
+	MASTERSRC += $(modb)/metro/dot3ah/handlers
+	MASTERSRC += $(modb)/metro/dot1ad/handlers
+	MASTERSRC += $(modb)/metro/dot1ag/handlers
+	MASTERSRC += $(modb)/metro/tr069/handlers
+endif
+
+ifeq (1,$(BLD_L7_COMPONENTS_DAI))
+	MASTERSRC += $(modb)/switching/dynamic_arp_inspection/handlers
+endif
+
+MASTERSRC += $(modb)/switching/voice_vlan/handlers
+MASTERSRC += $(modb)/switching/spanning_tree/dot1s/handlers
+MASTERSRC += $(modb)/switching/spanning_tree/dot1d/handlers
+MASTERSRC += $(modb)/switching/link_aggregation/handlers
+MASTERSRC += $(modb)/switching/snooping/handlers
+ifeq (1,$(BLD_L7_COMPONENTS_IPSG))
+	MASTERSRC += $(modb)/switching/ipsg/handlers
+endif
+
+ifeq (1,$(BLD_L7_COMPONENTS_GARP))
+	MASTERSRC += $(modb)/switching/garp/gmrp/handlers
+	MASTERSRC += $(modb)/switching/garp/gvrp/handlers
+endif
+
+ifeq (1,$(BLD_L7_COMPONENTS_DHCP_SNOOPING))
+	MASTERSRC += $(modb)/switching/dhcp_snooping/handlers
+endif
+
+ifeq (1,$(BLD_L7_COMPONENTS_DHCP_L2_RELAY))
+	MASTERSRC += $(modb)/switching/dhcp_l2_relay/handlers
+	ifeq (0,$(BLD_L7_COMPONENTS_DOT1AD))
+		MASTERSRC_FILE_EXCLUDE += \
+			$(modb)/switching/dhcp_l2_relay/handlers/fpobj_SwitchingDhcpL2RelaySubscConfig.c \
+			$(modb)/switching/dhcp_l2_relay/handlers/fpobj_SwitchingDhcpL2RelaySubscConfigSummary.c
+	endif
+endif
+
+ifeq (1,$(BLD_L7_COMPONENTS_MACVLAN))
+	MASTERSRC += $(modb)/switching/vlan/macvlan/handlers
+endif
+
+ifeq (1,$(BLD_L7_COMPONENTS_IPVLAN))
+	MASTERSRC += $(modb)/switching/vlan/ipsubnetvlan/handlers
+endif
+
+ifeq (1,$(BLD_L7_COMPONENTS_PBVLAN))
+	MASTERSRC += $(modb)/switching/vlan/dot1v/handlers
+endif
+
+MASTERSRC += $(modb)/switching/vlan/dot1q/handlers
+MASTERSRC += $(modb)/switching/filtering_db/static_filter/handlers
+MASTERSRC += $(modb)/switching/filtering_db/fdb/handlers
+MASTERSRC += $(modb)/switching/filtering_db/mfdb/handlers
+
+ifeq (1,$(BLD_L7_COMPONENTS_MACLOCK))
+	MASTERSRC += $(modb)/switching/port_mac_locking/handlers
+endif
+
+ifeq (1,$(BLD_L7_COMPONENTS_DHCP_FILTER))
+	MASTERSRC += $(modb)/switching/dhcp_filtering/handlers
+endif
+
+ifeq (1,$(BLD_L7_COMPONENTS_PROT_PORTS))
+	MASTERSRC += $(modb)/switching/protectedports/handlers
+endif
+
+ifeq (1,$(BLD_L7_FLEX_WIRELESS))
+	MASTERSRC += $(modb)/wireless/include
+	MASTERSRC += $(modb)/wireless/handlers
+endif
+
+MASTERSRC += $(modb)/common/handlers
+
+ifeq (1,$(BLD_L7_FLEX_QOS))
+	ifeq (1,$(BLD_L7_COMPONENTS_ACL))
+	MASTERSRC += $(modb)/qos/acl/handlers
+endif
+ifeq (1,$(BLD_L7_COMPONENTS_ISCSI))
+	MASTERSRC += $(modb)/qos/iscsi/handlers
+endif
+ifeq (1,$(BLD_L7_COMPONENTS_VOIP))
+	MASTERSRC += $(modb)/qos/voip/handlers
+endif
+#MASTERSRC += $(modb)/qos/easyacl/handlers
+ifeq (1,$(BLD_L7_COMPONENTS_DIFFSERV))
+	MASTERSRC += $(modb)/qos/diffserv/handlers
+endif
+ifeq (1,$(BLD_L7_COMPONENTS_COS))
+	MASTERSRC += $(modb)/qos/cos/handlers
+endif
+endif
+
+ifeq (1,$(BLD_L7_PACKAGE_ROUTING))
+	MASTERSRC += $(modb)/routing/arp/handlers
+	MASTERSRC += $(modb)/routing/ipforward/handlers
+	MASTERSRC += $(modb)/routing/ipmap/handlers
+	MASTERSRC += $(modb)/routing/arpcache/handlers
+	MASTERSRC += $(modb)/routing/iproute/handlers
+	MASTERSRC += $(modb)/routing/relay/handlers
+ifeq (1,$(BLD_L7_COMPONENTS_RIP))
+	MASTERSRC += $(modb)/routing/rip/handlers
+endif
+ifeq (1,$(BLD_L7_COMPONENTS_RLIM))
+	MASTERSRC += $(modb)/routing/rlim/handlers
+endif
+ifeq (1,$(BLD_L7_COMPONENTS_VRRP))
+	MASTERSRC += $(modb)/routing/vrrp/handlers
+endif
+ifeq (1,$(BLD_L7_COMPONENTS_OSPF))
+	MASTERSRC += $(modb)/routing/ospf/handlers
+endif
+endif
+
+
+ifeq (1,$(BLD_L7_FLEX_IPV6))
+	MASTERSRC += $(modb)/routingv6/dhcp6/handlers
+ifeq (1,$(BLD_L7_COMPONENTS_RLIM))
+	MASTERSRC += $(modb)/routingv6/rlim/handlers
+endif
+	MASTERSRC += $(modb)/routingv6/ip6map/handlers
+	MASTERSRC += $(modb)/routingv6/ospf/handlers
+endif
+
+# The below lines need to be removed when the GMRP is also added
+# as seperate feature in cchelper.ini
+ifeq (1,$(BLD_L7_COMPONENTS_GMRP))
+	CFLAGSEXTRA += -DL7_FEAT_GMRP
+endif
+
+ifeq (1,$(BLD_L7_FLEX_WIRELESS))
+MASTERINC +=  $(modb)/wireless/include 
+endif
+
+ifeq (1,$(BLD_L7_COMPONENTS_CAPTIVE_PORTAL))
+MASTERINC +=  $(modb)/security/captive_portal/include
+endif
+
+ifeq (1,$(BLD_L7_UI_HAS_XNETSNMP))
+SRCINCPATHS += src/application/base/rmon
+endif
+
+MASTERSRC += $(modb)/$(L7_CUSTOMER)
+
+# Additional compiler flags.
+#
+
+include $(FP_ROOT)/src/xui/make/make.common.srcdist
+

@@ -1,0 +1,57 @@
+
+
+
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Multicast Forwarding Help</TITLE>
+	<LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+<hr size=4 width="80%" align=center>
+<h2><a name=mcastscopecfg></a>Help for IPv6 Multicast Static MRoute Table Configuration</h2>
+ <p> This page is used to configure a new or existing static mroute entry.
+</p>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Source IP Address</b> - Enter the address of the Multicast data source.
+  </li>
+  <li><b>Source Mask</b> - Enter the network mask for the IP address of the Multicast data source to be configured.
+  </li>
+  <li><b>RPF Next Hop</b> - Enter the RPF Address for the source range of static mroute entry.
+  </li>
+  <li><b>RPF Interface</b> - Enter the RPF interface index if RPF address is link-local.
+  </li>
+  <li><b>Preference</b> - Enter the preference with which the static mroute to 
+      be considered against other matching static mroute entry for a given 
+      source. The valid values are from (1 to 255).
+  </li>
+ </ul>
+</ul>
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li>
+     <b>Submit</b> - Send the updated configuration to the router. Configuration changes take effect
+     immediately. These changes will not be retained across a power cycle unless a save
+     is performed. </li>
+ </ul>
+</ul>
+<hr size=4 width="80%" align=center>
+
+</body>
+
+</html>
+
+
+
+
+

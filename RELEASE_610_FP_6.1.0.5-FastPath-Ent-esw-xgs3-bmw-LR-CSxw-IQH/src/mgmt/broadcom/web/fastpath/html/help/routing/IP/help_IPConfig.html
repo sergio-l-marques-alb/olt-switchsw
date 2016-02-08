@@ -1,0 +1,102 @@
+<HTML>
+
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>IP Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+
+<hr size=4 width="80%" align=center>
+
+
+<h2><a name=ipcfg></a>Help for IP Configuration</h2>
+
+Use this menu to configure routing parameters for the switch as opposed to an interface.
+
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Routing Mode</b> - Select enable or disable from the pulldown menu.
+      You must enable routing for the switch before you can route through any of the interfaces.
+      The default value is disable.  </li>
+  <li><b> ICMP Echo Replies</b> - Select enable or disable from the pulldown menu.
+      If it is enable then only the router can send ECHO replies. By default ICMP Echo Replies is Enable.
+  </li>
+  <li><b> ICMP Redirects </b>- If it is enabled globally and on interface level then only the router
+          can send ICMP Redirects. By default ICMP Redirects is Enable.</li>
+
+  <li><b> ICMP Rate Limit Interval </b>- To control the ICMP error packets user can specify the number of ICMP error packets are allowed per burst interval. By Default Ratelimit is 100 packets/sec i.e burst interval is 1000 msec. To disable ICMP Ratelimiting set this field to '0'. Valid Rate Interval must be in the range
+         (0 to 2147483647).
+  </li> 
+
+  <li><b> ICMP Rate Limit Burst Size </b>-To control the ICMP error packets user can specify the number of ICMP error
+          packets are allowed per burst interval. By Default burstsize is 100 packets. When burst interval is 0 then 
+          configuring this field is not a valid operation. Valid Burst Size must be in the range
+          (1 to 200).
+   </li>
+  <!--          IP SPOOFING IS NOT YET IMPLEMENTED
+  <li><b>IP Spoofing Mode</b> - This enables or disables IP Spoofing checking.
+        When enabled, a packet is discarded if the router interface on which
+        it is received is not the interface on which its source IP address is
+        reachable.  The value for the mode is either enable or disable.  The
+        default value is disable. </li>  -->
+
+ <!--          These are  NOT YET IMPLEMENTED - maybe non-configurable data
+  <li><b>IP Source-checking Mode</b> - This enables or disables source IP
+        address checking.  When enabled, received packets are checked for
+        validity of their source IP addressses.  The value for mode is either
+        enable or disable.  The default value is disable. </li>
+  <li><b>Forward Net Directed Broadcasts</b> - This enables or disables the
+        forwarding network-directed broadcasts.  When enabled, network directed
+        broadcasts are forwarded.  When disabled they are dropped.  The default
+        value is enable.  </li>                  -->
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Default Time to Live</b> - The default value inserted into the Time-To-Live
+    field of the IP header of datagrams originated by the switch,
+    if a TTL value is not supplied by the transport layer protocol.</li>
+  <!--<li><b>Active Routes</b> - The number of routes that are active on this
+      interface. </li> -->
+  <li><b>Maximum Next Hops</b> - The maximum number of hops supported by the switch.
+  This is a compile-time constant.</li>
+  <li><b>Maximum Routes</b> - The maximum number of routes (routing table size) supported by the switch.
+  This is a compile-time constant.</li>  
+ </ul>
+</ul>
+
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li>
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+     <b>Submit</b> - Update the switch with the values on this screen.
+     If you want the switch to retain the new values across a power cycle, you must perform a save.
+<EMWEB_ELSE>
+     <b>Refresh</b> - Refreshes the screen with updated configuration.
+</EMWEB_IF>
+ </li>
+ </ul>
+</ul>
+
+<hr size=4 width="80%" align=center>
+
+
+</body>
+
+</html>
+
+

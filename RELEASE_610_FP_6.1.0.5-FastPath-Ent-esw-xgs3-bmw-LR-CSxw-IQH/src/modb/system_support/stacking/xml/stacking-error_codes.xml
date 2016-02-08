@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "misc.dtd">
+<FastPathXML>
+  <misc version="1.0">
+  <error name="STNDBY_SHDBE_VALIDUNIT" output="Cannot set unit as standby.\r\nUnit should have either joined the stack properly or pre-configured."/>
+  <error name="STANDBYUNIT_CANNOTBE_MGMTUNIT"  output="The Management unit cannot be set as Standby."/>
+  <error name="STNDBY_SET_FAILED"  output="Failed to set the unit as standby unit."/>
+  <error name="SET_STKMEMBER_TO_MGMTUNIT_FAILED"  output="Cannot set management unit to Stack member."/>
+  <error name="FAILED_SETTING_MGMTUNIT"  output="The unit cannot be set as management unit."/>
+  <error name="STACKMEMBER_SET_FAILED"  output="Failed to set the unit as stack member."/>
+  </misc>
+</FastPathXML>

@@ -1,0 +1,95 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+
+
+
+<FastPathXML>
+    <webxml version="1.0" name="IPACLRuleServiceTypeConfig" title="IP ACL Rule Configuration" help-file="help_IPACLRuleConfig.html">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element  properties="hidden" obj-name="fastPathQOSACLQOSACL_aclIndex" id="1" name="IP ACL"/>
+            </node>
+            <node id="2">
+                <element  obj-name="fastPathQOSACLQOSACL_aclIPNamedIndex" id="2" name="IP ACL"/>
+            </node>
+            <node id="3">
+                <element obj-name="fastPathQOSACLQOSACL_aclRuleIndex" id="1" name="Rule"/>
+            </node>
+            <node id="4">
+                <element control="combo" obj-name="fastPathQOSACLQOSACL_aclRuleServiceType" id="1" name="Service Type" >
+                   <action type="enum"  hide="1_5_1|1_6_1|1_7_1|1_8_1|1_10_1"/>
+                   <action type="enum"  hide="1_6_1|1_7_1|1_8_1|1_10_1" disable="1_6_1|1_7_1|1_8_1|1_10_1" enable="1_5_1" show="1_5_1"/>
+                   <action type="enum"  hide="1_5_1|1_7_1|1_8_1|1_10_1" disable="1_5_1|1_7_1|1_8_1|1_10_1" enable="1_6_1" show="1_6_1"/>
+                   <action type="enum"  hide="1_5_1|1_6_1|1_10_1" disable="1_5_1|1_6_1|1_10_1" enable="1_7_1|1_8_1" show="1_7_1|1_8_1"/>
+                </element>
+            </node>
+             <node id="5" run_if="QOS_ACL_RULE_MATCH_IPDSCP_FEATURE">
+                <element control="combo" obj-name="fastPathQOSACLQOSACL_aclRuleIPDSCPEnum" id="1" name="IP DSCP">
+                   <action type="enum" show="1_10_1" enable="1_10_1"/>
+                   <action type="enum" hide="1_10_1" disable="1_10_1"/>
+                   <action type="enum" hide="1_10_1" disable="1_10_1"/>
+                   <action type="enum" hide="1_10_1" disable="1_10_1"/>
+                   <action type="enum" hide="1_10_1" disable="1_10_1"/>
+                   <action type="enum" hide="1_10_1" disable="1_10_1"/>
+                   <action type="enum" hide="1_10_1" disable="1_10_1"/>
+                   <action type="enum" hide="1_10_1" disable="1_10_1"/>
+                   <action type="enum" hide="1_10_1" disable="1_10_1"/>
+                   <action type="enum" hide="1_10_1" disable="1_10_1"/>
+                   <action type="enum" hide="1_10_1" disable="1_10_1"/>
+                   <action type="enum" hide="1_10_1" disable="1_10_1"/>
+                   <action type="enum" hide="1_10_1" disable="1_10_1"/>
+                   <action type="enum" hide="1_10_1" disable="1_10_1"/>
+                   <action type="enum" hide="1_10_1" disable="1_10_1"/>
+                   <action type="enum" hide="1_10_1" disable="1_10_1"/>
+                   <action type="enum" hide="1_10_1" disable="1_10_1"/>
+                   <action type="enum" hide="1_10_1" disable="1_10_1"/>
+                   <action type="enum" hide="1_10_1" disable="1_10_1"/>
+                   <action type="enum" hide="1_10_1" disable="1_10_1"/>
+                   <action type="enum" hide="1_10_1" disable="1_10_1"/>
+                   <action type="enum" hide="1_10_1" disable="1_10_1"/>
+                   <action type="enum" hide="1_10_1" disable="1_10_1"/>
+                </element>
+            </node>
+             <node id="10" run_if="QOS_ACL_RULE_MATCH_IPDSCP_FEATURE">
+                <element control="textbox" obj-name="fastPathQOSACLQOSACL_aclRuleIPDSCP" id="1" name="IP DSCP Value" arghelp="ipdscprange">
+                <action type="value" value="10" setval_args="af11" setval_ids="1_5_1"/>
+                <action type="value" value="12" setval_args="af12" setval_ids="1_5_1"/>
+                <action type="value" value="14" setval_args="af13" setval_ids="1_5_1"/>
+                <action type="value" value="18" setval_args="af21" setval_ids="1_5_1"/>
+                <action type="value" value="20" setval_args="af22" setval_ids="1_5_1"/>
+                <action type="value" value="22" setval_args="af23" setval_ids="1_5_1"/>
+                <action type="value" value="26" setval_args="af31" setval_ids="1_5_1"/>
+                <action type="value" value="28" setval_args="af32" setval_ids="1_5_1"/>
+                <action type="value" value="30" setval_args="af33" setval_ids="1_5_1"/>
+                <action type="value" value="34" setval_args="af41" setval_ids="1_5_1"/>
+                <action type="value" value="36" setval_args="af42" setval_ids="1_5_1"/>
+                <action type="value" value="38" setval_args="af43" setval_ids="1_5_1"/>
+                <action type="value" value="0"/>
+                <action type="value" value="8" setval_args="CS1" setval_ids="1_5_1"/>
+                <action type="value" value="16" setval_args="CS2" setval_ids="1_5_1"/>
+                <action type="value" value="24" setval_args="CS3" setval_ids="1_5_1"/>
+                <action type="value" value="32" setval_args="CS4" setval_ids="1_5_1"/>
+                <action type="value" value="40" setval_args="CS5" setval_ids="1_5_1"/>
+                <action type="value" value="48" setval_args="CS6" setval_ids="1_5_1"/>
+                <action type="value" value="56" setval_args="CS7" setval_ids="1_5_1"/>
+                <action type="value" value="46" setval_args="EF" setval_ids="1_5_1"/>
+                <action type="default" setval_args="other" setval_ids="1_5_1"/>
+                </element>
+            </node>
+             <node id="6" run_if="QOS_ACL_RULE_MATCH_IPPRECEDENCE_FEATURE">
+                <element obj-name="fastPathQOSACLQOSACL_aclRuleIpPrecedence" id="1" name="IP Precedence" arghelp="HELP_FORMAT_FP"/>
+            </node>
+             <node id="7" run_if="QOS_ACL_RULE_MATCH_IPTOS_FEATURE">
+                <element  maxLength="2" obj-name="fastPathQOSACLQOSACL_aclRuleIpTosBits" id="1" name="IP ToS Bits " control="textbox" arghelp="tosrange"/>
+            </node>
+             <node id="8" run_if="QOS_ACL_RULE_MATCH_SUPPORTS_MASKING_FEATURE">
+                <element  maxLength="2" obj-name="fastPathQOSACLQOSACL_aclRuleIpTosMask" id="1" name="IP ToS Mask" control="textbox" arghelp="tosrange"/>
+            </node>
+            <node id="9">
+                <button scope="page" type="buttonSubmit" target-page="IPACLRuleConfig.html" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+                <button scope="page" type="buttonClear" target-page="IPACLRuleConfig.html" help="Executes the associated actions if any." id="2" name="Cancel"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>
+

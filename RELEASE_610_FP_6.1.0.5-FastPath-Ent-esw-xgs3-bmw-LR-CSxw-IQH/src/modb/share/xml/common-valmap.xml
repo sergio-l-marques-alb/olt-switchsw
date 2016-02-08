@@ -1,0 +1,405 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "misc.dtd" >
+<FastPathXML>
+    <misc version="1.0">
+      <valueMap id="valMapEmptyString" value=""/>
+      <valueMap id="valMapEmptyNewString" value=" "/>
+      <valueMap id="valMapStringAdd" value="Add"/>
+      <valueMap id="valMapGMI" value="260"/>
+      <valueMap id="valMapStringDelete" value="Delete"/>
+      <valueMap id="valMapMRT" value="10"/>
+      <valueMap id="valMapMRET" value="0"/>
+      <valueMap id="valMapDEFAULT" value="Default"/>
+      <valueMap id="valMapCopper" value="Copper"/> 
+      <valueMap id="valMapFiber" value="Fiber"/>     
+      <valueMap id="valMapAuto" value="Auto"/>
+      <valueMap id="valMapForceAuth" value="Force Authorize"/>      
+      <valueMap id="valMapForceUnAuth" value="UnAuthorized"/>
+      <valueMap id="valMapForceAuthorized" value="Force Authorized"/>
+      <valueMap id="valMapForceUnAuthorized" value="Force Unauthorized"/>
+      <valueMap id="valMapLocal" value="Local"/>
+      <valueMap id="valMapRadius" value="RADIUS"/>
+      <valueMap id="valMapReject" value="Reject"/>
+      <valueMap id="valMap_newlist" value="NewList"/>
+      <valueMap id="valMap_TFTP" value="TFTP"/> 
+      <valueMap id="valMap_HTTP" value="HTTP"/>    
+      <valueMap id="valMapStringAdd" value="Add"/>
+      <valueMap id="valMapStringDelete" value="Delete"/>
+      <valueMap id="CPU_Port" value="3/1"/>     <!--  to be used for value-based actions -->
+      <valueMap id="Mgmt_VLan" value="1"/>     <!--  to be used for value-based actions --> 
+      <valueMap id="valMapUndefined" value="Undefined"/>
+      <valueMap id="valMap_AAA_LOCAL" value="Local"/>
+      <valueMap id="valMap_AAA_RADIUSREJECT" value="Radius,Reject"/>
+      <valueMap id="valMap_AAA_REJECT" value="Reject"/>
+      <valueMap id="DHCP" value="DHCP"/>
+      <valueMap id="Static" value="Static"/>
+      <valueMap id="None" value="None"/>
+      <valueMap id="Auto" value="Auto"/>
+      <valueMap id="valmapGlobal" value="Global"/>
+      <valueMap id="L7_SNTP_CLIENT_DISABLED" value="Disabled"/>
+      <valueMap id="L7_SNTP_CLIENT_UNICAST" value="Unicast"/>
+      <valueMap id="valMap_Code" value="Code"/>
+      <valueMap id="HELP_FORMAT_ONE" value="Range[$$objMin$$---$$objMax$$]  Default:$$objDefault$$"/>     <!--  to be used for arg-help  -->
+      <valueMap id="HELP_FORMAT_TWO" value="[$$objMin$$-$$objMax$$]  Default:$$objDefault$$"/>     <!--  to be used for arg-help  -->
+      <valueMap id="HELP_FORMAT_THREE" value="Range[$$objMin$$---$$objMax$$]  Default: 1 "/>     <!--  to be used for arg-help  -->
+      <valueMap id="HELP_FORMAT_FOUR" value="Range[1-100]  Default:50"/>     <!--  to be used for arg-help  -->
+      <valueMap id="HELP_FORMAT_FIVE" value="Range[%d-%d]  Default:%d" args="L7_FDB_MIN_AGING_TIMEOUT,L7_FDB_MAX_AGING_TIMEOUT,FD_FDB_DEFAULT_AGING_TIMEOUT"/>     <!--  to be used for arg-help  -->
+      <valueMap id="HELP_FORMAT_SIX" value="Range[%d-%d]  Default:%d" args="aging_time_min,aging_time_max,aging_time_default"/>     <!--  to be used for arg-help  -->
+      <valueMap id="HELP_FORMAT_SEVEN" value="Range[%d-%d]  Default:%d" args="get_aging_time_min(),get_aging_time_max(),get_aging_time_default()"/>     <!--  to be used for arg-help  -->
+      <valueMap id="HELP_FORMAT_EIGHT" value="($$objMin$$, $$objDefault$$ to $$objMax$$)"/>     <!--  to be used for arg-help  -->
+     
+      <valueMap id="HELP_FORMAT_53115_MTUSIZE" value="Size[%d,%d] Default:%d" args="L7_MIN_FRAME_SIZE,PLAT_MAX_FRAME_SIZE,L7_MIN_FRAME_SIZE"/>
+      <valueMap id="HELP_FORMAT_MTUSIZE" value="Range[%d-%d] Default:%d" args="L7_MIN_FRAME_SIZE,L7_MAX_FRAME_SIZE,L7_MIN_FRAME_SIZE"/>
+      <valueMap id="HELP_FORMAT_NINE" value="(Default:$$objDefault$$)"/>
+      <valueMap id="HELP_FORMAT_TEN" value="($$objMin$$-$$objMax$$ | Default:$$objDefault$$)"/>
+      <valueMap id="HELP_FORMAT_ELEVEN" value="($$objMin$$-$$objMax$$)"/>
+      <valueMap id="HELP_FORMAT_SEVERITY" value="(%d-%d|Default:%d)" args="L7_LOG_SEVERITY_EMERGENCY,L7_LOG_SEVERITY_DEBUG,FD_LOG_DEFAULT_SYSLOG_SEVERITY_FILTER"/>
+      <valueMap id="HELP_FORMAT_BUFFERED" value="(%d-%d|Default:%d)" args="L7_LOG_SEVERITY_EMERGENCY,L7_LOG_SEVERITY_DEBUG,FD_LOG_DEFAULT_IN_MEMORY_SEVERITY_FILTER"/>
+      <valueMap id="HELP_FORMAT_GUESTVLAN" value="(%d-%d)" args="L7_DOT1Q_MIN_VLAN_ID,L7_DOT1Q_MAX_VLAN_ID"/>
+      <valueMap id="HELP_FORMAT_ETHERTYPE" value="(%d to %d)" args="L7_DVLANTAG_MIN_ETHERTYPE,L7_DVLANTAG_MAX_ETHERTYPE"/>
+
+      <valueMap id="hundred" value="100"/>     <!--  to be used for setval_args -->
+      <valueMap id="L7_ENABLE" value="Enable"/>     <!--  to be used for setval_args -->
+      <valueMap id="L7_DISABLE" value="Disable"/>
+      <valueMap id="binding_unallocated" value="Inactive"/>
+      <valueMap id="binding_automatic" value="Automatic"/>
+      <valueMap id="binding_manual" value="Manual"/>
+      <valueMap id="MIRROR_DIRECTION_TX" value="Tx"/>     <!--  to be used for setval_args -->
+      <valueMap id="MIRROR_DIRECTION_RX" value="Rx"/>     <!--  to be used for setval_args -->
+      <valueMap id="RADIUS_ADD" value="Add"/>     <!--  to be used for setval_args -->
+      <valueMap id="RADIUS_DELETE" value="Remove"/>     <!--  to be used for setval_args -->
+      <valueMap id="valMapStringRemove" value="Remove"/>     <!--  to be used for setval_args -->
+      <valueMap id="L7_TRUE" value="TRUE"/>     <!--  to be used for setval_args -->
+      <valueMap id="L7_FALSE" value="FALSE"/>
+      <valueMap id="valMapTrue1" value="true"/>
+      <valueMap id="valMapFalse2" value="false"/>
+      <valueMap id="TRUTH_VALUE_TRUE" value="True"/><!--  to be used for setval_args -->
+      <valueMap id="TRUTH_VALUE_FALSE" value="False"/>
+      <valueMap id="L7_XUI_NO_SUMMER_TIME" value="Disable"/>
+      <valueMap id="L7_XUI_SUMMER_TIME_NON_RECURRING" value="NonRecurring"/>
+      
+      <valueMap id="HELP_FORMAT_TRACEROUTE_IP" value="(Max 255 Characters/x.x.x.x)"/>
+      <valueMap id="HELP_FORMAT_FP" value="($$objMin$$ to $$objMax$$)"/>
+      <valueMap id="HELP_FORMAT_FP_ZERO_AUTO" value="($$objMin$$ to $$objMax$$; 0 for Auto)"/>
+      <valueMap id="HELP_FORMAT_FP_ZERO_DISABLE" value="($$objMin$$ to $$objMax$$, 0 - Disable)"/>
+      <valueMap id="HELP_FORMAT_FP_UNITS_SECS" value="($$objMin$$ to $$objMax$$ secs)"/> 
+      <valueMap id="HELP_FORMAT_FP_UNITS_MSECS" value="($$objMin$$ to $$objMax$$ msecs)"/>
+      <valueMap id="HELP_FORMAT_FP_UNITS_SECONDS" value="($$objMin$$ to $$objMax$$) seconds "/>
+      <valueMap id="HELP_FORMAT_FP_PASSWORD_MANAGEMENT" value="(1 to $$objMax$$, 0 to Disable)"/>
+      <valueMap id="HELP_FORMAT_IGMP_SNOOPING_RESPONSE_TIME" value="(%d to %d secs)" args="L7_IGMP_SNOOPING_MIN_RESPONSE_TIME,L7_IGMP_SNOOPING_MAX_RESPONSE_TIME"/>
+      <valueMap id="HELP_FORMAT_MLD_SNOOPING_RESPONSE_TIME" value="(%d to %d secs)" args="L7_MLD_SNOOPING_MIN_RESPONSE_TIME,L7_MLD_SNOOPING_MAX_RESPONSE_TIME"/>
+
+      <valueMap id="HELP_DHCPSNOOPING_INTERFACE_RATELIMIT" value="(%d to %d) pps" args="L7_DS_RATE_LIMIT_MIN,L7_DS_RATE_LIMIT_MAX"/>
+      <valueMap id="HELP_IGMPSNOOPING_GRPMEM_INTVL" value="((Max Response Time + 1) to $$objMax$$ secs)"/>
+      <valueMap id="RouterDisc_MinAdvInterval" value="($$objMin$$ - Max Adv Interval)"/>
+      <valueMap id="RouterDisc_AdvLifetime" value="(Max Adv Interval - $$objMax$$)"/>
+      <valueMap id="IPAddress_Hostname" value="(X.X.X.X/ 1 to 64 Alphanumeric Characters)"/>
+      <valueMap id="Ping_IPAddress_Hostname" value="(Max 255 Characters/X.X.X.X)"/>
+      <valueMap id="IPv4Address_Hostname" value="(Max 255 Characters/X.X.X.X)"/><valueMap id="IPv6Address_Hostname" value="(Max 255 Characters/X:X:X:X:X:X:X:X)"/>
+      <valueMap id="Password" value="(8 to 64 Characters)"/>
+      <valueMap id="PortDescriptionRange" value="(0 to 64 Characters)"/><valueMap id="SystemDescriptionRange" value="(0 to 255 Alphanumeric Characters)"/><valueMap id="Username" value="(1 to 8 Alphanumeric Characters)"/>
+	  <valueMap id="LoginUsername" value="(1 to 64 Alphanumeric Characters)"/>
+      <valueMap id="HELP_FORMAT_AUTH_SIMPLE" value="(1 to 8 Characters)"/>
+      <valueMap id="HELP_FORMAT_AUTH_ENCRYPT" value="(1 to 16 Characters)"/>
+      <valueMap id="HELP_FORMAT_CHAR" value="(1 to 16 alphanumeric characters including -, _, ' ')"/>
+      <valueMap id="HELP_FORMAT_TCP_PORT_RANGE" value="(1 to 65535)"/>
+      <valueMap id="HELP_FORMAT_ISCSI_AGEING_TIME" value="(%d to %d Minutes)" args="ISCSI_SESSION_TIME_OUT_MINUTES_MIN,ISCSI_SESSION_TIME_OUT_MINUTES_MAX"/>
+      <valueMap id="IP_Address" value="(X.X.X.X)"/>
+      <valueMap id="IPv4_v6_Address" value="(X.X.X.X) or (X:X:X:X:X:X:X:X)"/>
+      <valueMap id="MAC_Address" value="(XX:XX:XX:XX:XX:XX)"/>
+      <valueMap id="Def_Domain_Name" value="(1 to 255 Alphanumeric Characters)"/>
+      <valueMap id="iSCSI_Name" value="(1 to 222 Characters)"/>
+      <valueMap id="NAME_FORMAT_ONE" value="(1 to 31 Alphanumeric Characters)"/>
+      <valueMap id="NAME_FORMAT_TWO" value="(1 to 32 Alphanumeric Characters)"/>
+      <valueMap id="NAME_FORMAT_THREE" value="(0 to 64 Alphanumeric Characters)"/>
+      <valueMap id="COS_INTF_DEFAULT" value="%d" args="FD_QOS_COS_QCFG_INTF_SHAPING_RATE"/>
+      <valueMap id="NAME_FORMAT_FOUR" value="(1 to 15 Alphanumeric Characters)"/>
+	  <valueMap id="NAME_FORMAT_12CHAR" value="(1 to 12 Characters)"/>
+      <valueMap id="NAME_FORMAT_31CHAR" value="(1 to 31 Characters)"/>
+      <valueMap id="NAME_FORMAT_CAPTIVE_PROTAL_URL" value="(1 to 512 Alphanumeric Characters)"/>
+      
+      <valueMap id="Reset_Config_to_defaults" value="2"/> 
+      <valueMap id="Exclude" value="Exclude"/>
+       
+      <valueMap id="DHCP_LeaseTime_Infinite" value="0xFFFFFFFF"/> 
+
+      <valueMap id="CreateNewVirtualLink" value="Create New Virtual Link"/>       
+      <valueMap id="OspfArea_TOS" value="%d" args="L7_TOS_NORMAL_SERVICE"/>
+      <valueMap id="Default_OspfArea" value="0.0.0.0"/>
+      
+      <valueMap id="OspfArea_Stub" value="L7_OSPF_AREA_IMPORT_NO_EXT"/>
+      
+      <valueMap id="OspfArea_NSSA" value="L7_OSPF_AREA_IMPORT_NSSA"/>
+      <valueMap id="PortSecurity_VLAN_RANGE" value="(1 to 4093)"/>     <!--  to be used for value-based actions -->
+      <valueMap id="ClassName" value="(1 to 31 Alphanumeric Characters)"/>
+      <valueMap id="cosqueue" value="(0 to 6)"/> 
+      <valueMap id="ClassName" value="(1 to 31 Alphanumeric Characters)"/>
+      <valueMap id="cosqueue" value="(0 to 6)"/> 
+      <valueMap id="portprioritystacking" value="(0 to 6)"/> 
+      <valueMap id="cosvalue" value="(0 to 7)"/> 
+      <valueMap id="ipprecdence" value="(0 to 7)"/> 
+      <valueMap id="vlanrange" value="(1 to 4095)"/> 
+      <valueMap id="tosrange" value="(Hexadecimal Value 00 to ff)"/> 
+      <valueMap id="flowlabelrange" value="(0 to 1048575)"/> 
+      <valueMap id="etherval" value=" ( 600 to ffff hex)"/> 
+      <valueMap id="ipdscprange" value=" (0 to 63)"/> 
+      
+      <valueMap id="ipv6_ns_interval_range" value="(1000 to 4294967295 msecs) Enter 0 to unconfigure"/>
+      <valueMap id="ipv6_intf_mtu_range" value="(1280 to 1500) Enter 0 to unconfigure"/>
+      <valueMap id="domain" value="53"/>
+      <valueMap id="echo" value="7"/>
+      <valueMap id="ftp" value="21"/>
+      <valueMap id="OspfLSDB_Summary" value="Network Summary"/>
+      <valueMap id="ftpdata" value="20"/>
+      <valueMap id="OspfLSDB_External" value="NSSA External"/>
+      <valueMap id="http" value="80"/>
+      <valueMap id="ospf_default_redistribute_metric" value="(1 to 16777214) Enter 0 to unconfigure"/>
+      <valueMap id="ospf_default_route_metric" value="(1 to 16777214) Enter 0 to unconfigure"/>
+      <valueMap id="ospf_extlsdb_limit_range" value="(-1(No Limit) to 2147483647)"/>
+      <valueMap id="vrrp_track_route_pfx_len_range" value="(1 to 32)"/>
+      <valueMap id="echo" value="7"/>
+      <valueMap id="ftp" value="21"/>
+      <valueMap id="ftpdata" value="20"/>
+      <valueMap id="http" value="80"/>
+      <valueMap id="smtp" value="25"/>
+      <valueMap id="snmp" value="161"/>
+      <valueMap id="telnet" value="23"/>
+      <valueMap id="tftp" value="69"/>
+      <valueMap id="www" value="80"/>
+      
+      <valueMap id="ICMP" value="1"/>
+      <valueMap id="IGMP" value="2"/>
+      <valueMap id="IP" value="255"/>
+      <valueMap id="TCP" value="6"/>
+      <valueMap id="UDP" value="17"/>
+      
+      <valueMap id="af11" value="10"/>
+      <valueMap id="af12" value="12"/>
+      <valueMap id="af13" value="14"/>
+      <valueMap id="af21" value="18"/>
+      <valueMap id="af22" value="20"/>
+      <valueMap id="af23" value="22"/>
+      <valueMap id="af31" value="26"/>
+      <valueMap id="af32" value="28"/>
+      <valueMap id="af33" value="30"/>
+      <valueMap id="af41" value="34"/>
+      <valueMap id="af42" value="36"/>
+      <valueMap id="af43" value="38"/>
+      <valueMap id="BE" value="0"/>
+      <valueMap id="CS0" value="0"/>
+      <valueMap id="CS1" value="8"/>
+      <valueMap id="CS2" value="16"/>
+      <valueMap id="CS3" value="24"/>
+      <valueMap id="CS4" value="32"/>
+      <valueMap id="CS5" value="40"/>
+      <valueMap id="CS6" value="48"/>
+      <valueMap id="CS7" value="56"/>
+      <valueMap id="EF" value="46"/>
+      <valueMap id="valMapImage1" value="image1"/> 
+      <valueMap id="valMapImage2" value="image2"/> 
+      <valueMap id="LLDPMED_CAPABILITIES" value="MED Capabilities"/> 
+      <valueMap id="LLDPMED_NW_POLICY" value="Network Policy"/> 
+      <valueMap id="LLDPMED_LOCATION_IDENT" value="Location Identification"/> 
+      <valueMap id="LLDPMED_EXT_PSE" value="Extended Power Via MDI-PSE"/> 
+      <valueMap id="LLDPMED_EXT_PD" value="Extended Power Via MDI-PD"/> 
+      <valueMap id="LLDPMED_INVENTORY" value="Inventory"/> 
+	  <valueMap id="TLVsTxSystemName" value="System Name"/> 
+	  <valueMap id="TLVsTxSystemDescr" value="System Description"/> 
+	  <valueMap id="TLVsTxSystemCap" value="System Capabilities"/> 
+	  <valueMap id="TLVsTxPortDescr" value="Port Description"/> 
+	  
+	  <valueMap id="routepreference" value="(1-255)"/>
+	  <valueMap id="Default_IPAddress" value="0.0.0.0"/>
+	  <valueMap id="Default_OperPriority" value="100"/>
+	  <valueMap id="Default_AdvInterval" value="1"/>
+         <valueMap id="Default_Authtype" value="None"/>
+         <valueMap id="Default_PreemptMode" value="Enable"/>
+         <valueMap id="Default_AdminState" value="Disable"/>
+         <valueMap id="Default_VrrpAdminState" value="Inactive"/>
+         <valueMap id="DefaultIpv6PfxValidLifeTime" value="2592000"/>
+         <valueMap id="DefaultIPv6PfxPrfLifeTime" value="604800"/>
+         <valueMap id="Default_Dhcp6PrefixValidLifetime" value="4294967295"/>
+         <valueMap id="Default_Dhcp6PrefixPreferLifetime" value="4294967295"/>
+<valueMap id="sFlow_rcvr_timeout" value="0 to 4294967295 secs"/>
+         <valueMap id="TacacsKeyRange" value="(0 to 128 Characters)"/>
+	 <valueMap id="Router_Preference" value="0"/>
+	 <valueMap id="Default_Router_Preference" value="1"/>
+   <valueMap id="Default_DOT3AD_HASH_MODE" value="Src/Dest MAC, VLAN, EType, incoming port"/>
+   <valueMap id="BOOTP_IP_Address" value="(X.X.X.X)"/>      
+	 <valueMap id="Default_AccessMode" value="Read-Only"/>
+        <valueMap id="Default_RADIUS_Server_Name" value="Default-RADIUS-Server"/>  
+         <valueMap id="DVLAN_Ethertype_802Q" value="33024"/>
+         <valueMap id="DVLAN_Ethertype_vman" value="34984"/>
+ <valueMap id="http_download_prompt" value="Please do not start another download until the current transfer is complete.The page will refresh after the download is complete"/> 
+    <valueMap id="valMapEmptyMacString" value="00:00:00:00:00:00"/>	 
+    <valueMap id="valMapTimeofCountersString" value="(dd:hh:mm:ss)"/><valueMap id="Eui64" value="EUI64"/> 
+	 <valueMap id="valMapEmptyIpString" value="0.0.0.0"/>
+      <valueMap id="QOS_SEQUENCE_NUM" value="Range %u to %u. Enter 0 for auto generate." args="L7_ACL_MIN_INTF_SEQ_NUM,L7_ACL_MAX_INTF_SEQ_NUM"/>
+      
+      <valueMap id="valNotConfigStr" value="Not Configured"/>
+      <valueMap id="SNTP_PORT_DEFAULT" value="123"/>
+      <valueMap id="SNTP_PRIORITY_DEFAULT" value="1"/>
+      <valueMap id="SNTP_VERSION_DEFAULT" value="4"/>
+      <valueMap id="HELP_FORMAT_ACL_RULE_INDEX" value="(%u-%u)" args="L7_ACL_MIN_RULE_NUM,L7_ACL_MAX_RULE_NUM"/>
+      <valueMap id="HELP_FORMAT_STD_IP_ACL_ID" value="(1-99)"/>
+      <valueMap id="HELP_FORMAT_EXT_IP_ACL_ID" value="(100-199)"/>
+      <valueMap id="HELP_FORMAT_NAME31" value="(Max 31 characters)"/>
+      <valueMap id="HELP_FORMAT_NAME32" value="(0 to 32 Characters)"/>
+      <valueMap id="HELP_FORMAT_NAME128" value="(Max 128 characters)"/>
+      <valueMap id="HELP_FORMAT_GROUP128" value="(Max 128 groups)"/>
+      <valueMap id="DHCP_POOL_OPTION_CODE" value="(%d to %d)" args="L7_DHCPS_OPTION_CONFIGURE_MIN,L7_DHCPS_OPTION_CONFIGURE_MAX"/>  
+      <valueMap id="DHCP_POOL_ASCII" value="ASCII Value"/>
+      <valueMap id="DHCP_POOL_HEX" value="Hex Value"/>
+      <valueMap id="DHCP_POOL_IPADDRESS" value="IP Address Value"/>
+      <valueMap id="DHCP_POOL_DAYS" value="(0 to 59)"/>
+      <valueMap id="DHCP_POOL_HOURS" value="(0 to 22)"/>
+      <valueMap id="DHCP_POOL_MINUTES" value="(0 to 86399)"/>
+	   <valueMap id="DHCP_POOL_PREFIXLENGTH" value="(0 to 32)"/>
+      <valueMap id="DHCP_REMOTEFILE_NAME" value="(1 to 32 Characters)"/>
+      <valueMap id="SFLOW_RCVR_HELP" value="(0 to Disable, 1-%d)" args="L7_SFLOW_MAX_RECEIVERS"/>
+      <valueMap id="SFLOW_SAMPLER_RATE_HELP" value="(0 to Disable, %d to %d)" args="L7_SFLOW_MIN_SAMPLING_RATE, L7_SFLOW_MAX_SAMPLING_RATE"/>
+      <valueMap id="IGMP_INTF_QUERY_RESPONSE_TIME" value="(%d to %d)" args="L7_IGMP_RESPONSE_TIME_MIN, L7_IGMP_RESPONSE_TIME_MAX"/>
+      <valueMap id="IGMP_LAST_MEM_QUERY_INTERVAL" value="(%d to %d)" args="L7_IGMP_LAST_MEM_QUERY_INTERVAL_MIN, L7_IGMP_LAST_MEM_QUERY_INTERVAL_MAX"/>
+      <valueMap id="QOS_COS_INTF_QUEUE_BANDWIDTH" value="(%u to %u in increments of 1)" args="L7_QOS_COS_QUEUE_MIN_BANDWIDTH_MIN,L7_QOS_COS_QUEUE_MIN_BANDWIDTH_MAX"/>
+      <valueMap id="QOS_COS_INTF_SHAPING_RATE" value="(%u to %u in increments of 1)" args="L7_QOS_COS_INTF_SHAPING_RATE_MIN,L7_QOS_COS_INTF_SHAPING_RATE_MAX"/>
+      <valueMap id="HELP_FORMAT_ACL_RULE_ID" value="(%d to %d)" args="L7_ACL_MIN_RULE_NUM, L7_ACL_MAX_RULE_NUM"/>
+      <valueMap id="HELP_FORMAT_VLAN_RANGE" value="Range[%d-%d]" args=" L7_DOT1Q_MIN_VLAN_ID,L7_DOT1Q_MAX_VLAN_ID"/>
+      <valueMap id="HELP_FORMAT_VLAN_CNFG_RANGE" value="Range[%d-%d]" args=" (L7_DOT1Q_MIN_VLAN_ID+1),L7_DOT1Q_MAX_VLAN_ID"/>
+      <valueMap id="QOS_DIFFSERV_DIRECTION_IN" value="In"/>
+      <valueMap id="valMapStringSource" value="Source"/>
+      <valueMap id="valMapStringDestination" value="Destination"/>
+      <valueMap id="MLD_QUERY_MAX_RESP_TIME" value="(0 to 65535)"/>
+      <valueMap id="MLD_LAST_MEM_QUERY_INTERVAL" value="(0 to 65535)"/>
+      <valueMap id="PIM4_BSR_HASHMASKLEN_RANGE" value="(%u-%u)" args="L7_PIMSM_INTERFACE_CBSR_HASH_MASK_LENGTH_MIN,L7_PIMSM_INTERFACE_CBSR_HASH_MASK_LENGTH_MAX"/>
+
+      <valueMap id="WIRELESS_CLUSTER_PRIORITY" value="($$objMin$$ to $$objMax$$,%d-Disable)" args="L7_WDM_WS_WIDS_PRIORITY_MIN"/>
+      <valueMap id="WIRELESS_DETECTION_INTERVAL" value="(%d to %d or %d to disable)" args="L7_WDM_WS_WIDS_WIRED_DETECTION_INTERVAL_MIN,L7_WDM_WS_WIDS_WIRED_DETECTION_INTERVAL_MAX,L7_WDM_WS_WIDS_WIRED_DETECTION_DISABLED"/>
+      <valueMap id="WIRELESS_NETWORK_CLIENT_QOS" value="Network Client QoS"/>
+      <valueMap id="wireless_target_nextPage" value="Do you want to save changes to the configuration before navigating to the next page?"/> 
+      <valueMap id="Confirm_Delete_KnownClients" value="Are you sure you want to delete all the known client entries?"/>
+      <valueMap id="Confirm_ResetAll_ManagedAPs" value="Are you sure you want to reset all the managed APs?"/>
+      <valueMap id="Confirm_Reset_ManagedAP" value="Are you sure you want to reset the managed AP(s)?"/>
+      <valueMap id="Confirm_DeleteAllManagedAPs" value="Are you sure you want to delete all the connection failed managed AP entries?"/>
+      <valueMap id="Confirm_DeleteAllNbrs_ManagedAPNbrAPs" value="This action will delete all neighbor entries (both AP and client) for all managed APs. Are you sure you want to delete all neighbors?"/>
+      <valueMap id="Confirm_DeleteAllNbrs_ManagedAPNbrClt" value="This action will delete all neighbor entries (both AP and client) for all managed APs. Are you sure you want to delete all neighbors?"/>  
+      <valueMap id="Confirm_Disassociate_ManagedAP" value="Are you sure you want to disassociate client in managed AP?"/>
+      <valueMap id="Confirm_DisassociateAll_Clients" value="Are you sure you want to disassociate all clients?"/>
+      <valueMap id="Confirm_Disassociate_SSIDAssocClients" value="Are you sure you want to disassociate all the clients associated with this SSID(s)?"/>
+      <valueMap id="Confirm_Disassociate_VAPAssocClients" value="Are you sure you want to disassociate all the clients associated with this VAP(s)?"/>
+      <valueMap id="Confirm_Disassociate_SwitchAssocClients" value="Are you sure you want to disassociate all the clients associated with this Switch(es)?"/>
+      <valueMap id="Confirm_Clear_Profile" value="All configurations will be set to the default values for this profile except the profile name. Are you sure you want to clear the profile configuration?"/>  
+      <valueMap id="Confirm_Delete_Profile" value="Are you sure you want to delete the AP profile?"/>
+      <valueMap id="Confirm_PushConfig_To_PeerSwitches" value="Are you sure you want to push configuration to the peer switch(es)?"/>
+      <valueMap id="Confirm_PushConfig_To_AllPeerSwitches" value="Are you sure you want to push config to all the peer switches?"/>
+      <valueMap id="Confirm_Profile_Apply" value="The radios will restart as the new AP profile settings are applied to the AP(s). Hence, the clients will be disassociated. Do you want to apply the new profile settings?"/>
+      <valueMap id="valmapLogin" value="Login"/>
+      <valueMap id="valmapEnable" value="Enable"/>
+      <valueMap id="valmapusrmgr" value="(Previous methods must be configured before this one)"/>
+
+        <valueMap id="dhcp" value="67"/>
+      <valueMap id="isakmp" value="500"/>
+      <valueMap id="mobile-ip" value="434"/>
+      <valueMap id="nameserver" value="42"/>
+      <valueMap id="netbios-dgm" value="138"/>
+      <valueMap id="netbios-ns" value="137"/>
+      <valueMap id="ntp" value="123"/>
+      <valueMap id="pim-auto-rp" value="496"/>
+      <valueMap id="rip" value="520"/>
+      <valueMap id="tacacs" value="49"/>
+      <valueMap id="time" value="37"/>
+      <valueMap id="DefaultSet" value="0"/>
+      
+      <valueMap id="WIRELESS_RADIO_1" value="Radio 1 - 802.11b/g/n"/>
+      <valueMap id="WIRELESS_RADIO_2" value="Radio 2 - 802.11a/n"/>
+      <valueMap id="valMapEmptyOuiString" value="00:00:00"/> 
+      <valueMap id="Confirm_Delete_RFScanList" value="Are you sure you want to delete all RF Scan entries?"/>  
+      <valueMap id="Confirm_DeleteAllDetectedClients" value="Are you sure you want to delete all the non-authenticated detected clients?"/>
+      <valueMap id="Confirm_AckAllDetectedClients" value="Are you sure you want to acknowledge all rogue detected clients?"/>
+      <valueMap id="Confirm_Delete_AdHocClientEntries" value="Are you sure you want to delete all Ad Hoc Client entries?"/>
+      <valueMap id="Confirm_DeleteAll_APAuthFailures" value="Are you sure you want to delete all AP authentication failure entries?"/>
+      <valueMap id="valMapManageRogue" value="Managed"/>
+      <valueMap id="valMapAckRogue" value="Acknowledge"/>
+      <valueMap id="valMapforEdit" value="Edit"/> 
+      <valueMap id="WIRELESS_CHANNEL_AUTO" value="%d" args="FD_WDM_DEFAULT_AP_RADIO_CHANNEL"/>    
+       <valueMap id="HELP_FORMAT_VALIDAP_POWER" value="($$objMin$$-$$objMax$$%)" args="L7_WDM_RADIO_POWER_MIN,L7_WDM_RADIO_POWER_MAX"/>
+      <valueMap id="valmapDhcpSrvrNote" value="(a.b.c.d to Exclude address range or 0.0.0.0 to exclude single address)"/>
+      <valueMap id="HELP_FORMAT_FP_BYTES_PER_SECOND" value="(0 - Unlimited, 1 to $$objMax$$ bytes/second)"/>
+      <valueMap id="HELP_FORMAT_FP_BYTES" value="(0 - Unlimited, 1 to $$objMax$$ bytes)"/>
+      <valueMap id="HELP_FORMAT_FP_PASSWORD_LEN" value="Password Length (8 - 64)"/>
+      <valueMap id="BACKUP_IMAGE" value="backup"/>
+      <valueMap id="STARTUP_CONFIG" value="startup-config"/>
+      <valueMap id="RUNNING_CONFIG" value="running-config"/>
+      <valueMap id="BACKUP_CONFIG" value="backup-config"/>
+      
+      <valueMap id="STARTUP_LOG" value="startup-log"/>
+      <valueMap id="OPERATIONAL_LOG" value="operational-log"/>
+      <valueMap id="ALL_UNITS" value="L7_USMDB_CDA_CDA_ALL_UNITS"/>
+
+<valueMap id="SSH_HOST_KEY" value="ssh_host_key"/>
+<valueMap id="SSH_HOST_RSA_KEY" value="ssh_host_rsa_key"/>
+<valueMap id="SSH_HOST_DSA_KEY" value="ssh_host_dsa_key"/>
+<valueMap id="ROOT_CERT_PEM" value="rootcert.pem"/>
+<valueMap id="SERVER_CERT_PEM" value="server.pem"/>
+<valueMap id="WEAK_ENCRY_PEM" value="dh512.pem"/>
+<valueMap id="STRONG_ENCRY_PEM" value="dh1024.pem"/>
+
+      <valueMap id="HELP_FORMAT_WLAN_ADVANCEDPOWER" value="(1 to 100)"/> 
+      <valueMap id="HELP_FORMAT_WLAN_BWLIMITDOWN" value="(0 to 4294967295, 0 - Disable)"/>
+      <valueMap id="HELP_FORMAT_WLAN_BWLIMITUP" value="(0 to 4294967295, 0 - Disable)"/>
+      <valueMap id="WIRELESS_NETWORK_WEPKEYS" value="WEP Keys"/>
+      <valueMap id="DefaultProfile" value="%d" args="FD_WDM_DEFAULT_AP_PROFILE_ID"/>
+
+        <valueMap id="valMapMcastSSM4DefaultGrpAddr" value="232.0.0.0"/>
+        <valueMap id="valMapMcastSSM4DefaultGrpMask" value="255.0.0.0"/>
+        <valueMap id="valMapMcastSSM6DefaultGrpAddr" value="FF30::"/>
+        <valueMap id="valMapMcastSSM6DefaultGrpMask" value="32"/>
+        <valueMap id="valMapMcastSSM6DefaultGrpAddrAll" value="FF3x::"/>
+      <valueMap id="ARGHELP_MOVE" value="Convert dynamically learned address to statically locked"/>
+      <valueMap id="ARGHELP_STATICLIMIT_REACHED" value="Static Limit Reached. No Dynamic Addresses will be moved."/>
+      <valueMap id="STACK_SWITCHID" value="(%d to %d)" args="L7_UNITMGR_MIN_UNIT_NUMBER,L7_UNITMGR_MAX_UNIT_NUMBER"/>  
+        <!-- for IGMP snooping Group Membership Interval Value -->
+      <valueMap id="HELP_FORMAT_IGMP_GROUP_MEMBERSHIP_INTERVAL" value="(%d to %d seconds)" args="L7_IGMP_SNOOPING_MIN_GROUP_MEMBERSHIP_INTERVAL,L7_IGMP_SNOOPING_MAX_GROUP_MEMBERSHIP_INTERVAL"/>
+      <!-- for MLD snooping Group Membership Interval Value -->
+      <valueMap id="HELP_FORMAT_MLD_GROUP_MEMBERSHIP_INTERVAL" value="(%d to %d seconds)" args="L7_MLD_SNOOPING_MIN_GROUP_MEMBERSHIP_INTERVAL,L7_MLD_SNOOPING_MAX_GROUP_MEMBERSHIP_INTERVAL"/>
+      <!-- for IGMP snooping Max Response Time Value -->
+      <valueMap id="HELP_FORMAT_IGMP_MAX_RESPONSE_TIME" value="(%d to %d seconds)" args="L7_IGMP_SNOOPING_MIN_RESPONSE_TIME,L7_IGMP_SNOOPING_MAX_RESPONSE_TIME"/>
+      <!-- for MLD snooping Max Response Time Value -->
+      <valueMap id="HELP_FORMAT_MLD_MAX_RESPONSE_TIME" value="(%d to %d seconds)" args="L7_MLD_SNOOPING_MIN_RESPONSE_TIME,L7_MLD_SNOOPING_MAX_RESPONSE_TIME"/>
+      <!-- for IGMP snooping MCAST Router -->
+      <valueMap id="HELP_FORMAT_IGMP_MCAST_ROUTER" value="(%d to %d seconds)" args="L7_IGMP_SNOOPING_MIN_MCAST_RTR_EXPIRY_TIME,L7_IGMP_SNOOPING_MAX_MCAST_RTR_EXPIRY_TIME"/>
+      <!-- for MLD snooping MCAST Router -->
+      <valueMap id="HELP_FORMAT_MLD_MCAST_ROUTER" value="(%d to %d seconds)" args="L7_MLD_SNOOPING_MIN_MCAST_RTR_EXPIRY_TIME,L7_MLD_SNOOPING_MAX_MCAST_RTR_EXPIRY_TIME"/>
+     <valueMap id="HELP_FORMAT_DOT1AD_SERVICE_VLAN" value="(%d to %d)" args="L7_DOT1AD_SVID_MIN,L7_DOT1AD_SVID_MAX"/>
+
+      <valueMap id="L7_IP_ACL_ACTION_DEFAULT" value="Deny"/> 
+      <valueMap id="L7_IP_ACL_MATCHEVERY_DEFAULT" value="False"/> 
+
+<valueMap id="WIRELESS_SECURITY_NONE" value="XIE_UI_ENUMVAL1"/>      
+<valueMap id="WIRELESS_SECURITY_WEP" value="XIE_UI_ENUMVAL2"/>
+<valueMap id="WIRELESS_SECURITY_WPA" value="XIE_UI_ENUMVAL3"/>
+
+      <valueMap id="DIFFSERV_POLICY_ATTR_TYPE_NONE" value="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_TYPE_NONE"/>
+      <valueMap id="DIFFSERV_POLICY_ATTR_TYPE_ASSIGN_QUEUE" value="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_TYPE_ASSIGN_QUEUE"/>
+      <valueMap id="DIFFSERV_POLICY_ATTR_TYPE_BANDWIDTH" value="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_TYPE_BANDWIDTH"/>
+      <valueMap id="DIFFSERV_POLICY_ATTR_TYPE_DROP" value="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_TYPE_DROP"/>
+      <valueMap id="DIFFSERV_POLICY_ATTR_TYPE_EXPEDITE" value="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_TYPE_EXPEDITE"/>
+      <valueMap id="DIFFSERV_POLICY_ATTR_TYPE_MARK_COSVAL" value="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_TYPE_MARK_COSVAL"/>
+      <valueMap id="DIFFSERV_POLICY_ATTR_TYPE_MARK_COS2VAL" value="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_TYPE_MARK_COS2VAL"/>
+      <valueMap id="DIFFSERV_POLICY_ATTR_TYPE_MARK_COSASCOS2" value="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_TYPE_MARK_COSASCOS2"/>
+      <valueMap id="DIFFSERV_POLICY_ATTR_TYPE_MARK_IPDSCPVAL" value="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_TYPE_MARK_IPDSCPVAL"/>
+      <valueMap id="DIFFSERV_POLICY_ATTR_TYPE_MARK_IPPRECEDENCEVAL" value="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_TYPE_MARK_IPPRECEDENCEVAL"/>
+      <valueMap id="DIFFSERV_POLICY_ATTR_TYPE_MIRROR" value="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_TYPE_MIRROR"/>
+      <valueMap id="DIFFSERV_POLICY_ATTR_TYPE_POLICE_SIMPLE" value="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_TYPE_POLICE_SIMPLE"/>
+      <valueMap id="DIFFSERV_POLICY_ATTR_TYPE_POLICE_SINGLERATE" value="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_TYPE_POLICE_SINGLERATE"/>
+      <valueMap id="DIFFSERV_POLICY_ATTR_TYPE_POLICE_TWORATE" value="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_TYPE_POLICE_TWORATE"/>
+      <valueMap id="DIFFSERV_POLICY_ATTR_TYPE_RANDOMDROP" value="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_TYPE_RANDOMDROP"/>
+      <valueMap id="DIFFSERV_POLICY_ATTR_TYPE_REDIRECT" value="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_TYPE_REDIRECT"/>            
+      <valueMap id="DIFFSERV_POLICY_ATTR_TYPE_SHAPE_AVERAGE" value="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_TYPE_SHAPE_AVERAGE"/>
+      <valueMap id="DIFFSERV_POLICY_ATTR_TYPE_SHAPE_PEAK" value="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_TYPE_SHAPE_PEAK"/>
+
+      <valueMap id="L7_IP_ACL_ACTION_DEFAULT" value="Deny"/> 
+      <valueMap id="L7_IP_ACL_MATCHEVERY_DEFAULT" value="False"/> 
+      <valueMap id="other" value="Other"/>
+      </misc>
+
+</FastPathXML>

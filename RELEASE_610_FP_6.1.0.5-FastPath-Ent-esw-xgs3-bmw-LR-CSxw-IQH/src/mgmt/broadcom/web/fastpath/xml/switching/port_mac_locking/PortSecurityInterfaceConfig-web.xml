@@ -1,0 +1,78 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="PortSecurityInterfaceConfig" title="Port Security Interface Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="SwitchingPortSecurityGroup_Interface" id="1">
+                    <action type="mandate" hide="1_10"/>
+                </element>
+            </node>
+            <node id="2">
+                <element control="combo" obj-name="SwitchingPortSecurityGroup_Mode" id="1" name="Port Security"/>
+            </node>
+            <node id="3">
+                <element arghelp="HELP_FORMAT_FP" obj-name="SwitchingPortSecurityGroup_DynamicLimit" maxLength="3" id="1" name="Maximum Number of Dynamically Learned MAC Addresses Allowed"/>
+            </node>
+            <node id="6">
+                <element arghelp="HELP_FORMAT_FP" obj-name="SwitchingPortSecurityGroup_StaticLimit" maxLength="2" id="1" name="Maximum Number of Statically Locked MAC Addresses Allowed"/>
+            </node>
+            <node id="4">
+                <element control="textbox" obj-name="SwitchingPortSecurityGroup_MACAddressAdd" maxLength="17" value="00:00:00:00:00:00" id="1" name="Add a Static MAC Address"/>
+
+                <element control="checkbox" uienum="L7_FalseTrue" properties="noname" value= "L7_FALSE" obj-name="xLibObjects_dummy" id="2" name="dummy">
+                    <action type="enum" discard="no" enable="1_4_1|1_5"/>
+                    <action type="enum" discard="no" disable="1_4_1|1_5"/>
+                </element>
+            </node>
+            <node id="5">
+                <element arghelp="HELP_FORMAT_FP" control="textbox" obj-name="SwitchingPortSecurityGroup_VlanId" maxLength="4" value="1" id="1" name="VLAN ID"/>
+            </node>
+            <node id="7">
+		            <element control="combo" obj-name="SwitchingPortSecurityGroup_ViolationTrapMode" id="1" name="Enable Violation Traps">
+			             <action type="enum" web_name="Yes" />
+			             <action type="enum" web_name="No" />
+		            </element>
+            </node>
+            <node id="8">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+            <node id="9">
+                <element clazz="rowdataattributesnoname1" control="label" properties="read-only,noname" obj-name="xLibObjects_dummy" id="1" arghelp="ARGHELP_MOVE"/>   
+                <button scope="node" type="buttonSubmit" value=" " obj-name="SwitchingPortSecurityGroup_MACAddressMove" help="Submits the form on this page to the Switch" id="2" name="Move">
+                     <action type="button" disable="1_4|1_5" />
+                </button>
+                <element control="label" properties="read-only,noname" obj-name="xLibObjects_dummy" id="3" arghelp="ARGHELP_STATICLIMIT_REACHED"/>
+            </node>
+            <node id="10">
+                <element control="combo" obj-name="SwitchingPortSecurityGroup_CheckStaticLimit" id="1">
+                    <action type="enum" hide="1_9_2" show="1_9_3"/>
+                    <action type="enum" hide="1_9_3" show="1_9_2"/>
+                </element>  
+            </node>
+        </group>
+        <group level="ReadOnlyUser" id="2" heading="  ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="SwitchingPortSecurityGroup_Interface" id="1" />
+            </node>
+            <node id="2">
+                <element control="label" properties="read-only" obj-name="SwitchingPortSecurityGroup_Mode" id="1" name="Port Security"/>
+            </node>
+            <node id="3">
+                <element control="label" properties="read-only" obj-name="SwitchingPortSecurityGroup_DynamicLimit" id="1" name="Maximum Number of Dynamically Learned MAC Addresses Allowed"/>
+            </node>
+            <node id="4">
+                <element control="label" properties="read-only" obj-name="SwitchingPortSecurityGroup_StaticLimit" id="1" name="Maximum Number of Statically Locked MAC Addresses Allowed"/>
+            </node>
+            <node id="5">
+		    <element control="label" properties="read-only" obj-name="SwitchingPortSecurityGroup_ViolationTrapMode" id="1" name="Enable Violation Traps">
+			    <action type="enum" web_name="Yes" />
+			    <action type="enum" web_name="No" />
+		    </element>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

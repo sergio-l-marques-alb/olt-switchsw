@@ -1,0 +1,123 @@
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>OSPF Neighbor Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+<hr size=4 width="80%" align=center>
+
+<h2><a name=nbr_dt></a>Help for OSPF Neighbors </h2>
+
+This screen displays the OSPF neighbor information for a selected neighbor ID. 
+When a particular neighbor ID is specified, detailed information about a neighbor 
+is given. The information below will only be displayed if OSPF is enabled and the interface 
+has a neighbor. The IP address is the IP address of the neighbor.
+
+<h3>Selection Criteria </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Neighbor IP Address</b> -
+      Selects the IP Address of the neighbor for which data is to be
+      displayed.</li>    
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Router ID</b> - A 32 bit integer in dotted decimal format that identifies the neighbor router.
+      </li>
+  <li><b>Options</b> - The optional OSPF capabilities supported by the neighbor.
+        The neighbor's optional OSPF capabilities are also listed in its
+        Hello packets.  This enables received Hello Packets to be
+        rejected (i.e., neighbor relationships will not even start to
+        form) if there is a mismatch in certain crucial OSPF
+        capabilities. 
+ </li>
+  <li><b>Router Priority</b> - Displays the OSPF priority for the specified neighbor. 
+        The priority of a neighbor is a priority integer from 0 to 255. A value
+        of '0' indicates that the router is not eligible to become the
+        designated router on this network. </li>
+  <li><b>State</b> - The state of a neighbor can be the following:
+      <ul type=square>
+         <li><I><b>Down</b></I> - This is the initial state of a neighbor conversation.  It
+            indicates that there has been no recent information received
+            from the neighbor.  On NBMA networks, Hello packets may
+            still be sent to "Down" neighbors, although at a reduced
+            frequency. </li>
+         <li><I><b>Attempt</b></I> - This state is only valid for neighbors attached to NBMA
+            networks.  It indicates that no recent information has been
+            received from the neighbor, but that a more concerted effort
+            should be made to contact the neighbor.  This is done by
+            sending the neighbor Hello packets at intervals of
+            Hello Interval. </li>
+         <li><I><b>Init</b></I> - In this state, a Hello packet has recently been seen from
+            the neighbor.  However, bidirectional communication has not
+            yet been established with the neighbor (i.e., the router
+            itself did not appear in the neighbor's Hello packet).  All
+            neighbors in this state (or greater) are listed in the Hello
+            packets sent from the associated interface.</li>
+         <li><I><b>2-Way</b></I> - In this state, communication between the two routers is
+            bidirectional.  This has been assured by the operation of
+            the Hello Protocol.  This is the most advanced state short
+            of beginning adjacency establishment.  The (Backup)
+            Designated Router is selected from the set of neighbors in
+            state 2-Way or greater. </li>
+         <li><I><b>Exchange Start</b></I> - This is the first step in creating an adjacency between the
+            two neighboring routers.  The goal of this step is to decide
+            which router is the master, and to decide upon the initial
+            DD sequence number.  Neighbor conversations in this state or
+            greater are called adjacencies. </li>
+         <li><I><b>Exchange</b></I> - In this state the router is describing its entire link state
+            database by sending Database Description packets to the
+            neighbor.  In this state, Link State Request Packets may
+            also be sent asking for the neighbor's more recent LSAs.
+            All adjacencies in Exchange state or greater are used by the
+            flooding procedure.  These adjacencies are fully
+            capable of transmitting and receiving all types of OSPF
+            routing protocol packets. </li>
+         <li><I><b>Loading</b></I> - In this state, Link State Request packets are sent to the
+            neighbor asking for the more recent LSAs that have been
+            discovered (but not yet received) in the Exchange state. </li>
+         <li><I><b>Full</b></I> - In this state, the neighboring routers are fully adjacent.
+            These adjacencies will now appear in router-LSAs and
+            network-LSAs.</li>
+      </ul>      
+      </li>
+  <li><b>Events</b> - The number of times this neighbor relationship
+      has changed state, or an error has occurred. </li>
+  <li><b>Permanence</b> - This variable displays the status of the entry.
+      'dynamic' and 'permanent' refer to how the neighbor became known.</li>
+  <li><b>Hellos Suppressed</b> - This indicates whether Hellos are being  suppressed
+      to the neighbor. </li>
+  <li><b>Retransmission Queue Length</b> - The current length of the retransmission
+      queue.</li>
+  <li><b>Up Time</b> - The Up Time of the OSPF neighbor, which says how long the neighbor is active.</li>
+  <li><b>Dead Time</b> - The time if lapsed without any hello packets received from this neighbor, makes it dead.</li>
+ </ul>
+</ul>
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li>
+     <b>Refresh</b> - Refresh the data on the screen with the present state of 
+     the data in the switch. </li>
+ </ul>
+</ul>
+
+<hr size=4 width="80%" align=center>
+
+</body>
+
+</html>
+
+

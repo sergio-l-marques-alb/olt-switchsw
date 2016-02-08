@@ -1,0 +1,23 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="MulticastRouterStatus" title="IGMP Snooping Multicast Router Status">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="SwitchingSnoopingIntfGroup_Interface" id="1" />
+            </node>
+            <node id="2">
+                <element control="combo" properties="write-only,hidden" value="IGMPSnooping" obj-name="SwitchingSnoopingIntfGroup_SnoopingProtocol" id="1" name="Snooping Protocol"/>
+            </node>
+            <node id="3">
+                <element properties="read-only" control="label" obj-name="SwitchingSnoopingIntfGroup_SnoopingIntfMulticastRouterMode" id="1" name="Multicast Router"/>
+            </node>
+            <node id="4">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

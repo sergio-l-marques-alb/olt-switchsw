@@ -1,0 +1,156 @@
+<EMWEB_IF ID=USMWEB_IF_LVL_HDR_NOT_REQ>
+<!--
+/*********************************************************************
+*
+* (C) Copyright Broadcom Corporation 2001-2007
+*
+**********************************************************************
+*
+* @filename  cp_client_status.html
+*
+* @purpose   HTML content
+*
+* @comments  None
+*
+* @create    7/9/2007
+*
+* @author    rjindal
+*
+* @end
+*
+*********************************************************************/
+-->
+</EMWEB_IF>
+emweb:/USMWEB_PAGE_DTD_HEADER_GET;
+<HTML>
+<HEAD>
+   emweb:/USMWEB_PAGE_META_DATA_GET; <!-- Style Sheet link and Meta data     -->
+   <TITLE>emweb:/USMWEB_SECURITY_OEM_STRING_GET?1960;</TITLE>
+
+<script type='text/javascript' language='JavaScript' src='/scripts/browser.js'></script> 
+<script src="/scripts/utils.js"></script>
+<script type='text/javascript' language='JavaScript'>
+function DisplayErrorMsg()
+//******************************************************************************
+//* Purpose: Display an input error message.
+//* Return:  none
+//******************************************************************************
+{
+    alert(document.forms[0].err_msg.value);
+}
+
+function check_error()
+{
+   if (document.forms[0].err_flag.value == 1)
+   {
+      DisplayErrorMsg();
+   }
+}
+
+function clientMac_refresh()
+{
+  if (document.forms[0].refresh_in_progress.value == 0)
+  {
+    document.forms[0].refresh_in_progress.value = 1;
+    document.forms[0].refresh_key.value = 1;
+    document.forms[0].submit();
+  }
+}
+</script>
+</HEAD>
+
+<BODY class="bodyframeattributes" onload="check_error()">
+<FORM method="post" EMWEB_NAME="cpClientStatus">
+
+<!-- ----------------------------------------------------------------------- -->
+<!--         Tabbed Navigation                                               -->
+<!-- ----------------------------------------------------------------------- -->
+emweb:/USMWEB_TABS_CP_CLIENT_STATUS?1;
+
+<!-- ----------------------------------------------------------------------- -->
+<!--         Web page header                                                 -->
+<!-- ----------------------------------------------------------------------- -->
+emweb:/USMWEB_SECURITY_PAGE_HEADER_1ST_GET?1960;   <!-- Includes page title          -->
+emweb:/USMWEB_SECURITY_PAGE_HEADER_2ND_GET?2760;   <!-- Includes help page link      -->
+
+<TABLE CLASS="tablecontent" emweb:/USMWEB_TABLE_CONTENT_ALIGN;>
+
+  <EMWEB_IF ID=USMWEB_IF_CP_CLIENT_EXISTS> <!-- If client entry exists -->
+  <TR>
+  <TD align="center" colspan=4><select class="selectfield" name="cp_clientMac" size="1" maxlength="17" EMWEB_ITERATE EMWEB_TYPE="IEEE_MAC" onchange="clientMac_refresh()">
+      <option class="selectfield" value="one">1</option>
+      </select>
+  </TD>
+  </TR>
+
+  <TR><TD colspan=4>&nbsp;</TD></TR>
+
+  <TR>
+  <TD width="20%" class="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?1320;</TD> <!-- Client IP Address -->
+  <TD width="30%" class="rowdataattributes"><input class="rowdataattributes" type="text" name="clientIp" EMWEB_TYPE=DOTTED_IP READONLY TABINDEX="-1"></TD>
+  <TD class="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?1000;</TD> <!-- User Name -->
+  <TD class="rowdataattributes"><input class="rowdataattributes" type="text" name="userName" size=36 READONLY TABINDEX="-1"></TD>
+  </TR>
+
+  <TR>
+  <TD class="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27104;</TD> <!-- CP Configuration -->
+  <TD class="rowdataattributes"><input class="rowdataattributes" type="text" name="cpCfg_id" READONLY TABINDEX="-1"></TD>
+  <TD class="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?1639;</TD> <!-- Interface -->
+  <TD class="rowdataattributes" nowrap><input class="rowdataattributes" type="text" name="intf_id" maxlength=32 size=33 READONLY TABINDEX="-1"></TD>
+  </TR>
+
+  <TR>
+  <TD class="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?1548;</TD> <!-- Protocol -->
+  <TD class="rowdataattributes"><input class="rowdataattributes" type="text" name="protocol" READONLY TABINDEX="-1"></TD>
+  <TD class="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27129;</TD> <!-- Verification -->
+  <TD class="rowdataattributes"><input class="rowdataattributes" type="text" name="verify" READONLY TABINDEX="-1"></TD>
+  </TR>
+
+  <TR>
+  <TD class="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?1461;</TD> <!-- Session Time -->
+  <TD class="rowdataattributes"><EMWEB_STRING C='return usmWebCPClientSessionTimeGet(ewsContext, L7_TRUE);'></TD>
+  <EMWEB_IF ID=USMWEB_IF_CP_CLUSTERING_SUPPORTED>
+  <TD class="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?24098;</TD> <!-- Switch MAC Address -->
+  <TD class="rowdataattributes"><input class="rowdataattributes" type="text" name="swMac" EMWEB_TYPE=IEEE_MAC READONLY TABINDEX="-1"></TD>
+  </EMWEB_IF>
+  </TR>
+
+  <EMWEB_IF ID=USMWEB_IF_CP_CLUSTERING_SUPPORTED>
+  <TR>
+  <TD class="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27131;</TD> <!-- Switch Type -->
+  <TD class="rowdataattributes"><input class="rowdataattributes" type="text" name="swType" READONLY TABINDEX="-1"></TD>
+  <TD class="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?25002;</TD> <!-- Switch IP Address -->
+  <TD class="rowdataattributes"><input class="rowdataattributes" type="text" name="swIp" EMWEB_TYPE=DOTTED_IP READONLY TABINDEX="-1"></TD>
+  </TR>
+  </EMWEB_IF>
+
+  <EMWEB_ELSE> <!-- No clients exist -->
+  <TR>
+  <TD colspan=3 class="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27138;</TD>
+  </TR>
+
+  </EMWEB_IF> <!-- EndIf client entry exists -->
+
+  <TR>
+  <TD colspan=4 emweb:/USMWEB_BUTTON_ALIGN;><BR>
+    <input class="buttonattributes" type="submit" name="Refresh">
+  </TD>
+  </TR>
+
+</TABLE>
+
+<INPUT TYPE="hidden" NAME="err_flag" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT value="">
+<INPUT TYPE="hidden" NAME="err_msg" SIZE="128" MAXLENGTH="127">
+<INPUT type="hidden" NAME="refresh_in_progress" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT>
+<INPUT type="hidden" NAME="refresh_key" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT>
+<INPUT TYPE="hidden" NAME="mac" value="00:00:00:00:00:00" EMWEB_TYPE=IEEE_MAC>
+
+<!-- ----------------------------------- -->
+<!--         Web page footer             -->
+<!-- ----------------------------------- -->
+ emweb:/USMWEB_PAGE_FOOTER_GET;
+
+</FORM>
+</BODY>
+</HTML>
+

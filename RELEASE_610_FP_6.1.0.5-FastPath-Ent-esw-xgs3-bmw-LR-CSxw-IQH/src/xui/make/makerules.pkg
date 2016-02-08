@@ -1,0 +1,47 @@
+# This file defines special package-level build rules and is included by make.magic.
+#
+
+# Output location for xui files.
+#
+out_xui := $(DOT)
+
+
+.PHONY: clean
+
+# Clean entire XUI output subdirectory tree.
+#
+# Note: Due to the large number of *.o and *.d files involved, using the $(RM)
+#       command can exceed the internal command size limits of the shell.
+#       In addition, since there are subdirectories that also need to be 
+#       removed as part of the cleanup, the best course of action is to 
+#       remove the entire xui output subtree and recreate its top-level 
+#       directory (which will be empty).
+#
+define cleanup-method-exec
+  -$(DBG)find $(out_xui) -name "*.o" -exec $(RM) {} ;
+  -$(DBG)find $(out_xui) -name "*.d" -exec $(RM) {} ;
+  -$(DBG)find $(out_xui) -name "*.log" -exec $(RM) {} ;
+endef
+
+define cleanup-method-xargs
+  -$(DBG)find $(out_xui) -name "*.o" | xargs -n 100 $(RM)
+  -$(DBG)find $(out_xui) -name "*.d" | xargs -n 100 $(RM)
+  -$(DBG)find $(out_xui) -name "*.log" | xargs -n 100 $(RM)
+endef
+
+clean::
+	@echo "Cleaning XUI output directory subtree" $(HUSH)
+ ifeq (1,$(BLD_L7_HOSTOS_MSWIN32))
+  ifeq ($(OLD_MAKE_VER),$(MAKE_VERSION))
+	$(cleanup-method-exec)
+  else
+	$(cleanup-method-xargs)
+  endif
+ endif
+ ifeq (1,$(BLD_L7_HOSTOS_LINUX))
+	$(cleanup-method-xargs)
+ endif
+ ifeq (1,$(BLD_L7_HOSTOS_SOLARIS))
+	$(cleanup-method-exec)
+ endif
+

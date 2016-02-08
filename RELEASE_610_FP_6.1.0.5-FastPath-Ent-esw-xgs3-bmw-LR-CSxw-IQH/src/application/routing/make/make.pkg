@@ -1,0 +1,187 @@
+# Local source path abbreviations (for convenience).
+#
+src_routing       := src/application/routing
+src_mapping       := $(src_routing)/mapping
+src_freebsd       := $(src_routing)/vendor/freebsd
+src_vendor        := src/system_support/routing
+src_usmdb_routing := src/usmdb/routing
+
+
+# Master list of source paths to be built into this package library.
+#  - All entries must be specified relative to top-of-view $(FP_ROOT).
+#  - Defines all source locations to be referenced by the package-level makefile.
+#
+# Note: The trapmgr code is built as part of the BASE package.
+#
+MASTERSRC += \
+	src/application/ipstats/routing \
+	$(src_mapping)/arpmap \
+	$(src_mapping)/ipmap \
+	$(src_mapping)/ipmap/ipmap_sid \
+	$(src_mapping)/md5map \
+	$(src_mapping)/relaymap \
+	$(src_mapping)/rtrdisc \
+	$(src_routing)/rto \
+	$(src_routing)/services \
+	$(src_freebsd)/forwarding \
+	src/dtl/routing \
+	$(src_usmdb_routing)/ipmap \
+	$(src_usmdb_routing)/relay \
+	$(src_usmdb_routing)/rtrdisc \
+        $(src_usmdb_routing)/snmp \
+
+
+
+# List here individual source files to be selectively EXCLUDED from the build.
+#
+MASTERSRC_FILE_EXCLUDE += 
+	
+
+
+# List here individual source include directories owned by this package (without the -I).
+#
+MASTERINC += \
+	$(src_mapping)/ipmap/include \
+	$(src_mapping)/relaymap/include \
+	$(src_mapping)/rtrdisc/include \
+	src/dtl/routing/include
+
+
+# Additional source header file search paths (without the -I).
+#
+SRCINCPATHS += \
+	src/dtl/base/include
+
+
+# Additional compiler flags.
+#
+CFLAGSEXTRA +=
+
+
+
+# Conditional source inclusion -- Flex Components.
+#
+
+# These source files are included only if OSPF flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_OSPF))
+
+  MASTERSRC += \
+	$(src_mapping)/ospfmap \
+	$(src_routing)/protocol/ospf \
+	$(src_routing)/protocol/ospf/mibospf \
+	$(src_usmdb_routing)/ospf \
+
+  MASTERINC += \
+	$(src_mapping)/ospfmap/include 
+
+endif
+
+
+# These source files are included only if RIP flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_RIP))
+
+  MASTERSRC += \
+	$(src_mapping)/ripmap \
+	$(src_freebsd)/rip \
+	$(src_usmdb_routing)/rip
+
+  MASTERINC += \
+	$(src_mapping)/ripmap/include
+
+endif
+
+
+# These source files are included only if RLIM flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_RLIM))
+
+  MASTERSRC += \
+	$(src_routing)/rlim \
+	$(src_usmdb_routing)/rlim
+
+  MASTERINC +=
+
+endif
+
+
+# These source files are included only if VRRP flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_VRRP))
+
+  MASTERSRC += \
+	$(src_mapping)/vrrpmap \
+	$(src_usmdb_routing)/vrrp
+
+  MASTERINC += \
+	$(src_mapping)/vrrpmap/include
+
+endif
+
+
+
+# Conditional source inclusion -- Flex Packages.
+#
+
+# These source files are excluded if IPV6 package is NOT part of the build.
+ifeq (0,$(BLD_L7_FLEX_IPV6))
+
+  MASTERSRC_FILE_EXCLUDE += \
+	src/dtl/routing/dtl_l3_ipv6.c \
+        src/application/routing/rlim/rlim_6to4.c
+	
+endif
+
+
+
+# Vendor routing source code files.
+#
+MASTERSRC += \
+	$(src_vendor)/arp \
+	$(src_vendor)/mibs \
+	$(src_vendor)/utils
+
+# These source files are included only if BGP package or OSPF flex component
+# is part of the build.
+ifeq (1,$(BLD_MISC_ROUTING_SYS_SUPPORT))
+
+  MASTERSRC += \
+	$(src_vendor)/tcp 
+endif
+
+# These source files are excluded if BGP package and OSPF flex component
+# are NOT part of the build.
+ifeq (0,$(BLD_MISC_ROUTING_SYS_SUPPORT))
+
+  MASTERSRC_FILE_EXCLUDE += \
+	$(src_vendor)/utils/agingtbl.c \
+	$(src_vendor)/utils/avl.c \
+	$(src_vendor)/utils/bitset.c \
+	$(src_vendor)/utils/bt.c \
+	$(src_vendor)/utils/cb.c \
+	$(src_vendor)/utils/cq.c \
+	$(src_vendor)/utils/dllqueue.c \
+	$(src_vendor)/utils/fu.c \
+	$(src_vendor)/utils/gservice.c \
+	$(src_vendor)/utils/match.c \
+	$(src_vendor)/utils/md5.c \
+	$(src_vendor)/utils/ospf_decode.c \
+	$(src_vendor)/utils/ospfv2_decode.c \
+	$(src_vendor)/utils/sfloat.c \
+	$(src_vendor)/utils/crc.c \
+	$(src_vendor)/utils/cell.c 
+
+endif
+
+MASTERSRC_FILE_EXCLUDE += \
+	$(src_vendor)/arp/l3am2arp.c
+
+MASTERINC += \
+	$(src_vendor) \
+	$(src_vendor)/ipstack
+
+SRCINCPATHS +=
+
+CFLAGSEXTRA +=
+

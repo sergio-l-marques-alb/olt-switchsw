@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xml:lang="en" lang="en" xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+    <!-- MOTW-DISABLED saved from url=(0014)about:internet -->
+    <title>SNMP Trap Configuration</title>
+<!-- old content removed -->
+<!-- old content removed -->
+    <link rel="StyleSheet" href="/css/security_help.css" type="text/css" media="all" />
+<!-- old content removed -->
+<!-- old content removed -->
+    <script type="text/javascript" language="JavaScript1.2">
+      <!--
+        var  WebWorksRootPath = "";
+      // -->
+    </script>
+    <script type="text/javascript" language="JavaScript1.2">
+      <!--
+        var  WebWorksSeeAlso = "xxx";
+      // -->
+    </script>
+  </head>
+  <body>
+    <hr size=4 width="100%" align=center>
+
+    <div class="Heading_2"><a name="690108">SNMP Trap Configuration</a></div>
+    <div class="Body"><a name="690109">Use the </a><span style="font-weight: bold;">SNMP Trap Configuration </span>page to configure whether or not SNMP traps are sent from the Captive Portal and to specify captive portal events that will generate a trap. </div>
+    <table class="Note_Table" style="text-align: left; width: 485.99856pt;" cellspacing="0">
+      <caption></caption>
+      <tr>
+        <td style="padding-bottom: 3pt; padding-left: 0pt; padding-right: 3pt; padding-top: 3pt; vertical-align: top; width: 36pt;">
+          <div class="Icon__0028Note_0029"><a name="690112">&nbsp;</a></div>
+        </td>
+        <td style="padding-bottom: 3pt; padding-left: 0pt; padding-right: 3pt; padding-top: 3pt; vertical-align: top; width: 449.99856pt;">
+          <div class="Note_Text">
+            <span class="Bold">Note: </span>
+              <a name="690114">You can configure the Captive Portal traps only if the Captive Portal Trap Mode is enabled, which you configure on the <span style="font-weight: bold;">System &gt; Trap Manager &gt; Trap Flags &gt; Trap Flags Configuration page.</a></span></div>
+        </td>
+      </tr>
+    </table>
+    <div class="Body"><a name="690116">All CP SNMP traps are disabled by default.</a></div>
+    <table class="Lines_002fTitle" style="text-align: left;" border="0" cellpadding="0" cellspacing="0">
+      <caption></caption>
+      <tr style="vertical-align: middle;">
+        <td style="background-color: Black; border-bottom-color: Gainsboro; border-bottom-style: solid; border-bottom-width: thin; border-left-color: Gainsboro; border-left-style: solid; border-left-width: thin; border-right-color: Gainsboro; border-right-style: solid; border-right-width: thin; border-top-color: Gainsboro; border-top-style: solid; border-top-width: thin; padding-bottom: 3pt; padding-left: 3pt; padding-right: 3pt; padding-top: 3pt; vertical-align: middle; width: 146.25pt;">
+          <div class="Table_Head"><a name="690130">Field</a></div>
+        </td>
+        <td style="background-color: Black; border-bottom-color: Gainsboro; border-bottom-style: solid; border-bottom-width: thin; border-left-color: Gainsboro; border-left-style: solid; border-left-width: thin; border-right-color: Gainsboro; border-right-style: solid; border-right-width: thin; border-top-color: Gainsboro; border-top-style: solid; border-top-width: thin; padding-bottom: 3pt; padding-left: 3pt; padding-right: 3pt; padding-top: 3pt; vertical-align: middle; width: 339.75pt;">
+          <div class="Table_Head"><a name="690132">Description</a></div>
+        </td>
+      </tr>
+      <tr style="vertical-align: middle;">
+        <td style="border-bottom-color: LightGrey; border-bottom-style: solid; border-bottom-width: thin; border-left-color: Gainsboro; border-left-style: solid; border-left-width: thin; border-right-color: LightGrey; border-right-style: solid; border-right-width: thin; border-top-color: LightGrey; border-top-style: solid; border-top-width: thin; padding-bottom: 1pt; padding-left: 1pt; padding-right: 1pt; padding-top: 1pt; vertical-align: middle;">
+          <div class="Table_Text__0028Bold_0029"><span class="Bold"><a name="690134">Captive Portal Trap Mode</a></span></div>
+        </td>
+        <td style="border-bottom-color: LightGrey; border-bottom-style: solid; border-bottom-width: thin; border-left-color: Gainsboro; border-left-style: solid; border-left-width: thin; border-right-color: LightGrey; border-right-style: solid; border-right-width: thin; border-top-color: LightGrey; border-top-style: solid; border-top-width: thin; padding-bottom: 1pt; padding-left: 1pt; padding-right: 1pt; padding-top: 1pt; vertical-align: middle;">
+          <div class="Table_Text"><a name="690136">Displays the current captive portal trap mode status.</div>
+        </td>
+      </tr>
+      <tr style="vertical-align: middle;">
+        <td style="border-bottom-color: LightGrey; border-bottom-style: solid; border-bottom-width: thin; border-left-color: Gainsboro; border-left-style: solid; border-left-width: thin; border-right-color: LightGrey; border-right-style: solid; border-right-width: thin; border-top-color: LightGrey; border-top-style: solid; border-top-width: thin; padding-bottom: 1pt; padding-left: 1pt; padding-right: 1pt; padding-top: 1pt; vertical-align: middle;">
+          <div class="Table_Text__0028Bold_0029"><a name="690138">Client Authentication Failure </a>Traps</div>
+        </td>
+        <td style="border-bottom-color: LightGrey; border-bottom-style: solid; border-bottom-width: thin; border-left-color: Gainsboro; border-left-style: solid; border-left-width: thin; border-right-color: LightGrey; border-right-style: solid; border-right-width: thin; border-top-color: LightGrey; border-top-style: solid; border-top-width: thin; padding-bottom: 1pt; padding-left: 1pt; padding-right: 1pt; padding-top: 1pt; vertical-align: middle;">
+          <div class="Table_Text"><a name="690140">If you enable this field, the SNMP agent sends a trap when a client attempts to </a>authenticate with a captive portal but is unsuccessful.</div>
+        </td>
+      </tr>
+      <tr style="vertical-align: middle;">
+        <td style="border-bottom-color: LightGrey; border-bottom-style: solid; border-bottom-width: thin; border-left-color: Gainsboro; border-left-style: solid; border-left-width: thin; border-right-color: LightGrey; border-right-style: solid; border-right-width: thin; border-top-color: LightGrey; border-top-style: solid; border-top-width: thin; padding-bottom: 1pt; padding-left: 1pt; padding-right: 1pt; padding-top: 1pt; vertical-align: middle;">
+          <div class="Table_Text__0028Bold_0029"><span class="Bold"><a name="690142">Client Connection Traps</a></span></div>
+        </td>
+        <td style="border-bottom-color: LightGrey; border-bottom-style: solid; border-bottom-width: thin; border-left-color: Gainsboro; border-left-style: solid; border-left-width: thin; border-right-color: LightGrey; border-right-style: solid; border-right-width: thin; border-top-color: LightGrey; border-top-style: solid; border-top-width: thin; padding-bottom: 1pt; padding-left: 1pt; padding-right: 1pt; padding-top: 1pt; vertical-align: middle;">
+          <div class="Table_Text"><a name="690144">If you enable this field, the SNMP agent sends a trap when a client authenticates with </a>and connects to a captive portal.</div>
+        </td>
+      </tr>
+      <tr style="vertical-align: middle;">
+        <td style="border-bottom-color: LightGrey; border-bottom-style: solid; border-bottom-width: thin; border-left-color: Gainsboro; border-left-style: solid; border-left-width: thin; border-right-color: LightGrey; border-right-style: solid; border-right-width: thin; border-top-color: LightGrey; border-top-style: solid; border-top-width: thin; padding-bottom: 1pt; padding-left: 1pt; padding-right: 1pt; padding-top: 1pt; vertical-align: middle;">
+          <div class="Table_Text__0028Bold_0029"><a name="690146">Client Database Full Traps</a></div>
+        </td>
+        <td style="border-bottom-color: LightGrey; border-bottom-style: solid; border-bottom-width: thin; border-left-color: Gainsboro; border-left-style: solid; border-left-width: thin; border-right-color: LightGrey; border-right-style: solid; border-right-width: thin; border-top-color: LightGrey; border-top-style: solid; border-top-width: thin; padding-bottom: 1pt; padding-left: 1pt; padding-right: 1pt; padding-top: 1pt; vertical-align: middle;">
+          <div class="Table_Text"><a name="690148">If you enable this field, the SNMP agent sends a trap each time an entry cannot be </a>added to the client database because it is full.</div>
+        </td>
+      </tr>
+      <tr style="vertical-align: middle;">
+        <td style="border-bottom-color: LightGrey; border-bottom-style: solid; border-bottom-width: thin; border-left-color: Gainsboro; border-left-style: solid; border-left-width: thin; border-right-color: LightGrey; border-right-style: solid; border-right-width: thin; border-top-color: LightGrey; border-top-style: solid; border-top-width: thin; padding-bottom: 1pt; padding-left: 1pt; padding-right: 1pt; padding-top: 1pt; vertical-align: middle;">
+          <div class="Table_Text__0028Bold_0029"><a name="690150">Client Disconnection Traps</a></div>
+        </td>
+        <td style="border-bottom-color: LightGrey; border-bottom-style: solid; border-bottom-width: thin; border-left-color: Gainsboro; border-left-style: solid; border-left-width: thin; border-right-color: LightGrey; border-right-style: solid; border-right-width: thin; border-top-color: LightGrey; border-top-style: solid; border-top-width: thin; padding-bottom: 1pt; padding-left: 1pt; padding-right: 1pt; padding-top: 1pt; vertical-align: middle;">
+          <div class="Table_Text"><a name="690152">If you enable this field, the SNMP agent sends a trap when a client disconnects from </a>a captive portal.</div>
+        </td>
+      </tr>
+    </table>
+    <hr size=4 width="100%" align=center>
+  </body>
+</html>

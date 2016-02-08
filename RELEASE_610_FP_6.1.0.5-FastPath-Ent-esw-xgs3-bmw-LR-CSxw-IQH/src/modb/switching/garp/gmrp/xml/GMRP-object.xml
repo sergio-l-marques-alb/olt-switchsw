@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="Switching" version="1.0" >
+<module name="dot1dGmrpPortConfig"  >
+<object name="Interface" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="This object specifies the interface to be configured for GARP Parameters"/>
+<ui  name="Unit/Slot/Port" style="inputLine">
+ <snmp asn-id="1.3.6.1.2.1.17.1.4.1.1"/> 
+</ui></object>
+<object name="Interface" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="This object specifies the interface to be configured for GARP Parameters"/>
+<ui  name="Slot/Port" style="inputLine">
+ <snmp asn-id="1.3.6.1.2.1.17.1.4.1.1"/> 
+</ui></object>
+<object name="Status" depends="Interface" >
+<core  type="enum" xtype="enable_t" default="FD_GMRP_GARP_DEFAULT_PORT_STATUS" access="read-write" descr="This object specifies the administrative state of GMRP operation on this port. The value enabled(1) indicates that GMRP is enabled on this port in all VLANs as long as dot1dGmrpStatus is also enabled(1). A value of disabled(2) indicates that GMRP is disabled on this port in al"/>
+<ui  name="Port GMRP Status" style="choiceNselect1">
+ <snmp asn-id="1.3.6.1.2.1.17.6.1.4.1.1.1"/> 
+</ui></object>
+<object name="FailedRegistrations" depends="Interface" >
+<core  type="uint" access="read-only" descr="This object specifies the total number of failed GMRP registrations, for any reason, in all VLANs, on this port."/>
+<ui  name="Failed GMRP Registrations" style="plainText">
+ <snmp asn-id="1.3.6.1.2.1.17.6.1.4.1.1.2"/> 
+</ui></object>
+<object name="LastPduOrigin" depends="Interface" >
+<core  type="string" access="read-only" descr="This object specifies the Source MAC Address of the last GMRP message received on this port."/>
+<ui  name="GMRP Last Pdu Origin" style="plainText">
+ <snmp asn-id="1.3.6.1.2.1.17.6.1.4.1.1.3"/> 
+</ui></object>
+</module>
+</objectxml>
+</FastPathXML>

@@ -1,0 +1,19 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="AutoVoipSumm" title="Auto VoIP Summary">
+        <group id="1" heading=" ">
+            <repeat present="vtable" edit="no" heading=" " id="1">
+                <element properties="filter,iterate" obj-name="fastPathQOSAUTOVOIPAutoVoIPTable_AutoVoIPIntfIndex" id="1" />
+                <element control="label" properties="edit,read-only" obj-name="fastPathQOSAUTOVOIPAutoVoIPTable_AutoVoIPMode" id="2" name="Auto VoIP Mode"/>
+                <element obj-name="fastPathQOSAUTOVOIPAutoVoIPTable_AutoVoIPTrafficClass" id="3" name="Traffic Class"/>
+            </repeat>
+            <node id="2">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

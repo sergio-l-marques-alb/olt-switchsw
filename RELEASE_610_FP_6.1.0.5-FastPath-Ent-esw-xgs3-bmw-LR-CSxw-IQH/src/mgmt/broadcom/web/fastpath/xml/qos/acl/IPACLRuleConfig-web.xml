@@ -1,0 +1,171 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="IPACLRuleConfig" title="IP ACL Rule Configuration">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element   properties="hidden" obj-name="fastPathQOSACLQOSACL_aclIndex" id="1" name="aclIndex"/>                
+            </node>            
+            <node id="2">
+                <element control="combo" properties="filter,iterate" obj-name="fastPathQOSACLQOSACL_aclIPNamedIndex" id="1" name="IP ACL">
+                <action type="default" hide="1_28" />
+                <action type="mandate" disable="1_3|1_5" invoke="onChange"/>
+                </element>
+            </node>
+            <node id="3">
+                <element control="combo" level="ReadWriteUser" properties="filter,iterate" obj-name="fastPathQOSACLQOSACL_aclRuleIndex" id="1" name="Rule">
+                    <action type="extn" value="Create Rule" show="1_5_1|1_6_1|1_7_1|1_25_1" enable="1_5_1|1_6_1|1_7_1|1_25_1" hide="1_4_1|1_8_1|1_8_2|1_9_1|1_9_2|1_34_1|1_34_2|1_10_1|1_10_2|1_11_1|1_11_2|1_12_1|1_12_2|1_13_1|1_13_2|1_14_1|1_14_2|1_15_1|1_15_2|1_16_1|1_17_1|1_17_2|1_18_1|1_19_1|1_19_2|1_20_1|1_20_2|1_21_1|1_22_1|1_22_2|1_23_1|1_24_1|1_24_2|1_25_2|1_26_1|1_26_2" disable="1_8_1|1_8_2|1_9_1|1_9_2|1_34_1|1_34_2|1_10_1|1_10_2|1_11_1|1_11_2|1_12_1|1_12_2|1_13_1|1_13_2|1_14_1|1_14_2|1_15_1|1_15_2|1_16_1|1_17_1|1_17_2|1_18_1|1_19_1|1_19_2|1_20_1|1_20_2|1_21_1|1_22_1|1_22_2|1_23_1|1_24_1|1_24_2|1_25_2|1_26_1|1_26_2|1_29_1|1_30_1" setval_ids="1_5_1|1_6_1|1_7_1" setval_args="valMapEmptyString|L7_IP_ACL_ACTION_DEFAULT|L7_IP_ACL_MATCHEVERY_DEFAULT"/>
+                    <action type="default" hide="1_4_1|1_5_1|1_6_1|1_7_1|1_25_1" disable="1_5_1|1_6_1|1_7_1|1_25_1" show="1_8_1|1_8_2|1_9_1|1_9_2|1_34_1|1_34_2|1_10_1|1_10_2|1_11_1|1_11_2|1_12_1|1_12_2|1_13_1|1_13_2|1_14_1|1_14_2|1_15_1|1_15_2|1_16_1|1_17_1|1_17_2|1_18_1|1_19_1|1_19_2|1_20_1|1_20_2|1_21_1|1_22_1|1_22_2|1_23_1|1_24_1|1_24_2|1_25_2|1_26_1|1_26_2" enable="1_8_1|1_8_2|1_9_1|1_9_2|1_34_1|1_34_2|1_10_1|1_10_2|1_11_1|1_11_2|1_12_1|1_12_2|1_13_1|1_13_2|1_14_1|1_14_2|1_15_1|1_15_2|1_16_1|1_17_1|1_17_2|1_18_1|1_19_1|1_19_2|1_20_1|1_20_2|1_21_1|1_22_1|1_22_2|1_23_1|1_24_1|1_24_2|1_25_2|1_26_1|1_26_2|1_29_1|1_30_1"/>
+                </element>
+                <element control="combo" level="ReadOnlyUser" properties="filter,iterate" obj-name="fastPathQOSACLQOSACL_aclRuleIndex" id="2" name="Rule">
+                    <action type="default" hide="1_4_1|1_5_1|1_6_1|1_7_1|1_25_1" disable="1_5_1|1_6_1|1_7_1|1_25_1" show="1_8_1|1_8_2|1_9_1|1_9_2|1_34_1|1_34_2|1_10_1|1_10_2|1_11_1|1_11_2|1_12_1|1_12_2|1_13_1|1_13_2|1_14_1|1_14_2|1_15_1|1_15_2|1_16_1|1_17_1|1_17_2|1_18_1|1_19_1|1_19_2|1_20_1|1_20_2|1_21_1|1_22_1|1_22_2|1_23_1|1_24_1|1_24_2|1_25_2|1_26_1|1_26_2" enable="1_8_1|1_8_2|1_9_1|1_9_2|1_34_1|1_34_2|1_10_1|1_10_2|1_11_1|1_11_2|1_12_1|1_12_2|1_13_1|1_13_2|1_14_1|1_14_2|1_15_1|1_15_2|1_16_1|1_17_1|1_17_2|1_18_1|1_19_1|1_19_2|1_20_1|1_20_2|1_21_1|1_22_1|1_22_2|1_23_1|1_24_1|1_24_2|1_25_2|1_26_1|1_26_2|1_29_1|1_30_1"/>
+                </element>
+            </node>
+             <node id="4">
+                <element  control="combo" level="ReadWriteUser" properties="filter" obj-name="fastPathQOSACLQOSACL_aclIPNamedType" id="1" name="ACL type">
+                  <action type="enum" disable="1_11_1|1_11_2|1_17_1|1_17_2|1_18_1|1_19_1|1_19_2|1_20_1|1_20_2|1_21_1|1_22_1|1_22_2|1_23_1|1_24_1|1_24_2|1_26_1|1_26_2" hide="1_11_1|1_11_2|1_17_1|1_17_2|1_18_1|1_19_1|1_19_2|1_20_1|1_20_2|1_21_1|1_22_1|1_22_2|1_23_1|1_24_1|1_24_2|1_26_1|1_26_2"/>
+                  <action type="enum" /> 
+                  <action type="enum" /> 
+                  <action type="enum" /> 
+                </element>
+                <element  control="combo" level="ReadOnlyUser" properties="filter" obj-name="fastPathQOSACLQOSACL_aclIPNamedType" id="2" name="ACL type">
+                  <action type="enum" disable="1_4_2|1_11_1|1_11_2|1_17_1|1_17_2|1_18_1|1_19_1|1_19_2|1_20_1|1_20_2|1_21_1|1_22_1|1_22_2|1_23_1|1_24_1|1_24_2|1_26_1|1_26_2" hide="1_4_2|1_11_1|1_11_2|1_17_1|1_17_2|1_18_1|1_19_1|1_19_2|1_20_1|1_20_2|1_21_1|1_22_1|1_22_2|1_23_1|1_24_1|1_24_2|1_26_1|1_26_2"/>
+                  <action type="enum" disable="1_4_2" hide="1_4_2"/>
+                  <action type="enum" disable="1_4_2" hide="1_4_2"/>
+                  <action type="enum" disable="1_4_2" hide="1_4_2"/>
+                </element>
+            </node>
+            <node id="5">
+                <element control="textbox" level="ReadWriteUser" properties="filter,iterate" obj-name="fastPathQOSACLQOSACL_aclRuleIndex" maxLength="10" id="1" name="Rule ID" arghelp="HELP_FORMAT_ACL_RULE_INDEX"/>
+            </node>
+            <node id="6">
+                <element control="combo" level="ReadWriteUser" obj-name="fastPathQOSACLQOSACL_aclRuleAction" id="1" name="Action"/>
+            </node>           
+            <node id="7">
+                <element control="combo" level="ReadWriteUser" obj-name="fastPathQOSACLQOSACL_aclRuleMatchEvery" id="1" name="Match Every">
+                  <action type="enum" />
+                  <action type="enum" disable="1_11_1|1_11_2|1_15_1|1_15_2|1_16_1|1_17_1|1_17_2|1_18_1|1_19_1|1_19_2|1_20_1|1_20_2|1_21_1|1_22_1|1_22_2|1_23_1|1_24_1|1_24_2|1_26_1|1_26_2" hide="1_11_1|1_11_2|1_15_1|1_15_2|1_16_1|1_17_1|1_17_2|1_18_1|1_19_1|1_19_2|1_20_1|1_20_2|1_21_1|1_22_1|1_22_2|1_23_1|1_24_1|1_24_2|1_26_1|1_26_2"/>
+                </element>
+                <element control="combo" level="ReadOnlyUser" obj-name="fastPathQOSACLQOSACL_aclRuleMatchEvery" id="2" name="Match Every">
+                  <action type="enum" disable="1_7_2" hide="1_7_2"/>
+                  <action type="enum" disable="1_7_2|1_11_1|1_11_2|1_15_1|1_15_2|1_16_1|1_17_1|1_17_2|1_18_1|1_19_1|1_19_2|1_20_1|1_20_2|1_21_1|1_22_1|1_22_2|1_23_1|1_24_1|1_24_2|1_26_1|1_26_2" hide="1_7_2|1_11_1|1_11_2|1_15_1|1_15_2|1_16_1|1_17_1|1_17_2|1_18_1|1_19_1|1_19_2|1_20_1|1_20_2|1_21_1|1_22_1|1_22_2|1_23_1|1_24_1|1_24_2|1_26_1|1_26_2"/>
+                </element>
+            </node>
+            <node id="29" run_if="QOS_ACL_RULE_MIRROR_FEATURE">
+               <element control="label" properties="read-only,noname,hidden" obj-name="fastPathQOSACLQOSACL_IsAclRuleMirrorIntfConfigured" run_if="QOS_ACL_RULE_REDIRECT_FEATURE" id="1">
+                  <action type="enum" enable="1_14" show="1_14"/>
+                  <action type="enum" disable="1_14" hide="1_14"/>  
+               </element>
+            </node>
+            <node id="30" run_if="QOS_ACL_RULE_REDIRECT_FEATURE">
+               <element control="label" properties="read-only,noname,hidden" obj-name="fastPathQOSACLQOSACL_IsAclRuleRedirectIntfConfigured" run_if="QOS_ACL_RULE_MIRROR_FEATURE" id="1">
+                  <action type="enum" enable="1_13" show="1_13"/>
+                  <action type="enum" disable="1_13" hide="1_13"/>  
+               </element>
+            </node>
+            <node id="8">
+                <element control="label" obj-name="fastPathQOSACLQOSACL_aclRuleAction" id="1" name="Action"/>
+                <button scope="node" type="buttonClear" level="ReadWriteUser" target-page="IPACLRuleActionConfig.html" help="Executes the associated actions if any." id="2" name="Configure"/>
+                <element control="combo" obj-name="fastPathQOSACLQOSACL_aclRuleAction" id="3" name="Action">
+                  <action type="enum" disable="1_12|1_13|1_14|1_8_3|1_34|1_29_1|1_30_1" hide="1_12|1_13|1_14|1_8_3|1_34"/>
+                  <action type="enum" disable="1_8_3|1_9" hide="1_8_3|1_9"/>
+                </element>
+            </node>
+
+            <node id="9" run_if="ACL_LOG_DENY_FEATURE">
+                <element control="label" properties="read-only" obj-name="fastPathQOSACLQOSACL_aclRuleLogging" id="1" name="Logging"/>
+                <button scope="node" type="buttonClear" level="ReadWriteUser" help="Executes the associated actions if any." id="2" name="Configure" target-page="IPACLRuleLoggingConfig.html"/>
+            </node>
+
+            <node id="34" run_if="ACL_LOG_PERMIT_FEATURE">
+                <element control="label" properties="read-only" obj-name="fastPathQOSACLQOSACL_aclRuleLogging" id="1" name="Logging"/>
+                <button scope="node" type="buttonClear" level="ReadWriteUser" help="Executes the associated actions if any." id="2" name="Configure" target-page="IPACLRuleLoggingConfig.html"/>
+            </node>
+
+            <node id="11" run_if="QOS_ACL_RULE_MATCH_PROTOCOL_FEATURE">
+                <element control="label" obj-name="fastPathQOSACLQOSACL_aclRuleProtocol" id="1" name="Protocol">
+                <action type="value" value="1" web_name="1(ICMP)"/>
+                <action type="value" value="2" web_name="2(IGMP)"/>
+                <action type="value" value="6" web_name="6(TCP)"/>
+                <action type="value" value="17" web_name="17(UDP)"/>
+                <action type="value" value="255" web_name="255(IP)"/>
+                </element>
+                                <button scope="node" type="buttonClear" level="ReadWriteUser" target-page="IPACLRuleProtocolConfig.html" help="Executes the associated actions if any." id="2" name="Configure"/>
+            </node>
+             <node id="12" run_if="QOS_ACL_RULE_ASSIGN_QUEUE_FEATURE">
+                <element control="label" obj-name="fastPathQOSACLQOSACL_aclRuleAssignQueueId" id="1" name="Assign Queue ID"/>
+            <button scope="node" type="buttonClear" level="ReadWriteUser" target-page="IPACLRuleQueueConfig.html" help="Executes the associated actions if any." id="2" name="Configure"/>
+            </node>
+            <node id="13" run_if="QOS_ACL_RULE_MIRROR_FEATURE">
+                <element control="label" properties="list" obj-name="fastPathQOSACLQOSACL_aclRuleMirrorIntf" id="1" name="Mirror Interface"/>
+                            <button scope="node" type="buttonClear" level="ReadWriteUser" target-page="IPACLRuleMirrorIntf.html" help="Executes the associated actions if any." id="2" name="Configure"/>
+            </node>
+            <node id="14" run_if="QOS_ACL_RULE_REDIRECT_FEATURE">
+                <element control="label" properties="list" obj-name="fastPathQOSACLQOSACL_aclRuleRedirectIntf" id="1" name="Redirect Interface"/>
+                 <button scope="node" type="buttonClear" level="ReadWriteUser" target-page="IPACLRuleRedirectIntf.html" help="Executes the associated actions if any." id="2" name="Configure"/>
+            </node>
+
+            <node id="10">
+                <element control="label" obj-name="fastPathQOSACLQOSACL_aclRuleMatchEvery" id="1" name="Match Every"/>
+                <button scope="node" type="buttonClear" level="ReadWriteUser" target-page="IPACLRuleMatchEveryConfig.html" help="Executes the associated actions if any." id="2" name="Configure"/>
+            </node>
+
+            <node id="15" run_if="QOS_ACL_RULE_SRCIP_FEATURE">
+                <element control="label" obj-name="fastPathQOSACLQOSACL_aclRuleSrcIpAddress" id="1" name="Source IP Address"/>
+                 <button scope="node" type="buttonClear" level="ReadWriteUser" target-page="IPACLRuleSrcIp.html" help="Executes the associated actions if any." id="2" name="Configure"/>
+            </node>
+            <node id="16" run_if="QOS_ACL_RULE_MATCH_SUPPORTS_MASKING_FEATURE">
+                <element control="label" obj-name="fastPathQOSACLQOSACL_aclRuleSrcIpMask" id="1" name="Source IP Mask"/>
+            </node>
+            <node id="17" run_if="QOS_ACL_RULE_MATCH_SRCL4PORT_FEATURE">
+                <element control="label" obj-name="fastPathQOSACLQOSACL_aclRuleSrcL4Port" id="1" name="Source L4 Port"/>
+                <button scope="node" type="buttonClear" level="ReadWriteUser" target-page="IPACLRuleSrcL4Port.html" help="Executes the associated actions if any." id="2" name="Configure"/>
+            </node>
+            <node id="18" run_if="QOS_ACL_RULE_MATCH_SRCL4PORT_RANGE_FEATURE">
+                <element control="label" obj-name="fastPathQOSACLQOSACL_aclRuleSrcL4PortRangeStart" id="1" name="Source L4 Port Range From"/>
+            </node>
+            <node id="19" run_if="QOS_ACL_RULE_MATCH_SRCL4PORT_RANGE_FEATURE">
+                <element control="label" obj-name="fastPathQOSACLQOSACL_aclRuleSrcL4PortRangeEnd" id="1" name="Source L4 Port Range To"/>
+               <button scope="node" type="buttonClear" level="ReadWriteUser" target-page="IPACLRuleSrcL4Range.html" help="Executes the associated actions if any." id="2" name="Configure"/>
+            </node>
+            <node id="20" run_if="QOS_ACL_RULE_DSTIP_FEATURE">
+                <element control="label" obj-name="fastPathQOSACLQOSACL_aclRuleDestIpAddress" id="1" name="Destination IP Address"/>
+                <button scope="node" type="buttonClear" level="ReadWriteUser" target-page="IPACLRuleDestIPConfig.html" help="Executes the associated actions if any." id="2" name="Configure"/>
+            </node>
+            <node id="21" run_if="QOS_ACL_RULE_MATCH_SUPPORTS_MASKING_FEATURE">
+                <element control="label" obj-name="fastPathQOSACLQOSACL_aclRuleDestIpMask" id="1" name="Destination IP Mask"/>
+            </node>
+            <node id="22" run_if="QOS_ACL_RULE_MATCH_DSTL4PORT_FEATURE">
+                <element control="label" obj-name="fastPathQOSACLQOSACL_aclRuleDestL4Port" id="1" name="Destination L4 Port"/>
+                <button scope="node" type="buttonClear" level="ReadWriteUser" target-page="IPACLRuleDestL4Port.html" help="Executes the associated actions if any." id="2" name="Configure"/>
+            </node>
+            <node id="23" run_if="QOS_ACL_RULE_MATCH_DSTL4PORT_RANGE_FEATURE">
+                <element control="label" obj-name="fastPathQOSACLQOSACL_aclRuleDestL4PortRangeStart" id="1" name="Destination L4 Port Range From"/>
+            </node>
+            <node id="24" run_if="QOS_ACL_RULE_MATCH_DSTL4PORT_RANGE_FEATURE">
+                <element control="label" obj-name="fastPathQOSACLQOSACL_aclRuleDestL4PortRangeEnd" id="1" name="Destination L4 Port Range To"/>
+                <button scope="node" type="buttonClear" level="ReadWriteUser" target-page="IPACLRuleDestL4Range.html" help="Executes the associated actions if any." id="2" name="Configure"/>
+            </node>
+            <node id="26" run_if="QOS_ACL_RULE_MATCH_PROTOCOL_FEATURE">
+                <element control="label" obj-name="fastPathQOSACLQOSACL_aclRuleServiceTypeVal" id="1" name="Service Type"/>
+                <button scope="node" type="buttonClear" level="ReadWriteUser" target-page="IPACLRuleServiceTypeConfig.html" help="Executes the associated actions if any." id="2" name="Configure"/>
+            </node>
+            <node id="25">
+                <button scope="page" type="buttonSubmit"  level="ReadWriteUser" value="Add" obj-name="fastPathQOSACLQOSACL_aclRuleStatus" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+                <button scope="page" type="buttonSubmit"  level="ReadWriteUser" value="Delete" obj-name="fastPathQOSACLQOSACL_aclRuleStatus" help="Submits the form on this page to the Switch" id="2" name="Delete"/>
+            </node>
+             <node id="27">
+                <element control="textbox" properties="hidden" obj-name="fastPathQOSACLQOSACL_IPAclsExists" id="1" name="ACLsExist">
+              <action type="value" value="L7_FALSE" hide="1_1|1_2|1_3|1_4|1_5|1_6|1_7|1_8|1_9|1_34|1_10|1_11|1_12|1_13|1_14|1_15|1_16|1_17|1_18|1_19|1_20|1_21|1_22|1_23|1_24|1_25|1_26" show="1_28"/>
+              <action type="default" hide="1_28" />
+                </element>
+            </node>
+            <node id="28" clazz="unavailableattributes">
+                <message>No ACLs Are Configured</message>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

@@ -1,0 +1,1120 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "misc.dtd" >
+
+<FastPathXML>
+    <misc version="1.0">
+        <product_if>
+            <compile_if name="ifOne">
+                <compile_if_and>
+                    <compile_if_use cond="cond_one"/>
+                    <compile_if_use cond="cond_two"/>
+                </compile_if_and>
+            </compile_if>
+            <compile_if name="ifTwo">
+                <compile_if_or>
+                    <compile_if_use cond="cond_one"/>
+                    <compile_if_use cond="cond_two"/>
+                </compile_if_or>
+            </compile_if>
+            <compile_if name="ifThree">
+                <compile_if_and>
+                    <compile_if_use cond="cond_one"/>
+                    <compile_if_use cond="cond_two"/>
+                    <compile_if_or>
+                        <compile_if_use cond="cond_one"/>
+                        <compile_if_use cond="cond_two"/>
+                    </compile_if_or>
+                </compile_if_and>
+            </compile_if>
+            <compile_if name="ifFour">
+                <compile_if_or>
+                    <compile_if_use cond="cond_one"/>
+                    <compile_if_use cond="cond_two"/>
+                    <compile_if_and>
+                        <compile_if_use cond="cond_one"/>
+                        <compile_if_use cond="cond_two"/>
+                    </compile_if_and>
+                </compile_if_or>
+            </compile_if>
+            <compile_if name="ifFive">
+                <compile_if_or>
+                    <compile_if_use cond="cond_one"/>
+                    <compile_if_use cond="cond_two"/>
+                    <compile_if_or>
+                        <compile_if_use cond="cond_one"/>
+                        <compile_if_use cond="cond_two"/>
+                    </compile_if_or>
+                </compile_if_or>
+            </compile_if>
+            <compile_if name="ifSix">
+                <compile_if_and>
+                    <compile_if_use cond="cond_one"/>
+                    <compile_if_use cond="cond_two"/>
+                    <compile_if_and>
+                        <compile_if_use cond="cond_one"/>
+                        <compile_if_use cond="cond_two"/>
+                    </compile_if_and>
+                </compile_if_and>
+            </compile_if>
+            <compile_if name="IF_DOT1AD_PACKAGE_PRESENT">
+                <compile_if_and>
+                    <compile_if_use cond="DOT1AD_PRESENT"/>
+                </compile_if_and>
+            </compile_if>
+            <compile_if name="IF_IPV6_MGMT_PACKAGE_PRESENT">
+                <compile_if_or>
+                    <compile_if_use cond="IPV6_MGMT_PRESENT"/>
+                    <compile_if_use cond="IPV6_PRESENT"/>
+                </compile_if_or>
+            </compile_if>
+            <compile_if_cond macro="L7_IPV6_MGMT_PACKAGE" name="IPV6_MGMT_PRESENT"/>
+            <compile_if_cond macro="L7_IPV6_PACKAGE" name="IPV6_PRESENT"/>
+            <compile_if name="IF_DOT1AD_AND_STACKING_PACKAGES_PRESENT">
+                <compile_if_and>
+                    <compile_if_use cond="DOT1AD_PRESENT"/>
+                    <compile_if_use cond="STACKING_PRESENT"/>
+                </compile_if_and>
+            </compile_if>
+
+            <compile_if name="IF_DOT1AD_AND_NOT_STACKING_PACKAGES_PRESENT">
+                <compile_if_and>
+                    <compile_if_use cond="DOT1AD_PRESENT"/>
+                    <compile_if_use cond="STACKING_NOT_PRESENT"/>
+                </compile_if_and>
+            </compile_if>
+
+            <compile_if name="IF_IPMULTICAST_PACKAGE">
+                <compile_if_or>
+                    <compile_if_use cond="IP_MULTICAST_PRESENT"/>
+                </compile_if_or>
+            </compile_if>
+            <compile_if_cond macro="L7_IPMCAST_PACKAGE" name="IP_MULTICAST_PRESENT"/>
+
+            <compile_if name="IF_OSPF_PACKAGE">
+                <compile_if_or>
+                    <compile_if_use cond="IP_OSFP_PRESENT"/>
+                </compile_if_or>
+            </compile_if>
+            <compile_if_cond macro="L7_OSPF_PACKAGE" name="IP_OSFP_PRESENT"/>
+
+            <compile_if name="IF_ROUTING_PACKAGE">
+                <compile_if_or>
+                    <compile_if_use cond="ROUTING_PACKAGE_PRESENT"/>
+                </compile_if_or>
+	    </compile_if>
+            <compile_if_cond macro="L7_ROUTING_PACKAGE" name="ROUTING_PACKAGE_PRESENT"/> 
+
+            <compile_if name="IF_DHCP_L2_RELAY_PRESENT">
+                <compile_if_or>
+                    <compile_if_use cond="DHCP_L2_RELAY_PRESENT"/>
+                </compile_if_or>
+            </compile_if>
+            <compile_if_cond macro="L7_DHCP_L2_RELAY_PACKAGE" name="DHCP_L2_RELAY_PRESENT"/>
+
+            
+            <compile_if name="IF_RIP_PACKAGE">
+                <compile_if_or>
+                    <compile_if_use cond="IP_RIP_PRESENT"/>
+                </compile_if_or>
+            </compile_if>
+            <compile_if_cond macro="L7_RIP_PACKAGE" name="IP_RIP_PRESENT"/>
+            
+            <compile_if name="IF_VRRP_PACKAGE">
+                <compile_if_or>
+                    <compile_if_use cond="IP_VRRP_PRESENT"/>
+                </compile_if_or>
+            </compile_if>
+            <compile_if_cond macro="L7_VRRP_PACKAGE" name="IP_VRRP_PRESENT"/>
+
+            <compile_if name="IF_STACKING_PACKAGE_PRESENT">
+                <compile_if_and>
+                    <compile_if_use cond="STACKING_PRESENT"/>
+                </compile_if_and>
+            </compile_if>
+            <compile_if_cond macro="L7_STACKING_PACKAGE" name="STACKING_PRESENT"/>
+
+            <compile_if name="IF_STACKING_PACKAGE_NOT_PRESENT">
+                <compile_if_and>
+                    <compile_if_use cond="STACKING_NOT_PRESENT"/>
+                </compile_if_and>
+            </compile_if>
+            <compile_if_cond macro="L7_NO_STACKING_PACKAGE" name="STACKING_NOT_PRESENT"/>
+
+            <compile_if name="IF_GVRP_PACKAGE_PRESENT">
+                <compile_if_and>
+                    <compile_if_use cond="GVRP_PRESENT"/>
+                </compile_if_and>
+            </compile_if>
+            <compile_if_cond macro="L7_FEAT_GMRP" name="GVRP_PRESENT"/>
+
+            <compile_if name="IF_DVLAN_PACKAGE_PRESENT">
+                <compile_if_and>
+                    <compile_if_use cond="DVLAN_PRESENT"/>
+                </compile_if_and>
+            </compile_if>
+            <compile_if_cond macro="L7_DVLAN_PACKAGE" name="DVLAN_PRESENT"/>
+            
+            <compile_if name="IF_WIRELESS_PACKAGE_PRESENT">
+                <compile_if_and>
+                    <compile_if_use cond="WIRELESS_PRESENT"/>
+                </compile_if_and>
+            </compile_if>
+            <compile_if_cond macro="L7_WIRELESS_PACKAGE" name="WIRELESS_PRESENT"/>
+       
+            <compile_if name="IF_QOS_PACKAGE_PRESENT">
+                <compile_if_and>
+                    <compile_if_use cond="QOS_PRESENT"/>
+                </compile_if_and>
+            </compile_if>
+            <compile_if_cond macro="L7_ACL_PACKAGE" name="QOS_PRESENT" /> 
+
+            <compile_if name="IF_QOS_DIFFSERV_PRESENT">
+                <compile_if_and>
+                    <compile_if_use cond="DIFFSERV_PRESENT"/>
+                </compile_if_and>
+            </compile_if>
+            <compile_if_cond macro="L7_DIFFSERV_PACKAGE" name="DIFFSERV_PRESENT" />
+
+            <run_if name="stacking">
+              <run_if_or>
+                 <run_if_use cond="stackingCheck"/>
+               </run_if_or>     
+            </run_if> 
+            <run_if name="nostacking">
+              <run_if_or>
+                 <run_if_use cond="noStackingCheck"/>
+               </run_if_or>     
+            </run_if>
+           <run_if name="robo53115">
+              <run_if_or>
+                 <run_if_use cond="robo53115Check"/>
+               </run_if_or>
+            </run_if>
+            <run_if name="norobo53115">
+              <run_if_or>
+                 <run_if_use cond="norobo53115Check"/>
+               </run_if_or>
+            </run_if>
+
+
+
+           <run_if name="SECURE_TRANSFER_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_secure_transfer_feature"/>
+                    <run_if_use cond="cond_secure_transfer_feature"/>
+                </run_if_and>
+           </run_if>
+           <run_if name="NO_SECURE_TRANSFER_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_no_secure_transfer_feature"/>
+                    <run_if_use cond="cond_no_secure_transfer_feature"/>
+                </run_if_and>
+           </run_if>
+
+            <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_SSHD_COMPONENT_ID,L7_SSHD_SECURE_TRANSFER_FEATURE_ID" name="cond_secure_transfer_feature"/>
+
+            <run_if_cond func="usmDbFeatureNotPresentCheck" arg="0,L7_FLEX_SSHD_COMPONENT_ID, L7_SSHD_SECURE_TRANSFER_FEATURE_ID" name="cond_no_secure_transfer_feature"/>
+            <run_if_cond func="usmDbComponentPresentCheck" arg="0,L7_FLEX_STACKING_COMPONENT_ID" name="stackingCheck"/>  
+            <run_if_cond func="usmDbFeatureNotPresentCheck" arg="0,L7_FLEX_STACKING_COMPONENT_ID, L7_STACKING_FEATURE_SUPPORTED" name="noStackingCheck"/>
+            <run_if_cond func="usmDbSocIs53115Check" arg="0" name="robo53115Check"/>
+            <run_if_cond func="usmDbSocIsnot53115Check" arg="0" name="norobo53115Check"/>
+
+            <run_if name="IPDSCP_FEATURE_PRESENT">
+                <run_if_and>
+                    <run_if_use cond="cond_ipdscp_feature"/>
+                </run_if_and>
+           </run_if>
+            
+           <run_if name="IPDSCP_PER_INTF_FEATURE_PRESENT">
+                <run_if_and>
+                    <run_if_use cond="cond_ipdscp_per_intf_feature"/>
+                </run_if_and>
+           </run_if>
+
+            <run_if name="NO_IPDSCP_PER_INTF_FEATURE_PRESENT">
+                <run_if_and>
+                    <run_if_use cond="cond_no_ipdscp_per_intf_feature"/>
+                </run_if_and>
+           </run_if>
+
+            <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_COS_COMPONENT_ID,L7_COS_MAP_IPDSCP_FEATURE_ID" name="cond_ipdscp_feature"/>
+            <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_COS_COMPONENT_ID,L7_COS_MAP_IPDSCP_PER_INTF_FEATURE_ID" name="cond_ipdscp_per_intf_feature"/>
+            <run_if_cond func="usmDbFeatureNotPresentCheck" arg="0,L7_FLEX_QOS_COS_COMPONENT_ID,L7_COS_MAP_IPDSCP_PER_INTF_FEATURE_ID" name="cond_no_ipdscp_per_intf_feature"/>
+
+            <run_if name="IPPREC_FEATURE_PRESENT">
+                <run_if_and>
+                    <run_if_use cond="cond_ipprec_feature"/>
+                </run_if_and>
+            </run_if>
+            <run_if name="IPPREC_PER_INTF_FEATURE_PRESENT">
+                <run_if_and>
+                    <run_if_use cond="cond_ipprec_per_intf_feature"/>
+                </run_if_and>
+            </run_if>
+
+            <run_if name="NO_IPPREC_PER_INTF_FEATURE_PRESENT">
+                <run_if_and>
+                    <run_if_use cond="cond_no_ipprec_per_intf_feature"/>
+                </run_if_and>
+            </run_if>
+ 
+            <run_if_cond func="usmDbFeaturePresentCheck"  arg="0,L7_FLEX_QOS_COS_COMPONENT_ID,L7_COS_MAP_IPPREC_FEATURE_ID" name="cond_ipprec_feature"/>
+            <run_if_cond func="usmDbFeaturePresentCheck"  arg="0,L7_FLEX_QOS_COS_COMPONENT_ID,L7_COS_MAP_IPPREC_PER_INTF_FEATURE_ID" name="cond_ipprec_per_intf_feature"/>
+            <run_if_cond func="usmDbFeatureNotPresentCheck"  arg="0,L7_FLEX_QOS_COS_COMPONENT_ID,L7_COS_MAP_IPPREC_PER_INTF_FEATURE_ID" name="cond_no_ipprec_per_intf_feature"/>
+
+            <compile_if_cond macro="L7_MACRO_ONE" name="cond_one"/>
+            <compile_if_cond macro="L7_MACRO_TWO" name="cond_two"/>
+            
+            <run_if name="DOS_CONTROL_SMACDMAC_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_dos_control_smacdmac_feature"/>
+                </run_if_and>
+            </run_if>
+
+            <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_DOSCONTROL_COMPONENT_ID,L7_DOSCONTROL_SMACDMAC_FEATURE_ID" name="cond_dos_control_smacdmac_feature"/><compile_if_cond macro="L7_DOT1AD_PACKAGE" name="DOT1AD_PRESENT"/>
+
+<!-- VLAN Based Protocol Tunneling  -->
+           <run_if name="DOT1AD_VLAN_BASED_PROTOCOL_TUNNEL_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_dot1ad_vlan_based_proto_tunnel"/>
+                </run_if_and>
+            </run_if>
+
+            <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_METRO_DOT1AD_COMPONENT_ID,L7_FLEX_METRO_DOT1AD_VLAN_BASED_PROTOCOL_TUNNEL_FEATURE_ID" name="cond_dot1ad_vlan_based_proto_tunnel"/>
+
+<!-- Interface Based Protocol Tunneling  -->
+           <run_if name="DOT1AD_INTF_BASED_PROTOCOL_TUNNEL_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_dot1ad_intf_based_proto_tunnel"/>
+                </run_if_and>
+            </run_if>
+            <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_METRO_DOT1AD_COMPONENT_ID,L7_FLEX_METRO_DOT1AD_INTF_BASED_PROTOCOL_TUNNEL_FEATURE_ID" name="cond_dot1ad_intf_based_proto_tunnel"/>
+
+<!-- Support for uni type -->
+
+            <run_if name="DOT1AD_CPE_FEATURE_ID">
+                <run_if_and>
+                    <run_if_use cond="cond_dot1ad_intf_type_uni"/>
+                </run_if_and>
+            </run_if>
+            <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_METRO_DOT1AD_COMPONENT_ID,L7_FLEX_METRO_DOT1AD_CPE_FEATURE_ID" name="cond_dot1ad_intf_type_uni"/>
+<!-- Support for uni_p and uni_s type -->
+            <run_if name="DOT1AD_PB_FEATURE_ID">
+                <run_if_and>
+                    <run_if_use cond="cond_dot1ad_intf_type_uniPS"/>
+                </run_if_and>
+            </run_if>
+            <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_METRO_DOT1AD_COMPONENT_ID,L7_FLEX_METRO_DOT1AD_PB_FEATURE_ID" name="cond_dot1ad_intf_type_uniPS"/>
+
+            <run_if name="DOS_CONTROL_FIRSTFRAG_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_dos_control_firstfrag_feature_present"/>
+                </run_if_and>
+            </run_if>
+
+            <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_DOSCONTROL_COMPONENT_ID,L7_DOSCONTROL_FIRSTFRAG_FEATURE_ID" name="cond_dos_control_firstfrag_feature_present"/>
+
+            <run_if name="DOS_CONTROL_ICMPSIZE_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_dos_control_icmpv4_feature_not_present"/>
+                    <run_if_use cond="cond_dos_control_icmpv6_feature_not_present"/>
+                </run_if_and>
+            </run_if>
+
+            <run_if_cond func="usmDbFeatureNotPresentCheck" arg="0,L7_DOSCONTROL_COMPONENT_ID,L7_DOSCONTROL_ICMPV4_FEATURE_ID" name="cond_dos_control_icmpv4_feature_not_present"/>
+            <run_if_cond func="usmDbFeatureNotPresentCheck" arg="0,L7_DOSCONTROL_COMPONENT_ID,L7_DOSCONTROL_ICMPV6_FEATURE_ID" name="cond_dos_control_icmpv6_feature_not_present"/>
+
+
+            <run_if name="DOS_CONTROL_ICMPV4_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_dos_control_icmpv4_feature"/>
+                </run_if_and>
+            </run_if>
+
+            <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_DOSCONTROL_COMPONENT_ID,L7_DOSCONTROL_ICMPV4_FEATURE_ID" name="cond_dos_control_icmpv4_feature"/>
+
+            <run_if name="DOS_CONTROL_ICMPV6_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_dos_control_icmpv6_feature"/>
+                </run_if_and>
+            </run_if>
+
+            <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_DOSCONTROL_COMPONENT_ID,L7_DOSCONTROL_ICMPV6_FEATURE_ID" name="cond_dos_control_icmpv6_feature"/>
+
+            <run_if name="DOS_CONTROL_ICMPFRAG_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_dos_control_icmpfrag_feature"/>
+                </run_if_and>
+            </run_if>
+
+            <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_DOSCONTROL_COMPONENT_ID,L7_DOSCONTROL_ICMPFRAG_FEATURE_ID" name="cond_dos_control_icmpfrag_feature"/>
+
+            <run_if name="DOS_CONTROL_L4PORT_MODE_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_dos_control_l4port_mode_feature"/>
+                    <run_if_use cond="cond_dos_control_udpport_mode_feature_not_present"/>
+                </run_if_and>
+            </run_if>
+
+            <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_DOSCONTROL_COMPONENT_ID,L7_DOSCONTROL_L4PORT_FEATURE_ID" name="cond_dos_control_l4port_mode_feature"/>
+            <run_if_cond func="usmDbFeatureNotPresentCheck" arg="0,L7_DOSCONTROL_COMPONENT_ID,L7_DOSCONTROL_UDPPORT_FEATURE_ID" name="cond_dos_control_udpport_mode_feature_not_present"/>
+
+            <run_if name="DOS_CONTROL_TCPFLAG_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_dos_control_tcpflag_feature"/>
+                    <run_if_use cond="cond_dos_control_tcpflagseq_feature_not_preset"/>
+                </run_if_and>
+            </run_if>
+
+            <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_DOSCONTROL_COMPONENT_ID,L7_DOSCONTROL_TCPFLAG_FEATURE_ID" name="cond_dos_control_tcpflag_feature"/>
+            <run_if_cond func="usmDbFeatureNotPresentCheck" arg="0,L7_DOSCONTROL_COMPONENT_ID,L7_DOSCONTROL_TCPFLAGSEQ_FEATURE_ID" name="cond_dos_control_tcpflagseq_feature_not_preset"/>
+
+            <run_if name="DOS_CONTROL_TCPFINURGPSH_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_dos_control_tcpfinurgpsh_feature"/>
+                </run_if_and>
+            </run_if>
+
+            <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_DOSCONTROL_COMPONENT_ID,L7_DOSCONTROL_TCPFINURGPSH_FEATURE_ID" name="cond_dos_control_tcpfinurgpsh_feature"/>
+
+            <run_if name="DOS_CONTROL_TCPFLAGSEQ_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_dos_control_tcpflagseq_feature"/>
+                </run_if_and>
+            </run_if>
+
+            <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_DOSCONTROL_COMPONENT_ID,L7_DOSCONTROL_TCPFLAGSEQ_FEATURE_ID" name="cond_dos_control_tcpflagseq_feature"/>
+
+            <run_if name="DOS_CONTROL_TCPOFFSET_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_dos_control_tcpoffset_feature"/>
+                </run_if_and>
+            </run_if>
+
+            <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_DOSCONTROL_COMPONENT_ID,L7_DOSCONTROL_TCPOFFSET_FEATURE_ID" name="cond_dos_control_tcpoffset_feature"/>
+
+            <run_if name="DOS_CONTROL_TCPPORT_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_dos_control_tcpport_feature"/>
+                    <run_if_use cond="cond_dos_control_udpport_feature"/>
+                </run_if_and>
+            </run_if>
+
+            <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_DOSCONTROL_COMPONENT_ID,L7_DOSCONTROL_TCPPORT_FEATURE_ID" name="cond_dos_control_tcpport_feature"/>
+
+            <run_if name="DOS_CONTROL_TCPSYN_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_dos_control_tcpsyn_feature"/>
+                </run_if_and>
+            </run_if>
+
+            <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_DOSCONTROL_COMPONENT_ID,L7_DOSCONTROL_TCPSYN_FEATURE_ID" name="cond_dos_control_tcpsyn_feature"/>
+
+            <run_if name="DOS_CONTROL_TCPSYNFIN_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_dos_control_tcpsynfin_feature"/>
+                </run_if_and>
+            </run_if>
+
+            <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_DOSCONTROL_COMPONENT_ID,L7_DOSCONTROL_TCPSYNFIN_FEATURE_ID" name="cond_dos_control_tcpsynfin_feature"/>
+
+            <run_if name="DOS_CONTROL_UDPPORT_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_dos_control_udpport_feature"/>
+                </run_if_and>
+            </run_if>
+
+            <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_DOSCONTROL_COMPONENT_ID,L7_DOSCONTROL_UDPPORT_FEATURE_ID" name="cond_dos_control_udpport_feature"/>
+
+            <run_if name="DVLANTAG_CUSTID_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_dvlantag_custid_feature"/>
+                </run_if_and>
+            </run_if>
+
+            <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_DVLANTAG_COMPONENT_ID, L7_DVLANTAG_CUSTID_FEATURE_ID" name="cond_dvlantag_custid_feature"/>
+            
+           <run_if name="DVLANTAG_ETHERTYPE_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_dvlantag_ethertype_feature"/>
+                </run_if_and>
+            </run_if>
+
+            <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_DVLANTAG_COMPONENT_ID, L7_DVLANTAG_ETHERTYPE_FEATURE_ID" name="cond_dvlantag_ethertype_feature"/>
+            <run_if name="DVLANTAG_ETHERTYPE_PER_INTERFACE_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_dvlantag_ethertype_per_interface_feature"/>
+                </run_if_and>
+            </run_if>
+
+            <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_DVLANTAG_COMPONENT_ID, L7_DVLANTAG_ETHERTYPE_PER_INTERFACE_FEATURE_ID" name="cond_dvlantag_ethertype_per_interface_feature"/>
+
+            <run_if name="NO_DVLANTAG_ETHERTYPE_PER_INTERFACE_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_dvlantag_no_ethertype_per_interface_feature"/>
+                </run_if_and>
+            </run_if>
+
+            <run_if_cond func="usmDbFeatureNotPresentCheck" arg="0,L7_DVLANTAG_COMPONENT_ID, L7_DVLANTAG_ETHERTYPE_PER_INTERFACE_FEATURE_ID" name="cond_dvlantag_no_ethertype_per_interface_feature"/>
+            
+            <run_if name="DVLANTAG_MULTI_TPID_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_dvlantag_multi_tpid_feature"/>
+                </run_if_and>
+            </run_if>
+            <run_if_cond func="usmDbFeaturePresentCheck" arg="0, L7_DVLANTAG_COMPONENT_ID, L7_DVLANTAG_MULTI_TPIDS_FEATURE_ID" name="cond_dvlantag_multi_tpid_feature"/>
+
+            <run_if name="QOS_COS_QUEUE_WRED_DECAY_EXP_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_cos_queue_wred_support_present"/>
+                    <run_if_use cond="cond_qos_cos_queue_wred_decay_exp_system_only_not_present"/>
+                </run_if_and>
+            </run_if>
+
+             <run_if name="QOS_COS_QUEUE_WRED_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_cos_queue_wred_support_present"/>
+                </run_if_and>
+            </run_if>
+
+            <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_COS_COMPONENT_ID,L7_COS_QUEUE_WRED_SUPPORT_FEATURE_ID" name="cond_qos_cos_queue_wred_support_present"/>
+            <run_if_cond func="usmDbFeatureNotPresentCheck" arg="0,L7_FLEX_QOS_COS_COMPONENT_ID,L7_COS_QUEUE_WRED_DECAY_EXP_SYSTEM_ONLY_FEATURE_ID" name="cond_qos_cos_queue_wred_decay_exp_system_only_not_present"/>
+
+             <run_if name="QOS_COS_QUEUE_WRED_FEATURE_NOT_PRESENT">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_cos_queue_wred_support_not_present"/>
+                </run_if_and>
+            </run_if>
+
+            <run_if_cond func="usmDbFeatureNotPresentCheck" arg="0,L7_FLEX_QOS_COS_COMPONENT_ID,L7_COS_QUEUE_WRED_SUPPORT_FEATURE_ID" name="cond_qos_cos_queue_wred_support_not_present"/>
+
+             <run_if name="QOS_COS_QUEUE_WRED_PER_INTF_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_cos_queue_wred_per_intf_present"/>
+                </run_if_and>
+            </run_if>
+
+            <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_COS_COMPONENT_ID,L7_COS_QUEUE_CFG_PER_INTF_FEATURE_ID" name="cond_qos_cos_queue_wred_per_intf_present"/>
+
+
+             <run_if name="NO_QOS_COS_QUEUE_WRED_PER_INTF_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_no_qos_cos_queue_wred_per_intf_present"/>
+                </run_if_and>
+            </run_if>
+
+            <run_if_cond func="usmDbFeatureNotPresentCheck" arg="0,L7_FLEX_QOS_COS_COMPONENT_ID,L7_COS_QUEUE_CFG_PER_INTF_FEATURE_ID" name="cond_no_qos_cos_queue_wred_per_intf_present"/>
+
+            <run_if name="QOS_COS_QUEUE_WRED_MAXTHRESH_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_cos_queue_wred_maxthres_present"/>
+                </run_if_and>
+            </run_if>
+
+            <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_COS_COMPONENT_ID,L7_COS_QUEUE_WRED_MAX_THRESH_FEATURE_ID" name="cond_qos_cos_queue_wred_maxthres_present"/>
+
+            <run_if name="QOS_COS_QUEUE_TDROP_THRESH_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_cos_queue_tdrop_thresh_present"/>
+                </run_if_and>
+            </run_if>
+
+            <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_COS_COMPONENT_ID,L7_COS_QUEUE_TDROP_THRESH_FEATURE_ID" name="cond_qos_cos_queue_tdrop_thresh_present"/>
+
+            <compile_if name="SSL_PACKAGE">
+                <compile_if_and>
+                    <compile_if_use cond="cond_ssl"/>
+                </compile_if_and>
+            </compile_if>
+
+        <compile_if_cond macro="L7_SSL_PACKAGE" name="cond_ssl"/>
+
+           <run_if name="GLOBAL_HASH_MODE_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_global_hash_mode_feature"/>
+                </run_if_and>
+           </run_if>
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_DOT3AD_COMPONENT_ID, L7_DOT3AD_HASHMODE_GLOBAL_FEATURE_ID" name="cond_global_hash_mode_feature"/>
+
+           <run_if name="INTF_HASH_MODE_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_intf_hash_mode_feature"/>
+                </run_if_and>
+           </run_if>
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_DOT3AD_COMPONENT_ID, L7_DOT3AD_HASHMODE_INTF_FEATURE_ID" name="cond_intf_hash_mode_feature"/>
+
+           <run_if name="QOS_COS_QUEUE_INTF_SHAPING_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_cos_queue_intf_shaping_present"/>
+                </run_if_and>
+           </run_if>
+
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_COS_COMPONENT_ID,L7_COS_QUEUE_INTF_SHAPING_FEATURE_ID" name="cond_qos_cos_queue_intf_shaping_present"/>
+
+           <run_if name="QOS_ACL_RULE_MATCH_PROTOCOL_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_acl_rule_match_protocol_present"/>
+                </run_if_and>
+           </run_if>
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_RULE_MATCH_PROTOCOL_FEATURE_ID" name="cond_qos_acl_rule_match_protocol_present"/>
+           <run_if name="ACL_LOG_PERMIT_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_acl_action_permit_logging_present"/>
+                </run_if_and>
+           </run_if>
+
+           <run_if name="ACL_LOG_DENY_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_acl_action_deny_logging_present"/>
+                </run_if_and>
+           </run_if>
+
+           <run_if name="ACL_RULE_LOGGING_FEATURE">
+                <run_if_or>
+                    <run_if_use cond="cond_qos_acl_action_deny_logging_present"/>
+                    <run_if_use cond="cond_qos_acl_action_permit_logging_present"/>
+                </run_if_or>
+           </run_if>
+
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_LOG_DENY_FEATURE_ID" name="cond_qos_acl_action_deny_logging_present"/>
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_LOG_PERMIT_FEATURE_ID" name="cond_qos_acl_action_permit_logging_present"/>
+
+           <run_if name="ACL_ASSIGN_QUEUE_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_acl_assign_queue_feature_present"/>
+                </run_if_and>
+           </run_if>
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_ASSIGN_QUEUE_FEATURE_ID" name="cond_qos_acl_assign_queue_feature_present"/>
+
+           <run_if name="ACL_MIRROR_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_acl_mirror_feature_present"/>
+                </run_if_and>
+           </run_if>
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_MIRROR_FEATURE_ID" name="cond_qos_acl_mirror_feature_present"/>
+
+           <run_if name="ACL_REDIRECT_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_acl_redirect_feature_present"/>
+                </run_if_and>
+           </run_if>
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_REDIRECT_FEATURE_ID" name="cond_qos_acl_redirect_feature_present"/>
+
+           <run_if name="ACL_RULE_MATCH_EVERY_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_acl_rule_match_every_feature_present"/>
+                </run_if_and>
+           </run_if>
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_RULE_MATCH_EVERY_FEATURE_ID" name="cond_qos_acl_rule_match_every_feature_present"/>
+
+           <run_if name="ACL_RULE_MATCH_COS_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_acl_rule_match_cos_feature_present"/>
+                </run_if_and>
+           </run_if>
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_RULE_MATCH_COS_FEATURE_ID" name="cond_qos_acl_rule_match_cos_feature_present"/>
+
+           <run_if name="ACL_RULE_MATCH_COS2_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_acl_rule_match_cos2_feature_present"/>
+                </run_if_and>
+           </run_if>
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_RULE_MATCH_COS2_FEATURE_ID" name="cond_qos_acl_rule_match_cos2_feature_present"/>
+
+           <run_if name="ACL_RULE_MATCH_DSTMAC_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_acl_rule_match_dstmac_feature_present"/>
+                </run_if_and>
+           </run_if>
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_RULE_MATCH_DSTMAC_FEATURE_ID" name="cond_qos_acl_rule_match_dstmac_feature_present"/>
+
+           <run_if name="ACL_RULE_MATCH_DSTMAC_MASK_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_acl_rule_match_dstmask_feature_present"/>
+                </run_if_and>
+           </run_if>
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_RULE_MATCH_DSTMAC_MASK_FEATURE_ID" name="cond_qos_acl_rule_match_dstmask_feature_present"/>
+
+           <run_if name="ACL_RULE_MATCH_ETYPE_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_acl_rule_match_etype_feature_present"/>
+                </run_if_and>
+           </run_if>
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_RULE_MATCH_ETYPE_FEATURE_ID" name="cond_qos_acl_rule_match_etype_feature_present"/>
+
+           <run_if name="ACL_RULE_MATCH_SRCMAC_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_acl_rule_match_srcmac_feature_present"/>
+                </run_if_and>
+           </run_if>
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_RULE_MATCH_SRCMAC_FEATURE_ID" name="cond_qos_acl_rule_match_srcmac_feature_present"/>
+
+           <run_if name="ACL_RULE_MATCH_SRCMAC_MASK_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_acl_rule_match_srcmask_feature_present"/>
+                </run_if_and>
+           </run_if>
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_RULE_MATCH_SRCMAC_MASK_FEATURE_ID" name="cond_qos_acl_rule_match_srcmask_feature_present"/>
+
+           <run_if name="ACL_RULE_MATCH_VLANID_RANGE_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_acl_rule_match_vlanid_range_feature_present"/>
+                </run_if_and>
+           </run_if>
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_RULE_MATCH_VLANID_RANGE_FEATURE_ID" name="cond_qos_acl_rule_match_vlanid_range_feature_present"/>
+
+           <run_if name="ACL_RULE_MATCH_VLANID_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_acl_rule_match_vlanid_feature_present"/>
+                </run_if_and>
+           </run_if>
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_RULE_MATCH_VLANID_FEATURE_ID" name="cond_qos_acl_rule_match_vlanid_feature_present"/>
+
+           <run_if name="ACL_RULE_MATCH_VLANID2_RANGE_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_acl_rule_match_vlanid2_range_feature_present"/>
+                </run_if_and>
+           </run_if>
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_RULE_MATCH_VLANID2_RANGE_FEATURE_ID" name="cond_qos_acl_rule_match_vlanid2_range_feature_present"/>
+
+           <run_if name="ACL_RULE_MATCH_VLANID2_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_acl_rule_match_vlanid2_feature_present"/>
+                </run_if_and>
+           </run_if>
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_RULE_MATCH_VLANID2_FEATURE_ID" name="cond_qos_acl_rule_match_vlanid2_feature_present"/>
+
+           <run_if name="QOS_ACL_RULE_SRCIP_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_acl_rule_match_protocol_present"/>
+                    <run_if_use cond="cond_qos_acl_rule_srcip_present"/>
+                </run_if_and>
+           </run_if>
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_RULE_MATCH_SRCIP_FEATURE_ID" name="cond_qos_acl_rule_srcip_present"/>
+
+           <run_if name="QOS_ACL_RULE_DSTIP_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_acl_rule_match_protocol_present"/>
+                    <run_if_use cond="cond_qos_acl_rule_dstip_present"/>
+                </run_if_and>
+           </run_if>
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_RULE_MATCH_DSTIP_FEATURE_ID" name="cond_qos_acl_rule_dstip_present"/>
+
+           <run_if name="QOS_ACL_RULE_MATCH_SUPPORTS_MASKING_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_acl_rule_match_protocol_present"/>
+                    <run_if_use cond="cond_qos_acl_rule_match_supports_masking_present"/>
+                </run_if_and>
+           </run_if>
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_RULE_MATCH_SUPPORTS_MASKING_FEATURE_ID" name="cond_qos_acl_rule_match_supports_masking_present"/>
+
+           <run_if name="QOS_ACL_RULE_MATCH_SRCL4PORT_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_acl_rule_match_protocol_present"/>
+                    <run_if_use cond="cond_qos_acl_rule_match_srcl4port_present"/>
+                </run_if_and>
+           </run_if>
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_RULE_MATCH_SRCL4PORT_FEATURE_ID" name="cond_qos_acl_rule_match_srcl4port_present"/>
+
+           <run_if name="QOS_ACL_RULE_MATCH_SRCL4PORT_RANGE_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_acl_rule_match_protocol_present"/>
+                    <run_if_use cond="cond_qos_acl_rule_match_srcl4port_range_present"/>
+                </run_if_and>
+           </run_if>
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_RULE_MATCH_SRCL4PORT_RANGE_FEATURE_ID" name="cond_qos_acl_rule_match_srcl4port_range_present"/>
+
+           <run_if name="QOS_ACL_RULE_MATCH_DSTL4PORT_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_acl_rule_match_protocol_present"/>
+                    <run_if_use cond="cond_qos_acl_rule_match_dstl4port_present"/>
+                </run_if_and>
+           </run_if>
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_RULE_MATCH_DSTL4PORT_FEATURE_ID" name="cond_qos_acl_rule_match_dstl4port_present"/>
+
+           <run_if name="QOS_ACL_RULE_MATCH_DSTL4PORT_RANGE_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_acl_rule_match_protocol_present"/>
+                    <run_if_use cond="cond_qos_acl_rule_match_dstl4port_range_present"/>
+                </run_if_and>
+           </run_if>
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_RULE_MATCH_DSTL4PORT_RANGE_FEATURE_ID" name="cond_qos_acl_rule_match_dstl4port_range_present"/>
+
+           <run_if name="QOS_ACL_RULE_MIRROR_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_acl_rule_mirror_present"/>
+                </run_if_and>
+           </run_if>
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_MIRROR_FEATURE_ID" name="cond_qos_acl_rule_mirror_present"/>
+
+           <run_if name="QOS_ACL_RULE_REDIRECT_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_acl_rule_redirect_present"/>
+                </run_if_and>
+           </run_if>
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_REDIRECT_FEATURE_ID" name="cond_qos_acl_rule_redirect_present"/>
+
+           <run_if name="QOS_ACL_RULE_ASSIGN_QUEUE_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_acl_rule_assign_queue_present"/>
+                </run_if_and>
+           </run_if>
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_ASSIGN_QUEUE_FEATURE_ID" name="cond_qos_acl_rule_assign_queue_present"/>
+
+           <run_if name="QOS_ACL_RULE_MATCH_IPDSCP_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_acl_rule_match_ipdscp_present"/>
+                </run_if_and>
+           </run_if>
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_RULE_MATCH_IPDSCP_FEATURE_ID" name="cond_qos_acl_rule_match_ipdscp_present"/>
+
+           <run_if name="QOS_ACL_RULE_MATCH_IPPRECEDENCE_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_acl_rule_match_ipprecedence_present"/>
+                </run_if_and>
+           </run_if>
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_RULE_MATCH_IPPRECEDENCE_FEATURE_ID" name="cond_qos_acl_rule_match_ipprecedence_present"/>
+
+           <run_if name="QOS_ACL_RULE_MATCH_IPTOS_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_acl_rule_match_iptos_present"/>
+                </run_if_and>
+           </run_if>
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_RULE_MATCH_IPTOS_FEATURE_ID" name="cond_qos_acl_rule_match_iptos_present"/>
+
+
+           <!-- start QOS ACLs IPv6 Specific Rule match conditions feature present checks -->
+            <run_if name="ACL_RULE_MATCH_IPV6_PROTOCOL_FEATURE">
+                 <run_if_and>
+                    <run_if_use cond="cond_qos_acl_rule_match_ipv6_protocol_present"/>
+                </run_if_and>
+           </run_if> 
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_RULE_MATCH_IPV6_PROTOCOL_FEATURE_ID" name="cond_qos_acl_rule_match_ipv6_protocol_present"/>
+
+            <run_if name="ACL_RULE_MATCH_IPV6_SRCIP_FEATURE">
+                 <run_if_and>
+                    <run_if_use cond="cond_qos_acl_rule_match_ipv6_srcip_present"/>
+                </run_if_and>
+           </run_if> 
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_RULE_MATCH_IPV6_SRCIP_FEATURE_ID" name="cond_qos_acl_rule_match_ipv6_srcip_present"/>
+            
+           <run_if name="ACL_RULE_MATCH_IPV6_DSTIP_FEATURE">
+                 <run_if_and>
+                    <run_if_use cond="cond_qos_acl_rule_match_ipv6_dstip_present"/>
+                </run_if_and>
+           </run_if> 
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_RULE_MATCH_IPV6_DSTIP_FEATURE_ID" name="cond_qos_acl_rule_match_ipv6_dstip_present"/>
+           
+           <run_if name="ACL_RULE_MATCH_IPV6_SRCL4PORT_FEATURE">
+                 <run_if_and>
+                    <run_if_use cond="cond_qos_acl_rule_match_ipv6_srcl4port_present"/>
+                </run_if_and>
+           </run_if> 
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_RULE_MATCH_IPV6_SRCL4PORT_FEATURE_ID" name="cond_qos_acl_rule_match_ipv6_srcl4port_present"/>
+           
+           <run_if name="ACL_RULE_MATCH_IPV6_SRCL4PORT_RANGE_FEATURE">
+                 <run_if_and>
+                    <run_if_use cond="cond_qos_acl_rule_match_ipv6_srcl4port_range_present"/>
+                </run_if_and>
+           </run_if> 
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_RULE_MATCH_IPV6_SRCL4PORT_RANGE_FEATURE_ID" name="cond_qos_acl_rule_match_ipv6_srcl4port_range_present"/>
+              
+           <run_if name="ACL_RULE_MATCH_IPV6_DSTL4PORT_FEATURE">
+                 <run_if_and>
+                    <run_if_use cond="cond_qos_acl_rule_match_ipv6_dstl4port_present"/>
+                </run_if_and>
+           </run_if> 
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_RULE_MATCH_IPV6_DSTL4PORT_FEATURE_ID" name="cond_qos_acl_rule_match_ipv6_dstl4port_present"/>
+           
+           <run_if name="ACL_RULE_MATCH_IPV6_DSTL4PORT_RANGE_FEATURE">
+                 <run_if_and>
+                    <run_if_use cond="cond_qos_acl_rule_match_ipv6_dstl4port_range_present"/>
+                </run_if_and>
+           </run_if> 
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_RULE_MATCH_IPV6_DSTL4PORT_RANGE_FEATURE_ID" name="cond_qos_acl_rule_match_ipv6_dstl4port_range_present"/>
+           
+           <run_if name="ACL_RULE_MATCH_IPV6_IPDSCP_FEATURE">
+                 <run_if_and>
+                    <run_if_use cond="cond_qos_acl_rule_match_ipv6_ipdscp_present"/>
+                </run_if_and>
+           </run_if> 
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_RULE_MATCH_IPV6_IPDSCP_FEATURE_ID" name="cond_qos_acl_rule_match_ipv6_ipdscp_present"/>
+
+           <run_if name="ACL_RULE_MATCH_IPV6_FLOWLBL_FEATURE">
+                 <run_if_and>
+                    <run_if_use cond="cond_qos_acl_rule_match_ipv6_flowlbl_present"/>
+                </run_if_and>
+           </run_if> 
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_RULE_MATCH_IPV6_FLOWLBL_FEATURE_ID" name="cond_qos_acl_rule_match_ipv6_flowlbl_present"/>
+      
+           <!-- end QOS ACLs IPv6 Specific Rule match conditions feature present checks -->
+             
+        <compile_if name="SECURE_MGMT_PACKAGE">
+            <compile_if_and>
+                <compile_if_use cond="secure_mgmt_package"/>
+            </compile_if_and>
+        </compile_if>
+
+        <compile_if_cond macro="L7_SECURE_MGMT_PACKAGE" name="secure_mgmt_package"/>
+
+        <compile_if name="IF_IPV6_PACKAGE_PRESENT">
+            <compile_if_and>
+                <compile_if_use cond="IPV6_PRESENT"/>
+            </compile_if_and>
+        </compile_if>
+
+        <compile_if_cond macro="L7_IPV6_PACKAGE" name="IPV6_PRESENT"/>
+
+        <compile_if name="DOT3AH_PACKAGE">
+            <compile_if_and>
+                    <compile_if_use cond="DOT3AH_PRESENT"/>
+                </compile_if_and>
+            </compile_if>
+
+        <compile_if_cond macro="L7_DOT3AH_PACKAGE" name="DOT3AH_PRESENT"/><run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_DOSCONTROL_COMPONENT_ID,L7_DOSCONTROL_UDPPORT_FEATURE_ID" name="cond_dos_control_udpport_feature"/>
+
+            <run_if name="DIFFSERV_CLASS_MATCH_EXCLUDE_FEATURE">
+              <run_if_and>
+                <run_if_use cond="qos_diffserv_class_exclude"/>
+              </run_if_and>
+            </run_if>
+
+            <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_CLASS_MATCH_EXCLUDE_FEATURE_ID" name="qos_diffserv_class_exclude"/>
+
+        <compile_if name="PRODUCT_SMB">
+            <compile_if_and>
+                <compile_if_use cond="product_is_smb"/>
+            </compile_if_and>
+        </compile_if>
+
+        <compile_if_cond macro="L7_PRODUCT_SMB" name="product_is_smb"/>
+
+        <compile_if name="PRODUCT_ENTERPRISE">
+            <compile_if_and>
+                <compile_if_use cond="product_is_enterprise"/>
+            </compile_if_and>
+        </compile_if>
+
+        <compile_if_cond macro="L7_PRODUCT_ENTERPRISE" name="product_is_enterprise"/>
+
+
+        <compile_if name="IF_SNMP_PACKAGE_PRESENT">
+            <compile_if_and>
+                 <compile_if_use cond="SNMP_PRESENT"/>
+            </compile_if_and>
+        </compile_if>
+
+        <compile_if_cond macro="L7_SNMP_PACKAGE" name="SNMP_PRESENT"/>
+
+        <run_if name="FEAT_IF_NOT_MERLION">
+          <run_if_and>
+            <run_if_use cond="cond_if_not_merlion"/>
+          </run_if_and>
+        </run_if>
+
+        <run_if_cond func="usmDbIsNotFeatMetroCpeV10Check" arg="" name="cond_if_not_merlion"/>
+        <run_if name="FEAT_IF_MERLION">
+          <run_if_and>
+            <run_if_use cond="cond_if_merlion"/>
+          </run_if_and>
+        </run_if>
+        <run_if_cond func="usmDbIsFeatMetroCpeV10Check" arg="" name="cond_if_merlion"/>
+
+        <run_if name="IP_SOURCE_GUARD_FEATURE">
+          <run_if_and>
+            <run_if_use cond="cond_ip_source_guard_feature"/>
+          </run_if_and>
+        </run_if>
+
+        <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_DHCP_SNOOPING_COMPONENT_ID,L7_DHCP_SNOOPING_IPSG" name="cond_ip_source_guard_feature"/>
+
+        <run_if name="IS_DS_DB_PERSISTENCY_PRESENT">
+          <run_if_and>
+            <run_if_use cond="cond_dhcp_snooping_db_persistency_feature"/>
+          </run_if_and>
+        </run_if>
+
+        <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_DHCP_SNOOPING_COMPONENT_ID,L7_DHCP_SNOOPING_DB_PERSISTENCY" name="cond_dhcp_snooping_db_persistency_feature"/>
+
+        <run_if name="IS_SERVICE_PORT_PRESENT">
+            <run_if_and>
+                <run_if_use cond="service_port_present"/>
+            </run_if_and>
+        </run_if>
+
+        <run_if_cond func="usmDbComponentPresentCheck" arg="0,L7_SERVICE_PORT_PRESENT_ID" name="service_port_present"/>
+		
+        <run_if name="IS_FPS_FEATURE_PRESENT">
+          <run_if_and>
+            <run_if_use cond="fps_port_present"/>
+          </run_if_and>
+        </run_if>
+        <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_STACKING_COMPONENT_ID,L7_FPS_PORT_MODE_CFG_FEATURE_ID" name="fps_port_present"/>
+
+            <run_if name="QOS_COS_MAP_IPPREC_FEATURE">
+              <run_if_and>
+                <run_if_use cond="qos_cos_ipprec_support_present"/>
+              </run_if_and>
+            </run_if>
+
+            <run_if_cond func="usmDbFeaturePresentCheck"  arg="0,L7_FLEX_QOS_COS_COMPONENT_ID,L7_COS_MAP_IPPREC_FEATURE_ID" name="qos_cos_ipprec_support_present"/>
+
+            <run_if name="QOS_COS_MAP_IPPREC_FEATURE_NOT_PRESENT">
+              <run_if_and>
+                <run_if_use cond="qos_cos_ipprec_support_not_present"/>
+              </run_if_and>
+            </run_if>
+
+            <run_if_cond func="usmDbFeatureNotPresentCheck"  arg="0,L7_FLEX_QOS_COS_COMPONENT_ID,L7_COS_MAP_IPPREC_FEATURE_ID" name="qos_cos_ipprec_support_not_present"/>
+
+       <run_if name="SIM_ALLOW_LOCAL_MAC_USAGE_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_sim_local_mac_support_present"/>
+                </run_if_and>
+            </run_if>
+
+      <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_SIM_COMPONENT_ID,L7_SIM_ALLOW_LOCAL_MAC_USAGE_FEATURE_ID" name="cond_sim_local_mac_support_present"/>
+
+            <run_if name="QOS_ACL_INTF_VLAN_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="qos_acl_intf_vlan_support_present"/>
+                </run_if_and>
+            </run_if>
+            <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_INTF_VLAN_SUPPORT_FEATURE_ID" name="qos_acl_intf_vlan_support_present"/>
+
+            <run_if name="QOS_ACL_INTF_VLAN_FEATURE_NOT_PRESENT">
+                <run_if_and>
+                    <run_if_use cond="qos_acl_intf_vlan_support_not_present"/>
+                </run_if_and>
+            </run_if>
+            <run_if_cond func="usmDbFeatureNotPresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_INTF_VLAN_SUPPORT_FEATURE_ID" name="qos_acl_intf_vlan_support_not_present"/>
+
+            <run_if name="QOS_ACL_IPV6_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="qos_acl_ipv6_support_present"/>
+                </run_if_and>
+            </run_if>
+            <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_TYPE_IPV6_FEATURE_ID" name="qos_acl_ipv6_support_present"/>
+
+       <run_if name="QOS_DIFFSERV_SERVICE_OUT_SLOTPORT_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_diffserv_service_out_slotport_feature_present"/>
+                </run_if_and>
+            </run_if>
+
+       <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_SLOTPORT_FEATURE_ID" name="cond_qos_diffserv_service_out_slotport_feature_present"/>
+
+       <run_if name="QOS_DIFFSERV_SERVICE_OUT_SLOTPORT_FEATURE_NOT_PRESENT">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_diffserv_service_out_slotport_feature_not_present"/>
+                </run_if_and>
+            </run_if>
+
+       <run_if_cond func="usmDbFeatureNotPresentCheck" arg="0,L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_SLOTPORT_FEATURE_ID" name="cond_qos_diffserv_service_out_slotport_feature_not_present"/>
+
+       <run_if name="QOS_DIFFSERV_CLASS_L3PROTO_IPV6_FEATURE">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_diffserv_class_l3proto_ipv6_feature_present"/>
+                </run_if_and>
+            </run_if>
+
+       <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_CLASS_L3PROTO_IPV6_FEATURE_ID" name="cond_qos_diffserv_class_l3proto_ipv6_feature_present"/>
+
+       <run_if name="QOS_DIFFSERV_CLASS_L3PROTO_IPV6_FEATURE_NOT_PRESENT">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_diffserv_class_l3proto_ipv6_feature_not_present"/>
+                </run_if_and>
+            </run_if>
+
+       <run_if_cond func="usmDbFeatureNotPresentCheck" arg="0,L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_CLASS_L3PROTO_IPV6_FEATURE_ID" name="cond_qos_diffserv_class_l3proto_ipv6_feature_not_present"/>
+
+    <!--Start run-if for  Diffserv Policy Attributes -->
+          <run_if name="QOS_DIFFSERV_POLICY_ATTR_POLICE_SINGLERATE_FEATURE_PRESENT">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_diffserv_policy_attr_police_singlerate_feature_present"/>
+                </run_if_and>
+            </run_if>
+                <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_POLICY_ATTR_POLICE_SINGLERATE_FEATURE_ID" name="cond_qos_diffserv_policy_attr_police_singlerate_feature_present"/>
+
+
+          <run_if name="QOS_DIFFSERV_POLICY_ATTR_POLICE_TWORATE_FEATURE_PRESENT">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_diffserv_policy_attr_police_tworate_feature_present"/>
+                </run_if_and>
+            </run_if>
+                <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_POLICY_ATTR_POLICE_TWORATE_FEATURE_ID" name="cond_qos_diffserv_policy_attr_police_tworate_feature_present"/>
+
+          <run_if name="QOS_DIFFSERV_POLICY_ATTR_POLICE_COLORAWARE_FEATURE_PRESENT">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_diffserv_policy_attr_police_coloraware_feature_present"/>
+                </run_if_and>
+            </run_if>
+            
+             <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_POLICY_ATTR_POLICE_COLORAWARE_FEATURE_ID" name="cond_qos_diffserv_policy_attr_police_coloraware_feature_present"/>
+          
+    <!-- end of Diffserv Policy Attributes -->
+	   
+	   <run_if name="IS_POE_PRESENT">
+                <run_if_and>
+                    <run_if_use cond="cond_poe_feature"/>
+                </run_if_and>
+           </run_if>
+
+            <run_if_cond func="usmDbComponentPresentCheck" arg="0,L7_POE_COMPONENT_ID" name="cond_poe_feature"/>  
+
+           <run_if name="QOS_ACL_DIRECTION_BOTH_SUPPORTED">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_acl_direction_in"/>
+                    <run_if_use cond="cond_qos_acl_direction_out"/>        
+                </run_if_and>
+           </run_if>
+
+           <run_if name="QOS_ACL_DIRECTION_IN_ONLY_SUPPORTED">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_acl_direction_in"/>
+                    <run_if_use cond="cond_qos_acl_direction_out_absent"/>
+                </run_if_and>
+           </run_if>
+
+           <run_if name="QOS_ACL_DIRECTION_OUT_ONLY_SUPPORTED">
+                <run_if_and>
+                    <run_if_use cond="cond_qos_acl_direction_in_absent"/>
+                    <run_if_use cond="cond_qos_acl_direction_out"/>
+                </run_if_and>
+           </run_if>
+
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_INTF_DIRECTION_INBOUND_FEATURE_ID" name="cond_qos_acl_direction_in"/>
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_INTF_DIRECTION_OUTBOUND_FEATURE_ID" name="cond_qos_acl_direction_out"/>
+           <run_if_cond func="usmDbFeatureNotPresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_INTF_DIRECTION_INBOUND_FEATURE_ID" name="cond_qos_acl_direction_in_absent"/>
+           <run_if_cond func="usmDbFeatureNotPresentCheck" arg="0,L7_FLEX_QOS_ACL_COMPONENT_ID,L7_ACL_INTF_DIRECTION_OUTBOUND_FEATURE_ID" name="cond_qos_acl_direction_out_absent"/>
+          <run_if name="METRO_DOT1AD_SVLAN_FEATURE_SUUPORTED">
+                <run_if_and>
+                    <run_if_use cond="cond_metro_dot1ad_svlan_feature"/>
+                </run_if_and>
+           </run_if>
+
+           <run_if_cond func="usmDbFeaturePresentCheck" arg="0,L7_FLEX_METRO_DOT1AD_COMPONENT_ID,L7_FLEX_METRO_DOT1AD_SVLAN_FEATURE_ID" name="cond_metro_dot1ad_svlan_feature"/>
+
+<compile_if name="IF_CAPTIVE_PORTAL_PACKAGE_PRESENT">
+                <compile_if_and>
+                    <compile_if_use cond="CAPTIVE_PORTAL_PRESENT"/>
+                </compile_if_and>
+            </compile_if>
+            <compile_if_cond macro="L7_CAPTIVE_PORTAL_PACKAGE" name="CAPTIVE_PORTAL_PRESENT"/>
+       
+            <compile_if name="IF_POE_PACKAGE">
+                <compile_if_or>
+                    <compile_if_use cond="POE_PRESENT"/>
+                </compile_if_or>
+            </compile_if>
+            <compile_if_cond macro="L7_POE_PACKAGE" name="POE_PRESENT"/>
+
+            <compile_if name="IF_QOS_FLEX_PACKAGE_ACL">
+                <compile_if_or>
+                    <compile_if_use cond="ACL_PRESENT"/>
+                </compile_if_or>
+            </compile_if>
+            <compile_if_cond macro="L7_QOS_FLEX_PACKAGE_ACL" name="ACL_PRESENT"/>
+   </product_if>
+    </misc>
+</FastPathXML>

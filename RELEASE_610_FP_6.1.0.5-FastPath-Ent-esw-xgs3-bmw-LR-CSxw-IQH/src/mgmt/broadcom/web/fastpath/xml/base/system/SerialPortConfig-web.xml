@@ -1,0 +1,55 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="SerialPortConfig" title="Serial Port Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element arghelp="HELP_FORMAT_FP" obj-name="basesysSerialPort_sysSerialTimeOut" id="1" name="Serial Port Login Timeout (minutes)" maxLength="10"/>
+            </node>
+            <node id="2">
+                <element control="combo" obj-name="basesysSerialPort_sysAgentBasicConfigSerialBaudRate" id="1" name="Baud Rate (bps)"/>
+            </node>
+            <node id="3">
+                <element obj-name="basesysSerialPort_sysSerialPortParmCharSize" id="1" name="Character Size (bits)"/>
+            </node>
+            <node id="4">
+                <element obj-name="basesysSerialPort_sysSerialPortParmFlowControl" id="1" name="Flow Control"/>
+            </node>
+            <node id="5">
+                <element obj-name="basesysSerialPort_sysSerialPortParmStopBits" id="1" name="Stop Bits"/>
+            </node>
+            <node id="6">
+                <element obj-name="basesysSerialPort_sysSerialPortParmParityType" id="1" name="Parity"/>
+            </node>
+            <node id="7">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+        </group>
+        <group level="ReadOnlyUser" id="2" heading="  ">
+            <node id="1">
+                <element control="label" properties="read-only" obj-name="basesysSerialPort_sysSerialTimeOut" id="1" name="Serial Port Login Timeout(minutes)"/>
+            </node>
+            <node id="2">
+                <element control="label" properties="read-only" obj-name="basesysSerialPort_sysAgentBasicConfigSerialBaudRate" id="1" name="Baud Rate(bps)"/>
+            </node>
+            <node id="3">
+                <element obj-name="basesysSerialPort_sysSerialPortParmCharSize" id="1" name="Character Size(bits)"/>
+            </node>
+            <node id="4">
+                <element obj-name="basesysSerialPort_sysSerialPortParmFlowControl" id="1" name="Flow Control"/>
+            </node>
+            <node id="5">
+                <element obj-name="basesysSerialPort_sysSerialPortParmStopBits" id="1" name="Stop Bits"/>
+            </node>
+            <node id="6">
+                <element obj-name="basesysSerialPort_sysSerialPortParmParityType" id="1" name="Parity"/>
+            </node>
+            <node id="7">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

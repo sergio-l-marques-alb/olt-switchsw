@@ -1,0 +1,170 @@
+<EMWEB_IF ID=USMWEB_IF_LVL_HDR_NOT_REQ>
+<!--
+/*********************************************************************
+*
+* (C) Copyright Broadcom Corporation 2001-2007
+*
+**********************************************************************
+*
+* @filename  cp_status.html
+*
+* @purpose   HTML content
+*
+* @comments  None
+*
+* @create    7/9/2007
+*
+* @author    rjindal
+*
+* @end
+*
+*********************************************************************/
+-->
+</EMWEB_IF>
+emweb:/USMWEB_PAGE_DTD_HEADER_GET;
+<HTML>
+<HEAD>
+   emweb:/USMWEB_PAGE_META_DATA_GET; <!-- Style Sheet link and Meta data     -->
+   <TITLE>emweb:/USMWEB_SECURITY_OEM_STRING_GET?1957;</TITLE>
+
+<script type='text/javascript' language='JavaScript'>
+function DisplayErrorMsg()
+//******************************************************************************
+//* Purpose: Display an input error message.
+//* Return:  none
+//******************************************************************************
+{
+    alert(document.forms[0].err_msg.value);
+}
+
+function check_error()
+{
+   if (document.forms[0].err_flag.value == 1)
+   {
+      DisplayErrorMsg();
+   }
+
+   os = document.forms[0].oper_status.value;
+   bs = document.forms[0].block_status.value;
+
+   if ((os == "Disabled") ||
+       (bs == "Blocking") ||
+       (bs == "Unblocking"))
+   {
+      document.forms[0].Block.disabled = true;
+      document.forms[0].Unblock.disabled = true;
+   }
+   else if (bs == "Blocked")
+   {
+      document.forms[0].Block.disabled = true;
+      document.forms[0].Unblock.disabled = false;
+   }
+   else
+   {
+      document.forms[0].Block.disabled = false;
+      document.forms[0].Unblock.disabled = true;
+   }
+}
+
+function cp_id_refresh()
+{
+  document.forms[0].submit();
+}
+
+function verify_block()
+{
+  var prompt = window.confirm("Are you sure you want to block all traffic and deauthenticate all users for this Captive Portal configuration?");
+  if (prompt)
+  {
+    document.forms[0].refresh_in_progress.value = 1;
+    document.forms[0].refresh_key.value = 1;
+  }
+  else
+  {
+    document.forms[0].refresh_in_progress.value = 0;
+    document.forms[0].refresh_key.value = 0;
+  }
+  document.forms[0].submit();
+}
+
+</script>
+</HEAD>
+
+<BODY class="bodyframeattributes" onload="check_error()">
+<FORM method="post" EMWEB_NAME="cpStatus">
+
+<!-- ----------------------------------------------------------------------- -->
+<!--         Tabbed Navigation                                               -->
+<!-- ----------------------------------------------------------------------- -->
+emweb:/USMWEB_TABS_CP_GLOBAL_STATUS?1;
+
+<!-- ----------------------------------------------------------------------- -->
+<!--         Web page header                                                 -->
+<!-- ----------------------------------------------------------------------- -->
+emweb:/USMWEB_SECURITY_PAGE_HEADER_1ST_GET?1957;   <!-- Includes page title          -->
+emweb:/USMWEB_SECURITY_PAGE_HEADER_2ND_GET?2757;   <!-- Includes help page link      -->
+
+<TABLE CLASS="tablecontent" emweb:/USMWEB_TABLE_CONTENT_ALIGN;>
+
+  <TR>
+  <TD align="center" colspan=2><select class="selectfield" name="cp_id" size="1" maxlength="3" EMWEB_ITERATE EMWEB_TYPE="DECIMAL_UINT" onchange="cp_id_refresh()">
+      <option class="selectfield" value="one">1</option>
+      </select>
+  </TD>
+  </TR>
+
+  <TR><TD>&nbsp;</TD></TR>
+
+  <TR>
+  <TD width="25%" class="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?1872;</TD> <!-- Operational Status -->
+  <TD width="25%" class="rowdataattributes"><input class="rowdataattributes" type="text" size="30" name="oper_status" READONLY></TD>
+  <TD width="50%"></TD>
+  </TR>
+
+  <EMWEB_IF ID=USMWEB_IF_CP_OPER_STATUS_DISABLED>
+  <TR>
+  <TD width="25%" class="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27127;</TD> <!-- Disable Reason-->
+  <TD width="25%" class="rowdataattributes"><input class="rowdataattributes" type="text" size="30" name="disable_reason" READONLY></TD>
+  <TD width="50%"></TD>
+  </TR>
+  </EMWEB_IF>
+
+  <TR>
+  <TD width="25%" class="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27128;</TD> <!-- Blocked Status -->
+  <TD width="25%" class="rowdataattributes"><input class="rowdataattributes" type="text" size="30" name="block_status" READONLY></TD>
+  <TD width="50%"></TD>
+  </TR>
+
+  <TR>
+  <TD width="25%" class="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27121;</TD> <!-- Authenticated Users -->
+  <TD width="25%" class="rowdataattributes"><input class="rowdataattributes" type="text" size="30" name="cp_auth_users" EMWEB_TYPE=DECIMAL_UINT READONLY></TD>
+  <TD width="50%"></TD>
+  </TR>
+
+  <TR>
+  <TD colspan=2 emweb:/USMWEB_BUTTON_ALIGN;><BR>
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+    <input class="buttonattributes" type="submit" name="Block" onclick="verify_block();">
+    <input class="buttonattributes" type="submit" name="Unblock">
+</EMWEB_IF>
+    <input class="buttonattributes" type="submit" name="Refresh">
+  </TD>
+  </TR>
+
+
+</TABLE>
+
+<INPUT TYPE="hidden" NAME="err_flag" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT value="">
+<INPUT TYPE="hidden" NAME="err_msg" SIZE="128" MAXLENGTH="127">
+<INPUT TYPE="hidden" NAME="refresh_in_progress" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT>
+<INPUT TYPE="hidden" NAME="refresh_key" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT>
+
+<!-- ----------------------------------- -->
+<!--         Web page footer             -->
+<!-- ----------------------------------- -->
+ emweb:/USMWEB_PAGE_FOOTER_GET;
+
+</FORM>
+</BODY>
+</HTML>
+
