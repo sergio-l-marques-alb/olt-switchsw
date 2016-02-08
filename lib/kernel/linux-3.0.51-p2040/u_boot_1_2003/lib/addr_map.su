@@ -1,0 +1,3 @@
+addr_map.c:28:13:addrmap_virt_to_phys	16	static
+addr_map.c:50:7:addrmap_phys_to_virt	16	static
+addr_map.c:75:6:addrmap_set_entry	16	static
