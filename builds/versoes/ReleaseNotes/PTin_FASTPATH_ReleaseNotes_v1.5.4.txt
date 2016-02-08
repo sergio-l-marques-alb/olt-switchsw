@@ -1,0 +1,56 @@
+[Release Notes]
+version 1.4.0.a
+ - New: Vlan allocation refactored. Instead of picking decremental vlans
+        starting from 4092, now groups of vlans are used for each EVC. This
+        way, several improvements can be implemented for FFP rules allocation.
+ - New: Resources management refactored. FFP rules are limited for QoS, and
+        garantees were introduced to be be able to allocate up to 60 unicast/
+        /bitstream services. IGMP and DHCP trapping rules were optimized in
+        order to save the maximum number of available FFP rules.
+ - Fix: Bandwidth profiles were not being removed. Corrected.
+version 1.4.0.b
+ - Fix: LAG recheck after link-down/link-up, were being made not only to
+        bitstream services, but all unicast as well: corrected.
+ - Fix: Dynamic Lags were not starting properly after boot-up. A temporary
+        solution was found, which by reenabling the LAG interfaces, after
+        manager configurations download, the problem stopped to be visible.
+        problem 
+version 1.4.2
+ - Fix: For bitstream services and BW profiles 'NO_FPROFILE', one extra rule
+        (in excess) was being created.
+ - Fix: Lag Recheck routine improved for tag id changes, without passing through
+        the tag id -1 (necessary for static lags).
+version 1.4.3
+ - New: Protection included in the 'counters at request', to avoid requesting
+        simultaneous counting of one ONT client and of its global service.
+version 1.4.4
+ - Fix: Transmitted packets from processor go at the highest QoS (7) to avoid
+        being blocked by higher priority traffic.
+version 1.4.5
+ - Fix: UTC clock changes, were afecting fastpath timers behavior. Reference
+        system clock changed from CLOCK_REALTIME to CLOCK_MONOTONIC.
+version 1.5.0
+ - New: New message to configure the Access Node Identifier for all client
+        circuit id's.
+ - Fix: DHCP statistics at client level were not counting for packets rx/tx
+        on network ports.
+ - Fix: Server packets received on untrusted interfaces were being dropped
+        before updating relay agent counters.
+version 1.5.1
+ - New: Circuit ID syntax rearranged for PT-C. The implemented model, is
+        flexible for the slot field value.
+ - New: Validations and auto-corrections implemented for the circuit id string.
+ - New: Added debug functions to dump and to remove active counters.
+ - Fix: Reset Defaults were not clearing active counters (at EVC destruction).
+version 1.5.2
+ - Fix: DHCP database (with circuit and remote ids) cleared duraing a reset
+        defaults.
+version 1.5.3
+ - New: Added dump routines to verify for existent counters (at request).
+ - Fix: Variables initialization were not being done for FFP rules management
+        responsible for traffic flowing (bitstream, etc).
+version 1.5.4
+ - Fix: IGMP single vlan (de)activation was not working (only applied to all).
+ - Fix: IGMP timer routines, were using a REALTIME clock. Changed to MONOTNIC
+        (osapi.c).
+Release built at Wed Jan 23 13:36:40 WET 2013

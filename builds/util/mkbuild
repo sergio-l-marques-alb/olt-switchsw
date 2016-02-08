@@ -1,0 +1,32 @@
+if [ $# != 3 ]; then
+echo "Usage: $0 shell dir setup";
+exit 0;
+fi
+
+temp_sh="$0.temp" 
+
+file_build=$3    
+file_cli=`ls -c1 $2 | grep _cli_`    
+file_dbsync=`ls -c1 $2 | grep _dbsync_` 
+file_fw=`ls -c1 $2 | grep _fw_`     
+file_manager=`ls -c1 $2 | grep _manager_`
+file_snmp=`ls -c1 $2 | grep _snmp_`  
+file_webti=`ls -c1 $2 | grep _webti_`  
+
+
+echo "file_build=$file_build"	   > $temp_sh
+echo "file_cli=$file_cli"   	  >> $temp_sh
+echo "file_dbsync=$file_dbsync"	  >> $temp_sh
+echo "file_fw=$file_fw"    	  >> $temp_sh
+echo "file_manager=$file_manager" >> $temp_sh
+echo "file_snmp=$file_snmp"  	  >> $temp_sh
+echo "file_webti=$file_webti" 	  >> $temp_sh
+
+cat $1 >> $temp_sh
+
+mksetup $temp_sh $2 $3
+md5sum $3 > $3.md5sum
+
+rm $temp_sh
+
+

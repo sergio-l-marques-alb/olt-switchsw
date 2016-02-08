@@ -1,0 +1,32 @@
+Steps:
+1.  Go to Broadcom administration webpage (ip:8080)
+      login: admin
+      pass:  (none)
+2.  Search for the parameter and set a new unique value (e.g. 12345)
+3.  Enter CLI through the following command: telnet <card ip> 8023
+4.  Enable administration mode and show running config:
+      en
+      show running-config
+5.  Search for the configuration value and use the tag of such
+    parameter on the following steps.
+6.  Do a full search on the Fastpath project for the above tag.
+    You should find a .c file under 'src/mgmt/broadcom/cli/...' that
+    contains that tag, particularly a function that is used to set
+    that parameter through CLI.
+7.  Look inside that function for a 'usmDb' function that actually
+    sets the value on the database. Once you found the function, you
+    can move to the implementation process.
+
+8.  Look for:
+     a) src/application/ptin/ptinHap/CHMessageHandler.c
+     b) src/application/ptin/ptinHap/include/CHMessageHandler.h
+     c) src/dtl/base/include/dtl_ptin.h
+9.  The file 'CHMessageHandler.h' contains the commands' list. Create
+    a new one! Please note that commands from OLT start with 0x9---
+10. The file 'CHMessageHandler.c' handles the command. Add code for it.
+11. The file 'dtl_ptin.h' has several strutures that define different
+    payloads for the messages. Create a new one or use an existing one
+    if appropriate.
+
+12. Finally, discuss those changes with the Manager staff and get it
+    approved.

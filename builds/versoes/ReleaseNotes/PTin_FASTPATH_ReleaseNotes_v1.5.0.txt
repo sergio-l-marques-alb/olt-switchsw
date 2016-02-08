@@ -1,0 +1,51 @@
+[Release Notes]
+version 1.3.1
+ - Fix: Out of valid memory writing (lagActiveMembers)
+ - Fix: Active member alarm converted to Inactive member alarm (open+close).
+        An interface that leaves an alarm do not open inactive member alarm.
+version 1.3.2
+ - New: ERROR_CODE_NOTSUPPORTED=0x000F code error added for not supported QoS
+        profiles.
+ - Fix: Maximum bandwidth for QoS modified from 10G to 100G, to allow 10G
+        profiles to all 8 QoS.
+version 1.3.3
+ - Fix: Inactive LAG member alarm closed when interface is deactivated, and
+        may be reopened when interface is reactivated.
+version 1.4.0.a
+ - New: Vlan allocation refactored. Instead of picking decremental vlans
+        starting from 4092, now groups of vlans are used for each EVC. This
+        way, several improvements can be implemented for FFP rules allocation.
+ - New: Resources management refactored. FFP rules are limited for QoS, and
+        garantees were introduced to be be able to allocate up to 60 unicast/
+        /bitstream services. IGMP and DHCP trapping rules were optimized in
+        order to save the maximum number of available FFP rules.
+ - Fix: Bandwidth profiles were not being removed. Corrected.
+version 1.4.0.b
+ - Fix: LAG recheck after link-down/link-up, were being made not only to
+        bitstream services, but all unicast as well: corrected.
+ - Fix: Dynamic Lags were not starting properly after boot-up. A temporary
+        solution was found, which by reenabling the LAG interfaces, after
+        manager configurations download, the problem stopped to be visible.
+        problem 
+version 1.4.2
+ - Fix: For bitstream services and BW profiles 'NO_FPROFILE', one extra rule
+        (in excess) was being created.
+ - Fix: Lag Recheck routine improved for tag id changes, without passing through
+        the tag id -1 (necessary for static lags).
+version 1.4.3
+ - New: Protection included in the 'counters at request', to avoid requesting
+        simultaneous counting of one ONT client and of its global service.
+version 1.4.4
+ - Fix: Transmitted packets from processor go at the highest QoS (7) to avoid
+        being blocked by higher priority traffic.
+version 1.4.5
+ - Fix: UTC clock changes, were afecting fastpath timers behavior. Reference
+        system clock changed from CLOCK_REALTIME to CLOCK_MONOTONIC.
+version 1.5.0
+ - New: New message to configure the Access Node Identifier for all client
+        circuit id's.
+ - Fix: DHCP statistics at client level were not counting for packets rx/tx
+        on network ports.
+ - Fix: Server packets received on untrusted interfaces were being dropped
+        before updating relay agent counters.
+Release built at Mon Nov 12 19:17:27 WET 2012

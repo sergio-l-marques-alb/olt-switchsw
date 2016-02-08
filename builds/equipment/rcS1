@@ -1,0 +1,11 @@
+#!/bin/sh
+
+echo "Switch: insmod"
+sh /usr/local/ptin/scripts/fastpath.insmods.sh
+
+echo "Switch: fastpath"
+nice -n 1 sh /usr/local/ptin/sbin/fastpath boot &
+sleep 15
+/usr/local/ptin/sbin/fastpath.cli ping
+
+echo "Switch: done!"

@@ -1,0 +1,53 @@
+[Release Notes]
+version 1.5.0
+ - New: New message to configure the Access Node Identifier for all client
+        circuit id's.
+ - Fix: DHCP statistics at client level were not counting for packets rx/tx
+        on network ports.
+ - Fix: Server packets received on untrusted interfaces were being dropped
+        before updating relay agent counters.
+version 1.5.1
+ - New: Circuit ID syntax rearranged for PT-C. The implemented model, is
+        flexible for the slot field value.
+ - New: Validations and auto-corrections implemented for the circuit id string.
+ - New: Added debug functions to dump and to remove active counters.
+ - Fix: Reset Defaults were not clearing active counters (at EVC destruction).
+version 1.5.2
+ - Fix: DHCP database (with circuit and remote ids) cleared duraing a reset
+        defaults.
+version 1.5.3
+ - New: Added dump routines to verify for existent counters (at request).
+ - Fix: Variables initialization were not being done for FFP rules management
+        responsible for traffic flowing (bitstream, etc).
+version 1.5.4
+ - Fix: IGMP single vlan (de)activation was not working (only applied to all).
+ - Fix: IGMP timer routines, were using a REALTIME clock. Changed to MONOTNIC
+        (osapi.c).
+version 1.5.5
+ - Fix: IGMP single vlan deactivation, was not removing the correct entries in
+        snoopEntriesDoFlush function (snooping_util.c).
+version 1.5.6
+ - New: Logger libraries included for advanced debugging. IGMP snooping modules
+        already use them.
+ - Fix: IGMP Snooping entries were not being deleted, after all interfaces had
+        been removed. This only applies for dynamic entries.
+version 1.5.7
+ - Fix: All counters (service and client) were being removed, when client/channel
+       field was null.
+Version 1.6.0
+ - New: Multicast Channels White List implemented.
+ - New: Bitsream service with MAC Learning replaced the old Bitstream service.
+Version 1.6.2
+ - Fix: Bitstream with MAC learning forces MC_flood to 1.
+ - Fix: Multicast Channels White List is being applied.
+Version 1.6.3
+ - Fix: Root user is not required to install setup.
+Version 1.6.4
+ - Fix: DHCP client counters, are only being incremented at PON side.
+ - Fix NBGLEGACY-508: VLAN lavdation was not being done for EVC creation (cannot be equal between different EVCs, bit same port).
+Version 1.6.5
+ - (un)Fix: Removed increment filter (only PON ports) for DHCP client counters.
+Version 1.6.6
+ - Fix: NBGLEGACY-524: VLAN validation not considering the proper EVC id.
+Version 1.6.8
+ - Task: NBGLEGACY-560: Protection against timestamp overflow

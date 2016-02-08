@@ -1,0 +1,51 @@
+[Release Notes]
+version 1.2.20
+ - Port GE8-15 enable/disable, also controls SFP TX_DISABLE
+ - FPGA is loaded at startup, to allow registers manipulation
+ - Duplicated addrmap modules removed, and now is defined only once: at bsp/cpu/common.
+version 1.2.21
+ - Ethernet statistics:
+   * Oversized packets should consider all packets with more than 1518 bytes... corrected!
+   * Drop Events now includes FCS errors, undersized packets, fragments, jabbers and collisions
+   * Throughput now reflects the exact value.
+   * Counters Updating periodicity reduced to 5 seconds.
+version 1.2.22
+ - Ethernet Statistics:
+   * Oversized packets over MTU bytes were not being incremented in the 10G interfaces: corrected!
+   * Drop events DO NOT include FCS errors, undersized packets, fragments, jabbers and collisions:
+     only considers lack of hw resources to process the packet.
+   * In order to distinguish discarded ovsersized packets of non discarded (1519 to MTU bytes),
+     dropped events are incremented when packet size exceeds the MTU (no resources to process big packets).
+version 1.2.23
+ - Ethernet Statistics: 1519-1522 byte packets included in oversized counting.
+version 1.2.24
+ - Correction: Interface statistics were not updating rxPackets and rxBytes
+   when there is undersize or fragment packets;
+ - Correction: Interface statistics were incrementing oversized packets in the
+   presence of jabber packets;
+ - Correction: 10G Interface statistics were miscalculating dropped packets, by
+   not considering packets>MTU with wrong FCS;
+ - Correction: Interface statistics were calculating wrongly oversize and
+   Pkts1024to1518octet packets returning sometimes negative values;
+ - Correction: Interface statistics clearing was not being done properly;
+ - New: Interface statistics updating is not done anymore by a periodic task,
+   but by direct reading, resulting in a much higher update rate (1-2 seconds).
+Version 1.2.25
+ - Correction: 10G interface statistics were duplicating number of rx drops.
+ - Correction: 10G interface statistics were incrementing both rx and tx drops.
+Version 1.2.26
+ - Fix: printf messages removed.
+version 1.2.27
+ - Fix: before EVC creation/reconfiguration, minimum resources are verified
+   before proceeding.
+ - Fix: Debugtraces cleaning.
+version 1.2.28
+ - Fix: "Duplicated MAC" alarms were being sent up to three times for each
+   effective duplicated MAC.
+version 1.3.0
+ - MAC flooding flag added for Unicast services to support Single Edge Services.
+version 1.3.1
+ - Fix: Out of valid memory writing (lagActiveMembers)
+ - Fix: Active member alarm converted to Inactive member alarm (open+close).
+        An interface that leaves an alarm do not open inactive member alarm.
+Release built at Thu Jun 28 15:09:43 WEST 2012
