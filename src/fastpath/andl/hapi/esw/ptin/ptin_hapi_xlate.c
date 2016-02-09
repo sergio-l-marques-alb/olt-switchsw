@@ -1346,14 +1346,14 @@ L7_RC_t ptin_hapi_xlate_egress_add(L7_uint32 portgroup, ptin_hapi_xlate_t *xlate
   /* Add translation entry */
   bcm_vlan_action_set_t_init(&action);
   action.dt_outer      = xlate->outerVlanAction;
-  action.dt_inner      = (1/*xlate->innerVlanAction!=PTIN_XLATE_ACTION_ADD*/) ? xlate->innerVlanAction : bcmVlanActionNone;  /* If it already exists, does not make sense to add. Instead replace */
+  action.dt_inner      = (xlate->innerVlanAction!=PTIN_XLATE_ACTION_ADD) ? xlate->innerVlanAction : bcmVlanActionNone;  /* If it already exists, does not make sense to add. Instead replace */
   action.dt_outer_prio      = xlate->outerPrioAction;
   action.dt_outer_pkt_prio  = xlate->outerPrioAction;
   action.dt_inner_prio      = xlate->innerPrioAction;
   action.dt_inner_pkt_prio  = xlate->innerPrioAction;
 
   action.ot_outer      = xlate->outerVlanAction;
-  action.ot_inner      = (1/*xlate->innerVlanAction==PTIN_XLATE_ACTION_ADD*/) ? xlate->innerVlanAction : bcmVlanActionNone;  /* If it does not exist, it only make sense to add */
+  action.ot_inner      = (xlate->innerVlanAction==PTIN_XLATE_ACTION_ADD) ? xlate->innerVlanAction : bcmVlanActionNone;  /* If it does not exist, it only make sense to add */
   action.ot_outer_prio      = xlate->outerPrioAction;
   action.ot_outer_pkt_prio  = xlate->outerPrioAction;
   action.ot_inner_pkt_prio  = xlate->innerPrioAction;
