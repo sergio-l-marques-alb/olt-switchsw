@@ -3485,7 +3485,9 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
       {
         if (!PTIN_IS_MASK_WORD_SET(pChannelIntfMask->snoopChannelIntfMaskInfoDataKey.channelIntfMask, intf))
         {
-          intf += PTIN_SNOOP_PORT_MASK_UNIT -1;
+          intf += PTIN_SNOOP_PORT_MASK_UNIT;
+          intf -= intf%PTIN_SNOOP_PORT_MASK_UNIT;
+          intf -= 1; 
           continue;
         }
 
