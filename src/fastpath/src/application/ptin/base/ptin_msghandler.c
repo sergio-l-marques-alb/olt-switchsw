@@ -629,24 +629,25 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Execute command */
       ptin_msg_alarms_reset();
 
-  {
-   unsigned short i;
-   u16 mep_id, rmep_id, prt;
-   u64 vid;
-   T_MEG_ID meg;
+#ifdef __Y1731_802_1ag_OAM_ETH__
+      {
+       unsigned short i;
+       u16 mep_id, rmep_id, prt;
+       u64 vid;
+       T_MEG_ID meg;
 
-   for (i=0; i<N_MEPs; i++) {
-       switch (MEP_is_CC_LOC_or_RDI(i, &oam, &mep_id, &rmep_id, &meg, &prt, &vid)) {
-       //case 0:
-       //   ethsrv_oam_register_RDI_END((L7_uint8 *)&meg, mep_id, rmep_id, prt, vid); //ethsrv_oam_register(ME_RDI_END, rmep_id, &meg, mep_id, prt, vid);
-       //   ethsrv_oam_connection_restored((L7_uint8 *)&meg, mep_id, rmep_id, prt, vid); //ethsrv_oam_register(ME_CONNECTION_UP, rmep_id, &meg, mep_id, prt, vid);
-       //   break;
-       case 1:  ethsrv_oam_register_connection_loss((L7_uint8 *)&meg, mep_id, rmep_id, prt, vid); break; //ethsrv_oam_register(ME_CONNECTION_LOSS, rmep_id, &meg, mep_id, prt, vid); break;
-       case 2:  ethsrv_oam_register_receiving_RDI((L7_uint8 *)&meg, mep_id, rmep_id, prt, vid); break; //ethsrv_oam_register(ME_RDI, rmep_id, &meg, mep_id, prt, vid); break;
-       }//switch
-   }//for
-  }
-
+       for (i=0; i<N_MEPs; i++) {
+        switch (MEP_is_CC_LOC_or_RDI(i, &oam, &mep_id, &rmep_id, &meg, &prt, &vid)) {
+        //case 0:
+        //   ethsrv_oam_register_RDI_END((L7_uint8 *)&meg, mep_id, rmep_id, prt, vid); //ethsrv_oam_register(ME_RDI_END, rmep_id, &meg, mep_id, prt, vid);
+        //   ethsrv_oam_connection_restored((L7_uint8 *)&meg, mep_id, rmep_id, prt, vid); //ethsrv_oam_register(ME_CONNECTION_UP, rmep_id, &meg, mep_id, prt, vid);
+        //   break;
+        case 1:  ethsrv_oam_register_connection_loss((L7_uint8 *)&meg, mep_id, rmep_id, prt, vid); break; //ethsrv_oam_register(ME_CONNECTION_LOSS, rmep_id, &meg, mep_id, prt, vid); break;
+        case 2:  ethsrv_oam_register_receiving_RDI((L7_uint8 *)&meg, mep_id, rmep_id, prt, vid); break; //ethsrv_oam_register(ME_RDI, rmep_id, &meg, mep_id, prt, vid); break;
+        }//switch
+       }//for
+      }
+#endif
       SETIPCACKOK(outbuffer);
 
       break;  /* CCMSG_ALARMS_RESET */
