@@ -172,9 +172,11 @@ L7_RC_t hapiBroadIpsgInit(DAPI_t *dapi_g)
  *********************************************************************/
 L7_RC_t hapiBroadIpsgDefaultPolicyInstall(DAPI_t *dapi_g)
 {
-  L7_ushort16         ip_ethtype = L7_ETYPE_IP;
+  //L7_ushort16        ip_ethtype = L7_ETYPE_IP;
+  L7_uchar8          ip_type = BROAD_IP_TYPE_IPV4;
 #if HAPI_BROAD_IPSG_IPV6_SUPPORTED
-  L7_ushort16         ipV6_ethtype = L7_ETYPE_IPV6;
+  //L7_ushort16        ipV6_ethtype = L7_ETYPE_IPV6;
+  L7_uchar8          ipV6_type = BROAD_IP_TYPE_IPV6;
   L7_uchar8          ip_icmpV6     = IP_PROT_ICMPV6;
 //L7_uchar8          icmpV6_RS     = L7_ICMPV6_ROUTER_SOLICIT; /* Router Solicitation */
 //L7_uchar8          icmpV6_NA     = L7_ICMPV6_NEIGHBOR_ADVERT; /* Neighbor Advertisement */
@@ -212,19 +214,22 @@ L7_RC_t hapiBroadIpsgDefaultPolicyInstall(DAPI_t *dapi_g)
 
     /* Need to allow DHCP packets for DHCP snooping to work */
     hapiBroadPolicyPriorityRuleAdd(&ruleId, priority);
-    hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8*)&ip_ethtype, exact_match);
+    //hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8*)&ip_ethtype, exact_match);
+    hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP_TYPE, (L7_uchar8*)&ip_type, exact_match);
     hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PROTO, udp_proto, exact_match);
     hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DPORT, (L7_uchar8*)&dhcpc_dport, exact_match);
 
     hapiBroadPolicyPriorityRuleAdd(&ruleId, priority);
-    hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8*)&ip_ethtype, exact_match);
+    //hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8*)&ip_ethtype, exact_match);
+    hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP_TYPE, (L7_uchar8*)&ip_type, exact_match);
     hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PROTO, udp_proto, exact_match);
     hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DPORT, (L7_uchar8*)&dhcps_dport, exact_match);
 #endif
 
     /* Drop all other IP packets */
     hapiBroadPolicyPriorityRuleAdd(&ruleId, priority);
-    hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8*)&ip_ethtype, exact_match);
+    //hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8*)&ip_ethtype, exact_match);
+    hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP_TYPE, (L7_uchar8*)&ip_type, exact_match);
     hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
 
 #if HAPI_BROAD_IPSG_IPV6_SUPPORTED          
@@ -232,19 +237,22 @@ L7_RC_t hapiBroadIpsgDefaultPolicyInstall(DAPI_t *dapi_g)
       to a Neighbor Solicitation from the DHCPv6 Server. Instead we allow all types of ICMPv6 Messages*/
 
     hapiBroadPolicyPriorityRuleAdd(&ruleId, priority);
-    hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ipV6_ethtype, exact_match);
+    //hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ipV6_ethtype, exact_match);
+    hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP_TYPE, (L7_uchar8 *)&ipV6_type, exact_match);
     hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP6_NEXTHEADER, (L7_uchar8 *)&ip_icmpV6, exact_match);    
 //  hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ICMP_MSG_TYPE, (L7_uchar8 *)&icmpV6_NA, exact_match);
 
     /*Router Solicitation*/
 //  hapiBroadPolicyPriorityRuleAdd(&ruleId, priority);
-//  hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ipV6_ethtype, exact_match);
+//  //hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ipV6_ethtype, exact_match);
+//  hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP_TYPE, (L7_uchar8 *)&ipV6_type, exact_match);
 //  hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP6_NEXTHEADER, (L7_uchar8 *)&ip_icmpV6, exact_match);
 //  hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ICMP_MSG_TYPE, (L7_uchar8 *)&icmpV6_RS, exact_match);
 
     /* When we support IPv6 IPSG, we'll need to include a default rule to drop IPv6 traffic. */
     hapiBroadPolicyPriorityRuleAdd(&ruleId, priority);
-    hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ipV6_ethtype, exact_match);
+    //hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ipV6_ethtype, exact_match);
+    hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP_TYPE, (L7_uchar8 *)&ipV6_type, exact_match);
     hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
 #endif
 
