@@ -6250,7 +6250,7 @@ L7_RC_t ptin_debug_trap_packets_mirror(L7_int dst_port, L7_int port, L7_uint16 o
   }
 
   /* Trap to cpu action */
-  rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_REDIRECT, ddUsp.unit, ddUsp.slot, ddUsp.port);
+  rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_COPY_TO_CPU, 0, 0, 0);
   if (rc != L7_SUCCESS)
   {
     printf("Error adding trap_to_cpu action\r\n");
