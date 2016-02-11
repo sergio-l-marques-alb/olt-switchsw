@@ -2077,6 +2077,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_EVC_OPTIONS_SET *************************************************/
     case CCMSG_ETH_EVC_OPTIONS_SET:
     {
+
       PT_LOG_INFO(LOG_CTX_MSGHANDLER,
                "Message received: CCMSG_ETH_EVC_OPTIONS_SET (0x%04X)", CCMSG_ETH_EVC_OPTIONS_SET);
 
