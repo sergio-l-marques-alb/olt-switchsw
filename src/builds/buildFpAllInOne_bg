@@ -1,7 +1,7 @@
 #!/bin/bash
 
 version=3.7
-patch=0
+patch=1
 svnUpdate=1
 
 if [ $# -ge 1 ]; then
