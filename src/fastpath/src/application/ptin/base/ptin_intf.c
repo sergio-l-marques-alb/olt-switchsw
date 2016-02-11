@@ -449,7 +449,18 @@ L7_RC_t ptin_intf_portExt_init(void)
     ptin_intf.intf_id = port;
 
     /* L2 Station move priority defaults */
-    #if ( !PTIN_BOARD_IS_MATRIX )
+  #if ( PTIN_BOARD == PTIN_BOARD_CXO160G )
+    if (port < PTIN_SYSTEM_N_LOCAL_PORTS)
+    {
+      mefExt.macLearn_stationMove_prio = 2;
+      mefExt.egress_type = PTIN_PORT_EGRESS_TYPE_PROMISCUOUS;
+    }
+    else
+    {
+      mefExt.macLearn_stationMove_prio = 0;
+      mefExt.egress_type = PTIN_PORT_EGRESS_TYPE_ISOLATED;
+    }
+  #elif ( !PTIN_BOARD_IS_MATRIX )
     if (port < PTIN_SYSTEM_N_PONS || port < PTIN_SYSTEM_N_ETH)
     {
       mefExt.macLearn_stationMove_prio = 0;
@@ -460,7 +471,7 @@ L7_RC_t ptin_intf_portExt_init(void)
       mefExt.macLearn_stationMove_prio = 2;
       mefExt.egress_type = PTIN_PORT_EGRESS_TYPE_PROMISCUOUS;
     }
-    #endif
+  #endif
 
     /* Only for linecards at slot systems */
     #if ( PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
