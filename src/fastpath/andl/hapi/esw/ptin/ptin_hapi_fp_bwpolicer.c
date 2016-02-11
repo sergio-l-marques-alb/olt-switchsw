@@ -488,19 +488,8 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
 
   if (stage == BROAD_POLICY_STAGE_INGRESS)
   {
-    /* Use port bitmap, if provided (only at ingress stage) */
-    if (bwPolicer->ptin_port_bmp != 0)
-    {
-      PT_LOG_TRACE(LOG_CTX_HAPI,"Going to use port bitmap 0x%ull", bwPolicer->ptin_port_bmp);
-
-      if (hapi_ptin_bcmPbmPort_get(bwPolicer->ptin_port_bmp, &pbm) != L7_SUCCESS)
-      {
-        PT_LOG_ERR(LOG_CTX_HAPI,"Error getting port bitmap");
-        return L7_FAILURE;
-      }
-    }
     /* For valid usp values */
-    else if (usp->unit >= 0 && usp->slot >= 0 && usp->port >= 0)
+    if (usp->unit >= 0 && usp->slot >= 0 && usp->port >= 0)
     {
       if (ptin_hapi_portDescriptor_get(usp, dapi_g, &pbm, &portDescriptor, &dapiPortPtr, &hapiPortPtr) != L7_SUCCESS) 
       {
@@ -512,16 +501,27 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
                 portDescriptor.trunk_id, portDescriptor.bcm_port, portDescriptor.xlate_class_port);
 
       /* For TG16G board, if a trunk was provided, use the uplink ports */
-    #if (PTIN_BOARD_IS_LINECARD)
+    #if (PTIN_BOARD == PTIN_BOARD_TG16G)
       if (portDescriptor.trunk_id >= 0)
       {
         BCM_PBMP_ASSIGN(pbm, pbm_uplink);
       }
     #endif
     }
+    /* Use port bitmap, if provided (only at ingress stage) */
+    else if (bwPolicer->ptin_port_bmp != 0)
+    {
+      PT_LOG_TRACE(LOG_CTX_HAPI,"Going to use port bitmap 0x%llx", bwPolicer->ptin_port_bmp);
+
+      if (hapi_ptin_bcmPbmPort_get(bwPolicer->ptin_port_bmp, &pbm) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI,"Error getting port bitmap");
+        return L7_FAILURE;
+      }
+    }
 
     /* Trunk qualifier is not supported for TG16G boards (to allow using single-wide rules) */
-  #if (0 /*PTIN_BOARD != PTIN_BOARD_TG16G*/)
+  #if (PTIN_BOARD != PTIN_BOARD_TG16G)
     /* Trunk id field */
     if (portDescriptor.trunk_id >= 0)
     {
