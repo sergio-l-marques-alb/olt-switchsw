@@ -3467,12 +3467,13 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
  */
 L7_RC_t ptin_intf_Lag_delete(L7_uint32 lag_idx)
 { 
-  L7_uint32 lag_intIfNum;
-  L7_uint   lag_port;
-  L7_uint32 value;
-  L7_uint   i;
-  L7_uint64 ptin_pbmp;
-  L7_uint32 intIfNum = 0;
+  L7_uint32   lag_intIfNum;
+  ptin_intf_t lag_ptin_intf;
+  L7_uint     lag_port;
+  L7_uint32   value;
+  L7_uint     i;
+  L7_uint64   ptin_pbmp;
+  L7_uint32   intIfNum = 0;
 
   /* Validate LAG range (LAG index [0..PTIN_SYSTEM_N_LAGS[) */
   if (lag_idx >= PTIN_SYSTEM_N_LAGS)
@@ -3561,12 +3562,26 @@ L7_RC_t ptin_intf_Lag_delete(L7_uint32 lag_idx)
     PT_LOG_ERR(LOG_CTX_INTF, "Error acquiring intIfNum of lag_idx %u", lag_idx);
     return L7_FAILURE;
   }
+  if (ptin_intf_port2ptintf(lag_port, &lag_ptin_intf) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Error acquiring ptin_intf from lag_port %u", lag_port);
+    return L7_FAILURE;
+  }
 
   /* Check if LAG is being used in any EVC */
   if (ptin_evc_is_intf_in_use(lag_port))
   {
     PT_LOG_ERR(LOG_CTX_INTF, "LAG# %u is being used in EVCs! Cannot be removed", lag_idx);
     return L7_FAILURE;
+  }
+
+  /* Remove bandwidth profiles applied to this port (for all 8 CoS) */
+  for (i = 0; i < 8; i++)
+  {
+    if (ptin_QoS_intf_cos_policer_clear(&lag_ptin_intf, i) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "LAG# %u: Error removing bandwidth profile of CoS %u", lag_idx, i);
+    }
   }
 
   /* Remove LAG */
