@@ -4681,8 +4681,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
   }
 
   /** EGRESS STAGE **/
-// OLTTS - 17139
-#if (PTIN_BOARD_IS_LINECARD)
+#if (PTIN_BOARD == PTIN_BOARD_TG16G)
   {
     L7_uint8  prio_mask  = 0x7;
     L7_uint8  vlanFormat_value = BROAD_VLAN_FORMAT_STAG | BROAD_VLAN_FORMAT_CTAG;
@@ -4690,8 +4689,6 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
     bcmx_lport_t lport;
     BROAD_POLICY_t      policyId;
     BROAD_POLICY_RULE_t ruleId;
-
-  #if (PTIN_BOARD == PTIN_BOARD_TG16G)
 
     /* Create Policy for VLAN dot1p remarking */
     rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
@@ -4776,7 +4773,18 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
       hapiBroadPolicyDelete(policyId);
       return L7_FAILURE;
     }
-  #endif
+  }
+#endif
+
+  // OLTTS - 17139
+#if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
+  {
+    L7_uint8  prio_mask  = 0x7;
+    L7_uint8  vlanFormat_value = BROAD_VLAN_FORMAT_STAG | BROAD_VLAN_FORMAT_CTAG;
+    L7_uint8  vlanFormat_mask  = 0xff;
+    bcmx_lport_t lport;
+    BROAD_POLICY_t      policyId;
+    BROAD_POLICY_RULE_t ruleId;
 
     /* Create Policy for VLAN dot1p copy to inner tag */
     rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
