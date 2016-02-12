@@ -1,0 +1,12 @@
+#!/bin/sh
+
+testit 35h 1 4
+#sleep 1
+
+#testit 35h 1 5
+#sleep 1
+
+#testit 35h 1 6
+#sleep 1
+
+#testit 2011h 8 0 0 0 0 0 0 0 $1
