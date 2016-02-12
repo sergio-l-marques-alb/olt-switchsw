@@ -97,9 +97,9 @@
 /* PTin added: new switch ARAD TA12XG */
 #if (PTIN_BOARD == PTIN_BOARD_TA12XG)
 #define L7_MAX_PHYSICAL_SLOTS_PER_UNIT           1
-#define L7_MAX_PORTS_PER_SLOT                    16
-#define L7_MAX_PHYSICAL_PORTS_PER_SLOT           16
-#define L7_MAX_PHYSICAL_PORTS_PER_UNIT           16
+#define L7_MAX_PORTS_PER_SLOT                    15
+#define L7_MAX_PHYSICAL_PORTS_PER_SLOT           15
+#define L7_MAX_PHYSICAL_PORTS_PER_UNIT           15
 
 /* PTin added: new switch ARAD TA12XG */
 #elif (PTIN_BOARD == PTIN_BOARD_TT08SXG)

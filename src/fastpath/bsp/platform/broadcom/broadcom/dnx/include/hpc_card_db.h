@@ -54,14 +54,14 @@
   }
 }
 ,
-/* PTin added: new switch ARAD 12+4 */
+/* PTin added: new switch ARAD 12+3 */
 {
   {
     CARD_BROAD_12_ETH_4_BCK_88360_REV_1_ID,   /* cardtypeID */
     "DNX-ARAD-12ETH-4BCK",                    /* cardModel  */
-    "Broadcom DNX-ARAD - 12 Port ETH + 4 BCK Line Card",  /* cardDescription  */
+    "Broadcom DNX-ARAD - 12 Port ETH + 3 BCK Line Card",  /* cardDescription  */
     SYSAPI_CARD_TYPE_LINE,            /* type       */
-    16,
+    15,
     SYSAPI_NO_CODE_LOAD,    /* codeLoadTargetId - What code to load on this device */
     SYSAPI_NO_CONFIG_LOAD,  /* configLoadTargetId - What configuration to load on this device */
     /* numOfNimPorts (computed from number of SYSAPI_PORT_DESCRIPTOR_t entries in table */

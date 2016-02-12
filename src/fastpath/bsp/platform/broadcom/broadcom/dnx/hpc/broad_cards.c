@@ -42,7 +42,7 @@
  *                                                                             *
  ******************************************************************************/
 
-/* PTin added: new switch ARAD 12+4 */
+/* PTin added: new switch ARAD 12+3 */
 HPC_BROAD_SLOT_MAC_ALLOCATION_t mac_allocation_UNIT_BROAD_12_ETH_4_BCK_REV_1[] =
 {
 { 0,  L7_TRUE,   16, 1},   /* physical slot with 16 port card (12x10G + 4x10G) */
@@ -60,14 +60,13 @@ HPC_BROAD_SLOT_MAC_ALLOCATION_t mac_allocation_UNIT_BROAD_8_ETH_3_BCK_REV_1[] =
 { 3,  L7_TRUE,   8, 28}    /* logical Router card */
 };
 
-/* PTin added: new switch ARAD 12+4 */
+/* PTin added: new switch ARAD 12+3 */
 HPC_BROAD_STK_PORT_TABLE_ENTRY_t stack_port_data_UNIT_BROAD_12_ETH_4_BCK_REV_1[] =
 {
  /* bcm_unit, bcm_port */
   {0, 17},
   {0, 18},
-  {0, 19},
-  {0, 20}
+  {0, 19}
 };
 
 /* PTin added: new switch ARAD 8+3 */
@@ -86,9 +85,9 @@ HPC_BROAD_STK_PORT_TABLE_ENTRY_t stack_port_data_UNIT_BROAD_8_ETH_3_BCK_REV_1[] 
  *****************************************************************************/
 
 
-/* PTin added: new switch ARAD 12+4 */
+/* PTin added: new switch ARAD 12+3 */
 /***********************************************************************************
- * Broadcom ARAD unit with 12x10GB + 4x10GB fixed ports on a single slot.          *
+ * Broadcom ARAD unit with 12x10GB + 3x40GB fixed ports on a single slot.          *
  *                                                                                 *
  ***********************************************************************************/
 HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_12_ETH_4_BCK_88650_REV_1[] =
@@ -151,7 +150,7 @@ HAPI_CARD_SLOT_MAP_t dapiBroadCpuCardSlotMap_CARD_BROAD_GENERIC_REV_1[] =
 };
 
 
-/* PTin added: new switch ARAD 12+4 */
+/* PTin added: new switch ARAD 12+3 */
 HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_12_ETH_4_BCK_88650_REV_1[] =
 /* slotNum  portNum bcm_cpuunit bcm_port portName *
  * -------  ------- ----------- -------- -------- */
@@ -168,10 +167,9 @@ HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_12_ETH_4_BCK_88650_REV_
 {       0,       9,          0,       3,       "" },
 {       0,      10,          0,       2,       "" },
 {       0,      11,          0,       1,       "" },
-{       0,      12,          0,      17,       "" }, /* 10G ETH BACKPLANE */
+{       0,      12,          0,      17,       "" }, /* 40G ETH BACKPLANE */
 {       0,      13,          0,      18,       "" },
-{       0,      14,          0,      19,       "" },
-{       0,      15,          0,      20,       "" }
+{       0,      14,          0,      19,       "" }
 };
 
 /* PTin added: new switch ARAD 8+3 */
@@ -203,7 +201,7 @@ HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_8_ETH_3_BCK_88650_REV_1
 *
 *******************************************************************************/
 
-/* PTin added: new switch ARAD 12+4 */
+/* PTin added: new switch ARAD 12+3 */
 HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_12_ETH_4_BCK_REV_1[] =
 /*portNum
  *------- */
@@ -221,8 +219,7 @@ HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_12_ETH_4_BCK_REV_1[] =
 {    11},
 {    12},
 {    13},
-{    14},
-{    15}
+{    14}
 };
 
 /* PTin added: new switch ARAD 8+3 */
@@ -247,7 +244,7 @@ HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_8_ETH_3_BCK_REV_1[] =
 *  Line Card Init Variables
 *
 ****************************************************************/
-/* PTin added: new switch ARAD 12+4 */
+/* PTin added: new switch ARAD 12+3 */
 DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_12_ETH_4_BCK_88650_REV_1 = {
 hapiBroadPhysicalCardInsert, hapiBroadCardRemove,
 dapiBroadBaseCardSlotMap_CARD_BROAD_12_ETH_4_BCK_88650_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_12_ETH_4_BCK_88650_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
@@ -279,14 +276,13 @@ NULL, 0,
 };
 
 
-/* PTin added: new switch ARAD 12+4 */
+/* PTin added: new switch ARAD 12+3 */
 SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_12_ETH_4_BCK_88650_REV_1[]= 
 {
 {L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},
 {L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},
 {L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},  /* 12x10G_ETH + 4x10G_BCK */
-{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
+{L7_PORT_DESC_BCOM_40G_XLAUI}  ,{L7_PORT_DESC_BCOM_40G_XLAUI}  ,{L7_PORT_DESC_BCOM_40G_XLAUI}   /* 12x10G_ETH + 3x40G_BCK */
 };
 
 /* PTin added: new switch ARAD 8+3 */
@@ -294,6 +290,6 @@ SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_8_ETH_3_BCK_88650_REV_1
 {
 {L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},
 {L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},{L7_PORT_DESC_BCOM_XAUI_10G_1G},
-{L7_PORT_DESC_BCOM_40G_XLAUI}  ,{L7_PORT_DESC_BCOM_40G_XLAUI}  ,{L7_PORT_DESC_BCOM_40G_XLAUI},  /* 8x10G_ETH + 3x40G_BCK */
+{L7_PORT_DESC_BCOM_40G_XLAUI}  ,{L7_PORT_DESC_BCOM_40G_XLAUI}  ,{L7_PORT_DESC_BCOM_40G_XLAUI}   /* 8x10G_ETH + 3x40G_BCK */
 };
 

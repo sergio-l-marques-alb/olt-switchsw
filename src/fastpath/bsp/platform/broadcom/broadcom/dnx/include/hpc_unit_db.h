@@ -86,7 +86,7 @@
          {CARD_BROAD_12_ETH_4_BCK_88360_REV_1_ID}
        }
      },
-     4,      /* four stacking ports */
+     3,      /* four stacking ports */
      {
          /* First Stacking Port Descriptor */
          {
@@ -113,15 +113,6 @@
           10,       /* 10 Gb/s */
           0,19,0,0  /* Bcm unit, Bcm port, unused, unused */
          },
-
-         /* fourth Stacking Port Descriptor */
-         {
-          1,     /* Front Panel Stacking stacking port */
-          0, 16,  /* slot/port for the stacking port */
-          {'0', '/', '1', '6'},  /* Port identifier */
-          10,       /* 10 Gb/s */
-          0,20,0,0  /* Bcm unit, Bcm port, unused, unused */
-         }
        }
    },
    hpc_data_UNIT_BROAD_12_ETH_4_BCK_88650_REV_1        /* pointer to hpc platform specific data */
