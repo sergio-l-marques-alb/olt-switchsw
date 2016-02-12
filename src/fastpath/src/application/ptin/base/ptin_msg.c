@@ -13016,14 +13016,21 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
       else
       {
-        PT_LOG_TRACE(LOG_CTX_MSG, "Adding intfNum %d", srcIntfNum);
-        rc = usmDbSwPortMonitorSourcePortAdd(unit, sessionNum, srcIntfNum, type);
+        L7_int32 ptin_port_aux;
+        ptin_port_aux = msg->src_intf[n].intf.intf_id;
+
+        if (msg->src_intf[n].intf.intf_type == 1)
+        {
+          ptin_intf_intIfNum2port(srcIntfNum, &ptin_port_aux); 
+
+          PT_LOG_TRACE(LOG_CTX_MSG, "Adding intfNum %d", ptin_port_aux);
+        }
 
         /* Configure Egress XLATE on the destination interface */
         if (msg->src_intf[n].direction == 1 || msg->src_intf[n].direction == 3)
         {
-          PT_LOG_TRACE(LOG_CTX_MSG, "Dst intfNum %d", msg->dst_intf.intf_id);
-          xlate_outer_vlan_replicate_Dstport(msg->sessionMode, msg->src_intf[n].intf.intf_id, msg->dst_intf.intf_id);
+          PT_LOG_TRACE(LOG_CTX_MSG, "Dst intfNum %d", ptin_port_aux);
+          xlate_outer_vlan_replicate_Dstport(msg->sessionMode, ptin_port_aux, msg->dst_intf.intf_id);
         }
 
       }
