@@ -45,10 +45,12 @@
         bcm_sys_id_defl,
         bcm_sys_sa_init_defl,
         bcm_sys_pre_stack_defl,
-#if (PTIN_BOARD == PTIN_BOARD_TA12XG)
-        UNIT_BROAD_12_ETH_4_BCK_88360_REV_1_ID,
-#else
+#if (PTIN_BOARD == PTIN_BOARD_TU100G)
+        UNIT_BROAD_1_ETH_3_BCK_88360_REV_1_ID,
+#elif (PTIN_BOARD == PTIN_BOARD_TT08SXG)
         UNIT_BROAD_8_ETH_3_BCK_88360_REV_1_ID,
+#else
+        UNIT_BROAD_12_ETH_4_BCK_88360_REV_1_ID,
 #endif
         __BROADCOM_88650_ID,
         NO_CONNECTION_LIST

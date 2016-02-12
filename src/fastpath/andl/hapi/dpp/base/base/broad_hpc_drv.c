@@ -380,6 +380,7 @@ L7_RC_t hapiBroadMapDbPortEntryAdd(int unit, bcm_port_t port, bcmx_lport_t lport
           hapiBroadMapDb[l7UnitIndex].bcmCpuUnit[bcmCpuUnitIndex].bcmxLport[port] = lport;
           hapiBroadMapDb[l7UnitIndex].bcmCpuUnit[bcmCpuUnitIndex].numOfBcmPorts++;
           osapiSemaGive(hapiBroadMapDbSema);
+          PT_LOG_TRACE(LOG_CTX_STARTUP," Port added: unit=%d port=%d lport=0x%x (l7UnitIndex=%d bcmCpuUnitIndex=%d)", unit, port, lport, l7UnitIndex, bcmCpuUnitIndex);
           return L7_SUCCESS;
         }
       }

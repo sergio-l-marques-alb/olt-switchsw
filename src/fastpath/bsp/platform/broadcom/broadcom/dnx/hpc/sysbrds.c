@@ -72,15 +72,16 @@ L7_RC_t hpcConfigBoardSet()
 
     switch (lclUnitDesc->unitTypeDescriptor.unitTypeId)
     {
-      /* PTin added: new switch 56340 (Helix4) */
     case UNIT_BROAD_12_ETH_4_BCK_88360_REV_1_ID:
-
       PT_LOG_TRACE(LOG_CTX_STARTUP,"ARAD 12x10G+4x10G ready to be started!");
       break;
 
     case UNIT_BROAD_8_ETH_3_BCK_88360_REV_1_ID:
-
       PT_LOG_TRACE(LOG_CTX_STARTUP,"ARAD 8x10G+3x40G ready to be started!");
+      break;
+
+    case UNIT_BROAD_1_ETH_3_BCK_88360_REV_1_ID:
+      PT_LOG_TRACE(LOG_CTX_STARTUP,"ARAD 1x100G+3x40G ready to be started!");
       break;
 
     default:

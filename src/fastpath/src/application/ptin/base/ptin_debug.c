@@ -809,6 +809,9 @@ void ptin_intf_dump(void)
       case PTIN_BOARD_TYPE_TT08SXG:
         sprintf(board_id_str,"TT08SXG");
         break;
+      case PTIN_BOARD_TYPE_TU100G:
+        sprintf(board_id_str,"TU100G");
+        break;
       default:
         sprintf(board_id_str," 0x%02x", board_type);
         break;

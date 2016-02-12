@@ -32,12 +32,15 @@ extern int bcm_sys_sa_init_88650(const bcm_sys_board_t *brd, int base);
 
 extern SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_12_ETH_4_BCK_88650_REV_1[];           /* PTin added: new switch ARAD */
 extern SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_8_ETH_3_BCK_88650_REV_1[];            /* PTin added: new switch ARAD */
+extern SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_1_ETH_3_BCK_88650_REV_1[];            /* PTin added: new switch ARAD */
 
 extern HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_12_ETH_4_BCK_88650_REV_1[];                          /* PTin added: new switch ARAD */
 extern HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_8_ETH_3_BCK_88650_REV_1[];                           /* PTin added: new switch ARAD */
+extern HPC_BROAD_UNIT_DATA_t hpc_data_UNIT_BROAD_1_ETH_3_BCK_88650_REV_1[];                           /* PTin added: new switch ARAD */
 
 extern DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_12_ETH_4_BCK_88650_REV_1;              /* PTin added: new switch ARAD */
 extern DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_8_ETH_3_BCK_88650_REV_1;               /* PTin added: new switch ARAD */
+extern DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_1_ETH_3_BCK_88650_REV_1;               /* PTin added: new switch ARAD */
 
 extern DAPI_CARD_ENTRY_t dapiBroadCpuCardEntry_CARD_BROAD_GENERIC_REV_1;                              /* PTin added: new switch ARAD */
 

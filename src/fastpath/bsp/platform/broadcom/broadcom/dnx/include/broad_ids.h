@@ -33,6 +33,7 @@
 
 #define UNIT_BROAD_12_ETH_4_BCK_88360_REV_1_ID  0x83600001 /* PTin added: new switch ARAD */
 #define UNIT_BROAD_8_ETH_3_BCK_88360_REV_1_ID   0x83600002 /* PTin added: new switch ARAD */
+#define UNIT_BROAD_1_ETH_3_BCK_88360_REV_1_ID   0x83600003 /* PTin added: new switch ARAD */
 
 /*******************************************************************************
 *
@@ -48,6 +49,7 @@
 /* Broadcom Reference platforms */
 #define CARD_BROAD_12_ETH_4_BCK_88360_REV_1_ID   0x88360001   /* PTin added: new switch ARAD */
 #define CARD_BROAD_8_ETH_3_BCK_88360_REV_1_ID    0x88360002   /* PTin added: new switch ARAD */
+#define CARD_BROAD_1_ETH_3_BCK_88360_REV_1_ID    0x88360003   /* PTin added: new switch ARAD */
 
 /* Logical CPU cards */
 #define L7_LOGICAL_CARD_CPU_GENERIC_REV_1_ID                 0xFF010008
