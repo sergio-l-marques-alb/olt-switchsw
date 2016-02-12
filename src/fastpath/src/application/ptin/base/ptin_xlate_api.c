@@ -2527,6 +2527,7 @@ L7_RC_t xlate_outer_vlan_replicate_Dstport(L7_uint32 operation, L7_uint32 ptin_p
   /* Select AVL tree */
   avl_tree = &database_xlate[PTIN_XLATE_STAGE_EGRESS];
    
+  PT_LOG_TRACE(LOG_CTX_XLATE, " ptin_port_src = %d",ptin_port_src);
   /* Get ptin_port */
   if (ptin_intf_port2intIfNum(ptin_port_src, &intIfNum_src) != L7_SUCCESS)
   {
@@ -2567,10 +2568,11 @@ L7_RC_t xlate_outer_vlan_replicate_Dstport(L7_uint32 operation, L7_uint32 ptin_p
     PT_LOG_TRACE(LOG_CTX_XLATE, " operation = %d",operation);
 
     /* Prepare next key */
-    if( avl_infoData->key.portGroup == class_id_src ) /* Check if exist a portGroup that match the class_id_src */
+    if( avl_infoData->key.portGroup == class_id_src)
     {
       if(operation == 1) /* Add egress xlate to the dst mirror port */
       {
+
         if(avl_infoData->mirror == L7_TRUE) /* Avoid loop's' with ptin_xlate_egress_add function  */
         {
           PT_LOG_TRACE(LOG_CTX_XLATE, " Already configured");
