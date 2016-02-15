@@ -1307,7 +1307,7 @@ static L7_RC_t hapiBroadQosAclInstAdd(DAPI_USP_t               *usp,
             pMatchTLV = GET_NEXT_TLV(pMatchTLV);
         }
 
-        if (denyFlag == 0 && captureNotDeny == 0) // Do not apply the Hard Drop in Capture 
+        if (denyFlag && captureNotDeny == 0) // Do not apply the Hard Drop in Capture 
         {
             result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
             if (L7_SUCCESS == result)
