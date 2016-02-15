@@ -9,6 +9,23 @@ startup_log=/usr/local/ptin/log/fastpath/startup.log
 proc_txt=/usr/local/ptin/log/fastpath/proc.txt
 ntry=0
 
+insert_modules()
+{
+    echo "Creating character device..."
+    if [ ! -c /dev/linux-kernel-bde ]; then
+      mknod /dev/linux-kernel-bde c 127 0
+    fi
+    if [ ! -c /dev/linux-user-bde ]; then
+      mknod /dev/linux-user-bde c 126 0
+    fi
+    echo "Inserting modules..."
+    insmod /usr/local/ptin/sbin/linux-kernel-bde.ko dmasize=16M debug=1
+    insmod /usr/local/ptin/sbin/linux-user-bde.ko
+    sleep 1
+    echo "Ready to start Fastpath..."
+}
+
+
 startup()
 {
     # Add header info to startup log file
@@ -17,18 +34,14 @@ startup()
     ps >> $startup_log
     free >> $startup_log
 
-    # Redirect output to the log file (temporarily)
-#    exec 1>>$startup_log 2>&1
+    # Insert modules
+    insert_modules;
 
     # Launch app
-#    nice -n -19 $app_path 0>/dev/null &
     $app_path 0>/dev/null &
 
     # Wait 200 seconds for FP to boot up
     $cli ping 10 20
-
-    # Redirect output to the default pipes
-#    exec 1>&- 2>&-
 
     let "ntry=ntry+1"
 }
@@ -38,8 +51,12 @@ if [ ! -z $1 ]; then
     mode=$1
 fi
 
+# Option: insert modules
+if [ $mode = "insmod" ]; then
+    insert_modules;
+
 # Option: stop
-if [ $mode = "stop" ]; then
+elif [ $mode = "stop" ]; then
 
     # Kill fastpath script process
     ps > proc.tmp
@@ -126,3 +143,4 @@ else
 #    nice -n -19 $app_path 0>/dev/null &
     $app_path 0>/dev/null &
 fi
+
