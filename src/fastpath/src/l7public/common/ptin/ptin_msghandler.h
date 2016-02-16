@@ -2826,6 +2826,12 @@ typedef struct {
   L7_uint8  Admin; //0-Disable, 1-Enable
 } __attribute__ ((packed)) msg_rfc2819_admin_t;
 
+/* Probe configuration */
+typedef struct {
+  L7_uint8  SlotId;
+  L7_uint32  n;
+} __attribute__ ((packed)) msg_rfc2819_monitoring_t;
+
 /* Buffer entry */
 typedef struct {
   L7_ulong32 index;  /* Entry id */    

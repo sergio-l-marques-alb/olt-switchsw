@@ -4969,15 +4969,17 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         PT_LOG_INFO(LOG_CTX_MSGHANDLER,
                  "Message received: CHMSG_RFC2819_MONITORING_GET (0x%04X)", inbuffer->msgId);
   
-        CHECK_INFO_SIZE_MOD(L7_int);
+        CHECK_INFO_SIZE_MOD(msg_rfc2819_monitoring_t);
   
-        msg_rfc2819_buffer_t *ptr;
+        msg_rfc2819_buffer_t      *ptr;
+        msg_rfc2819_monitoring_t  *ptr_in;
         L7_int                n;
   
-        ptr = (msg_rfc2819_buffer_t *) outbuffer->info;
+        ptr     = (msg_rfc2819_buffer_t  *) outbuffer->info;
+        ptr_in  = (msg_rfc2819_monitoring_t * )inbuffer->info;
   
         /* Execute command */
-        rc = ptin_msg_get_next_qualRFC2819_inv(*((L7_uint32 *)inbuffer->info), ptr, &n);
+        rc = ptin_msg_get_next_qualRFC2819_inv(ptr_in->n, ptr, &n);
   
         if (L7_SUCCESS != rc)
         {
@@ -4996,10 +4998,15 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         PT_LOG_INFO(LOG_CTX_MSGHANDLER,
                  "Message received: CHMSG_RFC2819_MONITORING_CLEAR (0x%04X)", inbuffer->msgId);
   
-        CHECK_INFO_SIZE_MOD(L7_uint32);
+        CHECK_INFO_SIZE_MOD(msg_rfc2819_monitoring_t);
+
+        msg_rfc2819_monitoring_t  *ptr_in;
+        msg_rfc2819_monitoring_t  *ptr_out;
+        ptr_in   = (msg_rfc2819_monitoring_t * )inbuffer->info;
+        ptr_out  = (msg_rfc2819_monitoring_t * )outbuffer->info;
 
         /* Execute command */
-        rc = ptin_msg_clear_rfc2819_monitoring_buffer(*((L7_uint32 *)inbuffer->info));
+        rc = ptin_msg_clear_rfc2819_monitoring_buffer(ptr_in->n);
   
         if (L7_SUCCESS != rc)
         {
@@ -5008,7 +5015,8 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
           SetIPCNACK(outbuffer, res);
           break;
         }
-  
+
+        outbuffer->infoDim = sizeof(msg_rfc2819_monitoring_t); 
         SETIPCACKOK(outbuffer);
       }
       break;
