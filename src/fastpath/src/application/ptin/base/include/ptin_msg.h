@@ -1615,12 +1615,23 @@ L7_RC_t ptin_msg_clear_rfc2819_monitoring_buffer(L7_uint32 buffer_index);
 L7_RC_t ptin_msg_get_next_qualRFC2819_inv(L7_int buffer_index, msg_rfc2819_buffer_t *buffer, L7_int *n_elements);
 
 /**
+ * get entrys from rfc2819 
+ * 
+ * @param buffer_index: buffer index
+ * @param buffer: points to the returned buffer
+ * @param n_elements: number of buffers 
+ * 
+ * @return L7_RC_t : L7_SUCCESS
+ */
+L7_RC_t ptin_msg_get_next_qualRFC2819(L7_int buffer_index, msg_rfc2819_buffer_t *buffer);
+/**
  * RFC2819 Probe Configuration
  * 
  * @param config: 
  * 
  * @return L7_RC_t : L7_SUCCESS
  */
+
 L7_RC_t ptin_msg_config_rfc2819_monitoring(msg_rfc2819_admin_t *config);
 
 /**
