@@ -1,0 +1,141 @@
+Index: src/soc/phy/wcmod/src/wcmod_cfg_seq.c
+===================================================================
+diff -u -N -r5825ea7cc38de362091557072d289d5c2aa1c2a3 -r0d840d5445492497a9fbaea55fa0bdd52ba7d358
+--- src/soc/phy/wcmod/src/wcmod_cfg_seq.c	(.../wcmod_cfg_seq.c)	(revision 5825ea7cc38de362091557072d289d5c2aa1c2a3)
++++ src/soc/phy/wcmod/src/wcmod_cfg_seq.c	(.../wcmod_cfg_seq.c)	(revision 0d840d5445492497a9fbaea55fa0bdd52ba7d358)
+@@ -2100,54 +2100,37 @@
+ 
+     /*added the support for 2.5G QSGMII support */
+     if (((spd_intf == WCMOD_SPD_2500) || (spd_intf == WCMOD_SPD_1000_FIBER)) && (pc->model_type == WCMOD_QS_A0)) {
+-      int tmp_lane_selelct = pc->lane_select;
+-      pc->lane_select = WCMOD_LANE_BCST;
+-      SOC_IF_ERROR_RETURN(MODIFY_WC40_SERDESDIGITAL_MISC1r(pc->unit,pc,0,
+-                                        SERDESDIGITAL_MISC1_FORCE_PLL_MODE_AFE_SEL_MASK));
++	  int tmp_lane = pc->this_lane;
++	  int i = 0;
++	  for (i = 0; i < 2; i++) {
++		pc->this_lane = i * 4;
++		/* pc->lane_select = WCMOD_LANE_BCST; */ /* go to broadcast mode */
++		/*SOC_IF_ERROR_RETURN(MODIFY_WC40_SERDESDIGITAL_MISC1r(pc->unit,pc,0,
++                                        SERDESDIGITAL_MISC1_FORCE_PLL_MODE_AFE_SEL_MASK)); */
+        
+-      SOC_IF_ERROR_RETURN(MODIFY_WC40_SERDESDIGITAL_MISC1r(pc->unit,pc,speed_val,
++		SOC_IF_ERROR_RETURN(MODIFY_WC40_SERDESDIGITAL_MISC1r(pc->unit,pc,speed_val,
+                                         SERDESDIGITAL_MISC1_FORCE_SPEED_MASK));
+ 
+-     SOC_IF_ERROR_RETURN(MODIFY_WC40_COMBO_IEEE0_MIICNTLr(pc->unit,pc,speed_mii,
++		SOC_IF_ERROR_RETURN(MODIFY_WC40_COMBO_IEEE0_MIICNTLr(pc->unit,pc,speed_mii,
+                                   (COMBO_IEEE0_MIICNTL_MANUAL_SPEED1_MASK |
+                                    COMBO_IEEE0_MIICNTL_MANUAL_SPEED0_MASK)));
+-
+-      /*use the combo mode for OS mode */
+-      SOC_IF_ERROR_RETURN(MODIFY_WC40_XGXSBLK0_XGXSCONTROLr(pc->unit, pc,
+-                                                             (XGXSBLK0_XGXSCONTROL_MODE_10G_ComboCoreMode <<
+-                                                              XGXSBLK0_XGXSCONTROL_MODE_10G_SHIFT),
+-                                                             XGXSBLK0_XGXSCONTROL_MODE_10G_MASK));
+       /*disable the QSGMII mode for both tx/rx only lane 0 or lane 4 is valid for this write*/
+-      SOC_IF_ERROR_RETURN(MODIFY_WC40_XGXSBLK1_LANECTRL0r(pc->unit, pc, 0x0, 0xff00));
++		SOC_IF_ERROR_RETURN(MODIFY_WC40_XGXSBLK1_LANECTRL0r(pc->unit, pc, 0x0, 0xff00));
+       /* enable the fiber mode also */
+-      SOC_IF_ERROR_RETURN(MODIFY_WC40_SERDESDIGITAL_CONTROL1000X1r(pc->unit, pc, 0x1,
+-                                                             SERDESDIGITAL_CONTROL1000X1_FIBER_MODE_1000X_MASK));
+-      pc->lane_select = tmp_lane_selelct;
++		SOC_IF_ERROR_RETURN(MODIFY_WC40_SERDESDIGITAL_CONTROL1000X1r(pc->unit, pc, 0x1,
++                                                             SERDESDIGITAL_CONTROL1000X1_FIBER_MODE_1000X_MASK)); 
++      }		
++	  pc->this_lane =tmp_lane;
+     }
+ 
+     /*added the support for 10M/100M/1000M sgmii mode on QSGMII support */
+     if (((spd_intf == WCMOD_SPD_10_SGMII) || (spd_intf == WCMOD_SPD_100_SGMII) ||
+         (spd_intf == WCMOD_SPD_1000_SGMII)) && (pc->model_type == WCMOD_QS_A0)) {
+-      int tmp_lane_selelct = pc->lane_select;
+-      pc->lane_select = WCMOD_LANE_BCST;
+-      SOC_IF_ERROR_RETURN(MODIFY_WC40_SERDESDIGITAL_MISC1r(pc->unit,pc,0,
+-                                        SERDESDIGITAL_MISC1_FORCE_PLL_MODE_AFE_SEL_MASK));
+        
+       SOC_IF_ERROR_RETURN(MODIFY_WC40_COMBO_IEEE0_MIICNTLr(pc->unit,pc,speed_mii,
+                                   (COMBO_IEEE0_MIICNTL_MANUAL_SPEED1_MASK |
+                                    COMBO_IEEE0_MIICNTL_MANUAL_SPEED0_MASK)));
+ 
+-      /*use the combo mode for OS mode */
+-      SOC_IF_ERROR_RETURN(MODIFY_WC40_XGXSBLK0_XGXSCONTROLr(pc->unit, pc,
+-                                                             (XGXSBLK0_XGXSCONTROL_MODE_10G_ComboCoreMode <<
+-                                                              XGXSBLK0_XGXSCONTROL_MODE_10G_SHIFT),
+-                                                             XGXSBLK0_XGXSCONTROL_MODE_10G_MASK));
+-      /*disable the QSGMII mode for both tx/rx only lane 0 or lane 4 is valid for this write*/
+-      SOC_IF_ERROR_RETURN(MODIFY_WC40_XGXSBLK1_LANECTRL0r(pc->unit, pc, 0x0, 0xff00));
+-      /* enable the fiber mode also */
+-      SOC_IF_ERROR_RETURN(MODIFY_WC40_SERDESDIGITAL_CONTROL1000X1r(pc->unit, pc, 0x0,
+-                                                             SERDESDIGITAL_CONTROL1000X1_FIBER_MODE_1000X_MASK));
+-      pc->lane_select = tmp_lane_selelct;
+     }
+ 
+     /* Force pll mode = a for all lanes in XLAUI mode */
+@@ -2359,18 +2342,12 @@
+ 
+     /*added the support of HX4 QSGMII 1G  mode */
+     if ((spd_intf == WCMOD_SPD_1000_SGMII) && ((pc->model_type == WCMOD_QS_A0) ||(pc->model_type == WCMOD_QS_B0))) {
+-      if ((pc->this_lane == 0) || (pc->this_lane == 4))  {
+-        /*use the independent mode for OS mode */
+-        SOC_IF_ERROR_RETURN(MODIFY_WC40_XGXSBLK0_XGXSCONTROLr(pc->unit, pc,
+-                                                             (XGXSBLK0_XGXSCONTROL_MODE_10G_IndLane_OS6 <<
+-                                                              XGXSBLK0_XGXSCONTROL_MODE_10G_SHIFT),
+-                                                             XGXSBLK0_XGXSCONTROL_MODE_10G_MASK));
+-        /*enable the QSGMII mode for both tx/rx  only lane 0 or lane 4 is valid*/
+-        SOC_IF_ERROR_RETURN(MODIFY_WC40_XGXSBLK1_LANECTRL0r(pc->unit, pc, 0xff00, 0xff00));
+-      }
+       /* disbale the fiber mode also */
+       SOC_IF_ERROR_RETURN(MODIFY_WC40_SERDESDIGITAL_CONTROL1000X1r(pc->unit, pc, 0x0,
+                                                              SERDESDIGITAL_CONTROL1000X1_FIBER_MODE_1000X_MASK));   
++      SOC_IF_ERROR_RETURN(MODIFY_WC40_COMBO_IEEE0_MIICNTLr(pc->unit,pc,speed_mii,
++                                  (COMBO_IEEE0_MIICNTL_MANUAL_SPEED1_MASK |
++                                   COMBO_IEEE0_MIICNTL_MANUAL_SPEED0_MASK)));
+     }
+ 
+     /*QSGMII block has not analog, just PCS layer  */
+Index: src/soc/phy/wcmod/src/wcmod_diagnostics.c
+===================================================================
+diff -u -N -ra6bc4b62d17c90bd698f4600e3b3a86b5f27c1f3 -r0d840d5445492497a9fbaea55fa0bdd52ba7d358
+--- src/soc/phy/wcmod/src/wcmod_diagnostics.c	(.../wcmod_diagnostics.c)	(revision a6bc4b62d17c90bd698f4600e3b3a86b5f27c1f3)
++++ src/soc/phy/wcmod/src/wcmod_diagnostics.c	(.../wcmod_diagnostics.c)	(revision 0d840d5445492497a9fbaea55fa0bdd52ba7d358)
+@@ -325,23 +325,31 @@
+       break;
+   case WCMOD_LANE_0_0_0_1_0_0_0_0:
+       SOC_IF_ERROR_RETURN
+-        (READ_WC40_XGXSBLK4_XGXSSTATUS1r(ws->unit, ws, &speed_val));
+-      speed_val &= 0xf;
++         (READ_WC40_SERDESDIGITAL_STATUS1000X1r(ws->unit, ws, &speed_val));
++      speed_val &= SERDESDIGITAL_STATUS1000X1_SPEED_STATUS_MASK;
++      speed_val = (speed_val >> SERDESDIGITAL_STATUS1000X1_SPEED_STATUS_SHIFT);
++      speed_val &= 0x3; 
+       break;
+   case WCMOD_LANE_0_0_1_0_0_0_0_0:
+       SOC_IF_ERROR_RETURN
+-        (READ_WC40_XGXSBLK4_XGXSSTATUS1r(ws->unit, ws, &speed_val));
+-      speed_val &= 0xf;
++         (READ_WC40_SERDESDIGITAL_STATUS1000X1r(ws->unit, ws, &speed_val));
++      speed_val &= SERDESDIGITAL_STATUS1000X1_SPEED_STATUS_MASK;
++      speed_val = (speed_val >> SERDESDIGITAL_STATUS1000X1_SPEED_STATUS_SHIFT);
++      speed_val &= 0x3; 
+       break;
+   case WCMOD_LANE_0_1_0_0_0_0_0_0:
+       SOC_IF_ERROR_RETURN
+-        (READ_WC40_XGXSBLK4_XGXSSTATUS1r(ws->unit, ws, &speed_val));
+-      speed_val &= 0xf;
++         (READ_WC40_SERDESDIGITAL_STATUS1000X1r(ws->unit, ws, &speed_val));
++      speed_val &= SERDESDIGITAL_STATUS1000X1_SPEED_STATUS_MASK;
++      speed_val = (speed_val >> SERDESDIGITAL_STATUS1000X1_SPEED_STATUS_SHIFT);
++      speed_val &= 0x3; 
+       break;
+   case WCMOD_LANE_1_0_0_0_0_0_0_0:
+       SOC_IF_ERROR_RETURN
+-        (READ_WC40_XGXSBLK4_XGXSSTATUS1r(ws->unit, ws, &speed_val));
+-      speed_val &= 0xf;
++         (READ_WC40_SERDESDIGITAL_STATUS1000X1r(ws->unit, ws, &speed_val));
++      speed_val &= SERDESDIGITAL_STATUS1000X1_SPEED_STATUS_MASK;
++      speed_val = (speed_val >> SERDESDIGITAL_STATUS1000X1_SPEED_STATUS_SHIFT);
++      speed_val &= 0x3; 
+       break;
+   default:
+       return SOC_E_ERROR;
