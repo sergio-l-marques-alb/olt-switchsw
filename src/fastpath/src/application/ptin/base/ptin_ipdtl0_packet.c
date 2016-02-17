@@ -174,19 +174,28 @@ static void ptin_ipdtl0_task(void)
                 pduInfo.rxPort = msg.intIfNum;
                 pduInfo.vlanId = msg.vlanId;
 
-                /* Convert Internal VLAN ID to dtl0 VLAN ID */
-                msg.payload[14] = (PTIN_VLAN_PCAP_EXT >> 8) & 0x0F;
-                msg.payload[15] = (PTIN_VLAN_PCAP_EXT)      & 0xFF;
-
                 // TODO - It would be interesting if instead of replacing the internal VLAN ID with PTIN_VLAN_PCAP_EXT (2048),
                 // we add/push to the packet the external VLAN(s) according to the info on IXLATE for the ingress port
+
+                if (msg.vlanId != 2047)
+                {
+                  /* Convert Internal VLAN ID to dtl0 VLAN ID */
+                  msg.payload[14] = (PTIN_VLAN_PCAP_EXT >> 8) & 0x0F;
+                  msg.payload[15] = (PTIN_VLAN_PCAP_EXT)      & 0xFF;
+                  dtlIPProtoRecvAny(msg.bufHandle, msg.payload, msg.payloadLen, &pduInfo, L7_FALSE);
+                }
+                else
+                {
+                  /* Convert Internal VLAN ID to dtl0 VLAN ID */
+                  msg.payload[14] = (ptin_ipdtl0_intVid_info[msg.vlanId].dtl0Vid >> 8) & 0x0F;
+                  msg.payload[15] = (ptin_ipdtl0_intVid_info[msg.vlanId].dtl0Vid)      & 0xFF; 
+                  dtlIPProtoRecvAny(msg.bufHandle, msg.payload, msg.payloadLen, &pduInfo, L7_TRUE);
+                }
 
                 if (ptin_ipdtl0_debug_enable)
                 {
                     PT_LOG_TRACE(LOG_CTX_API, "Converting Internal VLAN ID (%d) to dtl0 VLAN ID %d\n", msg.vlanId, PTIN_VLAN_PCAP_EXT);
                 }
-
-                dtlIPProtoRecvAny(msg.bufHandle, msg.payload, msg.payloadLen, &pduInfo, L7_FALSE);
             }
             else 
             {
