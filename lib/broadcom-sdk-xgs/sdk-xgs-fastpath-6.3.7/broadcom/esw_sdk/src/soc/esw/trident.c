@@ -3022,6 +3022,162 @@ _soc_trident_parity_process_hash(int unit, int block_info_idx, int pipe,
     return SOC_E_NONE;
 }
 
+/* CSP#1009085 patch */
+#if 1
+STATIC uint32 _soc_trident_parity_calculate(uint32 temp)
+{
+    uint32 a = temp; 
+
+    a ^= a >> 16;    	
+    a ^= a >> 8; 
+    a ^= a >> 4; 	
+    a ^= a >> 2; 	
+    a ^= a >> 1; 	
+
+    return a & 1; 
+}
+
+STATIC soc_acc_type_t
+_soc_trident_pipe_to_acc_type(int pipe);
+
+
+STATIC int
+_soc_trident_parity_process_l2x(int unit, int block_info_idx, int pipe,
+                                 const _soc_trident_parity_info_t *info,
+                                 int schan, char *prefix_str, char *mem_str, uint32 address)
+{
+    uint32 rval, minfo;
+    uint32 pariry_flag = 0;
+    int bucket_size, entry_idx, idx, bits, at, entry_base, bucket_boundary;
+    _soc_ser_correct_info_t spci;
+    uint32 entry[SOC_MAX_MEM_WORDS] = {0};
+
+    /* process DA table : use original function _soc_trident_parity_process_hash()  */
+    SOC_IF_ERROR_RETURN(_soc_trident_parity_process_hash(unit, block_info_idx,
+                                                        pipe, info, schan, 
+                                                        prefix_str, mem_str));
+   
+    /* process SA table . 
+        For  L2_ENTRY_PARITY_STATUS_NACK_0/1 will not report SA entry_id with parity error,
+        caculate each entry's parity status in same bucket by sw
+       */
+    bucket_size = 4;
+    entry_base = address & (~SOC_MEM_INFO(unit, info->mem).index_max);
+    bucket_boundary = (address - entry_base) >> 3;
+    bucket_boundary = entry_base + (bucket_boundary << 3);
+
+    /* disable L2X entry parity checking  */    
+    SOC_IF_ERROR_RETURN(soc_reg32_get(unit, L2_ENTRY_PARITY_CONTROLr, REG_PORT_ANY, 0, &rval));
+    soc_reg_field_set(unit, L2_ENTRY_PARITY_CONTROLr, &rval, PARITY_ENf, 0);
+    SOC_IF_ERROR_RETURN(soc_reg32_set(unit, L2_ENTRY_PARITY_CONTROLr, REG_PORT_ANY, 0, rval));
+
+    /* X PIPE  */
+    SOC_IF_ERROR_RETURN(soc_trident_pipe_select(unit, FALSE, 0)); 
+    SOC_IF_ERROR_RETURN(soc_reg32_get(unit, L2_ENTRY_SA_DBGCTRL_0r, REG_PORT_ANY, 0, &rval));
+    soc_reg_field_set(unit, L2_ENTRY_SA_DBGCTRL_0r, &rval, USE_SA_TABLE_FOR_SBUS_MEMRDf, 1);
+    SOC_IF_ERROR_RETURN(soc_reg32_set(unit, L2_ENTRY_SA_DBGCTRL_0r, REG_PORT_ANY, 0, rval));
+
+    /* Y PIPE  */     
+    SOC_IF_ERROR_RETURN(soc_trident_pipe_select(unit, FALSE, 1)); 
+    SOC_IF_ERROR_RETURN(soc_reg32_get(unit, L2_ENTRY_SA_DBGCTRL_0r, REG_PORT_ANY, 0, &rval));
+    soc_reg_field_set(unit, L2_ENTRY_SA_DBGCTRL_0r, &rval, USE_SA_TABLE_FOR_SBUS_MEMRDf, 1);
+    SOC_IF_ERROR_RETURN(soc_reg32_set(unit, L2_ENTRY_SA_DBGCTRL_0r, REG_PORT_ANY, 0, rval));
+
+
+    for (idx = 0; idx < 2; idx ++) {        
+        bucket_boundary += idx * bucket_size;
+
+        for (bits = 0; bits < bucket_size; bits++) {
+            entry_idx = bucket_boundary + bits;
+
+            SOC_IF_ERROR_RETURN(soc_mem_pipe_select_read(unit, 0, info->mem, 
+                                            MEM_BLOCK_ANY, _SOC_ACC_TYPE_PIPE_X, 
+                                            entry_idx - entry_base, &entry));
+
+            /* 0~99bits total 100bits . Hit bits exclude . bit 99  is EVEN_PARITY */
+            pariry_flag = _soc_trident_parity_calculate(entry[0]);
+            pariry_flag ^= _soc_trident_parity_calculate(entry[1]);            
+            pariry_flag ^= _soc_trident_parity_calculate(entry[2]);
+            pariry_flag ^= _soc_trident_parity_calculate(entry[3] & 0xF);
+            pariry_flag &= 1;
+            
+            if (pariry_flag == 0) {
+                continue;
+            }
+            
+			   
+            soc_cm_debug(DK_ERR,
+              "L2X entry id:%x data:0x%.8x 0x%.8x 0x%.8x 0x%.8x .\n",
+              entry_idx - entry_base, entry[0], entry[1], entry[2], entry[3]);   
+			   
+			   
+			   
+
+
+            sal_memset(&entry,0,sizeof(entry));
+            
+            _soc_mem_parity_info(unit, block_info_idx, pipe,
+                                 info->group_reg_status_field, &minfo);
+            soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
+                               SOC_SWITCH_EVENT_DATA_ERROR_PARITY, 
+                               entry_idx, minfo);
+            if (info->mem != INVALIDm) {
+                at = ((SOC_MEM_INFO(unit, info->mem).base & 0xE0000) >> \
+                      _SOC_MEM_ADDR_ACC_TYPE_SHIFT);
+                sal_memset(&spci, 0, sizeof(spci));
+                if (schan) {
+                    spci.flags |= SOC_SER_ERR_CPU;
+                }
+				soc_cm_debug(DK_ERR,
+             	 "unit%d %s %s entry 0x%x parity error.\n",
+                	 unit, prefix_str, mem_str, entry_idx);   					  
+									  
+									  
+                spci.flags |= SOC_SER_SRC_MEM | SOC_SER_REG_MEM_KNOWN;
+                spci.reg = INVALIDr;
+                spci.mem = info->mem == L2_ENTRY_ONLYm ? L2Xm : info->mem;
+                spci.blk_type = -1;
+                spci.index = entry_idx - entry_base;
+                spci.acc_type = at;
+                spci.pipe_num = 0;
+                spci.detect_time = sal_time_usecs();
+                spci.log_id = _soc_trident_populate_ser_log(unit,
+                    info->enable_reg, info->enable_field, spci.mem,
+                    SOC_MEM_BLOCK_ANY(unit, spci.mem), spci.acc_type,
+                    spci.index, spci.detect_time, spci.sblk, spci.addr);
+                (void)soc_ser_correction(unit, &spci);
+                if (spci.log_id != 0) {
+                    soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
+                                       SOC_SWITCH_EVENT_DATA_ERROR_LOG, 
+                                       spci.log_id, 0);
+                }
+            }
+        }        
+                      
+    }
+
+
+    /* Y PIPE  */     
+    SOC_IF_ERROR_RETURN(soc_trident_pipe_select(unit, FALSE, 1)); 
+    SOC_IF_ERROR_RETURN(soc_reg32_get(unit, L2_ENTRY_SA_DBGCTRL_0r, REG_PORT_ANY, 0, &rval));
+    soc_reg_field_set(unit, L2_ENTRY_SA_DBGCTRL_0r, &rval, USE_SA_TABLE_FOR_SBUS_MEMRDf, 0);
+    SOC_IF_ERROR_RETURN(soc_reg32_set(unit, L2_ENTRY_SA_DBGCTRL_0r, REG_PORT_ANY, 0, rval));
+
+    /* X PIPE  */     
+    SOC_IF_ERROR_RETURN(soc_trident_pipe_select(unit, FALSE, 0));
+    SOC_IF_ERROR_RETURN(soc_reg32_get(unit, L2_ENTRY_SA_DBGCTRL_0r, REG_PORT_ANY, 0, &rval));
+    soc_reg_field_set(unit, L2_ENTRY_SA_DBGCTRL_0r, &rval, USE_SA_TABLE_FOR_SBUS_MEMRDf, 0);
+    SOC_IF_ERROR_RETURN(soc_reg32_set(unit, L2_ENTRY_SA_DBGCTRL_0r, REG_PORT_ANY, 0, rval));
+
+    /* enable L2X entry parity checking  */
+    SOC_IF_ERROR_RETURN(soc_reg32_get(unit, L2_ENTRY_PARITY_CONTROLr, REG_PORT_ANY, 0, &rval));
+    soc_reg_field_set(unit, L2_ENTRY_PARITY_CONTROLr, &rval, PARITY_ENf, 1);
+    SOC_IF_ERROR_RETURN(soc_reg32_set(unit, L2_ENTRY_PARITY_CONTROLr, REG_PORT_ANY, 0, rval));
+
+    return SOC_E_NONE;
+}
+#endif
+
 STATIC int
 _soc_trident_parity_process_edatabuf(int unit, int block_info_idx, int pipe,
                                      const _soc_trident_parity_info_t *info,
@@ -4597,7 +4753,7 @@ _soc_trident_mem_nack_process_info(int unit, int stat, soc_block_t blocktype,
                                    int block_info_idx, int pipe, int reg_mem, 
                                    _td_ser_nack_reg_mem_t nack_reg_mem, int copyno,
                                    const _soc_trident_parity_info_t *info_list,
-                                   char *prefix_str)
+                                   char *prefix_str, uint32 address /* CSP#1009085 patch */)
 {
     const _soc_trident_parity_info_t *info;
     int info_index;
@@ -4650,10 +4806,27 @@ _soc_trident_mem_nack_process_info(int unit, int stat, soc_block_t blocktype,
                 continue;
             }
             /* PARITY_ERR_BMf, MULTIPLE_ERRf, BUCKET_IDXf */
+            /* CSP#1009085 patch */
+            #if 0
             SOC_IF_ERROR_RETURN
                 (_soc_trident_parity_process_hash(unit, block_info_idx,
                                                   pipe, info, TRUE,
                                                   prefix_str, mem_str));
+            #else
+            if (((info->mem == L2Xm) || (info->mem == L2_ENTRY_ONLYm)) 
+               && (address != 0)) {
+                SOC_IF_ERROR_RETURN
+                    (_soc_trident_parity_process_l2x(unit, block_info_idx,
+                                                      pipe, info, TRUE,
+                                                      prefix_str, mem_str, address));
+                }
+            else {            
+                SOC_IF_ERROR_RETURN
+                    (_soc_trident_parity_process_hash(unit, block_info_idx,
+                                                      pipe, info, TRUE,
+                                                      prefix_str, mem_str));
+            }
+            #endif
             break;
         case _SOC_PARITY_TYPE_EDATABUF:
             if (stat) {
@@ -4732,7 +4905,7 @@ _soc_trident_mem_nack_process_info(int unit, int stat, soc_block_t blocktype,
 STATIC int
 _soc_trident_mem_nack_error_process(int unit, int stat, int reg_mem,
                                     _td_ser_nack_reg_mem_t nack_reg_mem, 
-                                    int copyno, int pipe)
+                                    int copyno, int pipe, uint32 address /* CSP#1009085 patch */)
 {
     const _soc_trident_parity_route_block_t *route_block;
     int route_block_index;
@@ -4771,7 +4944,7 @@ _soc_trident_mem_nack_error_process(int unit, int stat, int reg_mem,
                                                 block_info_idx, route_block->pipe, 
                                                 reg_mem, nack_reg_mem, copyno,
                                                 route_block->info,
-                                                prefix_str));
+                                                prefix_str, address /* CSP#1009085 patch */));
     } /* Loop through each place-and-route block entry */
 
     return SOC_E_NONE;
@@ -4832,7 +5005,7 @@ soc_trident_mem_nack(void *unit_vp, void *addr_vp, void *blk_vp,
     }
     if (reg_mem == _SOC_TD_SER_MEM) {
         if ((rv = _soc_trident_mem_nack_error_process(unit, FALSE, reg_mem,
-                      nack_reg_mem, block, pipe)) < 0) {
+                      nack_reg_mem, block, pipe, address /* CSP#1009085 patch */)) < 0) {
             soc_cm_debug(DK_ERR,
                          "unit %d %s entry %d SCHAN NACK analysis failure\n",
                          unit, SOC_MEM_NAME(unit, mem),
@@ -4841,12 +5014,12 @@ soc_trident_mem_nack(void *unit_vp, void *addr_vp, void *blk_vp,
     } else {
         /* In stat collection case there is no address info, thus try both pipes */
         if ((rv = _soc_trident_mem_nack_error_process(unit, FALSE, reg_mem, 
-                      nack_reg_mem, block, 0)) < 0) {
+                      nack_reg_mem, block, 0, address /* CSP#1009085 patch */)) < 0) {
             soc_cm_debug(DK_ERR,
                          "unit %d pipe: 0 REG SCHAN NACK analysis failure.\n", unit);
         }
         if ((rv = _soc_trident_mem_nack_error_process(unit, FALSE, reg_mem,
-                      nack_reg_mem, block, 1)) < 0) {
+                      nack_reg_mem, block, 1, address /* CSP#1009085 patch */)) < 0) {
             soc_cm_debug(DK_ERR,
                          "unit %d pipe: 1 REG SCHAN NACK analysis failure.\n", unit);
         }
@@ -4867,12 +5040,12 @@ soc_trident_stat_nack(int unit, int *fixed)
     _stat_error_fixed[unit] = 0;
     nack_reg_mem.reg = -1;
     if ((rv = _soc_trident_mem_nack_error_process(unit, TRUE, _SOC_TD_SER_REG,
-                                                  nack_reg_mem, 0, 0)) < 0) {
+                                                  nack_reg_mem, 0, 0, 0 /* CSP#1009085 patch */)) < 0) {
         soc_cm_debug(DK_ERR,
                      "unit %d pipe: 0 STAT SCHAN NACK analysis failure.\n", unit);
     }
     if ((rv = _soc_trident_mem_nack_error_process(unit, TRUE, _SOC_TD_SER_REG,
-                                                  nack_reg_mem, 0, 1)) < 0) {
+                                                  nack_reg_mem, 0, 1, 0 /* CSP#1009085 patch */)) < 0) {
         soc_cm_debug(DK_ERR,
                      "unit %d pipe: 1 STAT SCHAN NACK analysis failure.\n", unit);
     }
