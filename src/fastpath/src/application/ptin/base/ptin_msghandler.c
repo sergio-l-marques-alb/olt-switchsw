@@ -4935,6 +4935,32 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
       break;
 
+      
+    case CHMSG_RFC2819_MONITORING_GET_ONE_REG:
+      {
+        PT_LOG_INFO(LOG_CTX_MSGHANDLER,
+                 "Message received: CHMSG_RFC2819_MONITORING_GET (0x%04X)", inbuffer->msgId);
+
+        CHECK_INFO_SIZE_MOD(L7_int);
+
+        msg_rfc2819_buffer_t *ptr;
+
+        ptr = (msg_rfc2819_buffer_t *) outbuffer->info;
+
+        /* Execute command */
+        rc = ptin_msg_get_next_qualRFC2819(*((L7_uint32 *)inbuffer->info), ptr);
+
+        if (L7_SUCCESS != rc)
+        {
+          PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+          res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+          SetIPCNACK(outbuffer, res);
+          break;
+        }
+
+        outbuffer->infoDim = sizeof(msg_rfc2819_buffer_t);
+      }
+      break;
 
 
 
@@ -4962,7 +4988,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
         SETIPCACKOK(outbuffer);
       }
-      break;
+     break;
 
     case CHMSG_RFC2819_MONITORING_GET:
       {

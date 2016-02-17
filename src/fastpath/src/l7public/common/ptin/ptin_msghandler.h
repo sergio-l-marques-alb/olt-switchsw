@@ -195,6 +195,7 @@
 #define CHMSG_RFC2819_MONITORING_CLEAR      0x9085  // clear buffers
 #define CHMSG_RFC2819_MONITORING_SHOW_CONF  0x9086  // Show config
 #define CHMSG_RFC2819_MONITORING_BUFF_STATUS 0x9087 // buffers status (For debug purposes)
+#define CHMSG_RFC2819_MONITORING_GET_ONE_REG 0x9088 // GET only one position
 
 
 /* OAM MEPs Configuration */

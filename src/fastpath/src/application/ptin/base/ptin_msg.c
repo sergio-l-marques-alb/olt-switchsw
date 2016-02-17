@@ -14105,6 +14105,62 @@ L7_RC_t ptin_msg_get_next_qualRFC2819_inv(L7_int buffer_index, msg_rfc2819_buffe
   return L7_SUCCESS;
 }
 
+/**
+ * get entrys from rfc2819 ring buffer
+ * 
+ * @param buffer_index: buffer index
+ * @param buffer: points to the returned buffer
+ * @param n_elements: number of buffers 
+ * 
+ * @return L7_RC_t : L7_SUCCESS
+ */
+L7_RC_t ptin_msg_get_next_qualRFC2819(L7_int buffer_index, msg_rfc2819_buffer_t *buffer)
+{
+  L7_int buffer_id;
+  L7_int first_reg=0;
+  L7_int32 n_elements = 0;
+  TBufferRegQualRFC2819 ring_buffer;
+
+  buffer_id = buffer_index & 0xFFFF;
+
+  if (buffer_index & 0x80000000)
+    buffer_index=RFC2819_BUFFER_24HOURS;
+  else
+    buffer_index=RFC2819_BUFFER_15MIN;
+
+
+    if(ptin_rfc2819_buffer_get_inv(buffer_index, first_reg, &ring_buffer) <0) 
+    {
+      return L7_FAILURE;
+    }
+        
+    buffer[n_elements].index               = ring_buffer.index;
+    buffer[n_elements].arg                 = ring_buffer.arg;
+    buffer[n_elements].time                = ring_buffer.time;
+    buffer[n_elements].path                = ring_buffer.path;
+    buffer[n_elements].cTempo              = ring_buffer.cTempo;
+
+    buffer[n_elements].Octets               = ring_buffer.Octets;
+    buffer[n_elements].Pkts                 = ring_buffer.Pkts;                
+    buffer[n_elements].Broadcast            = ring_buffer.Broadcast;
+    buffer[n_elements].Multicast            = ring_buffer.Multicast;           
+    buffer[n_elements].CRCAlignErrors       = ring_buffer.CRCAlignErrors;      
+    buffer[n_elements].UndersizePkts        = ring_buffer.UndersizePkts;       
+    buffer[n_elements].OversizePkts         = ring_buffer.OversizePkts;        
+    buffer[n_elements].Fragments            = ring_buffer.Fragments;           
+    buffer[n_elements].Jabbers              = ring_buffer.Jabbers;             
+    buffer[n_elements].Collisions           = ring_buffer.Collisions;          
+    buffer[n_elements].Utilization          = ring_buffer.Utilization;         
+    buffer[n_elements].Pkts64Octets         = ring_buffer.Pkts64Octets;        
+    buffer[n_elements].Pkts65to127Octets    = ring_buffer.Pkts65to127Octets;   
+    buffer[n_elements].Pkts128to255Octets   = ring_buffer.Pkts128to255Octets;  
+    buffer[n_elements].Pkts256to511Octets   = ring_buffer.Pkts256to511Octets;  
+    buffer[n_elements].Pkts512to1023Octets  = ring_buffer.Pkts512to1023Octets; 
+    buffer[n_elements].Pkts1024to1518Octets = ring_buffer.Pkts1024to1518Octets;
+       
+
+  return L7_SUCCESS;
+}
 
 /**
  * RFC2819 Probe Configuration
