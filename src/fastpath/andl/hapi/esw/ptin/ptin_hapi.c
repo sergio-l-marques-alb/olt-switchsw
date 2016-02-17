@@ -837,12 +837,9 @@ L7_RC_t ptin_hapi_phy_init_olt1t0(void)
   int i;
 
   /* A maior martelada da história: reset aos Cores dos PHYs (4 portas) para garantir que arrancam bem! */
-  /* Reset PHY cores */
-  for (bcm_port=1; bcm_port<=49; bcm_port+=4)
+  /* Reset PHY cores: Do not apply this configurations to ports 10G ports */
+  for (bcm_port=1; bcm_port<=48; bcm_port+=4)
   {
-    if (bcm_port>29)
-      continue;  // Do not apply this configurations to ports ge32 to xe0 (1G and 10G)
-
     PT_LOG_INFO(LOG_CTX_HAPI, "Resetting port bcm_port=%u", bcm_port);
 
     BCM_PBMP_CLEAR(pbm);
