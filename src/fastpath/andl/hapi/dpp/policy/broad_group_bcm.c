@@ -902,7 +902,7 @@ int l7_bcm_policy_create(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *
       return BCM_E_UNAVAIL;
     }
 
-    rv = _policy_group_calc_qset(unit, policyData, &policyPtr->resourceReq);
+    rv = _policy_group_calc_xset(unit, policyData, &policyPtr->resourceReq);
     if (BCM_E_NONE != rv)
     {
       _policy_sem_give();

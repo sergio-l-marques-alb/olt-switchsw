@@ -125,56 +125,6 @@ typedef struct
 }
 action_map_entry_t;
 
-static action_map_entry_t xgs4_ingress_set_cosq_action_map =
-    /* SET_COSQ */
-    {
-      /* PTin modified: CoS */
-        { bcmFieldActionGpPrioIntNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { bcmFieldActionYpPrioIntNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { bcmFieldActionRpPrioIntNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-    };
-
-static action_map_entry_t xgs4_ingress_set_userprio_action_map =
-    /* SET_USERPRIO */
-    {
-        { bcmFieldActionGpPrioPktNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { bcmFieldActionYpPrioPktNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { bcmFieldActionRpPrioPktNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-    };
-
-/* PTin added */
-static action_map_entry_t xgs4_ingress_set_userprio_innertag_action_map =
-    /* SET_USERPRIO_INNERTAG */
-    {
-        { bcmFieldActionGpInnerVlanPrioNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
-        { bcmFieldActionYpInnerVlanPrioNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
-        { bcmFieldActionRpInnerVlanPrioNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
-    };
-
-static action_map_entry_t xgs4_ingress_set_userprio_as_cos2_action_map =
-    /* SET_USERPRIO_AS_COS2 */
-    {
-        { bcmFieldActionGpPrioPktCopy, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { bcmFieldActionYpPrioPktCopy, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { bcmFieldActionRpPrioPktCopy, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-    };
-
-static action_map_entry_t xgs4_lookup_copy_to_cpu_action_map =
-    /* COPY_TO_CPU */
-    {
-        { bcmFieldActionCopyToCpu, bcmFieldActionCosQCpuNew,   PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { PROFILE_ACTION_INVALID,  PROFILE_ACTION_INVALID,     PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID,  PROFILE_ACTION_INVALID,     PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
-    };
-
-static action_map_entry_t xgs4_lookup_ts_to_cpu_action_map =
-    /* TS_TO_CPU */
-    {
-        { bcmFieldActionTimeStampToCpu, PROFILE_ACTION_NONE,        PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { PROFILE_ACTION_INVALID,       PROFILE_ACTION_INVALID,     PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID,       PROFILE_ACTION_INVALID,     PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
-    };
-
 static action_map_entry_t ingress_action_map[BROAD_ACTION_LAST] =
 {
     /* SOFT_DROP - do not switch */
@@ -637,9 +587,9 @@ static uint32 color_map[BROAD_COLOR_LAST] =
 };
 
 
-#define SUPER_QSET_TABLE_SIZE  32    /* total number of super qsets */
+#define SUPER_XSET_TABLE_SIZE  32    /* total number of super qsets */
 
-static super_qset_entry_t super_qset_table[SOC_MAX_NUM_DEVICES][SUPER_QSET_TABLE_SIZE];
+static super_xset_entry_t super_xset_table[SOC_MAX_NUM_DEVICES][SUPER_XSET_TABLE_SIZE];
 
 static group_table_t *group_table[SOC_MAX_NUM_DEVICES][BROAD_POLICY_STAGE_COUNT];
 static int            group_table_size[SOC_MAX_NUM_DEVICES][BROAD_POLICY_STAGE_COUNT];
@@ -666,26 +616,6 @@ static int _policy_group_lookupstatus_qualify(int unit, bcm_field_entry_t eid, L
 
 /* Utility Functions */
 
-/* Checks if wide mode policies are supported */
-static L7_BOOL _policy_supports_wide_mode(int unit)
-{
-  if (soc_feature(unit, soc_feature_field_wide))
-  {
-    return L7_TRUE;
-  }
-  return L7_FALSE;
-}
-
-/* Checks if intraslice doublewide mode policies are supported */
-static L7_BOOL _policy_supports_intraslice_doublewide_mode(int unit)
-{
-  if (soc_feature(unit, soc_feature_field_intraslice_double_wide))
-  {
-    return L7_TRUE;
-  }
-  return L7_FALSE;
-}
-
 int _policy_set_subset(bcm_field_qset_t q1, custom_field_qset_t custom_q1, 
                        bcm_field_qset_t q2, custom_field_qset_t custom_q2)
 {
@@ -694,9 +624,9 @@ int _policy_set_subset(bcm_field_qset_t q1, custom_field_qset_t custom_q1,
     if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
     {
       sysapiPrintf("%s(%d) - Qset1:\r\n", __FUNCTION__,__LINE__);
-      debug_print_qset(&q1);
+      debug_print_xset(&q1);
       sysapiPrintf("%s(%d) - Qset2:\r\n", __FUNCTION__,__LINE__);
-      debug_print_qset(&q2);
+      debug_print_xset(&q2);
     }
 
     for (i = 0; i < bcmFieldQualifyCount; i++)
@@ -725,7 +655,7 @@ int _policy_set_subset(bcm_field_qset_t q1, custom_field_qset_t custom_q1,
     return BCM_E_NONE;
 }
 
-void _policy_set_union(bcm_field_qset_t q1, bcm_field_qset_t *q2)
+void _policy_qset_union(bcm_field_qset_t q1, bcm_field_qset_t *q2)
 {
     int  i;
 
@@ -736,9 +666,20 @@ void _policy_set_union(bcm_field_qset_t q1, bcm_field_qset_t *q2)
     }
 }
 
+void _policy_aset_union(bcm_field_aset_t a1, bcm_field_aset_t *a2)
+{
+    int  i;
+
+    for (i = 0; i < bcmFieldActionCount; i++)
+    {
+        if (BCM_FIELD_ASET_TEST(a1,i))
+            BCM_FIELD_ASET_ADD(*a2,i);
+    }
+}
+
 /* Super Qset Functions */
 
-int _policy_super_qset_find_match(int                  unit, 
+int _policy_super_xset_find_match(int                  unit, 
                                   BROAD_POLICY_TYPE_t  type, 
                                   sqsetWidth_t         qsetWidth,
                                   bcm_field_qset_t     qset, 
@@ -754,13 +695,13 @@ int _policy_super_qset_find_match(int                  unit,
 //}
 //printf("\r\n");
 
-  for (i = 0; i < SUPER_QSET_TABLE_SIZE; i++)
+  for (i = 0; i < SUPER_XSET_TABLE_SIZE; i++)
   {
-    if (super_qset_table[unit][i].flags & SUPER_QSET_USED)
+    if (super_xset_table[unit][i].flags & SUPER_XSET_USED)
     {
       bcm_field_qset_t qsetFull;
 
-      if ((super_qset_table[unit][i].applicablePolicyTypes & (1 << type)) == 0)
+      if ((super_xset_table[unit][i].applicablePolicyTypes & (1 << type)) == 0)
       {
         /* If this sqset isn't applicable for this type of policy, continue. */
         if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
@@ -768,17 +709,17 @@ int _policy_super_qset_find_match(int                  unit,
         continue;
       }
 
-      if (super_qset_table[unit][i].sqsetWidth != qsetWidth)
+      if (super_xset_table[unit][i].sqsetWidth != qsetWidth)
       {
         /* If this sqset doesn't have the proper width for this policy, continue. */
         if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
           sysapiPrintf("%s(%d) Different width for i=%d (sqsetwidth=%u VS qsetwidth=%u): Continuing...\n", __FUNCTION__, __LINE__, i,
-                       super_qset_table[unit][i].sqsetWidth, qsetWidth);
+                       super_xset_table[unit][i].sqsetWidth, qsetWidth);
         continue;
       }
 
       BCM_FIELD_QSET_INIT(qsetFull);
-      _policy_set_union(super_qset_table[unit][i].qsetAgg, &qsetFull);
+      _policy_qset_union(super_xset_table[unit][i].qsetAgg, &qsetFull);
 
 //    printf("qsetFull  : ");
 //    for (j=0; j<_SHR_BITDCLSIZE(BCM_FIELD_QUALIFY_MAX); j++)
@@ -787,7 +728,7 @@ int _policy_super_qset_find_match(int                  unit,
 //    }
 //    printf("\r\n");
 
-      rv = _policy_set_subset(qset, customQset, qsetFull, super_qset_table[unit][i].customQset);
+      rv = _policy_set_subset(qset, customQset, qsetFull, super_xset_table[unit][i].customQset);
       if (BCM_E_NONE == rv)
       {
         *idx = i;
@@ -805,13 +746,13 @@ int _policy_super_qset_find_match(int                  unit,
   return BCM_E_FAIL;
 }
 
-static int _policy_super_qset_find_free(int unit, int *idx)
+static int _policy_super_xset_find_free(int unit, int *idx)
 {
     int  i;
 
-    for (i = 0; i < SUPER_QSET_TABLE_SIZE; i++)
+    for (i = 0; i < SUPER_XSET_TABLE_SIZE; i++)
     {
-        if (!(super_qset_table[unit][i].flags & SUPER_QSET_USED))
+        if (!(super_xset_table[unit][i].flags & SUPER_XSET_USED))
         {
             *idx = i;
             return BCM_E_NONE;
@@ -822,37 +763,43 @@ static int _policy_super_qset_find_free(int unit, int *idx)
 }
 
 
-static int _policy_super_qset_add(int                      unit,
-                                  super_qset_definition_t *sqset_def,
+static int _policy_super_xset_add(int                      unit,
+                                  super_xset_definition_t *sxset_def,
                                   L7_BOOL                 *applicablePolicyTypes)
 {
     int                      i;
     int                      rv = BCM_E_NONE;
     bcm_field_qset_t         qset1;
-    super_qset_entry_t      *qsetPtr;
+    bcm_field_aset_t         aset1;
+    super_xset_entry_t      *xsetPtr;
     bcm_field_qualify_t     *q1;
     L7_uint32                q1Size;
     custom_field_qualify_t  *q2;
     L7_uint32                q2Size;
+    bcm_field_action_t      *a1;
+    L7_uint32                a1Size;
     L7_uint32                gid;
+    bcm_field_group_config_t group_config;
 
     CHECK_UNIT(unit);
 
-    q1     = sqset_def->standardQualifiers;
-    q1Size = sqset_def->standardQualifiersCount;
-    q2     = sqset_def->customQualifiers;
-    q2Size = sqset_def->customQualifiersCount;
+    q1     = sxset_def->standardQualifiers;
+    q1Size = sxset_def->standardQualifiersCount;
+    q2     = sxset_def->customQualifiers;
+    q2Size = sxset_def->customQualifiersCount;
+    a1     = sxset_def->standardActions;
+    a1Size = sxset_def->standardActionsCount;
 
-    rv = _policy_super_qset_find_free(unit, &i);
+    rv = _policy_super_xset_find_free(unit, &i);
     if (BCM_E_NONE != rv)
     {
       L7_LOG_ERROR(rv);  /* Need to increase SUPER_QSET_TABLE_SIZE. */
       return rv;
     }
 
-    qsetPtr = &super_qset_table[unit][i];
+    xsetPtr = &super_xset_table[unit][i];
 
-    qsetPtr->flags = SUPER_QSET_USED;
+    xsetPtr->flags = SUPER_XSET_USED;
 
     if(BROAD_POLICY_TYPE_LAST > 32)
     {
@@ -861,12 +808,12 @@ static int _policy_super_qset_add(int                      unit,
       L7_LOG_ERROR(0);
     }
 
-    qsetPtr->applicablePolicyTypes = 0;
+    xsetPtr->applicablePolicyTypes = 0;
     for (i = 0; i < BROAD_POLICY_TYPE_LAST; i++)
     {
       if (applicablePolicyTypes[i] == L7_TRUE)
       {
-        qsetPtr->applicablePolicyTypes |= (1 << i);
+        xsetPtr->applicablePolicyTypes |= (1 << i);
       }
     }
 
@@ -875,30 +822,48 @@ static int _policy_super_qset_add(int                      unit,
     /* initialize the 1st component qset */
     for (i = 0; i < q1Size; i++)
         BCM_FIELD_QSET_ADD(qset1, q1[i]);
+    for (i = 0; i < a1Size; i++)
+        BCM_FIELD_ASET_ADD(aset1, a1[i]);
 
     /* initialize the custom qset */
-    CUSTOM_FIELD_QSET_INIT(qsetPtr->customQset);
+    CUSTOM_FIELD_QSET_INIT(xsetPtr->customQset);
     for (i = 0; i < q2Size; i++)
-        CUSTOM_FIELD_QSET_ADD(qsetPtr->customQset, q2[i]);
+        CUSTOM_FIELD_QSET_ADD(xsetPtr->customQset, q2[i]);
 
-    BCM_FIELD_QSET_INIT(qsetPtr->qset1);
-    BCM_FIELD_QSET_INIT(qsetPtr->qsetAgg);
+    BCM_FIELD_QSET_INIT(xsetPtr->qset1);
+    BCM_FIELD_QSET_INIT(xsetPtr->qsetAgg);
+    _policy_qset_union(qset1, &xsetPtr->qset1);
+    _policy_qset_union(qset1, &xsetPtr->qsetAgg);
 
-    _policy_set_union(qset1, &qsetPtr->qset1);
-    _policy_set_union(qset1, &qsetPtr->qsetAgg);
+    BCM_FIELD_ASET_INIT(xsetPtr->aset);
+    BCM_FIELD_ASET_INIT(xsetPtr->asetAgg);
+    _policy_aset_union(aset1, &xsetPtr->aset);
+    _policy_aset_union(aset1, &xsetPtr->asetAgg);
 
     /* Temporarily create a group using this qset, then check w/ the SDK to determine how many slices it needs. */
     do
     {
-      rv = bcm_field_group_create_mode(unit, qsetPtr->qsetAgg, 0, bcmFieldGroupModeAuto, &gid);
+      bcm_field_group_config_t_init(&group_config);
+      group_config.flags = BCM_FIELD_GROUP_CREATE_WITH_MODE |
+                           BCM_FIELD_GROUP_CREATE_LARGE |
+                           BCM_FIELD_GROUP_CREATE_WITH_ASET;
+      group_config.qset  = xsetPtr->qsetAgg;
+      group_config.mode  = bcmFieldGroupModeDefault;
+      group_config.aset  = xsetPtr->asetAgg;
+
+      rv = bcm_field_group_config_create(unit, &group_config);
+
+      //rv = bcm_field_group_create_mode(unit, xsetPtr->qsetAgg, 0, bcmFieldGroupModeAuto, &gid);
       if (rv != BCM_E_NONE)
       {
         if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
-          sysapiPrintf("%s(%d) bcm_field_group_create_mode: gid=%d, rv=%d\n", __FUNCTION__, __LINE__, gid, rv);
+          sysapiPrintf("%s(%d) bcm_field_group_create_mode: rv=%d\n", __FUNCTION__, __LINE__, rv);
         break;
       }
+      /* Extract gid */
+      gid = group_config.group;
 
-      rv = bcm_field_group_status_get(unit, gid, &qsetPtr->status);
+      rv = bcm_field_group_status_get(unit, gid, &xsetPtr->status);
       if (rv != BCM_E_NONE)
       {
         if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
@@ -906,7 +871,7 @@ static int _policy_super_qset_add(int                      unit,
         break;
       }
 
-      _policy_group_status_to_sqset_width(&qsetPtr->status, &qsetPtr->sqsetWidth);
+      _policy_group_status_to_sxset_width(&xsetPtr->status, &xsetPtr->sqsetWidth);
 
       (void)bcm_field_group_destroy(unit, gid);
 
@@ -915,7 +880,7 @@ static int _policy_super_qset_add(int                      unit,
     if (rv != BCM_E_NONE)
     {
       /* If there were any errors, clean up the sqset table entry. */
-      memset(qsetPtr, 0, sizeof(*qsetPtr));
+      memset(xsetPtr, 0, sizeof(*xsetPtr));
     }
 
     if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
@@ -924,8 +889,9 @@ static int _policy_super_qset_add(int                      unit,
     return rv;
 }
 
-static int _policy_super_qset_init_vfp(int unit)
+static int _policy_super_xset_init_vfp(int unit)
 {
+#if 0
   L7_BOOL applicable_policy_types[BROAD_POLICY_TYPE_LAST];
 
   if(policy_stage_supported(unit, BROAD_POLICY_STAGE_LOOKUP))
@@ -957,14 +923,15 @@ static int _policy_super_qset_init_vfp(int unit)
 
     _policy_super_qset_add(unit, &dot1adQsetLookupDef, applicable_policy_types);
   }
-
+#endif
   return BCM_E_NONE;
 }
 
-static int _policy_super_qset_init_ifp(int unit)
+static int _policy_super_xset_init_ifp(int unit)
 {
   L7_BOOL applicable_policy_types[BROAD_POLICY_TYPE_LAST];
 
+#if 0
   memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
   applicable_policy_types[BROAD_POLICY_TYPE_PORT] = L7_TRUE;
   applicable_policy_types[BROAD_POLICY_TYPE_VLAN] = L7_TRUE;
@@ -973,18 +940,21 @@ static int _policy_super_qset_init_ifp(int unit)
   _policy_super_qset_add(unit, &ipv6L3L4ClassIdQsetDef,  applicable_policy_types);
   _policy_super_qset_add(unit, &ipv6SrcL4ClassIdQsetDef, applicable_policy_types);
   _policy_super_qset_add(unit, &ipv6DstL4ClassIdQsetDef, applicable_policy_types);
+#endif
 
   memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
   applicable_policy_types[BROAD_POLICY_TYPE_SYSTEM]      = L7_TRUE;
+#if 0
   applicable_policy_types[BROAD_POLICY_TYPE_SYSTEM_PORT] = L7_TRUE;
   applicable_policy_types[BROAD_POLICY_TYPE_COSQ]        = L7_TRUE;
-
+#endif
   if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
-    sysapiPrintf("Adding qset systemQsetTriumph2\r\n");
+    sysapiPrintf("Adding qset systemQsetArad\r\n");
 
   /* Doublewide mode. */
-  _policy_super_qset_add(unit, &systemQsetTriumph2Def, applicable_policy_types);
+  _policy_super_xset_add(unit, &systemXsetAradDef, applicable_policy_types);
 
+#if 0
   /* PTin added: ICAP */
   #if 1
   memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
@@ -1023,12 +993,14 @@ static int _policy_super_qset_init_ifp(int unit)
   applicable_policy_types[BROAD_POLICY_TYPE_VLAN]        = L7_TRUE;
 
   _policy_super_qset_add(unit, &l2l3DstQsetDef,     applicable_policy_types);
+#endif
 
   return BCM_E_NONE;
 }
 
-static int _policy_super_qset_init_efp(int unit)
+static int _policy_super_xset_init_efp(int unit)
 {
+#if 0
   L7_BOOL applicable_policy_types[BROAD_POLICY_TYPE_LAST];
 
   if(policy_stage_supported(unit, BROAD_POLICY_STAGE_EGRESS))
@@ -1050,30 +1022,30 @@ static int _policy_super_qset_init_efp(int unit)
     //printf("%s(%d)\r\n",__FUNCTION__,__LINE__);
     _policy_super_qset_add(unit, &ipv6L3L4QsetEgressDef, applicable_policy_types);
   }
-
+#endif
   return BCM_E_NONE;
 }
 
-static int _policy_super_qset_init(int unit)
+static int _policy_super_xset_init(int unit)
 {
   int  i, j;
   char str[301], val[21];
 
-  for (i = 0; i < SUPER_QSET_TABLE_SIZE; i++)
+  for (i = 0; i < SUPER_XSET_TABLE_SIZE; i++)
   {
-    super_qset_table[unit][i].flags = SUPER_QSET_NONE;
+    super_xset_table[unit][i].flags = SUPER_XSET_NONE;
   }
 
-  _policy_super_qset_init_vfp(unit);
-  _policy_super_qset_init_ifp(unit);
-  _policy_super_qset_init_efp(unit);
+  _policy_super_xset_init_vfp(unit);
+  _policy_super_xset_init_ifp(unit);
+  _policy_super_xset_init_efp(unit);
 
-  for (i = 0; i < SUPER_QSET_TABLE_SIZE; i++)
+  for (i = 0; i < SUPER_XSET_TABLE_SIZE; i++)
   {
-    sprintf(str,"super_qset_table %-2u (width=%u, flags=0x%08x): ",i,super_qset_table[unit][i].sqsetWidth,super_qset_table[unit][i].flags);
+    sprintf(str,"super_qset_table %-2u (width=%u, flags=0x%08x): ",i,super_xset_table[unit][i].sqsetWidth,super_xset_table[unit][i].flags);
     for (j = 0; j < _SHR_BITDCLSIZE(BCM_FIELD_QUALIFY_MAX); j++)
     {
-      sprintf(val,"%08X ",super_qset_table[unit][i].qsetAgg.w[j]);
+      sprintf(val,"%08X ",super_xset_table[unit][i].qsetAgg.w[j]);
       strcat(str, val);
     }
     PT_LOG_TRACE(LOG_CTX_STARTUP, "%s", str);
@@ -1084,30 +1056,6 @@ static int _policy_super_qset_init(int unit)
 
 static int _policy_action_map_init(int unit)
 {
-  if ((SOC_IS_TR_VL(unit)) ||
-      (SOC_IS_SCORPION(unit)) || 
-      (SOC_IS_TRIUMPH2(unit)) || 
-      (SOC_IS_APOLLO(unit)) ||
-      (SOC_IS_ENDURO(unit)) ||
-      (SOC_IS_VALKYRIE2(unit)) ||
-      (SOC_IS_TRIDENT(unit)) ||     /* PTin added: new switch 56843 (Trident) */
-      (SOC_IS_TRIUMPH3(unit)) )     /* PTin added: new switch 5664x (Triumph3) */
-  {
-    /* Modify action maps for certain actions. */
-    memcpy(&ingress_action_map[BROAD_ACTION_SET_COSQ],              &xgs4_ingress_set_cosq_action_map,              sizeof(action_map_entry_t));
-    memcpy(&ingress_action_map[BROAD_ACTION_SET_USERPRIO],          &xgs4_ingress_set_userprio_action_map,          sizeof(action_map_entry_t));
-    /* PTin added */
-    memcpy(&ingress_action_map[BROAD_ACTION_SET_USERPRIO_INNERTAG], &xgs4_ingress_set_userprio_innertag_action_map, sizeof(action_map_entry_t));
-
-    memcpy(&ingress_action_map[BROAD_ACTION_SET_USERPRIO_AS_COS2], 
-           &xgs4_ingress_set_userprio_as_cos2_action_map,
-           sizeof(action_map_entry_t));
-
-    memcpy(&lookup_action_map[BROAD_ACTION_COPY_TO_CPU], &xgs4_lookup_copy_to_cpu_action_map, sizeof(action_map_entry_t));
-
-    memcpy(&lookup_action_map[BROAD_ACTION_TS_TO_CPU], &xgs4_lookup_ts_to_cpu_action_map, sizeof(action_map_entry_t));
-  }
-
   return BCM_E_NONE;
 }
 
@@ -1298,7 +1246,7 @@ static int _policy_group_find_first(int                  unit,
   group_alloc_block_t block/*, used_block*/;
   group_alloc_dir_t   dir/*,   used_dir*/;
   group_table_t      *groupPtr;
-  super_qset_entry_t  sqsetInfo;
+  super_xset_entry_t  sxsetInfo;
 
   _policy_group_alloc_type(type, &block, &dir);
 
@@ -1315,8 +1263,8 @@ static int _policy_group_find_first(int                  unit,
   if (groupPtr->flags & GROUP_USED)
   {
     /* Set group to the first slice of the group. */
-    _policy_sqset_get(unit, groupPtr->sqset, &sqsetInfo);
-    *group -= *group % sqsetInfo.status.slice_width_physical;
+    _policy_super_xset_get(unit, groupPtr->sqset, &sxsetInfo);
+    *group -= *group % sxsetInfo.status.slice_width_physical;
     groupPtr = &group_table[unit][policyStage][*group];
 
     /* make sure that the block that this group belongs to matches
@@ -1352,7 +1300,7 @@ static int _policy_group_decrement(int                   unit,
   //group_alloc_block_t used_block;
   //group_alloc_dir_t   used_dir;
   group_table_t      *groupPtr;
-  super_qset_entry_t  sqsetInfo;
+  super_xset_entry_t  sxsetInfo;
 
   /* If the group is within range of this block and it is in use
      and it is multi-slice, set the group to the first slice. */
@@ -1363,8 +1311,8 @@ static int _policy_group_decrement(int                   unit,
     if (groupPtr->flags & GROUP_USED)
     {
       /* Set group to the first slice of the group. */
-      _policy_sqset_get(unit, groupPtr->sqset, &sqsetInfo);
-      *group -= *group % sqsetInfo.status.slice_width_physical;
+      _policy_super_xset_get(unit, groupPtr->sqset, &sxsetInfo);
+      *group -= *group % sxsetInfo.status.slice_width_physical;
     }
   }
 
@@ -1376,8 +1324,8 @@ static int _policy_group_decrement(int                   unit,
     if (groupPtr->flags & GROUP_USED)
     {
       /* Set group to the first slice of the group. */
-      _policy_sqset_get(unit, groupPtr->sqset, &sqsetInfo);
-      *group -= *group % sqsetInfo.status.slice_width_physical;
+      _policy_super_xset_get(unit, groupPtr->sqset, &sxsetInfo);
+      *group -= *group % sxsetInfo.status.slice_width_physical;
       groupPtr = &group_table[unit][policyStage][*group];
 
       /* make sure that the block that this group belongs to matches
@@ -1411,7 +1359,7 @@ static int _policy_group_increment(int                   unit,
   //group_alloc_block_t used_block;
   //group_alloc_dir_t   used_dir;
   group_table_t      *groupPtr;
-  super_qset_entry_t  sqsetInfo;
+  super_xset_entry_t  sxsetInfo;
 
   /* If the group is within range of this block and it is in use
      and it is multi-slice, set the group to the last slice. */
@@ -1422,8 +1370,8 @@ static int _policy_group_increment(int                   unit,
     if (groupPtr->flags & GROUP_USED)
     {
       /* Set group to the last slice of the group. */
-      _policy_sqset_get(unit, groupPtr->sqset, &sqsetInfo);
-      *group += sqsetInfo.status.slice_width_physical - 1;
+      _policy_super_xset_get(unit, groupPtr->sqset, &sxsetInfo);
+      *group += sxsetInfo.status.slice_width_physical - 1;
     }
   }
 
@@ -1537,7 +1485,7 @@ static int _policy_field_to_bcm_field(BROAD_POLICY_FIELD_t  field,
     return BCM_E_NONE;
 }
 
-int _policy_group_calc_qset(int                             unit,
+int _policy_group_calc_xset(int                             unit,
                             BROAD_POLICY_ENTRY_t           *entryPtr, 
                             policy_resource_requirements_t *resourceReq)
 {
@@ -1769,14 +1717,14 @@ static int _policy_group_resource_check(int unit, BROAD_POLICY_TYPE_t policyType
   int                        rv;
   bcm_field_group_status_t   stat;
   int                        sqset;
-  super_qset_entry_t         sqsetInfo;
+  super_xset_entry_t         sxsetInfo;
   sqsetWidth_t               groupSqsetWidth;
 
-  rv = _policy_minimal_sqset_get(unit, policyType, resourceReq, &sqset);
+  rv = _policy_minimal_sxset_get(unit, policyType, resourceReq, &sqset);
   if (BCM_E_NONE != rv)
     return rv;
 
-  _policy_sqset_get(unit, sqset, &sqsetInfo);
+  _policy_super_xset_get(unit, sqset, &sxsetInfo);
 
   rv = bcm_field_group_status_get(unit, gid, &stat);
   if (BCM_E_NONE != rv)
@@ -1787,12 +1735,12 @@ static int _policy_group_resource_check(int unit, BROAD_POLICY_TYPE_t policyType
 //       stat.counters_free, stat.counters_total,
 //       stat.meters_free, stat.counters_total);
 
-  _policy_group_status_to_sqset_width(&stat, &groupSqsetWidth);
+  _policy_group_status_to_sxset_width(&stat, &groupSqsetWidth);
 
   /* If this policy would require expansion of a group that is wider than the 
      policy needs, don't allow this to occur. The policy can be created w/ the
      minimal sqset later on. */
-  if (sqsetInfo.sqsetWidth < groupSqsetWidth)
+  if (sxsetInfo.sqsetWidth < groupSqsetWidth)
   {
     if ((stat.entry_count > 0) && (stat.entry_count % stat.natural_depth == 0))
     {
@@ -1855,7 +1803,7 @@ static int _policy_group_find_group(int                             unit,
   sqsetWidth_t qsetWidth;
   int          groupEfpUsingIfp, policyEfpUsingIfp;
 
-  debug_print_qset(&resourceReq->qsetAgg);
+  debug_print_xset(&resourceReq->qsetAgg);
 
   if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
     sysapiPrintf("_policy_group_find_group - stage=%d type=%d\n", entryPtr->policyStage, entryPtr->policyType);
@@ -1881,18 +1829,18 @@ static int _policy_group_find_group(int                             unit,
       if (groupPtr->flags & GROUP_USED)
       {
         if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
-          sysapiPrintf("_policy_group_find_group - group %d in use: groupPtr->sqset=%u sqsetWidth=%u\n", *group, groupPtr->sqset, super_qset_table[unit][groupPtr->sqset].sqsetWidth);
+          sysapiPrintf("_policy_group_find_group - group %d in use: groupPtr->sqset=%u sqsetWidth=%u\n", *group, groupPtr->sqset, super_xset_table[unit][groupPtr->sqset].sqsetWidth);
 
-        if (super_qset_table[unit][groupPtr->sqset].sqsetWidth == qsetWidth)
+        if (super_xset_table[unit][groupPtr->sqset].sqsetWidth == qsetWidth)
         {
           if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
             sysapiPrintf("_policy_group_find_group - examining group %d\n", *group);
 
           /* Insure the group has a suitable qset and enough free entries, counters, et al. */
           BCM_FIELD_QSET_INIT(qset);
-          _policy_set_union(super_qset_table[unit][groupPtr->sqset].qsetAgg, &qset);
+          _policy_qset_union(super_xset_table[unit][groupPtr->sqset].qsetAgg, &qset);
 
-          rv = _policy_set_subset(resourceReq->qsetAgg, resourceReq->customQset, qset, super_qset_table[unit][groupPtr->sqset].customQset);
+          rv = _policy_set_subset(resourceReq->qsetAgg, resourceReq->customQset, qset, super_xset_table[unit][groupPtr->sqset].customQset);
 
           if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
             sysapiPrintf("_policy_group_find_group - rv = %d\n", rv);
@@ -1947,7 +1895,7 @@ static int _policy_group_alloc_group(int                             unit,
   group_table_t         *groupPtr;
   int                    gid = 0;
   sqsetWidth_t           qsetWidth;
-  super_qset_entry_t     sqsetInfo;
+  super_xset_entry_t     sxsetInfo;
 
   if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
     sysapiPrintf("%s(%d) Going to allocate group...\n", __FUNCTION__, __LINE__);
@@ -1966,12 +1914,12 @@ static int _policy_group_alloc_group(int                             unit,
     }
   }
 
-  debug_print_qset(&resourceReq->qsetAgg);
+  debug_print_xset(&resourceReq->qsetAgg);
 
   for (qsetWidth = sqsetWidthFirst; qsetWidth < sqsetWidthLast; qsetWidth++)
   {
     /* create all new groups based upon a super qset */
-    rv = _policy_super_qset_find_match(unit, 
+    rv = _policy_super_xset_find_match(unit, 
                                        entryPtr->policyType, 
                                        qsetWidth, 
                                        resourceReq->qsetAgg, 
@@ -1987,7 +1935,7 @@ static int _policy_group_alloc_group(int                             unit,
     if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
       sysapiPrintf("- using super qset %d\n", sqset);
 
-    _policy_sqset_get(unit, sqset, &sqsetInfo);
+    _policy_super_xset_get(unit, sqset, &sxsetInfo);
 
     /* Try to find a group priority that we can use to create this group. */
     rv = _policy_group_find_first(unit, entryPtr->policyStage, entryPtr->policyType, group);
@@ -1997,14 +1945,14 @@ static int _policy_group_alloc_group(int                             unit,
     while (BCM_E_NONE == rv)
     {
       /* Enforce physical boundary conditions. */
-      if (*group % sqsetInfo.status.slice_width_physical == 0)
+      if (*group % sxsetInfo.status.slice_width_physical == 0)
       {
         if (!(group_table[unit][entryPtr->policyStage][*group].flags & GROUP_USED))
         {
-          rv = bcm_field_group_create_mode(unit, sqsetInfo.qsetAgg, *group, bcmFieldGroupModeAuto, &gid);
+          rv = bcm_field_group_create_mode(unit, sxsetInfo.qsetAgg, *group, bcmFieldGroupModeAuto, &gid);
 
           if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
-            sysapiPrintf("bcm_field_group_create() (group=%u width=%u) returned %d\n", *group, sqsetInfo.status.slice_width_physical, rv);
+            sysapiPrintf("bcm_field_group_create() (group=%u width=%u) returned %d\n", *group, sxsetInfo.status.slice_width_physical, rv);
     
           if (rv == BCM_E_NONE)
           {
@@ -2023,7 +1971,7 @@ static int _policy_group_alloc_group(int                             unit,
       rv = _policy_group_resource_check(unit, entryPtr->policyType, resourceReq, gid);
       if (rv == BCM_E_NONE)
       {
-        for (i = *group; i < (*group + sqsetInfo.status.slice_width_physical); i++)
+        for (i = *group; i < (*group + sxsetInfo.status.slice_width_physical); i++)
         {
           groupPtr = &group_table[unit][entryPtr->policyStage][i];
     
@@ -2063,13 +2011,13 @@ static int _policy_group_delete_group(int unit, BROAD_POLICY_STAGE_t policyStage
 {
     group_table_t     *groupPtr;
     int                i;
-    super_qset_entry_t sqsetInfo;
+    super_xset_entry_t sxsetInfo;
 
     groupPtr         = &group_table[unit][policyStage][group];
 
-    _policy_sqset_get(unit, groupPtr->sqset, &sqsetInfo);
+    _policy_super_xset_get(unit, groupPtr->sqset, &sxsetInfo);
 
-    for (i = group; i < (group + sqsetInfo.status.slice_width_physical); i++)
+    for (i = group; i < (group + sxsetInfo.status.slice_width_physical); i++)
     {
       groupPtr         = &group_table[unit][policyStage][i];
       groupPtr->flags  = GROUP_NONE;
@@ -3156,244 +3104,62 @@ int hapiBroadPolicyBcmReservedGroupGet(int unit)
   return groupid_rev;
 }
 
-/* 
- * Reserved Groups for XGS3 devices use the ACL/DS group block due to 
- * their not being uniformly applied on the entire stack.  This routine
- * determines the appropriate first group within the group.  Specifically,
- * we reserve a group for BCM if necessary
- */
-int hapiBroadPolicyFirstAclDsGroupGet(int unit)
-{
-  int groupid_rev;
-
-  /* Although Scorpion, TR2, and Apollo support intraslice doublewide mode,
-     their system qsets end up using doublewide mode. */
-  if (_policy_supports_intraslice_doublewide_mode(unit) && 
-      !SOC_IS_SCORPION(unit) && 
-      !SOC_IS_TRIUMPH2(unit) && 
-      !SOC_IS_APOLLO(unit) &&
-      !SOC_IS_ENDURO(unit) &&
-      !SOC_IS_VALKYRIE2(unit) &&
-      !SOC_IS_TRIDENT(unit) &&      /* PTin added: new switch 56843 (Trident) */
-      !SOC_IS_TRIUMPH3(unit) )      /* PTin added: new switch 5664x (Triumph3) */
-  {
-    /* System rules in slice 0. */
-    groupid_rev = 1;
-  }
-  else if (_policy_supports_wide_mode(unit) && !SOC_IS_SCORPION(unit))
-  {
-    /* System rules in slices 0 and 1 */
-    groupid_rev = 2;
-  }
-  else
-  {
-#ifdef L7_IPV6_PACKAGE
-    /* System rules in slices 0 through 2 */
-    groupid_rev = 3;
-#else
-    if (SOC_IS_SCORPION(unit))
-    {       
-    /* For scorpion devices that don't include the IPv6 package,
-       we still need to allocate 3 slices for system/COS policies.
-       This is because of the order in which the system policies
-       are installed. The L2 system policies are installed first, which
-       puts them in the highest priority system slice. The L3 system
-       policies are installed next, in a lower priority slice. If we
-       don't reserve an even lower priority slice for the COS policies,
-       then they will be placed w/ the L2 system policies, causing the
-       L3 system policies to be trumped by the COS policies. Therefore
-       we need to ensure that the COS policies are in a lower priority
-       slice than the L3 system policies. */
-    /* System rules in slices 0 through 2 */
-     groupid_rev = 3;
-    }
-    else
-    {
-    /* System rules in slices 0 through 1 */
-     groupid_rev = 2;
-    }
-#endif
-  }
-
-  if (hapiBroadBcmGroupRequired(unit))
-  {
-    groupid_rev++;
-  }
-
-  if (SOC_IS_HELIX1(unit))
-  {
-    /* For Helix, we need to ensure that the COS policies are kept in a separate
-    (i.e. lower priority slice) than the other system policies. This isn't necessary
-    for Scorpion since we can include OVID as a qualifier in all of the qsets used
-    for system policies, meaning that the COS policies will go into the lowest slice,
-    w/ the lowest rule priority. */
-    groupid_rev++;
-  }
-
-  return groupid_rev;
-}
-
 
 static int _policy_group_alloc_init(int unit, BROAD_POLICY_STAGE_t policyStage, int groups)
 {
-    int lowPrioGroup;
-
-    lowPrioGroup = hapiBroadPolicyFirstAclDsGroupGet(unit);
-
-    PT_LOG_INFO(LOG_CTX_STARTUP,"Stage=%u, groups=%u, lowPrioGroup=%u", policyStage, groups, lowPrioGroup);
+    PT_LOG_INFO(LOG_CTX_STARTUP,"Stage=%u, groups=%u", policyStage, groups);
 
     switch (policyStage)
     {
     case BROAD_POLICY_STAGE_LOOKUP:
-      /* low priority group starts at 0 and goes for 4 */
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].lowPrio     = 0;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].highPrio    = lowPrioGroup - 1;
-
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].lowPrio  = lowPrioGroup;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio = lowPrioGroup;
-
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio    = lowPrioGroup + 1;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio   = groups - 1;
-
-      /* PTin added: policer */
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio    = lowPrioGroup + 1;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].highPrio   = groups - 1;
-
-      /* PTin added: EVC stats: groups 3 [ 1 * 128/(4*2) = 16 services/ports counters ] */
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].lowPrio     = lowPrioGroup + 1;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].highPrio    = groups - 1;
-
-      /* PTin added: client stats: groups 0-2 [ 3 * 128/(4*2) = 48 clients ] */
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].lowPrio  = lowPrioGroup + 1;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].highPrio = groups - 1;
-      /* PTin end */
+      /* Not supported */
       break;
 
     case BROAD_POLICY_STAGE_EGRESS:
       /* low priority group starts at 0 and goes for 4 */
       group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].lowPrio     = 0;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].highPrio    = lowPrioGroup - 1;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].highPrio    = 0;
 
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].lowPrio  = 0;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio = lowPrioGroup - 1;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].lowPrio  = 1;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio = 1;
 
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio    = 0;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio   = lowPrioGroup - 1;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio    = 2;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio   = 2;
 
       /* PTin added: policer */
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio    = 0;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio    = 1;
       group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].highPrio   = 1;
 
       /* PTin added: EVC stats: groups 3 [ 1 * 128/(4*2) = 16 services/ports counters ] */
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].lowPrio     = groups-2;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].highPrio    = groups-1;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].lowPrio     = 2;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].highPrio    = 2;
 
       /* PTin added: client stats: groups 0-2 [ 3 * 128/(4*2) = 48 clients ] */
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].lowPrio  = groups-2;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].highPrio = groups-1;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].lowPrio  = 2;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].highPrio = 2;
       /* PTin end */
 
       break;
     case BROAD_POLICY_STAGE_INGRESS:
-      if (SOC_IS_RAPTOR(unit) || SOC_IS_HAWKEYE(unit))
-      { 
-        int  lowPrio = 0;
-        /* Assumption is the each group contains 128 rules */
- #ifdef L7_ROUTING_PACKAGE
-      /* If it is routing package and silicon is Raptor */
-        lowPrio = ((platRtrRouteMaxEntriesGet() + platRtrArpMaxEntriesGet())/ 127);
-        lowPrio +=(((platRtrRouteMaxEntriesGet() + platRtrArpMaxEntriesGet())  % 127) > 0 ? 1 : 0);
-#endif
-        /* Raptor slice distribution:
-           Slice 0 - n: Routing (only if routing is present)
-           Slice n,n+1: System policies
-           Slice n+2 - 7: User policies
-        */
+      /* low priority group starts at 0 and goes for 1 or 2 */
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].lowPrio     = 0;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].highPrio    = 0;
 
-        group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].lowPrio     = lowPrio;
-        group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].highPrio    = lowPrio + 1;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].lowPrio  = 1;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio = 1;
 
-        group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].lowPrio  = lowPrio + 2;
-        group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio = groups - 1;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio    = 2;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio   = 2;
 
-        group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio    = lowPrio + 2;
-        group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio   = groups - 1;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio    = 3;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].highPrio   = 3;
 
-        /* PTin added: policer */
-        group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio    = lowPrio + 2;
-        group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].highPrio   = groups - 1;
-        /* PTin end */
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].lowPrio  = 4;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].highPrio = 4;
 
-        /* PTin added: stats */
-        group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].lowPrio  = lowPrio;
-        group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].highPrio = groups - 3;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].lowPrio     = 5;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].highPrio    = 5;
 
-        group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].lowPrio     = groups - 2;
-        group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].highPrio    = groups - 1;
-        /* PTin end */
-      }
-      else
-      {
-        if (SOC_IS_TRIDENT(unit))
-        {
-          /* low priority group starts at 0 and goes for 1 or 2 */
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].lowPrio     = 0;
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].highPrio    = lowPrioGroup - 1;
-          if (hapiBroadBcmGroupRequired(unit))
-          {
-            group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].highPrio--;
-          }
-
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].lowPrio  = lowPrioGroup;
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio = lowPrioGroup + 1;   /* PTin modified: policer */
-
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio    = lowPrioGroup;
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio   = lowPrioGroup + 1;   /* PTin modified: policer */
-
-          /* PTin added: policer */
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio    = lowPrioGroup + 4;
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].highPrio   = groups - 1;
-          /* PTin end */
-
-          /* PTin added: client stats: groups 0-6 [ 7 * 256/(4*2) = 224 clients ] */
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].lowPrio  = lowPrioGroup + 2;
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].highPrio = lowPrioGroup + 4 - 1;
-
-          /* PTin added: EVC stats: groups 7-7 [ 1 * 256/4 = 64 service/port counters ] */
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].lowPrio     = lowPrioGroup + 4;
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].highPrio    = groups - 1;
-        }
-        else
-        {
-          /* low priority group starts at 0 and goes for 1 or 2 */
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].lowPrio     = 0;
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].highPrio    = lowPrioGroup - 1;
-          if (hapiBroadBcmGroupRequired(unit))
-          {
-            group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].highPrio--;
-          }
-
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].lowPrio  = lowPrioGroup;
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio = lowPrioGroup + 1; //groups/2 - 3;   /*groups - 1;*/     /* PTin modified: policer */
-
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio    = lowPrioGroup; //groups/2 - 2;
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio   = lowPrioGroup + 1; //groups/2 - 1;   /*groups - 1;*/     /* PTin modified: policer */
-
-          /* PTin added: policer */
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio    = lowPrioGroup + 6;
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].highPrio   = groups - 1;
-          /* PTin end */
-
-          /* PTin added: client stats: groups 0-6 [ 7 * 256/(4*2) = 224 clients ] */
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].lowPrio  = lowPrioGroup + 2;
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].highPrio = lowPrioGroup + 4 - 1; //groups/2 - 3;
-
-          /* PTin added: EVC stats: groups 7-7 [ 1 * 256/4 = 64 service/port counters ] */
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].lowPrio     = lowPrioGroup + 4; //groups/2 - 2;
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].highPrio    = lowPrioGroup + 6 - 1; //groups/2 - 1;
-        }
-        /* PTin end */
-      }
       break;
     default:
       break;
@@ -3461,70 +3227,28 @@ int _policy_group_total_slices(int unit, BROAD_POLICY_STAGE_t policyStage)
     switch (policyStage)
     {
     case BROAD_POLICY_STAGE_LOOKUP:
-      if (SOC_IS_FIREBOLT2(unit) ||
-          SOC_IS_TR_VL(unit) ||
-          SOC_IS_SCORPION(unit) || 
-          SOC_IS_TRIUMPH2(unit) || 
-          SOC_IS_APOLLO(unit)   ||
-          SOC_IS_ENDURO(unit)   ||
-          SOC_IS_VALKYRIE2(unit) ||
-          SOC_IS_TRIDENT(unit)  ||      /* PTin added: new switch 56843 (Trident) */
-          SOC_IS_TRIUMPH3(unit) )       /* PTin added: new switch 5664x (Triumph3) */
-        total_slices = 4;
-      else  
-        total_slices = 0;
+      total_slices = 0;
       break;
+
     case BROAD_POLICY_STAGE_INGRESS:
-      if (SOC_IS_ENDURO(unit))
+      if (SOC_IS_JERICHO(unit))
       {
         total_slices = 8;
       }
-      else if ((SOC_IS_FIREBOLT(unit)  || 
-          SOC_IS_FIREBOLT2(unit) ||
-          SOC_IS_TR_VL(unit) ||
-          SOC_IS_RAVEN(unit) || SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_VALKYRIE2(unit) ||
-          SOC_IS_TRIUMPH3(unit))        /* PTin added: new switch 5664x (Triumph3) */
-           && !SOC_IS_TRIDENT(unit))    /* PTin added: new switch 56843 (Trident) */
-          total_slices = 16;
-      else if (SOC_IS_RAPTOR(unit) || SOC_IS_HAWKEYE(unit)) 
-      { 
-        /* Note tcam_slices only counts internal slices. */
-        if (soc_feature(unit, soc_feature_field_slices2)) {
-           total_slices = 2;
-        } else if (soc_feature(unit, soc_feature_field_slices4)) {
-           total_slices = 4;
-        } else {
-          total_slices = soc_feature(unit, soc_feature_field_slices8) ? 8 : 16;
-        }   
-      }
-      else if (SOC_IS_SCORPION(unit))
-      {
-        total_slices = 12;
-      }
-      /* PTin added: new switch 56843 (Trident) */
-      else if (SOC_IS_TRIDENT(unit))
-      {
-          total_slices = 10;
-      }
-      /* PTin end */
       else
       {
-        total_slices = 8;
+        total_slices = 6;
       }
-      break;
+
     case BROAD_POLICY_STAGE_EGRESS:
-      if (SOC_IS_FIREBOLT2(unit) ||
-          SOC_IS_TR_VL(unit)     ||
-          SOC_IS_SCORPION(unit)  || 
-          SOC_IS_TRIUMPH2(unit)  || 
-          SOC_IS_APOLLO(unit)    ||
-          SOC_IS_ENDURO(unit)    ||
-          SOC_IS_VALKYRIE2(unit) ||
-          SOC_IS_TRIDENT(unit)   || /* PTin added: new switch 56843 (Trident) */
-          SOC_IS_TRIUMPH3(unit) )   /* PTin added: new switch 5664x (Triumph3) */
+      if (SOC_IS_JERICHO(unit))
+      {
         total_slices = 4;
-      else  
-        total_slices = 0;
+      }
+      else
+      {
+        total_slices = 3;
+      }
       break;
     default:
       break;
@@ -3610,7 +3334,7 @@ int policy_group_init(int unit)
       }
     }
 
-    rv = _policy_super_qset_init(unit);
+    rv = _policy_super_xset_init(unit);
     if (BCM_E_NONE != rv)
     {
       if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
@@ -4762,11 +4486,11 @@ int _policy_group_block_high_prio_get(int unit, BROAD_POLICY_STAGE_t policyStage
   return group_alloc_table[unit][policyStage][block].highPrio;
 }
 
-void _policy_sqset_get(int unit, int sqset, super_qset_entry_t *sqsetInfo)
+void _policy_super_xset_get(int unit, int sqset, super_xset_entry_t *sqsetInfo)
 {
-  if ((unit < SOC_MAX_NUM_DEVICES) && (sqset < SUPER_QSET_TABLE_SIZE))
+  if ((unit < SOC_MAX_NUM_DEVICES) && (sqset < SUPER_XSET_TABLE_SIZE))
   {
-    memcpy(sqsetInfo, &(super_qset_table[unit][sqset]), sizeof(*sqsetInfo));
+    memcpy(sqsetInfo, &(super_xset_table[unit][sqset]), sizeof(*sqsetInfo));
   }
   else
   {
@@ -4784,7 +4508,7 @@ void _policy_group_info_get(int unit, BROAD_POLICY_STAGE_t policyStage, BROAD_GR
   }
 }
 
-int _policy_minimal_sqset_get(int unit, BROAD_POLICY_TYPE_t policyType, policy_resource_requirements_t *resourceReq, int *sqset)
+int _policy_minimal_sxset_get(int unit, BROAD_POLICY_TYPE_t policyType, policy_resource_requirements_t *resourceReq, int *sqset)
 {
   int          rv;
   sqsetWidth_t minQsetWidth;
@@ -4792,7 +4516,7 @@ int _policy_minimal_sqset_get(int unit, BROAD_POLICY_TYPE_t policyType, policy_r
   /* Find the minimal sqset for this policy. */
   for (minQsetWidth = sqsetWidthFirst; minQsetWidth < sqsetWidthLast; minQsetWidth++)
   {
-    rv = _policy_super_qset_find_match(unit, 
+    rv = _policy_super_xset_find_match(unit, 
                                        policyType, 
                                        minQsetWidth, 
                                        resourceReq->qsetAgg, 
@@ -4808,7 +4532,7 @@ int _policy_minimal_sqset_get(int unit, BROAD_POLICY_TYPE_t policyType, policy_r
   return rv;
 }
 
-void _policy_group_status_to_sqset_width(bcm_field_group_status_t *status, sqsetWidth_t *sqsetWidth)
+void _policy_group_status_to_sxset_width(bcm_field_group_status_t *status, sqsetWidth_t *sqsetWidth)
 {
   if ((status->slice_width_physical == 1) && (status->intraslice_mode_enable == 0))
   {
@@ -4829,7 +4553,7 @@ void _policy_group_status_to_sqset_width(bcm_field_group_status_t *status, sqset
 }
 
 /* Debug */
-void debug_print_qset(bcm_field_qset_t *qset)
+void debug_print_xset(bcm_field_qset_t *qset)
 {
   /* Text names of the enumerated qualifier IDs. */
   char *qual_text[bcmFieldQualifyCount] = BCM_FIELD_QUALIFY_STRINGS;
@@ -4944,9 +4668,9 @@ void debug_group_table(int unit)
                        hapiBroadPolicyTypeName(group_table[unit][policyStage][i].type),
                        group_table[unit][policyStage][i].sqset);
                 sysapiPrintf("%d %s", 
-                       super_qset_table[unit][group_table[unit][policyStage][i].sqset].status.slice_width_physical,
-                       super_qset_table[unit][group_table[unit][policyStage][i].sqset].status.intraslice_mode_enable ? "Intraslice" : "          ");
-                sysapiPrintf(" %d", super_qset_table[unit][group_table[unit][policyStage][i].sqset].status.natural_depth);
+                       super_xset_table[unit][group_table[unit][policyStage][i].sqset].status.slice_width_physical,
+                       super_xset_table[unit][group_table[unit][policyStage][i].sqset].status.intraslice_mode_enable ? "Intraslice" : "          ");
+                sysapiPrintf(" %d", super_xset_table[unit][group_table[unit][policyStage][i].sqset].status.natural_depth);
             }
             else
             {
@@ -4958,7 +4682,7 @@ void debug_group_table(int unit)
     }
 }
 
-void debug_sqset_table(int unit, int entry)
+void debug_super_xset_table(int unit, int entry)
 {
   /* Text names of the enumerated qualifier IDs. */
   char *qual_text[bcmFieldQualifyCount] = BCM_FIELD_QUALIFY_STRINGS;
@@ -4969,18 +4693,18 @@ void debug_sqset_table(int unit, int entry)
   {
     /* All entries */
     min_entry = 0;
-    max_entry = SUPER_QSET_TABLE_SIZE;
+    max_entry = SUPER_XSET_TABLE_SIZE;
   }
   else
   {
-    if (entry < SUPER_QSET_TABLE_SIZE)
+    if (entry < SUPER_XSET_TABLE_SIZE)
     {
       min_entry = entry;
       max_entry = entry + 1;
     }
     else
     {
-      sysapiPrintf("Entry must be less than %d\n", SUPER_QSET_TABLE_SIZE);
+      sysapiPrintf("Entry must be less than %d\n", SUPER_XSET_TABLE_SIZE);
       return;
     }
   }
@@ -4989,12 +4713,12 @@ void debug_sqset_table(int unit, int entry)
   {
     sysapiPrintf("SQset %d", i);
 
-    if (super_qset_table[unit][i].flags & SUPER_QSET_USED)
+    if (super_xset_table[unit][i].flags & SUPER_XSET_USED)
     {
       sysapiPrintf("\n- qsetAgg: ");
       for (j = 0; j < bcmFieldQualifyCount; j++)
       {
-        if (BCM_FIELD_QSET_TEST(super_qset_table[unit][i].qsetAgg, j))
+        if (BCM_FIELD_QSET_TEST(super_xset_table[unit][i].qsetAgg, j))
         {
           sysapiPrintf("%s, ", qual_text[j]);
         }
@@ -5002,13 +4726,13 @@ void debug_sqset_table(int unit, int entry)
       sysapiPrintf("\n- applicablePolicyTypes: ");
       for (j = 0; j < BROAD_POLICY_TYPE_LAST; j++)
       {
-        if (super_qset_table[unit][i].applicablePolicyTypes & (1 << j))
+        if (super_xset_table[unit][i].applicablePolicyTypes & (1 << j))
         {
           sysapiPrintf("%s ", hapiBroadPolicyTypeName(j));
         }
       }
       sysapiPrintf("\n- sqsetWidth: ");
-      switch (super_qset_table[unit][i].sqsetWidth)
+      switch (super_xset_table[unit][i].sqsetWidth)
       {
       case sqsetWidthSingle:
         sysapiPrintf("Single\n");
@@ -5025,9 +4749,9 @@ void debug_sqset_table(int unit, int entry)
       default:
         break;
       }
-      sysapiPrintf("- sliceWidthPhysical: %d\n", super_qset_table[unit][i].status.slice_width_physical);
-      sysapiPrintf("- ruleDepth: %d\n", super_qset_table[unit][i].status.natural_depth);
-      sysapiPrintf("- intrasliceModeEnabled: %d\n", super_qset_table[unit][i].status.intraslice_mode_enable);
+      sysapiPrintf("- sliceWidthPhysical: %d\n", super_xset_table[unit][i].status.slice_width_physical);
+      sysapiPrintf("- ruleDepth: %d\n", super_xset_table[unit][i].status.natural_depth);
+      sysapiPrintf("- intrasliceModeEnabled: %d\n", super_xset_table[unit][i].status.intraslice_mode_enable);
     }
     else
     {

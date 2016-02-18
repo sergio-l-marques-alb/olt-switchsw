@@ -32,14 +32,26 @@ typedef enum
   sqsetWidthLast
 } sqsetWidth_t;
 
+typedef enum 
+{
+  sasetWidthFirst = 0,
+  sasetWidthSingle = sqsetWidthFirst,
+  sasetWidthDouble,
+  sasetWidthTriple,
+  sasetWidthQuad,
+  sasetWidthLast
+} sasetWidth_t;
+
 typedef struct
 {
   bcm_field_qualify_t    *standardQualifiers;
   L7_uint32               standardQualifiersCount;
   custom_field_qualify_t *customQualifiers;
   L7_uint32               customQualifiersCount;
-} super_qset_definition_t;
 
+  bcm_field_action_t     *standardActions;
+  L7_uint32               standardActionsCount;
+} super_xset_definition_t;
 
 /* User Defined Fields (UDF) */
 /* One UDF is currently allocated to System Policies to allow a combination of
@@ -54,21 +66,21 @@ typedef struct
  */
 #define BROAD_ISCSI_UDF customFieldQualifyUdf1
 
-extern super_qset_definition_t l2l3SrcQsetDef;
-extern super_qset_definition_t l2l3DstQsetDef;
-extern super_qset_definition_t l2l3l4Xgs4ClassIdQsetDef;
-extern super_qset_definition_t ipv6SrcL4ClassIdQsetDef;
-extern super_qset_definition_t ipv6DstL4ClassIdQsetDef;
-extern super_qset_definition_t vlanl3QsetDef;
-extern super_qset_definition_t systemQsetTriumph2Def;
-extern super_qset_definition_t systemQsetPTinDef;     /* PTin added: ICAP */
-extern super_qset_definition_t iscsiQsetDef;
-extern super_qset_definition_t ipv6L3L4ClassIdQsetDef;
-extern super_qset_definition_t l2QsetEgressDef;
-extern super_qset_definition_t l3l4QsetEgressDef;
-extern super_qset_definition_t ipv6L3L4QsetEgressDef;
-extern super_qset_definition_t l2l3l4QsetLookupDef;
-extern super_qset_definition_t dot1adQsetLookupDef;
-extern super_qset_definition_t llpfQsetLookupDef;
+extern super_xset_definition_t l2l3SrcQsetDef;
+extern super_xset_definition_t l2l3DstQsetDef;
+extern super_xset_definition_t l2l3l4Xgs4ClassIdQsetDef;
+extern super_xset_definition_t ipv6SrcL4ClassIdQsetDef;
+extern super_xset_definition_t ipv6DstL4ClassIdQsetDef;
+extern super_xset_definition_t vlanl3QsetDef;
+extern super_xset_definition_t systemXsetAradDef;
+extern super_xset_definition_t systemQsetPTinDef;     /* PTin added: ICAP */
+extern super_xset_definition_t iscsiQsetDef;
+extern super_xset_definition_t ipv6L3L4ClassIdQsetDef;
+extern super_xset_definition_t l2QsetEgressDef;
+extern super_xset_definition_t l3l4QsetEgressDef;
+extern super_xset_definition_t ipv6L3L4QsetEgressDef;
+extern super_xset_definition_t l2l3l4QsetLookupDef;
+extern super_xset_definition_t dot1adQsetLookupDef;
+extern super_xset_definition_t llpfQsetLookupDef;
 
 #endif /* BROAD_GROUP_SQSET_H */

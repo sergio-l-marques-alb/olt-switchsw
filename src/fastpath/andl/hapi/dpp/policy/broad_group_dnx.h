@@ -43,8 +43,8 @@ typedef enum
  * Qsets must also be created per unit.
  */
 
-#define SUPER_QSET_NONE          0
-#define SUPER_QSET_USED          1
+#define SUPER_XSET_NONE          0
+#define SUPER_XSET_USED          1
 
 typedef struct
 {
@@ -53,10 +53,15 @@ typedef struct
   bcm_field_qset_t         qsetAgg;    /* aggregate qset supported by entry - std fields only */
   custom_field_qset_t      customQset; /* for custom UDF fields that don't map to bcm_field_qset_t */
   sqsetWidth_t             sqsetWidth; /* Indicates if sqset is single, double, or quadwide. */
+
+  bcm_field_aset_t         aset;
+  bcm_field_aset_t         asetAgg;
+  sasetWidth_t             sasetWidth;
+
   uint32                   applicablePolicyTypes; /* Bitmap corresponding to applicable policy types. */
   bcm_field_group_status_t status;
 }
-super_qset_entry_t;
+super_xset_entry_t;
 
 
 typedef enum
@@ -197,25 +202,26 @@ void _policy_group_alloc_type(BROAD_POLICY_TYPE_t type, group_alloc_block_t *blo
 L7_BOOL _policy_group_types_compatible(int unit, BROAD_POLICY_TYPE_t group1_type, BROAD_POLICY_TYPE_t group2_type);
 int _policy_group_block_low_prio_get(int unit, BROAD_POLICY_STAGE_t  policyStage, int block);
 int _policy_group_block_high_prio_get(int unit, BROAD_POLICY_STAGE_t  policyStage, int block);
-void _policy_set_union(bcm_field_qset_t q1, bcm_field_qset_t *q2);
+void _policy_qset_union(bcm_field_qset_t q1, bcm_field_qset_t *q2);
+void _policy_aset_union(bcm_field_aset_t a1, bcm_field_aset_t *a2);
 int _policy_set_subset(bcm_field_qset_t q1, custom_field_qset_t custom_q1, 
                        bcm_field_qset_t q2, custom_field_qset_t custom_q2);
 
-int _policy_super_qset_find_match(int                  unit, 
+int _policy_super_xset_find_match(int                  unit, 
                                   BROAD_POLICY_TYPE_t  type, 
                                   sqsetWidth_t         qsetWidth,
                                   bcm_field_qset_t     qset, 
                                   custom_field_qset_t  customQset, 
                                   int                 *idx);
-void _policy_sqset_get(int unit, int sqset, super_qset_entry_t *sqsetInfo);
+void _policy_super_xset_get(int unit, int sqset, super_xset_entry_t *sqsetInfo);
 void _policy_group_info_get(int unit, BROAD_POLICY_STAGE_t policyStage, BROAD_GROUP_t group, group_table_t *groupInfo);
-int _policy_minimal_sqset_get(int unit, BROAD_POLICY_TYPE_t policyType, policy_resource_requirements_t *resourceReq, int *sqset);
-void _policy_group_status_to_sqset_width(bcm_field_group_status_t *status, sqsetWidth_t *sqsetWidth);
-int _policy_group_calc_qset(int                             unit,
+int _policy_minimal_sxset_get(int unit, BROAD_POLICY_TYPE_t policyType, policy_resource_requirements_t *resourceReq, int *sqset);
+void _policy_group_status_to_sxset_width(bcm_field_group_status_t *status, sqsetWidth_t *sqsetWidth);
+int _policy_group_calc_xset(int                             unit,
                             BROAD_POLICY_ENTRY_t           *entryPtr, 
                             policy_resource_requirements_t *resourceReq);
 
-void debug_print_qset(bcm_field_qset_t *qset);
+void debug_print_xset(bcm_field_qset_t *qset);
 
 /* PTin added: FFP */
 #if 1

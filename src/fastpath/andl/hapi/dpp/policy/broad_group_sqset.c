@@ -128,43 +128,35 @@ bcm_field_qualify_t vlanl3Qset[] =    /* vlan/l3 */
    a qualifier in the IFP. So this sqset excludes 
    bcmFieldQualifyTunnelTerminated compared to systemQsetDouble[],
    and adds bcmFieldQualifyTunnelType and bcmFieldQualifyLoopbackType. */
-bcm_field_qualify_t systemQsetTriumph2[] =  /* System requirement */
+bcm_field_qualify_t systemQsetArad[] =  /* System requirement */
 {
-  bcmFieldQualifyInPorts,
+  bcmFieldQualifyInterfaceClassPort,
   bcmFieldQualifySrcMac,
   bcmFieldQualifyDstMac,
   bcmFieldQualifyOuterVlan,
-  bcmFieldQualifyInnerVlan,     /* PTin added: FP */
+  bcmFieldQualifyInnerVlan,
   bcmFieldQualifyL4SrcPort,
   bcmFieldQualifyL4DstPort,
   bcmFieldQualifyEtherType,
   bcmFieldQualifyIpProtocol,
   bcmFieldQualifyTtl,
   bcmFieldQualifyL2StationMove,
-#ifdef L7_IPV6_PACKAGE
-  bcmFieldQualifyL3DestRouteHit,
-  bcmFieldQualifyL3DestHostHit,
-#endif
-  bcmFieldQualifyIngressStpState,
   bcmFieldQualifyIpType,
-  #if 0
-  bcmFieldQualifyDrop,          /* PTin added: FP */
-  bcmFieldQualifySrcTrunk,      /* PTin added: FP */
-  #endif
-  bcmFieldQualifyVlanFormat,    /* PTin added: FP */
-  #if 0
-  bcmFieldQualifyDstIp,         /* PTin added: FP */
-  bcmFieldQualifyL2SrcHit,      /* PTin added: FP */
-  bcmFieldQualifyL2DestHit,     /* PTin added: FP */
-  #endif
+  bcmFieldQualifyVlanFormat,
 
-#ifdef L7_IPV6_PACKAGE
-  bcmFieldQualifyTunnelType,
-  bcmFieldQualifyLoopbackType,
-#endif
   bcmFieldQualifyStageIngress
 };
-#define systemQsetTriumph2Size (sizeof(systemQsetTriumph2) / sizeof(bcm_field_qualify_t))
+#define systemQsetAradSize (sizeof(systemQsetArad) / sizeof(bcm_field_qualify_t))
+
+bcm_field_action_t systemAsetArad[] =  /* System requirement */
+{
+  bcmFieldActionSnoop,
+  bcmFieldActionTrap,
+  bcmFieldActionRedirect,
+  bcmFieldActionPrioIntNew,
+};
+#define systemAsetAradSize (sizeof(systemAsetArad) / sizeof(bcm_field_action_t))
+
 
 /* PTin added: ICAP */
 #if 1
@@ -447,7 +439,7 @@ bcm_field_qualify_t dot1adQsetLookup[] =    /* dot1ad specific qset */
 #define dot1adQsetLookupSize (sizeof(dot1adQsetLookup) / sizeof(bcm_field_qualify_t))
 
 /* This sqset is shared by LLPF and IPSG. */
-static bcm_field_qualify_t llpfQsetLookup[] =    /* llpf specific qset */
+bcm_field_qualify_t llpfQsetLookup[] =    /* llpf specific qset */
 {                                                  
     bcmFieldQualifyInPort,
 /* PTin modified: SDK 6.3.0 */
@@ -475,36 +467,37 @@ static bcm_field_qualify_t llpfQsetLookup[] =    /* llpf specific qset */
 
 
 /* Sqsets for system policies. */
-super_qset_definition_t systemQsetTriumph2Def    = {systemQsetTriumph2,    systemQsetTriumph2Size,    0, 0};
+//super_xset_definition_t systemQsetDoubleDef = {systemQsetDouble,      systemQsetDoubleSize,      0, 0};
 
-/* PTin added: ICAP */
-#if 1
-super_qset_definition_t systemQsetPTinDef        = {systemQsetPTin,        systemQsetPTinSize,    0, 0};
-#endif
+super_xset_definition_t systemXsetAradDef = {systemQsetArad,    systemQsetAradSize,
+                                             0, 0,
+                                             systemAsetArad,    systemAsetAradSize};
+#if 0
+super_xset_definition_t systemQsetPTinDef        = {systemQsetPTin,        systemQsetPTinSize,    0, 0};
 
 /* Sqsets for other policies. */
 /* Singlewide */
-super_qset_definition_t l2l3SrcQsetDef           = {l2l3SrcQset,           l2l3SrcQsetSize,           0, 0};
-super_qset_definition_t l2l3DstQsetDef           = {l2l3DstQset,           l2l3DstQsetSize,           0, 0};
-super_qset_definition_t vlanl3QsetDef            = {vlanl3Qset,            vlanl3QsetSize,            0, 0};
-super_qset_definition_t iscsiQsetDef             = {iscsiQset,             iscsiQsetSize,             
+super_xset_definition_t l2l3SrcQsetDef           = {l2l3SrcQset,           l2l3SrcQsetSize,           0, 0};
+super_xset_definition_t l2l3DstQsetDef           = {l2l3DstQset,           l2l3DstQsetSize,           0, 0};
+super_xset_definition_t vlanl3QsetDef            = {vlanl3Qset,            vlanl3QsetSize,            0, 0};
+super_xset_definition_t iscsiQsetDef             = {iscsiQset,             iscsiQsetSize,             
                                                     iscsiCustomQset,       iscsiCustomQsetSize};
 
 /* Doublewide */
-super_qset_definition_t l2l3l4Xgs4ClassIdQsetDef = {l2l3l4Xgs4ClassIdQset, l2l3l4Xgs4ClassIdQsetSize, 0, 0};
-super_qset_definition_t ipv6SrcL4ClassIdQsetDef  = {ipv6SrcL4ClassIdQset,  ipv6SrcL4ClassIdQsetSize,  0, 0};
-super_qset_definition_t ipv6DstL4ClassIdQsetDef  = {ipv6DstL4ClassIdQset,  ipv6DstL4ClassIdQsetSize,  0, 0};
+super_xset_definition_t l2l3l4Xgs4ClassIdQsetDef = {l2l3l4Xgs4ClassIdQset, l2l3l4Xgs4ClassIdQsetSize, 0, 0};
+super_xset_definition_t ipv6SrcL4ClassIdQsetDef  = {ipv6SrcL4ClassIdQset,  ipv6SrcL4ClassIdQsetSize,  0, 0};
+super_xset_definition_t ipv6DstL4ClassIdQsetDef  = {ipv6DstL4ClassIdQset,  ipv6DstL4ClassIdQsetSize,  0, 0};
 
 /* Quadwide */
-super_qset_definition_t ipv6L3L4ClassIdQsetDef   = {ipv6L3L4ClassIdQset,   ipv6L3L4ClassIdQsetSize,   0, 0};
+super_xset_definition_t ipv6L3L4ClassIdQsetDef   = {ipv6L3L4ClassIdQset,   ipv6L3L4ClassIdQsetSize,   0, 0};
 
 /* Sqsets for EFP */
-super_qset_definition_t l2QsetEgressDef          = {l2QsetEgress,          l2QsetEgressSize,          0, 0};
-super_qset_definition_t l3l4QsetEgressDef        = {l3l4QsetEgress,        l3l4QsetEgressSize,        0, 0};
-super_qset_definition_t ipv6L3L4QsetEgressDef    = {ipv6L3L4QsetEgress,    ipv6L3L4QsetEgressSize,    0, 0};
+super_xset_definition_t l2QsetEgressDef          = {l2QsetEgress,          l2QsetEgressSize,          0, 0};
+super_xset_definition_t l3l4QsetEgressDef        = {l3l4QsetEgress,        l3l4QsetEgressSize,        0, 0};
+super_xset_definition_t ipv6L3L4QsetEgressDef    = {ipv6L3L4QsetEgress,    ipv6L3L4QsetEgressSize,    0, 0};
 
 /* Sqsets for VFP */
-super_qset_definition_t l2l3l4QsetLookupDef      = {l2l3l4QsetLookup,      l2l3l4QsetLookupSize,      0, 0};
-super_qset_definition_t dot1adQsetLookupDef      = {dot1adQsetLookup,      dot1adQsetLookupSize,      0, 0};
-super_qset_definition_t llpfQsetLookupDef        = {llpfQsetLookup,        llpfQsetLookupSize,        0, 0};
-
+super_xset_definition_t l2l3l4QsetLookupDef      = {l2l3l4QsetLookup,      l2l3l4QsetLookupSize,      0, 0};
+super_xset_definition_t dot1adQsetLookupDef      = {dot1adQsetLookup,      dot1adQsetLookupSize,      0, 0};
+super_xset_definition_t llpfQsetLookupDef        = {llpfQsetLookup,        llpfQsetLookupSize,        0, 0};
+#endif
