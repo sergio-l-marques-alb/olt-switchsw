@@ -4941,14 +4941,16 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         PT_LOG_INFO(LOG_CTX_MSGHANDLER,
                  "Message received: CHMSG_RFC2819_MONITORING_GET (0x%04X)", inbuffer->msgId);
 
-        CHECK_INFO_SIZE_MOD(L7_int);
+        CHECK_INFO_SIZE_MOD(msg_rfc2819_monitoring_t);
 
+        msg_rfc2819_monitoring_t *in_ptr;
         msg_rfc2819_buffer_t *ptr;
 
         ptr = (msg_rfc2819_buffer_t *) outbuffer->info;
+        in_ptr = (msg_rfc2819_monitoring_t *) inbuffer->info;
 
         /* Execute command */
-        rc = ptin_msg_get_next_qualRFC2819(*((L7_uint32 *)inbuffer->info), ptr);
+        rc = ptin_msg_get_next_qualRFC2819(in_ptr->n, ptr);
 
         if (L7_SUCCESS != rc)
         {
