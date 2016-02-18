@@ -23,7 +23,7 @@ typedef unsigned long long u64;
 #ifndef N_OAM_PRTS
 #include <ptin_globaldefs.h>
     //#warning You must define constant N_OAM_PRTS (number of OAM MAC ports)!
-    #define N_OAM_PRTS PTIN_SYSTEM_N_PORTS
+    #define N_OAM_PRTS PTIN_SYSTEM_N_INTERF
 #endif
 
 #ifndef N_MEPs
@@ -600,10 +600,7 @@ typedef ETH_DMM_OAM_DATAGRM ETH_DMR_OAM_DATAGRM;
 typedef struct {
  u8 type;
  u16 len;
- union {
-     u8  nxt_TLV[1];
-     u8	 end_TLV;        // Set to all ZEROes
- } __attribute__ ((packed)) tlvs;
+ u8 value[1];//u8 value[VALUE_SIZE];
 } __attribute__ ((packed)) T_GEN_TLV;
 
 #define __DATA_TLV_STRUCTURE_(pattern_length) \
@@ -705,12 +702,40 @@ typedef struct {
  u8 type;   //REPLY_IN_TLV_TYPE / REPLY_EG_TLV_TYPE
  u16 len;
  u8 action;
+//IEEE 802.1ag in 802.1Q 21.9.8.1 (Ingress Action)
+#define IngOK 1
+//The target data frame would be passed through to the MAC Relay Entity.
+#define IngDown 2
+//The Bridge Port’s MAC_Operational parameter is false.
+//a This value could be returned, for example, by an operational Down MEP that has another Down MEP at a higher MD Level
+//on the same Bridge Port that is causing the Bridge Port’s MAC_Operational parameter to be false.
+#define IngBlocked 3
+//The target data frame would not be forwarded if received on this Port due to active topology enforcement (8.6.1). (See
+//Figure 22-1 to see how this is possible.)
+#define IngVID 4
+//The ingress port is not in the member set of the LTM’s VID, and ingress filtering is enabled, so the target data frame would
+//be filtered by ingress filtering (8.6.2).
+
  struct {
       u8 mac[6];
  } __attribute__ ((packed)) v;
 } __attribute__ ((packed)) T_RPL_IN_ID_TLV;
 
 typedef T_RPL_IN_ID_TLV T_RPL_EG_ID_TLV;
+//IEEE 802.1ag in 802.1Q 21.9.9.1 (Egress Action)
+#define EgrOK 1
+//The targeted data frame would be forwarded
+#define EgrDown 2
+//The Egress Port can be identified, but that Bridge Port’s MAC_Operational parameter is false.
+#define EgrBlocked 3
+//The Egress Port can be identified, but the data frame would not pass through the Egress Port due to active topology management
+//(8.6.1), i.e., the Bridge Port is not in the Forwarding state.
+#define EgrVID 4
+//The Egress Port can be identified, but the Bridge Port is not in the LTM’s VID’s member set, so would be filtered by egress filtering
+//(8.6.4)
+
+
+
 
 typedef struct {
  u8  MAlevel_and_version;
@@ -718,9 +743,9 @@ typedef struct {
  u8  opcode;
 
  u8  flags;
-#define LTR_flags_TO_HWonly(LTM_flags)      LTM_flags_TO_HWonly
-#define LTR_flags_TO_FwdYes(LTM_flags)      ((LTM_flags) & 0x40)
-#define LTR_flags_TO_TerminalMEP(LTM_flags) ((LTM_flags) & 0x20)
+#define LTR_flags_TO_HWonly                 LTM_flags_TO_HWonly
+#define LTR_flags_TO_FwdYes(LTR_flags)      ((LTR_flags) & 0x40)
+#define LTR_flags_TO_TerminalMEP(LTR_flags) ((LTR_flags) & 0x20)
 #define ASSEMBLE_LTR_flags(HWonly, FwdYes, TMEP)    ( ((HWonly)?0x80:0) | ((FwdYes)?0x40:0) | ((TMEP)?0x20:0) )
  u8  TLV_offset;
  u32 transID;
@@ -729,7 +754,7 @@ typedef struct {
 #define RlyHit  1
 #define RlyFDB  2
 #define RlyMPDB 3
-//IEEE 802.1ag 21.9.5, table 21-28: respectively reached target MEP, FDB, MEP DB
+//IEEE 802.1ag in 802.1Q 21.9.5, table 21-28: respectively reached target MEP, FDB, MEP DB
 
  union {     //We may have a DATA TLV or a TST TLV before the END TLV (or just the END TLV)
      u8  nxt_TLV[1];
@@ -818,7 +843,7 @@ extern int del_rmep(u32 i_mep, u32 i_rmep, T_ETH_SRV_OAM *p_oam);
 extern void proc_ethsrv_oam(T_ETH_SRV_OAM *p_oam, u32 T_ms);
 
 //EVENT - to be called for every OAM packet received
-extern int rx_oam_pckt(u16 oam_prt, u8 *pkt, u32 pkt_len, u64 vid, u8 *pSMAC, T_ETH_SRV_OAM *p_oam, u64 RxFCl);
+extern int rx_oam_pckt(u16 oam_prt, u8 *pkt, u32 pkt_len, u64 vid, u8 *pDMAC, u8 *pSMAC, T_ETH_SRV_OAM *p_oam, u64 RxFCl);
 //RxFCl is the ETH-LM counter for CCM/LMM/LMR packets or the timestamp, for DMM/DMR; set to 0 if unused
 
 
@@ -855,10 +880,13 @@ extern u64 rd_TxTimeStampf(u16 i_mep);  //Timestamp for packets leaving this car
 
 
 //this function returns the port where the bridge knows this MAC is or an invalid value (all 1s) otherwise
-extern u16 MAC_in_prt(u8 *MAC);
+extern u16 single_egprt_targetMAC(u8 *MAC, u16 ingress_oam_prt, u64 ingress_vid);
 
-//returns a pointer to a (6 byte) MAC, representing the NE/bridge's MAC for the given port or an invalid (all 1s) otherwise
-extern u8 *this_prts_MAC(u16 oam_prt);
+extern u8 this_MPs_MAC(u16 oam_prt, u64 vid, u8 mip0_mep1, u8 *mac);
+
+//check T_RPL_IN_ID_TLV T_RPL_EG_ID_TLV when defining these functions
+extern u8 ingress_action(u16 oam_prt, u64 vid);
+extern u8 egress_action(u16 oam_prt, u64 vid);
 
 
 #ifdef __Y1731_802_1ag_OAM_ETH__

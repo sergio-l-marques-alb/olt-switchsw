@@ -22,6 +22,10 @@
 
 #include "ptin_xlate_api.h"
 #include "ptin_fpga_api.h"
+#include "ptin_control.h"
+
+#include <fdb_api.h>
+#include <usmdb_util_api.h>
 
 #ifdef __Y1731_802_1ag_OAM_ETH__
 
@@ -320,6 +324,13 @@ int send_eth_pckt(L7_uint16 port, L7_uint8 up1_down0,
 
     if (NULL==pDMAC || NULL==buf) return 3;
 
+    //if (ptin_debug_oam) {
+    //L7_uint32 i;
+    //    printf(NLS"buf:");
+    //    for (i=0; i<length; i++) printf(" %2.2x", buf[i]);
+    //    printf(NLS);
+    //}
+
     memcpy(buff, pDMAC, 6);
     nimGetIntfAddress(intIfNum, L7_SYSMAC_BIA, &buff[6]);   //memcpy(buff, pSMAC, 6)
     if (vid<=4095) {
@@ -339,10 +350,11 @@ int send_eth_pckt(L7_uint16 port, L7_uint8 up1_down0,
         length+=14;
     }
 
-    if (length<64) {
-        memset(&buff[length], 0, 64-length);
-        length=64;            
-    }
+    //Unnecessary; BCM does the padding
+    //if (length<60) {    //60bytes +4(FCS) = 64bytes
+    //    memset(&buff[length+DUMMY_VLAN_LEN], 0, 60-length);
+    //    length=60;            
+    //}
 
 #ifndef RAW_MODE
     // Convert to internal VLAN ID
@@ -358,6 +370,13 @@ int send_eth_pckt(L7_uint16 port, L7_uint8 up1_down0,
     buff[14]=prior<<5 | DUMMY_VID>>8;
     buff[15]=(L7_uint8)DUMMY_VID;
     length+=DUMMY_VLAN_LEN;
+
+    //if (ptin_debug_oam) {
+    //L7_uint32 i;
+    //    printf(NLS"buff:");
+    //    for (i=0; i<length; i++) printf(" %2.2x", buff[i]);
+    //    printf(NLS);
+    //}
 
     SYSAPI_NET_MBUF_GET_DATASTART(bufHandle, dataStart);
     memcpy(dataStart, buff, length);
@@ -623,7 +642,7 @@ void ptin_oam_eth_task(void)
                    {
                     int r;
 
-                    if ((r=rx_oam_pckt(ptin_port, &msg.payload[i], msg.payloadLen-i, /*msg.vlanId*/ newOuterVlanId, &msg.payload[L7_MAC_ADDR_LEN], &oam, msg.timestamp)))
+                    if ((r=rx_oam_pckt(ptin_port, &msg.payload[i], msg.payloadLen-i, /*msg.vlanId*/ newOuterVlanId, msg.payload, &msg.payload[L7_MAC_ADDR_LEN], &oam, msg.timestamp)))
                         PT_LOG_INFO(LOG_CTX_OAM,"rx_oam_pckt()==%d", r);
                    }
                    goto _ptin_oam_eth_task1;
@@ -937,4 +956,76 @@ u64 rd_TxFCl(u16 i_mep) {return 0;}  //No need to do anything; BCM HW fills this
 u64 rd_TxTimeStampb(u16 i_mep) {return 0;}  //Need to check what to do; BCM HW should fill this field
 u64 rd_TxTimeStampf(u16 i_mep) {return 0;}  //Need to check what to do; BCM HW should fill this field
 
+
+
+
+
+u8 this_MPs_MAC(u16 oam_prt, u64 vid, u8 mip0_mep1, u8 *mac) {
+
+
+ if (mip0_mep1) {
+ L7_uint32 intIfNum;
+     ptin_intf_port2intIfNum(oam_prt, &intIfNum);
+     if (L7_SUCCESS!=nimGetIntfAddress(intIfNum, L7_SYSMAC_BIA, mac)) return 1;
+ }
+ else {
+     simMacAddrGet(mac);
+ }
+
+ return 0;
+}//this_MPs_MAC
+
+
+
+
+
+
+
+
+
+
+
+
+u16 single_egprt_targetMAC(u8 *MAC, u16 ingress_oam_prt, u64 ingress_vid) {
+L7_uint32 intIfNum, ptin_port;
+L7_uint16 vidInternal;
+L7_uchar8 vidMac[L7_FDB_KEY_SIZE];
+dot1dTpFdbData_t fdbEntry;
+
+ if (L7_SUCCESS==ptin_intf_port2intIfNum(ingress_oam_prt, &intIfNum)
+     &&
+     L7_SUCCESS==ptin_xlate_ingress_get(intIfNum, ingress_vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR))
+ {
+     memset(vidMac, 0, L7_FDB_KEY_SIZE);
+     (void)usmDbEntryVidMacCombine(vidInternal, MAC, vidMac);
+
+     memset(&fdbEntry, 0, sizeof(fdbEntry));
+     if(L7_SUCCESS==fdbFind(vidMac, L7_MATCH_EXACT, &fdbEntry) && L7_SUCCESS==ptin_intf_intIfNum2port(fdbEntry.dot1dTpFdbPort, &ptin_port))
+       return ptin_port;
+ }
+
+ return -1;
+}
+
+//check T_RPL_IN_ID_TLV T_RPL_EG_ID_TLV when defining these functions
+u8 ingress_action(u16 oam_prt, u64 vid) {   
+ return IngOK;
+ //IngDown: if so, packet wouldn't have been trapped to uP
+ //IngVID: same reason
+ //IngBlocked: might be in future
+}
+
+u8 egress_action(u16 oam_prt, u64 vid) {
+L7_uint32 intIfNum;
+L7_uint16 vidInternal;
+
+ if (L7_TRUE!=get_linkStatus(oam_prt)) return EgrDown;
+
+if (L7_SUCCESS!=ptin_intf_port2intIfNum(oam_prt, &intIfNum)
+     ||
+     L7_SUCCESS!=ptin_xlate_ingress_get(intIfNum, vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR)) return EgrVID;
+
+ //EgrBlocked: might be in future
+ return EgrOK;
+}
 

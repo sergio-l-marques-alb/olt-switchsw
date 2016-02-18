@@ -2644,3 +2644,19 @@ void rx_dot3ad_matrix_sync2_t(char *pbuf, unsigned long dim) {
 #endif
 }//rx_dot3ad_matrix_sync2_t
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+L7_int get_linkStatus(L7_uint32 port) {return port<PTIN_SYSTEM_N_INTERF? linkStatus[port]: L7_TRUE;}
+

@@ -47,7 +47,7 @@ static int rx_lmm(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC,
                     T_MEP_DB *p_mep_db, T_LOOKUP_MEP *p_mep_lut, u64 RxFCl);
 static int rx_lmr(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC,
                     T_MEP_DB *p_mep_db, T_LOOKUP_MEP *p_mep_lut, u64 RxFCl);
-static int rx_lbm(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC,
+static int rx_lbm(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pDMAC, u8 *pSMAC,
                     T_MEP_DB *p_mep_db, T_LOOKUP_MEP *p_mep_lut);
 static int rx_ltm(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC,
                     T_MEP_DB *p_mep_db, T_LOOKUP_MEP *p_mep_lut);
@@ -1071,9 +1071,9 @@ ETH_LMM_OAM_DATAGRM lmm, *p_lmm;
 
 
 //Uses (and changes both opcode, SMAC, DMAC values) of the buffer pointed by p_lbr
-static int send_lbr(u16 oam_prt, T_MEP_HDR *p_mep, ETH_LBR_OAM_DATAGRM *p_lbr, u16 lbr_len, u8 *pDMAC) {
+static int send_lbr(u16 oam_prt, u8 up1_down0, u64 vid, u8 prior, u8 CoS, ETH_LBR_OAM_DATAGRM *p_lbr, u16 lbr_len, u8 *pDMAC) {
     p_lbr->opcode=LBR_OPCODE;
-    return send_eth_pckt(oam_prt, p_mep->up1_down0, (u8*)p_lbr, lbr_len, p_mep->vid, p_mep->prior, p_mep->CoS, 0, OAM_ETH_TYPE, pDMAC);
+    return send_eth_pckt(oam_prt, up1_down0, (u8*)p_lbr, lbr_len, vid, prior, CoS, 0, OAM_ETH_TYPE, pDMAC);
 }//send_lbr
 
 
@@ -1160,46 +1160,61 @@ ETH_DMR_OAM_DATAGRM dmr, *p_dmr;
 
 
 #define v2008(i_eg_id_tlv)  ((i_eg_id_tlv)<9600)
-/*
-static int send_ltr(u16 oam_prt, T_MEP_HDR *p_mep, ETH_LTM_OAM_DATAGRM *p_ltm, u16 ltr_len, u8 *pDMAC) {
-//u32 i_eg_id_tlv;
+
+static int send_ltr(u16 oam_prt, u8 up1_down0, u64 vid, u8 prior, u8 CoS, ETH_LTM_OAM_DATAGRM *p_ltm, u16 ltm_len, u8 *MP_MAC, u32 i_eg_id_tlv, u8 FwdYes, u8 TerminalMEP, u8 relay_action, u8 ingaction, u8 egaction) {
 ETH_LTR_OAM_DATAGRM ltr;
 T_LTR_EG_ID_TLV     *p_eg_id;
 T_RPL_IN_ID_TLV     *p_rpl_id;
+u16                 ltr_len = sizeof(ETH_LTR_OAM_DATAGRM);
 
- ltr.MAlevel_and_version=   ASSEMBLE_OAM_MALEVEL_AND_VERSION(p_mep->level, OAM_PROTO_VERSION);
+ //LTR header
+ ltr.MAlevel_and_version=   p_ltm->MAlevel_and_version;//ASSEMBLE_OAM_MALEVEL_AND_VERSION(p_mep->level, OAM_PROTO_VERSION);
  ltr.opcode=                LTR_OPCODE;
  ltr.flags=                 ASSEMBLE_LTR_flags(LTM_flags_TO_HWonly(p_ltm->flags),FwdYes,TerminalMEP);
- ltr.TLV_offset=            offsetof(ETH_LTR_OAM_DATAGRM,tlvs)-offsetof(ETH_LTR_OAM_DATAGRM,TLV_offset)-1;//6;
+ ltr.TLV_offset=            offsetof(ETH_LTR_OAM_DATAGRM,tlvs)-offsetof(ETH_LTR_OAM_DATAGRM,TLV_offset)-sizeof(ltr.TLV_offset);//6;
  ltr.transID=               p_ltm->transID;
- ltr.TTL=                   p_ltm->TTL-1;
- ltr.rel_act=               rel_act;
+ ltr.TTL=                   p_ltm->TTL;//p_ltm->TTL-1; (already decremented in a previous common point for LTM and LTR)
+ ltr.rel_act=               relay_action;
 
  if (v2008(i_eg_id_tlv)) {
-     p_eg_id=                   ltr.tlvs.nxt_TLV;
+     //LTR EG ID TLV
+     p_eg_id=                   (T_LTR_EG_ID_TLV *) ltr.tlvs.nxt_TLV;
      p_eg_id->type=             LTR_EG_ID_TLV_TYPE;
      p_eg_id->len=              htons(TLV_LENGTH(T_LTR_EG_ID_TLV));
-
      {
       T_LTM_EG_ID_TLV *ltm_eg_id;
 
          ltm_eg_id= (T_LTM_EG_ID_TLV *) &((u8*)p_ltm)[i_eg_id_tlv];
-         memcpy(&p_eg_id->last, &ltm_eg_id->v, sizeof(ltm_eg_id->v));
+         memcpy(&p_eg_id->last, &ltm_eg_id->v, sizeof(p_eg_id->last));
+         memset(p_eg_id->next.zero, 0, 2);
+         memcpy(p_eg_id->next.mac, MP_MAC, sizeof(p_eg_id->next.mac));
      }
 
-     p_rpl_id=                  p_eg_id+sizeof(T_LTR_EG_ID_TLV);
+     //REPLY ING/EG TLV
+     //Assuming RPL_IN_ID_TLV and RPL_EG_ID_TLV are the same, other than the "type" field
+     p_rpl_id=                  (T_RPL_IN_ID_TLV *) ((u8*)p_eg_id+sizeof(T_LTR_EG_ID_TLV));
+     p_rpl_id->len=             htons(TLV_LENGTH(T_RPL_IN_ID_TLV));
+     if (up1_down0) {
+         p_rpl_id->type=        REPLY_EG_TLV_TYPE;
+         p_rpl_id->action=      egaction;    
+     }
+     else {
+         p_rpl_id->type=        REPLY_IN_TLV_TYPE;
+         p_rpl_id->action=      ingaction;    
+     }
+     memcpy(p_rpl_id->v.mac, MP_MAC, sizeof(p_rpl_id->v.mac));
+
+     //END TLV
+     ((u8*)p_rpl_id)[sizeof(T_RPL_IN_ID_TLV)]=0;
+
+     ltr_len+= sizeof(T_LTR_EG_ID_TLV)+sizeof(T_RPL_IN_ID_TLV);
  }
  else { //v2006
-     p_rpl_id=                  ltr.tlvs.nxt_TLV;
+     ltr.tlvs.end_TLV=0;
  }
 
- p_rpl_id->type=            REPLY_IN_TLV_TYPE   REPLY_EG_TLV_TYPE
- p_rpl_id->len=             htons(TLV_LENGTH(T_RPL_IN_ID_TLV));
- p_rpl_id-
-
- return 0;
+ return send_eth_pckt(oam_prt, up1_down0, (u8*)&ltr, ltr_len, vid, prior, CoS, 0, OAM_ETH_TYPE, p_ltm->orig_mac);
 }//send_ltr
-*/
 
 
 
@@ -1219,7 +1234,77 @@ T_RPL_IN_ID_TLV     *p_rpl_id;
 
 
 
-int rx_oam_pckt(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC, T_ETH_SRV_OAM *p_oam, u64 RxFCl) {
+
+static int relay_ltm(u16 trg_prt, u8 up1_down0, u64 vid, u8 prior, u8 CoS, ETH_LTM_OAM_DATAGRM *p_ltm, u16 ltm_len, u8 *MP_MAC, u32 i_eg_id_tlv){
+ETH_LTR_OAM_DATAGRM ltm;
+
+ memcpy(&ltm, p_ltm, ltm_len);
+ //LTM header
+ //ltm.TTL=                   p_ltm->TTL;//p_ltm->TTL-1; (already decremented in a previous common point for LTM and LTR)
+
+ if (v2008(i_eg_id_tlv)) {
+     {
+      T_LTM_EG_ID_TLV *ltm_eg_id;
+
+         ltm_eg_id= (T_LTM_EG_ID_TLV *) &((u8*)&ltm)[i_eg_id_tlv];
+         //ltm_eg_id->type=   LTM_EG_ID_TLV_TYPE;
+         //ltm_eg_id->len=    htons(TLV_LENGTH(T_LTM_EG_ID_TLV));
+         memset(ltm_eg_id->v.zero, 0, 2);
+         memcpy(ltm_eg_id->v.mac, MP_MAC, sizeof(ltm_eg_id->v.mac));
+     }
+ }
+ //else { //v2006
+ //}
+
+ return send_eth_pckt(trg_prt, up1_down0, (u8*)&ltm, ltm_len, vid, prior, CoS, 0, OAM_ETH_TYPE, p_ltm->targ_mac);
+}//relay_ltm
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+int rx_oam_pckt(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pDMAC, u8 *pSMAC, T_ETH_SRV_OAM *p_oam, u64 RxFCl) {
 ETH_SRV_OAM_DATAGRM *p_oam_d;
 T_MEP_DB        *p_mep_db;
 T_LOOKUP_MEP    *p_mep_lut;
@@ -1267,7 +1352,7 @@ T_LOOKUP_MEP    *p_mep_lut;
      if (pkt_len<sizeof(ETH_LBM_OAM_DATAGRM)+2)  return 5;
      p_mep_db=  p_oam->db;
      p_mep_lut= p_oam->mep_lut;
-     rx_lbm(oam_prt, pkt_ethtype, pkt_len, vid, pSMAC, p_mep_db, p_mep_lut);
+     rx_lbm(oam_prt, pkt_ethtype, pkt_len, vid, pDMAC, pSMAC, p_mep_db, p_mep_lut);
      return 0;
  case LTM_OPCODE:
      if (pkt_len<sizeof(ETH_LTM_OAM_DATAGRM)+2)  return 5;
@@ -1909,13 +1994,15 @@ int del_mep_dm(u32 i_mep, T_ETH_SRV_OAM *p_oam) {
 
 
 
-static int rx_lbm(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC,
+static int rx_lbm(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pDMAC, u8 *pSMAC,
                     T_MEP_DB *p_mep_db, T_LOOKUP_MEP *p_mep_lut) {
 ETH_LBM_OAM_DATAGRM *p_lbm;
 T_MEP       *_p_mep;
 u32 i_look_r, i_mep;
 int i;
-u8 unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4; u32 alrm_index;
+u8 unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4;
+u32 alrm_index;
+u8 MEP_in_DB;
 
 
  p_lbm= (ETH_LBM_OAM_DATAGRM *) &pkt_ethtype[2];
@@ -1924,32 +2011,43 @@ u8 unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4; u32 alrm_index;
                              -1, //LBM packet doesn't bring any MEP_ID...
                              -1 , -1, p_mep_lut, &unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4, &alrm_index);
 
- i_mep= MEP_INDEX_TO_iMEP(i_look_r);    //...so this MEP_ID (-1) won't be found...
- //i_rmep=MEP_INDEX_TO_iRMEP(i_look_r);
- 
- if (!valid_mep_index(i_mep) /*|| !valid_rmep_index(i_rmep)*/) {
+// i_mep= MEP_INDEX_TO_iMEP(i_look_r);    //...so this MEP_ID (-1) won't be found...
+// //i_rmep=MEP_INDEX_TO_iRMEP(i_look_r);
+// 
+// if (!valid_mep_index(i_mep) /*|| !valid_rmep_index(i_rmep)*/) {
      i_mep= MEP_INDEX_TO_iMEP(alrm_index);      //...and we'll have to deal just with alarms: the MEP in a certain port, VID and level (alarm: unexpected MEP)
      //i_rmep=MEP_INDEX_TO_iRMEP(alrm_index);
      
-     if (!valid_mep_index(i_mep)) return 1;
+     if (!valid_mep_index(i_mep)) {
+     //T_ETH_OAM_MAC this_MP_MAC;
+     //    this_MPs_MAC(oam_prt, vid, 0, this_MP_MAC.byte);
+     //    if (memcmp(pDMAC, this_MP_MAC.byte, sizeof(T_ETH_OAM_MAC))) return 1;
+         MEP_in_DB=0;//return 1;
+     } else do {
+         _p_mep=        &p_mep_db[i_mep].mep;
+    
+         i= _p_mep->level - MALEVEL_AND_VERSION_TO_MALEVEL(p_lbm->MAlevel_and_version);
+         //if (/*0==unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4 ||*/  i>0) {
+         //    return 2;
+         //}
+         //else
+         //if (i<0) {
+         //    //FWD this packet to every other port on the same vlan
+         //    return 3;
+         //}
+         if (0!=i) {MEP_in_DB=0; break;}    
+    
+         if (!(2==unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4)) {MEP_in_DB=0; break;} //return 0;//4;
 
-     _p_mep=        &p_mep_db[i_mep].mep;
+         MEP_in_DB=1;
+     } while (0);
 
-     i= _p_mep->level - MALEVEL_AND_VERSION_TO_MALEVEL(p_lbm->MAlevel_and_version);
-     if (/*0==unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4 ||*/  i>0) {
-         return 2;
-     }
-     else
-     if (i<0) {
-         //FWD this packet to every other port on the same vlan
-         return 3;
-     }
 
-     if (2==unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4) {
-       //Response to an LBM
-       send_lbr(oam_prt, (T_MEP_HDR *)_p_mep, (ETH_LBM_OAM_DATAGRM *)p_lbm, pkt_len-2, pSMAC);
-     }
- }
+
+     //Response to an LBM
+     if (MEP_in_DB) send_lbr(oam_prt, _p_mep->up1_down0, _p_mep->vid, _p_mep->prior, _p_mep->CoS, (ETH_LBM_OAM_DATAGRM *)p_lbm, pkt_len-2, pSMAC);
+     else           send_lbr(oam_prt, 0, vid, 7, 0, (ETH_LBM_OAM_DATAGRM *)p_lbm, pkt_len-2, pSMAC); //MIP (assuming there's a MIP, once trapping rose packet to uP...)
+// }
  return 0;
 }//rx_lbm
 
@@ -1960,10 +2058,10 @@ u8 unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4; u32 alrm_index;
 
 
 #define H (sizeof(((T_GEN_TLV *)0)->type) + sizeof(((T_GEN_TLV *)0)->len))
-/*
+
 static u32 iTLV_search(ETH_SRV_OAM_DATAGRM *p, u32 oam_len, u8 TLV_type) {
 u32 i;
-T_GEN_TLV *p2; 
+T_GEN_TLV *p2;
 u16 len; 
 
  //for (i=(u8)&p->TLV_offset-(u8)p +1+ p->TLV_offset; i<oam_len;) {
@@ -1977,71 +2075,121 @@ u16 len;
      i+=len+H;
  }
  return 0UL-1;  //not found
-}//iTLV
-*/
+}//iTLV_search
+
 
 
 
 static int rx_ltm(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC,
                     T_MEP_DB *p_mep_db, T_LOOKUP_MEP *p_mep_lut) {
-//ETH_LTM_OAM_DATAGRM *p_ltm;
-//T_MEP       *_p_mep;
-//u32 i_look_r, i_mep;
-//int i;
-//u16 targ_prt;
-//u8 unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4; u32 alrm_index;
-//
-//
-// p_ltm= (ETH_LTM_OAM_DATAGRM *) &pkt_ethtype[2];
-//
-// i_look_r=  finger_lut_index(0, oam_prt, vid, MALEVEL_AND_VERSION_TO_MALEVEL(p_ltm->MAlevel_and_version), 0,
-//                             -1, //LTM packet doesn't bring any MEP_ID...
-//                             -1 , -1, p_mep_lut, &unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4, &alrm_index);
-//
+ETH_LTM_OAM_DATAGRM *p_ltm;
+T_MEP       *_p_mep=NULL;
+u32 i_look_r, i_mep;
+int i;
+u16 targ_prt;
+u8 unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4;
+u32 alrm_index;
+u8 MEP_in_DB, FwdYes, TerminalMEP, TerminalMP,
+    ud, p, C;
+u64 v;
+T_ETH_OAM_MAC this_MP_MAC;
+
+
+ p_ltm= (ETH_LTM_OAM_DATAGRM *) &pkt_ethtype[2];
+
+ if (0==p_ltm->TTL) return 0;//5
+
+
+
+ i_look_r=  finger_lut_index(0, oam_prt, vid, MALEVEL_AND_VERSION_TO_MALEVEL(p_ltm->MAlevel_and_version), 0,
+                             -1, //LTM packet doesn't bring any MEP_ID...
+                             -1 , -1, p_mep_lut, &unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4, &alrm_index);
+
 // i_mep= MEP_INDEX_TO_iMEP(i_look_r);    //...so this MEP_ID (-1) won't be found...
 // //i_rmep=MEP_INDEX_TO_iRMEP(i_look_r);
 // 
 // if (!valid_mep_index(i_mep) /*|| !valid_rmep_index(i_rmep)*/) {
-//     i_mep= MEP_INDEX_TO_iMEP(alrm_index);      //...and we'll have to deal just with alarms: the MEP in a certain port, VID and level (alarm: unexpected MEP)
-//     //i_rmep=MEP_INDEX_TO_iRMEP(alrm_index);
-//     
-//     if (!valid_mep_index(i_mep)) return 1;
-//
-//     _p_mep=        &p_mep_db[i_mep];
-//
-//     i= _p_mep->level - MALEVEL_AND_VERSION_TO_MALEVEL(p_ltm->MAlevel_and_version);
-//     if (/*0==unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4 ||*/  i>0) {
-//         return 2;
-//     }
-//     else
-//     if (i<0) {
-//         //FWD this packet to every other port on the same vlan
-//         return 3;
-//     }
-//
-//
-//     if (!(2==unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4)) return 0;//4;
-//
-//     //Response to an LTM
-//     if (0==p_ltm->TTL) return 0;
-//
-//     if (1/*we're a MEP*/ && memcmp(p_ltm->targ_mac, this_prts_MAC(oam_prt), 6)) return 0;//5;
-//
-//     targ_prt=MAC_in_prt(p_ltm->targ_mac);
-//     if (targ_prt>=N_OAM_PRTS) return 0;//6;  //NE unaware of this TargetMAC or associating it to more than a single egress port
-//
-//     i=iTLV_search((ETH_SRV_OAM_DATAGRM*)p_ltm, pkt_len-2, LTM_EG_ID_TLV_TYPE);
-//
-//     if (v2008(i)) {            //LTM egress identifier found (v2008)
-//     }
-//     else {                     //LTM egress identifier not found (v2006)
-//     }
-//     
-//     send_ltr(oam_prt, (T_MEP_HDR *)_p_mep, (ETH_LBR_OAM_DATAGRM *)p_ltm, pkt_len-2, pSMAC);
-//
-//     if (0/*we're a MIP*/ && p_ltm->TTL>1 && memcmp(p_ltm->targ_mac, this_prts_MAC(oam_prt), 6)) {
-//          //send_ltm(oam_prt, (T_MEP_HDR *)_p_mep, (ETH_LTM_OAM_DATAGRM *)p_ltm, pkt_len-2, pSMAC);
-//     }
+     i_mep= MEP_INDEX_TO_iMEP(alrm_index);      //...and we'll have to deal just with alarms: the MEP in a certain port, VID and level (alarm: unexpected MEP)
+     //i_rmep=MEP_INDEX_TO_iRMEP(alrm_index);
+     
+     if (!valid_mep_index(i_mep)) MEP_in_DB=0;//return 1;
+     else do {
+         _p_mep=        &p_mep_db[i_mep].mep;
+    
+         i= _p_mep->level - MALEVEL_AND_VERSION_TO_MALEVEL(p_ltm->MAlevel_and_version);
+         //if (/*0==unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4 ||*/  i>0) {
+         //    return 2;
+         //}
+         //else
+         //if (i<0) {
+         //    //FWD this packet to every other port on the same vlan
+         //    return 3;
+         //}
+         if (0!=i) {MEP_in_DB=0; break;}    
+    
+         if (!(2==unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4)) {MEP_in_DB=0; break;} //return 0;//4;
+
+         MEP_in_DB=1;
+     } while (0);
+
+
+
+     //Response to an LTM
+     //if (0==p_ltm->TTL) return 0;//5
+
+     this_MPs_MAC(oam_prt, vid, MEP_in_DB?1:0, this_MP_MAC.byte);
+     TerminalMP= memcmp(p_ltm->targ_mac, this_MP_MAC.byte, sizeof(T_ETH_OAM_MAC))? 0:1;
+     ETHSRV_OAM_LOG("this_MP_MAC=%2.2x:%2.2x:%2.2x:%2.2x:%2.2x:%2.2x\tTerminalMP=%2.2u TTL=%u transID=%u pkt_len-2=%u"NLS,
+                    this_MP_MAC.byte[0], this_MP_MAC.byte[1], this_MP_MAC.byte[2],
+                    this_MP_MAC.byte[3], this_MP_MAC.byte[4], this_MP_MAC.byte[5], TerminalMP,
+                    p_ltm->TTL, p_ltm->transID, pkt_len-2);
+
+     if (MEP_in_DB) {   //we're a MEP
+         if (!TerminalMP) return 0;//6;
+         TerminalMEP=1;
+         targ_prt=-1;
+         FwdYes= 0;
+
+         ud=_p_mep->up1_down0;
+         v=_p_mep->vid;
+         p=_p_mep->prior;
+         C=_p_mep->CoS;
+     }
+     else {//we're a MIP
+         //MIP (assuming there's a MIP, once packet reached here...)
+         if (TerminalMP) {
+             targ_prt=-1;
+             FwdYes= 0;
+         }
+         else {
+             targ_prt=single_egprt_targetMAC(p_ltm->targ_mac, oam_prt, vid);
+             if (targ_prt>=N_OAM_PRTS) return 0;//7;  //NE unaware of this TargetMAC or associating it to more than a single egress port
+             if (oam_prt==targ_prt) return 0;//8      //egress port mustn't be the ingressing port
+             FwdYes= p_ltm->TTL>1? 1:0;
+         }
+         TerminalMEP=0;    
+
+         ud=0;
+         v=vid;
+         p=7;
+         C=0;
+     }
+
+     //FwdYes= !(TerminalMP || TerminalMEP) && p_ltm->TTL>1? 1:0;
+
+     i=iTLV_search((ETH_SRV_OAM_DATAGRM*)p_ltm, pkt_len-2, LTM_EG_ID_TLV_TYPE);
+
+     --p_ltm->TTL;  //for both LTR and LTM
+
+     if (FwdYes) relay_ltm(targ_prt, ud, v, p, C, p_ltm, pkt_len-2, this_MP_MAC.byte, i);
+
+     send_ltr(oam_prt, ud, v, p, C, p_ltm, pkt_len-2, this_MP_MAC.byte,
+              i, FwdYes, TerminalMEP,
+              TerminalMP? RlyHit:RlyFDB,
+              ingress_action(oam_prt, vid), egress_action(oam_prt, vid));
+
+     ETHSRV_OAM_LOG("oam_prt=%u targ_prt=%u vid=%llu pri=%u CoS=%u iTLV_search=%u FwdYes=%u TerminalMEP=%u TerminalMP=%u"NLS,
+                    oam_prt, targ_prt, v,p, C, i, FwdYes, TerminalMEP, TerminalMP);
 // }//if (!valid_mep_index(i_mep)
 
  return 0;

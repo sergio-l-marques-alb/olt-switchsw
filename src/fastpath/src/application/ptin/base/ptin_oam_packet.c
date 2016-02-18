@@ -23,6 +23,7 @@ L7_uchar8 ccmMacAddr[L7_MAC_ADDR_LEN] = {0x01,0x80,0xC2,0x00,0x00,0x37};  // Las
 
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <dot3ad_api.h>
 
 /* Maximum number of messages APS in queue */
 #define PTIN_APS_PACKET_MAX_MESSAGES  128
@@ -618,12 +619,26 @@ L7_RC_t ptin_ccm_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t 
     return L7_FAILURE;
   }*/
 
+  dot3adWhoisOwnerLag(intIfNum, &intIfNum);
+  //From dot1sPortIndexFromIntfNumGet
+  //do {
+  //  //L7_uint32 portIndex = L7_NULL;
+  //  L7_uint32 minLag, maxLag;
+  //
+  //  if (nimIntIfNumRangeGet(L7_LAG_INTF,&minLag, &maxLag) != L7_SUCCESS) break;
+  //
+  //  if (intIfNum <= L7_MAX_PORT_COUNT) break; //portIndex = intIfNum;
+  //  else
+  //  if ((intIfNum >= minLag) && (intIfNum <= maxLag)) intIfNum = L7_MAX_PORT_COUNT + (intIfNum - minLag + 1);
+  //                                                 //portIndex = L7_MAX_PORT_COUNT + (intIfNum - minLag + 1);
+  //}while (0);
+
   /* Send packet to queue */
   memset(&msg, 0x00, sizeof(msg));
   msg.msgId       = PTIN_CCM_PACKET_MESSAGE_ID;
-  msg.intIfNum    = pduInfo->intIfNum;
-  msg.vlanId      = pduInfo->vlanId;
-  msg.innerVlanId = pduInfo->innerVlanId;
+  msg.intIfNum    = intIfNum;
+  msg.vlanId      = vlanId;
+  msg.innerVlanId = innerVlanId;
   msg.payload     = payload;
   msg.payloadLen  = payloadLen;
   msg.bufHandle   = bufHandle;
