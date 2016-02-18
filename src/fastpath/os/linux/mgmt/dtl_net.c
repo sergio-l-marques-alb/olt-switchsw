@@ -1226,7 +1226,7 @@ void dtlNetInit(void)
 
   dtlVlanIfAdd(PTIN_VLAN_PCAP_EXT, "pcap");
 
-  #elif (PTIN_BOARD == PTIN_BOARD_OLT1T1)
+  #elif (PTIN_BOARD == PTIN_BOARD_CXO160G)
 
   dtlVlanIfAdd(PTIN_VLAN_PCAP_EXT, "pcap");
   #endif
@@ -1733,7 +1733,6 @@ dtlSendCmdExit:
    return;
 }
 #endif
-
 /*********************************************************************
 * @purpose  Transmit OSAPI network buffer on the specified IP interface.
 *
@@ -1898,5 +1897,6 @@ L7_RC_t dtlIpBufSend(L7_uint32 intIfNum, L7_uint32 vlanId, L7_netBufHandle  bufH
    return(L7_SUCCESS);
 
 }
+
 
 #endif /* _L7_OS_LINUX_ */
