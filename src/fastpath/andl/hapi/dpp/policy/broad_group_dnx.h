@@ -51,10 +51,8 @@ typedef struct
   uint32                   flags;      /* super qset flags */
   bcm_field_qset_t         qset1;      /* 1st composite qset */
   bcm_field_qset_t         qsetAgg;    /* aggregate qset supported by entry - std fields only */
-  bcm_field_qset_t         qsetUdf;    /* additional fields added by UDF - not part of aggreg */
   custom_field_qset_t      customQset; /* for custom UDF fields that don't map to bcm_field_qset_t */
   sqsetWidth_t             sqsetWidth; /* Indicates if sqset is single, double, or quadwide. */
-  uint32                   udfId;      /* identifier to differentiate which UDF this qset was created for */
   uint32                   applicablePolicyTypes; /* Bitmap corresponding to applicable policy types. */
   bcm_field_group_status_t status;
 }

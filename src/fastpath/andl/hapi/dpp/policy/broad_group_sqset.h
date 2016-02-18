@@ -54,28 +54,15 @@ typedef struct
  */
 #define BROAD_ISCSI_UDF customFieldQualifyUdf1
 
-extern super_qset_definition_t l2SvtQsetDef;
-extern super_qset_definition_t l2SvtLookupStatusQsetDef;
-extern super_qset_definition_t l3l4QsetDef;
 extern super_qset_definition_t l2l3SrcQsetDef;
 extern super_qset_definition_t l2l3DstQsetDef;
-extern super_qset_definition_t l2l3l4QsetDef;
-extern super_qset_definition_t l2l3l4SrcMacGroupQsetDef;
-extern super_qset_definition_t l2l3l4ClassIdQsetDef;
 extern super_qset_definition_t l2l3l4Xgs4ClassIdQsetDef;
 extern super_qset_definition_t ipv6SrcL4ClassIdQsetDef;
 extern super_qset_definition_t ipv6DstL4ClassIdQsetDef;
-extern super_qset_definition_t ipv6SrcL4QsetDef;
-extern super_qset_definition_t ipv6DstL4QsetDef;
 extern super_qset_definition_t vlanl3QsetDef;
-extern super_qset_definition_t systemQsetDoubleDef;
-extern super_qset_definition_t systemQsetDef;
 extern super_qset_definition_t systemQsetTriumph2Def;
 extern super_qset_definition_t systemQsetPTinDef;     /* PTin added: ICAP */
 extern super_qset_definition_t iscsiQsetDef;
-extern super_qset_definition_t ipv6NdQsetScorpionDef;
-extern super_qset_definition_t ipv6NdQsetDef;
-extern super_qset_definition_t ipv6L3L4QsetDef;
 extern super_qset_definition_t ipv6L3L4ClassIdQsetDef;
 extern super_qset_definition_t l2QsetEgressDef;
 extern super_qset_definition_t l3l4QsetEgressDef;
@@ -83,6 +70,5 @@ extern super_qset_definition_t ipv6L3L4QsetEgressDef;
 extern super_qset_definition_t l2l3l4QsetLookupDef;
 extern super_qset_definition_t dot1adQsetLookupDef;
 extern super_qset_definition_t llpfQsetLookupDef;
-extern super_qset_definition_t ipv6L3L4QsetLookupDef;
 
 #endif /* BROAD_GROUP_SQSET_H */

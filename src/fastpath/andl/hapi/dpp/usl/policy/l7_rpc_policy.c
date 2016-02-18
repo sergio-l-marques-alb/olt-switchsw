@@ -21,7 +21,6 @@
 #include "dapi.h"
 #include "broad_policy_types.h"
 #include "broad_group_bcm.h"
-#include "broad_cfp_bcm.h"
 #include "hpc_hw_api.h"
 #include "l7_rpc_policy.h"
 #include "l7_usl_policy_db.h"
@@ -219,33 +218,13 @@ L7_RC_t l7_rpc_server_policy_handler(L7_uint32 tid,
 
 int custom_policy_init()
 {
-  int rv = L7_SUCCESS;
-  int i;
-  L7_BOOL isRobo = L7_FALSE;
-  L7_BOOL xgs3 = L7_FALSE;
+  int rv;
 
-  for (i = 0; i < bde->num_devices(BDE_SWITCH_DEVICES); i++)
-  {
-    if (SOC_IS_XGS3_SWITCH(i))
-    {
-      xgs3 = L7_TRUE;
-    }
-    if (SOC_IS_ROBO(i))
-    {
-      isRobo = L7_TRUE;
-    }
+  rv = L7_SUCCESS;
 
-  }
-
-//hapiBroadDebugPolicyEnable(0xFFFFFFFF); /* PTin added: policy debug */
-  if (isRobo)
-  {
-    rv = l7_bcm_cfp_policy_init();
-  }
-  else if (xgs3)
-  {
-    rv = l7_bcm_policy_init();
-  }
+  #if 0
+  rv = l7_bcm_policy_init();
+  #endif
 
   return rv;
 }
@@ -971,15 +950,9 @@ int usl_bcm_policy_create(BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *policyInf
     {
       for (i = 0; i < bde->num_devices(BDE_SWITCH_DEVICES); i++)
       {
-        if (SOC_IS_XGS3_SWITCH(i))
-        {
-          tmpRv = l7_bcm_policy_create(i, policy, policyInfo, L7_TRUE);
-          RPC_DEBUG_PRINT("%s(%d) Policy-%d, return %d\r\n",__FUNCTION__,__LINE__,policy,tmpRv);
-        }
-        else if (SOC_IS_ROBO(i))
-        {
-          tmpRv = l7_bcm_cfp_policy_create(i, policy, policyInfo, L7_TRUE);
-        }
+        tmpRv = l7_bcm_policy_create(i, policy, policyInfo);
+        RPC_DEBUG_PRINT("%s(%d) Policy-%d, return %d\r\n",__FUNCTION__,__LINE__,policy,tmpRv);
+
         if (tmpRv < rv)
           rv = tmpRv;
       }
@@ -1018,14 +991,8 @@ int usl_bcm_policy_destroy(BROAD_POLICY_t policy)
   {
     for (i = 0; i < bde->num_devices(BDE_SWITCH_DEVICES); i++)
     {
-      if (SOC_IS_XGS3_SWITCH(i))
-      {
-        tmpRv = l7_bcm_policy_destroy(i, policy);
-      }
-      else if (SOC_IS_ROBO(i))
-      {
-        tmpRv = l7_bcm_cfp_policy_destroy(i, policy);
-      }
+      tmpRv = l7_bcm_policy_destroy(i, policy);
+
       if (tmpRv < rv)
         rv = tmpRv;
     }
@@ -1055,7 +1022,7 @@ int usl_bcm_policy_apply_all(BROAD_POLICY_t policyId)
   int                      unit;
   BROAD_POLICY_ENTRY_t     policyInfo;
   L7_BOOL                  havePolicyInfo = L7_FALSE;
-  int (*policyCreateFunc)  (int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *policyData, L7_BOOL shuffleAllowed);
+  int (*policyCreateFunc)  (int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *policyData);
   int (*policyApplyAllFunc)(int unit, BROAD_POLICY_t policy);
 
   RPC_DEBUG_PRINT("usl_bcm_policy_apply_all: Policy-%d processing BROAD_CUSTOM_POLICY_APPLY_ALL\r\n", policyId);
@@ -1064,20 +1031,8 @@ int usl_bcm_policy_apply_all(BROAD_POLICY_t policyId)
   {
     for (unit = 0; unit < bde->num_devices(BDE_SWITCH_DEVICES); unit++)
     {
-      if (SOC_IS_XGS3_SWITCH(unit))
-      {
-        policyCreateFunc   = l7_bcm_policy_create;
-        policyApplyAllFunc = l7_bcm_policy_apply_all;
-      }
-      else if (SOC_IS_ROBO(unit))
-      {
-        policyCreateFunc   = l7_bcm_cfp_policy_create;
-        policyApplyAllFunc = l7_bcm_cfp_policy_apply_all;
-      }
-      else
-      {
-        return BCM_E_FAIL;
-      }
+      policyCreateFunc   = l7_bcm_policy_create;
+      policyApplyAllFunc = l7_bcm_policy_apply_all;
 
       rv = policyApplyAllFunc(unit, policyId);
   
@@ -1103,7 +1058,7 @@ int usl_bcm_policy_apply_all(BROAD_POLICY_t policyId)
             (BROAD_POLICY_TYPE_SYSTEM_PORT == policyInfo.policyType) ||
             (BROAD_POLICY_TYPE_LLPF        == policyInfo.policyType))
         {
-          rv = policyCreateFunc(unit, policyId, &policyInfo, L7_TRUE);
+          rv = policyCreateFunc(unit, policyId, &policyInfo);
           if (rv == BCM_E_NONE)
           {
             rv = policyApplyAllFunc(unit, policyId);
@@ -1152,14 +1107,8 @@ int usl_bcm_policy_remove_all(BROAD_POLICY_t policy)
   {
     for (i = 0; i < bde->num_devices(BDE_SWITCH_DEVICES); i++)
     {
-      if (SOC_IS_XGS3_SWITCH(i))
-      {
-        tmpRv = l7_bcm_policy_remove_all(i, policy);
-      }
-      else if (SOC_IS_ROBO(i))
-      {
-        tmpRv = l7_bcm_cfp_policy_remove_all(i, policy);
-      }
+      tmpRv = l7_bcm_policy_remove_all(i, policy);
+
       if (tmpRv < rv)
         rv = tmpRv;
     }
@@ -1192,25 +1141,13 @@ int usl_bcm_policy_port_apply(L7_uint32      unit,
   int         rv    = BCM_E_NONE;
   bcm_gport_t gport = BCM_GPORT_INVALID;
   BROAD_POLICY_ENTRY_t policyInfo;
-  int (*policyCreateFunc)(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *policyData, L7_BOOL shuffleAllowed);
+  int (*policyCreateFunc)(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *policyData);
   int (*policyApplyFunc)(int unit, BROAD_POLICY_t policy, bcm_port_t port);
 
   RPC_DEBUG_PRINT("usl_bcm_policy_port_apply: Policy-%d processing BROAD_CUSTOM_POLICY_APPLY unit %d port %d\r\n", policyId, unit, port);
 
-  if (SOC_IS_XGS3_SWITCH(unit))
-  {
-    policyCreateFunc = l7_bcm_policy_create;
-    policyApplyFunc  = l7_bcm_policy_apply;
-  }
-  else if (SOC_IS_ROBO(unit))
-  {
-    policyCreateFunc = l7_bcm_cfp_policy_create;
-    policyApplyFunc  = l7_bcm_cfp_policy_apply;
-  }
-  else
-  {
-    return BCM_E_FAIL;
-  }
+  policyCreateFunc = l7_bcm_policy_create;
+  policyApplyFunc  = l7_bcm_policy_apply;
 
   if (USL_BCM_CONFIGURE_HW(USL_POLICY_DB_ID) == L7_TRUE)
   {
@@ -1231,7 +1168,7 @@ int usl_bcm_policy_port_apply(L7_uint32      unit,
             (BROAD_POLICY_TYPE_SYSTEM_PORT == policyInfo.policyType) ||
             (BROAD_POLICY_TYPE_LLPF        == policyInfo.policyType))
         {
-          rv = policyCreateFunc(unit, policyId, &policyInfo, L7_TRUE);
+          rv = policyCreateFunc(unit, policyId, &policyInfo);
           if (rv == BCM_E_NONE)
           {
             rv = policyApplyFunc(unit, policyId, port);
@@ -1292,14 +1229,7 @@ int usl_bcm_policy_port_remove(L7_uint32      unit,
 
   if (USL_BCM_CONFIGURE_HW(USL_POLICY_DB_ID) == L7_TRUE)
   {
-    if (SOC_IS_XGS3_SWITCH(unit))
-    {
-      rv = l7_bcm_policy_remove(unit, policyId, port);
-    }
-    else if (SOC_IS_ROBO(unit))
-    {
-      rv = l7_bcm_cfp_policy_remove(unit, policyId, port);
-    }
+    rv = l7_bcm_policy_remove(unit, policyId, port);
   }
 
   if ((L7_BCMX_OK(rv) == L7_TRUE) && 
@@ -1344,14 +1274,8 @@ int usl_bcm_policy_stats_get(BROAD_POLICY_t  policyId,
 
   for (i = 0; i < bde->num_devices(BDE_SWITCH_DEVICES); i++)
   {
-    if (SOC_IS_XGS3_SWITCH(i))
-    {
-      tmpRv = l7_bcm_policy_stats(i, policyId, ruleId, rpc_resp->buf, &rpc_resp->data_len);
-    }
-    else if (SOC_IS_ROBO(i))
-    {
-      tmpRv = l7_bcm_cfp_policy_stats(i, policyId, ruleId, rpc_resp->buf, &rpc_resp->data_len);
-    }
+    tmpRv = l7_bcm_policy_stats(i, policyId, ruleId, rpc_resp->buf, &rpc_resp->data_len);
+
     if (tmpRv < rv)
       rv = tmpRv;
   }
@@ -1377,14 +1301,8 @@ int usl_bcm_policy_counter_clear(BROAD_POLICY_t policy)
 
   for (i = 0; i < bde->num_devices(BDE_SWITCH_DEVICES); i++)
   {
-    if (SOC_IS_XGS3_SWITCH(i))
-    {
-      tmpRv = l7_bcm_policy_counter_clear(i, policy);
-    }
-    else if (SOC_IS_ROBO(i))
-    {
-      tmpRv = l7_bcm_cfp_policy_counter_clear(i, policy);
-    }
+    tmpRv = l7_bcm_policy_counter_clear(i, policy);
+
     if (tmpRv < rv)
       rv = tmpRv;
   }
@@ -1420,14 +1338,7 @@ void usl_bcm_policy_dataplane_cleanup(L7_uint32 policy, L7_uint32 rule, L7_uint3
 
   for (i = 0; i < bde->num_devices(BDE_SWITCH_DEVICES); i++)
   {
-    if (SOC_IS_XGS3_SWITCH(i))
-    {
-      l7_bcm_policy_dataplane_cleanup(i, policy, rule, cpu_modid, cpu_modport);
-    }
-    else if (SOC_IS_ROBO(i))
-    {
-      l7_bcm_cfp_policy_dataplane_cleanup(i, policy, rule, cpu_modid, cpu_modport);
-    }
+    l7_bcm_policy_dataplane_cleanup(i, policy, rule, cpu_modid, cpu_modport);
   }
 }
 
@@ -1468,14 +1379,7 @@ int usl_bcm_policy_rule_status_set(BROAD_POLICY_t      policyId,
   {
     for (i = 0; i < bde->num_devices(BDE_SWITCH_DEVICES); i++)
     {
-        if (SOC_IS_XGS3_SWITCH(i))
-        {
-          rv = l7_bcm_policy_rule_status_set(i, policyId, rule, status);
-        }
-        else if (SOC_IS_ROBO(i))
-        {
-          /* Not Supported for ROBO */
-        }
+        rv = l7_bcm_policy_rule_status_set(i, policyId, rule, status);
     }
     
   }

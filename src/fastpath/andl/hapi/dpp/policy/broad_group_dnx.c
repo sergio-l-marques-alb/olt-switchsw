@@ -18,14 +18,13 @@
 *
 **********************************************************************/
 
-#include "broad_group_xgs3.h"
+#include "broad_group_dnx.h"
 #include "bcm/field.h"
 #include "bcm/policer.h"    /* PTin added: policer */
 #include "ibde.h"
 #include "sal/core/libc.h"
 #include "osapi_support.h"
 #include "broad_group_sqset.h"
-#include "broad_group_shuffle.h"
 #include "platform_config.h"
 
 /* PTin added: SDK 6.3.0 */
@@ -637,28 +636,6 @@ static uint32 color_map[BROAD_COLOR_LAST] =
     BCM_FIELD_COLOR_RED
 };
 
-static int policy_udf_id[SOC_MAX_NUM_DEVICES];
-
-/* System policies require combination of L2/3/4 fields that are not supported
- * by default, so UDF is required. However, even the UDF is not wide enough
- * to support all system policies in one group. The combination of EthType,
- * Proto and L4 Dst Port is the best we can do. The Super Qset that includes
- * these UDF values can be reused by other policies as needed.
- */
-static bcm_field_udf_t sys0_ethType[SOC_MAX_NUM_DEVICES];
-static bcm_field_udf_t sys0_ipProto[SOC_MAX_NUM_DEVICES];
-static bcm_field_udf_t sys0_l4DstPort[SOC_MAX_NUM_DEVICES];
-static bcm_field_udf_t sys0_tunIpv6NextHdr[SOC_MAX_NUM_DEVICES];
-
-/* iSCSI policies require combination of L3/4 fields that are not supported
- * by default, so UDF is required.  The Super Qset that includes
- * these UDF values can be reused by other policies as needed.
- */
-static bcm_field_udf_t iscsi_dstIpAddr[SOC_MAX_NUM_DEVICES];
-static bcm_field_udf_t iscsi_l4SrcDstPort[SOC_MAX_NUM_DEVICES];
-static bcm_field_udf_t iscsi_opCode[SOC_MAX_NUM_DEVICES];
-static bcm_field_udf_t iscsi_opCodeTcpOptions[SOC_MAX_NUM_DEVICES];
-
 
 #define SUPER_QSET_TABLE_SIZE  32    /* total number of super qsets */
 
@@ -800,10 +777,8 @@ int _policy_super_qset_find_match(int                  unit,
         continue;
       }
 
-      /* consider the UDF when searching for a super qset */
       BCM_FIELD_QSET_INIT(qsetFull);
       _policy_set_union(super_qset_table[unit][i].qsetAgg, &qsetFull);
-      _policy_set_union(super_qset_table[unit][i].qsetUdf, &qsetFull);
 
 //    printf("qsetFull  : ");
 //    for (j=0; j<_SHR_BITDCLSIZE(BCM_FIELD_QUALIFY_MAX); j++)
@@ -846,431 +821,6 @@ static int _policy_super_qset_find_free(int unit, int *idx)
     return BCM_E_FAIL;
 }
 
-static int _policy_super_qset_add_udf(int unit, bcm_field_qualify_t udf)
-{
-    int                  rv = BCM_E_NONE;
-  int qual_id;
-  bcm_field_data_qualifier_t data_qualifier;
-  bcm_field_data_packet_format_t packet_format;
-
-
-    CHECK_UNIT(unit);
-
-    if (BROAD_SYSTEM_UDF == udf)
-    {
-        /* add UDF for EtherType */
-    qual_id = policy_udf_id[unit]++;
-    bcm_field_data_qualifier_t_init(&data_qualifier);
-    data_qualifier.qual_id = qual_id;
-    data_qualifier.flags |= BCM_FIELD_DATA_QUALIFIER_WITH_ID;
-    data_qualifier.offset_base = bcmFieldDataOffsetBasePacketStart;
-    data_qualifier.offset = 12;
-    data_qualifier.length = 2;
-    rv = bcm_field_data_qualifier_create(unit, &data_qualifier);
-    if (BCM_E_NONE != rv)
-      return rv;
-
-    bcm_field_data_packet_format_t_init(&packet_format);
-    packet_format.relative_offset = 0;
-    packet_format.l2              = BCM_FIELD_DATA_FORMAT_L2_ETH_II;
-    packet_format.vlan_tag        = BCM_FIELD_DATA_FORMAT_VLAN_NO_TAG;
-    packet_format.outer_ip        = BCM_FIELD_DATA_FORMAT_IP4;
-    packet_format.inner_ip        = BCM_FIELD_DATA_FORMAT_IP_NONE;
-    packet_format.tunnel          = BCM_FIELD_DATA_FORMAT_TUNNEL_NONE;
-    packet_format.mpls            = BCM_FIELD_DATA_FORMAT_MPLS_ANY;
-    rv = bcm_field_data_qualifier_packet_format_add(unit, qual_id, &packet_format);
-    if (BCM_E_NONE != rv)
-      return rv;
-
-    bcm_field_data_packet_format_t_init(&packet_format);
-    packet_format.relative_offset = 0;
-    packet_format.l2              = BCM_FIELD_DATA_FORMAT_L2_ETH_II;
-    packet_format.vlan_tag        = BCM_FIELD_DATA_FORMAT_VLAN_NO_TAG;
-    packet_format.outer_ip        = BCM_FIELD_DATA_FORMAT_IP_NONE;
-    packet_format.inner_ip        = BCM_FIELD_DATA_FORMAT_IP_NONE;
-    packet_format.tunnel          = BCM_FIELD_DATA_FORMAT_TUNNEL_NONE;
-    packet_format.mpls            = BCM_FIELD_DATA_FORMAT_MPLS_ANY;
-    rv = bcm_field_data_qualifier_packet_format_add(unit, qual_id, &packet_format);
-    if (BCM_E_NONE != rv)
-      return rv;
-
-    bcm_field_data_packet_format_t_init(&packet_format);
-    packet_format.relative_offset = 0;
-    packet_format.l2              = BCM_FIELD_DATA_FORMAT_L2_ETH_II;
-    packet_format.vlan_tag        = BCM_FIELD_DATA_FORMAT_VLAN_NO_TAG;
-    packet_format.outer_ip        = BCM_FIELD_DATA_FORMAT_IP4;
-    packet_format.inner_ip        = BCM_FIELD_DATA_FORMAT_IP6;
-    packet_format.tunnel          = BCM_FIELD_DATA_FORMAT_TUNNEL_IP_IN_IP;
-    packet_format.mpls            = BCM_FIELD_DATA_FORMAT_MPLS_ANY;
-    rv = bcm_field_data_qualifier_packet_format_add(unit, qual_id, &packet_format);
-    if (BCM_E_NONE != rv)
-      return rv;
-
-    bcm_field_data_packet_format_t_init(&packet_format);
-    packet_format.relative_offset = 4;
-    packet_format.l2              = BCM_FIELD_DATA_FORMAT_L2_ETH_II;
-    packet_format.vlan_tag        = BCM_FIELD_DATA_FORMAT_VLAN_SINGLE_TAGGED;
-    packet_format.outer_ip        = BCM_FIELD_DATA_FORMAT_IP4;
-    packet_format.inner_ip        = BCM_FIELD_DATA_FORMAT_IP_NONE;
-    packet_format.tunnel          = BCM_FIELD_DATA_FORMAT_TUNNEL_NONE;
-    packet_format.mpls            = BCM_FIELD_DATA_FORMAT_MPLS_ANY;
-    rv = bcm_field_data_qualifier_packet_format_add(unit, qual_id, &packet_format);
-    if (BCM_E_NONE != rv)
-      return rv;
-
-    bcm_field_data_packet_format_t_init(&packet_format);
-    packet_format.relative_offset = 4;
-    packet_format.l2              = BCM_FIELD_DATA_FORMAT_L2_ETH_II;
-    packet_format.vlan_tag        = BCM_FIELD_DATA_FORMAT_VLAN_SINGLE_TAGGED;
-    packet_format.outer_ip        = BCM_FIELD_DATA_FORMAT_IP_NONE;
-    packet_format.inner_ip        = BCM_FIELD_DATA_FORMAT_IP_NONE;
-    packet_format.tunnel          = BCM_FIELD_DATA_FORMAT_TUNNEL_NONE;
-    packet_format.mpls            = BCM_FIELD_DATA_FORMAT_MPLS_ANY;
-    rv = bcm_field_data_qualifier_packet_format_add(unit, qual_id, &packet_format);
-    if (BCM_E_NONE != rv)
-      return rv;
-
-    bcm_field_data_packet_format_t_init(&packet_format);
-    packet_format.relative_offset = 4;
-    packet_format.l2              = BCM_FIELD_DATA_FORMAT_L2_ETH_II;
-    packet_format.vlan_tag        = BCM_FIELD_DATA_FORMAT_VLAN_SINGLE_TAGGED;
-    packet_format.outer_ip        = BCM_FIELD_DATA_FORMAT_IP4;
-    packet_format.inner_ip        = BCM_FIELD_DATA_FORMAT_IP6;
-    packet_format.tunnel          = BCM_FIELD_DATA_FORMAT_TUNNEL_IP_IN_IP;
-    packet_format.mpls            = BCM_FIELD_DATA_FORMAT_MPLS_ANY;
-    rv = bcm_field_data_qualifier_packet_format_add(unit, qual_id, &packet_format);
-    if (BCM_E_NONE != rv)
-      return rv;
-
-    sys0_ethType[unit] = qual_id;
-
-        /* add UDF for IP Proto */
-    qual_id = policy_udf_id[unit]++;
-    bcm_field_data_qualifier_t_init(&data_qualifier);
-    data_qualifier.qual_id = qual_id;
-    data_qualifier.flags |= BCM_FIELD_DATA_QUALIFIER_WITH_ID;
-    data_qualifier.offset_base = bcmFieldDataOffsetBaseOuterL3Header;
-    data_qualifier.offset = 9;
-    data_qualifier.length = 1;
-    rv = bcm_field_data_qualifier_create(unit, &data_qualifier);
-    if (BCM_E_NONE != rv)
-      return rv;
-
-    bcm_field_data_packet_format_t_init(&packet_format);
-    packet_format.relative_offset = 0;
-    packet_format.l2              = BCM_FIELD_DATA_FORMAT_L2_ETH_II;
-    packet_format.vlan_tag        = BCM_FIELD_DATA_FORMAT_VLAN_NO_TAG;
-    packet_format.outer_ip        = BCM_FIELD_DATA_FORMAT_IP4;
-    packet_format.inner_ip        = BCM_FIELD_DATA_FORMAT_IP_NONE;
-    packet_format.tunnel          = BCM_FIELD_DATA_FORMAT_TUNNEL_NONE;
-    packet_format.mpls            = BCM_FIELD_DATA_FORMAT_MPLS_ANY;
-    rv = bcm_field_data_qualifier_packet_format_add(unit, qual_id, &packet_format);
-    if (BCM_E_NONE != rv)
-      return rv;
-
-    bcm_field_data_packet_format_t_init(&packet_format);
-    packet_format.relative_offset = 0;
-    packet_format.l2              = BCM_FIELD_DATA_FORMAT_L2_ETH_II;
-    packet_format.vlan_tag        = BCM_FIELD_DATA_FORMAT_VLAN_NO_TAG;
-    packet_format.outer_ip        = BCM_FIELD_DATA_FORMAT_IP4;
-    packet_format.inner_ip        = BCM_FIELD_DATA_FORMAT_IP6;
-    packet_format.tunnel          = BCM_FIELD_DATA_FORMAT_TUNNEL_IP_IN_IP;
-    packet_format.mpls            = BCM_FIELD_DATA_FORMAT_MPLS_ANY;
-    rv = bcm_field_data_qualifier_packet_format_add(unit, qual_id, &packet_format);
-    if (BCM_E_NONE != rv)
-      return rv;
-
-    bcm_field_data_packet_format_t_init(&packet_format);
-    packet_format.relative_offset = 0;
-    packet_format.l2              = BCM_FIELD_DATA_FORMAT_L2_ETH_II;
-    packet_format.vlan_tag        = BCM_FIELD_DATA_FORMAT_VLAN_SINGLE_TAGGED;
-    packet_format.outer_ip        = BCM_FIELD_DATA_FORMAT_IP4;
-    packet_format.inner_ip        = BCM_FIELD_DATA_FORMAT_IP_NONE;
-    packet_format.tunnel          = BCM_FIELD_DATA_FORMAT_TUNNEL_NONE;
-    packet_format.mpls            = BCM_FIELD_DATA_FORMAT_MPLS_ANY;
-    rv = bcm_field_data_qualifier_packet_format_add(unit, qual_id, &packet_format);
-    if (BCM_E_NONE != rv)
-      return rv;
-
-    bcm_field_data_packet_format_t_init(&packet_format);
-    packet_format.relative_offset = 0;
-    packet_format.l2              = BCM_FIELD_DATA_FORMAT_L2_ETH_II;
-    packet_format.vlan_tag        = BCM_FIELD_DATA_FORMAT_VLAN_SINGLE_TAGGED;
-    packet_format.outer_ip        = BCM_FIELD_DATA_FORMAT_IP4;
-    packet_format.inner_ip        = BCM_FIELD_DATA_FORMAT_IP6;
-    packet_format.tunnel          = BCM_FIELD_DATA_FORMAT_TUNNEL_IP_IN_IP;
-    packet_format.mpls            = BCM_FIELD_DATA_FORMAT_MPLS_ANY;
-    rv = bcm_field_data_qualifier_packet_format_add(unit, qual_id, &packet_format);
-    if (BCM_E_NONE != rv)
-      return rv;
-
-    sys0_ipProto[unit] = qual_id;
-
-    /* add UDF for L4 Src/Dst Port */
-    qual_id = policy_udf_id[unit]++;
-    bcm_field_data_qualifier_t_init(&data_qualifier);
-    data_qualifier.qual_id = qual_id;
-    data_qualifier.flags |= BCM_FIELD_DATA_QUALIFIER_WITH_ID;
-    data_qualifier.flags |= BCM_FIELD_DATA_QUALIFIER_OFFSET_IP4_OPTIONS_ADJUST;
-    data_qualifier.offset_base = bcmFieldDataOffsetBaseOuterL4Header;
-    data_qualifier.offset = 0;
-    data_qualifier.length = 4;
-    rv = bcm_field_data_qualifier_create(unit, &data_qualifier);
-    if (rv == BCM_E_UNAVAIL)
-    {
-      /* This chip probably doesn't support the IP option adjustment... try again without it. */
-      data_qualifier.flags &= ~(BCM_FIELD_DATA_QUALIFIER_OFFSET_IP4_OPTIONS_ADJUST);
-      rv = bcm_field_data_qualifier_create(unit, &data_qualifier);
-    }
-    if (BCM_E_NONE != rv)
-      return rv;
-
-    bcm_field_data_packet_format_t_init(&packet_format);
-    packet_format.relative_offset = 0;
-    packet_format.l2              = BCM_FIELD_DATA_FORMAT_L2_ETH_II;
-    packet_format.vlan_tag        = BCM_FIELD_DATA_FORMAT_VLAN_NO_TAG;
-    packet_format.outer_ip        = BCM_FIELD_DATA_FORMAT_IP4;
-    packet_format.inner_ip        = BCM_FIELD_DATA_FORMAT_IP_NONE;
-    packet_format.tunnel          = BCM_FIELD_DATA_FORMAT_TUNNEL_NONE;
-    packet_format.mpls            = BCM_FIELD_DATA_FORMAT_MPLS_ANY;
-    rv = bcm_field_data_qualifier_packet_format_add(unit, qual_id, &packet_format);
-    if (BCM_E_NONE != rv)
-      return rv;
-
-    bcm_field_data_packet_format_t_init(&packet_format);
-    packet_format.relative_offset = 0;
-    packet_format.l2              = BCM_FIELD_DATA_FORMAT_L2_ETH_II;
-    packet_format.vlan_tag        = BCM_FIELD_DATA_FORMAT_VLAN_SINGLE_TAGGED;
-    packet_format.outer_ip        = BCM_FIELD_DATA_FORMAT_IP4;
-    packet_format.inner_ip        = BCM_FIELD_DATA_FORMAT_IP_NONE;
-    packet_format.tunnel          = BCM_FIELD_DATA_FORMAT_TUNNEL_NONE;
-    packet_format.mpls            = BCM_FIELD_DATA_FORMAT_MPLS_ANY;
-    rv = bcm_field_data_qualifier_packet_format_add(unit, qual_id, &packet_format);
-    if (BCM_E_NONE != rv)
-      return rv;
-
-    sys0_l4DstPort[unit] = qual_id;
-
-        /* add UDF for tunneled IPv6 (over IPv4) Next Header */
-    qual_id = policy_udf_id[unit]++;
-    bcm_field_data_qualifier_t_init(&data_qualifier);
-    data_qualifier.qual_id = qual_id;
-    data_qualifier.flags |= BCM_FIELD_DATA_QUALIFIER_WITH_ID;
-    data_qualifier.offset_base = bcmFieldDataOffsetBaseInnerL3Header;
-    data_qualifier.offset = 6;
-    data_qualifier.length = 1;
-    rv = bcm_field_data_qualifier_create(unit, &data_qualifier);
-    if (BCM_E_NONE != rv)
-      return rv;
-
-    bcm_field_data_packet_format_t_init(&packet_format);
-    packet_format.relative_offset = 0;
-    packet_format.l2              = BCM_FIELD_DATA_FORMAT_L2_ETH_II;
-    packet_format.vlan_tag        = BCM_FIELD_DATA_FORMAT_VLAN_NO_TAG;
-    packet_format.outer_ip        = BCM_FIELD_DATA_FORMAT_IP4;
-    packet_format.inner_ip        = BCM_FIELD_DATA_FORMAT_IP6;
-    packet_format.tunnel          = BCM_FIELD_DATA_FORMAT_TUNNEL_IP_IN_IP;
-    packet_format.mpls            = BCM_FIELD_DATA_FORMAT_MPLS_ANY;
-    rv = bcm_field_data_qualifier_packet_format_add(unit, qual_id, &packet_format);
-    if (BCM_E_NONE != rv)
-      return rv;
-
-    bcm_field_data_packet_format_t_init(&packet_format);
-    packet_format.relative_offset = 0;
-    packet_format.l2              = BCM_FIELD_DATA_FORMAT_L2_ETH_II;
-    packet_format.vlan_tag        = BCM_FIELD_DATA_FORMAT_VLAN_SINGLE_TAGGED;
-    packet_format.outer_ip        = BCM_FIELD_DATA_FORMAT_IP4;
-    packet_format.inner_ip        = BCM_FIELD_DATA_FORMAT_IP6;
-    packet_format.tunnel          = BCM_FIELD_DATA_FORMAT_TUNNEL_IP_IN_IP;
-    packet_format.mpls            = BCM_FIELD_DATA_FORMAT_MPLS_ANY;
-    rv = bcm_field_data_qualifier_packet_format_add(unit, qual_id, &packet_format);
-    if (BCM_E_NONE != rv)
-      return rv;
-
-    sys0_tunIpv6NextHdr[unit] = qual_id;
-    } 
-    else if (BROAD_ISCSI_UDF == udf)
-    {
-        /* add UDF for Destination IPv4 address */
-    qual_id = policy_udf_id[unit]++;
-    bcm_field_data_qualifier_t_init(&data_qualifier);
-    data_qualifier.qual_id = qual_id;
-    data_qualifier.flags |= BCM_FIELD_DATA_QUALIFIER_WITH_ID;
-    data_qualifier.offset_base = bcmFieldDataOffsetBaseOuterL3Header;
-    data_qualifier.offset = 16;
-    data_qualifier.length = 4;
-    rv = bcm_field_data_qualifier_create(unit, &data_qualifier);
-    if (BCM_E_NONE != rv)
-      return rv;
-
-    bcm_field_data_packet_format_t_init(&packet_format);
-    packet_format.relative_offset = 0;
-    packet_format.l2              = BCM_FIELD_DATA_FORMAT_L2_ETH_II;
-    packet_format.vlan_tag        = BCM_FIELD_DATA_FORMAT_VLAN_NO_TAG;
-    packet_format.outer_ip        = BCM_FIELD_DATA_FORMAT_IP4;
-    packet_format.inner_ip        = BCM_FIELD_DATA_FORMAT_IP_NONE;
-    packet_format.tunnel          = BCM_FIELD_DATA_FORMAT_TUNNEL_NONE;
-    packet_format.mpls            = BCM_FIELD_DATA_FORMAT_MPLS_ANY;
-    rv = bcm_field_data_qualifier_packet_format_add(unit, qual_id, &packet_format);
-    if (BCM_E_NONE != rv)
-      return rv;
-
-    bcm_field_data_packet_format_t_init(&packet_format);
-    packet_format.relative_offset = 0;
-    packet_format.l2              = BCM_FIELD_DATA_FORMAT_L2_ETH_II;
-    packet_format.vlan_tag        = BCM_FIELD_DATA_FORMAT_VLAN_SINGLE_TAGGED;
-    packet_format.outer_ip        = BCM_FIELD_DATA_FORMAT_IP4;
-    packet_format.inner_ip        = BCM_FIELD_DATA_FORMAT_IP_NONE;
-    packet_format.tunnel          = BCM_FIELD_DATA_FORMAT_TUNNEL_NONE;
-    packet_format.mpls            = BCM_FIELD_DATA_FORMAT_MPLS_ANY;
-    rv = bcm_field_data_qualifier_packet_format_add(unit, qual_id, &packet_format);
-    if (BCM_E_NONE != rv)
-      return rv;
-
-    iscsi_dstIpAddr[unit] = qual_id;
-
-    /* add UDF for L4 Src/Dst Port */
-    qual_id = policy_udf_id[unit]++;
-    bcm_field_data_qualifier_t_init(&data_qualifier);
-    data_qualifier.qual_id = qual_id;
-    data_qualifier.flags |= BCM_FIELD_DATA_QUALIFIER_WITH_ID;
-    data_qualifier.flags |= BCM_FIELD_DATA_QUALIFIER_OFFSET_IP4_OPTIONS_ADJUST;
-    data_qualifier.offset_base = bcmFieldDataOffsetBaseOuterL4Header;
-    data_qualifier.offset = 0;
-    data_qualifier.length = 4;
-    rv = bcm_field_data_qualifier_create(unit, &data_qualifier);
-    if (rv == BCM_E_UNAVAIL)
-    {
-      /* This chip probably doesn't support the IP option adjustment... try again without it. */
-      data_qualifier.flags &= ~(BCM_FIELD_DATA_QUALIFIER_OFFSET_IP4_OPTIONS_ADJUST);
-      rv = bcm_field_data_qualifier_create(unit, &data_qualifier);
-    }
-    if (BCM_E_NONE != rv)
-      return rv;
-
-    bcm_field_data_packet_format_t_init(&packet_format);
-    packet_format.relative_offset = 0;
-    packet_format.l2              = BCM_FIELD_DATA_FORMAT_L2_ETH_II;
-    packet_format.vlan_tag        = BCM_FIELD_DATA_FORMAT_VLAN_NO_TAG;
-    packet_format.outer_ip        = BCM_FIELD_DATA_FORMAT_IP4;
-    packet_format.inner_ip        = BCM_FIELD_DATA_FORMAT_IP_NONE;
-    packet_format.tunnel          = BCM_FIELD_DATA_FORMAT_TUNNEL_NONE;
-    packet_format.mpls            = BCM_FIELD_DATA_FORMAT_MPLS_ANY;
-    rv = bcm_field_data_qualifier_packet_format_add(unit, qual_id, &packet_format);
-    if (BCM_E_NONE != rv)
-      return rv;
-
-    bcm_field_data_packet_format_t_init(&packet_format);
-    packet_format.relative_offset = 0;
-    packet_format.l2              = BCM_FIELD_DATA_FORMAT_L2_ETH_II;
-    packet_format.vlan_tag        = BCM_FIELD_DATA_FORMAT_VLAN_SINGLE_TAGGED;
-    packet_format.outer_ip        = BCM_FIELD_DATA_FORMAT_IP4;
-    packet_format.inner_ip        = BCM_FIELD_DATA_FORMAT_IP_NONE;
-    packet_format.tunnel          = BCM_FIELD_DATA_FORMAT_TUNNEL_NONE;
-    packet_format.mpls            = BCM_FIELD_DATA_FORMAT_MPLS_ANY;
-    rv = bcm_field_data_qualifier_packet_format_add(unit, qual_id, &packet_format);
-    if (BCM_E_NONE != rv)
-      return rv;
-
-    iscsi_l4SrcDstPort[unit] = qual_id;
-
-        /* add UDF for iSCSI PDU opcode field (assumes no TCP options). */
-    qual_id = policy_udf_id[unit]++;
-    bcm_field_data_qualifier_t_init(&data_qualifier);
-    data_qualifier.qual_id = qual_id;
-    data_qualifier.flags |= BCM_FIELD_DATA_QUALIFIER_WITH_ID;
-    data_qualifier.flags |= BCM_FIELD_DATA_QUALIFIER_OFFSET_IP4_OPTIONS_ADJUST;
-    data_qualifier.offset_base = bcmFieldDataOffsetBaseOuterL4Header;
-    data_qualifier.offset = 20;
-    data_qualifier.length = 1;
-    rv = bcm_field_data_qualifier_create(unit, &data_qualifier);
-    if (rv == BCM_E_UNAVAIL)
-    {
-      /* This chip probably doesn't support the IP option adjustment... try again without it. */
-      data_qualifier.flags &= ~(BCM_FIELD_DATA_QUALIFIER_OFFSET_IP4_OPTIONS_ADJUST);
-      rv = bcm_field_data_qualifier_create(unit, &data_qualifier);
-    }
-    if (BCM_E_NONE != rv)
-      return rv;
-
-    bcm_field_data_packet_format_t_init(&packet_format);
-    packet_format.relative_offset = 0;
-    packet_format.l2              = BCM_FIELD_DATA_FORMAT_L2_ETH_II;
-    packet_format.vlan_tag        = BCM_FIELD_DATA_FORMAT_VLAN_NO_TAG;
-    packet_format.outer_ip        = BCM_FIELD_DATA_FORMAT_IP4;
-    packet_format.inner_ip        = BCM_FIELD_DATA_FORMAT_IP_NONE;
-    packet_format.tunnel          = BCM_FIELD_DATA_FORMAT_TUNNEL_NONE;
-    packet_format.mpls            = BCM_FIELD_DATA_FORMAT_MPLS_ANY;
-    rv = bcm_field_data_qualifier_packet_format_add(unit, qual_id, &packet_format);
-    if (BCM_E_NONE != rv)
-      return rv;
-
-    bcm_field_data_packet_format_t_init(&packet_format);
-    packet_format.relative_offset = 0;
-    packet_format.l2              = BCM_FIELD_DATA_FORMAT_L2_ETH_II;
-    packet_format.vlan_tag        = BCM_FIELD_DATA_FORMAT_VLAN_SINGLE_TAGGED;
-    packet_format.outer_ip        = BCM_FIELD_DATA_FORMAT_IP4;
-    packet_format.inner_ip        = BCM_FIELD_DATA_FORMAT_IP_NONE;
-    packet_format.tunnel          = BCM_FIELD_DATA_FORMAT_TUNNEL_NONE;
-    packet_format.mpls            = BCM_FIELD_DATA_FORMAT_MPLS_ANY;
-    rv = bcm_field_data_qualifier_packet_format_add(unit, qual_id, &packet_format);
-    if (BCM_E_NONE != rv)
-      return rv;
-
-    iscsi_opCode[unit] = qual_id;
-
-        /* add UDF for iSCSI PDU opcode field; include 12 bytes of TCP options (typical of Linux iSCSI clients). */
-    qual_id = policy_udf_id[unit]++;
-    bcm_field_data_qualifier_t_init(&data_qualifier);
-    data_qualifier.qual_id = qual_id;
-    data_qualifier.flags |= BCM_FIELD_DATA_QUALIFIER_WITH_ID;
-    data_qualifier.flags |= BCM_FIELD_DATA_QUALIFIER_OFFSET_IP4_OPTIONS_ADJUST;
-    data_qualifier.offset_base = bcmFieldDataOffsetBaseOuterL4Header;
-    data_qualifier.offset = 32;
-    data_qualifier.length = 1;
-    rv = bcm_field_data_qualifier_create(unit, &data_qualifier);
-    if (rv == BCM_E_UNAVAIL)
-    {
-      /* This chip probably doesn't support the IP option adjustment... try again without it. */
-      data_qualifier.flags &= ~(BCM_FIELD_DATA_QUALIFIER_OFFSET_IP4_OPTIONS_ADJUST);
-      rv = bcm_field_data_qualifier_create(unit, &data_qualifier);
-    }
-    if (BCM_E_NONE != rv)
-      return rv;
-
-    bcm_field_data_packet_format_t_init(&packet_format);
-    packet_format.relative_offset = 0;
-    packet_format.l2              = BCM_FIELD_DATA_FORMAT_L2_ETH_II;
-    packet_format.vlan_tag        = BCM_FIELD_DATA_FORMAT_VLAN_NO_TAG;
-    packet_format.outer_ip        = BCM_FIELD_DATA_FORMAT_IP4;
-    packet_format.inner_ip        = BCM_FIELD_DATA_FORMAT_IP_NONE;
-    packet_format.tunnel          = BCM_FIELD_DATA_FORMAT_TUNNEL_NONE;
-    packet_format.mpls            = BCM_FIELD_DATA_FORMAT_MPLS_ANY;
-    rv = bcm_field_data_qualifier_packet_format_add(unit, qual_id, &packet_format);
-    if (BCM_E_NONE != rv)
-      return rv;
-
-    bcm_field_data_packet_format_t_init(&packet_format);
-    packet_format.relative_offset = 0;
-    packet_format.l2              = BCM_FIELD_DATA_FORMAT_L2_ETH_II;
-    packet_format.vlan_tag        = BCM_FIELD_DATA_FORMAT_VLAN_SINGLE_TAGGED;
-    packet_format.outer_ip        = BCM_FIELD_DATA_FORMAT_IP4;
-    packet_format.inner_ip        = BCM_FIELD_DATA_FORMAT_IP_NONE;
-    packet_format.tunnel          = BCM_FIELD_DATA_FORMAT_TUNNEL_NONE;
-    packet_format.mpls            = BCM_FIELD_DATA_FORMAT_MPLS_ANY;
-    rv = bcm_field_data_qualifier_packet_format_add(unit, qual_id, &packet_format);
-    if (BCM_E_NONE != rv)
-      return rv;
-
-    iscsi_opCodeTcpOptions[unit] = qual_id;
-    } 
-    else
-    {
-        rv = BCM_E_NOT_FOUND;
-    }
-
-    return rv;
-}
 
 static int _policy_super_qset_add(int                      unit,
                                   super_qset_definition_t *sqset_def,
@@ -1333,69 +883,9 @@ static int _policy_super_qset_add(int                      unit,
 
     BCM_FIELD_QSET_INIT(qsetPtr->qset1);
     BCM_FIELD_QSET_INIT(qsetPtr->qsetAgg);
-    BCM_FIELD_QSET_INIT(qsetPtr->qsetUdf);
 
     _policy_set_union(qset1, &qsetPtr->qset1);
     _policy_set_union(qset1, &qsetPtr->qsetAgg);
-
-    /* handle UDF fields in super qsets */
-    for (i = 0; i < q2Size; i++)
-    {
-        if (BROAD_SYSTEM_UDF == q2[i])
-        {
-            rv = bcm_field_qset_data_qualifier_add(unit, &qsetPtr->qsetAgg, sys0_ethType[unit]);
-            if (BCM_E_NONE != rv)
-                return rv;
-
-            rv = bcm_field_qset_data_qualifier_add(unit, &qsetPtr->qsetAgg, sys0_ipProto[unit]);
-            if (BCM_E_NONE != rv)
-                return rv;
-
-            rv = bcm_field_qset_data_qualifier_add(unit, &qsetPtr->qsetAgg, sys0_l4DstPort[unit]);
-            if (BCM_E_NONE != rv)
-                return rv;
-
-            rv = bcm_field_qset_data_qualifier_add(unit, &qsetPtr->qsetAgg, sys0_tunIpv6NextHdr[unit]);
-            if (BCM_E_NONE != rv)
-                return rv;
-
-            /* update the UDF qset with the new fields */
-            BCM_FIELD_QSET_ADD(qsetPtr->qsetUdf, bcmFieldQualifyEtherType);
-            BCM_FIELD_QSET_ADD(qsetPtr->qsetUdf, bcmFieldQualifyIpProtocol);
-            BCM_FIELD_QSET_ADD(qsetPtr->qsetUdf, bcmFieldQualifyL4SrcPort);
-            BCM_FIELD_QSET_ADD(qsetPtr->qsetUdf, bcmFieldQualifyL4DstPort);
-            BCM_FIELD_QSET_ADD(qsetPtr->qsetUdf, bcmFieldQualifyIp6NextHeader); /* Applied only in 6over4 case */
-
-            qsetPtr->udfId = BROAD_SYSTEM_UDF;
-        }
-        else if (BROAD_ISCSI_UDF == q2[i])
-        {
-          rv = bcm_field_qset_data_qualifier_add(unit, &qsetPtr->qsetAgg, iscsi_dstIpAddr[unit]);
-            if (BCM_E_NONE != rv)
-                return rv;
-
-          rv = bcm_field_qset_data_qualifier_add(unit, &qsetPtr->qsetAgg, iscsi_l4SrcDstPort[unit]);
-            if (BCM_E_NONE != rv)
-                return rv;
-
-          rv = bcm_field_qset_data_qualifier_add(unit, &qsetPtr->qsetAgg, iscsi_opCode[unit]);
-            if (BCM_E_NONE != rv)
-                return rv;
-
-            rv = bcm_field_qset_data_qualifier_add(unit, &qsetPtr->qsetAgg, iscsi_opCodeTcpOptions[unit]);
-            if (BCM_E_NONE != rv)
-                return rv;
-
-            /* update the UDF qset with the new fields */
-            BCM_FIELD_QSET_ADD(qsetPtr->qsetUdf, bcmFieldQualifyDstIp);
-            BCM_FIELD_QSET_ADD(qsetPtr->qsetUdf, bcmFieldQualifyL4SrcPort);
-            BCM_FIELD_QSET_ADD(qsetPtr->qsetUdf, bcmFieldQualifyL4DstPort);
-            CUSTOM_FIELD_QSET_ADD(qsetPtr->customQset, customFieldQualifyIscsiOpcode);
-            CUSTOM_FIELD_QSET_ADD(qsetPtr->customQset, customFieldQualifyIscsiOpcodeTcpOptions);
-
-            qsetPtr->udfId = BROAD_ISCSI_UDF;
-        }
-    }
 
     /* Temporarily create a group using this qset, then check w/ the SDK to determine how many slices it needs. */
     do
@@ -1430,21 +920,6 @@ static int _policy_super_qset_add(int                      unit,
 
     if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
       sysapiPrintf("%s(%d) qset_add: rv=%d\n", __FUNCTION__, __LINE__, rv);
-
-    return rv;
-}
-
-static int _policy_udf_init(int unit)
-{
-    int rv;
-
-    policy_udf_id[unit] = 0;
-
-    rv = _policy_super_qset_add_udf(unit, BROAD_SYSTEM_UDF);
-    if (BCM_E_NONE == rv)
-    {
-      rv = _policy_super_qset_add_udf(unit, BROAD_ISCSI_UDF);
-    }
 
     return rv;
 }
@@ -1490,148 +965,45 @@ static int _policy_super_qset_init_ifp(int unit)
 {
   L7_BOOL applicable_policy_types[BROAD_POLICY_TYPE_LAST];
 
-  if (_policy_supports_wide_mode(unit))
-  {
-    memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
-    applicable_policy_types[BROAD_POLICY_TYPE_PORT] = L7_TRUE;
-    applicable_policy_types[BROAD_POLICY_TYPE_VLAN] = L7_TRUE;
+  memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
+  applicable_policy_types[BROAD_POLICY_TYPE_PORT] = L7_TRUE;
+  applicable_policy_types[BROAD_POLICY_TYPE_VLAN] = L7_TRUE;
 
-    if (policy_stage_supported(unit, BROAD_POLICY_STAGE_LOOKUP))
-    {
-      if ( SOC_IS_TRIUMPH2(unit) ||
-           SOC_IS_TRIUMPH(unit)  ||
-           SOC_IS_APOLLO(unit)   ||
-           SOC_IS_ENDURO(unit)   ||
-           SOC_IS_SCORPION(unit) ||
-           SOC_IS_VALKYRIE2(unit)||
-           SOC_IS_TRIDENT(unit)  || /* PTin added: new switch 56843 (Trident) */
-           SOC_IS_TRIUMPH3(unit)    /* PTin added: new switch 5664x (Triumph3) */
-         )
-      {
-        _policy_super_qset_add(unit, &l2l3l4Xgs4ClassIdQsetDef, applicable_policy_types);
-      }
-      else
-      {
-        _policy_super_qset_add(unit, &l2l3l4ClassIdQsetDef, applicable_policy_types);
-      }
-      _policy_super_qset_add(unit, &ipv6L3L4ClassIdQsetDef,  applicable_policy_types);
-      _policy_super_qset_add(unit, &ipv6SrcL4ClassIdQsetDef, applicable_policy_types);
-      _policy_super_qset_add(unit, &ipv6DstL4ClassIdQsetDef, applicable_policy_types);
-    }
-    else
-    {
-      if (soc_feature(unit, soc_feature_src_mac_group))
-      {
-        _policy_super_qset_add(unit, &l2l3l4SrcMacGroupQsetDef, applicable_policy_types);
-      }
-      else
-      {
-        _policy_super_qset_add(unit, &l2l3l4QsetDef, applicable_policy_types);
-      }
-      _policy_super_qset_add(unit, &ipv6L3L4QsetDef,  applicable_policy_types);
-      _policy_super_qset_add(unit, &ipv6SrcL4QsetDef, applicable_policy_types);
-      _policy_super_qset_add(unit, &ipv6DstL4QsetDef, applicable_policy_types);
-    }
-  }
-
-  if (SOC_IS_HAWKEYE(unit))
-  {
-    memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
-    applicable_policy_types[BROAD_POLICY_TYPE_PORT]        = L7_TRUE;
-    applicable_policy_types[BROAD_POLICY_TYPE_VLAN]        = L7_TRUE;
-    applicable_policy_types[BROAD_POLICY_TYPE_SYSTEM]      = L7_TRUE;
-    applicable_policy_types[BROAD_POLICY_TYPE_PTIN]        = L7_TRUE;   /* PTin added: policer */
-    applicable_policy_types[BROAD_POLICY_TYPE_STAT_EVC]    = L7_TRUE;   /* PTin added: stats */
-    applicable_policy_types[BROAD_POLICY_TYPE_STAT_CLIENT] = L7_TRUE;   /* PTin added: stats */
-    applicable_policy_types[BROAD_POLICY_TYPE_SYSTEM_PORT] = L7_TRUE;
-    applicable_policy_types[BROAD_POLICY_TYPE_COSQ]        = L7_TRUE;
-
-    _policy_super_qset_add(unit, &l2SvtLookupStatusQsetDef, applicable_policy_types);
-  }
+  _policy_super_qset_add(unit, &l2l3l4Xgs4ClassIdQsetDef, applicable_policy_types);
+  _policy_super_qset_add(unit, &ipv6L3L4ClassIdQsetDef,  applicable_policy_types);
+  _policy_super_qset_add(unit, &ipv6SrcL4ClassIdQsetDef, applicable_policy_types);
+  _policy_super_qset_add(unit, &ipv6DstL4ClassIdQsetDef, applicable_policy_types);
 
   memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
   applicable_policy_types[BROAD_POLICY_TYPE_SYSTEM]      = L7_TRUE;
   applicable_policy_types[BROAD_POLICY_TYPE_SYSTEM_PORT] = L7_TRUE;
   applicable_policy_types[BROAD_POLICY_TYPE_COSQ]        = L7_TRUE;
-  /* PTin removed: ICAP */
-  #if 0
-  applicable_policy_types[BROAD_POLICY_TYPE_PTIN]        = L7_TRUE;   /* PTin added: policer */
-  applicable_policy_types[BROAD_POLICY_TYPE_STAT_EVC]    = L7_TRUE;   /* PTin added: stats */
-  applicable_policy_types[BROAD_POLICY_TYPE_STAT_CLIENT] = L7_TRUE;   /* PTin added: stats */
-  #endif
 
-  /* PTin added: new switch 56843 (Trident) */
-  /* PTin added: new switch 5664x (Triumph3) */
-  if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_ENDURO(unit) || SOC_IS_VALKYRIE2(unit) || SOC_IS_TRIDENT(unit) ||
-      SOC_IS_TRIUMPH3(unit))
-  {
-    if (SOC_IS_TRIDENT(unit))
-      PT_LOG_WARN(LOG_CTX_MISC, "Using systemQsetTriumph2Def for TRIDENT family!");
+  if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+    sysapiPrintf("Adding qset systemQsetTriumph2\r\n");
 
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
-      sysapiPrintf("Adding qset systemQsetTriumph2\r\n");
+  /* Doublewide mode. */
+  _policy_super_qset_add(unit, &systemQsetTriumph2Def, applicable_policy_types);
 
-    /* Doublewide mode. */
-    _policy_super_qset_add(unit, &systemQsetTriumph2Def, applicable_policy_types);
-
-    /* PTin added: ICAP */
-    #if 1
-    memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
-    applicable_policy_types[BROAD_POLICY_TYPE_PTIN]        = L7_TRUE;
-    applicable_policy_types[BROAD_POLICY_TYPE_STAT_EVC]    = L7_TRUE;
-    applicable_policy_types[BROAD_POLICY_TYPE_STAT_CLIENT] = L7_TRUE;
-
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
-      sysapiPrintf("Adding qset systemQsetPTin\r\n");
-
-    /* Doublewide mode. */
-    _policy_super_qset_add(unit, &systemQsetPTinDef, applicable_policy_types);
-    #endif
-  }
-  else if (SOC_IS_SCORPION(unit))
-  {
-    _policy_super_qset_add(unit, &systemQsetDef, applicable_policy_types);
-    _policy_super_qset_add(unit, &ipv6NdQsetScorpionDef, applicable_policy_types);
-  }
-  else if (_policy_supports_wide_mode(unit))
-  {
-    /* Doublewide mode. */
-    _policy_super_qset_add(unit, &systemQsetDoubleDef, applicable_policy_types);
-  }
-  else
-  {
-    _policy_super_qset_add(unit, &systemQsetDef, applicable_policy_types);
-    _policy_super_qset_add(unit, &ipv6NdQsetDef, applicable_policy_types);
-  }
-
-  /* The following sqset is used for user policies and in some cases, 
-     system policies. */
+  /* PTin added: ICAP */
+  #if 1
   memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
-  applicable_policy_types[BROAD_POLICY_TYPE_PORT]        = L7_TRUE;
-  applicable_policy_types[BROAD_POLICY_TYPE_VLAN]        = L7_TRUE;
-  if (!_policy_supports_wide_mode(unit) || SOC_IS_SCORPION(unit))
-  {
-    applicable_policy_types[BROAD_POLICY_TYPE_SYSTEM]      = L7_TRUE;
-    applicable_policy_types[BROAD_POLICY_TYPE_PTIN]        = L7_TRUE;   /* PTin added: policer */
-    applicable_policy_types[BROAD_POLICY_TYPE_STAT_EVC]    = L7_TRUE;   /* PTin added: stats */
-    applicable_policy_types[BROAD_POLICY_TYPE_STAT_CLIENT] = L7_TRUE;   /* PTin added: stats */
-    applicable_policy_types[BROAD_POLICY_TYPE_SYSTEM_PORT] = L7_TRUE;
-    applicable_policy_types[BROAD_POLICY_TYPE_COSQ]        = L7_TRUE;
-  }
-  _policy_super_qset_add(unit, &l2SvtQsetDef, applicable_policy_types);
+  applicable_policy_types[BROAD_POLICY_TYPE_PTIN]        = L7_TRUE;
+  applicable_policy_types[BROAD_POLICY_TYPE_STAT_EVC]    = L7_TRUE;
+  applicable_policy_types[BROAD_POLICY_TYPE_STAT_CLIENT] = L7_TRUE;
+
+  if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+    sysapiPrintf("Adding qset systemQsetPTin\r\n");
+
+  /* Doublewide mode. */
+  _policy_super_qset_add(unit, &systemQsetPTinDef, applicable_policy_types);
+  #endif
 
   /* The following sqset is used for iSCSI control rules. */
   memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
   applicable_policy_types[BROAD_POLICY_TYPE_ISCSI] = L7_TRUE;
 
   _policy_super_qset_add(unit, &iscsiQsetDef, applicable_policy_types);
-
-  /* The following sqset is used for iSCSI sessions but may also be used for user
-     policies on devices that do not support doublewide mode. */
-  memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
-  applicable_policy_types[BROAD_POLICY_TYPE_ISCSI] = L7_TRUE;
-  applicable_policy_types[BROAD_POLICY_TYPE_PORT]  = L7_TRUE;
-  _policy_super_qset_add(unit, &l3l4QsetDef, applicable_policy_types);
 
   /* The following sqsets are used only for user policies. */
   memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
@@ -1641,9 +1013,6 @@ static int _policy_super_qset_init_ifp(int unit)
   /* The following sqset is used for IPSG policies but may also be used for user
      policies on devices that do not support doublewide mode. */
   memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
-#if L7_FEAT_IPSG_ON_IFP
-  applicable_policy_types[BROAD_POLICY_TYPE_IPSG] = L7_TRUE;
-#endif
   applicable_policy_types[BROAD_POLICY_TYPE_PORT] = L7_TRUE;
   applicable_policy_types[BROAD_POLICY_TYPE_VLAN] = L7_TRUE;
   _policy_super_qset_add(unit, &l2l3SrcQsetDef, applicable_policy_types);
@@ -2522,7 +1891,6 @@ static int _policy_group_find_group(int                             unit,
           /* Insure the group has a suitable qset and enough free entries, counters, et al. */
           BCM_FIELD_QSET_INIT(qset);
           _policy_set_union(super_qset_table[unit][groupPtr->sqset].qsetAgg, &qset);
-          _policy_set_union(super_qset_table[unit][groupPtr->sqset].qsetUdf, &qset);
 
           rv = _policy_set_subset(resourceReq->qsetAgg, resourceReq->customQset, qset, super_qset_table[unit][groupPtr->sqset].customQset);
 
@@ -3284,134 +2652,6 @@ static int _policy_group_lookupstatus_qualify(int unit, bcm_field_entry_t entry,
   #endif
   return (BCM_E_NONE);
 }
-static L7_uchar8 udfL4SrcDestPortData[4];
-static L7_uchar8 udfL4SrcDestPortMask[4];
-
-static void _policy_group_rule_udf_fields_clear()
-{
-  memset(udfL4SrcDestPortData, 0, sizeof(udfL4SrcDestPortData));
-  memset(udfL4SrcDestPortMask, 0, sizeof(udfL4SrcDestPortMask));
-}
-
-static int _policy_group_add_udf_field(int                   unit,
-                                       BROAD_POLICY_STAGE_t  policyStage,
-                                       bcm_field_entry_t     eid,
-                                       uint32                udfId,
-                                       BROAD_POLICY_TYPE_t   type,
-                                       BROAD_POLICY_FIELD_t  field,
-                                       char                 *value,
-                                       char                 *mask)
-{
-    int   rv = BCM_E_NONE;
-    uint8 userData[BCM_FIELD_USER_FIELD_SIZE];
-    uint8 userMask[BCM_FIELD_USER_FIELD_SIZE];
-    unsigned short temp16;
-    unsigned long  temp32;
-
-    memset(userData, MASK_ALL, sizeof(userData));
-    memset(userMask, MASK_ALL, sizeof(userMask));
-
-    switch (field)
-    {
-    case BROAD_FIELD_ETHTYPE:
-    /* ETHTYPE is at offset 0 for 2 bytes */
-        temp16 = osapiHtons(*((L7_ushort16 *)value));
-    memcpy(&userData[0], &temp16, 2);
-    userMask[0] = 0xFF;
-    userMask[1] = 0xFF;
-    rv = bcm_field_qualify_data(unit, eid, sys0_ethType[unit], userData, userMask, 2);
-    break;
-
-  case BROAD_FIELD_PROTO:
-    /* PROTO is at offset 0 for 1 byte */
-    userData[0] = *value;
-    userMask[0] = *mask;
-    rv = bcm_field_qualify_data(unit, eid, sys0_ipProto[unit], userData, userMask, 1);
-        break;
-
-    case BROAD_FIELD_SPORT:
-        /* SPORT is at offset 0 for 2 bytes */
-        temp16 = osapiHtons(*((L7_ushort16 *)value));
-        memcpy(&udfL4SrcDestPortData[0], &temp16, 2);
-        temp16 = osapiHtons(*((L7_ushort16 *)mask));
-        memcpy(&udfL4SrcDestPortMask[0], &temp16, 2);
-        if (udfId == BROAD_SYSTEM_UDF)
-        {
-      rv = bcm_field_qualify_data(unit, eid, sys0_l4DstPort[unit], udfL4SrcDestPortData, udfL4SrcDestPortMask, 4);
-        }
-        else if (udfId == BROAD_ISCSI_UDF)
-        {
-      rv = bcm_field_qualify_data(unit, eid, iscsi_l4SrcDstPort[unit], udfL4SrcDestPortData, udfL4SrcDestPortMask, 4);
-        }
-        break;
-
-    case BROAD_FIELD_DPORT:
-        /* DPORT is at offset 2 for 2 byte */
-        temp16 = osapiHtons(*((L7_ushort16 *)value));
-        memcpy(&udfL4SrcDestPortData[2], &temp16, 2);
-        temp16 = osapiHtons(*((L7_ushort16 *)mask));
-        memcpy(&udfL4SrcDestPortMask[2], &temp16, 2);
-        if (udfId == BROAD_SYSTEM_UDF)
-        {
-      rv = bcm_field_qualify_data(unit, eid, sys0_l4DstPort[unit], udfL4SrcDestPortData, udfL4SrcDestPortMask, 4);
-        }
-        else if (udfId == BROAD_ISCSI_UDF)
-        {
-      rv = bcm_field_qualify_data(unit, eid, iscsi_l4SrcDstPort[unit], udfL4SrcDestPortData, udfL4SrcDestPortMask, 4);
-        }
-        break;
-
-    case BROAD_FIELD_IP6_NEXTHEADER: /* Tunneled */
-    /* NEXTHDR is at offset 0 for 1 byte */
-    userData[0] = *value;
-    userMask[0] = *mask;
-    rv = bcm_field_qualify_data(unit, eid, sys0_tunIpv6NextHdr[unit], userData, userMask, 1);
-        break;
-
-    case BROAD_FIELD_DIP:
-        /* Source IP address is at offset 0 for 4 bytes */
-        temp32 = osapiHtonl(*((L7_uint32 *)value));
-        memcpy(&userData[0], &temp32, 4);
-    temp32 = osapiHtonl(*((L7_uint32 *)mask));
-        memcpy(&userMask[0], &temp32, 4);
-    rv = bcm_field_qualify_data(unit, eid, iscsi_dstIpAddr[unit], userData, userMask, 4);
-        break;
-
-    case BROAD_FIELD_ISCSI_OPCODE:
-        /* iSCSI opCode is at offset 0 for 1 byte */
-        userData[0] = *value;
-        userMask[0] = *mask;
-    rv = bcm_field_qualify_data(unit, eid, iscsi_opCode[unit], userData, userMask, 1);
-        break;
-
-    case BROAD_FIELD_ISCSI_OPCODE_TCP_OPTIONS:
-        /* iSCSI opCode is at offset 0 for 1 byte */
-        userData[0] = *value;
-        userMask[0] = *mask;
-    rv = bcm_field_qualify_data(unit, eid, iscsi_opCodeTcpOptions[unit], userData, userMask, 1);
-        break;
-
-    default:
-        rv = BCM_E_PARAM;
-        break;
-    }
-
-    return rv;
-}
-
-static int _policy_field_is_udf(int unit, group_table_t *groupPtr, BROAD_POLICY_FIELD_t field)
-{
-  /* If the field is defined in the SDK... */
-  if (field_map[field] < bcmFieldQualifyCount)
-  {
-    return BCM_FIELD_QSET_TEST(super_qset_table[unit][groupPtr->sqset].qsetUdf, field_map[field]);
-  }
-  else
-  {
-    /* Else, it's a custom field. */
-    return CUSTOM_FIELD_QSET_TEST(super_qset_table[unit][groupPtr->sqset].customQset, field_map[field]);
-  }
-}
 
 static int _policy_group_add_field(int                   unit,
                                    BROAD_POLICY_STAGE_t  policyStage,
@@ -3423,17 +2663,7 @@ static int _policy_group_add_field(int                   unit,
 {
     int  rv;
 
-    /* user defined fields require special consideration */
-    if (_policy_field_is_udf(unit, groupPtr, field))
-    {
-        rv = _policy_group_add_udf_field(unit, policyStage, eid, super_qset_table[unit][groupPtr->sqset].udfId, 
-                                         groupPtr->type, field, value, mask);
-    }
-    else
-    {
-        
-        rv = _policy_group_add_std_field(unit, policyStage, eid, field, value, mask);
-    }
+    rv = _policy_group_add_std_field(unit, policyStage, eid, field, value, mask);
 
     return rv;
 }
@@ -4380,14 +3610,6 @@ int policy_group_init(int unit)
       }
     }
 
-    rv = _policy_udf_init(unit);
-    if (BCM_E_NONE != rv)
-    {
-      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
-          sysapiPrintf("_policy_udf_init failed (%d)\n", rv);
-      return rv;
-    }
-
     rv = _policy_super_qset_init(unit);
     if (BCM_E_NONE != rv)
     {
@@ -4579,9 +3801,6 @@ int policy_group_add_rule(int                        unit,
     #endif
 
     *entry = BCM_ENTRY_TO_BROAD_ENTRY(eid);
-
-    /* Clear out the shared UDF fields for this rule (if applicable). */
-    _policy_group_rule_udf_fields_clear();
 
     /* Add all the fields */
     for (f = 0; f < BROAD_FIELD_LAST; f++)
@@ -5776,14 +4995,6 @@ void debug_sqset_table(int unit, int entry)
       for (j = 0; j < bcmFieldQualifyCount; j++)
       {
         if (BCM_FIELD_QSET_TEST(super_qset_table[unit][i].qsetAgg, j))
-        {
-          sysapiPrintf("%s, ", qual_text[j]);
-        }
-      }
-      sysapiPrintf("\n- qsetUdf: ");
-      for (j = 0; j < bcmFieldQualifyCount; j++)
-      {
-        if (BCM_FIELD_QSET_TEST(super_qset_table[unit][i].qsetUdf, j))
         {
           sysapiPrintf("%s, ", qual_text[j]);
         }

@@ -19,8 +19,7 @@
 **********************************************************************/
 #include "flex.h"
 #include "broad_group_bcm.h"
-#include "broad_group_xgs3.h"
-#include "broad_group_shuffle.h"
+#include "broad_group_dnx.h"
 #include "ibde.h"
 #include "bcm/custom.h"
 
@@ -728,7 +727,7 @@ static int _policy_apply_egress_mask(int unit, BROAD_POLICY_t policy, bcm_pbmp_t
 
 }
 
-int l7_bcm_policy_create(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *policyData, L7_BOOL shuffleAllowed)
+int l7_bcm_policy_create(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *policyData)
 {
   int                          i;
   BROAD_GROUP_t                group;
@@ -918,19 +917,6 @@ int l7_bcm_policy_create(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *
 
     if (BCM_E_NONE != rv)
     {
-      if (shuffleAllowed)
-      {
-        /* Couldn't use an existing group or allocate a new group.
-           Run policy shuffle routine to try and fit it. */
-        rv = policy_group_shuffle(unit, policy, policyData);
-        if (rv == BCM_E_NONE)
-        {
-          _policy_sem_give();
-          return rv;
-        }
-      }
-
-      /* Either a shuffle is not allowed or the shuffle failed. */
       _policy_sem_give();
       (void)l7_bcm_policy_destroy(unit, policy);
       return rv;

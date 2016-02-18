@@ -1,5 +1,5 @@
 #include "ptin_hapi_fp_utils.h"
-#include "broad_group_xgs3.h"
+#include "broad_group_dnx.h"
 #include "logger.h"
 
 #include "bcm/field.h"

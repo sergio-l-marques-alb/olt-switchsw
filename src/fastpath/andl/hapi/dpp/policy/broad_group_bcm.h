@@ -154,7 +154,7 @@ L7_RC_t l7_bcm_policy_hwInfo_get(int unit, BROAD_POLICY_t policy_id, L7_uint rul
 
 int l7_bcm_policy_init();
 
-int l7_bcm_policy_create(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *policyData, L7_BOOL shuffleAllowed);
+int l7_bcm_policy_create(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *policyData);
 
 int l7_bcm_policy_destroy(int unit, BROAD_POLICY_t policy);
 
