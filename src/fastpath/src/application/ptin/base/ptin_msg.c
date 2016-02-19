@@ -42,7 +42,6 @@
 #include "mirror_api.h"
 #include "usmdb_mirror_api.h"
 #include "ptin_xlate_api.h"
-
 #include "ptin_acl.h"
 #include "ptin_routing.h"
 
@@ -12056,6 +12055,7 @@ L7_RC_t ptin_msg_mac_acl_rule_config(msg_mac_acl_t *msgMacAcl, ACL_OPERATION_t o
   
   if (force_capture)
   {
+
     msgMacAcl->action = ACL_ACTION_CAPTURE;
     PT_LOG_DEBUG(LOG_CTX_MSG, "Packet capture will be configured for this rule!");
   }
@@ -12906,6 +12906,7 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
   PT_LOG_DEBUG(LOG_CTX_MSG, " Dst intfid    = %u/%u",     msg->dst_intf.intf_type, msg->dst_intf.intf_id);
   PT_LOG_DEBUG(LOG_CTX_MSG, " Src intf Num  = %u",        msg->n_intf);
 
+
   if (msg->n_intf >= PTIN_SYSTEM_MAX_N_PORTS)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Ups.. something is wrong! Too many Src interfaces");
@@ -13037,7 +13038,6 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
       else
       {
-        PT_LOG_TRACE(LOG_CTX_MSG, "Adding intfNum %d", srcIntfNum);
         rc = usmDbSwPortMonitorSourcePortAdd(unit, sessionNum, srcIntfNum, type);
 
         L7_int32 ptin_port_aux;
@@ -13047,14 +13047,15 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
         {
          ptin_intf_intIfNum2port(srcIntfNum, &ptin_port_aux); 
 
-         PT_LOG_TRACE(LOG_CTX_MSG, "Adding intfNum %d", ptin_port_aux);
+         PT_LOG_TRACE(LOG_CTX_MSG, "Adding intfNum Src %d", ptin_port_aux);
         }
 
         /* Configure Egress XLATE on the destination interface */
         if (msg->src_intf[n].direction == 1 || msg->src_intf[n].direction == 3)
         {
-          PT_LOG_TRACE(LOG_CTX_MSG, "Dst intfNum %d", ptin_port_aux);
-          xlate_outer_vlan_replicate_Dstport(msg->sessionMode, ptin_port_aux, msg->dst_intf.intf_id);
+          PT_LOG_TRACE(LOG_CTX_MSG, "Src intfNum %d", ptin_port_aux);
+          PT_LOG_TRACE(LOG_CTX_MSG, "Dst intfNum %d", msg->dst_intf.intf_id);
+          xlate_outer_vlan_replicate_Dstport(1, ptin_port_aux, msg->dst_intf.intf_id);
         }
 
       }
@@ -15094,13 +15095,9 @@ L7_RC_t ptin_msg_igmp_multicast_service_remove(msg_multicast_service_t *msg, L7_
 
 
 
-
-
-
-
-
 #define DTL0_STRING "dtl0"
-extern L7_int dtlVlanIfAdd(L7_uint16 vlanId);//#include <os/linux/mgmt/dtl_net.h>
+extern L7_int dtlVlanIfAdd(L7_uint16 vlanId);
+
 
 int ptin_msg_PTP_lnx_net_if_set(ipc_msg *inbuffer, ipc_msg *outbuffer) {
 T_MSG_PTP_LNX_NET_IF_SET *ib;
