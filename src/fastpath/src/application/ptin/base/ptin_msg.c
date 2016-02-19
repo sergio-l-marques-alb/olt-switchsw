@@ -14117,7 +14117,6 @@ L7_RC_t ptin_msg_get_next_qualRFC2819_inv(L7_int buffer_index, msg_rfc2819_buffe
 L7_RC_t ptin_msg_get_next_qualRFC2819(L7_int buffer_index, msg_rfc2819_buffer_t *buffer)
 {
   L7_int buffer_id;
-  L7_int first_reg=0;
   L7_int32 n_elements = 0;
   TBufferRegQualRFC2819 ring_buffer;
 
@@ -14129,16 +14128,16 @@ L7_RC_t ptin_msg_get_next_qualRFC2819(L7_int buffer_index, msg_rfc2819_buffer_t 
     buffer_index=RFC2819_BUFFER_15MIN;
 
 
-    if(ptin_rfc2819_buffer_get_inv(buffer_index, first_reg, &ring_buffer) <0) 
+    if(ptin_rfc2819_buffer_get(buffer_index, buffer_id, &ring_buffer) <0) 
     {
       return L7_FAILURE;
     }
         
-    buffer[n_elements].index               = ring_buffer.index;
-    buffer[n_elements].arg                 = ring_buffer.arg;
-    buffer[n_elements].time                = ring_buffer.time;
-    buffer[n_elements].path                = ring_buffer.path;
-    buffer[n_elements].cTempo              = ring_buffer.cTempo;
+    buffer[n_elements].index                = ring_buffer.index;
+    buffer[n_elements].arg                  = ring_buffer.arg;
+    buffer[n_elements].time                 = ring_buffer.time;
+    buffer[n_elements].path                 = ring_buffer.path;
+    buffer[n_elements].cTempo               = ring_buffer.cTempo;
 
     buffer[n_elements].Octets               = ring_buffer.Octets;
     buffer[n_elements].Pkts                 = ring_buffer.Pkts;                
@@ -14157,8 +14156,31 @@ L7_RC_t ptin_msg_get_next_qualRFC2819(L7_int buffer_index, msg_rfc2819_buffer_t 
     buffer[n_elements].Pkts256to511Octets   = ring_buffer.Pkts256to511Octets;  
     buffer[n_elements].Pkts512to1023Octets  = ring_buffer.Pkts512to1023Octets; 
     buffer[n_elements].Pkts1024to1518Octets = ring_buffer.Pkts1024to1518Octets;
-       
+   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].index %d", buffer[n_elements].index);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].arg  %d",  buffer[n_elements].arg );   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].time  %d", buffer[n_elements].time );   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].path %d",  buffer[n_elements].path);   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].cTempo %d", buffer[n_elements].cTempo);   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Octets  %d", buffer[n_elements].Octets );   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts %d", buffer[n_elements].Pkts);   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Broadcast %d", buffer[n_elements].Broadcast);   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Multicast %d", buffer[n_elements].Multicast);   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].CRCAlignErrors %d", buffer[n_elements].CRCAlignErrors);   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].UndersizePkts", buffer[n_elements].UndersizePkts);   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].OversizePkts %d", buffer[n_elements].OversizePkts);
 
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Fragments  %d", buffer[n_elements].Fragments );   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Jabbers %d",  buffer[n_elements].Jabbers);   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Collisions %d", buffer[n_elements].Collisions);   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Utilization  %d", buffer[n_elements].Utilization );   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts64Octets %d", buffer[n_elements].Pkts64Octets);   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts65to127Octets %d", buffer[n_elements].Pkts65to127Octets);   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts128to255Octets %d", buffer[n_elements].Pkts128to255Octets);   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts256to511Octets %d", buffer[n_elements].Pkts256to511Octets);   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts512to1023Octets", buffer[n_elements].Pkts512to1023Octets);   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts1024to1518Octets %d", buffer[n_elements].Pkts1024to1518Octets);
+      
   return L7_SUCCESS;
 }
 
