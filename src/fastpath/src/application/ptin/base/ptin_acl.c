@@ -2431,7 +2431,7 @@ L7_RC_t ptin_aclMacApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
   if (usmDbQosAclMacIndexCheckValid(0, aclId) == L7_ERROR)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: ACD ID Invalid");
-    return L7_SUCCESS;
+    return L7_FAILURE;
   }
 
 
