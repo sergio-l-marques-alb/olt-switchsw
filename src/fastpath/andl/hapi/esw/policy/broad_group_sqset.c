@@ -348,6 +348,7 @@ bcm_field_qualify_t systemQsetTriumph2[] =  /* System requirement */
   bcmFieldQualifyIngressStpState,
   bcmFieldQualifyIpType,
   bcmFieldQualifyVlanFormat,    /* PTin added: FP */
+  bcmFieldQualifyDSCP,
   #if 0
   bcmFieldQualifyDrop,          /* PTin added: FP */
   bcmFieldQualifySrcTrunk,      /* PTin added: FP */
