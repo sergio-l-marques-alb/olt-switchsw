@@ -37,6 +37,7 @@ typedef struct
   L7_uint8    priority;
   L7_uint8    priority_mask;
   L7_uint8    int_priority;
+  L7_BOOL     pbits_remark;
   BROAD_POLICY_t  policyId_icap;
 } ptin_hapi_qos_rule_t;
 
@@ -46,7 +47,6 @@ typedef struct
 
   ptin_hapi_qos_entry_key_t key;
 
-  L7_BOOL         pbits_remark;
   bcm_pbmp_t      port_bmp;
   L7_int32        classId;
 
@@ -920,9 +920,10 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
     }
 
     /* Found exact match rule: nothing to do if found */
-    if (qos_cfg->priority == qos_entry->rule[rule].priority &&
+    if (qos_cfg->priority      == qos_entry->rule[rule].priority &&
         qos_cfg->priority_mask == qos_entry->rule[rule].priority_mask &&
-        qos_cfg->pbits_remark == qos_entry->pbits_remark)   /* If remarking is different, rules must be reconfigured */
+        qos_cfg->pbits_remark  == qos_entry->rule[rule].pbits_remark &&
+        qos_cfg->int_priority  == qos_entry->rule[rule].int_priority)
     {
       PT_LOG_TRACE(LOG_CTX_HAPI,"Exact matched rule %u found! Nothing to do... exit!", rule);
       return L7_SUCCESS;
@@ -933,9 +934,9 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
 
     if ((qos_cfg->priority & mask) == (qos_entry->rule[rule].priority & mask))
     {
-      PT_LOG_TRACE(LOG_CTX_HAPI,"Going to remove rule %u: intVlan=%u/extVlan=%u/leaf:%u trust_mode=%u prio=%u/0x%x (policyId=%d)",
+      PT_LOG_TRACE(LOG_CTX_HAPI,"Going to remove rule %u: intVlan=%u/extVlan=%u/leaf:%u trust_mode=%u prio=%u/0x%x remark=%u (policyId=%d)",
                 rule, qos_entry->key.int_vlan, qos_entry->key.ext_vlan, qos_entry->key.leaf_side, qos_entry->key.trust_mode,
-                qos_entry->rule[rule].priority, qos_entry->rule[rule].priority_mask, qos_entry->rule[rule].policyId_icap);
+                qos_entry->rule[rule].priority, qos_entry->rule[rule].priority_mask, qos_entry->rule[rule].pbits_remark, qos_entry->rule[rule].policyId_icap);
 
       /* Free rule (for later reconfiguration) */
       if (ptin_hapi_qos_rule_free(qos_entry, rule) != L7_SUCCESS)
@@ -1111,8 +1112,8 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
       L7_ushort16   ethertype_ipv4  = L7_ETYPE_IP;
       L7_uchar8     dscp_value, dscp_mask;
 
-      dscp_value = (qos_cfg->priority) & 0xff;
-      dscp_mask  = (qos_cfg->priority_mask) & 0xff;
+      dscp_value = (qos_cfg->priority << 2) & 0xff;
+      dscp_mask  = (qos_cfg->priority_mask << 2) & 0xff;
 
       rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ethertype_ipv4, exact_mask);
       if (rc != L7_SUCCESS)
@@ -1191,12 +1192,12 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
   qos_entry->key.int_vlan       = qos_cfg->int_vlan;
   qos_entry->key.leaf_side      = qos_cfg->leaf_side;
   qos_entry->key.trust_mode     = qos_cfg->trust_mode;
-  qos_entry->pbits_remark       = qos_cfg->pbits_remark;
   BCM_PBMP_ASSIGN(qos_entry->port_bmp, pbm);
 
   qos_entry->rule[rule].priority      = qos_cfg->priority;
   qos_entry->rule[rule].priority_mask = qos_cfg->priority_mask;
   qos_entry->rule[rule].int_priority  = qos_cfg->int_priority;
+  qos_entry->rule[rule].pbits_remark  = qos_cfg->pbits_remark;
   qos_entry->rule[rule].policyId_icap = policyId_icap;
   qos_entry->rule[rule].in_use        = L7_TRUE;
 
@@ -1265,9 +1266,9 @@ L7_RC_t ptin_hapi_qos_entry_remove(ptin_dtl_qos_t *qos_cfg)
       if ((qos_cfg->priority & mask) != (qos_entry->rule[rule].priority & mask))
         continue;
 
-      PT_LOG_TRACE(LOG_CTX_HAPI,"Going to remove entry %u, rule %u: intVlan=%u/extVlan=%u/leaf:%u trust_mode=%u prio=%u/0x%x (policyId=%d)",
+      PT_LOG_TRACE(LOG_CTX_HAPI,"Going to remove entry %u, rule %u: intVlan=%u/extVlan=%u/leaf:%u trust_mode=%u prio=%u/0x%x remark=%u (policyId=%d)",
                 entry, rule, qos_entry->key.int_vlan, qos_entry->key.ext_vlan, qos_entry->key.leaf_side, qos_entry->key.trust_mode,
-                qos_entry->rule[rule].priority, qos_entry->rule[rule].priority_mask, qos_entry->rule[rule].policyId_icap);
+                qos_entry->rule[rule].priority, qos_entry->rule[rule].priority_mask, qos_entry->rule[rule].pbits_remark, qos_entry->rule[rule].policyId_icap);
 
       /* Clear rule */
       if (ptin_hapi_qos_rule_free(qos_entry, rule) != L7_SUCCESS)
@@ -1366,10 +1367,10 @@ L7_RC_t ptin_hapi_qos_dump(void)
     if (!qos_entry->entry_active)
       continue;
 
-    printf("Entry %-2u: intVlan=%u extVlan=%u (classId=%d) [%s] TrustMode=%u Remark=%u Pbmp = 0x", entry,
+    printf("Entry %-2u: intVlan=%u extVlan=%u (classId=%d) [%s] TrustMode=%u Pbmp = 0x", entry,
            qos_entry->key.int_vlan, qos_entry->key.ext_vlan, qos_entry->classId,
            ((qos_entry->key.leaf_side) ? "LEAF" : "ROOT"),
-           qos_entry->key.trust_mode, qos_entry->pbits_remark);
+           qos_entry->key.trust_mode);
     for (j = 0; j < _SHR_PBMP_WORD_MAX; j++)
     {
       printf("%08x ", qos_entry->port_bmp.pbits[j]);
@@ -1381,8 +1382,8 @@ L7_RC_t ptin_hapi_qos_dump(void)
       if (!qos_entry->rule[rule].in_use)
         continue;
 
-      printf("\t  prio=%2u/0x%02x -> intPrio=%-2u",
-             qos_entry->rule[rule].priority, qos_entry->rule[rule].priority_mask, qos_entry->rule[rule].int_priority);
+      printf("\t  prio=%2u/0x%02x -> intPrio=%-2u remark=%u",
+             qos_entry->rule[rule].priority, qos_entry->rule[rule].priority_mask, qos_entry->rule[rule].int_priority, qos_entry->rule[rule].pbits_remark);
 
       if (qos_entry->rule[rule].policyId_icap != BROAD_POLICY_INVALID)
       {
