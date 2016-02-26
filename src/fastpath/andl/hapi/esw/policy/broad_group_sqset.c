@@ -348,7 +348,6 @@ bcm_field_qualify_t systemQsetTriumph2[] =  /* System requirement */
   bcmFieldQualifyIngressStpState,
   bcmFieldQualifyIpType,
   bcmFieldQualifyVlanFormat,    /* PTin added: FP */
-  bcmFieldQualifyDSCP,
  /* PTin added: SDK 6.3.0 */
  #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
   bcmFieldQualifyDstClassField, /* PTin added: FP */
