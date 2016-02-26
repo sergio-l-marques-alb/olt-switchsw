@@ -4914,7 +4914,17 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
       break;
 
+#if (PTIN_BOARD_IS_MATRIX || (PTIN_BOARD == PTIN_BOARD_OLT1T0) || (PTIN_BOARD == PTIN_BOARD_TA48GE))
     case CCMSG_PTP_LNX_NET_IF_SET:
+#if     (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+        if (!KERNEL_NODE_IS("OLT1T0-AC")) { 
+                PT_LOG_WARN(LOG_CTX_MSGHANDLER, "Message not supported!"); 
+                SetIPCNACK (outbuffer, SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_WARNING, ERROR_CODE_NOSUCHMSG)); 
+        
+                rc = L7_FAILURE; 
+                break; 
+        }
+#endif
       {
           PT_LOG_INFO(LOG_CTX_MSGHANDLER,
                    "Message received: CCMSG_PTP_LNX_NET_IF_SET (0x%04X)", inbuffer->msgId);
@@ -4934,7 +4944,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
           SETIPCACKOK(outbuffer);
       }
       break;
-
+#endif
       
     case CHMSG_RFC2819_MONITORING_GET_ONE_REG:
       {
