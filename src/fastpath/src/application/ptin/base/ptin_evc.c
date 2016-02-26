@@ -8837,6 +8837,13 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, ptin_HwEthMef10Intf_t *intf_cfg
     {
       egress_del_ivlan = !is_stacked;
     }
+    /* For Unstacked MAC-Bridge services - @downstream direction - a new TAG will be added as new outer VLAN */
+    /* This way, payload data goes after the second tag, and will be preserved to the ONT */
+    if (is_quattro && !is_stacked)
+    {
+      intf_vlan.action_outer = PTIN_XLATE_ACTION_ADD;
+      intf_vlan.action_inner = PTIN_XLATE_ACTION_NONE;
+    }
   #endif
     
     rc = switching_root_add(&intf_vlan,                                 /* Input data */
@@ -10233,14 +10240,14 @@ static L7_RC_t switching_root_add(ptin_HwEthMef10Intf_t *intf_cfg, L7_uint16 int
     intf_vlan_set.mef_type      = intf_cfg->mef_type;
     intf_vlan_set.vid           = int_vlan;
     intf_vlan_set.vid_inner     = new_innerVlan;
-    intf_vlan_set.action_outer  = (intf_cfg->action_outer == PTIN_XLATE_ACTION_ADD) ? PTIN_XLATE_ACTION_DELETE : intf_cfg->action_outer;
+    intf_vlan_set.action_outer  = intf_cfg->action_outer;
     if (egress_del_ivlan)
     {
       intf_vlan_set.action_inner  = PTIN_XLATE_ACTION_DELETE;
     }
     else
     {
-      intf_vlan_set.action_inner = (intf_cfg->action_inner == PTIN_XLATE_ACTION_ADD) ? PTIN_XLATE_ACTION_DELETE : intf_cfg->action_inner;
+      intf_vlan_set.action_inner = intf_cfg->action_inner;
     }
 
     rc = ptin_xlate_egress_add(&intf_vlan_set,

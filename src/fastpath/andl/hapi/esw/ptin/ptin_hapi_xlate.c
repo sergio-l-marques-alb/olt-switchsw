@@ -1107,14 +1107,14 @@ L7_RC_t ptin_hapi_xlate_ingress_add(ptin_dapi_port_t *dapiPort, ptin_hapi_xlate_
   /* VLAN actions */
   /* If it already exists, does not make sense to add: do not allow addition for double tagged packets */
   action.dt_outer      = xlate->outerVlanAction;
-  action.dt_inner      = (1/*xlate->innerVlanAction!=PTIN_XLATE_ACTION_ADD*/) ? xlate->innerVlanAction : bcmVlanActionNone;  /* If it already exists, does not make sense to add. Instead replace */
+  action.dt_inner      = (xlate->innerVlanAction!=PTIN_XLATE_ACTION_ADD) ? xlate->innerVlanAction : bcmVlanActionNone;  /* Push not allowed to inner VLAN */
   action.dt_outer_prio      = xlate->outerPrioAction;
   action.dt_outer_pkt_prio  = xlate->outerPrioAction;
   action.dt_inner_prio      = xlate->innerPrioAction;
   action.dt_inner_pkt_prio  = xlate->innerPrioAction;
 
   action.ot_outer      = xlate->outerVlanAction;
-  action.ot_inner      = (1/*xlate->innerVlanAction==PTIN_XLATE_ACTION_ADD*/) ? xlate->innerVlanAction : bcmVlanActionNone;  /* If it does not exist, it only make sense to add */
+  action.ot_inner      = (xlate->innerVlanAction==PTIN_XLATE_ACTION_ADD) ? xlate->innerVlanAction : bcmVlanActionNone;  /* Inner VLAN can only be added for single tagged packets */
   action.ot_outer_prio      = xlate->outerPrioAction;
   action.ot_outer_pkt_prio  = xlate->outerPrioAction;
   action.ot_inner_pkt_prio  = xlate->innerPrioAction;
@@ -1345,15 +1345,15 @@ L7_RC_t ptin_hapi_xlate_egress_add(L7_uint32 portgroup, ptin_hapi_xlate_t *xlate
 
   /* Add translation entry */
   bcm_vlan_action_set_t_init(&action);
-  action.dt_outer      = xlate->outerVlanAction;
-  action.dt_inner      = (xlate->innerVlanAction!=PTIN_XLATE_ACTION_ADD) ? xlate->innerVlanAction : bcmVlanActionNone;  /* If it already exists, does not make sense to add. Instead replace */
+  action.dt_outer      = (xlate->outerVlanAction!=PTIN_XLATE_ACTION_ADD) ? xlate->outerVlanAction : bcmVlanActionNone;  /* Push not allowed for double tagged packets */
+  action.dt_inner      = (xlate->innerVlanAction!=PTIN_XLATE_ACTION_ADD) ? xlate->innerVlanAction : bcmVlanActionNone;  /* Push not allowed for double tagged packets */
   action.dt_outer_prio      = xlate->outerPrioAction;
   action.dt_outer_pkt_prio  = xlate->outerPrioAction;
   action.dt_inner_prio      = xlate->innerPrioAction;
   action.dt_inner_pkt_prio  = xlate->innerPrioAction;
 
-  action.ot_outer      = xlate->outerVlanAction;
-  action.ot_inner      = (xlate->innerVlanAction==PTIN_XLATE_ACTION_ADD) ? xlate->innerVlanAction : bcmVlanActionNone;  /* If it does not exist, it only make sense to add */
+  action.ot_outer      = (xlate->outerVlanAction!=PTIN_XLATE_ACTION_ADD) ? xlate->outerVlanAction : bcmVlanActionNone;  /* Push not allowed for single tagged packets */
+  action.ot_inner      = (xlate->innerVlanAction==PTIN_XLATE_ACTION_ADD) ? xlate->innerVlanAction : bcmVlanActionNone;  /* Inner VLAN can only be added for single tagged packets */
   action.ot_outer_prio      = xlate->outerPrioAction;
   action.ot_outer_pkt_prio  = xlate->outerPrioAction;
   action.ot_inner_pkt_prio  = xlate->innerPrioAction;
