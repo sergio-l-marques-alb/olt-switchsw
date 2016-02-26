@@ -115,7 +115,7 @@ void ptin_debug(void)
   printf("  ptin_l2_maclimit_dump                                           - Dumps MAC limit tables (non empty)\r\n");
   printf("  ptin_l2_maclimit_status                                         - Dumps MAC limit tables per interface (non empty)\r\n");
   printf("  ptin_l2_maclimit_config <sys> <ifType> <ifId> <vid> <lmt>       - Configures L2 MAC Limit on system/ per VLAN / per Port\r\n");
-  printf("  slot_monitor_enable <monitor_enable> <fcs_enable>               - Enables or disables slot monitor reset\r\n");
+  printf("  slot_monitor_enable <slot> <enable> <fcs_threshold>             - Enables or disables slot monitor reset\r\n");
   printf("  slot_monitor_dump                                               - Dump link status information\r\n");
   printf("  slot_monitor_reset <port>                                       - Reset link status data (local and remote)\r\n");
   printf("  ptin_debug_example <intIfNum> <oper> <param1> <param2>          - Generic DTL processor example\r\n");
@@ -198,8 +198,7 @@ void ptin_debug(void)
   printf("  sysNetNotifyListDebugShow                                       - Show list of packet processing callbacks related to sysnetNotifyList\r\n");
   printf("\r\n");                                                          
   printf("  ptin_debug_trap_packets <port> <OVid> <IVid> <only_drops>       - Redirect packets from <port>, with <ovid> and <ivid>, to CPU\r\n");
-  printf("  ptin_debug_trap_packets_egress <port> <OVid> <IVid> <drp>       - Redirect packets egressing from <port>, with <ovid> and <ivid>, to CPU\r\n");
-  printf("  ptin_debug_trap_packets_mirror <dst> <port> <OVid> <IVid>       - Redirect packets egressing from <port>, with <ovid> and <ivid>, to <dst> port\r\n");
+  printf("  ptin_debug_trap_packets_tx <src_port> <tx_port> <OVid> <IVid>   - Redirect packets egressing from <port>, with <ovid> and <ivid>, to CPU\r\n");
   printf("  ptin_debug_trap_packets_cancel                                  - Cancel redirection packets rule to CPU\r\n");
   printf("  ptin_debug_trap_packets_state                                   - Show if some redirection packet rule to CPU is defined\r\n");
   printf("\r\n");                                                          
