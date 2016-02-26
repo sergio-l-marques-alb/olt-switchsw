@@ -1095,14 +1095,14 @@ L7_RC_t ptin_hapi_xlate_ingress_add(ptin_dapi_port_t *dapiPort, ptin_hapi_xlate_
 
   /* VLAN actions */
   /* If it already exists, does not make sense to add: do not allow addition for double tagged packets */
-  action.dt_outer      = (xlate->outerVlanAction!=PTIN_XLATE_ACTION_ADD) ? xlate->outerVlanAction : bcmVlanActionNone;  /* If it already exists, does not make sense to add */
+  action.dt_outer      = xlate->outerVlanAction;
   action.dt_inner      = (xlate->innerVlanAction!=PTIN_XLATE_ACTION_ADD) ? xlate->innerVlanAction : bcmVlanActionNone;  /* If it already exists, does not make sense to add. Instead replace */
   action.dt_outer_prio      = xlate->outerPrioAction;
   action.dt_outer_pkt_prio  = xlate->outerPrioAction;
   action.dt_inner_prio      = xlate->innerPrioAction;
   action.dt_inner_pkt_prio  = xlate->innerPrioAction;
 
-  action.ot_outer      = (xlate->outerVlanAction!=PTIN_XLATE_ACTION_ADD) ? xlate->outerVlanAction : bcmVlanActionNone;  /* If it already exists, does not make sense to add */
+  action.ot_outer      = xlate->outerVlanAction;
   action.ot_inner      = (xlate->innerVlanAction==PTIN_XLATE_ACTION_ADD) ? xlate->innerVlanAction : bcmVlanActionNone;  /* If it does not exist, it only make sense to add */
   action.ot_outer_prio      = xlate->outerPrioAction;
   action.ot_outer_pkt_prio  = xlate->outerPrioAction;
