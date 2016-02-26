@@ -412,7 +412,7 @@ static void ptin_evc_find_flow_fromVPort(L7_uint32 vport_id, dl_queue_t *queue, 
 #endif
 
 static L7_RC_t switching_root_add(L7_uint root_intf, L7_uint16 out_vlan, L7_uint16 inner_vlan, L7_uint16 int_vlan, L7_uint16 new_innerVlan,
-                                  L7_BOOL egress_del_ivlan, L7_int force_pcp);
+                                  L7_BOOL ingress_push_ovlan, L7_BOOL egress_del_ivlan, L7_int force_pcp);
 static L7_RC_t switching_root_remove(L7_uint root_intf, L7_uint16 out_vlan, L7_uint16 inner_vlan, L7_uint16 int_vlan);
 static L7_RC_t switching_leaf_add(L7_uint leaf_intf, L7_uint16 leaf_int_vlan);
 static L7_RC_t switching_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_int_vlan, L7_BOOL iptv_flag);
@@ -8793,6 +8793,7 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
                             ((is_stacked) ? intf_cfg->vid_inner : 0),   /* Inner vlan */
                             int_vlan,                                   /* Internal vlan */
                             0,                                          /* New inner vlan */
+                            is_quattro && !is_stacked,                  /* Push a new outer VLAN for Unstacked MAC-Bridge services (downstream direction only) */
                             !is_stacked,                                /* Delete egress vlan? Only for unstacked EVCs */
                             -1);                                        /* Force PCP */
     #else
@@ -8800,6 +8801,7 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
                             ((is_stacked) ? intf_cfg->vid_inner : 0),   /* Inner vlan */
                             int_vlan,                                   /* Internal vlan */
                             0,                                          /* New inner vlan */
+                            L7_FALSE,                                   /* Replace outer VLAN */
                             L7_FALSE,                                   /* Delete egress vlan? */
                             -1);                                        /* Force PCP */
     #endif
@@ -10078,15 +10080,17 @@ static L7_RC_t ptin_evc_vlan_free(L7_uint16 vlan, dl_queue_t *queue_vlans)
  *  1. Associates the internal VLAN to the root intf
  *  2. Adds egress and ingress xlate entries (Out.VLAN<=>Int.VLAN)
  * 
- * @param root_intf     Root interface (ptin_intf)
- * @param out_vlan      Outer VLAN
- * @param int_vlan      Inner VLAN 
- * @param force_pcp     Force ingress packets to have this pcp
+ * @param root_intf          Root interface (ptin_intf)
+ * @param out_vlan           Outer VLAN
+ * @param int_vlan           Inner VLAN 
+ * @param ingress_push_ovlan Push a new outer VLAN
+ * @param egress_del_ivlan   Pop inner VLAN
+ * @param force_pcp          Force ingress packets to have this pcp
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 static L7_RC_t switching_root_add(L7_uint root_intf, L7_uint16 out_vlan, L7_uint16 inner_vlan, L7_uint16 int_vlan, L7_uint16 new_innerVlan,
-                                  L7_BOOL egress_del_ivlan, L7_int force_pcp)
+                                  L7_BOOL ingress_push_ovlan, L7_BOOL egress_del_ivlan, L7_int force_pcp)
 {
   L7_uint32 intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
@@ -10129,7 +10133,7 @@ static L7_RC_t switching_root_add(L7_uint root_intf, L7_uint16 out_vlan, L7_uint
   }
 
   /* Add ingress xlate entry: (root_intf) out_vlan -> int_vlan */
-  rc = ptin_xlate_ingress_add(intIfNum, out_vlan, inner_vlan, int_vlan, new_innerVlan, force_pcp, -1);
+  rc = ptin_xlate_ingress_add(intIfNum, out_vlan, inner_vlan, int_vlan, new_innerVlan, force_pcp, -1, ingress_push_ovlan);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_EVC, "Error adding intIfNum# %u xlate Ingress entry [Out.VLAN %u + Inn.VLAN %u => Int.VLAN] %u (rc=%d)",
@@ -10812,7 +10816,7 @@ static L7_RC_t switching_elan_leaf_add(L7_uint leaf_intf, L7_uint16 leaf_out_vla
   }
 
   /* Add ingress xlate entry: (leaf_intf) (Vs',Vc) => (Vr,Vc) */
-  rc = ptin_xlate_ingress_add(intIfNum, leaf_out_vlan, 0, int_vlan, leaf_inner_vlan, -1, -1);
+  rc = ptin_xlate_ingress_add(intIfNum, leaf_out_vlan, 0, int_vlan, leaf_inner_vlan, -1, -1, L7_FALSE);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_EVC, "Error adding intf %u xlate Ingress entry [Leaf Out.VLAN %u + Inn.VLAN %u => Root Int.VLAN %u] (rc=%d)",
@@ -11117,7 +11121,7 @@ static L7_RC_t switching_etree_unstacked_leaf_add(L7_uint leaf_intf, L7_uint16 l
   }
 
   /* Add ingress xlate entry: (leaf_intf)  (leaf outer vlan => leaf internal vlan) */
-  rc = ptin_xlate_ingress_add(intIfNum, leaf_out_vlan, 0, leaf_int_vlan, 0, -1, -1);
+  rc = ptin_xlate_ingress_add(intIfNum, leaf_out_vlan, 0, leaf_int_vlan, 0, -1, -1, L7_FALSE);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_EVC, "Error adding intIfNum# %u xlate Ingress entry [Leaf Out.VLAN %u => Leaf Int.VLAN %u] (rc=%d)",
@@ -11169,7 +11173,7 @@ static L7_RC_t switching_etree_stacked_leaf_add(L7_uint leaf_intf, L7_uint16 lea
   }
 
   /* Add ingress xlate entry: (leaf_intf)  (leaf outer vlan => leaf internal vlan) */
-  rc = ptin_xlate_ingress_add(intIfNum, leaf_out_vlan, 0, leaf_int_vlan, leaf_inn_vlan, -1, -1);
+  rc = ptin_xlate_ingress_add(intIfNum, leaf_out_vlan, 0, leaf_int_vlan, leaf_inn_vlan, -1, -1, L7_FALSE);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_EVC, "Error adding intIfNum# %u xlate Ingress entry [Leaf Out.VLAN %u => Leaf Int.VLAN %u + Inn.VLAN %u] (rc=%d)",

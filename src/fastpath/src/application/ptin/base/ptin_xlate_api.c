@@ -616,12 +616,13 @@ L7_RC_t ptin_xlate_ingress_get_originalVlan( L7_uint32 intIfNum, L7_uint16 *oute
  *                       be added)
  * @param newOuterPrio : new outer prio (-1 to not be used)
  * @param newInnerPrio : new inner prio (-1 to not be used)
+ * @param pushOuterVlan: Push or Replace outer Vlan
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
 L7_RC_t ptin_xlate_ingress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uint16 innerVlanId,
                                 L7_uint16 newOuterVlanId, L7_uint16 newInnerVlanId,
-                                L7_int newOuterPrio, L7_int newInnerPrio )
+                                L7_int newOuterPrio, L7_int newInnerPrio, L7_BOOL pushOuterVlan)
 {
   ptin_vlanXlate_t xlate;
   L7_RC_t rc = L7_SUCCESS;
@@ -686,7 +687,7 @@ L7_RC_t ptin_xlate_ingress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_ui
   xlate.outerPrio_new   = (newOuterPrio >= 0 && newOuterPrio <= 7) ? newOuterPrio : 0;
   xlate.innerPrio_new   = (newInnerPrio >= 0 && newInnerPrio <= 7) ? newInnerPrio : 0;
 
-  xlate.outerVlanAction = PTIN_XLATE_ACTION_REPLACE;
+  xlate.outerVlanAction = (pushOuterVlan) ? PTIN_XLATE_ACTION_ADD : PTIN_XLATE_ACTION_REPLACE;
   xlate.outerPrioAction = (newOuterPrio >= 0 && newOuterPrio <= 7) ? PTIN_XLATE_ACTION_REPLACE : PTIN_XLATE_ACTION_NONE;
 
 #if ( PTIN_BOARD_IS_MATRIX )
