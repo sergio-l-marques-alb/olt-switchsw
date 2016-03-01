@@ -369,6 +369,13 @@ L7_RC_t sysNetFindReasonCodeMatch(sysnet_pdu_info_t *pduInfo, L7_netBufHandle bu
     {
       if (sysnetNotifyList.sysnetNotifyEntries[i].u.rxReason & ((SYSAPI_NET_MBUF_HEADER_t *)bufHandle)->rxCode)
       {
+        #if (PTIN_BOARD_CXO640G) // PTIN added : This must be done to have capture and inband simultaneously
+        if (pduInfo->vlanId == 2047 && ((((SYSAPI_NET_MBUF_HEADER_t *)bufHandle)->rxCode) == 0x10) ) 
+        {
+          continue;
+        }
+        #endif
+
         if (pdu_process_debug)
           PT_LOG_TRACE(LOG_CTX_DTL,"Calling callback for rxReason=%u",sysnetNotifyList.sysnetNotifyEntries[i].u.rxReason);
 
