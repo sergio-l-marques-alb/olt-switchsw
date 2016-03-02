@@ -101,6 +101,8 @@ static L7_uint16 SIRerror_get(L7_RC_t error_code)
 
     case L7_DEPENDENCY_NOT_MET:
       return ERROR_CODE_FP_EVC_UNKNOWN;
+    case L7_ADDR_INUSE:
+      return ERROR_COUNTER_USED;
   }
 
   // Default error

@@ -373,7 +373,7 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
       if (ptin_hapi_policy_check_conflicts(usp, profile, L7_NULLPTR, cnt_db, BROAD_POLICY_STAGE_INGRESS) != L7_NULLPTR)
       {
         PT_LOG_ERR(LOG_CTX_HAPI,"Counter already configured in conflict (at ingress stage)");
-        return L7_REQUEST_DENIED;
+        return L7_ADDR_INUSE;
       }
 
       /* Define policy type */
