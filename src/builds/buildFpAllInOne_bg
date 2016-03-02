@@ -2,7 +2,7 @@
 
 version=3.8
 patch=0
-svnUpdate=0
+svnUpdate=1
 
 if [ $# -ge 1 ]; then
   # Show help 
