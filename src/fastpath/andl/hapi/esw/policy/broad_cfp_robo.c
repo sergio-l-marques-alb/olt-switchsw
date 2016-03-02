@@ -763,8 +763,6 @@ typedef struct
 {
     int highPrio;     /* highest priority */
     int lowPrio;      /* lowest priority  */
-
-    int group_prio;   /* Priority associated to a group */
 }
 group_alloc_table_t;
 
@@ -1040,8 +1038,7 @@ static int _policy_sqset_slice_count(int unit, unsigned int sqset_idx)
 static int _policy_group_find_first(int                  unit, 
                                     BROAD_POLICY_STAGE_t policyStage,
                                     BROAD_POLICY_TYPE_t  type, 
-                                    BROAD_GROUP_t       *group,
-                                    int                 *gprio)
+                                    BROAD_GROUP_t       *group)
 {
     int block, dir;
     int used_block, used_dir;
@@ -1057,7 +1054,6 @@ static int _policy_group_find_first(int                  unit,
     {
         *group = group_alloc_table[unit][policyStage][block].highPrio;
     }
-    *gprio = group_alloc_table[unit][policyStage][block].group_prio;
 
     groupPtr = &group_table[unit][policyStage][*group];
     if (groupPtr->flags & GROUP_USED)
@@ -1203,8 +1199,7 @@ static int _policy_group_find_next(int                  unit,
 static int _policy_group_find_free_group(int                  unit, 
                                          BROAD_POLICY_STAGE_t policyStage,
                                          BROAD_POLICY_TYPE_t  type, 
-                                         BROAD_GROUP_t       *group,
-                                         int                 *gprio, 
+                                         BROAD_GROUP_t       *group, 
                                          int                  slices_needed)
 {
     int  rv;
@@ -1214,7 +1209,7 @@ static int _policy_group_find_free_group(int                  unit,
 
     _policy_group_alloc_type(type, &block, &dir);
 
-    rv = _policy_group_find_first(unit, policyStage, type, group, gprio);
+    rv = _policy_group_find_first(unit, policyStage, type, group);
     while (BCM_E_NONE == rv)
     {
         /* find the base group based on the number of slices needed */
@@ -1361,7 +1356,6 @@ static int _policy_group_find_group(int                   unit,
                                     custom_field_qset_t   customQset)
 {
     int rv;
-    int gprio;
     int countersReq = 0, metersReq = 0;
     BROAD_POLICY_RULE_ENTRY_t *rulePtr;
 
@@ -1390,7 +1384,7 @@ static int _policy_group_find_group(int                   unit,
     }
 
     /* Find an existing group that can satisfy the policy requirements. */
-    rv = _policy_group_find_first(unit, policyStage, entryPtr->policyType, group, &gprio);
+    rv = _policy_group_find_first(unit, policyStage, entryPtr->policyType, group);
     while (BCM_E_NONE == rv)
     {
         bcm_field_qset_t         qset;
@@ -1442,7 +1436,7 @@ static int _policy_group_alloc_group(int                   unit,
 {
     int  rv;
     int  sqset;
-    int  gprio;
+    int prio;
     group_table_t *groupPtr;
     group_table_t *tempGroupPtr;
     bcm_field_group_mode_t mode;
@@ -1457,7 +1451,7 @@ static int _policy_group_alloc_group(int                   unit,
     slices_needed = _policy_sqset_slice_count(unit, sqset);
 
         /* allocate a new group of the appropriate type */
-    rv = _policy_group_find_free_group(unit, policyStage, entryPtr->policyType, group, &gprio, slices_needed);
+    rv = _policy_group_find_free_group(unit, policyStage, entryPtr->policyType, group, slices_needed);
     if (BCM_E_NONE != rv)
       return rv;
 
@@ -1474,6 +1468,8 @@ static int _policy_group_alloc_group(int                   unit,
       tempGroupPtr->sqset = sqset;
       tempGroupPtr->base_group = *group;
     }
+
+    prio = *group;   /* equate prio to group */
 
     if (super_qset_table[unit][sqset].flags & SUPER_QSET_SINGLE_WIDE)
     {
@@ -1494,7 +1490,7 @@ static int _policy_group_alloc_group(int                   unit,
     }
 
     rv = bcm_field_group_create_mode(unit, super_qset_table[unit][sqset].qsetAgg,
-                                     gprio, mode, &groupPtr->gid);
+                                     prio, mode, &groupPtr->gid);
     if (rv != BCM_E_NONE)
     {
       for (i = *group; i < (*group + slices_needed); i++)
@@ -2348,32 +2344,26 @@ static int _policy_group_alloc_init(int unit, BROAD_POLICY_STAGE_t policyStage, 
     case BROAD_POLICY_STAGE_LOOKUP:
     case BROAD_POLICY_STAGE_EGRESS:
       /* low priority group starts at 0 and goes for 4 */
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].lowPrio       = 0;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].highPrio      = groups - 1;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].group_prio    = 0;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].lowPrio     = 0;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].highPrio    = groups - 1;
 
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].lowPrio    = 0;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio   = groups - 1;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].group_prio = 0;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].lowPrio  = 0;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio = groups - 1;
 
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio      = 0;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio     = groups - 1;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].group_prio   = 0;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio    = 0;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio   = groups - 1;
 
       break;
     case BROAD_POLICY_STAGE_INGRESS:
       /* low priority group starts at 0 and goes for 4 */
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].lowPrio       = 13;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].highPrio      = 15;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].group_prio    = 13;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].lowPrio     = 13;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].highPrio    = 15;
 
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].lowPrio    = 9;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio   = 12;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].group_prio = 9;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].lowPrio  = 9;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio = 12;
 
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio      = 0;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio     = 8;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].group_prio   = 0;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio    = 0;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio   = 8;
 
       break;
     default:
