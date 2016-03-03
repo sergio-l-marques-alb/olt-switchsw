@@ -856,6 +856,8 @@ typedef struct {
   L7_uint8  mef_type;     // { 0 - root, 1 - leaf }
   L7_uint16 vid;          // Outer VLAN id [1..4094]
   L7_uint16 inner_vid;    // Inner vlan
+  L7_uint8  pcp;          // Packet's priority
+  L7_uint16 ethertype;    // Packet's ethertype
 } __attribute__((packed)) msg_HwEthMef10Intf_t;
 
 /* EVC config */
@@ -940,7 +942,7 @@ typedef struct {
                                 // 0x000400 - PPPOE protocol (PTin custom field)
   /* Flow information */
   L7_uint16            nni_cvlan;    // NNI inner vlan
-  msg_HwEthIntf_t      intf;         // Outer vlan is the GEM id
+  msg_HwEthMef10Intf_t intf;         // Outer vlan is the GEM id
   L7_uint8             macLearnMax;  // Maximum number of Learned MAC addresses
   L7_uint8             onuId;        //ONU Identifier
   L7_uint8             mask;         //Mask of fields to be considered (use 0x03 to enable both)                            

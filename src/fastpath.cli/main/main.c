@@ -5351,7 +5351,7 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->intf.outer_vid = valued;
+          ptr->intf.vid = valued;
 
           // Inner VLAN
           if (StrToLongLong(argv[3+4], &valued)<0)  {
