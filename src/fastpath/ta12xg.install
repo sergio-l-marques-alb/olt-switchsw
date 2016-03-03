@@ -4,7 +4,7 @@ PLATFORM=TA12XG
 PLATFORM_FOLDER=$PLATFORM
 FILESYSTEM=rootfs
 
-KO_PATH=./output/FastPath-Ent-esw-dnx-e500-LR-CSxw-IQH_$PLATFORM/target
-BIN_PATH=./output/FastPath-Ent-esw-dnx-e500-LR-CSxw-IQH_$PLATFORM/ipl
+KO_PATH=./output/FastPath-Ent-dpp-dnx-e500-LR-CSxw-IQH_$PLATFORM/target
+BIN_PATH=./output/FastPath-Ent-dpp-dnx-e500-LR-CSxw-IQH_$PLATFORM/ipl
 
 . ./common.install

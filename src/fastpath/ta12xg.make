@@ -50,7 +50,7 @@ export FP_SHELL_PATH := ../fastpath.shell
 export LVL7_MAKEFILE_LOGGING := N
 export LVL7_MAKEFILE_DISPLAY_MODE := S
 
-.PHONY: welcome all install clean cleanall help h kernel cli cli_clean shell shell_clean
+.PHONY: welcome all install clean cleanall help h cli cli_clean shell shell_clean
 
 all: welcome setsdk mgmdconfig cli_clean shell_clean cli shell
 	$(RM) -f $(BIN_PATH)/$(BIN_FILE)
@@ -77,9 +77,6 @@ mgmdconfig:
 	fi;
 	@sh mgmd_config_$(CARD).sh
 
-kernel:
-	cd $(KERNEL_PATH) && ./build_ta12xg.sh
-
 install:
 	sh ta12xg.install
 
@@ -89,7 +86,6 @@ help h:
 	@echo "	make     		"
 	@echo "	make clean		"
 	@echo "	make cleanall           "
-	@echo "	make kernel		"
 	@echo " make cli                "
 	@echo " make shell              "
 	@echo " make cli_clean          "

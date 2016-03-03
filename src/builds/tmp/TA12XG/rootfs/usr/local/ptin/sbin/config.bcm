@@ -6,6 +6,7 @@
 
 # Advanced translations
 bcm886xx_vlan_translate_mode=1
+vlan_match_criteria_mode=PCP_LOOKUP
 
 ## General
 # Set the FAP Device mode
