@@ -1508,6 +1508,7 @@ L7_RC_t hapiBroadPtinVirtualPortSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
       rc = ptin_hapi_vp_create(&dapiPort, vport->vsi,
                                vport->ext_ovid, vport->ext_ivid,
                                vport->int_ovid, vport->int_ivid,
+                               vport->pcp, vport->ethertype,
                                vport->multicast_group,
                                &vport->virtual_gport);
 

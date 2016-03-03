@@ -194,13 +194,17 @@ extern L7_RC_t ptin_hapi_vsi_remove(L7_int unit, L7_uint16 vsi, L7_uint32 vlan_p
  * @param match_ivid    : external inner vlan (UNIVLAN)
  * @param egress_ovid   : outer vlan inside switch
  * @param egress_ivid   : inner vlan inside switch 
+ * @param pcp           : Packet's priority 
+ * @param ethertype     : packet's ethertype 
  * @param mcast_group   : mc group (-1 to create) 
  * @param virtual_gport : vport id (to be returned) 
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
 extern L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort, L7_uint16 vsi,
-                                   L7_uint16 match_ovid, L7_uint16 match_ivid, L7_uint16 egress_ovid, L7_uint16 egress_ivid,
+                                   L7_uint16 match_ovid, L7_uint16 match_ivid,
+                                   L7_uint16 egress_ovid, L7_uint16 egress_ivid,
+                                   L7_int pcp, L7_int ethertype,
                                    L7_int mcast_group,
                                    L7_int *virtual_gport);
 

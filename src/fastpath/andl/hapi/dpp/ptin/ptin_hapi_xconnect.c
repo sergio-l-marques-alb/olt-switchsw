@@ -591,6 +591,8 @@ L7_RC_t ptin_hapi_vsi_remove(L7_int unit, L7_uint16 vsi, L7_uint32 vlan_port_id)
  * @param match_ivid    : external inner vlan (UNIVLAN)
  * @param egress_ovid   : outer vlan inside switch
  * @param egress_ivid   : inner vlan inside switch 
+ * @param pcp           : Packet's priority 
+ * @param ethertype     : packet's ethertype 
  * @param mcast_group   : mc group (-1 to create) 
  * @param virtual_gport : vport id (to be returned) 
  * 
@@ -599,6 +601,7 @@ L7_RC_t ptin_hapi_vsi_remove(L7_int unit, L7_uint16 vsi, L7_uint32 vlan_port_id)
 L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort, L7_uint16 vsi,
                             L7_uint16 match_ovid, L7_uint16 match_ivid,
                             L7_uint16 egress_ovid, L7_uint16 egress_ivid,
+                            L7_int pcp, L7_int ethertype,
                             L7_int mcast_group,
                             L7_int *virtual_gport)
 {
@@ -634,13 +637,19 @@ L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort, L7_uint16 vsi,
   bcm_vlan_port_t vlan_port;
   bcm_vlan_port_t_init(&vlan_port);
 
-  if (match_ivid > 0 && match_ivid < 4096)
+  if (match_ivid >= 1 && match_ivid <= 4095) 
   {
-    criteria = BCM_VLAN_PORT_MATCH_PORT_VLAN_STACKED;
+    if (pcp >= 0 && pcp <= 7)
+      criteria = BCM_VLAN_PORT_MATCH_PORT_PCP_VLAN_STACKED;
+    else
+      criteria = BCM_VLAN_PORT_MATCH_PORT_VLAN_STACKED; 
   }
   else if (match_ovid > 0 && match_ovid < 4096)
   {
-    criteria = BCM_VLAN_PORT_MATCH_PORT_VLAN;
+    if (pcp >= 0 && pcp <= 7)
+      criteria = BCM_VLAN_PORT_MATCH_PORT_PCP_VLAN;
+    else
+      criteria = BCM_VLAN_PORT_MATCH_PORT_VLAN;
   }
   else
   {
@@ -648,20 +657,23 @@ L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort, L7_uint16 vsi,
   }
 
   /* in direction PON -> network, match on stacked VLAN, translate to client ID on ingress */
-  vlan_port.match_vlan = match_ovid;
-  vlan_port.match_inner_vlan = match_ivid;
-  vlan_port.criteria = criteria;
-  vlan_port.egress_vlan = egress_ovid;
+  vlan_port.match_vlan        = match_ovid;
+  vlan_port.match_inner_vlan  = match_ivid;
+  vlan_port.match_pcp         = pcp & 0x7;
+  vlan_port.match_ethertype   = ethertype & 0xffff;
+  vlan_port.criteria          = criteria;
+  vlan_port.egress_vlan       = egress_ovid;
   vlan_port.egress_inner_vlan = egress_ivid;
-  vlan_port.port = hapiPortPtr->bcm_port;
+  vlan_port.port              = hapiPortPtr->bcm_port;
   //BCM_GPORT_LOCAL_SET(vlan_port.port, hapiPortPtr->bcm_port);
   vlan_port.vsi = vsi;
   vlan_port.flags = 0;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "criteria=0x%x (flags=0x%x) bcm_port=%d vlan_port.port=%d match_vlans=%u+%u vport=%d -> VSI %u",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "criteria=0x%x (flags=0x%x) bcm_port=%d vlan_port.port=%d match_vlans=%u+%u pcp=%d etherType=0x%x vport=%d -> VSI %u",
                vlan_port.criteria, vlan_port.flags,
                hapiPortPtr->bcm_port, vlan_port.port,
                vlan_port.match_vlan, vlan_port.match_inner_vlan, 
+               vlan_port.match_pcp, vlan_port.match_ethertype,
                vlan_port.vlan_port_id, vlan_port.vsi);
 
   if ((error=bcm_vlan_port_create(0, &vlan_port)) != BCM_E_NONE)
@@ -698,7 +710,7 @@ L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort, L7_uint16 vsi,
       PT_LOG_WARN(LOG_CTX_HAPI, "Port %u already exists at mcgroup %u: error=%d (\"%s\")",
                   vlan_port.port, mcast_group, error, bcm_errmsg(error));
     }
-    if (error != BCM_E_NONE)
+    else if (error != BCM_E_NONE)
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error adding port %u to mcgroup %u: error=%d (\"%s\")",
                  vlan_port.port, mcast_group, error, bcm_errmsg(error));
@@ -1066,15 +1078,15 @@ L7_RC_t ptin_hapi_bridgeVlan_multicast_set(L7_uint16 vlanId, L7_int *mcast_group
     return L7_FAILURE;
   }
 
-  /* Create Multicast Group */
-  PT_LOG_TRACE(LOG_CTX_HAPI, "Going to create MC group: vsi=%u mc_group=0x%08x flags=0x%x", 
-               vlanId, *mcast_group, multicast_flag);
-
   /* Flags */
   multicast_flag |= BCM_MULTICAST_EGRESS_GROUP | BCM_MULTICAST_WITH_ID;
 
   /* Get given MC group id */
   mc_group = vlanId;
+
+  /* Create Multicast Group */
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Going to create MC group: vsi=%u mc_group=0x%08x flags=0x%x", 
+               vlanId, *mcast_group, multicast_flag);
 
   /* Create a multicast group, if given multicast group is not valid */
   error=bcm_multicast_create(0, multicast_flag, &mc_group);
@@ -1096,7 +1108,7 @@ L7_RC_t ptin_hapi_bridgeVlan_multicast_set(L7_uint16 vlanId, L7_int *mcast_group
   }
 
   /* Return MC group */
-  *mcast_group = mc_group; 
+  *mcast_group = mc_group;
 
   return L7_SUCCESS;
 }

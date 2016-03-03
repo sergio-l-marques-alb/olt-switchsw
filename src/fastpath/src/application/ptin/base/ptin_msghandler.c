@@ -191,6 +191,24 @@ static struct_msg_descriptor_t messages_defprio[] = {
     L7_FALSE, IPC_OK,
     ptin_msg_evc_port_remove
   },
+  /* CCMSG_ETH_EVC_PORT_ADD */
+  {
+    CCMSG_ETH_EVC_FLOW_ADD, 1,
+    "CCMSG_ETH_EVC_FLOW_ADD",
+    MSG_SIZE_CHECK_MULT,
+    sizeof(msg_HwEthEvcFlow_t),
+    L7_FALSE, IPC_OK,
+    ptin_msg_EVCFlow_add
+  },
+  /* CCMSG_ETH_EVC_PORT_REMOVE */
+  {
+    CCMSG_ETH_EVC_FLOW_REMOVE, 1,
+    "CCMSG_ETH_EVC_FLOW_REMOVE",
+    MSG_SIZE_CHECK_MULT,
+    sizeof(msg_HwEthEvcFlow_t),
+    L7_FALSE, IPC_OK,
+    ptin_msg_EVCFlow_remove
+  },
   /* Add commands here */
 };
 

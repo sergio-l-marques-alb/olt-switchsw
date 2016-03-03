@@ -85,51 +85,37 @@ extern L7_RC_t ptin_msg_board_show(ipc_msg *inbuff, ipc_msg *outbuff);
 /* Physical Interfaces Functions **********************************************/ 
 /**
  * Set physical port configuration
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_msg_PhyConfig_set(ipc_msg *inbuff, ipc_msg *outbuff);
 
 /**
  * Get physical port configuration
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_msg_PhyConfig_get(ipc_msg *inbuff, ipc_msg *outbuff);
 
 /**
  * Get physical port state
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_msg_PhyState_get(ipc_msg *inbuff, ipc_msg *outbuff);
 
 /**
  * Get physical port activity
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_msg_PhyActivity_get(ipc_msg *inbuff, ipc_msg *outbuff);
 
 /**
  * Get physical port state
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_msg_PhyStatus_get(ipc_msg *inbuff, ipc_msg *outbuff);
 
 /* Counters Manipulation Functions ********************************************/ 
 /**
  * Read PHY counters
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_msg_PhyCounters_read(ipc_msg *inbuff, ipc_msg *outbuff);
 
 /**
  * Clear PHY counters
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_msg_PhyCounters_clear(ipc_msg *inbuff, ipc_msg *outbuff);
 
@@ -528,29 +514,21 @@ extern L7_RC_t ptin_msg_EVC_get(msg_HwEthMef10Evc_t *msgEvcConf);
 
 /**
  * Creates or reconfigures an EVC
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_msg_evc_create(ipc_msg *inbuff, ipc_msg *outbuff);
 
 /**
  * Deletes an EVC
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_msg_evc_delete(ipc_msg *inbuff, ipc_msg *outbuff);
 
 /**
  * Add port to an EVC
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_msg_evc_port_add(ipc_msg *inbuff, ipc_msg *outbuff);
 
 /**
  * Remove port from an EVC
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_msg_evc_port_remove(ipc_msg *inbuff, ipc_msg *outbuff);
 
@@ -582,25 +560,19 @@ extern L7_RC_t ptin_msg_EVCBridge_add(msg_HwEthEvcBridge_t *msgEvcBridge);
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_msg_EVCBridge_remove(msg_HwEthEvcBridge_t *msgEvcBridge);
+#endif
 
 /**
  * Adds an flow to an EVC
- * 
- * @param msgEvcFlow : Flow info
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow);
+extern L7_RC_t ptin_msg_EVCFlow_add(ipc_msg *inbuff, ipc_msg *outbuff);
 
 /**
  * Removes a flow from an EVC
- * 
- * @param msgEvcFlow : Flow info
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_msg_EVCFlow_remove(msg_HwEthEvcFlow_t *msgEvcFlow);
+extern L7_RC_t ptin_msg_EVCFlow_remove(ipc_msg *inbuff, ipc_msg *outbuff);
 
+#if 0
 /**
  * Adds a flooding vlan applied to an EVC
  * 

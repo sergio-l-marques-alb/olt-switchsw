@@ -556,6 +556,8 @@ typedef struct
   L7_int ext_ivid;
   L7_int int_ovid;
   L7_int int_ivid;
+  L7_int pcp;
+  L7_int ethertype;
   L7_int virtual_gport;
   L7_int multicast_group;
   L7_uint8 macLearnMax;
@@ -582,12 +584,16 @@ typedef struct
 #define PTIN_EVC_INTF_LEAF          1
 #define PTIN_EVC_INTF_NOTUSED       255
 
+#define PTIN_INTF_PCP_PROVIDED  0x10  /* To be OR'ed with pbits */
+
 typedef struct {
   L7_uint8  intf_id;      // Interface Id# (phy ports / LAGs)
   L7_uint8  intf_type;    // Interface type: { 0-Physical, 1-Logical (LAG) }
   L7_uint8  mef_type;     // { 0 - root, 1 - leaf }
   L7_uint16 vid;          // Outer VLAN id [1..4094]
   L7_uint16 vid_inner;    // Inner vlan associated to this interface
+  L7_uint8  pcp;          // To be valid should have bit 4 = 1
+  L7_uint16 ethertype;
 } ptin_HwEthMef10Intf_t;
 
 #define PTIN_EVC_OPTIONS_MASK_FLAGS   0x0001
@@ -715,6 +721,8 @@ typedef struct {
   ptin_intf_t ptin_intf;    // PON interface
   L7_uint16   uni_ovid;     // GEM id
   L7_uint16   uni_ivid;     // UNI cvlan
+  L7_uint8    pcp;          // Packet's priority (to be valid, should have bit 4 = 1)
+  L7_uint16   etherType;    // Packet's etherType
   L7_uint8    macLearnMax;  // Maximum number of Learned MAC addresses                           
   L7_uint8    onuId;        // ONU/CPE Identifier
   L7_uint8    mask;

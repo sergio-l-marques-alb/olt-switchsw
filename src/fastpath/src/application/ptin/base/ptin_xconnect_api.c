@@ -731,7 +731,9 @@ L7_RC_t ptin_vsi_member_remove(L7_uint16 vsi, L7_uint32 vlan_port_id)
  * @param ext_ovid    : External outer vlan (GEMid)
  * @param ext_ivid    : External inner vlan (UNIVLAN)
  * @param int_ovid    : Internal outer vlan 
- * @param int_ivid    : Internal inner vlan  
+ * @param int_ivid    : Internal inner vlan 
+ * @param pcp         : packet's priority 
+ * @param ethertype   : packet's ethertype 
  * @param mcast_group : Multicast group id. 
  * @param vport_id    : vport id 
  * @param macLearnMax : Maximum Learned MACs
@@ -741,6 +743,7 @@ L7_RC_t ptin_vsi_member_remove(L7_uint16 vsi, L7_uint32 vlan_port_id)
 L7_RC_t ptin_virtual_port_add(L7_uint32 intIfNum,
                               L7_int ext_ovid, L7_int ext_ivid,
                               L7_int int_ovid, L7_int int_ivid,
+                              L7_int pcp, L7_int ethertype,
                               L7_int mcast_group,
                               L7_int *vport_id,
                               L7_uint8 macLearnMax)
@@ -757,8 +760,8 @@ L7_RC_t ptin_virtual_port_add(L7_uint32 intIfNum,
     PT_LOG_ERR(LOG_CTX_API, "Invalid arguments");
     return L7_FAILURE;
   }
-  PT_LOG_TRACE(LOG_CTX_API, "intIfNum=%u, int_ovid=%d, int_ivid=%d, ext_ovid=%d, ext_ivid=%d, mcast_group=%u, macLearnMax=%u",
-            intIfNum, int_ovid, int_ivid, ext_ovid, ext_ivid, mcast_group, macLearnMax);
+  PT_LOG_TRACE(LOG_CTX_API, "intIfNum=%u, int_ovid=%d, int_ivid=%d, ext_ovid=%d, ext_ivid=%d, pcp=%d, ethertype=0x%x, mcast_group=%u, macLearnMax=%u",
+            intIfNum, int_ovid, int_ivid, ext_ovid, ext_ivid, pcp, ethertype, mcast_group, macLearnMax);
 
   /* Fill structure */
   memset(&vport, 0x00, sizeof(vport));
@@ -768,6 +771,8 @@ L7_RC_t ptin_virtual_port_add(L7_uint32 intIfNum,
   vport.int_ivid         = int_ivid;
   vport.ext_ovid         = ext_ovid;
   vport.ext_ivid         = ext_ivid;
+  vport.pcp              = pcp;
+  vport.ethertype        = ethertype;
   vport.virtual_gport    = -1;
   vport.multicast_group  = mcast_group;
   vport.macLearnMax      = macLearnMax;

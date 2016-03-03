@@ -5067,12 +5067,16 @@ L7_RC_t ptin_msg_evc_port_add(ipc_msg *inbuff, ipc_msg *outbuff)
     ptinEvcPort.mef_type  = msgEvcPort[i].intf.mef_type;
     ptinEvcPort.vid       = msgEvcPort[i].intf.vid;
     ptinEvcPort.vid_inner = msgEvcPort[i].intf.inner_vid;
+    ptinEvcPort.pcp       = msgEvcPort[i].intf.pcp;
+    ptinEvcPort.ethertype = msgEvcPort[i].intf.ethertype;
 
     PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u", msgEvcPort[i].evcId);
     PT_LOG_DEBUG(LOG_CTX_MSG, " .Intf      = %u/%u",   ptinEvcPort.intf_type, ptinEvcPort.intf_id);
     PT_LOG_DEBUG(LOG_CTX_MSG, " .IntfType  = %s",     (ptinEvcPort.mef_type == PTIN_EVC_INTF_LEAF) ? "LEAF" : "ROOT");
     PT_LOG_DEBUG(LOG_CTX_MSG, " .OuterVlan = %u",      ptinEvcPort.vid);
     PT_LOG_DEBUG(LOG_CTX_MSG, " .InnerVlan = %u",      ptinEvcPort.vid_inner);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .PCP       = 0x%x",    ptinEvcPort.pcp);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .EtherType = 0x%x",    ptinEvcPort.ethertype);
 
     if ((rc=ptin_evc_port_add(msgEvcPort[i].evcId, &ptinEvcPort)) != L7_SUCCESS)
     {        
@@ -5131,12 +5135,16 @@ L7_RC_t ptin_msg_evc_port_remove(ipc_msg *inbuff, ipc_msg *outbuff)
     ptinEvcPort.mef_type  = msgEvcPort[i].intf.mef_type;
     ptinEvcPort.vid       = msgEvcPort[i].intf.vid;
     ptinEvcPort.vid_inner = msgEvcPort[i].intf.inner_vid;
+    ptinEvcPort.pcp       = msgEvcPort[i].intf.pcp;
+    ptinEvcPort.ethertype = msgEvcPort[i].intf.ethertype;
 
     PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u", msgEvcPort[i].evcId);
     PT_LOG_DEBUG(LOG_CTX_MSG, " .Intf      = %u/%u",   ptinEvcPort.intf_type, ptinEvcPort.intf_id);
     PT_LOG_DEBUG(LOG_CTX_MSG, " .IntfType  = %s",     (ptinEvcPort.mef_type == PTIN_EVC_INTF_LEAF) ? "LEAF" : "ROOT");
     PT_LOG_DEBUG(LOG_CTX_MSG, " .OuterVlan = %u",      ptinEvcPort.vid);
     PT_LOG_DEBUG(LOG_CTX_MSG, " .InnerVlan = %u",      ptinEvcPort.vid_inner);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .PCP       = 0x%x",    ptinEvcPort.pcp);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .EtherType = 0x%x",    ptinEvcPort.ethertype);
 
     if ((rc=ptin_evc_port_remove(msgEvcPort[i].evcId, &ptinEvcPort)) != L7_SUCCESS)
     {
@@ -5291,6 +5299,7 @@ L7_RC_t ptin_msg_EVCBridge_remove(msg_HwEthEvcBridge_t *msgEvcBridge)
 
   return L7_SUCCESS;
 }
+#endif
 
 /**
  * Adds a flow to an EVC
@@ -5299,8 +5308,9 @@ L7_RC_t ptin_msg_EVCBridge_remove(msg_HwEthEvcBridge_t *msgEvcBridge)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
+L7_RC_t ptin_msg_EVCFlow_add(ipc_msg *inbuff, ipc_msg *outbuff)
 {
+  msg_HwEthEvcFlow_t *msgEvcFlow = (msg_HwEthEvcFlow_t *) inbuff->info;
   ptin_HwEthEvcFlow_t ptinEvcFlow;
   L7_RC_t rc;
 
@@ -5313,8 +5323,10 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
   ptinEvcFlow.int_ivid            = msgEvcFlow->nni_cvlan;
   ptinEvcFlow.ptin_intf.intf_type = msgEvcFlow->intf.intf_type;
   ptinEvcFlow.ptin_intf.intf_id   = msgEvcFlow->intf.intf_id;
-  ptinEvcFlow.uni_ovid            = msgEvcFlow->intf.outer_vid; /* must be a leaf */
+  ptinEvcFlow.uni_ovid            = msgEvcFlow->intf.vid;
   ptinEvcFlow.uni_ivid            = msgEvcFlow->intf.inner_vid;
+  ptinEvcFlow.pcp                 = msgEvcFlow->intf.pcp;
+  ptinEvcFlow.etherType           = msgEvcFlow->intf.ethertype;
   ptinEvcFlow.macLearnMax         = msgEvcFlow->macLearnMax;
 
   PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u Flow",     ptinEvcFlow.evc_idx);
@@ -5324,6 +5336,8 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
   PT_LOG_DEBUG(LOG_CTX_MSG, " Int.IVID    = %u", ptinEvcFlow.int_ivid);
   PT_LOG_DEBUG(LOG_CTX_MSG, " UNI-OVID    = %u", ptinEvcFlow.uni_ovid);
   PT_LOG_DEBUG(LOG_CTX_MSG, " UNI-IVID    = %u", ptinEvcFlow.uni_ivid);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " UNI-PCP     = %u", ptinEvcFlow.pcp);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " EtherType   = %u", ptinEvcFlow.etherType);
   PT_LOG_DEBUG(LOG_CTX_MSG, " macLearnMax = %u", ptinEvcFlow.macLearnMax);  
 
   if (ptinEvcFlow.flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
@@ -5373,8 +5387,9 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_msg_EVCFlow_remove(msg_HwEthEvcFlow_t *msgEvcFlow)
+L7_RC_t ptin_msg_EVCFlow_remove(ipc_msg *inbuff, ipc_msg *outbuff)
 {
+  msg_HwEthEvcFlow_t *msgEvcFlow = (msg_HwEthEvcFlow_t *) inbuff->info;
   ptin_HwEthEvcFlow_t ptinEvcFlow;
   L7_RC_t rc;
 
@@ -5383,8 +5398,10 @@ L7_RC_t ptin_msg_EVCFlow_remove(msg_HwEthEvcFlow_t *msgEvcFlow)
   ptinEvcFlow.ptin_intf.intf_type = msgEvcFlow->intf.intf_type;
   ptinEvcFlow.ptin_intf.intf_id   = msgEvcFlow->intf.intf_id;
   ptinEvcFlow.int_ivid            = msgEvcFlow->nni_cvlan;
-  ptinEvcFlow.uni_ovid            = msgEvcFlow->intf.outer_vid; /* must be a leaf */
+  ptinEvcFlow.uni_ovid            = msgEvcFlow->intf.vid;
   ptinEvcFlow.uni_ivid            = msgEvcFlow->intf.inner_vid;
+  ptinEvcFlow.pcp                 = msgEvcFlow->intf.pcp;
+  ptinEvcFlow.etherType           = msgEvcFlow->intf.ethertype;
 
   PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u Flow",   ptinEvcFlow.evc_idx);
   PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u",        ptinEvcFlow.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
@@ -5392,6 +5409,8 @@ L7_RC_t ptin_msg_EVCFlow_remove(msg_HwEthEvcFlow_t *msgEvcFlow)
   PT_LOG_DEBUG(LOG_CTX_MSG, " Int.IVID = %u", ptinEvcFlow.int_ivid);
   PT_LOG_DEBUG(LOG_CTX_MSG, " UNI-OVID = %u", ptinEvcFlow.uni_ovid);
   PT_LOG_DEBUG(LOG_CTX_MSG, " UNI-IVID = %u", ptinEvcFlow.uni_ivid);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " UNI-PCP     = %u", ptinEvcFlow.pcp);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " EtherType   = %u", ptinEvcFlow.etherType);
 
   if ((rc=ptin_evc_flow_remove(&ptinEvcFlow)) != L7_SUCCESS)
   {
@@ -5402,6 +5421,7 @@ L7_RC_t ptin_msg_EVCFlow_remove(msg_HwEthEvcFlow_t *msgEvcFlow)
   return L7_SUCCESS;
 }
 
+#if 0
 /**
  * Adds a flooding vlan applied to an EVC
  * 

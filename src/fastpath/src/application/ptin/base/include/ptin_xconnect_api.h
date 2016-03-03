@@ -186,6 +186,8 @@ extern L7_RC_t ptin_vsi_member_remove(L7_uint16 vsi, L7_uint32 vlan_port_id);
  * @param ext_ivid    : External inner vlan (UNIVLAN)
  * @param int_ovid    : Internal outer vlan 
  * @param int_ivid    : Internal inner vlan  
+ * @param pcp         : packet's priority 
+ * @param ethertype   : packet's ethertype 
  * @param mcast_group : Multicast group id. 
  * @param vport_id    : vport id 
  * @param macLearnMax : Maximum Learned MACs
@@ -195,6 +197,7 @@ extern L7_RC_t ptin_vsi_member_remove(L7_uint16 vsi, L7_uint32 vlan_port_id);
 extern L7_RC_t ptin_virtual_port_add(L7_uint32 intIfNum,
                                      L7_int ext_ovid, L7_int ext_ivid,
                                      L7_int int_ovid, L7_int int_ivid,
+                                     L7_int pcp, L7_int ethertype,
                                      L7_int mcast_group,
                                      L7_int *vport_id,
                                      L7_uint8 macLearnMax);
