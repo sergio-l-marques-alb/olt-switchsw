@@ -3454,6 +3454,7 @@ extern int soc_robo_mmu_init(int );
     if (sh_rcload_file(SOC_NDEV_IDX2DEV(unit), NULL, "/usr/local/ptin/sbin/rc.soc", FALSE) != CMD_OK)
     {
       PT_LOG_ERR(LOG_CTX_STARTUP,"ERROR loading rc script on unit %d\n", SOC_NDEV_IDX2DEV(unit));
+      return L7_FAILURE;
     }
     else
     {

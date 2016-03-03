@@ -2065,6 +2065,9 @@ L7_RC_t hapiBroadCosCommitDot1pParams(BROAD_PORT_t *hapiPortPtr, L7_uchar8 *dot1
   L7_BOOL complete = L7_TRUE;
   L7_RC_t result   = L7_SUCCESS;
 
+  /* PTin TODO */
+  return L7_SUCCESS;
+
   /* For performance reasons make sure all the dot1p mappings are configured
    * prior to sending down any policies.
    */

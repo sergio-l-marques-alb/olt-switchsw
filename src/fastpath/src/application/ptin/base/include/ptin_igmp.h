@@ -144,10 +144,10 @@
 #if PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_KBPS > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_KBPS_DISABLE
 #error "Admission Control Max Bandwidth is higher than supported value: 0xFFFFFFFF"
 #endif
+#endif
                                                                  
 #define PTIN_IGMP_MAX_MULTICAST_INTERNAL_SERVICE_ID PTIN_SYSTEM_N_IGMP_INSTANCES
 
-#endif
 /**End IGMP Admission Control Feature**/ 
 
 
