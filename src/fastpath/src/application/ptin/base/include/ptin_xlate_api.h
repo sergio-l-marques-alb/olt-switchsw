@@ -146,20 +146,22 @@ extern L7_RC_t ptin_xlate_egress_portgroup_get_originalVlan( L7_uint32 portgroup
  * @param newOuterVlanId : new vlan id 
  * @param newInnerVlanId : new inner vlan id  
  * @param newOuterPrio : new outer prio (-1 to not be used)
- * @param newInnerPrio : new inner prio (-1 to not be used)
+ * @param newInnerPrio : new inner prio (-1 to not be used) 
+ * @param is_ingress: ingress/egress  
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-extern L7_RC_t ptin_xlate_dnx_egress_add(L7_uint32 lif, L7_uint16 newOuterVlanId, L7_uint16 newInnerVlanId, L7_int newOuterPrio, L7_int newInnerPrio);
+extern L7_RC_t ptin_xlate_dnx_add(L7_uint32 lif, L7_uint16 newOuterVlanId, L7_uint16 newInnerVlanId, L7_int newOuterPrio, L7_int newInnerPrio, L7_BOOL is_ingress);
 
 /**
  * Delete egress translation entry
  * 
- * @param lif: Logical interface
+ * @param lif: Logical interface 
+ * @param is_ingress: ingress/egress  
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-extern L7_RC_t ptin_xlate_dnx_egress_delete(L7_uint32 lif);
+extern L7_RC_t ptin_xlate_dnx_delete(L7_uint32 lif, L7_BOOL is_ingress);
 #endif
 
 

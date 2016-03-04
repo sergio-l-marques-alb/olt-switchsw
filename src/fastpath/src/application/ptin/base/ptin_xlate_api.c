@@ -609,11 +609,12 @@ L7_RC_t ptin_xlate_ingress_get_originalVlan( L7_uint32 intIfNum, L7_uint16 *oute
  * @param newOuterVlanId : new vlan id 
  * @param newInnerVlanId : new inner vlan id  
  * @param newOuterPrio : new outer prio (-1 to not be used)
- * @param newInnerPrio : new inner prio (-1 to not be used)
+ * @param newInnerPrio : new inner prio (-1 to not be used) 
+ * @param is_ingress: ingress/egress  
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t ptin_xlate_dnx_egress_add(L7_uint32 lif, L7_uint16 newOuterVlanId, L7_uint16 newInnerVlanId, L7_int newOuterPrio, L7_int newInnerPrio)
+L7_RC_t ptin_xlate_dnx_add(L7_uint32 lif, L7_uint16 newOuterVlanId, L7_uint16 newInnerVlanId, L7_int newOuterPrio, L7_int newInnerPrio, L7_BOOL is_ingress)
 {
   ptin_vlanXlate_t xlate;
   L7_RC_t rc = L7_SUCCESS;
@@ -625,7 +626,7 @@ L7_RC_t ptin_xlate_dnx_egress_add(L7_uint32 lif, L7_uint16 newOuterVlanId, L7_ui
   /* Define structure */
   memset(&xlate, 0x00, sizeof(ptin_vlanXlate_t));
   xlate.lif           = lif;
-  xlate.stage         = PTIN_XLATE_STAGE_EGRESS;
+  xlate.stage         = (is_ingress) ? PTIN_XLATE_STAGE_INGRESS : PTIN_XLATE_STAGE_EGRESS;
 
   xlate.outerVlan_new = (newOuterVlanId > 4095) ? 0 : newOuterVlanId;
   xlate.innerVlan_new = (newInnerVlanId > 4095) ? 0 : newInnerVlanId;
@@ -671,11 +672,12 @@ L7_RC_t ptin_xlate_dnx_egress_add(L7_uint32 lif, L7_uint16 newOuterVlanId, L7_ui
 /**
  * Delete egress translation entry
  * 
- * @param lif: Logical interface
+ * @param lif: Logical interface 
+ * @param is_ingress: ingress/egress 
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t ptin_xlate_dnx_egress_delete(L7_uint32  lif)
+L7_RC_t ptin_xlate_dnx_delete(L7_uint32  lif, L7_BOOL is_ingress)
 {
   ptin_vlanXlate_t xlate;
   L7_RC_t rc = L7_SUCCESS;
@@ -686,7 +688,7 @@ L7_RC_t ptin_xlate_dnx_egress_delete(L7_uint32  lif)
   /* Define structure */
   memset(&xlate, 0x00, sizeof(ptin_vlanXlate_t));
   xlate.lif             = lif;
-  xlate.stage           = PTIN_XLATE_STAGE_EGRESS;
+  xlate.stage           = (is_ingress) ? PTIN_XLATE_STAGE_INGRESS : PTIN_XLATE_STAGE_EGRESS;
 
   /* DTL call */
   rc = ptin_xlate_operation(DAPI_CMD_CLEAR, L7_ALL_INTERFACES, &xlate);

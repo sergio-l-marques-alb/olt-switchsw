@@ -925,7 +925,6 @@ L7_RC_t hapiBroadPtinVlanTranslate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
 
   switch ((L7_int) xlate->stage)
   {
-#if 0
   case PTIN_XLATE_STAGE_INGRESS:
 
     if ( xlate->oper == DAPI_CMD_GET )
@@ -945,7 +944,6 @@ L7_RC_t hapiBroadPtinVlanTranslate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
       rc = ptin_hapi_xlate_ingress_delete_all();
     }
     break;
-#endif
   case PTIN_XLATE_STAGE_EGRESS:
     if ( xlate->oper == DAPI_CMD_GET )
     {
