@@ -872,7 +872,6 @@ typedef struct {
                           // 0x0100 - DHCP protocol (PTin custom field)
   L7_uint8  type;         // (not used) { 0 - p2p, 1 - mp2mp, 2 - rooted mp }
   L7_uint8  mc_flood;     // MC flood type {0-All, 1-Unknown, 2-None} (PTin custom field)
-  L7_uint8  ce_vid_bmp[(1<<12)/(sizeof(L7_uint8)*8)];   // VLANs mapping (ONLY for bundling) ((bmp[i/8] >> i%8) & 0x01)
   
   L7_uint8  n_intf;       // Number of interfaces present on intf array
   msg_HwEthMef10Intf_t intf[max(PTIN_SYSTEM_MAX_N_PORTS, PTIN_SYSTEM_MAX_N_LAGS)];

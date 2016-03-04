@@ -4664,7 +4664,7 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
   if (ptin_evc_ext2int(evc_ext_id, &evc_id) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", evc_id);
-    return L7_FAILURE;
+    return L7_DEPENDENCY_NOT_MET;
   }
 
   /* Determine leaf ptin_intf */
@@ -4732,7 +4732,7 @@ L7_RC_t ptin_evc_flow_remove(ptin_HwEthEvcFlow_t *evcFlow)
   if (ptin_evc_ext2int(evc_ext_id, &evc_id) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", evc_ext_id);
-    return L7_SUCCESS;
+    return L7_DEPENDENCY_NOT_MET;
   }
 
   evcFlow->evc_idx = evc_id;
@@ -9903,7 +9903,7 @@ static L7_RC_t switching_lif_add(L7_uint ptin_port, L7_uint16 out_vlan, L7_uint1
     /* Egress translations (only configure them, if there are VLANs involved) */
     if (out_vlan != 0 || inner_vlan != 0)
     {
-      rc = ptin_xlate_dnx_egress_add(virtual_port, out_vlan, inner_vlan, -1, -1); 
+      rc = ptin_xlate_dnx_add(virtual_port, out_vlan, inner_vlan, -1, -1, L7_FALSE); 
       if (rc != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_EVC, "Error configuring egress translation for LIF 0x%x: outVlan %u and innerVlan %u", virtual_port, out_vlan, inner_vlan);
@@ -9947,7 +9947,7 @@ static L7_RC_t switching_lif_add(L7_uint ptin_port, L7_uint16 out_vlan, L7_uint1
     {
       if (rc != L7_SUCCESS)
       {
-        (void) ptin_xlate_dnx_egress_delete(virtual_port);
+        (void) ptin_xlate_dnx_delete(virtual_port, L7_FALSE);
         PT_LOG_TRACE(LOG_CTX_EVC, "Egress translation undone.");
       }
     }
@@ -10011,7 +10011,7 @@ static L7_RC_t switching_lif_remove(L7_uint ptin_port, L7_uint16 vsi, L7_uint32 
   }
 
   /* Egress translations */
-  if (ptin_xlate_dnx_egress_delete(vlan_port_id) != L7_SUCCESS)
+  if (ptin_xlate_dnx_delete(vlan_port_id, L7_FALSE) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_EVC, "Error removing egress translation for LIF 0x%x", vlan_port_id);
     return L7_FAILURE;

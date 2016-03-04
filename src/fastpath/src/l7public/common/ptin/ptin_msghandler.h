@@ -979,7 +979,6 @@ typedef struct {
 } __attribute__((packed)) msg_HwEthIntf_t;
 
 /* EVC details per interface */
-// Messages CCMSG_ETH_EVC_GET, CCMSG_ETH_EVC_ADD and CCMSG_ETH_EVC_REMOVE
 typedef struct {
   L7_uint8  intf_type;    // Interface type: { 0-Physical, 1-Logical (LAG) }
   L7_uint8  intf_id;      // Interface Id# (phy ports / LAGs)
@@ -993,20 +992,22 @@ typedef struct {
 /* EVC config */
 typedef struct {
   L7_uint8  SlotId;
-  L7_uint32 id;           // EVC Id [1..PTIN_SYSTEM_N_EVCS]                                 /* EVC id */
-  L7_uint32 flags;        // 0x000001 - Bundling      (not implemented)
-                          // 0x000002 - All to One    (not implemented)
-                          // 0x000004 - Stacked       (PTin custom field)
-                          // 0x000008 - Mac Learning  (PTin custom field)
-                          // 0x000010 - cpu Trapping  (PTin custom field)
-                          // 0x000100 - DHCP protocol (PTin custom field)
-                          // 0x000200 - IGMP protocol (PTin custom field)
-                          // 0x000400 - PPPOE protocol (PTin custom field)
-                          // 0x010000 - P2P EVC        (PTin custom field)
-                          // 0x020000 - QUATTRO EVC    (PTin custom field)
+  L7_uint32 id;           // EVC Id
+  L7_uint32 flags;        // 0x000001 - Bundling
+                          // 0x000002 - All to One
+                          // 0x000004 - Stacked
+                          // 0x000008 - Mac Learning
+                          // 0x000010 - cpu Trapping
+                          // 0x000080 - IPSG protocol
+                          // 0x000100 - DHCP protocol
+                          // 0x000200 - IGMP protocol
+                          // 0x000400 - PPPOE protocol
+                          // 0x001000 - DHCPv6 protocol
+                          // 0x002000 - MLD protocol
+                          // 0x010000 - P2P EVC
+                          // 0x020000 - QUATTRO EVC
   L7_uint8  type;         // (not used) { 0 - p2p, 1 - mp2mp, 2 - rooted mp }
   L7_uint8  mc_flood;     // MC flood type {0-All, 1-Unknown, 2-None} (PTin custom field)
-  L7_uint8  ce_vid_bmp[(1<<12)/(sizeof(L7_uint8)*8)];   // VLANs mapping (ONLY for bundling) ((bmp[i/8] >> i%8) & 0x01)
   
   L7_uint8  n_intf;       // Number of interfaces present on intf array
   msg_HwEthMef10Intf_t intf[PTIN_SYSTEM_MAX_N_PORTS];
@@ -1089,10 +1090,10 @@ typedef struct {
 
 typedef struct {
   L7_uint8             SlotId;
-  L7_uint32            evcId;  // EVC Id [1..PTIN_SYSTEM_N_EVCS]
-  L7_uint32            flags;  // Flags:  0x000100 - DHCP protocol (PTin custom field)
-                                // 0x000200 - IGMP protocol (PTin custom field)
-                                // 0x000400 - PPPOE protocol (PTin custom field)
+  L7_uint32            evcId;  // EVC Id
+  L7_uint32            flags;  // Flags:  0x000100 - DHCP protocol
+                               //         0x000200 - IGMP protocol
+                               //         0x000400 - PPPOE protocol
   /* Flow information */
   L7_uint16            nni_cvlan;    // NNI inner vlan
   msg_HwEthMef10Intf_t intf;         // Outer vlan is the GEM id

@@ -4944,7 +4944,6 @@ L7_RC_t ptin_msg_evc_create(ipc_msg *inbuff, ipc_msg *outbuff)
   ptinEvcConf.type     = msgEvcConf->type;
   ptinEvcConf.mc_flood = msgEvcConf->mc_flood;
   ptinEvcConf.n_intf   = msgEvcConf->n_intf;
-  memcpy(ptinEvcConf.ce_vid_bmp, msgEvcConf->ce_vid_bmp, sizeof(ptinEvcConf.ce_vid_bmp));
 
   PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u",              ptinEvcConf.index);
   PT_LOG_DEBUG(LOG_CTX_MSG, " .Flags    = 0x%08X",  ptinEvcConf.flags);
@@ -5312,72 +5311,89 @@ L7_RC_t ptin_msg_EVCFlow_add(ipc_msg *inbuff, ipc_msg *outbuff)
 {
   msg_HwEthEvcFlow_t *msgEvcFlow = (msg_HwEthEvcFlow_t *) inbuff->info;
   ptin_HwEthEvcFlow_t ptinEvcFlow;
-  L7_RC_t rc;
+  L7_uint16 i, n_size;
+  L7_RC_t rc, rc_global = L7_SUCCESS, rc_global_failure = L7_SUCCESS;
 
-  /*Initialize Structure*/
-  memset(&ptinEvcFlow, 0x00, sizeof(ptinEvcFlow));
+  /* Number of structures */
+  n_size = inbuff->infoDim / sizeof(msg_HWevcPort_t);
 
-  /* Copy data */
-  ptinEvcFlow.evc_idx             = msgEvcFlow->evcId;
-  ptinEvcFlow.flags               = msgEvcFlow->flags;
-  ptinEvcFlow.int_ivid            = msgEvcFlow->nni_cvlan;
-  ptinEvcFlow.ptin_intf.intf_type = msgEvcFlow->intf.intf_type;
-  ptinEvcFlow.ptin_intf.intf_id   = msgEvcFlow->intf.intf_id;
-  ptinEvcFlow.uni_ovid            = msgEvcFlow->intf.vid;
-  ptinEvcFlow.uni_ivid            = msgEvcFlow->intf.inner_vid;
-  ptinEvcFlow.pcp                 = msgEvcFlow->intf.pcp;
-  ptinEvcFlow.etherType           = msgEvcFlow->intf.ethertype;
-  ptinEvcFlow.macLearnMax         = msgEvcFlow->macLearnMax;
-
-  PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u Flow",     ptinEvcFlow.evc_idx);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Flags = 0x%08x",  ptinEvcFlow.flags);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u",          ptinEvcFlow.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
-                                                  ptinEvcFlow.ptin_intf.intf_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Int.IVID    = %u", ptinEvcFlow.int_ivid);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " UNI-OVID    = %u", ptinEvcFlow.uni_ovid);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " UNI-IVID    = %u", ptinEvcFlow.uni_ivid);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " UNI-PCP     = %u", ptinEvcFlow.pcp);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " EtherType   = %u", ptinEvcFlow.etherType);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " macLearnMax = %u", ptinEvcFlow.macLearnMax);  
-
-  if (ptinEvcFlow.flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
+  /* Run all structures */
+  for (i=0; i<n_size; i++)
   {
-    if  (msgEvcFlow->mask > PTIN_MSG_EVC_FLOW_MASK_VALID)
+    /*Initialize Structure*/
+    memset(&ptinEvcFlow, 0x00, sizeof(ptinEvcFlow));
+
+    /* Copy data */
+    ptinEvcFlow.evc_idx             = msgEvcFlow[i].evcId;
+    ptinEvcFlow.flags               = msgEvcFlow[i].flags;
+    ptinEvcFlow.int_ivid            = msgEvcFlow[i].nni_cvlan;
+    ptinEvcFlow.ptin_intf.intf_type = msgEvcFlow[i].intf.intf_type;
+    ptinEvcFlow.ptin_intf.intf_id   = msgEvcFlow[i].intf.intf_id;
+    ptinEvcFlow.uni_ovid            = msgEvcFlow[i].intf.vid;
+    ptinEvcFlow.uni_ivid            = msgEvcFlow[i].intf.inner_vid;
+    ptinEvcFlow.pcp                 = msgEvcFlow[i].intf.pcp;
+    ptinEvcFlow.etherType           = msgEvcFlow[i].intf.ethertype;
+    ptinEvcFlow.macLearnMax         = msgEvcFlow[i].macLearnMax;
+
+    PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u Flow",     ptinEvcFlow.evc_idx);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " Flags = 0x%08x",  ptinEvcFlow.flags);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u",          ptinEvcFlow.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
+                                                    ptinEvcFlow.ptin_intf.intf_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " Int.IVID    = %u", ptinEvcFlow.int_ivid);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " UNI-OVID    = %u", ptinEvcFlow.uni_ovid);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " UNI-IVID    = %u", ptinEvcFlow.uni_ivid);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " UNI-PCP     = %u", ptinEvcFlow.pcp);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " EtherType   = %u", ptinEvcFlow.etherType);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " macLearnMax = %u", ptinEvcFlow.macLearnMax);  
+
+    if (ptinEvcFlow.flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
     {
-      PT_LOG_ERR(LOG_CTX_MSG, "Invalid Mask [mask:0x%02x",msgEvcFlow->mask);
-      return L7_FAILURE;
+      if  (msgEvcFlow[i].mask > PTIN_MSG_EVC_FLOW_MASK_VALID)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "Invalid Mask [mask:0x%02x",msgEvcFlow[i].mask);
+        rc_global = rc_global_failure = L7_FAILURE;
+        continue;
+      }
+
+  #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT    
+      if  (( ( (msgEvcFlow[i].mask & PTIN_MSG_EVC_FLOW_MASK_MAX_ALLOWED_BANDWIDTH) == PTIN_MSG_EVC_FLOW_MASK_MAX_ALLOWED_BANDWIDTH ) &&
+            (msgEvcFlow[i].maxBandwidth != PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS_DISABLE && msgEvcFlow[i].maxBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS) ) ||
+           ( ( (msgEvcFlow[i].mask & PTIN_MSG_EVC_FLOW_MASK_MAX_ALLOWED_CHANNELS) == PTIN_MSG_EVC_FLOW_MASK_MAX_ALLOWED_CHANNELS ) &&
+            (msgEvcFlow[i].maxChannels != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE && msgEvcFlow[i].maxChannels > PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS) ) )
+          
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "Invalid Admission Control Parameters [mask:0x%02x maxBandwidth:%llu bits/s maxChannels:%hu]",msgEvcFlow[i].mask, msgEvcFlow[i].maxBandwidth, msgEvcFlow[i].maxChannels);
+        rc_global = rc_global_failure = L7_FAILURE;
+        continue;
+      }
+      ptinEvcFlow.mask                = msgEvcFlow[i].mask;
+      ptinEvcFlow.onuId               = msgEvcFlow[i].onuId;      
+      ptinEvcFlow.maxBandwidth        = msgEvcFlow[i].maxBandwidth;
+      ptinEvcFlow.maxChannels         = msgEvcFlow[i].maxChannels;
+      
+      PT_LOG_DEBUG(LOG_CTX_MSG, " onuId       = %u", ptinEvcFlow.onuId);
+      PT_LOG_DEBUG(LOG_CTX_MSG, " mask        = 0x%x", ptinEvcFlow.mask);
+      PT_LOG_DEBUG(LOG_CTX_MSG, " maxChannels = %u", ptinEvcFlow.maxChannels);
+      PT_LOG_DEBUG(LOG_CTX_MSG, " maxBandwidth= %llu bit/s", ptinEvcFlow.maxBandwidth);
+  #endif
     }
 
-#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT    
-    if  (( ( (msgEvcFlow->mask & PTIN_MSG_EVC_FLOW_MASK_MAX_ALLOWED_BANDWIDTH) == PTIN_MSG_EVC_FLOW_MASK_MAX_ALLOWED_BANDWIDTH ) &&
-          (msgEvcFlow->maxBandwidth != PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS_DISABLE && msgEvcFlow->maxBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS) ) ||
-         ( ( (msgEvcFlow->mask & PTIN_MSG_EVC_FLOW_MASK_MAX_ALLOWED_CHANNELS) == PTIN_MSG_EVC_FLOW_MASK_MAX_ALLOWED_CHANNELS ) &&
-          (msgEvcFlow->maxChannels != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE && msgEvcFlow->maxChannels > PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS) ) )
-        
+    if ((rc=ptin_evc_flow_add(&ptinEvcFlow)) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_MSG, "Invalid Admission Control Parameters [mask:0x%02x maxBandwidth:%llu bits/s maxChannels:%hu]",msgEvcFlow->mask, msgEvcFlow->maxBandwidth, msgEvcFlow->maxChannels);
-      return L7_FAILURE;
+      PT_LOG_ERR(LOG_CTX_MSG, "Error adding EVC# %u flow", ptinEvcFlow.evc_idx);
+      rc_global = rc;
+      if (IS_FAILURE_ERROR(rc))
+      {
+        rc_global_failure = rc;
+      }
+      continue;
     }
-    ptinEvcFlow.mask                = msgEvcFlow->mask;
-    ptinEvcFlow.onuId               = msgEvcFlow->onuId;      
-    ptinEvcFlow.maxBandwidth        = msgEvcFlow->maxBandwidth;
-    ptinEvcFlow.maxChannels         = msgEvcFlow->maxChannels;
-    
-    PT_LOG_DEBUG(LOG_CTX_MSG, " onuId       = %u", ptinEvcFlow.onuId);
-    PT_LOG_DEBUG(LOG_CTX_MSG, " mask        = 0x%x", ptinEvcFlow.mask);
-    PT_LOG_DEBUG(LOG_CTX_MSG, " maxChannels = %u", ptinEvcFlow.maxChannels);
-    PT_LOG_DEBUG(LOG_CTX_MSG, " maxBandwidth= %llu bit/s", ptinEvcFlow.maxBandwidth);
-#endif
-  
   }
 
-  if ((rc=ptin_evc_flow_add(&ptinEvcFlow)) != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_MSG, "Error adding EVC# %u flow", ptinEvcFlow.evc_idx);
-    return rc;
-  }
+  if (rc_global_failure != L7_SUCCESS)
+    return rc_global_failure;
 
-  return L7_SUCCESS;
+  return rc_global;
 }
 
 /**
@@ -5391,31 +5407,47 @@ L7_RC_t ptin_msg_EVCFlow_remove(ipc_msg *inbuff, ipc_msg *outbuff)
 {
   msg_HwEthEvcFlow_t *msgEvcFlow = (msg_HwEthEvcFlow_t *) inbuff->info;
   ptin_HwEthEvcFlow_t ptinEvcFlow;
-  L7_RC_t rc;
+  L7_uint16 i, n_size;
+  L7_RC_t rc, rc_global = L7_SUCCESS, rc_global_failure = L7_SUCCESS;
 
-  /* Copy data */
-  ptinEvcFlow.evc_idx             = msgEvcFlow->evcId;
-  ptinEvcFlow.ptin_intf.intf_type = msgEvcFlow->intf.intf_type;
-  ptinEvcFlow.ptin_intf.intf_id   = msgEvcFlow->intf.intf_id;
-  ptinEvcFlow.int_ivid            = msgEvcFlow->nni_cvlan;
-  ptinEvcFlow.uni_ovid            = msgEvcFlow->intf.vid;
-  ptinEvcFlow.uni_ivid            = msgEvcFlow->intf.inner_vid;
-  ptinEvcFlow.pcp                 = msgEvcFlow->intf.pcp;
-  ptinEvcFlow.etherType           = msgEvcFlow->intf.ethertype;
+  /* Number of structures */
+  n_size = inbuff->infoDim / sizeof(msg_HWevcPort_t);
 
-  PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u Flow",   ptinEvcFlow.evc_idx);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u",        ptinEvcFlow.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
-                                                ptinEvcFlow.ptin_intf.intf_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Int.IVID = %u", ptinEvcFlow.int_ivid);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " UNI-OVID = %u", ptinEvcFlow.uni_ovid);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " UNI-IVID = %u", ptinEvcFlow.uni_ivid);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " UNI-PCP     = %u", ptinEvcFlow.pcp);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " EtherType   = %u", ptinEvcFlow.etherType);
-
-  if ((rc=ptin_evc_flow_remove(&ptinEvcFlow)) != L7_SUCCESS)
+  /* Run all structures */
+  for (i=0; i<n_size; i++)
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u flow", ptinEvcFlow.evc_idx);
-    return rc;
+    /*Initialize Structure*/
+    memset(&ptinEvcFlow, 0x00, sizeof(ptinEvcFlow));
+
+    /* Copy data */
+    ptinEvcFlow.evc_idx             = msgEvcFlow[i].evcId;
+    ptinEvcFlow.ptin_intf.intf_type = msgEvcFlow[i].intf.intf_type;
+    ptinEvcFlow.ptin_intf.intf_id   = msgEvcFlow[i].intf.intf_id;
+    ptinEvcFlow.int_ivid            = msgEvcFlow[i].nni_cvlan;
+    ptinEvcFlow.uni_ovid            = msgEvcFlow[i].intf.vid;
+    ptinEvcFlow.uni_ivid            = msgEvcFlow[i].intf.inner_vid;
+    ptinEvcFlow.pcp                 = msgEvcFlow[i].intf.pcp;
+    ptinEvcFlow.etherType           = msgEvcFlow[i].intf.ethertype;
+
+    PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u Flow",   ptinEvcFlow.evc_idx);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u",        ptinEvcFlow.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
+                                                  ptinEvcFlow.ptin_intf.intf_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " Int.IVID = %u", ptinEvcFlow.int_ivid);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " UNI-OVID = %u", ptinEvcFlow.uni_ovid);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " UNI-IVID = %u", ptinEvcFlow.uni_ivid);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " UNI-PCP     = %u", ptinEvcFlow.pcp);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " EtherType   = %u", ptinEvcFlow.etherType);
+
+    if ((rc=ptin_evc_flow_remove(&ptinEvcFlow)) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u flow", ptinEvcFlow.evc_idx);
+      rc_global = rc;
+      if (IS_FAILURE_ERROR(rc))
+      {
+        rc_global_failure = rc;
+      }
+      continue;
+    }
   }
 
   return L7_SUCCESS;
