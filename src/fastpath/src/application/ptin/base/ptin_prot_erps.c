@@ -1307,7 +1307,7 @@ int ptin_erps_rd_alarms(L7_uint8 erps_idx, L7_uint8 port)
     ret[port] = (force_erps_SF[erps_idx][port] & 1);
 
     if (ret_h[port] != ret[port]) {
-      PT_LOG_ERR(LOG_CTX_ERPS, "ERPS#%d: ret[%d] %d", erps_idx, port, ret[port]);
+      PT_LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: ret[%d] %d", erps_idx, port, ret[port]);
       ret_h[port] = ret[port];
     }
     return ret[port];
@@ -1317,7 +1317,7 @@ int ptin_erps_rd_alarms(L7_uint8 erps_idx, L7_uint8 port)
   {
     ret[port] = ( tbl_erps[erps_idx].hal.rd_alarms(0, tbl_erps[erps_idx].protParam.port0CfmIdx) | (ptin_intf_los_get(tbl_erps[erps_idx].protParam.port0.idx)) );
     if (ret_h[port] != ret[port]) {
-      PT_LOG_NOTICE(LOG_CTX_ERPS, "ERPS#%d: ret[%d] %d", erps_idx, port, ret[port]);
+      PT_LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: ret[%d] %d", erps_idx, port, ret[port]);
       ret_h[port] = ret[port];
     }
     return ret[port];
@@ -1327,7 +1327,7 @@ int ptin_erps_rd_alarms(L7_uint8 erps_idx, L7_uint8 port)
   {
     ret[port] = ( tbl_erps[erps_idx].hal.rd_alarms(0, tbl_erps[erps_idx].protParam.port1CfmIdx) | (ptin_intf_los_get(tbl_erps[erps_idx].protParam.port1.idx)) );
     if (ret_h[port] != ret[port]) {
-      PT_LOG_NOTICE(LOG_CTX_ERPS, "ERPS#%d: ret[%d] %d", erps_idx, port, ret[port]);
+      PT_LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: ret[%d] %d", erps_idx, port, ret[port]);
       ret_h[port] = ret[port];
     }
     return ret[port];
@@ -1337,7 +1337,7 @@ int ptin_erps_rd_alarms(L7_uint8 erps_idx, L7_uint8 port)
   else if (port == PROT_ERPS_PORT0) {
     ret[port] = ptin_intf_los_get(tbl_erps[erps_idx].protParam.port0.idx);
     if (ret_h[port] != ret[port]) {
-      PT_LOG_NOTICE(LOG_CTX_ERPS, "ERPS#%d: ret[%d] %d", erps_idx, port, ret[port]);
+      PT_LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: ret[%d] %d", erps_idx, port, ret[port]);
       ret_h[port] = ret[port];
     }
     return ret[port];
@@ -1345,7 +1345,7 @@ int ptin_erps_rd_alarms(L7_uint8 erps_idx, L7_uint8 port)
   else if (port == PROT_ERPS_PORT1) {
     ret[port] = ptin_intf_los_get(tbl_erps[erps_idx].protParam.port1.idx);
     if (ret_h[port] != ret[port]) {
-      PT_LOG_NOTICE(LOG_CTX_ERPS, "ERPS#%d: ret[%d] %d", erps_idx, port, ret[port]);
+      PT_LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: ret[%d] %d", erps_idx, port, ret[port]);
       ret_h[port] = ret[port];
     }
     return ret[port];
