@@ -4200,8 +4200,7 @@ L7_RC_t ptin_evc_p2p_bridge_add(ptin_HwEthEvcBridge_t *evcBridge)
                root_intf, evcs[evc_id].rvlan, leaf_intf, evcBridge->intf.vid, evcBridge->inn_vlan);
 
   memset(&intf_vlan, 0x00, sizeof(intf_vlan));
-  intf_vlan.intf.format = PTIN_INTF_FORMAT_PORT;
-  intf_vlan.intf.value.ptin_port = leaf_intf;
+  intf_vlan.intf        = evcBridge->intf.intf;
   intf_vlan.mef_type    = PTIN_EVC_INTF_LEAF;
   intf_vlan.vid         = evcBridge->intf.vid;
   intf_vlan.vid_inner   = evcBridge->inn_vlan;
