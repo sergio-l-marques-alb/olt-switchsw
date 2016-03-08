@@ -4693,7 +4693,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
   }
 
   /** EGRESS STAGE **/
-#if (PTIN_BOARD == PTIN_BOARD_TG16G)
+#if (0 /*PTIN_BOARD == PTIN_BOARD_TG16G*/)
   {
     BROAD_POLICY_t      policyId;
     BROAD_POLICY_RULE_t ruleId;

@@ -2147,8 +2147,9 @@ L7_RC_t hapiBroadCosCommitDot1pParams(BROAD_PORT_t *hapiPortPtr, L7_uchar8 *dot1
         hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, dot1pMap[i], 0, 0);
         /* PTin added: FP */
         hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_CLASS_ID, dot1pMap[i], 0, 0);
-        /* PTin removed: Do not execute remark here! */
-        //hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_USERPRIO, dot1pMap[i], 0, 0);
+        #if (PTIN_BOARD == PTIN_BOARD_TG16G)
+        hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_USERPRIO, dot1pMap[i], 0, 0);
+        #endif
       }
 
       result = hapiBroadPolicyCommit(&cosqId);
