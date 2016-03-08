@@ -10240,7 +10240,7 @@ static L7_RC_t switching_root_add(ptin_HwEthMef10Intf_t *intf_cfg, L7_uint16 int
     intf_vlan_set.mef_type      = intf_cfg->mef_type;
     intf_vlan_set.vid           = int_vlan;
     intf_vlan_set.vid_inner     = new_innerVlan;
-    intf_vlan_set.action_outer  = intf_cfg->action_outer;
+    intf_vlan_set.action_outer  = PTIN_XLATE_ACTION_REPLACE;
     if (egress_del_ivlan)
     {
       intf_vlan_set.action_inner  = PTIN_XLATE_ACTION_DELETE;
