@@ -736,102 +736,6 @@ sh_rccache(int u, args_t *a)
 #endif    /* NO_FILEIO */
 }
 
-#if defined(LVL7_FIXUP) && (!defined(VXWORKS))
-extern unsigned char rc_soc_array[];
-extern unsigned char helixmem_soc_array[];
-extern unsigned char config_bcm_array[];
-
-typedef struct MEM_FILE_s 
-{
-  unsigned char *start;
-  unsigned char *current;
-  unsigned char *end;
-} MEM_FILE_t;
-
-MEM_FILE_t *mem_fopen(unsigned char *filename)
-{
-  MEM_FILE_t *fp;
-
-  fp = (MEM_FILE_t *)malloc(sizeof(MEM_FILE_t));
-  if (fp == NULL)
-  {
-    return NULL;
-  }
-
-  /* PTin modified: given filename can have a full path */
-  if (strlen((char *) filename)>=6 && strcmp("rc.soc", (char *)&filename[ strlen((char *) filename)-6 ]) == 0)
-  {
-    fp->start = rc_soc_array;
-    fp->current = rc_soc_array;
-    fp->end = fp->start + strlen((char *)rc_soc_array);
-  }
-  else if (strcmp("helix.soc", (char *)filename) == 0)
-  {
-    fp->start = helixmem_soc_array;
-    fp->current = helixmem_soc_array;
-    fp->end = fp->start + strlen((char *)helixmem_soc_array);
-  }
-  else if (strcmp(SAL_CONFIG_FILE, (char *)filename) == 0)
-  {
-    fp->start = config_bcm_array;
-    fp->current = config_bcm_array;
-    fp->end = fp->start + strlen((char *)config_bcm_array);
-  }
-  else
-  {
-    free(fp);
-    return NULL;
-  }
-
-  return fp;
-}
-
-void mem_fclose(MEM_FILE_t *fp)
-{
-  if (fp != NULL)
-  {
-    free(fp);
-  }
-}
-
-char *mem_fgets(char *s, int size, MEM_FILE_t *fp)
-{
-  int i;
-
-  for(i = 0; i < (size - 1); i++)
-  {
-    /* check for EOF */
-    if (fp->current >= fp->end)
-    {
-      if (i == 0)
-      {
-        return 0;
-      }
-      else
-      {
-        break;
-      }
-    }
-
-    s[i] = fp->current[0];
-
-    /* check for newline */
-    if (fp->current[0] == '\n')
-    {
-      fp->current++;
-      i++;
-      break;
-    }
-
-    fp->current++;
-  }
-
-  s[i] = 0;
-
-  return s;
-}
-#endif
-
 cmd_result_t
 sh_rcload_file(int u, args_t *a, char *f, int add_rc)
 /*
@@ -847,8 +751,7 @@ sh_rcload_file(int u, args_t *a, char *f, int add_rc)
  *        CMD_FAIL- some command failed and aborted file processing.
  */
 {
-#if !defined(LVL7_FIXUP) && defined(NO_FILEIO)
-//#ifdef NO_FILEIO
+#ifdef NO_FILEIO
     if(sal_strstr(f, ".soc")) {
         cli_out("proxyecho rcload %s\n", f);
     }
@@ -856,11 +759,7 @@ sh_rcload_file(int u, args_t *a, char *f, int add_rc)
 #else
 
     static char fn[ARGS_BUFFER + 8];
-#if defined(LVL7_FIXUP) && (!defined(VXWORKS))
-    char *add_ext;
-#else
     char *path, *p, *add_ext;
-#endif
     static char line[ARGS_BUFFER], *s, *t;
     void * volatile scope = NULL;
 #ifndef NO_CTRL_C
@@ -870,12 +769,8 @@ sh_rcload_file(int u, args_t *a, char *f, int add_rc)
     /* These guys volatile because of long jump */
 
     volatile cmd_result_t rv = CMD_OK;
-#if defined(LVL7_FIXUP) && (!defined(VXWORKS))
-    MEM_FILE_t * volatile mem_fp = NULL;
-#else
     FILE * volatile       fp = NULL;
     char * volatile      fstr = NULL;
-#endif
     volatile int        lineNum = 0;
 
     scope = var_push_scope(); /* Push current scope */
@@ -930,7 +825,6 @@ sh_rcload_file(int u, args_t *a, char *f, int add_rc)
      * If name of script has a colon or slash, open it as-is.
      * Otherwise search for script in $path.
      */
-#if !defined(LVL7_FIXUP) || (defined(VXWORKS))
     /* coverity[secure_coding] */
     sal_strcpy(fn, f);
     /* coverity[secure_coding] */
@@ -974,20 +868,11 @@ sh_rcload_file(int u, args_t *a, char *f, int add_rc)
         rv = CMD_NFND;
         goto done;
     }
-#else
-    mem_fp = mem_fopen((unsigned char *)f);
-
-    if (mem_fp == NULL) {
-        rv = CMD_NFND;
-        goto done;
-    }
-#endif
 
     for (;;) {
         s = line;
         for (;;) {
             lineNum++;
-#if !defined(LVL7_FIXUP) || (defined(VXWORKS))
             if (fp != NULL) {
                 if (sal_fgets(s, line + sizeof (line) - s, fp) == 0) {
                     goto done;
@@ -1011,12 +896,6 @@ sh_rcload_file(int u, args_t *a, char *f, int add_rc)
                     }
                 }
             }
-#else
-                if (mem_fgets(s, line + sizeof (line) - s, mem_fp) == 0) {
-                    goto done;
-                }
-#endif
-
             line[sizeof (line) - 1] = 0;    /* Make sure NUL-terminated */
             if ((t = sal_strchr(s, '\r')) != 0)
                 strrepl(s, t - s, 1, "");    /* I hate hate hate PCs */
@@ -1067,17 +946,9 @@ sh_rcload_file(int u, args_t *a, char *f, int add_rc)
         var_pop_scope((void *)scope);
     }
 
-#if !defined(LVL7_FIXUP) || (defined(VXWORKS))
     if (fp) {
         sal_fclose((FILE *)fp);
     }
-#else
-    if (mem_fp)
-    {
-      mem_fclose(mem_fp);
-    }
-#endif
-
 #ifndef NO_CTRL_C
     sh_pop_ctrl_c();
 #endif
@@ -1088,8 +959,7 @@ sh_rcload_file(int u, args_t *a, char *f, int add_rc)
     }
 
     return(rv);
-//#endif /* NO_FILEIO */
-#endif /* LVL7_FIXUP && NO_FILEIO */
+#endif /* NO_FILEIO */
 }
 
 
@@ -6510,53 +6380,6 @@ sh_cd(int u, args_t *a)
     return(CMD_OK);
 }
 
-#if defined(LVL7_FIXUP) && !defined(VXWORKS)
-cmd_result_t
-sh_do_more(MEM_FILE_t *f)
-/*
- * Function: 	sh_do_more
- * Purpose:	Copy a file to console, stopping line "more".
- * Parameters:	f - pointer to FILE to read from.
- * Returns:	CMD_OK
- */
-{
-    int		line, next_stop;
-    char	buf[1024];
-
-    line = 0;
-    next_stop = sh_set_more_lines;
-
-    while (mem_fgets(buf, sizeof(buf) - 1, f)) {
-	/* Dump data */
-	cli_out("%s", buf);
-	if (++line == next_stop) {
-	    extern char readchar(char *s);
-	    int c;
-	    cli_out(SAL_VT100_SO
-                "Line: %d ----- 'q' to quit, any key to continue -----"
-                SAL_VT100_SE,
-                line);
-	    c = sal_readchar("");
-	    cli_out("\r" SAL_VT100_CE);
-	    switch (c) {
-	    case EOF:
-	    case 'q':
-	    case 'Q':
-		return(CMD_OK);
-	    case '\r':
-	    case '\n':
-		next_stop++;
-		break;
-	    default:
-		next_stop += sh_set_more_lines;
-		break;			/* Just keep going */
-	    }
-	}
-    }
-    return(CMD_OK);
-}
-#else
-
 cmd_result_t
 sh_do_more(FILE *f)
 /*
@@ -6605,7 +6428,6 @@ sh_do_more(FILE *f)
     return(CMD_OK);
 #endif /* NO_FILEIO */
 }
-#endif /* defined(LVL7_FIXUP) && !defined(VXWORKS) */
 
 char sh_more_usage[] =
     "Parameters: <file> ...\n\t"
@@ -6624,45 +6446,6 @@ sh_more(int u, args_t *a)
  * Returns:    CMD_OK/CMD_FAIL/CMD_USAGE
  */
 {
-#if defined(LVL7_FIXUP) && !defined(VXWORKS)
-  jmp_buf       ctrl_c;
-  volatile cmd_result_t rv = CMD_OK;
-  MEM_FILE_t * volatile mem_fp = NULL;
-  char  *c;
-
-  COMPILER_REFERENCE(u);
-
-  if (0 == ARG_CNT(a)) {
-  return(CMD_USAGE);
-  }
-
-  /*
-   * Try to catch ^C to avoid leaving file open if more is ^C'd.
-   * There are still a number of unlikely race conditions here.
-   */
-
-  if (!setjmp(ctrl_c)) {
-  sh_push_ctrl_c(&ctrl_c);
-  while ((CMD_OK == rv) && (NULL != (c = ARG_GET(a)))) {
-      mem_fp = mem_fopen((unsigned char *)c);
-      if (!mem_fp) {
-      cli_out("%s: Error: Unable to open file: %s\n",
-              ARG_CMD(a), c);
-      rv = CMD_FAIL;
-      } else {
-      rv = (volatile cmd_result_t)sh_do_more(mem_fp);
-      mem_fclose(mem_fp);
-      mem_fp = NULL;
-      }
-  }
-  } else if (mem_fp) {
-  mem_fclose(mem_fp);
-  mem_fp = NULL;
-  rv = CMD_INTR;
-  }
-  sh_pop_ctrl_c();
-  return(rv);
-#else
 #ifdef NO_FILEIO
     return -1;
 #else
@@ -6718,7 +6501,6 @@ sh_more(int u, args_t *a)
 #endif
     return(rv);
 #endif /* NO_FILEIO */
-#endif /* defined(LVL7_FIXUP) && !defined(VXWORKS) */
 }
 
 char sh_write_usage[] =
