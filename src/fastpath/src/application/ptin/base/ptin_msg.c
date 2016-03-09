@@ -13038,15 +13038,14 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
       else
       {
-        rc = usmDbSwPortMonitorSourcePortAdd(unit, sessionNum, srcIntfNum, type);
-
         L7_int32 ptin_port_aux;
         ptin_port_aux = msg->src_intf[n].intf.intf_id;
+
+        rc = usmDbSwPortMonitorSourcePortAdd(unit, sessionNum, srcIntfNum, type);
 
         if (msg->src_intf[n].intf.intf_type == 1)
         {
          ptin_intf_intIfNum2port(srcIntfNum, &ptin_port_aux); 
-
          PT_LOG_TRACE(LOG_CTX_MSG, "Adding intfNum Src %d", ptin_port_aux);
         }
 
@@ -13055,7 +13054,18 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
         {
           PT_LOG_TRACE(LOG_CTX_MSG, "Src intfNum %d", ptin_port_aux);
           PT_LOG_TRACE(LOG_CTX_MSG, "Dst intfNum %d", msg->dst_intf.intf_id);
-          xlate_outer_vlan_replicate_Dstport(1, ptin_port_aux, msg->dst_intf.intf_id);
+
+          L7_uint32 auxIntfNum, ptin_port_dst;
+          ptin_port_dst = msg->dst_intf.intf_id;
+
+          if(msg->dst_intf.intf_id == 0)
+          {         
+            usmDbSwPortMonitorDestPortGet(unit, sessionNum, &auxIntfNum);
+            ptin_intf_intIfNum2port(auxIntfNum, &ptin_port_dst); 
+          }
+
+          PT_LOG_TRACE(LOG_CTX_MSG, "Dst intfNum %d", msg->dst_intf.intf_id);
+          xlate_outer_vlan_replicate_Dstport(1, ptin_port_aux, ptin_port_dst);
         }
 
       }
