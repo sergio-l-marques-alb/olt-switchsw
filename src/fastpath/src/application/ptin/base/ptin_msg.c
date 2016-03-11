@@ -5499,7 +5499,7 @@ L7_RC_t ptin_msg_evc_qos_set(ipc_msg *inbuffer, ipc_msg *outbuffer)
  */
 L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_structs)
 {
-  L7_uint16 i, int_vlan;
+  L7_uint16 i;
   L7_RC_t rc_global = L7_SUCCESS;
 
   if (msgEvcConf == L7_NULLPTR)
@@ -5518,40 +5518,7 @@ L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_s
       continue;
     }
 
-    /* Obtain internal vlan */
-    if (ptin_evc_intRootVlan_get(msgEvcConf[i].id, &int_vlan) != L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining internal VLAN of EVC# %u", msgEvcConf[i].id);
-      int_vlan = 0;
-    }
-    if (!PTIN_VLAN_IS_QUATTRO(int_vlan))
-    {
-      ptin_qos_vlan_t qos_apply;
-
-      memset(&qos_apply, 0x00, sizeof(ptin_qos_vlan_t));
-      qos_apply.nni_vlan   = 0;
-      qos_apply.int_vlan   = int_vlan;
-      qos_apply.leaf_side  = -1;  /* All sides */
-      qos_apply.trust_mode = 0;   /* Ignore */
-
-      PT_LOG_DEBUG(LOG_CTX_MSG, "Going to unconfigure QoS for EVC %u / intVlan %u", msgEvcConf[i].id, int_vlan);
-
-      /* As long as a single QoS-VLAN map is applied to all stacked MAC-Bridge services, do not allow its deletion */
-      if (ptin_qos_vlan_clear(&qos_apply) != L7_SUCCESS) 
-      {
-        PT_LOG_ERR(LOG_CTX_MSG, "Error deconfiguring QoS for EVC %u / intVlan %u", msgEvcConf[i].id, int_vlan);
-        continue;
-      }
-      else
-      {
-        PT_LOG_DEBUG(LOG_CTX_MSG, "Error deconfiguring QoS for EVC %u / intVlan %u", msgEvcConf[i].id, int_vlan);
-      }
-    }
-    else
-    {
-      PT_LOG_WARN(LOG_CTX_MSG, "EVC# %u is QUATTRO type... do nothing");
-    }
-
+    /* Remove EVC */
     if (ptin_evc_delete(msgEvcConf[i].id) != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG, "Error deleting EVC# %u", msgEvcConf[i].id);
