@@ -3697,6 +3697,63 @@ L7_RC_t ptin_evc_config(L7_uint32 evc_ext_id, ptin_HwEthMef10EvcOptions_t *evcOp
 }
 
 /**
+ * Remove QoS-Service maps related to a NNI/Internal VLAN
+ * 
+ * @param nni_vlan 
+ * @param int_vlan 
+ */
+static void ptin_evc_qos_vlan_clear(L7_uint16 nni_vlan, L7_uint16 int_vlan)
+{
+  ptin_qos_vlan_t qos_apply;
+  L7_BOOL clear_qos_vlan_map = L7_FALSE;
+
+  memset(&qos_apply, 0x00, sizeof(ptin_qos_vlan_t));
+  qos_apply.leaf_side  = -1;  /* All sides */
+  qos_apply.trust_mode = 0;   /* Ignore */
+
+  /* NNI VLAN is valid, use it, instead of the internal VLAN */
+  if (nni_vlan >= 1 && nni_vlan <= 4095)
+  {
+    qos_apply.nni_vlan = nni_vlan;
+
+    /* Check if this NNI-VLAN still exists */
+    if (ptin_evc_get_evcId_fromNNIvlan(nni_vlan, L7_NULLPTR, L7_NULLPTR) == L7_NOT_EXIST)
+    {
+      /* If not, clear map */
+      clear_qos_vlan_map = L7_TRUE;
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Going to unconfigure QoS for NNI-Vlan %u", nni_vlan);
+    }
+    else
+    {
+      /* Otherwise, do not remove it */
+      PT_LOG_DEBUG(LOG_CTX_MSG, "There is still instances using NNI-VLAN %u", nni_vlan);
+    }
+  }
+  else
+  {
+    /* Always clear map for non quattro-stacked services */
+    clear_qos_vlan_map = L7_TRUE;
+
+    qos_apply.int_vlan = int_vlan;
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Going to unconfigure QoS for intVlan %u", int_vlan);
+  }
+
+  /* If map is to be removed, remove it */
+  if (clear_qos_vlan_map)
+  {
+    if (ptin_qos_vlan_clear(&qos_apply) != L7_SUCCESS) 
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Error deconfiguring QoS for intVlan %u / NNI-VLAN %u", int_vlan, nni_vlan);
+    }
+    else
+    {
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Success deconfiguring QoS for intVlan %u / NNI-VLAN %u", int_vlan, nni_vlan);
+    }
+  }
+}
+
+
+/**
  * Deletes an EVC
  * 
  * @param evc_ext_id
@@ -3706,7 +3763,8 @@ L7_RC_t ptin_evc_config(L7_uint32 evc_ext_id, ptin_HwEthMef10EvcOptions_t *evcOp
  */
 L7_RC_t ptin_evc_delete(L7_uint32 evc_ext_id)
 {
-  L7_uint evc_id, i;
+  L7_uint   evc_id, i;
+  L7_uint16 int_vlan, nni_vlan;
 
   PT_LOG_TRACE(LOG_CTX_EVC, "Deleting eEVC# %u...", evc_ext_id);
 
@@ -3725,6 +3783,10 @@ L7_RC_t ptin_evc_delete(L7_uint32 evc_ext_id)
   }
 
   PT_LOG_TRACE(LOG_CTX_EVC, "eEVC# %u is mapped to internal id %u", evc_ext_id, evc_id);
+
+  /* Save Internal and NNI VLANs */
+  int_vlan = evcs[evc_id].rvlan;
+  nni_vlan = (IS_EVC_QUATTRO(evc_id) && IS_EVC_STACKED(evc_id)) ? evcs[evc_id].root_info.nni_ovid : 0;
 
   /* If this EVC belongs to an IGMP instance, stop procedure */
   if (ptin_igmp_is_evc_used(evc_ext_id))
@@ -3875,6 +3937,9 @@ L7_RC_t ptin_evc_delete(L7_uint32 evc_ext_id)
 
   PT_LOG_TRACE(LOG_CTX_EVC, "eEVC# %u successfully removed (internal id %u)", evc_ext_id, evc_id);
 
+  /* Clean QoS-VLAN entries */
+  ptin_evc_qos_vlan_clear(nni_vlan, int_vlan);  
+
   return L7_SUCCESS;
 }
 
@@ -3891,6 +3956,7 @@ L7_RC_t ptin_evc_destroy(L7_uint32 evc_ext_id)
   L7_uint     intf_idx;
   L7_uint     evc_id;
   ptin_intf_t ptin_intf;
+  L7_uint16   int_vlan, nni_vlan;
 
   PT_LOG_TRACE(LOG_CTX_EVC, "Destroying eEVC# %u...", evc_ext_id);
 
@@ -3909,6 +3975,10 @@ L7_RC_t ptin_evc_destroy(L7_uint32 evc_ext_id)
   }
 
   PT_LOG_TRACE(LOG_CTX_EVC, "eEVC# %u is mapped to internal id %u", evc_ext_id, evc_id);
+
+  /* Save Internal and NNI VLANs */
+  int_vlan = evcs[evc_id].rvlan;
+  nni_vlan = (IS_EVC_QUATTRO(evc_id) && IS_EVC_STACKED(evc_id)) ? evcs[evc_id].root_info.nni_ovid : 0;
 
   /* IF this EVC belongs to an IGMP instance, destroy that instance */
   if (ptin_igmp_is_evc_used(evc_ext_id))
@@ -4062,6 +4132,9 @@ L7_RC_t ptin_evc_destroy(L7_uint32 evc_ext_id)
   ptin_evc_entry_free(evc_ext_id);
 
   PT_LOG_TRACE(LOG_CTX_EVC, "eEVC# %u successfully destroyed (internal id %u)", evc_ext_id, evc_id);
+
+  /* Clean QoS-VLAN entries */
+  ptin_evc_qos_vlan_clear(nni_vlan, int_vlan);  
 
   return L7_SUCCESS;
 }
