@@ -217,7 +217,7 @@ CFGFLAGS += -DSAL_SPL_LOCK_ON_IRQ=1
 
 # Extra variables.
 EXTRA_CFLAGS = -D"KBUILD_STR(s)=\#s" $(basename_flags) $(modname_flags)
-EXTRA_CFLAGS+=-Wno-unused-but-set-variable
+EXTRA_CFLAGS+=-Wno-unused-but-set-variable -Wno-unused-value -Wno-cpp --sysroot=/opt/fsl-qoriq/1.9/sysroots/ppce500mc-fsl-linux
 #-Wno-enum-compare -Wno-address -Wno-uninitialized -Wno-sequence-point -Wno-switch
 #EXTRA_CFLAGS+= -mcpu=e500mc -m32 -mhard-float --sysroot=/opt/fsl/1.2/sysroots/ppce500mc-fsl-linux
 
