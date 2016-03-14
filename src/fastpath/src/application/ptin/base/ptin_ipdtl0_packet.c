@@ -156,7 +156,7 @@ static void ptin_ipdtl0_task(void)
 
                 /* Convert Internal VLAN ID to dtl0 VLAN ID */
                 msg.payload[14] = (ptin_ipdtl0_intVid_info[msg.vlanId].dtl0Vid >> 8) & 0x0F;
-                msg.payload[15] = (ptin_ipdtl0_intVid_info[msg.vlanId].dtl0Vid)      & 0xFF;                
+                msg.payload[15] = (ptin_ipdtl0_intVid_info[msg.vlanId].dtl0Vid)      & 0xFF;
 
                 if (ptin_ipdtl0_debug_enable)
                 {
@@ -174,20 +174,25 @@ static void ptin_ipdtl0_task(void)
                 pduInfo.rxPort = msg.intIfNum;
                 pduInfo.vlanId = msg.vlanId;
 
-                /* Convert Internal VLAN ID to dtl0 VLAN ID */
-                msg.payload[14] = (PTIN_VLAN_PCAP_EXT >> 8) & 0x0F;
-                msg.payload[15] = (PTIN_VLAN_PCAP_EXT)      & 0xFF;
 
                 // TODO - It would be interesting if instead of replacing the internal VLAN ID with PTIN_VLAN_PCAP_EXT (2048),
                 // we add/push to the packet the external VLAN(s) according to the info on IXLATE for the ingress port
 
-                if (ptin_ipdtl0_debug_enable)
+                if (msg.vlanId != 2047)
                 {
-                    PT_LOG_TRACE(LOG_CTX_API, "Converting Internal VLAN ID (%d) to dtl0 VLAN ID %d\n", msg.vlanId, PTIN_VLAN_PCAP_EXT);
+                  /* Convert Internal VLAN ID to dtl0 VLAN ID */
+                  msg.payload[14] = (PTIN_VLAN_PCAP_EXT >> 8) & 0x0F;
+                  msg.payload[15] = (PTIN_VLAN_PCAP_EXT)      & 0xFF;
+                  dtlIPProtoRecvAny(msg.bufHandle, msg.payload, msg.payloadLen, &pduInfo, L7_FALSE);
+                }
+                else
+                {
+                  /* Convert Internal VLAN ID to dtl0 VLAN ID */
+                  msg.payload[14] = (ptin_ipdtl0_intVid_info[msg.vlanId].dtl0Vid >> 8) & 0x0F;
+                  msg.payload[15] = (ptin_ipdtl0_intVid_info[msg.vlanId].dtl0Vid)      & 0xFF; 
+                  dtlIPProtoRecvAny(msg.bufHandle, msg.payload, msg.payloadLen, &pduInfo, L7_TRUE);
                 }
 
-                dtlIPProtoRecvAny(msg.bufHandle, msg.payload, msg.payloadLen, &pduInfo, L7_FALSE);
-            }
             else 
             {
                 PT_LOG_TRACE(LOG_CTX_API, "Packet received with Unknown ID");
@@ -267,9 +272,12 @@ static  L7_RC_t ptin_ipdtl0_packetHandle(L7_netBufHandle netBufHandle, sysnet_pd
 
     /* If any error, packet will be dropped */
     if (rc!=L7_SUCCESS)
-    {
-        PT_LOG_TRACE(LOG_CTX_API, "Error (%d) sending packet to queue, packet will be dropped", rc);
 
+        PT_LOG_TRACE(LOG_CTX_PTIN_API, "If any error, packet will be dropped");
+        return SYSNET_PDU_RC_IGNORED;
+        PT_LOG_TRACE(LOG_CTX_PTIN_API, "If any error, packet will be dropped");
+    }
+        PT_LOG_TRACE(LOG_CTX_PTIN_API, "Error (%d) sending packet to queue, packet will be dropped", rc);
         /* In case of failure, Release buffer. Otherwise, buffer will be realeased later */
         SYSAPI_NET_MBUF_FREE(netBufHandle);
     }    
