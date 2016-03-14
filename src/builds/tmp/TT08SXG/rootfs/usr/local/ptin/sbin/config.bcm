@@ -136,6 +136,14 @@ load_firmware=0x102
 tm_port_header_type_in_0=INJECTED_2
 tm_port_header_type_out_0=ETH
 
+# HIGIG mode
+tm_port_header_type_in_17=XGS_HQoS
+tm_port_header_type_out_17=XGS_HQoS
+tm_port_header_type_in_18=XGS_HQoS
+tm_port_header_type_out_18=XGS_HQoS
+tm_port_header_type_in_19=XGS_HQoS
+tm_port_header_type_out_19=XGS_HQoS
+
 tm_port_header_type_in_200=INJECTED_2_PP
 tm_port_header_type_out_200=ETH
 tm_port_header_type_in_201=INJECTED_2_PP

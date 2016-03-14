@@ -51,9 +51,9 @@ ucode_port_1=CGE0
 caui_num_lanes_0=10
 #caui_num_lanes_1=10
 
-ucode_port_2=XLGE4
-ucode_port_3=XLGE5
-ucode_port_4=XLGE6
+ucode_port_17=XLGE4
+ucode_port_18=XLGE5
+ucode_port_19=XLGE6
 
 #ucode_port_1=10GBase-R0
 #ucode_port_2=10GBase-R1
@@ -142,6 +142,14 @@ load_firmware=0x102
 
 tm_port_header_type_in_0=INJECTED_2
 tm_port_header_type_out_0=ETH
+
+# HIGIG mode
+tm_port_header_type_in_17=XGS_HQoS
+tm_port_header_type_out_17=XGS_HQoS
+tm_port_header_type_in_18=XGS_HQoS
+tm_port_header_type_out_18=XGS_HQoS
+tm_port_header_type_in_19=XGS_HQoS
+tm_port_header_type_out_19=XGS_HQoS
 
 tm_port_header_type_in_200=INJECTED_2_PP
 tm_port_header_type_out_200=ETH
