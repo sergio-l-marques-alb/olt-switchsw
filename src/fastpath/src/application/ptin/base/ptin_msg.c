@@ -12112,6 +12112,16 @@ L7_RC_t ptin_msg_ip_acl_rule_config(msg_ip_acl_t *msgIpAcl, ACL_OPERATION_t oper
     return L7_FAILURE;
   }
 
+  if (msgIpAcl->srcStartPort != 0 && msgIpAcl->srcEndPort == 0)
+  {
+    msgIpAcl->srcEndPort = msgIpAcl->srcStartPort ;
+  }
+
+  if (msgIpAcl->dstStartPort != 0 && msgIpAcl->dstEndPort == 0)
+  {
+    msgIpAcl->dstEndPort = msgIpAcl->dstStartPort ;
+  }
+
   if (msgIpAcl->aclType == ACL_TYPE_IP_STANDARD)
   {
     if ( (msgIpAcl->aclId == 0) || (msgIpAcl->aclId > 99) ) /* [1..99] */
