@@ -12,8 +12,8 @@ MV    =	mv
 CP    =	cp
 TAR   = tar
 
-#NUM_CPUS = 1
-NUM_CPUS = $(shell grep -c 'model name' /proc/cpuinfo)
+NUM_CPUS = 1
+#NUM_CPUS = $(shell grep -c 'model name' /proc/cpuinfo)
 
 CURRENT_PATH= $(shell pwd)
 FP_FOLDER	= $(word $(words $(subst /, ,$(CURRENT_PATH))),$(subst /, ,$(CURRENT_PATH)))
@@ -26,9 +26,8 @@ BIN_PATH	= $(CCVIEWS_HOME)/$(OUTPATH)/ipl
 BIN_FILE	= switchdrvr
 DEVSHSYM_FILE	= devshell_symbols.gz
 
-export COMPILER         = /opt/fsl/1.2/sysroots/i686-fslsdk-linux/usr/bin/ppce500mc-fsl-linux/powerpc-fsl-linux-
-export KERNEL_PATH      = /home/olt/svnrepo/olt-switchsw/trunk/lib/kernel/linux-3.0.51-p2040
-
+export COMPILER         = /opt/fsl-qoriq/1.9/sysroots/i686-fslsdk-linux/usr/bin/powerpc-fsl-linux/powerpc-fsl-linux-
+export KERNEL_PATH      = $(OLT_DIR)/../lib/kernel/linux-3.0.51-p2040
 
 CARD_FOLDER = FastPath-Ent-dpp-dnx-e500mc-LR-CSxw-IQH_TT08SXG
 CARD		= $(word 2,$(subst _, ,$(CARD_FOLDER)))
@@ -44,7 +43,7 @@ export SDK_LINK := vendor/broadcom
 export SDK_PATH := $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-all-switchdrvr-6.4.8/broadcom
 #export SDK_PATH := /home/olt/svnrepo/olt-switchsw/trunk/lib/broadcom-sdk-xgs/sdk-xgs-fastpath-6.3.7/broadcom
 
-export FP_CLI_PATH   := ../fastpath.cli
+export FP_CLI_PATH   := ../fp.cli
 export FP_SHELL_PATH := ../fastpath.shell
 
 export LVL7_MAKEFILE_LOGGING := N

@@ -86,7 +86,7 @@
          {CARD_BROAD_12_ETH_4_BCK_88360_REV_1_ID}
        }
      },
-     3,      /* four stacking ports */
+     3,      /* 3 stacking ports */
      {
          /* First Stacking Port Descriptor */
          {
@@ -169,7 +169,7 @@
          {CARD_BROAD_8_ETH_3_BCK_88360_REV_1_ID}
        }
      },
-     3,      /* four stacking ports */
+     3,      /* 3 stacking ports */
      {
          /* First Stacking Port Descriptor */
          {
@@ -253,7 +253,7 @@
          {CARD_BROAD_1_ETH_3_BCK_88360_REV_1_ID}
        }
      },
-     3,      /* four stacking ports */
+     3,      /* 3 stacking ports */
      {
          /* First Stacking Port Descriptor */
          {

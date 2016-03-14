@@ -27,7 +27,7 @@ BIN_FILE	= switchdrvr
 DEVSHSYM_FILE	= devshell_symbols.gz
 
 export COMPILER         = /opt/eldk/usr/bin/ppc_85xxDP-
-export KERNEL_PATH      = /home/olt/svnrepo/olt-switchsw/trunk/lib/kernel/linux-3.8.13
+export KERNEL_PATH      = $(OLT_DIR)/../lib/kernel/linux-3.8.13
 
 
 CARD_FOLDER = FastPath-Ent-dpp-dnx-e500-LR-CSxw-IQH_TA12XG
