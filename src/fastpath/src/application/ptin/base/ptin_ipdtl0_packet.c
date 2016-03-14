@@ -192,6 +192,7 @@ static void ptin_ipdtl0_task(void)
                   msg.payload[15] = (ptin_ipdtl0_intVid_info[msg.vlanId].dtl0Vid)      & 0xFF; 
                   dtlIPProtoRecvAny(msg.bufHandle, msg.payload, msg.payloadLen, &pduInfo, L7_TRUE);
                 }
+            }
 
             else 
             {
@@ -272,14 +273,10 @@ static  L7_RC_t ptin_ipdtl0_packetHandle(L7_netBufHandle netBufHandle, sysnet_pd
 
     /* If any error, packet will be dropped */
     if (rc!=L7_SUCCESS)
-
-        PT_LOG_TRACE(LOG_CTX_PTIN_API, "If any error, packet will be dropped");
-        return SYSNET_PDU_RC_IGNORED;
-        PT_LOG_TRACE(LOG_CTX_PTIN_API, "If any error, packet will be dropped");
-    }
-        PT_LOG_TRACE(LOG_CTX_PTIN_API, "Error (%d) sending packet to queue, packet will be dropped", rc);
-        /* In case of failure, Release buffer. Otherwise, buffer will be realeased later */
-        SYSAPI_NET_MBUF_FREE(netBufHandle);
+    {
+      PT_LOG_TRACE(LOG_CTX_API, "Error (%d) sending packet to queue, packet will be dropped", rc);
+      /* In case of failure, Release buffer. Otherwise, buffer will be realeased later */
+      SYSAPI_NET_MBUF_FREE(netBufHandle);
     }    
 
     /* At this point, packet is always consumed */
