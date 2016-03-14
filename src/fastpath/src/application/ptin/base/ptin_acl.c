@@ -1633,6 +1633,18 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
       PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclRuleEveryAdd return (rc=%d)", rc);
       return L7_FAILURE;
     }
+    
+    /* Mirror */
+    if (mirrorVal > -1)
+    {
+      rc = usmDbQosAclRuleMirrorIntfAdd(unit, aclId, aclRuleNum, mirrorVal);
+      if (rc != L7_SUCCESS)
+      {
+        ptin_aclIpv6Clean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclRuleMirrorIntfAdd return L7_REQUEST_DENIED");
+        return L7_FAILURE;
+      }
+    }
   }
   else
   {
@@ -1723,6 +1735,18 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
       {
         ptin_aclIpv6Clean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
         PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclRuleIpv6FlowLabelAdd return (rc=%d)", rc);
+        return L7_FAILURE;
+      }
+    }
+
+    /* Mirror */
+    if (mirrorVal > -1)
+    {
+      rc = usmDbQosAclRuleMirrorIntfAdd(unit, aclId, aclRuleNum, mirrorVal);
+      if (rc != L7_SUCCESS)
+      {
+        ptin_aclIpv6Clean(isAclAdded, msgAcl->aclId, msgAcl->aclRuleId);
+        PT_LOG_ERR(LOG_CTX_MSG, "ACL FAILURE: usmDbQosAclRuleMirrorIntfAdd return (rc=%d)", rc);
         return L7_FAILURE;
       }
     }
