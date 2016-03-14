@@ -5660,6 +5660,12 @@ L7_RC_t ptin_msg_evc_config(ipc_msg *inbuffer, ipc_msg *outbuffer)
   static L7_uint32 evcid_list[4096];
   static L7_uint max_evcs = 4096;
 
+  #ifdef PTIN_ENABLE_ERPS
+
+  msgEvcOptions->mc_flood = 2;
+
+  #endif
+
   /* Validate arguments */
   if (msgEvcOptions == L7_NULLPTR)
   {
