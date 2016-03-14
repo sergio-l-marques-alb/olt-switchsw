@@ -1896,6 +1896,16 @@ L7_RC_t ptin_igmp_proxy_config_set(PTIN_MGMD_CTRL_MGMD_CONFIG_t *igmpProxy)
     oldIgmpConfig.querier.mask                           = igmpProxy->querier.mask;
     oldIgmpConfig.querier.flags                          = igmpProxy->querier.flags;
     oldIgmpConfig.querier.robustness                     = igmpProxy->querier.robustness;
+
+    if(igmpProxy->querier.robustness != 0)
+    {
+      oldIgmpConfig.querier.robustness                   = igmpProxy->querier.robustness;
+    }
+    else
+    {
+      oldIgmpConfig.querier.robustness                   = oldIgmpConfig.querier.robustness;
+    }
+
     oldIgmpConfig.querier.query_interval                 = igmpProxy->querier.queryInterval;
     oldIgmpConfig.querier.query_response_interval        = igmpProxy->querier.queryResponseInterval;
     oldIgmpConfig.querier.group_membership_interval      = igmpProxy->querier.groupMembershipInterval;
@@ -1923,7 +1933,16 @@ L7_RC_t ptin_igmp_proxy_config_set(PTIN_MGMD_CTRL_MGMD_CONFIG_t *igmpProxy)
 
     oldIgmpConfig.host.mask                              = igmpProxy->host.mask;
     oldIgmpConfig.host.flags                             = igmpProxy->host.flags;
-    oldIgmpConfig.host.robustness                        = igmpProxy->host.robustness;
+
+    if(igmpProxy->host.robustness != 0)
+    {
+      oldIgmpConfig.host.robustness                      = igmpProxy->host.robustness;
+    }
+    else
+    {
+      oldIgmpConfig.host.robustness                      = oldIgmpConfig.host.robustness;
+    }
+
     oldIgmpConfig.host.unsolicited_report_interval       = igmpProxy->host.unsolicitedReportInterval;
     oldIgmpConfig.host.older_querier_present_timeout     = igmpProxy->host.olderQuerierPresentTimeout;
     oldIgmpConfig.host.max_records_per_report            = igmpProxy->host.maxRecordsPerReport;
