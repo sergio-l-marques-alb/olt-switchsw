@@ -2621,7 +2621,7 @@ L7_RC_t ptin_aclArpRuleConfig(msg_arp_acl_t *msgAcl, ACL_OPERATION_t operation)
     if (arpAclGet(msgAcl->name) != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG, "ACL group \"%s\" does not exist", msgAcl->name);
-      return L7_NOT_EXIST;
+      return L7_SUCCESS;
     }
     /* Check if entry does not exist */
     if (arpAclRuleGet(msgAcl->name, msgAcl->srcIpAddr.addr.ipv4, &srcMacAddr) != L7_SUCCESS)
