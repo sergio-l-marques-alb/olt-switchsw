@@ -13006,14 +13006,15 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
         {
           ptin_intf_intIfNum2port(srcIntfNum, &ptin_port_aux); 
 
-          PT_LOG_TRACE(LOG_CTX_MSG, "Adding intfNum %d", ptin_port_aux);
+          PT_LOG_TRACE(LOG_CTX_MSG, "Adding intfNum Src %d", ptin_port_aux);
         }
 
         /* Configure Egress XLATE on the destination interface */
         if (msg->src_intf[n].direction == 1 || msg->src_intf[n].direction == 3)
         {
-          PT_LOG_TRACE(LOG_CTX_MSG, "Dst intfNum %d", ptin_port_aux);
-          xlate_outer_vlan_replicate_Dstport(msg->sessionMode, ptin_port_aux, msg->dst_intf.intf_id);
+          PT_LOG_TRACE(LOG_CTX_MSG, "Src intfNum %d", ptin_port_aux);
+          PT_LOG_TRACE(LOG_CTX_MSG, "Dst intfNum %d", msg->dst_intf.intf_id);
+          xlate_outer_vlan_replicate_Dstport(1, ptin_port_aux, msg->dst_intf.intf_id);
         }
 
       }
