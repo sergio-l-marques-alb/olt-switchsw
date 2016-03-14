@@ -1226,7 +1226,7 @@ void dtlNetInit(void)
 
   dtlVlanIfAdd(PTIN_VLAN_PCAP_EXT, "pcap");
 
-  #elif (PTIN_BOARD == PTIN_BOARD_OLT1T1)
+  #elif (PTIN_BOARD == PTIN_BOARD_CXO160G)
 
   dtlVlanIfAdd(PTIN_VLAN_PCAP_EXT, "pcap");
   #endif
