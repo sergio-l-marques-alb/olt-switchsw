@@ -12,8 +12,8 @@ MV    =	mv
 CP    =	cp
 TAR   = tar
 
-NUM_CPUS = 1
-#NUM_CPUS = $(shell grep -c 'model name' /proc/cpuinfo)
+#NUM_CPUS = 1
+NUM_CPUS = $(shell grep -c 'model name' /proc/cpuinfo)
 
 CURRENT_PATH= $(shell pwd)
 FP_FOLDER	= $(word $(words $(subst /, ,$(CURRENT_PATH))),$(subst /, ,$(CURRENT_PATH)))
@@ -28,6 +28,8 @@ DEVSHSYM_FILE	= devshell_symbols.gz
 
 export COMPILER         = /opt/fsl-qoriq/1.9/sysroots/i686-fslsdk-linux/usr/bin/powerpc-fsl-linux/powerpc-fsl-linux-
 export KERNEL_PATH      = $(OLT_DIR)/../lib/kernel/linux-3.0.51-p2040
+
+export SYSROOT="--sysroot=/opt/fsl-qoriq/1.9/sysroots/ppce500mc-fsl-linux"
 
 CARD_FOLDER = FastPath-Ent-dpp-dnx-e500mc-LR-CSxw-IQH_TT08SXG
 CARD		= $(word 2,$(subst _, ,$(CARD_FOLDER)))

@@ -251,7 +251,7 @@ $(symbols_name): $(exec_name)
 $(exec_name): $(pkglib_file) $(pkgarc_file) $(iplobjs)
 	$(LINKING_MSG)
 	$(DBG) $(CC) -o $@ \
-		$(LDFLAGS) \
+		$(SYSROOT) \
 		-Wl,-Map,$@.map \
 		-Wl,--relax \
 		-Wl,--start-group \
