@@ -1,0 +1,34 @@
+#!/bin/sh
+
+PLATFORM="TOLTU20G TU40G TR32R"
+PLATFORM_FOLDER=$PLATFORM
+FILESYSTEM=rootfs
+
+BASE=../../build
+APPS_FOLDER=$BASE/apps
+
+BIN_FILES=../../bin/fwctrl_ul.cli
+S3R_FILES=
+
+# Base folder, where install scripts are, should exist
+if [ ! -e $BASE ]; then
+  echo "'$BASE' folder is missing."
+  exit 1;
+fi
+
+echo "Creating folders for $PLATFORM"
+
+#mkdir -p $APPS_FOLDER/backup
+#rm -rf $APPS_FOLDER/backup/$PLATFORM_FOLDER
+#mkdir -p $APPS_FOLDER/backup/$PLATFORM_FOLDER
+
+mkdir -p $APPS_FOLDER/image/$PLATFORM_FOLDER/$FILESYSTEM/usr/local/ptin/sbin
+
+for plat in $PLATFORM_FOLDER; do
+  echo "Creating folders for $plat"
+  mkdir -p $APPS_FOLDER/image/$plat/$FILESYSTEM/usr/local/ptin/sbin
+  echo "Copying cli binary for $plat platform"
+  cp ${BIN_FILES} ${S3R_FILES} $APPS_FOLDER/image/$plat/$FILESYSTEM/usr/local/ptin/sbin
+done
+
+echo "Done!"

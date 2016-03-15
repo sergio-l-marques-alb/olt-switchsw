@@ -1,0 +1,40 @@
+CROSS=/usr/local/powerpc-linux-3.4.2/bin/powerpc-linux-
+
+CC=$(CROSS)gcc
+LD=$(CROSS)ld
+STRIP=$(CROSS)strip
+
+CFLAGS=-D_PTHREAD_ -DMAJOR=$(MAJOR) -DMINOR=$(MINOR) -DREVISION=$(REVISION) -DBUILD=$(BUILD) -DEOS_X16 -Wunused -Wno-sign-compare
+OPTIMIZACAO =
+LDFLAGS=-Lxml/lib -Llib 
+
+RM=rm -f
+CP=cp
+
+HDRS=-I.
+OBJ = obj/cli_unicom_fw_layer.o obj/cli_unicom.o obj/ipc_lib.o obj/memchk.o
+
+TARGET=../../bin/fwctrl_ul.cli
+
+all:	Makefile $(OBJ)
+	       	$(CC) $(LDFLAGS) $(OPTIMIZACAO) -o $(TARGET) $(OBJ)	\
+		 -lpthread -lc -lm 
+		$(STRIP) $(TARGET)
+
+install: 	$(TARGET)
+		sh cli.install
+	
+clean cleanall:
+		rm -f $(OBJ) $(TARGET)
+											 
+vpath %.c       # Search path for *.c files
+
+#
+# Rule for C compilation
+#
+
+obj/%.o : %.c
+	$(RM) $@
+	@echo Building $@
+	$(CC) $(CFLAGS) $(OPTIMIZACAO) -Wall -Werror $(HDRS) -c -o $@ $<
+

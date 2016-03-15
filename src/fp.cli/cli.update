@@ -1,0 +1,18 @@
+#!/bin/sh
+
+PLATFORM=TOLTU20G
+
+IP_ADDR=10.112.15.243
+USER=bcmfastpath
+
+DST_DIR=/home/olt/fastpath_builds/builds_olt360
+
+INSTALL_DIR=$DST_DIR/apps/$PLATFORM
+BACKUP_DIR=$DST_DIR/apps_backup/$PLATFORM
+
+BIN_PATH=../bin
+BIN_FILE=cli
+
+echo "Copying $PLATFORM cli to $DST_DIR"
+scp $BIN_PATH/$BIN_FILE $USER@$IP_ADDR:$INSTALL_DIR
+echo "Done!"
