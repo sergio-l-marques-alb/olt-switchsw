@@ -15,33 +15,6 @@
 MKBOARDS=$1
 BOARD=$2
 
-if [ $BOARD == "tg16g" ]; then
- echo -n "Updating TG16G mkboard...$1"
- cd output/FastPath-Ent-esw-xgs4-pq2pro-LR-CSxw-IQH_TG16G
- cp -v ipl/switchdrvr ipl/devshell_symbols.gz target/*.ko ipl/fp.cli ipl/fp.shell ipl/mgmd.cli $MKBOARDS/TG16G/rootfs/usr/local/ptin/sbin/
- cp -v ipl/libmgmd.so $MKBOARDS/TG16G/rootfs/usr/local/ptin/lib/
- cd - > /dev/null 2>&1
- echo "OK!"
-fi
-
-if [ $BOARD == "cxo640g" ]; then
- echo -n "Updating CXO640G board...$1"
- cd output/FastPath-Ent-esw-xgs4-pq3-LR-CSxw-IQH_CXO640G
- cp -v ipl/switchdrvr ipl/devshell_symbols.gz target/*.ko ipl/fp.cli ipl/fp.shell ipl/mgmd.cli $MKBOARDS/CXO640G-MX/rootfs/usr/local/ptin/sbin/
- cp -v ipl/libmgmd.so $MKBOARDS/CXO640G-MX/rootfs/usr/local/ptin/lib/
- cd - > /dev/null 2>&1
- echo "OK!"
-fi
-
-if [ $BOARD == "ta48ge" ]; then
- echo -n "Updating TA48GE board...$1"
- cd output/FastPath-Ent-esw-xgs4-e500-LR-CSxw-IQH_TA48GE
- cp -v ipl/switchdrvr ipl/devshell_symbols.gz target/*.ko ipl/fp.cli ipl/fp.shell ipl/mgmd.cli $MKBOARDS/TA48GE/rootfs/usr/local/ptin/sbin/
- cp -v ipl/libmgmd.so $MKBOARDS/TA48GE/rootfs/usr/local/ptin/lib/
- cd - > /dev/null 2>&1
- echo "OK!"
-fi
-
 if [ $BOARD == "ta12xg" ]; then
  echo "Updating TA12XGE board...$1"
  cd output/FastPath-Ent-dpp-dnx-e500-LR-CSxw-IQH_TA12XG
@@ -52,38 +25,46 @@ if [ $BOARD == "ta12xg" ]; then
  echo "OK!"
 fi
 
+if [ $BOARD == "tu100g" ]; then
+ echo "Updating TU100G board...$1"
+ cd output/FastPath-Ent-dpp-dnx-e500-LR-CSxw-IQH_TU100G
+ cp -v ipl/switchdrvr ipl/devshell_symbols.gz target/*.ko ipl/fp.cli ipl/fp.shell ipl/mgmd.cli $MKBOARDS/TU100G/rootfs/usr/local/ptin/sbin/
+ cp -v ipl/libmgmd.so $MKBOARDS/TU100G/rootfs/usr/local/ptin/lib/
+ cd - > /dev/null 2>&1
+ cp -vr ../builds/tmp/TU100G/rootfs/* $MKBOARDS/TU100G/rootfs/
+ echo "OK!"
+fi
+
+if [ $BOARD == "tt08sxg" ]; then
+ echo "Updating TT08SXG board...$1"
+ cd output/FastPath-Ent-dpp-dnx-e500mc-LR-CSxw-IQH_TT08SXG
+ cp -v ipl/switchdrvr ipl/devshell_symbols.gz target/*.ko ipl/fp.cli ipl/fp.shell ipl/mgmd.cli $MKBOARDS/TT08SXG/rootfs/usr/local/ptin/sbin/
+ cp -v ipl/libmgmd.so $MKBOARDS/TT08SXG/rootfs/usr/local/ptin/lib/
+ cd - > /dev/null 2>&1
+ cp -vr ../builds/tmp/TT08SXG/rootfs/* $MKBOARDS/TT08SXG/rootfs/
+ echo "OK!"
+fi
+
 if [ $# -ge 3 ]; then
 	IMAGE_VERSION=$3
 	EQUIP_IP=$4
 	echo -n "Generating image for version $3..."
 
-	if [ $BOARD == "tg16g" ]; then
-		cd $MKBOARDS/TG16G/
-		sudo ./build_ramdisk_TG16G.sh $IMAGE_VERSION > /dev/null 2>&1
-		echo "OK!"
-	fi
-
-	if [ $BOARD == "cxo160g" ]; then
-		cd $MKBOARDS/CXO160G/
-		sudo ./build_ramdisk_CXO160G.sh $IMAGE_VERSION > /dev/null 2>&1
-		echo "OK!"
-	fi
-
-	if [ $BOARD == "cxo640g" ]; then
-		cd $MKBOARDS/CXO640G-MX/
-		sudo ./build_ramdisk_CXO640G-MX.sh $IMAGE_VERSION > /dev/null 2>&1
-		echo "OK!"
-	fi
-
-	if [ $BOARD == "ta48ge" ]; then
-		cd $MKBOARDS/TA48GE/
-		sudo ./build_ramdisk_TA48GE.sh $IMAGE_VERSION > /dev/null 2>&1
-		echo "OK!"
-	fi
-
         if [ $BOARD == "ta12xg" ]; then
                 cd $MKBOARDS/TA12XG/
                 sudo ./build_ramdisk_TA12XG.sh $IMAGE_VERSION > /dev/null 2>&1
+                echo "OK!"
+        fi
+
+        if [ $BOARD == "tu100g" ]; then
+                cd $MKBOARDS/TU100G/
+                sudo ./build_ramdisk_TU100G.sh $IMAGE_VERSION > /dev/null 2>&1
+                echo "OK!"
+        fi
+
+        if [ $BOARD == "tt08sxg" ]; then
+                cd $MKBOARDS/TT08SXG/
+                sudo ./build_ramdisk_TT08SXG.sh $IMAGE_VERSION > /dev/null 2>&1
                 echo "OK!"
         fi
 
