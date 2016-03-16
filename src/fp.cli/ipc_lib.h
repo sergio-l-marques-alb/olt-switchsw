@@ -3,24 +3,17 @@
 
 #include <arpa/inet.h>
 
-//#define _PTHREAD_
-
-#ifdef _PTHREAD_
-#include <pthread.h>
-#endif
-
 //*****************************************************************************
 //#define _IPC_DEBUG_             //Descomentar para debug
 
-#define MAX_CANAIS    5          //Numero maximo de canais de comunicacao
+#define MAX_CANAIS    10          //Numero maximo de canais de comunicacao
 #define CANAL_LIVRE   0          //Estado do handler: livre
 #define CANAL_OCUPADO 1          //Estado do handler: ocupado
 
 #define STACK_CLONE_IPC  32768*2  //tamanho do stack para o clone
 //#define PC_MsgDimMax     4096   //tamanho para o buffer info do protocolo
-#define PC_MsgDimMax    5120   //tamanho para o buffer info do protocolo
-#define PC_PckDimMax     sizeof(pc_type)  // Tamanho do pacote completo
-#define PC_HeaderDim     (PC_PckDimMax-PC_MsgDimMax)
+//#define PC_MsgDimMax    5120   //tamanho para o buffer info do protocolo
+#define PC_MsgDimMax    15360   //tamanho para o buffer info do protocolo
                     
 /* mascaras para as flags */
 #define FLAG_RESPOSTA 0x01   //1-resposta
@@ -59,13 +52,8 @@ typedef  struct {
   int (*processa_msg_handler)(pc_type *inbuffer, pc_type *outbuffer); 
 
 
-  char stack_clone_ipc[STACK_CLONE_IPC]; //declaraï¿½ï¿½o do stack para o clone
+  char stack_clone_ipc[STACK_CLONE_IPC]; //declaração do stack para o clone
   int clone_ipc_id;                      //id para o clone de escuta
-#ifdef _PTHREAD_
-  pthread_t	*ti;
-  long thread_id;
-  pthread_attr_t thread_attr;
-#endif                                          
 } T_IPC;
 /*****************************************************************************/
 
@@ -90,7 +78,7 @@ extern
 #endif
 int open_ipc(int porto_rx, unsigned int ipaddr,
              int (*MessageHandler)(pc_type *inbuffer,pc_type *outbuffer),
-             int timeout, int prio);
+             int timeout);
 
 /*****************************************************************************/
 #ifdef __cplusplus

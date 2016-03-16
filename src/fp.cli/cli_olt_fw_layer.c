@@ -574,14 +574,17 @@ int fp_ping(int nargs, char (*values)[MAX_PARAM_VALUE_SIZE])
     nretries = valued;
   }
 
+  printf("period=%lu #retries=%lu\r\n", period, nretries);
+
   close_ipc(handler);
-  handler=open_ipc(PORTO_TX_MSG_BUGA,IP_LOCALHOST, NULL, period, -1);
+  handler=open_ipc(PORTO_TX_MSG_BUGA,IP_LOCALHOST, NULL, period);
   if ( handler < 0 )
   {
     printf("Erro no open IPC do BUGA...\n\r");
     return -1;
   }
 
+  comando.counter      = rand ();
   comando.msgId        = CCMSG_APPLICATION_IS_ALIVE;
   comando.infoDim      = sizeof(unsigned int);
   *(int*)comando.info  = 0;
@@ -609,23 +612,23 @@ int fp_ping(int nargs, char (*values)[MAX_PARAM_VALUE_SIZE])
   if (nretries > 0) {
     if (ret == 0) {
       printf("OLTSWITCH replied... Application is up!\n\r");
-      return ret;
+      exit(ret);
     }
     else if (ret == 2) {
       printf("OLTSWITCH replied... Application has CRASHED!\n\r");
-      return ret;
+      exit(ret);
     }
     else {
       printf("OLTSWITCH replied... return code is unknown: %d\n\r", (int)ret);
-      return ret;
+      exit(ret);
     }
   }
   else if (resposta.infoDim == sizeof(int) && ret == 1)
-    return ret;
+    exit(ret);
 
   printf("OLTSWITCH did not reply... Timeout!\n\r");
 
-  return 0;
+  exit(-2);
 }
 
 
@@ -976,7 +979,7 @@ int evc_intf_remove(int nargs, char (*values)[MAX_PARAM_VALUE_SIZE])
 int main(int argc, const char **argv) {
 
   init_ipc_lib();
-  handler=open_ipc(PORTO_TX_MSG_BUGA, IP_LOCALHOST, NULL,CLI_IPC_TIMEOUT, -1);
+  handler=open_ipc(PORTO_TX_MSG_BUGA, IP_LOCALHOST, NULL,CLI_IPC_TIMEOUT);
 
   comando.protocolId   = 1;
   comando.srcId        = PORTO_TX_MSG_BUGA;

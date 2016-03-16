@@ -6,16 +6,16 @@
 * Projecto:                                                             *
 *            PR710_SDH_RA                                               *
 *                                                                       *
-* Descriï¿½ï¿½o: Este mï¿½dulo possui as funï¿½ï¿½es necessï¿½rias para controlo de *
+* Descrição: Este módulo possui as funções necessárias para controlo de *
 *            canais de comunicacao entre processos                      *
 *                                                                       *
 *                                                                       *
-* Histï¿½rico:                                                            *
-*            12 Marï¿½o 2003 - as mensagens de debuf foram colocadas      *
-*                            sob a condiï¿½ao de definiï¿½ao do #define     *
+* Histórico:                                                            *
+*            12 Março 2003 - as mensagens de debuf foram colocadas      *
+*                            sob a condiçao de definiçao do #define     *
 *                            _IPC_DEBUG_.                               *
 *                                                                       *
-*            19 Fevereiro 2003 - primeira versï¿½o                        *
+*            19 Fevereiro 2003 - primeira versão                        *
 *                                                                       *
 *                                                                       *
 * Autor: Celso Lemos                                                    *
@@ -34,18 +34,18 @@
 #include <errno.h>
 #include "ipc_lib.h"
 #include "memchk.h"
-
 #include <sys/socket.h>
 //variavel que suporta os canais de comunicacao
 static T_IPC ipc_canais[MAX_CANAIS];
 
 //#define _IPC_DEBUG_
+
 /*********************************************************************************
-* Funï¿½ï¿½o:         send_data                                                      *
+* Função:         send_data                                                      *
 *                                                                                *
-* Descriï¿½ï¿½o:      Metodo que permite enviar uma mensagem para um determinado     *
+* Descrição:      Metodo que permite enviar uma mensagem para um determinado     *
 *                 processo. Dependendo dos parametros de entrada, este metodo    *
-*                 pode ou nao esperar pela resposta a mensagem enviada           *
+*                 pode ou nao esperar pela resposta a mensagem enviada           *                                                                                                
 *                                                                                *
 * Parametros entrada:                                                            *
 *                 handler:       id do canal de comunicacao para onde sera       *
@@ -57,10 +57,10 @@ static T_IPC ipc_canais[MAX_CANAIS];
 *                                aponta para uma estrutura pc_type               *
 * Parametros saida:                                                              *
 *                 receivebuffer: ponteiro para o buffer de recepcao. Este ptr    *
-*                                aponta para uma estrutura pc_type               *
+*                                aponta para uma estrutura pc_type               *                                                            
 *                                                                                *
 * retorno:                                                                       *
-*                 0: Operaï¿½ï¿½o decorrida com sucesso                              *
+*                 0: Operação decorrida com sucesso                              *
 *                -1: nao consegue enviar o pacote                                *
 *                -2: nao recebe uma resposta valida, ou foi atingido o timeout   *
 *                                                                                *
@@ -72,11 +72,8 @@ static T_IPC ipc_canais[MAX_CANAIS];
 *********************************************************************************/
 int send_data(int canal_id, int porto_destino, unsigned int ipdest, pc_type *sendbuffer, pc_type *receivebuffer)
 {
-   unsigned int bytes, addr_len;
+   int bytes, addr_len;
    struct sockaddr_in socketaddr_aux;   
-
-   if (ipc_canais[canal_id].estado==CANAL_LIVRE)     //Enquanto o canal estiver alocado
-     return(-4);
 
    if(canal_id>=MAX_CANAIS)
        return(-3);
@@ -99,7 +96,7 @@ int send_data(int canal_id, int porto_destino, unsigned int ipdest, pc_type *sen
    do {
      bytes = recvfrom(ipc_canais[canal_id].socket_descriptor_cliente, receivebuffer,
                       sizeof(*receivebuffer), 0,(struct sockaddr*)&socketaddr_aux,
-                      &addr_len);
+                      (socklen_t*)&addr_len);
    }
    while ( ((bytes<0) && (errno!=EAGAIN)) || ((bytes>0) && (sendbuffer->counter != receivebuffer->counter)));
 
@@ -111,7 +108,7 @@ int send_data(int canal_id, int porto_destino, unsigned int ipdest, pc_type *sen
    }
 
 #ifdef _IPC_DEBUG_
-   printf("msg from %s:%d (%d bytes)\r\n", inet_ntoa(socketaddr_aux.sin_addr),
+   printf("msg from %s:%d (%d bytes)\n", inet_ntoa(socketaddr_aux.sin_addr),
           ntohs(socketaddr_aux.sin_port), bytes);
 #endif
 
@@ -121,9 +118,9 @@ int send_data(int canal_id, int porto_destino, unsigned int ipdest, pc_type *sen
 
 
 /*********************************************************************************
-* Funï¿½ï¿½o:         clone_proc_msg                                                 *
+* Função:         clone_proc_msg                                                 *
 *                                                                                *
-* Descriï¿½ï¿½o:      Metodo que suporta o clone de escuta no porto de recepcao      *
+* Descrição:      Metodo que suporta o clone de escuta no porto de recepcao      *
 *                 programado. Este metodo e chamado pelo metodo <open_ipc>       *
 *                                                                                *
 * Parametros entrada:                                                            *
@@ -131,7 +128,7 @@ int send_data(int canal_id, int porto_destino, unsigned int ipdest, pc_type *sen
 *                                qual o clone esta associado                     *
 *                                                                                *
 * retorno:                                                                       *
-*                 0: Operaï¿½ï¿½o decorrida com sucesso                              *
+*                 0: Operação decorrida com sucesso                              *
 *                                                                                *
 * historico:                                                                     *
 *         8 Feveveiro de 2003                                                    *
@@ -139,15 +136,11 @@ int send_data(int canal_id, int porto_destino, unsigned int ipdest, pc_type *sen
 * Autor: Celso Lemos                                                             *
 *                                                                                *
 *********************************************************************************/
-#ifdef _PTHREAD_
-static void *clone_proc_msg(void* canal_id)
-#else
 static int clone_proc_msg(void* canal_id)
-#endif
 {
 	pc_type	inbuffer;
 	pc_type	outbuffer;
-    unsigned int bytes, socketaddr_len;
+    int bytes, socketaddr_len;
     struct sockaddr_in socketaddr_aux;
     int canal;
 
@@ -164,13 +157,13 @@ static int clone_proc_msg(void* canal_id)
         /* Espera pelo pacote no porto Rx de escuta */
         socketaddr_len = sizeof(socketaddr_aux);
 		bytes = recvfrom(ipc_canais[canal].socket_descriptor_servidor, &inbuffer, sizeof(inbuffer), 0,
-                         (struct sockaddr*)&socketaddr_aux, &socketaddr_len);
+                         (struct sockaddr*)&socketaddr_aux, (socklen_t*)&socketaddr_len);
 
 		if (bytes>0)
 		{                              //Se pacote valido, processa
             #ifdef _IPC_DEBUG_
-			fprintf(stderr,"msg from %s:%d (%d bytes), canal_id=%d\r\n", inet_ntoa(socketaddr_aux.sin_addr), 
-                                              ntohs(socketaddr_aux.sin_port), bytes, canal);
+			fprintf(stderr,"msg from %s:%d (%d bytes)\n", inet_ntoa(socketaddr_aux.sin_addr), 
+                                              ntohs(socketaddr_aux.sin_port), bytes);
             fprintf(stderr,"id=%d,dim=%d\n\r",inbuffer.msgId,inbuffer.infoDim);
             #endif
             
@@ -185,10 +178,10 @@ static int clone_proc_msg(void* canal_id)
                    sizeof(socketaddr_aux));
             }
 		}
-        #ifdef _IPC_DEBUG_
-		else
-            fprintf(stderr,"\n loop control\r\n");
-        #endif
+        //#ifdef _IPC_DEBUG_
+		//else
+        //    fprintf(stderr,"\n loop control\n");
+        //#endif
         
 	} //while   
     
@@ -200,9 +193,9 @@ static int clone_proc_msg(void* canal_id)
 
 
 /*********************************************************************************
-* Funï¿½ï¿½o:         open_ipc                                                       *
+* Função:         open_ipc                                                       *
 *                                                                                *
-* Descriï¿½ï¿½o:      Metodo que permite enviar uma mensagem para um determinado     *
+* Descrição:      Metodo que permite enviar uma mensagem para um determinado     *
 *                 processo. Dependendo dos parametros de entrada, este metodo    *
 *                 pode ou nao esperar pela resposta a mensagem enviada           *                                                                                                *
 *                                                                                *
@@ -232,13 +225,12 @@ static int clone_proc_msg(void* canal_id)
 * Autor: Celso Lemos                                                             *
 *                                                                                *
 *********************************************************************************/
-int open_ipc(int porto_rx, unsigned int ipaddr, int  (*MessageHandler)(pc_type *inbuffer, pc_type *outbuffer), int timeout, int prio)
+int open_ipc(int porto_rx, unsigned int ipaddr, int  (*MessageHandler)(pc_type *inbuffer, pc_type *outbuffer), int timeout)
 {
     struct timeval tv;
     //struct hostent *hostbyname; 
     int canal_id,i;
-    //struct sched_param pthread_param;
-
+    
     /* Deteccao do primeiro canal livre */
     for(i=0;i<MAX_CANAIS;i++)
     {
@@ -298,6 +290,11 @@ int open_ipc(int porto_rx, unsigned int ipaddr, int  (*MessageHandler)(pc_type *
         ipc_canais[canal_id].socketaddr_servidor.sin_port	= htons(porto_rx);
         ipc_canais[canal_id].socketaddr_servidor.sin_addr.s_addr = htonl(ipaddr);
    
+
+        #ifdef _IPC_DEBUG_
+        printf("porto_rx = %d, ipaddr = 0x%.8x\n\r",porto_rx,ipaddr);
+        #endif
+
         if (bind(ipc_canais[canal_id].socket_descriptor_servidor, 
                  (struct sockaddr*)&ipc_canais[canal_id].socketaddr_servidor, 
                   sizeof(ipc_canais[canal_id].socketaddr_servidor)) != 0 )
@@ -311,29 +308,15 @@ int open_ipc(int porto_rx, unsigned int ipaddr, int  (*MessageHandler)(pc_type *
         }
 
         /* Definicao do Clone de escuta */
-        memfill(&ipc_canais[canal_id].stack_clone_ipc[0],STACK_CLONE_IPC,(char *) "IPC");
-
-#ifdef _PTHREAD_
-        pthread_attr_init(&ipc_canais[canal_id].thread_attr);
-        if (prio >= 0)
-        {
-          /* Set Thread Priority */
-          memset(&pthread_param, 0, sizeof(pthread_param));
-          pthread_param.sched_priority = prio;
-          pthread_attr_setschedparam(&ipc_canais[canal_id].thread_attr, &pthread_param);
-        }
-
-        if (pthread_create(&ipc_canais[canal_id].thread_id, &ipc_canais[canal_id].thread_attr, clone_proc_msg, (void*)&ipc_canais[canal_id].canal_id)) 
-#else
+        memfill(&ipc_canais[canal_id].stack_clone_ipc[0],STACK_CLONE_IPC,"IPC");
         if ((ipc_canais[canal_id].clone_ipc_id=clone(clone_proc_msg,
                       (void *)&ipc_canais[canal_id].stack_clone_ipc[STACK_CLONE_IPC-1],
                       (CLONE_VM | CLONE_FS | CLONE_FILES), 
                       (void*)&ipc_canais[canal_id].canal_id)) == -1 )
-#endif
         {
             printf("\rIPC_LIB : Arranque CLONE <clone_proc_msg> [ERROR]\n\r");
             #ifdef _IPC_DEBUG_
-            fprintf(stderr,"<clone_processar_msg>: Erro a criar o clone\r\n");
+            fprintf(stderr,"<clone_processar_msg>: Erro a criar o clone\n");
             #endif
             close(ipc_canais[canal_id].socket_descriptor_cliente);    //liberta o descritor de cliente         
             close(ipc_canais[canal_id].socket_descriptor_servidor);   //liberta o descritor de servidor
@@ -355,15 +338,16 @@ int open_ipc(int porto_rx, unsigned int ipaddr, int  (*MessageHandler)(pc_type *
                 SO_RCVTIMEO, &tv, sizeof(tv));
     //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+
     return(canal_id);  //Retorna o handler correspondente ao canal de comunicacao alocado
 }
 
 
 
 /*********************************************************************************
-* Funï¿½ï¿½o:         init_ipc_lib                                                   *
+* Função:         init_ipc_lib                                                   *
 *                                                                                *
-* Descriï¿½ï¿½o:      Este metodo deve se chamado antes de qualquer um dos outros.   *
+* Descrição:      Este metodo deve se chamado antes de qualquer um dos outros.   *
 *                 Este metodo inicializa a estrutura que gere os handlers        *
 *                                                                                *
 * historico:                                                                     *
@@ -386,9 +370,9 @@ void init_ipc_lib(void)
 
 
 /*********************************************************************************
-* Funï¿½ï¿½o:         close_ipc                                                      *
+* Função:         close_ipc                                                      *
 *                                                                                *
-* Descriï¿½ï¿½o:      Metodo que permite destruir um canal de comunicacao alocado    *
+* Descrição:      Metodo que permite destruir um canal de comunicacao alocado    *
 *                 com o metodo <open_ipc>                                        *
 *                                                                                *
 * Parametros entrada:                                                            *
@@ -418,13 +402,9 @@ int close_ipc(int canal_id)
     }
         
     if(ipc_canais[canal_id].processa_msg_handler!=NULL) {
-        printf("Stack(ipc): used %d of %d\n\r", STACK_CLONE_IPC-memchk(&ipc_canais[canal_id].stack_clone_ipc[0], STACK_CLONE_IPC,(char *) "IPC"), STACK_CLONE_IPC);
-
-#ifdef _PTHREAD_
-//        pthread_exit(&ipc_canais[canal_id].thread_id);
-#else
+        printf("Stack(ipc): used %d of %d\n\r", STACK_CLONE_IPC-memchk(&ipc_canais[canal_id].stack_clone_ipc[0], STACK_CLONE_IPC, 
+                                                "IPC"), STACK_CLONE_IPC);
         kill(ipc_canais[canal_id].clone_ipc_id,SIGKILL);      //mata o clone
-#endif
     }
 
     close(ipc_canais[canal_id].socket_descriptor_cliente);   //destroi o descritor para o socket cliente
