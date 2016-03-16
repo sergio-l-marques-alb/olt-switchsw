@@ -22,7 +22,7 @@ insert_modules()
     insmod /usr/local/ptin/sbin/linux-kernel-bde.ko dmasize=16M debug=1
     insmod /usr/local/ptin/sbin/linux-user-bde.ko
     sleep 1
-    echo "Ready to start Fastpath..."
+    echo "Ready to start Fastpath!"
 }
 
 
@@ -41,7 +41,7 @@ startup()
     $app_path 0>/dev/null &
 
     # Wait 200 seconds for FP to boot up
-    $cli ping 10 20
+    $cli ping p=20 t=10
 
     let "ntry=ntry+1"
 }
@@ -93,7 +93,7 @@ elif [ $mode = "boot" ]; then
     fi
 
     # Query application to determine if it is running or not
-    $cli ping 6 4 > /dev/null
+    $cli ping p=4 t=6 > /dev/null
     # Start application
     if [ "$?" -ne "0" ]; then
         echo "Going to start application"
@@ -104,7 +104,7 @@ elif [ $mode = "boot" ]; then
     while [ 1 ]
     do
         # Query application to determine if it is running or not
-        $cli ping 10 12 > /dev/null
+        $cli ping p=12 t=10 > /dev/null
         if [ "$?" -ne "0" ]; then
             echo "Transferring LOGs to Matrix board..."
             echo "Fastpath watchdog fired after 10x12 seconds of inactivity!" > /var/log/system_error_info.log
