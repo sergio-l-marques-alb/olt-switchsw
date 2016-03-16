@@ -26,22 +26,22 @@ help h:
 	@echo ""
 
 all:
-	@$(MAKE) -f tu100g.make
 	@$(MAKE) -f tt08sxg.make
+	@$(MAKE) -f tu100g.make
 	@$(MAKE) -f ta12xg.make
 
 install:
-	@$(MAKE) -f tu100g.make install
 	@$(MAKE) -f tt08sxg.make install
+	@$(MAKE) -f tu100g.make install
 	@$(MAKE) -f ta12xg.make install
 
-clean:		
-	@$(MAKE) -f tu100g.make clean
+clean:
 	@$(MAKE) -f tt08sxg.make clean
+	@$(MAKE) -f tu100g.make clean
 	@$(MAKE) -f ta12xg.make clean
 
 cleanall:
-	@$(MAKE) -f tu100g.make cleanall
 	@$(MAKE) -f tt08sxg.make cleanall
+	@$(MAKE) -f tu100g.make cleanall
 	@$(MAKE) -f ta12xg.make cleanall
 

@@ -12,13 +12,14 @@
 #  																																	  #
 #########################################################################################################
 
-BOARD=$1
-
-if [ $BOARD == "TA12XG" ]; then
+if [ $1 == "ta12xg" ]; then
+ BOARD=TA12XG
  OUTPUT=output/FastPath-Ent-dpp-dnx-e500-LR-CSxw-IQH_TA12XG
-elif [ $BOARD == "TU100G" ]; then
+elif [ $1 == "tu100g" ]; then
+ BOARD=TU100G
  OUTPUT=output/FastPath-Ent-dpp-dnx-e500-LR-CSxw-IQH_TU100G
-elif [ $BOARD == "TT08SXG" ]; then
+elif [ $1 == "tt08sxg" ]; then
+ BOARD=TT08SXG
  OUTPUT=output/FastPath-Ent-dpp-dnx-e500mc-LR-CSxw-IQH_TT08SXG
 else
  echo "Unknown board!"
