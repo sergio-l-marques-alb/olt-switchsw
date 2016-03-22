@@ -12950,7 +12950,7 @@ L7_RC_t test_evc_create(L7_uint evc_id, L7_uint16 int_vlan,
                         L7_uint8 port1, L7_uint16 ovid1_val, L7_uint8 ovid1_op, 
                         L7_uint8 port2, L7_uint16 ovid2_val, L7_uint8 ovid2_op)
 {
-  #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+  
   L7_RC_t rc;
   ptin_HwEthMef10Evc_t evcConf;
 
@@ -12989,6 +12989,7 @@ L7_RC_t test_evc_create(L7_uint evc_id, L7_uint16 int_vlan,
 
 L7_RC_t teste_ptp()
 {
+  #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
   L7_RC_t rc;
   int i;
   ptin_HwEthMef10Evc_t evcConf;
