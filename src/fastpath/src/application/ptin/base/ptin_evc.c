@@ -665,7 +665,7 @@ L7_RC_t ptin_evc_startup(void)
   }
 
   /* Only configure special EVCs, for CPU-FPGA-Ports connectivity, if OLT1T0-AC equipment */
-  if (KERNEL_NODE_IS("OLT1T0-AC"))
+  if(0)//KERNEL_NODE_IS("OLT1T0-AC"))
   {
     /* Create CPU-FPGA circuit */
     memset(&evcConf, 0x00, sizeof(evcConf));
@@ -8911,16 +8911,23 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, ptin_HwEthMef10Intf_t *intf_cfg
     }
     /* For Unstacked MAC-Bridge services - @downstream direction - a new TAG will be added as new outer VLAN */
     /* This way, payload data goes after the second tag, and will be preserved to the ONT */
-    if (is_quattro && !is_stacked)
+    if (is_quattro)
     {
-      intf_vlan.action_outer = PTIN_XLATE_ACTION_ADD;
-      intf_vlan.action_inner = PTIN_XLATE_ACTION_NONE;
+      if(!is_stacked)
+      {
+        intf_vlan.action_outer = PTIN_XLATE_ACTION_ADD;
+        intf_vlan.action_inner = PTIN_XLATE_ACTION_NONE;
+      }
+      else
+      {
+        intf_vlan.action_inner = PTIN_XLATE_ACTION_REPLACE;
+      }
     }
   #endif
     
     rc = switching_root_add(&intf_vlan,                                 /* Input data */
                             int_vlan,                                   /* Internal vlan */
-                            0,                                          /* New inner vlan */
+                            0,                                           /* New inner vlan */
                             egress_del_ivlan,                           /* Delete egress vlan? Only for unstacked EVCs */
                             -1);                                        /* Force PCP */
 
@@ -10313,13 +10320,10 @@ static L7_RC_t switching_root_add(ptin_HwEthMef10Intf_t *intf_cfg, L7_uint16 int
     intf_vlan_set.vid           = int_vlan;
     intf_vlan_set.vid_inner     = new_innerVlan;
     intf_vlan_set.action_outer  = PTIN_XLATE_ACTION_REPLACE;
+
     if (egress_del_ivlan)
     {
       intf_vlan_set.action_inner  = PTIN_XLATE_ACTION_DELETE;
-    }
-    else
-    {
-      intf_vlan_set.action_inner = intf_cfg->action_inner;
     }
 
     rc = ptin_xlate_egress_add(&intf_vlan_set,
@@ -12982,3 +12986,88 @@ L7_RC_t test_evc_create(L7_uint evc_id, L7_uint16 int_vlan,
   return L7_SUCCESS;
 }
 
+L7_RC_t teste_ptp()
+{
+  L7_RC_t rc;
+  int i;
+  ptin_HwEthMef10Evc_t evcConf;
+
+  /* Create CPU-FPGA circuit */
+  memset(&evcConf, 0x00, sizeof(evcConf));
+  evcConf.index         = PTIN_EVC_FPGA2CPU;
+  evcConf.flags         = PTIN_EVC_MASK_MACLEARNING;
+  evcConf.mc_flood      = PTIN_EVC_MC_FLOOD_ALL;
+  evcConf.internal_vlan = PTIN_VLAN_FPGA2CPU;
+  evcConf.n_intf        = 2;
+  /* Root port */
+  evcConf.intf[0].intf.format = PTIN_INTF_FORMAT_PORT;
+  evcConf.intf[0].intf.value.ptin_port = PTIN_PORT_CPU;
+  evcConf.intf[0].mef_type    = PTIN_EVC_INTF_ROOT;
+  evcConf.intf[0].vid         = 0;
+  evcConf.intf[0].action_outer= PTIN_XLATE_ACTION_NONE;
+  evcConf.intf[0].action_inner= PTIN_XLATE_ACTION_NONE;
+  /* Leaf ports */
+  evcConf.intf[1].intf.format = PTIN_INTF_FORMAT_PORT;
+  evcConf.intf[1].intf.value.ptin_port = PTIN_PORT_FPGA;
+  evcConf.intf[1].mef_type    = PTIN_EVC_INTF_LEAF;
+  evcConf.intf[1].vid         = 0;
+  evcConf.intf[1].action_outer= PTIN_XLATE_ACTION_NONE;
+  evcConf.intf[1].action_inner= PTIN_XLATE_ACTION_NONE;
+
+  /* Create circuit */
+  rc = ptin_evc_create(&evcConf);
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_API, "Error creating EVC# %u connecting CPU-FPGA", PTIN_EVC_FPGA2CPU);
+    return rc;
+  }
+  /* Configure pop translation actions */
+  rc = ptin_xlate_egress_set(PTIN_PORT_CPU, PTIN_VLAN_FPGA2CPU, PTIN_XLATE_ACTION_DELETE, (L7_uint16)-1);
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_API, "Error defining pop xlate action for EVC# %u (CPU-FPGA): rc=%d", PTIN_EVC_FPGA2CPU, rc);
+    return rc;
+  }
+
+  /* Create Port-FPGA circuits */
+  for (i = 0; i < PTIN_SYSTEM_N_UPLINK_INTERF; i++)
+  {
+    memset(&evcConf, 0x00, sizeof(evcConf)); 
+    evcConf.index         = PTIN_EVC_FPGA2PORTS_MIN + i;
+    evcConf.flags         = PTIN_EVC_MASK_MACLEARNING;
+    evcConf.mc_flood      = PTIN_EVC_MC_FLOOD_ALL;
+    evcConf.internal_vlan = PTIN_VLAN_FPGA2PORT_MIN + i;
+    evcConf.n_intf        = 2;
+    /* Root port */
+    evcConf.intf[0].intf.format = PTIN_INTF_FORMAT_PORT;
+    evcConf.intf[0].intf.value.ptin_port = i;
+    evcConf.intf[0].mef_type    = PTIN_EVC_INTF_ROOT;
+    evcConf.intf[0].vid         = 0;
+    evcConf.intf[0].action_outer= PTIN_XLATE_ACTION_NONE;
+    evcConf.intf[0].action_inner= PTIN_XLATE_ACTION_NONE;
+    /* Leaf ports */
+    evcConf.intf[1].intf.format = PTIN_INTF_FORMAT_PORT;
+    evcConf.intf[1].intf.value.ptin_port = PTIN_PORT_FPGA;
+    evcConf.intf[1].mef_type    = PTIN_EVC_INTF_LEAF;
+    evcConf.intf[1].vid         = 0;
+    evcConf.intf[1].action_outer= PTIN_XLATE_ACTION_NONE;
+    evcConf.intf[1].action_inner= PTIN_XLATE_ACTION_NONE;
+
+    /* Create circuit */
+    rc = ptin_evc_create(&evcConf);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_API, "Error creating EVC# %u for connecting Port %u to FPGA", PTIN_EVC_FPGA2CPU, i);
+      return rc;
+    }
+    /* Configure pop translation actions */
+    rc = ptin_xlate_egress_set(i, PTIN_VLAN_FPGA2PORT_MIN+i, PTIN_XLATE_ACTION_DELETE, (L7_uint16)-1);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_API, "Error defining pop xlate action for EVC# %u (CPU-FPGA): rc=%d", PTIN_EVC_FPGA2PORTS_MIN+i, rc);
+      return rc;
+    }
+  }
+  PT_LOG_INFO(LOG_CTX_API, "Standard EVCs configured for OLT1T0-AC equipment");
+  return L7_SUCCESS;
+}
