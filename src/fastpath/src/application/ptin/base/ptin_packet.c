@@ -10,6 +10,7 @@
 
 #include "ptin_packet.h"
 #include "ptin_evc.h"
+#include "ptin_intf.h"
 #include "sysnet_api_ipv4.h"
 
 #include "usmdb_util_api.h"
@@ -331,6 +332,8 @@ void ptin_packet_task(void)
  */
 L7_RC_t ptinMacBcastProcess( ptin_PDU_Msg_t *pktMsg )
 {
+  /* Not supported */
+#if 0
   L7_uint         i;
   L7_uint32       intf;
   NIM_INTF_MASK_t intfList;
@@ -380,6 +383,7 @@ L7_RC_t ptinMacBcastProcess( ptin_PDU_Msg_t *pktMsg )
       ptin_packet_send(intf, vlanId, flood_vlan[i], pktMsg->payload, pktMsg->payloadLen);
     }
   }
+#endif
 
   return L7_SUCCESS;
 }
@@ -617,12 +621,24 @@ static L7_RC_t ptin_packet_frame_unicast(L7_uint32 outgoingIf,
 static L7_RC_t ptin_packet_frame_flood(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId,
                                        L7_uchar8 *frame, L7_ushort16 frameLen)
 {
+  L7_uint src_port;
+#if (PTIN_BOARD_IS_GPON)
+  L7_uint dst_port;
+#endif
   NIM_INTF_MASK_t portMask;
   L7_uint32 i, activeState = L7_INACTIVE;
   L7_RC_t rc = L7_SUCCESS;
 
   if (ptin_packet_debug_enable)
     PT_LOG_TRACE(LOG_CTX_PACKET, "intIfNum=%u, vlanId=%u, innerVlanId=%u", intIfNum, vlanId, innerVlanId);
+
+  /* Validate source port */
+  if (ptin_intf_intIfNum2port(intIfNum, &src_port) != L7_SUCCESS)
+  {
+    if (ptin_packet_debug_enable)
+      PT_LOG_ERR(LOG_CTX_PACKET, "Can't convert intIfNum=%u to ptin_port format", intIfNum);
+    return L7_FAILURE;
+  }
 
   if (dot1qVlanEgressPortsGet(vlanId, &portMask) == L7_SUCCESS)
   {
@@ -631,20 +647,38 @@ static L7_RC_t ptin_packet_frame_flood(L7_uint32 intIfNum, L7_ushort16 vlanId, L
       if (L7_INTF_ISMASKBITSET(portMask, i))
       {
         /* Don't flood back on the incoming interface */
-        if(i != intIfNum)
+        if(i == intIfNum)
         {
-          if((nimGetIntfActiveState(i, &activeState) == L7_SUCCESS) &&
-             (activeState == L7_ACTIVE))
-          {
-            /* Send on an interface that is link up and in forwarding state */
-            if (ptin_packet_frame_send(i, vlanId, innerVlanId, 0, frame, frameLen) != L7_SUCCESS)
-            {
-              if (ptin_packet_debug_enable)
-                PT_LOG_ERR(LOG_CTX_PACKET, "Error transmitting packet to intIfNum %u (vlanId=%u, innerVlanId=%u)",
-                        i, vlanId, innerVlanId);
-              rc = L7_FAILURE;
-            }
-          }
+          continue;
+        }
+
+      #if (PTIN_BOARD_IS_GPON)
+        if (ptin_intf_intIfNum2port(i, &dst_port) != L7_SUCCESS)
+        {
+          continue;
+        }
+        /* Prevent both src port and dst port to be PON ports (isolated) */
+        if (((PTIN_SYSTEM_PON_PORTS_MASK >> src_port) & 1) &&
+            ((PTIN_SYSTEM_PON_PORTS_MASK >> dst_port) & 1))
+        {
+          continue;
+        }
+      #endif
+
+        /* Destination interface should be active */
+        if((nimGetIntfActiveState(i, &activeState) != L7_SUCCESS) ||
+           (activeState != L7_ACTIVE))
+        {
+          continue;
+        }
+
+        /* Send on an interface that is link up and in forwarding state */
+        if (ptin_packet_frame_send(i, vlanId, innerVlanId, 0, frame, frameLen) != L7_SUCCESS)
+        {
+          if (ptin_packet_debug_enable)
+            PT_LOG_ERR(LOG_CTX_PACKET, "Error transmitting packet to intIfNum %u (vlanId=%u, innerVlanId=%u)",
+                    i, vlanId, innerVlanId);
+          rc = L7_FAILURE;
         }
       }
     }
