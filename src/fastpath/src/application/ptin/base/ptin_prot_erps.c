@@ -3981,33 +3981,4 @@ void ptin_prot_erps_test(int test, int param1, int param2, int param3, int param
   }
 }
 
-
-/**
- * Get ERPS Status 
- * 
- * @author joaom (6/5/2013)
- * 
- * @param erps_idx 
- * @param status 
- * 
- * @return int 
- */
-int ptin_erps_get_status_void(L7_uint8 erps_idx)
-{
-  int ret = erps_idx;
-
-  if (erps_idx>=MAX_PROT_PROT_ERPS) {
-    ret = PROT_ERPS_INDEX_VIOLATION;
-    return(ret);
-  }
-
-  if (tbl_erps[erps_idx].admin==PROT_ERPS_ENTRY_FREE) {
-    osapiSemaGive(ptin_prot_erps_sem);
-    ret = PROT_ERPS_UNAVAILABLE;
-    return(ret);
-  }
-
-  return(ret);
-}
-
 #endif  // PTIN_ENABLE_ERPS

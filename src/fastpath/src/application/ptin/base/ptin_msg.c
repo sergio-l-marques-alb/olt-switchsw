@@ -5312,13 +5312,6 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
   PT_LOG_DEBUG(LOG_CTX_MSG, " .MC Flood = %u (%s)", ptinEvcConf.mc_flood, ptinEvcConf.mc_flood==0?"All":ptinEvcConf.mc_flood==1?"Unknown":"None");
   PT_LOG_DEBUG(LOG_CTX_MSG, " .Nr.Intf  = %u",      ptinEvcConf.n_intf);
 
-  #ifdef PTIN_ENABLE_ERPS
-  if( (flags & PTIN_EVC_MASK_MC_IPTV) && ptin_erps_get_status_void(1) == 1)
-  {
-    ptinEvcConf.mc_flood = 1;
-  }
-  #endif
-
   for (i=0; i < ptinEvcConf.n_intf; i++)
   {
     #if (0)
