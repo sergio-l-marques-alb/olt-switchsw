@@ -621,7 +621,10 @@ static L7_RC_t ptin_packet_frame_unicast(L7_uint32 outgoingIf,
 static L7_RC_t ptin_packet_frame_flood(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId,
                                        L7_uchar8 *frame, L7_ushort16 frameLen)
 {
-  L7_uint src_port, dst_port;
+  L7_uint src_port;
+#if (PTIN_BOARD_IS_GPON)
+  L7_uint dst_port;
+#endif
   NIM_INTF_MASK_t portMask;
   L7_uint32 i, activeState = L7_INACTIVE;
   L7_RC_t rc = L7_SUCCESS;
