@@ -1,3 +1,4 @@
+
 /*
 * L2
 *
@@ -1106,7 +1107,7 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, L7_uint3
     l2_learn_limit.port = (bcm_port_t) hapiPortPtr->bcm_port;
 
     /*Set Flags*/
-    l2_learn_limit.flags   = BCM_L2_LEARN_LIMIT_PORT ;
+    l2_learn_limit.flags   = BCM_L2_LEARN_LIMIT_PORT;
 
    if(action == 1) 
    {
@@ -1186,7 +1187,6 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, L7_uint3
   old_limit     =  macLearn_info_ptr->old_limit;
   old_send_trap =  macLearn_info_ptr->send_trap;
 
-
   /*Disable Mac Limit*/
   if (mac_limit == (L7_uint32) -1 )
   {
@@ -1234,7 +1234,7 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, L7_uint3
     }
     else
     {
-      macLearn_info_ptr->old_limit = macLearn_info_ptr->old_limit;
+      macLearn_info_ptr->old_limit =   macLearn_info_ptr->old_limit;
     }
 
     macLearn_info_ptr->mask       =  l2_learn_limit.flags;
@@ -1247,6 +1247,8 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, L7_uint3
     }
   }
   
+  PT_LOG_NOTICE(LOG_CTX_HAPI, "newLimit:%u newFlags:0x%.4X (oldLimit:%u oldFlags:0x%.4X)",l2_learn_limit.limit, l2_learn_limit.flags, old_limit, old_flags);
+
   if ( (l2_learn_limit.limit == old_limit) && (l2_learn_limit.flags == old_flags) )
   {
     if (macLearn_info_ptr->send_trap == old_send_trap)
@@ -1260,7 +1262,7 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, L7_uint3
       return L7_SUCCESS;
     }    
   }
-  PT_LOG_NOTICE(LOG_CTX_HAPI, "newLimit:%u newFlags:0x%.4X (oldLimit:%u oldFlags:0x%.4X)",l2_learn_limit.limit, l2_learn_limit.flags, old_limit, old_flags);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "newLimit:%u newFlags:0x%.4X (oldLimit:%u oldFlags:0x%.4X)",l2_learn_limit.limit, l2_learn_limit.flags, old_limit, old_flags);
   
   if(action == 0) // Disable the HW limit when action is 0
   {
@@ -1283,6 +1285,9 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, L7_uint3
   PT_LOG_NOTICE(LOG_CTX_HAPI, "Not supported Yet!");
   #endif
 
+  macLearn_info_ptr->mask     =  l2_learn_limit.flags;
+
+  PT_LOG_TRACE(LOG_CTX_HAPI, "newLimit:%u newFlags:0x%.4X (oldLimit:%u oldFlags:0x%.4X %u)",l2_learn_limit.limit, l2_learn_limit.flags, old_limit, old_flags , action);
   return rc;
 }
 
