@@ -5312,6 +5312,13 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
   PT_LOG_DEBUG(LOG_CTX_MSG, " .MC Flood = %u (%s)", ptinEvcConf.mc_flood, ptinEvcConf.mc_flood==0?"All":ptinEvcConf.mc_flood==1?"Unknown":"None");
   PT_LOG_DEBUG(LOG_CTX_MSG, " .Nr.Intf  = %u",      ptinEvcConf.n_intf);
 
+  #ifdef PTIN_ENABLE_ERPS
+  if( (flags & PTIN_EVC_MASK_MC_IPTV) && ptin_erps_get_status_void(1) == 1)
+  {
+    ptinEvcConf.mc_flood = 1;
+  }
+  #endif
+
   for (i=0; i < ptinEvcConf.n_intf; i++)
   {
     #if (0)
@@ -5339,6 +5346,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
     ptinEvcConf.intf[i].vid       = msgEvcConf->evc.intf[i].vid;
     ptinEvcConf.intf[i].vid_inner = msgEvcConf->evc.intf[i].inner_vid;
 
+  
     PT_LOG_DEBUG(LOG_CTX_MSG, "   %s# %02u %s VID=%04u/%-04u",
              ptinEvcConf.intf[i].intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
              ptinEvcConf.intf[i].intf_id,
@@ -5657,12 +5665,6 @@ L7_RC_t ptin_msg_evc_config(ipc_msg *inbuffer, ipc_msg *outbuffer)
   /* List of EVCs to be used for local purposes */
   static L7_uint32 evcid_list[4096];
   static L7_uint max_evcs = 4096;
-
-  #ifdef PTIN_ENABLE_ERPS
-
-  msgEvcOptions->mc_flood = 2;
-
-  #endif
 
   /* Validate arguments */
   if (msgEvcOptions == L7_NULLPTR)
