@@ -1342,7 +1342,7 @@ L7_RC_t ptin_xlate_egress_add( ptin_HwEthMef10Intf_t *intf_vlan,
   }
   else if (intf_vlan->vid_inner == 0)     /* If valid VLAN was provided, add a new one */
   {
-    xlate.innerVlanAction = PTIN_XLATE_ACTION_ADD;
+    xlate.innerVlanAction = PTIN_XLATE_ACTION_REPLACE;
   }
 #endif
 
