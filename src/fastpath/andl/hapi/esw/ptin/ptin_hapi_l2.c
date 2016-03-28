@@ -1261,7 +1261,7 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, L7_uint3
       return L7_SUCCESS;
     }    
   }
-  PT_LOG_NOTICE(LOG_CTX_HAPI, "newLimit:%u newFlags:0x%.4X (oldLimit:%u oldFlags:0x%.4X)",l2_learn_limit.limit, l2_learn_limit.flags, old_limit, old_flags);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "newLimit:%u newFlags:0x%.4X (oldLimit:%u oldFlags:0x%.4X)",l2_learn_limit.limit, l2_learn_limit.flags, old_limit, old_flags);
   
   if(action == 0) // Disable the HW limit when action is 0
   {
@@ -1286,7 +1286,7 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, L7_uint3
 
   macLearn_info_ptr->mask     =  l2_learn_limit.flags;
 
-  PT_LOG_NOTICE(LOG_CTX_HAPI, "newLimit:%u newFlags:0x%.4X (oldLimit:%u oldFlags:0x%.4X %u)",l2_learn_limit.limit, l2_learn_limit.flags, old_limit, old_flags , action);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "newLimit:%u newFlags:0x%.4X (oldLimit:%u oldFlags:0x%.4X %u)",l2_learn_limit.limit, l2_learn_limit.flags, old_limit, old_flags , action);
   return rc;
 }
 
