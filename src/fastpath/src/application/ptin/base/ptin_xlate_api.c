@@ -923,10 +923,10 @@ L7_RC_t ptin_xlate_ingress_add( ptin_HwEthMef10Intf_t *intf_vlan,
   {
     xlate.outerVlanAction = PTIN_XLATE_ACTION_DELETE;
   }
-  else if (intf_vlan->vid == 0)           /* If valid VLAN was provided, add a new one */
-  {
-    xlate.outerVlanAction = PTIN_XLATE_ACTION_ADD;
-  }
+//else if (intf_vlan->vid == 0)           /* If valid VLAN was provided, add a new one */
+//{
+//  xlate.outerVlanAction = PTIN_XLATE_ACTION_ADD;
+//}
 
 #if ( PTIN_BOARD_IS_MATRIX )
   /* No inner VLAN action on Matrix board */
@@ -940,10 +940,10 @@ L7_RC_t ptin_xlate_ingress_add( ptin_HwEthMef10Intf_t *intf_vlan,
   {
     xlate.innerVlanAction = PTIN_XLATE_ACTION_DELETE;
   }
-  else if (intf_vlan->vid_inner == 0)     /* If valid VLAN was provided, add a new one */
-  {
-    xlate.innerVlanAction = PTIN_XLATE_ACTION_ADD;
-  }
+//else if (intf_vlan->vid_inner == 0)     /* If no valid (input) VLAN was provided, always replace (Add is not allowed) */
+//{
+//  xlate.innerVlanAction = PTIN_XLATE_ACTION_REPLACE;
+//}
 #endif
 
   /* Never remove VLANs at ingress translation */
@@ -1323,10 +1323,10 @@ L7_RC_t ptin_xlate_egress_add( ptin_HwEthMef10Intf_t *intf_vlan,
   {
     xlate.outerVlanAction = PTIN_XLATE_ACTION_DELETE;
   }
-  else if (intf_vlan->vid == 0)           /* If valid VLAN was provided, add a new one */
-  {
-    xlate.outerVlanAction = PTIN_XLATE_ACTION_ADD;
-  }
+//else if (intf_vlan->vid == 0)           /* If valid VLAN was provided, add a new one */
+//{
+//  xlate.outerVlanAction = PTIN_XLATE_ACTION_ADD;
+//}
 
 #if ( PTIN_BOARD_IS_MATRIX )
   /* No inner VLAN action on Matrix board */
@@ -1340,10 +1340,10 @@ L7_RC_t ptin_xlate_egress_add( ptin_HwEthMef10Intf_t *intf_vlan,
   {
     xlate.innerVlanAction = PTIN_XLATE_ACTION_DELETE;
   }
-  else if (intf_vlan->vid_inner == 0)     /* If valid VLAN was provided, add a new one */
-  {
-    xlate.innerVlanAction = PTIN_XLATE_ACTION_REPLACE;
-  }
+//else if (intf_vlan->vid_inner == 0)     /* If no valid (input) VLAN was provided, always replace (Add is not allowed) */
+//{
+//  xlate.innerVlanAction = PTIN_XLATE_ACTION_REPLACE;
+//}
 #endif
 
   /* Remove VLANs? */

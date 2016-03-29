@@ -8913,7 +8913,7 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, ptin_HwEthMef10Intf_t *intf_cfg
     /* This way, payload data goes after the second tag, and will be preserved to the ONT */
     if (is_quattro)
     {
-      if(!is_stacked)
+      if (!is_stacked)
       {
         intf_vlan.action_outer = PTIN_XLATE_ACTION_ADD;
         intf_vlan.action_inner = PTIN_XLATE_ACTION_NONE;
@@ -8927,7 +8927,7 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, ptin_HwEthMef10Intf_t *intf_cfg
     
     rc = switching_root_add(&intf_vlan,                                 /* Input data */
                             int_vlan,                                   /* Internal vlan */
-                            0,                                           /* New inner vlan */
+                            0,                                          /* New inner vlan */
                             egress_del_ivlan,                           /* Delete egress vlan? Only for unstacked EVCs */
                             -1);                                        /* Force PCP */
 
@@ -10320,11 +10320,7 @@ static L7_RC_t switching_root_add(ptin_HwEthMef10Intf_t *intf_cfg, L7_uint16 int
     intf_vlan_set.vid           = int_vlan;
     intf_vlan_set.vid_inner     = new_innerVlan;
     intf_vlan_set.action_outer  = PTIN_XLATE_ACTION_REPLACE;
-
-    if (egress_del_ivlan)
-    {
-      intf_vlan_set.action_inner  = PTIN_XLATE_ACTION_DELETE;
-    }
+    intf_vlan_set.action_inner  = (egress_del_ivlan) ? PTIN_XLATE_ACTION_DELETE : intf_cfg->action_inner;
 
     rc = ptin_xlate_egress_add(&intf_vlan_set,
                                (intf_cfg->vid > 4095) ? (L7_uint16)-1 : intf_cfg->vid,      /* Pop, or swap to out_vlan */
