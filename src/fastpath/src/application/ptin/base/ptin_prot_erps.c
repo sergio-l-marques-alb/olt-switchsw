@@ -3991,7 +3991,7 @@ void ptin_prot_erps_test(int test, int param1, int param2, int param3, int param
  * 
  * @return int 
  */
-int ptin_erps_get_status(L7_uint8 erps_idx)
+int ptin_erps_get_status_void(L7_uint8 erps_idx)
 {
   int ret = erps_idx;
 

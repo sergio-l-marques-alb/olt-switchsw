@@ -504,7 +504,19 @@ int ptin_erps_force_alarms(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 sf);
  * 
  * @return int 
  */
-int ptin_erps_get_status(L7_uint8 erps_idx);
+int ptin_erps_get_status(L7_uint8 erps_idx, erpsStatus_t *status);
+
+/**
+ * Get ERPS Status 
+ * 
+ * @author joaom (6/5/2013)
+ * 
+ * @param erps_idx 
+ * @param status 
+ * 
+ * @return int 
+ */
+int ptin_erps_get_status_void(L7_uint8 erps_idx);
 
 
 /****************************************************************************** 
