@@ -4125,7 +4125,7 @@ L7_RC_t hapiBroadConfigPPPoETrap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t 
 L7_RC_t hapiBroadConfigApsTrap(/*DAPI_USP_t *usp,*/ L7_uint16 vlanId, L7_uint16 vlan_match, L7_uint8 ringId_level, DAPI_t *dapi_g,
                                BROAD_POLICY_t *policy_id)
 {
-#ifdef __APS_AND_CCM_COMMON_FILTER
+#ifdef __APS_AND_CCM_COMMON_FILTER__
   #error "USP argument was removed"
   if (L7_NULL==vlanId) return L7_SUCCESS;
   return hapiBroadConfigCcmFilter(usp, enable, vlanId, ringId_level, dapi_g);
@@ -4363,6 +4363,8 @@ L7_RC_t hapiBroadConfigIpDtl0Trap(L7_uint16 vlanId, L7_uint16 vlan_match, L7_uch
 ptin_vlan_policy_trap_t ccm_policy[CCM_TRAP_MAX_VLANS];
 
 L7_RC_t hapiBroadConfigCcmFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlanId, L7_uchar8 oam_level, DAPI_t *dapi_g)
+//Filter MEP traffic to CPU (trapping; ICAP)
+//Mutual exclusive with ptin_hapi_oam_entry_add/ptin_hapi_oam_entry_del(DTL's ptin_oam_fpga_entry) (VCAP[+ICAP?])
 {
   L7_RC_t                 result = L7_SUCCESS;
   static L7_BOOL          first_time = L7_TRUE;
@@ -4373,7 +4375,7 @@ L7_RC_t hapiBroadConfigCcmFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
   } vid_lvl[CCM_TRAP_MAX_VLANS];
   BROAD_POLICY_RULE_t     ruleId = BROAD_POLICY_RULE_INVALID;
 //L7_ushort16             ccm_ethtype  = L7_ETYPE_CCM;
-#ifndef __APS_AND_CCM_COMMON_FILTER__
+#if !(defined(__APS_AND_CCM_COMMON_FILTER__) || defined(__CCM_FILTER__MEANS__MEP_FILTER__))
   L7_uchar8 ccm_MacAddr[] = {0x01,0x80,0xC2,0x00,0x00,0x37};
 #endif
   L7_uchar8               exact_match[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
@@ -4489,7 +4491,7 @@ L7_RC_t hapiBroadConfigCcmFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
         break;
       }
       
-#ifndef __APS_AND_CCM_COMMON_FILTER__
+#if !(defined(__APS_AND_CCM_COMMON_FILTER__) || defined(__CCM_FILTER__MEANS__MEP_FILTER__))
       ccm_MacAddr[5]&=0xf0;
       ccm_MacAddr[5]|=oam_level;
       result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, ccm_MacAddr, exact_match);
@@ -4525,11 +4527,11 @@ L7_RC_t hapiBroadConfigCcmFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
         break;
       }
 
-#if defined (__APS_AND_CCM_COMMON_FILTER__) //|| defined(__LM_AND_DM_COMMON_FILTER__)
+#if defined(__APS_AND_CCM_COMMON_FILTER__) || defined(__CCM_FILTER__MEANS__MEP_FILTER__) //|| defined(__LM_AND_DM_COMMON_FILTER__)
       {//MC DMAC can't be used for frames like LMR, DMR...
        BROAD_POLICY_RULE_t     ruleId2 = BROAD_POLICY_RULE_INVALID;
        L7_ushort16             ethtype;
-#ifndef __APS_AND_CCM_COMMON_FILTER__
+#if !(defined(__APS_AND_CCM_COMMON_FILTER__) || defined(__CCM_FILTER__MEANS__MEP_FILTER__))
        L7_uchar8               this_prts_SMacAddr[6];
 
        {//SRC MAC ADDRESS
@@ -4548,7 +4550,7 @@ L7_RC_t hapiBroadConfigCcmFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
        }//SRC MAC ADDRESS
 #endif
 
-#ifdef __APS_AND_CCM_COMMON_FILTER__
+#if defined(__APS_AND_CCM_COMMON_FILTER__) || defined(__CCM_FILTER__MEANS__MEP_FILTER__)
        ruleId2 = ruleId;
 #else
        hapiBroadPolicyRuleCopy(ruleId, &ruleId2);
@@ -4559,7 +4561,7 @@ L7_RC_t hapiBroadConfigCcmFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
        result = hapiBroadPolicyRuleQualifierAdd(ruleId2, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ethtype, exact_match);
        if (result != L7_SUCCESS)  break;
 
-#ifndef __APS_AND_CCM_COMMON_FILTER__
+#if !(defined(__APS_AND_CCM_COMMON_FILTER__) || defined(__CCM_FILTER__MEANS__MEP_FILTER__))
        result = hapiBroadPolicyRuleQualifierAdd(ruleId2, BROAD_FIELD_MACDA, this_prts_SMacAddr, exact_match);
        //in this other rule, the MC DMAC match is overwritten by this one
        if (result != L7_SUCCESS) break;
@@ -4577,7 +4579,7 @@ L7_RC_t hapiBroadConfigCcmFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
        }
       }//MC DMAC can't be used for frames like LMR, DMR...
 #endif
-#endif //#if defined (__APS_AND_CCM_COMMON_FILTER__) //|| defined(__LM_AND_DM_COMMON_FILTER__)
+#endif //#if defined(__APS_AND_CCM_COMMON_FILTER__) || defined(__CCM_FILTER__MEANS__MEP_FILTER__) //|| defined(__LM_AND_DM_COMMON_FILTER__)
 
 
 

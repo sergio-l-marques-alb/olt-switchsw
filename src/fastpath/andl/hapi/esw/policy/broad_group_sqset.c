@@ -361,6 +361,7 @@ bcm_field_qualify_t systemQsetTriumph2[] =  /* System requirement */
   bcmFieldQualifyL2SrcHit,      /* PTin added: FP */
   bcmFieldQualifyL2DestHit,     /* PTin added: FP */
   #endif
+  bcmFieldQualifyDstIp6,        /* PTin added: FP */
 
 #ifdef L7_IPV6_PACKAGE
   bcmFieldQualifyTunnelType,
@@ -838,18 +839,18 @@ static bcm_field_qualify_t llpfQsetLookup[] =    /* llpf specific qset */
     bcmFieldQualifyPortClass,
 #endif
     bcmFieldQualifySrcMac,
-    bcmFieldQualifyDstMac,
+    //bcmFieldQualifyDstMac,    /* PTin modified: FP */
     bcmFieldQualifySrcIp,
     bcmFieldQualifyIpProtocol,
     bcmFieldQualifyL4DstPort,
-    bcmFieldQualifyL2Format,
+    //bcmFieldQualifyL2Format,  /* PTin modified: FP */
     bcmFieldQualifyIpType,
-    bcmFieldQualifySnap,
+    //bcmFieldQualifySnap,      /* PTin modified: FP */
     bcmFieldQualifyOuterVlan,
 
     bcmFieldQualifySrcIp6,  /* PTin added: FP */
     //bcmFieldQualifyDstIp,  /* PTin added: FP */
-    //bcmFieldQualifyDstIp6,  /* PTin added: FP */
+    bcmFieldQualifyDstIp6,  /* PTin added: FP */
     bcmFieldQualifyEtherType,  /* PTin added: FP */
 
     bcmFieldQualifyStageLookup

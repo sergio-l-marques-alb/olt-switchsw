@@ -47,6 +47,7 @@ typedef enum
   PTIN_DTL_MSG_COUNTERS_LM,
   PTIN_DTL_MSG_TIME_INTERFACE,
   PTIN_DTL_MSG_PTP_FPGA,
+  PTIN_DTL_MSG_OAM_FPGA,
   PTIN_DTL_MSG_MAX
   
 } ptin_dtl_msg_enum;
@@ -105,6 +106,20 @@ typedef struct {
         u8 dIP[16];                     //If all 0s, matches any IP     //big Endian
     } __attribute__((packed)) ntw;
 } __attribute__((packed)) ptin_dtl_search_ptp_t;
+
+
+
+
+
+typedef struct {
+    struct {
+        unsigned short  prt;
+        unsigned short  vid;
+    } __attribute__((packed)) key;
+
+    //unsigned short  vid_prt;
+    unsigned char   lvl;
+} __attribute__((packed)) ptin_dtl_search_oam_t;
 
 
 

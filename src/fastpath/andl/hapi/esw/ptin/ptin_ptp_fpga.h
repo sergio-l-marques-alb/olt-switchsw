@@ -31,6 +31,7 @@
 
 
 
+//P T P / 1588***********************************************************************************
 //ANDL/HAPI LAYER********************************************************************************
 extern void ptin_hapi_ptp_table_init(void);
 extern L7_RC_t ptin_hapi_ptp_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_search_ptp_t *entry);
@@ -41,5 +42,19 @@ extern L7_RC_t ptin_hapi_ptp_dump(void);
 //DTL/APP LAYER**********************************************************************************
 extern void ptin_ptp_flows_init(void);
 extern L7_RC_t ptin_ptp_fpga_entry(ptin_dtl_search_ptp_t *e, DAPI_CMD_GET_SET_t operation);
+
+
+
+
+//O A M******************************************************************************************
+//ANDL/HAPI LAYER********************************************************************************
+extern void ptin_hapi_oam_table_init(void);
+extern L7_RC_t ptin_hapi_oam_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_search_oam_t *entry);
+extern L7_RC_t ptin_hapi_oam_entry_del(ptin_dapi_port_t *dapiPort, ptin_dtl_search_oam_t *entry);
+extern L7_RC_t ptin_hapi_oam_dump(void);
+
+
+//DTL/APP LAYER**********************************************************************************
+extern L7_RC_t ptin_oam_fpga_entry(ptin_dtl_search_oam_t *e, DAPI_CMD_GET_SET_t operation);
 #endif /*_PTIN_PTP_FPGA_H*/
 

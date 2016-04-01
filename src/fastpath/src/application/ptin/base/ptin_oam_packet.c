@@ -17,6 +17,7 @@
 
 /* R-APS MAC address */
 #define PTIN_APS_MACADDR  {0x01,0x19,0xA7,0x00,0x00,0x00}   // Correct Ring ID (last Byte) will be set on each rule/trap creation.
+L7_uchar8           apsMacAddr[L7_MAC_ADDR_LEN] = PTIN_APS_MACADDR;   // Last Byte is the Ring ID
 
 /* CCM MAC address */
 L7_uchar8 ccmMacAddr[L7_MAC_ADDR_LEN] = {0x01,0x80,0xC2,0x00,0x00,0x37};  // Last Nibble is the MEG Level -> Fixed = 7
@@ -673,8 +674,8 @@ L7_RC_t common_aps_ccm_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_i
     //SYSAPI_NET_MBUF_GET_DATALENGTH(bufHandle, payloadLen);
 
 #ifdef PTIN_ENABLE_ERPS
-    if (0==memcmp(&ccmMacAddr[1], &payload[1], 4))  return ptin_ccm_packetRx_callback(bufHandle, pduInfo);
-    else                                            return ptin_aps_packetRx_callback(bufHandle, pduInfo);
+    if (0==memcmp(&apsMacAddr[1], &payload[1], 4))  return ptin_aps_packetRx_callback(bufHandle, pduInfo);
+    else                                            return ptin_ccm_packetRx_callback(bufHandle, pduInfo);
     //could instead check the OAM ETH opcode (calling aps for APS opcodes, ccm for every other), but this option is closer to the pdu beginning
 #else
     return ptin_ccm_packetRx_callback(bufHandle, pduInfo);

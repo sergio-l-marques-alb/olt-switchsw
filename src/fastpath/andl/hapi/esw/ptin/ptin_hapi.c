@@ -156,6 +156,7 @@ L7_RC_t hapi_ptin_data_init(void)
     return L7_FAILURE;
 
   ptin_hapi_ptp_table_init();
+  ptin_hapi_oam_table_init();
 
   return rc;
 }

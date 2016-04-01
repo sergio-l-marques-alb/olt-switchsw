@@ -24,6 +24,7 @@
 
 
 
+//P T P / 1588***********************************************************************************
 //ANDL/HAPI LAYER********************************************************************************
 typedef struct {
     ptin_dtl_search_ptp_t e;
@@ -77,6 +78,9 @@ void ptin_hapi_ptp_table_init(void) {
 
 L7_RC_t ptin_hapi_ptp_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_search_ptp_t *entry)
 {
+#if !(PTIN_BOARD == PTIN_BOARD_OLT1T0)
+ return L7_FAILURE;
+#else
   //L7_int      /*entry, free_entry,*/ rule, free_rule, max_rules;
   ptin_hapi_search_ptp_t tbl_entry, *p;
   //L7_uchar8 exact_mask[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
@@ -331,6 +335,7 @@ L7_RC_t ptin_hapi_ptp_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_search_ptp_
   //PT_LOG_TRACE(LOG_CTX_HAPI,"Operation finished successfully");
 
   return L7_SUCCESS;
+#endif
 }//ptin_hapi_ptp_entry_add
 
 
@@ -354,6 +359,10 @@ L7_RC_t ptin_hapi_ptp_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_search_ptp_
 
 
 L7_RC_t ptin_hapi_ptp_entry_del(ptin_dapi_port_t *dapiPort, ptin_dtl_search_ptp_t *entry) {
+#if !(PTIN_BOARD == PTIN_BOARD_OLT1T0)
+ return L7_FAILURE;
+#else
+
 ptin_hapi_search_ptp_t tbl_entry, *p;
 T_index i;
 L7_RC_t rc = L7_SUCCESS;
@@ -373,6 +382,7 @@ L7_RC_t rc = L7_SUCCESS;
     return N_SEARCH_PTP > del_entry(&search_PTP_table, NULL, sizeof(tbl_entry), sizeof(entry->key), N_SEARCH_PTP, i)
            &&
            rc == L7_SUCCESS ? L7_SUCCESS: L7_FAILURE;
+#endif
 }//ptin_hapi_ptp_entry_del
 
 
@@ -390,6 +400,10 @@ L7_RC_t rc = L7_SUCCESS;
 
 
 L7_RC_t ptin_hapi_ptp_dump(void) {
+#if !(PTIN_BOARD == PTIN_BOARD_OLT1T0)
+ return L7_FAILURE;
+#else
+
 T_index i;
 ptin_hapi_search_ptp_t  *p;
 ptin_dtl_search_ptp_t   *entry;
@@ -431,6 +445,7 @@ ptin_dtl_search_ptp_t   *entry;
  }//for
 
   return L7_SUCCESS;
+#endif
 }//ptin_hapi_ptp_dump
 
 
@@ -509,7 +524,9 @@ extern L7_RC_t ptin_xlate_ingress_clear( L7_uint port, L7_uint16 outer_vlan, L7_
 extern L7_RC_t dtlPtinGeneric(L7_uint32 intIfNum, L7_uint16 msgId, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data);
 
 L7_RC_t ptin_ptp_fpga_entry(ptin_dtl_search_ptp_t *e, DAPI_CMD_GET_SET_t operation) {
-#if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+#if !(PTIN_BOARD == PTIN_BOARD_OLT1T0)
+ return L7_FAILURE;
+#else
 L7_RC_t rc;
 L7_uint32 intIfNum;
 
@@ -532,7 +549,345 @@ L7_uint32 intIfNum;
     rc = dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_PTP_FPGA, operation, sizeof(ptin_dtl_search_ptp_t), (void *) e);
 
     if (L7_SUCCESS!=rc && DAPI_CMD_SET==operation) ptin_xlate_ingress_clear(PTIN_PORT_CPU, e->vid_os, 0);
-#endif
     return L7_SUCCESS;
+#endif
 }//ptin_ptp_fpga_entry
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//O A M******************************************************************************************
+typedef struct {
+    ptin_dtl_search_oam_t e;
+
+    BROAD_POLICY_t policyId;
+} __attribute__((packed)) ptin_hapi_search_oam_t;
+
+
+
+
+#define N_SEARCH_OAM    N_SEARCH_PTP
+//#define N_SEARCH_OAM    128
+//#include <table.h>
+
+
+
+
+typedef_TABLE_TEMPLATE(ptin_hapi_search_oam_t, N_SEARCH_OAM, T_SEARCH_OAM_TABLE)
+
+
+
+T_SEARCH_OAM_TABLE search_OAM_table;
+
+
+
+
+
+
+
+
+
+
+
+
+
+//ANDL/HAPI LAYER********************************************************************************
+void ptin_hapi_oam_table_init(void) {
+    PT_LOG_INFO(LOG_CTX_HAPI, "init_table()=%d",
+                init_table(&search_OAM_table, sizeof(ptin_hapi_search_oam_t), N_SEARCH_OAM)
+                );
+}
+
+
+
+
+
+
+
+
+L7_RC_t ptin_hapi_oam_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_search_oam_t *entry) {
+//Filter MEP traffic to FPGA     (VCAP[+ICAP?])
+//Mutual exclusive with hapiBroadConfigCcmFilter     (trapping; ICAP)
+
+#if !(PTIN_BOARD == PTIN_BOARD_OLT1T0)
+ return L7_FAILURE;
+#else
+
+ptin_hapi_search_oam_t tbl_entry, *p;
+L7_uchar8 exact_mask[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+BROAD_POLICY_t      policyId = BROAD_POLICY_INVALID;
+BROAD_POLICY_RULE_t ruleId;
+T_index _1st_free, i;
+L7_RC_t rc = L7_SUCCESS;
+bcm_port_t    bcm_port;
+bcmx_lport_t  lport;
+
+
+
+
+    tbl_entry.e = *entry; //tbl_entry.e.key = entry->key;
+    i = find_entry(&search_OAM_table, &tbl_entry, sizeof(tbl_entry), sizeof(entry->key), N_SEARCH_OAM, -1, &_1st_free);
+    PT_LOG_TRACE(LOG_CTX_HAPI, "i=%u\t_1st_free=%u\t(N_SEARCH_OAM=%u)", i, _1st_free, N_SEARCH_OAM);
+
+    if (i<N_SEARCH_OAM) { //Entry found
+        p = (ptin_hapi_search_oam_t*) pointer2table_index(&search_OAM_table, i, N_SEARCH_OAM, sizeof(tbl_entry));
+        if (!memcmp(entry, &p->e, sizeof(p->e))) return L7_SUCCESS;  //Nothing to do; same entry
+
+        //Delete entry
+        PT_LOG_TRACE(LOG_CTX_HAPI, "Deleting entry...");
+        rc = hapiBroadPolicyDelete(p->policyId);
+        if (rc != L7_SUCCESS) {PT_LOG_ERR(LOG_CTX_HAPI, "Cannot hapiBroadPolicyDelete()");}
+        del_entry(&search_OAM_table, NULL, sizeof(tbl_entry), sizeof(entry->key), N_SEARCH_OAM, i);
+    }
+    else
+    if (_1st_free>=N_SEARCH_OAM) return L7_TABLE_IS_FULL; //No entries left
+    else
+    i=_1st_free;          //Entry not found; using 1st free
+
+
+
+    // Configure rule
+    do
+    {
+      rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_IPSG);
+      if (rc != L7_SUCCESS) {PT_LOG_ERR(LOG_CTX_HAPI, "Cannot create policy"); break;}
+
+
+      //VCAP
+      rc = hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_LOOKUP);
+      if (rc != L7_SUCCESS) {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error creating a lookup policy");
+        hapiBroadPolicyCreateCancel();
+        break;
+      }
+
+
+      // Create rule
+      rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_DEFAULT);
+      if (rc != L7_SUCCESS) {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error adding rule");
+        hapiBroadPolicyCreateCancel();
+        break;
+      }
+
+
+      //Qualifiers
+      {
+          rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&entry->key.vid, exact_mask);
+          if (rc != L7_SUCCESS) {
+            PT_LOG_ERR(LOG_CTX_HAPI, "Error adding OVID qualifier (%u)", entry->key.vid);
+            hapiBroadPolicyCreateCancel();
+            break;
+          }
+          PT_LOG_TRACE(LOG_CTX_HAPI,"OVID %u qualifier added", entry->key.vid);
+      }
+
+
+      {
+       L7_ushort16 ethtype;
+
+          ethtype=L7_ETYPE_CFM;
+          rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *) &ethtype, exact_mask);
+          if (rc != L7_SUCCESS) {
+            PT_LOG_ERR(LOG_CTX_HAPI, "Error adding ETHTYPE qualifier 0x%04x", ethtype);
+            hapiBroadPolicyCreateCancel();
+            break;
+          }
+          PT_LOG_TRACE(LOG_CTX_HAPI,"ETHTYPE 0x%04x qualifier added", ethtype);
+      }
+
+
+      {//OAM ETH's MEL 3 bits (Check SDK's _bcm_tr3_oam_fp_create())
+       bcm_ip6_t mdl_data, mdl_mask;
+
+       memset(&mdl_data, 0, sizeof(bcm_ip6_t));
+       mdl_data[0] = entry->lvl << 5;
+       memset(&mdl_mask, 0, sizeof(bcm_ip6_t));
+       mdl_mask[0] = 0xE0;
+
+       rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP6_DST, mdl_data, mdl_mask);
+       if (rc != L7_SUCCESS) {
+         PT_LOG_ERR(LOG_CTX_HAPI, "Error adding BROAD_FIELD_IP6_DST qualifier 0x%2x/0x%2x", mdl_data[0], mdl_mask[0]);
+         hapiBroadPolicyCreateCancel();
+         break;
+       }
+       PT_LOG_TRACE(LOG_CTX_HAPI,"BROAD_FIELD_IP6_DST 0x%2x/0x%2x qualifier added", mdl_data[0], mdl_mask[0]);
+      }
+
+
+      //Actions
+      if (hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_ADD_OUTER_VID, VIDprt(entry->key.prt), 0, 0) != L7_SUCCESS)// ||
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error adding ADD_OUTER_VID (%u) action", VIDprt(entry->key.prt));
+        hapiBroadPolicyCreateCancel();
+        break;
+      }
+      PT_LOG_TRACE(LOG_CTX_HAPI,"ADD_OUTER_VID %u action added", VIDprt(entry->key.prt));
+
+
+      // Apply policy
+      if ((rc=hapiBroadPolicyCommit(&policyId)) != L7_SUCCESS) {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error commiting trap policy");
+        hapiBroadPolicyCreateCancel();
+        break;
+      }
+
+
+      if ((rc=hapi_ptin_bcmPort_get(entry->key.prt, &bcm_port)) != L7_SUCCESS) {
+          PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcm_port %u", bcm_port);
+          break;
+          //hapiBroadPolicyDelete(policyId);
+          //return L7_FAILURE;
+      }
+      lport = bcmx_unit_port_to_lport(0, bcm_port);
+      if ((rc=hapiBroadPolicyApplyToIface(policyId, lport)) != L7_SUCCESS) {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error applying to lport %u", lport);
+        break;
+        //hapiBroadPolicyDelete(policyId);
+        //return L7_FAILURE;
+      }
+
+      PT_LOG_TRACE(LOG_CTX_HAPI, "Trap policy commited successfully (policyId=%u)", policyId);
+    } while (0);
+
+    /* Have occurred any error? */
+    if (rc != L7_SUCCESS) {
+      /* Delete rule */
+      if (policyId != BROAD_POLICY_INVALID) {
+        PT_LOG_TRACE(LOG_CTX_HAPI, "Removing policyId %u", policyId);
+        if (L7_SUCCESS != hapiBroadPolicyDelete(policyId)) {PT_LOG_ERR(LOG_CTX_HAPI, "Cannot hapiBroadPolicyDelete()");}
+      }
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error while creating VCAP rule");
+      return rc;
+    }
+
+    //PT_LOG_TRACE(LOG_CTX_HAPI,"VCAP rule configured");
+
+    // Save entry
+    tbl_entry.policyId = policyId;
+    i = add_entry(&search_OAM_table, &tbl_entry, sizeof(tbl_entry), sizeof(entry->key), N_SEARCH_OAM, i, 0, 0);
+    //wr_entry(&search_OAM_table, &tbl_entry, sizeof(tbl_entry), N_SEARCH_OAM, i);
+
+    PT_LOG_TRACE(LOG_CTX_HAPI,"add_entry()=%u\t(N_SEARCH_OAM=%u)", i, N_SEARCH_OAM);
+
+    return L7_SUCCESS;
+#endif
+}//ptin_hapi_oam_entry_add
+
+
+
+
+
+
+
+
+L7_RC_t ptin_hapi_oam_entry_del(ptin_dapi_port_t *dapiPort, ptin_dtl_search_oam_t *entry) {
+//Filter MEP traffic to FPGA     (VCAP[+ICAP?])
+//Mutual exclusive with hapiBroadConfigCcmFilter     (trapping; ICAP)
+#if !(PTIN_BOARD == PTIN_BOARD_OLT1T0)
+ return L7_FAILURE;
+#else
+
+ptin_hapi_search_oam_t tbl_entry, *p;
+T_index i;
+L7_RC_t rc = L7_SUCCESS;
+
+    tbl_entry.e = *entry; //tbl_entry.e.key = entry->key;
+    i = find_entry(&search_OAM_table, &tbl_entry, sizeof(tbl_entry), sizeof(entry->key), N_SEARCH_OAM, -1, NULL);
+    if (i>=N_SEARCH_OAM) return L7_FAILURE; //not found
+
+    p = (ptin_hapi_search_oam_t*) pointer2table_index(&search_OAM_table, i, N_SEARCH_OAM, sizeof(tbl_entry));
+
+    //Delete entry
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Deleting entry %u (prt=%u, vid=%u, oam_level=%u, policyId=%u)...",
+                 i, p->e.key.prt, p->e.key.vid, p->e.lvl, p->policyId);
+    rc = hapiBroadPolicyDelete(p->policyId);
+    if (rc != L7_SUCCESS) {PT_LOG_ERR(LOG_CTX_HAPI, "Cannot hapiBroadPolicyDelete()");}
+
+    return N_SEARCH_OAM > del_entry(&search_OAM_table, NULL, sizeof(tbl_entry), sizeof(entry->key), N_SEARCH_OAM, i)
+           &&
+           rc == L7_SUCCESS ? L7_SUCCESS: L7_FAILURE;
+#endif
+}//ptin_hapi_oam_entry_del
+
+
+
+
+
+
+
+
+L7_RC_t ptin_hapi_oam_dump(void) {
+#if !(PTIN_BOARD == PTIN_BOARD_OLT1T0)
+ return L7_FAILURE;
+#else
+
+T_index i;
+ptin_hapi_search_oam_t  *p;
+ptin_dtl_search_oam_t   *entry;
+
+
+ printf("Dumping SEARCH_OAM_TABLE (size %u)...\n\r", N_SEARCH_OAM);
+ for (i=0; i<N_SEARCH_OAM; i++) {
+     if (entry_is_empty(&search_OAM_table, i, N_SEARCH_OAM, sizeof(*p))) continue;
+
+     p = (ptin_hapi_search_oam_t*) pointer2table_index(&search_OAM_table, i, N_SEARCH_OAM, sizeof(*p));
+     entry = &p->e;
+     printf("%lu:\tkey(prt,vid)=(%u,%u)\tvid_prt=%u\toam_level=%u\t", i, entry->key.prt, entry->key.vid, VIDprt(entry->key.prt), entry->lvl);
+
+     printf("\tpolicyId=%u\n\r", p->policyId);
+ }//for
+
+  return L7_SUCCESS;
+#endif
+}//ptin_hapi_oam_dump
+
+
+//DTL/APP LAYER**********************************************************************************
+L7_RC_t ptin_oam_fpga_entry(ptin_dtl_search_oam_t *e, DAPI_CMD_GET_SET_t operation) {
+#if !(PTIN_BOARD == PTIN_BOARD_OLT1T0)
+ return L7_FAILURE;
+#else
+
+L7_RC_t rc;
+L7_uint32 intIfNum;
+
+    if (ptin_intf_port2intIfNum(e->key.prt, &intIfNum)!=L7_SUCCESS) {PT_LOG_ERR(LOG_CTX_MISC, "Non existent port"); return L7_FAILURE;}
+
+    //0..PTIN_SYSTEM_N_UPLINK_INTERF
+    //ptin_hapi_oam_entry_add() / ptin_hapi_oam_entry_del() through DTL layer (tunneled down to HAPI layer)
+    //PT_LOG_INFO(LOG_CTX_MISC, "",
+    //         intIfNum, operation, param1, param2, sizeof(ptin_dtl_example_t));
+
+    rc = dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_OAM_FPGA, operation, sizeof(ptin_dtl_search_oam_t), (void *) e);
+
+    return L7_SUCCESS;
+#endif
+}//ptin_oam_fpga_entry
 

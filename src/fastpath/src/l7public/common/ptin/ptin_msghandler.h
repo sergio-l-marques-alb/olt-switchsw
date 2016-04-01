@@ -264,8 +264,10 @@
 #define CCMSG_PORTMIRROR_PORT_REMOVE        0x919D
 
 
-#define CCMSG_PTP_FPGA               0x919E
-#define CCMSG_PTP_LNX_NET_IF_SET            0x919F
+#define CCMSG_OAM_FPGA               0x9197                 //struct T_MSG_OAM_FPGA
+
+#define CCMSG_PTP_FPGA               0x919E                 //struct T_MSG_PTP_FPGA
+#define CCMSG_PTP_LNX_NET_IF_SET            0x919F          //struct T_MSG_PTP_LNX_NET_IF_SET
 
 
 /* 802.1X Configuration */
@@ -3027,6 +3029,10 @@ typedef struct {
      } __attribute__((packed)) ntw;
 } __attribute__((packed)) T_MSG_PTP_FPGA;
 
+
+
+
+typedef msg_bd_mep_t    T_MSG_OAM_FPGA;
 
 /***************************************************************************** 
  * Functions prototypes
