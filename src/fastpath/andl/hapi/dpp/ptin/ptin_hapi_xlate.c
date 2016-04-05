@@ -110,7 +110,7 @@ L7_RC_t ptin_hapi_xlate_init(void)
       /* Single tag format */
       bcm_port_tpid_class_t_init(&port_tpid_class);
       port_tpid_class.port = bcm_port;
-      port_tpid_class.tpid1 = 0x8100;
+      port_tpid_class.tpid1 = PTIN_TPID_OUTER_DEFAULT;
       port_tpid_class.tpid2 = BCM_PORT_TPID_CLASS_TPID_ANY;
       port_tpid_class.tag_format_class_id = tagformat_single_class_id;
       port_tpid_class.flags = BCM_PORT_TPID_CLASS_INNER_C;
@@ -127,8 +127,8 @@ L7_RC_t ptin_hapi_xlate_init(void)
       /* Double tag format */
       bcm_port_tpid_class_t_init(&port_tpid_class);
       port_tpid_class.port = bcm_port;
-      port_tpid_class.tpid1 = 0x8100;
-      port_tpid_class.tpid2 = 0x8100;
+      port_tpid_class.tpid1 = PTIN_TPID_OUTER_DEFAULT;
+      port_tpid_class.tpid2 = PTIN_TPID_INNER_DEFAULT;
       port_tpid_class.tag_format_class_id = tagformat_double_class_id;
       port_tpid_class.flags = 0;
       port_tpid_class.vlan_translation_action_id = 0;
@@ -168,8 +168,8 @@ L7_RC_t ptin_hapi_xlate_init(void)
     action.ot_inner = bcmVlanActionNone;
     action.dt_outer = bcmVlanActionReplace;
     action.dt_inner = bcmVlanActionNone;
-    action.outer_tpid = 0x8100;
-    action.inner_tpid = 0x8100;
+    action.outer_tpid = PTIN_TPID_OUTER_DEFAULT;
+    action.inner_tpid = PTIN_TPID_INNER_DEFAULT;
 
     rv = bcm_vlan_translate_action_id_set(bcm_unit, BCM_VLAN_ACTION_SET_INGRESS, action_ingress_oswap_inone_id, &action);
     if (rv != BCM_E_NONE)
@@ -210,8 +210,8 @@ L7_RC_t ptin_hapi_xlate_init(void)
     action.ot_inner = bcmVlanActionAdd;
     action.dt_outer = bcmVlanActionReplace;
     action.dt_inner = bcmVlanActionReplace;
-    action.outer_tpid = 0x8100;
-    action.inner_tpid = 0x8100;
+    action.outer_tpid = PTIN_TPID_OUTER_DEFAULT;
+    action.inner_tpid = PTIN_TPID_INNER_DEFAULT;
 
     rv = bcm_vlan_translate_action_id_set(bcm_unit, BCM_VLAN_ACTION_SET_INGRESS, action_ingress_oswap_iswap_id, &action);
     if (rv != BCM_E_NONE)

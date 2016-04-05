@@ -413,6 +413,7 @@ L7_RC_t ptin_hapi_phy_init(void)
       PT_LOG_ERR(LOG_CTX_STARTUP, "error: bcm_port_inner_tpid_set for bcm_port %d: rv=%d (%s)", bcm_port, rv, bcm_errmsg(rv));
       return rv;
     }
+    PT_LOG_INFO(LOG_CTX_STARTUP,"PTIN_TPID_OUTER_DEFAULT=0x%04x  PTIN_TPID_INNER_DEFAULT=0x%04x", PTIN_TPID_OUTER_DEFAULT, PTIN_TPID_INNER_DEFAULT);
   }
 
   PT_LOG_INFO(LOG_CTX_STARTUP,"All PHYs initialized!");
