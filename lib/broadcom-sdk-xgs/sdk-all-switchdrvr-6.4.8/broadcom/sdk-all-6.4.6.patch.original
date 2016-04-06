@@ -1,0 +1,2576 @@
+diff -rpN --unified=6 sdk-all-6.4.6/make/Makefile.linux-kernel-3_0 sdk-all-6.4.6_modified/make/Makefile.linux-kernel-3_0
+--- sdk-all-6.4.6/make/Makefile.linux-kernel-3_0	1970-01-01 01:00:00.000000000 +0100
++++ sdk-all-6.4.6_modified/make/Makefile.linux-kernel-3_0	2015-12-11 16:41:01.424573643 +0000
+@@ -0,0 +1,173 @@
++# $Id: Makefile.linux-kernel-2_6 1.41 Broadcom SDK $
++# $Copyright: Copyright 2012 Broadcom Corporation.
++# This program is the proprietary software of Broadcom Corporation
++# and/or its licensors, and may only be used, duplicated, modified
++# or distributed pursuant to the terms and conditions of a separate,
++# written license agreement executed between you and Broadcom
++# (an "Authorized License").  Except as set forth in an Authorized
++# License, Broadcom grants no license (express or implied), right
++# to use, or waiver of any kind with respect to the Software, and
++# Broadcom expressly reserves all rights in and to the Software
++# and all intellectual property rights therein.  IF YOU HAVE
++# NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
++# IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
++# ALL USE OF THE SOFTWARE.  
++#  
++# Except as expressly set forth in the Authorized License,
++#  
++# 1.     This program, including its structure, sequence and organization,
++# constitutes the valuable trade secrets of Broadcom, and you shall use
++# all reasonable efforts to protect the confidentiality thereof,
++# and to use this information only in connection with your use of
++# Broadcom integrated circuit products.
++#  
++# 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
++# PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
++# REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
++# OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
++# DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
++# NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
++# ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
++# CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
++# OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
++# 
++# 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
++# BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
++# INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
++# ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
++# TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
++# POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
++# THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
++# WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
++# ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
++
++# Configuration Flags
++
++# Filter out features that cannot or should not be supported in kernel mode
++
++_FEATURE_EXCLUDE_LIST += EDITLINE TCL OOB_RCPU CINT APIMODE DUNE_UI C_UNIT
++FEATURE_EXCLUDE_LIST = $(sort $(_FEATURE_EXCLUDE_LIST))
++
++# Tools
++
++# Conditionally Replaces DEFAULT var
++ifeq ($(origin CC),default)
++CC	= $(LSRUN) $(CROSS_COMPILE)gcc
++endif
++
++ifeq ($(origin CXX),default)
++CXX	= $(CROSS_COMPILE)g++
++endif
++
++ifeq ($(origin LD),default)
++LD	= $(CROSS_COMPILE)ld
++endif
++
++ifeq ($(origin AR),default)
++AR	= $(CROSS_COMPILE)ar
++endif
++
++ifeq ($(origin AS),default)
++AS	= $(CROSS_COMPILE)as
++endif
++
++ifeq ($(origin ARFLAGS),default)
++	ARFLAGS	= -rc
++endif
++
++STRIP	= $(CROSS_COMPILE)strip
++RANLIB  = $(CROSS_COMPILE)ranlib
++OBJCOPY = $(CROSS_COMPILE)objcopy
++NM      = $(CROSS_COMPILE)nm
++
++# Handle differences between gcc 2.x and gcc 3.x
++gcc-tune-flag = $(shell if ${CC} -dumpspecs | grep mcpu >/dev/null; then echo cpu; else echo tune; fi)
++
++# Configuration Variables
++
++# OSType Defines: This defines the type of RTOS or microkernel which you
++# are compiling the SAL (and its associated driver) for. New platforms
++# can be created by porting the routines (system.c) to your platform and
++# adding the define in this Makefile.
++
++OSTYPE = LINUX
++
++#
++# ORIGIN is used to Optionally select different CFLAGS. It is used to import
++# source from other vendors. If SOURCE=Broadcom, then the BCM_ flags are added
++# to those passed to the compiler. If SOURCE != Broadcom, BCM_ flags are NOT
++# added.
++#
++# Default specifies Broadcom
++#
++ifndef ORIGIN
++	ORIGIN = Broadcom
++endif
++
++#
++# STD_{C|CPP|CXX}FLAGS - Standard flags used by ALL compilations
++# BCM_{C|CPP|CXX}FLAGS - Flags used for Broadcom source files
++# OPT_{C|CPP|CXX}FLAGS - Defined in local make files BEFORE inclusion of 
++#			 this Makefile, to define local "Extra" flags.
++#
++
++ifdef IPROC_BUILD
++CFGFLAGS += -I$(SDK)/systems/linux/kernel/modules/include \
++	    -I$(SDK)/systems/bde/linux/include \
++	    -I$(LINUX_INCLUDE) \
++            -I$(KERNDIR)/arch/$(ARCH)
++else
++CFGFLAGS += -I$(SDK)/systems/linux/kernel/modules/include \
++	    -I$(SDK)/systems/bde/linux/include \
++	    -I$(LINUX_INCLUDE) \
++	    -I$(LINUX_INCLUDE)/asm/gcc \
++	    -I$(LINUX_INCLUDE)/asm/mach-generic \
++            -I$(KERNDIR)/arch/$(ARCH)
++endif
++
++CFGFLAGS += -DNO_FILEIO -DNO_CTRL_C -DNO_MEMTUNE
++
++CFGFLAGS += -D$(OSTYPE)
++
++# No user sal for the linux kernel
++# NO_SAL_APPL=1
++
++STD_CFLAGS = $(KFLAGS) $(CFGFLAGS)
++
++
++STD_CPPFLAGS = ${STD_CFLAGS}
++STD_CXXFLAGS = ${STD_CFLAGS}
++
++ifndef BCM_CFLAGS
++BCM_CFLAGS   = -Wall -Werror
++BCM_CFLAGS  += -Wno-unused-but-set-variable -Wno-enum-compare -Wno-address -Wno-uninitialized -Wno-sequence-point -Wno-switch
++endif
++
++BCM_CPPFLAGS = ${BCM_CFLAGS}
++BCM_CXXFLAGS = ${BCM_CFLAGS}
++
++ifeq (${ORIGIN}, Broadcom)
++	CFLAGS   += ${STD_CFLAGS}   ${BCM_CFLAGS}   ${OPT_CFLAGS}
++	CPPFLAGS += ${STD_CPPFLAGS} ${BCM_CPPFLAGS} ${OPT_CPPFLAGS}
++	CXXFLAGS += ${STD_CXXFLAGS} ${BCM_CXXFLAGS} ${OPT_CXXFLAGS}
++else
++	CFLAGS   += ${STD_CFLAGS}   ${OPT_CFLAGS}
++	CPPFLAGS += ${STD_CPPFLAGS} ${OPT_CPPFLAGS}
++	CXXFLAGS += ${STD_CXXFLAGS} ${OPT_CXXFLAGS}
++endif
++
++#
++# Ignore pedantic flag for kernel modules
++#
++ifdef DEBUG_PEDANTIC
++DEBUG_PEDANTIC = FALSE
++endif
++
++#
++# DEPEND is used as a command to generate the list of dependencies.
++# The format of the output must be 
++#	"file.o : file.c a/b/c.h d/e/f.h ...", 
++# if it is on multiple lines, each line must end in a backslash. 
++# The output MUST be on standard out.
++#
++DEPEND = ${CC} -M $(CFLAGS) $< 
+diff -rpN --unified=6 sdk-all-6.4.6/make/Makefile.linux-kernel-3_8 sdk-all-6.4.6_modified/make/Makefile.linux-kernel-3_8
+--- sdk-all-6.4.6/make/Makefile.linux-kernel-3_8	1970-01-01 01:00:00.000000000 +0100
++++ sdk-all-6.4.6_modified/make/Makefile.linux-kernel-3_8	2015-12-11 16:41:01.436575146 +0000
+@@ -0,0 +1,172 @@
++# $Id: Makefile.linux-kernel-3_8,v 1.40 Broadcom SDK $
++# $Copyright: Copyright 2012 Broadcom Corporation.
++# This program is the proprietary software of Broadcom Corporation
++# and/or its licensors, and may only be used, duplicated, modified
++# or distributed pursuant to the terms and conditions of a separate,
++# written license agreement executed between you and Broadcom
++# (an "Authorized License").  Except as set forth in an Authorized
++# License, Broadcom grants no license (express or implied), right
++# to use, or waiver of any kind with respect to the Software, and
++# Broadcom expressly reserves all rights in and to the Software
++# and all intellectual property rights therein.  IF YOU HAVE
++# NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
++# IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
++# ALL USE OF THE SOFTWARE.  
++#  
++# Except as expressly set forth in the Authorized License,
++#  
++# 1.     This program, including its structure, sequence and organization,
++# constitutes the valuable trade secrets of Broadcom, and you shall use
++# all reasonable efforts to protect the confidentiality thereof,
++# and to use this information only in connection with your use of
++# Broadcom integrated circuit products.
++#  
++# 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
++# PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
++# REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
++# OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
++# DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
++# NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
++# ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
++# CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
++# OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
++# 
++# 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
++# BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
++# INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
++# ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
++# TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
++# POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
++# THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
++# WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
++# ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
++
++# Configuration Flags
++
++# Filter out features that cannot or should not be supported in kernel mode
++
++_FEATURE_EXCLUDE_LIST += EDITLINE TCL OOB_RCPU CINT APIMODE DUNE_UI C_UNIT
++FEATURE_EXCLUDE_LIST = $(sort $(_FEATURE_EXCLUDE_LIST))
++
++# Tools
++
++# Conditionally Replaces DEFAULT var
++ifeq ($(origin CC),default)
++CC	= $(LSRUN) $(CROSS_COMPILE)gcc
++endif
++
++ifeq ($(origin CXX),default)
++CXX	= $(CROSS_COMPILE)g++
++endif
++
++ifeq ($(origin LD),default)
++LD	= $(CROSS_COMPILE)ld
++endif
++
++ifeq ($(origin AR),default)
++AR	= $(CROSS_COMPILE)ar
++endif
++
++ifeq ($(origin AS),default)
++AS	= $(CROSS_COMPILE)as
++endif
++
++ifeq ($(origin ARFLAGS),default)
++	ARFLAGS	= -rc
++endif
++
++STRIP	= $(CROSS_COMPILE)strip
++RANLIB  = $(CROSS_COMPILE)ranlib
++OBJCOPY = $(CROSS_COMPILE)objcopy
++NM      = $(CROSS_COMPILE)nm
++
++# Handle differences between gcc 2.x and gcc 3.x
++gcc-tune-flag = $(shell if ${CC} -dumpspecs | grep mcpu >/dev/null; then echo cpu; else echo tune; fi)
++
++# Configuration Variables
++
++# OSType Defines: This defines the type of RTOS or microkernel which you
++# are compiling the SAL (and its associated driver) for. New platforms
++# can be created by porting the routines (system.c) to your platform and
++# adding the define in this Makefile.
++
++OSTYPE = LINUX
++
++#
++# ORIGIN is used to Optionally select different CFLAGS. It is used to import
++# source from other vendors. If SOURCE=Broadcom, then the BCM_ flags are added
++# to those passed to the compiler. If SOURCE != Broadcom, BCM_ flags are NOT
++# added.
++#
++# Default specifies Broadcom
++#
++ifndef ORIGIN
++	ORIGIN = Broadcom
++endif
++
++#
++# STD_{C|CPP|CXX}FLAGS - Standard flags used by ALL compilations
++# BCM_{C|CPP|CXX}FLAGS - Flags used for Broadcom source files
++# OPT_{C|CPP|CXX}FLAGS - Defined in local make files BEFORE inclusion of 
++#			 this Makefile, to define local "Extra" flags.
++#
++
++ifdef IPROC_BUILD
++CFGFLAGS += -I$(SDK)/systems/linux/kernel/modules/include \
++	    -I$(SDK)/systems/bde/linux/include \
++	    -I$(LINUX_INCLUDE) \
++            -I$(KERNDIR)/arch/$(ARCH)
++else
++CFGFLAGS += -I$(SDK)/systems/linux/kernel/modules/include \
++	    -I$(SDK)/systems/bde/linux/include \
++	    -I$(LINUX_INCLUDE) \
++	    -I$(LINUX_INCLUDE)/asm/gcc \
++	    -I$(LINUX_INCLUDE)/asm/mach-generic \
++            -I$(KERNDIR)/arch/$(ARCH)
++endif
++
++CFGFLAGS += -DNO_FILEIO -DNO_CTRL_C -DNO_MEMTUNE
++
++CFGFLAGS += -D$(OSTYPE)
++
++# No user sal for the linux kernel
++# NO_SAL_APPL=1
++
++STD_CFLAGS = $(KFLAGS) $(CFGFLAGS)
++
++
++STD_CPPFLAGS = ${STD_CFLAGS}
++STD_CXXFLAGS = ${STD_CFLAGS}
++
++ifndef BCM_CFLAGS
++BCM_CFLAGS   = -Wall -Werror
++endif
++
++BCM_CPPFLAGS = ${BCM_CFLAGS}
++BCM_CXXFLAGS = ${BCM_CFLAGS}
++
++ifeq (${ORIGIN}, Broadcom)
++	CFLAGS   += ${STD_CFLAGS}   ${BCM_CFLAGS}   ${OPT_CFLAGS}
++	CPPFLAGS += ${STD_CPPFLAGS} ${BCM_CPPFLAGS} ${OPT_CPPFLAGS}
++	CXXFLAGS += ${STD_CXXFLAGS} ${BCM_CXXFLAGS} ${OPT_CXXFLAGS}
++else
++	CFLAGS   += ${STD_CFLAGS}   ${OPT_CFLAGS}
++	CPPFLAGS += ${STD_CPPFLAGS} ${OPT_CPPFLAGS}
++	CXXFLAGS += ${STD_CXXFLAGS} ${OPT_CXXFLAGS}
++endif
++
++#
++# Ignore pedantic flag for kernel modules
++#
++ifdef DEBUG_PEDANTIC
++DEBUG_PEDANTIC = FALSE
++endif
++
++#
++# DEPEND is used as a command to generate the list of dependencies.
++# The format of the output must be 
++#	"file.o : file.c a/b/c.h d/e/f.h ...", 
++# if it is on multiple lines, each line must end in a backslash. 
++# The output MUST be on standard out.
++#
++DEPEND = ${CC} -M $(CFLAGS) $< 
+diff -rpN --unified=6 sdk-all-6.4.6/make/Makefile.linux-kernel-3_x sdk-all-6.4.6_modified/make/Makefile.linux-kernel-3_x
+--- sdk-all-6.4.6/make/Makefile.linux-kernel-3_x	1970-01-01 01:00:00.000000000 +0100
++++ sdk-all-6.4.6_modified/make/Makefile.linux-kernel-3_x	2015-12-11 16:41:01.568566076 +0000
+@@ -0,0 +1,173 @@
++# $Id: Makefile.linux-kernel-3_8,v 1.40 Broadcom SDK $
++# $Copyright: Copyright 2012 Broadcom Corporation.
++# This program is the proprietary software of Broadcom Corporation
++# and/or its licensors, and may only be used, duplicated, modified
++# or distributed pursuant to the terms and conditions of a separate,
++# written license agreement executed between you and Broadcom
++# (an "Authorized License").  Except as set forth in an Authorized
++# License, Broadcom grants no license (express or implied), right
++# to use, or waiver of any kind with respect to the Software, and
++# Broadcom expressly reserves all rights in and to the Software
++# and all intellectual property rights therein.  IF YOU HAVE
++# NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
++# IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
++# ALL USE OF THE SOFTWARE.  
++#  
++# Except as expressly set forth in the Authorized License,
++#  
++# 1.     This program, including its structure, sequence and organization,
++# constitutes the valuable trade secrets of Broadcom, and you shall use
++# all reasonable efforts to protect the confidentiality thereof,
++# and to use this information only in connection with your use of
++# Broadcom integrated circuit products.
++#  
++# 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
++# PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
++# REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
++# OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
++# DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
++# NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
++# ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
++# CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
++# OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
++# 
++# 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
++# BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
++# INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
++# ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
++# TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
++# POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
++# THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
++# WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
++# ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
++
++# Configuration Flags
++
++# Filter out features that cannot or should not be supported in kernel mode
++
++_FEATURE_EXCLUDE_LIST += EDITLINE TCL OOB_RCPU CINT APIMODE DUNE_UI C_UNIT
++FEATURE_EXCLUDE_LIST = $(sort $(_FEATURE_EXCLUDE_LIST))
++
++# Tools
++
++# Conditionally Replaces DEFAULT var
++ifeq ($(origin CC),default)
++CC	= $(LSRUN) $(CROSS_COMPILE)gcc
++endif
++
++ifeq ($(origin CXX),default)
++CXX	= $(CROSS_COMPILE)g++
++endif
++
++ifeq ($(origin LD),default)
++LD	= $(CROSS_COMPILE)ld
++endif
++
++ifeq ($(origin AR),default)
++AR	= $(CROSS_COMPILE)ar
++endif
++
++ifeq ($(origin AS),default)
++AS	= $(CROSS_COMPILE)as
++endif
++
++ifeq ($(origin ARFLAGS),default)
++	ARFLAGS	= -rc
++endif
++
++STRIP	= $(CROSS_COMPILE)strip
++RANLIB  = $(CROSS_COMPILE)ranlib
++OBJCOPY = $(CROSS_COMPILE)objcopy
++NM      = $(CROSS_COMPILE)nm
++
++# Handle differences between gcc 2.x and gcc 3.x
++gcc-tune-flag = $(shell if ${CC} -dumpspecs | grep mcpu >/dev/null; then echo cpu; else echo tune; fi)
++
++# Configuration Variables
++
++# OSType Defines: This defines the type of RTOS or microkernel which you
++# are compiling the SAL (and its associated driver) for. New platforms
++# can be created by porting the routines (system.c) to your platform and
++# adding the define in this Makefile.
++
++OSTYPE = LINUX
++
++#
++# ORIGIN is used to Optionally select different CFLAGS. It is used to import
++# source from other vendors. If SOURCE=Broadcom, then the BCM_ flags are added
++# to those passed to the compiler. If SOURCE != Broadcom, BCM_ flags are NOT
++# added.
++#
++# Default specifies Broadcom
++#
++ifndef ORIGIN
++	ORIGIN = Broadcom
++endif
++
++#
++# STD_{C|CPP|CXX}FLAGS - Standard flags used by ALL compilations
++# BCM_{C|CPP|CXX}FLAGS - Flags used for Broadcom source files
++# OPT_{C|CPP|CXX}FLAGS - Defined in local make files BEFORE inclusion of 
++#			 this Makefile, to define local "Extra" flags.
++#
++
++ifdef IPROC_BUILD
++CFGFLAGS += -I$(SDK)/systems/linux/kernel/modules/include \
++	    -I$(SDK)/systems/bde/linux/include \
++	    -I$(LINUX_INCLUDE) \
++            -I$(KERNDIR)/arch/$(ARCH)
++else
++CFGFLAGS += -I$(SDK)/systems/linux/kernel/modules/include \
++	    -I$(SDK)/systems/bde/linux/include \
++	    -I$(LINUX_INCLUDE) \
++	    -I$(LINUX_INCLUDE)/asm/gcc \
++	    -I$(LINUX_INCLUDE)/asm/mach-generic \
++            -I$(KERNDIR)/arch/$(ARCH)
++endif
++
++CFGFLAGS += -DNO_CTRL_C -DNO_MEMTUNE
++#CFGFLAGS += -DNO_FILEIO
++
++CFGFLAGS += -D$(OSTYPE)
++
++# No user sal for the linux kernel
++# NO_SAL_APPL=1
++
++STD_CFLAGS = $(KFLAGS) $(CFGFLAGS)
++
++
++STD_CPPFLAGS = ${STD_CFLAGS}
++STD_CXXFLAGS = ${STD_CFLAGS}
++
++ifndef BCM_CFLAGS
++BCM_CFLAGS   = -Wall -Werror
++endif
++
++BCM_CPPFLAGS = ${BCM_CFLAGS}
++BCM_CXXFLAGS = ${BCM_CFLAGS}
++
++ifeq (${ORIGIN}, Broadcom)
++	CFLAGS   += ${STD_CFLAGS}   ${BCM_CFLAGS}   ${OPT_CFLAGS}
++	CPPFLAGS += ${STD_CPPFLAGS} ${BCM_CPPFLAGS} ${OPT_CPPFLAGS}
++	CXXFLAGS += ${STD_CXXFLAGS} ${BCM_CXXFLAGS} ${OPT_CXXFLAGS}
++else
++	CFLAGS   += ${STD_CFLAGS}   ${OPT_CFLAGS}
++	CPPFLAGS += ${STD_CPPFLAGS} ${OPT_CPPFLAGS}
++	CXXFLAGS += ${STD_CXXFLAGS} ${OPT_CXXFLAGS}
++endif
++
++#
++# Ignore pedantic flag for kernel modules
++#
++ifdef DEBUG_PEDANTIC
++DEBUG_PEDANTIC = FALSE
++endif
++
++#
++# DEPEND is used as a command to generate the list of dependencies.
++# The format of the output must be 
++#	"file.o : file.c a/b/c.h d/e/f.h ...", 
++# if it is on multiple lines, each line must end in a backslash. 
++# The output MUST be on standard out.
++#
++DEPEND = ${CC} -M $(CFLAGS) $< 
+diff -rpN --unified=6 sdk-all-6.4.6/make/Make.local sdk-all-6.4.6_modified/make/Make.local
+--- sdk-all-6.4.6/make/Make.local	1970-01-01 01:00:00.000000000 +0100
++++ sdk-all-6.4.6_modified/make/Make.local	2015-12-11 16:41:01.436575146 +0000
+@@ -0,0 +1,572 @@
++# $Id: Make.local.template,v 1.181 Broadcom SDK $
++# $Copyright: Copyright 2012 Broadcom Corporation.
++# This program is the proprietary software of Broadcom Corporation
++# and/or its licensors, and may only be used, duplicated, modified
++# or distributed pursuant to the terms and conditions of a separate,
++# written license agreement executed between you and Broadcom
++# (an "Authorized License").  Except as set forth in an Authorized
++# License, Broadcom grants no license (express or implied), right
++# to use, or waiver of any kind with respect to the Software, and
++# Broadcom expressly reserves all rights in and to the Software
++# and all intellectual property rights therein.  IF YOU HAVE
++# NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
++# IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
++# ALL USE OF THE SOFTWARE.  
++#  
++# Except as expressly set forth in the Authorized License,
++#  
++# 1.     This program, including its structure, sequence and organization,
++# constitutes the valuable trade secrets of Broadcom, and you shall use
++# all reasonable efforts to protect the confidentiality thereof,
++# and to use this information only in connection with your use of
++# Broadcom integrated circuit products.
++#  
++# 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
++# PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
++# REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
++# OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
++# DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
++# NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
++# ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
++# CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
++# OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
++# 
++# 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
++# BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
++# INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
++# ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
++# TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
++# POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
++# THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
++# WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
++# ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
++#
++
++# Usage for Make.local.template and Make.local:
++#
++# Make.local.template is checked into the tree, but Make.local is never
++# checked in.  Copy Make.local.template to Make.local, then change
++# Make.local to select the desired compilation options (mostly debugging
++# features).
++#
++# Note on CFGFLAGS usage:
++#
++#   Because CFGFLAGS may be used with other source preprocessing tools,
++#   please limit the values added to CFGFLAGS to -D defines.
++#
++#
++# Table of Contents:
++#
++#     Compiler Related Options
++#     Boot and Debug Related Options
++#     Operational and Policy Options
++#     System Management and Multiple CPU Options
++#     Selective Device Support (Switches and PHYs)
++#     Miscellaneous Options
++#
++
++################################################################
++#
++# Compiler Related Options
++#
++################################################################
++
++# Compiling out #ifdef DEBUG code saves about 1.3% on executable size.
++# It is recommended to leave debug enabled when developing applications.
++#DEBUG_IFDEFS=FALSE
++
++# SAL resource usage tracking #ifdef control
++# DEBUG_IFDEFS should also be  TRUE for this switch to take effect.
++#BCM_RESOURCE_USAGE_PROFILE_IFDEFS=TRUE
++
++# Uncomment to build without debug symbols
++#DEBUG_SYMBOLS=FALSE
++
++# Uncomment to add private CFLAGS
++#DEBUG_CFLAGS=
++
++# Uncomment to turn off the optimizer when debugging (recommended)
++#DEBUG_OPTIMIZE=FALSE
++
++# Compiling out assert() saves about 1.1% on executable size,
++# however do so is VERY MUCH discouraged.
++#DEBUG_ASSERTS=FALSE
++
++# Controlling GCC -pedantic flag
++#DEBUG_PEDANTIC=TRUE
++
++# compiler.h overrides, these disable various compiler
++# related features even if the compiler normally supports them
++
++# Disable use of long long for uint64
++#CFGFLAGS += -DCOMPILER_OVERRIDE_NO_LONGLONG
++
++# Disable use of doubles
++#CFGFLAGS += -DCOMPILER_OVERRIDE_NO_DOUBLE
++
++# Disable inlining of functions
++#CFGFLAGS += -DCOMPILER_OVERRIDE_NO_INLINE
++
++# Disable use of const
++#CFGFLAGS += -DCOMPILER_OVERRIDE_NO_CONST
++
++# Disable use of static functions
++#CFGFLAGS += -DCOMPILER_OVERRIDE_NO_STATIC
++
++# Disable RPC flexible (long) bitmaps.
++# Warning: Disabling this changes the RPC version to 2 and
++# makes systems running this code incompatible with systems
++# running previous versions of BCM RPC code.
++#CFGFLAGS += -DBCM_RPC_PBMP_64
++
++#
++# Define if longs are 64 bits on your compiler;
++# this is typically true ONLY for 64-bit processors.
++#CFGFLAGS += -DLONGS_ARE_64BITS
++
++#
++# Define if pointers are 64 bits on your compiler;
++# this is typically true ONLY for 64-bit processors.
++# NOTE: This support works ONLY under conditions where the
++# upper 32 bits for ALL pointers are ZERO.
++#CFGFLAGS += -DPTRS_ARE_64BITS
++
++
++################################################################
++#
++# Boot and Debug Related Options
++#
++################################################################
++
++# Define this to add debug code for RX pool buffer tracking
++#CFGFLAGS += -DBCM_RXP_DEBUG
++
++# Allow debugging of PCI reads/writes (debug +pci)
++#CFGFLAGS += -DSOC_PCI_DEBUG
++
++# Make default debugging settings be 0 (very very quiet)
++#CFGFLAGS += -DNO_DEBUG_OUTPUT_DEFAULT
++
++# Don't use vxMemProbe
++#CFGFLAGS += -DVX_NO_MEM_PROBE
++
++# Allow debugging of Memory Allocation/Deallocation logging
++#CFGFLAGS += -DMEMLOG_SUPPORT
++
++################################################################
++################################################################
++#
++# Operational and Policy Options
++#
++################################################################
++
++# VLAN policy control:
++#	NO_DEFAULT_ETHER	do not init ether ports into vlan 1
++#	NO_DEFAULT_CPU		do not init cpu ports into vlan 1
++#	NO_DEFAULT_SPI_SUBPORT	do not init spi subports into vlan 1
++#	NO_AUTO_STACK		do not init stack/HG ports into created vlans
++#CFGFLAGS += -DBCM_VLAN_NO_DEFAULT_ETHER
++#CFGFLAGS += -DBCM_VLAN_NO_DEFAULT_CPU
++#CFGFLAGS += -DBCM_VLAN_NO_DEFAULT_SPI_SUBPORT
++#CFGFLAGS += -DBCM_VLAN_NO_AUTO_STACK
++
++# VLAN multicast flood Policy Control:
++# BCM_VLAN_MCAST_FLOOD_ALL      Flood all multicast packets to the VLAN
++# BCM_VLAN_MCAST_FLOOD_UNKNOWN  Flood unknown multicast packets to the vlan
++# BCM_VLAN_MCAST_FLOOD_NONE     Forward multicast packets with known
++#                               destination addresses to the appropriate ports.
++#                               All packets destined to an unknown multicast
++#                               address are dropped.
++#CFGFLAGS += -DBCM_MCAST_FLOOD_DEFAULT=BCM_VLAN_MCAST_FLOOD_ALL
++#CFGFLAGS += -DBCM_MCAST_FLOOD_DEFAULT=BCM_VLAN_MCAST_FLOOD_UNKNOWN
++#CFGFLAGS += -DBCM_MCAST_FLOOD_DEFAULT=BCM_VLAN_MCAST_FLOOD_NONE
++
++#Port Enable/Disable Policy control:
++#       PORT_DEFAULT_DISABLE       disable ports during switch initialization
++#CFGFLAGS += -DBCM_PORT_DEFAULT_DISABLE
++
++# sal thread priority override (this value used for all threads if defined)
++#CFGFLAGS += -DSAL_THREAD_PRIORITY=255
++
++# disable printing of thread name in messages
++#CFGFLAGS += -DSAL_THREAD_NAME_PRINT_DISABLE
++
++# disable runtime reading of flash config.bcm file (even if !NO_FILEIO)
++#CFGFLAGS += -DSAL_CONFIG_FILE_DISABLE
++
++# disable all Application SAL dependencies
++#NO_SAL_APPL=1
++
++
++# Prevent scheduling in SPL locks when interrupt code is run as a thread.
++# This option should not be necessary if all locks are implemented correctly,
++# however, some locks may still rely on the assumption that scheduling does
++# not occur when interrupts are disabled. If you experience any locking
++# problems in e.g. Linux User Mode, try enabling this option.
++# Please note that turning on this option will reduce performance by an
++# estimated 5 to 10 %.
++#CFGFLAGS += -DSAL_SPL_NO_PREEMPT
++
++# disable mapping of higig cosq when mapping priority to cosq
++# (use identity mapping instead : map prio0->cos0, prio1->cos1, ... , prio7->cos7)
++#CFGFLAGS += -DBCM_COSQ_HIGIG_MAP_DISABLE
++
++################################################################
++#
++# System Management and Multiple CPU Options
++#
++################################################################
++
++# Turn on BCMX inclusion
++#     INCLUDE_BCMX for any support
++#INCLUDE_BCMX=1
++
++# Telekinesis suite applications for CPU to CPU communication and discovery
++#     CPUDB:         Simple CPU data base manager
++#     CPUTRANS:      CPU to CPU communication mechanisms
++#     DISCOVER:      Simple discovery; will also include CPUTRANS
++#     STKTASK:       Stack manager application
++#
++#CFGFLAGS += -DINCLUDE_LIB_CPUDB
++#CFGFLAGS += -DINCLUDE_LIB_CPUTRANS
++#CFGFLAGS += -DINCLUDE_LIB_DISCOVER
++#CFGFLAGS += -DINCLUDE_LIB_STKTASK
++
++# Option for discovery to use the application-data field in routing
++# packets for Board-ID and CPU base flag information.
++#CFGFLAGS += -DDISCOVER_APP_DATA_BOARDID
++
++# Optionally override list of included dispatch modules
++# Note: including RPC automatically includes the Telekinesis suite libs
++# ESW is the enterprise platforms.
++# ROBO includes the managed devices.
++# SBX includes API support for bcm988020QSK24X2
++#DISPATCH_LIST = RPC ESW ASYNC SBX
++
++# Define to have end-to-end flow control enabled on boards that
++# support it
++#CFGFLAGS += -DBCM_BOARD_AUTO_E2E
++
++# Define the following to support per-CPU transmit pointers.
++# This allows the TX setup and send functions to be defined on a
++# per-CPU basis, allowing mixed in-band and out-of-band communication.
++#CFGFLAGS += -DBCM_C2C_TRANSPORT_SWITCHING
++
++# Options for feature list (INCLUDE_XXX)
++# If FEATURE_LIST is defined, it is a list of features to include.
++# See Make.config for the default feature list.
++#
++# Avaliable features:
++#
++#     BCMX
++#     BCMX_DIAG
++#     CHASSIS
++#     CUSTOMER
++#     DRIVERS
++#     EDITLINE
++#     I2C
++#     L3
++#     MEM_SCAN
++#     ATPTRANS_SOCKET
++#     TELNET
++#     TEST
++#     ACL
++#     RCPU
++#     KNET - Linux user mode kernel network support
++#     BCM_SAL_PROFILE - make available an API to track SAL usage.
++#     CINT - Include the C Interpreter in the diagnostic shell. 
++#            Please note this cannot be used in Linux kernel mode. 
++#     C_UNIT - Include the C unit testing framework.  If CINT is also included
++#              then hooks will be provided for use from it.
++#     PHY_SYM_DBG - PHY GUI MDIO read/write support. Socket interface
++#                   to PHY GUI for Symbolic debugging.
++#     APIMODE - call SDK API functions from shell, requires CINT
++#     DUNE_UI - dune legacy user interface. For debug only. Tested
++#               on linux-user-gto-2.6 only.
++#     KBP   -   include nlm2(11K)/nlm3(12K) KBP support
++#     BHH   -   Include Support for BHH Application (MPLS-TP OAM based on Y.1731) 
++#               using BTE on select devices.
++#     AVS   - Include AVS support
++#FEATURE_LIST=ATPTRANS_SOCKET BCMX_DIAG L3 I2C BCMX MEM_SCAN EDITLINE \
++#    CUSTOMER TELNET DRIVERS CHASSIS TEST ACL RCPU BCM_SAL_PROFILE CINT \
++#    PTP CES FCMAP BOARD KNET REGEX MACSEC APIMODE BFD KBP AVS
++
++###############################################################
++#              KBP supported devices
++#
++#Enable this for 11K device support
++#KBP_DEVICE = KBP_11K
++#
++#Enable this for 12K device support
++#KBP_DEVICE = KBP_ALG
++#
++###############################################################
++
++################################################################
++#
++# Selective Device Support (Switches and PHYs)
++#
++################################################################
++
++# Multiple Chip Support
++#
++# By default, the driver supports all Strata switch and fabric chips
++# included in this software release.  It checks device IDs at runtime
++# to run the correct driver modules.
++#
++# To save space, the driver can be compiled to support just a subset of
++# the chips.  To do this, uncomment the line for BCM_PTL_SPT (partial
++# support) and uncomment one line for each chip to support.
++#
++# Note that there are a lot more chips than drivers.
++# For example, the BCM5615 driver is also used for BCM5625 and BCM5645.
++#
++
++#BCM_PTL_SPT = 1
++
++#BCM_5675_A0 = 1
++#BCM_56102_A0 = 1
++#BCM_56112_A0 = 1
++#BCM_56304_B0 = 1
++#BCM_56314_A0 = 1
++#BCM_56504_A0 = 1
++#BCM_56504_B0 = 1
++#BCM_56514_A0 = 1
++#BCM_56624_A0 = 1
++#BCM_56624_B0 = 1
++#BCM_56680_A0 = 1
++#BCM_56680_B0 = 1
++#BCM_56580_A0 = 1
++#BCM_56700_A0 = 1
++#BCM_56800_A0 = 1
++#BCM_56218_A0 = 1
++#BCM_56224_A0 = 1
++#BCM_56224_B0 = 1
++#BCM_56725_A0 = 1
++#BCM_56820_A0 = 1
++#BCM_53314_A0 = 1
++#BCM_53324_A0 = 1
++#BCM_56634_A0 = 1
++#BCM_56634_B0 = 1
++#BCM_56524_A0 = 1
++#BCM_56524_B0 = 1
++#BCM_56685_A0 = 1
++#BCM_56685_B0 = 1
++#BCM_56334_A0 = 1
++#BCM_56334_B0 = 1
++#BCM_56840_A0 = 1
++#BCM_56840_B0 = 1
++#BCM_56850_A0 = 1
++#BCM_56142_A0 = 1
++#BCM_56150_A0 = 1
++#BCM_56836_A0 = 1
++#BCM_56640_A0 = 1
++#BCM_56440_A0 = 1
++#BCM_56440_B0 = 1
++#BCM_56450_A0 = 1
++#BCM_56960_A0 = 1
++#BCM_56860_A0 = 1
++
++#BCM_5338_A0 = 1
++#BCM_5380_A0 = 1
++#BCM_5338_B0 = 1
++#BCM_5325_A1 = 1
++
++#BCM_5324_A0 = 1
++#BCM_5396_A0 = 1
++#BCM_5389_A0 = 1
++#BCM_5398_A0 = 1
++#BCM_5324_A1 = 1
++#BCM_53115_A0 = 1
++#BCM_53118_A0 = 1
++#BCM_53280_A0 = 1
++#BCM_53280_B0 = 1
++#BCM_53101_A0 = 1
++#BCM_53125_A0 = 1
++#BCM_53128_A0 = 1
++#BCM_53600_A0 = 1
++#BCM_89500_A0 = 1
++
++#BCM_88030_A0 = 1
++#BCM_QE2000_A0 = 1
++#BCM_BME3200_B0 = 1
++#BCM_BM9600_A0 = 1
++#BCM_88230_A0 = 1
++#BCM_88230_B0 = 1
++#BCM_88230_C0 = 1
++
++#ALL_DPP_CHIPS = 1
++DPP_CHIPS = 1
++#BCM_88450_A0 = 1
++#BCM_88650_A0 = 1
++BCM_88660_A0 = 1
++BCM_88360_A0 = 1
++
++BCM_PTL_SPT=1
++DEBUG_OPTIMIZE=FALSE
++FEATURE_LIST=CINT BSAFE ATPTRANS_SOCKET L3 I2C MEM_SCAN EDITLINE TELNET DRIVERS INTR CHASSIS TEST BCM_SAL_PROFILE RCPU DUNE_UI NO_SAL_APPL=1
++BCM_88640_A0 = 1
++BCM_88650_A0 = 1
++BCM_88650_B0 = 1
++BCM_88650_B1 = 1
++BCM_88750_A0 = 1
++BCM_88750_B0 = 1
++
++
++#BCM_TK371X_A0 = 1
++
++# Options for multiple PHY support
++# If BCM_PHY_LIST is defined, it is a list of PHYs to include.
++# The default is to include all of them.
++# If none of them should be included specify BCM_PHY_LIST=EMPTY
++#BCM_PHY_LIST=522X 54XX 5464 5421S 5482 54616 54680 54680E 52681E 54880E 54682 54684 54640 54640E 54880 SERDES SIMUL 8703 8705 8706 8072 8040 8481 8750 8729 84740 84756 84328 EMPTY
++
++# Options for BCM5338 5380
++#CFGFLAGS += -DROBO_OLD
++#ROBO_OLD = 1
++
++# Support for phy simulation
++#CFGFLAGS += -DINCLUDE_PHY_SIMUL
++#CFGFLAGS += -DSIM_ALL_PHYS        # All phys use simulation driver
++#CFGFLAGS += -DSIM_CMIC_LINK_STAT  # Get link status from CMIC register
++
++# Support for BOARD library
++# if BOARD_LIST is defined, it is a list of Board drivers to include.
++# The default is to include all board drivers appropriate for the devices
++# included in the build. If none of them should be included specify
++# BOARD_LIST=EMPTY.
++#BOARD_LIST=GENERIC
++
++# Support for event logging
++#CFGFLAGS += -DINCLUDE_SHARED_EVLOG
++
++# Support for BCM API port translation
++#CFGFLAGS += -DINCLUDE_BCM_API_XLATE_PORT
++
++# Support for callback error checks and abort in traverse api's
++#CFGFLAGS += -DBCM_CB_ABORT_ON_ERR
++################################################################
++#
++# Misc Options
++#
++################################################################
++#CFGFLAGS += -DSOC_MEM_L3_DEFIP_WAR
++
++# Compile out Register/Table descriptive strings to generate a
++# compact image
++#CFGFLAGS +=-DSOC_NO_NAMES
++#CFGFLAGS +=-DSOC_NO_ALIAS
++#CFGFLAGS +=-DSOC_NO_DESC
++
++# Reload/WarmBoot Support
++#
++#CFGFLAGS += -DBCM_WARM_BOOT_SUPPORT
++#
++# Need this for validation using SOC scripts; Will move to tcl 
++# someday
++#CFGFLAGS += -DBCM_WARM_BOOT_SUPPORT_SW_DUMP
++#
++# Adds a CRC check on scache buffer: Calculate when saving,
++# and verify when loading.
++# When doing ISSU, both source and destination versions should either have
++# this flag enabled or disabled.
++#CFGFLAGS += -DSCACHE_CRC_CHECK
++
++################################################################
++#
++# Enable Easy Reload Support
++#
++################################################################
++#CFGFLAGS += -DBCM_EASY_RELOAD_SUPPORT
++# For validation purposes
++#CFGFLAGS += -DBCM_EASY_RELOAD_SUPPORT_SW_DUMP
++
++# Software Trunk failover Support
++#
++#CFGFLAGS += -DBCM_TRUNK_FAILOVER_SUPPORT
++
++################################################################
++#
++# Override default VXWORKS thread options to make set 
++# VX_UNBREAKABLE flag in task creation.
++#
++################################################################
++#CFGFLAGS += -DVX_THREAD_OPT_UNBREAKABLE
++
++
++################################################################
++#
++# Use default priority for BDE interrupt thread.
++#
++################################################################
++#CFGFLAGS += -DSAL_BDE_THREAD_PRIO_DEFAULT
++
++################################################################
++#
++# Use cached DMA memory when mapping kernel DMA memory to user
++# mode. Should only be enabled on cache-coherent platforms.
++#
++################################################################
++#CFGFLAGS += -DSAL_BDE_CACHE_DMA_MEM
++
++################################################################
++#
++# Take the spl lock upon entering an ISR
++#
++################################################################
++#CFGFLAGS += -DSAL_SPL_LOCK_ON_IRQ
++
++################################################################
++#
++# Silently ignore NULL pointer free in sal_free API
++# Default behaviour is to assert if a NULL pointer is passed to sal_free
++#
++################################################################
++#CFGFLAGS += -DSAL_FREE_NULL_IGNORE
++
++################################################################
++# Enable SBX MPLS TP support
++################################################################
++#CFGFLAGS += -DBCM_SBX_MPLSTP_SUPPORT
++#CFGFLAGS += -DBCM_SBX_C1_MPLSTP_SUPPORT
++
++################################################################
++# Restrict SBX C2 Fte range to C2's range
++################################################################
++#CFGFLAGS += -DBCM_SBX_C1_C2_INTEROP
++
++################################################################
++# For historical reasons the PCI probe function skips device 12
++# by default to prevent a system hang on certain platforms.
++# Set this value to zero to probe all PCI devices.
++################################################################
++#CFGFLAGS += -DOVERRIDE_PCI_SKIP_DEV_MASK=0
++
++################################################################
++# Override max devices supported by PLI BDE
++################################################################
++#CFGFLAGS += -DPLI_MAX_DEVICES
++
++################################################################
++# Track BCM API calls to avoid deinitialization while calls active
++# This will incur a small time penalty for each BCM API call
++################################################################
++#CFGFLAGS += -DBCM_CONTROL_API_TRACKING
++
++################################################################
++# Override default retry time for detach to wait for executing
++# APIs to complete.
++################################################################
++#CFGFLAGS += -DBCM_DETACH_POLL_INTERVAL_USECS_DEFAULT=100000
++#CFGFLAGS += -DBCM_DETACH_NUM_RETRIES_DEFAULT=3000
++
++################################################################
++# Disable the RX module initialization
++################################################################
++#CFGFLAGS += -DBCM_RX_DISABLE
++
++################################################################
++# Enable TX callback in interrupt thread
++################################################################
++#CFGFLAGS += -DTX_CB_INTR
++
+diff -rpN --unified=6 sdk-all-6.4.6/make/Make.local.dnx sdk-all-6.4.6_modified/make/Make.local.dnx
+--- sdk-all-6.4.6/make/Make.local.dnx	1970-01-01 01:00:00.000000000 +0100
++++ sdk-all-6.4.6_modified/make/Make.local.dnx	2015-12-11 16:41:01.436575146 +0000
+@@ -0,0 +1,588 @@
++# $Id: Make.local.template,v 1.181 Broadcom SDK $
++# $Copyright: Copyright 2012 Broadcom Corporation.
++# This program is the proprietary software of Broadcom Corporation
++# and/or its licensors, and may only be used, duplicated, modified
++# or distributed pursuant to the terms and conditions of a separate,
++# written license agreement executed between you and Broadcom
++# (an "Authorized License").  Except as set forth in an Authorized
++# License, Broadcom grants no license (express or implied), right
++# to use, or waiver of any kind with respect to the Software, and
++# Broadcom expressly reserves all rights in and to the Software
++# and all intellectual property rights therein.  IF YOU HAVE
++# NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
++# IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
++# ALL USE OF THE SOFTWARE.  
++#  
++# Except as expressly set forth in the Authorized License,
++#  
++# 1.     This program, including its structure, sequence and organization,
++# constitutes the valuable trade secrets of Broadcom, and you shall use
++# all reasonable efforts to protect the confidentiality thereof,
++# and to use this information only in connection with your use of
++# Broadcom integrated circuit products.
++#  
++# 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
++# PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
++# REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
++# OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
++# DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
++# NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
++# ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
++# CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
++# OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
++# 
++# 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
++# BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
++# INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
++# ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
++# TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
++# POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
++# THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
++# WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
++# ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
++#
++
++# Usage for Make.local.template and Make.local:
++#
++# Make.local.template is checked into the tree, but Make.local is never
++# checked in.  Copy Make.local.template to Make.local, then change
++# Make.local to select the desired compilation options (mostly debugging
++# features).
++#
++# Note on CFGFLAGS usage:
++#
++#   Because CFGFLAGS may be used with other source preprocessing tools,
++#   please limit the values added to CFGFLAGS to -D defines.
++#
++#
++# Table of Contents:
++#
++#     Compiler Related Options
++#     Boot and Debug Related Options
++#     Operational and Policy Options
++#     System Management and Multiple CPU Options
++#     Selective Device Support (Switches and PHYs)
++#     Miscellaneous Options
++#
++
++################################################################
++#
++# Compiler Related Options
++#
++################################################################
++
++# Compiling out #ifdef DEBUG code saves about 1.3% on executable size.
++# It is recommended to leave debug enabled when developing applications.
++#DEBUG_IFDEFS=FALSE
++
++# SAL resource usage tracking #ifdef control
++# DEBUG_IFDEFS should also be  TRUE for this switch to take effect.
++#BCM_RESOURCE_USAGE_PROFILE_IFDEFS=TRUE
++
++# Uncomment to build without debug symbols
++#DEBUG_SYMBOLS=FALSE
++
++# Uncomment to add private CFLAGS
++#DEBUG_CFLAGS=
++
++# Uncomment to turn off the optimizer when debugging (recommended)
++#DEBUG_OPTIMIZE=FALSE
++
++# Compiling out assert() saves about 1.1% on executable size,
++# however do so is VERY MUCH discouraged.
++#DEBUG_ASSERTS=FALSE
++
++# Controlling GCC -pedantic flag
++#DEBUG_PEDANTIC=TRUE
++
++# compiler.h overrides, these disable various compiler
++# related features even if the compiler normally supports them
++
++# Disable use of long long for uint64
++#CFGFLAGS += -DCOMPILER_OVERRIDE_NO_LONGLONG
++
++# Disable use of doubles
++#CFGFLAGS += -DCOMPILER_OVERRIDE_NO_DOUBLE
++
++# Disable inlining of functions
++#CFGFLAGS += -DCOMPILER_OVERRIDE_NO_INLINE
++
++# Disable use of const
++#CFGFLAGS += -DCOMPILER_OVERRIDE_NO_CONST
++
++# Disable use of static functions
++#CFGFLAGS += -DCOMPILER_OVERRIDE_NO_STATIC
++
++# Disable RPC flexible (long) bitmaps.
++# Warning: Disabling this changes the RPC version to 2 and
++# makes systems running this code incompatible with systems
++# running previous versions of BCM RPC code.
++#CFGFLAGS += -DBCM_RPC_PBMP_64
++
++#
++# Define if longs are 64 bits on your compiler;
++# this is typically true ONLY for 64-bit processors.
++#CFGFLAGS += -DLONGS_ARE_64BITS
++
++#
++# Define if pointers are 64 bits on your compiler;
++# this is typically true ONLY for 64-bit processors.
++# NOTE: This support works ONLY under conditions where the
++# upper 32 bits for ALL pointers are ZERO.
++#CFGFLAGS += -DPTRS_ARE_64BITS
++
++
++################################################################
++#
++# Boot and Debug Related Options
++#
++################################################################
++
++# Define this to add debug code for RX pool buffer tracking
++#CFGFLAGS += -DBCM_RXP_DEBUG
++
++# Allow debugging of PCI reads/writes (debug +pci)
++#CFGFLAGS += -DSOC_PCI_DEBUG
++
++# Make default debugging settings be 0 (very very quiet)
++#CFGFLAGS += -DNO_DEBUG_OUTPUT_DEFAULT
++
++# Don't use vxMemProbe
++#CFGFLAGS += -DVX_NO_MEM_PROBE
++
++# Allow debugging of Memory Allocation/Deallocation logging
++#CFGFLAGS += -DMEMLOG_SUPPORT
++
++################################################################
++################################################################
++#
++# Operational and Policy Options
++#
++################################################################
++
++# VLAN policy control:
++#	NO_DEFAULT_ETHER	do not init ether ports into vlan 1
++#	NO_DEFAULT_CPU		do not init cpu ports into vlan 1
++#	NO_DEFAULT_SPI_SUBPORT	do not init spi subports into vlan 1
++#	NO_AUTO_STACK		do not init stack/HG ports into created vlans
++#CFGFLAGS += -DBCM_VLAN_NO_DEFAULT_ETHER
++#CFGFLAGS += -DBCM_VLAN_NO_DEFAULT_CPU
++#CFGFLAGS += -DBCM_VLAN_NO_DEFAULT_SPI_SUBPORT
++#CFGFLAGS += -DBCM_VLAN_NO_AUTO_STACK
++
++# VLAN multicast flood Policy Control:
++# BCM_VLAN_MCAST_FLOOD_ALL      Flood all multicast packets to the VLAN
++# BCM_VLAN_MCAST_FLOOD_UNKNOWN  Flood unknown multicast packets to the vlan
++# BCM_VLAN_MCAST_FLOOD_NONE     Forward multicast packets with known
++#                               destination addresses to the appropriate ports.
++#                               All packets destined to an unknown multicast
++#                               address are dropped.
++#CFGFLAGS += -DBCM_MCAST_FLOOD_DEFAULT=BCM_VLAN_MCAST_FLOOD_ALL
++#CFGFLAGS += -DBCM_MCAST_FLOOD_DEFAULT=BCM_VLAN_MCAST_FLOOD_UNKNOWN
++#CFGFLAGS += -DBCM_MCAST_FLOOD_DEFAULT=BCM_VLAN_MCAST_FLOOD_NONE
++
++#Port Enable/Disable Policy control:
++#       PORT_DEFAULT_DISABLE       disable ports during switch initialization
++CFGFLAGS += -DBCM_PORT_DEFAULT_DISABLE
++
++# sal thread priority override (this value used for all threads if defined)
++#CFGFLAGS += -DSAL_THREAD_PRIORITY=255
++
++# disable printing of thread name in messages
++#CFGFLAGS += -DSAL_THREAD_NAME_PRINT_DISABLE
++
++# disable runtime reading of flash config.bcm file (even if !NO_FILEIO)
++CFGFLAGS += -DSAL_CONFIG_FILE=\"/usr/local/ptin/sbin/config.bcm\" -DSAL_CONFIG_TEMP=\"/usr/local/ptin/sbin/config.tmp\"
++#-DSAL_CONFIG_FILE_DISABLE
++
++# disable all Application SAL dependencies
++#NO_SAL_APPL=1
++
++
++# Prevent scheduling in SPL locks when interrupt code is run as a thread.
++# This option should not be necessary if all locks are implemented correctly,
++# however, some locks may still rely on the assumption that scheduling does
++# not occur when interrupts are disabled. If you experience any locking
++# problems in e.g. Linux User Mode, try enabling this option.
++# Please note that turning on this option will reduce performance by an
++# estimated 5 to 10 %.
++#CFGFLAGS += -DSAL_SPL_NO_PREEMPT
++
++# disable mapping of higig cosq when mapping priority to cosq
++# (use identity mapping instead : map prio0->cos0, prio1->cos1, ... , prio7->cos7)
++#CFGFLAGS += -DBCM_COSQ_HIGIG_MAP_DISABLE
++
++################################################################
++#
++# System Management and Multiple CPU Options
++#
++################################################################
++
++# Turn on BCMX inclusion
++#     INCLUDE_BCMX for any support
++INCLUDE_BCMX=1
++
++# Telekinesis suite applications for CPU to CPU communication and discovery
++#     CPUDB:         Simple CPU data base manager
++#     CPUTRANS:      CPU to CPU communication mechanisms
++#     DISCOVER:      Simple discovery; will also include CPUTRANS
++#     STKTASK:       Stack manager application
++#
++#CFGFLAGS += -DINCLUDE_LIB_CPUDB
++#CFGFLAGS += -DINCLUDE_LIB_CPUTRANS
++#CFGFLAGS += -DINCLUDE_LIB_DISCOVER
++#CFGFLAGS += -DINCLUDE_LIB_STKTASK
++
++# Option for discovery to use the application-data field in routing
++# packets for Board-ID and CPU base flag information.
++#CFGFLAGS += -DDISCOVER_APP_DATA_BOARDID
++
++# Optionally override list of included dispatch modules
++# Note: including RPC automatically includes the Telekinesis suite libs
++# ESW is the enterprise platforms.
++# ROBO includes the managed devices.
++# SBX includes API support for bcm988020QSK24X2
++#DISPATCH_LIST = RPC ESW ASYNC SBX
++
++# Define to have end-to-end flow control enabled on boards that
++# support it
++#CFGFLAGS += -DBCM_BOARD_AUTO_E2E
++
++# Define the following to support per-CPU transmit pointers.
++# This allows the TX setup and send functions to be defined on a
++# per-CPU basis, allowing mixed in-band and out-of-band communication.
++#CFGFLAGS += -DBCM_C2C_TRANSPORT_SWITCHING
++
++# Options for feature list (INCLUDE_XXX)
++# If FEATURE_LIST is defined, it is a list of features to include.
++# See Make.config for the default feature list.
++#
++# Avaliable features:
++#
++#     BCMX
++#     BCMX_DIAG
++#     CHASSIS
++#     CUSTOMER
++#     DRIVERS
++#     EDITLINE
++#     I2C
++#     L3
++#     MEM_SCAN
++#     ATPTRANS_SOCKET
++#     TELNET
++#     TEST
++#     ACL
++#     RCPU
++#     KNET - Linux user mode kernel network support
++#     BCM_SAL_PROFILE - make available an API to track SAL usage.
++#     CINT - Include the C Interpreter in the diagnostic shell. 
++#            Please note this cannot be used in Linux kernel mode. 
++#     C_UNIT - Include the C unit testing framework.  If CINT is also included
++#              then hooks will be provided for use from it.
++#     PHY_SYM_DBG - PHY GUI MDIO read/write support. Socket interface
++#                   to PHY GUI for Symbolic debugging.
++#     APIMODE - call SDK API functions from shell, requires CINT
++#     DUNE_UI - dune legacy user interface. For debug only. Tested
++#               on linux-user-gto-2.6 only.
++#     KBP   -   include nlm2(11K)/nlm3(12K) KBP support
++#     BHH   -   Include Support for BHH Application (MPLS-TP OAM based on Y.1731) 
++#               using BTE on select devices.
++#     AVS   - Include AVS support
++#FEATURE_LIST=ATPTRANS_SOCKET BCMX_DIAG L3 I2C BCMX MEM_SCAN EDITLINE \
++#    CUSTOMER TELNET DRIVERS CHASSIS TEST ACL RCPU BCM_SAL_PROFILE CINT \
++#    PTP CES FCMAP BOARD KNET REGEX MACSEC APIMODE BFD KBP AVS
++
++###############################################################
++#              KBP supported devices
++#
++#Enable this for 11K device support
++#KBP_DEVICE = KBP_11K
++#
++#Enable this for 12K device support
++#KBP_DEVICE = KBP_ALG
++#
++###############################################################
++
++################################################################
++#
++# Selective Device Support (Switches and PHYs)
++#
++################################################################
++
++# Multiple Chip Support
++#
++# By default, the driver supports all Strata switch and fabric chips
++# included in this software release.  It checks device IDs at runtime
++# to run the correct driver modules.
++#
++# To save space, the driver can be compiled to support just a subset of
++# the chips.  To do this, uncomment the line for BCM_PTL_SPT (partial
++# support) and uncomment one line for each chip to support.
++#
++# Note that there are a lot more chips than drivers.
++# For example, the BCM5615 driver is also used for BCM5625 and BCM5645.
++#
++
++#BCM_PTL_SPT = 1
++
++#BCM_5675_A0 = 1
++#BCM_56102_A0 = 1
++#BCM_56112_A0 = 1
++#BCM_56304_B0 = 1
++#BCM_56314_A0 = 1
++#BCM_56504_A0 = 1
++#BCM_56504_B0 = 1
++#BCM_56514_A0 = 1
++#BCM_56624_A0 = 1
++#BCM_56624_B0 = 1
++#BCM_56680_A0 = 1
++#BCM_56680_B0 = 1
++#BCM_56580_A0 = 1
++#BCM_56700_A0 = 1
++#BCM_56800_A0 = 1
++#BCM_56218_A0 = 1
++#BCM_56224_A0 = 1
++#BCM_56224_B0 = 1
++#BCM_56725_A0 = 1
++#BCM_56820_A0 = 1
++#BCM_53314_A0 = 1
++#BCM_53324_A0 = 1
++#BCM_56634_A0 = 1
++#BCM_56634_B0 = 1
++#BCM_56524_A0 = 1
++#BCM_56524_B0 = 1
++#BCM_56685_A0 = 1
++#BCM_56685_B0 = 1
++#BCM_56334_A0 = 1
++#BCM_56334_B0 = 1
++#BCM_56840_A0 = 1
++#BCM_56840_B0 = 1
++#BCM_56850_A0 = 1
++#BCM_56142_A0 = 1
++#BCM_56150_A0 = 1
++#BCM_56836_A0 = 1
++#BCM_56640_A0 = 1
++#BCM_56440_A0 = 1
++#BCM_56440_B0 = 1
++#BCM_56450_A0 = 1
++#BCM_56960_A0 = 1
++#BCM_56860_A0 = 1
++
++#BCM_5338_A0 = 1
++#BCM_5380_A0 = 1
++#BCM_5338_B0 = 1
++#BCM_5325_A1 = 1
++
++#BCM_5324_A0 = 1
++#BCM_5396_A0 = 1
++#BCM_5389_A0 = 1
++#BCM_5398_A0 = 1
++#BCM_5324_A1 = 1
++#BCM_53115_A0 = 1
++#BCM_53118_A0 = 1
++#BCM_53280_A0 = 1
++#BCM_53280_B0 = 1
++#BCM_53101_A0 = 1
++#BCM_53125_A0 = 1
++#BCM_53128_A0 = 1
++#BCM_53600_A0 = 1
++#BCM_89500_A0 = 1
++
++#BCM_88030_A0 = 1
++#BCM_QE2000_A0 = 1
++#BCM_BME3200_B0 = 1
++#BCM_BM9600_A0 = 1
++#BCM_88230_A0 = 1
++#BCM_88230_B0 = 1
++#BCM_88230_C0 = 1
++
++#ALL_DPP_CHIPS = 1
++DPP_CHIPS = 1
++#BCM_88450_A0 = 1
++#BCM_88650_A0 = 1
++BCM_88660_A0 = 1
++BCM_88360_A0 = 1
++
++BCM_PTL_SPT=1
++DEBUG_OPTIMIZE=FALSE
++#FEATURE_LIST=CINT BSAFE ATPTRANS_SOCKET L3 I2C MEM_SCAN EDITLINE TELNET DRIVERS INTR CHASSIS TEST BCM_SAL_PROFILE RCPU DUNE_UI NO_SAL_APPL=1
++#FEATURE_LIST=ATPTRANS_SOCKET BCMX_DIAG L3 I2C BCMX MEM_SCAN EDITLINE CUSTOMER TEST ACL
++FEATURE_LIST=ATPTRANS_SOCKET BCMX_DIAG L3 I2C BCMX MEM_SCAN EDITLINE CUSTOMER TEST ACL \
++             CINT BSAFE TELNET DRIVERS INTR CHASSIS BCM_SAL_PROFILE RCPU DUNE_UI NO_SAL_APPL=1
++
++BCM_88640_A0 = 1
++BCM_88650_A0 = 1
++BCM_88650_B0 = 1
++BCM_88650_B1 = 1
++BCM_88750_A0 = 1
++BCM_88750_B0 = 1
++
++#BCM_TK371X_A0 = 1
++
++# Options for multiple PHY support
++# If BCM_PHY_LIST is defined, it is a list of PHYs to include.
++# The default is to include all of them.
++# If none of them should be included specify BCM_PHY_LIST=EMPTY
++#BCM_PHY_LIST=522X 54XX 5464 5421S 5482 54616 54680 54680E 52681E 54880E 54682 54684 54640 54640E 54880 SERDES SIMUL 8703 8705 8706 8072 8040 8481 8750 8729 84740 84756 84328 EMPTY
++
++# Options for BCM5338 5380
++#CFGFLAGS += -DROBO_OLD
++#ROBO_OLD = 1
++
++# Support for phy simulation
++#CFGFLAGS += -DINCLUDE_PHY_SIMUL
++#CFGFLAGS += -DSIM_ALL_PHYS        # All phys use simulation driver
++#CFGFLAGS += -DSIM_CMIC_LINK_STAT  # Get link status from CMIC register
++
++# Support for BOARD library
++# if BOARD_LIST is defined, it is a list of Board drivers to include.
++# The default is to include all board drivers appropriate for the devices
++# included in the build. If none of them should be included specify
++# BOARD_LIST=EMPTY.
++#BOARD_LIST=GENERIC
++
++# Support for event logging
++#CFGFLAGS += -DINCLUDE_SHARED_EVLOG
++
++# Support for BCM API port translation
++#CFGFLAGS += -DINCLUDE_BCM_API_XLATE_PORT
++
++# Support for callback error checks and abort in traverse api's
++#CFGFLAGS += -DBCM_CB_ABORT_ON_ERR
++################################################################
++#
++# Misc Options
++#
++################################################################
++#CFGFLAGS += -DSOC_MEM_L3_DEFIP_WAR
++
++# Compile out Register/Table descriptive strings to generate a
++# compact image
++#CFGFLAGS +=-DSOC_NO_NAMES
++#CFGFLAGS +=-DSOC_NO_ALIAS
++#CFGFLAGS +=-DSOC_NO_DESC
++
++# Reload/WarmBoot Support
++#
++#CFGFLAGS += -DBCM_WARM_BOOT_SUPPORT
++#
++# Need this for validation using SOC scripts; Will move to tcl 
++# someday
++#CFGFLAGS += -DBCM_WARM_BOOT_SUPPORT_SW_DUMP
++#
++# Adds a CRC check on scache buffer: Calculate when saving,
++# and verify when loading.
++# When doing ISSU, both source and destination versions should either have
++# this flag enabled or disabled.
++#CFGFLAGS += -DSCACHE_CRC_CHECK
++
++################################################################
++#
++# Enable Easy Reload Support
++#
++################################################################
++#CFGFLAGS += -DBCM_EASY_RELOAD_SUPPORT
++# For validation purposes
++#CFGFLAGS += -DBCM_EASY_RELOAD_SUPPORT_SW_DUMP
++
++# Software Trunk failover Support
++#
++#CFGFLAGS += -DBCM_TRUNK_FAILOVER_SUPPORT
++
++# This option is not present in the default make.local.template.
++ifdef LVL7_FIXUP
++CFGFLAGS += -DBCM_BOARD_AUTO_TRUNK
++endif
++
++################################################################
++#
++# Override default VXWORKS thread options to make set 
++# VX_UNBREAKABLE flag in task creation.
++#
++################################################################
++#CFGFLAGS += -DVX_THREAD_OPT_UNBREAKABLE
++
++
++################################################################
++#
++# Use default priority for BDE interrupt thread.
++#
++################################################################
++#CFGFLAGS += -DSAL_BDE_THREAD_PRIO_DEFAULT
++
++################################################################
++#
++# Use cached DMA memory when mapping kernel DMA memory to user
++# mode. Should only be enabled on cache-coherent platforms.
++#
++################################################################
++#CFGFLAGS += -DSAL_BDE_CACHE_DMA_MEM
++
++################################################################
++#
++# Take the spl lock upon entering an ISR
++#
++################################################################
++#CFGFLAGS += -DSAL_SPL_LOCK_ON_IRQ
++
++################################################################
++#
++# Silently ignore NULL pointer free in sal_free API
++# Default behaviour is to assert if a NULL pointer is passed to sal_free
++#
++################################################################
++#CFGFLAGS += -DSAL_FREE_NULL_IGNORE
++
++################################################################
++# Enable SBX MPLS TP support
++################################################################
++#CFGFLAGS += -DBCM_SBX_MPLSTP_SUPPORT
++#CFGFLAGS += -DBCM_SBX_C1_MPLSTP_SUPPORT
++
++################################################################
++# Restrict SBX C2 Fte range to C2's range
++################################################################
++#CFGFLAGS += -DBCM_SBX_C1_C2_INTEROP
++
++################################################################
++# For historical reasons the PCI probe function skips device 12
++# by default to prevent a system hang on certain platforms.
++# Set this value to zero to probe all PCI devices.
++################################################################
++#CFGFLAGS += -DOVERRIDE_PCI_SKIP_DEV_MASK=0
++
++################################################################
++# Override max devices supported by PLI BDE
++################################################################
++#CFGFLAGS += -DPLI_MAX_DEVICES
++
++################################################################
++# Track BCM API calls to avoid deinitialization while calls active
++# This will incur a small time penalty for each BCM API call
++################################################################
++#CFGFLAGS += -DBCM_CONTROL_API_TRACKING
++
++################################################################
++# Override default retry time for detach to wait for executing
++# APIs to complete.
++################################################################
++#CFGFLAGS += -DBCM_DETACH_POLL_INTERVAL_USECS_DEFAULT=100000
++#CFGFLAGS += -DBCM_DETACH_NUM_RETRIES_DEFAULT=3000
++
++################################################################
++# Disable the RX module initialization
++################################################################
++#CFGFLAGS += -DBCM_RX_DISABLE
++
++################################################################
++# Enable TX callback in interrupt thread
++################################################################
++#CFGFLAGS += -DTX_CB_INTR
++
++
++ifdef LVL7_FIXUP
++# Turn on BCM Shell inclusion
++L7_INCLUDE_BCM_SHELL = 1
++CFGFLAGS += -DL7_BCM_SHELL_SUPPORT
++endif
++
+diff -rpN --unified=6 sdk-all-6.4.6/src/appl/diag/dcmn/init.c sdk-all-6.4.6_modified/src/appl/diag/dcmn/init.c
+--- sdk-all-6.4.6/src/appl/diag/dcmn/init.c	2015-06-12 10:56:22.000000000 +0100
++++ sdk-all-6.4.6_modified/src/appl/diag/dcmn/init.c	2015-12-11 16:41:23.457117498 +0000
+@@ -144,13 +144,13 @@ extern int _cpu_pci_register(int d);
+ 
+ 
+ #define PCP_DEVICE_ID (SOC_SAND_MAX_DEVICE-1)
+ 
+ #define MAX_NUM_DEVICES (SOC_SAND_MAX_DEVICE)
+ #define MAX_COS         (8)
+-#define MAX_MODIDS_PER_DEVICE 2
++#define MAX_MODIDS_PER_DEVICE 1	/* PTin modified (2) */
+ #define MODIDS_PER_DEVICE (g_dii.is_symmetric ? MAX_MODIDS_PER_DEVICE : 1)
+ #define OLP_DEFAULT_CORE 0
+ #define CORE_ID2INDEX(core_id) ((core_id == BCM_CORE_ALL) ? 0 : core_id)
+ 
+ #ifdef BCM_DPP_SUPPORT
+ typedef struct appl_dpp_diag_init_s {
+diff -rpN --unified=6 sdk-all-6.4.6/src/appl/diag/system.c sdk-all-6.4.6_modified/src/appl/diag/system.c
+--- sdk-all-6.4.6/src/appl/diag/system.c	2015-06-12 10:56:21.000000000 +0100
++++ sdk-all-6.4.6_modified/src/appl/diag/system.c	2015-12-11 16:41:18.868734173 +0000
+@@ -42,12 +42,16 @@
+  * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+  * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+  */
+ 
+ #include <shared/bsl.h>
+ 
++#include <unistd.h>
++#include <time.h>
++#include <sys/time.h>
++
+ #ifndef __KERNEL__
+ #include <sys/types.h>
+ #include <netinet/in.h>
+ #include <signal.h>
+ #include <setjmp.h>
+ #endif
+@@ -72,13 +76,12 @@
+ 
+ #include <hostLib.h>
+ #include <netShow.h>
+ #include <pingLib.h>
+ #endif /* VXWORKS */
+ 
+-
+ #if defined(MOUSSE) || defined(BMW) || defined(IDTRP334) || defined(GTO) || \
+     defined(MBZ) || defined(IDT438) || defined(NSX) || defined(ROBO_4704) || \
+     defined(METROCORE) || defined(KEYSTONE)
+ #if defined(VXWORKS)
+ #include <config.h>      /* For INCLUDE_XXX */
+ #endif /* VXWORKS */
+@@ -1889,12 +1892,410 @@ diag_rc_load(int unit)
+     } else {
+     return sh_rcload_file(unit, NULL, script, FALSE);
+     }
+ }
+ #endif /* NO_SAL_APPL */
+ 
++#define LOG_MSG_MAX_MSG_SIZE    512
++#define MAX_OUTBUF_LEN          512 /* Output buffer max length */
++#define MAX_FILE_LEN            15  /* Filename max length */
++#define MAX_FUNC_LEN            35  /* Function max length */
++#define MAX_LINE_LEN            5   /* Line# max length */
++#define MAX_FILEFUNCLINE_LEN    30  /* Filename+function+line# max length */
++#define MAX_TIMESTAMP_LEN       24  /* Timestamp max length*/
++#define MAX_LOG_LINES         4096  /* Max File Lines */
++
++/* Severity */
++typedef enum {
++    LOG_OFF = 0,        /* Turn of any print */
++    LOG_SEV_PRINT,      /* Always print */
++    LOG_SEV_FATAL,
++    LOG_SEV_CRITICAL,
++    LOG_SEV_ERROR,
++    LOG_SEV_WARNING,
++    LOG_SEV_NOTICE,
++    LOG_SEV_INFO,
++    LOG_SEV_DEBUG,
++    LOG_SEV_TRACE,
++    /* Last element */
++    LOG_SEV_LAST,
++} log_severity_t;
++
++/* Severity strings */
++static const char *log_sev_str[LOG_SEV_LAST] = {
++    "OFF",
++    "[PRINT]   ",
++    "[FATAL]   ",
++    "[CRITICAL]",
++    "[ERROR]   ",
++    "[WARNING] ",
++    "[NOTICE]  ",
++    "[INFO]    ",
++    "[DEBUG]   ",
++    "[TRACE]   ",
++};
++
++
++unsigned int bsl_layer_bmp = 0;
++unsigned int bsl_source_bmp[(bslSourceCount/32)+1];
++unsigned char bsl_severity_min = bslSeverityOff;
++
++
++/**
++ * Reset CM LOGGINGs allowed
++ * 
++ * @author mruas (12/30/2014)
++ */
++void hapiBroadCmReset(void)
++{
++  bsl_layer_bmp = 0;
++  memset(bsl_source_bmp, 0, sizeof(bsl_source_bmp));
++  bsl_severity_min = bslSeverityOff;
++}
++
++
++/**
++ * Configure Layers to be logged
++ * 
++ * @author mruas (12/30/2014)
++ * 
++ * @param layer 
++ * @param enable 
++ */
++void hapiBroadCmLayerSet(int layer, int enable)
++{
++  if (layer >= bslLayerCount)
++  {
++    return;
++  }
++
++  if (enable)
++  {
++    bsl_layer_bmp |= (1UL << layer);
++  }
++  else
++  {
++    bsl_layer_bmp &= ~(1UL << layer);
++  }
++}
++
++/**
++ * Configure sources to be logged
++ * 
++ * @author mruas (12/30/2014)
++ * 
++ * @param source 
++ * @param enable 
++ */
++void hapiBroadCmSourceSet(int source, int enable)
++{
++  int div, mod;
++
++  if (source >= bslSourceCount)
++  {
++    return;
++  }
++
++  div = source / (sizeof(uint32)*8);
++  mod = source % (sizeof(uint32)*8);
++
++  if (enable)
++  {
++    bsl_source_bmp[div] |= (1UL << mod);
++  }
++  else
++  {
++    bsl_source_bmp[div] &= ~(1UL << mod);
++  }
++}
++
++/**
++ * Define minimum severity to be logged
++ * 
++ * @author mruas (12/30/2014)
++ * 
++ * @param severity 
++ */
++void hapiBroadCmSeveritySet(int severity)
++{
++  if (severity >= bslSeverityCount)
++  {
++    return;
++  }
++
++  bsl_severity_min = severity;
++}
++
++
++/**
++ * Composes a string with a timestamp
++ * 
++ * @param output Pointer to the output string
++ * 
++ * @return char* Returns the same input pointer
++ */
++static char* get_time(char* output)
++{
++    struct timeval   tv;
++    struct tm        date;
++    time_t           timeabs;
++
++    if (output) {
++        time (&timeabs);
++        localtime_r (&timeabs, &date);
++        gettimeofday (&tv, NULL);
++        sprintf (output, "%04d%02d%02d-%02dh%02dm%02d.%03d",
++                 date.tm_year+1900, date.tm_mon+1, date.tm_mday, date.tm_hour, date.tm_min, date.tm_sec, (int)(tv.tv_usec/1000));
++    }
++
++    return output;
++}
++
++/**
++ * Prints a log message
++ * 
++ * @param ctx  Context
++ * @param sev  Severity
++ * @param file Filename (can be NULL)
++ * @param func Function name (can be NULL)
++ * @param line Line# (if zero, is ignored)
++ * @param fmt  Format string+ arguments (like printf)
++ */
++void logger_print(log_severity_t sev, char const *file,
++                  char const *func, int line, char const *fmt, ...)
++{
++    va_list vargs;
++    char    timestamp[MAX_TIMESTAMP_LEN];
++    char    filefunc[MAX_OUTBUF_LEN];
++    char    outbuf[MAX_OUTBUF_LEN];
++    int     maxlen;
++    int     offset;
++    int     nchars;
++
++    /* Validate input parameters */
++    if ( (sev < 0) || (sev >= LOG_SEV_LAST) ) {
++        return;
++    }
++
++    /* Determine maximum length for file+func+line and compose string */
++    nchars = 0;
++    maxlen = 0;
++    filefunc[0] = '\0';
++    if ( file != NULL ) {
++        maxlen += MAX_FILE_LEN;
++        nchars += snprintf(filefunc+nchars, MAX_OUTBUF_LEN-nchars, "%s ", file);
++    }
++    if ( func != NULL ) {
++        maxlen += MAX_FUNC_LEN;
++        nchars += snprintf(filefunc+nchars, MAX_OUTBUF_LEN-nchars, "%s", func);
++    }
++    if ( line > 0 ) {
++        maxlen += MAX_LINE_LEN;
++        nchars += snprintf(filefunc+nchars, MAX_OUTBUF_LEN-nchars, "(%d)", line);
++    }
++    #if 0
++    else
++    {
++        /* Add the () to the function name (without line nr) */
++        nchars += snprintf(filefunc+nchars, MAX_OUTBUF_LEN-nchars, "()");
++    }
++    #endif
++
++    /* Determine offset to truncate string size */
++    offset = 0;
++    if ( nchars > maxlen ) {
++        offset = nchars - maxlen;
++        filefunc[offset+0] = '.';
++        filefunc[offset+1] = '.';
++        filefunc[offset+2] = '.';
++    }
++
++    /* Print to a string the std pattern */
++    nchars = snprintf(outbuf, MAX_OUTBUF_LEN, "%s %-*s %s ", get_time(timestamp),
++                      maxlen, filefunc+offset, log_sev_str[sev]);
++
++    /* Continue printing the log itself */
++    va_start(vargs, fmt);
++    vsnprintf (outbuf + nchars, MAX_OUTBUF_LEN-nchars, fmt, vargs);
++    va_end(vargs);
++
++    /* Output it... */
++    fprintf(stdout, "%.*s\r\n", MAX_OUTBUF_LEN, outbuf);
++}
++
++
++/**
++ * Callback for checking if logs should be printed
++ * 
++ * @author mruas (12/30/2014)
++ * 
++ * @param meta_pack 
++ * 
++ * @return int 
++ */
++int hapiBroadCmCheck(bsl_packed_meta_t meta_pack)
++{
++    int div, mod;
++    int severity = BSL_SEVERITY_GET(meta_pack);
++    int layer    = BSL_LAYER_GET(meta_pack);
++    int source   = BSL_SOURCE_GET(meta_pack);
++
++    /* Always TRUE */
++    if (severity <= bslSeverityWarn /*|| layer == bslLayerAppl*/) {
++        return 1;
++    }
++
++    /* Check configurable conditions */
++    /* Layer */
++    if ( !(bsl_layer_bmp & (1UL << layer)) )
++    {
++      return 0;
++    }
++    /* Source */
++    div = source/(sizeof(uint32)*8);
++    mod = source%(sizeof(uint32)*8);
++    if ( !(bsl_source_bmp[div] & (1UL << mod)) )
++    {
++      return 0;
++    }
++    /* Severity */
++    if (severity > bsl_severity_min)
++    {
++      return 0;
++    }
++
++    return 1;
++}
++
++
++/**
++ * Callback for LOGs printing
++ * 
++ * @author mruas (12/30/2014)
++ * 
++ * @param meta_data 
++ * @param format 
++ * @param args 
++ * 
++ * @return int 
++ */
++int hapiBroadCmPrint(bsl_meta_t *meta_data, const char *format, va_list args)
++{
++  int logit = 0, printit = 0;
++  char buf[LOG_MSG_MAX_MSG_SIZE];
++  log_severity_t ptin_log_sev = LOG_SEV_PRINT;
++
++  if( (meta_data == NULL) )
++  {
++    /* Always treat no meta data as an immediate print to the console */
++    logit = 0;
++    printit = 1;
++  }
++  else if (meta_data->layer == bslLayerAppl && meta_data->source == bslSourceShell)
++  {
++    /* Always print APPL layer to stdout */
++    logit = 0;
++    printit = 1;
++  }
++  else if (meta_data->severity <= bslSeverityFatal)
++  {
++    logit = 1;
++    printit = 0;
++    ptin_log_sev = LOG_SEV_FATAL;
++  }
++  else if (meta_data->severity <= bslSeverityError)
++  {
++    logit = 1;
++    printit = 0;
++    ptin_log_sev = LOG_SEV_ERROR;
++  }
++  else if (meta_data->severity <= bslSeverityWarn)
++  {
++    logit = 1;
++    printit = 0;
++    ptin_log_sev = LOG_SEV_WARNING;
++  }
++  else if (bsl_check(meta_data->layer, meta_data->source, meta_data->severity, meta_data->unit))
++  {
++    logit = 1;
++    printit = 0;
++
++    if (meta_data->severity <= bslSeverityInfo)
++    {
++      ptin_log_sev = LOG_SEV_INFO;
++    }
++    else
++    {
++      ptin_log_sev = LOG_SEV_DEBUG;
++    }
++  }
++
++  if (printit)
++  {
++    vprintf(format,args);
++  }
++  else if (logit)   /* PTin modified: Logs */
++  {
++    /* 
++     * only allow the write to happen to either syslog or dapiTrace 
++     * in order to reduce time.
++     */
++    int rc = 0;
++
++    rc = vsnprintf(buf, sizeof (buf), format, args);
++  
++    if (rc <= 0)
++    {
++      return 0;  
++    }
++    else
++    {  
++      if ( rc >= sizeof(buf)) 
++      {
++        rc = sizeof(buf) - 1;
++        /* make sure that the string is terminated */
++        buf[rc] =  '\0';
++      }
++
++      /* get rid of new lines */
++      if (buf[rc-1] == '\n') buf[rc-1] = '\0';
++
++      logger_print(ptin_log_sev, meta_data->file, meta_data->func, meta_data->line, "%s", buf);
++    }
++  }
++
++  return 0;
++}
++
++/**
++ * Configure default CM loggings
++ * 
++ * @author mruas (12/30/2014)
++ */
++void hapiBroadCmDefaults(void)
++{
++  hapiBroadCmReset();
++
++  hapiBroadCmLayerSet(bslLayerAppl, 1);
++  hapiBroadCmLayerSet(bslLayerBcm,  1);
++  hapiBroadCmLayerSet(bslLayerBcmx, 1);
++  hapiBroadCmLayerSet(bslLayerSoc,  1);
++  hapiBroadCmLayerSet(bslLayerSys,  1);
++
++  hapiBroadCmSourceSet(bslSourceInit,   1);
++  hapiBroadCmSourceSet(bslSourceShell,  1);
++  hapiBroadCmSourceSet(bslSourceMii,    1);
++  hapiBroadCmSourceSet(bslSourceMiim,   1);
++  hapiBroadCmSourceSet(bslSourceMim,    1);
++  hapiBroadCmSourceSet(bslSourcePhy,    1);
++  hapiBroadCmSourceSet(bslSourcePhymod, 1);
++
++  hapiBroadCmSeveritySet(bslSeverityInfo);
++}
++
++
+ /*
+  * Diagnostics shell routine.
+  */
+ 
+ #ifdef BCM_WARM_BOOT_SUPPORT
+ #if defined(BCM_ESW_SUPPORT) || defined(BCM_SBX_SUPPORT) || defined(BCM_PETRA_SUPPORT) || defined(BCM_DFE_SUPPORT)
+@@ -1948,12 +2349,24 @@ diag_shell(void)
+ #endif /* INCLUDE_EDITLINE */
+ 
+     parse_user_var_get = diag_user_var_get;
+ 
+     bslmgmt_init();
+ 
++#if 1
++    bsl_config_t bsl_config;
++
++    bsl_config_t_init(&bsl_config);
++
++    hapiBroadCmDefaults();
++
++    bsl_config.out_hook = hapiBroadCmPrint;
++    bsl_config.check_hook = hapiBroadCmCheck;
++    bsl_init(&bsl_config);
++#endif
++
+     diag_init();
+ 
+     sysconf_init();
+ 
+     /*
+      * At boot time, probe for devices and attach the first one.
+diff -rpN --unified=6 sdk-all-6.4.6/src/soc/dpp/ARAD/arad_drv.c sdk-all-6.4.6_modified/src/soc/dpp/ARAD/arad_drv.c
+--- sdk-all-6.4.6/src/soc/dpp/ARAD/arad_drv.c	2015-06-12 10:56:35.000000000 +0100
++++ sdk-all-6.4.6_modified/src/soc/dpp/ARAD/arad_drv.c	2015-12-11 16:41:40.693057695 +0000
+@@ -4512,13 +4512,13 @@ soc_arad_info_config(int unit) 
+     val = soc_property_get(unit, spn_TDM_EGRESS_PRIORITY, 0);
+     dpp_arad->init.tdm_egress_priority = val;
+ 
+     /*
+      * Init NIF ports
+      */
+-    dpp_arad->init.nif_recovery_enable = soc_property_suffix_num_get(unit, -1, spn_CUSTOM_FEATURE, "nif_recovery_enable", 1);
++    dpp_arad->init.nif_recovery_enable = soc_property_suffix_num_get(unit, -1, spn_CUSTOM_FEATURE, "nif_recovery_enable", 0);	/* PTin modified: startup */
+     dpp_arad->init.nif_recovery_iter = soc_property_suffix_num_get(unit, -1, spn_CUSTOM_FEATURE, "nif_recovery_iter", 5);
+ 
+     /* RCPU */
+     dpp_arad->init.rcpu.slave_port_pbmp = soc_property_get_pbmp(unit, spn_RCPU_RX_PBMP, 0);
+ 
+     SOC_DPP_CONFIG(unit)->tm.ftmh_outlif_enlarge = 0;
+diff -rpN --unified=6 sdk-all-6.4.6/systems/bde/linux/kernel/linux-kernel-bde.c sdk-all-6.4.6_modified/systems/bde/linux/kernel/linux-kernel-bde.c
+--- sdk-all-6.4.6/systems/bde/linux/kernel/linux-kernel-bde.c	2015-06-12 10:57:00.000000000 +0100
++++ sdk-all-6.4.6_modified/systems/bde/linux/kernel/linux-kernel-bde.c	2015-12-11 16:42:26.013853183 +0000
+@@ -134,13 +134,18 @@
+ #define virt_to_bus virt_to_phys
+ #define bus_to_virt phys_to_virt
+ #endif
+ 
+ MODULE_AUTHOR("Broadcom Corporation");
+ MODULE_DESCRIPTION("Kernel BDE");
++/* PTin modified */
++#ifdef __arm__
+ MODULE_LICENSE("Proprietary");
++#else
++MODULE_LICENSE("GPL");
++#endif
+ 
+ /* DMA memory pool size */
+ static char *dmasize;
+ LKM_MOD_PARAM(dmasize, "s", charp, 0);
+ MODULE_PARM_DESC(dmasize,
+ "Specify DMA memory size (default 4MB)");
+@@ -149,13 +154,17 @@ MODULE_PARM_DESC(dmasize,
+ static char *himem;
+ LKM_MOD_PARAM(himem, "s", charp, 0);
+ MODULE_PARM_DESC(himem,
+ "Use high memory for DMA (default no)");
+ 
+ /* PCIe max payload */
++#if defined (__arm__)     /* PTin added: PCI */
+ int maxpayload = 256;
++#else
++int maxpayload = 128;     /* PTin modified: 256; */
++#endif
+ LKM_MOD_PARAM(maxpayload, "i", int, 0);
+ MODULE_PARM_DESC(maxpayload,
+ "Limit maximum payload size and request size on PCIe devices");
+ 
+ /* Use MSI interrupts */
+ int usemsi = -1;
+@@ -537,19 +546,22 @@ robo_spi_write(void *cookie, uint16_t re
+ #define PCI_DEVID_PI7C9X130   0xE130
+ #define DEV_CTRL_REG           0xb8
+ 
+ #define MAX_PAYLOAD_256B       (1 << 5)
+ #define MAX_PAYLOAD_512B       (2 << 5)
+ #define MAX_READ_REQ_256B      (1 << 12)
+-
++#define MAX_READ_REQ_512B      (2 << 12)          /* PTin added: PCI */
+ 
+ /* Freescale 8548 PCI-E  host Bridge */
+ #define FSL_VENDOR_ID                   0x1957
+ #define FSL8548PCIE_DEVICE_ID           0x0013
+ #define FSL2020EPCIE_DEVICE_ID          0x0070
+ #define FSL8548PCIE_DEV_CTRL_REG        0x54
++#define FSL8544PCIE_DEVICE_ID           0x0033    /* PTin added: PCI PQ3 8544 */
++#define FSL2040EPCIE_DEVICE_ID          0x0411    /* PTin added: PCI P2040 */
++#define FSL2040SECEPCIE_DEVICE_ID       0x0410    /* PTin added: PCI P2040 */
+ 
+ /* 4716 PCI-E  host Bridge */
+ #define BCM4716_VENDOR_ID               0x14e4
+ #define BCM4716PCIE_DEVICE_ID           0x4716
+ #define BCM4716PCIE_DEV_CAP_REG         0xd4
+ #define BCM4716PCIE_DEV_CTRL_REG        0xd8
+@@ -587,12 +599,23 @@ robo_spi_write(void *cookie, uint16_t re
+ 
+ /* Broadcom BCM58525 */
+ #define BCM58525_PCI_VENDOR_ID     0x14E4
+ #define BCM58525_PCI_DEVICE_ID     0x8025
+ #define BCM58522_PCI_DEVICE_ID     0x8022
+ 
++/* PTin added: PCI high speed switches */
++#if 1
++/* Broadcom BCM56640 */
++#define BCM56640_PCI_VENDOR_ID     0x14E4
++#define BCM56640_PCI_DEVICE_ID     0xb640
++
++/* Broadcom BCM56846 */
++#define BCM56846_PCI_VENDOR_ID     0x14E4
++#define BCM56846_PCI_DEVICE_ID     0xb846
++#endif
++
+ static uint32_t _read(int d, uint32_t addr);
+ 
+ #ifdef BCM_ICS
+ #else
+ /* Used to determine overall memory limits across all devices */
+ static uint32_t _pci_mem_start = 0xFFFFFFFF;
+@@ -694,12 +717,15 @@ _eb_device_create(resource_size_t paddr,
+ 
+ static int
+ petra_device_create(void)
+ {
+     bde_ctrl_t* ctrl;
+ 
++    /* PTin added: Do not execute this function */
++    return 0;
++
+     ctrl = _devices; 
+ 
+ #ifndef __DUNE_LINUX_BCM_CPU_PCIE__
+     _switch_ndevices++;
+     _ndevices++;
+ 
+@@ -1651,22 +1677,38 @@ p2p_bridge(void)
+          * Writes to the PCIE capability device control register
+          */
+         pci_write_config_dword(dev, DEV_CTRL_REG,
+                                MAX_PAYLOAD_256B | MAX_READ_REQ_256B);
+     }
+ 
+-    if ((dev = PCI_FIND_DEV(FSL_VENDOR_ID, FSL8548PCIE_DEVICE_ID, NULL)) != NULL ||
++    if ((dev = PCI_FIND_DEV(FSL_VENDOR_ID, FSL8544PCIE_DEVICE_ID, NULL)) != NULL ||     /* PTin added: PCI PQ3-8544*/
++        (dev = PCI_FIND_DEV(FSL_VENDOR_ID, FSL8548PCIE_DEVICE_ID, NULL)) != NULL ||
+         (dev = PCI_FIND_DEV(FSL_VENDOR_ID, FSL2020EPCIE_DEVICE_ID, NULL)) != NULL) {
+         /*
+          * Configure the PCIE cap: Max payload size: 256, Max Read
+          * Request size: 256, disabling relax ordering.
+          * Writes to the PCIE capability device control register
+          */
+         pci_write_config_dword(dev, FSL8548PCIE_DEV_CTRL_REG,
+                                MAX_PAYLOAD_256B | MAX_READ_REQ_256B);
+     }
++    /* PTin added: PCI P2040 */
++    #if 1
++    else if ((dev = PCI_FIND_DEV(FSL_VENDOR_ID, FSL2040EPCIE_DEVICE_ID, NULL)) != NULL ||
++             (dev = PCI_FIND_DEV(FSL_VENDOR_ID, FSL2040SECEPCIE_DEVICE_ID, NULL)) != NULL)
++    {
++        /*
++         * Configure the PCIE cap: Max payload size: 512, Max Read
++         * Request size: 512, disabling relax ordering.
++         * Writes to the PCIE capability device control register
++         */
++        pci_write_config_dword(dev, FSL8548PCIE_DEV_CTRL_REG,
++                               MAX_PAYLOAD_512B | MAX_READ_REQ_512B);
++    }
++    #endif
++
+     if ((dev = PCI_FIND_DEV(BCM4716_VENDOR_ID, BCM4716PCIE_DEVICE_ID, NULL)) != NULL ||
+         (dev = PCI_FIND_DEV(BCM53000_VENDOR_ID, BCM53000PCIE_DEVICE_ID, NULL)) != NULL) {
+         uint32 tmp, maxpayld, device_bmp=0, mask;
+         unsigned long addr;
+         uint16 tmp16, tmp161;
+         int i, bus0 = -1, bus1 = -1, port;        
+@@ -1985,13 +2027,17 @@ _pci_probe(struct pci_dev *dev, const st
+         }
+ 
+         if (pci_enable_device(dev)) {
+             gprintk("Cannot enable PCI device : vendor_id = %x, device_id = %x\n",
+                     dev->vendor, dev->device);
+         }
+-
++/* PTin added */
++        else {
++            gprintk("LTX: Enabled pci device : vendor_id = %x, device_id = %x\n",dev->vendor, dev->device);
++        }
++/* PTin end */
+         
+         /*
+          * These are workarounds to get around some existing
+          * kernel problems :(
+          */
+ 
+@@ -2098,12 +2144,29 @@ _pci_probe(struct pci_dev *dev, const st
+             /* BCM58525 CPU boards support 128 Max payload size */
+             if (maxpayload) {
+                 maxpayload = 128;
+                 if (debug >= 1) gprintk("force max payload size to 128\n");
+             }
+         }
++        /* PTin added: PCI */
++        #if 1
++        else if ((PCI_FIND_DEV(BCM56846_PCI_VENDOR_ID, BCM56846_PCI_DEVICE_ID, NULL)) != NULL) {
++            /* BCM58525 CPU boards support 128 Max payload size */
++            if (maxpayload) {
++                maxpayload = 256;
++                if (debug >= 1) gprintk("force max payload size to 256\n");
++            }
++        }
++        else if ((PCI_FIND_DEV(BCM56640_PCI_VENDOR_ID, BCM56640_PCI_DEVICE_ID, NULL)) != NULL) {
++            /* BCM58525 CPU boards support 128 Max payload size */
++            if (maxpayload) {
++                maxpayload = 512;
++                if (debug >= 1) gprintk("force max payload size to 512\n");
++            }
++        }
++        #endif
+ 
+         if (forceirq > 0 && dev->irq != (uint32) forceirq) {
+             if (forceirqubm & (1U << (_ndevices - 1))) {
+                 dev->irq = forceirq;
+                 if (debug >= 1) gprintk("force irq to %d\n", forceirq);
+             }
+@@ -2141,12 +2204,48 @@ _pci_probe(struct pci_dev *dev, const st
+         break;
+     default:
+         break;
+     }
+ #endif /* BCM_DFE_SUPPORT */
+ 
++#ifndef __arm__
++    if (debug >= 1) {
++        uint8 aux8;
++        uint32 aux32;
++
++        gprintk("***********PCI Conf registers: api 5.9.2**********\n");
++        pci_read_config_dword(dev, 0x0, &aux32);
++        gprintk("* Vendor ID | Device ID :  0x%08X *\n", aux32);
++        pci_read_config_dword(dev, 0x4, &aux32);
++        gprintk("* Class Code| rev ID    :  0x%08X *\n", aux32);
++        pci_read_config_byte(dev, 0xC, &aux8);
++        gprintk("* Cache line syze       :  0x%02X       *\n", aux8);
++        pci_read_config_byte(dev, 0xD, &aux8);
++        gprintk("* Latency Timer         :  0x%02X       *\n", aux8);
++        pci_read_config_byte(dev, 0xE, &aux8);
++        gprintk("* Header Type           :  0x%02X       *\n", aux8);
++        pci_read_config_dword(dev, 0x10, &aux32);
++        gprintk("* BASE ADDRESS LOW      :  0x%08X *\n", aux32);
++        pci_read_config_dword(dev, 0x14, &aux32);
++        gprintk("* BASE ADDRESS HIGH     :  0x%08X *\n", aux32);
++        pci_read_config_byte(dev, 0x3C, &aux8);
++        gprintk("* Interrupt Line        :  0x%02X       *\n", aux8);
++        pci_read_config_byte(dev, 0x3D, &aux8);
++        gprintk("* Interrupt Pin         :  0x%02X       *\n", aux8);
++        pci_read_config_byte(dev, 0x3E, &aux8);
++        gprintk("* Minimum Grant         :  0x%02X       *\n", aux8);
++        pci_read_config_byte(dev, 0x3F, &aux8);
++        gprintk("* Maximum Latency       :  0x%02X       *\n", aux8);
++        pci_read_config_byte(dev, 0x40, &aux8);
++        gprintk("* Retry Count           :  0x%02X       *\n", aux8);
++        pci_read_config_byte(dev, 0x41, &aux8);
++        gprintk("* TRDY Timeout          :  0x%02X       *\n", aux8);
++        gprintk("****************************\n");
++    }
++#endif
++
+     /* Prevent compiler warning */
+     if (ctrl == NULL) {
+         return 0;
+     }
+ 
+     ctrl->be_pio = 0;
+@@ -3654,25 +3753,28 @@ _init(void)
+         }
+     }
+ 
+     if (himem) {
+         if ((himem[0] & ~0x20) == 'Y' || himem[0] == '1') {
+             _use_himem = 1;
++            gprintk("LTX: Using himem dma allocation\n");
+         } else if ((himem[0] & ~0x20) == 'N' || himem[0] == '0') {
+             _use_himem = 0;
++            gprintk("LTX: NOT Using himem dma allocation\n");
+         }
+     }
+ 
+     if (_dma_mem_size) {
+         _alloc_mpool(_dma_mem_size);
+         if (_dma_vbase == NULL) {
+             gprintk("no DMA memory available\n");
+         }
+         else {
+             mpool_init();
+             _dma_pool = mpool_create(_dma_vbase, _dma_mem_size);
++            gprintk("Allocated %d bytes for DMA memory\n", _dma_mem_size);  /* PTin added */
+         }
+     }
+ 
+     /*
+      * In order to be backward compatible with the user mode BDE
+      * (specifically the interrupt IOCTLs) and the CM, switch devices
+@@ -4199,12 +4301,21 @@ _interrupt_connect(int d,
+ {
+     bde_ctrl_t *ctrl;
+     unsigned long irq_flags;
+     int isr2_dev;
+     int isr_active;
+ 
++    /* PTin added: Kernel */
++#ifndef __arm__
++    struct device_node *np = NULL;
++    unsigned int eirq;
++#endif
++
++    gprintk("Setting IRQ...\n");
++    /* PTin end */
++
+     isr2_dev = d & LKBDE_ISR2_DEV;
+     d &= ~LKBDE_ISR2_DEV;
+ 
+     if (!VALID_DEVICE(d)) {
+         gprintk("_interrupt_connect: Invalid device index %d\n", d);
+         return -1;
+@@ -4241,18 +4352,42 @@ _interrupt_connect(int d,
+         if (isr_active) {
+             /* Main handler (_isr) already installed */
+             return 0;
+         }
+     }
+ 
++    /* PTin added: Kernel */
++#ifndef __arm__
++    np = of_find_compatible_node(NULL, NULL, "bcm,fastpath-pci");
++    if (np == NULL){
++      gprintk ("LMP - Nao apanhei nenhum no' da devtree\n\r");
++      return -1;
++    }
++    eirq = irq_of_parse_and_map(np, 0);
++    if (eirq == NO_IRQ)
++    {
++      gprintk ("LMP - Nao apanhei nenhum irq devtree\n\r");
++      return -1;
++    }
++    ctrl->iLine = eirq;
++#endif
++
++    gprintk("irq to be used: %d\n",ctrl->iLine);
++    /* PTin end */
++
+     if (ctrl->iLine != -1) {
+         irq_flags = IRQF_SHARED;
+ #if defined(CONFIG_PCI_MSI)
++        gprintk ("LTX: Trying to enable MSI\n");
+         if (ctrl->use_msi && pci_enable_msi(ctrl->pci_device) == 0) {
+             irq_flags = 0;
+             ctrl->iLine = ctrl->pci_device->irq;
++            gprintk ("LTX: Success enabling MSI\n");
++        }
++        else {
++           gprintk ("LTX: MSI not enabled\n");
+         }
+ #endif
+         if (request_irq(ctrl->iLine,
+                        _isr,
+                        irq_flags,
+                        LINUX_KERNEL_BDE_NAME,
+@@ -4268,12 +4403,13 @@ _interrupt_connect(int d,
+             if (ctrl->use_msi && irq_flags == 0) {
+                 pci_disable_msi(ctrl->pci_device);
+             }
+ #endif
+             return -1;
+         }
++        gprintk("Success requesting irq %d\n", ctrl->iLine);
+     }
+ 
+     return 0;
+ }
+ 
+ static int
+diff -rpN --unified=6 sdk-all-6.4.6/systems/bde/linux/user/linux-user-bde.c sdk-all-6.4.6_modified/systems/bde/linux/user/linux-user-bde.c
+--- sdk-all-6.4.6/systems/bde/linux/user/linux-user-bde.c	2015-06-12 10:57:00.000000000 +0100
++++ sdk-all-6.4.6_modified/systems/bde/linux/user/linux-user-bde.c	2015-12-11 16:42:26.045907640 +0000
+@@ -305,13 +305,17 @@ typedef uint64 phys_addr_t;
+ 
+ #ifdef PHYS_ADDRS_ARE_64BITS
+ #include <sys/mman.h>
+ #ifdef __DUNE_LINUX_BCM_CPU_PCIE__
+ #define MMAP    mmap
+ #else 
+-#include <asm/page.h>
++/* PTin modified: 64 bits addressing */
++//#include <asm/page.h>
++extern void *mmap64 (void *__addr, size_t __len, int __prot,
++		     int __flags, int __fd, __off64_t __offset) __THROW;
++/* PTin end */
+ #define MMAP    mmap64
+ #endif
+ typedef uint64 phys_addr_t;
+ #else 
+ #define MMAP    mmap
+ typedef uint32 phys_addr_t;

@@ -1,0 +1,256 @@
+echo "testsuite: started: sanity"
+# $Id: bcm88650sanity.soc,v 1.30 Broadcom SDK $
+# $Copyright: Copyright 2015 Broadcom Corporation.
+# This program is the proprietary software of Broadcom Corporation
+# and/or its licensors, and may only be used, duplicated, modified
+# or distributed pursuant to the terms and conditions of a separate,
+# written license agreement executed between you and Broadcom
+# (an "Authorized License").  Except as set forth in an Authorized
+# License, Broadcom grants no license (express or implied), right
+# to use, or waiver of any kind with respect to the Software, and
+# Broadcom expressly reserves all rights in and to the Software
+# and all intellectual property rights therein.  IF YOU HAVE
+# NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+# IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+# ALL USE OF THE SOFTWARE.  
+#  
+# Except as expressly set forth in the Authorized License,
+#  
+# 1.     This program, including its structure, sequence and organization,
+# constitutes the valuable trade secrets of Broadcom, and you shall use
+# all reasonable efforts to protect the confidentiality thereof,
+# and to use this information only in connection with your use of
+# Broadcom integrated circuit products.
+#  
+# 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+# PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+# REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+# OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+# DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+# NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+# ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+# CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+# OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+# 
+# 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+# BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+# INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+# ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+# TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+# THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+# WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+# ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+#
+# ARAD (BCM88650) Sanity
+#
+# Script to run all available tests as quickly as possible.
+# For testing basic sanity of new drivers, simulators, chips, etc.
+#
+local done 'echo "   Done";date'
+
+# Set run command script not to fail on errors reported by commands
+# this allows the script to continue if a test fails
+set rcerror=false
+
+# Set up test mode: don't stop on errors, show progress on each test
+tm -stoponerror +progress
+# Unselect all
+#ts -*
+
+#Clear test statistics
+tc *
+
+#Display some useful information
+date
+
+#minimalrun flag - is raised for pre  commit regression
+#shortrun   flag - is raised for post commit regression
+#no flag         - for SJ/nightly regression
+
+#local shortrun 1
+#echo "shortrun $shortrun"
+#local minimalrun 1
+#echo "minimalrun $minimalrun"
+
+#######################################################################
+
+#Start Test
+echo "Running tr 141"
+if !$?minimalrun && !$?shortrun " \
+   tr 141 r=20" \
+else "\
+   tr 141 r=1"
+$done
+
+if $?shortrun " \
+   echo 'Running tr 141 NoAttach=1'; \
+   tr 141 NoAttach=1; \
+   echo '   Done';date"
+
+if $?shortrun " \
+   echo 'Running: tr 141 NoInit=1 , than: tr 141 NoDenit=1'; \
+   tr 141 NoInit=1 NoAttach=1; \
+   tr 141 NoDeinit=1 NoAttach=1; \
+   echo '   Done';date"
+
+echo "Running tr 141 (warmboot)"
+if !$?minimalrun && !$?shortrun " \
+  tr 141 repeat=20 Warmboot=1" \
+else " \
+  tr 141 repeat=1 Warmboot=1"
+$done
+
+
+### CPU Packet (tr 40)
+# Dont use fabric
+if !$?minimalrun " \
+   tr 141; \
+   s IPT_FORCE_LOCAL_OR_FABRIC FORCE_LOCAL=1"
+
+# Port 0 -> static forwarding to port 0exit
+if !$?minimalrun " \
+   mod IHP_PINFO_LLR 0 1 DEFAULT_CPU_TRAP_CODE=200 DEFAULT_ACTION_PROFILE_FWD=7; \
+   mod IHB_FWD_ACT_PROFILE 200 1 FWD_ACT_DESTINATION=0x40063 FWD_ACT_DESTINATION_OVERWRITE=1; \
+   s CMIC_CMC0_CH1_COS_CTRL_RX_0 0xffffffff; \
+   s CMIC_CMC0_CH1_COS_CTRL_RX_1 0xffffffff"
+
+if !$?minimalrun " \
+   echo 'Send packet (tr 40)...'; \
+   tr 40 Tagged=true LengthStart=128 LengthEnd=164 Chains=1 PktsPerChain=1 LengthInc=100 MacDest=00:0c:00:01:00:00 MacSrc=00:00:00:e3:00:00 UseFile=false; \
+   echo '   Done';date; "
+
+if !$?minimalrun " \
+   echo 'Running PCI Compliance (tr 2)...'; \
+   tr 2; \
+   echo '   Done';date; "
+
+if !$?minimalrun " \
+   echo 'Running PCI S-Channel Buf (tr 4)...'; \
+   tr 4; \
+   echo '   Done';date; "
+
+
+if !$?minimalrun " \
+   echo 'Running Register read/write (tr 3)...'; \
+   tr 3 ; \
+   echo '   Done';date; "
+
+if !$?minimalrun " \
+   echo 'TR 30 ...'; \
+   tr 30; \
+   echo '   Done';date; "
+
+if !$?minimalrun " \
+   echo 'TR 31 ...'; \
+   tr 31; \
+   echo '   Done';date; "
+
+
+if !$?minimalrun " \
+   echo 'tr 60 ...'; \
+   tr 60; \
+   echo '   Done';date; "
+
+if !$?minimalrun " \
+   echo 'tr 50 m=MMU_IDF, EGQ_DSP_PTR_MAP ...'; \
+   tr 50 m=MMU_IDF; \
+   tr 50 m=EGQ_DSP_PTR_MAP; \
+   echo '   Done';date; "
+
+if !$?minimalrun " \
+   echo 'tr 51 m=MMU_IDF, IHB_FWD_ACT_PROFILE, EGQ_PCT...'; \
+   tr 51 m=MMU_IDF; \
+   tr 51 m=IHB_FWD_ACT_PROFILE; \
+   tr 51 m=EGQ_PCT; \
+   echo '   Done';date; "
+
+if !$?minimalrun " \
+   echo 'tr 52 m=MMU_IDF, IPS_QTYPE...'; \
+   tr 52 m=MMU_IDF; \
+   tr 52 m=IPS_QTYPE; \
+   echo '   Done';date; "
+
+if !$?minimalrun " \
+   echo 'tr 71 m=IDR_OCB_BUFFER_TYPE, EGQ_PPCT...'; \
+   tr 71 m=IDR_OCB_BUFFER_TYPE; \
+   tr 71 m=EGQ_PPCT; \
+   echo '   Done';date; "
+
+if !$?minimalrun " \
+   echo 'Memory R/W first & last test (tr 7)...'; \
+   tr 7; \
+   echo '   Done';date; "
+
+if !$?minimalrun " \
+   echo 'Memory flip flop test (tr 8)...'; \
+   tr 8; \
+   echo '   Done';date; "
+
+if !$?minimalrun " \
+   echo 'Running Register reset defaults (tr 1) ...'; \
+   tr 1; \
+   echo '   Done';date; "
+
+if !$?minimalrun " \
+   tr 141 NoPktRx=1; \
+   echo 'TX reload test(tr 90)...'; \
+   tr 90; \
+   echo '   Done';date; "
+
+if !$?minimalrun " \
+   echo 'RX reload test(tr 91)...'; \
+   tr 91; \
+   echo '   Done';date; "
+
+if !$?minimalrun " \
+   echo 'Packet receive test(tr 41)...'; \
+   tr 41; \
+   echo '   Done';date; "
+
+if !$?minimalrun && !$?shortrun " \
+   echo 'Dump memories (tr 6)...'; \
+   tr 6; \
+   echo '   Done';date; "
+
+echo 'Dram bist test (tr 140)...';
+tr 140 DramNdx=-1 AllAdress=1;
+if $?minimalrun " \
+   tr 140 DramNdx=1 WriteWeight=0xf ReadWeight=0xf BistNumActions=0xfffffff StartAddr=0x0 EndAddr=0xffffff PatternMode=0 Pattern0=0x10101010 Pattern1=0x11111111; \
+   tr 140 DramNdx=1 WriteWeight=0xff ReadWeight=0xaa BistNumActions=0xaaaaa StartAddr=0xffff EndAddr=0xfffff PatternMode=1; \
+   tr 140 DramNdx=1 WriteWeight=0xcc ReadWeight=0xcc Infinite=1  StartAddr=0xab1 EndAddr=0xaaaaa PatternMode=0 Pattern0=0x10101111 Pattern1=0x10001000; \
+   tr 140 DramNdx=-1 getdata=1; \
+   tr 140 DramNdx=-1 stop=1; \
+   echo '   Done';date"
+
+#Start Cache Mem Test
+echo "Running Cache Mem Tests "
+tr 152 test_type=1 write_type=0 pattern=3 part=0 mem_id=0
+tr 152 test_type=1 write_type=1 pattern=3 part=0 mem_id=0
+
+
+#Test ac-mp lif and tunnel termination lif learning information encoding
+if !$?minimalrun " \
+   echo 'ac-mp lif and tunnel termination lif learning info encoding (tr 155)...'; \
+   tr 155; \
+   echo '   Done';date; "
+
+ #ser test for all memories
+if !$?minimalrun " \
+   echo 'ser test for all memories (tr 153)...'; \
+   tr 153 RunAll=1; \
+   echo '   Done';date; "
+
+
+#Test arrakis dump
+if !$?minimalrun " \
+   echo 'arrakis dump (tr 156)...'; \
+   tr 156; \
+   echo '   Done';date; "
+
+#######################################################################
+
+date
+tl
+local returnCode $?
+echo "testsuite: finished: sanity: $returnCode"
