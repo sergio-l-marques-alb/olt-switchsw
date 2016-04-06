@@ -1,1 +1,0 @@
-cmd_drivers/scsi/built-in.o :=  /home/devtools/dev-bcm-ldk/3.4.7-RC4/iproc/buildroot/output/host/usr/bin/arm-linux-ld -EL    -r -o drivers/scsi/built-in.o drivers/scsi/scsi_mod.o drivers/scsi/scsi_tgt.o drivers/scsi/arm/built-in.o drivers/scsi/st.o drivers/scsi/sd_mod.o drivers/scsi/sg.o 

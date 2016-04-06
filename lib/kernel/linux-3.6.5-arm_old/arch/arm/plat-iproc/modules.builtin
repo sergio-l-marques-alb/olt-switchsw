@@ -1,8 +1,0 @@
-kernel/arch/arm/plat-iproc/../../../../../bcmdrivers/gmac/et/et.ko
-kernel/arch/arm/plat-iproc/../../../../../bcmdrivers/gpio/iproc_gpio.ko
-kernel/arch/arm/plat-iproc/../../../../../bcmdrivers/mdio/iproc_mii.ko
-kernel/arch/arm/plat-iproc/../../../../../bcmdrivers/nand/iproc_mtd_nand.ko
-kernel/arch/arm/plat-iproc/../../../../../bcmdrivers/pcie/iproc_pcie.ko
-kernel/arch/arm/plat-iproc/../../../../../bcmdrivers/qspi/iproc_qspi.ko
-kernel/arch/arm/plat-iproc/../../../../../bcmdrivers/smbus/iproc_i2c.ko
-kernel/arch/arm/plat-iproc/../../../../../bcmdrivers/usb2h/iproc_usb2h.ko

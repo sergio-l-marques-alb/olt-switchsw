@@ -1,4 +1,0 @@
-kernel/drivers/net/tun.ko
-kernel/drivers/net/ethernet/broadcom/tg3.ko
-kernel/drivers/net/ethernet/intel/e1000e/e1000e.ko
-kernel/drivers/net/phy/libphy.ko

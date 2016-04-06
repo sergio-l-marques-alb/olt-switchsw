@@ -1,1 +1,0 @@
-cmd_fs/nfs/built-in.o :=  /home/devtools/dev-bcm-ldk/3.4.7-RC4/iproc/buildroot/output/host/usr/bin/arm-linux-ld -EL    -r -o fs/nfs/built-in.o fs/nfs/nfs.o fs/nfs/nfsv2.o fs/nfs/nfsv3.o fs/nfs/nfsv4.o 

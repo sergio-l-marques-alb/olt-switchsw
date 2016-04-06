@@ -1,1 +1,0 @@
-cmd_drivers/net/built-in.o :=  /home/devtools/dev-bcm-ldk/3.4.7-RC4/iproc/buildroot/output/host/usr/bin/arm-linux-ld -EL    -r -o drivers/net/built-in.o drivers/net/Space.o drivers/net/loopback.o drivers/net/phy/built-in.o drivers/net/tun.o drivers/net/ethernet/built-in.o drivers/net/wireless/built-in.o 
