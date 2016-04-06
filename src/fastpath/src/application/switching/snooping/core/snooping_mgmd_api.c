@@ -212,13 +212,6 @@ unsigned int snooping_portType_get(unsigned int serviceId, unsigned int portId, 
     if (port_type == PTIN_EVC_INTF_ROOT)
     {
       PT_LOG_DEBUG(LOG_CTX_IGMP, "Port is root");
-
-      #ifdef PTIN_ENABLE_ERPS
-      if(ptin_erps_get_status_void(1) == 1)
-        *portType = PTIN_MGMD_PORT_TYPE_LEAF;
-      else
-      #endif
-
       *portType = PTIN_MGMD_PORT_TYPE_ROOT;
     }
     else
@@ -849,19 +842,12 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   //Workaround to support Group Specific Queries; IPv6 is not complaint with this approach!       
   #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
   ptin_mgmd_port_type_t portType;
-  L7_uint32             groupAddress;
-    
+  L7_uint32             groupAddress;  
   if (snooping_portType_get(serviceId, portId, &portType) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_IGMP,"Unable to get port type from int_ovlan [%u] portId [%u]",serviceId,portId);
     return FAILURE;
   }
-
-  #ifdef PTIN_ENABLE_ERPS
-  if(ptin_erps_get_status_void(1) == 1)
-    portType = PTIN_MGMD_PORT_TYPE_ROOT;
-  #endif
-
   //Get Group Address
   destIpPtr = (payload+28);
   SNOOP_GET_ADDR(&groupAddress, destIpPtr); 
@@ -945,15 +931,8 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   //Copy the L3 and above payload to the packet buffer
   memcpy(dataPtr, payload, payloadLength * sizeof(uchar8));
 
-  #ifdef PTIN_ENABLE_ERPS 
-  if(ptin_erps_get_status_void(1)) //In a ring scenario Uplink ports can be clients
-  {
-    //portType = PTIN_MGMD_PORT_TYPE_LEAF;
-  }       
-  #endif
-
   #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
-  if ( portType == PTIN_MGMD_PORT_TYPE_ROOT)
+  if ( portType == PTIN_MGMD_PORT_TYPE_ROOT )
   #endif
   { 
     ptin_timer_start(31,"snoopPacketSend"); 
