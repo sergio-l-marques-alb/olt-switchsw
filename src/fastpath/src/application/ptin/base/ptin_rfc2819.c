@@ -432,8 +432,8 @@ void ptin_rfc2819_init_all_probes(void)
 
   for (Port=0; Port<PTIN_SYSTEM_N_PORTS; Port++)
   {
-    ptin_rfc2819_init_probe(&RFC2819_probes_Rx[Port], 0xFF, CONCAT_QUAL_PATH(0,0,Port+1)); //RFC2819 RX
-    ptin_rfc2819_init_probe(&RFC2819_probes_Tx[Port], 0xFF, CONCAT_QUAL_PATH(1,0,Port+1)); //RFC2819 TX
+    ptin_rfc2819_init_probe(&RFC2819_probes_Rx[Port], 0xFF, CONCAT_QUAL_PATH(0,0,Port)); //RFC2819 RX
+    ptin_rfc2819_init_probe(&RFC2819_probes_Tx[Port], 0xFF, CONCAT_QUAL_PATH(1,0,Port)); //RFC2819 TX
   }
 
 }

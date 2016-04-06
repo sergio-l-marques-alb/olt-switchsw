@@ -16,6 +16,10 @@
 #include "ptin_mgmd_defs.h"
 #include "ptin_globaldefs.h"
 
+#ifdef PTIN_ENABLE_ERPS
+#include "ptin_prot_erps.h"
+#endif
+
 extern unsigned int ptin_igmp_snooping_channel_reset(L7_uint16 vlanId ,L7_uint intf);
 unsigned int snooping_igmp_admin_set(unsigned char admin);
 unsigned int snooping_mld_admin_set(unsigned char admin);
