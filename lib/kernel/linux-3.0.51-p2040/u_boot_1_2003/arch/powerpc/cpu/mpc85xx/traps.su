@@ -1,0 +1,11 @@
+traps.c:85:13:print_backtrace	40	static
+traps.c:105:6:show_regs	32	static
+traps.c:140:6:CritcalInputException	16	static
+traps.c:147:6:MachineCheckException	32	static
+traps.c:219:6:AlignmentException	16	static
+traps.c:231:6:ProgramCheckException	16	static
+traps.c:254:6:PITException	8	static
+traps.c:267:6:UnknownException	16	static
+traps.c:279:6:ExtIntException	16	static
+traps.c:298:6:DebugException	16	static
+traps.c:310:5:addr_probe	8	static

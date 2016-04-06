@@ -1,0 +1,2 @@
+p5020.c:43:6:fman_disable_port	16	static
+p5020.c:50:17:fman_port_enet_if	16	static

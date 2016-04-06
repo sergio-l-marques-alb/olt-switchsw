@@ -1,0 +1,11 @@
+linux_string.o: linux_string.c \
+ /home/devtools/dev-QorIQ/dev-P204x/cxo160/u_boot_1_2003/include/linux/ctype.h \
+ /home/devtools/dev-QorIQ/dev-P204x/cxo160/u_boot_1_2003/include/linux/string.h \
+ /home/devtools/dev-QorIQ/dev-P204x/cxo160/u_boot_1_2003/include/linux/types.h \
+ /home/devtools/dev-QorIQ/dev-P204x/cxo160/u_boot_1_2003/include/linux/config.h \
+ /home/devtools/dev-QorIQ/dev-P204x/cxo160/u_boot_1_2003/include/linux/posix_types.h \
+ /home/devtools/dev-QorIQ/dev-P204x/cxo160/u_boot_1_2003/include/linux/stddef.h \
+ /home/devtools/dev-QorIQ/dev-P204x/cxo160/u_boot_1_2003/include/asm/posix_types.h \
+ /home/devtools/dev-QorIQ/dev-P204x/cxo160/u_boot_1_2003/include/asm/types.h \
+ /home/devtools/dev-QorIQ/dev-P204x/cxo160/u_boot_1_2003/include/asm/string.h \
+ /home/devtools/dev-QorIQ/dev-P204x/cxo160/u_boot_1_2003/include/linux/linux_string.h

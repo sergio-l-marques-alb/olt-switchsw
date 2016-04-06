@@ -1,0 +1,5 @@
+portals.c:119:12:fdt_qportal	136	static
+portals.c:33:6:setup_portals	16	static
+portals.c:60:6:fdt_portal	104	static
+portals.c:201:6:fdt_fixup_qportals	152	static
+portals.c:287:6:fdt_fixup_bportals	104	static

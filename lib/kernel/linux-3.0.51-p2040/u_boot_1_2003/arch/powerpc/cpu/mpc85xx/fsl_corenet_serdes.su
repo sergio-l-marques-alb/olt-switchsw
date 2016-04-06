@@ -1,0 +1,7 @@
+fsl_corenet_serdes.c:114:5:serdes_get_lane_idx	16	static
+fsl_corenet_serdes.c:119:5:serdes_get_bank_by_lane	16	static
+fsl_corenet_serdes.c:124:5:serdes_lane_enabled	16	static
+fsl_corenet_serdes.c:151:5:is_serdes_configured	16	static
+fsl_corenet_serdes.c:181:5:serdes_get_first_lane	24	static
+fsl_corenet_serdes.c:500:13:__soc_serdes_init	8	static
+fsl_corenet_serdes.c:506:6:fsl_serdes_init	64	static

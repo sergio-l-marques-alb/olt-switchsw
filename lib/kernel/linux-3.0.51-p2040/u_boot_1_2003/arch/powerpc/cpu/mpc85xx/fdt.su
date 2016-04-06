@@ -1,0 +1,5 @@
+fdt.c:47:6:ft_fixup_cpu	120	static
+fdt.c:386:6:fdt_add_enet_stashing	32	static
+fdt.c:470:6:fdt_fixup_fman_firmware	120	static
+fdt.c:601:6:ft_cpu_setup	192	static
+fdt.c:765:5:ft_verify_fdt	24	static
