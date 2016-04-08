@@ -412,9 +412,6 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
 
     /* When an ACL with a CAPTURE rule is applied to a VLAN, on Line Cards we will assume the configuration as a permit
        to allow that traffic and block the other. The mirror/capture rule will be applied only on the Matrix */
-    #if (PTIN_BOARD_IS_LINECARD)
-    mirrorVal = -1;
-    #endif
   }
   else
   {
@@ -2501,6 +2498,7 @@ L7_RC_t ptin_aclMacApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
 
       #if (PTIN_BOARD_IS_LINECARD)
       if (ptin_aclMacDb[aclApply->aclId].aclRuleCap == L7_TRUE)
+        PT_LOG_DEBUG(LOG_CTX_MSG, "No ACL to be applied");
         return L7_FAILURE;
       #endif
 
