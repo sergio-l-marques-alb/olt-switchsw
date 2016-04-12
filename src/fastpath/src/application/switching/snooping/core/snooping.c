@@ -38,6 +38,10 @@
 #include "dhcp_snooping_api.h"
 #include "ptin_mgmd_eventqueue.h"
 
+#ifdef PTIN_ENABLE_ERPS
+#include "ptin_prot_erps.h"
+#endif
+
 /* PTin added: IGMP snooping */
 #if 1
   #include "snooping_ptin_db.h"
@@ -569,60 +573,59 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     return L7_FAILURE;
   }  
 
-  /* Search for client index if this is a leaf port*/
-   if (port_type == PTIN_EVC_INTF_LEAF)
-   {
-     ptin_timer_start(74,"ptin_igmp_clientIndex_get");
-     #if ( PTIN_BOARD_IS_MATRIX )     
-     rc = ptin_igmp_dynamic_client_find(pduInfo->intIfNum,
+  if (port_type == PTIN_EVC_INTF_LEAF)//port_type == PTIN_EVC_INTF_LEAF ||  ptin_erps_get_status_void(1) == 1 /* In ring scenario check root ports*/ )
+  {  
+    ptin_timer_start(74,"ptin_igmp_clientIndex_get");
+    #if ( PTIN_BOARD_IS_MATRIX )     
+    rc = ptin_igmp_dynamic_client_find(pduInfo->intIfNum,
                                 L7_NULL, L7_NULL,
                                 L7_NULL,
                                 &client_idx);
-     #else
-     rc =ptin_igmp_dynamic_client_find(pduInfo->intIfNum,
+    #else
+    rc =ptin_igmp_dynamic_client_find(pduInfo->intIfNum,
                               pduInfo->vlanId, pduInfo->innerVlanId,
                               &data[L7_MAC_ADDR_LEN],
                               &client_idx);
-     #endif
-     if (rc != L7_SUCCESS)
-     {
-       ptin_timer_stop(74);  
-       /*Client Does Not Exist*/
-       if (rc == L7_NOT_EXIST)
-       {
-         #ifdef IGMP_DYNAMIC_CLIENTS_SUPPORTED
-          PT_LOG_TRACE(LOG_CTX_IGMP,"Client Does Not Exist: (intIfNum=%u vlan=%u innerVlanId=%u", rc, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);  
-         #else         
-          PT_LOG_ERR(LOG_CTX_IGMP,"Failed (rc:%u) to obtain clientId (intIfNum=%u vlan=%u innerVlanId=%u", rc, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);  
-          return L7_FAILURE;
-         #endif
-       }
-       else
-       {
-         /*Abort Here*/
-         ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
-         PT_LOG_ERR(LOG_CTX_IGMP,"Failed (rc:%u) to obtain clientId  (intIfNum=%u vlan=%u innerVlanId=%u", rc, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);  
-         return L7_FAILURE;
-       }
-     }
-     else /*rc == L7_SUCCESS*/
-     {       
-       ptin_timer_stop(74);  
+    #endif
+    if (rc != L7_SUCCESS)
+    {
+      ptin_timer_stop(74);  
+      /*Client Does Not Exist*/
+      if (rc == L7_NOT_EXIST)
+      {
+        #ifdef IGMP_DYNAMIC_CLIENTS_SUPPORTED
+        PT_LOG_TRACE(LOG_CTX_IGMP,"Client Does Not Exist: (intIfNum=%u vlan=%u innerVlanId=%u", rc, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);  
+        #else         
+        PT_LOG_ERR(LOG_CTX_IGMP,"Failed (rc:%u) to obtain clientId (intIfNum=%u vlan=%u innerVlanId=%u", rc, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);  
+        return L7_FAILURE;
+        #endif
+      }
+      else
+      {
+        /*Abort Here*/
+        ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
+        PT_LOG_ERR(LOG_CTX_IGMP,"Failed (rc:%u) to obtain clientId  (intIfNum=%u vlan=%u innerVlanId=%u", rc, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);  
+        return L7_FAILURE;
+      }
+    }
+    else /*rc == L7_SUCCESS*/
+    {       
+      ptin_timer_stop(74);  
 
-       /* Validate client index */
-       if (client_idx>=PTIN_IGMP_CLIENTIDX_MAX)
-       {
-         /*Abort Here*/
-         ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
-         PT_LOG_ERR(LOG_CTX_IGMP,"Invalid  clientId:%u : (intIfNum=%u vlan=%u innerVlanId=%u", client_idx, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);  
-         return L7_FAILURE;
-       }
-       else
-       {
-         PT_LOG_TRACE(LOG_CTX_IGMP,"Obtained  clientId:%u: (intIfNum=%u vlan=%u innerVlanId=%u", client_idx, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);  
-       }
-     }
-   }  
+      /* Validate client index */
+      if (client_idx>=PTIN_IGMP_CLIENTIDX_MAX)
+      {
+        /*Abort Here*/
+        ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
+        PT_LOG_ERR(LOG_CTX_IGMP,"Invalid  clientId:%u : (intIfNum=%u vlan=%u innerVlanId=%u", client_idx, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);  
+        return L7_FAILURE;
+      }
+      else
+      {
+       PT_LOG_TRACE(LOG_CTX_IGMP,"Obtained  clientId:%u: (intIfNum=%u vlan=%u innerVlanId=%u", client_idx, pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);  
+      }
+    }
+  }
 
 #ifdef IGMP_DYNAMIC_CLIENTS_SUPPORTED
   /* For leaf interfaces */
@@ -667,9 +670,29 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
       }
     }
   }
+  #ifdef PTIN_ENABLE_ERPS
+  else
+  {
+    if(ptin_erps_get_status_void(1) == 1)
+    {
+      rc = ptin_igmp_dynamic_client_add(pduInfo->intIfNum,
+                                       pduInfo->vlanId, pduInfo->innerVlanId,
+                                       &data[L7_MAC_ADDR_LEN],
+                                       &client_idx);    
+      if (rc != L7_SUCCESS)
+      {        
+        ptin_timer_stop(75);            
+        ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
+        PT_LOG_ERR(LOG_CTX_IGMP,"intIfNum=%u,vlan=%u innerVlanId:%u are not accepted", pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);        
+        return L7_FAILURE;
+      }
+    }
+  }
+  #endif //PTIN_ENABLE_ERPS
 #endif
 
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED 
+
   L7_uchar8       *buffPtr          = L7_NULLPTR;
   L7_uint16        ipHdrLen         = 0;   
   L7_inet_addr_t   groupAddr;
@@ -801,10 +824,10 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 
   ptin_timer_start(76,"ptin_igmp_McastRootVlan_get");
   /* Get multicast root vlan */  
-  if ( ptin_igmp_McastRootVlan_get(pduInfo->vlanId, pduInfo->intIfNum, (port_type == PTIN_EVC_INTF_LEAF), client_idx, &groupAddr, &sourceAddr, &mcastRootVlan) == L7_SUCCESS )
+  if ( ptin_igmp_McastRootVlan_get(pduInfo->vlanId,pduInfo->intIfNum, L7_TRUE, client_idx, &groupAddr, &sourceAddr, &mcastRootVlan) == L7_SUCCESS )
   {
-    PT_LOG_TRACE(LOG_CTX_IGMP,"Vlan=%u will be converted to %u (grpAddr=%s)",
-              pduInfo->vlanId, mcastRootVlan, inetAddrPrint(&groupAddr,groupAddrStr));
+    PT_LOG_TRACE(LOG_CTX_IGMP,"Vlan=%u will be converted to %u (grpAddr=%s) client %d",
+              pduInfo->vlanId, mcastRootVlan, inetAddrPrint(&groupAddr,groupAddrStr),client_idx);
     ptin_timer_stop(76);
   }
   else 
@@ -819,8 +842,17 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
       else
       {      
         ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);    
-      }        
-      return L7_FAILURE;
+      }
+        
+      
+    #ifdef PTIN_ENABLE_ERPS
+    if(ptin_erps_get_status_void(1) == 1)
+      mcastRootVlan = 512;
+    else
+    #endif
+          
+    return L7_FAILURE;
+      
     }
     else
     {
@@ -835,7 +867,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   if (ptin_igmp_McastRootVlan_get(pduInfo->vlanId, &mcastRootVlan)==L7_SUCCESS)
   {
     ptin_timer_stop(76);
-    PT_LOG_TRACE(LOG_CTX_IGMP,"Vlan=%u will be converted to %u",pduInfo->vlanId,mcastRootVlan);
+    PT_LOG_TRACE(LOG_CTX_IGMP,"Vlan=%u will be converted to %u",pduInfo->vlanId, mcastRootVlan);
   }
   else
   {
