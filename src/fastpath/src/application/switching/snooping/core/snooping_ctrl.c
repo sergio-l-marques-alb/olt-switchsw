@@ -3398,18 +3398,22 @@ static void snoopMgmdSwitchPortOpenProcess(L7_uint32 serviceId, L7_uint32 intIfN
     return;
   }
 
-  #ifndef PTIN_ENABLE_ERPS
+  
     if( L7_TRUE != ptin_evc_is_intf_leaf(serviceId, intIfNum))
     {
        if (ptin_debug_igmp_snooping)
         PT_LOG_ERR(LOG_CTX_IGMP, "Intfnum is not leaf [serviceId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isProtection:%s]", serviceId, intIfNum, groupAddrStr, sourceAddrStr, isProtection?"Yes":"No");      
 
+       #ifdef PTIN_ENABLE_ERPS
        if(ptin_erps_get_status_void(1) != 1)
        {
          return;
-       }
+       }    
+       #else
+         return;
+       #endif
+
     }
-  #endif
 
   #if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
   isL3Entry = L7_TRUE;
