@@ -665,7 +665,7 @@ L7_RC_t ptin_evc_startup(void)
   }
 
   /* Only configure special EVCs, for CPU-FPGA-Ports connectivity, if OLT1T0-AC equipment */
-  if(0)//KERNEL_NODE_IS("OLT1T0-AC"))
+  #if 0//if(KERNEL_NODE_IS("OLT1T0-AC"))
   {
     /* Create CPU-FPGA circuit */
     memset(&evcConf, 0x00, sizeof(evcConf));
@@ -745,10 +745,14 @@ L7_RC_t ptin_evc_startup(void)
     }
     PT_LOG_INFO(LOG_CTX_API, "Standard EVCs configured for OLT1T0-AC equipment");
   }
+  
   else
   {
     PT_LOG_INFO(LOG_CTX_API, "Standard EVCs configured for OLT1T0 equipment");
   }
+  #endif
+
+  PT_LOG_INFO(LOG_CTX_API, "Standard EVCs configured for OLT1T0 equipment");
   #endif
 
   L7_uint32 intIfNum_vport;
