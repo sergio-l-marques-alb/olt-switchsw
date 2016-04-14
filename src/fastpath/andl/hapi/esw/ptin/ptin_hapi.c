@@ -582,13 +582,26 @@ L7_RC_t ptin_hapi_phy_init_matrix(void)
     /* Init 40G ports at KR4 mode */
     else if (hapiWCMapPtr[i].wcSpeedG == 40)
     {
-      if (ptin_hapi_kr4_set(bcm_port)!=L7_SUCCESS)
+      if (hapiWCMapPtr[i].wcMode == BCM_PORT_IF_XLAUI)
       {
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing port %u (bcm_port %u) at KR4", i, bcm_port);
-        rc = L7_FAILURE;
-        continue;
+        if (ptin_hapi_xlaui_set(bcm_port)!=L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing port %u (bcm_port %u) at XLAUI", i, bcm_port);
+          rc = L7_FAILURE;
+          continue;
+        }
+        PT_LOG_NOTICE(LOG_CTX_HAPI, "Port %u (bcm_port %u) at XLAUI", i, bcm_port);
       }
-      PT_LOG_NOTICE(LOG_CTX_HAPI, "Port %u (bcm_port %u) at KR4", i, bcm_port);
+      else
+      {
+        if (ptin_hapi_kr4_set(bcm_port)!=L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing port %u (bcm_port %u) at KR4", i, bcm_port);
+          rc = L7_FAILURE;
+          continue;
+        }
+        PT_LOG_NOTICE(LOG_CTX_HAPI, "Port %u (bcm_port %u) at KR4", i, bcm_port);
+      }
     }
   }
 #endif
@@ -1091,7 +1104,7 @@ L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id, L7_BOOL init)
   L7_RC_t    rc = L7_SUCCESS;
 
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
-  L7_int     i, wcSpeedG=-1;
+  L7_int     i, wcSpeedG=-1, wcMode=BCM_PORT_IF_NULL;
   bcm_port_t bcm_port;
   bcm_pbmp_t pbm, pbm_out;
 
@@ -1127,6 +1140,7 @@ L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id, L7_BOOL init)
       BCM_PBMP_PORT_ADD(pbm, bcm_port);
       /* Save speed of this port */
       wcSpeedG = hapiWCMapPtr[i].wcSpeedG;
+      wcMode   = hapiWCMapPtr[i].wcMode;
       PT_LOG_INFO(LOG_CTX_HAPI, "bcm_port %u (port %u) added to list of ports to be reseted", bcm_port, i);
     }
   }
@@ -1182,12 +1196,24 @@ L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id, L7_BOOL init)
       /* For KR4 */
       if (wcSpeedG == 40)
       {
-        PT_LOG_INFO(LOG_CTX_HAPI, "Setting bcm_port %u to KR4 mode...", bcm_port);
-        if (ptin_hapi_kr4_set(bcm_port) != L7_SUCCESS)
+        if (wcMode == BCM_PORT_IF_XLAUI)
         {
-          PT_LOG_ERR(LOG_CTX_HAPI, "Error resetting bcm_port %u", bcm_port);
+          PT_LOG_INFO(LOG_CTX_HAPI, "Setting bcm_port %u to XLAUI mode...", bcm_port); 
+          if (ptin_hapi_xlaui_set(bcm_port) != L7_SUCCESS)
+          {
+            PT_LOG_ERR(LOG_CTX_HAPI, "Error resetting bcm_port %u", bcm_port);
+          }
+          PT_LOG_INFO(LOG_CTX_HAPI, "bcm_port %u reconfigured to XLAUI mode", bcm_port); 
         }
-        PT_LOG_INFO(LOG_CTX_HAPI, "bcm_port %u reconfigured to KR4 mode", bcm_port); 
+        else
+        {
+          PT_LOG_INFO(LOG_CTX_HAPI, "Setting bcm_port %u to KR4 mode...", bcm_port); 
+          if (ptin_hapi_kr4_set(bcm_port) != L7_SUCCESS)
+          {
+            PT_LOG_ERR(LOG_CTX_HAPI, "Error resetting bcm_port %u", bcm_port);
+          }
+          PT_LOG_INFO(LOG_CTX_HAPI, "bcm_port %u reconfigured to KR4 mode", bcm_port); 
+        }
       }
       else if (wcSpeedG == 10)
       {
@@ -1787,7 +1813,8 @@ L7_RC_t ptin_hapi_linkscan_set(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable)
   if (ptin_port >= dapiCardPtr->numOfWCPortMapEntries ||    /* Invalid port */
       hapiWCMapPtr[ptin_port].wcSpeedG > 10 ||
       intf_type == BCM_PORT_IF_KR ||
-      intf_type == BCM_PORT_IF_KR4)
+      intf_type == BCM_PORT_IF_KR4 ||
+      intf_type == BCM_PORT_IF_XLAUI)
   {
     PT_LOG_WARN(LOG_CTX_HAPI, "Port {%d,%d,%d}/bcm_port %u/port %u cannot be considered",
                 usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port);
@@ -1876,7 +1903,8 @@ L7_RC_t ptin_hapi_link_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 link, L7_
   /* Speed of this interface should be 10G */
   if (ptin_port >= dapiCardPtr->numOfWCPortMapEntries ||  /* Invalid port */
       intf_type == BCM_PORT_IF_KR ||
-      intf_type == BCM_PORT_IF_KR4)
+      intf_type == BCM_PORT_IF_KR4 ||
+      intf_type == BCM_PORT_IF_XLAUI)
   {
     PT_LOG_WARN(LOG_CTX_HAPI, "Port {%d,%d,%d}/bcm_port %u/port %u cannot be considered",
                 usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port);
@@ -4205,6 +4233,78 @@ L7_RC_t ptin_hapi_kr4_set(bcm_port_t bcm_port)
   }
 
   PT_LOG_INFO(LOG_CTX_HAPI, "Success initializing bcm_port %u", bcm_port);
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Change a port interface type to XLAUI
+ * 
+ * @param port : ptin_port format
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_hapi_xlaui_set(bcm_port_t bcm_port)
+{
+  bcm_error_t rc = BCM_E_NONE;
+
+  /* Disable port */
+  rc = bcm_port_enable_set(0, bcm_port, 0);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing bcm_port %u", bcm_port);
+    return L7_FAILURE;
+  }
+
+  /* XLAUI mode */
+  rc = bcm_port_interface_set(0, bcm_port, BCM_PORT_IF_XLAUI);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing bcm_port %u", bcm_port);
+    return L7_FAILURE;
+  }
+
+  /* Set 40G speed */
+  rc = bcm_port_speed_set(0, bcm_port, 40000);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing bcm_port %u", bcm_port);
+    return L7_FAILURE;
+  }
+
+  /* Set Full duplex */
+  rc = bcm_port_duplex_set(0, bcm_port, 1);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing bcm_port %u", bcm_port);
+    return L7_FAILURE;
+  }
+
+  rc = bcm_port_autoneg_set(0, bcm_port, 0);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing bcm_port %u", bcm_port);
+    return L7_FAILURE;
+  }
+
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G || PTIN_BOARD == PTIN_BOARD_CXO640G)
+  /* Reconfigure tap settings */
+  rc = soc_phyctrl_control_set(0, bcm_port, SOC_PHY_CONTROL_PREEMPHASIS, PTIN_PHY_PREEMPHASIS_NEAREST_SLOTS);
+  if (rc != BCM_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error setting preemphasis on bcm_port %u (rc=%d)", bcm_port, rc);
+    return rc;
+  }
+#endif
+
+  rc = bcm_port_enable_set(0, bcm_port, 1);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing bcm_port %u", bcm_port);
+    return L7_FAILURE;
+  }
+
+  PT_LOG_INFO(LOG_CTX_HAPI, "Success initializing bcm_port %u at XLAUI mode", bcm_port);
 
   return L7_SUCCESS;
 }

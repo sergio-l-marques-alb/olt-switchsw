@@ -59,6 +59,7 @@ extern L7_int bcm_unit;
 
 
 extern L7_RC_t ptin_hapi_kr4_set(bcm_port_t bcm_port);
+extern L7_RC_t ptin_hapi_xlaui_set(bcm_port_t bcm_port);
 extern L7_RC_t ptin_hapi_sfi_set(bcm_port_t bcm_port);
 extern L7_RC_t ptin_hapi_xaui_set(bcm_port_t bcm_port);
 extern L7_RC_t ptin_hapi_def_set(bcm_port_t bcm_port);

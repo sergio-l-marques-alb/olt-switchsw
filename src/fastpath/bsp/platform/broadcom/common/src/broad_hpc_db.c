@@ -28,6 +28,7 @@
 #include "broad_init.h"
 #include "broad_hpc_db.h"
 #include "platform_cpu.h"
+#include "bcm/port.h"
 
 #include "logger.h"
 #include "ptin_globaldefs.h"
@@ -326,7 +327,7 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
   L7_uint8  mx_board_ver;
   L7_int    ptp_wc_index = -1;
   L7_int    ptp_wc_lane  = -1;
-  L7_int    wc_index, wc_lane, wc_group, speedG;
+  L7_int    wc_index, wc_lane, wc_group, speedG, mode;
   L7_uint32 bw_max[WC_MAX_GROUPS], ports_per_segment[WC_MAX_GROUPS/WC_SEGMENT_N_GROUPS];
   L7_BOOL   wclanes_in_use[WC_MAX_NUMBER][WC_MAX_LANES];
 
@@ -415,40 +416,43 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
       switch (slot_mode[slot-1])
       {
       case WC_SLOT_MODE_1x1G:
-        speedG = 1;   total_lanes = 1;
+        speedG = 1;   total_lanes = 1;    mode = BCM_PORT_IF_SGMII;
         break;
       case WC_SLOT_MODE_2x1G:
-        speedG = 1;   total_lanes = 2;
+        speedG = 1;   total_lanes = 2;    mode = BCM_PORT_IF_SGMII;
         break;
       case WC_SLOT_MODE_3x1G:
-        speedG = 1;   total_lanes = 3;
+        speedG = 1;   total_lanes = 3;    mode = BCM_PORT_IF_SGMII;
         break;
       case WC_SLOT_MODE_4x1G:
-        speedG = 1;   total_lanes = 4;
+        speedG = 1;   total_lanes = 4;    mode = BCM_PORT_IF_SGMII;
         break;
       case WC_SLOT_MODE_1x10G:
-        speedG = 10;  total_lanes = 1;
+        speedG = 10;  total_lanes = 1;    mode = BCM_PORT_IF_SFI;
         break;
       case WC_SLOT_MODE_2x10G:
-        speedG = 10;  total_lanes = 2;
+        speedG = 10;  total_lanes = 2;    mode = BCM_PORT_IF_SFI;
         break;
       case WC_SLOT_MODE_3x10G:
-        speedG = 10;  total_lanes = 3;
+        speedG = 10;  total_lanes = 3;    mode = BCM_PORT_IF_SFI;
         break;
       case WC_SLOT_MODE_4x10G:
-        speedG = 10;  total_lanes = 4;
+        speedG = 10;  total_lanes = 4;    mode = BCM_PORT_IF_SFI;
         break;
-      case WC_SLOT_MODE_1x40G:
-        speedG = 40;  total_lanes = 1;
+      case WC_SLOT_MODE_1x40G_XLAUI:
+        speedG = 40;  total_lanes = 1;    mode = BCM_PORT_IF_XLAUI;
+        break;
+      case WC_SLOT_MODE_1x40G_KR4:
+        speedG = 40;  total_lanes = 1;    mode = BCM_PORT_IF_KR4;
         break;
       case WC_SLOT_MODE_2x40G:
-        speedG = 40;  total_lanes = 2;
+        speedG = 40;  total_lanes = 2;    mode = BCM_PORT_IF_KR4;
         break;
       case WC_SLOT_MODE_3x40G:
-        speedG = 40;  total_lanes = 3;
+        speedG = 40;  total_lanes = 3;    mode = BCM_PORT_IF_KR4;
         break;
       case WC_SLOT_MODE_1x100G:
-        speedG = 100; total_lanes = 1;
+        speedG = 100; total_lanes = 1;    mode = BCM_PORT_IF_CAUI;
         break;
       default:
         speedG = 0;   total_lanes = 0;
@@ -525,8 +529,9 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
           wcMap[port].wcIdx    = wc_index;
           wcMap[port].wcLane   = wc_lane;
           wcMap[port].wcSpeedG = speedG;
-          PT_LOG_TRACE(LOG_CTX_STARTUP,"Port %2u: slotNum=%2u, wcIdx=%2u, wcLane=%u wcSpeedG=%2u", port,
-                    wcMap[port].slotNum, wcMap[port].wcIdx, wcMap[port].wcLane, wcMap[port].wcSpeedG);
+          wcMap[port].wcMode   = mode;
+          PT_LOG_TRACE(LOG_CTX_STARTUP,"Port %2u: slotNum=%2u, wcIdx=%2u, wcLane=%u wcSpeedG=%2u wcMode=%u", port,
+                    wcMap[port].slotNum, wcMap[port].wcIdx, wcMap[port].wcLane, wcMap[port].wcSpeedG, wcMap[port].wcMode);
         }
 
         /* Lane is now in use */
@@ -560,12 +565,14 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
         wcMap[port].wcIdx    = ptp_wc_index;
         wcMap[port].wcLane   = ptp_wc_lane;
         wcMap[port].wcSpeedG = 1;     /* 1G */
-        PT_LOG_TRACE(LOG_CTX_STARTUP,"Port %2u: slotNum=%2u, wcIdx=%2u, wcLane=%u wcSpeedG=%2u (PTP port)",
+        wcMap[port].wcMode   = BCM_PORT_IF_SGMII;
+        PT_LOG_TRACE(LOG_CTX_STARTUP,"Port %2u: slotNum=%2u, wcIdx=%2u, wcLane=%u wcSpeedG=%2u wcMode=%u (PTP port)",
                   wcMap[port].portNum,
                   wcMap[port].slotNum,
                   wcMap[port].wcIdx,
                   wcMap[port].wcLane,
-                  wcMap[port].wcSpeedG);
+                  wcMap[port].wcSpeedG,
+                  wcMap[port].wcMode);
 
         /* Update temp variables */
         ports_per_segment[wc_group/WC_SEGMENT_N_GROUPS]++;
@@ -586,88 +593,6 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
       PT_LOG_ERR(LOG_CTX_STARTUP,"More than 64 ports allocated (%u)!", port);
       return L7_NOT_SUPPORTED;
     }
-
-    /* Do not use remaining ports */
-    #if 0
-    /* Fill remaining ports, with 1G ports */
-    while (port<L7_MAX_PHYSICAL_PORTS_PER_UNIT)
-    {
-      /* Run all WCs searching for free lanes */
-      for (wc_index=0; wc_index<WC_MAX_NUMBER; wc_index++)
-      {
-        /* Slot index */
-        slot = WCSlotMap[wc_index].slotIdx;
-
-        /* Skip not used WCs */
-        if (WCSlotMap[wc_index].slotIdx < 0)
-          continue;
-
-        /* Do not consider slots at 40G or more */
-        if (slot_mode[slot-1]==WC_SLOT_MODE_1x40G ||
-            slot_mode[slot-1]==WC_SLOT_MODE_2x40G ||
-            slot_mode[slot-1]==WC_SLOT_MODE_3x40G ||
-            slot_mode[slot-1]==WC_SLOT_MODE_1x100G)
-          continue;
-
-        /* Find the first free lane of this WC  */
-        for (wc_lane=0; wc_lane<WC_MAX_LANES && wclanes_in_use[wc_index][wc_lane]; wc_lane++);
-        /* Not found: go to the next WC */
-        if (wc_lane >= WC_MAX_LANES)
-          continue;
-
-        /* We have a valid WC and lane */
-
-        /* Get WC group*/
-        wc_group = WCSlotMap[wc_index].wcGroup;
-        if (wc_group >= WC_MAX_GROUPS)
-        {
-          PT_LOG_ERR(LOG_CTX_STARTUP,"Invalid WC group (%u) for WC %u", wc_group, wc_index);
-          return L7_FAILURE;
-        }
-
-        /* Check if there is available BW to use this lane: if there is, we have found a valid WC */
-        if ((bw_max[wc_group]+1) <= WC_GROUP_MAX_BW &&
-            (ports_per_segment[wc_group/WC_SEGMENT_N_GROUPS]+1) <= WC_SEGMENT_MAX_PORTS)
-          break;
-      }
-      /* If no free and valid lanes were found, we have an error */
-      if (wc_index >= WC_MAX_NUMBER)
-      {
-        PT_LOG_ERR(LOG_CTX_STARTUP,"No WC lane found for port %u", port);
-        #if 1
-        wcMap[port].portNum  = port;
-        wcMap[port].slotNum  = WCSlotMap[wc_index].slotIdx;
-        wcMap[port].wcIdx    = 0;
-        wcMap[port].wcLane   = 0;
-        wcMap[port].wcSpeedG = 0;
-        PT_LOG_TRACE(LOG_CTX_STARTUP,"Port %2u: slotNum=%2u, wcIdx=%2u, wcLane=%u wcSpeedG=%2u", port,
-                  wcMap[port].slotNum, wcMap[port].wcIdx, wcMap[port].wcLane, wcMap[port].wcSpeedG);
-        #else
-        return L7_NOT_SUPPORTED;
-        #endif
-      }
-      else
-      {
-        /* We have a valid WC, and a valid lane */
-        wcMap[port].portNum  = port;
-        wcMap[port].slotNum  = WCSlotMap[wc_index].slotIdx;
-        wcMap[port].wcIdx    = wc_index;
-        wcMap[port].wcLane   = wc_lane;
-        wcMap[port].wcSpeedG = 1;       /* 1 Gbps */
-        PT_LOG_TRACE(LOG_CTX_STARTUP,"Port %2u: slotNum=%2u, wcIdx=%2u, wcLane=%u wcSpeedG=%2u", port,
-                  wcMap[port].slotNum, wcMap[port].wcIdx, wcMap[port].wcLane, wcMap[port].wcSpeedG);
-
-        /* Lane in use */
-        wclanes_in_use[wc_index][wc_lane] = L7_TRUE;
-
-        /* Update temp variables */
-        ports_per_segment[wc_group/WC_SEGMENT_N_GROUPS]++;
-        bw_max[wc_group] += 1;    /* 1 Gbps */
-      }
-
-      port++;
-    }
-    #endif
 
     PT_LOG_TRACE(LOG_CTX_STARTUP,"Valid map!");
   }
@@ -702,7 +627,7 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
 L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
 {
   L7_int  slot, port, i;
-  L7_uint speedG, total_lanes;
+  L7_uint speedG, total_lanes, mode;
   HAPI_WC_PORT_MAP_t wcMap[L7_MAX_PHYSICAL_PORTS_PER_UNIT];
 
   /* Validate arguments */
@@ -744,24 +669,28 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
       case WC_SLOT_MODE_2x1G:
       case WC_SLOT_MODE_3x1G:
       case WC_SLOT_MODE_4x1G:
-        speedG = 1;   total_lanes = 4;
+        speedG = 1;   total_lanes = 4;    mode = BCM_PORT_IF_SGMII;
         slot_mode[slot-1] = WC_SLOT_MODE_4x1G;
         break;
       case WC_SLOT_MODE_1x10G:
       case WC_SLOT_MODE_2x10G:
       case WC_SLOT_MODE_3x10G:
       case WC_SLOT_MODE_4x10G:
-        speedG = 10;  total_lanes = 4;
+        speedG = 10;  total_lanes = 4;    mode = BCM_PORT_IF_SFI;
         slot_mode[slot-1] = WC_SLOT_MODE_4x10G;
         break;
       case WC_SLOT_MODE_1x20G:
       case WC_SLOT_MODE_2x20G:
-        speedG = 20;  total_lanes = 2;
+        speedG = 20;  total_lanes = 2;    mode = BCM_PORT_IF_SFI;
         slot_mode[slot-1] = WC_SLOT_MODE_2x20G;
         break;
+      case WC_SLOT_MODE_1x40G_XLAUI:
+        speedG = 40;  total_lanes = 1;    mode = BCM_PORT_IF_XLAUI;
+        slot_mode[slot-1] = WC_SLOT_MODE_1x40G_XLAUI;
+        break;
       default:
-        speedG = 40;  total_lanes = 1;
-        slot_mode[slot-1] = WC_SLOT_MODE_1x40G;
+        speedG = 40;  total_lanes = 1;    mode = BCM_PORT_IF_KR4;
+        slot_mode[slot-1] = WC_SLOT_MODE_1x40G_KR4;
         break;
     }
 
@@ -779,8 +708,9 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
       wcMap[port].wcIdx    = -1;
       wcMap[port].wcLane   =  i;
       wcMap[port].wcSpeedG = speedG;
-      PT_LOG_TRACE(LOG_CTX_STARTUP,"Port %2u: slotNum=%2d, wcIdx=%2d, wcLane=%d wcSpeedG=%2u", port,
-                wcMap[port].slotNum, wcMap[port].wcIdx, wcMap[port].wcLane, wcMap[port].wcSpeedG);
+      wcMap[port].wcMode   = mode;
+      PT_LOG_TRACE(LOG_CTX_STARTUP,"Port %2u: slotNum=%2d, wcIdx=%2d, wcLane=%d wcSpeedG=%2u wcMode=%u", port,
+                wcMap[port].slotNum, wcMap[port].wcIdx, wcMap[port].wcLane, wcMap[port].wcSpeedG, wcMap[port].wcMode);
       port++;
     }
   }
@@ -799,8 +729,9 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
   wcMap[port].wcIdx    = -1;
   wcMap[port].wcLane   =  0;
   wcMap[port].wcSpeedG =  1;
-  PT_LOG_TRACE(LOG_CTX_STARTUP,"Port %2u: slotNum=%2d, wcIdx=%2d, wcLane=%d wcSpeedG=%2u", port,
-            wcMap[port].slotNum, wcMap[port].wcIdx, wcMap[port].wcLane, wcMap[port].wcSpeedG);
+  wcMap[port].wcMode   = BCM_PORT_IF_SGMII;
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"Port %2u: slotNum=%2d, wcIdx=%2d, wcLane=%d wcSpeedG=%2u wcMode=%u", port,
+            wcMap[port].slotNum, wcMap[port].wcIdx, wcMap[port].wcLane, wcMap[port].wcSpeedG, wcMap[port].wcMode);
   port++;
 
   /* Return port map */

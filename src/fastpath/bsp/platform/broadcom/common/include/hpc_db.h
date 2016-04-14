@@ -232,6 +232,12 @@
                                         L7_PHY_CAP_PORTSPEED_HALF_10),      \
                                        L7_XLAUI
 
+/* PTin added: Speed 40G XLAUI */
+#define L7_PORT_DESC_BCOM_40G_XLAUI    L7_IANA_40G_ETHERNET,                \
+                                       L7_PORTCTRL_PORTSPEED_FULL_40G_KR4,  \
+                                       (L7_PHY_CAP_PORTSPEED_FULL_40G),     \
+                                       L7_XLAUI
+
 /* PTin added: Speed 100G */
 #define L7_PORT_DESC_BCOM_100G_BKP     L7_IANA_100G_ETHERNET,               \
                                        L7_PORTCTRL_PORTSPEED_FULL_100G_BKP, \

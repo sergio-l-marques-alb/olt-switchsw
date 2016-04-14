@@ -83,22 +83,23 @@ typedef struct
 
 #define WC_MAP_FILE "/usr/local/ptin/var/bcm_port_map"
 
-#define WC_SLOT_MODE_NONE   0
-#define WC_SLOT_MODE_2x10G  1
-#define WC_SLOT_MODE_4x10G  2
-#define WC_SLOT_MODE_1x40G  3
-#define WC_SLOT_MODE_2x40G  4
-#define WC_SLOT_MODE_3x40G  5
-#define WC_SLOT_MODE_1x100G 6
-#define WC_SLOT_MODE_1x10G  7
-#define WC_SLOT_MODE_3x10G  8
-#define WC_SLOT_MODE_1x1G   9
-#define WC_SLOT_MODE_2x1G   10
-#define WC_SLOT_MODE_3x1G   11
-#define WC_SLOT_MODE_4x1G   12
-#define WC_SLOT_MODE_1x20G  13
-#define WC_SLOT_MODE_2x20G  14
-#define WC_SLOT_MODE_MAX    15
+#define WC_SLOT_MODE_NONE         0
+#define WC_SLOT_MODE_2x10G        1
+#define WC_SLOT_MODE_4x10G        2
+#define WC_SLOT_MODE_1x40G_KR4    3
+#define WC_SLOT_MODE_1x40G_XLAUI  4
+#define WC_SLOT_MODE_2x40G        5
+#define WC_SLOT_MODE_3x40G        6
+#define WC_SLOT_MODE_1x100G       7
+#define WC_SLOT_MODE_1x10G        8
+#define WC_SLOT_MODE_3x10G        9
+#define WC_SLOT_MODE_1x1G         10
+#define WC_SLOT_MODE_2x1G         11
+#define WC_SLOT_MODE_3x1G         12
+#define WC_SLOT_MODE_4x1G         13
+#define WC_SLOT_MODE_1x20G        14
+#define WC_SLOT_MODE_2x20G        15
+#define WC_SLOT_MODE_MAX          16
 
 /*******************************************************************************
 *
@@ -126,6 +127,7 @@ typedef struct
   L7_long32   wcIdx;
   L7_long32   wcLane;
   L7_long32   wcSpeedG;
+  L7_uint16   wcMode;   // GMII, SGMII, XGMII, XAUI, XFI, SFI, KR, KR4, XLAUI
 
 } HAPI_WC_PORT_MAP_t;
 #endif

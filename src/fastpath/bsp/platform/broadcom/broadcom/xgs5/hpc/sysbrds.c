@@ -1184,14 +1184,15 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
   L7_uint16  i;
   L7_uint16  port_idx, slot_idx;
   L7_uint16  wc_idx, wc_lane;
-  L7_uint16  speedG;
+  L7_uint16  speedG, mode;
   L7_uint8   invLanes, invPol;
   bcm_port_t bcm_port;
   HAPI_WC_SLOT_MAP_t *ptr;
-  SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor_1G   = {L7_PORT_DESC_BCOM_1G_NO_AN};
-  SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor_10G  = {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN};
-  SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor_40G  = {L7_PORT_DESC_BCOM_40G_KR4};
-  SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor_100G = {L7_PORT_DESC_BCOM_100G_BKP};
+  SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor_1G       = {L7_PORT_DESC_BCOM_1G_NO_AN};
+  SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor_10G      = {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN};
+  SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor_40G_KR4  = {L7_PORT_DESC_BCOM_40G_KR4};
+  SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor_40G_XLAUI= {L7_PORT_DESC_BCOM_40G_XLAUI};
+  SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor_100G     = {L7_PORT_DESC_BCOM_100G_BKP};
   char param_name[51], param_value[21];
   SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
 
@@ -1298,12 +1299,13 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
   PT_LOG_DEBUG(LOG_CTX_STARTUP,"Port map:");
   for (i=0; i<L7_MAX_PHYSICAL_PORTS_PER_UNIT; i++)
   {
-    PT_LOG_DEBUG(LOG_CTX_STARTUP," Port %02u: Slot=%02u WCidx=%02u WClane=%u Speed=%uG",
+    PT_LOG_DEBUG(LOG_CTX_STARTUP," Port %02u: Slot=%02u WCidx=%02u WClane=%u Speed=%uG Mode=%u",
               dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1[i].portNum,
               dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1[i].slotNum,
               dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1[i].wcIdx,
               dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1[i].wcLane,
-              dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1[i].wcSpeedG);
+              dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1[i].wcSpeedG,
+              dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1[i].wcMode);
   }
 
   /* Validate map */
@@ -1321,6 +1323,7 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
     wc_idx   = dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1[port_idx].wcIdx;               /* WC index */
     wc_lane  = dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1[port_idx].wcLane;              /* WC lane index */
     speedG   = dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1[port_idx].wcSpeedG;            /* Speed in GB */
+    mode     = dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56846_REV_1[port_idx].wcMode;              /* Interface Mode */
 
     if (speedG == 0)  break;
 
@@ -1339,7 +1342,14 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
         hpcPortInfoTable_CARD_BROAD_64_TENGIG_56846_REV_1[port_idx] = port_descriptor_10G;
         break;
       case 40:
-        hpcPortInfoTable_CARD_BROAD_64_TENGIG_56846_REV_1[port_idx] = port_descriptor_40G;
+        if (mode == BCM_PORT_IF_XLAUI)
+        {
+          hpcPortInfoTable_CARD_BROAD_64_TENGIG_56846_REV_1[port_idx] = port_descriptor_40G_XLAUI; 
+        }
+        else
+        {
+          hpcPortInfoTable_CARD_BROAD_64_TENGIG_56846_REV_1[port_idx] = port_descriptor_40G_KR4; 
+        }
         break;
       case 100:
         hpcPortInfoTable_CARD_BROAD_64_TENGIG_56846_REV_1[port_idx] = port_descriptor_100G;
@@ -1461,16 +1471,17 @@ L7_RC_t hpcBoardWCinit_bcm56640(void)
 {
   bcm_port_t bcm_port;
   L7_int  gport_idx, fport_idx, bport_idx, port_idx, offset, i;
-  L7_int  slot, lane, speed, portgroup;
+  L7_int  slot, lane, speed, portgroup, mode;
   HAPI_CARD_SLOT_MAP_t *dapiBroadBaseCardSlotMap;
   HAPI_WC_PORT_MAP_t wcMap[L7_MAX_PHYSICAL_PORTS_PER_UNIT];
   L7_uint32 slot_mode[PTIN_SYS_SLOTS_MAX];
   char param_name[51], param_value[21];
   SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
-  SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor_1G     = {L7_PORT_DESC_BCOM_1G_NO_AN};
-  SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor_10G_AN = {L7_PORT_DESC_BCOM_XAUI_10G_1G};
-  SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor_10G    = {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN};
-  SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor_40G    = {L7_PORT_DESC_BCOM_40G_KR4};
+  SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor_1G       = {L7_PORT_DESC_BCOM_1G_NO_AN};
+  SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor_10G_AN   = {L7_PORT_DESC_BCOM_XAUI_10G_1G};
+  SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor_10G      = {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN};
+  SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor_40G_KR4  = {L7_PORT_DESC_BCOM_40G_KR4};
+  SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor_40G_XLAUI= {L7_PORT_DESC_BCOM_40G_XLAUI};
 
   memset(wcMap, 0x00, sizeof(wcMap));
   memset(slot_mode, 0x00, sizeof(slot_mode));
@@ -1520,12 +1531,13 @@ L7_RC_t hpcBoardWCinit_bcm56640(void)
   PT_LOG_DEBUG(LOG_CTX_STARTUP,"Port map:");
   for (i=0; i<L7_MAX_PHYSICAL_PORTS_PER_UNIT; i++)
   {
-    PT_LOG_DEBUG(LOG_CTX_STARTUP," Port %02u: Slot=%2d WCidx=%2d WClane=%d Speed=%2uG",
+    PT_LOG_DEBUG(LOG_CTX_STARTUP," Port %02u: Slot=%2d WCidx=%2d WClane=%d Speed=%2uG Mode=%u",
               dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56640_REV_1[i].portNum,
               dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56640_REV_1[i].slotNum,
               dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56640_REV_1[i].wcIdx,
               dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56640_REV_1[i].wcLane,
-              dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56640_REV_1[i].wcSpeedG);
+              dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56640_REV_1[i].wcSpeedG,
+              dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56640_REV_1[i].wcMode);
   }
 
   /* Validate map */
@@ -1551,7 +1563,8 @@ L7_RC_t hpcBoardWCinit_bcm56640(void)
     slot  = dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56640_REV_1[port_idx].slotNum;
     lane  = dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56640_REV_1[port_idx].wcLane;
     speed = dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56640_REV_1[port_idx].wcSpeedG;
-    PT_LOG_INFO(LOG_CTX_STARTUP,"data obtained for port_idx=%2d: slot=%d, lane=%d, speed=%2d", port_idx, slot, lane, speed);
+    mode  = dapiBroadBaseWCPortMap_CARD_BROAD_64_TENGIG_56640_REV_1[port_idx].wcMode;
+    PT_LOG_INFO(LOG_CTX_STARTUP,"data obtained for port_idx=%2d: slot=%d, lane=%d, speed=%2d, mode=%u", port_idx, slot, lane, speed, mode);
 
     /* Speed == 0, signals end of port sweeping */
     if (speed == 0)
@@ -1718,7 +1731,14 @@ L7_RC_t hpcBoardWCinit_bcm56640(void)
         break;
       case 40:
       case 100:
-        hpcPortInfoTable_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1[port_idx] = port_descriptor_40G;
+        if (mode == BCM_PORT_IF_XLAUI)
+        {
+          hpcPortInfoTable_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1[port_idx] = port_descriptor_40G_XLAUI;
+        }
+        else
+        {
+          hpcPortInfoTable_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1[port_idx] = port_descriptor_40G_KR4;
+        }
         break;
       default:
         hpcPortInfoTable_CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1[port_idx] = port_descriptor_10G;
