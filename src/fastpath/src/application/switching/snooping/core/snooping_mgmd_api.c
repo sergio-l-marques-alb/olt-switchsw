@@ -216,6 +216,7 @@ unsigned int snooping_portType_get(unsigned int serviceId, unsigned int portId, 
       #ifdef PTIN_ENABLE_ERPS
       if(ptin_erps_get_status_void(1) == 1)
         *portType = PTIN_MGMD_PORT_TYPE_LEAF;
+      else
       #endif
 
       *portType = PTIN_MGMD_PORT_TYPE_ROOT;

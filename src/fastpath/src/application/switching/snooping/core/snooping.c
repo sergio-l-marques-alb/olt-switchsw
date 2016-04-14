@@ -824,7 +824,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 
   ptin_timer_start(76,"ptin_igmp_McastRootVlan_get");
   /* Get multicast root vlan */  
-  if ( ptin_igmp_McastRootVlan_get(pduInfo->vlanId,pduInfo->intIfNum, L7_TRUE, client_idx, &groupAddr, &sourceAddr, &mcastRootVlan) == L7_SUCCESS )
+  if ( ptin_igmp_McastRootVlan_get(pduInfo->vlanId,pduInfo->intIfNum, (port_type == PTIN_EVC_INTF_LEAF), client_idx, &groupAddr, &sourceAddr, &mcastRootVlan) == L7_SUCCESS )
   {
     PT_LOG_TRACE(LOG_CTX_IGMP,"Vlan=%u will be converted to %u (grpAddr=%s) client %d",
               pduInfo->vlanId, mcastRootVlan, inetAddrPrint(&groupAddr,groupAddrStr),client_idx);
