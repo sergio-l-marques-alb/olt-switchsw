@@ -1,0 +1,68 @@
+#!/bin/sh
+
+# These variables are defined by the calling script
+#MODULE=fastpath-olt
+#PLATFORMS="CXO640G-MX CXO360G-MX TG16G TOLT8G"
+#APPLICATION=fastpath
+
+BUILDS_FOLDER=./output
+APPS_PATH=./apps
+
+USERNAME=olt
+DST_IPADDR=10.112.15.243
+DST_PATH=/home/olt/fastpath_builds/fastpath
+
+n_args=$#
+
+svn_rev=`svnversion ../fastpath -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
+version=$1-r$svn_rev
+
+backup_7z=$MODULE.backup-v$version.7z
+
+colorNotice="\033[1m\033[34m"
+colorWarn="\033[1m\033[33m"
+colorOk="\033[1m\033[32m"
+colorKo="\033[1m\033[31m"
+colorReq="\033[1m\033[7m"
+colorTitle="\033[1m\033[4m"
+colorWhite="\033[1m\033[1m"
+colorReset="\033[0m"
+
+if [ $n_args -lt 1 ]
+  then
+  echo -en $colorKo
+  echo "Erro de parametros: $0 <version>"
+  echo -en $colorReset
+  exit;
+fi
+
+# Check if backup folder exists
+if [ ! -e $APPS_PATH/backup ]; then
+  echo "Backup folder $APPS_PATH/backup does not exist";
+  exit 0;
+fi
+
+# Only if backup exists
+echo -en $colorNotice
+echo "Saving unstripped binaries..."
+echo -en $colorReset
+
+rm -f $BUILDS_FOLDER/$backup_7z
+#for plat in $PLATFORMS; do
+#  rm -f $APPS_PATH/backup/$plat/*.ver $APPS_PATH/backup/$plat/*.releasenotes.txt
+#  cp ./$APPLICATION.ver ./$APPLICATION.releasenotes.txt $APPS_PATH/backup/$plat
+#done
+#sync
+cd $APPS_PATH/backup
+rm -f *.tgz
+7z a $backup_7z $PLATFORMS
+cd -
+mv $APPS_PATH/backup/$backup_7z $BUILDS_FOLDER
+
+echo "Transferring backup tarball to final destination..."
+mv $BUILDS_FOLDER/$backup_7z $DST_PATH
+
+echo -en $colorOk
+echo "DONE!"
+echo -en $colorReset
+
