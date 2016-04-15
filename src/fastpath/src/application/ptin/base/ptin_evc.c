@@ -8701,36 +8701,19 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, ptin_HwEthMef10Intf_t *intf_
   }
   else
   {
-    /* If VLAN is not provided, remove all flows */
-    if (intf_cfg->vid == 0)
+    rc = ptin_evc_flow_unconfig(&evcFlow);
+    if (rc != L7_SUCCESS)
     {
-      rc = ptin_evc_intfclientsflows_remove(evc_id, ptin_port);
-      if (rc != L7_SUCCESS)
-      {
-        PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: error removing all flows belonging to port %u", ptin_port);
-        return L7_FAILURE;
-      }
-      else
-      {
-        PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: all flows belonging to port %u removed", ptin_port);
-      }
+      PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: error removing interface 0x%x from VSI %u [ptin_port=%u OVlan=%u IVlan=%u]",
+                 evc_id,  evcs[evc_id].intf[ptin_port].l2_vlan_port_id, evcs[evc_id].rvlan,
+                 ptin_port, evcs[evc_id].intf[ptin_port].out_vlan, evcs[evc_id].intf[ptin_port].inner_vlan);
+      return L7_FAILURE;
     }
     else
     {
-      rc = ptin_evc_flow_unconfig(&evcFlow);
-      if (rc != L7_SUCCESS)
-      {
-        PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: error removing interface 0x%x from VSI %u [ptin_port=%u OVlan=%u IVlan=%u]",
+      PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: interface 0x%x removed from VSI %u [ptin_port=%u OVlan=%u IVlan=%u]",
                    evc_id,  evcs[evc_id].intf[ptin_port].l2_vlan_port_id, evcs[evc_id].rvlan,
                    ptin_port, evcs[evc_id].intf[ptin_port].out_vlan, evcs[evc_id].intf[ptin_port].inner_vlan);
-        return L7_FAILURE;
-      }
-      else
-      {
-        PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: interface 0x%x removed from VSI %u [ptin_port=%u OVlan=%u IVlan=%u]",
-                     evc_id,  evcs[evc_id].intf[ptin_port].l2_vlan_port_id, evcs[evc_id].rvlan,
-                     ptin_port, evcs[evc_id].intf[ptin_port].out_vlan, evcs[evc_id].intf[ptin_port].inner_vlan);
-      }
     }
 
     /* Still have clients within this interface... do nothing */
