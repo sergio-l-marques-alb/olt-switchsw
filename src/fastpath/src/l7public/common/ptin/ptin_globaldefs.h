@@ -72,9 +72,9 @@ extern int ptin_sys_number_of_ports;
 #define PTIN_BOARD_TYPE_TA48GED   0x59
 #define PTIN_BOARD_TYPE_CXO160G   0x39
 #define PTIN_BOARD_TYPE_CXO640G   0x33
-#define PTIN_BOARD_TYPE_TU100G    0xFD
-#define PTIN_BOARD_TYPE_TT08SXG   0xFE
-#define PTIN_BOARD_TYPE_TA12XGE   0xFF
+#define PTIN_BOARD_TYPE_TU100G    0x41
+#define PTIN_BOARD_TYPE_TT08SXG   0x58
+#define PTIN_BOARD_TYPE_TA12XGE   0x43
 
 #define PTIN_BOARD_IS_PRESENT(board)  ((board) != 0)
 #define PTIN_BOARD_IS_UPLINK(board)   ((board)==(PTIN_BOARD_TYPE_TOLTU20G) || ((board)==(PTIN_BOARD_TYPE_TOLTU20GR)) || (board)==(PTIN_BOARD_TYPE_TU40G) || (board)==(PTIN_BOARD_TYPE_TU40GR) || (board)==(PTIN_BOARD_TYPE_CXO160G) || \

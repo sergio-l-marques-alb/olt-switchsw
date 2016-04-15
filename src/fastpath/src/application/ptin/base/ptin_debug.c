@@ -792,10 +792,10 @@ void ptin_intf_dump(void)
         sprintf(board_id_str,"TG16G");
         break;
       case PTIN_BOARD_TYPE_TOLT8G:
-        sprintf(board_id_str,"TG8G");
+        sprintf(board_id_str,"TOLT8G");
         break;
       case PTIN_BOARD_TYPE_TOLT8GR:
-        sprintf(board_id_str,"TG8GR");
+        sprintf(board_id_str,"TOLT8GR");
         break;
       case PTIN_BOARD_TYPE_TA48GE:
         sprintf(board_id_str,"TA48GE");
@@ -820,7 +820,7 @@ void ptin_intf_dump(void)
     else
   #endif
     {
-      sprintf(board_id_str," ---");
+      sprintf(board_id_str,"  ---  ");
     }
 
     /* Switch port: ge/xe (indexes changed according to the board) */
