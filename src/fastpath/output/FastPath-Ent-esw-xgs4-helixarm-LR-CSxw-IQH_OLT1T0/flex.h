@@ -226,6 +226,8 @@
 #define L7_QOS_PACKAGE 1
 #endif
 
+/* XWEB deactivated */
+#if 0
 /* Secure_Mgmt definitions */
 /* PTin to be excluded */
 #ifndef _INCLUDE_SECURE_MGMT_COMPONENT_API_
@@ -241,6 +243,7 @@
 #define L7_SSL_LIB_PACKAGE 1
 #define L7_OPENSSL_PACKAGE 1
 #endif
+#endif
 
 /* CLI definitions */
 #ifndef _INCLUDE_CLI_COMPONENT_API_
@@ -254,12 +257,15 @@
 #define L7_SNMP_PACKAGE 1
 #endif
 
+/* XWEB deactivated */
+#if 0
 /* xWeb definitions */
 /* PTin to be excluded */
 #ifndef _INCLUDE_XWEB_COMPONENT_API_
 #define _INCLUDE_XWEB_COMPONENT_API_
 #define L7_XWEB_PACKAGE 1
 #endif 
+#endif
 
 /* Routing definitions */
 #ifndef _INCLUDE_ROUTING_COMPONENT_API_
