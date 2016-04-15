@@ -5019,8 +5019,8 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         ptr     = (msg_rfc2819_buffer_t  *) outbuffer->info;
         ptr_in  = (msg_rfc2819_monitoring_t * )inbuffer->info;
 
-        PT_LOG_INFO(LOG_CTX_MSGHANDLER, "SlotID %d ", ptr_in->SlotId);
-        PT_LOG_INFO(LOG_CTX_MSGHANDLER, "n %d ", ptr_in->n);  
+        PT_LOG_TRACE(LOG_CTX_MSGHANDLER, "SlotID %d ", ptr_in->SlotId);
+        PT_LOG_TRACE(LOG_CTX_MSGHANDLER, "n %d ", ptr_in->n);  
   
         /* Execute command */
         rc = ptin_msg_get_next_qualRFC2819_inv(ptr_in->n, ptr, &n);

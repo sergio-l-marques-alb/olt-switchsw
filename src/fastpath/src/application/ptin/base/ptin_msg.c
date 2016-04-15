@@ -14211,7 +14211,8 @@ L7_RC_t ptin_msg_get_next_qualRFC2819(L7_int buffer_index, msg_rfc2819_buffer_t 
 
     if(ptin_rfc2819_buffer_get(buffer_index, buffer_id, &ring_buffer) <0) 
     {
-      return L7_FAILURE;
+      memset(&buffer[n_elements], 0x00, sizeof(msg_rfc2819_buffer_t)); // When no performance monotoring is avaiable send zeros.
+      return L7_SUCCESS;
     }
         
     buffer[n_elements].index                = ring_buffer.index;
