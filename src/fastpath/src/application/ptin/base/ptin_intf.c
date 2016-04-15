@@ -3404,11 +3404,14 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       rc = L7_FAILURE;
     }
 
-    res = usmDbDvlantagIntfEthertypeSet(0, lag_intf, lagEtherType, L7_TRUE);
-    if ((res != L7_SUCCESS) && (res != L7_ALREADY_CONFIGURED))
+    if (lagEtherType != 0)
     {
-      PT_LOG_CRITIC(LOG_CTX_INTF, "Failed to configure TPID 0x%04X on LAG# %u (rc = %d)", lagEtherType, lag_idx, rc);
-      rc = L7_FAILURE;
+      res = usmDbDvlantagIntfEthertypeSet(0, lag_intf, lagEtherType, L7_TRUE);
+      if ((res != L7_SUCCESS) && (res != L7_ALREADY_CONFIGURED))
+      {
+        PT_LOG_CRITIC(LOG_CTX_INTF, "Failed to configure TPID 0x%04X on LAG# %u (rc = %d)", lagEtherType, lag_idx, rc);
+        rc = L7_FAILURE;
+      }
     }
   }
 

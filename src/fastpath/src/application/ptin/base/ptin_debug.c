@@ -804,31 +804,31 @@ void ptin_intf_dump(void)
       switch (board_type)
       {
       case PTIN_BOARD_TYPE_TU40G:
-        sprintf(board_id_str," TU40G ");
+        sprintf(board_id_str,"TU40G");
         break;
       case PTIN_BOARD_TYPE_TU40GR:
-        sprintf(board_id_str," TU40GR");
+        sprintf(board_id_str,"TU40GR");
         break;
       case PTIN_BOARD_TYPE_TOLTU20G:
-        sprintf(board_id_str," TU20G ");
+        sprintf(board_id_str,"TU20G");
         break;
       case PTIN_BOARD_TYPE_TOLTU20GR:
-        sprintf(board_id_str," TU20GR");
+        sprintf(board_id_str,"TU20GR");
         break;
       case PTIN_BOARD_TYPE_TR32R:
-        sprintf(board_id_str," TR32R ");
+        sprintf(board_id_str,"TR32R");
         break;
       case PTIN_BOARD_TYPE_TG16G:
-        sprintf(board_id_str," TG16G ");
+        sprintf(board_id_str,"TG16G");
         break;
       case PTIN_BOARD_TYPE_TOLT8G:
-        sprintf(board_id_str,"TOLT8G ");
+        sprintf(board_id_str,"TOLT8G");
         break;
       case PTIN_BOARD_TYPE_TOLT8GR:
         sprintf(board_id_str,"TOLT8GR");
         break;
       case PTIN_BOARD_TYPE_TA48GE:
-        sprintf(board_id_str,"TA48GE ");
+        sprintf(board_id_str,"TA48GE");
         break;
       case PTIN_BOARD_TYPE_TA48GED:
         sprintf(board_id_str,"TA48GED");
@@ -837,10 +837,10 @@ void ptin_intf_dump(void)
         sprintf(board_id_str,"TT08SXG");
         break;
       case PTIN_BOARD_TYPE_TU100G:
-        sprintf(board_id_str,"TU100G ");
+        sprintf(board_id_str,"TU100G");
         break;
       case PTIN_BOARD_TYPE_TA12XGE:
-        sprintf(board_id_str,"TA12XG ");
+        sprintf(board_id_str,"TA12XG");
         break;
       default:
         sprintf(board_id_str," 0x%02x", board_type);
