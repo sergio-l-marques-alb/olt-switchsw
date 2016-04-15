@@ -3364,13 +3364,13 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
           PT_LOG_WARN(LOG_CTX_IGMP,"Invalid client returned from MGMD clientId:%u", mgmdGroupsRes->clientId);
           mgmdGroupsRes++;                  
           continue;
-        }
-        if (L7_NULLPTR == (clientGroup = client->pClientGroup))
-        {
-          *number_of_clients=0;
-          PT_LOG_ERR(LOG_CTX_IGMP,"Invalid client returned from MGMD clientId:%u", mgmdGroupsRes->clientId);
+          }
+          if (L7_NULLPTR == (clientGroup = client->pClientGroup))
+          {
+            //*number_of_clients=0;
+            PT_LOG_ERR(LOG_CTX_IGMP,"Invalid client returned from MGMD clientId:%u", mgmdGroupsRes->clientId);
 
-          /*Give Semaphore*/
+            /*Give Semaphore*/
           osapiSemaGive(ptin_igmp_clients_sem);
 
           return L7_FAILURE;
