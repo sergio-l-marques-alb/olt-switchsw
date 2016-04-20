@@ -3370,10 +3370,10 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
             //*number_of_clients=0;
             PT_LOG_ERR(LOG_CTX_IGMP,"Invalid client returned from MGMD clientId:%u", mgmdGroupsRes->clientId);
 
-            /*Give Semaphore*/
+          /*Give Semaphore*/
           osapiSemaGive(ptin_igmp_clients_sem);
 
-          return L7_FAILURE;
+          return L7_SUCCESS;
         }
 #if (MC_CLIENT_INTERF_SUPPORTED)
         if (ptin_intf_port2ptintf(clientGroup->ptin_port, &newClientEntry.ptin_intf)!=L7_SUCCESS)
