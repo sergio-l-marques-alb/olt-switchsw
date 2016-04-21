@@ -1,5 +1,5 @@
-mask=0x0ff0
-severity=9
+mask=0xffffffff
+severity=7
 
 if [ $# -ge 1 ]; then
   mask=$1
@@ -11,7 +11,6 @@ fi
 
 echo "Applying mask $mask..."
 
-fp.shell dev logger_sev_set 0x0008 8
 fp.shell dev logger_sev_set $mask $severity
 
 echo "Done!"
