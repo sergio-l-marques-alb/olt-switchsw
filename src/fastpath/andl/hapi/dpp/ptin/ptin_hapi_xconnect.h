@@ -117,26 +117,24 @@ extern L7_RC_t ptin_hapi_bridge_vlan_mode_macLearn_set(L7_uint16 vlanId, L7_BOOL
 extern L7_RC_t ptin_hapi_bridge_vlan_mode_crossconnect_set(L7_uint16 vlanId, L7_BOOL cross_connects_apply, L7_BOOL double_tag);
 
 /**
- * Add a cross-connection between two ports
+ * Create crossconnection between 2 leafs
  * 
- * @param outerVlanId: outer vlan to look for
- * @param innerVlanId: inner vlan to look for (0 to not use)
- * @param dapiPort1: First port
- * @param dapiPort2: Second port 
+ * @param lif1_id 
+ * @param lif2_id 
  * 
  * @return L7_RC_t 
  */
-extern L7_RC_t ptin_hapi_bridge_crossconnect_add(L7_uint16 outerVlanId, L7_uint16 innerVlanId, ptin_dapi_port_t *dapiPort1, ptin_dapi_port_t *dapiPort2);
+extern L7_RC_t ptin_hapi_crossconnect_add(L7_int unit, L7_uint32 lif1_id, L7_uint32 lif2_id);
 
 /**
- * Delete a cross-connection
+ * Create crossconnection between 2 leafs
  * 
- * @param outerVlanId: Outer vlan to look for
- * @param innerVlanId: Inner vlan to look for
+ * @param lif1_id 
+ * @param lif2_id 
  * 
- * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
+ * @return L7_RC_t 
  */
-extern L7_RC_t ptin_hapi_bridge_crossconnect_delete(L7_uint16 outerVlanId, L7_uint16 innerVlanId);
+extern L7_RC_t ptin_hapi_crossconnect_remove(L7_int unit, L7_uint32 lif1_id, L7_uint32 lif2_id);
 
 /**
  * Deletes all configured cross-connections

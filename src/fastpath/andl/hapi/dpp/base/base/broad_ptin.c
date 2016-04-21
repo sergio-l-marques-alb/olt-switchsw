@@ -1559,34 +1559,24 @@ L7_RC_t hapiBroadPtinVirtualPortSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
 L7_RC_t hapiBroadPtinBridgeCrossconnect(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g)
 {
   ptin_bridge_crossconnect_t *crossc = (ptin_bridge_crossconnect_t *) data;
-  ptin_dapi_port_t dapiPort1, dapiPort2;
   L7_RC_t rc = L7_SUCCESS;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI,"SrcPort={%d,%d,%d}, DstPort={%d,%d,%d}, outerVlanId=%u, innerVlanId=%u",
-            usp->unit, usp->slot, usp->port,
-            crossc->dstUsp.unit, crossc->dstUsp.slot, crossc->dstUsp.port,
-            crossc->outerVlanId, crossc->innerVlanId);
-
-  /* TODO */
-  return L7_SUCCESS;
-
-  /* Prepare dapiPortx structures */
-  DAPIPORT_SET(&dapiPort1, usp, dapi_g);
-  DAPIPORT_SET(&dapiPort2, &(crossc->dstUsp), dapi_g);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"port1={%d,%d,%d} VLAN1=%u+%u LIF1=0x%x, port2={%d,%d,%d} VLAN2=%u+%u LIF2=0x%x",
+            crossc->usp[0].unit, crossc->usp[0].slot, crossc->usp[0].port, crossc->outerVlanId[0], crossc->innerVlanId[0], crossc->lif_id[0], 
+            crossc->usp[1].unit, crossc->usp[1].slot, crossc->usp[1].port, crossc->outerVlanId[1], crossc->innerVlanId[1], crossc->lif_id[1]);
 
   /* Execute the correct operation */
   switch ((L7_int) crossc->oper)
   {
   case DAPI_CMD_SET:
-    rc = ptin_hapi_bridge_crossconnect_add(crossc->outerVlanId, crossc->innerVlanId, &dapiPort1, &dapiPort2);
+    rc = ptin_hapi_crossconnect_add(0, crossc->lif_id[0], crossc->lif_id[1]);
     break;
 
   case DAPI_CMD_CLEAR:
-    rc = ptin_hapi_bridge_crossconnect_delete(crossc->outerVlanId, crossc->innerVlanId);
+    rc = ptin_hapi_crossconnect_remove(0, crossc->lif_id[0], crossc->lif_id[1]);
     break;
 
   case DAPI_CMD_CLEAR_ALL:
-    rc  = ptin_hapi_bridge_crossconnect_delete_all();
     break;
   }
 

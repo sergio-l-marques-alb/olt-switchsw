@@ -961,37 +961,29 @@ L7_RC_t ptin_crossconnect_enable(L7_uint16 vlanId, L7_BOOL crossconnect_apply, L
 }
 
 /**
- * Add a new crossconnect.
+ * Add a new crossconnect
  * 
- * @param outerVlanId : outer vlan id
- * @param innerVlanId : inner vlan id
- * @param intIfNum1 : First interface
- * @param intIfNum2 : Second interface
+ * @param lif1_id
+ * @param lif2_id 
  * 
- * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ * @return L7_RC_t 
  */
-L7_RC_t ptin_crossconnect_add(L7_uint16 outerVlanId, L7_uint16 innerVlanId, L7_uint32 intIfNum1, L7_uint32 intIfNum2)
+L7_RC_t ptin_crossconnect_add(L7_uint32 lif1_id, L7_uint32 lif2_id)
 {
   ptin_bridge_crossconnect_t cc;
-  L7_RC_t rc = L7_SUCCESS;
+  L7_RC_t   rc = L7_SUCCESS;
 
-  PT_LOG_TRACE(LOG_CTX_API, "outerVlanId=%u, innerVlanId=%u, intIfNum1=%u, intIfNum2=%u",
-            outerVlanId, innerVlanId, intIfNum1, intIfNum2);
-  /* Validate arguments */
-  if ( outerVlanId > 4095 || innerVlanId > 4095 )
-  {
-    PT_LOG_ERR(LOG_CTX_API, "Invalid arguments");
-    return L7_FAILURE;
-  }
+  PT_LOG_TRACE(LOG_CTX_API, "LIF1 0x%x <-> LIF2 0x%x",lif1_id, lif2_id);
 
   /* Fill structure */
-  cc.outerVlanId = outerVlanId;
-  cc.innerVlanId = innerVlanId;
-  cc.oper        = DAPI_CMD_SET;
-  cc.dstUsp.unit = cc.dstUsp.slot = cc.dstUsp.port = -1;  /* intIfNum2 will reconfigure this parameter */
+  memset(&cc, 0x00, sizeof(cc));
+
+  cc.lif_id[0] = lif1_id;
+  cc.lif_id[1] = lif2_id;
+  cc.oper = DAPI_CMD_SET;
 
   /* DTL call */
-  rc = dtlPtinBridgeCrossconnect(intIfNum1, intIfNum2, &cc);
+  rc = dtlPtinBridgeCrossconnect(L7_ALL_INTERFACES, L7_ALL_INTERFACES, &cc);
 
   PT_LOG_TRACE(LOG_CTX_API, "Finished: rc=%d", rc);
 
@@ -999,32 +991,26 @@ L7_RC_t ptin_crossconnect_add(L7_uint16 outerVlanId, L7_uint16 innerVlanId, L7_u
 }
 
 /**
- * Delete a crossconnect.
+ * Delete a crossconnect
  * 
- * @param outerVlanId : outer vlan id
- * @param innerVlanId : inner vlan id
+ * @param lif1_id
+ * @param lif2_id 
  * 
- * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ * @return L7_RC_t 
  */
-L7_RC_t ptin_crossconnect_delete(L7_uint16 outerVlanId, L7_uint16 innerVlanId)
+L7_RC_t ptin_crossconnect_delete(L7_uint32 lif1_id, L7_uint32 lif2_id)
 {
   ptin_bridge_crossconnect_t cc;
-  L7_RC_t rc = L7_SUCCESS;
+  L7_RC_t   rc = L7_SUCCESS;
 
-  PT_LOG_TRACE(LOG_CTX_API,"outerVlanId=%u, innerVlanId=%u", outerVlanId, innerVlanId);
-  /* Validate arguments */
-  if ( outerVlanId > 4095 || innerVlanId > 4095 )
-  {
-    PT_LOG_ERR(LOG_CTX_API,"Invalid arguments");
-    return L7_FAILURE;
-  }
+  PT_LOG_TRACE(LOG_CTX_API, "LIF1 0x%x <-> LIF2 0x%x",lif1_id, lif2_id);
 
-  cc.dstUsp.unit = -1;
-  cc.dstUsp.slot = -1;
-  cc.dstUsp.port = -1;
-  cc.outerVlanId = outerVlanId;
-  cc.innerVlanId = innerVlanId;
-  cc.oper        = DAPI_CMD_CLEAR;
+  /* Fill structure */
+  memset(&cc, 0x00, sizeof(cc));
+
+  cc.lif_id[0] = lif1_id;
+  cc.lif_id[1] = lif2_id;
+  cc.oper = DAPI_CMD_CLEAR;
 
   /* DTL call */
   rc = dtlPtinBridgeCrossconnect(L7_ALL_INTERFACES, L7_ALL_INTERFACES, &cc);
@@ -1044,17 +1030,11 @@ L7_RC_t ptin_crossconnect_delete_all(void)
   ptin_bridge_crossconnect_t cc;
   L7_RC_t rc = L7_SUCCESS;
 
-  PT_LOG_TRACE(LOG_CTX_API, "Beginning...");
-
-  cc.dstUsp.unit = -1;
-  cc.dstUsp.slot = -1;
-  cc.dstUsp.port = -1;
-  cc.outerVlanId = 0;
-  cc.innerVlanId = 0;
-  cc.oper        = DAPI_CMD_CLEAR_ALL;
+  memset(&cc, 0x00, sizeof(cc));
+  cc.oper  = DAPI_CMD_CLEAR_ALL;
 
   /* DTL call */
-  rc = dtlPtinBridgeCrossconnect(L7_ALL_INTERFACES,L7_ALL_INTERFACES,&cc);
+  rc = dtlPtinBridgeCrossconnect(L7_ALL_INTERFACES, L7_ALL_INTERFACES, &cc);
 
   PT_LOG_TRACE(LOG_CTX_API, "Finished: rc=%d", rc);
 

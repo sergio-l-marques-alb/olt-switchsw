@@ -107,56 +107,6 @@ extern L7_RC_t ptin_evc_destroy(L7_uint32 evc_ext_id);
  */
 extern L7_RC_t ptin_evc_destroy_all(void);
 
-#if (!PTIN_BOARD_IS_DNX)
-/**
- * Adds a bridge to a stacked EVC between the root and a particular interface
- * 
- * @param evcBridge Bridge info
- * @note The EVC id is the extended one. 
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
- */
-extern L7_RC_t ptin_evc_p2p_bridge_add(ptin_HwEthEvcBridge_t *evcBridge);
-
-/**
- * Removes a bridge from a stacked EVC between the root and a particular interface
- * 
- * @param evcBridge Bridge info
- * @note The EVC id is the extended one. 
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
- */
-extern L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge);
-#endif /* !PTIN_BOARD_IS_DNX */
-
-/**
- * Adds a flooding vlan
- * 
- * @param evc_ext_id  : EVC extended id
- * @param ptin_intf   : port of which client_vlan belongs
- * @param client_vlan : client vlan to apply this flooding vlan
- * @param outer_vlan  : outer vlan of transmitted  packets
- * @param inner_vlan  : inner vlan of transmitted  packets
- * 
- * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
- */
-extern L7_RC_t ptin_evc_flood_vlan_add( L7_uint32 evc_ext_id, ptin_intf_t *ptin_intf, L7_uint16 client_vlan,
-                                        L7_uint16 outer_vlan, L7_uint16 inner_vlan );
-
-/**
- * Removes a flooding vlan
- * 
- * @param evc_ext_id  : EVC extended id
- * @param ptin_intf   : port of which client_vlan belongs
- * @param client_vlan : client vlan to apply this flooding vlan
- * @param outer_vlan  : outer vlan of transmitted packets
- * @param inner_vlan  : inner vlan of transmitted packets
- * 
- * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
- */
-extern L7_RC_t ptin_evc_flood_vlan_remove( L7_uint32 evc_ext_id, ptin_intf_t *ptin_intf, L7_uint16 client_vlan,
-                                           L7_uint16 outer_vlan, L7_uint16 inner_vlan );
-
 /**
  * Storm control configurations
  */
@@ -812,22 +762,6 @@ extern L7_RC_t ptin_evc_macbridge_client_packages_add(ptin_evc_macbridge_client_
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_evc_macbridge_client_packages_remove(ptin_evc_macbridge_client_packages_t *ecvFlow);
-
-/**
- * Gets the flooding vlans list
- * 
- * @param intIfNum    : leaf interface
- * @param intVlan     : internal Vlan
- * @param client_vlan : client vlan to apply this flooding vlan
- * @param outer_vlan  : list of outer vlans
- * @param inner_vlan  : list of inner vlans 
- * @param number_of_vlans : Size of returned lists
- * 
- * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
- */
-extern
-L7_RC_t ptin_evc_flood_vlan_get( L7_uint32 intIfNum, L7_uint intVlan, L7_uint client_vlan,
-                                 L7_uint16 *outer_vlan, L7_uint16 *inner_vlan, L7_uint16 *number_of_vlans );
 
 
 /*********************************************************** 

@@ -248,26 +248,24 @@ extern L7_RC_t ptin_crossconnect_vlan_learn(L7_uint16 vlanId, L7_uint16 fwdVlanI
 extern L7_RC_t ptin_crossconnect_enable(L7_uint16 vlanId, L7_BOOL crossconnect_apply, L7_BOOL double_tag);
 
 /**
- * Add a new crossconnect.
+ * Add a new crossconnect
  * 
- * @param outerVlanId : outer vlan id
- * @param innerVlanId : inner vlan id
- * @param intIfNum1 : First interface
- * @param intIfNum2 : Second interface
+ * @param lif1_id
+ * @param lif2_id 
  * 
- * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ * @return L7_RC_t 
  */
-extern L7_RC_t ptin_crossconnect_add(L7_uint16 outerVlanId, L7_uint16 innerVlanId, L7_uint32 intIfNum1, L7_uint32 intIfNum2);
+extern L7_RC_t ptin_crossconnect_add(L7_uint32 lif1_id, L7_uint32 lif2_id);
 
 /**
- * Delete a crossconnect.
+ * Delete a crossconnect
  * 
- * @param outerVlanId : outer vlan id
- * @param innerVlanId : inner vlan id
+ * @param lif1_id
+ * @param lif2_id 
  * 
- * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ * @return L7_RC_t 
  */
-extern L7_RC_t ptin_crossconnect_delete(L7_uint16 outerVlanId, L7_uint16 innerVlanId);
+extern L7_RC_t ptin_crossconnect_delete(L7_uint32 lif1_id, L7_uint32 lif2_id);
 
 /**
  * Delete all crossconnects.

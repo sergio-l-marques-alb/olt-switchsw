@@ -340,148 +340,61 @@ L7_RC_t ptin_hapi_bridge_vlan_mode_crossconnect_set(L7_uint16 vlanId, L7_BOOL cr
 }
 
 /**
- * Add a cross-connection between two ports
+ * Create crossconnection between 2 leafs
  * 
- * @param outerVlanId: outer vlan to look for
- * @param innerVlanId: inner vlan to look for (0 to not use)
- * @param dapiPort1: First port
- * @param dapiPort2: Second port 
+ * @param lif1_id 
+ * @param lif2_id 
  * 
- * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
+ * @return L7_RC_t 
  */
-L7_RC_t ptin_hapi_bridge_crossconnect_add(L7_uint16 outerVlanId, L7_uint16 innerVlanId, ptin_dapi_port_t *dapiPort1, ptin_dapi_port_t *dapiPort2)
+L7_RC_t ptin_hapi_crossconnect_add(L7_int unit, L7_uint32 lif1_id, L7_uint32 lif2_id)
 {
-  int error;
-  DAPI_PORT_t  *dapiPortPtr1, *dapiPortPtr2;
-  BROAD_PORT_t *hapiPortPtr1, *hapiPortPtr2;
+  bcm_error_t rv;            
+  bcm_vswitch_cross_connect_t cross_connect;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "oVlanId=%u iVlanId=%u port1={%d,%d,%d} port2={%d,%d,%d}",
-            outerVlanId,innerVlanId,
-            dapiPort1->usp->unit,dapiPort1->usp->slot,dapiPort1->usp->port,
-            dapiPort2->usp->unit,dapiPort2->usp->slot,dapiPort2->usp->port);
+  /* Add ports to VSWITCH instance */
+  cross_connect.port1   = lif1_id;
+  cross_connect.port2   = lif2_id;
+  cross_connect.encap1  = 0;
+  cross_connect.encap2  = 0;
+  cross_connect.flags   = 0;
 
-  if ( (dapiPort1->usp->unit<0 || dapiPort1->usp->slot<0 || dapiPort1->usp->port<0) ||
-       (dapiPort2->usp->unit<0 || dapiPort2->usp->slot<0 || dapiPort2->usp->port<0) )
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI, "ERROR: Invalid interfaces");
+  rv = bcm_vswitch_cross_connect_add(unit, &cross_connect);
+  if (rv != BCM_E_NONE) {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error creating crossconnection between LIFs 0x%x and 0x%x", lif1_id, lif2_id);
     return L7_FAILURE;
   }
-
-  /* Get port pointers */
-  DAPIPORT_GET_PTR(dapiPort1, dapiPortPtr1, hapiPortPtr1);
-  DAPIPORT_GET_PTR(dapiPort2, dapiPortPtr2, hapiPortPtr2);
-
-  /* Accept only physical and lag interfaces */
-  if ( ( !IS_PORT_TYPE_PHYSICAL(dapiPortPtr1) && !IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr1) ) ||
-       ( !IS_PORT_TYPE_PHYSICAL(dapiPortPtr2) && !IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr2) ) )
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI, "ERROR: Ports ({%d,%d,%d} and {%d,%d,%d}) are not physical neither lag",
-            dapiPort1->usp->unit,dapiPort1->usp->slot,dapiPort1->usp->port,
-            dapiPort2->usp->unit,dapiPort2->usp->slot,dapiPort2->usp->port);
-    return L7_FAILURE;
-  }
-
-  /* Validate vlans */
-  if ( outerVlanId==0 || outerVlanId>4095 )
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Outer vlan is invalid: %u",outerVlanId);
-    return L7_FAILURE;
-  }
-
-  /* If inner vlan is not valid, use the BCM_VLAN_INVALID */
-  if ( innerVlanId == 0 || innerVlanId > 4095 )
-  {
-    innerVlanId = BCM_VLAN_INVALID;
-  }
-
-  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_cross_connect_add(%d,%u,%u,%u({%d,%d,%d}), %u({%d,%d,%d}))",
-            bcm_unit, outerVlanId, innerVlanId,
-            hapiPortPtr1->bcmx_lport, dapiPort1->usp->unit, dapiPort1->usp->slot, dapiPort1->usp->port,
-            hapiPortPtr2->bcmx_lport, dapiPort2->usp->unit, dapiPort2->usp->slot, dapiPort2->usp->port);
-
-  error = bcmx_vlan_cross_connect_add(outerVlanId, innerVlanId, hapiPortPtr1->bcmx_lport, hapiPortPtr2->bcmx_lport);
-  if ( error != BCM_E_NONE && error != BCM_E_EXISTS )
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_vlan_cross_connect_add: %d (%s)", error, bcm_errmsg(error));
-  }
-
-  /* Manager resources meter */
-  if ( error == BCM_E_NONE )
-  {
-    if (resources_crossconnects<FREE_RESOURCES_CROSSCONNECTS)
-      resources_crossconnects++;
-  }
-
-  PT_LOG_TRACE(LOG_CTX_HAPI, "Finished successfully");
+  PT_LOG_INFO(LOG_CTX_HAPI, "Created crossconnection between LIFs 0x%x and 0x%x", lif1_id, lif2_id);
 
   return L7_SUCCESS;
 }
 
 /**
- * Delete a cross-connection
+ * Create crossconnection between 2 leafs
  * 
- * @param outerVlanId: Outer vlan to look for
- * @param innerVlanId: Inner vlan to look for
+ * @param lif1_id 
+ * @param lif2_id 
  * 
- * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
+ * @return L7_RC_t 
  */
-L7_RC_t ptin_hapi_bridge_crossconnect_delete(L7_uint16 outerVlanId, L7_uint16 innerVlanId)
+L7_RC_t ptin_hapi_crossconnect_remove(L7_int unit, L7_uint32 lif1_id, L7_uint32 lif2_id)
 {
-  int error;
+  bcm_error_t rv;            
+  bcm_vswitch_cross_connect_t cross_connect;
+              
+  /* Add ports to VSWITCH instance */
+  cross_connect.port1   = lif1_id;
+  cross_connect.port2   = lif2_id;
+  cross_connect.encap1  = 0;
+  cross_connect.encap2  = 0;
+  cross_connect.flags   = 0;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "oVlanId=%u iVlanId=%u",outerVlanId,innerVlanId);
-
-  /* Validate vlans */
-  if ( outerVlanId==0 || outerVlanId>4095 )
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Outer vlan is invalid: %u",outerVlanId);
+  rv = bcm_vswitch_cross_connect_delete(unit, &cross_connect);
+  if (rv != BCM_E_NONE) {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error removing crossconnection between LIFs 0x%x and 0x%x", lif1_id, lif2_id);
     return L7_FAILURE;
   }
-
-  /* If inner vlan is not valid, use the BCM_VLAN_INVALID */
-  if ( innerVlanId == 0 || innerVlanId > 4095 )
-  {
-    innerVlanId = BCM_VLAN_INVALID;
-  }
-
-  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_cross_connect_delete(%d,%u,%u)",bcm_unit,outerVlanId,innerVlanId);
-
-  error = bcmx_vlan_cross_connect_delete(outerVlanId, innerVlanId);
-  if ( error != BCM_E_NONE && error != BCM_E_NOT_FOUND )
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_vlan_cross_connect_delete: %d (%s)", error, bcm_errmsg(error));
-  }
-
-  /* Manager resources meter */
-  if ( error == BCM_E_NONE )
-  {
-    if (resources_crossconnects>0)
-      resources_crossconnects--;
-  }
-
-  PT_LOG_TRACE(LOG_CTX_HAPI, "Finished successfully");
-
-  return L7_SUCCESS;
-}
-
-/**
- * Deletes all configured cross-connections
- * 
- * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
- */
-L7_RC_t ptin_hapi_bridge_crossconnect_delete_all(void)
-{
-  int error;
-
-  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_cross_connect_delete_all(%d)",bcm_unit);
-
-  error = bcmx_vlan_cross_connect_delete_all();
-  if ( error != BCM_E_NONE && error != BCM_E_NOT_FOUND )
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_vlan_cross_connect_delete: %d (%s)", error, bcm_errmsg(error));
-  }
-
-  PT_LOG_TRACE(LOG_CTX_HAPI, "Finished successfully");
+  PT_LOG_INFO(LOG_CTX_HAPI, "Removed crossconnection between LIFs 0x%x and 0x%x", lif1_id, lif2_id);
 
   return L7_SUCCESS;
 }
@@ -582,56 +495,39 @@ L7_RC_t ptin_hapi_vsi_remove(L7_int unit, L7_uint16 vsi, L7_uint32 vlan_port_id)
   return BCM_E_NONE;
 }
 
-/**
- * Create Virtual port
- * 
- * @param dapiPort      : PON port 
- * @param vsi           : VSI 
- * @param match_ovid    : external outer vlan (GEMid)
- * @param match_ivid    : external inner vlan (UNIVLAN)
- * @param egress_ovid   : outer vlan inside switch
- * @param egress_ivid   : inner vlan inside switch 
- * @param pcp           : Packet's priority 
- * @param ethertype     : packet's ethertype 
- * @param mcast_group   : mc group (-1 to create) 
- * @param virtual_gport : vport id (to be returned) 
- * 
- * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
- */
-L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort, L7_uint16 vsi,
-                            L7_uint16 match_ovid, L7_uint16 match_ivid,
-                            L7_uint16 egress_ovid, L7_uint16 egress_ivid,
-                            L7_int pcp, L7_int ethertype,
-                            L7_int mcast_group,
-                            L7_int *virtual_gport)
+L7_uint32 vp_flags = 0;
+
+void set_vp_flags(L7_uint32 flags)
 {
-  DAPI_PORT_t  *dapiPortPtr;
-  BROAD_PORT_t *hapiPortPtr;
+  vp_flags = flags;
+
+  printf("vp_flags set to 0x%x\r\n", vp_flags);
+}
+
+/**
+ * Internal routine to create a LIF
+ * 
+ * @param lif_id (base id)
+ * @param vsi 
+ * @param bcm_port 
+ * @param match_ovid 
+ * @param match_ivid 
+ * @param mcast_group 
+ * @param egress_ovid 
+ * @param egress_ivid 
+ * @param pcp 
+ * @param ethertype 
+ * 
+ * @return L7_uint32 : New LIF id (0 if any error)
+ */
+L7_uint32 ptin_hapi_lif_create(L7_uint32 lif_id, L7_uint16 vsi,
+                               bcm_port_t bcm_port, L7_uint16 match_ovid, L7_uint16 match_ivid, L7_int mcast_group,
+                               L7_uint16 egress_ovid, L7_uint16 egress_ivid,
+                               L7_int pcp, L7_int ethertype)
+{
   bcm_error_t error;
   L7_int criteria;
   bcm_if_t encap_id;
-
-  PT_LOG_TRACE(LOG_CTX_HAPI, "port={%d,%d,%d}, oVlanId=%u iVlanId=%u => oVlanId=%u iVlanId=%u (mcgroup=%u)",
-            dapiPort->usp->unit,dapiPort->usp->slot,dapiPort->usp->port,
-            match_ovid, match_ivid, egress_ovid, egress_ivid, mcast_group);
-
-  /* Validate interface */
-  if ( dapiPort->usp->unit<0 || dapiPort->usp->slot<0 || dapiPort->usp->port<0 )
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI, "ERROR: Invalid interfaces");
-    return L7_FAILURE;
-  }
-
-  /* Get port pointers */
-  DAPIPORT_GET_PTR(dapiPort, dapiPortPtr, hapiPortPtr);
-
-  /* Accept only physical interfaces */
-  if ( !IS_PORT_TYPE_PHYSICAL(dapiPortPtr) )
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI, "ERROR: Port {%d,%d,%d} are not physical",
-            dapiPort->usp->unit,dapiPort->usp->slot,dapiPort->usp->port);
-    return L7_FAILURE;
-  }
 
   /* create the virtual ports */
   bcm_vlan_port_t vlan_port;
@@ -664,33 +560,34 @@ L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort, L7_uint16 vsi,
   vlan_port.criteria          = criteria;
   vlan_port.egress_vlan       = egress_ovid;
   vlan_port.egress_inner_vlan = egress_ivid;
-  vlan_port.port              = hapiPortPtr->bcm_port;
-  //BCM_GPORT_LOCAL_SET(vlan_port.port, hapiPortPtr->bcm_port);
+  vlan_port.port              = bcm_port;
+  vlan_port.vlan_port_id      = lif_id;
   vlan_port.vsi = vsi;
-  vlan_port.flags = 0;
+  vlan_port.flags = (lif_id != 0) ? BCM_VLAN_PORT_WITH_ID : 0;
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "criteria=0x%x (flags=0x%x) bcm_port=%d vlan_port.port=%d match_vlans=%u+%u pcp=%d etherType=0x%x vport=%d -> VSI %u",
                vlan_port.criteria, vlan_port.flags,
-               hapiPortPtr->bcm_port, vlan_port.port,
+               bcm_port, vlan_port.port,
                vlan_port.match_vlan, vlan_port.match_inner_vlan, 
                vlan_port.match_pcp, vlan_port.match_ethertype,
                vlan_port.vlan_port_id, vlan_port.vsi);
 
-  if ((error=bcm_vlan_port_create(0, &vlan_port)) != BCM_E_NONE)
+  error = bcm_vlan_port_create(0, &vlan_port);
+  if (error != BCM_E_NONE && error != BCM_E_EXISTS)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_vlan_port_create: error=%d (\"%s\")", error, bcm_errmsg(error));
-    return L7_FAILURE;
+    return 0;
   }
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "vport=0x%x -> VSI=%u", vlan_port.vlan_port_id, vlan_port.vsi);
 
   /* For BCM_VLAN_PORT_MATCH_PORT_VLAN criteria, inner VLAN should not be considered */
-  error = bcm_vlan_control_port_set(bcm_unit, vlan_port.vlan_port_id, bcmVlanPortDoubleLookupEnable, 1);
+  error = bcm_vlan_control_port_set(bcm_unit, vlan_port.vlan_port_id, bcmVlanPortDoubleLookupEnable, (criteria != BCM_VLAN_PORT_MATCH_PORT));
   if (error != BCM_E_NONE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error configuring bcmVlanPortDoubleLookupEnable=%u to lif 0x%x: error=%d (\"%s\")",
                (criteria != BCM_VLAN_PORT_MATCH_PORT_VLAN), vlan_port.vlan_port_id, error, bcm_errmsg(error));
-    return L7_FAILURE;
+    return 0;
   }
 
   /* Configure replication lists */
@@ -701,7 +598,7 @@ L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort, L7_uint16 vsi,
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error obtaining encap_id from mcast_group %u, port %u, lif 0x%x: error=%d (\"%s\")",
                  mcast_group, vlan_port.port, vlan_port.vlan_port_id, error, bcm_errmsg(error));
-      return L7_FAILURE;
+      return 0;
     }
 
     error = bcm_multicast_egress_add(bcm_unit, mcast_group, vlan_port.port, encap_id);
@@ -714,44 +611,36 @@ L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort, L7_uint16 vsi,
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error adding port %u to mcgroup %u: error=%d (\"%s\")",
                  vlan_port.port, mcast_group, error, bcm_errmsg(error));
-      return L7_FAILURE;
+      return 0;
     }
 
     PT_LOG_TRACE(LOG_CTX_HAPI, "Port %u added to mcgroup %u", vlan_port.port, mcast_group);
   }
 
   /* Configures the information needed to generate alarms related to MAC Limit */
-  ptin_hapi_vport_maclimit_alarmconfig(vlan_port.vlan_port_id, hapiPortPtr->bcm_port, match_ovid);
-
-  /* Return vport id */
-  if (virtual_gport != L7_NULLPTR)
-    *virtual_gport = vlan_port.vlan_port_id;
+  ptin_hapi_vport_maclimit_alarmconfig(vlan_port.vlan_port_id, bcm_port, match_ovid);
 
   PT_LOG_DEBUG(LOG_CTX_HAPI, "ptin_hapi_vp_create: vport 0x%x created for VSI %u", vlan_port.vlan_port_id, vlan_port.vsi);
 
-  return L7_SUCCESS;
+  /* Return new VLAN PORT ID */
+  return vlan_port.vlan_port_id;
 }
 
 /**
- * Remove virtual port
+ * Internal routine to delete a LIF
  * 
- * @param dapiPort      : PON port
- * @param virtual_gport : vport id 
- * @param mcast_group   : multicast group
+ * @param virtual_gport 
+ * @param mcast_group 
  * 
- * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ * @return L7_RC_t 
  */
-L7_RC_t ptin_hapi_vp_remove(ptin_dapi_port_t *dapiPort,
-                            L7_int virtual_gport,
-                            L7_int mcast_group)
+L7_RC_t ptin_hapi_lif_delete(L7_int virtual_gport, L7_int mcast_group)
 {
   bcm_if_t encap_id;
   bcm_vlan_port_t vlan_port;
   bcm_error_t error;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "port={%d,%d,%d}, virtual_port=0x%u, mcast_group=%u",
-            dapiPort->usp->unit,dapiPort->usp->slot,dapiPort->usp->port,
-            virtual_gport, mcast_group);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "virtual_port=0x%u, mcast_group=%u", virtual_gport, mcast_group);
 
   /* Validate interface */
   if ( virtual_gport == 0 )
@@ -824,6 +713,103 @@ L7_RC_t ptin_hapi_vp_remove(ptin_dapi_port_t *dapiPort,
   PT_LOG_TRACE(LOG_CTX_HAPI, "ptin_hapi_vp_remove: vport 0x%x removed", virtual_gport);
 
   return L7_SUCCESS;
+}
+
+/**
+ * Create Virtual port
+ * 
+ * @param dapiPort      : PON port 
+ * @param vsi           : VSI 
+ * @param match_ovid    : external outer vlan (GEMid)
+ * @param match_ivid    : external inner vlan (UNIVLAN)
+ * @param egress_ovid   : outer vlan inside switch
+ * @param egress_ivid   : inner vlan inside switch 
+ * @param pcp           : Packet's priority 
+ * @param ethertype     : packet's ethertype 
+ * @param mcast_group   : mc group (-1 to create) 
+ * @param virtual_gport : vport id (to be returned) 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort, L7_uint16 vsi,
+                            L7_uint16 match_ovid, L7_uint16 match_ivid,
+                            L7_uint16 egress_ovid, L7_uint16 egress_ivid,
+                            L7_int pcp, L7_int ethertype,
+                            L7_int mcast_group,
+                            L7_int *virtual_gport)
+{
+  DAPI_PORT_t  *dapiPortPtr;
+  BROAD_PORT_t *hapiPortPtr;
+  L7_uint32 lif_id;
+
+  PT_LOG_TRACE(LOG_CTX_HAPI, "port={%d,%d,%d}, oVlanId=%u iVlanId=%u => oVlanId=%u iVlanId=%u (mcgroup=%u)",
+            dapiPort->usp->unit,dapiPort->usp->slot,dapiPort->usp->port,
+            match_ovid, match_ivid, egress_ovid, egress_ivid, mcast_group);
+
+  /* Validate interface */
+  if ( dapiPort->usp->unit<0 || dapiPort->usp->slot<0 || dapiPort->usp->port<0 )
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "ERROR: Invalid interfaces");
+    return L7_FAILURE;
+  }
+
+  /* Get port pointers */
+  DAPIPORT_GET_PTR(dapiPort, dapiPortPtr, hapiPortPtr);
+
+  /* Accept only physical interfaces */
+  if ( !IS_PORT_TYPE_PHYSICAL(dapiPortPtr) )
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "ERROR: Port {%d,%d,%d} are not physical",
+            dapiPort->usp->unit,dapiPort->usp->slot,dapiPort->usp->port);
+    return L7_FAILURE;
+  }
+
+  /* Reference LIF ID */
+  lif_id = 0;
+  if (virtual_gport != L7_NULLPTR && *virtual_gport > 0)
+  {
+    lif_id = *virtual_gport;
+  }
+
+  /* Create LIF */
+  lif_id = ptin_hapi_lif_create(lif_id, vsi, hapiPortPtr->bcm_port, match_ovid, match_ivid, mcast_group, egress_ovid, egress_ivid, pcp, ethertype);
+
+  /* Error? */
+  if (lif_id == 0)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error creating LIF");
+    return L7_FAILURE;
+  }
+
+  /* Return vport id */
+  if (virtual_gport != L7_NULLPTR)
+  {
+    *virtual_gport = lif_id;
+  }
+
+  PT_LOG_DEBUG(LOG_CTX_HAPI, "ptin_hapi_vp_create: vport 0x%x created for VSI %u", lif_id, vsi);
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Remove virtual port
+ * 
+ * @param dapiPort      : PON port
+ * @param virtual_gport : vport id 
+ * @param mcast_group   : multicast group
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_hapi_vp_remove(ptin_dapi_port_t *dapiPort,
+                            L7_int virtual_gport,
+                            L7_int mcast_group)
+{
+  PT_LOG_TRACE(LOG_CTX_HAPI, "port={%d,%d,%d}, virtual_port=0x%u, mcast_group=%u",
+            dapiPort->usp->unit,dapiPort->usp->slot,dapiPort->usp->port,
+            virtual_gport, mcast_group);
+
+  return ptin_hapi_lif_delete(virtual_gport, mcast_group);
 }
 
 /**
@@ -1064,13 +1050,6 @@ L7_RC_t ptin_hapi_bridgeVlan_multicast_set(L7_uint16 vlanId, L7_int *mcast_group
   int error;
   bcm_multicast_t mc_group;
 
-  /* Forwarding vlan, for MAC learning purposes (only if fwdvlan is valid) */
-  if ( mcast_group == L7_NULLPTR )
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid MC group");
-    return L7_FAILURE;
-  }
-
   /* Validate vlan */
   if (vlanId == 0)
   {
@@ -1085,8 +1064,7 @@ L7_RC_t ptin_hapi_bridgeVlan_multicast_set(L7_uint16 vlanId, L7_int *mcast_group
   mc_group = vlanId;
 
   /* Create Multicast Group */
-  PT_LOG_TRACE(LOG_CTX_HAPI, "Going to create MC group: vsi=%u mc_group=0x%08x flags=0x%x", 
-               vlanId, *mcast_group, multicast_flag);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Going to create MC group: vsi=%u flags=0x%x", vlanId, multicast_flag);
 
   /* Create a multicast group, if given multicast group is not valid */
   error=bcm_multicast_create(0, multicast_flag, &mc_group);
@@ -1108,7 +1086,10 @@ L7_RC_t ptin_hapi_bridgeVlan_multicast_set(L7_uint16 vlanId, L7_int *mcast_group
   }
 
   /* Return MC group */
-  *mcast_group = mc_group;
+  if (mcast_group != L7_NULLPTR)
+  {
+    *mcast_group = mc_group; 
+  }
 
   return L7_SUCCESS;
 }

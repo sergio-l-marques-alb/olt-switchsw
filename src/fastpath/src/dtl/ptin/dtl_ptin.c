@@ -407,33 +407,33 @@ L7_RC_t dtlPtinVlanPortControl( L7_uint32 intIfNum, ptin_vlan_mode_t *vlan_mode 
 /**
  * Cross-connections 
  *  
- * @param intIfNum : First interface for the cross-connection 
+ * @param intIfNum1 : First interface for the cross-connection 
  * @param intIfNum2 : Second interface for the cross-connection
  * @param cross_connect : descriptor with cross-connect data
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t dtlPtinBridgeCrossconnect( L7_uint32 intIfNum, L7_uint32 intIfNum2, ptin_bridge_crossconnect_t *cross_connect )
+L7_RC_t dtlPtinBridgeCrossconnect( L7_uint32 intIfNum1, L7_uint32 intIfNum2, ptin_bridge_crossconnect_t *cross_connect )
 {
-  DAPI_USP_t ddUsp;
+  DAPI_USP_t ddUsp = {-1,-1,-1};
   nimUSP_t usp;
   L7_RC_t rc;
 
   /* First interface */
-  if ( intIfNum == L7_ALL_INTERFACES )
+  if ( intIfNum1 == L7_ALL_INTERFACES )
   {
-    ddUsp.unit = -1;
-    ddUsp.slot = -1;
-    ddUsp.port = -1;
+    cross_connect->usp[0].unit = -1;
+    cross_connect->usp[0].slot = -1;
+    cross_connect->usp[0].port = -1;
   }
   else
   {
-    if (nimGetUnitSlotPort(intIfNum, &usp) != L7_SUCCESS)
+    if (nimGetUnitSlotPort(intIfNum1, &usp) != L7_SUCCESS)
       return L7_FAILURE;
   
-    ddUsp.unit = usp.unit;
-    ddUsp.slot = usp.slot;
-    ddUsp.port = usp.port - 1;
+    cross_connect->usp[0].unit = usp.unit;
+    cross_connect->usp[0].slot = usp.slot;
+    cross_connect->usp[0].port = usp.port - 1;
   }
 
   /* Second interface */
@@ -441,18 +441,18 @@ L7_RC_t dtlPtinBridgeCrossconnect( L7_uint32 intIfNum, L7_uint32 intIfNum2, ptin
   {
     if ( intIfNum2 == L7_ALL_INTERFACES )
     {
-      cross_connect->dstUsp.unit = -1;
-      cross_connect->dstUsp.slot = -1;
-      cross_connect->dstUsp.port = -1;
+      cross_connect->usp[1].unit = -1;
+      cross_connect->usp[1].slot = -1;
+      cross_connect->usp[1].port = -1;
     }
     else
     {
       if (nimGetUnitSlotPort(intIfNum2, &usp) != L7_SUCCESS)
         return L7_FAILURE;
   
-      cross_connect->dstUsp.unit = usp.unit;
-      cross_connect->dstUsp.slot = usp.slot;
-      cross_connect->dstUsp.port = usp.port - 1;
+      cross_connect->usp[1].unit = usp.unit;
+      cross_connect->usp[1].slot = usp.slot;
+      cross_connect->usp[1].port = usp.port - 1;
     }
   }
 

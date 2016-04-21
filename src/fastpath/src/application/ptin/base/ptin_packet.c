@@ -317,6 +317,7 @@ void ptin_packet_task(void)
  */
 L7_RC_t ptinMacBcastProcess( ptin_PDU_Msg_t *pktMsg )
 {
+#if 0
   L7_uint         i;
   L7_uint32       intf;
   NIM_INTF_MASK_t intfList;
@@ -366,7 +367,7 @@ L7_RC_t ptinMacBcastProcess( ptin_PDU_Msg_t *pktMsg )
       ptin_packet_send(intf, vlanId, flood_vlan[i], pktMsg->payload, pktMsg->payloadLen);
     }
   }
-
+#endif
   return L7_SUCCESS;
 }
 

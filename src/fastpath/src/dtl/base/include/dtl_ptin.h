@@ -132,13 +132,13 @@ extern L7_RC_t dtlPtinVlanPortControl( L7_uint32 intIfNum, ptin_vlan_mode_t *vla
 /**
  * Cross-connections 
  *  
- * @param intIfNum : First interface for the cross-connection 
+ * @param intIfNum1 : First interface for the cross-connection 
  * @param intIfNum2 : Second interface for the cross-connection
  * @param cross_connect : descriptor with cross-connect data
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t dtlPtinBridgeCrossconnect( L7_uint32 intIfNum, L7_uint32 intIfNum2, ptin_bridge_crossconnect_t *cross_connect );
+extern L7_RC_t dtlPtinBridgeCrossconnect( L7_uint32 intIfNum1, L7_uint32 intIfNum2, ptin_bridge_crossconnect_t *cross_connect );
 
 /**
  * Apply/Get bandwidth policer

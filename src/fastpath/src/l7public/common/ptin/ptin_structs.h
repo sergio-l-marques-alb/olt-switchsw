@@ -568,9 +568,10 @@ typedef struct
 typedef struct
 {
   DAPI_CMD_GET_SET_t oper;          // Operation: DAPI_CMD_SET add, DAPI_CMD_CLEAR remove, DAPI_CMD_CLEAR_ALL removes all, and DAPI_CMD_GET reads.
-  DAPI_USP_t dstUsp;                // Destination port (source goes through direct usp)
-  L7_uint16 outerVlanId;            // Outer vlan id to look for
-  L7_uint16 innerVlanId;            // Inner vlan id to look for (0 to not be used)
+  DAPI_USP_t usp[3];                // Destination port (source goes through direct usp)
+  L7_uint16 outerVlanId[3];         // Outer vlan id to look for
+  L7_uint16 innerVlanId[3];         // Inner vlan id to look for (0 to not be used)
+  L7_uint32 lif_id[3];
 } ptin_bridge_crossconnect_t;
 
 
@@ -704,10 +705,12 @@ typedef struct {
 /* EVC stacked bridge */
 typedef struct {
   L7_uint32 index;        // EVC Id [1..PTIN_SYSTEM_N_EVCS]
-  L7_uint16 inn_vlan;     // Client VLAN (inner tag)
+  L7_uint32 flags;        // Client VLAN (inner tag)
 
   /* Client interface (root is already known by the EVC) */
-  ptin_HwEthMef10Intf_t intf; // VID represents the new outer VLAN (Vs')
+  ptin_HwEthMef10Intf_t intf1;
+  ptin_HwEthMef10Intf_t intf2;
+  ptin_HwEthMef10Intf_t intf_failover;
 } ptin_HwEthEvcBridge_t;
 
 /* EVC stacked bridge */
@@ -730,6 +733,8 @@ typedef struct {
   L7_uint64   maxBandwidth; // [mask = 0x02] Maximum bandwidth that this client can simultaneously consume (bit/s)
   L7_uint32   packageBmpList[(PTIN_SYSTEM_IGMP_MAXPACKAGES-1)/(sizeof(L7_uint32)*8)+1];  //[mask=0x04]  Package Bitmap List   
   L7_uint32   noOfPackages; //[mask=0x08]  Number of Packages 
+
+  L7_uint32   lif_id;
 } ptin_HwEthEvcFlow_t;
 
 typedef struct {
