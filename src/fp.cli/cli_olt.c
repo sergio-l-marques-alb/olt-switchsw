@@ -117,9 +117,9 @@ const command_struct command[] = {
   {
     "evc_create",
     "Create EVC",
-    "EVC=<EVCid> [TYPe=<0-P2MP;1-P2P;2-Q>] [STacked=<0/1>] [MAClearn=<0/1>] [MCFlood=<0-All;1-Unkn;2-None>] [FLags=<mask>]",
-    6,
-    {"evc","typ","st","mac","mcf","fl"},
+    "EVC=<EVCid> [TYPe=<0-P2MP;1-P2P;2-Q>] [STacked=<0/1>] [MAClearn=<0/1>] [FLags=<mask>] [intf1=<type>/<id>/<mef>/<OVid>/<IVid>] [intf2=<type>/<id>/<mef>/<OVid>/<IVid>]",
+    8,
+    {"evc","typ","st","mac","mcf","fl","intf1","intf2"},
     evc_create,
     "EVCs Management"
   },

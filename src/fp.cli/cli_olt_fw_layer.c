@@ -639,6 +639,7 @@ int evc_create(int nargs, char (*values)[MAX_PARAM_VALUE_SIZE])
 {
   msg_HwEthMef10Evc_t *ptr;
   uint32 valued;
+  int intf_type, intf_id, mef_type, ovid, ivid;
 
   /* EVC id parameter is mandatory */
   if (!PARAM_DEFINED(values[0])) {
@@ -706,9 +707,30 @@ int evc_create(int nargs, char (*values)[MAX_PARAM_VALUE_SIZE])
     ptr->flags |= valued;
     printf("Adding mask 0x%lx to flags: 0x%lx.\r\n", valued, ptr->flags);
   }
-    
+
   /* Zero interfaces */
   ptr->n_intf = 0;
+
+  // Interfaces (optional)
+  if (sscanf(values[6], "%d/%d/%d/%d/%d", &intf_type, &intf_id, &mef_type, &ovid, &ivid) == 5)
+  {
+    ptr->intf[ptr->n_intf].intf_type = intf_type;
+    ptr->intf[ptr->n_intf].intf_id   = intf_id;
+    ptr->intf[ptr->n_intf].mef_type  = mef_type;
+    ptr->intf[ptr->n_intf].vid       = ovid;
+    ptr->intf[ptr->n_intf].inner_vid = ivid;
+    ptr->n_intf++;
+  }
+  // Interfaces (optional)
+  if (sscanf(values[7], "%d/%d/%d/%d/%d", &intf_type, &intf_id, &mef_type, &ovid, &ivid) == 5)
+  {
+    ptr->intf[ptr->n_intf].intf_type = intf_type;
+    ptr->intf[ptr->n_intf].intf_id   = intf_id;
+    ptr->intf[ptr->n_intf].mef_type  = mef_type;
+    ptr->intf[ptr->n_intf].vid       = ovid;
+    ptr->intf[ptr->n_intf].inner_vid = ivid;
+    ptr->n_intf++;
+  }
 
   comando.msgId = CCMSG_ETH_EVC_ADD;
   comando.infoDim = sizeof(msg_HwEthMef10Evc_t);
