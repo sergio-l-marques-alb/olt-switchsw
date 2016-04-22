@@ -139,8 +139,11 @@ T_index del_entry   (void *t_table, const void *ent, u32 sizeof_table_entry, u32
     initial_index=  find_entry(t_table, ent, sizeof_table_entry, sizeof_table_entry_key, N, initial_index, NULL);
 
     if (initial_index<N) {
-        --index2n_used(t_table, initial_index, N);
-        return initial_index;
+        if (index2n_used(t_table, initial_index, N)) {
+            --index2n_used(t_table, initial_index, N);
+            return initial_index;
+        }
+        else return (T_index)-1;
     }
     else
     return (T_index)-1;

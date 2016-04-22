@@ -31,6 +31,14 @@
 
 
 
+//C O M M O N************************************************************************************
+//DTL/APP LAYER**********************************************************************************
+extern void ptin_flows_fpga_init(void);
+extern L7_RC_t ptin_ptp_oam_prtvid_dump(void);
+
+
+
+
 //P T P / 1588***********************************************************************************
 //ANDL/HAPI LAYER********************************************************************************
 extern void ptin_hapi_ptp_table_init(void);
@@ -40,7 +48,6 @@ extern L7_RC_t ptin_hapi_ptp_dump(void);
 
 
 //DTL/APP LAYER**********************************************************************************
-extern void ptin_ptp_flows_init(void);
 extern L7_RC_t ptin_ptp_fpga_entry(ptin_dtl_search_ptp_t *e, DAPI_CMD_GET_SET_t operation);
 
 

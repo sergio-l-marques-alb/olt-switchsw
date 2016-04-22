@@ -24,6 +24,270 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+//C O M M O N************************************************************************************
+//DTL/APP LAYER**********************************************************************************
+//#include <my_types.h>
+#define N_FPGA_VIDPRTS  16
+#include <table.h>
+
+#define VIDpcpu PTIN_VLAN_FPGA2CPU
+#define VIDprt(prt)     (PTIN_VLAN_FPGA2PORT_MIN+(prt))      /*0<=prt<PTIN_SYSTEM_N_INTERF*/
+#define EVCpcpu PTIN_EVC_FPGA2CPU
+#define EVCprt(prt)     (PTIN_EVC_FPGA2PORTS_MIN+(prt))
+//#include <ptin_xlate_api.h>
+extern L7_RC_t ptin_xlate_egress_set( L7_uint port, L7_uint16 outer_vlan, L7_uint op, L7_uint16 newOuterVlanId);
+//#include <ptin_evc.h>
+extern L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf);
+extern L7_RC_t ptin_evc_delete(L7_uint32 evc_ext_id);
+
+void ptin_flows_fpga_init(void) {
+#if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+L7_RC_t rc;
+ptin_HwEthMef10Evc_t evcConf;
+
+  /* Create CPU-FPGA circuit */
+  memset(&evcConf, 0x00, sizeof(evcConf));
+  evcConf.index         = EVCpcpu;
+  evcConf.flags         = PTIN_EVC_MASK_MACLEARNING;
+  evcConf.mc_flood      = PTIN_EVC_MC_FLOOD_ALL;
+  evcConf.internal_vlan = PTIN_VLAN_FPGA2CPU;
+  evcConf.n_intf        = 2;
+  /* Root port */
+  evcConf.intf[0].intf.format = PTIN_INTF_FORMAT_PORT;
+  evcConf.intf[0].intf.value.ptin_port = PTIN_PORT_CPU;
+  evcConf.intf[0].mef_type    = PTIN_EVC_INTF_ROOT;
+  evcConf.intf[0].vid         = 0;
+  evcConf.intf[0].action_outer= PTIN_XLATE_ACTION_NONE;
+  evcConf.intf[0].action_inner= PTIN_XLATE_ACTION_NONE;
+  /* Leaf ports */
+  evcConf.intf[1].intf.format = PTIN_INTF_FORMAT_PORT;
+  evcConf.intf[1].intf.value.ptin_port = PTIN_PORT_FPGA;
+  evcConf.intf[1].mef_type    = PTIN_EVC_INTF_LEAF;
+  evcConf.intf[1].vid         = 0;
+  evcConf.intf[1].action_outer= PTIN_XLATE_ACTION_NONE;
+  evcConf.intf[1].action_inner= PTIN_XLATE_ACTION_NONE;
+  /* Create circuit */
+  rc = ptin_evc_create(&evcConf);
+  if (rc != L7_SUCCESS) {
+    PT_LOG_ERR(LOG_CTX_API, "Error creating EVC# %u connecting CPU-FPGA", EVCpcpu);
+    return;
+  }
+
+  //Remove VID(cpu) @ CPU port's egress
+  rc = ptin_xlate_egress_set(PTIN_PORT_CPU, VIDpcpu, PTIN_XLATE_ACTION_DELETE, -1);
+  if (rc != L7_SUCCESS) {
+    PT_LOG_ERR(LOG_CTX_API, "Error defining pop xlate action for EVC# %u (CPU-FPGA): rc=%d", EVCpcpu, rc);
+    return;
+  }
+#endif
+}//ptin_flows_fpga_init
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+typedef
+struct {
+ unsigned long  prt,
+                vid_prt;
+} T_PRT_VID;
+typedef_TABLE_TEMPLATE(T_PRT_VID, N_FPGA_VIDPRTS, T_PRT_VID_TABLE)
+
+static T_PRT_VID_TABLE prt_vid_table;
+
+
+
+
+static unsigned long ptin_flow_fpga_entry(unsigned char init0_add1_del2_prt2VIDprt3, unsigned long prt) {
+//init0 - returns 0
+//add1 - returns 0 iff OK (adds to DB)
+//del2 - returns 0 iff OK (dels from DB)
+unsigned long vid_prt=VIDprt(prt);
+
+static unsigned char _1st_time=1;
+unsigned long i;
+L7_RC_t rc, rc2;
+T_PRT_VID ent, *p;
+ptin_HwEthMef10Evc_t evcConf;
+
+
+ if (_1st_time || 0==init0_add1_del2_prt2VIDprt3) {
+     _1st_time=0;
+     PT_LOG_INFO(LOG_CTX_API, "init_table()=%d",
+                init_table(&prt_vid_table, sizeof(T_PRT_VID), N_FPGA_VIDPRTS)
+                );
+     if (0==init0_add1_del2_prt2VIDprt3) return 0;
+ }//if (_1st_time || 0==init0_add1_del2_prt2VIDprt3)
+
+
+ if (prt>=PTIN_SYSTEM_N_INTERF) return -1;
+
+
+ switch (init0_add1_del2_prt2VIDprt3) {
+ //case 0:
+ default: return -2;
+ case 1:
+     {
+        ent.prt=prt;
+        ent.vid_prt=vid_prt;
+        i=add_entry(&prt_vid_table, &ent, sizeof(ent), sizeof(ent.prt), N_FPGA_VIDPRTS, 0, 1, 1);
+        if (i>=N_FPGA_VIDPRTS) return -3;
+        if (1==index2n_used(&prt_vid_table, i, N_FPGA_VIDPRTS)) {//1st entity using this port
+            memset(&evcConf, 0x00, sizeof(evcConf)); 
+            evcConf.index         = EVCprt(prt);
+            evcConf.flags         = PTIN_EVC_MASK_MACLEARNING;
+            evcConf.mc_flood      = PTIN_EVC_MC_FLOOD_ALL;
+            evcConf.internal_vlan = VIDprt(prt);
+            evcConf.n_intf        = 2;
+            /* Root port */
+            evcConf.intf[0].intf.format = PTIN_INTF_FORMAT_PORT;
+            evcConf.intf[0].intf.value.ptin_port = prt;
+            evcConf.intf[0].mef_type    = PTIN_EVC_INTF_ROOT;
+            evcConf.intf[0].vid         = 0;
+            evcConf.intf[0].action_outer= PTIN_XLATE_ACTION_NONE;
+            evcConf.intf[0].action_inner= PTIN_XLATE_ACTION_NONE;
+            /* Leaf ports */
+            evcConf.intf[1].intf.format = PTIN_INTF_FORMAT_PORT;
+            evcConf.intf[1].intf.value.ptin_port = PTIN_PORT_FPGA;
+            evcConf.intf[1].mef_type    = PTIN_EVC_INTF_LEAF;
+            evcConf.intf[1].vid         = 0;
+            evcConf.intf[1].action_outer= PTIN_XLATE_ACTION_NONE;
+            evcConf.intf[1].action_inner= PTIN_XLATE_ACTION_NONE;
+            /* Create circuit */
+            rc = ptin_evc_create(&evcConf);
+            if (rc != L7_SUCCESS) {
+              PT_LOG_ERR(LOG_CTX_API, "Error creating EVC# %u for connecting Port %u to FPGA", EVCprt(prt), prt);
+              //return rc;
+            }
+
+            //Remove VID(po) (=VID(pi)) @ PO/PI port's egress
+            rc2 = ptin_xlate_egress_set(prt, VIDprt(prt), PTIN_XLATE_ACTION_DELETE, -1);
+            if (rc2 != L7_SUCCESS) {
+              PT_LOG_ERR(LOG_CTX_API, "Error defining pop xlate action for EVC# %u (CPU-FPGA): rc=%d", EVCprt(prt), rc);
+              //return rc2;
+            }
+            if (rc!=L7_SUCCESS || rc2!=L7_SUCCESS) {
+                //del_entry(&prt_vid_table, NULL, sizeof(ent), sizeof(ent.prt), N_FPGA_VIDPRTS, i);
+                ////del_entry(&prt_vid_table, &ent, sizeof(ent), sizeof(ent.prt), N_FPGA_VIDPRTS, i);
+                return -4;
+            }
+        }//if (1==index2n_used(&prt_vid_table, i, N_FPGA_VIDPRTS))      //1st entity using this port
+     }
+     break;
+ case 2:
+     {
+        ent.prt=prt;
+        i=find_entry(&prt_vid_table, &ent, sizeof(ent), sizeof(ent.prt), N_FPGA_VIDPRTS, 0, NULL);
+        //i=del_entry(&prt_vid_table, &ent, sizeof(ent), sizeof(ent.prt), N_FPGA_VIDPRTS, 0);
+        if (i>=N_FPGA_VIDPRTS) {
+            PT_LOG_ERR(LOG_CTX_API, "del_entry(prt=%lu)=%lu", ent.prt, i);
+            return -5;
+        }
+        p= (T_PRT_VID *) pointer2table_index(&prt_vid_table, i, N_FPGA_VIDPRTS, sizeof(ent));
+        vid_prt=p->vid_prt;
+        del_entry(&prt_vid_table, NULL, sizeof(ent), sizeof(ent.prt), N_FPGA_VIDPRTS, i);
+        if (0==index2n_used(&prt_vid_table, i, N_FPGA_VIDPRTS)) {   //last entity leaving
+            rc = ptin_evc_delete(EVCprt(prt));
+            if (rc != L7_SUCCESS) {
+              PT_LOG_ERR(LOG_CTX_API, "Error deleting EVC# %u for connecting Port %u to FPGA", EVCprt(prt), prt);
+              return -6;
+            }
+        }//if (0==index2n_used(&prt_vid_table, i, N_FPGA_VIDPRTS))  //last entity leaving
+     }
+     break;
+ case 3:
+     ent.prt=prt;
+     i=find_entry(&prt_vid_table, &ent, sizeof(ent), sizeof(ent.prt), N_FPGA_VIDPRTS, 0, NULL);
+     if (i>=N_FPGA_VIDPRTS) return -7;
+     p= (T_PRT_VID *) pointer2table_index(&prt_vid_table, i, N_FPGA_VIDPRTS, sizeof(ent));
+     return p->vid_prt;
+     //break;
+ case 10:
+     printf("Dumping PRT_VID_TABLE (size %u)...\n\r", N_FPGA_VIDPRTS);
+     for (i=0; i<N_FPGA_VIDPRTS; i++) {
+         if (entry_is_empty(&prt_vid_table, i, N_FPGA_VIDPRTS, sizeof(*p))) continue;
+         p = (T_PRT_VID *) pointer2table_index(&prt_vid_table, i, N_FPGA_VIDPRTS, sizeof(*p));
+         printf("%lu:\tprt=%lu\tvid_prt=%lu\n\r", i, p->prt, p->vid_prt);
+     }
+     break;
+ }//switch
+
+ return 0;
+}//ptin_flow_fpga_entry
+
+
+
+
+L7_RC_t ptin_ptp_oam_prtvid_dump(void) {
+ ptin_flow_fpga_entry(10, 0);
+ return L7_SUCCESS;
+}
+#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //P T P / 1588***********************************************************************************
 //ANDL/HAPI LAYER********************************************************************************
 typedef struct {
@@ -35,9 +299,7 @@ typedef struct {
 
 
 
-//#include <my_types.h>
 #define N_SEARCH_PTP    128
-#include <table.h>
 
 
 
@@ -476,46 +738,6 @@ ptin_dtl_search_ptp_t   *entry;
 
 
 //DTL/APP LAYER**********************************************************************************
-#define VIDpcpu PTIN_VLAN_FPGA2CPU
-#define VIDprt(i)       (PTIN_VLAN_FPGA2PORT_MIN+(i))      /*0<=i<16*/
-//#include <ptin_xlate_api.h>
-extern L7_RC_t ptin_xlate_egress_set( L7_uint port, L7_uint16 outer_vlan, L7_uint op, L7_uint16 newOuterVlanId);
-
-void ptin_ptp_flows_init(void) {
-#if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
-L7_uint i;
-
-    //Remove VID(cpu) @ CPU port's egress
-    ptin_xlate_egress_set(PTIN_PORT_CPU, VIDpcpu, PTIN_XLATE_ACTION_DELETE, -1);
-
-    //Remove VID(po) (=VID(pi)) @ PO/PI port's egress
-    for (i = 0; i < PTIN_SYSTEM_N_UPLINK_INTERF; i++) {
-        ptin_xlate_egress_set(i, VIDprt(i), PTIN_XLATE_ACTION_DELETE, -1);
-    }//for
-#endif
-}//ptin_ptp_flows_init
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 //extern int search_oam_ptp_add_ptp_entry_pair(T_SEARCH_OAM_PTP_TABLE *t_table, u16 vid_prt, u16 vid, u16 vid_os);
 //extern int search_oam_ptp_del_ptp_entry_pair(T_SEARCH_OAM_PTP_TABLE *t_table, u16 vid_prt, u16 vid, u16 vid_os);
 extern inline L7_RC_t ptin_intf_port2intIfNum(L7_uint32 ptin_port, L7_uint32 *intIfNum);
@@ -527,16 +749,23 @@ L7_RC_t ptin_ptp_fpga_entry(ptin_dtl_search_ptp_t *e, DAPI_CMD_GET_SET_t operati
 #if !(PTIN_BOARD == PTIN_BOARD_OLT1T0)
  return L7_FAILURE;
 #else
-L7_RC_t rc;
+L7_RC_t rc=L7_SUCCESS;
+unsigned long r=0;
 L7_uint32 intIfNum;
 
-    if (ptin_intf_port2intIfNum(e->key.prt, &intIfNum)!=L7_SUCCESS) {PT_LOG_ERR(LOG_CTX_MISC, "Non existent port"); return L7_FAILURE;}
+    if (ptin_intf_port2intIfNum(e->key.prt, &intIfNum)!=L7_SUCCESS) {PT_LOG_ERR(LOG_CTX_MISC, "Non existent port"); return L7_ERROR;}
 
     //PTIN_PORT_CPU
     switch (operation) {
-    default: return L7_FAILURE;
-    case DAPI_CMD_SET:      ptin_xlate_ingress_set(PTIN_PORT_CPU, e->vid_os, PTIN_XLATE_ACTION_ADD, VIDpcpu); break;
-    case DAPI_CMD_CLEAR:    ptin_xlate_ingress_clear(PTIN_PORT_CPU, e->vid_os, 0); break;
+    default: return L7_ERROR;
+    case DAPI_CMD_SET:
+        r = ptin_flow_fpga_entry(1, e->key.prt);    //if (r) return L7_TABLE_IS_FULL;
+        ptin_xlate_ingress_set(PTIN_PORT_CPU, e->vid_os, PTIN_XLATE_ACTION_ADD, VIDpcpu);
+        break;
+    case DAPI_CMD_CLEAR:
+        ptin_flow_fpga_entry(2, e->key.prt);
+        ptin_xlate_ingress_clear(PTIN_PORT_CPU, e->vid_os, 0);
+        break;
     }
 
 
@@ -545,10 +774,20 @@ L7_uint32 intIfNum;
     //PT_LOG_INFO(LOG_CTX_MISC, "",
     //         intIfNum, operation, param1, param2, sizeof(ptin_dtl_example_t));
 
-    e->vid_prt = VIDprt(e->key.prt);
-    rc = dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_PTP_FPGA, operation, sizeof(ptin_dtl_search_ptp_t), (void *) e);
+    if (!r) {
+        e->vid_prt = VIDprt(e->key.prt);
+        rc = dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_PTP_FPGA, operation, sizeof(ptin_dtl_search_ptp_t), (void *) e);
+    }
 
-    if (L7_SUCCESS!=rc && DAPI_CMD_SET==operation) ptin_xlate_ingress_clear(PTIN_PORT_CPU, e->vid_os, 0);
+    if ((r || L7_SUCCESS!=rc) && DAPI_CMD_SET==operation) {
+        ptin_flow_fpga_entry(2, e->key.prt);
+        ptin_xlate_ingress_clear(PTIN_PORT_CPU, e->vid_os, 0);
+        if (r) {
+            if (-3==r) return L7_TABLE_IS_FULL;
+            return L7_FAILURE;
+        }
+        return rc;
+    }
     return L7_SUCCESS;
 #endif
 }//ptin_ptp_fpga_entry
@@ -875,18 +1114,39 @@ L7_RC_t ptin_oam_fpga_entry(ptin_dtl_search_oam_t *e, DAPI_CMD_GET_SET_t operati
  return L7_FAILURE;
 #else
 
-L7_RC_t rc;
+L7_RC_t rc=L7_SUCCESS;
+unsigned long r=0;
 L7_uint32 intIfNum;
 
     if (ptin_intf_port2intIfNum(e->key.prt, &intIfNum)!=L7_SUCCESS) {PT_LOG_ERR(LOG_CTX_MISC, "Non existent port"); return L7_FAILURE;}
+
+    switch (operation) {
+    default: return L7_ERROR;
+    case DAPI_CMD_SET:
+        if (ptin_flow_fpga_entry(1, e->key.prt)>=N_FPGA_VIDPRTS) return L7_TABLE_IS_FULL;
+        break;
+    case DAPI_CMD_CLEAR:
+        ptin_flow_fpga_entry(2, e->key.prt);
+        break;
+    }
+
 
     //0..PTIN_SYSTEM_N_UPLINK_INTERF
     //ptin_hapi_oam_entry_add() / ptin_hapi_oam_entry_del() through DTL layer (tunneled down to HAPI layer)
     //PT_LOG_INFO(LOG_CTX_MISC, "",
     //         intIfNum, operation, param1, param2, sizeof(ptin_dtl_example_t));
 
-    rc = dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_OAM_FPGA, operation, sizeof(ptin_dtl_search_oam_t), (void *) e);
+    if (!r) {
+        rc = dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_OAM_FPGA, operation, sizeof(ptin_dtl_search_oam_t), (void *) e);
+    }
 
+    if ((r || L7_SUCCESS!=rc) && DAPI_CMD_SET==operation) {
+        ptin_flow_fpga_entry(2, e->key.prt);
+        if (r) {
+            if (-3==r) return L7_TABLE_IS_FULL;
+            return L7_FAILURE;
+        }
+    }
     return L7_SUCCESS;
 #endif
 }//ptin_oam_fpga_entry
