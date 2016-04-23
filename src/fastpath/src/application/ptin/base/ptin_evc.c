@@ -5596,9 +5596,6 @@ L7_RC_t ptin_evc_allclientsflows_remove( L7_uint evc_id )
   if (!evcs[evc_id].in_use)
     return L7_SUCCESS;
 
-  /* Only stacked services have clients */
-  if (IS_EVC_STD(evc_id) && !IS_EVC_STACKED(evc_id))
-    return L7_SUCCESS;
 
   /* Run all interfaces */
   for (intf_idx=0; intf_idx<PTIN_SYSTEM_N_INTERF; intf_idx++)
@@ -5645,18 +5642,12 @@ L7_RC_t ptin_evc_intfclientsflows_remove( L7_uint evc_id, L7_uint32 intf_idx)
     return L7_SUCCESS;
   }
 
-  /* Only stacked services have clients */
-  if (IS_EVC_STD(evc_id) && !IS_EVC_STACKED(evc_id))
-  {
-    PT_LOG_WARN(LOG_CTX_EVC,"EVC %u do not allow clients/flows!", evc_id);
-    return L7_SUCCESS;
-  }
 
+  /* Initialize flow data */
   memset(&evcFlow, 0x00, sizeof(evcFlow));
   evcFlow.evc_idx = evc_id;
   evcFlow.ptin_intf.intf_type = intf_idx < PTIN_SYSTEM_N_PORTS ? PTIN_EVC_INTF_PHYSICAL : PTIN_EVC_INTF_LOGICAL;
   evcFlow.ptin_intf.intf_id   = intf_idx < PTIN_SYSTEM_N_PORTS ? intf_idx : intf_idx - PTIN_SYSTEM_N_PORTS;
-  evcFlow.uni_ovid = pclientFlow->uni_ovid;
 
   /* Get all clients */
   pclientFlow = L7_NULLPTR;
@@ -5674,6 +5665,10 @@ L7_RC_t ptin_evc_intfclientsflows_remove( L7_uint evc_id, L7_uint32 intf_idx)
       rc = L7_FAILURE;
     }
     #endif
+
+    /* Fill VLANs */
+    evcFlow.uni_ovid = pclientFlow->uni_ovid;
+    evcFlow.uni_ivid = pclientFlow->uni_ivid;
 
     /* For QUATTRO services, we have flows instead of bridges */
     /* Clean client */
