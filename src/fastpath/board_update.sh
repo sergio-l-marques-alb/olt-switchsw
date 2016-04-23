@@ -1,5 +1,10 @@
 #!/bin/sh
 
+if [ $# -eq 0 ]; then
+  echo "Syntax: $0 <board> <IPaddr> <slot+1>
+  exit;
+fi
+
 IP=$2
 DST_PATH=/usr/local/ptin/sbin
 
@@ -58,7 +63,7 @@ elif [ $# == 3 ]; then
     send \"exit\n\"
     expect -re \"]#\"
     send \"exit\n\"
-    expect -re \"]#\"
+    expect -re \"]$|]#\"
     send \"exit\n\"
   "
 fi
@@ -66,5 +71,5 @@ fi
 cd $output/ipl
 lc_put $2 $3 switchdrvr $DST_PATH
 lc_put $2 $3 devshell_symbols.gz $DST_PATH
-lc_put $2 $3 fp.cli $DST_PATH
+#lc_put $2 $3 fp.cli $DST_PATH
 cd -

@@ -12,6 +12,11 @@
 #  													#
 #########################################################################################################
 
+if [ $# -eq 0 ]; then
+ echo "Syntax: $0 <mkboards_path> <board> [version] [IPaddr]"
+ exit;
+fi
+
 MKBOARDS=$1
 
 if [ $2 == "ta12xg" ]; then
