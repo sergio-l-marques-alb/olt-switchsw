@@ -62,11 +62,11 @@ chmod 777 ./fp.ver
 cp ./fp.ver $MKBOARDS/$MKBOARDS_FOLDER/rootfs/usr/local/ptin/sbin
 echo "OK!"
 
-echo "Backing up unstripped binary..."
-cd $OUTPUT/ipl
-7z a $MKBOARDS/$MKBOARDS_FOLDER/backup/switchdrvr.unstripped_${BOARD}-${version}.7z switchdrvr.unstripped
-cd -
-echo "Done!"
+#echo "Backing up unstripped binary..."
+#cd $OUTPUT/ipl
+#7z a $MKBOARDS/$MKBOARDS_FOLDER/backup/switchdrvr.unstripped_${BOARD}-${version}.7z switchdrvr.unstripped
+#cd -
+#echo "Done!"
 
 if [ $# -ge 3 ]; then
 	IMAGE_VERSION=$3
