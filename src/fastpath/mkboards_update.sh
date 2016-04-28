@@ -40,7 +40,6 @@ else
 fi
 
 echo "Clearing output folders..."
-rm -rf $MKBOARDS/$MKBOARDS_FOLDER/rootfs
 mkdir -p $MKBOARDS/$MKBOARDS_FOLDER/rootfs/
 mkdir -p $MKBOARDS/$MKBOARDS_FOLDER/rootfs/usr/local/ptin/sbin/
 mkdir -p $MKBOARDS/$MKBOARDS_FOLDER/rootfs/usr/local/ptin/lib/
@@ -74,7 +73,7 @@ if [ $# -ge 3 ]; then
 	echo -n "Generating image for version $3..."
 
 	cd $MKBOARDS/$MKBOARDS_FOLDER
-	sudo ./build_ramdisk_${MKBOARDS_FOLDER}.sh $IMAGE_VERSION > /dev/null 2>&1
+	sudo ./build_ramdisk_${MKBOARDS_FOLDER}.sh $IMAGE_VERSION
         echo "OK!"
 
 	if [ $# -ge 4 ]; then
