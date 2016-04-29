@@ -230,6 +230,46 @@ unsigned int snooping_portType_get(unsigned int serviceId, unsigned int portId, 
   return SUCCESS;
 }
 
+/*unsigned int snooping_portType_get2(unsigned int serviceId, unsigned int portId, ptin_mgmd_port_type_t *portType)
+{
+  L7_uint8 port_type;
+
+  PT_LOG_TRACE(LOG_CTX_IGMP, "Context [serviceId:%u portId:%u portType:%u]", serviceId, portId, *portType);
+
+  if (SUCCESS != ptin_evc_port_type_get(serviceId, portId, &port_type))
+  {
+    PT_LOG_ERR(LOG_CTX_IGMP,"Unknown port type");
+    return FAILURE;
+  }
+
+  if (port_type == PTIN_EVC_INTF_LEAF)
+  {
+    PT_LOG_DEBUG(LOG_CTX_IGMP, "Port is leaf");
+    *portType = PTIN_MGMD_PORT_TYPE_LEAF;
+  }
+  else
+  {
+    if (port_type == PTIN_EVC_INTF_ROOT)
+    {
+      PT_LOG_DEBUG(LOG_CTX_IGMP, "Port is root");
+
+      //#ifdef PTIN_ENABLE_ERPS
+      //if(ptin_erps_get_status_void(1) == 1)
+        // *portType = PTIN_MGMD_PORT_TYPE_LEAF;
+      //else
+      //#endif
+
+      *portType = PTIN_MGMD_PORT_TYPE_ROOT;
+    }
+    else
+    {
+      PT_LOG_ERR(LOG_CTX_IGMP,"Unknown port type");
+      return FAILURE;
+    }
+  }
+  return SUCCESS;
+}
+*/
 unsigned int snooping_channel_serviceid_get(unsigned int portId, unsigned int clientId, unsigned int groupAddr, unsigned int sourceAddr, unsigned int *serviceId)
 {
   PT_LOG_TRACE(LOG_CTX_IGMP, "Context [groupAddr:%08X sourceAddr:%08X serviceId:%p]", groupAddr, sourceAddr, serviceId);
@@ -858,8 +898,8 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   }
 
   #ifdef PTIN_ENABLE_ERPS
-  if(ptin_erps_get_status_void(1) == 1)
-    portType = PTIN_MGMD_PORT_TYPE_ROOT;
+  //if(ptin_erps_get_status_void(1) == 1)
+   // portType = PTIN_MGMD_PORT_TYPE_ROOT;
   #endif
 
   //Get Group Address
@@ -953,7 +993,7 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   #endif
 
   #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
-  if ( portType == PTIN_MGMD_PORT_TYPE_ROOT)
+  if ( 1 )//portType == PTIN_MGMD_PORT_TYPE_ROOT)
   #endif
   { 
     ptin_timer_start(31,"snoopPacketSend"); 

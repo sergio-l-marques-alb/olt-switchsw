@@ -28,6 +28,7 @@ unsigned int snooping_cos_set(unsigned char cos);
 
 unsigned int snooping_portList_get(unsigned int serviceId, ptin_mgmd_port_type_t portType, PTIN_MGMD_PORT_MASK_t *portList, unsigned int *noOfPorts);
 unsigned int snooping_portType_get(unsigned int serviceId, unsigned int portId, ptin_mgmd_port_type_t *portType);
+//unsigned int snooping_portType_get2(unsigned int serviceId, unsigned int portId, ptin_mgmd_port_type_t *portType);
 
 unsigned int snooping_channel_serviceid_get(unsigned int portId, unsigned int clientId, unsigned int groupAddr, unsigned int sourceAddr, unsigned int *serviceId);
 

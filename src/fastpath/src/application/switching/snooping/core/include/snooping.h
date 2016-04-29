@@ -944,8 +944,8 @@ typedef struct snoopPDU_Msg_s
   L7_uint32        innerVlanId;        /* Inner VLAN if present */  
   L7_uint32        client_idx;         /* Client index */          /* PTin added: IGMP snooping */
   L7_uint32        serviceId;          /* Service Id */            /* PTin added: MGMD integration */
-  L7_inet_addr_t   groupAddr;       /* Group Address IP */      /* PTin added: MGMD integration */
-  L7_inet_addr_t   sourceAddr;      /* Source Address IP */     /* PTin added: MGMD integration */
+  L7_inet_addr_t   groupAddr;          /* Group Address IP */      /* PTin added: MGMD integration */
+  L7_inet_addr_t   sourceAddr;         /* Source Address IP */     /* PTin added: MGMD integration */
   L7_uint8         isStatic;           /* Static Entry*/           /* PTin added: MGMD integration */
   L7_uint8         isProtection;       /* Protection Entry*/       /* PTin added: MGMD integration */
   snoop_cb_t      *cbHandle;           /* Pointer to control block */

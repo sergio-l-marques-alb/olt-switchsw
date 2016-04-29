@@ -2461,7 +2461,7 @@ L7_RC_t ptin_aclMacApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
     PT_LOG_TRACE(LOG_CTX_MSG, "operation=%d intIfNum=%d direction=%d aclId=%u sequence=%d", operation, intIfNum, direction, aclId, sequence);
 
     if (operation == ACL_OPERATION_CREATE)
-    {
+    { 
       #ifdef __VLAN_XLATE__
       L7_uint32 i;
       L7_uint32 oldVlan;
@@ -2498,8 +2498,10 @@ L7_RC_t ptin_aclMacApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
 
       #if (PTIN_BOARD_IS_LINECARD)
       if (ptin_aclMacDb[aclApply->aclId].aclRuleCap == L7_TRUE)
-        PT_LOG_DEBUG(LOG_CTX_MSG, "No ACL to be applied");
+      {
+        PT_LOG_DEBUG(LOG_CTX_MSG, "No ACL to be applied");      
         return L7_FAILURE;
+      }
       #endif
 
       rc = usmDbQosAclMacInterfaceDirectionAdd(unit, intIfNum, direction, aclId, sequence);
@@ -2559,7 +2561,6 @@ L7_RC_t ptin_aclMacApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation)
       }
     }
   }
-
   return L7_SUCCESS;
 }
 
