@@ -5575,6 +5575,8 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
     ptinEvcPort.mef_type  = msgEvcPort[i].intf.mef_type;
     ptinEvcPort.vid       = msgEvcPort[i].intf.vid;
     ptinEvcPort.vid_inner = msgEvcPort[i].intf.inner_vid;
+    ptinEvcPort.action_outer = PTIN_XLATE_ACTION_REPLACE;
+    ptinEvcPort.action_inner = PTIN_XLATE_ACTION_NONE;
 
     PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u - oper %s",     msgEvcPort[i].evcId,
               ((oper==PTIN_MSG_OPER_ADD) ? "ADD" : ((oper==PTIN_MSG_OPER_REMOVE) ? "REMOVE" : "UNKNOWN")));
