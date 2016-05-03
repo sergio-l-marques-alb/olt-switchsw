@@ -1,0 +1,10 @@
+#!/bin/sh
+
+echo "Switch: fastpath"
+/usr/local/ptin/sbin/fastpath boot &
+/usr/local/ptin/sbin/fp.cli ping p=20 t=10
+echo "Switch: done!"
+
+/bin/sleep 20
+/bin/sh /usr/local/ptin/sbin/scripts/fp.init.sh
+echo "Switch: initialized!"

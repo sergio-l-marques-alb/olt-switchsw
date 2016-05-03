@@ -1,0 +1,13 @@
+#!/bin/sh
+
+echo "Initializing PLLs"
+/bin/sleep 20
+/usr/local/ptin/bin/testit 2011h 9 0 0 0 0 0 0 0 0 0
+/bin/sleep 20
+
+echo "Switch: fastpath"
+/usr/local/ptin/sbin/fastpath boot &
+/usr/local/ptin/sbin/fp.cli ping p=20 t=10
+
+echo "Switch: done!"
+

@@ -1,0 +1,23 @@
+#!/bin/sh
+
+#echo "Initializing PLLs"
+#/bin/sleep 20
+#/usr/local/ptin/bin/testit 2011h 9 0 0 0 0 0 0 0 0 0
+#/bin/sleep 20
+
+#echo "Initializing CFP"
+#/usr/local/ptin/bin/sb 70000082h 38h
+#/bin/sleep 1
+#/usr/local/ptin/bin/sb 70000082h 39h
+#/bin/sleep 1
+
+/bin/sleep 30
+
+echo "Switch: fastpath"
+/usr/local/ptin/sbin/fastpath boot &
+/usr/local/ptin/sbin/fp.cli ping p=20 t=10
+echo "Switch: done!"
+
+/bin/sleep 20
+/bin/sh /usr/local/ptin/sbin/scripts/fp.init.sh
+echo "Switch: initialized!"
