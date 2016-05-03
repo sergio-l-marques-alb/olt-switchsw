@@ -293,9 +293,14 @@ extern void ptin_msg_defaults_reset(msg_HwGenReq_t *msgPtr)
   ptin_evc_destroy_all();
   PT_LOG_INFO(LOG_CTX_MSG, "Done.");
 
-  /*Reset Mirror */
+  /* Reset Mirror */
   PT_LOG_INFO(LOG_CTX_MSG, "Performing Mirror Reset...");
   ptin_mirror_reset();
+  PT_LOG_INFO(LOG_CTX_MSG, "Done.");
+
+  /* Reset RFC 2819 */
+  PT_LOG_INFO(LOG_CTX_MSG, "Performing RFC 2819...");
+  ptin_rfc2819_init();
   PT_LOG_INFO(LOG_CTX_MSG, "Done.");
 
   if (mode == DEFAULT_RESET_MODE_FULL)
@@ -14082,7 +14087,7 @@ L7_RC_t ptin_msg_get_next_qualRFC2819_inv(L7_int buffer_index, msg_rfc2819_buffe
 
     first_reg = ptin_rfc2819_buffer_get_inv(buffer_index, first_reg, &ring_buffer);
 
-    #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+    
 
     L7_int32 port1;
     L7_int16 slot_ret,port_ret;
@@ -14092,6 +14097,8 @@ L7_RC_t ptin_msg_get_next_qualRFC2819_inv(L7_int buffer_index, msg_rfc2819_buffe
 
     PT_LOG_DEBUG(LOG_CTX_MSG, "slot_ret %d", slot_ret);
     PT_LOG_DEBUG(LOG_CTX_MSG, "port1 %d", port1);  
+
+    #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
 
     if(slot == slot_ret)
     {
