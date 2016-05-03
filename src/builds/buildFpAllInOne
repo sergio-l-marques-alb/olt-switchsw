@@ -1,0 +1,240 @@
+#!/bin/sh
+
+###############Debug Flags#########################
+scriptDebugCommands=0
+scriptVerbose=1
+########End Debug Flags###########
+
+###########OLT Version and Patch Version##################
+oltVersion=3.5.99
+patchVersion=0
+
+###############Input Arguments Validation#########################
+echo "Usage: sh $0 [\$updateSvn] [version] [patch]"
+
+updateSvn=1
+
+if [ $# -ge 1 ]; then
+	updateSvn=$1
+	if  [ $updateSvn -ne 1 -a $updateSvn -ne 0 ]; then
+		echo "Invalid Input Parameter: updateSvn=$updateSvn"
+		exit -1
+	fi
+fi
+if [ $# -ge 2 ]; then
+	oltVersion=$2
+fi
+if [ $# -ge 3 ]; then
+	patchVersion=$3
+fi
+
+#if  [ $scriptDebugCommands -eq 1 ]; then
+	echo updateSvn=$updateSvn
+	echo "oltVersion=$oltVersion"
+	echo "patchVersion=$patchVersion"
+#fi
+###############End Input Arguments Validation#########################
+
+###############Save Current Path#########
+currentPath=$(pwd)
+if  [ $scriptDebugCommands -eq 1 ]; then
+	echo $currentPath
+fi
+######################################
+
+###########Validate Current User####################
+builderUser=mruas
+password=olttera
+currentUser=$(whoami)
+
+if [ "$builderUser" != "$currentUser" ]; then
+	echo "Current user: \"$currentUser\" is not the \"$builderUser\" user"
+	exit -1
+fi
+###############Validate Current User###################
+
+############Paths Assignment & Validation#####################
+builderScriptPath=.
+srcPath=..
+buildPath=/home/olt/fastpath_builds
+mkBoardsPath=/home/olt/mkboards_$oltVersion
+
+if [ ! -d $srcPath ]; then
+    echo "Path Not Found: $srcPath"
+	exit $?
+fi
+
+if [ ! -d $builderScriptPath ]; then
+    echo "Path Not Found: $builderScriptPath"
+	exit $?
+fi
+
+if [ ! -d $buildPath ]; then
+    echo "Path Not Found: $buildPath"
+	exit $?
+fi
+
+if [ ! -d $mkBoardsPath ]; then
+    echo "Path Not Found: $mkBoardsPath"
+	exit $?
+fi
+
+if  [ $scriptDebugCommands -eq 1 ]; then
+	echo "builderScriptPath=$builderScriptPath"
+	echo "srcPath=$srcPath"
+	echo "buildPath=$buildPath"
+	echo "mkBoardsPath=$mkBoardsPath"
+fi
+############Paths Assignment & Validation#####################
+
+
+############SVN Update & Validation#####################
+if  [ $updateSvn -eq 1 ]; then
+	echo "Going to update $srcPath...press Ctrl+C to abort"
+	sleep 1
+	cd $srcPath	
+	svn update 
+	cd -
+	
+	if  [ $? -ne 0 ]; then
+		echo -e "
+		######################################################################################################################\n
+		# Failed to update FP  | MKBoardsVersion=$oltVersion  ###############################################\n
+		######################################################################################################################"
+
+		exit $?
+	fi
+	svnRelease=`svnversion $srcPath -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
+else	
+	svnRelease=`svnversion $srcPath -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
+	echo "I'm not updating $srcPath: Using current svn release:$svnRelease...press Ctrl+C to abort"
+	sleep 1
+fi
+
+if  [ $scriptDebugCommands -eq 1 ]; then
+	echo svnRelease=$svnRelease
+fi
+
+#if  [ "$svnRelease"=="*M" ]; then
+#	echo "Local Changes Detected:$svnRelease Aborting process!"
+#	exit -1
+#fi
+############End SVN Update & Validation#####################
+
+############Fastpath Build Script####################
+#Go to Fastpath Builder Script
+if  [ $scriptVerbose -eq 1 ]; then
+	echo "Going to build fp-$oltVersion.$patchVersion-r$svnRelease...press Ctrl+C to abort"
+	sleep 1
+fi
+cd $builderScriptPath
+
+
+if  [ $scriptDebugCommands -eq 1 ]; then
+	echo sh ./fastpath-olt.build $oltVersion.$patchVersion
+fi
+sh ./fastpath-olt.build $oltVersion.$patchVersion compile
+if [ $? -ne 0 ]; then
+  echo "Error compiling boards!"
+  exit -1;
+fi
+sh ./fastpath-olt.build $oltVersion.$patchVersion install
+if [ $? -ne 0 ]; then
+  echo "Error copying binaries!"
+  exit -1;
+fi
+sh ./fastpath-olt.build $oltVersion.$patchVersion build
+if [ $? -ne 0 ]; then
+  echo "Error transferring binaries!"
+  exit -1;
+fi
+
+if  [ $? -ne 0 ]; then
+	echo -e "
+      ######################################################################################################################\n
+      # Failed to generate FP build | MKBoardsVersion=$oltVersion | SVNVersion=$svnRelease ###############################################\n
+      ######################################################################################################################"
+
+	exit $?
+fi
+############End Fastpath Build Script####################
+
+############Fastpath MKBoards Update####################
+if  [ $scriptVerbose -eq 1 ]; then
+	echo "Going to extract fastpath-olt.image-v$oltVersion.$patchVersion-r$svnRelease.tgz to $mkBoardsPath...press Ctrl+C to abort"
+	sleep 1
+fi
+cd $buildPath
+if [ ! -f ./fastpath/fastpath-olt.image-v$oltVersion.$patchVersion-r$svnRelease.tgz ]; then
+    echo "File not found: ./fastpath/fastpath-olt.image-v$oltVersion.$patchVersion-r$svnRelease.tgz"
+	exit $?
+fi
+
+
+if  [ $scriptDebugCommands -eq 1 ]; then
+	echo "sudo sh image_update.sh  ./fastpath/fastpath-olt.image-v$oltVersion.$patchVersion-r$svnRelease.tgz $mkBoardsPath"
+fi
+echo $password | sudo -S sh image_update.sh fastpath/fastpath-olt.image-v$oltVersion.$patchVersion-r$svnRelease.tgz $mkBoardsPath
+
+if  [ $? -ne 0 ]; then
+	echo -e "
+      ######################################################################################################################\n
+      # Failed to update MK Boards | MKBoardsVersion=$oltVersion | SVNVersion=$svnRelease ################################################\n
+      ######################################################################################################################"
+
+exit $?
+fi
+
+if  [ $scriptVerbose -eq 1 ]; then
+	echo "Going to update fastpath image on mkboards of olt1t0...press Ctrl+C to abort"
+	sleep 1
+fi
+cd $mkBoardsPath/CXOLT1T0
+if  [ $scriptDebugCommands -eq 1 ]; then
+	echo "OLT1T0 -> sudo sh fastpath_olt1t0.sh"
+fi
+echo $password | sudo -S sh fastpath_olt1t0.sh
+
+if  [ $scriptDebugCommands -eq 1 ]; then
+        echo "OLT1T0-AC -> sudo sh fastpath_olt1t0.sh"
+fi
+cd $mkBoardsPath/CXOLT1T0-AC 
+echo $password | sudo -S sh fastpath_olt1t0.sh
+
+if  [ $? -ne 0 ]; then
+	echo -e "
+      ######################################################################################################################\n
+      # Failed to update MK Boards of OLT1T0 | MKBoardsVersion=$oltVersion | SVNVersion=$svnRelease ################################################\n
+      ######################################################################################################################"
+
+exit $?
+fi
+
+if  [ $scriptVerbose -eq 1 ]; then
+	echo "Going to update fastpath image on mkboards of olt1t1...press Ctrl+C to abort"
+	sleep 1
+fi
+if  [ $scriptDebugCommands -eq 1 ]; then
+	echo "sudo sh fastpath_cxo160g.sh"
+fi
+cd ../CXO160G 
+echo $password | sudo -S sh fastpath_cxo160g.sh 
+
+if  [ $? -ne 0 ]; then
+	echo -e "
+      ######################################################################################################################\n
+      # Failed to update MK Boards of OLT1T1 | MKBoardsVersion=$oltVersion | SVNVersion=$svnRelease ################################################\n
+      ######################################################################################################################"
+
+exit $?
+fi
+############Fastpath MKBoards Update####################
+
+#Restore User Path
+cd $currentPath
+
+# Create backup
+sh ./fastpath-olt.build $oltVersion.$patchVersion backup
+
+echo "Done: fastpath-olt.image-v$oltVersion.$patchVersion-r$svnRelease!"
+exit 0
