@@ -1,7 +1,7 @@
 #!/bin/sh
 
 if [ $# -eq 0 ]; then
-  echo "Syntax: $0 <board> <IPaddr> <slot+1>
+  echo "Syntax: $0 <board> <IPaddr> <slot+1>"
   exit;
 fi
 
