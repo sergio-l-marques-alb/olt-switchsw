@@ -669,7 +669,7 @@ L7_RC_t ptin_hapi_lif_delete(L7_int virtual_gport, L7_int mcast_group)
                vlan_port.flags, vlan_port.criteria, vlan_port.match_vlan, vlan_port.match_inner_vlan, vlan_port.egress_vlan, vlan_port.egress_inner_vlan);
 
   /* Configure replication lists */
-  if (mcast_group != 0)
+  if (0 /*mcast_group != 0*/)
   {
     error = bcm_multicast_vlan_encap_get(bcm_unit, mcast_group, vlan_port.port, vlan_port.vlan_port_id, &encap_id);
     if (error != BCM_E_NONE)
