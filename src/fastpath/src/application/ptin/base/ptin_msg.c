@@ -14087,8 +14087,6 @@ L7_RC_t ptin_msg_get_next_qualRFC2819_inv(L7_int buffer_index, msg_rfc2819_buffe
 
     first_reg = ptin_rfc2819_buffer_get_inv(buffer_index, first_reg, &ring_buffer);
 
-    
-
     L7_int32 port1;
     L7_int16 slot_ret,port_ret;
     port1 = (ring_buffer.path >> 14) & 0xFFF;
@@ -14098,9 +14096,77 @@ L7_RC_t ptin_msg_get_next_qualRFC2819_inv(L7_int buffer_index, msg_rfc2819_buffe
     PT_LOG_DEBUG(LOG_CTX_MSG, "slot_ret %d", slot_ret);
     PT_LOG_DEBUG(LOG_CTX_MSG, "port1 %d", port1);  
 
-    #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+    #if(PTIN_BOARD == PTIN_BOARD_CXO640G)
 
     if(slot == slot_ret)
+    {
+      PT_LOG_DEBUG(LOG_CTX_MSG, "port1 %d", port1);    
+    
+      buffer[*n_elements].index                = ring_buffer.index;
+      buffer[*n_elements].arg                  = ring_buffer.arg;
+      buffer[*n_elements].time                 = ring_buffer.time;
+      buffer[*n_elements].path                 = ring_buffer.path;
+      buffer[*n_elements].cTempo               = ring_buffer.cTempo;
+
+      buffer[*n_elements].Octets               = ring_buffer.Octets;
+      buffer[*n_elements].Pkts                 = ring_buffer.Pkts;                
+      buffer[*n_elements].Broadcast            = ring_buffer.Broadcast;
+      buffer[*n_elements].Multicast            = ring_buffer.Multicast;           
+      buffer[*n_elements].CRCAlignErrors       = ring_buffer.CRCAlignErrors;      
+      buffer[*n_elements].UndersizePkts        = ring_buffer.UndersizePkts;       
+      buffer[*n_elements].OversizePkts         = ring_buffer.OversizePkts;        
+      buffer[*n_elements].Fragments            = ring_buffer.Fragments;           
+      buffer[*n_elements].Jabbers              = ring_buffer.Jabbers;             
+      buffer[*n_elements].Collisions           = ring_buffer.Collisions;          
+      buffer[*n_elements].Utilization          = ring_buffer.Utilization;         
+      buffer[*n_elements].Pkts64Octets         = ring_buffer.Pkts64Octets;        
+      buffer[*n_elements].Pkts65to127Octets    = ring_buffer.Pkts65to127Octets;   
+      buffer[*n_elements].Pkts128to255Octets   = ring_buffer.Pkts128to255Octets;  
+      buffer[*n_elements].Pkts256to511Octets   = ring_buffer.Pkts256to511Octets;  
+      buffer[*n_elements].Pkts512to1023Octets  = ring_buffer.Pkts512to1023Octets; 
+      buffer[*n_elements].Pkts1024to1518Octets = ring_buffer.Pkts1024to1518Octets;
+    }
+    else
+    {
+     if (first_reg<0) 
+     break;
+
+     continue;  
+
+    }
+    #endif
+
+    #if (PTIN_BOARD == PTIN_BOARD_CXO160G) 
+
+    if(ptin_fpga_mx_is_matrix_in_workingslot() == 0)
+    {
+      PT_LOG_DEBUG(LOG_CTX_MSG, "port1 %d", port1);    
+    
+      buffer[*n_elements].index                = ring_buffer.index;
+      buffer[*n_elements].arg                  = ring_buffer.arg;
+      buffer[*n_elements].time                 = ring_buffer.time;
+      buffer[*n_elements].path                 = ring_buffer.path;
+      buffer[*n_elements].cTempo               = ring_buffer.cTempo;
+
+      buffer[*n_elements].Octets               = ring_buffer.Octets;
+      buffer[*n_elements].Pkts                 = ring_buffer.Pkts;                
+      buffer[*n_elements].Broadcast            = ring_buffer.Broadcast;
+      buffer[*n_elements].Multicast            = ring_buffer.Multicast;           
+      buffer[*n_elements].CRCAlignErrors       = ring_buffer.CRCAlignErrors;      
+      buffer[*n_elements].UndersizePkts        = ring_buffer.UndersizePkts;       
+      buffer[*n_elements].OversizePkts         = ring_buffer.OversizePkts;        
+      buffer[*n_elements].Fragments            = ring_buffer.Fragments;           
+      buffer[*n_elements].Jabbers              = ring_buffer.Jabbers;             
+      buffer[*n_elements].Collisions           = ring_buffer.Collisions;          
+      buffer[*n_elements].Utilization          = ring_buffer.Utilization;         
+      buffer[*n_elements].Pkts64Octets         = ring_buffer.Pkts64Octets;        
+      buffer[*n_elements].Pkts65to127Octets    = ring_buffer.Pkts65to127Octets;   
+      buffer[*n_elements].Pkts128to255Octets   = ring_buffer.Pkts128to255Octets;  
+      buffer[*n_elements].Pkts256to511Octets   = ring_buffer.Pkts256to511Octets;  
+      buffer[*n_elements].Pkts512to1023Octets  = ring_buffer.Pkts512to1023Octets; 
+      buffer[*n_elements].Pkts1024to1518Octets = ring_buffer.Pkts1024to1518Octets;
+    }
+    else if(ptin_fpga_mx_is_matrix_in_workingslot() == 1)
     {
       PT_LOG_DEBUG(LOG_CTX_MSG, "port1 %d", port1);    
     
@@ -14183,7 +14249,7 @@ L7_RC_t ptin_msg_get_next_qualRFC2819_inv(L7_int buffer_index, msg_rfc2819_buffe
     PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts65to127Octets %d", buffer[*n_elements].Pkts65to127Octets);   
     PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts128to255Octets %d", buffer[*n_elements].Pkts128to255Octets);   
     PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts256to511Octets %d", buffer[*n_elements].Pkts256to511Octets);   
-    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts512to1023Octets", buffer[*n_elements].Pkts512to1023Octets);   
+    PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts512to1023Octets %d", buffer[*n_elements].Pkts512to1023Octets);   
     PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].Pkts1024to1518Octets %d", buffer[*n_elements].Pkts1024to1518Octets);
 
     if (first_reg<0) 
@@ -14288,9 +14354,32 @@ L7_RC_t ptin_msg_config_rfc2819_monitoring(msg_rfc2819_admin_t *config)
 
   PT_LOG_DEBUG(LOG_CTX_MSG, "Configure monitoring: SlotId: %d, Port: %d, admin: %d", config->SlotId, config->Port, config->Admin);
 
+  #if (PTIN_BOARD == PTIN_BOARD_CXO160G) 
+
+    PT_LOG_DEBUG(LOG_CTX_MSG, "%d", ptin_fpga_mx_is_matrix_in_workingslot());
+    if((config->Port == 0 || config->Port == 1) && (ptin_fpga_mx_is_matrix_in_workingslot() == 1))
+    {
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Configure monitoring: SlotId: %d, Port: %d, admin: %d", config->SlotId, config->Port, config->Admin);
+      return ptin_rfc2819_config_probe(config->Port, config->Admin);
+    }
+    if((config->Port == 2 || config->Port == 3) && (ptin_fpga_mx_is_matrix_in_workingslot() == 0))
+    {
+      int aux_port;
+      aux_port = config->Port - 2;
+
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Configure monitoring: SlotId: %d, Port: %d, admin: %d", config->SlotId, config->Port, config->Admin);
+      return ptin_rfc2819_config_probe(aux_port, config->Admin);
+    }
+    else
+    {
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Not possible to configure monitoring: SlotId: %d, Port: %d, admin: %d", config->SlotId, config->Port, config->Admin);
+      return L7_SUCCESS;
+    }
+  #endif
   //Configure
   rc = ptin_rfc2819_config_probe(config->Port, config->Admin);
 
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Configure monitoring: SlotId: %d, Port: %d, admin: %d", config->SlotId, config->Port, config->Admin);
   if (L7_SUCCESS != rc)
     return L7_FAILURE;
   else
