@@ -1,0 +1,12 @@
+#Required SOC properties for HW LOG
+
+#Dummy SOC property indicatiwng the system / mode
+config add dvapi_system_indicator=hwlog
+
+config delete ha_hw_journal_mode.*
+config add ha_hw_journal_mode.BCM88650=1
+config add ha_hw_journal_mode.BCM88670=1
+config add ha_hw_journal_mode.BCM88675=1
+
+config delete ha_hw_journal_size.*
+config add ha_hw_journal_size.BCM88650=15728640

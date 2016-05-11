@@ -1,0 +1,139 @@
+# $Id: hr3_led.soc,v 1.0 Broadcom SDK $
+# $Copyright: Copyright 2016 Broadcom Corporation.
+# This program is the proprietary software of Broadcom Corporation
+# and/or its licensors, and may only be used, duplicated, modified
+# or distributed pursuant to the terms and conditions of a separate,
+# written license agreement executed between you and Broadcom
+# (an "Authorized License").  Except as set forth in an Authorized
+# License, Broadcom grants no license (express or implied), right
+# to use, or waiver of any kind with respect to the Software, and
+# Broadcom expressly reserves all rights in and to the Software
+# and all intellectual property rights therein.  IF YOU HAVE
+# NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+# IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+# ALL USE OF THE SOFTWARE.  
+#  
+# Except as expressly set forth in the Authorized License,
+#  
+# 1.     This program, including its structure, sequence and organization,
+# constitutes the valuable trade secrets of Broadcom, and you shall use
+# all reasonable efforts to protect the confidentiality thereof,
+# and to use this information only in connection with your use of
+# Broadcom integrated circuit products.
+#  
+# 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+# PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+# REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+# OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+# DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+# NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+# ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+# CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+# OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+# 
+# 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+# BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+# INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+# ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+# TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+# THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+# WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+# ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+#
+# Script for controling the LED on HR3 SVK/REF board
+#
+
+# Enable LED matrix mode (RDB_Reg 0x85f) for PHY54292
+if  $?bcm956160k \
+    "phy raw 0x1 0x17 0xf7e; \
+     phy raw 0x1 0x15 0x0000; \
+     phy raw 0x1 0x1e 0x85f; \
+     phy raw 0x1 0x1f 0x23; \
+     phy raw 0x1 0x1e 0x87; \
+     phy raw 0x1 0x1f 0x8000; \
+     phy raw 0x13 0x17 0xf7e; \
+     phy raw 0x13 0x15 0x0000; \
+     phy raw 0x13 0x1e 0x85f; \
+     phy raw 0x13 0x1f 0x23; \
+     phy raw 0x13 0x1e 0x87; \
+     phy raw 0x13 0x1f 0x8000;"
+
+if  $?bcm956160k || $?bcm953434k || $?bcm956164k \
+    "phy raw 0xA 0x17 0xf7e; \
+     phy raw 0xA 0x15 0x0000; \
+     phy raw 0xA 0x1e 0x85f; \
+     phy raw 0xA 0x1f 0x23; \
+     phy raw 0xA 0x1e 0x87; \
+     phy raw 0xA 0x1f 0x8000;"
+
+if  $?bcm956166r \
+    "phy raw 0x9 0x17 0xf7e; \
+     phy raw 0x9 0x15 0x0000; \
+     phy raw 0x9 0x1e 0x85f; \
+     phy raw 0x9 0x1f 0x23; \
+     phy raw 0x9 0x1e 0x87; \
+     phy raw 0x9 0x1f 0x8000;"
+
+# Enable SER2PAR LED
+if  !$?bcm956160r \
+    "m TOP_PARALLEL_LED_CTRL LED_SER2PAR_SEL=1;"
+
+# Default LEDuP code: bcm956160k.hex
+if  !$?bcm956160r \
+    "local ledcode ' \
+     02 11 28 60 E0 67 45 06 E0 90 D2 09 74 02 02 1A \
+     28 60 E0 67 45 06 E0 80 D2 22 74 10 02 02 28 60 \
+     E0 67 45 06 E0 80 D2 06 74 1E 02 12 28 60 E0 67 \
+     45 06 E0 80 D2 16 74 2C 3A 60 12 A0 FE E0 05 0A \
+     00 71 4C 77 59 32 08 97 71 4C 77 59 22 01 87 22 \
+     01 87 22 00 87 22 00 87 57 22 00 87 22 00 87 22 \
+     00 87 22 00 87 57 00 00 00 00 00 00 00 00 00 00'"
+
+# BCM956166R LEDuP code
+if  $?bcm956166r \
+    "local ledcode ' \
+     02 11 28 60 E0 67 40 06 E0 90 D2 09 74 02 02 1A \
+     28 60 E0 67 40 06 E0 80 D2 22 74 10 02 00 67 6B \
+     80 D2 06 74 1E 02 25 28 60 E0 67 40 06 E0 90 D2 \
+     21 74 27 3A 60 12 A0 FE E0 05 0A 00 71 47 77 63 \
+     32 08 97 71 47 77 63 16 E0 DA 22 71 4F 77 5C 22 \
+     01 87 22 01 87 22 00 87 22 00 87 57 22 00 87 22 \
+     00 87 57 16 E0 DA 22 71 6B 77 78 22 00 87 22 00 \
+     87 22 00 87 22 00 87 57 22 01 87 22 01 87 57 00'"
+
+# BCM956160R LEDuP code
+## master unit: bcm956160r_opt6.hex
+if  $?bcm956160r && $?unit0  \
+    "local ledcode ' \
+     02 24 28 60 E1 67 63 67 50 06 E1 90 D2 21 74 02 \
+     02 15 28 60 E1 67 74 06 E1 90 D2 11 74 12 02 05 \
+     28 60 E1 67 74 06 E1 90 D2 01 74 20 02 21 28 60 \
+     E1 67 63 67 50 06 E1 90 D2 19 74 2E 02 0A 28 60 \
+     E1 67 63 67 50 06 E1 80 D2 12 74 3E 86 E0 3A 36 \
+     12 A0 FE E1 05 0A 00 71 8C 77 90 28 32 08 97 71 \
+     8C 77 90 28 32 00 32 01 B7 97 75 90 16 E0 CA 05 \
+     74 8C 77 90 28 32 08 97 75 94 32 00 32 01 B7 97 \
+     71 84 77 9B 16 E0 CA 05 74 9B 77 94 22 00 87 57 \
+     22 01 87 57 22 01 87 22 01 87 57 22 00 87 22 00 \
+     87 57 00 00 00 00 00 00 00 00 00 00 00 00 00 00'"
+
+## slave unit: bcm956160r_opt6a.hex
+if  $?bcm956160r && $?unit1  \
+    "local ledcode ' \
+     02 28 28 60 E1 67 63 67 50 06 E1 90 D2 25 74 02 \
+     02 15 28 60 E1 67 74 06 E1 90 D2 11 74 12 02 05 \
+     28 60 E1 67 74 06 E1 90 D2 01 74 20 02 21 28 60 \
+     E1 67 63 67 50 06 E1 90 D2 19 74 2E 02 0A 28 60 \
+     E1 67 63 67 50 06 E1 80 D2 12 74 3E 86 E0 3A 36 \
+     12 A0 FE E1 05 0A 00 71 8C 77 90 28 32 08 97 71 \
+     8C 77 90 28 32 00 32 01 B7 97 75 90 16 E0 CA 05 \
+     74 8C 77 90 28 32 08 97 75 94 32 00 32 01 B7 97 \
+     71 84 77 9B 16 E0 CA 05 74 9B 77 94 22 00 87 57 \
+     22 01 87 57 22 01 87 22 01 87 57 22 00 87 22 00 \
+     87 57 00 00 00 00 00 00 00 00 00 00 00 00 00 00'"
+
+# Download LED code into LED processor and enable (if applicable).
+if $?feature_led_proc && $?ledcode && !$?simulator \
+    "led prog $ledcode; \
+     led auto on; led start"

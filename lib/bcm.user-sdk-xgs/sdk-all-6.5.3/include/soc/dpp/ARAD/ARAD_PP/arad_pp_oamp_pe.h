@@ -1,0 +1,271 @@
+/* $Id: arad_pp_oamp_pe.h,v 1.2 Broadcom SDK $
+ * $Copyright: Copyright 2016 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+*/
+
+#ifndef __ARAD_PP_OAMP_PE_INCLUDED__
+/* { */
+#define __ARAD_PP_OAMP_PE_INCLUDED__
+
+/*************
+ * INCLUDES  *
+ *************/
+/* { */
+
+#include <soc/dpp/SAND/Utils/sand_header.h>
+
+#include <soc/dpp/SAND/Management/sand_general_macros.h>
+#include <soc/dpp/SAND/Management/sand_error_code.h>
+
+/* } */
+/*************
+ * DEFINES   *
+ *************/
+/* { */
+
+typedef enum
+{
+    ARAD_PP_OAMP_PE_PROGS_DEFAULT, /*Default null program. Always loaded, must be first.*/
+    ARAD_PP_OAMP_PE_PROGS_DEFAULT_CCM, /*Default program for CCM packets*/
+    ARAD_PP_OAMP_PE_PROGS_OAMP_SERVER,
+    ARAD_PP_OAMP_PE_PROGS_OAMP_SERVER_CCM, /*Server program for CCM packets*/
+    ARAD_PP_OAMP_PE_PROGS_1DM , /*gerenerating 1DM from DMM*/
+    ARAD_PP_OAMP_PE_PROGS_ETH_TLV_ON_SERVER,  /*WA for Eth-TLV bug on server MEP.  AKA Port/interface status TLV bug fix for OAMP server */
+    ARAD_PP_OAMP_PE_PROGS_BFD_ECHO,
+    ARAD_PP_OAMP_PE_PROGS_BFD_UDP_CHECKSUM, /* Arad+ only */
+    ARAD_PP_OAMP_PE_PROGS_UP_MEP_MAC, /* WA for up-MEP mac LSB restrictions */
+    ARAD_PP_OAMP_PE_PROGS_DOWN_MEP_TLV_FIX, /* Same actual program as UP_MEP_MAC. two MEP-PE profiles. */
+    ARAD_PP_OAMP_PE_PROGS_BFD_IPV4_SINGLE_HOP, /* Arad+ only */
+    ARAD_PP_OAMP_PE_PROGS_MAID_11B_END_TLV, /* Arad+: MAID 11B + End tlv bugfix, Jericho: MAID 11B */
+    ARAD_PP_OAMP_PE_PROGS_MAID_11B_END_TLV_UDH, /* Arad+: MAID 11B + End tlv bugfix +UDH, Jericho: MAID 11B */
+    ARAD_PP_OAMP_PE_PROGS_MAID_11B_END_TLV_ON_SERVER, /* Arad+: OAMP server + MAID 11B + End tlv bugfix*/
+    ARAD_PP_OAMP_PE_PROGS_OAMTS_DOWN_MEP, /* Arad+ only,currently use if UDH != 0 */
+    ARAD_PP_OAMP_PE_PROGS_PPH_ADD_UDH, /* Adds a UDH, assumes a PPH is present. OAM-TS is optional*/
+    ARAD_PP_OAMP_PE_PROGS_PPH_ADD_UDH_JER, /* Adds a UDH after the system headers for Jericho. PPH and OAM-TS are optional*/
+    ARAD_PP_OAMP_PE_PROGS_UP_MEP_UDH_DEFAULT_JER, /* Jericho only for UP MEP once UDH is on(actually default program is used)*/
+    ARAD_PP_OAMP_PE_PROGS_MICRO_BFD, /* Jericho only */
+    ARAD_PP_OAMP_PE_PROGS_BFD_PWE_BOS_FIX, /* Jericho only */
+    ARAD_PP_OAMP_PE_PROGS_MAID_48, /* Jericho only */
+    ARAD_PP_OAMP_PE_PROGS_MAID_48_UDH, /* Jericho only */
+    ARAD_PP_OAMP_PE_PROGS_UP_MEP_MAC_MC, /* sets MC destination on ITMH*/
+    /* nof progs - always last */
+    ARAD_PP_OAMP_PE_PROGS_NOF_PROGS
+} ARAD_PP_OAMP_PE_PROGRAMS;
+
+
+/* To accomodate the field size and location differences between devices
+   and the fact that the excels don't divide the OAMP-PE instruction to fields,
+   a mapping from field name to size and start bit is neccessary.
+   This enum supplies the field names */
+typedef enum
+{
+    ARAD_PP_OAMP_PE_IN_FIFO_RD_BITS = 0     ,
+    ARAD_PP_OAMP_PE_FEM1_SEL_BITS           ,
+    ARAD_PP_OAMP_PE_FEM2_SEL_BITS           ,
+    ARAD_PP_OAMP_PE_MUX1_SRC_BITS           ,
+    ARAD_PP_OAMP_PE_MERGE1_INST_BITS        ,
+    ARAD_PP_OAMP_PE_SHIFT1_SRC_BITS         ,
+    ARAD_PP_OAMP_PE_SHIFT2_SRC_BITS         ,
+    ARAD_PP_OAMP_PE_FDBK_FF_WR_BIT          ,
+    ARAD_PP_OAMP_PE_BUFF_WR_BIT             ,
+    ARAD_PP_OAMP_PE_BUFF_WR_BITS            ,
+    ARAD_PP_OAMP_PE_BUFF_SIZE_SRC_BITS      ,
+    ARAD_PP_OAMP_PE_BUFF1_SIZE_SRC_BITS     ,
+    ARAD_PP_OAMP_PE_OP1_SEL_BITS            ,
+    ARAD_PP_OAMP_PE_OP2_SEL_BITS            ,
+    ARAD_PP_OAMP_PE_ALU_ACT_BITS            ,
+    ARAD_PP_OAMP_PE_CMP1_ACT_BITS           ,
+    ARAD_PP_OAMP_PE_ALU_DST_BITS            ,
+    ARAD_PP_OAMP_PE_BUF_EOP_BIT             ,
+    ARAD_PP_OAMP_PE_BUF_EOP_BITS            ,
+    ARAD_PP_OAMP_PE_BUF_EOP_FRC_BIT         ,
+    ARAD_PP_OAMP_PE_INST_CONST_BITS         ,
+    ARAD_PP_OAMP_PE_FDBK_FF_RD_BIT          ,
+    ARAD_PP_OAMP_PE_OP3_SEL_BITS            ,
+    ARAD_PP_OAMP_PE_CMP2_ACT_BITS           ,
+    ARAD_PP_OAMP_PE_INST_SRC_BITS           ,
+    ARAD_PP_OAMP_PE_MUX2_SRC_BITS           ,
+    ARAD_PP_OAMP_PE_BUFF2_SIZE_BITS         ,
+    ARAD_PP_OAMP_PE_MERGE2_INST_BITS        ,
+
+    ARAD_PP_OAMP_PE_INSTRUCTION_FIELDS_NOF
+} ARAD_PP_OAMP_PE_INSTRUCTION_FIELDS;
+
+/* } */
+/*************
+ * MACROS    *
+ *************/
+/* { */
+
+
+/* } */
+/*************
+ * TYPE DEFS *
+ *************/
+/* { */
+
+
+/* } */
+/*************
+ * GLOBALS   *
+ *************/
+/* { */
+
+
+
+/* } */
+/*************
+ * FUNCTIONS *
+ *************/
+/* { */
+
+/**
+* NAME:
+ *   arad_pp_oamp_pe_unsafe
+ * TYPE:
+ *   PROC
+ * FUNCTION:
+ *   Initialize the OAMP Programable Editor.
+ * INPUT:
+ *   SOC_SAND_IN  int                   unit -
+ * REMARKS:
+ * None.
+ * RETURNS:
+ *   OK or ERROR indication.
+**/
+uint32
+  arad_pp_oamp_pe_unsafe(
+    SOC_SAND_IN  int                                 unit
+  );
+
+
+
+/**
+* NAME:
+ *   arad_pp_oamp_pe_profile_get
+ * TYPE:
+ *   PROC
+ * FUNCTION:
+*    Returns a program pointer (first instruction of program in
+*  OAMP PE Program table)
+*  INPUT:
+*    SOC_SAND_IN  int                   unit -
+*   SOC_SAND_IN   ARAD_PP_OAMP_PE_PROGRAMS     program_id -
+*  program to set
+*  SOC_SAND_OUT  int *program_profile
+*     Result goes there. Program profile (0-7) if found,
+*  -1 otherwise
+*  REMARKS:
+ * None for now.
+ * RETURNS:
+ *   Nothing.
+**/
+void
+  arad_pp_oamp_pe_program_profile_get(
+    SOC_SAND_IN   int                                 unit,
+    SOC_SAND_IN   ARAD_PP_OAMP_PE_PROGRAMS     program_id,
+    SOC_SAND_OUT  uint32                                 *program_profile
+  );
+
+
+/**
+ * Set the OAMP GEN MEM. Currently Used only for server program. 
+ * Data represents local port on inner PTCH, index represents 
+ * local port on mep db, which is the LSB of the src mac 
+ * address. 
+ * 
+ * @author sinai (28/10/2014)
+ * 
+ * @param unit 
+ * @param gen_mem_index 
+ * @param gen_mem_data 
+ * 
+ * @return soc_error_t 
+ */
+soc_error_t arad_pp_oam_oamp_pe_gen_mem_set(int unit, int gen_mem_index, int gen_mem_data);
+
+/*********************************************************************
+* NAME:
+ *   arad_pp_oamp_pe_print_all_programs_data
+ * TYPE:
+ *   PROC
+ * FUNCTION:
+ *   Dump ALL OAMP PE program.
+ * INPUT:
+ *   SOC_SAND_IN  int                 unit -
+ *     Identifier of the device to access.
+ * REMARKS:
+ *   This API must be called during a continuous stream of
+ *   the identical packets coming from the same source.
+ * RETURNS:
+ *   OK or ERROR indication.
+*********************************************************************/
+uint32
+  arad_pp_oamp_pe_print_all_programs_data(int unit);
+  
+/*********************************************************************
+* NAME:
+ *   arad_pp_oamp_pe_print_last_program_data
+ * TYPE:
+ *   PROC
+ * FUNCTION:
+ *   Dump last OAMP PE program invoked.
+ * INPUT:
+ *   SOC_SAND_IN  int                 unit -
+ *     Identifier of the device to access.
+ * REMARKS:
+ *   This API must be called during a continuous stream of
+ *   the identical packets coming from the same source.
+ * RETURNS:
+ *   OK or ERROR indication.
+*********************************************************************/
+uint32
+  arad_pp_oamp_pe_print_last_program_data(int unit);
+
+#include <soc/dpp/SAND/Utils/sand_footer.h>
+
+/* } __ARAD_PP_OAMP_PE_INCLUDED__*/
+#endif
+
+
+
+

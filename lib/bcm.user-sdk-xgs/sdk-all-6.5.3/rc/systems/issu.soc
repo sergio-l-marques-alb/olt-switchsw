@@ -1,0 +1,8 @@
+#Required SOC properties for ISSU
+ 
+#Dummy SOC property indicating the system / mode
+config add dvapi_system_indicator=ISSU
+ 
+# add here the config commands
+# for example: config add custom_feature=1
+

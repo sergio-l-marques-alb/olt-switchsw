@@ -1,0 +1,113 @@
+echo "testsuite: started: sanity"
+# $Id: bcm88470sanity.soc,v 1.30 Broadcom SDK $
+# $Copyright: Copyright 2016 Broadcom Corporation.
+# This program is the proprietary software of Broadcom Corporation
+# and/or its licensors, and may only be used, duplicated, modified
+# or distributed pursuant to the terms and conditions of a separate,
+# written license agreement executed between you and Broadcom
+# (an "Authorized License").  Except as set forth in an Authorized
+# License, Broadcom grants no license (express or implied), right
+# to use, or waiver of any kind with respect to the Software, and
+# Broadcom expressly reserves all rights in and to the Software
+# and all intellectual property rights therein.  IF YOU HAVE
+# NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+# IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+# ALL USE OF THE SOFTWARE.  
+#  
+# Except as expressly set forth in the Authorized License,
+#  
+# 1.     This program, including its structure, sequence and organization,
+# constitutes the valuable trade secrets of Broadcom, and you shall use
+# all reasonable efforts to protect the confidentiality thereof,
+# and to use this information only in connection with your use of
+# Broadcom integrated circuit products.
+#  
+# 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+# PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+# REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+# OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+# DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+# NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+# ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+# CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+# OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+# 
+# 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+# BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+# INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+# ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+# TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+# THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+# WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+# ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+#
+# QAX (BCM88470) Sanity
+#
+# Script to run all available tests as quickly as possible.
+# For testing basic sanity of new drivers, simulators, chips, etc.
+#
+local done 'echo "   Done";date'
+
+# Set run command script not to fail on errors reported by commands
+# this allows the script to continue if a test fails
+set rcerror=false
+
+# Set up test mode: don't stop on errors, show progress on each test
+tm -stoponerror +progress
+# Unselect all
+#ts -*
+
+#Clear test statistics
+tc *
+
+#Display some useful information
+date
+
+#######################################################################
+
+#Start Test
+echo "Running tr 141"
+tr 141 r=1
+$done
+
+
+echo "tr 141 ErrorOnLeak=1"
+tr 141 ErrorOnLeak=1
+$done
+
+
+# Crashes with segmentation fault - SDK-91142
+# echo "Running tr 141 (warmboot)"
+# tr 141 repeat=1 Warmboot=1
+# $done
+
+# Fails - SDK-91116
+# echo 'Running: tr 153 RunAll=1'
+# tr 153 RunAll=1 
+# echo '   Done';date
+
+echo 'Dram bist test (tr 140)...';
+tr 140 DramNdx=0xff AllAdress=1;
+tr 140 DramNdx=1 WriteWeight=0xf ReadWeight=0xf BistNumActions=0xfffffff StartAddr=0x0 EndAddr=0xffffff PatternMode=0 Pattern0=0x10101010 Pattern1=0x11111111; \
+tr 140 DramNdx=1 WriteWeight=0xff ReadWeight=0xaa BistNumActions=0xaaaaa StartAddr=0xffff EndAddr=0xfffff PatternMode=1; \
+tr 140 DramNdx=1 WriteWeight=0xcc ReadWeight=0xcc Infinite=1  StartAddr=0xab1 EndAddr=0xaaaaa PatternMode=0 Pattern0=0x10101111 Pattern1=0x10001000; \
+tr 140 DramNdx=0xff getdata=1; \
+tr 140 DramNdx=0xff stop=1; \
+echo '   Done';date
+
+# Fails with "Out of memory" - SDK-91118
+#Start Cache Mem Test
+# echo "Running Cache Mem Tests "
+# tr 152 test_type=1 write_type=0 pattern=3 part=0 mem_id=0
+# tr 152 test_type=1 write_type=1 pattern=3 part=0 mem_id=0
+
+
+
+
+#######################################################################
+
+date
+tl
+local returnCode $?
+echo "testsuite: finished: sanity: $returnCode"

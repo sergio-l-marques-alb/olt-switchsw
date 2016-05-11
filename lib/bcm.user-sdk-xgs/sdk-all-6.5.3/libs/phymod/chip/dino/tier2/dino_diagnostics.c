@@ -1,0 +1,386 @@
+/*
+ *         
+ * $Id: phymod.xml,v 1.1.2.5 Broadcom SDK $
+ * 
+ * $Copyright: Copyright 2016 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ *         
+ *     
+ */
+
+#include <phymod/phymod.h>
+#include <phymod/phymod_diagnostics.h>
+#include <phymod/phymod_diagnostics_dispatch.h>
+
+#ifdef PHYMOD_DINO_SUPPORT
+#include "../tier1/dino_cfg_seq.h"
+#include "../tier1/dino_diag_seq.h"
+#include "../tier1/dino_serdes/common/srds_api_enum.h"
+
+int _dino_phymod_prbs_poly_to_serdes_prbs_poly(uint16_t phymod_poly, uint16_t *serdes_poly)
+{
+    switch (phymod_poly) {
+        case phymodPrbsPoly7:
+            *serdes_poly = PRBS_7;
+        break;
+        case phymodPrbsPoly9:
+            *serdes_poly = PRBS_9;
+        break;
+        case phymodPrbsPoly11:
+            *serdes_poly = PRBS_11;
+        break;
+        case phymodPrbsPoly15:
+            *serdes_poly = PRBS_15;
+        break;
+        case phymodPrbsPoly23:
+            *serdes_poly = PRBS_23;
+        break;
+        case phymodPrbsPoly31:
+            *serdes_poly = PRBS_31;
+        break;
+        case phymodPrbsPoly58:
+            *serdes_poly = PRBS_58;
+        break;
+        default: 
+            return PHYMOD_E_PARAM;
+    }
+
+    return PHYMOD_E_NONE;
+}
+int _dino_serdes_prbs_poly_to_phymod_prbs_poly(uint16_t serdes_poly, phymod_prbs_poly_t *phymod_poly)
+{
+    switch (serdes_poly) {
+        case PRBS_7:
+            *phymod_poly = phymodPrbsPoly7;
+        break; 
+        case PRBS_9:
+            *phymod_poly = phymodPrbsPoly9;
+        break; 
+        case PRBS_11:
+            *phymod_poly = phymodPrbsPoly11;
+        break; 
+        case PRBS_15:
+            *phymod_poly = phymodPrbsPoly15;
+        break; 
+        case PRBS_23:
+            *phymod_poly = phymodPrbsPoly23;
+        break; 
+        case PRBS_31:
+            *phymod_poly = phymodPrbsPoly31;
+        break; 
+        case PRBS_58:
+            *phymod_poly = phymodPrbsPoly58;
+        break; 
+        default: 
+            return PHYMOD_E_PARAM;
+    }
+
+    return PHYMOD_E_NONE;
+}
+
+int dino_phy_prbs_config_set(const phymod_phy_access_t* phy, uint32_t flags , const phymod_prbs_t* prbs)
+{
+    uint16_t lane = 0;
+    uint16_t lane_mask = 0; 
+    uint16_t if_side = 0;
+    const phymod_access_t *pa = &phy->access;
+
+    lane_mask = PHYMOD_ACC_LANE_MASK(pa);
+    DINO_GET_INTF_SIDE(phy, if_side);
+
+    for (lane = 0; lane < DINO_MAX_LANE ; lane ++) {
+        if (lane_mask & (1 << lane)) {
+            PHYMOD_IF_ERR_RETURN (
+                _dino_set_slice_reg (pa, DINO_SLICE_UNICAST, if_side, lane));
+            PHYMOD_IF_ERR_RETURN(
+                _dino_phy_prbs_config_set(pa, flags, if_side, lane, prbs)); 
+        }
+    }
+    PHYMOD_IF_ERR_RETURN (
+        _dino_set_slice_reg (pa, DINO_SLICE_RESET, DINO_IF_LINE, 0));
+
+    return PHYMOD_E_NONE;
+}
+
+int dino_phy_prbs_config_get(const phymod_phy_access_t* phy, uint32_t flags , phymod_prbs_t* prbs)
+{
+    uint16_t lane = 0;
+    uint16_t lane_mask = 0;
+    uint16_t if_side = 0;
+    uint16_t serdes_poly = 0;
+    uint16_t   chkr_mode = 0;
+    const phymod_access_t *pa = &phy->access;
+
+    lane_mask = PHYMOD_ACC_LANE_MASK(pa);
+    DINO_GET_INTF_SIDE(phy, if_side);
+
+    for (lane = 0; lane < DINO_MAX_LANE; lane ++) {
+        if ((lane_mask & (1 << lane))) {
+            PHYMOD_IF_ERR_RETURN (
+                _dino_set_slice_reg (pa, DINO_SLICE_UNICAST, if_side, lane));
+            PHYMOD_IF_ERR_RETURN(
+                _dino_phy_prbs_config_get(pa, flags, if_side, lane, prbs, &serdes_poly, &chkr_mode)); 
+            break;
+        }
+    }
+    PHYMOD_IF_ERR_RETURN (
+        _dino_set_slice_reg (pa, DINO_SLICE_RESET, DINO_IF_LINE, 0));
+    PHYMOD_DEBUG_VERBOSE(("Checker POLY:%d\n", serdes_poly));
+    PHYMOD_DEBUG_VERBOSE(("Checker mode:%d\n", chkr_mode));
+    PHYMOD_IF_ERR_RETURN (
+        _dino_serdes_prbs_poly_to_phymod_prbs_poly(serdes_poly, &prbs->poly));
+
+    return PHYMOD_E_NONE;
+}
+
+int dino_phy_prbs_enable_set(const phymod_phy_access_t* phy, uint32_t flags , uint32_t enable)
+{
+    uint16_t lane = 0;
+    uint16_t lane_mask = 0;
+    uint16_t if_side = 0;
+    const phymod_access_t *pa = &phy->access;
+
+    lane_mask = PHYMOD_ACC_LANE_MASK(pa);
+    DINO_GET_INTF_SIDE(phy, if_side);
+
+    for (lane = 0; lane < DINO_MAX_LANE; lane ++) {
+        if (lane_mask & (1 << lane)) {
+             PHYMOD_IF_ERR_RETURN (
+                 _dino_set_slice_reg (pa, DINO_SLICE_UNICAST, if_side, lane));
+             PHYMOD_IF_ERR_RETURN(
+                 _dino_phy_prbs_enable_set(pa, flags, if_side, lane, enable));
+        }
+    }
+    PHYMOD_IF_ERR_RETURN (
+        _dino_set_slice_reg (pa, DINO_SLICE_RESET, DINO_IF_LINE, 0));
+
+    return PHYMOD_E_NONE;
+}
+
+int dino_phy_prbs_enable_get(const phymod_phy_access_t* phy, uint32_t flags , uint32_t* enable)
+{
+    uint16_t lane = 0;
+    uint16_t lane_mask = 0;
+    uint16_t if_side = 0;
+    const phymod_access_t *pa = &phy->access;
+
+    lane_mask = PHYMOD_ACC_LANE_MASK(pa);
+    DINO_GET_INTF_SIDE(phy, if_side);
+
+    for (lane = 0; lane < DINO_MAX_LANE; lane ++) {
+        if ((lane_mask & (1 << lane))) {
+            PHYMOD_IF_ERR_RETURN (
+                _dino_set_slice_reg (pa, DINO_SLICE_UNICAST, if_side, lane));
+            PHYMOD_IF_ERR_RETURN(
+                _dino_phy_prbs_enable_get(pa, flags, if_side, lane, enable));
+            break;
+        }
+    }
+    PHYMOD_IF_ERR_RETURN (
+        _dino_set_slice_reg (pa, DINO_SLICE_RESET, DINO_IF_LINE, 0));
+
+    return PHYMOD_E_NONE;
+}
+
+int dino_phy_prbs_status_get(const phymod_phy_access_t* phy, uint32_t flags, phymod_prbs_status_t* prbs_status)
+{
+    uint16_t lane = 0;
+    uint16_t lane_mask = 0;
+    uint16_t if_side = 0;
+    const phymod_access_t *pa = &phy->access;
+
+    lane_mask = PHYMOD_ACC_LANE_MASK(pa);
+    DINO_GET_INTF_SIDE(phy, if_side);
+
+    prbs_status->prbs_lock = 1;
+    prbs_status->prbs_lock_loss = 1;
+    prbs_status->error_count = 0;
+
+    for (lane = 0; lane < DINO_MAX_LANE; lane ++) {
+        if ((lane_mask & (1 << lane))) {
+            PHYMOD_IF_ERR_RETURN (
+                _dino_set_slice_reg (pa, DINO_SLICE_UNICAST, if_side, lane));
+            PHYMOD_IF_ERR_RETURN(
+                _dino_phy_prbs_status_get(pa, flags, if_side, lane, prbs_status));
+        }
+    }
+    PHYMOD_IF_ERR_RETURN (
+        _dino_set_slice_reg (pa, DINO_SLICE_RESET, DINO_IF_LINE, 0));
+
+    return PHYMOD_E_NONE; 
+}
+
+int dino_core_diagnostics_get(const phymod_core_access_t* core, phymod_core_diagnostics_t* diag)
+{
+    phymod_phy_access_t phy;
+    const phymod_access_t *pa = &core->access;
+    uint16_t lane_mask = 0;
+    uint16_t if_side = 0; 
+    uint16_t lane = 0;
+
+    PHYMOD_MEMCPY(&phy, core, sizeof(phymod_core_access_t));
+    lane_mask = PHYMOD_ACC_LANE_MASK(pa);
+    DINO_GET_INTF_SIDE((&phy), if_side);
+
+    for (lane = 0; lane < DINO_MAX_LANE; lane ++) {
+        if ((lane_mask & (1 << lane))) {
+            PHYMOD_IF_ERR_RETURN (
+                _dino_set_slice_reg (pa, DINO_SLICE_UNICAST, if_side, lane));
+            PHYMOD_IF_ERR_RETURN(
+                _dino_core_diagnostics_get(pa, if_side, lane, diag));
+            break;
+        }
+    }
+    PHYMOD_IF_ERR_RETURN (
+        _dino_set_slice_reg (pa, DINO_SLICE_RESET, DINO_IF_LINE, 0));
+
+    return PHYMOD_E_NONE;
+}
+
+int dino_phy_diagnostics_get(const phymod_phy_access_t* phy, phymod_phy_diagnostics_t* diag)
+{
+    uint16_t lane = 0;
+    uint16_t lane_mask = 0;
+    uint16_t if_side = 0;
+    const phymod_access_t *pa = &phy->access;
+
+    lane_mask = PHYMOD_ACC_LANE_MASK(pa);
+    DINO_GET_INTF_SIDE(phy, if_side);
+
+    PHYMOD_DEBUG_VERBOSE(("**********************************************\n"));
+    PHYMOD_DEBUG_VERBOSE(("******* PHY status dump for PHY ID:%d ********\n", pa->addr));
+    PHYMOD_DEBUG_VERBOSE(("**********************************************\n"));
+    PHYMOD_DEBUG_VERBOSE(("**** PHY status dump for interface side:%d ****\n", if_side));
+    PHYMOD_DEBUG_VERBOSE(("***********************************************\n"));
+
+    for (lane = 0; lane < DINO_MAX_LANE; lane ++) {
+        if ((lane_mask & (1 << lane))) {
+            PHYMOD_IF_ERR_RETURN (
+                _dino_set_slice_reg (pa, DINO_SLICE_UNICAST, if_side, lane));
+            PHYMOD_IF_ERR_RETURN(
+                _dino_phy_diagnostics_get(pa, if_side, lane, diag));
+        }
+    }
+    PHYMOD_IF_ERR_RETURN (
+        _dino_set_slice_reg (pa, DINO_SLICE_RESET, DINO_IF_LINE, 0));
+
+    return PHYMOD_E_NONE;
+}
+
+int dino_phy_eyescan_run (const phymod_phy_access_t* phy, uint32_t flags, phymod_eyescan_mode_t mode, const phymod_phy_eyescan_options_t* eyescan_options)
+{
+    uint16_t lane = 0;
+    uint16_t lane_mask = 0;
+    uint16_t if_side = 0;
+    const phymod_access_t *pa = &phy->access;
+
+    lane_mask = PHYMOD_ACC_LANE_MASK(pa);
+    DINO_GET_INTF_SIDE(phy, if_side);
+
+    PHYMOD_DEBUG_VERBOSE(("**********************************************\n"));
+    PHYMOD_DEBUG_VERBOSE(("******* PHY status dump for PHY ID:%d ********\n", pa->addr));
+    PHYMOD_DEBUG_VERBOSE(("**********************************************\n"));
+    PHYMOD_DEBUG_VERBOSE(("**** PHY status dump for interface side:%d ****\n", if_side));
+    PHYMOD_DEBUG_VERBOSE(("***********************************************\n"));
+
+    for (lane = 0; lane < DINO_MAX_LANE; lane ++) {
+        if ((lane_mask & (1 << lane))) {
+            PHYMOD_IF_ERR_RETURN (
+                _dino_set_slice_reg (pa, DINO_SLICE_UNICAST, if_side, lane));
+            if (PHYMOD_EYESCAN_F_DONE_GET(flags)) {
+                switch(mode) {
+                case phymodEyescanModeFast:
+                    PHYMOD_IF_ERR_RETURN (
+                       _dino_phy_display_eyescan(pa, if_side, lane));
+                 break;
+                case phymodEyescanModeBERProj:
+                    PHYMOD_IF_ERR_RETURN (
+                      _dino_ber_proj(phy, if_side, lane, eyescan_options));
+                 break;
+                default:
+                    PHYMOD_IF_ERR_RETURN (
+                        _dino_phy_display_eyescan(pa, if_side, lane));
+                  break;
+                }
+            } else {
+                return PHYMOD_E_NONE;
+            }
+        }
+    }
+    PHYMOD_IF_ERR_RETURN (
+        _dino_set_slice_reg (pa, DINO_SLICE_RESET, DINO_IF_LINE, 0));
+   
+    return PHYMOD_E_NONE;
+}
+
+int dino_phy_pmd_info_dump(const phymod_phy_access_t* phy, char* type)
+{
+    uint16_t lane = 0;
+    uint16_t lane_mask = 0;
+    uint16_t if_side = 0;
+    const phymod_access_t *pa = &phy->access;
+
+    lane_mask = PHYMOD_ACC_LANE_MASK(pa);
+    DINO_GET_INTF_SIDE(phy, if_side);
+
+    PHYMOD_DEBUG_VERBOSE(("**********************************************\n"));
+    PHYMOD_DEBUG_VERBOSE(("******* PHY status dump for PHY ID:%d ********\n", pa->addr));
+    PHYMOD_DEBUG_VERBOSE(("**********************************************\n"));
+    PHYMOD_DEBUG_VERBOSE(("**** PHY status dump for interface side:%d ****\n", if_side));
+    PHYMOD_DEBUG_VERBOSE(("***********************************************\n"));
+
+    /* For core status dump */
+    for (lane = 0; lane < DINO_MAX_LANE; lane ++) {
+        if ((lane_mask & (1 << lane))) {
+            PHYMOD_IF_ERR_RETURN (
+                _dino_set_slice_reg (pa, DINO_SLICE_UNICAST, if_side, lane));
+            PHYMOD_IF_ERR_RETURN(
+                _dino_phy_status_dump(pa, if_side, lane));
+        }
+    }
+    PHYMOD_IF_ERR_RETURN (
+        _dino_set_slice_reg (pa, DINO_SLICE_RESET, DINO_IF_LINE, 0));
+
+    return PHYMOD_E_NONE;
+}
+
+#endif /* PHYMOD_DINO_SUPPORT */

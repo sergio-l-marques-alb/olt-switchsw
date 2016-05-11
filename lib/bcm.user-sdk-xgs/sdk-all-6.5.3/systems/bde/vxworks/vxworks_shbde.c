@@ -1,0 +1,133 @@
+/*
+ * $Id: $
+ * $Copyright: Copyright 2016 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ *
+ */
+
+#include <vxWorks.h>
+#include <string.h>
+
+#include <sal/appl/pci.h>
+
+#include <shbde.h>
+#include <shbde_iproc.h>
+#include "vxworks_shbde.h"
+
+/* Hardware abstractions for shared BDE functions */
+
+static unsigned short
+vxworks_pcic16_read(void *pci_dev, unsigned int addr)
+{
+    pci_dev_t *dev = (pci_dev_t *)pci_dev;
+    UINT16 data;
+
+    pciConfigInWord(dev->busNo, dev->devNo, dev->funcNo, addr, &data);
+    return data;
+}
+
+static void
+vxworks_pcic16_write(void *pci_dev, unsigned int addr, unsigned short data)
+{
+    pci_dev_t *dev = (pci_dev_t *)pci_dev;
+
+    pciConfigOutWord(dev->busNo, dev->devNo, dev->funcNo, addr, data);
+}
+
+static unsigned int
+vxworks_pcic32_read(void *pci_dev, unsigned int addr)
+{
+    pci_dev_t *dev = (pci_dev_t *)pci_dev;
+    UINT32 data;
+
+    pciConfigInLong(dev->busNo, dev->devNo, dev->funcNo, addr, &data);
+    return data;
+}
+
+static void
+vxworks_pcic32_write(void *pci_dev, unsigned int addr, unsigned int data)
+{
+    pci_dev_t *dev = (pci_dev_t *)pci_dev;
+
+    pciConfigOutLong(dev->busNo, dev->devNo, dev->funcNo, addr, data);
+}
+
+static unsigned int
+vxworks_io32_read(void *addr)
+{
+    return *((volatile UINT32 *)addr);
+}
+
+static void
+vxworks_io32_write(void *addr, unsigned int data)
+{
+    *((volatile UINT32 *)addr) = data;
+}
+
+/*
+ * Function:
+ *      vxworks_shbde_hal_init
+ * Purpose:
+ *      Initialize hardware abstraction module for Vxworks kernel.
+ * Parameters:
+ *      shbde - pointer to uninitialized hardware abstraction module
+ *      log_func - optional log output function
+ * Returns:
+ *      Always 0
+ */
+int
+vxworks_shbde_hal_init(shbde_hal_t *shbde, shbde_log_func_t log_func)
+{
+    memset(shbde, 0, sizeof(*shbde));
+
+    shbde->log_func = log_func;
+
+    shbde->pcic16_read = vxworks_pcic16_read;
+    shbde->pcic16_write = vxworks_pcic16_write;
+    shbde->pcic32_read = vxworks_pcic32_read;
+    shbde->pcic32_write = vxworks_pcic32_write;
+
+    shbde->io32_read = vxworks_io32_read;
+    shbde->io32_write = vxworks_io32_write;
+
+    return 0;
+}

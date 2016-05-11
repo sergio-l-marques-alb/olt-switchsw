@@ -1,0 +1,1709 @@
+/* $Id: arad_pp_oam.c,v 1.111 Broadcom SDK $
+ * $Copyright: Copyright 2016 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ * $
+*/
+
+#ifdef _ERR_MSG_MODULE_NAME
+  #error "_ERR_MSG_MODULE_NAME redefined"
+#endif
+#define _ERR_MSG_MODULE_NAME BSL_SOC_OAM
+
+/*************
+ * INCLUDES  *
+ *************/
+/* { */
+
+#include <shared/bsl.h>
+#include <shared/swstate/access/sw_state_access.h>
+#include <soc/dcmn/error.h>
+#include <soc/dpp/SAND/Utils/sand_header.h>
+
+#include <soc/dpp/SAND/Management/sand_general_macros.h>
+#include <soc/dpp/SAND/Management/sand_error_code.h>
+#include <soc/dpp/SAND/Utils/sand_os_interface.h>
+
+#include <soc/mcm/memregs.h>
+#include <soc/mcm/memacc.h>
+#include <soc/mem.h>
+
+#include <soc/dpp/ARAD/arad_chip_regs.h>
+#include <soc/dpp/ARAD/arad_reg_access.h>
+#include <soc/dpp/ARAD/arad_tbl_access.h>
+#include <soc/dpp/mbcm_pp.h>
+
+
+#include <soc/dpp/JER/JER_PP/jer_pp_oam.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_oam.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_oamp_pe.h>
+#include <soc/dpp/PPC/ppc_api_oam.h>
+#include <soc/dpp/dpp_wb_engine.h>
+#include <bcm_int/common/debug.h>
+
+
+/* } */
+/*************
+ * DEFINES   *
+ *************/
+/* { */
+
+
+
+/* mp_type_entry is a concatination of the bits OAM-is-BFD, MDL-MP-Type(2), Above-MDL-MEP-Bitmap-OR*/
+#define _JER_PP_OAM_MP_TYPE_MAP_IS_BFD(mp_type_entry) (mp_type_entry >>3)
+#define _JER_PP_OAM_MP_TYPE_MAP_MDL_MP_TYPE(mp_type_entry) ((mp_type_entry>>1) &0x3)
+#define _JER_PP_OAM_MP_TYPE_MAP_ABOVE_MDL_MEP_BITMAP_OR(mp_type_entry) (mp_type_entry & 0x1) 
+#define _JER_PP_OAM_PTCH_OPAQUE_VALUE 7
+
+
+/**
+ * Write on the table EPNI_CFG_MAPPING_TO_OAM_PCP according to 
+ * tc and outlif profile. 
+ *  The index  used is  {TC, OAM-LIF-Profile(2)}.
+ */
+#define JER_PP_OAM_SET_EGRESS_OAM_PCP_BY_OUTLIF_PROFILE_AND_TC(outlif_prof, packet_tc, oam_pcp) \
+    do {\
+    uint32 reg32=0; \
+        soc_EPNI_CFG_MAPPING_TO_OAM_PCPm_field32_set(unit,&reg32,CFG_MAPPING_TO_OAM_PCPf, (oam_pcp) );\
+        rv = WRITE_EPNI_CFG_MAPPING_TO_OAM_PCPm(unit,SOC_CORE_ALL,(((outlif_prof) & 0x3) | (((packet_tc) & 0x7) <<2)),&reg32 );\
+        SOCDNX_IF_ERR_EXIT(rv);\
+} while (0)
+    
+/** MP Profile statically allocated for forwarding packets */
+#define JER_PP_OAM_DEFAULT_FORWARD_MP_PROFILE (SOC_PPC_OAM_NON_ACC_PROFILES_ARAD_PLUS_NUM-1)
+
+/* } */
+/*************
+ * MACROS    *
+ *************/
+/* { */
+
+/* Sets the MP-Map according to the MD-Level for an ingress default endpoint (clears the map if _mdl<0)*/
+#define JER_PP_OAM_DEFAULT_INGRESS_MEP_MDL_SET(_mep_index, _mdl, _reg64) \
+            do { \
+                    int _i = 16 * ((_mep_index) - ARAD_PP_OAM_DEFAULT_EP_INGRESS_0); \
+                    int _j, mdl = (_mdl); \
+                    for (_j=0; _j<=mdl; _j++) { \
+                        COMPILER_64_BITSET(_reg64, _i+(2*_j)); \
+                    } \
+                    for (; _j<8; _j++) { \
+                        COMPILER_64_BITCLR(_reg64, _i+(2*_j)); \
+                    } \
+            } while (0)
+
+/* Sets the MP-Map according to the MD-Level for an egress default endpoint (clears the map if _mdl<0)*/
+#define JER_PP_OAM_DEFAULT_EGRESS_MEP_MDL_SET(_mep_index, _mdl, _reg64) \
+            do { \
+                    int _i = 16 * ((_mep_index) - ARAD_PP_OAM_DEFAULT_EP_EGRESS_0); \
+                    int _j, mdl = (_mdl); \
+                    for (_j=0; _j<=mdl; _j++) { \
+                        COMPILER_64_BITSET(_reg64, _i+(2*_j)+1); \
+                    } \
+                    for (; _j<8; _j++) { \
+                        COMPILER_64_BITCLR(_reg64, _i+(2*_j)+1); \
+                    } \
+            } while (0)
+
+/*
+ The Key to the RSP TCAM is composed of Y-1731 (1b), { Y.1731 ? 0 (8b),OpCode (8b) : channel (16b) }
+ Macro builds the TCAM key according to the above encoding.
+*/
+#define RSP_TCAM_KEY_SET(key, y1731, channel_or_opcode) \
+	do {\
+    uint32 y1731__ = (y1731) , opcode__ = (channel_or_opcode);\
+	key=0;\
+    SHR_BITCOPY_RANGE(&key, 16,&y1731__, 0,1);\
+	SHR_BITCOPY_RANGE(&key, 0,&opcode__, 0,16);\
+} while (0)
+
+#define RSP_TCAM_OPCODE_TO_OAM_TS_FORMAT(opcode)\
+    (((opcode)==SOC_PPC_OAM_ETHERNET_PDU_OPCODE_LMM) || ((opcode)==SOC_PPC_OAM_ETHERNET_PDU_OPCODE_SLM))? _ARAD_PP_OAM_SUBTYPE_LM : \
+     ((opcode)==SOC_PPC_OAM_ETHERNET_PDU_OPCODE_DMM)?_ARAD_PP_OAM_SUBTYPE_DM_1588 :\
+    _ARAD_PP_OAM_SUBTYPE_DEFAULT
+
+/*
+The Data in the RSP_TCAM is composed of  valid (1), OAM-TS-format (2),  opcode_or_channel_type (16) 
+For OAM-TS format use macro RSP_TCAM_OPCODE_TO_OAM_TS_FORMAT*/
+#define RSP_TCAM_DATA_SET(data, generate_response, oam_ts_format, opcode_or_channel_type)\
+do {\
+    uint32 opcode__ = (opcode_or_channel_type), gen__ = (generate_response), format__ = (oam_ts_format); \
+    data=0;\
+    SHR_BITCOPY_RANGE(&data,0,&opcode__,0,16);\
+    SHR_BITCOPY_RANGE(&data,16,&format__,0,2);\
+    SHR_BITCOPY_RANGE(&data,18,&gen__,0,1);\
+} while (0)
+
+
+/**
+ * Translate ARAD_PP_OAM_DEFAULT_EP_EGRESS_X to X 
+ */
+#define JER_PP_OAM_EGRESS_DEFAULT_PROFILE_ENUM_TO_DEFAULT_PROF(egress_default_prof_enum) \
+    (egress_default_prof_enum - ARAD_PP_OAM_DEFAULT_EP_EGRESS_0)
+
+
+
+/* } */
+/*************
+ * TYPE DEFS *
+ *************/
+/* { */
+/*
+ * Struct represents fields from PPH BASE 
+ */
+ 
+typedef struct {
+    uint8   field1;
+    uint8   field2;
+    uint8   field3;
+    uint8   field4;
+    uint8   field5;
+    uint8   field6;
+    uint8   field7;
+    uint8   field8;
+    uint16  field9;
+    uint32  field10; 
+} PPH_base_head;
+
+
+
+/* } */
+/*************
+ * GLOBALS   *
+ *************/
+/* { */
+
+
+/* } */
+/*************
+ * FUNCTIONS *
+ *************/
+/* { */
+
+/**********************************************/ 
+/*                   static functions declerations*/
+/**********************************************/ 
+
+STATIC soc_error_t _soc_jer_pp_oam_set_opcode_n_table(int unit);
+STATIC soc_error_t soc_jer_pp_oam_classifier_oam1_passive_entries_add(int unit);
+STATIC soc_error_t soc_jer_pp_oam_classifier_oam1_default_forward_entries_add(int unit);
+STATIC soc_error_t soc_jer_pp_oam_init_response_table(int unit);
+STATIC soc_error_t soc_jer_pp_oam_mp_type_config_init(int unit);
+/**********************************************/ 
+/* *****************************************    */              
+/**********************************************/ 
+
+/**
+ * Clear the table OAMP_DM_TRIGER
+ * 
+ * @author atanasov (12/23/2015)
+ * 
+ * @param unit 
+ * 
+ * @return STATIC soc_error_t 
+ */
+STATIC soc_error_t soc_jer_pp_dm_triger_init(int unit){
+    int rv;
+    uint32 reg32;
+    uint32 write_val = 1;
+    SOCDNX_INIT_FUNC_DEFS;
+
+    rv = WRITE_OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr(unit, write_val);
+    SOCDNX_IF_ERR_EXIT(rv);
+
+    reg32 = 0;
+
+    rv = WRITE_OAMP_DM_TRIGERm(unit, MEM_BLOCK_ALL, 0, &reg32);
+    SOCDNX_IF_ERR_EXIT(rv);
+
+    write_val = 0;
+
+    rv = WRITE_OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr(unit, write_val);
+    SOCDNX_IF_ERR_EXIT(rv);
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+            
+
+soc_error_t soc_jer_pp_oam_init(int unit){
+    int rv;
+    uint32 reg32[1];
+    soc_reg_above_64_val_t reg_above_64;
+    int use_pcp_from_packet;
+    int core;
+    uint8 tc, outlif_profile;
+    SOCDNX_INIT_FUNC_DEFS; 
+
+    if (SOC_IS_JERICHO_AND_BELOW(unit)) {
+        rv = soc_jer_pp_oam_mp_type_config_init(unit);
+        SOCDNX_IF_ERR_EXIT(rv);
+    }
+
+    rv = soc_jer_pp_dm_triger_init(unit);
+    SOCDNX_IF_ERR_EXIT(rv); 
+
+    /* BASE MAC SA FILL. Always zero.*/
+    rv = READ_OAMP_CCM_MAC_SAr(unit,reg_above_64);
+    SOCDNX_IF_ERR_EXIT(rv);
+    soc_reg_above_64_field32_set(unit,OAMP_CCM_MAC_SAr,reg_above_64,BASE_MAC_SA_FILLf,0);
+    rv = WRITE_OAMP_CCM_MAC_SAr(unit,reg_above_64);
+    SOCDNX_IF_ERR_EXIT(rv);
+
+    rv = READ_OAMP_UP_PTCHr(unit,reg32);
+    SOCDNX_IF_ERR_EXIT(rv);
+    soc_reg_field_set(unit,OAMP_UP_PTCHr, reg32, UP_PTCH_OPAQUE_PT_ATTR_PROFILE_0f, 0x7);
+    soc_reg_field_set(unit,OAMP_UP_PTCHr, reg32, UP_PTCH_OPAQUE_PT_ATTR_PROFILE_1f, 0x7);
+    soc_reg_field_set(unit,OAMP_UP_PTCHr, reg32, UP_PTCH_OPAQUE_PT_ATTR_MODEf, 0);/*use the MAC SA in the sensible way.*/
+    rv = WRITE_OAMP_UP_PTCHr(unit,*reg32);
+    SOCDNX_IF_ERR_EXIT(rv);
+
+    rv = _soc_jer_pp_oam_set_opcode_n_table(unit);
+    SOCDNX_IF_ERR_EXIT(rv);
+
+
+    use_pcp_from_packet = soc_property_get(unit, spn_OAM_PCP_VALUE_EXTRACT_FROM_PACKET, 1); /* default: use PCP from packet*/
+    SOC_DPP_CORES_ITER(SOC_CORE_ALL, core) {
+		/* PCP configurations.*/
+        rv = READ_IHP_VTT_GENERAL_CONFIGS_1r_REG32(unit,core,reg32);
+        SOCDNX_IF_ERR_EXIT(rv);
+        soc_reg_field_set(unit,IHP_VTT_GENERAL_CONFIGS_1r,reg32,OAM_USE_PACKET_PCPf,use_pcp_from_packet );
+        rv = WRITE_IHP_VTT_GENERAL_CONFIGS_1r_REG32(unit,core,*reg32);
+        SOCDNX_IF_ERR_EXIT(rv);
+
+		rv = READ_IHP_FLP_GENERAL_CFGr(unit,core,reg_above_64);
+		SOCDNX_IF_ERR_EXIT(rv);
+		/* Use Arad mode OAM-ID */
+		soc_reg_above_64_field32_set(unit,IHP_FLP_GENERAL_CFGr,reg_above_64,OAM_ID_ARAD_MODEf,1 );
+		/* Non OAM packets get subtype 0 (not the one defined in IHP_OAM_COUNTER_INCREMENT_BITMAPr*/
+		soc_reg_above_64_field32_set(unit,IHP_FLP_GENERAL_CFGr,reg_above_64,EGRESS_NON_OAM_PACKET_SUB_TYPEf,0 );
+		rv = WRITE_IHP_FLP_GENERAL_CFGr(unit,core,reg_above_64);
+		SOCDNX_IF_ERR_EXIT(rv);
+
+    }
+
+    /* IP TOS to PCP, DS to PCP used only by RFC-6374. Not implemented.*/
+
+    /*Set the Egress PCP setting (configured statically).*/
+    for (outlif_profile=0 ; outlif_profile < 0x40  /*all outlif profiles*/ ;++outlif_profile) {
+        /* Mapping of outlif profile (6 bits) to oam-lif-profile (2).
+           */
+        uint32 oam_outlif_profile;
+        rv = MBCM_PP_DRIVER_CALL(unit, mbcm_pp_occ_mgmt_app_get, 
+                                 (unit,SOC_OCC_MGMT_TYPE_OUTLIF, SOC_OCC_MGMT_OUTLIF_APP_OAM_PCP , ((uint32*)&outlif_profile), &oam_outlif_profile));
+        SOCDNX_IF_ERR_EXIT(rv); 
+
+        *reg32=0;
+        soc_EPNI_OUTLIF_TO_OAM_LIF_PROFILE_MAPm_field32_set(unit,reg32,OUTLIF_TO_OAM_LIF_PROFILE_MAPf,oam_outlif_profile);
+        rv = WRITE_EPNI_OUTLIF_TO_OAM_LIF_PROFILE_MAPm(unit, SOC_CORE_ALL, outlif_profile, reg32);
+        SOCDNX_IF_ERR_EXIT(rv); 
+    }
+
+    for (outlif_profile=0 ; outlif_profile < 4  /*2 bit value*/; ++outlif_profile) {
+        for (tc=0 ; tc < 8 /*3 bit value */ ; ++tc) {
+            /* The default mapping will be OAM_PCP = TC | OAM-LIF-Profile(2)*/
+            JER_PP_OAM_SET_EGRESS_OAM_PCP_BY_OUTLIF_PROFILE_AND_TC(outlif_profile, tc, outlif_profile | tc);
+        }
+    }
+
+    /* Turn off Arad+ PCP chicken-bit*/
+    rv = soc_reg_field32_modify(unit, EPNI_CFG_BUG_FIX_CHICKEN_BITS_REG_1r, REG_PORT_ANY,  CFG_OAM_PCP_MAPPING_DISABLEf,  0);
+    SOCDNX_IF_ERR_EXIT(rv); 
+
+    rv = soc_jer_pp_oam_classifier_oam1_passive_entries_add(unit);
+    SOCDNX_IF_ERR_EXIT(rv); 
+
+    rv = soc_jer_pp_oam_classifier_oam1_default_forward_entries_add(unit);
+    SOCDNX_IF_ERR_EXIT(rv);
+
+	if (soc_property_get(unit, spn_ITMH_PROGRAMMABLE_MODE_ENABLE, 0)) {
+
+        soc_reg_t reg = SOC_IS_QAX(unit) ? OAMP_REG_0130r : OAMP_TX_PPHr;
+        soc_field_t field = SOC_IS_QAX(unit) ? FIELD_5_5f : TX_USE_JER_ITMHf;
+		/* Enable Jericho ITMH */
+		/*COMPILER_64_ZERO(reg_64);*/
+        SOCDNX_IF_ERR_EXIT(soc_reg_field32_modify(unit, reg, REG_PORT_ANY,field, 1));
+        /*
+        rv =  READ_OAMP_TX_PPHr(unit, &reg_64);
+        SOCDNX_IF_ERR_EXIT(rv); 
+		soc_reg64_field32_set(unit, OAMP_TX_PPHr, &reg_64, TX_USE_JER_ITMHf, 1);
+        SOCDNX_IF_ERR_EXIT(WRITE_OAMP_TX_PPHr(unit, reg_64)); 
+        */ 
+	}
+
+	rv = soc_jer_pp_oam_init_response_table(unit);
+    SOCDNX_IF_ERR_EXIT(rv); 
+
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+/* ****************************************************************************/
+/*****************************************************************************/
+
+
+soc_error_t soc_jer_pp_oam_oem1_mep_add(
+        int unit,
+        const SOC_PPC_OAM_CLASSIFIER_MEP_ENTRY   *classifier_mep_entry,
+        const SOC_PPC_OAM_CLASSIFIER_OEM1_ENTRY_PAYLOAD * prev_payload,
+        SOC_PPC_OAM_CLASSIFIER_OEM1_ENTRY_PAYLOAD * new_payload,
+        uint8 is_active,
+        uint8 update) {
+    int is_mep,is_upmep;
+    uint8 prev_mdl_mp_type, new_mdl_mp_type;
+    uint32 new_mp_type_vector;
+    SOCDNX_INIT_FUNC_DEFS;
+
+    is_mep = ((classifier_mep_entry->flags & SOC_PPC_OAM_CLASSIFIER_MEP_ENTRY_FLAG_ENDPOINT)!= 0);
+    is_upmep = ((classifier_mep_entry->flags & SOC_PPC_OAM_CLASSIFIER_MEP_ENTRY_FLAG_UPMEP)!= 0);
+
+    /* first: Get the relavent MDL-MP-Type, by level */
+    prev_mdl_mp_type = JERICHO_PP_OAM_EXTRACT_MDL_MP_TYPE_FROM_MP_TYPE_VECTOR_BY_LEVEL(prev_payload->mp_type_vector, classifier_mep_entry->md_level);
+    if ( (prev_mdl_mp_type==_JER_PP_OAM_MDL_MP_TYPE_MIP || prev_mdl_mp_type==_JER_PP_OAM_MDL_MP_TYPE_ACTIVE_MATCH) 
+         && !update) {
+        SOCDNX_EXIT_WITH_ERR(SOC_E_EXISTS,
+                         (_BSL_SOCDNX_MSG("Only one MEP/MIP per Level per LIF may be defined.")));
+    }
+    new_mdl_mp_type = (!is_mep)? _JER_PP_OAM_MDL_MP_TYPE_MIP : (is_active)? _JER_PP_OAM_MDL_MP_TYPE_ACTIVE_MATCH : 
+        _JER_PP_OAM_MDL_MP_TYPE_PASSIVE_MATCH;
+
+    new_mp_type_vector = prev_payload->mp_type_vector;
+
+    JERICHO_PP_OAM_SET_MDL_MP_TYPE_VECTOR_BY_LEVEL(new_mp_type_vector,new_mdl_mp_type,classifier_mep_entry->md_level  );
+    
+    new_payload->mp_type_vector =new_mp_type_vector;
+    if (is_mep) {
+        new_payload->mp_profile = is_active ? classifier_mep_entry->non_acc_profile : prev_payload->mp_profile; /* For passive entries the mp profile doesn't matter. 
+                                                                                                                                                                     Assume the existing value (or zero if none exists)*/
+    } else {
+        /* for MIPs the "passive" profile is also active, just on the other side.*/
+        new_payload->mp_profile = is_active ? classifier_mep_entry->non_acc_profile : classifier_mep_entry->non_acc_profile_passive;
+    }
+
+
+    /* User allocates 2 counters per endpoint (LIF): one for the ingress and one for the egress.*/
+    /* Ingress gets counter given by the API, egress gets counter + 1*/
+    new_payload->counter_ndx = classifier_mep_entry->counter + ((is_upmep && !is_active) || (!is_upmep && is_active)); 
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+/*
+ * soc_jer_pp_oam_set_inlif_profile_map
+ * Adds a mapping from an inlif profile (4b) to an OAM lif profile (2b)
+ */
+soc_error_t
+  soc_jer_pp_oam_inlif_profile_map_set(
+     SOC_SAND_IN  int                                                  unit,
+     SOC_SAND_IN  uint32                                               inlif_profile,
+     SOC_SAND_IN  uint32                                               oam_profile
+  ) {
+    uint32 profile_map;
+    int core;
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    SOC_DPP_CORES_ITER(SOC_CORE_ALL, core) {
+        SOCDNX_IF_ERR_EXIT(READ_IHP_OAM_IN_LIF_PROFILE_MAPr(unit, core, &profile_map));
+        SHR_BITCOPY_RANGE(&profile_map, (inlif_profile * 2), &oam_profile, 0, 2);
+        SOCDNX_IF_ERR_EXIT(WRITE_IHP_OAM_IN_LIF_PROFILE_MAPr(unit, core, profile_map));
+    }
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+
+soc_error_t
+  soc_jer_pp_oam_inlif_profile_map_get(
+     SOC_SAND_IN  int                                                  unit,
+     SOC_SAND_IN  uint32                                               inlif_profile,
+     SOC_SAND_OUT uint32                                               *oam_profile
+  ) {
+    uint32 profile_map;
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    SOCDNX_NULL_CHECK(oam_profile);
+
+    SOCDNX_IF_ERR_EXIT(READ_IHP_OAM_IN_LIF_PROFILE_MAPr(unit, SOC_CORE_DEFAULT, &profile_map));
+    *oam_profile = (profile_map >> (inlif_profile * 2)) & 0x3;
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+
+/*********************************************************************
+ * OAM default profiles add/remove
+ *********************************************************************/
+
+soc_error_t 
+_soc_jer_oam_set_default_egress_profile_by_profile(int unit, 
+                                                   ARAD_PP_OAM_DEFAULT_EP_ID default_egress_prof, 
+                                                   const SOC_PPC_OAM_CLASSIFIER_MEP_ENTRY   *classifier_mep_entry) {
+    soc_field_t default_profile_counters[] = {COUNTER_FOR_EGRESS_PROFILE_0f,COUNTER_FOR_EGRESS_PROFILE_1f,
+        COUNTER_FOR_EGRESS_PROFILE_2f,COUNTER_FOR_EGRESS_PROFILE_3f};
+    soc_reg_above_64_val_t reg_above_64;
+    uint64 reg64;
+    int core;
+    SOCDNX_INIT_FUNC_DEFS;
+
+    SOC_REG_ABOVE_64_CLEAR(reg_above_64);
+    COMPILER_64_SET(reg64, 0, 0);
+
+    if (default_egress_prof < ARAD_PP_OAM_DEFAULT_EP_EGRESS_0) {
+        SOCDNX_EXIT_WITH_ERR(SOC_E_INTERNAL,
+                             (_BSL_SOCDNX_MSG("INTERNAL: function only for egress profile")));
+    }
+
+    SOC_DPP_CORES_ITER(SOC_CORE_ALL, core) {
+        /* Set counter index for given OAM-lif-profile*/
+        SOCDNX_IF_ERR_EXIT(READ_IHP_OAM_DEFAULT_COUNTERSr(unit, core, reg_above_64));
+        soc_reg_above_64_field32_set(unit, IHP_OAM_DEFAULT_COUNTERSr, 
+                                     reg_above_64, default_profile_counters[JER_PP_OAM_EGRESS_DEFAULT_PROFILE_ENUM_TO_DEFAULT_PROF(default_egress_prof)], 
+                                     classifier_mep_entry->counter);
+        SOCDNX_IF_ERR_EXIT(WRITE_IHP_OAM_DEFAULT_COUNTERSr(unit, core, reg_above_64)); 
+
+        /* For egress default mp-map - set the first MDL odd bits in each OAM-lif-profiles and clear all the other odd bits */
+        SOCDNX_IF_ERR_EXIT(READ_IHP_OAM_DEFAULT_MP_TYPE_VECTORr(unit, core, &reg64));
+        JER_PP_OAM_DEFAULT_EGRESS_MEP_MDL_SET(default_egress_prof, classifier_mep_entry->md_level, reg64);
+        SOCDNX_IF_ERR_EXIT(WRITE_IHP_OAM_DEFAULT_MP_TYPE_VECTORr(unit, core, reg64)); 
+    }
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+
+
+soc_error_t
+  soc_jer_pp_oam_classifier_default_profile_add(
+    SOC_SAND_IN  int                                unit,
+    SOC_SAND_IN  ARAD_PP_OAM_DEFAULT_EP_ID          mep_index,
+    SOC_SAND_IN  SOC_PPC_OAM_CLASSIFIER_MEP_ENTRY   *classifier_mep_entry,
+    SOC_SAND_IN  uint8                              update_action_only
+  )
+{
+    int rv;
+    int core;
+
+    uint64 reg64;
+    soc_reg_above_64_val_t reg_above_64;
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    SOCDNX_NULL_CHECK(classifier_mep_entry);
+
+    SOC_REG_ABOVE_64_CLEAR(reg_above_64);
+
+    if (!update_action_only) {
+        if (mep_index >= ARAD_PP_OAM_DEFAULT_EP_EGRESS_0) {
+            /* Egress */
+            if (!SOC_IS_JERICHO_B0_AND_ABOVE(unit)) {
+                /* Due to HW bug, the outlif profile isn't reaching the classifier. A single default endpoint is available in the egress
+                   by setting the same mp-map to all possible outlif profiles */
+                ARAD_PP_OAM_DEFAULT_EP_ID ep_mep_index;
+                for (ep_mep_index = ARAD_PP_OAM_DEFAULT_EP_EGRESS_0; ep_mep_index < ARAD_PP_OAM_DEFAULT_EP_NOF_IDS; ++ep_mep_index) {
+                    SOCDNX_IF_ERR_EXIT(_soc_jer_oam_set_default_egress_profile_by_profile(unit, ep_mep_index, classifier_mep_entry));
+                }
+            } else {
+                SOCDNX_IF_ERR_EXIT(_soc_jer_oam_set_default_egress_profile_by_profile(unit, mep_index, classifier_mep_entry));
+            }
+
+        } /* Egress end */
+        else {
+            /* Ingress */
+
+            SOC_DPP_CORES_ITER(SOC_CORE_ALL, core) {
+                /* Set counter index */
+                SOCDNX_IF_ERR_EXIT(READ_IHP_OAM_DEFAULT_COUNTERSr(unit, core, reg_above_64));
+                soc_reg_above_64_field32_set(unit, IHP_OAM_DEFAULT_COUNTERSr, reg_above_64, COUNTER_FOR_INGRESS_PROFILE_0f + (int)mep_index,
+                                             classifier_mep_entry->counter);
+                SOCDNX_IF_ERR_EXIT(WRITE_IHP_OAM_DEFAULT_COUNTERSr(unit, core, reg_above_64));
+
+                /* Set MP map - Set the first MDL even bits for the specific OAM-lif-profile */
+                SOCDNX_IF_ERR_EXIT(READ_IHP_OAM_DEFAULT_MP_TYPE_VECTORr(unit, core, &reg64));
+                JER_PP_OAM_DEFAULT_INGRESS_MEP_MDL_SET(mep_index, classifier_mep_entry->md_level, reg64);
+                SOCDNX_IF_ERR_EXIT(WRITE_IHP_OAM_DEFAULT_MP_TYPE_VECTORr(unit, core, reg64));
+            }
+        }
+    }
+
+    rv = soc_jer_pp_oam_classifier_default_profile_action_set(unit,mep_index,classifier_mep_entry);
+    SOCDNX_IF_ERR_EXIT(rv);
+
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+
+soc_error_t
+  soc_jer_pp_oam_classifier_default_profile_remove(
+    SOC_SAND_IN  int                                unit,
+    SOC_SAND_IN  ARAD_PP_OAM_DEFAULT_EP_ID          mep_index
+  ) {
+    uint64 reg64;
+    uint32 eg_mep_idx;
+    int core;
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    if (mep_index >= ARAD_PP_OAM_DEFAULT_EP_EGRESS_0) {
+        /* Egress */
+
+        SOC_DPP_CORES_ITER(SOC_CORE_ALL, core) {
+            /* Clear all odd bits */
+            SOCDNX_IF_ERR_EXIT(READ_IHP_OAM_DEFAULT_MP_TYPE_VECTORr(unit, core, &reg64));
+            for (eg_mep_idx=ARAD_PP_OAM_DEFAULT_EP_EGRESS_0; eg_mep_idx<=ARAD_PP_OAM_DEFAULT_EP_EGRESS_3; eg_mep_idx++) {
+                JER_PP_OAM_DEFAULT_EGRESS_MEP_MDL_SET(eg_mep_idx, -1, reg64);
+            }
+            SOCDNX_IF_ERR_EXIT(WRITE_IHP_OAM_DEFAULT_MP_TYPE_VECTORr(unit, core, reg64));
+        }
+
+    }
+    else {
+        /* Ingress */
+
+        SOC_DPP_CORES_ITER(SOC_CORE_ALL, core) {
+            /* Clear even bits for the specific OAM-lif-profile */
+            SOCDNX_IF_ERR_EXIT(READ_IHP_OAM_DEFAULT_MP_TYPE_VECTORr(unit, core, &reg64));
+            JER_PP_OAM_DEFAULT_INGRESS_MEP_MDL_SET(mep_index, -1, reg64);
+            SOCDNX_IF_ERR_EXIT(WRITE_IHP_OAM_DEFAULT_MP_TYPE_VECTORr(unit, core, reg64));
+        }
+    }
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+
+soc_error_t
+  soc_jer_pp_oam_classifier_default_profile_action_set(
+    SOC_SAND_IN  int                                unit,
+    SOC_SAND_IN  ARAD_PP_OAM_DEFAULT_EP_ID          mep_index,
+    SOC_SAND_IN  SOC_PPC_OAM_CLASSIFIER_MEP_ENTRY   *classifier_mep_entry
+  )
+{
+    uint32 reg32;
+    int core;
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    SOCDNX_NULL_CHECK(classifier_mep_entry);
+
+    if (mep_index >= ARAD_PP_OAM_DEFAULT_EP_EGRESS_0) {
+        /* Egress */
+
+        SOC_DPP_CORES_ITER(SOC_CORE_ALL, core) {
+            /* Due to HW bug, the outlif profile isn't reaching the classifier. A single default endpoit is available in the egress
+               by setting the same mp-map to all possible outlif profiles */
+
+            /* Set MP-Profile For all egress OAM-Lif-profiles */
+            SOCDNX_IF_ERR_EXIT(READ_IHP_OAM_DEFAULT_ACC_MEP_PROFILESr(unit, core, &reg32));
+            soc_reg_field_set(unit, IHP_OAM_DEFAULT_ACC_MEP_PROFILESr, &reg32, ACC_MEP_PROFILE_FOR_EGRESS_PROFILE_0f,
+                              classifier_mep_entry->non_acc_profile);
+            soc_reg_field_set(unit, IHP_OAM_DEFAULT_ACC_MEP_PROFILESr, &reg32, ACC_MEP_PROFILE_FOR_EGRESS_PROFILE_1f,
+                              classifier_mep_entry->non_acc_profile);
+            soc_reg_field_set(unit, IHP_OAM_DEFAULT_ACC_MEP_PROFILESr, &reg32, ACC_MEP_PROFILE_FOR_EGRESS_PROFILE_2f,
+                              classifier_mep_entry->non_acc_profile);
+            soc_reg_field_set(unit, IHP_OAM_DEFAULT_ACC_MEP_PROFILESr, &reg32, ACC_MEP_PROFILE_FOR_EGRESS_PROFILE_3f,
+                              classifier_mep_entry->non_acc_profile);
+            SOCDNX_IF_ERR_EXIT(WRITE_IHP_OAM_DEFAULT_ACC_MEP_PROFILESr(unit, core, reg32));
+        }
+
+    } /* Egress end */
+    else {
+        /* Ingress */
+
+        SOC_DPP_CORES_ITER(SOC_CORE_ALL, core) {
+            /* Set MP-Profile For The specific relevant OAM-lif-profile */
+            SOCDNX_IF_ERR_EXIT(READ_IHP_OAM_DEFAULT_ACC_MEP_PROFILESr(unit, core, &reg32));
+            soc_reg_field_set(unit, IHP_OAM_DEFAULT_ACC_MEP_PROFILESr, &reg32, ACC_MEP_PROFILE_FOR_INGRESS_PROFILESf + mep_index,
+                              classifier_mep_entry->non_acc_profile);
+            SOCDNX_IF_ERR_EXIT(WRITE_IHP_OAM_DEFAULT_ACC_MEP_PROFILESr(unit, core, reg32));
+        }
+    }
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+
+
+/* ****************************************************************************/
+/*****************************************************************************/
+
+soc_error_t soc_jer_pp_oam_oamp_eth1731_profile_set(
+    int                                 unit,
+    uint8                          profile_indx,
+    const SOC_PPC_OAM_ETH1731_MEP_PROFILE_ENTRY     *eth1731_profile
+  )
+{
+    int rv;
+    soc_reg_above_64_val_t profile_entry;
+    SOCDNX_INIT_FUNC_DEFS;
+
+    SOC_REG_ABOVE_64_CLEAR(profile_entry);
+
+
+    soc_OAMP_MEP_PROFILEm_field32_set(unit,profile_entry, DMM_RATEf, eth1731_profile->dmm_rate);
+    soc_OAMP_MEP_PROFILEm_field32_set(unit,profile_entry, DMM_OFFSETf, eth1731_profile->dmm_offset);
+    soc_OAMP_MEP_PROFILEm_field32_set(unit,profile_entry, DMR_OFFSETf, eth1731_profile->dmr_offset);
+
+    soc_OAMP_MEP_PROFILEm_field32_set(unit, profile_entry, LMM_RATEf, eth1731_profile->lmm_rate);
+    soc_OAMP_MEP_PROFILEm_field32_set(unit, profile_entry, LMM_OFFSETf, eth1731_profile->lmm_offset);
+    soc_OAMP_MEP_PROFILEm_field32_set(unit, profile_entry, LMR_OFFSETf, eth1731_profile->lmr_offset);
+    
+    soc_OAMP_MEP_PROFILEm_field32_set(unit, profile_entry, PIGGYBACK_LMf, eth1731_profile->piggy_back_lm);
+
+    soc_OAMP_MEP_PROFILEm_field32_set(unit, profile_entry, RDI_GEN_METHODf, eth1731_profile->rdi_gen_method);
+
+    soc_OAMP_MEP_PROFILEm_field32_set(unit, profile_entry, LMM_DA_OUI_PROFILEf, eth1731_profile->lmm_da_oui_prof);
+
+    soc_OAMP_MEP_PROFILEm_field32_set(unit, profile_entry, OPCODE_0_RATEf, eth1731_profile->opcode_0_rate);
+    soc_OAMP_MEP_PROFILEm_field32_set(unit, profile_entry, OPCODE_1_RATEf, eth1731_profile->opcode_1_rate);
+
+    if (SOC_IS_QAX(unit)) {
+        
+        soc_OAMP_MEP_PROFILEm_field32_set(unit, profile_entry, REPORT_MODE_DMf, eth1731_profile->report_mode);
+        soc_OAMP_MEP_PROFILEm_field32_set(unit, profile_entry, REPORT_MODE_LMf, eth1731_profile->report_mode);
+    }
+    else {
+        soc_OAMP_MEP_PROFILEm_field32_set(unit, profile_entry, REPORT_MODEf, eth1731_profile->report_mode);
+    }
+    soc_OAMP_MEP_PROFILEm_field32_set(unit, profile_entry, SLM_LMf, eth1731_profile->slm_lm);
+
+    soc_OAMP_MEP_PROFILEm_field32_set(unit, profile_entry, OPCODE_BMAPf, 0xff);/* We can do without this duplicity*/
+
+
+    rv = WRITE_OAMP_MEP_PROFILEm(unit, MEM_BLOCK_ANY,profile_indx, profile_entry );
+    SOCDNX_IF_ERR_EXIT(rv);
+
+    /* set the phase as well*/
+    SOC_REG_ABOVE_64_CLEAR(profile_entry);
+    soc_OAMP_MEP_SCAN_PROFILEm_field32_set(unit,profile_entry,DMM_CNTf,eth1731_profile->dmm_cnt );
+    soc_OAMP_MEP_SCAN_PROFILEm_field32_set(unit,profile_entry,LMM_CNTf,eth1731_profile->lmm_cnt );
+    soc_OAMP_MEP_SCAN_PROFILEm_field32_set(unit,profile_entry,CCM_CNTf, eth1731_profile->ccm_cnt);
+    soc_OAMP_MEP_SCAN_PROFILEm_field32_set(unit,profile_entry,OP_0_CNTf,eth1731_profile->op_0_cnt );
+    soc_OAMP_MEP_SCAN_PROFILEm_field32_set(unit,profile_entry,OP_1_CNTf,eth1731_profile->op_1_cnt );
+    rv = WRITE_OAMP_MEP_SCAN_PROFILEm(unit,MEM_BLOCK_ANY,profile_indx, profile_entry);
+    SOCDNX_IF_ERR_EXIT(rv);
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+/* ****************************************************************************/
+/*****************************************************************************/
+
+soc_error_t soc_jer_pp_oam_oamp_eth1731_profile_get(
+    int                                 unit,
+    uint8                          profile_indx,
+    SOC_PPC_OAM_ETH1731_MEP_PROFILE_ENTRY     *eth1731_profile
+  )
+{
+    int rv;
+    soc_reg_above_64_val_t profile_entry;
+    SOCDNX_INIT_FUNC_DEFS;
+
+    rv = READ_OAMP_MEP_PROFILEm(unit, MEM_BLOCK_ANY,profile_indx, profile_entry );
+    SOCDNX_IF_ERR_EXIT(rv);
+
+    eth1731_profile->dmm_offset  = soc_OAMP_MEP_PROFILEm_field32_get(unit, profile_entry, DMM_OFFSETf);
+    eth1731_profile->dmr_offset  = soc_OAMP_MEP_PROFILEm_field32_get(unit, profile_entry, DMR_OFFSETf);
+    eth1731_profile->dmm_rate  = soc_OAMP_MEP_PROFILEm_field32_get(unit, profile_entry, DMM_RATEf);
+
+    eth1731_profile->lmm_offset  = soc_OAMP_MEP_PROFILEm_field32_get(unit, profile_entry, LMM_OFFSETf);
+    eth1731_profile->lmr_offset  = soc_OAMP_MEP_PROFILEm_field32_get(unit, profile_entry, LMR_OFFSETf);
+    eth1731_profile->lmm_rate  = soc_OAMP_MEP_PROFILEm_field32_get(unit, profile_entry, LMM_RATEf); 
+    eth1731_profile->piggy_back_lm  = soc_OAMP_MEP_PROFILEm_field32_get(unit, profile_entry, PIGGYBACK_LMf); 
+
+
+    eth1731_profile->rdi_gen_method  = soc_OAMP_MEP_PROFILEm_field32_get(unit, profile_entry, RDI_GEN_METHODf); 
+
+    eth1731_profile->lmm_da_oui_prof  = soc_OAMP_MEP_PROFILEm_field32_get(unit, profile_entry, LMM_DA_OUI_PROFILEf);
+
+    
+    eth1731_profile->report_mode  = soc_OAMP_MEP_PROFILEm_field32_get(unit, profile_entry, SOC_IS_QAX(unit) ? REPORT_MODE_DMf : REPORT_MODEf);
+
+
+    SOC_REG_ABOVE_64_CLEAR(profile_entry);
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+/* ****************************************************************************/
+/*****************************************************************************/
+
+
+soc_error_t soc_jer_pp_oam_init_eci_tod(
+   int                                 unit,
+   uint8                                init_ntp,
+   uint8                                init_1588
+   )
+{
+    SOCDNX_INIT_FUNC_DEFS;
+
+    /** NTP  */
+    if (init_ntp) {
+        /* write 0 to control register */
+        SOCDNX_IF_ERR_EXIT(soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_6r, REG_PORT_ANY, 0, TOD_NTP_EVENT_MUX_CONTROLf,  0));
+        SOCDNX_IF_ERR_EXIT(soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_8r, REG_PORT_ANY, 0, TOD_NTP_COUNT_ENABLEf,  0));
+        SOCDNX_IF_ERR_EXIT(soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_8r, REG_PORT_ANY, 0, TOD_NTP_LOAD_ENABLEf,  0));
+        /* write value to frac sec lower register */
+        SOCDNX_IF_ERR_EXIT(soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_6r, REG_PORT_ANY, 0, TOD_NTP_TIME_FRAC_SEC_LOWERf,  0x13576543));
+        /* write value to frac sec upper register */
+        SOCDNX_IF_ERR_EXIT(soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_6r, REG_PORT_ANY, 0, TOD_NTP_TIME_FRAC_SEC_UPPERf,  0x1ffff00));
+        /* write value to frequency register (4 nS in binary fraction) */
+        SOCDNX_IF_ERR_EXIT(soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_6r, REG_PORT_ANY, 0, TOD_NTP_TIME_FREQ_CONTROLf,  0x44b82fa1));
+        /* write value to time sec register  */
+        SOCDNX_IF_ERR_EXIT(soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_6r, REG_PORT_ANY, 0, TOD_NTP_ONE_SECf, 1));
+        SOCDNX_IF_ERR_EXIT(soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_6r, REG_PORT_ANY, 0, TOD_NTP_UPPER_SECf, 0x0804560));
+        /* write to control register to load values */
+        SOCDNX_IF_ERR_EXIT(soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_8r, REG_PORT_ANY, 0, TOD_NTP_LOAD_ONCEf,  1));
+        /* write to control register to enable counter */
+        SOCDNX_IF_ERR_EXIT(soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_8r, REG_PORT_ANY, 0, TOD_NTP_COUNT_ENABLEf,  1));
+    }
+
+    /** IEEE 1588 */
+    if (init_1588) {
+        /* write 0 to control register */
+        SOCDNX_IF_ERR_EXIT(soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_7r, REG_PORT_ANY, 0, TOD_IEEE_1588_EVENT_MUX_CONTROLf,  0));
+        SOCDNX_IF_ERR_EXIT(soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_8r, REG_PORT_ANY, 0, TOD_IEEE_1588_COUNT_ENABLEf,  0));
+        SOCDNX_IF_ERR_EXIT(soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_8r, REG_PORT_ANY, 0, TOD_IEEE_1588_LOAD_ENABLEf,  0));
+        /* write value to frac sec lower register */
+        SOCDNX_IF_ERR_EXIT(soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_7r, REG_PORT_ANY, 0, TOD_IEEE_1588_TIME_FRAC_SEC_LOWERf,  0x13576543));
+        /* write value to frac sec upper register */
+        SOCDNX_IF_ERR_EXIT(soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_7r, REG_PORT_ANY, 0, TOD_IEEE_1588_TIME_FRAC_SEC_UPPERf,  0x1ffff00));
+        /* write value to frequency register (4 nS) */
+        SOCDNX_IF_ERR_EXIT(soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_7r, REG_PORT_ANY, 0, TOD_IEEE_1588_TIME_FREQ_CONTROLf,  0x10000000));
+        /* write value to time sec register  */
+        SOCDNX_IF_ERR_EXIT(soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_7r, REG_PORT_ANY, 0, TOD_IEEE_1588_ONE_SECf, 1));
+        SOCDNX_IF_ERR_EXIT(soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_7r, REG_PORT_ANY, 0, TOD_IEEE_1588_UPPER_SECf, 0x0804560));
+        /* write to control register to load values */
+        SOCDNX_IF_ERR_EXIT(soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_8r, REG_PORT_ANY, 0, TOD_IEEE_1588_LOAD_ONCEf,  1));
+        /* write to control register to enable counter */
+        SOCDNX_IF_ERR_EXIT(soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_8r, REG_PORT_ANY, 0, TOD_IEEE_1588_COUNT_ENABLEf,  1));
+    }
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+
+uint32 soc_jer_pp_oam_tod_set(
+   int                                 unit,
+   uint8                               is_ntp,
+   uint64                              data
+   )
+{
+    uint32 time_frac = COMPILER_64_LO(data);
+    uint32 time_sec = COMPILER_64_HI(data);
+    uint32 tmp;
+    uint32 res = SOC_SAND_OK;
+
+    SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+
+    /** NTP  */
+    if (is_ntp) {
+        /* write to control register. Turn on load enable, Turn off count enable */
+        SOC_SAND_SOC_IF_ERROR_RETURN_ERR_VAL(res, 10, exit, ARAD_REG_ACCESS_ERR, soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_6r, REG_PORT_ANY, 0, TOD_NTP_EVENT_MUX_CONTROLf,  0));
+        SOC_SAND_SOC_IF_ERROR_RETURN_ERR_VAL(res, 10, exit, ARAD_REG_ACCESS_ERR, soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_8r, REG_PORT_ANY, 0, TOD_NTP_LOAD_ENABLEf,  1));
+        SOC_SAND_SOC_IF_ERROR_RETURN_ERR_VAL(res, 10, exit, ARAD_REG_ACCESS_ERR, soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_8r, REG_PORT_ANY, 0, TOD_NTP_COUNT_ENABLEf,  0));
+        /* write value to frac sec lower register */
+        SHR_BITCOPY_RANGE(&tmp, 26, &time_frac, 0, 6);
+        SOC_SAND_SOC_IF_ERROR_RETURN_ERR_VAL(res, 10, exit, ARAD_REG_ACCESS_ERR, soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_6r, REG_PORT_ANY, 0, TOD_NTP_TIME_FRAC_SEC_LOWERf,  tmp));
+        /* write value to frac sec upper register */
+        tmp=0;
+        SHR_BITCOPY_RANGE(&tmp, 0, &time_frac, 6, 26);
+        SOC_SAND_SOC_IF_ERROR_RETURN_ERR_VAL(res, 10, exit, ARAD_REG_ACCESS_ERR, soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_6r, REG_PORT_ANY, 0, TOD_NTP_TIME_FRAC_SEC_UPPERf,  tmp));
+        /* write value to frequency register (4 nS in binary fraction) */
+        SOC_SAND_SOC_IF_ERROR_RETURN_ERR_VAL(res, 10, exit, ARAD_REG_ACCESS_ERR, soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_6r, REG_PORT_ANY, 0, TOD_NTP_TIME_FREQ_CONTROLf,  0x44b82fa1));
+        /* write value to time sec register  */
+        tmp=0;
+        SHR_BITCOPY_RANGE(&tmp, 0, &time_sec, 1, 31);
+        SOC_SAND_SOC_IF_ERROR_RETURN_ERR_VAL(res, 10, exit, ARAD_REG_ACCESS_ERR, soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_6r, REG_PORT_ANY, 0, TOD_NTP_ONE_SECf, (time_sec & 0x00000001)!=0 ));
+        SOC_SAND_SOC_IF_ERROR_RETURN_ERR_VAL(res, 10, exit, ARAD_REG_ACCESS_ERR, soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_6r, REG_PORT_ANY, 0, TOD_NTP_UPPER_SECf, tmp));
+        /* write to control register to load values */
+        SOC_SAND_SOC_IF_ERROR_RETURN_ERR_VAL(res, 10, exit, ARAD_REG_ACCESS_ERR, soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_8r, REG_PORT_ANY, 0, TOD_NTP_LOAD_ONCEf,  1));
+        /* write to control register .Turn off load enable, Turn on count enable */
+        SOC_SAND_SOC_IF_ERROR_RETURN_ERR_VAL(res, 10, exit, ARAD_REG_ACCESS_ERR, soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_8r, REG_PORT_ANY, 0, TOD_NTP_LOAD_ENABLEf,  0));
+        SOC_SAND_SOC_IF_ERROR_RETURN_ERR_VAL(res, 10, exit, ARAD_REG_ACCESS_ERR, soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_8r, REG_PORT_ANY, 0, TOD_NTP_COUNT_ENABLEf,  1));
+    }
+    else {/** IEEE 1588 */
+        /* write to control register. Turn on load enable, Turn off count enable */
+        SOC_SAND_SOC_IF_ERROR_RETURN_ERR_VAL(res, 10, exit, ARAD_REG_ACCESS_ERR, soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_7r, REG_PORT_ANY, 0, TOD_IEEE_1588_EVENT_MUX_CONTROLf,  0));
+        SOC_SAND_SOC_IF_ERROR_RETURN_ERR_VAL(res, 10, exit, ARAD_REG_ACCESS_ERR, soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_8r, REG_PORT_ANY, 0, TOD_IEEE_1588_LOAD_ENABLEf,  1));
+        SOC_SAND_SOC_IF_ERROR_RETURN_ERR_VAL(res, 10, exit, ARAD_REG_ACCESS_ERR, soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_8r, REG_PORT_ANY, 0, TOD_IEEE_1588_COUNT_ENABLEf,  0));
+        /* write value to frac sec lower register */
+        SHR_BITCOPY_RANGE(&tmp, 26, &time_frac, 0, 6);
+        SOC_SAND_SOC_IF_ERROR_RETURN_ERR_VAL(res, 10, exit, ARAD_REG_ACCESS_ERR, soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_7r, REG_PORT_ANY, 0, TOD_IEEE_1588_TIME_FRAC_SEC_LOWERf,  tmp));
+        /* write value to frac sec upper register */
+        tmp=0;
+        SHR_BITCOPY_RANGE(&tmp, 0, &time_frac, 6, 26);
+        SOC_SAND_SOC_IF_ERROR_RETURN_ERR_VAL(res, 10, exit, ARAD_REG_ACCESS_ERR, soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_7r, REG_PORT_ANY, 0, TOD_IEEE_1588_TIME_FRAC_SEC_UPPERf,  tmp));
+        /* write value to frequency register (4 nS) */
+        SOC_SAND_SOC_IF_ERROR_RETURN_ERR_VAL(res, 10, exit, ARAD_REG_ACCESS_ERR, soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_7r, REG_PORT_ANY, 0, TOD_IEEE_1588_TIME_FREQ_CONTROLf,  0x10000000));
+        /* write value to time sec register  */
+        tmp=0;
+        SHR_BITCOPY_RANGE(&tmp, 0, &time_sec, 1, 31);
+        SOC_SAND_SOC_IF_ERROR_RETURN_ERR_VAL(res, 10, exit, ARAD_REG_ACCESS_ERR, soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_7r, REG_PORT_ANY, 0, TOD_IEEE_1588_ONE_SECf, (time_sec & 0x00000001)!=0 ));
+        SOC_SAND_SOC_IF_ERROR_RETURN_ERR_VAL(res, 10, exit, ARAD_REG_ACCESS_ERR, soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_7r, REG_PORT_ANY, 0, TOD_IEEE_1588_UPPER_SECf, tmp));
+        /* write to control register to load values */
+        SOC_SAND_SOC_IF_ERROR_RETURN_ERR_VAL(res, 10, exit, ARAD_REG_ACCESS_ERR, soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_8r, REG_PORT_ANY, 0, TOD_IEEE_1588_LOAD_ONCEf,  1));
+        /* write to control register .Turn off load enable, Turn on count enable */
+        SOC_SAND_SOC_IF_ERROR_RETURN_ERR_VAL(res, 10, exit, ARAD_REG_ACCESS_ERR, soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_8r, REG_PORT_ANY, 0, TOD_IEEE_1588_LOAD_ENABLEf,  0));
+        SOC_SAND_SOC_IF_ERROR_RETURN_ERR_VAL(res, 10, exit, ARAD_REG_ACCESS_ERR, soc_reg_above_64_field32_modify(unit, ECI_GP_CONTROL_8r, REG_PORT_ANY, 0, TOD_IEEE_1588_COUNT_ENABLEf,  1));
+    }
+
+exit:
+    SOC_SAND_EXIT_AND_SEND_ERROR("error in jer_pp_oam_tod_set()", 0, 0);
+}
+
+
+soc_error_t soc_jer_pp_oam_sa_addr_msbs_set(
+    int unit,
+    int profile,
+   const uint8 * msbs)
+{
+    soc_reg_above_64_val_t reg_above_64, field_above_64 = {0};
+    soc_field_t base_mac_sa_profiles[] = {BASE_MAC_SA_PROFILE_0f, BASE_MAC_SA_PROFILE_1f };
+    int rv;
+    SOCDNX_INIT_FUNC_DEFS;
+
+    if (profile < 0 || profile >= 2) {
+        SOCDNX_EXIT_WITH_ERR(SOC_E_INTERNAL,  (_BSL_SOCDNX_MSG("Internal error: incorrect SA profile.")));
+    }
+    
+    rv = READ_OAMP_CCM_MAC_SAr(unit, reg_above_64);
+    SOCDNX_IF_ERR_EXIT(rv);
+    field_above_64[0] = (msbs[1] << 24) + (msbs[2] << 16) + (msbs[3] << 8) + msbs[4];
+    field_above_64[1] = msbs[0];
+
+    soc_reg_above_64_field_set(unit, OAMP_CCM_MAC_SAr, reg_above_64, base_mac_sa_profiles[profile], field_above_64);
+
+    rv = WRITE_OAMP_CCM_MAC_SAr(unit, reg_above_64);
+    SOCDNX_IF_ERR_EXIT(rv); 
+
+
+exit:
+    SOCDNX_FUNC_RETURN; 
+}
+
+
+/**
+ * Get MSBs of global SA address of outgoing PDUs.
+ * 
+ * @author sinai (26/06/2014)
+ * 
+ * @param unit 
+ * @param profile - 0 or 1 
+ * @param msbs - Assumed to be an array of 5 bytes
+ * 
+ * @return soc_error_t 
+ */
+soc_error_t soc_jer_pp_oam_sa_addr_msbs_get(
+    int unit,
+    int profile,
+    uint8 * msbs)
+{
+    soc_reg_above_64_val_t reg_above_64= {0}, field_above_64 = {0};
+    soc_field_t base_mac_sa_profiles[] = { BASE_MAC_SA_PROFILE_0f, BASE_MAC_SA_PROFILE_1f }; 
+    int rv;
+    SOCDNX_INIT_FUNC_DEFS;
+
+    if (profile < 0 || profile >= 2) {
+        SOCDNX_EXIT_WITH_ERR(SOC_E_INTERNAL,  (_BSL_SOCDNX_MSG("Internal error: incorrect SA profile."))); 
+    }
+
+    rv = READ_OAMP_CCM_MAC_SAr(unit, reg_above_64);
+    SOCDNX_IF_ERR_EXIT(rv);
+
+    soc_reg_above_64_field_get(unit, OAMP_CCM_MAC_SAr, reg_above_64, base_mac_sa_profiles[profile], field_above_64);
+
+    msbs[1] = field_above_64[0] >>24;
+    msbs[2] = (field_above_64[0] >>16) & 0xff;
+    msbs[3] = (field_above_64[0] >>8) & 0xff;
+    msbs[4] = field_above_64[0] & 0xff;
+    msbs[0] = field_above_64[1];
+
+
+exit:
+    SOCDNX_FUNC_RETURN; 
+}
+
+
+soc_error_t soc_jer_pp_oam_dm_trigger_set(
+   int unit,
+   int endpoint_id)
+{
+    uint32 reg32;
+    soc_field_t dm_trigger_field[] = { DM_TRIGER_0f, DM_TRIGER_1f, DM_TRIGER_2f, DM_TRIGER_3f,
+    DM_TRIGER_4f, DM_TRIGER_5f,DM_TRIGER_6f, DM_TRIGER_7f}; 
+    int rv;
+    uint32 write_val = 1;
+    int table_entry, reg_field;
+    SOCDNX_INIT_FUNC_DEFS;
+
+    table_entry = endpoint_id /8;
+    reg_field = endpoint_id %8;
+    SOCDNX_IF_ERR_EXIT(WRITE_OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr(unit , write_val));
+
+    soc_OAMP_DM_TRIGERm_field32_set(unit,&reg32, dm_trigger_field[reg_field], 1);
+
+    rv = WRITE_OAMP_DM_TRIGERm(unit, MEM_BLOCK_ANY,table_entry, &reg32 );
+    SOCDNX_IF_ERR_EXIT(rv); 
+	write_val = 0;
+	SOCDNX_IF_ERR_EXIT(WRITE_OAMP_ENABLE_DYNAMIC_MEMORY_ACCESSr(unit , write_val));
+
+
+exit:
+    SOCDNX_FUNC_RETURN; 
+
+}
+
+
+/**
+ * Set the opcode info register. 
+ * At this stage these are only configured to transmit AIS 
+ * frames, one at period one second and another at period  one 
+ * minute. 
+ * 
+ * @author sinai (13/07/2014)
+ * 
+ * @param unit 
+ * 
+ * @return soc_error_t 
+ */
+STATIC soc_error_t _soc_jer_pp_oam_set_opcode_n_table(int unit)
+{
+    int rv;
+    soc_reg_above_64_val_t reg_above_64;
+    SOCDNX_INIT_FUNC_DEFS;
+
+    /* AIS frame with period one second*/
+    SOC_REG_ABOVE_64_CLEAR(reg_above_64);
+    soc_reg_above_64_field32_set(unit, OAMP_OPCODE_INFOr, reg_above_64, OPCODE_N_OPCODEf, SOC_PPC_OAM_ETHERNET_PDU_OPCODE_AIS);
+    soc_reg_above_64_field32_set(unit, OAMP_OPCODE_INFOr, reg_above_64, OPCODE_N_VERSIONf, 0);
+    soc_reg_above_64_field32_set(unit, OAMP_OPCODE_INFOr, reg_above_64, OPCODE_N_FLAGSf, 0x4); /* flag indicating 1 frame per second*/
+    soc_reg_above_64_field32_set(unit, OAMP_OPCODE_INFOr, reg_above_64, OPCODE_N_TLV_OFFSETf, 0x0);
+    soc_reg_above_64_field32_set(unit, OAMP_OPCODE_INFOr, reg_above_64, OPCODE_N_TLV_SIZEf, 17); /* This sets the entire PDU size and should be big enough to not be filtered in ingress */
+    soc_reg_above_64_field32_set(unit, OAMP_OPCODE_INFOr, reg_above_64, OPCODE_N_TLV_PATTERN_TYPEf, 2); /* 32 bit pattern type */
+    soc_reg_above_64_field32_set(unit, OAMP_OPCODE_INFOr, reg_above_64, OPCODE_N_TLV_PATTERNf, 0x03000900); /* TLV Type=3(data) Lenght=9(compatable with OPCODE_N_TLV_SIZEf) */
+
+    rv = WRITE_OAMP_OPCODE_INFOr(unit,SOC_PPC_OAM_AIS_PERIOD_ONE_SECOND_OPCODE_ENTRY,reg_above_64 );
+    SOCDNX_IF_ERR_EXIT(rv); 
+
+    /* AIS frame with period one minute. All values except Flags identical to those above.*/
+    soc_reg_above_64_field32_set(unit, OAMP_OPCODE_INFOr, reg_above_64, OPCODE_N_FLAGSf, 0x6); /* flag indicating 1 frame per minute*/
+    rv = WRITE_OAMP_OPCODE_INFOr(unit,SOC_PPC_OAM_AIS_PERIOD_ONE_MINUTE_OPCODE_ENTRY,reg_above_64 );
+    SOCDNX_IF_ERR_EXIT(rv); 
+
+
+
+
+exit:
+    SOCDNX_FUNC_RETURN; 
+}
+
+
+soc_error_t soc_jer_pp_oam_egress_pcp_set_by_profile_and_tc(int unit, uint8 tc, uint8 outlif_profile,uint8 oam_pcp){
+    int rv;
+    SOCDNX_INIT_FUNC_DEFS;
+
+
+    JER_PP_OAM_SET_EGRESS_OAM_PCP_BY_OUTLIF_PROFILE_AND_TC(outlif_profile, tc, oam_pcp);
+
+
+exit:
+    SOCDNX_FUNC_RETURN; 
+}
+
+
+
+/**
+ * All Passive entries are configured statically. 
+ * When MP-Type = Passive match, for all other values the output 
+ * of the LIF-Action table is the same.
+ * 
+ * @author sinai (25/11/2014)
+ * 
+ * @param unit 
+ * 
+ * @return soc_error_t 
+ */
+STATIC
+soc_error_t soc_jer_pp_oam_classifier_oam1_passive_entries_add(int unit){
+    int rv;
+    int opcode_profile, ingress,my_cfm_mac, mp_profile;
+    SOC_PPC_OAM_CLASSIFIER_OAM1_ENTRY_KEY       oam1_key;
+    SOC_PPC_OAM_CLASSIFIER_OAM_ENTRY_PAYLOAD   oam_payload;
+    uint32 oam_mirror_profile;
+    uint32 oam_trap_code;
+    uint32 soc_sand_rv;
+    _oam_oam_a_b_table_buffer_t oama_buffer;
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    soc_sand_rv = arad_pp_oam_classifier_oam1_allocate_sw_buffer(unit,&oama_buffer);
+    SOCDNX_SAND_IF_ERR_RETURN(soc_sand_rv);
+
+    SOC_PPC_OAM_CLASSIFIER_OAM1_ENTRY_KEY_clear(&oam1_key);
+    SOC_PPC_OAM_CLASSIFIER_OAM_ENTRY_PAYLOAD_clear(&oam_payload);
+
+    oam1_key.inject = 0;
+    oam1_key.is_bfd = 0;
+    oam1_key.mp_type_jr = SOC_PPC_OAM_MP_TYPE_JERICHO_PASSIVE_MATCH; 
+
+    /* payload is the same*/
+    oam_payload.snoop_strength = 0;
+    oam_payload.counter_disable = 1;
+    oam_payload.sub_type = soc_property_suffix_num_get(unit, -1, spn_CUSTOM_FEATURE,
+                                                       "oam_additional_FTMH_on_error_packets", 0) ?
+                                _ARAD_PP_OAM_SUBTYPE_CCM : _ARAD_PP_OAM_SUBTYPE_DEFAULT; 
+
+    /* Egress*/
+    rv = sw_state_access[unit].dpp.soc.arad.pp.oam.mirror_profile_err_passive.get(unit, &oam_mirror_profile);
+    SOCDNX_IF_ERR_EXIT(rv); 
+    oam_payload.mirror_profile = oam_mirror_profile & 0xff;
+
+    /* Ingress*/
+    rv = sw_state_access[unit].dpp.soc.arad.pp.oam.trap_code_trap_to_cpu_passive.get(unit, &oam_trap_code);
+    SOCDNX_IF_ERR_EXIT(rv); 
+    oam_payload.cpu_trap_code = oam_trap_code;
+
+
+    oam_payload.meter_disable = 1;
+    oam_payload.forwarding_strength = 7; /* default */
+    oam_payload.forward_disable = 1; /* default */
+    oam_payload.snoop_strength = 0;
+    oam_payload.counter_disable = 1; /* default */
+
+    for (ingress=0; ingress<=1 ;++ingress ) {
+        for (my_cfm_mac=0; my_cfm_mac<=1 ; ++my_cfm_mac) {
+            for (opcode_profile=0; opcode_profile<SOC_PPC_OAM_OPCODE_MAP_COUNT ; ++opcode_profile) {
+                for (mp_profile=0 ; mp_profile < SOC_PPC_OAM_NON_ACC_PROFILES_ARAD_PLUS_NUM ; ++mp_profile) {
+                    /* set the key according to all the options*/
+                    oam1_key.my_cfm_mac = my_cfm_mac;
+                    oam1_key.opcode = opcode_profile;
+                    oam1_key.mp_profile = mp_profile;
+                    oam1_key.ingress = ingress;
+
+                    /*Now the payload*/
+                    if (ingress) {
+                        oam_payload.up_map =1; /* Passive trap: Up at the ingress, Down at the egress.*/
+                        oam_payload.forwarding_strength = _ARAD_PP_OAM_TRAP_STRENGTH; 
+                        oam_payload.mirror_enable = 0;
+                    } else {
+                        oam_payload.mirror_enable = 1;
+                    }
+
+                    oam_payload.mirror_enable = !ingress; 
+                    soc_sand_rv = arad_pp_oam_classifier_oam1_entry_set_on_buffer(unit, &oam1_key, &oam_payload, &oama_buffer);
+                    SOCDNX_SAND_IF_ERR_RETURN(soc_sand_rv);
+                }
+            }
+        }
+    }
+    
+    soc_sand_rv = arad_pp_oam_classifier_oam1_set_hw_unsafe(unit, &oama_buffer);
+    SOCDNX_SAND_IF_ERR_RETURN(soc_sand_rv);
+
+exit:
+    arad_pp_oam_classifier_oam1_2_buffer_free(unit,&oama_buffer);
+    SOCDNX_FUNC_RETURN; 
+}
+
+/**
+ * Set forward actions for Undefined default endpoints. Last
+ * MP-Profile is allocated specifically for this task.
+ *
+ * @param unit
+ *
+ * @return soc_error_t
+ */
+STATIC
+soc_error_t soc_jer_pp_oam_classifier_oam1_default_forward_entries_add(int unit){
+    int rv;
+
+    SOC_PPC_OAM_CLASSIFIER_OAM1_ENTRY_KEY       oam1_key;
+    SOC_PPC_OAM_CLASSIFIER_OAM_ENTRY_PAYLOAD   oam_payload;
+
+    uint32 oam_trap_code;
+    uint32 soc_sand_rv;
+
+    uint32 mp_type_count = SOC_IS_QAX(unit) ? SOC_PPC_OAM_MP_TYPE_QAX_COUNT : SOC_PPC_OAM_MP_TYPE_JERICHO_COUNT;
+
+    _oam_oam_a_b_table_buffer_t oama_buffer;
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    soc_sand_rv = arad_pp_oam_classifier_oam1_allocate_sw_buffer(unit,&oama_buffer);
+    SOCDNX_SAND_IF_ERR_RETURN(soc_sand_rv);
+
+    SOC_PPC_OAM_CLASSIFIER_OAM1_ENTRY_KEY_clear(&oam1_key);
+    SOC_PPC_OAM_CLASSIFIER_OAM_ENTRY_PAYLOAD_clear(&oam_payload);
+
+    oam1_key.mp_profile = JER_PP_OAM_DEFAULT_FORWARD_MP_PROFILE;
+
+    /* Set payoad fields */
+    oam_payload.snoop_strength = 0;
+    oam_payload.counter_disable = 1;
+    oam_payload.sub_type = _ARAD_PP_OAM_SUBTYPE_DEFAULT;
+    oam_payload.meter_disable = 1;
+    oam_payload.forwarding_strength = 0;
+    oam_payload.forward_disable = 0;
+    oam_payload.mirror_profile = 0;
+    oam_payload.mirror_enable = 0;
+    oam_payload.mirror_strength = 0;
+
+    rv = sw_state_access[unit].dpp.soc.arad.pp.oam.trap_code_frwrd.get(unit, &oam_trap_code);
+    SOCDNX_IF_ERR_EXIT(rv);
+    oam_payload.cpu_trap_code = oam_trap_code;
+
+    /* Iterate over possible keys and set payload */
+    for (oam1_key.ingress = 0; oam1_key.ingress <= 1; ++oam1_key.ingress) {
+        if (oam1_key.ingress) {
+            oam_payload.up_map = 0;
+        } else {
+            oam_payload.up_map = 1;
+        }
+        for (oam1_key.my_cfm_mac = 0; oam1_key.my_cfm_mac <= 1; ++oam1_key.my_cfm_mac) {
+            for (oam1_key.inject = 0; oam1_key.inject <= 1; ++oam1_key.inject) {
+                for (oam1_key.opcode = 0; oam1_key.opcode < SOC_PPC_OAM_OPCODE_MAP_COUNT; ++oam1_key.opcode) {
+                    for (oam1_key.mp_type_jr = 0; oam1_key.mp_type_jr < mp_type_count; ++oam1_key.mp_type_jr) {
+                        /* Map key->payload */
+                        soc_sand_rv = arad_pp_oam_classifier_oam1_entry_set_on_buffer(unit, &oam1_key, &oam_payload, &oama_buffer);
+                        SOCDNX_SAND_IF_ERR_RETURN(soc_sand_rv);
+                    }
+                }
+            }
+        }
+    }
+
+    /* Write to OAM-1 */
+    soc_sand_rv = arad_pp_oam_classifier_oam1_set_hw_unsafe(unit, &oama_buffer);
+    SOCDNX_SAND_IF_ERR_RETURN(soc_sand_rv);
+
+exit:
+    arad_pp_oam_classifier_oam1_2_buffer_free(unit,&oama_buffer);
+    SOCDNX_FUNC_RETURN;
+}
+
+
+/**
+ * Respond to LMM, DMM, LTM, LBM and EXM, SLM packets with the 
+ * respective response packets. 
+ * 
+ * @author sinai (03/03/2015)
+ * 
+ * @param unit 
+ * 
+ * @return STATIC soc_error_t 
+ */
+STATIC
+soc_error_t soc_jer_pp_oam_init_response_table(int unit) {
+      int rv;
+      soc_reg_above_64_val_t reg_above_64={0};
+      uint32 data=0, key=0, oam_ts_format ;
+      int valid_opcodes[] = {
+          SOC_PPC_OAM_ETHERNET_PDU_OPCODE_LBM,
+          SOC_PPC_OAM_ETHERNET_PDU_OPCODE_LTM,
+          SOC_PPC_OAM_ETHERNET_PDU_OPCODE_SLM,
+          SOC_PPC_OAM_ETHERNET_PDU_OPCODE_EXM };
+      int i;
+      SOCDNX_INIT_FUNC_DEFS;
+      
+      
+      for (i = 0; i < sizeof(valid_opcodes) / sizeof(int); ++i) {
+          oam_ts_format = RSP_TCAM_OPCODE_TO_OAM_TS_FORMAT(valid_opcodes[i]);
+          RSP_TCAM_KEY_SET(key, 1, valid_opcodes[i]);
+          RSP_TCAM_DATA_SET(data, 1,oam_ts_format , valid_opcodes[i] -1 ); /* The response message's opcode is always one below of that of the original packet.*/
+
+          soc_mem_field32_set(unit,OAMP_RSP_TCAMm,reg_above_64,DATf,data);
+          soc_mem_field32_set(unit,OAMP_RSP_TCAMm,reg_above_64,KEYf,key);
+          soc_mem_field32_set(unit,OAMP_RSP_TCAMm,reg_above_64,VALIDf,1);
+          soc_mem_field32_set(unit,OAMP_RSP_TCAMm,reg_above_64,MASKf,0);/* Key based on all fields.*/
+
+          rv = WRITE_OAMP_RSP_TCAMm(unit,MEM_BLOCK_ALL,i,reg_above_64);
+          SOCDNX_IF_ERR_EXIT(rv);
+      }
+      
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+STATIC
+soc_error_t soc_jer_pp_oam_mp_type_config_init(int unit)
+{
+    int rv;
+    uint32 mp_type_index;
+    soc_reg_above_64_val_t reg_above_64;
+    uint32 mp_type;
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+
+    /* MP-type static configuration*/
+    /*following encoding is used:
+    0 - MIP-Match
+    1 - Active-Match
+    2 - Passive-Match
+    3 - Below-Highest-MEP
+    4 - Above-All
+    5 - BFD
+    table is accessed by:
+     OAM-is-BFD, MDL-MP-Type(2), Above-MDL-MEP-Bitmap-OR
+    */
+    rv = READ_IHP_OAM_MP_TYPE_MAPr(unit, SOC_CORE_ALL, reg_above_64);
+    SOCDNX_IF_ERR_EXIT(rv);
+
+    for (mp_type_index=0; mp_type_index<0x10 /*all combinations of 4 bits*/; ++mp_type_index ) {
+        if (_JER_PP_OAM_MP_TYPE_MAP_IS_BFD(mp_type_index)) {
+            mp_type = SOC_PPC_OAM_MP_TYPE_JERICHO_BFD;
+        } else  if (_JER_PP_OAM_MP_TYPE_MAP_MDL_MP_TYPE(mp_type_index)==_JER_PP_OAM_MDL_MP_TYPE_NO_MP ) {
+            mp_type = _JER_PP_OAM_MP_TYPE_MAP_ABOVE_MDL_MEP_BITMAP_OR(mp_type_index) ? SOC_PPC_OAM_MP_TYPE_JERICHO_BELLOW_HIGHEST_MEP :
+                SOC_PPC_OAM_MP_TYPE_JERICHO_ABOVE_ALL;
+        } else {
+            mp_type = _JER_PP_OAM_MP_TYPE_FROM_MDL_MP_TYPE(_JER_PP_OAM_MP_TYPE_MAP_MDL_MP_TYPE(mp_type_index));
+        }
+        SHR_BITCOPY_RANGE(reg_above_64, (3 * mp_type_index), &mp_type, 0, 3);
+    }
+
+    rv = WRITE_IHP_OAM_MP_TYPE_MAPr(unit,SOC_CORE_ALL,reg_above_64);
+    SOCDNX_IF_ERR_EXIT(rv);
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+
+
+/* 
+ *   SAT functions
+ */ 
+ 
+/* Init SAT appl */
+soc_error_t soc_jer_pp_oam_sat_init(int unit)
+{
+    uint64 reg64;
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    COMPILER_64_ZERO(reg64);    
+
+    /* clock register set - Number of system clock cycles in 3.33 ms */
+    SOCDNX_IF_ERR_EXIT(READ_OAMP_TIMER_CONFIGr(unit, &reg64));
+    soc_reg64_field32_set(unit, OAMP_TIMER_CONFIGr, &reg64, NUM_CLOCKS_SECf, arad_chip_kilo_ticks_per_sec_get(unit)*1000);
+    /* other fields should remain with default values*/
+    SOCDNX_IF_ERR_EXIT(WRITE_OAMP_TIMER_CONFIGr(unit, reg64));
+
+    /* init programmable editor */
+    SOCDNX_IF_ERR_EXIT(arad_pp_oamp_pe_unsafe(unit));
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+
+ /* 
+  *  PTCH-2 Header format:
+  */
+int _insert_ptch2_for_tst_lb(uint8* buffer, int byte_start_offset, 
+     uint8 next_header_is_itmh, 
+     uint8 opaque_value, 
+     uint8 pp_ssp) 
+{
+     int offset = byte_start_offset;
+     int parser_program_ctl = 0;
+     parser_program_ctl = next_header_is_itmh ? 0 : 1;
+     buffer[offset++] = (parser_program_ctl<<7) | (opaque_value<<4);
+     buffer[offset++] = pp_ssp;
+     
+     return offset;
+}
+
+  /* 
+  *  Arad-style ITMH Header format:
+  */
+ 
+int _insert_itmh_for_tst_lb_arad(uint8* buffer, int byte_start_offset, 
+      int fwd_dest_info, 
+     uint8 fwd_tc, 
+     uint8 fwd_dp, 
+     uint8 snoop_cmd, 
+     uint8 in_mirr_flag, 
+     uint8 pph_type)
+{
+     int offset = byte_start_offset;
+
+     buffer[offset++] = ((pph_type&0x3)<<6)|((in_mirr_flag&0x1)<<5)|((snoop_cmd&0xf)<<1)|((fwd_tc&0x4)>>2);
+     buffer[offset++] = ((fwd_tc&0x3)<<6) | ((fwd_dp&0x3)<<4) | ((fwd_dest_info&0xf0000)>>16);
+     buffer[offset++] = (fwd_dest_info&0xff00)>>8;
+     buffer[offset++] = (fwd_dest_info&0xff);
+     
+     return offset;
+}
+ /* 
+  *  Jericho-style ITMH Header format:
+  */
+ 
+int _insert_itmh_for_tst_lb_jericho(uint8* buffer, int byte_start_offset, 
+     int fwd_dest_info, 
+     uint8 fwd_tc, 
+     uint8 fwd_dp, 
+     uint8 snoop_cmd, 
+     uint8 in_mirr_flag, 
+     uint8 pph_type)
+{
+     int offset = byte_start_offset;
+     int dest_exten = 0;
+ 
+ 
+     buffer[offset++] = ((pph_type&0x3)<<6)|((in_mirr_flag&0x1)<<5)|((fwd_dp&0x3)<<3)|((fwd_dest_info&0x70000)>>16);
+     buffer[offset++] = ((fwd_dest_info&0xff00)>>8);
+     buffer[offset++] = (fwd_dest_info&0xff);
+     buffer[offset++] = ((snoop_cmd&0xf)<<4)|((fwd_tc&0x7)<<1)|(dest_exten&0x1);
+     
+     return offset;
+}
+int _insert_itmh_extension_for_tst_lb(uint8* buffer, int byte_start_offset, int fwd_dst_info)
+{
+     int offset = byte_start_offset;
+     buffer[offset++] = (fwd_dst_info&0xF0000)>>16;
+     buffer[offset++] = (fwd_dst_info&0xff00)>>8;
+     buffer[offset++] = (fwd_dst_info&0xFF);
+     return offset;
+}
+int _insert_eth_for_tst_lb(uint8* buffer, int byte_start_offset,
+     bcm_mac_t dest_addr,
+     bcm_mac_t src_addr, 
+     uint16* tpids,
+     bcm_vlan_t* vlans,
+     int no_tags,
+     uint16 ether_type) 
+{
+     int i = 0, offset = byte_start_offset; 
+     for (i = 0; i < 6; i++) {
+         buffer[offset++] = dest_addr[i];
+     }
+     for (i = 0; i < 6; i++) {
+         buffer[offset++] = src_addr[i];
+     }
+     i = 0;
+     while (no_tags) {
+         buffer[offset++] = (tpids[i]>>8)&0xff;
+         buffer[offset++] = tpids[i]&0xff;
+         buffer[offset++] = ((vlans[i]>>8)&0xff) ;/*(vlan_pri[i]<<5)|((vlan_cfi[i]&&0x1)<<4)|((vlans[i]>>8)&0xff);*/
+         buffer[offset++] = vlans[i]&0xff;
+         --no_tags;
+         i++;
+     }
+     
+     buffer[offset++] = (ether_type>>8)&0xff;
+     buffer[offset++] = ether_type&0xff;
+     
+     return offset;
+}
+ 
+int _insert_pph_for_tst_lb(uint8* buffer, const PPH_base* pph_fields, int byte_start_offset)
+{
+     int offset = byte_start_offset;
+     /* missing fields are always zero anyways.*/
+     buffer[offset++] =  ((pph_fields->field1&0x3)<<4)|(pph_fields->field2&0xf) ;
+     buffer[offset++] = ((pph_fields->field3&0x7f)<<1)|(pph_fields->field4&0x1);
+     buffer[offset++] = ((pph_fields->field5&0x3)<<6)|((pph_fields->field6&0x3)<<4)|((pph_fields->field7&0x1)<<3)
+                                             |((pph_fields->field8&0x1)<<2) |((pph_fields->field9&0xC000)>>14);
+     buffer[offset++] = ((pph_fields->field9&0x3FC0)>>6);
+     buffer[offset++] =((pph_fields->field9&0x7F)<<2)|((pph_fields->field10&0x30000)>>16);
+     buffer[offset++] = ((pph_fields->field10&0xff00)>>8);
+     buffer[offset++] = (pph_fields->field10&0xff);
+     
+     return offset;
+}
+ 
+int _insert_mpls_label_for_tst_lb(uint8* buffer,  int label, uint8 exp, uint8 bos, uint8 ttl, int byte_start_offset)
+{
+     int offset = byte_start_offset;
+     
+     buffer[offset++] = ((label&0xFF000)>>12);
+     buffer[offset++] = ((label&0xFF0)>>4);
+     buffer[offset++] = ((label&0xF)<<4)|((exp&0x7)<<1)|(bos&0x1);
+     buffer[offset++] = ttl;
+ 
+     return offset;
+}
+ 
+int _insert_4_bytes_for_tst_lb(uint8* buffer,   uint32 stuff, int byte_start_offset)
+{
+     int offset = byte_start_offset;
+     
+     buffer[offset++] = ((stuff&0xFF000000)>>24);
+     buffer[offset++] = ((stuff&0xFF0000)>>16);
+     buffer[offset++] = ((stuff&0xFF00)>>8);
+     buffer[offset++] = stuff&0xFF;
+ 
+     return offset;
+}
+ 
+int _insert_oam_pdu_header_for_tst_lb(uint8* buffer, int level,int is_lbm, int byte_start_offset)
+{
+     int offset = byte_start_offset;
+     uint8 opcode = is_lbm? SOC_PPC_OAM_ETHERNET_PDU_OPCODE_LBM: 
+     SOC_PPC_OAM_ETHERNET_PDU_OPCODE_TST; 
+         
+     buffer[offset++] = ((level&0x3)<<5);
+     buffer[offset++] = opcode;
+     buffer[offset++] = 0;/*Flags*/
+     buffer[offset++] = 4;/*TLV offset*/
+ 
+     return offset;
+}
+ 
+
+soc_error_t 
+soc_jer_pp_oam_oamp_lb_tst_header_set (SOC_SAND_IN int unit, 
+     SOC_SAND_INOUT uint8* header_buffer, 
+     SOC_SAND_IN uint32 endpoint_id, 
+     SOC_SAND_IN bcm_mac_t dest_mac,
+     SOC_SAND_IN int flag,
+     SOC_SAND_OUT int *header_offset)
+{
+    uint32 res = SOC_SAND_OK;
+    SOC_PPC_OAM_OAMP_MEP_DB_ENTRY  mep_db_entry;
+    uint32 short_name, entry;
+    int next_is_itmh;
+    uint32  ssp;
+    int offset = 0;
+    soc_reg_above_64_val_t      reg_data, reg_field;
+    uint8 src_mac_address_msbs[5]={0};
+    
+    SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+    SOC_SAND_CHECK_NULL_INPUT(header_buffer);
+    SOC_SAND_CHECK_NULL_INPUT(header_offset);
+    SOC_PPC_OAM_OAMP_MEP_DB_ENTRY_clear(&mep_db_entry);
+    res = arad_pp_oam_oamp_mep_db_entry_get_internal_unsafe(unit,endpoint_id,&short_name,&mep_db_entry);
+    SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+
+    /* 1.1 Prepare internal header: PTCH */
+    next_is_itmh =  (mep_db_entry.mep_type==SOC_PPC_OAM_MEP_TYPE_Y1731_O_PWE || mep_db_entry.mep_type==SOC_PPC_OAM_MEP_TYPE_Y1731_O_MPLSTP ||
+     (mep_db_entry.mep_type==SOC_PPC_OAM_MEP_TYPE_ETH_OAM && !mep_db_entry.is_upmep ) );
+    SOC_SAND_SOC_IF_ERROR_RETURN_ERR_VAL(res,  20, exit, ARAD_REG_ACCESS_ERR,soc_reg_above_64_field32_read(unit, OAMP_DOWN_PTCHr, REG_PORT_ANY, 0, DOWN_PTCH_PP_SSPf, &ssp));
+    ssp =  (mep_db_entry.mep_type==SOC_PPC_OAM_MEP_TYPE_ETH_OAM && mep_db_entry.is_upmep )? mep_db_entry.local_port : ssp;
+    offset = _insert_ptch2_for_tst_lb(header_buffer, offset, next_is_itmh, _JER_PP_OAM_PTCH_OPAQUE_VALUE,ssp);
+    
+    /*build itmh header*/
+    if (next_is_itmh) {
+     soc_field_t  fwd_tc[] = {CCM_CLASS_0f,CCM_CLASS_1f,CCM_CLASS_2f,CCM_CLASS_3f,CCM_CLASS_4f,CCM_CLASS_5f,CCM_CLASS_6f,CCM_CLASS_7f};
+     soc_field_t fwd_dp[] = {CCM_DP_0f, CCM_DP_1f, CCM_DP_2f, CCM_DP_3f, CCM_DP_4f, CCM_DP_5f, CCM_DP_6f, CCM_DP_7f};
+     uint32 tc= 0;
+     uint32 dp = 0;
+     uint32 fwd_dst_info = 0;
+     SOC_SAND_SOC_IF_ERROR_RETURN_ERR_VAL(res, 30, exit, ARAD_REG_ACCESS_ERR,soc_reg_above_64_field32_read(unit, OAMP_PR_2_FW_DTCr, REG_PORT_ANY, 0, fwd_tc[mep_db_entry.priority], &tc));
+     SOC_SAND_SOC_IF_ERROR_RETURN_ERR_VAL(res, 40, exit, ARAD_REG_ACCESS_ERR,soc_reg_above_64_field32_read(unit, OAMP_PR_2_FWDDPr, REG_PORT_ANY, 0, fwd_dp[mep_db_entry.priority], &dp));
+
+     /*arad Style*/
+     if(soc_property_get(unit, spn_ITMH_PROGRAMMABLE_MODE_ENABLE, FALSE) ==0 ){
+       if (mep_db_entry.mep_type == SOC_PPC_OAM_MEP_TYPE_ETH_OAM) {
+         SOC_SAND_SOC_IF_ERROR_RETURN(res, 50, exit, READ_OAMP_MEM_20000m(unit, MEM_BLOCK_ANY, mep_db_entry.local_port, &entry)); /*  LOCAL_PORT_2_SYSTEM_PORT register*/
+             fwd_dst_info =  0xc0000 | (entry&0xffff);
+       } 
+       else {
+        fwd_dst_info = 0xa0000 | mep_db_entry.egress_if;
+       }
+       offset = _insert_itmh_for_tst_lb_arad(header_buffer, offset, fwd_dst_info, tc, dp, 0, 0, (mep_db_entry.mep_type==SOC_PPC_OAM_MEP_TYPE_Y1731_O_MPLSTP  || mep_db_entry.mep_type==SOC_PPC_OAM_MEP_TYPE_Y1731_O_PWE));
+     }
+     else{/*jericho Style*/
+         if (mep_db_entry.mep_type == SOC_PPC_OAM_MEP_TYPE_ETH_OAM) {
+            SOC_SAND_SOC_IF_ERROR_RETURN(res, 60, exit, READ_OAMP_MEM_20000m(unit, MEM_BLOCK_ANY, mep_db_entry.local_port, &entry)); /*  LOCAL_PORT_2_SYSTEM_PORT register*/
+            fwd_dst_info =  0x10000 | (entry&0xffff);
+         }
+         else{
+             
+             SOC_SAND_SET_ERROR_MSG((_BSL_SOCDNX_SAND_MSG("currently support lb & tst only in  ETH OAM mode")));
+         }
+         offset = _insert_itmh_for_tst_lb_jericho(header_buffer, offset, fwd_dst_info, tc, dp, 0, 0, (mep_db_entry.mep_type==SOC_PPC_OAM_MEP_TYPE_Y1731_O_MPLSTP  || mep_db_entry.mep_type==SOC_PPC_OAM_MEP_TYPE_Y1731_O_PWE));
+     }
+    }
+    
+    if (mep_db_entry.mep_type == SOC_PPC_OAM_MEP_TYPE_ETH_OAM) {/*Prepare Ethernet header */
+     uint16 vlans[2], tpids[2];
+     soc_field_t tpid_field[] = {CCM_TPID_0f, CCM_TPID_1f, CCM_TPID_2f, CCM_TPID_3f};
+     uint64 uint64_field;
+     uint16 ether_type = 0x8902;
+     bcm_mac_t peer_d_mac;
+     bcm_mac_t gtf_smac;
+     int i =0;
+     uint32 sa_gen_profile;
+     soc_reg_above_64_val_t entry_above_64;
+     SOC_SAND_SOC_IF_ERROR_RETURN(res, 70, exit, READ_OAMP_MEP_DBm(unit, MEM_BLOCK_ANY, endpoint_id, entry_above_64)); 
+
+     sa_gen_profile = soc_OAMP_MEP_DBm_field32_get(unit,&entry_above_64,SA_GEN_PROFILEf);
+     
+     /* SA gen profile: bits [0:7] represent the SA LSB, bit 8 represetns which profile is taken from OAMP_CCM_SA_MAC*/
+     mep_db_entry.src_mac_msb_profile = (sa_gen_profile >> 8 ) & 0x1;
+     mep_db_entry.src_mac_lsb = sa_gen_profile & 0xff;
+     
+     soc_jer_pp_oam_sa_addr_msbs_get( unit,mep_db_entry.src_mac_msb_profile,src_mac_address_msbs);
+     gtf_smac[0] = src_mac_address_msbs[0];
+     gtf_smac[1] = src_mac_address_msbs[1];
+     gtf_smac[2] = src_mac_address_msbs[2];
+     gtf_smac[3] = src_mac_address_msbs[3];
+     gtf_smac[4] = src_mac_address_msbs[4];
+     
+     gtf_smac[5] = mep_db_entry.src_mac_lsb;
+ 
+ 
+
+     SOC_SAND_SOC_IF_ERROR_RETURN_ERR_VAL(res,  80,  exit, ARAD_REG_ACCESS_ERR,soc_reg_above_64_field64_read(unit, OAMP_CCM_TPID_MAPr, REG_PORT_ANY, 0, tpid_field[mep_db_entry.outer_tpid], &uint64_field));
+     tpids[0] = COMPILER_64_LO(uint64_field);
+    
+     vlans[0]= mep_db_entry.outer_vid_dei_pcp;
+     if (mep_db_entry.tags_num == 2) {
+         vlans[1]= mep_db_entry.inner_vid_dei_pcp;
+         SOC_SAND_SOC_IF_ERROR_RETURN_ERR_VAL(res,  90,  exit, ARAD_REG_ACCESS_ERR,soc_reg_above_64_field64_read(unit, OAMP_CCM_TPID_MAPr, REG_PORT_ANY, 0, tpid_field[mep_db_entry.inner_tpid], &uint64_field));
+         tpids[1] = COMPILER_64_LO(uint64_field);
+    
+     } 
+    
+    for(i=0; i<6;i++)
+    {
+        peer_d_mac[i]=dest_mac[i];
+    }
+    
+    offset = _insert_eth_for_tst_lb(header_buffer, offset,peer_d_mac, gtf_smac, tpids,vlans, mep_db_entry.tags_num,ether_type);
+    } 
+    else{
+     /* MPLS TP or PWE. Either way the PPH is the same.*/
+     PPH_base pph;
+     uint8 exp, ttl;
+     soc_field_t mpls_pwe_prf_fields[] = {MPLS_PWE_PROFILE_0f, MPLS_PWE_PROFILE_1f, MPLS_PWE_PROFILE_2f, MPLS_PWE_PROFILE_3f, MPLS_PWE_PROFILE_4f, 
+     MPLS_PWE_PROFILE_5f, MPLS_PWE_PROFILE_6f, MPLS_PWE_PROFILE_7f, MPLS_PWE_PROFILE_8f, MPLS_PWE_PROFILE_9f, MPLS_PWE_PROFILE_10f, 
+     MPLS_PWE_PROFILE_11f, MPLS_PWE_PROFILE_12f, MPLS_PWE_PROFILE_13f, MPLS_PWE_PROFILE_14f, MPLS_PWE_PROFILE_15f, };
+     
+     offset = _insert_itmh_extension_for_tst_lb(header_buffer, offset,0xc0000 | mep_db_entry.local_port);/* why 18&19 bit value is 1 */
+    
+     SOC_SAND_SOC_IF_ERROR_RETURN(res, 100, exit, arad_pp_oam_oamp_read_pph_heaser(unit, 0,0x5,0,&pph));
+
+     /*
+     SOC_SAND_SOC_IF_ERROR_RETURN(res, 100, exit, READ_OAMP_TX_PPHr(unit, &reg64));
+
+     pph.field1 = 0;
+     pph.field2 = 0x5; 
+     pph.field3 = 0;
+     pph.field4 = 0;
+     pph.field5 = 0;
+     pph.field6 = soc_reg64_field32_get(unit, OAMP_TX_PPHr,reg64, TX_PPH_IN_LIF_ORIENTATIONf);
+     pph.field7 = soc_reg64_field32_get(unit, OAMP_TX_PPHr,reg64, TX_PPH_UNKNOWN_DAf);
+     pph.field8 = 0;
+     pph.field9 = soc_reg64_field32_get(unit, OAMP_TX_PPHr,reg64, TX_PPH_VSI_OR_VRFf);
+     pph.field10 = soc_reg64_field32_get(unit, OAMP_TX_PPHr,reg64, TX_PPH_IN_LIF_OR_IN_RIFf);
+     */
+    
+     offset = _insert_pph_for_tst_lb(header_buffer, &pph, offset);
+    
+     SOC_REG_ABOVE_64_CLEAR(reg_data);
+     SOC_REG_ABOVE_64_CLEAR(reg_field);
+     SOC_SAND_SOC_IF_ERROR_RETURN(res, 110, exit, READ_OAMP_MPLS_PWE_PROFILEr(unit, reg_data));
+     soc_reg_above_64_field_get(unit, OAMP_MPLS_PWE_PROFILEr, reg_data, mpls_pwe_prf_fields[mep_db_entry.push_profile],reg_field); 
+    
+     ttl = reg_field[0] & 0xff; /*first 8 bits*/
+     exp = (reg_field[0] & 0x700) >> 8 ; /* next 3 bits*/
+      
+      if (mep_db_entry.mep_type == SOC_PPC_OAM_MEP_TYPE_Y1731_O_MPLSTP) {
+         /* Packet format: PTCH2 o ITMH o PPH o LSP o GAL+GACH o OAM*/
+         uint32 gal_gach;
+    
+         offset = _insert_mpls_label_for_tst_lb(header_buffer, mep_db_entry.label,exp, 0, ttl, offset);
+         SOC_SAND_SOC_IF_ERROR_RETURN_ERR_VAL(res, 120, exit  , ARAD_REG_ACCESS_ERR,soc_reg_above_64_field32_read(unit, OAMP_Y_1731O_MPLSTP_GALr, REG_PORT_ANY, 0, Y_1731O_MPLSTP_GALf, &gal_gach));
+         offset= _insert_4_bytes_for_tst_lb(header_buffer ,gal_gach,offset);
+         SOC_SAND_SOC_IF_ERROR_RETURN_ERR_VAL(res, 130, exit  , ARAD_REG_ACCESS_ERR,soc_reg_above_64_field32_read(unit, OAMP_Y_1731O_MPLSTP_GACHr, REG_PORT_ANY, 0, Y_1731O_MPLSTP_GACHf, &gal_gach));
+         offset= _insert_4_bytes_for_tst_lb(header_buffer ,gal_gach,offset);
+     } else if (mep_db_entry.mep_type == SOC_PPC_OAM_MEP_TYPE_Y1731_O_PWE) {
+         
+         SOC_SAND_SET_ERROR_MSG((_BSL_SOCDNX_SAND_MSG("currently just support lb & tst in  ETH OAM mode")));
+     }
+    }
+    
+    /* build OAM header*/
+    offset= _insert_oam_pdu_header_for_tst_lb(header_buffer, mep_db_entry.mdl, flag, offset);
+    
+    *header_offset = offset;
+
+exit:
+      SOC_SAND_EXIT_AND_SEND_ERROR_SOCDNX((_BSL_SOCDNX_SAND_MSG("Something went wrong")));
+}
+
+
+/* Initialization required from init sequence. */
+soc_error_t soc_jer_pp_oam_init_from_init_sequence(int unit)
+{
+    uint32 reg32;
+    int core;
+    int rv;
+    SOCDNX_INIT_FUNC_DEFS;
+
+    SOC_DPP_CORES_ITER(SOC_CORE_ALL, core) {
+        if (SOC_IS_JERICHO_AND_BELOW(unit)) {
+            /* This correctly configures the counter FIFO in the egress.*/
+			/* Must be done before traffic has been sent, thus should be done in the 
+			init sequence*/
+            rv = READ_EPNI_CFG_LINK_FIFOS_FIXED_LATENCY_SETTINGr(unit,core,&reg32);
+            SOCDNX_IF_ERR_EXIT(rv);
+            soc_reg_field_set(unit,EPNI_CFG_LINK_FIFOS_FIXED_LATENCY_SETTINGr,&reg32, CFG_LINK_P_22_FIXED_LATENCY_SETTINGf, 0xd);
+            rv = WRITE_EPNI_CFG_LINK_FIFOS_FIXED_LATENCY_SETTINGr(unit,core,reg32);
+            SOCDNX_IF_ERR_EXIT(rv);
+        }
+    }
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+
+
+#include <soc/dpp/SAND/Utils/sand_footer.h>
+
