@@ -299,8 +299,9 @@ extern void ptin_msg_defaults_reset(msg_HwGenReq_t *msgPtr)
   PT_LOG_INFO(LOG_CTX_MSG, "Done.");
 
   /* Reset RFC 2819 */
-  PT_LOG_INFO(LOG_CTX_MSG, "Performing RFC 2819...");
-  ptin_rfc2819_init();
+  PT_LOG_INFO(LOG_CTX_MSG, "Performing RFC 2819 reset...");
+  ptin_rfc2819_init_buffers();
+  ptin_rfc2819_init_all_probes();
   PT_LOG_INFO(LOG_CTX_MSG, "Done.");
 
   if (mode == DEFAULT_RESET_MODE_FULL)

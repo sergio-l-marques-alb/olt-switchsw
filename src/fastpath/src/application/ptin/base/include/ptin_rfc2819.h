@@ -113,6 +113,10 @@ extern L7_int ptin_rfc2819_get_admin(T_QUALIDADE_RFC2819 *param);
 
 extern void ptin_rfc2819_proc(L7_uint8 buffer_15min, L7_uint8 buffer_24horas, T_QUALIDADE_RFC2819 *param, struct tm *data_hora, L7_int tgl_time);
 
+extern void ptin_rfc2819_init_probe(T_QUALIDADE_RFC2819 *param, L7_uint8 slot, L7_ulong32 path);
+
+extern void ptin_rfc2819_init_all_probes(void);
+
 extern void ptin_rfc2819_init_buffers(void);
 
 extern void ptin_rfc2819_clear_buffers(void);
