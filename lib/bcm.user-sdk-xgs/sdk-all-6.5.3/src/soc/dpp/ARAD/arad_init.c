@@ -4621,7 +4621,10 @@ uint32
               
               /*SOC_SAND_SOC_IF_ERROR_RETURN(res, 5, exit, soc_bist_irfc_ardon(unit, 1));*/
           } else {
+              /* PTin removed */
+            #if 0
               SOC_SAND_SOC_IF_ERROR_RETURN(res, 6, exit, soc_bist_irdp_arad(unit, 0)); 
+            #endif
           }
       }
       SOC_CONTROL(unit)->schanIntrEnb=save_mbist_property;

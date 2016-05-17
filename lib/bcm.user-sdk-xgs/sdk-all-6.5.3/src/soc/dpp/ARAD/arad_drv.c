@@ -4881,7 +4881,7 @@ soc_arad_info_config(int unit)
     /*
      * Init NIF ports
      */
-    dpp_arad->init.nif_recovery_enable = soc_property_suffix_num_get(unit, -1, spn_CUSTOM_FEATURE, "nif_recovery_enable", 1);
+    dpp_arad->init.nif_recovery_enable = soc_property_suffix_num_get(unit, -1, spn_CUSTOM_FEATURE, "nif_recovery_enable", 0);	/* PTin modified: startup */
     dpp_arad->init.nif_recovery_iter = soc_property_suffix_num_get(unit, -1, spn_CUSTOM_FEATURE, "nif_recovery_iter", 5);
 
     /*
