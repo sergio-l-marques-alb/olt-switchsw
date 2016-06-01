@@ -1,0 +1,142 @@
+#!/bin/sh
+# $Id: auto_launch_user.sh,v 1.13 Broadcom SDK $
+# $Copyright: Copyright 2016 Broadcom Corporation.
+# This program is the proprietary software of Broadcom Corporation
+# and/or its licensors, and may only be used, duplicated, modified
+# or distributed pursuant to the terms and conditions of a separate,
+# written license agreement executed between you and Broadcom
+# (an "Authorized License").  Except as set forth in an Authorized
+# License, Broadcom grants no license (express or implied), right
+# to use, or waiver of any kind with respect to the Software, and
+# Broadcom expressly reserves all rights in and to the Software
+# and all intellectual property rights therein.  IF YOU HAVE
+# NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+# IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+# ALL USE OF THE SOFTWARE.  
+#  
+# Except as expressly set forth in the Authorized License,
+#  
+# 1.     This program, including its structure, sequence and organization,
+# constitutes the valuable trade secrets of Broadcom, and you shall use
+# all reasonable efforts to protect the confidentiality thereof,
+# and to use this information only in connection with your use of
+# Broadcom integrated circuit products.
+#  
+# 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+# PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+# REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+# OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+# DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+# NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+# ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+# CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+# OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+# 
+# 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+# BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+# INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+# ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+# TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+# THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+# WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+# ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+
+IPROC_CHIPID_NS="CF12"
+IPROC_CHIPID_CS="CF1A"
+IPROC_CHIPID_NSP="CF1E"
+IPROC_CHIPID_READ=
+# Define Broadcom Switch device ID range
+# The PCI Device ID is a 16-bit value equal to the part number in hexadecimal.
+# For the 5-digit part number Broadcom switch devices, the last three digits
+# of the part number match the last three digits of the hexadecimal device ID,
+# with the first hexadecimal digit set to B (= 5 + 6). Thus, for the BCM56524
+# device, the PCI Device ID is 0xb524.
+# Listed the device ID ranges of Broadcom switch devices below. Ranges are
+# 0x8000-0x8fff, 0xa000-0xafff, 0xb000-0xbfff, 0xc000-0xcfff.
+# For string comparison operation, plus 1 for MAX boundary value and minor 1
+# for MIN boundary value.
+BRCM_SWITCH_DEVID_MAX1=9000
+BRCM_SWITCH_DEVID_MIN1=7fff
+BRCM_SWITCH_DEVID_MAX2=d000
+BRCM_SWITCH_DEVID_MIN2=bfff
+BRCM_SWITCH_DEVID_MAX3=c000
+BRCM_SWITCH_DEVID_MIN3=afff
+BRCM_SWITCH_DEVID_MAX4=b000
+BRCM_SWITCH_DEVID_MIN4=9fff
+
+cd /broadcom
+
+grep -q BCM9562 /proc/cpuinfo
+if [ $? == 0 ] ; then
+    mount -t vfat /dev/mtdblock0 /mnt
+else
+    grep -q BCM5300 /proc/cpuinfo
+    if [ $? == 0 ] ; then
+        mount -t vfat /dev/mtdblock2 /mnt
+    else
+        grep -q BCM98548 /proc/cpuinfo
+        if [ $? == 0 ] ; then
+            mount -t vfat /dev/mtdblock1 /mnt
+        else
+            grep -q iProc /proc/cpuinfo
+            if [ $? == 0 ] ; then
+                IPROC_CHIPID_READ=`devmem 0x18000000 16|grep '0x'|cut -d'x' -f2`
+                # Get Broadcom PCI device ID list
+                #     qualification : Ethernet Controller, Class 0200
+                #                     Broadcom PCI vendor ID, 14e4
+                PCIE_DEVICE_LIST=`lspci | grep 'Class 0200' | grep '14e4' |cut -d':' -f4`
+                IS_EHOST=0
+                # Identify if the Broadcom PCI devices are switch device.
+                # If any Broadcom switch device is found on the PCI bus, consider the CPU is in eHost mode.
+                for DEVID in $PCIE_DEVICE_LIST
+                do
+                    if [ "$DEVID" \< "$BRCM_SWITCH_DEVID_MAX1" ] && [ "$DEVID" \> "$BRCM_SWITCH_DEVID_MIN1" ]; then
+                        IS_EHOST=1
+                    fi
+                    if [ "$DEVID" \< "$BRCM_SWITCH_DEVID_MAX2" ] && [ "$DEVID" \> "$BRCM_SWITCH_DEVID_MIN2" ]; then
+                        IS_EHOST=1
+                    fi
+                    if [ "$DEVID" \< "$BRCM_SWITCH_DEVID_MAX3" ] && [ "$DEVID" \> "$BRCM_SWITCH_DEVID_MIN3" ]; then
+                        IS_EHOST=1
+                    fi
+                    if [ "$DEVID" \< "$BRCM_SWITCH_DEVID_MAX4" ] && [ "$DEVID" \> "$BRCM_SWITCH_DEVID_MIN4" ]; then
+                        IS_EHOST=1
+                    fi
+                done
+            fi
+        fi
+    fi
+fi
+
+if [ -f /mnt/config.bcm ] ; then
+    export BCM_CONFIG_FILE=/mnt/config.bcm
+else
+    # See if Petra co-processor (vendor 1172, device 4) / ARAD / FE1600
+    # is present. on the PCI bus. If it is, then this is a Dune board.
+    #
+    egrep -q "11720004|14e48650|14e48750|14e48660" /proc/bus/pci/devices
+    if [ $? == 0 ] ; then
+        export BCM_CONFIG_FILE=/broadcom/config-sand.bcm
+    elif [ -r  /proc/bus/pci/00/14.0 ] ; then
+        export BCM_CONFIG_FILE=/broadcom/config-sbx-polaris.bcm
+    elif [ -d /proc/bus/pci/02 ] ; then
+        export BCM_CONFIG_FILE=/broadcom/config-sbx-sirius.bcm
+    elif [ -d /proc/bus/pci/11.0 ] ; then
+        export BCM_CONFIG_FILE=/broadcom/config-sbx-fe2kxt.bcm
+    elif [ "$IPROC_CHIPID_READ" == "$IPROC_CHIPID_NSP" ] && [ $IS_EHOST == 0 ]; then
+        export BCM_CONFIG_FILE=/broadcom/config/BCM953022K.bcm
+    elif [ "$IPROC_CHIPID_READ" == "$IPROC_CHIPID_CS" ]; then
+        export BCM_CONFIG_FILE=/broadcom/config/BCM953012K.bcm
+    elif [ "$IPROC_CHIPID_READ" == "$IPROC_CHIPID_NS" ]; then
+        export BCM_CONFIG_FILE=/broadcom/config/BCM953012K.bcm
+    else
+        # Not XCore, not SAND. Must be an XGS board...
+        # Load the default configuration file.
+        #
+        export BCM_CONFIG_FILE=/broadcom/config.bcm
+    fi
+fi
+
+./bcm.user
+

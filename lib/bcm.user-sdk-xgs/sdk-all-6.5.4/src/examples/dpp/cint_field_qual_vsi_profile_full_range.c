@@ -1,0 +1,204 @@
+/* $Id: cint_field_qual_vsi_profile_full_range Exp $
+ * $Copyright: Copyright 2016 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+*/
+/*
+ * Test Scenario: Confgure ETPP LIF MTU trap and see packet terminated
+ *
+ * soc properties:
+ *pmf_vsi_profile_full_range =1;   
+ * 
+ * how to run the test: 
+    cint ../../../../src/examples/dpp/utility/cint_utils_vlan.c
+    cint ../../../../src/examples/dpp/utility/cint_utils_l2.c
+    cint ../../../../src/examples/dpp/cint_field_qual_vsi_profile_full_range.c
+    cint
+    field_qual_vsi_profile__start_run(0,NULL);
+    exit;
+ * 
+ * 
+ * Traffic: 
+ 
+ * Packet flow:
+ 
+ */
+
+struct qual_vsi_prof_info_s{
+    int    vlan;
+    uint32 vsi_profile; 
+    int group_priority;
+};
+
+qual_vsi_prof_info_s qual_info_g ={
+        1, /*vlan*/
+        9, /*vsi_profile*/
+        162 /*group_priority*/
+};
+
+
+/*****************************************************************************
+* Function:  field_qual_vsi_profile_init
+* Purpose:   
+* Params:
+* unit - 
+* Return:    (int)
+*******************************************************************************/
+int field_qual_vsi_profile_init(int unit)
+{
+    
+    if (soc_property_get(unit, spn_PMF_VSI_PROFILE_FULL_RANGE, 0) == FALSE)
+    {
+        return BCM_E_UNAVAIL;
+    }
+
+    return BCM_E_NONE;
+    
+}
+
+/*****************************************************************************
+* Function:  field_qual_vsi_profile_struct_get
+* Purpose:   
+* Params:
+* unit  - 
+* param - 
+*******************************************************************************/
+void field_qual_vsi_profile_struct_get(int unit, qual_vsi_prof_info_s *param)
+{
+     sal_memcpy(param,&qual_info_g, sizeof(qual_info_g));
+     return;
+}
+
+
+/*****************************************************************************
+* Function:  field_qual_vsi_profile__start_run
+* Purpose:   
+* Params:
+* unit      - 
+* qual_info_p - 
+* Return:    (int)
+*******************************************************************************/
+ int field_qual_vsi_profile__start_run(int unit,qual_vsi_prof_info_s *qual_info_p)
+ {
+    int rv = BCM_E_NONE;
+    bcm_field_qset_t qset;
+    bcm_field_aset_t aset;
+    bcm_field_entry_t ent;
+    bcm_field_group_t grp;
+    qual_vsi_prof_info_s qual_info;
+    int vsi_prof_2_bit_msb;
+    int vsi_prof_2_bit_lsb;
+    int auxRes;
+    int group_priority;
+
+    if(qual_info_p == NULL)
+    {
+        field_qual_vsi_profile_struct_get(unit,&qual_info);
+    }
+    else
+    {
+        sal_memcpy(&qual_info,qual_info_p, sizeof(qual_info_p));
+    }
+
+    vsi_prof_2_bit_msb = qual_info.vsi_profile >> 2;
+    vsi_prof_2_bit_lsb = qual_info.vsi_profile & 3;
+    
+    /*Create VLAN*/
+    vlan__init_vlan(unit,qual_info.vlan);
+        
+    /* Set the VSI profile MSB*/
+    vlan__control_vlan_vsi_profile_set(unit,qual_info.vlan,vsi_prof_2_bit_msb);
+
+    /* Set the VSI profile LSB*/
+    l2__vpn_to_vsi_profile_set(unit,qual_info.vlan,vsi_prof_2_bit_lsb);
+
+
+    group_priority = qual_info.group_priority;
+    /*Configure PMF*/
+    BCM_FIELD_QSET_INIT(qset);
+    BCM_FIELD_QSET_ADD(qset, bcmFieldQualifyInterfaceClassL2);
+    BCM_FIELD_QSET_ADD(qset, bcmFieldQualifyStageIngress);
+
+    BCM_FIELD_ASET_INIT(aset);
+    BCM_FIELD_ASET_ADD(aset, bcmFieldActionDrop);
+
+    rv = bcm_field_group_create(unit, qset, group_priority, &grp);
+    if (BCM_E_NONE != rv) {
+        return rv;
+        }
+    rv = bcm_field_group_action_set(unit, grp, aset);
+    if (BCM_E_NONE != rv) {
+        auxRes = bcm_field_group_destroy(unit, grp);
+        return rv;
+    }
+    
+    rv = bcm_field_entry_create(unit, grp, &ent);
+    if (BCM_E_NONE != rv) {
+        auxRes = bcm_field_group_destroy(unit, grp);
+        return rv;
+    }
+
+    rv = bcm_field_qualify_InterfaceClassL2(unit, ent, qual_info.vsi_profile, 0xF);
+    if (BCM_E_NONE != rv) {
+        auxRes = bcm_field_entry_destroy(unit, ent);
+        auxRes = bcm_field_group_destroy(unit, grp);
+        return rv;
+     }
+
+    rv = bcm_field_action_add(unit, ent, bcmFieldActionDrop, 0, 0);
+    if (BCM_E_NONE != rv) {
+        auxRes = bcm_field_entry_destroy(unit,ent);
+        auxRes = bcm_field_group_destroy(unit, grp);
+        return rv;
+        }
+    
+    rv = bcm_field_group_install(unit, grp);
+    if (BCM_E_NONE != rv) {
+        auxRes = bcm_field_entry_destroy(unit, ent);
+        /* auxRes = bcm_field_stat_destroy(unit, statId);*/
+        auxRes = bcm_field_group_destroy(unit, grp);
+        return rv;
+     }
+    
+    return rv;
+    
+ }
+

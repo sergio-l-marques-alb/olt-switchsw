@@ -1,0 +1,18 @@
+# Filename Make.pkg.pe-sdk
+FEATURE_LIST=PTP CINT L3 I2C BCMX BCMX_DIAG MEM_SCAN EDITLINE BCM_SAL_PROFILE CUSTOMER TEST CHASSIS MSTP RCPU PTP KNET
+BCM_PTL_SPT = 1
+ifeq ($(targetbase),vxworks)
+PE_SDK = 1
+endif
+BCM_56960_A0 = 1
+
+CFGFLAGS += -DBCM_WARM_BOOT_SUPPORT
+CFGFLAGS += -DBCM_WARM_BOOT_SUPPORT_SW_DUMP
+CFGFLAGS += -DALPM_ENABLE
+ifeq ($(targetbase),vxworks)
+CFGFLAGS += -DPE_SDK
+endif
+CFGFLAGS += -DPE_MODE_CMD
+
+# workspace:system=pe-sdk  
+# vxworks65:system=pe-sdk       buildDir=systems/vxworks/gto cpu=gto
