@@ -4597,7 +4597,8 @@ uint32
           if (SOC_IS_ARDON(unit)) 
           {
           } else {
-              SOC_SAND_SOC_IF_ERROR_RETURN(res, 6, exit, soc_bist_irdp_arad(unit, 0)); 
+              /* PTin removed */
+              //SOC_SAND_SOC_IF_ERROR_RETURN(res, 6, exit, soc_bist_irdp_arad(unit, 0)); 
           }
       }
       SOC_CONTROL(unit)->schanIntrEnb=save_mbist_property;
