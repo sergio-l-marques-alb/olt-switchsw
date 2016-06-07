@@ -750,7 +750,8 @@ L7_RC_t sysNetNotifyPduReceive (L7_netBufHandle bufHandle, sysnet_pdu_info_t *pd
 
   if (rc != L7_SUCCESS)
   {
-    PT_LOG_DEBUG(LOG_CTX_DTL,"rc=%u",rc);
+    if (pdu_process_debug)
+      PT_LOG_DEBUG(LOG_CTX_DTL,"rc=%u",rc);
     rc = L7_FAILURE;
     SYSAPI_NET_MBUF_FREE (bufHandle);
   }

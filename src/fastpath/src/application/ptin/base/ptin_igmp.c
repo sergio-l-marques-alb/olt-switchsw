@@ -250,7 +250,10 @@ typedef struct
 
   ptinIgmpDeviceClient_t         client_devices[PTIN_IGMP_INTFPORT_MAX][PTIN_IGMP_CLIENTIDX_MAX];
 
+  /* Removed not necessary routines to managem device clients */
+  #if 0
   dl_queue_t                     queue_free_clientDevices[PTIN_IGMP_INTFPORT_MAX]; /* Queue with free (device) clients */
+  #endif
 
   ptinIgmpDeviceClientsAvlTree_t avlTree;
   L7_APP_TMR_CTRL_BLK_t          timerCB;       /* Entry App Timer Control Block */
@@ -816,14 +819,17 @@ void *ptin_igmp_clients_snapshot_sem = L7_NULLPTR;
 
 /* Check if a client index is present in a ONU */
 static L7_uint8 igmp_clientDevice_get_devices_number(struct ptinIgmpClientGroupInfoData_s *clientGroup);
-/* Find a particular client in the client devices queue */
-static struct ptinIgmpClientDevice_s *igmp_clientDevice_find(struct ptinIgmpClientGroupInfoData_s *clientGroup, struct ptinIgmpClientInfoData_s *clientInfo);
 /* Get the next client withing client devices queue */
 static struct ptinIgmpClientDevice_s *igmp_clientDevice_next(struct ptinIgmpClientGroupInfoData_s *clientGroup, struct ptinIgmpClientDevice_s *pelem);
+/* Removed not necessary routines to managem device clients */
+#if 0
+/* Find a particular client in the client devices queue */
+static struct ptinIgmpClientDevice_s *igmp_clientDevice_find(struct ptinIgmpClientGroupInfoData_s *clientGroup, struct ptinIgmpClientInfoData_s *clientInfo);
 /* Add a client within the client devices queue */
 static struct ptinIgmpClientDevice_s *igmp_clientDevice_add(struct ptinIgmpClientGroupInfoData_s *clientGroup, struct ptinIgmpClientInfoData_s *clientInfo);
 /* Remove a client from the client devices queue */
 static struct ptinIgmpClientDevice_s *igmp_clientDevice_remove(struct ptinIgmpClientGroupInfoData_s *clientGroup, struct ptinIgmpClientInfoData_s *clientInfo);
+#endif
 
 /* Get new client index */
 static L7_uint16 ptin_igmp_device_client_identifier_pop(L7_uint ptin_port, ptinIgmpGroupClientInfoData_t* clientGroup);
@@ -928,6 +934,22 @@ static L7_RC_t ptin_igmp_multicast_package_init(void)
 }
 #endif
 
+void ptin_igmp_device_clients_teste(void)
+{
+  L7_uint16 port, client_idx;
+
+  for (port = 0; port < PTIN_IGMP_INTFPORT_MAX; port++)
+  {
+    printf("Port=%u ->", port);
+    for (client_idx = 0; client_idx < PTIN_IGMP_CLIENTIDX_MAX; ++client_idx)
+    {
+      printf(" %u:0x%08x", client_idx, (L7_uint32) igmpDeviceClients.client_devices[port][client_idx].client);
+    }
+    printf("\r\n");
+  }
+}
+
+
 /**
  * Initializes IGMP module
  * 
@@ -1011,7 +1033,7 @@ L7_RC_t ptin_igmp_proxy_init(void)
   memset(&igmpPortAdmissionControl, 0x00, sizeof(igmpPortAdmissionControl));
 
   /* Multicast Admission Control*/
-  memset(&igmpMulticastAdmissionControl, 0x00, sizeof(igmpPortAdmissionControl));  
+  memset(&igmpMulticastAdmissionControl, 0x00, sizeof(igmpMulticastAdmissionControl));  
 
 
   L7_uint8 internalServiceId;
@@ -1119,6 +1141,8 @@ L7_RC_t ptin_igmp_proxy_init(void)
       }
     }
 
+    /* Removed not necessary routines to managem device clients */
+    #if 0
     dl_queue_init(&igmpDeviceClients.queue_free_clientDevices[port]);
 
     for (i=0; i<PTIN_IGMP_CLIENTIDX_MAX; i++)
@@ -1126,6 +1150,7 @@ L7_RC_t ptin_igmp_proxy_init(void)
       igmpDeviceClients.client_devices[port][i].client = L7_NULLPTR;   /* Pointer to client structure */
       dl_queue_add_tail(&igmpDeviceClients.queue_free_clientDevices[port], (dl_queue_elem_t *) &igmpDeviceClients.client_devices[port][i]);
     }
+    #endif
   }
 
   /* IGMP associaations */
@@ -4696,7 +4721,7 @@ L7_RC_t ptin_igmp_clientGroupSnapshot_add(ptin_client_id_t *client)
 
   /* Check if this key already exists */
   avl_tree = &igmpSnapshotClientGroups;
-  memset(&avl_key,0x00,sizeof(ptinIgmpClientDataKey_t));
+  memset(&avl_key,0x00,sizeof(ptin_client_id_t));
 #if (MC_CLIENT_INTERF_SUPPORTED)
   avl_key.ptin_intf.intf_id   = client->ptin_intf.intf_id;
   avl_key.ptin_intf.intf_type = client->ptin_intf.intf_type;
@@ -5404,7 +5429,7 @@ L7_RC_t ptin_igmp_clientGroupSnapshot_clean(void)
   avl_tree = &igmpSnapshotClientGroups;
 
   /* Get all clients */
-  memset(&avl_key,0x00,sizeof(ptinIgmpClientDataKey_t));
+  memset(&avl_key,0x00,sizeof(ptin_client_id_t));
   while ( (avl_infoData=(ptinIgmpClientGroupsSnapshotInfoData_t *) avlSearchLVL7(&(avl_tree->avlTree), &avl_key, L7_MATCH_GETNEXT))!=L7_NULLPTR )
   {
     /* Prepare next key */
@@ -8842,7 +8867,7 @@ static L7_RC_t ptin_igmp_device_client_add(ptin_client_id_t *client,
 #endif
 
     /* Check if there is free clients to be allocated (look to free clients queue) */
-    if (igmpDeviceClients.queue_free_clientDevices[PTIN_IGMP_CLIENT_PORT(ptin_port)].n_elems == 0)
+    if (igmpDeviceClients.number_of_clients_per_intf[PTIN_IGMP_CLIENT_PORT(ptin_port)] >= PTIN_IGMP_CLIENTIDX_MAX)
     {
       osapiSemaGive(ptin_igmp_clients_sem);
       if (ptin_debug_igmp_snooping)
@@ -8994,18 +9019,21 @@ static L7_RC_t ptin_igmp_device_client_add(ptin_client_id_t *client,
     /* Client idx information */
     avl_infoData->pClientGroup = clientGroup;
 
+    /* Removed not necessary routines to managem device clients */
+    #if 0
     if (clientGroup != L7_NULLPTR)
     {
       /* Do not clear igmp statistics */
-#if 0
+      #if 0
       osapiSemaTake(ptin_igmp_stats_sem,L7_WAIT_FOREVER);
       memset(&clientGroup->stats_client, 0x00, sizeof(ptin_IGMP_Statistics_t));
       osapiSemaGive(ptin_igmp_stats_sem);
-#endif
+      #endif
 
       /* Add device to client group */
       igmp_clientDevice_add(clientGroup, avl_infoData);
     }
+    #endif
 
     /* Mark one more client for unified list of clients */
     igmp_clientIndex_mark(ptin_port, device_client_id, avl_infoData);
@@ -9459,11 +9487,14 @@ static L7_RC_t ptin_igmp_device_client_remove_all(L7_BOOL isDynamic, L7_BOOL onl
       }
 #endif
 
+      /* Removed not necessary routines to managem device clients */
+      #if 0
       if (clientGroup != L7_NULLPTR)
       {
         /* Remove device from client group */
         igmp_clientDevice_remove(clientGroup, avl_infoData);
       }
+      #endif
 
       /* Remove client from unified list of clients */
       igmp_clientIndex_unmark(ptin_port, client_idx);
@@ -9633,11 +9664,14 @@ static L7_RC_t ptin_igmp_device_client_remove(L7_uint ptin_port, L7_uint client_
       if (ptin_debug_igmp_snooping)
         PT_LOG_TRACE(LOG_CTX_IGMP,"Going to unmark ptin_port=%u client_idx=%u", ptin_port, client_idx);
 
+      /* Removed not necessary routines to managem device clients */
+      #if 0
       /* Remove device from client group */
       if (clientGroup != L7_NULLPTR)
       {
         igmp_clientDevice_remove(clientGroup, clientInfo);
       }
+      #endif
 
       /* Remove client from unified list of clients */
       igmp_clientIndex_unmark(ptin_port, client_idx);
@@ -13120,32 +13154,6 @@ L7_RC_t ptin_igmp_mgmd_port_sync(L7_uint8 admin, L7_uint32 serviceId, L7_uint32 
  ***********************************************************/
 
 /**
- * Find a particular client in the client devices queue
- */
-static struct ptinIgmpClientDevice_s *igmp_clientDevice_find(struct ptinIgmpClientGroupInfoData_s *clientGroup, struct ptinIgmpClientInfoData_s *clientInfo)
-{
-  struct ptinIgmpClientDevice_s *clientDevice = L7_NULLPTR;
-
-  /* Validate arguments */
-  if (clientGroup == L7_NULLPTR || clientInfo == L7_NULLPTR)
-    return L7_FALSE;
-
-  dl_queue_get_head(&clientGroup->queue_clientDevices, (dl_queue_elem_t **)&clientDevice);
-
-  /* Run all client nodes */
-  while (clientDevice != NULL)
-  {
-    /* If client index was found, break cycle */
-    if (clientDevice->client == clientInfo)  break;
-
-    clientDevice = (struct ptinIgmpClientDevice_s *) dl_queue_get_next(&clientGroup->queue_clientDevices, (dl_queue_elem_t *)clientDevice);
-  }
-
-  /* return client device pointer */
-  return clientDevice;
-}
-
-/**
  * Get the next client withing client devices queue
  */
 static struct ptinIgmpClientDevice_s *igmp_clientDevice_next(struct ptinIgmpClientGroupInfoData_s *clientGroup, struct ptinIgmpClientDevice_s *pelem)
@@ -13169,6 +13177,35 @@ static L7_uint8 igmp_clientDevice_get_devices_number(struct ptinIgmpClientGroupI
 
   /* Return number of elements in queue */
   return clientGroup->queue_clientDevices.n_elems;
+}
+
+
+/* Removed not necessary routines to managem device clients */
+#if 0
+/**
+ * Find a particular client in the client devices queue
+ */
+static struct ptinIgmpClientDevice_s *igmp_clientDevice_find(struct ptinIgmpClientGroupInfoData_s *clientGroup, struct ptinIgmpClientInfoData_s *clientInfo)
+{
+  struct ptinIgmpClientDevice_s *clientDevice = L7_NULLPTR;
+
+  /* Validate arguments */
+  if (clientGroup == L7_NULLPTR || clientInfo == L7_NULLPTR)
+    return L7_FALSE;
+
+  dl_queue_get_head(&clientGroup->queue_clientDevices, (dl_queue_elem_t **)&clientDevice);
+
+  /* Run all client nodes */
+  while (clientDevice != NULL)
+  {
+    /* If client index was found, break cycle */
+    if (clientDevice->client == clientInfo)  break;
+
+    clientDevice = (struct ptinIgmpClientDevice_s *) dl_queue_get_next(&clientGroup->queue_clientDevices, (dl_queue_elem_t *)clientDevice);
+  }
+
+  /* return client device pointer */
+  return clientDevice;
 }
 
 /**
@@ -13199,9 +13236,6 @@ static struct ptinIgmpClientDevice_s *igmp_clientDevice_add(struct ptinIgmpClien
     return L7_NULLPTR;
   }
 
-  /* Set clientIdx in the client bitmap */
-  BITMAP_BIT_SET(clientGroup->client_bmp_list, clientIdx, UINT32_BITSIZE);
-
   /* Client port */
   ptin_port = clientGroup->ptin_port;
   if (ptin_port >= PTIN_SYSTEM_N_INTERF)
@@ -13209,10 +13243,30 @@ static struct ptinIgmpClientDevice_s *igmp_clientDevice_add(struct ptinIgmpClien
     return L7_NULLPTR;
   }
 
+  /* Set clientIdx in the client bitmap */
+  BITMAP_BIT_SET(clientGroup->client_bmp_list, clientIdx, UINT32_BITSIZE);
+
   /* Add client to the EVC struct */
   dl_queue_remove_head(&igmpDeviceClients.queue_free_clientDevices[PTIN_IGMP_CLIENT_PORT(ptin_port)], (dl_queue_elem_t**) &clientDevice);
-  clientDevice->client = clientInfo;
   dl_queue_add_tail(&clientGroup->queue_clientDevices, (dl_queue_elem_t*) clientDevice);
+
+  /* Update number of clients */
+  if (clientDevice->client == L7_NULLPTR)
+  {
+    if (ptin_debug_igmp_snooping)
+      PT_LOG_TRACE(LOG_CTX_IGMP,"Empty client (ptin_port=%u client_idx=%u)", ptin_port, clientIdx);
+
+    if (igmpDeviceClients.number_of_clients < PTIN_IGMP_CLIENTIDX_MAX)
+      igmpDeviceClients.number_of_clients++;
+
+    if (ptin_port<PTIN_SYSTEM_N_INTERF)
+    {
+      if (igmpDeviceClients.number_of_clients_per_intf[ptin_port] < PTIN_IGMP_CLIENTIDX_MAX )
+        igmpDeviceClients.number_of_clients_per_intf[ptin_port]++;
+    }
+  }
+  /* Update client pointer */
+  clientDevice->client = clientInfo;
 
   /* Return pointer to new node */
   return clientDevice;
@@ -13258,12 +13312,33 @@ static struct ptinIgmpClientDevice_s *igmp_clientDevice_remove(struct ptinIgmpCl
 
   /* Remove node from client devices queue */
   dl_queue_remove(&clientGroup->queue_clientDevices, (dl_queue_elem_t*) clientDevice);
-  clientDevice->client = L7_NULLPTR;
   dl_queue_add_tail(&igmpDeviceClients.queue_free_clientDevices[PTIN_IGMP_CLIENT_PORT(ptin_port)], (dl_queue_elem_t*) clientDevice);
+
+  /* Update number of clients */
+  if (clientDevice->client != L7_NULLPTR)
+  {
+    if (ptin_debug_igmp_snooping)
+      PT_LOG_TRACE(LOG_CTX_IGMP,"Client in use (ptin_port=%u client_idx=%u)", ptin_port, clientIdx);
+
+    if (igmpDeviceClients.number_of_clients>0)
+    {
+      igmpDeviceClients.number_of_clients--;
+    }
+
+    if (ptin_port<PTIN_SYSTEM_N_INTERF)
+    {
+      if (igmpDeviceClients.number_of_clients_per_intf[ptin_port] > 0 )
+      {
+        igmpDeviceClients.number_of_clients_per_intf[ptin_port]--;
+      }
+    }
+  }
+  /* Update client pointer */
+  clientDevice->client = L7_NULLPTR;
 
   return L7_SUCCESS;
 }
-
+#endif
 
 /**
  * Pop new device client index 
