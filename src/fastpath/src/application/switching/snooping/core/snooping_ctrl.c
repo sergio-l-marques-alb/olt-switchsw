@@ -3446,8 +3446,7 @@ static void snoopMgmdSwitchPortCloseProcess(L7_uint32 serviceId, L7_uint32 intIf
   L7_BOOL        isL3Entry;
   char           groupAddrStr[IPV6_DISP_ADDR_LEN]={};
   char           sourceAddrStr[IPV6_DISP_ADDR_LEN]={};
-  //char           teste[IPV6_DISP_ADDR_LEN]={};
-
+  
   inetAddrPrint(groupAddr, groupAddrStr);
   inetAddrPrint(sourceAddr, sourceAddrStr);
 

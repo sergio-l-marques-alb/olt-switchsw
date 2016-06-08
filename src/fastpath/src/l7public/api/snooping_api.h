@@ -30,8 +30,6 @@
 #include "ping_api.h"
 #include "ptin_structs.h"
 
-
-
 /* PTin added: IGMP snooping */
 #if 1
 

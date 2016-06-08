@@ -42,11 +42,6 @@
   #include "logger.h"  
   #include  "snooping_ptin_db.h"
   #include  "ptin_igmp.h"
-
-//  #ifdef PTIN_ENABLE_ERPS
-//  #include "ptin_prot_erps.h"
- // #include "ptin_evc.h"
- // #endif
 #endif
 
 /******************Protection Schemes Support************************************/
@@ -4083,7 +4078,6 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
   snoop_eb_t    *pSnoopEB = L7_NULLPTR;
   char           groupAddrStr[IPV6_DISP_ADDR_LEN]={};
   char           sourceAddrStr[IPV6_DISP_ADDR_LEN]={};
-  //char           teste[IPV6_DISP_ADDR_LEN]={};
 
   inetAddrPrint(groupAddr, groupAddrStr);
   inetAddrPrint(sourceAddr, sourceAddrStr);
@@ -4108,24 +4102,12 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
   ptin_prottypeb_intf_config_get(intIfNum, &protTypebIntfConfig);
 #endif
 
-
- // #ifdef PTIN_ENABLE_ERPS
-
-  //if (ptin_erps_get_status_void(1) && !ptin_evc_is_intf_leaf(serviceId, intIfNum) && (teste == groupAddrStr))
-  //{
-    //   PT_LOG_NOTICE(LOG_CTX_IGMP, "Ignoring Port Close. This port is ring protection [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X]", serviceId, intIfNum, groupAddr, sourceAddr);
-   
-  //  return rc;
-  //}
-
-  //#endif
-
   /*Workaround to prevent MGMD from closing a port, when it is inactive and belongs to a protection scheme*/
   if (
   #if PTIN_BOARD_IS_MATRIX
   (!ptin_fpga_mx_is_matrixactive_rt()) 
   #elif (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
-  ((protTypebIntfConfig.intfRole != PROT_TYPEB_ROLE_NONE && protTypebIntfConfig.status != L7_ENABLE))
+  (protTypebIntfConfig.intfRole != PROT_TYPEB_ROLE_NONE && protTypebIntfConfig.status != L7_ENABLE)  
   #else
   #error "Not Implemented Yet!"
   #endif
