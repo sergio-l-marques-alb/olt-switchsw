@@ -29,10 +29,6 @@
 #include "ptin_debug.h"
 #include "dtl_l3_mcast_api.h"
 
-#ifdef PTIN_ENABLE_ERPS
-#include "ptin_prot_erps.h"
-#endif
-
 #define IGMP_INVALID_ENTRY    0xFF
 
 /******************************* 
@@ -8837,15 +8833,7 @@ static L7_RC_t ptin_igmp_device_client_add(ptin_client_id_t *client,
       osapiSemaGive(ptin_igmp_clients_sem);
       if (ptin_debug_igmp_snooping)
         PT_LOG_ERR(LOG_CTX_IGMP,"Client Group not found!");
-
-     #ifdef PTIN_ENABLE_ERPS
-     if(ptin_erps_get_status_void(1) != 1)
-     {
-       return L7_FAILURE;
-     } 
-     #else
-       return L7_FAILURE;
-     #endif   
+      return L7_FAILURE;
     }
 
     /* Check if can be added more devices */
@@ -8854,15 +8842,7 @@ static L7_RC_t ptin_igmp_device_client_add(ptin_client_id_t *client,
       osapiSemaGive(ptin_igmp_clients_sem);
       if (ptin_debug_igmp_snooping)
         PT_LOG_ERR(LOG_CTX_IGMP,"Cannot be added more than %u devices!", PTIN_SYSTEM_IGMP_MAXDEVICES_PER_ONU);
-
-     #ifdef PTIN_ENABLE_ERPS
-     if(ptin_erps_get_status_void(1) != 1)
-     {
-       return L7_FAILURE;
-     } 
-     #else
-       return L7_FAILURE;
-     #endif   
+      return L7_FAILURE;
     }
 #endif
 

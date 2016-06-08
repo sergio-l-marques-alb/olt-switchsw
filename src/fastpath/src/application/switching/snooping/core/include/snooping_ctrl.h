@@ -22,10 +22,6 @@
 #ifndef SNOOPING_CTRL_H
 #define SNOOPING_CTRL_H
 
-#ifdef PTIN_ENABLE_ERPS
-#include "ptin_prot_erps.h"
-#endif
-
 struct snoop_cb_s;
 
 void snoopTask(void);
