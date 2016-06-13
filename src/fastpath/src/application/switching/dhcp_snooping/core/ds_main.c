@@ -5218,7 +5218,17 @@ L7_RC_t dsFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
   #if 1
   L7_uint16 extOVlan = vlanId;
   L7_uint16 extIVlan = 0;
-  //L7_int i;
+  L7_uint32 member_mode;
+
+  /* Check if this port is associated to the VLAN */
+  /* If not a member, don't transmit */
+  if (dot1qVlanMemberGet(vlanId, intIfNum, &member_mode) != L7_SUCCESS ||
+      member_mode != L7_DOT1Q_FIXED)
+  {
+    if (ptin_debug_dhcp_snooping)
+      PT_LOG_TRACE(LOG_CTX_DHCP, "IntIfNum %u does not belong to VLAN %u. Transmission cancelled", intIfNum, vlanId);
+    return L7_FAILURE;
+  }
 
   if (ptin_debug_dhcp_snooping)
     PT_LOG_TRACE(LOG_CTX_DHCP, "Going to transmit packet to intIfNum %u, vlanId=%u, innerVlanId=%u", intIfNum, vlanId, innerVlanId);
