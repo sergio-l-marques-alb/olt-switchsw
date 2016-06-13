@@ -622,8 +622,8 @@ L7_RC_t   dot1qVlanMemberSet(L7_uint32 vid, L7_uint32 intIfNum, L7_uint32 mode, 
       }
 
       (void)dot1qVlanMemberSetCfgUpdate(vid, intIfNum, mode);
-      if ((swport_mode == DOT1Q_SWPORT_MODE_TRUNK) &&
-           (mode == L7_DOT1Q_FIXED))
+      if (((FD_DOT1Q_DEFAULT_TAGGING == L7_DOT1Q_TAGGED) || (swport_mode == DOT1Q_SWPORT_MODE_TRUNK))
+          && (mode == L7_DOT1Q_FIXED))
       {
         dot1qVlanTaggedMemberSetCfgUpdate(vid,intIfNum, L7_DOT1Q_TAGGED);
       }
