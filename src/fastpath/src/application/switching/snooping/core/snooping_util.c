@@ -1242,6 +1242,7 @@ void snoopPacketSend(L7_uint32 intIfNum,
   L7_netBufHandle   bufHandle;
   L7_uchar8        *dataStart;
   L7_INTF_TYPES_t   sysIntfType;
+  L7_uint32         member_mode;
 
 #if PTIN_BOARD_IS_MATRIX  
   /* Do nothing for slave matrix */
@@ -1272,6 +1273,16 @@ void snoopPacketSend(L7_uint32 intIfNum,
     return;
   }
 
+  /* Check if this port is associated to the VLAN */
+  /* If not a member, don't transmit */
+  if (dot1qVlanMemberGet(vlanId, intIfNum, &member_mode) != L7_SUCCESS ||
+      member_mode != L7_DOT1Q_FIXED)
+  {
+    if (ptin_debug_igmp_snooping)
+      PT_LOG_TRACE(LOG_CTX_DHCP, "IntIfNum %u does not belong to VLAN %u. Transmission cancelled", intIfNum, vlanId);
+    return;
+  }
+
   SYSAPI_NET_MBUF_GET(bufHandle);
   if (bufHandle == L7_NULL)
   {
@@ -1286,17 +1297,6 @@ void snoopPacketSend(L7_uint32 intIfNum,
   #if 1
   L7_uint16 extOVlan = vlanId;
   L7_uint16 extIVlan = 0;
-  L7_uint32 member_mode;
-
-  /* Check if this port is associated to the VLAN */
-  /* If not a member, don't transmit */
-  if (dot1qVlanMemberGet(vlanId, intIfNum, &member_mode) != L7_SUCCESS ||
-      member_mode != L7_DOT1Q_FIXED)
-  {
-    if (ptin_debug_igmp_snooping)
-      PT_LOG_TRACE(LOG_CTX_DHCP, "IntIfNum %u does not belong to VLAN %u. Transmission cancelled", intIfNum, vlanId);
-    return;
-  }
 
   /* Extract external outer and inner vlan for this tx interface */
   if (ptin_igmp_extVlans_get(intIfNum, vlanId, innerVIDUntagged, client_idx, &extOVlan, &extIVlan) == L7_SUCCESS)
