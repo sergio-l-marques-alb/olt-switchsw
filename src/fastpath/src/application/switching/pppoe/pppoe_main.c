@@ -57,9 +57,10 @@ extern L7_uint64 hapiBroadReceice_pppoe_count;
 *********************************************************************/
 static void    pppoeProcessServerFrame(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint client_idx);
 static void    pppoeProcessClientFrame(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint client_idx);
-static L7_RC_t pppoeServerFrameSend(L7_uchar8* frame, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint client_idx);
+static L7_RC_t pppoeServerFrameFlood(L7_uchar8* frame, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint client_idx);
+static L7_RC_t pppoeServerFrameSend(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint client_idx);
 static L7_RC_t pppoeClientFrameSend(L7_uint32 intIfNum, L7_uchar8* frame, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint client_idx);
-static L7_RC_t pppoeServerInterfaceGet(L7_uint32 *intIfNum, L7_ushort16 vlanId);
+//static L7_RC_t pppoeServerInterfaceGet(L7_uint32 *intIfNum, L7_ushort16 vlanId);
 static L7_RC_t pppoeCommonErrorFrameCreate(L7_uchar8 *originalFramePtr, L7_uchar8 *newFramePtr, L7_uint32 *newFrameLen);
 static L7_RC_t pppoeCopyTlv(L7_uchar8 *originalFramePtr, L7_uchar8 *newFramePtr);
 static L7_RC_t pppoeAddVendorIdTlv(L7_uchar8 *framePtr, L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId);
@@ -692,6 +693,7 @@ L7_RC_t pppoeCommonErrorFrameCreate(L7_uchar8 *originalFramePtr, L7_uchar8 *newF
    return L7_SUCCESS;
 }
 
+#if 0
 /***********************************************************************
 * @purpose Get the uplink interface for this PPPoE service
 *
@@ -736,6 +738,7 @@ L7_RC_t pppoeServerInterfaceGet(L7_uint32 *intIfNum, L7_ushort16 vlanId)
   PT_LOG_ERR(LOG_CTX_PPPOE, "Unable to find a valid ROOT interface for vlan %u", vlanId);
   return L7_FAILURE;
 }
+#endif
 
 /***********************************************************************
 * @purpose Send a PPPoE frame on a given interface
@@ -850,6 +853,43 @@ L7_RC_t pppoeClientFrameSend(L7_uint32 intIfNum, L7_uchar8* frame, L7_ushort16 v
   return L7_SUCCESS;
 }
 
+/**
+ * Flood a packet to all root interfaces
+ * 
+ * @param frame 
+ * @param vlanId 
+ * @param innerVlanId 
+ * @param client_idx 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t pppoeServerFrameFlood(L7_uchar8* frame, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint client_idx)
+{
+  L7_uint32 ptinPort, intIfNum;
+  L7_RC_t rc, rc_global = L7_SUCCESS;
+
+  /* Return only the first LINK_UP root interface found */
+  for (ptinPort = 0; ptinPort < PTIN_SYSTEM_N_INTERF; ++ptinPort)
+  {
+    /* Check if interface is valid */
+    if(L7_SUCCESS != ptin_intf_port2intIfNum(ptinPort, &intIfNum))
+    {
+      continue;
+    }
+    /* It should be a ROOT interface */
+    if(ptin_pppoe_is_intfRoot(intIfNum, vlanId))
+    {
+      rc = pppoeServerFrameSend(frame, intIfNum, vlanId, innerVlanId, client_idx);
+      if (rc != L7_SUCCESS)
+      {
+        rc_global = rc;
+      }
+    }
+  }
+
+  return rc_global;
+}
+
 /***********************************************************************
 * @purpose Send a PPPoE frame on a given interface
 *
@@ -865,7 +905,7 @@ L7_RC_t pppoeClientFrameSend(L7_uint32 intIfNum, L7_uchar8* frame, L7_ushort16 v
 * @end
 *
 ***********************************************************************/
-L7_RC_t pppoeServerFrameSend(L7_uchar8* frame, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint client_idx)
+L7_RC_t pppoeServerFrameSend(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint client_idx)
 {
   L7_uint16         extOVlan = vlanId, extIVlan = 0, frame_len;
   L7_uchar8         *dataStart, *pppoe_header_ptr;
@@ -873,8 +913,15 @@ L7_RC_t pppoeServerFrameSend(L7_uchar8* frame, L7_ushort16 vlanId, L7_ushort16 i
   //L7_BOOL           is_vlan_stacked;
   L7_pppoe_header_t *pppoe_header;
   L7_INTF_TYPES_t   sysIntfType;
-  L7_uint32         intIfNum, member_mode;
+  L7_uint32         member_mode, link_state;
   
+  /* Link is up */
+  if((L7_SUCCESS != nimGetIntfLinkState(intIfNum, &link_state)) && (link_state == L7_UP) )
+  {
+    return L7_SUCCESS;
+  }
+
+  #if 0
   /* Get uplink interface */
   if(L7_SUCCESS != pppoeServerInterfaceGet(&intIfNum, vlanId))
   {
@@ -882,6 +929,7 @@ L7_RC_t pppoeServerFrameSend(L7_uchar8* frame, L7_ushort16 vlanId, L7_ushort16 i
        PT_LOG_ERR(LOG_CTX_PPPOE, "Unable to determine server interface for vlanId %u", vlanId);
      return L7_FAILURE;
   }
+  #endif
 
   /* If outgoing interface is CPU interface, don't send it */
   if ((nimGetIntfType(intIfNum, &sysIntfType) == L7_SUCCESS) &&
@@ -898,9 +946,12 @@ L7_RC_t pppoeServerFrameSend(L7_uchar8* frame, L7_ushort16 vlanId, L7_ushort16 i
       member_mode != L7_DOT1Q_FIXED)
   {
     if (ptin_debug_pppoe_snooping)
-      PT_LOG_TRACE(LOG_CTX_DHCP, "IntIfNum %u does not belong to VLAN %u. Transmission cancelled", intIfNum, vlanId);
+      PT_LOG_TRACE(LOG_CTX_PPPOE, "IntIfNum %u does not belong to VLAN %u. Transmission cancelled", intIfNum, vlanId);
     return L7_SUCCESS;
   }
+
+  if (ptin_debug_pppoe_snooping)
+    PT_LOG_TRACE(LOG_CTX_PPPOE, "Server interface for vlanId %u: intIfNum=%u", vlanId, intIfNum);
 
   SYSAPI_NET_MBUF_GET(bufHandle);
   if (bufHandle == L7_NULL)
@@ -1068,7 +1119,7 @@ void pppoeProcessClientFrame(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 v
    /* If the received PPPoE frame is PADT, immediatly send it */
    if(pppoe_header->code == L7_PPPOE_PADT)
    {
-      pppoeServerFrameSend(frame, vlanId, innerVlanId, client_idx);
+      pppoeServerFrameFlood(frame, vlanId, innerVlanId, client_idx);
       return;        
    }  
 
@@ -1132,7 +1183,7 @@ void pppoeProcessClientFrame(L7_uchar8* frame, L7_uint32 intIfNum, L7_ushort16 v
       pppoe_header_copy->length += osapiHtons(sizeof(L7_tlv_header_t) + osapiNtohs(tlv_header_new->length));
    }
 
-   pppoeServerFrameSend(frame_copy, vlanId, innerVlanId, client_idx);
+   pppoeServerFrameFlood(frame_copy, vlanId, innerVlanId, client_idx);
 }
 
 /*********************************************************************
