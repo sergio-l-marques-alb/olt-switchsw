@@ -10297,6 +10297,8 @@ L7_RC_t switching_root_unblock(L7_uint root_intf, L7_uint16 int_vlan)
   L7_uint   evc_id;
   L7_uint32 intIfNum;
   L7_uint16 intIfNum_list[2];
+  L7_uint16 pvid, newOVlan, newIVlan;
+  L7_uint32 tag_mode;
   L7_RC_t   rc = L7_SUCCESS;
 
   /* Validate arguments */
@@ -10346,6 +10348,23 @@ L7_RC_t switching_root_unblock(L7_uint root_intf, L7_uint16 int_vlan)
     if (usmDbVlanMemberSet(1, int_vlan, intIfNum, L7_DOT1Q_FIXED, DOT1Q_SWPORT_MODE_NONE) != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_EVC, "Error associating root Int.VLAN %u to root intIfNum# %u (rc=%d)", int_vlan, intIfNum, rc);
+      rc = L7_FAILURE;
+    }
+    /* Determine tag mode, according to default VLAN */
+    if (ptin_xlate_PVID_get(intIfNum, &pvid) == L7_SUCCESS &&
+        ptin_xlate_egress_get(intIfNum, int_vlan, PTIN_XLATE_NOT_DEFINED, &newOVlan, &newIVlan) == L7_SUCCESS &&
+        newOVlan == pvid)
+    {
+      tag_mode = L7_DOT1Q_UNTAGGED;
+    }
+    else
+    {
+      tag_mode = L7_DOT1Q_TAGGED;
+    }
+    /* Configure the internal VLAN on this interface as tagged */
+    if (usmDbVlanTaggedSet(1, int_vlan, intIfNum, tag_mode) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_EVC, "Error setting intIfNum# %u internal VLAN %u tag mode (%u)", intIfNum, int_vlan, tag_mode);
       rc = L7_FAILURE;
     }
   }

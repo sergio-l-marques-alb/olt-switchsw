@@ -647,7 +647,7 @@ extern snmpTrapMgr_t FD_snmpTrapMgr[L7_MAX_SNMP_COMM];
 /* ACCESS_VLAN is valid only when swport_mode is access*/
 #define FD_DOT1Q_DEFAULT_ACCESS_VLAN                FD_DOT1Q_DEFAULT_VLAN
 #define FD_DOT1Q_DEFAULT_PVID                       FD_DOT1Q_DEFAULT_VLAN
-#define FD_DOT1Q_DEFAULT_TAGGING                    L7_DOT1Q_UNTAGGED
+#define FD_DOT1Q_DEFAULT_TAGGING                    L7_DOT1Q_TAGGED                   /* PTin modified: L7_DOT1Q_UNTAGGED */
 
 /* By default, assign VLAN IDs to VLAN routing interface starting from
  * the highest VLAN ID and working down. */
