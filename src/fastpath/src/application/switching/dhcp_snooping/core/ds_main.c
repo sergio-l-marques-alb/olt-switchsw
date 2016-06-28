@@ -1989,6 +1989,10 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    //@note (Daniel): Currently, statistics for DHCP are broken. They are to be rewritten in v4.0.
    ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_RX_CLIENT_REQUESTS_WITHOUT_OPTIONS);
 
+   //Add or update an existing entry in the binding table
+   dsv6BindingAdd(DS_BINDING_TENTATIVE, &client_mac_addr, &client_ip_addr, vlanId, innerVlanId, intIfNum);
+   dsv6LeaseStatusUpdate(&client_mac_addr, dhcp_msg_hdr_ptr->msg_type);
+
    //Create a new Relay-Agent message. If the received msg is a 'L7_DHCP6_RELAY_FORW', increase hop_count
    relay_agent_header.msg_type  = L7_DHCP6_RELAY_FORW;
    relay_agent_header.hop_count = (dhcp_msg_type==L7_DHCP6_RELAY_FORW) ? (*(dhcp_header_ptr+1)+1) : (0);
@@ -2042,10 +2046,6 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
         PT_LOG_ERR(LOG_CTX_DHCP, "DHCP Relay-Agent: Error sending DHCPv6 message");
       return L7_FAILURE;
    }
-
-   //Add or update an existing entry in the binding table
-   dsv6BindingAdd(DS_BINDING_TENTATIVE, &client_mac_addr, &client_ip_addr, vlanId, innerVlanId, intIfNum);
-   dsv6LeaseStatusUpdate(&client_mac_addr, dhcp_msg_hdr_ptr->msg_type);
 
    return L7_SUCCESS;
 }
@@ -5181,7 +5181,7 @@ L7_RC_t dsFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
   L7_netBufHandle   bufHandle;
   L7_uchar8        *dataStart;
   L7_INTF_TYPES_t   sysIntfType;
-  //L7_BOOL           is_vlan_stacked;
+  L7_uint32         member_mode;
 
   if (ptin_debug_dhcp_snooping)
     PT_LOG_TRACE(LOG_CTX_DHCP, "Going to transmit packet to intIfNum %u, vlanId=%u, innerVlanId=%u", intIfNum, vlanId, innerVlanId);
@@ -5204,6 +5204,16 @@ L7_RC_t dsFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
     dsTraceWrite(dsTrace);
   }
 
+  /* Check if this port is associated to the VLAN */
+  /* If not a member, don't transmit */
+  if (dot1qVlanMemberGet(vlanId, intIfNum, &member_mode) != L7_SUCCESS ||
+      member_mode != L7_DOT1Q_FIXED)
+  {
+    if (ptin_debug_dhcp_snooping)
+      PT_LOG_TRACE(LOG_CTX_DHCP, "IntIfNum %u does not belong to VLAN %u. Transmission cancelled", intIfNum, vlanId);
+    return L7_SUCCESS;
+  }
+
   SYSAPI_NET_MBUF_GET(bufHandle);
   if (bufHandle == L7_NULL)
   {
@@ -5218,7 +5228,6 @@ L7_RC_t dsFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
   #if 1
   L7_uint16 extOVlan = vlanId;
   L7_uint16 extIVlan = 0;
-  //L7_int i;
 
   if (ptin_debug_dhcp_snooping)
     PT_LOG_TRACE(LOG_CTX_DHCP, "Going to transmit packet to intIfNum %u, vlanId=%u, innerVlanId=%u", intIfNum, vlanId, innerVlanId);

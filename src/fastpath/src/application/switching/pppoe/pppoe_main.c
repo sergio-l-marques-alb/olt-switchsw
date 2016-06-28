@@ -759,11 +759,22 @@ L7_RC_t pppoeClientFrameSend(L7_uint32 intIfNum, L7_uchar8* frame, L7_ushort16 v
   L7_netBufHandle   bufHandle;
   L7_pppoe_header_t *pppoe_header;
   L7_INTF_TYPES_t   sysIntfType;
+  L7_uint32         member_mode;
 
   /* If outgoing interface is CPU interface, don't send it */
   if ((nimGetIntfType(intIfNum, &sysIntfType) == L7_SUCCESS) &&
       (sysIntfType == L7_CPU_INTF))
   {
+    return L7_SUCCESS;
+  }
+
+  /* Check if this port is associated to the VLAN */
+  /* If not a member, don't transmit */
+  if (dot1qVlanMemberGet(vlanId, intIfNum, &member_mode) != L7_SUCCESS ||
+      member_mode != L7_DOT1Q_FIXED)
+  {
+    if (ptin_debug_pppoe_snooping)
+      PT_LOG_TRACE(LOG_CTX_DHCP, "IntIfNum %u does not belong to VLAN %u. Transmission cancelled", intIfNum, vlanId);
     return L7_SUCCESS;
   }
 
@@ -784,7 +795,6 @@ L7_RC_t pppoeClientFrameSend(L7_uint32 intIfNum, L7_uchar8* frame, L7_ushort16 v
   #if 1
   L7_uint16 extOVlan = vlanId;
   L7_uint16 extIVlan = 0;
-  //L7_int i;
 
   /* Extract external outer and inner vlan for this tx interface */
   if (ptin_pppoe_extVlans_get(intIfNum, vlanId, innerVlanId, client_idx, &extOVlan,&extIVlan) == L7_SUCCESS)
@@ -863,7 +873,7 @@ L7_RC_t pppoeServerFrameSend(L7_uchar8* frame, L7_ushort16 vlanId, L7_ushort16 i
   //L7_BOOL           is_vlan_stacked;
   L7_pppoe_header_t *pppoe_header;
   L7_INTF_TYPES_t   sysIntfType;
-  L7_uint32         intIfNum;
+  L7_uint32         intIfNum, member_mode;
   
   /* Get uplink interface */
   if(L7_SUCCESS != pppoeServerInterfaceGet(&intIfNum, vlanId))
@@ -879,6 +889,16 @@ L7_RC_t pppoeServerFrameSend(L7_uchar8* frame, L7_ushort16 vlanId, L7_ushort16 i
   {
     if (ptin_debug_pppoe_snooping)
       PT_LOG_ERR(LOG_CTX_PPPOE, "Invalid outgoing interface intIfNum %u with type %u", intIfNum, sysIntfType);
+    return L7_SUCCESS;
+  }
+
+  /* Check if this port is associated to the VLAN */
+  /* If not a member, don't transmit */
+  if (dot1qVlanMemberGet(vlanId, intIfNum, &member_mode) != L7_SUCCESS ||
+      member_mode != L7_DOT1Q_FIXED)
+  {
+    if (ptin_debug_pppoe_snooping)
+      PT_LOG_TRACE(LOG_CTX_DHCP, "IntIfNum %u does not belong to VLAN %u. Transmission cancelled", intIfNum, vlanId);
     return L7_SUCCESS;
   }
 
