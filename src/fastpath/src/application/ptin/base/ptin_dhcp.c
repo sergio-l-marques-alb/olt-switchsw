@@ -4145,14 +4145,6 @@ static L7_RC_t ptin_dhcp_inst_get_fromIntVlan(L7_uint16 intVlan, st_DhcpInstCfg_
     return L7_FAILURE;
   }
 
-  /* Check if EVCs are in use */
-  if (!ptin_evc_is_in_use(dhcpInstances[dhcp_idx].evc_idx))
-  {
-    if (ptin_debug_dhcp_snooping)
-      PT_LOG_ERR(LOG_CTX_DHCP,"Inconsistency: DHCP index %u (EVCid=%u, Vlan %u) has EVC not in use (evc=%u)",dhcp_idx,evc_idx,intVlan,dhcpInstances[dhcp_idx].evc_idx);
-    return L7_FAILURE;
-  }
-
   /* Return dhcp instance */
   if (dhcpInst!=L7_NULLPTR)     *dhcpInst     = &dhcpInstances[dhcp_idx];
   if (dhcpInst_idx!=L7_NULLPTR) *dhcpInst_idx = dhcp_idx;
