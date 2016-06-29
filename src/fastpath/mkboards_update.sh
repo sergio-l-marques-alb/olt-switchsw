@@ -14,6 +14,11 @@
 
 MKBOARDS=$1
 
+if [ $# -eq 0 ]; then
+ echo "Syntax: $0 <mkboards_folder> <board> <version> <IPaddr>"
+ exit;
+fi
+
 if [ $2 == "cxo640g" ]; then
  BOARD="CXO640G"
  MKBOARDS_FOLDER=CXO640G-MX
