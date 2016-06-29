@@ -2180,69 +2180,70 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
         {
           fprintf(fd, "  Time Instant: t = %u s\n", count*p_tx.test_time);
 
-          #if 1
-          /* Read register 1x8036 */
-          for (slot=0; slot<p_tx.n_slots; slot++)
+          if ( p_tx.optimize_lc & 0x04 )
           {
-            /* Read status of Vitesse firmware */
-            if (remote_reg_read(p_tx.ip_addr[slot], -1, 0x101, 0x8036, vitesse_res, &n_res)==0 && n_res==4)
+            /* Read register 1x8036 */
+            for (slot=0; slot<p_tx.n_slots; slot++)
             {
-              fprintf(fd, "   Slot=%-2u: 1x8036 = { ", p_tx.slot[slot]);
-              for (port_idx = 0; port_idx < N_LANES_MAX; port_idx++)
+              /* Read status of Vitesse firmware */
+              if (remote_reg_read(p_tx.ip_addr[slot], -1, 0x101, 0x8036, vitesse_res, &n_res)==0 && n_res==4)
               {
-                if ( p_tx.port_list[slot][port_idx] < 0 )
-                  continue;
-                fprintf(fd, " 0x%04x ", vitesse_res[port_idx]);
+                fprintf(fd, "   Slot=%-2u: 1x8036 = { ", p_tx.slot[slot]);
+                for (port_idx = 0; port_idx < N_LANES_MAX; port_idx++)
+                {
+                  if ( p_tx.port_list[slot][port_idx] < 0 )
+                    continue;
+                  fprintf(fd, " 0x%04x ", vitesse_res[port_idx]);
+                }
+                fprintf(fd, " }\n");
               }
-              fprintf(fd, " }\n");
-            }
-            else
-            {
-              fprintf(fd, "   [ERROR] Failed reading 1x8036 register in slot %u\n", p_tx.slot[slot]);
-            }
-          }
-          /* Read register 1x8037 */
-          for (slot=0; slot<p_tx.n_slots; slot++)
-          {
-            /* Read status of Vitesse firmware */
-            if (remote_reg_read(p_tx.ip_addr[slot], -1, 0x101, 0x8037, vitesse_res, &n_res)==0 && n_res==4)
-            {
-              fprintf(fd, "   Slot=%-2u: 1x8037 = { ", p_tx.slot[slot]);
-              for (port_idx = 0; port_idx < N_LANES_MAX; port_idx++)
+              else
               {
-                if ( p_tx.port_list[slot][port_idx] < 0 )
-                  continue;
-                fprintf(fd, " 0x%04x ", vitesse_res[port_idx]);
+                fprintf(fd, "   [ERROR] Failed reading 1x8036 register in slot %u\n", p_tx.slot[slot]);
               }
-              fprintf(fd, " }\n");
             }
-            else
+            /* Read register 1x8037 */
+            for (slot=0; slot<p_tx.n_slots; slot++)
             {
-              fprintf(fd, "   [ERROR] reading 1x8037 register in slot %u\n", p_tx.slot[slot]);
-            }
-          }
-          /* Read register 1x8034 */
-          for (slot=0; slot<p_tx.n_slots; slot++)
-          {
-            /* Read status of Vitesse firmware */
-            if (remote_reg_read(p_tx.ip_addr[slot], -1, 0x101, 0x8034, vitesse_res, &n_res)==0 && n_res==4)
-            {
-              fprintf(fd, "   Slot=%-2u: 1x8034 = { ", p_tx.slot[slot]);
-              for (port_idx = 0; port_idx < N_LANES_MAX; port_idx++)
+              /* Read status of Vitesse firmware */
+              if (remote_reg_read(p_tx.ip_addr[slot], -1, 0x101, 0x8037, vitesse_res, &n_res)==0 && n_res==4)
               {
-                if ( p_tx.port_list[slot][port_idx] < 0 )
-                  continue;
-                fprintf(fd, " 0x%04x ", vitesse_res[port_idx]);
+                fprintf(fd, "   Slot=%-2u: 1x8037 = { ", p_tx.slot[slot]);
+                for (port_idx = 0; port_idx < N_LANES_MAX; port_idx++)
+                {
+                  if ( p_tx.port_list[slot][port_idx] < 0 )
+                    continue;
+                  fprintf(fd, " 0x%04x ", vitesse_res[port_idx]);
+                }
+                fprintf(fd, " }\n");
               }
-              fprintf(fd, " }\n");
+              else
+              {
+                fprintf(fd, "   [ERROR] reading 1x8037 register in slot %u\n", p_tx.slot[slot]);
+              }
             }
-            else
+            /* Read register 1x8034 */
+            for (slot=0; slot<p_tx.n_slots; slot++)
             {
-              fprintf(fd, "   [ERROR] reading 1x8034 register in slot %u\n", p_tx.slot[slot]);
+              /* Read status of Vitesse firmware */
+              if (remote_reg_read(p_tx.ip_addr[slot], -1, 0x101, 0x8034, vitesse_res, &n_res)==0 && n_res==4)
+              {
+                fprintf(fd, "   Slot=%-2u: 1x8034 = { ", p_tx.slot[slot]);
+                for (port_idx = 0; port_idx < N_LANES_MAX; port_idx++)
+                {
+                  if ( p_tx.port_list[slot][port_idx] < 0 )
+                    continue;
+                  fprintf(fd, " 0x%04x ", vitesse_res[port_idx]);
+                }
+                fprintf(fd, " }\n");
+              }
+              else
+              {
+                fprintf(fd, "   [ERROR] reading 1x8034 register in slot %u\n", p_tx.slot[slot]);
+              }
             }
+            fprintf(fd, "\n");
           }
-          fprintf(fd, "\n");
-          #endif
 
           fflush(fd);
 
@@ -2892,7 +2893,7 @@ int ber_init(void)
 
   if (ptin_ber_tx_sem != L7_NULLPTR) {
     printf("BER has already been initialized!\n");
-    return -1;
+    return 0;
   }
 
   /* Read slot id: 0->Working; 1->Protection */
@@ -4449,7 +4450,9 @@ int ptin_ber_help(void)
          "                              <...>)\"\n"
          " Input parameters for get_rx_ber and get_tx_ber routines:\n"
          "   lc_optimize   : 0x00 -> No optimization\n"
+         "                   0x01 -> Applying init procedure 0x8000->1x8036, 0->0xB0\n"
          "                   0x02 -> Reset Copper mode on LC for each iteration\n"
+         "                   0x04 -> Make aditional register readings (applied only for Vitess devices - TX test)\n"
          "   n_iters       : Number of test repetitions\n"
          "   reset_delay   : Time delay in seconds before reseting reception device\n"
          "   start_delay   : Time delay in seconds before start a PRBS test\n"
