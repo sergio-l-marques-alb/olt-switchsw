@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #########################################################################################################
-#     																																  #
+#  																																	  #
 # Use this script to updated the desired mkboards folder for the requested card. 							  #
 # Optionally, you can also generate an image for the selected card and upload it to a remote equipment. #
 #  																																	  #
@@ -11,23 +11,9 @@
 # Note: This script requires permission elevation. 																	  #
 #  																																	  #
 #########################################################################################################
-if [ $# -lt 2 ]; then
-echo "./mkboards_update.sh <\$MKBOARDS_PATH> <\$CARD> [\$VERSION \$EQUIP_IP]"
-exit -1
-fi
 
 MKBOARDS=$1
-BOARD=$2
 
-<<<<<<< .working
-if [ $BOARD == "tg16g" ]; then
- echo -n "Updating TG16G mkboard...$1"
- cd output/FastPath-Ent-esw-xgs4-pq2pro-LR-CSxw-IQH_TG16G
- cp -v ipl/switchdrvr ipl/devshell_symbols.gz target/*.ko ipl/fp.cli ipl/fp.shell ipl/mgmd.cli $MKBOARDS/TG16G/rootfs/usr/local/ptin/sbin/
- cp -v ipl/libmgmd.so $MKBOARDS/TG16G/rootfs/usr/local/ptin/lib/
- cd - > /dev/null 2>&1
- echo "OK!"
-=======
 if [ $# -eq 0 ]; then
  echo "Syntax: $0 <mkboards_folder> <board> <version> <IPaddr>"
  exit;
@@ -56,101 +42,50 @@ elif [ $2 == "olt1t0" ]; then
 else
  echo "Invalid board"
  exit;
->>>>>>> .merge-right.r4204
 fi
 
-if [ $BOARD == "tg4g" ]; then
- echo -n "Updating TG4G mkboard...$1"
- cd output/FastPath-Ent-esw-xgs4-e500-LR-CSxw-IQH_TG4G
- cp -v ipl/switchdrvr ipl/devshell_symbols.gz target/*.ko ipl/fp.cli ipl/fp.shell ipl/mgmd.cli $MKBOARDS/TG4G2/rootfs/usr/local/ptin/sbin/
- cp -v ipl/libmgmd.so $MKBOARDS/TG4G2/rootfs/usr/local/ptin/lib/
- cd - > /dev/null 2>&1
- echo "OK!"
-fi
+echo "Clearing output folders..."
+mkdir -p $MKBOARDS/$MKBOARDS_FOLDER/rootfs/
+mkdir -p $MKBOARDS/$MKBOARDS_FOLDER/rootfs/usr/local/ptin/sbin/
+mkdir -p $MKBOARDS/$MKBOARDS_FOLDER/rootfs/usr/local/ptin/lib/
+mkdir -p $MKBOARDS/$MKBOARDS_FOLDER/rootfs/usr/local/ptin/scripts/
+mkdir $MKBOARDS/$MKBOARDS_FOLDER/backup/
 
-if [ $BOARD == "cxo640g" ]; then
- echo -n "Updating CXO640G board...$1"
- cd output/FastPath-Ent-esw-xgs4-pq3-LR-CSxw-IQH_CXO640G
- cp -v ipl/switchdrvr ipl/devshell_symbols.gz target/*.ko ipl/fp.cli ipl/fp.shell ipl/mgmd.cli $MKBOARDS/CXO640G-MX/rootfs/usr/local/ptin/sbin/
- cp -v ipl/libmgmd.so $MKBOARDS/CXO640G-MX/rootfs/usr/local/ptin/lib/
- cd - > /dev/null 2>&1
- echo "OK!"
-fi
+echo "Updating $BOARD board..."
+cd $OUTPUT
+cp -v ipl/switchdrvr ipl/devshell_symbols.gz target/*.ko ipl/fp.cli ipl/fp.shell ipl/mgmd.cli $MKBOARDS/$MKBOARDS_FOLDER/rootfs/usr/local/ptin/sbin/
+cp -v ipl/libmgmd.so $MKBOARDS/$MKBOARDS_FOLDER/rootfs/usr/local/ptin/lib/
+cd - > /dev/null 2>&1
+cp -vr ../builds/tmp/$MKBOARDS_FOLDER/rootfs/* $MKBOARDS/$MKBOARDS_FOLDER/rootfs/
 
-if [ $BOARD == "cxo160g" ]; then
- echo -n "Updating CXO160G board...$1"
- cd output/FastPath-Ent-esw-xgs4-e500mc-LR-CSxw-IQH_CXO160G
- cp -v ipl/switchdrvr ipl/devshell_symbols.gz target/*.ko ipl/fp.cli ipl/fp.shell ipl/mgmd.cli $MKBOARDS/CXO160G/rootfs/usr/local/ptin/sbin/
- cp -v ipl/libmgmd.so $MKBOARDS/CXO160G/rootfs/usr/local/ptin/lib/
- cd - > /dev/null 2>&1
- echo "OK!"
-fi
+version=r`svnversion .. -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
+echo echo Modular OLT $MODULE $version > ./fp.ver
+echo echo "Built @ `date`" >> ./fp.ver
+echo "echo OLTSWITCH md5sum: "`md5sum $OUTPUT/ipl/switchdrvr | awk '{print $1}'` >> ./fp.ver
+chmod 777 ./fp.ver
+cp ./fp.ver $MKBOARDS/$MKBOARDS_FOLDER/rootfs/usr/local/ptin/sbin
+echo "OK!"
 
-if [ $BOARD == "ta48ge" ]; then
- echo -n "Updating TA48GE board...$1"
- cd output/FastPath-Ent-esw-xgs4-e500-LR-CSxw-IQH_TA48GE
- cp -v ipl/switchdrvr ipl/devshell_symbols.gz target/*.ko ipl/fp.cli ipl/fp.shell ipl/mgmd.cli $MKBOARDS/TA48GE/rootfs/usr/local/ptin/sbin/
- cp -v ipl/libmgmd.so $MKBOARDS/TA48GE/rootfs/usr/local/ptin/lib/
- cd - > /dev/null 2>&1
- echo "OK!"
-fi
+#echo "Backing up unstripped binary..."
+#cd $OUTPUT/ipl
+#7z a $MKBOARDS/$MKBOARDS_FOLDER/backup/switchdrvr.unstripped_${BOARD}-${version}.7z switchdrvr.unstripped
+#cd -
+#echo "Done!"
 
 if [ $# -ge 3 ]; then
 	IMAGE_VERSION=$3
-	EQUIP_IP=$4	
+	EQUIP_IP=$4
 	echo -n "Generating image for version $3..."
 
-	if [ $BOARD == "tg16g" ]; then	
-		cd $MKBOARDS/TG16G/
-		sudo ./build_ramdisk_TG16G.sh $IMAGE_VERSION > /dev/null 2>&1
-		if  [ $? -ne 0 ]; then
-			echo "Failed to generate ramdisk!"
-			exit $?
-		fi
+	cd $MKBOARDS/$MKBOARDS_FOLDER
+	sudo ./build_ramdisk_${MKBOARDS_FOLDER}.sh $IMAGE_VERSION
+        echo "OK!"
+
+	if [ $# -ge 4 ]; then
+		echo -n "Uploading image to $4..."
+		./upload $EQUIP_IP
+		cd - > /dev/null 2>&1
 		echo "OK!"
 	fi
-
-	if [ $BOARD == "tg4g" ]; then
-		cd $MKBOARDS/TG4G2/
-		sudo ./build_ramdisk_TG4G2.sh $IMAGE_VERSION > /dev/null 2>&1
-		echo "OK!"
-	fi
-
-	if [ $BOARD == "cxo160g" ]; then
-		cd $MKBOARDS/CXO160G/
-		sudo ./build_ramdisk_CXO160G.sh $IMAGE_VERSION > /dev/null 2>&1
-		if  [ $? -ne 0 ]; then
-                        echo "Failed to generate ramdisk!"
-                        exit $?
-                fi
-		echo "OK!"
-	fi
-
-	if [ $BOARD == "cxo640g" ]; then
-		cd $MKBOARDS/CXO640G-MX/
-		sudo ./build_ramdisk_CXO640G-MX.sh $IMAGE_VERSION > /dev/null 2>&1
-		if  [ $? -ne 0 ]; then
-                        echo "Failed to generate ramdisk!"
-                        exit $?
-                fi
-		echo "OK!"
-	fi
-
-	if [ $BOARD == "ta48ge" ]; then
-		cd $MKBOARDS/TA48GE/
-		sudo ./build_ramdisk_TA48GE.sh $IMAGE_VERSION > /dev/null 2>&1
-		if  [ $? -ne 0 ]; then
-                        echo "Failed to generate ramdisk!"
-                        exit $?
-                fi
-		echo "OK!"
-	fi
-
-    if [ $# -ge 4 ]; then
-	echo -n "Uploading image to $4..."
-	./upload $EQUIP_IP
-	cd - > /dev/null 2>&1
-	echo "OK!"
-    fi
 fi
 
