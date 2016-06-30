@@ -7,7 +7,7 @@ scriptVerbose=1
 
 ###########OLT Version and Patch Version##################
 oltVersion=3.8
-patchVersion=0
+patchVersion=2
 
 ###############Input Arguments Validation#########################
 echo "Usage: sh $0 [\$updateSvn] [version] [patch]"
