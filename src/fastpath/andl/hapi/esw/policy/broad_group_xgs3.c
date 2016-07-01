@@ -1599,7 +1599,8 @@ static int _policy_super_qset_init_ifp(int unit)
            SOC_IS_SCORPION(unit) ||
            SOC_IS_VALKYRIE2(unit)||
            SOC_IS_TRIDENT(unit)  || /* PTin added: new switch 56843 (Trident) */
-           SOC_IS_TRIUMPH3(unit)    /* PTin added: new switch 5664x and 5634x (Triumph3 and Helix4) */
+           SOC_IS_TRIUMPH3(unit) || /* PTin added: new switch 5664x and 5634x (Triumph3 and Helix4) */
+           SOC_IS_KATANA2(unit)     /* PTin added: new switch 5645x (Katana2) */
          )
       {
         rv = _policy_super_qset_add(unit, &l2l3l4Xgs4ClassIdQsetDef, applicable_policy_types);
@@ -1674,8 +1675,9 @@ static int _policy_super_qset_init_ifp(int unit)
 
   /* PTin added: new switch 56843 (Trident) */
   /* PTin added: new switch 5664x (Triumph3) */
+  /* PTin added: new switch 5645x (Katana2) */
   if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_ENDURO(unit) || SOC_IS_VALKYRIE2(unit) || SOC_IS_TRIDENT(unit) ||
-      SOC_IS_TRIUMPH3(unit))
+      SOC_IS_TRIUMPH3(unit) || SOC_IS_KATANA2(unit))
   {
     if (SOC_IS_TRIDENT(unit))
       PT_LOG_WARN(LOG_CTX_MISC, "Using systemQsetTriumph2Def for TRIDENT family!");
@@ -1872,7 +1874,9 @@ static int _policy_action_map_init(int unit)
       (SOC_IS_ENDURO(unit)) ||
       (SOC_IS_VALKYRIE2(unit)) ||
       (SOC_IS_TRIDENT(unit)) ||     /* PTin added: new switch 56843 (Trident) */
-      (SOC_IS_TRIUMPH3(unit)) )     /* PTin added: new switch 5664x (Triumph3) */
+      (SOC_IS_TRIUMPH3(unit)) ||    /* PTin added: new switch 5664x (Triumph3) */
+      (SOC_IS_KATANA2(unit))        /* PTin added: new switch 5645x (Katana2) */
+     )
   {
     /* Modify action maps for certain actions. */
     memcpy(&ingress_action_map[BROAD_ACTION_SET_COSQ],              &xgs4_ingress_set_cosq_action_map,              sizeof(action_map_entry_t));
@@ -2493,8 +2497,9 @@ int _policy_group_calc_qset(int                             unit,
                 {
                   /* PTin added: new switch 56689 (Valkyrie2) */
                   /* PTin added: new switch 5664x (Triumph3) */
+                  /* PTin added: new switch 5645x (Katana2) */
                   if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_ENDURO(unit) || SOC_IS_VALKYRIE2(unit) ||
-                      SOC_IS_TRIUMPH3(unit))
+                      SOC_IS_TRIUMPH3(unit) || SOC_IS_KATANA2(unit))
                   {
                     /* TunnelTerminated not supported in IFP, so check for TunnelType instead. */
                     BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyTunnelType);
@@ -3495,8 +3500,9 @@ static int _policy_group_lookupstatus_qualify(int unit, bcm_field_entry_t entry,
   {
     /* PTin added: new switch 56689 (Valkyrie2) */
     /* PTin added: new switch 5664x (Triumph3) */
+    /* PTin added: new switch 5645x (Katana2) */
     if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_ENDURO(unit) || SOC_IS_VALKYRIE2(unit) ||
-        SOC_IS_TRIUMPH3(unit))
+        SOC_IS_TRIUMPH3(unit) || SOC_IS_KATANA2(unit))
     {
       /* TunnelTerminated not supported in IFP, use TunnelType instead. */
       BCM_IF_ERROR_RETURN
@@ -4183,7 +4189,9 @@ int hapiBroadPolicyFirstAclDsGroupGet(int unit)
       !SOC_IS_ENDURO(unit) &&
       !SOC_IS_VALKYRIE2(unit) &&
       !SOC_IS_TRIDENT(unit) &&      /* PTin added: new switch 56843 (Trident) */
-      !SOC_IS_TRIUMPH3(unit) )      /* PTin added: new switch 5664x (Triumph3) */
+      !SOC_IS_TRIUMPH3(unit) &&     /* PTin added: new switch 5664x (Triumph3) */
+      !SOC_IS_KATANA2(unit)         /* PTin added: new switch 5645x (Katana2) */
+     )
   {
     /* System rules in slice 0. */
     groupid_rev = 1;
@@ -4546,7 +4554,9 @@ int _policy_group_total_slices(int unit, BROAD_POLICY_STAGE_t policyStage)
           SOC_IS_ENDURO(unit)   ||
           SOC_IS_VALKYRIE2(unit) ||
           SOC_IS_TRIDENT(unit)  ||      /* PTin added: new switch 56843 (Trident) */
-          SOC_IS_TRIUMPH3(unit) )       /* PTin added: new switch 5664x (Triumph3) */
+          SOC_IS_TRIUMPH3(unit) ||      /* PTin added: new switch 5664x (Triumph3) */
+          SOC_IS_KATANA2(unit)          /* PTin added: new switch 5645x (Katana2) */
+         )
         total_slices = 4;
       else  
         total_slices = 0;
@@ -4560,7 +4570,8 @@ int _policy_group_total_slices(int unit, BROAD_POLICY_STAGE_t policyStage)
           SOC_IS_FIREBOLT2(unit) ||
           SOC_IS_TR_VL(unit) ||
           SOC_IS_RAVEN(unit) || SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_VALKYRIE2(unit) ||
-          SOC_IS_TRIUMPH3(unit))        /* PTin added: new switch 5664x (Triumph3) */
+          SOC_IS_TRIUMPH3(unit) ||      /* PTin added: new switch 5664x (Triumph3) */
+          SOC_IS_KATANA2(unit))         /* PTin added: new switch 5645x (Katana2) */
            && !SOC_IS_TRIDENT(unit))    /* PTin added: new switch 56843 (Trident) */
           total_slices = 16;
       else if (SOC_IS_RAPTOR(unit) || SOC_IS_HAWKEYE(unit)) 
@@ -4598,7 +4609,9 @@ int _policy_group_total_slices(int unit, BROAD_POLICY_STAGE_t policyStage)
           SOC_IS_ENDURO(unit)    ||
           SOC_IS_VALKYRIE2(unit) ||
           SOC_IS_TRIDENT(unit)   || /* PTin added: new switch 56843 (Trident) */
-          SOC_IS_TRIUMPH3(unit) )   /* PTin added: new switch 5664x (Triumph3) */
+          SOC_IS_TRIUMPH3(unit)  || /* PTin added: new switch 5664x (Triumph3) */
+          SOC_IS_KATANA2(unit)      /* PTin added: new switch 5645x (Katana2) */
+         )
         total_slices = 4;
       else  
         total_slices = 0;
@@ -4625,7 +4638,9 @@ L7_BOOL policy_stage_supported(int unit, BROAD_POLICY_STAGE_t policyStage)
         SOC_IS_ENDURO(unit)    ||
         SOC_IS_VALKYRIE2(unit) ||
         SOC_IS_TRIDENT(unit)   ||   /* PTin added: new switch 56843 (Trident) */
-        SOC_IS_TRIUMPH3(unit) )     /* PTin added: new switch 5664x (Triumph3) */
+        SOC_IS_TRIUMPH3(unit)  ||   /* PTin added: new switch 5664x (Triumph3) */
+        SOC_IS_KATANA2(unit)        /* PTin added: new switch 5645x (Katana2) */
+       )
     {
       supported = L7_TRUE;
     }
@@ -4644,7 +4659,9 @@ L7_BOOL policy_stage_supported(int unit, BROAD_POLICY_STAGE_t policyStage)
         SOC_IS_ENDURO(unit)    ||
         SOC_IS_VALKYRIE2(unit) ||
         SOC_IS_TRIDENT(unit)   ||   /* PTin added: new switch 56843 (Trident) */
-        SOC_IS_TRIUMPH3(unit) )     /* PTin added: new switch 5664x (Triumph3) */
+        SOC_IS_TRIUMPH3(unit)  ||   /* PTin added: new switch 5664x (Triumph3) */
+        SOC_IS_KATANA2(unit)        /* PTin added: new switch 5645x (Katana2) */
+       )
     {
       supported = L7_TRUE;
     }
