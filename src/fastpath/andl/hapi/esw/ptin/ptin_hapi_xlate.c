@@ -66,10 +66,10 @@ L7_RC_t ptin_hapi_xlate_init(void)
   {
     /* Enable translations? */
     enable = L7_TRUE;
-    #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
-    if (port == ptin_sys_number_of_ports-2)
+    /* Disable for FPGA port of OLT1T0 */
+    #if (PTIN_BOARD == PTIN_BOARD_OLT1T0 || PTIN_BOARD == PTIN_BOARD_OLT1T0F)
+    if (port == PTIN_PORT_FPGA)
     {
-      /* Disable for FPGA port of OLT1T0 */
       enable = L7_FALSE;
     }
     #endif
