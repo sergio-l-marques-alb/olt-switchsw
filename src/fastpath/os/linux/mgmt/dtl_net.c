@@ -60,7 +60,7 @@
   #include "usmdb_common.h"
 
 /* PTin added */
-#if ( (PTIN_BOARD == PTIN_BOARD_CXO640G) || (PTIN_BOARD == PTIN_BOARD_CXO160G) ||
+#if ( (PTIN_BOARD == PTIN_BOARD_CXO640G) || (PTIN_BOARD == PTIN_BOARD_CXO160G) || \
       (PTIN_BOARD == PTIN_BOARD_OLT1T0) || (PTIN_BOARD == PTIN_BOARD_OLT1T0F) )
 #define __ENABLE_DTL0INBANDVID_REMOVAL__      0
 #else
