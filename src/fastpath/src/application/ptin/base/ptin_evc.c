@@ -38,7 +38,7 @@
 
 
 #include <vlan_port.h>
-#if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+#if (PTIN_BOARD_IS_STANDALONE)
 extern void ptin_flows_fpga_init(void);
 #endif
 
@@ -666,14 +666,20 @@ L7_RC_t ptin_evc_startup(void)
     PT_LOG_ERR(LOG_CTX_API, "Error creating EVC# %u for Broadlight management purposes", PTIN_EVC_BL2CPU);
     return rc;
   }
-
-#if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+#endif
+#if (PTIN_BOARD_IS_STANDALONE)
   /* Only configure special EVCs, for CPU-FPGA-Ports connectivity, if OLT1T0-AC equipment */
-  if (KERNEL_NODE_IS("OLT1T0-AC")) ptin_flows_fpga_init();
+#if (PTIN_BOARD == PTIN_BOARD_OLT1T0F)
+  if (1)
+#else
+  if (KERNEL_NODE_IS("OLT1T0-AC")) 
+#endif
+  {
+    ptin_flows_fpga_init();
+  }
 #endif
 
   PT_LOG_INFO(LOG_CTX_API, "Standard EVCs configured for OLT1T0 equipment");
-  #endif
 
   L7_uint32 intIfNum_vport;
 
@@ -4077,12 +4083,12 @@ L7_RC_t ptin_evc_destroy_all(void)
   for (i=1; i<PTIN_SYSTEM_N_EXTENDED_EVCS; i++)
   {
     /* Do not destroy this EVC */
-    #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+  #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
     if (i == PTIN_EVC_BL2CPU)
     {
       continue;
     }
-    #endif
+  #endif
 
     if (IS_eEVC_IN_USE(i))
       ptin_evc_destroy(i);

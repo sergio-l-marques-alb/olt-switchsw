@@ -682,7 +682,7 @@ static void monitor_alarms(void)
             PT_LOG_NOTICE(LOG_CTX_CONTROL,"Alarm sent: port=%u, link=%u", port, link);
           }
         }
-        #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+        #if (PTIN_BOARD_IS_STANDALONE)
         if ( ((PTIN_SYSTEM_PON_PORTS_MASK >> intf) & 1) || ((PTIN_SYSTEM_BL_INBAND_PORT_MASK >> intf) & 1))
         {          
           if (usmDbIfAdminStateSet(1, intf, L7_ENABLE) != L7_SUCCESS)

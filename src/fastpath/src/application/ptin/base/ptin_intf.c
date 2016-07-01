@@ -228,7 +228,7 @@ L7_RC_t ptin_intf_init(void)
       }
       PT_LOG_INFO(LOG_CTX_INTF, "Port# %u (intIfNum %u) disabled", i, map_port2intIfNum[i]);
     }
-    #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+    #if (PTIN_BOARD_IS_STANDALONE)
     else
     {
       if ((PTIN_SYSTEM_PON_PORTS_MASK >> i) & 1)
