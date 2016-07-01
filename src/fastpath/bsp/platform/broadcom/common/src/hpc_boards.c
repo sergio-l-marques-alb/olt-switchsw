@@ -65,7 +65,7 @@ bcm_sys_id_defl(const bcm_sys_board_t *brd)
     }
 
     for (i = 0; i < soc_ndev; i++) {
-	soc_cm_get_id(i, &devid, NULL);
+        soc_cm_get_id(i, &devid, NULL);
 
         if (brd->dev_id[i] !=
             devid) {
