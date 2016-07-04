@@ -5136,7 +5136,7 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_uint16 nni_vlan, L7_
   #if (PTIN_BOARD_IS_LINECARD)
     if (!downlink)
     {
-    #if (PTIN_BOARD == PTIN_BOARD_TG16G)
+    #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF)
       for (i=PTIN_SYSTEM_N_PONS; i<PTIN_SYSTEM_N_PORTS; i++)
       {
         qos_apply.ptin_port[number_of_ports++] = i;
