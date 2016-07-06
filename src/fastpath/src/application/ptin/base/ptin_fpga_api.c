@@ -40,7 +40,7 @@
 *************************************************************************/
 L7_uint8 ptin_fpga_mx_is_matrixactive(void)
 {
-  return (cpld_map->reg.mx_is_active != 0);
+  return (CPLD_SLOT_MATRIX_GET() != 0);
 }
 
 /**************************************************************************
@@ -82,7 +82,7 @@ L7_uint8 ptin_fpga_mx_is_matrixactive_rt(void)
  */
 L7_uint8 ptin_fpga_mx_is_matrix_in_workingslot(void)
 {
-  return (cpld_map->reg.slot_id == 0);
+  return (CPLD_SLOT_ID_GET() == 0);
 }
 #endif // (PTIN_BOARD_IS_MATRIX)
 
@@ -95,7 +95,7 @@ L7_uint8 ptin_fpga_mx_is_matrix_in_workingslot(void)
  */
 L7_uint8 ptin_fpga_lc_is_matrixactive_in_workingslot(void)
 {
-  return ((cpld_map->reg.slot_matrix & 0x0f) != 0);
+  return ((CPLD_SLOT_MATRIX_GET() & 0x0f) != 0);
 }
 #endif // (PTIN_BOARD_IS_LINECARD)
 
@@ -121,21 +121,21 @@ L7_uint8 ptin_fpga_matrixActive_slot(void)
   working_slot    = PTIN_SYS_MX1_SLOT;
   protection_slot = (olt1t1_backplane) ? PTIN_SYS_OLT1T1_SLOTS_MAX : PTIN_SYS_OLT1T3_SLOTS_MAX;
 
-  slot = ((cpld_map->reg.slot_matrix & 0x0f) == 0) ? protection_slot : working_slot;
+  slot = ((CPLD_SLOT_MATRIX_GET() & 0x0f) == 0) ? protection_slot : working_slot;
 
  #elif (PTIN_BOARD_IS_MATRIX)
   working_slot    = PTIN_SYS_MX1_SLOT;
   protection_slot = PTIN_SYS_MX2_SLOT;
 
   /* Working slot */
-  if (cpld_map->reg.slot_id == 0)
+  if (CPLD_SLOT_ID_GET() == 0)
   {
-    slot = (cpld_map->reg.mx_is_active == 0) ? protection_slot : working_slot;
+    slot = (CPLD_SLOT_MATRIX_GET() == 0) ? protection_slot : working_slot;
   }
   /* Protection slot */
   else
   {
-    slot = (cpld_map->reg.mx_is_active == 0) ? working_slot : protection_slot;
+    slot = (CPLD_SLOT_MATRIX_GET() == 0) ? working_slot : protection_slot;
   }
  #endif
 
@@ -162,26 +162,32 @@ L7_uint8 ptin_fpga_matrixInactive_slot(void)
   working_slot    = PTIN_SYS_MX1_SLOT;
   protection_slot = (olt1t1_backplane) ? PTIN_SYS_OLT1T1_SLOTS_MAX : PTIN_SYS_OLT1T3_SLOTS_MAX;
 
-  slot = ((cpld_map->reg.slot_matrix & 0x0f) == 0) ? working_slot : protection_slot;
+  slot = ((CPLD_SLOT_MATRIX_GET() & 0x0f) == 0) ? working_slot : protection_slot;
 
  #elif (PTIN_BOARD_IS_MATRIX)
   working_slot    = PTIN_SYS_MX1_SLOT;
   protection_slot = PTIN_SYS_MX2_SLOT;
 
   /* Working slot */
-  if (cpld_map->reg.slot_id == 0)
+  if (CPLD_SLOT_ID_GET() == 0)
   {
-    slot = (cpld_map->reg.mx_is_active == 0) ? working_slot : protection_slot;
+    slot = (CPLD_SLOT_MATRIX_GET() == 0) ? working_slot : protection_slot;
   }
   /* Protection slot */
   else
   {
-    slot = (cpld_map->reg.mx_is_active == 0) ? protection_slot : working_slot;
+    slot = (CPLD_SLOT_MATRIX_GET() == 0) ? protection_slot : working_slot;
   }
  #endif
 
   return slot;
 }
+
+#endif // (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
+
+#endif//MAP_CPLD
+
+#if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
 
 /**************************************************************************
 *
@@ -199,20 +205,21 @@ L7_uint8 ptin_fpga_matrixInactive_slot(void)
 *************************************************************************/
 L7_uint8 ptin_fpga_mx_get_matrixactive(void)
 {
+#ifdef MAP_CPLD
   int current_state = -1;
   static int previous_state = -1;
 
-#if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
+ #if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
   L7_BOOL olt1t1_backplane;
   /* Condition for OLT1T1 backplane */  
   olt1t1_backplane = (ptin_fpga_board_get() == PTIN_BOARD_CXO160G);
-#endif
+ #endif
 
-  if((cpld_map->reg.mx_get_active & 0x03) == 0x02) {
+  if((CPLD_SLOT_MX_ACTIVE_GET() & 0x03) == 0x02) {
       //Master Matrix was set to active
       current_state = PTIN_SLOT_WORK;
   }
-  else if ((cpld_map->reg.mx_get_active & 0x03) == 0x01) {
+  else if ((CPLD_SLOT_MX_ACTIVE_GET() & 0x03) == 0x01) {
       // Slave Matrix was set to active
       current_state = PTIN_SLOT_PROT;
   }
@@ -223,22 +230,20 @@ L7_uint8 ptin_fpga_mx_get_matrixactive(void)
 
   previous_state = current_state;
 
-#if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
+ #if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
   /* Note: the register 18h is not affected by the backplane, however lanes/data plane is inverted */
   if (olt1t1_backplane)
   {
       return !current_state;
   }
-#endif
+ #endif
 
   return current_state;
+#else
+  return PTIN_SLOT_WORK;
+#endif
 }
 
-#endif // (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
-
-#endif//MAP_CPLD
-
-#if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
 /**
  * Get active/backup matrix slot id.
  * 
@@ -250,7 +255,8 @@ L7_uint8 ptin_fpga_mx_get_matrixactive(void)
  */
 L7_uint8 ptin_fpga_matrix_slotid_get(ptin_fpga_matrix_type_t matrixType)
 {
-#if PTIN_BOARD_IS_MATRIX  
+#ifdef MAP_CPLD
+ #if PTIN_BOARD_IS_MATRIX  
   if(matrixType == PTIN_FPGA_STANDBY_MATRIX)  //Return backup matrix slot ID 
   {
     return (ptin_fpga_matrixInactive_slot());
@@ -259,8 +265,11 @@ L7_uint8 ptin_fpga_matrix_slotid_get(ptin_fpga_matrix_type_t matrixType)
   {
     return (ptin_fpga_matrixActive_slot());   
   }
-#elif PTIN_BOARD_IS_LINECARD
+ #elif PTIN_BOARD_IS_LINECARD
   return (ptin_fpga_matrixActive_slot());
+ #endif
+#else
+ return PTIN_SYS_MX1_SLOT;
 #endif
 }
 
@@ -305,8 +314,9 @@ L7_uint32 ptin_fpga_board_get(void)
       __board_type = PTIN_BOARD_CXO640G;
     #endif
   #elif (PTIN_BOARD_IS_LINECARD)
+   #ifdef MAP_CPLD
     /* Condition for OLT1T1 backplane */ 
-   if(((cpld_map->reg.slot_matrix >> 4) & 0x0f) != (cpld_map->reg.slot_matrix & 0x0f))
+   if(((CPLD_SLOT_MATRIX_GET() >> 4) & 0x0f) != (CPLD_SLOT_MATRIX_GET() & 0x0f))
    {
      __board_type = PTIN_BOARD_CXO160G;
    }
@@ -314,6 +324,9 @@ L7_uint32 ptin_fpga_board_get(void)
    {
      __board_type = PTIN_BOARD_CXO640G;
    }
+   #else
+   __board_type = PTIN_BOARD_CXO640G;
+   #endif
   #else
     #error "Not Supported Yet"
   #endif
@@ -426,7 +439,7 @@ L7_uint8 ptin_fpga_board_slot_get(void)
   L7_uint8 board_slot_id = 0;
 
   #ifdef MAP_CPLD
-    board_slot_id = cpld_map->reg.slot_id;
+    board_slot_id = CPLD_SLOT_ID_GET();
     #if (PTIN_BOARD_IS_LINECARD)      
       L7_BOOL  olt1t1_backplane;
 

@@ -827,7 +827,7 @@ static void monitor_matrix_commutation(void)
   ptin_HWEthPhyConf_t phyConf;
   L7_uint             port, port_border;
 
-  cx_work_slot = (cpld_map->reg.slot_matrix >> 4) & 1;
+  cx_work_slot = (CPLD_SLOT_MATRIX_GET() >> 4) & 1;
 
   /* Nothing to do if no change happened */
   if (cx_work_slot == cx_work_slot_h)
@@ -2558,8 +2558,10 @@ uint32 ip, len, i;
      tx_sync_LACPDU[intf]=t;
     }
 
-    stat.intf=  intf;
+    stat.intf = intf;
     memcpy(stat.actorSys.addr, dot3adSystem.actorSys.addr, sizeof(dot3adSystem.actorSys));
+
+    /* Copy pdu information */
     memcpy(&stat.pdu, pdu, sizeof(stat.pdu));
 
     ip=     (ptin_fpga_board_slot_get() <= PTIN_SYS_MX1_SLOT) ? IPC_MX_IPADDR_PROTECTION : IPC_MX_IPADDR_WORKING;
@@ -2610,6 +2612,7 @@ void rx_dot3ad_matrix_sync2_t(char *pbuf, unsigned long dim) {
     dot3ad_port_t *p;
     dot3ad_agg_t *agg;
     dot3ad_matrix_sync2_t *p2;
+    L7_uint32 intf;
 
 #ifdef MAP_CPLD
     if (ptin_fpga_mx_is_matrixactive_rt()) return;  //It's the active matrix that sends its received LACPDUs to the other; not the other way around
@@ -2617,15 +2620,17 @@ void rx_dot3ad_matrix_sync2_t(char *pbuf, unsigned long dim) {
 
     p2= (dot3ad_matrix_sync2_t *) pbuf;
 
+    intf = p2->intf;
+
     {       //rate limit synchronizing LACPDUs between the 2 CXOs
      time_t t;
 
      t=time(NULL);
-     if (rx_sync_LACPDU[p2->intf]==t || t==tx_sync_LACPDU[p2->intf]) return;
-     rx_sync_LACPDU[p2->intf]=t;
+     if (rx_sync_LACPDU[intf]==t || t==tx_sync_LACPDU[intf]) return;
+     rx_sync_LACPDU[intf]=t;
     }
 
-    p = dot3adPortIntfFind(p2->intf);
+    p = dot3adPortIntfFind(intf);
     if (L7_NULLPTR == p) return;
 
 
@@ -2639,6 +2644,7 @@ void rx_dot3ad_matrix_sync2_t(char *pbuf, unsigned long dim) {
     memcpy(dot3adSystem.actorSys.addr, p2->actorSys.addr, sizeof(dot3adSystem.actorSys));   //Must use the same actorSys
     //memcpy(dot3adCfg.cfg.dot3adSystem.actorSys.addr, p2->actorSys.addr, sizeof(dot3adSystem.actorSys));   //Must use the same actorSys
     //p->actorOperPortKey=p2->pdu.actorKey;
+
     dot3adLacpClassifier(lacpPduRx, p, (void *)&p2->pdu);
 
     PT_LOG_TRACE(LOG_CTX_CONTROL, "rx_dot3ad_matrix_sync2_t()\tEND");

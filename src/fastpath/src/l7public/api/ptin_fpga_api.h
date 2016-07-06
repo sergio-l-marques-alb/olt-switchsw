@@ -23,6 +23,12 @@
 
 #include "ptin_globaldefs.h"
 
+typedef enum
+{
+  PTIN_FPGA_STANDBY_MATRIX=0,
+  PTIN_FPGA_ACTIVE_MATRIX
+} ptin_fpga_matrix_type_t;
+
 #ifdef MAP_CPLD
 
 #if (PTIN_BOARD_IS_MATRIX)
@@ -80,12 +86,6 @@ L7_uint8 ptin_fpga_lc_is_matrixactive_in_workingslot(void);
 
 #if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
 
-typedef enum
-{
-  PTIN_FPGA_STANDBY_MATRIX=0,
-  PTIN_FPGA_ACTIVE_MATRIX
-} ptin_fpga_matrix_type_t;
-
 /**
  * Get slot position of Active Matrix 
  * (For all cards) 
@@ -102,6 +102,20 @@ L7_uint8 ptin_fpga_matrixActive_slot(void);
  */
 L7_uint8 ptin_fpga_matrixInactive_slot(void);
 
+#endif//(PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
+
+#endif//MAP_CPLD
+
+/**
+ * Get slot id 
+ * (For all cards)
+ * 
+ * @return L7_uint8 : slot id
+ */
+L7_uint8 ptin_fpga_board_slot_get(void);
+
+#if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
+
 /**************************************************************************
 *
 * @purpose  Verify if this Matrix is Currently in Active State.
@@ -117,19 +131,7 @@ L7_uint8 ptin_fpga_matrixInactive_slot(void);
 *
 *************************************************************************/
 L7_uint8 ptin_fpga_mx_get_matrixactive(void);
-#endif//(PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
 
-#endif//MAP_CPLD
-
-/**
- * Get slot id 
- * (For all cards)
- * 
- * @return L7_uint8 : slot id
- */
-L7_uint8 ptin_fpga_board_slot_get(void);
-
-#if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
 /**
  * Get active/backup matrix slot id.
  * 
