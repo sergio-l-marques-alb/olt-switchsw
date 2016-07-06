@@ -42,12 +42,24 @@ static struct_runtime_t msg_runtime[CCMSG_ID_MAX-CCMSG_ID_MIN+1];
 
 static void CHMessage_runtime_meter_update(L7_uint msg_id, L7_uint32 time_delta);
 
+#define MSG_N_ELEMS(size)   (inbuffer->infoDim / (size))
+
+#define SETIPC_INFODIM(size) { \
+  outbuffer->infoDim = size;  \
+}
 
 /* Macro to set ACK OK on output message */
-#define SETIPCACKOK(outbuf) {          \
-  outbuf->infoDim = sizeof(L7_uint32); \
-  *((L7_uint32 *) outbuf->info) = 0;   \
+#define SETIPCACKOK(outbuffer) { \
+  outbuffer->flags = IPCLIB_FLAGS_ACK; \
+  outbuffer->infoDim = sizeof(L7_uint32); \
+  *((L7_uint32 *) outbuffer->info) = ENDIAN_SWAP32(0);   \
 }
+#define SETIPCNACK(outbuffer, res) { \
+  outbuffer->flags = IPCLIB_FLAGS_NACK; \
+  outbuffer->infoDim = sizeof(unsigned int); \
+  *(unsigned int*)outbuffer->info = ENDIAN_SWAP32((unsigned int) res); \
+}
+
 
 /* Macro to check infoDim consistency */
 #define CHECK_INFO_SIZE_ATLEAST(msg_st) {             \
@@ -125,10 +137,10 @@ static L7_uint16 SIRerror_get(L7_RC_t error_code)
 
 
 #ifdef __802_1x__
-static void seterror(ipc_msg *outbuff, const L7_ulong32 severity, const L7_ulong32 error) {
-    outbuff->flags   = (IPCLIB_FLAGS_NACK);
-    outbuff->infoDim = sizeof(int);
-    *(int *)outbuff->info = SIR_ERROR(ERROR_FAMILY_HARDWARE,severity,error);
+static void seterror(ipc_msg *outbuffer, const L7_ulong32 severity, const L7_ulong32 error) {
+    outbuffer->flags   = IPCLIB_FLAGS_NACK;
+    outbuffer->infoDim = sizeof(int);
+    *(int *)outbuffer->info = ENDIAN_SWAP32(SIR_ERROR(ERROR_FAMILY_HARDWARE,severity,error));
 }
 
 
@@ -141,30 +153,30 @@ static void seterror(ipc_msg *outbuff, const L7_ulong32 severity, const L7_ulong
 
 //Function for generic message reading/writing n STRUCT_SIZE structs*************************************************
 //Uses the particular method for reading/writing each struct, "msg_generic_wrd_1struc"*******************************
-static int msg_generic_wrd(int (*msg_generic_wrd_1struct)(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i), ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 STRUCT_SIZE_IN, L7_ulong32 STRUCT_SIZE_OUT)
+static int msg_generic_wrd(int (*msg_generic_wrd_1struct)(ipc_msg *inbuffer, ipc_msg *outbuffer, L7_ulong32 i), ipc_msg *inbuffer, ipc_msg *outbuffer, L7_ulong32 STRUCT_SIZE_IN, L7_ulong32 STRUCT_SIZE_OUT)
 {
   L7_ushort16 i,n;
 
-  PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: 0x%04X", inbuff->msgId);
+  PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: 0x%04X", inbuffer->msgId);
 
   //CHECK_INFO_SIZE_MOD(msg_ptin_pcs_prbs);
-  if (inbuff->infoDim > IPCLIB_MAX_MSGSIZE     ||      inbuff->infoDim % STRUCT_SIZE_IN !=0)
+  if ((inbuffer->infoDim > IPCLIB_MAX_MSGSIZE) || (inbuffer->infoDim % STRUCT_SIZE_IN) !=0)
   {
-    seterror(outbuff, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE); //seterror(outbuff, ERROR_SEVERITY_DEBUG, HW_INVALID_MSG_SIZE);
-    PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Data size inconsistent! Expecting multiple of %u bytes; Received %u bytes", STRUCT_SIZE_IN, inbuff->infoDim);
+    seterror(outbuffer, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE); //seterror(outbuffer, ERROR_SEVERITY_DEBUG, HW_INVALID_MSG_SIZE);
+    PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Data size inconsistent! Expecting multiple of %u bytes; Received %u bytes", STRUCT_SIZE_IN, inbuffer->infoDim);
     return(0);
   }
 
-  outbuff->flags   = (IPCLIB_FLAGS_ACK);
+  outbuffer->flags = IPCLIB_FLAGS_ACK;
 
-  n = inbuff->infoDim/STRUCT_SIZE_IN;
+  n = MSG_N_ELEMS(STRUCT_SIZE_IN);
 
   if (STRUCT_SIZE_IN>=STRUCT_SIZE_OUT)  //0..n-1
   {
     for (i=0;    i<n;    i++)
     {
-     if ((*msg_generic_wrd_1struct)((void*)inbuff, (void*)outbuff, i)) {
-       outbuff->flags = (IPCLIB_FLAGS_NACK);
+     if ((*msg_generic_wrd_1struct)((void*)inbuffer, (void*)outbuffer, i)) {
+       outbuffer->flags = IPCLIB_FLAGS_NACK;
        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error WRDing data");
      }
     }
@@ -173,20 +185,20 @@ static int msg_generic_wrd(int (*msg_generic_wrd_1struct)(ipc_msg *inbuff, ipc_m
   {
     if (n*STRUCT_SIZE_OUT>IPCLIB_MAX_MSGSIZE)
     {
-     seterror(outbuff, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE);   //seterror(outbuff, ERROR_SEVERITY_DEBUG, HW_INVALID_OUTPUT_MSG_SIZE);
+     seterror(outbuffer, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE);   //seterror(outbuffer, ERROR_SEVERITY_DEBUG, HW_INVALID_OUTPUT_MSG_SIZE);
      return(0);
     }
     for (i=n;  i;  i--) //i=n-1..0
     {
-      if ((*msg_generic_wrd_1struct)((void*)inbuff, (void*)outbuff, i-1)) {
-          outbuff->flags = (IPCLIB_FLAGS_NACK);
+      if ((*msg_generic_wrd_1struct)((void*)inbuffer, (void*)outbuffer, i-1)) {
+          outbuffer->flags = IPCLIB_FLAGS_NACK;
           PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error WRDing data");
       }
     }
   }
 
-  outbuff->infoDim = n*STRUCT_SIZE_OUT;  //inbuff->infoDim;
-  PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuff->infoDim);
+  SETIPC_INFODIM(n * STRUCT_SIZE_OUT);
+  PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
   return(0);
 }//msg_generic_wrd
 #endif //__802_1x__
@@ -231,6 +243,7 @@ static int enable=0;
  */
 int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 {
+  L7_uint32 msgId, infoDim;
   int ret = IPC_OK, res = S_OK;
   L7_RC_t rc = L7_SUCCESS;
   L7_uint64 time_start, time_end;
@@ -246,11 +259,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
   time_start = osapiTimeMicrosecondsGet();
 
   /* Prepare message header */
-  SwapIPCHeader (inbuffer, outbuffer);
+  SwapIPCHeader(inbuffer, outbuffer);
+
+  msgId   = inbuffer->msgId;
+  infoDim = inbuffer->infoDim;
 
   /* Commands allowed to be run, even if switchdrvr is busy */
   /* If reached here, means PTin module is loaded and ready to process messages */
-  switch (inbuffer->msgId)
+  switch (msgId)
   {
     /************************************************************************** 
      * Application Utils Processing
@@ -259,12 +275,11 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* If message is a ping, reply with PTin loading state, which can signal crash errors too */
     case CCMSG_APPLICATION_IS_ALIVE:
     {
-      PT_LOG_TRACE(LOG_CTX_MSGHANDLER,
-                "Message received: CCMSG_APPLICATION_IS_ALIVE (0x%04X)", CCMSG_APPLICATION_IS_ALIVE);
+      PT_LOG_TRACE(LOG_CTX_MSGHANDLER, "Message received: CCMSG_APPLICATION_IS_ALIVE (0x%04X)", msgId);
 
       PT_LOG_TRACE(LOG_CTX_MSGHANDLER, "PTin state: %d", ptin_state);
-      outbuffer->infoDim = sizeof(L7_uint32);
-      *((L7_uint32 *) outbuffer->info) = ptin_state;
+      *((L7_uint32 *) outbuffer->info) = (L7_uint32) ptin_state;
+      SETIPC_INFODIM(sizeof(L7_uint32));
 
       PT_LOG_TRACE(LOG_CTX_MSGHANDLER,
                   "Message processed: response with %d bytes", outbuffer->infoDim);
@@ -274,10 +289,9 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_APP_FW_STATE_SET ************************************************/
     case CCMSG_APP_FW_STATE_SET:
     {
-        PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-                 "Message received: CCMSG_APP_FW_STATE_SET (0x%04X)", CCMSG_APP_FW_STATE_SET);
+        PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_APP_FW_STATE_SET (0x%04X)", msgId);
 
-        if (inbuffer->infoDim == 0)
+        if (infoDim == 0)
         {
           res = SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE);
           SetIPCNACK(outbuffer, res);
@@ -301,12 +315,11 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_APP_CHANGE_STDOUT ************************************************/
     case CCMSG_APP_CHANGE_STDOUT:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_APP_CHANGE_STDOUT (0x%04X)", CCMSG_APP_CHANGE_STDOUT);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_APP_CHANGE_STDOUT (0x%04X)", msgId);
       PT_LOG_NOTICE(LOG_CTX_MSGHANDLER, "Redirecting stdout...");
 
       /* Validate message data */
-      if (inbuffer->infoDim == 0)
+      if (infoDim == 0)
       {
         res = SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE);
         SetIPCNACK(outbuffer, res);
@@ -324,14 +337,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_APP_LOGGER_OUTPUT:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_APP_LOGGER_OUTPUT (0x%04X)", CCMSG_APP_LOGGER_OUTPUT);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_APP_LOGGER_OUTPUT (0x%04X)", msgId);
 
       L7_uint8 output;
       char *filename;
 
       /* If infodim is null, use stdout */
-      if (inbuffer->infoDim==0)
+      if (infoDim == 0)
       {
         PT_LOG_NOTICE(LOG_CTX_MSGHANDLER, "Redirecting logger output (0) to \"%s\"...", LOG_OUTPUT_FILE_DEFAULT);
         logger_redirect(LOG_OUTPUT_FILE, LOG_OUTPUT_FILE_DEFAULT);
@@ -339,7 +351,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         PT_LOG_NOTICE(LOG_CTX_MSGHANDLER, "...Logger output (0) redirected to \"%s\" :-)", LOG_OUTPUT_FILE_DEFAULT);
       }
       /* Otherwise, use the specified filename */
-      else if (inbuffer->infoDim==1 || inbuffer->info[1]=='\0')
+      else if (infoDim == 1 || inbuffer->info[1] == '\0')
       {
         output = LOG_OUTPUT_FILE + inbuffer->info[0];
 
@@ -371,10 +383,9 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_APP_SHELL_CMD_RUN ************************************************/
     case CCMSG_APP_SHELL_CMD_RUN:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_APP_SHELL_CMD_RUN (0x%04X)", CCMSG_APP_SHELL_CMD_RUN);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_APP_SHELL_CMD_RUN (0x%04X)", msgId);
 
-      if (inbuffer->infoDim == 0)
+      if (infoDim == 0)
       {
         res = SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE);
         SetIPCNACK(outbuffer, res);
@@ -394,8 +405,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_PHY_ACTIVITY_GET ************************************************/
     case CCMSG_ETH_PHY_ACTIVITY_GET:
     {
-      PT_LOG_TRACE(LOG_CTX_MSGHANDLER,
-                "Message received: CCMSG_ETH_PHY_ACTIVITY_GET (0x%04X)", CCMSG_ETH_PHY_ACTIVITY_GET);
+      PT_LOG_TRACE(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_PHY_ACTIVITY_GET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_HWEthPhyActivity_t);
 
@@ -413,15 +423,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         return IPC_OK;
       }
 
-      outbuffer->infoDim = sizeof(msg_HWEthPhyActivity_t);
-      return IPC_OK;  /* CCMSG_ETH_PHY_STATE_GET */
+      SETIPC_INFODIM(sizeof(msg_HWEthPhyActivity_t));
+      return IPC_OK;  /* CCMSG_ETH_PHY_ACTIVITY_GET */
     }
 
     /* CCMSG_BOARD_SHOW *******************************************************/
     case CCMSG_BOARD_SHOW:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_BOARD_SHOW (0x%04X)", CCMSG_BOARD_SHOW);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_BOARD_SHOW (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(0);
 
@@ -432,12 +441,12 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       ptin_msg_FPInfo_get(fpInfo);  /* returns always success */
 
       /* Copy slot id information if available! */
-      if (inbuffer->infoDim >= 1)
+      if (infoDim >= 1)
         outbuffer->info[0] = inbuffer->info[0];
 
-      outbuffer->infoDim = sizeof(msg_FWFastpathInfo);
+      SETIPC_INFODIM(sizeof(msg_FWFastpathInfo));
       PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message processed: response with %d bytes (present=%d)", outbuffer->infoDim,fpInfo->BoardPresent);
+               "Message processed: response with %d bytes (present=%d)", outbuffer->infoDim, fpInfo->BoardPresent);
 
       return IPC_OK;  /* CCMSG_BOARD_SHOW */
     }
@@ -445,8 +454,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_HW_INTF_INFO_GET ****************************************************/
     case CCMSG_HW_INTF_INFO_GET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_HW_INTF_INFO_GET (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_HW_INTF_INFO_GET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_ATLEAST(L7_uint32);
       msg_HwIntfInfo_t *ptr;
@@ -465,14 +473,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         return IPC_OK;
       }
 
-      outbuffer->infoDim = sizeof(msg_HwIntfInfo_t);
+      SETIPC_INFODIM(sizeof(msg_HwIntfInfo_t));
       return IPC_OK;
     }
     /* CCMSG_HW_INTF_STATUS */
     case CCMSG_HW_INTF_STATUS:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_HW_INTF_STATUS (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_HW_INTF_STATUS (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_ATLEAST(msg_HwIntfStatus_t);
 
@@ -494,13 +501,12 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_APPLICATION_RESOURCES *********************************************/
     case CCMSG_APPLICATION_RESOURCES:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-                "Message received: CCMSG_APPLICATION_RESOURCES (0x%04X)", CCMSG_APPLICATION_RESOURCES);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_APPLICATION_RESOURCES (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_ptin_policy_resources);
 
       /* Copy inbuffer to outbuffer */
-      memcpy(outbuffer->info,inbuffer->info,sizeof(msg_ptin_policy_resources));
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_ptin_policy_resources));
 
       msg_ptin_policy_resources *resources;
       resources = (msg_ptin_policy_resources *) outbuffer->info;
@@ -514,7 +520,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         return IPC_OK;
       }
 
-      outbuffer->infoDim = sizeof(msg_ptin_policy_resources);
+      SETIPC_INFODIM(sizeof(msg_ptin_policy_resources));
       return IPC_OK;  /* CCMSG_APPLICATION_RESOURCES */
     }
   }
@@ -524,7 +530,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
   {
     res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_FP_BUSY);
     SetIPCNACK(outbuffer, res);
-    PT_LOG_WARN(LOG_CTX_MSGHANDLER, "IPC message cannot be processed! PTin state = %d (msgId=0x%x) -> error 0x%08x", ptin_state, inbuffer->msgId, res);
+    PT_LOG_WARN(LOG_CTX_MSGHANDLER, "IPC message cannot be processed! PTin state = %d (msgId=0x%x) -> error 0x%08x", ptin_state, msgId, res);
     return IPC_OK;
   }
   /* PTin module is still loading or crashed ? */
@@ -532,7 +538,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
   {
     res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_NOTALLOWED);
     SetIPCNACK(outbuffer, res);
-    PT_LOG_WARN(LOG_CTX_MSGHANDLER, "IPC message cannot be processed! PTin state = %d (msgId=0x%x) -> error 0x%08x", ptin_state, inbuffer->msgId, res);
+    PT_LOG_WARN(LOG_CTX_MSGHANDLER, "IPC message cannot be processed! PTin state = %d (msgId=0x%x) -> error 0x%08x", ptin_state, msgId, res);
     return IPC_OK;
   }
 
@@ -545,8 +551,8 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         PT_LOG_WARN(LOG_CTX_MSGHANDLER, "NULL message received!");
         return SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_EMPTYMSG);
     }
-    printf("\n\rmsgId[%4.4x] inbuffer->info:",inbuffer->msgId);
-    for(i=0; i<inbuffer->infoDim; i++)
+    printf("\n\rmsgId[%4.4x] inbuffer->info:", msgId);
+    for(i = 0; i < infoDim; i++)
     {
         printf(" %2.2Xh",inbuffer->info[i]); 
     }
@@ -554,7 +560,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
   }
 
   /* If reached here, means PTin module is loaded and ready to process messages */
-  switch (inbuffer->msgId)
+  switch (msgId)
   {
     /************************************************************************** 
      * Control processing
@@ -563,13 +569,12 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Uplink protection command *********************************************/
     case CHMSG_ETH_UPLINK_COMMAND:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CHMSG_ETH_UPLINK_COMMAND (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CHMSG_ETH_UPLINK_COMMAND (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_uplinkProtCmd);
 
       msg_uplinkProtCmd *ptr = (msg_uplinkProtCmd *) inbuffer->info;
-      L7_int n = inbuffer->infoDim / sizeof(msg_uplinkProtCmd);
+      L7_int n = MSG_N_ELEMS(sizeof(msg_uplinkProtCmd));
 
       ret = IPC_NO_REPLY;
 
@@ -590,12 +595,11 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
   #if (PTIN_BOARD_IS_MATRIX)
     case CCMSG_ETH_LACP_MATRIXES_SYNC2:
     {
-      PT_LOG_TRACE(LOG_CTX_MSGHANDLER,
-                "Message received: CCMSG_ETH_LACP_MATRIXES_SYNC2 (0x%04X)", CCMSG_ETH_LACP_MATRIXES_SYNC2);
+      PT_LOG_TRACE(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_LACP_MATRIXES_SYNC2 (0x%04X)", msgId);
 
-      rx_dot3ad_matrix_sync2_t(inbuffer->info, inbuffer->infoDim);
+      rx_dot3ad_matrix_sync2_t(inbuffer->info, infoDim);
 
-      outbuffer->infoDim = 1;        
+      SETIPC_INFODIM(1);
       break;
     }
   #endif
@@ -603,8 +607,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Sync MGMD open ports between different cards/interfaces*/
     case CCMSG_MGMD_PORT_SYNC:
     {
-      PT_LOG_TRACE(LOG_CTX_MSGHANDLER,
-                "Message received: CCMSG_MGMD_PORT_SYNC (0x%04X)", inbuffer->msgId);
+      PT_LOG_TRACE(LOG_CTX_MSGHANDLER, "Message received: CCMSG_MGMD_PORT_SYNC (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_HwMgmdPortSync);
 
@@ -615,7 +618,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       /* Execute command */
       rc = ptin_msg_mgmd_sync_ports(ptr);
-      outbuffer->infoDim = 1;
+      SETIPC_INFODIM(1);
       break;
     }
 
@@ -626,8 +629,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ALARMS_RESET *****************************************************/
     case CCMSG_ALARMS_RESET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ALARMS_RESET (0x%04X)", CCMSG_ALARMS_RESET);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ALARMS_RESET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_HwGenReq_t);
 
@@ -661,8 +663,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_DEFAULTS_RESET ***************************************************/
     case CCMSG_DEFAULTS_RESET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_DEFAULTS_RESET (0x%04X)", CCMSG_DEFAULTS_RESET);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_DEFAULTS_RESET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_HwGenReq_t);
       #if 0
@@ -672,7 +673,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       SETIPCACKOK(outbuffer);
       #else
       /* Execute command */      
-      ptin_msg_task_process(inbuffer->msgId, (void*)(inbuffer->info), inbuffer->infoDim, 3000);
+      ptin_msg_task_process(msgId, (void*)(inbuffer->info), infoDim, 3000);
       SETIPCACKOK(outbuffer);
       #endif
 
@@ -682,8 +683,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_MULTICAST_MACHINE_RESET *******************************************/
     case CCMSG_MULTICAST_MACHINE_RESET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_MULTICAST_MACHINE_RESET (0x%04X)", CCMSG_MULTICAST_MACHINE_RESET);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_MULTICAST_MACHINE_RESET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_HwGenReq_t);
 
@@ -708,8 +708,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_TYPEB_PROT_SWITCH *******************************************/
     case CCMSG_TYPEB_PROT_SWITCH_NOTIFY:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_TYPEB_PROT_SWITCH_NOTIFY (0x%04X)", CCMSG_TYPEB_PROT_SWITCH_NOTIFY);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_TYPEB_PROT_SWITCH_NOTIFY (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_HwTypeBProtSwitchNotify_t);
 
@@ -733,8 +732,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_TYPEB_PROT_INTF_CONFIG:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_TYPEB_PROT_INTF_CONFIG (0x%04X)", CCMSG_TYPEB_PROT_INTF_CONFIG);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_TYPEB_PROT_INTF_CONFIG (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_HwTypeBProtIntfConfig_t);
 
@@ -758,8 +756,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_TYPEB_PROT_SWITCH:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_TYPEB_PROT_SWITCH (0x%04X)", CCMSG_TYPEB_PROT_SWITCH);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_TYPEB_PROT_SWITCH (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_HwTypeBprot_t);
 
@@ -783,8 +780,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_HW_BOARD_ACTION:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_HW_BOARD_ACTION (0x%04X)", CCMSG_HW_BOARD_ACTION);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_HW_BOARD_ACTION (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_HwGenReq_t);
 
@@ -808,8 +804,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_HW_LINK_ACTION:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_HW_LINK_ACTION (0x%04X)", CCMSG_HW_LINK_ACTION);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_HW_LINK_ACTION (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_HwGenReq_t);
 
@@ -837,8 +832,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_SLOT_MAP_MODE_GET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_SLOT_MAP_MODE_GET (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_SLOT_MAP_MODE_GET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_ATLEAST(L7_uint32);
       msg_slotModeCfg_t *ptr;
@@ -857,14 +851,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_slotModeCfg_t);
+      SETIPC_INFODIM(sizeof(msg_slotModeCfg_t));
     }
     break;
 
     case CCMSG_SLOT_MAP_MODE_VALIDATE:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_SLOT_MAP_MODE_VALIDATE (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_SLOT_MAP_MODE_VALIDATE (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_slotModeCfg_t);
 
@@ -887,8 +880,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_SLOT_MAP_MODE_APPLY:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_SLOT_MAP_MODE_APPLY (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_SLOT_MAP_MODE_APPLY (0x%04X)", msgId);
 
       //CHECK_INFO_SIZE_MOD(msg_slotModeCfg_t);
 
@@ -915,8 +907,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_ETH_PHY_STATUS_GET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_PHY_STATUS_GET (0x%04X)", CCMSG_ETH_PHY_STATUS_GET);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_PHY_STATUS_GET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_ATLEAST(L7_uint32);
 
@@ -929,8 +920,8 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Output info read */
       PT_LOG_DEBUG(LOG_CTX_MSG, "Requesting...");
       PT_LOG_DEBUG(LOG_CTX_MSG, " SlotId    = %u", pin->SlotId);
-      PT_LOG_DEBUG(LOG_CTX_MSG, " BoardType = %u", pin->BoardType );
-      PT_LOG_DEBUG(LOG_CTX_MSG, " PortId    = %u", pin->Port );
+      PT_LOG_DEBUG(LOG_CTX_MSG, " BoardType = %u", pin->BoardType);
+      PT_LOG_DEBUG(LOG_CTX_MSG, " PortId    = %u", pin->Port);
 
       /* Single port ? */
       if (pin->Port < max(PTIN_SYSTEM_N_PONS, PTIN_SYSTEM_N_ETH))
@@ -945,7 +936,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
           break;
         }
 
-        outbuffer->infoDim = sizeof(msg_HWEthPhyStatus_t);
+        SETIPC_INFODIM(sizeof(msg_HWEthPhyStatus_t));
       }
       /* Swipe all ports */
       else
@@ -968,7 +959,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
           break;
         }
 
-        outbuffer->infoDim = sizeof(msg_HWEthPhyStatus_t) * i;
+        SETIPC_INFODIM(sizeof(msg_HWEthPhyStatus_t) * i);
       }
       #else
       PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting port Status (port# %u)", pin->Port);
@@ -984,8 +975,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_PHY_CONFIG_SET ***********************************************/
     case CCMSG_ETH_PHY_CONFIG_SET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_PHY_CONFIG_SET (0x%04X)", CCMSG_ETH_PHY_CONFIG_SET);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_PHY_CONFIG_SET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_HWEthPhyConf_t);
 
@@ -993,15 +983,15 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       msg_HWEthPhyConf_t *pi = (msg_HWEthPhyConf_t *) &inbuffer->info[0];
 
       /* Validate info size */
-      if ( (inbuffer->infoDim < sizeof(msg_HWEthPhyConf_t)) || ((inbuffer->infoDim % sizeof(msg_HWEthPhyConf_t)) != 0) )
+      if ( (infoDim < sizeof(msg_HWEthPhyConf_t)) || ((infoDim % sizeof(msg_HWEthPhyConf_t)) != 0) )
       {
-        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Data size inconsistent! (%u)", inbuffer->infoDim);
+        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Data size inconsistent! (%u)", infoDim);
         res = SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE);
         SetIPCNACK(outbuffer, res);
         break;
       }
 
-      n = inbuffer->infoDim / sizeof(msg_HWEthPhyConf_t);
+      n = MSG_N_ELEMS(sizeof(msg_HWEthPhyConf_t));
       if (n > PTIN_SYSTEM_N_PORTS)
         n = PTIN_SYSTEM_N_PORTS;
 
@@ -1027,8 +1017,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_PHY_CONFIG_GET ***********************************************/
     case CCMSG_ETH_PHY_CONFIG_GET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_PHY_CONFIG_GET (0x%04X)", CCMSG_ETH_PHY_CONFIG_GET);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_PHY_CONFIG_GET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_HwGenReq_t);
 
@@ -1056,7 +1045,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
           break;
         }
 
-        outbuffer->infoDim = sizeof(msg_HWEthPhyConf_t);
+        SETIPC_INFODIM(sizeof(msg_HWEthPhyConf_t));
       }
       /* Swipe all ports */
       else
@@ -1079,7 +1068,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
           break;
         }
 
-        outbuffer->infoDim = sizeof(msg_HWEthPhyConf_t) * i;
+        SETIPC_INFODIM(sizeof(msg_HWEthPhyConf_t) * i);
       }
 
 
@@ -1090,8 +1079,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_PHY_STATE_GET ************************************************/
     case CCMSG_ETH_PHY_STATE_GET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_PHY_STATE_GET (0x%04X)", CCMSG_ETH_PHY_STATE_GET);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_PHY_STATE_GET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_HwGenReq_t);
 
@@ -1119,7 +1107,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
           break;
         }
 
-        outbuffer->infoDim = sizeof(msg_HWEthPhyState_t);
+        SETIPC_INFODIM(sizeof(msg_HWEthPhyState_t));
       }
       /* Swipe all ports */
       else
@@ -1142,7 +1130,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
           break;
         }
 
-        outbuffer->infoDim = sizeof(msg_HWEthPhyState_t) * i;
+        SETIPC_INFODIM(sizeof(msg_HWEthPhyState_t) * i);
       }
 
 
@@ -1156,20 +1144,19 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_PHY_COUNTERS_GET *********************************************/
     case CCMSG_ETH_PHY_COUNTERS_GET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-                "Message received: CCMSG_ETH_PHY_COUNTERS_GET (0x%04X)", CCMSG_ETH_PHY_COUNTERS_GET);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_PHY_COUNTERS_GET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_HwGenReq_t);
 
       msg_HwGenReq_t                    *request;
       msg_HWEthRFC2819_PortStatistics_t *portStats;
-      L7_uint nElems = inbuffer->infoDim / sizeof(msg_HwGenReq_t);
+      L7_uint nElems = MSG_N_ELEMS(sizeof(msg_HwGenReq_t));
 
       request   = (msg_HwGenReq_t *) inbuffer->info;
       portStats = (msg_HWEthRFC2819_PortStatistics_t *) outbuffer->info;
 
       /* Get values */
-      if (L7_SUCCESS != ptin_msg_PhyCounters_read(request,portStats,nElems))
+      if (L7_SUCCESS != ptin_msg_PhyCounters_read(request, portStats, nElems))
       {
         PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting counters (port# %u)", portStats->Port);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
@@ -1177,7 +1164,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_HWEthRFC2819_PortStatistics_t)*nElems;      
+      SETIPC_INFODIM(sizeof(msg_HWEthRFC2819_PortStatistics_t)*nElems);
       break;  /* CCMSG_ETH_PHY_COUNTERS_GET */
     }
 
@@ -1185,8 +1172,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_PHY_COUNTERS_CLEAR *******************************************/
     case CCMSG_ETH_PHY_COUNTERS_CLEAR:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_PHY_COUNTERS_CLEAR (0x%04X)", CCMSG_ETH_PHY_COUNTERS_CLEAR);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_PHY_COUNTERS_CLEAR (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_HWEthRFC2819_PortStatistics_t);
 
@@ -1213,13 +1199,12 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Set Port type (MEF extension) configuration */
     case CCMSG_ETH_PORT_EXT_SET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_PORT_EXT_SET (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_PORT_EXT_SET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_HWPortExt_t);
 
       msg_HWPortExt_t *ptr = (msg_HWPortExt_t *) inbuffer->info;
-      L7_uint nElems = inbuffer->infoDim/sizeof(msg_HWPortExt_t);
+      L7_uint nElems = MSG_N_ELEMS(sizeof(msg_HWPortExt_t));
 
       /* Execute command */
       rc = ptin_msg_portExt_set(ptr, nElems);
@@ -1239,8 +1224,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Get Port type (MEF extension) configuration */
     case CCMSG_ETH_PORT_EXT_GET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_PORT_TYPE_GET (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_PORT_TYPE_GET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_HWPortExt_t);
 
@@ -1261,20 +1245,19 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_HWPortExt_t)*nElems;
+      SETIPC_INFODIM(sizeof(msg_HWPortExt_t) * nElems);
     }
     break;
 
     /* Set MAC address */
     case CCMSG_ETH_PORT_MAC_SET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_PORT_MAC_SET (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_PORT_MAC_SET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_HWPortMac_t);
 
       msg_HWPortMac_t *ptr = (msg_HWPortMac_t *) inbuffer->info;
-      L7_uint nElems = inbuffer->infoDim/sizeof(msg_HWPortMac_t);
+      L7_uint nElems = MSG_N_ELEMS(sizeof(msg_HWPortMac_t));
 
       /* Execute command */
       rc = ptin_msg_portMAC_set(ptr, nElems);
@@ -1294,8 +1277,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Get MAC address */
     case CCMSG_ETH_PORT_MAC_GET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_PORT_MAC_GET (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_PORT_MAC_GET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_HWPortMac_t);
 
@@ -1316,7 +1298,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_HWPortMac_t)*nElems;
+      SETIPC_INFODIM(sizeof(msg_HWPortMac_t) * nElems);
     }
     break;
 
@@ -1327,8 +1309,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Get CoS configuration */
     case CCMSG_ETH_PORT_COS_GET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_PORT_COS_GET (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_PORT_COS_GET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_QoSConfiguration_t);
 
@@ -1348,15 +1329,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_QoSConfiguration_t);
+      SETIPC_INFODIM(sizeof(msg_QoSConfiguration_t));
     }
     break;
 
     /* Set new CoS configuration */
     case CCMSG_ETH_PORT_COS_SET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_PORT_COS_SET (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_PORT_COS_SET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_QoSConfiguration_t);
 
@@ -1381,8 +1361,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Get CoS configuration */
     case CCMSG_ETH_PORT_COS2_GET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_PORT_COS2_GET (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_PORT_COS2_GET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_QoSConfiguration2_t);
 
@@ -1402,15 +1381,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_QoSConfiguration2_t);
+      SETIPC_INFODIM(sizeof(msg_QoSConfiguration2_t));
     }
     break;
 
     /* Set new CoS configuration */
     case CCMSG_ETH_PORT_COS2_SET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_PORT_COS2_SET (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_PORT_COS2_SET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_QoSConfiguration2_t);
 
@@ -1435,8 +1413,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Get CoS configuration */
     case CCMSG_ETH_PORT_COS3_GET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_PORT_COS3_GET (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_PORT_COS3_GET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_QoSConfiguration3_t);
 
@@ -1456,15 +1433,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_QoSConfiguration3_t);
+      SETIPC_INFODIM(sizeof(msg_QoSConfiguration3_t));
     }
     break;
 
     /* Set new CoS configuration */
     case CCMSG_ETH_PORT_COS3_SET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_PORT_COS3_SET (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_PORT_COS3_SET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_QoSConfiguration3_t);
 
@@ -1493,8 +1469,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_LACP_LAG_GET *************************************************/
     case CCMSG_ETH_LACP_LAG_GET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_LACP_LAG_GET (0x%04X)", CCMSG_ETH_LACP_LAG_GET);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_LACP_LAG_GET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_LACPLagInfo_t);
 
@@ -1513,7 +1488,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_LACPLagInfo_t) * nElems;
+      SETIPC_INFODIM(sizeof(msg_LACPLagInfo_t) * nElems);
 
       break;  /* CCMSG_ETH_LACP_LAG_GET */
     }
@@ -1522,8 +1497,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_LACP_LAG_ADD *************************************************/
     case CCMSG_ETH_LACP_LAG_ADD:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_LACP_LAG_ADD (0x%04X)", CCMSG_ETH_LACP_LAG_ADD);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_LACP_LAG_ADD (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_LACPLagInfo_t);
 
@@ -1548,8 +1522,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_LACP_LAG_REMOVE **********************************************/
     case CCMSG_ETH_LACP_LAG_REMOVE:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_LACP_LAG_REMOVE (0x%04X)", CCMSG_ETH_LACP_LAG_REMOVE);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_LACP_LAG_REMOVE (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_LACPLagInfo_t);
 
@@ -1566,7 +1539,6 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
 
       SETIPCACKOK(outbuffer);
-
       break;  /* CCMSG_ETH_LACP_LAG_REMOVE */
     }
 
@@ -1574,8 +1546,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_LACP_LAG_STATUS_GET ******************************************/
     case CCMSG_ETH_LACP_LAG_STATUS_GET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_LACP_LAG_STATUS_GET (0x%04X)", CCMSG_ETH_LACP_LAG_STATUS_GET);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_LACP_LAG_STATUS_GET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_LACPLagStatus_t);
 
@@ -1594,8 +1565,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_LACPLagStatus_t) * nElems;
-
+      SETIPC_INFODIM(sizeof(msg_LACPLagStatus_t) * nElems);
       break;  /* CCMSG_ETH_LACP_LAG_STATUS_GET */
     }
 
@@ -1603,12 +1573,11 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_LACP_ADMINSTATE_SET ******************************************/
     case CCMSG_ETH_LACP_ADMINSTATE_SET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_LACP_ADMINSTATE_SET (0x%04X)", CCMSG_ETH_LACP_ADMINSTATE_SET);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_LACP_ADMINSTATE_SET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_LACPAdminState_t);
 
-      L7_uint nElems = inbuffer->infoDim / sizeof(msg_LACPAdminState_t);
+      L7_uint nElems = MSG_N_ELEMS(sizeof(msg_LACPAdminState_t));
       msg_LACPAdminState_t *lagAdminState = (msg_LACPAdminState_t *) inbuffer->info;
 
       /* Execute command */
@@ -1629,8 +1598,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_LACP_ADMINSTATE_GET ******************************************/
     case CCMSG_ETH_LACP_ADMINSTATE_GET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_LACP_ADMINSTATE_GET (0x%04X)", CCMSG_ETH_LACP_ADMINSTATE_GET);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_LACP_ADMINSTATE_GET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_LACPAdminState_t);
 
@@ -1649,8 +1617,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_LACPAdminState_t) * nElems;
-
+      SETIPC_INFODIM(sizeof(msg_LACPAdminState_t) * nElems);
       break;  /* CCMSG_ETH_LACP_ADMINSTATE_GET */
     }
 
@@ -1658,8 +1625,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_LACP_STATS_GET ***********************************************/
     case CCMSG_ETH_LACP_STATS_GET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_LACP_STATS_GET (0x%04X)", CCMSG_ETH_LACP_STATS_GET);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_LACP_STATS_GET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_LACPStats_t);
 
@@ -1679,8 +1645,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_LACPStats_t) * nElems;
-
+      SETIPC_INFODIM(sizeof(msg_LACPStats_t) * nElems);
       break;  /* CCMSG_ETH_LACP_STATS_GET */
     }
 
@@ -1688,8 +1653,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_LACP_STATS_CLEAR *********************************************/
     case CCMSG_ETH_LACP_STATS_CLEAR:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_LACP_STATS_CLEAR (0x%04X)", CCMSG_ETH_LACP_STATS_CLEAR);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_LACP_STATS_CLEAR (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_LACPStats_t);
 
@@ -1717,8 +1681,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* L2 Aging get */
     case CCMSG_ETH_SWITCH_CONFIG_GET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_SWITCH_CONFIG_GET (0x%04X)", CCMSG_ETH_SWITCH_CONFIG_GET);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_SWITCH_CONFIG_GET (0x%04X)", msgId);
       CHECK_INFO_SIZE(msg_switch_config_t);
 
       msg_switch_config_t *switch_config = (msg_switch_config_t *) &outbuffer->info[0];
@@ -1735,15 +1698,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_HwEthMef10Evc_t);
+      SETIPC_INFODIM(sizeof(msg_HwEthMef10Evc_t));
     }
     break;
 
     /* L2 Aging set */
     case CCMSG_ETH_SWITCH_CONFIG_SET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_SWITCH_CONFIG_SET (0x%04X)", CCMSG_ETH_SWITCH_CONFIG_SET);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_SWITCH_CONFIG_SET (0x%04X)", msgId);
       CHECK_INFO_SIZE(msg_switch_config_t);
 
       msg_switch_config_t *switch_config = (msg_switch_config_t *) &inbuffer->info[0];
@@ -1767,15 +1729,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     case CCMSG_ETH_MAC_TABLE_SHOW:
     case CCMSG_ETH_MAC_TABLE_SHOW2:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_MAC_TABLE_SHOW (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_MAC_TABLE_SHOW (0x%04X)", msgId);
       CHECK_INFO_SIZE(msg_switch_mac_intro_t);
 
       msg_switch_mac_table_t *mac_table = (msg_switch_mac_table_t *) outbuffer->info;
       memcpy(outbuffer->info, inbuffer->info, sizeof(msg_switch_mac_intro_t));
 
       /* Execute command */
-      rc = ptin_msg_l2_macTable_get(mac_table, CCMSG_ETH_MAC_TABLE_SHOW==inbuffer->msgId?1:2);
+      rc = ptin_msg_l2_macTable_get(mac_table, ((CCMSG_ETH_MAC_TABLE_SHOW == msgId) ? 1 : 2));
 
       if (L7_SUCCESS != rc)
       {
@@ -1785,19 +1746,18 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_switch_mac_table_t);
+      SETIPC_INFODIM(sizeof(msg_switch_mac_table_t));
     }
     break;
 
     /* Remove an entry of the L2 table */
     case CCMSG_ETH_MAC_ENTRY_REMOVE:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_MAC_ENTRY_REMOVE (0x%04X)", CCMSG_ETH_MAC_ENTRY_REMOVE);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_MAC_ENTRY_REMOVE (0x%04X)", msgId);
       CHECK_INFO_SIZE(msg_switch_mac_table_entry_t);
 
       msg_switch_mac_table_entry_t *mac_table = (msg_switch_mac_table_entry_t *) inbuffer->info;
-      L7_uint32 n = inbuffer->infoDim /(sizeof(msg_switch_mac_table_entry_t));
+      L7_uint32 n = MSG_N_ELEMS(sizeof(msg_switch_mac_table_entry_t));
 
       /* Execute command */
       rc = ptin_msg_l2_macTable_remove(mac_table, n);
@@ -1817,12 +1777,11 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Add an entry to the L2 table */
     case CCMSG_ETH_MAC_ENTRY_ADD:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_MAC_ENTRY_ADD (0x%04X)", CCMSG_ETH_MAC_ENTRY_ADD);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_MAC_ENTRY_ADD (0x%04X)", msgId);
       CHECK_INFO_SIZE(msg_switch_mac_table_entry_t);
 
       msg_switch_mac_table_entry_t *mac_table = (msg_switch_mac_table_entry_t *) inbuffer->info;
-      L7_uint32 n = inbuffer->infoDim /(sizeof(msg_switch_mac_table_entry_t));
+      L7_uint32 n = MSG_N_ELEMS(sizeof(msg_switch_mac_table_entry_t));
 
       /* Execute command */
       rc = ptin_msg_l2_macTable_add(mac_table, n);
@@ -1845,8 +1804,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Dynamic ARP Inspection */
     case CCMSG_ETH_DAI_GLOBAL_CONFIG:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_DAI_GLOBAL_CONFIG (0x%04X)", CCMSG_ETH_DAI_GLOBAL_CONFIG);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_DAI_GLOBAL_CONFIG (0x%04X)", msgId);
       CHECK_INFO_SIZE(msg_dai_global_settings_t);
 
       msg_dai_global_settings_t *config = (msg_dai_global_settings_t *) &inbuffer->info[0];
@@ -1868,12 +1826,11 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_ETH_DAI_INTF_CONFIG:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_DAI_INTF_CONFIG (0x%04X)", CCMSG_ETH_DAI_INTF_CONFIG);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_DAI_INTF_CONFIG (0x%04X)", msgId);
       CHECK_INFO_SIZE_MOD(msg_dai_intf_settings_t);
 
       msg_dai_intf_settings_t *config = (msg_dai_intf_settings_t *) &inbuffer->info[0];
-      L7_uint nElems = inbuffer->infoDim / sizeof(msg_dai_intf_settings_t);
+      L7_uint nElems = MSG_N_ELEMS(sizeof(msg_dai_intf_settings_t));
 
       /* Execute command */
       rc = ptin_msg_dai_intf_config(config, nElems);
@@ -1892,12 +1849,11 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_ETH_DAI_VLAN_CONFIG:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_DAI_VLAN_CONFIG (0x%04X)", CCMSG_ETH_DAI_VLAN_CONFIG);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_DAI_VLAN_CONFIG (0x%04X)", msgId);
       CHECK_INFO_SIZE_MOD(msg_dai_vlan_settings_t);
 
       msg_dai_vlan_settings_t *config = (msg_dai_vlan_settings_t *) &inbuffer->info[0];
-      L7_uint nElems = inbuffer->infoDim / sizeof(msg_dai_vlan_settings_t);
+      L7_uint nElems = MSG_N_ELEMS(sizeof(msg_dai_vlan_settings_t));
 
       /* Execute command */
       rc = ptin_msg_dai_vlan_config(config, nElems);
@@ -1916,15 +1872,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_ETH_DAI_STATISTICS:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_DAI_STATISTICS (0x%04X)", CCMSG_ETH_DAI_STATISTICS);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_DAI_STATISTICS (0x%04X)", msgId);
       CHECK_INFO_SIZE_MOD(msg_dai_statistics_t);
 
       /* Copy input to output */
-      memcpy(outbuffer->info, inbuffer->info, inbuffer->infoDim);
+      memcpy(outbuffer->info, inbuffer->info, infoDim);
 
       msg_dai_statistics_t *stats = (msg_dai_statistics_t *) &outbuffer->info[0];
-      L7_uint nElems = inbuffer->infoDim / sizeof(msg_dai_statistics_t);
+      L7_uint nElems = MSG_N_ELEMS(sizeof(msg_dai_statistics_t));
 
       /* Execute command */
       rc = ptin_msg_dai_stats_get(stats, nElems);
@@ -1937,8 +1892,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_dai_statistics_t)*nElems;
-
+      SETIPC_INFODIM(sizeof(msg_dai_statistics_t)*nElems);
     }
     break;
 
@@ -1949,8 +1903,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_EVC_GET ******************************************************/
     case CCMSG_ETH_EVC_GET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_EVC_GET (0x%04X)", CCMSG_ETH_EVC_GET);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_EVC_GET (0x%04X)", msgId);
   
       CHECK_INFO_SIZE(msg_HwEthMef10Evc_t);
 
@@ -1968,8 +1921,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_HwEthMef10Evc_t);
-
+      SETIPC_INFODIM(sizeof(msg_HwEthMef10Evc_t));
       break;  /* CCMSG_ETH_EVC_GET */
     }
 
@@ -1977,8 +1929,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_EVC_ADD ******************************************************/
     case CCMSG_ETH_EVC_ADD:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_EVC_ADD (0x%04X)", CCMSG_ETH_EVC_ADD);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_EVC_ADD (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_ATLEAST(msg_HwEthMef10Evc_t);
 
@@ -2001,13 +1952,12 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_EVC_REMOVE ***************************************************/
     case CCMSG_ETH_EVC_REMOVE:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_EVC_REMOVE (0x%04X)", CCMSG_ETH_EVC_REMOVE);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_EVC_REMOVE (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_HwEthMef10EvcRemove_t);
 
       msg_HwEthMef10EvcRemove_t *evcConf = (msg_HwEthMef10EvcRemove_t *) inbuffer->info;
-      L7_uint16 n_structs = inbuffer->infoDim/sizeof(msg_HwEthMef10EvcRemove_t);
+      L7_uint16 n_structs = MSG_N_ELEMS(sizeof(msg_HwEthMef10EvcRemove_t));
 
       /* Execute command */
       rc = ptin_msg_EVC_delete(evcConf, n_structs);
@@ -2028,13 +1978,12 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_EVC_PORT_ADD ******************************************************/
     case CCMSG_ETH_EVC_PORT_ADD:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_EVC_PORT_ADD (0x%04X)", CCMSG_ETH_EVC_PORT_ADD);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_EVC_PORT_ADD (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_HWevcPort_t);
 
       msg_HWevcPort_t *evcPort = (msg_HWevcPort_t *) inbuffer->info;
-      L7_uint16        n_size  = inbuffer->infoDim/sizeof(msg_HWevcPort_t);
+      L7_uint16        n_size  = MSG_N_ELEMS(sizeof(msg_HWevcPort_t));
 
       /* Execute command */
       rc = ptin_msg_evc_port(evcPort, n_size, PTIN_MSG_OPER_ADD);
@@ -2055,13 +2004,12 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_EVC_PORT_REMOVE ***************************************************/
     case CCMSG_ETH_EVC_PORT_REMOVE:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_EVC_PORT_REMOVE (0x%04X)", CCMSG_ETH_EVC_PORT_REMOVE);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_EVC_PORT_REMOVE (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_HWevcPort_t);
 
       msg_HWevcPort_t *evcPort = (msg_HWevcPort_t *) inbuffer->info;
-      L7_uint16        n_size  = inbuffer->infoDim/sizeof(msg_HWevcPort_t);
+      L7_uint16        n_size  = MSG_N_ELEMS(sizeof(msg_HWevcPort_t));
 
       /* Execute command */
       rc = ptin_msg_evc_port(evcPort, n_size, PTIN_MSG_OPER_REMOVE);
@@ -2082,8 +2030,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_EVC_OPTIONS_SET *************************************************/
     case CCMSG_ETH_EVC_OPTIONS_SET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_EVC_OPTIONS_SET (0x%04X)", CCMSG_ETH_EVC_OPTIONS_SET);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_EVC_OPTIONS_SET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_HwEthMef10EvcOptions_t);
 
@@ -2104,8 +2051,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     }
 
     case CCMSG_ETH_EVC_QOS_SET:
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_EVC_QOS_SET (0x%04X)", CCMSG_ETH_EVC_QOS_SET);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_EVC_QOS_SET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_evc_qos_t);
 
@@ -2127,8 +2073,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_EVC_BRIDGE_ADD ***********************************************/
     case CCMSG_ETH_EVC_BRIDGE_ADD:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_EVC_BRIDGE_ADD (0x%04X)", CCMSG_ETH_EVC_BRIDGE_ADD);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_EVC_BRIDGE_ADD (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_HwEthEvcBridge_t);
 
@@ -2155,8 +2100,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_EVC_BRIDGE_REMOVE ********************************************/
     case CCMSG_ETH_EVC_BRIDGE_REMOVE:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_EVC_BRIDGE_REMOVE (0x%04X)", CCMSG_ETH_EVC_BRIDGE_REMOVE);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_EVC_BRIDGE_REMOVE (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_HwEthEvcBridge_t);
 
@@ -2182,8 +2126,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_EVC_FLOW_ADD ***********************************************/
     case CCMSG_ETH_EVC_FLOW_ADD:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_EVC_FLOW_ADD (0x%04X)", CCMSG_ETH_EVC_FLOW_ADD);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_EVC_FLOW_ADD (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_HwEthEvcFlow_t);
 
@@ -2209,8 +2152,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_EVC_FLOW_REMOVE ********************************************/
     case CCMSG_ETH_EVC_FLOW_REMOVE:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_EVC_FLOW_REMOVE (0x%04X)", CCMSG_ETH_EVC_FLOW_REMOVE);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_EVC_FLOW_REMOVE (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_HwEthEvcFlow_t);
 
@@ -2236,8 +2178,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Add vlan to be flooded */
     case CCMSG_ETH_EVC_FLOOD_VLAN_ADD:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_EVC_FLOOD_VLAN_ADD (0x%04X)", CCMSG_ETH_EVC_FLOOD_VLAN_ADD);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_EVC_FLOOD_VLAN_ADD (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_HwEthEvcFloodVlan_t);
 
@@ -2245,7 +2186,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       L7_uint32 n_clients;
 
       evcFlood  = (msg_HwEthEvcFloodVlan_t *) inbuffer->info;
-      n_clients = inbuffer->infoDim / (sizeof(msg_HwEthEvcFloodVlan_t));
+      n_clients = MSG_N_ELEMS(sizeof(msg_HwEthEvcFloodVlan_t));
 
       /* Execute command */
       if (L7_SUCCESS != ptin_msg_EvcFloodVlan_add(evcFlood, n_clients))
@@ -2264,8 +2205,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Remove vlan to be flooded */
     case CCMSG_ETH_EVC_FLOOD_VLAN_REMOVE:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_EVC_FLOOD_VLAN_REMOVE (0x%04X)", CCMSG_ETH_EVC_FLOOD_VLAN_REMOVE);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_EVC_FLOOD_VLAN_REMOVE (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_HwEthEvcFloodVlan_t);
 
@@ -2273,7 +2213,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       L7_uint32 n_clients;
 
       evcFlood  = (msg_HwEthEvcFloodVlan_t *) inbuffer->info;
-      n_clients = inbuffer->infoDim / (sizeof(msg_HwEthEvcFloodVlan_t));
+      n_clients = MSG_N_ELEMS(sizeof(msg_HwEthEvcFloodVlan_t));
 
       /* Execute command */
       if (L7_SUCCESS != ptin_msg_EvcFloodVlan_remove(evcFlood, n_clients))
@@ -2296,8 +2236,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_EVC_COUNTERS_GET *********************************************/
     case CCMSG_ETH_EVC_COUNTERS_GET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_EVC_COUNTERS_GET (0x%04X)", CCMSG_ETH_EVC_COUNTERS_GET);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_EVC_COUNTERS_GET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_evcStats_t);
 
@@ -2318,8 +2257,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_evcStats_t);
-
+      SETIPC_INFODIM(sizeof(msg_evcStats_t));
       break;  /* CCMSG_ETH_EVC_COUNTERS_GET */
     }
 
@@ -2327,8 +2265,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_EVC_COUNTERS_ADD *********************************************/
     case CCMSG_ETH_EVC_COUNTERS_ADD:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_EVC_COUNTERS_ADD (0x%04X)", CCMSG_ETH_EVC_COUNTERS_ADD);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_EVC_COUNTERS_ADD (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_evcStats_t);
 
@@ -2354,8 +2291,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_EVC_COUNTERS_REMOVE ******************************************/
     case CCMSG_ETH_EVC_COUNTERS_REMOVE:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_EVC_COUNTERS_REMOVE (0x%04X)", CCMSG_ETH_EVC_COUNTERS_REMOVE);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_EVC_COUNTERS_REMOVE (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_evcStats_t);
 
@@ -2386,8 +2322,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_BW_PROFILE_GET ***********************************************/
     case CCMSG_ETH_BW_PROFILE_GET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_BW_PROFILE_GET (0x%04X)", CCMSG_ETH_BW_PROFILE_GET);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_BW_PROFILE_GET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_HwEthBwProfile_t);
 
@@ -2408,8 +2343,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_HwEthBwProfile_t);
-
+      SETIPC_INFODIM(sizeof(msg_HwEthBwProfile_t));
       break;  /* CCMSG_ETH_BW_PROFILE_GET */
     }
 
@@ -2418,17 +2352,16 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     case CCMSG_ETH_BW_PROFILE_SET:
     case CCMSG_ETH_BW_PROFILE_SET_II:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_BW_PROFILE_SET (0x%04X)", CCMSG_ETH_BW_PROFILE_SET);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_BW_PROFILE_SET (0x%04X)", msgId);
 
-      if (CCMSG_ETH_BW_PROFILE_SET==inbuffer->msgId)    CHECK_INFO_SIZE(msg_HwEthBwProfile_t)
-      else                                              CHECK_INFO_SIZE(msg_HwEthBwProfile_II_t)
+      if (CCMSG_ETH_BW_PROFILE_SET == msgId) CHECK_INFO_SIZE(msg_HwEthBwProfile_t)
+      else                                   CHECK_INFO_SIZE(msg_HwEthBwProfile_II_t)
 
       msg_HwEthBwProfile_t *bwProfile;
       bwProfile = (msg_HwEthBwProfile_t *) inbuffer->info;
 
       /* Execute command */
-      rc = ptin_msg_bwProfile_set(bwProfile, inbuffer->msgId);
+      rc = ptin_msg_bwProfile_set(bwProfile, msgId);
 
       if (L7_SUCCESS != rc)
       {
@@ -2448,16 +2381,15 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     case CCMSG_ETH_BW_PROFILE_DELETE:
     case CCMSG_ETH_BW_PROFILE_DELETE_II:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_BW_PROFILE_DELETE (0x%04X)", CCMSG_ETH_BW_PROFILE_DELETE);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_BW_PROFILE_DELETE (0x%04X)", msgId);
 
-      if (CCMSG_ETH_BW_PROFILE_DELETE==inbuffer->msgId) CHECK_INFO_SIZE(msg_HwEthBwProfile_t)
-      else                                              CHECK_INFO_SIZE(msg_HwEthBwProfile_II_t)
+      if (CCMSG_ETH_BW_PROFILE_DELETE == msgId) CHECK_INFO_SIZE(msg_HwEthBwProfile_t)
+      else                                      CHECK_INFO_SIZE(msg_HwEthBwProfile_II_t)
 
       msg_HwEthBwProfile_t *bwProfile;
       bwProfile = (msg_HwEthBwProfile_t *) inbuffer->info;
 
-      rc = ptin_msg_bwProfile_delete(bwProfile, inbuffer->msgId);
+      rc = ptin_msg_bwProfile_delete(bwProfile, msgId);
 
       /* Execute command */
       if ( L7_SUCCESS != rc )
@@ -2476,8 +2408,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_STORM_CONTROL_GET ***********************************************/
     case CCMSG_ETH_STORM_CONTROL_GET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_STORM_CONTROL_GET (0x%04X)", CCMSG_ETH_STORM_CONTROL_GET);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_STORM_CONTROL_GET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_HwEthStormControl_t);
 
@@ -2496,16 +2427,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_HwEthStormControl_t);
-
+      SETIPC_INFODIM(sizeof(msg_HwEthStormControl_t));
       break;  /* CCMSG_ETH_STORM_CONTROL_GET */
     }
 
     /* CCMSG_ETH_STORM_CONTROL_SET ***********************************************/
     case CCMSG_ETH_STORM_CONTROL_SET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_STORM_CONTROL_SET (0x%04X)", CCMSG_ETH_STORM_CONTROL_SET);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_STORM_CONTROL_SET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_HwEthStormControl_t);
 
@@ -2529,8 +2458,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_STORM_CONTROL_RESET *********************************************/
     case CCMSG_ETH_STORM_CONTROL_RESET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_STORM_CONTROL_RESET (0x%04X)", CCMSG_ETH_STORM_CONTROL_RESET);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_STORM_CONTROL_RESET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_HwEthStormControl_t);
 
@@ -2554,8 +2482,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_STORM_CONTROL_CLEAR ********************************************/
     case CCMSG_ETH_STORM_CONTROL_CLEAR:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_STORM_CONTROL_CLEAR (0x%04X)", CCMSG_ETH_STORM_CONTROL_CLEAR);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_STORM_CONTROL_CLEAR (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_HwEthStormControl_t);
 
@@ -2581,8 +2508,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_STORMCONTROL2_GET ***********************************************/
     case CCMSG_ETH_STORMCONTROL2_GET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_STORMCONTROL2_GET (0x%04X)", CCMSG_ETH_STORMCONTROL2_GET);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_STORMCONTROL2_GET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_HwEthStormControl2_t);
 
@@ -2601,16 +2527,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_HwEthStormControl2_t);
-
+      SETIPC_INFODIM(sizeof(msg_HwEthStormControl2_t));
       break;  /* CCMSG_ETH_STORMCONTROL2_GET */
     }
 
     /* CCMSG_ETH_STORMCONTROL2_SET ***********************************************/
     case CCMSG_ETH_STORMCONTROL2_SET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_STORMCONTROL2_SET (0x%04X)", CCMSG_ETH_STORMCONTROL2_SET);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_STORMCONTROL2_SET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_HwEthStormControl2_t);
 
@@ -2638,8 +2562,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_NTW_CONNECTIVITY_GET *****************************************/
     case CCMSG_ETH_NTW_CONNECTIVITY_GET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_NTW_CONNECTIVITY_GET (0x%04X)", CCMSG_ETH_NTW_CONNECTIVITY_GET);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_NTW_CONNECTIVITY_GET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_NtwConnectivity_t);
 
@@ -2657,16 +2580,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_NtwConnectivity_t);
-
+      SETIPC_INFODIM(sizeof(msg_NtwConnectivity_t));
       break;  /* CCMSG_ETH_NTW_CONNECTIVITY_GET */
     }
 
     /* CCMSG_ETH_NTW_CONNECTIVITY_SET *****************************************/
     case CCMSG_ETH_NTW_CONNECTIVITY_SET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_NTW_CONNECTIVITY_SET (0x%04X)", CCMSG_ETH_NTW_CONNECTIVITY_SET);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_NTW_CONNECTIVITY_SET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_NtwConnectivity_t);
 
@@ -2694,8 +2615,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Reconfigure Global DHCP EVC ****************************/
     case CCMSG_ETH_DHCP_EVC_RECONF:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_DHCP_EVC_RECONF (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_DHCP_EVC_RECONF (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_DhcpEvcReconf_t);
 
@@ -2715,15 +2635,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_DhcpEvcReconf_t);
+      SETIPC_INFODIM(sizeof(msg_DhcpEvcReconf_t));
     }
     break;
 
     /* Configure DHCP circuit-id global components ****************************/
     case CCMSG_ETH_DHCP_EVC_CIRCUITID_SET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_DHCP_EVC_CIRCUITID_SET (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_DHCP_EVC_CIRCUITID_SET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_AccessNodeCircuitId_t);
 
@@ -2743,15 +2662,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_AccessNodeCircuitId_t);
+      SETIPC_INFODIM(sizeof(msg_AccessNodeCircuitId_t));
     }
     break;
 
     /* Get DHCP profile data **************************************************/
     case CCMSG_ETH_DHCP_EVC_CIRCUITID_GET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_DHCP_PROFILE_GET (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_DHCP_PROFILE_GET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_AccessNodeCircuitId_t);
 
@@ -2771,15 +2689,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_AccessNodeCircuitId_t);
+      SETIPC_INFODIM(sizeof(msg_AccessNodeCircuitId_t));
     }
     break;
 
     /* Get DHCP profile data **************************************************/
     case CCMSG_ETH_DHCP_PROFILE_GET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_DHCP_PROFILE_GET (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_DHCP_PROFILE_GET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_HwEthernetDhcpOpt82Profile_t);
 
@@ -2799,21 +2716,20 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_HwEthernetDhcpOpt82Profile_t);
+      SETIPC_INFODIM(sizeof(msg_HwEthernetDhcpOpt82Profile_t));
     }
     break;
 
     /* Add a new DHCP profile **************************************************/
     case CCMSG_ETH_DHCP_PROFILE_ADD:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_DHCP_PROFILE_ADD (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_DHCP_PROFILE_ADD (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_HwEthernetDhcpOpt82Profile_t);
 
       msg_HwEthernetDhcpOpt82Profile_t *ptr;
       ptr = (msg_HwEthernetDhcpOpt82Profile_t *) inbuffer->info;
-      L7_uint32 n_clients = inbuffer->infoDim / (sizeof(msg_HwEthernetDhcpOpt82Profile_t));
+      L7_uint32 n_clients = MSG_N_ELEMS(sizeof(msg_HwEthernetDhcpOpt82Profile_t));
 
       /* Execute command */
       rc = ptin_msg_DHCP_profile_add(ptr, n_clients);
@@ -2833,14 +2749,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Remove a DHCP profile ****************************************************/
     case CCMSG_ETH_DHCP_PROFILE_REMOVE:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_DHCP_PROFILE_REMOVE (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_DHCP_PROFILE_REMOVE (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_HwEthernetDhcpOpt82Profile_t);
 
       msg_HwEthernetDhcpOpt82Profile_t *ptr;
       ptr = (msg_HwEthernetDhcpOpt82Profile_t *) inbuffer->info;
-      L7_uint32 n_clients = inbuffer->infoDim /(sizeof(msg_HwEthernetDhcpOpt82Profile_t));
+      L7_uint32 n_clients = MSG_N_ELEMS(sizeof(msg_HwEthernetDhcpOpt82Profile_t));
 
       rc = ptin_msg_DHCP_profile_remove(ptr, n_clients);
 
@@ -2860,8 +2775,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Get client DHCP statistics */
     case CCMSG_ETH_DHCP_CLIENT_STATS_GET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_DHCP_CLIENT_STATS_GET (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_DHCP_CLIENT_STATS_GET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_DhcpClientStatistics_t);
 
@@ -2881,15 +2795,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_DhcpClientStatistics_t);
+      SETIPC_INFODIM(sizeof(msg_DhcpClientStatistics_t));
     }
     break;
 
     /* Clear client DHCP statistics */
     case CCMSG_ETH_DHCP_CLIENT_STATS_CLEAR:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_DHCP_CLIENT_STATS_CLEAR (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_DHCP_CLIENT_STATS_CLEAR (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_DhcpClientStatistics_t);
 
@@ -2914,8 +2827,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Get interface DHCP statistics */
     case CCMSG_ETH_DHCP_INTF_STATS_GET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_DHCP_INTF_STATS_GET (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_DHCP_INTF_STATS_GET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_DhcpClientStatistics_t);
 
@@ -2935,15 +2847,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_DhcpClientStatistics_t);
+      SETIPC_INFODIM(sizeof(msg_DhcpClientStatistics_t));
     }
     break;
 
     /* Clear interface DHCP statistics */
     case CCMSG_ETH_DHCP_INTF_STATS_CLEAR:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_DHCP_INTF_STATS_CLEAR (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_DHCP_INTF_STATS_CLEAR (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_DhcpClientStatistics_t);
 
@@ -2968,8 +2879,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Get DHCP Bind Table */
     case CCMSG_ETH_DHCP_BIND_TABLE_GET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_DHCP_BIND_TABLE_GET (0x%04X)", CCMSG_ETH_DHCP_BIND_TABLE_GET);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_DHCP_BIND_TABLE_GET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_DHCP_bind_table_request_t);
 
@@ -2989,21 +2899,20 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_DHCPv4v6_bind_table_t);
+      SETIPC_INFODIM(sizeof(msg_DHCPv4v6_bind_table_t));
     }
     break;
 
     /* Remove a DHCP Bind Table entry */
     case CCMSG_ETH_DHCP_BIND_TABLE_REMOVE:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_DHCP_BIND_TABLE_CLEAR (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_DHCP_BIND_TABLE_CLEAR (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_DHCP_bind_table_entry_t);
 
       msg_DHCP_bind_table_entry_t *bind_table;
       bind_table = (msg_DHCP_bind_table_entry_t *) inbuffer->info;
-      L7_uint32 n = inbuffer->infoDim /(sizeof(msg_DHCP_bind_table_entry_t));
+      L7_uint32 n = MSG_N_ELEMS(sizeof(msg_DHCP_bind_table_entry_t));
 
       /* Execute command */
       rc = ptin_msg_DHCP_bindTable_remove(bind_table, n);
@@ -3025,8 +2934,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
    
     case CCMSG_ETH_IPSG_ENABLE:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_IPSG_ENABLE (0x%04X)", CCMSG_ETH_IPSG_ENABLE);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_IPSG_ENABLE (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_IPSG_set_t);
 
@@ -3050,15 +2958,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     }
     case CCMSG_ETH_IPSG_STATIC_ENTRY:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_IPSG_VERIFY_SOURCE (0x%04X)", CCMSG_ETH_IPSG_ENABLE);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_IPSG_VERIFY_SOURCE (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_IPSG_static_entry_t);
 
       L7_uint16 n_msg;
       msg_IPSG_static_entry_t *ptr;
       ptr = (msg_IPSG_static_entry_t *) inbuffer->info;
-      n_msg = inbuffer->infoDim / sizeof(msg_IPSG_static_entry_t);
+      n_msg = MSG_N_ELEMS(sizeof(msg_IPSG_static_entry_t));
 
       /* Execute command */
       rc = ptin_msg_ipsg_static_entry_set(ptr, n_msg);
@@ -3083,8 +2990,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_IGMP_ADMISSION_CONTROL ***********************************************/
     case CCMSG_ETH_IGMP_ADMISSION_CONTROL:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_IGMP_ADMISSION_CONTROL (0x%04X)", CCMSG_ETH_IGMP_ADMISSION_CONTROL);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_IGMP_ADMISSION_CONTROL (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_IgmpAdmissionControl_t);
 
@@ -3116,8 +3022,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_IGMP_PROXY_SET ***********************************************/
     case CCMSG_ETH_IGMP_PROXY_SET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_IGMP_PROXY_SET (0x%04X)", CCMSG_ETH_IGMP_PROXY_SET);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_IGMP_PROXY_SET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_IgmpProxyCfg_t);
 
@@ -3146,8 +3051,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_IGMP_PROXY_GET ***********************************************/
     case CCMSG_ETH_IGMP_PROXY_GET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_IGMP_PROXY_GET (0x%04X)", CCMSG_ETH_IGMP_PROXY_GET);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_IGMP_PROXY_GET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_IgmpProxyCfg_t);
 
@@ -3174,8 +3078,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_IGMP_ENTRY_ADD ***********************************************/
     case CCMSG_ETH_IGMP_ENTRY_ADD:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_IGMP_ENTRY_ADD (0x%04X)", CCMSG_ETH_IGMP_ENTRY_ADD);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_IGMP_ENTRY_ADD (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_IgmpMultcastUnicastLink_t);
 
@@ -3201,8 +3104,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_IGMP_ENTRY_REMOVE ********************************************/
     case CCMSG_ETH_IGMP_ENTRY_REMOVE:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_IGMP_ENTRY_REMOVE (0x%04X)", CCMSG_ETH_IGMP_ENTRY_REMOVE);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_IGMP_ENTRY_REMOVE (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_IgmpMultcastUnicastLink_t);
 
@@ -3228,14 +3130,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_IGMP_CLIENT_ADD **********************************************/
     case CCMSG_ETH_IGMP_CLIENT_ADD:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_IGMP_CLIENT_ADD (0x%04X)", CCMSG_ETH_IGMP_CLIENT_ADD);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_IGMP_CLIENT_ADD (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_IgmpClient_t);
 
       msg_IgmpClient_t *igmpClient;
       igmpClient = (msg_IgmpClient_t *) inbuffer->info;
-      L7_uint32 n_clients = inbuffer->infoDim / sizeof(msg_IgmpClient_t);
+      L7_uint32 n_clients = MSG_N_ELEMS(sizeof(msg_IgmpClient_t));
 
       /* Execute command */
       rc = ptin_msg_igmp_client_add(igmpClient, n_clients);
@@ -3256,14 +3157,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_IGMP_CLIENT_REMOVE *******************************************/
     case CCMSG_ETH_IGMP_CLIENT_REMOVE:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_IGMP_CLIENT_REMOVE (0x%04X)", CCMSG_ETH_IGMP_CLIENT_REMOVE);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_IGMP_CLIENT_REMOVE (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_IgmpClient_t);
 
       msg_IgmpClient_t *igmpClient;
       igmpClient = (msg_IgmpClient_t *) inbuffer->info;
-      L7_uint32 n_clients = inbuffer->infoDim / sizeof(msg_IgmpClient_t);
+      L7_uint32 n_clients = MSG_N_ELEMS(sizeof(msg_IgmpClient_t));
 
       rc = ptin_msg_igmp_client_delete(igmpClient, n_clients);
 
@@ -3284,8 +3184,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_IGMP_CLIENT_STATS_GET ****************************************/
     case CCMSG_ETH_IGMP_CLIENT_STATS_GET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_IGMP_CLIENT_STATS_GET (0x%04X)", CCMSG_ETH_IGMP_CLIENT_STATS_GET);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_IGMP_CLIENT_STATS_GET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_IgmpClientStatistics_t);
 
@@ -3305,7 +3204,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_IgmpClientStatistics_t);
+      SETIPC_INFODIM(sizeof(msg_IgmpClientStatistics_t));
 
       break;  /* CCMSG_ETH_IGMP_CLIENT_STATS_GET */
     }
@@ -3314,14 +3213,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_IGMP_CLIENT_STATS_CLEAR **************************************/
     case CCMSG_ETH_IGMP_CLIENT_STATS_CLEAR:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_IGMP_CLIENT_STATS_CLEAR (0x%04X)", CCMSG_ETH_IGMP_CLIENT_STATS_CLEAR);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_IGMP_CLIENT_STATS_CLEAR (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_IgmpClientStatistics_t);
 
       msg_IgmpClientStatistics_t *igmpClient;
       igmpClient = (msg_IgmpClientStatistics_t *) inbuffer->info;
-      L7_uint32 n_clients = inbuffer->infoDim / sizeof(msg_IgmpClientStatistics_t);
+      L7_uint32 n_clients = MSG_N_ELEMS(sizeof(msg_IgmpClientStatistics_t));
 
       /* Execute command */
       rc = ptin_msg_IGMP_clientStats_clear(igmpClient, n_clients);
@@ -3335,15 +3233,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
 
       SETIPCACKOK(outbuffer);
-
       break;  /* CCMSG_ETH_IGMP_CLIENT_STATS_CLEAR */
     }
 
     /* CCMSG_ETH_IGMP_INTF_STATS_GET ******************************************/
     case CCMSG_ETH_IGMP_INTF_STATS_GET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_IGMP_INTF_STATS_GET (0x%04X)", CCMSG_ETH_IGMP_INTF_STATS_GET);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_IGMP_INTF_STATS_GET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_IgmpClientStatistics_t);
 
@@ -3363,8 +3259,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_IgmpClientStatistics_t);
-
+      SETIPC_INFODIM(sizeof(msg_IgmpClientStatistics_t));
       break;  /* CCMSG_ETH_IGMP_INTF_STATS_GET */
     }
 
@@ -3372,14 +3267,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ETH_IGMP_INTF_STATS_CLEAR ****************************************/
     case CCMSG_ETH_IGMP_INTF_STATS_CLEAR:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_IGMP_INTF_STATS_CLEAR (0x%04X)", CCMSG_ETH_IGMP_INTF_STATS_CLEAR);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_IGMP_INTF_STATS_CLEAR (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_IgmpClientStatistics_t);
 
       msg_IgmpClientStatistics_t *igmpIntf;
       igmpIntf = (msg_IgmpClientStatistics_t *) inbuffer->info;
-      L7_uint32 n_ports = inbuffer->infoDim / sizeof(msg_IgmpClientStatistics_t);
+      L7_uint32 n_ports = MSG_N_ELEMS(sizeof(msg_IgmpClientStatistics_t));
 
       /* Execute command */
       rc = ptin_msg_IGMP_intfStats_clear(igmpIntf, n_ports);
@@ -3399,8 +3293,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_ETH_IGMP_CHANNEL_ASSOC_GET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_IGMP_CHANNEL_ASSOC_GET (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_IGMP_CHANNEL_ASSOC_GET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_MCAssocChannel_t);
 
@@ -3421,14 +3314,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_MCAssocChannel_t)*n;
+      SETIPC_INFODIM(sizeof(msg_MCAssocChannel_t) * n);
     }
     break;
 
     case CCMSG_ETH_IGMP_CHANNEL_ASSOC_ADD:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_IGMP_CHANNEL_ASSOC_ADD (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_IGMP_CHANNEL_ASSOC_ADD (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_MCAssocChannel_t);
 
@@ -3436,7 +3328,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       L7_uint16             n;
 
       ptr = (msg_MCAssocChannel_t *) inbuffer->info;
-      n = inbuffer->infoDim/sizeof(msg_MCAssocChannel_t);
+      n = MSG_N_ELEMS(sizeof(msg_MCAssocChannel_t));
 
       /* Execute command */
       rc  = ptin_msg_group_list_add(ptr, n, L7_FALSE);
@@ -3455,8 +3347,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_ETH_IGMP_CHANNEL_ASSOC_REMOVE:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_IGMP_CHANNEL_ASSOC_REMOVE (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_IGMP_CHANNEL_ASSOC_REMOVE (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_MCAssocChannel_t);
 
@@ -3464,7 +3355,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       L7_uint16             n;
 
       ptr = (msg_MCAssocChannel_t *) inbuffer->info;
-      n = inbuffer->infoDim/sizeof(msg_MCAssocChannel_t);
+      n = MSG_N_ELEMS(sizeof(msg_MCAssocChannel_t));
 
       /* Execute command */
       rc  = ptin_msg_group_list_remove(ptr, n, L7_FALSE);
@@ -3483,8 +3374,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_ETH_IGMP_CHANNEL_BULK_DELETE:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_IGMP_CHANNEL_ASSOC_REMALL (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_IGMP_CHANNEL_ASSOC_REMALL (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_MCAssocChannel_t);
 
@@ -3492,7 +3382,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       L7_uint16             n;
 
       ptr = (msg_MCAssocChannel_t *) inbuffer->info;
-      n = inbuffer->infoDim/sizeof(msg_MCAssocChannel_t);
+      n = MSG_N_ELEMS(sizeof(msg_MCAssocChannel_t));
 
       /* Execute command */
       rc  = ptin_msg_IGMP_ChannelAssoc_remove_all(ptr, n);
@@ -3512,8 +3402,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Add static multicast channel */
     case CCMSG_ETH_IGMP_STATIC_GROUP_ADD:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_IGMP_STATIC_GROUP_ADD (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_IGMP_STATIC_GROUP_ADD (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_MCStaticChannel_t);
 
@@ -3521,7 +3410,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       L7_uint16             n;
 
       ptr = (msg_MCStaticChannel_t *) inbuffer->info;
-      n = inbuffer->infoDim/sizeof(msg_MCStaticChannel_t);
+      n = MSG_N_ELEMS(sizeof(msg_MCStaticChannel_t));
 
       /* Execute command */
       rc  = ptin_msg_static_channel_add(ptr, n);
@@ -3541,8 +3430,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Remove static multicast channel */
     case CCMSG_ETH_IGMP_STATIC_GROUP_REMOVE:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_IGMP_STATIC_GROUP_REMOVE (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_IGMP_STATIC_GROUP_REMOVE (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_MCStaticChannel_t);
 
@@ -3550,7 +3438,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       L7_uint16             n;
 
       ptr = (msg_MCStaticChannel_t *) inbuffer->info;
-      n = inbuffer->infoDim/sizeof(msg_MCStaticChannel_t);
+      n = MSG_N_ELEMS(sizeof(msg_MCStaticChannel_t));
 
       /* Execute command */
       rc = ptin_msg_static_channel_remove(ptr, n);
@@ -3574,8 +3462,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       msg_MCActiveChannelsReply_t   *outputPtr;
       L7_uint16                     numberOfChannels;
 
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_IGMP_GROUPS_GET (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_IGMP_GROUPS_GET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_MCActiveChannelsRequest_t);
 
@@ -3604,7 +3491,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     case CCMSG_ETH_IGMP_CLIENT_GROUPS_GET:
     {      
       PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_IGMP_CLIENT_GROUPS_GET (0x%04X) msgSize:%u bytes", inbuffer->msgId, inbuffer->infoDim);
+                  "Message received: CCMSG_ETH_IGMP_CLIENT_GROUPS_GET (0x%04X) msgSize:%u bytes", msgId, infoDim);
 
       #if 1//To be changed to 0
       CHECK_INFO_SIZE_ATLEAST(msg_MCActiveChannelClientsRequest_t);
@@ -3630,15 +3517,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_MCActiveChannelClientsResponse_t);      
+      SETIPC_INFODIM(sizeof(msg_MCActiveChannelClientsResponse_t));
     }
     break;
 
     /* Remove static multicast channel */
     case CCMSG_ETH_IGMP_STATIC_GROUP_REMALL:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_IGMP_STATIC_GROUP_REMALL (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_IGMP_STATIC_GROUP_REMALL (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_MCStaticChannel_t);
 
@@ -3646,7 +3532,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       L7_uint16             n;
 
       ptr = (msg_MCStaticChannel_t *) inbuffer->info;
-      n = inbuffer->infoDim/sizeof(msg_MCStaticChannel_t);
+      n = MSG_N_ELEMS(sizeof(msg_MCStaticChannel_t));
 
       /* Execute command */
       rc = ptin_msg_igmp_static_channel_remove_all(ptr, n);
@@ -3666,8 +3552,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Request Snoop Sync between different cards/interfaces*/
     case CCMSG_MGMD_SNOOP_SYNC_REQUEST:
     {      
-      
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_MGMD_SNOOP_SYNC_REQUEST (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_MGMD_SNOOP_SYNC_REQUEST (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_SnoopSyncRequest_t);
          
@@ -3690,13 +3575,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Request Snoop Sync between different cards/interfaces*/
     case CCMSG_MGMD_SNOOP_SYNC_REPLY:
     {          
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_MGMD_SNOOP_SYNC_REPLY (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_MGMD_SNOOP_SYNC_REPLY (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_SnoopSyncReply_t);
 
       /* Execute command */
       ptin_timer_start(43,"CCMSG_MGMD_SNOOP_SYNC_REPLY");
-      rc = ptin_msg_snoop_sync_reply((msg_SnoopSyncReply_t *) inbuffer->info, inbuffer->infoDim/sizeof(msg_SnoopSyncReply_t));
+      rc = ptin_msg_snoop_sync_reply((msg_SnoopSyncReply_t *) inbuffer->info, MSG_N_ELEMS(sizeof(msg_SnoopSyncReply_t)));
       ptin_timer_stop(43);
 
       if (L7_SUCCESS != rc)
@@ -3718,7 +3603,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ROUTING_INTF_CREATE ****************************************/
     case CCMSG_ROUTING_INTF_CREATE:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_INTF_CREATE (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_INTF_CREATE (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_RoutingIntf);
 
@@ -3738,16 +3623,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_RoutingIntf);
-      
-
+      SETIPC_INFODIM(sizeof(msg_RoutingIntf));
       break;
     }
 
     /* CCMSG_ROUTING_INTF_MODIFY ****************************************/
     case CCMSG_ROUTING_INTF_MODIFY:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_INTF_MODIFY (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_INTF_MODIFY (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_RoutingIntf);
 
@@ -3767,16 +3650,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_RoutingIntf);
-      
-
+      SETIPC_INFODIM(sizeof(msg_RoutingIntf));
       break;
     }
 
     /* CCMSG_ROUTING_INTF_REMOVE ****************************************/
     case CCMSG_ROUTING_INTF_REMOVE:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_INTF_REMOVE (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_INTF_REMOVE (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_RoutingIntf);
 
@@ -3796,9 +3677,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_RoutingIntf);
-      
-
+      SETIPC_INFODIM(sizeof(msg_RoutingIntf));
       break;
     }
 
@@ -3809,7 +3688,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       msg_RoutingArpTableResponse *outputPtr;
       L7_uint32                   readEntries;
 
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_ARPTABLE_GET (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_ARPTABLE_GET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_RoutingArpTableRequest);
 
@@ -3834,7 +3713,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ROUTING_ARPENTRY_PURGE ****************************************/
     case CCMSG_ROUTING_ARPENTRY_PURGE:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_ARPENTRY_PURGE (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_ARPENTRY_PURGE (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_RoutingArpEntryPurge);
 
@@ -3854,9 +3733,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_RoutingArpEntryPurge);
-      
-
+      SETIPC_INFODIM(sizeof(msg_RoutingArpEntryPurge));
       break;
     }
 
@@ -3868,7 +3745,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       L7_uint32                      maxEntries;
       L7_uint32                      readEntries;
 
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_ROUTETABLE_GET (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_ROUTETABLE_GET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_RoutingRouteTableRequest);
 
@@ -3895,7 +3772,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_ROUTING_STATICROUTE_ADD ****************************************/
     case CCMSG_ROUTING_STATICROUTE_ADD:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_STATICROUTE_ADD (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_STATICROUTE_ADD (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_RoutingStaticRoute);
 
@@ -3915,16 +3792,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_RoutingStaticRoute);
-      
-
+      SETIPC_INFODIM(sizeof(msg_RoutingStaticRoute));
       break;
     }
 
     /* CCMSG_ROUTING_STATICROUTE_DELETE ****************************************/
     case CCMSG_ROUTING_STATICROUTE_DELETE:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_STATICROUTE_DELETE (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_STATICROUTE_DELETE (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_RoutingStaticRoute);
 
@@ -3944,16 +3819,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_RoutingStaticRoute);
-      
-
+      SETIPC_INFODIM(sizeof(msg_RoutingStaticRoute));
       break;
     }
 
     /* CCMSG_ROUTING_PINGSESSION_CREATE ****************************************/
     case CCMSG_ROUTING_PINGSESSION_CREATE:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_PINGSESSION_CREATE (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_PINGSESSION_CREATE (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_RoutingPingSessionCreate);
 
@@ -3973,16 +3846,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_RoutingPingSessionCreate);
-      
-
+      SETIPC_INFODIM(sizeof(msg_RoutingPingSessionCreate));
       break;
     }
 
     /* CCMSG_ROUTING_PINGSESSION_QUERY ****************************************/
     case CCMSG_ROUTING_PINGSESSION_QUERY:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_PINGSESSION_QUERY (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_PINGSESSION_QUERY (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_RoutingPingSessionQuery);
 
@@ -4002,16 +3873,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_RoutingPingSessionQuery);
-      
-
+      SETIPC_INFODIM(sizeof(msg_RoutingPingSessionQuery));
       break;
     }
 
     /* CCMSG_ROUTING_PINGSESSION_FREE ****************************************/
     case CCMSG_ROUTING_PINGSESSION_FREE:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_PINGSESSION_FREE (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_PINGSESSION_FREE (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_RoutingPingSessionFree);
 
@@ -4031,16 +3900,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_RoutingPingSessionFree);
-      
-
+      SETIPC_INFODIM(sizeof(msg_RoutingPingSessionFree));
       break;
     }
 
     /* CCMSG_ROUTING_TRACERTSESSION_CREATE ****************************************/
     case CCMSG_ROUTING_TRACERTSESSION_CREATE:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_TRACERTSESSION_CREATE (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_TRACERTSESSION_CREATE (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_RoutingTracertSessionCreate);
 
@@ -4060,16 +3927,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_RoutingTracertSessionCreate);
-      
-
+      SETIPC_INFODIM(sizeof(msg_RoutingTracertSessionCreate));
       break;
     }
 
     /* CCMSG_ROUTING_TRACERTSESSION_QUERY ****************************************/
     case CCMSG_ROUTING_TRACERTSESSION_QUERY:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_TRACERTSESSION_QUERY (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_TRACERTSESSION_QUERY (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_RoutingTracertSessionQuery);
 
@@ -4089,9 +3954,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_RoutingTracertSessionQuery);
-      
-
+      SETIPC_INFODIM(sizeof(msg_RoutingTracertSessionQuery));
       break;
     }
 
@@ -4103,7 +3966,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       L7_uint32                              maxEntries;
       L7_uint32                              readEntries;
 
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_TRACERTSESSION_GETHOPS (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ROUTING_TRACERTSESSION_GETHOPS (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_RoutingTracertSessionHopsRequest);
 
@@ -4150,22 +4013,19 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_RoutingTracertSessionFree);
-      
-
+      SETIPC_INFODIM(sizeof(msg_RoutingTracertSessionFree));
       break;
     }
 
         /* Set PRBS mode */
     case CCMSG_ETH_PCS_PRBS_ENABLE:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_PCS_PRBS_ENABLE (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_PCS_PRBS_ENABLE (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_ptin_pcs_prbs);
 
       msg_ptin_pcs_prbs *ptr;
-      L7_int n = inbuffer->infoDim/sizeof(msg_ptin_pcs_prbs);
+      L7_int n = MSG_N_ELEMS(sizeof(msg_ptin_pcs_prbs));
 
       ptr = (msg_ptin_pcs_prbs *) inbuffer->info;
 
@@ -4187,13 +4047,12 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Get PRBS status */
     case CCMSG_ETH_PCS_PRBS_STATUS:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_PCS_PRBS_STATUS (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_PCS_PRBS_STATUS (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_ptin_pcs_prbs);
 
       msg_ptin_pcs_prbs *ptr;
-      L7_int n = inbuffer->infoDim/sizeof(msg_ptin_pcs_prbs);
+      L7_int n = MSG_N_ELEMS(sizeof(msg_ptin_pcs_prbs));
 
       ptr = (msg_ptin_pcs_prbs *) outbuffer->info;
       memcpy(outbuffer->info, inbuffer->info, sizeof(msg_ptin_pcs_prbs)*n);
@@ -4209,20 +4068,19 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_ptin_pcs_prbs)*n;
+      SETIPC_INFODIM(sizeof(msg_ptin_pcs_prbs) * n);
     }
     break;
 
     /* Set PRBS mode */
     case CCMSG_ETH_PRBS_ENABLE:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_PRBS_ENABLE (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_PRBS_ENABLE (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_ptin_prbs_enable);
 
       msg_ptin_prbs_enable *ptr;
-      L7_int n = inbuffer->infoDim/sizeof(msg_ptin_prbs_enable);
+      L7_int n = MSG_N_ELEMS(sizeof(msg_ptin_prbs_enable));
 
       ptr = (msg_ptin_prbs_enable *) inbuffer->info;
 
@@ -4244,14 +4102,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Get PRBS status */
     case CCMSG_ETH_PRBS_STATUS:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ETH_PRBS_STATUS (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ETH_PRBS_STATUS (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_ptin_prbs_request);
 
       msg_ptin_prbs_request *ptr_in;
       msg_ptin_prbs_status  *ptr_out;
-      L7_int n = inbuffer->infoDim/sizeof(msg_ptin_prbs_request);
+      L7_int n = MSG_N_ELEMS(sizeof(msg_ptin_prbs_request));
 
       ptr_in  = (msg_ptin_prbs_request *) inbuffer->info;
       ptr_out = (msg_ptin_prbs_status  *) outbuffer->info;
@@ -4267,7 +4124,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_ptin_prbs_status)*n;
+      SETIPC_INFODIM(sizeof(msg_ptin_prbs_status) * n);
     }
     break;
 
@@ -4278,8 +4135,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 #ifdef __Y1731_802_1ag_OAM_ETH__
     case CCMSG_WR_MEP:
     case CCMSG_FLUSH_MEP:
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_WR_MEP/CCMSG_FLUSH_MEP (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_WR_MEP/CCMSG_FLUSH_MEP (0x%04X)", msgId);
     
       CHECK_INFO_SIZE_MOD(msg_bd_mep_t);
 
@@ -4297,8 +4153,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     
       break;
     case CCMSG_RM_MEP:
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_RM_MEP (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_RM_MEP (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_bd_mep_t);
 
@@ -4316,8 +4171,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break;
     case CCMSG_WR_RMEP:
     case CCMSG_FLUSH_RMEP:
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_WR_RMEP/CCMSG_FLUSH_RMEP (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_WR_RMEP/CCMSG_FLUSH_RMEP (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_bd_rmep_t);
 
@@ -4334,8 +4188,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       break;
     case CCMSG_RM_RMEP:
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_RM_RMEP (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_RM_RMEP (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_bd_rmep_t);
 
@@ -4352,8 +4205,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       break;
     case CCMSG_DUMP_MEPs:
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-             "Message received: CCMSG_DUMP_MEPs (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_DUMP_MEPs (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_generic_prefix_t);
 
@@ -4369,8 +4221,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break;
 
     case CCMSG_DUMP_MEs:
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_DUMP_MEs (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_DUMP_MEs (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_bd_me_t);
 
@@ -4387,8 +4238,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break;
 
     case CCMSG_DUMP_LUT_MEPs:
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_DUMP_LUT_MEPs (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_DUMP_LUT_MEPs (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_generic_prefix_t);
 
@@ -4407,12 +4257,12 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     case CCMSG_WR_MEP_LM:
     case CCMSG_RM_MEP_LM:
       PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               CCMSG_WR_MEP_LM==inbuffer->msgId? "Message received: CCMSG_WR_MEP_LM (0x%04X)":
-                                                 "Message received: CCMSG_RM_MEP_LM (0x%04X)", inbuffer->msgId);
+                  CCMSG_WR_MEP_LM == msgId? "Message received: CCMSG_WR_MEP_LM (0x%04X)":
+                                            "Message received: CCMSG_RM_MEP_LM (0x%04X)", msgId);
     
       CHECK_INFO_SIZE(msg_bd_mep_lm_t);
     
-      if (CCMSG_RM_MEP_LM==inbuffer->msgId) {
+      if (CCMSG_RM_MEP_LM == msgId) {
           rc = del_mep_lm(((msg_bd_mep_lm_t*)inbuffer->info)->idx, &oam)? L7_FAILURE: L7_SUCCESS;
       }
       else {
@@ -4447,8 +4297,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break;
 
     case CCMSG_RD_MEP_LM:
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_RD_MEP_LM (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_RD_MEP_LM (0x%04X)", msgId);
   
       CHECK_INFO_SIZE(msg_generic_prefix_t);
   
@@ -4463,7 +4312,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         instance = pi->index>>16;
 
         po = (msg_frame_loss_t*)outbuffer->info;
-        outbuffer->infoDim = sizeof(msg_frame_loss_t);
+        SETIPC_INFODIM(sizeof(msg_frame_loss_t));
         po->err_code = 0;
 
         if (i_mep>=N_MEPs) rc = L7_NOT_EXIST;
@@ -4492,16 +4341,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break;
 
     case CHMSG_CCM_MEP_FRAMELOSS:
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CHMSG_CCM_MEP_FRAMELOSS (0x%04X)", inbuffer->msgId);
-  
-  
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CHMSG_CCM_MEP_FRAMELOSS (0x%04X)", msgId); 
       {
         MSG_FRAMELOSS_status *pi;
         MSG_FRAMELOSS_status *po;
         u16 i_mep;
   
-        if (inbuffer->infoDim<offsetof(MSG_FRAMELOSS_status, idx)+sizeof(pi->idx)) {
+        if (infoDim < offsetof(MSG_FRAMELOSS_status, idx)+sizeof(pi->idx)) {
             SetIPCNACK(outbuffer, SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE));
             break;
         }
@@ -4512,7 +4358,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         i_mep = pi->idx;
 
         po = (MSG_FRAMELOSS_status*)outbuffer->info;
-        outbuffer->infoDim = sizeof(MSG_FRAMELOSS_status);
+        SETIPC_INFODIM(sizeof(MSG_FRAMELOSS_status));
 
         if (i_mep>=N_MEPs) rc = L7_NOT_EXIST;
         else {
@@ -4538,12 +4384,11 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     case CCMSG_WR_MEP_DM:
     case CCMSG_RM_MEP_DM:
       PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               CCMSG_WR_MEP_DM==inbuffer->msgId? "Message received: CCMSG_WR_MEP_DM (0x%04X)":
-                                                 "Message received: CCMSG_RM_MEP_DM (0x%04X)", inbuffer->msgId);
-
+                  CCMSG_WR_MEP_DM == msgId? "Message received: CCMSG_WR_MEP_DM (0x%04X)":
+                                            "Message received: CCMSG_RM_MEP_DM (0x%04X)", msgId);
       CHECK_INFO_SIZE(msg_bd_mep_dm_t);
 
-      if (CCMSG_RM_MEP_DM==inbuffer->msgId) {
+      if (CCMSG_RM_MEP_DM == msgId) {
           rc = del_mep_dm(((msg_bd_mep_dm_t*)inbuffer->info)->idx, &oam)? L7_FAILURE: L7_SUCCESS;
       }
       else {
@@ -4580,16 +4425,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break;
 
     case CHMSG_CCM_MEP_FRAMEDELAY:
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CHMSG_CCM_MEP_FRAMEDELAY (0x%04X)", inbuffer->msgId);
-
-
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CHMSG_CCM_MEP_FRAMEDELAY (0x%04X)", msgId);
       {
         MSG_FRAMEDELAY_status *pi;
         MSG_FRAMEDELAY_status *po;
         u16 i_mep;
 
-        if (inbuffer->infoDim<offsetof(MSG_FRAMEDELAY_status, idx)+sizeof(pi->idx)) {
+        if (infoDim < offsetof(MSG_FRAMEDELAY_status, idx)+sizeof(pi->idx)) {
             SetIPCNACK(outbuffer, SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE));
             break;
         }
@@ -4600,7 +4442,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         i_mep = pi->idx;
 
         po = (MSG_FRAMEDELAY_status*)outbuffer->info;
-        outbuffer->infoDim = sizeof(MSG_FRAMEDELAY_status);
+        SETIPC_INFODIM(sizeof(MSG_FRAMEDELAY_status));
 
         if (i_mep>=N_MEPs) rc = L7_NOT_EXIST;
         else {
@@ -4634,8 +4476,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_ERPS_SET:
       {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ERPS_SET (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ERPS_SET (0x%04X)", msgId);
     
       CHECK_INFO_SIZE_MOD(msg_erps_t);
 
@@ -4661,8 +4502,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_ERPS_DEL:
       {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ERPS_DEL (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ERPS_DEL (0x%04X)", msgId);
     
       CHECK_INFO_SIZE_MOD(msg_erps_t);
 
@@ -4688,8 +4528,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_ERPS_CONF:
       {
-        PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-                 "Message received: CCMSG_ERPS_CONF (0x%04X)", inbuffer->msgId);
+        PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ERPS_CONF (0x%04X)", msgId);
       
         CHECK_INFO_SIZE_MOD(msg_erps_t);
 
@@ -4715,8 +4554,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_ERPS_STATUS:
       {
-        PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-                 "Message received: CCMSG_ERPS_STATUS (0x%04X)", inbuffer->msgId);
+        PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ERPS_STATUS (0x%04X)", msgId);
       
         CHECK_INFO_SIZE_MOD(msg_erps_status_t);
 
@@ -4736,14 +4574,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
           break;
         }
 
-        outbuffer->infoDim = sizeof(msg_erps_status_t);        
+        SETIPC_INFODIM(sizeof(msg_erps_status_t));
       }
       break;
 
     case CCMSG_ERPS_STATUS_NEXT:
       {
-        PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-                 "Message received: CCMSG_ERPS_STATUS_NEXT (0x%04X)", inbuffer->msgId);
+        PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ERPS_STATUS_NEXT (0x%04X)", msgId);
       
         CHECK_INFO_SIZE_MOD(msg_erps_status_t);
 
@@ -4765,14 +4602,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
           break;
         }
 
-        outbuffer->infoDim = sizeof(msg_erps_status_t)*n;        
+        SETIPC_INFODIM(sizeof(msg_erps_status_t) * n);
       }
       break;
 
     case CCMSG_ERPS_OPERATOR_CMD:
       {
-        PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-                 "Message received: CCMSG_ERPS_OPERATOR_CMD (0x%04X)", inbuffer->msgId);
+        PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ERPS_OPERATOR_CMD (0x%04X)", msgId);
       
         CHECK_INFO_SIZE_MOD(msg_erps_cmd_t);
 
@@ -4799,8 +4635,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_ERPS_SYNC:
       {
-        PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-                 "Message received: CCMSG_ERPS_SYNC (0x%04X)", inbuffer->msgId);
+        PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ERPS_SYNC (0x%04X)", msgId);
       
         CHECK_INFO_SIZE_MOD(msg_erps_cmd_t);
 
@@ -4832,8 +4667,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     case CCMSG_ACL_RULE_ADD:
     case CCMSG_ACL_RULE_DEL:
       {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ACL_RULE_ADD/DEL (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ACL_RULE_ADD/DEL (0x%04X)", msgId);
     
       #if 0
       if (inbuffer->info[1] == ACL_TYPE_MAC)
@@ -4854,7 +4688,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       #endif
 
       /* Execute command */
-      rc = ptin_msg_acl_rule_config((void *) inbuffer->info, inbuffer->msgId, inbuffer->infoDim);
+      rc = ptin_msg_acl_rule_config((void *) inbuffer->info, msgId, infoDim);
 
       if (L7_SUCCESS != rc)
       {
@@ -4871,13 +4705,12 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     case CCMSG_ACL_APPLY:
     case CCMSG_ACL_UNAPPLY:
       {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_ACL_APPLY/UNAPPLY (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_ACL_APPLY/UNAPPLY (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_apply_acl_t);
 
       /* Execute command */
-      rc = ptin_msg_acl_enable((msg_apply_acl_t *) inbuffer->info, inbuffer->msgId, inbuffer->infoDim/sizeof(msg_apply_acl_t));
+      rc = ptin_msg_acl_enable((msg_apply_acl_t *) inbuffer->info, msgId, MSG_N_ELEMS(sizeof(msg_apply_acl_t)));
 
       if (L7_SUCCESS != rc)
       {
@@ -4897,8 +4730,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     case CCMSG_PORTMIRROR_PORT_ADD:
     case CCMSG_PORTMIRROR_PORT_REMOVE:
       {
-        PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-                 "Message received: CCMSG_PORTMIRROR (0x%04X)", inbuffer->msgId);
+        PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_PORTMIRROR (0x%04X)", msgId);
 
         CHECK_INFO_SIZE_MOD(msg_port_mirror_t);
 
@@ -4929,8 +4761,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
       #endif
       {
-        PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-                    "Message received: CCMSG_PTP_LNX_NET_IF_SET (0x%04X)", inbuffer->msgId);
+        PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_PTP_LNX_NET_IF_SET (0x%04X)", msgId);
 
         CHECK_INFO_SIZE_MOD(T_MSG_PTP_LNX_NET_IF_SET);
 
@@ -4951,8 +4782,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       
     case CHMSG_RFC2819_MONITORING_GET_ONE_REG:
       {
-        PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-                 "Message received: CHMSG_RFC2819_MONITORING_GET (0x%04X)", inbuffer->msgId);
+        PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CHMSG_RFC2819_MONITORING_GET (0x%04X)", msgId);
 
         CHECK_INFO_SIZE_MOD(msg_rfc2819_monitoring_t);
 
@@ -4973,7 +4803,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
           break;
         }
 
-        outbuffer->infoDim = sizeof(msg_rfc2819_buffer_t);
+        SETIPC_INFODIM(sizeof(msg_rfc2819_buffer_t));
       }
       break;
 
@@ -4981,8 +4811,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CHMSG_RFC2819_MONITORING_CONFIG:      
       {
-        PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-                 "Message received: CHMSG_RFC2819_MONITORING_CONFIG (0x%04X)", inbuffer->msgId);
+        PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CHMSG_RFC2819_MONITORING_CONFIG (0x%04X)", msgId);
 
         CHECK_INFO_SIZE_MOD(msg_rfc2819_admin_t);
 
@@ -5007,8 +4836,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CHMSG_RFC2819_MONITORING_GET:
       {
-        PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-                 "Message received: CHMSG_RFC2819_MONITORING_GET (0x%04X)", inbuffer->msgId);
+        PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CHMSG_RFC2819_MONITORING_GET (0x%04X)", msgId);
   
         CHECK_INFO_SIZE_MOD(msg_rfc2819_monitoring_t);
   
@@ -5033,14 +4861,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
           break;
         }
   
-        outbuffer->infoDim = sizeof(msg_rfc2819_buffer_t)*n;
+        SETIPC_INFODIM(sizeof(msg_rfc2819_buffer_t) * n);
       }
       break;
 
     case CHMSG_RFC2819_MONITORING_CLEAR:
       {
-        PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-                 "Message received: CHMSG_RFC2819_MONITORING_CLEAR (0x%04X)", inbuffer->msgId);
+        PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CHMSG_RFC2819_MONITORING_CLEAR (0x%04X)", msgId);
   
         CHECK_INFO_SIZE_MOD(msg_rfc2819_monitoring_t);
 
@@ -5060,7 +4887,6 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
           break;
         }
 
-        outbuffer->infoDim = sizeof(msg_rfc2819_monitoring_t); 
         SETIPCACKOK(outbuffer);
       }
       break;
@@ -5068,8 +4894,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CHMSG_RFC2819_MONITORING_SHOW_CONF:
       {
-        PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-                 "Message received: CHMSG_RFC2819_MONITORING_SHOW_CONF (0x%04X)", inbuffer->msgId);
+        PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CHMSG_RFC2819_MONITORING_SHOW_CONF (0x%04X)", msgId);
 
         L7_int Port;
         L7_uint8 Admin;        
@@ -5097,14 +4922,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
           *resp = 0x80000000 | (Port & 0xFFFF);
         }
 
-        outbuffer->infoDim = sizeof(L7_uint32);        
+        SETIPC_INFODIM(sizeof(L7_uint32));
       }
       break;
 
     case CHMSG_RFC2819_MONITORING_BUFF_STATUS:
       {
-        PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-                 "Message received: CHMSG_RFC2819_MONITORING_BUFF_STATUS (0x%04X)", inbuffer->msgId);
+        PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CHMSG_RFC2819_MONITORING_BUFF_STATUS (0x%04X)", msgId);
 
         msg_rfc2819_buffer_status_t *status;
         L7_int buffer_type;
@@ -5126,7 +4950,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
           break;
         }
 
-        outbuffer->infoDim = sizeof(msg_rfc2819_buffer_status_t);        
+        SETIPC_INFODIM(sizeof(msg_rfc2819_buffer_status_t));
       }
       break;
 
@@ -5164,7 +4988,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /*Multicast Packages Add*/
     case CCMSG_IGMP_PACKAGES_ADD:
     {        
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_IGMP_PACKAGES_ADD (0x%04X)", CCMSG_IGMP_PACKAGES_ADD);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_IGMP_PACKAGES_ADD (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_igmp_package_t);
 
@@ -5184,16 +5008,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_igmp_package_t);
-      
-
+      SETIPC_INFODIM(sizeof(msg_igmp_package_t));
       break;/*Multicast Packages Add*/
     }
 
     /*Multicast Packages Remove*/
     case CCMSG_IGMP_PACKAGES_REMOVE:
     {        
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_IGMP_PACKAGES_REMOVE (0x%04X)", CCMSG_IGMP_PACKAGES_REMOVE);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_IGMP_PACKAGES_REMOVE (0x%04X)", msgId);
 
       CHECK_INFO_SIZE(msg_igmp_package_t);
 
@@ -5213,23 +5035,20 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_igmp_package_t);
-      
-
+      SETIPC_INFODIM(sizeof(msg_igmp_package_t));
       break; /* CCMSG_IGMP_PACKAGES_REMOVE */
     }
 
     /*Multicast Package Channels Add*/
     case CCMSG_IGMP_PACKAGE_CHANNELS_ADD:
     {        
-     PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_IGMP_PACKAGE_CHANNELS_ADD (0x%04X)", CCMSG_IGMP_PACKAGE_CHANNELS_ADD);
+     PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_IGMP_PACKAGE_CHANNELS_ADD (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_igmp_package_channels_t);
 
       msg_igmp_package_channels_t *msgPtr;
       msgPtr = (msg_igmp_package_channels_t *) inbuffer->info;
-      L7_uint32 noOfMessages = inbuffer->infoDim / sizeof(msg_igmp_package_channels_t);
+      L7_uint32 noOfMessages = MSG_N_ELEMS(sizeof(msg_igmp_package_channels_t));
 
       /* Execute command */
       rc = ptin_msg_igmp_package_channels_add(msgPtr, noOfMessages);
@@ -5250,14 +5069,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /*Multicast Package Channels Remove*/
     case CCMSG_IGMP_PACKAGE_CHANNELS_REMOVE:
     {        
-     PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_IGMP_PACKAGE_CHANNELS_REMOVE (0x%04X)", CCMSG_IGMP_PACKAGE_CHANNELS_REMOVE);
+     PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_IGMP_PACKAGE_CHANNELS_REMOVE (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_igmp_package_channels_t);
 
       msg_igmp_package_channels_t *msgPtr;
       msgPtr = (msg_igmp_package_channels_t *) inbuffer->info;
-      L7_uint32 noOfMessages = inbuffer->infoDim / sizeof(msg_igmp_package_channels_t);
+      L7_uint32 noOfMessages = MSG_N_ELEMS(sizeof(msg_igmp_package_channels_t));
 
       /* Execute command */
       rc = ptin_msg_igmp_package_channels_remove(msgPtr, noOfMessages);
@@ -5278,14 +5096,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /*Igmp Unicast Client Packages Add*/
     case CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_ADD:
     {        
-     PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_ADD (0x%04X)", CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_ADD);
+     PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_ADD (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_igmp_unicast_client_packages_t);
 
       msg_igmp_unicast_client_packages_t *msgPtr;
       msgPtr = (msg_igmp_unicast_client_packages_t *) inbuffer->info;
-      L7_uint32 noOfMessages = inbuffer->infoDim / sizeof(msg_igmp_unicast_client_packages_t);
+      L7_uint32 noOfMessages = MSG_N_ELEMS(sizeof(msg_igmp_unicast_client_packages_t));
 
       /* Execute command */      
       rc = ptin_msg_igmp_unicast_client_packages_add(msgPtr, noOfMessages);
@@ -5306,14 +5123,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /*Igmp Unicast Client Packages Remove*/
     case CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_REMOVE:
     {        
-     PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_REMOVE (0x%04X)", CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_REMOVE);
+     PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_REMOVE (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_igmp_unicast_client_packages_t);
 
       msg_igmp_unicast_client_packages_t *msgPtr;
       msgPtr = (msg_igmp_unicast_client_packages_t *) inbuffer->info;
-      L7_uint32 noOfMessages = inbuffer->infoDim / sizeof(msg_igmp_unicast_client_packages_t);
+      L7_uint32 noOfMessages = MSG_N_ELEMS(sizeof(msg_igmp_unicast_client_packages_t));
       
       /* Execute command */      
       rc = ptin_msg_igmp_unicast_client_packages_remove(msgPtr, noOfMessages);
@@ -5334,14 +5150,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /*Igmp Macbridge Client Packages Add*/
     case CCMSG_IGMP_MACBRIDGE_CLIENT_PACKAGES_ADD:
     {        
-     PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_IGMP_MACBRIDGE_CLIENT_PACKAGES_ADD (0x%04X)", CCMSG_IGMP_MACBRIDGE_CLIENT_PACKAGES_ADD);
+     PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_IGMP_MACBRIDGE_CLIENT_PACKAGES_ADD (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_igmp_macbridge_client_packages_t);
 
       msg_igmp_macbridge_client_packages_t *msgPtr;
       msgPtr = (msg_igmp_macbridge_client_packages_t *) inbuffer->info;
-      L7_uint32 noOfMessages = inbuffer->infoDim / sizeof(msg_igmp_macbridge_client_packages_t);
+      L7_uint32 noOfMessages = MSG_N_ELEMS(sizeof(msg_igmp_macbridge_client_packages_t));
 
       /* Execute command */      
       rc = ptin_msg_igmp_macbridge_client_packages_add(msgPtr, noOfMessages);
@@ -5362,14 +5177,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /*Igmp Macbridge Client Packages Remove*/
     case CCMSG_IGMP_MACBRIDGE_CLIENT_PACKAGES_REMOVE:
     {        
-     PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_IGMP_MACBRIDGE_CLIENT_PACKAGES_REMOVE (0x%04X)", CCMSG_IGMP_MACBRIDGE_CLIENT_PACKAGES_REMOVE);
+     PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_IGMP_MACBRIDGE_CLIENT_PACKAGES_REMOVE (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_igmp_macbridge_client_packages_t);
 
       msg_igmp_macbridge_client_packages_t *msgPtr;
       msgPtr = (msg_igmp_macbridge_client_packages_t *) inbuffer->info;
-      L7_uint32 noOfMessages = inbuffer->infoDim / sizeof(msg_igmp_macbridge_client_packages_t);
+      L7_uint32 noOfMessages = MSG_N_ELEMS(sizeof(msg_igmp_macbridge_client_packages_t));
 
       /* Execute command */
       rc = ptin_msg_igmp_macbridge_client_packages_remove(msgPtr, noOfMessages);
@@ -5390,14 +5204,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /*Multicast Service Add*/
     case CCMSG_MULTICAST_SERVICE_ADD:
     {        
-     PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_MULTICAST_SERVICE_ADD (0x%04X)", CCMSG_MULTICAST_SERVICE_ADD);
+     PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_MULTICAST_SERVICE_ADD (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_multicast_service_t);
 
       msg_multicast_service_t *msgPtr;
       msgPtr = (msg_multicast_service_t *) inbuffer->info;
-      L7_uint32 noOfMessages = inbuffer->infoDim / sizeof(msg_multicast_service_t);
+      L7_uint32 noOfMessages = MSG_N_ELEMS(sizeof(msg_multicast_service_t));
 
       /* Execute command */
       rc = ptin_msg_igmp_multicast_service_add(msgPtr, noOfMessages);
@@ -5418,14 +5231,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /*Multicast Service Remove*/
     case CCMSG_MULTICAST_SERVICE_REMOVE:
     {        
-     PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_MULTICAST_SERVICE_REMOVE (0x%04X)", CCMSG_MULTICAST_SERVICE_REMOVE);
+     PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_MULTICAST_SERVICE_REMOVE (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_MOD(msg_multicast_service_t);
 
       msg_multicast_service_t *msgPtr;
       msgPtr = (msg_multicast_service_t *) inbuffer->info;
-      L7_uint32 noOfMessages = inbuffer->infoDim / sizeof(msg_multicast_service_t);
+      L7_uint32 noOfMessages = MSG_N_ELEMS(sizeof(msg_multicast_service_t));
 
       /* Execute command */
       rc = ptin_msg_igmp_multicast_service_remove(msgPtr, noOfMessages);
@@ -5449,8 +5261,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_L2_MACLIMIT_CONFIG:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_L2_MACLIMIT_CONFIG (0x%04X)", inbuffer->msgId); 
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_L2_MACLIMIT_CONFIG (0x%04X)", msgId); 
       CHECK_INFO_SIZE(msg_l2_maclimit_config_t);
 
       msg_l2_maclimit_config_t *ptr;
@@ -5469,7 +5280,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(msg_l2_maclimit_config_t); 
+      SETIPC_INFODIM(sizeof(msg_l2_maclimit_config_t));
     }
     break;
 
@@ -5479,8 +5290,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_L2_MACLIMIT_STATUS:
     {
-     PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message received: CCMSG_L2_MACLIMIT_STATUS (0x%04X)", inbuffer->msgId);
+     PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_L2_MACLIMIT_STATUS (0x%04X)", msgId);
      CHECK_INFO_SIZE(msg_l2_maclimit_status_t);
 
      msg_l2_maclimit_status_t *ptr;
@@ -5499,7 +5309,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
      }
 
-      outbuffer->infoDim = sizeof(msg_l2_maclimit_status_t);
+      SETIPC_INFODIM(sizeof(msg_l2_maclimit_status_t));
 
       PT_LOG_TRACE(LOG_CTX_MSGHANDLER," Status Response");
       PT_LOG_TRACE(LOG_CTX_MSGHANDLER," slotId       = %u",      ptr->slotId);
@@ -5513,7 +5323,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* Signalling the end of a Equipment Flush Configuration*/
     case CCMSG_PROTECTION_MATRIX_FLUSH_CONFIGURATION_END:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_MATRIX_FLUSH_CONFIGURATION_END (0x%04X)", inbuffer->msgId);
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_MATRIX_FLUSH_CONFIGURATION_END (0x%04X)", msgId);
 
       #if 0
       /*Sending Ack*/  
@@ -5523,7 +5333,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       ptin_msg_protection_matrix_configuration_flush_end();      
       #else
       /* Execute command */
-      ptin_msg_task_process(inbuffer->msgId, (void*)(inbuffer->info), inbuffer->infoDim, 3000);
+      ptin_msg_task_process(msgId, (void*)(inbuffer->info), infoDim, 3000);
 
       /*Sending Ack*/  
       SETIPCACKOK(outbuffer);   
@@ -5548,8 +5358,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         L7_uint32 ptin_port;
         ptin_intf_t ptin_intf;
 
-        PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-                    "Message received: CCMSG_PTP_FPGA (0x%04X)", inbuffer->msgId); 
+        PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_PTP_FPGA (0x%04X)", msgId); 
         CHECK_INFO_SIZE(T_MSG_PTP_FPGA);   //CHECK_INFO_MOD(T_MSG_PTP_FPGA);
 
         do {
@@ -5597,8 +5406,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         //L7_uint32 ptin_port;
         //ptin_intf_t ptin_intf;
 
-        PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-                "Message received: CCMSG_OAM_FPGA (0x%04X)", inbuffer->msgId); 
+        PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_OAM_FPGA (0x%04X)", msgId); 
         CHECK_INFO_SIZE(T_MSG_OAM_FPGA);   //CHECK_INFO_MOD(T_MSG_OAM_FPGA);
 
         do {
@@ -5632,8 +5440,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     default:
     {
-      PT_LOG_WARN(LOG_CTX_MSGHANDLER,
-                  "Message received: UNKNOWN! (0x%04X)\n", inbuffer->msgId);
+      PT_LOG_WARN(LOG_CTX_MSGHANDLER, "Message received: UNKNOWN! (0x%04X)\n", msgId);
       PT_LOG_WARN(LOG_CTX_MSGHANDLER,
                   "The received message is not supported!");
       SetIPCNACK (outbuffer, SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_WARNING, ERROR_CODE_NOSUCHMSG));
@@ -5646,7 +5453,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
   #if 0
   /* Save slot id parameter */
-  if (inbuffer->infoDim>=1 &&
+  if (infoDim >= 1 &&
       inbuffer->info[0]!=(L7_uint8)-1 &&
       ptin_board_slotId!=inbuffer->info[0])
   {
@@ -5659,24 +5466,24 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
   time_delta = time_end - time_start;
 
   
-  if( inbuffer->msgId == CCMSG_ETH_PHY_ACTIVITY_GET || 
-      inbuffer->msgId == CCMSG_HW_INTF_INFO_GET     ||
-      inbuffer->msgId == CCMSG_ETH_PHY_COUNTERS_GET ||
+  if( msgId == CCMSG_ETH_PHY_ACTIVITY_GET || 
+      msgId == CCMSG_HW_INTF_INFO_GET     ||
+      msgId == CCMSG_ETH_PHY_COUNTERS_GET ||
 #if (PTIN_BOARD_IS_MATRIX)
-      inbuffer->msgId == CCMSG_ETH_LACP_MATRIXES_SYNC2 || 
+      msgId == CCMSG_ETH_LACP_MATRIXES_SYNC2 || 
 #endif
-      inbuffer->msgId == CCMSG_MGMD_PORT_SYNC || 
-      inbuffer->msgId == CCMSG_APPLICATION_RESOURCES || 
-      inbuffer->msgId == CCMSG_L2_MACLIMIT_STATUS )
-    PT_LOG_TRACE(LOG_CTX_MSGHANDLER,"Message processed: 0x%04X in %lu usec [response:%u (bytes) rc=%u res=0x%08x]", inbuffer->msgId, outbuffer->infoDim, time_delta, rc, res);    
+      msgId == CCMSG_MGMD_PORT_SYNC || 
+      msgId == CCMSG_APPLICATION_RESOURCES || 
+      msgId == CCMSG_L2_MACLIMIT_STATUS )
+    PT_LOG_TRACE(LOG_CTX_MSGHANDLER,"Message processed: 0x%04X in %lu usec [response:%u (bytes) rc=%u res=0x%08x]", msgId, outbuffer->infoDim, time_delta, rc, res);    
   else
-    PT_LOG_INFO(LOG_CTX_MSGHANDLER,"Message processed: 0x%04X in %lu usec  [response:%u (bytes) rc=%u res=0x%08x]", inbuffer->msgId, outbuffer->infoDim, time_delta, rc, res);
+    PT_LOG_INFO(LOG_CTX_MSGHANDLER,"Message processed: 0x%04X in %lu usec  [response:%u (bytes) rc=%u res=0x%08x]", msgId, outbuffer->infoDim, time_delta, rc, res);
 
   /* Message Runtime Meter */
   /* Only for successfull messages */
   if (rc==L7_SUCCESS)
   {
-    CHMessage_runtime_meter_update(inbuffer->msgId, time_delta);
+    CHMessage_runtime_meter_update(msgId, time_delta);
   }
 
   return ret;
