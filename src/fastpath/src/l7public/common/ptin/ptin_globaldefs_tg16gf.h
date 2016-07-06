@@ -153,6 +153,18 @@ typedef union
 extern volatile st_cpld_map_t *cpld_map;
 #endif
 
+#ifdef MAP_CPLD
+#define CPLD_ID_GET()             (cpld_map->reg.id)
+#define CPLD_SLOT_ID_GET()        (cpld_map->reg.slot_id)
+#define CPLD_SLOT_MATRIX_GET()    (cpld_map->reg.slot_matrix & 1)
+#define CPLD_SLOT_MX_ACTIVE_GET() (cpld_map->reg.mx_get_active)
+#else
+#define CPLD_ID_GET()             0
+#define CPLD_SLOT_ID_GET()        0
+#define CPLD_SLOT_MATRIX_GET()    1
+#define CPLD_SLOT_MX_ACTIVE_GET() 0
+#endif
+
 /* FPGA map registers */
 # define FPGA_ID                       0x1256
 # define FPGA_ID0_REG                  0x0000

@@ -154,6 +154,16 @@ typedef union
 extern volatile st_cpld_map_t *cpld_map;
 #endif
 
+#ifdef MAP_CPLD
+#define CPLD_ID_GET()             (cpld_map->reg.id)
+#define CPLD_SLOT_ID_GET()        (cpld_map->reg.slot_id)
+#define CPLD_SLOT_MATRIX_GET()    (cpld_map->reg.mx_is_active & 1)
+#else
+#define CPLD_ID_GET()             0
+#define CPLD_SLOT_ID_GET()        0
+#define CPLD_SLOT_MATRIX_GET()    1
+#endif
+
 typedef union
 {
   L7_uint8 map[PTIN_FPGA_MAP_SIZE];
@@ -170,20 +180,12 @@ extern volatile st_fpga_map_t *fpga_map;
 # define IPC_LOCALHOST_IPADDR          0x7F000001  /* 127.0.0.1 */
 # define IPC_SERVER_IPADDR_WORKING     0xC0A8C865  /* 192.168.200.101: Working Matrix */
 # define IPC_SERVER_IPADDR_PROTECTION  0xC0A8C866  /* 192.168.200.102: Protection Matrix */
-#ifdef MAP_CPLD
-# define IPC_SERVER_IPADDR             ((cpld_map->reg.slot_id == 0) ? IPC_SERVER_IPADDR_WORKING : IPC_SERVER_IPADDR_PROTECTION)
-#else
-# define IPC_SERVER_IPADDR             IPC_SERVER_IPADDR_WORKING  /* Default ip address */
-#endif
+# define IPC_SERVER_IPADDR             ((CPLD_SLOT_ID_GET() == 0) ? IPC_SERVER_IPADDR_WORKING : IPC_SERVER_IPADDR_PROTECTION)
 
 // MX IP address
 # define IPC_MX_IPADDR_WORKING      0xC0A8C801  /* 192.168.200.1: Working Matrix */
 # define IPC_MX_IPADDR_PROTECTION   0xC0A8C802  /* 192.168.200.2: Protection Matrix */
-#ifdef MAP_CPLD
-# define IPC_MX_IPADDR              ((cpld_map->reg.slot_id == 0) ? IPC_MX_IPADDR_WORKING : IPC_MX_IPADDR_PROTECTION)
-#else
-# define IPC_MX_IPADDR              IPC_MX_IPADDR_WORKING  /* Default ip address */
-#endif
+# define IPC_MX_IPADDR              ((CPLD_SLOT_ID_GET() == 0) ? IPC_MX_IPADDR_WORKING : IPC_MX_IPADDR_PROTECTION)
 
 #endif /* _PTIN_GLOBALDEFS_CXO360G_H */
 

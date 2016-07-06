@@ -130,6 +130,12 @@
 //# define MAP_FPGA
 //# define MAP_CPLD
 
+#ifdef MAP_CPLD
+#define CPLD_ID_GET()             (cpld_map->reg.id)
+#else
+#define CPLD_ID_GET()             0
+#endif
+
 // IPC NETWORK IP address
 #define PTIN_IPC_SUBNET_ID             0xC0A8C800  /* 192.168.200.0 Subnet Id*/
 #define PTIN_IPC_IF_NAME               "eth1:1"
