@@ -106,7 +106,7 @@ L7_RC_t ptin_prottypeb_intf_config_set(ptin_prottypeb_intf_config_t* data)
 
   msg_SnoopSyncRequest_t   snoopSyncRequest={0};
 
-  snoopSyncRequest.portId=prottypeb_interfaces[intfNum-1].pairIntfNum;
+  snoopSyncRequest.portId = prottypeb_interfaces[intfNum-1].pairIntfNum;
 
   L7_uint32 ipAddr;
 
