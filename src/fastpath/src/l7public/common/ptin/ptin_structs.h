@@ -6,6 +6,29 @@
 #include "dapi.h"
 #include <ethsrv_oam.h>
 
+/* Fort systems Little Endian and if not pizza box, invert bytes */
+#if !defined(BE_HOST) && (!PTIN_BOARD_IS_STANDALONE)
+
+#define ENDIAN_SWAP8(val) \
+  ((unsigned char)(val))
+#define ENDIAN_SWAP16(val) \
+  ((unsigned short) (((unsigned short)(val)<<8) | ((unsigned short)(val)>>8)))
+#define ENDIAN_SWAP32(val) \
+  ((unsigned long) (((unsigned long)(val) >> 24) | (((unsigned long)(val) >> 8) & 0x0000ff00UL) | \
+                    ((unsigned long)(val) << 24) | (((unsigned long)(val) << 8) & 0x00ff0000UL)))
+#define ENDIAN_SWAP64(val) \
+  ((unsigned long long) (((unsigned long long)(val) >> 56) | (((unsigned long long)(val) >> 40) & 0x000000000000ff00ULL) | (((unsigned long long)(val) >> 24) & 0x0000000000ff0000ULL) | (((unsigned long long)(val) >> 8) & 0x00000000ff000000ULL) | \
+                         ((unsigned long long)(val) << 56) | (((unsigned long long)(val) << 40) & 0x00ff000000000000ULL) | (((unsigned long long)(val) << 24) & 0x0000ff0000000000ULL) | (((unsigned long long)(val) << 8) & 0x000000ff00000000ULL)))
+
+#else
+
+#define ENDIAN_SWAP8(val)  (val)
+#define ENDIAN_SWAP16(val) (val)
+#define ENDIAN_SWAP32(val) (val)
+#define ENDIAN_SWAP64(val) (val)
+
+#endif
+
 /*Bitmap Macro Handlers*/
 #define UINT32_BITSIZE  (sizeof(L7_uint32)*8)
 

@@ -179,11 +179,18 @@ static void ipc_server_ipaddr_init(void);
       outbuffer->flags       = IPCLIB_FLAGS_ACK;   // por omissao corre bem, caso contrario é trocada depois
    } // SwapIPCHeader (V1.0.0.060622)
 
+   void SetIPCACKOK (ipc_msg *outbuffer)
+   {
+      outbuffer->flags = IPCLIB_FLAGS_ACK;
+      outbuffer->infoDim = sizeof(UINT);
+      *(unsigned int*)outbuffer->info = ENDIAN_SWAP32(0);
+   } // SetIPCNACK (V1.0.0.060622)
+
    void SetIPCNACK (ipc_msg *outbuffer, int res)
    {
       outbuffer->flags = IPCLIB_FLAGS_NACK;
-      outbuffer->infoDim = sizeof (UINT);
-      *(unsigned int*)outbuffer->info = res;
+      outbuffer->infoDim = sizeof(UINT);
+      *(unsigned int*)outbuffer->info = ENDIAN_SWAP32(res);
    } // SetIPCNACK (V1.0.0.060622)
 
 
@@ -207,7 +214,7 @@ int send_trap(int porto, int trap_type, int arg)
      comando.infoDim = 0;
   else {
      comando.infoDim = sizeof(int);
-      *((int *)comando.info) = arg;
+      *((int *)comando.info) = ENDIAN_SWAP32(arg);
   }
 
   ret=send_data(g_iInterfaceSW, IPC_CHMSG_TRAP_PORT, IPC_SERVER_IPADDR, (ipc_msg *)&comando, (ipc_msg *)NULL);
@@ -239,16 +246,16 @@ int send_trap_intf_alarm(unsigned char intfType, int porto, int code, int status
   alarm             = (st_alarmGeral *) &comando.info[0];
 
   memset(alarm,0x00,sizeof(st_alarmGeral));
-  alarm->SlotId      = ptin_fpga_board_slot_get();
-  alarm->trapSrc     = ERROR_FAMILY_HARDWARE;
-  alarm->oltiftype   = intfType;
-  alarm->oltifindex  = porto;
-  alarm->equipid     = EQUIPID_OLT;
-  alarm->alarmtype   = TRAP_ALARM_TYPE_INTERFACE;
-  alarm->alarmcode   = code;
-  alarm->alarmstatus = status;
-  alarm->param1      = param;
-  alarm->param2      = 0;
+  alarm->SlotId      = ENDIAN_SWAP8 (ptin_fpga_board_slot_get());
+  alarm->trapSrc     = ENDIAN_SWAP8 (ERROR_FAMILY_HARDWARE);
+  alarm->oltiftype   = ENDIAN_SWAP8 (intfType);
+  alarm->oltifindex  = ENDIAN_SWAP32(porto);
+  alarm->equipid     = ENDIAN_SWAP32(EQUIPID_OLT);
+  alarm->alarmtype   = ENDIAN_SWAP32(TRAP_ALARM_TYPE_INTERFACE);
+  alarm->alarmcode   = ENDIAN_SWAP32(code);
+  alarm->alarmstatus = ENDIAN_SWAP32(status);
+  alarm->param1      = ENDIAN_SWAP32(param);
+  alarm->param2      = ENDIAN_SWAP32(0);
 
   ret=send_data(g_iInterfaceSW, IPC_CHMSG_TRAP_PORT, IPC_SERVER_IPADDR, (ipc_msg *)&comando, (ipc_msg *)NULL);
   if(ret<0)
@@ -275,14 +282,15 @@ int send_trap_gen_alarm(unsigned char intfType, int porto, int code, int status,
   alarm             = (st_alarmGeral *) &comando.info[0];
 
   memset(alarm,0x00,sizeof(st_alarmGeral));
-  alarm->trapSrc     = ERROR_FAMILY_HARDWARE;
-  alarm->oltiftype   = intfType;
-  alarm->oltifindex  = porto;
-  alarm->alarmtype   = TRAP_ALARM_TYPE_INTERFACE;
-  alarm->alarmcode   = code;
-  alarm->alarmstatus = status;
-  alarm->param1      = param1;
-  alarm->param2      = param2;
+  alarm->SlotId      = ENDIAN_SWAP8 (ptin_fpga_board_slot_get());
+  alarm->trapSrc     = ENDIAN_SWAP8 (ERROR_FAMILY_HARDWARE);
+  alarm->oltiftype   = ENDIAN_SWAP8 (intfType);
+  alarm->oltifindex  = ENDIAN_SWAP32(porto);
+  alarm->alarmtype   = ENDIAN_SWAP32(TRAP_ALARM_TYPE_INTERFACE);
+  alarm->alarmcode   = ENDIAN_SWAP32(code);
+  alarm->alarmstatus = ENDIAN_SWAP32(status);
+  alarm->param1      = ENDIAN_SWAP32(param1);
+  alarm->param2      = ENDIAN_SWAP32(param2);
 
   ret=send_data(g_iInterfaceSW, IPC_CHMSG_TRAP_PORT, IPC_SERVER_IPADDR, (ipc_msg *)&comando, (ipc_msg *)NULL);
   if(ret<0)
@@ -327,20 +335,20 @@ int send_trap_switch_event(unsigned char intfType, int interface, int code, int 
 
   if(PTIN_BOARD == PTIN_BOARD_CXO640G)
   {
-    alarm->slotId      = slot_to_send;
+    alarm->slotId      = ENDIAN_SWAP8(slot_to_send);
   }
   else
   {
-    alarm->slotId      = ptin_fpga_board_slot_get();
+    alarm->slotId      = ENDIAN_SWAP8(ptin_fpga_board_slot_get());
   }
 
-  alarm->code        = code;
-  alarm->alarmstatus = status;
-  alarm->intf_type   = intfType;
-  alarm->intf_id     = interface;
-  alarm->outer_vid   = param;
+  alarm->code        = ENDIAN_SWAP32(code);
+  alarm->alarmstatus = ENDIAN_SWAP32(status);
+  alarm->intf_type   = ENDIAN_SWAP8 (intfType);
+  alarm->intf_id     = ENDIAN_SWAP8 (interface);
+  alarm->outer_vid   = ENDIAN_SWAP16(param);
 
-  PT_LOG_TRACE(LOG_CTX_IPC,"SENDTRAP to PORT %d: interface=%d, Code = 0x%.4x, status = %d, param = %d: ERROR = %d %d", IPC_CHMSG_TRAP_PORT, interface, code, status, param, ret, alarm->slotId);
+  PT_LOG_TRACE(LOG_CTX_IPC,"SENDTRAP to PORT %d: interface=%d, Code = 0x%.4x, status = %d, param = %d: ERROR = %d %d", IPC_CHMSG_TRAP_PORT, interface, code, status, param, ret, ENDIAN_SWAP8(alarm->slotId));
 
   ret=send_data(g_iInterfaceSW, IPC_CHMSG_TRAP_PORT, IPC_SERVER_IPADDR, (ipc_msg *)&comando, (ipc_msg *)NULL);
   if(ret<0)
@@ -383,15 +391,15 @@ int send_trap_to_linecard(unsigned char intfType, int porto, int code, int statu
   alarm             = (st_alarmGeral *) &comando.info[0];
 
   memset(alarm,0x00,sizeof(st_alarmGeral));
-  alarm->SlotId      = slot_to_send;
-  alarm->trapSrc     = ERROR_FAMILY_HARDWARE;
-  alarm->oltiftype   = intfType;
-  alarm->oltifindex  = porto;
-  alarm->alarmtype   = TRAP_LC_TYPE_INTERFACE;
-  alarm->alarmcode   = code;
-  alarm->alarmstatus = status;
-  alarm->param1      = param;
-  alarm->param2      = 0;
+  alarm->SlotId      = ENDIAN_SWAP8 (slot_to_send);
+  alarm->trapSrc     = ENDIAN_SWAP8 (ERROR_FAMILY_HARDWARE);
+  alarm->oltiftype   = ENDIAN_SWAP8 (intfType);
+  alarm->oltifindex  = ENDIAN_SWAP32(porto);
+  alarm->alarmtype   = ENDIAN_SWAP32(TRAP_LC_TYPE_INTERFACE);
+  alarm->alarmcode   = ENDIAN_SWAP32(code);
+  alarm->alarmstatus = ENDIAN_SWAP32(status);
+  alarm->param1      = ENDIAN_SWAP32(param);
+  alarm->param2      = ENDIAN_SWAP32(0);
 
   ret=send_data(g_iInterfaceSW, IPC_TRAP_LC_PORT, ipaddr, (ipc_msg *)&comando, (ipc_msg *)NULL);
   if(ret<0)
@@ -421,12 +429,13 @@ int send_TxTsRecord(ptin_PptTsRecord_t *ptpTs)
 
   memcpy(&tsInfo->inetAddr, &ptpTs->inetAddr, sizeof(ptpTs->inetAddr));
 
-  tsInfo->seconds = ptpTs->seconds;
-  tsInfo->nanoseconds = ptpTs->nanoseconds;
-  tsInfo->encap = ptpTs->encap;
-  tsInfo->messageType = ptpTs->messageType;
-  tsInfo->sequenceId = ptpTs->sequenceId;
-  tsInfo->domainNumber = ptpTs->domainNumber;
+  tsInfo->seconds           = ENDIAN_SWAP32(ptpTs->seconds);
+  tsInfo->nanoseconds       = ENDIAN_SWAP32(ptpTs->nanoseconds);
+  tsInfo->encap             = ENDIAN_SWAP8 (ptpTs->encap);
+  tsInfo->messageType       = ENDIAN_SWAP8 (ptpTs->messageType);
+  tsInfo->sequenceId        = ENDIAN_SWAP16(ptpTs->sequenceId);
+  tsInfo->domainNumber      = ENDIAN_SWAP8 (ptpTs->domainNumber);
+  tsInfo->inetAddr.ipv4Addr = ENDIAN_SWAP32(ptpTs->inetAddr.ipv4Addr);
 
   ret=send_data(g_iInterfaceSW, IPC_TRAP_TO_PTP, IPC_LOCALHOST_IPADDR, (ipc_msg *)&comando, (ipc_msg *)NULL);
   if(ret<0)
