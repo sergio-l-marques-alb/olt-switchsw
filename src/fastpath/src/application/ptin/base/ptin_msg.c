@@ -167,8 +167,8 @@ L7_RC_t ptin_msg_FPInfo_get(msg_FWFastpathInfo *msgFPInfo)
 {
   memset(msgFPInfo, 0x00, sizeof(msg_FWFastpathInfo));
 
-  msgFPInfo->SlotIndex    = ptin_fpga_board_slot_get();
-  msgFPInfo->BoardPresent = (ptin_state == PTIN_STATE_READY);
+  msgFPInfo->SlotIndex    = ENDIAN_SWAP8 (ptin_fpga_board_slot_get());
+  msgFPInfo->BoardPresent = ENDIAN_SWAP32((ptin_state == PTIN_STATE_READY));
 
   snprintf(msgFPInfo->BoardSerialNumber, 19, "OLTSW-SDK-%u.%u.%u.%u", SDK_MAJOR_VERSION, SDK_MINOR_VERSION, SDK_REVISION_ID, SDK_PATCH_ID);
   msgFPInfo->BoardSerialNumber[19] = '\0';
@@ -248,7 +248,7 @@ extern void ptin_msg_defaults_reset(msg_HwGenReq_t *msgPtr)
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid Parameters: msgPtr:%p", msgPtr);
     return;
   }
-  mode = msgPtr->param;
+  mode = ENDIAN_SWAP8(msgPtr->param);
   
   PT_LOG_INFO(LOG_CTX_CONTROL,"Executing a reset defaults with mode=%u", mode);
 
@@ -427,19 +427,19 @@ L7_RC_t ptin_msg_typeBprotIntfSwitchNotify(msg_HwTypeBProtSwitchNotify_t *msg)
   L7_uint8  status;
 
   PT_LOG_DEBUG(LOG_CTX_MSG, "Type-B Protection switch notification");
-  PT_LOG_DEBUG(LOG_CTX_MSG, " slotId = %u"   , msg->slotId);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " portId = %u", msg->portId); //ptin_port format
-  PT_LOG_DEBUG(LOG_CTX_MSG, " cmd    = %08X" , msg->cmd);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " slotId = %u"   , ENDIAN_SWAP8(msg->slotId));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " portId = %u"   , ENDIAN_SWAP8(msg->portId)); //ptin_port format
+  PT_LOG_DEBUG(LOG_CTX_MSG, " cmd    = %08X" , ENDIAN_SWAP8(msg->cmd));
 
   /* Convert portId to intfNum */
-  if (ptin_intf_port2intIfNum(msg->portId, &intIfNum)!=L7_SUCCESS)
+  if (ptin_intf_port2intIfNum(ENDIAN_SWAP8(msg->portId), &intIfNum)!=L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Non existent port");
     return L7_FAILURE;
   }
 
   /* Get interface status from the first bit of msg->cmd */
-  status = msg->cmd & 0x0001;
+  status = ENDIAN_SWAP8(msg->cmd) & 0x0001;
 
   /* Update interface configurations */
   rc = ptin_prottypeb_intf_switch_notify(intIfNum, status);
@@ -466,16 +466,16 @@ L7_RC_t ptin_msg_typeBprotIntfConfig(msg_HwTypeBProtIntfConfig_t *msg)
   ptin_prottypeb_intf_config_t ptin_intfConfig;
 
   PT_LOG_DEBUG(LOG_CTX_MSG, "Configurations");
-  PT_LOG_DEBUG(LOG_CTX_MSG, " slotId     = %u"   , msg->slotId);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " intfId     = %u/%u", msg->intfId.intf_type, msg->intfId.intf_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " pairSlotId = %u"   , msg->pairSlotId);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " pairIntfId = %u/%u", msg->pairIntfId.intf_type, msg->pairIntfId.intf_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " intfRole   = %u"   , msg->intfRole);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " slotId     = %u"   , ENDIAN_SWAP8(msg->slotId));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " intfId     = %u/%u", ENDIAN_SWAP8(msg->intfId.intf_type), ENDIAN_SWAP8(msg->intfId.intf_id));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " pairSlotId = %u"   , ENDIAN_SWAP8(msg->pairSlotId));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " pairIntfId = %u/%u", ENDIAN_SWAP8(msg->pairIntfId.intf_type), ENDIAN_SWAP8(msg->pairIntfId.intf_id));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " intfRole   = %u"   , ENDIAN_SWAP8(msg->intfRole));
 
   memset(&ptin_intfConfig, 0x00, sizeof(ptin_intfConfig));
 
   /* Convert intfId to intfNum */
-  if (ptin_msg_ptinPort_get(msg->intfId.intf_type, msg->intfId.intf_id, &ptin_port)!=L7_SUCCESS)
+  if (ptin_msg_ptinPort_get(ENDIAN_SWAP8(msg->intfId.intf_type), ENDIAN_SWAP8(msg->intfId.intf_id), &ptin_port)!=L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid port");
     return L7_FAILURE;
@@ -487,7 +487,7 @@ L7_RC_t ptin_msg_typeBprotIntfConfig(msg_HwTypeBProtIntfConfig_t *msg)
   }
 
   /* Convert pairIntfId to intfNum */
-  if (ptin_msg_ptinPort_get(msg->pairIntfId.intf_type, msg->pairIntfId.intf_id, &ptin_port)!=L7_SUCCESS)
+  if (ptin_msg_ptinPort_get(ENDIAN_SWAP8(msg->pairIntfId.intf_type), ENDIAN_SWAP8(msg->pairIntfId.intf_id), &ptin_port)!=L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid port");
     return L7_FAILURE;
@@ -498,15 +498,15 @@ L7_RC_t ptin_msg_typeBprotIntfConfig(msg_HwTypeBProtIntfConfig_t *msg)
     return L7_FAILURE;
   }
 
-  if (ptin_intfConfig.intfNum == ptin_intfConfig.pairIntfNum && msg->slotId == msg->pairSlotId)
+  if (ptin_intfConfig.intfNum == ptin_intfConfig.pairIntfNum && ENDIAN_SWAP8(msg->slotId) == ENDIAN_SWAP8(msg->pairSlotId))
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "Invalid Parameters: slotId=pairSlotId=%u, intfNum=pairIntfNum=%u", msg->slotId, ptin_intfConfig.intfNum);
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid Parameters: slotId=pairSlotId=%u, intfNum=pairIntfNum=%u", ENDIAN_SWAP8(msg->slotId), ptin_intfConfig.intfNum);
     return L7_FAILURE;
   }
   
-  ptin_intfConfig.pairSlotId = msg->pairSlotId;
-  ptin_intfConfig.intfRole   = msg->intfRole;
-  ptin_intfConfig.slotId     = msg->slotId;
+  ptin_intfConfig.pairSlotId = ENDIAN_SWAP8(msg->pairSlotId);
+  ptin_intfConfig.intfRole   = ENDIAN_SWAP8(msg->intfRole);
+  ptin_intfConfig.slotId     = ENDIAN_SWAP8(msg->slotId);
 
   /* Save interface configurations */
   rc = ptin_prottypeb_intf_config_set(&ptin_intfConfig);
@@ -533,9 +533,9 @@ L7_RC_t ptin_msg_typeBprotSwitch(msg_HwTypeBprot_t *msg)
   L7_uint32 intIfNum;
   L7_uint32 lag_idx;
 
-  PT_LOG_DEBUG(LOG_CTX_MSG, "ptin_msg_typeBprotSwitch(slot %d, port %d)", msg->slot, msg->port);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ptin_msg_typeBprotSwitch(slot %d, port %d)", ENDIAN_SWAP8(msg->slot), ENDIAN_SWAP8(msg->port));
 
-  rc = ptin_intf_slot2lagIdx(msg->slot, &lag_idx);
+  rc = ptin_intf_slot2lagIdx(ENDIAN_SWAP8(msg->slot), &lag_idx);
   if (rc==L7_SUCCESS)
   {
     rc = ptin_intf_lag2intIfNum(lag_idx, &intIfNum);
@@ -550,10 +550,10 @@ L7_RC_t ptin_msg_typeBprotSwitch(msg_HwTypeBprot_t *msg)
   ptin_intf_t ptin_intf;
   L7_uint32 ptin_port;
 
-  PT_LOG_DEBUG(LOG_CTX_MSG, "ptin_msg_typeBprotSwitch(slot %d, port %d)", msg->slot, msg->port);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ptin_msg_typeBprotSwitch(slot %d, port %d)", ENDIAN_SWAP8(msg->slot), ENDIAN_SWAP8(msg->port));
 
   ptin_intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
-  ptin_intf.intf_id = msg->port;
+  ptin_intf.intf_id = ENDIAN_SWAP8(msg->port);
 
   ptin_intf_ptintf2port(&ptin_intf, &ptin_port);
 
@@ -598,19 +598,19 @@ L7_RC_t ptin_msg_board_action(msg_HwGenReq_t *msg)
   L7_RC_t rc = L7_SUCCESS;
 
   PT_LOG_INFO(LOG_CTX_MSG, "ptin_msg_board_action");
-  PT_LOG_DEBUG(LOG_CTX_MSG," slot       = %u", msg->slot_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG," generic_id = %u", msg->generic_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG," type       = 0x%02x", msg->type);
-  PT_LOG_DEBUG(LOG_CTX_MSG," param      = 0x%02x", msg->param);
+  PT_LOG_DEBUG(LOG_CTX_MSG," slot       = %u", ENDIAN_SWAP8(msg->slot_id));
+  PT_LOG_DEBUG(LOG_CTX_MSG," generic_id = %u", ENDIAN_SWAP8(msg->generic_id));
+  PT_LOG_DEBUG(LOG_CTX_MSG," type       = 0x%02x", ENDIAN_SWAP8(msg->type));
+  PT_LOG_DEBUG(LOG_CTX_MSG," param      = 0x%02x", ENDIAN_SWAP8(msg->param));
 
   #if (PTIN_BOARD_IS_MATRIX)
 
   /* insertion action */
-  if (msg->type == 0x03)
+  if (ENDIAN_SWAP8(msg->type) == 0x03)
   {
-    PT_LOG_INFO(LOG_CTX_MSG,"Insertion detected (slot %u, board_id=%u)", msg->generic_id, msg->param);
+    PT_LOG_INFO(LOG_CTX_MSG,"Insertion detected (slot %u, board_id=%u)", ENDIAN_SWAP8(msg->generic_id), ENDIAN_SWAP8(msg->param));
 
-    rc = ptin_slot_action_insert(msg->generic_id, msg->param);
+    rc = ptin_slot_action_insert(ENDIAN_SWAP8(msg->generic_id), ENDIAN_SWAP8(msg->param));
     if ( rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG, "Error inserting card (%d)", rc);
@@ -621,11 +621,11 @@ L7_RC_t ptin_msg_board_action(msg_HwGenReq_t *msg)
     }
   }
   /* Board removed */
-  else if (msg->type == 0x00)
+  else if (ENDIAN_SWAP8(msg->type) == 0x00)
   {
-    PT_LOG_INFO(LOG_CTX_MSG,"Remotion detected (slot %u)", msg->generic_id);
+    PT_LOG_INFO(LOG_CTX_MSG,"Remotion detected (slot %u)", ENDIAN_SWAP8(msg->generic_id));
 
-    rc = ptin_slot_action_remove(msg->generic_id);
+    rc = ptin_slot_action_remove(ENDIAN_SWAP8(msg->generic_id));
     if ( rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG, "Error removing card (%d)", rc);
@@ -652,10 +652,10 @@ L7_RC_t ptin_msg_link_action(msg_HwGenReq_t *msg)
   L7_RC_t rc = L7_SUCCESS;
 
   PT_LOG_INFO(LOG_CTX_MSG, "ptin_msg_link_action");
-  PT_LOG_DEBUG(LOG_CTX_MSG," slot       = %u", msg->slot_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG," generic_id = %u", msg->generic_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG," type       = 0x%02x", msg->type);
-  PT_LOG_DEBUG(LOG_CTX_MSG," param      = 0x%02x", msg->param);
+  PT_LOG_DEBUG(LOG_CTX_MSG," slot       = %u", ENDIAN_SWAP8(msg->slot_id));
+  PT_LOG_DEBUG(LOG_CTX_MSG," generic_id = %u", ENDIAN_SWAP8(msg->generic_id));
+  PT_LOG_DEBUG(LOG_CTX_MSG," type       = 0x%02x", ENDIAN_SWAP8(msg->type));
+  PT_LOG_DEBUG(LOG_CTX_MSG," param      = 0x%02x", ENDIAN_SWAP8(msg->param));
 
   #if 0
   #if (PTIN_BOARD_IS_MATRIX)
@@ -673,11 +673,11 @@ L7_RC_t ptin_msg_link_action(msg_HwGenReq_t *msg)
   osapiSemaTake(ptin_boardaction_sem, L7_WAIT_FOREVER);
 
   /* Get board id for this interface */
-  rc = ptin_slot_boardid_get(msg->generic_id, &board_type);
+  rc = ptin_slot_boardid_get(ENDIAN_SWAP8(msg->generic_id), &board_type);
   if (rc != L7_SUCCESS)
   {
     osapiSemaGive(ptin_boardaction_sem);
-    PT_LOG_ERR(LOG_CTX_MSG, "Error getting board_id for slot id %u (rc=%d)", msg->generic_id, rc);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error getting board_id for slot id %u (rc=%d)", ENDIAN_SWAP8(msg->generic_id), rc);
     return L7_FAILURE;
   }
 
@@ -690,10 +690,10 @@ L7_RC_t ptin_msg_link_action(msg_HwGenReq_t *msg)
   }
 
   /* Get ptin_port and intIfNum */
-  if (ptin_intf_slotPort2port(msg->generic_id, msg->param, &ptin_port) != L7_SUCCESS)
+  if (ptin_intf_slotPort2port(ENDIAN_SWAP8(msg->generic_id), ENDIAN_SWAP8(msg->param), &ptin_port) != L7_SUCCESS)
   {
     osapiSemaGive(ptin_boardaction_sem);
-    PT_LOG_ERR(LOG_CTX_MSG, "No ptin_port related to slot/port %u/%u", msg->generic_id, msg->param);
+    PT_LOG_ERR(LOG_CTX_MSG, "No ptin_port related to slot/port %u/%u", ENDIAN_SWAP8(msg->generic_id), ENDIAN_SWAP8(msg->param));
     return L7_FAILURE;
   }
   if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
@@ -712,7 +712,7 @@ L7_RC_t ptin_msg_link_action(msg_HwGenReq_t *msg)
   }
 
   /* When link is up, disable linkscan */
-  if (msg->type == 0x01)
+  if (ENDIAN_SWAP8(msg->type == 0x01))
   {
     PT_LOG_DEBUG(LOG_CTX_MSG,"Link-up detected at ptin_port %u", ptin_port);
 
@@ -807,9 +807,9 @@ L7_RC_t ptin_msg_hw_resources_get(msg_ptin_policy_resources *msgResources)
   L7_RC_t rc = L7_SUCCESS;
 
   /* Clear output structure */
-  slotId = msgResources->SlotId;
+  slotId = ENDIAN_SWAP8(msgResources->SlotId);
   memset(msgResources,0x00,sizeof(msg_ptin_policy_resources));
-  msgResources->SlotId = slotId;
+  msgResources->SlotId = ENDIAN_SWAP8(slotId);
 
   /* Read hardware available resources */
   if ((rc=ptin_hw_resources_get(&resources))!=L7_SUCCESS)
@@ -823,23 +823,23 @@ L7_RC_t ptin_msg_hw_resources_get(msg_ptin_policy_resources *msgResources)
   {
     for (group_idx=0; group_idx<PTIN_POLICY_MAX_GROUPS; group_idx++)
     {
-      msgResources->cap[group_idx][stage_idx].inUse             = resources.cap[group_idx][stage_idx].inUse;
-      msgResources->cap[group_idx][stage_idx].group_id          = resources.cap[group_idx][stage_idx].group_id;
+      msgResources->cap[group_idx][stage_idx].inUse             = ENDIAN_SWAP8 (resources.cap[group_idx][stage_idx].inUse);
+      msgResources->cap[group_idx][stage_idx].group_id          = ENDIAN_SWAP32(resources.cap[group_idx][stage_idx].group_id);
 
-      msgResources->cap[group_idx][stage_idx].total.counters    = resources.cap[group_idx][stage_idx].total.counters;
-      msgResources->cap[group_idx][stage_idx].total.meters      = resources.cap[group_idx][stage_idx].total.meters;
-      msgResources->cap[group_idx][stage_idx].total.rules       = resources.cap[group_idx][stage_idx].total.rules;
-      msgResources->cap[group_idx][stage_idx].total.slice_width = resources.cap[group_idx][stage_idx].total.slice_width;
+      msgResources->cap[group_idx][stage_idx].total.counters    = ENDIAN_SWAP16(resources.cap[group_idx][stage_idx].total.counters);
+      msgResources->cap[group_idx][stage_idx].total.meters      = ENDIAN_SWAP16(resources.cap[group_idx][stage_idx].total.meters);
+      msgResources->cap[group_idx][stage_idx].total.rules       = ENDIAN_SWAP16(resources.cap[group_idx][stage_idx].total.rules);
+      msgResources->cap[group_idx][stage_idx].total.slice_width = ENDIAN_SWAP16(resources.cap[group_idx][stage_idx].total.slice_width);
 
-      msgResources->cap[group_idx][stage_idx].free.counters     = resources.cap[group_idx][stage_idx].free.counters;
-      msgResources->cap[group_idx][stage_idx].free.meters       = resources.cap[group_idx][stage_idx].free.meters;
-      msgResources->cap[group_idx][stage_idx].free.rules        = resources.cap[group_idx][stage_idx].free.rules;
-      msgResources->cap[group_idx][stage_idx].free.slice_width  = resources.cap[group_idx][stage_idx].free.slice_width;
+      msgResources->cap[group_idx][stage_idx].free.counters     = ENDIAN_SWAP16(resources.cap[group_idx][stage_idx].free.counters);
+      msgResources->cap[group_idx][stage_idx].free.meters       = ENDIAN_SWAP16(resources.cap[group_idx][stage_idx].free.meters);
+      msgResources->cap[group_idx][stage_idx].free.rules        = ENDIAN_SWAP16(resources.cap[group_idx][stage_idx].free.rules);
+      msgResources->cap[group_idx][stage_idx].free.slice_width  = ENDIAN_SWAP16(resources.cap[group_idx][stage_idx].free.slice_width);
 
-      msgResources->cap[group_idx][stage_idx].count.counters    = resources.cap[group_idx][stage_idx].count.counters;
-      msgResources->cap[group_idx][stage_idx].count.meters      = resources.cap[group_idx][stage_idx].count.meters;
-      msgResources->cap[group_idx][stage_idx].count.rules       = resources.cap[group_idx][stage_idx].count.rules;
-      msgResources->cap[group_idx][stage_idx].count.slice_width = resources.cap[group_idx][stage_idx].count.slice_width;
+      msgResources->cap[group_idx][stage_idx].count.counters    = ENDIAN_SWAP16(resources.cap[group_idx][stage_idx].count.counters);
+      msgResources->cap[group_idx][stage_idx].count.meters      = ENDIAN_SWAP16(resources.cap[group_idx][stage_idx].count.meters);
+      msgResources->cap[group_idx][stage_idx].count.rules       = ENDIAN_SWAP16(resources.cap[group_idx][stage_idx].count.rules);
+      msgResources->cap[group_idx][stage_idx].count.slice_width = ENDIAN_SWAP16(resources.cap[group_idx][stage_idx].count.slice_width);
     }
   }
 
@@ -859,25 +859,25 @@ L7_RC_t ptin_msg_PhyConfig_set(msg_HWEthPhyConf_t *msgPhyConf)
 {
   ptin_HWEthPhyConf_t phyConf;
 
-  PT_LOG_DEBUG(LOG_CTX_MSG, "Port # %u",           msgPhyConf->Port);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Enable        = %u", msgPhyConf->PortEnable );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Speed         = %u", msgPhyConf->Speed );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Duplex        = %u", msgPhyConf->Duplex );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Media         = %u", msgPhyConf->Media );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " MaxFrame      = %u", msgPhyConf->MaxFrame );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Loopback      = %u", msgPhyConf->LoopBack );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " MACLearn Prio = %u", msgPhyConf->MacLearning );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Mask          = 0x%04X", msgPhyConf->Mask );
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Port # %u",           ENDIAN_SWAP8 (msgPhyConf->Port));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Enable        = %u", ENDIAN_SWAP8 (msgPhyConf->PortEnable));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Speed         = %u", ENDIAN_SWAP8 (msgPhyConf->Speed));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Duplex        = %u", ENDIAN_SWAP8 (msgPhyConf->Duplex));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Media         = %u", ENDIAN_SWAP8 (msgPhyConf->Media));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " MaxFrame      = %u", ENDIAN_SWAP16(msgPhyConf->MaxFrame));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Loopback      = %u", ENDIAN_SWAP8 (msgPhyConf->LoopBack));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " MACLearn Prio = %u", ENDIAN_SWAP8 (msgPhyConf->MacLearning));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Mask          = 0x%04X", ENDIAN_SWAP16(msgPhyConf->Mask));
 
   /* Copy the message data to a new structure (*/
-  phyConf.Port         = msgPhyConf->Port;
-  phyConf.Mask         = msgPhyConf->Mask;
-  phyConf.PortEnable   = msgPhyConf->PortEnable;
-  phyConf.Speed        = msgPhyConf->Speed;
-  phyConf.Duplex       = msgPhyConf->Duplex;
-  phyConf.Media        = msgPhyConf->Media;
-  phyConf.MaxFrame     = msgPhyConf->MaxFrame;
-  phyConf.LoopBack     = msgPhyConf->LoopBack;
+  phyConf.Port         = ENDIAN_SWAP8 (msgPhyConf->Port);
+  phyConf.Mask         = ENDIAN_SWAP16(msgPhyConf->Mask);
+  phyConf.PortEnable   = ENDIAN_SWAP8 (msgPhyConf->PortEnable);
+  phyConf.Speed        = ENDIAN_SWAP8 (msgPhyConf->Speed);
+  phyConf.Duplex       = ENDIAN_SWAP8 (msgPhyConf->Duplex);
+  phyConf.Media        = ENDIAN_SWAP8 (msgPhyConf->Media);
+  phyConf.MaxFrame     = ENDIAN_SWAP16(msgPhyConf->MaxFrame);
+  phyConf.LoopBack     = ENDIAN_SWAP8 (msgPhyConf->LoopBack);
 
   /* Apply config */
   if ( ptin_intf_PhyConfig_set(&phyConf) != L7_SUCCESS )
@@ -885,8 +885,8 @@ L7_RC_t ptin_msg_PhyConfig_set(msg_HWEthPhyConf_t *msgPhyConf)
     PT_LOG_ERR(LOG_CTX_MSG, "Error applying configurations on port# %u", phyConf.Port);
 
     memset(msgPhyConf, 0x00, sizeof(msg_HWEthPhyConf_t));
-    msgPhyConf->Mask = phyConf.Mask;  /* Restore mask */
-    msgPhyConf->Port = phyConf.Port;
+    msgPhyConf->Mask = ENDIAN_SWAP16(phyConf.Mask);  /* Restore mask */
+    msgPhyConf->Port = ENDIAN_SWAP8 (phyConf.Port);
 
     return L7_FAILURE;
   }
@@ -907,8 +907,8 @@ L7_RC_t ptin_msg_PhyConfig_get(msg_HWEthPhyConf_t *msgPhyConf)
 {
   ptin_HWEthPhyConf_t phyConf;
 
-  phyConf.Port = msgPhyConf->Port;
-  phyConf.Mask = msgPhyConf->Mask;
+  phyConf.Port = ENDIAN_SWAP8 (msgPhyConf->Port);
+  phyConf.Mask = ENDIAN_SWAP16(msgPhyConf->Mask);
 
   if (ptin_intf_PhyConfig_get(&phyConf) != L7_SUCCESS )
   {
@@ -919,24 +919,24 @@ L7_RC_t ptin_msg_PhyConfig_get(msg_HWEthPhyConf_t *msgPhyConf)
   }
 
   /* Copy the message data to the msg structure (*/
-  msgPhyConf->Port        = phyConf.Port;
-  msgPhyConf->Mask        = phyConf.Mask;
-  msgPhyConf->PortEnable  = phyConf.PortEnable;
-  msgPhyConf->Speed       = phyConf.Speed;
-  msgPhyConf->Duplex      = phyConf.Duplex;
-  msgPhyConf->Media       = phyConf.Media;
-  msgPhyConf->MaxFrame    = phyConf.MaxFrame;
-  msgPhyConf->LoopBack    = phyConf.LoopBack;
+  msgPhyConf->Port        = ENDIAN_SWAP8 (phyConf.Port);
+  msgPhyConf->Mask        = ENDIAN_SWAP16(phyConf.Mask);
+  msgPhyConf->PortEnable  = ENDIAN_SWAP8 (phyConf.PortEnable);
+  msgPhyConf->Speed       = ENDIAN_SWAP8 (phyConf.Speed);
+  msgPhyConf->Duplex      = ENDIAN_SWAP8 (phyConf.Duplex);
+  msgPhyConf->Media       = ENDIAN_SWAP8 (phyConf.Media);
+  msgPhyConf->MaxFrame    = ENDIAN_SWAP16(phyConf.MaxFrame);
+  msgPhyConf->LoopBack    = ENDIAN_SWAP8 (phyConf.LoopBack);
 
   /* Output info read */
-  PT_LOG_DEBUG(LOG_CTX_MSG, "Port # %u",           msgPhyConf->Port);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Enable        = %u", msgPhyConf->PortEnable );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Speed         = %u", msgPhyConf->Speed );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Duplex        = %u", msgPhyConf->Duplex );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Media         = %u", msgPhyConf->Media );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " MaxFrame      = %u", msgPhyConf->MaxFrame );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Loopback      = %u", msgPhyConf->LoopBack );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Mask          = 0x%04X", msgPhyConf->Mask );
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Port # %u",               ENDIAN_SWAP8 (msgPhyConf->Port));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Enable        = %u",     ENDIAN_SWAP8 (msgPhyConf->PortEnable));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Speed         = %u",     ENDIAN_SWAP8 (msgPhyConf->Speed));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Duplex        = %u",     ENDIAN_SWAP8 (msgPhyConf->Duplex));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Media         = %u",     ENDIAN_SWAP8 (msgPhyConf->Media));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " MaxFrame      = %u",     ENDIAN_SWAP16(msgPhyConf->MaxFrame));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Loopback      = %u",     ENDIAN_SWAP8 (msgPhyConf->LoopBack));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Mask          = 0x%04X", ENDIAN_SWAP16(msgPhyConf->Mask));
 
   return L7_SUCCESS;
 }
@@ -957,11 +957,11 @@ L7_RC_t ptin_msg_PhyState_get(msg_HWEthPhyState_t *msgPhyState)
   ptin_HWEthPhyState_t                phyState;
   ptin_HWEthRFC2819_PortStatistics_t  portStats;
 
-  port = msgPhyState->Port;
+  port = ENDIAN_SWAP8(msgPhyState->Port);
 
   /* Clear structure */
   memset(msgPhyState, 0x00, sizeof(msg_HWEthPhyState_t));
-  msgPhyState->Port = port;
+  msgPhyState->Port = ENDIAN_SWAP8(port);
 
   /* Read some configurations: MaxFrame & Media */
   phyConf.Port = port;
@@ -999,40 +999,40 @@ L7_RC_t ptin_msg_PhyState_get(msg_HWEthPhyState_t *msgPhyState)
   }
 
   /* Compose message with all the gathered data */
-  msgPhyState->Mask               = 0x1C7F;   /* Do not include TxFault, RemoteFault and LOS */
-  msgPhyState->Speed              = phyState.Speed;
-  msgPhyState->Duplex             = phyState.Duplex;
-  msgPhyState->LinkUp             = phyState.LinkUp;
-  msgPhyState->AutoNegComplete    = phyState.AutoNegComplete;
+  msgPhyState->Mask               = ENDIAN_SWAP16(0x1C7F);   /* Do not include TxFault, RemoteFault and LOS */
+  msgPhyState->Speed              = ENDIAN_SWAP8 (phyState.Speed);
+  msgPhyState->Duplex             = ENDIAN_SWAP8 (phyState.Duplex);
+  msgPhyState->LinkUp             = ENDIAN_SWAP8 (phyState.LinkUp);
+  msgPhyState->AutoNegComplete    = ENDIAN_SWAP8 (phyState.AutoNegComplete);
 
-  msgPhyState->Collisions         = portStats.Tx.etherStatsCollisions > 0;
-  msgPhyState->RxActivity         = portStats.Rx.Throughput > 0;
-  msgPhyState->TxActivity         = portStats.Tx.Throughput > 0;
+  msgPhyState->Collisions         = ENDIAN_SWAP8(portStats.Tx.etherStatsCollisions > 0);
+  msgPhyState->RxActivity         = ENDIAN_SWAP8(portStats.Rx.Throughput > 0);
+  msgPhyState->TxActivity         = ENDIAN_SWAP8(portStats.Tx.Throughput > 0);
 
-  msgPhyState->Media              = phyConf.Media;
-  msgPhyState->MTU_mismatch       = phyConf.MaxFrame > PHY_MAX_MAXFRAME;
-  msgPhyState->Supported_MaxFrame = PHY_MAX_MAXFRAME;
+  msgPhyState->Media              = ENDIAN_SWAP8(phyConf.Media);
+  msgPhyState->MTU_mismatch       = ENDIAN_SWAP8(phyConf.MaxFrame > PHY_MAX_MAXFRAME);
+  msgPhyState->Supported_MaxFrame = ENDIAN_SWAP16(PHY_MAX_MAXFRAME);
 
-//msgPhyState->TxFault            = 0;    /* Always FALSE */
-//msgPhyState->RemoteFault        = 0;    /* Always FALSE */
-//msgPhyState->LOS                = 0;    /* Always FALSE */
+//msgPhyState->TxFault            = ENDIAN_SWAP8(0);    /* Always FALSE */
+//msgPhyState->RemoteFault        = ENDIAN_SWAP8(0);    /* Always FALSE */
+//msgPhyState->LOS                = ENDIAN_SWAP8(0);    /* Always FALSE */
 
   /* Output info read */
-  PT_LOG_DEBUG(LOG_CTX_MSG, "Port # %u",                   msgPhyState->Port);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Mask             = 0x%04X",  msgPhyState->Mask );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Speed            = %u",      msgPhyState->Speed );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Duplex           = %u",      msgPhyState->Duplex );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " LinkUp           = %s",      msgPhyState->LinkUp?"Yes":"No" );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " AutoNegComplete  = %s",      msgPhyState->AutoNegComplete?"Yes":"No" );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Collisions       = %s",      msgPhyState->Collisions?"Yes":"No" );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " RxActivity       = %s",      msgPhyState->RxActivity?"Yes":"No" );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " TxActivity       = %s",      msgPhyState->TxActivity?"Yes":"No" );
-//PT_LOG_DEBUG(LOG_CTX_MSG, " TxFault          = %s",      msgPhyState->TxFault?"Yes":"No" );
-//PT_LOG_DEBUG(LOG_CTX_MSG, " RemoteFault      = %s",      msgPhyState->RemoteFault?"Yes":"No" );
-//PT_LOG_DEBUG(LOG_CTX_MSG, " LOS              = %s",      msgPhyState->LOS?"Yes":"No" );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Media            = %u",      msgPhyState->Media );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " MTU_mismatch     = %s",      msgPhyState->MTU_mismatch?"Yes":"No" );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Support.MaxFrame = %u",      msgPhyState->Supported_MaxFrame );
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Port # %u",                   ENDIAN_SWAP8(msgPhyState->Port));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Mask             = 0x%04X",  ENDIAN_SWAP16(msgPhyState->Mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Speed            = %u",      ENDIAN_SWAP8(msgPhyState->Speed));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Duplex           = %u",      ENDIAN_SWAP8(msgPhyState->Duplex));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " LinkUp           = %s",      ENDIAN_SWAP8(msgPhyState->LinkUp) ? "Yes" : "No");
+  PT_LOG_DEBUG(LOG_CTX_MSG, " AutoNegComplete  = %s",      ENDIAN_SWAP8(msgPhyState->AutoNegComplete) ? "Yes" : "No");
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Collisions       = %s",      ENDIAN_SWAP8(msgPhyState->Collisions) ? "Yes" : "No");
+  PT_LOG_DEBUG(LOG_CTX_MSG, " RxActivity       = %s",      ENDIAN_SWAP8(msgPhyState->RxActivity) ? "Yes" : "No");
+  PT_LOG_DEBUG(LOG_CTX_MSG, " TxActivity       = %s",      ENDIAN_SWAP8(msgPhyState->TxActivity) ? "Yes" : "No");
+//PT_LOG_DEBUG(LOG_CTX_MSG, " TxFault          = %s",      ENDIAN_SWAP8(msgPhyState->TxFault) ? "Yes" : "No" );
+//PT_LOG_DEBUG(LOG_CTX_MSG, " RemoteFault      = %s",      ENDIAN_SWAP8(msgPhyState->RemoteFault) ? "Yes" : "No" );
+//PT_LOG_DEBUG(LOG_CTX_MSG, " LOS              = %s",      ENDIAN_SWAP8(msgPhyState->LOS) ? "Yes" : "No" );
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Media            = %u",      ENDIAN_SWAP8(msgPhyState->Media) );
+  PT_LOG_DEBUG(LOG_CTX_MSG, " MTU_mismatch     = %s",      ENDIAN_SWAP8(msgPhyState->MTU_mismatch) ? "Yes" : "No" );
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Support.MaxFrame = %u",      ENDIAN_SWAP16(msgPhyState->Supported_MaxFrame));
 
   return L7_SUCCESS;
 }
@@ -1050,9 +1050,9 @@ L7_RC_t ptin_msg_PhyActivity_get(msg_HWEthPhyActivity_t *msgPhyAct)
   ptin_HWEthRFC2819_PortStatistics_t  portStats;
 
   /* Get ptin port */
-  if (ptin_intf_slotPort2port(msgPhyAct->intf.slot, msgPhyAct->intf.port, &ptin_port) != L7_SUCCESS)
+  if (ptin_intf_slotPort2port(ENDIAN_SWAP8(msgPhyAct->intf.slot), ENDIAN_SWAP8(msgPhyAct->intf.port), &ptin_port) != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "Unknown interface (slot=%u/%u)", msgPhyAct->intf.slot, msgPhyAct->intf.port);
+    PT_LOG_ERR(LOG_CTX_MSG, "Unknown interface (slot=%u/%u)", ENDIAN_SWAP8(msgPhyAct->intf.slot), ENDIAN_SWAP8(msgPhyAct->intf.port));
     return L7_FAILURE;
   }
 
@@ -1068,15 +1068,15 @@ L7_RC_t ptin_msg_PhyActivity_get(msg_HWEthPhyActivity_t *msgPhyAct)
   }
 
   /* Compose message with all the gathered data */
-  msgPhyAct->Mask = 0xff;
-  msgPhyAct->RxActivity = (L7_uint32) portStats.Rx.Throughput;
-  msgPhyAct->TxActivity = (L7_uint32) portStats.Tx.Throughput;
+  msgPhyAct->Mask = ENDIAN_SWAP8(0xff);
+  msgPhyAct->RxActivity = ENDIAN_SWAP32((L7_uint32) portStats.Rx.Throughput);
+  msgPhyAct->TxActivity = ENDIAN_SWAP32((L7_uint32) portStats.Tx.Throughput);
 
   /* Output info read */
-  PT_LOG_TRACE(LOG_CTX_MSG, "Slot/Port # %u/%u",           msgPhyAct->intf.slot, msgPhyAct->intf.port);
-  PT_LOG_TRACE(LOG_CTX_MSG, " Mask             = 0x%02x",  msgPhyAct->Mask );
-  PT_LOG_TRACE(LOG_CTX_MSG, " RX Activity      = %u",      msgPhyAct->RxActivity );
-  PT_LOG_TRACE(LOG_CTX_MSG, " TX Activity      = %u",      msgPhyAct->TxActivity );
+  PT_LOG_TRACE(LOG_CTX_MSG, "Slot/Port # %u/%u",           ENDIAN_SWAP8(msgPhyAct->intf.slot), ENDIAN_SWAP8(msgPhyAct->intf.port));
+  PT_LOG_TRACE(LOG_CTX_MSG, " Mask             = 0x%02x",  ENDIAN_SWAP8(msgPhyAct->Mask));
+  PT_LOG_TRACE(LOG_CTX_MSG, " RX Activity      = %u",      ENDIAN_SWAP32(msgPhyAct->RxActivity));
+  PT_LOG_TRACE(LOG_CTX_MSG, " TX Activity      = %u",      ENDIAN_SWAP32(msgPhyAct->TxActivity));
 
   return L7_SUCCESS;
 #else
@@ -1100,11 +1100,10 @@ L7_RC_t ptin_msg_PhyStatus_get(msg_HWEthPhyStatus_t *msgPhyStatus)
   ptin_HWEthPhyState_t                phyState;
   ptin_HWEthRFC2819_PortStatistics_t  portStats;
 
-  port = msgPhyStatus->Port;
+  port = ENDIAN_SWAP8(msgPhyStatus->Port);
 
   /* Clear structure */
   memset(msgPhyStatus, 0x00, sizeof(msg_HWEthPhyStatus_t));
-  msgPhyStatus->Port = port;
 
   /* Read some configurations: MaxFrame & Media */
   phyConf.Port = port;
@@ -1198,10 +1197,14 @@ L7_RC_t ptin_msg_PhyStatus_get(msg_HWEthPhyStatus_t *msgPhyStatus)
                                     HW_ETHERNET_STATUS_MASK_COLLISION_BIT | HW_ETHERNET_STATUS_MASK_LINK_BIT | /* HW_ETHERNET_STATUS_MASK_AUTONEG_BIT | */
                                     HW_ETHERNET_STATUS_MASK_FULLDUPLEX_BIT | HW_ETHERNET_STATUS_MASK_SPEED1000_BIT | HW_ETHERNET_STATUS_MASK_MEDIAX_BIT;
 
+  msgPhyStatus->Port              = ENDIAN_SWAP8(port);
+  msgPhyStatus->phy.alarmes       = ENDIAN_SWAP32(msgPhyStatus->phy.alarmes);
+  msgPhyStatus->phy.alarmes_mask  = ENDIAN_SWAP32(msgPhyStatus->phy.alarmes_mask);
+
   /* Output info read */
-  PT_LOG_DEBUG(LOG_CTX_MSG, "Port # %u",                   msgPhyStatus->Port);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " alarmes          = 0x%04X",  msgPhyStatus->phy.alarmes );
-  PT_LOG_DEBUG(LOG_CTX_MSG, " alarmes_mask     = 0x%04X",  msgPhyStatus->phy.alarmes_mask );
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Port # %u",                   ENDIAN_SWAP8 (msgPhyStatus->Port));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " alarmes          = 0x%04X",  ENDIAN_SWAP32(msgPhyStatus->phy.alarmes));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " alarmes_mask     = 0x%04X",  ENDIAN_SWAP32(msgPhyStatus->phy.alarmes_mask));
 
   return L7_SUCCESS;
 }
@@ -1230,13 +1233,13 @@ L7_RC_t ptin_msg_PhyCounters_read(msg_HwGenReq_t *msgRequest, msg_HWEthRFC2819_P
     p_msgPortStats = &msgPortStats[i];  /* Pointer to output */
 
     /* Port to be read */
-    port = p_msgRequest->generic_id;
+    port = ENDIAN_SWAP8(p_msgRequest->generic_id);
 
     /* Clear output structure */
     memset(p_msgPortStats, 0x00, sizeof(msg_HWEthRFC2819_PortStatistics_t));
     /* Update slot_id and port_id */
     p_msgPortStats->SlotId = p_msgRequest->slot_id;
-    p_msgPortStats->Port   = port;
+    p_msgPortStats->Port   = ENDIAN_SWAP8(port);
 
     /* Read statistics */
     portStats.Port = port;
@@ -1255,24 +1258,24 @@ L7_RC_t ptin_msg_PhyCounters_read(msg_HwGenReq_t *msgRequest, msg_HWEthRFC2819_P
 
     /* Output info read */
     PT_LOG_TRACE(LOG_CTX_MSG, "Slotid=%u, Port # %2u", p_msgPortStats->SlotId, p_msgPortStats->Port);
-    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.DropEvents           = %15llu  | Tx.DropEvents           = %15llu", p_msgPortStats->Rx.etherStatsDropEvents,           msgPortStats->Tx.etherStatsDropEvents);
-    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Octets               = %15llu  | Tx.Octets               = %15llu", p_msgPortStats->Rx.etherStatsOctets,               msgPortStats->Tx.etherStatsOctets);
-    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts                 = %15llu  | Tx.Pkts                 = %15llu", p_msgPortStats->Rx.etherStatsPkts,                 msgPortStats->Tx.etherStatsPkts);
-    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.BroadcastPkts        = %15llu  | Tx.BroadcastPkts        = %15llu", p_msgPortStats->Rx.etherStatsBroadcastPkts,        msgPortStats->Tx.etherStatsBroadcastPkts);
-    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.MulticastPkts        = %15llu  | Tx.MulticastPkts        = %15llu", p_msgPortStats->Rx.etherStatsMulticastPkts,        msgPortStats->Tx.etherStatsMulticastPkts);
-    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.CRCAlignErrors       = %15llu  | Tx.CRCAlignErrors       = %15llu", p_msgPortStats->Rx.etherStatsCRCAlignErrors,       msgPortStats->Tx.etherStatsCRCAlignErrors);
-    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.UndersizePkts        = %15llu  | Tx.OversizePkts         = %15llu", p_msgPortStats->Rx.etherStatsUndersizePkts,        msgPortStats->Tx.etherStatsOversizePkts);
-    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.OversizePkts         = %15llu  | Tx.Fragments            = %15llu", p_msgPortStats->Rx.etherStatsOversizePkts,         msgPortStats->Tx.etherStatsFragments);
-    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Fragments            = %15llu  | Tx.Jabbers              = %15llu", p_msgPortStats->Rx.etherStatsFragments,            msgPortStats->Tx.etherStatsJabbers);
-    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Jabbers              = %15llu  | Tx.Collisions           = %15llu", p_msgPortStats->Rx.etherStatsJabbers,              msgPortStats->Tx.etherStatsCollisions);
-    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts64Octets         = %15llu  | Tx.Pkts64Octets         = %15llu", p_msgPortStats->Rx.etherStatsPkts64Octets,         msgPortStats->Tx.etherStatsPkts64Octets);
-    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts65to127Octets    = %15llu  | Tx.Pkts65to127Octets    = %15llu", p_msgPortStats->Rx.etherStatsPkts65to127Octets,    msgPortStats->Tx.etherStatsPkts65to127Octets);
-    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts128to255Octets   = %15llu  | Tx.Pkts128to255Octets   = %15llu", p_msgPortStats->Rx.etherStatsPkts128to255Octets,   msgPortStats->Tx.etherStatsPkts128to255Octets);
-    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts256to511Octets   = %15llu  | Tx.Pkts256to511Octets   = %15llu", p_msgPortStats->Rx.etherStatsPkts256to511Octets,   msgPortStats->Tx.etherStatsPkts256to511Octets);
-    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts512to1023Octets  = %15llu  | Tx.Pkts512to1023Octets  = %15llu", p_msgPortStats->Rx.etherStatsPkts512to1023Octets,  msgPortStats->Tx.etherStatsPkts512to1023Octets);
-    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts1024to1518Octets = %15llu  | Tx.Pkts1024to1518Octets = %15llu", p_msgPortStats->Rx.etherStatsPkts1024to1518Octets, msgPortStats->Tx.etherStatsPkts1024to1518Octets);
-    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts1519toMaxOctets  = %15llu  | Tx.Pkts1519toMaxOctets  = %15llu", p_msgPortStats->Rx.etherStatsPkts1519toMaxOctets,  msgPortStats->Tx.etherStatsPkts1519toMaxOctets);
-    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Throughput (bps)     = %15llu  | Tx.Throughput (bps)     = %15llu", p_msgPortStats->Rx.Throughput,                     msgPortStats->Tx.Throughput);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.DropEvents           = %15llu  | Tx.DropEvents           = %15llu", ENDIAN_SWAP64(p_msgPortStats->Rx.etherStatsDropEvents),           ENDIAN_SWAP64(p_msgPortStats->Tx.etherStatsDropEvents));
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Octets               = %15llu  | Tx.Octets               = %15llu", ENDIAN_SWAP64(p_msgPortStats->Rx.etherStatsOctets),               ENDIAN_SWAP64(p_msgPortStats->Tx.etherStatsOctets));
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts                 = %15llu  | Tx.Pkts                 = %15llu", ENDIAN_SWAP64(p_msgPortStats->Rx.etherStatsPkts),                 ENDIAN_SWAP64(p_msgPortStats->Tx.etherStatsPkts));
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.BroadcastPkts        = %15llu  | Tx.BroadcastPkts        = %15llu", ENDIAN_SWAP64(p_msgPortStats->Rx.etherStatsBroadcastPkts),        ENDIAN_SWAP64(p_msgPortStats->Tx.etherStatsBroadcastPkts));
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.MulticastPkts        = %15llu  | Tx.MulticastPkts        = %15llu", ENDIAN_SWAP64(p_msgPortStats->Rx.etherStatsMulticastPkts),        ENDIAN_SWAP64(p_msgPortStats->Tx.etherStatsMulticastPkts));
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.CRCAlignErrors       = %15llu  | Tx.CRCAlignErrors       = %15llu", ENDIAN_SWAP64(p_msgPortStats->Rx.etherStatsCRCAlignErrors),       ENDIAN_SWAP64(p_msgPortStats->Tx.etherStatsCRCAlignErrors));
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.UndersizePkts        = %15llu  | Tx.OversizePkts         = %15llu", ENDIAN_SWAP64(p_msgPortStats->Rx.etherStatsUndersizePkts),        ENDIAN_SWAP64(p_msgPortStats->Tx.etherStatsOversizePkts));
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.OversizePkts         = %15llu  | Tx.Fragments            = %15llu", ENDIAN_SWAP64(p_msgPortStats->Rx.etherStatsOversizePkts),         ENDIAN_SWAP64(p_msgPortStats->Tx.etherStatsFragments));
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Fragments            = %15llu  | Tx.Jabbers              = %15llu", ENDIAN_SWAP64(p_msgPortStats->Rx.etherStatsFragments),            ENDIAN_SWAP64(p_msgPortStats->Tx.etherStatsJabbers));
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Jabbers              = %15llu  | Tx.Collisions           = %15llu", ENDIAN_SWAP64(p_msgPortStats->Rx.etherStatsJabbers),              ENDIAN_SWAP64(p_msgPortStats->Tx.etherStatsCollisions));
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts64Octets         = %15llu  | Tx.Pkts64Octets         = %15llu", ENDIAN_SWAP64(p_msgPortStats->Rx.etherStatsPkts64Octets),         ENDIAN_SWAP64(p_msgPortStats->Tx.etherStatsPkts64Octets));
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts65to127Octets    = %15llu  | Tx.Pkts65to127Octets    = %15llu", ENDIAN_SWAP64(p_msgPortStats->Rx.etherStatsPkts65to127Octets),    ENDIAN_SWAP64(p_msgPortStats->Tx.etherStatsPkts65to127Octets));
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts128to255Octets   = %15llu  | Tx.Pkts128to255Octets   = %15llu", ENDIAN_SWAP64(p_msgPortStats->Rx.etherStatsPkts128to255Octets),   ENDIAN_SWAP64(p_msgPortStats->Tx.etherStatsPkts128to255Octets));
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts256to511Octets   = %15llu  | Tx.Pkts256to511Octets   = %15llu", ENDIAN_SWAP64(p_msgPortStats->Rx.etherStatsPkts256to511Octets),   ENDIAN_SWAP64(p_msgPortStats->Tx.etherStatsPkts256to511Octets));
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts512to1023Octets  = %15llu  | Tx.Pkts512to1023Octets  = %15llu", ENDIAN_SWAP64(p_msgPortStats->Rx.etherStatsPkts512to1023Octets),  ENDIAN_SWAP64(p_msgPortStats->Tx.etherStatsPkts512to1023Octets));
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts1024to1518Octets = %15llu  | Tx.Pkts1024to1518Octets = %15llu", ENDIAN_SWAP64(p_msgPortStats->Rx.etherStatsPkts1024to1518Octets), ENDIAN_SWAP64(p_msgPortStats->Tx.etherStatsPkts1024to1518Octets));
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Pkts1519toMaxOctets  = %15llu  | Tx.Pkts1519toMaxOctets  = %15llu", ENDIAN_SWAP64(p_msgPortStats->Rx.etherStatsPkts1519toMaxOctets),  ENDIAN_SWAP64(p_msgPortStats->Tx.etherStatsPkts1519toMaxOctets));
+    PT_LOG_TRACE(LOG_CTX_MSG, " Rx.Throughput (bps)     = %15llu  | Tx.Throughput (bps)     = %15llu", ENDIAN_SWAP64(p_msgPortStats->Rx.Throughput),                     ENDIAN_SWAP64(p_msgPortStats->Tx.Throughput));
   }
 
   return L7_SUCCESS;
@@ -1289,15 +1292,15 @@ L7_RC_t ptin_msg_PhyCounters_read(msg_HwGenReq_t *msgRequest, msg_HWEthRFC2819_P
 L7_RC_t ptin_msg_PhyCounters_clear(msg_HWEthRFC2819_PortStatistics_t *msgPortStats)
 {
   /* Clear statistics */
-  if (ptin_intf_counters_clear(msgPortStats->Port) != L7_SUCCESS)
+  if (ptin_intf_counters_clear(ENDIAN_SWAP8(msgPortStats->Port)) != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "Error clearing statistics of port# %u", msgPortStats->Port);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error clearing statistics of port# %u", ENDIAN_SWAP8(msgPortStats->Port));
     memset(msgPortStats, 0x00, sizeof(msg_HWEthRFC2819_PortStatistics_t));
 
     return L7_FAILURE;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG, "Port# %u counters cleared", msgPortStats->Port);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Port# %u counters cleared", ENDIAN_SWAP8(msgPortStats->Port));
 
   return L7_SUCCESS;
 }
@@ -1332,14 +1335,14 @@ L7_RC_t ptin_msg_intfInfo_get(msg_HwIntfInfo_t *intf_info)
       return L7_FAILURE;
     }
 
-    intf_info->port[ptin_port].board_id = board_id;
-    intf_info->port[ptin_port].enable   = admin;
-    intf_info->port[ptin_port].link     = link;
+    intf_info->port[ptin_port].board_id = ENDIAN_SWAP8(board_id);
+    intf_info->port[ptin_port].enable   = ENDIAN_SWAP8(admin);
+    intf_info->port[ptin_port].link     = ENDIAN_SWAP8(link);
 
     PT_LOG_TRACE(LOG_CTX_MSG, "port=%u: boardId=%u admin=%u link=%u", ptin_port, board_id, admin, link);
   }
   /* Number of ports */
-  intf_info->number_of_ports = ptin_sys_number_of_ports;
+  intf_info->number_of_ports = ENDIAN_SWAP8(ptin_sys_number_of_ports);
 
   #ifdef MAP_CPLD
   if (!ptin_fpga_mx_is_matrixactive())
@@ -1371,19 +1374,19 @@ L7_RC_t ptin_msg_intfLinkStatus(ipc_msg *inbuffer)
   L7_uint32 ptin_port;
 
   /* Validate slot */
-  if (linkStatus->slot_id < PTIN_SYS_LC_SLOT_MIN || linkStatus->slot_id > PTIN_SYS_LC_SLOT_MAX)
+  if (ENDIAN_SWAP8(linkStatus->slot_id) < PTIN_SYS_LC_SLOT_MIN || ENDIAN_SWAP8(linkStatus->slot_id) > PTIN_SYS_LC_SLOT_MAX)
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "Invalid slot %u", linkStatus->slot_id);
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid slot %u", ENDIAN_SWAP8(linkStatus->slot_id));
     return L7_FAILURE;
   }
 
-  PT_LOG_TRACE(LOG_CTX_CONTROL, "Received linkStatus report from slot %u", linkStatus->slot_id);
+  PT_LOG_TRACE(LOG_CTX_CONTROL, "Received linkStatus report from slot %u", ENDIAN_SWAP8(linkStatus->slot_id));
 
   /* Run all given interfaces */
-  for (index=0; index<linkStatus->number_of_ports; index++)
+  for (index = 0; index < ENDIAN_SWAP8(linkStatus->number_of_ports); index++)
   {
     /* Convert to matrix's local ptin_port */
-    if (ptin_intf_slotPort2port(linkStatus->slot_id, index, &ptin_port)!=L7_SUCCESS)
+    if (ptin_intf_slotPort2port(ENDIAN_SWAP8(linkStatus->slot_id), index, &ptin_port)!=L7_SUCCESS)
     {
       //PT_LOG_ERR(LOG_CTX_MSG, "Invalid slot=%u/port=%u", linkStatus->slot_id, index);
       continue;
@@ -1394,16 +1397,16 @@ L7_RC_t ptin_msg_intfLinkStatus(ipc_msg *inbuffer)
     /* Update remote linkStatus */
     memset(&info, 0x00, sizeof(info)); 
     info.updated    = L7_TRUE;
-    info.enable     = linkStatus->port[index].enable;
-    info.link       = linkStatus->port[index].link;
-    info.tx_packets = linkStatus->port[index].tx_packets;
-    info.rx_packets = linkStatus->port[index].rx_packets;
-    info.rx_error   = linkStatus->port[index].rx_error;
+    info.enable     = ENDIAN_SWAP8 (linkStatus->port[index].enable);
+    info.link       = ENDIAN_SWAP8 (linkStatus->port[index].link);
+    info.tx_packets = ENDIAN_SWAP64(linkStatus->port[index].tx_packets);
+    info.rx_packets = ENDIAN_SWAP64(linkStatus->port[index].rx_packets);
+    info.rx_error   = ENDIAN_SWAP64(linkStatus->port[index].rx_error);
 
     ptin_control_remoteLinkstatus_update(ptin_port, &info);
   }
 
-  PT_LOG_TRACE(LOG_CTX_CONTROL, "linkStatus from slot %u updated!", linkStatus->slot_id);
+  PT_LOG_TRACE(LOG_CTX_CONTROL, "linkStatus from slot %u updated!", ENDIAN_SWAP8(linkStatus->slot_id));
 
   return L7_SUCCESS;
 #else
@@ -1436,9 +1439,9 @@ L7_RC_t ptin_msg_slotMode_get(msg_slotModeCfg_t *slotMode)
   /* Run all slots */
   for (i=0; i<MSG_SLOTMODECFG_NSLOTS && i<PTIN_SYS_SLOTS_MAX; i++)
   {
-    slotMode->slot_list[i].slot_index  = i+1;
-    slotMode->slot_list[i].slot_config = 1;
-    slotMode->slot_list[i].slot_mode   = slot_list[i];
+    slotMode->slot_list[i].slot_index  = ENDIAN_SWAP8(i+1);
+    slotMode->slot_list[i].slot_config = ENDIAN_SWAP8(1);
+    slotMode->slot_list[i].slot_mode   = ENDIAN_SWAP8(slot_list[i]);
   }
 
   PT_LOG_DEBUG(LOG_CTX_MSG,"Slot mode list:");
@@ -1471,14 +1474,14 @@ L7_RC_t ptin_msg_slotMode_validate(msg_slotModeCfg_t *slotMode)
   for (i=0; i<MSG_SLOTMODECFG_NSLOTS; i++)
   {
     PT_LOG_DEBUG(LOG_CTX_MSG,"Idx%02u: Slot %02u Active=%u Mode=%u", i,
-              slotMode->slot_list[i].slot_index, slotMode->slot_list[i].slot_config, slotMode->slot_list[i].slot_mode);
+                 ENDIAN_SWAP8(slotMode->slot_list[i].slot_index), ENDIAN_SWAP8(slotMode->slot_list[i].slot_config), ENDIAN_SWAP8(slotMode->slot_list[i].slot_mode));
 
     /* Valid slot? */
-    if (!slotMode->slot_list[i].slot_config)
+    if (!ENDIAN_SWAP8(slotMode->slot_list[i].slot_config))
       continue;
 
-    slot = slotMode->slot_list[i].slot_index;
-    mode = slotMode->slot_list[i].slot_mode;
+    slot = ENDIAN_SWAP8(slotMode->slot_list[i].slot_index);
+    mode = ENDIAN_SWAP8(slotMode->slot_list[i].slot_mode);
     /* Validate slot */
     if (slot>=PTIN_SYS_LC_SLOT_MIN && slot<=PTIN_SYS_LC_SLOT_MAX)
     {
@@ -1535,28 +1538,28 @@ L7_RC_t ptin_msg_portExt_set(msg_HWPortExt_t *portExt, L7_uint nElems)
   for (i=0; i<nElems; i++)
   {
     memset(&portExt_conf,0x00,sizeof(ptin_HWPortExt_t));
-    portExt_conf.Mask                          = portExt[i].Mask;
-    portExt_conf.defVid                        = portExt[i].defVid;
-    portExt_conf.defPrio                       = portExt[i].defPrio;
-    portExt_conf.acceptable_frame_types        = portExt[i].acceptable_frame_types;
-    portExt_conf.ingress_filter                = portExt[i].ingress_filter;
-    portExt_conf.restricted_vlan_reg           = portExt[i].restricted_vlan_reg;
-    portExt_conf.vlan_aware                    = portExt[i].vlan_aware;
-    portExt_conf.type                          = portExt[i].type;
-    portExt_conf.doubletag                     = portExt[i].doubletag;
-    portExt_conf.inner_tpid                    = portExt[i].inner_tpid;
-    portExt_conf.outer_tpid                    = portExt[i].outer_tpid;
-    portExt_conf.egress_type                   = portExt[i].egress_type;
-    portExt_conf.macLearn_enable               = portExt[i].macLearn_enable;
-    portExt_conf.macLearn_stationMove_enable   = portExt[i].macLearn_stationMove_enable;
-    portExt_conf.macLearn_stationMove_prio     = portExt[i].macLearn_stationMove_prio;
-    portExt_conf.macLearn_stationMove_samePrio = portExt[i].macLearn_stationMove_samePrio;
-    portExt_conf.maxChannels                   = portExt[i].maxChannels;
-    portExt_conf.maxBandwidth                  = portExt[i].maxBandwidth;
-    portExt_conf.dhcp_trusted                  = portExt[i].protocol_trusted;
+    portExt_conf.Mask                          = ENDIAN_SWAP32(portExt[i].Mask);
+    portExt_conf.defVid                        = ENDIAN_SWAP16(portExt[i].defVid);
+    portExt_conf.defPrio                       = ENDIAN_SWAP8 (portExt[i].defPrio);
+    portExt_conf.acceptable_frame_types        = ENDIAN_SWAP8 (portExt[i].acceptable_frame_types);
+    portExt_conf.ingress_filter                = ENDIAN_SWAP8 (portExt[i].ingress_filter);
+    portExt_conf.restricted_vlan_reg           = ENDIAN_SWAP8 (portExt[i].restricted_vlan_reg);
+    portExt_conf.vlan_aware                    = ENDIAN_SWAP8 (portExt[i].vlan_aware);
+    portExt_conf.type                          = ENDIAN_SWAP8 (portExt[i].type);
+    portExt_conf.doubletag                     = ENDIAN_SWAP8 (portExt[i].doubletag);
+    portExt_conf.inner_tpid                    = ENDIAN_SWAP16(portExt[i].inner_tpid);
+    portExt_conf.outer_tpid                    = ENDIAN_SWAP16(portExt[i].outer_tpid);
+    portExt_conf.egress_type                   = ENDIAN_SWAP8 (portExt[i].egress_type);
+    portExt_conf.macLearn_enable               = ENDIAN_SWAP8 (portExt[i].macLearn_enable);
+    portExt_conf.macLearn_stationMove_enable   = ENDIAN_SWAP8 (portExt[i].macLearn_stationMove_enable);
+    portExt_conf.macLearn_stationMove_prio     = ENDIAN_SWAP8 (portExt[i].macLearn_stationMove_prio);
+    portExt_conf.macLearn_stationMove_samePrio = ENDIAN_SWAP8 (portExt[i].macLearn_stationMove_samePrio);
+    portExt_conf.maxChannels                   = ENDIAN_SWAP16(portExt[i].maxChannels);
+    portExt_conf.maxBandwidth                  = ENDIAN_SWAP64(portExt[i].maxBandwidth);
+    portExt_conf.dhcp_trusted                  = ENDIAN_SWAP8 (portExt[i].protocol_trusted);
 
-    ptin_intf.intf_type = portExt[i].intf.intf_type;
-    ptin_intf.intf_id   = portExt[i].intf.intf_id;
+    ptin_intf.intf_type = ENDIAN_SWAP8(portExt[i].intf.intf_type);
+    ptin_intf.intf_id   = ENDIAN_SWAP8(portExt[i].intf.intf_id);
 
     /* Set MEF parameters */
     if (ptin_intf_portExt_set(&ptin_intf, &portExt_conf)!=L7_SUCCESS)
@@ -1585,77 +1588,77 @@ L7_RC_t ptin_msg_portExt_get(msg_HWPortExt_t *portExt, L7_uint *nElems)
   ptin_intf_t     ptin_intf;
   ptin_HWPortExt_t portExt_conf;
 
-  slotId              = portExt->SlotId;
-  ptin_intf.intf_type = portExt->intf.intf_type;
-  ptin_intf.intf_id   = portExt->intf.intf_id;
+  slotId              = ENDIAN_SWAP8(portExt->SlotId);
+  ptin_intf.intf_type = ENDIAN_SWAP8(portExt->intf.intf_type);
+  ptin_intf.intf_id   = ENDIAN_SWAP8(portExt->intf.intf_id);
 
-  if (portExt->intf.intf_type==0xff)
+  if (ptin_intf.intf_type==0xff)
   {
     port_start = 0;
     port_end   = PTIN_SYSTEM_N_INTERF-1;
   }
-  else if (portExt->intf.intf_type==PTIN_EVC_INTF_PHYSICAL && portExt->intf.intf_id==0xff)
+  else if (ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL && ptin_intf.intf_id == 0xff)
   {
     port_start = 0;
     port_end   = PTIN_SYSTEM_N_PORTS-1;
   }
-  else if (portExt->intf.intf_type==PTIN_EVC_INTF_LOGICAL && portExt->intf.intf_id==0xff)
+  else if (ptin_intf.intf_type == PTIN_EVC_INTF_LOGICAL && ptin_intf.intf_id == 0xff)
   {
     port_start = PTIN_SYSTEM_N_PORTS;
     port_end   = PTIN_SYSTEM_N_INTERF-1;
   }
-  else if (ptin_intf_ptintf2port(&ptin_intf,&port)==L7_SUCCESS)
+  else if (ptin_intf_ptintf2port(&ptin_intf, &port) == L7_SUCCESS)
   {
     port_start = port;
     port_end   = port;
   }
   else
   {
-    PT_LOG_ERR(LOG_CTX_MSG,"Error reading interface %u/%u",ptin_intf.intf_type,ptin_intf.intf_id);
+    PT_LOG_ERR(LOG_CTX_MSG,"Error reading interface %u/%u", ptin_intf.intf_type, ptin_intf.intf_id);
     return L7_FAILURE;
   }
 
   index = 0;
-  for (port=port_start; port<=port_end; port++)
+  for (port = port_start; port <= port_end; port++)
   {
-    if (ptin_intf_port2ptintf(port,&ptin_intf)!=L7_SUCCESS)
+    if (ptin_intf_port2ptintf(port, &ptin_intf)!=L7_SUCCESS)
     {
-      PT_LOG_WARN(LOG_CTX_MSG,"Error reading port %u",port);
+      PT_LOG_WARN(LOG_CTX_MSG,"Error reading port %u", port);
       continue;
     }
 
-    memset(&portExt_conf,0x00,sizeof(ptin_HWPortExt_t));
+    memset(&portExt_conf, 0x00, sizeof(ptin_HWPortExt_t));
 
     /* Get MEF parameters */
     if (ptin_intf_portExt_get(&ptin_intf, &portExt_conf)!=L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_MSG,"Error getting MEF EXT parameters for interface=%u/%u",ptin_intf.intf_type,ptin_intf.intf_id);
+      PT_LOG_ERR(LOG_CTX_MSG,"Error getting MEF EXT parameters for interface=%u/%u", ptin_intf.intf_type, ptin_intf.intf_id);
       return L7_FAILURE;
     }
 
     /* Copy values to output */
-    portExt[index].SlotId                        = slotId;
-    portExt[index].intf.intf_type                = ptin_intf.intf_type;
-    portExt[index].intf.intf_id                  = ptin_intf.intf_id;
-    portExt[index].Mask                          = portExt_conf.Mask;
-    portExt[index].defVid                        = portExt_conf.defVid;
-    portExt[index].defPrio                       = portExt_conf.defPrio;
-    portExt[index].acceptable_frame_types        = portExt_conf.acceptable_frame_types;
-    portExt[index].ingress_filter                = portExt_conf.ingress_filter;
-    portExt[index].restricted_vlan_reg           = portExt_conf.restricted_vlan_reg;
-    portExt[index].vlan_aware                    = portExt_conf.vlan_aware;
-    portExt[index].type                          = portExt_conf.type;
-    portExt[index].doubletag                     = portExt_conf.doubletag;
-    portExt[index].inner_tpid                    = portExt_conf.inner_tpid;
-    portExt[index].outer_tpid                    = portExt_conf.outer_tpid;
-    portExt[index].egress_type                   = portExt_conf.egress_type;
-    portExt[index].macLearn_enable               = portExt_conf.macLearn_enable;
-    portExt[index].macLearn_stationMove_enable   = portExt_conf.macLearn_stationMove_enable;
-    portExt[index].macLearn_stationMove_prio     = portExt_conf.macLearn_stationMove_prio;
-    portExt[index].macLearn_stationMove_samePrio = portExt_conf.macLearn_stationMove_samePrio;
-    portExt[index].maxChannels                   = portExt_conf.maxChannels;
-    portExt[index].maxBandwidth                  = portExt_conf.maxBandwidth;
-    portExt[index].protocol_trusted              = portExt_conf.dhcp_trusted;
+    portExt[index].SlotId                        = ENDIAN_SWAP8 (slotId);
+    portExt[index].intf.intf_type                = ENDIAN_SWAP8 (ptin_intf.intf_type);
+    portExt[index].intf.intf_id                  = ENDIAN_SWAP8 (ptin_intf.intf_id);
+    portExt[index].Mask                          = ENDIAN_SWAP32(portExt_conf.Mask);
+    portExt[index].defVid                        = ENDIAN_SWAP16(portExt_conf.defVid);
+    portExt[index].defPrio                       = ENDIAN_SWAP8 (portExt_conf.defPrio);
+    portExt[index].acceptable_frame_types        = ENDIAN_SWAP8 (portExt_conf.acceptable_frame_types);
+    portExt[index].ingress_filter                = ENDIAN_SWAP8 (portExt_conf.ingress_filter);
+    portExt[index].restricted_vlan_reg           = ENDIAN_SWAP8 (portExt_conf.restricted_vlan_reg);
+    portExt[index].vlan_aware                    = ENDIAN_SWAP8 (portExt_conf.vlan_aware);
+    portExt[index].type                          = ENDIAN_SWAP8 (portExt_conf.type);
+    portExt[index].doubletag                     = ENDIAN_SWAP8 (portExt_conf.doubletag);
+    portExt[index].inner_tpid                    = ENDIAN_SWAP16(portExt_conf.inner_tpid);
+    portExt[index].outer_tpid                    = ENDIAN_SWAP16(portExt_conf.outer_tpid);
+    portExt[index].egress_type                   = ENDIAN_SWAP8 (portExt_conf.egress_type);
+    portExt[index].macLearn_enable               = ENDIAN_SWAP8 (portExt_conf.macLearn_enable);
+    portExt[index].macLearn_stationMove_enable   = ENDIAN_SWAP8 (portExt_conf.macLearn_stationMove_enable);
+    portExt[index].macLearn_stationMove_prio     = ENDIAN_SWAP8 (portExt_conf.macLearn_stationMove_prio);
+    portExt[index].macLearn_stationMove_samePrio = ENDIAN_SWAP8 (portExt_conf.macLearn_stationMove_samePrio);
+    portExt[index].maxChannels                   = ENDIAN_SWAP16(portExt_conf.maxChannels);
+    portExt[index].maxBandwidth                  = ENDIAN_SWAP64(portExt_conf.maxBandwidth);
+    portExt[index].protocol_trusted              = ENDIAN_SWAP8 (portExt_conf.dhcp_trusted);
 
     index++;
   }
@@ -1686,18 +1689,18 @@ L7_RC_t ptin_msg_portMAC_set(msg_HWPortMac_t *portMac, L7_uint nElems)
   for (i=0; i<nElems; i++)
   {
     PT_LOG_DEBUG(LOG_CTX_MSG,"Structure %u",i);
-    PT_LOG_DEBUG(LOG_CTX_MSG," SlotId = %u",portMac[i].SlotId);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Intf   = %u/%u",portMac[i].intf.intf_type,portMac[i].intf.intf_id);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Mask   = 0x%04x",portMac[i].Mask);
+    PT_LOG_DEBUG(LOG_CTX_MSG," SlotId = %u", ENDIAN_SWAP8(portMac[i].SlotId));
+    PT_LOG_DEBUG(LOG_CTX_MSG," Intf   = %u/%u", ENDIAN_SWAP8(portMac[i].intf.intf_type), ENDIAN_SWAP8(portMac[i].intf.intf_id));
+    PT_LOG_DEBUG(LOG_CTX_MSG," Mask   = 0x%04x", ENDIAN_SWAP16(portMac[i].Mask));
     PT_LOG_DEBUG(LOG_CTX_MSG," MAC    = %02x:%02x:%02x:%02x:%02x:%02x",
-              portMac[i].macAddr[0],portMac[i].macAddr[1],portMac[i].macAddr[2],portMac[i].macAddr[3],portMac[i].macAddr[4],portMac[i].macAddr[5]);
+                 portMac[i].macAddr[0], portMac[i].macAddr[1], portMac[i].macAddr[2], portMac[i].macAddr[3], portMac[i].macAddr[4], portMac[i].macAddr[5]);
 
     memset(&portMac_conf,0x00,sizeof(ptin_HWPortMac_t));
-    portMac_conf.Mask = portMac[i].Mask;
+    portMac_conf.Mask = ENDIAN_SWAP16(portMac[i].Mask);
     memcpy(portMac_conf.macAddr, portMac[i].macAddr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
 
-    ptin_intf.intf_type = portMac[i].intf.intf_type;
-    ptin_intf.intf_id   = portMac[i].intf.intf_id;
+    ptin_intf.intf_type = ENDIAN_SWAP8(portMac[i].intf.intf_type);
+    ptin_intf.intf_id   = ENDIAN_SWAP8(portMac[i].intf.intf_id);
 
     /* Set MEF parameters */
     if (ptin_intf_portMAC_set(&ptin_intf, &portMac_conf)!=L7_SUCCESS)
@@ -1727,77 +1730,82 @@ L7_RC_t ptin_msg_portMAC_get(msg_HWPortMac_t *portMac, L7_uint *nElems)
   ptin_intf_t      ptin_intf;
   ptin_HWPortMac_t portMac_conf;
 
-  slotId = portMac->SlotId;
-  ptin_intf.intf_type = portMac->intf.intf_type;
-  ptin_intf.intf_id   = portMac->intf.intf_id;
+  slotId              = ENDIAN_SWAP8(portMac->SlotId);
+  ptin_intf.intf_type = ENDIAN_SWAP8(portMac->intf.intf_type);
+  ptin_intf.intf_id   = ENDIAN_SWAP8(portMac->intf.intf_id);
 
-  if (portMac->intf.intf_type==0xff)
+  if (ptin_intf.intf_type == 0xff)
   {
     port_start = 0;
     port_end   = PTIN_SYSTEM_N_INTERF-1;
   }
-  else if (portMac->intf.intf_type==PTIN_EVC_INTF_PHYSICAL && portMac->intf.intf_id==0xff)
+  else if (ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL && ptin_intf.intf_id == 0xff)
   {
     port_start = 0;
     port_end   = PTIN_SYSTEM_N_PORTS-1;
   }
-  else if (portMac->intf.intf_type==PTIN_EVC_INTF_LOGICAL && portMac->intf.intf_id==0xff)
+  else if (ptin_intf.intf_type == PTIN_EVC_INTF_LOGICAL && ptin_intf.intf_id == 0xff)
   {
     port_start = PTIN_SYSTEM_N_PORTS;
     port_end   = PTIN_SYSTEM_N_INTERF-1;
   }
-  else if (ptin_intf_ptintf2port(&ptin_intf,&port)==L7_SUCCESS)
+  else if (ptin_intf_ptintf2port(&ptin_intf, &port)==L7_SUCCESS)
   {
     port_start = port;
     port_end   = port;
   }
   else
   {
-    PT_LOG_ERR(LOG_CTX_MSG,"Error reading interface %u/%u",ptin_intf.intf_type,ptin_intf.intf_id);
+    PT_LOG_ERR(LOG_CTX_MSG,"Error reading interface %u/%u", ptin_intf.intf_type, ptin_intf.intf_id);
     return L7_FAILURE;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG,"Going to read %u structures",port_end-port_start+1);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Going to read %u structures", port_end-port_start+1);
 
   index = 0;
-  for (port=port_start; port<=port_end; port++)
+  for (port = port_start; port <= port_end; port++)
   {
-    if (ptin_intf_port2ptintf(port,&ptin_intf)!=L7_SUCCESS)
+    if (ptin_intf_port2ptintf(port, &ptin_intf)!=L7_SUCCESS)
     {
-      PT_LOG_WARN(LOG_CTX_MSG,"Error reading port %u",port);
+      PT_LOG_WARN(LOG_CTX_MSG,"Error reading port %u", port);
       continue;
     }
 
-    memset(&portMac_conf,0x00,sizeof(ptin_HWPortMac_t));
+    memset(&portMac_conf, 0x00, sizeof(ptin_HWPortMac_t));
     portMac_conf.Mask = PTIN_HWPORTMAC_MASK_MACADDR;
 
     /* Get MEF parameters */
     if (ptin_intf_portMAC_get(&ptin_intf, &portMac_conf)!=L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_MSG,"Error getting MAC address for interface=%u/%u",ptin_intf.intf_type,ptin_intf.intf_id);
+      PT_LOG_ERR(LOG_CTX_MSG,"Error getting MAC address for interface=%u/%u", ptin_intf.intf_type, ptin_intf.intf_id);
       return L7_FAILURE;
     }
 
     /* Copy values to output */
-    portMac[index].SlotId                      = slotId;
-    portMac[index].intf.intf_type              = ptin_intf.intf_type;
-    portMac[index].intf.intf_id                = ptin_intf.intf_id;
-    portMac[index].Mask                        = portMac_conf.Mask;
-    memcpy(portMac[index].macAddr,portMac_conf.macAddr,sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
+    portMac[index].SlotId                      = ENDIAN_SWAP8 (slotId);
+    portMac[index].intf.intf_type              = ENDIAN_SWAP8 (ptin_intf.intf_type);
+    portMac[index].intf.intf_id                = ENDIAN_SWAP8 (ptin_intf.intf_id);
+    portMac[index].Mask                        = ENDIAN_SWAP16(portMac_conf.Mask);
+    memcpy(portMac[index].macAddr, portMac_conf.macAddr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
 
-    PT_LOG_DEBUG(LOG_CTX_MSG,"Structure %u",index);
-    PT_LOG_DEBUG(LOG_CTX_MSG," SlotId = %u",portMac[index].SlotId);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Intf   = %u/%u",portMac[index].intf.intf_type,portMac[index].intf.intf_id);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Mask   = 0x%04x",portMac[index].Mask);
+    PT_LOG_DEBUG(LOG_CTX_MSG,"Structure %u", index);
+    PT_LOG_DEBUG(LOG_CTX_MSG," SlotId = %u", ENDIAN_SWAP8(portMac[index].SlotId));
+    PT_LOG_DEBUG(LOG_CTX_MSG," Intf   = %u/%u",  ENDIAN_SWAP8(portMac[index].intf.intf_type), ENDIAN_SWAP8(portMac[index].intf.intf_id));
+    PT_LOG_DEBUG(LOG_CTX_MSG," Mask   = 0x%04x", ENDIAN_SWAP16(portMac[index].Mask));
     PT_LOG_DEBUG(LOG_CTX_MSG," MAC    = %02x:%02x:%02x:%02x:%02x:%02x",
-              portMac[index].macAddr[0],portMac[index].macAddr[1],portMac[index].macAddr[2],portMac[index].macAddr[3],portMac[index].macAddr[4],portMac[index].macAddr[5]);
+                 ENDIAN_SWAP8(portMac[index].macAddr[0]),
+                 ENDIAN_SWAP8(portMac[index].macAddr[1]),
+                 ENDIAN_SWAP8(portMac[index].macAddr[2]),
+                 ENDIAN_SWAP8(portMac[index].macAddr[3]),
+                 ENDIAN_SWAP8(portMac[index].macAddr[4]),
+                 ENDIAN_SWAP8(portMac[index].macAddr[5]));
 
     index++;
   }
 
   if (nElems!=L7_NULLPTR)  *nElems = index;
 
-  PT_LOG_DEBUG(LOG_CTX_MSG, "Success reading MEF EXT parameters for %u interfaces",index);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Success reading MEF EXT parameters for %u interfaces", index);
 
   return L7_SUCCESS;
 }
@@ -9983,15 +9991,15 @@ L7_RC_t ptin_msg_snoop_sync_request(msg_SnoopSyncRequest_t *snoopSyncRequest)
 #endif
 
   PT_LOG_DEBUG(LOG_CTX_MSG,"Received Snoop Sync Request Message");     
-  PT_LOG_DEBUG(LOG_CTX_MSG," serviceId=%u",snoopSyncRequest->serviceId);  
+  PT_LOG_DEBUG(LOG_CTX_MSG," serviceId=%u",snoopSyncRequest->serviceId);
 #if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
   PT_LOG_DEBUG(LOG_CTX_MSG," groupAddr=%s", groupAddrStr);
   PT_LOG_DEBUG(LOG_CTX_MSG," sourceAddr=%s", sourceAddrStr);
 #else
-  PT_LOG_DEBUG(LOG_CTX_MSG," groupAddr=%08X",snoopSyncRequest->groupAddr);
+  PT_LOG_DEBUG(LOG_CTX_MSG," groupAddr=%08X", snoopSyncRequest->groupAddr);
 #endif
 #if !PTIN_BOARD_IS_MATRIX  
-  PT_LOG_DEBUG(LOG_CTX_MSG," portId=%u",snoopSyncRequest->portId);
+  PT_LOG_DEBUG(LOG_CTX_MSG," portId=%u", snoopSyncRequest->portId);
 #endif
   
   if( snoopSyncRequest->serviceId != 0 
@@ -10004,13 +10012,13 @@ L7_RC_t ptin_msg_snoop_sync_request(msg_SnoopSyncRequest_t *snoopSyncRequest)
     }
 #if PTIN_BOARD_IS_MATRIX 
   #if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
-    PT_LOG_NOTICE(LOG_CTX_IGMP, "Evc Id is not yet created. Silently Ignoring Snoop Sync Request! [serviceId:%u groupAddr:%08X sourceAddr:%08X]", snoopSyncRequest->serviceId, snoopSyncRequest->groupAddr, snoopSyncRequest->sourceAddr);
+    PT_LOG_NOTICE(LOG_CTX_IGMP, "Evc Id is not yet created. Silently Ignoring Snoop Sync Request! [serviceId:%u groupAddr:%08X sourceAddr:%08X]", snoopSyncRequest->serviceId, snoopSyncRequest->groupAddr.addr.ipv4, snoopSyncRequest->sourceAddr.addr.ipv4);
   #else
     PT_LOG_NOTICE(LOG_CTX_IGMP, "Evc Id is not yet created. Silently Ignoring Snoop Sync Request! [serviceId:%u groupAddr:%08X]", snoopSyncRequest->serviceId, snoopSyncRequest->groupAddr);
   #endif
 #else
   #if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
-    PT_LOG_NOTICE(LOG_CTX_IGMP, "Evc Id is not yet created. Silently Ignoring Snoop Sync Request! [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X]", snoopSyncRequest->serviceId, snoopSyncRequest->portId, snoopSyncRequest->groupAddr, snoopSyncRequest->sourceAddr);
+    PT_LOG_NOTICE(LOG_CTX_IGMP, "Evc Id is not yet created. Silently Ignoring Snoop Sync Request! [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X]", snoopSyncRequest->serviceId, snoopSyncRequest->portId, snoopSyncRequest->groupAddr.addr.ipv4, snoopSyncRequest->sourceAddr.addr.ipv4);
   #else
     PT_LOG_NOTICE(LOG_CTX_IGMP, "Evc Id is not yet created. Silently Ignoring Snoop Sync Request! [serviceId:%u portId:%u groupAddr:%08X]", snoopSyncRequest->serviceId, snoopSyncRequest->portId, snoopSyncRequest->groupAddr);
   #endif
@@ -10022,13 +10030,13 @@ L7_RC_t ptin_msg_snoop_sync_request(msg_SnoopSyncRequest_t *snoopSyncRequest)
   #if PTIN_BOARD_IS_MATRIX    
     return (ptin_snoop_l3_sync_mx_process_request(mcastRootVlan, &groupAddr, &sourceAddr));            
   #else    
-    return (ptin_snoop_l3_sync_port_process_request(mcastRootVlan, &groupAddr, &sourceAddr, snoopSyncRequest->portId));           
+    return (ptin_snoop_l3_sync_port_process_request(mcastRootVlan, &groupAddr, &sourceAddr, snoopSyncRequest->portId));
   #endif                
 #else
   #if PTIN_BOARD_IS_MATRIX    
-    return (ptin_snoop_sync_mx_process_request(mcastRootVlan, snoopSyncRequest->groupAddr));            
+    return (ptin_snoop_sync_mx_process_request(mcastRootVlan, snoopSyncRequest->groupAddr));
   #else    
-    return (ptin_snoop_sync_port_process_request(mcastRootVlan, snoopSyncRequest->groupAddr, snoopSyncRequest->portId));           
+    return (ptin_snoop_sync_port_process_request(mcastRootVlan, snoopSyncRequest->groupAddr, snoopSyncRequest->portId));
   #endif                
 #endif
 
@@ -10082,7 +10090,7 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
 
     for(iterator=0;iterator < numberOfSnoopEntries; iterator++)
     {
-      PT_LOG_TRACE(LOG_CTX_MSG," serviceId=%u",snoopSyncReply[iterator].serviceId);
+      PT_LOG_TRACE(LOG_CTX_MSG," serviceId=%u", snoopSyncReply[iterator].serviceId);
 #if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
       ptin_to_fp_ip_notation(&snoopSyncReply[iterator].groupAddr, &groupAddr);
       ptin_to_fp_ip_notation(&snoopSyncReply[iterator].sourceAddr, &sourceAddr);
@@ -10092,12 +10100,12 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
       PT_LOG_TRACE(LOG_CTX_MSG," groupAddr=%s", groupAddrStr);
       PT_LOG_TRACE(LOG_CTX_MSG," sourceAddr=%s", sourceAddrStr);
 #else
-      PT_LOG_TRACE(LOG_CTX_MSG," groupAddr=%08X",snoopSyncReply[iterator].groupAddr);
+      PT_LOG_TRACE(LOG_CTX_MSG," groupAddr=%08X", snoopSyncReply[iterator].groupAddr);
 #endif
-      PT_LOG_TRACE(LOG_CTX_MSG," StaticEntry=%s",snoopSyncReply[iterator].isStatic?"Yes":"No");
-      PT_LOG_TRACE(LOG_CTX_MSG," numberOfActivePorts=%u",snoopSyncReply[iterator].numberOfActivePorts);
+      PT_LOG_TRACE(LOG_CTX_MSG," StaticEntry=%s", (snoopSyncReply[iterator].isStatic) ? "Yes" : "No");
+      PT_LOG_TRACE(LOG_CTX_MSG," numberOfActivePorts=%u", snoopSyncReply[iterator].numberOfActivePorts);
       numberOfActivePorts=0;
-      if(snoopSyncReply[iterator].numberOfActivePorts>0)
+      if(snoopSyncReply[iterator].numberOfActivePorts > 0)
       {
         for (intIfNum=1;intIfNum<PTIN_SYSTEM_MAXINTERFACES_PER_GROUP;intIfNum++)
         {   
@@ -10114,7 +10122,7 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
               return L7_FAILURE;
             }
 
-            if(++numberOfActivePorts>=snoopSyncReply[iterator].numberOfActivePorts)
+            if(++numberOfActivePorts >= snoopSyncReply[iterator].numberOfActivePorts)
             {
               break;
             }
@@ -10127,7 +10135,7 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
   {
     for(iterator=0;iterator < numberOfSnoopEntries; iterator++)
     { 
-      PT_LOG_TRACE(LOG_CTX_MSG," serviceId=%u",snoopSyncReply[iterator].serviceId);
+      PT_LOG_TRACE(LOG_CTX_MSG," serviceId=%u", snoopSyncReply[iterator].serviceId);
 #if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
       ptin_to_fp_ip_notation(&snoopSyncReply[iterator].groupAddr, &groupAddr);
       ptin_to_fp_ip_notation(&snoopSyncReply[iterator].sourceAddr, &sourceAddr);
@@ -10137,10 +10145,10 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
       PT_LOG_TRACE(LOG_CTX_MSG," groupAddr=%s", groupAddrStr);
       PT_LOG_TRACE(LOG_CTX_MSG," sourceAddr=%s", sourceAddrStr);
 #else
-      PT_LOG_TRACE(LOG_CTX_MSG," groupAddr=%08X",snoopSyncReply[iterator].groupAddr);
+      PT_LOG_TRACE(LOG_CTX_MSG," groupAddr=%08X", snoopSyncReply[iterator].groupAddr);
 #endif
-      PT_LOG_TRACE(LOG_CTX_MSG," StaticEntry=%s",snoopSyncReply[iterator].isStatic?"Yes":"No");   
-      PT_LOG_TRACE(LOG_CTX_MSG," portId=%u",snoopSyncReply->portId);
+      PT_LOG_TRACE(LOG_CTX_MSG," StaticEntry=%s", (snoopSyncReply[iterator].isStatic) ? "Yes" : "No");
+      PT_LOG_TRACE(LOG_CTX_MSG," portId=%u", snoopSyncReply->portId);
       #if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
       if(snoopPortOpen(snoopSyncReply[iterator].serviceId, snoopSyncReply[iterator].portId, &groupAddr, &sourceAddr, snoopSyncReply[iterator].isStatic, isProtection)!=L7_SUCCESS)
       #else
@@ -10207,7 +10215,7 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
     return L7_FAILURE;
   }
   #endif
-  snoopSyncRequest.portId    = protTypebIntfConfig.pairIntfNum;     
+  snoopSyncRequest.portId = protTypebIntfConfig.pairIntfNum;
 
   PT_LOG_DEBUG(LOG_CTX_MSG, "Sending Snoop Sync Request Message [groupAddr:%08X | serviceId:%u | portId:%u] to ipAddr:%08X to Sync the Remaining Snoop Entries", snoopSyncRequest.groupAddr, snoopSyncRequest.serviceId, snoopSyncRequest.portId, ipAddr);
 #endif
@@ -10346,14 +10354,14 @@ L7_RC_t ptin_msg_uplink_protection_cmd(msg_uplinkProtCmd *cmd, L7_int n)
   for (i = 0; i < n; i++) 
   {
     PT_LOG_TRACE(LOG_CTX_MSG, "Received protection command: "); 
-    PT_LOG_TRACE(LOG_CTX_MSG, " slot = %u", cmd[i].slotId);
-    PT_LOG_TRACE(LOG_CTX_MSG, " port = %u", cmd[i].port);
-    PT_LOG_TRACE(LOG_CTX_MSG, " cmd  = %u", cmd[i].protCmd);
+    PT_LOG_TRACE(LOG_CTX_MSG, " slot = %u", ENDIAN_SWAP8(cmd[i].slotId));
+    PT_LOG_TRACE(LOG_CTX_MSG, " port = %u", ENDIAN_SWAP8(cmd[i].port));
+    PT_LOG_TRACE(LOG_CTX_MSG, " cmd  = %u", ENDIAN_SWAP8(cmd[i].protCmd));
 
     if (n > 1)
     {
-      if      ( (cmd[i].protCmd & 1) && i2add < 0)  i2add = i;
-      else if (!(cmd[i].protCmd & 1) && i2rem < 0)  i2rem = i;
+      if      ( (ENDIAN_SWAP8(cmd[i].protCmd) & 1) && i2add < 0)  i2add = i;
+      else if (!(ENDIAN_SWAP8(cmd[i].protCmd) & 1) && i2rem < 0)  i2rem = i;
     }
   }
 
@@ -10361,13 +10369,13 @@ L7_RC_t ptin_msg_uplink_protection_cmd(msg_uplinkProtCmd *cmd, L7_int n)
   if (i2add >= 0 && i2rem >= 0)
   {
     PT_LOG_TRACE(LOG_CTX_MSG, "Applying plan D for slot/ports %d/%d -> %d/%d",
-              cmd[i2rem].slotId, cmd[i2rem].port, cmd[i2add].slotId, cmd[i2add].port);
+                 ENDIAN_SWAP8(cmd[i2rem].slotId), ENDIAN_SWAP8(cmd[i2rem].port), ENDIAN_SWAP8(cmd[i2add].slotId), ENDIAN_SWAP8(cmd[i2add].port));
     /* PLAN D */
-    if (ptin_intf_protection_cmd_planD(cmd[i2rem].slotId, cmd[i2rem].port,
-                                       cmd[i2add].slotId, cmd[i2add].port) != L7_SUCCESS)
+    if (ptin_intf_protection_cmd_planD(ENDIAN_SWAP8(cmd[i2rem].slotId), ENDIAN_SWAP8(cmd[i2rem].port),
+                                       ENDIAN_SWAP8(cmd[i2add].slotId), ENDIAN_SWAP8(cmd[i2add].port)) != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG, "Plan D failed for slot/ports %d/%d -> %d/%d",
-              cmd[i2rem].slotId, cmd[i2rem].port, cmd[i2add].slotId, cmd[i2add].port);
+                 ENDIAN_SWAP8(cmd[i2rem].slotId), ENDIAN_SWAP8(cmd[i2rem].port), ENDIAN_SWAP8(cmd[i2add].slotId), ENDIAN_SWAP8(cmd[i2add].port));
       rc = L7_FAILURE;
     }
   }
@@ -10378,11 +10386,11 @@ L7_RC_t ptin_msg_uplink_protection_cmd(msg_uplinkProtCmd *cmd, L7_int n)
     /* Skip ports used for plan D */
     if (i == i2rem || i == i2add)  continue;
 
-    PT_LOG_TRACE(LOG_CTX_MSG, "Applying plan C for slot/port %d/%d", cmd[i].slotId, cmd[i].port);
+    PT_LOG_TRACE(LOG_CTX_MSG, "Applying plan C for slot/port %d/%d", ENDIAN_SWAP8(cmd[i].slotId), ENDIAN_SWAP8(cmd[i].port));
     /* PLAN C */
-    if (ptin_intf_protection_cmd_planC(cmd[i].slotId, cmd[i].port, cmd[i].protCmd) != L7_SUCCESS)
+    if (ptin_intf_protection_cmd_planC(ENDIAN_SWAP8(cmd[i].slotId), ENDIAN_SWAP8(cmd[i].port), ENDIAN_SWAP8(cmd[i].protCmd)) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_MSG, "Plan C failed for slot/port %d/%d", cmd[i].slotId, cmd[i].port);
+      PT_LOG_ERR(LOG_CTX_MSG, "Plan C failed for slot/port %d/%d", ENDIAN_SWAP8(cmd[i].slotId), ENDIAN_SWAP8(cmd[i].port));
       rc = L7_FAILURE;
     }
   }
@@ -10421,7 +10429,12 @@ L7_RC_t ptin_msg_mgmd_sync_ports(msg_HwMgmdPortSync *port_sync_data)
   PT_LOG_TRACE(LOG_CTX_MSG, " sourceAddr = %08X", port_sync_data->sourceAddr);
   PT_LOG_TRACE(LOG_CTX_MSG, " groupType  = %u",   port_sync_data->groupType);
 
-  ptin_igmp_mgmd_port_sync(port_sync_data->admin, port_sync_data->serviceId, port_sync_data->portId, port_sync_data->groupAddr, port_sync_data->sourceAddr, port_sync_data->groupType);
+  ptin_igmp_mgmd_port_sync(port_sync_data->admin,
+                           port_sync_data->serviceId,
+                           port_sync_data->portId,
+                           port_sync_data->groupAddr,
+                           port_sync_data->sourceAddr,
+                           port_sync_data->groupType);
 
   return L7_SUCCESS;
 }
@@ -10442,12 +10455,12 @@ L7_RC_t ptin_msg_pcs_prbs_enable(msg_ptin_pcs_prbs *msg, L7_int n_msg)
   for (i=0; i<n_msg; i++)
   {
     PT_LOG_DEBUG(LOG_CTX_MSG,"PRBS configuration:");
-    PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u",msg[i].SlotId);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Port   = %u/%u",msg[i].intf.intf_type,msg[i].intf.intf_id);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Enable = %u",msg[i].enable);
+    PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u",    ENDIAN_SWAP8(msg[i].SlotId));
+    PT_LOG_DEBUG(LOG_CTX_MSG," Port   = %u/%u", ENDIAN_SWAP8(msg[i].intf.intf_type), ENDIAN_SWAP8(msg[i].intf.intf_id));
+    PT_LOG_DEBUG(LOG_CTX_MSG," Enable = %u",    ENDIAN_SWAP8(msg[i].enable));
 
-    ptin_intf.intf_type = msg[i].intf.intf_type;
-    ptin_intf.intf_id   = msg[i].intf.intf_id;
+    ptin_intf.intf_type = ENDIAN_SWAP8(msg[i].intf.intf_type);
+    ptin_intf.intf_id   = ENDIAN_SWAP8(msg[i].intf.intf_id);
 
     /* Get intIfNum */
     if (ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum)!=L7_SUCCESS)
@@ -10456,14 +10469,14 @@ L7_RC_t ptin_msg_pcs_prbs_enable(msg_ptin_pcs_prbs *msg, L7_int n_msg)
       return L7_FAILURE;
     }
 
-    rc = ptin_pcs_prbs_enable(intIfNum,msg[i].enable);
+    rc = ptin_pcs_prbs_enable(intIfNum, ENDIAN_SWAP8(msg[i].enable));
     if (rc!=L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_MSG,"Error settings PRBS enable of port %u/%u to %u",ptin_intf.intf_type,ptin_intf.intf_id,msg[i].enable);
+      PT_LOG_ERR(LOG_CTX_MSG,"Error settings PRBS enable of port %u/%u to %u", ptin_intf.intf_type, ptin_intf.intf_id, ENDIAN_SWAP8(msg[i].enable));
       return rc;
     }
 
-    PT_LOG_TRACE(LOG_CTX_MSG,"Success setting PRBS enable of port %u/%u to %u",ptin_intf.intf_type,ptin_intf.intf_id,msg[i].enable);
+    PT_LOG_TRACE(LOG_CTX_MSG,"Success setting PRBS enable of port %u/%u to %u", ptin_intf.intf_type, ptin_intf.intf_id, ENDIAN_SWAP8(msg[i].enable));
   }
 
   return L7_SUCCESS;
@@ -10485,11 +10498,11 @@ L7_RC_t ptin_msg_pcs_prbs_status(msg_ptin_pcs_prbs *msg, L7_int n_msg)
   for (i=0; i<n_msg; i++)
   {
     PT_LOG_DEBUG(LOG_CTX_MSG,"PRBS status:");
-    PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u",msg[i].SlotId);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Port   = %u/%u",msg[i].intf.intf_type,msg[i].intf.intf_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u",    ENDIAN_SWAP8(msg[i].SlotId));
+    PT_LOG_DEBUG(LOG_CTX_MSG," Port   = %u/%u", ENDIAN_SWAP8(msg[i].intf.intf_type), ENDIAN_SWAP8(msg[i].intf.intf_id));
 
-    ptin_intf.intf_type = msg[i].intf.intf_type;
-    ptin_intf.intf_id   = msg[i].intf.intf_id;
+    ptin_intf.intf_type = ENDIAN_SWAP8(msg[i].intf.intf_type);
+    ptin_intf.intf_id   = ENDIAN_SWAP8(msg[i].intf.intf_id);
 
     /* Get intIfNum */
     if (ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum)!=L7_SUCCESS)
@@ -10512,8 +10525,8 @@ L7_RC_t ptin_msg_pcs_prbs_status(msg_ptin_pcs_prbs *msg, L7_int n_msg)
 
     if (rxStatus<=0xffff)
     {
-      msg[i].rxStatus.lock = L7_TRUE;
-      msg[i].rxStatus.rxErrors = rxStatus;
+      msg[i].rxStatus.lock = ENDIAN_SWAP8(L7_TRUE);
+      msg[i].rxStatus.rxErrors = ENDIAN_SWAP32(rxStatus);
     }
   }
 
@@ -10823,50 +10836,50 @@ static L7_RC_t ptin_shell_command_run(L7_char8 *tty, L7_char8 *type, L7_char8 *c
 static void ptin_msg_PortStats_convert(msg_HWEthRFC2819_PortStatistics_t  *msgPortStats,
                                        ptin_HWEthRFC2819_PortStatistics_t *ptinPortStats)
 {
-  msgPortStats->Port                              = ptinPortStats->Port;
-  msgPortStats->Mask                              = ptinPortStats->Mask;
-  msgPortStats->RxMask                            = ptinPortStats->RxMask;
-  msgPortStats->TxMask                            = ptinPortStats->TxMask;
+  msgPortStats->Port                              = ENDIAN_SWAP8 (ptinPortStats->Port);
+  msgPortStats->Mask                              = ENDIAN_SWAP8 (ptinPortStats->Mask);
+  msgPortStats->RxMask                            = ENDIAN_SWAP32(ptinPortStats->RxMask);
+  msgPortStats->TxMask                            = ENDIAN_SWAP32(ptinPortStats->TxMask);
   /* Rx */
-  msgPortStats->Rx.etherStatsDropEvents           = ptinPortStats->Rx.etherStatsDropEvents;
-  msgPortStats->Rx.etherStatsOctets               = ptinPortStats->Rx.etherStatsOctets;
-  msgPortStats->Rx.etherStatsPkts                 = ptinPortStats->Rx.etherStatsPkts;
-  msgPortStats->Rx.etherStatsBroadcastPkts        = ptinPortStats->Rx.etherStatsBroadcastPkts;
-  msgPortStats->Rx.etherStatsMulticastPkts        = ptinPortStats->Rx.etherStatsMulticastPkts;
-  msgPortStats->Rx.etherStatsCRCAlignErrors       = ptinPortStats->Rx.etherStatsCRCAlignErrors;
-  msgPortStats->Rx.etherStatsUndersizePkts        = ptinPortStats->Rx.etherStatsUndersizePkts;
-  msgPortStats->Rx.etherStatsOversizePkts         = ptinPortStats->Rx.etherStatsOversizePkts;
-  msgPortStats->Rx.etherStatsFragments            = ptinPortStats->Rx.etherStatsFragments;
-  msgPortStats->Rx.etherStatsJabbers              = ptinPortStats->Rx.etherStatsJabbers;
-  msgPortStats->Rx.etherStatsCollisions           = ptinPortStats->Rx.etherStatsCollisions;
-  msgPortStats->Rx.etherStatsPkts64Octets         = ptinPortStats->Rx.etherStatsPkts64Octets;
-  msgPortStats->Rx.etherStatsPkts65to127Octets    = ptinPortStats->Rx.etherStatsPkts65to127Octets;
-  msgPortStats->Rx.etherStatsPkts128to255Octets   = ptinPortStats->Rx.etherStatsPkts128to255Octets;
-  msgPortStats->Rx.etherStatsPkts256to511Octets   = ptinPortStats->Rx.etherStatsPkts256to511Octets;
-  msgPortStats->Rx.etherStatsPkts512to1023Octets  = ptinPortStats->Rx.etherStatsPkts512to1023Octets;
-  msgPortStats->Rx.etherStatsPkts1024to1518Octets = ptinPortStats->Rx.etherStatsPkts1024to1518Octets;
-  msgPortStats->Rx.etherStatsPkts1519toMaxOctets  = ptinPortStats->Rx.etherStatsPkts1519toMaxOctets;
-  msgPortStats->Rx.Throughput                     = ptinPortStats->Rx.Throughput;
+  msgPortStats->Rx.etherStatsDropEvents           = ENDIAN_SWAP64(ptinPortStats->Rx.etherStatsDropEvents);
+  msgPortStats->Rx.etherStatsOctets               = ENDIAN_SWAP64(ptinPortStats->Rx.etherStatsOctets);
+  msgPortStats->Rx.etherStatsPkts                 = ENDIAN_SWAP64(ptinPortStats->Rx.etherStatsPkts);
+  msgPortStats->Rx.etherStatsBroadcastPkts        = ENDIAN_SWAP64(ptinPortStats->Rx.etherStatsBroadcastPkts);
+  msgPortStats->Rx.etherStatsMulticastPkts        = ENDIAN_SWAP64(ptinPortStats->Rx.etherStatsMulticastPkts);
+  msgPortStats->Rx.etherStatsCRCAlignErrors       = ENDIAN_SWAP64(ptinPortStats->Rx.etherStatsCRCAlignErrors);
+  msgPortStats->Rx.etherStatsUndersizePkts        = ENDIAN_SWAP64(ptinPortStats->Rx.etherStatsUndersizePkts);
+  msgPortStats->Rx.etherStatsOversizePkts         = ENDIAN_SWAP64(ptinPortStats->Rx.etherStatsOversizePkts);
+  msgPortStats->Rx.etherStatsFragments            = ENDIAN_SWAP64(ptinPortStats->Rx.etherStatsFragments);
+  msgPortStats->Rx.etherStatsJabbers              = ENDIAN_SWAP64(ptinPortStats->Rx.etherStatsJabbers);
+  msgPortStats->Rx.etherStatsCollisions           = ENDIAN_SWAP64(ptinPortStats->Rx.etherStatsCollisions);
+  msgPortStats->Rx.etherStatsPkts64Octets         = ENDIAN_SWAP64(ptinPortStats->Rx.etherStatsPkts64Octets);
+  msgPortStats->Rx.etherStatsPkts65to127Octets    = ENDIAN_SWAP64(ptinPortStats->Rx.etherStatsPkts65to127Octets);
+  msgPortStats->Rx.etherStatsPkts128to255Octets   = ENDIAN_SWAP64(ptinPortStats->Rx.etherStatsPkts128to255Octets);
+  msgPortStats->Rx.etherStatsPkts256to511Octets   = ENDIAN_SWAP64(ptinPortStats->Rx.etherStatsPkts256to511Octets);
+  msgPortStats->Rx.etherStatsPkts512to1023Octets  = ENDIAN_SWAP64(ptinPortStats->Rx.etherStatsPkts512to1023Octets);
+  msgPortStats->Rx.etherStatsPkts1024to1518Octets = ENDIAN_SWAP64(ptinPortStats->Rx.etherStatsPkts1024to1518Octets);
+  msgPortStats->Rx.etherStatsPkts1519toMaxOctets  = ENDIAN_SWAP64(ptinPortStats->Rx.etherStatsPkts1519toMaxOctets);
+  msgPortStats->Rx.Throughput                     = ENDIAN_SWAP64(ptinPortStats->Rx.Throughput);
   /* Tx */
-  msgPortStats->Tx.etherStatsDropEvents           = ptinPortStats->Tx.etherStatsDropEvents;
-  msgPortStats->Tx.etherStatsOctets               = ptinPortStats->Tx.etherStatsOctets;
-  msgPortStats->Tx.etherStatsPkts                 = ptinPortStats->Tx.etherStatsPkts;
-  msgPortStats->Tx.etherStatsBroadcastPkts        = ptinPortStats->Tx.etherStatsBroadcastPkts;
-  msgPortStats->Tx.etherStatsMulticastPkts        = ptinPortStats->Tx.etherStatsMulticastPkts;
-  msgPortStats->Tx.etherStatsCRCAlignErrors       = ptinPortStats->Tx.etherStatsCRCAlignErrors;
-  msgPortStats->Tx.etherStatsUndersizePkts        = ptinPortStats->Tx.etherStatsUndersizePkts;
-  msgPortStats->Tx.etherStatsOversizePkts         = ptinPortStats->Tx.etherStatsOversizePkts;
-  msgPortStats->Tx.etherStatsFragments            = ptinPortStats->Tx.etherStatsFragments;
-  msgPortStats->Tx.etherStatsJabbers              = ptinPortStats->Tx.etherStatsJabbers;
-  msgPortStats->Tx.etherStatsCollisions           = ptinPortStats->Tx.etherStatsCollisions;
-  msgPortStats->Tx.etherStatsPkts64Octets         = ptinPortStats->Tx.etherStatsPkts64Octets;
-  msgPortStats->Tx.etherStatsPkts65to127Octets    = ptinPortStats->Tx.etherStatsPkts65to127Octets;
-  msgPortStats->Tx.etherStatsPkts128to255Octets   = ptinPortStats->Tx.etherStatsPkts128to255Octets;
-  msgPortStats->Tx.etherStatsPkts256to511Octets   = ptinPortStats->Tx.etherStatsPkts256to511Octets;
-  msgPortStats->Tx.etherStatsPkts512to1023Octets  = ptinPortStats->Tx.etherStatsPkts512to1023Octets;
-  msgPortStats->Tx.etherStatsPkts1024to1518Octets = ptinPortStats->Tx.etherStatsPkts1024to1518Octets;
-  msgPortStats->Tx.etherStatsPkts1519toMaxOctets  = ptinPortStats->Tx.etherStatsPkts1519toMaxOctets;
-  msgPortStats->Tx.Throughput                     = ptinPortStats->Tx.Throughput;
+  msgPortStats->Tx.etherStatsDropEvents           = ENDIAN_SWAP64(ptinPortStats->Tx.etherStatsDropEvents);
+  msgPortStats->Tx.etherStatsOctets               = ENDIAN_SWAP64(ptinPortStats->Tx.etherStatsOctets);
+  msgPortStats->Tx.etherStatsPkts                 = ENDIAN_SWAP64(ptinPortStats->Tx.etherStatsPkts);
+  msgPortStats->Tx.etherStatsBroadcastPkts        = ENDIAN_SWAP64(ptinPortStats->Tx.etherStatsBroadcastPkts);
+  msgPortStats->Tx.etherStatsMulticastPkts        = ENDIAN_SWAP64(ptinPortStats->Tx.etherStatsMulticastPkts);
+  msgPortStats->Tx.etherStatsCRCAlignErrors       = ENDIAN_SWAP64(ptinPortStats->Tx.etherStatsCRCAlignErrors);
+  msgPortStats->Tx.etherStatsUndersizePkts        = ENDIAN_SWAP64(ptinPortStats->Tx.etherStatsUndersizePkts);
+  msgPortStats->Tx.etherStatsOversizePkts         = ENDIAN_SWAP64(ptinPortStats->Tx.etherStatsOversizePkts);
+  msgPortStats->Tx.etherStatsFragments            = ENDIAN_SWAP64(ptinPortStats->Tx.etherStatsFragments);
+  msgPortStats->Tx.etherStatsJabbers              = ENDIAN_SWAP64(ptinPortStats->Tx.etherStatsJabbers);
+  msgPortStats->Tx.etherStatsCollisions           = ENDIAN_SWAP64(ptinPortStats->Tx.etherStatsCollisions);
+  msgPortStats->Tx.etherStatsPkts64Octets         = ENDIAN_SWAP64(ptinPortStats->Tx.etherStatsPkts64Octets);
+  msgPortStats->Tx.etherStatsPkts65to127Octets    = ENDIAN_SWAP64(ptinPortStats->Tx.etherStatsPkts65to127Octets);
+  msgPortStats->Tx.etherStatsPkts128to255Octets   = ENDIAN_SWAP64(ptinPortStats->Tx.etherStatsPkts128to255Octets);
+  msgPortStats->Tx.etherStatsPkts256to511Octets   = ENDIAN_SWAP64(ptinPortStats->Tx.etherStatsPkts256to511Octets);
+  msgPortStats->Tx.etherStatsPkts512to1023Octets  = ENDIAN_SWAP64(ptinPortStats->Tx.etherStatsPkts512to1023Octets);
+  msgPortStats->Tx.etherStatsPkts1024to1518Octets = ENDIAN_SWAP64(ptinPortStats->Tx.etherStatsPkts1024to1518Octets);
+  msgPortStats->Tx.etherStatsPkts1519toMaxOctets  = ENDIAN_SWAP64(ptinPortStats->Tx.etherStatsPkts1519toMaxOctets);
+  msgPortStats->Tx.Throughput                     = ENDIAN_SWAP64(ptinPortStats->Tx.Throughput);
 }
 
 /**
