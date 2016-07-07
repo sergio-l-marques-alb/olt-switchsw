@@ -32,6 +32,8 @@
 #include <errno.h>
 #include "ipc_lib.h"
 #include "memchk.h"
+#include "globals.h"
+
 #include <sys/socket.h>
 //variavel que suporta os canais de comunicacao
 static T_IPC ipc_canais[MAX_CANAIS];
@@ -71,7 +73,8 @@ static T_IPC ipc_canais[MAX_CANAIS];
 int send_data(int canal_id, int porto_destino, unsigned int ipdest, pc_type *sendbuffer, pc_type *receivebuffer)
 {
    int bytes, addr_len;
-   struct sockaddr_in socketaddr_aux;   
+   struct sockaddr_in socketaddr_aux;
+   unsigned int infoDim;
 
    if(canal_id>=MAX_CANAIS)
        return(-3);
@@ -81,7 +84,19 @@ int send_data(int canal_id, int porto_destino, unsigned int ipdest, pc_type *sen
    ipc_canais[canal_id].socketaddr_cliente.sin_addr.s_addr=htonl(ipdest); //localhost (temporario)
    ipc_canais[canal_id].socketaddr_cliente.sin_port = htons(porto_destino); 
    
-   if ( sendto(ipc_canais[canal_id].socket_descriptor_cliente, sendbuffer, (sendbuffer->infoDim)+(7*sizeof(int)), 0,
+   /* Extract infodim */
+   infoDim = sendbuffer->infoDim;
+
+   /* Convert outbuffer to correct endianess */
+   sendbuffer->protocolId  = ENDIAN_SWAP32(sendbuffer->protocolId);
+   sendbuffer->srcId       = ENDIAN_SWAP32(sendbuffer->srcId);
+   sendbuffer->dstId       = ENDIAN_SWAP32(sendbuffer->dstId);
+   sendbuffer->flags       = ENDIAN_SWAP32(sendbuffer->flags);
+   sendbuffer->counter     = ENDIAN_SWAP32(sendbuffer->counter);
+   sendbuffer->msgId       = ENDIAN_SWAP32(sendbuffer->msgId);
+   sendbuffer->infoDim     = ENDIAN_SWAP32(sendbuffer->infoDim);
+
+   if ( sendto(ipc_canais[canal_id].socket_descriptor_cliente, sendbuffer, (infoDim)+(7*sizeof(int)), 0,
                (struct sockaddr*)&ipc_canais[canal_id].socketaddr_cliente,
                sizeof(ipc_canais[canal_id].socketaddr_cliente))==-1 )
        return(-1);
@@ -104,6 +119,15 @@ int send_data(int canal_id, int porto_destino, unsigned int ipdest, pc_type *sen
 #endif
      return(-2);
    }
+
+   /* Convert receivebuffer to correct endianess */
+   receivebuffer->protocolId  = ENDIAN_SWAP32(receivebuffer->protocolId);
+   receivebuffer->srcId       = ENDIAN_SWAP32(receivebuffer->srcId);
+   receivebuffer->dstId       = ENDIAN_SWAP32(receivebuffer->dstId);
+   receivebuffer->flags       = ENDIAN_SWAP32(receivebuffer->flags);
+   receivebuffer->counter     = ENDIAN_SWAP32(receivebuffer->counter);
+   receivebuffer->msgId       = ENDIAN_SWAP32(receivebuffer->msgId);
+   receivebuffer->infoDim     = ENDIAN_SWAP32(receivebuffer->infoDim);
 
 #ifdef _IPC_DEBUG_
    printf("msg from %s:%d (%d bytes)\n", inet_ntoa(socketaddr_aux.sin_addr),
@@ -141,6 +165,7 @@ static int clone_proc_msg(void* canal_id)
     int bytes, socketaddr_len;
     struct sockaddr_in socketaddr_aux;
     int canal;
+    unsigned int infoDim;
 
     canal = *(int*)canal_id;
 
@@ -157,21 +182,41 @@ static int clone_proc_msg(void* canal_id)
 		bytes = recvfrom(ipc_canais[canal].socket_descriptor_servidor, &inbuffer, sizeof(inbuffer), 0,
                          (struct sockaddr*)&socketaddr_aux, (socklen_t*)&socketaddr_len);
 
+        /* Convert endianess of IPC header (info data is not touched) */
+        inbuffer.protocolId  = ENDIAN_SWAP32(inbuffer.protocolId);
+        inbuffer.srcId       = ENDIAN_SWAP32(inbuffer.srcId);
+        inbuffer.dstId       = ENDIAN_SWAP32(inbuffer.dstId);
+        inbuffer.flags       = ENDIAN_SWAP32(inbuffer.flags);
+        inbuffer.counter     = ENDIAN_SWAP32(inbuffer.counter);
+        inbuffer.msgId       = ENDIAN_SWAP32(inbuffer.msgId);
+        inbuffer.infoDim     = ENDIAN_SWAP32(inbuffer.infoDim);
+
 		if (bytes>0)
 		{                              //Se pacote valido, processa
             #ifdef _IPC_DEBUG_
 			fprintf(stderr,"msg from %s:%d (%d bytes)\n", inet_ntoa(socketaddr_aux.sin_addr), 
                                               ntohs(socketaddr_aux.sin_port), bytes);
-            fprintf(stderr,"id=%d,dim=%d\n\r",inbuffer.msgId,inbuffer.infoDim);
+            fprintf(stderr,"id=%d,dim=%d\n\r", inbuffer.msgId, inbuffer.infoDim);
             #endif
             
             //envia pacote para a rotina de processamento de pacotes (definida no metodo <open_ipc>,
             //e que devera ser definida pelo utilizador 
-            if(ipc_canais[canal].processa_msg_handler(&inbuffer,&outbuffer)>=0)
+            if(ipc_canais[canal].processa_msg_handler(&inbuffer, &outbuffer) >= 0)
             {
+              infoDim = outbuffer.infoDim;
+
+              /* Convert outbuffer to correct endianess */
+              outbuffer.protocolId  = ENDIAN_SWAP32(outbuffer.protocolId);
+              outbuffer.srcId       = ENDIAN_SWAP32(outbuffer.srcId);
+              outbuffer.dstId       = ENDIAN_SWAP32(outbuffer.dstId);
+              outbuffer.flags       = ENDIAN_SWAP32(outbuffer.flags);
+              outbuffer.counter     = ENDIAN_SWAP32(outbuffer.counter);
+              outbuffer.msgId       = ENDIAN_SWAP32(outbuffer.msgId);
+              outbuffer.infoDim     = ENDIAN_SWAP32(outbuffer.infoDim);
+
               // se o valor de retorno for >=0 entao e enviada um pacote outbuffer para 
               // a origem do pacote que vei no inbuffer
-              sendto(ipc_canais[canal].socket_descriptor_servidor, &outbuffer,  (outbuffer.infoDim)+(7*sizeof(int)), 0,
+              sendto(ipc_canais[canal].socket_descriptor_servidor, &outbuffer,  (infoDim)+(7*sizeof(int)), 0,
                    (struct sockaddr*)&socketaddr_aux, 
                    sizeof(socketaddr_aux));
             }

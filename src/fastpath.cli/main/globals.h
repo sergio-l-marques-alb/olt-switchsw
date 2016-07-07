@@ -2,7 +2,7 @@
 #define _MYTYPES_H_
 
 #include "config.h"
-
+#include <endian.h>
 
 
 #ifdef __cplusplus
@@ -11,7 +11,41 @@
     #define EXTERN_C extern
 #endif
 
-              
+#define PTIN_BOARD_CXP360G  1
+#define PTIN_BOARD_CXO640G  2
+#define PTIN_BOARD_CXO160G  3
+#define PTIN_BOARD_TG4G     4
+#define PTIN_BOARD_TG16G    5
+#define PTIN_BOARD_TG16GF   6
+#define PTIN_BOARD_TA48GE   7
+#define PTIN_BOARD_OLT1T0   8
+#define PTIN_BOARD_OLT1T0F  9
+
+/* Fort systems Little Endian and if not pizza box, invert bytes */
+#if (__BYTE_ORDER == __LITTLE_ENDIAN) && \
+    (PTIN_BOARD != PTIN_BOARD_OLT1T0 && PTIN_BOARD != PTIN_BOARD_OLT1T0F)
+
+#define ENDIAN_SWAP8(val) \
+  ((unsigned char)(val))
+#define ENDIAN_SWAP16(val) \
+  ((unsigned short) (((unsigned short)(val)<<8) | ((unsigned short)(val)>>8)))
+#define ENDIAN_SWAP32(val) \
+  ((unsigned long) (((unsigned long)(val) >> 24) | (((unsigned long)(val) >> 8) & 0x0000ff00UL) | \
+                    ((unsigned long)(val) << 24) | (((unsigned long)(val) << 8) & 0x00ff0000UL)))
+#define ENDIAN_SWAP64(val) \
+  ((unsigned long long) (((unsigned long long)(val) >> 56) | (((unsigned long long)(val) >> 40) & 0x000000000000ff00ULL) | (((unsigned long long)(val) >> 24) & 0x0000000000ff0000ULL) | (((unsigned long long)(val) >> 8) & 0x00000000ff000000ULL) | \
+                         ((unsigned long long)(val) << 56) | (((unsigned long long)(val) << 40) & 0x00ff000000000000ULL) | (((unsigned long long)(val) << 24) & 0x0000ff0000000000ULL) | (((unsigned long long)(val) << 8) & 0x000000ff00000000ULL)))
+
+#else
+
+#define ENDIAN_SWAP8(val)  (val)
+#define ENDIAN_SWAP16(val) (val)
+#define ENDIAN_SWAP32(val) (val)
+#define ENDIAN_SWAP64(val) (val)
+
+#endif
+
+
 #define NSERIE_SIZE 19              
 
 /* bytes ssm/s1 */
