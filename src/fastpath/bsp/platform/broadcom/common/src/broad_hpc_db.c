@@ -32,6 +32,7 @@
 
 #include "logger.h"
 #include "ptin_globaldefs.h"
+#include "ptin_fpga_api.h"
 
 /**************************** MAC ADDRESS OFFSETS *******************/
 #if L7_FEAT_UNIQUE_L3_ROUTER_MAC == 1

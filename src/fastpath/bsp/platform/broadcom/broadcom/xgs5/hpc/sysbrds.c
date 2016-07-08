@@ -43,6 +43,7 @@
 #include "broad_hpc_db.h"
 
 #include "ptin_globaldefs.h"  /* PTin added */
+#include "ptin_fpga_api.h"    /* PTin added */
 #include "logger.h"           /* PTin added */
 
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
