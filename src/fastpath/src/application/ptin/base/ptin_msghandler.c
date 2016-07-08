@@ -1606,7 +1606,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       msg_LACPAdminState_t *request       = (msg_LACPAdminState_t *) inbuffer->info;
       msg_LACPAdminState_t *lagAdminState = (msg_LACPAdminState_t *) outbuffer->info;
 
-      memcpy(lagAdminState,request,sizeof(msg_LACPAdminState_t));
+      memcpy(lagAdminState, request, sizeof(msg_LACPAdminState_t));
 
       /* Execute command */
       if (L7_SUCCESS != ptin_msg_LACPAdminState_get(lagAdminState, &nElems))
