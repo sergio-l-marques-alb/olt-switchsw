@@ -29,6 +29,67 @@ typedef enum
   PTIN_FPGA_ACTIVE_MATRIX
 } ptin_fpga_matrix_type_t;
 
+/* OLT10 */
+#if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+#include "ptin_fpga_olt1t0.h"
+
+/* OLT10F */
+#elif (PTIN_BOARD == PTIN_BOARD_OLT1T0F)
+#include "ptin_fpga_olt1t0f.h"
+
+/* OLT7-8CH */
+#elif (PTIN_BOARD == PTIN_BOARD_OLT7_8CH_B)
+#include "ptin_fpga_olt7-8ch-b.h"
+
+/* TOLT8G */
+#elif (PTIN_BOARD == PTIN_BOARD_TOLT8G)
+#include "ptin_fpga_tolt8g.h"
+
+/* TG16G */
+#elif (PTIN_BOARD == PTIN_BOARD_TG16G)
+#include "ptin_fpga_tg16g.h"
+
+/* TG16GF */
+#elif (PTIN_BOARD == PTIN_BOARD_TG16GF)
+#include "ptin_fpga_tg16gf.h"
+
+/* TG4G */
+#elif (PTIN_BOARD == PTIN_BOARD_TG4G)
+#include "ptin_fpga_tg4g.h"
+
+/* TA48GE */
+#elif (PTIN_BOARD == PTIN_BOARD_TA48GE)
+#include "ptin_fpga_ta48ge.h"
+
+/* CXO160G */
+#elif (PTIN_BOARD == PTIN_BOARD_CXO160G)
+#include "ptin_fpga_cxo160g.h"
+
+/* OLT360 Matrix card */
+#elif (PTIN_BOARD == PTIN_BOARD_CXP360G)
+#include "ptin_fpga_cxo360g.h"
+
+/* OLT1T3 Matrix card */
+#elif (PTIN_BOARD == PTIN_BOARD_CXO640G)
+#include "ptin_fpga_cxo640g.h"
+
+#endif
+
+
+#if PTIN_BOARD_IS_MATRIX
+#define is_matrix_protection() (CPLD_SLOT_ID_GET() != 0)   /* To know if we are in protection matrix */
+#define matrix_board_version() ((CPLD_ID_GET() == CPLD_ID_CXO640G_V1) ? 1 : 2)
+#endif  // PTIN_BOARD_IS_MATRIX
+
+
+/**
+ * Maps FPGA and PLD registers map
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_fpga_init(void);
+
+
 #ifdef MAP_CPLD
 
 #if (PTIN_BOARD_IS_MATRIX)

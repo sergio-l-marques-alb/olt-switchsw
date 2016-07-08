@@ -126,15 +126,6 @@
 #define SNOOP_PTIN_IGMPv3_ROUTER  1   //Change to 0 if you want to disable  IGMPv3 Router SubModule
 #define SNOOP_PTIN_IGMPv3_PROXY   1   //Change to 0 if you want to disable IGMPv3 Proxy SubModule
 
-/* FPGA AND CPLD BASE ADDRESS */
-//# define MAP_FPGA
-//# define MAP_CPLD
-
-#ifdef MAP_CPLD
-#define CPLD_ID_GET()             (cpld_map->reg.id)
-#else
-#define CPLD_ID_GET()             0
-#endif
 
 // IPC NETWORK IP address
 #define PTIN_IPC_SUBNET_ID             0xC0A8C800  /* 192.168.200.0 Subnet Id*/
