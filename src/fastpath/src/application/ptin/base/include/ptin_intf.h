@@ -31,7 +31,8 @@ extern L7_BOOL linkscan_update_control;
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_intf_init(void);
+extern L7_RC_t ptin_intf_pre_init(void);
+extern L7_RC_t ptin_intf_post_init(void);
 
 /**
  * Init Port exitension definitions
