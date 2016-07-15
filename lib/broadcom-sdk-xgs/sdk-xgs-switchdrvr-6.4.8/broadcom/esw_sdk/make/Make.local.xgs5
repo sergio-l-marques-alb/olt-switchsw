@@ -379,6 +379,10 @@ ifeq ($(L7_CPU),helixarm)
 BCM_56340_A0 = 1
 BCM_56340_B0 = 1
 endif
+ifeq ($(L7_CPU),katanaarm)
+BCM_56450_A0 = 1
+BCM_56450_B0 = 1
+endif
 #BCM_56142_A0 = 1
 #BCM_56836_A0 = 1
 

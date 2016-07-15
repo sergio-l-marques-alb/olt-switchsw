@@ -4239,8 +4239,10 @@ _bcm_kt2_cosq_mapping_set_regular(int unit, bcm_port_t gport,
     uint32 old_index, new_index;
     int count_index= 0;
     int rv;
-    int cpu_hg_index = 0;
+    int cpu_hg_index;
     
+    cpu_hg_index = 0;
+
     if (count < 1 || count > 16) {
         return BCM_E_PARAM;
     }
