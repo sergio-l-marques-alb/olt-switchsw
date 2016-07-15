@@ -4026,31 +4026,35 @@ L7_RC_t ptin_msg_LACPStats_clear(msg_LACPStats_t *lagStats)
  */
 L7_RC_t ptin_msg_l2_switch_config_set(msg_switch_config_t *switch_config)
 {
+  L7_uint32 aging_time;
+
   PT_LOG_DEBUG(LOG_CTX_MSG, "Message function '%s' is being executed",__FUNCTION__);
 
   /* Check mask */
-  if (switch_config->mask & 0x0001)
+  if (ENDIAN_SWAP32(switch_config->mask) & 0x0001)
   {
+    aging_time = ENDIAN_SWAP32(switch_config->aging_time);
+
     /* Set aging time */
-    if (ptin_l2_mac_aging_set(switch_config->aging_time)!=L7_SUCCESS)
+    if (ptin_l2_mac_aging_set(aging_time)!=L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_MSG, "Error setting aging time to %u seconds",switch_config->aging_time);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error setting aging time to %u seconds", aging_time);
       return L7_FAILURE;
     }
     else
     {
-      PT_LOG_DEBUG(LOG_CTX_MSG, "Success setting aging time to %u seconds",switch_config->aging_time);
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Success setting aging time to %u seconds", aging_time);
     }
 
     /* Set ARP timeout to be the same as MAC age time */
-    if(L7_SUCCESS != usmDbIpArpAgeTimeSet(1, switch_config->aging_time))
+    if(L7_SUCCESS != usmDbIpArpAgeTimeSet(1, aging_time))
     {
-      PT_LOG_ERR(LOG_CTX_MSG, "Error setting ARP timeout to %u seconds", switch_config->aging_time);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error setting ARP timeout to %u seconds", aging_time);
       return L7_FAILURE;
     }
     else
     {
-      PT_LOG_DEBUG(LOG_CTX_MSG, "Success setting ARP timeout to %u seconds", switch_config->aging_time);
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Success setting ARP timeout to %u seconds", aging_time);
     }
   }
 
@@ -4066,19 +4070,23 @@ L7_RC_t ptin_msg_l2_switch_config_set(msg_switch_config_t *switch_config)
  */
 L7_RC_t ptin_msg_l2_switch_config_get(msg_switch_config_t *switch_config)
 {
+  L7_uint32 aging_time;
+
   PT_LOG_DEBUG(LOG_CTX_MSG, "Message function '%s' is being executed",__FUNCTION__);
 
-  switch_config->mask = 0x0000;
+  switch_config->mask = ENDIAN_SWAP32(0x0000);
 
-  if (ptin_l2_mac_aging_get(&switch_config->aging_time)!=L7_SUCCESS)
+  if (ptin_l2_mac_aging_get(&aging_time) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Error getting aging time");
     return L7_FAILURE;
   }
   else
   {
-    PT_LOG_DEBUG(LOG_CTX_MSG, "Success getting aging time (%u seconds)",switch_config->aging_time);
-    switch_config->mask |= 0x0001;
+    switch_config->aging_time = ENDIAN_SWAP32(aging_time);
+    switch_config->mask |= ENDIAN_SWAP32(0x0001);
+
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Success getting aging time (%u seconds)", ENDIAN_SWAP32(switch_config->aging_time));
   }
 
   return L7_SUCCESS;
@@ -5027,13 +5035,13 @@ L7_RC_t ptin_msg_EVC_get(msg_HwEthMef10Evc_t *msgEvcConf)
   ptin_HwEthMef10Evc_t ptinEvcConf;
 
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
-  if (msgEvcConf->id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
+  if (ENDIAN_SWAP32(msgEvcConf->id) >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "EVC# %u is out of range [0..%u]", msgEvcConf->id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    PT_LOG_ERR(LOG_CTX_MSG, "EVC# %u is out of range [0..%u]", ENDIAN_SWAP32(msgEvcConf->id), PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
-  ptinEvcConf.index = msgEvcConf->id;
+  ptinEvcConf.index = ENDIAN_SWAP32(msgEvcConf->id);
 
   if (ptin_evc_get(&ptinEvcConf) != L7_SUCCESS)
   {
@@ -5042,31 +5050,31 @@ L7_RC_t ptin_msg_EVC_get(msg_HwEthMef10Evc_t *msgEvcConf)
   }
 
   /* Copy data to message struct */
-  msgEvcConf->id    = ptinEvcConf.index;
-  msgEvcConf->flags    = ptinEvcConf.flags;
-  msgEvcConf->type     = ptinEvcConf.type;
-  msgEvcConf->mc_flood = ptinEvcConf.mc_flood;
-  msgEvcConf->n_intf   = ptinEvcConf.n_intf;
+  msgEvcConf->id       = ENDIAN_SWAP32(ptinEvcConf.index);
+  msgEvcConf->flags    = ENDIAN_SWAP32(ptinEvcConf.flags);
+  msgEvcConf->type     = ENDIAN_SWAP8 (ptinEvcConf.type);
+  msgEvcConf->mc_flood = ENDIAN_SWAP8 (ptinEvcConf.mc_flood);
+  msgEvcConf->n_intf   = ENDIAN_SWAP8 (ptinEvcConf.n_intf);
   //memcpy(msgEvcConf->ce_vid_bmp, ptinEvcConf.ce_vid_bmp, sizeof(msgEvcConf->ce_vid_bmp));
 
-  PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u",              msgEvcConf->id);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " .Flags    = 0x%08X",  msgEvcConf->flags);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " .Type     = %u",      msgEvcConf->type);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " .MC Flood = %u (%s)", msgEvcConf->mc_flood, msgEvcConf->mc_flood==0?"All":msgEvcConf->mc_flood==1?"Unknown":"None");
-  PT_LOG_DEBUG(LOG_CTX_MSG, " .Nr.Intf  = %u",      msgEvcConf->n_intf);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u",              ENDIAN_SWAP32(msgEvcConf->id));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .Flags    = 0x%08X",  ENDIAN_SWAP32(msgEvcConf->flags));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .Type     = %u",      ENDIAN_SWAP8 (msgEvcConf->type));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .MC Flood = %u (%s)", ENDIAN_SWAP8 (msgEvcConf->mc_flood), ((ENDIAN_SWAP8(msgEvcConf->mc_flood)==0) ? "All" : (ENDIAN_SWAP8(msgEvcConf->mc_flood)==1) ? "Unknown" : "None"));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .Nr.Intf  = %u",      ENDIAN_SWAP8 (msgEvcConf->n_intf));
 
   for (i=0; i < ptinEvcConf.n_intf; i++)
   {
-    msgEvcConf->intf[i].intf_id   = ptinEvcConf.intf[i].intf.value.ptin_intf.intf_id;
-    msgEvcConf->intf[i].intf_type = ptinEvcConf.intf[i].intf.value.ptin_intf.intf_type;
-    msgEvcConf->intf[i].mef_type  = ptinEvcConf.intf[i].mef_type;
-    msgEvcConf->intf[i].vid       = ptinEvcConf.intf[i].vid;
+    msgEvcConf->intf[i].intf_id   = ENDIAN_SWAP8 (ptinEvcConf.intf[i].intf.value.ptin_intf.intf_id);
+    msgEvcConf->intf[i].intf_type = ENDIAN_SWAP8 (ptinEvcConf.intf[i].intf.value.ptin_intf.intf_type);
+    msgEvcConf->intf[i].mef_type  = ENDIAN_SWAP8 (ptinEvcConf.intf[i].mef_type);
+    msgEvcConf->intf[i].vid       = ENDIAN_SWAP16(ptinEvcConf.intf[i].vid);
 
     PT_LOG_DEBUG(LOG_CTX_MSG, "   %s# %02u %s VID=%04u",
-              msgEvcConf->intf[i].intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
-              msgEvcConf->intf[i].intf_id,
-              msgEvcConf->intf[i].mef_type == PTIN_EVC_INTF_ROOT ? "Root":"Leaf",
-              msgEvcConf->intf[i].vid);
+                 ((ENDIAN_SWAP8(msgEvcConf->intf[i].intf_type) == PTIN_EVC_INTF_PHYSICAL) ? "PHY":"LAG"),
+                   ENDIAN_SWAP8(msgEvcConf->intf[i].intf_id),
+                 ((ENDIAN_SWAP8(msgEvcConf->intf[i].mef_type) == PTIN_EVC_INTF_ROOT) ? "Root":"Leaf"),
+                   ENDIAN_SWAP16(msgEvcConf->intf[i].vid));
   }
 
   return L7_SUCCESS;
@@ -5190,10 +5198,10 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_uint16 nni_vlan, L7_
   if (qos != L7_NULLPTR)
   {
     PT_LOG_DEBUG(LOG_CTX_MSG, "Ingress: %s", (downlink) ? "Downlink" : "Uplink");
-    PT_LOG_DEBUG(LOG_CTX_MSG, "Mask      = 0x%02x", qos->mask);
-    PT_LOG_DEBUG(LOG_CTX_MSG, "TrustMode = %u", qos->trust_mode);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Mask      = 0x%02x", ENDIAN_SWAP8(qos->mask));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "TrustMode = %u",     ENDIAN_SWAP8(qos->trust_mode));
 
-    if (qos->mask == 0x00) 
+    if (ENDIAN_SWAP8(qos->mask) == 0x00) 
     {
       PT_LOG_DEBUG(LOG_CTX_MSG, "No configurations to be done");
       return L7_SUCCESS;
@@ -5202,11 +5210,11 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_uint16 nni_vlan, L7_
     PT_LOG_DEBUG(LOG_CTX_MSG, "Processing QoS data");
 
     /* Trust mode */
-    qos_apply.trust_mode   = qos->trust_mode;
-    qos_apply.pbits_remark = qos->pbits_remark;
+    qos_apply.trust_mode   = ENDIAN_SWAP8(qos->trust_mode);
+    qos_apply.pbits_remark = ENDIAN_SWAP8(qos->pbits_remark);
     memset(qos_apply.cos_map, 0xff, sizeof(qos_apply.cos_map));
 
-    switch (qos->trust_mode)
+    switch (ENDIAN_SWAP8(qos->trust_mode))
     {
       case L7_QOS_COS_MAP_INTF_MODE_UNTRUSTED:
         qos_apply.cos_map[0] = 0;     /* This is the default CoS (applied to all pbits) */
@@ -5216,9 +5224,9 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_uint16 nni_vlan, L7_
       case L7_QOS_COS_MAP_INTF_MODE_TRUST_DOT1P:
         for (i = 0; i < 8; i++)
         {
-          if ((qos->cos_classif.pcp_map.prio_mask >> i) & 1)
+          if ((ENDIAN_SWAP8(qos->cos_classif.pcp_map.prio_mask) >> i) & 1)
           {
-            qos_apply.cos_map[i] = qos->cos_classif.pcp_map.cos[i]; 
+            qos_apply.cos_map[i] = ENDIAN_SWAP8(qos->cos_classif.pcp_map.cos[i]);
           }
         }
         qos_apply.cos_map_size = 8;
@@ -5226,9 +5234,9 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_uint16 nni_vlan, L7_
       case L7_QOS_COS_MAP_INTF_MODE_TRUST_IPPREC:
         for (i = 0; i < 8; i++)
         {
-          if ((qos->cos_classif.ipprec_map.prio_mask >> i) & 1)
+          if ((ENDIAN_SWAP8(qos->cos_classif.ipprec_map.prio_mask) >> i) & 1)
           {
-            qos_apply.cos_map[i] = qos->cos_classif.ipprec_map.cos[i];
+            qos_apply.cos_map[i] = ENDIAN_SWAP8(qos->cos_classif.ipprec_map.cos[i]);
           }
         }
         qos_apply.cos_map_size = 8;
@@ -5237,9 +5245,9 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_uint16 nni_vlan, L7_
       case L7_QOS_COS_MAP_INTF_MODE_TRUST_IPDSCP:
         for (i = 0; i < 64; i++)
         {
-          if ((qos->cos_classif.dscp_map.prio_mask[i/32] >> (i%32)) & 1)
+          if ((ENDIAN_SWAP32(qos->cos_classif.dscp_map.prio_mask[i/32]) >> (i%32)) & 1)
           {
-            qos_apply.cos_map[i] = qos->cos_classif.dscp_map.cos[i];
+            qos_apply.cos_map[i] = ENDIAN_SWAP8(qos->cos_classif.dscp_map.cos[i]);
           }
         }
         qos_apply.cos_map_size = 64;
@@ -5302,19 +5310,19 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
   msg_HwEthMef10EvcQoS_t *msgEvcConf = (msg_HwEthMef10EvcQoS_t *) inbuffer->info;
 
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
-  if ((msgEvcConf->evc.id == PTIN_EVC_INBAND) || (msgEvcConf->evc.id >= PTIN_SYSTEM_N_EXTENDED_EVCS))
+  if ((ENDIAN_SWAP32(msgEvcConf->evc.id) == PTIN_EVC_INBAND) || (ENDIAN_SWAP32(msgEvcConf->evc.id) >= PTIN_SYSTEM_N_EXTENDED_EVCS))
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "EVC# %u is out of range [0..%u]", msgEvcConf->evc.id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    PT_LOG_ERR(LOG_CTX_MSG, "EVC# %u is out of range [0..%u]", ENDIAN_SWAP32(msgEvcConf->evc.id), PTIN_SYSTEM_N_EXTENDED_EVCS-1);
     return L7_FAILURE;
   }
 
   /* Copy data to ptin struct */
   memset(&ptinEvcConf, 0x00, sizeof(ptinEvcConf));
-  ptinEvcConf.index    = msgEvcConf->evc.id;
-  ptinEvcConf.flags    = msgEvcConf->evc.flags;
-  ptinEvcConf.type     = msgEvcConf->evc.type;
-  ptinEvcConf.mc_flood = msgEvcConf->evc.mc_flood;
-  ptinEvcConf.n_intf   = msgEvcConf->evc.n_intf;
+  ptinEvcConf.index    = ENDIAN_SWAP32(msgEvcConf->evc.id);
+  ptinEvcConf.flags    = ENDIAN_SWAP32(msgEvcConf->evc.flags);
+  ptinEvcConf.type     = ENDIAN_SWAP8 (msgEvcConf->evc.type);
+  ptinEvcConf.mc_flood = ENDIAN_SWAP8 (msgEvcConf->evc.mc_flood);
+  ptinEvcConf.n_intf   = ENDIAN_SWAP8 (msgEvcConf->evc.n_intf);
   //memcpy(ptinEvcConf.ce_vid_bmp, msgEvcConf->evc.ce_vid_bmp, sizeof(ptinEvcConf.ce_vid_bmp));
 
   PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u",              ptinEvcConf.index);
@@ -5352,11 +5360,11 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
     #endif
 
     ptinEvcConf.intf[i].intf.format = PTIN_INTF_FORMAT_TYPEID;
-    ptinEvcConf.intf[i].intf.value.ptin_intf.intf_type = msgEvcConf->evc.intf[i].intf_type;
-    ptinEvcConf.intf[i].intf.value.ptin_intf.intf_id   = msgEvcConf->evc.intf[i].intf_id;
-    ptinEvcConf.intf[i].mef_type    = msgEvcConf->evc.intf[i].mef_type /*PTIN_EVC_INTF_ROOT*/;
-    ptinEvcConf.intf[i].vid         = msgEvcConf->evc.intf[i].vid;
-    ptinEvcConf.intf[i].vid_inner   = msgEvcConf->evc.intf[i].inner_vid;
+    ptinEvcConf.intf[i].intf.value.ptin_intf.intf_type = ENDIAN_SWAP8(msgEvcConf->evc.intf[i].intf_type);
+    ptinEvcConf.intf[i].intf.value.ptin_intf.intf_id   = ENDIAN_SWAP8(msgEvcConf->evc.intf[i].intf_id);
+    ptinEvcConf.intf[i].mef_type    = ENDIAN_SWAP8 (msgEvcConf->evc.intf[i].mef_type) /*PTIN_EVC_INTF_ROOT*/;
+    ptinEvcConf.intf[i].vid         = ENDIAN_SWAP16(msgEvcConf->evc.intf[i].vid);
+    ptinEvcConf.intf[i].vid_inner   = ENDIAN_SWAP16(msgEvcConf->evc.intf[i].inner_vid);
     ptinEvcConf.intf[i].action_outer= PTIN_XLATE_ACTION_REPLACE;
     ptinEvcConf.intf[i].action_inner= PTIN_XLATE_ACTION_NONE;
 
@@ -5453,9 +5461,9 @@ L7_RC_t ptin_msg_evc_qos_set(ipc_msg *inbuffer, ipc_msg *outbuffer)
     nni_vlan = 0;
 
     /* Get NNI VLAN */
-    if (msgEvcQoS[i].id.id_type == MSG_ID_NNIVID_TYPE)
+    if (ENDIAN_SWAP8(msgEvcQoS[i].id.id_type) == MSG_ID_NNIVID_TYPE)
     {
-      nni_vlan = msgEvcQoS[i].id.id_val.nni_vid;
+      nni_vlan = ENDIAN_SWAP32(msgEvcQoS[i].id.id_val.nni_vid);
 
       number_of_evcs = 1;
       if (ptin_evc_get_evcId_fromNNIvlan(nni_vlan, &evc_id, &number_of_evcs) != L7_SUCCESS)
@@ -5466,7 +5474,7 @@ L7_RC_t ptin_msg_evc_qos_set(ipc_msg *inbuffer, ipc_msg *outbuffer)
     }
     else
     {
-      evc_id = msgEvcQoS[i].id.id_val.evc_id;
+      evc_id = ENDIAN_SWAP32(msgEvcQoS[i].id.id_val.evc_id);
       if (ptin_evc_get_NNIvlan_fromEvcId(evc_id, &nni_vlan) != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining NNI_VLAN %u from EVC %u", evc_id);
@@ -5532,22 +5540,22 @@ L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_s
   for (i=0; i<n_structs; i++)
   {
     /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
-    if ((msgEvcConf[i].id == PTIN_EVC_INBAND) || (msgEvcConf[i].id >= PTIN_SYSTEM_N_EXTENDED_EVCS))
+    if ((ENDIAN_SWAP32(msgEvcConf[i].id) == PTIN_EVC_INBAND) || (ENDIAN_SWAP32(msgEvcConf[i].id) >= PTIN_SYSTEM_N_EXTENDED_EVCS))
     {
-      PT_LOG_ERR(LOG_CTX_MSG, "EVC# %u is out of range [0..%u]", msgEvcConf[i].id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+      PT_LOG_ERR(LOG_CTX_MSG, "EVC# %u is out of range [0..%u]", ENDIAN_SWAP32(msgEvcConf[i].id), PTIN_SYSTEM_N_EXTENDED_EVCS-1);
       rc_global = L7_FAILURE;
       continue;
     }
 
     /* Remove EVC */
-    if (ptin_evc_delete(msgEvcConf[i].id) != L7_SUCCESS)
+    if (ptin_evc_delete(ENDIAN_SWAP32(msgEvcConf[i].id)) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_MSG, "Error deleting EVC# %u", msgEvcConf[i].id);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error deleting EVC# %u", ENDIAN_SWAP32(msgEvcConf[i].id));
       rc_global = L7_FAILURE;
       continue;
     }
 
-    PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u successfully deleted", msgEvcConf[i].id);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u successfully deleted", ENDIAN_SWAP32(msgEvcConf[i].id));
   }
 
   return rc_global;
@@ -5564,7 +5572,7 @@ L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_s
  */
 L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_msg_oper_t oper)
 {
-  L7_uint i;
+  L7_uint i, ext_evc_id;
   ptin_HwEthMef10Intf_t ptinEvcPort;
   L7_RC_t rc, rc_global = L7_SUCCESS, rc_global_failure = L7_SUCCESS;
 
@@ -5578,24 +5586,26 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
   /* Run all structures */
   for (i=0; i<n_size; i++)
   {
+    ext_evc_id = ENDIAN_SWAP32(msgEvcPort[i].evcId);
+
     /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
-    if (/*(msgEvcPort[i].evcId == PTIN_EVC_INBAND) ||*/ (msgEvcPort[i].evcId >= PTIN_SYSTEM_N_EXTENDED_EVCS))
+    if (/*(msgEvcPort[i].evcId == PTIN_EVC_INBAND) ||*/ (ext_evc_id >= PTIN_SYSTEM_N_EXTENDED_EVCS))
     {
-      PT_LOG_ERR(LOG_CTX_MSG, "EVC# %u is out of range [0..%u]", msgEvcPort[i].evcId, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+      PT_LOG_ERR(LOG_CTX_MSG, "EVC# %u is out of range [0..%u]", ext_evc_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
       return L7_FAILURE;
     }
 
     /* Copy data to ptin struct */
     ptinEvcPort.intf.format = PTIN_INTF_FORMAT_TYPEID;
-    ptinEvcPort.intf.value.ptin_intf.intf_type = msgEvcPort[i].intf.intf_type;
-    ptinEvcPort.intf.value.ptin_intf.intf_id   = msgEvcPort[i].intf.intf_id;
-    ptinEvcPort.mef_type  = msgEvcPort[i].intf.mef_type;
-    ptinEvcPort.vid       = msgEvcPort[i].intf.vid;
-    ptinEvcPort.vid_inner = msgEvcPort[i].intf.inner_vid;
+    ptinEvcPort.intf.value.ptin_intf.intf_type = ENDIAN_SWAP8(msgEvcPort[i].intf.intf_type);
+    ptinEvcPort.intf.value.ptin_intf.intf_id   = ENDIAN_SWAP8(msgEvcPort[i].intf.intf_id);
+    ptinEvcPort.mef_type  = ENDIAN_SWAP8 (msgEvcPort[i].intf.mef_type);
+    ptinEvcPort.vid       = ENDIAN_SWAP16(msgEvcPort[i].intf.vid);
+    ptinEvcPort.vid_inner = ENDIAN_SWAP16(msgEvcPort[i].intf.inner_vid);
     ptinEvcPort.action_outer = PTIN_XLATE_ACTION_REPLACE;
     ptinEvcPort.action_inner = PTIN_XLATE_ACTION_NONE;
 
-    PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u - oper %s",     msgEvcPort[i].evcId,
+    PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u - oper %s",     ext_evc_id,
               ((oper==PTIN_MSG_OPER_ADD) ? "ADD" : ((oper==PTIN_MSG_OPER_REMOVE) ? "REMOVE" : "UNKNOWN")));
     PT_LOG_DEBUG(LOG_CTX_MSG, " .Intf      = %u/%u",   ptinEvcPort.intf.value.ptin_intf.intf_type, ptinEvcPort.intf.value.ptin_intf.intf_id);
     PT_LOG_DEBUG(LOG_CTX_MSG, " .IntfType  = %s",     (ptinEvcPort.mef_type == PTIN_EVC_INTF_LEAF) ? "LEAF" : "ROOT");
@@ -5606,13 +5616,13 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
     switch (oper)
     {
     case PTIN_MSG_OPER_ADD:
-      if ((rc=ptin_evc_port_add(msgEvcPort[i].evcId, &ptinEvcPort)) != L7_SUCCESS)
+      if ((rc=ptin_evc_port_add(ext_evc_id, &ptinEvcPort)) != L7_SUCCESS)
       {        
         rc_global = rc;
         if (IS_FAILURE_ERROR(rc))
         {
           PT_LOG_ERR(LOG_CTX_MSG, "Error adding port %u/%u to EVC# %u (rc:%u)",
-                     ptinEvcPort.intf.value.ptin_intf.intf_type, ptinEvcPort.intf.value.ptin_intf.intf_id, msgEvcPort[i].evcId, rc);
+                     ptinEvcPort.intf.value.ptin_intf.intf_type, ptinEvcPort.intf.value.ptin_intf.intf_id, ext_evc_id, rc);
           rc_global_failure = rc;
         }
         else
@@ -5623,14 +5633,14 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
       else
       {
         PT_LOG_TRACE(LOG_CTX_MSG, "Added port %u/%u to EVC# %u",
-                     ptinEvcPort.intf.value.ptin_intf.intf_type, ptinEvcPort.intf.value.ptin_intf.intf_id, msgEvcPort[i].evcId);
+                     ptinEvcPort.intf.value.ptin_intf.intf_type, ptinEvcPort.intf.value.ptin_intf.intf_id, ext_evc_id);
       }
       break;
     case PTIN_MSG_OPER_REMOVE:
-      if ((rc=ptin_evc_port_remove(msgEvcPort[i].evcId, &ptinEvcPort)) != L7_SUCCESS)
+      if ((rc=ptin_evc_port_remove(ext_evc_id, &ptinEvcPort)) != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_MSG, "Error removing port %u/%u to EVC# %u",
-                   ptinEvcPort.intf.value.ptin_intf.intf_type, ptinEvcPort.intf.value.ptin_intf.intf_id, msgEvcPort[i].evcId);
+                   ptinEvcPort.intf.value.ptin_intf.intf_type, ptinEvcPort.intf.value.ptin_intf.intf_id, ext_evc_id);
         rc_global = rc;
         if (IS_FAILURE_ERROR(rc))
           rc_global_failure = rc;
@@ -5638,7 +5648,7 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
       else
       {
         PT_LOG_TRACE(LOG_CTX_MSG, "Removed port %u/%u from EVC# %u",
-                     ptinEvcPort.intf.value.ptin_intf.intf_type, ptinEvcPort.intf.value.ptin_intf.intf_id, msgEvcPort[i].evcId);
+                     ptinEvcPort.intf.value.ptin_intf.intf_type, ptinEvcPort.intf.value.ptin_intf.intf_id, ext_evc_id);
       }
       break;
     default:
@@ -5688,7 +5698,7 @@ L7_RC_t ptin_msg_evc_config(ipc_msg *inbuffer, ipc_msg *outbuffer)
 
   #ifdef PTIN_ENABLE_ERPS
 
-  msgEvcOptions->mc_flood = 2;
+  msgEvcOptions->mc_flood = ENDIAN_SWAP8(2);
 
   #endif
 
@@ -5702,76 +5712,77 @@ L7_RC_t ptin_msg_evc_config(ipc_msg *inbuffer, ipc_msg *outbuffer)
   /* Run all structures */
   for (i=0; i<n_size; i++)
   {
-    PT_LOG_DEBUG(LOG_CTX_MSG," type = %u", msgEvcOptions[i].service_id.id_type);
-    PT_LOG_DEBUG(LOG_CTX_MSG," id   = %u", msgEvcOptions[i].service_id.id_val.evc_id);
-    PT_LOG_DEBUG(LOG_CTX_MSG, " .Mask      = 0x%04x", msgEvcOptions[i].mask);
-    PT_LOG_DEBUG(LOG_CTX_MSG, " .Flags     = 0x%08x/0x%08x", msgEvcOptions[i].flags.value, msgEvcOptions[i].flags.mask);
-    PT_LOG_DEBUG(LOG_CTX_MSG, " .Type      = %u", msgEvcOptions[i].type);
-    PT_LOG_DEBUG(LOG_CTX_MSG, " .MC_flood  = %u", msgEvcOptions[i].mc_flood);
+    PT_LOG_DEBUG(LOG_CTX_MSG," type = %u", ENDIAN_SWAP8 (msgEvcOptions[i].service_id.id_type));
+    PT_LOG_DEBUG(LOG_CTX_MSG," id   = %u", ENDIAN_SWAP32(msgEvcOptions[i].service_id.id_val.evc_id));
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .Mask      = 0x%04x",        ENDIAN_SWAP16(msgEvcOptions[i].mask));
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .Flags     = 0x%08x/0x%08x", ENDIAN_SWAP32(msgEvcOptions[i].flags.value), ENDIAN_SWAP32(msgEvcOptions[i].flags.mask));
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .Type      = %u", ENDIAN_SWAP8(msgEvcOptions[i].type));
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .MC_flood  = %u", ENDIAN_SWAP8(msgEvcOptions[i].mc_flood));
 
     /* If EVC id is provided, get related VLAN */
-    if (msgEvcOptions[i].service_id.id_type == MSG_ID_EVC_TYPE)
+    if (ENDIAN_SWAP8(msgEvcOptions[i].service_id.id_type) == MSG_ID_EVC_TYPE)
     {
       /* Validate EVC id */
-      if (msgEvcOptions[i].service_id.id_val.evc_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
+      if (ENDIAN_SWAP32(msgEvcOptions[i].service_id.id_val.evc_id) >= PTIN_SYSTEM_N_EXTENDED_EVCS)
       {
-        PT_LOG_ERR(LOG_CTX_MSG, "eEVC#%u is out of range!", msgEvcOptions[i].service_id.id_val.evc_id);
+        PT_LOG_ERR(LOG_CTX_MSG, "eEVC#%u is out of range!", ENDIAN_SWAP32(msgEvcOptions[i].service_id.id_val.evc_id));
         rc_global = rc_global_failure = L7_FAILURE;
         continue;
       }
       /* EVC must be active */
-      if (!ptin_evc_is_in_use(msgEvcOptions[i].service_id.id_val.evc_id)) 
+      if (!ptin_evc_is_in_use(ENDIAN_SWAP32(msgEvcOptions[i].service_id.id_val.evc_id))) 
       {
-        PT_LOG_ERR(LOG_CTX_MSG, "eEVC#%u is not in use!", msgEvcOptions[i].service_id.id_val.evc_id);
+        PT_LOG_ERR(LOG_CTX_MSG, "eEVC#%u is not in use!", ENDIAN_SWAP32(msgEvcOptions[i].service_id.id_val.evc_id));
         rc_global = L7_NOT_EXIST;
         continue;
       }
 
       /* Copy data to ptin struct */
-      evcOptions.mask         = msgEvcOptions[i].mask;
-      evcOptions.flags.value  = msgEvcOptions[i].flags.value;
-      evcOptions.flags.mask   = msgEvcOptions[i].flags.mask;
-      evcOptions.type         = msgEvcOptions[i].type;
-      evcOptions.mc_flood     = msgEvcOptions[i].mc_flood;
+      evcOptions.mask         = ENDIAN_SWAP16(msgEvcOptions[i].mask);
+      evcOptions.flags.value  = ENDIAN_SWAP32(msgEvcOptions[i].flags.value);
+      evcOptions.flags.mask   = ENDIAN_SWAP32(msgEvcOptions[i].flags.mask);
+      evcOptions.type         = ENDIAN_SWAP8 (msgEvcOptions[i].type);
+      evcOptions.mc_flood     = ENDIAN_SWAP8 (msgEvcOptions[i].mc_flood);
 
-      if ((rc=ptin_evc_config(msgEvcOptions[i].service_id.id_val.evc_id, &evcOptions)) != L7_SUCCESS)
+      if ((rc=ptin_evc_config(ENDIAN_SWAP32(msgEvcOptions[i].service_id.id_val.evc_id), &evcOptions)) != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_MSG, "Error configuring EVC# %u", msgEvcOptions[i].service_id.id_val.evc_id);
+        PT_LOG_ERR(LOG_CTX_MSG, "Error configuring EVC# %u", ENDIAN_SWAP32(msgEvcOptions[i].service_id.id_val.evc_id));
         rc_global = rc;
         if (IS_FAILURE_ERROR(rc))
           rc_global_failure = rc;
       }
       else
       {
-        PT_LOG_TRACE(LOG_CTX_MSG, "EVC# %u configured successfully", msgEvcOptions[i].service_id.id_val.evc_id);
+        PT_LOG_TRACE(LOG_CTX_MSG, "EVC# %u configured successfully", ENDIAN_SWAP32(msgEvcOptions[i].service_id.id_val.evc_id));
       }
 
     }
     /* Use given VLANs range */
-    else if (msgEvcOptions[i].service_id.id_type == MSG_ID_NNIVID_TYPE)
+    else if (ENDIAN_SWAP8(msgEvcOptions[i].service_id.id_type) == MSG_ID_NNIVID_TYPE)
     {
       /* Validate NNI VLAN */
-      if (msgEvcOptions[i].service_id.id_val.nni_vid < PTIN_VLAN_MIN || msgEvcOptions[i].service_id.id_val.nni_vid > PTIN_VLAN_MAX)
+      if (ENDIAN_SWAP32(msgEvcOptions[i].service_id.id_val.nni_vid) < PTIN_VLAN_MIN ||
+          ENDIAN_SWAP32(msgEvcOptions[i].service_id.id_val.nni_vid) > PTIN_VLAN_MAX)
       {
-        PT_LOG_ERR(LOG_CTX_MSG, "NNI VLAN %u is out of range!", msgEvcOptions[i].service_id.id_val.nni_vid);
+        PT_LOG_ERR(LOG_CTX_MSG, "NNI VLAN %u is out of range!", ENDIAN_SWAP32(msgEvcOptions[i].service_id.id_val.nni_vid));
         rc_global = rc_global_failure = L7_FAILURE;
         continue;
       }
 
       /* Get EVC list from NNI VLAN */
-      if (ptin_evc_get_evcId_fromNNIvlan(msgEvcOptions[i].service_id.id_val.nni_vid, evcid_list, &max_evcs) != L7_SUCCESS)
+      if (ptin_evc_get_evcId_fromNNIvlan(ENDIAN_SWAP32(msgEvcOptions[i].service_id.id_val.nni_vid), evcid_list, &max_evcs) != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_MSG, "NNI VLAN %u is invalid, or doesn't belong to any EVC!", msgEvcOptions[i].service_id.id_val.nni_vid);
+        PT_LOG_ERR(LOG_CTX_MSG, "NNI VLAN %u is invalid, or doesn't belong to any EVC!", ENDIAN_SWAP32(msgEvcOptions[i].service_id.id_val.nni_vid));
         rc_global = L7_NOT_EXIST;
         continue;
       }
 
       /* Copy data to ptin struct */
-      evcOptions.mask         = msgEvcOptions[i].mask;
-      evcOptions.flags.value  = msgEvcOptions[i].flags.value;
-      evcOptions.flags.mask   = msgEvcOptions[i].flags.mask;
-      evcOptions.type         = msgEvcOptions[i].type;
-      evcOptions.mc_flood     = msgEvcOptions[i].mc_flood;
+      evcOptions.mask         = ENDIAN_SWAP16(msgEvcOptions[i].mask);
+      evcOptions.flags.value  = ENDIAN_SWAP32(msgEvcOptions[i].flags.value);
+      evcOptions.flags.mask   = ENDIAN_SWAP32(msgEvcOptions[i].flags.mask);
+      evcOptions.type         = ENDIAN_SWAP8 (msgEvcOptions[i].type);
+      evcOptions.mc_flood     = ENDIAN_SWAP8 (msgEvcOptions[i].mc_flood);
 
       /* Run EVCs range */
       for (evc_list_index = 0; evc_list_index < max_evcs; evc_list_index++)
@@ -5808,7 +5819,7 @@ L7_RC_t ptin_msg_evc_config(ipc_msg *inbuffer, ipc_msg *outbuffer)
     }
     else
     {
-      PT_LOG_ERR(LOG_CTX_MSG, "Invalid service type %u", msgEvcOptions[i].service_id.id_type);
+      PT_LOG_ERR(LOG_CTX_MSG, "Invalid service type %u", ENDIAN_SWAP8(msgEvcOptions[i].service_id.id_type));
       rc_global = L7_NOT_SUPPORTED;
       continue;
     }
@@ -5832,13 +5843,13 @@ L7_RC_t ptin_msg_EVCBridge_add(msg_HwEthEvcBridge_t *msgEvcBridge)
   ptin_HwEthEvcBridge_t ptinEvcBridge;
 
   /* Copy data */
-  ptinEvcBridge.index          = msgEvcBridge->evcId;
-  ptinEvcBridge.inn_vlan       = msgEvcBridge->inn_vlan;
+  ptinEvcBridge.index          = ENDIAN_SWAP32(msgEvcBridge->evcId);
+  ptinEvcBridge.inn_vlan       = ENDIAN_SWAP16(msgEvcBridge->inn_vlan);
   ptinEvcBridge.intf.intf.format = PTIN_INTF_FORMAT_TYPEID;
-  ptinEvcBridge.intf.intf.value.ptin_intf.intf_id   = msgEvcBridge->intf.intf_id;
-  ptinEvcBridge.intf.intf.value.ptin_intf.intf_type = msgEvcBridge->intf.intf_type;
-  ptinEvcBridge.intf.mef_type  = msgEvcBridge->intf.mef_type;   /* must be Leaf */
-  ptinEvcBridge.intf.vid       = msgEvcBridge->intf.vid;
+  ptinEvcBridge.intf.intf.value.ptin_intf.intf_id   = ENDIAN_SWAP8(msgEvcBridge->intf.intf_id);
+  ptinEvcBridge.intf.intf.value.ptin_intf.intf_type = ENDIAN_SWAP8(msgEvcBridge->intf.intf_type);
+  ptinEvcBridge.intf.mef_type  = ENDIAN_SWAP8 (msgEvcBridge->intf.mef_type);   /* must be Leaf */
+  ptinEvcBridge.intf.vid       = ENDIAN_SWAP16(msgEvcBridge->intf.vid);
 
   PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u Bridge",         ptinEvcBridge.index);
   PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u",
@@ -5869,13 +5880,13 @@ L7_RC_t ptin_msg_EVCBridge_remove(msg_HwEthEvcBridge_t *msgEvcBridge)
   L7_RC_t rc;
 
   /* Copy data */
-  ptinEvcBridge.index          = msgEvcBridge->evcId;
-  ptinEvcBridge.inn_vlan       = msgEvcBridge->inn_vlan;
+  ptinEvcBridge.index          = ENDIAN_SWAP32(msgEvcBridge->evcId);
+  ptinEvcBridge.inn_vlan       = ENDIAN_SWAP16(msgEvcBridge->inn_vlan);
   ptinEvcBridge.intf.intf.format = PTIN_INTF_FORMAT_TYPEID;
-  ptinEvcBridge.intf.intf.value.ptin_intf.intf_id   = msgEvcBridge->intf.intf_id;
-  ptinEvcBridge.intf.intf.value.ptin_intf.intf_type = msgEvcBridge->intf.intf_type;
-  ptinEvcBridge.intf.mef_type  = msgEvcBridge->intf.mef_type;   /* must be Leaf */
-  ptinEvcBridge.intf.vid       = msgEvcBridge->intf.vid;        /* not used on remove oper. */
+  ptinEvcBridge.intf.intf.value.ptin_intf.intf_id   = ENDIAN_SWAP8(msgEvcBridge->intf.intf_id);
+  ptinEvcBridge.intf.intf.value.ptin_intf.intf_type = ENDIAN_SWAP8(msgEvcBridge->intf.intf_type);
+  ptinEvcBridge.intf.mef_type  = ENDIAN_SWAP8 (msgEvcBridge->intf.mef_type);   /* must be Leaf */
+  ptinEvcBridge.intf.vid       = ENDIAN_SWAP16(msgEvcBridge->intf.vid);        /* not used on remove oper. */
 
   PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u Bridge",         ptinEvcBridge.index);
   PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u",
@@ -5911,14 +5922,14 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
   memset(&ptinEvcFlow, 0x00, sizeof(ptinEvcFlow));
 
   /* Copy data */
-  ptinEvcFlow.evc_idx             = msgEvcFlow->evcId;
-  ptinEvcFlow.flags               = msgEvcFlow->flags;
-  ptinEvcFlow.int_ivid            = msgEvcFlow->nni_cvlan;
-  ptinEvcFlow.ptin_intf.intf_type = msgEvcFlow->intf.intf_type;
-  ptinEvcFlow.ptin_intf.intf_id   = msgEvcFlow->intf.intf_id;
-  ptinEvcFlow.uni_ovid            = msgEvcFlow->intf.outer_vid; /* must be a leaf */
-  ptinEvcFlow.uni_ivid            = msgEvcFlow->intf.inner_vid;
-  ptinEvcFlow.macLearnMax         = msgEvcFlow->macLearnMax;
+  ptinEvcFlow.evc_idx             = ENDIAN_SWAP32(msgEvcFlow->evcId);
+  ptinEvcFlow.flags               = ENDIAN_SWAP32(msgEvcFlow->flags);
+  ptinEvcFlow.int_ivid            = ENDIAN_SWAP16(msgEvcFlow->nni_cvlan);
+  ptinEvcFlow.ptin_intf.intf_type = ENDIAN_SWAP8 (msgEvcFlow->intf.intf_type);
+  ptinEvcFlow.ptin_intf.intf_id   = ENDIAN_SWAP8 (msgEvcFlow->intf.intf_id);
+  ptinEvcFlow.uni_ovid            = ENDIAN_SWAP16(msgEvcFlow->intf.outer_vid); /* must be a leaf */
+  ptinEvcFlow.uni_ivid            = ENDIAN_SWAP16(msgEvcFlow->intf.inner_vid);
+  ptinEvcFlow.macLearnMax         = ENDIAN_SWAP8 (msgEvcFlow->macLearnMax);
 
   PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u Flow",     ptinEvcFlow.evc_idx);
   PT_LOG_DEBUG(LOG_CTX_MSG, " Flags = 0x%08x",  ptinEvcFlow.flags);
@@ -5931,31 +5942,34 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
 
   if (ptinEvcFlow.flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
   {
-    if  (msgEvcFlow->mask > PTIN_MSG_EVC_FLOW_MASK_VALID)
+    if  (ENDIAN_SWAP8(msgEvcFlow->mask) > PTIN_MSG_EVC_FLOW_MASK_VALID)
     {
-      PT_LOG_ERR(LOG_CTX_MSG, "Invalid Mask [mask:0x%02x",msgEvcFlow->mask);
+      PT_LOG_ERR(LOG_CTX_MSG, "Invalid Mask [mask:0x%02x", ENDIAN_SWAP8(msgEvcFlow->mask));
       return L7_FAILURE;
     }
 
 #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT    
-    if  (( ( (msgEvcFlow->mask & PTIN_MSG_EVC_FLOW_MASK_MAX_ALLOWED_BANDWIDTH) == PTIN_MSG_EVC_FLOW_MASK_MAX_ALLOWED_BANDWIDTH ) &&
-          (msgEvcFlow->maxBandwidth != PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS_DISABLE && msgEvcFlow->maxBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS) ) ||
-         ( ( (msgEvcFlow->mask & PTIN_MSG_EVC_FLOW_MASK_MAX_ALLOWED_CHANNELS) == PTIN_MSG_EVC_FLOW_MASK_MAX_ALLOWED_CHANNELS ) &&
-          (msgEvcFlow->maxChannels != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE && msgEvcFlow->maxChannels > PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS) ) )
+    if  (( ((ENDIAN_SWAP8 (msgEvcFlow->mask) & PTIN_MSG_EVC_FLOW_MASK_MAX_ALLOWED_BANDWIDTH) == PTIN_MSG_EVC_FLOW_MASK_MAX_ALLOWED_BANDWIDTH) &&
+           ( ENDIAN_SWAP64(msgEvcFlow->maxBandwidth) != PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS_DISABLE &&
+             ENDIAN_SWAP64(msgEvcFlow->maxBandwidth) > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS) ) ||
+         ( ((ENDIAN_SWAP8 (msgEvcFlow->mask) & PTIN_MSG_EVC_FLOW_MASK_MAX_ALLOWED_CHANNELS) == PTIN_MSG_EVC_FLOW_MASK_MAX_ALLOWED_CHANNELS) &&
+           ( ENDIAN_SWAP16(msgEvcFlow->maxChannels) != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE &&
+             ENDIAN_SWAP16(msgEvcFlow->maxChannels) > PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS) ) )
         
     {
-      PT_LOG_ERR(LOG_CTX_MSG, "Invalid Admission Control Parameters [mask:0x%02x maxBandwidth:%llu bits/s maxChannels:%hu]",msgEvcFlow->mask, msgEvcFlow->maxBandwidth, msgEvcFlow->maxChannels);
+      PT_LOG_ERR(LOG_CTX_MSG, "Invalid Admission Control Parameters [mask:0x%02x maxBandwidth:%llu bits/s maxChannels:%hu]",
+                 ENDIAN_SWAP8(msgEvcFlow->mask), ENDIAN_SWAP64(msgEvcFlow->maxBandwidth), ENDIAN_SWAP16(msgEvcFlow->maxChannels));
       return L7_FAILURE;
     }
-    ptinEvcFlow.mask                = msgEvcFlow->mask;
-    ptinEvcFlow.onuId               = msgEvcFlow->onuId;      
-    ptinEvcFlow.maxBandwidth        = msgEvcFlow->maxBandwidth;
-    ptinEvcFlow.maxChannels         = msgEvcFlow->maxChannels;
+    ptinEvcFlow.mask          = ENDIAN_SWAP8 (msgEvcFlow->mask);
+    ptinEvcFlow.onuId         = ENDIAN_SWAP8 (msgEvcFlow->onuId);
+    ptinEvcFlow.maxBandwidth  = ENDIAN_SWAP64(msgEvcFlow->maxBandwidth);
+    ptinEvcFlow.maxChannels   = ENDIAN_SWAP16(msgEvcFlow->maxChannels);
     
-    PT_LOG_DEBUG(LOG_CTX_MSG, " onuId       = %u", ptinEvcFlow.onuId);
-    PT_LOG_DEBUG(LOG_CTX_MSG, " mask        = 0x%x", ptinEvcFlow.mask);
-    PT_LOG_DEBUG(LOG_CTX_MSG, " maxChannels = %u", ptinEvcFlow.maxChannels);
-    PT_LOG_DEBUG(LOG_CTX_MSG, " maxBandwidth= %llu bit/s", ptinEvcFlow.maxBandwidth);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " onuId       = %u",        ptinEvcFlow.onuId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " mask        = 0x%x",      ptinEvcFlow.mask);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " maxChannels = %u",        ptinEvcFlow.maxChannels);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " maxBandwidth= %llu bit/s",ptinEvcFlow.maxBandwidth);
 #endif
   
   }
@@ -5982,12 +5996,12 @@ L7_RC_t ptin_msg_EVCFlow_remove(msg_HwEthEvcFlow_t *msgEvcFlow)
   L7_RC_t rc;
 
   /* Copy data */
-  ptinEvcFlow.evc_idx             = msgEvcFlow->evcId;
-  ptinEvcFlow.ptin_intf.intf_type = msgEvcFlow->intf.intf_type;
-  ptinEvcFlow.ptin_intf.intf_id   = msgEvcFlow->intf.intf_id;
-  ptinEvcFlow.int_ivid            = msgEvcFlow->nni_cvlan;
-  ptinEvcFlow.uni_ovid            = msgEvcFlow->intf.outer_vid; /* must be a leaf */
-  ptinEvcFlow.uni_ivid            = msgEvcFlow->intf.inner_vid;
+  ptinEvcFlow.evc_idx             = ENDIAN_SWAP32(msgEvcFlow->evcId);
+  ptinEvcFlow.ptin_intf.intf_type = ENDIAN_SWAP8 (msgEvcFlow->intf.intf_type);
+  ptinEvcFlow.ptin_intf.intf_id   = ENDIAN_SWAP8 (msgEvcFlow->intf.intf_id);
+  ptinEvcFlow.int_ivid            = ENDIAN_SWAP16(msgEvcFlow->nni_cvlan);
+  ptinEvcFlow.uni_ovid            = ENDIAN_SWAP16(msgEvcFlow->intf.outer_vid); /* must be a leaf */
+  ptinEvcFlow.uni_ivid            = ENDIAN_SWAP16(msgEvcFlow->intf.inner_vid);
 
   PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u Flow",   ptinEvcFlow.evc_idx);
   PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u",        ptinEvcFlow.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
@@ -6029,24 +6043,24 @@ L7_RC_t ptin_msg_EvcFloodVlan_add(msg_HwEthEvcFloodVlan_t *msgEvcFlood, L7_uint 
   for ( i=0; i<n_clients; i++)
   {
     PT_LOG_DEBUG(LOG_CTX_MSG,"EVC flood vlan %u:",i);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Slot    = %u",    msgEvcFlood[i].SlotId);
-    PT_LOG_DEBUG(LOG_CTX_MSG," EVC_idx = %u",    msgEvcFlood[i].evcId);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Mask    = 0x%02x",msgEvcFlood[i].mask);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Intf    = %u/%u", msgEvcFlood[i].intf.intf_type, msgEvcFlood[i].intf.intf_id);
-    PT_LOG_DEBUG(LOG_CTX_MSG," CVlan   = %u",    msgEvcFlood[i].client_vlan);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Outer Vlan : %u", msgEvcFlood[i].oVlanId);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Inner Vlan : %u", msgEvcFlood[i].iVlanId);
+    PT_LOG_DEBUG(LOG_CTX_MSG," Slot    = %u",    ENDIAN_SWAP8 (msgEvcFlood[i].SlotId));
+    PT_LOG_DEBUG(LOG_CTX_MSG," EVC_idx = %u",    ENDIAN_SWAP32(msgEvcFlood[i].evcId));
+    PT_LOG_DEBUG(LOG_CTX_MSG," Mask    = 0x%02x",ENDIAN_SWAP8 (msgEvcFlood[i].mask));
+    PT_LOG_DEBUG(LOG_CTX_MSG," Intf    = %u/%u", ENDIAN_SWAP8 (msgEvcFlood[i].intf.intf_type), ENDIAN_SWAP8 (msgEvcFlood[i].intf.intf_id));
+    PT_LOG_DEBUG(LOG_CTX_MSG," CVlan   = %u",    ENDIAN_SWAP16(msgEvcFlood[i].client_vlan));
+    PT_LOG_DEBUG(LOG_CTX_MSG," Outer Vlan : %u", ENDIAN_SWAP16(msgEvcFlood[i].oVlanId));
+    PT_LOG_DEBUG(LOG_CTX_MSG," Inner Vlan : %u", ENDIAN_SWAP16(msgEvcFlood[i].iVlanId));
 
-    ptin_intf.intf_type = msgEvcFlood[i].intf.intf_type;
-    ptin_intf.intf_id   = msgEvcFlood[i].intf.intf_id;
+    ptin_intf.intf_type = ENDIAN_SWAP8(msgEvcFlood[i].intf.intf_type);
+    ptin_intf.intf_id   = ENDIAN_SWAP8(msgEvcFlood[i].intf.intf_id);
 
-    if (ptin_evc_flood_vlan_add( msgEvcFlood[i].evcId,
-                                 ((msgEvcFlood[i].mask & 0x01) ? &ptin_intf : L7_NULLPTR),
-                                 ((msgEvcFlood[i].mask & 0x02) ? msgEvcFlood[i].client_vlan : 0),
-                                 msgEvcFlood[i].oVlanId,
-                                 msgEvcFlood[i].iVlanId ) != L7_SUCCESS)
+    if (ptin_evc_flood_vlan_add( ENDIAN_SWAP32(msgEvcFlood[i].evcId),
+                                 ((ENDIAN_SWAP8(msgEvcFlood[i].mask) & 0x01) ? &ptin_intf : L7_NULLPTR),
+                                 ((ENDIAN_SWAP8(msgEvcFlood[i].mask) & 0x02) ? ENDIAN_SWAP16(msgEvcFlood[i].client_vlan) : 0),
+                                 ENDIAN_SWAP16(msgEvcFlood[i].oVlanId),
+                                 ENDIAN_SWAP16(msgEvcFlood[i].iVlanId) ) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_MSG, "Error adding EVC# %u flooding vlan", msgEvcFlood[i].evcId);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error adding EVC# %u flooding vlan", ENDIAN_SWAP32(msgEvcFlood[i].evcId));
       rc = L7_FAILURE;
     }
   }
@@ -6078,24 +6092,24 @@ L7_RC_t ptin_msg_EvcFloodVlan_remove(msg_HwEthEvcFloodVlan_t *msgEvcFlood, L7_ui
   for ( i=0; i<n_clients; i++)
   {
     PT_LOG_DEBUG(LOG_CTX_MSG,"EVC flood vlan %u:",i);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Slot    = %u",    msgEvcFlood[i].SlotId);
-    PT_LOG_DEBUG(LOG_CTX_MSG," EVC_idx = %u",    msgEvcFlood[i].evcId);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Mask    = 0x%02x",msgEvcFlood[i].mask);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Intf    = %u/%u", msgEvcFlood[i].intf.intf_type, msgEvcFlood[i].intf.intf_id);
-    PT_LOG_DEBUG(LOG_CTX_MSG," CVlan   = %u",    msgEvcFlood[i].client_vlan);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Outer Vlan : %u", msgEvcFlood[i].oVlanId);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Inner Vlan : %u", msgEvcFlood[i].iVlanId);
+    PT_LOG_DEBUG(LOG_CTX_MSG," Slot    = %u",    ENDIAN_SWAP8 (msgEvcFlood[i].SlotId));
+    PT_LOG_DEBUG(LOG_CTX_MSG," EVC_idx = %u",    ENDIAN_SWAP32(msgEvcFlood[i].evcId));
+    PT_LOG_DEBUG(LOG_CTX_MSG," Mask    = 0x%02x",ENDIAN_SWAP8 (msgEvcFlood[i].mask));
+    PT_LOG_DEBUG(LOG_CTX_MSG," Intf    = %u/%u", ENDIAN_SWAP8 (msgEvcFlood[i].intf.intf_type), ENDIAN_SWAP8 (msgEvcFlood[i].intf.intf_id));
+    PT_LOG_DEBUG(LOG_CTX_MSG," CVlan   = %u",    ENDIAN_SWAP16(msgEvcFlood[i].client_vlan));
+    PT_LOG_DEBUG(LOG_CTX_MSG," Outer Vlan : %u", ENDIAN_SWAP16(msgEvcFlood[i].oVlanId));
+    PT_LOG_DEBUG(LOG_CTX_MSG," Inner Vlan : %u", ENDIAN_SWAP16(msgEvcFlood[i].iVlanId));
 
-    ptin_intf.intf_type = msgEvcFlood[i].intf.intf_type;
-    ptin_intf.intf_id   = msgEvcFlood[i].intf.intf_id;
+    ptin_intf.intf_type = ENDIAN_SWAP8(msgEvcFlood[i].intf.intf_type);
+    ptin_intf.intf_id   = ENDIAN_SWAP8(msgEvcFlood[i].intf.intf_id);
 
-    if (ptin_evc_flood_vlan_remove( msgEvcFlood[i].evcId,
-                                    ((msgEvcFlood[i].mask & 0x01) ? &ptin_intf : L7_NULLPTR),
-                                    ((msgEvcFlood[i].mask & 0x02) ? msgEvcFlood[i].client_vlan : 0),
-                                    msgEvcFlood[i].oVlanId,
-                                    msgEvcFlood[i].iVlanId ) != L7_SUCCESS)
+    if (ptin_evc_flood_vlan_remove( ENDIAN_SWAP32(msgEvcFlood[i].evcId),
+                                    ((ENDIAN_SWAP8(msgEvcFlood[i].mask) & 0x01) ? &ptin_intf : L7_NULLPTR),
+                                    ((ENDIAN_SWAP8(msgEvcFlood[i].mask) & 0x02) ? ENDIAN_SWAP16(msgEvcFlood[i].client_vlan) : 0),
+                                    ENDIAN_SWAP16(msgEvcFlood[i].oVlanId),
+                                    ENDIAN_SWAP16(msgEvcFlood[i].iVlanId) ) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u flooding vlan", msgEvcFlood[i].evcId);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u flooding vlan", ENDIAN_SWAP32(msgEvcFlood[i].evcId));
       rc = L7_FAILURE;
     }
   }
@@ -6122,21 +6136,21 @@ L7_RC_t ptin_msg_bwProfile_get(msg_HwEthBwProfile_t *msgBwProfile)
   PT_LOG_DEBUG(LOG_CTX_MSG,"Starting message processing...");
 
   /* Validate arguments */
-  if (msgBwProfile==L7_NULLPTR)
+  if (msgBwProfile == L7_NULLPTR)
   {
     PT_LOG_ERR(LOG_CTX_MSG,"Invalid Message Pointer");
     return L7_FAILURE;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG," evcId  = %u",msgBwProfile->evcId);
-  PT_LOG_DEBUG(LOG_CTX_MSG," mask   = 0x%02x",msgBwProfile->mask);
-  PT_LOG_DEBUG(LOG_CTX_MSG," SVID   = %u",msgBwProfile->service_vlan);
-  PT_LOG_DEBUG(LOG_CTX_MSG," CVID   = %u",msgBwProfile->client_vlan);
-  PT_LOG_DEBUG(LOG_CTX_MSG," SrcIntf= %u/%u",msgBwProfile->intf_src.intf_type,msgBwProfile->intf_src.intf_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG," DstIntf= %u/%u",msgBwProfile->intf_dst.intf_type,msgBwProfile->intf_dst.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," evcId  = %u",    ENDIAN_SWAP32(msgBwProfile->evcId));
+  PT_LOG_DEBUG(LOG_CTX_MSG," mask   = 0x%02x",ENDIAN_SWAP8 (msgBwProfile->mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG," SVID   = %u",    ENDIAN_SWAP16(msgBwProfile->service_vlan));
+  PT_LOG_DEBUG(LOG_CTX_MSG," CVID   = %u",    ENDIAN_SWAP16(msgBwProfile->client_vlan));
+  PT_LOG_DEBUG(LOG_CTX_MSG," SrcIntf= %u/%u", ENDIAN_SWAP8 (msgBwProfile->intf_src.intf_type), ENDIAN_SWAP8 (msgBwProfile->intf_src.intf_id));
+  PT_LOG_DEBUG(LOG_CTX_MSG," DstIntf= %u/%u", ENDIAN_SWAP8 (msgBwProfile->intf_dst.intf_type), ENDIAN_SWAP8 (msgBwProfile->intf_dst.intf_id));
 
   /* Extract EVC id */
-  evcId = msgBwProfile->evcId;
+  evcId = ENDIAN_SWAP32(msgBwProfile->evcId);
 
   /* Copy data */
   if (ptin_msg_bwProfileStruct_fill(msgBwProfile, &profile, &meter) != L7_SUCCESS)
@@ -6173,23 +6187,23 @@ L7_RC_t ptin_msg_bwProfile_set(msg_HwEthBwProfile_t *msgBwProfile, unsigned int 
   PT_LOG_DEBUG(LOG_CTX_MSG,"Starting message processing...");
 
   /* Validate arguments */
-  if (msgBwProfile==L7_NULLPTR)
+  if (msgBwProfile == L7_NULLPTR)
   {
     PT_LOG_ERR(LOG_CTX_MSG,"Invalid Message Pointer");
     return L7_FAILURE;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG," evcId  = %u",msgBwProfile->evcId);
-  PT_LOG_DEBUG(LOG_CTX_MSG," mask   = 0x%02x",msgBwProfile->mask);
-  PT_LOG_DEBUG(LOG_CTX_MSG," SVID   = %u",msgBwProfile->service_vlan);
-  PT_LOG_DEBUG(LOG_CTX_MSG," CVID   = %u",msgBwProfile->client_vlan);
-  PT_LOG_DEBUG(LOG_CTX_MSG," SrcIntf= %u/%u",msgBwProfile->intf_src.intf_type,msgBwProfile->intf_src.intf_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG," DstIntf= %u/%u",msgBwProfile->intf_dst.intf_type,msgBwProfile->intf_dst.intf_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG," Meter {CIR,CBS}={%llu,%llu}",msgBwProfile->profile.cir,msgBwProfile->profile.cbs);
-  PT_LOG_DEBUG(LOG_CTX_MSG," Meter {EIR,EBS}={%llu,%llu}",msgBwProfile->profile.eir,msgBwProfile->profile.ebs);
+  PT_LOG_DEBUG(LOG_CTX_MSG," evcId  = %u",    ENDIAN_SWAP32(msgBwProfile->evcId));
+  PT_LOG_DEBUG(LOG_CTX_MSG," mask   = 0x%02x",ENDIAN_SWAP8 (msgBwProfile->mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG," SVID   = %u",    ENDIAN_SWAP16(msgBwProfile->service_vlan));
+  PT_LOG_DEBUG(LOG_CTX_MSG," CVID   = %u",    ENDIAN_SWAP16(msgBwProfile->client_vlan));
+  PT_LOG_DEBUG(LOG_CTX_MSG," SrcIntf= %u/%u", ENDIAN_SWAP8 (msgBwProfile->intf_src.intf_type), ENDIAN_SWAP8 (msgBwProfile->intf_src.intf_id));
+  PT_LOG_DEBUG(LOG_CTX_MSG," DstIntf= %u/%u", ENDIAN_SWAP8 (msgBwProfile->intf_dst.intf_type), ENDIAN_SWAP8 (msgBwProfile->intf_dst.intf_id));
+  PT_LOG_DEBUG(LOG_CTX_MSG," Meter {CIR,CBS}={%llu,%llu}",ENDIAN_SWAP64(msgBwProfile->profile.cir), ENDIAN_SWAP64(msgBwProfile->profile.cbs));
+  PT_LOG_DEBUG(LOG_CTX_MSG," Meter {EIR,EBS}={%llu,%llu}",ENDIAN_SWAP64(msgBwProfile->profile.eir), ENDIAN_SWAP64(msgBwProfile->profile.ebs));
 
   /* Extract EVC id */
-  evcId = msgBwProfile->evcId;
+  evcId = ENDIAN_SWAP32(msgBwProfile->evcId);
 
   /* Copy data */
   if (ptin_msg_bwProfileStruct_fill(msgBwProfile, &profile, &meter) != L7_SUCCESS)
@@ -6216,7 +6230,7 @@ L7_RC_t ptin_msg_bwProfile_set(msg_HwEthBwProfile_t *msgBwProfile, unsigned int 
 
        msgBwProfile_II = (msg_HwEthBwProfile_II_t *) msgBwProfile;
 
-       profile.cos = msgBwProfile_II->cos;
+       profile.cos = ENDIAN_SWAP8(msgBwProfile_II->cos);
        //profile.meter.cir/=8;
        //profile.meter.eir/=8;
        //for (i=0; i<8; i++) {
@@ -6253,21 +6267,21 @@ L7_RC_t ptin_msg_bwProfile_delete(msg_HwEthBwProfile_t *msgBwProfile, unsigned i
   PT_LOG_DEBUG(LOG_CTX_MSG,"Starting message processing...");
 
   /* Validate arguments */
-  if (msgBwProfile==L7_NULLPTR)
+  if (msgBwProfile == L7_NULLPTR)
   {
     PT_LOG_ERR(LOG_CTX_MSG,"Invalid Message Pointer");
     return L7_FAILURE;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG," evcId  = %u",msgBwProfile->evcId);
-  PT_LOG_DEBUG(LOG_CTX_MSG," mask   = 0x%02x",msgBwProfile->mask);
-  PT_LOG_DEBUG(LOG_CTX_MSG," SVID   = %u",msgBwProfile->service_vlan);
-  PT_LOG_DEBUG(LOG_CTX_MSG," CVID   = %u",msgBwProfile->client_vlan);
-  PT_LOG_DEBUG(LOG_CTX_MSG," SrcIntf= %u/%u",msgBwProfile->intf_src.intf_type,msgBwProfile->intf_src.intf_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG," DstIntf= %u/%u",msgBwProfile->intf_dst.intf_type,msgBwProfile->intf_dst.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," evcId  = %u",    ENDIAN_SWAP32(msgBwProfile->evcId));
+  PT_LOG_DEBUG(LOG_CTX_MSG," mask   = 0x%02x",ENDIAN_SWAP8 (msgBwProfile->mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG," SVID   = %u",    ENDIAN_SWAP16(msgBwProfile->service_vlan));
+  PT_LOG_DEBUG(LOG_CTX_MSG," CVID   = %u",    ENDIAN_SWAP16(msgBwProfile->client_vlan));
+  PT_LOG_DEBUG(LOG_CTX_MSG," SrcIntf= %u/%u", ENDIAN_SWAP8 (msgBwProfile->intf_src.intf_type), ENDIAN_SWAP8 (msgBwProfile->intf_src.intf_id));
+  PT_LOG_DEBUG(LOG_CTX_MSG," DstIntf= %u/%u", ENDIAN_SWAP8 (msgBwProfile->intf_dst.intf_type), ENDIAN_SWAP8 (msgBwProfile->intf_dst.intf_id));
 
   /* Extract EVC id */
-  evcId = msgBwProfile->evcId;
+  evcId = ENDIAN_SWAP32(msgBwProfile->evcId);
 
   /* Copy data */
   if (ptin_msg_bwProfileStruct_fill(msgBwProfile, &profile, &meter) != L7_SUCCESS)
@@ -6293,7 +6307,7 @@ L7_RC_t ptin_msg_bwProfile_delete(msg_HwEthBwProfile_t *msgBwProfile, unsigned i
 
        msgBwProfile_II = (msg_HwEthBwProfile_II_t *) msgBwProfile;
 
-       profile.cos = msgBwProfile_II->cos;
+       profile.cos = ENDIAN_SWAP8(msgBwProfile_II->cos);
        //profile.meter.cir/=8;
        //profile.meter.eir/=8;
        //for (i=0; i<8; i++) {
@@ -6325,20 +6339,20 @@ L7_RC_t ptin_msg_stormControl2_get(msg_HwEthStormControl2_t *msgStormControl)
   PT_LOG_DEBUG(LOG_CTX_MSG,"Starting message processing...");
 
   /* Validate arguments */
-  if (msgStormControl==L7_NULLPTR)
+  if (msgStormControl == L7_NULLPTR)
   {
     PT_LOG_ERR(LOG_CTX_MSG,"Invalid Message Pointer");
     return L7_FAILURE;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u", msgStormControl->SlotId);
-  PT_LOG_DEBUG(LOG_CTX_MSG," intf   = %u/%u",  msgStormControl->intf.intf_type, msgStormControl->intf.intf_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG," mask   = 0x%02x", msgStormControl->mask);
-  PT_LOG_DEBUG(LOG_CTX_MSG," Broadcast = %ld (%u)", msgStormControl->broadcast.rate_value, msgStormControl->broadcast.rate_units);
-  PT_LOG_DEBUG(LOG_CTX_MSG," Multicast = %ld (%u)", msgStormControl->multicast.rate_value, msgStormControl->multicast.rate_units);
-  PT_LOG_DEBUG(LOG_CTX_MSG," UnknownUC = %ld (%u)", msgStormControl->unknown_uc.rate_value, msgStormControl->unknown_uc.rate_units);
-  PT_LOG_DEBUG(LOG_CTX_MSG," Block UC = %u", msgStormControl->block_unicast);
-  PT_LOG_DEBUG(LOG_CTX_MSG," Block MC = %u", msgStormControl->block_multicast);
+  PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u",          ENDIAN_SWAP8 (msgStormControl->SlotId));
+  PT_LOG_DEBUG(LOG_CTX_MSG," intf   = %u/%u",       ENDIAN_SWAP8 (msgStormControl->intf.intf_type), ENDIAN_SWAP8 (msgStormControl->intf.intf_id));
+  PT_LOG_DEBUG(LOG_CTX_MSG," mask   = 0x%02x",      ENDIAN_SWAP8 (msgStormControl->mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG," Broadcast = %ld (%u)", ENDIAN_SWAP32(msgStormControl->broadcast.rate_value),  ENDIAN_SWAP8 (msgStormControl->broadcast.rate_units));
+  PT_LOG_DEBUG(LOG_CTX_MSG," Multicast = %ld (%u)", ENDIAN_SWAP32(msgStormControl->multicast.rate_value),  ENDIAN_SWAP8 (msgStormControl->multicast.rate_units));
+  PT_LOG_DEBUG(LOG_CTX_MSG," UnknownUC = %ld (%u)", ENDIAN_SWAP32(msgStormControl->unknown_uc.rate_value), ENDIAN_SWAP8 (msgStormControl->unknown_uc.rate_units));
+  PT_LOG_DEBUG(LOG_CTX_MSG," Block UC = %u",        ENDIAN_SWAP8 (msgStormControl->block_unicast));
+  PT_LOG_DEBUG(LOG_CTX_MSG," Block MC = %u",        ENDIAN_SWAP8 (msgStormControl->block_multicast));
 
   return L7_SUCCESS;
 }
@@ -6361,33 +6375,33 @@ L7_RC_t ptin_msg_stormControl2_set(msg_HwEthStormControl2_t *msgStormControl)
   PT_LOG_DEBUG(LOG_CTX_MSG,"Starting message processing...");
 
   /* Validate arguments */
-  if (msgStormControl==L7_NULLPTR)
+  if (msgStormControl == L7_NULLPTR)
   {
     PT_LOG_ERR(LOG_CTX_MSG,"Invalid Message Pointer");
     return L7_FAILURE;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u", msgStormControl->SlotId);
-  PT_LOG_DEBUG(LOG_CTX_MSG," intf   = %u/%u",  msgStormControl->intf.intf_type, msgStormControl->intf.intf_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG," mask   = 0x%02x", msgStormControl->mask);
-  PT_LOG_DEBUG(LOG_CTX_MSG," Broadcast = %ld (%u)", msgStormControl->broadcast.rate_value, msgStormControl->broadcast.rate_units);
-  PT_LOG_DEBUG(LOG_CTX_MSG," Multicast = %ld (%u)", msgStormControl->multicast.rate_value, msgStormControl->multicast.rate_units);
-  PT_LOG_DEBUG(LOG_CTX_MSG," UnknownUC = %ld (%u)", msgStormControl->unknown_uc.rate_value, msgStormControl->unknown_uc.rate_units);
-  PT_LOG_DEBUG(LOG_CTX_MSG," Block UC = %u", msgStormControl->block_unicast);
-  PT_LOG_DEBUG(LOG_CTX_MSG," Block MC = %u", msgStormControl->block_multicast);
+  PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u",          ENDIAN_SWAP8 (msgStormControl->SlotId));
+  PT_LOG_DEBUG(LOG_CTX_MSG," intf   = %u/%u",       ENDIAN_SWAP8 (msgStormControl->intf.intf_type), ENDIAN_SWAP8 (msgStormControl->intf.intf_id));
+  PT_LOG_DEBUG(LOG_CTX_MSG," mask   = 0x%02x",      ENDIAN_SWAP8 (msgStormControl->mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG," Broadcast = %ld (%u)", ENDIAN_SWAP32(msgStormControl->broadcast.rate_value),  ENDIAN_SWAP8 (msgStormControl->broadcast.rate_units));
+  PT_LOG_DEBUG(LOG_CTX_MSG," Multicast = %ld (%u)", ENDIAN_SWAP32(msgStormControl->multicast.rate_value),  ENDIAN_SWAP8 (msgStormControl->multicast.rate_units));
+  PT_LOG_DEBUG(LOG_CTX_MSG," UnknownUC = %ld (%u)", ENDIAN_SWAP32(msgStormControl->unknown_uc.rate_value), ENDIAN_SWAP8 (msgStormControl->unknown_uc.rate_units));
+  PT_LOG_DEBUG(LOG_CTX_MSG," Block UC = %u",        ENDIAN_SWAP8 (msgStormControl->block_unicast));
+  PT_LOG_DEBUG(LOG_CTX_MSG," Block MC = %u",        ENDIAN_SWAP8 (msgStormControl->block_multicast));
 
-  ptin_intf.intf_type = msgStormControl->intf.intf_type;
-  ptin_intf.intf_id   = msgStormControl->intf.intf_id;
+  ptin_intf.intf_type = ENDIAN_SWAP8(msgStormControl->intf.intf_type);
+  ptin_intf.intf_id   = ENDIAN_SWAP8(msgStormControl->intf.intf_id);
 
 
   /* -------- BROADCAST STORMCONTROL -------- */
-  if (msgStormControl->mask & MSG_STORMCONTROL_MASK_BCAST)
+  if (ENDIAN_SWAP8(msgStormControl->mask) & MSG_STORMCONTROL_MASK_BCAST)
   {
     PT_LOG_TRACE(LOG_CTX_MSG, "Processing Broadcast stormcontrol...");
     do
     {
       /* Data units */
-      switch (msgStormControl->broadcast.rate_units)
+      switch (ENDIAN_SWAP8(msgStormControl->broadcast.rate_units))
       {
         case 0:   rate_units = L7_RATE_UNIT_PPS;      break;
         case 1:   rate_units = L7_RATE_UNIT_PERCENT;  break;
@@ -6396,12 +6410,12 @@ L7_RC_t ptin_msg_stormControl2_set(msg_HwEthStormControl2_t *msgStormControl)
       }
       if (rate_units == L7_RATE_UNIT_NONE)
       {
-        PT_LOG_ERR(LOG_CTX_MSG,"Unknown units (%u)", msgStormControl->broadcast.rate_units);
+        PT_LOG_ERR(LOG_CTX_MSG,"Unknown units (%u)", ENDIAN_SWAP8(msgStormControl->broadcast.rate_units));
         rc_global = L7_FAILURE;
         break;
       }
-      enable     = (msgStormControl->broadcast.rate_value != (L7_uint32)-1);
-      rate_value =  msgStormControl->broadcast.rate_value;
+      enable     = (ENDIAN_SWAP32(msgStormControl->broadcast.rate_value) != (L7_uint32)-1);
+      rate_value =  ENDIAN_SWAP32(msgStormControl->broadcast.rate_value);
 
       /* Apply stormcontrol */
       rc = ptin_intf_bcast_stormControl_set(&ptin_intf, enable, rate_value, FD_POLICY_DEFAULT_BCAST_STORM_BURSTSIZE, rate_units);
@@ -6415,13 +6429,13 @@ L7_RC_t ptin_msg_stormControl2_set(msg_HwEthStormControl2_t *msgStormControl)
   }
 
   /* -------- MULTICAST STORMCONTROL -------- */
-  if (msgStormControl->mask & MSG_STORMCONTROL_MASK_MCAST)
+  if (ENDIAN_SWAP8(msgStormControl->mask) & MSG_STORMCONTROL_MASK_MCAST)
   {
     PT_LOG_TRACE(LOG_CTX_MSG, "Processing Multicast stormcontrol...");
     do
     {
       /* Data units */
-      switch (msgStormControl->multicast.rate_units)
+      switch (ENDIAN_SWAP8(msgStormControl->multicast.rate_units))
       {
         case 0:   rate_units = L7_RATE_UNIT_PPS;      break;
         case 1:   rate_units = L7_RATE_UNIT_PERCENT;  break;
@@ -6430,12 +6444,12 @@ L7_RC_t ptin_msg_stormControl2_set(msg_HwEthStormControl2_t *msgStormControl)
       }
       if (rate_units == L7_RATE_UNIT_NONE)
       {
-        PT_LOG_ERR(LOG_CTX_MSG,"Unknown units (%u)", msgStormControl->multicast.rate_units);
+        PT_LOG_ERR(LOG_CTX_MSG,"Unknown units (%u)", ENDIAN_SWAP8(msgStormControl->multicast.rate_units));
         rc_global = L7_FAILURE;
         break;
       }
-      enable     = (msgStormControl->multicast.rate_value != (L7_uint32)-1);
-      rate_value =  msgStormControl->multicast.rate_value;
+      enable     = (ENDIAN_SWAP32(msgStormControl->multicast.rate_value) != (L7_uint32)-1);
+      rate_value =  ENDIAN_SWAP32(msgStormControl->multicast.rate_value);
 
       /* Apply stormcontrol */
       rc = ptin_intf_mcast_stormControl_set(&ptin_intf, enable, rate_value, FD_POLICY_DEFAULT_BCAST_STORM_BURSTSIZE, rate_units);
@@ -6449,13 +6463,13 @@ L7_RC_t ptin_msg_stormControl2_set(msg_HwEthStormControl2_t *msgStormControl)
   }
 
   /* -------- UNKNOWN UNICAST STORMCONTROL -------- */
-  if (msgStormControl->mask & MSG_STORMCONTROL_MASK_UCUNK)
+  if (ENDIAN_SWAP8(msgStormControl->mask) & MSG_STORMCONTROL_MASK_UCUNK)
   {
     PT_LOG_TRACE(LOG_CTX_MSG, "Processing Unknown Unicast stormcontrol...");
     do
     {
       /* Data units */
-      switch (msgStormControl->unknown_uc.rate_units)
+      switch (ENDIAN_SWAP8(msgStormControl->unknown_uc.rate_units))
       {
         case 0:   rate_units = L7_RATE_UNIT_PPS;      break;
         case 1:   rate_units = L7_RATE_UNIT_PERCENT;  break;
@@ -6464,12 +6478,12 @@ L7_RC_t ptin_msg_stormControl2_set(msg_HwEthStormControl2_t *msgStormControl)
       }
       if (rate_units == L7_RATE_UNIT_NONE)
       {
-        PT_LOG_ERR(LOG_CTX_MSG,"Unknown units (%u)", msgStormControl->unknown_uc.rate_units);
+        PT_LOG_ERR(LOG_CTX_MSG,"Unknown units (%u)", ENDIAN_SWAP8(msgStormControl->unknown_uc.rate_units));
         rc_global = L7_FAILURE;
         break;
       }
-      enable     = (msgStormControl->unknown_uc.rate_value != (L7_uint32)-1);
-      rate_value =  msgStormControl->unknown_uc.rate_value;
+      enable     = (ENDIAN_SWAP32(msgStormControl->unknown_uc.rate_value) != (L7_uint32)-1);
+      rate_value =  ENDIAN_SWAP32(msgStormControl->unknown_uc.rate_value);
 
       /* Apply stormcontrol */
       rc = ptin_intf_ucast_stormControl_set(&ptin_intf, enable, rate_value, FD_POLICY_DEFAULT_BCAST_STORM_BURSTSIZE, rate_units);
@@ -6510,16 +6524,16 @@ L7_RC_t ptin_msg_stormControl_get(msg_HwEthStormControl_t *msgStormControl)
   PT_LOG_DEBUG(LOG_CTX_MSG,"Starting message processing...");
 
   /* Validate arguments */
-  if (msgStormControl==L7_NULLPTR)
+  if (msgStormControl == L7_NULLPTR)
   {
     PT_LOG_ERR(LOG_CTX_MSG,"Invalid Message Pointer");
     return L7_FAILURE;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u", msgStormControl->SlotId);
-  PT_LOG_DEBUG(LOG_CTX_MSG," id     = %u", msgStormControl->id);
-  PT_LOG_DEBUG(LOG_CTX_MSG," flags  = 0x%04x", msgStormControl->flags);
-  PT_LOG_DEBUG(LOG_CTX_MSG," mask   = 0x%04x", msgStormControl->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u",     ENDIAN_SWAP8 (msgStormControl->SlotId));
+  PT_LOG_DEBUG(LOG_CTX_MSG," id     = %u",     ENDIAN_SWAP32(msgStormControl->id));
+  PT_LOG_DEBUG(LOG_CTX_MSG," flags  = 0x%04x", ENDIAN_SWAP16(msgStormControl->flags));
+  PT_LOG_DEBUG(LOG_CTX_MSG," mask   = 0x%04x", ENDIAN_SWAP16(msgStormControl->mask));
 
   PT_LOG_WARN(LOG_CTX_MSG, "Obsolete Feature: not supported anymore!");
 
@@ -6529,19 +6543,19 @@ L7_RC_t ptin_msg_stormControl_get(msg_HwEthStormControl_t *msgStormControl)
   /* Input data */
   memset(&stormControl, 0x00, sizeof(ptin_stormControl_t));
   /* Traffic Type */
-  if (msgStormControl->mask & MSG_STORMCONTROL_MASK_BCAST)
+  if (ENDIAN_SWAP16(msgStormControl->mask) & MSG_STORMCONTROL_MASK_BCAST)
   {
     stormControl.flags |= PTIN_STORMCONTROL_MASK_BCAST;
   }
-  if (msgStormControl->mask & MSG_STORMCONTROL_MASK_MCAST)
+  if (ENDIAN_SWAP16(msgStormControl->mask) & MSG_STORMCONTROL_MASK_MCAST)
   {
     stormControl.flags |= PTIN_STORMCONTROL_MASK_MCAST;
   }
-  if (msgStormControl->mask & MSG_STORMCONTROL_MASK_UCUNK)
+  if (ENDIAN_SWAP16(msgStormControl->mask) & MSG_STORMCONTROL_MASK_UCUNK)
   {
     stormControl.flags |= PTIN_STORMCONTROL_MASK_UCUNK;
   }
-  if (msgStormControl->mask & MSG_STORMCONTROL_MASK_CPU)
+  if (ENDIAN_SWAP16(msgStormControl->mask) & MSG_STORMCONTROL_MASK_CPU)
   {
     stormControl.flags |= PTIN_STORMCONTROL_MASK_CPU;
   }
@@ -6554,30 +6568,30 @@ L7_RC_t ptin_msg_stormControl_get(msg_HwEthStormControl_t *msgStormControl)
   }
 
   /* Init Output data */
-  msgStormControl->mask = 0;
-  msgStormControl->bcast_rate = 0;
-  msgStormControl->mcast_rate = 0;
-  msgStormControl->ucast_unknown_rate = 0;
+  msgStormControl->mask = ENDIAN_SWAP16(0);
+  msgStormControl->bcast_rate = ENDIAN_SWAP32(0);
+  msgStormControl->mcast_rate = ENDIAN_SWAP32(0);
+  msgStormControl->ucast_unknown_rate = ENDIAN_SWAP32(0);
   /* Fill output data */
   if (stormControl.flags & PTIN_STORMCONTROL_MASK_BCAST)
   {
-    msgStormControl->bcast_rate = stormControl.bcast_rate;
-    msgStormControl->mask = MSG_STORMCONTROL_MASK_BCAST;
+    msgStormControl->bcast_rate = ENDIAN_SWAP32(stormControl.bcast_rate);
+    msgStormControl->mask |= ENDIAN_SWAP16(MSG_STORMCONTROL_MASK_BCAST);
   }
   if (stormControl.flags & PTIN_STORMCONTROL_MASK_MCAST)
   {
-    msgStormControl->mcast_rate = stormControl.mcast_rate;
-    msgStormControl->mask = MSG_STORMCONTROL_MASK_MCAST;
+    msgStormControl->mcast_rate = ENDIAN_SWAP32(stormControl.mcast_rate);
+    msgStormControl->mask |= ENDIAN_SWAP16(MSG_STORMCONTROL_MASK_MCAST);
   }
   if (stormControl.flags & PTIN_STORMCONTROL_MASK_UCUNK)
   {
-    msgStormControl->ucast_unknown_rate = stormControl.ucunk_rate;
-    msgStormControl->mask = MSG_STORMCONTROL_MASK_UCUNK;
+    msgStormControl->ucast_unknown_rate = ENDIAN_SWAP32(stormControl.ucunk_rate);
+    msgStormControl->mask |= ENDIAN_SWAP16(MSG_STORMCONTROL_MASK_UCUNK);
   }
   if (stormControl.flags & PTIN_STORMCONTROL_MASK_CPU)
   {
-    msgStormControl->ucast_unknown_rate = stormControl.cpu_rate;
-    msgStormControl->mask = MSG_STORMCONTROL_MASK_CPU;
+    msgStormControl->ucast_unknown_rate = ENDIAN_SWAP32(stormControl.cpu_rate);
+    msgStormControl->mask |= ENDIAN_SWAP16(MSG_STORMCONTROL_MASK_CPU);
   }
 
   PT_LOG_DEBUG(LOG_CTX_MSG,"Message processing finished! (rc=%d)", rc);
@@ -6600,19 +6614,19 @@ L7_RC_t ptin_msg_stormControl_set(msg_HwEthStormControl_t *msgStormControl)
   PT_LOG_DEBUG(LOG_CTX_MSG,"Starting message processing...");
 
   /* Validate arguments */
-  if (msgStormControl==L7_NULLPTR)
+  if (msgStormControl == L7_NULLPTR)
   {
     PT_LOG_ERR(LOG_CTX_MSG,"Invalid Message Pointer");
     return L7_FAILURE;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u", msgStormControl->SlotId);
-  PT_LOG_DEBUG(LOG_CTX_MSG," id     = %u", msgStormControl->id);
-  PT_LOG_DEBUG(LOG_CTX_MSG," flags  = 0x%04x", msgStormControl->flags);
-  PT_LOG_DEBUG(LOG_CTX_MSG," mask   = 0x%04x", msgStormControl->mask);
-  PT_LOG_DEBUG(LOG_CTX_MSG," bcast_rate = %u bps", msgStormControl->bcast_rate);
-  PT_LOG_DEBUG(LOG_CTX_MSG," mcast_rate = %u bps", msgStormControl->mcast_rate);
-  PT_LOG_DEBUG(LOG_CTX_MSG," ucunk_rate = %u bps", msgStormControl->ucast_unknown_rate);
+  PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u",         ENDIAN_SWAP8 (msgStormControl->SlotId));
+  PT_LOG_DEBUG(LOG_CTX_MSG," id     = %u",         ENDIAN_SWAP32(msgStormControl->id));
+  PT_LOG_DEBUG(LOG_CTX_MSG," flags  = 0x%04x",     ENDIAN_SWAP16(msgStormControl->flags));
+  PT_LOG_DEBUG(LOG_CTX_MSG," mask   = 0x%04x",     ENDIAN_SWAP16(msgStormControl->mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG," bcast_rate = %u bps", ENDIAN_SWAP32(msgStormControl->bcast_rate));
+  PT_LOG_DEBUG(LOG_CTX_MSG," mcast_rate = %u bps", ENDIAN_SWAP32(msgStormControl->mcast_rate));
+  PT_LOG_DEBUG(LOG_CTX_MSG," ucunk_rate = %u bps", ENDIAN_SWAP32(msgStormControl->ucast_unknown_rate));
 
   PT_LOG_WARN(LOG_CTX_MSG, "Obsolete Feature: not supported anymore!");
 
@@ -6622,24 +6636,24 @@ L7_RC_t ptin_msg_stormControl_set(msg_HwEthStormControl_t *msgStormControl)
   /* Input data */
   memset(&stormControl, 0x00, sizeof(ptin_stormControl_t));
   /* Traffic type */
-  if (msgStormControl->mask & MSG_STORMCONTROL_MASK_BCAST)
+  if (ENDIAN_SWAP16(msgStormControl->mask) & MSG_STORMCONTROL_MASK_BCAST)
   {
-    stormControl.bcast_rate = msgStormControl->bcast_rate;
+    stormControl.bcast_rate = ENDIAN_SWAP32(msgStormControl->bcast_rate);
     stormControl.flags |= PTIN_STORMCONTROL_MASK_BCAST;
   }
-  if (msgStormControl->mask & MSG_STORMCONTROL_MASK_MCAST)
+  if (ENDIAN_SWAP16(msgStormControl->mask) & MSG_STORMCONTROL_MASK_MCAST)
   {
-    stormControl.mcast_rate = msgStormControl->mcast_rate;
+    stormControl.mcast_rate = ENDIAN_SWAP32(msgStormControl->mcast_rate);
     stormControl.flags |= PTIN_STORMCONTROL_MASK_MCAST;
   }
-  if (msgStormControl->mask & MSG_STORMCONTROL_MASK_UCUNK)
+  if (ENDIAN_SWAP16(msgStormControl->mask) & MSG_STORMCONTROL_MASK_UCUNK)
   {
-    stormControl.ucunk_rate = msgStormControl->ucast_unknown_rate;
+    stormControl.ucunk_rate = ENDIAN_SWAP32(msgStormControl->ucast_unknown_rate);
     stormControl.flags |= PTIN_STORMCONTROL_MASK_UCUNK;
   }
-  if (msgStormControl->mask & MSG_STORMCONTROL_MASK_CPU)
+  if (ENDIAN_SWAP16(msgStormControl->mask) & MSG_STORMCONTROL_MASK_CPU)
   {
-    stormControl.cpu_rate = msgStormControl->ucast_unknown_rate;
+    stormControl.cpu_rate = ENDIAN_SWAP32(msgStormControl->ucast_unknown_rate);
     stormControl.flags |= PTIN_STORMCONTROL_MASK_CPU;
   }
 
@@ -6670,36 +6684,36 @@ L7_RC_t ptin_msg_stormControl_clear(msg_HwEthStormControl_t *msgStormControl)
   PT_LOG_DEBUG(LOG_CTX_MSG,"Starting message processing...");
 
   /* Validate arguments */
-  if (msgStormControl==L7_NULLPTR)
+  if (msgStormControl == L7_NULLPTR)
   {
     PT_LOG_ERR(LOG_CTX_MSG,"Invalid Message Pointer");
     return L7_FAILURE;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u", msgStormControl->SlotId);
-  PT_LOG_DEBUG(LOG_CTX_MSG," id     = %u", msgStormControl->id);
-  PT_LOG_DEBUG(LOG_CTX_MSG," flags  = 0x%04x", msgStormControl->flags);
-  PT_LOG_DEBUG(LOG_CTX_MSG," mask   = 0x%04x", msgStormControl->mask);
-  PT_LOG_DEBUG(LOG_CTX_MSG," bcast_rate = %u bps", msgStormControl->bcast_rate);
-  PT_LOG_DEBUG(LOG_CTX_MSG," mcast_rate = %u bps", msgStormControl->mcast_rate);
-  PT_LOG_DEBUG(LOG_CTX_MSG," ucunk_rate = %u bps", msgStormControl->ucast_unknown_rate);
+  PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u",         ENDIAN_SWAP8 (msgStormControl->SlotId));
+  PT_LOG_DEBUG(LOG_CTX_MSG," id     = %u",         ENDIAN_SWAP32(msgStormControl->id));
+  PT_LOG_DEBUG(LOG_CTX_MSG," flags  = 0x%04x",     ENDIAN_SWAP16(msgStormControl->flags));
+  PT_LOG_DEBUG(LOG_CTX_MSG," mask   = 0x%04x",     ENDIAN_SWAP16(msgStormControl->mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG," bcast_rate = %u bps", ENDIAN_SWAP32(msgStormControl->bcast_rate));
+  PT_LOG_DEBUG(LOG_CTX_MSG," mcast_rate = %u bps", ENDIAN_SWAP32(msgStormControl->mcast_rate));
+  PT_LOG_DEBUG(LOG_CTX_MSG," ucunk_rate = %u bps", ENDIAN_SWAP32(msgStormControl->ucast_unknown_rate));
 
   /* Input data */
   memset(&stormControl, 0x00, sizeof(ptin_stormControl_t));
   /* Traffic type */
-  if (msgStormControl->mask & MSG_STORMCONTROL_MASK_BCAST)
+  if (ENDIAN_SWAP16(msgStormControl->mask) & MSG_STORMCONTROL_MASK_BCAST)
   {
     stormControl.flags |= PTIN_STORMCONTROL_MASK_BCAST;
   }
-  if (msgStormControl->mask & MSG_STORMCONTROL_MASK_MCAST)
+  if (ENDIAN_SWAP16(msgStormControl->mask) & MSG_STORMCONTROL_MASK_MCAST)
   {
     stormControl.flags |= PTIN_STORMCONTROL_MASK_MCAST;
   }
-  if (msgStormControl->mask & MSG_STORMCONTROL_MASK_UCUNK)
+  if (ENDIAN_SWAP16(msgStormControl->mask) & MSG_STORMCONTROL_MASK_UCUNK)
   {
     stormControl.flags |= PTIN_STORMCONTROL_MASK_UCUNK;
   }
-  if (msgStormControl->mask & MSG_STORMCONTROL_MASK_CPU)
+  if (ENDIAN_SWAP16(msgStormControl->mask) & MSG_STORMCONTROL_MASK_CPU)
   {
     stormControl.flags |= PTIN_STORMCONTROL_MASK_CPU;
   }
@@ -6730,33 +6744,33 @@ L7_RC_t ptin_msg_stormControl_reset(msg_HwEthStormControl_t *msgStormControl)
   PT_LOG_DEBUG(LOG_CTX_MSG,"Starting message processing...");
 
   /* Validate arguments */
-  if (msgStormControl==L7_NULLPTR)
+  if (msgStormControl == L7_NULLPTR)
   {
     PT_LOG_ERR(LOG_CTX_MSG,"Invalid Message Pointer");
     return L7_FAILURE;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u", msgStormControl->SlotId);
-  PT_LOG_DEBUG(LOG_CTX_MSG," id     = %u", msgStormControl->id);
-  PT_LOG_DEBUG(LOG_CTX_MSG," flags  = 0x%04x", msgStormControl->flags);
-  PT_LOG_DEBUG(LOG_CTX_MSG," mask   = 0x%04x", msgStormControl->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u",     ENDIAN_SWAP8 (msgStormControl->SlotId));
+  PT_LOG_DEBUG(LOG_CTX_MSG," id     = %u",     ENDIAN_SWAP32(msgStormControl->id));
+  PT_LOG_DEBUG(LOG_CTX_MSG," flags  = 0x%04x", ENDIAN_SWAP16(msgStormControl->flags));
+  PT_LOG_DEBUG(LOG_CTX_MSG," mask   = 0x%04x", ENDIAN_SWAP16(msgStormControl->mask));
 
   /* Input data */
   memset(&stormControl, 0x00, sizeof(ptin_stormControl_t));
   /* Traffic type */
-  if (msgStormControl->mask & MSG_STORMCONTROL_MASK_BCAST)
+  if (ENDIAN_SWAP16(msgStormControl->mask) & MSG_STORMCONTROL_MASK_BCAST)
   {
     stormControl.flags |= PTIN_STORMCONTROL_MASK_BCAST;
   }
-  if (msgStormControl->mask & MSG_STORMCONTROL_MASK_MCAST)
+  if (ENDIAN_SWAP16(msgStormControl->mask) & MSG_STORMCONTROL_MASK_MCAST)
   {
     stormControl.flags |= PTIN_STORMCONTROL_MASK_MCAST;
   }
-  if (msgStormControl->mask & MSG_STORMCONTROL_MASK_UCUNK)
+  if (ENDIAN_SWAP16(msgStormControl->mask) & MSG_STORMCONTROL_MASK_UCUNK)
   {
     stormControl.flags |= PTIN_STORMCONTROL_MASK_UCUNK;
   }
-  if (msgStormControl->mask & MSG_STORMCONTROL_MASK_CPU)
+  if (ENDIAN_SWAP16(msgStormControl->mask) & MSG_STORMCONTROL_MASK_CPU)
   {
     stormControl.flags |= PTIN_STORMCONTROL_MASK_CPU;
   }
@@ -6791,55 +6805,55 @@ L7_RC_t ptin_msg_evcStats_get(msg_evcStats_t *msg_evcStats)
   PT_LOG_DEBUG(LOG_CTX_MSG,"Starting message processing...");
 
   /* Validate arguments */
-  if (msg_evcStats==L7_NULLPTR)
+  if (msg_evcStats == L7_NULLPTR)
   {
     PT_LOG_ERR(LOG_CTX_MSG,"Invalid Message Pointer");
     return L7_FAILURE;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG," evcId    = %u",    msg_evcStats->evc_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG," mask     = 0x%02x",msg_evcStats->mask);
-  PT_LOG_DEBUG(LOG_CTX_MSG," Intf     = %u/%u", msg_evcStats->intf.intf_type,msg_evcStats->intf.intf_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG," SVID     = %u",    msg_evcStats->service_vlan);
-  PT_LOG_DEBUG(LOG_CTX_MSG," CVID     = %u",    msg_evcStats->client_vlan);
-  PT_LOG_DEBUG(LOG_CTX_MSG," ChannelIP= %u",    msg_evcStats->channel_ip);
+  PT_LOG_DEBUG(LOG_CTX_MSG," evcId    = %u",    ENDIAN_SWAP32(msg_evcStats->evc_id));
+  PT_LOG_DEBUG(LOG_CTX_MSG," mask     = 0x%02x",ENDIAN_SWAP8 (msg_evcStats->mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG," Intf     = %u/%u", ENDIAN_SWAP8 (msg_evcStats->intf.intf_type), ENDIAN_SWAP8 (msg_evcStats->intf.intf_id));
+  PT_LOG_DEBUG(LOG_CTX_MSG," SVID     = %u",    ENDIAN_SWAP16(msg_evcStats->service_vlan));
+  PT_LOG_DEBUG(LOG_CTX_MSG," CVID     = %u",    ENDIAN_SWAP16(msg_evcStats->client_vlan));
+  PT_LOG_DEBUG(LOG_CTX_MSG," ChannelIP= %u",    ENDIAN_SWAP32(msg_evcStats->channel_ip));
 
   /* Clear counters */
-  memset(&msg_evcStats->stats,0x00,sizeof(msg_evcStats_counters_t));
-  msg_evcStats->mask &= ~((L7_uint8) MSG_EVC_COUNTERS_MASK_STATS);
+  memset(&msg_evcStats->stats, 0x00, sizeof(msg_evcStats_counters_t));
+  msg_evcStats->mask &= ENDIAN_SWAP8(~((L7_uint8) MSG_EVC_COUNTERS_MASK_STATS));
 
   /* Extract EVC id */
-  evcId = msg_evcStats->evc_id;
+  evcId = ENDIAN_SWAP32(msg_evcStats->evc_id);
 
   /* Copy data */
-  if (ptin_msg_evcStatsStruct_fill(msg_evcStats,&profile)!=L7_SUCCESS)
+  if (ptin_msg_evcStatsStruct_fill(msg_evcStats, &profile)!=L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG,"Error filling structure");
     return L7_FAILURE;
   }
 
   /* Get statistics data */
-  rc=ptin_evc_evcStats_get(evcId,&profile,&counters);
+  rc = ptin_evc_evcStats_get(evcId, &profile, &counters);
 
   /* Add bandwidth profile */
   if (rc==L7_SUCCESS)
   {
     /* Copy statistics data to message */
-    msg_evcStats->stats.mask_stat        = counters.mask;
+    msg_evcStats->stats.mask_stat        = ENDIAN_SWAP8(counters.mask);
     /* RX */
-    msg_evcStats->stats.rx.pktTotal      = counters.rx.pktTotal;
-    msg_evcStats->stats.rx.pktUnicast    = counters.rx.pktUnicast;
-    msg_evcStats->stats.rx.pktMulticast  = counters.rx.pktMulticast;
-    msg_evcStats->stats.rx.pktBroadcast  = counters.rx.pktBroadcast;
-    msg_evcStats->stats.rx.pktDropped    = counters.rx.pktDropped;
+    msg_evcStats->stats.rx.pktTotal      = ENDIAN_SWAP32(counters.rx.pktTotal);
+    msg_evcStats->stats.rx.pktUnicast    = ENDIAN_SWAP32(counters.rx.pktUnicast);
+    msg_evcStats->stats.rx.pktMulticast  = ENDIAN_SWAP32(counters.rx.pktMulticast);
+    msg_evcStats->stats.rx.pktBroadcast  = ENDIAN_SWAP32(counters.rx.pktBroadcast);
+    msg_evcStats->stats.rx.pktDropped    = ENDIAN_SWAP32(counters.rx.pktDropped);
     /* TX */
-    msg_evcStats->stats.tx.pktTotal      = counters.tx.pktTotal;
-    msg_evcStats->stats.tx.pktUnicast    = counters.tx.pktUnicast;
-    msg_evcStats->stats.tx.pktMulticast  = counters.tx.pktMulticast;
-    msg_evcStats->stats.tx.pktBroadcast  = counters.tx.pktBroadcast;
-    msg_evcStats->stats.tx.pktDropped    = counters.tx.pktDropped;
+    msg_evcStats->stats.tx.pktTotal      = ENDIAN_SWAP32(counters.tx.pktTotal);
+    msg_evcStats->stats.tx.pktUnicast    = ENDIAN_SWAP32(counters.tx.pktUnicast);
+    msg_evcStats->stats.tx.pktMulticast  = ENDIAN_SWAP32(counters.tx.pktMulticast);
+    msg_evcStats->stats.tx.pktBroadcast  = ENDIAN_SWAP32(counters.tx.pktBroadcast);
+    msg_evcStats->stats.tx.pktDropped    = ENDIAN_SWAP32(counters.tx.pktDropped);
     /* Activate bit in mask: this indicates that the counters are valid */
-    msg_evcStats->mask |= MSG_EVC_COUNTERS_MASK_STATS;
+    msg_evcStats->mask |= ENDIAN_SWAP8(MSG_EVC_COUNTERS_MASK_STATS);
   }
   else
   {
@@ -6851,25 +6865,25 @@ L7_RC_t ptin_msg_evcStats_get(msg_evcStats_t *msg_evcStats)
     return L7_FAILURE;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG," evcId    = %u",    msg_evcStats->evc_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG," mask     = 0x%02x",msg_evcStats->mask);
-  PT_LOG_DEBUG(LOG_CTX_MSG," Intf     = %u/%u", msg_evcStats->intf.intf_type,msg_evcStats->intf.intf_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG," SVID     = %u",    msg_evcStats->service_vlan);
-  PT_LOG_DEBUG(LOG_CTX_MSG," CVID     = %u",    msg_evcStats->client_vlan);
-  PT_LOG_DEBUG(LOG_CTX_MSG," ChannelIP= %u",    msg_evcStats->channel_ip);
-  PT_LOG_DEBUG(LOG_CTX_MSG," Stat_mask  = 0x%02x",msg_evcStats->stats.mask_stat);
+  PT_LOG_DEBUG(LOG_CTX_MSG," evcId    = %u",      ENDIAN_SWAP32(msg_evcStats->evc_id));
+  PT_LOG_DEBUG(LOG_CTX_MSG," mask     = 0x%02x",  ENDIAN_SWAP8 (msg_evcStats->mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG," Intf     = %u/%u",   ENDIAN_SWAP8 (msg_evcStats->intf.intf_type), ENDIAN_SWAP8 (msg_evcStats->intf.intf_id));
+  PT_LOG_DEBUG(LOG_CTX_MSG," SVID     = %u",      ENDIAN_SWAP16(msg_evcStats->service_vlan));
+  PT_LOG_DEBUG(LOG_CTX_MSG," CVID     = %u",      ENDIAN_SWAP16(msg_evcStats->client_vlan));
+  PT_LOG_DEBUG(LOG_CTX_MSG," ChannelIP= %u",      ENDIAN_SWAP32(msg_evcStats->channel_ip));
+  PT_LOG_DEBUG(LOG_CTX_MSG," Stat_mask  = 0x%02x",ENDIAN_SWAP8 (msg_evcStats->stats.mask_stat));
   PT_LOG_DEBUG(LOG_CTX_MSG," Stats_RX:");
-  PT_LOG_DEBUG(LOG_CTX_MSG,"   Total    =%10u", msg_evcStats->stats.rx.pktTotal);
-  PT_LOG_DEBUG(LOG_CTX_MSG,"   Unicast  =%10u", msg_evcStats->stats.rx.pktUnicast);
-  PT_LOG_DEBUG(LOG_CTX_MSG,"   Multicast=%10u", msg_evcStats->stats.rx.pktMulticast);
-  PT_LOG_DEBUG(LOG_CTX_MSG,"   Broadcast=%10u", msg_evcStats->stats.rx.pktBroadcast);
-  PT_LOG_DEBUG(LOG_CTX_MSG,"   Dropped  =%10u", msg_evcStats->stats.rx.pktDropped);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"   Total    =%10u",   ENDIAN_SWAP32(msg_evcStats->stats.rx.pktTotal));
+  PT_LOG_DEBUG(LOG_CTX_MSG,"   Unicast  =%10u",   ENDIAN_SWAP32(msg_evcStats->stats.rx.pktUnicast));
+  PT_LOG_DEBUG(LOG_CTX_MSG,"   Multicast=%10u",   ENDIAN_SWAP32(msg_evcStats->stats.rx.pktMulticast));
+  PT_LOG_DEBUG(LOG_CTX_MSG,"   Broadcast=%10u",   ENDIAN_SWAP32(msg_evcStats->stats.rx.pktBroadcast));
+  PT_LOG_DEBUG(LOG_CTX_MSG,"   Dropped  =%10u",   ENDIAN_SWAP32(msg_evcStats->stats.rx.pktDropped));
   PT_LOG_DEBUG(LOG_CTX_MSG," Stats_TX:");
-  PT_LOG_DEBUG(LOG_CTX_MSG,"   Total    =%10u", msg_evcStats->stats.tx.pktTotal);
-  PT_LOG_DEBUG(LOG_CTX_MSG,"   Unicast  =%10u", msg_evcStats->stats.tx.pktUnicast);
-  PT_LOG_DEBUG(LOG_CTX_MSG,"   Multicast=%10u", msg_evcStats->stats.tx.pktMulticast);
-  PT_LOG_DEBUG(LOG_CTX_MSG,"   Broadcast=%10u", msg_evcStats->stats.tx.pktBroadcast);
-  PT_LOG_DEBUG(LOG_CTX_MSG,"   Dropped  =%10u", msg_evcStats->stats.tx.pktDropped);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"   Total    =%10u",   ENDIAN_SWAP32(msg_evcStats->stats.tx.pktTotal));
+  PT_LOG_DEBUG(LOG_CTX_MSG,"   Unicast  =%10u",   ENDIAN_SWAP32(msg_evcStats->stats.tx.pktUnicast));
+  PT_LOG_DEBUG(LOG_CTX_MSG,"   Multicast=%10u",   ENDIAN_SWAP32(msg_evcStats->stats.tx.pktMulticast));
+  PT_LOG_DEBUG(LOG_CTX_MSG,"   Broadcast=%10u",   ENDIAN_SWAP32(msg_evcStats->stats.tx.pktBroadcast));
+  PT_LOG_DEBUG(LOG_CTX_MSG,"   Dropped  =%10u",   ENDIAN_SWAP32(msg_evcStats->stats.tx.pktDropped));
 
   PT_LOG_DEBUG(LOG_CTX_MSG,"Message processing finished!");
   return L7_SUCCESS;
@@ -6891,31 +6905,31 @@ L7_RC_t ptin_msg_evcStats_set(msg_evcStats_t *msg_evcStats)
   PT_LOG_DEBUG(LOG_CTX_MSG,"Starting message processing...");
 
   /* Validate arguments */
-  if (msg_evcStats==L7_NULLPTR)
+  if (msg_evcStats == L7_NULLPTR)
   {
     PT_LOG_ERR(LOG_CTX_MSG,"Invalid Message Pointer");
     return L7_FAILURE;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG," evcId    = %u",    msg_evcStats->evc_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG," mask     = 0x%02x",msg_evcStats->mask);
-  PT_LOG_DEBUG(LOG_CTX_MSG," Intf     = %u/%u", msg_evcStats->intf.intf_type,msg_evcStats->intf.intf_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG," SVID     = %u",    msg_evcStats->service_vlan);
-  PT_LOG_DEBUG(LOG_CTX_MSG," CVID     = %u",    msg_evcStats->client_vlan);
-  PT_LOG_DEBUG(LOG_CTX_MSG," ChannelIP= 0x%08x",    msg_evcStats->channel_ip);
+  PT_LOG_DEBUG(LOG_CTX_MSG," evcId    = %u",      ENDIAN_SWAP32(msg_evcStats->evc_id));
+  PT_LOG_DEBUG(LOG_CTX_MSG," mask     = 0x%02x",  ENDIAN_SWAP8 (msg_evcStats->mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG," Intf     = %u/%u",   ENDIAN_SWAP8 (msg_evcStats->intf.intf_type), ENDIAN_SWAP8 (msg_evcStats->intf.intf_id));
+  PT_LOG_DEBUG(LOG_CTX_MSG," SVID     = %u",      ENDIAN_SWAP16(msg_evcStats->service_vlan));
+  PT_LOG_DEBUG(LOG_CTX_MSG," CVID     = %u",      ENDIAN_SWAP16(msg_evcStats->client_vlan));
+  PT_LOG_DEBUG(LOG_CTX_MSG," ChannelIP= 0x%08x",  ENDIAN_SWAP32(msg_evcStats->channel_ip));
 
   /* Extract EVC id */
-  evcId = msg_evcStats->evc_id;
+  evcId = ENDIAN_SWAP32(msg_evcStats->evc_id);
 
   /* Copy data */
-  if (ptin_msg_evcStatsStruct_fill(msg_evcStats,&profile)!=L7_SUCCESS)
+  if (ptin_msg_evcStatsStruct_fill(msg_evcStats, &profile) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG,"Error filling structure");
     return L7_FAILURE;
   }
 
   /* Add bandwidth profile */
-  if ((rc=ptin_evc_evcStats_set(evcId,&profile))!=L7_SUCCESS)
+  if ((rc=ptin_evc_evcStats_set(evcId, &profile)) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG,"Error allocating statistics!");
     return rc;
@@ -6941,31 +6955,31 @@ L7_RC_t ptin_msg_evcStats_delete(msg_evcStats_t *msg_evcStats)
   PT_LOG_DEBUG(LOG_CTX_MSG,"Starting message processing...");
 
   /* Validate arguments */
-  if (msg_evcStats==L7_NULLPTR)
+  if (msg_evcStats == L7_NULLPTR)
   {
     PT_LOG_ERR(LOG_CTX_MSG,"Invalid Message Pointer");
     return L7_FAILURE;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG," evcId    = %u",    msg_evcStats->evc_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG," mask     = 0x%02x",msg_evcStats->mask);
-  PT_LOG_DEBUG(LOG_CTX_MSG," Intf     = %u/%u", msg_evcStats->intf.intf_type,msg_evcStats->intf.intf_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG," SVID     = %u",    msg_evcStats->service_vlan);
-  PT_LOG_DEBUG(LOG_CTX_MSG," CVID     = %u",    msg_evcStats->client_vlan);
-  PT_LOG_DEBUG(LOG_CTX_MSG," ChannelIP= %u",    msg_evcStats->channel_ip);
+  PT_LOG_DEBUG(LOG_CTX_MSG," evcId    = %u",    ENDIAN_SWAP32(msg_evcStats->evc_id));
+  PT_LOG_DEBUG(LOG_CTX_MSG," mask     = 0x%02x",ENDIAN_SWAP8 (msg_evcStats->mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG," Intf     = %u/%u", ENDIAN_SWAP8 (msg_evcStats->intf.intf_type), ENDIAN_SWAP8 (msg_evcStats->intf.intf_id));
+  PT_LOG_DEBUG(LOG_CTX_MSG," SVID     = %u",    ENDIAN_SWAP16(msg_evcStats->service_vlan));
+  PT_LOG_DEBUG(LOG_CTX_MSG," CVID     = %u",    ENDIAN_SWAP16(msg_evcStats->client_vlan));
+  PT_LOG_DEBUG(LOG_CTX_MSG," ChannelIP= %u",    ENDIAN_SWAP32(msg_evcStats->channel_ip));
 
   /* Extract EVC id */
-  evcId = msg_evcStats->evc_id;
+  evcId = ENDIAN_SWAP32(msg_evcStats->evc_id);
 
   /* Copy data */
-  if (ptin_msg_evcStatsStruct_fill(msg_evcStats,&profile)!=L7_SUCCESS)
+  if (ptin_msg_evcStatsStruct_fill(msg_evcStats, &profile) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG,"Error filling structure");
     return L7_FAILURE;
   }
 
   /* Add bandwidth profile */
-  rc = ptin_evc_evcStats_delete(evcId,&profile);
+  rc = ptin_evc_evcStats_delete(evcId, &profile);
 
   if ( rc != L7_SUCCESS )
   {
@@ -6993,7 +7007,7 @@ L7_RC_t ptin_msg_ntw_connectivity_get(msg_NtwConnectivity_t *msgNtwConn)
 
   /* Copy data */
   memset(&ptinNtwConn, 0x00, sizeof(ptinNtwConn));
-  ptinNtwConn.mask = msgNtwConn->mask;
+  ptinNtwConn.mask = ENDIAN_SWAP32(msgNtwConn->mask);
 
   /* Get config */
   rc = ptin_cfg_ntw_connectivity_get(&ptinNtwConn);
@@ -7018,16 +7032,16 @@ L7_RC_t ptin_msg_ntw_connectivity_get(msg_NtwConnectivity_t *msgNtwConn)
     PT_LOG_INFO(LOG_CTX_MSG, "    %s Intf #    = %u", ptinNtwConn.intf[i].intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG", ptinNtwConn.intf[i].intf_id);
 
   /* Copy data */
-  msgNtwConn->mask            = ptinNtwConn.mask;
-  msgNtwConn->ipaddr          = ptinNtwConn.ipaddr;
-  msgNtwConn->netmask         = ptinNtwConn.netmask;
-  msgNtwConn->gateway         = ptinNtwConn.gateway;
-  msgNtwConn->mgmtVlanId      = ptinNtwConn.mgmtVlanId;
-  msgNtwConn->n_intf          = ptinNtwConn.n_intf;
+  msgNtwConn->mask            = ENDIAN_SWAP32(ptinNtwConn.mask);
+  msgNtwConn->ipaddr          = ENDIAN_SWAP32(ptinNtwConn.ipaddr);
+  msgNtwConn->netmask         = ENDIAN_SWAP32(ptinNtwConn.netmask);
+  msgNtwConn->gateway         = ENDIAN_SWAP32(ptinNtwConn.gateway);
+  msgNtwConn->mgmtVlanId      = ENDIAN_SWAP16(ptinNtwConn.mgmtVlanId);
+  msgNtwConn->n_intf          = ENDIAN_SWAP8 (ptinNtwConn.n_intf);
   for (i=0; i<ptinNtwConn.n_intf; i++)
   {
-    msgNtwConn->intf[i].intf_type = ptinNtwConn.intf[i].intf_type;
-    msgNtwConn->intf[i].intf_id   = ptinNtwConn.intf[i].intf_id;
+    msgNtwConn->intf[i].intf_type = ENDIAN_SWAP8(ptinNtwConn.intf[i].intf_type);
+    msgNtwConn->intf[i].intf_id   = ENDIAN_SWAP8(ptinNtwConn.intf[i].intf_id);
   }
 
   return L7_SUCCESS;
@@ -7047,16 +7061,16 @@ L7_RC_t ptin_msg_ntw_connectivity_set(msg_NtwConnectivity_t *msgNtwConn)
   L7_RC_t rc;
 
   /* Copy data */
-  ptinNtwConn.mask            = msgNtwConn->mask;
-  ptinNtwConn.ipaddr          = msgNtwConn->ipaddr;
-  ptinNtwConn.netmask         = msgNtwConn->netmask;
-  ptinNtwConn.gateway         = msgNtwConn->gateway;
-  ptinNtwConn.mgmtVlanId      = msgNtwConn->mgmtVlanId;
-  ptinNtwConn.n_intf          = msgNtwConn->n_intf;
+  ptinNtwConn.mask            = ENDIAN_SWAP32(msgNtwConn->mask);
+  ptinNtwConn.ipaddr          = ENDIAN_SWAP32(msgNtwConn->ipaddr);
+  ptinNtwConn.netmask         = ENDIAN_SWAP32(msgNtwConn->netmask);
+  ptinNtwConn.gateway         = ENDIAN_SWAP32(msgNtwConn->gateway);
+  ptinNtwConn.mgmtVlanId      = ENDIAN_SWAP16(msgNtwConn->mgmtVlanId);
+  ptinNtwConn.n_intf          = ENDIAN_SWAP8 (msgNtwConn->n_intf);
   for (i=0; i<ptinNtwConn.n_intf; i++)
   {
-    ptinNtwConn.intf[i].intf_type = msgNtwConn->intf[i].intf_type;
-    ptinNtwConn.intf[i].intf_id   = msgNtwConn->intf[i].intf_id;
+    ptinNtwConn.intf[i].intf_type = ENDIAN_SWAP8(msgNtwConn->intf[i].intf_type);
+    ptinNtwConn.intf[i].intf_id   = ENDIAN_SWAP8(msgNtwConn->intf[i].intf_id);
   }
 
   /* Output data */
@@ -10898,9 +10912,10 @@ static void ptin_msg_PortStats_convert(msg_HWEthRFC2819_PortStatistics_t  *msgPo
 static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile, ptin_bw_profile_t *profile, ptin_bw_meter_t *meter)
 {
   L7_int    ptin_port;
+  L7_uint8  mask;
 
   /* Validate arguments */
-  if (msgBwProfile==L7_NULLPTR || profile==L7_NULLPTR || meter==L7_NULLPTR)
+  if (msgBwProfile == L7_NULLPTR || profile == L7_NULLPTR || meter == L7_NULLPTR)
   {
     PT_LOG_ERR(LOG_CTX_MSG,"Null arguments");
     return L7_FAILURE;
@@ -10918,27 +10933,29 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
   /* No MAC address provided */
   memset(profile->macAddr, 0x00, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
 
+  mask = ENDIAN_SWAP8(msgBwProfile->mask);
+
   /* Source interface */
-  if (msgBwProfile->mask & MSG_HWETH_BWPROFILE_MASK_INTF_SRC)
+  if (mask & MSG_HWETH_BWPROFILE_MASK_INTF_SRC)
   {
     /* SVID */
-    if ((msgBwProfile->mask & MSG_HWETH_BWPROFILE_MASK_SVLAN) &&
-        (msgBwProfile->service_vlan>0 && msgBwProfile->service_vlan<4096))
+    if ((mask & MSG_HWETH_BWPROFILE_MASK_SVLAN) &&
+        (ENDIAN_SWAP16(msgBwProfile->service_vlan) > 0 && ENDIAN_SWAP16(msgBwProfile->service_vlan) < 4096))
     {
-      profile->outer_vlan_lookup = msgBwProfile->service_vlan;
+      profile->outer_vlan_lookup = ENDIAN_SWAP16(msgBwProfile->service_vlan);
       PT_LOG_DEBUG(LOG_CTX_MSG," SVID extracted!");
     }
 
     /* CVID */
-    if ((msgBwProfile->mask & MSG_HWETH_BWPROFILE_MASK_CVLAN) &&
-        (msgBwProfile->client_vlan>0 && msgBwProfile->client_vlan<4096))
+    if ((mask & MSG_HWETH_BWPROFILE_MASK_CVLAN) &&
+        (ENDIAN_SWAP16(msgBwProfile->client_vlan) > 0 && ENDIAN_SWAP16(msgBwProfile->client_vlan) < 4096))
     {
-      profile->inner_vlan_ingress = msgBwProfile->client_vlan;
+      profile->inner_vlan_ingress = ENDIAN_SWAP16(msgBwProfile->client_vlan);
       PT_LOG_DEBUG(LOG_CTX_MSG," CVID extracted!");
     }
 
     /* Get ptin_port */
-    if (ptin_msg_ptinPort_get(msgBwProfile->intf_src.intf_type,msgBwProfile->intf_src.intf_id, &ptin_port)!=L7_SUCCESS)
+    if (ptin_msg_ptinPort_get(ENDIAN_SWAP8(msgBwProfile->intf_src.intf_type), ENDIAN_SWAP8(msgBwProfile->intf_src.intf_id), &ptin_port) != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG,"Invalid port reference");
       return L7_FAILURE;
@@ -10951,26 +10968,26 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
   }
 
   /* Destination interface */
-  if (msgBwProfile->mask & MSG_HWETH_BWPROFILE_MASK_INTF_DST)
+  if (mask & MSG_HWETH_BWPROFILE_MASK_INTF_DST)
   {
     /* SVID */
-    if ((msgBwProfile->mask & MSG_HWETH_BWPROFILE_MASK_SVLAN) &&
-        (msgBwProfile->service_vlan>0 && msgBwProfile->service_vlan<4096))
+    if ((mask & MSG_HWETH_BWPROFILE_MASK_SVLAN) &&
+        (ENDIAN_SWAP16(msgBwProfile->service_vlan) > 0 && ENDIAN_SWAP16(msgBwProfile->service_vlan) < 4096))
     {
-      profile->outer_vlan_egress = msgBwProfile->service_vlan;
+      profile->outer_vlan_egress = ENDIAN_SWAP16(msgBwProfile->service_vlan);
       PT_LOG_DEBUG(LOG_CTX_MSG," SVID extracted!");
     }
 
     /* CVID */
-    if ((msgBwProfile->mask & MSG_HWETH_BWPROFILE_MASK_CVLAN) &&
-        (msgBwProfile->client_vlan>0 && msgBwProfile->client_vlan<4096))
+    if ((mask & MSG_HWETH_BWPROFILE_MASK_CVLAN) &&
+        (ENDIAN_SWAP16(msgBwProfile->client_vlan) > 0 && ENDIAN_SWAP16(msgBwProfile->client_vlan) < 4096))
     {
-      profile->inner_vlan_egress = msgBwProfile->client_vlan;
+      profile->inner_vlan_egress = ENDIAN_SWAP16(msgBwProfile->client_vlan);
       PT_LOG_DEBUG(LOG_CTX_MSG," CVID extracted!");
     }
 
     /* Get ptin_port */
-    if (ptin_msg_ptinPort_get(msgBwProfile->intf_dst.intf_type,msgBwProfile->intf_dst.intf_id, &ptin_port)!=L7_SUCCESS)
+    if (ptin_msg_ptinPort_get(ENDIAN_SWAP8(msgBwProfile->intf_dst.intf_type), ENDIAN_SWAP8(msgBwProfile->intf_dst.intf_id), &ptin_port) != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG,"Invalid port reference");
       return L7_FAILURE;
@@ -10982,12 +10999,12 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
     PT_LOG_DEBUG(LOG_CTX_MSG," DstIntf extracted!");
   }
 
-  if (msgBwProfile->mask & MSG_HWETH_BWPROFILE_MASK_PROFILE)
+  if (mask & MSG_HWETH_BWPROFILE_MASK_PROFILE)
   {
-    meter->cir = (L7_uint32) (msgBwProfile->profile.cir/1000);   /* in kbps */
-    meter->cbs = (L7_uint32) msgBwProfile->profile.cbs;          /* in bytes */
-    meter->eir = (L7_uint32) (msgBwProfile->profile.eir/1000);   /* in kbps */
-    meter->ebs = (L7_uint32) msgBwProfile->profile.ebs;          /* in bytes */
+    meter->cir = (L7_uint32) (ENDIAN_SWAP64(msgBwProfile->profile.cir)/1000);   /* in kbps */
+    meter->cbs = (L7_uint32) ENDIAN_SWAP64(msgBwProfile->profile.cbs);          /* in bytes */
+    meter->eir = (L7_uint32) (ENDIAN_SWAP64(msgBwProfile->profile.eir)/1000);   /* in kbps */
+    meter->ebs = (L7_uint32) ENDIAN_SWAP64(msgBwProfile->profile.ebs);          /* in bytes */
     PT_LOG_DEBUG(LOG_CTX_MSG," Profile data extracted!");
   }
   else
@@ -11016,17 +11033,17 @@ static L7_RC_t ptin_msg_evcStatsStruct_fill(msg_evcStats_t *msg_evcStats, ptin_e
   L7_int    ptin_port;
 
   /* Validate arguments */
-  if (msg_evcStats==L7_NULLPTR || evcStats_profile==L7_NULLPTR)
+  if (msg_evcStats == L7_NULLPTR || evcStats_profile == L7_NULLPTR)
   {
     PT_LOG_ERR(LOG_CTX_MSG,"Null arguments");
     return L7_FAILURE;
   }
 
   /* Source interface */
-  if (msg_evcStats->mask & MSG_EVC_COUNTERS_MASK_INTF)
+  if (ENDIAN_SWAP8(msg_evcStats->mask) & MSG_EVC_COUNTERS_MASK_INTF)
   {
     /* Get ptin_port */
-    if (ptin_msg_ptinPort_get(msg_evcStats->intf.intf_type,msg_evcStats->intf.intf_id, &ptin_port)!=L7_SUCCESS)
+    if (ptin_msg_ptinPort_get(ENDIAN_SWAP8(msg_evcStats->intf.intf_type), ENDIAN_SWAP8(msg_evcStats->intf.intf_id), &ptin_port) != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG,"Invalid port reference");
       return L7_FAILURE;
@@ -11039,29 +11056,29 @@ static L7_RC_t ptin_msg_evcStatsStruct_fill(msg_evcStats_t *msg_evcStats, ptin_e
   evcStats_profile->outer_vlan_lookup  = 0;
   evcStats_profile->outer_vlan_ingress = 0;
   evcStats_profile->outer_vlan_egress  = 0;
-  if ((msg_evcStats->mask & MSG_EVC_COUNTERS_MASK_SVLAN) &&
-      (msg_evcStats->service_vlan>0 && msg_evcStats->service_vlan<4096))
+  if ((ENDIAN_SWAP8(msg_evcStats->mask) & MSG_EVC_COUNTERS_MASK_SVLAN) &&
+      (ENDIAN_SWAP16(msg_evcStats->service_vlan) > 0 && ENDIAN_SWAP16(msg_evcStats->service_vlan) < 4096))
   {
-    evcStats_profile->outer_vlan_lookup = msg_evcStats->service_vlan;
+    evcStats_profile->outer_vlan_lookup = ENDIAN_SWAP16(msg_evcStats->service_vlan);
     PT_LOG_DEBUG(LOG_CTX_MSG," SVID extracted!");
   }
 
   /* CVID */
   evcStats_profile->inner_vlan_ingress  = 0;
   evcStats_profile->inner_vlan_egress = 0;
-  if ((msg_evcStats->mask & MSG_EVC_COUNTERS_MASK_CVLAN) &&
-      (msg_evcStats->client_vlan>0 && msg_evcStats->client_vlan<4096))
+  if ((ENDIAN_SWAP8(msg_evcStats->mask) & MSG_EVC_COUNTERS_MASK_CVLAN) &&
+      (ENDIAN_SWAP16(msg_evcStats->client_vlan) > 0 && ENDIAN_SWAP16(msg_evcStats->client_vlan) < 4096))
   {
-    evcStats_profile->inner_vlan_ingress = msg_evcStats->client_vlan;
+    evcStats_profile->inner_vlan_ingress = ENDIAN_SWAP16(msg_evcStats->client_vlan);
     PT_LOG_DEBUG(LOG_CTX_MSG," CVID extracted!");
   }
 
   /* Channel IP */
   evcStats_profile->dst_ip = 0;
-  if ((msg_evcStats->mask & MSG_EVC_COUNTERS_MASK_CHANNEL) &&
-      (msg_evcStats->channel_ip!=0 && msg_evcStats->channel_ip!=(L7_uint32)-1))
+  if ((ENDIAN_SWAP8(msg_evcStats->mask) & MSG_EVC_COUNTERS_MASK_CHANNEL) &&
+      (ENDIAN_SWAP32(msg_evcStats->channel_ip) != 0 && ENDIAN_SWAP32(msg_evcStats->channel_ip) != (L7_uint32)-1))
   {
-    evcStats_profile->dst_ip = msg_evcStats->channel_ip;
+    evcStats_profile->dst_ip = ENDIAN_SWAP32(msg_evcStats->channel_ip);
     PT_LOG_DEBUG(LOG_CTX_MSG," ChannelIP extracted!");
   }
 
