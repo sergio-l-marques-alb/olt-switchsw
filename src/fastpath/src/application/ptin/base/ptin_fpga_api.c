@@ -21,6 +21,7 @@
 #include "ptin_fpga_api.h"
 #include "commdefs.h"
 #include "addrmap.h"
+#include "logger.h"
 
 /* FPGA map */
 #ifdef MAP_FPGA
