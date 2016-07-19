@@ -11120,6 +11120,15 @@ L7_RC_t ptin_msg_wr_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
   po=(msg_generic_prefix_t *)outbuff->info;
   po[i].index = pi[i].index;
 
+#if MNGMT_DIFFERENT_ENDIANNESS
+  {
+   pi[i].index = ENDIAN_SWAP64(pi[i].index);
+   pi[i].bd.vid = ENDIAN_SWAP64(pi[i].bd.vid);
+   pi[i].bd.mep_id = ENDIAN_SWAP16(pi[i].bd.mep_id);
+   pi[i].bd.prt = ENDIAN_SWAP16(pi[i].bd.prt);
+  }
+#endif
+
   porta = pi[i].bd.prt;
 
   if ((pi[i].flags & 0x01)) {
@@ -11221,7 +11230,18 @@ L7_RC_t ptin_msg_del_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
   L7_uint16 prt=-1, vid=-1, level=-1;
 
   pi=(msg_bd_mep_t *)inbuff->info;   po=(msg_generic_prefix_t *)outbuff->info;
-  i_mep=po[i].index=pi[i].index;
+  po[i].index=pi[i].index;
+
+#if MNGMT_DIFFERENT_ENDIANNESS
+  {
+   pi[i].index = ENDIAN_SWAP64(pi[i].index);
+   pi[i].bd.vid = ENDIAN_SWAP64(pi[i].bd.vid);
+   pi[i].bd.mep_id = ENDIAN_SWAP16(pi[i].bd.mep_id);
+   pi[i].bd.prt = ENDIAN_SWAP16(pi[i].bd.prt);
+  }
+#endif
+
+  i_mep=pi[i].index;
 
   if (i_mep<N_MEPs)
   {
@@ -11295,6 +11315,15 @@ L7_RC_t ptin_msg_wr_RMEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
   pi=(msg_bd_rmep_t *)inbuff->info;   po=(msg_generic_prefix_t *)outbuff->info;
   po[i].index=pi[i].index;
 
+#if MNGMT_DIFFERENT_ENDIANNESS
+  {
+   pi[i].index = ENDIAN_SWAP64(pi[i].index);
+   pi[i].bd.vid = ENDIAN_SWAP64(pi[i].bd.vid);
+   pi[i].bd.mep_id = ENDIAN_SWAP16(pi[i].bd.mep_id);
+   pi[i].bd.prt = ENDIAN_SWAP16(pi[i].bd.prt);
+  }
+#endif
+
   i_mep=     MEP_INDEX_TO_iMEP(pi[i].index);
 
   if (!valid_mep_index(i_mep))
@@ -11366,6 +11395,15 @@ L7_RC_t ptin_msg_del_RMEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
   pi=(msg_bd_rmep_t *)inbuff->info;   po=(msg_generic_prefix_t *)outbuff->info;
   po[i].index=pi[i].index;
 
+#if MNGMT_DIFFERENT_ENDIANNESS
+  {
+   pi[i].index = ENDIAN_SWAP64(pi[i].index);
+   pi[i].bd.vid = ENDIAN_SWAP64(pi[i].bd.vid);
+   pi[i].bd.mep_id = ENDIAN_SWAP16(pi[i].bd.mep_id);
+   pi[i].bd.prt = ENDIAN_SWAP16(pi[i].bd.prt);
+  }
+#endif
+
   i_mep=     MEP_INDEX_TO_iMEP(pi[i].index);
   i_rmep=    MEP_INDEX_TO_iRMEP(pi[i].index);
 
@@ -11413,6 +11451,10 @@ L7_RC_t ptin_msg_dump_MEPs(ipc_msg *inbuff, ipc_msg *outbuff)
 
   pi=(msg_generic_prefix_t *)inbuff->info;   po=(msg_bd_mep_t *)outbuff->info;
 
+#if MNGMT_DIFFERENT_ENDIANNESS
+  pi->index = ENDIAN_SWAP64(pi->index);
+#endif
+
   if (pi->index>=N_MEPs)
   {
     return(L7_FAILURE);
@@ -11431,7 +11473,32 @@ L7_RC_t ptin_msg_dump_MEPs(ipc_msg *inbuff, ipc_msg *outbuff)
     //_p_mep= pointer2active_node_info(*p_mep_db);
 
     if (!EMPTY_T_MEP(p_oam->db[i].mep)  ||  N_MEPs-1==i)
-      po[n++].bd=  *((T_MEP_HDR *) &p_oam->db[i].mep);
+      po[n].bd=  *((T_MEP_HDR *) &p_oam->db[i].mep);
+
+#if MNGMT_DIFFERENT_ENDIANNESS
+      {
+       po[n].index = ENDIAN_SWAP64(po[n].index);
+       po[n].err_code = ENDIAN_SWAP32(po[n].err_code);
+       po[n].bd.vid = ENDIAN_SWAP64(po[n].bd.vid);
+       po[n].bd.mep_id = ENDIAN_SWAP16(po[n].bd.mep_id);
+       po[n].bd.prt = ENDIAN_SWAP16(po[n].bd.prt);
+
+       po[n].bd.CCM_timer = ENDIAN_SWAP32(po[n].bd.CCM_timer);
+       po[n].bd.mismerge_timer = ENDIAN_SWAP32(po[n].bd.mismerge_timer);
+       po[n].bd.unxp_MEP_timer = ENDIAN_SWAP32(po[n].bd.unxp_MEP_timer);
+       po[n].bd.unxp_lvl_timer = ENDIAN_SWAP32(po[n].bd.unxp_lvl_timer);
+       po[n].bd.unxp_T_timer = ENDIAN_SWAP32(po[n].bd.unxp_T_timer);
+       //{
+       // L7_uint32 j,k,l;
+       //
+       // for (j=0; j<2; j++)
+       //     for (k=0; k<2; k++)
+       //         for (l=0; l<2; l++) po[n].bd.c[j][k][l] = ENDIAN_SWAP32(po[n].bd.c[j][k][l]);
+       //}
+      }
+#endif
+
+      n++;
 
     if (n+1 > 15   ||  (n+1)*sizeof(msg_bd_mep_t) >= IPCLIB_MAX_MSGSIZE) break;// if (n+1 > 100) break;// if ((n+1)*sizeof(msg_bd_mep_t) >= INFO_DIM_MAX) break;
   }//for
@@ -11463,6 +11530,10 @@ L7_RC_t ptin_msg_dump_MEs(ipc_msg *inbuff, ipc_msg *outbuff) {
 
   pi=(msg_bd_me_t *)inbuff->info;   po=(msg_bd_me_t *)outbuff->info;
 
+#if MNGMT_DIFFERENT_ENDIANNESS
+  pi->index = ENDIAN_SWAP64(pi->index);
+#endif
+
   i_mep=     MEP_INDEX_TO_iMEP(pi->index);
   i_rmep=    MEP_INDEX_TO_iRMEP(pi->index);
 
@@ -11489,6 +11560,16 @@ L7_RC_t ptin_msg_dump_MEs(ipc_msg *inbuff, ipc_msg *outbuff) {
     {
       po[n].bd.me=     p_oam->db[i_mep].mep.ME[i];
       //if (0L-1==po[n].bd.me.LOC_timer) po[n].bd.me.RDI=0;
+
+#if MNGMT_DIFFERENT_ENDIANNESS
+      {
+       po[n].index = ENDIAN_SWAP64(po[n].index);
+       po[n].err_code = ENDIAN_SWAP32(po[n].err_code);
+       po[n].bd.me.mep_id = ENDIAN_SWAP16(po[n].bd.me.mep_id);
+       po[n].bd.me.LOC_timer = ENDIAN_SWAP32(po[n].bd.me.LOC_timer);
+      }
+#endif
+
       n++;
     }
 
@@ -11523,6 +11604,10 @@ L7_RC_t ptin_msg_dump_LUT_MEPs(ipc_msg *inbuff, ipc_msg *outbuff) {
 
   pi=(msg_generic_prefix_t *)inbuff->info;   po=(msg_bd_lut_mep_t *)outbuff->info;
 
+#if MNGMT_DIFFERENT_ENDIANNESS
+  pi->index = ENDIAN_SWAP64(pi->index);
+#endif
+
   if (pi->index>=N_MAX_LOOKUP_MEPs)
   {
     return(L7_FAILURE);
@@ -11538,7 +11623,21 @@ L7_RC_t ptin_msg_dump_LUT_MEPs(ipc_msg *inbuff, ipc_msg *outbuff) {
 
     if (!EMPTY_T_MEP(p_oam->mep_lut[i]))
     {
-      po[n++].bd= p_oam->mep_lut[i];
+      po[n].bd= p_oam->mep_lut[i];
+
+#if MNGMT_DIFFERENT_ENDIANNESS
+      {
+       po[n].index = ENDIAN_SWAP64(po[n].index);
+       po[n].err_code = ENDIAN_SWAP32(po[n].err_code);
+
+       po[n].bd.mep_index = ENDIAN_SWAP32(po[n].bd.mep_index);
+       po[n].bd.mep_id = ENDIAN_SWAP16(po[n].bd.mep_id);
+       po[n].bd.prt = ENDIAN_SWAP16(po[n].bd.prt);
+       po[n].bd.vid = ENDIAN_SWAP64(po[n].bd.vid);
+      }
+#endif
+
+      n++;
     }
 
     if (n+1 > 15   ||  (n+1)*sizeof(msg_bd_lut_mep_t) >= IPCLIB_MAX_MSGSIZE) break;// if (n+1 > 100) break;// if ((n+1)*sizeof(msg_bd_lut_mep_t) >= INFO_DIM_MAX) break;
