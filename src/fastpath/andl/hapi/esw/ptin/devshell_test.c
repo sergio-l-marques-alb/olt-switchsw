@@ -3504,6 +3504,131 @@ int disable_remote_ber(int n_groups,
 }
 
 /**
+ * Configure tap settings in a specific slot
+ * 
+ * @param n_groups 
+ * @param n_slots0 
+ * @param slot0 
+ * @param n_slots1 
+ * @param slot1 
+ * @param n_slots2 
+ * @param slot2 
+ * @param n_slots3 
+ * @param slot3 
+ * @param n_slots4 
+ * @param slot4 
+ * @param n_slots5 
+ * @param slot5 
+ * @param n_slots6 
+ * @param slot6 
+ * 
+ * @return int 
+ */
+int set_remote_tapcursors( int tap_pre, int tap_main, int tap_post,
+                           int n_groups,
+                           int n_slots0, int slot0,
+                           int n_slots1, int slot1,
+                           int n_slots2, int slot2,
+                           int n_slots3, int slot3,
+                           int n_slots4, int slot4,
+                           int n_slots5, int slot5,
+                           int n_slots6, int slot6)
+{
+  int i, j;
+  struct groups {
+    int n_slots;
+    int slot;
+  } group[N_GROUPS_MAX];
+  int n_slots;
+  int slot[N_SLOTS_MAX];
+  unsigned int ip_addr[N_SLOTS_MAX];
+  ipc_msg txmsg, rxmsg;
+  int ret;
+
+//if (ber_init_done == 0) {
+//  printf("BER needs to be initialized. Please run 'ber_init()'\n");
+//  return -1;
+//}
+  if (n_groups > N_GROUPS_MAX) {
+    printf("Number of groups is limited to %u!\n", N_GROUPS_MAX);
+    return -1;
+  }
+
+  group[0].n_slots = n_slots0;
+  group[0].slot    = slot0;
+  group[1].n_slots = n_slots1;
+  group[1].slot    = slot1;
+  group[2].n_slots = n_slots2;
+  group[2].slot    = slot2;
+  group[3].n_slots = n_slots3;
+  group[3].slot    = slot3;
+  group[4].n_slots = n_slots4;
+  group[4].slot    = slot4;
+  group[5].n_slots = n_slots5;
+  group[5].slot    = slot5;
+  group[6].n_slots = n_slots6;
+  group[6].slot    = slot6;
+
+  n_slots = 0;
+  for (i=0; i<n_groups; i++) {
+    for (j=0; j<group[i].n_slots; j++) {
+      slot[n_slots] = group[i].slot + j;
+      n_slots++;
+    }
+  }
+
+  if (n_slots > 18) {
+    printf("Number of slots is limited to %u!\n", 18);
+    return -1;
+  }
+
+  for (i=0; i<n_slots; i++)
+  {
+    ip_addr[i] = ip_addr_slot[slot[i]];
+  }
+
+  /* Compose TX message */
+  txmsg.protocolId   = 1;
+  txmsg.srcId        = 7100;
+  txmsg.dstId        = 6100;
+  txmsg.flags        = 0;
+  txmsg.counter      = rand ();
+  txmsg.msgId        = 0x532;
+  txmsg.infoDim      = 5;
+  txmsg.info[0] = txmsg.info[1] = txmsg.info[2] = txmsg.info[3] = txmsg.info[4] = 0;
+
+  /* For each slot, get remote values (just to reset them!) (4 ports at once) */
+  for (i=0; i<n_slots; i++)
+  {
+    txmsg.info[0] = tap_pre;  /* pre cursor - default 0x0F */
+    txmsg.info[1] = tap_main; /* main cursor */
+    txmsg.info[2] = tap_post; /* post cursor */
+    txmsg.info[3] = 0x0A;     /* Slew control - default 0x0A */
+    txmsg.info[4] = mx;       /* Source matrix */
+
+    ret = send_data (canal_ipc, 6100, ip_addr[i], &txmsg, &rxmsg);
+    if (ret != 0) {
+      printf("Error setting remote BER in slot %u\n", slot[i]);
+      return -1;
+    }
+    if (rxmsg.flags != 0x01)
+    {
+      printf("Request not acknowledged in slot %u\n", slot[i]);
+      continue;
+    }
+    printf("Success configuring tap settings in slot %u (IP %u.%u.%u.%u)\n",
+           slot[i],
+           (ip_addr[i]>>24) & 0xff, (ip_addr[i]>>16) & 0xff, (ip_addr[i]>>8) & 0xff, ip_addr[i] & 0xff);
+    usleep(1*1000);
+  }
+
+  printf("\nDone!\n");
+
+  return 0;
+}
+
+
+/**
  * Read ber errors in remote linecards
  * 
  * @param n_groups 
@@ -4500,6 +4625,13 @@ int ptin_ber_help(void)
          "                                         <n_slots0> <start_slot0>\n"
          "                                         <n_slots1> <start_slot1>\n"
          "                                         <...>\n"
+         "\n"
+         " Configure tap settings in remote linecards\n"
+         "   fp.shell dev set_remote_tapcursors <precursor> <maincursor> <postcursor>"
+         "                                      <n_groups>\n"
+         "                                      <n_slots0> <start_slot0>\n"
+         "                                      <n_slots1> <start_slot1>\n"
+         "                                      <...>\n"
          "\n"
          " Get remote BER measurements in remote linecards\n"
          "   fp.shell dev get_remote_ber <n_groups>\n"
