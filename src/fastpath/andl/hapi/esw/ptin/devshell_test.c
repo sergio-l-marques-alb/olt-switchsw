@@ -12,6 +12,7 @@
 #include "broad_policy.h"
 #include <bcm_int/esw_dispatch.h>
 
+#include "ptin_fpga_api.h"
 #include "hpc_db.h"
 #include "dapi_db.h"
 #include "bcmx/vlan.h"
