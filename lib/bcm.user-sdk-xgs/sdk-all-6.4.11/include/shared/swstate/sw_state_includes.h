@@ -1,0 +1,87 @@
+/*
+ * $Id: $
+ * $Copyright: Copyright 2016 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$ 
+ *  
+ */
+#ifndef _SHR_SW_STATE_INCLUDES_H
+#define _SHR_SW_STATE_INCLUDES_H
+
+#if defined(BCM_DPP_SUPPORT) || defined(BCM_DFE_SUPPORT)
+#include <shared/swstate/sw_state_hash_tbl.h>
+#include <shared/swstate/sw_state_res_tag_bitmap.h>
+#include <shared/swstate/sw_state_resmgr.h>
+#include <shared/shr_template.h>
+#include <bcm_int/dpp/counters.h>
+#include <soc/dpp/ARAD/arad_sw_db.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_sw_db.h>
+#include <soc/dpp/JER/JER_PP/jer_pp_mpls_term.h>
+#include <soc/dpp/SAND/Utils/sand_sorted_list.h>
+#include <soc/dpp/TMC/tmc_api_flow_control.h>
+#include <bcm_int/dpp/stg.h>
+#include <bcm_int/dpp/policer.h>
+#include <bcm_int/dpp/mirror.h>
+#include <bcm_int/dpp/l3.h>
+#include <bcm_int/dpp/l2.h>
+#include <bcm_int/dpp/trunk.h>
+#include <bcm_int/dpp/vlan.h>
+#include <bcm_int/dpp/vswitch.h>
+#include <bcm_int/dpp/rx.h>
+#include <bcm_int/dpp/failover.h>
+#include <bcm_int/dpp/gport_mgmt.h>
+#include <bcm_int/dpp/bfd.h>
+#include <bcm_int/dpp/alloc_mngr.h>
+#include <bcm_int/dpp/alloc_mngr_glif.h>
+#include <bcm_int/dpp/alloc_mngr_utils.h>
+#include <bcm_int/dpp/ipmc.h>
+#include <bcm_int/dpp/switch.h>
+#include <bcm_int/dpp/port.h>
+#include <bcm_int/dpp/trill.h>
+#include <bcm_int/dpp/stack.h>
+#include <bcm_int/dpp/qos.h>
+#include <bcm_int/dpp/mim.h>
+#include <bcm_int/dpp/oam.h>
+#include <bcm_int/dpp/cosq.h>
+#include <bcm_int/dpp/field_int.h>
+#endif /* defined(BCM_DPP_SUPPORT) || defined (BCM_DFE_SUPPORT) */
+
+#endif /*_SHR_SW_STATE_INCLUDES_H*/

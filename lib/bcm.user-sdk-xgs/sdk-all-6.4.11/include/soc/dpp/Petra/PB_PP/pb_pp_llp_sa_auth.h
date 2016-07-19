@@ -1,0 +1,416 @@
+/* $Id: soc_pb_pp_llp_sa_auth.h,v 1.6 Broadcom SDK $
+ * $Copyright: Copyright 2016 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+*/
+
+#ifndef __SOC_PB_PP_LLP_SA_AUTH_INCLUDED__
+/* { */
+#define __SOC_PB_PP_LLP_SA_AUTH_INCLUDED__
+
+/*************
+ * INCLUDES  *
+ *************/
+/* { */
+
+#include <soc/dpp/SAND/Utils/sand_header.h>
+
+#include <soc/dpp/SAND/Management/sand_general_macros.h>
+#include <soc/dpp/SAND/Management/sand_error_code.h>
+
+#include <soc/dpp/Petra/PB_PP/pb_pp_api_llp_sa_auth.h>
+#include <soc/dpp/Petra/PB_PP/pb_pp_lem_access.h>
+#include <soc/dpp/Petra/PB_PP/pb_pp_framework.h>
+
+/* } */
+/*************
+ * DEFINES   *
+ *************/
+/* { */
+/* $Id: soc_pb_pp_llp_sa_auth.h,v 1.6 Broadcom SDK $
+ * aging info for entries inserted in SA-Auth, DB,
+ * should not be changed.
+ */
+#define SOC_PB_PP_SA_AUTH_ENTRY_IS_DYNAMIC (FALSE)
+#define SOC_PB_PP_SA_AUTH_ENTRY_AGE (3)
+
+/* } */
+/*************
+ * MACROS    *
+ *************/
+/* { */
+
+#define SOC_PB_PP_LLP_SA_NO_AUTH(mac_based_info)    \
+      (((mac_based_info)->expect_system_port.sys_id == SOC_PB_PP_LLP_SA_AUTH_ACCEPT_ALL_PORTS) &&    \
+      ((mac_based_info)->expect_tag_vid == SOC_PB_PP_LLP_SA_AUTH_ACCEPT_ALL_VIDS) &&     \
+      ((mac_based_info)->tagged_only == FALSE))
+
+#define SOC_PB_PP_LLP_SA_SET_NO_AUTH(mac_based_info)    \
+      (mac_based_info)->expect_system_port.sys_id = SOC_PB_PP_LLP_SA_AUTH_ACCEPT_ALL_PORTS;    \
+      (mac_based_info)->expect_tag_vid = SOC_PB_PP_LLP_SA_AUTH_ACCEPT_ALL_VIDS;     \
+      (mac_based_info)->tagged_only = FALSE;
+
+/* } */
+/*************
+ * TYPE DEFS *
+ *************/
+/* { */
+
+typedef enum
+{
+  /*
+   * Auto generated. Do not edit following section {
+   */
+  SOC_PB_PP_LLP_SA_AUTH_PORT_INFO_SET = SOC_PB_PP_PROC_DESC_BASE_LLP_SA_AUTH_FIRST,
+  SOC_PB_PP_LLP_SA_AUTH_PORT_INFO_SET_PRINT,
+  SOC_PB_PP_LLP_SA_AUTH_PORT_INFO_SET_UNSAFE,
+  SOC_PB_PP_LLP_SA_AUTH_PORT_INFO_SET_VERIFY,
+  SOC_PB_PP_LLP_SA_AUTH_PORT_INFO_GET,
+  SOC_PB_PP_LLP_SA_AUTH_PORT_INFO_GET_PRINT,
+  SOC_PB_PP_LLP_SA_AUTH_PORT_INFO_GET_VERIFY,
+  SOC_PB_PP_LLP_SA_AUTH_PORT_INFO_GET_UNSAFE,
+  SOC_PB_PP_LLP_SA_AUTH_MAC_INFO_SET,
+  SOC_PB_PP_LLP_SA_AUTH_MAC_INFO_SET_PRINT,
+  SOC_PB_PP_LLP_SA_AUTH_MAC_INFO_SET_UNSAFE,
+  SOC_PB_PP_LLP_SA_AUTH_MAC_INFO_SET_VERIFY,
+  SOC_PB_PP_LLP_SA_AUTH_MAC_INFO_GET,
+  SOC_PB_PP_LLP_SA_AUTH_MAC_INFO_GET_PRINT,
+  SOC_PB_PP_LLP_SA_AUTH_MAC_INFO_GET_VERIFY,
+  SOC_PB_PP_LLP_SA_AUTH_MAC_INFO_GET_UNSAFE,
+  SOC_PB_PP_LLP_SA_AUTH_GET_BLOCK,
+  SOC_PB_PP_LLP_SA_AUTH_GET_BLOCK_PRINT,
+  SOC_PB_PP_LLP_SA_AUTH_GET_BLOCK_UNSAFE,
+  SOC_PB_PP_LLP_SA_AUTH_GET_BLOCK_VERIFY,
+  SOC_PB_PP_LLP_SA_AUTH_GET_PROCS_PTR,
+  SOC_PB_PP_LLP_SA_AUTH_GET_ERRS_PTR,
+  /*
+   * } Auto generated. Do not edit previous section.
+   */
+  SOC_PB_PP_SA_BASED_KEY_TO_LEM_KEY_MAP,
+  SOC_PB_PP_SA_BASED_KEY_FROM_LEM_KEY_MAP,
+  SOC_PB_PP_SA_BASED_PAYLOAD_FROM_LEM_PAYLOAD_MAP,
+
+  /*
+   * Last element. Do no touch.
+   */
+  SOC_PB_PP_LLP_SA_AUTH_PROCEDURE_DESC_LAST
+} SOC_PB_PP_LLP_SA_AUTH_PROCEDURE_DESC;
+
+typedef enum
+{
+  /*
+   * Auto generated. Do not edit following section {
+   */
+  SOC_PB_PP_LLP_SA_AUTH_SUCCESS_OUT_OF_RANGE_ERR = SOC_PB_PP_ERR_DESC_BASE_LLP_SA_AUTH_FIRST,
+  SOC_PB_PP_LLP_SA_AUTH_EXPECT_SYSTEM_PORT_OUT_OF_RANGE_ERR,
+  SOC_PB_PP_LLP_SA_AUTH_RULE_TYPE_OUT_OF_RANGE_ERR,
+  SOC_PB_PP_LLP_SA_AUTH_PORT_OUT_OF_RANGE_ERR,
+  /*
+   * } Auto generated. Do not edit previous section.
+   */
+
+  SOC_PB_PP_LLP_SA_AUTH_FEATURE_DISABLED_ERR,
+  SOC_PB_PP_LLP_SA_AUTH_ACCEPT_ALL_ILLEGAL_ERR,
+  SOC_PB_PP_LLP_SA_BASED_LEM_KEY_MISMATCH_ERR,
+  SOC_PB_PP_LLP_AUTH_EN_VID_ASSIGN_DIS_ERR,
+  /*
+   * Last element. Do no touch.
+   */
+  SOC_PB_PP_LLP_SA_AUTH_ERR_LAST
+} SOC_PB_PP_LLP_SA_AUTH_ERR;
+
+/* } */
+/*************
+ * GLOBALS   *
+ *************/
+/* { */
+
+/* } */
+/*************
+ * FUNCTIONS *
+ *************/
+/* { */
+
+uint32
+  soc_pb_pp_llp_sa_auth_init_unsafe(
+    SOC_SAND_IN  int                                 unit
+  );
+
+uint32
+  soc_pb_pp_sa_based_key_to_lem_key_map(
+      SOC_SAND_IN  int                   unit,
+      SOC_SAND_IN  SOC_SAND_PP_MAC_ADDRESS        *mac_key,
+      SOC_SAND_OUT SOC_PB_PP_LEM_ACCESS_KEY       *key
+    );
+
+uint32
+  soc_pb_pp_sa_based_key_from_lem_key_map(
+      SOC_SAND_IN  int                   unit,
+      SOC_SAND_IN  SOC_PB_PP_LEM_ACCESS_KEY       *key,
+      SOC_SAND_OUT SOC_SAND_PP_MAC_ADDRESS        *mac_key
+    );
+
+uint32
+  soc_pb_pp_sa_based_payload_from_lem_payload_map(
+    SOC_SAND_IN  int                       unit,
+    SOC_SAND_IN  SOC_PB_PP_LEM_ACCESS_PAYLOAD        *lem_payload,
+    SOC_SAND_OUT SOC_PB_PP_LLP_SA_AUTH_MAC_INFO      *auth_info
+  );
+
+/*********************************************************************
+* NAME:
+ *   soc_pb_pp_llp_sa_auth_port_info_set_unsafe
+ * TYPE:
+ *   PROC
+ * FUNCTION:
+ *   Sets port information for SA authentication, including
+ *   whether to enable SA authentication on this port.
+ * INPUT:
+ *   SOC_SAND_IN  int                                 unit -
+ *     Identifier of the device to access.
+ *   SOC_SAND_IN  SOC_PB_PP_PORT                                local_port_ndx -
+ *     Local port ID.
+ *   SOC_SAND_IN  SOC_PB_PP_LLP_SA_AUTH_PORT_INFO               *port_auth_info -
+ *     The port information for SA Authentication.
+ * REMARKS:
+ *   - Soc_petraB only API
+ * RETURNS:
+ *   OK or ERROR indication.
+*********************************************************************/
+uint32
+  soc_pb_pp_llp_sa_auth_port_info_set_unsafe(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  SOC_PB_PP_PORT                                local_port_ndx,
+    SOC_SAND_IN  SOC_PB_PP_LLP_SA_AUTH_PORT_INFO               *port_auth_info
+  );
+
+uint32
+  soc_pb_pp_llp_sa_auth_port_info_set_verify(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  SOC_PB_PP_PORT                                local_port_ndx,
+    SOC_SAND_IN  SOC_PB_PP_LLP_SA_AUTH_PORT_INFO               *port_auth_info
+  );
+
+uint32
+  soc_pb_pp_llp_sa_auth_port_info_get_verify(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  SOC_PB_PP_PORT                                local_port_ndx
+  );
+
+/*********************************************************************
+*     Gets the configuration set by the
+ *     "soc_pb_pp_llp_sa_auth_port_info_set_unsafe" API.
+ *     Refer to "soc_pb_pp_llp_sa_auth_port_info_set_unsafe" API
+ *     for details.
+*********************************************************************/
+uint32
+  soc_pb_pp_llp_sa_auth_port_info_get_unsafe(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  SOC_PB_PP_PORT                                local_port_ndx,
+    SOC_SAND_OUT SOC_PB_PP_LLP_SA_AUTH_PORT_INFO               *port_auth_info
+  );
+
+/*********************************************************************
+* NAME:
+ *   soc_pb_pp_llp_sa_auth_mac_info_set_unsafe
+ * TYPE:
+ *   PROC
+ * FUNCTION:
+ *   Set authentication information for a MAC address,
+ *   including the expected VLAN/ports the MAC address has to
+ *   come with.
+ * INPUT:
+ *   SOC_SAND_IN  int                                 unit -
+ *     Identifier of the device to access.
+ *   SOC_SAND_IN  SOC_SAND_PP_MAC_ADDRESS                       *mac_address_key -
+ *     MAC address to set authentication over it.
+ *   SOC_SAND_IN  SOC_PB_PP_LLP_SA_AUTH_MAC_INFO                *mac_auth_info -
+ *     Authentication information for the given MAC.
+ *   SOC_SAND_IN  uint8                                 enable -
+ *     Set to TRUE to add the entry, and to FALSE to remove the
+ *     entry from the DB.
+ *   SOC_SAND_OUT SOC_SAND_SUCCESS_FAILURE                      *success -
+ *     Whether the operation succeeds (upon add). Add operation
+ *     may fail if there is no place in the SA Auth DB.
+ * REMARKS:
+ *   - The DB used for SA Authorization is also shared for
+ *   SA-base VID assignment. When setting Authorization over
+ *   an SA MAC according to VID, then this is also the VID
+ *   that may be used for VID assignment.
+ * RETURNS:
+ *   OK or ERROR indication.
+*********************************************************************/
+uint32
+  soc_pb_pp_llp_sa_auth_mac_info_set_unsafe(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  SOC_SAND_PP_MAC_ADDRESS                       *mac_address_key,
+    SOC_SAND_IN  SOC_PB_PP_LLP_SA_AUTH_MAC_INFO                *mac_auth_info,
+    SOC_SAND_IN  uint8                                 enable,
+    SOC_SAND_OUT SOC_SAND_SUCCESS_FAILURE                      *success
+  );
+
+uint32
+  soc_pb_pp_llp_sa_auth_mac_info_set_verify(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  SOC_SAND_PP_MAC_ADDRESS                       *mac_address_key,
+    SOC_SAND_IN  SOC_PB_PP_LLP_SA_AUTH_MAC_INFO                *mac_auth_info,
+    SOC_SAND_IN  uint8                                 enable
+  );
+
+uint32
+  soc_pb_pp_llp_sa_auth_mac_info_get_verify(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  SOC_SAND_PP_MAC_ADDRESS                       *mac_address_key
+  );
+
+/*********************************************************************
+*     Gets the configuration set by the
+ *     "soc_pb_pp_llp_sa_auth_mac_info_set_unsafe" API.
+ *     Refer to "soc_pb_pp_llp_sa_auth_mac_info_set_unsafe" API for
+ *     details.
+*********************************************************************/
+uint32
+  soc_pb_pp_llp_sa_auth_mac_info_get_unsafe(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  SOC_SAND_PP_MAC_ADDRESS                       *mac_address_key,
+    SOC_SAND_OUT SOC_PB_PP_LLP_SA_AUTH_MAC_INFO                *mac_auth_info,
+    SOC_SAND_OUT uint8                                 *enable
+  );
+
+/*********************************************************************
+* NAME:
+ *   soc_pb_pp_llp_sa_auth_get_block_unsafe
+ * TYPE:
+ *   PROC
+ * FUNCTION:
+ *   Get SA authentation information according to source MAC
+ *   address.
+ * INPUT:
+ *   SOC_SAND_IN  int                                 unit -
+ *     Identifier of the device to access.
+ *   SOC_SAND_IN  SOC_PB_PP_LLP_SA_AUTH_MATCH_RULE              *rule -
+ *     Get only entries that match this rule.
+ *   SOC_SAND_INOUT SOC_SAND_TABLE_BLOCK_RANGE                    *block_range -
+ *     Range for iteration
+ *   SOC_SAND_OUT SOC_SAND_PP_MAC_ADDRESS                       *mac_address_key_arr -
+ *     MAC address array.
+ *   SOC_SAND_OUT SOC_PB_PP_LLP_SA_AUTH_MAC_INFO                *auth_info_arr -
+ *     Authentication info
+ *   SOC_SAND_OUT uint32                                  *nof_entries -
+ *     Number of returned enties in *auth_info_arr
+ * REMARKS:
+ *   None.
+ * RETURNS:
+ *   OK or ERROR indication.
+*********************************************************************/
+uint32
+  soc_pb_pp_llp_sa_auth_get_block_unsafe(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  SOC_PB_PP_LLP_SA_AUTH_MATCH_RULE              *rule,
+    SOC_SAND_INOUT SOC_SAND_TABLE_BLOCK_RANGE                    *block_range,
+    SOC_SAND_OUT SOC_SAND_PP_MAC_ADDRESS                       *mac_address_key_arr,
+    SOC_SAND_OUT SOC_PB_PP_LLP_SA_AUTH_MAC_INFO                *auth_info_arr,
+    SOC_SAND_OUT uint32                                  *nof_entries
+  );
+
+uint32
+  soc_pb_pp_llp_sa_auth_get_block_verify(
+    SOC_SAND_IN  int                                 unit,
+    SOC_SAND_IN  SOC_PB_PP_LLP_SA_AUTH_MATCH_RULE              *rule,
+    SOC_SAND_INOUT SOC_SAND_TABLE_BLOCK_RANGE                    *block_range
+  );
+
+/*********************************************************************
+* NAME:
+ *   soc_pb_pp_llp_sa_auth_get_procs_ptr
+ * TYPE:
+ *   PROC
+ * FUNCTION:
+ *   Get the pointer to the list of procedures of the
+ *   soc_pb_pp_api_llp_sa_auth module.
+ * INPUT:
+ * REMARKS:
+ *
+ * RETURNS:
+ *   OK or ERROR indication.
+*********************************************************************/
+SOC_PROCEDURE_DESC_ELEMENT*
+  soc_pb_pp_llp_sa_auth_get_procs_ptr(void);
+
+/*********************************************************************
+* NAME:
+ *   soc_pb_pp_llp_sa_auth_get_errs_ptr
+ * TYPE:
+ *   PROC
+ * FUNCTION:
+ *   Get the pointer to the list of errors of the
+ *   soc_pb_pp_api_llp_sa_auth module.
+ * INPUT:
+ * REMARKS:
+ *
+ * RETURNS:
+ *   OK or ERROR indication.
+*********************************************************************/
+SOC_ERROR_DESC_ELEMENT*
+  soc_pb_pp_llp_sa_auth_get_errs_ptr(void);
+
+uint32
+  SOC_PB_PP_LLP_SA_AUTH_PORT_INFO_verify(
+    SOC_SAND_IN  SOC_PB_PP_LLP_SA_AUTH_PORT_INFO *info
+  );
+
+uint32
+  SOC_PB_PP_LLP_SA_AUTH_MAC_INFO_verify(
+    SOC_SAND_IN  SOC_PB_PP_LLP_SA_AUTH_MAC_INFO *info
+  );
+
+uint32
+  SOC_PB_PP_LLP_SA_AUTH_MATCH_RULE_verify(
+    SOC_SAND_IN  SOC_PB_PP_LLP_SA_AUTH_MATCH_RULE *info
+  );
+
+/* } */
+
+#include <soc/dpp/SAND/Utils/sand_footer.h>
+
+/* } __SOC_PB_PP_LLP_SA_AUTH_INCLUDED__*/
+#endif
+
