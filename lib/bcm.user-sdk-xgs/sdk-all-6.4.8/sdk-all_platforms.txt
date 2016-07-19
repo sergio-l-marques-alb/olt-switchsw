@@ -18,6 +18,10 @@ make/Makefile.linux-e500mc-3_8
 make/Makefile.linux-e500mc-3_x
 make/Makefile.linux-helixarm-2_6
 make/Makefile.linux-helixarmeb-2_6
+make/Makefile.linux-kernel-3_8
+make/Makefile.linux-kernel-3_x
+make/Make.local
+make/Make.local.dnx
 systems/linux/kernel/pq2pro-2_6/Makefile
 systems/linux/kernel/pq3-2_6/Makefile
 systems/linux/kernel/e500-2_6/Makefile
